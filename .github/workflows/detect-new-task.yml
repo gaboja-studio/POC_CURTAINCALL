@@ -1,0 +1,104 @@
+name: Detect New Task Folder with Details
+
+on:
+  push:
+    paths:
+      - "Tasks/Active/**"
+      - "Tasks/Done/**"
+
+jobs:
+  check-folder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check folder and read markdown content
+        id: folder_check
+        run: |
+          NEW_FILES=$(git diff --name-only --diff-filter=A HEAD^ HEAD)
+
+          STATUS="none"
+          DETECTED_FOLDER=""
+          MD_CONTENT=""
+
+          # 개행(Multiline) 데이터를 GitHub Output에 안전하게 저장하기 위한 고유 구분자 생성
+          EOF=$(dd if=/dev/urandom bs=15 count=1 2>/dev/null | base64)
+
+          for file in $NEW_FILES; do
+            # 1. Tasks/Active/ 하위 새 폴더 감지 -> plan.md 확인
+            if [[ "$file" =~ ^Tasks/Active/([^/]+)/ ]]; then
+              FOLDER_NAME="${BASH_REMATCH[1]}"
+              FOLDER_PATH="Tasks/Active/$FOLDER_NAME"
+              
+              if ! git rev-parse --verify HEAD^:"$FOLDER_PATH" >/dev/null 2>&1; then
+                STATUS="active"
+                DETECTED_FOLDER="$FOLDER_NAME"
+                
+                # plan.md가 존재하면 내용 읽기
+                if [ -f "$FOLDER_PATH/plan.md" ]; then
+                  MD_CONTENT=$(head -c 1500 "$FOLDER_PATH/plan.md") # 디스코드 제한 대비 글자수 제한
+                fi
+                break
+              fi
+            fi
+
+            # 2. Tasks/Done/ 하위 새 폴더 감지 -> todo.md 확인
+            if [[ "$file" =~ ^Tasks/Done/([^/]+)/ ]]; then
+              FOLDER_NAME="${BASH_REMATCH[1]}"
+              FOLDER_PATH="Tasks/Done/$FOLDER_NAME"
+              
+              if ! git rev-parse --verify HEAD^:"$FOLDER_PATH" >/dev/null 2>&1; then
+                STATUS="done"
+                DETECTED_FOLDER="$FOLDER_NAME"
+                
+                # todo.md가 존재하면 내용 읽기
+                if [ -f "$FOLDER_PATH/todo.md" ]; then
+                  MD_CONTENT=$(head -c 1500 "$FOLDER_PATH/todo.md")
+                fi
+                break
+              fi
+            fi
+          done
+
+          # 파일 내용이 비어있을 때의 기본 문구 설정
+          if [ -z "$MD_CONTENT" ]; then
+            MD_CONTENT="이 태스크에는 첨부된 상세 내용이 없습니다."
+          fi
+
+          # GitHub Actions Output 구조에 맞춰 데이터 저장
+          echo "status=$STATUS" >> $GITHUB_OUTPUT
+          echo "folder_name=$DETECTED_FOLDER" >> $GITHUB_OUTPUT
+          echo "md_content<<$EOF" >> $GITHUB_OUTPUT
+          echo "$MD_CONTENT" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+      # [Active] 새 폴더 생성 시 알림 (plan.md 내용 포함)
+      - name: Send Active Notification
+        if: steps.folder_check.outputs.status == 'active'
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          severity: info
+          username: "Task Active Bot"
+          details: |
+            🚀 새로운 태스크가 시작되었습니다: **${{ steps.folder_check.outputs.folder_name }}**
+
+            **📋 [plan.md 내용]**
+            ${{ steps.folder_check.outputs.md_content }}
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      # [Done] 새 폴더 생성 시 알림 (todo.md 내용 포함)
+      - name: Send Done Notification
+        if: steps.folder_check.outputs.status == 'done'
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          severity: success
+          username: "Task Done Bot"
+          details: |
+            🎉 태스크가 완료(Done) 폴더로 이동/생성되었습니다: **${{ steps.folder_check.outputs.folder_name }}**
+
+            **✅ [todo.md 내용]**
+            ${{ steps.folder_check.outputs.md_content }}
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK_URL }}
