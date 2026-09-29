@@ -121,3 +121,6 @@ InitTestScene*.unity*
 /.claude/skills/
 /.harness/
 .DS_Store
+
+# IDE
+/.vscode/
