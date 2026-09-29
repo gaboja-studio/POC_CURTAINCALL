@@ -1,8 +1,10 @@
 name: "🕹️ QA REQUEST"
 description: "검증 요청"
+title: "[QA] "
 labels: ["qa"]
 body:
   - type: textarea
+    id: description
     attributes:
       label: 📄 설명
       description: 요청할 검증에 대한 설명을 작성해 주세요.
@@ -10,6 +12,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: branch
     attributes:
       label: 🔍 브랜치
       description: 타겟 브랜치를 입력해 주세요.
@@ -17,6 +20,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: scene
     attributes:
       label: 🔍 씬
       description: 검증할 타겟 씬을 입력해 주세요.
@@ -24,6 +28,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: steps
     attributes:
       label: 🔍 검증 절차
       description: 검증 절차를 나열해 주세요.
@@ -31,10 +36,12 @@ body:
     validations:
       required: true
   - type: textarea
+    id: assignee
     attributes:
       label: 👤 담당자
       description: 담당자가 있다면 작성해주세요.
   - type: textarea
+    id: references
     attributes:
       label: 🙋🏻 참고 자료
       description: 참고 자료가 있다면 작성해 주세요.

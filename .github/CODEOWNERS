@@ -1,0 +1,15 @@
+# PM 전용 영역 (Harness/Core/Policies/team-roles.md)
+# 브랜치 보호에서 "Require review from Code Owners"를 켜면, 아래 경로를 바꾼 PR은 PM 승인 없이 병합되지 않는다.
+# 앞의 "/"는 저장소 루트 기준이라는 뜻이다. /Scripts/는 루트 Scripts/만 해당하고 Assets/ 안의 스크립트 폴더는 해당하지 않는다.
+
+/Harness/                @MoHoDu
+/AGENTS.md               @MoHoDu
+/CLAUDE.md               @MoHoDu
+/.mcp.json               @MoHoDu
+/.claude/                @MoHoDu
+/Scripts/                @MoHoDu
+/.github/                @MoHoDu
+/Docs/Guides/            @MoHoDu
+
+# Task의 작업 구역 정의는 PM이 정한다.
+/Tasks/**/setup.md       @MoHoDu

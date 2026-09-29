@@ -1,0 +1,35 @@
+name: Verify Docs
+
+# PR마다 하네스 문서 규칙(크기 한도, 이름 규칙, 지식 index)을 검사한다.
+# 브랜치 보호에서 이 검사를 "필수"로 지정하면, 실패한 PR은 병합할 수 없다.
+on:
+  pull_request:
+    branches:
+      - dev
+      - "integration/**"
+      - "builds/**"
+
+jobs:
+  verify-fast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run harness checks (verify-fast)
+        shell: pwsh
+        run: ./Scripts/verify-fast.ps1
+
+  verify-scope:
+    # 작업 브랜치 PR만: 작업 구역 밖 수정, PM 전용 경로, 다른 Task 구역, .meta 누락을 검사한다.
+    if: startsWith(github.head_ref, 'feat/') || startsWith(github.head_ref, 'fix/') || startsWith(github.head_ref, 'refactor/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run scope check (verify-scope)
+        shell: pwsh
+        run: ./Scripts/verify-scope.ps1 -Branch "${{ github.head_ref }}" -Base "origin/${{ github.base_ref }}" -Actor "${{ github.actor }}"

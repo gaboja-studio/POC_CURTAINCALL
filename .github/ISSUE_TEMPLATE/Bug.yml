@@ -1,8 +1,10 @@
 name: "🐞 BUG"
 description: "버그 제보"
+title: "[BUG] "
 labels: ["bug"]
 body:
   - type: textarea
+    id: description
     attributes:
       label: 📄 설명
       description: 새로운 기능에 대한 설명을 작성해 주세요.
@@ -10,6 +12,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: situation
     attributes:
       label: 🔍 상황
       description: 버그 당시 상황을 기록해 주세요.
@@ -17,10 +20,12 @@ body:
     validations:
       required: true
   - type: textarea
+    id: assignee
     attributes:
       label: 👤 담당자
       description: 담당자가 있다면 작성해주세요.
   - type: textarea
+    id: references
     attributes:
       label: 🙋🏻 참고 자료
       description: 참고 자료가 있다면 작성해 주세요.
