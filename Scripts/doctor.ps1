@@ -164,8 +164,14 @@ if (Test-Path -LiteralPath $skillsDir) {
 $ghState = Get-GhState
 if ($ghState.State -eq 'Ready') {
     Add-Check OK 'github-cli' $ghState.Detail
+    try {
+        Assert-CommitIdentity
+        Add-Check OK 'commit-author' "$(& git -C $RepoRoot config user.name) (gh 계정, 커밋 검사 훅 켜짐)"
+    } catch {
+        Add-Check FAIL 'commit-author' '커밋 작성자가 gh 계정이 아니거나 커밋 검사 훅이 꺼짐 → pwsh -File Scripts/setup-gh.ps1'
+    }
 } else {
-    Add-Check WARN 'github-cli' "$($ghState.Detail). PR·이슈는 웹페이지 방식으로 진행됨 (Skill: setup-gh)"
+    Add-Check WARN 'github-cli' "$($ghState.Detail). 커밋은 GitHub 연결 후에만 가능 (Skill: setup-gh)"
 }
 
 $fail = @($results | Where-Object Level -eq 'FAIL').Count

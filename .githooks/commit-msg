@@ -1,0 +1,18 @@
+#!/bin/sh
+# 커밋은 gh에 로그인된 현재 GitHub 계정으로만 한다. AI 이름의 작성자·공동 작성자·생성 표시를 막는다.
+# 규칙: Harness/Core/Policies/git-workflow.md "작성자". 설정: pwsh -File Scripts/setup-gh.ps1
+AI='claude|anthropic|openai|chatgpt|copilot|gemini|codex'
+
+if grep -iqE "^[[:space:]]*(co-authored-by|signed-off-by)[[:space:]]*:.*($AI)" "$1" ||
+   grep -iqE "generated (with|by).*($AI)" "$1"; then
+  echo "[거부] 커밋 메시지에 AI 공동 작성자·생성 표시가 있습니다. 해당 줄을 지우고 다시 커밋하세요." >&2
+  exit 1
+fi
+
+IDENT="$(git var GIT_AUTHOR_IDENT) / $(git var GIT_COMMITTER_IDENT)"
+if echo "$IDENT" | grep -iqE "$AI"; then
+  echo "[거부] 커밋 작성자가 AI 이름입니다: $IDENT" >&2
+  echo "       pwsh -File Scripts/setup-gh.ps1 로 내 GitHub 계정을 작성자로 설정하세요." >&2
+  exit 1
+fi
+exit 0

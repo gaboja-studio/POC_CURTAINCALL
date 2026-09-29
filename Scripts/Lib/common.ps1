@@ -332,3 +332,35 @@ function Get-AssetMetaPaths {
     $result = for ($i = 2; $i -le $parts.Count; $i++) { ($parts[0..($i - 1)] -join '/') + '.meta' }
     return @($result)
 }
+
+# ---------- 커밋 작성자 (Harness/Core/Policies/git-workflow.md "작성자") ----------
+
+function Get-GitHubIdentity {
+    # gh 로그인 계정 → 커밋 작성자. 이메일은 계정과 항상 연결되는 noreply 주소.
+    $gh = Get-GhCli
+    if (-not $gh) { return $null }
+    $r = Invoke-NativeWithTimeout -FilePath $gh -Arguments @('api', 'user', '--jq', '"\(.login) \(.id)"') -TimeoutSeconds 15
+    if ($r.TimedOut -or $r.ExitCode -ne 0 -or -not $r.StdOut.Trim()) { return $null }
+    $login, $id = $r.StdOut.Trim().Split(' ')
+    return [pscustomobject]@{ Login = $login; Name = $login; Email = "$id+$login@users.noreply.github.com" }
+}
+
+function Set-GitIdentity {
+    # 이 저장소(local)의 커밋 작성자를 gh 계정으로 맞추고 커밋 차단 훅을 켠다.
+    param([Parameter(Mandatory)]$Identity)
+    & git -C $script:RepoRoot config --local user.name $Identity.Name
+    & git -C $script:RepoRoot config --local user.email $Identity.Email
+    & git -C $script:RepoRoot config --local core.hooksPath .githooks
+}
+
+function Assert-CommitIdentity {
+    # 커밋하는 스크립트가 커밋 전에 호출한다. 작성자가 gh 계정이 아니거나 훅이 꺼져 있으면 멈춘다.
+    $identity = Get-GitHubIdentity
+    if (-not $identity) { throw 'GitHub 연결이 필요합니다. 커밋은 내 GitHub 계정으로만 할 수 있어요. AI에게 "GitHub 연결해줘"라고 말하세요.' }
+    $name = (& git -C $script:RepoRoot config user.name)
+    $email = (& git -C $script:RepoRoot config user.email)
+    $hooks = (& git -C $script:RepoRoot config core.hooksPath)
+    if ($name -ne $identity.Name -or $email -ne $identity.Email -or $hooks -ne '.githooks') {
+        throw "커밋 작성자($name <$email>)가 GitHub 계정(@$($identity.Login))과 다르거나 커밋 검사가 꺼져 있습니다. pwsh -File Scripts/setup-gh.ps1 을 실행하세요."
+    }
+}

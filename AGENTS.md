@@ -34,6 +34,7 @@ Unity 6 POC 프로젝트. 게임 개요는 아직 미정(TBD)이며 확정되면
 - 플레이어가 체감하는 선택(게임 규칙·밸런스·UX·씬·아트·사운드)은 `Harness/Core/Policies/human-decision.md`.
 - Unity 변경 전 `Harness/Engine/Unity/Policies/code-folders.md`, `asset-ownership.md`. `setup.md` 작업 구역 밖은 수정하지 않는다.
 - commit/push는 사용자가 요청할 때만("저장해줘", "제출해줘" 포함). reset/discard/force는 PM의 명시적 요청 때만.
+- 커밋 작성자는 gh 로그인 계정만. AI 이름의 작성자·`Co-Authored-By`·`Generated with` 줄을 커밋·PR에 넣지 않는다.
 - 비밀값, OAuth 상태, Pipeline 토큰을 추적하거나 출력하지 않는다.
 - 보조 AI 사용은 `Harness/Core/Policies/subagent-usage.md` (기본 1명, 동시 최대 2명).
 

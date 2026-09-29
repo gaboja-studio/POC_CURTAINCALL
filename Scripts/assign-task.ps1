@@ -57,6 +57,7 @@ if ($problems.Count) {
     throw '인계 전 점검을 통과하지 못했습니다.'
 }
 if (-not $PSCmdlet.ShouldProcess($branch, '인계(커밋·push·작업 브랜치 생성)')) { return }
+Assert-CommitIdentity
 
 Set-MetaField -MetaPath $meta -Field 'Status' -Value 'assigned'
 Set-MetaField -MetaPath $meta -Field 'Branch' -Value $branch

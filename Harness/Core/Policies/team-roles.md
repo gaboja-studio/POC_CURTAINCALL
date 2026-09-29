@@ -15,7 +15,7 @@ PM 계정: GitHub `@MoHoDu` (`Harness/Project/Facts/team.md`).
 | 위치 | 수정할 수 있는 사람 | 동시에 고쳤을 때 |
 |---|---|---|
 | `Harness/`, `AGENTS.md`, `CLAUDE.md` | PM만 | — |
-| 루트 `Scripts/`, `.github/` | PM만 (`Assets/` 안의 스크립트 폴더와는 다름) | — |
+| 루트 `Scripts/`, `.github/`, `.githooks/` | PM만 (`Assets/` 안의 스크립트 폴더와는 다름) | — |
 | Skill 추가·삭제, `.mcp.json`, `.claude/` | PM만 | — |
 | `Tasks/<Task>/` | Task 담당자 | 담당자 내용 우선. 단 `setup.md`는 **PM 우선** |
 | `Docs/Guides/` | PM만 | — |
