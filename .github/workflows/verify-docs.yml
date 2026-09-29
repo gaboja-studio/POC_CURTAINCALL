@@ -33,3 +33,25 @@ jobs:
       - name: Run scope check (verify-scope)
         shell: pwsh
         run: ./Scripts/verify-scope.ps1 -Branch "${{ github.head_ref }}" -Base "origin/${{ github.base_ref }}" -Actor "${{ github.actor }}"
+
+  verify-commits:
+    # 모든 PR: 커밋 작성자·공동 작성자에 AI 이름(Claude 등)이 있으면 실패. 커밋은 팀원 GitHub 계정으로만.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reject AI authors and co-authors
+        shell: bash
+        run: |
+          RANGE="origin/${{ github.base_ref }}..${{ github.event.pull_request.head.sha }}"
+          BAD=$(git log --format='%h %an <%ae> / %cn <%ce>%n%(trailers:key=Co-authored-by,valueonly)' "$RANGE" \
+            | grep -iE 'claude|anthropic|openai|chatgpt|copilot|gemini|codex' || true)
+          if [ -n "$BAD" ]; then
+            echo "AI 이름이 작성자·공동 작성자로 들어간 커밋이 있습니다:"
+            echo "$BAD"
+            exit 1
+          fi
+          echo "OK: 모든 커밋이 팀원 계정으로 작성됨"

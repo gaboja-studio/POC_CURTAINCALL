@@ -9,6 +9,7 @@
 /.claude/                @MoHoDu
 /Scripts/                @MoHoDu
 /.github/                @MoHoDu
+/.githooks/              @MoHoDu
 /Docs/Guides/            @MoHoDu
 
 # Task의 작업 구역 정의는 PM이 정한다.

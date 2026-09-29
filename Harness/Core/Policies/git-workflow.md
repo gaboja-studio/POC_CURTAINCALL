@@ -34,6 +34,14 @@ feat/* · fix/* · refactor/*  ──PR(Squash)──▶ integration/* ──PR(
 - `integration/*` → `dev`: **Merge commit**. 기능 묶음 단위로 기록이 남고 한 번에 되돌릴 수 있다.
 - 병합한 작업 브랜치에서 계속 작업하지 않는다(Squash 후 기록이 어긋난다). 추가 작업은 새 Task로 한다.
 
+## 작성자
+
+- 커밋은 **gh에 로그인된 현재 GitHub 계정으로만** 한다. 누가 작업했는지가 GitHub 기록에 보여야 한다.
+- AI(Claude, Claude Code 등)의 이름을 작성자·공동 작성자로 쓰지 않는다. 커밋 메시지와 PR 본문에 `Co-Authored-By: <AI>`, `Generated with <AI>` 같은 줄을 넣지 않는다.
+- 설정: `pwsh -File Scripts/setup-gh.ps1`이 이 저장소의 작성자를 gh 계정(`<id>+<login>@users.noreply.github.com`)으로 맞추고 커밋 검사 훅(`.githooks/commit-msg`)을 켠다.
+- 강제: 커밋하는 스크립트는 작성자가 gh 계정이 아니면 멈추고, 훅은 AI 이름이 있으면 커밋을 거부하며, PR에서는 `verify-commits` 검사가 한 번 더 확인한다.
+- GitHub에 연결되지 않은 PC에서는 커밋하지 않는다(`setup-gh` Skill로 연결).
+
 ## 저장(커밋)·올리기(push)
 
 - AI는 사용자가 요청할 때만 커밋·push한다. "저장해줘", "제출해줘", "오늘 여기까지"가 요청에 해당한다.

@@ -15,7 +15,7 @@ $requiredFiles = @(
     'Harness/Core/Templates/Task/log.md',
     'Harness/Engine/Unity/Decisions/version.md', 'Harness/Project/Facts/repository.md',
     'Docs/Domains/index.md', '.github/CODEOWNERS', '.github/PULL_REQUEST_TEMPLATE.md',
-    'Harness/Core/Templates/Task/setup.md', 'Harness/Project/Facts/team.md'
+    'Harness/Core/Templates/Task/setup.md', 'Harness/Project/Facts/team.md', '.githooks/commit-msg'
 )
 foreach ($rel in $requiredFiles) {
     if (-not (Test-Path -LiteralPath (Get-RepoPath $rel) -PathType Leaf)) { $failures.Add("필수 파일 없음: $rel") }

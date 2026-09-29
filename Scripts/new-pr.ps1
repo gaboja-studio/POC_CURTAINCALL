@@ -11,6 +11,10 @@ param(
     # 대상 브랜치. 생략하면 Task meta.md의 Integration.
     [string]$Base,
     [string]$PlayCheck = '미실행',
+    # 검사 결과 칸 직접 지정(Task가 없는 통합 PR 등). 생략하면 Task handoff.md의 Verification을 쓴다.
+    [string]$ScopeCheck,
+    [string]$CompileCheck,
+    [string]$TestCheck,
     [switch]$Push,
     [switch]$Browser,
     [switch]$DryRun
@@ -85,9 +89,9 @@ foreach ($part in $parts) {
                 if ($l -notmatch '^\s*-\s*([^(:]+)') { continue }
                 $label = $Matches[1].Trim()
                 $v = switch -Regex ($label) {
-                    '구역' { Get-Check '구역 검사' }
-                    '컴파일' { Get-Check '2 컴파일' }
-                    '테스트' { Get-Check '3 테스트' }
+                    '구역' { if ($ScopeCheck) { $ScopeCheck } elseif (-not $task) { '해당 없음 (Task 없는 PM 브랜치)' } else { Get-Check '구역 검사' } }
+                    '컴파일' { if ($CompileCheck) { $CompileCheck } else { Get-Check '2 컴파일' } }
+                    '테스트' { if ($TestCheck) { $TestCheck } else { Get-Check '3 테스트' } }
                     '플레이' { $PlayCheck }
                     default { '미실행' }
                 }
