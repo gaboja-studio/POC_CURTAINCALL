@@ -16,6 +16,7 @@ $status = & git -C $RepoRoot status --porcelain
 if (-not $status) { Write-Output '저장할 변경이 없습니다.'; exit 0 }
 
 $blocked = $false
+try { Assert-CommitIdentity } catch { Write-Output "[위반] $($_.Exception.Message)"; $blocked = $true }
 if ($branch -notlike 'tests/*') {
     & (Join-Path $PSScriptRoot 'verify-scope.ps1')
     if ($LASTEXITCODE -ne 0) { $blocked = $true }
@@ -32,6 +33,7 @@ if ($blocked) {
 }
 if ($DryRun) { Write-Output "미리보기만 했습니다. 커밋 메시지: $Message"; exit 0 }
 
+Assert-CommitIdentity
 & git -C $RepoRoot add -A
 & git -C $RepoRoot commit -m $Message
 if ($LASTEXITCODE -ne 0) { throw 'git commit 실패' }

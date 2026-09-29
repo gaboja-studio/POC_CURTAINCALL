@@ -44,7 +44,15 @@ if ($state.State -eq 'NotInstalled' -and $Install) {
 
 Write-Output "GH: $($state.State) — $($state.Detail)"
 switch ($state.State) {
-    'Ready' { exit 0 }
+    'Ready' {
+        # 커밋은 gh 계정으로만: 이 저장소의 작성자를 gh 계정으로 맞추고 AI 이름 차단 훅을 켠다.
+        $identity = Get-GitHubIdentity
+        if ($identity) {
+            Set-GitIdentity -Identity $identity
+            Write-Output "커밋 작성자: $($identity.Name) <$($identity.Email)> (이 저장소에만 적용), 커밋 검사 훅 켜짐"
+        }
+        exit 0
+    }
     'NotInstalled' {
         Write-Output '다음: pwsh -File Scripts/setup-gh.ps1 -Install'
         exit 10

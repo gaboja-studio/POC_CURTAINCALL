@@ -32,6 +32,7 @@ Write-Output "PM:       $(if ($pm) { "@$pm" } else { '(확인 불가 — gh 미�
 if ($pm -and $pm -ne (Get-PmAccount)) { Write-Output "[경고] 현재 GitHub 계정(@$pm)이 Facts/team.md의 PM과 다릅니다." }
 
 if (-not $PSCmdlet.ShouldProcess($branch, '통합 브랜치 생성')) { return }
+Assert-CommitIdentity
 
 & git -C $RepoRoot switch -c $branch $startPoint
 if ($LASTEXITCODE -ne 0) { throw 'git switch 실패' }

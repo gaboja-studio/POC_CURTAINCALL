@@ -94,6 +94,7 @@ if ($problems.Count) {
 if (-not $PSCmdlet.ShouldProcess($branch, 'Task·통합 기록을 Done으로 이동 후 커밋·push')) { return }
 
 $today = Get-Date -Format 'yyyy-MM-dd'
+Assert-CommitIdentity
 New-Item -ItemType Directory -Path (Get-RepoPath 'Tasks/Done'), (Get-RepoPath 'Integrations/Done') -Force | Out-Null
 foreach ($t in $tasks) {
     $meta = Join-Path $t.FullName 'meta.md'
