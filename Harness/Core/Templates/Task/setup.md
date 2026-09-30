@@ -2,7 +2,7 @@
 
 PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 작업자와 AI는 **작업 구역**과 **배정된 공용 파일**만 수정한다. `verify-scope`가 이 파일의 백틱(`) 경로를 읽어 검사한다.
-경로는 백틱으로 감싼다. 폴더는 `/`로 끝낸다. 예: `Assets/_Sandbox/CurtainOpen/`
+경로는 백틱으로 감싼다. 폴더는 `/`로 끝낸다. 예: `Assets/Scenes/Tests/CurtainOpen/`
 
 ## JIRA
 

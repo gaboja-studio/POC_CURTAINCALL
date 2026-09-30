@@ -68,7 +68,7 @@ try {
 
     Write-Output ''
     Write-Output "생성: Tasks/Active/$id-$Slug/"
-    Write-Output '다음: Unity에서 테스트 씬(Assets/_Sandbox/<Feature>/)과 스크립트 폴더(Assets/Scripts/<Feature>/)를 만들고'
+    Write-Output '다음: Unity에서 테스트 씬(Assets/Scenes/Tests/<Feature>/)과 스크립트 폴더(Assets/Scripts/<Feature>/)를 만들고'
     Write-Output '      setup.md에 경로·JIRA를 적은 뒤 plan.md 공동 테스트 항목을 합의하세요. 인계: assign-task.ps1'
 } finally {
     $lock.Dispose()

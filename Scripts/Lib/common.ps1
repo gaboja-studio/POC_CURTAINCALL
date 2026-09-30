@@ -341,7 +341,7 @@ function Assert-CleanTree {
 
 function Get-AssetMetaPaths {
     # Assets/ 경로에 필요한 .meta 목록: 자기 자신 + Assets와 자신 사이의 모든 상위 폴더.
-    # 예: Assets/_Sandbox/Curtain/Test.unity → Assets/_Sandbox.meta, Assets/_Sandbox/Curtain.meta, …/Test.unity.meta
+    # 예: Assets/Scenes/Tests/Curtain/Test.unity → Assets/Scenes.meta, Assets/Scenes/Tests.meta, Assets/Scenes/Tests/Curtain.meta, …/Test.unity.meta
     param([Parameter(Mandatory)][string]$Path)
     $clean = $Path.TrimEnd('/')
     if ($clean -notlike 'Assets/*' -or $clean -like '*.meta') { return @() }

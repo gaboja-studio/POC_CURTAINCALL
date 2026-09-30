@@ -13,7 +13,7 @@ description: PM 전용. 통합 브랜치 위에 Task 폴더를 만들고 번호�
 4. 확인 후 `-WhatIf` 없이 실행한다. 번호는 스크립트가 원격 브랜치까지 확인해 발급한다(손으로 고르지 않는다).
    - Task 폴더 생성, Integration `meta.md`의 Tasks 표에 한 줄 추가. 브랜치는 인계 때 만든다.
 5. PM에게 Unity에서 할 일을 안내한다:
-   - 테스트 씬: `Assets/_Sandbox/<Feature>/` / 스크립트 폴더: `Assets/Scripts/<Feature>/` (빈 폴더엔 `.gitkeep`)
+   - 테스트 씬: `Assets/Scenes/Tests/<Feature>/` / 스크립트 폴더: `Assets/Scripts/<Feature>/` (빈 폴더엔 `.gitkeep`)
    - Unity에서 저장해 `.meta`가 생기게 한다.
 6. PM이 알려 준 경로와 JIRA 번호로 `setup.md`를 채운다(경로는 백틱, 폴더는 `/`로 끝냄). 공용 파일이 필요하면 Integration 소유 표에 배정하고 `setup.md`에도 적는다.
 7. `plan-task`로 공동 테스트 항목을 합의한다.
