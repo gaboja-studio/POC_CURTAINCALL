@@ -333,6 +333,46 @@ function Get-AssetMetaPaths {
     return @($result)
 }
 
+function Get-WorktreeFingerprint {
+    # 추적 파일과 미추적 일반 파일의 내용 및 인덱스 상태를 묶는다.
+    $paths = @(& git -C $script:RepoRoot ls-files --cached --others --exclude-standard)
+    if ($LASTEXITCODE -ne 0) { throw '작업 파일 목록을 읽지 못했습니다.' }
+    $lines = foreach ($relative in ($paths | Sort-Object -Unique)) {
+        $path = Join-Path $script:RepoRoot $relative
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { "$relative MISSING"; continue }
+        $hash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+        "$relative $hash"
+    }
+    $staged = & git -C $script:RepoRoot diff --cached --binary
+    if ($LASTEXITCODE -ne 0) { throw '스테이징 변경을 읽지 못했습니다.' }
+    $lines += "STAGED $($staged -join "`n")"
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes(($lines -join "`n"))
+    return [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($bytes))
+}
+
+function Get-VerificationEvidencePath {
+    return Join-Path $script:RepoRoot '.harness/local/check-work-evidence.json'
+}
+
+function Save-VerificationEvidence {
+    param([Parameter(Mandatory)][string]$Branch)
+    $path = Get-VerificationEvidencePath
+    New-Item -ItemType Directory -Path (Split-Path $path -Parent) -Force | Out-Null
+    @{ Branch = $Branch; Fingerprint = (Get-WorktreeFingerprint) } |
+        ConvertTo-Json -Compress | Set-Content -LiteralPath $path -Encoding utf8NoBOM
+}
+
+function Test-VerificationEvidence {
+    param([Parameter(Mandatory)][string]$Branch)
+    $path = Get-VerificationEvidencePath
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return $false }
+    try {
+        $evidence = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+        if ($evidence.Branch -ne $Branch -or $evidence.Fingerprint -notmatch '^[A-F0-9]{64}$') { return $false }
+        return $evidence.Fingerprint -eq (Get-WorktreeFingerprint)
+    } catch { return $false }
+}
+
 # ---------- 커밋 작성자 (Harness/Core/Policies/git-workflow.md "작성자") ----------
 
 function Get-GitHubIdentity {
