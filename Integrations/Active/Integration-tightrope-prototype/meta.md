@@ -6,13 +6,13 @@
 - **Base:** dev
 - **PM:** @MoHoDu
 - **Merge Time:** 순차 병합 — 1단계 작업은 2~3일차, 연결 작업은 4일차, 공동 테스트·dev 반영은 5일차 (착수 후 5일 기한)
-- **Updated:** 2026-09-30
+- **Updated:** 2026-10-01
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
 ## 목표
 
-- 4명이 온라인 방에 모이면 게임이 시작되고, 줄 9개 위에서 이동·균형·옆줄 이동·목마·해제를 함께 테스트할 수 있다.
+- 4명이 온라인 방에 모이면 게임이 시작되고, 4줄로 시작해 1줄로 끝나는 직선 코스 위에서 이동·균형·옆줄 이동·목마·해제를 함께 테스트할 수 있다.
 - 쉬운 설명·작업 공간 전체: [plan.md](plan.md)
 
 ## Tasks
@@ -37,7 +37,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | `Assets/Resources/Prefabs/Controllers/Network/` | Task-20260930-003 | NetworkManager 프리팹 |
 | `Assets/Resources/Input/` | Task-20260930-004 → 병합 후 009 | 조작 입력 에셋 |
 | `Assets/Resources/Prefabs/Characters/Players/` | Task-20260930-004 → 병합 후 009 | 플레이어 프리팹 (009가 네트워크 적용) |
-| `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | Task-20260930-005 | 9줄 스테이지 (다른 Task는 배치만) |
+| `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | Task-20260930-005 | 외줄 코스 스테이지 (다른 Task는 배치만) |
 | `Assets/Resources/Prefabs/Objects/Tools/` | Task-20260930-008 | 도구 프리팹 |
 | `Assets/Scripts/Network/PlayerSync/` (연결 단계) | Task-20260930-007 → 병합 후 009 | 010과 동시 수정 방지 |
 
@@ -45,5 +45,6 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 ## Decisions
 
-- Open: 담당자 4명의 GitHub 계정 / Confluence 문서 반입(PM) / 패키지 설치(PM)
+- Open: 담당자 GitHub 계정 (미배정, 작업 상황 보고 PM이 결정)
 - Decided: 2026-09-30 @MoHoDu — NGO + Multiplayer Services(Host), 이동은 클라·판정은 호스트, 패키지 PM 선설치, 조작용 로드 에셋은 `Assets/Resources/`, AI는 컴파일만·플레이 테스트는 작업자, 음성·런 데이터 제외, 4인 기준 ([결정](../../../Harness/Project/Decisions/multiplayer-stack.md), [검증](../../../Harness/Project/Decisions/prototype-verification.md))
+- Decided: 2026-10-01 @MoHoDu — 패키지 설치·Unity Cloud 연결(gaboja-studio) 완료, Confluence 2건 요약 반입, 외줄 규칙 확정([결정](../../../Harness/Project/Decisions/tightrope-rules.md))

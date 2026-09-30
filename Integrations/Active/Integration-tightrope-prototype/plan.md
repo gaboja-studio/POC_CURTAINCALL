@@ -1,6 +1,6 @@
 # 외줄타기 프로토타입 작업 계획
 
-목표: **5일 안에** 4명이 온라인으로 모여 줄 9개 위에서 걷기·균형·옆줄 이동·목마를 해 볼 수 있게 만든다.
+목표: **5일 안에** 4명이 온라인으로 모여 4줄로 시작해 1줄로 끝나는 직선 코스에서 걷기·균형·옆줄 이동·목마를 해 볼 수 있게 만든다.
 원문: [브리프](../../../Docs/References/tightrope-prototype-brief.md) · 결정: [멀티플레이 구성](../../../Harness/Project/Decisions/multiplayer-stack.md), [배치 위치](../../../Harness/Project/Decisions/asset-placement.md), [검증 방식](../../../Harness/Project/Decisions/prototype-verification.md)
 
 ## 정해진 것 (2026-09-30, PM)
@@ -12,6 +12,7 @@
 5. AI는 **컴파일 오류만** 검사한다. 직접 해 보는 플레이 테스트는 **작업자가 하고 결과를 알려 준다.**
 6. 음성 채팅, 런 기록 저장은 이번에 하지 않는다.
 7. **4명 기준**으로만 만든다.
+8. 외줄 규칙(조작·목마·추락·도착)은 [외줄 규칙 결정](../../../Harness/Project/Decisions/tightrope-rules.md)을 따른다. 코스는 4줄로 시작해 1줄로 끝나는 직선이다(줄 수는 바뀔 수 있어 인스펙터 값).
 
 ## 작업 8개
 
@@ -37,11 +38,11 @@ PM이 Unity에서 폴더·테스트 씬을 미리 만들고 각 Task `setup.md`�
 |---|---|---|---|---|
 | 방 만들기 | 방 생성·참가, 4명 모이면 자동 시작, 호스트 나가면 전원 종료, 게임 상태 공유 | `Assets/Scripts/Network/Session/` | `Assets/Resources/Prefabs/Controllers/Network/` | `Assets/Scenes/Tests/NetworkSession/` |
 | 플레이어 조작 | W/S·A/D·Space·Q/E·F(짧게/길게) 입력, 기본 이동, 모델 바꿔 끼우기 | `Assets/Scripts/Player/` | `Assets/Resources/Input/`, `Assets/Resources/Prefabs/Characters/Players/` | `Assets/Scenes/Tests/PlayerControl/` |
-| 외줄 기본 | 줄 9개, 앞뒤 이동, 균형, 점프, 옆줄 이동, 떨어지면 사망 | `Assets/Scripts/Tightrope/Rope/` | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | `Assets/Scenes/Tests/Tightrope/` |
+| 외줄 기본 | 4줄→1줄 직선 코스, 앞뒤 이동, 균형, 점프, 옆줄 이동, 추락(전원 추락 시 재시작), 도착 거리 | `Assets/Scripts/Tightrope/Rope/` | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | `Assets/Scenes/Tests/Tightrope/` |
 | 목마 | F 짧게=올라타기, F 길게=내리기, 안 되는 상황 막기 | `Assets/Scripts/Tightrope/Piggyback/` | 없음 (테스트 캐릭터는 테스트 씬 `Prefabs/`) | `Assets/Scenes/Tests/Piggyback/` |
 | 플레이어 동기화 | 위치·상태(사망 등)·애니메이션 값 공유 (테스트 캡슐 사용) | `Assets/Scripts/Network/PlayerSync/` | 없음 (테스트 캡슐은 테스트 씬 `Prefabs/`) | `Assets/Scenes/Tests/NetworkPlayerSync/` |
 | 오브젝트 동기화 | 도구 잡기·놓기, 1인당 최대 2개, 위치·상태 공유 | `Assets/Scripts/Network/PropSync/` | `Assets/Resources/Prefabs/Objects/Tools/`, `Assets/Resources/Prefabs/Objects/Interactables/SyncTest/` | `Assets/Scenes/Tests/NetworkPropSync/` |
-| 연결: 외줄+온라인 | 진짜 플레이어에 온라인 적용, 줄 위 움직임·사망 공유, **4인 9줄 최종 씬** | `Assets/Scripts/Connect/TightropeNetwork/` + 이어받기: Player, Tightrope/Rope, Network/PlayerSync | 플레이어 프리팹 이어받기 | `Assets/Scenes/Tests/TightropeNetwork/` |
+| 연결: 외줄+온라인 | 진짜 플레이어에 온라인 적용, 줄 위 움직임·사망 공유, **4인 외줄 코스 최종 씬** | `Assets/Scripts/Connect/TightropeNetwork/` + 이어받기: Player, Tightrope/Rope, Network/PlayerSync | 플레이어 프리팹 이어받기 | `Assets/Scenes/Tests/TightropeNetwork/` |
 | 연결: 목마+온라인 | 줄 위 목마, 호스트 판정, 동시에 타려 할 때 등 예외 | `Assets/Scripts/Connect/PiggybackNetwork/` + 이어받기: Tightrope/Piggyback | — | `Assets/Scenes/Tests/PiggybackNetwork/` |
 
 - **C# 코드는 모두 `Assets/Scripts/`**, **씬은 모두 `Assets/Scenes/`** 안에 둔다. 테스트 씬은 `Assets/Scenes/Tests/<작업>/`.
@@ -62,7 +63,7 @@ PM이 Unity에서 폴더·테스트 씬을 미리 만들고 각 Task `setup.md`�
 ## 확인 방법
 
 - 작업자: "검사해줘" → 컴파일 확인. 플레이 확인 항목은 AI가 목록으로 주고, **작업자가 직접 해 보고 결과를 답한다.**
-- 최종 확인(5일차, 4명): 모두 방에 들어오면 시작되는가 / 9줄에서 걷기·균형·옆줄 이동·목마·내리기가 모두에게 똑같이 보이는가 / 떨어지면 사망으로 보이는가 / 호스트가 나가면 끝나는가.
+- 최종 확인(5일차, 4명): 모두 방에 들어오면 시작되는가 / 외줄 코스에서 걷기·균형·옆줄 이동·목마·내리기가 모두에게 똑같이 보이는가 / 떨어진 사람은 대기로 보이고 모두 떨어지면 재시작되는가 / 한 명이 도착하면 성공인가 / 호스트가 나가면 끝나는가.
 
 ## PM이 할 일
 
