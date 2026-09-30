@@ -16,7 +16,9 @@ Unity 에셋·기능 코드 작업 시 실제 경로와 Task 소유 범위를 �
 ## Planned 경로 (아직 없음)
 
 - `Assets/Scripts/<Feature>/` — PM이 Task별로 생성·배정할 기능 코드 폴더. 현재 `Assets/Scripts.meta`만 있다.
-- `Assets/_Sandbox/<Feature>/` — PM이 필요 시 만드는 Task별 시험 씬 폴더.
+- `Assets/Scenes/Tests/<Feature>/` — PM이 만드는 Task별 테스트 씬 폴더. 테스트 전용 프리팹은 그 안의 `Prefabs/`.
+- `Assets/Resources/Input/` — 플레이어 조작 입력 에셋.
+- 위치 규칙: C# 코드는 `Assets/Scripts/`에만, 씬은 `Assets/Scenes/`에만 둔다(`Harness/Project/Decisions/asset-placement.md`).
 
 ## 진입점·의존성·수정 주의
 
