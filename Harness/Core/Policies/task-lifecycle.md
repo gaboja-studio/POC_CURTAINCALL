@@ -8,9 +8,9 @@
 
 ## 식별자와 위치
 
-- ID: `Task-YYYYMMDD-NNN`. **PM만** `Scripts/new-task.ps1`로 발급한다(원격 브랜치까지 확인해 번호가 겹치지 않게 함).
+- ID: `Task-YYYYMMDD-NNN`. **PM만** `Scripts/new-task.ps1`로 발급한다(작업 트리와 로컬·원격 ref의 Active/Done Task ID를 확인해 번호 중복 방지).
 - 폴더: `Tasks/Active/Task-YYYYMMDD-NNN-slug/` → 완료 후 `Tasks/Done/`
-- 브랜치: `<feat|fix|refactor>/YYYYMMDD-NNN-slug`, 소속 `integration/<기능-slug>`에서 만든다.
+- 브랜치: `<feat|fix|refactor>/<slug>`, 소속 `integration/<기능-slug>`에서 만든다. Task 연결은 `meta.md`의 Branch 값을 기준으로 한다.
 - 통합 기록: `Integrations/Active/Integration-<기능-slug>/` (PM 관리)
 
 ## 파일

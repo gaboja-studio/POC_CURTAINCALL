@@ -17,8 +17,8 @@
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20260930-001 | feat | @MoHoDu | feat/20260930-001-project-overview | - | scaffolded |
-| Task-20260930-002 | feat | @MoHoDu | feat/20260930-002-assets-folder-rules | - | scaffolded |
+| Task-20260930-001 | feat | @MoHoDu | feat/project-overview | - | scaffolded |
+| Task-20260930-002 | feat | @MoHoDu | feat/assets-folder-rules | - | scaffolded |
 
 ## 공용 파일 소유 표
 
@@ -30,4 +30,4 @@
 
 - Open: 각 Task의 작업 공간 경로는 PM 입력 대기.
 - Decided: 문서 Task 두 개로 분리하며 선행 의존성 없이 병렬 구현 가능. 준비는 연속 수행.
-- Decided: 로컬 준비 브랜치만 생성하고 scaffolded 유지. push·PR·병합은 별도 지시 후 수행.
+- Decided: 2026-09-30 @MoHoDu 요청으로 날짜·번호 없는 작업 브랜치로 변경하고 두 브랜치의 origin 공개를 준비한다. scaffolded 유지, PR·병합은 별도 지시 후 수행.

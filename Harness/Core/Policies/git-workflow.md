@@ -9,11 +9,13 @@
 |---|---|---|---|---|
 | `dev` | 팀 공용 원본 | — | — | `dev` |
 | `integration/*` | 기능 묶음 합치기 | PM | `dev` | `integration/<기능-slug>` |
-| `feat/*` | 기능 추가 | PM(준비) | `integration/*` | `feat/YYYYMMDD-NNN-slug` |
-| `fix/*` | 완성된 기능 수정 | PM(준비) | `integration/*` | `fix/YYYYMMDD-NNN-slug` |
-| `refactor/*` | 동작 유지, 코드 정리 | PM(준비) | `integration/*` | `refactor/YYYYMMDD-NNN-slug` |
+| `feat/*` | 기능 추가 | PM(준비) | `integration/*` | `feat/<slug>` |
+| `fix/*` | 완성된 기능 수정 | PM(준비) | `integration/*` | `fix/<slug>` |
+| `refactor/*` | 동작 유지, 코드 정리 | PM(준비) | `integration/*` | `refactor/<slug>` |
 | `builds/*` | 빌드 버전 보관 | PM | 없음 (dev에서 받기만) | `builds/<버전>` |
 | `tests/*` | 임시·실험 | 누구나 | **없음** (끝나면 삭제) | `tests/<자유>` |
+
+작업 브랜치의 slug는 목적을 나타내는 소문자 kebab-case로 쓴다(예: `feat/project-overview`). 날짜·Task 번호·관리 코드는 이름에 넣지 않는다. 같은 종류/slug는 중복 배정하지 않으며, Task ID·폴더명은 유지하고 `meta.md`의 Branch로 연결한다.
 
 ## 흐름 (한 방향, 예외 없음)
 

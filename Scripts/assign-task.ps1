@@ -24,7 +24,8 @@ $status = Get-MetaField -MetaPath $meta -Field 'Status'
 $problems = [System.Collections.Generic.List[string]]::new()
 # assigned인데 원격 브랜치가 없으면 이전 인계가 중간에 실패한 것이므로 이어서 진행한다.
 if ($status -notin 'scaffolded', 'assigned') { $problems.Add("Status가 scaffolded가 아님: $status") }
-if ($branch -notmatch '^(feat|fix|refactor)/\d{8}-\d{3}-') { $problems.Add("meta.md Branch 값이 올바르지 않음: $branch") }
+if ($branch -cnotmatch $script:TaskBranchPattern) { $problems.Add("meta.md Branch 값이 올바르지 않음: $branch") }
+elseif ($Matches[1] -cne (Get-MetaField -MetaPath $meta -Field 'Type')) { $problems.Add("Task 종류와 브랜치가 다름: $branch") }
 & git -C $RepoRoot rev-parse --verify --quiet "refs/remotes/origin/$branch" | Out-Null
 if ($LASTEXITCODE -eq 0) { $problems.Add("이미 원격에 있는 브랜치: $branch") }
 

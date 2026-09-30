@@ -14,7 +14,7 @@
 ## 남은 이슈
 
 - 두 Task의 setup.md 작업 공간 입력 및 인계 대기.
-- 로컬 브랜치는 준비용이며 원격 push·PR·병합은 미실시.
+- 준비 브랜치 `feat/project-overview`, `feat/assets-folder-rules`는 origin 공개 예정. PR·병합은 미실시.
 
 ## 테스트 씬 처리
 

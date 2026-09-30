@@ -11,7 +11,7 @@
 ## Workspace
 
 - **Integration:** integration/document-project
-- **Branch:** feat/20260930-002-assets-folder-rules
+- **Branch:** feat/assets-folder-rules
 
 ## Goal
 
