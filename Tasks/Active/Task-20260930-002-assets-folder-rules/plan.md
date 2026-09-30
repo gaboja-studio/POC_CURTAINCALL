@@ -14,8 +14,10 @@
 
 ## Files
 
-- 수정 예정: setup.md에 PM이 지정한 규칙 문서 및 이 Task 문서.
-- 읽기 전용 참고: Assets/, Harness/Engine/Unity/Policies/code-folders.md 및 asset-ownership.md.
+- 규칙 원본: `Docs/Guides/assets-folder-rules.md`.
+- 에이전트 지도: `Docs/Domains/assets-structure.md`; 공용 발견 경로: `Docs/Domains/index.md`, `Docs/Guides/index.md` (PM이 이 Task에 단일 배정).
+- 상태 기록: 이 Task 문서와 `Integrations/Active/Integration-document-project/meta.md`의 PM 소유 표.
+- 읽기 전용 참고: `Assets/`, `Harness/Engine/Unity/Policies/code-folders.md` 및 `asset-ownership.md`. 정책 자체는 수정하지 않는다.
 - 프로젝트 overview는 Task-20260930-001의 소유이며 중복 작성하지 않는다.
 
 ## Acceptance Criteria

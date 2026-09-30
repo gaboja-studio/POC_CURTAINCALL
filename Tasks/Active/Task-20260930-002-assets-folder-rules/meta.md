@@ -2,10 +2,10 @@
 
 - **Title:** Unity Assets 폴더 규칙과 재점검·갱신 절차 정의
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** in progress
 - **Assignee:** @MoHoDu
-- **Domain:** Assets 구조 문서 (기존 Domain Map 없음)
-- **Current Skill:** scaffold-task
+- **Domain:** Assets 구조 문서 (`Docs/Domains/assets-structure.md`)
+- **Current Skill:** plan-task
 - **Updated:** 2026-09-30
 
 ## Workspace
@@ -26,6 +26,6 @@
 
 ## Decisions
 
-- Open: setup.md 문서 작업 공간은 PM 입력 대기.
+- Decided: 2026-09-30 PM 승인으로 문서 작업 공간과 공용 발견 파일 소유를 setup.md·Integration 표에 확정했다.
 - Decided: 미래 기능을 가정하여 새 Assets 구조를 만들지 않는다.
-- Decided: 로컬 준비 브랜치는 생성하되 작업 공간 확정 전에는 scaffolded 유지.
+- Decided: 다른 작업 브랜치의 변경을 가져오지 않고 현재 워크트리에서 문서만 작성한다.
