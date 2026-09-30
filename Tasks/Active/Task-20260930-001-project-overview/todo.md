@@ -14,7 +14,7 @@
 - [x] 기획 원본 보존 및 프로젝트 overview·게임 흐름 요약 작성
 - [x] 관련 문서 파일 링크·원본 SHA-256·기획/구현 구분 확인
 - [x] 구역 수동 점검 및 handoff.md 결과 기록 (PowerShell 검사 실행은 환경 차단)
-- [ ] integration/document-project 대상으로 PR 제출 (별도 지시 후)
+- [x] integration/document-project 대상으로 PR #2 제출 (구역 CI 실패는 PM 확인 필요)
 
 ## PM 통합
 
