@@ -4,6 +4,7 @@
 
 모델·애니메이션·연출 없이 기능만 만든다. 입력을 '명령'으로 분리해 나중에 온라인·외줄 작업이 받아 쓸 수 있게 한다.
 원문: `Docs/References/tightrope-prototype-brief.md`
+요약: `Docs/References/tightrope-keymap-summary.md`, `Docs/References/tightrope-plan-summary.md` · 규칙 결정: `Harness/Project/Decisions/tightrope-rules.md`
 
 ## Approach
 
@@ -40,6 +41,6 @@
 PM과 작업자가 구현 전에 합의한다. 최대 3개. 병합 후 공동 테스트에서 이 항목으로 통과 여부를 판단한다.
 **작업자가 직접 플레이해 보고 결과(통과/실패, 본 현상)를 알려 준다.** (초안 — 인계 전 PM·담당자 합의)
 
-1. 모든 키가 브리프의 공통 입력 역할대로 반응한다.
+1. 모든 키가 키맵핑 요약의 공통 입력 역할대로 반응한다 (Q/E는 홀드 중에만 방향 지정, 홀드 + Space로 옆줄 이동 명령).
 2. F 짧게 누름과 길게 누름이 구분된다.
 3. 디폴트 모델을 다른 모델로 바꿔도 조작이 그대로 된다.
