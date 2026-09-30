@@ -6,7 +6,7 @@ Unity 6 POC 프로젝트. 게임 개요는 아직 미정(TBD)이며 확정되면
 ## 읽는 순서 (기본 컨텍스트)
 
 1. 이 파일.
-2. `pwsh -File Scripts/doctor.ps1` — 작업 전 환경 점검(1분 이내). FAIL이 있으면 먼저 해결하거나 사람에게 보고.
+2. `pwsh -File Scripts/doctor.ps1` — 작업 시작에 한 번 환경 점검(1분 이내). 같은 작업을 이어갈 때 중복 실행하지 않는다. FAIL이면 먼저 해결하거나 사람에게 보고하며, 에디터 경고를 컴파일 통과로 해석하지 않는다.
 3. 현재 Task: `Tasks/Active/Task-*/`의 `handoff.md` → `meta.md` → `setup.md`(작업 구역) → `todo.md` → `plan.md`.
    `log.md`, `History/`는 기본으로 읽지 않는다.
 4. 관련 Domain Map 1개: `Docs/Domains/index.md`에서 고른다.
