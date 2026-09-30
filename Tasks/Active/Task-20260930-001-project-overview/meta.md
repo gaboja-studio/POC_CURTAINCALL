@@ -11,7 +11,7 @@
 ## Workspace
 
 - **Integration:** integration/document-project
-- **Branch:** feat/20260930-001-project-overview
+- **Branch:** feat/project-overview
 
 ## Goal
 
