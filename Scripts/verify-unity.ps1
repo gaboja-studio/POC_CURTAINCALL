@@ -117,8 +117,9 @@ if ($RunTests) {
         Write-Output "Tests($Mode): NO_PROJECT_TESTS"
     } else {
         Write-Output "Tests($Mode): total $total, passed $($run.passed), failed $($run.failed), skipped $($run.skipped) → $xml"
-        if ([int]$run.failed -gt 0) { exit 1 }
+        if ([int]$run.failed -gt 0 -or [int]$run.passed -ne $total) { exit 1 }
     }
+    if ($r.ExitCode -ne 0) { throw "TEST_RUN_FAILED: Unity 테스트 명령 종료 코드 $($r.ExitCode)" }
 } else {
     Write-Output 'Tests: SKIPPED'
 }
