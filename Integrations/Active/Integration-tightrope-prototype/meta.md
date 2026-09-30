@@ -19,6 +19,14 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
+| Task-20260930-003 | feat | @MoHoDu(임시) | feat/network-session (인계 때 생성) | - | scaffolded |
+| Task-20260930-004 | feat | @MoHoDu(임시) | feat/player-control (인계 때 생성) | - | scaffolded |
+| Task-20260930-005 | feat | @MoHoDu(임시) | feat/tightrope-core (인계 때 생성) | - | scaffolded |
+| Task-20260930-006 | feat | @MoHoDu(임시) | feat/tightrope-piggyback (인계 때 생성) | - | scaffolded |
+| Task-20260930-007 | feat | @MoHoDu(임시) | feat/network-player-sync (인계 때 생성) | - | scaffolded |
+| Task-20260930-008 | feat | @MoHoDu(임시) | feat/network-prop-sync (인계 때 생성) | - | scaffolded |
+| Task-20260930-009 | feat | @MoHoDu(임시) | feat/tightrope-network (인계 때 생성) | - | scaffolded |
+| Task-20260930-010 | feat | @MoHoDu(임시) | feat/piggyback-network (인계 때 생성) | - | scaffolded |
 
 ## 공용 파일 소유 표
 
@@ -26,8 +34,14 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
+| `Assets/Resources/Prefabs/Controllers/Network/` | Task-20260930-003 | NetworkManager 프리팹 |
+| `Assets/Resources/Input/` | Task-20260930-004 → 병합 후 009 | 조작 입력 에셋 |
+| `Assets/Resources/Prefabs/Characters/Players/` | Task-20260930-004 → 병합 후 009 | 플레이어 프리팹 (009가 네트워크 적용) |
+| `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | Task-20260930-005 | 9줄 스테이지 (다른 Task는 배치만) |
+| `Assets/Resources/Prefabs/Objects/Tools/` | Task-20260930-008 | 도구 프리팹 |
+| `Assets/Scripts/Network/PlayerSync/` (연결 단계) | Task-20260930-007 → 병합 후 009 | 010과 동시 수정 방지 |
 
-(Task 번호 발급 후 [plan.md](plan.md)의 "함께 쓰는 파일" 표를 Task ID로 옮긴다.)
+`Packages/`, `ProjectSettings/`는 PM이 인계 전 이 브랜치에서 직접 설치·설정한다(모든 Task 수정 금지).
 
 ## Decisions
 
