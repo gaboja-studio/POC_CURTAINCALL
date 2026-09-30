@@ -18,13 +18,14 @@
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
 | Task-20260930-001 | feat | @MoHoDu | feat/project-overview | - | scaffolded |
-| Task-20260930-002 | feat | @MoHoDu | feat/assets-folder-rules | - | scaffolded |
+| Task-20260930-002 | feat | @MoHoDu | feat/assets-folder-rules | - | in progress |
 
 ## 공용 파일 소유 표
 
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
-| 미배정 | 없음 | setup.md 작업 공간 입력 시 PM이 확정. 두 Task의 수정 경로를 분리한다. |
+| `Docs/Guides/index.md` | Task-20260930-002 | Assets 규칙 안내서 발견 경로 |
+| `Docs/Domains/index.md` | Task-20260930-002 | Assets 구조 Domain Map 발견 경로 |
 
 ## Decisions
 
