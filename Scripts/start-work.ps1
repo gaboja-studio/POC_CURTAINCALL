@@ -9,13 +9,21 @@ Assert-CleanTree -Hint 'Unity에서 저장한 뒤 "저장해줘"로 먼저 저�
 & git -C $RepoRoot fetch origin --prune --quiet
 if ($LASTEXITCODE -ne 0) { throw '원격 저장소에서 최신 내용을 받지 못했습니다. 인터넷 연결이나 GitHub 연결을 확인하세요.' }
 
-[void]($Id -match '^Task-(\d{8})-(\d{3})$')
-$pattern = "^(?:origin/)?(feat|fix|refactor)/$($Matches[1])-$($Matches[2])-"
-$candidates = @(& git -C $RepoRoot for-each-ref --format='%(refname:short)' refs/heads refs/remotes/origin |
-    Where-Object { $_ -match $pattern } | ForEach-Object { $_ -replace '^origin/', '' } | Sort-Object -Unique)
-if ($candidates.Count -eq 0) { throw "$Id 작업 브랜치가 없습니다. PM에게 인계(브랜치 생성)가 끝났는지 확인하세요." }
-if ($candidates.Count -gt 1) { throw "$Id 브랜치가 여러 개입니다: $($candidates -join ', '). PM에게 알려 주세요." }
+$dirs = @(Get-ChildItem -LiteralPath (Get-RepoPath 'Tasks/Active') -Directory -Filter "$Id-*" -ErrorAction SilentlyContinue)
+if ($dirs.Count -gt 1) { throw "$Id Task 폴더가 여러 개입니다. PM에게 알려 주세요." }
+if ($dirs.Count -eq 1) {
+    $candidates = @(((Get-MetaField -MetaPath (Join-Path $dirs[0].FullName 'meta.md') -Field 'Branch') -replace '\s*\(.*\)$', '').Trim())
+} else {
+    $candidates = @(Get-TaskRefMetadata -Id $Id | ForEach-Object { $_.Branch } | Sort-Object -Unique)
+}
+if ($candidates.Count -eq 0) { throw "$Id Task 메타데이터가 없습니다. PM에게 인계가 끝났는지 확인하세요." }
+if ($candidates.Count -gt 1) { throw "$Id Branch 값이 서로 다릅니다: $($candidates -join ', '). PM에게 알려 주세요." }
 $branch = $candidates[0]
+if ($branch -cnotmatch $script:TaskBranchPattern) { throw "$Id Branch 값이 올바르지 않습니다: $branch" }
+& git -C $RepoRoot show-ref --verify --quiet "refs/heads/$branch"
+$hasLocal = $LASTEXITCODE -eq 0
+& git -C $RepoRoot show-ref --verify --quiet "refs/remotes/origin/$branch"
+if (-not $hasLocal -and $LASTEXITCODE -ne 0) { throw "$Id 작업 브랜치가 없습니다: $branch. PM에게 알려 주세요." }
 
 & git -C $RepoRoot show-ref --verify --quiet "refs/heads/$branch"
 if ($LASTEXITCODE -eq 0) { & git -C $RepoRoot switch $branch } else { & git -C $RepoRoot switch --track "origin/$branch" }
