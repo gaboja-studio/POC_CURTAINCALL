@@ -5,10 +5,11 @@ Domain Map은 담당 파일·진입점·의존성·수정 주의점을 적는다
 
 ## Domains
 
-아직 없음. 게임 코드가 생기면 `Harness/Core/Skills/update-domain-map.md`에 따라 추가한다.
+현재 에셋 구조 지도는 아래에 있다. 게임 기능별 지도는 코드가 생기면 `Harness/Core/Skills/update-domain-map.md`에 따라 추가한다.
 
 | Domain | Map | 현재 근거 |
 |---|---|---|
+| Unity Assets 구조·코드 작업 구역 | [assets-structure.md](assets-structure.md) | 에셋 배치·Resources·Task별 Scripts 경로를 찾거나 Unity 작업을 계획할 때 |
 
 ## Domain Map 파일 규칙
 
