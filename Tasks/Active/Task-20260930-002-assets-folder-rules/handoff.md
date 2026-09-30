@@ -2,29 +2,26 @@
 
 ## 지금 상태
 
-- 단계: scaffolded — Task 준비 완료, setup.md 작업 공간 입력 대기.
-- 준비된 것: 목표·범위·완료 기준·의존성·공동 리뷰 항목. 로컬 브랜치는 동일 준비 커밋에서 생성한다. 작업 공간 확정 전 구현 금지.
-- 미구현: 현재 Assets 구조 조사, 규칙 본문 및 재점검·갱신 체크리스트.
-- 브랜치: `feat/assets-folder-rules` (origin 공개 예정). PR·병합 없음.
+- 단계: in progress — PM 승인으로 Task-002 문서 작업 공간과 공용 발견 파일 소유를 확정하고 초안 작성 완료.
+- 작성: `Docs/Guides/assets-folder-rules.md`에 현재 Assets·Resources 계층, planned 코드 구역, 예외와 재점검 절차. `Docs/Domains/assets-structure.md`와 두 index에서 에이전트·사람의 발견 경로 연결.
+- 브랜치: `feat/assets-folder-rules`. 다른 브랜치의 변경을 가져오지 않음. PR·병합·커밋·push 없음.
 
 ## 다음 할 일
 
-1. PM이 setup.md의 문서 작업 공간을 백틱 경로로 입력한다.
-2. 경로 존재·공용 파일 소유·다른 Task와 겹침을 확인하고 인계 상태를 갱신한다.
-3. 기존 로컬 작업 브랜치에서 최신 준비 내용을 받은 뒤 Assets를 읽기 전용으로 조사한다.
+1. 현재 폴더 대조와 Task별 스크립트 구역 배정 예시를 공동 리뷰한다.
+2. 문서·구역 검증을 실행할 수 있는 환경에서 검사 후 결과를 기록한다.
+3. 제출은 별도 요청 후 `integration/document-project` 대상으로 진행한다.
 
 ## PM이 확인할 것
 
-- 확인 요청: 문서 작업 공간 지정 및 공동 리뷰 기준 최종 확인.
-- 대기 중인 결정: 실제 Assets 이동·이름 변경·삭제가 필요하면 별도 승인.
-- 공용 파일 요청: 현재 없음. 지정 시 Integration 소유 표에도 반영.
-- 주의: 로컬 브랜치 선생성 방식이므로 assign-task.ps1을 그대로 재실행하지 않는다.
+- 에셋 이동·이름 변경·삭제 및 템플릿 정리는 범위 밖이며 별도 승인 필요.
+- LFS 체크아웃으로 기존 변경 표시된 `Assets/TutorialInfo/Icons/URP.png`는 손대지 않았음.
 
 ## Verification
 
-- 구역 검사: 구현 전 작업 공간 미지정으로 미실행. 준비 변경은 두 Task 폴더 및 해당 Integration 기록만으로 확인.
-- 1 문서/규칙: verify-fast 통과 (Structure·Knowledge·Context OK), doctor 통과 (14개, 경고·실패 0).
-- 2 컴파일: 생략 — Task·Integration 문서만 준비.
-- 3 테스트: 미실행 — Unity 코드·에셋 변경 없음. PASS로 간주하지 않음.
-- 4 실행 로그: 게임 실행 생략 — 문서 준비.
-- 5 공동 테스트: 미실시 — 본문 구현 및 병합 후 수행.
+- 구역 검사: `verify-scope.ps1` 미실행 — 이 격리 세션의 명령 보호가 PowerShell 스크립트 실행을 거부함. `setup.md`·Integration 공용 파일 표와 변경 파일 목록을 수동 대조; URP.png 기존 변경은 허용 구역 밖이며 이 작업에서 수정하지 않음.
+- 1 문서/규칙: `git diff --check` 통과. `verify-fast.ps1`도 동일한 보호로 미실행; 구조·의미는 실제 Assets 트리와 읽기 전용 대조(2026-09-30).
+- 2 컴파일: 생략 — 문서만 작성, Unity 코드·에셋 변경 없음.
+- 3 테스트: 미실행 — 프로젝트 테스트 어셈블리 없음(`NO_PROJECT_TESTS`), PASS로 간주하지 않음.
+- 4 실행 로그: 게임 실행 생략 — 문서 작업.
+- 5 공동 테스트: 아직 미실시 — 폴더 분류, 스크립트 구역 배정 예시, 재점검 체크리스트 리뷰 필요.
