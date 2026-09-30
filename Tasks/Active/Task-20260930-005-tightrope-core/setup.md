@@ -19,7 +19,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 ## 배정된 공용 파일
 
-- `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` — 9줄 스테이지 프리팹 (다른 Task는 배치만)
+- `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` — 외줄 코스 스테이지 프리팹 (다른 Task는 배치만)
 
 ## 수정 금지
 
