@@ -72,7 +72,7 @@
 
 | 이름 | 용도 | 예시 |
 |---|---|---|
-| `feat/*` · `fix/*` · `refactor/*` | 새 기능 · 기능 수정 · 코드 정리 | `feat/20260929-001-curtain-open` |
+| `feat/*` · `fix/*` · `refactor/*` | 새 기능 · 기능 수정 · 코드 정리 | `feat/curtain-open` |
 | `integration/*` | 기능 묶음을 합치는 곳 (PM) | `integration/curtain-call` |
 | `builds/*` | 빌드 버전 보관 (PM) | `builds/0.1.0` |
 | `tests/*` | 연습장, 합치지 않음 | `tests/try-camera-shake` |

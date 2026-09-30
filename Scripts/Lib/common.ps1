@@ -2,7 +2,7 @@
 
 $script:RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
 $script:TaskIdPattern = '^Task-(\d{8})-(\d{3})'
-$script:TaskBranchPattern = '^(?:origin/)?task/(\d{8})-(\d{3})-'
+$script:TaskBranchPattern = '^(feat|fix|refactor)/[a-z0-9]+(?:-[a-z0-9]+)*$'
 
 function Get-RepoPath {
     param([Parameter(Mandatory)][string]$Relative)
@@ -79,11 +79,28 @@ function Get-AllTaskFolders {
     return $result
 }
 
-function Get-TaskBranchNumbers {
-    $refs = & git -C $script:RepoRoot for-each-ref --format='%(refname:short)' refs/heads refs/remotes
-    return @($refs | Where-Object { $_ -match $script:TaskBranchPattern } | ForEach-Object {
-        [void]($_ -match $script:TaskBranchPattern); [int]$Matches[2]
-    })
+function Get-TaskRefMetadata {
+    # checkout 없이 로컬·원격 ref의 Task 메타데이터를 읽는다.
+    param([string]$Id, [switch]$IncludeDone)
+    $refs = @(& git -C $script:RepoRoot for-each-ref --format='%(refname)' refs/heads refs/remotes)
+    if ($LASTEXITCODE -ne 0) { throw 'Task 조회용 Git ref 목록을 읽지 못했습니다.' }
+    foreach ($ref in $refs) {
+        $states = @('Tasks/Active/')
+        if ($IncludeDone) { $states += 'Tasks/Done/' }
+        $folders = @(& git -C $script:RepoRoot ls-tree -d --name-only $ref -- @states)
+        if ($LASTEXITCODE -ne 0) { throw "Task 폴더 조회 실패: $ref" }
+        foreach ($folder in $folders) {
+            if ((Split-Path $folder -Leaf) -notmatch $script:TaskIdPattern) { continue }
+            $taskId = "Task-$($Matches[1])-$($Matches[2])"
+            $number = [int]$Matches[2]
+            if ($Id -and $Id -ne $taskId) { continue }
+            $text = @(& git -C $script:RepoRoot show "${ref}:$folder/meta.md")
+            if ($LASTEXITCODE -ne 0) { throw "Task 메타데이터 조회 실패: $ref / $folder" }
+            $line = $text | Where-Object { $_ -match '^\s*-\s*\*\*Branch:\*\*\s*(.*)$' } | Select-Object -First 1
+            $branch = if ($line) { ($line -replace '^\s*-\s*\*\*Branch:\*\*\s*', '' -replace '\s*\(.*\)$', '').Trim() } else { '' }
+            [pscustomobject]@{ Id = $taskId; Number = $number; Branch = $branch; Ref = $ref; Rel = $folder }
+        }
+    }
 }
 
 function Get-MetaField {
@@ -211,30 +228,30 @@ function Get-MarkdownSection {
 }
 
 function Find-CurrentTask {
-    # 브랜치(feat|fix|refactor/YYYYMMDD-NNN-slug)에 대응하는 Tasks/Active 폴더. 기본은 현재 브랜치.
+    # 현재 checkout의 Active Task를 meta.md Branch 값으로 연결한다.
     param([string]$Branch)
     if (-not $Branch) { $Branch = (& git -C $script:RepoRoot branch --show-current).Trim() }
-    if ($Branch -notmatch '^(feat|fix|refactor)/(\d{8})-(\d{3})-') { return $null }
-    $id = "Task-$($Matches[2])-$($Matches[3])"
+    if ($Branch -cnotmatch $script:TaskBranchPattern) { return $null }
     $type = $Matches[1]
-    $dir = Get-ChildItem -LiteralPath (Get-RepoPath 'Tasks/Active') -Directory -Filter "$id-*" -ErrorAction SilentlyContinue | Select-Object -First 1
-    if (-not $dir) { return $null }
+    $dirs = @(Get-ChildItem -LiteralPath (Get-RepoPath 'Tasks/Active') -Directory -ErrorAction SilentlyContinue | Where-Object {
+        $value = Get-MetaField -MetaPath (Join-Path $_.FullName 'meta.md') -Field 'Branch'
+        ($value -replace '\s*\(.*\)$', '').Trim() -ceq $Branch
+    })
+    if ($dirs.Count -eq 0) { return $null }
+    if ($dirs.Count -gt 1) { throw "브랜치에 연결된 Task가 여러 개입니다: $Branch" }
+    $dir = $dirs[0]
+    if ($dir.Name -notmatch $script:TaskIdPattern) { throw "Task 폴더 이름이 올바르지 않습니다: $($dir.Name)" }
+    $id = "Task-$($Matches[1])-$($Matches[2])"
+    if ((Get-MetaField -MetaPath (Join-Path $dir.FullName 'meta.md') -Field 'Type') -cne $type) { throw "Task 종류와 브랜치가 다릅니다: $id / $Branch" }
     return [pscustomobject]@{ Id = $id; Type = $type; Branch = $Branch; Path = $dir.FullName; Rel = "Tasks/Active/$($dir.Name)/" }
 }
 
 function Get-UsedTaskNumbers {
-    # 작업 트리 + 로컬·원격의 dev·integration/* 브랜치에 있는 Tasks 폴더 + task 브랜치 이름에서 사용된 번호.
+    # 작업 트리와 모든 로컬·원격 ref의 Active/Done Task ID로 번호를 보존한다.
     $numbers = [System.Collections.Generic.List[int]]::new()
     foreach ($t in Get-AllTaskFolders) { $numbers.Add($t.Number) }
-    $refs = & git -C $script:RepoRoot for-each-ref --format='%(refname)' refs/heads refs/remotes
-    foreach ($ref in $refs) {
-        if ($ref -notmatch '/(dev|integration/.+)$') { continue }
-        foreach ($line in (& git -C $script:RepoRoot ls-tree -d --name-only $ref -- Tasks/Active/ Tasks/Done/ 2>$null)) {
-            if ((Split-Path $line -Leaf) -match $script:TaskIdPattern) { $numbers.Add([int]$Matches[2]) }
-        }
-    }
-    foreach ($n in Get-TaskBranchNumbers) { $numbers.Add($n) }
-    return $numbers
+    foreach ($t in Get-TaskRefMetadata -IncludeDone) { $numbers.Add($t.Number) }
+    return @($numbers | Sort-Object -Unique)
 }
 
 function Get-SetupAreas {

@@ -13,7 +13,7 @@ description: PM 전용. 인계 전 점검(setup.md 체크리스트·경로·.met
 3. `[문제]`가 있으면 PM에게 무엇을 해야 하는지 쉬운 말로 알린다(예: "스크립트 폴더에 .meta가 없어요. Unity에서 저장해 주세요").
 4. 문제가 없으면 `-WhatIf` 없이 실행한다. 스크립트가 하는 일:
    - Status를 `assigned`로 바꾸고 준비 내용을 커밋해 통합 브랜치에 올림
-   - 그 시점에서 작업 브랜치(`<종류>/YYYYMMDD-NNN-slug`)를 만들어 원격에 올림
+   - 그 시점에서 작업 브랜치(`<종류>/<slug>`)를 만들어 원격에 올림
    - Integration Tasks 표의 브랜치·상태 칸 갱신
 5. 담당자에게 보낼 메시지를 만들어 준다:
    > "○○님, Task-YYYYMMDD-NNN(제목) 맡아 주세요. AI에게 'Task-YYYYMMDD-NNN 시작해줘'라고 하시면 됩니다."

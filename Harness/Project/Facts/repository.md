@@ -1,7 +1,7 @@
 ---
 summary: 원격 저장소, 기본 브랜치, 브랜치·worktree 명명
 status: active
-updated: 2026-09-29
+updated: 2026-09-30
 source: 2026-09-29 git remote -v 확인
 ---
 
@@ -15,7 +15,7 @@ source: 2026-09-29 git remote -v 확인
 
 - 원격: `origin` → `https://github.com/gaboja-studio/POC_CURTAINCALL.git`
 - 기본(Base) 브랜치: `dev`
-- 작업 브랜치: `<feat|fix|refactor>/YYYYMMDD-NNN-slug`, 통합 브랜치: `integration/<기능-slug>` (전체 규칙: `Decisions/branch-strategy.md`)
+- 작업 브랜치: `<feat|fix|refactor>/<slug>`, 통합 브랜치: `integration/<기능-slug>` (전체 규칙: `Decisions/branch-strategy.md`)
 - PM 전용 경로 지정: `.github/CODEOWNERS`
 - 라벨: `bug`(버그 제보), `qa`(QA 검증 요청) — 이슈 양식이 자동으로 붙인다
 - worktree 루트: `.env`의 `WORKTREE_ROOT`, 없으면 리포 상위 폴더의 `github-worktrees/POC_CURTAINCALL`

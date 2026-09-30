@@ -1,5 +1,5 @@
 # PM 전용. 현재 integration/* 브랜치 위에 Task 폴더를 만들고 번호를 발급한다(작업 브랜치는 assign-task.ps1이 인계 때 만든다).
-# 번호: 작업 트리 + 로컬·원격 dev·integration/*의 Tasks 폴더 + 작업 브랜치 이름 중 가장 큰 번호 + 1. 잠금 파일로 동시 발급을 막는다.
+# 번호: 작업 트리와 로컬·원격 ref의 Active/Done Task ID 중 가장 큰 번호 + 1. 잠금 파일로 동시 발급을 막는다.
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter(Mandatory)][ValidateSet('feat', 'fix', 'refactor')][string]$Type,
@@ -19,6 +19,7 @@ $template = Get-RepoPath 'Harness/Core/Templates/Task'
 if (-not $Assignee.StartsWith('@')) { $Assignee = "@$Assignee" }
 
 & git -C $RepoRoot fetch origin --prune --quiet
+if ($LASTEXITCODE -ne 0) { throw '원격 Task와 브랜치를 확인하지 못해 번호 발급을 중단합니다.' }
 
 $commonDir = (& git -C $RepoRoot rev-parse --path-format=absolute --git-common-dir).Trim()
 $lockPath = Join-Path $commonDir 'harness-new-task.lock'
@@ -34,7 +35,15 @@ try {
     $today = Get-Date -Format 'yyyy-MM-dd'
     $seq = '{0:D3}' -f ([int]$max + 1)
     $id = "Task-$date-$seq"
-    $branch = "$Type/$date-$seq-$Slug"
+    $branch = "$Type/$Slug"
+    $refs = @(& git -C $RepoRoot for-each-ref --format='%(refname)' refs/heads refs/remotes)
+    if ($LASTEXITCODE -ne 0) { throw '브랜치 목록을 읽지 못했습니다.' }
+    if ($refs | Where-Object { $_ -ceq "refs/heads/$branch" -or $_ -cmatch "^refs/remotes/[^/]+/$([regex]::Escape($branch))$" }) { throw "이미 있는 작업 브랜치: $branch" }
+    $registered = @(Get-TaskRefMetadata | Where-Object { $_.Branch -ceq $branch })
+    $working = @(Get-AllTaskFolders | Where-Object {
+        $_.State -eq 'Active' -and (((Get-MetaField -MetaPath (Join-Path $_.Path 'meta.md') -Field 'Branch') -replace '\s*\(.*\)$', '').Trim() -ceq $branch)
+    })
+    if ($registered.Count -or $working.Count) { throw "이미 Task에 배정된 작업 브랜치: $branch" }
     $destination = Get-RepoPath "Tasks/Active/$id-$Slug"
     if (Test-Path -LiteralPath $destination) { throw "Task 폴더가 이미 있음: $destination" }
 
