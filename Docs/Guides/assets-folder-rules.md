@@ -1,6 +1,6 @@
 # Unity Assets 폴더 배치 규칙
 
-마지막 구조 점검: 2026-09-30 · 기준: `feat/assets-folder-rules` 작업 트리의 `Assets/` (콘텐츠 배치와 실행 동작은 미검증)
+마지막 구조 점검: 2026-09-30 · 기준: `integration/tightrope-prototype` 작업 트리의 `Assets/` (콘텐츠 배치와 실행 동작은 미검증)
 
 ## 적용 원칙
 
@@ -15,11 +15,11 @@
 |---|---|---|
 | `Assets/Resources/` | 하위 분류 폴더만 있음 | 명시적인 Resources 경로 로딩이 필요한 콘텐츠를 해당 분류에 배치. 다른 에셋의 기본 보관 장소로 쓰지 않음 |
 | `Assets/Scenes/` | `SampleScene.unity` (템플릿 씬) | **모든 씬은 여기에만 둔다.** 공용 씬은 파일별 소유 Task를 지정하고 변경 |
-| `Assets/Scenes/Tests/<Feature>/` | **planned** — PM이 Task별로 생성 | Task 테스트 씬. 테스트 전용 프리팹(더미·임시 캐릭터·테스트 UI)은 같은 폴더의 `Prefabs/`에 둔다 |
+| `Assets/Scenes/Tests/<Feature>/` | `NetworkSession/`, `PlayerControl/`, `Tightrope/`, `Piggyback/` 테스트 씬 (PM이 Task별로 생성) | Task 테스트 씬. 테스트 전용 프리팹(더미·임시 캐릭터·테스트 UI)은 같은 폴더의 `Prefabs/`에 둔다 |
 | `Assets/Settings/` | PC/Mobile URP 렌더·파이프라인 에셋, Volume Profile | 여러 기능에 영향을 주는 공용 설정. 소유 Task와 사람 결정 없이 수정하지 않음 |
 | `Assets/InputSystem_Actions.inputactions` | 입력 액션 에셋 | 공용 입력 계약. 작업 폴더에 들어 있지 않으며 수정 시 공용 파일 배정 필요 |
 | `Assets/Readme.asset`, `Assets/TutorialInfo/` | 템플릿 잔여물(튜토리얼 이미지·Editor 스크립트 포함) | 게임 콘텐츠·기능 코드 구역으로 간주하지 않음. 보존/정리는 별도 결정 |
-| `Assets/Scripts/` | **planned** — `Assets/Scripts.meta`만 추적, 디렉터리·게임 코드 없음 | 기능별 Task 코드 위치. **Unity C# 코드는 모두 여기에만 둔다.** 실제 생성·배정 전에는 작업 공간이 아님 |
+| `Assets/Scripts/` | `Network/Session/`, `Player/`, `Tightrope/{Rope,Piggyback}/` 폴더만 있음(`.gitkeep`), 게임 코드 없음 | 기능별 Task 코드 위치. **Unity C# 코드는 모두 여기에만 둔다.** 실제 생성·배정 전에는 작업 공간이 아님 |
 
 위치 결정 근거: `Harness/Project/Decisions/asset-placement.md`.
 
@@ -30,7 +30,7 @@
 | 상대 경로 (`Assets/Resources/` 아래) | 배치 기준 |
 |---|---|
 | `Animations/` | 런타임 경로 로딩이 필요한 애니메이션 클립·컨트롤러 등. 프리팹 자체는 `Prefabs/`로 분리 |
-| `Input/` | **planned** — 플레이어 조작 입력 에셋(`.inputactions`). 루트의 템플릿 `InputSystem_Actions`와 분리 |
+| `Input/` | 폴더만 있음 — 플레이어 조작 입력 에셋(`.inputactions`). 루트의 템플릿 `InputSystem_Actions`와 분리 |
 | `Effects/` | 런타임 로딩 대상 효과 리소스(예: VFX·파티클 에셋). 효과를 완성한 프리팹이면 `Prefabs/`의 쓰임에 맞춰 결정하고 중복 보관하지 않음 |
 | `Images/` | 경로 로딩 대상 이미지·스프라이트. UI 프리팹과 이미지 원본을 구분 |
 | `Models/` | 경로 로딩 대상 모델 원본. 모델을 사용하는 프리팹과 구분 |
@@ -48,7 +48,7 @@
 
 하나의 에셋이 여러 분류에 맞거나 `Resources` 경로 로딩 자체가 불필요하다면 임의로 `ETCs`에 넣지 않는다. 담당 Task가 용도와 참조 방식을 적어 PM과 위치를 확정한다. 공용 프리팹은 같은 폴더에 있어도 Integration 소유 표에서 **파일 단위**로 배정한다.
 
-## 기능 스크립트 작업 공간 (planned)
+## 기능 스크립트 작업 공간
 
 - 루트 `Scripts/`는 검증·운영 도구이고 `Assets/TutorialInfo/Scripts/`는 튜토리얼 템플릿 코드다. 기능 코드의 기본 위치로 사용하지 않는다.
 - PM은 실제 Task가 정해지면 Unity에서 `Assets/Scripts/<Feature>/`를 기능 단위(PascalCase)로 만들고 `.meta`와 함께 관리한다. `Assets/Scenes/Tests/<Feature>/`의 테스트 씬도 필요할 때 만든다(테스트 전용 프리팹은 그 안의 `Prefabs/`). `setup.md`에는 폴더 경로를 `/`로 끝나게 적고, 작업자가 수정할 정확한 영역을 지정한다. 같은 Integration에서 동시 Task가 같은 기능을 다뤄도 소유 폴더·파일이 겹치지 않도록 나누거나 순차 진행한다.
