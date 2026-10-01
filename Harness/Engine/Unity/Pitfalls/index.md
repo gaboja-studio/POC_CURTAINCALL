@@ -9,3 +9,4 @@ Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 - [pipeline-command-drift.md](pipeline-command-drift.md) — Pipeline/CLI 업그레이드 후 또는 verify-unity가 명령 없음으로 실패할 때
 - [editor-not-visible.md](editor-not-visible.md) — unity status가 에디터 0개를 반환할 때
 - [multiple-editor-versions.md](multiple-editor-versions.md) — 프로젝트·worktree를 열거나 batch 실행할 때
+- [yaml-trailing-whitespace.md](yaml-trailing-whitespace.md) — Unity YAML 줄 끝 공백으로 diff --check 실패. verify-fast·save-work가 trailing whitespace로 멈출 때
