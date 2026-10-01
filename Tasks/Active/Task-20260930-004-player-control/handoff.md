@@ -2,15 +2,15 @@
 
 ## 지금 상태
 
-- 단계: 1~13단계(13 몸 기울기 `BalanceTiltView`) 구현·작업자 플레이 확인. 공동 테스트 통과. 14단계(추락 래그돌) 추가 중, 이후 제출. 12단계 순서는 `plan.md` "단계".
+- 단계: 1~14단계 구현·작업자 플레이 확인(13 몸 기울기 `BalanceTiltView`, 14 추락 래그돌 `PlayerRagdoll`). 공동 테스트 통과. 제출 단계. 12단계 순서는 `plan.md` "단계".
 - 구조: 키 → `PlayerInputReader`(`PlayerInputFrame` 공통 역할) → `PlayerController` → 조작 규칙 `TightropeControlScheme` → 동작 부품 `PlayerMover`(코스 이동·점프 1.0m·옆줄 점프 1.5m, 공중 움직임 고정, `LaneJumpFilter`) / `PlayerInteraction`(F 짧게 상호작용·길게 해제 신호) / `PlayerModelSlot`(모델 교체, 키 1.73m 맞춤, 테스트 모델 `Models/DefaultCapsule`·`BlockDoll`) / `PlayerBalance`(±100, 흔들림·가속·목마 배율·위층 전달·착지 충격·빨강 2초 추락 `Fell`). 규칙: `Harness/Project/Decisions/player-control-architecture.md`.
 - UI: `Assets/Resources/Prefabs/UIs/Player/BalanceGauge.prefab`(TMP, 생성 메뉴 Tools/CurtainCall). HUD: P 표시, B 균형 켜기/끄기, R 재시작(추락→조작 잠금은 HUD가 테스트용 연결).
 - 막힌 것: 없음 / PR: 없음
 
 ## 다음 할 일
 
-1. 검사("검사해줘") 결과 확인.
-2. 공동 테스트 3항목 작업자 플레이 → 제출("제출해줘").
+1. PR 제출 후 PM 병합·공동 테스트 대기.
+2. 연결 작업(009·010)에서 005·006이 004 공개 함수(`SetBalanceActive`, `Fell`, `LaneJumpFilter`, `SetLaneLandingReduction`, `SetStackSize`, `SetUpperBalanceSum`, `InteractRequested`/`ReleaseRequested`, `SetScheme`)를 붙임.
 
 ## PM이 확인할 것
 

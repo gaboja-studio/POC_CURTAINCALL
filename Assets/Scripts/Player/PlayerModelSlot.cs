@@ -37,6 +37,15 @@ namespace CurtainCall.Player
         /// <summary>지금 끼워진 모델 프리팹. 슬롯에 원래 있던 모델이면 null.</summary>
         public GameObject CurrentPrefab { get; private set; }
 
+        /// <summary>슬롯에서 떼어 낸 모델을 넘겨준다(래그돌 등). 슬롯은 비고, 다시 끼우려면 <see cref="SetModel"/>을 부른다.</summary>
+        public GameObject DetachModel()
+        {
+            var model = CurrentModel;
+            if (model != null) model.transform.SetParent(null, true);
+            CurrentModel = null;
+            return model;
+        }
+
         /// <summary>모델을 바꾼다. 기존 모델은 지운다. null이면 모델을 비운다.</summary>
         public void SetModel(GameObject prefab)
         {
@@ -51,9 +60,11 @@ namespace CurtainCall.Player
             CurrentModel = Instantiate(prefab, slot, false);
             CurrentModel.name = prefab.name;
 
-            // 충돌은 CharacterController가 맡는다. 모델의 콜라이더는 끈다
+            // 충돌은 CharacterController가 맡는다. 모델의 콜라이더는 끄고 물리는 멈춰 둔다(추락 래그돌 때 켠다)
             foreach (var c in CurrentModel.GetComponentsInChildren<Collider>())
                 c.enabled = false;
+            foreach (var body in CurrentModel.GetComponentsInChildren<Rigidbody>())
+                body.isKinematic = true;
 
             if (fitToHeight)
             {
