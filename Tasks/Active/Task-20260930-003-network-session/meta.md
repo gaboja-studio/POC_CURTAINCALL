@@ -2,7 +2,7 @@
 
 - **Title:** 방 만들기·게임 시작/종료
 - **Type:** feat
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** 없음 (코드가 생기면 Domain Map 추가)
 - **Current Skill:** start-work

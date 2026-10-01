@@ -8,9 +8,9 @@
 
 ## 작업자
 
-- [ ] "시작해줘"로 작업 시작
+- [x] "시작해줘"로 작업 시작
 - [ ] 구현
-  - [ ] LAN(직접 IP) Host/Client 연결
+  - [x] LAN(직접 IP) Host/Client 연결
   - [ ] 세션 방 생성·참가(Multiplayer Services)
   - [ ] 4명 모이면 자동 시작
   - [ ] 호스트 종료 시 전원 종료
