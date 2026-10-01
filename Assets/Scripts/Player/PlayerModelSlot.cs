@@ -21,6 +21,16 @@ namespace CurtainCall.Player
         [Tooltip("맞출 캐릭터 키(m). 기획 1.73.")]
         [SerializeField, Min(0.1f)] float characterHeight = 1.73f;
 
+        /// <summary>모델이 붙는 위치(원점 = 발). 기울기 등 겉모습 연출은 이 슬롯을 돌린다.</summary>
+        public Transform Slot
+        {
+            get
+            {
+                EnsureSlot();
+                return slot;
+            }
+        }
+
         /// <summary>지금 끼워진 모델 인스턴스. 없으면 null.</summary>
         public GameObject CurrentModel { get; private set; }
 
@@ -45,7 +55,14 @@ namespace CurtainCall.Player
             foreach (var c in CurrentModel.GetComponentsInChildren<Collider>())
                 c.enabled = false;
 
-            if (fitToHeight) FitToHeight(CurrentModel.transform);
+            if (fitToHeight)
+            {
+                // 기울어진 상태에서 바꿔도 키를 정확히 재도록 잠시 슬롯을 세운다
+                Quaternion tilt = slot.localRotation;
+                slot.localRotation = Quaternion.identity;
+                FitToHeight(CurrentModel.transform);
+                slot.localRotation = tilt;
+            }
         }
 
         void Awake()

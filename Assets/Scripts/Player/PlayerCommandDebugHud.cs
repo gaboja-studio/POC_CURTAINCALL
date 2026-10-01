@@ -37,6 +37,7 @@ namespace CurtainCall.Player
         PlayerController controller;
         PlayerInteraction interaction;
         PlayerModelSlot modelSlot;
+        BalanceTiltView tilt;
         int modelIndex = -1;
         GUIStyle labelStyle;
         float lastJumpCommandTime = -10f;
@@ -59,6 +60,7 @@ namespace CurtainCall.Player
                 controller = target.GetComponent<PlayerController>();
                 interaction = target.GetComponent<PlayerInteraction>();
                 modelSlot = target.GetComponent<PlayerModelSlot>();
+                tilt = target.GetComponent<BalanceTiltView>();
                 if (balance != null) balance.Fell += OnFell;
             }
 
@@ -144,7 +146,7 @@ namespace CurtainCall.Player
 
             var oldMatrix = GUI.matrix;
             GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
-            GUILayout.BeginArea(new Rect(10f, 10f, 440f, 580f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(10f, 10f, 440f, 610f), GUI.skin.box);
 
             GUILayout.Label($"<b>Player Input</b>  ({toggleKey} 표시 끄기)", labelStyle);
             if (target == null)
@@ -197,6 +199,7 @@ namespace CurtainCall.Player
                     GUILayout.Label($"Position ({p.x:0.0}, {p.y:0.0}, {p.z:0.0})", labelStyle);
                     string model = modelSlot == null ? "<b>PlayerModelSlot 없음</b>" : modelSlot.CurrentModel != null ? modelSlot.CurrentModel.name : "없음";
                     GUILayout.Label($"Model    {model}  ({modelCycleKey} 바꾸기)", labelStyle);
+                    GUILayout.Label(tilt == null ? "Tilt     <b>BalanceTiltView 없음</b>" : $"Tilt     {tilt.CurrentAngle:+0.0;-0.0;0.0}°", labelStyle);
                 }
             }
 
