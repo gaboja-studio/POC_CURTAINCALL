@@ -2,15 +2,15 @@
 
 ## 지금 상태
 
-- 단계: 1~11단계 완료 + 조작 3층 구조(작업자 플레이 확인). 다음은 12단계(모델 교체). 12단계 순서는 `plan.md` "단계".
-- 구조: 키 → `PlayerInputReader`(`PlayerInputFrame` 공통 역할) → `PlayerController` → 조작 규칙 `TightropeControlScheme` → 동작 부품 `PlayerMover`(코스 이동·점프 1.0m·옆줄 점프 1.5m, 공중 움직임 고정, `LaneJumpFilter`) / `PlayerInteraction`(F 짧게 상호작용·길게 해제 신호) / `PlayerBalance`(±100, 흔들림·가속·목마 배율·위층 전달·착지 충격·빨강 2초 추락 `Fell`). 규칙: `Harness/Project/Decisions/player-control-architecture.md`.
+- 단계: 1~12단계 구현 완료(작업자 플레이 확인). 다음은 검사 → 공동 테스트 → 제출. 12단계 순서는 `plan.md` "단계".
+- 구조: 키 → `PlayerInputReader`(`PlayerInputFrame` 공통 역할) → `PlayerController` → 조작 규칙 `TightropeControlScheme` → 동작 부품 `PlayerMover`(코스 이동·점프 1.0m·옆줄 점프 1.5m, 공중 움직임 고정, `LaneJumpFilter`) / `PlayerInteraction`(F 짧게 상호작용·길게 해제 신호) / `PlayerModelSlot`(모델 교체, 키 1.73m 맞춤, 테스트 모델 `Models/DefaultCapsule`·`BlockDoll`) / `PlayerBalance`(±100, 흔들림·가속·목마 배율·위층 전달·착지 충격·빨강 2초 추락 `Fell`). 규칙: `Harness/Project/Decisions/player-control-architecture.md`.
 - UI: `Assets/Resources/Prefabs/UIs/Player/BalanceGauge.prefab`(TMP, 생성 메뉴 Tools/CurtainCall). HUD: P 표시, B 균형 켜기/끄기, R 재시작(추락→조작 잠금은 HUD가 테스트용 연결).
 - 막힌 것: 없음 / PR: 없음
 
 ## 다음 할 일
 
-1. 12단계: 모델 교체(프리팹 `Model` 자식 슬롯, `Models/`에 대체 모델 1개).
-2. 검사("검사해줘") → 공동 테스트 3항목 플레이 → 제출.
+1. 검사("검사해줘") 결과 확인.
+2. 공동 테스트 3항목 작업자 플레이 → 제출("제출해줘").
 
 ## PM이 확인할 것
 

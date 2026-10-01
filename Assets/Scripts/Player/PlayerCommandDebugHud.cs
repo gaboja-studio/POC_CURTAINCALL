@@ -22,6 +22,12 @@ namespace CurtainCall.Player
         [Tooltip("추락 후 다시 시작하는 디버그 키(균형 중앙, 추락 해제).")]
         [SerializeField] Key restartKey = Key.R;
 
+        [Tooltip("모델을 차례로 바꿔 끼우는 디버그 키.")]
+        [SerializeField] Key modelCycleKey = Key.M;
+
+        [Tooltip("바꿔 끼울 모델 목록. 비워 두면 Resources/Prefabs/Characters/Players/Models의 프리팹을 모두 쓴다.")]
+        [SerializeField] GameObject[] testModels;
+
         [SerializeField] bool visible = true;
 
         [SerializeField, Range(1f, 3f)] float scale = 1.5f;
@@ -30,6 +36,8 @@ namespace CurtainCall.Player
         PlayerBalance balance;
         PlayerController controller;
         PlayerInteraction interaction;
+        PlayerModelSlot modelSlot;
+        int modelIndex = -1;
         GUIStyle labelStyle;
         float lastJumpCommandTime = -10f;
         float jumpPeak;
@@ -50,6 +58,7 @@ namespace CurtainCall.Player
                 balance = target.GetComponent<PlayerBalance>();
                 controller = target.GetComponent<PlayerController>();
                 interaction = target.GetComponent<PlayerInteraction>();
+                modelSlot = target.GetComponent<PlayerModelSlot>();
                 if (balance != null) balance.Fell += OnFell;
             }
 
@@ -62,6 +71,9 @@ namespace CurtainCall.Player
                 balance.SetBalanceActive(!balance.IsActive);
                 if (mover != null) mover.SetControlEnabled(true);
             }
+
+            if (modelSlot != null && keyboard[modelCycleKey].wasPressedThisFrame)
+                CycleModel();
 
             if (keyboard[restartKey].wasPressedThisFrame)
             {
@@ -103,6 +115,15 @@ namespace CurtainCall.Player
 
         static string DirText(int d) => d < 0 ? "◀ 왼쪽" : d > 0 ? "오른쪽 ▶" : "-";
 
+        void CycleModel()
+        {
+            if (testModels == null || testModels.Length == 0)
+                testModels = Resources.LoadAll<GameObject>("Prefabs/Characters/Players/Models");
+            if (testModels.Length == 0) return;
+            modelIndex = (modelIndex + 1) % testModels.Length;
+            modelSlot.SetModel(testModels[modelIndex]);
+        }
+
         void OnDestroy() => Unsubscribe();
 
         void OnFell()
@@ -123,7 +144,7 @@ namespace CurtainCall.Player
 
             var oldMatrix = GUI.matrix;
             GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
-            GUILayout.BeginArea(new Rect(10f, 10f, 440f, 540f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(10f, 10f, 440f, 580f), GUI.skin.box);
 
             GUILayout.Label($"<b>Player Input</b>  ({toggleKey} 표시 끄기)", labelStyle);
             if (target == null)
@@ -174,6 +195,8 @@ namespace CurtainCall.Player
                     string jump = mover.CurrentJump == JumpKind.Lane ? $"<b>옆줄 {DirText(mover.LaneJumpDirection)} (고정)</b>" : mover.CurrentJump.ToString();
                     GUILayout.Label($"Jump     {jump}   옆 이동 {lateralFromStart:+0.00;-0.00;0.00}m", labelStyle);
                     GUILayout.Label($"Position ({p.x:0.0}, {p.y:0.0}, {p.z:0.0})", labelStyle);
+                    string model = modelSlot == null ? "<b>PlayerModelSlot 없음</b>" : modelSlot.CurrentModel != null ? modelSlot.CurrentModel.name : "없음";
+                    GUILayout.Label($"Model    {model}  ({modelCycleKey} 바꾸기)", labelStyle);
                 }
             }
 

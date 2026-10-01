@@ -32,7 +32,7 @@
 9. [x] Q/E 홀드 방향 — 입력 층 `AuxDirection`(누르는 동안만 -1/0/+1), 외줄 규칙이 옆줄 방향으로 지정(`HeldDirection`), 단독으로는 동작 없음
 10. [x] Q/E 홀드 + Space 옆줄 건너기 — 외줄 규칙이 `RequestLaneJump`, PlayerMover가 줄 간격(1.5m)만큼 옆으로 실제 점프(방향은 뛴 순간 고정, `LaneJumpFilter`로 005가 허용 판단), 착지 시 PlayerBalance 단독 충격 ±35 + 3초 흔들림 ×2.5(`SetLaneLandingReduction`으로 005가 동료 근처 50% 감소). 줄 유무·합체·뒤쪽 보정은 005
 11. [x] F 상호작용/해제 — 입력 층이 짧게(뗀 프레임)/길게(기준 시간 도달 프레임, `Long Press Time` 0.5초) 판정, 외줄 규칙이 `PlayerInteraction.RequestInteract`/`RequestRelease` 호출 → `InteractRequested`/`ReleaseRequested` 신호와 디버그 표시까지 (실제 목마 연결·해제는 006)
-12. 모델 변경 — 프리팹 모델 슬롯, `Models/`에 대체 모델 1개
+12. [x] 모델 변경 — `PlayerModelSlot`(모델 프리팹 교체 `SetModel`, 키 1.73m 맞춤·발 정렬, 모델 콜라이더 끔), 테스트 모델 생성 메뉴(Tools/CurtainCall/Build Player Test Models → `Models/DefaultCapsule`, `Models/BlockDoll`), HUD M키로 교체
 
 결정(2026-10-01 @MoHoDu): 균형 시스템(값·흔들림·기울기 가속·게이지·추락 신호·목마/충격 입력 함수)은 004에서 만든다. 규칙은 `Harness/Project/Decisions/tightrope-balance.md`, 수치는 `Docs/References/tightrope-balance-summary.md`. 혼자 하는 제자리 점프는 004(2026-10-01 변경). 옆줄 이동의 실제 동작과 낙하·대기·재시작은 005, 목마 중 점프는 006이 담당한다.
 결정(2026-10-01 @MoHoDu): 게이지 같은 UI는 디자인을 교체할 수 있게 Canvas 프리팹으로 만든다. 위치 `Assets/Resources/Prefabs/UIs/Player/`(004에 추가 배정). 스크립트는 값만 반영한다.
@@ -49,6 +49,8 @@
   - `Assets/Scripts/Player/PlayerControlScheme.cs` — 조작 규칙(전략) 기반 + 동작 부품 묶음
   - `Assets/Scripts/Player/TightropeControlScheme.cs` — 외줄 조작 규칙
   - `Assets/Scripts/Player/PlayerInteraction.cs` — 동작 부품: 상호작용·해제 요청 신호
+  - `Assets/Scripts/Player/PlayerModelSlot.cs` — 겉모습 모델 슬롯(교체·키 맞춤)
+  - `Assets/Scripts/Player/Editor/PlayerModelPrefabBuilder.cs` — 테스트 모델 프리팹 생성 메뉴
   - `Assets/Scripts/Player/PlayerInputReader.cs` — 키 → 공통 역할 입력 (`Current`)
   - `Assets/Scripts/Player/PlayerMover.cs` — 동작 부품: 코스 이동·제자리 점프 (CharacterController)
   - `Assets/Scripts/Player/PlayerCommandDebugHud.cs` — 테스트용 명령 HUD (기능 코드가 참조하지 않음, P 토글)
