@@ -1,68 +1,61 @@
+using TMPro;
 using UnityEngine;
 
 namespace CurtainCall.Player
 {
     /// <summary>
-    /// 화면 하단 균형 게이지(초록·노랑·빨강 + 바늘). 테스트용 표시이며 정식 UI가 생기면 대체한다.
-    /// 화면 예시: Docs/References/ref_001.png
+    /// 균형 게이지 UI(빨강 | 초록 | 빨강 + 바늘)에 균형 값을 반영한다.
+    /// 모양(스프라이트·색·크기·위치)은 프리팹에서 정하고, 이 스크립트는 바늘 위치와 초록 폭만 움직인다.
+    /// 프리팹: Assets/Resources/Prefabs/UIs/Player/BalanceGauge.prefab · 규칙: Harness/Project/Decisions/tightrope-balance.md
     /// </summary>
     public class BalanceGaugeView : MonoBehaviour
     {
         [Tooltip("표시할 플레이어. 비워 두면 씬에서 처음 찾은 플레이어를 쓴다.")]
         [SerializeField] PlayerBalance target;
 
-        [Tooltip("화면 너비 대비 게이지 너비.")]
-        [SerializeField, Range(0.1f, 1f)] float widthRatio = 0.4f;
+        [Tooltip("초록 구간. 부모(게이지 막대) 기준 가로 앵커로 폭을 맞춘다.")]
+        [SerializeField] RectTransform greenZone;
 
-        [SerializeField, Min(4f)] float height = 28f;
+        [Tooltip("바늘. 부모(게이지 막대) 기준 가로 앵커로 위치를 맞춘다.")]
+        [SerializeField] RectTransform needle;
 
-        [Tooltip("화면 아래에서 띄우는 거리(px).")]
-        [SerializeField, Min(0f)] float bottomMargin = 40f;
+        [Tooltip("균형 숫자 표시(선택).")]
+        [SerializeField] TMP_Text valueLabel;
 
-        [SerializeField] Color greenColor = new Color(0.25f, 0.68f, 0.35f);
-        [SerializeField] Color yellowColor = new Color(0.9f, 0.65f, 0.2f);
-        [SerializeField] Color redColor = new Color(0.82f, 0.25f, 0.2f);
-        [SerializeField] Color needleColor = Color.white;
-
-        GUIStyle captionStyle;
+        Canvas canvas;
 
         void Update()
         {
             if (target == null)
                 target = FindAnyObjectByType<PlayerBalance>();
+
+            // 균형이 꺼져 있으면(줄 밖) 게이지를 숨긴다
+            if (canvas == null) canvas = GetComponent<Canvas>();
+            bool show = target != null && target.IsActive;
+            if (canvas != null) canvas.enabled = show;
+            if (!show) return;
+
+            if (greenZone != null)
+            {
+                float half = 0.5f * target.GreenLimit / PlayerBalance.MaxValue;
+                SetHorizontalAnchors(greenZone, 0.5f - half, 0.5f + half);
+            }
+
+            if (needle != null)
+            {
+                float x = 0.5f + 0.5f * target.Value / PlayerBalance.MaxValue;
+                SetHorizontalAnchors(needle, x, x);
+            }
+
+            if (valueLabel != null)
+                valueLabel.text = $"균형 {target.Value:+0;-0;0}  ({target.Zone})";
         }
 
-        void OnGUI()
+        static void SetHorizontalAnchors(RectTransform rect, float min, float max)
         {
-            if (target == null) return;
-
-            float width = Screen.width * widthRatio;
-            var bar = new Rect((Screen.width - width) * 0.5f, Screen.height - bottomMargin - height, width, height);
-            float half = width * 0.5f;
-            float center = bar.center.x;
-
-            // 빨강 → 노랑 → 초록 순서로 겹쳐 그린다
-            Fill(bar, redColor);
-            Fill(Band(center, half * target.YellowLimit, bar), yellowColor);
-            Fill(Band(center, half * target.GreenLimit, bar), greenColor);
-
-            float needleX = center + half * target.Value;
-            Fill(new Rect(needleX - 2f, bar.y - 6f, 4f, bar.height + 12f), needleColor);
-
-            captionStyle ??= new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter };
-            var caption = new Rect(bar.x, bar.yMax + 2f, bar.width, 20f);
-            GUI.Label(caption, $"◀ A        균형 {target.Value:+0.00;-0.00; 0.00}  ({target.Zone})        D ▶", captionStyle);
-        }
-
-        static Rect Band(float center, float halfWidth, Rect bar) =>
-            new Rect(center - halfWidth, bar.y, halfWidth * 2f, bar.height);
-
-        static void Fill(Rect rect, Color color)
-        {
-            Color old = GUI.color;
-            GUI.color = color;
-            GUI.DrawTexture(rect, Texture2D.whiteTexture);
-            GUI.color = old;
+            rect.anchorMin = new Vector2(min, rect.anchorMin.y);
+            rect.anchorMax = new Vector2(max, rect.anchorMax.y);
+            rect.anchoredPosition = new Vector2(0f, rect.anchoredPosition.y);
         }
     }
 }

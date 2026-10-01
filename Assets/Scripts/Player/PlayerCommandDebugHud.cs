@@ -15,11 +15,15 @@ namespace CurtainCall.Player
         [Tooltip("표시를 켜고 끄는 키.")]
         [SerializeField] Key toggleKey = Key.P;
 
+        [Tooltip("균형 시스템을 켜고 끄는 디버그 키(줄에 오르내리는 상황 흉내).")]
+        [SerializeField] Key balanceToggleKey = Key.B;
+
         [SerializeField] bool visible = true;
 
         [SerializeField, Range(1f, 3f)] float scale = 1.5f;
 
         PlayerMover mover;
+        PlayerBalance balance;
         GUIStyle labelStyle;
 
         void Update()
@@ -31,7 +35,13 @@ namespace CurtainCall.Player
             if (target == null)
                 target = FindAnyObjectByType<PlayerInputReader>();
             if (target != null && (mover == null || mover.gameObject != target.gameObject))
+            {
                 mover = target.GetComponent<PlayerMover>();
+                balance = target.GetComponent<PlayerBalance>();
+            }
+
+            if (balance != null && keyboard != null && keyboard[balanceToggleKey].wasPressedThisFrame)
+                balance.SetBalanceActive(!balance.IsActive);
         }
 
         void OnGUI()
@@ -54,6 +64,21 @@ namespace CurtainCall.Player
                 PlayerCommand cmd = target.Current;
                 GUILayout.Label($"Move     {Signed(cmd.Move)}  {MoveText(cmd.Move)}", labelStyle);
                 GUILayout.Label($"Posture  {Signed(cmd.Posture)}  {Bar(cmd.Posture)}", labelStyle);
+
+                if (balance != null)
+                {
+                    GUILayout.Space(6f);
+                    if (balance.IsActive)
+                    {
+                        GUILayout.Label($"Balance  {balance.Value:+0.0;-0.0;0.0}  ({balance.Zone})", labelStyle);
+                        GUILayout.Label($"Sway     {balance.CurrentSway:+0;-0;0}/s", labelStyle);
+                    }
+                    else
+                    {
+                        GUILayout.Label("Balance  꺼짐", labelStyle);
+                    }
+                    GUILayout.Label($"({balanceToggleKey} 균형 켜기/끄기)", labelStyle);
+                }
 
                 if (mover != null)
                 {

@@ -21,6 +21,9 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 - `Assets/Resources/Input/` — 새 입력 에셋 (공통 입력 + 외줄 입력)
 - `Assets/Resources/Prefabs/Characters/Players/` — 플레이어 프리팹, 교체용 모델(Models 하위)
+- `Assets/Resources/Prefabs/UIs/Player/` — 플레이어 UI 프리팹(균형 게이지 등). 2026-10-01 PM @MoHoDu 추가 배정, 리소스가 오면 디자인 교체
+- `Assets/Resources/Fonts/` — 임시 UI 폰트(Pretendard-Medium TMP 에셋). 2026-10-01 PM @MoHoDu 추가
+- `Assets/TextMesh Pro/` — TMP 기본 리소스(TMP Essential Resources 가져오기). 2026-10-01 PM @MoHoDu 추가, 직접 수정하지 않음
 
 ## 수정 금지
 
