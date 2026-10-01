@@ -20,6 +20,9 @@
 
 ## Verification
 
-- 구역 PASS · 1 문서/규칙 PASS · 2 컴파일 PASS (10-02, check-work)
-- 3 테스트: NO_PROJECT_TESTS (10-02, 열린 에디터 list_tests 0개). check-work는 FAIL로 표시 — 에디터가 열려 있어 unity test 거부(Pitfalls/unity-test-editor-open.md, 메인 체크아웃에만 있음). 테스트 어셈블리 없음은 결정.
-- 4 실행 로그: SKIPPED(미실행) / 5 공동 테스트: 작업자 플레이 3항목 모두 통과 (10-02, 1 공통 역할·2 F 짧게/길게·3 모델 교체)
+- 구역 검사: PASS (10-02, check-work)
+- 1 문서/규칙: PASS (10-02, check-work)
+- 2 컴파일: PASS (10-02, check-work, 통합 브랜치 병합 후 재확인)
+- 3 테스트: NO_PROJECT_TESTS (10-02, 열린 에디터 list_tests 0개, 테스트 어셈블리 없음은 결정). check-work 표시는 FAIL — 에디터가 열려 있으면 unity test가 거부됨(unity-cli 함정)
+- 4 실행 로그: SKIPPED(미실행)
+- 5 공동 테스트: 작업자 플레이 3항목 모두 통과 (10-02)
