@@ -94,6 +94,9 @@ namespace CurtainCall.Player
         /// <summary>빨강 체류 시간이 추락 기준에 닿았을 때 한 번 보낸다.</summary>
         public event Action Fell;
 
+        /// <summary>균형을 중앙으로 되돌렸을 때(재시작·켜기/끄기) 보낸다. 추락 연출을 되돌리는 데 쓴다.</summary>
+        public event Action BalanceReset;
+
         /// <summary>균형이 켜져 있는지. 꺼져 있으면 계산하지 않고 값은 0.</summary>
         public bool IsActive { get; private set; }
 
@@ -221,6 +224,7 @@ namespace CurtainCall.Player
             HasFallen = false;
             laneBoostUntil = -1f;
             laneLandingReduction = 0f;
+            BalanceReset?.Invoke();
             IsAirborne = false;
             LastShock = 0f;
             PickSwayDirection();
