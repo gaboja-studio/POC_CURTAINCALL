@@ -19,8 +19,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20260930-003 | feat | @MoHoDu(임시) | feat/network-session (인계 때 생성) | - | scaffolded |
-| Task-20260930-004 | feat | @MoHoDu(임시) | feat/player-control (인계 때 생성) | - | scaffolded |
+| Task-20260930-003 | feat | @MoHoDu | feat/network-session (인계 때 생성) | - | scaffolded |
+| Task-20260930-004 | feat | @MoHoDu | feat/player-control (인계 때 생성) | - | scaffolded |
 | Task-20260930-005 | feat | @MoHoDu(임시) | feat/tightrope-core (인계 때 생성) | - | scaffolded |
 | Task-20260930-006 | feat | @MoHoDu(임시) | feat/tightrope-piggyback (인계 때 생성) | - | scaffolded |
 | Task-20260930-007 | feat | @MoHoDu(임시) | feat/network-player-sync (인계 때 생성) | - | scaffolded |
@@ -45,6 +45,6 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 ## Decisions
 
-- Open: 담당자 GitHub 계정 (미배정, 작업 상황 보고 PM이 결정)
+- Open: 005~010 담당자 GitHub 계정 (미배정, 작업 상황 보고 PM이 결정)
 - Decided: 2026-09-30 @MoHoDu — NGO + Multiplayer Services(Host), 이동은 클라·판정은 호스트, 패키지 PM 선설치, 조작용 로드 에셋은 `Assets/Resources/`, AI는 컴파일만·플레이 테스트는 작업자, 음성·런 데이터 제외, 4인 기준 ([결정](../../../Harness/Project/Decisions/multiplayer-stack.md), [검증](../../../Harness/Project/Decisions/prototype-verification.md))
 - Decided: 2026-10-01 @MoHoDu — 패키지 설치·Unity Cloud 연결(gaboja-studio) 완료, Confluence 2건 요약 반입, 외줄 규칙 확정([결정](../../../Harness/Project/Decisions/tightrope-rules.md))
