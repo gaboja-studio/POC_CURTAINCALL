@@ -353,12 +353,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.Session.NetworkSessionTestUI
   _address: 127.0.0.1:7777
-  _area:
+  _panelRect:
     serializedVersion: 2
     x: 10
     y: 10
-    width: 320
-    height: 220
+    width: 340
+    height: 320
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

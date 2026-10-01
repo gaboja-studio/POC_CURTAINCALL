@@ -2,18 +2,20 @@ using System;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
+using Unity.Services.Multiplayer;
 using UnityEngine;
 
 namespace CurtainCall.Network.Session
 {
     /// <summary>
-    /// 방 접속의 공개 진입점. 다른 기능은 이 클래스의 메서드·이벤트만 사용한다.
+    /// 방 접속과 게임 진행 상태의 공개 진입점. 다른 기능은 이 클래스의 메서드·이벤트만 사용한다.
     /// NetworkManager 프리팹(Resources/Prefabs/Controllers/Network/NetworkManager)에 함께 붙는다.
     /// </summary>
     [RequireComponent(typeof(NetworkManager))]
     public sealed class NetworkSessionManager : MonoBehaviour
     {
         const string PrefabPath = "Prefabs/Controllers/Network/NetworkManager";
+        const string StateSyncPrefabPath = "Prefabs/Controllers/Network/GameSession";
 
         public static NetworkSessionManager Instance { get; private set; }
 
@@ -34,24 +36,37 @@ namespace CurtainCall.Network.Session
             return Instance;
         }
 
+        [Tooltip("이 인원이 모이면 호스트가 게임을 자동으로 시작한다. 세션 최대 인원도 이 값이다.")]
+        [SerializeField, Min(1)] int _requiredPlayers = 4;
+
         public SessionConnectionState ConnectionState { get; private set; } = SessionConnectionState.Offline;
 
-        /// <summary>참가자에게 알려 줄 접속 키(LAN은 "IP:포트"). 접속 전에는 null.</summary>
+        /// <summary>모든 플레이어가 같게 보는 게임 상태. 접속이 끊기면 진행 중이었어도 Ended로 남는다.</summary>
+        public GameSessionState GameState { get; private set; } = GameSessionState.Waiting;
+
+        /// <summary>현재 접속 인원. 호스트·클라이언트 모두 같은 값을 본다.</summary>
+        public int PlayerCount { get; private set; }
+
+        public int RequiredPlayers => _requiredPlayers;
+
+        /// <summary>참가자에게 알려 줄 접속 키(세션은 방 코드, LAN은 "IP:포트"). 접속 전에는 null.</summary>
         public string JoinKey => _connector?.JoinKey;
 
         /// <summary>마지막으로 접속이 끝난 이유. 접속 중에는 null.</summary>
         public string LastDisconnectReason { get; private set; }
 
-        /// <summary>현재 접속 인원. 호스트에서만 정확하다(클라이언트 공유는 게임 상태 동기화에서 한다).</summary>
-        public int ConnectedPlayerCount => _networkManager != null && _networkManager.IsServer
-            ? _networkManager.ConnectedClientsIds.Count
-            : 0;
+        /// <summary>현재 접속 방식. 세션 세부 정보가 필요하면 <see cref="ServicesSessionConnector"/>로 확인한다.</summary>
+        public ISessionConnector ActiveConnector => _connector;
 
         public NetworkManager NetworkManager => _networkManager;
 
+        public bool IsHost => ConnectionState == SessionConnectionState.Host;
+
         public event Action<SessionConnectionState> ConnectionStateChanged;
 
-        /// <summary>호스트에서 접속 인원이 바뀔 때.</summary>
+        /// <summary>게임 상태(대기/진행/종료)가 바뀔 때. 모든 플레이어에게 같은 순서로 온다.</summary>
+        public event Action<GameSessionState> GameStateChanged;
+
         public event Action<int> PlayerCountChanged;
 
         /// <summary>내 접속이 끝났을 때(직접 나감·호스트 종료·연결 실패). 인자는 이유.</summary>
@@ -59,6 +74,8 @@ namespace CurtainCall.Network.Session
 
         NetworkManager _networkManager;
         ISessionConnector _connector;
+        GameObject _stateSyncPrefab;
+        GameSessionStateSync _stateSync;
         string _pendingDisconnectReason;
         bool _leaveRequested;
 
@@ -73,6 +90,10 @@ namespace CurtainCall.Network.Session
             Instance = this;
             _networkManager = GetComponent<NetworkManager>();
             EnsureTransportAssigned();
+            RegisterStateSyncPrefab();
+
+            _networkManager.NetworkConfig.ConnectionApproval = true;
+            _networkManager.ConnectionApprovalCallback = ApproveConnection;
             _networkManager.OnConnectionEvent += HandleConnectionEvent;
             _networkManager.OnClientStopped += HandleStopped;
             _networkManager.OnServerStopped += HandleStopped;
@@ -85,6 +106,7 @@ namespace CurtainCall.Network.Session
 
             if (_networkManager != null)
             {
+                _networkManager.ConnectionApprovalCallback = null;
                 _networkManager.OnConnectionEvent -= HandleConnectionEvent;
                 _networkManager.OnClientStopped -= HandleStopped;
                 _networkManager.OnServerStopped -= HandleStopped;
@@ -109,6 +131,28 @@ namespace CurtainCall.Network.Session
             _networkManager.NetworkConfig.NetworkTransport = transport;
         }
 
+        /// <summary>게임 상태 동기화 프리팹이 네트워크 프리팹 목록에 없으면 실행 중에 등록한다.</summary>
+        void RegisterStateSyncPrefab()
+        {
+            var sync = Resources.Load<GameSessionStateSync>(StateSyncPrefabPath);
+            if (sync == null)
+            {
+                Debug.LogError($"[Session] Resources/{StateSyncPrefabPath} 프리팹을 찾지 못했습니다. 게임 상태가 공유되지 않습니다.");
+                return;
+            }
+
+            _stateSyncPrefab = sync.gameObject;
+            foreach (var list in _networkManager.NetworkConfig.Prefabs.NetworkPrefabsLists)
+            {
+                if (list != null && list.Contains(_stateSyncPrefab))
+                    return;
+            }
+
+            _networkManager.AddNetworkPrefab(_stateSyncPrefab);
+        }
+
+        // ── 접속 ──────────────────────────────────────────────
+
         public Task<bool> HostLanAsync(ushort port = LanSessionConnector.DefaultPort) =>
             HostAsync(new LanSessionConnector(_networkManager, port));
 
@@ -116,20 +160,25 @@ namespace CurtainCall.Network.Session
         public Task<bool> JoinLanAsync(string address, ushort defaultPort = LanSessionConnector.DefaultPort) =>
             JoinAsync(new LanSessionConnector(_networkManager, defaultPort), address);
 
+        /// <summary>Multiplayer Services 세션(Relay)으로 방을 연다. 방 코드는 <see cref="JoinKey"/>.</summary>
+        public Task<bool> HostSessionAsync() =>
+            HostAsync(new ServicesSessionConnector(_networkManager, _requiredPlayers));
+
+        /// <summary>방 고유 코드로 세션에 참가한다.</summary>
+        public Task<bool> JoinSessionAsync(string code) =>
+            JoinAsync(new ServicesSessionConnector(_networkManager, _requiredPlayers), code);
+
         public async Task<bool> HostAsync(ISessionConnector connector)
         {
             if (!BeginConnect(connector))
                 return false;
 
-            bool started = await connector.HostAsync();
-            if (!started)
-            {
-                FailConnect("방을 열지 못했습니다.");
+            if (!await RunConnectAsync(connector.HostAsync, "방을 열지 못했습니다."))
                 return false;
-            }
 
             SetState(SessionConnectionState.Host);
-            PlayerCountChanged?.Invoke(ConnectedPlayerCount);
+            SpawnStateSync();
+            ServerRefresh();
             return true;
         }
 
@@ -138,15 +187,8 @@ namespace CurtainCall.Network.Session
             if (!BeginConnect(connector))
                 return false;
 
-            bool started = await connector.JoinAsync(joinKey);
-            if (!started)
-            {
-                FailConnect("방에 들어가지 못했습니다.");
-                return false;
-            }
-
             // 실제 접속 완료는 HandleConnectionEvent에서 Client로 바뀐다.
-            return true;
+            return await RunConnectAsync(() => connector.JoinAsync(joinKey), "방에 들어가지 못했습니다.");
         }
 
         public async Task LeaveAsync()
@@ -156,6 +198,27 @@ namespace CurtainCall.Network.Session
 
             _leaveRequested = true;
             await _connector.LeaveAsync();
+        }
+
+        async Task<bool> RunConnectAsync(Func<Task<bool>> connect, string failReason)
+        {
+            string reason = failReason;
+            try
+            {
+                if (await connect())
+                    return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[Session] {failReason} {e}");
+                reason = $"{failReason} ({e.Message})";
+            }
+
+            // 먼저 Offline으로 바꿔 Shutdown이 부르는 HandleStopped가 종료를 두 번 알리지 않게 한다.
+            FailConnect(reason);
+            if (_networkManager.IsListening)
+                _networkManager.Shutdown();
+            return false;
         }
 
         bool BeginConnect(ISessionConnector connector)
@@ -170,6 +233,8 @@ namespace CurtainCall.Network.Session
             _pendingDisconnectReason = null;
             _leaveRequested = false;
             LastDisconnectReason = null;
+            SetPlayerCount(0);
+            SetGameState(GameSessionState.Waiting);
             SetState(SessionConnectionState.Connecting);
             return true;
         }
@@ -182,6 +247,124 @@ namespace CurtainCall.Network.Session
             Disconnected?.Invoke(reason);
         }
 
+        // ── 게임 상태 (호스트 판정) ───────────────────────────
+
+        /// <summary>호스트 전용. 진행 중인 게임을 종료 상태로 바꾼다(예: 도착 성공).</summary>
+        public bool EndGame()
+        {
+            if (!IsHost)
+            {
+                Debug.LogWarning("[Session] EndGame은 호스트만 호출할 수 있습니다.");
+                return false;
+            }
+
+            if (GameState != GameSessionState.Playing)
+                return false;
+
+            SetGameState(GameSessionState.Ended);
+            PushStateToClients();
+            return true;
+        }
+
+        void ApproveConnection(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+        {
+            bool isHostSelf = request.ClientNetworkId == NetworkManager.ServerClientId;
+            int connected = _networkManager.ConnectedClientsIds.Count;
+
+            if (!isHostSelf && GameState != GameSessionState.Waiting)
+                Reject(response, "게임이 이미 진행 중입니다.");
+            else if (!isHostSelf && connected >= _requiredPlayers)
+                Reject(response, "방이 가득 찼습니다.");
+            else
+                response.Approved = true;
+
+            response.CreatePlayerObject = response.Approved && _networkManager.NetworkConfig.PlayerPrefab != null;
+        }
+
+        static void Reject(NetworkManager.ConnectionApprovalResponse response, string reason)
+        {
+            response.Approved = false;
+            response.Reason = reason;
+            Debug.Log($"[Session] 접속 거절: {reason}");
+        }
+
+        void SpawnStateSync()
+        {
+            if (_stateSyncPrefab == null)
+                return;
+
+            var instance = Instantiate(_stateSyncPrefab);
+            instance.GetComponent<NetworkObject>().Spawn();
+        }
+
+        /// <summary>호스트: 인원을 다시 세고, 대기 중 인원이 다 차면 게임을 시작한다.</summary>
+        void ServerRefresh()
+        {
+            if (!IsHost)
+                return;
+
+            SetPlayerCount(_networkManager.ConnectedClientsIds.Count);
+            if (GameState == GameSessionState.Waiting && PlayerCount >= _requiredPlayers)
+            {
+                SetGameState(GameSessionState.Playing);
+                _ = LockSessionAsync();
+            }
+
+            PushStateToClients();
+        }
+
+        void PushStateToClients()
+        {
+            if (_stateSync != null)
+                _stateSync.ServerSet(GameState, PlayerCount);
+        }
+
+        /// <summary>시작 후 세션을 잠가 방 코드로 더 들어오지 못하게 한다(접속 승인과 이중 방어).</summary>
+        async Task LockSessionAsync()
+        {
+            if (!(_connector is ServicesSessionConnector services) || !(services.CurrentSession is IHostSession host))
+                return;
+
+            try
+            {
+                host.IsLocked = true;
+                await host.SavePropertiesAsync();
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[Session] 세션 잠금 실패(접속 승인으로 막습니다): {e.Message}");
+            }
+        }
+
+        internal void AttachStateSync(GameSessionStateSync sync)
+        {
+            _stateSync = sync;
+            sync.Changed += HandleStateSyncChanged;
+
+            if (IsHost)
+                PushStateToClients();
+            else
+                HandleStateSyncChanged();
+        }
+
+        internal void DetachStateSync(GameSessionStateSync sync)
+        {
+            sync.Changed -= HandleStateSyncChanged;
+            if (_stateSync == sync)
+                _stateSync = null;
+        }
+
+        void HandleStateSyncChanged()
+        {
+            if (IsHost || _stateSync == null)
+                return;
+
+            SetPlayerCount(_stateSync.PlayerCount);
+            SetGameState(_stateSync.State);
+        }
+
+        // ── 연결 이벤트 ───────────────────────────────────────
+
         void HandleConnectionEvent(NetworkManager networkManager, ConnectionEventData data)
         {
             bool isLocal = data.ClientId == networkManager.LocalClientId;
@@ -190,14 +373,14 @@ namespace CurtainCall.Network.Session
             {
                 case ConnectionEvent.ClientConnected:
                     if (networkManager.IsServer)
-                        PlayerCountChanged?.Invoke(ConnectedPlayerCount);
+                        ServerRefresh();
                     else if (isLocal)
                         SetState(SessionConnectionState.Client);
                     break;
 
                 case ConnectionEvent.ClientDisconnected:
                     if (networkManager.IsServer)
-                        PlayerCountChanged?.Invoke(ConnectedPlayerCount);
+                        ServerRefresh();
                     else if (isLocal)
                         _pendingDisconnectReason = networkManager.DisconnectReason;
                     break;
@@ -222,12 +405,20 @@ namespace CurtainCall.Network.Session
                 reason = "호스트와 연결이 끊겼습니다.";
 
             _connector = null;
+            _stateSync = null;
             _leaveRequested = false;
             LastDisconnectReason = reason;
+
+            // 진행 중에 끊기면 모두 종료 화면으로 간다(호스트 종료 = 게임 종료).
+            if (GameState == GameSessionState.Playing)
+                SetGameState(GameSessionState.Ended);
+
             SetState(SessionConnectionState.Offline);
             Debug.Log($"[Session] 접속 종료: {reason}");
             Disconnected?.Invoke(reason);
         }
+
+        // ── 상태 변경 알림 ────────────────────────────────────
 
         void SetState(SessionConnectionState state)
         {
@@ -237,6 +428,25 @@ namespace CurtainCall.Network.Session
             ConnectionState = state;
             Debug.Log($"[Session] 접속 상태: {state}");
             ConnectionStateChanged?.Invoke(state);
+        }
+
+        void SetGameState(GameSessionState state)
+        {
+            if (GameState == state)
+                return;
+
+            GameState = state;
+            Debug.Log($"[Session] 게임 상태: {state}");
+            GameStateChanged?.Invoke(state);
+        }
+
+        void SetPlayerCount(int count)
+        {
+            if (PlayerCount == count)
+                return;
+
+            PlayerCount = count;
+            PlayerCountChanged?.Invoke(count);
         }
     }
 }
