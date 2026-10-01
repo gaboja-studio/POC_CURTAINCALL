@@ -6,9 +6,13 @@
 
 | 무엇 | 위치 | 만드는 사람 |
 |---|---|---|
-| 기능 코드 | `Assets/Scripts/<Feature>/` (기능·작업별로 폴더 분리) | PM이 폴더 생성, 담당자가 채움 |
-| Task 테스트 씬 | `Assets/_Sandbox/<Feature>/` | PM |
-| 공용 씬 | `Assets/Scenes/` | 공용 파일 소유 표로만 배정 |
+| 기능 코드 (C#은 모두 여기) | `Assets/Scripts/<Feature>/` (기능·작업별로 폴더 분리) | PM이 폴더 생성, 담당자가 채움 |
+| Task 테스트 씬 | `Assets/Scenes/Tests/<Feature>/` | PM |
+| 테스트 전용 프리팹 | `Assets/Scenes/Tests/<Feature>/Prefabs/` | 담당자 |
+| 공용 씬 | `Assets/Scenes/` (Tests 밖) | 공용 파일 소유 표로만 배정 |
+
+- C# 코드는 `Assets/Scripts/` 밖에 두지 않고, 씬은 `Assets/Scenes/` 밖에 두지 않는다(`Harness/Project/Decisions/asset-placement.md`).
+- `setup.md`에는 수정 금지로 `Assets/Scenes/`를 두고, 해당 Task의 `Assets/Scenes/Tests/<Feature>/`만 작업 구역으로 연다.
 
 - 폴더명은 Unity 관례(PascalCase, 예: `CurtainOpen`)를 따른다. 하네스 폴더 이름 규칙은 `Assets/`에 적용하지 않는다.
 - 빈 폴더는 git에 올라가지 않으므로 PM이 폴더를 만들 때 `.gitkeep`을 넣는다(Unity는 점으로 시작하는 파일을 무시함).

@@ -2,7 +2,7 @@
 summary: 커튼콜의 기획 개요와 현재 구현 상태를 구분한 진입점
 status: active
 updated: 2026-09-30
-source: Docs/References/game-flow.md (human 제공), Harness/Project/Facts/unity-project.md
+source: Docs/References/game-flow.md (human 제공), Harness/Project/Facts/unity-project.md, Decisions/multiplayer-stack.md
 ---
 
 # 게임 개요
@@ -14,7 +14,7 @@ source: Docs/References/game-flow.md (human 제공), Harness/Project/Facts/unity
 ## 기획 기준 — 아직 구현 완료 아님
 
 - 프로젝트: **커튼콜 (Curtain Call)** / `POC_CURTAINCALL`. 개념 검증(POC) 프로젝트이며 목표는 **묘기의 재미 검증**이다.
-- 장르·대상: PC용 Unity 3D 1인칭, 최대 4인 코옵 프렌드 슬롭(공연 + 방탈출 + 로그라이크). 초기 개발은 싱글로 진행하고 넷코드는 수직 슬라이스 단계에서 결정한다.
+- 장르·대상: PC용 Unity 3D 1인칭, 최대 4인 코옵 프렌드 슬롭(공연 + 방탈출 + 로그라이크). 넷코드는 2026-09-30 NGO + Multiplayer Services(Host)로 결정됐다([결정](../Decisions/multiplayer-stack.md)).
 - 콘셉트: 서커스 단원이 외계인 관객 앞에서 묘기로 크레딧을 벌고 기물을 사서 시설을 탈출한다. 실패하면 흔적만 남기고 다음 세대가 재배치된 시설에 도전한다.
 - 핵심 루프: **공연 → 자유시간(정찰·부활·탈출 판단) 반복 → 밤(정산·구매·세이브)**. 타이머 속에서 “지금 갈까, 한 판 더 벌까”를 고르는 것이 핵심이다. 계획 동선은 메인 화면 → 대기실 ↔ 공연장, 대기실 ↔ 탈출로 → 제어실이다.
 - 단계·범위: 원문 기준 2026-09-29~10-13의 묘기 그레이박스 스프린트. 이후 수직 슬라이스 목표는 하루 분량, 대기실·정비층 각 1개, 소수 장애물, 기물 2종(외줄·대포)이다. **계획이지 완료 보고가 아니다.**
@@ -25,7 +25,7 @@ source: Docs/References/game-flow.md (human 제공), Harness/Project/Facts/unity
 
 ## 아직 정하지 않은 것
 
-- 묘기 선택·팀 분할·부활 방식·추격자·흔적·복수 엔딩 조건·넷코드 등은 [원문 §11](../../../Docs/References/game-flow.md#11-미정-목록-하드코딩-금지--정해지면-이-파일-갱신)의 **※미정**으로 유지한다. 원문의 기본값과 숫자는 임시 튜닝값이지 확정 밸런스가 아니다.
+- 묘기 선택·팀 분할·부활 방식·추격자·흔적·복수 엔딩 조건 등은 [원문 §11](../../../Docs/References/game-flow.md#11-미정-목록-하드코딩-금지--정해지면-이-파일-갱신)의 **※미정**으로 유지한다. 원문의 기본값과 숫자는 임시 튜닝값이지 확정 밸런스가 아니다.
 - 묘기 세부 스펙 참조 `CONTEXT.md`는 현재 저장소에서 확인되지 않는다. 없는 내용을 추측해 채우지 않는다.
 
 ## 확인 방법

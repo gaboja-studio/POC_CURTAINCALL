@@ -48,9 +48,9 @@
 **내 구역에서만 작업합니다.** PM이 Task 폴더의 `setup.md`에 적어 줍니다.
 
 ```
-내 테스트 씬:     Assets/_Sandbox/CurtainOpen/CurtainOpenTest.unity
+내 테스트 씬:     Assets/Scenes/Tests/CurtainOpen/CurtainOpenTest.unity
 내 스크립트 폴더: Assets/Scripts/Curtain/      ← 기능마다 폴더가 따로 있음
-수정 금지:        Assets/Scenes/ (공용 씬), ProjectSettings/, Packages/
+수정 금지:        Assets/Scenes/ (내 Tests 폴더 제외), ProjectSettings/, Packages/
 ```
 
 - 기능은 내 테스트 씬에서 만들고 확인합니다. 공용 씬은 열어 보기만 합니다.
