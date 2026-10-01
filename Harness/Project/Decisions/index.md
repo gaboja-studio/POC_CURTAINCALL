@@ -10,3 +10,4 @@
 - [tightrope-rules.md](tightrope-rules.md) — 외줄타기 조작·협동/단독 옆줄(콜라이더 합체·1m 50% 감소)·목마 올라타기·목마 점프·전원 추락 재시작·1명 도착 성공. 외줄·목마·입력을 구현할 때
 - [prototype-verification.md](prototype-verification.md) — AI는 컴파일만 검사, 플레이 테스트는 작업자에게 받음. 프로토타입 Task를 검사·제출할 때
 - [tightrope-balance.md](tightrope-balance.md) — 외줄 균형(기획 문서 rope_balance 기준): 초록 ±40·빨강 2초 추락, 자연 흔들림·기울기 가속·목마 배율·착지/옆줄 충격, 수치는 인스펙터. 균형·게이지·추락을 구현하거나 튜닝할 때
+- [player-control-architecture.md](player-control-architecture.md) — 플레이어 조작 3층(키→공통 역할 입력 에셋, 콘텐츠별 조작 규칙=전략, 동작 부품). 입력·조작을 추가하거나 콘텐츠별 키 동작을 바꿀 때
