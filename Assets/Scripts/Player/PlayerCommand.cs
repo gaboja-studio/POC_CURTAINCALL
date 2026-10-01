@@ -8,5 +8,8 @@ namespace CurtainCall.Player
     {
         /// <summary>코스 진행 방향 기준 이동. +1 전진(W), -1 후진(S), 0 정지.</summary>
         public float Move;
+
+        /// <summary>자세(균형) 제어. -1 왼쪽(A), +1 오른쪽(D), 0 입력 없음. 좌우 이동에는 쓰지 않는다.</summary>
+        public float Posture;
     }
 }

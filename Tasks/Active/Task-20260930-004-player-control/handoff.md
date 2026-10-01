@@ -15,7 +15,7 @@
 
 ## PM이 확인할 것
 
-- 확인 요청: 없음
+- 확인 요청: 005 `plan.md`의 "균형 값" 부분을 004 결과(무너짐 신호 받아 낙하 처리)로 갱신 (`Harness/Project/Decisions/tightrope-balance.md`)
 - 대기 중인 결정: 없음
 - 공용 파일 요청: 없음
 

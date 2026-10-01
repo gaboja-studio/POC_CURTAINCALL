@@ -9,3 +9,4 @@
 - [asset-placement.md](asset-placement.md) — 코드는 Assets/Scripts/, 씬은 Assets/Scenes/(테스트는 Scenes/Tests/), 불러와 쓰는 에셋은 Resources. 스크립트·씬·프리팹 위치를 정할 때
 - [tightrope-rules.md](tightrope-rules.md) — 외줄타기 조작·협동/단독 이동·목마 올라타기·전원 추락 재시작·1명 도착 성공. 외줄·목마·입력을 구현할 때
 - [prototype-verification.md](prototype-verification.md) — AI는 컴파일만 검사, 플레이 테스트는 작업자에게 받음. 프로토타입 Task를 검사·제출할 때
+- [tightrope-balance.md](tightrope-balance.md) — 외줄 균형 게이지(초록·노랑·빨강)·A/D 보정·동작별 흔들림·관성·빨강 3초 무너짐, 수치는 인스펙터. 균형·게이지·무너짐을 구현하거나 튜닝할 때
