@@ -103,6 +103,7 @@ GameObject:
   - component: {fileID: 2680789630942886336}
   - component: {fileID: 5925600415630618710}
   - component: {fileID: 737775002277357732}
+  - component: {fileID: 3625543077194708228}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -179,7 +180,8 @@ MonoBehaviour:
   destination: {fileID: 0}
   courseDirection: {x: 0, y: 0, z: 1}
   moveSpeed: 3
-  gravity: -20
+  gravityStrength: 9.81
+  jumpHeight: 1
 --- !u!114 &737775002277357732
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192,5 +194,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d81c05d83fd5545818f0afcd50cb02ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerBalance
+  activeOnStart: 1
   greenLimit: 40
+  fallTime: 2
   correctionSpeed: 60
+  movingSway: 15
+  idleSway: 5
+  swayDirectionInterval: {x: 1, y: 2}
+  tiltAcceleration: 0.5
+  landingShock: 10
+  minAirTimeForShock: 0.15
+  stackMultipliers:
+  - 1
+  - 1.3
+  - 1.6
+  - 2
+  upperTransfer: 0.2
+  stackSize: 1
+  upperBalanceSum: 0
+--- !u!114 &3625543077194708228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5739599360029862557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a4d1cca2cc1d4f4ba0bbf7188897b8f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerController
+  startScheme: {fileID: 0}

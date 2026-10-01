@@ -5,7 +5,7 @@ namespace CurtainCall.Player
 {
     /// <summary>
     /// 균형 게이지 UI(빨강 | 초록 | 빨강 + 바늘)에 균형 값을 반영한다.
-    /// 모양(스프라이트·색·크기·위치)은 프리팹에서 정하고, 이 스크립트는 바늘 위치와 초록 폭만 움직인다.
+    /// 모양(스프라이트·색·크기·위치)은 프리팹에서 정하고, 이 스크립트는 바늘 위치·초록 폭·빨강 체류 막대만 움직인다.
     /// 프리팹: Assets/Resources/Prefabs/UIs/Player/BalanceGauge.prefab · 규칙: Harness/Project/Decisions/tightrope-balance.md
     /// </summary>
     public class BalanceGaugeView : MonoBehaviour
@@ -18,6 +18,12 @@ namespace CurtainCall.Player
 
         [Tooltip("바늘. 부모(게이지 막대) 기준 가로 앵커로 위치를 맞춘다.")]
         [SerializeField] RectTransform needle;
+
+        [Tooltip("빨강 체류 시간 표시 묶음. 빨강에 있을 때만 보인다(선택).")]
+        [SerializeField] GameObject redTimerRoot;
+
+        [Tooltip("빨강 체류 막대. 부모 기준 가로 앵커 0~비율로 채운다(선택).")]
+        [SerializeField] RectTransform redTimerFill;
 
         [Tooltip("균형 숫자 표시(선택).")]
         [SerializeField] TMP_Text valueLabel;
@@ -47,8 +53,25 @@ namespace CurtainCall.Player
                 SetHorizontalAnchors(needle, x, x);
             }
 
+            float redRatio = target.RedTimeRatio;
+            if (redTimerRoot != null)
+                redTimerRoot.SetActive(redRatio > 0f);
+            if (redTimerFill != null)
+            {
+                redTimerFill.anchorMin = new Vector2(0f, redTimerFill.anchorMin.y);
+                redTimerFill.anchorMax = new Vector2(redRatio, redTimerFill.anchorMax.y);
+                redTimerFill.offsetMin = new Vector2(0f, redTimerFill.offsetMin.y);
+                redTimerFill.offsetMax = new Vector2(0f, redTimerFill.offsetMax.y);
+            }
+
             if (valueLabel != null)
-                valueLabel.text = $"균형 {target.Value:+0;-0;0}  ({target.Zone})";
+            {
+                valueLabel.text = target.HasFallen
+                    ? "추락!"
+                    : target.Zone == BalanceZone.Red
+                        ? $"균형 {target.Value:+0;-0;0}  빨강 {target.RedTime:0.0} / {target.FallTime:0.0}s"
+                        : $"균형 {target.Value:+0;-0;0}";
+            }
         }
 
         static void SetHorizontalAnchors(RectTransform rect, float min, float max)

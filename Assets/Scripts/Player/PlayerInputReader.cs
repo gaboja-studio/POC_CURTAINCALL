@@ -4,10 +4,10 @@ using UnityEngine.InputSystem;
 namespace CurtainCall.Player
 {
     /// <summary>
-    /// 입력 에셋을 읽어 매 프레임 <see cref="PlayerCommand"/>로 바꾼다.
-    /// 다른 기능은 키를 직접 읽지 말고 <see cref="Current"/>만 읽는다.
+    /// 입력 에셋을 읽어 매 프레임 <see cref="PlayerInputFrame"/>(공통 역할 값)으로 바꾼다.
+    /// 어떤 키가 어떤 역할인지는 입력 에셋에서 정한다. 다른 기능은 키를 직접 읽지 말고 <see cref="Current"/>만 읽는다.
     /// </summary>
-    [DefaultExecutionOrder(-100)] // 명령을 쓰는 쪽보다 먼저 갱신
+    [DefaultExecutionOrder(-100)] // 조작 규칙보다 먼저 갱신
     public class PlayerInputReader : MonoBehaviour
     {
         const string DefaultAssetPath = "Input/PlayerControls";
@@ -20,9 +20,10 @@ namespace CurtainCall.Player
         InputActionMap commonMap;
         InputAction move;
         InputAction posture;
+        InputAction action;
 
-        /// <summary>이번 프레임의 명령.</summary>
-        public PlayerCommand Current { get; private set; }
+        /// <summary>이번 프레임의 입력(공통 역할 값).</summary>
+        public PlayerInputFrame Current { get; private set; }
 
         void Awake()
         {
@@ -38,6 +39,7 @@ namespace CurtainCall.Player
             commonMap = actions.FindActionMap(CommonMap, true);
             move = commonMap.FindAction("Move", true);
             posture = commonMap.FindAction("Posture", true);
+            action = commonMap.FindAction("Action", true);
         }
 
         void OnEnable() => commonMap?.Enable();
@@ -55,10 +57,11 @@ namespace CurtainCall.Player
 
         void Update()
         {
-            Current = new PlayerCommand
+            Current = new PlayerInputFrame
             {
                 Move = move.ReadValue<float>(),
                 Posture = posture.ReadValue<float>(),
+                ActionPressed = action.WasPressedThisFrame(),
             };
         }
     }

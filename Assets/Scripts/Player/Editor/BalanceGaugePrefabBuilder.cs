@@ -53,15 +53,30 @@ namespace CurtainCall.Player.EditorTools
             needle.sizeDelta = new Vector2(6f, 16f); // 막대보다 위아래로 8px씩 길게
             AddImage(needle, Color.white);
 
+            // 빨강 체류 시간 막대: 게이지 바로 아래
+            var redTimer = Rect("RedTimer", bar);
+            redTimer.anchorMin = new Vector2(0f, 0f);
+            redTimer.anchorMax = new Vector2(1f, 0f);
+            redTimer.pivot = new Vector2(0.5f, 1f);
+            redTimer.sizeDelta = new Vector2(0f, 6f);
+            redTimer.anchoredPosition = new Vector2(0f, -4f);
+            AddImage(redTimer, new Color(0f, 0f, 0f, 0.5f));
+
+            var redTimerFill = Rect("Fill", redTimer);
+            Stretch(redTimerFill);
+            redTimerFill.anchorMax = new Vector2(0f, 1f);
+            AddImage(redTimerFill, new Color(1f, 0.35f, 0.3f));
+            redTimer.gameObject.SetActive(false);
+
             var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(FontPath);
             if (font == null)
                 Debug.LogWarning($"[BalanceGaugePrefabBuilder] 폰트를 찾지 못해 TMP 기본 폰트를 씁니다: {FontPath}");
 
-            var label = AddText(font, "ValueLabel", root.transform, "균형 0  (Green)", TextAlignmentOptions.Center);
+            var label = AddText(font, "ValueLabel", root.transform, "균형 0", TextAlignmentOptions.Center);
             label.rectTransform.anchorMin = label.rectTransform.anchorMax = new Vector2(0.5f, 0f);
             label.rectTransform.pivot = new Vector2(0.5f, 0f);
             label.rectTransform.sizeDelta = new Vector2(760f, 30f);
-            label.rectTransform.anchoredPosition = new Vector2(0f, 34f);
+            label.rectTransform.anchoredPosition = new Vector2(0f, 30f);
 
             var left = AddText(font, "KeyLeft", bar, "◀ A", TextAlignmentOptions.Right);
             left.rectTransform.anchorMin = new Vector2(0f, 0f);
@@ -82,6 +97,8 @@ namespace CurtainCall.Player.EditorTools
             so.FindProperty("greenZone").objectReferenceValue = green;
             so.FindProperty("needle").objectReferenceValue = needle;
             so.FindProperty("valueLabel").objectReferenceValue = label;
+            so.FindProperty("redTimerRoot").objectReferenceValue = redTimer.gameObject;
+            so.FindProperty("redTimerFill").objectReferenceValue = redTimerFill;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             PrefabUtility.SaveAsPrefabAsset(root, PrefabPath);
