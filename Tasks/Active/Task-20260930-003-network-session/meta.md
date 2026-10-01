@@ -2,7 +2,7 @@
 
 - **Title:** 방 만들기·게임 시작/종료
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/network-session.md`
 - **Current Skill:** start-work
