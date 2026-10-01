@@ -2,18 +2,18 @@
 
 - **Title:** 플레이어 동기화
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
 - **Domain:** 없음 (코드가 생기면 Domain Map 추가)
 - **Current Skill:** start-work
-- **Updated:** 2026-09-30
+- **Updated:** 2026-10-02
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
 ## Workspace
 
 - **Integration:** integration/tightrope-prototype
-- **Branch:** feat/network-player-sync (인계 때 생성)
+- **Branch:** feat/network-player-sync
 
 ## Goal
 
