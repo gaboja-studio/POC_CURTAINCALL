@@ -16,11 +16,19 @@ namespace CurtainCall.Player
         [Tooltip("비워 두면 Resources/Input/PlayerControls를 쓴다.")]
         [SerializeField] InputActionAsset inputAsset;
 
+        [Tooltip("상호작용을 이 시간(초) 이상 누르면 '길게'. 기획 문서에 값이 없어 튜닝값.")]
+        [SerializeField, Min(0.05f)] float longPressTime = 0.5f;
+
         InputActionAsset actions; // 플레이어마다 따로 켜고 끌 수 있게 복사본을 쓴다
         InputActionMap commonMap;
         InputAction move;
         InputAction posture;
         InputAction action;
+        InputAction auxLeft;
+        InputAction auxRight;
+        InputAction interact;
+        float interactPressedAt = -1f; // 누르고 있지 않으면 음수
+        bool interactLongSent;
 
         /// <summary>이번 프레임의 입력(공통 역할 값).</summary>
         public PlayerInputFrame Current { get; private set; }
@@ -40,6 +48,9 @@ namespace CurtainCall.Player
             move = commonMap.FindAction("Move", true);
             posture = commonMap.FindAction("Posture", true);
             action = commonMap.FindAction("Action", true);
+            auxLeft = commonMap.FindAction("DirectionLeft", true);
+            auxRight = commonMap.FindAction("DirectionRight", true);
+            interact = commonMap.FindAction("Interact", true);
         }
 
         void OnEnable() => commonMap?.Enable();
@@ -48,6 +59,7 @@ namespace CurtainCall.Player
         {
             commonMap?.Disable();
             Current = default;
+            interactPressedAt = -1f;
         }
 
         void OnDestroy()
@@ -57,12 +69,49 @@ namespace CurtainCall.Player
 
         void Update()
         {
+            ReadInteract(out bool tapped, out bool longPressed, out float holdProgress);
+
             Current = new PlayerInputFrame
             {
                 Move = move.ReadValue<float>(),
                 Posture = posture.ReadValue<float>(),
                 ActionPressed = action.WasPressedThisFrame(),
+                AuxDirection = (auxRight.IsPressed() ? 1 : 0) - (auxLeft.IsPressed() ? 1 : 0),
+                InteractTapped = tapped,
+                InteractLongPressed = longPressed,
+                InteractHoldProgress = holdProgress,
             };
+        }
+
+        /// <summary>짧게 = 기준 시간 전에 뗌(뗀 프레임), 길게 = 기준 시간에 닿음(그 프레임, 뗄 때는 아무것도 안 나감).</summary>
+        void ReadInteract(out bool tapped, out bool longPressed, out float holdProgress)
+        {
+            tapped = longPressed = false;
+            holdProgress = 0f;
+
+            if (interact.WasPressedThisFrame())
+            {
+                interactPressedAt = Time.time;
+                interactLongSent = false;
+            }
+
+            if (interactPressedAt < 0f) return;
+
+            float held = Time.time - interactPressedAt;
+            if (interact.IsPressed())
+            {
+                holdProgress = interactLongSent ? 1f : Mathf.Clamp01(held / longPressTime);
+                if (!interactLongSent && held >= longPressTime)
+                {
+                    longPressed = true;
+                    interactLongSent = true;
+                }
+                return;
+            }
+
+            // 뗐다
+            if (!interactLongSent) tapped = true;
+            interactPressedAt = -1f;
         }
     }
 }

@@ -20,6 +20,9 @@ namespace CurtainCall.Player
         /// <summary>현재 조작 규칙.</summary>
         public PlayerControlScheme Scheme { get; private set; }
 
+        /// <summary>조작 규칙이 지금 지정해 둔 방향(-1/0/+1). 외줄에서는 옆줄 이동 방향.</summary>
+        public int HeldDirection => context != null ? context.HeldDirection : 0;
+
         /// <summary>조작 규칙을 바꾼다. null이면 입력을 아무 동작에도 연결하지 않는다.</summary>
         public void SetScheme(PlayerControlScheme scheme)
         {
