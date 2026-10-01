@@ -19,6 +19,7 @@ namespace CurtainCall.Player
         InputActionAsset actions; // 플레이어마다 따로 켜고 끌 수 있게 복사본을 쓴다
         InputActionMap commonMap;
         InputAction move;
+        InputAction posture;
 
         /// <summary>이번 프레임의 명령.</summary>
         public PlayerCommand Current { get; private set; }
@@ -36,6 +37,7 @@ namespace CurtainCall.Player
             actions = Instantiate(source);
             commonMap = actions.FindActionMap(CommonMap, true);
             move = commonMap.FindAction("Move", true);
+            posture = commonMap.FindAction("Posture", true);
         }
 
         void OnEnable() => commonMap?.Enable();
@@ -56,6 +58,7 @@ namespace CurtainCall.Player
             Current = new PlayerCommand
             {
                 Move = move.ReadValue<float>(),
+                Posture = posture.ReadValue<float>(),
             };
         }
     }

@@ -10,7 +10,7 @@ source: human (2026-10-01 PM @MoHoDu)
 ## 언제 읽나
 
 플레이어 조작(입력), 외줄 이동·균형, 목마, 추락·재시작, 도착 판정을 구현하거나 테스트 항목을 정할 때.
-원문 요약: `Docs/References/tightrope-keymap-summary.md`, `Docs/References/tightrope-plan-summary.md`.
+원문 요약: `Docs/References/tightrope-keymap-summary.md`, `Docs/References/tightrope-plan-summary.md`. 균형 세부 규칙: [tightrope-balance.md](tightrope-balance.md).
 
 ## 결정
 
