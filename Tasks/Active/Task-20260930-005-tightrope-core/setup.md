@@ -12,8 +12,8 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 ## 작업 구역
 
-- 테스트 씬: `Assets/Scenes/Tests/Tightrope/` (Tightrope.unity, 임시 캐릭터는 Prefabs 하위)
-- 스크립트 폴더: `Assets/Scripts/Tightrope/Rope/` (임시 입력 코드 포함)
+- 테스트 씬: `Assets/Scenes/Tests/Tightrope/` (Tightrope.unity, 더미 캡슐은 Prefabs 하위)
+- 스크립트 폴더: `Assets/Scripts/Tightrope/Rope/` (더미·디버그 조작 코드 포함)
 - 에셋 폴더: 아래 공용 파일
 - Task 문서: 이 Task 폴더 (자동 포함)
 
