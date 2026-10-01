@@ -19,7 +19,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20260930-003 | feat | @MoHoDu | feat/network-session (인계 때 생성) | - | scaffolded |
+| Task-20260930-003 | feat | @MoHoDu | feat/network-session | - | assigned |
 | Task-20260930-004 | feat | @MoHoDu | feat/player-control (인계 때 생성) | - | scaffolded |
 | Task-20260930-005 | feat | @MoHoDu(임시) | feat/tightrope-core (인계 때 생성) | - | scaffolded |
 | Task-20260930-006 | feat | @MoHoDu(임시) | feat/tightrope-piggyback (인계 때 생성) | - | scaffolded |
