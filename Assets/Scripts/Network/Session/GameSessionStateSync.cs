@@ -15,7 +15,7 @@ namespace CurtainCall.Network.Session
         public GameSessionState State => _state.Value;
         public int PlayerCount => _playerCount.Value;
 
-        public event Action Changed;
+        internal event Action Changed;
 
         public override void OnNetworkSpawn()
         {
