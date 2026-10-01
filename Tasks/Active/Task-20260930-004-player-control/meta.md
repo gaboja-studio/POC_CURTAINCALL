@@ -2,7 +2,7 @@
 
 - **Title:** 플레이어 조작
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** 없음 (코드가 생기면 Domain Map 추가)
 - **Current Skill:** implement-code

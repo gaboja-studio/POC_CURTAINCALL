@@ -9,7 +9,7 @@
 
 ## 다음 할 일
 
-1. PR 제출 후 PM 병합·공동 테스트 대기.
+1. PR #7 제출 완료(10-02). PM 병합·공동 테스트 대기.
 2. 연결 작업(009·010)에서 005·006이 004 공개 함수(`SetBalanceActive`, `Fell`, `LaneJumpFilter`, `SetLaneLandingReduction`, `SetStackSize`, `SetUpperBalanceSum`, `InteractRequested`/`ReleaseRequested`, `SetScheme`)를 붙임.
 
 ## PM이 확인할 것
