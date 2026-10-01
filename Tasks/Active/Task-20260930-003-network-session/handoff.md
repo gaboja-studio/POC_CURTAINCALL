@@ -4,14 +4,14 @@
 
 ## 지금 상태
 
-- 단계: 구현·검사 완료, 제출 진행 중
+- 단계: 제출 완료(PR #6, submitted). PM 병합·공동 테스트 대기
 - 동작하는 것: `Assets/Scripts/Network/Session/` — `ServicesSessionConnector`(Relay 세션, 방 코드, 실행마다 익명 프로필 분리), `NetworkSessionManager`(공개 진입점), `ISessionConnector`(접속 방식 추상화), `LanSessionConnector`, `NetworkSessionTestUI`(IMGUI 임시). 배치(작업자 직접): `NetworkManager.prefab`(NetworkManager+UnityTransport+NetworkSessionManager), 씬 `SessionUI` 오브젝트
 - 주의: 프리팹 NetworkConfig.NetworkTransport가 비어 있어 `EnsureTransportAssigned()`가 실행 시 연결한다. `.gitattributes`의 unity-yaml에 `-whitespace` 추가(작업자 승인)
 - 막힌 것: 없음 / PR: 없음. 참고: `com.unity.pipeline` BasePipelineServer의 ObjectDisposedException 로그는 에디터 브리지 쪽(게임 무관, Packages 수정 금지라 무시)
 
 ## 다음 할 일
 
-1. "검사해줘"(check-work) → 공동 테스트 항목 3개 결과 기록 → "제출해줘"
+1. PM: PR #6 병합 → 병합된 통합 브랜치에서 공동 테스트 3개 확인(qa-feature)
 2. (완료) 3단계 MPPM 4인 테스트 통과(2026-10-01): 자동 시작, 진행 중 이탈 유지·재참가 거절, EndGame, 호스트 종료. 규칙은 meta.md Decisions
 
 ## PM이 확인할 것
