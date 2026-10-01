@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 373836963}
   - component: {fileID: 373836964}
+  - component: {fileID: 373836965}
   m_Layer: 0
   m_Name: DebugHud
   m_TagString: Untagged
@@ -167,6 +168,26 @@ MonoBehaviour:
   toggleKey: 30
   visible: 1
   scale: 1.5
+--- !u!114 &373836965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 373836962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: affa634a18033420fa2b243611e7ae34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.BalanceGaugeView
+  target: {fileID: 0}
+  widthRatio: 0.4
+  height: 28
+  bottomMargin: 40
+  greenColor: {r: 0.25, g: 0.68, b: 0.35, a: 1}
+  yellowColor: {r: 0.9, g: 0.65, b: 0.2, a: 1}
+  redColor: {r: 0.82, g: 0.25, b: 0.2, a: 1}
+  needleColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &866258805
 GameObject:
   m_ObjectHideFlags: 0
