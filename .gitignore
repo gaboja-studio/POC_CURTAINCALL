@@ -125,3 +125,6 @@ InitTestScene*.unity*
 # IDE
 /.vscode/
 /.vsconfig
+# Unity가 열 때마다 바뀌는 튜토리얼 아이콘 (추적 제외)
+/Assets/TutorialInfo/Icons/URP.png
+/Assets/TutorialInfo/Icons/URP.png.meta
