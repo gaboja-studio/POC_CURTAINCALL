@@ -4,7 +4,7 @@
 - **Type:** feat
 - **Status:** working
 - **Assignee:** @MoHoDu
-- **Domain:** 없음 (코드가 생기면 Domain Map 추가)
+- **Domain:** `Docs/Domains/network-session.md`
 - **Current Skill:** start-work
 - **Updated:** 2026-10-01
 
