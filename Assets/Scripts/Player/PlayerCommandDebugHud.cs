@@ -29,9 +29,11 @@ namespace CurtainCall.Player
         PlayerMover mover;
         PlayerBalance balance;
         PlayerController controller;
+        PlayerInteraction interaction;
         GUIStyle labelStyle;
         float lastJumpCommandTime = -10f;
         float jumpPeak;
+        float lateralFromStart;
 
         void Update()
         {
@@ -47,6 +49,7 @@ namespace CurtainCall.Player
                 mover = target.GetComponent<PlayerMover>();
                 balance = target.GetComponent<PlayerBalance>();
                 controller = target.GetComponent<PlayerController>();
+                interaction = target.GetComponent<PlayerInteraction>();
                 if (balance != null) balance.Fell += OnFell;
             }
 
@@ -76,10 +79,29 @@ namespace CurtainCall.Player
             if (target == null) return;
             if (target.Current.ActionPressed) lastJumpCommandTime = Time.time;
             if (mover == null) return;
+            Vector3 fromStart = target.transform.position - startPositionForHud;
+            lateralFromStart = Vector3.Dot(fromStart, mover.CourseRight);
             float y = target.transform.position.y;
             if (!mover.IsAirborne) jumpPeak = y;
             else jumpPeak = Mathf.Max(jumpPeak, y);
         }
+
+        Vector3 startPositionForHud;
+
+        void Start()
+        {
+            if (target == null) target = FindAnyObjectByType<PlayerInputReader>();
+            if (target != null) startPositionForHud = target.transform.position;
+        }
+
+        /// <summary>길게 누르기 진행을 막대로 그린다. 예: 0.6 → [######....]</summary>
+        static string HoldBar(float t)
+        {
+            int n = Mathf.RoundToInt(Mathf.Clamp01(t) * 10f);
+            return "[" + new string('#', n) + new string('.', 10 - n) + "]";
+        }
+
+        static string DirText(int d) => d < 0 ? "◀ 왼쪽" : d > 0 ? "오른쪽 ▶" : "-";
 
         void OnDestroy() => Unsubscribe();
 
@@ -101,7 +123,7 @@ namespace CurtainCall.Player
 
             var oldMatrix = GUI.matrix;
             GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
-            GUILayout.BeginArea(new Rect(10f, 10f, 420f, 490f), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(10f, 10f, 440f, 540f), GUI.skin.box);
 
             GUILayout.Label($"<b>Player Input</b>  ({toggleKey} 표시 끄기)", labelStyle);
             if (target == null)
@@ -116,6 +138,11 @@ namespace CurtainCall.Player
                 GUILayout.Label($"Move     {Signed(cmd.Move)}  {MoveText(cmd.Move)}", labelStyle);
                 GUILayout.Label($"Posture  {Signed(cmd.Posture)}  {Bar(cmd.Posture)}", labelStyle);
                 GUILayout.Label($"Action   {(Time.time - lastJumpCommandTime < 0.3f ? "<b>눌림</b>" : "-")}", labelStyle);
+                int held = controller != null ? controller.HeldDirection : 0;
+                GUILayout.Label($"Aux      {cmd.AuxDirection:+0;-0;0}   방향 지정 {DirText(held)}", labelStyle);
+                string request = interaction == null ? "<b>PlayerInteraction 없음</b>"
+                    : Time.time - interaction.LastRequestTime < 1f ? $"<b>{interaction.LastRequest} 요청</b>" : "-";
+                GUILayout.Label($"Interact {HoldBar(cmd.InteractHoldProgress)}  {request}", labelStyle);
 
                 if (balance != null)
                 {
@@ -125,6 +152,8 @@ namespace CurtainCall.Player
                         GUILayout.Label($"Balance  {balance.Value:+0.0;-0.0;0.0}  ({balance.Zone})", labelStyle);
                         GUILayout.Label($"Sway     {balance.CurrentSway:+0.0;-0.0;0.0}/s", labelStyle);
                         GUILayout.Label($"Air      {(balance.IsAirborne ? "<b>공중 (균형 정지)</b>" : "땅")}   Shock {balance.LastShock:+0.0;-0.0;0.0}", labelStyle);
+                        if (balance.LaneBoostRemaining > 0f)
+                            GUILayout.Label($"LaneBoost ×{balance.LaneBoostMultiplier:0.00}  {balance.LaneBoostRemaining:0.0}s", labelStyle);
                         GUILayout.Label($"Stack    {balance.StackSize}인  ×{balance.StackMultiplier:0.0}   Upper {balance.UpperPush:+0.0;-0.0;0.0}/s", labelStyle);
                         GUILayout.Label($"Red      {balance.RedTime:0.0} / {balance.FallTime:0.0}s" + (balance.HasFallen ? "  <b>추락</b>" : ""), labelStyle);
                     }
@@ -142,6 +171,8 @@ namespace CurtainCall.Player
                     GUILayout.Space(6f);
                     GUILayout.Label($"Course   ({f.x:0.00}, {f.z:0.00})", labelStyle);
                     GUILayout.Label($"Control  {(mover.ControlEnabled ? "가능" : "<b>잠김</b>")}   {(mover.IsAirborne ? "공중" : "땅")}  최고 Y {jumpPeak:0.00}", labelStyle);
+                    string jump = mover.CurrentJump == JumpKind.Lane ? $"<b>옆줄 {DirText(mover.LaneJumpDirection)} (고정)</b>" : mover.CurrentJump.ToString();
+                    GUILayout.Label($"Jump     {jump}   옆 이동 {lateralFromStart:+0.00;-0.00;0.00}m", labelStyle);
                     GUILayout.Label($"Position ({p.x:0.0}, {p.y:0.0}, {p.z:0.0})", labelStyle);
                 }
             }

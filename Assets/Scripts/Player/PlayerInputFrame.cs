@@ -14,5 +14,17 @@ namespace CurtainCall.Player
 
         /// <summary>기본 액션(기본 Space)을 이번 프레임에 눌렀는지.</summary>
         public bool ActionPressed;
+
+        /// <summary>좌우 보조 방향. 누르고 있는 동안만 -1 왼쪽(기본 Q), +1 오른쪽(기본 E), 둘 다 또는 없음 0.</summary>
+        public int AuxDirection;
+
+        /// <summary>상호작용(기본 F)을 짧게 눌렀다 뗐는지. 뗀 프레임에 한 번.</summary>
+        public bool InteractTapped;
+
+        /// <summary>상호작용을 길게 눌렀는지. 기준 시간에 닿은 프레임에 한 번(떼기 전에 나간다).</summary>
+        public bool InteractLongPressed;
+
+        /// <summary>상호작용을 누르고 있는 동안 길게 누르기까지의 진행(0~1). 안 누르면 0. UI 표시용.</summary>
+        public float InteractHoldProgress;
     }
 }

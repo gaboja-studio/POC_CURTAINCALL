@@ -60,6 +60,15 @@ namespace CurtainCall.Player
         [Tooltip("이 시간(초)보다 짧게 떠 있었으면 착지 충격을 주지 않는다(작은 턱·접지 흔들림 무시).")]
         [SerializeField, Min(0f)] float minAirTimeForShock = 0.15f;
 
+        [Tooltip("단독 옆줄 점프 착지 충격(±, 랜덤 방향). 목마 배율을 곱한다. 기획 제안값 35.")]
+        [SerializeField, Min(0f)] float laneLandingShock = 35f;
+
+        [Tooltip("단독 옆줄 점프 착지 후 자연 흔들림 배율. 기획 제안값 2.5.")]
+        [SerializeField, Min(1f)] float laneSwayBoost = 2.5f;
+
+        [Tooltip("단독 옆줄 점프 착지 후 흔들림이 커지는 시간(초). 반복해도 쌓이지 않고 시간만 갱신. 기획 제안값 3.")]
+        [SerializeField, Min(0f)] float laneSwayBoostDuration = 3f;
+
         [Header("목마")]
         [Tooltip("목마 전체 인원별 배율(1인~4인). 자연 흔들림과 충격에 곱한다. 기획 제안값 1.0 / 1.3 / 1.6 / 2.0.")]
         [SerializeField] float[] stackMultipliers = { 1f, 1.3f, 1.6f, 2f };
@@ -76,6 +85,9 @@ namespace CurtainCall.Player
         float correctionInput;
         PlayerMover mover;
         float airborneSince;
+        float laneBoostUntil = -1f;
+        float laneBoostScale = 1f;
+        float laneLandingReduction;
         float swayDirection = 1f;
         float nextDirectionChange;
 
@@ -139,10 +151,40 @@ namespace CurtainCall.Player
             if (IsAirborne == airborne) return;
             IsAirborne = airborne;
             if (airborne)
+            {
                 airborneSince = Time.time;
-            else if (Time.time - airborneSince >= minAirTimeForShock)
-                ApplyShock(landingShock);
+                return;
+            }
+
+            bool lane = mover != null && mover.CurrentJump == JumpKind.Lane;
+            float reduction = laneLandingReduction;
+            laneLandingReduction = 0f;
+
+            if (lane) ApplyLaneLanding(reduction);
+            else if (Time.time - airborneSince >= minAirTimeForShock) ApplyShock(landingShock);
         }
+
+        /// <summary>
+        /// 다음 옆줄 착지의 충격·흔들림 감소율(0~1)을 정한다. 외줄 기능이 착지 전에 넣는다.
+        /// 예: 도착점이 같은 줄 동료 앞뒤 1.0m 이내면 0.5. 착지하면 0으로 돌아간다.
+        /// </summary>
+        public void SetLaneLandingReduction(float reduction) => laneLandingReduction = Mathf.Clamp01(reduction);
+
+        /// <summary>옆줄 착지 충격과 일정 시간 흔들림 증가를 준다. 감소율은 충격과 흔들림 증가분에 같이 적용한다.</summary>
+        public void ApplyLaneLanding(float reduction)
+        {
+            if (!IsActive || HasFallen) return;
+            float keep = 1f - Mathf.Clamp01(reduction);
+            ApplyShock(laneLandingShock * keep);
+            laneBoostScale = 1f + (laneSwayBoost - 1f) * keep;
+            laneBoostUntil = Time.time + laneSwayBoostDuration; // 쌓지 않고 시간만 갱신
+        }
+
+        /// <summary>옆줄 착지 후 흔들림 증가가 남아 있는 시간(초). 디버그 표시용.</summary>
+        public float LaneBoostRemaining => Mathf.Max(0f, laneBoostUntil - Time.time);
+
+        /// <summary>지금 자연 흔들림에 곱해지는 옆줄 착지 배율.</summary>
+        public float LaneBoostMultiplier => LaneBoostRemaining > 0f ? laneBoostScale : 1f;
 
         /// <summary>균형에 순간 충격을 준다(±크기, 랜덤 방향, 목마 배율 적용).</summary>
         public void ApplyShock(float magnitude)
@@ -177,6 +219,8 @@ namespace CurtainCall.Player
             CurrentSway = 0f;
             RedTime = 0f;
             HasFallen = false;
+            laneBoostUntil = -1f;
+            laneLandingReduction = 0f;
             IsAirborne = false;
             LastShock = 0f;
             PickSwayDirection();
@@ -210,7 +254,7 @@ namespace CurtainCall.Player
                 PickSwayDirection();
 
             bool moving = mover != null && mover.IsMoving;
-            CurrentSway = swayDirection * (moving ? movingSway : idleSway) * StackMultiplier;
+            CurrentSway = swayDirection * (moving ? movingSway : idleSway) * StackMultiplier * LaneBoostMultiplier;
 
             float rate = CurrentSway
                          + Value * tiltAcceleration

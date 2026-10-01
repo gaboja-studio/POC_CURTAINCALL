@@ -27,10 +27,15 @@ namespace CurtainCall.Player
             Player = player;
             Mover = player.GetComponent<PlayerMover>();
             Balance = player.GetComponent<PlayerBalance>();
+            Interaction = player.GetComponent<PlayerInteraction>();
         }
 
         public GameObject Player { get; }
         public PlayerMover Mover { get; }
         public PlayerBalance Balance { get; }
+        public PlayerInteraction Interaction { get; }
+
+        /// <summary>조작 규칙이 지금 지정해 둔 방향(-1 왼쪽, 0 없음, +1 오른쪽). 외줄에서는 옆줄 이동 방향. 디버그 표시용으로도 읽는다.</summary>
+        public int HeldDirection { get; set; }
     }
 }
