@@ -8,18 +8,20 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 이 Task와 관련된 JIRA 번호를 모두 적는다. PR의 "관련 JIRA 이슈" 칸에 자동으로 들어간다. 없으면 `없음`.
 
-- 관련 JIRA: https://hrjoo122770.atlassian.net/browse/CC-41
+- 관련 JIRA: https://hrjoo122770.atlassian.net/browse/CC-53
 
 ## 작업 구역
 
-- 테스트 씬: `Assets/Scenes/Tests/Tightrope/` (Tightrope.unity, 더미 캡슐은 Prefabs 하위)
-- 스크립트 폴더: `Assets/Scripts/Tightrope/Rope/` (더미·디버그 조작 코드 포함)
-- 에셋 폴더: 아래 공용 파일
+- 테스트 씬: `Assets/Scenes/Tests/TightropeRider/` (TightropeRider.unity, 테스트용 프리팹은 Prefabs 하위)
+- 스크립트 폴더: `Assets/Scripts/Tightrope/Rider/`
+- 에셋 폴더: 테스트 씬 폴더에 포함 (005 코스 프리팹은 배치만)
 - Task 문서: 이 Task 폴더 (자동 포함)
 
 ## 배정된 공용 파일
 
-- `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` — 외줄 코스 스테이지 프리팹 (다른 Task는 배치만)
+통합 기록(Integration meta)의 공용 파일 소유 표에서 이 Task에 배정된 것만 적는다.
+
+- 없음
 
 ## 수정 금지
 

@@ -14,13 +14,14 @@
 7. **4명 기준**으로만 만든다.
 8. 외줄 규칙(조작·목마·추락·도착)은 [외줄 규칙 결정](../../../Harness/Project/Decisions/tightrope-rules.md)을 따른다. 코스는 4줄로 시작해 1줄로 끝나는 직선이다(줄 수는 바뀔 수 있어 인스펙터 값).
 
-## 작업 8개
+## 작업 9개
 
 | 순서 | 작업 | 브랜치 | 시작 |
 |---|---|---|---|
 | 1 | 방 만들기·게임 시작/종료 | `feat/network-session` | 1일차 |
 | 1 | 플레이어 조작 | `feat/player-control` | 1일차 |
-| 1 | 외줄 기본 | `feat/tightrope-core` | 1일차 |
+| 1 | 외줄 코스·진행 | `feat/tightrope-core` | 1일차 (004와 병렬) |
+| 2 | 외줄 위 캐릭터 동작 | `feat/tightrope-rider` | 플레이어 조작 병합 후 |
 | 1 | 목마 | `feat/tightrope-piggyback` | 1일차 |
 | 2 | 플레이어 동기화 | `feat/network-player-sync` | 방 만들기 병합 후 |
 | 2 | 오브젝트(도구) 동기화 | `feat/network-prop-sync` | 방 만들기 병합 후 |
@@ -38,11 +39,12 @@ PM이 Unity에서 폴더·테스트 씬을 미리 만들고 각 Task `setup.md`�
 |---|---|---|---|---|
 | 방 만들기 | 방 생성·참가, 4명 모이면 자동 시작, 호스트 나가면 전원 종료, 게임 상태 공유 | `Assets/Scripts/Network/Session/` | `Assets/Resources/Prefabs/Controllers/Network/` | `Assets/Scenes/Tests/NetworkSession/` |
 | 플레이어 조작 | W/S·A/D·Space·Q/E·F(짧게/길게) 입력, 기본 이동, 모델 바꿔 끼우기 | `Assets/Scripts/Player/` | `Assets/Resources/Input/`, `Assets/Resources/Prefabs/Characters/Players/` | `Assets/Scenes/Tests/PlayerControl/` |
-| 외줄 기본 | 4줄→1줄 직선 코스, 앞뒤 이동, 균형, 점프, 옆줄 이동, 추락(전원 추락 시 재시작), 도착 거리 | `Assets/Scripts/Tightrope/Rope/` | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | `Assets/Scenes/Tests/Tightrope/` |
+| 외줄 코스·진행 | 4줄→1줄 직선 코스, 코스 조회(줄 위치·옆줄 착지 가능 여부), 묘기 진행(전원 추락 시 재시작, 1명 도착 성공), 도착 거리 | `Assets/Scripts/Tightrope/Rope/` | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | `Assets/Scenes/Tests/Tightrope/` |
+| 외줄 위 캐릭터 동작 | 줄 위 앞뒤 이동, 점프, 옆줄 이동(착지 보정), 004 균형 무너짐 → 추락·대기 | `Assets/Scripts/Tightrope/Rider/` (제안) | 없음 (코스 프리팹은 배치만) | `Assets/Scenes/Tests/TightropeRider/` (제안) |
 | 목마 | F 짧게=올라타기, F 길게=내리기, 안 되는 상황 막기 | `Assets/Scripts/Tightrope/Piggyback/` | 없음 (테스트 캐릭터는 테스트 씬 `Prefabs/`) | `Assets/Scenes/Tests/Piggyback/` |
 | 플레이어 동기화 | 위치·상태(사망 등)·애니메이션 값 공유 (테스트 캡슐 사용) | `Assets/Scripts/Network/PlayerSync/` | 없음 (테스트 캡슐은 테스트 씬 `Prefabs/`) | `Assets/Scenes/Tests/NetworkPlayerSync/` |
 | 오브젝트 동기화 | 도구 잡기·놓기, 1인당 최대 2개, 위치·상태 공유 | `Assets/Scripts/Network/PropSync/` | `Assets/Resources/Prefabs/Objects/Tools/`, `Assets/Resources/Prefabs/Objects/Interactables/SyncTest/` | `Assets/Scenes/Tests/NetworkPropSync/` |
-| 연결: 외줄+온라인 | 진짜 플레이어에 온라인 적용, 줄 위 움직임·사망 공유, **4인 외줄 코스 최종 씬** | `Assets/Scripts/Connect/TightropeNetwork/` + 이어받기: Player, Tightrope/Rope, Network/PlayerSync | 플레이어 프리팹 이어받기 | `Assets/Scenes/Tests/TightropeNetwork/` |
+| 연결: 외줄+온라인 | 진짜 플레이어에 온라인 적용, 줄 위 움직임·사망 공유, **4인 외줄 코스 최종 씬** | `Assets/Scripts/Connect/TightropeNetwork/` + 이어받기: Player, Tightrope/Rope, Tightrope/Rider, Network/PlayerSync | 플레이어 프리팹 이어받기 | `Assets/Scenes/Tests/TightropeNetwork/` |
 | 연결: 목마+온라인 | 줄 위 목마, 호스트 판정, 동시에 타려 할 때 등 예외 | `Assets/Scripts/Connect/PiggybackNetwork/` + 이어받기: Tightrope/Piggyback | — | `Assets/Scenes/Tests/PiggybackNetwork/` |
 
 - **C# 코드는 모두 `Assets/Scripts/`**, **씬은 모두 `Assets/Scenes/`** 안에 둔다. 테스트 씬은 `Assets/Scenes/Tests/<작업>/`.
@@ -56,7 +58,7 @@ PM이 Unity에서 폴더·테스트 씬을 미리 만들고 각 Task `setup.md`�
 |---|---|
 | `Assets/Resources/Prefabs/Controllers/Network/` | 방 만들기 |
 | `Assets/Resources/Input/`, `Assets/Resources/Prefabs/Characters/Players/` | 플레이어 조작 → 병합 후 연결: 외줄+온라인 |
-| `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | 외줄 기본 (다른 작업은 씬에 놓기만) |
+| `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | 외줄 코스·진행 (다른 작업은 씬에 놓기만) |
 | `Assets/Resources/Prefabs/Objects/Tools/` | 오브젝트 동기화 |
 | `Assets/Scripts/Network/PlayerSync/` (연결 단계) | 연결: 외줄+온라인만 |
 
