@@ -19,10 +19,31 @@
 - 입력 → 명령(이동·자세·액션·방향·상호작용·해제) 구조로 분리한다.
 - 플레이어 프리팹에 모델 슬롯을 두고 디폴트 캡슐을 넣는다.
 
+## 단계 (씬에서 매 단계 플레이 가능하게, 2026-10-01 @MoHoDu 순서 수정)
+
+1. W/S 앞뒤 이동 — 입력 에셋(전체 액션), 명령 구조체, 코스 방향 이동, 플레이어 프리팹, 테스트 씬 배치
+2. 디버깅 표시 — 화면에 현재 명령을 보여 주는 HUD(기능 코드와 분리)
+3. A/D 균형·자세 값 — 자세 명령(-1~1) → HUD 표시
+4. 균형 잡기 — 자세 명령을 외줄(005)이 받아 쓸 수 있는 형태로 정리, HUD 확인 (실제 균형 계산은 005)
+5. 제자리 점프 — Space 기본 액션 명령, HUD 확인 (실제 점프는 005)
+6. Q/E 홀드 시 이동 방향 설정 — 누르는 동안만 방향(-1/0/+1), 단독으로는 동작 없음
+7. Q/E 홀드 + Space 옆줄 건너기 — 왼/오른쪽 옆줄 이동 명령, HUD 확인 (실제 이동·착지 판정은 005)
+8. F 상호작용/해제 — 짧게/길게 구분(기준 시간은 인스펙터 값), 함수와 디버그 표시까지만
+9. 모델 변경 — 프리팹 모델 슬롯, `Models/`에 대체 모델 1개
+
+결정(2026-10-01 @MoHoDu): 균형·점프·옆줄은 004에서 명령+디버그까지만 만들고 실제 동작은 005가 담당한다.
+결정(2026-10-01 @MoHoDu): 이동 기준은 카메라가 아니라 월드 코스 방향(목적지 쪽). 카메라는 3인칭·다른 플레이어도 잡을 수 있어 이동과 분리한다.
+
 ## Files
 
 - 수정 예정:
-- 읽기 전용 참고:
+  - `Assets/Resources/Input/PlayerControls.inputactions` — 맵 `Common`: Move(W/S), Posture(A/D), Action(Space), DirectionLeft(Q), DirectionRight(E), Interact(F)
+  - `Assets/Scripts/Player/PlayerCommand.cs` — 프레임별 명령 구조체
+  - `Assets/Scripts/Player/PlayerInputReader.cs` — 입력 → 명령 (공개 진입점 `Current`)
+  - `Assets/Scripts/Player/PlayerMover.cs` — 코스 방향 기준 이동 (CharacterController)
+  - `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 플레이어 프리팹
+  - `Assets/Scenes/Tests/PlayerControl/PlayerControl.unity` — 테스트 씬 배치
+- 읽기 전용 참고: `Docs/References/tightrope-keymap-summary.md`
 
 ## Risks
 
