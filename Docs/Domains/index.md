@@ -10,6 +10,7 @@ Domain Map은 담당 파일·진입점·의존성·수정 주의점을 적는다
 | Domain | Map | 현재 근거 |
 |---|---|---|
 | Unity Assets 구조·코드 작업 구역 | [assets-structure.md](assets-structure.md) | 에셋 배치·Resources·Task별 Scripts 경로를 찾거나 Unity 작업을 계획할 때 |
+| 플레이어 조작(입력·이동·균형·겉모습) | [player-control.md](player-control.md) | 플레이어 입력·조작 규칙·이동·점프·균형·모델을 쓰거나 고칠 때 (Task-004) |
 | 네트워크 세션(방 만들기·게임 상태) | [network-session.md](network-session.md) | 방 접속·게임 상태(대기/진행/종료) 진입점을 쓰거나 네트워크 기능을 만들 때 (Task-003) |
 
 ## Domain Map 파일 규칙

@@ -10,3 +10,5 @@ Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 - [editor-not-visible.md](editor-not-visible.md) — unity status가 에디터 0개를 반환할 때
 - [multiple-editor-versions.md](multiple-editor-versions.md) — 프로젝트·worktree를 열거나 batch 실행할 때
 - [yaml-trailing-whitespace.md](yaml-trailing-whitespace.md) — Unity YAML 줄 끝 공백으로 diff --check 실패. verify-fast·save-work가 trailing whitespace로 멈출 때
+- [pipeline-socket-disposed-log.md](pipeline-socket-disposed-log.md) — Console의 ObjectDisposedException(BasePipelineServer)은 에디터 브리지 로그, 게임 오류 아님. 그 예외가 Console에 보일 때
+- [unity-test-editor-open.md](unity-test-editor-open.md) — 에디터가 열려 있으면 unity test가 거부돼 check-work 테스트가 FAIL. 테스트 단계가 '테스트 결과 없음'으로 실패할 때
