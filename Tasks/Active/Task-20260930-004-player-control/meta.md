@@ -2,10 +2,10 @@
 
 - **Title:** 플레이어 조작
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** 없음 (코드가 생기면 Domain Map 추가)
-- **Current Skill:** implement-code
+- **Current Skill:** merge-integration
 - **Updated:** 2026-10-01
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
