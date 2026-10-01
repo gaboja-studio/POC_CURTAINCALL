@@ -21,9 +21,9 @@ Unity 직렬화 형식이다. 공백을 지워도 다음 저장 때 다시 생�
 
 ## 대처
 
-- `.gitattributes`의 `[attr]unity-yaml` 매크로에 `whitespace=-trailing-space`를 둔다(2026-10-01 적용).
+- `.gitattributes`의 `[attr]unity-yaml` 매크로에 `-whitespace`를 둔다(2026-10-01 적용, 통합 브랜치 기준).
 - 씬 파일의 공백을 손으로 지우지 않는다.
 
 ## 확인 방법
 
-`git check-attr whitespace -- Assets/Scenes/Tests/PlayerControl/PlayerControl.unity` → `-trailing-space`, 그리고 `git diff --check` 통과.
+`git check-attr whitespace -- Assets/Scenes/Tests/PlayerControl/PlayerControl.unity` → `unset`, 그리고 `git diff --check` 통과.
