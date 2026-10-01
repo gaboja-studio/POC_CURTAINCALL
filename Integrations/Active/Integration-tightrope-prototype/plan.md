@@ -12,6 +12,7 @@
 5. AI는 **컴파일 오류만** 검사한다. 직접 해 보는 플레이 테스트는 **작업자가 하고 결과를 알려 준다.**
 6. 음성 채팅, 런 기록 저장은 이번에 하지 않는다.
 7. **4명 기준**으로만 만든다.
+9. **2026-10-02 변경: 007(플레이어 동기화)을 먼저 하고, 이후 기능 작업은 기능과 온라인 동기화를 같이 만든다.** 007은 실제 플레이어 프리팹 기준. 연결 작업(009·010)은 최종 씬·남은 예외로 줄인다([결정](../../../Harness/Project/Decisions/feature-with-network.md)).
 8. 외줄 규칙(조작·목마·추락·도착)은 [외줄 규칙 결정](../../../Harness/Project/Decisions/tightrope-rules.md)을 따른다. 코스는 4줄로 시작해 1줄로 끝나는 직선이다(줄 수는 바뀔 수 있어 인스펙터 값).
 
 ## 작업 9개
@@ -20,15 +21,17 @@
 |---|---|---|---|
 | 1 | 방 만들기·게임 시작/종료 | `feat/network-session` | 1일차 |
 | 1 | 플레이어 조작 | `feat/player-control` | 1일차 |
-| 1 | 외줄 코스·진행 | `feat/tightrope-core` | 1일차 (004와 병렬) |
-| 2 | 외줄 위 캐릭터 동작 | `feat/tightrope-rider` | 플레이어 조작 병합 후 |
-| 1 | 목마 | `feat/tightrope-piggyback` | 1일차 |
-| 2 | 플레이어 동기화 | `feat/network-player-sync` | 방 만들기 병합 후 |
-| 2 | 오브젝트(도구) 동기화 | `feat/network-prop-sync` | 방 만들기 병합 후 |
-| 3 | 연결: 외줄 + 온라인 | `feat/tightrope-network` | 4일차, 앞 작업 병합 후 |
-| 3 | 연결: 목마 + 온라인 | `feat/piggyback-network` | 4일차, 앞 작업 병합 후 |
+| 3 | 외줄 코스·진행 (+진행 상태 동기화) | `feat/tightrope-core` | 007 병합 후 |
+| 4 | 외줄 위 캐릭터 동작 (+동기화) | `feat/tightrope-rider` | 005 병합 후 |
+| 5 | 목마 (+호스트 판정·동기화) | `feat/tightrope-piggyback` | 011 병합 후 |
+| 2 | 플레이어 동기화 (실제 플레이어 프리팹) | `feat/network-player-sync` | 지금 (003·004 병합됨) |
+| 6 | 오브젝트(도구) 동기화 | `feat/network-prop-sync` | 007 병합 후 (다른 작업과 순서 교환 가능) |
+| 7 | 4인 외줄 최종 씬 (남은 연결) | `feat/tightrope-network` | 앞 작업 병합 후 |
+| 7 | 목마 온라인 예외 정리 | `feat/piggyback-network` | 006 병합 후 |
 
-- 1번 작업들은 **동시에** 시작한다. 외줄·목마는 임시 입력·더미 캐릭터로 먼저 만들고, 3번 연결 작업에서 진짜 조작·온라인과 합친다.
+- 1번(003·004)은 끝났다(통합·공동 테스트 통과). 2번 007이 동기화 기반(내 캐릭터만 조작, 위치·자세 공유, 호스트 판정 통로, UI가 내 캐릭터 따르기)을 만든다.
+- 3번부터는 **실제 플레이어 프리팹과 007 공개 기능을 그대로 쓰고**, 기능과 동기화를 같이 만든다. 임시 입력·더미 캐릭터를 만들지 않는다. 단계마다 여러 명 접속(Multiplayer Play Mode)으로 확인한다.
+- 한 사람이 순서대로 진행하므로 번호 순서대로 한다(008은 순서 교환 가능).
 - 5일차: 4명이 함께 최종 테스트 → 고칠 것 정리 → dev에 반영.
 
 ## 작업별 내용과 작업 공간
@@ -39,13 +42,13 @@ PM이 Unity에서 폴더·테스트 씬을 미리 만들고 각 Task `setup.md`�
 |---|---|---|---|---|
 | 방 만들기 | 방 생성·참가, 4명 모이면 자동 시작, 호스트 나가면 전원 종료, 게임 상태 공유 | `Assets/Scripts/Network/Session/` | `Assets/Resources/Prefabs/Controllers/Network/` | `Assets/Scenes/Tests/NetworkSession/` |
 | 플레이어 조작 | W/S·A/D·Space·Q/E·F(짧게/길게) 입력, 기본 이동, 모델 바꿔 끼우기 | `Assets/Scripts/Player/` | `Assets/Resources/Input/`, `Assets/Resources/Prefabs/Characters/Players/` | `Assets/Scenes/Tests/PlayerControl/` |
-| 외줄 코스·진행 | 4줄→1줄 직선 코스, 코스 조회(줄 위치·옆줄 착지 가능 여부), 묘기 진행(전원 추락 시 재시작, 1명 도착 성공), 도착 거리 | `Assets/Scripts/Tightrope/Rope/` | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | `Assets/Scenes/Tests/Tightrope/` |
-| 외줄 위 캐릭터 동작 | 줄 위 앞뒤 이동, 점프, 옆줄 이동(착지 보정), 004 균형 무너짐 → 추락·대기 | `Assets/Scripts/Tightrope/Rider/` (제안) | 없음 (코스 프리팹은 배치만) | `Assets/Scenes/Tests/TightropeRider/` (제안) |
-| 목마 | F 짧게=올라타기, F 길게=내리기, 안 되는 상황 막기 | `Assets/Scripts/Tightrope/Piggyback/` | 없음 (테스트 캐릭터는 테스트 씬 `Prefabs/`) | `Assets/Scenes/Tests/Piggyback/` |
-| 플레이어 동기화 | 위치·상태(사망 등)·애니메이션 값 공유 (테스트 캡슐 사용) | `Assets/Scripts/Network/PlayerSync/` | 없음 (테스트 캡슐은 테스트 씬 `Prefabs/`) | `Assets/Scenes/Tests/NetworkPlayerSync/` |
-| 오브젝트 동기화 | 도구 잡기·놓기, 1인당 최대 2개, 위치·상태 공유 | `Assets/Scripts/Network/PropSync/` | `Assets/Resources/Prefabs/Objects/Tools/`, `Assets/Resources/Prefabs/Objects/Interactables/SyncTest/` | `Assets/Scenes/Tests/NetworkPropSync/` |
-| 연결: 외줄+온라인 | 진짜 플레이어에 온라인 적용, 줄 위 움직임·사망 공유, **4인 외줄 코스 최종 씬** | `Assets/Scripts/Connect/TightropeNetwork/` + 이어받기: Player, Tightrope/Rope, Tightrope/Rider, Network/PlayerSync | 플레이어 프리팹 이어받기 | `Assets/Scenes/Tests/TightropeNetwork/` |
-| 연결: 목마+온라인 | 줄 위 목마, 호스트 판정, 동시에 타려 할 때 등 예외 | `Assets/Scripts/Connect/PiggybackNetwork/` + 이어받기: Tightrope/Piggyback | — | `Assets/Scenes/Tests/PiggybackNetwork/` |
+| 외줄 코스·진행 | 4줄→1줄 직선 코스, 코스 조회(줄 위치·옆줄 착지 가능 여부), 묘기 진행(전원 추락 시 재시작, 1명 도착 성공 — **호스트 판정·공유**), 도착 거리 | `Assets/Scripts/Tightrope/Rope/` | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | `Assets/Scenes/Tests/Tightrope/` |
+| 외줄 위 캐릭터 동작 | 줄 위 앞뒤 이동, 004 점프·옆줄 점프에 줄 판정(`LaneJumpFilter`·착지 보정·동료 근처 감소) 연결, 004 균형 무너짐 → 추락·대기 — **추락은 호스트 판정·공유** | `Assets/Scripts/Tightrope/Rider/` (제안) | 없음 (코스 프리팹은 배치만) | `Assets/Scenes/Tests/TightropeRider/` (제안) |
+| 목마 | F 짧게=올라타기, F 길게=내리기, 목마 점프 규칙, 안 되는 상황 막기, 004 목마 배율·위층 전달 연결 — **연결·해제는 호스트 판정·공유** | `Assets/Scripts/Tightrope/Piggyback/` | 없음 (실제 플레이어 프리팹 사용) | `Assets/Scenes/Tests/Piggyback/` |
+| 플레이어 동기화 | **실제 플레이어 프리팹**에 온라인 적용: 내 캐릭터만 내 입력, 위치·자세·점프·균형 표시값 공유, 호스트 판정 요청·결과 통로, 상태(사망 등) 공유, 게이지·HUD가 내 캐릭터 따르기, 래그돌 공유 방식 | `Assets/Scripts/Network/PlayerSync/` + 이어받기: Player | `Assets/Resources/Prefabs/Characters/Players/`, `Assets/Resources/Input/`, `Assets/Resources/Prefabs/Controllers/Network/`(플레이어 프리팹 지정·목록 등록) | `Assets/Scenes/Tests/NetworkPlayerSync/` |
+| 오브젝트 동기화 | 도구 잡기·놓기(004 상호작용 신호 사용), 1인당 최대 2개, 위치·상태 공유 — 007 판정 통로 사용 | `Assets/Scripts/Network/PropSync/` | `Assets/Resources/Prefabs/Objects/Tools/`, `Assets/Resources/Prefabs/Objects/Interactables/SyncTest/` | `Assets/Scenes/Tests/NetworkPropSync/` |
+| 4인 외줄 최종 씬 | 방 만들기 → 4인 외줄 코스 최종 데모 씬, 앞 작업에서 남은 연결·버그 정리 | `Assets/Scripts/Connect/TightropeNetwork/` (필요할 때만) + 이어받기: 필요한 폴더만 PM 배정 | 필요할 때 PM 배정 | `Assets/Scenes/Tests/TightropeNetwork/` |
+| 목마 온라인 예외 | 동시에 타려 할 때, 목마 중 추락(연쇄 추락), 호스트 이탈 등 예외 정리 | `Assets/Scripts/Connect/PiggybackNetwork/` + 이어받기: Tightrope/Piggyback | — | `Assets/Scenes/Tests/PiggybackNetwork/` |
 
 - **C# 코드는 모두 `Assets/Scripts/`**, **씬은 모두 `Assets/Scenes/`** 안에 둔다. 테스트 씬은 `Assets/Scenes/Tests/<작업>/`.
 - 테스트에서만 쓰는 프리팹(더미·임시 캐릭터·테스트 UI)은 테스트 씬 옆 `Prefabs/` 폴더에 둔다. 임시 입력 같은 코드는 스크립트 폴더에 둔다.
@@ -56,11 +59,12 @@ PM이 Unity에서 폴더·테스트 씬을 미리 만들고 각 Task `setup.md`�
 
 | 파일 | 담당 |
 |---|---|
-| `Assets/Resources/Prefabs/Controllers/Network/` | 방 만들기 |
-| `Assets/Resources/Input/`, `Assets/Resources/Prefabs/Characters/Players/` | 플레이어 조작 → 병합 후 연결: 외줄+온라인 |
+| `Assets/Resources/Prefabs/Controllers/Network/` | 방 만들기 → 플레이어 동기화(플레이어 프리팹 지정) |
+| `Assets/Resources/Input/`, `Assets/Resources/Prefabs/Characters/Players/` | 플레이어 조작 → 플레이어 동기화 → 이후 순서대로 한 작업씩 이어받기 (PM 배정) |
+| `Assets/Resources/Prefabs/UIs/Player/`, `Assets/Resources/Fonts/` | 플레이어 조작 → 플레이어 동기화 → 이후 PM 배정 (`Assets/TextMesh Pro/`는 공용 리소스, 수정 금지) |
 | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | 외줄 코스·진행 (다른 작업은 씬에 놓기만) |
 | `Assets/Resources/Prefabs/Objects/Tools/` | 오브젝트 동기화 |
-| `Assets/Scripts/Network/PlayerSync/` (연결 단계) | 연결: 외줄+온라인만 |
+| `Assets/Scripts/Network/PlayerSync/` | 플레이어 동기화. 이후 작업은 공개 기능만 사용, 고칠 때는 PM 배정 |
 
 ## 확인 방법
 

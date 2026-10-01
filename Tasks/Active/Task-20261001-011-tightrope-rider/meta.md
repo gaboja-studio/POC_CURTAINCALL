@@ -23,7 +23,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 - 작업 구역·공용 파일·수정 금지 목록은 `setup.md`(PM 작성)가 기준이다.
 - AI Setup Allowed: None
-- Dependencies: 플레이어 조작(004)의 명령·`PlayerBalance` 진입점, 외줄 코스·진행(005)의 코스 조회·진행 진입점. 004 병합 후 인계한다. 005가 아직이면 005의 진입점 이름에 맞춘 임시 코스로 시작할 수 있다.
+- Dependencies: 플레이어 조작(004)의 명령·`PlayerBalance` 진입점, 외줄 코스·진행(005)의 코스 조회·진행 진입점. 004(병합 완료)·007·005 병합 후 진행한다(2026-10-02 변경). 임시 코스를 만들지 않는다.
 - 2026-10-01 005(외줄 기본)에서 "줄 위 캐릭터 동작"을 나눠 만든 Task다. 코스·진행은 005에 남는다.
 - 계획 전체: `Integrations/Active/Integration-tightrope-prototype/plan.md`
 
@@ -35,3 +35,4 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 - Decided: 2026-10-01 @MoHoDu — 균형 기능의 베이스는 004(player-control)에서 구현 중이다. 011은 균형을 새로 만들지 않고 004 진입점에 충격을 넣고 신호를 받기만 한다
 - Decided: 2026-10-01 @MoHoDu — 세부 규칙은 `Docs/References/tightrope-keymap-summary.md`, `Harness/Project/Decisions/tightrope-rules.md`, 균형은 `Harness/Project/Decisions/tightrope-balance.md`(004에서 구현) 기준
 - Decided: 2026-09-30 @MoHoDu — NGO + Multiplayer Services(Host), 이동은 클라·판정은 호스트, AI는 컴파일만 검사·플레이 테스트는 작업자가 직접 하고 결과를 알려 줌 (`Harness/Project/Decisions/multiplayer-stack.md`, `prototype-verification.md`)
+- Decided: 2026-10-02 @MoHoDu — 기능과 온라인 동기화를 같이 만든다. 실제 플레이어 프리팹과 007 공개 기능(`Assets/Scripts/Network/PlayerSync/`)·004 공개 함수를 쓴다. 단계마다 여러 명 접속으로 확인 (`Harness/Project/Decisions/feature-with-network.md`)

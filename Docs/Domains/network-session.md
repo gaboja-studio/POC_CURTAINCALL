@@ -48,12 +48,13 @@ session.Disconnected += reason => { ... };      // 종료 이유 문구
 ## 의존 도메인
 
 - [Unity Assets 구조](assets-structure.md) — 폴더·Resources 배치.
-- 사용하는 쪽(planned): 플레이어 동기화(007), 오브젝트 동기화(008), 외줄+온라인(009), 목마+온라인(010).
+- [플레이어 조작](player-control.md) — 007이 실제 플레이어 프리팹에 온라인을 붙인다.
+- 사용하는 쪽(planned): 플레이어 동기화(007), 이후 기능 작업 005·011·006·008(기능+동기화, [결정](../../Harness/Project/Decisions/feature-with-network.md)), 최종 씬(009)·목마 예외(010).
 
 ## 수정 주의점
 
 - `NetworkConfig.ConnectionApproval`과 `ConnectionApprovalCallback`은 이 매니저가 소유한다. 다른 코드가 콜백을 등록하면 NGO가 예외를 던진다. 승인 조건 추가는 이 도메인에 요청한다.
 - 게임 상태는 **호스트만** 바꾼다. 클라이언트는 이벤트로만 받는다. `GameSessionStateSync`를 직접 쓰지 않는다.
-- 플레이어 프리팹(`NetworkConfig.PlayerPrefab`) 지정은 NetworkManager 프리팹 수정이다. 공용 파일 담당 배정을 받은 뒤 한다. 지정되면 접속 승인 시 자동 생성된다.
+- 플레이어 프리팹(`NetworkConfig.PlayerPrefab`) 지정은 NetworkManager 프리팹 수정이다. 공용 파일 담당 배정을 받은 뒤 한다(2026-10-02 007에 배정). 지정되면 접속 승인 시 자동 생성된다.
 - 새 네트워크 프리팹은 `DefaultNetworkPrefabs`에 등록한다(보통 Unity가 자동 등록). 프리팹을 Resources 경로에서 옮기면 `NetworkSessionManager`의 경로 상수도 고친다.
 - 미구현: 씬 전환(NGO SceneManager), 재시작 후 대기 복귀, 로비 검색(`QuerySessionsAsync`는 별도 인터페이스로 추가 예정), 호스트 이전.
