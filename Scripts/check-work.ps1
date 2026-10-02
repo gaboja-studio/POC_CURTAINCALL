@@ -9,7 +9,11 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Lib/common.ps1')
 
 $task = Find-CurrentTask
-if (-not $task) { throw '현재 브랜치에 대응하는 Task가 없습니다. "Task-○○○ 시작해줘"를 먼저 하세요.' }
+if (-not $task) {
+    $branch = (& git -C $RepoRoot branch --show-current).Trim()
+    if ($branch -match '^(fix|resource)/') { throw "Task 없는 $branch 는 handoff.md가 없습니다. 개별 검사(verify-scope·verify-fast·verify-unity -Compile)를 쓰거나 '저장해줘'로 검사와 저장을 함께 하세요." }
+    throw '현재 브랜치에 대응하는 Task가 없습니다. "Task-○○○ 시작해줘"를 먼저 하세요.'
+}
 $today = Get-Date -Format 'MM-dd'
 $results = [ordered]@{}
 
