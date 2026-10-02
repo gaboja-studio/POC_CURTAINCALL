@@ -27,6 +27,7 @@
 - 004에 이미 있는 것은 다시 만들지 않는다: 줄 위 점프·옆줄 점프 움직임(`PlayerMover`), 착지 충격(`PlayerBalance`), 몸 기울기·추락 래그돌. 이 작업은 줄 판정(`LaneJumpFilter`, 착지 보정, `SetLaneLandingReduction`)과 줄에 붙어 걷기를 붙인다.
 - 줄 위 이동·점프는 소유자가 하고 007 위치 공유를 그대로 쓴다.
 - 추락은 **호스트가 확정**해 007 상태 공유로 알린다. 대기·재시작은 005 진행 신호를 따른다.
+- 007 이어받기(2026-10-02 PM): 줄 밖 착지 추락 테스트 부품 `PlayerSync/TestLaneLanding.cs`를 005 코스 조회 기반 착지 판정으로 대체하고 삭제한다(삭제 배정은 인계 갱신 때 PM). 추락은 `PlayerBalance.ForceFall()` → 007이 호스트에 요청. 균형 켜기·끄기(`SetBalanceActive`, 지금은 시작 즉시 켜짐)를 줄 오르내림에 맞춘다. 줄 간격 2.0m. 공개 기능: `Docs/Domains/player-sync.md`.
 
 ## Files
 

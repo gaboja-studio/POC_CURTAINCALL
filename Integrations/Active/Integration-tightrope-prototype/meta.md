@@ -23,7 +23,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20260930-004 | feat | @MoHoDu | feat/player-control | #7 | integrated |
 | Task-20260930-005 | feat | @MoHoDu(임시) | feat/tightrope-core (인계 때 생성) | - | scaffolded |
 | Task-20260930-006 | feat | @MoHoDu(임시) | feat/tightrope-piggyback (인계 때 생성) | - | scaffolded |
-| Task-20260930-007 | feat | @MoHoDu(임시) | feat/network-player-sync | - | assigned |
+| Task-20260930-007 | feat | @MoHoDu(임시) | feat/network-player-sync | #11 | submitted (병합됨, 병합 후 공동 테스트 대기) |
 | Task-20260930-008 | feat | @MoHoDu(임시) | feat/network-prop-sync (인계 때 생성) | - | scaffolded |
 | Task-20260930-009 | feat | @MoHoDu(임시) | feat/tightrope-network (인계 때 생성) | - | scaffolded |
 | Task-20260930-010 | feat | @MoHoDu(임시) | feat/piggyback-network (인계 때 생성) | - | scaffolded |
@@ -43,7 +43,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | `Assets/TextMesh Pro/` | 없음 (공용, 수정 금지) | TMP 기본 리소스 (2026-10-01 004에서 가져옴) |
 | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | Task-20260930-005 | 외줄 코스 스테이지 (다른 Task는 배치만) |
 | `Assets/Resources/Prefabs/Objects/Tools/` | Task-20260930-008 | 도구 프리팹 |
-| `Assets/Scripts/Network/PlayerSync/` | Task-20260930-007 | 이후 Task는 공개 기능만 사용, 수정은 PM 배정 |
+| `Assets/Scripts/Network/PlayerSync/` | Task-20260930-007 | 이후 Task는 공개 기능만 사용, 수정은 PM 배정. 테스트 부품 `TestRoundRestart.cs`는 005, `TestLaneLanding.cs`는 011이 대체·삭제 |
 
 `Packages/`, `ProjectSettings/`는 PM이 인계 전 이 브랜치에서 직접 설치·설정한다(모든 Task 수정 금지).
 
