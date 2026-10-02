@@ -2,10 +2,10 @@
 
 - **Title:** 플레이어 동기화
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/player-sync.md`
-- **Current Skill:** implement-code (①단계 합의 전)
+- **Current Skill:** 없음 (integrated, dev 반영 대기)
 - **Updated:** 2026-10-02
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
