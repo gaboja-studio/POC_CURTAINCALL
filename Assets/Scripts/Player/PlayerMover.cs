@@ -67,6 +67,9 @@ namespace CurtainCall.Player
         /// <summary>땅에서 떨어질 때(true)·착지할 때(false) 보낸다. 점프·낙하 모두 포함. 착지 알림 때 <see cref="CurrentJump"/>는 아직 남아 있다.</summary>
         public event Action<bool> AirborneChanged;
 
+        /// <summary>출발 위치 복귀 등으로 위치를 순간이동했을 때. 온라인 위치 공유가 보간 없이 옮기는 데 쓴다.</summary>
+        public event Action Teleported;
+
         /// <summary>공중에 있는지.</summary>
         public bool IsAirborne { get; private set; }
 
@@ -166,6 +169,7 @@ namespace CurtainCall.Player
             groundVelocity = Vector3.zero;
             SetAirborne(false);
             ClearJump();
+            Teleported?.Invoke();
         }
 
         /// <summary>출발 위치·방향을 바꾸고 그 자리로 옮긴다. 예: 온라인 접속 후 자리 번호에 맞는 출발점에 세울 때.</summary>
