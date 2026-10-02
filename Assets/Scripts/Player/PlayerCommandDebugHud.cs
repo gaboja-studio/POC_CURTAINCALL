@@ -54,6 +54,12 @@ namespace CurtainCall.Player
             set => target = value;
         }
 
+        /// <summary>
+        /// 재시작 키를 눌렀을 때 대신 할 일. 비어 있으면 대상 플레이어 혼자 출발 위치·균형을 초기화한다.
+        /// 온라인에서는 "모두 재시작 요청"을 넣는다(재시작은 모두 같이).
+        /// </summary>
+        public System.Action RestartOverride { get; set; }
+
         /// <summary>대상이 비었을 때 씬에서 처음 찾은 플레이어를 쓸지.</summary>
         public bool AutoFindTarget
         {
@@ -95,7 +101,11 @@ namespace CurtainCall.Player
             if (modelSlot != null && keyboard[modelCycleKey].wasPressedThisFrame)
                 CycleModel();
 
-            if (keyboard[restartKey].wasPressedThisFrame)
+            if (keyboard[restartKey].wasPressedThisFrame && RestartOverride != null)
+            {
+                RestartOverride();
+            }
+            else if (keyboard[restartKey].wasPressedThisFrame)
             {
                 if (balance != null) balance.ResetBalance();
                 if (mover != null)

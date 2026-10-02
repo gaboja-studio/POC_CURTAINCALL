@@ -215,6 +215,16 @@ namespace CurtainCall.Player
             ResetBalance();
         }
 
+        /// <summary>
+        /// 다른 컴퓨터가 계산한 균형 값을 보여 주기만 할 때 쓴다(온라인에서 남의 캐릭터). 흔들림 계산·추락 판정은 하지 않으므로
+        /// 이 컴포넌트를 끈 상태에서 부른다. 몸 기울기 표시(<see cref="BalanceTiltView"/>)가 이 값을 따른다.
+        /// </summary>
+        public void SetDisplayedState(bool active, float value)
+        {
+            IsActive = active;
+            Value = Mathf.Clamp(value, -MaxValue, MaxValue);
+        }
+
         /// <summary>균형을 중앙으로 되돌리고 추락 상태를 푼다(재시작).</summary>
         public void ResetBalance()
         {

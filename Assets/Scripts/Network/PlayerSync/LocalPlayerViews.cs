@@ -5,6 +5,7 @@ namespace CurtainCall.Network.PlayerSync
 {
     /// <summary>
     /// 씬의 플레이어 UI(균형 게이지·테스트 HUD)가 "씬에서 처음 찾은 플레이어" 대신 내 캐릭터를 보여 주게 한다.
+    /// 테스트 HUD의 재시작 키는 혼자 재시작 대신 호스트에 "모두 재시작"을 요청한다.
     /// 목록을 비워 두면 씬에서 찾은 것을 모두 쓴다.
     /// </summary>
     public sealed class LocalPlayerViews : MonoBehaviour
@@ -43,13 +44,21 @@ namespace CurtainCall.Network.PlayerSync
             var balance = player.GetComponent<PlayerBalance>();
             var input = player.GetComponent<PlayerInputReader>();
             foreach (var gauge in gauges) gauge.Target = balance;
-            foreach (var hud in huds) hud.Target = input;
+            foreach (var hud in huds)
+            {
+                hud.Target = input;
+                hud.RestartOverride = player.RequestRestartAll;
+            }
         }
 
         void Clear()
         {
             foreach (var gauge in gauges) gauge.Target = null;
-            foreach (var hud in huds) hud.Target = null;
+            foreach (var hud in huds)
+            {
+                hud.Target = null;
+                hud.RestartOverride = null;
+            }
         }
     }
 }
