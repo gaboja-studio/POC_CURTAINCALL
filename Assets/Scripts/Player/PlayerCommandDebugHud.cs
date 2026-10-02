@@ -10,8 +10,11 @@ namespace CurtainCall.Player
     /// </summary>
     public class PlayerCommandDebugHud : MonoBehaviour
     {
-        [Tooltip("표시할 플레이어. 비워 두면 씬에서 처음 찾은 플레이어를 쓴다.")]
+        [Tooltip("표시할 플레이어. 비워 두면 씬에서 처음 찾은 플레이어를 쓴다(Auto Find Target이 켜져 있을 때).")]
         [SerializeField] PlayerInputReader target;
+
+        [Tooltip("대상이 비었을 때 씬에서 처음 찾은 플레이어를 쓸지. 온라인에서는 내 캐릭터를 넣는 쪽이 끈다.")]
+        [SerializeField] bool autoFindTarget = true;
 
         [Tooltip("표시를 켜고 끄는 키.")]
         [SerializeField] Key toggleKey = Key.P;
@@ -44,17 +47,32 @@ namespace CurtainCall.Player
         float jumpPeak;
         float lateralFromStart;
 
+        /// <summary>표시하고 디버그 키를 적용할 플레이어. 온라인에서는 내 캐릭터를 넣는다.</summary>
+        public PlayerInputReader Target
+        {
+            get => target;
+            set => target = value;
+        }
+
+        /// <summary>대상이 비었을 때 씬에서 처음 찾은 플레이어를 쓸지.</summary>
+        public bool AutoFindTarget
+        {
+            get => autoFindTarget;
+            set => autoFindTarget = value;
+        }
+
         void Update()
         {
             var keyboard = Keyboard.current;
             if (keyboard != null && keyboard[toggleKey].wasPressedThisFrame)
                 visible = !visible;
 
-            if (target == null)
+            if (target == null && autoFindTarget)
                 target = FindAnyObjectByType<PlayerInputReader>();
             if (target != null && (mover == null || mover.gameObject != target.gameObject))
             {
                 Unsubscribe();
+                startPositionForHud = target.transform.position;
                 mover = target.GetComponent<PlayerMover>();
                 balance = target.GetComponent<PlayerBalance>();
                 controller = target.GetComponent<PlayerController>();
@@ -104,7 +122,7 @@ namespace CurtainCall.Player
 
         void Start()
         {
-            if (target == null) target = FindAnyObjectByType<PlayerInputReader>();
+            if (target == null && autoFindTarget) target = FindAnyObjectByType<PlayerInputReader>();
             if (target != null) startPositionForHud = target.transform.position;
         }
 

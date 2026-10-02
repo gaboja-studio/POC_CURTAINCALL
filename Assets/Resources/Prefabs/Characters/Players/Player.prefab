@@ -18,6 +18,8 @@ GameObject:
   - component: {fileID: 8440597082167851022}
   - component: {fileID: 5648411644042141170}
   - component: {fileID: 7702986224998439374}
+  - component: {fileID: 1447994521893016003}
+  - component: {fileID: 4092729050761941619}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -96,7 +98,9 @@ MonoBehaviour:
   moveSpeed: 3
   gravityStrength: 9.81
   jumpHeight: 1
-  laneSpacing: 1.5
+  laneSpacing: 2
+  playerGap: 0.05
+  blockLaneJumpOntoPlayer: 1
 --- !u!114 &737775002277357732
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -199,3 +203,43 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerRagdoll
   tiltPush: 1.5
   fallbackMass: 5
+--- !u!114 &1447994521893016003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5739599360029862557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 2013307913
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  m_InScenePlacedDisabledByDefault: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  m_InScenePlaced: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &4092729050761941619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5739599360029862557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa07ddda267e5419a999ee3f8f5df486, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.PlayerSync.NetworkPlayer
+  ShowTopMostFoldoutHeaderGroup: 1

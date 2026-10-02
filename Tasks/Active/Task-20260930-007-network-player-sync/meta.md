@@ -29,6 +29,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Decisions
 
 - Open: 담당자 확정(현재 임시 @MoHoDu)
+- Decided: 2026-10-02 @MoHoDu — 플레이어 충돌(이슈 #9, 이 Task PR에서 닫음): 서로 밀지 않음, 같은 줄 앞뒤 막힘, 줄 간격 1.5→2.0m, 목마 전까지 옆줄 도착점 겹치면 점프 막음. 기획과 다른 수치는 항상 인스펙터로 바꿀 수 있게 둔다
 - Decided: 2026-10-02 @MoHoDu — 카메라는 Cinemachine으로 내 캐릭터 3인칭 시점, 내 줄과 양쪽 옆줄이 보이는 정도. 고도화는 이후 Cinemachine 설정으로
 - Decided: 2026-10-02 @MoHoDu — 테스트 캡슐 대신 004 실제 플레이어 프리팹에 동기화를 만든다. 이후 Task는 기능+동기화를 같이 하고 이 작업 공개 기능을 쓴다 (`Harness/Project/Decisions/feature-with-network.md`)
 - Decided: 2026-09-30 @MoHoDu — NGO + Multiplayer Services(Host), 이동은 클라·판정은 호스트, AI는 컴파일만 검사·플레이 테스트는 작업자가 직접 하고 결과를 알려 줌 (`Harness/Project/Decisions/multiplayer-stack.md`, `prototype-verification.md`)

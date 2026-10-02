@@ -281,6 +281,13 @@ namespace CurtainCall.Player
             if (RedTime < fallTime) return;
 
             RedTime = fallTime;
+            ForceFall();
+        }
+
+        /// <summary>균형과 상관없이 바로 추락시킨다(예: 줄이 아닌 곳에 착지). 이미 추락했으면 무시한다. <see cref="Fell"/>을 보낸다.</summary>
+        public void ForceFall()
+        {
+            if (HasFallen) return;
             HasFallen = true;
             CurrentSway = 0f;
             Fell?.Invoke();
