@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CurtainCall.Player;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 
 namespace CurtainCall.Network.PlayerSync
@@ -10,6 +11,7 @@ namespace CurtainCall.Network.PlayerSync
     /// 플레이어 프리팹의 온라인 진입점. 접속하면 NetworkManager가 사람마다 하나씩 만든다.
     /// 호스트가 빈 자리 번호(0부터)를 정해 모두에게 공유하고, 각 화면은 그 번호의 출발 위치에 캐릭터를 세운다.
     /// 내 캐릭터가 아니면 입력·조작 규칙·균형 계산·이동 계산을 끈다(위치·자세는 소유자가 보낸 값을 따른다).
+    /// 위치·방향은 같은 오브젝트의 NetworkTransform(소유자 권한)이 공유하고, 점프 상태는 이 컴포넌트가 공유한다.
     /// 다른 기능은 <see cref="Local"/>(내 캐릭터)·<see cref="All"/>·<see cref="Slot"/>을 쓴다.
     /// </summary>
     [RequireComponent(typeof(PlayerMover))]
@@ -21,8 +23,10 @@ namespace CurtainCall.Network.PlayerSync
         static readonly List<NetworkPlayer> all = new();
 
         readonly NetworkVariable<int> slot = new(NoSlot);
+        readonly NetworkVariable<JumpKind> jump = new(JumpKind.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
         PlayerMover mover;
+        NetworkTransform networkTransform;
 
         /// <summary>이 컴퓨터의 내 캐릭터. 접속 전·생성 전에는 null.</summary>
         public static NetworkPlayer Local { get; private set; }
@@ -45,13 +49,28 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>자리 번호가 정해지거나 바뀌었을 때.</summary>
         public event Action<int> SlotChanged;
 
-        void Awake() => mover = GetComponent<PlayerMover>();
+        /// <summary>지금 공중에 있는 이유(모든 화면에서 같음). 땅이면 None.</summary>
+        public JumpKind CurrentJump => IsOwner || !IsSpawned ? mover.CurrentJump : jump.Value;
+
+        /// <summary>공중에 있는지(모든 화면에서 같음).</summary>
+        public bool IsAirborne => CurrentJump != JumpKind.None;
+
+        /// <summary>점프 상태가 바뀌었을 때(모든 화면). 인자는 새 상태.</summary>
+        public event Action<JumpKind> JumpChanged;
+
+        void Awake()
+        {
+            mover = GetComponent<PlayerMover>();
+            networkTransform = GetComponent<NetworkTransform>();
+        }
 
         public override void OnNetworkSpawn()
         {
             all.Add(this);
             ApplyOwnership(IsOwner);
             slot.OnValueChanged += HandleSlotChanged;
+            jump.OnValueChanged += HandleJumpChanged;
+            if (IsOwner) mover.Teleported += SendTeleport;
 
             if (IsServer)
                 slot.Value = FindFreeSlot();
@@ -69,12 +88,30 @@ namespace CurtainCall.Network.PlayerSync
         {
             all.Remove(this);
             slot.OnValueChanged -= HandleSlotChanged;
+            jump.OnValueChanged -= HandleJumpChanged;
+            mover.Teleported -= SendTeleport;
 
             if (Local == this)
             {
                 Local = null;
                 LocalDespawned?.Invoke();
             }
+        }
+
+        void Update()
+        {
+            // 내 캐릭터: 점프 상태가 바뀌면 보낸다(변할 때만 전송된다)
+            if (IsSpawned && IsOwner && jump.Value != mover.CurrentJump)
+                jump.Value = mover.CurrentJump;
+        }
+
+        void HandleJumpChanged(JumpKind previous, JumpKind current) => JumpChanged?.Invoke(current);
+
+        /// <summary>내 캐릭터가 순간이동하면 다른 화면에서도 보간 없이 옮긴다.</summary>
+        void SendTeleport()
+        {
+            if (networkTransform != null && networkTransform.IsSpawned && networkTransform.CanCommitToTransform)
+                networkTransform.Teleport(transform.position, transform.rotation, transform.localScale);
         }
 
         /// <summary>내 캐릭터만 키 입력을 받고 이동·균형을 계산한다.</summary>
