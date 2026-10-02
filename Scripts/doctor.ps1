@@ -41,6 +41,8 @@ switch -Regex ($branch) {
         if ($task) {
             $st = Get-MetaField -MetaPath (Join-Path $task.Path 'meta.md') -Field 'Status'
             Add-Check OK 'workspace' "$($task.Id) 작업 브랜치 (Status $st)"
+        } elseif ($branch -like 'fix/*') {
+            Add-Check WARN 'workspace' "Task 없는 fix 브랜치 — 급한 수정일 때만 허용. PR 본문에 이유와 범위를 적기"
         } else {
             Add-Check FAIL 'workspace' "브랜치 $branch 에 대응하는 Tasks/Active 폴더가 없음 (PM에게 확인)"
         }
@@ -52,6 +54,7 @@ switch -Regex ($branch) {
             Add-Check WARN 'workspace' "통합 기록 폴더가 없음: Integrations/Active/Integration-$($Matches[1])"
         }
     }
+    '^resource/' { Add-Check OK 'workspace' '리소스 브랜치(resource/*) — Task 없음, Assets/Resources/ 리소스만' }
     '^tests/' { Add-Check OK 'workspace' '연습 브랜치(tests/*) — 합쳐지지 않음' }
     '^builds/' { Add-Check OK 'workspace' '빌드 브랜치 (PM)' }
     default {

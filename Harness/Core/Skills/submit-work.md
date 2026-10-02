@@ -1,13 +1,14 @@
 ---
 name: submit-work
-description: 작업자의 제출 요청. 검사 → 최신 통합 내용 합쳐 보기 → 미리보기·확인 → integration 브랜치로 PR 등록(.github 템플릿 사용).
+description: 작업자의 제출 요청. 검사 → 최신 통합 내용 합쳐 보기 → 미리보기·확인 → PR 등록(feat/refactor는 integration, fix/resource는 dev 또는 integration. .github 템플릿 사용).
 ---
 
 # Submit Work
 
 형식 규칙: `Harness/Project/Decisions/pr-issue-format.md`
 
-1. Unity에서 저장했는지 확인한다. 현재 브랜치가 `feat|fix|refactor/*`인지 확인한다(아니면 멈춤).
+1. Unity에서 저장했는지 확인한다. 현재 브랜치가 `feat|fix|refactor|resource/*`인지 확인한다(아니면 멈춤).
+   - Task 없는 `resource/*`·급한 `fix/*`: 2·3번 대신 `save-work`로 검사·저장하고, 대상(`dev` 또는 `integration/<slug>`)을 사용자에게 확인해 `new-pr.ps1`에 `-Base <대상> -Title "<요약>"`을 넘긴다(구역 검사는 스크립트가 함). 급한 fix는 요약에 이유와 범위를 적는다.
 2. 검사: `check-work` Skill을 수행한다. 0~3단계 중 FAIL이 있으면 쉬운 말로 알리고 제출을 멈춘다.
 3. 최신 통합 내용 합쳐 보기: `git fetch origin` → `git merge origin/<meta.md Integration>`
    - 충돌이 나면 `git merge --abort`로 되돌리고 PM에게 넘긴다. 씬·프리팹 충돌은 AI가 해결하지 않는다.

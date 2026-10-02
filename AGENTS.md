@@ -30,7 +30,7 @@ Unity 6 POC 프로젝트. 게임 개요는 아직 미정(TBD)이며 확정되면
 ## 경계 (항상 적용)
 
 - 역할·수정 권한: `Harness/Core/Policies/team-roles.md`. 권한 밖 수정 요청은 하지 않고 "PM 요청 필요"라고 알린다.
-- 브랜치·PR: `Harness/Core/Policies/git-workflow.md`. 작업 브랜치는 `integration/*`로만 제출한다.
+- 브랜치·PR: `Harness/Core/Policies/git-workflow.md`. `feat/*`·`refactor/*`는 `integration/*`로만, `fix/*`·`resource/*`는 `dev` 또는 `integration/*`로 제출한다(`builds/*` 직행 금지).
 - 플레이어가 체감하는 선택(게임 규칙·밸런스·UX·씬·아트·사운드)은 `Harness/Core/Policies/human-decision.md`.
 - Unity 변경 전 `Harness/Engine/Unity/Policies/code-folders.md`, `asset-ownership.md`. `setup.md` 작업 구역 밖은 수정하지 않는다.
 - commit/push는 사용자가 요청할 때만("저장해줘", "제출해줘" 포함). reset/discard/force는 PM의 명시적 요청 때만.
