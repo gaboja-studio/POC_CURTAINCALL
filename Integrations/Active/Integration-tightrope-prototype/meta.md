@@ -23,7 +23,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20260930-004 | feat | @MoHoDu | feat/player-control | #7 | integrated |
 | Task-20260930-005 | feat | @MoHoDu(임시) | feat/tightrope-core | - | assigned |
 | Task-20260930-006 | feat | @MoHoDu(임시) | feat/tightrope-piggyback (인계 때 생성) | - | scaffolded |
-| Task-20260930-007 | feat | @MoHoDu(임시) | feat/network-player-sync | #11 | submitted (병합됨, 병합 후 공동 테스트 대기) |
+| Task-20260930-007 | feat | @MoHoDu(임시) | feat/network-player-sync | #11 | integrated (QA #13 통과) |
 | Task-20260930-008 | feat | @MoHoDu(임시) | feat/network-prop-sync (인계 때 생성) | - | scaffolded |
 | Task-20260930-009 | feat | @MoHoDu(임시) | feat/tightrope-network (인계 때 생성) | - | scaffolded |
 | Task-20260930-010 | feat | @MoHoDu(임시) | feat/piggyback-network (인계 때 생성) | - | scaffolded |
