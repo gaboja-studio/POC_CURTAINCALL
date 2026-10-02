@@ -26,6 +26,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 - `Assets/Resources/Input/` — 입력 에셋 (004에서 이어받음, 필요할 때만)
 - `Assets/Resources/Prefabs/UIs/Player/` — 균형 게이지가 내 캐릭터를 따르게 (004에서 이어받음)
 - `Assets/Resources/Prefabs/Controllers/Network/` — NetworkManager 플레이어 프리팹 지정·네트워크 프리팹 목록 (003에서 이어받음)
+- `Assets/Resources/Prefabs/Controllers/Camera/` — Cinemachine 3인칭 카메라 리그 프리팹 (신규, 2026-10-02 PM @MoHoDu 배정)
 
 ## 수정 금지
 

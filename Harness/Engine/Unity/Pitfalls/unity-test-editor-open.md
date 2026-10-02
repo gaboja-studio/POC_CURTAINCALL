@@ -1,7 +1,7 @@
 ---
-summary: unity-cli beta.11의 unity test는 별도 배치 에디터를 띄우므로, 같은 프로젝트가 에디터에 열려 있으면 실행을 거부해 check-work 테스트 단계가 FAIL로 찍힘
+summary: unity-cli beta.11~12의 unity test는 별도 배치 에디터를 띄우므로, 같은 프로젝트가 에디터에 열려 있으면 실행을 거부해 check-work 테스트 단계가 FAIL로 찍힘
 status: active
-updated: 2026-10-01
+updated: 2026-10-02
 source: Task-20260930-003
 ---
 
@@ -19,7 +19,7 @@ source: Task-20260930-003
 
 ## 원인
 
-unity-cli `1.0.0-beta.11`의 `unity test`는 열린 에디터를 쓰지 않고 테스트용 배치 에디터를 새로 띄운다. 한 프로젝트는 에디터 하나만 열 수 있어서, 작업 중인 에디터가 있으면 거부한다. 열린 에디터를 쓰게 하는 옵션도 없다(`unity test --help` 확인).
+unity-cli `1.0.0-beta.11`~`beta.12`의 `unity test`는 열린 에디터를 쓰지 않고 테스트용 배치 에디터를 새로 띄운다. 한 프로젝트는 에디터 하나만 열 수 있어서, 작업 중인 에디터가 있으면 거부한다. 열린 에디터를 쓰게 하는 옵션도 없다(`unity test --help` 확인).
 
 ## 대처
 

@@ -64,6 +64,7 @@ PM이 Unity에서 폴더·테스트 씬을 미리 만들고 각 Task `setup.md`�
 | `Assets/Resources/Prefabs/UIs/Player/`, `Assets/Resources/Fonts/` | 플레이어 조작 → 플레이어 동기화 → 이후 PM 배정 (`Assets/TextMesh Pro/`는 공용 리소스, 수정 금지) |
 | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | 외줄 코스·진행 (다른 작업은 씬에 놓기만) |
 | `Assets/Resources/Prefabs/Objects/Tools/` | 오브젝트 동기화 |
+| `Assets/Resources/Prefabs/Controllers/Camera/` | 플레이어 동기화(3인칭 카메라 리그, 2026-10-02 배정) → 이후 PM 배정 |
 | `Assets/Scripts/Network/PlayerSync/` | 플레이어 동기화. 이후 작업은 공개 기능만 사용, 고칠 때는 PM 배정 |
 
 ## 확인 방법
