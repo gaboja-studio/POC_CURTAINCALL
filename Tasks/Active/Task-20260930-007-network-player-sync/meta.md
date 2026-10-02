@@ -2,10 +2,10 @@
 
 - **Title:** 플레이어 동기화
 - **Type:** feat
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @MoHoDu
-- **Domain:** 없음 (코드가 생기면 Domain Map 추가)
-- **Current Skill:** start-work
+- **Domain:** 없음 (⑦단계에서 플레이어 동기화 Domain Map 추가 예정)
+- **Current Skill:** implement-code (①단계 합의 전)
 - **Updated:** 2026-10-02
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
@@ -29,5 +29,6 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Decisions
 
 - Open: 담당자 확정(현재 임시 @MoHoDu)
+- Decided: 2026-10-02 @MoHoDu — 카메라는 Cinemachine으로 내 캐릭터 3인칭 시점, 내 줄과 양쪽 옆줄이 보이는 정도. 고도화는 이후 Cinemachine 설정으로
 - Decided: 2026-10-02 @MoHoDu — 테스트 캡슐 대신 004 실제 플레이어 프리팹에 동기화를 만든다. 이후 Task는 기능+동기화를 같이 하고 이 작업 공개 기능을 쓴다 (`Harness/Project/Decisions/feature-with-network.md`)
 - Decided: 2026-09-30 @MoHoDu — NGO + Multiplayer Services(Host), 이동은 클라·판정은 호스트, AI는 컴파일만 검사·플레이 테스트는 작업자가 직접 하고 결과를 알려 줌 (`Harness/Project/Decisions/multiplayer-stack.md`, `prototype-verification.md`)
