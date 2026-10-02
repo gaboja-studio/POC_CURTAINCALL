@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 
 $branch = (& git -C $RepoRoot branch --show-current).Trim()
 if ($branch -match '^(dev|integration/.+|builds/.+)$') { throw "$branch 에는 이 방법으로 저장하지 않습니다(PM 절차 사용)." }
-if ($branch -notmatch '^(feat|fix|refactor|tests)/') { throw "규칙에 없는 브랜치입니다: $branch" }
+if ($branch -notmatch '^(feat|fix|refactor|resource|tests)/') { throw "규칙에 없는 브랜치입니다: $branch" }
 
 $status = & git -C $RepoRoot status --porcelain
 if (-not $status) { Write-Output '저장할 변경이 없습니다.'; exit 0 }

@@ -73,11 +73,15 @@
 | 이름 | 용도 | 예시 |
 |---|---|---|
 | `feat/*` · `fix/*` · `refactor/*` | 새 기능 · 기능 수정 · 코드 정리 | `feat/curtain-open` |
+| `resource/*` | 리소스만 추가 (아트·에셋 관리자, Task 없음) | `resource/character` |
 | `integration/*` | 기능 묶음을 합치는 곳 (PM) | `integration/curtain-call` |
 | `builds/*` | 빌드 버전 보관 (PM) | `builds/0.1.0` |
 | `tests/*` | 연습장, 합치지 않음 | `tests/try-camera-shake` |
 
 흐름은 한 방향입니다: 작업 브랜치 → `integration/*` → `dev` → `builds/*`. `dev`, `integration/*`, `builds/*`는 **PR로만** 합칩니다.
+
+- `fix/*`, `resource/*`는 새 기능이 아니라서 순서를 건너뛰고 `dev`나 특정 `integration/*`로 바로 PR할 수 있습니다. `builds/*`로 바로 가는 것은 안 됩니다.
+- `fix/*`는 보통 Task로 받지만 급한 문제는 Task 없이 바로 고칩니다. `resource/*`는 리소스 파일만 `Assets/Resources/`에 넣는 브랜치라 Task를 따로 만들지 않습니다. 코드·씬 수정이 필요하면 PM에게 Task를 요청합니다.
 
 ## 6. 이럴 땐 이렇게
 
