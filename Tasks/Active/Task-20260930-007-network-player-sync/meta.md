@@ -4,7 +4,7 @@
 - **Type:** feat
 - **Status:** working
 - **Assignee:** @MoHoDu
-- **Domain:** 없음 (⑦단계에서 플레이어 동기화 Domain Map 추가 예정)
+- **Domain:** `Docs/Domains/player-sync.md`
 - **Current Skill:** implement-code (①단계 합의 전)
 - **Updated:** 2026-10-02
 
