@@ -1,8 +1,8 @@
 ---
-summary: 브랜치 6종, 한 방향 PR 흐름, 병합 방식(Squash/Merge commit), 연결 Task, PM 전용 영역
+summary: 브랜치 7종, 한 방향 PR 흐름(fix·resource는 dev/integration 직행), 병합 방식(Squash/Merge commit), 연결 Task, PM 전용 영역
 status: active
-updated: 2026-09-29
-source: human (2026-09-29 팀 협업 방식 결정)
+updated: 2026-10-02
+source: human (2026-09-29 팀 협업 방식 결정, 2026-10-02 깃허브 및 레포지토리 가이드 개정)
 ---
 
 # 브랜치 전략
@@ -23,10 +23,15 @@ source: human (2026-09-29 팀 협업 방식 결정)
   - 합치기 단계의 기능 연결도 별도 Task(연결 Task)로 만든다.
   - PM 전용 수정: `Harness/`, `AGENTS.md`, `CLAUDE.md`, 루트 `Scripts/`, `.github/`, `Docs/Guides/`, Skill, 프로젝트 MCP. 권한 표는 `Harness/Core/Policies/team-roles.md`.
   - 데일리 미팅 기록은 하네스에 포함하지 않는다.
+- 2026-10-02 / PM(@MoHoDu) — 위 결정 중 `fix/*` 흐름을 바꾸고 `resource/*`를 추가:
+  - `fix/*`, `resource/*`는 신규 기능 개발이 아니므로 통합 순서를 지키지 않고 `dev` 또는 특정 `integration/*`로 바로 PR할 수 있다. `builds/*`로 바로 PR할 수 없는 것은 같다.
+  - `resource/*`(예: `resource/character`)는 아트·에셋 관리자 등이 리소스만 넣는 브랜치다. 보통 `Assets/Resources/` 안에만 넣어 충돌이 거의 없으므로 Task를 만들지 않는다.
+  - `fix/*`는 Task로 분리해 작업하는 것이 일반적이나, 급한 사안이면 Task 없이 바로 수정을 허용한다.
 
 ## 이유
 
 비개발 작업자는 "내 브랜치에서 작업 → 제출"만 알면 되고, 충돌 해결과 병합은 PM 한 사람이 일관되게 처리한다.
+수정·리소스 추가는 기능 묶음과 무관하게 빨리 반영되어야 하고 충돌 위험이 낮아, 통합 순서를 거치지 않게 했다.
 
 ## 바꾸려면
 

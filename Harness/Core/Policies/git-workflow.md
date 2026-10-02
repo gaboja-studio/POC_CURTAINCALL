@@ -10,29 +10,40 @@
 | `dev` | 팀 공용 원본 | — | — | `dev` |
 | `integration/*` | 기능 묶음 합치기 | PM | `dev` | `integration/<기능-slug>` |
 | `feat/*` | 기능 추가 | PM(준비) | `integration/*` | `feat/<slug>` |
-| `fix/*` | 완성된 기능 수정 | PM(준비) | `integration/*` | `fix/<slug>` |
+| `fix/*` | 완성된 기능 수정 | PM(준비). 급하면 바로 | `dev` 또는 `integration/*` | `fix/<slug>` |
 | `refactor/*` | 동작 유지, 코드 정리 | PM(준비) | `integration/*` | `refactor/<slug>` |
+| `resource/*` | 리소스 추가 (Task 없음) | 아트·에셋 관리자 | `dev` 또는 `integration/*` | `resource/<분류>` |
 | `builds/*` | 빌드 버전 보관 | PM | 없음 (dev에서 받기만) | `builds/<버전>` |
 | `tests/*` | 임시·실험 | 누구나 | **없음** (끝나면 삭제) | `tests/<자유>` |
 
 작업 브랜치의 slug는 목적을 나타내는 소문자 kebab-case로 쓴다(예: `feat/project-overview`). 날짜·Task 번호·관리 코드는 이름에 넣지 않는다. 같은 종류/slug는 중복 배정하지 않으며, Task ID·폴더명은 유지하고 `meta.md`의 Branch로 연결한다.
 
-## 흐름 (한 방향, 예외 없음)
+## 흐름 (한 방향)
 
 ```
-feat/* · fix/* · refactor/*  ──PR(Squash)──▶ integration/* ──PR(Merge commit)──▶ dev ──PR──▶ builds/*
+feat/* · refactor/*  ──PR(Squash)──▶ integration/* ──PR(Merge commit)──▶ dev ──PR──▶ builds/*
+fix/* · resource/*   ──PR(Squash)──▶ dev 또는 integration/*
 ```
 
-- 작업 브랜치는 **항상** `integration/*`로만 제출한다. 작은 수정도 PM이 작은 integration을 만들어 받는다.
+- `feat/*`, `refactor/*`는 **항상** `integration/*`로만 제출한다. 작은 기능도 PM이 작은 integration을 만들어 받는다.
+- `fix/*`, `resource/*`는 새 기능 개발이 아니므로 통합 순서를 지키지 않고 `dev` 또는 특정 `integration/*`로 바로 PR할 수 있다.
+- **어떤 작업 브랜치도 `builds/*`로 바로 PR하지 않는다.** `builds/*`는 `dev`에서만 받는다.
 - `dev`, `integration/*`, `builds/*`는 **PR로만** 바뀐다. 직접 push하지 않는다(브랜치 보호는 PM이 GitHub에서 설정).
   - 예외: PM은 `integration/*`에 준비 작업(통합 기록, Task 폴더, 테스트 씬·폴더)과 마무리 작업(Done 이동)을 직접 올린다. 브랜치 보호의 **우회(bypass) 목록에 PM 계정만** 넣는다. `dev`는 PM도 PR로만 반영한다.
-- `integration/*`는 `dev`에서, 작업 브랜치는 소속 `integration/*`에서 만든다. `builds/*`는 빌드 시점의 `dev`에서 만든다.
+- `integration/*`는 `dev`에서, 작업 브랜치는 소속 `integration/*`에서 만든다(`fix/*`·`resource/*`는 PR 대상 브랜치에서). `builds/*`는 빌드 시점의 `dev`에서 만든다.
 - 합치기 단계에서 기능끼리 연결하는 작업도 **별도 Task(연결 Task)**로 만들어 같은 흐름을 탄다.
 - `Scripts/new-pr.ps1`이 이 흐름에 어긋나는 PR을 거부한다.
 
+## fix/* · resource/*
+
+- `fix/*`: 보통은 Task로 분리해 작업한다(`scaffold-task`). **급한 사안이면 Task 없이 바로 수정**할 수 있다. 이때 PR 본문에 급한 이유와 수정 범위를 적는다.
+- `resource/*`: 아트·에셋 관리자 등이 **리소스 파일만** 넣는 브랜치다. 보통 `Assets/Resources/` 안에만 넣어 충돌이 거의 없으므로 **Task를 만들지 않는다.**
+  - 코드·씬·공용 프리팹 수정이 필요하면 `resource/*`가 아니라 Task로 분리한다.
+  - 리소스 위치 기준: `Docs/Guides/assets-folder-rules.md`. 새 에셋의 `.meta`를 함께 올린다.
+
 ## 병합 방식
 
-- 작업 → `integration/*`: **Squash**. Task 하나가 기록 한 줄이 되어 문제 Task를 찾고 빼기 쉽다.
+- 작업 → `integration/*` (`fix/*`·`resource/*` → `dev` 포함): **Squash**. Task 하나가 기록 한 줄이 되어 문제 Task를 찾고 빼기 쉽다.
 - `integration/*` → `dev`: **Merge commit**. 기능 묶음 단위로 기록이 남고 한 번에 되돌릴 수 있다.
 - 병합한 작업 브랜치에서 계속 작업하지 않는다(Squash 후 기록이 어긋난다). 추가 작업은 새 Task로 한다.
 
