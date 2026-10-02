@@ -23,7 +23,7 @@
 - `TightropeControlScheme.cs` — 외줄 규칙. 에셋: `Assets/Resources/Input/TightropeControlScheme.asset`.
 
 동작 부품
-- `PlayerMover.cs` — 코스 방향 이동, 제자리 점프(1.0m), 옆줄 점프(1.5m, 방향 고정), 공중 움직임 고정, 조작 잠금, 출발 위치 복귀.
+- `PlayerMover.cs` — 코스 방향 이동, 제자리 점프(1.0m), 옆줄 점프(줄 간격 2.0m, 방향 고정), 공중 움직임 고정, 조작 잠금, 출발 위치 복귀(`SetStartPose`). 플레이어끼리 밀지 않음·같은 줄 앞뒤 막힘, 옆줄 도착점 겹침 검사(`FindPlayerAtLaneLanding`, 임시로 점프 막음 `BlockLaneJumpOntoPlayer`).
 - `PlayerBalance.cs` — 균형 ±100, 자연 흔들림·기울기 가속·목마 배율·위층 전달·착지/옆줄 충격, 빨강 2초 추락 신호.
 - `PlayerInteraction.cs` — 상호작용·해제 요청 신호.
 - `PlayerModelSlot.cs` — 모델 교체, 키 1.73m 맞춤.
@@ -50,6 +50,7 @@ mover.AirborneChanged += airborne => ...;  mover.CurrentJump  // InPlace / Lane 
 balance.SetBalanceActive(true);                   // 줄에 오를 때 켬
 balance.Fell += () => ...;  balance.BalanceReset += () => ...;
 balance.ApplyShock(10); balance.SetLaneLandingReduction(0.5f);
+balance.ForceFall();                              // 균형과 상관없이 즉시 추락(줄 밖 착지 등)
 balance.SetStackSize(n); balance.SetUpperBalanceSum(sum);   // 목마(006)
 interaction.InteractRequested += ...; interaction.ReleaseRequested += ...;
 modelSlot.SetModel(prefab);

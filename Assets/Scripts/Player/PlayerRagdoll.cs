@@ -46,7 +46,10 @@ namespace CurtainCall.Player
             foreach (var c in limpModel.GetComponentsInChildren<Collider>())
             {
                 c.enabled = true;
-                if (body != null) Physics.IgnoreCollision(c, body); // 남아 있는 몸통과는 부딪히지 않는다
+                // 래그돌은 바닥·지형하고만 부딪힌다. 자기 몸통과 다른 플레이어 몸통은 밀지도 막지도 않는다
+                if (body != null) Physics.IgnoreCollision(c, body);
+                foreach (var mover in PlayerMover.All)
+                    Physics.IgnoreCollision(c, mover.Body);
             }
 
             // 기울어 있던 쪽(코스 기준 좌우)으로 살짝 밀어 그 방향으로 쓰러지게 한다

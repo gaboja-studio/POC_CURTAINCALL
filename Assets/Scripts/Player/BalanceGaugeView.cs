@@ -10,8 +10,11 @@ namespace CurtainCall.Player
     /// </summary>
     public class BalanceGaugeView : MonoBehaviour
     {
-        [Tooltip("표시할 플레이어. 비워 두면 씬에서 처음 찾은 플레이어를 쓴다.")]
+        [Tooltip("표시할 플레이어. 비워 두면 씬에서 처음 찾은 플레이어를 쓴다(Auto Find Target이 켜져 있을 때).")]
         [SerializeField] PlayerBalance target;
+
+        [Tooltip("대상이 비었을 때 씬에서 처음 찾은 플레이어를 쓸지. 온라인에서는 내 캐릭터를 넣는 쪽이 끈다.")]
+        [SerializeField] bool autoFindTarget = true;
 
         [Tooltip("초록 구간. 부모(게이지 막대) 기준 가로 앵커로 폭을 맞춘다.")]
         [SerializeField] RectTransform greenZone;
@@ -30,9 +33,23 @@ namespace CurtainCall.Player
 
         Canvas canvas;
 
+        /// <summary>표시할 플레이어. 온라인에서는 내 캐릭터를 넣는다.</summary>
+        public PlayerBalance Target
+        {
+            get => target;
+            set => target = value;
+        }
+
+        /// <summary>대상이 비었을 때 씬에서 처음 찾은 플레이어를 쓸지.</summary>
+        public bool AutoFindTarget
+        {
+            get => autoFindTarget;
+            set => autoFindTarget = value;
+        }
+
         void Update()
         {
-            if (target == null)
+            if (target == null && autoFindTarget)
                 target = FindAnyObjectByType<PlayerBalance>();
 
             // 균형이 꺼져 있으면(줄 밖) 게이지를 숨긴다
