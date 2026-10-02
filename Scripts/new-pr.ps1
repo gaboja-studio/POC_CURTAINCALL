@@ -1,6 +1,7 @@
 # .github/PULL_REQUEST_TEMPLATE.md를 채워 PR을 만든다.
 #   gh가 준비되어 있으면 바로 등록, 아니면(-Browser 포함) 내용이 채워진 GitHub 작성 페이지를 연다.
-#   브랜치 흐름: feat|fix|refactor/* → integration/* → dev → builds/*  (tests/*는 제출 불가)
+#   브랜치 흐름: feat|refactor/* → integration/* → dev → builds/*
+#               fix|resource/* → dev 또는 integration/*  (builds/* 직행 불가, tests/*는 제출 불가)
 # 채우는 값: 요약(-Summary), JIRA(Task setup.md), Issue 번호(-Issues), 검사 결과(Task handoff.md)
 [CmdletBinding()]
 param(
@@ -8,7 +9,7 @@ param(
     [int[]]$Issues = @(),
     # PR 제목의 한 줄 요약. 생략하면 Task meta.md의 Title.
     [string]$Title,
-    # 대상 브랜치. 생략하면 Task meta.md의 Integration.
+    # 대상 브랜치. 생략하면 Task meta.md의 Integration (Task 없는 fix/*·resource/*는 dev).
     [string]$Base,
     [string]$PlayCheck = '미실행',
     # 검사 결과 칸 직접 지정(Task가 없는 통합 PR 등). 생략하면 Task handoff.md의 Verification을 쓴다.
@@ -35,13 +36,15 @@ if ($task) {
     if (-not $Title) { $Title = Get-MetaField -MetaPath $meta -Field 'Title' }
     $prTitle = "[$($task.Type)] $($task.Id) $Title"
 } else {
+    if (-not $Base -and $head -match '^(fix|resource)/') { $Base = Get-BaseBranch }
     if (-not $Base -or -not $Title) { throw "현재 브랜치($head)에 대응하는 Task가 없음. -Base와 -Title을 직접 지정하세요." }
     $kind = switch -Regex ($head) { '^integration/' { 'integration' } '^dev$' { 'build' } default { ($head -split '/')[0] } }
     $prTitle = "[$kind] $Title"
 }
 
 $allowed = switch -Regex ($head) {
-    '^(feat|fix|refactor)/' { '^integration/.+' }
+    '^(feat|refactor)/' { '^integration/.+' }
+    '^(fix|resource)/' { '^(dev|integration/.+)$' }
     '^integration/' { '^dev$' }
     '^dev$' { '^builds/.+' }
     default { $null }
@@ -74,6 +77,14 @@ if ($task) {
 }
 $issueText = if ($Issues.Count) { ($Issues | ForEach-Object { "closed #$_" }) -join "`n" } else { '없음' }
 
+# Task 없는 fix/*·resource/*는 handoff.md가 없으므로 구역 검사를 여기서 돌려 결과를 적는다.
+$noTaskScope = $null
+if (-not $task -and -not $ScopeCheck -and $head -match '^(fix|resource)/') {
+    $scopeOut = @(& ([System.Environment]::ProcessPath) -NoProfile -File (Join-Path $PSScriptRoot 'verify-scope.ps1') -Branch $head -Base "origin/$Base" 2>&1)
+    $noTaskScope = if ($LASTEXITCODE -eq 0) { "PASS ($(Get-Date -Format 'MM-dd'), Task 없음)" } else { 'FAIL — 구역 검사 실패' }
+    if ($LASTEXITCODE -ne 0) { $scopeOut | ForEach-Object { Write-Output $_ }; $problems.Add('구역 검사 실패 (위 [위반] 항목 확인)') }
+}
+
 $template = Get-Content -LiteralPath (Get-RepoPath '.github/PULL_REQUEST_TEMPLATE.md') -Raw
 $parts = [regex]::Split($template, '(?m)^(?=## )')
 $body = [System.Text.StringBuilder]::new()
@@ -89,7 +100,7 @@ foreach ($part in $parts) {
                 if ($l -notmatch '^\s*-\s*([^(:]+)') { continue }
                 $label = $Matches[1].Trim()
                 $v = switch -Regex ($label) {
-                    '구역' { if ($ScopeCheck) { $ScopeCheck } elseif (-not $task) { '해당 없음 (Task 없는 PM 브랜치)' } else { Get-Check '구역 검사' } }
+                    '구역' { if ($ScopeCheck) { $ScopeCheck } elseif ($noTaskScope) { $noTaskScope } elseif (-not $task) { '해당 없음 (Task 없는 PM 브랜치)' } else { Get-Check '구역 검사' } }
                     '컴파일' { if ($CompileCheck) { $CompileCheck } else { Get-Check '2 컴파일' } }
                     '테스트' { if ($TestCheck) { $TestCheck } else { Get-Check '3 테스트' } }
                     '플레이' { $PlayCheck }
