@@ -2,7 +2,7 @@
 
 ## 지금 상태
 
-- 단계: ①·②·③·#9·#10·줄 밖 착지 추락 확인·저장(2026-10-02). 다음 ④ 기울기 공유, ⑤에 모두 재시작 포함(`plan.md`)
+- 단계: ①~⑤·#9·#10·줄 밖 착지 추락 확인·저장(2026-10-02). ⑤: `PlayerState`, `NetworkPlayer.RequestState`·`ServerCanChangeState`·`State`·`StateChanged`·`ServerRestartAll`·`Restarted`, 추락→조작 잠금·남의 화면 래그돌, `TestRoundRestart`(전원 추락 3초 후), HUD `RestartOverride`=모두 재시작 요청. 다음 ⑥·⑦
 - ① 결과: `PlayerSync/NetworkPlayer.cs`(호스트가 자리 번호 0~3 배정·모든 화면에서 출발 위치에 세움, `Local`·`LocalSpawned`·`All`), `PlayerSpawnPoints.cs`, `PlayerMover.SetStartPose` 추가. 에디터: `Player.prefab`+NetworkObject·NetworkPlayer, NetworkManager `PlayerPrefab`=Player, `DefaultNetworkPrefabs`+Player, 테스트 씬에 Ground·PlayerSpawnPoints(줄 간격 2.0m, 4개)·SessionUI·임시 카메라 위치.
 - ② 결과: `NetworkPlayer`가 남의 캐릭터면 `PlayerInputReader`·`PlayerController`·`PlayerBalance`를 끄고 `PlayerMover.Simulated=false`. `LocalPlayerCamera`(Cinemachine 리그 `Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab`, 뒤 4.5m·위 2.6m·가슴 1.2m 주시·FOV 60), `LocalPlayerViews`(게이지·HUD 대상=내 캐릭터, 자동 찾기 끔). 004 게이지·HUD에 `Target`·`AutoFindTarget` 추가. 테스트 씬: Brain·카메라 리그·BalanceGauge·DebugHud·LocalPlayerViews·LaneGuides(줄 표시)
 - 방향: 테스트 캡슐 대신 004 실제 플레이어 프리팹에 온라인 적용. 이후 Task가 이 공개 기능을 씀 (`Harness/Project/Decisions/feature-with-network.md`). 참고: `Docs/Domains/player-control.md`(004 공개 함수·혼자 기준 주의점), `Docs/Domains/network-session.md`(`NetworkSessionManager`)
@@ -10,7 +10,7 @@
 
 ## 다음 할 일
 
-1. ④ 기울기 공유 구현 → 작업자 MPPM 확인 → ⑤(추락 공유·모두 재시작).
+1. ⑥ 래그돌 연출 정리(⑤에서 각자 화면 래그돌 동작함 — 남은 것 확인) → ⑦ 도메인 지도·`player-control.md` 갱신 → 검사 → 공동 테스트 → 제출.
 2. 이후 `plan.md` 단계 ④~⑦ 순서대로. 저장 전 MPPM 가상 플레이어를 끈다(아래 확인 요청).
 3. 공용 파일(플레이어 프리팹·UI·NetworkManager 프리팹) 수정은 `setup.md` 배정 범위 안에서만.
 
