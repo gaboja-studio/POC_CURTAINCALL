@@ -6,7 +6,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Summary,
-    [int[]]$Issues = @(),
+    # 이슈 번호. -Issues 9,10 / -Issues "9,10" / -Issues 9 10 모두 받는다(pwsh -File은 "9,10"을 문자열 하나로 넘긴다).
+    [string[]]$Issues = @(),
     # PR 제목의 한 줄 요약. 생략하면 Task meta.md의 Title.
     [string]$Title,
     # 대상 브랜치. 생략하면 Task meta.md의 Integration (Task 없는 fix/*·resource/*는 dev).
@@ -75,6 +76,11 @@ if ($task) {
     $keys = @([regex]::Matches("$raw", '\b[A-Z][A-Z0-9]+-\d+\b') | ForEach-Object Value | Sort-Object -Unique)
     if ($keys.Count) { $jira = $keys -join ', ' }
 }
+$Issues = @($Issues | ForEach-Object { $_ -split '[,\s]+' } | Where-Object { $_ } | ForEach-Object {
+    $n = 0
+    if (-not [int]::TryParse(($_ -replace '^#', ''), [ref]$n) -or $n -le 0) { throw "이슈 번호가 아님: $_" }
+    $n
+})
 $issueText = if ($Issues.Count) { ($Issues | ForEach-Object { "closed #$_" }) -join "`n" } else { '없음' }
 
 # Task 없는 fix/*·resource/*는 handoff.md가 없으므로 구역 검사를 여기서 돌려 결과를 적는다.
