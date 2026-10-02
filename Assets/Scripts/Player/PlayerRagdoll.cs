@@ -5,6 +5,7 @@ namespace CurtainCall.Player
     /// <summary>
     /// 겉모습 연출: 균형이 무너져 추락하면 모델이 힘 빠진 래그돌이 되어 중력대로 무너진다.
     /// 모델만 몸통(CharacterController)에서 떨어져 나오고, 조작 잠금·대기·재시작 판단은 다른 기능이 한다.
+    /// 래그돌은 다른 플레이어 몸통에 밀린다. 연출은 화면마다 따로 계산한다(물리 결과는 맞추지 않음).
     /// 균형을 되돌리면(재시작) 무너진 모델을 지우고 같은 모델을 다시 끼운다.
     /// 모델 준비: 부위마다 콜라이더 + Rigidbody(관절은 CharacterJoint). 없으면 모델 전체를 한 덩어리로 쓰러뜨린다.
     /// </summary>
@@ -46,10 +47,8 @@ namespace CurtainCall.Player
             foreach (var c in limpModel.GetComponentsInChildren<Collider>())
             {
                 c.enabled = true;
-                // 래그돌은 바닥·지형하고만 부딪힌다. 자기 몸통과 다른 플레이어 몸통은 밀지도 막지도 않는다
+                // 자기 몸통과는 부딪히지 않는다. 다른 플레이어 몸통과는 부딪혀서 밀린다(PlayerMover가 민다, 2026-10-02 #16)
                 if (body != null) Physics.IgnoreCollision(c, body);
-                foreach (var mover in PlayerMover.All)
-                    Physics.IgnoreCollision(c, mover.Body);
             }
 
             // 기울어 있던 쪽(코스 기준 좌우)으로 살짝 밀어 그 방향으로 쓰러지게 한다

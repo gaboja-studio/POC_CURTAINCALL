@@ -21,6 +21,11 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 - `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` — 외줄 코스 스테이지 프리팹 (다른 Task는 배치만)
 - `Assets/Scripts/Network/PlayerSync/TestRoundRestart.cs` — 007 테스트 부품. 묘기 진행으로 대체한 뒤 삭제만 (2026-10-02 PM 배정)
+- `Assets/Scripts/Player/PlayerMover.cs` — `LaneSpacing` 설정(#14), 플랫폼 일반 이동(8방향·이동 방향 바라보기), 출발 위치만 바꾸기(순간이동 없이), 추락 플레이어 통과(#16)·플레이어끼리 막기(플랫폼)·래그돌 밀기 (2026-10-02 PM @MoHoDu 승인)
+- `Assets/Scripts/Player/PlayerRagdoll.cs` — 래그돌이 다른 플레이어 몸통과 부딪혀 밀리게 (#16, 2026-10-02 PM @MoHoDu 요청)
+- `Assets/Scripts/Player/PlayerControlScheme.cs`, `Assets/Scripts/Player/PlayerCondition.cs`(새 파일), `Assets/Scripts/Player/BodyPart.cs`(새 파일) — 신체 부위 손실(데미지) 준비만, 디메리트는 콘텐츠별 조작 규칙이 처리 (2026-10-02 PM @MoHoDu 요청)
+- `Assets/Scripts/Network/Session/NetworkSessionManager.cs`, `Assets/Scripts/Network/Session/NetworkSessionTestUI.cs` — 최소 인원·호스트 게임 시작(`StartGame`)·시작 버튼, 자동 시작 제거 (2026-10-02 PM @MoHoDu 승인)
+- `Assets/Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab` — 추적 방식을 월드 고정 방향으로(캐릭터 회전에 카메라가 따라 돌지 않게) (2026-10-02 PM @MoHoDu 승인)
 
 ## 수정 금지
 
