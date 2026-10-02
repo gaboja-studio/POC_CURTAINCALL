@@ -2,18 +2,18 @@
 
 - **Title:** 외줄 코스·진행
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
 - **Domain:** 없음 (코드가 생기면 Domain Map 추가)
 - **Current Skill:** start-work
-- **Updated:** 2026-10-01
+- **Updated:** 2026-10-02
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
 ## Workspace
 
 - **Integration:** integration/tightrope-prototype
-- **Branch:** feat/tightrope-core (인계 때 생성)
+- **Branch:** feat/tightrope-core
 
 ## Goal
 
@@ -32,4 +32,5 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 - Open: 담당자 확정(현재 임시 @MoHoDu)
 - Decided: 2026-10-01 @MoHoDu — 005를 "코스 + 진행"(005)과 "줄 위 캐릭터 동작"(011)으로 나눈다
 - Decided: 2026-09-30 @MoHoDu — NGO + Multiplayer Services(Host), 이동은 클라·판정은 호스트, AI는 컴파일만 검사·플레이 테스트는 작업자가 직접 하고 결과를 알려 줌 (`Harness/Project/Decisions/multiplayer-stack.md`, `prototype-verification.md`)
+- Decided: 2026-10-02 @MoHoDu — 줄 간격 2.0m(007), 재시작은 전원 추락 시 모두 같이(007 `ServerRestartAll`), 007 `TestRoundRestart`는 이 작업이 대체·삭제, `TestLaneLanding`은 011
 - Decided: 2026-10-02 @MoHoDu — 기능과 온라인 동기화를 같이 만든다. 실제 플레이어 프리팹과 007 공개 기능(`Assets/Scripts/Network/PlayerSync/`)·004 공개 함수를 쓴다. 단계마다 여러 명 접속으로 확인 (`Harness/Project/Decisions/feature-with-network.md`)

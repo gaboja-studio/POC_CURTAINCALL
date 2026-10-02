@@ -12,14 +12,15 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 ## 작업 구역
 
-- 테스트 씬: `Assets/Scenes/Tests/Tightrope/` (Tightrope.unity, 더미 캡슐은 Prefabs 하위)
-- 스크립트 폴더: `Assets/Scripts/Tightrope/Rope/` (더미·디버그 조작 코드 포함)
+- 테스트 씬: `Assets/Scenes/Tests/Tightrope/` (Tightrope.unity, 테스트 전용 프리팹은 Prefabs 하위. 플레이어는 실제 프리팹 사용)
+- 스크립트 폴더: `Assets/Scripts/Tightrope/Rope/` (디버그 조작 코드 포함)
 - 에셋 폴더: 아래 공용 파일
 - Task 문서: 이 Task 폴더 (자동 포함)
 
 ## 배정된 공용 파일
 
 - `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` — 외줄 코스 스테이지 프리팹 (다른 Task는 배치만)
+- `Assets/Scripts/Network/PlayerSync/TestRoundRestart.cs` — 007 테스트 부품. 묘기 진행으로 대체한 뒤 삭제만 (2026-10-02 PM 배정)
 
 ## 수정 금지
 
