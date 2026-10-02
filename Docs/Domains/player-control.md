@@ -23,7 +23,7 @@
 - `TightropeControlScheme.cs` — 외줄 규칙. 에셋: `Assets/Resources/Input/TightropeControlScheme.asset`.
 
 동작 부품
-- `PlayerMover.cs` — 코스 방향 이동, 제자리 점프(1.0m), 옆줄 점프(1.5m, 방향 고정), 공중 움직임 고정, 조작 잠금, 출발 위치 복귀.
+- `PlayerMover.cs` — 코스 방향 이동, 제자리 점프(1.0m), 옆줄 점프(줄 간격 2.0m, 방향 고정), 공중 움직임 고정, 조작 잠금, 출발 위치 복귀(`SetStartPose`). 플레이어끼리 밀지 않음·같은 줄 앞뒤 막힘, 옆줄 도착점 겹침 검사(`FindPlayerAtLaneLanding`, 임시로 점프 막음 `BlockLaneJumpOntoPlayer`).
 - `PlayerBalance.cs` — 균형 ±100, 자연 흔들림·기울기 가속·목마 배율·위층 전달·착지/옆줄 충격, 빨강 2초 추락 신호.
 - `PlayerInteraction.cs` — 상호작용·해제 요청 신호.
 - `PlayerModelSlot.cs` — 모델 교체, 키 1.73m 맞춤.
@@ -50,6 +50,7 @@ mover.AirborneChanged += airborne => ...;  mover.CurrentJump  // InPlace / Lane 
 balance.SetBalanceActive(true);                   // 줄에 오를 때 켬
 balance.Fell += () => ...;  balance.BalanceReset += () => ...;
 balance.ApplyShock(10); balance.SetLaneLandingReduction(0.5f);
+balance.ForceFall();                              // 균형과 상관없이 즉시 추락(줄 밖 착지 등)
 balance.SetStackSize(n); balance.SetUpperBalanceSum(sum);   // 목마(006)
 interaction.InteractRequested += ...; interaction.ReleaseRequested += ...;
 modelSlot.SetModel(prefab);
@@ -60,11 +61,13 @@ modelSlot.SetModel(prefab);
 ## 의존 도메인
 
 - [Unity Assets 구조](assets-structure.md) — 폴더·Resources 배치.
-- 사용하는 쪽: 플레이어 동기화(007), 외줄 코스·진행(005), 외줄 위 캐릭터(011), 목마(006), 도구(008).
+- 사용하는 쪽: [플레이어 동기화](player-sync.md)(007), 외줄 코스·진행(005), 외줄 위 캐릭터(011), 목마(006), 도구(008).
 
 ## 수정 주의점
 
-- 아직 **혼자 기준**이다(2026-10-02). 모든 플레이어가 키보드 입력을 받고, 게이지·HUD는 "씬에서 처음 찾은 플레이어"를 보이며, 흔들림 방향·추락 판정·래그돌 물리가 각자 계산된다. 소유자 처리·호스트 판정은 007이 붙인다.
-- 테스트 HUD의 추락→조작 잠금, R 재시작 연결은 테스트용이다. 실제 연결은 005·011이 한다.
+- 이 도메인은 **혼자 기준 동작 부품**이다. 온라인 처리(남의 캐릭터 끄기·값 공유·호스트 판정)는 [플레이어 동기화](player-sync.md)가 붙인다. 온라인에서 부품을 직접 켜고 끄지 말고 그쪽 진입점을 쓴다.
+- 온라인용 부품 함수(007): `PlayerMover.Simulated`·`Teleported`·`All`·`Body`, `PlayerBalance.SetDisplayedState`, 게이지·HUD `Target`·`AutoFindTarget`, HUD `RestartOverride`.
+- 테스트 HUD의 추락→조작 잠금, R 재시작 연결은 테스트용이다. 실제 연결은 005·011이 한다. 재시작은 개인이 아니라 전원 추락 시 모두 같이다(`tightrope-rules.md`, 온라인은 `NetworkPlayer.ServerRestartAll`).
+- 플레이어끼리는 물리로 밀지 않는다(몸통 충돌 끔, 같은 줄 앞뒤만 막힘). 래그돌도 플레이어 몸통과 부딪히지 않는다. `Block Lane Jump Onto Player`는 목마(006) 전 임시.
 - 그레이박스 생성 메뉴는 같은 경로를 덮어쓴다. 디자인을 바꾼 프리팹에는 다시 실행하지 않는다.
 - 플레이어 프리팹·입력·UI 폴더는 공용 파일이다. 수정 Task는 통합 소유 표를 따른다.

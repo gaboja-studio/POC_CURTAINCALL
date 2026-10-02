@@ -49,7 +49,7 @@ session.Disconnected += reason => { ... };      // 종료 이유 문구
 
 - [Unity Assets 구조](assets-structure.md) — 폴더·Resources 배치.
 - [플레이어 조작](player-control.md) — 007이 실제 플레이어 프리팹에 온라인을 붙인다.
-- 사용하는 쪽(planned): 플레이어 동기화(007), 이후 기능 작업 005·011·006·008(기능+동기화, [결정](../../Harness/Project/Decisions/feature-with-network.md)), 최종 씬(009)·목마 예외(010).
+- 사용하는 쪽: [플레이어 동기화](player-sync.md)(007, 접속 시 플레이어 프리팹 자동 생성). planned: 이후 기능 작업 005·011·006·008(기능+동기화, [결정](../../Harness/Project/Decisions/feature-with-network.md)), 최종 씬(009)·목마 예외(010).
 
 ## 수정 주의점
 
