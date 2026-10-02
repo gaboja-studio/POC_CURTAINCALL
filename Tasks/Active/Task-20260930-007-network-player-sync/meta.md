@@ -2,7 +2,7 @@
 
 - **Title:** 플레이어 동기화
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/player-sync.md`
 - **Current Skill:** implement-code (①단계 합의 전)
