@@ -19,13 +19,23 @@
 - 입력 → 명령(이동·자세·액션·방향·상호작용·해제) 구조로 분리한다.
 - 플레이어 프리팹에 모델 슬롯을 두고 디폴트 캡슐을 넣는다.
 
+## 단계
+
+- 14단계 모두 완료(2026-10-02, 작업자 플레이 확인). 단계별 내용: [History/001-steps-and-files.md](History/001-steps-and-files.md)
+
+결정(2026-10-01 @MoHoDu): 균형 시스템(값·흔들림·기울기 가속·게이지·추락 신호·목마/충격 입력 함수)은 004에서 만든다. 규칙은 `Harness/Project/Decisions/tightrope-balance.md`, 수치는 `Docs/References/tightrope-balance-summary.md`. 혼자 하는 제자리 점프는 004(2026-10-01 변경). 옆줄 이동의 실제 동작과 낙하·대기·재시작은 005, 목마 중 점프는 006이 담당한다.
+결정(2026-10-01 @MoHoDu): 게이지 같은 UI는 디자인을 교체할 수 있게 Canvas 프리팹으로 만든다. 위치 `Assets/Resources/Prefabs/UIs/Player/`(004에 추가 배정). 스크립트는 값만 반영한다.
+결정(2026-10-02 @MoHoDu): 점프 중(제자리·옆줄) 수평 움직임은 뛴 순간 고정, 공중에서 W/S·Q/E로 바꾸지 않는다. 옆줄 점프의 실제 움직임은 004, 착지 판정은 005.
+결정(2026-10-02 @MoHoDu): 조작은 3층 구조(입력 → 조작 규칙(전략) → 동작 부품). `Harness/Project/Decisions/player-control-architecture.md`. 9~11단계 판정은 입력 층(짧게/길게·홀드)과 외줄 규칙(`TightropeControlScheme`, Q/E+Space 조합 등)에 둔다.
+결정(2026-10-01 @MoHoDu): 이동 기준은 카메라가 아니라 월드 코스 방향(목적지 쪽). 카메라는 3인칭·다른 플레이어도 잡을 수 있어 이동과 분리한다.
+
 ## Files
 
-- 수정 예정:
-- 읽기 전용 참고:
+- 파일 목록·공개 함수: `Docs/Domains/player-control.md` (변경 당시 목록: [History/001-steps-and-files.md](History/001-steps-and-files.md))
 
 ## Risks
 
+- 기획 문서의 (제안) 4개(빨강 타이머 초기화, 위층 전달 방식, 점프 중 균형, 동료 근처 범위)는 제안값으로 구현하고 플레이테스트 후 확정한다.
 - 세부 입력 규칙(홀드 판정 시간 등)은 Confluence 키맵핑 문서 반입 후 확정한다. 문서 전에는 인스펙터 값으로 열어 둔다.
 
 ## Auto Verification

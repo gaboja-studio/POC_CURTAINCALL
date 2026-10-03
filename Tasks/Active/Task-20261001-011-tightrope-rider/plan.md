@@ -4,7 +4,7 @@
 
 외줄타기 묘기에서 캐릭터가 줄 위에서 하는 동작. 005(코스·진행) 위에서 004(입력·균형)를 받아 쓴다.
 원문: `Docs/References/tightrope-prototype-brief.md`
-요약: `Docs/References/tightrope-keymap-summary.md`, `Docs/References/tightrope-plan-summary.md` · 규칙 결정: `Harness/Project/Decisions/tightrope-rules.md`, `Harness/Project/Decisions/tightrope-balance.md`
+요약: `Docs/References/tightrope-rules-summary.md`(2026-10-03 상세 규칙, 우선), `tightrope-keymap-summary.md`, `tightrope-plan-summary.md` · 규칙 결정: `Harness/Project/Decisions/tightrope-course-rules.md`, `tightrope-rules.md`, `tightrope-balance.md`
 
 ## Approach
 
@@ -13,18 +13,17 @@
 3. 공용 파일이 필요하면 직접 고치지 않고 PM에게 요청.
 4. 검사 후 `integration/*`로 제출.
 
-세부 순서:
+세부(2026-10-03 범위 축소 — 아래 외에는 이미 있음):
 
-- **착수 시점:** 004의 6(추락 신호)·8(점프 명령·공중 정지·착지 충격)·10(옆줄 명령·충격) 단계가 integration에 병합된 뒤 integration을 받아 시작한다(2026-10-02 결정). 그 전에는 코드를 쓰지 않는다.
-- 입력은 004의 명령(이동·점프·방향·특수 이동)을 받는다. 임시 입력을 따로 만들지 않는다.
-- **줄 위 이동은 011이 직접 맡는다.** 줄에 오르면 004 `PlayerMover`를 끄고 위치를 줄에 고정해 앞뒤·점프·옆줄을 직접 계산한다. 줄에서 내려오거나 재시작하면 다시 켠다.
-- 줄 위 전진·후진: 005 코스 조회로 지금 서 있는 줄에 붙어 코스 진행 방향으로 움직인다. 005 진입점이 아직 없으면 005와 같은 이름의 테스트용 직선 코스를 테스트 씬 `Prefabs/`에 둔다.
-- 점프: 개인 점프. 공중에서는 균형 정지, 착지 때 004에 착지 충격을 넣는다.
-- 옆줄 이동(Q/E 홀드 + Space): 가능 조건(옆줄 이동 가능 구간 / 그 방향에 착지 가능한 줄 / 그 줄 사용 가능)을 005 조회로 확인하고, 하나라도 아니면 입력 무시. 착지가 겹치면 코스 진행 방향 뒤쪽으로 보정(보정 거리 인스펙터 값), 뒤쪽에도 자리가 전혀 없으면 착지 실패 = **추락**(2026-10-02 결정). 공중 이동은 줄 간격 1.5m·약 0.9초 기준.
-- 협동/단독 판정 자리: 목마 판정은 006 진입점을 연결 작업(010)에서 붙인다. 이 작업은 단독 이동(착지 ±35 + 3초 흔들림 ×2.5, 지속 시간만 갱신)과 판정 자리만 만든다.
-- 균형은 구현하지 않는다. 균형 계산·게이지·추락 신호의 베이스는 004(플레이어 조작, `feat/player-control`)의 `Assets/Scripts/Player/PlayerBalance.cs`·`BalanceGaugeView.cs`에서 진행 중이다. 이 작업은 004 공개 함수로 충격(착지 ±10, 단독 옆줄 ±35 + 3초 흔들림 ×2.5)·공중 정지만 넣고 무너짐 신호를 받는다.
-- 004의 무너짐 신호를 받으면 낙하. 떨어진 캐릭터는 005 진행에 추락을 알리고 재시작 전까지 조작 불가로 대기(연출 없음). 재시작 신호를 받으면 출발 위치로 돌아간다.
-- 사망(추락) 상태를 다른 작업이 읽을 수 있게 공개 진입점을 둔다(목마·온라인 연결용).
+- 이미 있음(다시 만들지 않음): 줄 위 걷기·점프·옆줄 점프 움직임(004 `PlayerMover`·`TightropeControlScheme`), 착지·옆줄 착지 충격과 흔들림(004 `PlayerBalance`), 줄 오르내림 때 조작·균형 전환·줄 중앙 맞춤·줄 아래 추락(005 `CourseControlSwitcher`·`TightropeCourse`), 추락 호스트 확정·재시작 복귀(007).
+- 남은 것:
+  1. **옆줄 점프 판정 연결**: `PlayerMover.LaneJumpFilter`에 005 조회를 붙인다 — `IsLaneChangeAllowed(거리)`, `FindLandingLane(위치, 방향)`이 `NoLane`이 아님, `IsLaneUsable(줄, 거리)`(불타는 구간 포함). 하나라도 아니면 입력 무시.
+  2. **뒤쪽 착지**: 착지 자리에 동료가 있으면 코스 진행 방향 뒤쪽으로 보정, 자리가 없으면 착지 실패(목마 합체가 되는 경우는 006이 합체로 바꾼다).
+  3. **손잡기(협동 옆줄)**: 도착점이 같은 줄 동료 앞뒤 1.0m 이내면 `PlayerBalance.SetLaneLandingReduction(0.5)`로 착지 충격·흔들림 감소(`tightrope-rules.md`). 거리·감소율은 세팅 칸.
+  4. **테스트 부품 정리**: `Network/PlayerSync/TestLaneLanding.cs`를 위 판정으로 대체하고 삭제(PM 배정).
+- 판정은 소유자가 하고(내 캐릭터 이동), 결과 위치·추락은 007 공유를 그대로 쓴다.
+
+005 진입점(2026-10-03 병합, 지도 `Docs/Domains/tightrope-course.md`): `TightropeCourse.Current` — `TryGetRopePoint`·`IsOnRope`·`GetDistance`·`GetSide`·`GetLanePosition`·`FindLandingLane`(없으면 `NoLane`)·`IsLaneChangeAllowed`·`IsLaneUsable`(불타는 구간 포함)·`LaneSpacing`. 진행 `TightropeRun.Current` — `State`·`RunRestarted`. 줄 오르내림 조작·균형 전환은 005 `CourseControlSwitcher`가 하므로 겹치게 만들지 않는다.
 
 ## Files
 
@@ -59,8 +58,8 @@
 ## 공동 테스트 항목
 
 PM과 작업자가 구현 전에 합의한다. 최대 3개. 병합 후 공동 테스트에서 이 항목으로 통과 여부를 판단한다.
-**작업자가 직접 플레이해 보고 결과(통과/실패, 본 현상)를 알려 준다.** (2026-10-01 PM·담당자 @MoHoDu 합의)
+2026-10-03 범위 축소로 항목 교체. **작업자가 직접 플레이해 보고 결과(통과/실패, 본 현상)를 알려 준다.** (2026-10-01 PM·담당자 @MoHoDu 합의)
 
-1. 코스 위를 앞뒤로 걸으며 A/D로 균형을 잡고, Space로 점프하면 착지 때 균형이 흔들린다.
-2. Q/E 홀드 + Space로 왼쪽/오른쪽 줄로 넘어가고, 옆에 줄이 없거나 이동 불가 구간이면 아무 일도 일어나지 않는다.
-3. 균형을 잃으면 그 캐릭터만 떨어져 조작이 안 되고, 재시작되면 출발 위치로 돌아온다.
+1. 옆줄 이동 불가 구간·옆에 줄이 없는 쪽·불타는 줄 쪽으로 Q/E 홀드 + Space를 하면 아무 일도 일어나지 않는다.
+2. 넘어갈 자리에 동료가 서 있으면 그 뒤쪽에 착지한다.
+3. 동료 1m 이내로 옆줄 착지하면 혼자 착지할 때보다 균형이 덜 흔들린다(손잡기).

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CurtainCall.Settings;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Multiplayer;
@@ -10,6 +11,7 @@ namespace CurtainCall.Network.Session
     /// <summary>
     /// 방 접속과 게임 진행 상태의 공개 진입점. 다른 기능은 이 클래스의 메서드·이벤트만 사용한다.
     /// NetworkManager 프리팹(Resources/Prefabs/Controllers/Network/NetworkManager)에 함께 붙는다.
+    /// 정원·최소 시작 인원은 게임 기본 세팅(세션)에서 읽는다(호스트 판정이므로 호스트 값 기준).
     /// </summary>
     [RequireComponent(typeof(NetworkManager))]
     public sealed class NetworkSessionManager : MonoBehaviour
@@ -36,9 +38,6 @@ namespace CurtainCall.Network.Session
             return Instance;
         }
 
-        [Tooltip("이 인원이 모이면 호스트가 게임을 자동으로 시작한다. 세션 최대 인원도 이 값이다.")]
-        [SerializeField, Min(1)] int _requiredPlayers = 4;
-
         public SessionConnectionState ConnectionState { get; private set; } = SessionConnectionState.Offline;
 
         /// <summary>모든 플레이어가 같게 보는 게임 상태. 접속이 끊기면 진행 중이었어도 Ended로 남는다.</summary>
@@ -47,7 +46,14 @@ namespace CurtainCall.Network.Session
         /// <summary>현재 접속 인원. 호스트·클라이언트 모두 같은 값을 본다.</summary>
         public int PlayerCount { get; private set; }
 
-        public int RequiredPlayers => _requiredPlayers;
+        /// <summary>세션 최대 인원(정원).</summary>
+        public int RequiredPlayers => GameSettings.Base.Session.MaxPlayers;
+
+        /// <summary>게임을 시작할 수 있는 최소 인원(호스트 포함).</summary>
+        public int MinPlayers => GameSettings.Base.Session.MinPlayers;
+
+        /// <summary>호스트가 지금 게임을 시작할 수 있는지(대기 중 + 최소 인원 이상).</summary>
+        public bool CanStartGame => IsHost && GameState == GameSessionState.Waiting && PlayerCount >= MinPlayers;
 
         /// <summary>참가자에게 알려 줄 접속 키(세션은 방 코드, LAN은 "IP:포트"). 접속 전에는 null.</summary>
         public string JoinKey => _connector?.JoinKey;
@@ -162,11 +168,11 @@ namespace CurtainCall.Network.Session
 
         /// <summary>Multiplayer Services 세션(Relay)으로 방을 연다. 방 코드는 <see cref="JoinKey"/>.</summary>
         public Task<bool> HostSessionAsync() =>
-            HostAsync(new ServicesSessionConnector(_networkManager, _requiredPlayers));
+            HostAsync(new ServicesSessionConnector(_networkManager, RequiredPlayers));
 
         /// <summary>방 고유 코드로 세션에 참가한다.</summary>
         public Task<bool> JoinSessionAsync(string code) =>
-            JoinAsync(new ServicesSessionConnector(_networkManager, _requiredPlayers), code);
+            JoinAsync(new ServicesSessionConnector(_networkManager, RequiredPlayers), code);
 
         public async Task<bool> HostAsync(ISessionConnector connector)
         {
@@ -249,6 +255,21 @@ namespace CurtainCall.Network.Session
 
         // ── 게임 상태 (호스트 판정) ───────────────────────────
 
+        /// <summary>호스트 전용. 최소 인원이 모였으면 대기 → 진행으로 바꾸고 세션을 잠근다(이후 참가 거절).</summary>
+        public bool StartGame()
+        {
+            if (!CanStartGame)
+            {
+                Debug.LogWarning($"[Session] 게임을 시작할 수 없습니다(호스트·대기 중·최소 {MinPlayers}명 필요).");
+                return false;
+            }
+
+            SetGameState(GameSessionState.Playing);
+            _ = LockSessionAsync();
+            PushStateToClients();
+            return true;
+        }
+
         /// <summary>호스트 전용. 진행 중인 게임을 종료 상태로 바꾼다(예: 도착 성공).</summary>
         public bool EndGame()
         {
@@ -273,7 +294,7 @@ namespace CurtainCall.Network.Session
 
             if (!isHostSelf && GameState != GameSessionState.Waiting)
                 Reject(response, "게임이 이미 진행 중입니다.");
-            else if (!isHostSelf && connected >= _requiredPlayers)
+            else if (!isHostSelf && connected >= RequiredPlayers)
                 Reject(response, "방이 가득 찼습니다.");
             else
                 response.Approved = true;
@@ -297,19 +318,13 @@ namespace CurtainCall.Network.Session
             instance.GetComponent<NetworkObject>().Spawn();
         }
 
-        /// <summary>호스트: 인원을 다시 세고, 대기 중 인원이 다 차면 게임을 시작한다.</summary>
+        /// <summary>호스트: 인원을 다시 세어 모두에게 알린다. 게임 시작은 호스트가 <see cref="StartGame"/>으로 한다.</summary>
         void ServerRefresh()
         {
             if (!IsHost)
                 return;
 
             SetPlayerCount(_networkManager.ConnectedClientsIds.Count);
-            if (GameState == GameSessionState.Waiting && PlayerCount >= _requiredPlayers)
-            {
-                SetGameState(GameSessionState.Playing);
-                _ = LockSessionAsync();
-            }
-
             PushStateToClients();
         }
 

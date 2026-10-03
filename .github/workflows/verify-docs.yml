@@ -22,7 +22,8 @@ jobs:
 
   verify-scope:
     # 작업 브랜치 PR만: 작업 구역 밖 수정, PM 전용 경로, 다른 Task 구역, .meta 누락을 검사한다.
-    if: startsWith(github.head_ref, 'feat/') || startsWith(github.head_ref, 'fix/') || startsWith(github.head_ref, 'refactor/')
+    # Task 없는 resource/*는 Assets/Resources/만, 급한 fix/*는 PM 전용·다른 Task 구역만 막는다.
+    if: startsWith(github.head_ref, 'feat/') || startsWith(github.head_ref, 'fix/') || startsWith(github.head_ref, 'refactor/') || startsWith(github.head_ref, 'resource/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
