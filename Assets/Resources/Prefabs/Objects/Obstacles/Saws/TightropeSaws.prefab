@@ -1,0 +1,145 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1265721669558176398
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4622483775825717936}
+  - component: {fileID: 6513574863226662891}
+  m_Layer: 0
+  m_Name: TightropeSaws
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4622483775825717936
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265721669558176398}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6513574863226662891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1265721669558176398}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e0f02f9c9a034bd39032e0736a943d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.Saws.TightropeSaws
+  settings:
+    steps:
+    - name: "\uAC00\uB85C \uC804\uCCB4"
+      trigger: 0
+      reference: 
+      leaderDistance: 0
+      delay: 0
+      action: 0
+      firstSaw: 1
+      lastSaw: 22
+      lane: -1
+      repeat: 0
+      repeatDelay: 0
+    - name: "\uC218\uC9C1"
+      trigger: 1
+      reference: 
+      leaderDistance: 0
+      delay: 60
+      action: 2
+      firstSaw: 1
+      lastSaw: 1
+      lane: -1
+      repeat: -1
+      repeatDelay: 20
+    horizontalSaws:
+    - distance: 5.6
+      startSide: 0
+    - distance: 8.8
+      startSide: 1
+    - distance: 12
+      startSide: 0
+    - distance: 15.2
+      startSide: 1
+    - distance: 18.4
+      startSide: 0
+    - distance: 22.5
+      startSide: 1
+    - distance: 27.5
+      startSide: 0
+    - distance: 32.5
+      startSide: 1
+    - distance: 37.5
+      startSide: 0
+    - distance: 42.5
+      startSide: 1
+    - distance: 47.5
+      startSide: 0
+    - distance: 52.5
+      startSide: 1
+    - distance: 57.5
+      startSide: 0
+    - distance: 62.5
+      startSide: 1
+    - distance: 67.5
+      startSide: 0
+    - distance: 71.8
+      startSide: 1
+    - distance: 75.4
+      startSide: 0
+    - distance: 78.9
+      startSide: 1
+    - distance: 82.5
+      startSide: 0
+    - distance: 86.1
+      startSide: 1
+    - distance: 89.6
+      startSide: 0
+    - distance: 93.2
+      startSide: 1
+    horizontalFirstSpeed: 3
+    horizontalLastSpeed: 4.5
+    horizontalTravelHalfWidth: 9.5
+    horizontalColliderDiameter: 1
+    horizontalVisualDiameter: 1.2
+    horizontalAttackTop: 0.2
+    horizontalThickness: 0.1
+    verticalSpawnDistance: 93
+    verticalEndDistance: 5
+    verticalSpeed: 0.8
+    verticalColliderDiameter: 1
+    verticalVisualDiameter: 1.2
+    verticalCenterHeight: 0.6
+    verticalThickness: 0.1
+    plateOffset: 1.5
+    plateLength: 0.8
+    plateWidth: 0.8
+    plateHeightTolerance: 0.3
+    plateHoldTime: 0
+    verticalLowerDuration: 0.2
+    verticalLowerDepth: 1.5
+    waistHeight: 0.85
+    hitCooldown: 1
+    spinSpeed: 720
+  horizontalPrefab: {fileID: 0}
+  verticalPrefab: {fileID: 0}
+  platePrefab: {fileID: 0}
+  sawColor: {r: 0.75, g: 0.2, b: 0.2, a: 1}
+  plateColor: {r: 1, g: 0.8, b: 0.2, a: 1}
+  platePressedColor: {r: 0.3, g: 0.9, b: 0.3, a: 1}
