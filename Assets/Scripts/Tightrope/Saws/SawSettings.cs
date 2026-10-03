@@ -24,25 +24,25 @@ namespace CurtainCall.Tightrope.Saws
         [Tooltip("중심 위치(m, 외줄 시작점 기준).")]
         public float distance;
 
-        [Tooltip("처음 출발하는 쪽.")]
+        [Tooltip("처음 출발하는 쪽. 작동 전에는 이쪽 끝(맵 밖)에서 기다린다. 언제 작동할지는 장애물 순서(steps)가 정한다.")]
         public SawStartSide startSide;
 
-        [Tooltip("게임 시작 후 출발까지 기다리는 시간(초). 그동안 출발 쪽 끝(맵 밖)에 멈춰 있다. 0이면 게임 시작과 함께(원문). 값으로 출발 순서를 정한다.")]
-        [Min(0f)] public float startDelay;
-
-        public HorizontalSawEntry(float distance, SawStartSide startSide, float startDelay = 0f)
+        public HorizontalSawEntry(float distance, SawStartSide startSide)
         {
             this.distance = distance;
             this.startSide = startSide;
-            this.startDelay = startDelay;
         }
     }
 
     [Serializable]
     public sealed class SawSettings
     {
+        [Header("장애물 순서")]
+        [Tooltip("장애물 순서(레벨 디자인). 단계마다 시작 조건·지연·할 일(가로 톱날 범위 작동/정지, 수직 톱날 출현)·반복을 정한다. 기본값은 원문 규칙(게임 시작 때 가로 전체 작동, 묘기 시작 60초 뒤 수직 톱날, 제거 20초 뒤 반복). 2026-10-03 PM.")]
+        public ObstacleStep[] steps = CreateDefaultSteps();
+
         [Header("가로 톱날")]
-        [Tooltip("가로 톱날 목록(위치·출발 쪽·출발 지연). 원문 5장 22개, 출발 쪽은 원문에 배정이 없어 번갈아(0번 왼쪽) 임시값, 지연 0(게임 시작과 함께).")]
+        [Tooltip("가로 톱날 목록(위치·출발 쪽). 번호는 위에서부터 1번. 원문 5장 22개, 출발 쪽은 원문에 배정이 없어 번갈아(1번 왼쪽) 임시값.")]
         public HorizontalSawEntry[] horizontalSaws = CreateDefaultHorizontalSaws();
 
         [Tooltip("첫 톱날 속도(m/s). 기획 3.0(#6).")]
@@ -67,12 +67,6 @@ namespace CurtainCall.Tightrope.Saws
         [Min(0.01f)] public float horizontalThickness = 0.1f;
 
         [Header("수직 톱날")]
-        [Tooltip("묘기 시작 후 첫 출현까지(초). 기획 60.")]
-        [Min(0f)] public float verticalFirstDelay = 60f;
-
-        [Tooltip("제거 후 다음 출현까지(초). 기획 20.")]
-        [Min(0f)] public float verticalRespawnDelay = 20f;
-
         [Tooltip("생성 거리(m). 기획 93.")]
         public float verticalSpawnDistance = 93f;
 
@@ -146,14 +140,18 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>가로 톱날이 왼쪽 끝(좌→우)에서 출발하는지.</summary>
         public bool StartsLeft(int index) => horizontalSaws[index].startSide == SawStartSide.Left;
 
-        /// <summary>
-        /// 가로 톱날 중심의 옆 좌표(m, 코스 가운데 0, 오른쪽 +). <paramref name="elapsed"/> = 게임 시작 후 지난 시간.
-        /// 출발 지연 동안은 출발 쪽 끝에 멈춰 있다.
-        /// </summary>
-        public float GetHorizontalSide(int index, float elapsed) =>
-            SawMath.PingPongSide(GetHorizontalSpeed(index), horizontalTravelHalfWidth, StartsLeft(index), elapsed - horizontalSaws[index].startDelay);
+        /// <summary>가로 톱날의 작동 기록·위치 계산을 새로 만든다(작동 전, 출발 쪽 끝에서 대기).</summary>
+        public HorizontalSawTrack CreateTrack(int index) =>
+            new(GetHorizontalSpeed(index), horizontalTravelHalfWidth, StartsLeft(index));
 
-        /// <summary>원문 5장 위치 22개, 출발 쪽은 번갈아(0번 왼쪽), 지연 0.</summary>
+        /// <summary>원문 규칙: 게임 시작 때 가로 전체 작동, 묘기 시작 60초 뒤 수직 톱날(랜덤 줄), 제거 20초 뒤 끝없이 반복.</summary>
+        public static ObstacleStep[] CreateDefaultSteps() => new[]
+        {
+            new ObstacleStep("가로 전체", StepTrigger.GameStart, 0f, StepAction.StartHorizontal) { firstSaw = 1, lastSaw = 22 },
+            new ObstacleStep("수직", StepTrigger.PerformanceStart, 60f, StepAction.SpawnVertical) { repeat = -1, repeatDelay = 20f },
+        };
+
+        /// <summary>원문 5장 위치 22개, 출발 쪽은 번갈아(1번 왼쪽).</summary>
         public static HorizontalSawEntry[] CreateDefaultHorizontalSaws()
         {
             float[] distances =

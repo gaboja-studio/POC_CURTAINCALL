@@ -4,15 +4,16 @@
 
 ## 지금 상태
 
-- 단계: 구현 1차 완료·저장. 진입점 `Saws/TightropeSaws.cs`, 수치 `SawSettings.cs`(톱날별 위치·출발 쪽·지연 목록), 계산 `SawMath.cs`, 프리팹 `Saws/TightropeSaws.prefab`(테스트 씬 배치)
+- 단계: 구현 + 장애물 순서(단계 목록) 추가. 진입점 `Saws/TightropeSaws.cs`, 수치 `SawSettings.cs`(`steps` 순서·톱날 목록), 순서 실행기 `ObstacleSequence.cs`, 계산 `SawMath.cs`, 프리팹 `Saws/TightropeSaws.prefab`
 - 동작(에디터 호스트 1명, eval 합성 조작): 가로 22개 왕복, 수직 톱날 출현(진행자 줄 랜덤), 발판 밟으면 0.2초 하강·제거, 재시작 초기화, 닿으면 `[Saws] 절단 판정: P1 → LeftLeg (…)` 로그(적용 없음)
-- 막힌 것: 없음. 2026-10-03 작업자(@MoHoDu)가 직접 플레이·MPPM 2인으로 확인 완료
+- 막힌 것: 없음. 작업자 플레이(2026-10-03)는 가로 톱날 왕복·타격 판정 로그만 확인. **수직 톱날·발판 미확인**(AI eval 합성 조작만), 신체 결손은 020 범위(미개발)
 - PR: 없음
 
 ## 다음 할 일
 
-1. "검사해줘"(check-work) → "제출해줘"(integration/tightrope-prototype). 단 **012는 020보다 뒤에 병합**
-2. 020 병합 후: `TightropeSaws.Hit` → 020 절단 요청 연결(012는 020 뒤 병합). 013 병합 후: `SawSettings` → `TightropeSettings` 톱날 칸(PM이 구역 배정)
+1. 작업자 직접 플레이: 수직 톱날(인스펙터 `Settings → steps → 수직 → delay`를 5, `verticalSpawnDistance` 15) 옆줄 회피, 옆줄로 피했다가 톱날 뒤 발판에 착지 → 하강, 단계 순서 바꿔 보기. MPPM 2인 동기화
+2. 순서 기획 값 채우기(지금은 원문 재현 기본값) → "검사해줘" → "제출해줘". 단 **012는 020보다 뒤에 병합**
+3. 020 병합 후: `TightropeSaws.Hit` → 020 절단 요청 연결(012는 020 뒤 병합). 013 병합 후: `SawSettings` → `TightropeSettings` 톱날 칸(PM이 구역 배정)
 
 ## PM이 확인할 것
 
@@ -23,6 +24,6 @@
 
 - 구역 검사: PASS (10-03) / 1 문서/규칙: PASS (10-03)
 - 2 컴파일: PASS (10-03)
-- 3 테스트: NO_PROJECT_TESTS (10-03, PlayMode) — check-work는 FAIL 표시: 에디터가 열려 있어 `unity test` 거부(Pitfalls/unity-test-editor-open.md). `list_tests` 0개 — asmdef가 없어 테스트가 게임 코드를 참조 못 함. 로직은 `run_script` 검산 30개 PASS
-- 4 실행 로그: 에디터 호스트 eval 확인 + 2026-10-03 작업자 직접 플레이(실제 입력)·MPPM 2인 동기화 확인 — 이상 보고 없음
-- 5 공동 테스트: 미요청(병합 후). 사전 확인: 2·3 작업자 확인, 1은 왕복·점프 회피·판정 로그까지(절단·탈락은 020 병합 후)
+- 3 테스트: NO_PROJECT_TESTS (10-03, PlayMode) — check-work는 FAIL 표시: 에디터가 열려 있어 `unity test` 거부(Pitfalls/unity-test-editor-open.md). `list_tests` 0개 — asmdef가 없어 테스트가 게임 코드를 참조 못 함. 로직은 `run_script` 검산 43개 PASS(순서 실행기·가로 작동/정지 포함)
+- 4 실행 로그: 에디터 호스트 eval(합성 조작)로 가로 이동·판정 로그·수직 출현·발판 하강, 단계 실행 로그(가로 전체·수직) 확인. 작업자 플레이(실제 입력, 2026-10-03): 가로 톱날 왕복·타격 판정 로그만. 이전 기록의 "MPPM 2인·수직·발판 확인"은 AI 오기록으로 정정
+- 5 공동 테스트: 미요청(병합 후). 2(수직 옆줄 회피)·3(발판)은 작업자 플레이 미확인

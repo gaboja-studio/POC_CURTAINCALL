@@ -39,8 +39,9 @@ namespace CurtainCall.Tightrope.Saws
 
     /// <summary>
     /// 외줄 톱날 장애물과 공개 진입점. 규칙: Harness/Project/Decisions/tightrope-course-rules.md #6~#9 (2026-10-03).
-    /// - 가로 톱날: 위치가 "게임 시작 후 지난 시간"(<see cref="TightropeRun"/>의 남은 시간, 모든 화면에서 같음)으로 정해지므로 각 화면이 계산한다.
-    /// - 수직 톱날: 묘기 시작 후 호스트가 줄·출현·내려감을 정해 NGO 이름 붙은 메시지로 공유하고, 위치는 각 화면이 시간으로 계산한다.
+    /// - 장애물 순서(<see cref="SawSettings.steps"/>, 레벨 디자인): 호스트가 <see cref="ObstacleSequence"/>로 단계 조건을 보고 가로 톱날 작동·정지, 수직 톱날 출현을 실행한다.
+    /// - 가로 톱날: 호스트가 작동·정지 기록을 "게임 시작 후 지난 시간"(<see cref="TightropeRun"/>의 남은 시간, 모든 화면에서 같음)과 함께 공유하고, 위치는 각 화면이 그 기록으로 계산한다.
+    /// - 수직 톱날: 호스트가 줄·출현·내려감을 정해 NGO 이름 붙은 메시지로 공유하고, 위치는 각 화면이 시간으로 계산한다.
     ///   뒤의 발판(임시 형태)을 살아 있는 플레이어가 밟으면 톱날이 빠르게 내려간 뒤 사라진다. 눌림 판정(<see cref="IsPlatePressed"/>)과 겉모습은 분리돼 있다.
     /// - 판정: 호스트가 묘기 진행 중에 진행 중인 플레이어(<see cref="PlayerState.Normal"/>)만 본다(도착 완료·사망 무시). 닿은 곳으로 팔·다리 중 하나를 정하고
     ///   모든 화면에 <see cref="Hit"/>로 알린다. **지금은 판정 결과를 로그로만 남긴다** — 부위 손상·패널티·탈락은 020이 이 신호로 처리한다.
@@ -50,6 +51,7 @@ namespace CurtainCall.Tightrope.Saws
     public sealed class TightropeSaws : MonoBehaviour
     {
         const string VerticalMessage = "CurtainCall.Tightrope.Saws.Vertical";
+        const string HorizontalMessage = "CurtainCall.Tightrope.Saws.Horizontal";
         const string RequestMessage = "CurtainCall.Tightrope.Saws.Request";
         const string HitMessage = "CurtainCall.Tightrope.Saws.Hit";
         const string GeneratedName = "Generated";
@@ -78,6 +80,10 @@ namespace CurtainCall.Tightrope.Saws
         CustomMessagingManager messaging;
 
         Transform[] horizontalViews = Array.Empty<Transform>();
+
+        // 가로 톱날(모든 화면): 작동·정지 기록. 시각은 게임 경과 시간
+        HorizontalSawTrack[] tracks = Array.Empty<HorizontalSawTrack>();
+        readonly List<(StepAction action, int first, int last, float at)> horizontalCommands = new();
         Transform verticalView, plateView;
         Renderer[] plateRenderers = Array.Empty<Renderer>();
 
@@ -89,7 +95,8 @@ namespace CurtainCall.Tightrope.Saws
         float verticalLoweredAt = -1f;    // 발판이 눌린 시각. 안 눌렸으면 -1
 
         // 호스트 전용
-        float nextVerticalAt = -1f;       // 다음 출현 묘기 경과 시간. 묘기 시작 전이면 -1
+        ObstacleSequence sequence;
+        int verticalStep = -1;            // 지금 수직 톱날을 낸 단계 번호
         float platePressedFor;
         readonly HashSet<(int saw, ulong player)> touching = new();
         readonly HashSet<(int saw, ulong player)> touchingNow = new();
@@ -141,9 +148,12 @@ namespace CurtainCall.Tightrope.Saws
             float distance = settings.GetHorizontalDistance(index);
             return course.transform.position
                 + course.Forward * distance
-                + course.Right * settings.GetHorizontalSide(index, GameElapsed)
+                + course.Right * tracks[index].GetSide(GameElapsed)
                 + Vector3.up * settings.HorizontalCenterHeight;
         }
+
+        /// <summary>가로 톱날이 움직이고 있는지(작동 중이거나 정지 명령 뒤 끝으로 가는 중).</summary>
+        public bool IsHorizontalMoving(int index) => tracks[index].IsMoving(GameElapsed);
 
         /// <summary>수직 톱날 중심 위치(월드). 없으면 false.</summary>
         public bool TryGetVerticalPosition(out Vector3 position)
@@ -185,6 +195,7 @@ namespace CurtainCall.Tightrope.Saws
             }
             run.RunRestarted += HandleRunRestarted;
             BuildViews();
+            ResetObstacles();
         }
 
         void OnDisable()
@@ -208,39 +219,94 @@ namespace CurtainCall.Tightrope.Saws
                 HandleConnectionState(session.ConnectionState);
             }
 
-            if (session != null && session.IsHost)
+            if (session != null && session.IsHost && run.State == TightropeRunState.Running)
             {
+                ServerTickSequence();
                 ServerUpdateVertical();
-                if (run.State == TightropeRunState.Running) ServerJudgeHits();
+                ServerJudgeHits();
             }
             UpdateViews();
         }
 
         void HandleRunRestarted()
         {
-            nextVerticalAt = -1f;
+            ResetObstacles();
+            // 재시작 신호와 공유 메시지는 순서가 보장되지 않으므로, 클라이언트는 재시작 뒤 호스트에 현재 상태를 다시 묻는다
+            if (session != null && session.ConnectionState == SessionConnectionState.Client) SendRequest();
+        }
+
+        /// <summary>처음 상태로: 가로 톱날은 출발 쪽 끝 대기, 수직 톱날 없음, 순서 처음부터.</summary>
+        void ResetObstacles()
+        {
             platePressedFor = 0f;
             touching.Clear();
             lastHitAt.Clear();
+            verticalStep = -1;
+            sequence = new ObstacleSequence(settings.steps);
+            horizontalCommands.Clear();
+            tracks = new HorizontalSawTrack[settings.HorizontalCount];
+            for (int i = 0; i < tracks.Length; i++) tracks[i] = settings.CreateTrack(i);
             if (verticalActive) SetVertical(false, verticalLane, verticalSerial, 0f, -1f);
+        }
+
+        // ── 호스트: 장애물 순서 ──────────────────────────────
+
+        void ServerTickSequence()
+        {
+            float performanceStartedAt = run.IsPerformanceStarted ? GameElapsed - run.PerformanceElapsed : -1f;
+            sequence.Tick(GameElapsed, performanceStartedAt, GetLeaderDistance(), ServerExecuteStep);
+        }
+
+        /// <summary>진행 중인 플레이어 중 가장 앞선 거리(m). 없으면 NaN.</summary>
+        float GetLeaderDistance()
+        {
+            float leader = float.NaN;
+            foreach (var player in NetworkPlayer.All)
+            {
+                if (player.State != PlayerState.Normal) continue;
+                float distance = course.GetDistance(player.transform.position);
+                if (float.IsNaN(leader) || distance > leader) leader = distance;
+            }
+            return leader;
+        }
+
+        bool ServerExecuteStep(int index)
+        {
+            var step = sequence[index];
+            if (step.action == StepAction.SpawnVertical)
+            {
+                if (!ServerSpawnVertical(step)) return false;
+                verticalStep = index;
+                Debug.Log($"[Saws] 단계 '{step.name}' 실행: 수직 톱날 #{verticalSerial} (게임 {GameElapsed:0.0}초)");
+                return true;
+            }
+
+            int first = Mathf.Clamp(step.firstSaw, 1, tracks.Length), last = Mathf.Clamp(step.lastSaw, first, tracks.Length);
+            if (tracks.Length == 0) return true;
+            ApplyHorizontal(step.action, first, last, GameElapsed);
+            BroadcastHorizontal();
+            string verb = step.action == StepAction.StartHorizontal ? "작동" : "정지";
+            Debug.Log($"[Saws] 단계 '{step.name}' 실행: 가로 톱날 #{first}~#{last} {verb} (게임 {GameElapsed:0.0}초)");
+            return true;
+        }
+
+        /// <summary>모든 화면: 가로 톱날 범위(1부터)를 그 시각에 작동·정지하고 기록한다.</summary>
+        void ApplyHorizontal(StepAction action, int first, int last, float at)
+        {
+            horizontalCommands.Add((action, first, last, at));
+            for (int i = first - 1; i <= last - 1 && i < tracks.Length; i++)
+            {
+                if (i < 0) continue;
+                if (action == StepAction.StartHorizontal) tracks[i].Start(at);
+                else tracks[i].Stop(at);
+            }
         }
 
         // ── 호스트: 수직 톱날 ────────────────────────────────
 
         void ServerUpdateVertical()
         {
-            if (!run.IsPerformanceStarted || run.State != TightropeRunState.Running)
-            {
-                if (!run.IsPerformanceStarted) nextVerticalAt = -1f;
-                return;
-            }
-
-            if (!verticalActive)
-            {
-                if (nextVerticalAt < 0f) nextVerticalAt = settings.verticalFirstDelay;
-                if (run.PerformanceElapsed >= nextVerticalAt) ServerSpawnVertical();
-                return;
-            }
+            if (!verticalActive) return;
 
             float sinceSpawn = Time.time - verticalSpawnedAt;
             if (verticalLoweredAt >= 0f)
@@ -263,9 +329,20 @@ namespace CurtainCall.Tightrope.Saws
             }
         }
 
-        /// <summary>진행 중인 플레이어가 있는 줄 중 하나를 고른다. 없으면 출현을 미루고 다음 프레임에 다시 본다.</summary>
-        void ServerSpawnVertical()
+        /// <summary>
+        /// 수직 톱날을 낸다. 이미 나와 있으면 false(제거될 때까지 기다림). 줄을 정한 단계는 그 줄(놓여 있고 막히지 않았을 때),
+        /// 아니면 진행 중인 플레이어가 있는 줄 중 랜덤. 고를 줄이 없으면 false로 미루고 다음 프레임에 다시 본다.
+        /// </summary>
+        bool ServerSpawnVertical(ObstacleStep step)
         {
+            if (verticalActive) return false;
+            if (step.lane >= 0)
+            {
+                if (!course.IsLaneUsable(step.lane, settings.verticalSpawnDistance)) return false;
+                SpawnVerticalOn(step.lane);
+                return true;
+            }
+
             var lanes = new List<int>();
             foreach (var player in NetworkPlayer.All)
             {
@@ -274,16 +351,22 @@ namespace CurtainCall.Tightrope.Saws
                 if (distance < 0f || distance >= course.FinishDistance || lanes.Contains(lane)) continue;
                 lanes.Add(lane);
             }
-            if (lanes.Count == 0) return;
+            if (lanes.Count == 0) return false;
+            SpawnVerticalOn(lanes[UnityEngine.Random.Range(0, lanes.Count)]);
+            return true;
+        }
 
+        void SpawnVerticalOn(int lane)
+        {
             platePressedFor = 0f;
-            SetVertical(true, lanes[UnityEngine.Random.Range(0, lanes.Count)], verticalSerial + 1, 0f, -1f);
+            SetVertical(true, lane, verticalSerial + 1, 0f, -1f);
             Broadcast();
         }
 
         void ServerRemoveVertical()
         {
-            nextVerticalAt = run.PerformanceElapsed + settings.verticalRespawnDelay;
+            sequence.NotifyFinished(verticalStep, GameElapsed);
+            verticalStep = -1;
             SetVertical(false, verticalLane, verticalSerial, 0f, -1f);
             Broadcast();
         }
@@ -474,12 +557,12 @@ namespace CurtainCall.Tightrope.Saws
                     Register((RequestMessage, HandleRequest));
                     break;
                 case SessionConnectionState.Client:
-                    Register((VerticalMessage, HandleVerticalMessage), (HitMessage, HandleHitMessage));
+                    Register((VerticalMessage, HandleVerticalMessage), (HorizontalMessage, HandleHorizontalMessage), (HitMessage, HandleHitMessage));
                     SendRequest();
                     break;
                 case SessionConnectionState.Offline:
                     Unregister();
-                    HandleRunRestarted();
+                    ResetObstacles();
                     break;
             }
         }
@@ -496,8 +579,48 @@ namespace CurtainCall.Tightrope.Saws
         {
             var manager = Messaging;
             if (manager == null) return;
-            using var writer = WriteVertical();
-            manager.SendNamedMessage(VerticalMessage, senderId, writer, NetworkDelivery.ReliableSequenced);
+            using (var writer = WriteHorizontal())
+                manager.SendNamedMessage(HorizontalMessage, senderId, writer, NetworkDelivery.ReliableFragmentedSequenced);
+            using (var writer = WriteVertical())
+                manager.SendNamedMessage(VerticalMessage, senderId, writer, NetworkDelivery.ReliableSequenced);
+        }
+
+        void BroadcastHorizontal()
+        {
+            var manager = Messaging;
+            if (manager == null) return;
+            using var writer = WriteHorizontal();
+            manager.SendNamedMessageToAll(HorizontalMessage, writer, NetworkDelivery.ReliableFragmentedSequenced);
+        }
+
+        /// <summary>가로 톱날 작동·정지 기록 전체(재시작 후부터). 받는 쪽은 기록을 처음부터 다시 적용한다.</summary>
+        FastBufferWriter WriteHorizontal()
+        {
+            var writer = new FastBufferWriter(8 + horizontalCommands.Count * 9, Allocator.Temp, 64 * 1024);
+            writer.WriteValueSafe(horizontalCommands.Count);
+            foreach (var (action, first, last, at) in horizontalCommands)
+            {
+                writer.WriteValueSafe((byte)action);
+                writer.WriteValueSafe((short)first);
+                writer.WriteValueSafe((short)last);
+                writer.WriteValueSafe(at);
+            }
+            return writer;
+        }
+
+        void HandleHorizontalMessage(ulong senderId, FastBufferReader reader)
+        {
+            reader.ReadValueSafe(out int count);
+            horizontalCommands.Clear();
+            foreach (var track in tracks) track.Clear();
+            for (int i = 0; i < count; i++)
+            {
+                reader.ReadValueSafe(out byte action);
+                reader.ReadValueSafe(out short first);
+                reader.ReadValueSafe(out short last);
+                reader.ReadValueSafe(out float at);
+                ApplyHorizontal((StepAction)action, first, last, at);
+            }
         }
 
         void SendRequest()
@@ -572,6 +695,7 @@ namespace CurtainCall.Tightrope.Saws
         {
             if (messaging == null) return;
             messaging.UnregisterNamedMessageHandler(VerticalMessage);
+            messaging.UnregisterNamedMessageHandler(HorizontalMessage);
             messaging.UnregisterNamedMessageHandler(RequestMessage);
             messaging.UnregisterNamedMessageHandler(HitMessage);
             messaging = null;
