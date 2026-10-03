@@ -100,6 +100,7 @@ MonoBehaviour:
   gravityStrength: 9.81
   jumpHeight: 0.8
   laneSpacing: 3
+  freeMoveSpeed: 3
   turnSpeed: 720
   pushSpeed: 2
   playerGap: 0.05
@@ -127,7 +128,7 @@ MonoBehaviour:
   landingShock: 10
   minAirTimeForShock: 0.15
   laneLandingShock: 35
-  laneSwayBoost: 2.5
+  laneSwayBoost: 1.75
   laneSwayBoostDuration: 3
   stackMultipliers:
   - 1

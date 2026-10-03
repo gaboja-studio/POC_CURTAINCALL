@@ -17,17 +17,17 @@
   플레이어(004 파일, setup 배정): `PlayerMover.FreeMovement`·`SetMoveInput(side, forward)`·`SetStartPose(.., moveNow)`·`LaneSpacing` set·`PassThrough`, 신체 부위 준비 `PlayerCondition`·`BodyPart`·`PlayerControlContext.Condition`(프리팹엔 아직 안 붙임).
 - 기획 값(2026-10-03): 도착 100m, 4줄 끝까지, 간격 3m, 여유 2m, 플랫폼 6m, 옆줄 0~100m, 줄 0.2m, 제한 300초. 기획에 없는 임시 값: 출발 -1m, 안전망 6m, 추락 깊이 1m, 재시작 3초, 회전 720°/s, 래그돌 미는 속도 2m/s, 최소 인원 1.
 - 주의: 에디터 저장 때 Unity가 `Player.prefab`(004 구역)에 새 필드를 자동 기록할 수 있다 → 구역 검사 FAIL이면 PM 확인 후 되돌린다. MPPM 가상 플레이어는 저장 전에 끈다.
-- 이슈: #14·#15·#16 수정됨, #17(연속 점프 후 반동이 세지는 느낌) 원인 미확정. 막힌 것: 없음. PR: 없음
+- 이슈: #14·#15·#16 수정됨, #17 흔들림 배율 1.75로 해결. 막힌 것: 없음. PR: 없음
 
 ## 다음 할 일
 
-1. 저장(2026-10-03 상세 규칙 구현 통과분). 진입점: `TightropeRun.TimeRemaining`·`IsPerformanceStarted`·`PerformanceElapsed`·`PerformanceStarted`·`InProgressCount`/`ArrivedCount`/`DeadCount`·`RestartByHost()`, 코스 `GetFinishPose`·`BlockSegment`/`ClearBlockedSegments`/`IsSegmentBlocked`.
-2. #17 조사: 연속 점프 재현 → Console `[TightropeDebug] 착지 #n` 로그로 원인 확정 후 수정.
+1. (저장 완료 5c68903, 결정 문서·012 plan 갱신 완료 3e65ec4) 진입점: `TightropeRun.TimeRemaining`·`IsPerformanceStarted`·`PerformanceElapsed`·`PerformanceStarted`·`InProgressCount`/`ArrivedCount`/`DeadCount`·`RestartByHost()`, 코스 `GetFinishPose`·`BlockSegment`/`ClearBlockedSegments`/`IsSegmentBlocked`.
+2. #17 결론(2026-10-03): 충격 크기는 고정(±35/±10), 연속 옆줄 착지로 흔들림 ×2.5가 계속 갱신되는 게 원인 → PM 결정 A: `Player.prefab` `laneSwayBoost` 1.75. 작업자 재확인 통과, 이슈 닫음.
 3. 공동 테스트 항목 3을 새 규칙으로 고쳐 결과 기록 → "검사해줘" → "제출해줘".
 
 ## PM이 확인할 것
 
-- 공용 파일 요청: `tightrope-course-rules.md` #2를 "1명 도착 즉시 클리어, 살아 있는 전원 도착 지점으로"로 갱신(2026-10-03 PM 변경) · 012 plan에 005 진입점(위 1번) 기록 · 011 plan에 코스 조회 진입점 기록(위 목록) · `tightrope-balance.md` 결정 #9 범위 갱신(플랫폼도 막기, 추락 래그돌은 밀림) · 균형 켜고 끄기를 011 → 005로 옮긴 것 011 plan 반영 · 007 테스트 씬 `TestRoundRestart` 오브젝트(Missing Script) 제거 · Domain Map(network-session 자동 시작 제거, player-sync 테스트 부품 삭제, 외줄 코스 새 도메인) 갱신
+- 공용 파일 요청: `tightrope-balance.md`·균형 요약에 단독 옆줄 흔들림 ×2.5 → ×1.75(#17, 2026-10-03 PM) 기록 · 011 plan에 코스 조회 진입점 기록(위 목록) · 007 테스트 씬 `TestRoundRestart` 오브젝트(Missing Script) 제거 · Domain Map(network-session 자동 시작 제거, player-sync 테스트 부품 삭제, 외줄 코스 새 도메인) 갱신
 
 ## Verification
 

@@ -37,7 +37,7 @@ namespace CurtainCall.Tightrope
 
         PlayerMover loggedMover;
         PlayerBalance loggedBalance;
-        float valueAtTakeoff, shockAtTakeoff;
+        float valueAtTakeoff;
         int landingCount;
 
         void Update()
@@ -98,12 +98,12 @@ namespace CurtainCall.Tightrope
             if (airborne)
             {
                 valueAtTakeoff = loggedBalance.Value;
-                shockAtTakeoff = loggedBalance.LastShock;
                 return;
             }
             landingCount++;
-            // LastShock은 충격이 없으면 그대로 남으므로, 뜰 때와 같으면 이번 착지엔 충격이 없었던 것
-            string shock = Mathf.Approximately(loggedBalance.LastShock, shockAtTakeoff) ? "없음" : loggedBalance.LastShock.ToString("+0.0;-0.0;0");
+            // 공중에서는 균형이 멈추므로, 착지 직후 값 - 뜰 때 값 = 이번 착지 충격(직전과 같은 크기여도 구분된다)
+            float delta = loggedBalance.Value - valueAtTakeoff;
+            string shock = Mathf.Abs(delta) < 0.05f ? "없음" : delta.ToString("+0.0;-0.0;0");
             Debug.Log($"[TightropeDebug] 착지 #{landingCount} {loggedMover.CurrentJump}: 뜰 때 {valueAtTakeoff:+0.0;-0.0;0} → 착지 후 {loggedBalance.Value:+0.0;-0.0;0} " +
                       $"(충격 {shock}, 흔들림 배율 ×{loggedBalance.LaneBoostMultiplier:0.00} {loggedBalance.LaneBoostRemaining:0.0}s, 목마 ×{loggedBalance.StackMultiplier:0.0})");
         }
