@@ -23,7 +23,7 @@
 
 1. (저장 완료 5c68903, 결정 문서·012 plan 갱신 완료 3e65ec4) 진입점: `TightropeRun.TimeRemaining`·`IsPerformanceStarted`·`PerformanceElapsed`·`PerformanceStarted`·`InProgressCount`/`ArrivedCount`/`DeadCount`·`RestartByHost()`, 코스 `GetFinishPose`·`BlockSegment`/`ClearBlockedSegments`/`IsSegmentBlocked`.
 2. #17 결론(2026-10-03): 충격 크기는 고정(±35/±10), 연속 옆줄 착지로 흔들림 ×2.5가 계속 갱신되는 게 원인 → PM 결정 A: `Player.prefab` `laneSwayBoost` 1.75. 작업자 재확인 통과, 이슈 닫음.
-3. 공동 테스트 항목 3을 새 규칙으로 고쳐 결과 기록 → "검사해줘" → "제출해줘".
+3. 공동 테스트 1·2·3 작업자 통과·검사 완료(10-03) → "제출해줘".
 
 ## PM이 확인할 것
 
@@ -31,9 +31,9 @@
 
 ## Verification
 
-- 구역 검사: OK (2026-10-02 저장 전)
-- 1 문서/규칙: 저장 때 검사
-- 2 컴파일: PASS (2026-10-02, verify-unity -Compile)
-- 3 테스트: `NO_PROJECT_TESTS` (테스트 어셈블리 없음, 결정)
+- 구역 검사: PASS (10-03)
+- 1 문서/규칙: PASS (10-03)
+- 2 컴파일: PASS (10-03)
+- 3 테스트: `NO_PROJECT_TESTS` (10-03, Pipeline list_tests 0개. check-work는 에디터가 열려 있어 unity test가 거부돼 FAIL 표시 — 함정 unity-test-editor-open, 테스트 어셈블리 없음 결정)
 - 4 실행 로그: 작업자 플레이 확인(위 "동작하는 것")
-- 5 공동 테스트: 미요청
+- 5 공동 테스트: 항목 1·2·3 작업자 플레이 통과(2026-10-03, plan.md), 병합 후 PM 공동 테스트 대기
