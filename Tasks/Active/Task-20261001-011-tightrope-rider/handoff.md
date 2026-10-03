@@ -14,7 +14,7 @@
 ## 다음 할 일
 
 1. ~~옆줄 점프 판정 연결~~ 완료(위). 실게임용으로는 `RopeLaneJumpRules`를 코스 프리팹에 붙이는 것을 PM에 요청
-2. 뒤쪽 착지: 착지 자리에 동료가 있으면 진행 방향 뒤쪽으로 보정, 자리가 없으면 착지 실패(추락). 지금 `PlayerMover.BlockLaneJumpOntoPlayer`(임시)가 점프 자체를 막으므로 이걸 대체한다
+2. ~~뒤쪽 착지~~ 완료(미커밋, 2026-10-03): `RopeLaneJumpRules`가 착지 자리 동료(줄지어 있으면 맨 뒤) 뒤로 보정, 설 자리 없으면 착지 순간 `ForceFall`, 있을 때 `BlockLaneJumpOntoPlayer` 끔. `PlayerMover.LaneLandingShift` 추가 + 보정 시 앞뒤도 목표에서 멈춤. AI Play(가짜 동료 = PlayerMover만 붙인 오브젝트): 9.35m·8.70m 정확히 착지, 일반 옆줄 영향 없음, 줄 시작 0.3m는 추락 확인. 실제 2인 접속 확인은 작업자
 3. 손잡기: 도착점이 같은 줄 동료 앞뒤 1.0m 이내면 `PlayerBalance.SetLaneLandingReduction(0.5)`. 거리·감소율은 `TightropeSettings`에 "손잡기" 묶음으로 추가
 4. 테스트 부품 정리: `TestLaneLanding.cs` 삭제, `NetworkPlayerSync.unity`에서 그 컴포넌트 제거
 5. 테스트 씬 `TightropeRider.unity`에 코스 프리팹·접속 UI 등 배치(005 Tightrope 씬 구성 참고), 공동 테스트 1~3 확인
