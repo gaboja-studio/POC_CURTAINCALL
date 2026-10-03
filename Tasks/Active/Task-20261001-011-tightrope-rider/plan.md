@@ -28,12 +28,24 @@
 ## Files
 
 - 수정 예정:
-- 읽기 전용 참고: `Assets/Scripts/Player/`(004), `Assets/Scripts/Tightrope/Rope/`(005)
+- 수정 예정 (모두 `Assets/Scripts/Tightrope/Rider/`): `RopeRider.cs`(줄 위 상태·이동, 공개 진입점), `RopeSideStep.cs`(옆줄 이동·착지 보정), 테스트 씬 `TightropeRider.unity` 배치
+- 읽기 전용 참고: `Assets/Scripts/Player/`(004 `PlayerCommand`·`PlayerInputReader`·`PlayerMover`·`PlayerBalance`), `Assets/Scripts/Tightrope/Rope/`(005)
+
+## 004에 필요한 진입점 (004 단계와 대응)
+
+| 필요한 것 | 004 단계 | 2026-10-02 현재 |
+|---|---|---|
+| 점프·Q/E 방향·옆줄 이동 명령 (`PlayerCommand`) | 8, 9, 10 | 없음 (`Move`, `Posture`만) |
+| 균형 무너짐(빨강 2초) 이벤트 | 6 | 없음 |
+| 공중 정지 + 착지 충격 넣기, 옆줄 충격(±35 + 3초 ×2.5) 넣기 | 8, 10 | 없음 |
+| 균형 켜기/끄기 `SetBalanceActive`, 중앙 복귀 `ResetBalance` | 5 | 있음 |
+| `PlayerMover` 이동 끄기/켜기 (줄 위에서 011이 위치를 맡음) | — | **요청 필요** (`enabled` 토글로 충분한지 004에서 확인) |
 
 ## Risks
 
 - 004·005 진입점이 바뀌면 이 작업도 따라 바뀐다. 착수 전에 두 진입점 이름을 확인한다.
-- 줄 위 이동이 004 `PlayerMover`와 겹칠 수 있다. 004 코드는 고치지 않고, 바꿔야 하면 PM에게 요청한다.
+- `PlayerMover`가 CharacterController로 중력·이동을 계속 적용하면 줄 고정과 충돌한다. 줄 위에서는 반드시 끈다. 004 코드는 고치지 않고, 끄는 방법이 부족하면 PM(004)에 요청한다.
+- 004·005 착수 지연이 곧 011 지연이다. 기다리는 동안 004를 먼저 끝낸다.
 
 ## Auto Verification
 
