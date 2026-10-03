@@ -9,12 +9,12 @@
 
 `Assets/Scripts/Network/PlayerSync/`
 - `NetworkPlayer.cs` — **공개 진입점**. 플레이어 프리팹 루트(NetworkBehaviour). 자리 번호, 소유자 처리, 점프·균형 표시값 공유, 상태·재시작.
-- `PlayerState.cs` — 호스트가 확정하는 상태 enum(`Normal`, `Fallen`). 끝에만 추가한다(숫자로 전송).
+- `PlayerState.cs` — 호스트가 확정하는 상태 enum(`Normal`, `Fallen`, `Arrived`(외줄 도착 완료, 005 2026-10-03)). 끝에만 추가한다(숫자로 전송).
 - `PlayerSpawnPoints.cs` — 씬의 출발 위치 목록(자리 번호 순). 없으면 줄 간격으로 나란히.
 - `LocalPlayerCamera.cs` — Cinemachine 카메라가 내 캐릭터를 따라감.
 - `LocalPlayerViews.cs` — 균형 게이지·테스트 HUD 대상을 내 캐릭터로, HUD R → 모두 재시작 요청.
-- `TestLaneLanding.cs` — **테스트 전용**: 줄 밖 착지 → 즉시 추락. 005 코스가 대체.
-- `TestRoundRestart.cs` — **테스트 전용**: 호스트에서 전원 추락 3초 뒤 모두 재시작. 005 묘기 진행이 대체.
+- `TestLaneLanding.cs` — **테스트 전용**: 줄 밖 착지 → 즉시 추락. 011이 코스 조회 기반 착지 판정으로 대체 후 삭제.
+- (`TestRoundRestart.cs`는 005 묘기 진행 `TightropeRun`으로 대체되어 2026-10-03 삭제)
 
 에셋
 - `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 루트에 NetworkObject·NetworkTransform(Owner, 위치 xyz·회전 y)·NetworkPlayer.
@@ -44,7 +44,7 @@ NetworkPlayer.ServerRestartAll(); NetworkPlayer.Restarted += p => ...;  // 호�
 
 - [플레이어 조작](player-control.md) — 동작 부품(`PlayerMover`·`PlayerBalance`·`PlayerRagdoll`)을 끄고 켜고 값을 넣는다.
 - [네트워크 세션](network-session.md) — 방 접속·접속 승인 시 플레이어 프리팹 자동 생성.
-- 사용하는 쪽(planned): 외줄 코스·진행(005), 외줄 위 캐릭터(011), 목마(006), 도구(008).
+- 사용하는 쪽: [외줄 코스·진행](tightrope-course.md)(005 — `ServerCanChangeState` 규칙, `ServerRestartAll`, `Arrived`). planned: 외줄 위 캐릭터(011), 톱날(012), 목마(006), 도구(008).
 
 ## 수정 주의점
 
@@ -52,5 +52,6 @@ NetworkPlayer.ServerRestartAll(); NetworkPlayer.Restarted += p => ...;  // 호�
 - 래그돌은 상태만 공유하고 연출은 각자 화면이다(물리 결과 비동기, 기본값). 맞추려면 결정 요청.
 - 호스트가 추락을 거절하면 소유자 화면만 래그돌인 채로 남는다(지금은 거절 규칙 없음). 거절 규칙을 붙일 때 복구를 함께 처리한다.
 - 진행 중 참가는 세션이 거절하므로 늦게 들어온 화면의 래그돌 상태 맞춤은 최소 처리(생성 시 `ApplyState`)만 있다.
-- 테스트 전용 부품(`Test*`)은 실제 씬에 넣지 않는다. 005가 대체하면 삭제한다.
+- 테스트 전용 부품(`Test*`)은 실제 씬에 넣지 않는다. 남은 것은 `TestLaneLanding`(011이 대체).
+- 테스트 HUD의 R은 외줄 테스트 씬에서 `TightropeRunDebug`가 "호스트만 묘기 재시작"으로 덮어쓴다(`LocalPlayerViews` 연결은 그대로).
 - 저장 검사가 MPPM 가상 플레이어를 에디터로 세어 멈춘다. 저장 전 가상 플레이어를 끈다(Task-007 handoff).
