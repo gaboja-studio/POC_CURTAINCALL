@@ -1,3 +1,4 @@
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.Player
@@ -8,14 +9,12 @@ namespace CurtainCall.Player
     /// 래그돌은 다른 플레이어 몸통에 밀린다. 연출은 화면마다 따로 계산한다(물리 결과는 맞추지 않음).
     /// 균형을 되돌리면(재시작) 무너진 모델을 지우고 같은 모델을 다시 끼운다.
     /// 모델 준비: 부위마다 콜라이더 + Rigidbody(관절은 CharacterJoint). 없으면 모델 전체를 한 덩어리로 쓰러뜨린다.
+    /// 기울어 있던 쪽으로 미는 힘은 게임 기본 세팅(연출)에서 읽는다.
     /// </summary>
     [RequireComponent(typeof(PlayerBalance))]
     [RequireComponent(typeof(PlayerModelSlot))]
     public class PlayerRagdoll : MonoBehaviour
     {
-        [Tooltip("무너질 때 기울어 있던 쪽으로 밀어 주는 힘(질량 1당 m/s). 0이면 그냥 무너진다.")]
-        [SerializeField, Min(0f)] float tiltPush = 1.5f;
-
         [Tooltip("Rigidbody가 없는 모델을 한 덩어리로 쓰러뜨릴 때의 질량.")]
         [SerializeField, Min(0.1f)] float fallbackMass = 5f;
 
@@ -52,7 +51,7 @@ namespace CurtainCall.Player
             }
 
             // 기울어 있던 쪽(코스 기준 좌우)으로 살짝 밀어 그 방향으로 쓰러지게 한다
-            Vector3 push = transform.right * (Mathf.Sign(balance.Value) * tiltPush);
+            Vector3 push = transform.right * (Mathf.Sign(balance.Value) * GameSettings.Base.Presentation.RagdollTiltPush);
             Vector3 carry = body != null ? body.velocity : Vector3.zero;
             foreach (var rb in bodies)
             {
