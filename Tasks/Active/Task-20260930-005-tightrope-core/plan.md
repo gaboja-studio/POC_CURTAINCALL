@@ -4,7 +4,7 @@
 
 외줄타기 묘기의 무대와 진행. 입력·균형과 무관하게 코스와 묘기 진행(재시작·성공)을 먼저 만든다. 줄 위 캐릭터 동작은 011.
 원문: `Docs/References/tightrope-prototype-brief.md`
-요약: `Docs/References/tightrope-keymap-summary.md`, `Docs/References/tightrope-plan-summary.md` · 규칙 결정: `Harness/Project/Decisions/tightrope-rules.md`
+요약: `Docs/References/tightrope-rules-summary.md`(2026-10-03 상세 규칙, 우선), `tightrope-keymap-summary.md`, `tightrope-plan-summary.md` · 규칙 결정: `Harness/Project/Decisions/tightrope-course-rules.md`, `tightrope-rules.md`
 
 ## Approach
 
@@ -19,6 +19,11 @@
 - 코스 조회 진입점(011·장애물·온라인이 사용): 위치를 가장 가까운 줄과 진행 거리로 바꾸기, 그 위치에서 왼쪽/오른쪽에 착지 가능한 줄 찾기, 옆줄 이동 가능 구간인지, 줄 사용 가능 여부(이후 화재용 자리), 출발 위치.
 - 묘기 진행: 참가자 등록, 추락·도착 알림을 받는다. 4명 모두 추락하면 실패 → 재시작 신호(모든 요소를 초기 상태로), 1명이라도 도착 거리에 닿으면 성공. 상태(진행/실패/성공)를 공개한다.
 - 시험은 실제 플레이어 프리팹(007 적용)으로 MPPM 여러 명 접속해서 한다. 디버그 조작(추락·도착 알리기)은 이 작업 스크립트 폴더 안에만 둔다. 줄 위 걷기·점프·옆줄 이동은 만들지 않는다(011).
+기획 상세 규칙 반영(2026-10-03 PM 결정, `Harness/Project/Decisions/tightrope-course-rules.md`):
+- 코스 기본값: 4줄이 100m까지(줄 끝 거리 모두 도착), 간격 3m, 양옆 여유 2m(지금 1m 고정 → 인스펙터), 시작·세리머니 플랫폼 6m, 옆줄 구간 0~100m, 줄 보이는 굵기 0.2m. 줄 **구간 단위 사용 불가**(불타는 구간, 거리 범위) 진입점 준비 — 지금 `SetLaneBlocked`는 줄 전체.
+- 진행: 제한시간 5분(게임 시작부터, 남은 시간 공유·표시), 도착선 통과 → **도착 완료**(무적, 판정 제외, 줄 아래 추락 검사 제외). 진행자 0 또는 시간 종료 때 도착자 ≥1 → 클리어(`EndGame`), 0 → 실패 → 묘기 재시작. 나간 플레이어는 판정에서 뺀다. "1명 도착 즉시 성공"은 버린다.
+- **묘기 시작** 공개 신호: 게임 시작 후 살아 있는 전원이 줄에 올라선 순간(012 수직 톱날·이후 화재가 씀). 재시작 신호(`RunRestarted`)로 타이머·장애물 처음부터.
+- 배정(2026-10-03 PM): `PlayerState.cs`에 `Arrived` 추가, `Player.prefab` 이동 0.5·점프 0.8·캡슐 1.5/0.6 (setup.md).
 플랫폼/줄 조작 전환(2026-10-02 PM @MoHoDu 추가):
 - 줄이 아닌 플랫폼(시작·도착)에서는 일반 이동: WASD 8방향(W = 코스 앞, 캐릭터는 이동 방향을 바라봄)·Space 점프. 상호작용·Q/E+Space는 동작 없음. 균형 꺼짐.
 - 줄 위에 서는 순간 줄타기 조작(기존 `TightropeControlScheme`)·균형 켜짐(중앙에서 시작), 줄에서 플랫폼에 서면 다시 일반 이동. 공중에서는 바꾸지 않는다.
