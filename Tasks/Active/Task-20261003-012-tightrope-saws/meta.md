@@ -23,12 +23,14 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 - 작업 구역·공용 파일·수정 금지 목록은 `setup.md`(PM 작성)가 기준이다.
 - AI Setup Allowed: None
-- Dependencies: 005(완료)·013(세팅) 병합 후. 갈래 A 첫 작업, 다음은 014 불(같은 사망 경로). 수직 톱날 버튼은 목마 앞으로 점프(006)가 있어야 시험할 수 있다 — 버튼 자체는 이 작업, 목마 연결 확인은 006 이후.
+- Dependencies: 005(완료). 013(세팅)과 병행 가능(2026-10-03 PM) — 013 병합 후 수치를 세팅 파일로 옮긴다. 갈래 A 첫 작업, 다음은 014 불(같은 사망 경로). 수직 톱날 버튼은 목마 앞으로 점프(006)가 있어야 시험할 수 있다 — 버튼 자체는 이 작업, 목마 연결 확인은 006 이후.
 - 조정값은 `Assets/Resources/GameSettings/`의 세팅 파일에 둔다(013, `Harness/Project/Decisions/game-settings.md`).
 - 계획 전체: `Integrations/Active/Integration-tightrope-prototype/plan.md` · 규칙: `Harness/Project/Decisions/tightrope-course-rules.md`
 
 ## Decisions
 
-- Open: 수직 톱날 버튼의 형태(버튼/발판)·위치·눌림 조건
+- Open: 발판 위치·눌림 조건(누가 밟으면 / 몇 초) — 구현 때 임시값, 세팅 칸으로
+- Decided: 2026-10-03 @MoHoDu — 수직 톱날 버튼은 우선 **발판(밟으면 눌림)**으로 임시 구현, 형태를 나중에 바꿀 수 있게 눌림 판정과 겉모습을 분리
+- Decided: 2026-10-03 @MoHoDu — 013(세팅)과 병행. 톱날 수치는 우선 `Tightrope/Saws/`의 `SawSettings` 묶음에 두고, 013 병합 후 `TightropeSettings` 톱날 칸으로 옮긴다
 - Decided: 2026-10-03 @MoHoDu — 담당자 @MoHoDu(PM 직접) 기본 배정. 바뀌면 PM이 다시 배정
 - Decided: 2026-10-03 @MoHoDu — 톱날은 이 새 Task가 맡는다(권유서 §5). 규칙·수치는 `tightrope-course-rules.md` #6~#8
