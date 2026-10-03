@@ -4,7 +4,7 @@
 
 ## 지금 상태
 
-- 단계: 구현 끝(todo 구현 항목 완료, "011 plan에 알리기"만 PM 요청 대기). 2026-10-02 중간 저장. 남은 것: #17 조사·수정, 공동 테스트 결과 정리, 검사·제출.
+- 단계: 제출됨(PR #18). 구현 끝(todo 구현 항목 완료, "011 plan에 알리기"만 PM 요청 대기). 2026-10-02 중간 저장. 남은 것: #17 조사·수정, 공동 테스트 결과 정리, 검사·제출.
 - 동작하는 것(작업자 플레이 확인 통과):
   - 코스 `TightropeCourse.prefab`(공용 폴더) — 인스펙터 값대로 4줄→1줄 직선 코스, Play 중 값 변경 즉시 재생성, 줄 간격 = 모든 플레이어 옆줄 점프 거리(#14), 줄 아래 1m 떨어지면 추락(#15).
   - 플랫폼(시작·도착)은 일반 이동(WASD 8방향·Space, 이동 방향 바라봄·카메라 월드 고정), 줄 위에 서면 줄타기 조작+균형 켜짐·줄 중앙으로 맞춤(`CourseControlSwitcher`).
@@ -17,13 +17,13 @@
   플레이어(004 파일, setup 배정): `PlayerMover.FreeMovement`·`SetMoveInput(side, forward)`·`SetStartPose(.., moveNow)`·`LaneSpacing` set·`PassThrough`, 신체 부위 준비 `PlayerCondition`·`BodyPart`·`PlayerControlContext.Condition`(프리팹엔 아직 안 붙임).
 - 기획 값(2026-10-03): 도착 100m, 4줄 끝까지, 간격 3m, 여유 2m, 플랫폼 6m, 옆줄 0~100m, 줄 0.2m, 제한 300초. 기획에 없는 임시 값: 출발 -1m, 안전망 6m, 추락 깊이 1m, 재시작 3초, 회전 720°/s, 래그돌 미는 속도 2m/s, 최소 인원 1.
 - 주의: 에디터 저장 때 Unity가 `Player.prefab`(004 구역)에 새 필드를 자동 기록할 수 있다 → 구역 검사 FAIL이면 PM 확인 후 되돌린다. MPPM 가상 플레이어는 저장 전에 끈다.
-- 이슈: #14·#15·#16 수정됨, #17 흔들림 배율 1.75로 해결. 막힌 것: 없음. PR: 없음
+- 이슈: #14·#15·#16 수정됨, #17 흔들림 배율 1.75로 해결. 막힌 것: 없음. PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/18 (2026-10-03 제출)
 
 ## 다음 할 일
 
 1. (저장 완료 5c68903, 결정 문서·012 plan 갱신 완료 3e65ec4) 진입점: `TightropeRun.TimeRemaining`·`IsPerformanceStarted`·`PerformanceElapsed`·`PerformanceStarted`·`InProgressCount`/`ArrivedCount`/`DeadCount`·`RestartByHost()`, 코스 `GetFinishPose`·`BlockSegment`/`ClearBlockedSegments`/`IsSegmentBlocked`.
 2. #17 결론(2026-10-03): 충격 크기는 고정(±35/±10), 연속 옆줄 착지로 흔들림 ×2.5가 계속 갱신되는 게 원인 → PM 결정 A: `Player.prefab` `laneSwayBoost` 1.75. 작업자 재확인 통과, 이슈 닫음.
-3. 공동 테스트 1·2·3 작업자 통과·검사 완료(10-03) → "제출해줘".
+3. 제출 완료(PR #18) → PM 병합·공동 테스트 대기.
 
 ## PM이 확인할 것
 
