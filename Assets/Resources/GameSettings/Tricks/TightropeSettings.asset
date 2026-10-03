@@ -41,6 +41,9 @@ MonoBehaviour:
     laneLandingShock: 35
     laneSwayBoost: 1.75
     laneSwayBoostDuration: 3
+  handhold:
+    distance: 1
+    reduction: 0.5
   piggyback:
     stackMultipliers:
     - 1

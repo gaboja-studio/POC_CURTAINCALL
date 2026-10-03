@@ -12,6 +12,7 @@ namespace CurtainCall.Tightrope
     /// 2) 착지 자리: 도착 줄의 착지 자리에 다른 플레이어가 있으면 그 뒤쪽(코스 진행 반대쪽)으로 착지 지점을 당긴다. 뒤에 또 있으면 맨 뒤 사람 뒤로.
     ///    당긴 자리가 그 줄을 쓸 수 없는 곳(줄 시작 전·막힌 구간·이동 불가 구간)이면 원래 자리로 뛰고 착지하는 순간 추락한다(2026-10-02 결정).
     ///    목마 합체가 되는 경우는 목마 기능(006)이 합체로 바꾼다.
+    /// 3) 손잡기: 착지 지점이 같은 줄 동료와 앞뒤로 가까우면(세팅 손잡기 거리) 착지 충격·흔들림을 줄인다(<see cref="PlayerBalance.SetLaneLandingReduction"/>).
     /// 판정은 조작하는 소유자 화면에서만 하고(뛰는 순간 한 번), 결과 움직임·추락은 007 공유를 그대로 쓴다.
     /// 씬에 코스(<see cref="TightropeCourse.Current"/>)가 없으면 막지도 보정하지도 않는다. 씬에 하나 둔다(보통 코스 옆).
     /// </summary>
@@ -85,9 +86,12 @@ namespace CurtainCall.Tightrope
         /// 내 캐릭터가 지금 그 방향으로 옆줄 점프할 때 착지할 코스 거리. 착지 자리에 다른 플레이어가 있으면 그 뒤쪽 거리.
         /// 그 줄에 설 수 없는 거리면 false(착지 실패).
         /// </summary>
-        public bool TryGetLandingDistance(int direction, out float distance)
+        public bool TryGetLandingDistance(int direction, out float distance) => TryGetLanding(direction, out _, out distance);
+
+        bool TryGetLanding(int direction, out int lane, out float distance)
         {
             var course = TightropeCourse.Current;
+            lane = TightropeCourse.NoLane;
             distance = 0f;
             if (course == null || mover == null) return true;
 
@@ -104,7 +108,7 @@ namespace CurtainCall.Tightrope
             }
 
             Vector3 along = mover.transform.position + course.Forward * (distance - course.GetDistance(mover.transform.position));
-            int lane = course.FindLandingLane(along, direction);
+            lane = course.FindLandingLane(along, direction);
             return lane != TightropeCourse.NoLane && course.IsLaneChangeAllowed(distance);
         }
 
@@ -138,6 +142,28 @@ namespace CurtainCall.Tightrope
             return found;
         }
 
+        /// <summary>
+        /// 그 줄의 그 거리에 착지하면 손잡기인지: 같은 줄(위아래로 떨어지지 않은) 다른 플레이어가 앞뒤로 손잡기 거리 안에 있음.
+        /// 통과 상태(사망 래그돌 등)는 보지 않는다.
+        /// </summary>
+        public bool IsHandholdLanding(int lane, float distance)
+        {
+            var course = TightropeCourse.Current;
+            if (course == null || mover == null || lane == TightropeCourse.NoLane) return false;
+
+            float reach = GameSettings.Tightrope.Handhold.Distance;
+            float height = mover.transform.position.y;
+            foreach (var other in PlayerMover.All)
+            {
+                if (other == mover || other.PassThrough) continue;
+                Vector3 position = other.transform.position;
+                if (Mathf.Abs(position.y - height) >= Mathf.Max(mover.BodyHeight, other.BodyHeight)) continue;
+                if (!course.TryGetRopePoint(position, out int otherLane, out float otherDistance) || otherLane != lane) continue;
+                if (Mathf.Abs(otherDistance - distance) <= reach) return true;
+            }
+            return false;
+        }
+
         float GetLandingShift(int direction)
         {
             failOnLanding = false;
@@ -145,11 +171,15 @@ namespace CurtainCall.Tightrope
             if (course == null || mover == null) return 0f;
 
             float original = course.GetDistance(mover.GetLaneLandingPosition(direction));
-            if (!TryGetLandingDistance(direction, out float distance))
+            if (!TryGetLanding(direction, out int lane, out float distance))
             {
                 failOnLanding = true;
                 return 0f;
             }
+
+            // 균형은 착지 알림을 먼저 받으므로 감소율은 뛰는 순간 넣어 둔다(착지하면 균형이 0으로 되돌린다)
+            if (balance != null && IsHandholdLanding(lane, distance))
+                balance.SetLaneLandingReduction(GameSettings.Tightrope.Handhold.Reduction);
             return distance - original;
         }
 

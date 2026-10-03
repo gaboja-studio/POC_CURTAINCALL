@@ -4,28 +4,27 @@
 
 ## 지금 상태
 
-- 단계: 착수 준비 완료(2026-10-03). 최신 통합(013 세팅 포함)을 받아 합침. 2026-10-03 범위 축소로 남은 일 4개만(`plan.md` 세부)
-- 동작하는 것: 걷기·점프·옆줄 점프 움직임·착지 충격(004), 줄 오르내림 전환·줄 아래 추락(005), 추락 공유·재시작(007), 조정값 세팅 파일(013)
-- 2026-10-03 1번 완료(미커밋): `Tightrope/Rider/RopeLaneJumpRules.cs`(씬에 두면 내 캐릭터 `LaneJumpFilter`에 코스 판정 연결), `PlayerMover.GetLaneLandingPosition` 공개(기존 계산 추출). 테스트 씬 `TightropeRider.unity` = 005 `Tightrope.unity` 복사 + `RopeLaneJumpRules` 오브젝트(에디터로 저장)
-- AI Play 확인(LAN 호스트 1명, eval로 줄 위 이동·점프 요청): 바깥쪽 줄 없음 → 무시, 안쪽 → 옆줄 이동, 옆 줄 막힘(`BlockSegment`) → 무시, 해제 → 이동. 옆줄 이동 불가 구간은 현재 코스가 0~100m 전부 허용이라 확인 못 함. 균형 입력 없이 옆줄 착지하면 약 2초 뒤 균형 붕괴 추락(기존 004 동작으로 보임)
-- 막힌 것: 없음
-- PR: 없음
+- 단계: 구현 중(2026-10-04). 남은 일 4개 중 1~3 완료, 4번 남음
+- 동작하는 것: `Tightrope/Rider/RopeLaneJumpRules.cs`(씬에 하나 두면 내 캐릭터에 연결) — ① 옆줄 점프 판정(이동 가능 구간·옆 줄 있음·막히지 않음, 아니면 입력 무시) ② 착지 자리 동료와 겹치면 뒤쪽 착지(줄지어 있으면 맨 뒤), 설 자리 없으면 착지 순간 추락 ③ 손잡기(착지 지점 같은 줄 동료 앞뒤 1.0m 안이면 충격·흔들림 50% 감소, 뛰는 순간 판정)
+- 공용 파일 수정: `PlayerMover`(`GetLaneLandingPosition`, `LaneLandingShift`, 보정 시 앞뒤도 목표에서 멈춤), `TightropeSettings` 손잡기 묶음(코드·에셋)
+- 테스트 씬 `TightropeRider.unity` = 005 `Tightrope.unity` 복사 + `RopeLaneJumpRules` 오브젝트
+- 막힌 것: 없음 / PR: 없음
 
 ## 다음 할 일
 
-1. ~~옆줄 점프 판정 연결~~ 완료(위). 실게임용으로는 `RopeLaneJumpRules`를 코스 프리팹에 붙이는 것을 PM에 요청
-2. ~~뒤쪽 착지~~ 완료(미커밋, 2026-10-03): `RopeLaneJumpRules`가 착지 자리 동료(줄지어 있으면 맨 뒤) 뒤로 보정, 설 자리 없으면 착지 순간 `ForceFall`, 있을 때 `BlockLaneJumpOntoPlayer` 끔. `PlayerMover.LaneLandingShift` 추가 + 보정 시 앞뒤도 목표에서 멈춤. AI Play(가짜 동료 = PlayerMover만 붙인 오브젝트): 9.35m·8.70m 정확히 착지, 일반 옆줄 영향 없음, 줄 시작 0.3m는 추락 확인. 실제 2인 접속 확인은 작업자
-3. 손잡기: 도착점이 같은 줄 동료 앞뒤 1.0m 이내면 `PlayerBalance.SetLaneLandingReduction(0.5)`. 거리·감소율은 `TightropeSettings`에 "손잡기" 묶음으로 추가
-4. 테스트 부품 정리: `TestLaneLanding.cs` 삭제, `NetworkPlayerSync.unity`에서 그 컴포넌트 제거
-5. 테스트 씬 `TightropeRider.unity`에 코스 프리팹·접속 UI 등 배치(005 Tightrope 씬 구성 참고), 공동 테스트 1~3 확인
+1. 테스트 부품 정리: `TestLaneLanding.cs` 삭제, `NetworkPlayerSync.unity`에서 그 컴포넌트 제거
+2. 검사("검사해줘") → 제출
 
 ## PM이 확인할 것
 
+- 실게임용: `RopeLaneJumpRules`를 005 코스 프리팹에 붙이기(PM 요청 필요). 지금은 씬마다 직접 둔다
+- 006 인계: 겹치면 **목마 합체 우선**(`tightrope-rules.md` 2번). `RopeLaneJumpRules`에서 겹치는 동료를 찾은 직후, 뒤쪽 보정 전에 "합체 가능하면 합체"를 넣는다. 합체가 안 될 때(뛰는 사람이 목마 중, 상대 4층 등)의 뒤쪽 착지·자리 없으면 추락은 그대로 유지. `BlockLaneJumpOntoPlayer`는 이 컴포넌트가 이미 끈다
 - 순서 배정: `TightropeSettings`(012와 공유), `PlayerMover.cs`(020과 공유) — 먼저 병합되는 쪽 다음에 다른 쪽이 최신 통합을 받는다
-- 이 Task 다음: 006 목마 → 010 목마 예외(같은 갈래 B, 011 병합 후 인계)
-- 대기 중인 결정: 없음
+- 이 Task 다음: 006 목마 → 010 목마 예외(같은 갈래 B)
 
 ## Verification
 
-- 구역·문서/규칙: save-work 실행 / 2 컴파일: save-work 실행 (코드 없음)
-- 3 테스트: `NO_PROJECT_TESTS` (테스트 어셈블리 없음, 결정) / 4 실행 로그: 미실행 / 5 공동 테스트: 미요청
+- 2 컴파일: PASS(save-work) / 3 테스트: `NO_PROJECT_TESTS` (결정)
+- AI Play(LAN 호스트 1명 + PlayerMover만 붙인 가짜 동료): 바깥 줄·막힌 줄 무시, 뒤쪽 착지 9.35m·8.70m 정확, 줄 시작 0.3m 추락, 손잡기 충격 17.5·×1.375 vs 혼자 35·×1.75. 이동 불가 구간은 코스가 0~100m 전부 허용이라 미확인
+- 5 작업자 플레이(2026-10-04 @MoHoDu, MPPM 2인): 옆줄 못 가는 곳·뒤쪽 착지·자리 없음 추락·손잡기 "모두 잘 됨"
+- 참고: 균형 입력 없이 옆줄 착지하면 약 2초 뒤 균형 붕괴 추락(004 기존 동작)

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CurtainCall.Settings
 {
     /// <summary>
-    /// 외줄 묘기 세팅: 코스·진행·줄 위 동작·목마(+ 보상 연결은 부모).
+    /// 외줄 묘기 세팅: 코스·진행·줄 위 동작·손잡기·목마(+ 보상 연결은 부모).
     /// 에셋: Assets/Resources/GameSettings/Tricks/TightropeSettings.asset. <see cref="GameSettings.Tightrope"/>로 읽는다.
     /// 코스 모양은 코스를 만들 때 읽는다(대기 중 수정은 바로 다시 만들고, 게임 중 수정은 다음 대기 때). 나머지는 쓸 때마다 읽는다.
     /// 톱날(012)·불(014) 칸은 해당 Task가 여기에 묶음을 추가한다. 기본값은 2026-10-03 프리팹 값과 같다.
@@ -18,6 +18,8 @@ namespace CurtainCall.Settings
         [SerializeField] RunSettings run = new();
         [Header("줄 위 동작")]
         [SerializeField] RopeMovementSettings ropeMovement = new();
+        [Header("손잡기")]
+        [SerializeField] HandholdSettings handhold = new();
         [Header("목마")]
         [SerializeField] PiggybackSettings piggyback = new();
 
@@ -27,6 +29,7 @@ namespace CurtainCall.Settings
         public CourseSettings Course => course;
         public RunSettings Run => run;
         public RopeMovementSettings RopeMovement => ropeMovement;
+        public HandholdSettings Handhold => handhold;
         public PiggybackSettings Piggyback => piggyback;
 
         void OnValidate() => Changed?.Invoke();
@@ -162,6 +165,20 @@ namespace CurtainCall.Settings
             public float LaneLandingShock => laneLandingShock;
             public float LaneSwayBoost => laneSwayBoost;
             public float LaneSwayBoostDuration => laneSwayBoostDuration;
+        }
+
+        /// <summary>손잡기(협동 옆줄 이동): 옆줄 착지 지점이 같은 줄 동료 가까이면 착지 충격·흔들림을 줄인다.</summary>
+        [Serializable]
+        public sealed class HandholdSettings
+        {
+            [Tooltip("옆줄 착지 지점과 같은 줄 동료의 앞뒤 거리(m, 몸 중심끼리)가 이 안이면 손잡기. 기획 1.0.")]
+            [SerializeField, Min(0f)] float distance = 1f;
+
+            [Tooltip("손잡기 때 옆줄 착지 충격·흔들림 증가 감소율(0~1). 기획 0.5(50%).")]
+            [SerializeField, Range(0f, 1f)] float reduction = 0.5f;
+
+            public float Distance => distance;
+            public float Reduction => reduction;
         }
 
         /// <summary>목마(여러 층으로 쌓기).</summary>
