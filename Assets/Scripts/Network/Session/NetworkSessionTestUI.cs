@@ -97,6 +97,14 @@ namespace CurtainCall.Network.Session
             GUILayout.Label($"게임 상태: {GameStateLabel(_session.GameState)}");
             GUILayout.Label($"접속 인원: {_session.PlayerCount} / {_session.RequiredPlayers}");
 
+            if (_session.IsHost && _session.GameState == GameSessionState.Waiting)
+            {
+                GUI.enabled = _session.CanStartGame;
+                if (GUILayout.Button($"게임 시작 (최소 {_session.MinPlayers}명)"))
+                    _session.StartGame();
+                GUI.enabled = true;
+            }
+
             if (_session.IsHost && _session.GameState == GameSessionState.Playing &&
                 GUILayout.Button("게임 종료 (호스트 판정 테스트)"))
                 _session.EndGame();

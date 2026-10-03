@@ -61,13 +61,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 1.73
-  m_Radius: 0.43
+  m_Height: 1.5
+  m_Radius: 0.3
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 0.865, z: 0}
+  m_Center: {x: 0, y: 0.75, z: 0}
 --- !u!114 &2680789630942886336
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96,10 +96,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerMover
   destination: {fileID: 0}
   courseDirection: {x: 0, y: 0, z: 1}
-  moveSpeed: 3
+  moveSpeed: 0.5
   gravityStrength: 9.81
-  jumpHeight: 1
-  laneSpacing: 2
+  jumpHeight: 0.8
+  laneSpacing: 3
+  freeMoveSpeed: 3
+  turnSpeed: 720
+  pushSpeed: 2
   playerGap: 0.05
   blockLaneJumpOntoPlayer: 1
 --- !u!114 &737775002277357732
@@ -125,7 +128,7 @@ MonoBehaviour:
   landingShock: 10
   minAirTimeForShock: 0.15
   laneLandingShock: 35
-  laneSwayBoost: 2.5
+  laneSwayBoost: 1.75
   laneSwayBoostDuration: 3
   stackMultipliers:
   - 1
@@ -244,6 +247,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.PlayerSync.NetworkPlayer
   ShowTopMostFoldoutHeaderGroup: 1
+  balanceSendThreshold: 0.5
 --- !u!114 &6130112482532563049
 MonoBehaviour:
   m_ObjectHideFlags: 0

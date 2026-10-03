@@ -36,8 +36,11 @@ namespace CurtainCall.Network.Session
             return Instance;
         }
 
-        [Tooltip("이 인원이 모이면 호스트가 게임을 자동으로 시작한다. 세션 최대 인원도 이 값이다.")]
+        [Tooltip("세션 최대 인원. 이 인원이 차면 더 들어오지 못한다(자동 시작은 하지 않음).")]
         [SerializeField, Min(1)] int _requiredPlayers = 4;
+
+        [Tooltip("호스트가 게임을 시작할 수 있는 최소 인원(호스트 포함). 2026-10-02 테스트용 1.")]
+        [SerializeField, Min(1)] int _minPlayers = 1;
 
         public SessionConnectionState ConnectionState { get; private set; } = SessionConnectionState.Offline;
 
@@ -48,6 +51,12 @@ namespace CurtainCall.Network.Session
         public int PlayerCount { get; private set; }
 
         public int RequiredPlayers => _requiredPlayers;
+
+        /// <summary>게임을 시작할 수 있는 최소 인원(호스트 포함).</summary>
+        public int MinPlayers => Mathf.Min(_minPlayers, _requiredPlayers);
+
+        /// <summary>호스트가 지금 게임을 시작할 수 있는지(대기 중 + 최소 인원 이상).</summary>
+        public bool CanStartGame => IsHost && GameState == GameSessionState.Waiting && PlayerCount >= MinPlayers;
 
         /// <summary>참가자에게 알려 줄 접속 키(세션은 방 코드, LAN은 "IP:포트"). 접속 전에는 null.</summary>
         public string JoinKey => _connector?.JoinKey;
@@ -249,6 +258,21 @@ namespace CurtainCall.Network.Session
 
         // ── 게임 상태 (호스트 판정) ───────────────────────────
 
+        /// <summary>호스트 전용. 최소 인원이 모였으면 대기 → 진행으로 바꾸고 세션을 잠근다(이후 참가 거절).</summary>
+        public bool StartGame()
+        {
+            if (!CanStartGame)
+            {
+                Debug.LogWarning($"[Session] 게임을 시작할 수 없습니다(호스트·대기 중·최소 {MinPlayers}명 필요).");
+                return false;
+            }
+
+            SetGameState(GameSessionState.Playing);
+            _ = LockSessionAsync();
+            PushStateToClients();
+            return true;
+        }
+
         /// <summary>호스트 전용. 진행 중인 게임을 종료 상태로 바꾼다(예: 도착 성공).</summary>
         public bool EndGame()
         {
@@ -297,19 +321,13 @@ namespace CurtainCall.Network.Session
             instance.GetComponent<NetworkObject>().Spawn();
         }
 
-        /// <summary>호스트: 인원을 다시 세고, 대기 중 인원이 다 차면 게임을 시작한다.</summary>
+        /// <summary>호스트: 인원을 다시 세어 모두에게 알린다. 게임 시작은 호스트가 <see cref="StartGame"/>으로 한다.</summary>
         void ServerRefresh()
         {
             if (!IsHost)
                 return;
 
             SetPlayerCount(_networkManager.ConnectedClientsIds.Count);
-            if (GameState == GameSessionState.Waiting && PlayerCount >= _requiredPlayers)
-            {
-                SetGameState(GameSessionState.Playing);
-                _ = LockSessionAsync();
-            }
-
             PushStateToClients();
         }
 
