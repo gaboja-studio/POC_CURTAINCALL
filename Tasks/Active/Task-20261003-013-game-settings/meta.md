@@ -2,7 +2,7 @@
 
 - **Title:** 조정값 세팅 파일 정리
 - **Type:** refactor
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/tightrope-course.md` (조정값 표), `Docs/Domains/player-control.md`
 - **Current Skill:** start-work
@@ -13,7 +13,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Workspace
 
 - **Integration:** integration/tightrope-prototype
-- **Branch:** refactor/game-settings (인계 때 생성)
+- **Branch:** refactor/game-settings
 
 ## Goal
 
@@ -30,4 +30,5 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Decisions
 
 - Open: 캡슐 높이 1.5m와 모델 맞춤 키 1.73m 불일치 — 세팅에 둘 다 두고 모델 작업(017)에서 확정
+- Decided: 2026-10-03 @MoHoDu — 담당자 @MoHoDu(PM 직접), 공동 테스트 3개 확정, JIRA CC-63
 - Decided: 2026-10-03 @MoHoDu — 세팅 구성(게임 기본 1 + 묘기별 1 + 교체형 보상), `Harness/Project/Decisions/game-settings.md`
