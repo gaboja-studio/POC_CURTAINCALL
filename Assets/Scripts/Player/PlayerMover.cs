@@ -153,9 +153,7 @@ namespace CurtainCall.Player
         /// </summary>
         public PlayerMover FindPlayerAtLaneLanding(int direction)
         {
-            Vector3 landing = transform.position
-                + CourseRight * (Math.Sign(direction) * laneSpacing)
-                + CourseForward * (Vector3.Dot(groundVelocity, CourseForward) * AirTime);
+            Vector3 landing = GetLaneLandingPosition(direction);
 
             foreach (var other in active)
             {
@@ -167,6 +165,12 @@ namespace CurtainCall.Player
             }
             return null;
         }
+
+        /// <summary>지금 그 방향(-1 왼쪽, +1 오른쪽)으로 옆줄 점프하면 착지할 예상 위치. 옆으로 줄 간격 + 앞뒤로 뛸 때 속도 × 공중 시간.</summary>
+        public Vector3 GetLaneLandingPosition(int direction) =>
+            transform.position
+            + CourseRight * (Math.Sign(direction) * laneSpacing)
+            + CourseForward * (Vector3.Dot(groundVelocity, CourseForward) * AirTime);
 
         /// <summary>점프 초속(m/s).</summary>
         public float JumpSpeed => Mathf.Sqrt(2f * Character.Gravity * Rope.JumpHeight);

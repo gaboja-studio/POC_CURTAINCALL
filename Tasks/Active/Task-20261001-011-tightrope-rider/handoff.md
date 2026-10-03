@@ -5,13 +5,15 @@
 ## 지금 상태
 
 - 단계: 착수 준비 완료(2026-10-03). 최신 통합(013 세팅 포함)을 받아 합침. 2026-10-03 범위 축소로 남은 일 4개만(`plan.md` 세부)
-- 동작하는 것: 걷기·점프·옆줄 점프 움직임·착지 충격(004), 줄 오르내림 전환·줄 아래 추락(005), 추락 공유·재시작(007), 조정값 세팅 파일(013). 테스트 씬 `TightropeRider.unity`는 빈 씬, `Tightrope/Rider/`는 `.gitkeep`만
+- 동작하는 것: 걷기·점프·옆줄 점프 움직임·착지 충격(004), 줄 오르내림 전환·줄 아래 추락(005), 추락 공유·재시작(007), 조정값 세팅 파일(013)
+- 2026-10-03 1번 완료(미커밋): `Tightrope/Rider/RopeLaneJumpRules.cs`(씬에 두면 내 캐릭터 `LaneJumpFilter`에 코스 판정 연결), `PlayerMover.GetLaneLandingPosition` 공개(기존 계산 추출). 테스트 씬 `TightropeRider.unity` = 005 `Tightrope.unity` 복사 + `RopeLaneJumpRules` 오브젝트(에디터로 저장)
+- AI Play 확인(LAN 호스트 1명, eval로 줄 위 이동·점프 요청): 바깥쪽 줄 없음 → 무시, 안쪽 → 옆줄 이동, 옆 줄 막힘(`BlockSegment`) → 무시, 해제 → 이동. 옆줄 이동 불가 구간은 현재 코스가 0~100m 전부 허용이라 확인 못 함. 균형 입력 없이 옆줄 착지하면 약 2초 뒤 균형 붕괴 추락(기존 004 동작으로 보임)
 - 막힌 것: 없음
 - PR: 없음
 
 ## 다음 할 일
 
-1. 옆줄 점프 판정 연결: `PlayerMover.LaneJumpFilter`에 005 `IsLaneChangeAllowed`·`FindLandingLane`·`IsLaneUsable` 연결(코드는 `Assets/Scripts/Tightrope/Rider/`)
+1. ~~옆줄 점프 판정 연결~~ 완료(위). 실게임용으로는 `RopeLaneJumpRules`를 코스 프리팹에 붙이는 것을 PM에 요청
 2. 뒤쪽 착지: 착지 자리에 동료가 있으면 진행 방향 뒤쪽으로 보정, 자리가 없으면 착지 실패(추락). 지금 `PlayerMover.BlockLaneJumpOntoPlayer`(임시)가 점프 자체를 막으므로 이걸 대체한다
 3. 손잡기: 도착점이 같은 줄 동료 앞뒤 1.0m 이내면 `PlayerBalance.SetLaneLandingReduction(0.5)`. 거리·감소율은 `TightropeSettings`에 "손잡기" 묶음으로 추가
 4. 테스트 부품 정리: `TestLaneLanding.cs` 삭제, `NetworkPlayerSync.unity`에서 그 컴포넌트 제거
