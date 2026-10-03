@@ -51,6 +51,8 @@ namespace CurtainCall.Player
         Vector3 groundVelocity; // 땅에서의 수평 속도
         Vector3 airVelocity;    // 공중에서 고정해 쓰는 수평 속도
         float laneTargetSide;   // 옆줄 점프 도착 줄의 옆 좌표(CourseRight 방향 월드 좌표)
+        bool laneAlongLimited;  // 옆줄 점프 착지 지점을 앞뒤로 보정했으면 그 거리에서 멈춘다
+        float laneTargetAlong;  // 보정한 착지 지점의 앞뒤 좌표(CourseForward 방향 월드 좌표)
         float laneSpacing;      // 옆줄 점프 거리. 외줄 코스가 자기 줄 간격으로 맞춘다
 
         static BaseGameSettings.CharacterSettings Character => GameSettings.Base.Character;
@@ -76,6 +78,12 @@ namespace CurtainCall.Player
         /// 외줄 기능이 "그 방향에 착지할 줄이 있는지·불타지 않는지·내 위에 사람이 없는지"를 여기서 판단한다. 허용하지 않으면 입력을 무시한다.
         /// </summary>
         public Func<int, bool> LaneJumpFilter { get; set; }
+
+        /// <summary>
+        /// 옆줄 점프를 뛰는 순간 착지 지점을 코스 앞뒤로 얼마나 옮길지 묻는 함수(방향 → 미터, 음수면 뒤쪽). 비어 있으면 0.
+        /// 외줄 기능이 착지 자리에 동료가 있을 때 뒤쪽으로 보정하는 데 쓴다. 공중 이동 속도에 더해 착지까지 고정된다.
+        /// </summary>
+        public Func<int, float> LaneLandingShift { get; set; }
 
         /// <summary>이번 프레임 땅에서 코스 이동 중인지(조작 잠금 반영). 균형의 이동 중 흔들림 판정에 쓴다.</summary>
         public bool IsMoving { get; private set; }
@@ -153,9 +161,7 @@ namespace CurtainCall.Player
         /// </summary>
         public PlayerMover FindPlayerAtLaneLanding(int direction)
         {
-            Vector3 landing = transform.position
-                + CourseRight * (Math.Sign(direction) * laneSpacing)
-                + CourseForward * (Vector3.Dot(groundVelocity, CourseForward) * AirTime);
+            Vector3 landing = GetLaneLandingPosition(direction);
 
             foreach (var other in active)
             {
@@ -167,6 +173,12 @@ namespace CurtainCall.Player
             }
             return null;
         }
+
+        /// <summary>지금 그 방향(-1 왼쪽, +1 오른쪽)으로 옆줄 점프하면 착지할 예상 위치. 옆으로 줄 간격 + 앞뒤로 뛸 때 속도 × 공중 시간.</summary>
+        public Vector3 GetLaneLandingPosition(int direction) =>
+            transform.position
+            + CourseRight * (Math.Sign(direction) * laneSpacing)
+            + CourseForward * (Vector3.Dot(groundVelocity, CourseForward) * AirTime);
 
         /// <summary>점프 초속(m/s).</summary>
         public float JumpSpeed => Mathf.Sqrt(2f * Character.Gravity * Rope.JumpHeight);
@@ -401,14 +413,19 @@ namespace CurtainCall.Player
             if (current < pushSpeed) body.AddForce(direction * (pushSpeed - current), ForceMode.VelocityChange);
         }
 
-        /// <summary>옆줄 점프 중 옆 이동이 도착 줄을 넘어가지 않게 줄인다.</summary>
+        /// <summary>옆줄 점프 중 옆 이동이 도착 줄을 넘어가지 않게 줄인다. 착지 지점을 앞뒤로 보정했으면 앞뒤도 그 지점에서 멈춘다.</summary>
         Vector3 LimitToLaneTarget(Vector3 step)
         {
-            Vector3 right = CourseRight;
-            float side = Vector3.Dot(step, right);
-            float remaining = laneTargetSide - Vector3.Dot(transform.position, right);
-            float limited = Mathf.Sign(side) == Mathf.Sign(remaining) ? Mathf.Sign(remaining) * Mathf.Min(Mathf.Abs(side), Mathf.Abs(remaining)) : 0f;
-            return step + right * (limited - side);
+            step = LimitAxis(step, CourseRight, laneTargetSide);
+            return laneAlongLimited ? LimitAxis(step, CourseForward, laneTargetAlong) : step;
+        }
+
+        Vector3 LimitAxis(Vector3 step, Vector3 axis, float target)
+        {
+            float amount = Vector3.Dot(step, axis);
+            float remaining = target - Vector3.Dot(transform.position, axis);
+            float limited = Mathf.Sign(amount) == Mathf.Sign(remaining) ? Mathf.Sign(remaining) * Mathf.Min(Mathf.Abs(amount), Mathf.Abs(remaining)) : 0f;
+            return step + axis * (limited - amount);
         }
 
         void StartJump(JumpKind kind, int laneDirection)
@@ -423,6 +440,15 @@ namespace CurtainCall.Player
             {
                 airVelocity += CourseRight * (laneDirection * laneSpacing / AirTime);
                 laneTargetSide = Vector3.Dot(transform.position, CourseRight) + laneDirection * laneSpacing;
+
+                float shift = LaneLandingShift != null ? LaneLandingShift(laneDirection) : 0f;
+                laneAlongLimited = !Mathf.Approximately(shift, 0f);
+                if (laneAlongLimited)
+                {
+                    airVelocity += CourseForward * (shift / AirTime);
+                    laneTargetAlong = Vector3.Dot(transform.position, CourseForward)
+                        + Vector3.Dot(groundVelocity, CourseForward) * AirTime + shift;
+                }
             }
         }
 
@@ -459,6 +485,7 @@ namespace CurtainCall.Player
             CurrentJump = JumpKind.None;
             LaneJumpDirection = 0;
             airVelocity = Vector3.zero;
+            laneAlongLimited = false;
         }
     }
 }
