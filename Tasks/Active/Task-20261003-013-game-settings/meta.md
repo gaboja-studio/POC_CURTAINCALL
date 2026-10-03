@@ -2,7 +2,7 @@
 
 - **Title:** 조정값 세팅 파일 정리
 - **Type:** refactor
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/tightrope-course.md` (조정값 표), `Docs/Domains/player-control.md`
 - **Current Skill:** start-work
