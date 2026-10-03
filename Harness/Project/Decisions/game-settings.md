@@ -15,7 +15,7 @@ source: human (2026-10-03 PM @MoHoDu)
 
 - 2026-10-03 / PM(@MoHoDu): 조정값은 코드·프리팹 칸이 아니라 세팅 파일(ScriptableObject) 한 폴더에서 관리한다.
   1. 위치: 에셋 `Assets/Resources/GameSettings/`, 클래스 `Assets/Scripts/Settings/`. (`Assets/Settings/`는 URP 설정이라 쓰지 않는다)
-  2. 구성: `GameSettings.asset`(시작점, 아래를 연결만) / `BaseGameSettings.asset`(세션·캐릭터·입력·균형 공통·연출·소리) / `Tricks/<묘기>Settings.asset`(묘기별, 예: `TightropeSettings` = 코스·진행·줄 위 동작·손잡기·목마·톱날·불·보상 연결) / `Tricks/Rewards/*.asset`(보상).
+  2. 구성: `GameSettings.asset`(시작점, 아래를 연결만) / `BaseGameSettings.asset`(세션·캐릭터·입력·균형 공통·신체 손상 기본·연출·소리) / `Tricks/<묘기>Settings.asset`(묘기별, 예: `TightropeSettings` = 코스·진행·줄 위 동작·손잡기·목마·톱날·불·보상 연결) / `Tricks/Rewards/*.asset`(보상).
   3. 보상은 나중에 바뀌므로 **교체형**: 추상 `RewardTable`을 구현한 파일을 묘기 세팅의 보상 칸에 끼운다. 규칙을 바꾸려면 새 파일을 만들어 갈아 끼운다(코드 수정 없이).
   4. 칸마다 한글 `Tooltip`(단위 포함)과 `Header` 묶음. 기획 값이 없는 칸은 임시값 + Tooltip에 "기획 미정".
   5. 값을 넣는 곳은 한 곳: 세팅으로 옮긴 값은 컴포넌트·프리팹 칸에서 지운다. 디버그 키·테스트 표시·임시 색은 세팅에 넣지 않는다.
