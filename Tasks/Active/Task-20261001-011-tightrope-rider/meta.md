@@ -6,7 +6,7 @@
 - **Assignee:** @MoHoDu
 - **Domain:** 없음 (코드가 생기면 Domain Map 추가)
 - **Current Skill:** start-work
-- **Updated:** 2026-10-01
+- **Updated:** 2026-10-03
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
@@ -17,7 +17,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Goal
 
-- 플레이어가 외줄 코스(005) 위에서 앞뒤로 걷고, 점프하고, Q/E 홀드 + Space로 옆줄로 넘어가며, 균형(004)이 무너지면 떨어져 재시작까지 조작 불가로 대기한다.
+- 옆줄 점프가 코스 규칙(이동 가능 구간·착지할 줄 있음·불타지 않은 줄)을 따르고, 착지 자리가 겹치면 상대 뒤쪽에 착지하며, 동료 가까이(1m) 착지하면 손잡기로 흔들림이 줄어든다. 걷기·점프·균형 추락·재시작은 004·005·007에 이미 있다(2026-10-03 범위 축소).
 
 ## Scope
 
@@ -25,11 +25,13 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 - AI Setup Allowed: None
 - Dependencies: 플레이어 조작(004)의 명령·`PlayerBalance` 진입점, 외줄 코스·진행(005)의 코스 조회·진행 진입점. 004(병합 완료)·007·005 병합 후 진행한다(2026-10-02 변경). 임시 코스를 만들지 않는다.
 - 2026-10-01 005(외줄 기본)에서 "줄 위 캐릭터 동작"을 나눠 만든 Task다. 코스·진행은 005에 남는다.
+- 2026-10-03 범위 축소: 남은 것은 옆줄 판정 연결·뒤쪽 착지·손잡기·테스트 부품 정리 4개. 끝나면 같은 갈래(B)에서 006 목마로 이어간다. 013(세팅) 병합 후 시작.
+- 조정값은 `Assets/Resources/GameSettings/`의 세팅 파일에 둔다(013, `Harness/Project/Decisions/game-settings.md`).
 - 계획 전체: `Integrations/Active/Integration-tightrope-prototype/plan.md`
 
 ## Decisions
 
-- Open: None
+- Decided: 2026-10-03 @MoHoDu — 범위 축소(남은 4개), 공동 테스트 항목을 남은 범위에 맞춰 바꾼다
 - Decided: 2026-10-01 @MoHoDu — 005를 "코스 + 진행"(005)과 "줄 위 캐릭터 동작"(011)으로 나눈다
 - Decided: 2026-10-01 @MoHoDu — 담당자 @MoHoDu(PM 직접) 확정, 공동 테스트 3개 확정, JIRA CC-53
 - Decided: 2026-10-01 @MoHoDu — 균형 기능의 베이스는 004(player-control)에서 구현 중이다. 011은 균형을 새로 만들지 않고 004 진입점에 충격을 넣고 신호를 받기만 한다

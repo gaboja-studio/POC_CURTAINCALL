@@ -23,10 +23,12 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 - 작업 구역·공용 파일·수정 금지 목록은 `setup.md`(PM 작성)가 기준이다.
 - AI Setup Allowed: None
-- Dependencies: 005(코스 조회·진행·묘기 시작·사망 판정 통로) 병합 후. 수직 톱날 버튼은 목마 앞으로 점프(006)가 있어야 시험할 수 있다 — 버튼 자체는 이 작업, 목마 연결 확인은 006 이후.
+- Dependencies: 005(완료)·013(세팅) 병합 후. 갈래 A 첫 작업, 다음은 014 불(같은 사망 경로). 수직 톱날 버튼은 목마 앞으로 점프(006)가 있어야 시험할 수 있다 — 버튼 자체는 이 작업, 목마 연결 확인은 006 이후.
+- 조정값은 `Assets/Resources/GameSettings/`의 세팅 파일에 둔다(013, `Harness/Project/Decisions/game-settings.md`).
 - 계획 전체: `Integrations/Active/Integration-tightrope-prototype/plan.md` · 규칙: `Harness/Project/Decisions/tightrope-course-rules.md`
 
 ## Decisions
 
-- Open: 수직 톱날 버튼의 형태(버튼/발판)·위치·눌림 조건, 담당자 확정(현재 임시 @MoHoDu)
+- Open: 수직 톱날 버튼의 형태(버튼/발판)·위치·눌림 조건
+- Decided: 2026-10-03 @MoHoDu — 담당자 @MoHoDu(PM 직접) 기본 배정. 바뀌면 PM이 다시 배정
 - Decided: 2026-10-03 @MoHoDu — 톱날은 이 새 Task가 맡는다(권유서 §5). 규칙·수치는 `tightrope-course-rules.md` #6~#8
