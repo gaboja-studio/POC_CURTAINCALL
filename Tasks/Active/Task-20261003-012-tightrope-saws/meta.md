@@ -2,7 +2,7 @@
 
 - **Title:** 톱날 장애물(가로·수직)
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
 - **Domain:** 없음 (코드가 생기면 Domain Map 추가)
 - **Current Skill:** start-work
@@ -13,7 +13,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Workspace
 
 - **Integration:** integration/tightrope-prototype
-- **Branch:** feat/tightrope-saws (인계 때 생성)
+- **Branch:** feat/tightrope-saws
 
 ## Goal
 
