@@ -1,4 +1,5 @@
 using System;
+using CurtainCall.Settings;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -18,6 +19,7 @@ namespace CurtainCall.Player
     /// 균형은 줄 위에서만 쓴다. 외줄 기능이 <see cref="SetBalanceActive"/>로 켜고 끈다.
     /// 빨강에 일정 시간 머물면 <see cref="Fell"/> 신호를 한 번 보내고 멈춘다. 실제 낙하는 외줄 기능이 처리한다.
     /// 다른 기능(외줄·목마·UI)은 <see cref="IsActive"/>, <see cref="Value"/>, <see cref="Zone"/>, <see cref="HasFallen"/>을 읽는다.
+    /// 수치는 세팅에서 매 프레임 읽는다: 균형 공통 = 게임 기본 세팅, 착지 충격·옆줄 흔들림·목마 = 외줄 세팅(<see cref="GameSettings"/>).
     /// </summary>
     public class PlayerBalance : MonoBehaviour
     {
@@ -27,55 +29,7 @@ namespace CurtainCall.Player
         [Tooltip("시작할 때 균형을 켤지. 테스트 씬용. 실제 게임에서는 외줄 기능이 켠다.")]
         [SerializeField] bool activeOnStart = true;
 
-        [Header("구간")]
-        [Tooltip("중앙에서 이 값(±)까지 초록, 넘으면 빨강. 기획 제안값 40.")]
-        [SerializeField, Range(0f, MaxValue)] float greenLimit = 40f;
-
-        [Header("추락")]
-        [Tooltip("빨강에 이 시간(초) 이상 머물면 추락. 기획 확정값 2초.")]
-        [SerializeField, Min(0.05f)] float fallTime = 2f;
-
-        [Header("보정")]
-        [Tooltip("보정 입력(외줄 규칙에서는 A/D)을 끝까지 넣었을 때 초당 바늘이 움직이는 양. 기획 제안값 60.")]
-        [SerializeField, Min(0f)] float correctionSpeed = 60f;
-
-        [Header("자연 흔들림")]
-        [Tooltip("이동 중(W/S) 초당 흔들림. 기획 제안값 15.")]
-        [SerializeField, Min(0f)] float movingSway = 15f;
-
-        [Tooltip("정지 중 초당 흔들림. 기획 제안값 5.")]
-        [SerializeField, Min(0f)] float idleSway = 5f;
-
-        [Tooltip("흔들림 방향이 바뀌는 간격(초). 이 범위에서 랜덤. 기획 제안값 1~2초.")]
-        [SerializeField] Vector2 swayDirectionInterval = new Vector2(1f, 2f);
-
-        [Header("기울기 가속")]
-        [Tooltip("초당 (현재 균형값 × 이 값)만큼 바깥으로 민다. 많이 기울수록 빨리 넘어간다. 기획 제안값 0.5.")]
-        [SerializeField, Min(0f)] float tiltAcceleration = 0.5f;
-
-        [Header("충격")]
-        [Tooltip("착지 충격 크기(±, 랜덤 방향). 목마 배율을 곱한다. 기획 제안값 10.")]
-        [SerializeField, Min(0f)] float landingShock = 10f;
-
-        [Tooltip("이 시간(초)보다 짧게 떠 있었으면 착지 충격을 주지 않는다(작은 턱·접지 흔들림 무시).")]
-        [SerializeField, Min(0f)] float minAirTimeForShock = 0.15f;
-
-        [Tooltip("단독 옆줄 점프 착지 충격(±, 랜덤 방향). 목마 배율을 곱한다. 기획 제안값 35.")]
-        [SerializeField, Min(0f)] float laneLandingShock = 35f;
-
-        [Tooltip("단독 옆줄 점프 착지 후 자연 흔들림 배율. 기획 제안값 2.5.")]
-        [SerializeField, Min(1f)] float laneSwayBoost = 2.5f;
-
-        [Tooltip("단독 옆줄 점프 착지 후 흔들림이 커지는 시간(초). 반복해도 쌓이지 않고 시간만 갱신. 기획 제안값 3.")]
-        [SerializeField, Min(0f)] float laneSwayBoostDuration = 3f;
-
-        [Header("목마")]
-        [Tooltip("목마 전체 인원별 배율(1인~4인). 자연 흔들림과 충격에 곱한다. 기획 제안값 1.0 / 1.3 / 1.6 / 2.0.")]
-        [SerializeField] float[] stackMultipliers = { 1f, 1.3f, 1.6f, 2f };
-
-        [Tooltip("초당 (내 위층 균형값 합 × 이 값)만큼 같은 방향으로 민다. 기획 제안값 0.2.")]
-        [SerializeField, Min(0f)] float upperTransfer = 0.2f;
-
+        [Header("목마 (테스트)")]
         [Tooltip("현재 목마 전체 인원. 목마 기능이 SetStackSize로 바꾼다. 연결 전에는 여기서 테스트.")]
         [SerializeField, Range(1, 4)] int stackSize = 1;
 
@@ -90,6 +44,9 @@ namespace CurtainCall.Player
         float laneLandingReduction;
         float swayDirection = 1f;
         float nextDirectionChange;
+
+        static BaseGameSettings.BalanceSettings Rules => GameSettings.Base.Balance;
+        static TightropeSettings.RopeMovementSettings Rope => GameSettings.Tightrope.RopeMovement;
 
         /// <summary>빨강 체류 시간이 추락 기준에 닿았을 때 한 번 보낸다.</summary>
         public event Action Fell;
@@ -107,7 +64,7 @@ namespace CurtainCall.Player
         public BalanceZone Zone => ZoneOf(Value);
 
         /// <summary>초록 구간 경계(±). 게이지 표시용.</summary>
-        public float GreenLimit => greenLimit;
+        public float GreenLimit => Rules.GreenLimit;
 
         /// <summary>이번 프레임의 자연 흔들림(초당, 방향 포함). 디버그 표시용.</summary>
         public float CurrentSway { get; private set; }
@@ -116,10 +73,10 @@ namespace CurtainCall.Player
         public float RedTime { get; private set; }
 
         /// <summary>추락 기준 시간(초).</summary>
-        public float FallTime => fallTime;
+        public float FallTime => Rules.FallTime;
 
         /// <summary>빨강 체류 비율(0~1). 1이면 추락. 게이지 표시용.</summary>
-        public float RedTimeRatio => Mathf.Clamp01(RedTime / fallTime);
+        public float RedTimeRatio => Mathf.Clamp01(RedTime / FallTime);
 
         /// <summary>추락했는지. 추락하면 다시 시작(<see cref="ResetBalance"/>)할 때까지 균형 계산을 멈춘다.</summary>
         public bool HasFallen { get; private set; }
@@ -128,13 +85,10 @@ namespace CurtainCall.Player
         public int StackSize => stackSize;
 
         /// <summary>현재 목마 인원 배율. 자연 흔들림과 충격에 곱한다.</summary>
-        public float StackMultiplier =>
-            stackMultipliers == null || stackMultipliers.Length == 0
-                ? 1f
-                : stackMultipliers[Mathf.Clamp(stackSize, 1, stackMultipliers.Length) - 1];
+        public float StackMultiplier => GameSettings.Tightrope.Piggyback.GetStackMultiplier(stackSize);
 
         /// <summary>이번 프레임 위층에서 전달된 흔들림(초당). 디버그 표시용.</summary>
-        public float UpperPush => upperBalanceSum * upperTransfer;
+        public float UpperPush => upperBalanceSum * GameSettings.Tightrope.Piggyback.UpperTransfer;
 
         /// <summary>목마 전체 인원을 정한다(혼자 1). 같은 목마의 모든 층에 같은 값을 넣는다.</summary>
         public void SetStackSize(int size) => stackSize = Mathf.Clamp(size, 1, 4);
@@ -164,7 +118,7 @@ namespace CurtainCall.Player
             laneLandingReduction = 0f;
 
             if (lane) ApplyLaneLanding(reduction);
-            else if (Time.time - airborneSince >= minAirTimeForShock) ApplyShock(landingShock);
+            else if (Time.time - airborneSince >= Rope.MinAirTimeForShock) ApplyShock(Rope.LandingShock);
         }
 
         /// <summary>
@@ -178,9 +132,9 @@ namespace CurtainCall.Player
         {
             if (!IsActive || HasFallen) return;
             float keep = 1f - Mathf.Clamp01(reduction);
-            ApplyShock(laneLandingShock * keep);
-            laneBoostScale = 1f + (laneSwayBoost - 1f) * keep;
-            laneBoostUntil = Time.time + laneSwayBoostDuration; // 쌓지 않고 시간만 갱신
+            ApplyShock(Rope.LaneLandingShock * keep);
+            laneBoostScale = 1f + (Rope.LaneSwayBoost - 1f) * keep;
+            laneBoostUntil = Time.time + Rope.LaneSwayBoostDuration; // 쌓지 않고 시간만 갱신
         }
 
         /// <summary>옆줄 착지 후 흔들림 증가가 남아 있는 시간(초). 디버그 표시용.</summary>
@@ -206,7 +160,7 @@ namespace CurtainCall.Player
 
         /// <summary>균형 값으로 구간을 구한다.</summary>
         public BalanceZone ZoneOf(float value) =>
-            Mathf.Abs(value) <= greenLimit ? BalanceZone.Green : BalanceZone.Red;
+            Mathf.Abs(value) <= Rules.GreenLimit ? BalanceZone.Green : BalanceZone.Red;
 
         /// <summary>균형을 켜거나 끈다. 켜고 끌 때 모두 중앙에서 시작한다.</summary>
         public void SetBalanceActive(bool active)
@@ -252,12 +206,6 @@ namespace CurtainCall.Player
             if (mover != null) mover.AirborneChanged -= SetAirborne;
         }
 
-        void OnValidate()
-        {
-            if (swayDirectionInterval.x < 0.05f) swayDirectionInterval.x = 0.05f;
-            if (swayDirectionInterval.y < swayDirectionInterval.x) swayDirectionInterval.y = swayDirectionInterval.x;
-        }
-
         void Update()
         {
             float correction = correctionInput;
@@ -267,13 +215,14 @@ namespace CurtainCall.Player
             if (Time.time >= nextDirectionChange)
                 PickSwayDirection();
 
+            var rules = Rules;
             bool moving = mover != null && mover.IsMoving;
-            CurrentSway = swayDirection * (moving ? movingSway : idleSway) * StackMultiplier * LaneBoostMultiplier;
+            CurrentSway = swayDirection * (moving ? rules.MovingSway : rules.IdleSway) * StackMultiplier * LaneBoostMultiplier;
 
             float rate = CurrentSway
-                         + Value * tiltAcceleration
+                         + Value * rules.TiltAcceleration
                          + UpperPush
-                         + correction * correctionSpeed;
+                         + correction * rules.CorrectionSpeed;
             Value = Mathf.Clamp(Value + rate * Time.deltaTime, -MaxValue, MaxValue);
 
             UpdateRedTime();
@@ -288,6 +237,7 @@ namespace CurtainCall.Player
             }
 
             RedTime += Time.deltaTime;
+            float fallTime = FallTime;
             if (RedTime < fallTime) return;
 
             RedTime = fallTime;
@@ -306,7 +256,8 @@ namespace CurtainCall.Player
         void PickSwayDirection()
         {
             swayDirection = Random.value < 0.5f ? -1f : 1f;
-            nextDirectionChange = Time.time + Random.Range(swayDirectionInterval.x, swayDirectionInterval.y);
+            Vector2 interval = Rules.SwayDirectionInterval;
+            nextDirectionChange = Time.time + Random.Range(interval.x, interval.y);
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -28,10 +29,11 @@ namespace CurtainCall.Tightrope
     /// 사망 = <see cref="PlayerState.Fallen"/>.
     /// 게임이 시작되면 모두 출발점에서 다시 시작하고 제한시간이 흐른다. **한 명이라도 도착하면 바로 클리어**(<see cref="NetworkSessionManager.EndGame"/>)하고
     /// 살아 있는 플레이어는 모두 도착 완료가 되어 도착 지점으로 옮겨진다(2026-10-03 PM). 도착 없이 진행자가 없어지거나 시간이 끝나면
-    /// 실패 → <see cref="restartDelay"/>초 뒤 묘기 재시작(타이머 포함 처음부터). 도착은 소유자도 요청하고(내 위치 기준) 호스트도 위치로 확인한다.
+    /// 실패 → 세팅의 재시작 대기 시간 뒤 묘기 재시작(타이머 포함 처음부터). 도착은 소유자도 요청하고(내 위치 기준) 호스트도 위치로 확인한다.
     /// 묘기 시작 = 게임 시작 후 진행 중인 전원이 외줄 시작점을 넘은 순간(<see cref="PerformanceStarted"/>). 장애물 출현 시간은 이때부터 잰다.
     /// 진행 상태·시간은 NGO 이름 붙은 메시지로 모든 화면에 공유한다(바뀔 때만 보내고 각 화면이 시간을 이어서 센다).
     /// 다른 기능은 <see cref="Current"/>의 <see cref="State"/>·<see cref="StateChanged"/>·<see cref="IsPerformanceStarted"/>·<see cref="PerformanceElapsed"/>·<see cref="RunRestarted"/>를 쓴다.
+    /// 제한시간·재시작 대기 시간은 외줄 세팅(진행)에서 쓸 때마다 읽는다.
     /// 코스 프리팹의 <see cref="TightropeCourse"/>와 같은 오브젝트에 둔다.
     /// </summary>
     [RequireComponent(typeof(TightropeCourse))]
@@ -39,12 +41,6 @@ namespace CurtainCall.Tightrope
     {
         const string StateMessage = "CurtainCall.Tightrope.RunState";
         const string RequestMessage = "CurtainCall.Tightrope.RunStateRequest";
-
-        [Tooltip("제한시간(초). 게임 시작부터 잰다. 기획 300(5분).")]
-        [SerializeField, Min(1f)] float timeLimit = 300f;
-
-        [Tooltip("실패 후 묘기 재시작까지 기다리는 시간(초). 기획에 값이 없어 테스트 값.")]
-        [SerializeField, Min(0f)] float restartDelay = 3f;
 
         static TightropeRun current;
 
@@ -71,7 +67,7 @@ namespace CurtainCall.Tightrope
         public TightropeRunState State { get; private set; } = TightropeRunState.Waiting;
 
         /// <summary>제한시간(초).</summary>
-        public float TimeLimit => timeLimit;
+        public float TimeLimit => GameSettings.Tightrope.Run.TimeLimit;
 
         /// <summary>남은 시간(초). 진행 전이면 제한시간 전체, 끝나면 멈춘 값.</summary>
         public float TimeRemaining
@@ -79,8 +75,8 @@ namespace CurtainCall.Tightrope
             get
             {
                 if (stoppedRemaining >= 0f && State != TightropeRunState.Running) return stoppedRemaining;
-                if (runStartedAt < 0f) return timeLimit;
-                return Mathf.Max(0f, timeLimit - (Time.time - runStartedAt));
+                if (runStartedAt < 0f) return TimeLimit;
+                return Mathf.Max(0f, TimeLimit - (Time.time - runStartedAt));
             }
         }
 
@@ -263,7 +259,7 @@ namespace CurtainCall.Tightrope
         void ServerFail()
         {
             stoppedRemaining = State == TightropeRunState.Running ? TimeRemaining : -1f;
-            restartAt = Time.time + restartDelay;
+            restartAt = Time.time + GameSettings.Tightrope.Run.RestartDelay;
             ServerSetState(TightropeRunState.Failed);
         }
 

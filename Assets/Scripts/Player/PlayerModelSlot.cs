@@ -1,3 +1,4 @@
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.Player
@@ -6,6 +7,7 @@ namespace CurtainCall.Player
     /// 플레이어 겉모습(모델) 슬롯. 모델 프리팹을 바꿔 끼워도 조작·충돌(CharacterController)은 그대로다.
     /// 모델은 슬롯 아래에 생성되며, 선택하면 캐릭터 키에 맞춰 크기를 맞추고 발을 바닥(슬롯 원점)에 붙인다.
     /// 모델 프리팹 위치: Assets/Resources/Prefabs/Characters/Players/Models/
+    /// 맞출 키는 게임 기본 세팅(캐릭터 · 모델 맞춤 키)에서 모델을 끼울 때 읽는다.
     /// </summary>
     public class PlayerModelSlot : MonoBehaviour
     {
@@ -15,11 +17,8 @@ namespace CurtainCall.Player
         [Tooltip("시작할 때 끼울 모델 프리팹. 비워 두면 슬롯에 이미 있는 모델을 그대로 쓴다.")]
         [SerializeField] GameObject modelPrefab;
 
-        [Tooltip("모델 크기를 캐릭터 키에 맞출지. 끄면 프리팹 크기 그대로.")]
+        [Tooltip("모델 크기를 캐릭터 키(세팅 · 모델 맞춤 키)에 맞출지. 끄면 프리팹 크기 그대로.")]
         [SerializeField] bool fitToHeight = true;
-
-        [Tooltip("맞출 캐릭터 키(m). 기획 1.73.")]
-        [SerializeField, Min(0.1f)] float characterHeight = 1.73f;
 
         /// <summary>모델이 붙는 위치(원점 = 발). 기울기 등 겉모습 연출은 이 슬롯을 돌린다.</summary>
         public Transform Slot
@@ -102,7 +101,7 @@ namespace CurtainCall.Player
             float height = bounds.size.y;
             if (height < 0.0001f) return;
 
-            model.localScale *= characterHeight / height;
+            model.localScale *= GameSettings.Base.Character.ModelHeight / height;
 
             bounds = WorldBounds(renderers);
             Vector3 feet = slot.position;
