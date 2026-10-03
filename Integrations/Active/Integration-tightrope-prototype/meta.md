@@ -28,6 +28,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20260930-009 | feat | @MoHoDu(임시) | feat/tightrope-network (인계 때 생성) | - | scaffolded |
 | Task-20260930-010 | feat | @MoHoDu(임시) | feat/piggyback-network (인계 때 생성) | - | scaffolded |
 | Task-20261001-011 | feat | @MoHoDu | feat/tightrope-rider | - | assigned |
+| Task-20261003-012 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 
 ## 공용 파일 소유 표
 

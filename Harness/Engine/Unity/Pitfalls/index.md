@@ -13,3 +13,4 @@ Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 - [yaml-trailing-whitespace.md](yaml-trailing-whitespace.md) — Unity YAML 줄 끝 공백으로 diff --check 실패. verify-fast·save-work가 trailing whitespace로 멈출 때
 - [pipeline-socket-disposed-log.md](pipeline-socket-disposed-log.md) — Console의 ObjectDisposedException(BasePipelineServer)은 에디터 브리지 로그, 게임 오류 아님. 그 예외가 Console에 보일 때
 - [unity-test-editor-open.md](unity-test-editor-open.md) — 에디터가 열려 있으면 unity test가 거부돼 check-work 테스트가 FAIL. 테스트 단계가 '테스트 결과 없음'으로 실패할 때
+- [tmp-dynamic-font-churn.md](tmp-dynamic-font-churn.md) — TMP 동적 폰트 .asset이 저절로 수정됨(아틀라스 채움·비움). 폰트를 안 고쳤는데 SDF.asset이 git에 잡힐 때
