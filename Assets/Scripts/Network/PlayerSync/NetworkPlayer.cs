@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
@@ -32,9 +33,6 @@ namespace CurtainCall.Network.PlayerSync
 
         readonly NetworkVariable<PlayerState> state = new(PlayerState.Normal);
         readonly NetworkVariable<int> restartCount = new(0);
-
-        [Tooltip("균형 값이 이만큼 바뀌어야 다시 보낸다(-100~100 기준). 작을수록 기울기가 촘촘히 맞고 전송이 늘어난다.")]
-        [SerializeField, Min(0f)] float balanceSendThreshold = 0.5f;
 
         PlayerMover mover;
         PlayerBalance balance;
@@ -199,7 +197,7 @@ namespace CurtainCall.Network.PlayerSync
             {
                 if (balanceActive.Value != balance.IsActive)
                     balanceActive.Value = balance.IsActive;
-                if (Mathf.Abs(balanceValue.Value - balance.Value) >= balanceSendThreshold
+                if (Mathf.Abs(balanceValue.Value - balance.Value) >= GameSettings.Base.Sync.BalanceSendThreshold
                     || (balance.Value == 0f && balanceValue.Value != 0f))
                     balanceValue.Value = balance.Value;
             }

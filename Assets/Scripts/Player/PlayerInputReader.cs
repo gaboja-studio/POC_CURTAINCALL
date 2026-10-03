@@ -1,3 +1,4 @@
+using CurtainCall.Settings;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,9 +16,6 @@ namespace CurtainCall.Player
 
         [Tooltip("비워 두면 Resources/Input/PlayerControls를 쓴다.")]
         [SerializeField] InputActionAsset inputAsset;
-
-        [Tooltip("상호작용을 이 시간(초) 이상 누르면 '길게'. 기획 문서에 값이 없어 튜닝값.")]
-        [SerializeField, Min(0.05f)] float longPressTime = 0.5f;
 
         InputActionAsset actions; // 플레이어마다 따로 켜고 끌 수 있게 복사본을 쓴다
         InputActionMap commonMap;
@@ -100,6 +98,7 @@ namespace CurtainCall.Player
             float held = Time.time - interactPressedAt;
             if (interact.IsPressed())
             {
+                float longPressTime = GameSettings.Base.Input.LongPressTime; // 길게 누르기 기준은 세팅(입력)
                 holdProgress = interactLongSent ? 1f : Mathf.Clamp01(held / longPressTime);
                 if (!interactLongSent && held >= longPressTime)
                 {

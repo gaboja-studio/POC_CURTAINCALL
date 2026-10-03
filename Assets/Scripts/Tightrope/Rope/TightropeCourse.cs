@@ -1,68 +1,24 @@
 using System;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.Tightrope
 {
     /// <summary>
     /// 외줄 코스 스테이지(프리팹 루트)이자 코스 조회의 공개 진입점. 다른 기능은 <see cref="Current"/>로 이 코스를 찾는다.
-    /// 4줄로 시작해 1줄로 끝나는 직선 코스를 인스펙터 값대로 만든다: 시작 플랫폼 → 나란한 줄(줄마다 끝 거리) → 도착 거리.
-    /// 게임 시작 전에는 호스트의 코스 값을 모든 화면에 맞추고(<see cref="CourseShapeSync"/>), 게임이 시작되면 값을 잠근다.
+    /// 직선 코스를 외줄 세팅(<see cref="TightropeSettings.Course"/>)의 값대로 만든다: 시작 플랫폼 → 나란한 줄(줄마다 끝 거리) → 도착 거리.
+    /// 만들 때 세팅 값을 복사해 두고 그 값을 쓴다. 게임 시작 전에는 호스트의 코스 값을 모든 화면에 맞추고(<see cref="CourseShapeSync"/>), 게임이 시작되면 값을 잠근다.
     /// 코스 전진 방향은 이 오브젝트의 앞(+Z)이다. 플레이어 이동(<see cref="PlayerMover"/>)의 전진이 월드 +Z이므로 회전하지 않고 배치한다.
     /// 출발 위치는 <see cref="spawnPoints"/>를 자리 번호 순으로 옮겨 두며, 같은 오브젝트의 <see cref="PlayerSpawnPoints"/>(007)가 이 Transform들을 쓴다.
-    /// 에디터에서는 기즈모로, 플레이 중에는 실제 메시·충돌체로 보인다. 플레이 중 인스펙터 값을 바꾸면 다시 만든다.
+    /// 에디터에서는 기즈모로, 플레이 중에는 실제 메시·충돌체로 보인다. 플레이 중 세팅을 바꾸면 다시 만든다(잠겨 있으면 풀릴 때).
     /// 플레이 중에는 모든 플레이어의 옆줄 점프 거리를 줄 간격에 맞추고, 내 캐릭터가 줄 아래로 떨어지면 추락 처리한다.
     /// </summary>
     public sealed class TightropeCourse : MonoBehaviour
     {
         /// <summary>줄 없음.</summary>
         public const int NoLane = CourseLayout.NoLane;
-
-        [Header("줄")]
-        [Tooltip("줄 수. 기획 4(2026-10-03 상세 규칙).")]
-        [SerializeField, Min(1)] int laneCount = 4;
-
-        [Tooltip("줄 중심 간격(m). 모든 플레이어의 옆줄 점프 거리(PlayerMover.LaneSpacing)를 이 값으로 맞춘다. 기획 3.0(2026-10-03 상세 규칙).")]
-        [SerializeField, Min(0.1f)] float laneSpacing = 3f;
-
-        [Tooltip("줄마다 끝나는 거리(m, 왼쪽 줄부터 0번). 비우거나 0 이하·도착 거리 이상이면 도착까지 간다. 기획(2026-10-03)은 모든 줄이 도착까지(줄 수 감소는 불타는 구간으로 한다).")]
-        [SerializeField] float[] laneEndDistances = Array.Empty<float>();
-
-        [Tooltip("도착 판정선(m, 외줄 시작점에서). 넘으면 도착 완료. 기획 100.")]
-        [SerializeField, Min(1f)] float finishDistance = 100f;
-
-        [Tooltip("옆줄 이동 가능 구간(m). x = 시작 거리, y = 끝 거리. 구간 밖에서는 옆줄 이동을 막는다. 2026-10-03 PM: 0~100 전 구간.")]
-        [SerializeField] Vector2[] laneChangeZones = { new(0f, 100f) };
-
-        [Header("모양")]
-        [Tooltip("시작·대기 공간 길이(m). 외줄 시작점(거리 0) 뒤쪽으로 놓인다. 기획 6.")]
-        [SerializeField, Min(0.5f)] float startPlatformLength = 6f;
-
-        [Tooltip("세리머니 공간 길이(m). 도착선 뒤쪽으로 놓인다. 기획 6.")]
-        [SerializeField, Min(0f)] float finishPlatformLength = 6f;
-
-        [Tooltip("양쪽 끝 줄 중심에서 맵 경계까지 여유(m). 플랫폼 폭 = 줄 폭 + 양쪽 여유. 기획 2(유효 폭 13m).")]
-        [SerializeField, Min(0f)] float sideMargin = 2f;
-
-        [Tooltip("플랫폼 두께(m). 윗면이 줄 높이와 같다.")]
-        [SerializeField, Min(0.05f)] float platformThickness = 0.5f;
-
-        [Tooltip("줄 굵기(m, 보이는 지름). 기획 0.2.")]
-        [SerializeField, Min(0.01f)] float ropeThickness = 0.2f;
-
-        [Tooltip("줄 위를 걸을 수 있는 폭(m, 충돌체 폭). 보이는 굵기보다 넓어야 캐릭터가 서 있는다.")]
-        [SerializeField, Min(0.01f)] float ropeWalkWidth = 0.4f;
-
-        [Tooltip("출발 위치의 거리(m). 음수면 시작 플랫폼 위.")]
-        [SerializeField] float spawnDistance = -1f;
-
-        [Tooltip("코스 아래 안전망 깊이(m). 떨어진 캐릭터가 끝없이 떨어지지 않게 받는다. 0이면 만들지 않는다.")]
-        [SerializeField, Min(0f)] float safetyNetDepth = 6f;
-
-        [Header("추락")]
-        [Tooltip("내 캐릭터가 줄 높이보다 이만큼(m) 내려가면 추락 처리한다. 기획에 값이 없어 테스트 값.")]
-        [SerializeField, Min(0.1f)] float fallDepth = 1f;
 
         [Header("연결")]
         [Tooltip("자리 번호 0, 1, 2… 순서의 출발 위치. 코스가 줄 위치에 맞춰 옮긴다. 같은 오브젝트의 PlayerSpawnPoints에도 같은 순서로 넣는다.")]
@@ -75,10 +31,10 @@ namespace CurtainCall.Tightrope
         [SerializeField] Color netColor = new(0.2f, 0.2f, 0.25f);
 
         const string GeneratedName = "Generated";
-        const float OnRopeHeightTolerance = 0.3f; // 발 높이가 줄 윗면에서 이 안이면 줄 높이로 본다
 
         static TightropeCourse current;
 
+        TightropeSettings.CourseSettings shape; // 플레이 중 코스를 만든 값(세팅 복사본 또는 받은 호스트 값)
         CourseLayout layout;
         bool[] blocked = Array.Empty<bool>();
         readonly System.Collections.Generic.List<(int lane, float from, float to)> blockedSegments = new();
@@ -95,7 +51,7 @@ namespace CurtainCall.Tightrope
             }
         }
 
-        /// <summary>코스가 다시 만들어졌을 때(플레이 중 인스펙터 값 변경 포함).</summary>
+        /// <summary>코스가 다시 만들어졌을 때(플레이 중 세팅 변경·호스트 값 받기 포함).</summary>
         public event Action Rebuilt;
 
         /// <summary>막힌 구간(<see cref="BlockSegment"/>)이 바뀌었을 때.</summary>
@@ -104,8 +60,13 @@ namespace CurtainCall.Tightrope
         /// <summary>줄 사용 가능 여부가 바뀌었을 때. 인자는 (줄, 막혔는지).</summary>
         public event Action<int, bool> LaneBlockedChanged;
 
+        /// <summary>지금 코스 모양 값. 플레이 중에는 만들 때 붙잡아 둔 값(온라인이면 호스트 값), 플레이 전에는 세팅 그대로.</summary>
+        public TightropeSettings.CourseSettings Shape => Application.isPlaying ? (shape ??= Settings.Clone()) : Settings;
+
+        static TightropeSettings.CourseSettings Settings => GameSettings.Tightrope.Course;
+
         /// <summary>코스 모양 계산(읽기 전용).</summary>
-        public CourseLayout Layout => layout ??= CreateLayout();
+        public CourseLayout Layout => Application.isPlaying ? (layout ??= CreateLayout()) : CreateLayout();
 
         public int LaneCount => Layout.LaneCount;
         public float LaneSpacing => Layout.LaneSpacing;
@@ -153,9 +114,9 @@ namespace CurtainCall.Tightrope
         public bool IsOnRope(Vector3 position, float radius, out int lane)
         {
             lane = NoLane;
-            if (Mathf.Abs(position.y - transform.position.y) > OnRopeHeightTolerance) return false;
+            if (Mathf.Abs(position.y - transform.position.y) > Shape.RopeHeightTolerance) return false;
             if (!TryGetRopePoint(position, out int nearest, out _)) return false;
-            if (Mathf.Abs(GetSide(position) - Layout.GetLaneSide(nearest)) > ropeWalkWidth * 0.5f + radius) return false;
+            if (Mathf.Abs(GetSide(position) - Layout.GetLaneSide(nearest)) > Shape.RopeWalkWidth * 0.5f + radius) return false;
             lane = nearest;
             return true;
         }
@@ -232,7 +193,7 @@ namespace CurtainCall.Tightrope
         {
             slot = Mathf.Max(0, slot);
             int lane = slot % LaneCount;
-            float distance = spawnDistance - slot / LaneCount;
+            float distance = Shape.SpawnDistance - slot / LaneCount;
             return new Pose(GetLanePosition(lane, distance), Quaternion.LookRotation(Forward, Vector3.up));
         }
 
@@ -240,7 +201,7 @@ namespace CurtainCall.Tightrope
         public Pose GetFinishPose(int slot)
         {
             int lane = Mathf.Max(0, slot) % LaneCount;
-            float distance = FinishDistance + Mathf.Clamp(finishPlatformLength * 0.5f, 0.5f, 2f);
+            float distance = FinishDistance + Mathf.Clamp(Shape.FinishPlatformLength * 0.5f, 0.5f, 2f);
             return new Pose(GetLanePosition(lane, distance), Quaternion.LookRotation(Forward, Vector3.up));
         }
 
@@ -255,19 +216,38 @@ namespace CurtainCall.Tightrope
             Rebuild();
         }
 
-        void OnEnable() => current = this;
+        void OnEnable()
+        {
+            current = this;
+            GameSettings.Tightrope.Changed += HandleSettingsChanged;
+        }
 
         void OnDisable()
         {
             if (current == this) current = null;
+            GameSettings.Tightrope.Changed -= HandleSettingsChanged;
+        }
+
+        /// <summary>세팅이 바뀌면 다음 프레임에 다시 읽는다. 잠겨 있으면 풀릴 때 읽는다.</summary>
+        void HandleSettingsChanged()
+        {
+            if (!Application.isPlaying) return;
+            if (Locked)
+            {
+                if (!rebuildRequested)
+                    Debug.LogWarning($"[Tightrope] 코스 세팅 변경은 잠금이 풀릴 때 반영됩니다: {lockReason}", this);
+                rebuildRequested = true;
+                return;
+            }
+            rebuildRequested = true; // OnValidate 안에서는 오브젝트를 만들지 않는다
         }
 
         void Update()
         {
-            if (rebuildRequested)
+            if (rebuildRequested && !Locked)
             {
                 rebuildRequested = false;
-                Rebuild();
+                ReloadSettings();
             }
             ApplyLaneSpacing();
             CheckLocalFall();
@@ -286,14 +266,14 @@ namespace CurtainCall.Tightrope
         }
 
         /// <summary>
-        /// 내 캐릭터가 줄 높이보다 <see cref="fallDepth"/> 넘게 내려가면 추락시킨다(→ 007 흐름으로 호스트에 추락 요청).
+        /// 내 캐릭터가 줄 높이보다 세팅의 추락 깊이 넘게 내려가면 추락시킨다(→ 007 흐름으로 호스트에 추락 요청).
         /// 줄 밖 착지 자체의 판정은 줄 위 캐릭터 동작(011)이 한다. 이 검사는 어떤 이유로든 떨어진 경우를 놓치지 않기 위한 바닥선이다.
         /// </summary>
         void CheckLocalFall()
         {
             var player = NetworkPlayer.Local;
             if (player == null || player.State != PlayerState.Normal) return;
-            if (player.transform.position.y >= transform.position.y - fallDepth) return;
+            if (player.transform.position.y >= transform.position.y - Shape.FallDepth) return;
 
             if (player.TryGetComponent(out PlayerBalance balance) && balance.enabled)
                 balance.ForceFall(); // 이미 추락했으면 무시된다. Fell → RequestState(Fallen)
@@ -303,24 +283,8 @@ namespace CurtainCall.Tightrope
 
         void OnValidate()
         {
-            if (Application.isPlaying && Locked && lockedShape != null)
-            {
-                // 잠긴 동안의 인스펙터 변경은 되돌린다(게임 시작 후, 또는 클라이언트는 호스트 값만 쓴다)
-                if (JsonUtility.ToJson(CaptureShape()) != lockedShape)
-                {
-                    ApplyShape(JsonUtility.FromJson<Shape>(lockedShape));
-                    Debug.LogWarning($"[Tightrope] 코스 값을 바꿀 수 없습니다: {lockReason}", this);
-                }
-                return;
-            }
-
-            layout = null;
-            if (Application.isPlaying)
-            {
-                rebuildRequested = true; // OnValidate 안에서는 오브젝트를 만들지 않는다
-                return;
-            }
 #if UNITY_EDITOR
+            if (Application.isPlaying) return;
             UnityEditor.EditorApplication.delayCall += () =>
             {
                 if (this != null) PlaceSpawnPoints();
@@ -328,7 +292,16 @@ namespace CurtainCall.Tightrope
 #endif
         }
 
-        /// <summary>인스펙터 값으로 코스를 다시 만든다. 에디터(플레이 전)에서는 출발 위치만 옮긴다.</summary>
+        /// <summary>세팅 값이 지금 코스와 다르면 복사해 다시 만든다.</summary>
+        void ReloadSettings()
+        {
+            string json = Settings.ToJson();
+            if (shape != null && json == shape.ToJson()) return;
+            shape = TightropeSettings.CourseSettings.FromJson(json);
+            Rebuild();
+        }
+
+        /// <summary>지금 코스 모양 값(<see cref="Shape"/>)으로 코스를 다시 만든다. 에디터(플레이 전)에서는 출발 위치만 옮긴다.</summary>
         public void Rebuild()
         {
             layout = CreateLayout();
@@ -362,85 +335,40 @@ namespace CurtainCall.Tightrope
 
         // ── 코스 값 공유·잠금 ───────────────────────────────
 
-        /// <summary>코스 모양 값(인스펙터 중 공유할 것만). 호스트 → 클라이언트로 JSON으로 보낸다.</summary>
-        [Serializable]
-        class Shape
-        {
-            public int laneCount;
-            public float laneSpacing;
-            public float[] laneEndDistances;
-            public float finishDistance;
-            public Vector2[] laneChangeZones;
-            public float startPlatformLength, finishPlatformLength, sideMargin, platformThickness;
-            public float ropeThickness, ropeWalkWidth, spawnDistance, safetyNetDepth, fallDepth;
-        }
-
-        string lockedShape;
         string lockReason;
 
-        /// <summary>코스 값이 잠겼는지. 잠긴 동안 인스펙터 변경은 되돌린다.</summary>
+        /// <summary>코스 값이 잠겼는지. 잠긴 동안 세팅 변경은 미뤄 두고 풀릴 때 반영한다.</summary>
         public bool Locked { get; private set; }
 
         /// <summary>지금 코스 값(JSON). 호스트가 클라이언트에 보낼 때 쓴다.</summary>
-        public string ExportShape() => JsonUtility.ToJson(CaptureShape());
+        public string ExportShape() => Shape.ToJson();
 
-        /// <summary>받은 코스 값(JSON)으로 바꾸고 다시 만든다. 잠겨 있으면 잠금 기준도 이 값이 된다.</summary>
+        /// <summary>받은 코스 값(JSON)으로 바꾸고 다시 만든다. 세팅 에셋은 바꾸지 않는다.</summary>
         public void ImportShape(string json)
         {
             if (string.IsNullOrEmpty(json) || json == ExportShape()) return;
-            ApplyShape(JsonUtility.FromJson<Shape>(json));
-            if (Locked) lockedShape = json;
+            var imported = TightropeSettings.CourseSettings.FromJson(json);
+            if (imported == null) return;
+            shape = imported;
             Rebuild();
         }
 
-        /// <summary>코스 값을 잠그거나 푼다. 잠그는 순간의 값이 기준이 된다. <paramref name="reason"/>은 되돌릴 때 경고 문구.</summary>
+        /// <summary>
+        /// 코스 값을 잠그거나 푼다. <paramref name="reason"/>은 잠긴 동안 세팅을 바꿨을 때 경고 문구.
+        /// 풀면 세팅을 다시 읽어 다르면 다시 만든다(예: 클라이언트가 접속을 끊으면 내 세팅으로, 게임 중 바꾼 값은 다음 대기 때).
+        /// </summary>
         public void SetLocked(bool locked, string reason = null)
         {
             Locked = locked;
             lockReason = reason;
-            lockedShape = locked ? ExportShape() : null;
+            if (!locked && Application.isPlaying) rebuildRequested = true;
         }
 
-        Shape CaptureShape() => new()
+        CourseLayout CreateLayout()
         {
-            laneCount = laneCount,
-            laneSpacing = laneSpacing,
-            laneEndDistances = laneEndDistances,
-            finishDistance = finishDistance,
-            laneChangeZones = laneChangeZones,
-            startPlatformLength = startPlatformLength,
-            finishPlatformLength = finishPlatformLength,
-            sideMargin = sideMargin,
-            platformThickness = platformThickness,
-            ropeThickness = ropeThickness,
-            ropeWalkWidth = ropeWalkWidth,
-            spawnDistance = spawnDistance,
-            safetyNetDepth = safetyNetDepth,
-            fallDepth = fallDepth,
-        };
-
-        void ApplyShape(Shape shape)
-        {
-            if (shape == null) return;
-            laneCount = shape.laneCount;
-            laneSpacing = shape.laneSpacing;
-            laneEndDistances = shape.laneEndDistances;
-            finishDistance = shape.finishDistance;
-            laneChangeZones = shape.laneChangeZones;
-            startPlatformLength = shape.startPlatformLength;
-            finishPlatformLength = shape.finishPlatformLength;
-            sideMargin = shape.sideMargin;
-            platformThickness = shape.platformThickness;
-            ropeThickness = shape.ropeThickness;
-            ropeWalkWidth = shape.ropeWalkWidth;
-            spawnDistance = shape.spawnDistance;
-            safetyNetDepth = shape.safetyNetDepth;
-            fallDepth = shape.fallDepth;
-            layout = null;
+            var c = Shape;
+            return new(c.LaneCount, c.LaneSpacing, c.FinishDistance, c.LaneEndDistances, c.LaneChangeZones);
         }
-
-        CourseLayout CreateLayout() =>
-            new(laneCount, laneSpacing, finishDistance, laneEndDistances, laneChangeZones);
 
         void PlaceSpawnPoints()
         {
@@ -460,20 +388,21 @@ namespace CurtainCall.Tightrope
             generated.SetParent(transform, false);
 
             var l = layout;
-            float width = (l.LaneCount - 1) * l.LaneSpacing + sideMargin * 2f;
+            var c = Shape;
+            float width = (l.LaneCount - 1) * l.LaneSpacing + c.SideMargin * 2f;
 
             // 시작 플랫폼: 출발선 뒤, 모든 줄 폭
-            CreateBox("StartPlatform", new Vector3(0f, -platformThickness * 0.5f, -startPlatformLength * 0.5f),
-                new Vector3(width, platformThickness, startPlatformLength), platformColor, true);
+            CreateBox("StartPlatform", new Vector3(0f, -c.PlatformThickness * 0.5f, -c.StartPlatformLength * 0.5f),
+                new Vector3(width, c.PlatformThickness, c.StartPlatformLength), platformColor, true);
 
             // 줄: 보이는 굵기는 가늘게, 충돌체는 걸을 수 있는 폭으로
             for (int lane = 0; lane < l.LaneCount; lane++)
             {
                 float end = l.GetLaneEnd(lane);
-                var rope = CreateBox($"Rope{lane}", new Vector3(l.GetLaneSide(lane), -ropeThickness * 0.5f, end * 0.5f),
-                    new Vector3(ropeThickness, ropeThickness, end), ropeColor, true);
+                var rope = CreateBox($"Rope{lane}", new Vector3(l.GetLaneSide(lane), -c.RopeThickness * 0.5f, end * 0.5f),
+                    new Vector3(c.RopeThickness, c.RopeThickness, end), ropeColor, true);
                 var box = rope.GetComponent<BoxCollider>();
-                box.size = new Vector3(ropeWalkWidth / ropeThickness, 1f, 1f);
+                box.size = new Vector3(c.RopeWalkWidth / c.RopeThickness, 1f, 1f);
             }
 
             // 도착 선과 도착 플랫폼: 도착까지 가는 줄들을 덮는다
@@ -486,19 +415,19 @@ namespace CurtainCall.Tightrope
             }
             if (finishMin <= finishMax)
             {
-                float finishWidth = finishMax - finishMin + sideMargin * 2f;
+                float finishWidth = finishMax - finishMin + c.SideMargin * 2f;
                 float center = (finishMin + finishMax) * 0.5f;
                 CreateBox("FinishLine", new Vector3(center, 0.01f, l.FinishDistance),
                     new Vector3(finishWidth, 0.02f, 0.1f), finishColor, false);
-                if (finishPlatformLength > 0f)
-                    CreateBox("FinishPlatform", new Vector3(center, -platformThickness * 0.5f, l.FinishDistance + finishPlatformLength * 0.5f),
-                        new Vector3(finishWidth, platformThickness, finishPlatformLength), platformColor, true);
+                if (c.FinishPlatformLength > 0f)
+                    CreateBox("FinishPlatform", new Vector3(center, -c.PlatformThickness * 0.5f, l.FinishDistance + c.FinishPlatformLength * 0.5f),
+                        new Vector3(finishWidth, c.PlatformThickness, c.FinishPlatformLength), platformColor, true);
             }
 
-            if (safetyNetDepth > 0f)
+            if (c.SafetyNetDepth > 0f)
             {
-                float length = startPlatformLength + l.FinishDistance + finishPlatformLength + 10f;
-                CreateBox("SafetyNet", new Vector3(0f, -safetyNetDepth - 0.05f, (l.FinishDistance + finishPlatformLength - startPlatformLength) * 0.5f),
+                float length = c.StartPlatformLength + l.FinishDistance + c.FinishPlatformLength + 10f;
+                CreateBox("SafetyNet", new Vector3(0f, -c.SafetyNetDepth - 0.05f, (l.FinishDistance + c.FinishPlatformLength - c.StartPlatformLength) * 0.5f),
                     new Vector3(width + 10f, 0.1f, length), netColor, true);
             }
         }
@@ -521,11 +450,12 @@ namespace CurtainCall.Tightrope
         {
             if (Application.isPlaying) return; // 플레이 중에는 실제 메시가 보인다
             var l = Layout;
+            var c = Shape;
             Vector3 origin = transform.position, forward = Forward, right = Right;
-            float width = (l.LaneCount - 1) * l.LaneSpacing + sideMargin * 2f;
+            float width = (l.LaneCount - 1) * l.LaneSpacing + c.SideMargin * 2f;
 
             Gizmos.color = platformColor;
-            DrawRect(origin + forward * (-startPlatformLength * 0.5f), width, startPlatformLength, forward, right);
+            DrawRect(origin + forward * (-c.StartPlatformLength * 0.5f), width, c.StartPlatformLength, forward, right);
 
             for (int lane = 0; lane < l.LaneCount; lane++)
             {

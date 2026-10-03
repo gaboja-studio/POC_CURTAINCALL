@@ -119,4 +119,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1328e97e44a8648a1b883367c943bab6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.Session.NetworkSessionManager
-  _requiredPlayers: 4

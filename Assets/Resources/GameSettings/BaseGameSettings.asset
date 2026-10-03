@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f58d5f62778d945ba81f667dea44aee7, type: 3}
+  m_Name: BaseGameSettings
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.BaseGameSettings
+  session:
+    maxPlayers: 4
+    minPlayers: 1
+  character:
+    freeMoveSpeed: 3
+    turnSpeed: 720
+    gravity: 9.81
+    capsuleHeight: 1.5
+    capsuleDiameter: 0.6
+    modelHeight: 1.73
+    pushSpeed: 2
+    playerGap: 0.05
+  input:
+    longPressTime: 0.5
+  balance:
+    greenLimit: 40
+    fallTime: 2
+    correctionSpeed: 60
+    movingSway: 15
+    idleSway: 5
+    swayDirectionInterval: {x: 1, y: 2}
+    tiltAcceleration: 0.5
+  presentation:
+    maxTiltAngle: 25
+    tiltFollowSharpness: 10
+    ragdollTiltPush: 1.5
+  sync:
+    balanceSendThreshold: 0.5
