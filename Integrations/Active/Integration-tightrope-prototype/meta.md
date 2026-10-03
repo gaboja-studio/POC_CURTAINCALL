@@ -6,13 +6,14 @@
 - **Base:** dev
 - **PM:** @MoHoDu
 - **Merge Time:** 순차 병합 — 1단계 작업은 2~3일차, 연결 작업은 4일차, 공동 테스트·dev 반영은 5일차 (착수 후 5일 기한)
-- **Updated:** 2026-10-02
+- **Updated:** 2026-10-03
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
 ## 목표
 
-- 4명이 온라인 방에 모이면 게임이 시작되고, 4줄로 시작해 1줄로 끝나는 직선 코스 위에서 이동·균형·옆줄 이동·목마·해제를 함께 테스트할 수 있다.
+- 4명이 온라인 방에 모여 외줄 묘기 플로우(대기 → 묘기 시작 → 톱날·불을 피해 100m 코스 → 클리어/실패 재시작 → 결과·보상)를 함께 테스트할 수 있다.
+- 2026-10-03 재편: 단계별 두 갈래 진행, 다음 작업은 013(조정값 세팅), 008 보류, 017·018·019 에셋 대기.
 - 쉬운 설명·작업 공간 전체: [plan.md](plan.md)
 
 ## Tasks
@@ -21,14 +22,21 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 |---|---|---|---|---|---|
 | Task-20260930-003 | feat | @MoHoDu | feat/network-session | #6 | integrated |
 | Task-20260930-004 | feat | @MoHoDu | feat/player-control | #7 | integrated |
-| Task-20260930-005 | feat | @MoHoDu(임시) | feat/tightrope-core | - | assigned |
-| Task-20260930-006 | feat | @MoHoDu(임시) | feat/tightrope-piggyback (인계 때 생성) | - | scaffolded |
-| Task-20260930-007 | feat | @MoHoDu(임시) | feat/network-player-sync | #11 | integrated (QA #13 통과) |
-| Task-20260930-008 | feat | @MoHoDu(임시) | feat/network-prop-sync (인계 때 생성) | - | scaffolded |
-| Task-20260930-009 | feat | @MoHoDu(임시) | feat/tightrope-network (인계 때 생성) | - | scaffolded |
-| Task-20260930-010 | feat | @MoHoDu(임시) | feat/piggyback-network (인계 때 생성) | - | scaffolded |
+| Task-20260930-005 | feat | @MoHoDu | feat/tightrope-core | #18 | submitted (#18 병합됨, 공동 테스트 결과 정리 대기) |
+| Task-20260930-006 | feat | @MoHoDu | feat/tightrope-piggyback (인계 때 생성) | - | scaffolded |
+| Task-20260930-007 | feat | @MoHoDu | feat/network-player-sync | #11 | integrated (QA #13 통과) |
+| Task-20260930-008 | feat | @MoHoDu | feat/network-prop-sync (인계 때 생성) | - | blocked (2026-10-03 보류) |
+| Task-20260930-009 | feat | @MoHoDu | feat/tightrope-network (인계 때 생성) | - | scaffolded |
+| Task-20260930-010 | feat | @MoHoDu | feat/piggyback-network (인계 때 생성) | - | scaffolded |
 | Task-20261001-011 | feat | @MoHoDu | feat/tightrope-rider | - | assigned |
 | Task-20261003-012 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261003-013 | refactor | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261003-014 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261003-015 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261003-016 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261003-017 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261003-018 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261003-019 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 
 ## 공용 파일 소유 표
 
@@ -43,7 +51,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | `Assets/Resources/Fonts/` | Task-20260930-004 → 이후 PM 배정 | 임시 UI 폰트(TMP) |
 | `Assets/TextMesh Pro/` | 없음 (공용, 수정 금지) | TMP 기본 리소스 (2026-10-01 004에서 가져옴) |
 | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | Task-20260930-005 | 외줄 코스 스테이지 (다른 Task는 배치만) |
-| `Assets/Resources/Prefabs/Objects/Tools/` | Task-20260930-008 | 도구 프리팹 |
+| `Assets/Resources/Prefabs/Objects/Tools/` | Task-20260930-008 (보류) | 도구 프리팹 |
+| `Assets/Resources/GameSettings/`, `Assets/Scripts/Settings/` | Task-20261003-013 → 이후 칸 추가 Task PM 배정 | 기획 조정값 세팅 파일 (`Harness/Project/Decisions/game-settings.md`) |
 | `Assets/Scripts/Network/PlayerSync/` | Task-20260930-007 | 이후 Task는 공개 기능만 사용, 수정은 PM 배정. 테스트 부품 `TestRoundRestart.cs`는 005, `TestLaneLanding.cs`는 011이 대체·삭제 |
 
 `Packages/`, `ProjectSettings/`는 PM이 인계 전 이 브랜치에서 직접 설치·설정한다(모든 Task 수정 금지).

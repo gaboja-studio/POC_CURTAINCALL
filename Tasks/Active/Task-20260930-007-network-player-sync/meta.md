@@ -28,7 +28,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
-- Open: 담당자 확정(현재 임시 @MoHoDu)
+- Decided: 2026-10-03 @MoHoDu — 담당자 @MoHoDu(PM 직접) 기본 배정. 바뀌면 PM이 다시 배정
 - Decided: 2026-10-02 @MoHoDu — 플레이어 충돌(이슈 #9, 이 Task PR에서 닫음): 서로 밀지 않음, 같은 줄 앞뒤 막힘, 줄 간격 1.5→2.0m, 목마 전까지 옆줄 도착점 겹치면 점프 막음. 기획과 다른 수치는 항상 인스펙터로 바꿀 수 있게 둔다
 - Decided: 2026-10-02 @MoHoDu — 재시작은 전원 추락 시 모두 같이(개인 재시작 없음). 007이 호스트 "모두 재시작" 공유를 제공, 테스트 씬은 전원 추락 3초 후·R=재시작 요청
 - Decided: 2026-10-02 @MoHoDu — 카메라는 Cinemachine으로 내 캐릭터 3인칭 시점, 내 줄과 양쪽 옆줄이 보이는 정도. 고도화는 이후 Cinemachine 설정으로
