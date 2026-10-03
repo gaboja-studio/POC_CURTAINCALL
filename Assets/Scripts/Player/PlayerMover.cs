@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.Player
@@ -23,6 +24,7 @@ namespace CurtainCall.Player
     /// 옆줄 점프의 허용 여부·착지 판정(줄 유무·합체·보정)은 외줄 기능이 <see cref="LaneJumpFilter"/> 등으로 붙인다.
     /// 목마 중 점프 규칙은 목마 기능이 정한다.
     /// 플레이어끼리는 물리로 밀지 않는다: 몸통 충돌을 끄고, 같은 줄 앞뒤에 다른 플레이어가 있으면 닿기 직전까지만 간다.
+    /// 속도·중력·점프·몸통 크기는 세팅(<see cref="GameSettings"/>)에서 매 프레임 읽는다(캐릭터 = 게임 기본, 줄 위 동작 = 외줄 세팅).
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class PlayerMover : MonoBehaviour
@@ -32,30 +34,6 @@ namespace CurtainCall.Player
 
         [Tooltip("목적지가 없을 때 쓰는 월드 전진 방향. 높이(Y)는 무시한다.")]
         [SerializeField] Vector3 courseDirection = Vector3.forward;
-
-        [Tooltip("초당 이동 거리(m).")]
-        [SerializeField, Min(0f)] float moveSpeed = 3f;
-
-        [Tooltip("중력 크기(m/s²). 기획 기준 9.81.")]
-        [SerializeField, Min(0.1f)] float gravityStrength = 9.81f;
-
-        [Tooltip("제자리 점프 높이(m, 발 기준 최고점). 기획 제안값 1.0. 점프 초속 = √(2 × 중력 × 높이).")]
-        [SerializeField, Min(0f)] float jumpHeight = 1f;
-
-        [Tooltip("옆줄 점프로 옆으로 이동할 거리(m) = 줄 간격. 기획 제안값 1.5 → 2026-10-02 2.0으로 조정(기울기 25°에서 옆줄 플레이어와 겹치지 않게). 같은 높이에 착지하는 공중 시간 동안 이 거리를 간다.")]
-        [SerializeField, Min(0f)] float laneSpacing = 2f;
-
-        [Tooltip("일반 이동(플랫폼) 속도(m/s). 줄 위 속도(moveSpeed)와 따로 둔다. 2026-10-03 PM: 줄 위 0.5는 플랫폼에서 너무 느려 테스트 값 3.")]
-        [SerializeField, Min(0f)] float freeMoveSpeed = 3f;
-
-        [Tooltip("일반 이동(플랫폼)에서 이동 방향으로 몸을 돌리는 속도(도/초).")]
-        [SerializeField, Min(0f)] float turnSpeed = 720f;
-
-        [Tooltip("몸통으로 래그돌 같은 물체를 밀 때 물체에 주는 속도(m/s, 미는 방향). 0이면 밀지 않는다.")]
-        [SerializeField, Min(0f)] float pushSpeed = 2f;
-
-        [Tooltip("다른 플레이어와 앞뒤로 닿을 때 남길 틈(m).")]
-        [SerializeField, Min(0f)] float playerGap = 0.05f;
 
         [Tooltip("임시(목마 기능 구현 전): 옆줄 점프 도착점이 다른 플레이어 몸통과 겹치면 점프하지 않는다. 목마 기능이 합체로 바꿀 때 끈다.")]
         [SerializeField] bool blockLaneJumpOntoPlayer = true;
@@ -73,6 +51,10 @@ namespace CurtainCall.Player
         Vector3 groundVelocity; // 땅에서의 수평 속도
         Vector3 airVelocity;    // 공중에서 고정해 쓰는 수평 속도
         float laneTargetSide;   // 옆줄 점프 도착 줄의 옆 좌표(CourseRight 방향 월드 좌표)
+        float laneSpacing;      // 옆줄 점프 거리. 외줄 코스가 자기 줄 간격으로 맞춘다
+
+        static BaseGameSettings.CharacterSettings Character => GameSettings.Base.Character;
+        static TightropeSettings.RopeMovementSettings Rope => GameSettings.Tightrope.RopeMovement;
 
         /// <summary>땅에서 떨어질 때(true)·착지할 때(false) 보낸다. 점프·낙하 모두 포함. 착지 알림 때 <see cref="CurrentJump"/>는 아직 남아 있다.</summary>
         public event Action<bool> AirborneChanged;
@@ -145,7 +127,7 @@ namespace CurtainCall.Player
         /// <summary>몸통 충돌체.</summary>
         public CharacterController Body => controller;
 
-        /// <summary>줄 간격(m). 옆줄 점프 거리와 같다. 외줄 코스가 자기 줄 간격으로 맞춘다.</summary>
+        /// <summary>줄 간격(m). 옆줄 점프 거리와 같다. 처음에는 외줄 세팅의 줄 간격, 코스가 있으면 코스가 자기 줄 간격으로 맞춘다.</summary>
         public float LaneSpacing
         {
             get => laneSpacing;
@@ -187,10 +169,10 @@ namespace CurtainCall.Player
         }
 
         /// <summary>점프 초속(m/s).</summary>
-        public float JumpSpeed => Mathf.Sqrt(2f * gravityStrength * jumpHeight);
+        public float JumpSpeed => Mathf.Sqrt(2f * Character.Gravity * Rope.JumpHeight);
 
         /// <summary>같은 높이로 착지할 때까지의 공중 시간(초).</summary>
-        public float AirTime => 2f * JumpSpeed / gravityStrength;
+        public float AirTime => 2f * JumpSpeed / Character.Gravity;
 
         /// <summary>이동 명령을 받는지. 꺼져 있으면 이동·점프를 무시한다(중력은 계속 적용).</summary>
         public bool ControlEnabled { get; private set; } = true;
@@ -246,6 +228,8 @@ namespace CurtainCall.Player
         void Awake()
         {
             controller = GetComponent<CharacterController>();
+            laneSpacing = GameSettings.Tightrope.Course.LaneSpacing;
+            ApplyBodySize();
             startPosition = transform.position;
             startRotation = transform.rotation;
         }
@@ -268,8 +252,20 @@ namespace CurtainCall.Player
 
         void OnDisable() => active.Remove(this);
 
+        /// <summary>몸통(캡슐) 크기를 세팅에 맞춘다. 발 위치(원점)는 그대로 두고 중심만 옮긴다.</summary>
+        void ApplyBodySize()
+        {
+            float height = Character.CapsuleHeight;
+            float radius = Character.CapsuleRadius;
+            if (Mathf.Approximately(controller.height, height) && Mathf.Approximately(controller.radius, radius)) return;
+            controller.height = height;
+            controller.radius = radius;
+            controller.center = new Vector3(0f, height * 0.5f, 0f);
+        }
+
         void Update()
         {
+            ApplyBodySize();
             if (!Simulated) return;
 
             Vector3 forward = CourseForward;
@@ -285,15 +281,15 @@ namespace CurtainCall.Player
                 {
                     float side = ControlEnabled ? sideInput : 0f;
                     Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
-                    groundVelocity = input * freeMoveSpeed;
+                    groundVelocity = input * Character.FreeMoveSpeed;
                     IsMoving = input.sqrMagnitude > 0.0001f;
                     if (IsMoving)
                         transform.rotation = Quaternion.RotateTowards(transform.rotation,
-                            Quaternion.LookRotation(input, Vector3.up), turnSpeed * Time.deltaTime);
+                            Quaternion.LookRotation(input, Vector3.up), Character.TurnSpeed * Time.deltaTime);
                 }
                 else
                 {
-                    groundVelocity = forward * (move * moveSpeed);
+                    groundVelocity = forward * (move * Rope.MoveSpeed);
                     IsMoving = !Mathf.Approximately(move, 0f);
                 }
 
@@ -307,7 +303,7 @@ namespace CurtainCall.Player
             else
             {
                 IsMoving = false;
-                verticalSpeed -= gravityStrength * Time.deltaTime;
+                verticalSpeed -= Character.Gravity * Time.deltaTime;
             }
 
             Vector3 horizontal = CurrentJump != JumpKind.None ? airVelocity : groundVelocity;
@@ -360,7 +356,7 @@ namespace CurtainCall.Player
                 float ahead = Vector3.Dot(delta, forward) * sign;
                 if (ahead <= 0f) continue; // 가는 방향의 반대쪽
 
-                float contact = Mathf.Sqrt(reach * reach - side * side) + playerGap;
+                float contact = Mathf.Sqrt(reach * reach - side * side) + Character.PlayerGap;
                 allowed = Mathf.Min(allowed, Mathf.Max(0f, ahead - contact));
             }
 
@@ -381,7 +377,7 @@ namespace CurtainCall.Player
                 if (Mathf.Abs(toOther.y) >= Mathf.Max(BodyHeight, other.BodyHeight)) continue;
                 toOther.y = 0f;
 
-                float reach = BodyRadius + other.BodyRadius + playerGap;
+                float reach = BodyRadius + other.BodyRadius + Character.PlayerGap;
                 Vector3 next = toOther - step;
                 if (next.sqrMagnitude >= reach * reach || Vector3.Dot(step, toOther) <= 0f) continue;
 
@@ -395,6 +391,7 @@ namespace CurtainCall.Player
         void OnControllerColliderHit(ControllerColliderHit hit)
         {
             var body = hit.rigidbody;
+            float pushSpeed = Character.PushSpeed;
             if (pushSpeed <= 0f || body == null || body.isKinematic || hit.moveDirection.y < -0.3f) return;
 
             Vector3 direction = new Vector3(hit.moveDirection.x, 0f, hit.moveDirection.z);

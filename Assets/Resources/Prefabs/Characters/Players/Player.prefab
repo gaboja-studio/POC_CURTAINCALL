@@ -81,7 +81,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerInputReader
   inputAsset: {fileID: 0}
-  longPressTime: 0.5
 --- !u!114 &5925600415630618710
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -96,14 +95,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerMover
   destination: {fileID: 0}
   courseDirection: {x: 0, y: 0, z: 1}
-  moveSpeed: 0.5
-  gravityStrength: 9.81
-  jumpHeight: 0.8
-  laneSpacing: 3
-  freeMoveSpeed: 3
-  turnSpeed: 720
-  pushSpeed: 2
-  playerGap: 0.05
   blockLaneJumpOntoPlayer: 1
 --- !u!114 &737775002277357732
 MonoBehaviour:
@@ -118,24 +109,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerBalance
   activeOnStart: 1
-  greenLimit: 40
-  fallTime: 2
-  correctionSpeed: 60
-  movingSway: 15
-  idleSway: 5
-  swayDirectionInterval: {x: 1, y: 2}
-  tiltAcceleration: 0.5
-  landingShock: 10
-  minAirTimeForShock: 0.15
-  laneLandingShock: 35
-  laneSwayBoost: 1.75
-  laneSwayBoostDuration: 3
-  stackMultipliers:
-  - 1
-  - 1.3
-  - 1.6
-  - 2
-  upperTransfer: 0.2
   stackSize: 1
   upperBalanceSum: 0
 --- !u!114 &3625543077194708228
@@ -178,7 +151,6 @@ MonoBehaviour:
   slot: {fileID: 0}
   modelPrefab: {fileID: 4469623338324297290, guid: e42fa339abfd74e90aa3db3f6f221916, type: 3}
   fitToHeight: 1
-  characterHeight: 1.73
 --- !u!114 &5648411644042141170
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -191,8 +163,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95f5189c0f75b416bac9064520f1d82a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.BalanceTiltView
-  maxTiltAngle: 25
-  followSharpness: 10
 --- !u!114 &7702986224998439374
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -205,7 +175,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7386e892f93ac4800bd06bde5ee84cd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerRagdoll
-  tiltPush: 1.5
   fallbackMass: 5
 --- !u!114 &1447994521893016003
 MonoBehaviour:
@@ -247,7 +216,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.PlayerSync.NetworkPlayer
   ShowTopMostFoldoutHeaderGroup: 1
-  balanceSendThreshold: 0.5
 --- !u!114 &6130112482532563049
 MonoBehaviour:
   m_ObjectHideFlags: 0

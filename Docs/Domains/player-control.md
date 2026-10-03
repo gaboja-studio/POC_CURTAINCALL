@@ -36,7 +36,7 @@
 
 에셋
 - `Assets/Resources/Input/PlayerControls.inputactions` — 맵 `Common`: Move, Posture, Action, DirectionLeft, DirectionRight, Interact.
-- `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 루트에 CharacterController·위 컴포넌트. 모델은 `ModelSlot` 아래.
+- `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 루트에 CharacterController·위 컴포넌트. 모델은 `ModelSlot` 아래. 수치 칸 없음(013): 속도·중력·몸통 크기·균형·연출 값은 `GameSettings.Base`, 줄 위 동작·목마는 `GameSettings.Tightrope`(`Assets/Scripts/Settings/`)에서 매 프레임 읽는다.
 - `Assets/Resources/Prefabs/Characters/Players/Models/` — `DefaultCapsule`, `BlockDoll`(관절 래그돌), `Materials/`.
 - `Assets/Resources/Prefabs/UIs/Player/BalanceGauge.prefab` — Canvas + TMP(임시 폰트 `Assets/Resources/Fonts/Pretendard-Medium/`).
 - 테스트 씬: `Assets/Scenes/Tests/PlayerControl/PlayerControl.unity`.

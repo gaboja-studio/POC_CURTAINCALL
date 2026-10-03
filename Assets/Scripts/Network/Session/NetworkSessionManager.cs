@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CurtainCall.Settings;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Multiplayer;
@@ -10,6 +11,7 @@ namespace CurtainCall.Network.Session
     /// <summary>
     /// 방 접속과 게임 진행 상태의 공개 진입점. 다른 기능은 이 클래스의 메서드·이벤트만 사용한다.
     /// NetworkManager 프리팹(Resources/Prefabs/Controllers/Network/NetworkManager)에 함께 붙는다.
+    /// 정원·최소 시작 인원은 게임 기본 세팅(세션)에서 읽는다(호스트 판정이므로 호스트 값 기준).
     /// </summary>
     [RequireComponent(typeof(NetworkManager))]
     public sealed class NetworkSessionManager : MonoBehaviour
@@ -36,12 +38,6 @@ namespace CurtainCall.Network.Session
             return Instance;
         }
 
-        [Tooltip("세션 최대 인원. 이 인원이 차면 더 들어오지 못한다(자동 시작은 하지 않음).")]
-        [SerializeField, Min(1)] int _requiredPlayers = 4;
-
-        [Tooltip("호스트가 게임을 시작할 수 있는 최소 인원(호스트 포함). 2026-10-02 테스트용 1.")]
-        [SerializeField, Min(1)] int _minPlayers = 1;
-
         public SessionConnectionState ConnectionState { get; private set; } = SessionConnectionState.Offline;
 
         /// <summary>모든 플레이어가 같게 보는 게임 상태. 접속이 끊기면 진행 중이었어도 Ended로 남는다.</summary>
@@ -50,10 +46,11 @@ namespace CurtainCall.Network.Session
         /// <summary>현재 접속 인원. 호스트·클라이언트 모두 같은 값을 본다.</summary>
         public int PlayerCount { get; private set; }
 
-        public int RequiredPlayers => _requiredPlayers;
+        /// <summary>세션 최대 인원(정원).</summary>
+        public int RequiredPlayers => GameSettings.Base.Session.MaxPlayers;
 
         /// <summary>게임을 시작할 수 있는 최소 인원(호스트 포함).</summary>
-        public int MinPlayers => Mathf.Min(_minPlayers, _requiredPlayers);
+        public int MinPlayers => GameSettings.Base.Session.MinPlayers;
 
         /// <summary>호스트가 지금 게임을 시작할 수 있는지(대기 중 + 최소 인원 이상).</summary>
         public bool CanStartGame => IsHost && GameState == GameSessionState.Waiting && PlayerCount >= MinPlayers;
@@ -171,11 +168,11 @@ namespace CurtainCall.Network.Session
 
         /// <summary>Multiplayer Services 세션(Relay)으로 방을 연다. 방 코드는 <see cref="JoinKey"/>.</summary>
         public Task<bool> HostSessionAsync() =>
-            HostAsync(new ServicesSessionConnector(_networkManager, _requiredPlayers));
+            HostAsync(new ServicesSessionConnector(_networkManager, RequiredPlayers));
 
         /// <summary>방 고유 코드로 세션에 참가한다.</summary>
         public Task<bool> JoinSessionAsync(string code) =>
-            JoinAsync(new ServicesSessionConnector(_networkManager, _requiredPlayers), code);
+            JoinAsync(new ServicesSessionConnector(_networkManager, RequiredPlayers), code);
 
         public async Task<bool> HostAsync(ISessionConnector connector)
         {
@@ -297,7 +294,7 @@ namespace CurtainCall.Network.Session
 
             if (!isHostSelf && GameState != GameSessionState.Waiting)
                 Reject(response, "게임이 이미 진행 중입니다.");
-            else if (!isHostSelf && connected >= _requiredPlayers)
+            else if (!isHostSelf && connected >= RequiredPlayers)
                 Reject(response, "방이 가득 찼습니다.");
             else
                 response.Approved = true;
