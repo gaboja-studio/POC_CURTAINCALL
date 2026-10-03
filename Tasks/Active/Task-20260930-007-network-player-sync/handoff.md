@@ -4,7 +4,7 @@
 
 - 단계: 구현 ①~⑦ 완료·작업자 확인(2026-10-02). 이슈 #9(충돌)·#10(옆줄 착지)·줄 밖 착지 추락·모두 재시작 포함. 구조·진입점은 `Docs/Domains/player-sync.md`
 - 기획과 다른 값(인스펙터): 줄 간격 1.5→2.0m, 옆줄 도착점 겹치면 점프 막음(목마 전 임시), 줄 밖 판정 0.25m·전원 추락 3초 후 재시작(테스트 부품), 카메라 뒤 4.5·위 2.6·FOV 60
-- 막힌 것: 없음 / PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/11 (submitted, 병합 시 #9·#10 닫힘)
+- 막힌 것: 없음 / PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/11 (병합됨 `3a721da`, #9·#10 닫음, QA #13 통과 → integrated)
 
 ## 다음 할 일
 
@@ -26,4 +26,4 @@
 - 2 컴파일: PASS (10-02)
 - 3 테스트: NO_PROJECT_TESTS (10-02) — 열린 에디터 list_tests 0개. check-work는 FAIL 표시: `unity test`가 열린 에디터가 있으면 거부(`Pitfalls/unity-test-editor-open.md`)
 - 4 실행 로그: SKIPPED(미실행)
-- 5 공동 테스트: 병합 전 사전 확인 — 단계별 MPPM 2명 확인(①~⑤·#9·#10, 10-02). 공동 테스트 항목 1·2·3 모두 통과(작업자 확인 10-02, MPPM). 병합 후 공동 테스트 대기
+- 5 공동 테스트: 병합 전 사전 확인 — 단계별 MPPM 2명 확인(①~⑤·#9·#10, 10-02). 공동 테스트 항목 1·2·3 모두 통과(작업자 확인 10-02, MPPM). 병합 후 공동 테스트 통과(2026-10-02, QA #13, 여러 PC·팀원 함께)

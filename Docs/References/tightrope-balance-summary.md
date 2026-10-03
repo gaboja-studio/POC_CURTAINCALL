@@ -2,6 +2,7 @@
 
 - 원문: `Docs/References/rope_balance.doc` (Confluence 내보내기 "외줄타기 균형·점프 시스템", 2026-10-01, 규칙 확정·수치 제안값)
 - 요약: 2026-10-01, AI가 원문을 읽고 작업에 필요한 규칙과 수치만 추림. **원문이 기준**이다.
+- **2026-10-03 기획 상세 규칙이 진행·판정·맵·캐릭터 크기·점프·톱날 수치에서 이 문서보다 우선**한다: [상세 규칙 요약](tightrope-rules-summary.md).
 - **PM 결정이 반영된 부분은 [균형 결정](../../Harness/Project/Decisions/tightrope-balance.md), [외줄 규칙](../../Harness/Project/Decisions/tightrope-rules.md)이 우선**한다.
 - 단위: 유니티 1 = 1m. 수치는 전부 튜닝값(인스펙터). (제안) = 원문에서도 아직 확정 전.
 
