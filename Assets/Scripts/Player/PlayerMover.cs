@@ -45,6 +45,9 @@ namespace CurtainCall.Player
         [Tooltip("옆줄 점프로 옆으로 이동할 거리(m) = 줄 간격. 기획 제안값 1.5 → 2026-10-02 2.0으로 조정(기울기 25°에서 옆줄 플레이어와 겹치지 않게). 같은 높이에 착지하는 공중 시간 동안 이 거리를 간다.")]
         [SerializeField, Min(0f)] float laneSpacing = 2f;
 
+        [Tooltip("일반 이동(플랫폼) 속도(m/s). 줄 위 속도(moveSpeed)와 따로 둔다. 2026-10-03 PM: 줄 위 0.5는 플랫폼에서 너무 느려 테스트 값 3.")]
+        [SerializeField, Min(0f)] float freeMoveSpeed = 3f;
+
         [Tooltip("일반 이동(플랫폼)에서 이동 방향으로 몸을 돌리는 속도(도/초).")]
         [SerializeField, Min(0f)] float turnSpeed = 720f;
 
@@ -282,7 +285,7 @@ namespace CurtainCall.Player
                 {
                     float side = ControlEnabled ? sideInput : 0f;
                     Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
-                    groundVelocity = input * moveSpeed;
+                    groundVelocity = input * freeMoveSpeed;
                     IsMoving = input.sqrMagnitude > 0.0001f;
                     if (IsMoving)
                         transform.rotation = Quaternion.RotateTowards(transform.rotation,

@@ -21,7 +21,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 - `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` — 외줄 코스 스테이지 프리팹 (다른 Task는 배치만)
 - `Assets/Scripts/Network/PlayerSync/TestRoundRestart.cs` — 007 테스트 부품. 묘기 진행으로 대체한 뒤 삭제만 (2026-10-02 PM 배정)
-- `Assets/Scripts/Player/PlayerMover.cs` — `LaneSpacing` 설정(#14), 플랫폼 일반 이동(8방향·이동 방향 바라보기), 출발 위치만 바꾸기(순간이동 없이), 추락 플레이어 통과(#16)·플레이어끼리 막기(플랫폼)·래그돌 밀기 (2026-10-02 PM @MoHoDu 승인)
+- `Assets/Scripts/Player/PlayerMover.cs` — `LaneSpacing` 설정(#14), 플랫폼 일반 이동(8방향·이동 방향 바라보기), 출발 위치만 바꾸기(순간이동 없이), 추락 플레이어 통과(#16)·플레이어끼리 막기(플랫폼)·래그돌 밀기, 플랫폼 이동 속도 `freeMoveSpeed` (2026-10-02~03 PM @MoHoDu 승인)
 - `Assets/Scripts/Network/PlayerSync/PlayerState.cs` — 상태 `Arrived`(도착 완료) 끝에 추가만 (2026-10-03 PM @MoHoDu, 기획 상세 규칙)
 - `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 이동 0.5m/s·점프 0.8m·캡슐 높이 1.5m/지름 0.6m 값만 (2026-10-03 PM @MoHoDu, 기획 상세 규칙)
 - `Assets/Scripts/Player/PlayerRagdoll.cs` — 래그돌이 다른 플레이어 몸통과 부딪혀 밀리게 (#16, 2026-10-02 PM @MoHoDu 요청)

@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 972368533213948594}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3, y: 0, z: -1}
+  m_LocalPosition: {x: -4.5, y: 0, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 2449309524968977726}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1, y: 0, z: -1}
+  m_LocalPosition: {x: -1.5, y: 0, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -147,19 +147,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCourse
   laneCount: 4
-  laneSpacing: 2
-  laneEndDistances:
-  - 12
-  - 30
-  - 24
-  - 18
-  finishDistance: 30
+  laneSpacing: 3
+  laneEndDistances: []
+  finishDistance: 100
   laneChangeZones:
-  - {x: 0, y: 24}
-  startPlatformLength: 3
-  finishPlatformLength: 3
+  - {x: 0, y: 100}
+  startPlatformLength: 6
+  finishPlatformLength: 6
+  sideMargin: 2
   platformThickness: 0.5
-  ropeThickness: 0.06
+  ropeThickness: 0.2
   ropeWalkWidth: 0.4
   spawnDistance: -1
   safetyNetDepth: 6
@@ -228,6 +225,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9bc3f9edda34483f98c85e2ea6b6a03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeRun
+  timeLimit: 300
   restartDelay: 3
 --- !u!1 &6971027119004765690
 GameObject:
@@ -254,7 +252,7 @@ Transform:
   m_GameObject: {fileID: 6971027119004765690}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3, y: 0, z: -1}
+  m_LocalPosition: {x: 4.5, y: 0, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -285,7 +283,7 @@ Transform:
   m_GameObject: {fileID: 8135017983731056806}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1, y: 0, z: -1}
+  m_LocalPosition: {x: 1.5, y: 0, z: -1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

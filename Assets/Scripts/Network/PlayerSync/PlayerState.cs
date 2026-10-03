@@ -10,5 +10,7 @@ namespace CurtainCall.Network.PlayerSync
         Normal = 0,
         /// <summary>추락(조작 잠김, 래그돌). 모두 재시작까지 유지.</summary>
         Fallen = 1,
+        /// <summary>도착 완료(외줄 도착선 통과). 피격·탈락 판정에서 빠진다. 모두 재시작까지 유지.</summary>
+        Arrived = 2,
     }
 }

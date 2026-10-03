@@ -82,7 +82,7 @@ namespace CurtainCall.Tightrope
         void Update()
         {
             if (player == null || mover == null) return;
-            if (player.State != PlayerState.Normal || (balance != null && balance.HasFallen)) return;
+            if (player.State == PlayerState.Fallen || (balance != null && balance.HasFallen)) return; // 도착 완료는 계속 바꾼다(세리머니 공간은 일반 이동)
             if (mover.IsAirborne) return; // 줄·플랫폼에 선 순간에만 바꾼다
 
             bool rope = course.IsOnRope(player.transform.position, mover.BodyRadius, out int lane);

@@ -20,33 +20,36 @@ namespace CurtainCall.Tightrope
         public const int NoLane = CourseLayout.NoLane;
 
         [Header("줄")]
-        [Tooltip("출발 때 줄 수. 기획 4.")]
+        [Tooltip("줄 수. 기획 4(2026-10-03 상세 규칙).")]
         [SerializeField, Min(1)] int laneCount = 4;
 
-        [Tooltip("줄 간격(m). 모든 플레이어의 옆줄 점프 거리(PlayerMover.LaneSpacing)를 이 값으로 맞춘다. 기획 1.5 → 2026-10-02 2.0(007 결정).")]
-        [SerializeField, Min(0.1f)] float laneSpacing = 2f;
+        [Tooltip("줄 중심 간격(m). 모든 플레이어의 옆줄 점프 거리(PlayerMover.LaneSpacing)를 이 값으로 맞춘다. 기획 3.0(2026-10-03 상세 규칙).")]
+        [SerializeField, Min(0.1f)] float laneSpacing = 3f;
 
-        [Tooltip("줄마다 끝나는 거리(m, 왼쪽 줄부터 0번). 0 이하이거나 도착 거리 이상이면 도착까지 간다. 기획에 값이 없어 테스트 값.")]
-        [SerializeField] float[] laneEndDistances = { 12f, 30f, 24f, 18f };
+        [Tooltip("줄마다 끝나는 거리(m, 왼쪽 줄부터 0번). 비우거나 0 이하·도착 거리 이상이면 도착까지 간다. 기획(2026-10-03)은 모든 줄이 도착까지(줄 수 감소는 불타는 구간으로 한다).")]
+        [SerializeField] float[] laneEndDistances = Array.Empty<float>();
 
-        [Tooltip("도착 거리(m, 출발선에서). 한 명이라도 여기에 닿으면 성공. 기획에 값이 없어 테스트 값.")]
-        [SerializeField, Min(1f)] float finishDistance = 30f;
+        [Tooltip("도착 판정선(m, 외줄 시작점에서). 넘으면 도착 완료. 기획 100.")]
+        [SerializeField, Min(1f)] float finishDistance = 100f;
 
-        [Tooltip("옆줄 이동 가능 구간(m). x = 시작 거리, y = 끝 거리. 구간 밖에서는 옆줄 이동을 막는다. 기획에 값이 없어 테스트 값.")]
-        [SerializeField] Vector2[] laneChangeZones = { new(0f, 24f) };
+        [Tooltip("옆줄 이동 가능 구간(m). x = 시작 거리, y = 끝 거리. 구간 밖에서는 옆줄 이동을 막는다. 2026-10-03 PM: 0~100 전 구간.")]
+        [SerializeField] Vector2[] laneChangeZones = { new(0f, 100f) };
 
         [Header("모양")]
-        [Tooltip("시작 플랫폼 길이(m). 출발선(거리 0) 뒤쪽으로 놓인다.")]
-        [SerializeField, Min(0.5f)] float startPlatformLength = 3f;
+        [Tooltip("시작·대기 공간 길이(m). 외줄 시작점(거리 0) 뒤쪽으로 놓인다. 기획 6.")]
+        [SerializeField, Min(0.5f)] float startPlatformLength = 6f;
 
-        [Tooltip("도착 플랫폼 길이(m). 도착 거리 앞쪽으로 놓인다.")]
-        [SerializeField, Min(0f)] float finishPlatformLength = 3f;
+        [Tooltip("세리머니 공간 길이(m). 도착선 뒤쪽으로 놓인다. 기획 6.")]
+        [SerializeField, Min(0f)] float finishPlatformLength = 6f;
+
+        [Tooltip("양쪽 끝 줄 중심에서 맵 경계까지 여유(m). 플랫폼 폭 = 줄 폭 + 양쪽 여유. 기획 2(유효 폭 13m).")]
+        [SerializeField, Min(0f)] float sideMargin = 2f;
 
         [Tooltip("플랫폼 두께(m). 윗면이 줄 높이와 같다.")]
         [SerializeField, Min(0.05f)] float platformThickness = 0.5f;
 
-        [Tooltip("줄 굵기(m, 보이는 굵기).")]
-        [SerializeField, Min(0.01f)] float ropeThickness = 0.06f;
+        [Tooltip("줄 굵기(m, 보이는 지름). 기획 0.2.")]
+        [SerializeField, Min(0.01f)] float ropeThickness = 0.2f;
 
         [Tooltip("줄 위를 걸을 수 있는 폭(m, 충돌체 폭). 보이는 굵기보다 넓어야 캐릭터가 서 있는다.")]
         [SerializeField, Min(0.01f)] float ropeWalkWidth = 0.4f;
@@ -78,6 +81,7 @@ namespace CurtainCall.Tightrope
 
         CourseLayout layout;
         bool[] blocked = Array.Empty<bool>();
+        readonly System.Collections.Generic.List<(int lane, float from, float to)> blockedSegments = new();
         Transform generated;
         bool rebuildRequested;
 
@@ -93,6 +97,9 @@ namespace CurtainCall.Tightrope
 
         /// <summary>코스가 다시 만들어졌을 때(플레이 중 인스펙터 값 변경 포함).</summary>
         public event Action Rebuilt;
+
+        /// <summary>막힌 구간(<see cref="BlockSegment"/>)이 바뀌었을 때.</summary>
+        public event Action SegmentsChanged;
 
         /// <summary>줄 사용 가능 여부가 바뀌었을 때. 인자는 (줄, 막혔는지).</summary>
         public event Action<int, bool> LaneBlockedChanged;
@@ -171,9 +178,36 @@ namespace CurtainCall.Tightrope
         /// <summary>그 거리가 옆줄 이동 가능 구간 안인지.</summary>
         public bool IsLaneChangeAllowed(float distance) => Layout.IsLaneChangeAllowed(distance);
 
-        /// <summary>그 거리에 줄이 놓여 있고 막히지 않았는지(이후 화재 등이 막는다).</summary>
+        /// <summary>그 거리에 줄이 놓여 있고 막히지 않았는지(줄 전체 막힘 + 불타는 구간 등 구간 막힘).</summary>
         public bool IsLaneUsable(int lane, float distance) =>
-            Layout.LaneExists(lane, distance) && !IsLaneBlocked(lane);
+            Layout.LaneExists(lane, distance) && !IsLaneBlocked(lane) && !IsSegmentBlocked(lane, distance);
+
+        /// <summary>그 줄의 그 거리가 막힌 구간 안인지.</summary>
+        public bool IsSegmentBlocked(int lane, float distance)
+        {
+            foreach (var segment in blockedSegments)
+                if (segment.lane == lane && distance >= segment.from && distance <= segment.to) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// 줄의 일부 구간을 막는다(예: 불타는 구간, 2026-10-03 규칙 — 줄은 이어져 있지만 그 구간은 쓸 수 없음).
+        /// 이 화면에만 적용되므로 온라인에서는 모든 화면이 같은 신호로 부른다. 화재 기능이 생기면 쓴다.
+        /// </summary>
+        public void BlockSegment(int lane, float from, float to)
+        {
+            if (lane < 0 || lane >= LaneCount) return;
+            blockedSegments.Add((lane, Mathf.Min(from, to), Mathf.Max(from, to)));
+            SegmentsChanged?.Invoke();
+        }
+
+        /// <summary>막은 구간을 모두 푼다(재시작 때 묘기 진행이 부른다).</summary>
+        public void ClearBlockedSegments()
+        {
+            if (blockedSegments.Count == 0) return;
+            blockedSegments.Clear();
+            SegmentsChanged?.Invoke();
+        }
 
         /// <summary>줄이 막혔는지.</summary>
         public bool IsLaneBlocked(int lane) => lane >= 0 && lane < blocked.Length && blocked[lane];
@@ -199,6 +233,14 @@ namespace CurtainCall.Tightrope
             slot = Mathf.Max(0, slot);
             int lane = slot % LaneCount;
             float distance = spawnDistance - slot / LaneCount;
+            return new Pose(GetLanePosition(lane, distance), Quaternion.LookRotation(Forward, Vector3.up));
+        }
+
+        /// <summary>자리 번호의 도착(세리머니 공간) 위치·방향. 자기 줄 자리, 도착선 뒤 세리머니 공간 가운데(최대 2m).</summary>
+        public Pose GetFinishPose(int slot)
+        {
+            int lane = Mathf.Max(0, slot) % LaneCount;
+            float distance = FinishDistance + Mathf.Clamp(finishPlatformLength * 0.5f, 0.5f, 2f);
             return new Pose(GetLanePosition(lane, distance), Quaternion.LookRotation(Forward, Vector3.up));
         }
 
@@ -329,7 +371,7 @@ namespace CurtainCall.Tightrope
             public float[] laneEndDistances;
             public float finishDistance;
             public Vector2[] laneChangeZones;
-            public float startPlatformLength, finishPlatformLength, platformThickness;
+            public float startPlatformLength, finishPlatformLength, sideMargin, platformThickness;
             public float ropeThickness, ropeWalkWidth, spawnDistance, safetyNetDepth, fallDepth;
         }
 
@@ -368,6 +410,7 @@ namespace CurtainCall.Tightrope
             laneChangeZones = laneChangeZones,
             startPlatformLength = startPlatformLength,
             finishPlatformLength = finishPlatformLength,
+            sideMargin = sideMargin,
             platformThickness = platformThickness,
             ropeThickness = ropeThickness,
             ropeWalkWidth = ropeWalkWidth,
@@ -386,6 +429,7 @@ namespace CurtainCall.Tightrope
             laneChangeZones = shape.laneChangeZones;
             startPlatformLength = shape.startPlatformLength;
             finishPlatformLength = shape.finishPlatformLength;
+            sideMargin = shape.sideMargin;
             platformThickness = shape.platformThickness;
             ropeThickness = shape.ropeThickness;
             ropeWalkWidth = shape.ropeWalkWidth;
@@ -416,7 +460,7 @@ namespace CurtainCall.Tightrope
             generated.SetParent(transform, false);
 
             var l = layout;
-            float width = (l.LaneCount - 1) * l.LaneSpacing + 2f;
+            float width = (l.LaneCount - 1) * l.LaneSpacing + sideMargin * 2f;
 
             // 시작 플랫폼: 출발선 뒤, 모든 줄 폭
             CreateBox("StartPlatform", new Vector3(0f, -platformThickness * 0.5f, -startPlatformLength * 0.5f),
@@ -442,7 +486,7 @@ namespace CurtainCall.Tightrope
             }
             if (finishMin <= finishMax)
             {
-                float finishWidth = finishMax - finishMin + 2f;
+                float finishWidth = finishMax - finishMin + sideMargin * 2f;
                 float center = (finishMin + finishMax) * 0.5f;
                 CreateBox("FinishLine", new Vector3(center, 0.01f, l.FinishDistance),
                     new Vector3(finishWidth, 0.02f, 0.1f), finishColor, false);
@@ -478,7 +522,7 @@ namespace CurtainCall.Tightrope
             if (Application.isPlaying) return; // 플레이 중에는 실제 메시가 보인다
             var l = Layout;
             Vector3 origin = transform.position, forward = Forward, right = Right;
-            float width = (l.LaneCount - 1) * l.LaneSpacing + 2f;
+            float width = (l.LaneCount - 1) * l.LaneSpacing + sideMargin * 2f;
 
             Gizmos.color = platformColor;
             DrawRect(origin + forward * (-startPlatformLength * 0.5f), width, startPlatformLength, forward, right);
