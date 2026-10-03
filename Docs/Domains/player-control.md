@@ -13,7 +13,7 @@
 
 - 키 변경은 입력 에셋에서, 콘텐츠별 키 의미는 조작 규칙에서, 실제 동작은 동작 부품에서 한다. 동작 부품은 키를 읽지 않는다.
 
-## 담당 파일 (2026-10-02 확인, Task-20260930-004 병합)
+## 담당 파일 (2026-10-03 확인, Task-004 병합 + 005 추가분)
 
 입력·규칙 (`Assets/Scripts/Player/`)
 - `PlayerInputReader.cs` — 키 → 공통 역할 값(`Current`). F 짧게/길게 판정(`Long Press Time`).
@@ -23,10 +23,11 @@
 - `TightropeControlScheme.cs` — 외줄 규칙. 에셋: `Assets/Resources/Input/TightropeControlScheme.asset`.
 
 동작 부품
-- `PlayerMover.cs` — 코스 방향 이동, 제자리 점프(1.0m), 옆줄 점프(줄 간격 2.0m, 방향 고정), 공중 움직임 고정, 조작 잠금, 출발 위치 복귀(`SetStartPose`). 플레이어끼리 밀지 않음·같은 줄 앞뒤 막힘, 옆줄 도착점 겹침 검사(`FindPlayerAtLaneLanding`, 임시로 점프 막음 `BlockLaneJumpOntoPlayer`).
-- `PlayerBalance.cs` — 균형 ±100, 자연 흔들림·기울기 가속·목마 배율·위층 전달·착지/옆줄 충격, 빨강 2초 추락 신호.
+- `PlayerMover.cs` — 코스 방향 이동(줄 위 0.5m/s), 일반 이동(`FreeMovement`, 플랫폼 8방향 3m/s·이동 방향 바라봄), 제자리 점프(0.8m), 옆줄 점프(거리 = `LaneSpacing`, 외줄 코스가 3m로 맞춤, 방향 고정), 공중 움직임 고정, 조작 잠금, 출발 위치(`SetStartPose`, 순간이동 없이 바꾸기 가능). 산 플레이어끼리 줄 위 앞뒤·플랫폼 모두 막힘, 사망 플레이어 통과(`PassThrough`), 몸통으로 래그돌 밀기(`pushSpeed`), 옆줄 도착점 겹침 검사(`FindPlayerAtLaneLanding`, 임시로 점프 막음 `BlockLaneJumpOntoPlayer`).
+- `PlayerBalance.cs` — 균형 ±100, 자연 흔들림·기울기 가속·목마 배율·위층 전달·착지/옆줄 충격(옆줄 흔들림 배율 프리팹 1.75, #17), 빨강 2초 추락 신호.
+- `PlayerCondition.cs`·`BodyPart.cs` — 신체 부위 손실 상태(준비만, 프리팹 미부착). 디메리트는 콘텐츠 조작 규칙이 `PlayerControlContext.Condition`으로 읽어 처리.
 - `PlayerInteraction.cs` — 상호작용·해제 요청 신호.
-- `PlayerModelSlot.cs` — 모델 교체, 키 1.73m 맞춤.
+- `PlayerModelSlot.cs` — 모델 교체, 키 1.73m 맞춤(충돌체는 2026-10-03부터 캡슐 높이 1.5m·지름 0.6m).
 
 겉모습·테스트
 - `BalanceTiltView.cs`(몸 기울기), `PlayerRagdoll.cs`(추락 래그돌), `BalanceGaugeView.cs`(게이지 UI 값 반영)
@@ -61,13 +62,13 @@ modelSlot.SetModel(prefab);
 ## 의존 도메인
 
 - [Unity Assets 구조](assets-structure.md) — 폴더·Resources 배치.
-- 사용하는 쪽: [플레이어 동기화](player-sync.md)(007), 외줄 코스·진행(005), 외줄 위 캐릭터(011), 목마(006), 도구(008).
+- 사용하는 쪽: [플레이어 동기화](player-sync.md)(007), [외줄 코스·진행](tightrope-course.md)(005 — 플랫폼 조작 규칙·전환), 외줄 위 캐릭터(011), 목마(006), 도구(008).
 
 ## 수정 주의점
 
 - 이 도메인은 **혼자 기준 동작 부품**이다. 온라인 처리(남의 캐릭터 끄기·값 공유·호스트 판정)는 [플레이어 동기화](player-sync.md)가 붙인다. 온라인에서 부품을 직접 켜고 끄지 말고 그쪽 진입점을 쓴다.
 - 온라인용 부품 함수(007): `PlayerMover.Simulated`·`Teleported`·`All`·`Body`, `PlayerBalance.SetDisplayedState`, 게이지·HUD `Target`·`AutoFindTarget`, HUD `RestartOverride`.
-- 테스트 HUD의 추락→조작 잠금, R 재시작 연결은 테스트용이다. 실제 연결은 005·011이 한다. 재시작은 개인이 아니라 전원 추락 시 모두 같이다(`tightrope-rules.md`, 온라인은 `NetworkPlayer.ServerRestartAll`).
-- 플레이어끼리는 물리로 밀지 않는다(몸통 충돌 끔, 같은 줄 앞뒤만 막힘). 래그돌도 플레이어 몸통과 부딪히지 않는다. `Block Lane Jump Onto Player`는 목마(006) 전 임시.
+- 테스트 HUD의 추락→조작 잠금, R 재시작 연결은 테스트용이다. 외줄 재시작은 005 `TightropeRun`(호스트만)이 한다.
+- 산 플레이어끼리는 밀지 않고 막기만 한다(줄 위 앞뒤·플랫폼). 사망하면 몸통은 통과, 래그돌은 산 플레이어 몸통에 밀린다(2026-10-03 결정). `Block Lane Jump Onto Player`는 목마(006) 전 임시.
 - 그레이박스 생성 메뉴는 같은 경로를 덮어쓴다. 디자인을 바꾼 프리팹에는 다시 실행하지 않는다.
 - 플레이어 프리팹·입력·UI 폴더는 공용 파일이다. 수정 Task는 통합 소유 표를 따른다.

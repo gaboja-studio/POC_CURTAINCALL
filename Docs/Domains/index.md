@@ -13,6 +13,7 @@ Domain Map은 담당 파일·진입점·의존성·수정 주의점을 적는다
 | 플레이어 조작(입력·이동·균형·겉모습) | [player-control.md](player-control.md) | 플레이어 입력·조작 규칙·이동·점프·균형·모델을 쓰거나 고칠 때 (Task-004) |
 | 네트워크 세션(방 만들기·게임 상태) | [network-session.md](network-session.md) | 방 접속·게임 상태(대기/진행/종료) 진입점을 쓰거나 네트워크 기능을 만들 때 (Task-003) |
 | 플레이어 동기화(온라인 플레이어·호스트 판정) | [player-sync.md](player-sync.md) | 내 캐릭터·다른 플레이어 상태·추락/재시작 판정을 쓰거나 기능에 동기화를 붙일 때 (Task-007) |
+| 외줄 코스·진행(코스 조회·묘기 판정) | [tightrope-course.md](tightrope-course.md) | 외줄 코스 위치·옆줄 착지·진행 상태(시간·도착·클리어·재시작·묘기 시작)를 쓰거나 고칠 때 (Task-005) |
 
 ## Domain Map 파일 규칙
 

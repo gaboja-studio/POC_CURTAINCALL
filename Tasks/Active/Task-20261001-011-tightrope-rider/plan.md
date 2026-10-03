@@ -31,6 +31,8 @@
 
 2026-10-03 기획 상세 규칙(`tightrope-course-rules.md`): 줄 간격 3m·점프 0.8m·이동 0.5m/s. 옆줄 이동 가능 구간 0~100m. 옆줄 착지가 겹치면 **상대 뒤쪽으로 착지**(2026-10-03 PM: 목마 합체가 되는 경우는 006이 합체로 바꾼다). 쓸 수 없는 줄 구간(불타는 구간)은 005 `IsLaneUsable(lane, distance)`로 판단. 줄 위 균형 켜고 끄기·줄 중앙 맞춤·줄 아래 추락 검사는 005가 이미 함(2026-10-02).
 
+005 진입점(2026-10-03 병합, 지도 `Docs/Domains/tightrope-course.md`): `TightropeCourse.Current` — `TryGetRopePoint`·`IsOnRope`·`GetDistance`·`GetSide`·`GetLanePosition`·`FindLandingLane`(없으면 `NoLane`)·`IsLaneChangeAllowed`·`IsLaneUsable`(불타는 구간 포함)·`LaneSpacing`. 진행 `TightropeRun.Current` — `State`·`RunRestarted`. 줄 오르내림 조작·균형 전환은 005 `CourseControlSwitcher`가 하므로 겹치게 만들지 않는다.
+
 ## Files
 
 - 수정 예정:
