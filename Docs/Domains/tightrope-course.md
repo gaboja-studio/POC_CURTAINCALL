@@ -17,9 +17,9 @@
 
 ## 조정값 (기획자가 바꾸는 수치)
 
-013 이후 모두 `Assets/Resources/GameSettings/`에서 바꾼다. 그 전에는 "지금 위치"의 프리팹 인스펙터. 값은 2026-10-03 프리팹 기준(씬에서 덮어쓴 값 없음).
+2026-10-03 013 병합 후 모두 `Assets/Resources/GameSettings/`(`BaseGameSettings`, `Tricks/TightropeSettings`)에서 바꾼다. 컴포넌트·프리팹 칸은 없다. 마지막 열은 옮기기 전 위치(참고). 기획자 안내: `Docs/Guides/game-settings-guide.md`.
 
-| 세팅 파일 · 묶음 | 항목 = 현재 값 | 지금 위치 |
+| 세팅 파일 · 묶음 | 항목 = 현재 값 | 옮기기 전 위치 |
 |---|---|---|
 | Base · 세션 | 정원 4, 최소 시작 인원 1(테스트) | NetworkManager 프리팹 |
 | Base · 캐릭터 | 플랫폼 이동 3m/s, 회전 720°/s, 중력 9.81, 캡슐 높이 1.5·지름 0.6, 모델 맞춤 키 1.73(⚠ 캡슐과 불일치, 017에서 확정), 밀기 2m/s, 몸 간격 0.05 | Player 프리팹 |
@@ -65,7 +65,8 @@
 - `Editor/TightropeCoursePrefabBuilder.cs` — 코스 프리팹 생성 메뉴(덮어쓰므로 값 조정 후 실행 금지).
 
 에셋
-- `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/TightropeCourse.prefab` — 위 컴포넌트 + `PlayerSpawnPoints`(007) + 출발 위치 `SpawnPoints/Slot0~3`. 다른 Task는 배치만.
+- `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/TightropeCourse.prefab` — 위 컴포넌트 + `PlayerSpawnPoints`(007) + 출발 위치 `SpawnPoints/Slot0~3`. 다른 Task는 배치만. 수치 칸 없음(013).
+- `Assets/Resources/GameSettings/Tricks/TightropeSettings.asset` — 코스 모양·진행·줄 위 동작·목마 값(클래스 `Assets/Scripts/Settings/`). 코스는 만들 때 복사해 쓰고, 대기 중 수정은 바로 재생성·잠금 중 수정은 풀릴 때.
 - 테스트 씬: `Assets/Scenes/Tests/Tightrope/Tightrope.unity` (코스, SessionUI, 카메라 리그, 게이지, HUD, LocalPlayerViews, TightropeRunDebug).
 
 ## 진입점

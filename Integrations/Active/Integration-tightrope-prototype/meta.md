@@ -30,7 +30,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20260930-010 | feat | @MoHoDu | feat/piggyback-network (인계 때 생성) | - | scaffolded |
 | Task-20261001-011 | feat | @MoHoDu | feat/tightrope-rider | - | assigned |
 | Task-20261003-012 | feat | @MoHoDu | feat/tightrope-saws | - | assigned |
-| Task-20261003-013 | refactor | @MoHoDu | refactor/game-settings | - | assigned |
+| Task-20261003-013 | refactor | @MoHoDu | refactor/game-settings | #19 | integrated |
 | Task-20261003-014 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-015 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-016 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
