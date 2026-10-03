@@ -4,22 +4,24 @@
 
 ## 지금 상태
 
-- 단계: 계획 확정(2026-10-02). 004 병합 대기 중이라 코드는 아직 없다.
-- 동작하는 것: 없음 (테스트 씬 `TightropeRider.unity` 빈 씬, 스크립트 폴더 `.gitkeep`만)
-- 막힌 것: 004의 6(추락 신호)·8(점프 명령·공중 정지·착지 충격)·10(옆줄 명령·충격) 단계가 integration에 없음. 005 코스 조회 진입점도 없음(없으면 테스트 코스로 대체 가능).
+- 단계: 착수 준비 완료(2026-10-03). 최신 통합(013 세팅 포함)을 받아 합침. 2026-10-03 범위 축소로 남은 일 4개만(`plan.md` 세부)
+- 동작하는 것: 걷기·점프·옆줄 점프 움직임·착지 충격(004), 줄 오르내림 전환·줄 아래 추락(005), 추락 공유·재시작(007), 조정값 세팅 파일(013). 테스트 씬 `TightropeRider.unity`는 빈 씬, `Tightrope/Rider/`는 `.gitkeep`만
+- 막힌 것: 없음
 - PR: 없음
 
 ## 다음 할 일
 
-1. 004 6·8·10단계가 integration에 병합되면 이 브랜치에 integration을 받는다.
-2. 004 진입점 이름을 확인해 `plan.md` "004에 필요한 진입점" 표를 갱신한다.
-3. todo 순서대로 구현: 줄 오르기·내리기 → 전진·후진 → 점프 → 옆줄 이동 → 추락·대기·재시작.
+1. 옆줄 점프 판정 연결: `PlayerMover.LaneJumpFilter`에 005 `IsLaneChangeAllowed`·`FindLandingLane`·`IsLaneUsable` 연결(코드는 `Assets/Scripts/Tightrope/Rider/`)
+2. 뒤쪽 착지: 착지 자리에 동료가 있으면 진행 방향 뒤쪽으로 보정, 자리가 없으면 착지 실패(추락). 지금 `PlayerMover.BlockLaneJumpOntoPlayer`(임시)가 점프 자체를 막으므로 이걸 대체한다
+3. 손잡기: 도착점이 같은 줄 동료 앞뒤 1.0m 이내면 `PlayerBalance.SetLaneLandingReduction(0.5)`. 거리·감소율은 `TightropeSettings`에 "손잡기" 묶음으로 추가
+4. 테스트 부품 정리: `TestLaneLanding.cs` 삭제, `NetworkPlayerSync.unity`에서 그 컴포넌트 제거
+5. 테스트 씬 `TightropeRider.unity`에 코스 프리팹·접속 UI 등 배치(005 Tightrope 씬 구성 참고), 공동 테스트 1~3 확인
 
 ## PM이 확인할 것
 
-- 확인 요청: 004 작업 때 `PlayerMover`를 줄 위에서 끌 수 있는지(`enabled` 토글로 충분한지) 확인
-- 규칙 기록 요청: "옆줄 착지 자리가 뒤쪽까지 없으면 추락"(2026-10-02)을 integration 브랜치의 `Harness/Project/Decisions/tightrope-rules.md`에 추가 (이 브랜치 작업 구역 밖)
-- 대기 중인 결정·공용 파일 요청: 없음
+- 순서 배정: `TightropeSettings`(012와 공유), `PlayerMover.cs`(020과 공유) — 먼저 병합되는 쪽 다음에 다른 쪽이 최신 통합을 받는다
+- 이 Task 다음: 006 목마 → 010 목마 예외(같은 갈래 B, 011 병합 후 인계)
+- 대기 중인 결정: 없음
 
 ## Verification
 

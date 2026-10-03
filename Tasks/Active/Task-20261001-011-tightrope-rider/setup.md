@@ -19,9 +19,12 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 ## 배정된 공용 파일
 
-통합 기록(Integration meta)의 공용 파일 소유 표에서 이 Task에 배정된 것만 적는다.
+통합 기록(Integration meta)의 공용 파일 소유 표에서 이 Task에 배정된 것만 적는다. (2026-10-03 PM 배정)
 
-- 없음
+- `Assets/Scripts/Settings/TightropeSettings.cs`, `Assets/Resources/GameSettings/Tricks/TightropeSettings.asset` — 손잡기 칸(동료 거리 1.0m·감소 50%)만 추가. 012(톱날 칸)와 같은 파일이라 먼저 병합되는 쪽 뒤에 최신 통합을 받는다
+- `Assets/Scripts/Player/PlayerMover.cs` — 뒤쪽 착지에 필요한 최소 수정만(착지 위치 보정 진입점 등). 020(신체 손상)도 Player를 고치므로 병합 순서는 PM이 정한다
+- `Assets/Scripts/Network/PlayerSync/TestLaneLanding.cs` — 판정으로 대체 후 삭제
+- `Assets/Scenes/Tests/NetworkPlayerSync/NetworkPlayerSync.unity` — 위 삭제에 따라 `TestLaneLanding` 컴포넌트만 제거(그 외 수정 금지)
 
 ## 수정 금지
 
