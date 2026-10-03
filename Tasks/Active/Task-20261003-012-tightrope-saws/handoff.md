@@ -21,8 +21,8 @@
 
 ## Verification
 
-- 구역 검사: OK (14 files) / 1 문서/규칙: OK (WARN은 005·통합 문서 길이)
-- 2 컴파일: PASS
-- 3 테스트: NO_PROJECT_TESTS — asmdef가 없어 EditMode 테스트가 게임 코드를 참조 못 함. `run_script`로 SawSettings·SawMath 검산 30개 PASS(로직)
+- 구역 검사: PASS (10-03) / 1 문서/규칙: PASS (10-03)
+- 2 컴파일: PASS (10-03)
+- 3 테스트: NO_PROJECT_TESTS (10-03, PlayMode) — check-work는 FAIL 표시: 에디터가 열려 있어 `unity test` 거부(Pitfalls/unity-test-editor-open.md). `list_tests` 0개 — asmdef가 없어 테스트가 게임 코드를 참조 못 함. 로직은 `run_script` 검산 30개 PASS
 - 4 실행 로그: 에디터 호스트 eval 확인 + 2026-10-03 작업자 직접 플레이(실제 입력)·MPPM 2인 동기화 확인 — 이상 보고 없음
 - 5 공동 테스트: 미요청(병합 후). 사전 확인: 2·3 작업자 확인, 1은 왕복·점프 회피·판정 로그까지(절단·탈락은 020 병합 후)
