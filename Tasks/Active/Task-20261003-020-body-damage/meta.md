@@ -2,18 +2,18 @@
 
 - **Title:** 신체 손상(부위 절단·패널티·동기화)
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/player-control.md`, `Docs/Domains/player-sync.md`, `Docs/Domains/tightrope-course.md`
 - **Current Skill:** start-work
-- **Updated:** 2026-10-03
+- **Updated:** 2026-10-04
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
 ## Workspace
 
 - **Integration:** integration/tightrope-prototype
-- **Branch:** feat/body-damage (인계 때 생성)
+- **Branch:** feat/body-damage
 
 ## Goal
 
@@ -31,7 +31,8 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Decisions
 
 - Open: "상호작용 패널티"의 구체 내용(예: F 목마 올라타기 판정 거리·시간 증가 / 실패 확률) — 임시 규칙 + 세팅 값으로 두고 PM 확인
-- Open: 이미 잃은 부위에 또 닿을 때(무시 / 같은 종류 남은 쪽 절단), 팔 1개 + 다리 1개는 생존(규칙상 같은 종류 2개만 탈락)으로 임시 구현
+- Decided: 2026-10-04 @MoHoDu — 이미 잃은 부위에 또 닿으면 같은 종류의 남은 쪽이 잘리고, 둘 다 잃었으면 없음(012 판정 기준과 같음). 팔 1개 + 다리 1개는 생존(같은 종류 2개만 탈락)
+- Decided: 2026-10-04 @MoHoDu — 테스트 씬은 새 `TightropeDamage`(005 씬 복사), 012 병합 전에는 디버그 절단 요청으로 시험. 012는 `TightropeSaws.Hit`(부위·플레이어)로 절단을 요청한다
 - Open: 잘린 부위 겉모습 — 임시로 해당 부위 숨김·표시, 실제 모델은 017
 - Decided: 2026-10-03 @MoHoDu — 부위 상태는 게임 전체·완전히 죽기 전까지 유지, 패널티 종류 공통·크기는 묘기마다, 이후 돈으로 부품 수리 예정(이번엔 구현 안 함, 확장 가능 구조만) — `Harness/Project/Decisions/body-damage.md`
 - Decided: 2026-10-03 @MoHoDu — 톱날은 즉시 사망 대신 부위 절단(규칙 #9). 패널티 크기는 세팅 값(기획 미정)
