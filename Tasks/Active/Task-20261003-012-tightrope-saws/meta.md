@@ -2,9 +2,9 @@
 
 - **Title:** 톱날 장애물(가로·수직)
 - **Type:** feat
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @MoHoDu
-- **Domain:** 없음 (코드가 생기면 Domain Map 추가)
+- **Domain:** [tightrope-course](../../../Docs/Domains/tightrope-course.md)
 - **Current Skill:** start-work
 - **Updated:** 2026-10-03
 
@@ -29,7 +29,9 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
-- Open: 발판 위치·눌림 조건(누가 밟으면 / 몇 초) — 구현 때 임시값, 세팅 칸으로
+- Decided: 2026-10-03 @MoHoDu — 발판: 진행 중인 플레이어 누구든 밟는 즉시 눌림(`plateHoldTime` 0), 톱날 뒤 1.5m(`plateOffset`). 세팅 칸으로 조정
+- Decided: 2026-10-03 @MoHoDu — 부위 판정: 허리(0.85m) 아래 다리·위 팔, 좌우는 몸 중심 기준 코스 오른쪽 +(정가운데는 오른쪽), 이미 잃은 쪽이면 같은 종류 반대쪽, 둘 다 잃었으면 없음
+- Decided: 2026-10-03 @MoHoDu — 가로 톱날마다 위치·출발 쪽·출발 지연(초)을 `SawSettings.horizontalSaws` 목록으로 정한다(기본: 번갈아 0번 왼쪽, 지연 0). 양산·밸런스 데이터는 나중에 구글 시트 등으로 뺄 수 있다(지금은 하지 않음)
 - Decided: 2026-10-03 @MoHoDu — 톱날은 즉시 사망이 아니라 부위 절단(규칙 #9). 012는 닿은 부위 판정·요청까지, 손상 상태·패널티·공유는 020. **012는 020보다 뒤에 병합**
 - Decided: 2026-10-03 @MoHoDu — 발판을 밟으면 톱날이 0.1~0.3초(세팅, 기본 0.2초) 안에 내려간다. JIRA CC-64, 공동 테스트 3개 확정
 - Decided: 2026-10-03 @MoHoDu — 수직 톱날 버튼은 우선 **발판(밟으면 눌림)**으로 임시 구현, 형태를 나중에 바꿀 수 있게 눌림 판정과 겉모습을 분리

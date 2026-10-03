@@ -23,8 +23,8 @@
 
 ## Files
 
-- 수정 예정:
-- 읽기 전용 참고:
+- 수정 예정: `Assets/Scripts/Tightrope/Saws/`(`TightropeSaws`·`SawSettings`·`SawMath`), `Assets/Resources/Prefabs/Objects/Obstacles/Saws/TightropeSaws.prefab`, 테스트 씬
+- 읽기 전용 참고: `TightropeRun`·`TightropeCourse`·`NetworkPlayer`·`PlayerMover`(몸통 크기)·`PlayerCondition`(잃은 부위)
 
 ## Risks
 
