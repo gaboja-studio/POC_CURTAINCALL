@@ -18,6 +18,7 @@
 - 충돌은 플레이어 캐릭터와만(톱날끼리·외줄과는 통과). 닿으면 즉시 사망 → 호스트 확정(007 `RequestState(Fallen)` 경로), 도착 완료 플레이어는 무시(005).
 - 동기화: 가로 톱날은 "게임 시작 시각 + 경과 시간"으로 위치가 정해지므로 시작 시각만 공유하고 각 화면이 계산한다. 수직 톱날은 호스트가 정한 줄·출현 시각·내려감만 공유한다. 묘기 재시작 때 처음으로(005 `RunRestarted`).
 - 1차 테스트 확인 항목(원문 7장)을 공동 테스트 항목 후보로 쓴다.
+- 005 진입점(2026-10-03, `feat/tightrope-core`): `TightropeRun.Current` — `State`·`StateChanged`(Waiting/Running/Failed/Succeeded), `IsPerformanceStarted`·`PerformanceElapsed`·`PerformanceStarted`(묘기 시작, 수직 톱날 시간 기준), `TimeRemaining`, `RunRestarted`(처음 상태로). `TightropeCourse.Current` — `GetDistance`·`GetSide`·`GetLanePosition`·`TryGetRopePoint`·`IsLaneUsable`·`FinishDistance`·`LaneCount`·`LaneSpacing`. 사망: `PlayerBalance.ForceFall()`(소유자) 또는 `NetworkPlayer.RequestState(PlayerState.Fallen)` — 도착 완료(`PlayerState.Arrived`)·묘기 종료 후에는 호스트가 거절한다.
 
 ## Files
 
