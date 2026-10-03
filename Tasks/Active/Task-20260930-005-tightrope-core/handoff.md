@@ -27,7 +27,7 @@
 
 ## PM이 확인할 것
 
-- 공용 파일 요청: 007 테스트 씬 `TestRoundRestart` 오브젝트(Missing Script) 제거(PM, 진행 중). 011 plan 진입점·Domain Map·균형 결정 ×1.75는 2026-10-03 PM 처리 완료
+- 공용 파일 요청: 없음 (011 plan 진입점·Domain Map·균형 ×1.75·007 테스트 씬 `TestRoundRestart` 제거 모두 2026-10-03 PM 처리)
 
 ## Verification
 
