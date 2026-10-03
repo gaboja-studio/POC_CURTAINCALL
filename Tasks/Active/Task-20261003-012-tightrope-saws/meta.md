@@ -2,7 +2,7 @@
 
 - **Title:** 톱날 장애물(가로·수직)
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** [tightrope-course](../../../Docs/Domains/tightrope-course.md)
 - **Current Skill:** start-work

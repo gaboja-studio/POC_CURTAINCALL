@@ -7,7 +7,7 @@
 - 단계: 구현 + 장애물 순서(단계 목록) 추가. 진입점 `Saws/TightropeSaws.cs`, 수치 `SawSettings.cs`(`steps` 순서·톱날 목록), 순서 실행기 `ObstacleSequence.cs`, 계산 `SawMath.cs`, 프리팹 `Saws/TightropeSaws.prefab`
 - 동작(에디터 호스트 1명, eval 합성 조작): 가로 22개 왕복, 수직 톱날 출현(진행자 줄 랜덤), 발판 밟으면 0.2초 하강·제거, 재시작 초기화, 닿으면 `[Saws] 절단 판정: P1 → LeftLeg (…)` 로그(적용 없음)
 - 막힌 것: 없음. 2026-10-03 수정: 묘기 시작 = 첫 사람 줄 오름(`TightropeRun.cs` 배정, 재시작 직후 남의 옛 위치로 바로 시작되는 문제 방지), 수직 톱날은 생성 지점 앞 진행자 줄만, 대기 이유 진단 로그. 작업자 플레이(2026-10-03)는 가로 톱날 왕복·타격 판정 로그만 확인. **수직 톱날·발판 미확인**(AI eval 합성 조작만), 신체 결손은 020 범위(미개발)
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/20
 
 ## 다음 할 일
 
