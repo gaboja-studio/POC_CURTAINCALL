@@ -4,7 +4,7 @@
 
 ## 지금 상태
 
-- 단계: 구현 중(2026-10-04). 남은 일 4개 중 1~3 완료, 4번 남음
+- 단계: 구현 완료(2026-10-04). 1~4 완료, 전체 검사·제출 남음
 - 동작하는 것: `Tightrope/Rider/RopeLaneJumpRules.cs`(씬에 하나 두면 내 캐릭터에 연결) — ① 옆줄 점프 판정(이동 가능 구간·옆 줄 있음·막히지 않음, 아니면 입력 무시) ② 착지 자리 동료와 겹치면 뒤쪽 착지(줄지어 있으면 맨 뒤), 설 자리 없으면 착지 순간 추락 ③ 손잡기(착지 지점 같은 줄 동료 앞뒤 1.0m 안이면 충격·흔들림 50% 감소, 뛰는 순간 판정)
 - 공용 파일 수정: `PlayerMover`(`GetLaneLandingPosition`, `LaneLandingShift`, 보정 시 앞뒤도 목표에서 멈춤), `TightropeSettings` 손잡기 묶음(코드·에셋)
 - 테스트 씬 `TightropeRider.unity` = 005 `Tightrope.unity` 복사 + `RopeLaneJumpRules` 오브젝트
@@ -12,8 +12,8 @@
 
 ## 다음 할 일
 
-1. 테스트 부품 정리: `TestLaneLanding.cs` 삭제, `NetworkPlayerSync.unity`에서 그 컴포넌트 제거
-2. 검사("검사해줘") → 제출
+1. 정리 변경 저장 → 최신 통합 반영 → PR 미리보기 확인 후 제출
+2. 4번 완료: `TestLaneLanding.cs`·`.meta` 삭제, `NetworkPlayerSync.unity`는 해당 컴포넌트만 제거(빈 오브젝트 유지), 씬 저장됨
 
 ## PM이 확인할 것
 
@@ -24,7 +24,9 @@
 
 ## Verification
 
-- 2 컴파일: PASS(save-work) / 3 테스트: `NO_PROJECT_TESTS` (결정)
+- 2 컴파일: PASS (10-04)
 - AI Play(LAN 호스트 1명 + PlayerMover만 붙인 가짜 동료): 바깥 줄·막힌 줄 무시, 뒤쪽 착지 9.35m·8.70m 정확, 줄 시작 0.3m 추락, 손잡기 충격 17.5·×1.375 vs 혼자 35·×1.75. 이동 불가 구간은 코스가 0~100m 전부 허용이라 미확인
-- 5 작업자 플레이(2026-10-04 @MoHoDu, MPPM 2인): 옆줄 못 가는 곳·뒤쪽 착지·자리 없음 추락·손잡기 "모두 잘 됨"
+- 5 작업자 플레이(2026-10-04 @MoHoDu): 안내한 항목에 대해 "모두 잘 되는것 같아"라고 확인. 접속 인원·방식은 별도 확인하지 않음
+- 0 구역·1 문서/규칙: PASS. 3 자동 테스트: NO_PROJECT_TESTS(PlayMode, 열린 에디터 list_tests Count=0). check-work의 별도 테스트 에디터 실행은 프로젝트가 열려 있어 거부됨
+- 4번: 씬 저장·dirty 0, 누락 스크립트 0(에디터 조회). Assets에 삭제한 스크립트 GUID·타입 참조 없음. 정리 후 Play 로그 검증은 SKIPPED(미실행)
 - 참고: 균형 입력 없이 옆줄 착지하면 약 2초 뒤 균형 붕괴 추락(004 기존 동작)
