@@ -97,6 +97,7 @@ namespace CurtainCall.Tightrope.Saws
         // 호스트 전용
         ObstacleSequence sequence;
         int verticalStep = -1;            // 지금 수직 톱날을 낸 단계 번호
+        readonly Dictionary<int, string> waitReasons = new(); // 단계별 마지막으로 남긴 대기 이유(바뀔 때만 로그)
         float platePressedFor;
         readonly HashSet<(int saw, ulong player)> touching = new();
         readonly HashSet<(int saw, ulong player)> touchingNow = new();
@@ -242,6 +243,7 @@ namespace CurtainCall.Tightrope.Saws
             touching.Clear();
             lastHitAt.Clear();
             verticalStep = -1;
+            waitReasons.Clear();
             sequence = new ObstacleSequence(settings.steps);
             horizontalCommands.Clear();
             tracks = new HorizontalSawTrack[settings.HorizontalCount];
@@ -255,6 +257,38 @@ namespace CurtainCall.Tightrope.Saws
         {
             float performanceStartedAt = run.IsPerformanceStarted ? GameElapsed - run.PerformanceElapsed : -1f;
             sequence.Tick(GameElapsed, performanceStartedAt, GetLeaderDistance(), ServerExecuteStep);
+
+            // 진단: 묘기 시작을 기다리는 수직 톱날 단계(시작 조건 자체가 안 맞음)
+            if (run.IsPerformanceStarted) return;
+            for (int i = 0; i < sequence.Count; i++)
+                if (sequence[i].action == StepAction.SpawnVertical && sequence[i].trigger == StepTrigger.PerformanceStart && sequence.GetFiredCount(i) == 0)
+                    LogWait(i, "묘기 시작 전(아무도 줄에 오르지 않음)");
+        }
+
+        /// <summary>진단 로그: 단계가 나오지 못하는 이유가 바뀌었을 때만 남긴다(플레이어 위치 포함).</summary>
+        void LogWait(int index, string reason)
+        {
+            if (waitReasons.TryGetValue(index, out string last) && last == reason) return;
+            waitReasons[index] = reason;
+            Debug.Log($"[Saws] 단계 '{sequence[index].name}' 대기: {reason} — {DescribePlayers()} (게임 {GameElapsed:0.0}초)");
+        }
+
+        /// <summary>진단용: 플레이어마다 상태·줄·거리. 예) "P1 줄0 12.3m, P2 플랫폼 -1.0m, P3 Fallen".</summary>
+        string DescribePlayers()
+        {
+            var parts = new List<string>();
+            foreach (var player in NetworkPlayer.All)
+            {
+                string name = $"P{player.Slot + 1}";
+                if (player.State != PlayerState.Normal)
+                {
+                    parts.Add($"{name} {player.State}");
+                    continue;
+                }
+                bool onRope = course.TryGetRopePoint(player.transform.position, out int lane, out float distance) && distance >= 0f;
+                parts.Add(onRope ? $"{name} 줄{lane} {distance:0.0}m" : $"{name} 플랫폼 {course.GetDistance(player.transform.position):0.0}m");
+            }
+            return parts.Count == 0 ? "플레이어 없음" : string.Join(", ", parts);
         }
 
         /// <summary>진행 중인 플레이어 중 가장 앞선 거리(m). 없으면 NaN.</summary>
@@ -275,9 +309,14 @@ namespace CurtainCall.Tightrope.Saws
             var step = sequence[index];
             if (step.action == StepAction.SpawnVertical)
             {
-                if (!ServerSpawnVertical(step)) return false;
+                if (!ServerSpawnVertical(step, out string reason))
+                {
+                    LogWait(index, reason);
+                    return false;
+                }
+                waitReasons.Remove(index);
                 verticalStep = index;
-                Debug.Log($"[Saws] 단계 '{step.name}' 실행: 수직 톱날 #{verticalSerial} (게임 {GameElapsed:0.0}초)");
+                Debug.Log($"[Saws] 단계 '{step.name}' 실행: 수직 톱날 #{verticalSerial} {verticalLane}번 줄 — {DescribePlayers()} (게임 {GameElapsed:0.0}초)");
                 return true;
             }
 
@@ -331,14 +370,24 @@ namespace CurtainCall.Tightrope.Saws
 
         /// <summary>
         /// 수직 톱날을 낸다. 이미 나와 있으면 false(제거될 때까지 기다림). 줄을 정한 단계는 그 줄(놓여 있고 막히지 않았을 때),
-        /// 아니면 진행 중인 플레이어가 있는 줄 중 랜덤. 고를 줄이 없으면 false로 미루고 다음 프레임에 다시 본다.
+        /// 아니면 생성 지점보다 앞(시작 쪽, 0m 이상)에 진행 중인 플레이어가 있는 줄 중 랜덤 — 톱날이 항상 누군가를 향해 내려온다(2026-10-03 PM).
+        /// 고를 줄이 없으면 false로 미루고 다음 프레임에 다시 본다.
         /// </summary>
-        bool ServerSpawnVertical(ObstacleStep step)
+        bool ServerSpawnVertical(ObstacleStep step, out string reason)
         {
-            if (verticalActive) return false;
+            reason = null;
+            if (verticalActive)
+            {
+                reason = $"수직 톱날 #{verticalSerial}이 아직 나와 있음(최대 1개)";
+                return false;
+            }
             if (step.lane >= 0)
             {
-                if (!course.IsLaneUsable(step.lane, settings.verticalSpawnDistance)) return false;
+                if (!course.IsLaneUsable(step.lane, settings.verticalSpawnDistance))
+                {
+                    reason = $"지정한 {step.lane}번 줄을 쓸 수 없음";
+                    return false;
+                }
                 SpawnVerticalOn(step.lane);
                 return true;
             }
@@ -348,10 +397,14 @@ namespace CurtainCall.Tightrope.Saws
             {
                 if (player.State != PlayerState.Normal) continue;
                 if (!course.TryGetRopePoint(player.transform.position, out int lane, out float distance)) continue;
-                if (distance < 0f || distance >= course.FinishDistance || lanes.Contains(lane)) continue;
+                if (distance < 0f || distance >= settings.verticalSpawnDistance || lanes.Contains(lane)) continue;
                 lanes.Add(lane);
             }
-            if (lanes.Count == 0) return false;
+            if (lanes.Count == 0)
+            {
+                reason = $"고를 줄 없음(줄 위 0m~생성 지점 {settings.verticalSpawnDistance:0.#}m 사이에 진행 중인 플레이어가 없음)";
+                return false;
+            }
             SpawnVerticalOn(lanes[UnityEngine.Random.Range(0, lanes.Count)]);
             return true;
         }
