@@ -4,7 +4,7 @@
 
 외줄타기 묘기에서 캐릭터가 줄 위에서 하는 동작. 005(코스·진행) 위에서 004(입력·균형)를 받아 쓴다.
 원문: `Docs/References/tightrope-prototype-brief.md`
-요약: `Docs/References/tightrope-keymap-summary.md`, `Docs/References/tightrope-plan-summary.md` · 규칙 결정: `Harness/Project/Decisions/tightrope-rules.md`, `Harness/Project/Decisions/tightrope-balance.md`
+요약: `Docs/References/tightrope-rules-summary.md`(2026-10-03 상세 규칙, 우선), `tightrope-keymap-summary.md`, `tightrope-plan-summary.md` · 규칙 결정: `Harness/Project/Decisions/tightrope-course-rules.md`, `tightrope-rules.md`, `tightrope-balance.md`
 
 ## Approach
 
@@ -28,6 +28,8 @@
 - 줄 위 이동·점프는 소유자가 하고 007 위치 공유를 그대로 쓴다.
 - 추락은 **호스트가 확정**해 007 상태 공유로 알린다. 대기·재시작은 005 진행 신호를 따른다.
 - 007 이어받기(2026-10-02 PM): 줄 밖 착지 추락 테스트 부품 `PlayerSync/TestLaneLanding.cs`를 005 코스 조회 기반 착지 판정으로 대체하고 삭제한다(삭제 배정은 인계 갱신 때 PM). 추락은 `PlayerBalance.ForceFall()` → 007이 호스트에 요청. 균형 켜기·끄기(`SetBalanceActive`, 지금은 시작 즉시 켜짐)를 줄 오르내림에 맞춘다. 줄 간격 2.0m. 공개 기능: `Docs/Domains/player-sync.md`.
+
+2026-10-03 기획 상세 규칙(`tightrope-course-rules.md`): 줄 간격 3m·점프 0.8m·이동 0.5m/s. 옆줄 이동 가능 구간 0~100m. 옆줄 착지가 겹치면 **상대 뒤쪽으로 착지**(2026-10-03 PM: 목마 합체가 되는 경우는 006이 합체로 바꾼다). 쓸 수 없는 줄 구간(불타는 구간)은 005 `IsLaneUsable(lane, distance)`로 판단. 줄 위 균형 켜고 끄기·줄 중앙 맞춤·줄 아래 추락 검사는 005가 이미 함(2026-10-02).
 
 ## Files
 

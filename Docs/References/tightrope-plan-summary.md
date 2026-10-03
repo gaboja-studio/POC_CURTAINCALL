@@ -2,6 +2,7 @@
 
 - 원문: [2차 외줄타기 기획서 (최신)](https://hrjoo122770.atlassian.net/wiki/spaces/bYmkRlnpusng/pages/3932182/2) (Confluence, 작성 주형락)
 - 요약: 2026-10-01, AI가 원문을 읽고 작업에 필요한 규칙만 추림. **원문이 기준**이며 어긋나면 원문을 따른다.
+- **2026-10-03 기획 상세 규칙이 진행·판정·맵·캐릭터 크기·점프·톱날 수치에서 이 문서보다 우선**한다: [상세 규칙 요약](tightrope-rules-summary.md).
 - **조작은 [키맵핑 요약](tightrope-keymap-summary.md)이 우선**한다. 기획서 §3·§5의 조작(A/D+SB 두 번 옆줄 이동, 마우스 좌+우 유지 목마)은 키맵핑 문서와 브리프로 대체됐다. 아래는 조작을 뺀 규칙만 적는다.
 - **PM 결정(2026-10-01)이 원문과 다른 곳은 [결정](../../Harness/Project/Decisions/tightrope-rules.md)이 우선**한다.
 
