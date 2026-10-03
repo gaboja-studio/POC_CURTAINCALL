@@ -14,13 +14,14 @@
 7. **2026-10-03 작업 재편**: 남은 일을 "게임 규칙 먼저, 꾸미기 나중"으로 단계를 나누고, 단계마다 두 갈래(A 방해물·결과 / B 사람 움직임·겉모습)로 동시에 진행한다. 008 도구 동기화는 **보류**(외줄 규칙에 도구 없음). 011은 남은 4개로 축소.
 8. **2026-10-03 조정값**: 기획자가 바꿀 수치는 모두 `Assets/Resources/GameSettings/`의 세팅 파일(게임 기본 1개 + 묘기별 1개 + 교체형 보상)에 둔다. 기획 값이 없는 것(불 등)은 임시값을 넣고 에디터에서 바꾼다.
 9. 아트·소리 파일은 2026-10-03 기준 없다. 모델·맵·음향 작업(017·018·019)은 **에셋 대기**.
+10. **2026-10-03 톱날 = 부위 절단**: 톱날에 닿으면 닿은 위치의 팔·다리가 잘리고(팔 → 상호작용 패널티, 다리 → 이동 감소, 공통 균형 흔들림 증가), 팔 2개 또는 다리 2개를 잃으면 탈락. 012(부위 판정) + 020(손상·패널티·공유). 수직 톱날 발판은 0.1~0.3초 하강.
 
 ## 단계와 순서 (쉬운 설명)
 
 ```
 끝남   003 방 만들기 · 004 플레이어 조작 · 007 플레이어 동기화 · 005 외줄 코스·진행
 0단계  013 조정값 세팅 정리 ← 다음 작업. 두 갈래가 같은 코드를 쓰므로 먼저 끝낸다
-1단계  A: 012 톱날 → 014 불(추격 불·불타는 구간)
+1단계  A: 012 톱날(013과 병행 시작) + 020 신체 손상(013 후) → 014 불(추격 불·불타는 구간)   ※ 병합: 013 → 020 → 012
        B: 011 옆줄 판정·손잡기 → 006 목마 → 010 목마 예외
        ★ 합치기 ①  게임 규칙 완성 (톱날·불·목마를 한 코스에서 시험, 수직 톱날 버튼 + 목마 확인)
 2단계  A: 015 결과·보상(임시, 교체형) → 016 UI 고도화
@@ -42,7 +43,8 @@ PM이 Unity에서 폴더·테스트 씬을 만들고 각 Task `setup.md`에 적�
 | 단계 | Task | 할 일 | 스크립트 (제안) | 테스트 씬 |
 |---|---|---|---|---|
 | 0 | 013 조정값 세팅 | 수치를 세팅 파일로 모으기, 컴포넌트가 세팅을 읽게 | `Assets/Scripts/Settings/` + 이어받기: Player, Tightrope/Rope, Network 일부 | 기존 `Tests/Tightrope/` 사용 |
-| 1A | 012 톱날 | 가로 22개·수직 톱날·버튼, 닿으면 사망 | `Assets/Scripts/Tightrope/Saws/` | `Assets/Scenes/Tests/TightropeSaws/` |
+| 1A | 012 톱날 | 가로 22개·수직 톱날·발판, 닿은 부위 판정 → 020에 절단 요청 | `Assets/Scripts/Tightrope/Saws/` | `Assets/Scenes/Tests/TightropeSaws/` |
+| 1A | 020 신체 손상 | 부위 절단 요청·호스트 확정·공유, 팔/다리 패널티, 2개 손실 탈락, 재시작 복구 | `Assets/Scripts/Tightrope/Damage/` + 이어받기: Player, PlayerSync 일부 | 012 테스트 씬 사용 |
 | 1A | 014 불 | 묘기 시작 후 추격 불, 시간에 따라 불타는 줄 구간 | `Assets/Scripts/Tightrope/Fire/` | `Assets/Scenes/Tests/TightropeFire/` |
 | 1B | 011 외줄 동작 마무리 | 옆줄 점프 판정 연결, 뒤쪽 착지, 손잡기, 테스트 부품 정리 | `Assets/Scripts/Tightrope/Rider/` | `Assets/Scenes/Tests/TightropeRider/` |
 | 1B | 006 목마 | 올라타기·내리기·목마 점프·합체 착지 (+호스트 판정) | `Assets/Scripts/Tightrope/Piggyback/` | `Assets/Scenes/Tests/Piggyback/` |
@@ -63,7 +65,7 @@ PM이 Unity에서 폴더·테스트 씬을 만들고 각 Task `setup.md`에 적�
 |---|---|
 | `Assets/Resources/GameSettings/`, `Assets/Scripts/Settings/` | 013이 만든다 → 이후 각 Task가 **자기 칸만 추가**(012 톱날, 014 불, 015 보상 등). 같은 세팅 파일을 두 Task가 동시에 고치지 않게 PM이 순서 배정 |
 | `Assets/Resources/Prefabs/Controllers/Network/` | 003 → 007 → 013(값 이동) → PM 배정 |
-| `Assets/Resources/Input/`, `Assets/Resources/Prefabs/Characters/Players/` | 004 → 007 → 013 → 갈래 B 순서대로(011·006·010·017) PM 배정 |
+| `Assets/Resources/Input/`, `Assets/Resources/Prefabs/Characters/Players/`, `Assets/Scripts/Player/` | 004 → 007 → 013 → 020 → 갈래 B 순서대로(011·006·010·017) PM 배정 |
 | `Assets/Resources/Prefabs/UIs/`, `Assets/Resources/Fonts/` | 004 → 007 → 015·016 PM 배정 (`Assets/TextMesh Pro/` 수정 금지) |
 | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | 005 → 013(값 이동) → 018(맵). 다른 작업은 씬에 놓기만 |
 | `Assets/Resources/Prefabs/Controllers/Camera/` | 007 → 이후 PM 배정 |
