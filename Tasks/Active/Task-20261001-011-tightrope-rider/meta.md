@@ -2,7 +2,7 @@
 
 - **Title:** 외줄 위 캐릭터 동작
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** 없음 (코드가 생기면 Domain Map 추가)
 - **Current Skill:** start-work

@@ -4,15 +4,15 @@
 
 ## 지금 상태
 
-- 단계: 구현 완료(2026-10-04). 1~4 완료, 전체 검사·제출 남음
+- 단계: 제출 완료(2026-10-04). 1~4 완료, 통합 검토·병합 대기
 - 동작하는 것: `Tightrope/Rider/RopeLaneJumpRules.cs`(씬에 하나 두면 내 캐릭터에 연결) — ① 옆줄 점프 판정(이동 가능 구간·옆 줄 있음·막히지 않음, 아니면 입력 무시) ② 착지 자리 동료와 겹치면 뒤쪽 착지(줄지어 있으면 맨 뒤), 설 자리 없으면 착지 순간 추락 ③ 손잡기(착지 지점 같은 줄 동료 앞뒤 1.0m 안이면 충격·흔들림 50% 감소, 뛰는 순간 판정)
 - 공용 파일 수정: `PlayerMover`(`GetLaneLandingPosition`, `LaneLandingShift`, 보정 시 앞뒤도 목표에서 멈춤), `TightropeSettings` 손잡기 묶음(코드·에셋)
 - 테스트 씬 `TightropeRider.unity` = 005 `Tightrope.unity` 복사 + `RopeLaneJumpRules` 오브젝트
-- 막힌 것: 없음 / PR: 없음
+- 막힌 것: 없음 / PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/21
 
 ## 다음 할 일
 
-1. 정리 변경 저장 → 최신 통합 반영 → PR 미리보기 확인 후 제출
+1. PM의 PR 검토·통합 병합 및 공동 테스트. 최신 통합 반영·작업 브랜치 push 완료
 2. 4번 완료: `TestLaneLanding.cs`·`.meta` 삭제, `NetworkPlayerSync.unity`는 해당 컴포넌트만 제거(빈 오브젝트 유지), 씬 저장됨
 
 ## PM이 확인할 것
