@@ -23,7 +23,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20260930-003 | feat | @MoHoDu | feat/network-session | #6 | integrated |
 | Task-20260930-004 | feat | @MoHoDu | feat/player-control | #7 | integrated |
 | Task-20260930-005 | feat | @MoHoDu | feat/tightrope-core | #18 | submitted (#18 병합됨, 공동 테스트 결과 정리 대기) |
-| Task-20260930-006 | feat | @MoHoDu | feat/tightrope-piggyback (인계 때 생성) | - | scaffolded |
+| Task-20260930-006 | feat | @MoHoDu | feat/tightrope-piggyback | - | working (worktree에서 작업 중, 원격 브랜치는 첫 저장 때) |
 | Task-20260930-007 | feat | @MoHoDu | feat/network-player-sync | #11 | integrated (QA #13 통과) |
 | Task-20260930-008 | feat | @MoHoDu | feat/network-prop-sync (인계 때 생성) | - | blocked (2026-10-03 보류) |
 | Task-20260930-009 | feat | @MoHoDu | feat/tightrope-network (인계 때 생성) | - | scaffolded |
@@ -55,6 +55,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | Task-20260930-005 | 외줄 코스 스테이지 (다른 Task는 배치만) |
 | `Assets/Resources/Prefabs/Objects/Tools/` | Task-20260930-008 (보류) | 도구 프리팹 |
 | `Assets/Resources/GameSettings/`, `Assets/Scripts/Settings/` | Task-20261003-013 → 이후 칸 추가 Task PM 배정 | 기획 조정값 세팅 파일 (`Harness/Project/Decisions/game-settings.md`) |
+| `Assets/Scripts/Camera/`, `Assets/Resources/Prefabs/Controllers/Camera/` | Task-20260930-006 (2026-10-04 PM, 카메라 가림·구도) | `camera-review-20261004.md` |
+| `Assets/Plugins/` (DOTween Pro), `Assets/Resources/DOTweenSettings.asset` | PM (2026-10-05 통합 브랜치에 설치, 원본·예제 수정 금지) | 트윈 라이브러리 |
 | `Assets/Scripts/Network/PlayerSync/` | Task-20260930-007 | 이후 Task는 공개 기능만 사용, 수정은 PM 배정. 테스트 부품 `TestRoundRestart.cs`는 005, `TestLaneLanding.cs`는 011이 대체·삭제 |
 
 `Packages/`, `ProjectSettings/`는 PM이 인계 전 이 브랜치에서 직접 설치·설정한다(모든 Task 수정 금지).
