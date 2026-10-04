@@ -7,7 +7,7 @@ namespace CurtainCall.Settings
     /// 외줄 묘기 세팅: 코스·진행·줄 위 동작·손잡기·목마·신체 손상 불이익·톱날(+ 보상 연결은 부모).
     /// 에셋: Assets/Resources/GameSettings/Tricks/TightropeSettings.asset. <see cref="GameSettings.Tightrope"/>로 읽는다.
     /// 코스 모양은 코스를 만들 때 읽는다(대기 중 수정은 바로 다시 만들고, 게임 중 수정은 다음 대기 때). 나머지는 쓸 때마다 읽는다.
-    /// 톱날 칸은 012(`SawSettings`, 장애물 순서 포함), 불(014) 칸은 해당 Task가 여기에 묶음을 추가한다. 기본값은 2026-10-03 프리팹 값과 같다.
+    /// 톱날 공통 규격은 012(`SawSettings`), 톱날 위치·시간은 연결한 장애물 배치 파일(021 `ObstacleLayout`), 불(014)은 해당 Task가 묶음을 추가한다. 기본값은 2026-10-03 프리팹 값과 같다.
     /// </summary>
     [CreateAssetMenu(menuName = "CurtainCall/Settings/Tricks/Tightrope", fileName = "TightropeSettings")]
     public sealed class TightropeSettings : TrickSettings
@@ -24,8 +24,13 @@ namespace CurtainCall.Settings
         [SerializeField] PiggybackSettings piggyback = new();
         [Header("신체 손상 불이익 (외줄)")]
         [SerializeField] BodyPenaltySettings bodyPenalty = new();
-        [Header("톱날 (장애물 순서·가로·수직·발판·부위 판정)")]
+        [Header("톱날 공통 규격 (크기·속도·높이·발판·부위 판정)")]
         [SerializeField] Tightrope.Saws.SawSettings saws = new();
+        [Header("장애물 배치")]
+        [Tooltip("장애물 배치 파일(가로 톱날 위치·시간, 수직 톱날 등장 규칙). Assets/Resources/GameSettings/Tricks/TightropeObstacles.asset. 씬 뷰 편집기(Tools/CurtainCall/Obstacle Layout)로 고친다.")]
+        [SerializeField] Tightrope.Saws.ObstacleLayout obstacles;
+
+        static Tightrope.Saws.ObstacleLayout fallbackObstacles;
 
         /// <summary>인스펙터에서 값을 바꿨을 때(에디터). 코스가 다시 만들지 판단하는 데 쓴다.</summary>
         public event Action Changed;
@@ -37,6 +42,20 @@ namespace CurtainCall.Settings
         public PiggybackSettings Piggyback => piggyback;
         public BodyPenaltySettings BodyPenalty => bodyPenalty;
         public Tightrope.Saws.SawSettings Saws => saws;
+
+        /// <summary>장애물 배치. 연결이 없으면 코드 기본값(2026-10-05 값)으로 만든 임시 배치를 쓰고 경고한다.</summary>
+        public Tightrope.Saws.ObstacleLayout Obstacles
+        {
+            get
+            {
+                if (obstacles != null) return obstacles;
+                if (fallbackObstacles != null) return fallbackObstacles;
+                Debug.LogWarning("[Settings] TightropeSettings에 장애물 배치 파일이 연결되지 않아 코드 기본값을 씁니다.");
+                fallbackObstacles = CreateInstance<Tightrope.Saws.ObstacleLayout>();
+                fallbackObstacles.hideFlags = HideFlags.DontSave;
+                return fallbackObstacles;
+            }
+        }
 
         void OnValidate() => Changed?.Invoke();
 

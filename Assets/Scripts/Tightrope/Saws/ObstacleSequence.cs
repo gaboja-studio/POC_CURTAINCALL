@@ -4,19 +4,15 @@ using UnityEngine;
 
 namespace CurtainCall.Tightrope.Saws
 {
-    /// <summary>단계가 시작되는 조건.</summary>
+    /// <summary>
+    /// 단계가 시작되는 조건. 시간 기준만 둔다 — 선두 거리·다른 단계 뒤 조건은 2026-10-05 PM 결정으로 뺐다(필요해지면 다시 추가).
+    /// </summary>
     public enum StepTrigger
     {
         /// <summary>게임 시작(제한시간 시작) 후.</summary>
         GameStart,
-        /// <summary>묘기 시작(살아 있는 전원이 줄에 오름) 후.</summary>
+        /// <summary>묘기 시작(진행 중인 플레이어가 처음 줄에 오름) 후.</summary>
         PerformanceStart,
-        /// <summary>진행 중인 선두가 정한 거리(m)에 닿은 뒤.</summary>
-        LeaderDistance,
-        /// <summary>기준 단계가 시작된 뒤.</summary>
-        AfterStepStarted,
-        /// <summary>기준 단계가 끝난 뒤(가로 작동·정지는 시작과 동시에 끝, 수직 톱날은 제거될 때 끝).</summary>
-        AfterStepFinished,
     }
 
     /// <summary>단계가 하는 일.</summary>
@@ -31,23 +27,16 @@ namespace CurtainCall.Tightrope.Saws
     }
 
     /// <summary>
-    /// 장애물 순서의 한 단계(한 행). 위에서 아래로 읽지만 실행 순서는 시작 조건이 정한다.
-    /// 나중에 표(구글 시트 등)로 옮기기 쉽게 평평한 값만 둔다.
+    /// 장애물 순서의 한 단계. 기획자가 직접 쓰지 않고 장애물 배치 파일(<see cref="ObstacleLayout.BuildSteps"/>)에서 만든다.
     /// </summary>
     [Serializable]
     public sealed class ObstacleStep
     {
-        [Tooltip("단계 이름. 다른 단계가 기준으로 부를 때 쓴다.")]
+        [Tooltip("단계 이름(로그용).")]
         public string name = "";
 
         [Tooltip("시작 조건.")]
         public StepTrigger trigger = StepTrigger.GameStart;
-
-        [Tooltip("AfterStepStarted/Finished의 기준 단계 이름. 비우면 바로 위 단계.")]
-        public string reference = "";
-
-        [Tooltip("LeaderDistance의 거리(m).")]
-        public float leaderDistance;
 
         [Tooltip("조건이 맞은 뒤 기다리는 시간(초).")]
         [Min(0f)] public float delay;
@@ -91,25 +80,17 @@ namespace CurtainCall.Tightrope.Saws
         {
             public int fired;
             public bool running;              // 시작했지만 아직 안 끝남(수직 톱날)
-            public float startedAt = -1f;
             public float finishedAt = -1f;
-            public float leaderReachedAt = -1f;
         }
 
         readonly IReadOnlyList<ObstacleStep> steps;
         readonly State[] states;
-        readonly int[] references;
 
         public ObstacleSequence(IReadOnlyList<ObstacleStep> steps)
         {
             this.steps = steps ?? Array.Empty<ObstacleStep>();
             states = new State[this.steps.Count];
-            references = new int[this.steps.Count];
-            for (int i = 0; i < states.Length; i++)
-            {
-                states[i] = new State();
-                references[i] = FindReference(i);
-            }
+            for (int i = 0; i < states.Length; i++) states[i] = new State();
         }
 
         /// <summary>단계 수.</summary>
@@ -123,25 +104,20 @@ namespace CurtainCall.Tightrope.Saws
 
         /// <summary>
         /// 때가 된 단계를 실행한다. <paramref name="performanceStartedAt"/>은 묘기 시작 시각(시작 전이면 음수),
-        /// <paramref name="leaderDistance"/>는 진행 중인 선두의 거리(없으면 NaN). <paramref name="execute"/>(단계 번호) → 실행했는지.
+        /// <paramref name="execute"/>(단계 번호) → 실행했는지.
         /// </summary>
-        public void Tick(float now, float performanceStartedAt, float leaderDistance, Func<int, bool> execute)
+        public void Tick(float now, float performanceStartedAt, Func<int, bool> execute)
         {
             for (int i = 0; i < steps.Count; i++)
             {
                 var step = steps[i];
                 var state = states[i];
-                if (step.trigger == StepTrigger.LeaderDistance && state.leaderReachedAt < 0f
-                    && !float.IsNaN(leaderDistance) && leaderDistance >= step.leaderDistance)
-                    state.leaderReachedAt = now;
-
                 if (state.running || !HasRunsLeft(step, state)) continue;
                 float due = GetDueTime(i, performanceStartedAt);
                 if (float.IsNaN(due) || now < due) continue;
                 if (!execute(i)) continue;
 
                 state.fired++;
-                state.startedAt = now;
                 if (step.action == StepAction.SpawnVertical) state.running = true;
                 else state.finishedAt = now;
             }
@@ -175,24 +151,9 @@ namespace CurtainCall.Tightrope.Saws
             {
                 StepTrigger.GameStart => 0f,
                 StepTrigger.PerformanceStart => performanceStartedAt >= 0f ? performanceStartedAt : float.NaN,
-                StepTrigger.LeaderDistance => state.leaderReachedAt >= 0f ? state.leaderReachedAt : float.NaN,
-                StepTrigger.AfterStepStarted => references[index] < 0 || states[references[index]].startedAt < 0f ? float.NaN : states[references[index]].startedAt,
-                StepTrigger.AfterStepFinished => references[index] < 0 || states[references[index]].finishedAt < 0f ? float.NaN : states[references[index]].finishedAt,
                 _ => float.NaN,
             };
             return baseTime + step.delay;
-        }
-
-        /// <summary>기준 단계 번호. 이름이 비면 바로 위 단계, 못 찾으면 -1.</summary>
-        int FindReference(int index)
-        {
-            var step = steps[index];
-            if (step.trigger != StepTrigger.AfterStepStarted && step.trigger != StepTrigger.AfterStepFinished) return -1;
-            if (string.IsNullOrEmpty(step.reference)) return index - 1;
-            for (int i = 0; i < steps.Count; i++)
-                if (i != index && steps[i].name == step.reference) return i;
-            Debug.LogWarning($"[Saws] 장애물 단계 '{step.name}'의 기준 단계 '{step.reference}'를 찾지 못해 실행하지 않습니다.");
-            return -1;
         }
     }
 

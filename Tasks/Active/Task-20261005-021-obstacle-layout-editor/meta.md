@@ -2,10 +2,10 @@
 
 - **Title:** 장애물 배치 편집기(씬 뷰 배치·쉬운 시간 칸·미리보기)
 - **Type:** feat
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/tightrope-course.md`
-- **Current Skill:** start-work
+- **Current Skill:** implement-code
 - **Updated:** 2026-10-05
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
@@ -30,7 +30,9 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
-- Open: 기존 `steps`의 고급 조건(다른 단계 시작·끝 뒤, 선두 거리)을 쉬운 칸에 남길지
+- Decided: 2026-10-05 @MoHoDu — 기존 `steps`의 고급 조건(선두 거리, 다른 단계 시작·끝 뒤)은 쉬운 칸에서 **뺀다**. 시간 기준(게임 시작·묘기 시작 + ○초)만 남긴다. 현재 값은 둘만 쓰므로 그대로 옮겨진다. 필요해지면 PM이 다시 지시해 추가
 - Decided: 2026-10-05 @MoHoDu — 씬 뷰 배치·쉬운 시간 칸·시간 슬라이더 미리보기로 바꾼다. 저장은 세팅 폴더 한 곳(장애물 배치 파일), 공통 규격(크기·높이)은 외줄 세팅에 남긴다
 - Decided: 2026-10-05 @MoHoDu — 수직 톱날은 너무 갑자기 생기지 않게 **선두 플레이어 앞 n m 이상**인 곳에 등장(n은 세팅 칸, 임시값). 등장 지점은 기획 생성 지점(93m)을 넘지 않고, 선두가 그보다 가까워 n m를 둘 수 없으면 등장을 미룬다(해석, 작업 중 PM 확인)
+- Decided: 2026-10-05 @MoHoDu — 수직 톱날 "선두" = 그 줄의 가장 앞선 진행자, n 기본 15m(세팅 칸), 화면 위(목마 4층 고려)에서 내려와 등장. 규칙 `tightrope-course-rules.md` 7-2·7-3
+- Decided: 2026-10-05 @MoHoDu(PM) — `Docs/Domains/tightrope-course.md`, `Docs/Guides/game-settings-guide.md`를 작업 구역에 추가해 함께 갱신
 - Decided: 2026-10-05 @MoHoDu — 담당자 @MoHoDu(PM 직접) 기본 배정, JIRA CC-66, 공동 테스트 3개 확정

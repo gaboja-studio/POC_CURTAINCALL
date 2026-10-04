@@ -19,6 +19,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 ## 배정된 공용 파일
 
+- `Docs/Domains/tightrope-course.md`, `Docs/Guides/game-settings-guide.md` (배치 파일·쉬운 칸·편집기 안내 갱신, 2026-10-05 PM 추가)
 - `Assets/Resources/GameSettings/` (새 장애물 배치 파일 추가, `TightropeSettings` 톱날 칸 정리)
 - `Assets/Scripts/Settings/` (`TightropeSettings`에 배치 파일 연결 칸)
 - 런타임 판정·동기화(012 `TightropeSaws.cs`의 절단·발판·공유)는 동작을 바꾸지 않는다. 입력 형식만 바꾼다.

@@ -1,0 +1,154 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fef1f6743c90e4e8cb4d3574084fe142, type: 3}
+  m_Name: TightropeObstacles
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.Saws.ObstacleLayout
+  horizontalSaws:
+  - distance: 5.6
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 8.8
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 12
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 15.2
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 18.4
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 22.5
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 27.5
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 32.5
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 37.5
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 42.5
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 47.5
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 52.5
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 57.5
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 62.5
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 67.5
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 71.8
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 75.4
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 78.9
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 82.5
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 86.1
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 89.6
+    startSide: 0
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  - distance: 93.2
+    startSide: 1
+    startBase: 0
+    startDelay: 0
+    stops: 0
+    stopAfter: 0
+  vertical:
+    enabled: 1
+    firstDelay: 60
+    nextDelay: 20
+    maxCount: 0
+    lane: -1
+    minLeadDistance: 15

@@ -59,74 +59,6 @@ MonoBehaviour:
     leglessLaneLandingShock: 1.5
     reachLossPerArm: 0.25
   saws:
-    steps:
-    - name: "\uAC00\uB85C \uC804\uCCB4"
-      trigger: 0
-      reference: 
-      leaderDistance: 0
-      delay: 0
-      action: 0
-      firstSaw: 1
-      lastSaw: 22
-      lane: -1
-      repeat: 0
-      repeatDelay: 0
-    - name: "\uC218\uC9C1"
-      trigger: 1
-      reference: 
-      leaderDistance: 0
-      delay: 60
-      action: 2
-      firstSaw: 1
-      lastSaw: 1
-      lane: -1
-      repeat: -1
-      repeatDelay: 20
-    horizontalSaws:
-    - distance: 5.6
-      startSide: 0
-    - distance: 8.8
-      startSide: 1
-    - distance: 12
-      startSide: 0
-    - distance: 15.2
-      startSide: 1
-    - distance: 18.4
-      startSide: 0
-    - distance: 22.5
-      startSide: 1
-    - distance: 27.5
-      startSide: 0
-    - distance: 32.5
-      startSide: 1
-    - distance: 37.5
-      startSide: 0
-    - distance: 42.5
-      startSide: 1
-    - distance: 47.5
-      startSide: 0
-    - distance: 52.5
-      startSide: 1
-    - distance: 57.5
-      startSide: 0
-    - distance: 62.5
-      startSide: 1
-    - distance: 67.5
-      startSide: 0
-    - distance: 71.8
-      startSide: 1
-    - distance: 75.4
-      startSide: 0
-    - distance: 78.9
-      startSide: 1
-    - distance: 82.5
-      startSide: 0
-    - distance: 86.1
-      startSide: 1
-    - distance: 89.6
-      startSide: 0
-    - distance: 93.2
-      startSide: 1
     horizontalFirstSpeed: 3
     horizontalLastSpeed: 4.5
     horizontalTravelHalfWidth: 9.5
@@ -151,3 +83,4 @@ MonoBehaviour:
     waistHeight: 0.85
     hitCooldown: 1
     spinSpeed: 720
+  obstacles: {fileID: 11400000, guid: ca934c409a7424ec18b162423392e9f1, type: 2}
