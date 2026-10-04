@@ -23,8 +23,8 @@
 
 ## Files
 
-- 수정 예정:
-- 읽기 전용 참고:
+- 수정 예정: `Assets/Scripts/Tightrope/Saws/`(`TightropeSaws`·`SawSettings`·`ObstacleSequence`·`SawMath`), `Assets/Resources/Prefabs/Objects/Obstacles/Saws/TightropeSaws.prefab`, 테스트 씬
+- 읽기 전용 참고: `TightropeRun`·`TightropeCourse`·`NetworkPlayer`·`PlayerMover`(몸통 크기)·`PlayerCondition`(잃은 부위)
 
 ## Risks
 
@@ -37,7 +37,7 @@
 - 1 문서/규칙:
 - 2 컴파일:
 - 3 테스트:
-- 4 실행 로그:
+- 4 실행 로그: AI eval 합성 조작 확인. 작업자 플레이는 가로 톱날 왕복·타격 로그만(수직·발판·2인 미확인)
 
 ## 공동 테스트 항목
 
