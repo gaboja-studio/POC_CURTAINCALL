@@ -28,8 +28,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20260930-008 | feat | @MoHoDu | feat/network-prop-sync (인계 때 생성) | - | blocked (2026-10-03 보류) |
 | Task-20260930-009 | feat | @MoHoDu | feat/tightrope-network (인계 때 생성) | - | scaffolded |
 | Task-20260930-010 | feat | @MoHoDu | feat/piggyback-network (인계 때 생성) | - | scaffolded |
-| Task-20261001-011 | feat | @MoHoDu | feat/tightrope-rider | - | assigned |
-| Task-20261003-012 | feat | @MoHoDu | feat/tightrope-saws | - | assigned |
+| Task-20261001-011 | feat | @MoHoDu | feat/tightrope-rider | #21 | integrated |
+| Task-20261003-012 | feat | @MoHoDu | feat/tightrope-saws | #20 | integrated (공동 테스트 2 부분 통과 → 021) |
 | Task-20261003-013 | refactor | @MoHoDu | refactor/game-settings | #19 | integrated |
 | Task-20261003-014 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-015 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
@@ -37,7 +37,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261003-017 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-018 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-019 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
-| Task-20261003-020 | feat | @MoHoDu | feat/body-damage | - | assigned |
+| Task-20261003-020 | feat | @MoHoDu | feat/body-damage | #22 | integrated |
+| Task-20261005-021 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 
 ## 공용 파일 소유 표
 

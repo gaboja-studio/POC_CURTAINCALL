@@ -45,6 +45,7 @@
 | 0 | 013 세팅 정리 | `Assets/Scripts/Settings/`, 위 표 이동 | 모든 컴포넌트가 세팅을 읽음 |
 | 1A | 012 톱날 | 톱날·발판, 닿은 부위 판정 → 020 절단 요청 | `PerformanceStarted`·`PerformanceElapsed`·`RunRestarted`, `RequestState(Fallen)` |
 | 1A | 020 신체 손상 | 절단 요청 진입점·잃은 부위 공유·패널티·탈락 | 004 `PlayerCondition`·`BodyPart`, 007 상태 공유, `RunRestarted` |
+| 1A | 021 배치 편집기 | 씬 뷰 톱날 배치·쉬운 시간 칸·미리보기(불타는 구간 확장 자리) | 012 `SawMath`·`HorizontalSawTrack`, 장애물 배치 파일 |
 | 1A | 014 불 | 추격 불, 시각별 `BlockSegment` | `PerformanceStarted`, `BlockSegment`·`ClearBlockedSegments`, `RequestState(Fallen)` |
 | 1B | 011 | `LaneJumpFilter` 연결, 뒤쪽 착지, 손잡기 | `IsLaneChangeAllowed`·`FindLandingLane`·`IsLaneUsable` |
 | 1B | 006·010 | 목마·합체 착지·예외 | 007 호스트 판정 통로 |

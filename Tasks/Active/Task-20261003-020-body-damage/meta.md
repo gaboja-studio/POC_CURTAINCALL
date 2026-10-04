@@ -2,11 +2,11 @@
 
 - **Title:** 신체 손상(부위 절단·패널티·동기화)
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/player-control.md`, `Docs/Domains/player-sync.md`, `Docs/Domains/tightrope-course.md`
 - **Current Skill:** start-work
-- **Updated:** 2026-10-04
+- **Updated:** 2026-10-05
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
