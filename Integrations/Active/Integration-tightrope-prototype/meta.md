@@ -38,7 +38,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261003-018 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-019 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-020 | feat | @MoHoDu | feat/body-damage | #22 | integrated |
-| Task-20261005-021 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261005-021 | feat | @MoHoDu | feat/obstacle-layout-editor | - | assigned |
 
 ## 공용 파일 소유 표
 
