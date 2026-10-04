@@ -13,6 +13,9 @@ GameObject:
   - component: {fileID: 5936566407737347361}
   - component: {fileID: 1014669678305033886}
   - component: {fileID: 1063248889731691847}
+  - component: {fileID: 1424430788752323307}
+  - component: {fileID: 4051239707843688151}
+  - component: {fileID: 8801545623738232437}
   m_Layer: 0
   m_Name: PlayerFollowCamera
   m_TagString: Untagged
@@ -138,3 +141,40 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14a8f7da5e00d484eae9b11418d5c7ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.PlayerSync.LocalPlayerCamera
+--- !u!114 &1424430788752323307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650483801816869962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f1012736e70645ce97379139095057c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Cameras.TightropeCameraFraming
+--- !u!114 &4051239707843688151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650483801816869962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e37e7ac384314583a0a0e67a3eabeb9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Cameras.CameraOcclusionFade
+  transparentTemplate: {fileID: 2100000, guid: c97ae8f76e995452d918c7e3d4aea2e2, type: 2}
+--- !u!114 &8801545623738232437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650483801816869962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0e4a040dbc7d4fcfa194d308087589e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Cameras.CameraSpectator

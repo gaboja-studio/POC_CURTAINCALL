@@ -11,7 +11,7 @@
 - [tightrope-rules.md](tightrope-rules.md) — 외줄타기 조작·협동/단독 옆줄(콜라이더 합체·1m 50% 감소)·목마 올라타기·목마 점프·전원 추락 재시작·1명 도착 성공. 외줄·목마·입력을 구현할 때
 - [prototype-verification.md](prototype-verification.md) — AI는 컴파일만 검사, 플레이 테스트는 작업자에게 받음. 프로토타입 Task를 검사·제출할 때
 - [tightrope-course-rules.md](tightrope-course-rules.md) — 외줄 상세 규칙(2026-10-03 기획): 4명·5분·1명 도착 즉시 클리어, 4줄·간격 3m·100m, 이동 0.5·점프 0.8·캡슐 1.5/0.6, 톱날. 코스 수치·진행 판정·톱날을 구현할 때
-- [tightrope-balance.md](tightrope-balance.md) — 외줄 균형(기획 문서 rope_balance 기준): 초록 ±40·빨강 2초 추락, 자연 흔들림·기울기 가속·목마 배율·착지/옆줄 충격, 수치는 인스펙터. 균형·게이지·추락을 구현하거나 튜닝할 때
+- [tightrope-balance.md](tightrope-balance.md) — 외줄 균형(기획 문서 rope_balance 기준): 초록 ±40·빨강 2초 추락, 자연 흔들림·기울기 가속·목마 배율·위층 전달·목마 중 추락(위 전원 추락·아래 반동)·착지/옆줄 충격, 수치는 세팅. 균형·게이지·추락을 구현하거나 튜닝할 때
 - [player-control-architecture.md](player-control-architecture.md) — 플레이어 조작 3층(키→공통 역할 입력 에셋, 콘텐츠별 조작 규칙=전략, 동작 부품). 입력·조작을 추가하거나 콘텐츠별 키 동작을 바꿀 때
 - [feature-with-network.md](feature-with-network.md) — 007 이후 기능 Task는 기능+동기화를 같이, 007 공개 기능 사용 가능, 009·010 축소. 기능 Task를 계획하거나 네트워크 코드를 다른 기능에서 쓸 때
 - [body-damage.md](body-damage.md) — 팔·다리 손실은 게임 전체 상태(완전히 죽기 전까지 묘기·재시작을 넘어 유지), 팔=상호작용·다리=이동 계열 패널티(크기는 묘기마다), 같은 종류 2개 = 사망, 이후 돈으로 부품 수리. 부위 손실·패널티·수리를 다룰 때

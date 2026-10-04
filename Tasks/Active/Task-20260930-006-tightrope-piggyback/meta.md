@@ -6,14 +6,15 @@
 - **Assignee:** @MoHoDu
 - **Domain:** 없음 (코드가 생기면 Domain Map 추가)
 - **Current Skill:** start-work
-- **Updated:** 2026-10-03
+- **Updated:** 2026-10-04
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
 ## Workspace
 
 - **Integration:** integration/tightrope-prototype
-- **Branch:** feat/tightrope-piggyback (인계 때 생성)
+- **Branch:** feat/tightrope-piggyback
+- 로컬 워크트리 준비 완료(2026-10-04). 원격 인계·구현은 미실행; 상세는 handoff.md.
 
 ## Goal
 

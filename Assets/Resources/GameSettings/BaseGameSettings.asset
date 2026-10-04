@@ -30,10 +30,10 @@ MonoBehaviour:
     greenLimit: 40
     fallTime: 2
     correctionSpeed: 60
-    movingSway: 15
-    idleSway: 5
+    movingSway: 0
+    idleSway: 0
     swayDirectionInterval: {x: 1, y: 2}
-    tiltAcceleration: 0.5
+    tiltAcceleration: 0
   presentation:
     maxTiltAngle: 25
     tiltFollowSharpness: 10
