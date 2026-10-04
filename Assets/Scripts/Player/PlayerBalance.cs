@@ -96,6 +96,31 @@ namespace CurtainCall.Player
         /// <summary>내 위에 있는 층들의 균형값 합을 넣는다. 맨 위·혼자면 0. 매 프레임 갱신한다.</summary>
         public void SetUpperBalanceSum(float sum) => upperBalanceSum = sum;
 
+        /// <summary>자연 흔들림 배율(×, 0 이상). 기본 1. 예: 팔·다리를 잃으면 콘텐츠의 신체 손상 불이익이 넣는다.</summary>
+        public float SwayMultiplier
+        {
+            get => swayMultiplier;
+            set => swayMultiplier = Mathf.Max(0f, value);
+        }
+
+        /// <summary>제자리 점프·낙하 착지 충격 배율(×, 0 이상). 기본 1.</summary>
+        public float LandingShockMultiplier
+        {
+            get => landingShockMultiplier;
+            set => landingShockMultiplier = Mathf.Max(0f, value);
+        }
+
+        /// <summary>옆줄 점프 착지 충격 배율(×, 0 이상). 기본 1. 착지 후 흔들림 증가 시간·배율은 바꾸지 않는다.</summary>
+        public float LaneLandingShockMultiplier
+        {
+            get => laneLandingShockMultiplier;
+            set => laneLandingShockMultiplier = Mathf.Max(0f, value);
+        }
+
+        float swayMultiplier = 1f;
+        float landingShockMultiplier = 1f;
+        float laneLandingShockMultiplier = 1f;
+
         /// <summary>공중에 있는지. 공중에서는 균형 값이 멈춘다.</summary>
         public bool IsAirborne { get; private set; }
 
@@ -118,7 +143,7 @@ namespace CurtainCall.Player
             laneLandingReduction = 0f;
 
             if (lane) ApplyLaneLanding(reduction);
-            else if (Time.time - airborneSince >= Rope.MinAirTimeForShock) ApplyShock(Rope.LandingShock);
+            else if (Time.time - airborneSince >= Rope.MinAirTimeForShock) ApplyShock(Rope.LandingShock * landingShockMultiplier);
         }
 
         /// <summary>
@@ -132,7 +157,7 @@ namespace CurtainCall.Player
         {
             if (!IsActive || HasFallen) return;
             float keep = 1f - Mathf.Clamp01(reduction);
-            ApplyShock(Rope.LaneLandingShock * keep);
+            ApplyShock(Rope.LaneLandingShock * laneLandingShockMultiplier * keep);
             laneBoostScale = 1f + (Rope.LaneSwayBoost - 1f) * keep;
             laneBoostUntil = Time.time + Rope.LaneSwayBoostDuration; // 쌓지 않고 시간만 갱신
         }
@@ -217,7 +242,7 @@ namespace CurtainCall.Player
 
             var rules = Rules;
             bool moving = mover != null && mover.IsMoving;
-            CurrentSway = swayDirection * (moving ? rules.MovingSway : rules.IdleSway) * StackMultiplier * LaneBoostMultiplier;
+            CurrentSway = swayDirection * (moving ? rules.MovingSway : rules.IdleSway) * StackMultiplier * LaneBoostMultiplier * swayMultiplier;
 
             float rate = CurrentSway
                          + Value * rules.TiltAcceleration
