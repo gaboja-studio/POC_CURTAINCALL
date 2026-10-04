@@ -2,7 +2,7 @@
 
 - **Title:** 신체 손상(부위 절단·패널티·동기화)
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/player-control.md`, `Docs/Domains/player-sync.md`, `Docs/Domains/tightrope-course.md`
 - **Current Skill:** start-work

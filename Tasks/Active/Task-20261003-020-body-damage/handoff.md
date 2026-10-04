@@ -7,7 +7,7 @@
 - 단계: 제출. 신체 상태·사망·공유·잘린 부위 연출 완료, MPPM 2인 테스트 통과(2026-10-04 PM). 2026-10-05 011 옆줄 규칙과 함께 2인 확인: 버그 없음(아래 Verification).
 - 동작하는 것: 네 팔다리 모두 잃으면 사망·래그돌, 잘린 팔다리가 날아가 래그돌(몸은 유지), 두 다리 잃으면 몸통이 바닥에 닿고 기어가기(×0.5·캡슐 0.9m·점프/옆줄 가능), 외줄 불이익 정책(BodyDamageEffects + TightropeBodyPenalty, 본인만), 재시작 복구 설정, 디버그 키 1~5(`TightropeDamage` 씬, 화면에 불이익 수치 표시). Player 모델 BlockDoll.
 - 막힌 것: 없음. 스킨 메시 휴머노이드 분리는 아트 모델이 없어 미시험.
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/22
 
 ## 다음 할 일
 
