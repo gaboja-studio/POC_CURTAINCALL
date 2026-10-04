@@ -2,13 +2,13 @@
 
 - **Title:** 외줄 위 캐릭터 동작
 - **Type:** feat
-- **Status:** integrated
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** 없음 (코드가 생기면 Domain Map 추가)
 - **Current Skill:** start-work
 - **Updated:** 2026-10-05
 
-Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
+Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(2026-10-05 PM 요청으로 완료 보관, dev 반영은 별도). 막히면 blocked.
 
 ## Workspace
 

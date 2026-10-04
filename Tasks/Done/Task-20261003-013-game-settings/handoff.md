@@ -4,12 +4,14 @@
 
 ## 지금 상태
 
-- 단계: integrated — PR #19 병합(2026-10-03, PM 관리자 권한), 공동 테스트 1~3 통과(병합 전 동일 내용으로 직접 플레이)
+- 단계: done — PR 병합·공동 테스트 기록 확인 후 2026-10-05 PM 요청으로 Done 보관. dev 반영은 통합 종료 때 별도로 진행.
 - 동작하는 것: 조정값이 `Assets/Resources/GameSettings/`(GameSettings → BaseGameSettings, Tricks/TightropeSettings)에서 읽힘. 플레이 중 수정 즉시 반영, 코스 모양은 대기 중 즉시·게임 중 수정은 잠금 풀릴 때. Player·코스·NetworkManager 프리팹 숫자 칸 삭제. 캡슐 높이·지름은 CharacterController 칸이 남지만 실행 시 세팅 값으로 덮어씀
 - 막힌 것: 없음
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/19
 
 ## 다음 할 일
+
+- 이 Task의 구현·제출·병합 대기는 종료했다. 아래 목록은 이전 인계 기록이며, 통합 전체의 dev 반영·테스트 씬 처리 결정은 PM이 통합 종료 때 진행한다.
 
 1. 끝남. Domain Map·기획자 안내서(`Docs/Guides/game-settings-guide.md`) 반영 완료. dev 반영 때 Done으로 이동
 

@@ -4,12 +4,14 @@
 
 ## 지금 상태
 
-- 단계: 제출 완료(PR #6, submitted). PM 병합·공동 테스트 대기
+- 단계: done — PR 병합·공동 테스트 기록 확인 후 2026-10-05 PM 요청으로 Done 보관. dev 반영은 통합 종료 때 별도로 진행.
 - 동작하는 것: `Assets/Scripts/Network/Session/` — `ServicesSessionConnector`(Relay 세션, 방 코드, 실행마다 익명 프로필 분리), `NetworkSessionManager`(공개 진입점), `ISessionConnector`(접속 방식 추상화), `LanSessionConnector`, `NetworkSessionTestUI`(IMGUI 임시). 배치(작업자 직접): `NetworkManager.prefab`(NetworkManager+UnityTransport+NetworkSessionManager), 씬 `SessionUI` 오브젝트
 - 주의: 프리팹 NetworkConfig.NetworkTransport가 비어 있어 `EnsureTransportAssigned()`가 실행 시 연결한다. `.gitattributes`의 unity-yaml에 `-whitespace` 추가(작업자 승인)
 - 막힌 것: 없음 / PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/6 . 참고: `com.unity.pipeline` BasePipelineServer의 ObjectDisposedException 로그는 에디터 브리지 쪽(게임 무관, Packages 수정 금지라 무시)
 
 ## 다음 할 일
+
+- 이 Task의 구현·제출·병합 대기는 종료했다. 아래 목록은 이전 인계 기록이며, 통합 전체의 dev 반영·테스트 씬 처리 결정은 PM이 통합 종료 때 진행한다.
 
 1. PM: PR #6 병합 → 병합된 통합 브랜치에서 공동 테스트 3개 확인(qa-feature)
 2. (완료) 3단계 MPPM 4인 테스트 통과(2026-10-01): 자동 시작, 진행 중 이탈 유지·재참가 거절, EndGame, 호스트 종료. 규칙은 meta.md Decisions

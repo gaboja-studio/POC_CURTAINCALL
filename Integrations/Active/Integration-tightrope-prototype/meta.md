@@ -6,7 +6,7 @@
 - **Base:** dev
 - **PM:** @MoHoDu
 - **Merge Time:** 순차 병합 — 1단계 작업은 2~3일차, 연결 작업은 4일차, 공동 테스트·dev 반영은 5일차 (착수 후 5일 기한)
-- **Updated:** 2026-10-03
+- **Updated:** 2026-10-05
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
@@ -20,25 +20,27 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20260930-003 | feat | @MoHoDu | feat/network-session | #6 | integrated |
-| Task-20260930-004 | feat | @MoHoDu | feat/player-control | #7 | integrated |
+| Task-20260930-003 | feat | @MoHoDu | feat/network-session | #6 | done (완료 보관; dev 반영 별도) |
+| Task-20260930-004 | feat | @MoHoDu | feat/player-control | #7 | done (완료 보관; dev 반영 별도) |
 | Task-20260930-005 | feat | @MoHoDu | feat/tightrope-core | #18 | submitted (#18 병합됨, 공동 테스트 결과 정리 대기) |
 | Task-20260930-006 | feat | @MoHoDu | feat/tightrope-piggyback | - | working (worktree에서 작업 중, 원격 브랜치는 첫 저장 때) |
-| Task-20260930-007 | feat | @MoHoDu | feat/network-player-sync | #11 | integrated (QA #13 통과) |
+| Task-20260930-007 | feat | @MoHoDu | feat/network-player-sync | #11 | done (완료 보관; dev 반영 별도) |
 | Task-20260930-008 | feat | @MoHoDu | feat/network-prop-sync (인계 때 생성) | - | blocked (2026-10-03 보류) |
 | Task-20260930-009 | feat | @MoHoDu | feat/tightrope-network (인계 때 생성) | - | scaffolded |
 | Task-20260930-010 | feat | @MoHoDu | feat/piggyback-network (인계 때 생성) | - | scaffolded |
-| Task-20261001-011 | feat | @MoHoDu | feat/tightrope-rider | #21 | integrated |
-| Task-20261003-012 | feat | @MoHoDu | feat/tightrope-saws | #20 | integrated (공동 테스트 2 부분 통과 → 021) |
-| Task-20261003-013 | refactor | @MoHoDu | refactor/game-settings | #19 | integrated |
+| Task-20261001-011 | feat | @MoHoDu | feat/tightrope-rider | #21 | done (완료 보관; dev 반영 별도) |
+| Task-20261003-012 | feat | @MoHoDu | feat/tightrope-saws | #20 | done (완료 보관; dev 반영 별도) |
+| Task-20261003-013 | refactor | @MoHoDu | refactor/game-settings | #19 | done (완료 보관; dev 반영 별도) |
 | Task-20261003-014 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-015 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-016 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-017 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-018 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-019 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
-| Task-20261003-020 | feat | @MoHoDu | feat/body-damage | #22 | integrated |
+| Task-20261003-020 | feat | @MoHoDu | feat/body-damage | #22 | done (완료 보관; dev 반영 별도) |
 | Task-20261005-021 | feat | @MoHoDu | feat/obstacle-layout-editor | - | assigned |
+
+2026-10-05 PM 요청: 003·004·007·011·012·013·020은 `Tasks/Done/`으로 완료 보관. dev 반영·통합 종료는 미실행. 012 부분 통과 항목은 021에서 재확인하며, 005는 공동 테스트 결과 정리 대기로 Active 유지. 테스트 씬 처리 결정은 변경하지 않음.
 
 ## 공용 파일 소유 표
 
