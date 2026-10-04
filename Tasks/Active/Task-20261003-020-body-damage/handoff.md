@@ -5,16 +5,16 @@
 ## 지금 상태
 
 - 단계: 구현 중. 신체 상태·사망·공유·잘린 부위 연출 완료, MPPM 2인 테스트 통과(2026-10-04 PM).
-- 동작하는 것: 네 팔다리 모두 잃으면 사망·래그돌, 잘린 팔다리가 날아가 래그돌(몸은 유지), 두 다리 잃으면 몸통이 바닥에 닿음, 재시작 복구 설정, 디버그 키 1~5(`TightropeDamage` 씬, 인스펙터·리바인딩 가능). Player 모델 BlockDoll.
+- 동작하는 것: 네 팔다리 모두 잃으면 사망·래그돌, 잘린 팔다리가 날아가 래그돌(몸은 유지), 두 다리 잃으면 몸통이 바닥에 닿고 기어가기(×0.5·캡슐 0.9m·점프/옆줄 가능), 외줄 불이익 정책(BodyDamageEffects + TightropeBodyPenalty, 본인만), 재시작 복구 설정, 디버그 키 1~5(`TightropeDamage` 씬, 화면에 불이익 수치 표시). Player 모델 BlockDoll.
 - 막힌 것: 없음. 스킨 메시 휴머노이드 분리는 아트 모델이 없어 미시험.
 - PR: 없음
 
 ## 다음 할 일
 
-1. 두 다리 잃었을 때 기어가기 이동·충돌 캡슐 축소(세부는 meta Open 확인 후).
-2. 콘텐츠별 교체형 패널티(이동·균형·탑승 거리), 소유 플레이어만 적용.
-3. 012 절단 API(`NetworkPlayer.ServerCutPart`·`ServerCutLegThenArm`) 전달, 006·017 연결 항목 정리.
-4. 구현 후 컴파일·사람 플레이 확인. 커밋·push는 사용자가 요청할 때만.
+1. 기어가기·외줄 불이익 2인 플레이 확인 결과 반영(AI 오프라인 수치 확인만 함).
+2. 012 절단 API(`NetworkPlayer.ServerCutPart`·`ServerCutLegThenArm`) 전달, 006(`PlayerInteraction.ReachMultiplier`, 쌓는 높이 = 실제 캡슐)·017(LostArms·LostLegs, 기어가기 클립) 연결 항목 정리.
+3. plan.md 공동 테스트 항목을 지금 규칙으로 갱신 → 검사 → PR 제출. 커밋·push는 사용자가 요청할 때만.
+4. 기획 공유 문서: https://claude.ai/code/artifact/b0552187-8c6f-4c6f-9551-96541176c2cd
 
 ## PM이 확인할 것
 

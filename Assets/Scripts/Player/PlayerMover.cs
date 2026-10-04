@@ -115,6 +115,30 @@ namespace CurtainCall.Player
 
         bool passThrough;
 
+        /// <summary>
+        /// 이동 속도 배율(×, 0 이상). 줄 위·플랫폼 걷기 속도에 곱한다. 기본 1.
+        /// 예: 두 다리를 잃으면 신체 손상 기능이 기어가기 배율을 넣는다.
+        /// </summary>
+        public float SpeedMultiplier
+        {
+            get => speedMultiplier;
+            set => speedMultiplier = Mathf.Max(0f, value);
+        }
+
+        float speedMultiplier = 1f;
+
+        /// <summary>제자리 점프를 할 수 있는지. 끄면 점프 요청을 무시한다. 기본 켜짐.</summary>
+        public bool JumpAllowed { get; set; } = true;
+
+        /// <summary>옆줄 점프를 할 수 있는지. 끄면 옆줄 점프 요청을 무시한다(제자리 점프로 바뀌지 않음). 기본 켜짐.</summary>
+        public bool LaneJumpAllowed { get; set; } = true;
+
+        /// <summary>
+        /// 몸통(캡슐) 높이를 세팅 대신 이 값(m)으로 쓴다. 0 이하면 세팅 값. 발 위치는 그대로다.
+        /// 예: 두 다리를 잃어 기어가면 신체 손상 기능이 낮은 높이를 넣는다.
+        /// </summary>
+        public float BodyHeightOverride { get; set; }
+
         /// <summary>제자리 점프를 요청한다. 땅에 있고 조작이 켜져 있을 때만 이번 프레임에 뛴다.</summary>
         public void RequestJump() => jumpRequested = true;
 
@@ -252,11 +276,11 @@ namespace CurtainCall.Player
 
         void OnDisable() => active.Remove(this);
 
-        /// <summary>몸통(캡슐) 크기를 세팅에 맞춘다. 발 위치(원점)는 그대로 두고 중심만 옮긴다.</summary>
+        /// <summary>몸통(캡슐) 크기를 세팅(또는 <see cref="BodyHeightOverride"/>)에 맞춘다. 발 위치(원점)는 그대로 두고 중심만 옮긴다.</summary>
         void ApplyBodySize()
         {
-            float height = Character.CapsuleHeight;
-            float radius = Character.CapsuleRadius;
+            float height = BodyHeightOverride > 0f ? BodyHeightOverride : Character.CapsuleHeight;
+            float radius = Mathf.Min(Character.CapsuleRadius, height * 0.5f);
             if (Mathf.Approximately(controller.height, height) && Mathf.Approximately(controller.radius, radius)) return;
             controller.height = height;
             controller.radius = radius;
@@ -281,7 +305,7 @@ namespace CurtainCall.Player
                 {
                     float side = ControlEnabled ? sideInput : 0f;
                     Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
-                    groundVelocity = input * Character.FreeMoveSpeed;
+                    groundVelocity = input * (Character.FreeMoveSpeed * speedMultiplier);
                     IsMoving = input.sqrMagnitude > 0.0001f;
                     if (IsMoving)
                         transform.rotation = Quaternion.RotateTowards(transform.rotation,
@@ -289,13 +313,16 @@ namespace CurtainCall.Player
                 }
                 else
                 {
-                    groundVelocity = forward * (move * Rope.MoveSpeed);
+                    groundVelocity = forward * (move * Rope.MoveSpeed * speedMultiplier);
                     IsMoving = !Mathf.Approximately(move, 0f);
                 }
 
-                if (ControlEnabled && !FreeMovement && laneJumpRequested != 0 && CanLaneJump(laneJumpRequested))
-                    StartJump(JumpKind.Lane, laneJumpRequested);
-                else if (ControlEnabled && jumpRequested)
+                if (ControlEnabled && !FreeMovement && laneJumpRequested != 0)
+                {
+                    if (LaneJumpAllowed && CanLaneJump(laneJumpRequested)) StartJump(JumpKind.Lane, laneJumpRequested);
+                    else verticalSpeed = -1f; // 옆줄 점프를 막아도 제자리 점프로 바꾸지 않는다
+                }
+                else if (ControlEnabled && jumpRequested && JumpAllowed)
                     StartJump(JumpKind.InPlace, 0);
                 else
                     verticalSpeed = -1f; // 땅에 붙어 있도록 작은 하강 속도를 유지한다

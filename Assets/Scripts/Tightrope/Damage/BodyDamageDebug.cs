@@ -82,12 +82,20 @@ namespace CurtainCall.Damage
             var condition = local != null ? local.GetComponent<PlayerCondition>() : FindAnyObjectByType<PlayerCondition>();
             string state = local != null ? local.State.ToString() : "오프라인";
             string lost = condition != null ? condition.LostParts.ToString() : "-";
+            var effects = condition != null ? condition.GetComponent<BodyDamageEffects>() : null;
+            string penalty = "-";
+            if (effects != null)
+            {
+                var p = effects.Current;
+                penalty = $"{(effects.IsCrawling ? "기어가기 · " : "")}이동 ×{p.MoveSpeed:0.##} · 흔들림 ×{p.Sway:0.##} · 착지 ×{p.LandingShock:0.##}/옆줄 ×{p.LaneLandingShock:0.##} · 거리 ×{p.Reach:0.##}";
+            }
 
             var matrix = GUI.matrix;
             GUI.matrix = Matrix4x4.Scale(Vector3.one * scale);
-            GUILayout.BeginArea(new Rect(10f, 200f, 420f, 120f));
+            GUILayout.BeginArea(new Rect(10f, 200f, 460f, 160f));
             GUILayout.Label($"[신체 손상] {Key(cutLeftArm)}/{Key(cutRightArm)} 왼팔/오른팔, {Key(cutLeftLeg)}/{Key(cutRightLeg)} 왼다리/오른다리, {Key(cutSawOrder)} 톱날 순서", style);
             GUILayout.Label($"잃은 부위: {lost} · 상태: {state}", style);
+            GUILayout.Label($"불이익(공통+외줄): {penalty}", style);
             GUILayout.EndArea();
             GUI.matrix = matrix;
         }
