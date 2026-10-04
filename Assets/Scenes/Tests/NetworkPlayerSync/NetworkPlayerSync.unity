@@ -836,7 +836,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 907390836}
-  - component: {fileID: 907390835}
   m_Layer: 0
   m_Name: TestLaneLanding
   m_TagString: Untagged
@@ -844,24 +843,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &907390835
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 907390834}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3253df039dbdd4390a5935c25f22b05d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.PlayerSync.TestLaneLanding
-  lanes:
-  - {fileID: 1512380358}
-  - {fileID: 190086699}
-  - {fileID: 1725885316}
-  - {fileID: 571752144}
-  tolerance: 0.25
 --- !u!4 &907390836
 Transform:
   m_ObjectHideFlags: 0
