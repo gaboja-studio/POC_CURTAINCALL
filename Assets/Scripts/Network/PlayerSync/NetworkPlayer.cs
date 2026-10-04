@@ -15,6 +15,8 @@ namespace CurtainCall.Network.PlayerSync
     /// 위치·방향은 같은 오브젝트의 NetworkTransform(소유자 권한)이 공유하고, 점프 상태·균형 표시값(몸 기울기)은 이 컴포넌트가 공유한다.
     /// 판정은 호스트가 한다: 소유자가 <see cref="RequestState"/>로 요청 → 호스트가 확인(<see cref="ServerCanChangeState"/>) → <see cref="State"/>로 모두에게 공유.
     /// 첫 사용처는 추락(균형 무너짐·줄 밖 착지 → 추락 → 조작 잠금·래그돌). 모두 재시작은 호스트가 <see cref="ServerRestartAll"/>로 한다.
+    /// 신체 손상: 장애물은 호스트에서 <see cref="ServerCutPart"/>·<see cref="ServerCutLegThenArm"/>로 부위를 자르고, 잃은 부위는 모두에게 공유되어
+    /// 각 화면의 <see cref="PlayerCondition"/>에 들어간다. 네 팔다리를 모두 잃으면 호스트가 추락(사망)으로 확정한다.
     /// 다른 기능은 <see cref="Local"/>(내 캐릭터)·<see cref="All"/>·<see cref="Slot"/>·<see cref="State"/>를 쓴다.
     /// </summary>
     [RequireComponent(typeof(PlayerMover))]
@@ -31,12 +33,15 @@ namespace CurtainCall.Network.PlayerSync
         readonly NetworkVariable<bool> balanceActive = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         readonly NetworkVariable<float> balanceValue = new(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
+        // 잃은 부위는 상태보다 먼저 둔다: 같은 순간 바뀌면 받는 화면에서 마지막 팔다리가 먼저 떨어지고 그다음 몸이 래그돌이 된다
+        readonly NetworkVariable<BodyPart> lostParts = new(BodyPart.None);
         readonly NetworkVariable<PlayerState> state = new(PlayerState.Normal);
         readonly NetworkVariable<int> restartCount = new(0);
 
         PlayerMover mover;
         PlayerBalance balance;
         PlayerRagdoll ragdoll;
+        PlayerCondition condition;
         NetworkTransform networkTransform;
 
         /// <summary>
@@ -98,12 +103,19 @@ namespace CurtainCall.Network.PlayerSync
             state.Value = next;
         }
 
-        /// <summary>호스트: 모든 플레이어를 보통 상태로 출발점에서 다시 시작시킨다(균형 초기화·래그돌 복구·조작 잠금 해제). 언제 부를지는 묘기 진행(005)이 정한다.</summary>
+        /// <summary>
+        /// 호스트: 모든 플레이어를 보통 상태로 출발점에서 다시 시작시킨다(균형 초기화·래그돌 복구·조작 잠금 해제). 언제 부를지는 묘기 진행(005)이 정한다.
+        /// 잃은 부위는 게임 기본 세팅(신체 손상 · 재시작 복구)에 따라 사망자만 또는 모두 되돌린다.
+        /// </summary>
         public static void ServerRestartAll()
         {
+            var recovery = GameSettings.Base.BodyDamage.RestartRecovery;
             foreach (var player in all)
             {
                 if (!player.IsServer) return;
+                // Normal로 바꾸기 전에 사망 여부를 본다
+                if (recovery == BaseGameSettings.BodyRestartRecovery.RestoreAll || player.state.Value == PlayerState.Fallen)
+                    player.lostParts.Value = BodyPart.None;
                 player.state.Value = PlayerState.Normal;
                 player.restartCount.Value++;
             }
@@ -113,6 +125,43 @@ namespace CurtainCall.Network.PlayerSync
         public void RequestRestartAll()
         {
             if (IsSpawned && IsOwner) RequestRestartAllRpc();
+        }
+
+        /// <summary>잃은 부위(모든 화면에서 같음).</summary>
+        public BodyPart LostParts => lostParts.Value;
+
+        /// <summary>
+        /// 호스트: 일반 절단. 요청 부위를 자르고, 이미 잃었으면 같은 종류의 남은 쪽을 자른다. 실제로 잘린 부위를 돌려준다(거절·변화 없음은 None).
+        /// 진행 중인 사람만 다친다(도착 완료·사망 후·묘기 종료 후는 거절, 사망 허용 규칙 <see cref="ServerCanChangeState"/>를 따른다).
+        /// </summary>
+        public BodyPart ServerCutPart(BodyPart requested) => ServerApplyCut(PlayerCondition.ResolveCut(lostParts.Value, requested));
+
+        /// <summary>호스트: 가로 톱날 순서 절단(다리 → 남은 다리 → 팔). 좌우가 둘 다 남았을 때의 선택은 부르는 쪽이 정한다(기획 미정).</summary>
+        public BodyPart ServerCutLegThenArm(bool leftFirst) => ServerApplyCut(PlayerCondition.NextLegThenArmCut(lostParts.Value, leftFirst));
+
+        /// <summary>디버그·테스트용: 내 캐릭터의 부위 절단을 호스트에 요청한다. None이면 가로 톱날 순서(좌우 랜덤).</summary>
+        public void RequestCutPart(BodyPart part)
+        {
+            if (IsSpawned && IsOwner) RequestCutPartRpc(part);
+        }
+
+        BodyPart ServerApplyCut(BodyPart part)
+        {
+            if (!IsServer || part == BodyPart.None || !ServerCanTakeDamage()) return BodyPart.None;
+            lostParts.Value |= part;
+            if (PlayerCondition.IsAllLimbsLost(lostParts.Value))
+                state.Value = PlayerState.Fallen; // 네 팔다리 모두 잃으면 사망(2026-10-04 PM)
+            return part;
+        }
+
+        bool ServerCanTakeDamage() =>
+            state.Value == PlayerState.Normal && (ServerCanChangeState == null || ServerCanChangeState(this, PlayerState.Fallen));
+
+        [Rpc(SendTo.Server)]
+        void RequestCutPartRpc(BodyPart part)
+        {
+            if (part == BodyPart.None) ServerCutLegThenArm(UnityEngine.Random.value < 0.5f);
+            else ServerCutPart(part);
         }
 
         [Rpc(SendTo.Server)]
@@ -131,6 +180,7 @@ namespace CurtainCall.Network.PlayerSync
             mover = GetComponent<PlayerMover>();
             balance = GetComponent<PlayerBalance>();
             ragdoll = GetComponent<PlayerRagdoll>();
+            condition = GetComponent<PlayerCondition>();
             networkTransform = GetComponent<NetworkTransform>();
         }
 
@@ -142,6 +192,8 @@ namespace CurtainCall.Network.PlayerSync
             jump.OnValueChanged += HandleJumpChanged;
             state.OnValueChanged += HandleStateChanged;
             restartCount.OnValueChanged += HandleRestart;
+            lostParts.OnValueChanged += HandleLostPartsChanged;
+            if (condition != null) condition.SetLostParts(lostParts.Value); // 늦게 생성된 화면도 현재 몸 상태를 맞춘다
             if (IsOwner)
             {
                 mover.Teleported += SendTeleport;
@@ -169,6 +221,7 @@ namespace CurtainCall.Network.PlayerSync
             jump.OnValueChanged -= HandleJumpChanged;
             state.OnValueChanged -= HandleStateChanged;
             restartCount.OnValueChanged -= HandleRestart;
+            lostParts.OnValueChanged -= HandleLostPartsChanged;
             mover.Teleported -= SendTeleport;
             if (balance != null) balance.Fell -= RequestFall;
 
@@ -212,6 +265,11 @@ namespace CurtainCall.Network.PlayerSync
 
         void HandleJumpChanged(JumpKind previous, JumpKind current) => JumpChanged?.Invoke(current);
 
+        void HandleLostPartsChanged(BodyPart previous, BodyPart current)
+        {
+            if (condition != null) condition.SetLostParts(current);
+        }
+
         /// <summary>내 캐릭터의 균형이 무너지면(줄 밖 착지 포함) 호스트에 추락을 요청한다. 내 화면의 래그돌은 바로 시작된다.</summary>
         void RequestFall() => RequestState(PlayerState.Fallen);
 
@@ -225,7 +283,13 @@ namespace CurtainCall.Network.PlayerSync
         void ApplyState(PlayerState current)
         {
             if (current != PlayerState.Fallen) return;
-            if (IsOwner) mover.SetControlEnabled(false);
+            if (IsOwner)
+            {
+                mover.SetControlEnabled(false);
+                // 균형 추락은 이미 래그돌이 됐다. 신체 손상 사망처럼 호스트가 정한 추락은 여기서 무너뜨린다(이미 추락했으면 무시됨)
+                if (balance != null) balance.ForceFall();
+                else if (ragdoll != null) ragdoll.GoLimp();
+            }
             else if (ragdoll != null) ragdoll.GoLimp(); // 남의 캐릭터: 래그돌 연출은 각자 화면에서(물리 결과는 맞추지 않음)
         }
 

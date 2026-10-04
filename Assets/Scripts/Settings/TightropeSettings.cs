@@ -22,6 +22,8 @@ namespace CurtainCall.Settings
         [SerializeField] HandholdSettings handhold = new();
         [Header("목마")]
         [SerializeField] PiggybackSettings piggyback = new();
+        [Header("신체 손상 불이익 (외줄)")]
+        [SerializeField] BodyPenaltySettings bodyPenalty = new();
 
         /// <summary>인스펙터에서 값을 바꿨을 때(에디터). 코스가 다시 만들지 판단하는 데 쓴다.</summary>
         public event Action Changed;
@@ -31,6 +33,7 @@ namespace CurtainCall.Settings
         public RopeMovementSettings RopeMovement => ropeMovement;
         public HandholdSettings Handhold => handhold;
         public PiggybackSettings Piggyback => piggyback;
+        public BodyPenaltySettings BodyPenalty => bodyPenalty;
 
         void OnValidate() => Changed?.Invoke();
 
@@ -198,6 +201,39 @@ namespace CurtainCall.Settings
                 stackMultipliers == null || stackMultipliers.Length == 0
                     ? 1f
                     : stackMultipliers[Mathf.Clamp(stackSize, 1, stackMultipliers.Length) - 1];
+        }
+
+        /// <summary>
+        /// 팔·다리를 잃었을 때 외줄에서 받는 불이익(다친 본인만). 규칙: Harness/Project/Decisions/body-damage.md
+        /// 두 다리를 잃었을 때의 기어가기(속도·캡슐)는 게임 공통이라 게임 기본 세팅에 있다. 모두 2026-10-04 임시값.
+        /// </summary>
+        [Serializable]
+        public sealed class BodyPenaltySettings
+        {
+            [Tooltip("다리 하나만 잃었을 때 이동 속도 배율(×). 두 다리를 잃으면 기어가기 속도(게임 기본 세팅)를 쓴다. 임시값 0.8.")]
+            [SerializeField, Range(0f, 1f)] float oneLegMoveSpeed = 0.8f;
+
+            [Tooltip("잃은 다리 하나당 자연 흔들림 증가(+). 1 + 이 값 × 잃은 다리 수. 임시값 0.25(하나 ×1.25, 둘 ×1.5).")]
+            [SerializeField, Min(0f)] float swayPerLostLeg = 0.25f;
+
+            [Tooltip("잃은 팔 하나당 자연 흔들림 증가(+). 1 + 이 값 × 잃은 팔 수. 다리 쪽 배율과 곱한다. 임시값 0.1.")]
+            [SerializeField, Min(0f)] float swayPerLostArm = 0.1f;
+
+            [Tooltip("두 다리를 잃었을 때 제자리 점프 착지 충격 배율(×). 임시값 1.5(10 → 15).")]
+            [SerializeField, Min(1f)] float leglessLandingShock = 1.5f;
+
+            [Tooltip("두 다리를 잃었을 때 옆줄 이동 착지 충격 배율(×). 임시값 1.5(35 → 52.5).")]
+            [SerializeField, Min(1f)] float leglessLaneLandingShock = 1.5f;
+
+            [Tooltip("잃은 팔 하나당 상호작용(목마 올라타기) 가능 거리 감소(−). 1 − 이 값 × 잃은 팔 수. 임시값 0.25(하나 ×0.75, 둘 ×0.5). 목마(006)가 이 거리를 쓴다.")]
+            [SerializeField, Range(0f, 0.5f)] float reachLossPerArm = 0.25f;
+
+            public float OneLegMoveSpeed => oneLegMoveSpeed;
+            public float SwayPerLostLeg => swayPerLostLeg;
+            public float SwayPerLostArm => swayPerLostArm;
+            public float LeglessLandingShock => leglessLandingShock;
+            public float LeglessLaneLandingShock => leglessLaneLandingShock;
+            public float ReachLossPerArm => reachLossPerArm;
         }
     }
 }

@@ -40,3 +40,14 @@ MonoBehaviour:
     ragdollTiltPush: 1.5
   sync:
     balanceSendThreshold: 0.5
+  bodyDamage:
+    restartRecovery: 0
+    crawlSpeedMultiplier: 0.5
+    crawlCanJump: 1
+    crawlCanLaneJump: 1
+    crawlCapsuleHeight: 0.9
+    limbFlingSpeed: 3
+    limbFlingUpSpeed: 2.5
+    limbSpin: 8
+    limbMass: 1
+    limbLifetime: 0
