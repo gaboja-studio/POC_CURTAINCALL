@@ -2,11 +2,11 @@
 
 - **Title:** 톱날 장애물(가로·수직)
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** [tightrope-course](../../../Docs/Domains/tightrope-course.md)
 - **Current Skill:** start-work
-- **Updated:** 2026-10-03
+- **Updated:** 2026-10-05
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
@@ -29,6 +29,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
+- Decided: 2026-10-05 @MoHoDu — 공동 테스트 1·3 통과, 2 부분 통과(등장 위치·`steps` 사용법이 불분명) → Task-021 장애물 배치 편집기에서 재확인
 - Decided: 2026-10-03 @MoHoDu — 발판: 진행 중인 플레이어 누구든 밟는 즉시 눌림(`plateHoldTime` 0), 톱날 뒤 1.5m(`plateOffset`). 세팅 칸으로 조정
 - Decided: 2026-10-03 @MoHoDu — 부위 판정: 허리(0.85m) 아래 다리·위 팔, 좌우는 몸 중심 기준 코스 오른쪽 +(정가운데는 오른쪽), 이미 잃은 쪽이면 같은 종류 반대쪽, 둘 다 잃었으면 없음
 - Decided: 2026-10-05 @MoHoDu — 020 병합 후 연결: 가로 톱날은 020 순서 절단(`ServerCutLegThenArm`), **첫 다리는 톱날이 닿은 쪽**(규칙 #9 "최초 좌우 미정"을 채움), 수직 톱날은 닿은 위치 부위(`ServerCutPart`). `SawSettings`는 `TightropeSettings` 톱날 칸으로 이동(세팅 파일 012 배정). 012는 020·두 작업이 함께 동작하는 것을 확인한 뒤 병합
