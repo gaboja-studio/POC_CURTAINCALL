@@ -21,8 +21,8 @@
 
 ## Verification
 
-- 구역 검사: PASS (10-03) / 1 문서/규칙: PASS (10-03) / 013 병합 합친 뒤 컴파일·실행 확인(10-04)
-- 2 컴파일: PASS (10-03)
-- 3 테스트: NO_PROJECT_TESTS (10-03, PlayMode) — check-work는 FAIL 표시: 에디터가 열려 있어 `unity test` 거부(Pitfalls/unity-test-editor-open.md). `list_tests` 0개 — asmdef가 없어 테스트가 게임 코드를 참조 못 함. 로직은 `run_script` 검산 43개 PASS(순서 실행기·가로 작동/정지 포함)
+- 구역 검사: PASS (10-05) / 1 문서/규칙: PASS (10-05)
+- 2 컴파일: PASS (10-05)
+- 3 테스트: NO_PROJECT_TESTS (10-05, PlayMode) — check-work는 FAIL 표시: 에디터가 열려 있어 `unity test` 거부(Pitfalls/unity-test-editor-open.md). `list_tests` 0개(asmdef 없음). 로직은 `run_script` 검산 41개 PASS
 - 4 실행 로그: MPPM 2인(10-05 16:29): 020 연결 — 가로 톱날 순서 절단(닿은 쪽 다리 → 남은 다리 → 팔), 두 다리 손실 기어가기 반영, 네 팔다리 → 탈락, 전원 사망 → 재시작, 양쪽 로그 일치. 이전(10-03): 묘기 시작·재시작·수직 출현 동기화. **수직 톱날 절단·발판은 미확인**
 - 5 공동 테스트: 미요청(병합 후). 2(수직 옆줄 회피)·3(발판)은 작업자 플레이 미확인
