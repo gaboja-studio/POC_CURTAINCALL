@@ -293,6 +293,7 @@ MonoBehaviour:
   fallKey: 25
   finishKey: 26
   toggleKey: 29
+  logLandings: 1
   visible: 1
   scale: 1.5
   markerSize: 0.25
@@ -798,6 +799,63 @@ MonoBehaviour:
     y: 10
     width: 340
     height: 320
+--- !u!1001 &2669770274274674539
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1265721669558176398, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_Name
+      value: TightropeSaws
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -811,3 +869,4 @@ SceneRoots:
   - {fileID: 1097719284}
   - {fileID: 697538860}
   - {fileID: 183364836}
+  - {fileID: 2669770274274674539}

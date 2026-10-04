@@ -177,7 +177,7 @@ namespace CurtainCall.Tightrope
             style.fontSize = Mathf.RoundToInt(14 * scale);
 
             float t = run.TimeRemaining;
-            string performance = run.IsPerformanceStarted ? $"묘기 시작 후 {run.PerformanceElapsed:0}s" : "묘기 시작 전(전원이 외줄에 오르면 시작)";
+            string performance = run.IsPerformanceStarted ? $"묘기 시작 후 {run.PerformanceElapsed:0}s" : "묘기 시작 전(누군가 외줄에 오르면 시작)";
             string text = $"묘기: {StateLabel(run)} · 남은 시간 {(int)(t / 60f)}:{(int)(t % 60f):00}\n{performance}\n진행 중 {run.InProgressCount} · 도착 {run.ArrivedCount} · 사망 {run.DeadCount} / {run.ParticipantCount}";
             var player = NetworkPlayer.Local;
             if (player != null)

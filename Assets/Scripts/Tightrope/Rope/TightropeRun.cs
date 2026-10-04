@@ -30,7 +30,7 @@ namespace CurtainCall.Tightrope
     /// 게임이 시작되면 모두 출발점에서 다시 시작하고 제한시간이 흐른다. **한 명이라도 도착하면 바로 클리어**(<see cref="NetworkSessionManager.EndGame"/>)하고
     /// 살아 있는 플레이어는 모두 도착 완료가 되어 도착 지점으로 옮겨진다(2026-10-03 PM). 도착 없이 진행자가 없어지거나 시간이 끝나면
     /// 실패 → 세팅의 재시작 대기 시간 뒤 묘기 재시작(타이머 포함 처음부터). 도착은 소유자도 요청하고(내 위치 기준) 호스트도 위치로 확인한다.
-    /// 묘기 시작 = 게임 시작 후 진행 중인 전원이 외줄 시작점을 넘은 순간(<see cref="PerformanceStarted"/>). 장애물 출현 시간은 이때부터 잰다.
+    /// 묘기 시작 = 게임 시작 후 진행 중인 플레이어 중 **한 명이라도** 외줄 시작점을 넘은 순간(<see cref="PerformanceStarted"/>, 2026-10-03 PM — 한 명이 플랫폼에 남아 장애물을 늦추는 것을 막음). 장애물 출현 시간은 이때부터 잰다.
     /// 진행 상태·시간은 NGO 이름 붙은 메시지로 모든 화면에 공유한다(바뀔 때만 보내고 각 화면이 시간을 이어서 센다).
     /// 다른 기능은 <see cref="Current"/>의 <see cref="State"/>·<see cref="StateChanged"/>·<see cref="IsPerformanceStarted"/>·<see cref="PerformanceElapsed"/>·<see cref="RunRestarted"/>를 쓴다.
     /// 제한시간·재시작 대기 시간은 외줄 세팅(진행)에서 쓸 때마다 읽는다.
@@ -49,6 +49,7 @@ namespace CurtainCall.Tightrope
         CustomMessagingManager messaging;
         float runStartedAt = -1f;         // 진행 시작 시각(이 화면 기준). 진행 전이면 -1
         float performanceStartedAt = -1f; // 묘기 시작 시각(이 화면 기준). 시작 전이면 -1
+        readonly System.Collections.Generic.HashSet<NetworkPlayer> seenAtStart = new(); // 호스트: 재시작 뒤 출발 공간(0m 앞)에서 확인된 플레이어
         float restartAt = -1f;            // 실패 후 재시작할 시각(이 화면 기준). 실패가 아니면 -1
         float stoppedRemaining = -1f;     // 끝난 뒤(실패·성공) 멈춘 남은 시간
         int lastRestartFrame = -1;
@@ -80,7 +81,7 @@ namespace CurtainCall.Tightrope
             }
         }
 
-        /// <summary>묘기가 시작됐는지(진행 중인 전원이 외줄에 오름). 재시작하면 다시 false.</summary>
+        /// <summary>묘기가 시작됐는지(진행 중인 플레이어 중 한 명이라도 외줄에 오름). 재시작하면 다시 false.</summary>
         public bool IsPerformanceStarted => performanceStartedAt >= 0f;
 
         /// <summary>묘기 시작 후 지난 시간(초). 시작 전이면 0. 장애물 출현 시간 기준.</summary>
@@ -194,7 +195,7 @@ namespace CurtainCall.Tightrope
                     ServerMarkArrivals();
                     if (ArrivedCount > 0) ServerSucceed(); // 한 명이라도 도착하면 바로 클리어
                     else if (InProgressCount == 0 || TimeRemaining <= 0f) ServerFail();
-                    else if (!IsPerformanceStarted && AllInProgressOnRope()) ServerStartPerformance();
+                    else if (!IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
                     break;
 
                 case TightropeRunState.Failed:
@@ -211,15 +212,18 @@ namespace CurtainCall.Tightrope
                     player.ServerSetState(PlayerState.Arrived);
         }
 
-        /// <summary>진행 중인 전원이 외줄 시작점을 넘었는지(시작 공간에 남은 사람이 없음).</summary>
-        bool AllInProgressOnRope()
+        /// <summary>
+        /// 진행 중인 플레이어 중 한 명이라도 외줄 시작점을 넘었는지. 재시작 뒤 출발 공간에서 한 번 확인된 플레이어만 센다 —
+        /// 재시작 직후 호스트에는 아직 남의 캐릭터의 재시작 전 위치(줄 위)가 남아 있어, 그대로 보면 묘기가 바로 시작된다.
+        /// </summary>
+        bool AnyInProgressOnRope()
         {
             bool any = false;
             foreach (var player in NetworkPlayer.All)
             {
                 if (player.State != PlayerState.Normal) continue;
-                if (course.GetDistance(player.transform.position) < 0f) return false;
-                any = true;
+                if (course.GetDistance(player.transform.position) < 0f) seenAtStart.Add(player);
+                else if (seenAtStart.Contains(player)) any = true;
             }
             return any;
         }
@@ -269,6 +273,7 @@ namespace CurtainCall.Tightrope
             restartAt = -1f;
             stoppedRemaining = -1f;
             performanceStartedAt = -1f;
+            seenAtStart.Clear();
             bool playing = session.GameState == GameSessionState.Playing;
             runStartedAt = playing ? Time.time : -1f;
             NetworkPlayer.ServerRestartAll();
@@ -334,7 +339,7 @@ namespace CurtainCall.Tightrope
             bool wasStarted = IsPerformanceStarted;
             performanceStartedAt = Time.time - elapsed;
             if (wasStarted) return;
-            Debug.Log("[Tightrope] 묘기 시작(모두 외줄에 오름)");
+            Debug.Log("[Tightrope] 묘기 시작(첫 플레이어가 외줄에 오름)");
             PerformanceStarted?.Invoke();
         }
 

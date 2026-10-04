@@ -8,9 +8,9 @@
 ## 묘기 흐름 한눈에 (✅ 있음 / ⏳ 계획)
 
 1. ✅ **대기**: 방에 모여 출발 플랫폼에서 자유 이동. 호스트가 "게임 시작"(최소 인원 이상). 대기 중 호스트의 코스 값이 모두에게 맞춰진다.
-2. ✅ **묘기 시작**: 살아 있는 전원이 줄(0m)에 올라선 순간. 제한시간 5분은 게임 시작부터, 장애물 시간은 묘기 시작부터 잰다.
+2. ✅ **묘기 시작**: 진행 중인 플레이어 중 한 명이라도 줄(0m)에 올라선 순간(2026-10-03 변경, 플랫폼 대기로 장애물 늦추기 방지). 제한시간 5분은 게임 시작부터, 장애물 시간은 묘기 시작부터 잰다.
 3. **줄 위 진행**: ✅ 걷기 0.5m/s·점프·옆줄 점프·균형(A/D)·균형 붕괴 추락 / ⏳ 옆줄 판정·뒤쪽 착지·손잡기(011), 목마(006·010).
-4. ⏳ **방해물**: 가로 톱날 22개(점프로 회피)·수직 톱날(옆줄 이동 또는 목마 2층이 넘어가 발판, 밟으면 0.1~0.3초에 내려감, 012). 톱날에 닿으면 **팔·다리가 잘림**(가로 톱날은 다리 → 남은 다리 → 팔 순서, 팔 → 상호작용 패널티, 다리 → 느려짐, 공통 균형 흔들림 증가, 두 다리 → 기어가기·착지 충격 증가, 잘린 팔다리는 날아가 래그돌, 네 팔다리 모두 손실 → 탈락·래그돌, 020). 잃은 부위는 **완전히 죽기 전까지 재시작·다음 묘기에도 유지**(게임 전체 규칙 `Harness/Project/Decisions/body-damage.md`, 이후 돈으로 부품 수리). 뒤에서 쫓아오는 불·시간 따라 불타는 줄 구간(014).
+4. **방해물**: ✅ 톱날(012)·신체 손상(020) / ⏳ 불(014). 가로 톱날 22개(점프로 회피)·수직 톱날(옆줄 이동 또는 목마 2층이 넘어가 발판, 밟으면 0.1~0.3초에 내려감, 012). 톱날에 닿으면 **팔·다리가 잘림**(가로 톱날은 다리 → 남은 다리 → 팔 순서, 팔 → 상호작용 패널티, 다리 → 느려짐, 공통 균형 흔들림 증가, 두 다리 → 기어가기·착지 충격 증가, 잘린 팔다리는 날아가 래그돌, 네 팔다리 모두 손실 → 탈락·래그돌, 020). 잃은 부위는 **완전히 죽기 전까지 재시작·다음 묘기에도 유지**(게임 전체 규칙 `Harness/Project/Decisions/body-damage.md`, 이후 돈으로 부품 수리). 뒤에서 쫓아오는 불·시간 따라 불타는 줄 구간(014).
 5. ✅ **판정**(호스트): 한 명이라도 100m 도착 → 즉시 클리어(살아 있는 전원 도착 지점으로, 게임 종료). 도착 없이 전원 사망 또는 시간 종료 → 실패 → 3초 뒤 묘기 재시작(코스·타이머·장애물 처음부터).
 6. ⏳ **결과·보상**: 결과(성공 여부·도착 인원·시간)와 임시 보상 표시, 보상 규칙은 파일 교체로 변경(015), 정식 UI(016).
 7. ⏳ **겉모습**: 캐릭터 모델·애니메이션(017), 맵 아트(018), 소리·효과(019) — 아트·소리 준비 후.
@@ -31,7 +31,7 @@
 | Tightrope · 줄 위 동작 | 줄 위 이동 0.5m/s, 점프 0.8m, 착지 충격 10(체공 0.15초 이상), 옆줄 착지 충격 35, 옆줄 뒤 흔들림 ×1.75·3초 | Player 프리팹 |
 | Tightrope · 손잡기 ⏳011 | 동료 거리 1.0m, 감소 50% | (011에서 추가) |
 | Tightrope · 목마 | 층별 흔들림 배율 1/1.3/1.6/2, 위층 균형 전달 0.2 | Player 프리팹 |
-| Tightrope · 톱날 ⏳012 | 가로 22개 위치·속도 3.0→4.5m/s·지름 1.0/외형 1.2·상단 0.2, 수직 0.8m/s·93→5m·첫 출현 60초·간격 20초·최대 1, 발판 하강 0.1~0.3초(기본 0.2) | (012에서 추가) |
+| Tightrope · 톱날 | 장애물 순서 `steps`(단계: 시작 조건·지연·가로 범위 작동/정지·수직 출현·반복, 기본 = 가로 전체 게임 시작·수직 묘기 60초·제거 20초 뒤 반복), 가로 22개 목록(위치·출발 쪽, 기본 번갈아)·속도 3.0→4.5m/s·왕복 반폭 9.5·지름 1.0/외형 1.2·상단 0.2, 수직 0.8m/s·93→5m·최대 1·중심 0.6, 발판 뒤 1.5m·밟는 즉시·하강 0.2초, 허리 0.85m, 재판정 1초 | TightropeSettings · 톱날 (`Saws`) |
 | Base · 신체 손상 기본 ⏳020 | 다리 1개당 이동 배율, 팔 1개당 상호작용 패널티(모든 묘기 공통 기본값) — **기획 미정, 임시값** | (020에서 추가) |
 | Tightrope · 신체 손상 ⏳020 | 외줄 조정: 부위 1개당 균형 흔들림 배율, 이동·상호작용 배율 덮어쓰기, 같은 톱날 연속 절단 방지 시간 | (020에서 추가) |
 | Tightrope · 불 ⏳014 | 추격 속도·출발 지연·불타는 구간(줄·거리·시각) — **기획 미정, 임시값** | (014에서 추가) |
@@ -64,6 +64,11 @@
 - `TightropeRunDebug.cs` — **테스트 전용**: 상태·남은 시간 표시, K 추락, L 도착, O 표시, 좌우 착지 표시기, 착지 로그, R = 호스트만 재시작.
 - `Editor/TightropeCoursePrefabBuilder.cs` — 코스 프리팹 생성 메뉴(덮어쓰므로 값 조정 후 실행 금지).
 
+`Assets/Scripts/Tightrope/Saws/` (Task-012, 작업 중)
+- `TightropeSaws.cs` — **톱날 공개 진입점**. 가로 위치는 게임 경과로 각 화면이 계산, 장애물 순서는 호스트가 실행하고 가로 작동·정지 기록(게임 경과 시각)·수직 톱날 줄·출현·발판 눌림을 NGO 이름 메시지로 공유. 호스트가 진행 중 플레이어만 판정 → 020 절단 요청(가로: 순서 절단·닿은 쪽 다리부터, 수직: 닿은 부위) → `Hit`(모든 화면, 실제 잘린 부위) + 로그. 겉모습은 기본 도형(충돌체 없음), 프리팹 칸으로 교체.
+- `SawSettings.cs` — 톱날 조정값 묶음·장애물 순서(값은 `TightropeSettings.Saws` 칸, `GameSettings.Tightrope.Saws`로 읽음). `ObstacleSequence.cs` — 순서 실행기·가로 톱날 작동/정지 기록(`HorizontalSawTrack`). `SawMath.cs` — 왕복·원판/몸통 접촉·부위 결정(모두 MonoBehaviour 없음).
+- 에셋 `Assets/Resources/Prefabs/Objects/Obstacles/Saws/TightropeSaws.prefab`, 테스트 씬 `Assets/Scenes/Tests/TightropeSaws/TightropeSaws.unity`.
+
 에셋
 - `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/TightropeCourse.prefab` — 위 컴포넌트 + `PlayerSpawnPoints`(007) + 출발 위치 `SpawnPoints/Slot0~3`. 다른 Task는 배치만. 수치 칸 없음(013).
 - `Assets/Resources/GameSettings/Tricks/TightropeSettings.asset` — 코스 모양·진행·줄 위 동작·목마 값(클래스 `Assets/Scripts/Settings/`). 코스는 만들 때 복사해 쓰고, 대기 중 수정은 바로 재생성·잠금 중 수정은 풀릴 때.
@@ -89,6 +94,11 @@ run.IsPerformanceStarted; run.PerformanceElapsed; run.PerformanceStarted += ...;
 run.TimeRemaining; run.InProgressCount; run.ArrivedCount; run.DeadCount;
 run.RunRestarted += () => ...;                                // 장애물 등 처음 상태로
 run.RestartByHost();                                          // 호스트만
+
+var saws = TightropeSaws.Current;                             // CurtainCall.Tightrope.Saws
+saws.Hit += hit => ...;                                       // 실제로 잘린 부위: hit.Player·Part·Requested·Kind·Index·Contact (절단은 020 ServerCutLegThenArm/ServerCutPart)
+saws.IsVerticalActive; saws.VerticalLane; saws.VerticalDistance; saws.IsPlatePressed; saws.VerticalChanged += ...;
+saws.GetHorizontalPosition(i); saws.Settings;
 ```
 
 ## 의존 도메인
@@ -100,9 +110,10 @@ run.RestartByHost();                                          // 호스트만
 
 ## 수정 주의점
 
+- 톱날 충돌은 물리 충돌체가 아니라 `SawMath` 거리 계산이다(플레이어와만 닿음). 판정 지연은 NetworkTransform 위치 기준.
 - 판정은 호스트만 한다. 클라이언트는 메시지로 받은 상태를 쓴다. 도착은 소유자도 요청한다(`RequestState(Arrived)`).
 - 코스는 회전 없이 배치한다(플레이어 전진이 월드 +Z). 회전하면 경고.
 - `SetLaneBlocked`·`BlockSegment`는 이 화면에만 적용된다. 온라인에서는 모든 화면이 같은 신호로 부르거나 공유를 붙인다(화재 작업).
-- 묘기 시작은 "진행 중 전원이 시작점(0m)을 넘음"으로 판단한다(공중에 떠 있어도 놓치지 않게).
+- 묘기 시작은 "진행 중 플레이어 중 한 명이라도 시작점(0m)을 넘음"으로 판단한다(공중에 떠 있어도 놓치지 않게).
 - 테스트 전용(`TightropeRunDebug`)은 실제 씬에 넣지 않는다. 실제 재시작 UI는 `RestartByHost()`를 쓴다.
 - 에디터 저장 때 TMP 동적 폰트 에셋이 저절로 바뀔 수 있다(`Harness/Engine/Unity/Pitfalls/tmp-dynamic-font-churn.md`).
