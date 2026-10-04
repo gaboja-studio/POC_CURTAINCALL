@@ -24,9 +24,9 @@
 
 ## Verification
 
-- 구역 검사: OK
-- 1 문서/규칙: Fast OK(문서 길이 WARN, hard 0)
-- 2 컴파일: PASS
-- 3 테스트: NO_PROJECT_TESTS (자동 테스트 없음, AI 오프라인 플레이 확인)
-- 4 실행 로그: 재질 소수점 자동 변경 되돌림(Pitfall 기록)
-- 5 공동 테스트: 사람 MPPM 2인 확인 통과(절단·사망·재시작·다리 없는 높이), 공동 테스트 미요청
+- 구역 검사: PASS (10-04)
+- 1 문서/규칙: PASS (10-04)
+- 2 컴파일: PASS (10-04)
+- 3 테스트: NO_PROJECT_TESTS (10-04) — check-work는 FAIL로 표시: 에디터가 열려 있어 unity test 거부(Pitfall unity-test-editor-open). Pipeline list_tests 0개.
+- 4 실행 로그: 재질 소수점 자동 변경 되돌림(Pitfall material-color-float-churn)
+- 5 공동 테스트: 사람 MPPM 2인 확인 통과(절단·사망·재시작·다리 없는 높이). 기어가기·외줄 불이익 2인 결과는 미보고. 공동 테스트 미요청
