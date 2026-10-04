@@ -25,7 +25,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 - `Assets/Scripts/Player/PlayerMover.cs` — 다리 손실 이동 배율만. **011도 배정 중**(뒤쪽 착지) → 먼저 병합되는 쪽 뒤에 최신 통합을 받는다
 - `Assets/Scripts/Player/PlayerBalance.cs` — 부위 손실 흔들림 배율만
 - `Assets/Scripts/Player/PlayerInteraction.cs` — 팔 손실 상호작용 패널티만
-- `Assets/Resources/Prefabs/Characters/Players/` — Player 프리팹에 `PlayerCondition` 부착·연결만
+- `Assets/Resources/Prefabs/Characters/Players/` — Player 프리팹에 `PlayerCondition` 부착·연결, 손상 표현(임시 부위 숨김)·디버프 연결 컴포넌트 부착(2026-10-04 PM 승인)
 - `Assets/Scripts/Network/PlayerSync/NetworkPlayer.cs` — 잃은 부위 공유(호스트 확정)·사망 후 새 몸 복구만
 - `Assets/Scripts/Settings/BaseGameSettings.cs`, `Assets/Scripts/Settings/TightropeSettings.cs`, `Assets/Resources/GameSettings/` — 신체 손상 칸(공통 기본값·외줄 조정)만 추가. **011·012도 TightropeSettings 칸 추가** → 먼저 병합되는 쪽 뒤에 최신 통합을 받는다
 

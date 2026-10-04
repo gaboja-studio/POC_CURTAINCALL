@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7579296447295471670}
   - component: {fileID: 527933782457897884}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: LeftLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -201,7 +201,7 @@ GameObject:
   - component: {fileID: 2741255310130252408}
   - component: {fileID: 9024619985290410822}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Torso
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -336,6 +336,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 825426731404067903}
+  - component: {fileID: 2957585082747081898}
   m_Layer: 0
   m_Name: BlockDoll
   m_TagString: Untagged
@@ -364,6 +365,22 @@ Transform:
   - {fileID: 8354364843227336541}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2957585082747081898
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4913316006406159381}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae33b149a597c497f8cecd612a295710, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Damage.ModelLimbs
+  leftArm: {fileID: 1176528565533989397}
+  rightArm: {fileID: 8354364843227336541}
+  leftLeg: {fileID: 6438431514464378291}
+  rightLeg: {fileID: 4911346357004298327}
 --- !u!1 &6153714555854974105
 GameObject:
   m_ObjectHideFlags: 0
@@ -379,7 +396,7 @@ GameObject:
   - component: {fileID: 1470359711218815433}
   - component: {fileID: 767960022204192159}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: RightArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -566,7 +583,7 @@ GameObject:
   - component: {fileID: 6061553044375323470}
   - component: {fileID: 5344617821502977923}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: LeftArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -753,7 +770,7 @@ GameObject:
   - component: {fileID: 1723394836259228104}
   - component: {fileID: 1918369176847406493}
   m_Layer: 0
-  m_Name: Sphere
+  m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -941,7 +958,7 @@ GameObject:
   - component: {fileID: 1816820296039960593}
   - component: {fileID: 7003637863952489941}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: RightLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
