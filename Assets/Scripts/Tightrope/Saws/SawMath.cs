@@ -112,9 +112,9 @@ namespace CurtainCall.Tightrope.Saws
 
         /// <summary>
         /// 닿은 곳으로 잘릴 부위를 정한다(규칙 #9). 높이: 허리 아래 다리, 위 팔. 좌우: 몸 중심에서 코스 오른쪽(<paramref name="right"/>)이 +.
-        /// 가운데(0)는 오른쪽으로 본다. 정한 부위를 이미 잃었으면 같은 종류의 반대쪽, 둘 다 잃었으면 <see cref="BodyPart.None"/>.
+        /// 가운데(0)는 오른쪽으로 본다. 이미 잃은 부위 처리(같은 종류의 남은 쪽)는 020 신체 손상(<see cref="PlayerCondition.ResolveCut"/>)이 한다.
         /// </summary>
-        public static BodyPart DecidePart(Vector3 contact, in BodyCapsule body, Vector3 right, float waistHeight, BodyPart lost = BodyPart.None)
+        public static BodyPart DecidePart(Vector3 contact, in BodyCapsule body, Vector3 right, float waistHeight)
         {
             float height = contact.y - body.Feet.y;
             Vector3 offset = contact - body.Feet;
@@ -122,11 +122,7 @@ namespace CurtainCall.Tightrope.Saws
             bool isRight = Vector3.Dot(offset, right) >= 0f;
             bool isArm = height >= waistHeight;
 
-            BodyPart chosen = isArm ? (isRight ? BodyPart.RightArm : BodyPart.LeftArm) : (isRight ? BodyPart.RightLeg : BodyPart.LeftLeg);
-            BodyPart other = isArm ? (isRight ? BodyPart.LeftArm : BodyPart.RightArm) : (isRight ? BodyPart.LeftLeg : BodyPart.RightLeg);
-            if ((lost & chosen) == 0) return chosen;
-            if ((lost & other) == 0) return other;
-            return BodyPart.None;
+            return isArm ? (isRight ? BodyPart.RightArm : BodyPart.LeftArm) : (isRight ? BodyPart.RightLeg : BodyPart.LeftLeg);
         }
     }
 }

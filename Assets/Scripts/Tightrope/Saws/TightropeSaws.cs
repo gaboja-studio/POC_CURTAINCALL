@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -16,24 +17,31 @@ namespace CurtainCall.Tightrope.Saws
         Vertical,
     }
 
-    /// <summary>톱날 판정 결과(호스트가 정해 모든 화면에 알림).</summary>
+    /// <summary>톱날 절단 결과(호스트가 정해 모든 화면에 알림).</summary>
     public readonly struct SawHit
     {
         public readonly NetworkPlayer Player;
+        /// <summary>실제로 잘린 부위(020 신체 손상이 확정). 거절됐거나 자를 부위가 없으면 None.</summary>
         public readonly BodyPart Part;
+        /// <summary>닿은 위치로 정한 부위(가로 톱날은 첫 다리 좌우를 고르는 데만 쓴다).</summary>
+        public readonly BodyPart Requested;
         public readonly SawKind Kind;
         /// <summary>가로 톱날 번호(0부터). 수직 톱날은 출현 순번(1부터).</summary>
         public readonly int Index;
         /// <summary>닿은 곳(월드).</summary>
         public readonly Vector3 Contact;
+        /// <summary>닿은 높이(m, 발바닥 기준, 호스트가 계산).</summary>
+        public readonly float ContactHeight;
 
-        public SawHit(NetworkPlayer player, BodyPart part, SawKind kind, int index, Vector3 contact)
+        public SawHit(NetworkPlayer player, BodyPart part, BodyPart requested, SawKind kind, int index, Vector3 contact, float contactHeight)
         {
             Player = player;
             Part = part;
+            Requested = requested;
             Kind = kind;
             Index = index;
             Contact = contact;
+            ContactHeight = contactHeight;
         }
     }
 
@@ -43,8 +51,9 @@ namespace CurtainCall.Tightrope.Saws
     /// - 가로 톱날: 호스트가 작동·정지 기록을 "게임 시작 후 지난 시간"(<see cref="TightropeRun"/>의 남은 시간, 모든 화면에서 같음)과 함께 공유하고, 위치는 각 화면이 그 기록으로 계산한다.
     /// - 수직 톱날: 호스트가 줄·출현·내려감을 정해 NGO 이름 붙은 메시지로 공유하고, 위치는 각 화면이 시간으로 계산한다.
     ///   뒤의 발판(임시 형태)을 살아 있는 플레이어가 밟으면 톱날이 빠르게 내려간 뒤 사라진다. 눌림 판정(<see cref="IsPlatePressed"/>)과 겉모습은 분리돼 있다.
-    /// - 판정: 호스트가 묘기 진행 중에 진행 중인 플레이어(<see cref="PlayerState.Normal"/>)만 본다(도착 완료·사망 무시). 닿은 곳으로 팔·다리 중 하나를 정하고
-    ///   모든 화면에 <see cref="Hit"/>로 알린다. **지금은 판정 결과를 로그로만 남긴다** — 부위 손상·패널티·탈락은 020이 이 신호로 처리한다.
+    /// - 판정: 호스트가 묘기 진행 중에 진행 중인 플레이어(<see cref="PlayerState.Normal"/>)만 본다(도착 완료·사망 무시). 020 신체 손상에 절단을 요청한다(규칙 #9):
+    ///   가로 톱날은 순서 절단(다리 → 남은 다리 → 팔, 첫 다리는 톱날이 닿은 쪽 — 2026-10-05 PM), 수직 톱날은 닿은 위치로 정한 부위(<see cref="NetworkPlayer.ServerCutPart"/>).
+    ///   실제로 잘린 부위를 모든 화면에 <see cref="Hit"/>로 알리고 로그로 남긴다. 패널티·탈락·공유는 020이 한다.
     /// - 묘기 재시작(<see cref="TightropeRun.RunRestarted"/>)이면 처음 상태로.
     /// 수치는 <see cref="Settings"/>(<see cref="SawSettings"/>) 한 곳에 모은다. 씬에 코스(<see cref="TightropeCourse"/>·<see cref="TightropeRun"/>)와 함께 둔다.
     /// </summary>
@@ -55,8 +64,6 @@ namespace CurtainCall.Tightrope.Saws
         const string RequestMessage = "CurtainCall.Tightrope.Saws.Request";
         const string HitMessage = "CurtainCall.Tightrope.Saws.Hit";
         const string GeneratedName = "Generated";
-
-        [SerializeField] SawSettings settings = new();
 
         [Header("겉모습(비우면 기본 도형)")]
         [Tooltip("가로 톱날 모델. 보이는 지름 크기로 만들고, 회전축이 위(+Y)인 프리팹.")]
@@ -113,8 +120,10 @@ namespace CurtainCall.Tightrope.Saws
             }
         }
 
-        /// <summary>톱날 조정값.</summary>
+        /// <summary>톱날 조정값(외줄 세팅 에셋의 톱날 칸, 쓸 때마다 읽는다).</summary>
         public SawSettings Settings => settings;
+
+        static SawSettings settings => GameSettings.Tightrope.Saws;
 
         /// <summary>
         /// 톱날 판정이 났을 때(모든 화면). 호스트가 확정한 결과다. 020(신체 손상)이 이 신호로 부위를 잃게 한다.
@@ -482,9 +491,11 @@ namespace CurtainCall.Tightrope.Saws
             if (lastHitAt.TryGetValue(key, out float last) && Time.time - last < settings.hitCooldown) return;
             lastHitAt[key] = Time.time;
 
-            var lost = player.TryGetComponent(out PlayerCondition condition) ? condition.LostParts : BodyPart.None;
-            var part = SawMath.DecidePart(contact, body, course.Right, settings.waistHeight, lost);
-            var hit = new SawHit(player, part, kind, index, contact);
+            // 닿은 위치로 부위를 정하고 020에 절단을 요청한다(이미 잃은 부위 처리·거절·탈락은 020이 한다)
+            var requested = SawMath.DecidePart(contact, body, course.Right, settings.waistHeight);
+            bool leftSide = (requested & (BodyPart.LeftArm | BodyPart.LeftLeg)) != 0;
+            var cut = kind == SawKind.Horizontal ? player.ServerCutLegThenArm(leftSide) : player.ServerCutPart(requested);
+            var hit = new SawHit(player, cut, requested, kind, index, contact, contact.y - body.Feet.y);
             RaiseHit(hit);
             BroadcastHit(hit);
         }
@@ -513,9 +524,11 @@ namespace CurtainCall.Tightrope.Saws
         {
             string saw = hit.Kind == SawKind.Horizontal ? $"가로 톱날 #{hit.Index + 1}" : $"수직 톱날 #{hit.Index}";
             string who = hit.Player != null ? $"P{hit.Player.Slot + 1}" : "(나간 플레이어)";
-            string part = hit.Part == BodyPart.None ? "잘릴 부위 없음" : hit.Part.ToString();
-            float height = hit.Player != null ? hit.Contact.y - hit.Player.transform.position.y : 0f;
-            Debug.Log($"[Saws] 절단 판정: {who} → {part} ({saw}, 닿은 높이 {height:0.00}m) — 020 병합 전이라 판정만, 적용 없음");
+            string part = hit.Part == BodyPart.None ? "잘린 부위 없음(거절 또는 남은 부위 없음)" : hit.Part.ToString();
+            string requested = hit.Kind == SawKind.Horizontal
+                ? $"순서 절단, 닿은 쪽 {((hit.Requested & (BodyPart.LeftArm | BodyPart.LeftLeg)) != 0 ? "왼쪽" : "오른쪽")}"
+                : $"닿은 부위 {hit.Requested}";
+            Debug.Log($"[Saws] 절단: {who} → {part} ({saw}, {requested}, 닿은 높이 {hit.ContactHeight:0.00}m)");
             Hit?.Invoke(hit);
         }
 
@@ -710,12 +723,14 @@ namespace CurtainCall.Tightrope.Saws
         {
             var manager = Messaging;
             if (manager == null || hit.Player == null) return;
-            using var writer = new FastBufferWriter(32, Allocator.Temp);
+            using var writer = new FastBufferWriter(64, Allocator.Temp); // 8 + 4 + 4 + 1 + 4 + 12 + 4 = 37바이트
             writer.WriteValueSafe(hit.Player.NetworkObjectId);
             writer.WriteValueSafe((int)hit.Part);
+            writer.WriteValueSafe((int)hit.Requested);
             writer.WriteValueSafe((byte)hit.Kind);
             writer.WriteValueSafe(hit.Index);
             writer.WriteValueSafe(hit.Contact);
+            writer.WriteValueSafe(hit.ContactHeight);
             manager.SendNamedMessageToAll(HitMessage, writer, NetworkDelivery.ReliableSequenced);
         }
 
@@ -723,14 +738,16 @@ namespace CurtainCall.Tightrope.Saws
         {
             reader.ReadValueSafe(out ulong playerId);
             reader.ReadValueSafe(out int part);
+            reader.ReadValueSafe(out int requested);
             reader.ReadValueSafe(out byte kind);
             reader.ReadValueSafe(out int index);
             reader.ReadValueSafe(out Vector3 contact);
+            reader.ReadValueSafe(out float height);
 
             NetworkPlayer player = null;
             foreach (var candidate in NetworkPlayer.All)
                 if (candidate.NetworkObjectId == playerId) player = candidate;
-            RaiseHit(new SawHit(player, (BodyPart)part, (SawKind)kind, index, contact));
+            RaiseHit(new SawHit(player, (BodyPart)part, (BodyPart)requested, (SawKind)kind, index, contact, height));
         }
 
         CustomMessagingManager Messaging =>

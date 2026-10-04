@@ -6,7 +6,8 @@ namespace CurtainCall.Tightrope.Saws
     /// <summary>
     /// 톱날 장애물 조정값 묶음. 규칙: Harness/Project/Decisions/tightrope-course-rules.md #6~#9 (2026-10-03).
     /// 거리는 외줄 시작점 0m 기준 진행 거리, 높이는 외줄 윗면 기준(m). 기획에 없는 값은 "임시값"으로 표시한다.
-    /// 013(게임 세팅) 병합 전까지 이 작업 폴더에 두고, 병합 후 TightropeSettings의 톱날 칸으로 옮긴다(2026-10-03 PM).
+    /// 값은 외줄 세팅 에셋(<see cref="CurtainCall.Settings.TightropeSettings.Saws"/>, Assets/Resources/GameSettings/Tricks/TightropeSettings.asset)의 톱날 칸에 있다(2026-10-05).
+    /// 계산 도우미가 있어 클래스는 톱날 폴더에 둔다.
     /// </summary>
     /// <summary>가로 톱날이 처음 출발하는 쪽.</summary>
     public enum SawStartSide

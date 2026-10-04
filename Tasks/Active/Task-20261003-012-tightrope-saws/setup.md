@@ -22,7 +22,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 - `Assets/Scripts/Tightrope/Rope/TightropeRun.cs` — 묘기 시작 조건만 변경(전원 → 첫 사람이 줄에 오름, 2026-10-03 PM 배정. 005 병합 #18 이후)
 - `Assets/Scripts/Tightrope/Rope/TightropeRunDebug.cs` — 위 변경에 맞춰 디버그 표시 문구 1줄만
 - 그 밖에는 없음. 코스 프리팹은 테스트 씬에 놓기만 한다. 005 진입점(`TightropeCourse`·`TightropeRun`)·007 상태 요청은 공개 기능만 사용.
-- 013 병합 후 `Assets/Resources/GameSettings/`·`Assets/Scripts/Settings/`(톱날 칸 추가)를 PM이 이 Task에 배정한다.
+- `Assets/Scripts/Settings/TightropeSettings.cs`, `Assets/Resources/GameSettings/Tricks/TightropeSettings.asset` — 톱날 칸(`SawSettings`) 추가만(2026-10-05 PM 배정, 013·011·020 병합 후)
 
 ## 수정 금지
 
