@@ -2,18 +2,18 @@
 
 - **Title:** 불(추격 불·불타는 구간)
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/tightrope-course.md`
 - **Current Skill:** start-work
-- **Updated:** 2026-10-03
+- **Updated:** 2026-10-05
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
 ## Workspace
 
 - **Integration:** integration/tightrope-prototype
-- **Branch:** feat/tightrope-fire (인계 때 생성)
+- **Branch:** feat/tightrope-fire
 
 ## Goal
 
@@ -29,6 +29,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
-- Open: 불 추격 속도·출발 지연·불타는 구간(줄·거리·시각) — 기획 값 없음. 임시값으로 넣고 `TightropeSettings` 불 칸에서 에디터로 바꾼다(2026-10-03 PM)
-- Open: 불타기 시작한 구간 위에 서 있던 사람 처리(사망 / 착지만 불가)
+- Decided: 2026-10-05 @MoHoDu — 발화 당시 구간 위 플레이어도 사망한다. 높이와 무관한 수평 접촉 판정이며 같은 호스트 판정 시점에는 도착을 우선한다.
+- Decided: 2026-10-05 @MoHoDu — 초기 실험값: 묘기 10초 후 -6m에서 0.35m/s 추격·95m 정지, 120초에 1·4번 줄 55~95m, 180초에 3번 줄 70~95m(끝 제외), 10초 예고. 설정 스냅샷은 다음 시도부터 변경 적용.
+- Open: 초기 실험값의 밸런스 적합성 — 실제 4인 결과로 확인한다.
 - Decided: 2026-10-03 @MoHoDu — 화재는 새 Task. 수치는 나중에 에디터에서 변경 가능하게

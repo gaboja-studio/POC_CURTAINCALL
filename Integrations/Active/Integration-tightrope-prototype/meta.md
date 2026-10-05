@@ -23,7 +23,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20260930-003 | feat | @MoHoDu | feat/network-session | #6 | done (완료 보관; dev 반영 별도) |
 | Task-20260930-004 | feat | @MoHoDu | feat/player-control | #7 | done (완료 보관; dev 반영 별도) |
 | Task-20260930-005 | feat | @MoHoDu | feat/tightrope-core | #18 | submitted (#18 병합됨, 공동 테스트 결과 정리 대기) |
-| Task-20260930-006 | feat | @MoHoDu | feat/tightrope-piggyback | - | working (worktree에서 작업 중, 원격 브랜치는 첫 저장 때) |
+| Task-20260930-006 | feat | @MoHoDu | feat/tightrope-piggyback | #23 | submitted (#23 병합됨, 실제 4인 공동 테스트 대기) |
 | Task-20260930-007 | feat | @MoHoDu | feat/network-player-sync | #11 | done (완료 보관; dev 반영 별도) |
 | Task-20260930-008 | feat | @MoHoDu | feat/network-prop-sync (인계 때 생성) | - | blocked (2026-10-03 보류) |
 | Task-20260930-009 | feat | @MoHoDu | feat/tightrope-network (인계 때 생성) | - | scaffolded |
@@ -31,14 +31,15 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261001-011 | feat | @MoHoDu | feat/tightrope-rider | #21 | done (완료 보관; dev 반영 별도) |
 | Task-20261003-012 | feat | @MoHoDu | feat/tightrope-saws | #20 | done (완료 보관; dev 반영 별도) |
 | Task-20261003-013 | refactor | @MoHoDu | refactor/game-settings | #19 | done (완료 보관; dev 반영 별도) |
-| Task-20261003-014 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261003-014 | feat | @MoHoDu | feat/tightrope-fire | - | assigned |
 | Task-20261003-015 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-016 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-017 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-018 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-019 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-020 | feat | @MoHoDu | feat/body-damage | #22 | done (완료 보관; dev 반영 별도) |
-| Task-20261005-021 | feat | @MoHoDu | feat/obstacle-layout-editor | - | assigned |
+| Task-20261005-021 | feat | @MoHoDu | feat/obstacle-layout-editor | - | blocked (담당 세션 보고: 미커밋 변경·제출본 없음, 설정 편집 점유 해제) |
+| Task-20261005-022 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 
 2026-10-05 PM 요청: 003·004·007·011·012·013·020은 `Tasks/Done/`으로 완료 보관. dev 반영·통합 종료는 미실행. 012 부분 통과 항목은 021에서 재확인하며, 005는 공동 테스트 결과 정리 대기로 Active 유지. 테스트 씬 처리 결정은 변경하지 않음.
 
@@ -57,6 +58,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/` | Task-20260930-005 | 외줄 코스 스테이지 (다른 Task는 배치만) |
 | `Assets/Resources/Prefabs/Objects/Tools/` | Task-20260930-008 (보류) | 도구 프리팹 |
 | `Assets/Resources/GameSettings/`, `Assets/Scripts/Settings/` | Task-20261003-013 → 이후 칸 추가 Task PM 배정 | 기획 조정값 세팅 파일 (`Harness/Project/Decisions/game-settings.md`) |
+| `Assets/Scripts/Settings/TightropeSettings.cs`, `Assets/Resources/GameSettings/Tricks/TightropeSettings.asset` | Task-20261003-014 (2026-10-05 PM) | Fire 칸만 추가, 021 설정 편집 점유 해제 확인 |
+| `Assets/Scripts/Tightrope/Rope/TightropeRun.cs`, `Assets/Scripts/Tightrope/Rope/TightropeCourse.cs` | Task-20261003-014 (2026-10-05 PM) | 도착 우선 위험 이벤트·회차 번호·구간 끝 제외 선택만 |
 | `Assets/Scripts/Camera/`, `Assets/Resources/Prefabs/Controllers/Camera/` | Task-20260930-006 (2026-10-04 PM, 카메라 가림·구도) | `camera-review-20261004.md` |
 | `Assets/Plugins/` (DOTween Pro), `Assets/Resources/DOTweenSettings.asset` | PM (2026-10-05 통합 브랜치에 설치, 원본·예제 수정 금지) | 트윈 라이브러리 |
 | `Assets/Scripts/Network/PlayerSync/` | Task-20260930-007 | 이후 Task는 공개 기능만 사용, 수정은 PM 배정. 테스트 부품 `TestRoundRestart.cs`는 005, `TestLaneLanding.cs`는 011이 대체·삭제 |
