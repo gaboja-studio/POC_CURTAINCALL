@@ -163,3 +163,23 @@ MonoBehaviour:
     waistHeight: 0.85
     hitCooldown: 1
     spinSpeed: 720
+  fire:
+    chaseEnabled: 1
+    chaseDelay: 10
+    chaseStart: -6
+    chaseSpeed: 0.35
+    safeDistance: 95
+    warningSeconds: 10
+    segments:
+    - lane: 1
+      from: 55
+      to: 95
+      igniteAt: 120
+    - lane: 4
+      from: 55
+      to: 95
+      igniteAt: 120
+    - lane: 3
+      from: 70
+      to: 95
+      igniteAt: 180
