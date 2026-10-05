@@ -5,8 +5,8 @@
 - **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/tightrope-course.md`
-- **Current Skill:** implement-code
-- **Updated:** 2026-10-05
+- **Current Skill:** merge-integration
+- **Updated:** 2026-10-06
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 

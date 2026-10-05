@@ -6,7 +6,7 @@
 - **Base:** dev
 - **PM:** @MoHoDu
 - **Merge Time:** 순차 병합 — 1단계 작업은 2~3일차, 연결 작업은 4일차, 공동 테스트·dev 반영은 5일차 (착수 후 5일 기한)
-- **Updated:** 2026-10-05
+- **Updated:** 2026-10-06
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
@@ -15,6 +15,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 - 4명이 온라인 방에 모여 외줄 묘기 플로우(대기 → 묘기 시작 → 톱날·불을 피해 100m 코스 → 클리어/실패 재시작 → 결과·보상)를 함께 테스트할 수 있다.
 - 2026-10-03 재편: 단계별 두 갈래 진행, 다음 작업은 013(조정값 세팅), 008 보류, 017·018·019 에셋 대기.
 - 쉬운 설명·작업 공간 전체: [plan.md](plan.md)
+- 2026-10-06: 0.0.2 승인(10-05 21:54 KST) 후 165분 신규 기능 중단 기준 경과. 014 병합·검증만 마무리, 015/016/022 미구현·0.0.2 빌드/실제 4인 미실행. 후속 착수는 시간·범위 재승인 후.
 
 ## Tasks
 
@@ -31,7 +32,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261001-011 | feat | @MoHoDu | feat/tightrope-rider | #21 | done (완료 보관; dev 반영 별도) |
 | Task-20261003-012 | feat | @MoHoDu | feat/tightrope-saws | #20 | done (완료 보관; dev 반영 별도) |
 | Task-20261003-013 | refactor | @MoHoDu | refactor/game-settings | #19 | done (완료 보관; dev 반영 별도) |
-| Task-20261003-014 | feat | @MoHoDu | feat/tightrope-fire | - | assigned |
+| Task-20261003-014 | feat | @MoHoDu | feat/tightrope-fire | #24 | submitted (#24 병합·cda92b5 컴파일 확인, 실제 4인 공동 테스트 대기) |
 | Task-20261003-015 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-016 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 | Task-20261003-017 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
