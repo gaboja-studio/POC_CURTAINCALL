@@ -51,6 +51,18 @@ MonoBehaviour:
     - 1.6
     - 2
     upperTransfer: 0.2
+    linkDistance: 1.5
+    fallShock: 10
+    forwardJumpSpeed: 2.2
+    backwardJumpSpeed: 0.7
+  camera:
+    height: 3.75
+    distance: 4.5
+    lookHeight: 1.2
+    lookAhead: 1.75
+    occluderAlpha: 0.35
+    occluderRadius: 0.4
+    fadeSpeed: 6
   bodyPenalty:
     oneLegMoveSpeed: 0.8
     swayPerLostLeg: 0.25

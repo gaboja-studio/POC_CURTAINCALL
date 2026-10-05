@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CurtainCall.Settings
 {
     /// <summary>
-    /// 외줄 묘기 세팅: 코스·진행·줄 위 동작·손잡기·목마·신체 손상 불이익·톱날(+ 보상 연결은 부모).
+    /// 외줄 묘기 세팅: 코스·진행·줄 위 동작·손잡기·목마·카메라·신체 손상 불이익·톱날(+ 보상 연결은 부모).
     /// 에셋: Assets/Resources/GameSettings/Tricks/TightropeSettings.asset. <see cref="GameSettings.Tightrope"/>로 읽는다.
     /// 코스 모양은 코스를 만들 때 읽는다(대기 중 수정은 바로 다시 만들고, 게임 중 수정은 다음 대기 때). 나머지는 쓸 때마다 읽는다.
     /// 톱날 칸은 012(`SawSettings`, 장애물 순서 포함), 불(014) 칸은 해당 Task가 여기에 묶음을 추가한다. 기본값은 2026-10-03 프리팹 값과 같다.
@@ -22,6 +22,8 @@ namespace CurtainCall.Settings
         [SerializeField] HandholdSettings handhold = new();
         [Header("목마")]
         [SerializeField] PiggybackSettings piggyback = new();
+        [Header("카메라")]
+        [SerializeField] CameraSettings camera = new();
         [Header("신체 손상 불이익 (외줄)")]
         [SerializeField] BodyPenaltySettings bodyPenalty = new();
         [Header("톱날 (장애물 순서·가로·수직·발판·부위 판정)")]
@@ -35,6 +37,7 @@ namespace CurtainCall.Settings
         public RopeMovementSettings RopeMovement => ropeMovement;
         public HandholdSettings Handhold => handhold;
         public PiggybackSettings Piggyback => piggyback;
+        public CameraSettings Camera => camera;
         public BodyPenaltySettings BodyPenalty => bodyPenalty;
         public Tightrope.Saws.SawSettings Saws => saws;
 
@@ -197,13 +200,66 @@ namespace CurtainCall.Settings
             [Tooltip("위층 균형 전달: 초당 (내 위층 균형값 합 × 이 값)만큼 같은 방향으로 민다. 기획 0.2.")]
             [SerializeField, Min(0f)] float upperTransfer = 0.2f;
 
+            [Tooltip("목마 연결 거리(m, 수평). F 짧게를 누른 사람과 상대(목마면 맨 아래 사람) 사이가 이 안이어야 올라간다. 호스트 값으로 판정. 기획 미정(임시 1.5).")]
+            [SerializeField, Min(0f)] float linkDistance = 1.5f;
+
+            [Tooltip("위층이 떨어질 때 바로 아래층이 받는 반동 충격(균형 ±, 랜덤 방향, 목마 배율 적용). 호스트 값으로 보낸다. 기획 미정(임시 10, 착지 충격과 같음).")]
+            [SerializeField, Min(0f)] float fallShock = 10f;
+
+            [Tooltip("맨 위 W + SB 앞으로 분리 점프의 수평 속도(m/s, 높이는 혼자 점프와 같음). 2층 발 높이 1.5m에서 수직 톱날(지름 1.0m·상단 1.1m)을 넘게 정한 값: 약 2.4m 앞 착지. 기획 미정(임시 2.2).")]
+            [SerializeField, Min(0f)] float forwardJumpSpeed = 2.2f;
+
+            [Tooltip("맨 위 S + SB 뒤로 분리 점프의 수평 속도(m/s). 아래 사람과 겹치지 않게 착지하는 최소에 가까운 값: 약 0.75m 뒤 착지. 기획 미정(임시 0.7).")]
+            [SerializeField, Min(0f)] float backwardJumpSpeed = 0.7f;
+
             public float UpperTransfer => upperTransfer;
+            public float LinkDistance => linkDistance;
+            public float FallShock => fallShock;
+            public float ForwardJumpSpeed => forwardJumpSpeed;
+            public float BackwardJumpSpeed => backwardJumpSpeed;
 
             /// <summary>목마 전체 인원의 배율. 칸이 비어 있으면 1, 인원이 칸보다 많으면 마지막 칸.</summary>
             public float GetStackMultiplier(int stackSize) =>
                 stackMultipliers == null || stackMultipliers.Length == 0
                     ? 1f
                     : stackMultipliers[Mathf.Clamp(stackSize, 1, stackMultipliers.Length) - 1];
+        }
+
+        /// <summary>
+        /// 외줄 카메라 구도와 가림 처리(Integrations/Active/Integration-tightrope-prototype/camera-review-20261004.md, 2026-10-04 PM).
+        /// 카메라 리그(PlayerFollowCamera)의 구도·가림 처리 컴포넌트가 매 프레임 읽는다.
+        /// </summary>
+        [Serializable]
+        public sealed class CameraSettings
+        {
+            [Tooltip("카메라 높이(m, 내 캐릭터 발 기준 위). 이전 2.6. 기획 미정(임시 3.75).")]
+            [SerializeField, Min(0f)] float height = 3.75f;
+
+            [Tooltip("카메라 거리(m, 코스 뒤쪽).")]
+            [SerializeField, Min(0.5f)] float distance = 4.5f;
+
+            [Tooltip("바라보는 점 높이(m, 내 캐릭터 발 기준).")]
+            [SerializeField] float lookHeight = 1.2f;
+
+            [Tooltip("바라보는 점을 내 캐릭터 앞쪽으로 옮기는 거리(m). 앞 장애물이 화면 가운데로 온다. 기획 미정(임시 1.75).")]
+            [SerializeField] float lookAhead = 1.75f;
+
+            [Tooltip("카메라와 내 캐릭터 사이를 가리는 것(다른 플레이어·장애물)의 투명도(0 투명 ~ 1 불투명). 기획 미정(임시 0.35).")]
+            [SerializeField, Range(0f, 1f)] float occluderAlpha = 0.35f;
+
+            [Tooltip("가림 판정 굵기(m, 반지름). 카메라→내 캐릭터 선에서 이 안에 걸리면 흐리게 한다.")]
+            [SerializeField, Min(0f)] float occluderRadius = 0.4f;
+
+            [Tooltip("흐려지고 돌아오는 빠르기(초당 투명도 변화).")]
+            [SerializeField, Min(0.1f)] float fadeSpeed = 6f;
+
+            public float Height => height;
+            public float Distance => distance;
+            public float LookHeight => lookHeight;
+            public float LookAhead => lookAhead;
+            public float OccluderAlpha => occluderAlpha;
+            public float OccluderRadius => occluderRadius;
+            public float FadeSpeed => fadeSpeed;
         }
 
         /// <summary>

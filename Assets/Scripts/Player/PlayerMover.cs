@@ -153,6 +153,35 @@ namespace CurtainCall.Player
         /// <summary>옆줄 점프를 요청한다(-1 왼쪽, +1 오른쪽). 땅에 있고 조작이 켜져 있고 <see cref="LaneJumpFilter"/>가 허용할 때만 뛴다. 방향은 뛴 순간 고정된다.</summary>
         public void RequestLaneJump(int direction) => laneJumpRequested = Math.Sign(direction);
 
+        /// <summary>
+        /// 땅에 없어도 지금 자리에서 제자리 점프를 바로 시작한다(예: 목마 맨 위 앞·뒤 분리 점프). 이동을 계산 중(<see cref="Simulated"/>)이어야 한다.
+        /// <paramref name="alongSpeed"/>: 코스 앞(+)·뒤(−) 수평 속도(m/s), 착지까지 고정. 높이·공중·착지 처리는 보통 점프와 같다.
+        /// </summary>
+        public void LaunchJump(float alongSpeed)
+        {
+            groundVelocity = CourseForward * alongSpeed;
+            IsMoving = false;
+            StartJump(JumpKind.InPlace, 0);
+        }
+
+        /// <summary>목마 머리 위에서도 기존 허용·착지 규칙으로 옆줄 점프를 시작한다. 불가능하면 이동 상태를 바꾸지 않는다.</summary>
+        public bool LaunchLaneJump(int direction)
+        {
+            direction = Math.Sign(direction);
+            if (direction == 0 || !ControlEnabled || FreeMovement) return false;
+            Vector3 before = groundVelocity;
+            groundVelocity = Vector3.zero; // 위층에서 이동하지 않는 동안 남은 지상 속도는 쓰지 않는다
+            if (!CanLaneJump(direction))
+            {
+                groundVelocity = before;
+                return false;
+            }
+            IsMoving = false;
+            StartJump(JumpKind.Lane, direction);
+            SetAirborne(true); // 추종 부품이 공중 상태를 이동 부품에 바로 인계할 수 있게 한다
+            return true;
+        }
+
         /// <summary>지금 켜져 있는 모든 플레이어 이동 부품.</summary>
         public static IReadOnlyList<PlayerMover> All => active;
 

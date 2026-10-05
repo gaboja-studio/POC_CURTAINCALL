@@ -22,11 +22,14 @@ namespace CurtainCall.Tightrope
         PlayerBalance balance;
         bool blockOntoPlayerBefore;
         bool failOnLanding; // 이번 옆줄 점프는 착지할 자리가 없어 착지 순간 추락
+        NetworkPlayer laneLinkTarget;
+        bool handholdLanding;
 
         void OnEnable()
         {
             NetworkPlayer.LocalSpawned += Bind;
             NetworkPlayer.LocalDespawned += Unbind;
+            NetworkPlayer.Restarted += HandleRestarted;
             if (NetworkPlayer.Local != null) Bind(NetworkPlayer.Local);
         }
 
@@ -34,6 +37,7 @@ namespace CurtainCall.Tightrope
         {
             NetworkPlayer.LocalSpawned -= Bind;
             NetworkPlayer.LocalDespawned -= Unbind;
+            NetworkPlayer.Restarted -= HandleRestarted;
             Unbind();
         }
 
@@ -63,7 +67,19 @@ namespace CurtainCall.Tightrope
             }
             mover = null;
             balance = null;
+            ClearLanding();
+        }
+
+        void ClearLanding()
+        {
             failOnLanding = false;
+            laneLinkTarget = null;
+            handholdLanding = false;
+        }
+
+        void HandleRestarted(NetworkPlayer player)
+        {
+            if (player != null && player.IsLocal) ClearLanding();
         }
 
         /// <summary>내 캐릭터가 지금 그 방향(-1 왼쪽, +1 오른쪽)으로 옆줄 점프해도 되는지.</summary>
@@ -96,8 +112,18 @@ namespace CurtainCall.Tightrope
             if (course == null || mover == null) return true;
 
             Vector3 landing = mover.GetLaneLandingPosition(direction);
+            landing.y = LandingHeight();
             distance = course.GetDistance(landing);
             float side = course.GetSide(landing);
+
+            // 합체 가능한 동료와 겹치면 원래 도착점을 유지한다. 실제 합체 요청은 착지 순간 보낸다.
+            var target = FindLaneLinkTarget(direction);
+            if (target != null)
+            {
+                Vector3 originalAlong = mover.transform.position + course.Forward * (distance - course.GetDistance(mover.transform.position));
+                lane = course.FindLandingLane(originalAlong, direction);
+                return lane != TightropeCourse.NoLane && course.IsLaneChangeAllowed(distance);
+            }
 
             // 자리를 차지한 사람이 없을 때까지 그 사람들 뒤로 당긴다. 한 번에 한 명 이상 뒤로 가므로 인원수만큼이면 끝난다
             int count = PlayerMover.All.Count;
@@ -152,7 +178,7 @@ namespace CurtainCall.Tightrope
             if (course == null || mover == null || lane == TightropeCourse.NoLane) return false;
 
             float reach = GameSettings.Tightrope.Handhold.Distance;
-            float height = mover.transform.position.y;
+            float height = LandingHeight();
             foreach (var other in PlayerMover.All)
             {
                 if (other == mover || other.PassThrough) continue;
@@ -164,9 +190,46 @@ namespace CurtainCall.Tightrope
             return false;
         }
 
+        NetworkPlayer FindLaneLinkTarget(int direction)
+        {
+            var system = PiggybackSystem.Current;
+            if (system == null || mover == null) return null;
+            var local = NetworkPlayer.Local;
+            bool topRelease = system.GetBelow(local) != null && system.GetAbove(local) == null;
+            if (!topRelease)
+            {
+                var other = mover.FindPlayerAtLaneLanding(direction);
+                var target = other != null ? other.GetComponent<NetworkPlayer>() : null;
+                return system.CanLaneLink(local, target) ? target : null;
+            }
+
+            Vector3 landing = mover.GetLaneLandingPosition(direction);
+            landing.y = LandingHeight();
+            foreach (var other in PlayerMover.All)
+            {
+                if (other == mover || other.PassThrough) continue;
+                Vector3 offset = other.transform.position - landing;
+                if (Mathf.Abs(offset.y) >= Mathf.Max(mover.BodyHeight, other.BodyHeight)) continue;
+                offset.y = 0f;
+                if (offset.magnitude >= mover.BodyRadius + other.BodyRadius) continue;
+                var target = other.GetComponent<NetworkPlayer>();
+                if (system.CanLaneLink(local, target, true)) return target;
+            }
+            return null;
+        }
+
+        float LandingHeight()
+        {
+            var system = PiggybackSystem.Current;
+            var below = system != null ? system.GetBelow(NetworkPlayer.Local) : null;
+            if (below == null) return mover.transform.position.y;
+            for (var next = system.GetBelow(below); next != null; next = system.GetBelow(below)) below = next;
+            return below.transform.position.y; // 머리 위 출발도 도착 줄 높이의 동료를 찾는다
+        }
+
         float GetLandingShift(int direction)
         {
-            failOnLanding = false;
+            ClearLanding();
             var course = TightropeCourse.Current;
             if (course == null || mover == null) return 0f;
 
@@ -178,16 +241,30 @@ namespace CurtainCall.Tightrope
             }
 
             // 균형은 착지 알림을 먼저 받으므로 감소율은 뛰는 순간 넣어 둔다(착지하면 균형이 0으로 되돌린다)
-            if (balance != null && IsHandholdLanding(lane, distance))
-                balance.SetLaneLandingReduction(GameSettings.Tightrope.Handhold.Reduction);
+            laneLinkTarget = FindLaneLinkTarget(direction);
+            handholdLanding = laneLinkTarget != null || IsHandholdLanding(lane, distance);
+            if (balance != null)
+                balance.SetLaneLandingReduction(handholdLanding ? GameSettings.Tightrope.Handhold.Reduction : 0f);
             return distance - original;
         }
 
         void HandleAirborne(bool airborne)
         {
-            if (airborne || !failOnLanding) return;
-            failOnLanding = false;
-            if (balance != null) balance.ForceFall();
+            if (airborne || mover == null || mover.CurrentJump != JumpKind.Lane) return;
+            var local = NetworkPlayer.Local;
+            var target = laneLinkTarget;
+            bool helped = handholdLanding;
+            bool failed = failOnLanding;
+            ClearLanding();
+            if (failed)
+            {
+                if (balance != null) balance.ForceFall();
+                return;
+            }
+            if (local == null || local.State != PlayerState.Normal || (balance != null && balance.HasFallen)) return;
+            var system = PiggybackSystem.Current;
+            if (target != null) system?.RequestLaneLanding(target);
+            else if (helped) system?.ShowHandholdLanding();
         }
     }
 }

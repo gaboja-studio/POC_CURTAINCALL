@@ -65,9 +65,13 @@ switch -Regex ($branch) {
 
 # 4. Task ID 중복
 $dupes = @($allTasks | Group-Object Id | Where-Object {
-    $states = @($_.Group.State | Sort-Object -Unique)
-    ($states -contains 'Active' -and $states -contains 'Done') -or
-    (@($_.Group | ForEach-Object { Split-Path $_.Path -Leaf } | Sort-Object -Unique).Count -gt 1)
+    $taskGroup = $_
+    $stateConflicts = @($taskGroup.Group | Group-Object Worktree | Where-Object {
+        $states = @($_.Group.State | Sort-Object -Unique)
+        $states -contains 'Active' -and $states -contains 'Done'
+    })
+    $stateConflicts.Count -gt 0 -or
+    (@($taskGroup.Group | ForEach-Object { Split-Path $_.Path -Leaf } | Sort-Object -Unique).Count -gt 1)
 })
 if ($dupes.Count) {
     Add-Check FAIL 'task-ids' "중복/상태 충돌: $($dupes.Name -join ', ')"
