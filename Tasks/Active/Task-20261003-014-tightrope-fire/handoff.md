@@ -7,7 +7,7 @@
 - 연결: Fire 프리팹을 테스트 씬에 배치. TightropeFire·FireView 각각 1개 확인. 설정 에셋에 승인된 초기 실험값 저장.
 - 아직 확인하지 않은 것: 실제 4화면 일정·피해·재시작 일치, 사람 플레이의 탈출/구조 가능성
 - 제약: 021 미커밋 코드·배치 에셋은 통합하거나 수정하지 않음. Console 기존 2건은 Unity Connect 환경 오류와 Pipeline batch 변환 오류이며 C# 컴파일 실패 없음.
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/24
 
 ## 다음 할 일
 

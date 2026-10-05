@@ -2,7 +2,7 @@
 
 - **Title:** 불(추격 불·불타는 구간)
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/tightrope-course.md`
 - **Current Skill:** implement-code
