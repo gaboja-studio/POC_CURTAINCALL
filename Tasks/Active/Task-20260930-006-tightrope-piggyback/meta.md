@@ -5,7 +5,7 @@
 - **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** Docs/Domains/tightrope-course.md
-- **Current Skill:** check-work
+- **Current Skill:** submit-work
 - **Updated:** 2026-10-05
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
@@ -14,7 +14,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 - **Integration:** integration/tightrope-prototype
 - **Branch:** feat/tightrope-piggyback
-- 구현·사용자 회귀 및 톱날·신체 손상 연계 Play 확인 완료. 종료 정리·최종 검사 진행, 통합 유입 병합 커밋·PR 제출 미실행; 상세는 handoff.md.
+- 구현·사용자 Play·종료 정리·최종 검사 완료. 최신 통합 포함 66d7070 저장·push 완료. PR은 보존한 재질 로컬 변경으로 미등록; 상세는 handoff.md.
 
 ## Goal
 

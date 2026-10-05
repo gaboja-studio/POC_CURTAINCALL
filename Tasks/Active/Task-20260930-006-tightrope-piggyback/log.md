@@ -17,3 +17,4 @@
 - 차단 해소 승인 후 doctor의 worktree 간 Active/Done 오탐 수정·Project Pitfalls 기록. 합성 회귀 6개·실제 Task 복사본 123개·구문 검사 통과, Doctor FAIL 0/WARN 1·Scope OK(399)·Fast OK(WARN 5/hard 0, 인계·지식 기록 후)·Compile PASS(up_to_date)·NO_PROJECT_TESTS. 콘솔 cursor 151: 서비스 인증 오류 4건·Pipeline timeout 1건, 접속 영향 미확인. 연계 Play·Base 원복·병합 커밋·push 미실행.
 - 사용자가 Piggyback 씬 연계 Play 3개 항목 모두 통과 보고: 목마 분리·수직 톱날·발판 착지, 발판 하강·아래층 통과·양쪽 동기화, 피격·절단·재시작. 사용자 확인으로 기록하고 AI 실행 로그 검증·콘솔 오류 해소와 구분. Base 임시값 원복·임시 로그 정리·최종 검사·병합 커밋·push·PR은 미실행.
 - 종료 정리 승인에 따라 Base 균형값 15/5/0.5 원복·에디터 재조회·단일 에셋 저장 및 세 필드 diff 확인. 임시 균형 로그·전용 상태 제거, 균형 주입 유지·잔여 참조 없음. Task 문서 정리 후 Scope OK(401)·Fast OK(WARN 5/hard 0)·Compile PASS(completed)·공백 검사 통과. NO_PROJECT_TESTS, 원복 후 새 Play·인증 오류 해소 미검증. 병합 커밋·push·PR 미실행.
+- 저장·제출 요청으로 최신 통합 포함 병합 커밋 66d7070 및 작업 브랜치 push 완료. Scope OK(401)·Fast OK(WARN 5/hard 0)·Compile PASS(up_to_date)·공백 검사 통과. Navy/Red 소수점 변경 2건은 커밋 제외·로컬 보존; PR 등록의 미저장 변경 검사 차단으로 제출 보류. 임의 원복·검사 우회 없음.
