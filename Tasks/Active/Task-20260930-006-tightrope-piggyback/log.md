@@ -18,3 +18,4 @@
 - 사용자가 Piggyback 씬 연계 Play 3개 항목 모두 통과 보고: 목마 분리·수직 톱날·발판 착지, 발판 하강·아래층 통과·양쪽 동기화, 피격·절단·재시작. 사용자 확인으로 기록하고 AI 실행 로그 검증·콘솔 오류 해소와 구분. Base 임시값 원복·임시 로그 정리·최종 검사·병합 커밋·push·PR은 미실행.
 - 종료 정리 승인에 따라 Base 균형값 15/5/0.5 원복·에디터 재조회·단일 에셋 저장 및 세 필드 diff 확인. 임시 균형 로그·전용 상태 제거, 균형 주입 유지·잔여 참조 없음. Task 문서 정리 후 Scope OK(401)·Fast OK(WARN 5/hard 0)·Compile PASS(completed)·공백 검사 통과. NO_PROJECT_TESTS, 원복 후 새 Play·인증 오류 해소 미검증. 병합 커밋·push·PR 미실행.
 - 저장·제출 요청으로 최신 통합 포함 병합 커밋 66d7070 및 작업 브랜치 push 완료. Scope OK(401)·Fast OK(WARN 5/hard 0)·Compile PASS(up_to_date)·공백 검사 통과. Navy/Red 소수점 변경 2건은 커밋 제외·로컬 보존; PR 등록의 미저장 변경 검사 차단으로 제출 보류. 임의 원복·검사 우회 없음.
+- 사용자 승인으로 Navy/Red 두 재질을 세션 scratchpad/material-backup-20261005/에 백업·cmp 검증 후 소수점 변경만 원복. 최신 통합 이미 반영, gh Ready. check-work 구역·문서·컴파일 PASS, CLI 테스트는 열린 Editor 중복 실행 차단으로 실패·XML 없음. Editor list_tests(all) 0개 확인; 프로토타입 결정에 따라 NO_PROJECT_TESTS로 구분하고 실패 이력 보존, 검사 스크립트 수정·AI Play 실행 없음.

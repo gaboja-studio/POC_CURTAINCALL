@@ -14,7 +14,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 - **Integration:** integration/tightrope-prototype
 - **Branch:** feat/tightrope-piggyback
-- 구현·사용자 Play·종료 정리·최종 검사 완료. 최신 통합 포함 66d7070 저장·push 완료. PR은 보존한 재질 로컬 변경으로 미등록; 상세는 handoff.md.
+- 구현·사용자 Play·종료 정리 저장·push 완료. 승인된 재질 백업·소수점 원복 완료, PR 제출 준비; 검증 한계는 handoff.md.
 
 ## Goal
 
