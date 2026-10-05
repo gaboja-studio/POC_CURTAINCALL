@@ -2,7 +2,7 @@
 
 - **Title:** 목마
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** Docs/Domains/tightrope-course.md
 - **Current Skill:** submit-work
@@ -14,7 +14,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 - **Integration:** integration/tightrope-prototype
 - **Branch:** feat/tightrope-piggyback
-- 구현·사용자 Play·종료 정리 저장·push 완료. 승인된 재질 백업·소수점 원복 완료, PR 제출 준비; 검증 한계는 handoff.md.
+- 구현·사용자 Play·종료 정리 저장·push 완료. 승인된 재질 백업·소수점 원복 후 PR #23 제출, PM 검토 대기; 검증 한계는 handoff.md.
 
 ## Goal
 
