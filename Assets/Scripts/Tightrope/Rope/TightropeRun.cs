@@ -122,6 +122,15 @@ namespace CurtainCall.Tightrope
         /// </summary>
         public event Action RunRestarted;
 
+        /// <summary>호스트가 정한 회차 번호. 접속 전은 0, 재시작마다 증가한다.</summary>
+        public int Round { get; private set; }
+
+        /// <summary>회차가 바뀔 때. 플레이어별 복구 메시지와 별개인 장애물 스냅샷 경계.</summary>
+        public event Action RoundChanged;
+
+        /// <summary>호스트: 도착 확인 후 도착자가 없을 때만 호출한다. 위험 판정 후 전원 사망을 다시 검사한다.</summary>
+        public event Action ServerHazardCheck;
+
         static int Count(PlayerState state)
         {
             int count = 0;
@@ -193,9 +202,16 @@ namespace CurtainCall.Tightrope
 
                 case TightropeRunState.Running:
                     ServerMarkArrivals();
-                    if (ArrivedCount > 0) ServerSucceed(); // 한 명이라도 도착하면 바로 클리어
-                    else if (InProgressCount == 0 || TimeRemaining <= 0f) ServerFail();
-                    else if (!IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
+                    if (ArrivedCount > 0) ServerSucceed(); // 도착이 이번 위험 판정보다 우선
+                    else
+                    {
+                        if (InProgressCount > 0 && TimeRemaining > 0f)
+                        {
+                            if (!IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
+                            ServerHazardCheck?.Invoke();
+                        }
+                        if (InProgressCount == 0 || TimeRemaining <= 0f) ServerFail();
+                    }
                     break;
 
                 case TightropeRunState.Failed:
@@ -276,6 +292,7 @@ namespace CurtainCall.Tightrope
             seenAtStart.Clear();
             bool playing = session.GameState == GameSessionState.Playing;
             runStartedAt = playing ? Time.time : -1f;
+            SetRound(Round + 1);
             NetworkPlayer.ServerRestartAll();
             ServerSetState(playing ? TightropeRunState.Running : TightropeRunState.Waiting);
         }
@@ -376,8 +393,17 @@ namespace CurtainCall.Tightrope
             }
         }
 
+        void SetRound(int round)
+        {
+            if (Round == round) return;
+            Round = round;
+            RoundChanged?.Invoke();
+        }
+
         void ResetLocal()
         {
+            SetRound(0);
+            seenAtStart.Clear();
             restartAt = -1f;
             runStartedAt = -1f;
             performanceStartedAt = -1f;
@@ -414,6 +440,7 @@ namespace CurtainCall.Tightrope
         {
             var writer = new FastBufferWriter(32, Allocator.Temp);
             writer.WriteValueSafe((byte)State);
+            writer.WriteValueSafe(Round);
             writer.WriteValueSafe(runStartedAt < 0f ? -1f : Time.time - runStartedAt);
             writer.WriteValueSafe(State == TightropeRunState.Running ? -1f : stoppedRemaining);
             writer.WriteValueSafe(IsPerformanceStarted ? PerformanceElapsed : -1f);
@@ -423,7 +450,10 @@ namespace CurtainCall.Tightrope
 
         void HandleStateMessage(ulong senderId, FastBufferReader reader)
         {
+            if (senderId != NetworkManager.ServerClientId) return;
             reader.ReadValueSafe(out byte state);
+            reader.ReadValueSafe(out int round);
+            if (round < Round) return;
             reader.ReadValueSafe(out float runElapsed);
             reader.ReadValueSafe(out float stopped);
             reader.ReadValueSafe(out float performanceElapsed);
@@ -432,6 +462,8 @@ namespace CurtainCall.Tightrope
             runStartedAt = runElapsed < 0f ? -1f : Time.time - runElapsed;
             stoppedRemaining = stopped;
             restartAt = (TightropeRunState)state == TightropeRunState.Failed ? Time.time + restartRemaining : -1f;
+            if (round != Round) performanceStartedAt = -1f;
+            SetRound(round);
             if (performanceElapsed >= 0f) SetPerformanceStarted(performanceElapsed);
             else performanceStartedAt = -1f;
             SetState((TightropeRunState)state);

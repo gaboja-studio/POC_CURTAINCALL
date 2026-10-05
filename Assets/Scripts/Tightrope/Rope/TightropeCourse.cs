@@ -37,7 +37,7 @@ namespace CurtainCall.Tightrope
         TightropeSettings.CourseSettings shape; // 플레이 중 코스를 만든 값(세팅 복사본 또는 받은 호스트 값)
         CourseLayout layout;
         bool[] blocked = Array.Empty<bool>();
-        readonly System.Collections.Generic.List<(int lane, float from, float to)> blockedSegments = new();
+        readonly System.Collections.Generic.List<(int lane, float from, float to, bool includeEnd)> blockedSegments = new();
         Transform generated;
         bool rebuildRequested;
 
@@ -147,7 +147,8 @@ namespace CurtainCall.Tightrope
         public bool IsSegmentBlocked(int lane, float distance)
         {
             foreach (var segment in blockedSegments)
-                if (segment.lane == lane && distance >= segment.from && distance <= segment.to) return true;
+                if (segment.lane == lane && distance >= segment.from
+                    && (segment.includeEnd ? distance <= segment.to : distance < segment.to)) return true;
             return false;
         }
 
@@ -155,10 +156,10 @@ namespace CurtainCall.Tightrope
         /// 줄의 일부 구간을 막는다(예: 불타는 구간, 2026-10-03 규칙 — 줄은 이어져 있지만 그 구간은 쓸 수 없음).
         /// 이 화면에만 적용되므로 온라인에서는 모든 화면이 같은 신호로 부른다. 화재 기능이 생기면 쓴다.
         /// </summary>
-        public void BlockSegment(int lane, float from, float to)
+        public void BlockSegment(int lane, float from, float to, bool includeEnd = true)
         {
             if (lane < 0 || lane >= LaneCount) return;
-            blockedSegments.Add((lane, Mathf.Min(from, to), Mathf.Max(from, to)));
+            blockedSegments.Add((lane, Mathf.Min(from, to), Mathf.Max(from, to), includeEnd));
             SegmentsChanged?.Invoke();
         }
 

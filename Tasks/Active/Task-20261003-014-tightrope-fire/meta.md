@@ -2,10 +2,10 @@
 
 - **Title:** 불(추격 불·불타는 구간)
 - **Type:** feat
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/tightrope-course.md`
-- **Current Skill:** start-work
+- **Current Skill:** implement-code
 - **Updated:** 2026-10-05
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
