@@ -56,10 +56,6 @@ namespace CurtainCall.Tightrope
         Sequence handholdTween;
         float handholdAlpha;
         GUIStyle handholdStyle;
-        float nextBalanceLog;
-        int loggedStackSize = -1;
-        ulong loggedBalancePlayer = ulong.MaxValue;
-
 
         /// <summary>손잡기 착지 표시(내 화면만). 새 착지·재시작·사망에는 이전 연출을 정리한다.</summary>
         public void ShowHandholdLanding()
@@ -194,33 +190,16 @@ namespace CurtainCall.Tightrope
                 if (player == null || !player.TryGetComponent(out PlayerBalance balance)) continue;
                 int size = 1;
                 float sum = 0f;
-                bool log = showDebug && player.IsLocal && (loggedBalancePlayer != player.OwnerClientId
-                    || loggedStackSize != GetStackSize(player) || Time.unscaledTime >= nextBalanceLog);
-                string upperValues = "";
                 if (player.State == PlayerState.Normal && !balance.HasFallen)
                 {
                     size = GetStackSize(player);
                     for (var upper = GetAbove(player); upper != null; upper = GetAbove(upper))
                         if (upper.State == PlayerState.Normal && upper.TryGetComponent(out PlayerBalance upperBalance)
                             && upperBalance.IsActive && !upperBalance.HasFallen)
-                        {
                             sum += upperBalance.Value;
-                            if (log) upperValues += $" {upper.OwnerClientId}번={upperBalance.Value:+0.000;-0.000;0}";
-                        }
                 }
                 balance.SetStackSize(size);
                 balance.SetUpperBalanceSum(sum);
-                if (log && (size > 1 || loggedStackSize != size || loggedBalancePlayer != player.OwnerClientId))
-                {
-                    float expected = sum * GameSettings.Tightrope.Piggyback.UpperTransfer;
-                    Debug.Log($"[PiggybackBalance] 로컬 {player.OwnerClientId}번 · {GetFloor(player)}층 · 인원 {balance.StackSize} · 배율 ×{balance.StackMultiplier:0.000} · " +
-                              $"위층[{(upperValues.Length > 0 ? upperValues : "없음")}] 합={sum:+0.000;-0.000;0} ×{GameSettings.Tightrope.Piggyback.UpperTransfer:0.000} · " +
-                              $"전달/초={balance.UpperPush:+0.000;-0.000;0} · 기대={expected:+0.000;-0.000;0} · 일치={Mathf.Approximately(balance.UpperPush, expected)} · " +
-                              $"균형={balance.Value:+0.000;-0.000;0} · 활성={balance.IsActive} · 공중={balance.IsAirborne} · 사망={balance.HasFallen} (계산 전 입력, 원격 값은 수신된 표시값)");
-                    loggedBalancePlayer = player.OwnerClientId;
-                    loggedStackSize = size;
-                    nextBalanceLog = Time.unscaledTime + 1f;
-                }
             }
         }
 
@@ -231,8 +210,6 @@ namespace CurtainCall.Tightrope
                 if (player == null || !player.TryGetComponent(out PlayerBalance balance)) continue;
                 balance.SetStackSize(1);
                 balance.SetUpperBalanceSum(0f);
-                if (showDebug && player.IsLocal)
-                    Debug.Log($"[PiggybackBalance] 비활성화 복귀 · 로컬 {player.OwnerClientId}번 · 인원 {balance.StackSize} · 배율 ×{balance.StackMultiplier:0.000} · 전달/초={balance.UpperPush:0.000}");
             }
         }
 
@@ -616,7 +593,6 @@ namespace CurtainCall.Tightrope
 
         void NotifyChanged()
         {
-            loggedStackSize = -1;
             UpdateStackBalance();
             LinksChanged?.Invoke();
         }

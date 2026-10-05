@@ -4,31 +4,40 @@ using UnityEngine;
 namespace CurtainCall.Player
 {
     /// <summary>
-    /// 플레이어의 신체 상태(데미지로 잃은 부위). 모든 묘기·콘텐츠가 같은 상태를 본다.
-    /// 지금은 준비만 되어 있다(2026-10-02 PM): 데미지를 주는 기능, 온라인 공유, 모델 표현(잘린 부위)은 아직 없다.
-    /// - 디메리트는 콘텐츠마다 다르므로 여기서 정하지 않는다. 각 콘텐츠의 조작 규칙(<see cref="PlayerControlScheme"/>)이
-    ///   <see cref="PlayerControlContext.Condition"/>을 읽어 자기 규칙대로 적용한다(예: 외줄에서 다리를 잃으면 옆줄 이동 불가).
-    /// - 온라인: 부위 손실은 호스트가 판정하고, 추락 상태처럼 NetworkPlayer가 모두에게 공유하도록 붙인다(그때 <see cref="SetLostParts"/>를 부른다).
+    /// 플레이어의 신체 상태(데미지로 잃은 부위). 모든 묘기·콘텐츠가 같은 상태를 본다. 규칙: Harness/Project/Decisions/body-damage.md
+    /// - 네 팔다리를 모두 잃으면 사망(<see cref="AllLimbsLost"/>). 팔 둘·다리 둘만 잃으면 생존(2026-10-04 PM).
+    /// - 디메리트는 콘텐츠마다 다르므로 여기서 정하지 않는다. 콘텐츠가 끼운 디메리트 정책이 이 상태를 읽어 적용한다.
+    /// - 온라인: 부위 손실은 호스트가 판정하고 NetworkPlayer가 모두에게 공유해 각 화면에서 <see cref="SetLostParts"/>를 부른다.
     /// - 플레이어 프리팹에 붙이면 사용된다. 없으면 <see cref="PlayerControlContext.Condition"/>은 null이다.
     /// </summary>
     public sealed class PlayerCondition : MonoBehaviour
     {
-        [Tooltip("잃은 부위. 데미지 기능 전에는 여기서 테스트한다.")]
+        /// <summary>네 팔다리 전부.</summary>
+        public const BodyPart AllLimbs = BodyPart.LeftArm | BodyPart.RightArm | BodyPart.LeftLeg | BodyPart.RightLeg;
+
+        /// <summary>두 팔.</summary>
+        public const BodyPart Arms = BodyPart.LeftArm | BodyPart.RightArm;
+
+        /// <summary>두 다리.</summary>
+        public const BodyPart Legs = BodyPart.LeftLeg | BodyPart.RightLeg;
+
+        [Tooltip("잃은 부위. 플레이 중 여기서 바꿔도 테스트할 수 있다(온라인에서는 호스트 값이 덮어쓴다).")]
         [SerializeField] BodyPart lostParts;
 
         /// <summary>잃은 부위(여러 개 가능).</summary>
         public BodyPart LostParts => lostParts;
 
         /// <summary>잃은 부위 수.</summary>
-        public int LostCount
-        {
-            get
-            {
-                int count = 0;
-                for (int bits = (int)lostParts; bits != 0; bits &= bits - 1) count++;
-                return count;
-            }
-        }
+        public int LostCount => CountBits(lostParts);
+
+        /// <summary>잃은 팔 개수(0~2).</summary>
+        public int LostArmCount => CountBits(lostParts & Arms);
+
+        /// <summary>잃은 다리 개수(0~2).</summary>
+        public int LostLegCount => CountBits(lostParts & Legs);
+
+        /// <summary>네 팔다리를 모두 잃었는지(사망 조건).</summary>
+        public bool AllLimbsLost => IsAllLimbsLost(lostParts);
 
         /// <summary>잃은 부위가 바뀌었을 때. 인자는 (이전, 지금).</summary>
         public event Action<BodyPart, BodyPart> Changed;
@@ -50,6 +59,47 @@ namespace CurtainCall.Player
             lostParts = parts;
             validatedParts = parts;
             Changed?.Invoke(previous, parts);
+        }
+
+        /// <summary>네 팔다리를 모두 잃은 상태인지.</summary>
+        public static bool IsAllLimbsLost(BodyPart lost) => (lost & AllLimbs) == AllLimbs;
+
+        /// <summary>
+        /// 일반 절단 요청에서 실제로 잘릴 부위. 요청 부위가 있으면 그 부위, 이미 잃었으면 같은 종류의 남은 쪽, 둘 다 없으면 None.
+        /// 여러 부위를 담아 요청하면 가장 낮은 비트 하나만 본다.
+        /// </summary>
+        public static BodyPart ResolveCut(BodyPart lost, BodyPart requested)
+        {
+            requested = LowestBit(requested & AllLimbs);
+            if (requested == BodyPart.None) return BodyPart.None;
+            if ((lost & requested) == 0) return requested;
+            BodyPart kind = (requested & Arms) != 0 ? Arms : Legs;
+            return LowestBit(kind & ~lost);
+        }
+
+        /// <summary>
+        /// 가로 톱날 순서(2026-10-04 PM): 다리 → 남은 다리 → 팔. 다리를 다 잃었으면 팔을 자른다. 모두 잃었으면 None.
+        /// 같은 종류가 둘 다 남았을 때 어느 쪽을 먼저 자를지는 미정이라 부르는 쪽이 <paramref name="leftFirst"/>로 정한다.
+        /// </summary>
+        public static BodyPart NextLegThenArmCut(BodyPart lost, bool leftFirst)
+        {
+            BodyPart kind = (lost & Legs) != Legs ? Legs : Arms;
+            BodyPart remaining = kind & ~lost;
+            if (remaining == BodyPart.None) return BodyPart.None;
+            BodyPart left = remaining & (BodyPart.LeftArm | BodyPart.LeftLeg);
+            BodyPart right = remaining & (BodyPart.RightArm | BodyPart.RightLeg);
+            if (left == BodyPart.None) return right;
+            if (right == BodyPart.None) return left;
+            return leftFirst ? left : right;
+        }
+
+        static BodyPart LowestBit(BodyPart parts) => (BodyPart)((int)parts & -(int)parts);
+
+        static int CountBits(BodyPart parts)
+        {
+            int count = 0;
+            for (int bits = (int)parts; bits != 0; bits &= bits - 1) count++;
+            return count;
         }
 
         BodyPart validatedParts;

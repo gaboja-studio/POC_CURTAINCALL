@@ -293,9 +293,146 @@ MonoBehaviour:
   fallKey: 25
   finishKey: 26
   toggleKey: 29
+  logLandings: 1
   visible: 1
   scale: 1.5
   markerSize: 0.25
+--- !u!1 &310182349
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 310182350}
+  - component: {fileID: 310182351}
+  m_Layer: 0
+  m_Name: BodyDamageDebug
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &310182350
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 310182349}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &310182351
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 310182349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca3baf60c1ffe4167b359c3530f34f95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Damage.BodyDamageDebug
+  cutLeftArm:
+    m_Name: "\uC67C\uD314 \uC790\uB974\uAE30"
+    m_Type: 1
+    m_ExpectedControlType: 
+    m_Id: fd166fc0-8ca5-41ec-8b62-f97eb656bdbd
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: e74df012-9139-4c55-a018-ea7e0946bda1
+      m_Path: <Keyboard>/1
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: "\uC67C\uD314 \uC790\uB974\uAE30"
+      m_Flags: 0
+    m_Flags: 0
+    m_Priority: 0
+  cutRightArm:
+    m_Name: "\uC624\uB978\uD314 \uC790\uB974\uAE30"
+    m_Type: 1
+    m_ExpectedControlType: 
+    m_Id: abb62cf6-cecf-4951-b8e1-d8cef0cdc0c3
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: ff739503-0ab2-4a7b-9ec2-f62360a9f1e8
+      m_Path: <Keyboard>/2
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: "\uC624\uB978\uD314 \uC790\uB974\uAE30"
+      m_Flags: 0
+    m_Flags: 0
+    m_Priority: 0
+  cutLeftLeg:
+    m_Name: "\uC67C\uB2E4\uB9AC \uC790\uB974\uAE30"
+    m_Type: 1
+    m_ExpectedControlType: 
+    m_Id: 94f99d82-f365-4448-941a-d7bc024e8fc0
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: 27cf491c-c7d4-4d9f-88bf-411a685a31fd
+      m_Path: <Keyboard>/3
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: "\uC67C\uB2E4\uB9AC \uC790\uB974\uAE30"
+      m_Flags: 0
+    m_Flags: 0
+    m_Priority: 0
+  cutRightLeg:
+    m_Name: "\uC624\uB978\uB2E4\uB9AC \uC790\uB974\uAE30"
+    m_Type: 1
+    m_ExpectedControlType: 
+    m_Id: c1bba6e0-80ff-4abf-b557-fce3d543e752
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: 7edea2a0-b7c6-4475-808e-4fc2e63827ff
+      m_Path: <Keyboard>/4
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: "\uC624\uB978\uB2E4\uB9AC \uC790\uB974\uAE30"
+      m_Flags: 0
+    m_Flags: 0
+    m_Priority: 0
+  cutSawOrder:
+    m_Name: "\uD1B1\uB0A0 \uC21C\uC11C\uB85C \uC790\uB974\uAE30"
+    m_Type: 1
+    m_ExpectedControlType: 
+    m_Id: a4bb084b-a11f-4d86-a7e8-f7261608f9c8
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: b38718cb-f67b-4194-ab14-98e70f93bbc8
+      m_Path: <Keyboard>/5
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: "\uD1B1\uB0A0 \uC21C\uC11C\uB85C \uC790\uB974\uAE30"
+      m_Flags: 0
+    m_Flags: 0
+    m_Priority: 0
+  visible: 1
+  scale: 1.5
 --- !u!1001 &320356197
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -747,6 +884,50 @@ MonoBehaviour:
   testModels: []
   visible: 1
   scale: 1.5
+--- !u!1 &1252398078
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1252398080}
+  - component: {fileID: 1252398079}
+  m_Layer: 0
+  m_Name: RopeLaneJumpRules
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1252398079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1252398078}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ad229f571c6945dbb1bb3d94dd63c8c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.RopeLaneJumpRules
+--- !u!4 &1252398080
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1252398078}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1957087404
 GameObject:
   m_ObjectHideFlags: 0
@@ -811,3 +992,5 @@ SceneRoots:
   - {fileID: 1097719284}
   - {fileID: 697538860}
   - {fileID: 183364836}
+  - {fileID: 310182350}
+  - {fileID: 1252398080}

@@ -21,6 +21,9 @@ GameObject:
   - component: {fileID: 1447994521893016003}
   - component: {fileID: 4092729050761941619}
   - component: {fileID: 6130112482532563049}
+  - component: {fileID: 2394186943801779745}
+  - component: {fileID: 8150287520406694431}
+  - component: {fileID: 1983352735488443399}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -149,7 +152,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerModelSlot
   slot: {fileID: 0}
-  modelPrefab: {fileID: 4469623338324297290, guid: e42fa339abfd74e90aa3db3f6f221916, type: 3}
+  modelPrefab: {fileID: 4913316006406159381, guid: a90defd4569d74e46ab7e104a10a9e6e, type: 3}
   fitToHeight: 1
 --- !u!114 &5648411644042141170
 MonoBehaviour:
@@ -262,3 +265,41 @@ MonoBehaviour:
   SwitchTransformSpaceWhenParented: 0
   Interpolate: 1
   SlerpPosition: 0
+--- !u!114 &2394186943801779745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5739599360029862557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a80b88e2f77334a2f9e367cfef801d84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerCondition
+  lostParts: 0
+--- !u!114 &8150287520406694431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5739599360029862557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abedd81e6ae3c4e48807cdcc12bcd3da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Damage.LimbDismemberment
+--- !u!114 &1983352735488443399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5739599360029862557}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 923255482cb684d4599a23e0bdc3dbd4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Damage.BodyDamageEffects
+  startPolicy: {fileID: 0}

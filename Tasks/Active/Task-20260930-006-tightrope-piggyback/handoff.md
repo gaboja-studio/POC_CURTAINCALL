@@ -2,28 +2,30 @@
 
 ## 지금 상태
 
-- 2026-10-05: 구현 진행 중, 미커밋·PR 없음. feat/tightrope-piggyback → integration/tightrope-prototype, 기준 0d3ce2b(PR #21).
-- 현재 워크트리에서만 작업. 실제 네트워크 플레이어·코스·접속 UI를 Piggyback 테스트 씬에 구성(더미 없음).
-- 사용자 확인: F 연결·해제·거부, 머리 위 추종·기울기, 연쇄 추락·반동, 맨 위 제자리/앞뒤 분리 점프, 가림 반투명·같은 목마 제외.
-- 2026-10-05 사용자 최신 테스트 전체 통과 보고: 앞쪽 하차·사망 딤·옆줄 자동 탑승·손잡기 연출 및 직전 안내한 확인 항목. Task 전체 완료를 의미하지는 않음.
-- 옆줄 점프는 합체 가능한 겹침 대상을 뒤쪽 보정보다 먼저 선택하고, 착지 시 호스트가 상태·위치·같은 줄을 재검증해 맨 위에 연결한다.
-- 자동 탑승/근처 착지에는 기존 손잡기 감소율 적용. 임시 OnGUI 문구는 DOTween으로 0.2초 등장·1.2초 유지·0.4초 퇴장, 사망·재시작·로컬 부재·비활성화 시 정리.
-- PM 임포트 DOTween Pro 원본·예제는 수정하지 않음. 구역은 setup.md의 승인 목록 기준.
+- 2026-10-05: 중간 저장·push 3e4365b, PR 없음. feat/tightrope-piggyback → integration/tightrope-prototype. 최신 통합 9794468 병합 진행 중(충돌 해결·stage 완료, 병합 커밋·push 미실행).
+- F 연결·해제·거부, 추종·기울기, 연쇄 추락·반동, 전체/맨 위 분리 점프, 앞쪽 하차·사망 딤·카메라 가림 반투명(같은 목마 제외), 옆줄 분리·합체·뒤 착지·손잡기 사용자 확인. 기존 로그에서 3→2인/×1.6→1.3 및 위층 합×0.2/초 확인.
+- 회귀 1~4 사용자 통과: 겹친 전체/맨 위 점프, 4인 전체 점프·위층 착지, 해제·분리 후 복귀, 중간층 추락·재시작. 이전 Play 로그 유실·AI 재검증 없음.
+- 012 톱날(PR #20)·020 신체 손상(PR #22) 통합 유입, 설정 충돌 양쪽 보존 해결. 기존 목마·카메라 및 bodyPenalty·saws 전체 직렬화 값 일치 검증. Piggyback 씬에 TightropeSaws 1개 배치·저장. DOTween 원본·예제 수정 없음.
+- 연계 Play 3개 사용자 통과: 맨 위 W+SB 분리·수직 톱날 넘기·뒤 발판 착지, 발판 하강·아래층 통과·양쪽 동기화, 피격·절단·재시작. AI 해당 Play 로그 미검증.
+- 사용자 전체 통과·종료 정리 승인 후 Base movingSway=15, idleSway=5, tiltAcceleration=0.5 원복·에디터 재조회·단일 에셋 저장 완료. Git diff는 세 값만 변경. 임시 [PiggybackBalance] 로그·전용 상태 제거, 균형 주입 유지·잔여 참조 없음.
 
 ## 다음 할 일
 
-1. 2026-10-05 균형 연동 단계 사용자 일단 통과. 기존 로컬 3인 착지 충격 10×1.6=16 두 건과 최신 에디터 맨 아래층의 2~4인 배율(1.3/1.6/2.0), 위층 전체 합×0.2/초(양·음 방향), 맨 위 해제 후 인원·합산 대상 갱신을 로그로 확인. 임시 [PiggybackBalance] 로그 유지. 중간층·맨 위의 전달값, 이번 맨 위 착지, 단독·사망·재시작 복귀 및 전체 적분은 미검증이며 Task 전체 통과는 아님.
-2. 2026-10-05 기본 전체 점프 일단 통과 후 사용자 다음 작업 진행 승인. 로그: 3인 맨 아래 착지 ±16 두 건·공중 전환, 맨 위 수신 균형 +16 변화 두 건, 4인 맨 아래 -20 확인. 겹친 제자리 점프·4인 위층 착지·해제/추락/재시작은 최종 Play에서 확인. 이번 승인한 맨 위 Q/E+SB 옆줄 분리 구현: PlayerMover.LaunchLaneJump로 기존 허용·착지 처리 재사용, 불가능하면 연결 유지. 도착 높이는 맨 아래층 기준, 다른 목마 합체 예측만 해제 예정 상태 허용(최종 호스트 판정은 기존 유지). 2026-10-05 사용자 Play 1~4 모두 통과(좌우·중간층 금지·막힌 방향 연결 유지·자동 합체/뒤쪽 착지/손잡기). 로그에서도 2번 해제 후 3→2인/×1.6→1.3, 옆줄 착지 자동 탑승 후 3인/×1.6 복귀, 위층 합×0.2/초 일치 확인. 방향·입력 거부·연출은 사용자 확인 근거이며 로그 단독 증명 아님. 수직 톱날·뒤 발판 연계 검증은 012 구현 대기: 2026-10-05 현재 워크트리 Saws 스크립트·프리팹 폴더는 .gitkeep만 있고 Piggyback 씬에도 톱날·발판이 없음. 012 완료·통합 후 검증하며 임의 대체 구현은 하지 않음.
-3. 현재 옆줄 대상·감소율은 점프 시작 시 예측하며 호스트 거부 후 재보정은 없음. 새로운 실패 사례가 보고되면 재현 후 수정한다.
+1. 승인된 종료 정리·최종 검사·기록 완료. 원복 후 새 Play는 미실행이며 기존 사용자 통과와 구분한다. 다음 요청 대기.
+2. 별도 저장·제출 요청 시 변경 상태·검사 재확인 후 병합 커밋·push·PR. 제출·통합·Task Done은 아직 아님. 021 개선 대신 구현하지 않음.
+3. PM 테스트 씬 유지/삭제 결정 미정. 다른 Task·worktree 수정, 검사 우회·공용 구역 확대·임의 restore/discard/stash 금지.
 
-## 보존·PM 확인
+## PM이 확인할 것
 
-- BaseGameSettings.asset은 Task의 모든 작업 종료 및 사용자의 전체 통과 확인 후에만 초기화한다(사용자 명시 조건).
-- 2026-10-05 PM 승인: Pretendard-Medium SDF.asset 갱신·BaseGameSettings 테스트 임시값·ProjectSettings의 DOTWEEN 심볼 추가를 현재 상태로 중간 저장. setup.md의 배정된 공용 파일에 한정 허용 기록.
-- commit/push는 요청 시에만. 다른 워크트리 이동·임의 restore/discard/stash 금지.
+- 2026-10-05 승인: 중간 저장의 폰트·Base 임시값·DOTWEEN 심볼, 최신 통합 양쪽 보존 충돌 해결, 사용자 전체 Play 통과 후 종료 정리. commit/push는 별도 요청 시에만.
+- Navy/Red 재질·폰트에 기존 로컬 변경이 남아 있음. 과거 재질 원복 기록과 달리 현재 차이가 다시 나타났으며, 이번 종료 정리에서는 수정하지 않음. 옆줄 예측의 호스트 거부 후 재보정 없음.
 
 ## Verification
 
-- Unity 재컴파일: completed, failed=false, errors=[], compilationFailed=false. 최신 Play는 사용자가 실행·옆줄 분리 1~4 통과 보고, AI는 로그 확인만 수행. 목마 코드 예외는 발견하지 못했으나 Pipeline HTTP 통신 오류·GameView 배율 경고 존재(콘솔 전체 오류 0 아님).
-- 2026-10-05 save-work DryRun: Scope OK(393 files), Fast OK(WARN 6/hard 0), Compile PASS(up_to_date), 열린 씬 dirty 0, Tests SKIPPED. 기존 구역 위반 3건은 PM의 중간 저장 한정 승인으로 해소. Task 전체 검증·완료 아님.
-- verify-fast: OK(문서·규칙), 길이 WARN 6/hard 0. git diff --check: 통과. 전체 check-work는 미실행, 프로젝트 테스트는 기존 NO_PROJECT_TESTS.
+- 환경: 앞선 Doctor FAIL 0/WARN 1(Skill 링크 없음). worktree 간 Active/Done 오탐 수정, 동일 worktree 상태·전역 폴더명 충돌 보호 유지. Git 모의 22개·doctor 합성 6개 PASS, 실제 Task 복사본 123개 충돌 없음.
+- 구역 검사: 종료 정리 후 Scope OK(401 files, PM). 통합 유입 제외·내 변경 검사, 미해결 충돌 없음.
+- 1 문서/규칙: 종료 정리 후 Fast OK(WARN 5/hard 0); git diff --check·--cached --check 통과.
+- 2 컴파일: 임시 로그 제거 후 Compile PASS(completed, exit 0). 정확한 worktree Editor ready·dirty scene 0 확인.
+- 3 테스트: NO_PROJECT_TESTS(앞선 Editor list_tests(all) Count=0). 이번 Compile 검사 Tests: SKIPPED. 테스트 어셈블리 생성·AI Play 실행 없음.
+- 4 실행 로그: 사용자 Play AI 로그 미검증. QA 준비 시 서비스 인증 오류 4건·Pipeline 5000ms timeout 1건, compilationFailed=false. 인증 오류 해소·콘솔 전체 오류 0 주장 없음.
+- 5 공동 테스트: 회귀 1~4·연계 3개 사용자 통과(Base 0/0/0 상태). 원복 후 새 Play 및 제출·병합 후 공동 테스트 미실행.

@@ -30,13 +30,24 @@ MonoBehaviour:
     greenLimit: 40
     fallTime: 2
     correctionSpeed: 60
-    movingSway: 0
-    idleSway: 0
+    movingSway: 15
+    idleSway: 5
     swayDirectionInterval: {x: 1, y: 2}
-    tiltAcceleration: 0
+    tiltAcceleration: 0.5
   presentation:
     maxTiltAngle: 25
     tiltFollowSharpness: 10
     ragdollTiltPush: 1.5
   sync:
     balanceSendThreshold: 0.5
+  bodyDamage:
+    restartRecovery: 0
+    crawlSpeedMultiplier: 0.5
+    crawlCanJump: 1
+    crawlCanLaneJump: 1
+    crawlCapsuleHeight: 0.9
+    limbFlingSpeed: 3
+    limbFlingUpSpeed: 2.5
+    limbSpin: 8
+    limbMass: 1
+    limbLifetime: 0

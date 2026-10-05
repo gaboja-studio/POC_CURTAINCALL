@@ -2,11 +2,11 @@
 
 - **Title:** 목마
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** working
 - **Assignee:** @MoHoDu
-- **Domain:** 없음 (코드가 생기면 Domain Map 추가)
-- **Current Skill:** start-work
-- **Updated:** 2026-10-04
+- **Domain:** Docs/Domains/tightrope-course.md
+- **Current Skill:** check-work
+- **Updated:** 2026-10-05
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
@@ -14,7 +14,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 - **Integration:** integration/tightrope-prototype
 - **Branch:** feat/tightrope-piggyback
-- 로컬 워크트리 준비 완료(2026-10-04). 원격 인계·구현은 미실행; 상세는 handoff.md.
+- 구현·사용자 회귀 및 톱날·신체 손상 연계 Play 확인 완료. 종료 정리·최종 검사 진행, 통합 유입 병합 커밋·PR 제출 미실행; 상세는 handoff.md.
 
 ## Goal
 

@@ -23,6 +23,8 @@ namespace CurtainCall.Settings
         [SerializeField] PresentationSettings presentation = new();
         [Header("동기화")]
         [SerializeField] SyncSettings sync = new();
+        [Header("신체 손상")]
+        [SerializeField] BodyDamageSettings bodyDamage = new();
 
         public SessionSettings Session => session;
         public CharacterSettings Character => character;
@@ -30,6 +32,7 @@ namespace CurtainCall.Settings
         public BalanceSettings Balance => balance;
         public PresentationSettings Presentation => presentation;
         public SyncSettings Sync => sync;
+        public BodyDamageSettings BodyDamage => bodyDamage;
 
         void OnValidate() => balance.Validate();
 
@@ -161,6 +164,63 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0f)] float balanceSendThreshold = 0.5f;
 
             public float BalanceSendThreshold => balanceSendThreshold;
+        }
+
+        /// <summary>묘기 재시작 때 잃은 부위를 어떻게 할지(프로토타입 시험용).</summary>
+        public enum BodyRestartRecovery
+        {
+            /// <summary>살아 있던 사람은 잃은 부위 그대로, 사망한 사람만 온전한 몸으로(정식 규칙과 같음).</summary>
+            KeepSurvivors = 0,
+            /// <summary>모두 온전한 몸으로.</summary>
+            RestoreAll = 1,
+        }
+
+        /// <summary>신체 손상(팔·다리). 규칙: Harness/Project/Decisions/body-damage.md</summary>
+        [Serializable]
+        public sealed class BodyDamageSettings
+        {
+            [Tooltip("묘기 재시작 때 잃은 부위 처리(프로토타입 시험용). 생존자 유지 = 살아 있던 사람은 그대로·사망자만 복구(정식 규칙), 모두 복구 = 전원 온전한 몸. 정식 규칙을 바꾸는 값이 아니다.")]
+            [SerializeField] BodyRestartRecovery restartRecovery = BodyRestartRecovery.KeepSurvivors;
+
+            [Header("두 다리를 잃었을 때 (기어가기)")]
+            [Tooltip("기어갈 때 이동 속도 배율(×). 걷기 속도에 곱한다. 임시값 0.5(줄 위 0.5m/s → 0.25m/s).")]
+            [SerializeField, Range(0f, 1f)] float crawlSpeedMultiplier = 0.5f;
+
+            [Tooltip("기어갈 때 제자리 점프를 할 수 있는지. 기획상 금지 규칙 없음 — 기본 가능(2026-10-04 PM).")]
+            [SerializeField] bool crawlCanJump = true;
+
+            [Tooltip("기어갈 때 옆줄 이동(점프)을 할 수 있는지. 기획상 금지 규칙 없음 — 기본 가능(2026-10-04 PM).")]
+            [SerializeField] bool crawlCanLaneJump = true;
+
+            [Tooltip("기어갈 때 충돌 몸통(캡슐) 높이(m). 서 있을 때는 게임 기본 세팅 · 캐릭터의 캡슐 높이. 임시값 0.9.")]
+            [SerializeField, Min(0.1f)] float crawlCapsuleHeight = 0.9f;
+
+            [Header("잘린 부위 연출 (판정과 무관)")]
+            [Tooltip("잘린 팔·다리가 몸 바깥쪽으로 날아가는 속도(m/s). 임시값 3.")]
+            [SerializeField, Min(0f)] float limbFlingSpeed = 3f;
+
+            [Tooltip("잘린 팔·다리가 위로 튀는 속도(m/s). 임시값 2.5.")]
+            [SerializeField, Min(0f)] float limbFlingUpSpeed = 2.5f;
+
+            [Tooltip("잘린 팔·다리가 도는 속도(라디안/초, 랜덤 방향). 임시값 8.")]
+            [SerializeField, Min(0f)] float limbSpin = 8f;
+
+            [Tooltip("잘린 부위에 Rigidbody가 없을 때 붙이는 질량(kg). 임시값 1.")]
+            [SerializeField, Min(0.01f)] float limbMass = 1f;
+
+            [Tooltip("잘린 부위가 사라지기까지 시간(초). 0이면 묘기 재시작까지 남는다.")]
+            [SerializeField, Min(0f)] float limbLifetime = 0f;
+
+            public BodyRestartRecovery RestartRecovery => restartRecovery;
+            public float CrawlSpeedMultiplier => crawlSpeedMultiplier;
+            public bool CrawlCanJump => crawlCanJump;
+            public bool CrawlCanLaneJump => crawlCanLaneJump;
+            public float CrawlCapsuleHeight => crawlCapsuleHeight;
+            public float LimbFlingSpeed => limbFlingSpeed;
+            public float LimbFlingUpSpeed => limbFlingUpSpeed;
+            public float LimbSpin => limbSpin;
+            public float LimbMass => limbMass;
+            public float LimbLifetime => limbLifetime;
         }
     }
 }

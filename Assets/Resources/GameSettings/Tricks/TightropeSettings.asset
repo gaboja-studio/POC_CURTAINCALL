@@ -63,3 +63,103 @@ MonoBehaviour:
     occluderAlpha: 0.35
     occluderRadius: 0.4
     fadeSpeed: 6
+  bodyPenalty:
+    oneLegMoveSpeed: 0.8
+    swayPerLostLeg: 0.25
+    swayPerLostArm: 0.1
+    leglessLandingShock: 1.5
+    leglessLaneLandingShock: 1.5
+    reachLossPerArm: 0.25
+  saws:
+    steps:
+    - name: "\uAC00\uB85C \uC804\uCCB4"
+      trigger: 0
+      reference: 
+      leaderDistance: 0
+      delay: 0
+      action: 0
+      firstSaw: 1
+      lastSaw: 22
+      lane: -1
+      repeat: 0
+      repeatDelay: 0
+    - name: "\uC218\uC9C1"
+      trigger: 1
+      reference: 
+      leaderDistance: 0
+      delay: 60
+      action: 2
+      firstSaw: 1
+      lastSaw: 1
+      lane: -1
+      repeat: -1
+      repeatDelay: 20
+    horizontalSaws:
+    - distance: 5.6
+      startSide: 0
+    - distance: 8.8
+      startSide: 1
+    - distance: 12
+      startSide: 0
+    - distance: 15.2
+      startSide: 1
+    - distance: 18.4
+      startSide: 0
+    - distance: 22.5
+      startSide: 1
+    - distance: 27.5
+      startSide: 0
+    - distance: 32.5
+      startSide: 1
+    - distance: 37.5
+      startSide: 0
+    - distance: 42.5
+      startSide: 1
+    - distance: 47.5
+      startSide: 0
+    - distance: 52.5
+      startSide: 1
+    - distance: 57.5
+      startSide: 0
+    - distance: 62.5
+      startSide: 1
+    - distance: 67.5
+      startSide: 0
+    - distance: 71.8
+      startSide: 1
+    - distance: 75.4
+      startSide: 0
+    - distance: 78.9
+      startSide: 1
+    - distance: 82.5
+      startSide: 0
+    - distance: 86.1
+      startSide: 1
+    - distance: 89.6
+      startSide: 0
+    - distance: 93.2
+      startSide: 1
+    horizontalFirstSpeed: 3
+    horizontalLastSpeed: 4.5
+    horizontalTravelHalfWidth: 9.5
+    horizontalColliderDiameter: 1
+    horizontalVisualDiameter: 1.2
+    horizontalAttackTop: 0.2
+    horizontalThickness: 0.1
+    verticalSpawnDistance: 93
+    verticalEndDistance: 5
+    verticalSpeed: 0.8
+    verticalColliderDiameter: 1
+    verticalVisualDiameter: 1.2
+    verticalCenterHeight: 0.6
+    verticalThickness: 0.1
+    plateOffset: 1.5
+    plateLength: 0.8
+    plateWidth: 0.8
+    plateHeightTolerance: 0.3
+    plateHoldTime: 0
+    verticalLowerDuration: 0.2
+    verticalLowerDepth: 1.5
+    waistHeight: 0.85
+    hitCooldown: 1
+    spinSpeed: 720
