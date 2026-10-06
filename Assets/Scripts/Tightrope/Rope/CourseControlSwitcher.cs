@@ -1,6 +1,7 @@
 using System;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Tightrope.Prototype;
 using UnityEngine;
 
 namespace CurtainCall.Tightrope
@@ -103,6 +104,10 @@ namespace CurtainCall.Tightrope
 
         void Apply(bool rope)
         {
+            mover.ClearPendingInput();
+            if (balance != null) balance.SetCorrectionInput(0f);
+            if (TightropeInputGate.IsBlocked && player.TryGetComponent(out PlayerInputReader reader))
+                reader.ClearPendingInput();
             onRope = rope;
             if (controller != null) controller.SetScheme(rope ? ropeScheme : platformScheme);
             mover.FreeMovement = !rope;

@@ -1,4 +1,5 @@
 using CurtainCall.Settings;
+using CurtainCall.Tightrope.Prototype;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -51,13 +52,38 @@ namespace CurtainCall.Player
             interact = commonMap.FindAction("Interact", true);
         }
 
-        void OnEnable() => commonMap?.Enable();
+        public bool ControlsReleased
+        {
+            get
+            {
+                if (commonMap == null) return true;
+                foreach (var input in commonMap.actions)
+                    foreach (var control in input.controls)
+                        if (control.IsActuated()) return false;
+                return true;
+            }
+        }
+
+        public void ClearPendingInput()
+        {
+            Current = default;
+            interactPressedAt = -1f;
+            interactLongSent = false;
+            if (TryGetComponent(out PlayerMover mover)) mover.ClearPendingInput();
+            if (TryGetComponent(out PlayerBalance balance)) balance.SetCorrectionInput(0f);
+        }
+
+        void OnEnable()
+        {
+            commonMap?.Enable();
+            TightropeInputGate.Register(this);
+        }
 
         void OnDisable()
         {
+            TightropeInputGate.Unregister(this);
             commonMap?.Disable();
-            Current = default;
-            interactPressedAt = -1f;
+            ClearPendingInput();
         }
 
         void OnDestroy()
@@ -67,6 +93,11 @@ namespace CurtainCall.Player
 
         void Update()
         {
+            if (TightropeInputGate.IsBlocked)
+            {
+                ClearPendingInput();
+                return;
+            }
             ReadInteract(out bool tapped, out bool longPressed, out float holdProgress);
 
             Current = new PlayerInputFrame

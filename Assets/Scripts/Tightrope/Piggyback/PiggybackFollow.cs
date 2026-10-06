@@ -1,6 +1,7 @@
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope.Prototype;
 using UnityEngine;
 
 namespace CurtainCall.Tightrope
@@ -80,11 +81,20 @@ namespace CurtainCall.Tightrope
         void LateUpdate()
         {
             var local = NetworkPlayer.Local;
+            if (TightropeRun.Current != null && TightropeRun.Current.State == TightropeRunState.Succeeded)
+            {
+                Release();
+                return;
+            }
             if (controlRestore != null)
             {
-                // 이동 부품이 한 프레임 돌며 쌓인 입력을 비웠다
-                if (local != null && local.State == PlayerState.Normal) controlRestore.SetControlEnabled(true);
-                controlRestore = null;
+                controlRestore.ClearPendingInput();
+                if (local == null || local.State != PlayerState.Normal) controlRestore = null;
+                else if (!TightropeInputGate.IsBlocked)
+                {
+                    controlRestore.SetControlEnabled(true);
+                    controlRestore = null;
+                }
             }
             UpdateHop(local);
 
@@ -140,7 +150,7 @@ namespace CurtainCall.Tightrope
                 return;
             }
 
-            if (local == null || localMover == null || launchedAt >= 0f) return;
+            if (TightropeInputGate.IsBlocked || local == null || localMover == null || launchedAt >= 0f) return;
             if (system.GetBelow(local) == null || system.GetAbove(local) != null) return; // 맨 위만(중간층은 점프 불가)
             if (local.State != PlayerState.Normal || !local.TryGetComponent(out PlayerInputReader reader) || !reader.enabled) return;
 
@@ -286,7 +296,18 @@ namespace CurtainCall.Tightrope
         {
             EndHop(NetworkPlayer.Local);
             ClearCarriedAirborne();
-            if (localMover != null) localMover.Simulated = true;
+            if (controlRestore != null)
+            {
+                controlRestore.ClearPendingInput();
+                var local = NetworkPlayer.Local;
+                if (local != null && local.State == PlayerState.Normal) controlRestore.SetControlEnabled(true);
+                controlRestore = null;
+            }
+            if (localMover != null)
+            {
+                localMover.ClearPendingInput();
+                localMover.Simulated = true;
+            }
             localMover = null;
             localBottom = null;
             launchedAt = -1f;

@@ -2,11 +2,11 @@
 
 - **Title:** UI 고도화
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** `Docs/Domains/tightrope-course.md`, `Docs/Domains/network-session.md`
-- **Current Skill:** start-work
-- **Updated:** 2026-10-03
+- **Current Skill:** implement-code
+- **Updated:** 2026-10-06
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
@@ -23,11 +23,11 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 - 작업 구역·공용 파일·수정 금지 목록은 `setup.md`(PM 작성)가 기준이다.
 - AI Setup Allowed: None
-- Dependencies: 015(결과)·013 병합 후. 아트 없이 임시 스타일로 시작하고, 아트가 오면 교체.
+- Dependencies: 015 결과·023 기록 계약 병합 후 순차 시작. 최종 입력/재도전 연결은 022가 담당.
 - 조정값은 `Assets/Resources/GameSettings/`에 둔다(`Harness/Project/Decisions/game-settings.md`).
 - 계획 전체: `Integrations/Active/Integration-tightrope-prototype/plan.md`
 
 ## Decisions
 
-- Open: 화면 배치·글자·색 — 플레이어 체감 UX라 `request-human-decision`으로 PM 확인
-- Open: 테스트용 IMGUI(`NetworkSessionTestUI`, `TightropeRunDebug`)를 개발용으로 남길지
+- Decided: 2026-10-06 후속 승인 — 남색·아이보리·골드 데모 팝업, Pretendard/uGUI/TMP/DOTween 재사용. UI는 015 고정 결과·023 기록 계약을 읽는다.
+- Decided: 최종 씬에 IMGUI 방 UI 제외, P/O 도구는 기본 숨김으로 유지(022가 gate 연결). 보상·새 패키지·폰트 수정 제외.

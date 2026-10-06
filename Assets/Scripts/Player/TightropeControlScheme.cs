@@ -1,3 +1,4 @@
+using CurtainCall.Tightrope.Prototype;
 using UnityEngine;
 
 namespace CurtainCall.Player
@@ -12,10 +13,20 @@ namespace CurtainCall.Player
     [CreateAssetMenu(menuName = "CurtainCall/Control Scheme/Tightrope", fileName = "TightropeControlScheme")]
     public class TightropeControlScheme : PlayerControlScheme
     {
-        public override void Exit(PlayerControlContext context) => context.HeldDirection = 0;
+        public override void Exit(PlayerControlContext context)
+        {
+            context.HeldDirection = 0;
+            if (context.Mover != null) context.Mover.ClearPendingInput();
+            if (context.Balance != null) context.Balance.SetCorrectionInput(0f);
+        }
 
         public override void Tick(PlayerControlContext context, in PlayerInputFrame input)
         {
+            if (TightropeInputGate.IsBlocked)
+            {
+                Exit(context);
+                return;
+            }
             context.HeldDirection = input.AuxDirection;
 
             if (context.Mover != null)

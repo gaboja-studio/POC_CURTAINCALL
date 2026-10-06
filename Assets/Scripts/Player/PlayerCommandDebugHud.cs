@@ -1,3 +1,5 @@
+using CurtainCall.Network.PlayerSync;
+using CurtainCall.Tightrope.Prototype;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -31,7 +33,7 @@ namespace CurtainCall.Player
         [Tooltip("바꿔 끼울 모델 목록. 비워 두면 Resources/Prefabs/Characters/Players/Models의 프리팹을 모두 쓴다.")]
         [SerializeField] GameObject[] testModels;
 
-        [SerializeField] bool visible = true;
+        [SerializeField] bool visible;
 
         [SerializeField, Range(1f, 3f)] float scale = 1.5f;
 
@@ -70,7 +72,8 @@ namespace CurtainCall.Player
         void Update()
         {
             var keyboard = Keyboard.current;
-            if (keyboard != null && keyboard[toggleKey].wasPressedThisFrame)
+            bool blocked = TightropeInputGate.IsBlocked;
+            if (!blocked && keyboard != null && keyboard[toggleKey].wasPressedThisFrame)
                 visible = !visible;
 
             if (target == null && autoFindTarget)
@@ -90,7 +93,7 @@ namespace CurtainCall.Player
 
             TrackJump();
 
-            if (keyboard == null) return;
+            if (!visible || keyboard == null || blocked || (target != null && !target.isActiveAndEnabled)) return;
 
             if (balance != null && keyboard[balanceToggleKey].wasPressedThisFrame)
             {
@@ -105,7 +108,8 @@ namespace CurtainCall.Player
             {
                 RestartOverride();
             }
-            else if (keyboard[restartKey].wasPressedThisFrame)
+            else if (keyboard[restartKey].wasPressedThisFrame
+                && target != null && (!target.TryGetComponent(out NetworkPlayer online) || !online.IsSpawned))
             {
                 if (balance != null) balance.ResetBalance();
                 if (mover != null)

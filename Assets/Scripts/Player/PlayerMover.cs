@@ -249,11 +249,24 @@ namespace CurtainCall.Player
         public bool Simulated { get; set; } = true;
 
         /// <summary>조작을 켜거나 끈다. 예: 추락한 플레이어는 재시작까지 끈다.</summary>
-        public void SetControlEnabled(bool enabled) => ControlEnabled = enabled;
+        public void SetControlEnabled(bool enabled)
+        {
+            ControlEnabled = enabled;
+            if (!enabled) ClearPendingInput();
+        }
+
+        /// <summary>아직 실행하지 않은 입력만 비운다. 공중 속도·중력·착지 상태는 유지한다.</summary>
+        public void ClearPendingInput()
+        {
+            moveInput = sideInput = 0f;
+            jumpRequested = false;
+            laneJumpRequested = 0;
+        }
 
         /// <summary>출발 위치·방향으로 되돌린다(재시작).</summary>
         public void ResetToStart()
         {
+            ClearPendingInput();
             controller.enabled = false; // CharacterController는 꺼야 위치를 바로 옮길 수 있다
             transform.SetPositionAndRotation(startPosition, startRotation);
             controller.enabled = true;
@@ -331,7 +344,11 @@ namespace CurtainCall.Player
         void Update()
         {
             ApplyBodySize();
-            if (!Simulated) return;
+            if (!Simulated)
+            {
+                ClearPendingInput();
+                return;
+            }
 
             Vector3 forward = CourseForward;
             if (!FreeMovement && forward != Vector3.zero)

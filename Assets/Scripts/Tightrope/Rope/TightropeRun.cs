@@ -3,6 +3,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope.Results;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -99,7 +100,21 @@ namespace CurtainCall.Tightrope
         /// <summary>호스트: 묘기를 처음부터 다시 시작한다(디버그 R). 호스트가 아니면 false.</summary>
         public bool RestartByHost()
         {
-            if (session == null || !session.IsHost) return false;
+            if (session == null || !session.IsHost || ParticipantCount == 0) return false;
+            if (State == TightropeRunState.Succeeded)
+                return RetryByHost(Results.AttemptId, Round);
+            ServerRestart();
+            return true;
+        }
+
+        /// <summary>최신 성공 결과에만 적용한다. 오래된 결과·중복 클릭·이탈 후 요청은 거절한다.</summary>
+        public bool RetryByHost(string attemptId, int round)
+        {
+            var result = Results?.Latest;
+            if (session == null || !session.IsHost || State != TightropeRunState.Succeeded
+                || result == null || !result.Succeeded || result.AttemptId != attemptId
+                || result.Round != round || Results.AttemptId != attemptId || Round != round) return false;
+            if (!session.RestartEndedGame()) return false;
             ServerRestart();
             return true;
         }
@@ -131,6 +146,9 @@ namespace CurtainCall.Tightrope
         /// <summary>호스트: 도착 확인 후 도착자가 없을 때만 호출한다. 위험 판정 후 전원 사망을 다시 검사한다.</summary>
         public event Action ServerHazardCheck;
 
+        /// <summary>각 화면의 성공 집결 직전. 기록은 이 시점의 위치를 수집한다.</summary>
+        public event Action BeforeSuccessMovement;
+
         static int Count(PlayerState state)
         {
             int count = 0;
@@ -139,7 +157,14 @@ namespace CurtainCall.Tightrope
             return count;
         }
 
-        void Awake() => course = GetComponent<TightropeCourse>();
+        public TightropeResults Results { get; private set; }
+
+        void Awake()
+        {
+            course = GetComponent<TightropeCourse>();
+            Results = GetComponent<TightropeResults>();
+            if (Results == null) Results = gameObject.AddComponent<TightropeResults>();
+        }
 
         void OnEnable()
         {
@@ -171,7 +196,11 @@ namespace CurtainCall.Tightrope
                 HandleConnectionState(session.ConnectionState);
             }
 
-            if (session != null && session.IsHost) ServerJudge();
+            if (session != null && session.IsHost)
+            {
+                Results.ObserveParticipants();
+                ServerJudge();
+            }
             RequestLocalArrival();
             UpdatePassThrough();
         }
@@ -268,6 +297,7 @@ namespace CurtainCall.Tightrope
 
         void ServerSucceed()
         {
+            Results.Confirm(true, TightropeEndReason.Completed, Time.time - runStartedAt, TimeRemaining, PerformanceElapsed);
             // 살아 있는(진행 중) 플레이어도 모두 도착 완료. 위치는 각 소유자가 도착 지점으로 옮긴다(SetState → MoveLocalToFinish)
             foreach (var player in NetworkPlayer.All)
                 if (player.State == PlayerState.Normal) player.ServerSetState(PlayerState.Arrived);
@@ -278,6 +308,9 @@ namespace CurtainCall.Tightrope
 
         void ServerFail()
         {
+            if (State == TightropeRunState.Running)
+                Results.Confirm(false, InProgressCount == 0 ? TightropeEndReason.AllFallen : TightropeEndReason.TimeExpired,
+                    Time.time - runStartedAt, TimeRemaining, PerformanceElapsed);
             stoppedRemaining = State == TightropeRunState.Running ? TimeRemaining : -1f;
             restartAt = Time.time + GameSettings.Tightrope.Run.RestartDelay;
             ServerSetState(TightropeRunState.Failed);
@@ -294,6 +327,7 @@ namespace CurtainCall.Tightrope
             runStartedAt = playing ? Time.time : -1f;
             SetRound(Round + 1);
             NetworkPlayer.ServerRestartAll();
+            if (playing) Results.BeginAttempt(Round);
             ServerSetState(playing ? TightropeRunState.Running : TightropeRunState.Waiting);
         }
 
@@ -339,9 +373,10 @@ namespace CurtainCall.Tightrope
         /// </summary>
         void MoveLocalToFinish()
         {
+            BeforeSuccessMovement?.Invoke();
+            PiggybackSystem.Current?.ReleaseForSuccess();
             var player = NetworkPlayer.Local;
             if (player == null || player.State == PlayerState.Fallen || !player.TryGetComponent(out PlayerMover mover)) return;
-            if (course.HasReachedFinish(player.transform.position)) return;
             if (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen) return;
 
             // 출발 위치를 잠깐 도착 지점으로 바꿔 순간이동하고 원래 출발 위치로 되돌린다

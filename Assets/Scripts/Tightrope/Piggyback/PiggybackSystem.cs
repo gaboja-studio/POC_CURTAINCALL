@@ -456,6 +456,17 @@ namespace CurtainCall.Tightrope
             ServerBroadcast(dropped, shocked);
         }
 
+        /// <summary>성공 집결 전에 각 화면의 목마·손잡기 연결을 해제한다.</summary>
+        public void ReleaseForSuccess()
+        {
+            ClearHandhold();
+            belowOf.Clear();
+            aboveOf.Clear();
+            lastDropped.Clear();
+            if (session != null && session.IsHost) ServerBroadcast();
+            else NotifyChanged();
+        }
+
         void HandleRestarted(NetworkPlayer player)
         {
             ClearHandhold();

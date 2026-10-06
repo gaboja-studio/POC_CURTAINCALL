@@ -287,6 +287,15 @@ namespace CurtainCall.Network.Session
             return true;
         }
 
+        /// <summary>콘텐츠가 성공 결과를 확인한 뒤 호출하는 호스트 재도전 경계. 최초 시작 조건은 바꾸지 않는다.</summary>
+        internal bool RestartEndedGame()
+        {
+            if (!IsHost || GameState != GameSessionState.Ended || PlayerCount < MinPlayers) return false;
+            SetGameState(GameSessionState.Playing);
+            PushStateToClients();
+            return true;
+        }
+
         void ApproveConnection(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
         {
             bool isHostSelf = request.ClientNetworkId == NetworkManager.ServerClientId;

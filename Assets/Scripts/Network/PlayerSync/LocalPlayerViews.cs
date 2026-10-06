@@ -47,7 +47,12 @@ namespace CurtainCall.Network.PlayerSync
             foreach (var hud in huds)
             {
                 hud.Target = input;
-                hud.RestartOverride = player.RequestRestartAll;
+                hud.RestartOverride = () =>
+                {
+                    var run = CurtainCall.Tightrope.TightropeRun.Current;
+                    if (run != null) run.RestartByHost();
+                    else player.RequestRestartAll();
+                };
             }
         }
 

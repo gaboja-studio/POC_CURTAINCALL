@@ -173,7 +173,12 @@ namespace CurtainCall.Network.PlayerSync
         }
 
         [Rpc(SendTo.Server)]
-        void RequestRestartAllRpc() => ServerRestartAll();
+        void RequestRestartAllRpc()
+        {
+            var run = CurtainCall.Tightrope.TightropeRun.Current;
+            if (run == null) ServerRestartAll();
+            else if (OwnerClientId == Unity.Netcode.NetworkManager.ServerClientId) run.RestartByHost();
+        }
 
         void Awake()
         {

@@ -1,5 +1,6 @@
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Tightrope.Prototype;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -23,7 +24,7 @@ namespace CurtainCall.Tightrope
         [Tooltip("내 캐릭터가 착지할 때마다 균형 값·충격·흔들림 배율을 Console에 남긴다(반동 조사용).")]
         [SerializeField] bool logLandings = true;
 
-        [SerializeField] bool visible = true;
+        [SerializeField] bool visible;
         [SerializeField, Min(0.5f)] float scale = 1.5f;
 
         [Tooltip("좌우 착지 가능한 줄 위에 띄울 표시기 크기(m).")]
@@ -44,46 +45,21 @@ namespace CurtainCall.Tightrope
         {
             var keyboard = Keyboard.current;
             var player = NetworkPlayer.Local;
-            if (keyboard != null)
+            if (keyboard != null && !TightropeInputGate.IsBlocked)
             {
                 if (keyboard[toggleKey].wasPressedThisFrame) visible = !visible;
-                if (player != null && keyboard[fallKey].wasPressedThisFrame) Fall(player);
-                if (player != null && keyboard[finishKey].wasPressedThisFrame) MoveToFinish(player);
+                if (visible && player != null && keyboard[fallKey].wasPressedThisFrame) Fall(player);
+                if (visible && player != null && keyboard[finishKey].wasPressedThisFrame) MoveToFinish(player);
             }
             UpdateMarkers(player);
             BindLandingLog(player);
-            OverrideRestartKey();
         }
 
         void OnDisable() => BindLandingLog(null);
 
-        PlayerCommandDebugHud[] huds;
-
-        /// <summary>
-        /// 테스트 HUD의 R(모두 재시작)을 "호스트만, 묘기 처음부터(타이머 포함)"로 바꾼다(2026-10-03 PM).
-        /// 007 LocalPlayerViews가 내 캐릭터가 생길 때 다시 연결하므로 매 프레임 덮어쓴다.
-        /// </summary>
-        void OverrideRestartKey()
-        {
-            huds ??= FindObjectsByType<PlayerCommandDebugHud>(FindObjectsSortMode.None);
-            foreach (var hud in huds)
-                if (hud != null && hud.RestartOverride != restartByHost) hud.RestartOverride = restartByHost;
-        }
-
-        System.Action restartByHost;
-
-        void Awake() => restartByHost = RestartByHost;
-
-        static void RestartByHost()
-        {
-            var run = TightropeRun.Current;
-            if (run == null || !run.RestartByHost())
-                Debug.Log("[TightropeDebug] 재시작은 호스트만 할 수 있습니다.");
-        }
-
         void BindLandingLog(NetworkPlayer player)
         {
-            var mover = logLandings && player != null ? player.GetComponent<PlayerMover>() : null;
+            var mover = visible && logLandings && !TightropeInputGate.IsBlocked && player != null ? player.GetComponent<PlayerMover>() : null;
             if (mover == loggedMover) return;
             if (loggedMover != null) loggedMover.AirborneChanged -= LogAirborne;
             loggedMover = mover;

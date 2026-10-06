@@ -1,22 +1,21 @@
 # Integration-tightrope-prototype
-
 - **Feature:** 멀티플레이 기반 + 외줄타기 묘기 프로토타입
-- **Status:** preparing
+- **Status:** working
 - **Branch:** integration/tightrope-prototype
 - **Base:** dev
 - **PM:** @MoHoDu
-- **Merge Time:** 순차 병합 — 1단계 작업은 2~3일차, 연결 작업은 4일차, 공동 테스트·dev 반영은 5일차 (착수 후 5일 기한)
+- **Merge Time:** 2026-10-06 후속 승인 — 개발·자동 검증 2작업일 예상(확정 약속 아님), 실제 4인 공동 테스트 별도, dev 승격 제외
 - **Updated:** 2026-10-06
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
-
 ## 목표
 
-- 4명이 온라인 방에 모여 외줄 묘기 플로우(대기 → 묘기 시작 → 톱날·불을 피해 100m 코스 → 클리어/실패 재시작 → 결과·보상)를 함께 테스트할 수 있다.
-- 2026-10-03 재편: 단계별 두 갈래 진행, 다음 작업은 013(조정값 세팅), 008 보류, 017·018·019 에셋 대기.
+- 4명이 온라인 방에 모여 외줄 묘기 플로우(대기 → 묘기 시작 → 톱날·불을 피해 100m 코스 → 클리어/실패 결과 → 재도전·개인 행동 JSON (보상 제외))를 함께 테스트할 수 있다.
+- 008 보류·017/018/019 에셋 대기. 013 완료, 후속 순서는 아래 2026-10-06 승인 기준.
 - 쉬운 설명·작업 공간 전체: [plan.md](plan.md)
-- 2026-10-06: 0.0.2 승인(10-05 21:54 KST) 후 165분 신규 기능 중단 기준 경과. 014 병합·검증만 마무리, 015/016/022 미구현·0.0.2 빌드/실제 4인 미실행. 후속 착수는 시간·범위 재승인 후.
-
+- 2026-10-06: 이전 4시간 작업은 종료. 별도 후속 계획 승인으로 015 결과 → 023 개인 JSON → 016 데모 UI → 제출된 021 관문 → 022 지정 씬 연결·macOS 빌드를 순차 진행한다. 예상 개발·자동 검증 2작업일, 사람 4인 검증은 별도. 보상·외부 업로드·새 패키지·dev 승격 제외.
+- Fire 사용자 보고: 테스트에서 잘 동작함. 인원·플랫폼 미상이며 실제 4인 전체 검증 PASS로 확대하지 않는다.
+- 최신 절차 승인: 현재 integration에서 PM 일괄 로컬 구현, Task별 브랜치/인계/PR·중간 검증 생략, 마지막 통합 검증. 텍스트 Read/Edit/Write·현재 에디터 컴파일은 이번 작업만 예외. 구현 전체 commit/push/PR·dev 승격은 하지 않는다. 기존 폰트/재질·proto 원본은 보존하며 이미 승인된 별도 에셋 보존 커밋과 분리한다.
 ## Tasks
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
@@ -41,9 +40,9 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261003-020 | feat | @MoHoDu | feat/body-damage | #22 | done (완료 보관; dev 반영 별도) |
 | Task-20261005-021 | feat | @MoHoDu | feat/obstacle-layout-editor | - | blocked (담당 세션 보고: 미커밋 변경·제출본 없음, 설정 편집 점유 해제) |
 | Task-20261005-022 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261006-023 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 
 2026-10-05 PM 요청: 003·004·007·011·012·013·020은 `Tasks/Done/`으로 완료 보관. dev 반영·통합 종료는 미실행. 012 부분 통과 항목은 021에서 재확인하며, 005는 공동 테스트 결과 정리 대기로 Active 유지. 테스트 씬 처리 결정은 변경하지 않음.
-
 ## 공용 파일 소유 표
 
 공용 씬·프리팹·설정 파일은 이 Integration 안에서 Task 1개만 소유한다. 배정된 파일은 해당 Task `setup.md`에도 적는다.
@@ -60,17 +59,22 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | `Assets/Resources/Prefabs/Objects/Tools/` | Task-20260930-008 (보류) | 도구 프리팹 |
 | `Assets/Resources/GameSettings/`, `Assets/Scripts/Settings/` | Task-20261003-013 → 이후 칸 추가 Task PM 배정 | 기획 조정값 세팅 파일 (`Harness/Project/Decisions/game-settings.md`) |
 | `Assets/Scripts/Settings/TightropeSettings.cs`, `Assets/Resources/GameSettings/Tricks/TightropeSettings.asset` | Task-20261003-014 (2026-10-05 PM) | Fire 칸만 추가, 021 설정 편집 점유 해제 확인 |
-| `Assets/Scripts/Tightrope/Rope/TightropeRun.cs`, `Assets/Scripts/Tightrope/Rope/TightropeCourse.cs` | Task-20261003-014 (2026-10-05 PM) | 도착 우선 위험 이벤트·회차 번호·구간 끝 제외 선택만 |
+| `Assets/Scripts/Tightrope/Rope/TightropeRun.cs` | Task-20261003-015 (2026-10-06 PM, 014 병합 후 인계) → 015 병합 후 022 | 종료 전 불변 결과 경계·이유만, 도착 → Fire → 실패 순서 유지 |
+| `Assets/Scripts/Tightrope/Rope/TightropeCourse.cs` | 없음 (014 병합 완료, 읽기 전용) | 구간 끝 제외 선택 유지, 추가 수정은 PM 배정 |
 | `Assets/Scripts/Camera/`, `Assets/Resources/Prefabs/Controllers/Camera/` | Task-20260930-006 (2026-10-04 PM, 카메라 가림·구도) | `camera-review-20261004.md` |
 | `Assets/Plugins/` (DOTween Pro), `Assets/Resources/DOTweenSettings.asset` | PM (2026-10-05 통합 브랜치에 설치, 원본·예제 수정 금지) | 트윈 라이브러리 |
-| `Assets/Scripts/Network/PlayerSync/` | Task-20260930-007 | 이후 Task는 공개 기능만 사용, 수정은 PM 배정. 테스트 부품 `TestRoundRestart.cs`는 005, `TestLaneLanding.cs`는 011이 대체·삭제 |
+| `Assets/Scripts/Network/PlayerSync/` | Task-20260930-007 (병합 완료), 아래 022 배정 파일 제외 읽기 전용 | 테스트 부품 `TestRoundRestart.cs`는 005, `TestLaneLanding.cs`는 011이 대체·삭제 |
+| `Assets/Resources/Prefabs/UIs/Tightrope/`, `Assets/Scripts/Tightrope/UI/` | Task-20261003-016 → 016 병합 후 022 (코드만) | 데모 UI 전용, 기존 폰트/게이지 수정 금지 |
+| `Assets/Scripts/Tightrope/Results/` | Task-20261003-015 → 015 병합 후 022 | 고정 결과·참가자 ID 연결 |
+| `Assets/Scripts/Telemetry/`, `Assets/Scripts/Tightrope/Telemetry/` | Task-20261006-023 → 023 병합 후 022 | 개인 JSON·최종 행동 hook |
+| `Assets/Scenes/Prototypes/`, `Assets/Scripts/Tightrope/Prototype/` | Task-20261005-022 | 지정 씬/GUID 보존, 최종 연결 |
+| `Assets/Scripts/Network/Session/NetworkSessionManager.cs`, `Assets/Scripts/Network/PlayerSync/NetworkPlayer.cs`, `Assets/Scripts/Network/PlayerSync/LocalPlayerViews.cs` | Task-20261005-022 (선행 병합 후) | 호스트 retry·공유 ID·참가자/개발 화면 연결 |
+| `Assets/Scripts/Player/PlayerInputReader.cs`, `Assets/Scripts/Player/PlayerCommandDebugHud.cs`, `Assets/Scripts/Player/PlayerMover.cs`, `Assets/Scripts/Player/TightropeControlScheme.cs` | Task-20261005-022 (선행 병합 후) | 전체 입력 gate·예약 정리·행동 연결 |
+| `Assets/Scripts/Tightrope/Rope/CourseControlSwitcher.cs`, `Assets/Scripts/Tightrope/Rope/TightropeRunDebug.cs` | Task-20261005-022 (선행 병합 후) | 개발 명령 gate·retry override 제거 |
+| `Assets/Scripts/Tightrope/Piggyback/PiggybackSystem.cs`, `Assets/Scripts/Tightrope/Piggyback/PiggybackFollow.cs` | Task-20261005-022 (006 병합 후) | 성공 연결 해제·Follow 중단 |
+| `Assets/Scripts/Tightrope/Saws/TightropeSaws.cs` | Task-20261005-022 (021 제출 관문/소유 충돌 확인 후) | 발판 최소 hook만, 021 충돌 시 중단 |
 
 `Packages/`, `ProjectSettings/`는 PM이 인계 전 이 브랜치에서 직접 설치·설정한다(모든 Task 수정 금지).
-
 ## Decisions
-
 - Open: 005~010 담당자 GitHub 계정 (미배정, 작업 상황 보고 PM이 결정). 011은 @MoHoDu 확정
-- Decided: 2026-09-30 @MoHoDu — NGO + Multiplayer Services(Host), 이동은 클라·판정은 호스트, 패키지 PM 선설치, 조작용 로드 에셋은 `Assets/Resources/`, AI는 컴파일만·플레이 테스트는 작업자, 음성·런 데이터 제외, 4인 기준 ([결정](../../../Harness/Project/Decisions/multiplayer-stack.md), [검증](../../../Harness/Project/Decisions/prototype-verification.md))
-- Decided: 2026-10-01 @MoHoDu — 패키지 설치·Unity Cloud 연결(gaboja-studio) 완료, Confluence 2건 요약 반입, 외줄 규칙 확정([결정](../../../Harness/Project/Decisions/tightrope-rules.md))
-- Decided: 2026-10-01 @MoHoDu — 005(외줄 기본)를 "외줄 코스·진행"(005)과 "외줄 위 캐릭터 동작"(011)으로 나눈다. 004를 먼저 진행하고 006~011은 004 진입점 확정 후 진행, 005는 004와 병렬
-- Decided: 2026-10-02 @MoHoDu — 007(플레이어 동기화)을 실제 플레이어 프리팹 기준으로 먼저 하고, 이후 기능 Task(005·011·006·008)는 기능+동기화를 같이 만든다. 순서 007 → 005 → 011 → 006 → 008(교환 가능) → 009·010(최종 씬·예외로 축소) ([결정](../../../Harness/Project/Decisions/feature-with-network.md))
+- 초기 스택·분할·병합 순서 결정: [History/001-early-decisions.md](History/001-early-decisions.md)
