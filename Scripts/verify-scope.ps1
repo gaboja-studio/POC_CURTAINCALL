@@ -43,8 +43,38 @@ $label = if ($task) { $task.Id } elseif ($mode -eq 'resource') { 'resource, Task
 $mergeBase = (& git -C $RepoRoot merge-base $Base HEAD 2>$null)
 if (-not $mergeBase) { Write-Output "[위반] 기준 브랜치($Base)를 찾을 수 없습니다. git fetch 후 다시 시도하세요."; exit 1 }
 
-$changed = @(& git -C $RepoRoot diff --name-only --no-renames $mergeBase.Trim()) +
-           @(& git -C $RepoRoot ls-files --others --exclude-standard) | Where-Object { $_ } | Sort-Object -Unique
+$unmerged = @(& git -C $RepoRoot ls-files --unmerged)
+if ($LASTEXITCODE -ne 0) { throw '충돌 상태를 읽지 못했습니다.' }
+if ($unmerged.Count) { Write-Output '[위반] 미해결 병합 충돌이 있습니다. 충돌 해결 후 다시 검사하세요.'; exit 1 }
+
+$mergeHeads = @(& git -C $RepoRoot rev-parse --verify --quiet MERGE_HEAD 2>$null)
+$metaChanged = @(& git -C $RepoRoot diff --name-only --no-renames $mergeBase.Trim())
+if ($LASTEXITCODE -ne 0) { throw '변경 파일을 읽지 못했습니다.' }
+$untracked = @(& git -C $RepoRoot ls-files --others --exclude-standard)
+if ($LASTEXITCODE -ne 0) { throw '새 파일을 읽지 못했습니다.' }
+
+if ($mergeHeads.Count) {
+    $currentBranch = (& git -C $RepoRoot branch --show-current).Trim()
+    $baseCommit = & git -C $RepoRoot rev-parse --verify "$Base^{commit}" 2>$null
+    if ($LASTEXITCODE -ne 0 -or $mergeHeads.Count -ne 1 -or $Branch -cne $currentBranch -or $mergeHeads[0] -ne $baseCommit) {
+        Write-Output "[위반] 진행 중인 병합은 현재 작업 브랜치에 기준 브랜치($Base)의 최신 커밋을 받는 경우에만 검사합니다."
+        exit 1
+    }
+    # 내 기존 커밋도 검사한다. 병합 결과가 통합 쪽과 같아져도 내 구역 밖 변경이 숨지 않게 한다.
+    $ownChanges = @(& git -C $RepoRoot diff --name-only --no-renames $mergeBase.Trim() HEAD)
+    if ($LASTEXITCODE -ne 0) { throw '작업 브랜치 변경을 읽지 못했습니다.' }
+    $resolvedChanges = @(& git -C $RepoRoot diff --cached --name-only --no-renames $mergeHeads[0])
+    if ($LASTEXITCODE -ne 0) { throw '병합 해결 결과를 읽지 못했습니다.' }
+    $localChanges = @(& git -C $RepoRoot diff --name-only --no-renames)
+    if ($LASTEXITCODE -ne 0) { throw '저장 대기 중인 추가 변경을 읽지 못했습니다.' }
+    $changed = @($ownChanges) + @($resolvedChanges) + @($localChanges) + @($untracked) |
+        Where-Object { $_ } | Sort-Object -Unique
+    Write-Output 'Scope: 병합 검사 — 통합 유입은 구역 검사에서 제외, 내 커밋·충돌 해결 차이·추가 로컬 변경은 검사'
+} else {
+    $changed = @($metaChanged) + @($untracked) | Where-Object { $_ } | Sort-Object -Unique
+}
+# 받아 온 에셋에도 .meta가 빠지지 않았는지 검사한다.
+$metaChanged = @($metaChanged) + @($changed) | Where-Object { $_ } | Sort-Object -Unique
 
 $others = @(Get-ChildItem -LiteralPath (Get-RepoPath 'Tasks/Active') -Directory | Where-Object { $_.FullName -ne $task.Path } | ForEach-Object {
     $s = Join-Path $_.FullName 'setup.md'
@@ -76,7 +106,7 @@ foreach ($file in $changed) {
 
 # .meta 누락: 새로 생기거나 바뀐 Assets 파일은 자신과 상위 폴더의 .meta가 있어야 한다.
 $missingMeta = [System.Collections.Generic.HashSet[string]]::new()
-foreach ($file in $changed | Where-Object { $_ -like 'Assets/*' -and $_ -notlike '*.meta' }) {
+foreach ($file in $metaChanged | Where-Object { $_ -like 'Assets/*' -and $_ -notlike '*.meta' }) {
     if (-not (Test-Path -LiteralPath (Get-RepoPath $file))) { continue }  # 삭제된 파일
     foreach ($m in Get-AssetMetaPaths $file) {
         if (-not (Test-Path -LiteralPath (Get-RepoPath $m))) { [void]$missingMeta.Add($m) }

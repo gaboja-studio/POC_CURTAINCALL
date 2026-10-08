@@ -346,7 +346,9 @@ function Get-AssetMetaPaths {
     $clean = $Path.TrimEnd('/')
     if ($clean -notlike 'Assets/*' -or $clean -like '*.meta') { return @() }
     $parts = $clean.Split('/')
-    $result = for ($i = 2; $i -le $parts.Count; $i++) { ($parts[0..($i - 1)] -join '/') + '.meta' }
+    # Unity가 무시하는 점 파일(.gitkeep 등)은 자기 .meta 없이 상위 폴더만 검사한다.
+    $count = if ($parts[-1].StartsWith('.')) { $parts.Count - 1 } else { $parts.Count }
+    $result = for ($i = 2; $i -le $count; $i++) { ($parts[0..($i - 1)] -join '/') + '.meta' }
     return @($result)
 }
 
@@ -363,6 +365,11 @@ function Get-WorktreeFingerprint {
     $staged = & git -C $script:RepoRoot diff --cached --binary
     if ($LASTEXITCODE -ne 0) { throw '스테이징 변경을 읽지 못했습니다.' }
     $lines += "STAGED $($staged -join "`n")"
+    # 병합 대상이나 HEAD가 바뀌면 이전 검증 결과를 재사용하지 않는다.
+    $head = & git -C $script:RepoRoot rev-parse --verify HEAD
+    if ($LASTEXITCODE -ne 0) { throw '현재 커밋을 읽지 못했습니다.' }
+    $mergeHead = & git -C $script:RepoRoot rev-parse --verify --quiet MERGE_HEAD 2>$null
+    $lines += "HEAD $head", "MERGE_HEAD $mergeHead"
     $bytes = [System.Text.Encoding]::UTF8.GetBytes(($lines -join "`n"))
     return [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($bytes))
 }

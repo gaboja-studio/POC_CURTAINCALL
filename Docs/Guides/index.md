@@ -7,3 +7,4 @@
 - [pr-issue-writing.md](pr-issue-writing.md) — PR·이슈를 GitHub 웹에서 직접 쓸 때
 - [github-setup.md](github-setup.md) — AI가 PR·이슈를 올릴 수 있게 GitHub를 처음 연결할 때
 - [pm-commands.md](pm-commands.md) — PM이 통합·Task 준비·마무리를 AI에게 요청할 때
+- [game-settings-guide.md](game-settings-guide.md) — 기획자가 게임 수치(세팅 파일)를 바꿀 때, 컨플루언스 공유 원본
