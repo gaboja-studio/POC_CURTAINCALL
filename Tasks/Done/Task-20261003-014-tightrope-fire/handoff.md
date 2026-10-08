@@ -1,0 +1,34 @@
+# Handoff
+
+## 지금 상태
+
+- 단계: PR #24 병합 완료 (10-06 00:52 KST, cda92b5), 통합본 컴파일 확인·실제 4인 공동 테스트 대기
+- 동작하는 것: 회차별 호스트 설정 스냅샷·상태 공유, 추격/구간 화재 수평 사망 판정, 도착 우선 위험 이벤트, 예고/임시 표시, 구간 끝 제외 차단 및 재시작 초기화
+- 연결: Fire 프리팹을 테스트 씬에 배치. TightropeFire·FireView 각각 1개 확인. 설정 에셋에 승인된 초기 실험값 저장.
+- 아직 확인하지 않은 것: 실제 4화면 일정·피해·재시작 일치, 사람 플레이의 탈출/구조 가능성
+- 제약: 021 미커밋 코드·배치 에셋은 통합하거나 수정하지 않음. Console 기존 2건은 Unity Connect 환경 오류와 Pipeline batch 변환 오류이며 C# 컴파일 실패 없음.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/24
+
+## 다음 할 일
+
+1. 승인 시각 10-05 21:54 KST 기준 165분 경과로 신규 기능 중단. 015/016/022는 미구현 상태로 인계하며 시간·범위 재승인 전 착수하지 않음.
+2. 결과(015)·HUD(016)·최종 연결 작업에서 Fire Hit/Settings/WarningRemaining 사용.
+3. 사람이 공동 테스트 3개 수행 후 실험값·테스트 씬 처리 결정. 실제 4인 결과 전 dev 승격 보류.
+
+## PM이 확인할 것
+
+- 확인 요청: 없음 (0.0.2 계획 승인됨)
+- 대기 중인 결정: 실제 공동 테스트 후 실험값 적합성·테스트 씬 유지/삭제
+- 공용 파일 요청: setup.md·Integration 소유표에 배정된 Fire 칸/판정 이벤트/구간 끝 옵션만 수정
+
+## Verification
+
+- 구역 검사: 제출본 PASS (10-05), 통합본 SKIP (10-06, PM 브랜치)
+- 1 문서/규칙: PASS (10-06, 통합본), 길이 경고 6건·hard 0
+- 2 컴파일: PASS (10-06, 통합본 cda92b5·up_to_date). 사용자 재컴파일 후 ready·completed·오류 없음 확인. 이전 integration/feat 재검사 TIMEOUT(각 300초)은 실패 이력으로 보존.
+- PR 검사: f37769f의 4개 검사 SUCCESS, #24 MERGED·대상 integration/tightrope-prototype·커밋 cda92b5 확인. 이전 팀 리뷰 차단·auto merge 비허용 실패 보존, 보호·설정 우회 없음.
+- 3 테스트: NO_PROJECT_TESTS (10-06) — 열린 에디터 MCP EditMode Total/Passed/Failed 모두 0. CLI 컴파일 검사의 Tests: SKIPPED와 별도 확인이며 테스트 PASS가 아님.
+- 검사 환경 제약: 이전 CLI 테스트 XML 미생성(열린 에디터 충돌·FAIL), 00:19 editor_status TIMEOUT·recompile_status triggered, 스레드 표본 실패·포커스 TIMEOUT(-1712) 보존. 원인 미확정·강제 종료 없음. 현재 doctor OK(14/14)·에디터 복구 확인. 미커밋 인계는 stash 보존 후 통합본에 복원.
+- 계산 점검: Unity eval 12/12 PASS — 추격 지연/속도/95m 정지, 구간 시작 포함·끝 제외·수평 경계, 스냅샷 분리·범위/64구간 보정. 등록 테스트와 별도.
+- 4 실행 로그: AI 플레이 미실행
+- 5 공동 테스트: 사람 실제 4인 미실행

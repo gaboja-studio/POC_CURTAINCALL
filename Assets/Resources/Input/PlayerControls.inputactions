@@ -1,0 +1,188 @@
+{
+    "name": "PlayerControls",
+    "maps": [
+        {
+            "name": "Common",
+            "id": "e5dcd418-2f4e-4dbd-9af6-b7c34ab5bd38",
+            "actions": [
+                {
+                    "name": "Move",
+                    "type": "Value",
+                    "id": "bd4cf9bf-9504-4b8e-acc6-7c4ac606e4d4",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+,
+                {
+                    "name": "Posture",
+                    "type": "Value",
+                    "id": "e7179ab4-e5a0-48ac-ac46-6fd993b2d054",
+                    "expectedControlType": "Axis",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+,
+                {
+                    "name": "Action",
+                    "type": "Button",
+                    "id": "8b738672-3a64-4626-883e-f21bf91dba2a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+,
+                {
+                    "name": "DirectionLeft",
+                    "type": "Button",
+                    "id": "35a5742c-f852-4e94-9fb7-e7631f933b57",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+,
+                {
+                    "name": "DirectionRight",
+                    "type": "Button",
+                    "id": "804a4676-9431-411a-8540-e562d6cff2f0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+,
+                {
+                    "name": "Interact",
+                    "type": "Button",
+                    "id": "bfbcda59-3983-4af0-b365-07aec3e42b0c",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "1D Axis",
+                    "id": "555edf09-495d-4757-9dba-cd85d55925f1",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "18228703-5bea-4546-a781-235d7dd390fa",
+                    "path": "<Keyboard>/s",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "1123b7d8-daed-4233-b0ce-97c32cb9bb7e",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Move",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                }
+,
+                {
+                    "name": "1D Axis",
+                    "id": "d5a9c61d-d8f7-46d2-98ce-78b855e7f9b2",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Posture",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "24d34f48-055b-4127-8bfd-b8585e016076",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Posture",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "3f68cf48-cf9d-45ca-9b05-a622f8bd7d85",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Posture",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                }
+,
+                {
+                    "name": "",
+                    "id": "cf4ca9e3-4fa5-48d0-b9d9-768523e9e56b",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Action",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+,
+                {
+                    "name": "",
+                    "id": "667a89ee-377c-4c14-8cf2-fbd90377d113",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DirectionLeft",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+,
+                {
+                    "name": "",
+                    "id": "fa1ce018-68de-4120-af29-c07e31f53267",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DirectionRight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+,
+                {
+                    "name": "",
+                    "id": "f3a04d62-6310-499d-b88d-0ae6bc8a7273",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
