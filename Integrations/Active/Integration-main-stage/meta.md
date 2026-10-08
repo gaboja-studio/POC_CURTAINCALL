@@ -5,14 +5,27 @@
 - **Branch:** integration/main-stage
 - **Base:** dev
 - **PM:** @MoHoDu
-- **Merge Time:**
+- **Merge Time:** 미정 (PM이 공간 기획 확정 후 결정)
 - **Updated:** 2026-10-08
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
 ## 목표
 
-- 이 기능 묶음이 끝나면 dev에서 무엇을 할 수 있는지 1~2줄.
+- 공연장 공간의 맵 배치와 공간 콘텐츠를 dev에서 플레이할 수 있다. (세부 목표는 PM이 공간 기획 확정 후 채움)
+
+## 작업 공간
+
+2026-10-08 PM 결정: `Harness/Project/Decisions/space-workspaces.md`. 이 공간 작업은 아래 경로 안에서만 하고, 작업 브랜치는 이 통합 브랜치로만 PR한다.
+
+| 항목 | 경로·값 |
+|---|---|
+| 담당 | @lakuase2 |
+| 맵 배치 씬 | `Assets/Scenes/Levels/main_stage.unity` |
+| 테스트 씬 폴더 | `Assets/Scenes/Tests/MainStage/` |
+| 스크립트 폴더 | `Assets/Scripts/MainStage/` |
+| 공용 (읽기 전용) | `Assets/Scripts/Systems/`, `Assets/Scenes/Tests/Systems/`, `Assets/Resources/` (수정은 아래 소유 표로 배정받은 Task만) |
+| 기존 묘기 | 외줄타기: `Assets/Scripts/MainStage/Tightrope/`, `Assets/Scenes/Tests/MainStage/Tightrope/` (이전 통합 tightrope-prototype의 미구현·미검증분은 여기서 새 Task로 계획) |
 
 ## Tasks
 
@@ -25,8 +38,9 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
+| `Assets/Scenes/Levels/main_stage.unity` | 미배정 (첫 맵 배치 Task에 배정) | 공연장 맵 배치 씬은 Task 1개만 수정 |
 
 ## Decisions
 
-- Open: None
+- Open: 공간 세부 목표·병합 예정 시각, 첫 Task 구성 (PM)
 - Decided: None
