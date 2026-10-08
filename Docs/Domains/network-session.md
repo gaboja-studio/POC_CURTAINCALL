@@ -6,17 +6,17 @@
 
 ## 담당 파일 (2026-10-01 확인, Task-20260930-003)
 
-- `Assets/Scripts/Network/Session/NetworkSessionManager.cs` — **유일한 공개 진입점**. NetworkManager 프리팹에 붙는다.
-- `Assets/Scripts/Network/Session/ISessionConnector.cs` — 접속 방식 인터페이스(방 열기·참가·나가기, `JoinKey`).
-- `Assets/Scripts/Network/Session/ServicesSessionConnector.cs` — Multiplayer Services 세션(Relay). 비공개 세션, 방 코드로 참가.
-- `Assets/Scripts/Network/Session/LanSessionConnector.cs` — 직접 IP(LAN) 테스트 경로. 기본 포트 7777.
-- `Assets/Scripts/Network/Session/GameSessionState.cs`, `SessionConnectionState.cs` — 게임 상태 / 내 접속 상태 enum.
-- `Assets/Scripts/Network/Session/GameSessionStateSync.cs` — 게임 상태·인원 복제용 NetworkBehaviour(내부용).
-- `Assets/Scripts/Network/Session/NetworkSessionTestUI.cs` — 테스트 씬 전용 IMGUI. 진짜 로비 UI가 생기면 삭제.
+- `Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs` — **유일한 공개 진입점**. NetworkManager 프리팹에 붙는다.
+- `Assets/Scripts/Systems/Network/Session/ISessionConnector.cs` — 접속 방식 인터페이스(방 열기·참가·나가기, `JoinKey`).
+- `Assets/Scripts/Systems/Network/Session/ServicesSessionConnector.cs` — Multiplayer Services 세션(Relay). 비공개 세션, 방 코드로 참가.
+- `Assets/Scripts/Systems/Network/Session/LanSessionConnector.cs` — 직접 IP(LAN) 테스트 경로. 기본 포트 7777.
+- `Assets/Scripts/Systems/Network/Session/GameSessionState.cs`, `SessionConnectionState.cs` — 게임 상태 / 내 접속 상태 enum.
+- `Assets/Scripts/Systems/Network/Session/GameSessionStateSync.cs` — 게임 상태·인원 복제용 NetworkBehaviour(내부용).
+- `Assets/Scripts/Systems/Network/Session/NetworkSessionTestUI.cs` — 테스트 씬 전용 IMGUI. 진짜 로비 UI가 생기면 삭제.
 - `Assets/Resources/Prefabs/Controllers/Network/NetworkManager.prefab` — NetworkManager + UnityTransport + NetworkSessionManager(Required Players 기본 4).
 - `Assets/Resources/Prefabs/Controllers/Network/GameSession.prefab` — NetworkObject + GameSessionStateSync. 호스트가 방을 열 때 스폰.
 - `Assets/Resources/Prefabs/Controllers/Network/DefaultNetworkPrefabs.asset` — 네트워크 프리팹 목록.
-- 테스트 씬: `Assets/Scenes/Tests/NetworkSession/NetworkSession.unity` (`SessionUI` 오브젝트).
+- 테스트 씬: `Assets/Scenes/Tests/Systems/NetworkSession/NetworkSession.unity` (`SessionUI` 오브젝트).
 
 ## 진입점
 

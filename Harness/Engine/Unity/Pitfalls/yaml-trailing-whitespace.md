@@ -26,4 +26,4 @@ Unity 직렬화 형식이다. 공백을 지워도 다음 저장 때 다시 생�
 
 ## 확인 방법
 
-`git check-attr whitespace -- Assets/Scenes/Tests/PlayerControl/PlayerControl.unity` → `unset`, 그리고 `git diff --check` 통과.
+`git check-attr whitespace -- Assets/Scenes/Tests/Systems/PlayerControl/PlayerControl.unity` → `unset`, 그리고 `git diff --check` 통과.

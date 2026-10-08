@@ -17,7 +17,7 @@
 
 ## 조정값 (기획자가 바꾸는 수치)
 
-2026-10-03 013 병합 후 모두 `Assets/Resources/GameSettings/`(`BaseGameSettings`, `Tricks/TightropeSettings`)에서 바꾼다. 컴포넌트·프리팹 칸은 없다. 마지막 열은 옮기기 전 위치(참고). 기획자 안내: `Docs/Guides/game-settings-guide.md`.
+2026-10-03 013 병합 후 모두 `Assets/Resources/Settings/GameSettings/`(`BaseGameSettings`, `Tricks/TightropeSettings`)에서 바꾼다. 컴포넌트·프리팹 칸은 없다. 마지막 열은 옮기기 전 위치(참고). 기획자 안내: `Docs/Guides/game-settings-guide.md`.
 
 | 세팅 파일 · 묶음 | 항목 = 현재 값 | 옮기기 전 위치 |
 |---|---|---|
@@ -43,7 +43,7 @@
 
 | 단계 | Task | 이 도메인에 더하는 것 | 쓰는 진입점 |
 |---|---|---|---|
-| 0 | 013 세팅 정리 | `Assets/Scripts/Settings/`, 위 표 이동 | 모든 컴포넌트가 세팅을 읽음 |
+| 0 | 013 세팅 정리 | `Assets/Scripts/Systems/Settings/`, 위 표 이동 | 모든 컴포넌트가 세팅을 읽음 |
 | 1A | 012 톱날 | 톱날·발판, 닿은 부위 판정 → 020 절단 요청 | `PerformanceStarted`·`PerformanceElapsed`·`RunRestarted`, `RequestState(Fallen)` |
 | 1A | 020 신체 손상 | 절단 요청 진입점·잃은 부위 공유·패널티·탈락 | 004 `PlayerCondition`·`BodyPart`, 007 상태 공유, `RunRestarted` |
 | 1A | 021 배치 편집기 | 씬 뷰 톱날 배치·쉬운 시간 칸·미리보기(불타는 구간 확장 자리) | 012 `SawMath`·`HorizontalSawTrack`, 장애물 배치 파일 |
@@ -56,7 +56,7 @@
 
 ## 담당 파일 (2026-10-03 확인, Task-20260930-005 병합)
 
-`Assets/Scripts/Tightrope/Rope/`
+`Assets/Scripts/MainStage/Tightrope/Rope/`
 - `TightropeCourse.cs` — **코스 공개 진입점**. 줄 수·간격·도착 거리·옆줄 구간·플랫폼·여유 인스펙터 값, 메시·충돌체 생성(플레이 중), 코스 조회, 줄 간격 → 모든 `PlayerMover.LaneSpacing`, 내 캐릭터 줄 아래 추락 검사, 코스 값 내보내기·잠금.
 - `CourseLayout.cs` — 줄 위치·끝 거리·옆줄 구간 계산(MonoBehaviour 없음).
 - `TightropeRun.cs` — **진행 공개 진입점**. 호스트 판정: 제한시간, 도착 완료, 1명 도착 즉시 클리어(생존자 도착 지점 이동, `EndGame`), 실패 → 재시작, 묘기 시작 신호, 사망 플레이어 몸통 통과. NGO 이름 메시지로 공유.
@@ -66,15 +66,15 @@
 - `TightropeRunDebug.cs` — **테스트 전용**: 상태·남은 시간 표시, K 추락, L 도착, O 표시, 좌우 착지 표시기, 착지 로그, R = 호스트만 재시작.
 - `Editor/TightropeCoursePrefabBuilder.cs` — 코스 프리팹 생성 메뉴(덮어쓰므로 값 조정 후 실행 금지).
 
-`Assets/Scripts/Tightrope/Saws/` (Task-012, 작업 중)
+`Assets/Scripts/MainStage/Tightrope/Saws/` (Task-012, 작업 중)
 - `TightropeSaws.cs` — **톱날 공개 진입점**. 가로 위치는 게임 경과로 각 화면이 계산, 장애물 순서는 호스트가 실행하고 가로 작동·정지 기록(게임 경과 시각)·수직 톱날 줄·출현·발판 눌림을 NGO 이름 메시지로 공유. 호스트가 진행 중 플레이어만 판정 → 020 절단 요청(가로: 순서 절단·닿은 쪽 다리부터, 수직: 닿은 부위) → `Hit`(모든 화면, 실제 잘린 부위) + 로그. 겉모습은 기본 도형(충돌체 없음), 프리팹 칸으로 교체.
 - `SawSettings.cs` — 톱날 조정값 묶음·장애물 순서(값은 `TightropeSettings.Saws` 칸, `GameSettings.Tightrope.Saws`로 읽음). `ObstacleSequence.cs` — 순서 실행기·가로 톱날 작동/정지 기록(`HorizontalSawTrack`). `SawMath.cs` — 왕복·원판/몸통 접촉·부위 결정(모두 MonoBehaviour 없음).
-- 에셋 `Assets/Resources/Prefabs/Objects/Obstacles/Saws/TightropeSaws.prefab`, 테스트 씬 `Assets/Scenes/Tests/TightropeSaws/TightropeSaws.unity`.
+- 에셋 `Assets/Resources/Prefabs/Objects/Obstacles/Saws/TightropeSaws.prefab`, 테스트 씬 `Assets/Scenes/Tests/MainStage/Tightrope/TightropeSaws/TightropeSaws.unity`.
 
 에셋
 - `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/TightropeCourse.prefab` — 위 컴포넌트 + `PlayerSpawnPoints`(007) + 출발 위치 `SpawnPoints/Slot0~3`. 다른 Task는 배치만. 수치 칸 없음(013).
-- `Assets/Resources/GameSettings/Tricks/TightropeSettings.asset` — 코스 모양·진행·줄 위 동작·목마 값(클래스 `Assets/Scripts/Settings/`). 코스는 만들 때 복사해 쓰고, 대기 중 수정은 바로 재생성·잠금 중 수정은 풀릴 때.
-- 테스트 씬: `Assets/Scenes/Tests/Tightrope/Tightrope.unity` (코스, SessionUI, 카메라 리그, 게이지, HUD, LocalPlayerViews, TightropeRunDebug).
+- `Assets/Resources/Settings/GameSettings/Tricks/TightropeSettings.asset` — 코스 모양·진행·줄 위 동작·목마 값(클래스 `Assets/Scripts/Systems/Settings/`). 코스는 만들 때 복사해 쓰고, 대기 중 수정은 바로 재생성·잠금 중 수정은 풀릴 때.
+- 테스트 씬: `Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity` (코스, SessionUI, 카메라 리그, 게이지, HUD, LocalPlayerViews, TightropeRunDebug).
 
 ## 진입점
 

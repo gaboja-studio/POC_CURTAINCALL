@@ -3,7 +3,7 @@ using UnityEngine;
 namespace CurtainCall.Settings
 {
     /// <summary>
-    /// 묘기별 세팅의 공통 부모. 묘기마다 하나(예: <see cref="TightropeSettings"/>)를 Assets/Resources/GameSettings/Tricks/에 둔다.
+    /// 묘기별 세팅의 공통 부모. 묘기마다 하나(예: <see cref="TightropeSettings"/>)를 Assets/Resources/Settings/GameSettings/Tricks/에 둔다.
     /// 보상 규칙은 교체형으로, <see cref="RewardTable"/>을 구현한 파일을 보상 칸에 끼운다.
     /// </summary>
     public abstract class TrickSettings : ScriptableObject

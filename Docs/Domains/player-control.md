@@ -15,7 +15,7 @@
 
 ## 담당 파일 (2026-10-03 확인, Task-004 병합 + 005 추가분)
 
-입력·규칙 (`Assets/Scripts/Player/`)
+입력·규칙 (`Assets/Scripts/Systems/Player/`)
 - `PlayerInputReader.cs` — 키 → 공통 역할 값(`Current`). F 짧게/길게 판정(`Long Press Time`).
 - `PlayerInputFrame.cs` — 이동·자세 제어·기본 액션·보조 방향·상호작용 값.
 - `PlayerController.cs` — 매 프레임 조작 규칙 실행. `SetScheme`으로 교체.
@@ -36,10 +36,10 @@
 
 에셋
 - `Assets/Resources/Input/PlayerControls.inputactions` — 맵 `Common`: Move, Posture, Action, DirectionLeft, DirectionRight, Interact.
-- `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 루트에 CharacterController·위 컴포넌트. 모델은 `ModelSlot` 아래. 수치 칸 없음(013): 속도·중력·몸통 크기·균형·연출 값은 `GameSettings.Base`, 줄 위 동작·목마는 `GameSettings.Tightrope`(`Assets/Scripts/Settings/`)에서 매 프레임 읽는다.
+- `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 루트에 CharacterController·위 컴포넌트. 모델은 `ModelSlot` 아래. 수치 칸 없음(013): 속도·중력·몸통 크기·균형·연출 값은 `GameSettings.Base`, 줄 위 동작·목마는 `GameSettings.Tightrope`(`Assets/Scripts/Systems/Settings/`)에서 매 프레임 읽는다.
 - `Assets/Resources/Prefabs/Characters/Players/Models/` — `DefaultCapsule`, `BlockDoll`(관절 래그돌), `Materials/`.
 - `Assets/Resources/Prefabs/UIs/Player/BalanceGauge.prefab` — Canvas + TMP(임시 폰트 `Assets/Resources/Fonts/Pretendard-Medium/`).
-- 테스트 씬: `Assets/Scenes/Tests/PlayerControl/PlayerControl.unity`.
+- 테스트 씬: `Assets/Scenes/Tests/Systems/PlayerControl/PlayerControl.unity`.
 
 ## 진입점 (다른 기능이 쓰는 공개 함수)
 

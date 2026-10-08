@@ -5,7 +5,7 @@ namespace CurtainCall.Settings
 {
     /// <summary>
     /// 게임 기본 세팅: 세션·캐릭터·입력·균형 공통·연출·동기화. 묘기와 상관없이 쓰는 값.
-    /// 에셋: Assets/Resources/GameSettings/BaseGameSettings.asset. <see cref="GameSettings.Base"/>로 읽는다.
+    /// 에셋: Assets/Resources/Settings/GameSettings/BaseGameSettings.asset. <see cref="GameSettings.Base"/>로 읽는다.
     /// 기본값은 2026-10-03 프리팹 값(옮기기 전 값)과 같다.
     /// </summary>
     [CreateAssetMenu(menuName = "CurtainCall/Settings/Base Game Settings", fileName = "BaseGameSettings")]

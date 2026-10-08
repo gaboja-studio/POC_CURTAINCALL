@@ -6,7 +6,7 @@
 ## 한눈에
 
 - 게임 수치(속도·균형·코스 모양·시간·인원 등)는 **Unity의 세팅 파일에서만** 바꾼다. 캐릭터·코스 프리팹에는 더 이상 숫자 칸이 없다.
-- 세팅 파일은 `Assets/Resources/GameSettings/` 한 폴더에 있다.
+- 세팅 파일은 `Assets/Resources/Settings/GameSettings/` 한 폴더에 있다.
 - 칸 위에 마우스를 올리면 한글 설명과 단위, 기획 기준값이 나온다.
 
 ## 파일 구성
@@ -22,7 +22,7 @@
 
 ## 값 바꾸는 법
 
-1. Unity의 Project 창에서 `Assets/Resources/GameSettings/` 폴더를 연다.
+1. Unity의 Project 창에서 `Assets/Resources/Settings/GameSettings/` 폴더를 연다.
 2. 파일을 클릭하면 Inspector에 묶음(굵은 제목)별 칸이 보인다.
 3. 숫자를 바꾼다. 따로 저장 버튼은 없다. Unity에서 저장(Cmd+S / Ctrl+S)한다.
 4. 바꾼 값을 팀에 올리려면 AI에게 "저장해줘"라고 한다. 세팅 파일도 작업 구역에 있어야 저장된다(담당 Task의 `setup.md`).
@@ -85,7 +85,7 @@
 
 세팅 칸이 추가·변경된 Task가 병합되면, 컨플루언스에 공유하기 전에 이 문서를 고친다.
 
-1. 세팅 클래스(`Assets/Scripts/Settings/`)와 에셋을 비교해 "항목 목록"에 새 묶음·항목·기본값·단위를 넣는다.
+1. 세팅 클래스(`Assets/Scripts/Systems/Settings/`)와 에셋을 비교해 "항목 목록"에 새 묶음·항목·기본값·단위를 넣는다.
 2. 반영 시점이 다른 칸(예: 시작할 때만 읽는 값)이면 "언제 반영되나"에 추가한다.
 3. 새 묘기 파일이 생기면 "파일 구성"에 추가한다.
 4. "앞으로 추가될 칸"에서 끝난 항목을 지운다. 맨 위 "마지막 갱신"의 날짜와 Task를 바꾼다.

@@ -5,7 +5,7 @@ namespace CurtainCall.Settings
 {
     /// <summary>
     /// 외줄 묘기 세팅: 코스·진행·줄 위 동작·손잡기·목마·카메라·신체 손상 불이익·톱날(+ 보상 연결은 부모).
-    /// 에셋: Assets/Resources/GameSettings/Tricks/TightropeSettings.asset. <see cref="GameSettings.Tightrope"/>로 읽는다.
+    /// 에셋: Assets/Resources/Settings/GameSettings/Tricks/TightropeSettings.asset. <see cref="GameSettings.Tightrope"/>로 읽는다.
     /// 코스 모양은 코스를 만들 때 읽는다(대기 중 수정은 바로 다시 만들고, 게임 중 수정은 다음 대기 때). 불은 회차 시작에 호스트가 복사하고, 나머지는 쓸 때마다 읽는다.
     /// 톱날 칸은 012(`SawSettings`, 장애물 순서 포함), 불 칸은 014(`FireSettings`, 2026-10-05 승인된 초기 실험값).
     /// </summary>

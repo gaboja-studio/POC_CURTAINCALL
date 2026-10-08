@@ -7,7 +7,7 @@
 
 ## 담당 파일 (2026-10-02 확인, Task-20260930-007)
 
-`Assets/Scripts/Network/PlayerSync/`
+`Assets/Scripts/Systems/Network/PlayerSync/`
 - `NetworkPlayer.cs` — **공개 진입점**. 플레이어 프리팹 루트(NetworkBehaviour). 자리 번호, 소유자 처리, 점프·균형 표시값 공유, 상태·재시작.
 - `PlayerState.cs` — 호스트가 확정하는 상태 enum(`Normal`, `Fallen`, `Arrived`(외줄 도착 완료, 005 2026-10-03)). 끝에만 추가한다(숫자로 전송).
 - `PlayerSpawnPoints.cs` — 씬의 출발 위치 목록(자리 번호 순). 없으면 줄 간격으로 나란히.
@@ -20,7 +20,7 @@
 - `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 루트에 NetworkObject·NetworkTransform(Owner, 위치 xyz·회전 y)·NetworkPlayer.
 - `Assets/Resources/Prefabs/Controllers/Network/NetworkManager.prefab` — `PlayerPrefab` = Player. `DefaultNetworkPrefabs.asset`에 등록.
 - `Assets/Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab` — CinemachineCamera + Follow(뒤 4.5·위 2.6) + RotationComposer(1.2 주시) + LocalPlayerCamera. 메인 카메라에 CinemachineBrain 필요.
-- 테스트 씬: `Assets/Scenes/Tests/NetworkPlayerSync/NetworkPlayerSync.unity` (SessionUI, PlayerSpawnPoints, LaneGuides, 게이지·HUD, 테스트 부품).
+- 테스트 씬: `Assets/Scenes/Tests/Systems/NetworkPlayerSync/NetworkPlayerSync.unity` (SessionUI, PlayerSpawnPoints, LaneGuides, 게이지·HUD, 테스트 부품).
 
 ## 진입점
 

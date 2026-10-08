@@ -15,3 +15,4 @@ Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 - [material-color-float-churn.md](material-color-float-churn.md) — 재질(.mat) 색 값이 소수점만 바뀜(0.2 → 0.19999996). 재질을 안 고쳤는데 .mat이 git에 잡힐 때
 - [unity-test-editor-open.md](unity-test-editor-open.md) — 에디터가 열려 있으면 unity test가 거부돼 check-work 테스트가 FAIL. 테스트 단계가 '테스트 결과 없음'으로 실패할 때
 - [tmp-dynamic-font-churn.md](tmp-dynamic-font-churn.md) — TMP 동적 폰트 .asset이 저절로 수정됨(아틀라스 채움·비움). 폰트를 안 고쳤는데 SDF.asset이 git에 잡힐 때
+- [resources-path-after-move.md](resources-path-after-move.md) — Resources 안 폴더 이동 후 Resources.Load 경로가 깨짐, 패키지 설정 에셋은 루트 고정. Resources 하위를 옮기거나 세팅이 기본값으로 돌 때
