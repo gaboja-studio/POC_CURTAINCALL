@@ -31,6 +31,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
+| Task-20261008-027 | feat | @gyumin9048-ctrl | (인계 때 생성) | - | scaffolded |
 
 ## 공용 파일 소유 표
 
@@ -38,7 +39,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
-| `Assets/Scenes/Levels/backstage.unity` | 미배정 (첫 맵 배치 Task에 배정) | 백스테이지 맵 배치 씬은 Task 1개만 수정 |
+| `Assets/Resources/Packages/BackStage/` | Task-20261008-027 | 백스테이지 레벨에 넣는 에셋 패키지 |
+| `Assets/Scenes/Levels/backstage.unity` | Task-20261008-027 | 백스테이지 맵 배치 씬은 Task 1개만 수정 |
 
 ## Decisions
 
