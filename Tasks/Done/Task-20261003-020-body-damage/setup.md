@@ -48,5 +48,5 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 Task를 닫을 때 사람이 결정한다. 스크립트는 씬을 지우지 않는다.
 
-- 결정: 미정 (유지 / 삭제)
-- 결정자·날짜:
+- 결정: 유지 (공간별 재배치로 Assets/Scenes/Tests/MainStage/Tightrope/·Tests/Systems/에 보존)
+- 결정자·날짜: PM @MoHoDu, 2026-10-08
