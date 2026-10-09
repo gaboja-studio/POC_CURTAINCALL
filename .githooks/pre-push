@@ -1,0 +1,12 @@
+#!/bin/sh
+command -v git-lfs >/dev/null 2>&1 || { printf >&2 "\n%s\n\n" "This repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting the 'pre-push' file in the hooks directory (set by 'core.hookspath'; usually '.git/hooks')."; exit 2; }
+
+# 외부 에셋이 공개 레포로 올라가지 않게 막는다(Harness/Project/Decisions/third-party-assets.md).
+if command -v pwsh >/dev/null 2>&1; then
+  pwsh -NoProfile -File "$(git rev-parse --show-toplevel)/Scripts/verify-third-party.ps1" -CheckSubmodule >&2 || {
+    echo "[거부] 외부 에셋 규칙 위반으로 push를 멈췄습니다. 위 [위반] 항목을 고치거나 PM에게 알려 주세요." >&2
+    exit 1
+  }
+fi
+
+git lfs pre-push "$@"
