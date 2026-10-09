@@ -2,7 +2,7 @@
 
 - **Title:** 공연장 레벨 디자인(에셋 배치)
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @lakuase2
 - **Domain:**
 - **Current Skill:** start-work
@@ -13,7 +13,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Workspace
 
 - **Integration:** integration/main-stage
-- **Branch:** feat/main-stage-level-edit (인계 때 생성)
+- **Branch:** feat/main-stage-level-edit
 
 ## Goal
 
