@@ -2,7 +2,7 @@
 
 - **Title:** 대기실 레벨 디자인(에셋 배치)
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:**
 - **Current Skill:** start-work
@@ -13,7 +13,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Workspace
 
 - **Integration:** integration/waiting-room
-- **Branch:** feat/waiting-room-level-edit (인계 때 생성)
+- **Branch:** feat/waiting-room-level-edit
 
 ## Goal
 
