@@ -32,7 +32,10 @@ if ($LASTEXITCODE -ne 0) {
 } else {
     Add-Check OK 'git' "현재 '$branch', 기본 '$base'"
 }
-if (Test-ThirdPartyReady) {
+$leftovers = @(Get-ThirdPartyLeftovers)
+if ($leftovers.Count) {
+    Add-Check WARN 'third-party' "예전 외부 에셋 잔여 폴더: $($leftovers -join ', ') — Unity를 닫고 '시작해줘'(start-work)로 자동 정리"
+} elseif (Test-ThirdPartyReady) {
     Add-Check OK 'third-party' 'Assets/_ThirdParty 받음'
 } else {
     Add-Check FAIL 'third-party' "외부 에셋 submodule을 받지 않음 — git submodule update --init (권한 없으면 PM에게 CURTAINCALL_PaidAssets 읽기 권한 요청)"
