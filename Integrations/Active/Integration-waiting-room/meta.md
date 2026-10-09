@@ -6,7 +6,7 @@
 - **Base:** dev
 - **PM:** @MoHoDu
 - **Merge Time:** 미정 (PM이 공간 기획 확정 후 결정)
-- **Updated:** 2026-10-08
+- **Updated:** 2026-10-10
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
@@ -39,7 +39,6 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
-| `Assets/Resources/Packages/WaitingRoom/` | Task-20261008-024 | 대기실 레벨에 넣는 에셋 패키지 |
 | `Assets/Scenes/Levels/waiting_room.unity` | Task-20261008-024 | 대기실 맵 배치 씬은 Task 1개만 수정 |
 
 ## Decisions
