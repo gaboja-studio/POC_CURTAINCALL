@@ -80,8 +80,7 @@
 
 흐름은 한 방향입니다: 작업 브랜치 → `integration/*` → `dev` → `builds/*`. `dev`, `integration/*`, `builds/*`는 **PR로만** 합칩니다.
 
-- `fix/*`, `resource/*`는 새 기능이 아니라서 순서를 건너뛰고 `dev`나 특정 `integration/*`로 바로 PR할 수 있습니다. `builds/*`로 바로 가는 것은 안 됩니다.
-- `fix/*`는 보통 Task로 받지만 급한 문제는 Task 없이 바로 고칩니다. `resource/*`는 리소스 파일만 `Assets/Resources/`에 넣는 브랜치라 Task를 따로 만들지 않습니다. 코드·씬 수정이 필요하면 PM에게 Task를 요청합니다.
+- `fix/*`, `resource/*`는 새 기능이 아니라서 순서를 건너뛰고 `dev`나 특정 `integration/*`로 바로 PR할 수 있습니다. `builds/*`로 바로 가는 것은 안 됩니다. `fix/*`는 보통 Task로 받지만 급한 문제는 Task 없이 바로 고칩니다. `resource/*`는 리소스 파일만 `Assets/Resources/`에 넣는 브랜치라 Task를 따로 만들지 않습니다. 코드·씬 수정이 필요하면 PM에게 Task를 요청합니다.
 
 ## 6. 이럴 땐 이렇게
 
@@ -91,6 +90,7 @@
 | "충돌이 났어요" | 직접 고치지 말고 PM에게 알림 |
 | Unity에 빨간 오류 | "Console에 오류가 떠, 확인해줘" |
 | "GitHub 연결이 안 돼요" | 웹페이지로 직접 올리기 또는 재시도 중 선택 ([연결 방법](github-setup.md)) |
+| `Assets/_ThirdParty`가 비었거나 DOTween 오류 | PM에게 `CURTAINCALL_PaidAssets` 읽기 권한 요청 후 "시작해줘". 외부 에셋은 직접 넣지 말고 PM에게 요청 |
 | 크게 잘못된 것 같음 | 멈추고 PM에게 연락. 저장 기록으로 대부분 되돌릴 수 있습니다 |
 
 ## 더 보기
