@@ -31,7 +31,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261008-026 | feat | @RagSpirin | (인계 때 생성) | - | scaffolded |
+| Task-20261008-026 | feat | @RagSpirin | feat/escape-route-level-edit | - | assigned |
 
 ## 공용 파일 소유 표
 
