@@ -13,7 +13,7 @@
 - 소유 범위를 몰래 늘리지 않는다. 필요하면 PM에게 요청한다.
 - 코드가 참조한다고 해서 그 에셋을 수정해도 된다는 뜻은 아니다.
 - `ProjectSettings/`, `Packages/` 변경은 사람의 결정이 필요하다(`Harness/Core/Policies/human-decision.md`).
-- `Assets/_ThirdParty/`(외부 에셋 submodule)는 PM만 추가·수정한다. 작업자는 쓰기만 하고, 필요한 외부 에셋은 PM에게 요청한다.
+- `Assets/_ThirdParty/`(외부 에셋 submodule)의 추가·수정은 PM만 한다. 씬·프리팹에 가져다 배치·참조하는 것은 모든 작업자에게 허용한다(Task `setup.md`와 무관). 새 외부 에셋이 필요하면 PM에게 요청한다.
 
 ## 수정 방법
 
