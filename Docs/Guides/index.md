@@ -8,3 +8,4 @@
 - [github-setup.md](github-setup.md) — AI가 PR·이슈를 올릴 수 있게 GitHub를 처음 연결할 때
 - [pm-commands.md](pm-commands.md) — PM이 통합·Task 준비·마무리를 AI에게 요청할 때
 - [game-settings-guide.md](game-settings-guide.md) — 기획자가 게임 수치(세팅 파일)를 바꿀 때, 컨플루언스 공유 원본
+- [third-party-asset-guide.md](third-party-asset-guide.md) — 구매·다운로드한 외부 에셋을 private 서브모듈(`Assets/_ThirdParty`)에 넣을 때, 컨플루언스 공유 원본
