@@ -28,6 +28,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 - `Assets/Scenes/`
 - `ProjectSettings/`
 - `Packages/`
+- `Assets/_ThirdParty/` — 외부 에셋. 씬·프리팹에 가져다 배치·참조하는 것은 허용, 파일 수정·추가는 PM에게 요청
 
 ## 인계 전 체크 (PM)
 
