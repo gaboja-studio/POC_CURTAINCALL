@@ -11,6 +11,7 @@ Unity 에셋·기능 코드 작업 시 실제 경로와 Task 소유 범위를 �
 - `Assets/Scenes/SampleScene.unity` — 템플릿 씬. 공용 씬 수정은 파일 소유 배정 필요.
 - `Assets/Settings/` — URP 렌더 설정과 Volume Profile. 공용 에셋.
 - `Assets/InputSystem_Actions.inputactions` — 루트의 공용 입력 액션.
+- `Assets/_ThirdParty/` — 외부 에셋 private submodule(DOTween·Pro·DemiLib). PM만 수정(`Harness/Project/Decisions/third-party-assets.md`).
 - `Assets/Readme.asset`, `Assets/TutorialInfo/` — 템플릿 잔여물. 보존/정리 결정 전까지 게임 기능 작업 구역 아님.
 
 ## Task 작업 경로 (2026-09-30 폴더 생성, 콘텐츠 없음)

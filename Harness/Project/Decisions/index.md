@@ -16,4 +16,5 @@
 - [feature-with-network.md](feature-with-network.md) — 007 이후 기능 Task는 기능+동기화를 같이, 007 공개 기능 사용 가능, 009·010 축소. 기능 Task를 계획하거나 네트워크 코드를 다른 기능에서 쓸 때
 - [body-damage.md](body-damage.md) — 팔·다리 손실은 게임 전체 상태(완전히 죽기 전까지 묘기·재시작을 넘어 유지), 팔=상호작용·다리=이동 계열 패널티(크기는 묘기마다), 네 팔다리 모두 손실 = 사망, 잘린 팔다리 날아감, 두 다리 없으면 기어가기, 패널티는 콘텐츠별 교체 정책, 이후 돈으로 부품 수리. 부위 손실·패널티·수리를 다룰 때
 - [game-settings.md](game-settings.md) — 기획 조정값은 `Assets/Resources/Settings/GameSettings/` 한 폴더(게임 기본 1 + 묘기별 1 + 교체형 보상), 칸마다 한글 설명·단위, 플레이 중 반영. 수치를 만들거나 옮길 때
+- [third-party-assets.md](third-party-assets.md) — 외부 에셋은 무료·유료 구분 없이 private 레포를 `Assets/_ThirdParty` submodule로, 공개 레포엔 직접 만든 것만. 외부 에셋을 넣거나 옮길 때
 - [space-workspaces.md](space-workspaces.md) — 공간 4곳(대기실·공연장·탈출로·백스테이지)별 통합 브랜치·맵 씬·테스트 씬·스크립트 폴더·담당자, 공용은 Scripts/Systems/·Resources. 공간 작업 Task·통합을 만들거나 작업 구역을 정할 때

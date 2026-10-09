@@ -27,6 +27,7 @@ source: human (2026-09-29 팀 협업 방식 결정, 2026-10-02 깃허브 및 레
   - `fix/*`, `resource/*`는 신규 기능 개발이 아니므로 통합 순서를 지키지 않고 `dev` 또는 특정 `integration/*`로 바로 PR할 수 있다. `builds/*`로 바로 PR할 수 없는 것은 같다.
   - `resource/*`(예: `resource/character`)는 아트·에셋 관리자 등이 리소스만 넣는 브랜치다. 보통 `Assets/Resources/` 안에만 넣어 충돌이 거의 없으므로 Task를 만들지 않는다.
   - `fix/*`는 Task로 분리해 작업하는 것이 일반적이나, 급한 사안이면 Task 없이 바로 수정을 허용한다.
+- 2026-10-09 / PM(@MoHoDu) — `dev`에 들어온 공용 변경(예: 외부 에셋 submodule)은 `dev → integration/*` PR(Merge commit)로 각 통합 브랜치에 내려받는다.
 
 ## 이유
 
