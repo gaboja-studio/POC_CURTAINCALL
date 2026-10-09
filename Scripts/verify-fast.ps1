@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Lib/common.ps1')
 
 $failed = [System.Collections.Generic.List[string]]::new()
-foreach ($check in 'verify-structure.ps1', 'verify-knowledge.ps1', 'verify-context.ps1') {
+foreach ($check in 'verify-structure.ps1', 'verify-knowledge.ps1', 'verify-context.ps1', 'verify-third-party.ps1') {
     & (Join-Path $PSScriptRoot $check)
     if ($LASTEXITCODE -ne 0) { $failed.Add($check) }
 }

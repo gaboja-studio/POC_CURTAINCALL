@@ -1,6 +1,7 @@
 # .github/PULL_REQUEST_TEMPLATE.md를 채워 PR을 만든다.
 #   gh가 준비되어 있으면 바로 등록, 아니면(-Browser 포함) 내용이 채워진 GitHub 작성 페이지를 연다.
 #   브랜치 흐름: feat|refactor/* → integration/* → dev → builds/*
+#               dev → integration/* (dev에 들어온 공용 변경을 통합 브랜치로 내려받기, Merge commit)
 #               fix|resource/* → dev 또는 integration/*  (builds/* 직행 불가, tests/*는 제출 불가)
 # 채우는 값: 요약(-Summary), JIRA(Task setup.md), Issue 번호(-Issues), 검사 결과(Task handoff.md)
 [CmdletBinding()]
@@ -39,7 +40,7 @@ if ($task) {
 } else {
     if (-not $Base -and $head -match '^(fix|resource)/') { $Base = Get-BaseBranch }
     if (-not $Base -or -not $Title) { throw "현재 브랜치($head)에 대응하는 Task가 없음. -Base와 -Title을 직접 지정하세요." }
-    $kind = switch -Regex ($head) { '^integration/' { 'integration' } '^dev$' { 'build' } default { ($head -split '/')[0] } }
+    $kind = switch -Regex ($head) { '^integration/' { 'integration' } '^dev$' { if ($Base -like 'integration/*') { 'sync' } else { 'build' } } default { ($head -split '/')[0] } }
     $prTitle = "[$kind] $Title"
 }
 
@@ -47,7 +48,7 @@ $allowed = switch -Regex ($head) {
     '^(feat|refactor)/' { '^integration/.+' }
     '^(fix|resource)/' { '^(dev|integration/.+)$' }
     '^integration/' { '^dev$' }
-    '^dev$' { '^builds/.+' }
+    '^dev$' { '^(builds/.+|integration/.+)$' }
     default { $null }
 }
 if (-not $allowed) { throw "이 브랜치($head)는 PR을 만들 수 없음. tests/* 등은 합치지 않는 브랜치입니다." }
