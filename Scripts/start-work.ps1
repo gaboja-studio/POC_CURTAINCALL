@@ -33,6 +33,7 @@ if ($LASTEXITCODE -eq 0) {
     & git -C $RepoRoot pull --ff-only --quiet
     if ($LASTEXITCODE -ne 0) { throw '최신 내용을 자동으로 합치지 못했습니다. PM에게 알려 주세요.' }
 }
+Update-ThirdParty
 
 $task = Find-CurrentTask
 if (-not $task) { throw "브랜치 $branch 에 Task 폴더(Tasks/Active/$Id-*)가 없습니다. PM에게 알려 주세요." }

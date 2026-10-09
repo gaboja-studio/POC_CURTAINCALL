@@ -19,6 +19,7 @@
 | `Assets/Settings/` | PC/Mobile URP 렌더·파이프라인 에셋, Volume Profile | 여러 기능에 영향을 주는 공용 설정. 소유 Task와 사람 결정 없이 수정하지 않음 |
 | `Assets/InputSystem_Actions.inputactions` | 입력 액션 에셋 | 공용 입력 계약. 작업 폴더에 들어 있지 않으며 수정 시 공용 파일 배정 필요 |
 | `Assets/Readme.asset`, `Assets/TutorialInfo/` | 템플릿 잔여물(튜토리얼 이미지·Editor 스크립트 포함) | 게임 콘텐츠·기능 코드 구역으로 간주하지 않음. 보존/정리는 별도 결정 |
+| `Assets/_ThirdParty/` | private submodule(`CURTAINCALL_PaidAssets`). `Demigiant/`(DOTween·Pro·DemiLib) | **외부 에셋은 무료·유료 모두 여기에만.** PM만 추가·수정(`Harness/Project/Decisions/third-party-assets.md`) |
 | `Assets/Scripts/` | `Network/Session/`, `Player/`, `Tightrope/{Rope,Piggyback}/` 폴더만 있음(`.gitkeep`), 게임 코드 없음 | 기능별 Task 코드 위치. **Unity C# 코드는 모두 여기에만 둔다.** 실제 생성·배정 전에는 작업 공간이 아님 |
 
 위치 결정 근거: `Harness/Project/Decisions/asset-placement.md`.

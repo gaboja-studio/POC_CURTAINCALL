@@ -128,3 +128,9 @@ InitTestScene*.unity*
 # Unity가 열 때마다 바뀌는 튜토리얼 아이콘 (추적 제외)
 /Assets/TutorialInfo/Icons/URP.png
 /Assets/TutorialInfo/Icons/URP.png.meta
+
+# 외부(서드파티) 에셋은 private submodule(Assets/_ThirdParty)에만 둔다.
+# Asset Store에서 다시 import해 기본 경로에 생긴 사본이 공개 레포에 올라가지 않게 막는다.
+# 규칙: Harness/Project/Decisions/third-party-assets.md
+/[Aa]ssets/Plugins/Demigiant/
+/[Aa]ssets/Plugins/Demigiant.meta
