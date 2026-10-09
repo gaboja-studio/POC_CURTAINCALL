@@ -1,7 +1,7 @@
 ---
-summary: 팀 구성과 GitHub 계정, PM 계정(@MoHoDu)
+summary: 팀 구성과 GitHub 계정, PM 계정(@MoHoDu), 공간 담당 작업자 3명
 status: active
-updated: 2026-09-29
+updated: 2026-10-08
 source: human
 ---
 
@@ -16,10 +16,14 @@ source: human
 | 역할 | GitHub 계정 | 비고 |
 |---|---|---|
 | 개발 PM | `@MoHoDu` | PM 전용 영역 수정 권한, 병합 담당 |
-| 작업자 | TBD | 합류 시 PM이 추가 |
+| 작업자 | `@gyumin9048-ctrl` | 대기실·백스테이지 담당 (2026-10-08) |
+| 작업자 | `@lakuase2` | 공연장 담당 (2026-10-08) |
+| 작업자 | `@RagSpirin` | 탈출로 담당 (2026-10-08) |
 
 - 저장소: `gaboja-studio/POC_CURTAINCALL`
 - 역할별 권한: `Harness/Core/Policies/team-roles.md`
+- 공간별 브랜치·폴더: `Harness/Project/Decisions/space-workspaces.md`
+- 저장소 권한(2026-10-08): `@gyumin9048-ctrl`·`@lakuase2` write, `@RagSpirin` admin (PM 확인 필요)
 
 ## 확인 방법
 
