@@ -23,10 +23,12 @@
 ```
 feat/* · refactor/*  ──PR(Squash)──▶ integration/* ──PR(Merge commit)──▶ dev ──PR──▶ builds/*
 fix/* · resource/*   ──PR(Squash)──▶ dev 또는 integration/*
+dev                  ──PR(Merge commit)──▶ integration/*   (공용 변경 내려받기)
 ```
 
 - `feat/*`, `refactor/*`는 **항상** `integration/*`로만 제출한다. 작은 기능도 PM이 작은 integration을 만들어 받는다.
 - `fix/*`, `resource/*`는 새 기능 개발이 아니므로 통합 순서를 지키지 않고 `dev` 또는 특정 `integration/*`로 바로 PR할 수 있다.
+- `dev`에 먼저 들어간 공용 변경(fix·resource 등)이 통합 브랜치에도 필요하면 PM이 `dev → integration/*` PR을 열어 **Merge commit**으로 받는다. 이후 그 통합의 작업 브랜치는 GitHub **Update branch**로 받는다.
 - **어떤 작업 브랜치도 `builds/*`로 바로 PR하지 않는다.** `builds/*`는 `dev`에서만 받는다.
 - `dev`, `integration/*`, `builds/*`는 **PR로만** 바뀐다. 직접 push하지 않는다(브랜치 보호는 PM이 GitHub에서 설정).
   - 예외: PM은 `integration/*`에 준비 작업(통합 기록, Task 폴더, 테스트 씬·폴더)과 마무리 작업(Done 이동)을 직접 올린다. 브랜치 보호의 **우회(bypass) 목록에 PM 계정만** 넣는다. `dev`는 PM도 PR로만 반영한다.
@@ -76,4 +78,5 @@ fix/* · resource/*   ──PR(Squash)──▶ dev 또는 integration/*
 - 수정 전 `git status`로 기존 변경을 보존한다. 관련 없는 변경을 섞지 않는다.
 - 비밀값, `.env`, 개인 설정, 생성된 Unity 폴더(`Library/` 등)를 커밋하지 않는다.
 - 새 에셋의 `.meta`를 함께 커밋한다.
+- 외부(서드파티) 에셋은 공개 레포에 커밋하지 않고 `Assets/_ThirdParty` submodule(private 레포)에 둔다(`Harness/Project/Decisions/third-party-assets.md`).
 - 선행 Task가 소속 integration에 아직 병합되지 않았다면 체리픽으로 우회하지 말고 PM에게 알린다.

@@ -32,6 +32,11 @@ if ($LASTEXITCODE -ne 0) {
 } else {
     Add-Check OK 'git' "현재 '$branch', 기본 '$base'"
 }
+if (Test-ThirdPartyReady) {
+    Add-Check OK 'third-party' 'Assets/_ThirdParty 받음'
+} else {
+    Add-Check FAIL 'third-party' "외부 에셋 submodule을 받지 않음 — git submodule update --init (권한 없으면 PM에게 CURTAINCALL_PaidAssets 읽기 권한 요청)"
+}
 
 # 3. 작업 공간 (브랜치 종류별로 필요한 문서가 있는지)
 $allTasks = @(Get-AllTaskFolders)
@@ -54,7 +59,7 @@ switch -Regex ($branch) {
             Add-Check WARN 'workspace' "통합 기록 폴더가 없음: Integrations/Active/Integration-$($Matches[1])"
         }
     }
-    '^resource/' { Add-Check OK 'workspace' '리소스 브랜치(resource/*) — Task 없음, Assets/Resources/ 리소스만' }
+    '^resource/' { Add-Check OK 'workspace' '리소스 브랜치(resource/*) — Task 없음, Assets/Resources/ 리소스만(외부 에셋은 Assets/_ThirdParty submodule)' }
     '^tests/' { Add-Check OK 'workspace' '연습 브랜치(tests/*) — 합쳐지지 않음' }
     '^builds/' { Add-Check OK 'workspace' '빌드 브랜치 (PM)' }
     default {
