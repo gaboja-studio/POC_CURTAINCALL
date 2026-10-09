@@ -8,14 +8,14 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 이 Task와 관련된 JIRA 번호를 모두 적는다. PR의 "관련 JIRA 이슈" 칸에 자동으로 들어간다. 없으면 `없음`.
 
-- 관련 JIRA:
+- 관련 JIRA: 없음
 
 ## 작업 구역
 
 - 맵 배치 씬: `Assets/Scenes/Levels/main_stage.unity` (공용 파일, 아래 배정)
 - 테스트 씬: 없음 (맵 배치 씬에서 직접 배치)
 - 스크립트 폴더: 없음 (에셋 배치만, 코드 작성 없음)
-- 에셋 폴더: `Assets/Resources/Packages/MainStage/`
+- 에셋 폴더: 없음 (외부 에셋은 `Assets/_ThirdParty/`에서 맵 배치 씬으로 바로 가져다 배치)
 - Task 문서: 이 Task 폴더 (자동 포함)
 
 ## 배정된 공용 파일
@@ -29,13 +29,16 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 - `Assets/Scenes/`
 - `ProjectSettings/`
 - `Packages/`
+- `Assets/Scripts/`
+- `Assets/Resources/`
+- `Assets/_ThirdParty/` — 외부 에셋. 씬에 가져다 배치·참조하는 것은 허용, 파일 수정·추가는 PM에게 요청
 
 ## 인계 전 체크 (PM)
 
-- [ ] 관련 JIRA 번호를 모두 적었다
-- [ ] Unity에서 테스트 씬을 만들고 저장했다 (`.meta` 생성됨)
-- [ ] 스크립트·에셋 폴더를 만들었다 (빈 폴더에는 `.gitkeep`)
-- [ ] `plan.md`에 공동 테스트 항목을 합의해 적었다
+- [x] 관련 JIRA 번호를 모두 적었다
+- [x] Unity에서 테스트 씬을 만들고 저장했다 (`.meta` 생성됨) — 테스트 씬 없음, 맵 배치 씬 준비 완료(dev PR 43)
+- [x] 스크립트·에셋 폴더를 만들었다 (빈 폴더에는 `.gitkeep`) — 해당 없음
+- [x] `plan.md`에 공동 테스트 항목을 합의해 적었다
 
 체크가 끝나면 `assign-task.ps1`이 준비 내용을 올리고 작업 브랜치를 만든다.
 

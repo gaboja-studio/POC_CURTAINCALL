@@ -6,7 +6,7 @@
 - **Assignee:** @lakuase2
 - **Domain:**
 - **Current Skill:** start-work
-- **Updated:** 2026-10-08
+- **Updated:** 2026-10-10
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
@@ -17,7 +17,8 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Goal
 
-- 이 Task가 끝나면 공동 테스트에서 무엇을 확인할 수 있는지 1~2줄.
+- 공연장 맵 배치 씬(`Assets/Scenes/Levels/main_stage.unity`)을 Play하면 1인칭으로 공간 내부를 걸어 다니며, 외부 에셋(`Assets/_ThirdParty/`)으로 구성한 공간의 모습을 확인할 수 있다.
+- 에셋 배치만 한다. 기능(코드) 추가는 하지 않는다.
 
 ## Scope
 
