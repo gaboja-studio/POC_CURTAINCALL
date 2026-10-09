@@ -12,7 +12,7 @@
 
 ## 누가 하나
 
-- PM, 또는 PM이 맡긴 담당자. `CURTAINCALL_PaidAssets` **쓰기 권한**이 필요하다(팀원은 기본이 읽기 권한).
+- PM(담당자 확대는 검토 중). `CURTAINCALL_PaidAssets` **쓰기 권한**이 필요하다(팀원은 읽기 권한).
 - 에셋을 **구매한 Unity 계정**으로 로그인한 사람이 넣는다. 다른 팀원은 저장소로 받으므로 따로 살 필요가 없다(아래 "라이선스" 예외 확인).
 
 ## 준비물 (처음 한 번)
@@ -73,7 +73,8 @@
 1. GitHub Desktop, Current repository = `CURTAINCALL_PaidAssets`, branch = `main`.
 2. Changes에 새 에셋 파일이 모두 보이는지 확인(`.meta` 포함). **`_ThirdParty` 밖 파일은 여기 보이지 않는 것이 정상.**
 3. 아래 Summary에 `add: <에셋이름> <버전>` → **Commit to main** → **Push origin**.
-   - "Git LFS를 초기화할까요?" 창이 뜨면 **Initialize Git LFS**.
+   - 큰 파일(모델·이미지·소리·.dll)은 저장소 설정(`.gitattributes`)에 따라 **자동으로 LFS**로 올라간다. 따로 할 일은 없다. "Git LFS를 초기화할까요?" 창이 뜨면 **Initialize Git LFS**.
+   - 파일이 수천 개면 Commit·Push에 수 분~수십 분 걸린다. 창을 닫지 말고 기다린다.
 4. 몇 분 뒤 GitHub의 저장소 README 표에 에셋이 자동으로 추가된다(직접 고치지 않는다).
 
 ### 6. 게임 저장소에 표시 저장·올리기 (②)
