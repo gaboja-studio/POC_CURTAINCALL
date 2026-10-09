@@ -438,6 +438,44 @@ function Update-ThirdParty {
     if ($LASTEXITCODE -ne 0) {
         throw '외부 에셋(Assets/_ThirdParty)을 받지 못했습니다. gaboja-studio/CURTAINCALL_PaidAssets 읽기 권한이 있는지 PM에게 확인하세요.'
     }
+    $removed = @(Remove-ThirdPartyLeftovers -Path $Path)
+    if ($removed.Count) { Write-Output "예전 외부 에셋 잔여 폴더를 정리했습니다: $($removed -join ', ')" }
+}
+
+# 외부 에셋이 공개 레포에 있던 시절의 경로. git이 지운 뒤에도 무시 파일(.mdb 등)이 남으면 Unity가 .meta를 다시 만들고
+# submodule 쪽 파일과 GUID가 겹쳐 submodule이 '변경됨'으로 보인다. git이 관리하지 않는 경로일 때만 지운다.
+$script:ThirdPartyLegacyPaths = @('Assets/Plugins/Demigiant', 'Assets/Plugins')
+
+function Get-ThirdPartyLeftovers {
+    param([string]$Path = $script:RepoRoot)
+    foreach ($rel in $script:ThirdPartyLegacyPaths) {
+        $full = Join-Path $Path $rel
+        if (-not (Test-Path -LiteralPath $full)) { continue }
+        if (@(& git -C $Path ls-files -- $rel "$rel.meta").Count) { continue }
+        # Assets/Plugins는 Demigiant 말고 다른 내용이 남아 있으면 건드리지 않는다.
+        $others = @(Get-ChildItem -LiteralPath $full -Force | Where-Object { $_.Name -notin 'Demigiant', 'Demigiant.meta', '.DS_Store' })
+        if ($rel -eq 'Assets/Plugins' -and $others.Count) { continue }
+        $rel
+    }
+}
+
+function Remove-ThirdPartyLeftovers {
+    param([string]$Path = $script:RepoRoot)
+    $leftovers = @(Get-ThirdPartyLeftovers -Path $Path)
+    if (-not $leftovers.Count) { return }
+    foreach ($rel in $leftovers) {
+        foreach ($target in "$rel", "$rel.meta") {
+            $full = Join-Path $Path $target
+            if (Test-Path -LiteralPath $full) { Remove-Item -LiteralPath $full -Recurse -Force }
+        }
+        $rel
+    }
+    # 잔여 폴더와 GUID가 겹치는 동안 Unity가 바꿔 둔 submodule 쪽 .meta를 되돌린다(잔여 폴더가 있었을 때만).
+    $sub = Join-Path $Path 'Assets/_ThirdParty'
+    if (Test-ThirdPartyReady -Path $Path) {
+        $changed = @(& git -C $sub diff --name-only -- '*.meta')
+        if ($changed.Count) { & git -C $sub checkout -- $changed; "Assets/_ThirdParty .meta $($changed.Count)개 복구" }
+    }
 }
 
 function Test-ThirdPartyReady {
