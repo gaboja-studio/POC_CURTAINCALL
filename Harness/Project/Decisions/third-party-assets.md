@@ -22,7 +22,7 @@ Asset Store 등 외부에서 받은 에셋을 넣거나 옮길 때, 팀원이 `A
 
 ## 방법
 
-- 받기: `start-work`·`worktree.ps1 -Add`가 `git submodule update --init`을 자동 실행. 직접 clone은 `git clone --recurse-submodules`.
+- 받기: `start-work`·`worktree.ps1 -Add`가 `git submodule update --init`을 자동 실행. 직접 clone은 `git clone --recurse-submodules`. 이관 전 경로(`Assets/Plugins/Demigiant`)에 남은 무시 파일은 같은 단계에서 자동 정리(`doctor`가 경고). 디버그 심볼(`.mdb`·`.pdb`)은 private 레포에도 저장하지 않는다.
 - 새 외부 에셋: import 후 `.meta`와 함께 `Assets/_ThirdParty/<퍼블리셔>/<에셋>/`로 옮기고 → private 레포에서 커밋·push → 공개 레포에서 포인터 변경을 커밋. private 레포 README 에셋 표는 main push 때 Actions가 자동 갱신(비고는 에셋 폴더 `.note` 첫 줄).
 - 막기(`Scripts/verify-third-party.ps1`): `Assets/` 최상위 허용 목록 밖 폴더, 알려진 외부 에셋 경로, 라이브러리 파일(`.dll`·`.unitypackage` 등)이 공개 레포에 있으면 실패. 직접 만든 콘텐츠용 최상위 폴더가 새로 필요하면 PM이 허용 목록을 고친다.
   - 커밋 전 `verify-fast`, push 전 `.githooks/pre-push`(submodule 포인터가 private 레포 main에 있는지도 확인), PR의 `verify-third-party` 검사. 브랜치 룰셋에서 이 검사를 필수로 지정한다.
