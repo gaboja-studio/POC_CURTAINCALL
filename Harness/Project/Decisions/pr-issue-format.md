@@ -16,7 +16,7 @@ PR이나 이슈를 만들 때, `.github` 템플릿을 고칠 때, 통합(integra
 - 2026-09-29 / PM:
   - 기준 템플릿은 `.github/PULL_REQUEST_TEMPLATE.md`, `.github/ISSUE_TEMPLATE/*.yml`이다(GitHub가 이 경로만 인식). 스크립트가 실행할 때마다 템플릿을 읽으므로, 템플릿을 고치면 바로 반영된다.
   - PR 제목: `[종류] Task번호 한 줄 요약` — 예: `[feat] Task-20260929-001 커튼 열기`
-    - 통합 → dev: `[integration] 기능 묶음 이름`, dev → builds: `[build] 버전`
+    - 통합 → dev: `[integration] 기능 묶음 이름`, dev → builds: `[build] 버전`, dev → 통합: `[sync] 내려받는 변경`
   - 이슈 제목: `[BUG] 한 줄 요약`, `[QA] 한 줄 요약` (각 yml의 `title:`이 기준)
   - PR 본문 칸: 작업 내용 요약 / 관련 JIRA 이슈 / Issue 번호(`closed #번호`) / 검사 결과
   - JIRA 번호는 PM이 Task 준비 때 `setup.md`의 JIRA 칸에 모두 적는다. PR에 자동으로 들어간다.

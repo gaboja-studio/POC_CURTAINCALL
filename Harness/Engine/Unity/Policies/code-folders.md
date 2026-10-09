@@ -10,6 +10,7 @@
 | Task 테스트 씬 | `Assets/Scenes/Tests/<Feature>/` | PM |
 | 테스트 전용 프리팹 | `Assets/Scenes/Tests/<Feature>/Prefabs/` | 담당자 |
 | 공용 씬 | `Assets/Scenes/` (Tests 밖) | 공용 파일 소유 표로만 배정 |
+| 외부(서드파티) 에셋 | `Assets/_ThirdParty/` (private submodule) | PM (`Harness/Project/Decisions/third-party-assets.md`) |
 
 - C# 코드는 `Assets/Scripts/` 밖에 두지 않고, 씬은 `Assets/Scenes/` 밖에 두지 않는다(`Harness/Project/Decisions/asset-placement.md`).
 - `setup.md`에는 수정 금지로 `Assets/Scenes/`를 두고, 해당 Task의 `Assets/Scenes/Tests/<Feature>/`만 작업 구역으로 연다.

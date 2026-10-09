@@ -1,7 +1,7 @@
 ---
 summary: 원격 저장소, 기본 브랜치, 브랜치·worktree 명명
 status: active
-updated: 2026-09-30
+updated: 2026-10-09
 source: 2026-09-29 git remote -v 확인
 ---
 
@@ -20,10 +20,12 @@ source: 2026-09-29 git remote -v 확인
 - 라벨: `bug`(버그 제보), `qa`(QA 검증 요청) — 이슈 양식이 자동으로 붙인다
 - worktree 루트: `.env`의 `WORKTREE_ROOT`, 없으면 리포 상위 폴더의 `github-worktrees/POC_CURTAINCALL`
 - Git LFS·Unity 병합 설정: `.gitattributes`
+- 외부 에셋 submodule: `Assets/_ThirdParty` → `https://github.com/gaboja-studio/CURTAINCALL_PaidAssets.git` (private, 별도 읽기 권한 필요. `Decisions/third-party-assets.md`)
 
 ## 확인 방법
 
 ```
 git remote -v
 git symbolic-ref refs/remotes/origin/HEAD
+git submodule status
 ```

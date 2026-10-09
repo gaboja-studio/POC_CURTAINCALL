@@ -1,0 +1,36 @@
+---
+summary: 외부(서드파티) 에셋은 무료·유료 구분 없이 private 레포 CURTAINCALL_PaidAssets를 Assets/_ThirdParty submodule로 받아 쓴다. 공개 레포에는 직접 만든 것만
+status: active
+updated: 2026-10-09
+source: human (2026-10-09 PM @MoHoDu)
+---
+
+# 외부 에셋 보관
+
+## 언제 읽나
+
+Asset Store 등 외부에서 받은 에셋을 넣거나 옮길 때, 팀원이 `Assets/_ThirdParty`를 받지 못할 때, CI에서 Unity 컴파일을 돌릴 때.
+
+## 결정
+
+- 2026-10-09 / PM(@MoHoDu):
+  - 공개 레포(POC_CURTAINCALL)는 GitHub Actions·ruleset 때문에 public을 유지한다. 그래서 **외부에서 받은 에셋은 무료·유료 구분 없이** private 레포 `gaboja-studio/CURTAINCALL_PaidAssets`에 두고 `Assets/_ThirdParty` submodule(HTTPS)로 받는다. Asset Store 무료 에셋도 EULA상 공개 재배포가 안 된다.
+  - 공개 레포에는 직접 만든 코드·아트·씬·사운드, Unity 기본 리소스(`TextMesh Pro/`), 공개 라이선스 폰트(Pretendard, OFL), UPM 패키지(`Packages/manifest.json`)만 둔다.
+  - 외부 에셋 설정 파일(예: `Assets/Resources/DOTweenSettings.asset`)은 공개 레포에 남긴다.
+  - 첫 이관: DOTween·DOTween Pro·DemiLib(`Assets/Plugins/Demigiant` → `Assets/_ThirdParty/Demigiant`). Pro 예제는 삭제.
+  - 팀원 전원에게 private 레포 읽기 권한을 준다. 게임 코드가 DOTween을 쓰므로 없으면 컴파일이 깨진다.
+
+## 방법
+
+- 받기: `start-work`·`worktree.ps1 -Add`가 `git submodule update --init`을 자동 실행. 직접 clone은 `git clone --recurse-submodules`.
+- 새 외부 에셋: import 후 `.meta`와 함께 `Assets/_ThirdParty/`로 옮기고 → private 레포에서 커밋·push → 공개 레포에서 포인터 변경을 커밋. Asset Store 기본 경로는 `Scripts/verify-third-party.ps1`의 차단 목록과 `.gitignore`에 추가한다.
+- 막기: `verify-fast`(커밋 전·PR)가 `verify-third-party`로 차단 목록 경로를 검사한다.
+- CI에서 Unity 컴파일이 필요하면 `actions/checkout`에 `submodules: recursive`, `lfs: true`, private 레포 읽기 전용 토큰을 준다.
+
+## 이유
+
+유료 에셋을 공개 레포에 두면 라이선스 위반·유출 위험이 있고, 가격으로 나누면 팀원이 매번 판단해야 한다. 출처 하나로 나누면 규칙이 단순하다.
+
+## 바꾸려면
+
+`.gitmodules`, `.gitignore`, `Scripts/verify-third-party.ps1`, `Harness/Engine/Unity/Policies/code-folders.md`, `Docs/Guides/assets-folder-rules.md`를 함께 고친다.
