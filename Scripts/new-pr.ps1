@@ -136,7 +136,7 @@ if ($needPush -and -not $Push) { $problems.Add('내 브랜치의 최신 저장�
 
 $gh = Get-GhState
 if ($gh.State -eq 'Ready') {
-    $existing = (& $gh.Gh pr list --repo $repo.Slug --head $head --state open --json url --jq '.[0].url' 2>$null)
+    $existing = (& $gh.Gh pr list --repo $repo.Slug --head $head --base $Base --state open --json url --jq '.[0].url' 2>$null)
     if ($existing) { $problems.Add("이미 열린 PR이 있음: $existing") }
 }
 
