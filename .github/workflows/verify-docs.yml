@@ -35,6 +35,20 @@ jobs:
         shell: pwsh
         run: ./Scripts/verify-scope.ps1 -Branch "${{ github.head_ref }}" -Base "origin/${{ github.base_ref }}" -Actor "${{ github.actor }}"
 
+  verify-third-party:
+    # 모든 PR: 외부 에셋이 Assets/_ThirdParty(private submodule) 밖에 있거나, submodule 포인터가 private 레포에 없으면 실패.
+    # private 레포 확인에는 Secret THIRD_PARTY_TOKEN(CURTAINCALL_PaidAssets Contents: Read-only)이 필요하다. 없으면 경로 검사만 한다.
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check third-party assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.THIRD_PARTY_TOKEN }}
+        run: ./Scripts/verify-third-party.ps1 -CheckSubmodule
+
   verify-commits:
     # 모든 PR: 커밋 작성자·공동 작성자에 AI 이름(Claude 등)이 있으면 실패. 커밋은 팀원 GitHub 계정으로만.
     runs-on: ubuntu-latest
