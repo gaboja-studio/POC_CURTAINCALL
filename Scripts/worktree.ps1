@@ -20,6 +20,7 @@ if ($Add) {
     New-Item -ItemType Directory -Path $root -Force | Out-Null
     if ($local) { & git -C $RepoRoot worktree add $path $Add } else { & git -C $RepoRoot worktree add --track -b $Add $path "origin/$Add" }
     if ($LASTEXITCODE -ne 0) { throw 'git worktree add 실패' }
+    Update-ThirdParty -Path $path
     Write-Output "추가: $path"
     Write-Output "Unity로 열기: unity open `"$path`" (Library는 worktree끼리 공유하지 않음)"
     exit 0

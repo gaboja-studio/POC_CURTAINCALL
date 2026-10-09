@@ -428,3 +428,21 @@ function Assert-CommitIdentity {
         throw "커밋 작성자($name <$email>)가 GitHub 계정(@$($identity.Login))과 다르거나 커밋 검사가 꺼져 있습니다. pwsh -File Scripts/setup-gh.ps1 을 실행하세요."
     }
 }
+
+# 외부 에셋 submodule(Assets/_ThirdParty)을 받는다. private 레포라 권한이 없으면 실패한다(Decisions/third-party-assets.md).
+function Update-ThirdParty {
+    param([string]$Path = $script:RepoRoot)
+    if (-not (Test-Path -LiteralPath (Join-Path $Path '.gitmodules'))) { return }
+    & git -C $Path config submodule.recurse true
+    & git -C $Path submodule update --init --recursive --quiet
+    if ($LASTEXITCODE -ne 0) {
+        throw '외부 에셋(Assets/_ThirdParty)을 받지 못했습니다. gaboja-studio/CURTAINCALL_PaidAssets 읽기 권한이 있는지 PM에게 확인하세요.'
+    }
+}
+
+function Test-ThirdPartyReady {
+    param([string]$Path = $script:RepoRoot)
+    if (-not (Test-Path -LiteralPath (Join-Path $Path '.gitmodules'))) { return $true }
+    return [bool](Get-ChildItem -LiteralPath (Join-Path $Path 'Assets/_ThirdParty') -Force -ErrorAction SilentlyContinue |
+        Where-Object Name -ne '.git' | Select-Object -First 1)
+}
