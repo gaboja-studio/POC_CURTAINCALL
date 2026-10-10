@@ -1,0 +1,11 @@
+{
+  "extraKnownMarketplaces": {
+    "curtaincall": {
+      "source": { "source": "github", "repo": "gaboja-studio/POC_CURTAINCALL" },
+      "autoUpdate": true
+    }
+  },
+  "enabledPlugins": {
+    "curtaincall-panel@curtaincall": true
+  }
+}
