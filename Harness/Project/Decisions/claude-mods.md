@@ -1,7 +1,7 @@
 ---
 summary: 팀 공용 Claude Code 모드는 저장소 마켓플레이스(curtaincall)로 배포, 첫 모드는 진행 패널(todo 색 5단계·저장/제출/진행/합치자 버튼·담당자만 활성)
 status: active
-updated: 2026-10-10
+updated: 2026-10-11
 source: human
 ---
 
@@ -15,6 +15,7 @@ source: human
 
 - 2026-10-10 / 결정자: @MoHoDu(PM)
 - **배포**: 이 저장소가 마켓플레이스다. 목록은 `.claude-plugin/marketplace.json`(이름 `curtaincall`), 모드 본체는 `Harness/Mods/<모드>/`에 둔다. 저장소 `.claude/settings.json`의 `extraKnownMarketplaces`·`enabledPlugins`로 팀 전원에게 켠다. 개인은 `.claude/settings.local.json`에 `"enabledPlugins": { "<모드>@curtaincall": false }`로 끈다.
+- **첫 설치**: `enabledPlugins`는 켜기만 하고 설치는 하지 않는다. 저장소 신뢰 때 설치 안내가 안 떴으면 모드가 `/plugin`·`claude plugin list`에 보이지 않는다. 이때 `/plugin`의 `curtaincall` 마켓플레이스에서 설치하거나 `claude plugin install <모드>@curtaincall --scope project`를 실행하고 Claude Code를 재시작한다. 이 명령은 `.claude/settings.json` 서식만 바꾸므로(내용 같음) 그 변경은 되돌린다.
 - **선택 모드**: 필수가 아닌 모드는 `marketplace.json`에만 올리고 `enabledPlugins`에는 넣지 않는다. 원하는 사람이 `/plugin`에서 설치한다.
 - **업데이트**: 모드를 고치면 그 모드 `plugin.json`의 `version`을 올린다. 올리지 않으면 팀원에게 전달되지 않는다. 받는 쪽은 자동 업데이트(설정에서 켬) 또는 `/plugin marketplace update curtaincall`. 배포는 기본 브랜치 `dev`에 병합된 뒤부터다.
 - **진행 패널** `curtaincall-panel` (`Harness/Mods/Panel/`): 채팅창 위에 브랜치·워크트리·gh 계정과 현재 브랜치 Task의 todo를 보인다. Task가 여러 개면 탭으로 고른다.
