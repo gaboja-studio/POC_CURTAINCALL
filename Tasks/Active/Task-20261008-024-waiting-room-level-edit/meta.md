@@ -2,11 +2,11 @@
 
 - **Title:** 대기실 레벨 디자인(에셋 배치)
 - **Type:** feat
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:**
-- **Current Skill:** start-work
-- **Updated:** 2026-10-10
+- **Current Skill:** implement
+- **Updated:** 2026-10-12
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
