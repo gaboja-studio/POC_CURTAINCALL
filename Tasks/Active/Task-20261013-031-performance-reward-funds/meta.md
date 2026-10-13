@@ -2,22 +2,23 @@
 
 - **Title:** 공연 결과 및 보상, 공동 자금 연결
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`)
 - **Current Skill:** start-work
-- **Updated:** 2026-10-13
+- **Updated:** 2026-10-14
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
 ## Workspace
 
 - **Integration:** integration/common-game-systems
-- **Branch:** feat/performance-reward-funds (생성됨, Unity 준비 후 인계)
+- **Branch:** feat/performance-reward-funds
 
 ## Goal
 
-- 공연이 끝나면 결과에 따라 보상이 정해지고, 그 보상이 팀 공동 자금에 쌓이는 흐름을 테스트 씬에서 확인할 수 있다.
+- 모든 묘기 공통 공연 결과(성공/실패·사망자·잃은 팔다리 변화·플레이어별 정산액)가 나오고, 생존 2명 미만이면 실패한다. 팀 호응 게이지(플레이어별 구간, 사망 시 구간 제거)가 성공 시 공동 자금으로 들어가고 실패 시 0이 된다.
+- 공동 자금은 팀 공용 잔액 하나(호스트 확정·모두 같은 값)이고 사용 내역(장부)이 남는다. 일차가 바뀌어도 유지되고 세대 교체 때 초기화된다.
 
 ## Scope
 
@@ -26,5 +27,5 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
-- Open: 보상액·호응 산정 방식, 공동 자금 사용처(구매)와 저장 시점은 사람 결정. 기존 `RewardTable`·플레이 기록(Telemetry)을 고쳐야 하면 공용 파일 배정 필요
-- Decided: 공연 결과→보상→공동 자금 흐름만 다루고, 상점·구매 UI는 범위 밖. 선행: CC-107, CC-108(런 진행), CC-109(생존 상태)
+- Open: 환호·야유 행동별 증감·생존 보너스·절단 보너스 수치(보상 시스템 문서 전까지 임시값), 결과 형식은 2단계 시작 전 028·030·035와 약속
+- Decided: 2026-10-14 PM: 생존 2명 미만 = 묘기 공통 실패(개발자 모드 034가 예외), 공동 자금은 팀 공용 잔액. 상점·구매 UI는 범위 밖. 선행: 029, 033(결과 명부 이전), 028 세팅 틀. 통합 계획 2B
