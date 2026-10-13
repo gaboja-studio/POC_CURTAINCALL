@@ -7,7 +7,7 @@
 - 단계: 구현·검사 완료, 저장·제출 전
 - 동작하는 것: `verify-unity.ps1` 테스트 단계를 열린 에디터의 Pipeline `run_tests`(비동기)+`test_status`로 실행. EditMode·PlayMode 모두 `NO_PROJECT_TESTS`, 임시 실패 테스트로 `total 2, failed 1`·exit 1 확인 후 삭제. `Get-SetupAreas`가 `Scripts/`·`Harness/` 경로 인식. 함정 문서·팀 안내 갱신
 - 막힌 것: 없음
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/52
 
 ## 다음 할 일
 
