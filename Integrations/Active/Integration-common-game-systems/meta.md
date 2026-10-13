@@ -25,7 +25,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261013-032 | feat | @MoHoDu | feat/space-integration-check | - | scaffolded |
 | Task-20261014-033 | refactor | @MoHoDu | refactor/common-code-move | - | assigned |
 | Task-20261014-034 | feat | @MoHoDu | feat/dev-mode | - | assigned |
-| Task-20261014-035 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | - | assigned |
 
 ## 공용 파일 소유 표
 
