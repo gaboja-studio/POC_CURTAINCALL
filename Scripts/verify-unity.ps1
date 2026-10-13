@@ -19,6 +19,8 @@ $Commands = @{
     OpenScenes      = 'list_open_scenes'
     Recompile       = 'recompile'
     RecompileStatus = 'recompile_status'
+    RunTests        = 'run_tests'
+    TestStatus      = 'test_status'
 }
 
 $project = (Resolve-Path -LiteralPath $ProjectPath).Path
@@ -28,9 +30,9 @@ $reportDir = Join-Path $project '.harness' 'local'
 New-Item -ItemType Directory -Path $reportDir -Force | Out-Null
 
 function Invoke-EditorCommand {
-    param([Parameter(Mandatory)][string]$Name, [int]$TimeoutSeconds = 30)
-    $r = Invoke-NativeWithTimeout -FilePath $unity -TimeoutSeconds ($TimeoutSeconds + 5) -Arguments @(
-        'command', $Name, '--project-path', $project, '--timeout', "$TimeoutSeconds", '--json', '--no-banner')
+    param([Parameter(Mandatory)][string]$Name, [int]$TimeoutSeconds = 30, [string[]]$Arguments = @())
+    $r = Invoke-NativeWithTimeout -FilePath $unity -TimeoutSeconds ($TimeoutSeconds + 5) -Arguments (@(
+        'command', $Name) + $Arguments + @('--project-path', $project, '--timeout', "$TimeoutSeconds", '--json', '--no-banner'))
     if ($r.TimedOut) { throw "TIMEOUT: unity command $Name" }
     $json = ConvertFrom-UnityJson $r.StdOut
     if (-not $json) { throw "PARSE_FAILED: unity command $Name 출력: $($r.StdOut)$($r.StdErr)" }
@@ -101,29 +103,42 @@ if ($Compile) {
     Write-Output 'Compile: SKIPPED'
 }
 
-# 4) 테스트
+# 4) 테스트 — 열린 에디터 안에서 실행한다. batch `unity test`는 같은 프로젝트를 연 에디터가 있으면 거부된다
+#    (Harness/Engine/Unity/Pitfalls/unity-test-editor-open.md). PlayMode는 도메인 리로드 때문에 동기 실행이 안 되므로
+#    두 모드 모두 비동기로 시작하고 상태 파일이 completed가 될 때까지 기다린다.
 if ($RunTests) {
-    $xml = Join-Path $reportDir "test-results-$($Mode.ToLower()).xml"
-    Remove-Item -LiteralPath $xml -ErrorAction SilentlyContinue
-    $testArgs = @('test', $project, '--mode', $Mode, '--output', $xml, '--no-banner')
+    $report = Join-Path $reportDir "test-results-$($Mode.ToLower()).json"
+    Remove-Item -LiteralPath $report -ErrorAction SilentlyContinue
+    # 이전 실행의 결과를 새 결과로 읽지 않게 상태 파일을 먼저 지운다
+    $statusFile = Join-Path $project 'Temp' 'pipeline_test_status.json'
+    Remove-Item -LiteralPath $statusFile -ErrorAction SilentlyContinue
+    $testArgs = @('--mode', $Mode, '--async_tests', 'true')
     if ($Filter) { $testArgs += @('--filter', $Filter) }
-    $r = Invoke-NativeWithTimeout -FilePath $unity -Arguments $testArgs -TimeoutSeconds 900
-    if ($r.TimedOut) { throw 'TIMEOUT: 테스트가 900초 안에 끝나지 않음' }
-    if (-not (Test-Path -LiteralPath $xml)) {
-        Write-Output $r.StdOut
-        Write-Output $r.StdErr
-        throw "TEST_RUN_FAILED: 결과 파일이 생성되지 않음 (exit $($r.ExitCode))"
+    $started = Invoke-EditorCommand $Commands.RunTests -Arguments $testArgs -TimeoutSeconds 60
+    if ($started.success -eq $false) { throw "TEST_RUN_FAILED: $($started.error ?? $started.message)" }
+    $deadline = [DateTime]::UtcNow.AddSeconds(900)
+    $done = $null
+    while ([DateTime]::UtcNow -lt $deadline) {
+        Start-Sleep -Seconds 2
+        try {
+            $s = Invoke-EditorCommand $Commands.TestStatus
+            if ($s.status -eq 'completed') { $done = $s; break }
+            if ($s.status -in 'failed', 'error', 'aborted') { throw "TEST_RUN_FAILED: $($s.status) $($s.message)" }
+        } catch {
+            # PlayMode 진입·종료 때 도메인 리로드로 연결이 잠깐 끊긴다. 상태 확인을 계속한다.
+            if ($_.Exception.Message -like 'COMMAND_MISSING*' -or $_.Exception.Message -like 'TEST_RUN_FAILED*') { throw }
+        }
     }
-    [xml]$report = Get-Content -LiteralPath $xml -Raw
-    $run = $report.'test-run'
-    $total = [int]$run.total
+    if (-not $done) { throw 'TIMEOUT: 테스트가 900초 안에 끝나지 않음' }
+    $done | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $report -Encoding utf8NoBOM
+    $sum = $done.summary
+    $total = [int]$sum.total
     if ($total -eq 0) {
         Write-Output "Tests($Mode): NO_PROJECT_TESTS"
     } else {
-        Write-Output "Tests($Mode): total $total, passed $($run.passed), failed $($run.failed), skipped $($run.skipped) → $xml"
-        if ([int]$run.failed -gt 0 -or [int]$run.passed -ne $total) { exit 1 }
+        Write-Output "Tests($Mode): total $total, passed $($sum.passed), failed $($sum.failed), skipped $($sum.skipped) → $report"
+        if ([int]$sum.failed -gt 0 -or ([int]$sum.passed + [int]$sum.skipped) -ne $total) { exit 1 }
     }
-    if ($r.ExitCode -ne 0) { throw "TEST_RUN_FAILED: Unity 테스트 명령 종료 코드 $($r.ExitCode)" }
 } else {
     Write-Output 'Tests: SKIPPED'
 }
