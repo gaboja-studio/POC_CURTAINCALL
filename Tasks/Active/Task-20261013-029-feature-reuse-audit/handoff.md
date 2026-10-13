@@ -7,7 +7,7 @@
 - 단계: 최신 기획(Confluence 게임 흐름·부상·장소·조작, 2026-10-13) 반영 재조사 완료, 검사 전
 - 동작하는 것: `Docs/Domains/common-game-systems.md` 재작성(재사용 목록 4묶음, 1차 Open → 기획 답 매칭 8건, 남은 판단 7건). 하네스 갱신: Facts game-flow·run-state(신규)·overview·unity-project·team, Decisions injury-rules(신규)·control-keys(신규), body-damage·tightrope-course-rules에 대체 표시, space-workspaces 하위 구역
 - 막힌 것: 없음
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/51
 
 ## 다음 할 일
 
