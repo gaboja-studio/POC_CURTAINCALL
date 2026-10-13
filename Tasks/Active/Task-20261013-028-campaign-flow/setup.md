@@ -21,7 +21,8 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 통합 기록(Integration meta)의 공용 파일 소유 표에서 이 Task에 배정된 것만 적는다.
 
-- 없음
+- `Assets/Scripts/Systems/Settings/` — 세팅 5묶음 틀(새 세팅 클래스 포함)과 공통 값 칸 추가. 1단계 소유, 2단계는 PM이 순서 배정
+- `Assets/Resources/Settings/GameSettings/` — 위 세팅 에셋
 
 ## 수정 금지
 
@@ -33,8 +34,8 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 ## 인계 전 체크 (PM)
 
 - [x] 관련 JIRA 번호를 모두 적었다 (CC-108)
-- [ ] Unity에서 테스트 씬을 만들고 저장했다 (`.meta` 생성됨)
-- [ ] 스크립트 폴더를 만들었다 (`.meta` 생성됨)
+- [x] Unity에서 테스트 씬을 만들고 저장했다 (`.meta` 생성됨)
+- [x] 스크립트 폴더를 만들었다 (`.meta` 생성됨)
 - [x] `plan.md`에 제안 공동 테스트 항목과 미확정 연결 범위를 기록했다
 
 체크가 끝나면 `assign-task.ps1`이 준비 내용을 올리고 작업 브랜치를 만든다.

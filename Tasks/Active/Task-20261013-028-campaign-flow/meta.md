@@ -1,24 +1,24 @@
 # Task-20261013-028
 
-- **Title:** 캠페인 진행 관리
+- **Title:** 런 진행 관리와 시간 흐름
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
-- **Domain:** 캠페인 진행 관리 (신규 영역; 코드 확정 후 Domain Map 추가)
+- **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`) — 런 진행 (코드 확정 후 Domain Map 추가)
 - **Current Skill:** start-work
-- **Updated:** 2026-10-13
+- **Updated:** 2026-10-14
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
 ## Workspace
 
 - **Integration:** integration/common-game-systems
-- **Branch:** feat/campaign-flow (생성됨, Unity 준비 후 인계)
+- **Branch:** feat/campaign-flow
 
 ## Goal
 
-- 새 런을 시작하면 세대 1·Day 1·첫 공연 단계로 시작하고, 확정된 하루 흐름에 따라 공연·자유시간·밤·다음 Day 상태로 이동한다.
-- 설정된 하루 공연 수와 마지막 Day 조건에 따른 진행 종료/다음 세대 시작을 상태 전환으로 확인할 수 있다.
+- 새 런을 시작하면 세대 1·1일차로 시작하고, 기획된 하루 흐름(1일차: 공연 → 쉬는 시간(가이드) → 공연 → 밤 정비 / 2·3일차: 아침 쉬는 시간 → 공연 → 쉬는 시간 → 공연 → 밤 정비)과 4일차 아침 쉬는 시간 종료(기한 초과) → 런 실패 → 세대 교체가 상태 전환으로 확인된다.
+- 쉬는 시간 타이머가 세팅의 A/B 방식(기본 B)대로 시작하고, 밤 정비는 전원 준비 완료로 끝난다. 세팅이 공통·묘기별·대기실·탐색·탈출로 5묶음으로 나뉘고 정해진 공통 값이 들어 있다.
 
 ## Scope
 
@@ -27,5 +27,5 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
-- Open: 밤 정산 및 저장, 공간 이동·타이머·게임오버 원인과의 연결은 별도 결정/연결 Task로 분리
-- Decided: 이번 Task는 캠페인 세대·Day·단계 상태와 전환 규칙만 담당하며, 공간 내부 기능·보상·기물·세이브 구현은 포함하지 않음
+- Open: 공연 종료·장소 진입 같은 시간대 전환 신호를 받는 형식(031·035·032와 2단계 시작 전 약속)
+- Decided: 2026-10-14 PM: 쉬는 시간 B안 기본·A/B 세팅 전환, 세팅 5묶음, 최소 인원 2명, 게임 시작 후 재접속 불가(로비 허용) 확인, 기물 소지 2/1/+2 공통 값(run-rules.md, game-settings.md). 공간 내부 기능·보상·기물 구매·장소 전환은 포함하지 않는다. 통합 계획 1A
