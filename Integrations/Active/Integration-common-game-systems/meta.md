@@ -26,6 +26,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261014-033 | refactor | @MoHoDu | refactor/common-code-move | - | assigned |
 | Task-20261014-034 | feat | @MoHoDu | feat/dev-mode | - | assigned |
 | Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | - | assigned |
+| Task-20261014-036 | fix | @MoHoDu | (인계 때 생성) | - | scaffolded |
 
 ## 공용 파일 소유 표
 
