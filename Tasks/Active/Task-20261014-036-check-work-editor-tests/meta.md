@@ -2,7 +2,7 @@
 
 - **Title:** 에디터가 열린 상태에서 검사 스크립트 테스트 단계 실행
 - **Type:** fix
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
 - **Domain:** 하네스 검증 도구 (`Harness/Core/Policies/verification-ladder.md`)
 - **Current Skill:** start-work
@@ -13,7 +13,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Workspace
 
 - **Integration:** integration/common-game-systems
-- **Branch:** fix/check-work-editor-tests (인계 때 생성)
+- **Branch:** fix/check-work-editor-tests
 
 ## Goal
 
