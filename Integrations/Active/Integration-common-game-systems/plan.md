@@ -20,6 +20,7 @@
 ```
 0단계  029 기존 기능 조사 ← 지금. 병합 후 아래 Task plan을 이 문서 기준으로 갱신해 인계
 1단계  A: 028 런 진행 + 세팅 5묶음 틀        B: [신규] 공통 폴더 이전 (짧음, 공연장 협의)
+       C: 036 검사 스크립트 테스트 단계 수정 (하네스, 메인 폴더에서 진행 — 모든 Task의 "검사해줘"가 쓰므로 먼저)
        ★ 합치기 ①  세팅 틀·공용 코드 위치 확정 (2단계 Task들이 모두 이 위에서 시작)
 2단계  A: 030 부상·생존   B: 031 공연 결과·공동 자금   C: [신규] 더미 공간   D: [신규] 개발자 모드
        ★ 합치기 ②  각 테스트 씬에서 기능별 확인
@@ -39,6 +40,7 @@
 | 0 | 029 기존 기능 조사 | CC-107 | 재사용 목록·기획 반영·이 계획 | 문서만 |
 | 1A | 028 런 진행 | CC-108 | 세대·일차·시간대(공연→쉬는 시간→밤) 전환, 쉬는 시간 타이머(A/B), 전원 준비 완료, 기한 초과 → 런 실패 → 세대 교체. 세팅 5묶음 클래스·에셋을 만들고 이미 정해진 공통 값(타이머 A/B, 기물 개수 2/1/+2, 최소 인원 2, 일수·공연 수·쉬는 시간 길이)을 넣는다 | `Systems/Campaign/`, `Tests/Systems/Campaign/` + 공용: 세팅 |
 | 1B | 공통 폴더 이전 (refactor/common-code-move) | CC-117 | `MainStage/Tightrope/Damage/`의 `BodyDamageEffects`·`BodyPenaltyPolicy`·`LimbDismemberment`·`ModelLimbs`, `Results/`의 명부·확정 결과 공통부를 `Systems/`로 이동. **동작 변경 없음**, `.meta`째 이동, 외줄 테스트 씬 그대로 동작 확인 | 공용: 위 파일 + 받는 쪽 `Systems/` 폴더 |
+| 1C | 036 검사 스크립트 테스트 단계 (fix/check-work-editor-tests) | 발급 대기 | 에디터가 열린 상태에서 테스트를 Pipeline `run_tests`로 실행, 테스트 0개는 `NO_PROJECT_TESTS`, 하네스 Task 작업 구역 경로 인식 | `Scripts/verify-unity.ps1`, `Scripts/check-work.ps1`, `Scripts/Lib/common.ps1` |
 | 2A | 030 부상·생존 | CC-109 | 고정 절단 순서 통일, 외팔 상태 설정, 역순 신체 복구, 시간대 시작 때 사망자 외팔 부활, 장소별 사망/리타이어 규칙, 점프 높이 배율, 탐색 중 부상 패널티 정책(더미값), 기물 소지 칸 수 계산 | `Systems/Survival/`, `Tests/Systems/Survival/` + 공용: 플레이어 상태·몸 상태·이동 |
 | 2B | 031 공연 결과·공동 자금 | CC-110 | 묘기 공통 공연 결과(성공/실패·사망자·부상 변화·정산액, 생존 2명 미만 실패), 팀 호응 게이지(플레이어별 구간·사망 시 제거), 공동 자금·장부(호스트 확정), 보상 규칙 파일 구현(임시값) | `Systems/Reward/`, `Tests/Systems/Reward/` + 공용: 결과 명부(이전 후) |
 | 2C | 더미 공간 (feat/dummy-spaces) | CC-119 | 더미 묘기(도착·사망·절단 버튼), 더미 대기실(로비·구매·의료 복구·준비 완료), 더미 탐색(백스테이지·안전지대·추격 시뮬), 더미 탈출로(도착·리타이어). 대기실·탐색·탈출로 세팅 파일 값 연결 | `Systems/DummySpaces/`, `Tests/Systems/DummySpaces/` + 공용: 대기실·탐색·탈출로 세팅 |
