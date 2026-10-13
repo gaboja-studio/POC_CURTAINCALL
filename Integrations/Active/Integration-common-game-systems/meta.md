@@ -5,19 +5,20 @@
 - **Branch:** integration/common-game-systems
 - **Base:** dev
 - **PM:** @MoHoDu
-- **Merge Time:**
+- **Merge Time:** 미정 (첫 Task 완료 후 결정)
 - **Updated:** 2026-10-13
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
 ## 목표
 
-- 이 기능 묶음이 끝나면 dev에서 무엇을 할 수 있는지 1~2줄.
-
+- 날짜별 공연·쉬는 시간·밤의 진행을 관리하고, 캠페인 상태가 공간 전환 후에도 이어지는 공통 시스템을 준비한다.
 ## Tasks
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
+| Task-20261013-028 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261013-029 | feat | @MoHoDu | feat/feature-reuse-audit | - | assigned |
 
 ## 공용 파일 소유 표
 
