@@ -255,9 +255,9 @@ function Get-UsedTaskNumbers {
 }
 
 function Get-SetupAreas {
-    # setup.md의 백틱 경로: Allowed(작업 구역 + 배정된 공용 파일), Forbidden(수정 금지)
+    # setup.md의 백틱 경로: Allowed(작업 구역 + 배정된 공용 파일), Forbidden(수정 금지). Scripts/·Harness/는 하네스 Task용(PM 전용 경로 검사는 따로 한다)
     param([Parameter(Mandatory)][string]$SetupPath)
-    $pick = { param($text) @([regex]::Matches("$text", '`([^`]+)`') | ForEach-Object { $_.Groups[1].Value.Trim() } | Where-Object { $_ -match '^(Assets|ProjectSettings|Packages|Docs)/' }) }
+    $pick = { param($text) @([regex]::Matches("$text", '`([^`]+)`') | ForEach-Object { $_.Groups[1].Value.Trim() } | Where-Object { $_ -match '^(Assets|ProjectSettings|Packages|Docs|Scripts|Harness)/' }) }
     return [pscustomobject]@{
         Allowed = @(& $pick (Get-MarkdownSection -Path $SetupPath -Heading '작업 구역')) + @(& $pick (Get-MarkdownSection -Path $SetupPath -Heading '배정된 공용 파일'))
         Forbidden = @(& $pick (Get-MarkdownSection -Path $SetupPath -Heading '수정 금지'))

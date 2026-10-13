@@ -4,14 +4,14 @@
 
 ## 지금 상태
 
-- 단계:
-- 동작하는 것:
-- 막힌 것:
+- 단계: 구현·검사 완료, 저장·제출 전
+- 동작하는 것: `verify-unity.ps1` 테스트 단계를 열린 에디터의 Pipeline `run_tests`(비동기)+`test_status`로 실행. EditMode·PlayMode 모두 `NO_PROJECT_TESTS`, 임시 실패 테스트로 `total 2, failed 1`·exit 1 확인 후 삭제. `Get-SetupAreas`가 `Scripts/`·`Harness/` 경로 인식. 함정 문서·팀 안내 갱신
+- 막힌 것: 없음
 - PR: 없음
 
 ## 다음 할 일
 
-1.
+1. "저장해줘" → "제출해줘"(`integration/common-game-systems`)
 
 ## PM이 확인할 것
 
@@ -21,9 +21,9 @@
 
 ## Verification
 
-- 구역 검사: 미실행
-- 1 문서/규칙: 미실행
-- 2 컴파일: 미실행
-- 3 테스트: 미실행
-- 4 실행 로그: 미실행
+- 구역 검사: PASS (10-14)
+- 1 문서/규칙: PASS (10-14)
+- 2 컴파일: PASS (10-14)
+- 3 테스트: NO_PROJECT_TESTS (EditMode)
+- 4 실행 로그: verify-unity -RunTests EditMode·PlayMode → NO_PROJECT_TESTS(exit 0), 임시 실패 테스트 EditMode → total 2, passed 1, failed 1(exit 1), check-work 해석 코드가 FAIL로 읽는 것 확인(10-14)
 - 5 공동 테스트: 미요청
