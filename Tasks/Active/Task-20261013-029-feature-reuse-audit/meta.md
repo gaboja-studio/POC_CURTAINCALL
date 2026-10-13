@@ -2,7 +2,7 @@
 
 - **Title:** 기존 기능 확인 및 재사용 목록 확정
 - **Type:** feat
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (기존 기능 조사)
 - **Current Skill:** start-work
