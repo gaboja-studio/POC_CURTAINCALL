@@ -17,8 +17,11 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261013-028 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261013-028 | feat | @MoHoDu | feat/campaign-flow | - | scaffolded |
 | Task-20261013-029 | feat | @MoHoDu | feat/feature-reuse-audit | - | assigned |
+| Task-20261013-030 | feat | @MoHoDu | feat/injury-survival-update | - | scaffolded |
+| Task-20261013-031 | feat | @MoHoDu | feat/performance-reward-funds | - | scaffolded |
+| Task-20261013-032 | feat | @MoHoDu | feat/space-integration-check | - | scaffolded |
 
 ## 공용 파일 소유 표
 
