@@ -1,14 +1,14 @@
 # Handoff
 
 ## 지금 상태
-- 단계: submit-work, 최종 검사 통과·dev 대상 fix 제출 준비
+- 단계: submit-work, dev 대상 fix PR #68 제출 완료
 - 동작하는 것: 최신 기획 5종·공연장 @RagSpirin·인간 대포 v0.5 문서, 부모/준비 branch·순차 배정/착수 gate 구현
-- 막힌 것: 없음; 제출 후 필수 CI/PM 팀 리뷰·정상 병합 확인 필요
-- PR: 없음
+- 막힌 것: PR #68 BLOCKED — CI 성공, 필수 PM 팀 승인 1개 미충족(리뷰 없음); 보호 규칙 우회 안 함
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/68
 
 ## 다음 할 일
-1. 구역/문서·Unity 계단 검사 후 dev 대상 fix PR 제출
-2. 필수 CI/리뷰를 거쳐 정상 Squash 병합 확인
+1. PR #68 필수 CI/PM 팀 리뷰 확인 후 정상 Squash 병합
+2. 실제 dev 반영 확인 후 내부 준비 기록 정리
 3. 최신 dev로 공연장 동기화 후 인간 대포 5단계 작업공간 별도 준비
 
 ## PM이 확인할 것

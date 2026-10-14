@@ -2,7 +2,7 @@
 
 - **Title:** 최신 공연장 기획·담당과 단계별 작업 준비 자동화 반영
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** common-game-systems (최신 기획 안내·예외만 갱신)
 - **Current Skill:** submit-work
