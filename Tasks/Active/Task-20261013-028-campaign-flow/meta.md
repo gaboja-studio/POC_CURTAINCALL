@@ -2,7 +2,7 @@
 
 - **Title:** 런 진행 관리와 시간 흐름
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`) — 런 진행 (코드 확정 후 Domain Map 추가)
 - **Current Skill:** submit-work
