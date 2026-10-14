@@ -31,6 +31,6 @@
 - 구역 검사: PASS (10-14)
 - 1 문서/규칙: PASS (10-14)
 - 2 컴파일: PASS (10-14)
-- 3 테스트: NO_PROJECT_TESTS (10-14, 프로젝트에 테스트 코드 없음. 러너는 결과 파일 없이 exit 6 — 에디터가 열려 있어 배치 실행 불가로 추정)
+- 3 테스트: NO_PROJECT_TESTS (EditMode)
 - 4 실행 로그: PASS (10-14) 사용자: `proto_0.0.2.unity` 톱날 절단·패널티·결과 정상. 에디터 검사: Player·BlockDoll 프리팹, proto·TightropeDamage 씬 Missing 스크립트 0, Console 오류 0(경고는 _ThirdParty 메시만)
 - 5 공동 테스트: 미요청
