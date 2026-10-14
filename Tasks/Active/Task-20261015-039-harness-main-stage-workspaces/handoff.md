@@ -1,15 +1,15 @@
 # Handoff
 
 ## 지금 상태
-- 단계: submit-work, dev 대상 fix PR #68 제출 완료
+- 단계: done, dev fix PR #68 실제 Squash 병합 확인(dafd672)
 - 동작하는 것: 최신 기획 5종·공연장 @RagSpirin·인간 대포 v0.5 문서, 부모/준비 branch·순차 배정/착수 gate 구현
-- 막힌 것: PR #68 BLOCKED — CI 성공, 필수 PM 팀 승인 1개 미충족(리뷰 없음); 보호 규칙 우회 안 함
+- 막힌 것: 없음(이 Task); 후속 인간 대포 작업공간·실제 전달은 별도 준비
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/68
 
 ## 다음 할 일
-1. PR #68 필수 CI/PM 팀 리뷰 확인 후 정상 Squash 병합
-2. 실제 dev 반영 확인 후 내부 준비 기록 정리
-3. 최신 dev로 공연장 동기화 후 인간 대포 5단계 작업공간 별도 준비
+1. #69 공연장·#70 공용 통합 정상 Merge commit 병합 확인 완료(2026-10-15)
+2. PM 준비 예외로 내부 기록 정리; merge된 fix에서 추가 구현하지 않음
+3. 인간 대포 5단계 작업공간 별도 준비, 실제 전달은 사용자 확인 전 미체크
 
 ## PM이 확인할 것
 - 실제 전달 체크 없음(내부 Task); 게임 기능 구현·직접 플레이·4인 공동 테스트는 이번 범위 아님
