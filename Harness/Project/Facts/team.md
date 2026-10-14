@@ -1,7 +1,7 @@
 ---
 summary: 팀 구성과 GitHub 계정, PM 계정(@MoHoDu), 공간 담당 작업자 3명
 status: active
-updated: 2026-10-10
+updated: 2026-10-13
 source: human
 ---
 
@@ -20,6 +20,7 @@ source: human
 | 작업자 | `@lakuase2` | 공연장 담당 (2026-10-08) |
 | 작업자 | `@RagSpirin` | 탈출로 담당 (2026-10-08) |
 
+- 기획서(Confluence) 표시 이름: 모호성 = `@MoHoDu`(시스템·결정권자), 이수 = `@lakuase2`(공연장), MG seo = `@gyumin9048-ctrl`(대기실·백스테이지), 주형락 = `@RagSpirin`(탈출로·결정권자). 2026-10-13 게임 흐름 기획 8장 담당표와 공간 담당 대응으로 확인
 - 저장소: `gaboja-studio/POC_CURTAINCALL`
 - 역할별 권한: `Harness/Core/Policies/team-roles.md`
 - 공간별 브랜치·폴더: `Harness/Project/Decisions/space-workspaces.md`

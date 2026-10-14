@@ -19,12 +19,13 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 ## 배정된 공용 파일
 
-- 없음 (CC-107 조사 후 `RewardTable`·Telemetry 수정이 필요하면 PM이 배정)
+- `Assets/Scripts/Systems/Results/` — 033이 옮긴 공연 결과 명부 (033 병합 뒤 배정)
+- `Assets/Scripts/Systems/Settings/RewardTable.cs`, `Assets/Scripts/Systems/Settings/TrickSettings.cs` — 보상 규칙 구현 자리 (2단계 배정)
 
 ## 수정 금지
 
 - `Assets/Scenes/` (단, 위 Reward 테스트 씬만 허용)
-- `Assets/Scripts/Systems/Settings/`, `Assets/Scripts/Systems/Telemetry/` (읽기 전용 참고)
+- `Assets/Scripts/Systems/Settings/` 중 위에 배정되지 않은 파일, `Assets/Scripts/Systems/Telemetry/` (읽기 전용 참고)
 - `ProjectSettings/`
 - `Packages/`
 - `Assets/_ThirdParty/` — 외부 에셋. 씬·프리팹에 가져다 배치·참조하는 것은 허용, 파일 수정·추가는 PM에게 요청
@@ -32,9 +33,9 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 ## 인계 전 체크 (PM)
 
 - [x] 관련 JIRA 번호를 모두 적었다 (CC-110)
-- [ ] Unity에서 테스트 씬을 만들고 저장했다 (`.meta` 생성됨)
-- [ ] 스크립트 폴더를 만들었다 (빈 폴더에는 `.gitkeep`, `.meta` 생성됨)
-- [ ] 보상·공동 자금 규칙 결정과 CC-107 조사 결과를 반영해 `plan.md` 공동 테스트 항목을 확정했다
+- [x] Unity에서 테스트 씬을 만들고 저장했다 (`.meta` 생성됨)
+- [x] 스크립트 폴더를 만들었다 (빈 폴더에는 `.gitkeep`, `.meta` 생성됨)
+- [x] 보상·공동 자금 규칙 결정과 CC-107 조사 결과를 반영해 `plan.md` 공동 테스트 항목을 확정했다 (2026-10-14 PM 승인)
 
 체크가 끝나면 `assign-task.ps1`이 준비 내용을 올리고 작업 브랜치를 만든다.
 
