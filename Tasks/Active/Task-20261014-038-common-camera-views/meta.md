@@ -29,3 +29,4 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 - Open: 시점 전환 규칙의 종류(구역 진입, 몸 상태, 시간대 등)와 우선순위·전환 연출(바로/부드럽게)은 작업 시작 때 제안 후 PM 확인
 - Decided: 2026-10-14 PM: 카메라는 1인칭/3인칭 시점 로직을 모두 공용으로 만든다. 나중에 일정 규칙에 따라 각 공간의 특정 상황에서 시점을 쉽게 바꿀 수 있어야 한다. 034(개발자 모드)·037(조작 정리)과 병렬
 - Decided: 2026-10-14 PM: 외줄 전용 카메라 구도(`TightropeCameraFraming`)는 공연장으로 옮기고, 공용 가림 흐리기는 외줄 코스·세팅을 직접 읽지 않게 한다(Confluence 19398663 6장)
+- Decided: 2026-10-14 PM: 리타이어(`PlayerState.Retired`, 탈출로 사망·잡힘, Task-030 추가)한 사람도 사망자처럼 관전한다(`CameraSpectator`가 `Fallen`만 보는 것을 `Retired`까지). 관전 대상(살아 있는 사람)은 지금처럼 `Normal`만

@@ -4,7 +4,7 @@
 
 ## 지금 상태
 
-- 단계: integrated (#59 병합, 2026-10-14). 공동 테스트 1~3 PASS
+- 단계: done (#59 병합, 공동 테스트 1~3 PASS, 2026-10-14 PM 판단으로 Done 이동). 테스트 씬 유지
 - 동작하는 것:
   - 세팅 5묶음: 공통 `BaseGameSettings`(+ 런 진행·기물 소지), 묘기 `Tricks/*`, 빈 틀 `WaitingRoom`·`Exploration`·`EscapeRoute` Settings(에셋 생성·`GameSettings` 연결 완료). 공통 값: 3일·하루 2공연·1일차 `Tightrope`→`HumanCannon`·타이머 B안(A/B)·쉬는 시간 300초·가이드 300초(임시)·경보 60초·기물 2/1/+2·최소 인원 2.
   - 런 진행 `Systems/Campaign/`: `RunState`(순수 판정) → `CampaignRun`(공개 진입점, 호스트 판정·named message 공유, 방 Playing 시 세대 1 시작, 엔딩 시 `EndGame`) → `CampaignFlowTestUI`(디버그 버튼, 오프라인 런 가능).

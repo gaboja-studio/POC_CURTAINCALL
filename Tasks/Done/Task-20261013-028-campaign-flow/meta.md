@@ -2,10 +2,10 @@
 
 - **Title:** 런 진행 관리와 시간 흐름
 - **Type:** feat
-- **Status:** integrated
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`) — 런 진행 (코드 확정 후 Domain Map 추가)
-- **Current Skill:** 없음 (integrated, 통합 마무리 때 Done 이동)
+- **Current Skill:** -
 - **Updated:** 2026-10-14
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.

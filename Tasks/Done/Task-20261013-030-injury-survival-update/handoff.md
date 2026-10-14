@@ -12,14 +12,14 @@
 
 ## 다음 할 일
 
-1. 없음. 후속 수정은 `fix/survival-followups` PR(외줄 세팅 칸 삭제·리타이어 관전)
+1. 없음. 후속: 외줄 세팅 칸 삭제는 `fix/survival-followups` PR(028 Done 이동 뒤), 리타이어 관전은 Task-038로 넘김
 
 ## PM이 확인할 것
 
 - 확인 요청: 없음. 외줄 세팅 안 쓰는 칸은 삭제하기로 결정(후속 fix PR)
 - 대기 중인 결정: 없음
 - 기록: 균형 함정 → `Harness/Project/Pitfalls/balance-on-outside-tightrope.md`(2026-10-14)
-- 공용 파일 요청: 리타이어 관전은 결정(후속 fix PR). 남은 것: "모두 재시작" 요청이 `TightropeRun`을 직접 찾음(외줄 수정 필요, 4단계)
+- 공용 파일 요청: 리타이어 관전은 Task-038로 넘김(038 meta Decided·todo). 남은 것: "모두 재시작" 요청이 `TightropeRun`을 직접 찾음(외줄 수정 필요, 4단계)
 
 ## Verification
 
