@@ -1,0 +1,12 @@
+{
+  "name": "curtaincall",
+  "description": "POC_CURTAINCALL 팀 공용 Claude Code 모드",
+  "owner": { "name": "gaboja-studio" },
+  "plugins": [
+    {
+      "name": "curtaincall-panel",
+      "source": "./Harness/Mods/Panel",
+      "description": "채팅창 위에 브랜치·워크트리·Task todo 진행 상황과 저장/제출/진행/병합 버튼"
+    }
+  ]
+}

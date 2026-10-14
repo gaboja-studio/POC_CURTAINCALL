@@ -30,6 +30,7 @@ foreach ($top in 'Harness', 'Docs', 'Tasks', 'Integrations', 'Scripts') {
     foreach ($item in Get-ChildItem -LiteralPath $root -Recurse -Force) {
         $rel = [System.IO.Path]::GetRelativePath($RepoRoot, $item.FullName)
         if ($rel -match '^Docs[\\/]References[\\/]') { continue }  # 외부 원본 자료는 이름 유지
+        if ($rel -match '^Harness[\\/]Mods[\\/][^\\/]+[\\/]') { continue }  # 모드 내부는 Claude Code가 정한 이름(.claude-plugin, hooks)
         if ($item.PSIsContainer) {
             if ($item.Name -cnotmatch $folderPattern) { $failures.Add("폴더명 규칙 위반(첫 글자만 대문자): $rel") }
         } elseif ($item.Name -cnotmatch $filePattern -and $item.Name -ne '.DS_Store') {
