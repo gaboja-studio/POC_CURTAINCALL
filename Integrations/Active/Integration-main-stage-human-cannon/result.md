@@ -5,7 +5,8 @@
 - 2026-10-15: 부모 integration/main-stage 최신 문서에서 자식 통합 생성·push, Task-040~044 발급.
 - Unity 준비: HumanCannon 스크립트/테스트/Prefabs 폴더와 .meta, rootCount=0 빈 HumanCannon.unity. 기존 활성 씬 보존.
 - 준비 커밋 edf561c push 및 같은 SHA의 5개 작업 브랜치 원격 생성 확인. e0ab817에 4열 기준/승인 SHA 표 등록.
-- 040만 기술 배정 완료(a97fbbc, assigned), 041~044는 scaffolded/Allowed 없음 유지. 배정 문서 sync PR #71은 정상 Merge commit 수신 대기.
+- 040만 기술 배정 완료(a97fbbc, assigned), 041~044는 scaffolded/Allowed 없음 유지. [#71 배정 문서 sync](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/71)는 Merge commit 수신 대기.
+- #71 최신 check-folder PASS. 일반 병합 실행은 세션 권한에서 Merge Without Review로 거부되어 미실행; API/직접 push 등으로 우회하지 않았다. PM의 정상 리뷰·Merge commit 수신이 필요하다.
 - 기능 구현·4인 공동 검증·실제 전달: 미실행/미확인.
 - 기존 feat/main-stage-level-edit 원격과 로컬 ref는 6e5e5c1로 정상 최신화. 공연장 담당 문서 수신 완료, 실제 전달 미확인.
 - 공용 보상 세션은 #70 이후 기록을 보존한 완료 문서 0667597 반영·clean을 보고했다. 이 세션에서 공용 실제 폴더를 수정하거나 검증하지 않았다.

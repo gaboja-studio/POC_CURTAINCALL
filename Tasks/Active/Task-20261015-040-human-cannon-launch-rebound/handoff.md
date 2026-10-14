@@ -3,7 +3,7 @@
 ## 지금 상태
 - 단계: assigned — 기술 배정 완료(a97fbbc), 실제 전달 미확인.
 - 동작하는 것: 폴더/.meta·rootCount=0 빈 씬만 생성. 기능 구현 없음.
-- 막힌 것: 배정 문서 수신·PM 실제 전달 확인 전 착수 금지.
+- 막힌 것: #71 병합 실행은 세션 권한 Merge Without Review로 거부·미실행. 정상 문서 수신·PM 실제 전달 확인 전 착수 금지.
 - PR: [#71 배정 문서 sync](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/71), Merge commit 수신용. 기능 작업 PR 미제출.
 ## 다음 할 일
 1. PM이 #71 정상 Merge commit 수신을 확인한 뒤 실제 전달한다. 전달했다고 사용자 확인한 이 Task만 todo를 체크하고 문서를 sync한다.
