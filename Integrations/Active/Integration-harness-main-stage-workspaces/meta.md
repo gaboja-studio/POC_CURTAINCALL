@@ -12,12 +12,14 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 ## 목표
 
-- 이 기능 묶음이 끝나면 dev에서 무엇을 할 수 있는지 1~2줄.
+- 최신 공연장 기획·담당과 부모 통합/순차 Task 준비 규칙을 dev에 반영한다.
+- 인간 대포 기능 구현 없이 작업공간 준비 자동화를 검증한다.
 
 ## Tasks
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
+| Task-20261015-039 | fix | @MoHoDu | fix/harness-main-stage-workspaces | - | assigned |
 
 ## 공용 파일 소유 표
 
