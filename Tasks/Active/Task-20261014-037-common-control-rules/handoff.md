@@ -3,11 +3,11 @@
 덮어쓰는 스냅샷이다. 다음 AI(또는 다음 날의 나)는 이 파일부터 읽는다.
 ## 지금 상태
 
-- 단계: 제출(PR) 진행
+- 단계: 제출 완료(submitted), PM 병합·공동 테스트 대기
 - 동작하는 것: 공용 `PlayerController`가 외줄을 모름. 규칙 순서 = 끼운 규칙 → 시작 규칙 → 씬 규칙(`SceneControlScheme`) → 기본 이동 규칙(`ControlSettings.asset`, 지금 플랫폼 이동), 플레이 중 변경 즉시 반영. 공용 `InputGate`·`UIInputBlocker`. 외줄은 `TightropeUIFocus`가 요청만, `TightropeInputGate`는 호환 창구(공연장 다른 파일 수정 없음)
 - 테스트 씬 `ControlRules.unity`(PM 예외 허용 배치): Floor·Player·DebugHud·TestUI/BlockingPanel(꺼 둠, `UIInputBlocker`)·SceneControlScheme(비움)
 - 막힌 것: 없음
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/61
 
 ## 다음 할 일
 
