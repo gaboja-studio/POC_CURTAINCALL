@@ -2,14 +2,15 @@
 
 ## 지금 상태
 
-- 단계: 구현·자동 검사·공동 테스트 통과, 통합 최신(037·030) merge 후 제출 중 (`working`, 2026-10-15)
+- 단계: PR 제출 (`submitted`, 2026-10-15). 통합 최신(037·030) merge 후 재검사 통과
 - 동작하는 것: 시점 preset·요청 판정(높은 priority → 동률 최근 등록)·즉시/시간 전환, 1인칭 pose·마우스·커서, 시점 구역, 로컬 모델 render 중 숨김, 외줄 구도·가림 예외 MainStage 이전(GUID 유지), 리타이어도 관전(merge로 받은 PM 결정), CameraViews 테스트 씬
 - 공용 파일: LocalPlayerCamera.cs(director에 로컬 전달), PlayerFollowCamera.prefab(기존 유지 + director·pose·visibility). Unity 저장 확인
-- 환경: CLI beta.6 status 검색은 인스턴스 0이나 직접 명령·check-work 연결 정상, caller/skill 인자 미지원. 커밋 aeb9ce5 push, PR 없음
+- 환경: CLI beta.6 status 검색은 인스턴스 0이나 직접 명령·check-work 연결 정상, caller/skill 인자 미지원
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/66 (→ integration/common-game-systems)
 
 ## 다음 할 일
 
-1. "제출해줘" 시 integration/common-game-systems로 PR
+1. PM: PR 리뷰·병합, 리타이어 관전 포함 공동 테스트
 2. 037 시선 기준 이동·입력 차단(`ViewForward`·`SetInputBlocked`) 연결은 후속 통합. 이번 완료는 이동 조작 완료가 아님
 
 ## PM이 확인할 것
