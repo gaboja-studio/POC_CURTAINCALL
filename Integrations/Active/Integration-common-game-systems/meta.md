@@ -21,14 +21,14 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261013-028 | feat | @MoHoDu | feat/campaign-flow | #59 | done |
 | Task-20261013-029 | feat | @MoHoDu | feat/feature-reuse-audit | #51 | integrated |
 | Task-20261013-030 | feat | @MoHoDu | feat/injury-survival-update | #62 | done |
-| Task-20261013-031 | feat | @MoHoDu | feat/performance-reward-funds | - | assigned |
+| Task-20261013-031 | feat | @MoHoDu | feat/performance-reward-funds | #67 | submitted (병합됨, 공동 테스트 대기) |
 | Task-20261013-032 | feat | @MoHoDu | feat/space-integration-check | - | scaffolded |
 | Task-20261014-033 | refactor | @MoHoDu | refactor/common-code-move | #53 | done |
 | Task-20261014-034 | feat | @MoHoDu | feat/dev-mode | #60 | done |
 | Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | - | assigned |
 | Task-20261014-036 | fix | @MoHoDu | fix/check-work-editor-tests | #52 | done |
 | Task-20261014-037 | feat | @MoHoDu | feat/common-control-rules | #61 | integrated |
-| Task-20261014-038 | feat | @MoHoDu | feat/common-camera-views | - | assigned |
+| Task-20261014-038 | feat | @MoHoDu | feat/common-camera-views | #66 | submitted (병합됨, 공동 테스트 대기) |
 
 ## 공용 파일 소유 표
 
