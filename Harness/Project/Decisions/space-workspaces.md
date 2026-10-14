@@ -1,8 +1,8 @@
 ---
 summary: 공간 4곳(대기실·공연장·탈출로·백스테이지)마다 통합 브랜치·맵 배치 씬·테스트 씬 폴더·스크립트 폴더·담당자를 나눈다. 여러 공간이 쓰는 코드는 Scripts/Systems/, 불러와 쓰는 에셋은 Resources 공용
 status: active
-updated: 2026-10-13
-source: human (2026-10-08 PM @MoHoDu)
+updated: 2026-10-15
+source: human (2026-10-08·10-15 PM @MoHoDu, 장소 10454669·게임 흐름 15564804 재확인)
 ---
 
 # 공간별 작업 공간
@@ -12,17 +12,18 @@ source: human (2026-10-08 PM @MoHoDu)
 공간(대기실·공연장·탈출로·백스테이지) 작업의 통합 브랜치·Task를 만들거나, Task `setup.md` 작업 구역을 적거나, 내 공간 밖 파일을 고쳐도 되는지 판단할 때.
 
 ## 결정
-
 - 2026-10-08 / PM(@MoHoDu): 외줄 프로토타입 통합(`integration/tightrope-prototype`)을 dev로 닫은 뒤, 공간마다 담당자와 작업 공간을 분리한다.
 
 | 공간 | 통합 브랜치 | 맵 배치 씬 | 테스트 씬 폴더 | 스크립트 폴더 | 담당 |
 |---|---|---|---|---|---|
 | 대기실 | `integration/waiting-room` | `Assets/Scenes/Levels/waiting_room.unity` | `Assets/Scenes/Tests/WaitingRoom/` | `Assets/Scripts/WaitingRoom/` | @gyumin9048-ctrl |
-| 공연장 | `integration/main-stage` | `Assets/Scenes/Levels/main_stage.unity` | `Assets/Scenes/Tests/MainStage/` | `Assets/Scripts/MainStage/` | @lakuase2 |
+| 공연장 | `integration/main-stage` | `Assets/Scenes/Levels/main_stage.unity` | `Assets/Scenes/Tests/MainStage/` | `Assets/Scripts/MainStage/` | @RagSpirin |
 | 탈출로 | `integration/escape-route` | `Assets/Scenes/Levels/escape_route.unity` | `Assets/Scenes/Tests/EscapeRoute/` | `Assets/Scripts/EscapeRoute/` | @RagSpirin |
 | 백스테이지 | `integration/back-stage` | `Assets/Scenes/Levels/backstage.unity` | `Assets/Scenes/Tests/BackStage/` | `Assets/Scripts/BackStage/` | @gyumin9048-ctrl |
 
-- 공간 작업 브랜치(`feat/*` 등)는 자기 공간의 통합 브랜치로만 PR한다.
+- 2026-10-15 / PM: 공연장 담당을 @lakuase2에서 **@RagSpirin**로 변경. 탈출로·대기실·백스테이지 담당과 과거 Done/History 작성자는 유지한다.
+- 공간 작업 브랜치(`feat/*` 등)는 자기 소속 통합 브랜치로만 PR한다. 인간 대포는 `integration/main-stage-human-cannon`(Base `integration/main-stage`)에 단계별 Squash, 부모에는 Merge commit([브랜치 전략](branch-strategy.md)). 기존 main-stage는 유지한다.
+- 공간 표는 경로 안내이지 포괄 수정 권한이 아니다. Task-025는 맵 배치 씬만, 인간 대포 Task는 `MainStage/HumanCannon/` 코드·테스트 구역만 순차 배정한다. 준비 브랜치·예약 구역은 착수 권한이 아니다.
 - 맵 배치 씬은 해당 공간 통합 안에서 Task 1개만 소유한다(공용 파일 소유 표).
 - 여러 공간이 함께 쓰는 코드는 `Assets/Scripts/Systems/`(네트워크·플레이어·카메라·세팅·기록), 테스트 씬은 `Assets/Scenes/Tests/Systems/`에 둔다. 공간 Task는 읽기만 하고, 수정은 PM이 배정한 Task에서만 한다.
 - `Assets/Resources/`는 모든 공간 공용이다. 공간 Task가 Resources 하위 폴더를 고치려면 해당 통합의 공용 파일 소유 표로 배정받는다.
@@ -32,7 +33,6 @@ source: human (2026-10-08 PM @MoHoDu)
 - 참고: 공간 분리 문서(Confluence `bYmkRlnpusng/pages/10454669`).
 
 ## 이유
-
 공간마다 담당자가 생겨 같은 씬·폴더를 동시에 고치는 충돌을 막고, 공간별로 따로 dev에 올릴 수 있게 한다.
 
 ## 바꾸려면
