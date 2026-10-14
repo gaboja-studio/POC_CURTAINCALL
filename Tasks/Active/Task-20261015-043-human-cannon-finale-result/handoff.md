@@ -1,14 +1,14 @@
 # Handoff
 ## 지금 상태
-- scaffolded / scaffold-task — 043 예약, 현재 Active Task는 040만; 기술 배정·실제 전달 미확인.
+- scaffolded / scaffold-task — 043 예약, 현재 Active Task는 040만; 기술 배정 대기. Task-040~044 전체의 @RagSpirin 담당·실제 전달은 2026-10-15 PM 사용자 확인 완료이며 구현 개방은 아니다.
 - 준비: 사용자 전달 기준 폴더·빈 씬(root 0)만. 인간 대포 기능 실제 구현 없음, 기능·공동 테스트 미실행.
 - 목표/계획: [meta.md](meta.md)·[plan.md](plan.md); 계획은 실제 검증 근거가 아니다. PR: 없음.
 ## 다음 할 일
 1. PM이 042 integrated·실제 4인 공동 테스트 근거·소유권 반납·실제 JIRA URL을 확인한다.
-2. 다음 1개인 043에만 Active Task/Allowed→승인 준비 브랜치에 배정 문서 Merge commit sync→실제 전달 PM 확인 이후만 start-work.
+2. 실제 전달은 PM 사용자 확인 완료. 다음 1개인 043에만 Active Task/Allowed 부여→승인 준비 브랜치에 배정 문서 Merge commit sync 이후만 start-work.
 3. 기존 feat 브랜치는 앞 단계 완료 후 최신 부모 이력을 받는다. scaffolded 착수 금지.
 ## PM이 확인할 것
-- 실제 JIRA: CC-129 URL 연결·제목 확인 완료. 선행 검증·소유권 이관·실제 전달 대기: [setup.md](setup.md).
+- 실제 JIRA: CC-129 URL 연결·제목 확인 완료. 실제 전달 PM 사용자 확인 완료; 선행 검증·소유권 이관·배정 문서 sync 대기: [setup.md](setup.md).
 - HumanCannon.unity는 040 단독 소유, main_stage.unity는 025 소유; 부상·관전 읽기/재사용만.
 - 공용 종료 별도 연결 Task 식별자·소유자·계약/연결 근거 대기. 이번 Allowed로 Systems 변경 불가; 전역 2명 규칙 삭제·임시 우회 금지.
 - 지상 2명/중계/호응·보상 수치/2~3인은 미정·후속, 목표 제외.
