@@ -17,6 +17,21 @@
 4. **외줄 분리**: `TightropeCameraFraming`을 공연장 폴더로 `.meta`째 옮기고, 외줄은 자기 3인칭 시점(외줄 구도)을 기본 시점으로 요청한다. `CameraOcclusionFade`는 "흐리지 않을 대상"을 콘텐츠가 등록하게 바꾸고 반경 등 수치는 공용 카메라 설정으로 옮기되 외줄에서의 값은 같게 둔다.
 5. 지도 `Docs/Domains/common-game-systems.md`·`tightrope-course.md`·`player-sync.md` 갱신. Confluence 19398663 갱신은 PM.
 
+## 승인된 구현 세부 (2026-10-15 PM)
+
+- 규칙은 구역 진입·이탈 + 코드 요청/해제 API. 높은 숫자 우선순위, 동률 최근 등록. 동일 source 값 갱신은 등록 순서를 바꾸지 않고 해제 후 재등록은 새 요청이다.
+- 즉시 전환 기본, 에셋 전환 시간이 양수면 현재 출력 pose·화각에서 보간. 외줄 즉시 적용·기존 Follow/Composer damping은 유지한다.
+- 기본 3인칭: 월드 offset `(0, 3.75, -4.5)`, 캐릭터 로컬 look offset `(0, 1.2, 1.75)`, FOV 60. 외줄 요청 priority 0, 테스트 구역 10. 코스가 없으면 외줄 요청은 해제한다.
+- 1인칭: 눈높이 0은 BodyHeight × 0.9(없으면 1.6m), 감도 0.1, pitch ±85°, FOV 60·near 0.1. 진입 yaw는 현재 화면 수평 방향, pitch 0. 수동 전환 키·3인칭 orbit/zoom은 추가하지 않는다.
+- 단일 리그의 director가 구도 값을 적용하고 Cinemachine 최종 extension이 1인칭 pose를 적용한다. 관전은 기존 대상 선택을 유지하고 1인칭·모델 숨김을 중지한다.
+- 1인칭 커서는 포커스 시 잠금, Esc 해제·게임 영역 클릭 재잠금(테스트 UI 제외), 종료 때 원복. 037 입력 차단 API 연결은 후속 통합 항목이다.
+- 로컬 CurrentModel renderer만 게임 카메라 render 범위에서 forceRenderingOff 저장/복구. Renderer.enabled·부상 상태는 변경하지 않고 교체·탈착·래그돌·disable을 정리한다.
+- BoxCollider 구역 쪽에 kinematic Rigidbody 배치. 로컬 소유자만 감지하고 다중 collider·teleport·Exit 누락·비활성화·despawn을 정리한다.
+- 가림의 코스 루트·같은 목마 예외와 외줄 수치는 이전한 외줄 코드가 공급한다. 높이 0.8/1.35, 반경 0.4, 알파 0.35, 속도 6·관전 점진 복구 유지.
+- 순수 요청 resolver만 작은 noEngineReferences asmdef로 분리해 EditMode 테스트. 나머지는 기존 Assembly-CSharp 유지. 합성 PlayMode probe는 실제 입력 검증으로 보고하지 않는다.
+- 테스트 씬: Main Camera에 Brain, 기존 카메라 리그·세션 UI/NetworkManager 참조·출발점·바닥·1인칭 구역/경계 표식 배치. 기존 LAN 접속 재사용, 원본 Player/세션/UI 수정 없음.
+- 에디터 미연결이면 Unity 에셋 생성·이동·저장 금지. 10-15 직접 명령 ready·대상 경로·dirty 0 확인. beta.6 status 검색 불일치는 원인 미확정이며 지원되는 명령으로 진행한다.
+
 ## Files
 
 - 수정 예정: `Assets/Scripts/Systems/Camera/`, `Assets/Scripts/Systems/Network/PlayerSync/LocalPlayerCamera.cs`, `Assets/Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab`, 새 `Assets/Resources/Settings/Camera/`, 공연장 `MainStage/Tightrope/Camera/`(새로 받는 곳), 지도 3개
@@ -34,7 +49,7 @@
 - 구역 검사: `pwsh -File Scripts/verify-scope.ps1`
 - 1 문서/규칙: `pwsh -File Scripts/verify-fast.ps1`
 - 2 컴파일: `pwsh -File Scripts/verify-unity.ps1 -ProjectPath . -Compile`
-- 3 테스트: 시점 요청 우선순위·해제 시 복귀 EditMode 테스트, 없으면 `NO_PROJECT_TESTS`
+- 3 테스트: 요청 판정 EditMode 11개(`Camera/Tests/EditMode/`) + 실제 씬·LAN 호스트 PlayMode 7개(`Camera/Tests/PlayMode/`, 이동·요청은 합성)
 - 4 실행 로그: `proto_0.0.2.unity`·이 Task 테스트 씬에서 Missing 0, Console 오류 0
 
 ## 공동 테스트 항목

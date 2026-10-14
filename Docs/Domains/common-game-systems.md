@@ -118,6 +118,16 @@
 - ⚠ 지금은 어느 공간이든 기본 정책이 외줄 불이익이다(옮기기 전과 같음). 공간별 기본값은 030(부상·생존)에서 정한다.
 - 새 모델은 `ModelLimbs`로 팔·다리 위치를 지정(휴머노이드는 생략 가능).
 
+## 공간에서 쓰는 법 (카메라, Task-038)
+
+- `Assets/Scripts/Systems/Camera/`: `CameraViewDirector`가 요청을 판정·구도 적용. `CameraViewPreset`의 1/3인칭 수치·FOV·전환 시간을 플레이 중 조정한다. 설정 에셋은 `Assets/Resources/Settings/Camera/`.
+- 씬 구역: BoxCollider trigger + kinematic Rigidbody + `CameraViewZone`, preset·priority 지정(preset이 비면 요청하지 않음). 로컬 소유자만 감지하며 겹침·teleport·disable은 다음 physics tick 정리한다.
+- 코드 요청: `CameraViewDirector.Current.RequestView(this, preset, priority)` / `ReleaseView(this)`. 높은 priority·동률 최근 등록. 같은 source 갱신은 순서 유지, disable/destroy·despawn은 정리한다.
+- `ViewForward`는 정규화된 월드 수평 방향(대상 없음·사망은 zero). 037의 시선 기준 이동 소비·UI 차단 연결은 후속 통합. `SetInputBlocked(bool)` 진입점은 마련했지만 게임 조작 완성을 의미하지 않는다.
+- 관전은 기존 `CameraSpectator` 대상 선택 유지, 1인칭 요청은 잠시 제외. 모델은 게임 카메라 render 동안만 `forceRenderingOff`로 숨기며 `Renderer.enabled`·부상 계산은 변경하지 않는다.
+- 가림: `CameraOcclusionFade.RequestRules` / `RegisterExclusion` / `ReleaseSource`로 공간별 수치·예외 공급. 외줄 구도·코스/같은 목마 예외는 `MainStage/Tightrope/Camera/TightropeCameraFraming.cs`로 이동(GUID 유지).
+- 테스트 씬 `Assets/Scenes/Tests/Systems/CameraViews/CameraViews.unity`: 기존 LAN UI, z=6~14의 1인칭 구역. Esc 해제·게임 클릭 잠금, 테스트 UI 클릭은 제외. 테스트: 요청 판정 EditMode `Camera/Tests/EditMode/`, 실제 씬·LAN 호스트 PlayMode `Camera/Tests/PlayMode/`(CameraViews·proto_0.0.2를 열어 확인, 게임 코드는 이름으로 호출).
+
 ## 의존 도메인
 
 - [network-session.md](network-session.md) — 방 상태는 런 단계와 별개
