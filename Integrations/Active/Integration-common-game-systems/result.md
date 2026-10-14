@@ -34,7 +34,7 @@
 ## 정리
 
 - 최초 dev 중간 반영: #54 (2026-10-14), 공간 통합 반영 #55~#58.
-- 추가 dev 중간 반영: PR 제출 예정 (2026-10-15).
+- 추가 dev 중간 반영: [#64](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/64) 제출 (2026-10-15), 병합 대기.
 - [ ] 전체 완료분 최종 dev 반영
 - [ ] 작업·통합 브랜치 삭제
 - [ ] 이 폴더를 `Integrations/Done/`으로 이동
