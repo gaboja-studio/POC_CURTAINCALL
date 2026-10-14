@@ -16,6 +16,7 @@ description: PM 전용. 통합 브랜치로 온 PR을 정해진 순서로 하나
    - 충돌이 나면 멈추고 해당 담당자와 PM이 함께 해결한다. 씬·프리팹 충돌은 AI가 해결하지 않는다.
 5. 모두 병합하면 통합 브랜치를 받아(`git pull`) 컴파일·테스트(`check-work` 2·3단계)를 한다.
 6. 공동 테스트: `checklist.md` 표의 항목(각 Task의 공동 테스트 항목)을 함께 확인하고 결과를 적는다. 통과한 Task의 meta Status를 `integrated`로 바꾼다.
+   - 받은 통합 브랜치에서 각 Task `todo.md`의 `## PM 통합` 항목(PR 병합, 공동 테스트 통과)을 결과대로 `[x]`로 바꿔 함께 커밋한다.
 7. 실패 항목은 `report-issue`로 버그 이슈를 만들고 후속 Task로 넘긴다.
 8. 기능 연결 작업이 필요하면 연결 Task를 만든다(`scaffold-task`).
 9. 다음 단계: `close-integration`.

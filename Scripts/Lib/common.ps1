@@ -310,6 +310,17 @@ function Set-MetaField {
     Set-Content -LiteralPath $MetaPath -Value $text -Encoding utf8NoBOM -NoNewline
 }
 
+function Set-TodoChecked {
+    # todo.md에서 글자가 $Text로 시작하는 첫 미완료 항목(- [ ])을 [x]로 바꾼다. 항목 글자는 그대로 둔다(패널이 글자로 비교).
+    param([Parameter(Mandatory)][string]$TodoPath, [Parameter(Mandatory)][string]$Text)
+    if (-not (Test-Path -LiteralPath $TodoPath)) { return $false }
+    $content = Get-Content -LiteralPath $TodoPath -Raw
+    $regex = [regex]::new("(?m)^(\s*[-*]\s+)\[ \](\s+$([regex]::Escape($Text)))")
+    if (-not $regex.IsMatch($content)) { return $false }
+    Set-Content -LiteralPath $TodoPath -Value $regex.Replace($content, '$1[x]$2', 1) -Encoding utf8NoBOM -NoNewline
+    return $true
+}
+
 function Set-IntegrationTaskRow {
     # Integration meta.md Tasks 표에서 Task 행을 추가하거나 갱신한다. $Columns: Task, 종류, 담당, 브랜치, PR, 상태
     param([Parameter(Mandatory)][string]$MetaPath, [Parameter(Mandatory)][AllowEmptyString()][string[]]$Columns)

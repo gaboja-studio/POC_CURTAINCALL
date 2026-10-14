@@ -89,6 +89,8 @@ if (@($results.Values | Where-Object { $_ -like 'ENV_BLOCKED*' }).Count) {
 if (@($results.Values | Where-Object { $_ -like 'FAIL*' }).Count) { exit 1 }
 if ($SkipUnity) { Write-Output '필수 Unity 검증을 생략했습니다. 컴파일·테스트 통과로 처리하지 않습니다.'; exit 2 }
 if ($results['2 컴파일'] -like 'PASS*') {
+    # 검증 증거가 todo 변경까지 포함하도록 증거 저장 전에 체크한다.
+    if (Set-TodoChecked -TodoPath (Join-Path $task.Path 'todo.md') -Text '"검사해줘" 통과') { Write-Output 'todo.md "검사해줘" 통과를 체크했습니다.' }
     Save-VerificationEvidence -Branch ((& git -C $RepoRoot branch --show-current).Trim())
 }
 exit 0
