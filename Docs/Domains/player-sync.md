@@ -17,7 +17,7 @@
 - (`TestRoundRestart.cs`는 005 묘기 진행 `TightropeRun`으로 대체되어 2026-10-03 삭제)
 
 에셋
-- `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 루트에 NetworkObject·NetworkTransform(Owner, 위치 xyz·회전 y)·NetworkPlayer.
+- `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 루트에 NetworkObject·NetworkTransform(Owner, 위치 xyz·회전 y)·NetworkPlayer. 부상 부품 `BodyDamageEffects`·`LimbDismemberment`는 `Assets/Scripts/Systems/Damage/`([공통 게임 시스템](common-game-systems.md)).
 - `Assets/Resources/Prefabs/Controllers/Network/NetworkManager.prefab` — `PlayerPrefab` = Player. `DefaultNetworkPrefabs.asset`에 등록.
 - `Assets/Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab` — CinemachineCamera + Follow(뒤 4.5·위 2.6) + RotationComposer(1.2 주시) + LocalPlayerCamera. 메인 카메라에 CinemachineBrain 필요.
 - 테스트 씬: `Assets/Scenes/Tests/Systems/NetworkPlayerSync/NetworkPlayerSync.unity` (SessionUI, PlayerSpawnPoints, LaneGuides, 게이지·HUD, 테스트 부품).
