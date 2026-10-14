@@ -2,7 +2,7 @@
 
 - **Title:** 에디터가 열린 상태에서 검사 스크립트 테스트 단계 실행
 - **Type:** fix
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** 하네스 검증 도구 (`Harness/Core/Policies/verification-ladder.md`)
 - **Current Skill:** start-work

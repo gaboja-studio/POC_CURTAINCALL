@@ -27,4 +27,4 @@
 - 2 컴파일: PASS (10-14)
 - 3 테스트: NO_PROJECT_TESTS (EditMode·PlayMode 0개, 10-14 에디터 `list_tests`·`run_tests`로 확인). check-work의 batch 테스트 실행은 같은 프로젝트를 에디터가 열고 있어 시작하지 못함(ENV: "another Unity instance is running")
 - 4 실행 로그: 해당 없음
-- 5 공동 테스트: 미요청
+- 5 공동 테스트: integrated (2026-10-14 PM 승인, 결과는 Integration checklist.md)

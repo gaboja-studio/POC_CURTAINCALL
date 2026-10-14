@@ -26,4 +26,4 @@
 - 2 컴파일: PASS (10-14)
 - 3 테스트: NO_PROJECT_TESTS (EditMode)
 - 4 실행 로그: verify-unity -RunTests EditMode·PlayMode → NO_PROJECT_TESTS(exit 0), 임시 실패 테스트 EditMode → total 2, passed 1, failed 1(exit 1), check-work 해석 코드가 FAIL로 읽는 것 확인(10-14)
-- 5 공동 테스트: 미요청
+- 5 공동 테스트: integrated (2026-10-14 PM 승인, 결과는 Integration checklist.md)
