@@ -7,7 +7,7 @@
 - 단계: 구현 끝(Damage 이전), 플레이 확인 일부 완료
 - 동작하는 것: 공용 4개(`BodyDamageEffects`·`BodyPenaltyPolicy`·`LimbDismemberment`·`ModelLimbs`)를 `.meta`째 `Systems/Damage/`로 이전(GUID·namespace 유지). 외줄 전용 2개는 남김. 공통 코드의 외줄 정책 직접 생성을 없애고 `TightropeBodyPenalty`가 시작 전 `BodyDamageEffects.DefaultPolicyFactory`에 등록(결과 동일). 지도 3개 갱신.
 - 막힌 것: 없음
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/53
 
 ## 결과 명부 경계안 (031로 넘김, 2026-10-14 PM)
 
