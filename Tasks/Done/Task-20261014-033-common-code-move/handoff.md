@@ -4,7 +4,7 @@
 
 ## 지금 상태
 
-- 단계: integrated (#53 병합, 2026-10-14). dev(#54)·공간 통합 4곳(#55~#58)·공간 개인 브랜치 4개 반영 완료
+- 단계: done (2026-10-14). #53 병합 → dev(#54)·공간 통합 4곳(#55~#58)·공간 개인 브랜치 4개 반영, 공간 담당자 알림 완료
 - 동작하는 것: 공용 4개(`BodyDamageEffects`·`BodyPenaltyPolicy`·`LimbDismemberment`·`ModelLimbs`)를 `.meta`째 `Systems/Damage/`로 이전(GUID·namespace 유지). 외줄 전용 2개는 남김. 공통 코드의 외줄 정책 직접 생성을 없애고 `TightropeBodyPenalty`가 시작 전 `BodyDamageEffects.DefaultPolicyFactory`에 등록(결과 동일). 지도 3개 갱신.
 - 막힌 것: 없음
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/53
@@ -16,8 +16,7 @@
 
 ## 다음 할 일
 
-1. (PM 진행 예정) 공간 담당(@lakuase2·@gyumin9048-ctrl·@RagSpirin)에게 Damage 경로 변경·사용법(`Docs/Domains/common-game-systems.md` "공간에서 쓰는 법")과 `git pull` 안내.
-2. 공통 통합 마무리(`close-integration`) 때 Task 폴더 Done 이동. 그 밖에 033에서 남은 작업 없음.
+1. 없음. 결과 명부 분리는 031, 공간별 기본 부상 정책은 030에서 이어서 한다.
 
 ## PM이 확인할 것
 

@@ -2,10 +2,10 @@
 
 - **Title:** 공용 부상·공연 결과 코드 공통 폴더 이전
 - **Type:** refactor
-- **Status:** integrated
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 외줄 코스 참고
-- **Current Skill:** merge-integration (완료, 통합 마무리 대기)
+- **Current Skill:** 없음 (완료)
 - **Updated:** 2026-10-14
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
