@@ -2,7 +2,7 @@
 
 - **Title:** 부상 및 생존 상태 최신 기획 반영
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 플레이어 동기화 참고
 - **Current Skill:** implement-code
