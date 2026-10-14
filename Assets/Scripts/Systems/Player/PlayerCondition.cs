@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace CurtainCall.Player
 {
     /// <summary>
-    /// 플레이어의 신체 상태(데미지로 잃은 부위). 모든 묘기·콘텐츠가 같은 상태를 본다. 규칙: Harness/Project/Decisions/body-damage.md
-    /// - 네 팔다리를 모두 잃으면 사망(<see cref="AllLimbsLost"/>). 팔 둘·다리 둘만 잃으면 생존(2026-10-04 PM).
+    /// 플레이어의 신체 상태(데미지로 잃은 부위). 모든 묘기·콘텐츠가 같은 상태를 본다. 규칙: Harness/Project/Decisions/injury-rules.md
+    /// - 공통 절단 순서는 왼다리 → 오른다리 → 왼팔 → 오른팔(<see cref="NextFixedCut"/>), 신체 복구는 역순(<see cref="NextRestore"/>).
+    ///   잃은 팔다리 수 0 온전한 몸 / 1·2 부상 / 3 외팔 상태(<see cref="OneArmParts"/>) / 4 사망.
+    /// - 네 팔다리를 모두 잃으면 사망(<see cref="AllLimbsLost"/>).
+    /// - <see cref="ResolveCut"/>·<see cref="NextLegThenArmCut"/>는 외줄 톱날 전용(닿은 쪽·위치 기준). 4단계에서 공통 순서로 바꾼다.
     /// - 디메리트는 콘텐츠마다 다르므로 여기서 정하지 않는다. 콘텐츠가 끼운 디메리트 정책이 이 상태를 읽어 적용한다.
     /// - 온라인: 부위 손실은 호스트가 판정하고 NetworkPlayer가 모두에게 공유해 각 화면에서 <see cref="SetLostParts"/>를 부른다.
     /// - 플레이어 프리팹에 붙이면 사용된다. 없으면 <see cref="PlayerControlContext.Condition"/>은 null이다.
@@ -20,6 +24,21 @@ namespace CurtainCall.Player
 
         /// <summary>두 다리.</summary>
         public const BodyPart Legs = BodyPart.LeftLeg | BodyPart.RightLeg;
+
+        /// <summary>외팔 상태(잃은 팔다리 3, 오른팔만 남음)에서 잃은 부위. 부활·백스테이지에서 잡혔을 때의 몸. injury-rules.md #2</summary>
+        public const BodyPart OneArmParts = BodyPart.LeftLeg | BodyPart.RightLeg | BodyPart.LeftArm;
+
+        /// <summary>외팔 상태의 잃은 팔다리 수.</summary>
+        public const int OneArmLostCount = 3;
+
+        /// <summary>
+        /// 공통 절단 순서(2026-10-13 부상 기획): 어디를 맞든 왼다리 → 오른다리 → 왼팔 → 오른팔. 신체 복구는 이 역순.
+        /// 이 순서를 지키면 잃은 팔다리 수(<see cref="LostCount"/>)만으로 몸 상태가 정해진다.
+        /// </summary>
+        static readonly BodyPart[] cutOrder = { BodyPart.LeftLeg, BodyPart.RightLeg, BodyPart.LeftArm, BodyPart.RightArm };
+
+        /// <summary>공통 절단 순서(왼다리 → 오른다리 → 왼팔 → 오른팔).</summary>
+        public static IReadOnlyList<BodyPart> CutOrder => cutOrder;
 
         [Tooltip("잃은 부위. 플레이 중 여기서 바꿔도 테스트할 수 있다(온라인에서는 호스트 값이 덮어쓴다).")]
         [SerializeField] BodyPart lostParts;
@@ -36,8 +55,14 @@ namespace CurtainCall.Player
         /// <summary>잃은 다리 개수(0~2).</summary>
         public int LostLegCount => CountBits(lostParts & Legs);
 
+        /// <summary>남은 팔 개수(0~2). 기물 소지 칸 수 계산에 쓴다.</summary>
+        public int ArmCount => 2 - LostArmCount;
+
         /// <summary>네 팔다리를 모두 잃었는지(사망 조건).</summary>
         public bool AllLimbsLost => IsAllLimbsLost(lostParts);
+
+        /// <summary>외팔 상태(잃은 팔다리 3)인지.</summary>
+        public bool IsOneArm => LostCount == OneArmLostCount;
 
         /// <summary>잃은 부위가 바뀌었을 때. 인자는 (이전, 지금).</summary>
         public event Action<BodyPart, BodyPart> Changed;
@@ -63,6 +88,33 @@ namespace CurtainCall.Player
 
         /// <summary>네 팔다리를 모두 잃은 상태인지.</summary>
         public static bool IsAllLimbsLost(BodyPart lost) => (lost & AllLimbs) == AllLimbs;
+
+        /// <summary>잃은 팔다리 수(0~4).</summary>
+        public static int CountLimbs(BodyPart lost) => CountBits(lost & AllLimbs);
+
+        /// <summary>공통 절단 순서에서 다음에 잘릴 부위. 모두 잃었으면 None. 순서를 어긴 손실(외줄 톱날 등)이 있어도 남은 부위 중 순서가 앞선 것.</summary>
+        public static BodyPart NextFixedCut(BodyPart lost)
+        {
+            foreach (var part in cutOrder)
+                if ((lost & part) == 0) return part;
+            return BodyPart.None;
+        }
+
+        /// <summary>신체 복구에서 다음에 되찾을 부위(절단 역순: 왼팔 → 오른다리 → 왼다리, 오른팔은 사망 상태에서만). 잃은 부위가 없으면 None.</summary>
+        public static BodyPart NextRestore(BodyPart lost)
+        {
+            for (int i = cutOrder.Length - 1; i >= 0; i--)
+                if ((lost & cutOrder[i]) != 0) return cutOrder[i];
+            return BodyPart.None;
+        }
+
+        /// <summary>잃은 팔다리 수(0~4)에 해당하는 공통 순서의 몸 상태(앞에서부터 그 수만큼 잃음).</summary>
+        public static BodyPart PartsForLostCount(int count)
+        {
+            BodyPart parts = BodyPart.None;
+            for (int i = 0; i < cutOrder.Length && i < count; i++) parts |= cutOrder[i];
+            return parts;
+        }
 
         /// <summary>
         /// 일반 절단 요청에서 실제로 잘릴 부위. 요청 부위가 있으면 그 부위, 이미 잃었으면 같은 종류의 남은 쪽, 둘 다 없으면 None.

@@ -7,7 +7,7 @@ namespace CurtainCall.Damage
 {
     /// <summary>
     /// 잃은 부위가 이 플레이어 몸에 주는 효과를 매 프레임 적용한다. 다른 플레이어에게는 영향이 없다(값은 이 플레이어 부품에만 넣는다).
-    /// 1) 게임 공통: 두 다리를 잃으면 기어간다(속도 배율·캡슐 높이·점프 허용, 게임 기본 세팅 · 신체 손상).
+    /// 1) 게임 공통: 다리를 잃은 만큼 점프가 낮아지고, 두 다리를 잃으면 기어간다(점프 높이·속도 배율·캡슐 높이·점프 허용, 게임 기본 세팅 · 신체 손상).
     /// 2) 콘텐츠 불이익: 묘기가 <see cref="SetPolicy"/>로 끼운 정책(<see cref="BodyPenaltyPolicy"/>)의 배율. 바꾸거나 빼면(null) 다음 프레임에 이전 효과가 사라진다.
     /// 시작 정책을 비우면 콘텐츠가 등록한 기본 정책(<see cref="DefaultPolicyFactory"/>)을 쓴다. 공통 코드는 특정 묘기 정책을 모른다.
     /// 캡슐 높이는 모든 화면에서 같게 바꾸고, 속도·균형·거리는 조작하는 화면에서만 실제로 쓰인다.
@@ -61,6 +61,7 @@ namespace CurtainCall.Damage
             Current = penalty;
 
             mover.SpeedMultiplier = (crawling ? common.CrawlSpeedMultiplier : 1f) * penalty.MoveSpeed;
+            mover.JumpHeightMultiplier = common.JumpHeightForLostLegs(condition.LostLegCount);
             mover.JumpAllowed = !crawling || common.CrawlCanJump;
             mover.LaneJumpAllowed = !crawling || common.CrawlCanLaneJump;
             mover.BodyHeightOverride = crawling ? common.CrawlCapsuleHeight : 0f;
@@ -80,6 +81,7 @@ namespace CurtainCall.Damage
             if (mover != null)
             {
                 mover.SpeedMultiplier = 1f;
+                mover.JumpHeightMultiplier = 1f;
                 mover.JumpAllowed = true;
                 mover.LaneJumpAllowed = true;
                 mover.BodyHeightOverride = 0f;

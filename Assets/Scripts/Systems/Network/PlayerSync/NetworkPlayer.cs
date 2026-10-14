@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Survival;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
@@ -15,8 +16,10 @@ namespace CurtainCall.Network.PlayerSync
     /// 위치·방향은 같은 오브젝트의 NetworkTransform(소유자 권한)이 공유하고, 점프 상태·균형 표시값(몸 기울기)은 이 컴포넌트가 공유한다.
     /// 판정은 호스트가 한다: 소유자가 <see cref="RequestState"/>로 요청 → 호스트가 확인(<see cref="ServerCanChangeState"/>) → <see cref="State"/>로 모두에게 공유.
     /// 첫 사용처는 추락(균형 무너짐·줄 밖 착지 → 추락 → 조작 잠금·래그돌). 모두 재시작은 호스트가 <see cref="ServerRestartAll"/>로 한다.
-    /// 신체 손상: 장애물은 호스트에서 <see cref="ServerCutPart"/>·<see cref="ServerCutLegThenArm"/>로 부위를 자르고, 잃은 부위는 모두에게 공유되어
-    /// 각 화면의 <see cref="PlayerCondition"/>에 들어간다. 네 팔다리를 모두 잃으면 호스트가 추락(사망)으로 확정한다.
+    /// 신체 손상(규칙: injury-rules.md): 호스트가 <see cref="ServerCut"/>로 공통 순서(왼다리 → 오른다리 → 왼팔 → 오른팔)대로 자르고, 잃은 부위는 모두에게 공유되어
+    /// 각 화면의 <see cref="PlayerCondition"/>에 들어간다. 네 팔다리를 모두 잃으면 호스트가 사망으로 확정한다(장소에 따라 추락 또는 리타이어, <see cref="SurvivalRules"/>).
+    /// 외줄 톱날은 아직 <see cref="ServerCutPart"/>·<see cref="ServerCutLegThenArm"/>(닿은 쪽·위치 기준)를 쓴다(4단계에서 교체).
+    /// 생존: 잡힘 <see cref="ServerCatch"/>, 외팔 설정 <see cref="ServerSetOneArm"/>, 사망자 외팔 부활 <see cref="ServerRevive"/>, 신체 복구 <see cref="ServerRestorePart"/>, 세대 교체 <see cref="ServerRestoreAll"/>.
     /// 다른 기능은 <see cref="Local"/>(내 캐릭터)·<see cref="All"/>·<see cref="Slot"/>·<see cref="State"/>를 쓴다.
     /// </summary>
     [RequireComponent(typeof(PlayerMover))]
@@ -37,6 +40,7 @@ namespace CurtainCall.Network.PlayerSync
         readonly NetworkVariable<BodyPart> lostParts = new(BodyPart.None);
         readonly NetworkVariable<PlayerState> state = new(PlayerState.Normal);
         readonly NetworkVariable<int> restartCount = new(0);
+        readonly NetworkVariable<int> reviveCount = new(0);
 
         PlayerMover mover;
         PlayerBalance balance;
@@ -52,6 +56,9 @@ namespace CurtainCall.Network.PlayerSync
 
         /// <summary>모두 재시작했을 때(모든 화면, 플레이어마다 한 번).</summary>
         public static event Action<NetworkPlayer> Restarted;
+
+        /// <summary>사망·리타이어에서 되살아났을 때(모든 화면). 외팔 부활·세대 교체 복구. 위치는 옮기지 않는다(대기실 이동은 공간 연결).</summary>
+        public static event Action<NetworkPlayer> Revived;
 
         /// <summary>이 컴퓨터의 내 캐릭터. 접속 전·생성 전에는 null.</summary>
         public static NetworkPlayer Local { get; private set; }
@@ -106,6 +113,7 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>
         /// 호스트: 모든 플레이어를 보통 상태로 출발점에서 다시 시작시킨다(균형 초기화·래그돌 복구·조작 잠금 해제). 언제 부를지는 묘기 진행(005)이 정한다.
         /// 잃은 부위는 게임 기본 세팅(신체 손상 · 재시작 복구)에 따라 사망자만 또는 모두 되돌린다.
+        /// 외줄 실패 후 재시작 전용. 기획상 재시작은 없으므로 외줄이 공연 종료로 바뀌면(4단계) 사망자는 <see cref="ServerReviveAllDead"/>를 쓴다.
         /// </summary>
         public static void ServerRestartAll()
         {
@@ -139,7 +147,120 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>호스트: 가로 톱날 순서 절단(다리 → 남은 다리 → 팔). 좌우가 둘 다 남았을 때의 선택은 부르는 쪽이 정한다(기획 미정).</summary>
         public BodyPart ServerCutLegThenArm(bool leftFirst) => ServerApplyCut(PlayerCondition.NextLegThenArmCut(lostParts.Value, leftFirst));
 
-        /// <summary>디버그·테스트용: 내 캐릭터의 부위 절단을 호스트에 요청한다. None이면 가로 톱날 순서(좌우 랜덤).</summary>
+        /// <summary>
+        /// 호스트: 공통 절단. 어디를 맞든 왼다리 → 오른다리 → 왼팔 → 오른팔 순서로 <paramref name="count"/>곳을 자른다(2곳 이상은 난이도 3축 등).
+        /// 네 번째를 잃으면 그 자리에서 사망하고 나머지는 자르지 않는다. 실제로 잘린 부위를 돌려준다(거절·변화 없음은 None).
+        /// 다칠 수 있는지는 <see cref="ServerCutPart"/>와 같다(보통 상태 + <see cref="ServerCanChangeState"/>).
+        /// </summary>
+        public BodyPart ServerCut(int count = 1)
+        {
+            BodyPart cut = BodyPart.None;
+            for (int i = 0; i < count; i++)
+            {
+                var part = ServerApplyCut(PlayerCondition.NextFixedCut(lostParts.Value));
+                if (part == BodyPart.None) break;
+                cut |= part;
+            }
+            return cut;
+        }
+
+        /// <summary>
+        /// 호스트: 남은 팔다리와 상관없이 죽인다(추락 등). 장소에 따라 추락(사망) 또는 리타이어(탈출로). 다칠 수 없는 때면 false.
+        /// 공중 추락처럼 소유자가 먼저 아는 사망은 <see cref="RequestState"/>(<see cref="PlayerState.Fallen"/>)로 요청해도 같은 규칙을 따른다.
+        /// </summary>
+        public bool ServerKill()
+        {
+            if (!IsServer || !ServerCanTakeDamage()) return false;
+            state.Value = SurvivalRules.DeathState(SurvivalRules.ServerPlace);
+            return true;
+        }
+
+        /// <summary>
+        /// 호스트: 추격자에게 잡힘. 장소(<see cref="SurvivalRules.ServerPlace"/>)에 따라 백스테이지 = 외팔 상태까지 절단(이미 외팔이면 사망),
+        /// 탈출로 = 리타이어, 공연 = 없음. 무대로 끌려가는 것(032)·누가 잡았는지(035)는 부르는 쪽이 한다.
+        /// </summary>
+        public CatchOutcome ServerCatch()
+        {
+            if (!IsServer || state.Value != PlayerState.Normal) return CatchOutcome.None;
+            var outcome = SurvivalRules.ResolveCatch(SurvivalRules.ServerPlace, PlayerCondition.CountLimbs(lostParts.Value));
+            switch (outcome)
+            {
+                case CatchOutcome.CutToOneArm:
+                    var lost = lostParts.Value;
+                    while (PlayerCondition.CountLimbs(lost) < PlayerCondition.OneArmLostCount)
+                        lost |= PlayerCondition.NextFixedCut(lost);
+                    lostParts.Value = lost;
+                    break;
+                case CatchOutcome.Died:
+                    state.Value = PlayerState.Fallen;
+                    break;
+                case CatchOutcome.Retired:
+                    state.Value = PlayerState.Retired;
+                    break;
+            }
+            return outcome;
+        }
+
+        /// <summary>
+        /// 호스트: 외팔 상태(왼다리·오른다리·왼팔을 잃고 오른팔만 남음)로 만든다. 상태(사망 등)는 바꾸지 않는다.
+        /// 백스테이지에서 잡혀 끌려온 사람(035·032)이나 테스트가 부른다. 사망자를 되살리려면 <see cref="ServerRevive"/>.
+        /// </summary>
+        public void ServerSetOneArm()
+        {
+            if (IsServer) lostParts.Value = PlayerCondition.OneArmParts;
+        }
+
+        /// <summary>
+        /// 호스트: 사망자(<see cref="PlayerState.Fallen"/>)를 외팔 상태로 되살린다(비용 없음, 사망 전 몸과 무관). 조작 잠금·래그돌이 풀린다.
+        /// 다음 시간대(쉬는 시간·밤 정비) 시작 때 부른다(<see cref="InjuryRevival"/>). 사망자가 아니면 false.
+        /// </summary>
+        public bool ServerRevive()
+        {
+            if (!IsServer || state.Value != PlayerState.Fallen) return false;
+            lostParts.Value = PlayerCondition.OneArmParts;
+            state.Value = PlayerState.Normal;
+            reviveCount.Value++;
+            return true;
+        }
+
+        /// <summary>호스트: 모든 사망자를 외팔 상태로 되살린다. 되살린 인원을 돌려준다.</summary>
+        public static int ServerReviveAllDead()
+        {
+            int revived = 0;
+            foreach (var player in all)
+                if (player.ServerRevive()) revived++;
+            return revived;
+        }
+
+        /// <summary>
+        /// 호스트: 신체 복구 1개. 절단 역순(왼팔 → 오른다리 → 왼다리)으로 하나를 되찾는다. 되찾은 부위를 돌려준다.
+        /// 살아 있는(보통 상태) 사람만, 온전한 몸이면 None. 비용·의료 전문가가 오는 날 판단은 부르는 쪽(대기실)이 한다.
+        /// </summary>
+        public BodyPart ServerRestorePart()
+        {
+            if (!IsServer || state.Value != PlayerState.Normal) return BodyPart.None;
+            var part = PlayerCondition.NextRestore(lostParts.Value);
+            if (part != BodyPart.None) lostParts.Value &= ~part;
+            return part;
+        }
+
+        /// <summary>호스트: 온전한 몸으로 되돌리고, 사망·리타이어였으면 되살린다(세대 교체). 위치는 옮기지 않는다.</summary>
+        public void ServerRestoreAll()
+        {
+            if (!IsServer) return;
+            lostParts.Value = BodyPart.None;
+            if (state.Value == PlayerState.Normal) return;
+            state.Value = PlayerState.Normal;
+            reviveCount.Value++;
+        }
+
+        /// <summary>호스트: 모든 플레이어를 온전한 몸으로(세대 교체).</summary>
+        public static void ServerRestoreEveryone()
+        {
+            foreach (var player in all) player.ServerRestoreAll();
+        }
+
+        /// <summary>디버그·테스트용: 내 캐릭터의 부위 절단을 호스트에 요청한다. None이면 공통 순서로 1곳.</summary>
         public void RequestCutPart(BodyPart part)
         {
             if (IsSpawned && IsOwner) RequestCutPartRpc(part);
@@ -150,7 +271,7 @@ namespace CurtainCall.Network.PlayerSync
             if (!IsServer || part == BodyPart.None || !ServerCanTakeDamage()) return BodyPart.None;
             lostParts.Value |= part;
             if (PlayerCondition.IsAllLimbsLost(lostParts.Value))
-                state.Value = PlayerState.Fallen; // 네 팔다리 모두 잃으면 사망(2026-10-04 PM)
+                state.Value = SurvivalRules.DeathState(SurvivalRules.ServerPlace); // 네 팔다리 모두 잃으면 사망(탈출로는 리타이어)
             return part;
         }
 
@@ -160,7 +281,7 @@ namespace CurtainCall.Network.PlayerSync
         [Rpc(SendTo.Server)]
         void RequestCutPartRpc(BodyPart part)
         {
-            if (part == BodyPart.None) ServerCutLegThenArm(UnityEngine.Random.value < 0.5f);
+            if (part == BodyPart.None) ServerCut();
             else ServerCutPart(part);
         }
 
@@ -169,7 +290,8 @@ namespace CurtainCall.Network.PlayerSync
         {
             if (state.Value == next) return;
             if (ServerCanChangeState != null && !ServerCanChangeState(this, next)) return;
-            state.Value = next;
+            // 추락 요청은 장소의 사망 상태로 바꾼다(탈출로 = 리타이어)
+            state.Value = next == PlayerState.Fallen ? SurvivalRules.DeathState(SurvivalRules.ServerPlace) : next;
         }
 
         [Rpc(SendTo.Server)]
@@ -197,6 +319,7 @@ namespace CurtainCall.Network.PlayerSync
             jump.OnValueChanged += HandleJumpChanged;
             state.OnValueChanged += HandleStateChanged;
             restartCount.OnValueChanged += HandleRestart;
+            reviveCount.OnValueChanged += HandleRevive;
             lostParts.OnValueChanged += HandleLostPartsChanged;
             if (condition != null) condition.SetLostParts(lostParts.Value); // 늦게 생성된 화면도 현재 몸 상태를 맞춘다
             if (IsOwner)
@@ -226,6 +349,7 @@ namespace CurtainCall.Network.PlayerSync
             jump.OnValueChanged -= HandleJumpChanged;
             state.OnValueChanged -= HandleStateChanged;
             restartCount.OnValueChanged -= HandleRestart;
+            reviveCount.OnValueChanged -= HandleRevive;
             lostParts.OnValueChanged -= HandleLostPartsChanged;
             mover.Teleported -= SendTeleport;
             if (balance != null) balance.Fell -= RequestFall;
@@ -287,6 +411,8 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>확정된 상태를 이 화면에 반영한다.</summary>
         void ApplyState(PlayerState current)
         {
+            // 리타이어: 조작만 잠근다(쓰러뜨리지 않음). 사망으로 리타이어하면 추락·신체 손상이 이미 무너뜨렸다
+            if (current == PlayerState.Retired && IsOwner) mover.SetControlEnabled(false);
             if (current != PlayerState.Fallen) return;
             if (IsOwner)
             {
@@ -312,6 +438,22 @@ namespace CurtainCall.Network.PlayerSync
                 ragdoll.Restore();
             }
             Restarted?.Invoke(this);
+        }
+
+        /// <summary>되살아남(외팔 부활·세대 교체): 래그돌·균형을 되돌리고 조작을 푼다. 재시작과 달리 출발점으로 옮기지 않는다.</summary>
+        void HandleRevive(int previous, int current)
+        {
+            if (IsOwner)
+            {
+                if (balance != null) balance.ResetBalance(); // 래그돌 복구도 함께(BalanceReset)
+                else if (ragdoll != null) ragdoll.Restore();
+                mover.SetControlEnabled(true);
+            }
+            else if (ragdoll != null)
+            {
+                ragdoll.Restore();
+            }
+            Revived?.Invoke(this);
         }
 
         /// <summary>내 캐릭터가 순간이동하면 다른 화면에서도 보간 없이 옮긴다.</summary>

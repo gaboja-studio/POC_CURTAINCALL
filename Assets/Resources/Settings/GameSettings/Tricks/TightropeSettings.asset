@@ -34,8 +34,6 @@ MonoBehaviour:
     timeLimit: 300
     restartDelay: 3
   ropeMovement:
-    moveSpeed: 0.5
-    jumpHeight: 0.8
     landingShock: 10
     minAirTimeForShock: 0.15
     laneLandingShock: 35
