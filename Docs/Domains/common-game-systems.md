@@ -18,9 +18,9 @@
 | 방 접속·나가기·정원·진행 중 참가 거절 | 재사용 | `Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs` | 유일한 공개 진입점, 접속 승인 콜백 소유. 정원 4·최소 1(테스트). 기획 2~4인 → 최소 인원은 세팅값으로 조정 |
 | 방 상태 `Waiting/Playing/Ended` | 재사용(의미 한정) | `GameSessionState.cs`, `GameSessionStateSync.cs` | 호스트만 변경. 로비 → 런 진행 → 런 종료 단위로만 쓰고, 공연 종료 신호로 쓰지 않는다(하루 공연 2회) |
 | `RestartEndedGame()` | 수정 후 재사용 | `NetworkSessionManager.cs:291` | `internal`, 호출처는 `TightropeRun.cs:117`뿐. 기획은 공연 후 재도전이 없으므로 세대 교체(런 재시작) 경계로만 남길지 정리 필요. 재접속 비허용(PM 결정 #7)은 지금의 진행 중 참가 거절과 일치 |
-| 런 진행 관리자(일차·단계·쉬는 시간 타이머·밤 준비 완료) | 신규 | 없음 (planned `Assets/Scripts/Systems/Campaign/`, Task-028) | Day·쉬는 시간·밤 코드 없음. 기획 9-2 런 범위 데이터 전부 |
+| 런 진행 관리자(일차·단계·쉬는 시간 타이머·밤 준비 완료) | 신규(구현) | `Assets/Scripts/Systems/Campaign/` (Task-028) | `CampaignRun`(진입점, 호스트 판정·모두에게 공유)·`RunState`(판정). 세대·일차·시간대 전환, 쉬는 시간 타이머 A/B·소집 경보, 밤 전원 준비 완료, 기한 초과 → 세대 교체, 탈출 신호. 세트리스트는 자리만(묘기 이름 임시 문자열) |
 | 세션 범위 데이터(세대 번호·물려줄 선반·흔적) | 신규 | 없음 | 세대 코드 없음. 같은 게임 세션 안에서만 유지(기획 6-2) |
-| 조정값 시작점 | 수정 후 재사용 | `Assets/Scripts/Systems/Settings/GameSettings.cs`, `BaseGameSettings.cs` | `Base`·`Tightrope`만 있음. 5묶음(공통·묘기·대기실·탐색·탈출로, PM 결정 #3)으로 확장. 런 수치(일수 3, 공연 2회/일, 쉬는 시간 5분, 소집 경보 1분, 가이드 길이, 타이머 A/B) 칸 추가 |
+| 조정값 시작점 | 수정 후 재사용(5묶음 완료) | `Assets/Scripts/Systems/Settings/GameSettings.cs`, `BaseGameSettings.cs`, `WaitingRoomSettings.cs`, `ExplorationSettings.cs`, `EscapeRouteSettings.cs` | 공통 = `BaseGameSettings`(런 진행·기물 소지 칸 추가, Task-028), 묘기 = `Tricks/*`, 대기실·탐색·탈출로는 빈 틀(칸은 CC-119가 채움) |
 
 ### 부상·생존 (CC-109)
 
@@ -105,7 +105,7 @@
 
 ## 진입점
 
-- 현재 공통 진입점: `NetworkSessionManager`(방·방 상태), `NetworkPlayer`(상태·부위 손실·재시작), `PlayerCondition`(몸 상태), `CameraSpectator`(관전), `GameSettings.Base`.
+- 현재 공통 진입점: `NetworkSessionManager`(방·방 상태), `CampaignRun`(런 진행: 시간대 신호 메서드 + `StepChanged`·`RecallAlarm`·`RunEnded` 이벤트, 판정은 호스트), `NetworkPlayer`(상태·부위 손실·재시작), `PlayerCondition`(몸 상태), `CameraSpectator`(관전), `GameSettings.Base`·`Tightrope`·`WaitingRoom`·`Exploration`·`EscapeRoute`(세팅 5묶음).
 - 공연 결과는 아직 `TightropeResults`(외줄 전용)가 유일하다.
 
 ## 의존 도메인
