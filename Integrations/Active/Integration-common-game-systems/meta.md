@@ -27,7 +27,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261014-034 | feat | @MoHoDu | feat/dev-mode | #60 | done |
 | Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | - | assigned |
 | Task-20261014-036 | fix | @MoHoDu | fix/check-work-editor-tests | #52 | integrated |
-| Task-20261014-037 | feat | @MoHoDu | feat/common-control-rules | - | assigned |
+| Task-20261014-037 | feat | @MoHoDu | feat/common-control-rules | #61 | integrated |
 | Task-20261014-038 | feat | @MoHoDu | feat/common-camera-views | - | assigned |
 
 ## 공용 파일 소유 표
@@ -44,7 +44,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | `Systems/Network/Session/NetworkSessionManager.cs` | ~~Task-20261014-034 (2단계)~~ 반납 (#60 병합, 2026-10-14) | 최소 인원 예외 완료(`MinPlayers` → `DevMode.MinPlayers`). 개발자 모드 스위치는 `Systems/DevMode/` |
 | `Assets/Scripts/MainStage/Tightrope/Damage/`, `Assets/Scripts/MainStage/Tightrope/Results/` | ~~Task-20261014-033 (1단계)~~ 반납 (#53 병합, 2026-10-14) | 공용 코드 공통 폴더 이전 완료. 이후 공연장 소유로 돌아감(031은 Results를 읽기만) |
 | `Assets/Scripts/Systems/Damage/`, `NetworkPlayer.cs`·`PlayerState.cs`·`PlayerCondition.cs`·`PlayerMover.cs` | Task-20261013-030 (2단계) | 부상·생존의 중심 |
-| `Systems/Player/PlayerController.cs`·`PlayerInputReader.cs`·`PlayerControlScheme.cs`·`PlayerCommandDebugHud.cs`·`TightropeControlScheme.cs`, 새 `Systems/Control/`·`Resources/Settings/Control/`, 공연장 `PlatformControlScheme.cs`·`CourseControlSwitcher.cs`·`TightropeInputGate.cs`·`TightropeUIFocus.cs` | Task-20261014-037 (2단계 병렬) | 공용 조작의 외줄 의존 정리·기본 이동 규칙. 공연장 파일은 공간 작업 전 PM 진행 |
+| `Systems/Player/PlayerController.cs`·`PlayerInputReader.cs`·`PlayerControlScheme.cs`·`PlayerCommandDebugHud.cs`·`TightropeControlScheme.cs`, 새 `Systems/Control/`·`Resources/Settings/Control/`, 공연장 `PlatformControlScheme.cs`·`CourseControlSwitcher.cs`·`TightropeInputGate.cs`·`TightropeUIFocus.cs` | ~~Task-20261014-037 (2단계 병렬)~~ 반납 (#61 병합, 2026-10-14) | 공용 조작의 외줄 의존 정리·기본 이동 규칙. 공연장 파일은 공간 작업 전 PM 진행 |
 | `Systems/Camera/`, `Systems/Network/PlayerSync/LocalPlayerCamera.cs`, `Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab`, 새 `Resources/Settings/Camera/` | Task-20261014-038 (2단계 병렬) | 공용 1인칭·3인칭 시점과 전환, 외줄 구도 분리 |
 
 ## Decisions
