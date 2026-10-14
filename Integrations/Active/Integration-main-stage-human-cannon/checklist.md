@@ -7,7 +7,7 @@
 - [x] Task-040만 기술 배정 — a97fbbc, 후속 Task는 scaffolded 유지
 - [x] 통합 → Task-040 작업 브랜치 배정 문서 sync를 Merge commit으로 수신 — #71, 233403c; 정상 부모·배정 문서 일치 확인
 - [x] Task-040~044 모두 실제 전달 — 2026-10-15 PM 사용자 확인, 전부 @RagSpirin 담당
-- [ ] Task-040~044 실제 전달 확인 문서를 5개 준비 브랜치로 정상 Merge commit sync 수신 — 컴파일 연결 복구·PASS; 후속 예약 유지, 040 착수 전 필요
+- [x] Task-040~044 실제 전달 확인 문서를 5개 준비 브랜치로 정상 Merge commit sync 수신 — #72~76, b668b88 수신·tree 일치·040 착수 gate PASS, 후속 예약 착수 차단 확인
 - [x] Task-040~044 실제 Jira URL 연결·단계 제목 확인 — CC-126~130, 상위 기준 CC-124
 
 ## 순차 병합·다음 단계 개방
