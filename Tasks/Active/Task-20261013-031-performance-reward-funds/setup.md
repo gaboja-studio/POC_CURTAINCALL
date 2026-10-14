@@ -20,6 +20,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 ## 배정된 공용 파일
 
 - `Assets/Scripts/Systems/Settings/RewardTable.cs`, `Assets/Scripts/Systems/Settings/TrickSettings.cs` — 보상 규칙 구현 자리 (2단계 배정)
+- `Assets/Resources/Settings/GameSettings/Tricks/Rewards/` — 보상 규칙 에셋 (2026-10-14 PM 배정)
 
 ## 수정 금지
 

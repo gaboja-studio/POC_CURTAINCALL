@@ -34,13 +34,19 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
-| `Assets/Scripts/Systems/Settings/`, `Assets/Resources/Settings/GameSettings/` | Task-20261013-028 (1단계) | 세팅 5묶음 틀. 2단계 추가 칸은 PM이 순서 배정 |
+| `Assets/Scripts/Systems/Settings/`, `Assets/Resources/Settings/GameSettings/` | ~~Task-20261013-028 (1단계)~~ 반납 (#59 병합) → 2단계는 아래 파일별 배정 | 세팅 5묶음 틀 완료 |
+| `Systems/Settings/BaseGameSettings.cs`, `Resources/Settings/GameSettings/BaseGameSettings.asset` | Task-20261013-030 (2단계) | 신체 손상 묶음: 점프 높이 배율·탐색 중 부상 패널티 값(3공간 공통)·`BodyRestartRecovery` 폐기 표시 |
+| `Systems/Settings/WaitingRoomSettings.cs`·`ExplorationSettings.cs`·`EscapeRouteSettings.cs` + 같은 이름 `.asset` | Task-20261014-035 (2단계) | 더미 공간 값 |
+| `Systems/Settings/RewardTable.cs`·`TrickSettings.cs`, `Resources/Settings/GameSettings/Tricks/Rewards/` | Task-20261013-031 (2단계) | 보상 규칙 구현 |
+| `Systems/Settings/GameSettings.cs`, `Systems/Campaign/` | 잠금 (2단계 읽기·호출만) | 5묶음 연결·런 진행 완료. 고칠 일은 PM 배정 |
+| `Systems/Network/Session/NetworkSessionManager.cs` | Task-20261014-034 (2단계) | 최소 인원 예외. 개발자 모드 스위치는 세팅이 아니라 `Systems/DevMode/` |
 | `Assets/Scripts/MainStage/Tightrope/Damage/`, `Assets/Scripts/MainStage/Tightrope/Results/` | ~~Task-20261014-033 (1단계)~~ 반납 (#53 병합, 2026-10-14) | 공용 코드 공통 폴더 이전 완료. 이후 공연장 소유로 돌아감(031은 Results를 읽기만) |
-| `Assets/Scripts/Systems/Damage/` | Task-20261013-030 (2단계) | 033이 옮긴 부상 효과·패널티 틀. 부상·생존의 중심 |
+| `Assets/Scripts/Systems/Damage/`, `NetworkPlayer.cs`·`PlayerState.cs`·`PlayerCondition.cs`·`PlayerMover.cs` | Task-20261013-030 (2단계) | 부상·생존의 중심 |
 
 ## Decisions
 
-- Open: 2단계 시작 전 연결 약속(공연 결과 형식·부활 함수), 2단계 공용 파일 배정(plan.md 제안표)
+- Open: 없음 (2단계 연결 약속·공용 파일 배정 확정)
 - Decided: 2026-10-14 PM — 쉬는 시간 B안 기본·A/B 전환, 기물 소지 2/1/+2 세팅값, 세팅 5묶음, 공통 폴더 이전 별도 Task(033), 더미 공간 우선(035), 생존 2명 미만 묘기 실패, 게임 시작 후 재접속 불가(로비 허용), 최소 인원 2명·개발자 모드(034) 먼저·테스트 AI는 이후(run-rules.md)
 - Decided: 2026-10-14 PM — 033 병합 후 통합을 닫지 않고 dev에 중간 반영(merge commit), dev → 공간 통합 4곳 반영. 공간 작업자가 `Systems/Damage/` 새 경로로 시작하게 하기 위함
 - Decided: 2026-10-14 PM — 028 확인 사항: B안 타이머 팀 공용·첫 사람이 나올 때 시작(안 나오면 멈춤, 플레이테스트 후 재논의 가능), 시간대 신호 = `CampaignRun` 메서드 + `StepChanged`(연결 약속 중 시간대 알림 확정), 최소 인원 2 유지·034 먼저(run-rules.md #6~8)
+- Decided: 2026-10-14 PM — 2단계 연결 약속: (1) 공연 결과 — 묘기가 종료를 알리면 031이 결과(성공/실패·종료 이유·사망자·팔다리 변화·정산액)를 확정·공유한 뒤 `CampaignRun.EndPerformance()`를 부른다(결과 먼저 → 시간대 전환). (2) 부활 — 030이 `CampaignRun.StepChanged`를 직접 받아 쉬는 시간·밤 정비 시작 때 사망자를 외팔로 부활, 새 세대 도입 때 전원 복구. 외팔 설정 함수는 공개(035·032 호출), 대기실 이동은 032. (3) 공용 파일은 파일별 1주인(위 표), 병합 순서 034 → 030 → 031 → 035

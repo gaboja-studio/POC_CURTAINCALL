@@ -21,6 +21,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 - `Assets/Scripts/Systems/Network/PlayerSync/NetworkPlayer.cs`, `Assets/Scripts/Systems/Network/PlayerSync/PlayerState.cs` — 외팔 설정·부활·N곳 절단·장소별 상태 규칙 (2단계 배정)
 - `Assets/Scripts/Systems/Player/PlayerCondition.cs`, `Assets/Scripts/Systems/Player/PlayerMover.cs` — 고정 절단 순서·역순 복구·점프 높이 배율 (2단계 배정)
+- `Assets/Scripts/Systems/Settings/BaseGameSettings.cs`, `Assets/Resources/Settings/GameSettings/BaseGameSettings.asset` — 신체 손상 묶음(점프 높이 배율·탐색 중 부상 패널티 값·`BodyRestartRecovery` 폐기 표시) (2026-10-14 PM 배정)
 - `Assets/Scripts/Systems/Damage/` — 033이 옮긴 부상 효과·패널티 틀 (033 #53 병합, 2026-10-14 배정). 외줄 기본 정책은 `BodyDamageEffects.DefaultPolicyFactory` 등록 방식(`Docs/Domains/common-game-systems.md`)
 
 ## 수정 금지
