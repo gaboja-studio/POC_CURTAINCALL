@@ -109,13 +109,14 @@
 - 현재 공통 진입점: `NetworkSessionManager`(방·방 상태), `CampaignRun`(런 진행: 시간대 신호 메서드 + `StepChanged`·`RecallAlarm`·`RunEnded` 이벤트, 판정은 호스트), `NetworkPlayer`(상태·부위 손실·재시작), `PlayerCondition`(몸 상태), `CameraSpectator`(관전), `GameSettings.Base`·`Tightrope`·`WaitingRoom`·`Exploration`·`EscapeRoute`(세팅 5묶음).
 - 공연 결과는 아직 `TightropeResults`(외줄 전용)가 유일하다.
 - 부상: `BodyDamageEffects.SetPolicy(policy)`(null = 콘텐츠 불이익 없음), `IsCrawling`, `Current`. 시작 정책이 비면 `BodyDamageEffects.DefaultPolicyFactory`(지금은 외줄).
+- 부상·생존(Task-030, 호스트): `NetworkPlayer.ServerCut(개수)`(공통 순서 절단), `ServerKill`, `ServerCatch`, `ServerSetOneArm`, `ServerRevive`·`ServerReviveAllDead`, `ServerRestorePart`(역순 1개), `ServerRestoreAll`·`ServerRestoreEveryone`, 이벤트 `Revived`. 장소 규칙 `SurvivalRules.ServerPlace`(공연/탐색/탈출로 → 사망·잡힘·리타이어), 기물 칸 `SurvivalRules.ItemSlots`. 시간대 시작 부활·세대 교체 복구는 `InjuryRevival`이 `CampaignRun.StepChanged`로 자동 처리.
 
 ## 공간에서 쓰는 법 (부상)
 
 - 공간 Task는 `Systems/Damage/`를 **읽고 부르기만** 한다. 고칠 일이 있으면 PM에게 요청한다(`space-workspaces.md`).
 - Player 프리팹에 이미 붙어 있어 어느 공간이든 Player만 두면 절단 연출·기어가기가 동작한다. 절단 요청은 `NetworkPlayer.RequestCutPart`(소유자)·`ServerCutPart`(호스트), 상태는 `PlayerCondition.LostParts`·`Changed`.
 - 공간 전용 불이익은 내 공간 스크립트 폴더에 `BodyPenaltyPolicy`를 상속해 만들고, 공간에 들어올 때 `GetComponent<BodyDamageEffects>().SetPolicy(내 정책)`, 불이익이 없으면 `SetPolicy(null)`.
-- ⚠ 지금은 어느 공간이든 기본 정책이 외줄 불이익이다(옮기기 전과 같음). 공간별 기본값은 030(부상·생존)에서 정한다.
+- ⚠ 기본 정책은 여전히 외줄 불이익이다(외줄 동작 유지). 탐색 공간(대기실·백스테이지·탈출로 묘기 밖)은 들어올 때 `SetPolicy(ExplorationBodyPenalty.Shared)`를 끼운다(Task-030, 수치는 공통 세팅 신체 손상 임시값). 점프 높이 감소는 정책과 무관하게 공통으로 적용된다.
 - 새 모델은 `ModelLimbs`로 팔·다리 위치를 지정(휴머노이드는 생략 가능).
 
 ## 의존 도메인

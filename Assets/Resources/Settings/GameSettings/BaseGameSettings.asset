@@ -31,6 +31,8 @@ MonoBehaviour:
     backpackBonus: 2
   character:
     freeMoveSpeed: 3
+    courseMoveSpeed: 0.5
+    jumpHeight: 0.8
     turnSpeed: 720
     gravity: 9.81
     capsuleHeight: 1.5
@@ -56,6 +58,10 @@ MonoBehaviour:
     balanceSendThreshold: 0.5
   bodyDamage:
     restartRecovery: 0
+    oneLegJumpHeight: 0.75
+    twoLegJumpHeight: 0.5
+    exploreOneLegMoveSpeed: 0.8
+    exploreOneArmReach: 0.8
     crawlSpeedMultiplier: 0.5
     crawlCanJump: 1
     crawlCanLaneJump: 1

@@ -124,8 +124,14 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class CharacterSettings
         {
-            [Tooltip("플랫폼 위 이동 속도(m/s). 줄 위 속도는 외줄 세팅. 2026-10-03 PM 테스트 값 3.")]
+            [Tooltip("플랫폼 위 이동 속도(m/s, 8방향 일반 이동). 2026-10-03 PM 테스트 값 3.")]
             [SerializeField, Min(0f)] float freeMoveSpeed = 3f;
+
+            [Tooltip("코스 방향 걷기 속도(m/s, 앞뒤로만 걷는 줄타기 이동). 외줄 세팅에서 옮김(값 그대로, 2026-10-14 PM). 기획 0.5.")]
+            [SerializeField, Min(0f)] float courseMoveSpeed = 0.5f;
+
+            [Tooltip("점프 높이(m, 발 기준 최고점). 공중 시간은 이 값과 중력으로 정해진다. 다리를 잃으면 신체 손상 · 점프 높이 배율을 곱한다. 외줄 세팅에서 옮김(값 그대로, 2026-10-14 PM). 0.8.")]
+            [SerializeField, Min(0f)] float jumpHeight = 0.8f;
 
             [Tooltip("플랫폼 위에서 이동 방향으로 몸을 돌리는 속도(도/초).")]
             [SerializeField, Min(0f)] float turnSpeed = 720f;
@@ -149,6 +155,8 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0f)] float playerGap = 0.05f;
 
             public float FreeMoveSpeed => freeMoveSpeed;
+            public float CourseMoveSpeed => courseMoveSpeed;
+            public float JumpHeight => jumpHeight;
             public float TurnSpeed => turnSpeed;
             public float Gravity => gravity;
             public float CapsuleHeight => capsuleHeight;
@@ -236,7 +244,11 @@ namespace CurtainCall.Settings
             public float BalanceSendThreshold => balanceSendThreshold;
         }
 
-        /// <summary>묘기 재시작 때 잃은 부위를 어떻게 할지(프로토타입 시험용).</summary>
+        /// <summary>
+        /// 묘기 재시작 때 잃은 부위를 어떻게 할지(프로토타입 시험용).
+        /// 폐기 예정(2026-10-14): 기획상 묘기 재시작이 없고 사망자는 다음 시간대에 외팔 상태로 부활한다(injury-rules.md #4).
+        /// 외줄 실패 후 재시작(<c>TightropeRun</c>)이 사라질 때(4단계) 함께 지운다.
+        /// </summary>
         public enum BodyRestartRecovery
         {
             /// <summary>살아 있던 사람은 잃은 부위 그대로, 사망한 사람만 온전한 몸으로(정식 규칙과 같음).</summary>
@@ -249,8 +261,22 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class BodyDamageSettings
         {
-            [Tooltip("묘기 재시작 때 잃은 부위 처리(프로토타입 시험용). 생존자 유지 = 살아 있던 사람은 그대로·사망자만 복구(정식 규칙), 모두 복구 = 전원 온전한 몸. 정식 규칙을 바꾸는 값이 아니다.")]
+            [Tooltip("[폐기 예정] 외줄 묘기 재시작 때 잃은 부위 처리(프로토타입 시험용). 기획상 재시작이 없어 외줄 재시작이 사라지면 지운다. 생존자 유지 = 살아 있던 사람은 그대로·사망자만 복구, 모두 복구 = 전원 온전한 몸.")]
             [SerializeField] BodyRestartRecovery restartRecovery = BodyRestartRecovery.KeepSurvivors;
+
+            [Header("다리를 잃었을 때 점프 높이 (탐색·공연 공통)")]
+            [Tooltip("다리 1개를 잃었을 때 점프 높이 배율(×). 캐릭터 점프 높이에 곱한다. 부상 기획 5-4(6), 수치 미정 — 임시값 0.75.")]
+            [SerializeField, Range(0f, 1f)] float oneLegJumpHeight = 0.75f;
+
+            [Tooltip("두 다리를 잃었을 때(기어가기) 점프 높이 배율(×). 기어갈 때 점프 허용은 아래 '기어갈 때 제자리 점프'. 임시값 0.5.")]
+            [SerializeField, Range(0f, 1f)] float twoLegJumpHeight = 0.5f;
+
+            [Header("탐색 중 부상 패널티 (대기실·백스테이지·탈출로 묘기 밖)")]
+            [Tooltip("다리 1개를 잃었을 때 이동 속도 배율(×). 두 다리는 기어가기 배율을 쓴다. 수치는 대기실 담당 미정 — 임시값 0.8.")]
+            [SerializeField, Range(0f, 1f)] float exploreOneLegMoveSpeed = 0.8f;
+
+            [Tooltip("팔 1개를 잃었을 때 손 닿는 거리 배율(×). 수치는 대기실 담당 미정 — 임시값 0.8.")]
+            [SerializeField, Range(0f, 1f)] float exploreOneArmReach = 0.8f;
 
             [Header("두 다리를 잃었을 때 (기어가기)")]
             [Tooltip("기어갈 때 이동 속도 배율(×). 걷기 속도에 곱한다. 임시값 0.5(줄 위 0.5m/s → 0.25m/s).")]
@@ -282,6 +308,14 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0f)] float limbLifetime = 0f;
 
             public BodyRestartRecovery RestartRecovery => restartRecovery;
+            public float OneLegJumpHeight => oneLegJumpHeight;
+            public float TwoLegJumpHeight => twoLegJumpHeight;
+            public float ExploreOneLegMoveSpeed => exploreOneLegMoveSpeed;
+            public float ExploreOneArmReach => exploreOneArmReach;
+
+            /// <summary>잃은 다리 개수(0~2)에 맞는 점프 높이 배율.</summary>
+            public float JumpHeightForLostLegs(int lostLegs) =>
+                lostLegs <= 0 ? 1f : lostLegs == 1 ? oneLegJumpHeight : twoLegJumpHeight;
             public float CrawlSpeedMultiplier => crawlSpeedMultiplier;
             public bool CrawlCanJump => crawlCanJump;
             public bool CrawlCanLaneJump => crawlCanLaneJump;
