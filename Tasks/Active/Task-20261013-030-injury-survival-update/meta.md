@@ -2,10 +2,10 @@
 
 - **Title:** 부상 및 생존 상태 최신 기획 반영
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 플레이어 동기화 참고
-- **Current Skill:** submit-work
+- **Current Skill:** merge-integration
 - **Updated:** 2026-10-14
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.

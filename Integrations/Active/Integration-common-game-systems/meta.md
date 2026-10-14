@@ -20,7 +20,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 |---|---|---|---|---|---|
 | Task-20261013-028 | feat | @MoHoDu | feat/campaign-flow | #59 | integrated |
 | Task-20261013-029 | feat | @MoHoDu | feat/feature-reuse-audit | #51 | integrated |
-| Task-20261013-030 | feat | @MoHoDu | feat/injury-survival-update | - | assigned |
+| Task-20261013-030 | feat | @MoHoDu | feat/injury-survival-update | #62 | integrated |
 | Task-20261013-031 | feat | @MoHoDu | feat/performance-reward-funds | - | assigned |
 | Task-20261013-032 | feat | @MoHoDu | feat/space-integration-check | - | scaffolded |
 | Task-20261014-033 | refactor | @MoHoDu | refactor/common-code-move | #53 | done |
@@ -37,13 +37,13 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
 | `Assets/Scripts/Systems/Settings/`, `Assets/Resources/Settings/GameSettings/` | ~~Task-20261013-028 (1단계)~~ 반납 (#59 병합) → 2단계는 아래 파일별 배정 | 세팅 5묶음 틀 완료 |
-| `Systems/Settings/BaseGameSettings.cs`, `Resources/Settings/GameSettings/BaseGameSettings.asset` | Task-20261013-030 (2단계) | 신체 손상 묶음: 점프 높이 배율·탐색 중 부상 패널티 값(3공간 공통)·`BodyRestartRecovery` 폐기 표시 |
+| `Systems/Settings/BaseGameSettings.cs`, `Resources/Settings/GameSettings/BaseGameSettings.asset` | ~~Task-20261013-030 (2단계)~~ 반납 (#62 병합, 2026-10-14) | 신체 손상 묶음: 점프 높이 배율·탐색 중 부상 패널티 값(3공간 공통)·`BodyRestartRecovery` 폐기 표시 |
 | `Systems/Settings/WaitingRoomSettings.cs`·`ExplorationSettings.cs`·`EscapeRouteSettings.cs` + 같은 이름 `.asset` | Task-20261014-035 (2단계) | 더미 공간 값 |
 | `Systems/Settings/RewardTable.cs`·`TrickSettings.cs`, `Resources/Settings/GameSettings/Tricks/Rewards/` | Task-20261013-031 (2단계) | 보상 규칙 구현 |
 | `Systems/Settings/GameSettings.cs`, `Systems/Campaign/` | 잠금 (2단계 읽기·호출만) | 5묶음 연결·런 진행 완료. 고칠 일은 PM 배정 |
 | `Systems/Network/Session/NetworkSessionManager.cs` | ~~Task-20261014-034 (2단계)~~ 반납 (#60 병합, 2026-10-14) | 최소 인원 예외 완료(`MinPlayers` → `DevMode.MinPlayers`). 개발자 모드 스위치는 `Systems/DevMode/` |
 | `Assets/Scripts/MainStage/Tightrope/Damage/`, `Assets/Scripts/MainStage/Tightrope/Results/` | ~~Task-20261014-033 (1단계)~~ 반납 (#53 병합, 2026-10-14) | 공용 코드 공통 폴더 이전 완료. 이후 공연장 소유로 돌아감(031은 Results를 읽기만) |
-| `Assets/Scripts/Systems/Damage/`, `NetworkPlayer.cs`·`PlayerState.cs`·`PlayerCondition.cs`·`PlayerMover.cs` | Task-20261013-030 (2단계) | 부상·생존의 중심 |
+| `Assets/Scripts/Systems/Damage/`, `NetworkPlayer.cs`·`PlayerState.cs`·`PlayerCondition.cs`·`PlayerMover.cs` | ~~Task-20261013-030 (2단계)~~ 반납 (#62 병합, 2026-10-14) | 부상·생존의 중심 |
 | `Systems/Player/PlayerController.cs`·`PlayerInputReader.cs`·`PlayerControlScheme.cs`·`PlayerCommandDebugHud.cs`·`TightropeControlScheme.cs`, 새 `Systems/Control/`·`Resources/Settings/Control/`, 공연장 `PlatformControlScheme.cs`·`CourseControlSwitcher.cs`·`TightropeInputGate.cs`·`TightropeUIFocus.cs` | ~~Task-20261014-037 (2단계 병렬)~~ 반납 (#61 병합, 2026-10-14) | 공용 조작의 외줄 의존 정리·기본 이동 규칙. 공연장 파일은 공간 작업 전 PM 진행 |
 | `Systems/Camera/`, `Systems/Network/PlayerSync/LocalPlayerCamera.cs`, `Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab`, 새 `Resources/Settings/Camera/` | Task-20261014-038 (2단계 병렬) | 공용 1인칭·3인칭 시점과 전환, 외줄 구도 분리 |
 
