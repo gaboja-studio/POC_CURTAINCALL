@@ -4,7 +4,7 @@
 
 ## 지금 상태
 
-- 단계: integrated(#62 병합, 통합 브랜치 공동 테스트 통과 2026-10-14). 남은 것: 테스트 씬 처리 결정·PM 확인 3건. 브랜치는 최신 integration(028·033·034 포함)으로 fast-forward.
+- 단계: done(#62 병합, 공동 테스트 통과, 2026-10-14 PM 판단으로 Done 이동). 테스트 씬 유지. 브랜치는 최신 integration(028·033·034 포함)으로 fast-forward.
 - 동작하는 것(코드): `NetworkPlayer.ServerCut(개수)` 고정 순서 절단(외줄 `ServerCutPart`·`ServerCutLegThenArm`은 그대로), `ServerKill`·`ServerCatch`(장소 `SurvivalRules.ServerPlace`: 공연/탐색/탈출로, 새 상태 `Retired`=3), `ServerSetOneArm`·`ServerRevive(AllDead)`·`ServerRestorePart`(역순)·`ServerRestoreAll`/`Everyone`, 이벤트 `Revived`. `InjuryRevival`(자동 생성)이 `CampaignRun.StepChanged`로 쉬는 시간·밤 시작 = 외팔 부활, 세대 2+ 도입 = 전원 복구, 장소 기본값 설정. 점프 높이 배율(다리 1 ×0.75, 2 ×0.5 임시), 걷기 속도·점프 높이 공통 세팅 이전(값 그대로), `ExplorationBodyPenalty.Shared`(임시값), `SurvivalRules.ItemSlots`, `BodyRestartRecovery` 폐기 예정 표시, 테스트 화면 `InjurySurvivalTestUI`
 - 테스트 씬(AI 배치, PM 위임): Ground·PlayerSpawnPoints(4)·PlayerFollowCamera·SessionUI(`NetworkSessionTestUI`)·InjurySurvivalTest(`InjurySurvivalTestUI`+`CampaignFlowTestUI`). 테스트 화면이 내 캐릭터 균형을 끔(외줄 밖에선 서 있다 넘어짐)
 - 막힌 것: 없음
@@ -12,14 +12,14 @@
 
 ## 다음 할 일
 
-1. PM: 테스트 씬 처리 결정(`setup.md`), 아래 PM 확인 3건 결정
+1. 없음. 후속 수정은 `fix/survival-followups` PR(외줄 세팅 칸 삭제·리타이어 관전)
 
 ## PM이 확인할 것
 
-- 확인 요청: 외줄 세팅 `RopeMovement.moveSpeed`·`jumpHeight`가 이제 안 쓰임. `TightropeSettings.cs`는 배정 밖이라 남김 — 지울지 결정
+- 확인 요청: 없음. 외줄 세팅 안 쓰는 칸은 삭제하기로 결정(후속 fix PR)
 - 대기 중인 결정: 없음
-- 기록 요청(함정): 외줄 밖 씬에서 플레이어 균형이 기본으로 켜져 있어 서 있기만 해도 흔들려 추락함(공용 기본 이동 규칙 037이 해결 예정) — `Harness/Project/Pitfalls/`에 기록 제안
-- 공용 파일 요청: 리타이어 관전(`CameraSpectator`는 `Fallen`만 봄, 038 소유). "모두 재시작" 요청이 아직 `TightropeRun`을 직접 찾음(외줄 수정 필요, 4단계)
+- 기록: 균형 함정 → `Harness/Project/Pitfalls/balance-on-outside-tightrope.md`(2026-10-14)
+- 공용 파일 요청: 리타이어 관전은 결정(후속 fix PR). 남은 것: "모두 재시작" 요청이 `TightropeRun`을 직접 찾음(외줄 수정 필요, 4단계)
 
 ## Verification
 
