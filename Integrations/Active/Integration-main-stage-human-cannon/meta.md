@@ -18,7 +18,7 @@
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261015-040 | feat | @RagSpirin | feat/human-cannon-launch-rebound | - | scaffolded |
+| Task-20261015-040 | feat | @RagSpirin | feat/human-cannon-launch-rebound | - | assigned |
 | Task-20261015-041 | feat | @RagSpirin | feat/human-cannon-pole-saw-gate | - | scaffolded |
 | Task-20261015-042 | feat | @RagSpirin | feat/human-cannon-route-shelter | - | scaffolded |
 | Task-20261015-043 | feat | @RagSpirin | feat/human-cannon-finale-result | - | scaffolded |
