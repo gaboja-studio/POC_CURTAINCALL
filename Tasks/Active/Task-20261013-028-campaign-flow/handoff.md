@@ -4,17 +4,17 @@
 
 ## 지금 상태
 
-- 단계: 구현·에디터 설정(작업자)·플레이 테스트(작업자) 완료(2026-10-14). 검사 단계, 아직 commit 안 함.
+- 단계: 제출 완료(2026-10-14, PR #59). 033 이전 결과를 합친 뒤 재검사 통과.
 - 동작하는 것:
   - 세팅 5묶음: 공통 `BaseGameSettings`(+ 런 진행·기물 소지), 묘기 `Tricks/*`, 빈 틀 `WaitingRoom`·`Exploration`·`EscapeRoute` Settings(에셋 생성·`GameSettings` 연결 완료). 공통 값: 3일·하루 2공연·1일차 `Tightrope`→`HumanCannon`·타이머 B안(A/B)·쉬는 시간 300초·가이드 300초(임시)·경보 60초·기물 2/1/+2·최소 인원 2.
   - 런 진행 `Systems/Campaign/`: `RunState`(순수 판정) → `CampaignRun`(공개 진입점, 호스트 판정·named message 공유, 방 Playing 시 세대 1 시작, 엔딩 시 `EndGame`) → `CampaignFlowTestUI`(디버그 버튼, 오프라인 런 가능).
   - 신호(호스트): `EndIntro`·`EndPerformance`·`NotifyLeftWaitingRoom`·`NotifyAllAtStageEntrance`·`StartEscape`·`EndEscape(bool)`·`SetSetlist`, 누구나 `SetReady`. 이벤트: `StepChanged`·`RecallAlarm`·`RunEnded`·`Changed`.
 - 막힌 것: 없음
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/59
 
 ## 다음 할 일
 
-1. "제출해줘"로 PR 제출(검사 통과, 2026-10-14).
+1. PR #59 리뷰·병합(PM) → 합치기 ①에서 2단계 Task와 시간대 신호 형식 확정. 리뷰 수정이 있으면 이 브랜치에서 고친다.
 
 ## PM이 확인할 것
 
