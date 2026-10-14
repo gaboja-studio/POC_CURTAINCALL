@@ -6,7 +6,7 @@
 - **Base:** dev
 - **PM:** @MoHoDu
 - **Merge Time:** 미정 (PM이 공간 기획 확정 후 결정)
-- **Updated:** 2026-10-10
+- **Updated:** 2026-10-15
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
@@ -20,7 +20,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | 항목 | 경로·값 |
 |---|---|
-| 담당 | @lakuase2 |
+| 담당 | @RagSpirin (2026-10-15 PM 변경) |
 | 맵 배치 씬 | `Assets/Scenes/Levels/main_stage.unity` |
 | 테스트 씬 폴더 | `Assets/Scenes/Tests/MainStage/` |
 | 스크립트 폴더 | `Assets/Scripts/MainStage/` |
@@ -31,7 +31,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261008-025 | feat | @lakuase2 | feat/main-stage-level-edit | - | assigned |
+| Task-20261008-025 | feat | @RagSpirin | feat/main-stage-level-edit | - | assigned |
 
 ## 공용 파일 소유 표
 
@@ -43,5 +43,6 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 ## Decisions
 
-- Open: 공간 세부 목표·병합 예정 시각, 첫 Task 구성 (PM)
-- Decided: None
+- Open: 맵 세부 배치·병합 예정 시각, 실제 전달 확인 (PM)
+- Decided: 2026-10-15 PM — dev #69 Merge commit 98c0123 반영. 공연장 현재 담당 @RagSpirin; Task-025는 기존 맵 씬 배치만 소유하고 actual 전달은 별도 확인.
+- Decided: 인간 대포는 integration/main-stage-human-cannon(Base=integration/main-stage)에서 5단계·동시 활성 1개로 준비. 이 통합의 공간 경로 표는 Task-025 포괄 수정 권한이 아님.

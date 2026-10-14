@@ -1,7 +1,6 @@
 using System;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
-using CurtainCall.Tightrope.Prototype;
 using UnityEngine;
 
 namespace CurtainCall.Tightrope
@@ -18,7 +17,7 @@ namespace CurtainCall.Tightrope
         [Tooltip("줄 위 조작 규칙. 비우면 기본 외줄 규칙(TightropeControlScheme).")]
         [SerializeField] PlayerControlScheme ropeScheme;
 
-        [Tooltip("플랫폼 조작 규칙. 비우면 기본 플랫폼 규칙(PlatformControlScheme).")]
+        [Tooltip("플랫폼 조작 규칙. 비우면 플랫폼 이동 규칙(PlatformControlScheme, 공용 기본 이동 규칙과 같은 종류).")]
         [SerializeField] PlayerControlScheme platformScheme;
 
         TightropeCourse course;
@@ -106,7 +105,7 @@ namespace CurtainCall.Tightrope
         {
             mover.ClearPendingInput();
             if (balance != null) balance.SetCorrectionInput(0f);
-            if (TightropeInputGate.IsBlocked && player.TryGetComponent(out PlayerInputReader reader))
+            if (InputGate.IsBlocked && player.TryGetComponent(out PlayerInputReader reader))
                 reader.ClearPendingInput();
             onRope = rope;
             if (controller != null) controller.SetScheme(rope ? ropeScheme : platformScheme);

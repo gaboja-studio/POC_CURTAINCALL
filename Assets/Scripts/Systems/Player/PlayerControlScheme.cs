@@ -4,7 +4,8 @@ namespace CurtainCall.Player
 {
     /// <summary>
     /// 조작 규칙(전략). 공통 역할 입력(<see cref="PlayerInputFrame"/>)이 이 콘텐츠에서 무슨 뜻인지 정하고 동작 부품을 부른다.
-    /// 콘텐츠마다 규칙을 하나씩 만들고, <see cref="PlayerController.SetScheme"/>로 갈아 끼운다.
+    /// 콘텐츠마다 규칙을 하나씩 만들고(각 공간 폴더), <see cref="PlayerController.SetScheme"/>로 갈아 끼우거나
+    /// 씬의 <see cref="SceneControlScheme"/>·조작 설정의 기본 이동 규칙(<see cref="ControlSettings"/>)으로 고른다.
     /// 규칙 에셋은 여러 플레이어가 함께 쓰므로 플레이어별 상태는 <see cref="PlayerControlContext"/>에 둔다.
     /// 신체 부위 손실 같은 공통 상태의 디메리트도 콘텐츠마다 다르므로 각 규칙이 <see cref="PlayerControlContext.Condition"/>을 읽어 처리한다.
     /// </summary>
