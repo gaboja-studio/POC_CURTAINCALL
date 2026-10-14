@@ -33,10 +33,10 @@
 | 상태 변경 허용 규칙 | 수정 후 재사용 | `NetworkPlayer.ServerCanChangeState`(`NetworkPlayer.cs:51`) | `static Func` 1개를 `TightropeRun`이 씀. 장소마다 규칙이 다르므로(공연/쉬는 시간/탈출로) 현재 장소의 규칙만 끼우는 방식 필요 |
 | 재시작 시 몸 복구 | 수정 후 재사용(대체) | `NetworkPlayer.ServerRestartAll()`, `BaseGameSettings.BodyRestartRecovery` | 사망자를 온전한 몸으로 복구. 기획: 묘기 재시작 없음, 사망자는 다음 시간대에 **외팔 상태**로 부활 → 부활 함수로 대체, 복구 설정은 폐기 대상 |
 | 사망 후 관전 | 재사용 | `Assets/Scripts/Systems/Camera/CameraSpectator.cs` | 내 캐릭터 사망 시 살아 있는 사람을 따라감(A/D 전환). 기획 "공연 끝까지 관전"과 일치. 추격당하는 사람 시점 관전·리타이어 후 엔딩까지 관전은 대상 지정 기능 추가 필요 |
-| 손상 효과 적용기(기어가기 + 정책) | 수정 후 재사용 | `Assets/Scripts/MainStage/Tightrope/Damage/BodyDamageEffects.cs`, `BodyPenaltyPolicy.cs` | 내용은 공통인데 공연장 폴더에 있음. 정책 교체 구조는 기획의 "탐색 중 / 공연 중 부상 패널티" 전환과 맞음. 점프 높이 배율 없음(`PlayerMover.JumpSpeed`가 `Rope.JumpHeight` 고정) |
+| 손상 효과 적용기(기어가기 + 정책) | 수정 후 재사용 | `Assets/Scripts/Systems/Damage/BodyDamageEffects.cs`, `BodyPenaltyPolicy.cs` | 033에서 공통 폴더로 이전(동작 동일). 정책 교체 구조는 기획의 "탐색 중 / 공연 중 부상 패널티" 전환과 맞음. 점프 높이 배율 없음(`PlayerMover.JumpSpeed`가 `Rope.JumpHeight` 고정) |
 | 탐색 중 부상 패널티 정책 | 신규(대기실 담당 수치) | 없음 | 정책 틀(`BodyPenaltyPolicy`)에 대기실·백스테이지·탈출로 묘기 밖 공통 정책 1개 추가 |
 | 외줄 공연 중 부상 패널티 | 재사용(공연장 소유) | `MainStage/Tightrope/Damage/TightropeBodyPenalty.cs` | 기획 예시표(×0.8, 기어가기 ×0.5·착지 ×1.5, 외팔 목마 거리 −25%)와 같은 임시값 |
-| 잘린 팔다리 연출 | 재사용 | `MainStage/Tightrope/Damage/LimbDismemberment.cs`, `ModelLimbs.cs` | 모두에게 보임, 판정과 무관 |
+| 잘린 팔다리 연출 | 재사용 | `Systems/Damage/LimbDismemberment.cs`, `ModelLimbs.cs` (033 이전) | 모두에게 보임, 판정과 무관 |
 | 상호작용 창구 | 재사용 | `Assets/Scripts/Systems/Player/PlayerInteraction.cs` | F 입력 = 상호작용, F 홀드 = 해제로 조작키 기획과 일치. 외팔 "시간 걸리는 상호작용 느려짐" 배율은 없음 |
 | 신체 복구(역순·개인별·비용) | 신규 | 없음 | `PlayerCondition`에 역순 1개 되돌리기 추가 + 대기실 의료 전문가 화면(대기실 담당) |
 | 절단 보너스·절단 기록 | 신규 | 없음 | 누가·언제·원인 기록 없음(텔레메트리는 판정 미사용) |
@@ -102,11 +102,21 @@
   - `Damage/LimbDismemberment.cs`·`ModelLimbs.cs` — 절단 연출은 탈출로 묘기 구간·추격자에서도 쓴다.
 - 왜 필요한가: asmdef가 없어 옮기지 않아도 컴파일은 되지만, 대기실·탈출로 코드가 공연장 폴더에 의존하면 공연장 담당이 고칠 때 다른 공간이 깨지고 소유권이 불분명해진다.
 - 할 때 주의: `.meta`째 옮겨 GUID를 유지해야 프리팹 참조가 끊기지 않는다. 공연장(@lakuase2) 파일 수정이므로 PM 배정이 필요하다. 더미 우선(#5) 단계에서는 더미가 `Systems/` 쪽 새 틀을 쓰고, 이전은 실제 공간 연결 때 해도 된다.
+- **결과 (Task-033, 2026-10-14)**: Damage 4개(`BodyDamageEffects`·`BodyPenaltyPolicy`·`LimbDismemberment`·`ModelLimbs`)를 `Assets/Scripts/Systems/Damage/`로 이전(GUID·namespace 유지). 외줄 기본 정책은 `TightropeBodyPenalty`가 `BodyDamageEffects.DefaultPolicyFactory`에 등록. 결과 명부 분리는 031로 넘김(경계안: 033 handoff).
 
 ## 진입점
 
 - 현재 공통 진입점: `NetworkSessionManager`(방·방 상태), `NetworkPlayer`(상태·부위 손실·재시작), `PlayerCondition`(몸 상태), `CameraSpectator`(관전), `GameSettings.Base`.
 - 공연 결과는 아직 `TightropeResults`(외줄 전용)가 유일하다.
+- 부상: `BodyDamageEffects.SetPolicy(policy)`(null = 콘텐츠 불이익 없음), `IsCrawling`, `Current`. 시작 정책이 비면 `BodyDamageEffects.DefaultPolicyFactory`(지금은 외줄).
+
+## 공간에서 쓰는 법 (부상)
+
+- 공간 Task는 `Systems/Damage/`를 **읽고 부르기만** 한다. 고칠 일이 있으면 PM에게 요청한다(`space-workspaces.md`).
+- Player 프리팹에 이미 붙어 있어 어느 공간이든 Player만 두면 절단 연출·기어가기가 동작한다. 절단 요청은 `NetworkPlayer.RequestCutPart`(소유자)·`ServerCutPart`(호스트), 상태는 `PlayerCondition.LostParts`·`Changed`.
+- 공간 전용 불이익은 내 공간 스크립트 폴더에 `BodyPenaltyPolicy`를 상속해 만들고, 공간에 들어올 때 `GetComponent<BodyDamageEffects>().SetPolicy(내 정책)`, 불이익이 없으면 `SetPolicy(null)`.
+- ⚠ 지금은 어느 공간이든 기본 정책이 외줄 불이익이다(옮기기 전과 같음). 공간별 기본값은 030(부상·생존)에서 정한다.
+- 새 모델은 `ModelLimbs`로 팔·다리 위치를 지정(휴머노이드는 생략 가능).
 
 ## 의존 도메인
 
@@ -121,3 +131,4 @@
 - 보상·가격·패널티 수치는 미확정. 세팅 파일 값으로 둔다.
 - `PlayerState`·`BodyPart`는 숫자로 전송한다. 기존 값을 바꾸지 말고 끝에만 추가한다.
 - 접속 승인 콜백은 `NetworkSessionManager`만 등록한다.
+- `Systems/Damage/`는 공연장 코드(`MainStage/`)를 부르지 않는다. 묘기 전용 정책은 묘기 쪽이 `SetPolicy` 또는 `DefaultPolicyFactory`로 끼운다.

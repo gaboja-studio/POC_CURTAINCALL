@@ -31,7 +31,7 @@
 - 1 문서/규칙: `pwsh -File Scripts/verify-fast.ps1`
 - 2 컴파일: `pwsh -File Scripts/verify-unity.ps1 -ProjectPath . -Compile`
 - 3 테스트: 자동 테스트 구성이 없으면 `NO_PROJECT_TESTS`
-- 4 실행 로그: 외줄 부상·결과 테스트 씬에서 Missing 컴포넌트 0, Console 오류 0 기록
+- 4 실행 로그: `proto_0.0.2.unity`(실제 흐름 전체, 2026-10-14 사용자 지정)에서 Missing 컴포넌트 0, Console 오류 0 기록. 숫자키 절단이 필요하면 외줄 부상 테스트 씬 보충
 
 ## 공동 테스트 항목
 
