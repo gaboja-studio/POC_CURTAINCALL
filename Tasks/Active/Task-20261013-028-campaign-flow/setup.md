@@ -23,6 +23,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 - `Assets/Scripts/Systems/Settings/` — 세팅 5묶음 틀(새 세팅 클래스 포함)과 공통 값 칸 추가. 1단계 소유, 2단계는 PM이 순서 배정
 - `Assets/Resources/Settings/GameSettings/` — 위 세팅 에셋
+- `Docs/Domains/common-game-systems.md` — 런 진행·조정값 행과 진입점만 갱신 (2026-10-14 PM 허용, Task-029·033과 같은 파일이므로 합칠 때 확인)
 
 ## 수정 금지
 

@@ -3,16 +3,29 @@ using UnityEngine;
 
 namespace CurtainCall.Settings
 {
+    /// <summary>쉬는 시간 타이머가 언제부터 흐르는지. 결정: Harness/Project/Decisions/run-rules.md #1</summary>
+    public enum RestTimerMode
+    {
+        /// <summary>A안: 쉬는 시간이 시작되자마자 흐른다. 대기실도 복귀 지점.</summary>
+        FromRestStart = 0,
+        /// <summary>B안(기본): 대기실에서 백스테이지로 처음 나온 순간부터 흐른다. 복귀는 무대 입구 통로만.</summary>
+        FromLeavingWaitingRoom = 1,
+    }
+
     /// <summary>
-    /// 게임 기본 세팅: 세션·캐릭터·입력·균형 공통·연출·동기화. 묘기와 상관없이 쓰는 값.
+    /// 공통 세팅(세팅 5묶음 중 "공통"): 세션·런 진행·기물 소지·캐릭터·입력·균형 공통·연출·동기화. 묘기·공간과 상관없이 쓰는 값.
     /// 에셋: Assets/Resources/Settings/GameSettings/BaseGameSettings.asset. <see cref="GameSettings.Base"/>로 읽는다.
-    /// 기본값은 2026-10-03 프리팹 값(옮기기 전 값)과 같다.
+    /// 기본값은 2026-10-03 프리팹 값(옮기기 전 값)과 같다. 런 진행·기물 소지는 2026-10-14 PM 결정값.
     /// </summary>
     [CreateAssetMenu(menuName = "CurtainCall/Settings/Base Game Settings", fileName = "BaseGameSettings")]
     public sealed class BaseGameSettings : ScriptableObject
     {
         [Header("세션")]
         [SerializeField] SessionSettings session = new();
+        [Header("런 진행")]
+        [SerializeField] RunSettings run = new();
+        [Header("기물 소지")]
+        [SerializeField] ItemCarrySettings itemCarry = new();
         [Header("캐릭터")]
         [SerializeField] CharacterSettings character = new();
         [Header("입력")]
@@ -27,6 +40,8 @@ namespace CurtainCall.Settings
         [SerializeField] BodyDamageSettings bodyDamage = new();
 
         public SessionSettings Session => session;
+        public RunSettings Run => run;
+        public ItemCarrySettings ItemCarry => itemCarry;
         public CharacterSettings Character => character;
         public InputSettings Input => input;
         public BalanceSettings Balance => balance;
@@ -43,11 +58,66 @@ namespace CurtainCall.Settings
             [Tooltip("방 정원(명). 이 인원이 차면 더 들어오지 못한다(자동 시작은 하지 않음). 방을 만들 때 적용된다.")]
             [SerializeField, Min(1)] int maxPlayers = 4;
 
-            [Tooltip("호스트가 게임을 시작할 수 있는 최소 인원(명, 호스트 포함). 정원보다 크면 정원을 쓴다. 2026-10-02 테스트용 1.")]
-            [SerializeField, Min(1)] int minPlayers = 1;
+            [Tooltip("호스트가 게임을 시작할 수 있는 최소 인원(명, 호스트 포함). 정원보다 크면 정원을 쓴다. 기획 2(2026-10-14 PM). 1인 테스트는 개발자 모드로 한다.")]
+            [SerializeField, Min(1)] int minPlayers = 2;
 
             public int MaxPlayers => maxPlayers;
             public int MinPlayers => Mathf.Min(minPlayers, maxPlayers);
+        }
+
+        /// <summary>런(1~N일차 + 마지막 날 다음 날 아침 쉬는 시간) 진행. 기획: 게임 흐름 2-2·2-4, 결정: run-rules.md</summary>
+        [Serializable]
+        public sealed class RunSettings
+        {
+            [Tooltip("공연하는 날 수(일). 이 다음 날 아침 쉬는 시간이 마지막 탈출 기회이고, 그것이 끝나면 런 실패. 기획 3.")]
+            [SerializeField, Min(1)] int dayCount = 3;
+
+            [Tooltip("하루 공연 횟수(회). 공연 사이마다 쉬는 시간, 마지막 공연 뒤 밤 정비. 기획 2.")]
+            [SerializeField, Min(1)] int performancesPerDay = 2;
+
+            [Tooltip("1일차 공연 순서(묘기 이름, 고정). 2일차부터는 밤 정비 때 정하는 세트리스트를 쓴다. 기획 줄타기 → 인간 대포.")]
+            [SerializeField] string[] firstDayTricks = { "Tightrope", "HumanCannon" };
+
+            [Tooltip("쉬는 시간 타이머 방식. B안 = 대기실에서 백스테이지로 나온 순간부터(기본), A안 = 쉬는 시간 시작부터. A/B 테스트용(2026-10-14 PM).")]
+            [SerializeField] RestTimerMode restTimerMode = RestTimerMode.FromLeavingWaitingRoom;
+
+            [Tooltip("쉬는 시간 길이(초). 아침·공연 사이 공통. 기획 5분 = 300.")]
+            [SerializeField, Min(1f)] float restDuration = 300f;
+
+            [Tooltip("가이드 쉬는 시간 길이(초). 1일차 첫 공연 뒤 쉬는 시간. 기획 미정(플레이테스트로 결정) — 임시 300.")]
+            [SerializeField, Min(1f)] float guideRestDuration = 300f;
+
+            [Tooltip("소집 경보 시점(초). 쉬는 시간이 이만큼 남으면 경보를 울린다. 기획 1분 = 60.")]
+            [SerializeField, Min(0f)] float recallAlarmLeadTime = 60f;
+
+            public int DayCount => dayCount;
+            public int PerformancesPerDay => performancesPerDay;
+            public RestTimerMode RestTimerMode => restTimerMode;
+            public float RestDuration => restDuration;
+            public float GuideRestDuration => guideRestDuration;
+            public float RecallAlarmLeadTime => recallAlarmLeadTime;
+
+            /// <summary>1일차 <paramref name="index"/>번째(0부터) 공연 묘기. 없으면 빈 문자열.</summary>
+            public string FirstDayTrick(int index) =>
+                firstDayTricks != null && index >= 0 && index < firstDayTricks.Length ? firstDayTricks[index] : "";
+        }
+
+        /// <summary>한 사람이 지닐 수 있는 기물 개수. 결정: injury-rules.md #8 (부상 기획 기본값)</summary>
+        [Serializable]
+        public sealed class ItemCarrySettings
+        {
+            [Tooltip("팔이 2개일 때 지닐 수 있는 기물(개). 부상 기획 2.")]
+            [SerializeField, Min(0)] int twoArmSlots = 2;
+
+            [Tooltip("팔이 1개일 때 지닐 수 있는 기물(개). 부상 기획 1.")]
+            [SerializeField, Min(0)] int oneArmSlots = 1;
+
+            [Tooltip("배낭이 있을 때 더 지닐 수 있는 기물(개). 부상 기획 +2.")]
+            [SerializeField, Min(0)] int backpackBonus = 2;
+
+            public int TwoArmSlots => twoArmSlots;
+            public int OneArmSlots => oneArmSlots;
+            public int BackpackBonus => backpackBonus;
         }
 
         /// <summary>캐릭터 몸과 일반 이동(플랫폼).</summary>

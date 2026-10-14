@@ -14,7 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.BaseGameSettings
   session:
     maxPlayers: 4
-    minPlayers: 1
+    minPlayers: 2
+  run:
+    dayCount: 3
+    performancesPerDay: 2
+    firstDayTricks:
+    - Tightrope
+    - HumanCannon
+    restTimerMode: 1
+    restDuration: 300
+    guideRestDuration: 300
+    recallAlarmLeadTime: 60
+  itemCarry:
+    twoArmSlots: 2
+    oneArmSlots: 1
+    backpackBonus: 2
   character:
     freeMoveSpeed: 3
     turnSpeed: 720
