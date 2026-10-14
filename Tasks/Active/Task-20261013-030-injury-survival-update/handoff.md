@@ -4,7 +4,7 @@
 
 ## 지금 상태
 
-- 단계: 구현·검사 완료, 제출 전. 브랜치는 최신 integration(028·033·034 포함)으로 fast-forward.
+- 단계: 제출 완료(PR #62), PM 병합·공동 테스트 대기. 브랜치는 최신 integration(028·033·034 포함)으로 fast-forward.
 - 동작하는 것(코드): `NetworkPlayer.ServerCut(개수)` 고정 순서 절단(외줄 `ServerCutPart`·`ServerCutLegThenArm`은 그대로), `ServerKill`·`ServerCatch`(장소 `SurvivalRules.ServerPlace`: 공연/탐색/탈출로, 새 상태 `Retired`=3), `ServerSetOneArm`·`ServerRevive(AllDead)`·`ServerRestorePart`(역순)·`ServerRestoreAll`/`Everyone`, 이벤트 `Revived`. `InjuryRevival`(자동 생성)이 `CampaignRun.StepChanged`로 쉬는 시간·밤 시작 = 외팔 부활, 세대 2+ 도입 = 전원 복구, 장소 기본값 설정. 점프 높이 배율(다리 1 ×0.75, 2 ×0.5 임시), 걷기 속도·점프 높이 공통 세팅 이전(값 그대로), `ExplorationBodyPenalty.Shared`(임시값), `SurvivalRules.ItemSlots`, `BodyRestartRecovery` 폐기 예정 표시, 테스트 화면 `InjurySurvivalTestUI`
 - 테스트 씬(AI 배치, PM 위임): Ground·PlayerSpawnPoints(4)·PlayerFollowCamera·SessionUI(`NetworkSessionTestUI`)·InjurySurvivalTest(`InjurySurvivalTestUI`+`CampaignFlowTestUI`). 테스트 화면이 내 캐릭터 균형을 끔(외줄 밖에선 서 있다 넘어짐)
 - 막힌 것: 없음
@@ -12,7 +12,7 @@
 
 ## 다음 할 일
 
-1. "제출해줘" → PR(integration/common-game-systems), PM 공동 테스트
+1. PM: PR #62 병합 → 공동 테스트 1~3 → 결과 기록. 앞 PR 병합으로 뒤처지면 Update branch(merge)
 
 ## PM이 확인할 것
 
