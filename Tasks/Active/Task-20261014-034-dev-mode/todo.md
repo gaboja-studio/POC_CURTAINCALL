@@ -10,9 +10,14 @@
 
 ## 작업자
 
-- [ ] "시작해줘"로 작업 시작
-- [ ] 구현 (세부 항목은 아래에 추가)
-- [ ] "검사해줘" 통과
+- [x] "시작해줘"로 작업 시작
+- [x] 구현
+  - [x] 켜는 방법·예외 규칙 PM 확정 (meta Decided)
+  - [x] `DevMode` 스위치·API, 에디터 메뉴, DEV MODE 표시
+  - [x] `NetworkSessionManager.MinPlayers` 최소 인원 예외
+  - [x] DevMode 테스트 씬 구성, 1인 시작·런 진행 확인
+  - [x] 테스트 AI 동료 검토 (handoff)
+- [x] "검사해줘" 통과
 - [ ] "제출해줘"로 PR 제출
 
 ## PM 통합

@@ -2,10 +2,10 @@
 
 - **Title:** 1인 테스트용 개발자 모드
 - **Type:** feat
-- **Status:** assigned
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 네트워크 세션 참고
-- **Current Skill:** start-work
+- **Current Skill:** implement-code
 - **Updated:** 2026-10-14
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
@@ -26,6 +26,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
-- Open: 켜는 방법(실행 인자 / 에디터 전용 메뉴 등)과 예외 규칙 목록은 작업 시작 때 제안 후 PM 확인
+- Open: 없음
 - Decided: 2026-10-14 PM: 개발자 모드를 먼저 만들고 테스트 AI는 검토만 한 뒤 이후에 고려한다. 빌드 기본은 꺼짐. 통합 계획 2D(선행: 028 세팅 틀)
 - Decided: 2026-10-14 PM: 개발자 모드 스위치는 세팅 파일이 아니라 `Systems/DevMode/`에 둔다(디버그는 세팅에 넣지 않는다, game-settings.md #5). 031이 생존 2명 미만 예외에 읽을 공개 API를 둔다. 2단계 맨 먼저 병합
+- Decided: 2026-10-14 PM: 켜는 방법 = 에디터 메뉴 토글(EditorPrefs, 개인 PC에만 저장) + 빌드는 실행 인자 `-devmode`일 때만. 게임 진행 중 변경 불가, 켜져 있으면 화면에 DEV MODE 표시. 예외 규칙은 인원 규칙 2개만: ① 시작 최소 인원 → 1명(`NetworkSessionManager.MinPlayers`) ② 묘기 실패 기준 생존 2명 미만 → 생존 0명(031이 `DevMode.MinSurvivors(정식값)`을 읽음). 예외는 호스트 판정에만 적용
