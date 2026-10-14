@@ -110,6 +110,7 @@
 - 공연 결과는 아직 `TightropeResults`(외줄 전용)가 유일하다.
 - 부상: `BodyDamageEffects.SetPolicy(policy)`(null = 콘텐츠 불이익 없음), `IsCrawling`, `Current`. 시작 정책이 비면 `BodyDamageEffects.DefaultPolicyFactory`(지금은 외줄).
 - 부상·생존(Task-030, 호스트): `NetworkPlayer.ServerCut(개수)`(공통 순서 절단), `ServerKill`, `ServerCatch`, `ServerSetOneArm`, `ServerRevive`·`ServerReviveAllDead`, `ServerRestorePart`(역순 1개), `ServerRestoreAll`·`ServerRestoreEveryone`, 이벤트 `Revived`. 장소 규칙 `SurvivalRules.ServerPlace`(공연/탐색/탈출로 → 사망·잡힘·리타이어), 기물 칸 `SurvivalRules.ItemSlots`. 시간대 시작 부활·세대 교체 복구는 `InjuryRevival`이 `CampaignRun.StepChanged`로 자동 처리.
+- 조작(Task-037): `PlayerController.SetScheme(규칙)`(null = 기본 쪽으로 복귀), 씬 `SceneControlScheme`, 기본 이동 규칙 `ControlSettings.Default`. 입력 막기 `InputGate.SetBlocking(요청자, 열림)`·`IsBlocked`·`RequireRelease()`, UI 컴포넌트 `UIInputBlocker`.
 
 ## 공간에서 쓰는 법 (부상)
 
@@ -118,6 +119,16 @@
 - 공간 전용 불이익은 내 공간 스크립트 폴더에 `BodyPenaltyPolicy`를 상속해 만들고, 공간에 들어올 때 `GetComponent<BodyDamageEffects>().SetPolicy(내 정책)`, 불이익이 없으면 `SetPolicy(null)`.
 - ⚠ 기본 정책은 여전히 외줄 불이익이다(외줄 동작 유지). 탐색 공간(대기실·백스테이지·탈출로 묘기 밖)은 들어올 때 `SetPolicy(ExplorationBodyPenalty.Shared)`를 끼운다(Task-030, 수치는 공통 세팅 신체 손상 임시값). 점프 높이 감소는 정책과 무관하게 공통으로 적용된다.
 - 새 모델은 `ModelLimbs`로 팔·다리 위치를 지정(휴머노이드는 생략 가능).
+
+## 공간에서 쓰는 법 (조작·입력 막기, Task-037)
+
+- 코드: `Assets/Scripts/Systems/Control/`(`PlatformControlScheme`·`ControlSettings`·`SceneControlScheme`·`InputGate`·`UIInputBlocker`, 에디터 `Editor/ControlSettingsEditor`). 공용 조작 코드는 외줄을 모른다.
+- 규칙 고르는 순서: 콘텐츠가 끼운 규칙(`SetScheme`) → 프리팹 시작 규칙(테스트용) → 씬 규칙(`SceneControlScheme`) → **기본 이동 규칙**. `PlayerController`가 매 프레임 다시 골라 플레이 중 변경이 바로 반영된다.
+- 기본 이동 규칙: `Assets/Resources/Settings/Control/ControlSettings.asset`(메뉴 `Tools/CurtainCall/조작/기본 이동 규칙 선택`). 지금 값 = 플랫폼 이동(8방향·점프), 비워도 같다. 목록에 프로젝트의 규칙 에셋과 에셋 없는 규칙 종류("새로 만들기" → `Settings/Control/Schemes/`에 생성)가 자동으로 나온다.
+- 공간 이동 규칙: 내 공간 스크립트 폴더에 `PlayerControlScheme`을 상속해 만들고, 씬에 `SceneControlScheme`을 두어 넣거나 들어갈 때 `SetScheme`. 공용 수정 없음.
+- UI 입력 막기: 패널에 `UIInputBlocker`(보이는 동안 막음, 또는 `SetOpen`·입력칸 포커스). 요청자가 하나라도 남으면 막고, 모두 닫힌 뒤 게임 키를 다 뗀 다음 프레임에 다시 받는다. 디버그 키는 `InputGate.AddReleaseKeys`.
+- 외줄 쪽: `TightropeControlScheme`은 `MainStage/Tightrope/Control/`(줄 위에서 `CourseControlSwitcher`가 끼움), `TightropeUIFocus`는 `InputGate`에 요청만 보내고, `TightropeInputGate`는 외줄 코드 호환 창구(개발 키 P·O·B·R·M·K·L 등록)로 남았다.
+- 남은 일: 균형(`PlayerBalance`)은 외줄 전용 유지, 걷기 속도·점프 높이 공통 세팅 이전은 030에서 완료(`BaseGameSettings.Character.CourseMoveSpeed`·`JumpHeight`), 1인칭 시점 이동 규칙은 038 결과 후 PM 결정.
 
 ## 의존 도메인
 
