@@ -35,7 +35,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
 | `Assets/Scripts/Systems/Settings/`, `Assets/Resources/Settings/GameSettings/` | Task-20261013-028 (1단계) | 세팅 5묶음 틀. 2단계 추가 칸은 PM이 순서 배정 |
-| `Assets/Scripts/MainStage/Tightrope/Damage/`, `Assets/Scripts/MainStage/Tightrope/Results/` | Task-20261014-033 (1단계) | 공용 코드 공통 폴더 이전(공간 작업 시작 전, PM) |
+| `Assets/Scripts/MainStage/Tightrope/Damage/`, `Assets/Scripts/MainStage/Tightrope/Results/` | ~~Task-20261014-033 (1단계)~~ 반납 (#53 병합, 2026-10-14) | 공용 코드 공통 폴더 이전 완료. 이후 공연장 소유로 돌아감(031은 Results를 읽기만) |
+| `Assets/Scripts/Systems/Damage/` | Task-20261013-030 (2단계) | 033이 옮긴 부상 효과·패널티 틀. 부상·생존의 중심 |
 
 ## Decisions
 
