@@ -63,6 +63,9 @@ Assert-CommitIdentity
 Set-MetaField -MetaPath $meta -Field 'Status' -Value 'assigned'
 Set-MetaField -MetaPath $meta -Field 'Branch' -Value $branch
 Set-MetaField -MetaPath $meta -Field 'Updated' -Value (Get-Date -Format 'yyyy-MM-dd')
+# 점검을 통과했으므로 PM 준비 항목을 체크한다(Task 폴더째 커밋된다).
+$todo = Join-Path (Split-Path $meta) 'todo.md'
+foreach ($item in '테스트 씬·폴더 생성', '`plan.md` 공동 테스트 항목 합의', '인계 전 체크 완료') { [void](Set-TodoChecked -TodoPath $todo -Text $item) }
 if (Set-IntegrationTaskRow -MetaPath $integrationMeta -Columns @($Id, '', '', $branch, '', 'assigned')) {
     $stagePaths.Add([System.IO.Path]::GetRelativePath($RepoRoot, $integrationMeta))
 }

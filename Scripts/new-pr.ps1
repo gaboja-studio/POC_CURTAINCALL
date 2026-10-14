@@ -195,5 +195,6 @@ if ($task -and $prUrl) {
     Set-Content -LiteralPath $handoff -Value $text -Encoding utf8NoBOM -NoNewline
     $metaText = [regex]::Replace((Get-Content -LiteralPath $meta -Raw), '(?m)^(- \*\*Status:\*\*).*$', '$1 submitted')
     Set-Content -LiteralPath $meta -Value $metaText -Encoding utf8NoBOM -NoNewline
-    Write-Output 'handoff.md에 PR 링크, meta.md Status를 submitted로 기록했습니다. (이 변경은 다음 저장 때 함께 올라갑니다)'
+    [void](Set-TodoChecked -TodoPath (Join-Path $task.Path 'todo.md') -Text '"제출해줘"로 PR 제출')
+    Write-Output 'handoff.md에 PR 링크, meta.md Status를 submitted, todo.md 제출 항목을 기록했습니다. (이 변경은 다음 저장 때 함께 올라갑니다)'
 }

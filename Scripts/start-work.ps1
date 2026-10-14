@@ -43,6 +43,9 @@ if ((Get-MetaField -MetaPath $meta -Field 'Status') -eq 'assigned') {
     Set-MetaField -MetaPath $meta -Field 'Updated' -Value (Get-Date -Format 'yyyy-MM-dd')
     Write-Output '상태를 working으로 바꿨습니다(다음 "저장해줘" 때 함께 저장됩니다).'
 }
+if (Set-TodoChecked -TodoPath (Join-Path $task.Path 'todo.md') -Text '"시작해줘"로 작업 시작') {
+    Write-Output 'todo.md "시작해줘"로 작업 시작을 체크했습니다.'
+}
 
 $areas = Get-SetupAreas -SetupPath (Join-Path $task.Path 'setup.md')
 Write-Output ''
