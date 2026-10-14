@@ -39,10 +39,10 @@
 |---|---|---|---|---|
 | 0 | 029 기존 기능 조사 | CC-107 | 재사용 목록·기획 반영·이 계획 | 문서만 |
 | 1A | 028 런 진행 | CC-108 | 세대·일차·시간대(공연→쉬는 시간→밤) 전환, 쉬는 시간 타이머(A/B), 전원 준비 완료, 기한 초과 → 런 실패 → 세대 교체. 세팅 5묶음 클래스·에셋을 만들고 이미 정해진 공통 값(타이머 A/B, 기물 개수 2/1/+2, 최소 인원 2, 일수·공연 수·쉬는 시간 길이)을 넣는다 | `Systems/Campaign/`, `Tests/Systems/Campaign/` + 공용: 세팅 |
-| 1B | 공통 폴더 이전 (refactor/common-code-move) | CC-117 | `MainStage/Tightrope/Damage/`의 `BodyDamageEffects`·`BodyPenaltyPolicy`·`LimbDismemberment`·`ModelLimbs`, `Results/`의 명부·확정 결과 공통부를 `Systems/`로 이동. **동작 변경 없음**, `.meta`째 이동, 외줄 테스트 씬 그대로 동작 확인 | 공용: 위 파일 + 받는 쪽 `Systems/` 폴더 |
+| 1B | 공통 폴더 이전 (refactor/common-code-move) | CC-117 | `MainStage/Tightrope/Damage/`의 `BodyDamageEffects`·`BodyPenaltyPolicy`·`LimbDismemberment`·`ModelLimbs`, (결과 명부 공통부 분리는 2026-10-14 PM 결정으로 031로 넘김) `Systems/`로 이동. **동작 변경 없음**, `.meta`째 이동, 외줄 테스트 씬 그대로 동작 확인 | 공용: 위 파일 + 받는 쪽 `Systems/` 폴더 |
 | 1C | 036 검사 스크립트 테스트 단계 (fix/check-work-editor-tests) | CC-120 | 에디터가 열린 상태에서 테스트를 Pipeline `run_tests`로 실행, 테스트 0개는 `NO_PROJECT_TESTS`, 하네스 Task 작업 구역 경로 인식 | `Scripts/verify-unity.ps1`, `Scripts/check-work.ps1`, `Scripts/Lib/common.ps1` |
 | 2A | 030 부상·생존 | CC-109 | 고정 절단 순서 통일, 외팔 상태 설정, 역순 신체 복구, 시간대 시작 때 사망자 외팔 부활, 장소별 사망/리타이어 규칙, 점프 높이 배율, 탐색 중 부상 패널티 정책(더미값), 기물 소지 칸 수 계산 | `Systems/Survival/`, `Tests/Systems/Survival/` + 공용: 플레이어 상태·몸 상태·이동 |
-| 2B | 031 공연 결과·공동 자금 | CC-110 | 묘기 공통 공연 결과(성공/실패·사망자·부상 변화·정산액, 생존 2명 미만 실패), 팀 호응 게이지(플레이어별 구간·사망 시 제거), 공동 자금·장부(호스트 확정), 보상 규칙 파일 구현(임시값) | `Systems/Reward/`, `Tests/Systems/Reward/` + 공용: 결과 명부(이전 후) |
+| 2B | 031 공연 결과·공동 자금 | CC-110 | 묘기 공통 공연 결과(성공/실패·사망자·부상 변화·정산액, 생존 2명 미만 실패), 팀 호응 게이지(플레이어별 구간·사망 시 제거), 공동 자금·장부(호스트 확정), 보상 규칙 파일 구현(임시값) | `Systems/Reward/`, `Systems/Results/`(새 공통 결과), `Tests/Systems/Reward/` (외줄 결과 코드는 참고만) |
 | 2C | 더미 공간 (feat/dummy-spaces) | CC-119 | 더미 묘기(도착·사망·절단 버튼), 더미 대기실(로비·구매·의료 복구·준비 완료), 더미 탐색(백스테이지·안전지대·추격 시뮬), 더미 탈출로(도착·리타이어). 대기실·탐색·탈출로 세팅 파일 값 연결 | `Systems/DummySpaces/`, `Tests/Systems/DummySpaces/` + 공용: 대기실·탐색·탈출로 세팅 |
 | 2D | 개발자 모드 (feat/dev-mode) | CC-118 | 최소 인원·생존 2명 미만 실패 같은 인원 규칙 예외 스위치(빌드 기본 꺼짐), 1인으로 공연·쉬는 시간 넘기기. 테스트 AI 동료 가능성 검토 결과를 handoff에 남김 | `Systems/DevMode/`, `Tests/Systems/DevMode/` + 공용: 세션 매니저(필요 시) |
 | 3 | 032 공간 연결 | CC-111 | 더미 공간 사이 장소 전환·데이터 전달(run-state.md 표), 2인 + 개발자 모드 1인으로 런 한 바퀴 | `Systems/SpaceLink/`, `Tests/Systems/SpaceLink/` |
@@ -52,7 +52,7 @@
 | 파일 | 단계·소유 | 이유 |
 |---|---|---|
 | `Systems/Settings/GameSettings.cs`, `BaseGameSettings.cs`, 새 세팅 클래스, `Resources/Settings/GameSettings/` | 1A 028 → 2C 더미 공간(대기실·탐색·탈출로 세팅) | 세팅 틀은 한 Task가 만들고, 2단계 추가 칸은 PM이 순서를 정해 배정 |
-| 옮길 Damage·Results 파일 | 1B 이전 → 2B 031(결과 명부) | 이전 뒤 결과 명부는 031이 고친다 |
+| 옮길 Damage 파일 | 1B 033 (완료, #53) | Results는 옮기지 않음. 031이 `Systems/Results/`에 공통 결과를 새로 만들고 외줄 결과는 4단계에 교체 |
 | `NetworkPlayer.cs`, `PlayerState.cs`, `PlayerCondition.cs`, `PlayerMover.cs`, `BodyDamageEffects.cs`(이전 후) | 2A 030 | 부상·생존의 중심. 다른 Task는 읽기만 |
 | `NetworkSessionManager.cs` | 2D 개발자 모드 | 최소 인원 예외가 필요할 때만 |
 
