@@ -26,10 +26,15 @@
 
 ## 준비 브랜치
 
-준비 커밋 push 후 같은 기준에서 5개 브랜치를 생성한다. 그다음 별도 준비 기록 커밋에 전체 40자리 준비 기준/승인 SHA를 적는다. 브랜치 존재는 배정·실제 인계가 아니다.
+2026-10-15 승인 준비본 edf561c에서 5개 브랜치 생성·push 확인. 준비 기준/승인 SHA는 아래와 같다. 브랜치 존재는 배정·실제 인계가 아니다.
 
 | Task | 브랜치 | 준비 기준 SHA | 승인 SHA |
 |---|---|---|---|
+| Task-20261015-040 | feat/human-cannon-launch-rebound | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a |
+| Task-20261015-041 | feat/human-cannon-pole-saw-gate | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a |
+| Task-20261015-042 | feat/human-cannon-route-shelter | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a |
+| Task-20261015-043 | feat/human-cannon-finale-result | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a |
+| Task-20261015-044 | feat/human-cannon-hazards-course | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a |
 
 ## 공용 파일 소유 표
 

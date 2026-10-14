@@ -2,9 +2,10 @@
 
 ## 준비·배정
 
-- [ ] 5개 Task 문서·빈 테스트 공간 최종 검사 및 준비 커밋 push
-- [ ] 동일 승인 준비 SHA에서 5개 작업 브랜치 생성·push, 4열 SHA 표 등록
-- [ ] Task-040만 기술 배정, 통합 → 작업 브랜치 배정 문서 sync를 Merge commit으로 수신
+- [x] 5개 Task 문서·빈 테스트 공간 최종 검사 및 준비 커밋 push — edf561c
+- [x] 동일 승인 준비 SHA에서 5개 작업 브랜치 생성·push, 4열 SHA 표 등록 — edf561c 기준
+- [ ] Task-040만 기술 배정 — 후속 Task는 scaffolded 유지
+- [ ] 통합 → Task-040 작업 브랜치 배정 문서 sync를 Merge commit으로 수신
 - [ ] Task-040 실제 전달 — PM 사용자 확인 (기술 배정으로 자동 완료 금지)
 - [x] Task-040~044 실제 Jira URL 연결·단계 제목 확인 — CC-126~130, 상위 기준 CC-124
 
