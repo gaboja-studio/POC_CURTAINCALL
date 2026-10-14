@@ -6,3 +6,5 @@
 ## 2026-10-14
 
 - Task 생성.
+- 구현: 기본 이동 규칙(`ControlSettings`·플랫폼 이동 공용 이전), 씬 규칙, 공용 `InputGate`·`UIInputBlocker`, 외줄 규칙 공연장 폴더 이전(GUID 유지). 컴파일 PASS, EditMode 5/5. 씬 배치·플레이 테스트는 사람(AI Setup None).
+- PM 예외로 ControlRules 씬 AI 배치. Step 진행으로 공동 테스트 1~3 확인(proto 미저장, 개발자 모드·입력 설정 원복). 실제 키 이벤트는 AI 재현 불가.

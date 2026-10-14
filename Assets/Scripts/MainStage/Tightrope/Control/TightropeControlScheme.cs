@@ -1,7 +1,6 @@
-using CurtainCall.Tightrope.Prototype;
 using UnityEngine;
 
-namespace CurtainCall.Player
+namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Input/TightropeControlScheme.asset)
 {
     /// <summary>
     /// 외줄타기 조작 규칙. 이동 → 코스 앞뒤, 자세 제어 → 균형 보정, 기본 액션 → 제자리 점프,
@@ -9,6 +8,7 @@ namespace CurtainCall.Player
     /// 방향을 누른 채 기본 액션 → 옆줄 점프(제자리 점프 대신). 방향은 뛴 순간 고정되고 착지까지 바뀌지 않는다.
     /// 상호작용 짧게 → 목마 연결 시도, 길게 → 목마 해제(실제 처리는 목마 기능).
     /// 규칙 근거: Docs/References/tightrope-keymap-summary.md, Harness/Project/Decisions/tightrope-rules.md
+    /// 줄 위에서 <see cref="CurtainCall.Tightrope.CourseControlSwitcher"/>가 끼운다(공용 기본 규칙이 아니다).
     /// </summary>
     [CreateAssetMenu(menuName = "CurtainCall/Control Scheme/Tightrope", fileName = "TightropeControlScheme")]
     public class TightropeControlScheme : PlayerControlScheme
@@ -22,7 +22,7 @@ namespace CurtainCall.Player
 
         public override void Tick(PlayerControlContext context, in PlayerInputFrame input)
         {
-            if (TightropeInputGate.IsBlocked)
+            if (InputGate.IsBlocked)
             {
                 Exit(context);
                 return;
