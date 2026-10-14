@@ -18,7 +18,7 @@
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261015-040 | feat | @RagSpirin | feat/human-cannon-launch-rebound | - | scaffolded |
+| Task-20261015-040 | feat | @RagSpirin | feat/human-cannon-launch-rebound | - | assigned |
 | Task-20261015-041 | feat | @RagSpirin | feat/human-cannon-pole-saw-gate | - | scaffolded |
 | Task-20261015-042 | feat | @RagSpirin | feat/human-cannon-route-shelter | - | scaffolded |
 | Task-20261015-043 | feat | @RagSpirin | feat/human-cannon-finale-result | - | scaffolded |
@@ -26,10 +26,15 @@
 
 ## 준비 브랜치
 
-준비 커밋 push 후 같은 기준에서 5개 브랜치를 생성한다. 그다음 별도 준비 기록 커밋에 전체 40자리 준비 기준/승인 SHA를 적는다. 브랜치 존재는 배정·실제 인계가 아니다.
+2026-10-15 승인 준비본 edf561c에서 5개 브랜치 생성·push 확인. 준비 기준/승인 SHA는 아래와 같다. 브랜치 존재는 배정·실제 인계가 아니다.
 
 | Task | 브랜치 | 준비 기준 SHA | 승인 SHA |
 |---|---|---|---|
+| Task-20261015-040 | feat/human-cannon-launch-rebound | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a |
+| Task-20261015-041 | feat/human-cannon-pole-saw-gate | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a |
+| Task-20261015-042 | feat/human-cannon-route-shelter | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a |
+| Task-20261015-043 | feat/human-cannon-finale-result | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a |
+| Task-20261015-044 | feat/human-cannon-hazards-course | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a | edf561ce37fd90e5bfb1e4d2eb2fd7c3a448440a |
 
 ## 공용 파일 소유 표
 
@@ -49,6 +54,6 @@
 - Open: 지상 2명 규칙·중계 대포·호응/보상 수치·2~3인 검증은 미정/후속.
 - Open: 4단계의 실제 공용 공연 종료 연결은 별도 공용 소유 Task 의존. 미연결이면 해당 통합 검증 BLOCKED, 공용 최소 생존 2명 전역 삭제/임시 우회 금지.
 - Decided: Active Task 하나만 assigned/착수. 후속은 이전 실제 공동 검증·통합·소유 반환·실제 Jira URL 뒤 최신 구현/배정 문서를 Merge commit sync로 수신한다.
-- Decided: 기술 배정·URL 연결·브랜치 생성과 실제 전달은 별개. 사용자 실제 전달 확인 전 모든 실전달 todo 미완료.
+- Decided: 2026-10-15 PM 사용자가 Task-040~044 모두 실제 전달·전부 @RagSpirin 담당을 확인. 실제 전달 todo 완료는 후속 구현 개방이 아니며 040만 assigned/Active, 나머지는 예약 유지. 040 착수 전 완료 체크 문서 sync 필요.
 - Decided: 부모 dev 동기화 #69 Merge commit 수신 완료. 공연장 담당 @RagSpirin, 다른 공간/과거 기록 보존.
 - Decided: 최종 공연용 Resources 프리팹은 별도 소유 배정 후. 이번 생성물은 테스트 전용이며 rootCount=0이다.
