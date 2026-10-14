@@ -2,10 +2,10 @@
 
 - **Title:** 1인 테스트용 개발자 모드
 - **Type:** feat
-- **Status:** submitted
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 네트워크 세션 참고
-- **Current Skill:** implement-code
+- **Current Skill:** -
 - **Updated:** 2026-10-14
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.

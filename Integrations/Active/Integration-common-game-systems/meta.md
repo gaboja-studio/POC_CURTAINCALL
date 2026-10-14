@@ -24,7 +24,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261013-031 | feat | @MoHoDu | feat/performance-reward-funds | - | assigned |
 | Task-20261013-032 | feat | @MoHoDu | feat/space-integration-check | - | scaffolded |
 | Task-20261014-033 | refactor | @MoHoDu | refactor/common-code-move | #53 | done |
-| Task-20261014-034 | feat | @MoHoDu | feat/dev-mode | - | assigned |
+| Task-20261014-034 | feat | @MoHoDu | feat/dev-mode | #60 | done |
 | Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | - | assigned |
 | Task-20261014-036 | fix | @MoHoDu | fix/check-work-editor-tests | #52 | integrated |
 
@@ -39,7 +39,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | `Systems/Settings/WaitingRoomSettings.cs`·`ExplorationSettings.cs`·`EscapeRouteSettings.cs` + 같은 이름 `.asset` | Task-20261014-035 (2단계) | 더미 공간 값 |
 | `Systems/Settings/RewardTable.cs`·`TrickSettings.cs`, `Resources/Settings/GameSettings/Tricks/Rewards/` | Task-20261013-031 (2단계) | 보상 규칙 구현 |
 | `Systems/Settings/GameSettings.cs`, `Systems/Campaign/` | 잠금 (2단계 읽기·호출만) | 5묶음 연결·런 진행 완료. 고칠 일은 PM 배정 |
-| `Systems/Network/Session/NetworkSessionManager.cs` | Task-20261014-034 (2단계) | 최소 인원 예외. 개발자 모드 스위치는 세팅이 아니라 `Systems/DevMode/` |
+| `Systems/Network/Session/NetworkSessionManager.cs` | ~~Task-20261014-034 (2단계)~~ 반납 (#60 병합, 2026-10-14) | 최소 인원 예외 완료(`MinPlayers` → `DevMode.MinPlayers`). 개발자 모드 스위치는 `Systems/DevMode/` |
 | `Assets/Scripts/MainStage/Tightrope/Damage/`, `Assets/Scripts/MainStage/Tightrope/Results/` | ~~Task-20261014-033 (1단계)~~ 반납 (#53 병합, 2026-10-14) | 공용 코드 공통 폴더 이전 완료. 이후 공연장 소유로 돌아감(031은 Results를 읽기만) |
 | `Assets/Scripts/Systems/Damage/`, `NetworkPlayer.cs`·`PlayerState.cs`·`PlayerCondition.cs`·`PlayerMover.cs` | Task-20261013-030 (2단계) | 부상·생존의 중심 |
 
