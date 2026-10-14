@@ -2,11 +2,11 @@
 
 - **Title:** 에디터가 열린 상태에서 검사 스크립트 테스트 단계 실행
 - **Type:** fix
-- **Status:** integrated
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** 하네스 검증 도구 (`Harness/Core/Policies/verification-ladder.md`)
 - **Current Skill:** start-work
-- **Updated:** 2026-10-14
+- **Updated:** 2026-10-15
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
@@ -26,5 +26,6 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
-- Open: PlayMode 테스트를 에디터 안에서 돌릴 때 비동기 대기 방식(완료 확인 폴링)은 작업 시작 때 제안
+- Open: 없음 (Pipeline 비동기 테스트·상태 폴링 구현 완료)
+- Decided: 2026-10-15 PM — #52·dev #54 반영 완료를 근거로 done 및 Done 이동, 스크립트 소유권 반납. 잔여 검증은 Integration checklist.md에 보존
 - Decided: 2026-10-14 PM — 검사 스크립트 수정은 별도 Task. 원인: `verify-unity.ps1`이 에디터 연결을 요구한 뒤 테스트는 batch `unity test`로 실행해 "another Unity instance is running"으로 항상 실패(Task-029 확인). 공통 게임 시스템 Task들이 모두 쓰므로 이 통합 안에서 먼저 고친다

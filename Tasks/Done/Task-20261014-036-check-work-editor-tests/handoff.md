@@ -4,14 +4,14 @@
 
 ## 지금 상태
 
-- 단계: 구현·검사 완료, 저장·제출 전
+- 단계: done — #52 병합·dev #54 반영 완료, 2026-10-15 PM 승인으로 Done 이동·소유권 반납
 - 동작하는 것: `verify-unity.ps1` 테스트 단계를 열린 에디터의 Pipeline `run_tests`(비동기)+`test_status`로 실행. EditMode·PlayMode 모두 `NO_PROJECT_TESTS`, 임시 실패 테스트로 `total 2, failed 1`·exit 1 확인 후 삭제. `Get-SetupAreas`가 `Scripts/`·`Harness/` 경로 인식. 함정 문서·팀 안내 갱신
 - 막힌 것: 없음
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/52
 
 ## 다음 할 일
 
-1. "저장해줘" → "제출해줘"(`integration/common-game-systems`)
+1. 추가 구현 없음. 실패 테스트의 check-work 전체 흐름은 미확인으로 보존(Integration checklist.md). 에디터 미연결 ENV_BLOCKED·exit 2는 2026-10-15 확인.
 
 ## PM이 확인할 것
 

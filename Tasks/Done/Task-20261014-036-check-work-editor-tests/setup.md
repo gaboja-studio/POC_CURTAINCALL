@@ -13,6 +13,7 @@ PM이 작업 구역을 정한 뒤 작성한다.
 ## 작업 구역
 
 - 테스트 씬: 해당 없음 (하네스 스크립트 수정)
+- 테스트 씬 처리: 해당 없음 (2026-10-15 PM 확인)
 - 스크립트: `Scripts/verify-unity.ps1`, `Scripts/check-work.ps1`, `Scripts/Lib/common.ps1`(작업 구역 경로 인식)
 - 팀 안내: `Docs/Guides/team-workflow.md` ("검사해줘"는 Unity 에디터를 연 상태에서)
 - 지식 문서: `Harness/Engine/Unity/Pitfalls/unity-test-editor-open.md`, `Harness/Engine/Unity/Pitfalls/index.md`

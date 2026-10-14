@@ -1,12 +1,12 @@
 # Integration-common-game-systems
 
 - **Feature:** 공통 게임 시스템
-- **Status:** preparing
+- **Status:** merging
 - **Branch:** integration/common-game-systems
 - **Base:** dev
 - **PM:** @MoHoDu
-- **Merge Time:** 미정 (첫 Task 완료 후 결정)
-- **Updated:** 2026-10-14
+- **Merge Time:** 2026-10-15 완료분 dev 중간 반영, 최종 종료는 남은 Task 완료 후
+- **Updated:** 2026-10-15
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
@@ -26,7 +26,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261014-033 | refactor | @MoHoDu | refactor/common-code-move | #53 | done |
 | Task-20261014-034 | feat | @MoHoDu | feat/dev-mode | #60 | done |
 | Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | - | assigned |
-| Task-20261014-036 | fix | @MoHoDu | fix/check-work-editor-tests | #52 | integrated |
+| Task-20261014-036 | fix | @MoHoDu | fix/check-work-editor-tests | #52 | done |
 | Task-20261014-037 | feat | @MoHoDu | feat/common-control-rules | #61 | integrated |
 | Task-20261014-038 | feat | @MoHoDu | feat/common-camera-views | - | assigned |
 
@@ -55,5 +55,5 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 - Decided: 2026-10-14 PM — 028 확인 사항: B안 타이머 팀 공용·첫 사람이 나올 때 시작(안 나오면 멈춤, 플레이테스트 후 재논의 가능), 시간대 신호 = `CampaignRun` 메서드 + `StepChanged`(연결 약속 중 시간대 알림 확정), 최소 인원 2 유지·034 먼저(run-rules.md #6~8)
 - Decided: 2026-10-14 PM — 2단계 연결 약속: (1) 공연 결과 — 묘기가 종료를 알리면 031이 결과(성공/실패·종료 이유·사망자·팔다리 변화·정산액)를 확정·공유한 뒤 `CampaignRun.EndPerformance()`를 부른다(결과 먼저 → 시간대 전환). (2) 부활 — 030이 `CampaignRun.StepChanged`를 직접 받아 쉬는 시간·밤 정비 시작 때 사망자를 외팔로 부활, 새 세대 도입 때 전원 복구. 외팔 설정 함수는 공개(035·032 호출), 대기실 이동은 032. (3) 공용 파일은 파일별 1주인(위 표), 병합 순서 034 → 030 → 031 → 035
 - Decided: 2026-10-14 PM — 공용 코드의 남은 외줄 의존 정리(Confluence 19398663 6장): 037 조작(외줄 플랫폼 이동 = 공용 기본 이동 규칙, 에디터에서 전환, 공간 규칙은 공용 수정 없이 연결, UI 입력 막기 공용화)·038 카메라(1인칭·3인칭 공용 + 상황별 시점 전환)를 034와 병렬로 진행. 균형은 외줄 전용으로 유지. 걷기 속도·점프 높이 공통 세팅 이전은 030에 포함. 038은 037 조작 규칙을 고치지 않고 바라보는 방향만 공개(연결 약속)
-- Decided: 2026-10-14 PM — dev 병합은 계획대로 마지막(close-integration)에만 한다(037·038 중간 반영 없음). 기능별 테스트 씬은 모든 기능을 확인하는 총 테스트 씬이 생기면 한꺼번에 처리(그전까지 각 Task 테스트 씬 결정은 보류)
+- Decided: 2026-10-15 PM — 공간 작업 시작을 위해 028·030·034·037·#63을 dev에 중간 반영(Merge commit), 이전 마지막 반영 방침의 예외. 통합은 유지하고 038·031·035·032는 이후 제출. 036은 dev #54 반영 완료를 근거로 Done 이동·소유권 반납. 기능별 테스트 씬은 총 테스트 씬 마련 후 일괄 처리하는 기존 방침 유지
 - Decided: 2026-10-14 PM — 병합 순서 변경: 037 → 030 → 038 → 031 → 035 → 032(034는 완료). 037·030을 먼저 동시 진행, 038·031을 그다음 동시 진행(동시 2개까지). 038은 037의 조작 규칙 구조 위에서 1인칭 이동을 확인하고, 035는 앞의 넷을 모두 쓰기 때문
