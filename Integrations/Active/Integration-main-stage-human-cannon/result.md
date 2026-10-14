@@ -4,8 +4,12 @@
 
 - 2026-10-15: 부모 integration/main-stage 최신 문서에서 자식 통합 생성·push, Task-040~044 발급.
 - Unity 준비: HumanCannon 스크립트/테스트/Prefabs 폴더와 .meta, rootCount=0 빈 HumanCannon.unity. 기존 활성 씬 보존.
-- 기능 구현·4인 공동 검증·실제 전달: 미실행/미확인. 준비 브랜치·배정 sync 결과는 확인 후 기록.
-- 기존 feat/main-stage-level-edit 원격과 로컬 ref는 6e5e5c1로 정상 최신화. 공연장 담당 문서 수신 완료, 실제 전달 미확인. 공용 작업자 실제 폴더 최신화는 각 세션 승인 대기.
+- 준비 커밋 edf561c push 및 같은 SHA의 5개 작업 브랜치 원격 생성 확인. e0ab817에 4열 기준/승인 SHA 표 등록.
+- 040만 기술 배정 완료(a97fbbc, assigned), 041~044는 scaffolded/Allowed 없음 유지. [#71 배정 문서 sync](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/71)는 Merge commit 수신 대기.
+- #71 최신 check-folder PASS. 일반 병합 실행은 세션 권한에서 Merge Without Review로 거부되어 미실행; API/직접 push 등으로 우회하지 않았다. PM의 정상 리뷰·Merge commit 수신이 필요하다.
+- 기능 구현·4인 공동 검증·실제 전달: 미실행/미확인.
+- 기존 feat/main-stage-level-edit 원격과 로컬 ref는 6e5e5c1로 정상 최신화. 공연장 담당 문서 수신 완료, 실제 전달 미확인.
+- 공용 보상 세션은 #70 이후 기록을 보존한 완료 문서 0667597 반영·clean을 보고했다. 이 세션에서 공용 실제 폴더를 수정하거나 검증하지 않았다.
 
 ## 준비 검증
 
@@ -13,7 +17,7 @@
 - 신규 Unity 준비 7파일의 .meta 짝·상위 경로 PASS. 기존 활성 proto_0.0.2 root10/dirty0 보존.
 - check-work exit 1: 통합 브랜치 대응 Task 없음. 구역·문서·Unity 개별 검사를 사용한다.
 - 구역 검사 SKIP(PM 통합), 준비 40파일 수동 범위 PASS. 5Task 상태/선행/Allowed 3·0·0·0·0/공동 테스트 3묶음/미인계 PASS.
-- verify-fast PASS(hard0/범위 밖 기존 WARN3), diff --check PASS. 준비 브랜치/SHA 검증은 생성 후 기록.
+- verify-fast PASS(hard0/범위 밖 기존 WARN3), diff --check PASS. 5개 원격 작업 브랜치 모두 승인 준비 SHA edf561c 일치.
 
 ## 병합 결과
 
