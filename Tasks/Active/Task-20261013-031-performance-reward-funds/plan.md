@@ -12,7 +12,9 @@
 2. 생존 2명 미만 실패 판정은 공통으로 둔다. 개발자 모드(034)가 켜져 있으면 예외.
 3. 팀 호응 게이지: 플레이어별 구간, 환호 +·야유 −(0 하한), 사망 시 구간 제거, 절단 보너스. 증감 이벤트는 묘기가 보내고 수치는 보상 규칙 파일(`RewardTable` 구현, 임시값).
 4. 공동 자금: 팀 공용 잔액 하나, 호스트 확정·공유, 사용 내역(장부) 기록. 런 범위(일차가 바뀌어도 유지, 세대 교체 때 0).
-5. 공연 결과가 확정되면 028(시간대 전환)과 030(사망자 부활)에 알린다.
+5. 공연 결과 고정·공동 자금 정산·상태 송신 enqueue 후 `CampaignRun.EndPerformance()`를 호출한다. 030 부활은 이후 Campaign 이벤트로 처리하며 중복 호출하지 않는다. 클라이언트 수신 완료를 기다리거나 도착 순서를 가정하지 않는다.
+6. 2026-10-15 승인·구현: 시작 명부 고정, 이탈은 사망과 구분하되 생존/지급 제외. 개인 구간에 보너스를 포함해 상한 적용. 상한 하향은 진행 구간만 즉시 clamp. 공연 ID로 중복 정산 방지, 최근 결과 10개와 호스트 전체 장부/20개 페이지를 분리한다.
+7. 검증용 임시값은 환호 +10/야유 −5/난이도 상한 100·150·200/보너스 0. `TemporaryRewardTable` 에셋과 비저장 런타임 override를 제공한다. 기존 Assembly-CSharp는 그대로 두고 Results/Core/EditMode 신규 asmdef 3개만 추가한다.
 
 ## Files
 
@@ -30,8 +32,8 @@
 - 구역 검사: `pwsh -File Scripts/verify-scope.ps1`
 - 1 문서/규칙: `pwsh -File Scripts/verify-fast.ps1`
 - 2 컴파일: `pwsh -File Scripts/verify-unity.ps1 -ProjectPath . -Compile`
-- 3 테스트: 자동 테스트 구성이 없으면 `NO_PROJECT_TESTS`
-- 4 실행 로그: PerformanceReward 테스트 씬에서 성공·실패·사망 정산과 자금 변화 확인, Console 오류 0 기록
+- 3 테스트: `pwsh -File Scripts/check-work.ps1 -Mode EditMode` (신규 보상 30개 + 기존 5개), PlayMode 미발견은 `NO_PROJECT_TESTS`
+- 4 실행 로그: 테스트 씬 공개 API 직접 호출은 Logic 검사로 기록한다. 정산·생존 기준·다음 날·세대 교체·콜백 재진입 확인, Console 오류 0. 실제 버튼 입력/다중 접속은 공동 테스트에서 별도로 확인
 
 ## 공동 테스트 항목
 
