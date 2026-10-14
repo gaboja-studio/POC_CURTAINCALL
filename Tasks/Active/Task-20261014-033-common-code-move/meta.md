@@ -2,7 +2,7 @@
 
 - **Title:** 공용 부상·공연 결과 코드 공통 폴더 이전
 - **Type:** refactor
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 외줄 코스 참고
 - **Current Skill:** check-work
