@@ -1,14 +1,14 @@
 # Handoff
 
 ## 지금 상태
-- 단계: working, 2026-10-15 제출 요청 접수·검사 완료, PR 미리보기 확인 대기.
+- 단계: submitted, 2026-10-15 PR #67 등록 완료. 병합·공동 테스트 대기.
 - 동작: 공통 불변 결과·개인 호응·공동 자금/장부·호스트 공유·정산 후 Campaign 종료·교체형 규칙.
 - 테스트 씬: `Assets/Scenes/Tests/Systems/Reward/PerformanceReward.unity` 저장 완료(dirty 0), 임시 에셋 참조·접속 UI·비저장 수치 override 제공.
-- 통합 68d43da 로컬 fast-forward(문서만 변경) 완료. 제출 요청으로 저장/등록 절차 진행, Play 종료·기존 Dev Mode true 복원.
-- PR: 없음(미리보기 확인 후 등록)
+- 통합 68d43da 로컬 fast-forward(문서만 변경), 구현 df1218e 커밋·push 완료. Play 종료·기존 Dev Mode true 복원.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/67
 
 ## 다음 할 일
-1. PR 미리보기 승인 후 integration/common-game-systems로 등록하고 링크·submitted 상태를 기록한다. 다음 개발은 별도 Task/브랜치에서 시작한다.
+1. PM이 PR #67 검사·리뷰 후 순차 병합한다. 다음 개발은 별도 배정 Task/브랜치에서 시작한다.
 2. 기획자용 설정 가이드를 후속 작성한다(md, Confluence 복사용). 에셋/항목·영구 변경/런타임 override·묘기 연결·검증 예시를 설명한다.
 3. 2명 이상 접속해 동일 결과/잔액·다음 날 유지·세대 교체 0을 공동 확인한다. 정식/Dev Mode 수동 생존 기준도 항목별 확인한다.
 

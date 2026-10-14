@@ -2,7 +2,7 @@
 
 - **Title:** 공연 결과 및 보상, 공동 자금 연결
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`)
 - **Current Skill:** submit-work

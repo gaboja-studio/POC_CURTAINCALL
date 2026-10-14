@@ -19,4 +19,5 @@
 - Play 공개 API Logic 검사: 성공 수입 34·지출 후 30, 중복 종료 거절, 정식 1명 자동 실패, 개발자 1명 성공·전원 사망 자동 실패, 다음 날 잔액 유지·세대 교체 0 확인. 검증 스크립트의 잘못된 Dev Mode/공연 횟수 가정으로 발생한 assertion은 실제 설정과 흐름에 맞춰 재검사했다. Dev Mode 원래 true 복원.
 - 좁은 보조 점검 후 Changed 콜백이 Campaign을 먼저 진행시켜 다음 공연까지 종료하는 경로를 공연 좌표 확인으로 보완. 재진입 Logic 회귀 검사 PASS, 최신 runtime Console 오류 0. 당시 실제 UI 입력·다중 접속은 미확인, commit/push 없음.
 - 사용자 씬 반복 조작에서 로그가 정상으로 보인다고 보고. 개별 케이스 전체 통과·다중 접속 확인으로 확대 해석하지 않음. 기획자 관점 설정 가이드(md)를 후속 문서화 항목으로 남기며, 사용자가 나중에 Confluence로 복사할 예정.
-- 사용자 제출 요청. Unity ready·씬 dirty 0, 제출 전 EditMode 35/35 PASS·PlayMode NO_PROJECT_TESTS. 최신 통합 68d43da까지 fast-forward(통합/Task-036 문서만 변경, 충돌 없음). gh MoHoDu 작성자 확인, PR 미리보기 확인 후 등록 예정.
+- 사용자 제출 요청. Unity ready·씬 dirty 0, 제출 전 EditMode 35/35 PASS·PlayMode NO_PROJECT_TESTS. 최신 통합 68d43da까지 fast-forward(통합/Task-036 문서만 변경, 충돌 없음). gh MoHoDu 작성자 확인.
+- 구현 df1218e 커밋·push 및 사용자 PR 미리보기 승인 후 #67 등록(integration/common-game-systems 대상). submitted 기록, 병합하지 않음. 다중 접속 공동 확인과 기획자 설정 가이드는 후속 항목으로 유지.

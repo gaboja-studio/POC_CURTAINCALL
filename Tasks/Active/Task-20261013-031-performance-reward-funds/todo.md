@@ -19,7 +19,7 @@
 - [ ] 2명 이상 네트워크에서 보상·자금 변화 공동 확인
 - [ ] 후속 문서화: 기획자용 설정 가이드(md), 보상 에셋 위치·항목 의미·저장/비저장 변경·묘기 연결·검증 예시 (사용자가 Confluence에 복사 예정)
 - [x] 제출 전 구역·문서·컴파일 PASS, EditMode 35/35 PASS (PlayMode NO_PROJECT_TESTS)
-- [ ] "제출해줘"로 PR 제출
+- [x] "제출해줘"로 PR #67 제출 (2026-10-15, integration/common-game-systems 대상)
 
 ## PM 통합
 
