@@ -3,13 +3,13 @@
 ## 지금 상태
 - 단계: assigned — 기술 배정 완료(a97fbbc), 실제 전달 PM 사용자 확인 완료(2026-10-15), 담당 @RagSpirin.
 - 동작하는 것: 폴더/.meta·rootCount=0 빈 씬만 생성. 기능 구현 없음.
-- 막힌 것: 실제 전달 확인 문서의 작업 브랜치 sync 수신 대기. 2026-10-15 에디터 연결 복구·컴파일 PASS; 정상 문서 수신 전 착수 금지.
-- PR: [#71 배정 문서 sync](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/71) 정상 Merge commit 233403c 수신 확인. 기능 작업 PR 미제출.
+- 막힌 것: 준비·전달 문서 수신 차단 없음. 에디터 연결 복구·컴파일 PASS, #72로 b668b88 수신 및 착수 gate PASS 확인(2026-10-15). 실제 구현은 미착수.
+- PR: [#71 배정 문서](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/71)·[#72 전달 확인 문서](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/72) Merge commit 수신 완료. 기능 작업 PR 미제출.
 ## 다음 할 일
-1. 실제 전달 확인 문서를 저장/push하고 5개 준비 브랜치로 Merge commit sync한다. RagSpirin은 최신 문서/Active Task/assigned 확인 후 'Task-20261015-040 시작해줘'로 착수한다.
+1. RagSpirin은 작업 브랜치 최신 원격 문서를 받은 뒤 'Task-20261015-040 시작해줘'로 착수한다. 041~044는 실제 전달 완료여도 scaffolded/Allowed 없음으로 착수 금지.
 2. 작업자는 plan 구현·검사·PR 및 실제 4인 공동 테스트. 다음 단계는 integrated·실검증·소유 반환·실Jira 뒤 개방.
 ## PM이 확인할 것
-- 확인 요청: 실제 전달 체크의 작업 브랜치 sync·최종 씬 처리. 5개 전달 확인은 후속 구현 개방이 아님.
+- 확인 요청: 최종 씬 처리 미정. 실제 전달 체크의 5개 작업 브랜치 sync는 완료했으며 후속 구현 개방은 아님.
 - 대기 중인 결정: 지상 2명·중계 대포·호응/보상·2~3인 후속.
 - 공용 파일 요청: 없음. Systems/Resources·외줄·main_stage.unity 수정 권한 없음.
 ## Verification
