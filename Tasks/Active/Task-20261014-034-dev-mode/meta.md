@@ -2,7 +2,7 @@
 
 - **Title:** 1인 테스트용 개발자 모드
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 네트워크 세션 참고
 - **Current Skill:** implement-code
