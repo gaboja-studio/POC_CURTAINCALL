@@ -2,13 +2,13 @@
 
 - **Title:** 최신 공연장 기획·담당과 단계별 작업 준비 자동화 반영
 - **Type:** fix
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** common-game-systems (최신 기획 안내·예외만 갱신)
-- **Current Skill:** start-work
+- **Current Skill:** submit-work
 - **Updated:** 2026-10-15
 
-Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
+Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별도) → working → submitted(PR 제출) → integrated(검증 통과) → done(dev 병합). 막히면 blocked.
 
 ## Workspace
 
