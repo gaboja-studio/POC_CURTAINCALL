@@ -119,6 +119,9 @@ InitTestScene*.unity*
 !/.env.example
 /.claude/settings.local.json
 /.claude/skills/
+/.claude/worktrees/
+# Claude Code가 모드를 불러올 때 만드는 타입 파일
+/Harness/Mods/*/.claude-plugin/types/
 /.harness/
 .DS_Store
 

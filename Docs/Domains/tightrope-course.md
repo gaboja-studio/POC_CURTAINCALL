@@ -71,6 +71,10 @@
 - `SawSettings.cs` — 톱날 조정값 묶음·장애물 순서(값은 `TightropeSettings.Saws` 칸, `GameSettings.Tightrope.Saws`로 읽음). `ObstacleSequence.cs` — 순서 실행기·가로 톱날 작동/정지 기록(`HorizontalSawTrack`). `SawMath.cs` — 왕복·원판/몸통 접촉·부위 결정(모두 MonoBehaviour 없음).
 - 에셋 `Assets/Resources/Prefabs/Objects/Obstacles/Saws/TightropeSaws.prefab`, 테스트 씬 `Assets/Scenes/Tests/MainStage/Tightrope/TightropeSaws/TightropeSaws.unity`.
 
+`Assets/Scripts/MainStage/Tightrope/Damage/` (외줄 전용만 남음. 공통 부상 효과·정책 틀·절단 연출은 2026-10-14 `Assets/Scripts/Systems/Damage/`로 이전, [공통 게임 시스템](common-game-systems.md))
+- `TightropeBodyPenalty.cs` — 외줄 신체 손상 불이익 정책. 게임 시작 전 `BodyDamageEffects.DefaultPolicyFactory`에 자신을 등록한다.
+- `BodyDamageDebug.cs` — **테스트 전용** 절단 키·표시.
+
 에셋
 - `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/TightropeCourse.prefab` — 위 컴포넌트 + `PlayerSpawnPoints`(007) + 출발 위치 `SpawnPoints/Slot0~3`. 다른 Task는 배치만. 수치 칸 없음(013).
 - `Assets/Resources/Settings/GameSettings/Tricks/TightropeSettings.asset` — 코스 모양·진행·줄 위 동작·목마 값(클래스 `Assets/Scripts/Systems/Settings/`). 코스는 만들 때 복사해 쓰고, 대기 중 수정은 바로 재생성·잠금 중 수정은 풀릴 때.

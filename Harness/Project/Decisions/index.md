@@ -14,7 +14,11 @@
 - [tightrope-balance.md](tightrope-balance.md) — 외줄 균형(기획 문서 rope_balance 기준): 초록 ±40·빨강 2초 추락, 자연 흔들림·기울기 가속·목마 배율·위층 전달·목마 중 추락(위 전원 추락·아래 반동)·착지/옆줄 충격, 수치는 세팅. 균형·게이지·추락을 구현하거나 튜닝할 때
 - [player-control-architecture.md](player-control-architecture.md) — 플레이어 조작 3층(키→공통 역할 입력 에셋, 콘텐츠별 조작 규칙=전략, 동작 부품). 입력·조작을 추가하거나 콘텐츠별 키 동작을 바꿀 때
 - [feature-with-network.md](feature-with-network.md) — 007 이후 기능 Task는 기능+동기화를 같이, 007 공개 기능 사용 가능, 009·010 축소. 기능 Task를 계획하거나 네트워크 코드를 다른 기능에서 쓸 때
-- [body-damage.md](body-damage.md) — 팔·다리 손실은 게임 전체 상태(완전히 죽기 전까지 묘기·재시작을 넘어 유지), 팔=상호작용·다리=이동 계열 패널티(크기는 묘기마다), 네 팔다리 모두 손실 = 사망, 잘린 팔다리 날아감, 두 다리 없으면 기어가기, 패널티는 콘텐츠별 교체 정책, 이후 돈으로 부품 수리. 부위 손실·패널티·수리를 다룰 때
-- [game-settings.md](game-settings.md) — 기획 조정값은 `Assets/Resources/Settings/GameSettings/` 한 폴더(게임 기본 1 + 묘기별 1 + 교체형 보상), 칸마다 한글 설명·단위, 플레이 중 반영. 수치를 만들거나 옮길 때
+- [injury-rules.md](injury-rules.md) — 공통 부상 규칙(2026-10-13 부상 기획): 절단 순서 고정, 잃은 팔다리 수 0~4, 사망=4곳·추락·외팔로 잡힘, 묘기 재시작 없이 관전 후 외팔 부활, 밤 신체 복구(역순·공동 자금), 탐색 중/공연 중 패널티, 팔 개수별 기물 소지. 절단·사망·부활·복구·패널티를 다룰 때 (body-damage.md보다 우선)
+- [run-rules.md](run-rules.md) — 런 공통 규칙(2026-10-14): 쉬는 시간 B안 기본·A/B 세팅 전환, 생존 2명 미만 = 묘기 실패 후 대기실 복귀, 게임 시작 후 재접속 불가(로비 허용), 최소 2명·1인은 개발자 모드, 공통 시스템은 더미 공간으로 먼저 검증. 런 진행·공연 종료·접속·CC-108~111 범위를 정할 때
+- [control-keys.md](control-keys.md) — 공통 조작키 역할(2026-10-13): 이동·감시·점프·상호작용·달리기·앉기·기물 슬롯·카메라·UI·이벤트 키, 키 추가는 결정권자 합의. 입력·조작 규칙을 추가할 때
+- [body-damage.md](body-damage.md) — (사망·재시작·수리는 injury-rules.md로 대체) 팔·다리 손실은 게임 전체 상태(완전히 죽기 전까지 묘기·재시작을 넘어 유지), 팔=상호작용·다리=이동 계열 패널티(크기는 묘기마다), 네 팔다리 모두 손실 = 사망, 잘린 팔다리 날아감, 두 다리 없으면 기어가기, 패널티는 콘텐츠별 교체 정책, 이후 돈으로 부품 수리. 부위 손실·패널티·수리를 다룰 때
+- [game-settings.md](game-settings.md) — 기획 조정값은 `Assets/Resources/Settings/GameSettings/` 한 폴더(공통·묘기별·대기실·탐색·탈출로 5묶음 + 교체형 보상, 2026-10-14), 칸마다 한글 설명·단위, 플레이 중 반영. 수치를 만들거나 옮길 때
 - [third-party-assets.md](third-party-assets.md) — 외부 에셋은 무료·유료 구분 없이 private 레포를 `Assets/_ThirdParty` submodule로, 공개 레포엔 직접 만든 것만. 외부 에셋을 넣거나 옮길 때
+- [claude-mods.md](claude-mods.md) — 팀 공용 Claude Code 모드는 저장소 마켓플레이스(curtaincall)로 배포·version 올려 업데이트, 진행 패널의 todo 색·버튼·권한 규칙. 모드를 고치거나 배포·끄는 법을 안내할 때
 - [space-workspaces.md](space-workspaces.md) — 공간 4곳(대기실·공연장·탈출로·백스테이지)별 통합 브랜치·맵 씬·테스트 씬·스크립트 폴더·담당자, 공용은 Scripts/Systems/·Resources. 공간 작업 Task·통합을 만들거나 작업 구역을 정할 때
