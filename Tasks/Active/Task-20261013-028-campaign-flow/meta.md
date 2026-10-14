@@ -27,5 +27,6 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
-- Open: 공연 종료·장소 진입 같은 시간대 전환 신호를 받는 형식(031·035·032와 2단계 시작 전 약속)
+- Open: 없음
 - Decided: 2026-10-14 PM: 쉬는 시간 B안 기본·A/B 세팅 전환, 세팅 5묶음, 최소 인원 2명, 게임 시작 후 재접속 불가(로비 허용) 확인, 기물 소지 2/1/+2 공통 값(run-rules.md, game-settings.md). 공간 내부 기능·보상·기물 구매·장소 전환은 포함하지 않는다. 통합 계획 1A
+- Decided: 2026-10-14 PM: 시간대 전환 신호 = `CampaignRun` 메서드 + `StepChanged` 확정, B안 타이머 팀 공용·첫 사람이 나올 때 시작(안 나오면 멈춤), 최소 인원 2 유지·034 먼저(run-rules.md #6~8)
