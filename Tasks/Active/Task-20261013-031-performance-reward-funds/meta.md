@@ -2,10 +2,10 @@
 
 - **Title:** 공연 결과 및 보상, 공동 자금 연결
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`)
-- **Current Skill:** submit-work
+- **Current Skill:** merge-integration
 - **Updated:** 2026-10-15
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
@@ -28,6 +28,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Decisions
 
 - Open: 정식 환호·야유·생존/절단 보너스 수치(보상 시스템 기획 전)
+- Decided: 2026-10-15 사용자: 이전 씬 테스트로 공동 테스트 완료 승인. #67 통합 병합 확인 후 integrated 처리, 별도 다중 접속 실행 증거는 미보고
 - Decided: 2026-10-14 사용자 승인 검증용: 환호 +10, 야유 −5, 난이도 상한 100/150/200, 생존/절단 보너스 0. Inspector 및 런타임 override로 변경 가능
 - Decided: 2026-10-15 구현 계획 승인: 명부 고정·이탈 지급/생존 제외·보너스 상한 포함·진행 중 상한 하향 clamp. 공유는 호스트 송신 enqueue 후 전환이며 클라이언트 도착 순서는 가정하지 않음
 - Decided: 2026-10-14 PM: 생존 2명 미만 = 묘기 공통 실패(개발자 모드 034가 예외), 공동 자금은 팀 공용 잔액. 상점·구매 UI는 범위 밖. 선행: 029, 033, 028 세팅 틀. 통합 계획 2B
