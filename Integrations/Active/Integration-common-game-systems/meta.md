@@ -23,7 +23,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261013-030 | feat | @MoHoDu | feat/injury-survival-update | - | assigned |
 | Task-20261013-031 | feat | @MoHoDu | feat/performance-reward-funds | - | assigned |
 | Task-20261013-032 | feat | @MoHoDu | feat/space-integration-check | - | scaffolded |
-| Task-20261014-033 | refactor | @MoHoDu | refactor/common-code-move | - | assigned |
+| Task-20261014-033 | refactor | @MoHoDu | refactor/common-code-move | #53 | integrated |
 | Task-20261014-034 | feat | @MoHoDu | feat/dev-mode | - | assigned |
 | Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | - | assigned |
 | Task-20261014-036 | fix | @MoHoDu | fix/check-work-editor-tests | #52 | integrated |
@@ -41,3 +41,4 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 - Open: 2단계 시작 전 연결 약속(시간대 알림·공연 결과 형식·부활 함수), 2단계 공용 파일 배정(plan.md 제안표)
 - Decided: 2026-10-14 PM — 쉬는 시간 B안 기본·A/B 전환, 기물 소지 2/1/+2 세팅값, 세팅 5묶음, 공통 폴더 이전 별도 Task(033), 더미 공간 우선(035), 생존 2명 미만 묘기 실패, 게임 시작 후 재접속 불가(로비 허용), 최소 인원 2명·개발자 모드(034) 먼저·테스트 AI는 이후(run-rules.md)
+- Decided: 2026-10-14 PM — 033 병합 후 통합을 닫지 않고 dev에 중간 반영(merge commit), dev → 공간 통합 4곳 반영. 공간 작업자가 `Systems/Damage/` 새 경로로 시작하게 하기 위함
