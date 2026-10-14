@@ -54,6 +54,6 @@
 - Open: 지상 2명 규칙·중계 대포·호응/보상 수치·2~3인 검증은 미정/후속.
 - Open: 4단계의 실제 공용 공연 종료 연결은 별도 공용 소유 Task 의존. 미연결이면 해당 통합 검증 BLOCKED, 공용 최소 생존 2명 전역 삭제/임시 우회 금지.
 - Decided: Active Task 하나만 assigned/착수. 후속은 이전 실제 공동 검증·통합·소유 반환·실제 Jira URL 뒤 최신 구현/배정 문서를 Merge commit sync로 수신한다.
-- Decided: 기술 배정·URL 연결·브랜치 생성과 실제 전달은 별개. 사용자 실제 전달 확인 전 모든 실전달 todo 미완료.
+- Decided: 2026-10-15 PM 사용자가 Task-040~044 모두 실제 전달·전부 @RagSpirin 담당을 확인. 실제 전달 todo 완료는 후속 구현 개방이 아니며 040만 assigned/Active, 나머지는 예약 유지. 040 착수 전 완료 체크 문서 sync 필요.
 - Decided: 부모 dev 동기화 #69 Merge commit 수신 완료. 공연장 담당 @RagSpirin, 다른 공간/과거 기록 보존.
 - Decided: 최종 공연용 Resources 프리팹은 별도 소유 배정 후. 이번 생성물은 테스트 전용이며 rootCount=0이다.
