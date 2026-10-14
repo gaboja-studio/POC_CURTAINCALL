@@ -30,11 +30,13 @@ if ($Update) {
 }
 
 if ($Merge) {
-    $pr = (& $gh.Gh pr view $Merge --repo $repo --json baseRefName,state,mergeStateStatus,title) | ConvertFrom-Json
+    $pr = (& $gh.Gh pr view $Merge --repo $repo --json baseRefName,headRefName,headRefOid,state,mergeStateStatus,title) | ConvertFrom-Json
+    if ($LASTEXITCODE -ne 0 -or -not $pr) { throw "PR #$Merge 조회 실패" }
+    Assert-WorkPrHead -Head $pr.headRefName
     if ($pr.baseRefName -ne $base) { throw "PR #$Merge 의 대상이 $base 가 아님: $($pr.baseRefName)" }
     if ($pr.state -ne 'OPEN') { throw "PR #$Merge 가 열려 있지 않음: $($pr.state)" }
     if ($pr.mergeStateStatus -in 'DIRTY', 'BEHIND') { throw "PR #$Merge 상태: $($stateText[$pr.mergeStateStatus]). 먼저 해결하세요." }
-    & $gh.Gh pr merge $Merge --repo $repo --squash
+    & $gh.Gh pr merge $Merge --repo $repo --squash --match-head-commit $pr.headRefOid
     if ($LASTEXITCODE -ne 0) { throw "PR #$Merge 병합 실패" }
     Write-Output "병합 완료(Squash): #$Merge $($pr.title)"
     Start-Sleep -Seconds 3

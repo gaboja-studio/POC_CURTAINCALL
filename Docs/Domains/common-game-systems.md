@@ -4,8 +4,12 @@
 > "근거"는 코드에서 확인한 사실, "기획"은 [게임 흐름](../../Harness/Project/Facts/game-flow.md)·[런 상태](../../Harness/Project/Facts/run-state.md)·[부상 규칙](../../Harness/Project/Decisions/injury-rules.md)·[조작키](../../Harness/Project/Decisions/control-keys.md) 요약이다.
 
 ## 목적
-
 런 진행·부상/생존·공연 결과·공동 자금·장소 전환처럼 여러 공간이 함께 쓰는 게임 시스템의 지도. 기획상 담당은 시스템(@MoHoDu): 런 상태 관리, 장소 전환, 공간 간 규칙, 잃은 팔다리 수 관리.
+
+## 현재 기획 안내 (2026-10-15)
+- 위 조사 날짜·과거 근거는 보존. 공용 PR #64·패널 PR #65 dev 병합은 전체 공간 연결/4인 검증 완료가 아니다. 현재 공연장·탈출로 @RagSpirin([팀](../../Harness/Project/Facts/team.md)), 과거 @lakuase2 기록은 당시 담당.
+- 최신 [게임 흐름](../../Harness/Project/Facts/game-flow.md): 전화부스 서비스·부재 표시, 연출 A/B는 대기실 담당 선택. 기물 2/1/+2와 쉬는 시간 B 기본/A-B 전환 유지.
+- [인간 대포 v0.5](../../Harness/Project/Decisions/Human-cannon/index.md)는 **살아 있는 1명 실제 목적지 도착 성공** 예외. 공통 생존 2명 실패/결과/런 종료를 연결하는 의존성으로 4단계 PM·공용 담당 협의/소유 배정이 필요하며 이번에 `Systems/`를 수정하지 않는다.
 
 ## 재사용 목록
 
