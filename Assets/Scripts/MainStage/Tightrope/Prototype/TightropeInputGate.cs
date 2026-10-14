@@ -1,71 +1,21 @@
-using System.Collections.Generic;
 using CurtainCall.Player;
-using CurtainCall.Tightrope.UI;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace CurtainCall.Tightrope.Prototype
 {
-    /// <summary>UI 차단 뒤 모든 게임·개발 입력을 놓은 다음 프레임에 재무장한다. 물리는 멈추지 않는다.</summary>
+    /// <summary>
+    /// 공용 입력 막기(<see cref="InputGate"/>)로 넘기는 외줄 쪽 창구. 외줄 코드가 지금처럼 부를 수 있게 남겨 둔다(2026-10-14, Task-037).
+    /// 새 코드는 <see cref="InputGate"/>를 직접 쓴다. 외줄 개발 키(P·O·B·R·M·K·L)도 놓을 때까지 다시 받지 않게 등록한다.
+    /// </summary>
     public static class TightropeInputGate
     {
-        static readonly HashSet<PlayerInputReader> readers = new();
-        static readonly Key[] keys = { Key.W, Key.S, Key.A, Key.D, Key.Space, Key.Q, Key.E, Key.F,
-            Key.P, Key.O, Key.B, Key.R, Key.M, Key.K, Key.L };
-        static bool rearming;
-        static int checkedFrame = -1;
-        static int blockedFrame = -1;
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] // 공용 초기화(SubsystemRegistration) 다음
+        static void RegisterDevKeys() =>
+            InputGate.AddReleaseKeys(Key.P, Key.O, Key.B, Key.R, Key.M, Key.K, Key.L);
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void Reset()
-        {
-            TightropeUIFocus.Changed -= OnFocusChanged;
-            TightropeUIFocus.Changed += OnFocusChanged;
-            readers.Clear();
-            rearming = false;
-            checkedFrame = blockedFrame = -1;
-        }
+        public static bool IsBlocked => InputGate.IsBlocked;
 
-        public static bool IsBlocked
-        {
-            get
-            {
-                if (TightropeUIFocus.IsBlocked) return true;
-                if (!rearming) return blockedFrame == Time.frameCount;
-                if (checkedFrame != Time.frameCount)
-                {
-                    checkedFrame = Time.frameCount;
-                    blockedFrame = Time.frameCount;
-                    bool released = true;
-                    foreach (var reader in readers)
-                        if (reader != null && reader.isActiveAndEnabled && !reader.ControlsReleased)
-                            released = false;
-                    var keyboard = Keyboard.current;
-                    if (keyboard != null)
-                        foreach (var key in keys) released &= !keyboard[key].isPressed;
-                    if (released) rearming = false;
-                }
-                return true;
-            }
-        }
-
-        public static void Register(PlayerInputReader reader)
-        {
-            readers.Add(reader);
-            RequireRelease();
-        }
-
-        public static void Unregister(PlayerInputReader reader) => readers.Remove(reader);
-
-        public static void RequireRelease()
-        {
-            rearming = true;
-            checkedFrame = -1;
-            blockedFrame = Time.frameCount;
-            foreach (var reader in readers)
-                if (reader != null) reader.ClearPendingInput();
-        }
-
-        static void OnFocusChanged(bool blocked) => RequireRelease();
+        public static void RequireRelease() => InputGate.RequireRelease();
     }
 }

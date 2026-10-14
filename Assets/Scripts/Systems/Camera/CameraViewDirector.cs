@@ -231,7 +231,7 @@ namespace CurtainCall.Cameras
             state.Lens.Dutch = 0f;
         }
 
-        static bool IsDead(NetworkPlayer player) => player.State == PlayerState.Fallen ||
+        static bool IsDead(NetworkPlayer player) => player.State == PlayerState.Fallen || player.State == PlayerState.Retired ||
             (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
 
         static bool SourceActive(Object source) => source != null && source switch

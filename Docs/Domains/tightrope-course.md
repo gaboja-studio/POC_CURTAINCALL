@@ -61,8 +61,8 @@
 - `CourseLayout.cs` — 줄 위치·끝 거리·옆줄 구간 계산(MonoBehaviour 없음).
 - `TightropeRun.cs` — **진행 공개 진입점**. 호스트 판정: 제한시간, 도착 완료, 1명 도착 즉시 클리어(생존자 도착 지점 이동, `EndGame`), 실패 → 재시작, 묘기 시작 신호, 사망 플레이어 몸통 통과. NGO 이름 메시지로 공유.
 - `CourseShapeSync.cs` — 대기 중 호스트 코스 값을 모두에게 공유, 게임 시작 후·클라이언트는 잠금.
-- `CourseControlSwitcher.cs` — 내 캐릭터가 줄 위면 줄타기 조작·균형 켬·줄 중앙 정렬, 플랫폼이면 일반 이동·균형 끔.
-- `PlatformControlScheme.cs` — 플랫폼 조작 규칙(WASD 8방향·Space 점프, Q/E·F 없음).
+- `CourseControlSwitcher.cs` — 내 캐릭터가 줄 위면 줄타기 조작(`TightropeControlScheme`)·균형 켬·줄 중앙 정렬, 플랫폼이면 일반 이동(공용 `PlatformControlScheme`, WASD 8방향·Space 점프)·균형 끔.
+- 조작 규칙 위치(2026-10-14, Task-037): 외줄 규칙 `MainStage/Tightrope/Control/TightropeControlScheme.cs`, 플랫폼 이동은 공용 기본 이동 규칙 `Systems/Control/PlatformControlScheme.cs`. UI 입력 막기는 공용 `InputGate`(`TightropeInputGate`는 호환 창구) — [공통 게임 시스템](common-game-systems.md).
 - `TightropeRunDebug.cs` — **테스트 전용**: 상태·남은 시간 표시, K 추락, L 도착, O 표시, 좌우 착지 표시기, 착지 로그, R = 호스트만 재시작.
 - `Editor/TightropeCoursePrefabBuilder.cs` — 코스 프리팹 생성 메뉴(덮어쓰므로 값 조정 후 실행 금지).
 

@@ -224,6 +224,25 @@ namespace CurtainCall.Cameras.Tests
         }
 
         [UnityTest]
+        public IEnumerator Retired_SpectatesLikeFallenAndIsNotWatched()
+        {
+            yield return Host(CameraViewsScene);
+            yield return Teleport(InsideZone);
+            Assert.IsTrue(FirstPerson);
+
+            Call(local, "ServerSetState", Enum.Parse(GameType(StateType), "Retired"));
+            yield return Frames(3);
+            Assert.IsTrue(Spectating, "리타이어 후 관전");
+            Assert.IsFalse(FirstPerson, "관전 중 1인칭 제외");
+            Assert.IsFalse(HideModel);
+            Assert.IsNull(Get(GameType("CurtainCall.Cameras.CameraSpectator"), "Target"), "관전 대상은 Normal만(혼자면 없음)");
+
+            Call(GameType(PlayerType), "ServerRestartAll");
+            yield return WaitFor(() => FirstPerson, 3f, "재시작 후 구역 1인칭 복구");
+            Assert.IsFalse(Spectating);
+        }
+
+        [UnityTest]
         public IEnumerator LocalDespawn_ClearsViewAndRestoresCursor()
         {
             yield return Host(CameraViewsScene);

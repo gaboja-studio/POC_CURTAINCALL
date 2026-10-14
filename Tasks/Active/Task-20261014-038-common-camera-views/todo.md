@@ -18,9 +18,10 @@
   - [x] 시점 preset·설정 에셋, 요청 resolver(asmdef)·director·Cinemachine 최종 pose
   - [x] 시점 구역·로컬 모델 render 숨김·커서, LocalPlayerCamera·리그 프리팹 연결
   - [x] 외줄 구도 MainStage 이전(GUID 유지)·가림 수치/예외 공급 API
-  - [x] CameraViews 테스트 씬, EditMode 11·PlayMode 7 테스트, 지도 3개
-- [x] "검사해줘" 통과 (2026-10-15, EditMode 11/11·PlayMode 7/7)
-- [x] 공동 테스트 3개 사람 확인 (2026-10-15, 3/3 통과)
+  - [x] CameraViews 테스트 씬, EditMode 11·PlayMode 테스트, 지도 3개
+  - [x] 리타이어한 사람도 관전(`CameraSpectator`, 2026-10-14 PM 결정, 제출 전 통합 merge로 확인해 반영 10-15)
+- [x] "검사해줘" 통과 (2026-10-15, EditMode 11/11·PlayMode 7/7, 리타이어 반영 후 재검사)
+- [x] 공동 테스트 3개 사람 확인 (2026-10-15, 3/3 통과, 리타이어 관전 반영 전)
 - [ ] "제출해줘"로 PR 제출
 
 ## PM 통합
