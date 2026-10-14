@@ -17,7 +17,7 @@
 
 ## Files
 
-- 수정 예정: `Assets/Scripts/Systems/Campaign/`, `Assets/Scenes/Tests/Systems/Campaign/CampaignFlow.unity`, 배정된 세팅 클래스·에셋
+- 수정함(#59): `Assets/Scripts/Systems/Campaign/`(`CampaignRun`·`RunState`·`CampaignSnapshot`·`CampaignFlowTestUI`), `CampaignFlow.unity`(테스트 UI 배치), `Systems/Settings/`(`BaseGameSettings`·`GameSettings` 수정, `WaitingRoom`·`Exploration`·`EscapeRoute` Settings 추가), 세팅 에셋 3개 추가·연결·최소 인원 2, `Docs/Domains/common-game-systems.md`(PM 허용)
 - 읽기 전용 참고: `Assets/Scripts/Systems/Network/Session/`, `Docs/Domains/network-session.md`
 
 ## Risks
@@ -41,3 +41,13 @@
 1. 새 런이 세대 1·1일차·첫 공연(줄타기)으로 시작하고, 버튼으로 공연 종료·쉬는 시간 종료·밤 준비 완료를 주면 기획 순서대로 시간대가 바뀐다.
 2. 쉬는 시간 타이머가 세팅 B안(대기실에서 나온 뒤)·A안(시작부터)대로 시작하고, 종료 1분 전 경보가 온다.
 3. 4일차 아침 쉬는 시간이 끝나면 런 실패 → 세대 2·1일차로 다시 시작한다.
+
+## 결과 (2026-10-14, #59 병합)
+
+계획과 달라진 점만 적는다. 자세한 상태는 `handoff.md`.
+
+- 공통 세팅은 새 클래스 대신 기존 `BaseGameSettings`에 "런 진행"·"기물 소지" 칸을 더했다(이름 유지로 2단계 영향 없음).
+- 상태 공유는 네트워크 프리팹 없이 named message로 했다(새 에셋 없이, 기존 `TightropeFire` 방식). 접속 없이 확인하는 오프라인 런을 추가했다.
+- 시간대 전환 신호는 `CampaignRun` 공개 메서드(호스트 호출) + `StepChanged`·`RecallAlarm`·`RunEnded` 이벤트로 제안했다. 형식 확정은 합치기 ①(meta Open).
+- 탈출(개시·성공·전원 리타이어)과 세트리스트 자리도 런 상태에 넣었다. 탈출 성공(엔딩)일 때만 방 상태를 `Ended`로 바꾼다.
+- 테스트 어셈블리 없음(`NO_PROJECT_TESTS`), 플레이 테스트는 작업자가 테스트 씬에서 확인.
