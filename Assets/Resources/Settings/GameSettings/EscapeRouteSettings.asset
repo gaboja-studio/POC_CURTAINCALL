@@ -12,3 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 284757e87b1e9194ba8d319b16080f65, type: 3}
   m_Name: EscapeRouteSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.EscapeRouteSettings
+  dummyInputRows: 2

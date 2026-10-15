@@ -2,25 +2,29 @@
 
 ## 지금 상태
 
-- meta assigned. 2026-10-15 사용자 인계 준비 저장·동기화 승인, 기술 점검·문서 수신 진행 중. 실제 전달·구현은 별도
-- 더미 묘기·대기실·탐색·탈출로 4개 독립 빈 씬 생성·재열기 검증 완료. 씬 전환·세션·데이터 전달은 032 담당
-- 선행 038 integrated·공동 테스트 PASS·소유 반환 완료. Previous Task 연결, Jira CC-119·세팅 6개 배정은 setup 참조
-- 기존 feat/dummy-spaces는 scaffold 기반·고유 구현 0개. PM 준비 16f9adf·배정 84b5761의 원격 통합 조상 관계 확인, 누락된 준비 표 복원·원격 게시 후 정식 sync 예정
-- 원래 CameraViews 씬 유지·dirty 0. 폰트·빌드 설정 기존 변경은 이번 저장에서 제외·보존
-- PR: 없음 (sync 생성 후 갱신)
+- working. PR #82·HEAD 6efc65c 수신 인정, 실제 전달·착수·가시화 계획 승인. 2026-10-15 사용자 동작 일반 확인 및 자동 저장/제출 승인; 통합 병합은 승인 범위 아님
+- PR: 없음 (저장·최신 통합 확인 후 제출 예정)
+- 독립 씬4의 IMGUI를 저장된 Canvas 버튼·선택→결과 카드·변경값·연결 기록·상세 패널로 교체. 실제 처리/더미·조회/미연결 구분. 각 root 5·Missing Script 0·dirty false 확인
+- 최소 3D 토큰은 상태 보조 표시만 담당. EventSystem/InputSystem UI 액션 연결, 전용 한글 TMP 폰트 사용(공유 폰트/Packages/ProjectSettings 미수정)
+- 공연 고정 상황 버튼·큰 시계·시각 기록24개 추가. 오프라인 새 명부마다 줄타기 제한 시간을 읽어 자연 감소→만료 신호만 031 전달. 기존 명부 복원/온라인 자동 시계 미지원; 결과/정산/시간대는 031/028 소유
+- 공간 세팅3종의 더미 요청액/손실 조회값/행 수를 읽고 반영. 정식 가격·부상·참가 인원 아님. 실제 NetworkPlayer 없는 오프라인을 실제 신체 변경으로 표시하지 않음
+- 탐색 만료→안전 밖 추격 정리 연결은 미완료. 기존 공동 테스트 2번을 시각화로 대체 PASS하지 않음. 세부 [api-gaps.md](api-gaps.md)
+- 수정: DummySpaces 씬/스크립트·배정 세팅 코드/에셋6개·Task 문서만. 032 씬 전환/세션/전달/장소 설정, 045 이동 미수정
 
 ## 다음 할 일
 
-1. 준비 표 게시 후 assign-task -UsePreparedBranch 사전 점검 → 정식 배정 문서 sync PR을 Merge commit으로 수신한다. 강제 이동·Squash 금지
-2. 문서 수신과 PM 실제 전달을 구분한다. 담당자 실제 전달 todo는 별도 확인 전 체크하지 않는다
-3. 별도 worktree 예정 경로 D:/github/github-worktrees/POC_CURTAINCALL/feat-dummy-spaces. 생성 후 Task-20261014-035 시작해줘. 1인칭 이동 fix Task-045는 035 범위 밖
+1. 각 씬을 수동으로 열고 Play → `다음 단계 준비` 3회로 쉬는 시간/031 정산 확인. 왼쪽 목록은 스크롤, 오른쪽 결과·변경값·연결 API 관찰
+2. 묘기: 왼쪽 스크롤의 런 시작(도입 종료 포함)→명부 고정 후 고정 버튼으로 환호/도착/절단/사망 입력. 큰 시계는 실제 감소하며 자연 만료 또는 수동 만료 가능. 탐색 출구 대기/감소, 밤·탈출 시계 없음 구분
+3. 전체 공동 테스트는 미완료. 실제 신체 API는 서버 대상·장소 일치 때 별도 검증. 기존 공동 테스트 2번 연결·테스트 씬 유지/삭제는 PM 후속 결정
 
 ## Verification
 
-- 구역: SKIPPED(PM 통합 브랜치)
-- 1 문서/규칙: PASS(10-15 verify-fast, 경고 5·hard 0, diff --check)
-- 씬 준비: PASS(에디터 API 생성 후 4개 재열기, 각 root/Missing 0·dirty false, .meta/GUID·빌드 미포함)
-- 인계 사전 점검: PASS(10-15 준비 표 03f4d5c 게시 후 assign-task -UsePreparedBranch -WhatIf, exit 0). 이전 원격 표 누락 FAIL 해소, 실동기화는 아직 별도
-- 2 컴파일: PASS(10-15 저장 전 verify-unity -Compile, ready·up_to_date)
-- 3 테스트: SKIPPED(035 빈 씬 준비만, 게임 로직 없음). 통합 회귀 검사는 result.md 참조, 035 기능 PASS 아님
-- 4 실행 로그 / 5 공동 테스트: 미실행(게임 로직 미구현)
+- 구역 검사: PASS (10-15)
+- 1 문서/규칙: PASS (10-15)
+- 2 컴파일: PASS (10-15)
+- 3 테스트: PASS (PlayMode, 33/33, 10-15)
+- 4 실행 로그: PARTIAL(실시간 UI 네 씬 720p·1080p 한글/시계/기록/토큰 시각 확인. 공연 절단 버튼 포인터 down/up→손실0→1·결과 갱신·시계300→274초 지속 확인. 전체 실제 클릭·서버 신체 적용 미검증)
+- 5 공동 테스트: PARTIAL(사용자 “잘 되는것 같아”로 현재 동작 일반 확인. 계획 전체 공동 테스트·미연결 2번·서버 신체 적용 PASS 아님)
+- 환경: doctor FAIL 0/WARN 2. CLI beta.6 status count 0이나 editor_status는 정확한 worktree ready. --json 사용. 최종 Play 종료
+- 검사 이력: 이전 임시 캡처 .meta 누락 구역 FAIL→정리 후 PASS, 빌더 5초 timeout→저장/재열기·24/24 확인. 후속 실시간33/33 PASS. 임시 해상도 제거 인덱스 오류는 목록 확인 후 정확한 항목 제거로 복구
+- PM 교훈 제안: 카메라 screenshot은 Overlay UI 누락. capture_game_view source=screen과 명시 Assets 소유 폴더 경로 사용(절대 경로도 .harness로 변환된 사례). 캡처/.meta는 scratchpad로 이동
