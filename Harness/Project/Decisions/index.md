@@ -22,4 +22,5 @@
 - [third-party-assets.md](third-party-assets.md) — 외부 에셋은 무료·유료 구분 없이 private 레포를 `Assets/_ThirdParty` submodule로, 공개 레포엔 직접 만든 것만. 외부 에셋을 넣거나 옮길 때
 - [claude-mods.md](claude-mods.md) — 팀 공용 Claude Code 모드는 저장소 마켓플레이스(curtaincall)로 배포·version 올려 업데이트, 진행 패널의 todo 색·버튼·권한 규칙. 모드를 고치거나 배포·끄는 법을 안내할 때
 - [space-workspaces.md](space-workspaces.md) — 공간별 경로·현재 담당(공연장·탈출로 @RagSpirin)·인간 대포 자식 통합과 순차 구역. 공간 Task·통합을 준비할 때
+- [Waiting-room/index.md](Waiting-room/index.md) — 대기실 2차 기획(2026-10-15 컨펌 대기): 공간 8곳·탐색 제한 시간(옛 쉬는 시간 타이머, 재진입 불가)·밤 정비/전문가 A안·스케줄표·상점/선반·미정, 게임 흐름과 충돌 시 게임 흐름 우선. 대기실 Task를 계획할 때
 - [Human-cannon/index.md](Human-cannon/index.md) — 인간 대포 v0.5 조작·협동 경로·최종 도착 예외·부상/함정·미정. 단계별 작업을 계획할 때
