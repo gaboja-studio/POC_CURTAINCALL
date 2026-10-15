@@ -2,11 +2,11 @@
 
 - **Title:** 공간 연결과 통합 확인
 - **Type:** feat
-- **Status:** assigned
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 연결 Task
-- **Current Skill:** start-work
-- **Updated:** 2026-10-16
+- **Current Skill:** submit-work
+- **Updated:** 2026-10-16 (SpaceLink 씬 배치)
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
@@ -23,7 +23,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 ## Scope
 
 - 작업 구역·공용 파일·수정 금지 목록은 `setup.md`(PM 작성)가 기준이다.
-- AI Setup Allowed: None
+- AI Setup Allowed: `SpaceLink.unity`에 "SpaceLink Hub"(`SpaceLinkHub` + `NetworkSessionTestUI`) 배치 (2026-10-16 @MoHoDu 승인)
 
 ## Decisions
 
