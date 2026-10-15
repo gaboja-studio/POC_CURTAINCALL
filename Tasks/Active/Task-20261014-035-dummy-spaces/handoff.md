@@ -20,7 +20,7 @@
 - 구역: SKIPPED(PM 통합 브랜치)
 - 1 문서/규칙: PASS(10-15 verify-fast, 경고 5·hard 0, diff --check)
 - 씬 준비: PASS(에디터 API 생성 후 4개 재열기, 각 root/Missing 0·dirty false, .meta/GUID·빌드 미포함)
-- 인계 사전 점검: 이전 FAIL(원격 준비 표 누락). 준비 표 게시 후 정식 스크립트 재검사 예정
+- 인계 사전 점검: PASS(10-15 준비 표 03f4d5c 게시 후 assign-task -UsePreparedBranch -WhatIf, exit 0). 이전 원격 표 누락 FAIL 해소, 실동기화는 아직 별도
 - 2 컴파일: PASS(10-15 저장 전 verify-unity -Compile, ready·up_to_date)
 - 3 테스트: SKIPPED(035 빈 씬 준비만, 게임 로직 없음). 통합 회귀 검사는 result.md 참조, 035 기능 PASS 아님
 - 4 실행 로그 / 5 공동 테스트: 미실행(게임 로직 미구현)
