@@ -6,6 +6,7 @@ using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using Object = UnityEngine.Object;
 
 namespace CurtainCall.Cameras
@@ -37,9 +38,13 @@ namespace CurtainCall.Cameras
         float yaw;
         float pitch;
         bool firstPerson;
+        bool freeThirdPerson;
         bool inputBlocked;
         bool cursorOwned;
         bool cursorReleased;
+        bool cursorLocked;
+        int keyboardSyncs;
+        float nextKeyboardSync;
         CursorLockMode previousLock;
         bool previousVisible;
         float transitionStarted;
@@ -57,11 +62,16 @@ namespace CurtainCall.Cameras
         public CameraViewSettings Settings => settings;
         public NetworkPlayer LocalPlayer => local;
         public bool IsFirstPerson => firstPerson && CanUseLocalView;
+        /// <summary>3인칭 비고정: 마우스로 시선을 돌리고 카메라는 캐릭터 뒤에서 시선을 따라 돈다.</summary>
+        public bool IsFreeThirdPerson => freeThirdPerson && CanUseLocalView;
+        /// <summary>마우스 시선 시점(1인칭·3인칭 비고정). 기본 이동 규칙이 <see cref="ViewForward"/> 기준으로 움직인다.</summary>
+        public bool UsesMouseLook => MouseLook && CanUseLocalView;
         public bool HideLocalModel => IsFirstPerson && selected != null && selected.HideLocalModel;
-        public Vector3 ViewForward => CanUseLocalView ? Horizontal(firstPerson
+        public Vector3 ViewForward => CanUseLocalView ? Horizontal(MouseLook
             ? Quaternion.Euler(0f, yaw, 0f) * Vector3.forward
             : (Camera.main != null ? Camera.main.transform.forward : transform.forward)) : Vector3.zero;
 
+        bool MouseLook => firstPerson || freeThirdPerson;
         bool CanUseLocalView => local != null && local.isActiveAndEnabled && !IsDead(local);
 
         void Awake()
@@ -83,7 +93,7 @@ namespace CurtainCall.Cameras
         {
             ReleaseCursor();
             requests.Clear();
-            firstPerson = false;
+            firstPerson = freeThirdPerson = false;
             hasOutput = false;
             selected = null;
             winner = null;
@@ -117,14 +127,15 @@ namespace CurtainCall.Cameras
             mover = player != null ? player.GetComponent<PlayerMover>() : null;
             selected = null;
             winner = null;
-            firstPerson = false;
+            firstPerson = freeThirdPerson = false;
             hasOutput = false;
         }
 
         void Update()
         {
+            SyncKeyboardIfDue();
             PrepareView();
-            if (!IsFirstPerson) { ReleaseCursor(); return; }
+            if (!UsesMouseLook) { ReleaseCursor(); return; }
             var mouse = Mouse.current;
             var keyboard = Keyboard.current;
             if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
@@ -136,6 +147,8 @@ namespace CurtainCall.Cameras
                 cursorReleased = false;
 
             bool lockNow = Application.isFocused && !cursorReleased && !inputBlocked;
+            if (lockNow != cursorLocked) ScheduleKeyboardSync();
+            cursorLocked = lockNow;
             Cursor.lockState = lockNow ? CursorLockMode.Locked : CursorLockMode.None;
             Cursor.visible = !lockNow;
             float limit = Mathf.Clamp(selected.PitchLimit, 0f, 89f);
@@ -154,19 +167,23 @@ namespace CurtainCall.Cameras
             if (!isActiveAndEnabled) return;
             PreparingView?.Invoke();
             requests.RemoveWhere((source, value) => !SourceActive(source) || value.Preset == null);
-            bool allowFirst = CanUseLocalView;
+            // 1인칭·3인칭 비고정은 로컬 캐릭터 기준이라 관전·소멸 중에는 후보에서 뺀다
+            bool allowLocal = CanUseLocalView;
             bool found = requests.TryResolve(out var source, out var request,
-                value => allowFirst || value.Preset.Kind != CameraViewKind.FirstPerson);
+                value => allowLocal || value.Preset.Kind == CameraViewKind.ThirdPerson);
             var preset = found ? request.Preset : DefaultView;
             if (preset == null) return;
-            bool useFirst = allowFirst && preset.Kind == CameraViewKind.FirstPerson;
-            if (source != winner || preset != selected || preset.Kind != selectedKind || useFirst != firstPerson)
+            bool useFirst = allowLocal && preset.Kind == CameraViewKind.FirstPerson;
+            bool useFree = allowLocal && preset.Kind == CameraViewKind.FreeThirdPerson;
+            if (source != winner || preset != selected || preset.Kind != selectedKind || useFirst != firstPerson || useFree != freeThirdPerson)
             {
-                bool enterFirst = useFirst && !firstPerson;
+                // 마우스 시선 시점에 새로 들어올 때만 시선을 현재 화면 방향으로 맞춘다(1인칭↔비고정은 시선 이어짐)
+                bool enterFirst = (useFirst || useFree) && !MouseLook;
                 winner = source;
                 selected = preset;
                 selectedKind = preset.Kind;
                 firstPerson = useFirst;
+                freeThirdPerson = useFree;
                 transitionStarted = Time.unscaledTime;
                 transitionDuration = hasOutput ? Mathf.Max(0f, preset.TransitionDuration) : 0f;
                 if (hasOutput)
@@ -184,7 +201,7 @@ namespace CurtainCall.Cameras
                     pitch = 0f;
                     AcquireCursor();
                 }
-                if (!useFirst) ReleaseCursor();
+                if (!MouseLook) ReleaseCursor();
             }
             selectedForward = found && request.Forward != Vector3.zero ? request.Forward : Vector3.forward;
             var framing = useFirst ? DefaultView : preset;
@@ -205,6 +222,11 @@ namespace CurtainCall.Cameras
                 SetPose(ref state, local.transform.position + Vector3.up * height, Quaternion.Euler(pitch, yaw, 0f));
                 state.ReferenceLookAt = CameraState.kNoPoint;
             }
+            else if (IsFreeThirdPerson)
+            {
+                SetPose(ref state, FreeThirdPersonPose(selected, local.transform.position, yaw, pitch, out var rotation), rotation);
+                state.ReferenceLookAt = CameraState.kNoPoint;
+            }
             state.Lens.FieldOfView = Mathf.Clamp(selected.FieldOfView, 1f, 179f);
             if (transitionDuration > 0f)
             {
@@ -221,6 +243,20 @@ namespace CurtainCall.Cameras
         }
 
         CameraViewPreset DefaultView => settings != null && settings.DefaultThirdPerson != null ? settings.DefaultThirdPerson : fallback;
+
+        /// <summary>
+        /// 3인칭 비고정 카메라 위치·방향. 캐릭터 발 + 바라보기 높이를 중심으로, 고정 3인칭과 같은 거리·높이(pitch 0일 때)를
+        /// 시선(yaw·pitch)만큼 돌린 자리에서 시선 방향 앞(바라보기 앞 거리)을 본다.
+        /// </summary>
+        public static Vector3 FreeThirdPersonPose(CameraViewPreset preset, Vector3 feet, float yaw, float pitch, out Quaternion rotation)
+        {
+            Vector3 pivot = feet + Vector3.up * preset.LookHeight;
+            var orbit = Quaternion.Euler(pitch, yaw, 0f);
+            Vector3 position = pivot + orbit * new Vector3(0f, preset.Height - preset.LookHeight, -Mathf.Max(0f, preset.Distance));
+            Vector3 look = pivot + Quaternion.Euler(0f, yaw, 0f) * Vector3.forward * preset.LookAhead - position;
+            rotation = look.sqrMagnitude > 0.0001f ? Quaternion.LookRotation(look, Vector3.up) : orbit;
+            return position;
+        }
 
         static void SetPose(ref CameraState state, Vector3 position, Quaternion rotation)
         {
@@ -272,11 +308,38 @@ namespace CurtainCall.Cameras
             Cursor.lockState = previousLock;
             Cursor.visible = previousVisible;
             cursorOwned = false;
+            cursorLocked = false;
+            ScheduleKeyboardSync();
         }
 
         void OnApplicationFocus(bool focused)
         {
             if (!focused && cursorOwned) UnlockCursor();
+            if (focused) ScheduleKeyboardSync();
+        }
+
+        /// <summary>
+        /// 커서 잠금이 바뀌거나 포커스를 되찾으면 키보드를 실제 키 상태로 다시 맞춘다(Task-045).
+        /// 에디터에서 시점 전환 중 키를 떼면 게임 쪽 키가 눌린 채 남아 계속 미끄러지는 일이 있었다(실제 키보드에서만 재현).
+        /// 실제로 누르고 있는 키는 그대로 남는다. 바로 다음 프레임과 잠시 뒤 두 번 맞춘다.
+        /// </summary>
+        void ScheduleKeyboardSync()
+        {
+            keyboardSyncs = 2;
+            nextKeyboardSync = Time.unscaledTime;
+        }
+
+        void SyncKeyboardIfDue()
+        {
+            if (keyboardSyncs == 0 || Time.unscaledTime < nextKeyboardSync) return;
+            keyboardSyncs--;
+            nextKeyboardSync = Time.unscaledTime + 0.25f;
+            foreach (var device in InputSystem.devices)
+            {
+                if (device is not Keyboard) continue;
+                var sync = RequestSyncCommand.Create();
+                device.ExecuteCommand(ref sync);
+            }
         }
     }
 }
