@@ -33,4 +33,5 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 - 기준: CC-132 전체 개발 순서, `Harness/Project/Decisions/Waiting-room/night-maintenance.md`, `schedule-board.md`. 게임 흐름 기획과 충돌하면 게임 흐름 우선.
 - Open: 세트리스트 미작성 시 처리 — 결정권자 합의 필요(착수 전, CC-132).
 - Open: 세트리스트 중복 선택·확정 권한·동시 수정(open-items.md 5.2 #6).
+- Decided: 2026-10-15 PM이 담당자 실제 전달 확인. 구현 개방이 아니며 예약 유지 — 앞 단계 조건 충족 후 배정.
 - Decided: 의존 — 3단계(048), 런 상태·공연 호출 공용 시스템. 공용 수정은 별도 소유 Task.
