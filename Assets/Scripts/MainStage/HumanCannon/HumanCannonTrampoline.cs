@@ -101,6 +101,7 @@ namespace CurtainCall.HumanCannon
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied) return false;
             var cannon = HumanCannonSystem.Current;
             if (cannon == null || cannon.IsSeated(player.OwnerClientId)) return false;
+            if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             float radius = grabDistance * reach;
             return radius > 0f && (Handle.position - player.transform.position).sqrMagnitude <= radius * radius;

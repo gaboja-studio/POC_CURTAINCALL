@@ -55,6 +55,7 @@ namespace CurtainCall.HumanCannon
             airControl.Clear();
             if (system == null || player.State != PlayerState.Normal || InputGate.IsBlocked) return;
             if (groundRequest.Pending || awaitingLanding) return;
+            if (ReadPoleInput(input)) return;
             var trampoline = HumanCannonTrampoline.Current;
             if (trampoline != null && trampoline.Carrier == player.OwnerClientId)
             {
@@ -178,6 +179,7 @@ namespace CurtainCall.HumanCannon
                 mover.Simulated = previousSimulation;
             }
             stationIndex = -1;
+            HeldPole = -1;
             groundRequest.Cancel();
             sampledGroundJump = false;
             flightStationIndex = -1;
@@ -203,6 +205,7 @@ namespace CurtainCall.HumanCannon
 
         void SimulateFlight()
         {
+            if (IsHoldingPole) return;
             if (awaitingBounce && HumanCannonTrampoline.Current == null)
             {
                 awaitingBounce = false;
@@ -214,6 +217,8 @@ namespace CurtainCall.HumanCannon
             // 입력이 막혀도 탄도는 계속된다. 보정은 이번 프레임의 수평 변위에만 더한다.
             Vector3 correction = airControl.ConsumeVelocity(Time.frameCount, InputGate.IsBlocked, flightForward, airControlSpeed);
             Vector3 displacement = (velocity + correction) * dt + Vector3.down * (0.5f * gravity * dt * dt);
+            if (HumanCannonPoleSystem.Current != null)
+                displacement = HumanCannonPoleSystem.Current.ConstrainFlight(transform.position, displacement, mover.BodyRadius);
             velocity.y -= gravity * dt;
             var trampoline = HumanCannonTrampoline.Current;
             if (!rejectedSurface && velocity.y <= 0f && trampoline != null &&
@@ -240,6 +245,7 @@ namespace CurtainCall.HumanCannon
         {
             // 운반자 Update → 장치 LateUpdate(-30) → 비행 sweep(-25) 순서다.
             SimulateFlight();
+            UpdatePolePose();
             DetectGroundBounce();
             if (stationIndex < 0 || system == null) return;
             var station = system.Station(stationIndex);

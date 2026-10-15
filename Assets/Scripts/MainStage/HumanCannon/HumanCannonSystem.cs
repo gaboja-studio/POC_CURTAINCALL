@@ -53,6 +53,7 @@ namespace CurtainCall.HumanCannon
 
         internal bool ApplyRebound(ulong actor, int index, uint revision, uint segment, Vector3 position, float upwardSpeed)
         {
+            if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(actor) >= 0) return false;
             if (!flying.TryRebound(actor, index, revision, segment)) return false;
             if (boundPlayer != null && actor == boundPlayer.OwnerClientId && pilot != null)
                 pilot.Rebound(index, revision, segment, position, upwardSpeed);

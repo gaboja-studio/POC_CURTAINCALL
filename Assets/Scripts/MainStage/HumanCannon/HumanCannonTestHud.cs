@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 
 namespace CurtainCall.HumanCannon
 {
-    /// <summary>Task-040 테스트 씬 전용 조작 안내. 제품 UI가 아니다.</summary>
+    /// <summary>인간 대포 단계별 테스트 씬 조작 안내. 제품 UI가 아니다.</summary>
     public sealed class HumanCannonTestHud : MonoBehaviour
     {
         // 게임 조작 에셋을 바꾸지 않는 테스트 전용 단축키다.
@@ -23,8 +23,8 @@ namespace CurtainCall.HumanCannon
 
         void OnGUI()
         {
-            GUILayout.BeginArea(new Rect(10, 340, 440, 355), GUI.skin.box);
-            GUILayout.Label("인간 대포 / 트램폴린 테스트");
+            GUILayout.BeginArea(new Rect(Mathf.Max(10, Screen.width - 480), 10, 470, Mathf.Max(200, Screen.height - 20)), GUI.skin.box);
+            GUILayout.Label("인간 대포 / 트램폴린 / 봉·톱 관문 테스트");
             GUILayout.Label("대포 앞에서 F 짧게: 탑승 → 다시 F 짧게: 발사");
             GUILayout.Label("탑승 중 F 길게: 탑승 전 위치로 복귀");
             GUILayout.Label("비행·반동 중 WASD: 수평 조절 / 놓으면 보정 종료");
@@ -60,6 +60,28 @@ namespace CurtainCall.HumanCannon
                 string carrier = trampoline.Carrier == CannonSeatState.Nobody ? "무주인" :
                     player != null && trampoline.Carrier == player.OwnerClientId ? "내가 운반 중" : "다른 플레이어 운반 중";
                 GUILayout.Label($"트램폴린: {carrier} / 내 반동 횟수: {trampoline.LocalBounceCount}");
+            }
+            var poles = HumanCannonPoleSystem.Current;
+            if (poles != null)
+            {
+                GUILayout.Space(8);
+                GUILayout.Label("비행 중 봉 아래 F: 잡기 / W·S: 반동 / F 길게: 놓기 도약");
+                GUILayout.Label("노랑·검정 봉 유지: 연결 톱 수납 / 놓기·시간 끝·사망: 예고 후 재동작");
+                GUILayout.Label("협동: 위 봉 잡기 → 지상 담당 통과 → 너머에서 다시 받기");
+                GUILayout.Label("담당 사망: 중앙 재반동 → 공중에서 외곽 손잡이 F로 인계");
+                for (int i = 0; i < poles.PoleCount; i++)
+                {
+                    var state = poles.State(i);
+                    var pole = poles.Pole(i);
+                    if (pole == null) continue;
+                    string label = pole.LinkedGate != null ? "연결 봉" : "일반 봉";
+                    string status = state.IsOccupied ? $"유지 {Mathf.Max(0f, (float)(state.HoldUntil - poles.Clock)):F1}초"
+                        : state.Phase == PoleSawPhase.Warning ? $"재동작 예고 {Mathf.Max(0f, (float)(state.RearmAt - poles.Clock)):F1}초" : "비어 있음";
+                    GUILayout.Label($"{label}: {status}");
+                    if (pole.LinkedGate != null) GUILayout.Label(pole.LinkedGate.CarrierPassed
+                        ? "관문: 지상 통과 확인 / 비행자도 너머로 이동 가능"
+                        : "관문: 지상 담당 통과 대기 / 비행자는 위·옆 우회 불가");
+                }
             }
             GUILayout.EndArea();
         }
