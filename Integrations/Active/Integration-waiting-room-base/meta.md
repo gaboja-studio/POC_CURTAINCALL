@@ -28,10 +28,15 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 ## 준비 브랜치
 
-준비 커밋에서 5개 브랜치를 만든 뒤 전체 40자리 SHA를 기록한다. 브랜치 존재는 배정·실제 인계가 아니다.
+2026-10-15 승인 준비본 a864410에서 5개 브랜치 생성·push 확인. 브랜치 존재는 배정·실제 인계가 아니다.
 
 | Task | 브랜치 | 준비 기준 SHA | 승인 SHA |
 |---|---|---|---|
+| Task-20261015-046 | feat/waiting-room-greybox-loop | a86441022defe9bc68e1da40549684de1f342029 | a86441022defe9bc68e1da40549684de1f342029 |
+| Task-20261015-047 | feat/waiting-room-exploration-timer | a86441022defe9bc68e1da40549684de1f342029 | a86441022defe9bc68e1da40549684de1f342029 |
+| Task-20261015-048 | feat/waiting-room-shop-storage | a86441022defe9bc68e1da40549684de1f342029 | a86441022defe9bc68e1da40549684de1f342029 |
+| Task-20261015-049 | feat/waiting-room-night-schedule | a86441022defe9bc68e1da40549684de1f342029 | a86441022defe9bc68e1da40549684de1f342029 |
+| Task-20261015-050 | feat/waiting-room-expert-service | a86441022defe9bc68e1da40549684de1f342029 | a86441022defe9bc68e1da40549684de1f342029 |
 
 ## 공용 파일 소유 표
 

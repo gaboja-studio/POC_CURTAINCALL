@@ -2,8 +2,8 @@
 
 ## 준비·배정
 
-- [ ] 5개 Task 문서·빈 테스트 공간 검사 및 준비 커밋 push
-- [ ] 동일 준비 SHA에서 5개 작업 브랜치 생성·push, 4열 SHA 표 등록
+- [x] 5개 Task 문서·빈 테스트 공간 검사(verify-fast OK, hard 0) 및 준비 커밋 push — a864410
+- [x] 동일 준비 SHA에서 5개 작업 브랜치 생성·push, 4열 SHA 표 등록 — a864410 기준
 - [ ] ⑥·⑦ 위치 PM 확인 (046 착수 전)
 - [ ] Task-024 통합 → waiting_room.unity 부모 소유 반환 → 최신 부모 Merge commit 수신 → 046 이관
 - [ ] Task-046만 기술 배정(`assign-task.ps1 -UsePreparedBranch`), 배정 문서 Merge commit sync 수신, 실제 전달 PM 확인
