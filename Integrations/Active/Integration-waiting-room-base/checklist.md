@@ -1,36 +1,36 @@
 # Checklist
 
-## 병합 전
+## 준비·배정
 
-- [ ] 모든 Task의 PR이 제출됨 (meta.md Tasks 표)
-- [ ] 각 PR의 검사 결과(구역·컴파일·테스트)가 채워져 있음
-- [ ] 공용 파일 소유 표와 실제 PR 변경 파일이 겹치지 않음
+- [ ] 5개 Task 문서·빈 테스트 공간 검사 및 준비 커밋 push
+- [ ] 동일 준비 SHA에서 5개 작업 브랜치 생성·push, 4열 SHA 표 등록
+- [ ] ⑥·⑦ 위치 PM 확인 (046 착수 전)
+- [ ] Task-024 통합 → waiting_room.unity 부모 소유 반환 → 최신 부모 Merge commit 수신 → 046 이관
+- [ ] Task-046만 기술 배정(`assign-task.ps1 -UsePreparedBranch`), 배정 문서 Merge commit sync 수신, 실제 전달 PM 확인
 
-## 병합 순서
+## 순차 병합·다음 단계 개방
 
-공용 파일을 소유한 Task → 다른 Task가 의존하는 Task → 나머지 순서로 정한다.
-
-1.
-
-## PR 하나를 병합할 때마다
-
-1. Squash로 병합한다 (Task 하나 = 기록 한 줄).
-2. 다음 PR이 뒤처졌으면 GitHub **Update branch**로 최신 내용을 받게 한다.
-3. 충돌이 나면 해당 Task 담당자와 함께 해결한다. 씬·프리팹 충돌은 AI에게 맡기지 않는다.
-4. 컴파일 확인 후 다음 PR로 넘어간다.
+1. 046 공간·공연 왕복 → 047 탐색 제한 시간 → 048 상점·소품실 → 049 밤 정비·스케줄표 → 050 전문가 서비스.
+2. 각 작업 PR은 이 통합으로 Squash. 앞 단계 integrated·실제 4인 공동 검증 근거·소유 반환 전 후속은 scaffolded 유지.
+3. 다음 한 Task만 Active Task/Allowed/공용 소유 부여, 실제 Jira 카드 URL 연결 후 배정 문서를 준비 브랜치로 Merge commit sync.
+4. 충돌 시 담당자와 해결하며 씬·프리팹 병합을 AI에 맡기지 않는다.
 
 ## 공동 테스트 항목
 
-각 Task `plan.md`의 공동 테스트 항목을 모은다.
+각 Task plan의 최대 3개를 실제 실행한다. 준비 문서/빈 씬 검사는 기능 통과가 아니다.
 
 | Task | 항목 | 결과 |
 |---|---|---|
+| Task-046 | 접속·동선, 전원 집결 후 공연 진입, 복귀·외팔 부활·반복 | 미실행 |
+| Task-047 | 조기 시작, 늦은 인원 정리, 표시·경보·재진입 불가 | 미실행 |
+| Task-048 | 구매·수령, 운반 제한, 보관 유지 | 미실행 |
+| Task-049 | 밤 진입, 스케줄 작성·수정, 다음 날 진행 | 미실행 |
+| Task-050 | 구매·입장, 의료 복구, 부재중 | 미실행 |
 
-## dev로 PR 전
+## 부모 통합 반영 전
 
-- [ ] 공동 테스트 전부 통과, 실패 항목은 후속 Task로 분리
-- [ ] Task 폴더를 모두 `Tasks/Done/`으로 이동
-- [ ] 각 Task의 테스트 씬 처리 결정이 기록됨
-- [ ] 병합된 작업 브랜치와 PR을 닫음
-- [ ] 각 Task PR의 `closed #번호`를 모두 모아 dev PR 본문에 적음 (GitHub는 dev에 병합될 때만 이슈를 자동으로 닫는다)
-- [ ] `integration/*` → `dev` PR은 Merge commit으로 병합
+- [ ] 공동 테스트 실제 통과·근거 기록 (실패/미연결은 BLOCKED 또는 후속 Task)
+- [ ] Task별 테스트 씬 처리 및 소유권 이관 이력 기록
+- [ ] integration/waiting-room-base → integration/waiting-room PR, Merge commit (dev 직행 금지)
+
+Base가 dev가 아니므로 기존 close-integration/Done 이동/브랜치 삭제 절차는 실행하지 않는다. 빈 준비 통합의 부모 반영도 하지 않는다.
