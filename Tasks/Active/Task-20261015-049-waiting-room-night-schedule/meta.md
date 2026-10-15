@@ -2,7 +2,7 @@
 
 - **Title:** 대기실 4단계 — 밤 정비와 스케줄표
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:** common-game-systems
 - **Current Skill:** start-work
@@ -13,7 +13,7 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 ## Workspace
 
 - **Integration:** integration/waiting-room-base
-- **Branch:** feat/waiting-room-night-schedule (기술 준비 때 생성, 실인계 아님)
+- **Branch:** feat/waiting-room-night-schedule
 - **Previous Task:**
 
 ## Goal
