@@ -57,4 +57,5 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 - Decided: 2026-10-15 PM — ⑥·⑦은 백스테이지. 대기실 그레이박스는 ①~⑤·⑧과 대기실 문, ⑥은 테스트 씬의 집결 판정용 대체 통로만(백스테이지 연결 때 교체).
 - Decided: 2026-10-15 PM — waiting_room.unity 복사본(WaitingRoomBase.unity)을 1차 테스트 씬으로 쓰고, 원본 반영은 통합 브랜치에서 나중에 정한다.
 - Decided: 2026-10-15 PM — 2단계에 60초 소집 경보(종소리·방송)·30·10초 방송 적용. 하네스 결정은 dev PR #94.
+- Decided: 2026-10-15 PM이 Task-046~050 모두 담당 @gyumin9048-ctrl에게 실제 전달 확인. 046만 assigned/Active(배정 sync #97), 047~050은 예약 유지.
 - Open: 세트리스트 미작성 처리(4단계 전 결정권자 합의).

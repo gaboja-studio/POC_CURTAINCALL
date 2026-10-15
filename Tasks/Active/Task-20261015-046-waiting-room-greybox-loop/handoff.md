@@ -1,15 +1,15 @@
 # Handoff
 
 ## 지금 상태
-- 단계: scaffolded — 기술 배정 전, 실제 전달 미확인.
+- 단계: assigned — 기술 배정·실제 전달 완료(2026-10-15 PM 확인).
 - 동작하는 것: 폴더/.meta·1차 테스트 씬(waiting_room.unity 복사본)만 준비. 기능 구현 없음.
-- 막힌 것: 배정·실제 전달 전 착수 금지.
+- 막힌 것: 배정 문서 sync PR #97 Merge commit 반영 전 start-work 불가.
 - PR: 없음
 ## 다음 할 일
-1. PM: 046 배정(-UsePreparedBranch) → 배정 문서 Merge commit 수신 → 실제 전달 확인.
-2. 작업자: plan 구현·검사·PR, 실제 4인 공동 테스트. 다음 단계는 integrated·실검증·소유 반환·실 Jira 뒤 개방.
+1. PM: sync PR #97(통합 → feat/waiting-room-greybox-loop) Merge commit 병합.
+2. 작업자: "Task-20261015-046 시작해줘" → plan 구현·검사·PR, 실제 4인 공동 테스트. 다음 단계는 integrated·실검증·소유 반환·실 Jira 뒤 개방.
 ## PM이 확인할 것
-- 확인 요청: 실제 전달, 원본 waiting_room.unity 반영 시점, 최종 테스트 씬 처리.
+- 확인 요청: 원본 waiting_room.unity 반영 시점, 최종 테스트 씬 처리.
 - 대기 중인 결정: 없음 (2~5단계 미정 항목은 각 Task meta).
 - 공용 파일 요청: 없음. Systems/Resources 수정 권한 없음.
 ## Verification
