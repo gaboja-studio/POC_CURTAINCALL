@@ -4,8 +4,12 @@
 > "근거"는 코드에서 확인한 사실, "기획"은 [게임 흐름](../../Harness/Project/Facts/game-flow.md)·[런 상태](../../Harness/Project/Facts/run-state.md)·[부상 규칙](../../Harness/Project/Decisions/injury-rules.md)·[조작키](../../Harness/Project/Decisions/control-keys.md) 요약이다.
 
 ## 목적
-
 런 진행·부상/생존·공연 결과·공동 자금·장소 전환처럼 여러 공간이 함께 쓰는 게임 시스템의 지도. 기획상 담당은 시스템(@MoHoDu): 런 상태 관리, 장소 전환, 공간 간 규칙, 잃은 팔다리 수 관리.
+
+## 현재 기획 안내 (2026-10-15)
+- 위 조사 날짜·과거 근거는 보존. 공용 PR #64·패널 PR #65 dev 병합은 전체 공간 연결/4인 검증 완료가 아니다. 현재 공연장·탈출로 @RagSpirin([팀](../../Harness/Project/Facts/team.md)), 과거 @lakuase2 기록은 당시 담당.
+- 최신 [게임 흐름](../../Harness/Project/Facts/game-flow.md): 전화부스 서비스·부재 표시, 연출은 대기실 담당이 A안 선택([대기실 결정](../../Harness/Project/Decisions/Waiting-room/index.md)). 기물 2/1/+2와 쉬는 시간 B 기본/A-B 전환 유지.
+- [인간 대포 v0.5](../../Harness/Project/Decisions/Human-cannon/index.md)는 **살아 있는 1명 실제 목적지 도착 성공** 예외. 공통 생존 2명 실패/결과/런 종료를 연결하는 의존성으로 4단계 PM·공용 담당 협의/소유 배정이 필요하며 이번에 `Systems/`를 수정하지 않는다.
 
 ## 재사용 목록
 
@@ -18,7 +22,7 @@
 | 방 접속·나가기·정원·진행 중 참가 거절 | 재사용 | `Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs` | 유일한 공개 진입점, 접속 승인 콜백 소유. 정원 4·최소 1(테스트). 기획 2~4인 → 최소 인원은 세팅값으로 조정 |
 | 방 상태 `Waiting/Playing/Ended` | 재사용(의미 한정) | `GameSessionState.cs`, `GameSessionStateSync.cs` | 호스트만 변경. 로비 → 런 진행 → 런 종료 단위로만 쓰고, 공연 종료 신호로 쓰지 않는다(하루 공연 2회) |
 | `RestartEndedGame()` | 수정 후 재사용 | `NetworkSessionManager.cs:291` | `internal`, 호출처는 `TightropeRun.cs:117`뿐. 기획은 공연 후 재도전이 없으므로 세대 교체(런 재시작) 경계로만 남길지 정리 필요. 재접속 비허용(PM 결정 #7)은 지금의 진행 중 참가 거절과 일치 |
-| 런 진행 관리자(일차·단계·쉬는 시간 타이머·밤 준비 완료) | 신규(구현) | `Assets/Scripts/Systems/Campaign/` (Task-028) | `CampaignRun`(진입점, 호스트 판정·모두에게 공유)·`RunState`(판정). 세대·일차·시간대 전환, 쉬는 시간 타이머 A/B·소집 경보, 밤 전원 준비 완료, 기한 초과 → 세대 교체, 탈출 신호. 세트리스트는 자리만(묘기 이름 임시 문자열) |
+| 런 진행 관리자(일차·단계·탐색 제한 시간·밤 준비 완료) | 신규(구현) | `Assets/Scripts/Systems/Campaign/` (Task-028) | `CampaignRun`(진입점, 호스트 판정·모두에게 공유)·`RunState`(판정). 세대·일차·시간대 전환, 쉬는 시간 타이머 A/B·소집 경보, 밤 전원 준비 완료, 기한 초과 → 세대 교체, 탈출 신호. 세트리스트는 자리만(묘기 이름 임시 문자열) |
 | 세션 범위 데이터(세대 번호·물려줄 선반·흔적) | 신규 | 없음 | 세대 코드 없음. 같은 게임 세션 안에서만 유지(기획 6-2) |
 | 조정값 시작점 | 수정 후 재사용(5묶음 완료) | `Assets/Scripts/Systems/Settings/GameSettings.cs`, `BaseGameSettings.cs`, `WaitingRoomSettings.cs`, `ExplorationSettings.cs`, `EscapeRouteSettings.cs` | 공통 = `BaseGameSettings`(런 진행·기물 소지 칸 추가, Task-028), 묘기 = `Tricks/*`, 대기실·탐색·탈출로는 빈 틀(칸은 CC-119가 채움) |
 
@@ -81,7 +85,7 @@
 
 | # | 결정 | 기록 | 후속 |
 |---|---|---|---|
-| 1 | 쉬는 시간 타이머 **B안 기본**, A안도 구현해 세팅에서 전환(A/B 테스트용) | [run-rules.md](../../Harness/Project/Decisions/run-rules.md) #1 | CC-108 |
+| 1 | 탐색 제한 시간(옛 쉬는 시간 타이머) **B안 기본**, A안도 구현해 세팅에서 전환(A/B 테스트용) | [run-rules.md](../../Harness/Project/Decisions/run-rules.md) #1 | CC-108 |
 | 2 | 기물 소지는 **부상 기획 기본값**(팔 2개 = 2, 팔 1개 = 1, 배낭 +2), 세 숫자 모두 세팅에서 변경 | [injury-rules.md](../../Harness/Project/Decisions/injury-rules.md) #8 | CC-109·111 |
 | 3 | 세팅을 **공통 / 각 묘기 / 대기실 / 탐색 / 탈출로** 5묶음으로 분리 | [game-settings.md](../../Harness/Project/Decisions/game-settings.md) | CC-108 |
 | 4 | 공통 폴더 이전은 **별도 Task**(refactor, 1단계) | [통합 계획](../../Integrations/Active/Integration-common-game-systems/plan.md) | 신규 Task |

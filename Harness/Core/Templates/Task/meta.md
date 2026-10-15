@@ -8,12 +8,13 @@
 - **Current Skill:** start-work
 - **Updated:** YYYY-MM-DD
 
-Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
+Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별도) → working(작업 중) → submitted(PR 제출) → integrated(검증 통과) → done(dev 병합). 막히면 blocked.
 
 ## Workspace
 
 - **Integration:** INTEGRATION_BRANCH
-- **Branch:** BRANCH_NAME (인계 때 생성)
+- **Branch:** BRANCH_NAME (기술 준비 때 생성, 실인계 아님)
+- **Previous Task:**
 
 ## Goal
 

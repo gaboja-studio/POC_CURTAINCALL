@@ -81,9 +81,9 @@ function Get-AllTaskFolders {
 
 function Get-TaskRefMetadata {
     # checkout 없이 로컬·원격 ref의 Task 메타데이터를 읽는다.
-    param([string]$Id, [switch]$IncludeDone)
-    $refs = @(& git -C $script:RepoRoot for-each-ref --format='%(refname)' refs/heads refs/remotes)
-    if ($LASTEXITCODE -ne 0) { throw 'Task 조회용 Git ref 목록을 읽지 못했습니다.' }
+    param([string]$Id, [switch]$IncludeDone, [string]$Ref)
+    $refs = if ($Ref) { @($Ref) } else { @(& git -C $script:RepoRoot for-each-ref --format='%(refname)' refs/heads refs/remotes) }
+    if (-not $Ref -and $LASTEXITCODE -ne 0) { throw 'Task 조회용 Git ref 목록을 읽지 못했습니다.' }
     foreach ($ref in $refs) {
         $states = @('Tasks/Active/')
         if ($IncludeDone) { $states += 'Tasks/Done/' }
@@ -104,11 +104,191 @@ function Get-TaskRefMetadata {
 }
 
 function Get-MetaField {
-    param([Parameter(Mandatory)][string]$MetaPath, [Parameter(Mandatory)][string]$Field)
-    if (-not (Test-Path -LiteralPath $MetaPath)) { return $null }
-    $m = Select-String -LiteralPath $MetaPath -Pattern "^\s*-\s*\*\*$([regex]::Escape($Field)):\*\*\s*(.*)$" | Select-Object -First 1
-    if (-not $m) { return $null }
-    return $m.Matches[0].Groups[1].Value.Trim()
+    param([string]$MetaPath, [Parameter(Mandatory)][string]$Field, [string]$Text)
+    if ($MetaPath) {
+        if (-not (Test-Path -LiteralPath $MetaPath)) { return $null }
+        $Text = Get-Content -LiteralPath $MetaPath -Raw
+    }
+    $m = [regex]::Match("$Text", "(?m)^\s*-\s*\*\*$([regex]::Escape($Field)):\*\*[^\S\r\n]*(.*)$")
+    if (-not $m.Success) { return $null }
+    return $m.Groups[1].Value.Trim()
+}
+
+# ---------- 부모 통합·준비 브랜치 (checkout 없이 원격 문서 확인) ----------
+
+function Get-RefFile {
+    param([Parameter(Mandatory)][string]$Ref, [Parameter(Mandatory)][string]$Path)
+    $lines = @(& git -C $script:RepoRoot show "${Ref}:$Path" 2>$null)
+    if ($LASTEXITCODE -ne 0) { throw "Git 문서를 읽지 못했습니다: $Ref / $Path" }
+    return $lines -join "`n"
+}
+
+function Get-IntegrationMetadata {
+    param([Parameter(Mandatory)][string]$Branch, [string]$Ref = "refs/remotes/origin/$Branch")
+    if ($Branch -cnotmatch '^integration/([a-z0-9]+(?:-[a-z0-9]+)*)$') { throw "통합 브랜치가 아닙니다: $Branch" }
+    $path = "Integrations/Active/Integration-$($Matches[1])/meta.md"
+    $text = Get-RefFile -Ref $Ref -Path $path
+    if ((Get-MetaField -Text $text -Field 'Branch') -cne $Branch) { throw "통합 메타 Branch 불일치: $Branch" }
+    return [pscustomobject]@{ Branch = $Branch; Base = (Get-MetaField -Text $text -Field 'Base'); ActiveTask = (Get-MetaField -Text $text -Field 'Active Task'); Text = $text; Path = $path; Ref = $Ref }
+}
+
+function Assert-IntegrationLineage {
+    param([Parameter(Mandatory)][string]$Branch, [string]$Ref, [string]$Child)
+    $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
+    if ($Child) { [void]$seen.Add($Child) }
+    $first = $true
+    while ($Branch -cne (Get-BaseBranch)) {
+        if (-not $seen.Add($Branch)) { throw "통합 Base 자기참조/순환: $Branch" }
+        $info = if ($first -and $Ref) { Get-IntegrationMetadata -Branch $Branch -Ref $Ref } else { Get-IntegrationMetadata -Branch $Branch }
+        $first = $false
+        if (-not $info.Base) { throw "통합 Base 누락: $Branch" }
+        $Branch = $info.Base
+    }
+    & git -C $script:RepoRoot rev-parse --verify --quiet "refs/remotes/origin/$Branch^{commit}" | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "원격 부모 브랜치가 없습니다: $Branch" }
+}
+
+function Get-RefTask {
+    param([Parameter(Mandatory)][string]$Ref, [string]$Id, [string]$Branch)
+    $items = @(Get-TaskRefMetadata -Id $Id -Ref $Ref | Where-Object { -not $Branch -or $_.Branch -ceq $Branch })
+    if ($items.Count -ne 1) { throw "Task 문서가 없거나 여러 개입니다: $Ref / $Id $Branch" }
+    $item = $items[0]
+    $text = Get-RefFile -Ref $Ref -Path "$($item.Rel)/meta.md"
+    return [pscustomobject]@{ Id = $item.Id; Rel = $item.Rel; Ref = $Ref; Text = $text; Branch = $item.Branch; Type = (Get-MetaField -Text $text -Field 'Type'); Integration = (Get-MetaField -Text $text -Field 'Integration'); Status = (Get-MetaField -Text $text -Field 'Status') }
+}
+
+function Assert-PreparedBranch {
+    param([Parameter(Mandatory)][string]$Integration, [Parameter(Mandatory)][string]$Branch, [Parameter(Mandatory)][string]$Id, [string]$Type,
+        [string]$IntegrationRef = "refs/remotes/origin/$Integration", [string]$BranchRef = "refs/remotes/origin/$Branch", [string]$MetadataText)
+    $info = Get-IntegrationMetadata -Branch $Integration -Ref $IntegrationRef
+    if (-not $MetadataText) { $MetadataText = $info.Text }
+    $section = Get-MarkdownSection -Text $MetadataText -Heading '준비 브랜치'
+    $rows = @($section -split '\r?\n' | Where-Object { $_ -match "^\|\s*$([regex]::Escape($Id))\s*\|" })
+    if ($rows.Count -ne 1) { throw "준비 브랜치 표에 Task가 없거나 중복입니다: $Id" }
+    $cols = @($rows[0].Trim('|').Split('|') | ForEach-Object { $_.Trim().Trim('`') })
+    if ($cols.Count -ne 4 -or $cols[1] -cne $Branch -or $cols[2] -notmatch '^[a-f0-9]{40}$' -or $cols[3] -notmatch '^[a-f0-9]{40}$') { throw "준비 브랜치/SHA 표 불일치: $Id" }
+    $basis, $approval = $cols[2], $cols[3]
+    foreach ($pair in @(@($basis, $approval), @($approval, $IntegrationRef), @($basis, $BranchRef))) {
+        & git -C $script:RepoRoot merge-base --is-ancestor $pair[0] $pair[1] 2>$null
+        if ($LASTEXITCODE -ne 0) { throw "승인된 부모 준비 이력이 아닙니다: $($pair -join ' → ')" }
+    }
+    foreach ($ref in $basis, $approval, $BranchRef) {
+        $task = Get-RefTask -Ref $ref -Id $Id
+        if ($task.Branch -cne $Branch -or $task.Integration -cne $Integration -or $task.Type -cne ($Branch -split '/')[0] -or ($Type -and $task.Type -cne $Type)) { throw "준비 branch Task/Type/Integration 불일치: $ref / $Id" }
+    }
+    # 부모에서 내려온 커밋은 허용. 부모와 동일 tree인 2-parent sync merge 외 고유 커밋은 구현 이력으로 거부한다.
+    $unique = @(& git -C $script:RepoRoot rev-list $BranchRef --not $IntegrationRef)
+    if ($LASTEXITCODE -ne 0) { throw '준비 브랜치 이력 조회 실패' }
+    foreach ($commit in $unique) {
+        $parents = ((& git -C $script:RepoRoot rev-list --parents -n 1 $commit) -split ' ')
+        if ($parents.Count -ne 3) { throw "준비 브랜치에 독립 구현 커밋이 있습니다: $commit" }
+        & git -C $script:RepoRoot merge-base --is-ancestor $parents[2] $IntegrationRef
+        if ($LASTEXITCODE -ne 0) { throw "준비 sync의 부모가 소속 통합이 아닙니다: $commit" }
+        & git -C $script:RepoRoot diff --quiet $commit $parents[2]
+        if ($LASTEXITCODE -ne 0) { throw "준비 sync에 독립 변경이 있습니다: $commit" }
+    }
+}
+
+function Get-PrFlow {
+    param([Parameter(Mandatory)][string]$Head, [Parameter(Mandatory)][string]$Base)
+    if ($Head -ceq $Base) { throw "같은 브랜치로 PR 불가: $Head" }
+    if ($Head -like 'integration/*') {
+        Assert-IntegrationLineage -Branch $Head -Ref HEAD
+        $headInfo = Get-IntegrationMetadata -Branch $Head -Ref HEAD
+        if ($Base -ceq $headInfo.Base) { return 'merge' }
+        if ($Base -like 'integration/*') {
+            Assert-IntegrationLineage -Branch $Base
+            if ((Get-IntegrationMetadata -Branch $Base).Base -ceq $Head) { return 'merge' }
+        } elseif ($Base -cmatch $script:TaskBranchPattern) {
+            $task = Get-RefTask -Ref "refs/remotes/origin/$Base" -Branch $Base
+            Assert-PreparedBranch -Integration $Head -IntegrationRef HEAD -Branch $Base -Id $task.Id -Type $task.Type
+            return 'merge'
+        }
+        throw "선언된 통합 부모/자식 또는 소속 준비 Task sync만 허용: $Head → $Base"
+    }
+    if ($Head -ceq (Get-BaseBranch)) {
+        if ($Base -like 'builds/*') { return 'merge' }
+        if ($Base -like 'integration/*') {
+            Assert-IntegrationLineage -Branch $Base
+            if ((Get-IntegrationMetadata -Branch $Base).Base -ceq $Head) { return 'merge' }
+        }
+        throw "dev sync는 Base가 dev인 통합에만 허용: $Base"
+    }
+    if (($Head -cmatch '^(feat|refactor)/' -and $Base -like 'integration/*') -or
+        ($Head -cmatch '^(fix|resource)/' -and ($Base -ceq (Get-BaseBranch) -or $Base -like 'integration/*'))) { return 'squash' }
+    throw "대상 브랜치 규칙 위반: $Head → $Base"
+}
+
+function Assert-TaskAssignmentGate {
+    param([Parameter(Mandatory)][string]$Id, [Parameter(Mandatory)][string]$TaskPath, [Parameter(Mandatory)][string]$IntegrationText)
+    $active = Get-MetaField -Text $IntegrationText -Field 'Active Task'
+    if (-not $active) { return }
+    if ($active -cne $Id) { throw "Active Task 불일치: $active / $Id" }
+    $meta = Join-Path $TaskPath 'meta.md'
+    $setup = Join-Path $TaskPath 'setup.md'
+    $jiraSection = Get-MarkdownSection -Path $setup -Heading 'JIRA'
+    $jira = (($jiraSection -split '\r?\n') | Where-Object { $_ -match '^\s*- 관련 JIRA:' }) -join ' '
+    if ($jira -notmatch 'https://(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}/browse/CC-[1-9]\d*\b' -or $jira -match '없음|미정') { throw '순차 Task에는 실제 https://.../browse/CC-번호 JIRA URL이 필요합니다.' }
+    $previous = Get-MetaField -MetaPath $meta -Field 'Previous Task'
+    if ($previous) {
+        if ($previous -notmatch '^Task-\d{8}-\d{3}$' -or $previous -ceq $Id) { throw "Previous Task 값 오류: $previous" }
+        $dirs = @(Get-ChildItem -LiteralPath (Get-RepoPath 'Tasks/Active') -Directory -Filter "$previous-*" -ErrorAction SilentlyContinue)
+        if ($dirs.Count -ne 1 -or (Get-MetaField -MetaPath (Join-Path $dirs[0].FullName 'meta.md') -Field 'Status') -cne 'integrated') { throw "앞 단계가 integrated가 아닙니다: $previous" }
+        $handoff = Join-Path $dirs[0].FullName 'handoff.md'
+        $verification = Get-MarkdownSection -Path $handoff -Heading 'Verification'
+        $evidence = Get-MarkdownSection -Path $handoff -Heading '공동 테스트 결과'
+        if ($verification -notmatch '(?m)^- 5 공동 테스트:[^\S\r\n]*PASS[^\S\r\n]*—[^\S\r\n]*\S+' -or $evidence -match '미실행|미정|예정|미확인') { throw '앞 단계 handoff 실제 공동검증 근거가 필요합니다.' }
+        foreach ($label in '일시', '참여자', '재현', '예상', '실제') {
+            if ($evidence -notmatch "(?m)^- ${label}:[^\S\r\n]*\S+") { throw "공동 테스트 결과의 $label 근거가 없습니다." }
+        }
+    }
+    $allowed = (Get-SetupAreas -SetupPath $setup).Allowed
+    foreach ($other in Get-ChildItem -LiteralPath (Get-RepoPath 'Tasks/Active') -Directory) {
+        if ($other.FullName -eq $TaskPath) { continue }
+        $otherMeta = Join-Path $other.FullName 'meta.md'
+        if ((Get-MetaField -MetaPath $otherMeta -Field 'Integration') -ceq (Get-MetaField -MetaPath $meta -Field 'Integration') -and (Get-MetaField -MetaPath $otherMeta -Field 'Status') -in 'assigned', 'working', 'submitted', 'blocked') { throw "다른 활성 단계가 있습니다: $($other.Name)" }
+        $otherAreas = Get-SetupAreas -SetupPath (Join-Path $other.FullName 'setup.md')
+        foreach ($a in $allowed) {
+            foreach ($b in $otherAreas.Allowed) {
+                if ((Test-PathInArea -Path $a.TrimEnd('/') -Areas @($b)) -or (Test-PathInArea -Path $b.TrimEnd('/') -Areas @($a))) { throw "Allowed 소유권 충돌: $($other.Name) / $a / $b" }
+            }
+        }
+    }
+}
+
+function Assert-TaskStartGate {
+    param([Parameter(Mandatory)]$Task)
+    if ($Task.Status -cnotin 'assigned', 'working') { throw "착수는 assigned/working만 허용: $($Task.Id) / $($Task.Status)" }
+    # 기존 dev/fix 또는 아직 원격에 없는 일반 통합에는 새 gate를 소급하지 않는다.
+    if ($Task.Integration -notlike 'integration/*') { return }
+    $localInfo = Get-IntegrationMetadata -Branch $Task.Integration -Ref $Task.Ref
+    & git -C $script:RepoRoot show-ref --verify --quiet "refs/remotes/origin/$($Task.Integration)"
+    if ($LASTEXITCODE -ne 0) {
+        if ($localInfo.ActiveTask) { throw '순차 gate 통합의 최신 원격 문서가 없습니다.' }
+        return
+    }
+    $info = Get-IntegrationMetadata -Branch $Task.Integration
+    if (-not $info.ActiveTask) { return }
+    if ($info.ActiveTask -cne $Task.Id) { throw "원격 Active Task 불일치: $($info.ActiveTask) / $($Task.Id)" }
+    $assigned = Get-RefTask -Ref $info.Ref -Id $Task.Id
+    if ($assigned.Status -cnotin 'assigned', 'working') { throw '원격 통합에 배정 Task 문서가 없습니다.' }
+    # Status/작업 단계/갱신일만 작업자가 바꿀 수 있다. 나머지 메타와 배정 setup·plan은 실제 수신본이어야 한다.
+    $mutable = '(?m)^- \*\*(Status|Current Skill|Updated):\*\*[^\r\n]*(?:\r?\n)?'
+    if (([regex]::Replace($Task.Text, $mutable, '')).Trim() -cne ([regex]::Replace($assigned.Text, $mutable, '')).Trim()) { throw '배정 meta.md 문서 미수신' }
+    foreach ($file in 'setup.md', 'plan.md') {
+        $received = Get-RefFile -Ref $Task.Ref -Path "$($Task.Rel)/$file"
+        $expected = Get-RefFile -Ref $info.Ref -Path "$($assigned.Rel)/$file"
+        if ($received.Trim() -cne $expected.Trim()) { throw "배정 $file 문서 미수신: sync PR을 먼저 반영하세요." }
+    }
+    foreach ($source in $Task, $assigned) {
+        $todo = Get-RefFile -Ref $source.Ref -Path "$($source.Rel)/todo.md"
+        if ($todo -notmatch '(?m)^- \[x\] 담당자에게 실제 전달 — PM 확인\s*$') { throw '담당자에게 실제 전달 — PM 확인이 완료되지 않았습니다.' }
+    }
+}
+
+function Assert-WorkPrHead {
+    param([Parameter(Mandatory)][string]$Head)
+    if ($Head -cnotmatch '^(feat|fix|refactor|resource)/') { throw "dev/integration 등 통합 head는 Squash 금지: $Head. 정식 Merge commit 절차를 사용하세요." }
 }
 
 function Get-UnityCli {
@@ -210,9 +390,12 @@ function Open-Url {
 
 function Get-MarkdownSection {
     # '## 제목' 아래 본문(다음 '## ' 전까지)을 돌려준다. 제목은 부분 일치.
-    param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][string]$Heading)
-    if (-not (Test-Path -LiteralPath $Path)) { return $null }
-    $lines = Get-Content -LiteralPath $Path
+    param([string]$Path, [Parameter(Mandatory)][string]$Heading, [string]$Text)
+    if ($Path) {
+        if (-not (Test-Path -LiteralPath $Path)) { return $null }
+        $Text = Get-Content -LiteralPath $Path -Raw
+    }
+    $lines = "$Text" -split '\r?\n'
     $inside = $false
     $buffer = [System.Collections.Generic.List[string]]::new()
     foreach ($line in $lines) {
@@ -256,11 +439,12 @@ function Get-UsedTaskNumbers {
 
 function Get-SetupAreas {
     # setup.md의 백틱 경로: Allowed(작업 구역 + 배정된 공용 파일), Forbidden(수정 금지). Scripts/·Harness/는 하네스 Task용(PM 전용 경로 검사는 따로 한다)
-    param([Parameter(Mandatory)][string]$SetupPath)
+    param([string]$SetupPath, [string]$Text)
+    if ($SetupPath) { $Text = Get-Content -LiteralPath $SetupPath -Raw }
     $pick = { param($text) @([regex]::Matches("$text", '`([^`]+)`') | ForEach-Object { $_.Groups[1].Value.Trim() } | Where-Object { $_ -match '^(Assets|ProjectSettings|Packages|Docs|Scripts|Harness)/' }) }
     return [pscustomobject]@{
-        Allowed = @(& $pick (Get-MarkdownSection -Path $SetupPath -Heading '작업 구역')) + @(& $pick (Get-MarkdownSection -Path $SetupPath -Heading '배정된 공용 파일'))
-        Forbidden = @(& $pick (Get-MarkdownSection -Path $SetupPath -Heading '수정 금지'))
+        Allowed = @(& $pick (Get-MarkdownSection -Text $Text -Heading '작업 구역')) + @(& $pick (Get-MarkdownSection -Text $Text -Heading '배정된 공용 파일'))
+        Forbidden = @(& $pick (Get-MarkdownSection -Text $Text -Heading '수정 금지'))
     }
 }
 
@@ -304,7 +488,7 @@ function Get-CurrentGitHubUser {
 }
 
 function Set-MetaField {
-    param([Parameter(Mandatory)][string]$MetaPath, [Parameter(Mandatory)][string]$Field, [Parameter(Mandatory)][string]$Value)
+    param([Parameter(Mandatory)][string]$MetaPath, [Parameter(Mandatory)][string]$Field, [Parameter(Mandatory)][AllowEmptyString()][string]$Value)
     $text = Get-Content -LiteralPath $MetaPath -Raw
     $text = [regex]::Replace($text, "(?m)^(\s*-\s*\*\*$([regex]::Escape($Field)):\*\*).*$", "`$1 $Value")
     Set-Content -LiteralPath $MetaPath -Value $text -Encoding utf8NoBOM -NoNewline
@@ -327,14 +511,19 @@ function Set-IntegrationTaskRow {
     if (-not (Test-Path -LiteralPath $MetaPath)) { return $false }
     $lines = [System.Collections.Generic.List[string]]::new([string[]](Get-Content -LiteralPath $MetaPath))
     $row = '| ' + ($Columns -join ' | ') + ' |'
-    $existing = $lines.FindIndex([Predicate[string]]{ param($l) $l.StartsWith("| $($Columns[0]) |") })
+    $head = $lines.FindIndex([Predicate[string]]{ param($l) $l -match '^## Tasks\s*$' })
+    if ($head -lt 0) { return $false }
+    $end = $head + 1
+    while ($end -lt $lines.Count -and $lines[$end] -notmatch '^## ') { $end++ }
+    $existing = -1
+    for ($i = $head + 1; $i -lt $end; $i++) {
+        if ($lines[$i].StartsWith("| $($Columns[0]) |")) { $existing = $i; break }
+    }
     if ($existing -ge 0) {
         $old = $lines[$existing].Trim('|').Split('|') | ForEach-Object { $_.Trim() }
         $merged = for ($i = 0; $i -lt $Columns.Count; $i++) { if ($Columns[$i]) { $Columns[$i] } else { $old[$i] } }
         $lines[$existing] = '| ' + ($merged -join ' | ') + ' |'
     } else {
-        $head = $lines.FindIndex([Predicate[string]]{ param($l) $l -match '^## Tasks' })
-        if ($head -lt 0) { return $false }
         $i = $head + 1
         while ($i -lt $lines.Count -and -not $lines[$i].StartsWith('|')) { $i++ }
         while ($i -lt $lines.Count -and $lines[$i].StartsWith('|')) { $i++ }
