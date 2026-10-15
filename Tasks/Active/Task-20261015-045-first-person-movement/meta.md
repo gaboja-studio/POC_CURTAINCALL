@@ -2,7 +2,7 @@
 
 - **Title:** 1인칭 기본 이동의 카메라 수평 방향 적용
 - **Type:** fix
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
 - **Domain:** common-game-systems
 - **Current Skill:** start-work
@@ -20,10 +20,10 @@
 
 ## Scope
 
-- 작업 구역·공용 파일·수정 금지는 `setup.md` 기준. 준비만 완료하며 구현·착수는 별도 요청 후 진행한다.
+- 작업 구역·공용 파일·수정 금지는 `setup.md` 기준. 정식 배정·별도 worktree 준비 후 작업자 세션에서 착수한다.
 - AI Setup Allowed: None
 
 ## Decisions
 
-- Open: 없음. 공동 테스트 상세는 plan 초안이며 착수 시 확인한다.
+- Open: 없음. 2026-10-15 PM 사용자 정식 배정·별도 worktree 생성 요청에 따라 plan 공동 테스트 3개 항목 확정. 구현·공동 테스트 실행은 별도.
 - Decided: 2026-10-15 사용자 — 기능 수정이므로 fix/*, 기본 이동에도 수평 시선 적용·3인칭 유지. 소속 통합으로 Squash 제출, dev 직행하지 않음.
