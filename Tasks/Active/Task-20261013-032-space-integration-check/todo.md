@@ -10,8 +10,8 @@
 
 ## 작업자
 
-- [ ] "시작해줘"로 작업 시작
-- [ ] 공간 전환 시 공통 상태 유지·전달 연결 (C#은 `Assets/Scripts/Systems/SpaceLink/`)
+- [x] "시작해줘"로 작업 시작
+- [x] 공간 전환 시 공통 상태 유지·전달 연결 (C#은 `Assets/Scripts/Systems/SpaceLink/`) — 10-16 통째 교체/추가 로드 설정 전환, 자동 테스트 PASS. SpaceLink 씬 배치·사람 Play는 남음
 - [ ] 하루 흐름 전체 실행 확인
 - [ ] "검사해줘" 통과
 - [ ] "제출해줘"로 PR 제출

@@ -2,7 +2,7 @@
 
 - **Title:** 공간 연결과 통합 확인
 - **Type:** feat
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 연결 Task
 - **Current Skill:** start-work
