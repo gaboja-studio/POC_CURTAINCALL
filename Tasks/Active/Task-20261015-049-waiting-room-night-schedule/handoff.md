@@ -9,7 +9,7 @@
 1. PM: 앞 단계 완료 확인 → JIRA 카드 연결 → Active Task 이동·구역 이관 → 배정·실제 전달.
 2. 작업자: 배정 문서 수신 후 start-work.
 ## PM이 확인할 것
-- 확인 요청: meta의 Open 항목.
+- 확인 요청: meta의 Open 항목. 실제 전달은 2026-10-15 완료.
 - 대기 중인 결정: meta Open 참조.
 - 공용 파일 요청: 없음.
 ## Verification
