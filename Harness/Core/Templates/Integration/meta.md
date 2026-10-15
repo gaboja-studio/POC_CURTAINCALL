@@ -4,6 +4,7 @@
 - **Status:** preparing
 - **Branch:** integration/FEATURE_SLUG
 - **Base:** dev
+- **Active Task:**
 - **PM:**
 - **Merge Time:**
 - **Updated:** YYYY-MM-DD
@@ -18,6 +19,13 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
+
+## 준비 브랜치
+
+선택 사항. 준비 branch를 재사용할 때만 기록한다. 두 SHA는 부모 통합 이력의 전체 40자리 커밋 SHA이며 승인 SHA는 준비 기준 SHA를 포함한다. `Active Task`가 없거나 비어 있으면 기존 일반 통합 흐름이다. 값이 있으면 해당 Task 하나만 배정·착수한다. Task meta의 선택 `Previous Task`에는 실제 Task ID만 적는다.
+
+| Task | 브랜치 | 준비 기준 SHA | 승인 SHA |
+|---|---|---|---|
 
 ## 공용 파일 소유 표
 

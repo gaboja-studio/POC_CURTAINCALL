@@ -11,15 +11,15 @@
 - `NetworkPlayer.cs` — **공개 진입점**. 플레이어 프리팹 루트(NetworkBehaviour). 자리 번호, 소유자 처리, 점프·균형 표시값 공유, 상태·재시작.
 - `PlayerState.cs` — 호스트가 확정하는 상태 enum(`Normal`, `Fallen`, `Arrived`(외줄 도착 완료, 005 2026-10-03)). 끝에만 추가한다(숫자로 전송).
 - `PlayerSpawnPoints.cs` — 씬의 출발 위치 목록(자리 번호 순). 없으면 줄 간격으로 나란히.
-- `LocalPlayerCamera.cs` — Cinemachine 카메라가 내 캐릭터를 따라감.
+- `LocalPlayerCamera.cs` — Cinemachine 대상과 CameraViewDirector의 로컬 플레이어를 LocalSpawned/LocalDespawned로 연결(Task-038). 관전 대상 선택은 CameraSpectator 유지.
 - `LocalPlayerViews.cs` — 균형 게이지·테스트 HUD 대상을 내 캐릭터로, HUD R → 모두 재시작 요청.
 - `TestLaneLanding.cs` — **테스트 전용**: 줄 밖 착지 → 즉시 추락. 011이 코스 조회 기반 착지 판정으로 대체 후 삭제.
 - (`TestRoundRestart.cs`는 005 묘기 진행 `TightropeRun`으로 대체되어 2026-10-03 삭제)
 
 에셋
-- `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 루트에 NetworkObject·NetworkTransform(Owner, 위치 xyz·회전 y)·NetworkPlayer.
+- `Assets/Resources/Prefabs/Characters/Players/Player.prefab` — 루트에 NetworkObject·NetworkTransform(Owner, 위치 xyz·회전 y)·NetworkPlayer. 부상 부품 `BodyDamageEffects`·`LimbDismemberment`는 `Assets/Scripts/Systems/Damage/`([공통 게임 시스템](common-game-systems.md)).
 - `Assets/Resources/Prefabs/Controllers/Network/NetworkManager.prefab` — `PlayerPrefab` = Player. `DefaultNetworkPrefabs.asset`에 등록.
-- `Assets/Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab` — CinemachineCamera + Follow(뒤 4.5·위 2.6) + RotationComposer(1.2 주시) + LocalPlayerCamera. 메인 카메라에 CinemachineBrain 필요.
+- `Assets/Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab` — 기존 CinemachineCamera/Follow/Composer + LocalPlayerCamera/CameraSpectator/가림을 유지하고 CameraViewDirector·최종 pose·로컬 모델 render 숨김 추가(Task-038). 시점 설정은 Resources/Settings/Camera, 메인 카메라에 Brain 필요. [공용 시점 API](common-game-systems.md).
 - 테스트 씬: `Assets/Scenes/Tests/Systems/NetworkPlayerSync/NetworkPlayerSync.unity` (SessionUI, PlayerSpawnPoints, LaneGuides, 게이지·HUD, 테스트 부품).
 
 ## 진입점

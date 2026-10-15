@@ -14,6 +14,7 @@ PM이 작업 문서와 조사 구역을 정한 뒤 작성한다.
 
 - 조사 결과 문서: `Docs/Domains/common-game-systems.md`
 - Task 문서: 이 Task 폴더 (자동 포함)
+- 하네스 문서 최신 기획 반영(2026-10-13 PM 지시): `Harness/Project/Facts/game-flow.md`, `Harness/Project/Facts/run-state.md`, `Harness/Project/Facts/overview.md`, `Harness/Project/Facts/unity-project.md`, `Harness/Project/Facts/team.md`, `Harness/Project/Facts/index.md`, `Harness/Project/Decisions/injury-rules.md`, `Harness/Project/Decisions/control-keys.md`, `Harness/Project/Decisions/body-damage.md`, `Harness/Project/Decisions/tightrope-course-rules.md`, `Harness/Project/Decisions/space-workspaces.md`, `Harness/Project/Decisions/index.md`, `Harness/Project/Decisions/run-rules.md`, `Harness/Project/Decisions/game-settings.md` (2026-10-14 PM 결정 기록), 통합 작업 계획 `Integrations/Active/Integration-common-game-systems/plan.md` (2026-10-14 PM 지시)
 - Unity 테스트 씬 및 스크립트: 해당 없음 (기존 구현을 읽어 문서화하는 조사 Task)
 
 ## 배정된 공용 파일

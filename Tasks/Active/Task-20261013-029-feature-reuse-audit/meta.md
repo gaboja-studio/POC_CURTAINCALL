@@ -2,11 +2,11 @@
 
 - **Title:** 기존 기능 확인 및 재사용 목록 확정
 - **Type:** feat
-- **Status:** assigned
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (기존 기능 조사)
 - **Current Skill:** start-work
-- **Updated:** 2026-10-13
+- **Updated:** 2026-10-14
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
