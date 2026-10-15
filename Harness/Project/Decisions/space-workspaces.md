@@ -23,13 +23,13 @@ source: human (2026-10-08·10-15 PM @MoHoDu, 장소 10454669·게임 흐름 1556
 
 - 2026-10-15 / PM: 공연장 담당을 @lakuase2에서 **@RagSpirin**로 변경. 탈출로·대기실·백스테이지 담당과 과거 Done/History 작성자는 유지한다.
 - 공간 작업 브랜치(`feat/*` 등)는 자기 소속 통합 브랜치로만 PR한다. 인간 대포는 `integration/main-stage-human-cannon`(Base `integration/main-stage`)에 단계별 Squash, 부모에는 Merge commit([브랜치 전략](branch-strategy.md)). 기존 main-stage는 유지한다.
-- 공간 표는 경로 안내이지 포괄 수정 권한이 아니다. Task-025는 맵 배치 씬만, 인간 대포 Task는 `MainStage/HumanCannon/` 코드·테스트 구역만 순차 배정한다. 준비 브랜치·예약 구역은 착수 권한이 아니다.
+- 공간 표는 경로 안내이지 포괄 수정 권한이 아니다. Task-025는 맵 배치 씬만, 인간 대포 Task는 `MainStage/HumanCannon/` 코드·테스트 구역만 순차 소유한다. 2026-10-15 PM이 040~044 전부 @RagSpirin 인계 완료·순차 실행을 승인했다([순차 인계 결정](Human-cannon/sequential-handoff.md)); 현재 041만 활성 소유하며 후속 전환에 추가 인계 승인은 필요 없다.
 - 맵 배치 씬은 해당 공간 통합 안에서 Task 1개만 소유한다(공용 파일 소유 표).
 - 여러 공간이 함께 쓰는 코드는 `Assets/Scripts/Systems/`(네트워크·플레이어·카메라·세팅·기록), 테스트 씬은 `Assets/Scenes/Tests/Systems/`에 둔다. 공간 Task는 읽기만 하고, 수정은 PM이 배정한 Task에서만 한다.
 - `Assets/Resources/`는 모든 공간 공용이다. 공간 Task가 Resources 하위 폴더를 고치려면 해당 통합의 공용 파일 소유 표로 배정받는다.
 - 2026-10-09 / PM: 맵 배치 씬에는 둘러보기용 `PlaySetup`(Player·임시 바닥)과 Main Camera의 1인칭 카메라(`Assets/Scripts/Systems/LevelPreview/`, 내 모델 숨김)를 둔다. 게임 기능이 아니며, 바닥을 만들면 `TempFloor`는 지워도 된다. 공간 Task는 별도 에셋 폴더 없이 `Assets/_ThirdParty/` 에셋을 맵 배치 씬에 바로 배치한다.
 - 외줄 묘기(기존 프로토타입)는 공연장 소속이다: `Assets/Scripts/MainStage/Tightrope/`, `Assets/Scenes/Tests/MainStage/Tightrope/`.
-- 2026-10-13 / PM(장소 기획 10454669·게임 흐름 기획 8장): 하위 구역 — 공연장 = 메인 무대·관중석, 대기실 = 단원 대기실·소품실·복도(무대 입구 통로는 복도의 공연장 쪽 끝), 백스테이지 = 대기실·공연장·탈출로를 잇는 탐색 공간, 탈출로 = 구 공연장·하역장. 공연장의 묘기는 한 씬에서 묘기별 프리팹을 바꿔 생성한다. 런 상태·장소 전환·공간 간 규칙은 시스템 담당(@MoHoDu, `Assets/Scripts/Systems/`).
+- 2026-10-13 / PM(장소 기획 10454669·게임 흐름 기획 8장): 하위 구역 — 공연장 = 메인 무대·관중석, 대기실 = 단원 대기실·소품실·복도(2026-10-15 PM: 무대 입구 통로부터는 백스테이지, [대기실 결정](Waiting-room/index.md)), 백스테이지 = 대기실·공연장·탈출로를 잇는 탐색 공간, 탈출로 = 구 공연장·하역장. 공연장의 묘기는 한 씬에서 묘기별 프리팹을 바꿔 생성한다. 런 상태·장소 전환·공간 간 규칙은 시스템 담당(@MoHoDu, `Assets/Scripts/Systems/`).
 - 참고: 공간 분리 문서(Confluence `bYmkRlnpusng/pages/10454669`).
 
 ## 이유

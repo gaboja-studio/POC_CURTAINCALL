@@ -1,32 +1,31 @@
 # Setup
 
-041은 예약 단계다. 현재 Active Task는 040뿐이며 기술 배정 전이다. 실제 전달은 2026-10-15 PM 사용자 확인 완료이며 구현 개방은 아니다.
-준비 사실은 폴더·빈 씬(root 0)만이다. 인간 대포 기능·공동 테스트는 미실행이다.
+041은 현재 Active Task이며 담당자는 @RagSpirin이다. 2026-10-15 현재 사용자 PM @MoHoDu가 040~044 인계 완료·순차 실행을 승인했다.
+040 구현(#93/8293bb9)을 현재 브랜치 da4747c로 수신했고, 아래 구역/씬을 040에서 반환받아 단독 소유한다. 041 코드·씬 초안은 작성됐으나 단계별 사용자 확인 전이며, 현재 봉 조작부터 순서대로 확인한다.
 
 ## JIRA
 
 - 관련 JIRA: https://hrjoo122770.atlassian.net/browse/CC-127
 - 상위 범위/실행 기준: https://hrjoo122770.atlassian.net/browse/CC-124
-- 2026-10-15 PM 제공 URL과 2단계 제목 확인. 실제 전달은 PM 사용자 확인 완료; 구역 이관은 별도 대기.
+- 2026-10-15 PM 제공 URL과 2단계 제목 확인, 실제 전달·순차 실행 승인 완료.
 
 ## 작업 구역
 
-없음 — 선행 단계 검증과 PM 소유권 이관 전 수정 금지
+- 스크립트: `Assets/Scripts/MainStage/HumanCannon/`
+- 테스트 씬·테스트 전용 프리팹: `Assets/Scenes/Tests/MainStage/HumanCannon/`
+- Task 문서: 이 Task 폴더 (자동 포함)
 
 ## 예약 구역
 
-- 스크립트 예정: `Assets/Scripts/MainStage/HumanCannon/`
-- 테스트 예정: `Assets/Scenes/Tests/MainStage/HumanCannon/` — 테스트 전용 Prefabs 포함.
-- 테스트 씬: `Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity` — 현재 040 단독 소유, 후속 단계 권한 없음.
-- 예약은 Allowed가 아니다. 선행 단계 소유권 반납 후 PM이 다음 1개에만 이관한다.
+- 없음 — 041 구역은 현재 배정 완료. 042~044는 순번 도달 시 같은 구역을 이관받는다.
 
 ## 배정된 공용 파일
 
-없음 — 선행 단계 검증과 PM 소유권 이관 전 수정 금지
+- `Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity` — 041 단독 소유.
 
 ## 수정 금지
 
-- `Assets/Scenes/` — 예약 테스트 예외는 활성화·소유권 이관 후에만 허용.
+- `Assets/Scenes/` — 위 테스트 구역만 예외.
 - `Assets/Scripts/Systems/`
 - `Assets/Resources/`
 - `Assets/Scripts/MainStage/Tightrope/` — 원본 읽기/재사용만 허용, 수정 금지.
@@ -37,19 +36,20 @@
 
 ## 인계 전 체크 (PM)
 
-- [ ] 040 integrated와 실제 4인 공동 테스트 근거 확인
-- [ ] 선행 단계 소유권 반납·이관 확인
+- [x] 040 integrated 확인 — #93/8293bb9, PM 완료 확인; 4인 검증은 전체 기능 통합 후
+- [x] 040 소유권 반납·041 단독 이관 — 2026-10-15 현재 PM 승인
 - [x] 실제 JIRA URL 확인 — CC-127 (2단계 제목 조회)
-- [ ] 테스트 씬·폴더 준비와 setup 확정 — 현재 빈 씬은 040 소유
-- [ ] plan 공동 테스트 항목 합의·개별 검사 확인
-- [ ] 다음 1개인 041에만 Active Task/Allowed 부여
+- [x] 040 구현 코드·테스트 씬/폴더와 setup 확정 — 041에 이관
+- [x] plan 공동 테스트 항목 유지 — 실행은 전체 기능 통합 후, 실제 결과 별도 기록
+- [x] 다음 1개인 041에만 Active Task/Allowed 부여
 
 ## 배정 후 확인
 
-- [ ] 승인된 준비 브랜치에 배정 문서 Merge commit sync 확인
+- [x] 040 최신 구현 수신 — 041 브랜치 da4747c의 부모 8293bb9
+- [ ] 이번 승인·배정 문서 원격 sync 확인 — 커밋/push 요청 시 수행
 - [x] 담당자에게 실제 전달 — PM 확인
 
-기존 feat 브랜치도 앞 단계 완료 후 최신 부모 이력을 받아야 한다. 승인된 준비 브랜치 배정·문서 sync·실제 전달 확인 이후만 start-work하며 scaffolded 착수는 금지한다.
+[순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 추가 인계·착수 승인은 필요 없다. 041 통합 후 담당자가 이번 승인 범위에서 042로 단독 소유·Active Task·배정 문서를 갱신한다. 실제 최신 구현/문서 수신은 확인해 기록한다.
 
 ## 테스트 씬 처리
 
