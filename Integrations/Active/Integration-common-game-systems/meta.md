@@ -29,7 +29,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261014-036 | fix | @MoHoDu | fix/check-work-editor-tests | #52 | done |
 | Task-20261014-037 | feat | @MoHoDu | feat/common-control-rules | #61 | integrated |
 | Task-20261014-038 | feat | @MoHoDu | feat/common-camera-views | #66 | integrated (10-15 공동 테스트 PASS, dev 반영 전) |
-| Task-20261015-045 | fix | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261015-045 | fix | @MoHoDu | fix/first-person-movement | - | scaffolded |
 
 ## 준비 브랜치
 
@@ -38,6 +38,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task | 브랜치 | 준비 기준 SHA | 승인 SHA |
 |---|---|---|---|
 | Task-20261014-035 | feat/dummy-spaces | 16f9adff99623cdb7863a43404c2793ae93e0afd | 84b5761fa2415cafbb1e29c7a2c9e184a4e9a192 |
+| Task-20261015-045 | fix/first-person-movement | 03f4d5c070f3075e6a19c1acc402287bae1069e0 | 03f4d5c070f3075e6a19c1acc402287bae1069e0 |
 
 ## 공용 파일 소유 표
 

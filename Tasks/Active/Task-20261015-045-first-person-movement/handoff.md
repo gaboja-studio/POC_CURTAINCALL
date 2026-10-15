@@ -3,7 +3,7 @@
 ## 지금 상태
 
 - scaffolded: 2026-10-15 사용자 요청으로 별도 fix Task 준비. 구현·작업 시작·실제 인계 미실행
-- 브랜치 fix/first-person-movement → integration/common-game-systems (Squash). 준비 branch 존재는 착수 허가가 아님
+- 준비 기준·승인 03f4d5c070f3075e6a19c1acc402287bae1069e0. fix/first-person-movement → integration/common-game-systems (Squash), 브랜치 존재는 착수 허가가 아님
 - Jira CC-131, 좁은 수정 구역·회귀·공동 테스트 초안 3개는 setup/plan 참조
 - PM 전용 빈 FirstPersonMovement 씬·스크립트 폴더 생성, 제품 이동 코드는 변경하지 않음
 - PR: 없음
