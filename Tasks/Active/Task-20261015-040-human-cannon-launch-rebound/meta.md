@@ -2,24 +2,21 @@
 
 - **Title:** 인간 대포 1단계 — 발사와 트램폴린 받기
 - **Type:** feat
-- **Status:** assigned
+- **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** common-game-systems
-- **Current Skill:** handoff-to-member
+- **Current Skill:** submit-work
 - **Updated:** 2026-10-15
-
-Status 순서: scaffolded → assigned(기술 배정, 실제 전달 별도) → working → submitted → integrated(공동 검증 통과) → done(dev 반영). 막히면 blocked.
 
 ## Workspace
 
 - **Integration:** integration/main-stage-human-cannon
 - **Branch:** feat/human-cannon-launch-rebound
-- **Previous Task:**
 
 ## Goal
 
 - 첫 받기 위치에서 시작하는 장애물 없는 4인 기본 묘기로 발사·수평 비행·이동/점프 트램폴린 받기를 검증한다.
-- 작업 PR의 대상은 인간 대포 통합이며 Squash한다. 기능 구현은 아직 시작하지 않았다.
+- 작업 PR은 인간 대포 통합 대상 Squash. F/WASD·거리·트램폴린/지상 점프 1~9와 쿠션 1~5는 사용자 정상 확인. 개별 기능 오류 점검 후 2026-10-15 사용자 제출 승인. 4인 검증은 인간 대포 전체 기능 통합 후 진행.
 
 ## Scope
 
@@ -32,3 +29,11 @@ Status 순서: scaffolded → assigned(기술 배정, 실제 전달 별도) → 
 - Decided: Active Task는 이 Task 하나. 배정 문서 수신·PM 실제 전달 확인 전 착수 금지.
 - Decided: CC-126 URL 연결·1단계 제목 확인 완료. CC-124는 상위 범위/실행 기준.
 - Decided: 분리 출발 장치는 3단계. 공용 부상·관전·공연 종료 코드는 별도 소유 Task로 연결한다.
+- Decided: 2026-10-15 사용자 — 대포 취소 시 탑승 직전 위치로 복귀. 테스트 씬은 기본 도형 대포 1대·발판, Inspector 조정 가능한 임시값 사용.
+- Decided: 2026-10-15 사용자 — 대포 테스트에 외줄 균형 시스템을 적용하지 않는다. 전체 플레이 테스트는 사용자가 수행한다.
+- Decided: 2026-10-15 사용자 — 번호별 반복 테스트를 위해 R 초기화 추가. 전용 테스트 HUD에서 기존 RequestRestartAll을 재사용해 접속을 유지하고 전체 참가자를 출발점으로 되돌린다. 제품의 같은 공연 부활 규칙은 변경하지 않는다.
+- Decided: 2026-10-15 사용자 — 비행 WASD는 지상과 같은 방향으로 누르는 동안만 수평 보정, 놓으면 기본 발사 속도로 진행. 수직 힘/높이는 바꾸지 않는다. 보정 임시값 3m/s는 대포 Inspector에서 조절.
+- Decided: 2026-10-15 사용자 정정 — 트램폴린 접촉 시 자동 전진 관성만 제거하고 WASD 수평 조절은 유지. 무입력은 같은 위치로 수직 반동(상승 임시값12m/s), 키를 누르는 동안만 수평 이동. AI의 이전 WASD 차단 해석을 대체한다. 기본 도형1대·R 장치 초기화 유지.
+- Decided: 2026-10-15 사용자 — 손잡이를 잡는 순간 장치는 플레이어 정면에 고정. 방향을 바꾸면 장치도 회전해 정면 유지, 점프 높이도 추종. 놓을 때 마지막 위치/방향 유지, R은 최초 위치/방향 복원.
+- Decided: 2026-10-15 사용자 — 대포 없이 땅에서 Space 점프해 윗면으로 내려와도 반동. 공용 점프 높이0.8m에 맞춰 테스트 트램폴린 윗면0.5m 선택. 반동 후 자동 전진0·WASD3m/s·상승12m/s, 운반자 일반 점프는 제외.
+- Decided: 2026-10-15 사용자 — 다음은 임시 쿠션 지대. 트램폴린 옆 별도 색상 구역에 비행 착지 시 생존·비행 종료·지상 조작 복귀, 일반 바닥은 기존 사망. 전용 씬에 주황4×4m/윗면0.2m, 오른쪽6m 배치.
