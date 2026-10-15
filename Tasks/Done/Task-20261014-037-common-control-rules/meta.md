@@ -2,11 +2,11 @@
 
 - **Title:** 공용 조작 규칙 정리와 기본 이동 규칙 전환
 - **Type:** feat
-- **Status:** integrated
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 외줄 코스 참고
 - **Current Skill:** merge-integration
-- **Updated:** 2026-10-14
+- **Updated:** 2026-10-16
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 

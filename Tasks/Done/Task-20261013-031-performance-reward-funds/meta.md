@@ -2,11 +2,11 @@
 
 - **Title:** 공연 결과 및 보상, 공동 자금 연결
 - **Type:** feat
-- **Status:** integrated
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`)
 - **Current Skill:** merge-integration
-- **Updated:** 2026-10-15
+- **Updated:** 2026-10-16
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 

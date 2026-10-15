@@ -2,11 +2,11 @@
 
 - **Title:** 1인칭 기본 이동의 카메라 수평 방향 적용
 - **Type:** fix
-- **Status:** integrated
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** common-game-systems
 - **Current Skill:** start-work
-- **Updated:** 2026-10-15
+- **Updated:** 2026-10-16
 
 ## Workspace
 
