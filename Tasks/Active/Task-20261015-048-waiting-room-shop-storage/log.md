@@ -8,3 +8,4 @@
 - Task 생성.
 - 예약 단계 준비(Previous Task-20261015-047). 구역 없음, JIRA 카드 미발급.
 - 2026-10-15 PM 실제 전달 확인.
+- 2026-10-15 PM 동시 착수 허용: 전용 구역 WaitingRoom/ShopStorage·테스트 씬 배정, JIRA CC-132, 인계 완료.
