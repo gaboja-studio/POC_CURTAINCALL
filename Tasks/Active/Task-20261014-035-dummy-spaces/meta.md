@@ -2,7 +2,7 @@
 
 - **Title:** 공통 게임 시스템 검증용 더미 공간
 - **Type:** feat
-- **Status:** working
+- **Status:** blocked
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`)
 - **Current Skill:** submit-work
@@ -27,6 +27,7 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
+- Open: 제출 차단 — 구현 316322d push 후 최신 통합 23659d2 병합에서 Task035 handoff/meta/todo 문서 충돌. merge --abort 완료, submit-work 규칙에 따라 PM 조정 대기. 코드·씬 충돌 없음
 - Open: 탐색 만료 후 추격 대기·기물 지급/인벤토리·탈출 자동 집계는 후속 연결/배정 필요. 가시화 작업 전체 차단 아님. 기존 공동 테스트 2번 연결은 미완료(api-gaps.md 참조)
 - Decided: 2026-10-15 사용자 실시간 보완 계획 승인: 공연 중 고정 상황 입력·큰 시계·시각 있는 기록. 오프라인 더미 공연 시계는 기존 줄타기 시간 설정을 읽고 만료 신호만 031에 전달, 공용 규칙/온라인 동기화 확대 없음
 - Decided: 2026-10-15 사용자 UI 개선 계획 승인: IMGUI를 씬 저장 Canvas 선택→결과 화면으로 교체, 단순 3D 더미 토큰 보조. 실제 기능/규칙 확대 없음
