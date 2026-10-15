@@ -1,15 +1,15 @@
 # Handoff
 
 ## 지금 상태
-- 단계: working — 2026-10-15 start-work로 최신 원격·배정 문서·실제 전달 gate 통과, 담당 @RagSpirin.
+- 단계: submitted — 2026-10-15 사용자 승인으로 PR #93 제출, 담당 @RagSpirin. PM 검토/통합 대기.
 - 작성한 것: 대포/WASD·트램폴린 정면 운반/회전·점프/놓기·지상 점프 반동·무주인/인계·호스트 요청 검증. 추가: 쿠션 윗면 정상 착지→호스트 확정/비행 해제/지상 조작 복귀, 일반 바닥 사망 유지, 안전 착지 횟수 HUD/R 초기화.
 - 사용자 확인 범위: 기존 F 1~4·거리/WASD 정상. 10-15 트램폴린/지상 점프 1~9는 혼자 플레이 확인으로 명시, 추가 쿠션 1~5(착지/조작/횟수/바닥 사망/R) 모두 정상 보고. 4인 공동 검증은 미확인.
 - 반복 테스트: R → 방 유지·전원 복구·점유/비행/키 정리·장치 복원. 오류 점검 수정: 빈 대포도 revision 증가/Reset 전송, 이전 탑승 거부·늦은 발사/취소 위치를 출발점 복구. 발사 revision+반동 segment 검증, 운반자 정상 점프 제외.
 - 씬: HumanCannon.unity 대포1·트램폴린1(4×4m/높이0.5m/z25.03)·주황 쿠션1(4×4m/높이0.2m, x6/z25.03)·발판/눈금/출발4/LAN/HUD 저장. root10, dirty=false. 잡기2m·대포 수평8/상승12·WASD3m/s, 반동 전진0/상승12, 공용 점프0.8m 유지.
 - 환경/해결: Unity/Pipeline 7801 ready(10-15), 시작 doctor 미연결 복구. CLI beta.8·gh 설치/사용자 로그인 완료(@RagSpirin). 사용자 승인으로 입력 version/priority·main_stage URP 자동 추가 2개 원복, 두 파일 Git 차이 0. 검사 차단 없음.
-- PR: [#71 배정 문서](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/71)·[#72 전달 확인 문서](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/72) Merge commit 수신 완료. 기능 작업 PR 미제출.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/93
 ## 다음 할 일
-1. 각 기능 오류 점검 완료: R 초기화 누락1건 수정, 구역/문서/컴파일·EditMode64 PASS, 씬 참조/누락 검사 정상, 현재 Console 오류/경고0. 검사 범위 내 잔여 오류 미발견. 10-15 사용자 제출 승인, commit/push/PR 준비 중.
+1. PM: PR #93 검토 후 integration/main-stage-human-cannon에 Squash 병합. 구역/문서/컴파일·EditMode64 PASS, 검사 범위 내 잔여 오류 미발견. 4인 공동 테스트는 사용자 합의로 전체 기능 통합 후 진행.
 2. 통합 후 멀티: 역할 교환·이동/점프 받기·다인/무주인 반동·사망/접속해제·공중 인계·쿠션 착지. plan 3묶음 보존, 041~044 착수는 별도 배정 후.
 ## PM이 확인할 것
 - 확인 요청: 최종 씬 처리·지상 2명·중계 대포·호응/보상·2~3인 후속 미정. 전달 체크의 5개 작업 브랜치 sync 완료, 후속 구현 개방은 아님.

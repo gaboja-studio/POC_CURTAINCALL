@@ -40,3 +40,4 @@
 
 ## 2026-10-15 제출 요청
 - 사용자 Task 제출 승인. 4인 공동 테스트는 인간 대포 전체 기능 통합 후 진행하며 현재 미실행으로 기록. 최신 통합 브랜치 병합 확인(Already up to date), 제출 검사 구역/문서/컴파일 PASS·PlayMode NO_PROJECT_TESTS. gh 설치/사용자 로그인 완료(@RagSpirin), 커밋/푸시/PR 등록 진행.
+- 구현 c16d45b 커밋/푸시 및 PR #93 제출 완료: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/93 → integration/main-stage-human-cannon. PR 본문에 EditMode64/64·사용자 단독 확인·4인 전체 통합 후 진행을 명시. PM 검토/통합 대기.

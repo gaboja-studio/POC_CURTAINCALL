@@ -2,7 +2,7 @@
 
 - **Title:** 인간 대포 1단계 — 발사와 트램폴린 받기
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** common-game-systems
 - **Current Skill:** submit-work
