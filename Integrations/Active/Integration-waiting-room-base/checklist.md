@@ -7,10 +7,10 @@
 - [x] ⑥·⑦ 위치 PM 확인 — 백스테이지, ⑥은 테스트 대체 통로만 (2026-10-15)
 - [x] 1차 테스트 씬 = waiting_room.unity 복사본 WaitingRoomBase.unity (2026-10-15)
 - [x] dev PR #94 병합 → 부모 sync #95 병합 완료
-- [ ] 부모 → 이 통합 sync #96 Merge commit 병합 — 047 개방 전
+- [x] 부모 → 이 통합 sync #96 Merge commit 병합 — 08de84a
 - [x] Task-046만 기술 배정 — 7d4ac9c, 후속 Task는 scaffolded 유지
 - [x] Task-046~050 모두 실제 전달 — 2026-10-15 PM 사용자 확인, 전부 @gyumin9048-ctrl
-- [ ] 통합 → 5개 준비 브랜치 문서 sync PR Merge commit 병합 (046은 #97, 착수 조건)
+- [x] 통합 → 5개 준비 브랜치 문서 sync Merge commit 수신 — #97~101, 046 착수 gate PASS·047~050 예약 차단 확인
 
 ## 순차 병합·다음 단계 개방
 
