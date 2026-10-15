@@ -22,14 +22,14 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261013-029 | feat | @MoHoDu | feat/feature-reuse-audit | #51 | integrated |
 | Task-20261013-030 | feat | @MoHoDu | feat/injury-survival-update | #62 | done |
 | Task-20261013-031 | feat | @MoHoDu | feat/performance-reward-funds | #67 | integrated |
-| Task-20261013-032 | feat | @MoHoDu | feat/space-integration-check | - | assigned |
+| Task-20261013-032 | feat | @MoHoDu | feat/space-integration-check | #109 | integrated |
 | Task-20261014-033 | refactor | @MoHoDu | refactor/common-code-move | #53 | done |
 | Task-20261014-034 | feat | @MoHoDu | feat/dev-mode | #60 | done |
-| Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | #106 | submitted (병합됨) |
+| Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | #106 | integrated (PM 승인) |
 | Task-20261014-036 | fix | @MoHoDu | fix/check-work-editor-tests | #52 | done |
 | Task-20261014-037 | feat | @MoHoDu | feat/common-control-rules | #61 | integrated |
 | Task-20261014-038 | feat | @MoHoDu | feat/common-camera-views | #66 | integrated (10-15 공동 테스트 PASS, dev 반영 전) |
-| Task-20261015-045 | fix | @MoHoDu | fix/first-person-movement | #107 | submitted (병합됨) |
+| Task-20261015-045 | fix | @MoHoDu | fix/first-person-movement | #107 | integrated (PM 승인) |
 
 ## 준비 브랜치
 
@@ -64,6 +64,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 ## Decisions
 
 - Open: 없음 (2단계 연결 약속·공용 파일 배정 확정)
+- Decided: 2026-10-16 PM — 032(#109) 병합 후 dev로 마감. 035·045 남은 공동 테스트는 기존 확인으로 승인(미실행 항목은 PASS 아님, 후속 공동 테스트). 031·032·035·045 테스트 씬 유지. 교훈 5건 기록(18124cc). #109는 Merge commit으로 병합됨(규칙상 Squash, 내용 동일해 유지)
 - Decided: 2026-10-14 PM — 쉬는 시간 B안 기본·A/B 전환, 기물 소지 2/1/+2 세팅값, 세팅 5묶음, 공통 폴더 이전 별도 Task(033), 더미 공간 우선(035), 생존 2명 미만 묘기 실패, 게임 시작 후 재접속 불가(로비 허용), 최소 인원 2명·개발자 모드(034) 먼저·테스트 AI는 이후(run-rules.md)
 - Decided: 2026-10-14 PM — 033 병합 후 통합을 닫지 않고 dev에 중간 반영(merge commit), dev → 공간 통합 4곳 반영. 공간 작업자가 `Systems/Damage/` 새 경로로 시작하게 하기 위함
 - Decided: 2026-10-14 PM — 028 확인 사항: B안 타이머 팀 공용·첫 사람이 나올 때 시작(안 나오면 멈춤, 플레이테스트 후 재논의 가능), 시간대 신호 = `CampaignRun` 메서드 + `StepChanged`(연결 약속 중 시간대 알림 확정), 최소 인원 2 유지·034 먼저(run-rules.md #6~8)

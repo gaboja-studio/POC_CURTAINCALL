@@ -25,7 +25,7 @@
 - 2 컴파일: PASS (10-15)
 - 3 테스트: PASS (PlayMode, 33/33, 10-15)
 - 4 실행 로그: PARTIAL(실시간 UI 네 씬 720p·1080p 한글/시계/기록/토큰 시각 확인. 공연 절단 버튼 포인터 down/up→손실0→1·결과 갱신·시계300→274초 지속 확인. 전체 실제 클릭·서버 신체 적용 미검증)
-- 5 공동 테스트: PARTIAL(사용자 “잘 되는것 같아”로 현재 동작 일반 확인. 계획 전체 공동 테스트·미연결 2번·서버 신체 적용 PASS 아님)
+- 5 공동 테스트: PM 승인(2026-10-16, 기존 확인 근거·032 SpaceLink 런 한 바퀴에서 더미 4개 사용 확인). 미실행 항목은 PASS 아님 — 원래 기록: PARTIAL(사용자 “잘 되는것 같아”로 현재 동작 일반 확인. 계획 전체 공동 테스트·미연결 2번·서버 신체 적용 PASS 아님)
 - 환경: doctor FAIL 0/WARN 2. CLI beta.6 status count 0이나 editor_status는 정확한 worktree ready. --json 사용. 최종 Play 종료
 - 검사 이력: 캡처 .meta 누락 FAIL·빌더 timeout·해상도 인덱스 오류 복구. 문서 충돌은 최초 abort 후 사용자 승인으로 해결, 통합 반영 재검사33/33 PASS. 재검사 생성 TMP 글리프 변경2개는 백업 후 검사 전 원본 복구·재임포트, 제출 제외
 - PM 교훈 제안: Overlay UI는 capture_game_view source=screen 및 명시 Assets 소유 경로로 캡처 후 PNG/.meta를 scratchpad로 이동. 카메라 screenshot에는 UI 누락
