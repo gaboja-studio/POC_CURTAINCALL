@@ -2,7 +2,7 @@
 
 - **Title:** 대기실 5단계 — 전문가 서비스
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:** common-game-systems
 - **Current Skill:** start-work
@@ -13,7 +13,7 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 ## Workspace
 
 - **Integration:** integration/waiting-room-base
-- **Branch:** feat/waiting-room-expert-service (기술 준비 때 생성, 실인계 아님)
+- **Branch:** feat/waiting-room-expert-service
 - **Previous Task:**
 
 ## Goal
