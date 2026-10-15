@@ -24,7 +24,7 @@ namespace CurtainCall.Player
     /// 옆줄 점프의 허용 여부·착지 판정(줄 유무·합체·보정)은 외줄 기능이 <see cref="LaneJumpFilter"/> 등으로 붙인다.
     /// 목마 중 점프 규칙은 목마 기능이 정한다.
     /// 플레이어끼리는 물리로 밀지 않는다: 몸통 충돌을 끄고, 같은 줄 앞뒤에 다른 플레이어가 있으면 닿기 직전까지만 간다.
-    /// 속도·중력·점프·몸통 크기는 세팅(<see cref="GameSettings"/>)에서 매 프레임 읽는다(캐릭터 = 게임 기본, 줄 위 동작 = 외줄 세팅).
+    /// 속도·중력·점프·몸통 크기는 세팅(<see cref="GameSettings"/>)에서 매 프레임 읽는다(걷기 속도·점프 높이 = 게임 기본 · 캐릭터, 줄 간격 = 외줄 세팅).
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class PlayerMover : MonoBehaviour
@@ -56,7 +56,6 @@ namespace CurtainCall.Player
         float laneSpacing;      // 옆줄 점프 거리. 외줄 코스가 자기 줄 간격으로 맞춘다
 
         static BaseGameSettings.CharacterSettings Character => GameSettings.Base.Character;
-        static TightropeSettings.RopeMovementSettings Rope => GameSettings.Tightrope.RopeMovement;
 
         /// <summary>땅에서 떨어질 때(true)·착지할 때(false) 보낸다. 점프·낙하 모두 포함. 착지 알림 때 <see cref="CurrentJump"/>는 아직 남아 있다.</summary>
         public event Action<bool> AirborneChanged;
@@ -134,6 +133,18 @@ namespace CurtainCall.Player
         }
 
         float speedMultiplier = 1f;
+
+        /// <summary>
+        /// 점프 높이 배율(×, 0 이상). 게임 기본 세팅 · 캐릭터의 점프 높이에 곱한다. 기본 1.
+        /// 예: 다리를 잃으면 신체 손상 기능이 다리 단계별 배율을 넣는다(부상 기획: 탐색·공연 공통).
+        /// </summary>
+        public float JumpHeightMultiplier
+        {
+            get => jumpHeightMultiplier;
+            set => jumpHeightMultiplier = Mathf.Max(0f, value);
+        }
+
+        float jumpHeightMultiplier = 1f;
 
         /// <summary>제자리 점프를 할 수 있는지. 끄면 점프 요청을 무시한다. 기본 켜짐.</summary>
         public bool JumpAllowed { get; set; } = true;
@@ -234,7 +245,7 @@ namespace CurtainCall.Player
             + CourseForward * (Vector3.Dot(groundVelocity, CourseForward) * AirTime);
 
         /// <summary>점프 초속(m/s).</summary>
-        public float JumpSpeed => Mathf.Sqrt(2f * Character.Gravity * Rope.JumpHeight);
+        public float JumpSpeed => Mathf.Sqrt(2f * Character.Gravity * Character.JumpHeight * jumpHeightMultiplier);
 
         /// <summary>같은 높이로 착지할 때까지의 공중 시간(초).</summary>
         public float AirTime => 2f * JumpSpeed / Character.Gravity;
@@ -371,7 +382,7 @@ namespace CurtainCall.Player
                 }
                 else
                 {
-                    groundVelocity = forward * (move * Rope.MoveSpeed * speedMultiplier);
+                    groundVelocity = forward * (move * Character.CourseMoveSpeed * speedMultiplier);
                     IsMoving = !Mathf.Approximately(move, 0f);
                 }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using CurtainCall.Dev;
 using CurtainCall.Settings;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -49,8 +50,8 @@ namespace CurtainCall.Network.Session
         /// <summary>세션 최대 인원(정원).</summary>
         public int RequiredPlayers => GameSettings.Base.Session.MaxPlayers;
 
-        /// <summary>게임을 시작할 수 있는 최소 인원(호스트 포함).</summary>
-        public int MinPlayers => GameSettings.Base.Session.MinPlayers;
+        /// <summary>게임을 시작할 수 있는 최소 인원(호스트 포함). 개발자 모드면 1명(<see cref="DevMode.MinPlayers"/>).</summary>
+        public int MinPlayers => DevMode.MinPlayers(GameSettings.Base.Session.MinPlayers);
 
         /// <summary>호스트가 지금 게임을 시작할 수 있는지(대기 중 + 최소 인원 이상).</summary>
         public bool CanStartGame => IsHost && GameState == GameSessionState.Waiting && PlayerCount >= MinPlayers;

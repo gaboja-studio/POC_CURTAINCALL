@@ -1,6 +1,14 @@
 import { expect, test } from 'claude-code/testing'
 
-import { classify, hasNextItem, parseBranchStatus, parseMeta, parsePm, sameLogin } from '../hooks/logic'
+import { classify, hasNextItem, parseBranchStatus, parseMeta, parsePm, sameLogin, touchesTodo } from '../hooks/logic'
+
+test('도구 호출 뒤 갱신: todo.md 편집과 셸 실행에만 다시 읽는다', () => {
+  expect(touchesTodo('Edit', 'D:\\repo\\Tasks\\Active\\Task-1\\todo.md')).toBe(true)
+  expect(touchesTodo('Write', '/repo/Tasks/Active/Task-1/todo.md')).toBe(true)
+  expect(touchesTodo('Bash', undefined)).toBe(true)
+  expect(touchesTodo('Edit', '/repo/Tasks/Active/Task-1/handoff.md')).toBe(false)
+  expect(touchesTodo('Read', '/repo/Tasks/Active/Task-1/todo.md')).toBe(false)
+})
 
 const TODO = (marks: { a: string; b: string; c: string; d: string }) => `# Todo
 

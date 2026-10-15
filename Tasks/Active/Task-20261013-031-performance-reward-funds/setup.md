@@ -13,19 +13,20 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 ## 작업 구역
 
 - 테스트 씬: `Assets/Scenes/Tests/Systems/Reward/PerformanceReward.unity`
-- 스크립트 폴더: `Assets/Scripts/Systems/Reward/`
+- 스크립트 폴더: `Assets/Scripts/Systems/Reward/`, `Assets/Scripts/Systems/Results/` (묘기 공통 공연 결과를 새로 만듦, 2026-10-14 PM)
 - 에셋 폴더: 없음
 - Task 문서: 이 Task 폴더 (자동 포함)
 
 ## 배정된 공용 파일
 
-- `Assets/Scripts/Systems/Results/` — 033이 옮긴 공연 결과 명부 (033 병합 뒤 배정)
 - `Assets/Scripts/Systems/Settings/RewardTable.cs`, `Assets/Scripts/Systems/Settings/TrickSettings.cs` — 보상 규칙 구현 자리 (2단계 배정)
+- `Assets/Resources/Settings/GameSettings/Tricks/Rewards/` — 보상 규칙 에셋 (2026-10-14 PM 배정)
 
 ## 수정 금지
 
 - `Assets/Scenes/` (단, 위 Reward 테스트 씬만 허용)
 - `Assets/Scripts/Systems/Settings/` 중 위에 배정되지 않은 파일, `Assets/Scripts/Systems/Telemetry/` (읽기 전용 참고)
+- `Assets/Scripts/MainStage/` — 외줄 결과 코드(`Tightrope/Results/`)는 읽기 전용 참고. 외줄 결과 교체는 4단계 연결 때
 - `ProjectSettings/`
 - `Packages/`
 - `Assets/_ThirdParty/` — 외부 에셋. 씬·프리팹에 가져다 배치·참조하는 것은 허용, 파일 수정·추가는 PM에게 요청

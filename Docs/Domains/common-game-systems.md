@@ -4,8 +4,12 @@
 > "근거"는 코드에서 확인한 사실, "기획"은 [게임 흐름](../../Harness/Project/Facts/game-flow.md)·[런 상태](../../Harness/Project/Facts/run-state.md)·[부상 규칙](../../Harness/Project/Decisions/injury-rules.md)·[조작키](../../Harness/Project/Decisions/control-keys.md) 요약이다.
 
 ## 목적
-
 런 진행·부상/생존·공연 결과·공동 자금·장소 전환처럼 여러 공간이 함께 쓰는 게임 시스템의 지도. 기획상 담당은 시스템(@MoHoDu): 런 상태 관리, 장소 전환, 공간 간 규칙, 잃은 팔다리 수 관리.
+
+## 현재 기획 안내 (2026-10-15)
+- 위 조사 날짜·과거 근거는 보존. 공용 PR #64·패널 PR #65 dev 병합은 전체 공간 연결/4인 검증 완료가 아니다. 현재 공연장·탈출로 @RagSpirin([팀](../../Harness/Project/Facts/team.md)), 과거 @lakuase2 기록은 당시 담당.
+- 최신 [게임 흐름](../../Harness/Project/Facts/game-flow.md): 전화부스 서비스·부재 표시, 연출은 대기실 담당이 A안 선택([대기실 결정](../../Harness/Project/Decisions/Waiting-room/index.md)). 기물 2/1/+2와 쉬는 시간 B 기본/A-B 전환 유지.
+- [인간 대포 v0.5](../../Harness/Project/Decisions/Human-cannon/index.md)는 **살아 있는 1명 실제 목적지 도착 성공** 예외. 공통 생존 2명 실패/결과/런 종료를 연결하는 의존성으로 4단계 PM·공용 담당 협의/소유 배정이 필요하며 이번에 `Systems/`를 수정하지 않는다.
 
 ## 재사용 목록
 
@@ -18,9 +22,9 @@
 | 방 접속·나가기·정원·진행 중 참가 거절 | 재사용 | `Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs` | 유일한 공개 진입점, 접속 승인 콜백 소유. 정원 4·최소 1(테스트). 기획 2~4인 → 최소 인원은 세팅값으로 조정 |
 | 방 상태 `Waiting/Playing/Ended` | 재사용(의미 한정) | `GameSessionState.cs`, `GameSessionStateSync.cs` | 호스트만 변경. 로비 → 런 진행 → 런 종료 단위로만 쓰고, 공연 종료 신호로 쓰지 않는다(하루 공연 2회) |
 | `RestartEndedGame()` | 수정 후 재사용 | `NetworkSessionManager.cs:291` | `internal`, 호출처는 `TightropeRun.cs:117`뿐. 기획은 공연 후 재도전이 없으므로 세대 교체(런 재시작) 경계로만 남길지 정리 필요. 재접속 비허용(PM 결정 #7)은 지금의 진행 중 참가 거절과 일치 |
-| 런 진행 관리자(일차·단계·쉬는 시간 타이머·밤 준비 완료) | 신규 | 없음 (planned `Assets/Scripts/Systems/Campaign/`, Task-028) | Day·쉬는 시간·밤 코드 없음. 기획 9-2 런 범위 데이터 전부 |
+| 런 진행 관리자(일차·단계·탐색 제한 시간·밤 준비 완료) | 신규(구현) | `Assets/Scripts/Systems/Campaign/` (Task-028) | `CampaignRun`(진입점, 호스트 판정·모두에게 공유)·`RunState`(판정). 세대·일차·시간대 전환, 쉬는 시간 타이머 A/B·소집 경보, 밤 전원 준비 완료, 기한 초과 → 세대 교체, 탈출 신호. 세트리스트는 자리만(묘기 이름 임시 문자열) |
 | 세션 범위 데이터(세대 번호·물려줄 선반·흔적) | 신규 | 없음 | 세대 코드 없음. 같은 게임 세션 안에서만 유지(기획 6-2) |
-| 조정값 시작점 | 수정 후 재사용 | `Assets/Scripts/Systems/Settings/GameSettings.cs`, `BaseGameSettings.cs` | `Base`·`Tightrope`만 있음. 5묶음(공통·묘기·대기실·탐색·탈출로, PM 결정 #3)으로 확장. 런 수치(일수 3, 공연 2회/일, 쉬는 시간 5분, 소집 경보 1분, 가이드 길이, 타이머 A/B) 칸 추가 |
+| 조정값 시작점 | 수정 후 재사용(5묶음 완료) | `Assets/Scripts/Systems/Settings/GameSettings.cs`, `BaseGameSettings.cs`, `WaitingRoomSettings.cs`, `ExplorationSettings.cs`, `EscapeRouteSettings.cs` | 공통 = `BaseGameSettings`(런 진행·기물 소지 칸 추가, Task-028), 묘기 = `Tricks/*`, 대기실·탐색·탈출로는 빈 틀(칸은 CC-119가 채움) |
 
 ### 부상·생존 (CC-109)
 
@@ -81,7 +85,7 @@
 
 | # | 결정 | 기록 | 후속 |
 |---|---|---|---|
-| 1 | 쉬는 시간 타이머 **B안 기본**, A안도 구현해 세팅에서 전환(A/B 테스트용) | [run-rules.md](../../Harness/Project/Decisions/run-rules.md) #1 | CC-108 |
+| 1 | 탐색 제한 시간(옛 쉬는 시간 타이머) **B안 기본**, A안도 구현해 세팅에서 전환(A/B 테스트용) | [run-rules.md](../../Harness/Project/Decisions/run-rules.md) #1 | CC-108 |
 | 2 | 기물 소지는 **부상 기획 기본값**(팔 2개 = 2, 팔 1개 = 1, 배낭 +2), 세 숫자 모두 세팅에서 변경 | [injury-rules.md](../../Harness/Project/Decisions/injury-rules.md) #8 | CC-109·111 |
 | 3 | 세팅을 **공통 / 각 묘기 / 대기실 / 탐색 / 탈출로** 5묶음으로 분리 | [game-settings.md](../../Harness/Project/Decisions/game-settings.md) | CC-108 |
 | 4 | 공통 폴더 이전은 **별도 Task**(refactor, 1단계) | [통합 계획](../../Integrations/Active/Integration-common-game-systems/plan.md) | 신규 Task |
@@ -106,17 +110,29 @@
 
 ## 진입점
 
-- 현재 공통 진입점: `NetworkSessionManager`(방·방 상태), `NetworkPlayer`(상태·부위 손실·재시작), `PlayerCondition`(몸 상태), `CameraSpectator`(관전), `GameSettings.Base`.
+- 현재 공통 진입점: `NetworkSessionManager`(방·방 상태), `CampaignRun`(런 진행: 시간대 신호 메서드 + `StepChanged`·`RecallAlarm`·`RunEnded` 이벤트, 판정은 호스트), `NetworkPlayer`(상태·부위 손실·재시작), `PlayerCondition`(몸 상태), `CameraSpectator`(관전), `GameSettings.Base`·`Tightrope`·`WaitingRoom`·`Exploration`·`EscapeRoute`(세팅 5묶음).
 - 공연 결과는 아직 `TightropeResults`(외줄 전용)가 유일하다.
 - 부상: `BodyDamageEffects.SetPolicy(policy)`(null = 콘텐츠 불이익 없음), `IsCrawling`, `Current`. 시작 정책이 비면 `BodyDamageEffects.DefaultPolicyFactory`(지금은 외줄).
+- 부상·생존(Task-030, 호스트): `NetworkPlayer.ServerCut(개수)`(공통 순서 절단), `ServerKill`, `ServerCatch`, `ServerSetOneArm`, `ServerRevive`·`ServerReviveAllDead`, `ServerRestorePart`(역순 1개), `ServerRestoreAll`·`ServerRestoreEveryone`, 이벤트 `Revived`. 장소 규칙 `SurvivalRules.ServerPlace`(공연/탐색/탈출로 → 사망·잡힘·리타이어), 기물 칸 `SurvivalRules.ItemSlots`. 시간대 시작 부활·세대 교체 복구는 `InjuryRevival`이 `CampaignRun.StepChanged`로 자동 처리.
+- 조작(Task-037): `PlayerController.SetScheme(규칙)`(null = 기본 쪽으로 복귀), 씬 `SceneControlScheme`, 기본 이동 규칙 `ControlSettings.Default`. 입력 막기 `InputGate.SetBlocking(요청자, 열림)`·`IsBlocked`·`RequireRelease()`, UI 컴포넌트 `UIInputBlocker`.
 
 ## 공간에서 쓰는 법 (부상)
 
 - 공간 Task는 `Systems/Damage/`를 **읽고 부르기만** 한다. 고칠 일이 있으면 PM에게 요청한다(`space-workspaces.md`).
 - Player 프리팹에 이미 붙어 있어 어느 공간이든 Player만 두면 절단 연출·기어가기가 동작한다. 절단 요청은 `NetworkPlayer.RequestCutPart`(소유자)·`ServerCutPart`(호스트), 상태는 `PlayerCondition.LostParts`·`Changed`.
 - 공간 전용 불이익은 내 공간 스크립트 폴더에 `BodyPenaltyPolicy`를 상속해 만들고, 공간에 들어올 때 `GetComponent<BodyDamageEffects>().SetPolicy(내 정책)`, 불이익이 없으면 `SetPolicy(null)`.
-- ⚠ 지금은 어느 공간이든 기본 정책이 외줄 불이익이다(옮기기 전과 같음). 공간별 기본값은 030(부상·생존)에서 정한다.
+- ⚠ 기본 정책은 여전히 외줄 불이익이다(외줄 동작 유지). 탐색 공간(대기실·백스테이지·탈출로 묘기 밖)은 들어올 때 `SetPolicy(ExplorationBodyPenalty.Shared)`를 끼운다(Task-030, 수치는 공통 세팅 신체 손상 임시값). 점프 높이 감소는 정책과 무관하게 공통으로 적용된다.
 - 새 모델은 `ModelLimbs`로 팔·다리 위치를 지정(휴머노이드는 생략 가능).
+
+## 공간에서 쓰는 법 (조작·입력 막기, Task-037)
+
+- 코드: `Assets/Scripts/Systems/Control/`(`PlatformControlScheme`·`ControlSettings`·`SceneControlScheme`·`InputGate`·`UIInputBlocker`, 에디터 `Editor/ControlSettingsEditor`). 공용 조작 코드는 외줄을 모른다.
+- 규칙 고르는 순서: 콘텐츠가 끼운 규칙(`SetScheme`) → 프리팹 시작 규칙(테스트용) → 씬 규칙(`SceneControlScheme`) → **기본 이동 규칙**. `PlayerController`가 매 프레임 다시 골라 플레이 중 변경이 바로 반영된다.
+- 기본 이동 규칙: `Assets/Resources/Settings/Control/ControlSettings.asset`(메뉴 `Tools/CurtainCall/조작/기본 이동 규칙 선택`). 지금 값 = 플랫폼 이동(8방향·점프), 비워도 같다. 목록에 프로젝트의 규칙 에셋과 에셋 없는 규칙 종류("새로 만들기" → `Settings/Control/Schemes/`에 생성)가 자동으로 나온다.
+- 공간 이동 규칙: 내 공간 스크립트 폴더에 `PlayerControlScheme`을 상속해 만들고, 씬에 `SceneControlScheme`을 두어 넣거나 들어갈 때 `SetScheme`. 공용 수정 없음.
+- UI 입력 막기: 패널에 `UIInputBlocker`(보이는 동안 막음, 또는 `SetOpen`·입력칸 포커스). 요청자가 하나라도 남으면 막고, 모두 닫힌 뒤 게임 키를 다 뗀 다음 프레임에 다시 받는다. 디버그 키는 `InputGate.AddReleaseKeys`.
+- 외줄 쪽: `TightropeControlScheme`은 `MainStage/Tightrope/Control/`(줄 위에서 `CourseControlSwitcher`가 끼움), `TightropeUIFocus`는 `InputGate`에 요청만 보내고, `TightropeInputGate`는 외줄 코드 호환 창구(개발 키 P·O·B·R·M·K·L 등록)로 남았다.
+- 남은 일: 균형(`PlayerBalance`)은 외줄 전용 유지, 걷기 속도·점프 높이 공통 세팅 이전은 030에서 완료(`BaseGameSettings.Character.CourseMoveSpeed`·`JumpHeight`), 1인칭 시점 이동 규칙은 038 결과 후 PM 결정.
 
 ## 의존 도메인
 

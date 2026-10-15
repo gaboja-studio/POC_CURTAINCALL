@@ -9,6 +9,7 @@ import {
   parseMeta,
   parsePm,
   sameLogin,
+  touchesTodo,
 } from './logic'
 
 const snapshot = atom({ plugin: 'curtaincall-panel', key: 'snapshot' } as const, null)
@@ -272,6 +273,14 @@ export const register: Register = on => {
     if (!hidden) void refresh($, 'force')
     return { text: hidden ? 'CURTAINCALL 패널을 숨겼습니다.' : 'CURTAINCALL 패널을 표시합니다.' }
   })
+
+  // 턴이 끝나기 전에도 todo.md가 바뀌면 바로 다시 읽는다(gh 없이 git·파일만).
+  on('tool.call', async ($, e, next) => {
+    const result = await next(e)
+    const filePath = 'file_path' in e && typeof e.file_path === 'string' ? e.file_path : undefined
+    if (touchesTodo(e.tool, filePath)) void refresh($, 'skip')
+    return result
+  }).catch(($, e, next) => next(e)) // 패널 갱신은 도구 실행을 막지 않는다(이미 실행했으면 그 결과를 그대로 돌려준다).
 
   on('turn.complete', async ($, e, next) => {
     const result = await next(e)
