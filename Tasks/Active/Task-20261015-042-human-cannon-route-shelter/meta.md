@@ -13,7 +13,7 @@
 - **Integration:** integration/main-stage-human-cannon
 - **Branch:** feat/human-cannon-route-shelter
 - **Previous Task:** Task-20261015-041
-- 예약 단계이며 현재 Active Task는 040뿐이다. 기존 feat 브랜치도 실인계가 아니며 scaffolded에서 착수할 수 없다.
+- 040은 PR #93으로 integrated. 현재 Active Task/Allowed/테스트 씬 단독 소유는 041이며 이 단계는 기술 순번 대기다.
 
 ## Goal
 
@@ -23,14 +23,14 @@
 ## Scope
 
 - 작업 구역·공용 파일·수정 금지는 setup.md가 기준이다. AI Setup Allowed: None.
-- 준비 사실은 폴더·빈 씬(root 0)뿐이다. 인간 대포 기능 구현·공동 테스트는 미실행이다.
-- 앞 단계 integrated·실제 4인 공동 테스트 근거·소유권 반납·실제 JIRA URL을 PM이 확인해야 다음 1개에만 Active Task/Allowed를 부여한다.
-- 앞 단계 완료 후 최신 부모 이력을 받고 승인된 준비 브랜치에 배정 문서를 Merge commit으로 sync한다. 실제 전달 PM 확인 이후만 start-work한다.
+- 이 단계 구현·기능 검증·공동 테스트는 미실행이다. 선행 최신 구현 수신은 단계 전환 때 확인한다.
+- 2026-10-15 PM @MoHoDu가 @RagSpirin에게 040~044 인계·순차 실행을 승인했다. 추가 PM 인계·착수 승인은 불필요하다: [순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md).
+- 순서 040→041→042→043→044. 선행 구현 통합 후 최신 부모 수신·Active Task/Allowed/공용 소유권의 한 단계 이관·문서 갱신을 수행한다. 공동 테스트는 전체 통합 후 실행한다.
 
 ## Decisions
 
 - 기준: cooperative-route.md — 대포 무대→코스 도보길 없음; 쉼터 해제 상태 유지/해제만으로 출발 안 함; 모든 생존 비행자 합류 후 담당이 장치를 싣고 F 상승.
 - 낮은 손잡이·문턱 없는 진입, 교대는 선택이다. 불꽃은 공중/지상 모두 압박하며 쉼터/쿠션 경계에서 종료한다.
-- Decided: CC-128 연결·3단계 제목 확인 완료. 실제 전달은 2026-10-15 PM 사용자 확인 완료(@RagSpirin, Task-040~044 전체); 소유권 이관은 별도 대기.
+- Decided: CC-128 연결·3단계 제목 확인 완료. 2026-10-15 PM @MoHoDu의 @RagSpirin 담당·전체 인계·순차 실행 승인 완료; 소유권은 기술 순번에 따라 이관한다.
 - Open: 불꽃 접촉 사망은 설계안, 속도/판정은 플레이테스트 조정 대상이다.
 - 지상 2명 규칙·중계 대포·호응/보상 수치·2~3인 후속은 미정이며 구현 목표에서 제외한다.

@@ -2,10 +2,10 @@
 
 - **Title:** 인간 대포 1단계 — 발사와 트램폴린 받기
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @RagSpirin
 - **Domain:** common-game-systems
-- **Current Skill:** submit-work
+- **Current Skill:** handoff-to-member
 - **Updated:** 2026-10-15
 
 ## Workspace
@@ -16,17 +16,17 @@
 ## Goal
 
 - 첫 받기 위치에서 시작하는 장애물 없는 4인 기본 묘기로 발사·수평 비행·이동/점프 트램폴린 받기를 검증한다.
-- 작업 PR은 인간 대포 통합 대상 Squash. F/WASD·거리·트램폴린/지상 점프 1~9와 쿠션 1~5는 사용자 정상 확인. 개별 기능 오류 점검 후 2026-10-15 사용자 제출 승인. 4인 검증은 인간 대포 전체 기능 통합 후 진행.
+- PR #93/8293bb9로 인간 대포 통합에 Squash 완료, 2026-10-15 PM 완료 확인. F/WASD·거리·트램폴린/지상 점프 1~9·쿠션 1~5 사용자 정상 확인. 4인 검증은 전체 기능 통합 후 진행.
 
 ## Scope
 
-- `setup.md`의 구역만 수정한다. 같은 테스트 씬은 이 Task만 소유한다.
+- 구현 구역/씬은 041에 반환했다. 현재 소유는 없으며 040의 검증 기록·미실행 공동 테스트를 보존한다.
 - AI Setup Allowed: None
 
 ## Decisions
 
 - Open: 지상 2명 규칙·중계 대포·호응/보상 수치·2~3인 검증은 미정/후속.
-- Decided: Active Task는 이 Task 하나. 배정 문서 수신·PM 실제 전달 확인 전 착수 금지.
+- Decided: [2026-10-15 PM 순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md) — 040~044 전부 @RagSpirin 인계·실행 승인 완료. 040 완료 후 현재 Active Task/소유권은 041이며 추가 인계 승인 불필요.
 - Decided: CC-126 URL 연결·1단계 제목 확인 완료. CC-124는 상위 범위/실행 기준.
 - Decided: 분리 출발 장치는 3단계. 공용 부상·관전·공연 종료 코드는 별도 소유 Task로 연결한다.
 - Decided: 2026-10-15 사용자 — 대포 취소 시 탑승 직전 위치로 복귀. 테스트 씬은 기본 도형 대포 1대·발판, Inspector 조정 가능한 임시값 사용.

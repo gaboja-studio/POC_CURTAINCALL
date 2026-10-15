@@ -15,6 +15,7 @@ namespace CurtainCall.HumanCannon
         {
             // 현재 좌석 소유권과 무관하게 해당 비행만 한 번 종료한다. R/이전 반동의 늦은 요청은 무시한다.
             if (!flying.Matches(player.OwnerClientId, index, revision, segment)) return;
+            if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return;
             bool safe = (player.transform.position - position).sqrMagnitude <= 25f
                 && HumanCannonLandingZone.ContainsLanding(position);
             ApplyLanding(player.OwnerClientId, index, revision, segment, safe);
