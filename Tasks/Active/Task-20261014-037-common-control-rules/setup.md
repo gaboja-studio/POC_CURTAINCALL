@@ -12,15 +12,23 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 ## 작업 구역
 
+- 없음 — #61 병합·기존 공동 테스트 PASS 및 통합 소유 표의 반납을 setup에 동기화(2026-10-15). Task 문서만 유지한다.
+
+## 배정된 공용 파일
+
+- 없음 — 기존 배정은 아래 이력. PlatformControlScheme·ControlRulesTests 두 파일만 Task-045에 재배정한다.
+
+## 작업 구역 이력 (반납)
+
 - 테스트 씬: `Assets/Scenes/Tests/Systems/ControlRules/` (ControlRules.unity)
-- 스크립트 폴더: `Assets/Scripts/Systems/Control/`
+- 스크립트 폴더: `Assets/Scripts/Systems/Control/` — 단 PlatformControlScheme.cs·Editor/Tests/ControlRulesTests.cs는 2026-10-15 Task-045에 반환·재배정, 이 Task의 현재 수정 구역에서 제외
 - 에셋 폴더: `Assets/Resources/Settings/Control/`
 - 지도 갱신: `Docs/Domains/common-game-systems.md`, `Docs/Domains/tightrope-course.md`, `Docs/Domains/player-sync.md`
 - Task 문서: 이 Task 폴더 (자동 포함)
 
-## 배정된 공용 파일
+## 공용 파일 배정 이력 (반납)
 
-통합 기록(Integration meta)의 공용 파일 소유 표에서 이 Task에 배정된 것만 적는다.
+아래는 구현 당시 배정이며 현재 수정 권한이 아니다.
 
 - `Assets/Scripts/Systems/Player/PlayerController.cs`, `Assets/Scripts/Systems/Player/PlayerInputReader.cs`, `Assets/Scripts/Systems/Player/PlayerControlScheme.cs`, `Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs`, `Assets/Scripts/Systems/Player/TightropeControlScheme.cs` — 공용 조작 정리 (2026-10-14 PM)
 - `Assets/Scripts/MainStage/Tightrope/Rope/PlatformControlScheme.cs`, `Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.cs`, `Assets/Scripts/MainStage/Tightrope/Prototype/TightropeInputGate.cs`, `Assets/Scripts/MainStage/Tightrope/UI/TightropeUIFocus.cs` — 공연장 소유. 공용으로 내보내거나 받아 오는 참조만 고친다(공간 작업 시작 전, PM 진행)

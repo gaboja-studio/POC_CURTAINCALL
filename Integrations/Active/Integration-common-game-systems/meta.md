@@ -28,7 +28,16 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | - | assigned |
 | Task-20261014-036 | fix | @MoHoDu | fix/check-work-editor-tests | #52 | done |
 | Task-20261014-037 | feat | @MoHoDu | feat/common-control-rules | #61 | integrated |
-| Task-20261014-038 | feat | @MoHoDu | feat/common-camera-views | #66 | submitted (병합됨, 공동 테스트 대기) |
+| Task-20261014-038 | feat | @MoHoDu | feat/common-camera-views | #66 | integrated (10-15 공동 테스트 PASS, dev 반영 전) |
+| Task-20261015-045 | fix | @MoHoDu | (인계 때 생성) | - | scaffolded |
+
+## 준비 브랜치
+
+035는 기존 PM scaffold·배정 기록을 복원(2026-10-15). 두 SHA의 원격 통합 조상 관계·고유 구현 0개 확인. 준비 branch는 착수 허가가 아니며 배정 문서 sync·실제 전달은 별도 확인한다.
+
+| Task | 브랜치 | 준비 기준 SHA | 승인 SHA |
+|---|---|---|---|
+| Task-20261014-035 | feat/dummy-spaces | 16f9adff99623cdb7863a43404c2793ae93e0afd | 84b5761fa2415cafbb1e29c7a2c9e184a4e9a192 |
 
 ## 공용 파일 소유 표
 
@@ -45,7 +54,9 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | `Assets/Scripts/MainStage/Tightrope/Damage/`, `Assets/Scripts/MainStage/Tightrope/Results/` | ~~Task-20261014-033 (1단계)~~ 반납 (#53 병합, 2026-10-14) | 공용 코드 공통 폴더 이전 완료. 이후 공연장 소유로 돌아감(031은 Results를 읽기만) |
 | `Assets/Scripts/Systems/Damage/`, `NetworkPlayer.cs`·`PlayerState.cs`·`PlayerCondition.cs`·`PlayerMover.cs` | ~~Task-20261013-030 (2단계)~~ 반납 (#62 병합, 2026-10-14) | 부상·생존의 중심 |
 | `Systems/Player/PlayerController.cs`·`PlayerInputReader.cs`·`PlayerControlScheme.cs`·`PlayerCommandDebugHud.cs`·`TightropeControlScheme.cs`, 새 `Systems/Control/`·`Resources/Settings/Control/`, 공연장 `PlatformControlScheme.cs`·`CourseControlSwitcher.cs`·`TightropeInputGate.cs`·`TightropeUIFocus.cs` | ~~Task-20261014-037 (2단계 병렬)~~ 반납 (#61 병합, 2026-10-14) | 공용 조작의 외줄 의존 정리·기본 이동 규칙. 공연장 파일은 공간 작업 전 PM 진행 |
-| `Systems/Camera/`, `Systems/Network/PlayerSync/LocalPlayerCamera.cs`, `Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab`, 새 `Resources/Settings/Camera/` | Task-20261014-038 (2단계 병렬) | 공용 1인칭·3인칭 시점과 전환, 외줄 구도 분리 |
+| `Systems/Camera/`, `Systems/Network/PlayerSync/LocalPlayerCamera.cs`, `Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab`, 새 `Resources/Settings/Camera/` | ~~Task-20261014-038 (2단계 병렬)~~ 반납 (2026-10-15 공동 테스트 PASS) | 공용 시점·관전 완료, 기존 배정은 Task setup 이력 보존 |
+
+| `Systems/Control/PlatformControlScheme.cs`, `Systems/Control/Editor/Tests/ControlRulesTests.cs`, `Systems/Camera/Tests/PlayMode/CameraViewsPlayTests.cs`, FirstPersonMovement 전용 테스트 씬·스크립트 폴더 | Task-20261015-045 | 반환된 037·038의 최소 수정·회귀, CC-131. 제품 카메라/Player·035 범위는 제외 |
 
 ## Decisions
 

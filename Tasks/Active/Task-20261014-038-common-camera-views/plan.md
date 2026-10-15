@@ -29,7 +29,7 @@
 - BoxCollider 구역 쪽에 kinematic Rigidbody 배치. 로컬 소유자만 감지하고 다중 collider·teleport·Exit 누락·비활성화·despawn을 정리한다.
 - 가림의 코스 루트·같은 목마 예외와 외줄 수치는 이전한 외줄 코드가 공급한다. 높이 0.8/1.35, 반경 0.4, 알파 0.35, 속도 6·관전 점진 복구 유지.
 - 순수 요청 resolver만 작은 noEngineReferences asmdef로 분리해 EditMode 테스트. 나머지는 기존 Assembly-CSharp 유지. 합성 PlayMode probe는 실제 입력 검증으로 보고하지 않는다.
-- 테스트 씬: Main Camera에 Brain, 기존 카메라 리그·세션 UI/NetworkManager 참조·출발점·바닥·1인칭 구역/경계 표식 배치. 기존 LAN 접속 재사용, 원본 Player/세션/UI 수정 없음.
+- 테스트 씬: Main Camera에 Brain, 기존 카메라 리그·세션 UI/NetworkManager 참조·출발점·바닥·1인칭 구역/경계 표식 배치. 기존 LAN 접속 재사용, 원본 Player/세션/UI 수정 없음. 2026-10-15 사용자 요청: CameraViewsTestBootstrap으로 이 씬의 로컬 균형만 비활성화(접속·재시작 회귀 검사), 실제 외줄은 유지.
 - 에디터 미연결이면 Unity 에셋 생성·이동·저장 금지. 10-15 직접 명령 ready·대상 경로·dirty 0 확인. beta.6 status 검색 불일치는 원인 미확정이며 지원되는 명령으로 진행한다.
 
 ## Files
@@ -49,7 +49,7 @@
 - 구역 검사: `pwsh -File Scripts/verify-scope.ps1`
 - 1 문서/규칙: `pwsh -File Scripts/verify-fast.ps1`
 - 2 컴파일: `pwsh -File Scripts/verify-unity.ps1 -ProjectPath . -Compile`
-- 3 테스트: 요청 판정 EditMode 11개(`Camera/Tests/EditMode/`) + 실제 씬·LAN 호스트 PlayMode 7개(`Camera/Tests/PlayMode/`, 이동·요청은 합성)
+- 3 테스트: 요청 판정 EditMode 11개(`Camera/Tests/EditMode/`) + 실제 씬·LAN 호스트 PlayMode 9개(`Camera/Tests/PlayMode/`, 리타이어 관전·CameraViews 균형 회귀 포함, 이동·요청은 합성)
 - 4 실행 로그: `proto_0.0.2.unity`·이 Task 테스트 씬에서 Missing 0, Console 오류 0
 
 ## 공동 테스트 항목
@@ -59,3 +59,4 @@
 1. 외줄타기(`proto_0.0.2.unity`)의 화면 구도·사망 후 관전·가림 흐리기가 전과 똑같다.
 2. 테스트 씬에서 시점 구역에 들어가면 1인칭(내 모델 숨김·마우스 둘러보기), 나오면 3인칭으로 돌아온다. 다른 플레이어 화면에서는 내 모델이 그대로 보인다.
 3. 기획자가 시점 에셋 값(거리·높이·화각)을 인스펙터에서 바꾸면 플레이 중 바로 반영된다.
+- 추가 회귀(위 1·2항목): merge로 받은 리타이어 관전 결정도 확인: 2인에서 A Retired→B 관전, 모두 Retired→대상 없음, 재시작→각자 자기 카메라·조작·구역 전환 복귀. 2026-10-15 사용자 전부 PASS(상태는 공개 API 주입, 실제 잡힘 경로 검증 아님).

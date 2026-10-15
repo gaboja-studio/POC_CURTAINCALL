@@ -12,6 +12,14 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 ## 작업 구역
 
+- 없음 — 2026-10-15 통합 공동 테스트 PASS로 반환. Task 문서만 유지하고 기존 배정은 아래 이력으로 보존한다.
+
+## 배정된 공용 파일
+
+- 없음 — 2026-10-15 소유 반납. 후속 수정은 PM 재배정이 필요하다.
+
+## 작업 구역 이력 (2026-10-15 반환)
+
 - 테스트 씬: `Assets/Scenes/Tests/Systems/CameraViews/` (CameraViews.unity)
 - 스크립트 폴더: `Assets/Scripts/Systems/Camera/`
 - 에셋 폴더: `Assets/Resources/Settings/Camera/`
@@ -19,9 +27,9 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 - 지도 갱신: `Docs/Domains/common-game-systems.md`, `Docs/Domains/tightrope-course.md`, `Docs/Domains/player-sync.md`
 - Task 문서: 이 Task 폴더 (자동 포함)
 
-## 배정된 공용 파일
+## 공용 파일 배정 이력 (2026-10-15 반납)
 
-통합 기록(Integration meta)의 공용 파일 소유 표에서 이 Task에 배정된 것만 적는다.
+아래는 구현 당시 배정이며 현재 수정 권한이 아니다.
 
 - `Assets/Scripts/Systems/Network/PlayerSync/LocalPlayerCamera.cs` — 내 캐릭터 따라가기를 시점 전환기와 연결 (2026-10-14 PM)
 - `Assets/Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab` — 카메라 리그
@@ -50,5 +58,5 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 Task를 닫을 때 사람이 결정한다. 스크립트는 씬을 지우지 않는다.
 
-- 결정: 미정 (유지 / 삭제)
-- 결정자·날짜:
+- 결정: 유지 — 전체 테스트 씬 마련 후 일괄 처리하는 기존 PM 방침 적용. 이번에 씬·전용 bootstrap을 삭제하지 않는다.
+- 결정자·날짜: PM @MoHoDu, 2026-10-15 기존 통합 결정(`Integration-common-game-systems/meta.md` Decisions)

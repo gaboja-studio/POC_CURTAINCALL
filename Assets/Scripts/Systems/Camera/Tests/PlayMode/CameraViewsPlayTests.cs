@@ -88,6 +88,30 @@ namespace CurtainCall.Cameras.Tests
         }
 
         [UnityTest]
+        public IEnumerator CameraScene_DisablesBalanceAfterSpawnAndRestart()
+        {
+            yield return Host(CameraViewsScene);
+            var balance = local.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
+            Assert.IsNotNull(balance);
+            for (int pass = 0; pass < 2; pass++)
+            {
+                float end = Time.realtimeSinceStartup + 15f;
+                do
+                {
+                    Assert.IsFalse((bool)Get(balance, "IsActive"), "카메라 테스트 씬은 균형 비활성");
+                    Assert.IsFalse((bool)Get(balance, "HasFallen"), "균형으로 추락하지 않음");
+                    Assert.AreEqual("Normal", Get(local, "State").ToString(), "플레이어 정상 상태 유지");
+                    yield return null;
+                } while (Time.realtimeSinceStartup < end);
+                if (pass == 0)
+                {
+                    Call(GameType(PlayerType), "ServerRestartAll");
+                    yield return Frames(3);
+                }
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Zone_FirstPersonHidesLocalModelOnlyWhileRendering()
         {
             yield return Host(CameraViewsScene);

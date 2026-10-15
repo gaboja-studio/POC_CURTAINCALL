@@ -132,7 +132,7 @@
 - 공간 이동 규칙: 내 공간 스크립트 폴더에 `PlayerControlScheme`을 상속해 만들고, 씬에 `SceneControlScheme`을 두어 넣거나 들어갈 때 `SetScheme`. 공용 수정 없음.
 - UI 입력 막기: 패널에 `UIInputBlocker`(보이는 동안 막음, 또는 `SetOpen`·입력칸 포커스). 요청자가 하나라도 남으면 막고, 모두 닫힌 뒤 게임 키를 다 뗀 다음 프레임에 다시 받는다. 디버그 키는 `InputGate.AddReleaseKeys`.
 - 외줄 쪽: `TightropeControlScheme`은 `MainStage/Tightrope/Control/`(줄 위에서 `CourseControlSwitcher`가 끼움), `TightropeUIFocus`는 `InputGate`에 요청만 보내고, `TightropeInputGate`는 외줄 코드 호환 창구(개발 키 P·O·B·R·M·K·L 등록)로 남았다.
-- 남은 일: 균형(`PlayerBalance`)은 외줄 전용 유지, 걷기 속도·점프 높이 공통 세팅 이전은 030에서 완료(`BaseGameSettings.Character.CourseMoveSpeed`·`JumpHeight`), 1인칭 시점 이동 규칙은 038 결과 후 PM 결정.
+- 남은 일: 균형(`PlayerBalance`)은 외줄 전용 유지, 걷기 속도·점프 높이 공통 세팅 이전은 030에서 완료(`BaseGameSettings.Character.CourseMoveSpeed`·`JumpHeight`), 1인칭 기본 이동은 카메라 수평 방향 W/S로 사용자 확정(2026-10-15), 3인칭 유지. 연결은 fix Task-045(CC-131)로 별도 준비·미구현(통합 `first-person-movement-issue.md`).
 
 ## 공간에서 쓰는 법 (카메라, Task-038)
 
