@@ -33,4 +33,5 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 - 기준: CC-132 전체 개발 순서, `Harness/Project/Decisions/Waiting-room/shop-storage.md`. 게임 흐름 기획과 충돌하면 게임 흐름 우선.
 - Open: 품목·가격·화폐 상세는 M1 범위 밖 — 임시값만 사용.
 - Open: CC-132의 '선반 4칸'과 shop-storage.md의 '4단 선반'·물려주기 규칙 대조 필요.
+- Decided: 2026-10-15 PM이 담당자 실제 전달 확인. 구현 개방이 아니며 예약 유지 — 앞 단계 조건 충족 후 배정.
 - Decided: 의존 — 공연 결과·보상·공동 자금(CC-110, Task-031), 2단계(047). 공용 수정은 별도 소유 Task.
