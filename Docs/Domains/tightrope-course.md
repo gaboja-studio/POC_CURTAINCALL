@@ -75,6 +75,10 @@
 - `TightropeBodyPenalty.cs` — 외줄 신체 손상 불이익 정책. 게임 시작 전 `BodyDamageEffects.DefaultPolicyFactory`에 자신을 등록한다.
 - `BodyDamageDebug.cs` — **테스트 전용** 절단 키·표시.
 
+`Assets/Scripts/MainStage/Tightrope/Camera/` (Task-038)
+- `TightropeCameraFraming.cs` — Systems/Camera에서 GUID·타입 유지 이전. 코스가 있을 때 priority 0으로 구도를 요청하며 세팅 실시간 반영·코스 월드 forward·캐릭터 로컬 look offset 유지. 코스 루트·같은 목마 가림 예외도 공급한다.
+- 공용 카메라는 [공통 게임 시스템](common-game-systems.md)의 시점 요청 API 사용. 관전 대상 선택은 기존 그대로다. 기존 TightropeSettings 카메라 칸 정리는 PM 후속 작업이며 이번에는 수정하지 않는다.
+
 에셋
 - `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/TightropeCourse.prefab` — 위 컴포넌트 + `PlayerSpawnPoints`(007) + 출발 위치 `SpawnPoints/Slot0~3`. 다른 Task는 배치만. 수치 칸 없음(013).
 - `Assets/Resources/Settings/GameSettings/Tricks/TightropeSettings.asset` — 코스 모양·진행·줄 위 동작·목마 값(클래스 `Assets/Scripts/Systems/Settings/`). 코스는 만들 때 복사해 쓰고, 대기 중 수정은 바로 재생성·잠금 중 수정은 풀릴 때.

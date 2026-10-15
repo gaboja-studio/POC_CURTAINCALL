@@ -132,7 +132,17 @@
 - 공간 이동 규칙: 내 공간 스크립트 폴더에 `PlayerControlScheme`을 상속해 만들고, 씬에 `SceneControlScheme`을 두어 넣거나 들어갈 때 `SetScheme`. 공용 수정 없음.
 - UI 입력 막기: 패널에 `UIInputBlocker`(보이는 동안 막음, 또는 `SetOpen`·입력칸 포커스). 요청자가 하나라도 남으면 막고, 모두 닫힌 뒤 게임 키를 다 뗀 다음 프레임에 다시 받는다. 디버그 키는 `InputGate.AddReleaseKeys`.
 - 외줄 쪽: `TightropeControlScheme`은 `MainStage/Tightrope/Control/`(줄 위에서 `CourseControlSwitcher`가 끼움), `TightropeUIFocus`는 `InputGate`에 요청만 보내고, `TightropeInputGate`는 외줄 코드 호환 창구(개발 키 P·O·B·R·M·K·L 등록)로 남았다.
-- 남은 일: 균형(`PlayerBalance`)은 외줄 전용 유지, 걷기 속도·점프 높이 공통 세팅 이전은 030에서 완료(`BaseGameSettings.Character.CourseMoveSpeed`·`JumpHeight`), 1인칭 시점 이동 규칙은 038 결과 후 PM 결정.
+- 남은 일: 균형(`PlayerBalance`)은 외줄 전용 유지, 걷기 속도·점프 높이 공통 세팅 이전은 030에서 완료(`BaseGameSettings.Character.CourseMoveSpeed`·`JumpHeight`), 1인칭 기본 이동은 카메라 수평 방향 W/S로 사용자 확정(2026-10-15), 3인칭 유지. 연결은 fix Task-045(CC-131)로 별도 준비·미구현(통합 `first-person-movement-issue.md`).
+
+## 공간에서 쓰는 법 (카메라, Task-038)
+
+- `Assets/Scripts/Systems/Camera/`: `CameraViewDirector`가 요청을 판정·구도 적용. `CameraViewPreset`의 1/3인칭 수치·FOV·전환 시간을 플레이 중 조정한다. 설정 에셋은 `Assets/Resources/Settings/Camera/`.
+- 씬 구역: BoxCollider trigger + kinematic Rigidbody + `CameraViewZone`, preset·priority 지정(preset이 비면 요청하지 않음). 로컬 소유자만 감지하며 겹침·teleport·disable은 다음 physics tick 정리한다.
+- 코드 요청: `CameraViewDirector.Current.RequestView(this, preset, priority)` / `ReleaseView(this)`. 높은 priority·동률 최근 등록. 같은 source 갱신은 순서 유지, disable/destroy·despawn은 정리한다.
+- `ViewForward`는 정규화된 월드 수평 방향(대상 없음·사망은 zero). 037의 시선 기준 이동 규칙·`InputGate` 연결은 후속 통합(PM 결정). `SetInputBlocked(bool)` 진입점은 마련했지만 게임 조작 완성을 의미하지 않는다.
+- 관전은 기존 `CameraSpectator` 대상 선택 유지(사망 `Fallen`·리타이어 `Retired` 모두 관전, 대상은 `Normal`만), 1인칭 요청은 잠시 제외. 모델은 게임 카메라 render 동안만 `forceRenderingOff`로 숨기며 `Renderer.enabled`·부상 계산은 변경하지 않는다.
+- 가림: `CameraOcclusionFade.RequestRules` / `RegisterExclusion` / `ReleaseSource`로 공간별 수치·예외 공급. 외줄 구도·코스/같은 목마 예외는 `MainStage/Tightrope/Camera/TightropeCameraFraming.cs`로 이동(GUID 유지).
+- 테스트 씬 `Assets/Scenes/Tests/Systems/CameraViews/CameraViews.unity`: 기존 LAN UI, z=6~14의 1인칭 구역. Esc 해제·게임 클릭 잠금, 테스트 UI 클릭은 제외. 테스트: 요청 판정 EditMode `Camera/Tests/EditMode/`, 실제 씬·LAN 호스트 PlayMode `Camera/Tests/PlayMode/`(CameraViews·proto_0.0.2를 열어 확인, 게임 코드는 이름으로 호출).
 
 ## 의존 도메인
 
