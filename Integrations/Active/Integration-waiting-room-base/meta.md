@@ -22,7 +22,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 |---|---|---|---|---|---|
 | Task-20261015-046 | feat | @gyumin9048-ctrl | feat/waiting-room-greybox-loop | - | assigned |
 | Task-20261015-047 | feat | @gyumin9048-ctrl | feat/waiting-room-exploration-timer | - | assigned |
-| Task-20261015-048 | feat | @gyumin9048-ctrl | feat/waiting-room-shop-storage | - | scaffolded |
+| Task-20261015-048 | feat | @gyumin9048-ctrl | feat/waiting-room-shop-storage | - | assigned |
 | Task-20261015-049 | feat | @gyumin9048-ctrl | feat/waiting-room-night-schedule | - | scaffolded |
 | Task-20261015-050 | feat | @gyumin9048-ctrl | feat/waiting-room-expert-service | - | scaffolded |
 
