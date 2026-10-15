@@ -122,5 +122,11 @@ export const parseBranchStatus = (text: string): BranchStatus => {
   return { upstream, ahead, isDirty }
 }
 
+// 도구 호출 뒤 패널을 바로 다시 읽어야 하는지. todo.md를 직접 고쳤거나, 스크립트(셸)가 고쳤을 수 있을 때.
+const SHELLS = new Set(['Bash', 'PowerShell'])
+const EDITS = new Set(['Edit', 'Write', 'MultiEdit'])
+export const touchesTodo = (tool: string, filePath: string | undefined): boolean =>
+  SHELLS.has(tool) || (EDITS.has(tool) && /(^|[\\/])todo\.md$/i.test(filePath ?? ''))
+
 export const sameLogin = (a: string | null, b: string | null): boolean =>
   a !== null && b !== null && a.length > 0 && a.toLowerCase() === b.toLowerCase()

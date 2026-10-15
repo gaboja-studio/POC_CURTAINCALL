@@ -145,16 +145,10 @@ namespace CurtainCall.Settings
             public float RestartDelay => restartDelay;
         }
 
-        /// <summary>줄 위 동작(이동·점프·착지 충격).</summary>
+        /// <summary>줄 위 동작(착지 충격·옆줄 점프 흔들림). 걷기 속도·점프 높이는 공통 세팅(게임 기본 · 캐릭터)으로 옮겼다(Task-030).</summary>
         [Serializable]
         public sealed class RopeMovementSettings
         {
-            [Tooltip("줄 위 이동 속도(m/s). 기획 0.5.")]
-            [SerializeField, Min(0f)] float moveSpeed = 0.5f;
-
-            [Tooltip("점프 높이(m, 발 기준 최고점). 0.8. 공중 시간은 이 값과 중력으로 정해진다.")]
-            [SerializeField, Min(0f)] float jumpHeight = 0.8f;
-
             [Tooltip("착지 충격(균형 ±, 랜덤 방향). 목마 배율을 곱한다. 기획 10.")]
             [SerializeField, Min(0f)] float landingShock = 10f;
 
@@ -170,8 +164,6 @@ namespace CurtainCall.Settings
             [Tooltip("옆줄 점프 착지 후 흔들림이 커지는 시간(초). 반복해도 쌓이지 않고 시간만 갱신. 기획 3.")]
             [SerializeField, Min(0f)] float laneSwayBoostDuration = 3f;
 
-            public float MoveSpeed => moveSpeed;
-            public float JumpHeight => jumpHeight;
             public float LandingShock => landingShock;
             public float MinAirTimeForShock => minAirTimeForShock;
             public float LaneLandingShock => laneLandingShock;

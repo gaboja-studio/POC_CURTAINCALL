@@ -21,7 +21,8 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 통합 기록(Integration meta)의 공용 파일 소유 표에서 이 Task에 배정된 것만 적는다.
 
-- 대기실·탐색·탈출로 세팅 클래스·에셋 (`Assets/Scripts/Systems/Settings/`, `Assets/Resources/Settings/GameSettings/` 중 해당 파일) — 1단계 028이 틀을 만든 뒤 2단계에 배정
+- `Assets/Scripts/Systems/Settings/WaitingRoomSettings.cs`, `ExplorationSettings.cs`, `EscapeRouteSettings.cs` — 대기실·탐색·탈출로 세팅 칸 (2026-10-14 PM 배정)
+- `Assets/Resources/Settings/GameSettings/WaitingRoomSettings.asset`, `ExplorationSettings.asset`, `EscapeRouteSettings.asset` — 위 세팅 에셋
 
 ## 수정 금지
 
