@@ -22,6 +22,7 @@ namespace CurtainCall.SpaceLink.Tests
 
         object campaign;
         Component director;
+        int maxSceneCount; // 전환 중 한꺼번에 열린 씬 수의 최대
         readonly List<Action> restore = new();
 
         static Type GameType(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
@@ -56,6 +57,7 @@ namespace CurtainCall.SpaceLink.Tests
             campaign = GameType("CurtainCall.Campaign.CampaignRun").GetMethod("EnsureExists").Invoke(null, null);
             yield return null; // 각자의 Start(이벤트 연결)
             Assert.AreEqual("SpaceLink", Active);
+            maxSceneCount = 0;
         }
 
         IEnumerator Signal(string method, params object[] args)
@@ -68,7 +70,11 @@ namespace CurtainCall.SpaceLink.Tests
         {
             yield return null;
             int frames = 0;
-            while ((bool)Get(director, "IsTransitioning") && frames++ < TransitionFrameLimit) yield return null;
+            while ((bool)Get(director, "IsTransitioning") && frames++ < TransitionFrameLimit)
+            {
+                maxSceneCount = Math.Max(maxSceneCount, SceneManager.sceneCount);
+                yield return null;
+            }
             Assert.Less(frames, TransitionFrameLimit, "장소 전환이 끝나지 않음");
             yield return null; // 새 공간 씬의 Start
         }
@@ -186,6 +192,7 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.IsTrue(Loaded("DummyPerformance"));
             Assert.IsFalse(Loaded("DummyExploration"));
             Assert.IsTrue(Loaded("SpaceLink"));
+            Assert.LessOrEqual(maxSceneCount, 2, "전환 중에도 공간 씬은 하나만(이전 공간을 닫고 다음을 붙인다, EventSystem 겹침 방지)");
         }
     }
 }

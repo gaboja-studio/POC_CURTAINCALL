@@ -12,11 +12,12 @@ namespace CurtainCall.SpaceLink
     public sealed class SpaceLinkHub : MonoBehaviour
     {
         readonly List<Camera> hubCameras = new();
+        SpaceLinkDirector director;
         bool spaceShown;
 
         void Awake()
         {
-            var director = SpaceLinkDirector.EnsureExists();
+            director = SpaceLinkDirector.EnsureExists();
             if (!director.TryGetComponent(out SpaceLinkTestUI _)) director.gameObject.AddComponent<SpaceLinkTestUI>();
 
             foreach (var root in gameObject.scene.GetRootGameObjects())
@@ -25,7 +26,8 @@ namespace CurtainCall.SpaceLink
 
         void Update()
         {
-            bool shown = SceneManager.sceneCount > 1; // 시작 씬 + 공간 씬(DontDestroyOnLoad는 세지 않는다)
+            // 시작 씬 + 공간 씬(DontDestroyOnLoad는 세지 않는다). 추가 로드는 이전 공간을 닫고 다음을 붙이므로 그 사이(전환 중)도 끈 채로 둔다.
+            bool shown = SceneManager.sceneCount > 1 || (director != null && director.IsTransitioning);
             if (shown == spaceShown) return;
             spaceShown = shown;
             foreach (var cam in hubCameras)

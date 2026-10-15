@@ -165,15 +165,16 @@ namespace CurtainCall.SpaceLink
             }
             else
             {
-                if (!IsLoaded(sceneName)) yield return Load(sceneName, LoadSceneMode.Additive);
-                if (!stepFailed)
+                // 이전 공간을 먼저 닫고 붙인다. 두 공간 씬이 잠깐이라도 함께 떠 있으면 EventSystem 등 씬마다 하나인 것이 겹친다.
+                var hub = SceneManager.GetSceneByName(settings.HubScene);
+                foreach (var scene in LoadedSpaceScenes(settings))
                 {
-                    foreach (var scene in LoadedSpaceScenes(settings))
-                    {
-                        if (scene.name == sceneName) continue;
-                        yield return Unload(scene);
-                    }
+                    if (scene.name == sceneName) continue;
+                    if (hub.isLoaded && SceneManager.GetActiveScene() == scene) SceneManager.SetActiveScene(hub);
+                    yield return Unload(scene);
+                    if (stepFailed) break;
                 }
+                if (!stepFailed && !IsLoaded(sceneName)) yield return Load(sceneName, LoadSceneMode.Additive);
             }
 
             if (stepFailed)

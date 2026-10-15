@@ -67,6 +67,14 @@ namespace CurtainCall.SpaceLink
                     director.LeaveWaitingRoom();
                 GUI.enabled = true;
             }
+            // 더미 탈출로의 "탈출 개시" 버튼은 탈출로 씬 안에만 있어, 쉬는 시간(대기실·백스테이지)에서 들어갈 길을 여기서 연다.
+            if (s.Phase == CampaignPhase.RestTime)
+            {
+                GUI.enabled = director.HasAuthority;
+                if (GUILayout.Button(director.HasAuthority ? "탈출 개시 → 탈출로 (전원 집결 가정)" : "탈출 개시 (호스트만)"))
+                    campaign.StartEscape();
+                GUI.enabled = true;
+            }
             if (campaign.IsOfflineRun && s.Phase == CampaignPhase.Ending && GUILayout.Button("오프라인 런 끝"))
                 campaign.StopOfflineRun();
         }
