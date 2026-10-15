@@ -6,7 +6,7 @@
 - **Base:** dev
 - **PM:** @MoHoDu
 - **Merge Time:** 2026-10-15 완료분 dev 중간 반영, 최종 종료는 남은 Task 완료 후
-- **Updated:** 2026-10-15
+- **Updated:** 2026-10-16
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
@@ -22,14 +22,14 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task-20261013-029 | feat | @MoHoDu | feat/feature-reuse-audit | #51 | integrated |
 | Task-20261013-030 | feat | @MoHoDu | feat/injury-survival-update | #62 | done |
 | Task-20261013-031 | feat | @MoHoDu | feat/performance-reward-funds | #67 | integrated |
-| Task-20261013-032 | feat | @MoHoDu | feat/space-integration-check | - | scaffolded |
+| Task-20261013-032 | feat | @MoHoDu | feat/space-integration-check | - | assigned |
 | Task-20261014-033 | refactor | @MoHoDu | refactor/common-code-move | #53 | done |
 | Task-20261014-034 | feat | @MoHoDu | feat/dev-mode | #60 | done |
-| Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | - | assigned |
+| Task-20261014-035 | feat | @MoHoDu | feat/dummy-spaces | #106 | submitted (병합됨) |
 | Task-20261014-036 | fix | @MoHoDu | fix/check-work-editor-tests | #52 | done |
 | Task-20261014-037 | feat | @MoHoDu | feat/common-control-rules | #61 | integrated |
 | Task-20261014-038 | feat | @MoHoDu | feat/common-camera-views | #66 | integrated (10-15 공동 테스트 PASS, dev 반영 전) |
-| Task-20261015-045 | fix | @MoHoDu | fix/first-person-movement | - | assigned |
+| Task-20261015-045 | fix | @MoHoDu | fix/first-person-movement | #107 | submitted (병합됨) |
 
 ## 준비 브랜치
 
@@ -59,6 +59,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | `Systems/Control/PlatformControlScheme.cs`, `Systems/Control/Editor/Tests/ControlRulesTests.cs`, `Systems/Camera/Tests/PlayMode/CameraViewsPlayTests.cs`, FirstPersonMovement 전용 테스트 씬·스크립트 폴더 | Task-20261015-045 | 반환된 037·038의 최소 수정·회귀, CC-131. Player·035 범위는 제외 |
 | `Systems/Camera/CameraViewPreset.cs`·`CameraViewDirector.cs`, 새 `Resources/Settings/Camera/FreeThirdPerson.asset` | Task-20261015-045 | 2026-10-15 PM 범위 확대: 3인칭 비고정(마우스 시선·궤도 카메라). 기존 프리셋 에셋·LocalPlayerCamera·카메라 프리팹은 제외 |
+| `Systems/Settings/BaseGameSettings.cs`, `Resources/Settings/GameSettings/BaseGameSettings.asset`, `ProjectSettings/EditorBuildSettings.asset` | Task-20261013-032 | 2026-10-16 PM: 씬 전환 방식(통째 교체/추가 로드) 공통 세팅 "장소 전환" 묶음, SpaceLink·더미 4개 빌드 목록 추가 |
 
 ## Decisions
 

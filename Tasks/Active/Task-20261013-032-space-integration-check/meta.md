@@ -2,18 +2,18 @@
 
 - **Title:** 공간 연결과 통합 확인
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`), 연결 Task
 - **Current Skill:** start-work
-- **Updated:** 2026-10-14
+- **Updated:** 2026-10-16
 
 Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중) → submitted(PR 제출) → integrated(공동 테스트 통과) → done(dev 병합). 막히면 blocked.
 
 ## Workspace
 
 - **Integration:** integration/common-game-systems
-- **Branch:** feat/space-integration-check (인계 때 생성)
+- **Branch:** feat/space-integration-check
 
 ## Goal
 
@@ -27,5 +27,6 @@ Status 순서: scaffolded(PM 준비) → assigned(인계) → working(작업 중
 
 ## Decisions
 
-- Open: 씬 전환 방식(NGO 씬 전환 등), 실제 공간 연결 시 공간 담당 소유 파일 배정은 4단계에서 공간 담당과 결정
+- Open: 실제 공간 연결 시 공간 담당 소유 파일 배정은 4단계에서 공간 담당과 결정
+- Decided: 2026-10-16 PM: 씬 전환은 NGO 통째 교체(Single)·추가 로드(Additive)를 공통 세팅 "장소 전환"으로 전환, 기본 통째 교체. 배정 공용: BaseGameSettings.cs·.asset, EditorBuildSettings.asset(plan.md)
 - Decided: 2026-10-14 PM: 연결 Task. 이번 통합에서는 더미 공간으로만 연결하고 실제 공간 교체는 이후. 선행: 028·030·031·033·034·035 병합 후 인계. 통합 계획 3단계
