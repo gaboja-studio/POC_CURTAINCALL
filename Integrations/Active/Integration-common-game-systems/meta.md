@@ -57,7 +57,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | `Systems/Player/PlayerController.cs`·`PlayerInputReader.cs`·`PlayerControlScheme.cs`·`PlayerCommandDebugHud.cs`·`TightropeControlScheme.cs`, 새 `Systems/Control/`·`Resources/Settings/Control/`, 공연장 `PlatformControlScheme.cs`·`CourseControlSwitcher.cs`·`TightropeInputGate.cs`·`TightropeUIFocus.cs` | ~~Task-20261014-037 (2단계 병렬)~~ 반납 (#61 병합, 2026-10-14) | 공용 조작의 외줄 의존 정리·기본 이동 규칙. 공연장 파일은 공간 작업 전 PM 진행 |
 | `Systems/Camera/`, `Systems/Network/PlayerSync/LocalPlayerCamera.cs`, `Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab`, 새 `Resources/Settings/Camera/` | ~~Task-20261014-038 (2단계 병렬)~~ 반납 (2026-10-15 공동 테스트 PASS) | 공용 시점·관전 완료, 기존 배정은 Task setup 이력 보존 |
 
-| `Systems/Control/PlatformControlScheme.cs`, `Systems/Control/Editor/Tests/ControlRulesTests.cs`, `Systems/Camera/Tests/PlayMode/CameraViewsPlayTests.cs`, FirstPersonMovement 전용 테스트 씬·스크립트 폴더 | Task-20261015-045 | 반환된 037·038의 최소 수정·회귀, CC-131. 제품 카메라/Player·035 범위는 제외 |
+| `Systems/Control/PlatformControlScheme.cs`, `Systems/Control/Editor/Tests/ControlRulesTests.cs`, `Systems/Camera/Tests/PlayMode/CameraViewsPlayTests.cs`, FirstPersonMovement 전용 테스트 씬·스크립트 폴더 | Task-20261015-045 | 반환된 037·038의 최소 수정·회귀, CC-131. Player·035 범위는 제외 |
+| `Systems/Camera/CameraViewPreset.cs`·`CameraViewDirector.cs`, 새 `Resources/Settings/Camera/FreeThirdPerson.asset` | Task-20261015-045 | 2026-10-15 PM 범위 확대: 3인칭 비고정(마우스 시선·궤도 카메라). 기존 프리셋 에셋·LocalPlayerCamera·카메라 프리팹은 제외 |
 
 ## Decisions
 
