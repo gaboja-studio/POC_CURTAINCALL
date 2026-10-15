@@ -2,7 +2,7 @@
 
 - **Title:** 대기실 1단계 — 8공간 그레이박스와 공연 왕복
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:** common-game-systems
 - **Current Skill:** handoff-to-member
@@ -13,7 +13,7 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 ## Workspace
 
 - **Integration:** integration/waiting-room-base
-- **Branch:** feat/waiting-room-greybox-loop (기술 준비 때 생성, 실인계 아님)
+- **Branch:** feat/waiting-room-greybox-loop
 - **Previous Task:**
 
 ## Goal
