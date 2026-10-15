@@ -65,7 +65,8 @@ namespace CurtainCall.HumanCannon
             if (poles != null)
             {
                 GUILayout.Space(8);
-                GUILayout.Label("비행 중 봉 아래 F: 잡기 / W·S: 반동 / F 길게: 놓기 도약");
+                GUILayout.Label("비행 중 봉 아래 F: 잡기 / W·S: 반동");
+                GUILayout.Label("봉에서 Space 또는 F 길게: 놓기 도약");
                 GUILayout.Label("노랑·검정 봉 유지: 연결 톱 수납 / 놓기·시간 끝·사망: 예고 후 재동작");
                 GUILayout.Label("협동: 위 봉 잡기 → 지상 담당 통과 → 너머에서 다시 받기");
                 GUILayout.Label("담당 사망: 중앙 재반동 → 공중에서 외곽 손잡이 F로 인계");

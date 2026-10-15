@@ -15,7 +15,8 @@ namespace CurtainCall.HumanCannon
             if (IsHoldingPole)
             {
                 poles.RequestSwing(HeldPole, input.Move);
-                if (latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) == CannonAction.Cancel)
+                if (input.ActionPressed ||
+                    latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) == CannonAction.Cancel)
                     poles.RequestRelease(HeldPole);
                 return true;
             }

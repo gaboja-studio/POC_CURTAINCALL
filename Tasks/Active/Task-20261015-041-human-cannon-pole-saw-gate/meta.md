@@ -5,7 +5,7 @@
 - **Status:** working
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
-- **Current Skill:** implement-code
+- **Current Skill:** submit-work
 - **Updated:** 2026-10-15
 
 ## Workspace
@@ -23,12 +23,15 @@
 ## Scope
 
 - 작업 구역·공용 파일·수정 금지는 setup.md가 기준이다. AI Setup Allowed: None.
-- 040 구현은 #93/8293bb9로 통합됐고 현재 브랜치가 da4747c로 수신했다. 040이 반환한 HumanCannon 코드·테스트 구역/씬을 이 Task에 단독 배정한다.
-- [PM 순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 진행한다. 2026-10-15 PM이 현재 041 브랜치의 다른 PC 재개용 중간 저장을 요청했다. 다른 브랜치로의 승인 문서 sync·PR은 별도다.
-- AI가 전체 코드·씬 초안을 선행 작성했으나 내부 단계별 사용자 확인은 미실행. 현재 봉 조작 확인 단계이며 전체 완료가 아니다. 자동 검사 결과는 handoff 기준이다.
+- 040 구현은 #93/8293bb9로 통합됐고 현재 브랜치가 da4747c로 수신했다. [PM 순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 HumanCannon 코드·테스트 구역/씬은 041 단독 소유이며 기존 PM 요청으로 다른 PC 재개용 중간 저장을 마쳤다.
+- AI가 전체 코드·씬 초안을 선행 작성했다. 사용자 봉 조작·Space·톱 변화 확인 완료, 관문·사망 인계 실제 확인은 4인 플레이로 연기. 최신 요청은 기존 관리 문서 포함·MPPM 제외로 041 제출, 042는 새 채팅. 자동 구역 검사 FAIL과 별도로 사용자 승인 범위를 대조하며 상세 결과는 handoff 기준이다.
 
 ## Decisions
 
+- Decided: 2026-10-15 사용자 — 이전 PM 선반영 대기를 대체하여 기존 다른 Task·PM 관리 문서를 함께 포함해 041을 제출한다. Assets38+관리/작업 문서35=73파일, 로컬 MPPM 설정3파일 제외. 042 구현·소유권 전환과 PR 병합은 하지 않는다.
+- Decided: 2026-10-15 사용자 — 채팅 세션당 한 단계만 진행한다. 이 채팅은 041 커밋/push·PR 제출까지만 마무리하며 042는 새 채팅에서 시작한다. 이번에 PR 병합·042 구현/소유권 이관은 수행하지 않는다.
+- Decided: 2026-10-15 사용자 — 관문 통과·다시 받기에 이어 사망 인계도 나중 실제 4인 플레이에서 확인하고 다음 작업을 진행한다. 두 항목을 미검증으로 유지하며 042 착수에 실제 플레이 PASS를 요구하지 않는다. 저장·PR·통합 완료를 뜻하지 않는다.
+- Decided: 2026-10-15 사용자 — 봉 점유 중 Space로 놓고 도약 가능하도록 추가. 기존 F 길게 놓기는 유지하며 공용 Action 입력을 봉 전용 처리에서 재사용한다.
 - 기준: cooperative-route.md — 봉은 잡고 있는 동안 톱 자동 수납, 별도 F hold 유지 불필요; 놓기/시간 끝/사망 뒤 예고 재동작.
 - 공용 부상·관전·종료는 읽기/재사용만 허용하며 수정은 별도 소유 Task가 필요하다.
 - Decided: CC-127 연결·2단계 제목 확인 완료. 2026-10-15 현재 사용자 PM @MoHoDu가 인계 완료·순차 실행을 승인하고 040→041 소유권을 이관했다.
