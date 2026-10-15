@@ -16,3 +16,4 @@ Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 - [unity-test-editor-open.md](unity-test-editor-open.md) — (해결 2026-10-14) batch unity test는 열린 에디터와 충돌 → verify-unity가 에디터 Pipeline run_tests로 실행. 테스트 단계가 실패하거나 테스트 실행 방식을 바꿀 때
 - [tmp-dynamic-font-churn.md](tmp-dynamic-font-churn.md) — TMP 동적 폰트 .asset이 저절로 수정됨(아틀라스 채움·비움). 폰트를 안 고쳤는데 SDF.asset이 git에 잡힐 때
 - [resources-path-after-move.md](resources-path-after-move.md) — Resources 안 폴더 이동 후 Resources.Load 경로가 깨짐, 패키지 설정 에셋은 루트 고정. Resources 하위를 옮기거나 세팅이 기본값으로 돌 때
+- [urp-light-data-churn.md](urp-light-data-churn.md) — URP 씬을 열면 Light·Camera에 추가 데이터 컴포넌트가 저절로 붙어 .unity가 바뀜. 열어 보기만 한 씬이 git에 잡힐 때

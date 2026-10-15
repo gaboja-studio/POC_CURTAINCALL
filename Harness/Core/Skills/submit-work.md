@@ -21,5 +21,6 @@ description: 작업자의 제출 요청. 검사 → 최신 통합 내용 합쳐 
    - 제목·본문을 보여 주고 **사용자 확인**을 받는다. `[문제]` 중 "-Push로 올리기" 외에는 먼저 해결한다.
 6. `setup-gh` Skill로 gh 상태를 확인한다.
 7. 등록: 5번 명령에서 `-DryRun`을 뺀다(웹페이지 방식으로 하기로 했으면 `-Browser`).
-   - 웹페이지 방식이면 사용자가 Create를 누른 뒤 PR 링크를 받아 handoff의 `PR:`을 채우고, meta Status를 `submitted`로 바꾼다.
+   - gh 등록이면 스크립트가 handoff `PR:`, meta Status, todo의 "제출해줘" 항목을 함께 기록한다.
+   - 웹페이지 방식이면 사용자가 Create를 누른 뒤 PR 링크를 받아 handoff의 `PR:`을 채우고, meta Status를 `submitted`로 바꾸고, todo의 `"제출해줘"로 PR 제출`을 `[x]`로 바꾼다.
 8. handoff를 갱신하고 `save-work`로 저장한 뒤, PR 링크를 전한다.

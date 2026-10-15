@@ -1,5 +1,4 @@
 using CurtainCall.Settings;
-using CurtainCall.Tightrope.Prototype;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -76,12 +75,12 @@ namespace CurtainCall.Player
         void OnEnable()
         {
             commonMap?.Enable();
-            TightropeInputGate.Register(this);
+            InputGate.Register(this);
         }
 
         void OnDisable()
         {
-            TightropeInputGate.Unregister(this);
+            InputGate.Unregister(this);
             commonMap?.Disable();
             ClearPendingInput();
         }
@@ -93,7 +92,7 @@ namespace CurtainCall.Player
 
         void Update()
         {
-            if (TightropeInputGate.IsBlocked)
+            if (InputGate.IsBlocked)
             {
                 ClearPendingInput();
                 return;
