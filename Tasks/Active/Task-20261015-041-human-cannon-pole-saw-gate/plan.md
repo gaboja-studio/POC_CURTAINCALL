@@ -7,7 +7,7 @@
 ## Activation
 
 1. [PM 순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md): 040 완료·소유 반환 후 041 assigned/Active Task/Allowed·씬 단독 소유로 전환했다. 추가 착수 승인 불필요.
-2. 040 최신 구현은 수신 완료. 이번 승인 문서 원격 sync는 미실행이며 실제 수신 상태를 별도로 기록한다. 커밋/push는 사용자 요청 시 수행한다.
+2. 040 최신 구현은 수신 완료. 2026-10-15 사용자 요청으로 기존 승인 문서를 함께 커밋/push하여 PR #108을 제출했다. 대상은 integration/main-stage-human-cannon이며 병합은 미실행이다.
 3. 041 구현 통합 후 담당자는 기존 PM 승인으로 042의 최신 부모 수신·단독 소유 이관·상태 문서 갱신을 수행한다. 4인 공동 검증은 전체 기능 통합 후 진행한다.
 
 ## Approach

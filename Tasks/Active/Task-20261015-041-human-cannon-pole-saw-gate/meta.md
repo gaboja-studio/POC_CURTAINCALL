@@ -2,7 +2,7 @@
 
 - **Title:** 인간 대포 2단계 — 봉과 필수 톱관문
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
 - **Current Skill:** submit-work
@@ -24,7 +24,7 @@
 
 - 작업 구역·공용 파일·수정 금지는 setup.md가 기준이다. AI Setup Allowed: None.
 - 040 구현은 #93/8293bb9로 통합됐고 현재 브랜치가 da4747c로 수신했다. [PM 순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 HumanCannon 코드·테스트 구역/씬은 041 단독 소유이며 기존 PM 요청으로 다른 PC 재개용 중간 저장을 마쳤다.
-- AI가 전체 코드·씬 초안을 선행 작성했다. 사용자 봉 조작·Space·톱 변화 확인 완료, 관문·사망 인계 실제 확인은 4인 플레이로 연기. 최신 요청은 기존 관리 문서 포함·MPPM 제외로 041 제출, 042는 새 채팅. 자동 구역 검사 FAIL과 별도로 사용자 승인 범위를 대조하며 상세 결과는 handoff 기준이다.
+- PR #108 제출 완료(2026-10-15). 기존 관리 문서 포함·MPPM 제외, 042는 새 채팅. 사용자 봉 조작·Space·톱 변화 확인 완료, 관문·사망 인계 실제 확인은 4인 플레이로 연기. 자동 구역 검사 FAIL과 별도로 사용자 승인 범위를 대조했으며 상세 결과는 handoff 기준이다.
 
 ## Decisions
 

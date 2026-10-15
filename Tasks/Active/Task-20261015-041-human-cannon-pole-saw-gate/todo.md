@@ -12,7 +12,7 @@
 - [x] plan 공동 테스트 항목 유지·전체 기능 통합 후 실행
 - [x] 최신 부모 구현 수신 확인 — #93/8293bb9 → 041 da4747c
 - [x] 041에만 Active Task/Allowed 부여 — 현재 PM 확인
-- [ ] 이번 승인·배정 문서 원격 sync — 커밋/push 요청 시 수행
+- [x] 이번 승인·배정 문서 041 원격 브랜치 보관 — 2026-10-15 사용자 포함 승인·push·PR #108 제출, 통합 브랜치 병합은 미실행
 - [x] PM의 5개 인계 완료·순차 실행 승인 기록 — 추가 인계 승인 불필요
 - [x] 담당자에게 실제 전달 — PM 확인
 
@@ -40,8 +40,8 @@
 - [x] 공용 부상·관전 읽기/재사용 확인 — 공용 코드 수정 금지
 - [ ] 구역·문서·컴파일·자동 테스트·실행 검증 및 실제 결과 기록
   - 자동 check-work는 관리 문서30+MPPM3으로 scope FAIL33·후속 SKIPPED 유지. 최신 사용자 승인 범위 별도 대조, 개별 컴파일 PASS·PlayMode NO_PROJECT_TESTS 재확인, 앞선 동일 코드 EditMode118/118 PASS. 관문·사망 인계 실제4인은 사용자 지시로 연기.
-- [ ] PR 제출 — 대상 integration/main-stage-human-cannon
-  - 2026-10-15 최신 사용자 지시로 기존 관리 문서 포함·MPPM 설정3파일 제외하여 제출한다(Assets38+문서35=73파일). 이전 PM 선반영 대기는 해제. 자동 scope FAIL은 그대로 공개하며 042 구현/소유권 전환·PR 병합은 하지 않는다.
+- [x] PR 제출 — [#108](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/108), 대상 integration/main-stage-human-cannon
+  - 2026-10-15 최신 사용자 지시로 기존 관리 문서 포함·MPPM 설정3파일 제외하여 제출 완료(Assets38+문서35=73파일). 이전 PM 선반영 대기는 해제. 자동 scope FAIL을 그대로 공개했고 042 구현/소유권 전환·PR 병합은 하지 않았다.
 
 ## PM 통합
 
