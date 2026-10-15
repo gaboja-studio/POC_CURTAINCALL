@@ -7,3 +7,4 @@
 
 - Task 생성.
 - 1단계(Active) 준비: CC-132 연결, Base 스크립트/테스트 구역·빈 씬 배정, waiting_room.unity는 Task-024 이관 대기.
+- PM 결정 반영: ⑥·⑦ 백스테이지(⑥ 테스트 대체 영역만), 1차 테스트 씬을 waiting_room.unity 복사본으로 교체, 원본 반영은 통합에서 나중.

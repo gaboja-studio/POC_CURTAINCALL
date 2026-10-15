@@ -4,8 +4,9 @@
 
 - [x] 5개 Task 문서·빈 테스트 공간 검사(verify-fast OK, hard 0) 및 준비 커밋 push — a864410
 - [x] 동일 준비 SHA에서 5개 작업 브랜치 생성·push, 4열 SHA 표 등록 — a864410 기준
-- [ ] ⑥·⑦ 위치 PM 확인 (046 착수 전)
-- [ ] Task-024 통합 → waiting_room.unity 부모 소유 반환 → 최신 부모 Merge commit 수신 → 046 이관
+- [x] ⑥·⑦ 위치 PM 확인 — 백스테이지, ⑥은 테스트 대체 통로만 (2026-10-15)
+- [x] 1차 테스트 씬 = waiting_room.unity 복사본 WaitingRoomBase.unity (2026-10-15)
+- [ ] dev PR #94(60초 소집 경보 결정) 병합 후 최신 부모 수신 — 047 개방 전
 - [ ] Task-046만 기술 배정(`assign-task.ps1 -UsePreparedBranch`), 배정 문서 Merge commit sync 수신, 실제 전달 PM 확인
 
 ## 순차 병합·다음 단계 개방
@@ -31,6 +32,7 @@
 
 - [ ] 공동 테스트 실제 통과·근거 기록 (실패/미연결은 BLOCKED 또는 후속 Task)
 - [ ] Task별 테스트 씬 처리 및 소유권 이관 이력 기록
+- [ ] WaitingRoomBase.unity → 원본 waiting_room.unity 반영 방법·시점 PM 결정(Task-024 통합 이후, 씬 병합은 담당자와 함께·AI 단독 금지)
 - [ ] integration/waiting-room-base → integration/waiting-room PR, Merge commit (dev 직행 금지)
 
 Base가 dev가 아니므로 기존 close-integration/Done 이동/브랜치 삭제 절차는 실행하지 않는다. 빈 준비 통합의 부모 반영도 하지 않는다.

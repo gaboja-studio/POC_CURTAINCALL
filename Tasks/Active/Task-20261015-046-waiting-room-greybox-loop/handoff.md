@@ -2,14 +2,14 @@
 
 ## 지금 상태
 - 단계: scaffolded — 기술 배정 전, 실제 전달 미확인.
-- 동작하는 것: 폴더/.meta·빈 테스트 씬(root 0)만 생성. 기능 구현 없음.
-- 막힌 것: ⑥·⑦ 위치 PM 확인, waiting_room.unity 이관(Task-024) 대기. 배정·실제 전달 전 착수 금지.
+- 동작하는 것: 폴더/.meta·1차 테스트 씬(waiting_room.unity 복사본)만 준비. 기능 구현 없음.
+- 막힌 것: 배정·실제 전달 전 착수 금지.
 - PR: 없음
 ## 다음 할 일
-1. PM: ⑥·⑦ 위치 확인 → Task-024 통합·이관 → 046 배정(-UsePreparedBranch) → 배정 문서 Merge commit 수신 → 실제 전달 확인.
+1. PM: 046 배정(-UsePreparedBranch) → 배정 문서 Merge commit 수신 → 실제 전달 확인.
 2. 작업자: plan 구현·검사·PR, 실제 4인 공동 테스트. 다음 단계는 integrated·실검증·소유 반환·실 Jira 뒤 개방.
 ## PM이 확인할 것
-- 확인 요청: ⑥·⑦ 위치, 실제 전달, 최종 테스트 씬 처리.
+- 확인 요청: 실제 전달, 원본 waiting_room.unity 반영 시점, 최종 테스트 씬 처리.
 - 대기 중인 결정: 없음 (2~5단계 미정 항목은 각 Task meta).
 - 공용 파일 요청: 없음. Systems/Resources 수정 권한 없음.
 ## Verification
