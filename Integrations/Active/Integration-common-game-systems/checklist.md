@@ -25,7 +25,7 @@
 13. dev → 통합 동기화 #70 (2026-10-15 Merge commit) — #65·#68(최신 공연장 기획·담당, 단계별 작업 준비 자동화) 반영
 14. 다음 할 일: ① 038+031 통합 자동 검사 완료(2026-10-15: 외부 에셋 수신·에디터 재시작으로 컴파일 복구, 문서·컴파일 PASS, EditMode 46/46·PlayMode 9/9 PASS(CameraViews 균형 제거 보완 포함), 현재 Console 오류·경고 0, 누적 서비스 오류는 result.md 참조) → ② 038 공동 테스트 PASS·integrated·소유 반납 완료, 테스트 씬 유지(기존 PM 방침) → ③ 035 인계 준비: 4개 독립 빈 씬 생성·저장·재열기 검증 완료(10-15 사용자 Play 종료 후, .meta/GUID·각 root/Missing 0·dirty false, 빌드 미추가), 컴파일 PASS. 이전 assign-task WhatIf FAIL(원격 준비 표 누락) 후 PM 이력 확인·표 복원, 10-15 사용자 승인으로 준비 저장·기술 점검 PASS·sync #82 수신 완료(6efc65c, 통합 0107af8과 tree 일치, 로컬/원격 feat/dummy-spaces 일치). 수신 후기는 통합에만 기록, 구현·담당자 실제 전달은 별도 → ④ 032 준비(씬 전환 방식). 031 설정 가이드는 2026-10-16 재개 예정, dev 반영 후 Done 처리.
 
-- 10-15 추가 이슈: 1인칭 기본 이동은 카메라 수평 기준 W/S·3인칭 유지로 사용자 확정. 공용 이동의 시선 연결 누락을 코드 조사로 확인, 별도 fix Task-045 / fix/first-person-movement, Jira CC-131로 준비·미구현(`first-person-movement-issue.md`). 035 구현 범위에 섞지 않는다.
+- 10-15 추가 이슈: 1인칭 기본 이동은 카메라 수평 기준 W/S·3인칭 유지로 사용자 확정. 공용 이동의 시선 연결 누락을 코드 조사로 확인, 별도 fix Task-045 / fix/first-person-movement, Jira CC-131 정식 배정·sync #83 수신 완료(10-15, 42779cc, 기준 71cb485)·미구현(`first-person-movement-issue.md`). 035 구현 범위에 섞지 않는다.
 
 ## PR 하나를 병합할 때마다
 

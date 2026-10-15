@@ -30,5 +30,5 @@
 
 ## 상태
 
-- 원인 조사 완료. 사용자 요청(10-15)에 따라 Task-20261015-045 / fix/first-person-movement 준비, Jira CC-131 등록(https://hrjoo122770.atlassian.net/browse/CC-131). 전용 빈 씬·좁은 수정 구역·공동 테스트 초안 마련. scaffolded 유지, 정식 배정·구현·실제 키 입력 재현은 미실행.
+- 원인 조사 완료. 사용자 요청(10-15)에 따라 Task-20261015-045 / fix/first-person-movement 준비, Jira CC-131 등록(https://hrjoo122770.atlassian.net/browse/CC-131). 전용 빈 씬·좁은 수정 구역·공동 테스트 3개 확정. 10-15 PM 사용자 정식 배정 요청으로 assigned(71cb485), sync #83 Merge 수신 완료(42779cc). 구현·실제 키 입력 재현·담당자 실제 전달 확인은 미실행.
 - 038 기존 공동 테스트 PASS는 시점/모델/관전 범위로 유지하며, FPS 이동 완료로 해석하지 않는다.

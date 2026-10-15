@@ -29,7 +29,7 @@ source: human (2026-10-08·10-15 PM @MoHoDu, 장소 10454669·게임 흐름 1556
 - `Assets/Resources/`는 모든 공간 공용이다. 공간 Task가 Resources 하위 폴더를 고치려면 해당 통합의 공용 파일 소유 표로 배정받는다.
 - 2026-10-09 / PM: 맵 배치 씬에는 둘러보기용 `PlaySetup`(Player·임시 바닥)과 Main Camera의 1인칭 카메라(`Assets/Scripts/Systems/LevelPreview/`, 내 모델 숨김)를 둔다. 게임 기능이 아니며, 바닥을 만들면 `TempFloor`는 지워도 된다. 공간 Task는 별도 에셋 폴더 없이 `Assets/_ThirdParty/` 에셋을 맵 배치 씬에 바로 배치한다.
 - 외줄 묘기(기존 프로토타입)는 공연장 소속이다: `Assets/Scripts/MainStage/Tightrope/`, `Assets/Scenes/Tests/MainStage/Tightrope/`.
-- 2026-10-13 / PM(장소 기획 10454669·게임 흐름 기획 8장): 하위 구역 — 공연장 = 메인 무대·관중석, 대기실 = 단원 대기실·소품실·복도(무대 입구 통로는 복도의 공연장 쪽 끝), 백스테이지 = 대기실·공연장·탈출로를 잇는 탐색 공간, 탈출로 = 구 공연장·하역장. 공연장의 묘기는 한 씬에서 묘기별 프리팹을 바꿔 생성한다. 런 상태·장소 전환·공간 간 규칙은 시스템 담당(@MoHoDu, `Assets/Scripts/Systems/`).
+- 2026-10-13 / PM(장소 기획 10454669·게임 흐름 기획 8장): 하위 구역 — 공연장 = 메인 무대·관중석, 대기실 = 단원 대기실·소품실·복도(2026-10-15 PM: 무대 입구 통로부터는 백스테이지, [대기실 결정](Waiting-room/index.md)), 백스테이지 = 대기실·공연장·탈출로를 잇는 탐색 공간, 탈출로 = 구 공연장·하역장. 공연장의 묘기는 한 씬에서 묘기별 프리팹을 바꿔 생성한다. 런 상태·장소 전환·공간 간 규칙은 시스템 담당(@MoHoDu, `Assets/Scripts/Systems/`).
 - 참고: 공간 분리 문서(Confluence `bYmkRlnpusng/pages/10454669`).
 
 ## 이유

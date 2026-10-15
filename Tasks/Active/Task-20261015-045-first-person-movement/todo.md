@@ -6,7 +6,7 @@
 - [x] `plan.md` 공동 테스트 초안 3개 작성
 - [x] `plan.md` 공동 테스트 항목 합의 (2026-10-15 PM 정식 배정 요청, 기존 3개 항목 확정)
 - [x] 인계 전 기술 점검 완료
-- [x] 최신 배정 문서 작업 브랜치 수신
+- [x] 최신 배정 문서 작업 브랜치 수신 (2026-10-15 #83 Merge commit 42779cc, 통합 71cb485과 tree 일치. 수신 후기는 통합 기록에만 추가)
 - [x] 담당자에게 실제 전달 — PM 확인
 
 ## 작업자
@@ -24,7 +24,7 @@
   - [x] FreeThirdPerson.asset, FirstPersonMovement 테스트 씬(1인칭·비고정 구역, 가장자리 벽)
   - [x] PlayMode 비고정 회귀 추가(14/14)
   - [x] 수정 후 사람 실입력 확인(1인칭 W/S/A/D·3인칭)
-  - [ ] proto_0.0.2 외줄 조작 사람 확인
+  - [x] proto_0.0.2 외줄·플랫폼·점프 확인(10-15 AI 플레이, 기존 경로 유지)
 - [x] EditMode·PlayMode 회귀 추가, "검사해줘" 통과
   - [x] ControlRulesTests 9개 추가(14/14 PASS)
   - [x] CameraViewsPlayTests 5개 추가, 기존 9개 유지(14/14 PASS)
@@ -34,7 +34,8 @@
   - [x] 범위 확대 후 check-work -Mode PlayMode (구역·문서·컴파일 PASS, PlayMode 14/14, EditMode 전체 55/55)
 - [ ] 기능 완성 후 사람 확인 한 번에(FirstPersonMovement 씬 + proto_0.0.2 외줄 + 공동 테스트)
   - [x] FirstPersonMovement 씬 최종 확인(10-15 사용자 "아주 잘된다 이대로 좋아")
-  - [ ] proto_0.0.2 외줄·공동 테스트 1~3
+  - [x] proto_0.0.2 외줄·공동 테스트 1~2
+  - [ ] 공동 테스트 3(호스트 A·참가 B 2명)
 - [ ] "제출해줘"로 소속 통합에 Squash PR 제출
 
 ## PM 통합
