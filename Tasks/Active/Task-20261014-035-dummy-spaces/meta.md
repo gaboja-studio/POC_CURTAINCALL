@@ -2,7 +2,7 @@
 
 - **Title:** 공통 게임 시스템 검증용 더미 공간
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** 공통 게임 시스템 (`Docs/Domains/common-game-systems.md`)
 - **Current Skill:** submit-work
