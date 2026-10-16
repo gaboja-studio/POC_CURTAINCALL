@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4854d3686f60a034293c4ac7e7be59f7, type: 3}
+  m_Name: temporary-reward
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Reward.TemporaryRewardTable
+  cheer: 10
+  jeer: 5
+  difficultyOneCap: 100
+  difficultyTwoCap: 150
+  difficultyThreeCap: 200
+  allSurvivedBonus: 0
+  cutBonus: 0

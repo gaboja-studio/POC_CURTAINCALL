@@ -1,0 +1,8 @@
+{
+    "name": "CurtainCall.PerformanceReward.EditModeTests",
+    "rootNamespace": "CurtainCall.Reward.Tests",
+    "references": ["CurtainCall.PerformanceReward.Core", "CurtainCall.PerformanceResults"],
+    "includePlatforms": ["Editor"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}
