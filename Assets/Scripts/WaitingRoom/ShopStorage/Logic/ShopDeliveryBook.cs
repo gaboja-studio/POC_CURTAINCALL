@@ -126,6 +126,15 @@ namespace CurtainCall.WaitingRoom
             return ShopRefusal.None;
         }
 
+        /// <summary>세대 교체: 배송구·수령 기록을 비우되 주문 번호는 이어 간다(물려줄 선반 기물 번호와 겹치지 않게).</summary>
+        public void ClearRun()
+        {
+            if (waiting.Count == 0 && receipts.Count == 0) return;
+            waiting.Clear();
+            receipts.Clear();
+            Revision++;
+        }
+
         public void Clear()
         {
             if (waiting.Count == 0 && receipts.Count == 0 && lastOrder == 0) return;

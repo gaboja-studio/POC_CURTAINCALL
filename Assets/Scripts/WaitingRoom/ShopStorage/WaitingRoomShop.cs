@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
-using CurtainCall.Network.Session;
 using CurtainCall.Reward;
-using Unity.Collections;
-using Unity.Netcode;
 using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
@@ -13,14 +11,11 @@ namespace CurtainCall.WaitingRoom
     /// ③ 상점의 공개 진입점: 수화기 구매 → 배송구 수령. 다른 기능은 이 컴포넌트만 쓴다.
     /// 판정은 공동 자금과 같은 화면(호스트 또는 오프라인 런, <see cref="PerformanceRewards.HasAuthority"/>)이 한다.
     /// 참가자는 요청만 보내고, 판정 화면이 배송구 상태를 모두에게 보낸다. 잔액·장부는 공용 공동 자금이 모두에게 같게 보낸다.
-    /// 품목·가격은 임시값(M1 범위 밖)이다.
+    /// 받은 물건은 <see cref="PropCarry"/>가 손에 들린다(한도를 넘으면 받지 못한다). 품목·가격은 임시값(M1 범위 밖)이다.
+    /// 런 동안 남도록 씬이 바뀌어도 유지된다(DontDestroyOnLoad, 씬 최상위에 둔다). 화면 표시(수화기·배송구)는 대기실 씬에 둔다.
     /// </summary>
     public sealed class WaitingRoomShop : MonoBehaviour
     {
-        const string StateMessage = "CurtainCall.WaitingRoom.Shop.State";
-        const string RequestMessage = "CurtainCall.WaitingRoom.Shop.Request";
-        const string ResultMessage = "CurtainCall.WaitingRoom.Shop.Result";
-        const int MaxPayloadBytes = 16 * 1024;
         const int SyncRequest = 0, BuyRequest = 1, ClaimRequest = 2;
 
         [Serializable]
@@ -29,6 +24,8 @@ namespace CurtainCall.WaitingRoom
             public string id;
             public string name;
             [Min(1)] public long price = 1;
+            [Tooltip("받으면 메는 배낭(칸을 차지하지 않고 소지 한도 +). 한 사람 한 개.")]
+            public bool backpack;
         }
 
         [Header("임시값 — 정식 품목·가격 아님(M1 범위 밖)")]
@@ -37,6 +34,7 @@ namespace CurtainCall.WaitingRoom
             new Entry { id = "tool-a", name = "임시 공연 도구 A", price = 10 },
             new Entry { id = "tool-b", name = "임시 공연 도구 B", price = 15 },
             new Entry { id = "escape", name = "임시 탈출 도구", price = 20 },
+            new Entry { id = "backpack", name = "임시 배낭", price = 25, backpack = true },
         };
 
         [Tooltip("배송구 바닥에 동시에 놓일 수 있는 최대 개수(메시지 크기 보호용 임시값).")]
@@ -45,16 +43,13 @@ namespace CurtainCall.WaitingRoom
         public static WaitingRoomShop Instance { get; private set; }
 
         readonly List<ShopItem> catalog = new();
+        readonly HashSet<string> backpackIds = new();
         readonly List<ShopDelivery> receivedWaiting = new();
         readonly List<ShopReceipt> receivedReceipts = new();
-        readonly Dictionary<ulong, float> requestTimes = new();
         ShopDeliveryBook book;
         PerformanceRewards rewards;
-        NetworkSessionManager session;
-        CustomMessagingManager messaging;
-        bool messagingHost;
-        float nextSync;
-        bool synced;
+        ShopChannel channel;
+        int seenGeneration;
 
         /// <summary>판매 품목(임시값).</summary>
         public IReadOnlyList<ShopItem> Catalog => catalog;
@@ -80,53 +75,78 @@ namespace CurtainCall.WaitingRoom
         /// <summary>내 요청이 판정됐다(성공 여부, 안내 문구).</summary>
         public event Action<bool, string> RequestAnswered;
 
+        /// <summary>받으면 메는 배낭 품목인지.</summary>
+        public bool IsBackpack(string itemId) => itemId != null && backpackIds.Contains(itemId);
+
         void Awake()
         {
+            // 대기실 씬이 다시 열리면 씬에 놓인 사본은 버리고, 런 동안 남아 있던 상점을 그대로 쓴다.
             if (Instance != null && Instance != this)
             {
-                Debug.LogWarning("[Shop] 상점이 둘 이상입니다. 나중 것은 끕니다.", this);
-                enabled = false;
+                Destroy(gameObject);
                 return;
             }
             Instance = this;
+            if (transform.parent == null) DontDestroyOnLoad(gameObject);
+            else Debug.LogWarning("[Shop] 상점은 씬 최상위 오브젝트에 둬야 장소 전환 뒤에도 남습니다.", this);
             book = new ShopDeliveryBook(slotCapacity);
             foreach (var entry in items)
-                if (entry != null && !string.IsNullOrEmpty(entry.id) && entry.price > 0)
-                    catalog.Add(new ShopItem(entry.id, string.IsNullOrEmpty(entry.name) ? entry.id : entry.name, entry.price));
+            {
+                if (entry == null || string.IsNullOrEmpty(entry.id) || entry.price <= 0) continue;
+                catalog.Add(new ShopItem(entry.id, string.IsNullOrEmpty(entry.name) ? entry.id : entry.name, entry.price));
+                if (entry.backpack) backpackIds.Add(entry.id);
+            }
+            channel = new ShopChannel("CurtainCall.WaitingRoom.Shop", HandleRequest, HandleState, HandleResult, HandleReset,
+                () => channel.Request(JsonUtility.ToJson(new RequestData { kind = SyncRequest })));
         }
 
         void OnDestroy()
         {
-            Unregister();
-            if (session != null) session.ConnectionStateChanged -= HandleConnection;
+            channel?.Dispose();
             if (rewards != null) rewards.Changed -= NotifyChanged;
             if (Instance == this) Instance = null;
         }
 
         void Update()
         {
-            Bind();
-            if (session != null && session.ConnectionState == SessionConnectionState.Client
-                && Time.unscaledTime >= nextSync)
+            if (rewards == null)
             {
-                // 늦게 들어왔거나 상태를 놓쳤을 때 다시 받는다. 받은 뒤에는 드물게만 확인한다.
-                nextSync = Time.unscaledTime + (synced ? 10f : 1f);
-                Send(SyncRequest, null, 0);
+                rewards = PerformanceRewards.EnsureExists();
+                rewards.Changed += NotifyChanged;
             }
+            channel.Update();
+            WatchGeneration();
+        }
+
+        // 세대 교체(런 실패) 때 배송구를 비운다. 공동 자금은 공용 보상 시스템이 초기화한다.
+        void WatchGeneration()
+        {
+            var run = CampaignRun.Instance;
+            if (run == null || !HasAuthority) return;
+            int generation = run.State.Generation;
+            if (seenGeneration > 0 && generation > seenGeneration)
+            {
+                book.ClearRun();
+                Debug.Log($"[Shop] 세대 교체 {seenGeneration} → {generation}: 배송구를 비웠습니다.");
+                Publish();
+            }
+            if (generation > 0) seenGeneration = generation;
         }
 
         /// <summary>수화기로 품목을 주문한다. 결과는 <see cref="RequestAnswered"/>로 온다.</summary>
         public void RequestPurchase(string itemId)
         {
-            if (HasAuthority) Answer(LocalClientId, Buy(itemId, LocalClientId));
-            else if (!Send(BuyRequest, itemId, 0)) Answer(LocalClientId, (false, "접속 중이 아니라 주문할 수 없습니다."));
+            if (HasAuthority) Answer(channel.LocalClientId, Buy(itemId, channel.LocalClientId));
+            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = BuyRequest, item = itemId })))
+                Answer(channel.LocalClientId, (false, "접속 중이 아니라 주문할 수 없습니다."));
         }
 
         /// <summary>배송구의 물건을 받는다. 같은 물건은 먼저 요청한 한 명만 받는다.</summary>
         public void RequestClaim(int order)
         {
-            if (HasAuthority) Answer(LocalClientId, Claim(order, LocalClientId));
-            else if (!Send(ClaimRequest, null, order)) Answer(LocalClientId, (false, "접속 중이 아니라 받을 수 없습니다."));
+            if (HasAuthority) Answer(channel.LocalClientId, Claim(order, channel.LocalClientId));
+            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = ClaimRequest, order = order })))
+                Answer(channel.LocalClientId, (false, "접속 중이 아니라 받을 수 없습니다."));
         }
 
         /// <summary>화면 표시용 이름(접속 슬롯 기준).</summary>
@@ -137,9 +157,6 @@ namespace CurtainCall.WaitingRoom
                     return player.Slot >= 0 ? $"플레이어 {player.Slot + 1}" : $"플레이어 #{clientId}";
             return NetworkPlayer.All.Count == 0 ? "나" : $"플레이어 #{clientId}";
         }
-
-        ulong LocalClientId => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
-            ? session.NetworkManager.LocalClientId : NetworkManager.ServerClientId;
 
         (bool, string) Buy(string itemId, ulong buyer)
         {
@@ -152,11 +169,23 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) Claim(int order, ulong claimer)
         {
+            // 손에 들 수 있는지 먼저 본다. 못 들면 배송구에 그대로 남는다.
+            int index = -1;
+            for (int i = 0; i < book.Waiting.Count; i++) if (book.Waiting[i].Order == order) { index = i; break; }
+            var carry = PropCarry.Instance;
+            if (index >= 0 && carry != null)
+            {
+                var carryRefusal = carry.CanReceive(claimer, IsBackpack(book.Waiting[index].ItemId));
+                if (carryRefusal != CarryRefusal.None) return (false, PropCarry.Explain(carryRefusal));
+            }
+
             var refusal = book.Claim(order, claimer, out var delivery);
             if (refusal != ShopRefusal.None) return (false, Explain(refusal));
+            bool backpack = IsBackpack(delivery.ItemId);
+            if (carry != null) carry.Receive(claimer, new PropItem(delivery.Order, delivery.ItemId, delivery.ItemName), backpack);
             Debug.Log($"[Shop] 수령 #{delivery.Order} {delivery.ItemName} → {PlayerLabel(claimer)}");
             Publish();
-            return (true, $"{delivery.ItemName} 수령");
+            return (true, backpack ? $"{delivery.ItemName}을 멨습니다." : $"{delivery.ItemName} 수령");
         }
 
         static string Explain(ShopRefusal refusal) => refusal switch
@@ -170,169 +199,67 @@ namespace CurtainCall.WaitingRoom
 
         void Answer(ulong target, (bool ok, string text) result)
         {
-            if (target == LocalClientId || messaging == null)
+            if (target == channel.LocalClientId || !channel.IsHost)
             {
                 LastMessage = result.text;
                 RequestAnswered?.Invoke(result.ok, result.text);
                 return;
             }
-            Write(ResultMessage, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text }), target);
-        }
-
-        // ---- 연결 ----
-
-        void Bind()
-        {
-            if (rewards == null)
-            {
-                rewards = PerformanceRewards.EnsureExists();
-                rewards.Changed += NotifyChanged;
-            }
-            if (session == null)
-            {
-                session = NetworkSessionManager.EnsureExists();
-                if (session != null) session.ConnectionStateChanged += HandleConnection;
-            }
-            var next = session != null && (session.ConnectionState == SessionConnectionState.Host
-                || session.ConnectionState == SessionConnectionState.Client) ? session.NetworkManager?.CustomMessagingManager : null;
-            bool host = session != null && session.IsHost;
-            if (next == messaging && messagingHost == host) return;
-            Unregister();
-            messaging = next;
-            messagingHost = host;
-            if (messaging == null) return;
-            if (host) messaging.RegisterNamedMessageHandler(RequestMessage, HandleRequest);
-            else
-            {
-                messaging.RegisterNamedMessageHandler(StateMessage, HandleState);
-                messaging.RegisterNamedMessageHandler(ResultMessage, HandleResult);
-                synced = false;
-                nextSync = 0;
-            }
-        }
-
-        void Unregister()
-        {
-            if (messaging == null) return;
-            if (messagingHost) messaging.UnregisterNamedMessageHandler(RequestMessage);
-            else
-            {
-                messaging.UnregisterNamedMessageHandler(StateMessage);
-                messaging.UnregisterNamedMessageHandler(ResultMessage);
-            }
-            messaging = null;
-        }
-
-        void HandleConnection(SessionConnectionState connection)
-        {
-            // 방이 바뀌면 이전 방의 배송구를 남기지 않는다.
-            book.Clear();
-            receivedWaiting.Clear();
-            receivedReceipts.Clear();
-            requestTimes.Clear();
-            synced = false;
-            LastMessage = "";
-            NotifyChanged();
+            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text }));
         }
 
         void Publish()
         {
-            if (messaging != null && session != null && session.IsHost) Write(StateMessage, JsonUtility.ToJson(StateData.From(book)), null);
+            channel.SendState(JsonUtility.ToJson(StateData.From(book)));
             NotifyChanged();
         }
 
         void NotifyChanged() => Changed?.Invoke();
 
-        bool Send(int kind, string itemId, int order)
-        {
-            if (messaging == null || session == null || session.ConnectionState != SessionConnectionState.Client) return false;
-            return Write(RequestMessage, JsonUtility.ToJson(new RequestData { kind = kind, item = itemId, order = order }),
-                NetworkManager.ServerClientId);
-        }
+        // ---- 메시지 ----
 
-        bool Write(string message, string json, ulong? target)
+        void HandleRequest(ulong sender, string json)
         {
-            int size = FastBufferWriter.GetWriteSize(json);
-            if (size > MaxPayloadBytes) { Debug.LogError("[Shop] 배송구 상태가 메시지 상한을 넘었습니다."); return false; }
-            try
+            if (!HasAuthority) return;
+            var request = JsonUtility.FromJson<RequestData>(json);
+            if (request == null) return;
+            switch (request.kind)
             {
-                using var writer = new FastBufferWriter(size, Allocator.Temp);
-                writer.WriteValueSafe(json);
-                if (target.HasValue) messaging.SendNamedMessage(message, target.Value, writer, NetworkDelivery.ReliableSequenced);
-                else messaging.SendNamedMessageToAll(message, writer, NetworkDelivery.ReliableSequenced);
-                return true;
-            }
-            catch (Exception error)
-            {
-                Debug.LogException(error);
-                return false;
+                case SyncRequest: channel.SendState(JsonUtility.ToJson(StateData.From(book)), sender); break;
+                case BuyRequest: Answer(sender, Buy(request.item, sender)); break;
+                case ClaimRequest: Answer(sender, Claim(request.order, sender)); break;
             }
         }
 
-        static bool InvalidMessage(Exception error) =>
-            error is OverflowException || error is ArgumentException || error is IndexOutOfRangeException;
-
-        void HandleRequest(ulong sender, FastBufferReader reader)
+        void HandleState(string json)
         {
-            if (!HasAuthority || reader.Length > 1024 || !IsConnected(sender)) return;
-            if (requestTimes.TryGetValue(sender, out float last) && Time.unscaledTime - last < .2f) return;
-            requestTimes[sender] = Time.unscaledTime;
-            try
-            {
-                reader.ReadValueSafe(out string json);
-                var request = JsonUtility.FromJson<RequestData>(json);
-                if (request == null) return;
-                switch (request.kind)
-                {
-                    case SyncRequest: Write(StateMessage, JsonUtility.ToJson(StateData.From(book)), sender); break;
-                    case BuyRequest: Answer(sender, Buy(request.item, sender)); break;
-                    case ClaimRequest: Answer(sender, Claim(request.order, sender)); break;
-                }
-            }
-            catch (Exception error) when (InvalidMessage(error)) { Debug.LogWarning("[Shop] 잘못된 상점 요청을 거절했습니다."); }
-        }
-
-        void HandleState(ulong sender, FastBufferReader reader)
-        {
-            if (sender != NetworkManager.ServerClientId || reader.Length > MaxPayloadBytes) return;
-            StateData state;
-            try
-            {
-                reader.ReadValueSafe(out string json);
-                state = JsonUtility.FromJson<StateData>(json);
-            }
-            catch (Exception error) when (InvalidMessage(error)) { Debug.LogWarning("[Shop] 잘못된 배송구 상태를 무시했습니다."); return; }
+            var state = JsonUtility.FromJson<StateData>(json);
             if (state == null) return;
             receivedWaiting.Clear();
             foreach (var d in state.waiting ?? Array.Empty<DeliveryData>()) receivedWaiting.Add(d.Read());
             receivedReceipts.Clear();
             foreach (var r in state.receipts ?? Array.Empty<ReceiptData>()) receivedReceipts.Add(new ShopReceipt(r.delivery.Read(), r.claimer));
-            synced = true;
             NotifyChanged();
         }
 
-        void HandleResult(ulong sender, FastBufferReader reader)
+        void HandleResult(string json)
         {
-            if (sender != NetworkManager.ServerClientId || reader.Length > 1024) return;
-            ResultData result;
-            try
-            {
-                reader.ReadValueSafe(out string json);
-                result = JsonUtility.FromJson<ResultData>(json);
-            }
-            catch (Exception error) when (InvalidMessage(error)) { return; }
+            var result = JsonUtility.FromJson<ResultData>(json);
             if (result == null) return;
             LastMessage = result.text;
             RequestAnswered?.Invoke(result.ok, result.text);
         }
 
-        bool IsConnected(ulong clientId)
+        void HandleReset()
         {
-            var manager = session?.NetworkManager;
-            return manager != null && manager.ConnectedClients.ContainsKey(clientId);
+            // 방이 바뀌면 이전 방의 배송구를 남기지 않는다.
+            book.Clear();
+            receivedWaiting.Clear();
+            receivedReceipts.Clear();
+            seenGeneration = 0;
+            LastMessage = "";
+            NotifyChanged();
         }
-
-        // ---- 메시지 형식 ----
 
         [Serializable] sealed class RequestData { public int kind; public string item; public int order; }
         [Serializable] sealed class ResultData { public bool ok; public string text; }

@@ -147,6 +147,23 @@ namespace CurtainCall.WaitingRoom.Tests
         }
 
         [Test]
+        public void 세대_교체는_배송구를_비우고_번호는_이어_간다()
+        {
+            var book = new ShopDeliveryBook(8);
+            var funds = new Funds(100);
+            book.Order(Catalog, "tool-a", 1, funds.Pay, out _);
+            book.Order(Catalog, "tool-a", 1, funds.Pay, out var claimed);
+            book.Claim(claimed.Order, 1, out _);
+
+            book.ClearRun();
+
+            Assert.AreEqual(0, book.Waiting.Count);
+            Assert.AreEqual(0, book.Receipts.Count);
+            book.Order(Catalog, "tool-a", 1, funds.Pay, out var next);
+            Assert.AreEqual(3, next.Order);
+        }
+
+        [Test]
         public void 장부_설명은_공용_장부_길이_제한을_넘지_않는다()
         {
             var item = new ShopItem("long", new string('가', 200), 1);

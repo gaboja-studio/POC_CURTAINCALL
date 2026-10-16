@@ -337008,6 +337008,69 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1030982707, guid: abc00000000012954492556767979149, type: 3}
   m_PrefabInstance: {fileID: 1170838458}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1170942097
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1170942098}
+  - component: {fileID: 1170942099}
+  - component: {fileID: 1170942100}
+  m_Layer: 0
+  m_Name: ShopStorageViews
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1170942098
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1170942097}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1170942099
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1170942097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef0af07ae72ed4684b514e3971775fb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.SharedFundsView
+  show: 1
+  ledgerLines: 5
+  receiptLines: 3
+--- !u!114 &1170942100
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1170942097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 118f72f245caa48b0b7d03816db736ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FloorPropsView
+  reach: 1
+  itemSize: 0.25
+  color: {r: 0.55, g: 0.85, b: 1, a: 1}
 --- !u!1001 &1171698569
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -373719,7 +373782,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1295052021}
   - component: {fileID: 1295052022}
-  - component: {fileID: 1295052023}
+  - component: {fileID: 1295052024}
   m_Layer: 0
   m_Name: ShopStorage
   m_TagString: Untagged
@@ -373758,14 +373821,21 @@ MonoBehaviour:
   - id: tool-a
     name: "\uC784\uC2DC \uACF5\uC5F0 \uB3C4\uAD6C A"
     price: 10
+    backpack: 0
   - id: tool-b
     name: "\uC784\uC2DC \uACF5\uC5F0 \uB3C4\uAD6C B"
     price: 15
+    backpack: 0
   - id: escape
     name: "\uC784\uC2DC \uD0C8\uCD9C \uB3C4\uAD6C"
     price: 20
+    backpack: 0
+  - id: backpack
+    name: "\uC784\uC2DC \uBC30\uB0AD"
+    price: 25
+    backpack: 1
   slotCapacity: 8
---- !u!114 &1295052023
+--- !u!114 &1295052024
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -373774,12 +373844,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1295052020}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef0af07ae72ed4684b514e3971775fb7, type: 3}
+  m_Script: {fileID: 11500000, guid: 802d49f0960bf473db2ab1bb90ca2d04, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.SharedFundsView
-  show: 1
-  ledgerLines: 5
-  receiptLines: 3
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.PropCarry
+  floorCapacity: 32
+  dropAhead: 0.45
+  showHud: 1
 --- !u!1001 &1295596079
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -376139,6 +376209,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1305409782}
+  - component: {fileID: 1305409783}
   m_Layer: 0
   m_Name: HandoverShelf_4Tier
   m_TagString: Untagged
@@ -376163,6 +376234,22 @@ Transform:
   - {fileID: 1375441557}
   m_Father: {fileID: 1217178835}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1305409783
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1305409781}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aafbcb6479d144f76b65fea3e694a55d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.HandoverShelfView
+  reach: 1.2
+  itemSize: 0.25
+  color: {r: 0.7, g: 1, b: 0.6, a: 1}
+  boards: []
 --- !u!1 &1305436590
 GameObject:
   m_ObjectHideFlags: 0
@@ -611768,3 +611855,4 @@ SceneRoots:
   - {fileID: 1643102881}
   - {fileID: 1012572038}
   - {fileID: 1295052021}
+  - {fileID: 1170942098}
