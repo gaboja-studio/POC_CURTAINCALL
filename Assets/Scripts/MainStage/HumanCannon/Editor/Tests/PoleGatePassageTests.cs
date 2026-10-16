@@ -119,6 +119,40 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(gate.Phase, Is.EqualTo(PoleSawPhase.Active));
         }
 
+        [TestCase(0f)]
+        [TestCase(6f)]
+        public void RetractedSawStaysBelowGroundAndWarningReturnsToCarrierHeight(float floorHeight)
+        {
+            gateObject.transform.position = Vector3.up * floorHeight;
+            var visual = new GameObject("SawVisual").transform;
+            visual.SetParent(gateObject.transform, false);
+            visual.localPosition = new Vector3(0f, 1.2f, -0.4f);
+            var barrier = new GameObject("Barrier").AddComponent<BoxCollider>();
+            barrier.transform.SetParent(gateObject.transform, false);
+            barrier.center = Vector3.up * 1.2f;
+            barrier.size = new Vector3(30f, 2.4f, 0.6f);
+            typeof(HumanCannonSawGate).GetField("sawVisual", InternalInstance).SetValue(gate, visual);
+            typeof(HumanCannonSawGate).GetField("barrier", InternalInstance).SetValue(gate, barrier);
+            typeof(HumanCannonSawGate).GetMethod("Awake", InternalInstance).Invoke(gate, null);
+
+            Present(PoleSawPhase.Active, false);
+            Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
+            Assert.That(barrier.enabled, Is.True);
+
+            Present(PoleSawPhase.Retracted, false);
+            // 회전하는 3.2m 톱의 끝까지 바닥 아래에 있어야 봉 사용자의 길을 침범하지 않는다.
+            Assert.That(visual.position.y + 1.61f, Is.LessThan(floorHeight));
+            Assert.That(barrier.enabled, Is.False);
+
+            Present(PoleSawPhase.Warning, true);
+            Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
+            Assert.That(barrier.enabled, Is.False, "예고 중에는 지상 담당자에게 피해를 주지 않는다.");
+
+            Present(PoleSawPhase.Active, true);
+            Assert.That(barrier.enabled, Is.True);
+            Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
+        }
+
         void Present(PoleSawPhase phase, bool passed)
         {
             typeof(HumanCannonSawGate).GetMethod("Present", InternalInstance)

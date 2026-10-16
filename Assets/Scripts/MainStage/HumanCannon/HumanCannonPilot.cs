@@ -34,7 +34,7 @@ namespace CurtainCall.HumanCannon
         Quaternion returnRotation;
         bool hasReturnPose;
         public bool IsFlying { get; private set; }
-        public bool IsDriving => stationIndex >= 0 || IsFlying || groundRequest.Pending;
+        public bool IsDriving => stationIndex >= 0 || IsFlying || groundRequest.Pending || onTransport;
 
         internal void Initialize(HumanCannonSystem owner, NetworkPlayer local)
         {
@@ -56,6 +56,7 @@ namespace CurtainCall.HumanCannon
             if (system == null || player.State != PlayerState.Normal || InputGate.IsBlocked) return;
             if (groundRequest.Pending || awaitingLanding) return;
             if (ReadPoleInput(input)) return;
+            if (HumanCannonRouteSystem.Current != null && HumanCannonRouteSystem.Current.ReadInput(player, input)) return;
             var trampoline = HumanCannonTrampoline.Current;
             if (trampoline != null && trampoline.Carrier == player.OwnerClientId)
             {
@@ -180,6 +181,7 @@ namespace CurtainCall.HumanCannon
             }
             stationIndex = -1;
             HeldPole = -1;
+            onTransport = false;
             groundRequest.Cancel();
             sampledGroundJump = false;
             flightStationIndex = -1;

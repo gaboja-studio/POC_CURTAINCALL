@@ -2,10 +2,9 @@
 
 ## 현재 결과
 - 2026-10-15 현재 사용자 PM @MoHoDu 확인: 040~044 전부 @RagSpirin 인계 완료·순차 실행 승인. [결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 추가 인계·착수 승인 불필요.
-- 040은 #93/8293bb9 통합 완료, 041은 da4747c로 최신 구현 수신. 040 구역/씬 반환·041 working/Active Task/단독 소유다. 042~044는 승인 완료·기술 순번 대기다.
-- 041 전체 코드·씬 초안을 먼저 작성했으나 PM이 내부 기능도 순서대로 구현하도록 정정했다. 현재 봉 조작 확인 단계, 후속은 미확인 초안. 기존 컴파일·EditMode 113/113 PASS는 사용자 확인을 대체하지 않는다. [041 handoff](../../../Tasks/Active/Task-20261015-041-human-cannon-pole-saw-gate/handoff.md). 4인 검증·통합/다른 브랜치 sync·041 PR은 미실행.
-- 이후 PM 요청: 다른 PC 재개를 위해 현재 041 브랜치에 중간 저장한다. 봉 조작 확인 단계 유지, integration·다른 준비 브랜치로의 sync/병합·041 PR은 별도다. 실제 저장 commit은 해당 브랜치 Git 이력 기준이다.
-- 인계 문서만 바꾼 당시 검증: verify-fast PASS(hard0/범위 밖 기존 WARN5)·diff --check PASS, 31개 문서. 5Task 담당/실제 전달·상태·Allowed 0/3/0/0/0·041 Active/씬 소유·경로/.meta 일관성 PASS. 원격 착수 gate는 미실행.
+- 040 #93/8293bb9·041 #108/292667c 통합 완료. 2026-10-16 042 dae56af 수신 후 042 단독 소유로 전환했다. 043~044는 기술 순번 대기다.
+- 042 전체 코드·씬 구현 후 human-verify. 트램폴린 담당자1인 자동 승강/양문 함정/쉼터 전원 합류/색상 조건 반영. 컴파일·EditMode269/269 PASS, scope FAIL13(위임 관리8+기존변경5), PlayMode NO_PROJECT_TESTS, 실제4인 미실행: [042 handoff](../../../Tasks/Active/Task-20261015-042-human-cannon-route-shelter/handoff.md).
+- 041 봉 조작·Space·톱 변화는 사용자 확인 완료, 관문·사망 인계 실제4인은 미실행 유지: [041 handoff](../../../Tasks/Active/Task-20261015-041-human-cannon-pole-saw-gate/handoff.md). 042는 다른 PC 재개용 작업 브랜치 저장 묶음에 포함, PR·상위 통합 반영은 미실행.
 
 ## 초기 준비 이력 (현재 상태는 위 기준)
 
@@ -34,6 +33,7 @@
 | 순서 | Task | PR | 결과 | 비고 |
 |---|---|---|---|---|
 | 1 | Task-20261015-040 | [#93](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/93) | integrated (8293bb9) | PM 완료 확인·041 da4747c 수신, 4인 검증은 전체 통합 후 |
+| 2 | Task-20261015-041 | [#108](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/108) | integrated (292667c) | 042 dae56af 수신, 관문·사망 인계 실제 4인 검증 미실행 유지 |
 
 ## 공동 테스트
 
@@ -41,20 +41,20 @@
 
 ## 남은 이슈
 
-- Task-040~044는 CC-126~130 연결·제목 확인·실제 인계·순차 실행 승인 완료. 현재 041만 구역 소유, 후속은 선행 구현 통합 후 기존 승인으로 최신 부모 수신·단독 소유 이관·문서 갱신한다.
-- 4단계 공용 종료 계약은 별도 소유 연결 Task 의존. 미연결을 임시 성공/전역 규칙 변경으로 우회하지 않는다.
-- 지상 2명·중계 대포·호응/보상 수치·2~3인 후속 및 최종 밸런스 미정.
+- Task-040~044는 CC-126~130 연결·인계·순차 실행 승인 완료. 현재 042만 구역 소유. 2026-10-16 사용자 최신 지시로 042 전체를 구현하며 기능별 중간 확인 대기는 해제한다.
+- 4단계 공용 종료는 별도 소유 연결 Task 의존이며 임시 성공/전역 규칙 변경으로 우회하지 않는다. 지상 2명·중계·호응/보상 수치·2~3인 후속·최종 밸런스는 미정이다.
 
 ## 테스트 씬 처리
 
 | Task | 테스트 씬 | 결정 | 결정자 |
 |---|---|---|---|
 | Task-040 → 041 | HumanCannon.unity | 040 반환·041 단독 이관, 최종 유지/삭제 미정 | 2026-10-15 PM 확인 |
-| Task-042~044 | 같은 씬 순번 대기 | 선행 구현 통합 후 한 Task씩 이관 | PM 순차 실행 사전 승인 |
+| Task-041 → 042 | HumanCannon.unity | 041 반환·042 단독 이관, 최종 유지/삭제 미정 | 2026-10-16 기존 PM 위임 |
+| Task-043~044 | 같은 씬 순번 대기 | 선행 구현 통합 후 한 Task씩 이관 | PM 순차 실행 사전 승인 |
 
 ## 부모 반영
 
 - [ ] 검증한 묶음의 부모 integration/main-stage PR 제출·Merge commit 수신
 - [ ] 최종 테스트 씬 처리·소유권 반환 기록
 
-현재는 working(Active Task 041)이다. dev 직접 제출·빈 부모 병합·close-integration·Done 이동·브랜치 삭제는 하지 않는다.
+현재는 working(Active Task 042)이다. dev 직접 제출·빈 부모 병합·close-integration·Done 이동·브랜치 삭제는 하지 않는다.

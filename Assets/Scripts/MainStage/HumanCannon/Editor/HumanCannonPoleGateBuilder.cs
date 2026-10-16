@@ -59,7 +59,7 @@ namespace CurtainCall.HumanCannon.EditorTools
             cable.positionCount = 3;
             cable.SetPosition(0, new Vector3(2.25f, 6.5f, 29f));
             cable.SetPosition(1, new Vector3(2.25f, 6.5f, 32f));
-            cable.SetPosition(2, new Vector3(2.25f, 3.6f, 32f));
+            cable.SetPosition(2, new Vector3(2.25f, 2.4f, 32f));
             cable.startWidth = cable.endWidth = 0.08f;
             cable.sharedMaterial = yellow;
 
@@ -108,9 +108,9 @@ namespace CurtainCall.HumanCannon.EditorTools
             data.FindProperty("grabDistance").floatValue = 2f;
             data.FindProperty("holdSeconds").floatValue = 8f;
             data.FindProperty("warningSeconds").floatValue = 2f;
-            data.FindProperty("swingAcceleration").floatValue = 120f;
-            data.FindProperty("maxSwingAngle").floatValue = 65f;
-            data.FindProperty("maxSwingSpeed").floatValue = 150f;
+            data.FindProperty("swingAcceleration").floatValue = 300f;
+            data.FindProperty("maxSwingAngle").floatValue = 80f;
+            data.FindProperty("maxSwingSpeed").floatValue = 180f;
             data.FindProperty("swingDamping").floatValue = 0.4f;
             data.FindProperty("releaseUpwardSpeed").floatValue = 6f;
             data.FindProperty("airControlSpeed").floatValue = 3f;
@@ -122,13 +122,13 @@ namespace CurtainCall.HumanCannon.EditorTools
         {
             var root = Point("SawGate", parent, new Vector3(0f, 0f, 32f));
             var gate = root.gameObject.AddComponent<HumanCannonSawGate>();
-            var barrier = Part(root, "Barrier", new Vector3(0f, 1.8f, 0f),
-                new Vector3(30f, 3.6f, 0.6f), yellow, true);
+            var barrier = Part(root, "Barrier", new Vector3(0f, 1.2f, 0f),
+                new Vector3(30f, 2.4f, 0.6f), yellow, true);
             for (int i = -7; i <= 7; i++)
                 Part(barrier.transform, "WarningStripe" + i, new Vector3(i * 2f / 30f, 0f, -0.51f),
                     new Vector3(0.035f, 1f, 0.025f), black);
 
-            var visual = Point("SawVisual", root, new Vector3(0f, 1.8f, -0.4f));
+            var visual = Point("SawVisual", root, new Vector3(0f, 1.2f, -0.4f));
             // 관문은 SawVisual의 직접 자식을 회전시킨다. X자 각도는 Rotor 아래에서 유지한다.
             var rotor = Point("Rotor", visual, Vector3.zero);
             var firstBlade = Part(rotor, "BladeA", Vector3.zero, new Vector3(3.2f, 0.28f, 0.12f), silver);
