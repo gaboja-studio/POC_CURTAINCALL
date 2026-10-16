@@ -1,12 +1,12 @@
 # Integration-start-lobby
 
 - **Feature:** 시작·로비 씬
-- **Status:** working
+- **Status:** testing
 - **Branch:** integration/start-lobby
 - **Base:** dev
 - **Active Task:**
 - **PM:** @MoHoDu
-- **Merge Time:** 미정
+- **Merge Time:** 2026-10-16 10:40 UTC — #136 병합, 공동 테스트 대기
 - **Updated:** 2026-10-16
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.

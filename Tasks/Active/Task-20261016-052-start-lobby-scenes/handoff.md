@@ -1,29 +1,29 @@
 # Handoff
 ## 지금 상태
-- 단계: PR 제출 완료, 리뷰·사람 공동 테스트 대기. `feat/start-lobby-scenes` → `integration/start-lobby` (CC-133).
-- 동작하는 것: Canvas 시작 메뉴(방 코드·LAN·설정), 고정 3D 천막 로비, 출연 명단 F 서명·방장 커튼 레버, 런 종료 후 같은 방에서 다시 준비·시작.
-- 막힌 것: 구현 차단 없음. 2인 동기화·온라인 방 코드/잠금 해제는 미검증. 도입 컷씬은 커튼 3초로 대체, 캐릭터는 기존 더미 사용.
-- 저장 상태: 씬·빌드 목록·공용 세팅·폰트·코드 저장됨(범위는 setup). 구현 커밋 `afae2ca`, 이후 제출 기록은 작업 브랜치 Git 참조.
+- 단계: PR #136 Squash 병합 완료(`d23d57e`), 통합 브랜치에서 검사·도구 기반 2인 LAN 확인. 사람 공동 테스트 대기, Task submitted 유지.
+- 동작하는 것: Canvas 시작 메뉴·고정 3D 로비·명단 F 서명·방장 레버·엔딩 후 같은 방 재준비/재시작·나가기.
+- 막힌 것: 사람 조작감·온라인 방 코드/잠금 해제 미검증. 첫 공연은 기존 DummyPerformance로 연결되며 바닥 충돌체가 없어 캐릭터 낙하(실제 공간 연결 별도 Task 필요).
+- 저장 상태: 구현 `afae2ca` → 병합 `d23d57e`. 씬·설정·코드 추가 수정 없음. 통합 검증 기록은 현재 브랜치 Git 참조.
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/136
 
 ## 다음 할 일
-1. `Assets/Scenes/Start_Lobby/Start.unity`에서 Play. LAN 방 만들기 → 명단 가까이 F → 방장 레버 F. DevMode에서는 1인 확인 가능.
-2. plan의 공동 테스트 3개를 2인으로 한 번에 확인하고 아래 결과 기록. 온라인 방 코드·종료 후 재참가도 별도 확인.
-3. PR 검사·리뷰 확인 후 PM 요청 시 통합 절차 진행(아직 미병합). 씬 재생성은 수동 배치를 통째로 덮어쓰므로 주의.
+1. Start 씬에서 plan의 공동 테스트 3개를 사람이 한 번에 확인. 온라인 코드·대기 재참가/진행 중 거부·설정 저장/빌드 화면 모드 포함.
+2. 실제 공연 연결/스폰·바닥 문제를 별도 Task로 배정하고, MPPM 공식 Scenario 또는 별도 PC에서 공동 검증. 병합된 feat·integration에 구현 추가 금지.
+3. 공동 결과와 남은 이슈 처리 후에만 integrated → close-integration → dev PR. 지금은 Done 이동·dev PR·브랜치 삭제하지 않음.
 
 ## PM이 확인할 것
-- 확인 요청: 시작/로비 화면·조작감·카메라 범위, 2인 공동 테스트. 대기 중인 결정·공용 파일 요청: 없음.
-- 교훈 기록: `Harness/Project/Pitfalls/hub-spawn-before-environment-enable.md` (로비 복귀 위치 경합).
+- 확인 요청: 시작/로비 화면·조작감·카메라, 온라인·사람 공동 검증. 참가자에게 호스트 종료 이유가 영문으로 표시됨.
+- 교훈: Project/Pitfalls의 hub-spawn-before-environment-enable, Engine/Unity/Pitfalls의 mppm-virtual-player-status. 상세 증거는 Integration result.
 
 ## Verification
-- 구역 검사: PASS (10-16)
-- 1 문서/규칙: PASS (10-16)
-- 2 컴파일: PASS (10-16)
-- 3 테스트: PASS (PlayMode, 46/46, 10-16)
-- 4 실행 로그: PASS — 10-16 도구 기반 1인 LAN·DevMode. 메뉴/설정 표시·F 서명/시작·첫 공연·엔딩 로비 복귀·같은 방 재시작·나가기 확인, Console 오류 0. 공간 진행 일부는 API 호출로 단축. 복귀 위치 (-1.80, 0.05, 1.40), 몸 상태 Normal.
-- 5 공동 테스트: SKIPPED(미실행 — 실제 2인·온라인 미확인)
-- 범위: 46개는 기존 회귀 테스트(SpaceLink 포함). StartLobby 전용 자동 테스트 없음. 설정 저장·빌드 화면 모드·2~4인 연결은 별도 확인 필요.
+- 구역 검사: 작업 PR PASS / 통합 SKIP(PM integration, 10-16).
+- 1 문서/규칙: PASS (10-16), 기존 다른 문서 길이 WARN 5, hard 0.
+- 2 컴파일: PASS (병합본 d23d57e, 10-16).
+- 3 테스트: PASS (기존 PlayMode 46/46, skipped 0). StartLobby 전용 자동 테스트 없음.
+- 4 실행 로그: 부분 확인 — 1인 스모크 + 실제 2개 로컬 런타임 LAN. 인원/서명 동기화·시작 차단·퇴장/재입장·엔딩 로비 복귀·재시작·호스트 종료 확인. 위치 이동/API 진행 단축·합성 F 사용. DummyPerformance 낙하 및 MPPM 내부 오류가 있어 전체 PASS 아님.
+- 5 공동 테스트: SKIPPED — 사람 직접 테스트·온라인 미실행. 자동 2인 검증으로 대체하지 않음.
+- 종료 상태: Play OFF, Start dirty=False, 보조 에디터 종료, 기존 DevMode ON 복원. 설정 저장·빌드 화면 모드·4인/별도 PC 미검증.
 
 ## 공동 테스트 결과
-- 일시·참여자: 미실행.
-- 재현·예상: plan의 3개 항목. 실제: 미측정(1인 도구 검증을 공동 테스트로 처리하지 않음).
+- 일시·참여자: 미실행(사람 참여 없음).
+- 재현·예상: plan의 3개 항목. 사람 실제 결과 미측정. 도구 기반 2인 재현/예상/실제는 `Integrations/Active/Integration-start-lobby/result.md`에 별도 기록.
