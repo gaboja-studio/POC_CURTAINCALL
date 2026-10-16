@@ -497,6 +497,31 @@ function Test-ThirdPartyAssetManager {
     return $accounts -contains $Actor
 }
 
+function Get-SharedAllowance {
+    # team-roles.md "모든 작업자에게 허용": setup.md와 무관하게 통과시키는 경로. 해당하면 이유 문자열, 아니면 $null.
+    param([Parameter(Mandatory)][string]$Path, [bool]$IsNew, [bool]$HasTask, [bool]$CanEditAssets)
+    if ($Path -eq 'ProjectSettings/EditorBuildSettings.asset') { return '빌드 씬 목록' }
+    if ($Path -like 'Assets/Resources/Settings/GameSettings/*' -or $Path -eq 'Assets/Resources/Settings/GameSettings.meta') { return '게임 세팅 값' }
+    if ($HasTask -and ($Path -like 'Assets/Scripts/Systems/Settings/*' -or $Path -eq 'Assets/Scripts/Systems/Settings.meta')) { return '게임 세팅 연결 기능' }
+    # 에셋 = Assets/ 아래 코드·씬이 아닌 파일(폴더 .meta 포함). 추가는 모두, 수정·삭제는 PM·에셋 관리자.
+    $base = $Path -replace '\.meta$', ''
+    if ($Path -notlike 'Assets/*' -or $base -eq 'Assets/_ThirdParty' -or $base -match '\.(cs|asmdef|asmref|unity)$') { return $null }
+    if ($IsNew) { return '에셋 추가' }
+    if ($CanEditAssets) { return '에셋 수정·삭제(PM·에셋 관리자)' }
+    return $null
+}
+
+function Get-UrgentException {
+    # team-roles.md "급한 예외": Task 폴더 exception.md의 승인자·사유가 모두 있으면 예외 정보를 돌려준다.
+    param([Parameter(Mandatory)][string]$TaskPath)
+    $file = Join-Path $TaskPath 'exception.md'
+    if (-not (Test-Path -LiteralPath $file)) { return $null }
+    $approvedBy = Get-MetaField -MetaPath $file -Field 'Approved by'
+    $reason = Get-MetaField -MetaPath $file -Field 'Reason'
+    if (-not $approvedBy -or -not $reason) { Write-Host '[주의] exception.md에 Approved by·Reason이 없어 급한 예외를 적용하지 않습니다.'; return $null }
+    return [pscustomobject]@{ ApprovedBy = $approvedBy; Reason = $reason }
+}
+
 function Get-CurrentGitHubUser {
     if ($env:GITHUB_ACTOR) { return $env:GITHUB_ACTOR }
     $gh = Get-GhCli
