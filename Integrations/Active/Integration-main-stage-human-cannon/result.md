@@ -1,20 +1,24 @@
 # Result
 
-## 준비 결과
+## 현재 결과
+- 2026-10-15 현재 사용자 PM @MoHoDu 확인: 040~044 전부 @RagSpirin 인계 완료·순차 실행 승인. [결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 추가 인계·착수 승인 불필요.
+- 040 #93/8293bb9·041 #108/292667c 통합 완료. 2026-10-16 042 dae56af 수신 후 042 단독 소유로 전환했다. 043~044는 기술 순번 대기다.
+- 042 전체 코드·씬 구현 후 human-verify. 트램폴린 담당자1인 자동 승강/양문 함정/쉼터 전원 합류/색상 조건 반영. 컴파일·EditMode269/269 PASS, scope FAIL13(위임 관리8+기존변경5), PlayMode NO_PROJECT_TESTS, 실제4인 미실행: [042 handoff](../../../Tasks/Active/Task-20261015-042-human-cannon-route-shelter/handoff.md).
+- 041 봉 조작·Space·톱 변화는 사용자 확인 완료, 관문·사망 인계 실제4인은 미실행 유지: [041 handoff](../../../Tasks/Active/Task-20261015-041-human-cannon-pole-saw-gate/handoff.md). 042는 다른 PC 재개용 작업 브랜치 저장 묶음에 포함, PR·상위 통합 반영은 미실행.
+
+## 초기 준비 이력 (현재 상태는 위 기준)
 
 - 2026-10-15: 부모 integration/main-stage 최신 문서에서 자식 통합 생성·push, Task-040~044 발급.
 - Unity 준비: HumanCannon 스크립트/테스트/Prefabs 폴더와 .meta, rootCount=0 빈 HumanCannon.unity. 기존 활성 씬 보존.
-- 준비 커밋 edf561c push 및 같은 SHA의 5개 작업 브랜치 원격 생성 확인. e0ab817에 4열 기준/승인 SHA 표 등록.
-- 040만 기술 배정 완료(a97fbbc, assigned), 041~044는 scaffolded/Allowed 없음 유지. [#71 배정 문서 sync](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/71)는 사용자 병합 후 233403c 수신 확인(2026-10-15).
+- 준비 커밋 edf561c push·5개 작업 브랜치 생성, e0ab817에 4열 SHA 표 등록. 초기 040 기술 배정 a97fbbc, [#71 문서 sync](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/71)/233403c 수신 확인. 당시 후속은 scaffolded/Allowed 없음.
 - #71은 준비본 edf561c·통합 head 7ad0cdf의 정상 2-parent Merge commit이며 통합 head와 tree 일치. 040 작업 브랜치 로컬/원격 ref 최신화, 핵심 배정 meta/setup/plan/todo 수신 일치 확인. 담당자 PC를 수정한 것은 아니다.
 - 실제 전달: 2026-10-15 PM 사용자가 Task-040~044 모두 전달·전부 @RagSpirin 담당 확인. 실제 전달 확인 26문서 b668b88 저장/push·#72~76 Merge commit 수신 완료. 기능 구현·4인 공동 검증은 미실행.
 - 기존 feat/main-stage-level-edit 원격과 로컬 ref는 6e5e5c1로 정상 최신화. 공연장 담당 문서 수신 완료, 실제 전달 미확인.
 - 공용 보상 세션은 #70 이후 기록을 보존한 완료 문서 0667597 반영·clean을 보고했다. 이 세션에서 공용 실제 폴더를 수정하거나 검증하지 않았다.
 
-## 준비 검증
+## 초기 준비 검증 이력
 
-- 초기 준비 당시 컴파일 PASS(up_to_date), 기존 EditMode 5/5 PASS. 인간 대포 기능/4인 테스트는 미실행.
-- 신규 Unity 준비 7파일의 .meta 짝·상위 경로 PASS. 기존 활성 proto_0.0.2 root10/dirty0 보존.
+- 초기 준비 당시 컴파일 PASS(up_to_date)·EditMode 5/5 PASS, 기능/4인 미실행. Unity 준비 7파일 .meta 짝·상위 경로 PASS, 기존 활성 proto_0.0.2 root10/dirty0 보존.
 - check-work exit 1: 통합 브랜치 대응 Task 없음. 구역·문서·Unity 개별 검사를 사용한다.
 - 초기 준비 당시 구역 검사 SKIP(PM 통합), 준비 40파일 수동 범위 PASS. 5Task 상태/선행/Allowed 3·0·0·0·0/공동 테스트 3묶음/당시 미인계 유지 PASS.
 - verify-fast PASS(hard0/범위 밖 기존 WARN3), diff --check PASS. 5개 브랜치 생성 당시 승인 준비 SHA edf561c 일치. #72~76으로 b668b88 수신·정상 2-parent/두 번째 부모·전체 tree 일치 PASS.
@@ -28,29 +32,29 @@
 
 | 순서 | Task | PR | 결과 | 비고 |
 |---|---|---|---|---|
+| 1 | Task-20261015-040 | [#93](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/93) | integrated (8293bb9) | PM 완료 확인·041 da4747c 수신, 4인 검증은 전체 통합 후 |
+| 2 | Task-20261015-041 | [#108](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/108) | integrated (292667c) | 042 dae56af 수신, 관문·사망 인계 실제 4인 검증 미실행 유지 |
 
 ## 공동 테스트
 
-- 일시: 미실행.
-- 참여: 미실행 (예정 4인, 호스트/참가자 지상 역할 교환).
-- 결과: 미실행. 각 Task plan 기준으로 실제 실행 후 기록한다.
+- 일시·참여·결과: 미실행. 전체 기능 통합 후 실제 4인(호스트/참가자 지상 역할 교환)으로 각 Task plan을 실행해 기록한다.
 
 ## 남은 이슈
 
-- Task-040~044는 CC-126~130 연결·제목 확인·PM 실제 전달 확인과 문서 수신 완료, 상위 기준 CC-124 유지. 후속 Task는 예약이며 수정 권한 없음; 활성화할 때 최신 구현·배정 문서를 추가 sync해야 한다.
-- 4단계 공용 종료 계약은 별도 소유 연결 Task 의존. 미연결을 임시 성공/전역 규칙 변경으로 우회하지 않는다.
-- 지상 2명·중계 대포·호응/보상 수치·2~3인 후속 및 최종 밸런스 미정.
+- Task-040~044는 CC-126~130 연결·인계·순차 실행 승인 완료. 현재 042만 구역 소유. 2026-10-16 사용자 최신 지시로 042 전체를 구현하며 기능별 중간 확인 대기는 해제한다.
+- 4단계 공용 종료는 별도 소유 연결 Task 의존이며 임시 성공/전역 규칙 변경으로 우회하지 않는다. 지상 2명·중계·호응/보상 수치·2~3인 후속·최종 밸런스는 미정이다.
 
 ## 테스트 씬 처리
 
 | Task | 테스트 씬 | 결정 | 결정자 |
 |---|---|---|---|
-| Task-040 | HumanCannon.unity | 준비·단독 소유, 최종 유지/삭제 미정 | PM |
-| Task-041~044 | 같은 씬 예약 | 선행 검증 후 한 Task에만 이관 | PM |
+| Task-040 → 041 | HumanCannon.unity | 040 반환·041 단독 이관, 최종 유지/삭제 미정 | 2026-10-15 PM 확인 |
+| Task-041 → 042 | HumanCannon.unity | 041 반환·042 단독 이관, 최종 유지/삭제 미정 | 2026-10-16 기존 PM 위임 |
+| Task-043~044 | 같은 씬 순번 대기 | 선행 구현 통합 후 한 Task씩 이관 | PM 순차 실행 사전 승인 |
 
 ## 부모 반영
 
 - [ ] 검증한 묶음의 부모 integration/main-stage PR 제출·Merge commit 수신
 - [ ] 최종 테스트 씬 처리·소유권 반환 기록
 
-현재는 preparing이다. dev 직접 제출·빈 부모 병합·close-integration·Done 이동·브랜치 삭제는 하지 않는다.
+현재는 working(Active Task 042)이다. dev 직접 제출·빈 부모 병합·close-integration·Done 이동·브랜치 삭제는 하지 않는다.
