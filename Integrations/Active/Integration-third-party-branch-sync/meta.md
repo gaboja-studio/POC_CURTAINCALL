@@ -17,7 +17,7 @@
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261017-053 | fix | @MoHoDu | fix/third-party-branch-sync | - | dev 직접 PR 대상으로 변경(미제출) |
+| Task-20261017-053 | fix | @MoHoDu | fix/third-party-branch-sync | [#146](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/146) | dev 직접 PR 제출, 이 통합은 취소 유지 |
 
 ## 공용 파일 소유 표
 

@@ -36,7 +36,8 @@
 - PM 본인 작업. 2026-10-17 계획 승인으로 로컬 Task 발급 후 준비 커밋 없이 구현하는 단회 예외.
 - 정상 작업자 착수 gate는 우회 구현하거나 완화하지 않는다.
 - 2026-10-17 후속 저장 요청·경로 판단 위임: fix 브랜치 commit/push 허용, 제출 대상 dev. 별도 원격 통합은 만들지 않는다.
-- dev 직접 push·PR/merge, 새 worktree, private 속성·gitlink 변경은 이번 범위 밖이다.
+- 2026-10-17 후속 제출 요청·미리보기 승인: dev 대상 PR 등록 및 제출 기록 저장 허용.
+- dev 직접 push·merge, 새 worktree, private 속성·gitlink 변경은 이번 범위 밖이다.
 
 ## 테스트 씬 처리
 
