@@ -34,4 +34,5 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 - Decided: 2026-10-15 PM — waiting_room.unity 복사본을 1차 테스트 씬(WaitingRoomBase.unity)으로 삼아 그 씬 기준으로 작업. 원본 반영은 통합 브랜치에서 나중에 PM이 정한다.
 - Decided: 2026-10-15 PM이 담당자 실제 전달 확인, 기술 배정(sync PR #97) 완료. 배정 문서 수신 뒤 바로 start-work.
 - Decided: CC-132 URL 연결·1단계 제목 확인. 백스테이지·플레이어 상태/조작은 범위 밖(기존 공용 조작 사용).
+- Decided: 2026-10-16 PM 구두 허용(작업자 전달) — 빌드 목록에 WaitingRoomBase 등록, 장소 전환 대기실 씬을 WaitingRoomBase로 변경. 그 두 값만 수정.
 - Decided: 공연 전환·복귀는 공용 더미 공간(CC-119)·공간 연결(CC-111)·부상(CC-109)을 읽기/재사용. 공용 수정은 별도 소유 Task.

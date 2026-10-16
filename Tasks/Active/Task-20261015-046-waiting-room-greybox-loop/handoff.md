@@ -1,37 +1,28 @@
 # Handoff
 
 ## 지금 상태
-- 단계: working (2026-10-16 시작).
+- 단계: working. 1단계 기능 구현 완료, 호스트 1인 왕복 확인. 4인 공동 테스트 전.
 - 동작하는 것:
-  - 테스트 씬 `WaitingRoomGreybox`(0,0,70): 2차 기획서 조감도 비율(약 0.06m/px)의 ①~⑧ 그레이박스·대기실 문·⑧ 닫힌 문·⑥ 대체 통로. 캡슐 검사로 출입구 통과·⑧ 차단 확인.
-    - 메뉴 `Tools/CurtainCall/대기실/그레이박스 다시 만들기`(`Base/Editor/WaitingRoomGreyboxBuilder.cs`)로 재생성. 기획서 주요 오브젝트만 단순 도형+표지, 장식 없음. ③ 상점은 로비 안 기둥(수화기·배송구), 옆 벽 없음.
-    - 표지 글자는 벽 뒤가 비치지 않게 테스트 셰이더 `Materials/GreyboxText.shader` 사용.
-  - 참고 프로토타입: `WaitingRoom`(waiting_room.unity 복사), `대기실`(Levels/SampleScene에서 복사, 원본 미수정). 에셋 적용은 기능 뒤 후순위.
-  - `WaitingRoomSpawn`: 씬 진입·복귀 시 내 캐릭터를 ① 로비 스폰(`PlayerSpawnPoints` 4개)으로.
-  - `StageEntranceGather`: 판정 화면이 쉬는 시간에 살아 있는 전원이 ⑥ 영역 안이면 `CampaignRun.NotifyAllAtStageEntrance()` 1회. 오프라인 런으로 바깥 0/1 전환 없음 → 진입 1/1 공연 전환 확인.
-- 막힌 것: 4인 공연 왕복은 장소 전환이 이 씬을 대기실로 열어야 가능(아래 공용 파일 요청).
+  - `WaitingRoomGreybox`(0,0,70): 조감도 비율 ①~⑧ 그레이박스. 메뉴 `Tools/CurtainCall/대기실/그레이박스 다시 만들기`로 재생성. ③ 상점 = 로비 기둥(수화기·배송구). 표지는 `Materials/GreyboxText.shader`.
+  - `WaitingRoomSpawn`: 씬 진입·복귀 시 ① 로비 스폰(자리 번호) + 줄 균형 끔(켜 두면 서 있어도 추락).
+  - `StageEntranceGather`: 쉬는 시간 살아 있는 전원이 ⑥ 영역 안 → `NotifyAllAtStageEntrance()` 1회.
+  - 네트워크 준비: 맵 확인용 `PlaySetup` 끔, Main Camera에 CinemachineBrain, `PlayerFollowCamera` 배치(LevelPreviewCamera 끔).
+  - PM 구두 허용(2026-10-16, meta 기록): 빌드 목록에 WaitingRoomBase 등록, 장소 전환 `waitingRoomScene` = WaitingRoomBase. 로컬 변경만, 미커밋.
+- 막힌 것: 저장 불가 — verify-scope가 위 2파일을 막음(`BaseGameSettings.asset` 수정 금지, `EditorBuildSettings.asset`은 Task-051 구역과 겹침). setup.md는 PM 전용.
 - PR: 없음
 ## 다음 할 일
-1. PM: 아래 공용 파일 요청 처리.
-2. 작업자: 처리 뒤 SpaceLink 시작 씬으로 4인 왕복·외팔 부활·반복 확인, 검사·PR.
+1. 4인 공동 테스트 3개(plan): SpaceLink 씬 → 방 만들기·참가 → 런 시작 → 공연 종료(더미 화면) → 대기실.
+2. "검사해줘" → "제출해줘".
 ## PM이 확인할 것
-- 확인 요청: 원본 waiting_room.unity 반영 시점, 최종 테스트 씬 처리.
-- 확인 요청: 조감도에 맞춰 ⑦ 공연 스테이지 입구를 테스트 씬에 표시물로 넣음(setup은 "⑦ 만들지 않음"). 백스테이지 포함 SampleScene 대기실도 참고용으로 복사함.
-- 대기 중인 결정: 없음 (2~5단계 미정 항목은 각 Task meta).
-- 공용 파일 요청:
-  - `ProjectSettings/EditorBuildSettings.asset`에 `WaitingRoomBase.unity` 등록(NGO 씬 전환은 빌드 목록 씬만 연다).
-  - `Assets/Resources/Settings/GameSettings` 장소 전환 `waitingRoomScene`을 테스트 동안 `WaitingRoomBase`로(또는 테스트용 교체 방법 제공). 지금은 `DummyWaitingRoom`.
-  - 연결 시 테스트 씬의 맵 확인용 `PlaySetup/Player`(씬 배치)는 접속 플레이어와 겹치므로 작업자가 끈다.
+- 확인 요청: 원본 waiting_room.unity 반영 시점, 최종 테스트 씬 처리, 참고 프로토타입 2개(`WaitingRoom`·`대기실`) 처리.
+- 확인 요청: 조감도에 맞춰 ⑦을 표시물로 넣음(setup은 "⑦ 만들지 않음").
+- 확인 요청: `waitingRoomScene` = WaitingRoomBase는 다른 SpaceLink 테스트도 이 씬으로 보낸다. 통합 반영 시 유지/복원 결정.
+- 공용 파일 요청: setup.md "배정된 공용 파일"에 `ProjectSettings/EditorBuildSettings.asset`(WaitingRoomBase 등록만)·`Assets/Resources/Settings/GameSettings/BaseGameSettings.asset`(`waitingRoomScene`만) 추가, Task-051 구역과 겹침 정리.
 ## Verification
-- 구역 검사: OK (verify-scope, 2026-10-16)
-- 1 문서/규칙: 미실행
-- 2 컴파일: 에디터 재컴파일 성공 (check-work 미실행)
-- 3 테스트: NO_PROJECT_TESTS (이 Task 자동 테스트 없음)
-- 4 실행 로그: 오프라인 런 PlayMode 수동 확인 — ⑥ 밖 0/1 전환 없음, 진입 1/1 → `[WaitingRoom] ⑥ 전원 집결 1/1 → 공연 전환`, 오류 없음. 네트워크·장소 전환 미확인.
-- 5 공동 테스트: 미요청
+- 구역 검사: OK (2026-10-16)
+- 2 컴파일: 에디터 재컴파일 성공
+- 3 테스트: NO_PROJECT_TESTS
+- 4 실행 로그: LAN 호스트 1인(개발자 모드 임시) — 공연1 사망 → 쉬는 시간 대기실 복귀: 스폰1·외팔(잃은 3)·Normal·균형 꺼짐, ⑥ 0/1 → 진입 1/1 → 공연2 전환 → 밤 정비 복귀 스폰1·0/1 재설정. 새 오류 없음.
+- 5 공동 테스트: 미실행
 ## 공동 테스트 결과
-- 일시: 미실행
-- 참여자: 미실행 (예정: 호스트1·참가자3)
-- 재현: 미실행 (plan 3개)
-- 예상: plan 참조
-- 실제: 미실행
+- 미실행 (예정: 호스트1·참가자3, plan 3개)
