@@ -88,6 +88,20 @@ namespace CurtainCall.DummySpaces.Tests
         }
 
         [UnityTest]
+        public IEnumerator ArriveThenOtherDies_EndsPerformanceInsteadOfWaiting()
+        {
+            Assert.IsTrue((bool)Call(dummy, "Arrive", "Dummy-0"));
+            Assert.IsNull(Get(rewards, "Latest"));
+            Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-1"));
+            var result = Get(rewards, "Latest");
+            Assert.IsNotNull(result, "도착 뒤 남은 사람이 죽어도 공연이 멈춰 있지 않음");
+            Assert.IsTrue((bool)Get(result, "Succeeded"), "생존 1명 허용: 남은 생존자가 모두 도착 → 성공");
+            Assert.AreEqual("Completed", Get(result, "EndReason"));
+            Assert.AreEqual("RestTime", Get(Get(campaign, "State"), "Phase").ToString());
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator OneDeath_NormalModeKeepsPerformanceOpenAndAwardsSurvivor()
         {
             Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-0"));

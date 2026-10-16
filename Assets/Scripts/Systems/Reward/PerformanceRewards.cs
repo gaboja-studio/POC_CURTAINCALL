@@ -178,7 +178,7 @@ namespace CurtainCall.Reward
                 var player = FindPlayer(id);
                 // 아직 spawn되지 않은 사람의 시작 부상을 0으로 추정하지 않는다.
                 if (player == null) return false;
-                people.Add(new RewardParticipantSeed(ParticipantId(id), id, player.Slot, (int)player.LostParts, IsDead(player.State)));
+                people.Add(new RewardParticipantSeed(ParticipantId(id), id, player.Slot, (int)player.LostParts, IsDead(player.State), player.ForfeitsNextPerformance));
             }
             return people.Count > 0 && Begin(people, difficultyLevel, rewardTable, false);
         }
