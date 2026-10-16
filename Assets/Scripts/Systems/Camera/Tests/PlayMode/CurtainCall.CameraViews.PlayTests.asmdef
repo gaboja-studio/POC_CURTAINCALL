@@ -1,0 +1,7 @@
+{
+    "name": "CurtainCall.CameraViews.PlayTests",
+    "rootNamespace": "CurtainCall.Cameras.Tests",
+    "references": ["Unity.Cinemachine"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}

@@ -12,7 +12,7 @@
 - [x] Task-046~050 모두 실제 전달 — 2026-10-15 PM 사용자 확인, 전부 @gyumin9048-ctrl
 - [x] 통합 → 5개 준비 브랜치 문서 sync Merge commit 수신 — #97~101, 046 착수 gate PASS
 - [x] 2026-10-15 PM 동시 착수 결정 — Active Task 해제, 047~050 전용 구역·씬 배정, JIRA CC-132
-- [ ] 047~050 기술 배정 sync PR Merge commit 병합
+- [x] 047~050 기술 배정 sync Merge commit 수신 — #102~105, 5단계 모두 착수 gate PASS
 
 ## 병합
 

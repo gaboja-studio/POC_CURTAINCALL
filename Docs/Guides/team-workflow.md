@@ -90,7 +90,7 @@
 | "충돌이 났어요" | 직접 고치지 말고 PM에게 알림 |
 | Unity에 빨간 오류 | "Console에 오류가 떠, 확인해줘" |
 | "GitHub 연결이 안 돼요" | 웹페이지로 직접 올리기 또는 재시도 중 선택 ([연결 방법](github-setup.md)) |
-| `Assets/_ThirdParty`가 비었거나 DOTween 오류 | PM에게 `CURTAINCALL_PaidAssets` 읽기 권한 요청 후 "시작해줘". 외부 에셋은 직접 넣지 말고 PM에게 요청 |
+| `Assets/_ThirdParty`가 비었거나 DOTween 오류 | PM에게 `CURTAINCALL_PaidAssets` 읽기 권한 요청 후 "시작해줘". 외부 에셋 추가·수정은 지정 에셋 관리자 또는 PM에게 요청 |
 | 크게 잘못된 것 같음 | 멈추고 PM에게 연락. 저장 기록으로 대부분 되돌릴 수 있습니다 |
 
 ## 더 보기
