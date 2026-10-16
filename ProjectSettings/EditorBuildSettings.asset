@@ -26,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Tests/Systems/DummySpaces/DummyEscapeRoute.unity
     guid: 03f2eacabfe18a840b30a249c83bd352
+  - enabled: 1
+    path: Assets/Scenes/Tests/Systems/FirstPersonMovement/FirstPersonMovement.unity
+    guid: d0cb69fcce4ec5f439f14b774e6edc7d
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
