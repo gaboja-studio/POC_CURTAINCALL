@@ -141,11 +141,11 @@ namespace CurtainCall.Reward
             for (int i = 0; i < people.Length; i++)
             {
                 var person = roster[i];
-                long amount = person.Dead || !person.Connected ? 0 : Math.Min(person.Amount, currentRules.Cap);
-                if (failure == PerformanceFailure.None && allSurvived)
+                long amount = person.Dead || !person.Connected || person.Seed.Forfeit ? 0 : Math.Min(person.Amount, currentRules.Cap);
+                if (failure == PerformanceFailure.None && allSurvived && !person.Seed.Forfeit)
                     amount = Math.Min(currentRules.Cap, amount + currentRules.AllSurvivedBonus);
                 string judgement = judgements != null && judgements.TryGetValue(person.Seed.Id, out var supplied)
-                    ? supplied : person.Dead ? "Dead" : !person.Connected ? "Disconnected" : "Survived";
+                    ? supplied : person.Dead ? "Dead" : !person.Connected ? "Disconnected" : person.Seed.Forfeit ? "Forfeited" : "Survived";
                 people[i] = new PerformanceParticipantResult(person.Seed.Id, person.Seed.ClientId, person.Seed.Slot,
                     RewardParticipantSeed.CountLimbs(person.Seed.LostParts), RewardParticipantSeed.CountLimbs(person.Parts),
                     person.Dead, person.Connected, judgement, amount, failure == PerformanceFailure.None ? amount : 0);

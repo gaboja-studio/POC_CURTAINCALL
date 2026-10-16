@@ -3,7 +3,7 @@ using UnityEngine;
 namespace CurtainCall.Dev
 {
     /// <summary>
-    /// 개발자 모드가 켜져 있으면 화면 오른쪽 위에 "DEV MODE"를 띄운다. 씬에 배치하지 않아도 Play 시작 때 스스로 생긴다.
+    /// 개발자 모드가 켜져 있으면 화면 위쪽 가운데에 "DEV MODE"를 띄운다(오른쪽 위 HUD·왼쪽 조작 패널을 가리지 않게). 씬에 배치하지 않아도 Play 시작 때 스스로 생긴다.
     /// </summary>
     public sealed class DevModeBadge : MonoBehaviour
     {
@@ -30,7 +30,7 @@ namespace CurtainCall.Dev
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(1f, 0.35f, 0.3f) },
             };
-            GUI.Box(new Rect(Screen.width - 250, 10, 240, 32), Label, _style);
+            GUI.Box(new Rect(Screen.width * 0.5f - 120, 40, 240, 32), Label, _style);
         }
     }
 }
