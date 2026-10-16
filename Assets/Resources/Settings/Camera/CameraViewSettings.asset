@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9dfec0854089dd04ba6099256f4c1b48, type: 3}
+  m_Name: CameraViewSettings
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Cameras.CameraViewSettings
+  DefaultThirdPerson: {fileID: 11400000, guid: cfc610aceac7bd849a0bf9c94222cf49, type: 2}
+  FirstPerson: {fileID: 11400000, guid: 20011c0f2bd6a404cae6381c6b2bec7e, type: 2}
+  Occlusion:
+    TargetHeights: {x: 0.8, y: 1.35}
+    Radius: 0.4
+    Alpha: 0.35
+    FadeSpeed: 6
