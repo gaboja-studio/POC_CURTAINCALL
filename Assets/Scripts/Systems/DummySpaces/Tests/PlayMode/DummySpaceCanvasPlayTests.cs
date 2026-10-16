@@ -249,6 +249,25 @@ namespace CurtainCall.DummySpaces.Tests
         }
 
         [UnityTest]
+        public IEnumerator NonPerformanceSpace_ApiRosterDoesNotEnablePerformanceActions()
+        {
+            yield return Open("DummyWaitingRoom");
+            Click("advance");
+            Click("advance");
+            Assert.AreEqual("Performance", Phase);
+            // 더미 버튼이 아니라 공개 API로 명부를 만든 경우(032 연결 런)를 재현한다.
+            var seedType = GameType("CurtainCall.Reward.RewardParticipantSeed");
+            var seeds = (IList)Activator.CreateInstance(typeof(System.Collections.Generic.List<>).MakeGenericType(seedType));
+            seeds.Add(Activator.CreateInstance(seedType, "Api-0", 0UL, 0, 0, false));
+            Assert.IsTrue((bool)Call(Rewards, "BeginOfflinePerformance", seeds, 1, null), "API 명부 생성");
+            Assert.IsNotNull(Get(canvas, "SelectedParticipant"), "명부가 있어 선택 참가자가 생김");
+            foreach (var id in new[] { "arrive", "cut", "kill", "cheer" })
+                Assert.IsFalse((bool)Call(canvas, "CanExecute", id), $"공연 컴포넌트가 없는 공간에서 {id} 비활성");
+            // 주기 Refresh가 모든 버튼의 CanExecute를 다시 부른다. 예외 로그가 나면 테스트가 실패한다.
+            yield return new WaitForSecondsRealtime(0.4f);
+        }
+
+        [UnityTest]
         public IEnumerator Reenable_ButtonEventExecutesExactlyOncePerInvocation()
         {
             yield return Open("DummyWaitingRoom");

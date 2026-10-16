@@ -53,6 +53,7 @@
 - 032: 오프라인·개발자 모드 1명 호스트 × 통째 교체·추가 로드로 공연장→대기실→백스테이지→공연→밤→2일차→탈출로→엔딩, 탈출 실패→세대 교체 한 바퀴(AI 실행), 사람 혼자 백스테이지까지·MPPM 2명 접속. 잃은 팔다리·자금·일차 유지, Console 오류·경고 0. 통합 코드 = 검사 커밋(컴파일 PASS, PlayMode 41/41).
 - 교훈 5건 기록(18124cc): MPPM 복제본 누락·추가 로드 교체 순서·Overlay UI 캡처·frame-freeze 보강(Engine), Changed 구독자 런 진행(Project).
 - 후속(다음 Task로, PASS 아님): 035 `DummySpaceCanvas.cs:141` NRE(명부를 API로 만든 뒤 비공연 더미 공간 진입), 045 공동 테스트 3(2명 1인칭 이동), 2명 이상 실제 클릭 런 한 바퀴, 031 설정 가이드 문서화, 실제 공간 연결(공간 시작 위치로 캐릭터 이동·전원 집결 자동 감지).
+- 후속 처리(2026-10-16, PM 지시로 dev 직접 예외): 035 NRE 수정(`CanExecute` 공연 컴포넌트 null 확인) + 회귀 PlayMode 1건(수정 전 NRE로 FAIL 확인). 031 설정 가이드 `Docs/Guides/reward-settings-guide.md`. 045 공동 테스트 3·2명 클릭 런은 사람 전용이라 `followup-human-tests.md` 가이드 제공 후 완료 처리(사람 실행 결과 없음, PASS 아님). 실제 공간 연결은 보류(다음 Task).
 
 ## 테스트 씬 처리
 
@@ -63,6 +64,6 @@
 
 - 최초 dev 중간 반영: #54 (2026-10-14), 공간 통합 반영 #55~#58.
 - 추가 dev 중간 반영: [#64](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/64) 병합 (2026-10-15).
-- [ ] 전체 완료분 최종 dev 반영
-- [ ] 작업·통합 브랜치 삭제
-- [ ] 이 폴더를 `Integrations/Done/`으로 이동
+- [x] 전체 완료분 최종 dev 반영 (#110)
+- [x] 작업·통합 브랜치 삭제
+- [x] 이 폴더를 `Integrations/Done/`으로 이동

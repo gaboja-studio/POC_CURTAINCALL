@@ -137,8 +137,8 @@ namespace CurtainCall.DummySpaces
                 case "intro": return campaign.HasAuthority && phase == CampaignPhase.Intro;
                 case "begin": return performance != null && rewards.HasAuthority && phase == CampaignPhase.Performance && !rewards.TransitionPending;
                 case "person": return Person() != null;
-                case "arrive": return Person() != null && performance.CanAct(Person().ParticipantId) && !performance.HasArrived(Person().ParticipantId);
-                case "cut": case "kill": case "cheer": return Person() != null && performance.CanAct(Person().ParticipantId);
+                case "arrive": return performance != null && Person() != null && performance.CanAct(Person().ParticipantId) && !performance.HasArrived(Person().ParticipantId);
+                case "cut": case "kill": case "cheer": return performance != null && Person() != null && performance.CanAct(Person().ParticipantId);
                 case "timeout": return performance != null && rewards.HasAuthority && rewards.State != null && rewards.State.IsOpen;
                 case "spend": return waiting != null && rewards.HasAuthority;
                 case "leave": case "stage": return campaign.HasAuthority && phase == CampaignPhase.RestTime;
