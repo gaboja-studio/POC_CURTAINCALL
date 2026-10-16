@@ -20,6 +20,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
 | Task-20261015-039 | fix | @MoHoDu | fix/harness-main-stage-workspaces | - | assigned |
+| Task-20261016-051 | fix | @MoHoDu | fix/third-party-asset-manager | - | working |
 
 ## 공용 파일 소유 표
 

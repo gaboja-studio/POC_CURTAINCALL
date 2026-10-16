@@ -487,6 +487,16 @@ function Get-PmAccount {
     return $null
 }
 
+function Test-ThirdPartyAssetManager {
+    param([string]$Actor)
+    if (-not $Actor) { return $false }
+    $team = Get-RepoPath 'Harness/Project/Facts/team.md'
+    if (-not (Test-Path -LiteralPath $team)) { return $false }
+    $accounts = @(Select-String -LiteralPath $team -Pattern '^\|\s*에셋 관리자\s*\|\s*`@([^`]+)`\s*\|' |
+        ForEach-Object { $_.Matches[0].Groups[1].Value })
+    return $accounts -contains $Actor
+}
+
 function Get-CurrentGitHubUser {
     if ($env:GITHUB_ACTOR) { return $env:GITHUB_ACTOR }
     $gh = Get-GhCli
