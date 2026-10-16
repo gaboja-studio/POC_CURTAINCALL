@@ -19,6 +19,8 @@ namespace CurtainCall.HumanCannon
         [SerializeField] HumanCannonFireWall[] fires = Array.Empty<HumanCannonFireWall>();
         [Tooltip("첫 쉼터 대포의 stations 인덱스. 시작 3대 다음은 쉼터 3대.")]
         [SerializeField] int shelterStationIndex = 3;
+        [Tooltip("쉼터 구간 불꽃에 대응하는 대포 수. 뒤의 최종 대포는 불꽃을 작동시키지 않는다. 탑승 제한은 아니다.")]
+        [Min(0), SerializeField] int shelterStationCount = 3;
         [Tooltip("코스 밖 추락 사망 높이(m). 지상 담당의 틈새 추락에도 공용 사망 처리를 사용한다.")]
         [SerializeField] float fallHeight = -10f;
 
@@ -162,8 +164,9 @@ namespace CurtainCall.HumanCannon
             foreach (var fire in fires) if (fire != null) fire.Present(Clock);
         }
 
-        public bool CanUseStation(int station) => station < shelterStationIndex
-            || (runtime != null && runtime.Length > 1 && runtime[1].State.Phase == DeparturePhase.Arrived && !runtime[1].Trap.IsOpen);
+        /// <summary>발사로 예고할 기존 구간 불꽃. 대포 탑승은 장치/다른 대포의 상태와 무관하다.</summary>
+        public int FireSectionForStation(int station) => station < 0 ? -1 : station < shelterStationIndex ? 0
+            : station < shelterStationIndex + shelterStationCount ? 1 : -1;
 
         internal bool ReadInput(NetworkPlayer player, in PlayerInputFrame input)
         {
@@ -235,7 +238,7 @@ namespace CurtainCall.HumanCannon
         void CannonChanged(int index, CannonAction action, ulong actor)
         {
             if (session == null || !session.IsHost || action != CannonAction.Launch) return;
-            if (ArmFire(index < shelterStationIndex ? 0 : 1)) { revision++; Publish(); }
+            if (ArmFire(FireSectionForStation(index))) { revision++; Publish(); }
         }
 
         bool ArmFire(int index) => index >= 0 && index < fires.Length && fires[index] != null && fires[index].Arm(Clock);
@@ -327,6 +330,10 @@ namespace CurtainCall.HumanCannon
             if (session != null) session.ConnectionStateChanged -= Connection;
             if (carriedPilot != null) carriedPilot.EndTransport();
             Unregister();
+            cannon = null;
+            session = null;
+            carriedPilot = null;
+            carriedTransit = -1;
             if (Current == this) Current = null;
         }
     }

@@ -24,23 +24,32 @@ namespace CurtainCall.HumanCannon
         void OnGUI()
         {
             GUILayout.BeginArea(new Rect(Mathf.Max(10, Screen.width - 480), 10, 470, Mathf.Max(200, Screen.height - 20)), GUI.skin.box);
-            GUILayout.Label("인간 대포 / 분리 출발·쉼터·불꽃 테스트");
+            GUILayout.Label("인간 대포 / 독립 대포·분리 코스 테스트");
             GUILayout.Label("대포 앞에서 F 짧게: 탑승 → 다시 F 짧게: 발사");
             GUILayout.Label("탑승 중 F 길게: 탑승 전 위치로 복귀");
             GUILayout.Label("비행·반동 중 WASD: 수평 조절 / 놓으면 보정 종료");
             GUILayout.Label("지상 Space 점프도 반동 / 반동 후 무입력은 수직 이동");
             GUILayout.Label("R: 플레이어·장치 초기화 (방 접속 유지)");
             GUILayout.Label("주황 쿠션: 안전 착지 / 비행 후 일반 바닥: 사망");
+            GUILayout.Label("쿠션 뒤 파란 대포 4대: 개별 출발 / 발사 힘·높이 동일");
+            GUILayout.Label("대포 탑승: 3인칭 / 발사: 1인칭");
+            GUILayout.Label("최종 톱: 첫 진입부터 공유 주기 / 초록 FINISH가 목적지");
+            if (HumanCannonFinalSaws.Current != null) GUILayout.Label(HumanCannonFinalSaws.Current.StatusText);
+            if (HumanCannonDestination.Current != null) GUILayout.Label(HumanCannonDestination.Current.StatusText);
             GUILayout.Label("바닥: 포구 0m / 1m 눈금 · 5m 거리 숫자");
             GUILayout.Label("노란 손잡이 F: 정면에 잡기 / WASD: 운반·방향 추종");
             GUILayout.Label("운반 중 Space: 몸과 장치 점프 / F 길게: 놓기");
+            GUILayout.Label("트램폴린 잡기: 자유 3인칭 / 놓기: 1인칭");
             var system = HumanCannonSystem.Current;
             var player = NetworkPlayer.Local;
             if (system != null && system.StationCount > 0)
             {
-                string seats = "대포: ";
+                string seats = "앞 구간 대포: ";
                 for (int i = 0; i < system.StationCount; i++)
+                {
+                    if (i == 6) { GUILayout.Label(seats); seats = "최종 대포: "; }
                     seats += $"{i + 1}:{(system.Occupant(i) == CannonSeatState.Nobody ? "빈자리" : "탑승")} ";
+                }
                 GUILayout.Label(seats);
                 var station = system.Station(0);
                 if (player != null && station != null)

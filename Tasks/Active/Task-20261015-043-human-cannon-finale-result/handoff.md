@@ -1,27 +1,30 @@
 # Handoff
+
 ## 지금 상태
-- scaffolded / scaffold-task — 043 기술 순번 대기. 040 PR #93 integrated, 현재 Active Task/Allowed/테스트 씬 단독 소유는 041.
-- 2026-10-15 PM @MoHoDu가 @RagSpirin에게 040~044 인계·순차 실행 승인 완료. 추가 인계·착수 승인 불필요: [순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md).
-- 목표/계획: [meta.md](meta.md)·[plan.md](plan.md); 계획은 실제 검증 근거가 아니다. PR: 없음.
+
+- submitted / submit-work — [PR #121](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/121), 구현52b3367 push 완료. [제출 검증/위임 근거](History/20261016-submit-verification.md). 최신 사용자 실입력·실제4인 확인은 미기록 유지.
+- 공용 실패 생존1명 기준·쿠션·독립 최종4대·모든 대포 잠금 해제·원본 오른쪽10구간 연습(F8/R/F9) 구현.
+- 최신 범위 지시 반영: 원본 전체/모든 연습 기본1인칭·운반자유3인칭/놓기1인칭, 모든 대포 탑승3인칭/발사즉시1인칭. 별도 범위가 없으면 기존 연속 코스 전체가 기본. [검증](History/20261016-course-wide-carry-camera.md).
+- 최종 가로/수직 톱·최초 진입 공유 시각·후발 발사 유지·접촉당1부위, FINISH 실제 도착→공용 정산/종료 연결. Waiting1인 연습은 별도 연습 판정.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/121 — 대상 integration/main-stage-human-cannon(Squash). 실제4인·사용자 체감·044 전환·병합 미실행, 실제 공연장/공용 공간 라우팅 자산은 범위 밖.
+
 ## 다음 할 일
-1. 순서 040→041→042→043→044. 042 구현 통합 후 최신 부모를 수신한다(이 단계 수신은 아직 미확인).
-2. 043에만 Active Task/Allowed/공용 소유권 이관·문서 갱신·브랜치 동기화 후 start-work. 동시 수정 금지.
-3. 이 단계 구현·기능 검증은 미실행. 실제 4인 공동 테스트는 전체 통합 후 실행하며 다음 단계 착수 조건이 아니다.
+
+1. HumanCannon 원본 코스 시작1인칭·잡기3인칭/정지 둘러보기/놓기1인칭 확인. F8→2/7 운반·4~6 승강기에서도 동일 동작 확인.
+2. F8→10 최종 대포에서 F 탑승→놓고 새 F 발사→WASD 회피→FINISH 착지, R 재시도·외팔 프리셋 확인.
+3. PM 리뷰/통합 대기. 위임 전환8개 자동 FAIL·승인 근거를 PR에 기록했다. 병합 뒤044 순차 이관, 현재043 소유 유지. 원본 단독 경로·직접 플레이 결과 별도 기록.
+
 ## PM이 확인할 것
-- 실제 JIRA: CC-129 URL 연결·제목 확인 완료. 인계·순차 실행 승인 완료; 선행 구현 통합·최신 부모 수신·단독 소유권 전환 대기: [setup.md](setup.md).
-- HumanCannon.unity는 041 단독 소유, main_stage.unity는 025 소유; 부상·관전 읽기/재사용만.
-- 공용 종료 별도 연결 Task 식별자·소유자·계약/연결 근거 대기. 이번 Allowed로 Systems 변경 불가; 전역 2명 규칙 삭제·임시 우회 금지.
-- 지상 2명/중계/호응·보상 수치/2~3인은 미정·후속, 목표 제외.
+
+- 사용자 전달 PM 승인으로 공용 실패 기준1명, 모든 대포 독립. run-rules/finale-result의 기존2명/전역수정금지 문구 갱신 제안.
+- 지상2명/중계/호응·보상 수치/2~3인은 후속. 톱 시간·크기는 임시 노출값이며 난도 확정 아님. 실제4인 동기화/완주는 plan의 공동 테스트로 별도 기록.
+
 ## Verification
-- 1 구역: 기술 순번 대기 — 현재 Allowed 없음
-- 2 문서: 준비 PASS (2026-10-15, verify-fast hard0/기존 WARN3)
-- 3 컴파일: 준비 PASS (up_to_date) — 기능 구현 아님
-- 4 자동 테스트: 기존 EditMode 5/5 PASS — 이 단계 기능 테스트 미실행
-- 5 공동 테스트: 미실행
-- 실행 로그: 미실행. 통합 종료 검증: BLOCKED — 별도 소유 공용 연결 근거 미확인, 완료/PASS 처리 금지.
-## 공동 테스트 결과
-- 일시: 미실행
-- 참여자: 미실행
-- 재현: 미실행
-- 예상: 미실행
-- 실제: 미실행
+
+- 환경: doctor FAIL0/WARN3(최초1회). 최종 Stop·HumanCannon 씬 저장 확인.
+- 구역 검사: FAIL8 — 위임 전환 문서 통합3/042문서4/043setup1. PM 위임·전체 변경 수동 감사로 그 외 구역밖0 확인. check-work 후속1~3은 SKIPPED, 아래 별도 결과.
+- 1 문서/규칙: 별도 PASS — verify-fast, 기존 WARN6/hard0.
+- 2 컴파일: 별도 PASS — 전체 운반시점 보완 후 Unity completed/failed:false, 제출 전 재확인.
+- 3 테스트: 별도 PASS — 최신 전체 HumanCannon PlayMode23/23, 이후 제품 변경 없음. 이전 전체 EditMode363/363·공용 생존6/6 근거 유지.
+- 4 실행: PASS(자동 화면/상태 확인) — F8 없이 원본 호스트에서 Grab3인칭/초록손잡이/몸 표시→Drop눈높이1인칭 확인. 신규 Console오류0(cursor4536→4542), 현재 오류0/경고0. 이번 씬 자산 수정 없음, 최종 Stop·dirty0.
+- 5 공동 테스트: 미실행 — 실제4인 동기화·시점 조작감·외팔 단독 완주/회피 난도 확인 필요. LAN호스트1명 공용 정산·Night 전환 자동 검증 완료.
