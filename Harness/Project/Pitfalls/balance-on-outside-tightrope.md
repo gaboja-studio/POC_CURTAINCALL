@@ -1,8 +1,8 @@
 ---
 summary: 외줄이 아닌 씬에서 플레이어 균형이 시작부터 켜져 있어 가만히 서 있어도 흔들리다 추락(사망)함
 status: active
-updated: 2026-10-14
-source: Task-20261013-030
+updated: 2026-10-15
+source: Task-20261013-030, Task-20261014-038
 ---
 
 # 외줄 밖에서 서 있기만 해도 추락함
@@ -24,7 +24,8 @@ source: Task-20261013-030
 
 ## 대처
 
-- 외줄이 아닌 씬·공간은 내 캐릭터가 생성될 때(`NetworkPlayer.LocalSpawned`) `PlayerBalance.SetBalanceActive(false)`를 부른다. 예: `Systems/Survival/InjurySurvivalTestUI`.
+- 외줄이 아닌 씬·공간은 내 캐릭터가 생성될 때(`NetworkPlayer.LocalSpawned`) `PlayerBalance.SetBalanceActive(false)`를 부른다. 예: `Systems/Survival/InjurySurvivalTestUI`, CameraViews 씬 전용 `Systems/Camera/Tests/CameraViewsTestBootstrap`.
+- OnEnable에서 이미 존재하는 Local도 처리하고 OnDisable에서 구독을 해제한다. ResetBalance는 IsActive를 바꾸지 않으므로 재시작 때 강제로 켜거나 매 프레임 끄지 않는다.
 - 공간 연결(032)에서 공간에 들어갈 때 균형을 끄는 공통 처리를 둘지, 프리팹 `activeOnStart`를 끌지(외줄 테스트 씬 영향 확인 필요)는 PM 결정.
 
 ## 확인 방법

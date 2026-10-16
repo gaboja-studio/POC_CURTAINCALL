@@ -1,27 +1,30 @@
 # Handoff
+
 ## 지금 상태
-- scaffolded / scaffold-task — 042 예약, 현재 Active Task는 040만; 기술 배정 대기. Task-040~044 전체의 @RagSpirin 담당·실제 전달은 2026-10-15 PM 사용자 확인 완료이며 구현 개방은 아니다.
-- 준비: 사용자 전달 기준 폴더·빈 씬(root 0)만. 인간 대포 기능 실제 구현 없음, 기능·공동 테스트 미실행.
-- 목표/계획: [meta.md](meta.md)·[plan.md](plan.md); 계획은 실제 검증 근거가 아니다. PR: 없음.
+
+- integrated — 2026-10-16 PR #111/75862ef 병합·사용자 전달 PM 확인, 043 HEAD0128623 수신 확인. 구현 저장87f383f. [최종 검증](History/20261016-submit-verification.md).
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/111
+- 대상: feat/human-cannon-route-shelter → integration/main-stage-human-cannon(Squash), 통합 완료. 기존 PM 위임에 따라 042 코드·씬 소유를 043으로 반환했다.
+- 구현: 대포3대 분리 출발·첫 받기·쉼터 합류/교대·불꽃 압박/경계 종료. 리프트3대는 트램폴린을 든1명만1.5초 자동 출발, 조건 충족 대기/이동 초록·그 외 파랑. 과승 양문·안전 바닥/복귀 계단·쉼터 낙차 반영.
+- 피드백: 톱 중심 지면+1.2m/장벽2.4m·잡기 중 지하 접힘, 네 봉 가속300/각도80/속도180. 손잡이 잡기 초록/놓기 원색. 운반자 통과 전 비행 차단 유지. 시험 수치는 최종 밸런스 확정이 아니다.
+- 사용자 확인 완료는 042 직접 확인에 반영했다. 실제4인 공동 테스트 인원/역할/영상 증거는 별도이며 전체 통합 후 계획을 유지한다.
+
 ## 다음 할 일
-1. PM이 041 integrated·실제 4인 공동 테스트 근거·소유권 반납·실제 JIRA URL을 확인한다.
-2. 실제 전달은 PM 사용자 확인 완료. 다음 1개인 042에만 Active Task/Allowed 부여→승인 준비 브랜치에 배정 문서 Merge commit sync 이후만 start-work.
-3. 기존 feat 브랜치는 앞 단계 완료 후 최신 부모 이력을 받는다. scaffolded 착수 금지.
-## PM이 확인할 것
-- 실제 JIRA: CC-128 URL 연결·제목 확인 완료. 실제 전달 PM 사용자 확인 완료; 선행 검증·소유권 이관·배정 문서 sync 대기: [setup.md](setup.md).
-- HumanCannon.unity는 040 단독 소유, main_stage.unity는 025 소유; 예약은 수정 권한이 아니다.
-- 공용 배정 없음; 부상·관전 읽기/재사용만, 부상·관전·종료 수정은 별도 소유 Task.
-- 불꽃 판정/속도 시험 합의 대기; 지상 2명/중계/호응·보상 수치/2~3인은 목표 제외.
+
+1. #111 통합 완료. 기존 위임 문서8개에 대한 자동 scope FAIL과 위임 근거는 PR 이력에 보존한다.
+2. 043 단독 작업 → 완료 후 044 순차 이관. 042는 추가 구현하지 않는다.
+3. 전체 통합 후 plan의 실제4인 공동 테스트와 테스트 씬 유지/삭제 결정.
+
 ## Verification
-- 1 구역: 예약 — 미배정
-- 2 문서: 준비 PASS (2026-10-15, verify-fast hard0/기존 WARN3)
-- 3 컴파일: 준비 PASS (up_to_date) — 기능 구현 아님
-- 4 자동 테스트: 기존 EditMode 5/5 PASS — 이 단계 기능 테스트 미실행
-- 5 공동 테스트: 미실행
-- 실행 로그: 미실행
-## 공동 테스트 결과
-- 일시: 미실행
-- 참여자: 미실행
-- 재현: 미실행
-- 예상: 미실행
-- 실제: 미실행
+
+- 환경: doctor 최초 FAIL0/WARN3. 직접 Pipeline으로 정확한 프로젝트/6000.3.25f1/Stop·씬 dirty0 확인. CLI status 검색 호환성은 별도 도구 문제다.
+- 0 구역: 전체 check-work/save-work 자동 scope FAIL8·후속 SKIPPED. 이미 승인·저장된 전환 문서8개이며 이번에는 수정하지 않았다. 증분 scope(-Base HEAD) PASS. [위임 근거](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md).
+- 1 문서: verify-fast PASS(hard0/기존 범위 밖 WARN5), diff --check PASS.
+- 2 컴파일: 별도 직접 Pipeline recompile PASS(up_to_date/failed=false/오류0). 일괄 검사는 구역 실패로 SKIPPED이며 verify-unity PASS로 표기하지 않는다.
+- 3 테스트: 최종 전체 EditMode277/277 PASS, 실패/건너뜀0. PlayMode NO_PROJECT_TESTS(0개). 합성 톱/봉·손잡이 상태 검사는 각 이력에 별도 기록.
+- 4 직접 플레이: 2026-10-16 사용자 전체 확인 완료 보고. 실제4인 공동 검증 증거는 별도. 콘솔2건은 UnityEditor.SceneViewMotion 내부 예외(게임 코드 프레임 없음), Console0으로 표기하지 않는다.
+- PM 지식 제안: 반동은 각도 상한과 중력 대비 가속을 함께 확인. status 검색0과 직접 editor_status 성공 차이는 도구 호환성 확인 필요.
+
+## 참고
+
+- [setup](setup.md)·[plan](plan.md)·[손잡이](History/20261016-handle-color-verification.md)·[톱/봉](History/20261016-saw-pole-verification.md)·[리프트 색상](History/20261016-lift-color-verification.md)·[자동 승강](History/20261016-auto-lift-verification.md)·[다른 PC 재개](History/20261016-pc-resume.md).

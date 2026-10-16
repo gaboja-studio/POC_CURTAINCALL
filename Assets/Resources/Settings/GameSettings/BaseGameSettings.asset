@@ -71,3 +71,10 @@ MonoBehaviour:
     limbSpin: 8
     limbMass: 1
     limbLifetime: 0
+  spaceTransition:
+    mode: 0
+    hubScene: SpaceLink
+    performanceScene: DummyPerformance
+    waitingRoomScene: DummyWaitingRoom
+    explorationScene: DummyExploration
+    escapeRouteScene: DummyEscapeRoute

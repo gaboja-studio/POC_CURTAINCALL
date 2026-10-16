@@ -16,6 +16,9 @@ GameObject:
   - component: {fileID: 1424430788752323307}
   - component: {fileID: 4051239707843688151}
   - component: {fileID: 8801545623738232437}
+  - component: {fileID: 1841359633330007180}
+  - component: {fileID: 7411176716650291367}
+  - component: {fileID: 5341795615603287762}
   m_Layer: 0
   m_Name: PlayerFollowCamera
   m_TagString: Untagged
@@ -99,7 +102,7 @@ MonoBehaviour:
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 2.6, z: -4.5}
+  FollowOffset: {x: 0, y: 3.75, z: -4.5}
 --- !u!114 &1014669678305033886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -122,7 +125,7 @@ MonoBehaviour:
       Size: {x: 0.8, y: 0.8}
       Offset: {x: 0, y: 0}
   CenterOnActivate: 1
-  TargetOffset: {x: 0, y: 1.2, z: 0}
+  TargetOffset: {x: 0, y: 1.2, z: 1.75}
   Damping: {x: 0.3, y: 0.3}
   Lookahead:
     Enabled: 0
@@ -178,3 +181,43 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0e4a040dbc7d4fcfa194d308087589e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Cameras.CameraSpectator
+  dimColor: {r: 0.55, g: 0, b: 0, a: 0.28}
+  dimWidth: 0.22
+  dimFadeIn: 0.4
+--- !u!114 &1841359633330007180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650483801816869962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 372af86acbfc0cf4ca1dbb5b5ec21700, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Cameras.CameraViewDirector
+  settings: {fileID: 11400000, guid: 5c4a1cf7028652c469241151bfc6f20d, type: 2}
+--- !u!114 &7411176716650291367
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650483801816869962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5070c83120adc6c43bf43f24d63627ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Cameras.CameraViewPoseExtension
+--- !u!114 &5341795615603287762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1650483801816869962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3695b4229994c6a4489032adae24753b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Cameras.CameraModelVisibility
