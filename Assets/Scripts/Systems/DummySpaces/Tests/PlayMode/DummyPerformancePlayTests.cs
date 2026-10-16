@@ -81,6 +81,25 @@ namespace CurtainCall.DummySpaces.Tests
         }
 
         [UnityTest]
+        public IEnumerator ArriveThenOtherDies_EndsPerformanceInsteadOfWaiting()
+        {
+            Assert.IsTrue((bool)Call(dummy, "Arrive", "Dummy-0"));
+            Assert.IsNull(Get(rewards, "Latest"));
+            Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-1"));
+            var result = Get(rewards, "Latest");
+            Assert.IsNotNull(result, "도착 뒤 남은 사람이 죽어도 공연이 멈춰 있지 않음");
+            bool devMode = (bool)GameType("CurtainCall.Dev.DevMode").GetProperty("Enabled").GetValue(null);
+            if (devMode)
+            {
+                Assert.IsTrue((bool)Get(result, "Succeeded"), "개발자 모드(생존 1명 허용): 남은 생존자가 모두 도착 → 성공");
+                Assert.AreEqual("Completed", Get(result, "EndReason"));
+            }
+            else Assert.AreEqual("InsufficientSurvivors", Get(result, "Failure").ToString(), "생존 2명 미만 실패가 먼저");
+            Assert.AreEqual("RestTime", Get(Get(campaign, "State"), "Phase").ToString());
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator Death_Uses031SurvivorFailureWithoutDummySettlement()
         {
             Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-0"));

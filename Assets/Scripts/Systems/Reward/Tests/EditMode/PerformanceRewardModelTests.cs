@@ -224,6 +224,28 @@ namespace CurtainCall.Reward.Tests
         }
 
         [Test]
+        public void Confirm_ForfeitedParticipant_CountsAsSurvivorButSettlesZero()
+        {
+            // 쉬는 시간에 잡혀 사망 → 외팔로 부활해 출연한 사람은 그 공연 본인 보상만 박탈(부상 기획 4-2).
+            var rules = new RewardRules(10, 5, 100, 7, 0);
+            var model = new PerformanceRewardModel(Session, 1);
+            Assert.IsTrue(model.Begin(Identity(), new[]
+            {
+                new RewardParticipantSeed("p1", 11, 0),
+                new RewardParticipantSeed("p2", 22, 1, 7, false, true)
+            }, rules));
+            Assert.IsTrue(model.Cheer("p1", true, rules));
+            Assert.IsTrue(model.Cheer("p2", true, rules));
+
+            var result = Settle(model, rules: rules);
+            Assert.IsTrue(result.Succeeded, "박탈 대상도 생존 인원(2명)에 들어감");
+            Assert.AreEqual(17, result.Participants[0].Settlement, "다른 사람은 호응 + 전원 생존 보너스");
+            Assert.AreEqual(0, result.Participants[1].Settlement, "박탈 대상은 호응·보너스 모두 0");
+            Assert.AreEqual("Forfeited", result.Participants[1].Judgement);
+            Assert.AreEqual(17, result.Income);
+        }
+
+        [Test]
         public void Confirm_Success_SumsIndividualSettlementsIntoOneLedgerEntry()
         {
             var model = BeginPair(day: 2);

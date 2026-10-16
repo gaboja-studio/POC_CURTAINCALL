@@ -3,10 +3,17 @@ using UnityEngine;
 
 namespace CurtainCall.DummySpaces
 {
-    /// <summary>더미 토큰 보조 표시. 실제 플레이어·물리·결과 판정은 소유하지 않는다.</summary>
+    /// <summary>
+    /// 3D 더미 공간 안의 플레이어 자리 토큰. 진행값(도착·구역·행)을 공간의 시작~끝 지점 사이 위치로 보여 준다.
+    /// 실제 플레이어·물리·결과 판정은 소유하지 않는다.
+    /// </summary>
     public sealed class DummySpacePreview : MonoBehaviour
     {
         public Transform[] tokens;
+        [Tooltip("토큰별 시작 지점(진행 0). 비어 있으면 일렬 배치")]
+        public Transform[] starts;
+        [Tooltip("토큰별 끝 지점(진행 1)")]
+        public Transform[] ends;
         public Renderer[] tokenRenderers;
         public Material idle;
         public Material active;
@@ -50,7 +57,9 @@ namespace CurtainCall.DummySpaces
                     progress = row.Contains("도착") ? 1 : 0;
                 }
                 tokens[i].gameObject.SetActive(visible);
-                tokens[i].localPosition = new Vector3((i - 1.5f) * 1.4f, 0.65f, progress * 2f);
+                if (starts != null && ends != null && i < starts.Length && i < ends.Length && starts[i] != null && ends[i] != null)
+                    tokens[i].position = Vector3.Lerp(starts[i].position, ends[i].position, progress);
+                else tokens[i].localPosition = new Vector3((i - 1.5f) * 1.4f, 0.65f, progress * 2f);
                 if (tokenRenderers[i].sharedMaterial != material) tokenRenderers[i].sharedMaterial = material;
             }
         }

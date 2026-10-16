@@ -113,8 +113,8 @@ namespace CurtainCall.DummySpaces.Tests
             var expected = new[]
             {
                 new[] { "start", "begin", "person", "arrive", "cut", "kill", "cheer", "timeout" },
-                new[] { "advance", "spend", "leave", "ready", "lost", "backpack", "restorePreview" },
-                new[] { "advance", "leave", "room", "stage", "expire", "catchPreview" },
+                new[] { "advance", "spend", "leave", "escapeStart", "ready", "lost", "backpack", "restorePreview" },
+                new[] { "advance", "leave", "room", "stage", "escapeStart", "expire", "catchPreview" },
                 new[] { "advance", "escape", "row", "rowArrive", "rowRetire", "success", "retired" }
             };
             for (int i = 0; i < scenes.Length; i++)
@@ -130,15 +130,23 @@ namespace CurtainCall.DummySpaces.Tests
                 Assert.IsNotNull(input, $"{scenes[i]} InputSystemUIInputModule");
                 Assert.AreEqual(scene, eventSystem.gameObject.scene);
                 Assert.AreEqual(eventSystem.gameObject, input.gameObject);
-                foreach (string field in new[] { "status", "live", "clock", "clockFill", "steps", "selection", "condition", "resultTitle", "resultBadge", "resultBody", "changes", "connection", "history", "details", "preview" })
+                foreach (string field in new[] { "place", "status", "funds", "live", "clock", "clockFill", "steps", "hud", "toast", "panel", "panelToggle", "panelToggleLabel",
+                    "selection", "condition", "resultTitle", "resultBadge", "resultBody", "changes", "connection", "history", "preview" })
                 {
                     var reference = Get(canvas, field) as Component;
                     Assert.IsNotNull(reference, $"{scenes[i]} 저장 참조 {field}");
                     Assert.AreEqual(scene, reference.gameObject.scene);
                 }
-                var detailsPanel = Get(canvas, "detailsPanel") as GameObject;
-                Assert.IsNotNull(detailsPanel, "세부 정보 패널 저장 참조");
-                Assert.AreEqual(scene, detailsPanel.scene);
+                var toastPanel = Get(canvas, "toastPanel") as GameObject;
+                Assert.IsNotNull(toastPanel, "결과 알림 저장 참조");
+                Assert.IsFalse(toastPanel.activeSelf, "로드 직후 결과 알림은 숨김");
+                Assert.AreEqual(3, ((Array)Get(canvas, "tabPages")).Length, "패널 탭: 조작·결과·기록");
+                Assert.AreEqual(3, ((Array)Get(canvas, "tabButtons")).Length);
+                Assert.IsNotNull(Object.FindAnyObjectByType(GameType("CurtainCall.DummySpaces.DummySpacePreview")), "3D 토큰");
+                Assert.IsNotNull(GameObject.Find("Dummy Environment"), "3D 더미 공간");
+                var camera = Camera.main;
+                Assert.IsNotNull(camera, "공간 카메라");
+                Assert.AreEqual(new Rect(0, 0, 1, 1), camera.rect, "화면 전체 카메라");
                 Assert.IsNotEmpty(Actions, "저장된 액션 목록");
                 var ids = Actions.Select(a => (string)Get(a, "id")).ToArray();
                 Assert.AreEqual(ids.Length, ids.Distinct().Count(), "중복 액션 ID 없음");
@@ -151,7 +159,7 @@ namespace CurtainCall.DummySpaces.Tests
                     Assert.AreEqual(scene, button.gameObject.scene);
                 }
                 foreach (string id in expected[i]) Button(id);
-                Button("details");
+                Assert.IsFalse(ids.Contains("details"), "원시 상세는 Canvas가 아니라 개발자 모드 로그");
                 Assert.AreEqual(0, ExecutionCount, "씬 로드만으로 액션 실행 없음");
                 // 루프의 다음 씬에도 기존 회귀 테스트와 같은 싱글턴 정리를 적용한다.
                 yield return TearDown();
@@ -246,6 +254,45 @@ namespace CurtainCall.DummySpaces.Tests
             Assert.AreEqual("arrive", Get(canvas, "LastAction"));
             StringAssert.Contains("공연 성공", (string)Get(canvas, "ResultText"));
             StringAssert.Contains(income.ToString(), (string)Get(canvas, "ResultText"));
+        }
+
+        [UnityTest]
+        public IEnumerator Panel_CollapsedKeepsButtonsWorkingAndTabsSwitchPages()
+        {
+            yield return Open("DummyWaitingRoom");
+            Assert.IsTrue((bool)Get(canvas, "PanelOpen"), "처음에는 패널이 열림");
+            var panel = (RectTransform)Get(canvas, "panel");
+            var toggle = Get(canvas, "panelToggle");
+            var onClick = toggle.GetType().GetProperty("onClick").GetValue(toggle);
+            onClick.GetType().GetMethod("Invoke", Type.EmptyTypes).Invoke(onClick, null);
+            Assert.IsFalse((bool)Get(canvas, "PanelOpen"), "탭 버튼으로 패널 접기");
+            Assert.Less(panel.anchoredPosition.x, -1f, "접으면 화면 밖으로 밀림");
+            Assert.IsTrue(panel.gameObject.activeInHierarchy, "접어도 버튼 오브젝트는 켜 둠");
+            int before = ExecutionCount;
+            Click("restorePreview");
+            Assert.AreEqual(before + 1, ExecutionCount, "접힌 패널의 버튼 이벤트도 실행");
+            Assert.IsTrue(((GameObject)Get(canvas, "toastPanel")).activeSelf, "실행 결과 알림 표시");
+            var pages = ((Array)Get(canvas, "tabPages")).Cast<GameObject>().ToArray();
+            Call(canvas, "ShowTab", 1);
+            Assert.IsTrue((bool)Get(canvas, "PanelOpen"), "탭을 고르면 패널이 다시 열림");
+            Assert.IsFalse(pages[0].activeSelf);
+            Assert.IsTrue(pages[1].activeSelf, "결과 탭");
+            StringAssert.Contains("실제 신체·인벤토리·자금은 바뀌지 않습니다.", (string)Get(canvas, "ResultText"));
+            Call(canvas, "ShowTab", 2);
+            Assert.IsTrue(pages[2].activeSelf, "기록 탭");
+            Call(canvas, "ShowTab", 0);
+            Assert.IsTrue(pages[0].activeSelf, "조작 탭");
+        }
+
+        [UnityTest]
+        public IEnumerator WaitingRoom_EscapeStartButtonMovesRunToEscape()
+        {
+            yield return Open("DummyWaitingRoom");
+            Assert.IsFalse((bool)Get(Button("escapeStart"), "interactable"), "쉬는 시간 전에는 탈출 개시 불가");
+            PrepareRest();
+            Click("escapeStart");
+            Assert.AreEqual("Escape", Phase, "대기실 화면의 탈출 개시가 028 StartEscape로 이어짐");
+            Assert.AreEqual("escapeStart", Get(canvas, "LastAction"));
         }
 
         [UnityTest]
