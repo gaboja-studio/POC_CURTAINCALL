@@ -90,38 +90,14 @@ if (-not $task -and -not $ScopeCheck -and $head -match '^(fix|resource)/') {
     if ($LASTEXITCODE -ne 0) { $scopeOut | ForEach-Object { Write-Output $_ }; $problems.Add('구역 검사 실패 (위 [위반] 항목 확인)') }
 }
 
-$template = Get-Content -LiteralPath (Get-RepoPath '.github/PULL_REQUEST_TEMPLATE.md') -Raw
-$parts = [regex]::Split($template, '(?m)^(?=## )')
-$body = [System.Text.StringBuilder]::new()
-foreach ($part in $parts) {
-    if ($part -notmatch '^## (.+)') { [void]$body.Append($part); continue }
-    $heading = $Matches[1].Trim()
-    $value = switch -Regex ($heading) {
-        '요약' { $Summary }
-        'JIRA' { $jira }
-        'Issue' { $issueText }
-        '검사' {
-            $lines = foreach ($l in ($part -split "`n")) {
-                if ($l -notmatch '^\s*-\s*([^(:]+)') { continue }
-                $label = $Matches[1].Trim()
-                $v = switch -Regex ($label) {
-                    '구역' { if ($ScopeCheck) { $ScopeCheck } elseif ($noTaskScope) { $noTaskScope } elseif (-not $task) { '해당 없음 (Task 없는 PM 브랜치)' } else { Get-Check '구역 검사' } }
-                    '컴파일' { if ($CompileCheck) { $CompileCheck } else { Get-Check '2 컴파일' } }
-                    '테스트' { if ($TestCheck) { $TestCheck } else { Get-Check '3 테스트' } }
-                    '플레이' { $PlayCheck }
-                    default { '미실행' }
-                }
-                "- ${label}: $v"
-            }
-            $lines -join "`n"
-        }
-        default { $null }
-    }
-    if ($null -eq $value) { [void]$body.Append($part) }
-    else { [void]$body.Append("## $heading`n`n$value`n`n") }
+$checks = @{
+    ScopeCheck = $(if ($ScopeCheck) { $ScopeCheck } elseif ($noTaskScope) { $noTaskScope } elseif (-not $task) { '해당 없음 (Task 없는 PM 브랜치)' } else { Get-Check '구역 검사' })
+    CompileCheck = $(if ($CompileCheck) { $CompileCheck } else { Get-Check '2 컴파일' })
+    TestCheck = $(if ($TestCheck) { $TestCheck } else { Get-Check '3 테스트' })
+    PlayCheck = $PlayCheck
 }
-$bodyText = $body.ToString().Trim() + "`n"
-if ($mergeMethod -eq 'merge') { $bodyText += "`n병합 방식: Merge commit (부모/통합 동기화, Squash 금지). 준비 branch sync는 배정 문서 수신용이며 실제 인계 확인을 대체하지 않습니다.`n" }
+$mergeNote = if ($mergeMethod -eq 'merge') { '병합 방식: Merge commit (부모/통합 동기화, Squash 금지). 준비 branch sync는 배정 문서 수신용이며 실제 인계 확인을 대체하지 않습니다.' } else { '' }
+$bodyText = New-PrTemplateBody -Summary $Summary -Jira $jira -Issues $issueText @checks -MergeNote $mergeNote
 
 # 3) 원격 상태 확인
 $dirty = & git -C $RepoRoot status --porcelain

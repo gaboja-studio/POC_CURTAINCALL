@@ -141,18 +141,30 @@ function Get-IntegrationMetadata {
 }
 
 function Assert-IntegrationLineage {
-    param([Parameter(Mandatory)][string]$Branch, [string]$Ref, [string]$Child, [switch]$AllowDone)
+    param([Parameter(Mandatory)][string]$Branch, [string]$Ref, [string]$Child, [switch]$AllowDone,
+        [System.Collections.IDictionary]$PinnedRefs, [switch]$RequireActive)
     $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     if ($Child) { [void]$seen.Add($Child) }
     $first = $true
     while ($Branch -cne (Get-BaseBranch)) {
         if (-not $seen.Add($Branch)) { throw "통합 Base 자기참조/순환: $Branch" }
-        $info = if ($first -and $Ref) { Get-IntegrationMetadata -Branch $Branch -Ref $Ref -AllowDone:$AllowDone } else { Get-IntegrationMetadata -Branch $Branch }
+        $readRef = if ($null -ne $PinnedRefs) {
+            if (-not $PinnedRefs.Contains($Branch)) { throw "고정된 계보 SHA 누락: $Branch" }
+            $PinnedRefs[$Branch]
+        } elseif ($first -and $Ref) { $Ref } else { "refs/remotes/origin/$Branch" }
+        $info = Get-IntegrationMetadata -Branch $Branch -Ref $readRef -AllowDone:($first -and $AllowDone)
         $first = $false
+        if ($RequireActive -and (Get-MetaField -Text $info.Text -Field 'Status') -cnotin @('preparing', 'working', 'merging', 'testing', 'to-dev', 'blocked')) {
+            throw "활성 통합 상태가 아닙니다: $Branch"
+        }
         if (-not $info.Base) { throw "통합 Base 누락: $Branch" }
         $Branch = $info.Base
     }
-    & git -C $script:RepoRoot rev-parse --verify --quiet "refs/remotes/origin/$Branch^{commit}" | Out-Null
+    $baseRef = if ($null -ne $PinnedRefs) {
+        if (-not $PinnedRefs.Contains($Branch)) { throw "고정된 계보 SHA 누락: $Branch" }
+        $PinnedRefs[$Branch]
+    } else { "refs/remotes/origin/$Branch" }
+    & git -C $script:RepoRoot rev-parse --verify --quiet "$baseRef^{commit}" | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "원격 부모 브랜치가 없습니다: $Branch" }
 }
 
@@ -388,6 +400,44 @@ function Get-GhState {
         return [pscustomobject]@{ State = 'NoRepoAccess'; Gh = $gh; Detail = "$($repo.Slug) 접근 권한 없음 (PM에게 저장소 초대 요청)" }
     }
     return [pscustomobject]@{ State = 'Ready'; Gh = $gh; Detail = "gh 준비됨 ($($repo.Slug))" }
+}
+
+function New-PrTemplateBody {
+    param([Parameter(Mandatory)][string]$Summary, [string]$Jira = '없음', [string]$Issues = '없음',
+        [string]$ScopeCheck = '미실행', [string]$CompileCheck = '미실행', [string]$TestCheck = '미실행',
+        [string]$PlayCheck = '미실행', [string]$MergeNote)
+    $template = Get-Content -LiteralPath (Get-RepoPath '.github/PULL_REQUEST_TEMPLATE.md') -Raw
+    $body = [System.Text.StringBuilder]::new()
+    foreach ($part in [regex]::Split($template, '(?m)^(?=## )')) {
+        if ($part -notmatch '^## (.+)') { [void]$body.Append($part); continue }
+        $heading = $Matches[1].Trim()
+        $value = switch -Regex ($heading) {
+            '요약' { $Summary }
+            'JIRA' { $Jira }
+            'Issue' { $Issues }
+            '검사' {
+                $lines = foreach ($line in ($part -split "`n")) {
+                    if ($line -notmatch '^\s*-\s*([^(:]+)') { continue }
+                    $label = $Matches[1].Trim()
+                    $check = switch -Regex ($label) {
+                        '구역' { $ScopeCheck }
+                        '컴파일' { $CompileCheck }
+                        '테스트' { $TestCheck }
+                        '플레이' { $PlayCheck }
+                        default { '미실행' }
+                    }
+                    "- ${label}: $check"
+                }
+                $lines -join "`n"
+            }
+            default { $null }
+        }
+        if ($null -eq $value) { [void]$body.Append($part) }
+        else { [void]$body.Append("## $heading`n`n$value`n`n") }
+    }
+    $text = $body.ToString().Trim() + "`n"
+    if ($MergeNote) { $text += "`n$MergeNote`n" }
+    return $text
 }
 
 function Open-Url {

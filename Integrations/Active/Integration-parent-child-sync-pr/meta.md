@@ -17,7 +17,7 @@
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261017-054 | fix | @MoHoDu | fix/parent-child-sync-pr (준비 저장 후 생성) | - | assigned |
+| Task-20261017-054 | fix | @MoHoDu | fix/parent-child-sync-pr | - | working (구현·로컬 검증 완료, 미커밋) |
 
 ## 공용 파일 소유 표
 
@@ -28,4 +28,4 @@
 
 - Open: None
 - Decided: 2026-10-17 — PM 본인의 B 로컬 기술 배정·착수를 직접 기록하는 단회 예외. 일반 gate 변경 없음.
-- Decided: 2026-10-17 — 준비 문서 로컬 commit 하나만 승인. 구현 결과 commit/push/PR/merge는 별도 요청 전 보류.
+- Decided: 2026-10-17 — 최초 준비 문서 로컬 commit만 승인. 후속 요청으로 B 저장·push·dev 제출 절차 승인. 실제 등록은 내용 확인 후, 병합·동기화 PR 운용은 별도 승인.
