@@ -9,7 +9,7 @@
 ## 현재 기획 안내 (2026-10-15)
 - 위 조사 날짜·과거 근거는 보존. 공용 PR #64·패널 PR #65 dev 병합은 전체 공간 연결/4인 검증 완료가 아니다. 현재 공연장·탈출로 @RagSpirin([팀](../../Harness/Project/Facts/team.md)), 과거 @lakuase2 기록은 당시 담당.
 - 최신 [게임 흐름](../../Harness/Project/Facts/game-flow.md): 전화부스 서비스·부재 표시, 연출은 대기실 담당이 A안 선택([대기실 결정](../../Harness/Project/Decisions/Waiting-room/index.md)). 기물 2/1/+2와 쉬는 시간 B 기본/A-B 전환 유지.
-- [인간 대포 v0.5](../../Harness/Project/Decisions/Human-cannon/index.md)는 **살아 있는 1명 실제 목적지 도착 성공** 예외. 공통 생존 2명 실패/결과/런 종료를 연결하는 의존성으로 4단계 PM·공용 담당 협의/소유 배정이 필요하며 이번에 `Systems/`를 수정하지 않는다.
+- 생존 규칙(2026-10-16): 인간 대포 v0.5의 **살아 있는 1명 도착 성공**을 모든 묘기 공통으로 올림(run-rules.md #10). 공용 기준 `PerformanceRewards.OfficialMinSurvivors = 1`은 `integration/main-stage-human-cannon`(Task-043)에서 구현, 그 통합이 dev에 합쳐지면 반영.
 
 ## 재사용 목록
 
@@ -90,7 +90,7 @@
 | 3 | 세팅을 **공통 / 각 묘기 / 대기실 / 탐색 / 탈출로** 5묶음으로 분리 | [game-settings.md](../../Harness/Project/Decisions/game-settings.md) | CC-108 |
 | 4 | 공통 폴더 이전은 **별도 Task**(refactor, 1단계) | [통합 계획](../../Integrations/Active/Integration-common-game-systems/plan.md) | 신규 Task |
 | 5 | 공통 게임 시스템은 묘기·탐색·대기실·탈출로를 **더미 로직·씬**으로 먼저 구성해 시스템과 설정 반영을 검증, 실제 공간 로직·씬은 나중에 교체·연결 | run-rules.md #4 | CC-108~111 |
-| 6 | **생존 2명 미만 = 묘기 공통 실패** → 대기실 복귀, 생존자 부상 유지·사망자 외팔 부활 후 다음 쉬는 시간 | run-rules.md #2 | CC-109·110 |
+| 6 | **전원 사망 = 묘기 공통 실패**(2026-10-16, 생존 1명까지 계속) → 대기실 복귀, 생존자 부상 유지·사망자 외팔 부활 후 다음 쉬는 시간 | run-rules.md #2·#10 | CC-109·110 |
 | 7 | **게임 시작 후 재접속 비허용**(방을 새로 만들어야 함), 로비 재입장은 허용 — 현재 구현과 같음 | run-rules.md #3 | CC-108 |
 | 8 | **최소 인원 2명**, 1인 테스트는 개발자 모드, 협력 테스트 AI는 검토 후 별도 Task | run-rules.md #5 | 신규 Task |
 

@@ -15,7 +15,7 @@
 - [player-control-architecture.md](player-control-architecture.md) — 플레이어 조작 3층(키→공통 역할 입력 에셋, 콘텐츠별 조작 규칙=전략, 동작 부품). 입력·조작을 추가하거나 콘텐츠별 키 동작을 바꿀 때
 - [feature-with-network.md](feature-with-network.md) — 007 이후 기능 Task는 기능+동기화를 같이, 007 공개 기능 사용 가능, 009·010 축소. 기능 Task를 계획하거나 네트워크 코드를 다른 기능에서 쓸 때
 - [injury-rules.md](injury-rules.md) — 공통 부상 규칙(2026-10-13 부상 기획): 절단 순서 고정, 잃은 팔다리 수 0~4, 사망=4곳·추락·외팔로 잡힘, 묘기 재시작 없이 관전 후 외팔 부활, 밤 신체 복구(역순·공동 자금), 탐색 중/공연 중 패널티, 팔 개수별 기물 소지. 절단·사망·부활·복구·패널티를 다룰 때 (body-damage.md보다 우선)
-- [run-rules.md](run-rules.md) — 런 공통 규칙: B 기본/A-B 전환·생존 2명 실패와 인간 대포 도착 예외·재접속·최소 인원·더미 우선. 공용 종료/런 계약을 정할 때
+- [run-rules.md](run-rules.md) — 런 공통 규칙: B 기본/A-B 전환·생존 1명까지 계속·전원 사망 실패(2026-10-16 공통화)·재접속·최소 인원·더미 우선. 공용 종료/런 계약을 정할 때
 - [control-keys.md](control-keys.md) — 공통 조작키(2026-10-15 확인): 단독 hold/조합 pressed toggle·F·카메라/UI, 위기/QTE 예시 구분. 입력·조작 규칙을 추가할 때
 - [body-damage.md](body-damage.md) — (사망·재시작·수리는 injury-rules.md로 대체) 팔·다리 손실은 게임 전체 상태(완전히 죽기 전까지 묘기·재시작을 넘어 유지), 팔=상호작용·다리=이동 계열 패널티(크기는 묘기마다), 네 팔다리 모두 손실 = 사망, 잘린 팔다리 날아감, 두 다리 없으면 기어가기, 패널티는 콘텐츠별 교체 정책, 이후 돈으로 부품 수리. 부위 손실·패널티·수리를 다룰 때
 - [game-settings.md](game-settings.md) — 기획 조정값은 `Assets/Resources/Settings/GameSettings/` 한 폴더(공통·묘기별·대기실·탐색·탈출로 5묶음 + 교체형 보상, 2026-10-14), 칸마다 한글 설명·단위, 플레이 중 반영. 수치를 만들거나 옮길 때
