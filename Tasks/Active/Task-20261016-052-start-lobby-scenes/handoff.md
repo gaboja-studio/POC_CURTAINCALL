@@ -9,7 +9,7 @@
 ## 다음 할 일
 1. Start 씬에서 plan의 공동 테스트 3개를 사람이 한 번에 확인. 온라인 코드·대기 재참가/진행 중 거부·설정 저장/빌드 화면 모드 포함.
 2. 실제 공연 연결/스폰·바닥 문제를 별도 Task로 배정하고, MPPM 공식 Scenario 또는 별도 PC에서 공동 검증. 병합된 feat·integration에 구현 추가 금지.
-3. 공동 결과와 남은 이슈 처리 후에만 integrated → close-integration → dev PR. 지금은 Done 이동·dev PR·브랜치 삭제하지 않음.
+3. 2026-10-16 PM "현재 상태로 먼저 병합" 예외 승인으로 미검증·낙하 문제를 명시해 dev 선반영. Task submitted / Integration testing·Active 유지. 공동 결과·후속 이슈 처리 전 integrated/done·브랜치 삭제 금지.
 
 ## PM이 확인할 것
 - 확인 요청: 시작/로비 화면·조작감·카메라, 온라인·사람 공동 검증. 참가자에게 호스트 종료 이유가 영문으로 표시됨.

@@ -37,7 +37,7 @@
 ## 공동 테스트
 
 - 일시·참여: 미실시. 위 2인 런타임 제어를 사람 공동 테스트로 대체하지 않는다.
-- 결과: SKIPPED. Task 상태 submitted 유지, Integration testing. integrated/done·dev 제출·브랜치 정리 미실행.
+- 결과: SKIPPED. Task 상태 submitted 유지, Integration testing. 아래 PM 예외 승인으로 dev 선반영을 진행하되 integrated/done·브랜치 정리는 하지 않는다.
 - 남은 확인: plan의 화면·조작감/카메라, 온라인 방 코드·잠금/해제·재참가, 진행 중 신규 참가 거부, 설정 저장·빌드 화면 모드. 4인·별도 PC 연결도 미검증.
 
 ## 남은 이슈
@@ -47,14 +47,16 @@
 - 호스트 종료 안내는 참가자 화면에 영문으로 표시됨. 표시 동작은 확인했으나 UX 승인은 아직 없음.
 
 ## 테스트 씬 처리
+- Task-20261016-052: `Assets/Scenes/Start_Lobby/Start.unity`, `Lobby.unity` 유지(실제 게임 씬). PM @MoHoDu, 2026-10-16, setup 기록.
 
-| Task | 테스트 씬 | 결정(유지/삭제) | 결정자 |
-|---|---|---|---|
-| Task-20261016-052 | Assets/Scenes/Start_Lobby/Start.unity, Lobby.unity | 유지 — 실제 게임 씬 | PM @MoHoDu, 2026-10-16, setup 기록 |
+## dev 선반영 예외 승인
+- 2026-10-16 PM @MoHoDu: "현재 상태로 먼저 병합". 사람 공동 테스트·온라인 미검증과 DummyPerformance 낙하를 알고 dev 선반영 승인.
+- Task submitted / Integration testing·Active 유지. 테스트 PASS 변경, integrated/done 처리, 후속 Task 임의 생성, 브랜치 삭제는 하지 않는다.
+- 최신 dev `8e814b6`(인간 대포 통합 포함)와 `e8b6794`의 `git merge-tree --write-tree` 충돌 없음. 이는 Git 병합 가능 확인이며 해당 조합의 Unity 검증 완료가 아니다.
+- 실제 제출·검사·병합 결과는 [시작·로비 → dev PR](https://github.com/gaboja-studio/POC_CURTAINCALL/pulls?q=is%3Apr+head%3Aintegration%2Fstart-lobby+base%3Adev)에서 확인한다. Merge commit으로 반영하며 보호 규칙·검사 우회 없음.
 
 ## 정리
 
 - [ ] 작업 브랜치 삭제
-- [ ] `dev` 병합 완료 (PR: 미생성)
 - [ ] `integration/*` 브랜치 삭제
 - [ ] 이 폴더를 `Integrations/Done/`으로 이동

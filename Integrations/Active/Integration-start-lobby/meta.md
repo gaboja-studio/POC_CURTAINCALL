@@ -42,5 +42,6 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 ## Decisions
 
-- Open: None
+- Open: 사람 공동 테스트·온라인 검증 및 실제 공연 연결/낙하 문제 후속 Task 배정 대기.
+- Decided: 2026-10-16 PM — "현재 상태로 먼저 병합" 승인. 미검증·알려진 문제를 명시해 dev에 선반영하되 Task submitted / Integration testing과 Active 위치를 유지한다. 완료 처리·브랜치 삭제 승인이 아니다.
 - Decided: 2026-10-16 PM — 브랜치 `integration/start-lobby` + `feat/start-lobby-scenes`, 씬 위치 `Assets/Scenes/Start_Lobby/`, 코드 `Assets/Scripts/Systems/StartLobby/`, 담당 @MoHoDu. Jira CC-133(PM 등록). 로비 준비·시작은 출연 명단 서명 + 방장 커튼 레버, 로비 시점 고정 3D(맵 밖으로 안 나감), 설정은 핵심만
