@@ -2,6 +2,7 @@
 
 - 사용자: "전부 확인 완료 했고 제출해줘". 분리 출발/첫 받기/쉼터/불꽃·리프트·톱/봉·손잡이 표시의 직접 확인 완료로 기록한다. 인원·역할·원격 환경·영상은 추가로 제공되지 않아 실제4인 공동 테스트 증거를 임의로 만들지 않는다.
 - 대상: feat/human-cannon-route-shelter → integration/main-stage-human-cannon, Squash. git fetch 후 부모 최신292667c 확인, merge는 Already up to date. 043/044 이관·PR 병합은 이번 제출에 포함하지 않는다.
+- 제출: [PR #111](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/111), 구현87f383f push 완료. 요청된 검증 결과와 기존 scope FAIL8/위임 근거를 본문에 기록했다. 병합은 미실행이다.
 - 작성자: gh 계정 RagSpirin / 37629846+RagSpirin@users.noreply.github.com 일치, setup-gh PASS, 기존 커밋 검사 훅 유지.
 - check-work -Mode PlayMode 및 save-work -DryRun은 전체 브랜치 scope FAIL8로 중단한다. 실패 결과를 PASS로 바꾸지 않는다.
 - FAIL8은 a18d6aa에 저장된 통합 문서3개, 041 인계 문서4개, 042 setup1개다. [PM 순차 인계 위임](../../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 승인된 단계 전환이며 이번 세션에서 해당8개는 수정하지 않았다.

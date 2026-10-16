@@ -2,8 +2,8 @@
 
 ## 지금 상태
 
-- human-verify / submit-work — 2026-10-16 사용자 "전부 확인 완료 했고 제출해줘". 직접 확인 완료를 기록하고 제출 준비. [최종 검증](History/20261016-submit-verification.md).
-- PR: 제출 준비
+- submitted / submit-work — 2026-10-16 사용자 전체 확인 완료를 기록하고 PR #111 제출 완료. 구현 저장87f383f, 원격 반영. [최종 검증](History/20261016-submit-verification.md).
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/111
 - 대상: feat/human-cannon-route-shelter → integration/main-stage-human-cannon(Squash). 최신 부모292667c 포함 확인, merge Already up to date. 042만 코드·씬 소유를 유지한다.
 - 구현: 대포3대 분리 출발·첫 받기·쉼터 합류/교대·불꽃 압박/경계 종료. 리프트3대는 트램폴린을 든1명만1.5초 자동 출발, 조건 충족 대기/이동 초록·그 외 파랑. 과승 양문·안전 바닥/복귀 계단·쉼터 낙차 반영.
 - 피드백: 톱 중심 지면+1.2m/장벽2.4m·잡기 중 지하 접힘, 네 봉 가속300/각도80/속도180. 손잡이 잡기 초록/놓기 원색. 운반자 통과 전 비행 차단 유지. 시험 수치는 최종 밸런스 확정이 아니다.
@@ -11,7 +11,7 @@
 
 ## 다음 할 일
 
-1. 구현·확인 기록을 저장하고 PR 제출, PM 리뷰 대기.
+1. PM 리뷰/통합 대기. 기존 위임 문서8개에 대한 자동 scope FAIL과 위임 근거를 PR에 명시했다.
 2. PM 통합 후 043→044 순차 이관. 현재042 소유를 미리 반환하지 않는다.
 3. 전체 통합 후 plan의 실제4인 공동 테스트와 테스트 씬 유지/삭제 결정.
 

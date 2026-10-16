@@ -44,7 +44,7 @@
   - [x] 네 봉 반동 폭·가속 확대 및 자동/씬 검증
 - [x] 최신 톱날·반동 직접 조작 확인 — 2026-10-16 사용자 전체 확인 완료 보고, 실제4인 증거는 별도
 - [x] 트램폴린 손잡이 소유 표시 — 잡으면 초록, 놓기/초기화 시 원래색 복원 및 확인
-- [ ] PR 제출 — 대상 integration/main-stage-human-cannon
+- [x] PR 제출 — #111, 대상 integration/main-stage-human-cannon (2026-10-16)
 
 ## PM 통합
 

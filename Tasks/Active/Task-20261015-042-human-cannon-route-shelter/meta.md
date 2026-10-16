@@ -2,7 +2,7 @@
 
 - **Title:** 인간 대포 3단계 — 분리 코스와 쉼터
 - **Type:** feat
-- **Status:** human-verify
+- **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
 - **Current Skill:** submit-work
