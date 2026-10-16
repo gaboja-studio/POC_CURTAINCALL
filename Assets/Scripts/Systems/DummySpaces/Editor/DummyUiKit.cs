@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using CurtainCall.Fonts.EditorTools;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -41,7 +42,7 @@ namespace CurtainCall.DummySpaces.EditorTools
 
         // ── 공통 준비 ───────────────────────────────────────
 
-        /// <summary>더미 한글 폰트를 열고 두 기능 폴더 코드의 글자를 미리 채운다.</summary>
+        /// <summary>더미 한글 폰트를 연다. 코드에 새 글자가 있으면 Static으로 다시 굽는다.</summary>
         public static TMP_FontAsset LoadFont()
         {
             if (!AssetDatabase.IsValidFolder(Display)) AssetDatabase.CreateFolder("Assets/Scenes/Tests/Systems/DummySpaces", "Display");
@@ -63,12 +64,9 @@ namespace CurtainCall.DummySpaces.EditorTools
                     AssetDatabase.AddObjectToAsset(texture, asset);
                 }
             }
-            string text = string.Concat(new[] { "Assets/Scripts/Systems/DummySpaces", "Assets/Scripts/Systems/SpaceLink" }
-                .SelectMany(folder => Directory.GetFiles(folder, "*.cs", SearchOption.AllDirectories)).Select(File.ReadAllText));
-            text += "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz → · ▶ ◀ ■ ≠ / [ ] : - + , . ( )";
-            asset.TryAddCharacters(new string(text.Distinct().Where(c => !char.IsControl(c)).ToArray()), out _);
-            EditorUtility.SetDirty(asset);
-            AssetDatabase.SaveAssetIfDirty(asset);
+            // Play 중 아틀라스가 바뀌어 git에 잡히지 않도록 코드 글자를 미리 구운 Static 폰트로 둔다.
+            if (asset.atlasPopulationMode != AtlasPopulationMode.Static || !StaticFontBaker.CodeCharacters().All(c => asset.HasCharacter(c)))
+                StaticFontBaker.Bake(asset, StaticFontBaker.CodeCharacters());
             Font = asset;
             missing.Clear();
             return asset;
