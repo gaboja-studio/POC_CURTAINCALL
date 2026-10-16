@@ -1,15 +1,16 @@
-# PM 전용. 원격 최신 dev에서 integration/<slug> 브랜치와 Integrations/Active/Integration-<slug>/ 기록을 만든다.
+# PM 전용. 원격 최신 Base(기본 dev, 선택 부모 integration)에서 통합 브랜치와 기록을 만든다.
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [Parameter(Mandatory)][ValidatePattern('^[a-z0-9]+(?:-[a-z0-9]+)*$')][string]$Slug,
     [Parameter(Mandatory)][string]$Feature,
+    [string]$Base,
     [switch]$NoPush
 )
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Lib/common.ps1')
 
-$base = Get-BaseBranch
+if (-not $Base) { $Base = Get-BaseBranch }
 $branch = "integration/$Slug"
 $dir = Get-RepoPath "Integrations/Active/Integration-$Slug"
 $template = Get-RepoPath 'Harness/Core/Templates/Integration'
@@ -21,9 +22,11 @@ if ($LASTEXITCODE -ne 0) { throw 'git fetch 실패' }
 if ($LASTEXITCODE -eq 0) { throw "로컬에 이미 있는 브랜치: $branch" }
 & git -C $RepoRoot rev-parse --verify --quiet "refs/remotes/origin/$branch" | Out-Null
 if ($LASTEXITCODE -eq 0) { throw "원격에 이미 있는 브랜치: $branch" }
-$startPoint = "origin/$base"
-& git -C $RepoRoot rev-parse --verify --quiet "refs/remotes/$startPoint" | Out-Null
-if ($LASTEXITCODE -ne 0) { $startPoint = $base }
+if ($Base -ceq $branch) { throw '통합 Base 자기참조는 허용하지 않습니다.' }
+Assert-IntegrationLineage -Branch $Base -Child $branch
+$startPoint = "refs/remotes/origin/$Base"
+$parentTip = (& git -C $RepoRoot rev-parse --verify "$startPoint^{commit}").Trim()
+if ($LASTEXITCODE -ne 0) { throw "원격 부모 tip 조회 실패: $Base" }
 
 $pm = Get-CurrentGitHubUser
 Write-Output "브랜치:   $branch (시작: $startPoint)"
@@ -34,7 +37,7 @@ if ($pm -and $pm -ne (Get-PmAccount)) { Write-Output "[경고] 현재 GitHub 계
 if (-not $PSCmdlet.ShouldProcess($branch, '통합 브랜치 생성')) { return }
 Assert-CommitIdentity
 
-& git -C $RepoRoot switch -c $branch $startPoint
+& git -C $RepoRoot switch -c $branch $parentTip
 if ($LASTEXITCODE -ne 0) { throw 'git switch 실패' }
 
 New-Item -ItemType Directory -Path $dir -Force | Out-Null
@@ -45,6 +48,8 @@ foreach ($file in Get-ChildItem -LiteralPath $template -File) {
     if ($pm) { $text = $text.Replace('- **PM:**', "- **PM:** @$pm") }
     Set-Content -LiteralPath (Join-Path $dir $file.Name) -Value $text -Encoding utf8NoBOM -NoNewline
 }
+
+Set-MetaField -MetaPath (Join-Path $dir 'meta.md') -Field 'Base' -Value $Base
 
 & git -C $RepoRoot add -- $dir
 & git -C $RepoRoot commit -m "chore: start integration $Slug" -- $dir

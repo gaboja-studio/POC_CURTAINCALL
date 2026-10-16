@@ -8,7 +8,7 @@
 | 종류 | 용도 | 만드는 사람 | 합치는 곳 | 이름 |
 |---|---|---|---|---|
 | `dev` | 팀 공용 원본 | — | — | `dev` |
-| `integration/*` | 기능 묶음 합치기 | PM | `dev` | `integration/<기능-slug>` |
+| `integration/*` | 기능 묶음 합치기 | PM | 메타 Base(`dev` 또는 부모 통합) | `integration/<기능-slug>` |
 | `feat/*` | 기능 추가 | PM(준비) | `integration/*` | `feat/<slug>` |
 | `fix/*` | 완성된 기능 수정 | PM(준비). 급하면 바로 | `dev` 또는 `integration/*` | `fix/<slug>` |
 | `refactor/*` | 동작 유지, 코드 정리 | PM(준비) | `integration/*` | `refactor/<slug>` |
@@ -28,26 +28,37 @@ dev                  ──PR(Merge commit)──▶ integration/*   (공용 변
 
 - `feat/*`, `refactor/*`는 **항상** `integration/*`로만 제출한다. 작은 기능도 PM이 작은 integration을 만들어 받는다.
 - `fix/*`, `resource/*`는 새 기능 개발이 아니므로 통합 순서를 지키지 않고 `dev` 또는 특정 `integration/*`로 바로 PR할 수 있다.
-- `dev`에 먼저 들어간 공용 변경(fix·resource 등)이 통합 브랜치에도 필요하면 PM이 `dev → integration/*` PR을 열어 **Merge commit**으로 받는다. 이후 그 통합의 작업 브랜치는 GitHub **Update branch**로 받는다.
+- 공용 변경은 `dev → Base=dev 통합` 또는 **선언된 부모 → 자식 통합** PR로 내려받는다(Merge commit). 임의 통합 간 동기화·자식의 dev 직행은 금지한다. 기존 일반 작업 브랜치는 GitHub **Update branch**로 받는다.
+- 명시적 준비 브랜치만 **소속 통합 → 그 Task 브랜치** 배정 문서 동기화 PR(Merge commit)을 허용한다. PR 생성은 실제 인계/착수 허가가 아니며 자동 merge·force 이동하지 않는다.
 - **어떤 작업 브랜치도 `builds/*`로 바로 PR하지 않는다.** `builds/*`는 `dev`에서만 받는다.
 - `dev`, `integration/*`, `builds/*`는 **PR로만** 바뀐다. 직접 push하지 않는다(브랜치 보호는 PM이 GitHub에서 설정).
   - 예외: PM은 `integration/*`에 준비 작업(통합 기록, Task 폴더, 테스트 씬·폴더)과 마무리 작업(Done 이동)을 직접 올린다. 브랜치 보호의 **우회(bypass) 목록에 PM 계정만** 넣는다. `dev`는 PM도 PR로만 반영한다.
-- `integration/*`는 `dev`에서, 작업 브랜치는 소속 `integration/*`에서 만든다(`fix/*`·`resource/*`는 PR 대상 브랜치에서). `builds/*`는 빌드 시점의 `dev`에서 만든다.
+- `integration/*`는 메타 **Base**의 최신 원격에서 만든다(기본 dev, 선택 부모 integration 존재·계보·순환 검사). 작업은 소속 통합, fix/resource는 PR 대상, builds는 빌드 시점 dev에서 만든다.
 - 합치기 단계에서 기능끼리 연결하는 작업도 **별도 Task(연결 Task)**로 만들어 같은 흐름을 탄다.
 - `Scripts/new-pr.ps1`이 이 흐름에 어긋나는 PR을 거부한다.
 
 ## fix/* · resource/*
 
 - `fix/*`: 보통은 Task로 분리해 작업한다(`scaffold-task`). **급한 사안이면 Task 없이 바로 수정**할 수 있다. 이때 PR 본문에 급한 이유와 수정 범위를 적는다.
-- `resource/*`: 아트·에셋 관리자 등이 **리소스 파일만** 넣는 브랜치다. 보통 `Assets/Resources/` 안에만 넣어 충돌이 거의 없으므로 **Task를 만들지 않는다.**
-  - 코드·씬·공용 프리팹 수정이 필요하면 `resource/*`가 아니라 Task로 분리한다.
+- `resource/*`: 아트·에셋 관리자 등이 **리소스 파일만** 넣는 브랜치다. 보통 `Assets/Resources/` 안에 넣어 충돌이 거의 없으므로 **Task를 만들지 않는다.**
+  - 지정 에셋 관리자는 `Assets/_ThirdParty` private submodule 에셋도 추가·수정·저장·push하고 공개 포인터를 제출할 수 있다(`Harness/Project/Decisions/third-party-assets.md`). Task 관련 포인터는 해당 Task 브랜치에서도 허용한다.
+  - 공개 저장소의 코드·씬·공용 프리팹 수정이 필요하면 `resource/*`가 아니라 Task로 분리한다.
   - 리소스 위치 기준: `Docs/Guides/assets-folder-rules.md`. 새 에셋의 `.meta`를 함께 올린다.
 
 ## 병합 방식
 
 - 작업 → `integration/*` (`fix/*`·`resource/*` → `dev` 포함): **Squash**. Task 하나가 기록 한 줄이 되어 문제 Task를 찾고 빼기 쉽다.
-- `integration/*` → `dev`: **Merge commit**. 기능 묶음 단위로 기록이 남고 한 번에 되돌릴 수 있다.
+- 통합 → 메타 Base(`dev`/부모 통합), 선언된 역방향 동기화: **Merge commit**. `merge-integration.ps1 -Merge`는 작업 head Squash 전용이며 dev/integration head는 거부한다.
+- Base가 dev가 아닌 통합은 기존 `close-integration`(dev 마감/Done 정리 전용)으로 닫지 않는다. 자식 통합 마감 도구는 이번에 확장하지 않는다.
 - 병합한 작업 브랜치에서 계속 작업하지 않는다(Squash 후 기록이 어긋난다). 추가 작업은 새 Task로 한다.
+
+## 순차 준비·실제 인계
+
+- 선택 `Active Task`가 없는/빈 통합은 기존 방식 유지. 값이 있으면 그 Task 하나만 기술 배정·착수하며 후속은 scaffolded·`예약 구역`(Allowed 아님)을 유지한다.
+- `## 준비 브랜치` 표: `Task | 브랜치 | 준비 기준 SHA | 승인 SHA`(전체 40자리). 동일 Task/Type/Integration·부모 승인 이력만 수용하며 독립 구현 커밋이 있으면 배정 거부한다.
+- `assign-task -UsePreparedBranch`는 기술 점검/assigned·배정 문서 동기화 PR만 준비한다. 실제 전달은 PM 확인 때 해당 todo만 체크한다. legacy 합쳐진 인계 체크도 자동 체크하지 않는다.
+- 착수 전에 최신 원격 Active Task·실제 전달·최신 배정 문서 유입을 검사한다. assigned/working 외 상태는 브랜치 이동 전에 차단한다.
+- 다음 단계는 실 Jira URL·Previous Task integrated·실제 공동 검증 근거 후에만 연다. PM이 이전 Allowed/공용 소유를 반환(이력 보존)하고 다음 한 Task에만 배정한다. scope 권한은 확대하지 않는다.
 
 ## 작성자
 

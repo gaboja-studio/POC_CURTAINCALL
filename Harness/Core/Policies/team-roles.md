@@ -9,7 +9,7 @@ PM 계정: GitHub `@MoHoDu` (`Harness/Project/Facts/team.md`).
 |---|---|---|
 | PM | 통합 브랜치·Task 준비, 테스트 씬·폴더 생성, 인계, 순차 병합, 충돌 해결, dev 반영, 하네스 관리 | — |
 | 작업자 | 자기 Task 구현, 저장, 검사, 제출, 이슈 등록 | 병합, 다른 사람 구역 수정, 하네스 수정 |
-| 아트·에셋 관리자 | `resource/*` 브랜치에서 리소스 추가·제출 (Task 없음) | 코드·씬·공용 프리팹 수정 (필요하면 Task로) |
+| 아트·에셋 관리자 | `resource/*`에서 리소스 추가·제출. 지정 관리자는 외부 에셋 추가·수정·저장·제출도 허용 | 코드·씬·공용 프리팹 수정 (필요하면 Task로) |
 
 ## 수정 권한
 
@@ -23,7 +23,7 @@ PM 계정: GitHub `@MoHoDu` (`Harness/Project/Facts/team.md`).
 | `Docs/Domains/` | 해당 기능 Task 담당자(작업 중), 평소엔 PM | **실제 코드와 맞는 쪽** 우선. 둘 다 맞으면 둘 다 남김. 최종 정리는 합치기 단계에서 PM |
 | `Docs/References/` | 자료를 올린 사람 | 기존 파일을 고치지 않고 새 버전 파일로 추가 (예: `design-v2.pdf`) |
 | `Integrations/` | PM만 | — |
-| `Assets/` | `setup.md`의 작업 구역만 (`resource/*`는 `Assets/Resources/`의 리소스 파일만) | `Harness/Engine/Unity/Policies/code-folders.md`, `asset-ownership.md` |
+| `Assets/` | `setup.md`의 작업 구역만 (`resource/*`는 `Assets/Resources/` 리소스). 지정 에셋 관리자는 외부 에셋 정책의 `_ThirdParty` 예외 적용 | `Harness/Engine/Unity/Policies/code-folders.md`, `asset-ownership.md` |
 
 ## 개인 도구
 

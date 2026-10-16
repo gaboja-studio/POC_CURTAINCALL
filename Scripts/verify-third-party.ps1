@@ -46,7 +46,7 @@ foreach ($file in $files | Where-Object { $_ -like 'Assets/*' -and $_ -ne $subPa
 # submodule 안의 수정은 공개 레포 커밋에 실리지 않는다. 저장은 private 레포에서 한다.
 if (Test-ThirdPartyReady) {
     $dirty = @(& git -C (Get-RepoPath $subPath) status --porcelain 2>$null)
-    if ($dirty.Count) { $warnings.Add("$subPath 안에 저장하지 않은 변경 $($dirty.Count)건 — 외부 에셋 수정은 PM에게 요청(private 레포에서 커밋·push)") }
+    if ($dirty.Count) { $warnings.Add("$subPath 안에 저장하지 않은 변경 $($dirty.Count)건 — 지정 에셋 관리자 또는 PM이 private 레포에서 먼저 커밋·push") }
 }
 
 if ($CheckSubmodule) {

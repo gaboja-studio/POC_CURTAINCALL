@@ -1,30 +1,33 @@
 ---
-summary: 공통 조작키 역할(조작키 역할 구성 11633076, 2026-10-13) — WASD 이동·QE 좌우 감시·Space 점프(방향 조합)·F 상호작용(홀드=취소)·Shift 달리기·Ctrl 앉기(WASD 조합 토글)·1/2/3 기물 슬롯·마우스 카메라·휠 집중/줌, 키 추가·시점 변경은 결정권자 합의
+summary: 공통 조작키 — hold/pressed 구분·F·카메라/UI, 1인칭 기본 이동은 수평 시선 W/S·3인칭 유지(연결 미구현)
 status: active
-updated: 2026-10-13
-source: human (Confluence 조작키 역할 구성 11633076, 2026-10-13 PM @MoHoDu)
+updated: 2026-10-15
+source: human (Confluence 조작키 역할 구성 11633076, 2026-10-13 추가 항목 포함·2026-10-15 재확인)
 ---
 
 # 공통 조작키 역할
 
 ## 언제 읽나
 
-새 입력·조작 규칙을 만들거나 입력 에셋에 역할을 추가할 때. 구조는 [player-control-architecture.md](player-control-architecture.md)(키→공통 역할→콘텐츠별 조작 규칙).
+입력·조작 규칙을 추가할 때. 구조는 [player-control-architecture.md](player-control-architecture.md)(키→공통 역할→콘텐츠 규칙). 기획 동기화가 입력 에셋 변경을 자동 허용하지 않는다.
 
 ## 결정
 
-- 2026-10-13 / PM(@MoHoDu), PC 전용(모바일·터치 제외), 최초 키 기준(이후 설정에서 변경 가능):
-  - 캐릭터: W/S/A/D 홀드 = 이동(줄타기 A/D = 균형), Q/E 홀드 = 좌/우 감시(줄타기 옆줄 준비), Q/E+Space = 좌/우 오브젝트 극복(옆줄 점프), Space = 점프, W/A/S/D+Space = 방향 점프, F 입력 = 상호작용, F 홀드 = 상호작용 취소, L Shift 홀드 = 달리기, L Ctrl 홀드 = 앉기.
-  - 복합(2026-10-13 추가): W/A/S/D+L Shift = 달리기 상태 토글, +Space = 달리기 점프, W/A/S/D+L Ctrl = 앉기 상태 토글.
-  - 카메라: 마우스 = 시점, 휠 클릭 = 대상 집중(락온), 휠 스크롤 = 줌.
-  - 단축키·UI: 1/2/3 = 기물 슬롯 선택, ESC = 시스템 메뉴/취소, Enter·LM = 선택, RM = 상세(액션 툴팁), LM 드래그·드랍 = 항목 이동·슬롯 적용, UI 안 W/A/S/D = 슬롯 이동.
-  - 이벤트: LM+RM 교차 입력 = 위기 모면(잡혀 끌려갈 때 탈출), * = QTE.
-- 규칙: 필요한 키만 할당, 목록에 없는 키 추가·작동 시점 변경은 디스코드 `소집`으로 @모호성·@주형락 합의 후. 부상은 키 역할을 바꾸지 않고 결과만 약하게 한다([injury-rules.md](injury-rules.md) #7).
+- PC 전용, 최초 키 기준(이후 설정 변경 가능):
+  - **캐릭터**: WASD hold 이동(줄타기 A/D 균형), Q/E hold 좌/우 감시, Space pressed 수직 점프, Q/E 또는 WASD+Space 방향 점프. F pressed 상호작용, F hold 취소.
+  - **단독 입력**: L Shift hold 달리기, L Ctrl hold 앉기.
+  - **복합 입력(2026-10-13 추가)**: WASD+L Shift **pressed 달리기 상태 toggle**, 여기에 Space로 달리기 방향 점프. WASD+L Ctrl **pressed 앉기 상태 toggle**. 단독 hold와 혼동하지 않는다.
+  - **카메라**: 마우스 좌우/상하 시점, 휠 클릭 대상 집중(락온), 휠 위 줌아웃/아래 줌인.
+  - **단축키/UI**: 1/2/3 슬롯, ESC 시스템/취소, Enter·LM 선택, RM 상세, LM 드래그·드롭 항목 이동/슬롯 적용, UI WASD pressed 포커스 이동.
+  - **예시**: LM/RM 교차 위기 모면, QTE. 모든 콘텐츠의 필수 구현으로 확정된 것은 아니다.
+- **1인칭 기본 이동(2026-10-15 사용자 확정)**: 카메라의 수평 시선 방향을 전방으로 W 전진·S 후진하는 FPS식 이동을 적용한다. 프로젝트 기본 이동에도 적용하며 **3인칭은 기존 동작 유지**. 외줄 제약 규칙 변경을 뜻하지 않는다. 현재 이동 연결은 미구현(통합 `first-person-movement-issue.md` 조사 기록).
+- 필요한 역할만 할당한다. 목록에 없는 키 추가·작동 시점/시점 예외는 디스코드 `소집`에서 @모호성·@주형락 합의 후 반영한다.
+- 부상은 키를 바꾸지 않고 결과만 약하게 한다([injury-rules.md](injury-rules.md)). 인간 대포의 새 F 발사·봉/장치 취소는 [기본 조작](Human-cannon/basic-control.md).
 
 ## 이유
 
-공간·콘텐츠를 하나의 게임으로 느끼고, 탈출에서 묘기·기물·탐색 조작이 그대로 이어지게 한다.
+공간·콘텐츠 간 조작을 이어 쓰면서 hold·pressed를 구분하여 자동 발사나 의도치 않은 토글을 막는다.
 
 ## 바꾸려면
 
-Confluence 조작키 문서와 이 파일, 입력 에셋(`Assets/Resources/Input/PlayerControls.inputactions`)을 함께 고친다.
+사람 합의 후 Confluence·이 파일을 갱신하고, 입력 에셋(`Assets/Resources/Input/PlayerControls.inputactions`) 수정은 소유 Task에서 수행한다.
