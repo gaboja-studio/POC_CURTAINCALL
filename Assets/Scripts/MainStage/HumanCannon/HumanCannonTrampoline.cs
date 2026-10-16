@@ -32,6 +32,10 @@ namespace CurtainCall.HumanCannon
         Quaternion initialRotation;
         Vector3 previousSurface;
         Quaternion previousRotation;
+        Renderer[] handleRenderers;
+        MaterialPropertyBlock[] idleHandleProperties;
+        MaterialPropertyBlock heldHandleTint;
+        bool? handleShownHeld;
         public static HumanCannonTrampoline Current { get; private set; }
         public ulong Carrier => ownership.Occupant;
         public Transform Handle => handle != null ? handle : transform;
@@ -52,6 +56,7 @@ namespace CurtainCall.HumanCannon
             initialPosition = transform.position;
             initialRotation = transform.rotation;
             ResetPreviousPose();
+            PresentHandleOwnership();
             NetworkPlayer.Restarted += HandleRestart;
         }
 
@@ -73,12 +78,56 @@ namespace CurtainCall.HumanCannon
 
         void LateUpdate()
         {
+            PresentHandleOwnership();
             previousSurface = Surface;
             previousRotation = transform.rotation;
             if (!ownership.IsOccupied) return;
             var carrier = FindPlayer(Carrier);
             if (carrier != null && carrier.State == PlayerState.Normal)
                 FollowCarrier(carrier);
+        }
+
+        void PresentHandleOwnership()
+        {
+            // 호스트 확정 소유 상태를 표시하므로 원격 운반자도 같은 색으로 보인다.
+            if (handle == null) return;
+            if (handleRenderers == null)
+            {
+                handleRenderers = handle.GetComponentsInChildren<Renderer>(true);
+                idleHandleProperties = new MaterialPropertyBlock[handleRenderers.Length];
+                for (int i = 0; i < handleRenderers.Length; i++)
+                {
+                    idleHandleProperties[i] = new MaterialPropertyBlock();
+                    handleRenderers[i].GetPropertyBlock(idleHandleProperties[i]);
+                }
+                heldHandleTint ??= new MaterialPropertyBlock();
+            }
+            bool held = ownership.IsOccupied;
+            if (handleShownHeld == held) return;
+            for (int i = 0; i < handleRenderers.Length; i++)
+            {
+                var renderer = handleRenderers[i];
+                if (renderer == null) continue;
+                if (held)
+                {
+                    renderer.GetPropertyBlock(heldHandleTint);
+                    heldHandleTint.SetColor("_BaseColor", Color.green);
+                    heldHandleTint.SetColor("_Color", Color.green);
+                    renderer.SetPropertyBlock(heldHandleTint);
+                }
+                else renderer.SetPropertyBlock(idleHandleProperties[i]);
+            }
+            handleShownHeld = held;
+        }
+
+        void RestoreHandleAppearance()
+        {
+            if (handleRenderers != null)
+                for (int i = 0; i < handleRenderers.Length; i++)
+                    if (handleRenderers[i] != null) handleRenderers[i].SetPropertyBlock(idleHandleProperties[i]);
+            handleRenderers = null;
+            idleHandleProperties = null;
+            handleShownHeld = null;
         }
 
         void FollowCarrier(NetworkPlayer carrier)
@@ -201,6 +250,7 @@ namespace CurtainCall.HumanCannon
 
         void OnDisable()
         {
+            RestoreHandleAppearance();
             NetworkPlayer.Restarted -= HandleRestart;
             Unregister();
             if (session != null) session.ConnectionStateChanged -= HandleConnection;

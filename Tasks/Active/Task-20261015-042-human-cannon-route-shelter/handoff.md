@@ -2,29 +2,29 @@
 
 ## 지금 상태
 
-- human-verify / check-work — 042 전체 구현·초기 정상 피드백 후 1인 양문 함정, 첫 출발 안전 복귀, 최신 자동 승강/쉼터 낙차 요청까지 반영. 최신 변경의 사람 확인은 남았다.
-- 041 #108 MERGED(292667c)를 042 착수 기준 dae56af가 수신. 현재 042만 코드·씬 소유: [순차 인계 위임](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md).
-- 구현: 모든 리프트는 트램폴린을 든 1명만1.5초 자동 출발. 조건 충족 대기/이동만 초록·미충족/취소/도착 파랑. 놓기/이탈/과승 취소·2인 양문 함정 유지. 첫 출발4m/안전 바닥-4m/계단, 쉼터6m/측면7m 틈.
-- 사용자 선택: 쉼터는 실제 트램폴린 담당자를 제외한 전원 도착 조건 유지·스위치/F 출발 제거. 최신 요청으로 장치 소지 조건 추가. 운송5초/승강3초·양문0.35초/복귀1.2초·불꽃15초/0.7m/s는 시험값.
-- 2026-10-16 다른 PC 재개용 저장 묶음: feat/human-cannon-route-shelter. [다른 PC 재개](History/20261016-pc-resume.md)를 읽고 원격 최신 커밋을 받는다. PR·병합 미실행, 제출 대상 integration/main-stage-human-cannon(Squash).
+- human-verify / submit-work — 2026-10-16 사용자 "전부 확인 완료 했고 제출해줘". 직접 확인 완료를 기록하고 제출 준비. [최종 검증](History/20261016-submit-verification.md).
+- PR: 제출 준비
+- 대상: feat/human-cannon-route-shelter → integration/main-stage-human-cannon(Squash). 최신 부모292667c 포함 확인, merge Already up to date. 042만 코드·씬 소유를 유지한다.
+- 구현: 대포3대 분리 출발·첫 받기·쉼터 합류/교대·불꽃 압박/경계 종료. 리프트3대는 트램폴린을 든1명만1.5초 자동 출발, 조건 충족 대기/이동 초록·그 외 파랑. 과승 양문·안전 바닥/복귀 계단·쉼터 낙차 반영.
+- 피드백: 톱 중심 지면+1.2m/장벽2.4m·잡기 중 지하 접힘, 네 봉 가속300/각도80/속도180. 손잡이 잡기 초록/놓기 원색. 운반자 통과 전 비행 차단 유지. 시험 수치는 최종 밸런스 확정이 아니다.
+- 사용자 확인 완료는 042 직접 확인에 반영했다. 실제4인 공동 테스트 인원/역할/영상 증거는 별도이며 전체 통합 후 계획을 유지한다.
 
-## 다음 할 일 — 사람 확인 최대 3묶음
+## 다음 할 일
 
-1. 빈손 탑승→파랑/대기, 트램폴린 들기→초록/1.5초 자동 이동, 대기 중 놓기/하차 또는 도착→파랑. 2명→양문 함정·안전 바닥/계단 복귀. 나머지2대·이동 중 과승도 확인.
-2. 비행자 대포 F→F·첫 받기→1명 미합류 시 쉼터 승강 차단→전원 합류/1.5초 자동 상승. 쉼터 측면에서 하부 발판으로 점프→낙사, 교대·부상 접근 확인.
-3. 불꽃 전진·쉼터/쿠션 경계 종료·최종 구간 별도 타이머 없음. 이동 중 R·원격 담당/재접속 확인.
-
-- [setup](setup.md)·[plan](plan.md)·[색상](History/20261016-lift-color-verification.md)·[소지 조건](History/20261016-carrier-lift-verification.md)·[자동 승강](History/20261016-auto-lift-verification.md)·[양문](History/20261016-lift-verification.md)·[기존](History/20261016-verification.md). 실제4인은 전체 통합 후, 041 미검증 유지.
-- 자동 scope FAIL13: 위임된 전환 문서8개+기존 폰트·MPPM·PlayMode5개. 저장은 승인된 구현/전환 문서만 선택, 기존5개는 로컬 보존·제외. 수동 감사에서 그 외 구역 밖 변경 없음.
-- start-work 미실행·원격 gate/dirty PASS 아님. 지식 제안: 최신 자동 승강/쉼터 낙차는 사용자 확정 결정. 고정 바닥/안전 착지 일치·합성 원격 보간 등 검증 주의점은 상세 기록.
+1. 구현·확인 기록을 저장하고 PR 제출, PM 리뷰 대기.
+2. PM 통합 후 043→044 순차 이관. 현재042 소유를 미리 반환하지 않는다.
+3. 전체 통합 후 plan의 실제4인 공동 테스트와 테스트 씬 유지/삭제 결정.
 
 ## Verification
 
-- 환경: doctor FAIL0/WARN2(최초1회), Unity6000.3.25f1·정확한 프로젝트 확인.
-- 0 구역: check-work -Mode PlayMode FAIL13, 후속 SKIPPED. 위임/기존 변경은 수동 감사로 구분.
-- 1 문서: 별도 verify-fast PASS(hard0/기존 범위 밖 WARN5). diff --check PASS.
-- 2 컴파일: 일괄 SKIPPED(구역 실패); 별도 verify-unity -Compile PASS(completed). 최신 색상 조건 반영 후 확인.
-- 3 로직: 최신 EditMode269/269 PASS, 실패/건너뜀0. PlayMode NO_PROJECT_TESTS. 단일 호스트 합성 배치로3대 빈손 파랑·소지 대기 초록·놓기 파랑·재소지/이동 초록·도착 파랑 확인.
-- 4 입력/로그: 최신 색상/소지 조건의 실제 입력 확인은 미실행. 이전 가상 A+Space 낙사 증거는 자동 승강 기록 참조. 합성 배치/Grab·Drop 직접 호출은 실제 입력·원격 동기화 검증이 아니다.
-- 로그: .harness/local/task042-lift-color-runtime-console.json(109279~109327). 새 게임 Console 오류0. 최신 색상/소지 조건과 실제 원격 동기화의 사람 확인은 남았다.
-- 에디터 Stop·dirty0·Missing Script0·임시 객체 제거·공용 설정 변경 없음. 실제4인 미실행이며 일시·역할·commit·예상/실제·영상/로그를 plan에 맞춰 기록한다.
+- 환경: doctor 최초 FAIL0/WARN3. 직접 Pipeline으로 정확한 프로젝트/6000.3.25f1/Stop·씬 dirty0 확인. CLI status 검색 호환성은 별도 도구 문제다.
+- 0 구역: 전체 check-work/save-work 자동 scope FAIL8·후속 SKIPPED. 이미 승인·저장된 전환 문서8개이며 이번에는 수정하지 않았다. 증분 scope(-Base HEAD) PASS. [위임 근거](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md).
+- 1 문서: verify-fast PASS(hard0/기존 범위 밖 WARN5), diff --check PASS.
+- 2 컴파일: 별도 직접 Pipeline recompile PASS(up_to_date/failed=false/오류0). 일괄 검사는 구역 실패로 SKIPPED이며 verify-unity PASS로 표기하지 않는다.
+- 3 테스트: 최종 전체 EditMode277/277 PASS, 실패/건너뜀0. PlayMode NO_PROJECT_TESTS(0개). 합성 톱/봉·손잡이 상태 검사는 각 이력에 별도 기록.
+- 4 직접 플레이: 2026-10-16 사용자 전체 확인 완료 보고. 실제4인 공동 검증 증거는 별도. 콘솔2건은 UnityEditor.SceneViewMotion 내부 예외(게임 코드 프레임 없음), Console0으로 표기하지 않는다.
+- PM 지식 제안: 반동은 각도 상한과 중력 대비 가속을 함께 확인. status 검색0과 직접 editor_status 성공 차이는 도구 호환성 확인 필요.
+
+## 참고
+
+- [setup](setup.md)·[plan](plan.md)·[손잡이](History/20261016-handle-color-verification.md)·[톱/봉](History/20261016-saw-pole-verification.md)·[리프트 색상](History/20261016-lift-color-verification.md)·[자동 승강](History/20261016-auto-lift-verification.md)·[다른 PC 재개](History/20261016-pc-resume.md).

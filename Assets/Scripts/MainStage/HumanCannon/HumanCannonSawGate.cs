@@ -45,7 +45,9 @@ namespace CurtainCall.HumanCannon
             }
             if (sawVisual == null) return;
             tint ??= new MaterialPropertyBlock();
-            sawVisual.localPosition = visualPosition + (phase == PoleSawPhase.Active ? Vector3.zero : Vector3.up * 4f);
+            // 지상 운반자의 관문이다. 접힌 톱을 봉 도약 높이로 올리지 않는다.
+            // 재동작 예고는 원래 지상 위치에서 점멸하되 충돌은 Active부터 켠다.
+            sawVisual.localPosition = visualPosition + (phase == PoleSawPhase.Retracted ? Vector3.down * 4f : Vector3.zero);
             Color color = phase == PoleSawPhase.Warning
                 ? (Mathf.Repeat((float)time, 0.5f) < 0.25f ? Color.red : Color.yellow)
                 : phase == PoleSawPhase.Retracted ? Color.green : Color.gray;
