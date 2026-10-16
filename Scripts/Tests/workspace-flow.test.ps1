@@ -187,6 +187,23 @@ switch ($Arguments[1]) {
         Assert ((Get-PrFlow dev integration/parent) -eq 'merge') 'legacy dev sync'
         FixtureGit switch integration/child | Out-Null
     }
+    Check 'closed integration PR reads Done meta and only targets Base' {
+        FixtureGit switch dev | Out-Null
+        FixtureGit switch -c integration/closed | Out-Null
+        Integration closed
+        Commit | Out-Null
+        # close-integration처럼 통합 기록을 Done으로 옮긴 뒤 dev로 올린다.
+        New-Item -ItemType Directory -Path (Join-Path $repoPath 'Integrations/Done') -Force | Out-Null
+        FixtureGit mv Integrations/Active/Integration-closed Integrations/Done/Integration-closed | Out-Null
+        Commit 'close integration' | Out-Null
+        FixtureGit push -u origin integration/closed | Out-Null
+        Assert ((Get-PrFlow integration/closed dev) -eq 'merge') 'closed integration to base'
+        Reject { Get-PrFlow integration/closed integration/parent } '마감된 통합'
+        Reject { Get-IntegrationMetadata integration/closed -Ref HEAD } '문서를 읽지'
+        Run new-pr.ps1 @('-Summary','fixture','-Title','close','-Base','dev','-DryRun') | Out-Null
+        Run new-pr.ps1 @('-Summary','fixture','-Title','close','-DryRun') | Out-Null
+        FixtureGit switch integration/child | Out-Null
+    }
     Check 'prepared branch identity, SHAs and sync direction pass' {
         Assert-PreparedBranch integration/child feat/stage-one $id feat
         Assert ((Get-PrFlow integration/child feat/stage-one) -eq 'merge') 'prepared sync'
