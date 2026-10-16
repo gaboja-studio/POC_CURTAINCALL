@@ -1,5 +1,4 @@
 using CurtainCall.Network.PlayerSync;
-using CurtainCall.Tightrope.Prototype;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -69,10 +68,13 @@ namespace CurtainCall.Player
             set => autoFindTarget = value;
         }
 
+        // 디버그 키도 UI 막힘이 풀린 뒤 놓을 때까지 다시 받지 않는다
+        void OnEnable() => InputGate.AddReleaseKeys(toggleKey, balanceToggleKey, restartKey, modelCycleKey);
+
         void Update()
         {
             var keyboard = Keyboard.current;
-            bool blocked = TightropeInputGate.IsBlocked;
+            bool blocked = InputGate.IsBlocked;
             if (!blocked && keyboard != null && keyboard[toggleKey].wasPressedThisFrame)
                 visible = !visible;
 

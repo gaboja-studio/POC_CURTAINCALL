@@ -14,9 +14,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.BaseGameSettings
   session:
     maxPlayers: 4
-    minPlayers: 1
+    minPlayers: 2
+  run:
+    dayCount: 3
+    performancesPerDay: 2
+    firstDayTricks:
+    - Tightrope
+    - HumanCannon
+    restTimerMode: 1
+    restDuration: 300
+    guideRestDuration: 300
+    recallAlarmLeadTime: 60
+  itemCarry:
+    twoArmSlots: 2
+    oneArmSlots: 1
+    backpackBonus: 2
   character:
     freeMoveSpeed: 3
+    courseMoveSpeed: 0.5
+    jumpHeight: 0.8
     turnSpeed: 720
     gravity: 9.81
     capsuleHeight: 1.5
@@ -42,6 +58,10 @@ MonoBehaviour:
     balanceSendThreshold: 0.5
   bodyDamage:
     restartRecovery: 0
+    oneLegJumpHeight: 0.75
+    twoLegJumpHeight: 0.5
+    exploreOneLegMoveSpeed: 0.8
+    exploreOneArmReach: 0.8
     crawlSpeedMultiplier: 0.5
     crawlCanJump: 1
     crawlCanLaneJump: 1
@@ -51,3 +71,10 @@ MonoBehaviour:
     limbSpin: 8
     limbMass: 1
     limbLifetime: 0
+  spaceTransition:
+    mode: 0
+    hubScene: SpaceLink
+    performanceScene: DummyPerformance
+    waitingRoomScene: DummyWaitingRoom
+    explorationScene: DummyExploration
+    escapeRouteScene: DummyEscapeRoute

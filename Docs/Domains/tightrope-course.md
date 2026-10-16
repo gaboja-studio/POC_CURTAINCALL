@@ -61,8 +61,8 @@
 - `CourseLayout.cs` — 줄 위치·끝 거리·옆줄 구간 계산(MonoBehaviour 없음).
 - `TightropeRun.cs` — **진행 공개 진입점**. 호스트 판정: 제한시간, 도착 완료, 1명 도착 즉시 클리어(생존자 도착 지점 이동, `EndGame`), 실패 → 재시작, 묘기 시작 신호, 사망 플레이어 몸통 통과. NGO 이름 메시지로 공유.
 - `CourseShapeSync.cs` — 대기 중 호스트 코스 값을 모두에게 공유, 게임 시작 후·클라이언트는 잠금.
-- `CourseControlSwitcher.cs` — 내 캐릭터가 줄 위면 줄타기 조작·균형 켬·줄 중앙 정렬, 플랫폼이면 일반 이동·균형 끔.
-- `PlatformControlScheme.cs` — 플랫폼 조작 규칙(WASD 8방향·Space 점프, Q/E·F 없음).
+- `CourseControlSwitcher.cs` — 내 캐릭터가 줄 위면 줄타기 조작(`TightropeControlScheme`)·균형 켬·줄 중앙 정렬, 플랫폼이면 일반 이동(공용 `PlatformControlScheme`, WASD 8방향·Space 점프)·균형 끔.
+- 조작 규칙 위치(2026-10-14, Task-037): 외줄 규칙 `MainStage/Tightrope/Control/TightropeControlScheme.cs`, 플랫폼 이동은 공용 기본 이동 규칙 `Systems/Control/PlatformControlScheme.cs`. UI 입력 막기는 공용 `InputGate`(`TightropeInputGate`는 호환 창구) — [공통 게임 시스템](common-game-systems.md).
 - `TightropeRunDebug.cs` — **테스트 전용**: 상태·남은 시간 표시, K 추락, L 도착, O 표시, 좌우 착지 표시기, 착지 로그, R = 호스트만 재시작.
 - `Editor/TightropeCoursePrefabBuilder.cs` — 코스 프리팹 생성 메뉴(덮어쓰므로 값 조정 후 실행 금지).
 
@@ -74,6 +74,10 @@
 `Assets/Scripts/MainStage/Tightrope/Damage/` (외줄 전용만 남음. 공통 부상 효과·정책 틀·절단 연출은 2026-10-14 `Assets/Scripts/Systems/Damage/`로 이전, [공통 게임 시스템](common-game-systems.md))
 - `TightropeBodyPenalty.cs` — 외줄 신체 손상 불이익 정책. 게임 시작 전 `BodyDamageEffects.DefaultPolicyFactory`에 자신을 등록한다.
 - `BodyDamageDebug.cs` — **테스트 전용** 절단 키·표시.
+
+`Assets/Scripts/MainStage/Tightrope/Camera/` (Task-038)
+- `TightropeCameraFraming.cs` — Systems/Camera에서 GUID·타입 유지 이전. 코스가 있을 때 priority 0으로 구도를 요청하며 세팅 실시간 반영·코스 월드 forward·캐릭터 로컬 look offset 유지. 코스 루트·같은 목마 가림 예외도 공급한다.
+- 공용 카메라는 [공통 게임 시스템](common-game-systems.md)의 시점 요청 API 사용. 관전 대상 선택은 기존 그대로다. 기존 TightropeSettings 카메라 칸 정리는 PM 후속 작업이며 이번에는 수정하지 않는다.
 
 에셋
 - `Assets/Resources/Prefabs/Objects/Interactables/Tightrope/TightropeCourse.prefab` — 위 컴포넌트 + `PlayerSpawnPoints`(007) + 출발 위치 `SpawnPoints/Slot0~3`. 다른 Task는 배치만. 수치 칸 없음(013).

@@ -1,7 +1,7 @@
 # .github/PULL_REQUEST_TEMPLATE.md를 채워 PR을 만든다.
 #   gh가 준비되어 있으면 바로 등록, 아니면(-Browser 포함) 내용이 채워진 GitHub 작성 페이지를 연다.
-#   브랜치 흐름: feat|refactor/* → integration/* → dev → builds/*
-#               dev → integration/* (dev에 들어온 공용 변경을 통합 브랜치로 내려받기, Merge commit)
+#   브랜치 흐름: feat|refactor/* → integration/* → 메타 Base → dev → builds/*
+#               선언된 부모 → 자식 / 소속 통합 → 준비 Task branch sync (Merge commit)
 #               fix|resource/* → dev 또는 integration/*  (builds/* 직행 불가, tests/*는 제출 불가)
 # 채우는 값: 요약(-Summary), JIRA(Task setup.md), Issue 번호(-Issues), 검사 결과(Task handoff.md)
 [CmdletBinding()]
@@ -31,7 +31,14 @@ $head = (& git -C $RepoRoot branch --show-current).Trim()
 $task = Find-CurrentTask
 $repo = Get-GitHubRepo
 
+# 부모/준비 관계는 최신 원격 메타로 확인한다(브랜치 이동 없음).
+if ($head -like 'integration/*' -or $head -ceq (Get-BaseBranch)) {
+    & git -C $RepoRoot fetch origin --prune --quiet
+    if ($LASTEXITCODE -ne 0) { throw 'PR 관계 확인용 git fetch 실패' }
+}
+
 # 1) 대상 브랜치와 제목
+if (-not $Base -and $head -like 'integration/*') { $Base = (Get-IntegrationMetadata -Branch $head -Ref HEAD -AllowDone).Base }
 if ($task) {
     $meta = Join-Path $task.Path 'meta.md'
     if (-not $Base) { $Base = Get-MetaField -MetaPath $meta -Field 'Integration' }
@@ -44,17 +51,8 @@ if ($task) {
     $prTitle = "[$kind] $Title"
 }
 
-$allowed = switch -Regex ($head) {
-    '^(feat|refactor)/' { '^integration/.+' }
-    '^(fix|resource)/' { '^(dev|integration/.+)$' }
-    '^integration/' { '^dev$' }
-    '^dev$' { '^(builds/.+|integration/.+)$' }
-    default { $null }
-}
-if (-not $allowed) { throw "이 브랜치($head)는 PR을 만들 수 없음. tests/* 등은 합치지 않는 브랜치입니다." }
-if (-not $Base -or $Base -notmatch $allowed) {
-    throw "대상 브랜치 규칙 위반: $head → '$Base' (허용: $allowed). Harness/Core/Policies/git-workflow.md 참고."
-}
+$mergeMethod = Get-PrFlow -Head $head -Base $Base
+if ($mergeMethod -eq 'merge') { $prTitle = $prTitle -replace '^\[integration\]', '[integration/sync]' }
 if (-not $Title) { $problems.Add('PR 제목 요약이 비어 있음 (meta.md Title 또는 -Title)') }
 
 # 2) 본문: 템플릿을 제목(## ...)별로 채운다
@@ -123,6 +121,7 @@ foreach ($part in $parts) {
     else { [void]$body.Append("## $heading`n`n$value`n`n") }
 }
 $bodyText = $body.ToString().Trim() + "`n"
+if ($mergeMethod -eq 'merge') { $bodyText += "`n병합 방식: Merge commit (부모/통합 동기화, Squash 금지). 준비 branch sync는 배정 문서 수신용이며 실제 인계 확인을 대체하지 않습니다.`n" }
 
 # 3) 원격 상태 확인
 $dirty = & git -C $RepoRoot status --porcelain
@@ -145,6 +144,7 @@ $compareUrl = "https://github.com/$($repo.Slug)/compare/${Base}...${head}" +
 
 Write-Output "제목: $prTitle"
 Write-Output "방향: $head → $Base"
+Write-Output "병합 방식: $(if ($mergeMethod -eq 'merge') { 'Merge commit (Squash 금지)' } else { 'Squash' })"
 Write-Output "등록 방식: $(if ($Browser -or $gh.State -ne 'Ready') { "브라우저 ($($gh.Detail))" } else { 'gh 자동 등록' })"
 Write-Output '----- 본문 -----'
 Write-Output $bodyText
@@ -195,5 +195,6 @@ if ($task -and $prUrl) {
     Set-Content -LiteralPath $handoff -Value $text -Encoding utf8NoBOM -NoNewline
     $metaText = [regex]::Replace((Get-Content -LiteralPath $meta -Raw), '(?m)^(- \*\*Status:\*\*).*$', '$1 submitted')
     Set-Content -LiteralPath $meta -Value $metaText -Encoding utf8NoBOM -NoNewline
-    Write-Output 'handoff.md에 PR 링크, meta.md Status를 submitted로 기록했습니다. (이 변경은 다음 저장 때 함께 올라갑니다)'
+    [void](Set-TodoChecked -TodoPath (Join-Path $task.Path 'todo.md') -Text '"제출해줘"로 PR 제출')
+    Write-Output 'handoff.md에 PR 링크, meta.md Status를 submitted, todo.md 제출 항목을 기록했습니다. (이 변경은 다음 저장 때 함께 올라갑니다)'
 }

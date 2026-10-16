@@ -12,5 +12,7 @@ namespace CurtainCall.Network.PlayerSync
         Fallen = 1,
         /// <summary>도착 완료(외줄 도착선 통과). 피격·탈락 판정에서 빠진다. 모두 재시작까지 유지.</summary>
         Arrived = 2,
+        /// <summary>리타이어(탈출로에서 사망·잡힘). 조작 잠김. 런이 끝날 때까지 유지. 규칙: Harness/Project/Decisions/injury-rules.md #5</summary>
+        Retired = 3,
     }
 }
