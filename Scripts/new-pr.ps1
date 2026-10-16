@@ -33,7 +33,7 @@ $repo = Get-GitHubRepo
 
 # 부모/준비 관계는 최신 원격 메타로 확인한다(브랜치 이동 없음).
 if ($head -like 'integration/*' -or $head -ceq (Get-BaseBranch)) {
-    & git -C $RepoRoot fetch origin --prune --quiet
+    & git -C $RepoRoot -c submodule.recurse=false fetch --no-recurse-submodules origin --prune --quiet
     if ($LASTEXITCODE -ne 0) { throw 'PR 관계 확인용 git fetch 실패' }
 }
 

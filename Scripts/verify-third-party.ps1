@@ -43,18 +43,23 @@ foreach ($file in $files | Where-Object { $_ -like 'Assets/*' -and $_ -ne $subPa
     elseif ($file -match $binary) { $failures.Add("외부 라이브러리·패키지 파일: $file ($hint)") }
 }
 
+# 준비 상태와 저장소 존재는 별개다. HeadMismatch/LfsIncomplete/Dirty여도 private 검사를 생략하지 않는다.
+$hasSubRepository = Test-ThirdPartyRepository -Path $RepoRoot
+$sub = Get-RepoPath $subPath
 # submodule 안의 수정은 공개 레포 커밋에 실리지 않는다. 저장은 private 레포에서 한다.
-if (Test-ThirdPartyReady) {
-    $dirty = @(& git -C (Get-RepoPath $subPath) status --porcelain 2>$null)
-    if ($dirty.Count) { $warnings.Add("$subPath 안에 저장하지 않은 변경 $($dirty.Count)건 — 지정 에셋 관리자 또는 PM이 private 레포에서 먼저 커밋·push") }
+if ($hasSubRepository) {
+    $dirty = @(& git -C $sub status --porcelain 2>$null)
+    if ($LASTEXITCODE -ne 0) { $warnings.Add("$subPath 변경 상태를 확인하지 못함") }
+    elseif ($dirty.Count) { $warnings.Add("$subPath 안에 저장하지 않은 변경 $($dirty.Count)건 — 지정 에셋 관리자 또는 PM이 private 레포에서 먼저 커밋·push") }
 }
 
 if ($CheckSubmodule) {
-    $sha = ((& git -C $RepoRoot ls-tree HEAD $subPath) -split '\s+')[2]
+    $tree = (& git -C $RepoRoot ls-tree HEAD $subPath) -join "`n"
+    if ($LASTEXITCODE -ne 0) { throw "$subPath 포인터 조회 실패" }
+    $sha = if ($tree -match '^160000\s+commit\s+([0-9a-f]+)\s') { $Matches[1] } else { $null }
     $published = $null
-    $sub = Get-RepoPath $subPath
-    if ($sha -and (Test-ThirdPartyReady)) {
-        & git -C $sub fetch --quiet origin main 2>$null
+    if ($sha -and $hasSubRepository) {
+        & git -C $sub -c submodule.recurse=false fetch --no-recurse-submodules --quiet origin main 2>$null
         if ($LASTEXITCODE -eq 0) {
             & git -C $sub merge-base --is-ancestor $sha origin/main 2>$null
             $published = $LASTEXITCODE -eq 0

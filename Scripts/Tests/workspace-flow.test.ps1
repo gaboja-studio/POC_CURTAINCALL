@@ -94,7 +94,20 @@ function Get-CurrentGitHubUser { return 'fixture' }
 function Get-PmAccount { return 'fixture' }
 function Get-GitHubRepo { return [pscustomobject]@{ Slug = 'fixture/workspace'; Owner = 'fixture'; Name = 'workspace' } }
 function Get-GhState { return [pscustomobject]@{ State = 'Ready'; Gh = (Join-Path $script:RepoRoot 'Scripts/fake-gh.ps1'); Detail = 'fixture mock' } }
-function Update-ThirdParty { Add-Content -LiteralPath (Join-Path $script:RepoRoot 'thirdparty-called') -Value 'called' }
+function Invoke-SafeBranchTransition {
+    param([string]$Path = $script:RepoRoot, [Parameter(Mandatory)][string]$TargetCommit, [string]$Branch, [switch]$CreateBranch, [switch]$Track)
+    # private/LFS는 별도 회귀가 담당한다. 여기서는 호출 계약과 Task 쓰기 순서만 검증한다.
+    if ($Branch) {
+        if ($CreateBranch) { & git -C $Path -c submodule.recurse=false switch -c $Branch $TargetCommit }
+        elseif ($Track) { & git -C $Path -c submodule.recurse=false switch --track "origin/$Branch" }
+        else { & git -C $Path -c submodule.recurse=false switch $Branch }
+        if ($LASTEXITCODE -ne 0) { throw 'fixture transition switch failed' }
+    }
+    & git -C $Path -c submodule.recurse=false merge --ff-only --quiet $TargetCommit
+    if ($LASTEXITCODE -ne 0) { throw 'fixture transition ff failed' }
+    Add-Content -LiteralPath (Join-Path $Path 'thirdparty-called') -Value 'called'
+    if ($env:WORKSPACE_TRANSITION_FAIL -eq '1') { throw 'fixture transition verification failed' }
+}
 '@
     Add-Content -LiteralPath (Join-Path $repoPath 'Scripts/Lib/common.ps1') -Value $mock
     Put 'Scripts/fake-gh.ps1' @'
@@ -142,6 +155,8 @@ switch ($Arguments[1]) {
         Run new-integration.ps1 @('-Slug','new-child','-Feature','fixture','-Base','integration/parent','-NoPush') | Out-Null
         Assert ((FixtureGit rev-parse HEAD^)[0] -eq $tip) 'child did not start at latest parent tip'
         Assert ((Get-MetaField -MetaPath (Join-Path $repoPath 'Integrations/Active/Integration-new-child/meta.md') -Field Base) -eq 'integration/parent') 'Base was not recorded'
+        Assert (Test-Path (Join-Path $repoPath 'thirdparty-called')) 'new integration did not call transition mock'
+        Remove-Item -LiteralPath (Join-Path $repoPath 'thirdparty-called')
         FixtureGit switch integration/child | Out-Null
     }
     Check 'missing parent metadata blocks' {
@@ -321,6 +336,21 @@ switch ($Arguments[1]) {
         FixtureGit merge --no-ff integration/child -m 'receive actual delivery confirmation' | Out-Null
         FixtureGit push origin feat/stage-one | Out-Null
         FixtureGit switch integration/child | Out-Null
+        Check 'transition verification failure leaves Task documents untouched' {
+            $metaBefore = (FixtureGit show "refs/heads/feat/stage-one:$taskRel/meta.md") -join "`n"
+            $todoBefore = (FixtureGit show "refs/heads/feat/stage-one:$taskRel/todo.md") -join "`n"
+            $env:WORKSPACE_TRANSITION_FAIL = '1'
+            try { Run start-work.ps1 @('-Id',$id) 'fixture transition verification failed' | Out-Null }
+            finally { Remove-Item Env:WORKSPACE_TRANSITION_FAIL -ErrorAction SilentlyContinue }
+            Assert ((FixtureGit branch --show-current)[0] -eq 'feat/stage-one') 'failure mock did not exercise post-switch verification'
+            Assert (((Get-Content -LiteralPath (Join-Path $repoPath "$taskRel/meta.md")) -join "`n") -ceq $metaBefore) 'failed transition changed Task meta'
+            Assert (((Get-Content -LiteralPath (Join-Path $repoPath "$taskRel/todo.md")) -join "`n") -ceq $todoBefore) 'failed transition changed Task todo'
+            Assert (Test-Path (Join-Path $repoPath 'thirdparty-called')) 'failure did not reach transition mock'
+            Remove-Item -LiteralPath (Join-Path $repoPath 'thirdparty-called')
+            $remainingChanges = FixtureGit status --porcelain
+            Assert ($remainingChanges.Count -eq 0) 'failed transition changed tracked fixture state'
+            FixtureGit switch integration/child | Out-Null
+        }
         Run start-work.ps1 @('-Id',$id) | Out-Null
         Assert ((FixtureGit branch --show-current)[0] -eq 'feat/stage-one') 'start did not switch'
         Assert ((Get-MetaField -MetaPath (Join-Path $repoPath "$taskRel/meta.md") -Field Status) -eq 'working') 'start did not update working'
