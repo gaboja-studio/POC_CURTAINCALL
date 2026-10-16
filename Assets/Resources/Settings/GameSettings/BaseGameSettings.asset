@@ -73,7 +73,7 @@ MonoBehaviour:
     limbLifetime: 0
   spaceTransition:
     mode: 0
-    hubScene: SpaceLink
+    hubScene: Lobby
     performanceScene: DummyPerformance
     waitingRoomScene: DummyWaitingRoom
     explorationScene: DummyExploration
