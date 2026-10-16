@@ -4,14 +4,14 @@
 
 ## 지금 상태
 
-- 단계: 3차 배치 완료(조감도 ①~⑩, 서커스 톤 드레싱, 무대 진입 터널, Cloth 커튼 9장, 깜박이는 전구 27개, 먼지). 저장·push 완료, 제출 중.
+- 단계: 3차 배치 완료(조감도 ①~⑩, 서커스 톤 드레싱, 무대 진입 터널, Cloth 커튼 9장, 깜박이는 전구 27개, 먼지). PR 제출 완료(integration/waiting-room).
 - 동작하는 것: `waiting_room.unity` 루트 `WaitingRoom`. 배치 스크립트 `build-layout.cs`(`unity command eval_file --file`로 실행).
 - 막힌 것: 커튼 자동 열림(근접 트리거)은 코드가 필요해 미구현 — 지금은 플레이어가 밀어 젖히는 Cloth 반응만. Cloth는 플레이어 캡슐하고만 충돌.
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/113
 
 ## 다음 할 일
 
-1. 사람이 Play로 확인: 커튼 흔들림, 깜박임 빈도, 안개 농도, 터널 길이감.
+1. PM: PR 병합 후 공동 테스트. (작업자 1인칭 Play 확인 완료, 2026-10-16)
 2. 자동 열림 커튼이 필요하면 PM에게 기능 Task 요청.
 
 ## PM이 확인할 것

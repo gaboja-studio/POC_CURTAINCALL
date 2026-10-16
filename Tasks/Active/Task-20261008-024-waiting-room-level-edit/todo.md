@@ -15,7 +15,7 @@
 - [ ] 직접 만든 바닥이 생기면 `PlaySetup/TempFloor`는 지워도 됨. `PlaySetup/Player`와 Main Camera의 `LevelPreviewCamera`는 남김
 - [ ] 필요한 에셋이 없으면 PM에게 요청(직접 import 금지)
 - [ ] "검사해줘" 통과
-- [ ] "제출해줘"로 PR 제출
+- [x] "제출해줘"로 PR 제출
 
 ## PM 통합
 

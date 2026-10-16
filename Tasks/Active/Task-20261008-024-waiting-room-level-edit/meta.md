@@ -2,7 +2,7 @@
 
 - **Title:** 대기실 레벨 디자인(에셋 배치)
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:**
 - **Current Skill:** implement
