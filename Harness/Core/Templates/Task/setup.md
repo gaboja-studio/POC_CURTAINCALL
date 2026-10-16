@@ -33,6 +33,8 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 ## 수정 금지
 
+수정 금지여도 `team-roles.md` "모든 작업자에게 허용"(빌드 씬 목록·공동 시스템 이용·게임 세팅 값·새 에셋 추가)은 허용한다.
+
 - `Assets/Scenes/`
 - `ProjectSettings/`
 - `Packages/`

@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using CurtainCall.Campaign;
+using CurtainCall.Dev;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Reward;
 using CurtainCall.Settings;
+using CurtainCall.SpaceLink;
 using CurtainCall.Survival;
 using TMPro;
 using UnityEngine;
@@ -14,7 +16,10 @@ using UnityEngine.UI;
 
 namespace CurtainCall.DummySpaces
 {
-    /// <summary>씬에 저장된 더미 선택/결과 화면. 기존 공개 API를 호출하며 규칙을 판정하지 않는다.</summary>
+    /// <summary>
+    /// 씬에 저장된 더미 화면. 3D 공간 위에 HUD와 왼쪽 조작 패널(탭: 조작·결과·기록)을 올린다.
+    /// 기존 공개 API를 호출하며 규칙을 판정하지 않는다. 원시 API 기록은 개발자 모드 로그(<see cref="DummySpaceDevLog"/>)에서만 보인다.
+    /// </summary>
     public sealed class DummySpaceCanvas : MonoBehaviour
     {
         [Serializable]
@@ -24,11 +29,24 @@ namespace CurtainCall.DummySpaces
             public Button button;
         }
 
+        [Header("HUD")]
+        public TMP_Text place;
         public TMP_Text status;
+        public TMP_Text funds;
+        public TMP_Text steps;
         public TMP_Text live;
         public TMP_Text clock;
         public Image clockFill;
-        public TMP_Text steps;
+        public TMP_Text hud;
+        public GameObject toastPanel;
+        public TMP_Text toast;
+
+        [Header("왼쪽 패널")]
+        public RectTransform panel;
+        public Button panelToggle;
+        public TMP_Text panelToggleLabel;
+        public Button[] tabButtons;
+        public GameObject[] tabPages;
         public TMP_Text selection;
         public TMP_Text condition;
         public TMP_Text resultTitle;
@@ -37,8 +55,6 @@ namespace CurtainCall.DummySpaces
         public TMP_Text changes;
         public TMP_Text connection;
         public TMP_Text history;
-        public TMP_Text details;
-        public GameObject detailsPanel;
         public ActionButton[] actions;
         public DummySpacePreview preview;
 
@@ -50,17 +66,25 @@ namespace CurtainCall.DummySpaces
         readonly List<(Button button, UnityEngine.Events.UnityAction handler)> listeners = new();
         int selected;
         int serverIndex;
+        int tab;
         float nextRefresh;
+        float toastUntil;
         bool initialized;
+        bool panelOpen = true;
         public int ExecutionCount { get; private set; }
         public string LastAction { get; private set; } = "";
         public string ResultText => resultBody != null ? resultBody.text : "";
         public int SelectedIndex => selected;
         public string SelectedParticipant => Person()?.ParticipantId;
+        public bool PanelOpen => panelOpen;
+        public int CurrentTab => tab;
 
         static readonly Color Teal = new(0.05f, 0.48f, 0.43f);
         static readonly Color Amber = new(0.58f, 0.34f, 0.05f);
         static readonly Color Red = new(0.73f, 0.20f, 0.22f);
+        static readonly Color TabOn = new(0.055f, 0.46f, 0.41f);
+        static readonly Color TabOff = new(0.17f, 0.25f, 0.31f);
+        const float ToastSeconds = 3f;
 
         void Start()
         {
@@ -73,12 +97,27 @@ namespace CurtainCall.DummySpaces
             foreach (var action in actions)
             {
                 string id = action.id;
-                UnityEngine.Events.UnityAction handler = () => Execute(id);
-                action.button.onClick.AddListener(handler);
-                listeners.Add((action.button, handler));
+                Listen(action.button, () => Execute(id));
             }
+            if (panelToggle != null) Listen(panelToggle, TogglePanel);
+            for (int i = 0; tabButtons != null && i < tabButtons.Length; i++)
+            {
+                int index = i;
+                Listen(tabButtons[i], () => ShowTab(index));
+            }
+            if (DevMode.Enabled && GetComponent<DummySpaceDevLog>() == null) gameObject.AddComponent<DummySpaceDevLog>();
+            if (toastPanel != null) toastPanel.SetActive(false);
             initialized = true;
+            ShowTab(0);
+            SetPanelOpen(true);
             Refresh();
+        }
+
+        void Listen(Button button, UnityEngine.Events.UnityAction handler)
+        {
+            if (button == null) return;
+            button.onClick.AddListener(handler);
+            listeners.Add((button, handler));
         }
 
         void OnDestroy()
@@ -90,9 +129,44 @@ namespace CurtainCall.DummySpaces
 
         void Update()
         {
+            if (toastPanel != null && toastPanel.activeSelf && Time.unscaledTime > toastUntil) toastPanel.SetActive(false);
             if (!initialized || diagnostics == null || Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + 0.15f;
             Refresh();
+        }
+
+        /// <summary>왼쪽 패널을 접거나 편다. 접어도 버튼 오브젝트는 켜 둔 채 화면 밖으로만 민다.</summary>
+        public void SetPanelOpen(bool open)
+        {
+            panelOpen = open;
+            if (panel != null) panel.anchoredPosition = new Vector2(open ? 0 : -panel.sizeDelta.x, panel.anchoredPosition.y);
+            if (panelToggleLabel != null) panelToggleLabel.text = open ? "◀\n접기" : "▶\n조작";
+            FrameCamera();
+        }
+
+        /// <summary>패널이 가린 만큼 카메라 화면 중심을 오른쪽으로 옮긴다(물리 카메라 lens shift).</summary>
+        void FrameCamera()
+        {
+            var cam = Camera.main;
+            var root = GetComponent<Canvas>();
+            if (cam == null || !cam.usePhysicalProperties || panel == null || root == null) return;
+            float covered = panelOpen ? panel.rect.width * root.scaleFactor / Mathf.Max(1, Screen.width) : 0;
+            cam.lensShift = new Vector2(-covered * 0.5f * cam.sensorSize.y * cam.aspect / cam.sensorSize.x, 0);
+        }
+
+        public void TogglePanel() => SetPanelOpen(!panelOpen);
+
+        /// <summary>패널 안 탭(0 조작, 1 결과, 2 기록)을 바꾼다. 닫혀 있으면 함께 연다.</summary>
+        public void ShowTab(int index)
+        {
+            if (tabPages == null || tabPages.Length == 0) return;
+            tab = Mathf.Clamp(index, 0, tabPages.Length - 1);
+            for (int i = 0; i < tabPages.Length; i++)
+            {
+                if (tabPages[i] != null) tabPages[i].SetActive(i == tab);
+                if (tabButtons != null && i < tabButtons.Length && tabButtons[i] != null) tabButtons[i].image.color = i == tab ? TabOn : TabOff;
+            }
+            if (!panelOpen) SetPanelOpen(true);
         }
 
         RewardSegment Person()
@@ -127,11 +201,10 @@ namespace CurtainCall.DummySpaces
             var rewards = diagnostics.Rewards;
             switch (id)
             {
-                case "details": return true;
                 case "advance": return NetworkSessionManager.EnsureExists().ConnectionState == SessionConnectionState.Offline
                     && (!campaign.State.IsRunning || campaign.IsOfflineRun)
                     && phase != CampaignPhase.Night && phase != CampaignPhase.Escape && phase != CampaignPhase.Ending;
-                case "ready": return campaign.HasAuthority && phase == CampaignPhase.Night;
+                case "ready": return phase == CampaignPhase.Night; // 준비는 참가자 각자 입력(028 SetReady가 호스트로 보냄)
                 case "start": return performance != null && !campaign.State.IsRunning
                     && NetworkSessionManager.EnsureExists().ConnectionState == SessionConnectionState.Offline;
                 case "intro": return campaign.HasAuthority && phase == CampaignPhase.Intro;
@@ -142,6 +215,7 @@ namespace CurtainCall.DummySpaces
                 case "timeout": return performance != null && rewards.HasAuthority && rewards.State != null && rewards.State.IsOpen;
                 case "spend": return waiting != null && rewards.HasAuthority;
                 case "leave": case "stage": return campaign.HasAuthority && phase == CampaignPhase.RestTime;
+                case "escapeStart": return (waiting != null || exploration != null) && campaign.HasAuthority && phase == CampaignPhase.RestTime;
                 case "room": return exploration != null;
                 case "expire": return exploration != null && campaign.HasAuthority && phase == CampaignPhase.RestTime;
                 case "lost": case "backpack": case "restorePreview": return waiting != null;
@@ -160,7 +234,6 @@ namespace CurtainCall.DummySpaces
 
         public void Execute(string id)
         {
-            if (id == "details") { detailsPanel.SetActive(!detailsPanel.activeSelf); return; }
             if (!CanExecute(id)) return;
             if (id == "person") { selected = (selected + 1) % diagnostics.Rewards.State.Segments.Count; Refresh(); return; }
             if (id == "row") { selected = (selected + 1) % escape.InputRows; Refresh(); return; }
@@ -190,7 +263,8 @@ namespace CurtainCall.DummySpaces
                 case "cheer": title = $"자리 {selected + 1} 환호"; api = "031 AddCheer (정산 전 입력)"; applied = performance.Cheer(SelectedParticipant); break;
                 case "timeout": title = "공연 제한 시간 종료"; api = "031 FinishPerformance(false) → 028"; applied = performance.TimeExpired(); break;
                 case "spend": title = $"공동 자금 {waiting.SpendAmount} 지출"; api = "031 TrySpend / 물품·유료 치료 미연결"; applied = waiting.Spend(); summary = applied ? "지출만 반영했습니다. 상품 지급·치료 완료가 아닙니다." : "잔액 또는 권한을 확인하세요. 지출은 반영되지 않았습니다."; break;
-                case "leave": title = "대기실 출구 입력"; api = "028 NotifyLeftWaitingRoom / 구역은 더미 입력"; applied = exploration != null ? exploration.Leave() : waiting.Leave(); break;
+                case "leave": title = "대기실 출구 입력"; api = "028 NotifyLeftWaitingRoom / 구역은 더미 입력"; applied = Leave(); break;
+                case "escapeStart": title = "탈출 개시 → 탈출로"; api = "028 StartEscape / 전원 집결 가정, 자동 집결 감지 아님"; applied = diagnostics.Invoke("탈출 개시 → StartEscape", diagnostics.Campaign.StartEscape); break;
                 case "room": title = "대기실 구역 입력"; api = "더미 구역 → A/B 안전 조건 조회"; exploration.EnterWaitingRoom(); applied = exploration.Zone == "대기실"; dummy = true; break;
                 case "stage": title = "무대 입구 + 전원 집결 가정"; api = "더미 구역 → 028 NotifyAllAtStageEntrance"; applied = exploration.EnterStage(); break;
                 case "expire": title = "탐색 타이머 만료 요청"; api = "028 DebugSetRemaining(0) → 다음 Tick"; applied = exploration.Expire(); summary = "요청 후 다음 Tick에서 현행 전환을 확인하세요. 추격 정리 대기는 미연결입니다."; break;
@@ -229,7 +303,26 @@ namespace CurtainCall.DummySpaces
             resultBody.text = summary;
             changes.text = Difference(before, Snapshot());
             connection.text = api;
+            ShowToast(title, resultBadge.text, resultBadge.color);
             Refresh();
+        }
+
+        bool Leave()
+        {
+            if (exploration != null) return exploration.Leave();
+            // 장소 전환이 켜진 런이면 타이머 방식과 관계없이 백스테이지로 옮긴다(이미 흐르는 A안 포함).
+            var director = SpaceLinkDirector.Instance;
+            if (director != null && director.Current == SpaceId.WaitingRoom)
+                return diagnostics.Invoke("대기실 출구 → 장소 전환 LeaveWaitingRoom", director.LeaveWaitingRoom);
+            return waiting.Leave();
+        }
+
+        void ShowToast(string title, string badge, Color color)
+        {
+            if (toastPanel == null || toast == null) return;
+            toast.text = $"<color=#{ColorUtility.ToHtmlStringRGB(Color.Lerp(color, Color.white, 0.45f))}>{badge}</color>   {title}";
+            toastPanel.SetActive(true);
+            toastUntil = Time.unscaledTime + ToastSeconds;
         }
 
         Dictionary<string, string> Snapshot()
@@ -269,11 +362,17 @@ namespace CurtainCall.DummySpaces
             CampaignPhase.Night => "밤 정비", CampaignPhase.Escape => "탈출", CampaignPhase.Ending => "엔딩", _ => "런 시작 전"
         };
 
+        string SpaceName => performance != null ? "공연장" : waiting != null ? "대기실" : exploration != null ? "백스테이지" : escape != null ? "탈출로" : "더미 공간";
+
         public void Refresh()
         {
             if (diagnostics == null) return;
             var c = diagnostics.Campaign.State;
-            status.text = $"세대 {c.Generation}   /   {c.Day}일차   ·   {PhaseName(c.Phase)}          공동 자금  {diagnostics.Rewards.Balance}";
+            var director = SpaceLinkDirector.Instance;
+            if (place != null)
+                place.text = $"{SpaceName}   <size=70%><color=#9FB8BF>더미 공간 · 실제 공간 아님{(director != null ? $"   ·   장소 전환 [{SpaceRoute.Describe(GameSettings.Base.SpaceTransition.Mode)}]{(director.IsTransitioning ? " 전환 중" : "")}" : "")}</color></size>";
+            status.text = $"세대 {c.Generation}   ·   {c.Day}일차   ·   {PhaseName(c.Phase)}";
+            if (funds != null) funds.text = $"공동 자금  <b>{diagnostics.Rewards.Balance}</b>";
             RefreshLive(c);
             steps.text = "";
             foreach (var phase in new[] { CampaignPhase.Intro, CampaignPhase.Performance, CampaignPhase.RestTime, CampaignPhase.Night, CampaignPhase.Escape, CampaignPhase.Ending })
@@ -295,22 +394,66 @@ namespace CurtainCall.DummySpaces
             }
             selection.text = sb.ToString().TrimEnd();
             var player = ServerPlayer();
-            condition.text = $"{(c.Phase == CampaignPhase.Night ? $"밤 준비 {c.ReadyCount}/{c.RequiredCount} · 준비 버튼 사용" : "비활성 버튼은 현재 단계에서 사용할 수 없습니다.")}\n실제 서버 대상: {(player == null ? "없음 · 규칙 조회만 가능" : $"{player.OwnerClientId} / {player.State} / {player.LostParts}")}";
+            condition.text = $"{(c.Phase == CampaignPhase.Night ? $"밤 준비 {c.ReadyCount}/{c.RequiredCount} · 각자 '밤 준비' 버튼" : "비활성 버튼은 현재 단계에서 사용할 수 없습니다.")}\n실제 서버 대상: {(player == null ? "없음 · 규칙 조회만 가능" : $"{player.OwnerClientId} / {player.State} / {player.LostParts}")}";
+            if (!diagnostics.Campaign.HasAuthority && c.IsRunning) condition.text += "\n참가자 화면: 진행·탈출 개시는 방장만, 밤 준비는 각자 누릅니다.";
             if (exploration != null) condition.text += "\n추격 정리 대기: 미연결 · 현행 만료는 즉시 공연";
             foreach (var item in actions) item.button.interactable = CanExecute(item.id);
             var entries = diagnostics.StoryText.Split('\n');
             Array.Reverse(entries);
             history.text = string.Join("\n", entries);
-            details.text = $"권한 {diagnostics.Campaign.HasAuthority} / 오프라인 {diagnostics.Campaign.IsOfflineRun} / 031 전환 대기 {diagnostics.Rewards.TransitionPending}\n{diagnostics.Variables()}\n\n{Boundary()}\n\n최근 API 기록\n{diagnostics.LastNote}\n\n독립 씬은 Play 종료 후 직접 여세요. 씬 전환·세션/전달/장소 설정은 032, 이동은 045 소유입니다.";
-            details.text += $"\n\n원시 API 연결 기록\n{diagnostics.TraceText}";
+            if (hud != null) hud.text = SpaceHud(c);
+            FrameCamera();
+            if (preview != null) preview.Refresh(selected, performance, waiting, exploration, escape);
+        }
+
+        /// <summary>공간별 더미 HUD. 실제 HUD 기획 전 자리 표시용이다.</summary>
+        string SpaceHud(CampaignSnapshot c)
+        {
+            var sb = new StringBuilder();
+            if (performance != null)
+            {
+                var list = diagnostics.Rewards.State?.Segments;
+                if (list == null || list.Count == 0) return "<b>팀 호응</b>   명부 고정 전";
+                long sum = 0, cap = 0;
+                foreach (var p in list) { sum += p.Amount; cap += diagnostics.Rewards.State.Rules.Cap; }
+                int filled = cap > 0 ? Mathf.RoundToInt(10f * sum / cap) : 0;
+                sb.Append($"<b>팀 호응</b>   <color=#52D6BF>{new string('■', filled)}</color><color=#5A6B73>{new string('■', 10 - filled)}</color>   {sum} / {cap}\n");
+                foreach (var p in list)
+                    sb.Append($"자리 {p.Slot + 1}  {(p.Dead ? "<color=#E06070>사망</color>" : !p.Connected ? "이탈" : performance.HasArrived(p.ParticipantId) ? "<color=#E6BD4D>도착</color>" : "진행")} · 손실 {p.LostCount}     ");
+                return sb.ToString().TrimEnd();
+            }
+            if (waiting != null)
+            {
+                if (c.Phase == CampaignPhase.Night) return $"<b>밤 정비</b>   준비 {c.ReadyCount} / {c.RequiredCount}\n모두 '밤 준비'를 누르면 다음 날 아침";
+                if (c.Phase == CampaignPhase.RestTime) return $"<b>쉬는 시간</b>   {(c.Timer == RestTimerState.WaitingForExit ? "출구로 나가면 탐색 시간 시작" : "탐색 시간 흐르는 중")}\n탈출 개시·출구는 왼쪽 패널 [조작]";
+                return "<b>대기실</b>   쉬는 시간·밤 정비에 사용";
+            }
+            if (exploration != null)
+                return $"<b>현재 구역</b>   {exploration.Zone}   ·   {(exploration.IsSafe ? "<color=#52D6BF>안전</color>" : "<color=#E06070>안전 밖</color>")}\n무대 입구에 모이면 다음 공연";
+            if (escape != null)
+            {
+                sb.Append("<b>탈출로</b>   ");
+                for (int i = 0; i < escape.InputRows; i++) sb.Append($"행 {i + 1} {escape.RowState(i)}   ");
+                return sb.ToString().TrimEnd();
+            }
+            return "";
+        }
+
+        /// <summary>개발자 모드 로그용 상세(권한·변수·경계·원시 API·031 최근 결과).</summary>
+        public string DescribeDetails()
+        {
+            if (diagnostics == null) return "더미 공간 진단 없음";
+            var text = new StringBuilder();
+            text.Append($"권한 {diagnostics.Campaign.HasAuthority} / 오프라인 {diagnostics.Campaign.IsOfflineRun} / 031 전환 대기 {diagnostics.Rewards.TransitionPending}\n{diagnostics.Variables()}\n\n{Boundary()}\n\n최근 API 기록\n{diagnostics.LastNote}");
+            text.Append($"\n\n원시 API 연결 기록\n{diagnostics.TraceText}");
             var latest = diagnostics.Rewards.Latest;
             if (latest != null)
             {
-                details.text += $"\n\n031 최근 확정 결과: {(latest.Succeeded ? "성공" : "실패")} / {latest.EndReason} / {latest.Failure} / 수입 {latest.Income}";
+                text.Append($"\n\n031 최근 확정 결과: {(latest.Succeeded ? "성공" : "실패")} / {latest.EndReason} / {latest.Failure} / 수입 {latest.Income}");
                 foreach (var p in latest.Participants)
-                    details.text += $"\n자리 {p.Slot + 1}: {p.Judgement}, 손실 {p.StartingLostCount} → {p.EndingLostCount}, 정산 {p.Settlement}";
+                    text.Append($"\n자리 {p.Slot + 1}: {p.Judgement}, 손실 {p.StartingLostCount} → {p.EndingLostCount}, 정산 {p.Settlement}");
             }
-            if (preview != null) preview.Refresh(selected, performance, waiting, exploration, escape);
+            return text.ToString();
         }
 
         static string ClockText(float remaining)
@@ -350,12 +493,12 @@ namespace CurtainCall.DummySpaces
                 CampaignPhase.Escape => "자동 제한 시간 없음 · 도착/리타이어와 수동 결론 입력",
                 CampaignPhase.Intro => "도입 진행 · 도입 종료 입력 대기",
                 CampaignPhase.Ending => "탈출 성공 · 엔딩",
-                _ => "런 시작 대기 · 왼쪽 흐름 준비에서 시작하세요"
+                _ => "런 시작 대기 · 왼쪽 패널 [조작]에서 시작하세요"
             };
             live.text = $"{heading}\n{diagnostics.CurrentStory}";
             clock.text = timer;
             clockFill.rectTransform.localScale = new Vector3(Mathf.Clamp01(ratio), 1, 1);
-            clock.color = ratio > 0 && ratio <= 0.2f ? Red : Teal;
+            clock.color = ratio > 0 && ratio <= 0.2f ? Red : new Color(0.32f, 0.84f, 0.75f);
             clockFill.color = clock.color;
         }
 
