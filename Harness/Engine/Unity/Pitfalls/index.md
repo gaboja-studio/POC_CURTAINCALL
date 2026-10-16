@@ -2,6 +2,8 @@
 
 Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 
+- [Initialization/](Initialization/index.md) — 컴포넌트 생성·역직렬화 초기화 예외를 확인할 때.
+
 - [stale-values-after-recompile.md](stale-values-after-recompile.md) — 재컴파일 직후 값으로 수정 효과를 판단할 때
 - [scene-not-saved.md](scene-not-saved.md) — 씬/프리팹 수정 후 "배치 완료"를 판단할 때
 - [playmode-frame-freeze.md](playmode-frame-freeze.md) — AI가 Play Mode에서 코루틴·애니메이션을 검증하려 할 때
