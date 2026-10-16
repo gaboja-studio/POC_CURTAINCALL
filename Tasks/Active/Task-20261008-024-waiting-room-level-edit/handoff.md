@@ -4,7 +4,7 @@
 
 ## 지금 상태
 
-- 단계: 3차 배치 완료(조감도 ①~⑩, 서커스 톤 드레싱, 무대 진입 터널, Cloth 커튼 9장, 깜박이는 전구 27개, 안개·먼지). 저장(push) 진행.
+- 단계: 3차 배치 완료(조감도 ①~⑩, 서커스 톤 드레싱, 무대 진입 터널, Cloth 커튼 9장, 깜박이는 전구 27개, 먼지). 저장·push 완료, 제출 중.
 - 동작하는 것: `waiting_room.unity` 루트 `WaitingRoom`. 배치 스크립트 `build-layout.cs`(`unity command eval_file --file`로 실행).
 - 막힌 것: 커튼 자동 열림(근접 트리거)은 코드가 필요해 미구현 — 지금은 플레이어가 밀어 젖히는 Cloth 반응만. Cloth는 플레이어 캡슐하고만 충돌.
 - PR: 없음
@@ -21,13 +21,14 @@
 - 확인 요청: 서커스 전용 에셋 부족(빅탑·간판 등), 조감도 ⑤/⑥ 번호·백스테이지 슬롯 수 불일치.
 - 교훈 제안: 투명 재질을 에디터 스크립트로 렌더에 쓰면 `.mat`에 `_SrcBlendAlpha`/`_DstBlendAlpha`가 저절로 추가됨(서드파티 2개 발생, 되돌림). 시험 렌더엔 복제본 사용 (함정, Engine)
 - 교훈 제안: Windows에서 `unity command eval`에 32KB 넘는 C#을 넘기면 "Argument list too long" → `eval_file --file` (함정, Engine)
+- 확인 요청: PM 승인(2026-10-16)으로 구역 밖 변경 포함(postprocessing 패키지·ProjectSettings·TutorialInfo·SampleScene). `_ThirdParty`에 외부 에셋 5종과 자작 WaitingArea 리소스 추가(.unitypackage 제외).
 - 대기 중인 결정: 없음 / 공용 파일 요청: 없음
 
 ## Verification
 
-- 구역 검사: PASS (verify-scope, 4 files, 기준 origin/integration/waiting-room)
-- 1 문서/규칙: verify-fast — handoff 길이 HARD를 이 압축으로 해결. PM 문서 WARN 2건(tightrope-balance.md, third-party-asset-guide.md)은 권한 밖이라 그대로.
-- 2 컴파일: 코드 변경 없음, `compilationFailed=false`
+- 구역 검사: FAIL 10건(구역 밖 파일) — PM 승인으로 포함(2026-10-16)
+- 1 문서/규칙: verify-fast OK (WARN 6건: 문서 길이)
+- 2 컴파일: PASS (verify-unity -Compile, 2026-10-16)
 - 3 테스트: NO_PROJECT_TESTS (배치 작업)
 - 4 실행 로그: Play 모드 + `EditorApplication.Step()`으로 Cloth 흔들림·복귀, 깜박임 확인. Console 오류 0. 모든 방 도달, 큰 문·슬롯 문만 막힘.
 - 5 공동 테스트: 미요청
