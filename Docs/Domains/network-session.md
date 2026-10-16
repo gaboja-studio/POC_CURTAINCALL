@@ -12,7 +12,7 @@
 - `Assets/Scripts/Systems/Network/Session/LanSessionConnector.cs` — 직접 IP(LAN) 테스트 경로. 기본 포트 7777.
 - `Assets/Scripts/Systems/Network/Session/GameSessionState.cs`, `SessionConnectionState.cs` — 게임 상태 / 내 접속 상태 enum.
 - `Assets/Scripts/Systems/Network/Session/GameSessionStateSync.cs` — 게임 상태·인원 복제용 NetworkBehaviour(내부용).
-- `Assets/Scripts/Systems/Network/Session/NetworkSessionTestUI.cs` — 테스트 씬 전용 IMGUI. 진짜 로비 UI가 생기면 삭제.
+- `Assets/Scripts/Systems/Network/Session/NetworkSessionTestUI.cs` — 테스트 씬 전용 IMGUI. 진짜 로비 UI가 생기면 삭제. SpaceLink 시작 씬은 Canvas(`SpaceLinkHubCanvas`)로 대체(2026-10-16).
 - `Assets/Resources/Prefabs/Controllers/Network/NetworkManager.prefab` — NetworkManager + UnityTransport + NetworkSessionManager(Required Players 기본 4).
 - `Assets/Resources/Prefabs/Controllers/Network/GameSession.prefab` — NetworkObject + GameSessionStateSync. 호스트가 방을 열 때 스폰.
 - `Assets/Resources/Prefabs/Controllers/Network/DefaultNetworkPrefabs.asset` — 네트워크 프리팹 목록.

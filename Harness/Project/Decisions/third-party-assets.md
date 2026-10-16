@@ -20,7 +20,7 @@ Asset Store 등 외부에서 받은 에셋을 넣거나 옮길 때, 팀원이 `A
 
 - 2026-10-16 / PM 위임:
   - 에셋 관리자 `@gyumin9048-ctrl`는 외부 에셋 추가·수정과 해당 변경의 저장·push·제출을 할 수 있다. 역할 명부는 `Harness/Project/Facts/team.md`의 에셋 관리자 행을 사용한다.
-  - private 저장소의 머티리얼·프리팹·제공 씬·에셋 코드 및 `.meta`가 대상이다. 공개 저장소의 게임 코드·씬·폰트·Packages·ProjectSettings·TutorialInfo 권한은 확대하지 않는다.
+  - private 저장소의 머티리얼·프리팹·제공 씬·에셋 코드 및 `.meta`가 대상이다. 공개 저장소의 게임 코드·씬·Packages·ProjectSettings 권한은 확대하지 않는다. (공개 저장소의 기존 에셋 수정·삭제는 2026-10-16 `team-roles.md` 공통 허용 규칙을 따른다)
   - private 저장소에 먼저 커밋·main 반영·push하고 공개 저장소의 gitlink 포인터만 저장한다. 별도 에셋 작업은 `resource/third-party/*`, Task 관련 포인터는 해당 작업 브랜치에서 기존 제출 대상으로 보낸다. 병합 권한은 위임하지 않는다.
   - Task-20261008-024도 이 위임을 적용한다. 기존 setup의 `_ThirdParty` 수정 금지보다 이 역할 예외가 우선한다. 다른 구역 밖 변경은 별도 PM 결정이 필요하다.
 
