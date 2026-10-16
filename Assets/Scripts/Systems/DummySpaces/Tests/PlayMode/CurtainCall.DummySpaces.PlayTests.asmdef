@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.DummySpaces.PlayTests",
+    "rootNamespace": "CurtainCall.DummySpaces.Tests",
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}

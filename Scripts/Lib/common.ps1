@@ -124,22 +124,30 @@ function Get-RefFile {
 }
 
 function Get-IntegrationMetadata {
-    param([Parameter(Mandatory)][string]$Branch, [string]$Ref = "refs/remotes/origin/$Branch")
+    param([Parameter(Mandatory)][string]$Branch, [string]$Ref = "refs/remotes/origin/$Branch", [switch]$AllowDone)
     if ($Branch -cnotmatch '^integration/([a-z0-9]+(?:-[a-z0-9]+)*)$') { throw "통합 브랜치가 아닙니다: $Branch" }
-    $path = "Integrations/Active/Integration-$($Matches[1])/meta.md"
-    $text = Get-RefFile -Ref $Ref -Path $path
+    $slug = $Matches[1]
+    $path = "Integrations/Active/Integration-$slug/meta.md"
+    $closed = $false
+    try { $text = Get-RefFile -Ref $Ref -Path $path } catch {
+        # close-integration이 Done으로 옮긴 뒤 Base로 올리는 PR만 마감 메타를 읽는다.
+        if (-not $AllowDone) { throw }
+        $path = "Integrations/Done/Integration-$slug/meta.md"
+        $text = Get-RefFile -Ref $Ref -Path $path
+        $closed = $true
+    }
     if ((Get-MetaField -Text $text -Field 'Branch') -cne $Branch) { throw "통합 메타 Branch 불일치: $Branch" }
-    return [pscustomobject]@{ Branch = $Branch; Base = (Get-MetaField -Text $text -Field 'Base'); ActiveTask = (Get-MetaField -Text $text -Field 'Active Task'); Text = $text; Path = $path; Ref = $Ref }
+    return [pscustomobject]@{ Branch = $Branch; Base = (Get-MetaField -Text $text -Field 'Base'); ActiveTask = (Get-MetaField -Text $text -Field 'Active Task'); Text = $text; Path = $path; Ref = $Ref; Closed = $closed }
 }
 
 function Assert-IntegrationLineage {
-    param([Parameter(Mandatory)][string]$Branch, [string]$Ref, [string]$Child)
+    param([Parameter(Mandatory)][string]$Branch, [string]$Ref, [string]$Child, [switch]$AllowDone)
     $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     if ($Child) { [void]$seen.Add($Child) }
     $first = $true
     while ($Branch -cne (Get-BaseBranch)) {
         if (-not $seen.Add($Branch)) { throw "통합 Base 자기참조/순환: $Branch" }
-        $info = if ($first -and $Ref) { Get-IntegrationMetadata -Branch $Branch -Ref $Ref } else { Get-IntegrationMetadata -Branch $Branch }
+        $info = if ($first -and $Ref) { Get-IntegrationMetadata -Branch $Branch -Ref $Ref -AllowDone:$AllowDone } else { Get-IntegrationMetadata -Branch $Branch }
         $first = $false
         if (-not $info.Base) { throw "통합 Base 누락: $Branch" }
         $Branch = $info.Base
@@ -193,9 +201,10 @@ function Get-PrFlow {
     param([Parameter(Mandatory)][string]$Head, [Parameter(Mandatory)][string]$Base)
     if ($Head -ceq $Base) { throw "같은 브랜치로 PR 불가: $Head" }
     if ($Head -like 'integration/*') {
-        Assert-IntegrationLineage -Branch $Head -Ref HEAD
-        $headInfo = Get-IntegrationMetadata -Branch $Head -Ref HEAD
+        Assert-IntegrationLineage -Branch $Head -Ref HEAD -AllowDone
+        $headInfo = Get-IntegrationMetadata -Branch $Head -Ref HEAD -AllowDone
         if ($Base -ceq $headInfo.Base) { return 'merge' }
+        if ($headInfo.Closed) { throw "마감된 통합은 Base($($headInfo.Base))로만 PR 가능: $Head → $Base" }
         if ($Base -like 'integration/*') {
             Assert-IntegrationLineage -Branch $Base
             if ((Get-IntegrationMetadata -Branch $Base).Base -ceq $Head) { return 'merge' }
@@ -476,6 +485,16 @@ function Get-PmAccount {
     $m = Select-String -LiteralPath $team -Pattern '개발 PM\s*\|\s*`@([^`]+)`' -ErrorAction SilentlyContinue | Select-Object -First 1
     if ($m) { return $m.Matches[0].Groups[1].Value }
     return $null
+}
+
+function Test-ThirdPartyAssetManager {
+    param([string]$Actor)
+    if (-not $Actor) { return $false }
+    $team = Get-RepoPath 'Harness/Project/Facts/team.md'
+    if (-not (Test-Path -LiteralPath $team)) { return $false }
+    $accounts = @(Select-String -LiteralPath $team -Pattern '^\|\s*에셋 관리자\s*\|\s*`@([^`]+)`\s*\|' |
+        ForEach-Object { $_.Matches[0].Groups[1].Value })
+    return $accounts -contains $Actor
 }
 
 function Get-CurrentGitHubUser {
