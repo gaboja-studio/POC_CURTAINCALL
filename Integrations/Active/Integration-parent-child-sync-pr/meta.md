@@ -17,7 +17,7 @@
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261017-054 | fix | @MoHoDu | fix/parent-child-sync-pr | - | working (구현·로컬 검증 완료, 미커밋) |
+| Task-20261017-054 | fix | @MoHoDu | fix/parent-child-sync-pr | - | working (cc4a26d 저장·push, PR 확인 대기) |
 
 ## 공용 파일 소유 표
 
