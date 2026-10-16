@@ -6,19 +6,21 @@
 - **Base:** dev
 - **Active Task:**
 - **PM:** @MoHoDu
-- **Merge Time:**
+- **Merge Time:** 미정
 - **Updated:** 2026-10-16
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 
 ## 목표
 
-- 이 기능 묶음이 끝나면 dev에서 무엇을 할 수 있는지 1~2줄.
+- dev에서 게임을 켜면 시작 씬 → 방 만들기/참가 → 로비 → 호스트 게임 시작으로 런에 들어갈 수 있다. 테스트 씬 IMGUI 대신 실제 시작·로비 화면을 쓴다.
+- 구성: 단일 Task(052). 씬은 `Assets/Scenes/Start_Lobby/`, 코드는 `Assets/Scripts/Systems/StartLobby/`.
 
 ## Tasks
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
+| Task-20261016-052 | feat | @MoHoDu | feat/start-lobby-scenes | - | assigned |
 
 ## 준비 브랜치
 
@@ -33,8 +35,9 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
+| `Assets/Scenes/Start_Lobby/` (`Start.unity`, `Lobby.unity`) | Task-20261016-052 | 실제 시작·로비 씬. 빌드 씬 목록 추가는 모든 작업자 허용 |
 
 ## Decisions
 
 - Open: None
-- Decided: None
+- Decided: 2026-10-16 PM — 브랜치 `integration/start-lobby` + `feat/start-lobby-scenes`, 씬 위치 `Assets/Scenes/Start_Lobby/`, 코드 `Assets/Scripts/Systems/StartLobby/`, 담당 @MoHoDu. Jira CC-133(PM 등록)
