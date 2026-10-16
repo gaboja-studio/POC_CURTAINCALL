@@ -115,10 +115,20 @@ param([Parameter(ValueFromRemainingArguments)][string[]]$Arguments)
 Add-Content -LiteralPath $env:WORKSPACE_GH_LOG -Value ($Arguments -join ' ')
 $global:LASTEXITCODE = 0
 switch ($Arguments[1]) {
-    'view' { return "{`"baseRefName`":`"integration/child`",`"headRefName`":`"$env:WORKSPACE_PR_HEAD`",`"headRefOid`":`"$env:WORKSPACE_PR_SHA`",`"state`":`"OPEN`",`"mergeStateStatus`":`"CLEAN`",`"title`":`"fixture`"}" }
-    'list' { if ($Arguments -contains '--jq') { return '' }; return '[]' }
+    'view' {
+        if ($env:WORKSPACE_PR_VIEW_FAIL -eq '1') { $global:LASTEXITCODE = 1; return '{}' }
+        $base = $env:WORKSPACE_PR_BASE ? $env:WORKSPACE_PR_BASE : 'integration/child'
+        $state = $env:WORKSPACE_PR_STATE ? $env:WORKSPACE_PR_STATE : 'OPEN'
+        return "{`"baseRefName`":`"$base`",`"headRefName`":`"$env:WORKSPACE_PR_HEAD`",`"headRefOid`":`"$env:WORKSPACE_PR_SHA`",`"state`":`"$state`",`"mergeStateStatus`":`"CLEAN`",`"title`":`"fixture`"}"
+    }
+    'list' {
+        if ($Arguments -contains '--jq') { return '' }
+        if ($env:WORKSPACE_PR_LIST -and $Arguments -notcontains 'merged') { return $env:WORKSPACE_PR_LIST }
+        return '[]'
+    }
     'create' { return 'https://github.com/fixture/workspace/pull/1' }
     'merge' { return '' }
+    'update-branch' { return '' } # 호출 기록은 공통 로그에 남긴다.
     default { throw 'unexpected gh mock call' }
 }
 '@
@@ -394,8 +404,74 @@ switch ($Arguments[1]) {
         Run merge-integration.ps1 @('-Slug','child','-Merge','1') | Out-Null
         Assert ((Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw) -match 'pr merge 1.*--squash.*--match-head-commit') 'work PR lost squash/head guard'
     }
+    Check 'Update accepts actual open work heads on the requested base' {
+        foreach ($head in 'feat/stage-one', 'fix/stage-one', 'refactor/stage-one', 'resource/stage-one') {
+            $env:WORKSPACE_PR_HEAD = $head
+            $before = Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw
+            Run merge-integration.ps1 @('-Slug','child','-Update','11') | Out-Null
+            $calls = (Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw).Substring($before.Length)
+            Assert ($calls -match '(?s)pr view 11.*--json baseRefName[, ]headRefName[, ]state.*pr update-branch 11') 'Update did not validate actual PR before writing'
+            Assert ($calls -notmatch 'pr merge') 'Update unexpectedly merged'
+        }
+    }
+    Check 'Update rejects parent and non-work heads without writing' {
+        foreach ($head in 'dev', 'integration/parent', 'builds/test', 'tests/test', 'Feat/stage-one') {
+            $env:WORKSPACE_PR_HEAD = $head
+            $before = Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw
+            Run merge-integration.ps1 @('-Slug','child','-Update','12') 'Update.*금지' | Out-Null
+            $calls = (Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw).Substring($before.Length)
+            Assert ($calls -notmatch 'pr update-branch|pr merge') 'blocked head triggered a write'
+        }
+        $env:WORKSPACE_PR_HEAD = 'feat/stage-one'
+    }
+    Check 'Update rejects another actual base without writing' {
+        $env:WORKSPACE_PR_BASE = 'integration/other'
+        $before = Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw
+        try { Run merge-integration.ps1 @('-Slug','child','-Update','13') '대상이.*가 아님' | Out-Null }
+        finally { Remove-Item Env:WORKSPACE_PR_BASE }
+        $calls = (Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw).Substring($before.Length)
+        Assert ($calls -notmatch 'pr update-branch|pr merge') 'wrong base triggered a write'
+    }
+    Check 'Update rejects closed or merged PRs without writing' {
+        foreach ($state in 'CLOSED', 'MERGED') {
+            $env:WORKSPACE_PR_STATE = $state
+            $before = Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw
+            try { Run merge-integration.ps1 @('-Slug','child','-Update','14') '열려 있지 않음' | Out-Null }
+            finally { Remove-Item Env:WORKSPACE_PR_STATE }
+            $calls = (Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw).Substring($before.Length)
+            Assert ($calls -notmatch 'pr update-branch|pr merge') 'closed PR triggered a write'
+        }
+    }
+    Check 'Update rejects failed PR lookup without writing' {
+        $env:WORKSPACE_PR_VIEW_FAIL = '1'
+        $before = Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw
+        try { Run merge-integration.ps1 @('-Slug','child','-Update','15') '조회 실패' | Out-Null }
+        finally { Remove-Item Env:WORKSPACE_PR_VIEW_FAIL }
+        $calls = (Get-Content -LiteralPath $env:WORKSPACE_GH_LOG -Raw).Substring($before.Length)
+        Assert ($calls -notmatch 'pr update-branch|pr merge') 'failed lookup triggered a write'
+    }
+    # 일반 작업만 최신화를 안내하고 부모·통합 PR에는 역유입 위험 동작을 권하지 않는다.
+    $behindPrs = '[{"number":21,"title":"work","headRefName":"feat/stage-one","state":"OPEN","mergeStateStatus":"BEHIND","isDraft":false},{"number":22,"title":"parent sync","headRefName":"integration/parent","state":"OPEN","mergeStateStatus":"BEHIND","isDraft":false},{"number":23,"title":"dev sync","headRefName":"dev","state":"OPEN","mergeStateStatus":"DIRTY","isDraft":false}]'
+    Check 'PR listing never recommends Update for sync heads' {
+        $env:WORKSPACE_PR_LIST = $behindPrs
+        try { $out = Run merge-integration.ps1 @('-Slug','child') }
+        finally { Remove-Item Env:WORKSPACE_PR_LIST }
+        Assert ($out -match '#21[^\r\n]*Update 필요') 'work PR lost Update guidance'
+        foreach ($number in 22, 23) {
+            Assert ($out -match "#$number[^\r\n]*Update 금지" -and $out -notmatch "#$number[^\r\n]*Update 필요") 'listing recommends Update for sync PR'
+        }
+    }
+    Check 'post-merge guidance only recommends Update for work heads' {
+        $env:WORKSPACE_PR_LIST = $behindPrs
+        try { $out = Run merge-integration.ps1 @('-Slug','child','-Merge','1') }
+        finally { Remove-Item Env:WORKSPACE_PR_LIST }
+        Assert ($out -match '#21[^\r\n]*-Update 21') 'work PR lost post-merge Update guidance'
+        foreach ($number in 22, 23) {
+            Assert ($out -match "#$number[^\r\n]*Update 금지" -and $out -notmatch "-Update $number") 'post-merge recommends Update for sync PR'
+        }
+    }
     Write-Output "PASS workspace-flow: $script:Passed checks; fixture: $fixture"
 } finally {
     # 원인 확인을 위해 fixture는 전달받은 세션 scratchpad에 보존한다.
-    Remove-Item Env:WORKSPACE_GH_LOG, Env:WORKSPACE_PR_HEAD, Env:WORKSPACE_PR_SHA -ErrorAction SilentlyContinue
+    Remove-Item Env:WORKSPACE_GH_LOG, Env:WORKSPACE_PR_HEAD, Env:WORKSPACE_PR_SHA, Env:WORKSPACE_PR_BASE, Env:WORKSPACE_PR_STATE, Env:WORKSPACE_PR_VIEW_FAIL, Env:WORKSPACE_PR_LIST -ErrorAction SilentlyContinue
 }
