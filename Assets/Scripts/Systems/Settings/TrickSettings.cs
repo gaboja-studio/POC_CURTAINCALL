@@ -9,7 +9,7 @@ namespace CurtainCall.Settings
     public abstract class TrickSettings : ScriptableObject
     {
         [Header("보상")]
-        [Tooltip("이 묘기의 보상 규칙 파일(Tricks/Rewards/). 규칙을 바꾸려면 다른 파일을 끼운다. 보상 작업(015) 전에는 비워 둔다.")]
+        [Tooltip("이 묘기의 보상 규칙 파일(Tricks/Rewards/). 규칙을 바꾸려면 다른 파일을 끼운다. 미연결 묘기는 연결 Task에서 배정한다.")]
         [SerializeField] RewardTable reward;
 
         /// <summary>이 묘기의 보상 규칙. 연결 전이면 null.</summary>

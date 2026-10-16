@@ -10,7 +10,7 @@
 | Task 테스트 씬 | `Assets/Scenes/Tests/<Feature>/` | PM |
 | 테스트 전용 프리팹 | `Assets/Scenes/Tests/<Feature>/Prefabs/` | 담당자 |
 | 공용 씬 | `Assets/Scenes/` (Tests 밖) | 공용 파일 소유 표로만 배정 |
-| 외부(서드파티) 에셋 | `Assets/_ThirdParty/` (private submodule) | PM (`Harness/Project/Decisions/third-party-assets.md`) |
+| 외부(서드파티) 에셋 | `Assets/_ThirdParty/` (private submodule) | PM·지정 에셋 관리자 (`Harness/Project/Decisions/third-party-assets.md`) |
 
 - C# 코드는 `Assets/Scripts/` 밖에 두지 않고, 씬은 `Assets/Scenes/` 밖에 두지 않는다(`Harness/Project/Decisions/asset-placement.md`).
 - `setup.md`에는 수정 금지로 `Assets/Scenes/`를 두고, 해당 Task의 `Assets/Scenes/Tests/<Feature>/`만 작업 구역으로 연다.
@@ -23,10 +23,11 @@
 
 - **진행 중인 다른 Task의 작업 구역은 수정하지 않는다.** `verify-scope`가 다른 Task의 `setup.md`를 읽어 막는다.
 - 이미 `dev`에 합쳐진 이전 기능의 코드는 수정해도 된다. 단 PM이 그 경로를 현재 Task `setup.md`의 작업 구역에 넣어야 한다(주로 `fix/*`, `refactor/*`).
+- 공동 시스템(`Assets/Scripts/Systems/`)의 공개 기능은 모든 작업자가 자유롭게 호출·참조·구독하고, 그 프리팹을 내 씬에 배치해도 된다(2026-10-16 PM). 공동 시스템 코드를 **고치는 것**은 Task 작업 구역에 있을 때만 한다(게임 세팅 연결은 프로젝트 `game-settings.md`).
 - 서로의 기능을 연결하는 코드는 합치기 단계의 **연결 Task**에서만 작성한다. 연결 Task의 `setup.md`에는 연결할 여러 폴더를 작업 구역으로 적는다.
 
 ## 연결을 쉽게 만드는 습관
 
 - 다른 기능이 내 기능을 쓸 수 있도록 공개 진입점(public 메서드, 이벤트)을 한 곳에 모은다.
-- 다른 기능의 내부 클래스를 직접 참조하지 않는다. 필요하면 연결 Task에서 처리한다.
+- 다른 기능의 내부 클래스를 직접 참조하지 않는다(공동 시스템의 공개 기능은 예외). 필요하면 연결 Task에서 처리한다.
 - 새 에셋·폴더는 Unity 안에서 만들고 옮긴다(`.meta` 유지).
