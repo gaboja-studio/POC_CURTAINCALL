@@ -16,6 +16,8 @@ namespace CurtainCall.DummySpaces.Tests
         Component dummy;
         Component campaign;
         Component rewards;
+        FieldInfo devModeCache;
+        object previousDevMode;
 
         static Type GameType(string name) => AppDomain.CurrentDomain.GetAssemblies()
             .Select(a => a.GetType(name)).First(t => t != null);
@@ -26,6 +28,10 @@ namespace CurtainCall.DummySpaces.Tests
         [UnitySetUp]
         public IEnumerator SetUp()
         {
+            // 로컬 EditorPrefs는 바꾸지 않고 정식 인원 규칙을 검증한다.
+            devModeCache = GameType("CurtainCall.Dev.DevMode").GetField("_enabled", BindingFlags.Static | BindingFlags.NonPublic);
+            previousDevMode = devModeCache.GetValue(null);
+            devModeCache.SetValue(null, false);
             yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(
                 "Assets/Scenes/Tests/Systems/DummySpaces/DummyPerformance.unity", new LoadSceneParameters(LoadSceneMode.Single));
             yield return null;
@@ -40,6 +46,7 @@ namespace CurtainCall.DummySpaces.Tests
         [UnityTearDown]
         public IEnumerator TearDown()
         {
+            devModeCache?.SetValue(null, previousDevMode);
             if (campaign != null) Call(campaign, "StopOfflineRun");
             var session = GameType("CurtainCall.Network.Session.NetworkSessionManager").GetProperty("Instance").GetValue(null) as Component;
             var network = session != null ? Get(session, "NetworkManager") as Component : null;
@@ -88,34 +95,83 @@ namespace CurtainCall.DummySpaces.Tests
             Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-1"));
             var result = Get(rewards, "Latest");
             Assert.IsNotNull(result, "도착 뒤 남은 사람이 죽어도 공연이 멈춰 있지 않음");
-            bool devMode = (bool)GameType("CurtainCall.Dev.DevMode").GetProperty("Enabled").GetValue(null);
-            if (devMode)
-            {
-                Assert.IsTrue((bool)Get(result, "Succeeded"), "개발자 모드(생존 1명 허용): 남은 생존자가 모두 도착 → 성공");
-                Assert.AreEqual("Completed", Get(result, "EndReason"));
-            }
-            else Assert.AreEqual("InsufficientSurvivors", Get(result, "Failure").ToString(), "생존 2명 미만 실패가 먼저");
+            Assert.IsTrue((bool)Get(result, "Succeeded"), "생존 1명 허용: 남은 생존자가 모두 도착 → 성공");
+            Assert.AreEqual("Completed", Get(result, "EndReason"));
             Assert.AreEqual("RestTime", Get(Get(campaign, "State"), "Phase").ToString());
             yield return null;
         }
 
         [UnityTest]
-        public IEnumerator Death_Uses031SurvivorFailureWithoutDummySettlement()
+        public IEnumerator OneDeath_NormalModeKeepsPerformanceOpenAndAwardsSurvivor()
         {
             Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-0"));
-            bool devMode = (bool)GameType("CurtainCall.Dev.DevMode").GetProperty("Enabled").GetValue(null);
-            if (devMode)
-            {
-                Assert.IsNull(Get(rewards, "Latest"), "개발자 모드는 생존 1명 허용");
-                Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-1"));
-            }
+            yield return null;
+            AssertSingleSurvivorCanFinish();
+        }
+
+        [UnityTest]
+        public IEnumerator OneDisconnect_NormalModeKeepsPerformanceOpenAndAwardsSurvivor()
+        {
+            Assert.IsTrue((bool)Call(rewards, "ObserveParticipant", "Dummy-0", 0, false, false));
+            yield return null;
+            AssertSingleSurvivorCanFinish();
+        }
+
+        void AssertSingleSurvivorCanFinish()
+        {
+            Assert.IsFalse((bool)GameType("CurtainCall.Dev.DevMode").GetProperty("Enabled").GetValue(null));
+            Assert.IsNull(Get(rewards, "Latest"), "정식 모드에서도 생존 1명이면 자동 실패하지 않음");
+            Assert.IsTrue((bool)Get(Get(rewards, "State"), "IsOpen"));
+            Assert.AreEqual("Performance", Get(Get(campaign, "State"), "Phase").ToString());
+            Assert.IsTrue((bool)Call(dummy, "Cheer", "Dummy-1"));
+            var survivor = ((IEnumerable)Get(Get(rewards, "State"), "Segments")).Cast<object>().Single(
+                participant => (string)Get(participant, "ParticipantId") == "Dummy-1");
+            long earned = (long)Get(survivor, "Amount");
+            Assert.Greater(earned, 0L);
+            Assert.IsTrue((bool)Call(dummy, "Arrive", "Dummy-1"));
+            var result = Get(rewards, "Latest");
+            Assert.IsTrue((bool)Get(result, "Succeeded"), "공통 최종 정산도 생존 1명의 성공을 허용");
+            Assert.AreEqual("None", Get(result, "Failure").ToString());
+            Assert.AreEqual(earned, Get(result, "Income"));
+            Assert.AreEqual(earned, Get(rewards, "Balance"));
+            Assert.AreEqual("RestTime", Get(Get(campaign, "State"), "Phase").ToString());
+        }
+
+        [UnityTest]
+        public IEnumerator AllDead_AutomaticallyFailsWithoutAward()
+        {
+            Assert.IsTrue((bool)Call(dummy, "Cheer", "Dummy-1"));
+            Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-0"));
+            Assert.IsNull(Get(rewards, "Latest"));
+            Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-1"));
+            AssertNoSurvivorFailure();
+            Assert.IsFalse((bool)Call(dummy, "Cut", "missing"));
+            yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator LastSurvivorDisconnects_AutomaticallyFailsWithoutAward()
+        {
+            Assert.IsTrue((bool)Call(dummy, "Cheer", "Dummy-1"));
+            Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-0"));
+            Assert.IsNull(Get(rewards, "Latest"));
+            Assert.IsTrue((bool)Call(rewards, "ObserveParticipant", "Dummy-1", 0, false, false));
+            AssertNoSurvivorFailure();
+            yield return null;
+        }
+
+        void AssertNoSurvivorFailure()
+        {
             var result = Get(rewards, "Latest");
             Assert.IsNotNull(result);
             Assert.IsFalse((bool)Get(result, "Succeeded"));
+            Assert.AreEqual("NoSurvivors", Get(result, "EndReason"));
             Assert.AreEqual("InsufficientSurvivors", Get(result, "Failure").ToString());
             Assert.AreEqual(0L, Get(result, "Income"));
-            Assert.IsFalse((bool)Call(dummy, "Cut", "missing"));
-            yield return null;
+            Assert.AreEqual(0L, Get(rewards, "Balance"));
+            Assert.IsFalse((bool)Get(Get(rewards, "State"), "IsOpen"));
+            Assert.AreEqual("RestTime", Get(Get(campaign, "State"), "Phase").ToString());
+            Assert.IsFalse((bool)Call(dummy, "TimeExpired"), "공통 자동 실패 뒤 중복 종료 거절");
         }
     }
 }

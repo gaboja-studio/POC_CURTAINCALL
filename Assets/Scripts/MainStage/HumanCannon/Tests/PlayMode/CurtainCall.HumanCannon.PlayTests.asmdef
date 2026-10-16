@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.HumanCannon.PlayTests",
+    "rootNamespace": "CurtainCall.HumanCannon.Tests",
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}
