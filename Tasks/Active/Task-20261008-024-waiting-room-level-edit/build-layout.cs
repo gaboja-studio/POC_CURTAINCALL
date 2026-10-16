@@ -1,4 +1,4 @@
-// Waiting room layout v3 (circus dressing, stage tunnel, cloth curtains, flicker, fog). Run with: unity command eval "<this file>"
+// Waiting room layout v3 (circus dressing, stage tunnel, cloth curtains, flicker, dust). Run with: unity command eval "<this file>"
 // Rebuilds the "WaitingRoom" root in Assets/Scenes/Levels/waiting_room.unity. Uses only Assets/_ThirdParty prefabs/materials.
 var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
 if (scene.path != "Assets/Scenes/Levels/waiting_room.unity") return "WRONG SCENE " + scene.path;
@@ -206,7 +206,7 @@ System.Action<UnityEngine.Transform, UnityEngine.Vector3, UnityEngine.Vector3, f
   BulbLine(parent, c0, c3, spacing, 0); BulbLine(parent, c3, c2, spacing, 0); BulbLine(parent, c2, c1, spacing, 0);
 };
 
-// ---- v3 helpers: flicker animation, cloth curtains, particle fog/dust (no scripts: built-in Animation/Cloth/ParticleSystem only)
+// ---- v3 helpers: flicker animation, cloth curtains, particle dust (no scripts: built-in Animation/Cloth/ParticleSystem only)
 int nCloth = 0, nFlicker = 0, nFx = 0;
 var rnd = new System.Random(20261012);
 // legacy AnimationClip embedded in the scene. target "" = the holder itself.
@@ -332,7 +332,6 @@ System.Func<UnityEngine.Transform, string, UnityEngine.Vector3, UnityEngine.Vect
   }
   nFx++; return go;
 };
-var fogBlue = new UnityEngine.Color(0.42f, 0.52f, 0.78f, 0.32f);
 var dustWarm = new UnityEngine.Color(0.85f, 0.72f, 0.55f, 0.35f);
 // ===== R01 lobby — big-top ring
 var ring = Group("Ring", PR(1));
@@ -489,9 +488,7 @@ BulbLineFlicker(PR(10), V3(47.6f, 4.0f, -2.5f), V3(56.0f, 4.0f, -2.5f), 1.0f, 0.
 // lamps: steady near the lobby, increasingly unreliable towards the stage
 Lamp(9, 12.5f, -2.5f, 4.5f, 1.4f, 7f); FlickerLamp(9, 21.25f, -2.5f, 4.5f, 1.4f, 7f); Lamp(9, 31.25f, -2.5f, 4.5f, 1.3f, 7f); FlickerLamp(9, 41.25f, -2.5f, 4.5f, 1.3f, 7f);
 FlickerLamp(10, 51.25f, -2.5f, 4.5f, 1.2f, 7f);
-// cold blue fog along the tunnel floor + floating dust
-for (int k = 0; k < 4; k++) Fx(PR(9), "FX_Fog_Flat_01", V3(15f + 10f * k, 0.1f, -2.5f), UnityEngine.Vector3.zero, 3.2f, fogBlue, 0.25f);
-Fx(PR(10), "FX_Fog_Flat_01", V3(52.5f, 0.1f, -2.5f), UnityEngine.Vector3.zero, 3.2f, fogBlue, 0.3f);
+// floating dust
 Fx(PR(9), "FX_Dust_Interior_01", V3(28.75f, 2.2f, -2.5f), V3(37f, 3.5f, 4.5f), 0, dustWarm, 1.2f);
 Fx(PR(10), "FX_Dust_Interior_01", V3(52.5f, 2.2f, -2.5f), V3(10f, 3.5f, 4.5f), 0, dustWarm, 0.6f);
 
@@ -514,10 +511,8 @@ var rail = S("@SM_Gen_Bld_Pipe_Straight_03", Group("Curtains", PR(4)), V3(11.6f,
 ClothPanel(Group("Curtains", PR(4)), "ChangingCurtain", V3(11.0f, 2.25f, 13.9f), 270, 3.0f, 2.2f);
 // flickering lamps in the neglected rooms
 FlickerLamp(8, -12.5f, 30f, 6f, 0.9f, 7f); FlickerLamp(2, -24f, 18.5f, 6f, 0.8f, 6f);
-// fog / dust in the bigger rooms
+// dust in the bigger rooms
 Fx(PR(1), "FX_Dust_Interior_01", V3(0, 3.5f, 0), V3(18f, 6f, 18f), 0, dustWarm, 1.0f);
-Fx(PR(1), "FX_Fog_Flat_01", V3(0, 0.1f, 0), UnityEngine.Vector3.zero, 8.5f, fogBlue, 0.35f);
-Fx(PR(8), "FX_Fog_Flat_01", V3(-8.75f, 0.1f, 27.5f), UnityEngine.Vector3.zero, 5f, fogBlue, 0.3f);
 Fx(PR(8), "FX_Dust_Interior_01", V3(-8.75f, 2.5f, 27.5f), V3(11f, 4f, 9f), 0, dustWarm, 0.8f);
 Fx(PR(6), "FX_Dust_Interior_01", V3(6.25f, 2.5f, -15f), V3(11f, 4f, 9f), 0, dustWarm, 0.6f);
 Fx(PR(2), "FX_Dust_Interior_01", V3(-17.5f, 2.5f, 12.5f), V3(14f, 4f, 14f), 0, dustWarm, 0.6f);
@@ -531,10 +526,7 @@ foreach (var r in scene.GetRootGameObjects()) {
 }
 UnityEngine.RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
 UnityEngine.RenderSettings.ambientLight = new UnityEngine.Color(0.21f, 0.20f, 0.29f);   // cool navy fill (warm objects / cool background)
-UnityEngine.RenderSettings.fog = true;
-UnityEngine.RenderSettings.fogMode = UnityEngine.FogMode.ExponentialSquared;
-UnityEngine.RenderSettings.fogColor = new UnityEngine.Color(0.06f, 0.07f, 0.14f);
-UnityEngine.RenderSettings.fogDensity = 0.022f;
+UnityEngine.RenderSettings.fog = false; // fog removed (user request 2026-10-13)
 UnityEditor.Undo.RegisterCreatedObjectUndo(root, "Build WaitingRoom v3");
 UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
 bool saved = UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
