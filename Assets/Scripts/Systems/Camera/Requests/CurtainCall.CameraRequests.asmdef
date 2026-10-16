@@ -1,0 +1,7 @@
+{
+    "name": "CurtainCall.CameraRequests",
+    "rootNamespace": "CurtainCall.Cameras.Requests",
+    "references": [],
+    "autoReferenced": true,
+    "noEngineReferences": true
+}
