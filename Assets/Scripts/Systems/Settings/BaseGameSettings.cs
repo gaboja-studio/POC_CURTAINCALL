@@ -12,6 +12,15 @@ namespace CurtainCall.Settings
         FromLeavingWaitingRoom = 1,
     }
 
+    /// <summary>장소(공간 씬)를 바꾸는 방식. 결정: Task-20261013-032 plan.md (2026-10-16 PM)</summary>
+    public enum SpaceTransitionMode
+    {
+        /// <summary>통째 교체(기본): 다음 공간 씬만 남기고 이전 씬을 모두 닫는다. 모두 같은 공간으로 함께 이동한다.</summary>
+        Single = 0,
+        /// <summary>추가 로드: 시작 씬(코어)은 남겨 두고 공간 씬만 붙였다 뗀다.</summary>
+        Additive = 1,
+    }
+
     /// <summary>
     /// 공통 세팅(세팅 5묶음 중 "공통"): 세션·런 진행·기물 소지·캐릭터·입력·균형 공통·연출·동기화. 묘기·공간과 상관없이 쓰는 값.
     /// 에셋: Assets/Resources/Settings/GameSettings/BaseGameSettings.asset. <see cref="GameSettings.Base"/>로 읽는다.
@@ -38,6 +47,8 @@ namespace CurtainCall.Settings
         [SerializeField] SyncSettings sync = new();
         [Header("신체 손상")]
         [SerializeField] BodyDamageSettings bodyDamage = new();
+        [Header("장소 전환")]
+        [SerializeField] SpaceTransitionSettings spaceTransition = new();
 
         public SessionSettings Session => session;
         public RunSettings Run => run;
@@ -48,6 +59,7 @@ namespace CurtainCall.Settings
         public PresentationSettings Presentation => presentation;
         public SyncSettings Sync => sync;
         public BodyDamageSettings BodyDamage => bodyDamage;
+        public SpaceTransitionSettings SpaceTransition => spaceTransition;
 
         void OnValidate() => balance.Validate();
 
@@ -325,6 +337,36 @@ namespace CurtainCall.Settings
             public float LimbSpin => limbSpin;
             public float LimbMass => limbMass;
             public float LimbLifetime => limbLifetime;
+        }
+
+        /// <summary>장소 전환(공간 씬 바꾸기). 씬 이름은 빌드 목록에 있어야 한다(접속 중 전환은 NGO가 빌드 목록으로 찾는다).</summary>
+        [Serializable]
+        public sealed class SpaceTransitionSettings
+        {
+            [Tooltip("공간 씬을 바꾸는 방식. 통째 교체 = 다음 공간 씬만 남김(기본). 추가 로드 = 시작 씬을 남기고 공간 씬만 붙였다 뗌. 다음 전환부터 적용된다.")]
+            [SerializeField] SpaceTransitionMode mode = SpaceTransitionMode.Single;
+
+            [Tooltip("시작 씬(접속·런 시작, 도입·엔딩 때 돌아오는 곳). 추가 로드에서는 계속 떠 있는 코어 씬.")]
+            [SerializeField] string hubScene = "SpaceLink";
+
+            [Tooltip("공연 시간대의 공간 씬.")]
+            [SerializeField] string performanceScene = "DummyPerformance";
+
+            [Tooltip("쉬는 시간 시작·밤 정비의 공간 씬(대기실 로비).")]
+            [SerializeField] string waitingRoomScene = "DummyWaitingRoom";
+
+            [Tooltip("쉬는 시간에 대기실에서 나간 뒤의 공간 씬(백스테이지 탐색).")]
+            [SerializeField] string explorationScene = "DummyExploration";
+
+            [Tooltip("탈출 개시 뒤의 공간 씬(탈출로).")]
+            [SerializeField] string escapeRouteScene = "DummyEscapeRoute";
+
+            public SpaceTransitionMode Mode => mode;
+            public string HubScene => hubScene;
+            public string PerformanceScene => performanceScene;
+            public string WaitingRoomScene => waitingRoomScene;
+            public string ExplorationScene => explorationScene;
+            public string EscapeRouteScene => escapeRouteScene;
         }
     }
 }

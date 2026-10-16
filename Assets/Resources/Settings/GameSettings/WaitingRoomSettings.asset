@@ -12,3 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09111abbbb10f94489d5ade3a37646fd, type: 3}
   m_Name: WaitingRoomSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.WaitingRoomSettings
+  dummySpendAmount: 10
