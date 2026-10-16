@@ -98,6 +98,7 @@ namespace CurtainCall.HumanCannon
                 return;
             }
             Current = this;
+            CreateInjuryPolicy();
             ResetSeats();
             NetworkPlayer.LocalSpawned += Bind;
             NetworkPlayer.LocalDespawned += Unbind;
@@ -107,6 +108,7 @@ namespace CurtainCall.HumanCannon
 
         void ResetSeats()
         {
+            injuryInteractions.Clear();
             LocalSafeLandingCount = 0;
             seats = new SeatRuntime[stations.Length];
             for (int i = 0; i < seats.Length; i++) seats[i] = new SeatRuntime();
@@ -116,6 +118,7 @@ namespace CurtainCall.HumanCannon
 
         void Update()
         {
+            UpdateInjuryPolicies();
             if (session == null && NetworkSessionManager.Instance != null)
             {
                 session = NetworkSessionManager.Instance;
@@ -125,6 +128,7 @@ namespace CurtainCall.HumanCannon
             if (session == null) return;
             if (session.IsHost)
             {
+                injuryInteractions.Tick(Time.timeAsDouble);
                 for (int i = 0; i < seats.Length; i++)
                 {
                     var state = seats[i].State;
@@ -221,7 +225,8 @@ namespace CurtainCall.HumanCannon
             HandleRequest(sender, index, (CannonAction)action, revision, segment, position);
         }
 
-        void HandleRequest(ulong actor, int index, CannonAction action, uint revision, uint segment, Vector3 landingPosition)
+        void HandleRequest(ulong actor, int index, CannonAction action, uint revision, uint segment, Vector3 landingPosition,
+            bool interactionReady = false)
         {
             var player = FindPlayer(actor); // actor는 클라이언트가 보낸 값이 아니라 NGO의 실제 발신자다.
             if (player == null || player.State != PlayerState.Normal) return;
@@ -234,6 +239,14 @@ namespace CurtainCall.HumanCannon
             var runtime = seats[index];
             var station = stations[index];
             if (action == CannonAction.Board && FindBoardableStation(player) != index) return;
+            if (action == CannonAction.Board && !interactionReady)
+            {
+                if (runtime.State.Revision != revision) return;
+                if (DelayInjuredInteraction(player, index, revision,
+                    () => player != null && player.IsSpawned && player.State == PlayerState.Normal
+                        && ValidIndex(index) && seats[index].State.Revision == revision && FindBoardableStation(player) == index,
+                    () => HandleRequest(actor, index, action, revision, segment, landingPosition, true))) return;
+            }
             if (!runtime.State.TryApply(action, actor, revision)) return;
 
             Vector3 position = station.Seat.position;
@@ -329,6 +342,7 @@ namespace CurtainCall.HumanCannon
             if (boundPlayer == local) return;
             Unbind();
             boundPlayer = local;
+            BindInjuryPolicy(local);
             pilot = local.gameObject.AddComponent<HumanCannonPilot>();
             pilot.Initialize(this, local);
             for (int i = 0; i < seats.Length; i++)
@@ -344,6 +358,7 @@ namespace CurtainCall.HumanCannon
 
         void HandleRestart(NetworkPlayer player)
         {
+            injuryInteractions.Clear();
             flying.Remove(player.OwnerClientId);
             if (player == boundPlayer)
             {
@@ -407,6 +422,7 @@ namespace CurtainCall.HumanCannon
             NetworkPlayer.LocalDespawned -= Unbind;
             NetworkPlayer.Restarted -= HandleRestart;
             Unbind();
+            ReleaseInjuryPolicies();
             Unregister();
             if (session != null) session.ConnectionStateChanged -= HandleConnection;
             session = null;

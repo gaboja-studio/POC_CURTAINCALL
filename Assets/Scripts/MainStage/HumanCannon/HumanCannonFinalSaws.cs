@@ -16,6 +16,7 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Transform[] horizontalOrigins = Array.Empty<Transform>();
         [SerializeField] Transform[] horizontalViews = Array.Empty<Transform>();
         [SerializeField] Transform verticalStart, verticalEnd, verticalView, warningView;
+        [SerializeField] Transform secondaryVerticalView, secondaryWarningView;
         [Header("인간 대포 전용 임시 조정값 — 외줄 밸런스와 별개")]
         [Min(0.1f), SerializeField] float warningSeconds = 2.5f;
         [Min(0.1f), SerializeField] float travelSeconds = 4f;
@@ -38,7 +39,7 @@ namespace CurtainCall.HumanCannon
         double startedAt = -1, nextSnapshot, previousClock = -1;
         MaterialPropertyBlock tint;
         Renderer[][] horizontalRenderers;
-        Renderer[] warningRenderers;
+        Renderer[] warningRenderers, secondaryWarningRenderers;
         public static HumanCannonFinalSaws Current { get; private set; }
         public bool HasStarted => startedAt >= 0 && !resetBarrier.Waiting;
         public double StartedAt => startedAt;
@@ -48,6 +49,7 @@ namespace CurtainCall.HumanCannon
         public bool HorizontalActive => HasStarted && Clock >= startedAt + warningSeconds;
         public bool VerticalActive => Sample.Phase == FinalSawPhase.Active;
         public int HorizontalCount => horizontalOrigins.Length;
+        public int VerticalCount => secondaryVerticalView != null ? 2 : 1;
         public string StatusText => !HasStarted ? "최종 톱: 첫 진입 대기"
             : Sample.Phase == FinalSawPhase.Warning ? $"수직 톱 예고 {Sample.SecondsToNext:F1}초"
             : $"수직 톱 통과 중 · 퇴장까지 {Sample.SecondsToNext:F1}초";
@@ -60,6 +62,7 @@ namespace CurtainCall.HumanCannon
             for (int i = 0; i < horizontalViews.Length; i++)
                 horizontalRenderers[i] = horizontalViews[i] != null ? horizontalViews[i].GetComponentsInChildren<Renderer>(true) : Array.Empty<Renderer>();
             warningRenderers = warningView != null ? warningView.GetComponentsInChildren<Renderer>(true) : Array.Empty<Renderer>();
+            secondaryWarningRenderers = secondaryWarningView != null ? secondaryWarningView.GetComponentsInChildren<Renderer>(true) : Array.Empty<Renderer>();
             NetworkPlayer.Restarted += Restart;
         }
 
@@ -108,10 +111,15 @@ namespace CurtainCall.HumanCannon
             return horizontalOrigins[index].position + transform.right * side;
         }
 
-        public Vector3 VerticalPosition(double now)
+        public Vector3 VerticalPosition(double now) => VerticalPositionAt(now, 0);
+        public Vector3 SecondaryVerticalPosition(double now) => VerticalPositionAt(now, 2);
+
+        Vector3 VerticalPositionAt(double now, int laneOffset)
         {
             var sample = FinalSawTimeline.Sample(HasStarted, startedAt, now, warningSeconds, travelSeconds);
-            float lane = verticalLanes.Length > 0 && sample.CycleIndex >= 0 ? verticalLanes[(int)(sample.CycleIndex % verticalLanes.Length)] : 0;
+            // 두 번째 톱은 같은 예고/통과 시각을 쓰고 네 발사 레인 중 두 칸 건너 위치한다.
+            float lane = verticalLanes.Length > 0 && sample.CycleIndex >= 0
+                ? verticalLanes[(int)((sample.CycleIndex % verticalLanes.Length + laneOffset) % verticalLanes.Length)] : 0;
             return Vector3.Lerp(verticalStart.position, verticalEnd.position, sample.Travel01) + transform.right * lane;
         }
 
@@ -132,20 +140,30 @@ namespace CurtainCall.HumanCannon
                 }
                 else Tint(horizontalRenderers[i], warning);
             }
-            if (verticalView != null && verticalStart != null && verticalEnd != null)
+            if (verticalStart != null && verticalEnd != null)
             {
-                verticalView.gameObject.SetActive(sample.Phase == FinalSawPhase.Active);
-                verticalView.SetPositionAndRotation(VerticalPosition(now), transform.rotation * Quaternion.Euler(0, 0, 90) * Quaternion.Euler(0, spin, 0));
-            }
-            if (warningView != null && verticalStart != null && verticalEnd != null)
-            {
-                warningView.gameObject.SetActive(sample.Phase == FinalSawPhase.Warning);
-                warningView.position = VerticalPosition(now);
-                warningView.rotation = transform.rotation * Quaternion.Euler(0, 0, 90);
-                Tint(warningRenderers, warning);
+                PresentVertical(verticalView, warningView, warningRenderers, VerticalPosition(now), sample.Phase, spin, warning);
+                if (secondaryVerticalView != null)
+                    PresentVertical(secondaryVerticalView, secondaryWarningView, secondaryWarningRenderers,
+                        SecondaryVerticalPosition(now), sample.Phase, spin, warning);
             }
             if (session != null && session.IsHost) HostContacts(now);
             previousClock = now;
+        }
+
+        void PresentVertical(Transform blade, Transform marker, Renderer[] renderers, Vector3 position,
+            FinalSawPhase phase, float spin, Color warning)
+        {
+            Quaternion orientation = transform.rotation * Quaternion.Euler(0, 0, 90);
+            if (blade != null)
+            {
+                blade.gameObject.SetActive(phase == FinalSawPhase.Active);
+                blade.SetPositionAndRotation(position, orientation * Quaternion.Euler(0, spin, 0));
+            }
+            if (marker == null) return;
+            marker.gameObject.SetActive(phase == FinalSawPhase.Warning);
+            marker.SetPositionAndRotation(position, orientation);
+            Tint(renderers, warning);
         }
 
         void Tint(Renderer[] renderers, Color color)

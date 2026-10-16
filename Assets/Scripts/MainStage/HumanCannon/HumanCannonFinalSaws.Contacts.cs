@@ -32,6 +32,12 @@ namespace CurtainCall.HumanCannon
                     Vector3 center = VerticalPosition(now);
                     ApplyContact(player, mover, horizontalOrigins.Length, before, feet,
                         samePass ? VerticalPosition(previousClock) : center, center, transform.right, verticalRadius);
+                    if (secondaryVerticalView != null)
+                    {
+                        center = SecondaryVerticalPosition(now);
+                        ApplyContact(player, mover, horizontalOrigins.Length + 1, before, feet,
+                            samePass ? SecondaryVerticalPosition(previousClock) : center, center, transform.right, verticalRadius);
+                    }
                 }
                 previousFeet[player.OwnerClientId] = feet;
             }

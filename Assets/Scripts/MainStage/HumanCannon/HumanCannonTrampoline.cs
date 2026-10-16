@@ -171,7 +171,7 @@ namespace CurtainCall.HumanCannon
             SendRequest(TrampolineAction.Bounce, station, launch, segment, contact);
 
         void HandleRequest(ulong actor, TrampolineAction action, uint revision, int station, uint launch,
-            uint segment, Vector3 position, Quaternion rotation)
+            uint segment, Vector3 position, Quaternion rotation, bool interactionReady = false)
         {
             if (session == null || !session.IsHost) return;
             if (action == TrampolineAction.Sync) { SendOwnership(actor); return; }
@@ -189,6 +189,11 @@ namespace CurtainCall.HumanCannon
             }
             if (action == TrampolineAction.Grab)
             {
+                if (!CanGrab(player) || ownership.Revision != revision) return;
+                if (!interactionReady && HumanCannonSystem.Current.DelayInjuredInteraction(player, -1, revision,
+                    () => this != null && isActiveAndEnabled && player != null
+                        && ownership.Revision == revision && CanGrab(player),
+                    () => HandleRequest(actor, action, revision, station, launch, segment, position, rotation, true))) return;
                 if (!CanGrab(player) || !ownership.TryApply(CannonAction.Board, actor, revision)) return;
                 HumanCannonSystem.Current.StartCarrying(actor);
                 FollowCarrier(player);

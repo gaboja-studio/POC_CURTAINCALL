@@ -41,21 +41,21 @@ namespace CurtainCall.HumanCannon
             if (barrier != null)
             {
                 barrier.enabled = phase == PoleSawPhase.Active;
-                if (barrierRenderers != null) foreach (var visual in barrierRenderers) visual.enabled = phase == PoleSawPhase.Active;
+                if (barrierRenderers != null) foreach (var visual in barrierRenderers) if (visual != null) visual.enabled = false;
             }
             if (sawVisual == null) return;
             tint ??= new MaterialPropertyBlock();
-            // 지상 운반자의 관문이다. 접힌 톱을 봉 도약 높이로 올리지 않는다.
-            // 재동작 예고는 원래 지상 위치에서 점멸하되 충돌은 Active부터 켠다.
-            sawVisual.localPosition = visualPosition + (phase == PoleSawPhase.Retracted ? Vector3.down * 4f : Vector3.zero);
+            // 해제 봉을 잡으면 제자리에서 정지한다. 예고 중에도 멈춰 있고 Active부터 회전·접촉한다.
+            sawVisual.localPosition = visualPosition;
             Color color = phase == PoleSawPhase.Warning
                 ? (Mathf.Repeat((float)time, 0.5f) < 0.25f ? Color.red : Color.yellow)
                 : phase == PoleSawPhase.Retracted ? Color.green : Color.gray;
             tint.SetColor("_BaseColor", color);
             tint.SetColor("_Color", color);
             if (renderers != null) foreach (var item in renderers) if (item != null) item.SetPropertyBlock(tint);
-            foreach (Transform blade in sawVisual)
-                blade.localRotation = Quaternion.Euler(0f, 0f, (float)(time * spinSpeed % 360.0));
+            if (phase == PoleSawPhase.Active)
+                foreach (Transform blade in sawVisual)
+                    blade.localRotation = Quaternion.Euler(0f, 0f, (float)(time * spinSpeed % 360.0));
         }
 
         internal bool HostTick(PoleSawPhase phase, ulong poleUser)

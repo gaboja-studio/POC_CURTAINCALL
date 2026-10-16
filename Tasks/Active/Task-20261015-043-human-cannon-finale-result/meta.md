@@ -2,10 +2,10 @@
 
 - **Title:** 인간 대포 4단계 — 최종 구간과 실제 도착
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
-- **Current Skill:** submit-work
+- **Current Skill:** integrate-work
 - **Updated:** 2026-10-16
 
 ## Workspace
@@ -13,7 +13,7 @@
 - **Integration:** integration/main-stage-human-cannon
 - **Branch:** feat/human-cannon-finale-result
 - **Previous Task:** Task-20261015-042
-- 040 #93·041 #108·042 #111/75862ef 통합 완료. 착수 HEAD0128623은 최신 부모204be8c·dev d8b6db2를 포함하고 부모와 tracked tree가 같다. 042 구역·씬을 반환받아 043만 소유한다.
+- 040 #93·041 #108·042 #111/75862ef 통합 완료. 착수 HEAD0128623은 최신 부모204be8c·dev d8b6db2를 포함하고 부모와 tracked tree가 같다. 043 PR #121/70e242a 통합·044 HEAD9a0d078 수신 확인. 043 Allowed/씬 소유를 반환하고 044로 이관했다.
 
 ## Goal
 
@@ -22,7 +22,7 @@
 
 ## Scope
 
-- 작업 구역·공용 파일·수정 금지는 setup.md가 기준이다. HumanCannon 코드·테스트 씬 및 승인된 공용 실패 기준 관련 파일만 수정한다.
+- 작업 구역·공용 파일·수정 금지는 setup.md가 기준이다. 현재 Allowed 없음. HumanCannon 구역·씬은 044로 이관했고, 043의 공용 실패 규칙 예외 권한은 종료했다.
 - 2026-10-16 사용자 병합 완료 보고 후 로컬/원격 동기화·clean 확인. 공용 기준 변경부터 착수하며 실제4인 공동 테스트는 미실행이다.
 - 2026-10-15 PM @MoHoDu가 @RagSpirin에게 040~044 인계·순차 실행을 승인했다. 추가 PM 인계·착수 승인은 불필요하다: [순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md).
 - 순서 040→041→042→043→044. 선행 구현 통합 후 최신 부모 수신·Active Task/Allowed/공용 소유권의 한 단계 이관·문서 갱신을 수행한다. 공동 테스트는 전체 통합 후 실행한다.

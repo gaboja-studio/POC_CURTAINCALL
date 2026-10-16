@@ -121,13 +121,16 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
         [TestCase(0f)]
         [TestCase(6f)]
-        public void RetractedSawStaysBelowGroundAndWarningReturnsToCarrierHeight(float floorHeight)
+        public void ReleasedAndWarningSaw_StopInPlaceAndAllowPassageBeforeActiveRotationReturns(float floorHeight)
         {
             gateObject.transform.position = Vector3.up * floorHeight;
             var visual = new GameObject("SawVisual").transform;
             visual.SetParent(gateObject.transform, false);
             visual.localPosition = new Vector3(0f, 1.2f, -0.4f);
+            var rotor = new GameObject("GateSawDisc0").transform;
+            rotor.SetParent(visual, false);
             var barrier = new GameObject("Barrier").AddComponent<BoxCollider>();
+            var wallRenderer = barrier.gameObject.AddComponent<MeshRenderer>();
             barrier.transform.SetParent(gateObject.transform, false);
             barrier.center = Vector3.up * 1.2f;
             barrier.size = new Vector3(30f, 2.4f, 0.6f);
@@ -135,28 +138,33 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             typeof(HumanCannonSawGate).GetField("barrier", InternalInstance).SetValue(gate, barrier);
             typeof(HumanCannonSawGate).GetMethod("Awake", InternalInstance).Invoke(gate, null);
 
-            Present(PoleSawPhase.Active, false);
+            Present(PoleSawPhase.Active, false, 0.25d);
             Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
             Assert.That(barrier.enabled, Is.True);
+            Assert.That(wallRenderer.enabled, Is.False);
+            var stoppedRotation = rotor.localRotation;
 
-            Present(PoleSawPhase.Retracted, false);
-            // 회전하는 3.2m 톱의 끝까지 바닥 아래에 있어야 봉 사용자의 길을 침범하지 않는다.
-            Assert.That(visual.position.y + 1.61f, Is.LessThan(floorHeight));
+            Present(PoleSawPhase.Retracted, false, 1d);
+            Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
+            Assert.That(Quaternion.Angle(rotor.localRotation, stoppedRotation), Is.LessThan(0.001f));
             Assert.That(barrier.enabled, Is.False);
 
-            Present(PoleSawPhase.Warning, true);
+            Present(PoleSawPhase.Warning, true, 2d);
             Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
+            Assert.That(Quaternion.Angle(rotor.localRotation, stoppedRotation), Is.LessThan(0.001f));
             Assert.That(barrier.enabled, Is.False, "예고 중에는 지상 담당자에게 피해를 주지 않는다.");
 
-            Present(PoleSawPhase.Active, true);
+            Present(PoleSawPhase.Active, true, 2.5d);
             Assert.That(barrier.enabled, Is.True);
             Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
+            Assert.That(Quaternion.Angle(rotor.localRotation, stoppedRotation), Is.GreaterThan(1f));
+            Assert.That(wallRenderer.enabled, Is.False);
         }
 
-        void Present(PoleSawPhase phase, bool passed)
+        void Present(PoleSawPhase phase, bool passed, double time = 0d)
         {
             typeof(HumanCannonSawGate).GetMethod("Present", InternalInstance)
-                .Invoke(gate, new object[] { phase, passed, 0d });
+                .Invoke(gate, new object[] { phase, passed, time });
         }
 
         Vector3 Constrain(Vector3 from, Vector3 displacement)

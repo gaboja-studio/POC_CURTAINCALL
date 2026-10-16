@@ -18,7 +18,7 @@
 
 1. Task-040 발사·트램폴린 받기 → Task-041 봉·필수 톱관문.
 2. Task-041 → Task-042 분리 코스·쉼터 → Task-043 최종 구간·도착 → Task-044 함정·4인 코스.
-3. 각 작업 PR은 이 통합으로 Squash. 042 #111/75862ef integrated, 현재 043 working·044 기술 순번 대기. 043 HEAD0128623의 최신 부모/dev 수신·구역/씬 단독 이관 확인.
+3. 각 작업 PR은 이 통합으로 Squash. 043 #121/70e242a integrated, 현재 044 working. 044 HEAD9a0d078의 최신 부모 수신·tree 일치·043 반환/044 단독 소유 확인.
 4. 담당자는 [PM 승인](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 이전 소유 반환·다음 assigned/Active Task/Allowed/공용 소유·이력을 갱신한다. 한 단계만 활성 소유하며 최신 부모 구현/문서를 수신한다.
 5. 추가 인계·착수 승인은 요청하지 않는다. 실제 4인 검증은 전체 기능 통합 후 수행한다. 커밋/push·병합 요청 규칙과 씬·프리팹 충돌 해결 경계는 유지한다.
 

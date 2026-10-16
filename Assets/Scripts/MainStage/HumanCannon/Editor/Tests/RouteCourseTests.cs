@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
-    /// <summary>042 저장 씬의 배치·연결 검사. 테스트가 연 씬만 닫고 기존 작업 씬은 보존한다.</summary>
+    /// <summary>044 연장된 저장 씬의 배치·연결 검사. 테스트가 연 씬만 닫고 기존 작업 씬은 보존한다.</summary>
     public sealed class RouteCourseTests
     {
         const BindingFlags PrivateInstance = BindingFlags.Instance | BindingFlags.NonPublic;
@@ -30,7 +30,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                     openedHere = true;
                 }
                 RestoreActiveScene();
-                roots = inspectedScene.GetRootGameObjects().Where(root => root.GetComponent<HumanCannonSoloPractice>() == null).ToArray();
+                roots = inspectedScene.GetRootGameObjects();
                 Assert.That(Find("SplitRouteCourse"), Is.Not.Null, "042 코스가 저장된 씬이어야 합니다.");
             }
             catch
@@ -69,7 +69,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             for (int i = 0; i < 6; i++)
             {
                 Assert.That(stations[i].transform.position.y, Is.EqualTo(i < 3 ? 4f : 6f).Within(0.001f));
-                Assert.That(stations[i].transform.position.z, Is.EqualTo(i < 3 ? 3f : 49f).Within(0.001f));
+                Assert.That(stations[i].transform.position.z, Is.EqualTo(i < 3 ? 3f : 79f).Within(0.001f));
                 Assert.That(stations[i].Muzzle, Is.Not.Null);
             }
         }
@@ -150,8 +150,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(transports[2].name, Is.EqualTo("ShelterDeparture"));
             var shelter = Field<HumanCannonLandingZone>(route, "shelter");
             Assert.That(shelter, Is.SameAs(Find("SplitRouteCourse/ShelterDeck").GetComponent<HumanCannonLandingZone>()));
-            Assert.That(Vector3.Distance(transports[1].StartPosition, new Vector3(-25, 0, 40)), Is.LessThan(0.001f));
-            Assert.That(Vector3.Distance(transports[1].Position(1), new Vector3(-18, 6, 48)), Is.LessThan(0.001f));
+            Assert.That(Vector3.Distance(transports[1].StartPosition, new Vector3(-25, 0, 70)), Is.LessThan(0.001f));
+            Assert.That(Vector3.Distance(transports[1].Position(1), new Vector3(-18, 6, 78)), Is.LessThan(0.001f));
             Assert.That(transports[2].StartPosition.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(transports[2].Position(1).y, Is.EqualTo(6).Within(0.001f));
         }
@@ -170,9 +170,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var secondBoundary = Field<Transform>(fires[1], "boundary");
             var shelter = FloorBounds(Find("SplitRouteCourse/ShelterDeck"));
             var cushion = Find("LandingCushion").GetComponent<Collider>();
-            Assert.That(firstBoundary.position.z, Is.EqualTo(42).Within(0.001f));
+            Assert.That(firstBoundary.position.z, Is.EqualTo(72).Within(0.001f));
             Assert.That(firstBoundary.position.z, Is.EqualTo(shelter.min.z).Within(0.001f));
-            Assert.That(secondBoundary.position.z, Is.EqualTo(81.5f).Within(0.001f));
+            Assert.That(secondBoundary.position.z, Is.EqualTo(141.5f).Within(0.001f));
             Assert.That(secondBoundary.position.z, Is.EqualTo(cushion.bounds.min.z).Within(0.001f));
             Assert.That(secondBoundary.position.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(Field<Transform>(fires[1], "start").position.y, Is.EqualTo(6).Within(0.001f));
@@ -183,25 +183,36 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void FourPoles_KeepOriginalGateAndReferenceTheSecondSectionGate()
+        public void SixPoles_KeepOriginalIndicesAndBothCooperationGates()
         {
             var systems = All<HumanCannonPoleSystem>();
             Assert.That(systems, Has.Length.EqualTo(1));
-            Assert.That(systems[0].PoleCount, Is.EqualTo(4));
+            Assert.That(systems[0].PoleCount, Is.EqualTo(6));
             var poles = Field<HumanCannonPole[]>(systems[0], "poles");
-            Assert.That(poles, Has.Length.EqualTo(4));
+            Assert.That(poles, Has.Length.EqualTo(6));
             Assert.That(poles, Has.All.Not.Null);
             CollectionAssert.AllItemsAreUnique(poles);
             CollectionAssert.AreEquivalent(All<HumanCannonPole>(), poles);
+            Assert.That(poles[0].transform, Is.SameAs(Find("PoleGateCourse/NormalPole")));
+            Assert.That(poles[1].transform, Is.SameAs(Find("PoleGateCourse/LinkedPole")));
+            Assert.That(poles[2].transform, Is.SameAs(Find("SplitRouteCourse/SecondSectionPoleGate/NormalPole")));
+            Assert.That(poles[3].transform, Is.SameAs(Find("SplitRouteCourse/SecondSectionPoleGate/LinkedPole")));
+            Assert.That(poles.Skip(4).All(p => p.LinkedGate == null), Is.True);
             var gates = poles.Where(p => p.LinkedGate != null).Select(p => p.LinkedGate).Distinct()
                 .OrderBy(g => g.transform.position.z).ToArray();
             Assert.That(gates, Has.Length.EqualTo(2));
             CollectionAssert.AreEquivalent(All<HumanCannonSawGate>(), gates);
-            Assert.That(gates[0].transform.position.z, Is.EqualTo(32).Within(0.001f));
+            Assert.That(gates[0].transform.position.z, Is.EqualTo(47).Within(0.001f));
             Assert.That(gates[0].transform.position.y, Is.EqualTo(0).Within(0.001f));
-            Assert.That(gates[1].transform.position.z, Is.EqualTo(78).Within(0.001f));
+            Assert.That(gates[1].transform.position.z, Is.EqualTo(123).Within(0.001f));
             Assert.That(gates[1].transform.position.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(gates[0].transform.root.name, Is.EqualTo("PoleGateCourse"));
+            foreach (var gate in gates)
+            {
+                Assert.That(gate.transform.Find("SawVisual").childCount, Is.EqualTo(13));
+                Assert.That(gate.transform.Find("SawVisual/GateSawDisc0/Disc"), Is.Not.Null);
+                Assert.That(gate.transform.Find("Barrier").GetComponentsInChildren<Renderer>(true).All(r => !r.enabled), Is.True);
+            }
         }
 
         [Test]
@@ -281,9 +292,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         public void SplitShelterLandingFillsOldLiftHoleButKeepsDepartureHole()
         {
             var zone = Find("SplitRouteCourse/ShelterDeck").GetComponent<HumanCannonLandingZone>();
-            Assert.That(zone.SupportsLanding(new Vector3(0, 6.05f, 48)), Is.True);
-            Assert.That(zone.SupportsLanding(new Vector3(-9, 6.05f, 51)), Is.False);
-            Assert.That(zone.SupportsLanding(new Vector3(-9, 6.05f, 42.5f)), Is.True);
+            Assert.That(zone.SupportsLanding(new Vector3(0, 6.05f, 78)), Is.True);
+            Assert.That(zone.SupportsLanding(new Vector3(-9, 6.05f, 81)), Is.False);
+            Assert.That(zone.SupportsLanding(new Vector3(-9, 6.05f, 72.5f)), Is.True);
             var firstFloor = Find("SplitRouteCourse/FirstCourseFloor").GetComponentsInChildren<Collider>()
                 .Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger).ToArray();
             foreach (float z in new[] { 35.1f, 39f, 41.9f })
@@ -299,8 +310,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var deck = FloorBounds(Find("SplitRouteCourse/ShelterDeck"));
             Assert.That(access.min.x, Is.EqualTo(-28).Within(0.001f));
             Assert.That(access.max.x, Is.EqualTo(-15).Within(0.001f));
-            Assert.That(access.min.z, Is.EqualTo(33).Within(0.001f));
-            Assert.That(access.max.z, Is.EqualTo(36).Within(0.001f));
+            Assert.That(access.min.z, Is.EqualTo(63).Within(0.001f));
+            Assert.That(access.max.z, Is.EqualTo(66).Within(0.001f));
             Assert.That(access.max.y, Is.EqualTo(0).Within(0.001f));
             Assert.That(access.max.x, Is.EqualTo(firstFloor.min.x).Within(0.001f));
             Assert.That(access.max.y, Is.EqualTo(firstFloor.max.y).Within(0.001f));
@@ -317,11 +328,11 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         public void ShelterAccess_HasBodyClearanceThroughFenceOnlyAfterFirstGate()
         {
             var solids = All<Collider>().Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger).ToArray();
-            var passage = new Bounds(new Vector3(-15, 0.8f, 34.5f), new Vector3(1, 1.58f, 2.98f));
+            var passage = new Bounds(new Vector3(-15, 0.8f, 64.5f), new Vector3(1, 1.58f, 2.98f));
             var blockers = solids.Where(c => c.bounds.Intersects(passage)).Select(c => c.name).ToArray();
-            Assert.That(blockers, Is.Empty, "z33..36 출입구는 캐릭터 높이까지 막힘이 없어야 합니다.");
-            Assert.That(solids.Any(c => c.bounds.Contains(new Vector3(-15, 1, 31))), Is.True, "관문 전 측벽 보존");
-            Assert.That(solids.Any(c => c.bounds.Contains(new Vector3(-15, 1, 38))), Is.True, "출입구 뒤 측벽 보존");
+            Assert.That(blockers, Is.Empty, "z63..66 출입구는 캐릭터 높이까지 막힘이 없어야 합니다.");
+            Assert.That(solids.Any(c => c.bounds.Contains(new Vector3(-15, 1, 46))), Is.True, "구간 중간 관문 바로 전 측벽 보존");
+            Assert.That(solids.Any(c => c.bounds.Contains(new Vector3(-15, 1, 68))), Is.True, "출입구 뒤 측벽 보존");
             var firstGate = All<HumanCannonSawGate>().OrderBy(g => g.transform.position.z).First();
             Assert.That(FloorBounds(Find("SplitRouteCourse/ShelterLiftAccess")).min.z,
                 Is.GreaterThan(firstGate.transform.position.z + GameSettings.Base.Character.CapsuleRadius));
@@ -355,7 +366,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         public void ShelterSideGap_HasNoFixedSupportBetweenDeckAndLowerLift()
         {
             // 기존 측벽의 두께를 제외한 옆 틈. 접근 통로와 첫 코스 바닥도 이 안으로 뻗지 않아야 한다.
-            var gap = new Bounds(new Vector3(-18.6f, -2, 39), new Vector3(6.6f, 15.8f, 5.8f));
+            var gap = new Bounds(new Vector3(-18.6f, -2, 69), new Vector3(6.6f, 15.8f, 5.8f));
             var blockers = All<Collider>().Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger)
                 .Where(c => c.GetComponentInParent<HumanCannonTransport>() == null && c.bounds.Intersects(gap))
                 .Select(c => c.name).ToArray();

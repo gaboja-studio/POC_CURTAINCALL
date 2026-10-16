@@ -15,6 +15,7 @@ namespace CurtainCall.HumanCannon
         HumanCannonSystem system;
         NetworkPlayer player;
         PlayerMover mover;
+        PlayerCondition condition;
         PlayerController controller;
         HumanCannonControlScheme scheme;
         PlayerControlScheme previousScheme;
@@ -41,6 +42,7 @@ namespace CurtainCall.HumanCannon
             system = owner;
             player = local;
             mover = GetComponent<PlayerMover>();
+            condition = GetComponent<PlayerCondition>();
             controller = GetComponent<PlayerController>();
             previousAssigned = controller.HasAssignedScheme;
             previousScheme = controller.Scheme;
@@ -218,8 +220,12 @@ namespace CurtainCall.HumanCannon
             float dt = Time.deltaTime;
             float gravity = GameSettings.Base.Character.Gravity;
             // 입력이 막혀도 탄도는 계속된다. 보정은 이번 프레임의 수평 변위에만 더한다.
-            Vector3 correction = airControl.ConsumeVelocity(Time.frameCount, InputGate.IsBlocked, flightForward, airControlSpeed);
-            Vector3 displacement = (velocity + correction) * dt + Vector3.down * (0.5f * gravity * dt * dt);
+            float controlMultiplier = system.Injuries.AirMultiplier(condition != null ? condition.LostLegCount : 0);
+            Vector3 correction = airControl.ConsumeVelocity(Time.frameCount, InputGate.IsBlocked, flightForward,
+                airControlSpeed * controlMultiplier);
+            Vector3 wind = HumanCannonHazardCourse.Current != null
+                ? HumanCannonHazardCourse.Current.WindVelocity(transform.position, mover.BodyHeight, true) : Vector3.zero;
+            Vector3 displacement = (velocity + correction + wind) * dt + Vector3.down * (0.5f * gravity * dt * dt);
             if (HumanCannonPoleSystem.Current != null)
                 displacement = HumanCannonPoleSystem.Current.ConstrainFlight(transform.position, displacement, mover.BodyRadius);
             velocity.y -= gravity * dt;
@@ -248,6 +254,7 @@ namespace CurtainCall.HumanCannon
         {
             // 운반자 Update → 장치 LateUpdate(-30) → 비행 sweep(-25) 순서다.
             SimulateFlight();
+            ApplyGroundWind();
             UpdatePolePose();
             DetectGroundBounce();
             if (stationIndex < 0 || system == null) return;
@@ -271,6 +278,16 @@ namespace CurtainCall.HumanCannon
             var sync = GetComponent<NetworkTransform>();
             if (sync != null && sync.IsSpawned && sync.CanCommitToTransform)
                 sync.Teleport(position, rotation, transform.localScale);
+        }
+
+        void ApplyGroundWind()
+        {
+            if (IsDriving || player == null || !player.IsSpawned || player.State != PlayerState.Normal
+                || mover == null || !mover.Simulated || !mover.Body.enabled || HumanCannonHazardCourse.Current == null) return;
+            Vector3 wind = HumanCannonHazardCourse.Current.WindVelocity(transform.position, mover.BodyHeight, mover.IsAirborne);
+            if (wind.sqrMagnitude <= 0) return;
+            // 접지 중 추가 Move가 접지 플래그를 지우지 않도록 작은 아래쪽 접촉만 유지한다.
+            mover.Body.Move(wind * Time.deltaTime + (mover.Body.isGrounded ? Vector3.down * 0.001f : Vector3.zero));
         }
 
         internal void Detach()

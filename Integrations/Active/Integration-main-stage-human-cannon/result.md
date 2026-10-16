@@ -2,7 +2,7 @@
 
 ## 현재 결과
 - 2026-10-15 현재 사용자 PM @MoHoDu 확인: 040~044 전부 @RagSpirin 인계 완료·순차 실행 승인. [결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 추가 인계·착수 승인 불필요.
-- 040 #93/8293bb9·041 #108/292667c·042 #111/75862ef 통합 완료. 2026-10-16 043 HEAD0128623의 부모204be8c/dev d8b6db2 수신 확인 후 042 구역·씬 반환 → 043 단독 소유/working. 044는 기술 순번 대기다.
+- 040 #93/8293bb9·041 #108/292667c·042 #111/75862ef 통합 완료. 2026-10-16 043 HEAD0128623의 부모204be8c/dev d8b6db2 수신 확인 후 042 구역·씬 반환 → 043 단독 소유/working. 이후 043 #121/70e242a 통합·044 9a0d078 수신 확인, 043 구역·씬 반환 → 044 단독 소유/working.
 - 042 최종 컴파일·EditMode277/277 PASS, scope FAIL8(기존 위임 관리 문서), PlayMode NO_PROJECT_TESTS. 사용자 전체 확인·제출·PM 통합 확인, 실제4인 미실행: [042 handoff](../../../Tasks/Active/Task-20261015-042-human-cannon-route-shelter/handoff.md).
 
 ## 초기 준비 이력 (현재 상태는 위 기준)
@@ -33,15 +33,15 @@
 | 1 | Task-20261015-040 | [#93](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/93) | integrated (8293bb9) | PM 완료 확인·041 da4747c 수신, 4인 검증은 전체 통합 후 |
 | 2 | Task-20261015-041 | [#108](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/108) | integrated (292667c) | 042 dae56af 수신, 관문·사망 인계 실제 4인 검증 미실행 유지 |
 | 3 | Task-20261015-042 | [#111](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/111) | integrated (75862ef) | 043 0128623 수신, 사용자 전체 확인·PM 확인, 실제4인 미실행 유지 |
+| 4 | Task-20261015-043 | [#121](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/121) | integrated (70e242a) | 044 9a0d078 수신, PlayMode23/23·실제4인 미실행 유지 |
 
 ## 공동 테스트
-
 - 일시·참여·결과: 미실행. 전체 기능 통합 후 실제 4인(호스트/참가자 지상 역할 교환)으로 각 Task plan을 실행해 기록한다.
 
 ## 남은 이슈
 
-- Task-040~044는 CC-126~130 연결·인계·순차 실행 승인 완료. 현재 043만 구역 소유. 기존 순차 합의에 따라 기능 하나씩 구현·사용자 확인 후 진행한다.
-- 2026-10-16 사용자 전달 PM 승인: 공용 실패 기준을 생존 1명 미만으로 변경한 뒤 043 재개. 실제 목적지와 결과/런 종료 연결 검증은 남아 있다. 지상 2명·중계·호응/보상 수치·2~3인 후속·최종 밸런스는 미정이다.
+- Task-040~044는 CC-126~130 연결·인계·순차 실행 승인 완료. 현재 044만 구역 소유. 2026-10-16 사용자 후속 지시로 044 전체 기능 구현 후 확인: 기존 코스만 유지·10분 목표 연장·구간별3봉 전략 분산/반동 추종·함정 두 배·중앙 전기톱 관문 제자리 정지 해제. 실제4인 검증은 별도다.
+- 2026-10-16 사용자 전달 PM 승인: 공용 실패 기준을 생존 1명 미만으로 변경한 뒤 043 재개. 043에서 실제 LAN호스트1명 도착/전멸·정산·Night 전환 자동 검증 완료, 실제4인 검증은 남아 있다. 지상 2명·중계·호응/보상 수치·2~3인 후속·최종 밸런스는 미정이다.
 
 ## 테스트 씬 처리
 
@@ -50,11 +50,10 @@
 | Task-040 → 041 | HumanCannon.unity | 040 반환·041 단독 이관, 최종 유지/삭제 미정 | 2026-10-15 PM 확인 |
 | Task-041 → 042 | HumanCannon.unity | 041 반환·042 단독 이관, 최종 유지/삭제 미정 | 2026-10-16 기존 PM 위임 |
 | Task-042 → 043 | HumanCannon.unity | 042 반환·043 단독 이관, 최종 유지/삭제 미정 | 2026-10-16 기존 PM 위임 |
-| Task-044 | 같은 씬 순번 대기 | 선행 구현 통합 후 이관 | PM 순차 실행 사전 승인 |
+| Task-043 → 044 | HumanCannon.unity | 043 반환·044 단독 이관, 최종 유지/삭제 미정 | 2026-10-16 기존 PM 위임 |
 
 ## 부모 반영
-
 - [ ] 검증한 묶음의 부모 integration/main-stage PR 제출·Merge commit 수신
 - [ ] 최종 테스트 씬 처리·소유권 반환 기록
 
-현재는 working(Active Task 043)이다. dev 직접 제출·빈 부모 병합·close-integration·Done 이동·브랜치 삭제는 하지 않는다.
+현재는 working(Active Task 044)이다. dev 직접 제출·빈 부모 병합·close-integration·Done 이동·브랜치 삭제는 하지 않는다.

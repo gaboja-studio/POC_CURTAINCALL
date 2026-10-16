@@ -13,7 +13,7 @@ using Object = UnityEngine.Object;
 namespace CurtainCall.HumanCannon.Tests
 {
     /// <summary>저장된 코스·실제 LAN 호스트 1명의 입력/비행/착지 회귀. 다중 클라이언트 동기화 검사는 아니다.</summary>
-    public sealed class FinalCannonPlayTests
+    public sealed partial class FinalCannonPlayTests
     {
         const string ScenePath = "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity";
         const BindingFlags InstanceMembers = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
@@ -91,6 +91,8 @@ namespace CurtainCall.HumanCannon.Tests
         [UnityTest]
         public IEnumerator EveryCannon_BoardsAndCancelsIndependentlyWhileShelterLiftWaits()
         {
+            Call(player, "ServerSetOneArm");
+            yield return null;
             for (int index = 0; index < 10; index++)
             {
                 Assert.AreEqual("Waiting", Get(Call(route, "TransportState", 1), "Phase").ToString());
@@ -190,6 +192,7 @@ namespace CurtainCall.HumanCannon.Tests
             yield return null;
             Assert.AreEqual(index, Call(system, "FindBoardableStation", player));
             Input(tapped: true);
+            yield return WaitUntil(() => (ulong)Call(system, "Occupant", index) == Actor, 2, "부상별 탑승 시간 뒤 호스트 확정");
             Assert.AreEqual(Actor, Call(system, "Occupant", index));
             Assert.IsFalse(Flying, "첫 F는 탑승만 한다.");
             yield return null;

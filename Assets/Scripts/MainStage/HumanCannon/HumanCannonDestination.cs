@@ -53,7 +53,9 @@ namespace CurtainCall.HumanCannon
                 return;
             }
             bool humanCannon = campaign.State.Phase == CampaignPhase.Performance && campaign.State.TrickId == "HumanCannon";
-            if (humanCannon && session.IsHost) rewards.BeginPerformance(difficultyLevel);
+            if (humanCannon && session.IsHost)
+                rewards.BeginPerformance(HumanCannonHazardCourse.Current != null
+                    ? HumanCannonHazardCourse.Current.Difficulty : difficultyLevel);
             var identity = rewards.State?.Performance;
             if (identity?.TrickId == "HumanCannon" && performanceId != identity.Id)
             {
