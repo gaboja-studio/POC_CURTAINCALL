@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.Campaign;
-using CurtainCall.Dev;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -16,6 +15,9 @@ namespace CurtainCall.Reward
     /// <summary>묘기 공통 결과·호응·공동 자금의 공개 진입점. 판정은 호스트 또는 명시적 오프라인 런만 한다.</summary>
     public sealed class PerformanceRewards : MonoBehaviour
     {
+        /// <summary>모든 공연은 생존자 1명까지 계속하며, 0명이 되면 실패한다.</summary>
+        public const int OfficialMinSurvivors = 1;
+
         const string StateMessage = "CurtainCall.Reward.State";
         const string RequestMessage = "CurtainCall.Reward.Request";
         const string PageMessage = "CurtainCall.Reward.LedgerPage";
@@ -245,8 +247,8 @@ namespace CurtainCall.Reward
 
         void EndIfInsufficientSurvivors()
         {
-            if (CanMutate() && model.SurvivorCount < DevMode.MinSurvivors(2))
-                FinishPerformance(false, model.SurvivorCount == 0 ? "NoSurvivors" : "InsufficientSurvivors");
+            if (CanMutate() && model.SurvivorCount < OfficialMinSurvivors)
+                FinishPerformance(false, "NoSurvivors");
         }
 
         /// <summary>닫기 → 최종 관찰 → 정산 → 상태 송신 enqueue → Campaign 종료. 묘기의 판정 문자열은 그대로 보존한다.</summary>
@@ -258,7 +260,7 @@ namespace CurtainCall.Reward
             try
             {
                 ObserveNetwork();
-                if (!model.Confirm(trickSucceeded, endReason, judgements, DevMode.MinSurvivors(2), ReadRules(), out result)) return false;
+                if (!model.Confirm(trickSucceeded, endReason, judgements, OfficialMinSurvivors, ReadRules(), out result)) return false;
                 ClearObservers();
                 pendingTransition = true;
                 CompleteTransition();
