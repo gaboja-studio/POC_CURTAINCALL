@@ -37,7 +37,7 @@ namespace CurtainCall.HumanCannon.Tests
                 float x = player.transform.position.x;
                 Call(pilot, "SimulateFlight");
                 float air = lost == 0 ? 1f : lost == 1 ? 0.8f : 0.5f;
-                Assert.That(player.transform.position.x - x, Is.EqualTo(3f * air * Time.deltaTime).Within(0.002f));
+                Assert.That(player.transform.position.x - x, Is.EqualTo(4.5f * air * Time.deltaTime).Within(0.002f));
                 x = player.transform.position.x;
                 Input(); Call(pilot, "SimulateFlight");
                 Assert.That(player.transform.position.x, Is.EqualTo(x).Within(0.001f), "입력 해제 즉시 공중 보정 정지");

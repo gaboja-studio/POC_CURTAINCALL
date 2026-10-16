@@ -183,13 +183,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void SixPoles_KeepOriginalIndicesAndBothCooperationGates()
+        public void TenPoles_KeepOriginalIndicesAndBothCooperationGates()
         {
             var systems = All<HumanCannonPoleSystem>();
             Assert.That(systems, Has.Length.EqualTo(1));
-            Assert.That(systems[0].PoleCount, Is.EqualTo(6));
+            Assert.That(systems[0].PoleCount, Is.EqualTo(10));
             var poles = Field<HumanCannonPole[]>(systems[0], "poles");
-            Assert.That(poles, Has.Length.EqualTo(6));
+            Assert.That(poles, Has.Length.EqualTo(10));
             Assert.That(poles, Has.All.Not.Null);
             CollectionAssert.AllItemsAreUnique(poles);
             CollectionAssert.AreEquivalent(All<HumanCannonPole>(), poles);

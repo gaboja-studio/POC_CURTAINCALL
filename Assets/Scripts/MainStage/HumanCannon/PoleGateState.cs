@@ -12,11 +12,15 @@ namespace CurtainCall.HumanCannon
         public double RearmAt { get; private set; }
         public PoleSawPhase Phase { get; private set; } = PoleSawPhase.Active;
         public bool IsOccupied => Occupant != Nobody;
+        public bool IsUnlimitedHold => IsOccupied && HoldUntil == 0;
 
         public bool TryGrab(ulong actor, uint expectedRevision, double now, float holdSeconds)
         {
-            if (actor == Nobody || IsOccupied || expectedRevision != Revision
-                || !TryDeadline(now, holdSeconds, out double deadline)) return false;
+            if (actor == Nobody || IsOccupied || expectedRevision != Revision || !ValidTime(now)
+                || !float.IsFinite(holdSeconds) || holdSeconds < 0) return false;
+            // 0은 무제한 점유다. 유한 제한을 쓰는 기존 호출은 같은 만료 시각 규칙을 유지한다.
+            double deadline = 0;
+            if (holdSeconds > 0 && !TryDeadline(now, holdSeconds, out deadline)) return false;
             Occupant = actor;
             HoldUntil = deadline;
             RearmAt = 0;
@@ -37,7 +41,7 @@ namespace CurtainCall.HumanCannon
         {
             if (!ValidTime(now) || !ValidDuration(warningSeconds)) return false;
             bool changed = false;
-            if (Phase == PoleSawPhase.Retracted && now >= HoldUntil)
+            if (Phase == PoleSawPhase.Retracted && HoldUntil > 0 && now >= HoldUntil)
             {
                 // 늦은 프레임이 유지 시간이나 예고 시간을 늘리지 않도록 실제 만료 시각을 기준으로 한다.
                 if (!TryDeadline(HoldUntil, warningSeconds, out double deadline)) return false;
@@ -69,7 +73,7 @@ namespace CurtainCall.HumanCannon
             bool valid = phase switch
             {
                 PoleSawPhase.Active => occupant == Nobody && holdUntil == 0 && rearmAt == 0,
-                PoleSawPhase.Retracted => occupant != Nobody && holdUntil > 0 && rearmAt == 0,
+                PoleSawPhase.Retracted => occupant != Nobody && rearmAt == 0,
                 PoleSawPhase.Warning => occupant == Nobody && holdUntil == 0 && rearmAt > 0,
                 _ => false
             };

@@ -19,7 +19,17 @@ namespace CurtainCall.HumanCannon
         [SerializeField, Min(1f)] float rotationSpeed = 60f;
         public CannonHazardKind Kind => kind;
         public float Radius => radius;
+        public float PeriodSeconds => periodSeconds;
         public Vector3 Travel => transform.TransformVector(travel);
+        /// <summary>고정 레일의 중심에서 끝까지 로컬 이동량과 왕복 주기를 설정한다.</summary>
+        public void ConfigureSweep(Vector3 displacement, float seconds)
+        {
+            if (!float.IsFinite(displacement.x) || !float.IsFinite(displacement.y) || !float.IsFinite(displacement.z)
+                || !float.IsFinite(seconds) || seconds < 0.1f)
+                throw new System.ArgumentOutOfRangeException(nameof(seconds), "유한한 이동량과 0.1초 이상의 주기가 필요합니다.");
+            travel = displacement;
+            periodSeconds = seconds;
+        }
         public Vector3 Position(double elapsed, float speed) => transform.position + Travel
             * Mathf.Sin((float)(elapsed * speed * Mathf.PI * 2 / periodSeconds + phase));
         float Angle(double elapsed, float speed) => (float)(elapsed * speed * rotationSpeed % 360);

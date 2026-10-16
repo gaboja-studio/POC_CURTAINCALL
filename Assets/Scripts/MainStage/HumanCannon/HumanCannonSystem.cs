@@ -108,6 +108,7 @@ namespace CurtainCall.HumanCannon
 
         void ResetSeats()
         {
+            awaitingFlightSnapshot = false;
             injuryInteractions.Clear();
             LocalSafeLandingCount = 0;
             seats = new SeatRuntime[stations.Length];
@@ -140,7 +141,7 @@ namespace CurtainCall.HumanCannon
                     Publish(i, CannonAction.Release, actor, Vector3.zero, Quaternion.identity, Vector3.zero);
                 }
             }
-            flying.RemoveWhere(id => FindPlayer(id) == null || FindPlayer(id).State != PlayerState.Normal);
+            PruneFlights();
         }
 
         void LateUpdate()
@@ -220,6 +221,7 @@ namespace CurtainCall.HumanCannon
             {
                 for (int i = 0; i < seats.Length; i++) SendState(sender, i, CannonAction.Sync, CannonSeatState.Nobody,
                     Vector3.zero, Quaternion.identity, Vector3.zero);
+                SendFlightSnapshot(sender);
                 return;
             }
             HandleRequest(sender, index, (CannonAction)action, revision, segment, position);
@@ -317,6 +319,7 @@ namespace CurtainCall.HumanCannon
             {
                 // Restart 알림과 이전 발사 응답의 도착 순서가 달라도 최종 상태는 초기화다.
                 flying.Clear();
+                awaitingFlightSnapshot = false;
                 if (pilot != null) pilot.ResetAfterRestart();
                 StateChanged?.Invoke(index, action, actor);
                 return;
@@ -358,6 +361,7 @@ namespace CurtainCall.HumanCannon
 
         void HandleRestart(NetworkPlayer player)
         {
+            awaitingFlightSnapshot = false;
             injuryInteractions.Clear();
             flying.Remove(player.OwnerClientId);
             if (player == boundPlayer)
@@ -388,6 +392,9 @@ namespace CurtainCall.HumanCannon
             {
                 messaging.RegisterNamedMessageHandler(StateMessage, HandleStateMessage);
                 messaging.RegisterNamedMessageHandler(LandingMessage, HandleLandingMessage);
+                messaging.RegisterNamedMessageHandler(FlightSnapshotMessage, HandleFlightSnapshot);
+                messaging.RegisterNamedMessageHandler(FlightRemovedMessage, HandleFlightRemoved);
+                awaitingFlightSnapshot = true;
                 using var writer = new FastBufferWriter(RequestSize, Allocator.Temp);
                 writer.WriteValueSafe((byte)CannonAction.Sync);
                 writer.WriteValueSafe(-1);
@@ -409,10 +416,13 @@ namespace CurtainCall.HumanCannon
 
         void Unregister()
         {
+            awaitingFlightSnapshot = false;
             if (messaging == null) return;
             messaging.UnregisterNamedMessageHandler(RequestMessage);
             messaging.UnregisterNamedMessageHandler(StateMessage);
             messaging.UnregisterNamedMessageHandler(LandingMessage);
+            messaging.UnregisterNamedMessageHandler(FlightSnapshotMessage);
+            messaging.UnregisterNamedMessageHandler(FlightRemovedMessage);
             messaging = null;
         }
 

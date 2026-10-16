@@ -20,11 +20,12 @@ namespace CurtainCall.HumanCannon
             inputFrame = -1;
         }
 
-        public Vector3 ConsumeVelocity(int frame, bool blocked, Vector3 courseForward, float speed)
+        public Vector3 ConsumeVelocity(int frame, bool blocked, Vector3 viewForward, float speed)
         {
             Vector2 current = !blocked && inputFrame == frame ? input : Vector2.zero;
             Clear();
-            Vector3 forward = Vector3.ProjectOnPlane(courseForward, Vector3.up).normalized;
+            Vector3 forward = Vector3.ProjectOnPlane(viewForward, Vector3.up).normalized;
+            if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
             Vector3 right = Vector3.Cross(Vector3.up, forward);
             return (right * current.x + forward * current.y) * Mathf.Max(0f, speed);
         }

@@ -42,12 +42,19 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Vector3 release = pole.ReleaseVelocity(angle, 120);
                 pole.PresentSwing(angle);
                 Near(bar.position, feet + Vector3.up * 1.5f);
+                Vector3 pivot = (fixedLeft + fixedRight) * 0.5f;
+                Near(bar.position, pivot + PoleSwingMotion.Offset(angle, 8, pole.Forward));
+                Assert.That(Vector3.Distance(pivot, bar.position), Is.EqualTo(8).Within(0.001f));
+                Assert.That(Mathf.Abs(Vector3.Dot(bar.position - fixedGrip, pole.Forward)), Is.GreaterThan(6f),
+                    "몸만 1.5m 흔드는 대신 봉도 8m 줄 반경으로 크게 이동한다.");
                 Near(grip.position, fixedGrip);
                 Near(leftAnchor.position, fixedLeft); Near(rightAnchor.position, fixedRight);
                 Near(pole.HangingPosition(angle), feet);
                 Near(pole.ReleaseVelocity(angle, 120), release);
                 AssertCable(leftCable, leftAnchor);
                 AssertCable(rightCable, rightAnchor);
+                Assert.That(leftCable.localScale.y, Is.EqualTo(8).Within(0.001f));
+                Assert.That(rightCable.localScale.y, Is.EqualTo(8).Within(0.001f));
             }
         }
 
@@ -64,6 +71,45 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(rightCable.localScale.y, Is.EqualTo(8).Within(0.001f));
             Assert.That(leftCable.localScale.x, Is.EqualTo(0.1f));
             Assert.That(rightCable.localScale.z, Is.EqualTo(0.1f));
+        }
+
+        [TestCase(-35f, -70f)]
+        [TestCase(35f, 70f)]
+        public void ReleaseVelocity_IsDerivativeOfActualBodyArcPlusUpwardBoost(float angle, float speed)
+        {
+            const float deltaTime = 0.0001f;
+            Vector3 finiteDifference = (pole.HangingPosition(angle + speed * deltaTime)
+                - pole.HangingPosition(angle - speed * deltaTime)) / (2 * deltaTime);
+            Vector3 tangent = pole.ReleaseVelocity(angle, speed) - Vector3.up * 6;
+            Assert.That(Vector3.Distance(tangent, finiteDifference), Is.LessThan(0.02f));
+            Vector3 pivot = (leftAnchor.position + rightAnchor.position) * 0.5f;
+            Assert.That(Vector3.Dot(tangent, pole.BarPosition(angle) - pivot), Is.EqualTo(0).Within(0.001f));
+            Assert.That(tangent.magnitude, Is.EqualTo(8 * Mathf.Abs(speed) * Mathf.Deg2Rad).Within(0.001f));
+        }
+
+        [Test]
+        public void MissingCeilingAnchor_PreservesLegacyShortPendulum()
+        {
+            Set("rightAnchor", null);
+            Assert.That(pole.SwingLength, Is.EqualTo(1.5f));
+            Near(pole.HangingPosition(35), grip.position + PoleSwingMotion.Offset(35, 1.5f, pole.Forward));
+            Near(pole.ReleaseVelocity(35, 70), PoleSwingMotion.Velocity(35, 70, 1.5f, pole.Forward) + Vector3.up * 6);
+            pole.PresentSwing(35);
+            Near(bar.position, pole.HangingPosition(35) + Vector3.up * 1.5f);
+        }
+
+        [Test]
+        public void CeilingGeometry_ControlsGravityAndVelocityWithoutChangingGrip()
+        {
+            Assert.That(pole.SwingLength, Is.EqualTo(8).Within(0.001f));
+            float expectedAngle = 30, expectedSpeed = 0;
+            PoleSwingMotion.Step(ref expectedAngle, ref expectedSpeed, 0, 0.1f, 9.81f, 8, 300, 80, 180, 0.4f);
+            object[] args = { 30f, 0f, 0f, 0.1f, 9.81f };
+            typeof(HumanCannonPole).GetMethod("Step", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(pole, args);
+            Assert.That((float)args[0], Is.EqualTo(expectedAngle).Within(0.0001f));
+            Assert.That((float)args[1], Is.EqualTo(expectedSpeed).Within(0.0001f));
+            Near(pole.HangingPosition(0), grip.position - Vector3.up * 1.5f);
+            Near(pole.ReleaseVelocity(0, 100), pole.Forward * (8 * 100 * Mathf.Deg2Rad) + Vector3.up * 6);
         }
 
         void AssertCable(Transform cable, Transform anchor)

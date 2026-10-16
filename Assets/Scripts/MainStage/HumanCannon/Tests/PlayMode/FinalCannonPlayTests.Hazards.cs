@@ -14,7 +14,7 @@ namespace CurtainCall.HumanCannon.Tests
         public IEnumerator OriginalCourse_DifficultyChangesBeforeLaunch_ThenLocks()
         {
             var hazards = HazardCourse();
-            Assert.AreEqual(6, Get(StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current"), "PoleCount"));
+            Assert.AreEqual(10, Get(StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current"), "PoleCount"));
             Assert.IsFalse((bool)Call(hazards, "SetDifficulty", 0));
             Assert.IsFalse((bool)Call(hazards, "SetDifficulty", 4));
             foreach (int level in new[] { 2, 3, 1 })

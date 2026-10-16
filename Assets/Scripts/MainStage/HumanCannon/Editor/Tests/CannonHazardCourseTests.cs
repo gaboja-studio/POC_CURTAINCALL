@@ -63,13 +63,30 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(course.Difficulty, Is.EqualTo(1));
             Assert.That(CannonDifficulty.TargetSeconds, Is.EqualTo(600f));
             var hazards = Field<HumanCannonHazard[]>(course, "hazards");
-            Assert.That(hazards, Has.Length.EqualTo(16));
+            var poleSaws = All<HumanCannonPoleSaw>();
+            var poles = All<HumanCannonPole>();
+            Assert.That(poleSaws, Has.Length.EqualTo(poles.Length), "봉마다 독립 왕복 톱 하나");
+            Assert.That(hazards, Has.Length.EqualTo(16 + poleSaws.Length));
             Assert.That(hazards, Has.All.Not.Null);
             CollectionAssert.AllItemsAreUnique(hazards);
             CollectionAssert.AreEquivalent(All<HumanCannonHazard>(), hazards);
-            Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.SpikeMace), Is.EqualTo(4));
-            Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.RotatingBlades), Is.EqualTo(4));
-            Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.GroundSaw), Is.EqualTo(8));
+            var originalHazards = hazards.Except(poleSaws.Select(s => s.Hazard)).ToArray();
+            Assert.That(originalHazards.Count(h => h.Kind == CannonHazardKind.SpikeMace), Is.EqualTo(4));
+            Assert.That(originalHazards.Count(h => h.Kind == CannonHazardKind.RotatingBlades), Is.EqualTo(4));
+            Assert.That(originalHazards.Count(h => h.Kind == CannonHazardKind.GroundSaw), Is.EqualTo(8));
+            CollectionAssert.AreEquivalent(poles, poleSaws.Select(s => s.Pole).ToArray());
+            CollectionAssert.AllItemsAreUnique(poleSaws.Select(s => s.Hazard).ToArray());
+            foreach (var saw in poleSaws)
+            {
+                Assert.That(saw.Pole.HoldSeconds, Is.Zero, saw.name);
+                Assert.That(saw.Hazard.Kind, Is.EqualTo(CannonHazardKind.GroundSaw), saw.name);
+                Assert.That(Vector3.Distance(saw.Hazard.transform.position, saw.RailCenter), Is.LessThan(0.001f), saw.name);
+                Assert.That((saw.RailCenter - saw.Hazard.Travel).x, Is.EqualTo(-15).Within(0.001f), saw.name);
+                Assert.That((saw.RailCenter + saw.Hazard.Travel).x, Is.EqualTo(15).Within(0.001f), saw.name);
+                Assert.That(saw.Hazard.PeriodSeconds, Is.EqualTo(4).Within(0.001f), saw.name);
+                Assert.That(Mathf.Abs(Vector3.Dot(saw.Hazard.Travel.normalized, saw.Pole.Forward)), Is.LessThan(0.001f),
+                    "왕복은 W/S 회피 방향과 직교한다: " + saw.name);
+            }
             foreach (var hazard in hazards)
             {
                 Assert.That(Field<Transform>(hazard, "visual"), Is.Not.Null, hazard.name);
@@ -99,54 +116,62 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void EachSection_HasTwoOrdinaryPolesAndOneGatePoleNearBounceApex()
+        public void EachSection_HasFourOrdinaryPolesAndOneGatePoleWithoutLongEmptyGaps()
         {
             var trampoline = All<HumanCannonTrampoline>().Single();
             float apex = Field<float>(trampoline, "surfaceHeight") +
                 trampoline.UpwardSpeed * trampoline.UpwardSpeed / (2f * GameSettings.Base.Character.Gravity);
             var all = All<HumanCannonPole>();
-            Assert.That(all, Has.Length.EqualTo(6));
+            Assert.That(all, Has.Length.EqualTo(10));
             for (int section = 0; section < 2; section++)
             {
                 var poles = all.Where(p => (p.Grip.position.z < 90) == (section == 0))
                     .OrderBy(p => p.Grip.position.z).ToArray();
-                Assert.That(poles, Has.Length.EqualTo(3));
-                Assert.That(poles.Count(p => p.LinkedGate == null), Is.EqualTo(2));
+                Assert.That(poles, Has.Length.EqualTo(5));
+                Assert.That(poles.Count(p => p.LinkedGate == null), Is.EqualTo(4));
                 Assert.That(poles.Count(p => p.LinkedGate != null), Is.EqualTo(1));
                 foreach (var pole in poles)
                     Assert.That(pole.Grip.position.y, Is.EqualTo(section * 6f + apex - 0.5f).Within(0.001f), pole.name);
-                Assert.That(poles[0].Grip.position.x, Is.EqualTo(section == 0 ? -7f : 7f).Within(0.001f));
-                Assert.That(poles[0].Grip.position.z, Is.EqualTo(section == 0 ? 31f : 107f).Within(0.001f));
-                Assert.That(poles[1].Grip.position.x, Is.EqualTo(0f).Within(0.001f));
-                Assert.That(poles[1].Grip.position.z, Is.EqualTo(section == 0 ? 44f : 120f).Within(0.001f));
-                Assert.That(poles[2].name, Is.EqualTo("CeilingPole" + (section + 1) + "_4"));
-                Assert.That(poles[2].Grip.position.x, Is.EqualTo(section == 0 ? 7f : -7f).Within(0.001f));
-                Assert.That(poles[2].Grip.position.z, Is.EqualTo(section == 0 ? 61f : 137f).Within(0.001f));
-                Assert.That(poles[2].Grip.position.z - poles[1].Grip.position.z, Is.GreaterThan(12f),
-                    "후반 봉은 연속 6m 격자 대신 별도 선택 위치에 둡니다.");
+                var gatePole = poles.Single(p => p.LinkedGate != null);
+                Assert.That(gatePole.Grip.position.x, Is.EqualTo(0f).Within(0.001f));
+                Assert.That(gatePole.Grip.position.z, Is.EqualTo(section == 0 ? 44f : 120f).Within(0.001f));
+                Assert.That(poles[0].Grip.position.z, Is.LessThanOrEqualTo(section == 0 ? 22.001f : 98.001f));
+                Assert.That(poles[^1].Grip.position.z, Is.GreaterThanOrEqualTo(section == 0 ? 60.999f : 136.999f));
+                for (int i = 1; i < poles.Length; i++)
+                    Assert.That(poles[i].Grip.position.z - poles[i - 1].Grip.position.z, Is.InRange(1f, 13.001f),
+                        "같은 위치의 중복 봉이나 긴 빈 구간 없이 분산되어야 한다.");
             }
         }
 
         [Test]
-        public void AllSixPoles_HaveUpperCablesAndAnchorsWithoutFloorSupportsOrCeilingPlanes()
+        public void AllTenPoles_HaveTheirOwnUpperCablesAndAnchorsWithoutFloorSupports()
         {
             var extension = roots.Single(root => root.name == "ExtendedCourse044").transform;
             Assert.That(extension.Find("FirstCeiling"), Is.Null);
             Assert.That(extension.Find("SecondCeiling"), Is.Null);
             var poles = Field<HumanCannonPole[]>(All<HumanCannonPoleSystem>().Single(), "poles");
-            Assert.That(poles, Has.Length.EqualTo(6));
+            Assert.That(poles, Has.Length.EqualTo(10));
+            foreach (string field in new[] { "visualBar", "leftCable", "rightCable", "leftAnchor", "rightAnchor" })
+            {
+                var references = poles.Select(p => Field<Transform>(p, field)).ToArray();
+                Assert.That(references, Has.All.Not.Null);
+                CollectionAssert.AllItemsAreUnique(references.Select(value => value.GetInstanceID()).ToArray(),
+                    "복제한 봉이 원본 외형을 움직이면 안 된다: " + field);
+            }
             for (int index = 0; index < poles.Length; index++)
             {
                 var pole = poles[index];
-                var ceiling = extension.Find(index < 4 ? "ExistingCeiling" + index : pole.name + "Ceiling");
-                Assert.That(ceiling, Is.Not.Null, pole.name);
-                Assert.That(Vector3.Distance(ceiling.position, pole.Grip.position), Is.LessThan(0.001f), pole.name);
+                var left = Field<Transform>(pole, "leftAnchor");
+                var right = Field<Transform>(pole, "rightAnchor");
+                Assert.That(Vector3.Distance((left.position + right.position) * 0.5f,
+                    pole.Grip.position + Vector3.up * 8), Is.LessThan(0.001f), "천장이 중립 봉 바로 위에 있어야 한다: " + pole.name);
                 Assert.That(pole.transform.Find("LeftSupport"), Is.Null, pole.name);
                 Assert.That(pole.transform.Find("RightSupport"), Is.Null, pole.name);
                 foreach (string side in new[] { "Left", "Right" })
                 {
-                    var cable = ceiling.Find(side + "Cable");
-                    var anchor = ceiling.Find(side + "Anchor");
+                    string fieldSide = side.ToLowerInvariant();
+                    var cable = Field<Transform>(pole, fieldSide + "Cable");
+                    var anchor = Field<Transform>(pole, fieldSide + "Anchor");
                     Assert.That(cable, Is.Not.Null, pole.name);
                     Assert.That(anchor, Is.Not.Null, pole.name);
                     Assert.That(cable.position.y - cable.lossyScale.y * 0.5f,
