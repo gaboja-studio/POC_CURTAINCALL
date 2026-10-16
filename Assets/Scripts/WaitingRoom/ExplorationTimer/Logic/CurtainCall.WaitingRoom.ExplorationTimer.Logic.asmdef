@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.WaitingRoom.ExplorationTimer.Logic",
+    "rootNamespace": "CurtainCall.WaitingRoom",
+    "references": [],
+    "noEngineReferences": true
+}

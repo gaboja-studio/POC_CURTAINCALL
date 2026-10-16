@@ -1,0 +1,8 @@
+{
+    "name": "CurtainCall.WaitingRoom.ExplorationTimer.EditModeTests",
+    "rootNamespace": "CurtainCall.WaitingRoom.Tests",
+    "references": ["CurtainCall.WaitingRoom.ExplorationTimer.Logic"],
+    "includePlatforms": ["Editor"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}
