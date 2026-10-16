@@ -8,7 +8,7 @@
   - `ExplorationTimerView`: 우측 하단 원형 시계+mm:ss(멈춤 회색·평소 크림·경보 뒤 빨강), 시계 옆 문구 4초, 소집 경보 때 코드 생성 임시 '딩동'.
   - 테스트 씬: 1단계 메뉴로 그레이박스 재생성, PlaySetup 끔, CinemachineBrain·PlayerFollowCamera, `TestUI`(접속·런 진행 IMGUI).
 - 막힌 것: 없음.
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/132
 ## 다음 할 일
 1. LAN 2인 확인(시간·경보·방송 화면 일치) → 다음 항목(재진입 불가·전원 ⑥ 조기 시작).
 2. 0초 추격 항목 전 공용 담당(@MoHoDu)에게 "0초 뒤 정리 대기" 신호 요청(plan Risks).

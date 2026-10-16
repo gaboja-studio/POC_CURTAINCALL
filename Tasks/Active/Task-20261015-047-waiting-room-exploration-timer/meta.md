@@ -2,7 +2,7 @@
 
 - **Title:** 대기실 2단계 — 탐색 제한 시간(Jira 표기: 쉬는 시간 타이머)
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:** common-game-systems
 - **Current Skill:** start-work
