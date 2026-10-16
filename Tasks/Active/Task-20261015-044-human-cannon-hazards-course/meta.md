@@ -2,7 +2,7 @@
 
 - **Title:** 인간 대포 5단계 — 함정과 4인 코스 검증
 - **Type:** feat
-- **Status:** human-verify
+- **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
 - **Current Skill:** submit-work

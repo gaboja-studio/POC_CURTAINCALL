@@ -34,7 +34,7 @@
 - [x] 봉/케이블의 플레이어 반동 추종·공유 각도 표시·상부 고정점 유지·놓으면 원위치 연결
 - [x] 목표10분·경과 표시 — 시간제한 없음, 실제4인 측정은 대기
 - [x] 검사 결과 기록 — scope FAIL8(위임 전환 문서), 개별 문서/컴파일/자동 검사 결과는 최신 handoff 기준, 실제4인 미실행
-- [ ] "제출해줘"로 PR 제출 — 대상 integration/main-stage-human-cannon
+- [x] "제출해줘"로 PR 제출 — 대상 integration/main-stage-human-cannon
 
 - [ ] 부상·함정·송풍·난도·연장 코스 사용자 실입력 확인 — 최신 History의 확인 순서
 
