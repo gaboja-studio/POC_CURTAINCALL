@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
+using CurtainCall.Cameras.Requests;
 using CurtainCall.Network.PlayerSync;
-using CurtainCall.Settings;
-using CurtainCall.Tightrope;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -10,8 +11,8 @@ namespace CurtainCall.Cameras
     /// <summary>
     /// 카메라와 내 캐릭터 사이를 가리는 것(다른 플레이어·목마·장애물 등)을 내 화면에서만 반투명으로 흐린다. 다른 화면에는 영향이 없다.
     /// 메인 카메라에서 내 캐릭터의 몸(가슴·머리 높이)까지 굵은 선(구)을 쏘아 걸린 콜라이더의 겉모습을 흐리고, 벗어나면 되돌린다.
-    /// 코스(줄·플랫폼)와 나와 같은 목마에 속한 사람(위·아래)은 흐리지 않는다. 관전 중(<see cref="CameraSpectator"/>)에는 모두 되돌린다. 지원 셰이더: URP Lit 계열(_Surface·_BaseColor)만. 다른 셰이더 머티리얼은 그대로 둔다.
-    /// 수치는 외줄 세팅(카메라)에서 매 프레임 읽는다. 근거: Integrations/Active/Integration-tightrope-prototype/camera-review-20261004.md (2026-10-04 PM).
+    /// 콘텐츠가 예외 조건·수치를 등록한다. 관전 중(<see cref="CameraSpectator"/>)에는 모두 되돌린다.
+    /// 공용 수치는 CameraViewSettings. 지원 셰이더: URP Lit 계열(_Surface·_BaseColor)만. 다른 셰이더는 그대로 둔다.
     /// 카메라 리그 프리팹(PlayerFollowCamera)에 둔다.
     /// </summary>
     public sealed class CameraOcclusionFade : MonoBehaviour
@@ -25,7 +26,12 @@ namespace CurtainCall.Cameras
         static readonly int ZWriteId = Shader.PropertyToID("_ZWrite");
         static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
-        static readonly float[] TargetHeights = { 0.8f, 1.35f }; // 내 캐릭터 가슴·머리 쪽(발 기준 m)
+        readonly CameraOcclusionRules fallback = new();
+        readonly CameraRequestResolver<UnityEngine.Object, CameraOcclusionRules> ruleRequests = new();
+        readonly Dictionary<UnityEngine.Object, Func<Transform, bool>> exclusions = new();
+        readonly List<UnityEngine.Object> expired = new();
+        CameraViewDirector director;
+        int steppedFrame = -1;
 
         [Tooltip("URP Lit 투명 머티리얼. 빌드에서 투명 셰이더 변형이 빠지지 않게 참조만 둔다(값은 쓰지 않음).")]
         [SerializeField] Material transparentTemplate;
@@ -44,24 +50,55 @@ namespace CurtainCall.Cameras
         readonly RaycastHit[] hits = new RaycastHit[32];
         readonly List<Renderer> renderers = new();
 
-        void OnDisable() => RestoreAll();
+        void Awake() => director = GetComponent<CameraViewDirector>();
 
-        void LateUpdate()
+        void OnEnable() => CinemachineCore.CameraUpdatedEvent.AddListener(OnCameraUpdated);
+
+        void OnDisable()
         {
+            CinemachineCore.CameraUpdatedEvent.RemoveListener(OnCameraUpdated);
+            RestoreAll();
+            ruleRequests.Clear();
+            exclusions.Clear();
+        }
+
+        /// <summary>콘텐츠의 가림 수치 공급. 같은 출처 갱신은 등록 순서를 유지한다.</summary>
+        public void RequestRules(UnityEngine.Object source, CameraOcclusionRules rules, int priority = 0)
+        {
+            if (source != null && rules != null) ruleRequests.Set(source, rules, priority);
+        }
+
+        public void RegisterExclusion(UnityEngine.Object source, Func<Transform, bool> predicate)
+        {
+            if (source != null && predicate != null) exclusions[source] = predicate;
+        }
+
+        public void ReleaseSource(UnityEngine.Object source)
+        {
+            ruleRequests.Remove(source);
+            if (!ReferenceEquals(source, null)) exclusions.Remove(source);
+        }
+
+        void OnCameraUpdated(CinemachineBrain brain)
+        {
+            var view = brain != null ? brain.OutputCamera : null;
+            if (view == null || view != Camera.main) return;
+            PruneSources();
+            var rules = ruleRequests.TryResolve(out _, out var requested) ? requested
+                : director != null && director.Settings != null ? director.Settings.Occlusion : fallback;
             foreach (var entry in faded.Values) entry.Occluding = false;
 
             var local = NetworkPlayer.Local;
-            var view = Camera.main;
-            // 관전 중(내 캐릭터 사망)에는 흐리지 않는다: 아무것도 표시하지 않으면 아래에서 모두 원래대로 돌아온다
-            if (local != null && view != null && !CameraSpectator.IsSpectating) MarkOccluders(view.transform.position, local.transform);
+            // 관전 중에는 새 가림을 만들지 않고 기존 것만 점진적으로 복구한다.
+            if (local != null && !CameraSpectator.IsSpectating) MarkOccluders(view.transform.position, local.transform, rules);
 
-            var rules = GameSettings.Tightrope.Camera;
-            float step = rules.FadeSpeed * Time.deltaTime;
+            float step = steppedFrame == Time.frameCount ? 0f : Mathf.Max(0f, rules.FadeSpeed) * Time.deltaTime;
+            steppedFrame = Time.frameCount;
             foreach (var pair in faded)
             {
                 var entry = pair.Value;
                 if (pair.Key == null) { finished.Add(pair.Key); continue; }
-                entry.Alpha = Mathf.MoveTowards(entry.Alpha, entry.Occluding ? rules.OccluderAlpha : 1f, step);
+                entry.Alpha = Mathf.MoveTowards(entry.Alpha, entry.Occluding ? Mathf.Clamp01(rules.Alpha) : 1f, step);
                 if (!entry.Occluding && entry.Alpha >= 1f) { finished.Add(pair.Key); continue; }
                 ApplyAlpha(entry);
             }
@@ -70,14 +107,12 @@ namespace CurtainCall.Cameras
             finished.Clear();
         }
 
-        void MarkOccluders(Vector3 origin, Transform target)
+        void MarkOccluders(Vector3 origin, Transform target, CameraOcclusionRules rules)
         {
-            var course = TightropeCourse.Current;
-            var piggyback = PiggybackSystem.Current;
-            var local = target.GetComponent<NetworkPlayer>();
-            float radius = GameSettings.Tightrope.Camera.OccluderRadius;
-            foreach (float height in TargetHeights)
+            float radius = Mathf.Max(0.001f, rules.Radius);
+            for (int h = 0; h < 2; h++)
             {
+                float height = h == 0 ? rules.TargetHeights.x : rules.TargetHeights.y;
                 Vector3 to = target.position + Vector3.up * height - origin;
                 float distance = to.magnitude - radius; // 내 캐릭터 바로 앞에서 멈춘다
                 if (distance <= 0f) continue;
@@ -86,15 +121,37 @@ namespace CurtainCall.Cameras
                 for (int i = 0; i < count; i++)
                 {
                     var hit = hits[i].collider.transform;
-                    if (hit.IsChildOf(target)) continue;                              // 내 캐릭터
-                    if (course != null && hit.IsChildOf(course.transform)) continue;  // 줄·플랫폼
-                    if (piggyback != null && piggyback.IsSameStack(local, hit.GetComponentInParent<NetworkPlayer>())) continue; // 같은 목마
+                    if (hit.IsChildOf(target) || IsExcluded(hit)) continue;
                     hit.GetComponentsInChildren(renderers);
                     foreach (var renderer in renderers) Mark(renderer);
                 }
             }
             renderers.Clear();
         }
+
+        bool IsExcluded(Transform target)
+        {
+            foreach (var predicate in exclusions.Values)
+                if (predicate(target)) return true;
+            return false;
+        }
+
+        void PruneSources()
+        {
+            ruleRequests.RemoveWhere((source, value) => !SourceActive(source));
+            foreach (var source in exclusions.Keys)
+                if (!SourceActive(source)) expired.Add(source);
+            foreach (var source in expired) exclusions.Remove(source);
+            expired.Clear();
+        }
+
+        static bool SourceActive(UnityEngine.Object source) => source != null && source switch
+        {
+            Behaviour behaviour => behaviour.isActiveAndEnabled,
+            Component component => component.gameObject.activeInHierarchy,
+            GameObject gameObject => gameObject.activeInHierarchy,
+            _ => true,
+        };
 
         void Mark(Renderer renderer)
         {
