@@ -20,7 +20,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261016-052 | feat | @MoHoDu | feat/start-lobby-scenes | - | working |
+| Task-20261016-052 | feat | @MoHoDu | feat/start-lobby-scenes | [#136](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/136) | submitted |
 
 ## 준비 브랜치
 
