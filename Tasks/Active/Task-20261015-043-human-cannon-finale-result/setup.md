@@ -1,6 +1,6 @@
 # Setup
 
-043은 working/Active Task이며 담당자는 @RagSpirin이다. 2026-10-15 PM의 [순차 실행 위임](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)과 2026-10-16 사용자 재개 요청에 따라 042 구역·씬을 반환받았다.
+043은 integrated이며 현재 Allowed 없음. #121/70e242a 통합·044 HEAD9a0d078 수신 후 044로 구역·씬을 이관했다. 2026-10-15 PM의 [순차 실행 위임](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)과 2026-10-16 사용자 재개 요청에 따라 042 구역·씬을 반환받았다.
 착수 HEAD0128623은 042 #111/75862ef·최신 부모204be8c·dev d8b6db2를 포함하며 로컬/원격 일치·부모 tracked tree 일치 확인. 아래 공용 파일은 사용자가 PM 수정 허용을 전달하고 전역 실패 기준 변경을 명시 요청한 범위다.
 
 ## JIRA
@@ -11,31 +11,26 @@
 
 ## 작업 구역
 
-- `Assets/Scripts/MainStage/HumanCannon/`
-- `Assets/Scenes/Tests/MainStage/HumanCannon/` — 테스트 전용 Prefabs 포함.
-- `Assets/Scripts/Systems/Reward/PerformanceRewards.cs` — 공용 자동 실패·정산의 최소 생존 인원.
-- `Assets/Scripts/Systems/DevMode/DevMode.cs` — 변경된 생존 규칙 설명 일치.
-- `Assets/Scripts/Systems/DevMode/DevModeTestUI.cs` — 테스트 표시·판정 일치.
-- `Assets/Scripts/Systems/DummySpaces/Tests/PlayMode/DummyPerformancePlayTests.cs` — 실제 공용 API 회귀 검증.
+없음 — 2026-10-16 044로 반환. 공용 실패 규칙 관련 4개 파일의 예외 수정 권한도 종료.
 
 ## 예약 구역
 
-- 없음 — 043 배정 완료, 044는 순번 도달 후 이관.
+- 없음 — HumanCannon 스크립트·테스트 구역은 044 단독 소유.
 
 ## 배정된 공용 파일
 
-- `Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity` — 043 단독 소유.
+없음 — HumanCannon.unity를 044 단독 소유로 이관.
 
 ## 수정 금지
 
-- `Assets/Scenes/` — 위 테스트 구역만 예외.
-- `Assets/Scripts/Systems/` — 위에 명시한 공용 파일만 예외.
+- `Assets/Scenes/` — 현재 예외 없음.
+- `Assets/Scripts/Systems/` — 043에서 승인받은 예외는 반환 완료.
 - `Assets/Resources/`
 - `Assets/Scripts/MainStage/Tightrope/` — 원본 읽기/재사용만 허용, 수정 금지.
 - `ProjectSettings/`
 - `Packages/`
 - `Assets/_ThirdParty/`
-- main_stage.unity는 025 소유다. 공용 부상·관전·런 진행 코드와 게임 시작 최소 인원은 수정하지 않는다.
+- main_stage.unity는 025 소유다. 공용 부상·관전·런 진행 코드와 게임 시작 최소 인원은 수정하지 않는다. 아래 공용 실패 기준 승인은 과거 변경 근거이며 044로 확대하지 않는다.
 - 2026-10-16 사용자: PM의 공용 실패 규칙 수정 허용을 전달하고 모든 묘기의 실패 기준을 생존 2명 미만→1명 미만으로 변경하도록 지시. 이전 전역 변경 금지 문구는 이 범위에서 대체된다. 실제 목적지/공용 종료 연결 검증은 여전히 필요하다.
 
 ## 승인 및 단계 전환

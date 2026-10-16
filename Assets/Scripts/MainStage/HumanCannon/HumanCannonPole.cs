@@ -9,6 +9,8 @@ namespace CurtainCall.HumanCannon
     {
         [SerializeField] Transform grip;
         [SerializeField] HumanCannonSawGate linkedGate;
+        [Header("반동 표시 — 물리 기준 Grip과 분리")]
+        [SerializeField] Transform visualBar, leftCable, rightCable, leftAnchor, rightAnchor;
         [Tooltip("봉에서 발까지 거리(m)."), Min(0.2f), SerializeField] float hangLength = 1.5f;
         [Tooltip("봉 아래 발 기준 잡기 거리(m)."), Min(0.1f), SerializeField] float grabDistance = 2f;
         [Tooltip("잡은 뒤 최대 유지 시간(초)."), Min(0.1f), SerializeField] float holdSeconds = 8f;
@@ -29,6 +31,30 @@ namespace CurtainCall.HumanCannon
         public Vector3 HangingPosition(float angle) => Grip.position + PoleSwingMotion.Offset(angle, hangLength, Forward);
         public Vector3 ReleaseVelocity(float angle, float speed) =>
             PoleSwingMotion.Velocity(angle, speed, hangLength, Forward) + Vector3.up * releaseUpwardSpeed;
+
+        /// <summary>공유 반동 각도에 외형만 맞춘다. 잡기·릴리즈의 물리 기준점은 움직이지 않는다.</summary>
+        public void PresentSwing(float angle)
+        {
+            if (visualBar == null) return;
+            Vector3 position = HangingPosition(angle) + Vector3.up * hangLength;
+            visualBar.SetPositionAndRotation(position, Grip.rotation);
+            PresentCable(leftCable, leftAnchor, position);
+            PresentCable(rightCable, rightAnchor, position);
+        }
+
+        void PresentCable(Transform cable, Transform anchor, Vector3 barPosition)
+        {
+            if (cable == null || anchor == null) return;
+            Vector3 end = barPosition + Vector3.ProjectOnPlane(anchor.position - Grip.position, Vector3.up);
+            Vector3 span = anchor.position - end;
+            Vector3 localSpan = cable.parent != null ? cable.parent.InverseTransformVector(span) : span;
+            if (localSpan.sqrMagnitude <= 0.000001f) return;
+            cable.position = (anchor.position + end) * 0.5f;
+            cable.localRotation = Quaternion.FromToRotation(Vector3.up, localSpan);
+            Vector3 scale = cable.localScale;
+            scale.y = localSpan.magnitude; // 케이블은 높이 1의 Cube, 굵기는 기존 값을 유지한다.
+            cable.localScale = scale;
+        }
 
         internal void Step(ref float angle, ref float speed, float input, float dt, float gravity) =>
             PoleSwingMotion.Step(ref angle, ref speed, input, dt, gravity, hangLength,

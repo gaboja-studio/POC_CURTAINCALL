@@ -35,7 +35,7 @@ namespace CurtainCall.HumanCannon.EditorTools
                 || course.transform.lossyScale != Vector3.one)
                 throw new InvalidOperationException("원본 FinalCannonCourse의 원점·방향·배율을 확인하세요. 기존 배치는 변경하지 않았습니다.");
 
-            var systems = roots.Where(root => root.GetComponent<HumanCannonSoloPractice>() == null)
+            var systems = roots
                 .SelectMany(root => root.GetComponentsInChildren<HumanCannonSystem>(true)).ToArray();
             if (systems.Length != 1 || systems[0].StationCount != 10)
                 throw new InvalidOperationException("원본 대포 10대가 연결된 코스여야 합니다.");
@@ -121,6 +121,77 @@ namespace CurtainCall.HumanCannon.EditorTools
                 if (!EditorSceneManager.SaveScene(scene)) throw new InvalidOperationException("043 최종 톱 구간 저장 실패");
                 Undo.CollapseUndoOperations(undo);
                 Debug.Log("[HumanCannonFinalSaws] 원본 대포·바닥을 유지하고 공유 톱 구간 저장. 배치·예고·속도는 임시 조정값입니다.");
+            }
+            catch { Undo.RevertAllDownToGroup(undo); throw; }
+        }
+
+        /// <summary>현재 코스의 최종 톱을 2배로 늘린다. 바깥 일괄 변경 작업이 씬을 저장한다.</summary>
+        public static void DoubleExistingFinalSaws()
+        {
+            var scene = SceneManager.GetActiveScene();
+            if (EditorApplication.isPlayingOrWillChangePlaymode || scene.path != HumanCannonTestSceneBuilder.ScenePath)
+                throw new InvalidOperationException("Play 종료 후 HumanCannon 전용 씬에서 실행하세요.");
+            var roots = scene.GetRootGameObjects();
+            var system = roots.SelectMany(root => root.GetComponentsInChildren<HumanCannonFinalSaws>(true)).Single();
+            using var data = new SerializedObject(system);
+            if (system.transform.Find("DoubledFinalSaws044") != null || Property(data, "secondaryVerticalView").objectReferenceValue != null
+                || Property(data, "horizontalOrigins").arraySize != 2 || Property(data, "horizontalViews").arraySize != 2)
+                throw new InvalidOperationException("최종 톱 증설을 이미 적용했거나 기존 톱 구성이 다릅니다.");
+            var cannon = roots.SelectMany(root => root.GetComponentsInChildren<HumanCannonSystem>(true)).Single().Station(6);
+            var vertical = Property(data, "verticalView").objectReferenceValue as Transform;
+            var warning = Property(data, "warningView").objectReferenceValue as Transform;
+            var start = Property(data, "verticalStart").objectReferenceValue as Transform;
+            if (cannon == null || vertical == null || warning == null || start == null)
+                throw new InvalidOperationException("최종 대포와 기존 수직 톱 연결이 필요합니다.");
+            var oldOrigins = Property(data, "horizontalOrigins");
+            var origins = new Transform[4];
+            var views = new Transform[4];
+            for (int i = 0; i < 2; i++)
+            {
+                origins[i] = oldOrigins.GetArrayElementAtIndex(i).objectReferenceValue as Transform;
+                views[i] = Property(data, "horizontalViews").GetArrayElementAtIndex(i).objectReferenceValue as Transform;
+                if (origins[i] == null || views[i] == null) throw new InvalidOperationException("기존 가로 톱 연결이 비었습니다.");
+            }
+            float gravity = GameSettings.Base.Character.Gravity;
+            Vector3 muzzle = cannon.Muzzle.position, velocity = cannon.LaunchVelocity;
+            if (!Finite(gravity) || gravity <= 0 || !Finite(velocity.z) || velocity.z <= 0)
+                throw new InvalidOperationException("유효한 최종 대포 탄도가 필요합니다.");
+            var silver = Material("pole-gate-silver"); var black = Material("pole-gate-black");
+            Undo.IncrementCurrentGroup(); int undo = Undo.GetCurrentGroup();
+            Undo.SetCurrentGroupName("044 최종 톱 2배 증설");
+            Undo.RegisterFullObjectHierarchyUndo(system.gameObject, "최종 톱 연결 변경");
+            try
+            {
+                var added = new GameObject("DoubledFinalSaws044").transform;
+                added.SetParent(system.transform, false);
+                Undo.RegisterCreatedObjectUndo(added.gameObject, "최종 톱 추가");
+                // 기존 +7m/+13m는 유지한다. +10m/+16m를 추가해 진행 방향으로 3m씩 분산한다.
+                for (int i = 2; i < 4; i++)
+                {
+                    float distance = i == 2 ? 10 : 16;
+                    float time = distance / velocity.z;
+                    float height = muzzle.y + velocity.y * time - 0.5f * gravity * time * time + 0.45f;
+                    origins[i] = Point(added, "HorizontalOrigin" + (i + 1), new Vector3(origins[0].position.x, height, muzzle.z + distance));
+                    views[i] = Saw(added, "HorizontalSaw" + (i + 1), Property(data, "horizontalRadius").floatValue,
+                        Property(data, "halfThickness").floatValue * 2, silver, black);
+                    views[i].position = origins[i].position;
+                }
+                var second = UnityEngine.Object.Instantiate(vertical.gameObject, added).transform;
+                second.name = "SecondaryVerticalSaw";
+                var secondWarning = UnityEngine.Object.Instantiate(warning.gameObject, added).transform;
+                secondWarning.name = "SecondaryVerticalWarning";
+                var lanes = Property(data, "verticalLanes");
+                float lane = lanes.arraySize > 2 ? lanes.GetArrayElementAtIndex(2).floatValue : 0;
+                second.position = secondWarning.position = start.position + system.transform.right * lane;
+                second.gameObject.SetActive(false);
+                secondWarning.gameObject.SetActive(false);
+                References(data, "horizontalOrigins", origins);
+                References(data, "horizontalViews", views);
+                Property(data, "secondaryVerticalView").objectReferenceValue = second;
+                Property(data, "secondaryWarningView").objectReferenceValue = secondWarning;
+                data.ApplyModifiedPropertiesWithoutUndo();
+                EditorSceneManager.MarkSceneDirty(scene);
+                Undo.CollapseUndoOperations(undo);
             }
             catch { Undo.RevertAllDownToGroup(undo); throw; }
         }

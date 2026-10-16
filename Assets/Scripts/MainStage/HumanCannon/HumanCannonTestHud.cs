@@ -8,6 +8,7 @@ namespace CurtainCall.HumanCannon
     /// <summary>인간 대포 단계별 테스트 씬 조작 안내. 제품 UI가 아니다.</summary>
     public sealed class HumanCannonTestHud : MonoBehaviour
     {
+        Vector2 scroll;
         // 게임 조작 에셋을 바꾸지 않는 테스트 전용 단축키다.
         void OnEnable() => InputGate.AddReleaseKeys(Key.R);
 
@@ -24,7 +25,25 @@ namespace CurtainCall.HumanCannon
         void OnGUI()
         {
             GUILayout.BeginArea(new Rect(Mathf.Max(10, Screen.width - 480), 10, 470, Mathf.Max(200, Screen.height - 20)), GUI.skin.box);
-            GUILayout.Label("인간 대포 / 독립 대포·분리 코스 테스트");
+            scroll = GUILayout.BeginScrollView(scroll);
+            GUILayout.Label("인간 대포 / 10분 목표 연속 코스");
+            var hazards = HumanCannonHazardCourse.Current;
+            if (hazards != null)
+            {
+                GUILayout.Label($"목표 10:00 / 경과 {System.TimeSpan.FromSeconds(hazards.RunSeconds):mm\\:ss} / 난도 {hazards.Difficulty}");
+                GUILayout.BeginHorizontal();
+                bool wasEnabled = GUI.enabled;
+                GUI.enabled = wasEnabled && hazards.CanChangeDifficulty;
+                for (int level = 1; level <= 3; level++) if (GUILayout.Button("난도 " + level)) hazards.SetDifficulty(level);
+                GUI.enabled = wasEnabled;
+                GUILayout.EndHorizontal();
+                GUILayout.Label("호스트: 공연 시작 전 난도 선택 / 1인 연습은 첫 발사 전 또는 R 초기화 후");
+                GUILayout.Label($"일반 함정 속도 ×{CannonDifficulty.HazardSpeed(hazards.Difficulty):0.##} / 바람 {CannonDifficulty.WindSpeed(hazards.Difficulty):0.0}m/s (시험값)");
+                GUILayout.Label("가시추·회전 날개·지상 톱: 접촉마다 1부위 절단");
+                GUILayout.Label("지상 톱: 지나갈 때까지 기다리기 또는 넓은 옆 공간으로 회피");
+                GUILayout.Label("청록 줄기·화살표: 바람 방향 / 청록 테두리: 송풍 범위");
+                GUILayout.Label("구간별 봉 3개 · W/S 반동에 봉도 흔들림 · 해제봉 잡기: 관문 톱 정지");
+            }
             GUILayout.Label("대포 앞에서 F 짧게: 탑승 → 다시 F 짧게: 발사");
             GUILayout.Label("탑승 중 F 길게: 탑승 전 위치로 복귀");
             GUILayout.Label("비행·반동 중 WASD: 수평 조절 / 놓으면 보정 종료");
@@ -111,6 +130,7 @@ namespace CurtainCall.HumanCannon
                         : "관문: 지상 담당 통과 대기 / 비행자는 위·옆 우회 불가");
                 }
             }
+            GUILayout.EndScrollView();
             GUILayout.EndArea();
         }
     }

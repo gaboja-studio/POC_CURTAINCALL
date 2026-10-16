@@ -138,7 +138,10 @@ namespace CurtainCall.HumanCannon
             if (states == null) return;
             for (int i = 0; i < poles.Length; i++)
             {
-                if (!Valid(i) || !states[i].State.IsOccupied) continue;
+                if (poles[i] == null) continue;
+                bool occupied = Valid(i) && states[i].State.IsOccupied;
+                poles[i].PresentSwing(occupied ? states[i].Angle : 0f);
+                if (!occupied) continue;
                 var player = FindPlayer(states[i].State.Occupant);
                 if (player != null && player.State == PlayerState.Normal && !player.IsLocal)
                     player.transform.SetPositionAndRotation(HangingPosition(i), poles[i].Grip.rotation);
@@ -237,7 +240,11 @@ namespace CurtainCall.HumanCannon
             NetworkPlayer.Restarted -= Restart;
             Unregister();
             if (session != null) session.ConnectionStateChanged -= Connection;
-            for (int i = 0; states != null && i < states.Length; i++) HumanCannonSystem.Current?.CancelLocalPole(i);
+            for (int i = 0; states != null && i < states.Length; i++)
+            {
+                HumanCannonSystem.Current?.CancelLocalPole(i);
+                if (poles[i] != null) poles[i].PresentSwing(0f);
+            }
             session = null;
             if (Current == this) Current = null;
         }

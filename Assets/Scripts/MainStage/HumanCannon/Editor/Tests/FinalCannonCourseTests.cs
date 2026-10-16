@@ -30,7 +30,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                     openedHere = true;
                 }
                 RestoreActiveScene();
-                roots = inspectedScene.GetRootGameObjects().Where(root => root.GetComponent<HumanCannonSoloPractice>() == null).ToArray();
+                roots = inspectedScene.GetRootGameObjects();
                 Assert.That(Find("FinalCannonCourse"), Is.Not.Null, "043 마지막 대포 구간이 저장된 씬이어야 합니다.");
             }
             catch
@@ -79,7 +79,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             for (int i = 0; i < stations.Length; i++)
             {
                 var station = stations[i];
-                Assert.That(Vector3.Distance(station.transform.position, new Vector3(-6 + 4 * i, 6.2f, 92)),
+                Assert.That(Vector3.Distance(station.transform.position, new Vector3(-6 + 4 * i, 6.2f, 152)),
                     Is.LessThan(0.001f), station.name);
                 Assert.That(Quaternion.Angle(station.transform.rotation, Quaternion.identity), Is.LessThan(0.001f), station.name);
                 Assert.That(station.Muzzle.position.y, Is.EqualTo(stations[0].Muzzle.position.y).Within(0.001f), station.name);
@@ -98,7 +98,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var deck = SafeSurface("FinalCannonCourse/PreparationDeck");
             Assert.That(cushion.bounds.max.y, Is.EqualTo(6.2f).Within(0.001f));
             Assert.That(deck.bounds.max.y, Is.EqualTo(cushion.bounds.max.y).Within(0.001f));
-            Assert.That(cushion.bounds.max.z, Is.EqualTo(86.5f).Within(0.001f));
+            Assert.That(cushion.bounds.max.z, Is.EqualTo(146.5f).Within(0.001f));
             Assert.That(deck.bounds.min.z, Is.EqualTo(cushion.bounds.max.z).Within(0.001f));
             float overlapMin = Mathf.Max(cushion.bounds.min.x, deck.bounds.min.x);
             float overlapMax = Mathf.Min(cushion.bounds.max.x, deck.bounds.max.x);
@@ -147,6 +147,32 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             for (int i = 0; i < 3; i++) Assert.That(route.FireSectionForStation(i), Is.EqualTo(0));
             for (int i = 3; i < 6; i++) Assert.That(route.FireSectionForStation(i), Is.EqualTo(1));
             for (int i = 6; i < 10; i++) Assert.That(route.FireSectionForStation(i), Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void DoubledFinalSaws_RegisterFourSpacedHorizontalTracksAndTwoWarnedVerticalViews()
+        {
+            var saws = All<HumanCannonFinalSaws>().Single();
+            Assert.That(saws.HorizontalCount, Is.EqualTo(4));
+            Assert.That(saws.VerticalCount, Is.EqualTo(2));
+            var origins = Field<Transform[]>(saws, "horizontalOrigins");
+            var views = Field<Transform[]>(saws, "horizontalViews");
+            Assert.That(views, Has.Length.EqualTo(4));
+            CollectionAssert.AllItemsAreUnique(origins.Select(origin => origin.GetInstanceID()).ToArray());
+            CollectionAssert.AllItemsAreUnique(views.Select(view => view.GetInstanceID()).ToArray());
+            Assert.That(Field<Transform>(saws, "secondaryWarningView"), Is.Not.Null);
+            Assert.That(Field<float>(saws, "horizontalRadius"), Is.EqualTo(1));
+            Assert.That(Field<float>(saws, "verticalRadius"), Is.EqualTo(1.2f));
+            float[] distances = { 7, 13, 10, 16 };
+            var station = FinalStations()[0];
+            for (int i = 0; i < origins.Length; i++)
+            {
+                float time = distances[i] / station.LaunchVelocity.z;
+                float expectedY = station.Muzzle.position.y + station.LaunchVelocity.y * time
+                    - 0.5f * GameSettings.Base.Character.Gravity * time * time + 0.45f;
+                Assert.That(origins[i].position.z - station.Muzzle.position.z, Is.EqualTo(distances[i]).Within(0.001f));
+                Assert.That(origins[i].position.y, Is.EqualTo(expectedY).Within(0.001f));
+            }
         }
 
         HumanCannonStation[] FinalStations()
