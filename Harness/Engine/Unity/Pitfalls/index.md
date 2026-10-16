@@ -17,3 +17,6 @@ Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 - [tmp-dynamic-font-churn.md](tmp-dynamic-font-churn.md) — TMP 동적 폰트 .asset이 저절로 수정됨(아틀라스 채움·비움). 폰트를 안 고쳤는데 SDF.asset이 git에 잡힐 때
 - [resources-path-after-move.md](resources-path-after-move.md) — Resources 안 폴더 이동 후 Resources.Load 경로가 깨짐, 패키지 설정 에셋은 루트 고정. Resources 하위를 옮기거나 세팅이 기본값으로 돌 때
 - [urp-light-data-churn.md](urp-light-data-churn.md) — URP 씬을 열면 Light·Camera에 추가 데이터 컴포넌트가 저절로 붙어 .unity가 바뀜. 열어 보기만 한 씬이 git에 잡힐 때
+- [mppm-clone-missing-files.md](mppm-clone-missing-files.md) — MPPM 복제본(Library/VP/)이 새 폴더·asmdef를 놓쳐 가상 플레이어가 "Could not read file …asmdef"로 꺼짐. 2번 플레이어 창이 시작하자마자 꺼질 때
+- [additive-scene-swap-order.md](additive-scene-swap-order.md) — 추가 로드로 씬을 바꿀 때 새 씬을 먼저 붙이면 EventSystem 등이 겹침, 이전 씬을 닫고 붙임. Additive 씬 전환을 만들거나 EventSystem 2개 경고가 뜰 때
+- [overlay-ui-capture.md](overlay-ui-capture.md) — 카메라 캡처에 Overlay UI가 빠짐, capture_game_view source=screen 사용. AI가 UI를 캡처해 확인할 때

@@ -11,6 +11,24 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Prototypes/proto_0.0.2.unity
     guid: ef4c81317383e44559b20da514e9858e
+  - enabled: 1
+    path: Assets/Scenes/Tests/Systems/SpaceLink/SpaceLink.unity
+    guid: db2fc0c575b32a0419bb0e5844d7d54b
+  - enabled: 1
+    path: Assets/Scenes/Tests/Systems/DummySpaces/DummyPerformance.unity
+    guid: 676e2ea7fbf39ed418f1725fa9147f19
+  - enabled: 1
+    path: Assets/Scenes/Tests/Systems/DummySpaces/DummyWaitingRoom.unity
+    guid: 8f1118afa8240b84e8e34259cca579f6
+  - enabled: 1
+    path: Assets/Scenes/Tests/Systems/DummySpaces/DummyExploration.unity
+    guid: 7b55962f262c9554ca5d7ca236c5542d
+  - enabled: 1
+    path: Assets/Scenes/Tests/Systems/DummySpaces/DummyEscapeRoute.unity
+    guid: 03f2eacabfe18a840b30a249c83bd352
+  - enabled: 1
+    path: Assets/Scenes/Tests/Systems/FirstPersonMovement/FirstPersonMovement.unity
+    guid: d0cb69fcce4ec5f439f14b774e6edc7d
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

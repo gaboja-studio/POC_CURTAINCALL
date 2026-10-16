@@ -7,7 +7,7 @@ using UnityEngine;
 namespace CurtainCall.Cameras
 {
     /// <summary>
-    /// 관전(2026-10-04 PM @MoHoDu): 내 캐릭터가 추락(사망)하면 카메라가 살아 있는 플레이어를 따라가고, 화면에 "OO를 관전 중입니다"를 띄운다.
+    /// 관전(2026-10-04 PM @MoHoDu): 내 캐릭터가 추락(사망)·리타이어하면 카메라가 살아 있는 플레이어를 따라가고, 화면에 "OO를 관전 중입니다"를 띄운다.
     /// A/D로 살아 있는 플레이어를 차례로 바꾼다. 보고 있던 사람이 죽으면 다음 사람으로, 아무도 없으면 그대로 둔다.
     /// 재시작 등으로 내 캐릭터가 다시 살아나면 내 캐릭터로 돌아오고 관전 표시를 지운다. 관전 중에는 가림 반투명(<see cref="CameraOcclusionFade"/>)을 끈다.
     /// 사망 중에는 화면 좌우 가장자리에 옅은 붉은 딤을 깔아 사망 상태를 알린다(2026-10-04 PM, 방해되지 않게 낮은 투명도).
@@ -45,7 +45,8 @@ namespace CurtainCall.Cameras
         void LateUpdate()
         {
             var local = NetworkPlayer.Local;
-            bool dead = local != null && (local.State == PlayerState.Fallen
+            // 리타이어(탈출로 사망·잡힘)도 사망처럼 관전한다(2026-10-14 PM). 관전 대상은 Normal만
+            bool dead = local != null && (local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                                           || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen));
             if (!dead)
             {

@@ -62,7 +62,7 @@ switch -Regex ($branch) {
             Add-Check WARN 'workspace' "통합 기록 폴더가 없음: Integrations/Active/Integration-$($Matches[1])"
         }
     }
-    '^resource/' { Add-Check OK 'workspace' '리소스 브랜치(resource/*) — Task 없음, Assets/Resources/ 리소스만(외부 에셋은 Assets/_ThirdParty submodule)' }
+    '^resource/' { Add-Check OK 'workspace' '리소스 브랜치(resource/*) — Task 없음, Assets/Resources/ 리소스·지정 관리자의 _ThirdParty 포인터' }
     '^tests/' { Add-Check OK 'workspace' '연습 브랜치(tests/*) — 합쳐지지 않음' }
     '^builds/' { Add-Check OK 'workspace' '빌드 브랜치 (PM)' }
     default {
