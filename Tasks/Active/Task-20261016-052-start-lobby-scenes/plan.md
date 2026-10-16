@@ -2,46 +2,48 @@
 
 ## Context
 
-지금은 테스트 씬(SpaceLink 허브, `NetworkSessionTestUI`)에서만 방을 열고 참가한다. 게임을 켰을 때 처음 보는 **시작 씬**과, 방에 모여 출발을 기다리는 **로비 씬**을 실제 게임 씬으로 만든다.
+테스트 씬(SpaceLink 허브, NetworkSessionTestUI) 대신 실제 시작·로비 씬으로 방에 모여 런을 시작하고, 엔딩 후 같은 방 로비로 돌아온다.
 
-- 시작 씬: 게임 실행 첫 화면. 방 만들기·방 코드로 참가·종료.
-- 로비 씬: 방 코드·참가자 목록(인원/정원)·나가기, 호스트만 게임 시작(최소 인원 이상). 시작하면 런의 첫 장소로 전원 이동.
-- 규칙 근거: `run-rules.md` #3(로비 재입장 허용, 시작 후 참가 불가), 게임 흐름 기획 v1(Confluence 15564804) 2-2·9-1(런 시작 → 도입 컷씬 → 1일차 줄타기). 기획 문서에는 시작 화면·로비 화면 구성이 아직 없다.
-- 화면 구성·문구·연출 같은 플레이어 체감 선택은 `human-decision.md`로 사람에게 확인한다.
+- 2026-10-16 PM 승인: Canvas UI, 온라인 방 코드 + LAN 참가, 리썰 컴퍼니의 간결한 메뉴·공간 상호작용을 참고한 서커스 천막 구성.
+- 시작 씬: 방 만들기·방 코드 참가·LAN·설정·종료. 설정은 전체 음량·전체화면/창모드.
+- 로비 씬: 제한된 고정 3D 시야, 출연 명단 F 서명(준비/취소), 방장 커튼 레버 F 시작. 최소 인원·전원 준비 필요.
+- 흐름: 시작 → 로비 → 게임 시작 → 도입(현재 커튼 3초 대체) → 첫 공연 → 엔딩 → 로비 → 방장 레버로 다시 준비. 런 실패의 세대 교체 도입은 기존 Campaign 흐름을 유지.
+- 규칙 근거: run-rules #3(대기 중 재입장 허용, 시작 후 참가 불가), 게임 흐름 Confluence 15564804(런 도입·1일차 줄타기). 시작/로비 화면 구성은 위 PM 결정.
 
 ## Approach
 
-1. `setup.md`의 작업 구역 안에서만 구현.
-2. 새 로직은 가능하면 테스트를 함께 남김.
-3. 공용 파일이 필요하면 직접 고치지 않고 PM에게 요청.
-4. 검사 후 `integration/*`로 제출.
+1. 기존 NetworkSessionManager 공개 API로 방 열기·참가·나가기, NGO 호스트 씬 전환으로 Lobby 진입.
+2. 호스트가 명단 준비 상태를 관리·동기화. 레버에서 최소 인원·전원 서명 확인 후 StartGame 호출.
+3. SpaceLinkHub를 재사용하되 전환 중 로비 환경·카메라·Canvas를 꺼 추가 로드 공간과 겹치지 않게 함.
+4. Ended → Waiting 공개 진입점 ReturnToLobby 추가, 온라인 세션 잠금 해제, 기존 Campaign 대기 초기화 재사용.
+5. 로비 복귀 위치는 환경이 켜진 뒤 LateUpdate에 적용하고 외줄 전용 균형은 끔.
+6. 구역·문서·컴파일·PlayMode 검사 후 사람 공동 확인. 제출은 요청받을 때 integration/start-lobby로만.
 
 ## Files
 
-- 수정 예정: `Assets/Scenes/Start_Lobby/Start.unity`, `Assets/Scenes/Start_Lobby/Lobby.unity`, `Assets/Scripts/Systems/StartLobby/` 새 코드, 빌드 씬 목록
-- 읽기 전용 참고: `Docs/Domains/network-session.md`, `Docs/Domains/common-game-systems.md`, `Assets/Scripts/Systems/SpaceLink/SpaceLinkHubCanvas.cs`(기존 Canvas 허브 방식), `Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs`
+- 씬·재질: `Assets/Scenes/Start_Lobby/` (Start, Lobby, Display).
+- 구현·씬 빌더: `Assets/Scripts/Systems/StartLobby/`.
+- 승인된 공용 수정: NetworkSessionManager(복귀/잠금), BaseGameSettings(HubScene), SpaceLinkPlayTests(테스트 허브 고정), 한글 Static 폰트 재굽기. 정확한 범위는 setup.
+- 빌드 목록: Start 0번·Lobby 1번, 기존 씬 유지. 도메인: start-lobby·network-session·index 갱신.
 
 ## Risks
 
-- 로비 → 첫 장소 이동은 SpaceLink·Campaign 공용 코드와 연결된다. 공용 코드 수정이 필요하면 직접 고치지 않고 PM 구역 확대 후 진행한다.
-- 씬 전환 시 NetworkManager·세션 유지(DontDestroyOnLoad, NGO 씬 전환) 방식에 따라 기존 SpaceLink 흐름과 충돌할 수 있다.
-- 시작 화면·로비 화면 구성이 기획 문서에 없다. 임의로 확정하지 않고 사람 결정으로 남긴다.
+- 온라인 방 코드/Relay 연결과 종료 후 잠금 해제는 LAN 검증으로 보장하지 않음.
+- 명단 동기화·중도 참가/퇴장·호스트 종료는 실제 2인 확인 필요.
+- 씬 빌더는 수동 배치를 통째로 재생성한다. 미저장 씬이 있으면 거부한다.
+- 도입 컷씬·단원 이름·로비 검색·마우스 감도는 미구현. 캐릭터는 기존 공용 더미.
 
 ## Auto Verification
 
-- 구역 검사: `Scripts/verify-scope.ps1` (기준 `integration/start-lobby`)
-- 1 문서/규칙: `Scripts/verify-fast.ps1`
-- 2 컴파일: `Scripts/verify-unity.ps1 -ProjectPath . -Compile`
-- 3 테스트: 로비 상태(인원·시작 가능 여부) 판단 로직이 생기면 EditMode 테스트, 없으면 `NO_PROJECT_TESTS`
-- 4 실행 로그: 시작 → 방 만들기 → 로비 → 게임 시작 1회 실행 로그(Console 오류 0)
+- `pwsh -File Scripts/check-work.ps1 -Mode PlayMode`: 구역 → 문서 → 컴파일 → 기존 회귀 테스트 46개.
+- StartLobby 전용 자동 테스트는 아직 없음. 기존 테스트 통과를 신규 로비·멀티플레이 전체 검증으로 보지 않음.
+- 실행 확인: 1인 LAN·DevMode에서 시작 메뉴 → 로비 → F 서명·레버 → 첫 공연 → API로 엔딩 진행 → 로비 복귀·다시 준비/시작 → 방 나가기. Console 오류 확인.
+- 메뉴·설정·ESC 화면 확인과 로비 이동/경계 확인은 도구 기반 스모크. 사람 조작감·2인 검증은 아래에서 한 번에 수행.
 
 ## 공동 테스트 항목
 
-PM과 작업자가 구현 전에 합의한다. 최대 3개. 병합 후 공동 테스트에서 이 항목으로 통과 여부를 판단한다.
-불필요하면 `불필요 — 이유`.
+1. **방 만들기와 참가**: 2명(호스트 1·참가자 1, 2 PC 또는 독립 클라이언트). Start에서 온라인 방 생성/코드 참가, LAN 방 생성/주소 참가를 각각 확인. 두 화면의 인원·단원 위치·서명이 일치하고 카메라가 맵을 벗어나지 않는다.
+2. **준비·시작·복귀**: 인원 부족/미서명 상태와 참가자는 레버로 시작할 수 없다(최소 인원 검사는 DevMode 해제). 전원 명단 F → 방장 레버 F → 두 화면 첫 공연 진입, 게임 중 새 참가 거부. 엔딩 후 같은 로비 → 방장 레버 → 서명 초기화 → 재서명/재시작, 대기 중 온라인 재참가 가능.
+3. **나가기·설정**: 참가자 나가기 → Start, 호스트 명단/인원에서 제거 → 같은 방 재입장. 호스트 나가기 → 참가자도 이유와 함께 Start. ESC 설정 중 이동 차단, 음량 변경/재실행 유지·빌드 화면 모드 전환, 닫기 후 조작 복구.
 
-1. **방 만들기와 참가**: 2명(호스트 1·참가자 1, MPPM 또는 2 PC). 호스트가 시작 씬에서 방 만들기 → 로비에 방 코드 표시 → 참가자가 코드로 참가 → 두 화면 로비에 인원 2/정원과 참가자가 같게 보인다.
-2. **로비 나가기·재입장**: 참가자가 로비에서 나가면 시작 씬으로 돌아가고 호스트 로비 인원이 줄어든다. 같은 코드로 다시 참가할 수 있다. 호스트가 나가면 참가자는 이유 문구와 함께 시작 씬으로 돌아간다.
-3. **게임 시작**: 최소 인원 미만이면 시작 버튼이 막히고 참가자에게는 시작 버튼이 없다. 호스트가 시작하면 두 화면이 동시에 첫 장소로 이동하고, 시작 뒤 새 참가는 거절된다.
-
-- 기록: 일시·참여자·호스트/참가 역할·실행 씬(`Start.unity`)·재현 순서·예상·실제를 handoff `## 공동 테스트 결과`에 적는다.
+- 기록: 일시·참여자·호스트/참가 역할·실행 씬(Start)·재현 순서·예상·실제를 handoff의 공동 테스트 결과에 적는다. 미실행을 PASS로 표시하지 않는다.

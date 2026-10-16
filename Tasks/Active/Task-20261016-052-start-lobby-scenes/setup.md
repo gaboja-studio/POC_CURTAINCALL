@@ -29,7 +29,14 @@ PM이 2026-10-16 Unity에서 씬과 폴더를 직접 만들었다. 시작·로�
 
 통합 기록(Integration meta)의 공용 파일 소유 표에서 이 Task에 배정된 것만 적는다.
 
-- 없음. 빌드 씬 목록(ProjectSettings/EditorBuildSettings.asset)에 `Start.unity`·`Lobby.unity`를 추가하는 것은 '모든 작업자에게 허용'으로 한다(`Start.unity`를 0번).
+- 2026-10-16 PM 승인(로비가 SpaceLink 허브 역할을 대신):
+  - `Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs` — 로비 복귀(끝난 게임 → 대기, 세션 잠금 해제) 추가만. 접속 승인·기존 진입점 동작은 바꾸지 않는다.
+  - `Assets/Resources/Settings/GameSettings/BaseGameSettings.asset` — 장소 전환 시작 씬 값 SpaceLink → Lobby.
+  - `Assets/Scripts/Systems/SpaceLink/Tests/PlayMode/SpaceLinkPlayTests.cs` — 테스트 중 시작 씬을 SpaceLink로 고정.
+  - `Assets/Resources/Fonts/Pretendard-Medium/Pretendard-Medium SDF.asset`, `Assets/Scenes/Tests/Systems/DummySpaces/Display/dummy-korean.asset` — 새 한글을 Static으로 다시 굽기(Bake Static Fonts)만.
+  - `Docs/Domains/network-session.md` — 로비 복귀 진입점 기록.
+  - `Docs/Domains/start-lobby.md`(새 기능 지도), `Docs/Domains/index.md`(한 줄 추가).
+- 기존: 빌드 씬 목록(ProjectSettings/EditorBuildSettings.asset)에 `Start.unity`·`Lobby.unity`를 추가하는 것은 '모든 작업자에게 허용'으로 한다(`Start.unity`를 0번).
 - 읽기·호출만(작업 구역 아님): Assets/Scripts/Systems/Network/Session/ (NetworkSessionManager 공개 진입점), Assets/Scripts/Systems/SpaceLink/, Assets/Scripts/Systems/Campaign/. 수정이 필요하면 PM에게 구역 확대를 요청한다.
 
 ## 수정 금지

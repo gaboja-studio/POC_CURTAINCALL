@@ -1,7 +1,7 @@
 # Integration-start-lobby
 
 - **Feature:** 시작·로비 씬
-- **Status:** preparing
+- **Status:** working
 - **Branch:** integration/start-lobby
 - **Base:** dev
 - **Active Task:**
@@ -20,7 +20,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261016-052 | feat | @MoHoDu | feat/start-lobby-scenes | - | assigned |
+| Task-20261016-052 | feat | @MoHoDu | feat/start-lobby-scenes | [#136](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/136) | submitted |
 
 ## 준비 브랜치
 
@@ -36,8 +36,11 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
 | `Assets/Scenes/Start_Lobby/` (`Start.unity`, `Lobby.unity`) | Task-20261016-052 | 실제 시작·로비 씬. 빌드 씬 목록 추가는 모든 작업자 허용 |
+| `Assets/Scripts/Systems/Network/Session/NetworkSessionManager.cs`, `Assets/Resources/Settings/GameSettings/BaseGameSettings.asset`, `Assets/Scripts/Systems/SpaceLink/Tests/PlayMode/SpaceLinkPlayTests.cs` | Task-20261016-052 | 2026-10-16 PM 승인: 로비가 SpaceLink 허브 대신, 런 종료 후 같은 방 복귀 |
+| `Assets/Resources/Fonts/Pretendard-Medium/Pretendard-Medium SDF.asset`, `Assets/Scenes/Tests/Systems/DummySpaces/Display/dummy-korean.asset` | Task-20261016-052 | 한글 Static 재굽기만 승인. 실제 변경은 Pretendard만 |
+| `Docs/Domains/network-session.md`, `Docs/Domains/start-lobby.md`, `Docs/Domains/index.md` | Task-20261016-052 | 복귀 API·시작/로비 기능 지도 기록 |
 
 ## Decisions
 
 - Open: None
-- Decided: 2026-10-16 PM — 브랜치 `integration/start-lobby` + `feat/start-lobby-scenes`, 씬 위치 `Assets/Scenes/Start_Lobby/`, 코드 `Assets/Scripts/Systems/StartLobby/`, 담당 @MoHoDu. Jira CC-133(PM 등록)
+- Decided: 2026-10-16 PM — 브랜치 `integration/start-lobby` + `feat/start-lobby-scenes`, 씬 위치 `Assets/Scenes/Start_Lobby/`, 코드 `Assets/Scripts/Systems/StartLobby/`, 담당 @MoHoDu. Jira CC-133(PM 등록). 로비 준비·시작은 출연 명단 서명 + 방장 커튼 레버, 로비 시점 고정 3D(맵 밖으로 안 나감), 설정은 핵심만
