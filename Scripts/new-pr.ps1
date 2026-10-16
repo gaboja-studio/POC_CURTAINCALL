@@ -38,7 +38,7 @@ if ($head -like 'integration/*' -or $head -ceq (Get-BaseBranch)) {
 }
 
 # 1) 대상 브랜치와 제목
-if (-not $Base -and $head -like 'integration/*') { $Base = (Get-IntegrationMetadata -Branch $head -Ref HEAD).Base }
+if (-not $Base -and $head -like 'integration/*') { $Base = (Get-IntegrationMetadata -Branch $head -Ref HEAD -AllowDone).Base }
 if ($task) {
     $meta = Join-Path $task.Path 'meta.md'
     if (-not $Base) { $Base = Get-MetaField -MetaPath $meta -Field 'Integration' }

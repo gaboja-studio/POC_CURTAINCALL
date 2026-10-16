@@ -1,6 +1,6 @@
 # 검증 0단계: 구역 검사. 이 브랜치의 변경 파일이 허용된 곳인지 확인한다.
 #   허용: 내 Task 폴더(setup.md 제외), setup.md 작업 구역·배정된 공용 파일, Docs/Domains·Docs/References
-#   Task 없는 브랜치: resource/*는 Assets/Resources/만, 급한 fix/*는 PM 전용·다른 Task 구역만 아니면 허용
+#   Task 없는 브랜치: resource/*는 Assets/Resources/ 및 지정 에셋 관리자의 _ThirdParty 포인터만, 급한 fix/*는 PM 전용·다른 Task 구역만 아니면 허용
 #   위반: PM 전용 경로(.github/CODEOWNERS), 다른 Task 문서·진행 중인 다른 Task의 구역, 수정 금지, 구역 밖, .meta 누락
 # 로컬: 커밋 + 저장 안 한 변경 + 새 파일을 검사. GitHub Actions: -Branch -Base -Actor를 넘겨 PR 변경을 검사.
 [CmdletBinding()]
@@ -17,6 +17,7 @@ if (-not $Branch) { $Branch = (& git -C $RepoRoot branch --show-current).Trim() 
 if (-not $Actor) { $Actor = Get-CurrentGitHubUser }
 $pm = Get-PmAccount
 $isPm = $Actor -and $pm -and ($Actor -eq $pm)
+$isAssetManager = Test-ThirdPartyAssetManager -Actor $Actor
 
 if ($Branch -like 'tests/*') { Write-Output 'Scope: SKIP (tests/* 연습 브랜치)'; exit 0 }
 if ($Branch -match '^(dev|integration/.+|builds/.+)$') {
@@ -91,13 +92,20 @@ foreach ($file in $changed) {
     }
     if (-not $isPm -and @($owners | Where-Object { $file -match $_ }).Count) { $violations.Add("PM 전용 경로: $file"); continue }
     if ($file -like 'Tasks/*') { $violations.Add("다른 Task 문서: $file"); continue }
+    # 에셋 관리자는 private 저장소를 먼저 저장한 뒤 이 포인터만 갱신한다.
+    # 기존 Task의 포괄적 수정 금지보다 역할 위임을 우선하며 다른 경로 권한은 늘리지 않는다.
+    if ($file -eq 'Assets/_ThirdParty') {
+        if ($isPm -or $isAssetManager) { continue }
+        $violations.Add("외부 에셋 포인터는 PM·지정 에셋 관리자만 수정: $file")
+        continue
+    }
     $inMine = Test-PathInArea -Path $file -Areas $mine.Allowed
     $owner = $others | Where-Object { Test-PathInArea -Path $file -Areas $_.Allowed } | Select-Object -First 1
     if ($owner -and -not $inMine) { $violations.Add("진행 중인 다른 Task($($owner.Name))의 구역: $file"); continue }
     if ($owner -and $mode -eq 'resource') { $notes.Add("진행 중인 Task($($owner.Name))의 구역에 리소스 추가: $file (담당자에게 알리기)") }
     if (-not $inMine -and (Test-PathInArea -Path $file -Areas $mine.Forbidden)) { $violations.Add("수정 금지: $file"); continue }
     if ($mode -eq 'resource') {
-        if (-not $inMine -and -not $isPm) { $violations.Add("resource/*는 Assets/Resources/ 안의 리소스만: $file") }
+        if (-not $inMine -and -not $isPm) { $violations.Add("resource/*는 Assets/Resources/ 리소스만 (지정 에셋 관리자는 Assets/_ThirdParty 포인터도 허용): $file") }
         continue
     }
     if ($inMine -or $mode -eq 'urgent-fix' -or $file -like 'Docs/Domains/*' -or $file -like 'Docs/References/*') { continue }

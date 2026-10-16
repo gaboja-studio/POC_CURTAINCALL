@@ -7,17 +7,19 @@
 - [x] ⑥·⑦ 위치 PM 확인 — 백스테이지, ⑥은 테스트 대체 통로만 (2026-10-15)
 - [x] 1차 테스트 씬 = waiting_room.unity 복사본 WaitingRoomBase.unity (2026-10-15)
 - [x] dev PR #94 병합 → 부모 sync #95 병합 완료
-- [ ] 부모 → 이 통합 sync #96 Merge commit 병합 — 047 개방 전
+- [x] 부모 → 이 통합 sync #96 Merge commit 병합 — 08de84a
 - [x] Task-046만 기술 배정 — 7d4ac9c, 후속 Task는 scaffolded 유지
 - [x] Task-046~050 모두 실제 전달 — 2026-10-15 PM 사용자 확인, 전부 @gyumin9048-ctrl
-- [ ] 통합 → 5개 준비 브랜치 문서 sync PR Merge commit 병합 (046은 #97, 착수 조건)
+- [x] 통합 → 5개 준비 브랜치 문서 sync Merge commit 수신 — #97~101, 046 착수 gate PASS
+- [x] 2026-10-15 PM 동시 착수 결정 — Active Task 해제, 047~050 전용 구역·씬 배정, JIRA CC-132
+- [x] 047~050 기술 배정 sync Merge commit 수신 — #102~105, 5단계 모두 착수 gate PASS
 
-## 순차 병합·다음 단계 개방
+## 병합
 
-1. 046 공간·공연 왕복 → 047 탐색 제한 시간 → 048 상점·소품실 → 049 밤 정비·스케줄표 → 050 전문가 서비스.
-2. 각 작업 PR은 이 통합으로 Squash. 앞 단계 integrated·실제 4인 공동 검증 근거·소유 반환 전 후속은 scaffolded 유지.
-3. 다음 한 Task만 Active Task/Allowed/공용 소유 부여, 실제 Jira 카드 URL 연결 후 배정 문서를 준비 브랜치로 Merge commit sync.
-4. 충돌 시 담당자와 해결하며 씬·프리팹 병합을 AI에 맡기지 않는다.
+1. 5단계 동시 진행(2026-10-15 PM). 각 작업 PR은 이 통합으로 Squash, 권장 병합 순서는 046 → 047 → 048 → 049 → 050.
+2. 앞 단계 병합 뒤 뒤처진 작업 PR은 Update branch로 최신 통합을 받는다. 단계 간 연결 수정은 각 Task 구역 안에서.
+3. 충돌 시 담당자와 해결하며 씬·프리팹 병합을 AI에 맡기지 않는다.
+4. 단계 씬(복사본)들 → 원본 waiting_room.unity 반영은 부모 반영 전 PM이 정한다.
 
 ## 공동 테스트 항목
 
