@@ -24,7 +24,7 @@ namespace CurtainCall.HumanCannon
         void OnGUI()
         {
             GUILayout.BeginArea(new Rect(Mathf.Max(10, Screen.width - 480), 10, 470, Mathf.Max(200, Screen.height - 20)), GUI.skin.box);
-            GUILayout.Label("인간 대포 / 트램폴린 / 봉·톱 관문 테스트");
+            GUILayout.Label("인간 대포 / 분리 출발·쉼터·불꽃 테스트");
             GUILayout.Label("대포 앞에서 F 짧게: 탑승 → 다시 F 짧게: 발사");
             GUILayout.Label("탑승 중 F 길게: 탑승 전 위치로 복귀");
             GUILayout.Label("비행·반동 중 WASD: 수평 조절 / 놓으면 보정 종료");
@@ -38,7 +38,10 @@ namespace CurtainCall.HumanCannon
             var player = NetworkPlayer.Local;
             if (system != null && system.StationCount > 0)
             {
-                GUILayout.Label(system.Occupant(0) == CannonSeatState.Nobody ? "대포: 비어 있음" : "대포: 탑승 중");
+                string seats = "대포: ";
+                for (int i = 0; i < system.StationCount; i++)
+                    seats += $"{i + 1}:{(system.Occupant(i) == CannonSeatState.Nobody ? "빈자리" : "탑승")} ";
+                GUILayout.Label(seats);
                 var station = system.Station(0);
                 if (player != null && station != null)
                 {
@@ -62,6 +65,21 @@ namespace CurtainCall.HumanCannon
                 GUILayout.Label($"트램폴린: {carrier} / 내 반동 횟수: {trampoline.LocalBounceCount}");
             }
             var poles = HumanCannonPoleSystem.Current;
+            var route = HumanCannonRouteSystem.Current;
+            if (route != null)
+            {
+                GUILayout.Space(8);
+                GUILayout.Label("승강기: 트램폴린을 들고 혼자 탑승 → 1.5초 후 자동 출발");
+                GUILayout.Label("초록: 출발 대기·이동 중 / 파랑: 출발 조건 미충족·도착 완료");
+                GUILayout.Label("모든 리프트는 1인용: 2명 이상이면 양쪽 바닥 개방 / 비우면 복귀");
+                GUILayout.Label("첫 출발 아래 안전 바닥 → 왼쪽 계단으로 다시 출발점");
+                GUILayout.Label($"쉼터: 생존 비행자 {route.ArrivedFlyers}/{route.AliveFlyers} 합류 / 전원 도착 뒤 자동 상승");
+                GUILayout.Label("대기 중 내리거나 장치를 놓으면 출발 취소 / 위에서 F 길게 놓고 F로 교대");
+                GUILayout.Label("상승 후: 위 대포 3대·파란 발판으로 다음 구간 출발");
+                for (int i = 0; i < route.TransportCount; i++)
+                    GUILayout.Label($"이동장치 {i + 1}: {(route.TrapOpen(i) ? "과승 · 바닥 열림" : route.IsBoarding(i) ? $"자동 출발 {route.BoardingRemaining(i):F1}초" : route.TransportState(i).Phase.ToString())}");
+                GUILayout.Label($"불꽃 1: {route.FireStatus(0)} / 불꽃 2: {route.FireStatus(1)}");
+            }
             if (poles != null)
             {
                 GUILayout.Space(8);

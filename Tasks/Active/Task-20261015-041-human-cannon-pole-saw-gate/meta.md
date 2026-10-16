@@ -2,32 +2,32 @@
 
 - **Title:** 인간 대포 2단계 — 봉과 필수 톱관문
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
-- **Current Skill:** submit-work
-- **Updated:** 2026-10-15
+- **Current Skill:** write-handoff
+- **Updated:** 2026-10-16
 
 ## Workspace
 
 - **Integration:** integration/main-stage-human-cannon
 - **Branch:** feat/human-cannon-pole-saw-gate
 - **Previous Task:** Task-20261015-040
-- 현재 Active Task는 041. 2026-10-15 PM이 040~044 모두 @RagSpirin에게 인계 완료·순차 실행 가능함을 확인했다. 추가 착수 승인 불필요.
+- 현재 Active Task는 042. 041은 PR #108로 통합됐고 2026-10-16 코드·테스트 구역/씬 소유를 반환했다. 기존 PM 순차 실행 승인에 따라 추가 착수 승인 불필요.
 
 ## Goal
 
-- 봉 F 잡기·W/S 반동·놓기 도약과 연결 톱 수납/제한시간/예고 재동작을 검증한다.
-- 필수 관문 열기→지상 통과→다시 받기와 지상 담당 사망 후 반동 중 F 손잡이 인계를 외팔 조건에서도 검증한다.
+- 봉 F 잡기·W/S 반동·놓기 도약과 톱 수납/제한시간/예고 재동작, 필수 관문 열기→지상 통과→다시 받기, 담당 사망 후 반동 중 F 인계를 외팔 조건에서도 검증한다.
 
 ## Scope
 
 - 작업 구역·공용 파일·수정 금지는 setup.md가 기준이다. AI Setup Allowed: None.
-- 040 구현은 #93/8293bb9로 통합됐고 현재 브랜치가 da4747c로 수신했다. [PM 순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 HumanCannon 코드·테스트 구역/씬은 041 단독 소유이며 기존 PM 요청으로 다른 PC 재개용 중간 저장을 마쳤다.
-- PR #108 제출 완료(2026-10-15). 기존 관리 문서 포함·MPPM 제외, 042는 새 채팅. 사용자 봉 조작·Space·톱 변화 확인 완료, 관문·사망 인계 실제 확인은 4인 플레이로 연기. 자동 구역 검사 FAIL과 별도로 사용자 승인 범위를 대조했으며 상세 결과는 handoff 기준이다.
+- 040 구현 #93/8293bb9를 da4747c로 수신한 이력 유지. [PM 순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 041 Allowed를 반환하고 HumanCannon 코드·테스트 구역/씬은 042 단독 소유로 이관했다.
+- PR #108 MERGED(292667c), 042 착수 기준 dae56af가 수신한 사실을 2026-10-16 확인했다. 사용자 봉 조작·Space·톱 변화 확인 완료, 관문·사망 인계 실제 확인은 전체 통합 후 4인 플레이에 남긴다. 자동 구역 검사 FAIL 등 제출 증거는 handoff에 보존한다.
 
 ## Decisions
 
+- Decided: 2026-10-16 사용자 — 042를 시작하고 분리 출발·첫 받기부터 구현한다. 선행 #108 통합·수신 확인 후 기존 PM 위임으로 041→042 소유권/Active Task 문서를 갱신하며 전환 문서는2026-10-16 다른 PC 재개용042 저장 묶음에 포함하며 상위 통합 반영은 별도다.
 - Decided: 2026-10-15 사용자 — 이전 PM 선반영 대기를 대체하여 기존 다른 Task·PM 관리 문서를 함께 포함해 041을 제출한다. Assets38+관리/작업 문서35=73파일, 로컬 MPPM 설정3파일 제외. 042 구현·소유권 전환과 PR 병합은 하지 않는다.
 - Decided: 2026-10-15 사용자 — 채팅 세션당 한 단계만 진행한다. 이 채팅은 041 커밋/push·PR 제출까지만 마무리하며 042는 새 채팅에서 시작한다. 이번에 PR 병합·042 구현/소유권 이관은 수행하지 않는다.
 - Decided: 2026-10-15 사용자 — 관문 통과·다시 받기에 이어 사망 인계도 나중 실제 4인 플레이에서 확인하고 다음 작업을 진행한다. 두 항목을 미검증으로 유지하며 042 착수에 실제 플레이 PASS를 요구하지 않는다. 저장·PR·통합 완료를 뜻하지 않는다.

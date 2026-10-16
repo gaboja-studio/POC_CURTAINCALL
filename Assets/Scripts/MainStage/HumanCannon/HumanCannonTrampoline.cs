@@ -112,7 +112,11 @@ namespace CurtainCall.HumanCannon
 
         internal bool TryContact(Vector3 from, Vector3 to, float radius, out Vector3 contact) =>
             TrampolineContact.TryCross(from, to, previousSurface, Surface, previousRotation,
-                transform.rotation, halfSize, radius, out contact);
+                transform.rotation, halfSize, radius, out contact) && !BounceBlocked(contact);
+
+        // 과승 실패 중에는 운반 트램폴린도 함께 떨어진다. 지연된 반동 요청에도 같은 판정을 사용한다.
+        static bool BounceBlocked(Vector3 contact) => HumanCannonRouteSystem.Current != null
+            && HumanCannonRouteSystem.Current.BlocksTrampolineBounce(contact);
 
         internal void RequestBounce(int station, uint launch, uint segment, Vector3 contact) =>
             SendRequest(TrampolineAction.Bounce, station, launch, segment, contact);
@@ -160,7 +164,7 @@ namespace CurtainCall.HumanCannon
             // 위치는 소유자가 계산한다. 지연 허용 폭 안의 접촉과 현재 비행 식별자를 함께 검사한다.
             bool nearSurface = Mathf.Abs(relative.x) <= halfSize.x + 1f && Mathf.Abs(relative.z) <= halfSize.y + 1f
                 && Mathf.Abs(relative.y) <= 2f && (player.transform.position - contact).sqrMagnitude <= 25f;
-            bool accepted = Carrier != player.OwnerClientId && nearSurface && cannon != null
+            bool accepted = !BounceBlocked(contact) && Carrier != player.OwnerClientId && nearSurface && cannon != null
                 && cannon.ApplyRebound(player.OwnerClientId, station, launch, segment, contact, upwardSpeed);
             if (accepted)
             {
