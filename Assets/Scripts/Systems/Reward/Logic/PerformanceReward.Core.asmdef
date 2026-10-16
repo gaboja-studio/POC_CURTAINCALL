@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.PerformanceReward.Core",
+    "rootNamespace": "CurtainCall.Reward",
+    "references": ["CurtainCall.PerformanceResults"],
+    "noEngineReferences": true
+}

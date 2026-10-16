@@ -40,8 +40,9 @@ dev                  ──PR(Merge commit)──▶ integration/*   (공용 변
 ## fix/* · resource/*
 
 - `fix/*`: 보통은 Task로 분리해 작업한다(`scaffold-task`). **급한 사안이면 Task 없이 바로 수정**할 수 있다. 이때 PR 본문에 급한 이유와 수정 범위를 적는다.
-- `resource/*`: 아트·에셋 관리자 등이 **리소스 파일만** 넣는 브랜치다. 보통 `Assets/Resources/` 안에만 넣어 충돌이 거의 없으므로 **Task를 만들지 않는다.**
-  - 코드·씬·공용 프리팹 수정이 필요하면 `resource/*`가 아니라 Task로 분리한다.
+- `resource/*`: 아트·에셋 관리자 등이 **리소스 파일만** 넣는 브랜치다. 보통 `Assets/Resources/` 안에 넣어 충돌이 거의 없으므로 **Task를 만들지 않는다.**
+  - 지정 에셋 관리자는 `Assets/_ThirdParty` private submodule 에셋도 추가·수정·저장·push하고 공개 포인터를 제출할 수 있다(`Harness/Project/Decisions/third-party-assets.md`). Task 관련 포인터는 해당 Task 브랜치에서도 허용한다.
+  - 공개 저장소의 코드·씬·공용 프리팹 수정이 필요하면 `resource/*`가 아니라 Task로 분리한다.
   - 리소스 위치 기준: `Docs/Guides/assets-folder-rules.md`. 새 에셋의 `.meta`를 함께 올린다.
 
 ## 병합 방식
