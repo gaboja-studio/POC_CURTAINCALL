@@ -1,17 +1,17 @@
 # Handoff
 
 ## 지금 상태
-- 단계: B 구현·검증 완료, cc4a26d 저장·push 완료. dev PR 내용 확인 대기.
+- 단계: B 구현 cc4a26d·상태 기록 3b5e730 저장·push 완료. PR #147 제출, 리뷰·CI 대기.
 - A 마감: 별도 로컬 integration의 42c4e9b, B 기준선에 포함하지 않음. A 문서 원격 반영 보류.
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/147
 
 ## 다음 할 일
-1. 승인된 B 저장·push 후 dev PR 내용을 미리보기하고 등록 확인을 받는다. A 마감 문서 원격 반영은 별도.
+1. PR #147 리뷰·CI 결과를 확인한다. 병합은 별도 승인 후이며, 병합 확인 뒤 B 마감 절차를 진행한다. A 마감 문서 원격 반영은 별도.
 2. 실제 동기화 PR/required CI E2E·공동 테스트는 별도 승인 후 진행.
 
 ## PM이 확인할 것
 - PM 본인 단회 직접 배정·착수 승인. 팀원 전달 N/A, 일반 gate 유지.
-- B 저장·push·dev 제출 절차 승인. 실제 등록은 내용 확인 후, 병합·실제 동기화 PR·C·private 변경은 별도 승인.
+- 사용자 “PR 진행해”로 확인된 내용의 #147 등록 승인·완료. 병합·실제 동기화 PR·C·private 변경은 별도 승인.
 
 ## Verification
 - 구역 검사: PASS (10-17)

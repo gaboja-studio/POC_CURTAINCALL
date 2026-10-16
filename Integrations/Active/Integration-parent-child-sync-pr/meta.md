@@ -17,7 +17,7 @@
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261017-054 | fix | @MoHoDu | fix/parent-child-sync-pr | - | working (cc4a26d 저장·push, PR 확인 대기) |
+| Task-20261017-054 | fix | @MoHoDu | fix/parent-child-sync-pr | [#147](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/147) | submitted (리뷰·CI 대기) |
 
 ## 공용 파일 소유 표
 
@@ -28,4 +28,4 @@
 
 - Open: None
 - Decided: 2026-10-17 — PM 본인의 B 로컬 기술 배정·착수를 직접 기록하는 단회 예외. 일반 gate 변경 없음.
-- Decided: 2026-10-17 — 최초 준비 문서 로컬 commit만 승인. 후속 요청으로 B 저장·push·dev 제출 절차 승인. 실제 등록은 내용 확인 후, 병합·동기화 PR 운용은 별도 승인.
+- Decided: 2026-10-17 — 준비 문서 로컬 commit 후 B 저장·push·dev 제출을 후속 승인. 사용자 확인 후 #147 등록 완료. 병합·동기화 PR 운용은 별도 승인.
