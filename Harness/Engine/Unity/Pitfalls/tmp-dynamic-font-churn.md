@@ -1,15 +1,15 @@
 ---
-summary: TMP 동적 폰트 에셋(Atlas Population Mode = Dynamic)은 에디터·빌드 중에 글자 아틀라스가 채워지거나 비워지며 .asset이 바뀐다. 사람이 고치지 않았으면 커밋하지 말고 되돌린다
+summary: TMP 동적 폰트 에셋(Atlas Population Mode = Dynamic)은 에디터·빌드 중에 글자 아틀라스가 채워지거나 비워지며 .asset이 바뀐다. 이 프로젝트의 한글 폰트는 Static으로 구워 해결, 새 글자가 빠지면 Bake Static Fonts 메뉴로 다시 굽는다
 status: active
-updated: 2026-10-03
-source: Task-20260930-005
+updated: 2026-10-16
+source: Task-20260930-005, fix/static-fonts (PM 요청 2026-10-16)
 ---
 
 # TMP 동적 폰트 에셋이 저절로 수정됨
 
 ## 언제 읽나
 
-`git status`에 `* SDF.asset`(TextMesh Pro 폰트 에셋)이 수정으로 잡혔는데 폰트를 고친 적이 없을 때. 저장 전 변경 목록을 정리할 때.
+`git status`에 `* SDF.asset`(TextMesh Pro 폰트 에셋)이 수정으로 잡혔는데 폰트를 고친 적이 없을 때. 화면에 □(빠진 글자)가 보이거나 Console에 "character ... was not found" 경고가 나올 때.
 
 ## 증상
 
@@ -22,9 +22,11 @@ source: Task-20260930-005
 
 ## 대처
 
-- 폰트를 직접 바꾼 게 아니면 **커밋하지 않고 되돌린다**: `git checkout -- "<폰트 .asset 경로>"`.
-- 계속 잡히는 게 귀찮으면 PM이 결정한다: 쓰는 글자(한글 2350자 등)를 미리 굽고 Atlas Population Mode를 Static으로 바꾸는 방법(폰트 담당 배정 필요). 로컬에서만 숨기는 `git update-index --skip-worktree`는 진짜 수정도 가려서 쓰지 않는다.
+- 2026-10-16 해결: `Pretendard-Medium SDF`와 더미 전용 `dummy-korean`을 **Static**으로 구웠다(코드 `Assets/Scripts`에 나오는 글자 + ASCII + 기호, `Clear Dynamic Data On Build` 끔). Play·저장 뒤에도 .asset이 바뀌지 않는다.
+- 화면에 새 글자를 쓰는 코드를 추가했는데 □가 보이거나 "character ... was not found" 경고가 나오면 `Tools/CurtainCall/Bake Static Fonts`를 실행하고 바뀐 폰트 .asset을 함께 저장한다(`Assets/Scripts/Systems/Fonts/Editor/StaticFontBaker.cs`). 더미 빌더도 필요할 때 다시 굽는다.
+- 새 한글 폰트를 Dynamic으로 만들면 같은 문제가 다시 생긴다. 만들면 `StaticFontBaker.Fonts`에 경로를 추가한다.
+- 그래도 폰트 .asset이 잡히면, 직접 바꾼 게 아니면 **커밋하지 않고 되돌린다**: `git checkout -- "<폰트 .asset 경로>"`. 로컬에서만 숨기는 `git update-index --skip-worktree`는 진짜 수정도 가려서 쓰지 않는다.
 
 ## 확인 방법
 
-`git diff --stat -- "Assets/Resources/Fonts/"`가 비어 있는지 확인한 뒤 저장한다.
+`git diff --stat -- "Assets/Resources/Fonts/"`가 비어 있는지 확인한 뒤 저장한다. 폰트 Inspector의 Atlas Population Mode가 Static인지 본다.

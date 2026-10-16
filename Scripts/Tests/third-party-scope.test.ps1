@@ -1,4 +1,4 @@
-# 실제 private 에셋 없이 격리 gitlink·역할 명부로 저장/제출 공용 구역 검사를 검증한다.
+# 실제 private 에셋 없이 격리 gitlink·역할 명부로 저장/제출 공용 구역 검사(공통 허용·급한 예외 포함)를 검증한다.
 [CmdletBinding()]
 param([Parameter(Mandatory)][string]$ScratchRoot)
 $ErrorActionPreference = 'Stop'
@@ -52,6 +52,11 @@ Put 'ProjectSettings/ProjectSettings.asset' 'fixture'
 Put 'Assets/TutorialInfo.meta' 'fixture'
 Put 'Assets/TutorialInfo/readme.txt' 'fixture'
 Put 'Assets/TutorialInfo/readme.txt.meta' 'fixture'
+Put 'ProjectSettings/EditorBuildSettings.asset' 'fixture'
+Put 'Assets/Resources/Settings.meta' 'fixture'
+Put 'Assets/Resources/Settings/GameSettings.meta' 'fixture'
+Put 'Assets/Resources/Settings/GameSettings/Base.asset' 'fixture'
+Put 'Assets/Resources/Settings/GameSettings/Base.asset.meta' 'fixture'
 Git init -b dev | Out-Null
 Git config user.name 'Scope Fixture' | Out-Null
 Git config user.email fixture@example.invalid | Out-Null
@@ -74,13 +79,47 @@ Check 'worker urgent fix pointer denied' worker fix/urgent $false '지정 에셋
 Check 'manager urgent fix pointer' manager fix/urgent $true
 Check 'PM pointer' pm feat/fixture $true
 Check 'manager cannot push dev' manager dev $false '직접 작업'
-foreach ($path in 'Packages/manifest.json', 'ProjectSettings/ProjectSettings.asset', 'Assets/Resources/font.asset', 'Assets/TutorialInfo/readme.txt', 'Assets/_ThirdParty.meta') {
+foreach ($path in 'Packages/manifest.json', 'ProjectSettings/ProjectSettings.asset') {
     $original = Get-Content (Join-Path $fixture $path) -Raw
     Put $path 'changed'
     Check "manager task still denies $path" manager feat/fixture $false
     Put $path $original.TrimEnd("`r", "`n")
 }
+# 2026-10-16 공통 허용: 기존 에셋 수정·삭제는 PM·에셋 관리자, 추가·빌드 씬·게임 세팅 값은 모두.
+foreach ($path in 'Assets/Resources/font.asset', 'Assets/TutorialInfo/readme.txt') {
+    $original = Get-Content (Join-Path $fixture $path) -Raw
+    Put $path 'changed'
+    Check "manager edits existing asset $path" manager feat/fixture $true
+    Check "worker cannot edit existing asset $path" worker feat/fixture $false
+    Put $path $original.TrimEnd("`r", "`n")
+}
+# 이후 사례는 포인터 변경 없이 본다(빈 폴더 = 받지 않은 submodule).
+Git update-index --cacheinfo "160000,$first,Assets/_ThirdParty" | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $fixture 'Assets/_ThirdParty') -Force | Out-Null
+Put 'Assets/Resources/new.asset' 'new'; Put 'Assets/Resources/new.asset.meta' 'new'
+Check 'worker adds asset in forbidden folder' worker feat/fixture $true
+Check 'worker resource adds asset' worker resource/fixture $true
+Remove-Item (Join-Path $fixture 'Assets/Resources/new.asset.meta')
+Check 'new asset still needs meta' worker feat/fixture $false '.meta 없음'
+Remove-Item (Join-Path $fixture 'Assets/Resources/new.asset')
+Put 'Assets/Resources/Bad.cs' 'class Bad {}'; Put 'Assets/Resources/Bad.cs.meta' 'new'
+Check 'worker cannot add code outside area' worker feat/fixture $false '작업 구역 밖|수정 금지'
+Remove-Item (Join-Path $fixture 'Assets/Resources/Bad.cs'), (Join-Path $fixture 'Assets/Resources/Bad.cs.meta')
+$build = Get-Content (Join-Path $fixture 'ProjectSettings/EditorBuildSettings.asset') -Raw
+Put 'ProjectSettings/EditorBuildSettings.asset' 'changed'
+Put 'Assets/Resources/Settings/GameSettings/Base.asset' 'changed'
+Check 'worker edits build scenes and game settings' worker feat/fixture $true
+Put 'ProjectSettings/EditorBuildSettings.asset' $build.TrimEnd("`r", "`n")
+Put 'Assets/Resources/Settings/GameSettings/Base.asset' 'fixture'
+Put 'Packages/manifest.json' 'changed'
+Check 'worker denied without exception' worker feat/fixture $false
+Put 'Tasks/Active/Task-20261016-001-fixture/exception.md' "# Urgent Exception`n- **Approved by:** PM @pm (구두)`n- **Reason:** fixture"
+Check 'urgent exception allows outside rules' worker feat/fixture $true '\[예외\]'
+Put 'Assets/Resources/late.asset' 'new'
+Check 'urgent exception keeps meta check' worker feat/fixture $false '.meta 없음'
+Remove-Item (Join-Path $fixture 'Assets/Resources/late.asset'), (Join-Path $fixture 'Tasks/Active/Task-20261016-001-fixture/exception.md')
+Git checkout -- Packages/manifest.json | Out-Null
 Put 'Harness/Project/Facts/team.md' ((Get-Content (Join-Path $fixture 'Harness/Project/Facts/team.md') -Raw).Replace('@manager','@revoked'))
 Check 'role changes remain PM protected' manager resource/third-party/fixture $false 'PM 전용'
 Git checkout -- Harness/Project/Facts/team.md | Out-Null
-Write-Output 'Third-party scope: PASS (16 cases)'
+Write-Output 'Third-party scope: PASS (25 cases)'

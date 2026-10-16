@@ -41,6 +41,8 @@ namespace CurtainCall.Network.PlayerSync
         readonly NetworkVariable<PlayerState> state = new(PlayerState.Normal);
         readonly NetworkVariable<int> restartCount = new(0);
         readonly NetworkVariable<int> reviveCount = new(0);
+        // 판정은 호스트만 하므로 동기화하지 않는다(보상 정산도 호스트).
+        bool forfeitNextPerformance;
 
         PlayerMover mover;
         PlayerBalance balance;
@@ -193,6 +195,8 @@ namespace CurtainCall.Network.PlayerSync
                     break;
                 case CatchOutcome.Died:
                     state.Value = PlayerState.Fallen;
+                    // 다음 공연 시작 때 외팔로 부활해 출연하고 그 공연 본인 보상은 0(부상 기획 4-2, InjuryRevival·031).
+                    forfeitNextPerformance = true;
                     break;
                 case CatchOutcome.Retired:
                     state.Value = PlayerState.Retired;
@@ -223,6 +227,18 @@ namespace CurtainCall.Network.PlayerSync
             return true;
         }
 
+        /// <summary>
+        /// 호스트 전용: 쉬는 시간에 외팔 상태로 잡혀 사망해 다음 공연에 부활 출연하는 사람인지(그 공연 본인 보상 박탈, 부상 기획 4-2).
+        /// 잡힐 때 켜지고 다음 쉬는 시간·밤 정비 시작(<see cref="ServerClearForfeits"/>)이나 세대 교체 때 꺼진다.
+        /// </summary>
+        public bool ForfeitsNextPerformance => forfeitNextPerformance;
+
+        /// <summary>호스트: 모든 플레이어의 보상 박탈 표시를 지운다(박탈한 공연이 끝난 뒤).</summary>
+        public static void ServerClearForfeits()
+        {
+            foreach (var player in all) player.forfeitNextPerformance = false;
+        }
+
         /// <summary>호스트: 모든 사망자를 외팔 상태로 되살린다. 되살린 인원을 돌려준다.</summary>
         public static int ServerReviveAllDead()
         {
@@ -249,6 +265,7 @@ namespace CurtainCall.Network.PlayerSync
         {
             if (!IsServer) return;
             lostParts.Value = BodyPart.None;
+            forfeitNextPerformance = false;
             if (state.Value == PlayerState.Normal) return;
             state.Value = PlayerState.Normal;
             reviveCount.Value++;

@@ -157,6 +157,25 @@ namespace CurtainCall.SpaceLink.Tests
         }
 
         [UnityTest]
+        public IEnumerator Hub_CanvasButtonsStartRunWithoutImguiPanel()
+        {
+            yield return OpenHub();
+            SetMode("Single");
+            Assert.IsNull(UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.Network.Session.NetworkSessionTestUI")), "시작 씬 IMGUI 접속 패널 제거");
+            var hub = UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.SpaceLink.SpaceLinkHubCanvas")) as Component;
+            Assert.IsNotNull(hub, "시작 씬 Canvas 화면");
+            Assert.IsNotNull(UnityEngine.Object.FindAnyObjectByType(GameType("UnityEngine.EventSystems.EventSystem")), "시작 씬 EventSystem");
+            Assert.IsTrue((bool)Call(hub, "CanExecute", "offlineStart"));
+            Call(hub, "Execute", "offlineStart");
+            yield return WaitIdle();
+            Assert.AreEqual("Intro", Phase, "Canvas '오프라인 런 시작'");
+            Call(hub, "Execute", "intro");
+            yield return WaitIdle();
+            Assert.AreEqual("Performance", Phase, "Canvas '도입 끝 → 공연'");
+            Assert.AreEqual("DummyPerformance", Active);
+        }
+
+        [UnityTest]
         public IEnumerator Additive_KeepsHubAndSwapsSpaceScenes()
         {
             yield return OpenHub();
@@ -170,6 +189,9 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.IsTrue(Loaded("DummyPerformance"));
             Assert.AreEqual("DummyPerformance", Active, "공간 씬을 활성 씬으로");
             Assert.AreEqual(2, SceneManager.sceneCount);
+            Assert.AreEqual(1, UnityEngine.Object.FindObjectsByType(GameType("UnityEngine.EventSystems.EventSystem"), FindObjectsSortMode.None).Length,
+                "공간 씬이 붙어 있는 동안 시작 씬 EventSystem은 꺼서 하나만 켜짐");
+            Assert.IsNull(UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.SpaceLink.SpaceLinkHubCanvas")), "시작 씬 Canvas는 꺼짐");
 
             yield return Signal("EndPerformance");
             Assert.IsTrue(Loaded("SpaceLink"));

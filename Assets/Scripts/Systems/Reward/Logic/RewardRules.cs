@@ -40,8 +40,13 @@ namespace CurtainCall.Reward
         public int Slot { get; }
         public int LostParts { get; }
         public bool Dead { get; }
+        /// <summary>이 공연 본인 보상 박탈(쉬는 시간에 잡혀 사망 → 외팔로 부활해 출연, 부상 기획 4-2). 생존 인원에는 들어간다.</summary>
+        public bool Forfeit { get; }
 
         public RewardParticipantSeed(string id, ulong clientId, int slot, int lostParts = 0, bool dead = false)
+            : this(id, clientId, slot, lostParts, dead, false) { }
+
+        public RewardParticipantSeed(string id, ulong clientId, int slot, int lostParts, bool dead, bool forfeit)
         {
             if (string.IsNullOrWhiteSpace(id) || id.Length > 100 || slot < -1 || slot > 63 || (lostParts & ~15) != 0)
                 throw new ArgumentException("참가 명부가 올바르지 않습니다.");
@@ -50,6 +55,7 @@ namespace CurtainCall.Reward
             Slot = slot;
             LostParts = lostParts;
             Dead = dead || lostParts == 15;
+            Forfeit = forfeit;
         }
 
         public static int CountLimbs(int parts)
