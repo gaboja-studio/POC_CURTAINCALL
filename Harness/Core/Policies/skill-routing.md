@@ -16,6 +16,7 @@ Skill 위치: `Harness/Core/Skills/<name>.md`, `Harness/Engine/Unity/Skills/<nam
 | "오늘 여기까지", "인계 메모 써줘" | `write-handoff` |
 | "막혔어", "이상해", "오류가 떠" | `investigate-bug` |
 | "GitHub 연결해줘" | `setup-gh` |
+| "PM한테 급하게 허락받았어", "급한 예외 적용해줘", `/urgent-exception` | `urgent-exception` (정말 급할 때만, `team-roles.md` "급한 예외") |
 
 ## PM
 

@@ -60,6 +60,8 @@ namespace CurtainCall.DummySpaces
         void Update()
         {
             ObserveClock();
+            // 온라인 사망·이탈은 네트워크 관찰로 늦게 들어오므로 매 프레임 다시 확인한다.
+            if (arrived.Count > 0) FinishIfLivingArrived();
             if (!ClockRunning) return;
             performanceTimeRemaining = Mathf.Max(0f, performanceTimeRemaining - Time.deltaTime);
             if (performanceTimeRemaining > 0f || expiryRequested) return;
@@ -166,13 +168,33 @@ namespace CurtainCall.DummySpaces
             var person = ActivePerson(participantId);
             if (person == null || arrived.Contains(participantId)) return false;
             arrived.Add(participantId);
-            var judgements = new Dictionary<string, string>();
+            if (!AllLivingArrived(out var judgements)) return Report(true, "도착 입력");
+            return Report(rewards.FinishPerformance(true, "Completed", judgements), "도착 종료 요청");
+        }
+
+        /// <summary>도착한 사람이 있고 살아서 접속한 참가자가 모두 도착했는지. 도착한 사람이 모두 죽었으면 031 생존 판정에 맡긴다.</summary>
+        bool AllLivingArrived(out Dictionary<string, string> judgements)
+        {
+            judgements = null;
+            if (arrived.Count == 0 || rewards?.State == null) return false;
+            var living = new Dictionary<string, string>();
             foreach (var other in rewards.State.Segments)
             {
                 if (!other.Connected || other.Dead) continue;
-                if (!arrived.Contains(other.ParticipantId)) return Report(true, "도착 입력");
-                judgements[other.ParticipantId] = "Arrived";
+                if (!arrived.Contains(other.ParticipantId)) return false;
+                living[other.ParticipantId] = "Arrived";
             }
+            if (living.Count == 0) return false;
+            judgements = living;
+            return true;
+        }
+
+        /// <summary>도착 뒤 남은 사람이 죽거나 나가서 "살아 있는 사람 모두 도착"이 된 경우 성공으로 끝낸다.</summary>
+        bool FinishIfLivingArrived()
+        {
+            if (rewards == null || !rewards.HasAuthority || rewards.State?.IsOpen != true || rewards.TransitionPending
+                || campaign.State.Phase != CampaignPhase.Performance || !AllLivingArrived(out var judgements)) return false;
+            diagnostics.Story("남은 생존자가 모두 도착 상태 → 공연 성공 종료 요청");
             return Report(rewards.FinishPerformance(true, "Completed", judgements), "도착 종료 요청");
         }
 
@@ -210,7 +232,9 @@ namespace CurtainCall.DummySpaces
             // 오프라인 입력에도 030의 고정 절단 순서를 쓴다. 031이 결과·최소 생존 인원을 판정한다.
             var parts = PlayerCondition.PartsForLostCount(person.LostCount);
             if (!dead) parts |= PlayerCondition.NextFixedCut(parts);
-            return Report(rewards.ObserveParticipant(id, (int)parts, dead || PlayerCondition.IsAllLimbsLost(parts)), dead ? "사망 입력" : "절단 입력");
+            bool applied = Report(rewards.ObserveParticipant(id, (int)parts, dead || PlayerCondition.IsAllLimbsLost(parts)), dead ? "사망 입력" : "절단 입력");
+            if (applied) FinishIfLivingArrived();
+            return applied;
         }
 
         void HandleResult(CurtainCall.Results.PerformanceResult result)

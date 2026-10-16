@@ -1,8 +1,8 @@
 ---
-summary: 기획 조정값은 Assets/Resources/Settings/GameSettings/ 한 폴더 — GameSettings(시작점) + 공통·묘기별·대기실·탐색·탈출로 5묶음(2026-10-14) + Tricks/<묘기>Settings + 교체형 보상(RewardTable). 칸마다 한글 설명·단위, 플레이 중 수정 반영, 판정 값은 호스트 기준
+summary: 기획 조정값은 Assets/Resources/Settings/GameSettings/ 한 폴더 — GameSettings(시작점) + 공통·묘기별·대기실·탐색·탈출로 5묶음(2026-10-14) + Tricks/<묘기>Settings + 교체형 보상(RewardTable). 칸마다 한글 설명·단위, 플레이 중 수정 반영, 판정 값은 호스트 기준. 값 변경은 모든 작업자, 연결 기능 확장은 현재 Task 관련만(2026-10-16)
 status: active
-updated: 2026-10-14
-source: human (2026-10-03·2026-10-14 PM @MoHoDu)
+updated: 2026-10-16
+source: human (2026-10-03·2026-10-14·2026-10-16 PM @MoHoDu)
 ---
 
 # 기획 조정값 세팅 파일
@@ -25,6 +25,8 @@ source: human (2026-10-03·2026-10-14 PM @MoHoDu)
 
 - 2026-10-14 / PM(@MoHoDu): 세팅을 **공통 | 각 묘기 | 대기실 | 탐색 | 탈출로** 5묶음으로 나누고 각각 따로 설정한다. 지금의 `BaseGameSettings`는 공통, `Tricks/<묘기>Settings`는 묘기별로 이어진다. 대기실·탐색·탈출로 세팅 파일은 공통 게임 시스템 Task(CC-108~111)가 만든다.
   - 공통에 둘 값(PM 지정): 탐색 제한 시간(옛 쉬는 시간 타이머) 방식 A/B 선택(기본 B, [run-rules.md](run-rules.md) #1), 기물 소지 개수 — 팔 2개 기본 2 / 팔 1개 기본 1 / 배낭 추가 +2(부상 기획 기본값, [injury-rules.md](injury-rules.md) #8). 나머지 값의 묶음 배치는 구현 Task가 제안하고 PM이 확인한다.
+
+- 2026-10-16 / PM(@MoHoDu): 모든 작업자가 `Assets/Resources/Settings/GameSettings/`의 **값**을 바꿀 수 있다(`setup.md`와 무관). 세팅과 연결된 칸·기능을 추가·고도화하는 것(`Assets/Scripts/Systems/Settings/` 포함)은 **현재 Task 내용과 관련된 것**이면 허용한다. 관련 없는 세팅 확장은 PM에게 요청한다. 같은 세팅 파일을 다른 Task가 고치고 있으면 병합 충돌이 날 수 있으니 담당자에게 알린다.
 
 ## 이유
 
