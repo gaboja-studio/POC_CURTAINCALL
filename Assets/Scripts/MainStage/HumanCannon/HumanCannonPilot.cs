@@ -197,6 +197,7 @@ namespace CurtainCall.HumanCannon
 
         void Update()
         {
+            UpdateCannonView();
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal)
             {
                 ReleaseMovement();
@@ -274,6 +275,7 @@ namespace CurtainCall.HumanCannon
 
         internal void Detach()
         {
+            DestroyCannonView();
             ReleaseMovement();
             if (scheme != null && controller != null && controller.Scheme == scheme)
                 controller.SetScheme(previousAssigned ? previousScheme : null);

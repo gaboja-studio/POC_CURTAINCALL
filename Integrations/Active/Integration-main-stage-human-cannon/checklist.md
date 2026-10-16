@@ -18,7 +18,7 @@
 
 1. Task-040 발사·트램폴린 받기 → Task-041 봉·필수 톱관문.
 2. Task-041 → Task-042 분리 코스·쉼터 → Task-043 최종 구간·도착 → Task-044 함정·4인 코스.
-3. 각 작업 PR은 이 통합으로 Squash. 현재 042 human-verify이며 043~044 scaffolded는 기술적 순번 대기다. 인계·실행 승인은 완료다.
+3. 각 작업 PR은 이 통합으로 Squash. 042 #111/75862ef integrated, 현재 043 working·044 기술 순번 대기. 043 HEAD0128623의 최신 부모/dev 수신·구역/씬 단독 이관 확인.
 4. 담당자는 [PM 승인](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 이전 소유 반환·다음 assigned/Active Task/Allowed/공용 소유·이력을 갱신한다. 한 단계만 활성 소유하며 최신 부모 구현/문서를 수신한다.
 5. 추가 인계·착수 승인은 요청하지 않는다. 실제 4인 검증은 전체 기능 통합 후 수행한다. 커밋/push·병합 요청 규칙과 씬·프리팹 충돌 해결 경계는 유지한다.
 
@@ -37,7 +37,7 @@
 ## 부모 통합 반영 전
 
 - [ ] 공동 테스트 실제 통과·근거 기록 (실패/미연결은 BLOCKED 또는 별도 소유 후속 Task)
-- [ ] 공용 종료 연결 Task와 실제 1명 도착 성공/전멸 실패 통합 검증
+- [ ] 043의 승인된 공용 생존 1명 기준 변경과 실제 1명 도착 성공/전멸 실패 통합 검증
 - [ ] Task별 테스트 씬 처리 및 소유권 이관 이력 기록
 - [ ] integration/main-stage-human-cannon → integration/main-stage PR 대상 확인
 - [ ] 부모 반영은 Merge commit으로 정상 병합 (dev 직행 금지)

@@ -164,7 +164,6 @@ namespace CurtainCall.HumanCannon
             {
                 var station = stations[i];
                 if (station == null || !station.isActiveAndEnabled || seats[i].State.IsOccupied) continue;
-                if (HumanCannonRouteSystem.Current != null && !HumanCannonRouteSystem.Current.CanUseStation(i)) continue;
                 float distance = (station.BoardingPoint.position - player.transform.position).sqrMagnitude;
                 float radius = station.BoardingDistance * reach;
                 if (radius <= 0f || distance > radius * radius || distance >= best) continue;

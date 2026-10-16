@@ -2,7 +2,7 @@
 
 - **Title:** 인간 대포 3단계 — 분리 코스와 쉼터
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
 - **Current Skill:** submit-work
@@ -25,7 +25,7 @@
 - 작업 구역·공용 파일·수정 금지는 setup.md가 기준이다. 배정된 코드·테스트 씬 안에서 구현한다.
 - 2026-10-16 사용자 최신 지시로 042 전체 구현 후 "전부 확인 완료 했고 제출해줘"를 수신했다. 직접 확인 완료/제출 요청이며 실제4인 공동 검증 증거는 별도 기록한다.
 - 2026-10-15 PM @MoHoDu가 @RagSpirin에게 040~044 인계·순차 실행을 승인했다. 추가 PM 인계·착수 승인은 불필요하다: [순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md).
-- 순서 040→041→042→043→044. 현재 042만 소유하며 공동 테스트는 전체 통합 후 실행한다. 단계 전환 문서는 2026-10-16 다른 PC 재개용 042 저장 묶음에 포함한다. 상위 통합 반영은 별도 PR로 진행한다.
+- 2026-10-16 #111/75862ef 통합·PM 확인 후 043 HEAD0128623 수신 확인. 042 Allowed/씬 소유를 반환하고 043으로 이관했다. 공동 테스트는 전체 통합 후 실행한다.
 
 ## Decisions
 

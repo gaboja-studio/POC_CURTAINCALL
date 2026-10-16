@@ -1,7 +1,7 @@
 # Setup
 
-042는 human-verify/Active Task이며 담당자는 @RagSpirin이다. 기존 PM 순차 실행 위임과 2026-10-16 사용자 착수 요청에 따라 단계 전환을 수행했다: [순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md).
-041 #108 MERGED(292667c)를 042 착수 기준 dae56af가 수신했고 당시 origin/feat도 동일했다. 041 Allowed를 반환받아 아래 구역/씬을 단독 소유한다. 2026-10-16 사용자 최신 지시에 따라 042 전체를 구현한다.
+042는 integrated다. #111/75862ef 병합·사용자 전달 PM 확인 후 043 HEAD0128623 수신 확인. 기존 [순차 인계 위임](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 따라 2026-10-16 구역·씬 소유를 043으로 반환했다.
+이력: 041 #108/292667c를 042 dae56af가 수신한 뒤 단독 구현했고, 사용자 전체 확인·제출 요청으로 #111에 반영했다. 현재 042의 수정 권한은 없다.
 
 ## JIRA
 
@@ -11,17 +11,15 @@
 
 ## 작업 구역
 
-- 스크립트: `Assets/Scripts/MainStage/HumanCannon/`
-- 테스트 씬·테스트 전용 프리팹: `Assets/Scenes/Tests/MainStage/HumanCannon/`
-- Task 문서: 이 Task 폴더 (자동 포함)
+없음 — 2026-10-16 코드·테스트 구역을 043으로 반환. 이 Task 문서의 검증 이력만 보존한다.
 
 ## 예약 구역
 
-- 없음 — 042 구역은 배정 완료. 043~044는 순번 도달 시 같은 구역을 이관받는다.
+- 없음 — 043에 이관 완료.
 
 ## 배정된 공용 파일
 
-- `Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity` — 042 단독 소유.
+없음 — HumanCannon.unity의 단독 소유를 043으로 반환했다.
 
 ## 수정 금지
 

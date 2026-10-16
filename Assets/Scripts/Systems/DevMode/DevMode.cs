@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CurtainCall.Dev
 {
     /// <summary>
-    /// 1인 테스트용 개발자 모드 스위치(run-rules.md #5). 인원 규칙만 예외 처리하고, 판정은 호스트가 이 값을 읽어 한다.
+    /// 1인 테스트용 개발자 모드 스위치(run-rules.md #5). 시작 인원 규칙을 예외 처리하고, 판정은 호스트가 이 값을 읽어 한다.
     /// 켜는 방법: 에디터는 메뉴 Tools/CurtainCall/Dev Mode(이 PC에만 저장), 빌드는 실행 인자 <c>-devmode</c>. 기본은 꺼짐.
     /// 게임 진행 중에는 바뀌지 않는다(에디터 메뉴는 Play 중 잠김, 빌드는 시작 때 한 번 읽음).
     /// </summary>
@@ -27,7 +27,7 @@ namespace CurtainCall.Dev
         public static int MinPlayers(int official) => Enabled ? Mathf.Min(1, official) : official;
 
         /// <summary>
-        /// 묘기를 계속하는 최소 생존자 수. 생존자가 이 값보다 적으면 묘기 실패(정식 2 → 개발자 모드 1, 즉 전원 사망일 때만 실패).
+        /// 묘기를 계속하는 최소 생존자 수. 현재 공통 정식값도 1명이므로 개발자 모드와 같은 기준이다.
         /// </summary>
         public static int MinSurvivors(int official) => Enabled ? Mathf.Min(1, official) : official;
 

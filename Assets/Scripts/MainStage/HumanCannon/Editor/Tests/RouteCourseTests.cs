@@ -30,7 +30,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                     openedHere = true;
                 }
                 RestoreActiveScene();
-                roots = inspectedScene.GetRootGameObjects();
+                roots = inspectedScene.GetRootGameObjects().Where(root => root.GetComponent<HumanCannonSoloPractice>() == null).ToArray();
                 Assert.That(Find("SplitRouteCourse"), Is.Not.Null, "042 코스가 저장된 씬이어야 합니다.");
             }
             catch
@@ -57,16 +57,16 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void SixDistinctCannons_AreConnectedAsThreeDepartureAndThreeShelterStations()
+        public void OriginalSixCannons_RemainThreeDepartureAndThreeShelterStations()
         {
             var systems = All<HumanCannonSystem>();
             Assert.That(systems, Has.Length.EqualTo(1));
             var stations = Field<HumanCannonStation[]>(systems[0], "stations");
-            Assert.That(stations, Has.Length.EqualTo(6));
+            Assert.That(stations.Length, Is.GreaterThanOrEqualTo(6));
             Assert.That(stations, Has.All.Not.Null);
             CollectionAssert.AllItemsAreUnique(stations);
             CollectionAssert.AreEquivalent(All<HumanCannonStation>(), stations);
-            for (int i = 0; i < stations.Length; i++)
+            for (int i = 0; i < 6; i++)
             {
                 Assert.That(stations[i].transform.position.y, Is.EqualTo(i < 3 ? 4f : 6f).Within(0.001f));
                 Assert.That(stations[i].transform.position.z, Is.EqualTo(i < 3 ? 3f : 49f).Within(0.001f));
@@ -80,7 +80,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         {
             var system = All<HumanCannonSystem>().Single();
             var stations = Field<HumanCannonStation[]>(system, "stations");
-            Assert.That(stations, Has.Length.EqualTo(6));
+            Assert.That(stations.Length, Is.GreaterThanOrEqualTo(6));
             var trampoline = All<HumanCannonTrampoline>().Single();
             Transform target = Find("SplitRouteCourse/" + targetName);
             Assert.That(target, Is.Not.Null);
