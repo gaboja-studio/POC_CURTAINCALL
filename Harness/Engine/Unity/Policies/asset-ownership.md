@@ -12,8 +12,14 @@
 - 소유 범위는 중첩 프리팹이 영향을 주는 범위까지 포함한다.
 - 소유 범위를 몰래 늘리지 않는다. 필요하면 PM에게 요청한다.
 - 코드가 참조한다고 해서 그 에셋을 수정해도 된다는 뜻은 아니다.
-- `ProjectSettings/`, `Packages/` 변경은 사람의 결정이 필요하다(`Harness/Core/Policies/human-decision.md`).
+- `ProjectSettings/`, `Packages/` 변경은 사람의 결정이 필요하다(`Harness/Core/Policies/human-decision.md`). 단 빌드 씬 목록(`ProjectSettings/EditorBuildSettings.asset`)의 씬 추가·삭제는 모든 작업자에게 허용한다. 다른 사람의 씬을 빼기 전에는 그 담당자에게 알린다.
 - `Assets/_ThirdParty/`(외부 에셋 submodule)의 추가·수정은 PM 또는 프로젝트 정책에 지정된 에셋 관리자가 한다. 씬·프리팹에 가져다 배치·참조하는 것은 모든 작업자에게 허용한다(Task `setup.md`와 무관). 지정 관리자는 private 저장소 저장·push 후 공개 포인터를 저장·제출한다. 그 밖의 작업자는 PM에게 요청한다.
+
+## 에셋 추가·수정·삭제 (2026-10-16 PM)
+
+- **추가**: 모든 작업자가 `Assets/` 어디든 새 에셋을 추가할 수 있다(`setup.md`와 무관). 코드(`.cs`)·씬(`.unity`)은 제외하고, 위치는 `Harness/Project/Decisions/asset-placement.md`를 따른다. 진행 중인 다른 Task 구역에 추가하면 담당자에게 알린다.
+- **수정·삭제**: 내 작업 구역·배정된 공용 파일이 아닌 기존 에셋은 PM 또는 에셋 관리자(`Harness/Project/Facts/team.md`)만 수정·삭제한다. 그 밖의 작업자는 PM·에셋 관리자에게 요청한다.
+- 게임 세팅 값(`Assets/Resources/Settings/GameSettings/`) 변경은 모든 작업자에게 허용한다(프로젝트 `game-settings.md`).
 
 ## 수정 방법
 
