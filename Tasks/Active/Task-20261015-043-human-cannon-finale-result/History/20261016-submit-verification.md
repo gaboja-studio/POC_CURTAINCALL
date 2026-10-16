@@ -10,4 +10,5 @@
 - 최신 전체 HumanCannon PlayMode23/23 PASS, 이후 제품 코드/씬 변경 없음. 이전 전체 EditMode363/363·공용 생존 PlayMode6/6은 이전 실행 근거로 유지한다.
 - 원본 호스트 Grab/Drop 후 게임 카메라 화면 확인은 자동 실행/상태 확인이다. 사용자 실입력 확인·실제4인 동기화/완주/회피 난도는 미실행 유지한다.
 - PR 제목/요약은 준비된 초안과 같은 범위. 관련 JIRA는 setup의CC-129/상위CC-124, 별도 GitHub 종료 이슈 없음.
-- 커밋·PR 결과는 등록 후 이 문서와 handoff에 기록한다.
+- 제출 완료: [PR #121](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/121), 구현52b3367 push·OPEN 확인. 병합 미실행이며043 소유를 유지한다. 제출 기록을 추가 커밋으로 저장한다.
+- 최초 PR CI: verify-fast/verify-commits/verify-third-party/check-folder PASS, verify-scope FAIL. 위임 문서8개와 승인 근거는 본문에 명시했으며 PM 리뷰가 필요하다. 최종 기록 커밋 뒤 CI는 다시 실행된다.

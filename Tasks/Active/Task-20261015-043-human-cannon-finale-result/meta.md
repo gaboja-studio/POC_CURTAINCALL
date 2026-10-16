@@ -2,7 +2,7 @@
 
 - **Title:** 인간 대포 4단계 — 최종 구간과 실제 도착
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
 - **Current Skill:** submit-work

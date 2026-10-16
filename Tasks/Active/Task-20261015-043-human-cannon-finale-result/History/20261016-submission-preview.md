@@ -1,6 +1,6 @@
 # 043 제출 준비
 
-- 상태: 준비 후 사용자 "제출해줘" 수신. 이 범위로 등록 진행, 최종 결과는 [제출 기록](20261016-submit-verification.md) 참조.
+- 상태: 사용자 제출 요청에 따라 [PR #121](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/121) 등록 완료. 최종 결과는 [제출 기록](20261016-submit-verification.md) 참조.
 - 제목: `[feat] Task-20261015-043 인간 대포 최종 구간·실제 도착과 전체 코스 시점`
 - 방향: `feat/human-cannon-finale-result` → `integration/main-stage-human-cannon` (Squash).
 - 원격 확인: 부모204be8c, 작업 브랜치0128623. 부모는 현재 HEAD에 포함된다. 실제 제출 시 다시 확인한다.

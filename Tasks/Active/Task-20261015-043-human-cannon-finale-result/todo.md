@@ -49,7 +49,7 @@
 - [x] 실제 종료 연결 및 검증 결과 기록 — 공용 인원 변경만으로 완료 처리하지 않음. 실제4인은 미검증
 - [x] 구역·문서·컴파일·자동 테스트·실행 검증 및 실제 결과 기록 — 구역 FAIL8(승인 관리문서), 나머지 별도 검사 PASS
 - [ ] 사용자 실입력 시점·회피·단독 완주 테스트 — [순서/구현 상태](History/20261016-finale-complete.md)
-- [ ] PR 제출 — 대상 integration/main-stage-human-cannon
+- [x] PR 제출 — [#121](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/121), 대상 integration/main-stage-human-cannon
 
 ## PM 통합
 
