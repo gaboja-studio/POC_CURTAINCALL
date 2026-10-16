@@ -2,7 +2,7 @@
 
 - **Title:** 외부 에셋 관리자 권한 위임
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** assets-structure
 - **Current Skill:** submit-work

@@ -1,15 +1,14 @@
 # Handoff
 
 ## 지금 상태
-- 단계: submit-work, PM 승인 dev 대상 fix PR 준비
+- 단계: submit-work, dev 대상 PR #112 제출 완료
 - 동작하는 것: 지정 에셋 관리자 추가·수정·저장·제출 규칙 및 포인터 예외
-- 막힌 것: 없음 — Unity 검사는 PM의 이번 요청으로 생략
-- PR: 없음
+- 막힌 것: dev 필수 PM 팀 승인 대기. Unity 검사는 PM 명시 승인으로 생략
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/112
 
 ## 다음 할 일
-1. dev 기준 구역·문서·권한 회귀 검사 후 저장
-2. dev PR 제출·CI/리뷰 확인·정상 병합
-3. dev 반영 확인, 대기실 담당자가 최신 규칙을 받도록 안내
+1. PR #112 자동 검사·필수 PM 팀 승인 확인 후 정상 Squash 병합
+2. dev 반영 확인, 대기실 담당자가 최신 규칙을 받도록 안내
 
 ## PM이 확인할 것
 - private 저장소 @gyumin9048-ctrl 쓰기 권한(write) 확인
