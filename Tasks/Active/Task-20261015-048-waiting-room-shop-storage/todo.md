@@ -38,7 +38,7 @@
   - [x] 1인 테스트 원클릭(개발자 모드 자동 복원)·배송 낙하 연출·이름표·든 기물/배낭 표시·장부는 수화기 창에서만·공연 중 구매/선반 차단
   - [x] 사람 직접 확인(log.md 갱신 절차)
   - [ ] 공용 SpaceLinkPlayTests 2개 실패 처리 결정(1단계 #123 대기실 장소 변경과 기대값 불일치, 이 Task 무관)
-- [ ] "제출해줘"로 integration/waiting-room-base 대상 PR 제출
+- [x] "제출해줘"로 integration/waiting-room-base 대상 PR 제출
 
 ## PM 통합
 

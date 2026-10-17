@@ -3,9 +3,11 @@
 ## 지금 상태
 - 단계: 구현 3항목 + 시각화(배송 낙하·이름표·든 기물/배낭 표시)·장부 분리·공연 중 차단 — AI·담당자 1인 확인 완료, 다중 접속·4인 공동 테스트 전.
 - 씬: `WaitingRoomShopStorage.unity` = 1단계 그레이박스(`WaitingRoomGreybox`가 실제 대기실, WaitingRoom·대기실은 참고용) + `/ShopStorage`(상태, DontDestroyOnLoad) + `/ShopStorageViews`(잔액·바닥·든 기물 표시) + `/ShopStorageTestPanels`(접속·런 진행·상점 테스트) + ③ Phone·DeliverySlot, ④ HandoverShelf_4Tier.
-- 막힌 것: 없음. PR: 없음. 사람 확인 절차: `log.md` 2026-10-17 "절차 갱신".
+- 막힌 것: 없음. 사람 확인 절차: `log.md` 2026-10-17 "절차 갱신".
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/151 (→ integration/waiting-room-base, 2026-10-17 제출)
 ## 다음 할 일
-1. "저장해줘"(GB_Dark.mat·_ThirdParty 제외) → "검사해줘" → "제출해줘"(integration/waiting-room-base) → 4인 공동 테스트 3개(plan).
+1. PM: PR #151 검토·Squash 병합, 아래 "PM이 확인할 것" 처리.
+2. 병합 뒤 4인 공동 테스트 3개(plan) → 결과를 아래 "공동 테스트 결과"에 기록.
 ## PM이 확인할 것
 - 공용 `CameraViewDirector.PrepareView`(210줄) NullReferenceException이 호스트 시작 무렵 반복(상점과 무관, 공용 구역이라 미수정).
 - 공용 `SpaceLinkPlayTests` 2개 실패: 대기실 장소 WaitingRoomBase(#123)와 테스트 기대값(DummyWaitingRoom) 불일치 — 테스트 기대값 갱신 또는 설정 확인 필요(공용 구역).
