@@ -2,7 +2,7 @@
 
 - **Title:** 2인 부활 후 공연 전환 재사망 수정
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** player-sync
 - **Current Skill:** start-work
