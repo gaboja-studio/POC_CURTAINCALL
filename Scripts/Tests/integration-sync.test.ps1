@@ -9,7 +9,7 @@ $root = Join-Path $scratch ('integration-sync-' + [guid]::NewGuid().ToString('N'
 $checkout = Join-Path $root 'checkout'
 $origin = Join-Path $root 'origin.git'
 New-Item -ItemType Directory -Path $checkout -Force | Out-Null
-$git = (Get-Command git).Source
+$git = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 $pwsh = [Environment]::ProcessPath
 $passed = 0
 function Git { & $git -C $checkout @args 2>$null; if ($LASTEXITCODE -ne 0) { throw "fixture git 실패: $args" } }
@@ -88,7 +88,7 @@ function Get-GhState {
 }
 function Get-GitHubRepo { [pscustomobject]@{ Slug = 'fixture/workspace'; Owner = 'fixture'; Name = 'workspace' } }
 function Get-PmAccount { 'fixture-pm' }
-$script:FixtureGit = (Get-Command git -CommandType Application).Source
+$script:FixtureGit = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
 function git {
     $argv = @($args)
     Add-Content -LiteralPath $env:SYNC_FIXTURE_GIT_LOG -Value (ConvertTo-Json -InputObject $argv -Compress)
@@ -109,6 +109,39 @@ function git {
     $global:LASTEXITCODE = $LASTEXITCODE
 }
 '@
+# 실제 대입문의 우변을 검사해 테스트에 선택식을 복제하지 않는다.
+foreach ($selection in @(
+    @{ Path = $PSCommandPath; Variable = 'git'; Label = '초기 Git' },
+    @{ Path = (Join-Path $checkout 'Scripts/Lib/common.ps1'); Variable = 'script:FixtureGit'; Label = 'mock Git' }
+)) {
+    $tokens = $null; $parseErrors = $null
+    $ast = [System.Management.Automation.Language.Parser]::ParseFile($selection.Path, [ref]$tokens, [ref]$parseErrors)
+    Assert ($parseErrors.Count -eq 0) 'Git 선택식 파일 구문 오류'
+    $assignments = @($ast.FindAll({
+        param($node)
+        $node -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+        $node.Left -is [System.Management.Automation.Language.VariableExpressionAst] -and
+        $node.Left.VariablePath.UserPath -ceq $selection.Variable
+    }, $true))
+    Assert ($assignments.Count -eq 1) "Git 선택 대입문 누락/중복: $($selection.Label)"
+    foreach ($candidateCount in 1, 2) {
+        Check "$($selection.Label) 후보 $candidateCount 단일 실행 경로" {
+            & {
+                param([string]$Expression, [string]$GitPath, [int]$Count)
+                function Get-Command {
+                    param([string]$Name, [string]$CommandType, [string]$ErrorAction)
+                    Assert ($Name -ceq 'git' -and $CommandType -ceq 'Application') '실행 파일 조회가 아님'
+                    [pscustomobject]@{ Source = $GitPath }
+                    if ($Count -gt 1) { [pscustomobject]@{ Source = $GitPath + '.missing' } }
+                }
+                $selected = & ([scriptblock]::Create($Expression))
+                Assert ($selected -is [string] -and $selected -ceq $GitPath) '첫 Git 후보의 단일 경로가 아님'
+                $version = & $selected --version
+                Assert ($LASTEXITCODE -eq 0 -and $version -match '^git version ') '선택한 Git 실행 실패'
+            } $assignments[0].Right.Extent.Text $git $candidateCount
+        }
+    }
+}
 Put 'fake-gh.ps1' @'
 $ErrorActionPreference = 'Stop'
 $a = @($args)

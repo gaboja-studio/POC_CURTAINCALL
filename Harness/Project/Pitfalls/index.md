@@ -12,4 +12,5 @@
 - [hub-spawn-before-environment-enable.md](hub-spawn-before-environment-enable.md) — 로비 환경 활성화보다 출발 위치 조회가 먼저 실행되면 기본 위치로 복귀한다. 공간에서 로비로 돌아올 때 위치가 틀리면 읽기
 - [third-party-scripts-after-checkout.md](third-party-scripts-after-checkout.md) — 외부 에셋을 나중에 받은 뒤 DOTween UI 모듈이 컴파일 입력에서 빠질 때
 - [third-party-branch-sync.md](third-party-branch-sync.md) — 브랜치 전환 전에 public/private Git·LFS를 준비하고 실패 시 사용자 파일을 보존한다. 안전 전환이 차단될 때
+- [ubuntu-git-executable-resolution.md](ubuntu-git-executable-resolution.md) — Ubuntu CI에서 Git 실행 경로가 여러 개로 반환되어 PowerShell 회귀가 실패할 때
 - [changed-subscriber-advances-campaign.md](changed-subscriber-advances-campaign.md) — Changed 알림 안에서 구독자가 런을 진행시킬 수 있어 알림 뒤 공연 좌표를 재확인. 런·보상 이벤트를 보낸 뒤 이어서 종료·정산 처리할 때
