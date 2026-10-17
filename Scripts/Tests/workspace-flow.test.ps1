@@ -54,7 +54,7 @@ function Run {
     $code = $LASTEXITCODE
     $text = $out -join "`n"
     if ($RejectPattern) {
-        Assert ($code -ne 0 -and $text -match $RejectPattern) "script should reject: $Script / $RejectPattern / $text"
+        Assert ($code -ne 0 -and $text -match "(?s)$RejectPattern") "script should reject: $Script / $RejectPattern / $text"
     } else { Assert ($code -eq 0) "script failed: $Script / $text" }
     return $text
 }
@@ -75,6 +75,26 @@ function Setup {
     Put "$Rel/setup.md" "# Setup`n`n## JIRA`n`n- 관련 JIRA: $Jira`n`n## 작업 구역`n`n$area`n`n## 예약 구역`n`n- future: ``Scripts/Reserved/```n`n## 배정된 공용 파일`n`n- 없음`n`n## 수정 금지`n`n- ``Assets/```n`n## 인계 전 체크 (PM)`n`n- [x] fixture ready"
 }
 try {
+    Put 'Scripts/error-output.ps1' @'
+param([ValidateSet('wrapped', 'other', 'success')][string]$Scenario)
+if ($Scenario -eq 'other') {
+    [Console]::Error.WriteLine('unrelated fixture error')
+    exit 1
+}
+[Console]::Error.WriteLine("Update`n$([char]27)[31m금지$([char]27)[0m")
+if ($Scenario -eq 'success') { exit 0 }
+exit 1
+'@
+    Check '예상 오류는 줄바꿈과 ANSI를 포함해도 인정' {
+        $out = Run error-output.ps1 @('-Scenario', 'wrapped') 'Update.*금지'
+        Assert ($out -match 'Update\r?\n\x1B\[31m금지') 'fixture lost forced newline or ANSI'
+    }
+    Check '다른 오류는 예상 거부로 인정하지 않음' {
+        Reject { Run error-output.ps1 @('-Scenario', 'other') 'Update.*금지' | Out-Null } 'script should reject'
+    }
+    Check '성공 종료는 예상 문구가 있어도 거부' {
+        Reject { Run error-output.ps1 @('-Scenario', 'success') 'Update.*금지' | Out-Null } 'script should reject'
+    }
     FixtureGit init -b dev | Out-Null
     # 작성자는 새로 만든 fixture 저장소에만 설정한다.
     FixtureGit config --local user.name 'Workspace Fixture' | Out-Null
