@@ -2272,6 +2272,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 138223814}
+  - component: {fileID: 138223815}
   m_Layer: 0
   m_Name: HandoverShelf_4Tier
   m_TagString: Untagged
@@ -2296,6 +2297,22 @@ Transform:
   - {fileID: 1722407081}
   m_Father: {fileID: 816248523}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &138223815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 138223813}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aafbcb6479d144f76b65fea3e694a55d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.HandoverShelfView
+  reach: 1.2
+  itemSize: 0.25
+  color: {r: 0.7, g: 1, b: 0.6, a: 1}
+  boards: []
 --- !u!1 &157620804
 GameObject:
   m_ObjectHideFlags: 0
@@ -2632,6 +2649,63 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 166515056}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &168800814
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1650483801816869962, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_Name
+      value: PlayerFollowCamera
+      objectReference: {fileID: 0}
+    - target: {fileID: 8995962789386439165, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8995962789386439165, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8995962789386439165, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8995962789386439165, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8995962789386439165, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8995962789386439165, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8995962789386439165, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8995962789386439165, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8995962789386439165, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8995962789386439165, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
 --- !u!1 &177346608
 GameObject:
   m_ObjectHideFlags: 0
@@ -2788,6 +2862,7 @@ GameObject:
   - component: {fileID: 180226617}
   - component: {fileID: 180226616}
   - component: {fileID: 180226619}
+  - component: {fileID: 180226620}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2876,7 +2951,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 180226615}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 15ad6d035f728a14796b39a59b8e5648, type: 3}
   m_Name: 
@@ -2886,6 +2961,38 @@ MonoBehaviour:
   sensitivity: 0.1
   pitchLimit: 85
   hideOwnModel: 1
+--- !u!114 &180226620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 180226615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72ece51f2901e7445ab60da3685d6b5f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineBrain
+  ShowDebugText: 0
+  ShowCameraFrustum: 1
+  IgnoreTimeScale: 0
+  WorldUpOverride: {fileID: 0}
+  ChannelMask: -1
+  UpdateMethod: 2
+  BlendUpdateMethod: 1
+  LensModeOverride:
+    Enabled: 0
+    DefaultMode: 2
+  DefaultBlend:
+    Style: 1
+    Time: 2
+    CustomCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  CustomBlends: {fileID: 0}
 --- !u!1 &190479137
 GameObject:
   m_ObjectHideFlags: 0
@@ -6061,6 +6168,84 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 507931191}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &508604618
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 508604621}
+  - component: {fileID: 508604620}
+  - component: {fileID: 508604619}
+  m_Layer: 0
+  m_Name: ShopStorage
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &508604619
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 508604618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 802d49f0960bf473db2ab1bb90ca2d04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.PropCarry
+  floorCapacity: 32
+  dropAhead: 0.45
+  showHud: 1
+--- !u!114 &508604620
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 508604618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a7c16bef3a5d4838af4569b4cbfe454, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.WaitingRoomShop
+  items:
+  - id: tool-a
+    name: "\uC784\uC2DC \uACF5\uC5F0 \uB3C4\uAD6C A"
+    price: 10
+    backpack: 0
+  - id: tool-b
+    name: "\uC784\uC2DC \uACF5\uC5F0 \uB3C4\uAD6C B"
+    price: 15
+    backpack: 0
+  - id: escape
+    name: "\uC784\uC2DC \uD0C8\uCD9C \uB3C4\uAD6C"
+    price: 20
+    backpack: 0
+  - id: backpack
+    name: "\uC784\uC2DC \uBC30\uB0AD"
+    price: 25
+    backpack: 1
+  slotCapacity: 8
+--- !u!4 &508604621
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 508604618}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &510267776
 GameObject:
   m_ObjectHideFlags: 0
@@ -6524,7 +6709,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &529454870
 Transform:
   m_ObjectHideFlags: 0
@@ -10855,6 +11040,72 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 885445036}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &886244748
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 886244751}
+  - component: {fileID: 886244750}
+  - component: {fileID: 886244749}
+  m_Layer: 0
+  m_Name: NightScheduleTestPanels
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &886244749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886244748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b79ddeaaadfe4447b67886e96a05cd4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.NightScheduleTestUI
+  cheers: 10
+  stepTimeout: 15
+--- !u!114 &886244750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886244748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f75bfb5c30d9b456eaccaa3727c552d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.Session.NetworkSessionTestUI
+  _address: 127.0.0.1:7777
+  _panelRect:
+    serializedVersion: 2
+    x: 10
+    y: 10
+    width: 340
+    height: 320
+--- !u!4 &886244751
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886244748}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &886331454
 GameObject:
   m_ObjectHideFlags: 0
@@ -11886,6 +12137,87 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 980133137}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &981525086
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 981525090}
+  - component: {fileID: 981525089}
+  - component: {fileID: 981525088}
+  - component: {fileID: 981525087}
+  m_Layer: 0
+  m_Name: ShopStorageViews
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &981525087
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981525086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb7615130e534cc5827825c133b6350, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.HeldPropsView
+  itemSize: 0.26
+  firstOffset: {x: 0, y: 0.95, z: 0.45}
+  stack: 0.28
+  backpackOffset: {x: 0, y: 1.15, z: -0.3}
+  backpackSize: {x: 0.42, y: 0.46, z: 0.2}
+  itemColor: {r: 0.55, g: 0.85, b: 1, a: 1}
+  backpackColor: {r: 0.55, g: 0.38, b: 0.2, a: 1}
+--- !u!114 &981525088
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981525086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 118f72f245caa48b0b7d03816db736ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FloorPropsView
+  reach: 1
+  itemSize: 0.25
+  color: {r: 0.55, g: 0.85, b: 1, a: 1}
+--- !u!114 &981525089
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981525086}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef0af07ae72ed4684b514e3971775fb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.SharedFundsView
+  show: 1
+--- !u!4 &981525090
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981525086}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &990009519
 GameObject:
   m_ObjectHideFlags: 0
@@ -18482,6 +18814,7 @@ GameObject:
   - component: {fileID: 1598626689}
   - component: {fileID: 1598626691}
   - component: {fileID: 1598626690}
+  - component: {fileID: 1598626692}
   m_Layer: 0
   m_Name: DeliverySlot
   m_TagString: Untagged
@@ -18561,6 +18894,24 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1598626688}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1598626692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1598626688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 023b24fbd0d2c47b38270a37b6b32b64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ShopDeliverySlot
+  reach: 1.2
+  dropForward: -0.6
+  perRow: 4
+  spacing: 0.4
+  itemSize: 0.32
+  dropTime: 0.6
 --- !u!1 &1604718563
 GameObject:
   m_ObjectHideFlags: 0
@@ -19631,6 +19982,7 @@ GameObject:
   - component: {fileID: 1711727271}
   - component: {fileID: 1711727273}
   - component: {fileID: 1711727272}
+  - component: {fileID: 1711727274}
   m_Layer: 0
   m_Name: Phone
   m_TagString: Untagged
@@ -19710,6 +20062,19 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1711727270}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &1711727274
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711727270}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61e3a77b00d3c4622b8e1228f1c70d48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ShopPhone
+  reach: 1.8
 --- !u!1001 &1713678493
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -24037,3 +24402,7 @@ SceneRoots:
   - {fileID: 1140180731}
   - {fileID: 529454870}
   - {fileID: 444687866}
+  - {fileID: 168800814}
+  - {fileID: 508604621}
+  - {fileID: 981525090}
+  - {fileID: 886244751}
