@@ -13,12 +13,13 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 ## 목표
 
-- 이 기능 묶음이 끝나면 dev에서 무엇을 할 수 있는지 1~2줄.
+- 시작·로비의 기존 진행에 지정 줄타기·인간 대포를 연결하고 독립 실행을 유지한다.
 
 ## Tasks
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
+| Task-20261017-057 | feat | @MoHoDu | feat/performance-scene-link | - | assigned |
 
 ## 준비 브랜치
 
@@ -33,8 +34,14 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
+| Assets/Scripts/Systems/SpaceLink/SpaceRoute.cs | Task-20261017-057 | 묘기별 씬 선택 |
+| Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs | Task-20261017-057 | 공연 전환 |
+| Assets/Scripts/Systems/SpaceLink/CampaignPerformanceEntry.cs | Task-20261017-057 | 신규 연결 진입 |
+| Assets/Scripts/Systems/SpaceLink/CampaignTightropeAdapter.cs | Task-20261017-057 | 신규 줄타기 정산 |
+| Assets/Scripts/MainStage/Tightrope/Rope/TightropeRun.cs | Task-20261017-057 | 독립 정책 보존 hook |
 
 ## Decisions
 
 - Open: None
-- Decided: None
+- Decided: 2026-10-17 — PM 승인 계획으로 별도 연결 Task 하나 준비. 순차 gate/다른 작업자 실인계 없음. enhancement 브랜치 미수정.
+- Decided: 2026-10-17 — 준비 기록·빈 테스트 구역 최초 저장/push만 승인. 구현 코드 제출·병합 제외.
