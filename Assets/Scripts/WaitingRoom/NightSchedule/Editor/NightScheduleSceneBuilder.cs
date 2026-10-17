@@ -14,7 +14,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
     /// - 맵 확인용 PlaySetup을 끄고, 카메라는 CinemachineBrain + 공용 PlayerFollowCamera로 바꾼다(2·3단계 씬과 같다).
     /// - 3단계 상점·소지(상태·표시 오브젝트, ③ 수화기·배송구·④ 선반 컴포넌트)는 3단계 테스트 씬에서 그대로 복사한다.
     ///   3단계 코드를 직접 참조하지 않으려는 것이며, 3단계가 바뀌면 이 메뉴를 다시 실행한다.
-    /// - 밤 정비 때 대기실 문을 막는 `NightSchedule`(<see cref="NightDoorLock"/>)을 둔다.
+    /// - 대기실 문(공장식 롤링 셔터)과 밤 정비 때 셔터를 내리는 `NightSchedule`(<see cref="NightDoorLock"/>)을 둔다.
     /// - 스케줄표 상태 `ScheduleState`(<see cref="ScheduleBoard"/>), 로비 스케줄표 판의 <see cref="ScheduleBoardView"/>와 클로즈업 카메라를 둔다.
     /// - 접속 패널(공용)과 4단계 테스트 패널을 둔다.
     /// </summary>
@@ -34,9 +34,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
         /// <summary>스케줄표 판 가운데에서 클로즈업 카메라까지(그레이박스 기준, 판은 북쪽 벽이라 로비 쪽 -Z).</summary>
         static readonly Vector3 CloseUpOffset = new(0f, 0f, -1.7f);
 
-        /// <summary>그레이박스 기준 대기실 문(로비 ↔ ⑥) 가운데와 크기. 1단계 벽 W_x+10의 출입구와 같다.</summary>
-        static readonly Vector3 DoorCenter = new(10f, 1.5f, 0f);
-        static readonly Vector3 DoorSize = new(0.3f, 3f, 3f);
+        /// <summary>그레이박스 기준 대기실 문(로비 ↔ ⑥) 바닥 가운데. 1단계 벽 W_x+10의 출입구(폭 3·높이 3)와 같다.</summary>
+        static readonly Vector3 DoorBase = new(10f, 0f, 0f);
 
         /// <summary>3단계 씬에서 통째로 복사하는 루트 오브젝트.</summary>
         static readonly string[] ShopRoots = { "ShopStorage", "ShopStorageViews" };
@@ -147,7 +146,10 @@ namespace CurtainCall.WaitingRoom.EditorTools
         }
 
         /// <summary>
-        /// 밤 정비 때만 켜지는 잠긴 대기실 문. 1단계 그레이박스의 로비 동쪽 벽(x=10) 가운데 출입구(폭 3·높이 3)를 막는다.
+        /// 대기실 문: 공장식 롤링 셔터(수직 개폐). 1단계 그레이박스의 로비 동쪽 벽(x=10) 가운데 출입구(폭 3·높이 3) 로비 쪽에 단다.
+        /// 위 말림 통·노랑/검정 경고 줄무늬 가이드 기둥·골진 금속 셔터 판·하단 바·경고등. 셔터 판 묶음(`Shutter`)은 위쪽 끝이 기준점이라
+        /// 세로 크기를 줄이면 말려 올라간 모습이 된다(<see cref="NightDoorLock"/>가 밤에 내리고 아침에 올린다).
+        /// 좌표는 문 기준: x = 벽 두께 방향(-가 로비), y = 위, z = 출입구 폭 방향.
         /// </summary>
         static void SetUpNightDoor(Scene scene, GameObject greybox)
         {
@@ -158,20 +160,50 @@ namespace CurtainCall.WaitingRoom.EditorTools
             SceneManager.MoveGameObjectToScene(root, scene);
             Undo.RegisterCreatedObjectUndo(root, "Add " + NightRootName);
 
-            var door = new GameObject("NightDoor_Locked");
+            var door = new GameObject("WaitingRoomShutter");
             door.transform.SetParent(root.transform, false);
-            door.transform.SetPositionAndRotation(greybox.transform.TransformPoint(DoorCenter), greybox.transform.rotation);
+            door.transform.SetPositionAndRotation(greybox.transform.TransformPoint(DoorBase), greybox.transform.rotation);
+            var t = door.transform;
 
-            var blocker = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            blocker.name = "Blocker";
-            blocker.transform.SetParent(door.transform, false);
-            blocker.transform.localScale = DoorSize;
-            var doorMaterial = AssetDatabase.LoadAssetAtPath<Material>(MaterialFolder + "/GB_Door.mat");
-            if (doorMaterial != null) blocker.GetComponent<MeshRenderer>().sharedMaterial = doorMaterial;
+            const float face = -0.27f;              // 셔터 판이 지나는 면(벽 로비 쪽 면 앞)
+            const float width = 3.1f;               // 출입구(3m)보다 조금 넓게
+            const float height = 3f;                // 출입구 높이
+            const float halfPost = width / 2f + 0.12f;
 
+            // 위 말림 통(셔터가 감겨 들어가는 상자). 위쪽 "대기실 문 → ⑥" 표지(높이 3.6)를 가리지 않게 3.4까지만.
+            Part(t, "Housing", new Vector3(face - 0.05f, height + 0.2f, 0f), new Vector3(0.5f, 0.4f, width + 0.5f), "GB_Metal");
+            Part(t, "Housing_Band", new Vector3(face - 0.31f, height + 0.2f, 0f), new Vector3(0.02f, 0.1f, width + 0.5f), "GB_Gold");
+
+            // 가이드 기둥: 노랑·검정 경고 줄무늬(0.5m 마디)
+            for (int side = -1; side <= 1; side += 2)
+                for (int i = 0; i < 6; i++)
+                    Part(t, $"Post_{(side < 0 ? "L" : "R")}_{i}", new Vector3(face, 0.25f + i * 0.5f, side * halfPost),
+                        new Vector3(0.24f, 0.5f, 0.24f), i % 2 == 0 ? "GB_Gold" : "GB_Dark");
+
+            // 경고등(셔터가 움직일 때 깜박임)
+            var lamp = Part(t, "WarningLamp", new Vector3(face - 0.2f, height + 0.52f, halfPost - 0.1f), new Vector3(0.22f, 0.22f, 0.22f), "GB_Marker", PrimitiveType.Sphere);
+
+            // 셔터 판 묶음: 기준점 = 위쪽 끝. 골진 판 12장 + 판 사이 홈 + 하단 바. 충돌체는 묶음 하나로 통로 전체를 막는다.
+            var shutter = new GameObject("Shutter").transform;
+            shutter.SetParent(t, false);
+            shutter.localPosition = new Vector3(face, height, 0f);
+            const int slats = 12;
+            const float pitch = height / slats;
+            for (int i = 0; i < slats; i++)
+            {
+                float y = -(i + 0.5f) * pitch;
+                Part(shutter, $"Slat_{i:00}", new Vector3(i % 2 == 0 ? 0f : -0.02f, y, 0f), new Vector3(0.05f, pitch - 0.02f, width), "GB_Wall");
+                Part(shutter, $"Groove_{i:00}", new Vector3(-0.03f, y - pitch / 2f, 0f), new Vector3(0.04f, 0.03f, width), "GB_Metal");
+            }
+            Part(shutter, "BottomBar", new Vector3(-0.01f, -height + 0.05f, 0f), new Vector3(0.12f, 0.1f, width), "GB_Dark");
+            var block = shutter.gameObject.AddComponent<BoxCollider>();
+            block.center = new Vector3(0f, -height / 2f, 0f);
+            block.size = new Vector3(0.3f, height, width);
+
+            // 잠김 표지(셔터 판 로비 쪽 면, 밤에만)
             var sign = new GameObject("Sign_잠김");
-            sign.transform.SetParent(door.transform, false);
-            sign.transform.localPosition = new Vector3(-0.2f, 0.4f, 0f); // 로비 쪽 면
+            sign.transform.SetParent(t, false);
+            sign.transform.localPosition = new Vector3(face - 0.06f, 1.7f, 0f);
             sign.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
             var text = sign.AddComponent<TextMesh>();
             text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -182,13 +214,31 @@ namespace CurtainCall.WaitingRoom.EditorTools
             text.fontSize = 48;
             text.anchor = TextAnchor.MiddleCenter;
             text.alignment = TextAlignment.Center;
-            text.color = Color.white;
+            text.color = new Color(1f, 0.85f, 0.2f);
+            sign.SetActive(false);
 
-            door.SetActive(false);
             var doorLock = root.AddComponent<NightDoorLock>();
             var so = new SerializedObject(doorLock);
-            so.FindProperty("lockedDoor").objectReferenceValue = door;
+            so.FindProperty("shutter").objectReferenceValue = shutter;
+            so.FindProperty("lockedDoor").objectReferenceValue = sign;
+            so.FindProperty("warningLamp").objectReferenceValue = lamp.GetComponent<Renderer>();
             so.ApplyModifiedPropertiesWithoutUndo();
+            // 편집 화면에서는 열린(낮) 모습으로 둔다.
+            shutter.localScale = new Vector3(1f, so.FindProperty("openScale").floatValue, 1f);
+        }
+
+        /// <summary>그레이박스 재질을 입힌 도형 하나(충돌체 없음).</summary>
+        static GameObject Part(Transform parent, string name, Vector3 position, Vector3 size, string material, PrimitiveType shape = PrimitiveType.Cube)
+        {
+            var go = GameObject.CreatePrimitive(shape);
+            go.name = name;
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = position;
+            go.transform.localScale = size;
+            Object.DestroyImmediate(go.GetComponent<Collider>());
+            var mat = AssetDatabase.LoadAssetAtPath<Material>($"{MaterialFolder}/{material}.mat");
+            if (mat != null) go.GetComponent<MeshRenderer>().sharedMaterial = mat;
+            return go;
         }
 
         /// <summary>

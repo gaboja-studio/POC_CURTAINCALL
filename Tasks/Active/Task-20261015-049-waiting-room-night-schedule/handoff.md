@@ -4,7 +4,7 @@
 - 단계: working. plan 1~7단계 기능 구현 완료, AI 1인(호스트) Play 확인. 사람 확인·다인 동기화·4인 공동 테스트 전.
 - 동작하는 것(씬 `WaitingRoomNightSchedule.unity`, 메뉴 `Tools/CurtainCall/대기실/4단계 밤 정비 테스트 씬 구성`으로 재구성):
   - 4인 테스트 환경: 1단계 그레이박스 + 3단계 상점·소지(3단계 씬에서 복사) + 접속 패널 + 4단계 테스트 패널.
-  - `NightDoorLock`: 밤이면 대기실 문(로비↔⑥) 막힘·상단 안내, 아침에 열림.
+  - `NightDoorLock`: 대기실 문(로비↔⑥) = 공장식 롤링 셔터(도형, 서드파티에 셔터 모델 없음·Leartes 공장은 HDRP). 밤이면 2.5초 내려와 막힘·경고등 깜박임·잠김 표지·상단 안내, 아침에 말려 올라감.
   - `ScheduleBook`(Logic asmdef): 1일차 밤 2·3일차 → 확정 시 2일차 잠금, 2일차 밤 3일차 수정 → 잠금, 3일차 밤 4일차(실행 안 함), 중복 허용, 난도 = 출연 순번(상한 3).
   - `ScheduleBoard`(DontDestroyOnLoad): 호스트만 편집·확정, 참가자는 분할 전송 상태 수신, 확정 시 `SetSetlist`(2·3일차), 세대 교체·런 종료 시 초기화. `CanReady`/`RequestReady`: 호스트는 확정 전 준비 불가.
   - `ScheduleBoardView`: 로비 스케줄표 F → 클로즈업 카메라 + 플래너 창(임시 IMGUI), 준비 완료 버튼.
