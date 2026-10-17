@@ -20,10 +20,10 @@
 - 요청: 3단계가 씬에서만 고친 ③ 상점 배치(기둥 벽 넓힘 `Pillar` (8.39,2.5,-6.31)·크기 (1.59,5,1.79), `DeliverySlot` 수화기와 같은 벽 (7.53,0.76,-6.79) 회전 Y90, `Sign_배송구` (7.16,1.64,-6.38) 회전 Y90)를 1단계 `WaitingRoomGreyboxBuilder.BuildShop`에 반영(Task-046 구역). 그전까지 4단계 씬 구성 메뉴가 3단계 씬에서 복사. 참고: 메뉴 실행 때 `GB_Dark.mat` 소수점 churn → 매번 되돌림.
 - 공용 파일 요청: 없음.
 ## Verification
-- 구역 검사: OK (10-17)
-- 1 문서/규칙: 미실행(검사해줘 전)
-- 2 컴파일: PASS (에디터 재컴파일, 10-17)
-- 3 테스트: EditMode NightSchedule 14/14 PASS (10-17)
+- 구역 검사: PASS (10-17)
+- 1 문서/규칙: PASS (10-17)
+- 2 컴파일: PASS (10-17)
+- 3 테스트: FAIL — 테스트 오류 (10-17). PlayMode 46개 중 44 통과·2 실패 = 공용 `SpaceLinkPlayTests`(Single_FollowsPhasesAndKeepsRunState, Additive_KeepsHubAndSwapsSpaceScenes) — 1단계 #123의 대기실 장소(WaitingRoomBase)와 테스트 기대값(DummyWaitingRoom) 불일치, **이 Task와 무관한 기존 실패**(3단계와 동일, 2026-10-17 담당자 결정: PR 본문에 적고 PM에게 알림). 이 Task EditMode 14/14.
 - 4 실행 로그: AI 1인 LAN 호스트(개발자 모드 임시) — 위 동작 전부 확인, 새 오류 없음(콘솔 오류는 에디터 브리지 명령 오류만). F는 장치 이벤트로 확인, 칸 선택·확정·준비는 같은 진입점(`ScheduleBoard.Set/Confirm/RequestReady`) 호출. IMGUI 합성 클릭은 테스트 패널 1회·칸 1회만 반영되고 나머지 누락(도구 한계) → 버튼 클릭은 사람 확인.
 - 10-17 2차 Play에서 고친 것: 낮은 화면(553px)에서 창 아래 버튼 잘림 → 창 높이 화면 맞춤·일정 스크롤, 창 열린 동안 4단계 패널 숨김, 클로즈업 때 내 캐릭터가 판을 가림 → 내 화면에서만 캐릭터 숨김(닫으면 복구 확인).
 - 5 공동 테스트: 미요청
