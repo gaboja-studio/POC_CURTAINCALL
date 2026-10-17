@@ -12,7 +12,7 @@
 - `Assets/Scripts/Systems/Network/Session/LanSessionConnector.cs` — 직접 IP(LAN) 테스트 경로. 기본 포트 7777.
 - `Assets/Scripts/Systems/Network/Session/GameSessionState.cs`, `SessionConnectionState.cs` — 게임 상태 / 내 접속 상태 enum.
 - `Assets/Scripts/Systems/Network/Session/GameSessionStateSync.cs` — 게임 상태·인원 복제용 NetworkBehaviour(내부용).
-- `Assets/Scripts/Systems/Network/Session/NetworkSessionTestUI.cs` — 테스트 씬 전용 IMGUI. 진짜 로비 UI가 생기면 삭제. SpaceLink 시작 씬은 Canvas(`SpaceLinkHubCanvas`)로 대체(2026-10-16).
+- `Assets/Scripts/Systems/Network/Session/NetworkSessionTestUI.cs` — 테스트 씬 전용 IMGUI. 실제 시작·로비 씬은 [시작·로비](start-lobby.md)(Task-052)가 쓰고, 이 IMGUI는 테스트 씬용으로만 남는다. SpaceLink 시작 씬은 Canvas(`SpaceLinkHubCanvas`)로 대체(2026-10-16).
 - `Assets/Resources/Prefabs/Controllers/Network/NetworkManager.prefab` — NetworkManager + UnityTransport + NetworkSessionManager(Required Players 기본 4).
 - `Assets/Resources/Prefabs/Controllers/Network/GameSession.prefab` — NetworkObject + GameSessionStateSync. 호스트가 방을 열 때 스폰.
 - `Assets/Resources/Prefabs/Controllers/Network/DefaultNetworkPrefabs.asset` — 네트워크 프리팹 목록.
@@ -29,6 +29,7 @@ await session.HostLanAsync() / JoinLanAsync("IP:포트");  // LAN 테스트
 await session.LeaveAsync();                // 나가기(호스트면 방 닫기)
 session.StartGame();                       // 호스트 전용: 최소 인원 이상이면 대기 → 진행(세션 잠금)
 session.EndGame();                         // 호스트 전용: 진행 → 종료
+session.ReturnToLobby();                   // 호스트 전용: 종료 → 대기(로비 복귀, 세션 잠금 해제, Task-052)
 
 session.GameStateChanged += state => { ... };   // Waiting / Playing / Ended
 session.PlayerCountChanged += count => { ... };
@@ -44,6 +45,8 @@ session.Disconnected += reason => { ... };      // 종료 이유 문구
 - 정원(`RequiredPlayers`, 4)이 차도 자동 시작하지 않는다. 최소 인원(`MinPlayers`, 테스트 1) 이상이면 호스트가 `StartGame()`(테스트 UI "게임 시작" 버튼)으로 `Playing`으로 바꾸고 세션을 잠근다(2026-10-03, 005).
 - 진행 중 클라이언트가 나가면 남은 인원으로 계속하고, 진행 중 참가는 접속 승인에서 거절한다. 인원이 차면 "방이 가득 찼습니다."로 거절한다.
 - 호스트가 나가면 클라이언트는 연결이 끊기고, 진행 중이었으면 로컬 `GameState`가 `Ended`가 된다.
+- 런이 끝나 로비로 돌아온 뒤 호스트가 `ReturnToLobby()`(로비 커튼 레버)를 부르면 같은 방이 `Waiting`으로 돌아가 다시 참가·시작할 수 있다. 런 진행(`CampaignRun`)은 `Waiting`을 받아 런 전으로 비운다(2026-10-16, Task-052).
+- 실제 시작·로비 화면은 [시작·로비](start-lobby.md)가 이 진입점을 쓴다.
 - 익명 로그인은 실행마다 다른 프로필을 쓴다(같은 PC의 MPPM 플레이어 구분).
 
 ## 의존 도메인
@@ -58,4 +61,4 @@ session.Disconnected += reason => { ... };      // 종료 이유 문구
 - 게임 상태는 **호스트만** 바꾼다. 클라이언트는 이벤트로만 받는다. `GameSessionStateSync`를 직접 쓰지 않는다.
 - 플레이어 프리팹(`NetworkConfig.PlayerPrefab`) 지정은 NetworkManager 프리팹 수정이다. 공용 파일 담당 배정을 받은 뒤 한다(2026-10-02 007에 배정). 지정되면 접속 승인 시 자동 생성된다.
 - 새 네트워크 프리팹은 `DefaultNetworkPrefabs`에 등록한다(보통 Unity가 자동 등록). 프리팹을 Resources 경로에서 옮기면 `NetworkSessionManager`의 경로 상수도 고친다.
-- 미구현: 씬 전환(NGO SceneManager), 재시작 후 대기 복귀, 로비 검색(`QuerySessionsAsync`는 별도 인터페이스로 추가 예정), 호스트 이전.
+- 미구현: 로비 검색(`QuerySessionsAsync`는 별도 인터페이스로 추가 예정), 호스트 이전.

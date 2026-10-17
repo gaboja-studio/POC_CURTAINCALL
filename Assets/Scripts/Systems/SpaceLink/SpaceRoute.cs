@@ -33,11 +33,14 @@ namespace CurtainCall.SpaceLink
             }
         }
 
-        public static string SceneName(SpaceId space, BaseGameSettings.SpaceTransitionSettings settings)
+        public static string SceneName(SpaceId space, BaseGameSettings.SpaceTransitionSettings settings, string trickId = null)
         {
             switch (space)
             {
-                case SpaceId.Performance: return settings.PerformanceScene;
+                case SpaceId.Performance:
+                    if (trickId == "Tightrope" && !string.IsNullOrWhiteSpace(settings.TightropeScene)) return settings.TightropeScene;
+                    if (trickId == "HumanCannon" && !string.IsNullOrWhiteSpace(settings.HumanCannonScene)) return settings.HumanCannonScene;
+                    return settings.PerformanceScene;
                 case SpaceId.WaitingRoom: return settings.WaitingRoomScene;
                 case SpaceId.Exploration: return settings.ExplorationScene;
                 case SpaceId.EscapeRoute: return settings.EscapeRouteScene;
@@ -48,6 +51,12 @@ namespace CurtainCall.SpaceLink
         /// <summary>씬 이름에 해당하는 장소. 장소 씬이 아니면 false.</summary>
         public static bool TryFind(string sceneName, BaseGameSettings.SpaceTransitionSettings settings, out SpaceId space)
         {
+            if (!string.IsNullOrWhiteSpace(sceneName)
+                && (sceneName == settings.TightropeScene || sceneName == settings.HumanCannonScene))
+            {
+                space = SpaceId.Performance;
+                return true;
+            }
             for (var id = SpaceId.Hub; id <= SpaceId.EscapeRoute; id++)
             {
                 if (SceneName(id, settings) != sceneName) continue;
