@@ -2,33 +2,30 @@
 
 ## 병합 결과
 
-| 순서 | Task | PR | 결과 | 비고(충돌 등) |
-|---|---|---|---|---|
+- 이 통합은 cancelled 유지. 단일 fix는 [PR #146](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/146)으로 dev 직접 반영됐다(2e9372a, 2026-10-16T17:50:18Z).
+- 10-17 사용자 기록 정리 요청으로 Task 053을 Done 보관했다. 이전 로컬 마감 커밋 42c4e9b와 원래 브랜치는 보존한다.
 
 ## 공동 테스트
 
-- 일시: 미실행
-- 참여: 미실행
-- 결과: 미실행
+- 일시/참여/결과: 미실행. 자동 회귀를 공동 테스트로 대체하지 않는다.
 
-## 로컬 구현 검증 (2026-10-17)
+## 구현 검증 이력
 
-- Task 053 A 구현 완료, 미커밋/미push/PR 없음. 운영 HEAD·gitlink·private clean 유지.
-- 작은 Git/LFS 안전 전환 24 cases, workspace-flow 24 checks(전환 mock), scope 25 cases PASS.
-- 로컬 통합 기준 구역·문서·컴파일 PASS, Unity EditMode 406/406 PASS.
-- check-work 기본 실행은 원격 통합 브랜치 미게시로 구역 FAIL, 후속 단계 SKIPPED. 기존 옵션의 로컬 기준으로 개별 검사했으며 gate 변경 없음.
+- 격리 안전 전환24·workspace24·에셋구역25 PASS, 컴파일·EditMode406/406 PASS.
+- 초기 check-work는 원격 통합 미게시로 구역 FAIL·후속 SKIPPED였으나, 이후 dev 직접 제출 기준 check-work가 PASS했다. 당시 실패도 보존한다.
+- 최신 055·056 후속 수정까지 포함한 제출 커밋 9c5a0f3의 온라인 검사 전체 PASS(39003682288).
 
 ## 남은 이슈
 
-- 2026-10-17 저장 요청·경로 판단 위임으로 별도 통합 취소. Task 053은 dev 직접 PR 대상이며 fix 브랜치에만 저장한다. 원격 통합 준비는 하지 않는다.
-- private 바이너리 씬 속성 실적용 및 B/C는 별도 승인 후 진행.
-- 실제 새 worktree E2E·팀 공동 테스트 미실행.
+- B 도구 구현도 #147로 dev 반영 완료. 실제 부모→자식 전달·CI E2E·C는 별도 단계로 미실행.
+- private 바이너리 씬 속성 실적용·새 worktree E2E·팀 공동 테스트는 미실행이다.
 
 ## 테스트 씬 처리
 
-- Unity 씬 변경 없음.
+- 불필요 — Unity 씬 변경 없음.
 
 ## 정리
 
-- [ ] dev 병합 완료
-- [ ] 브랜치와 기록 마감
+- [x] Task 053 dev 직접 병합 확인·Done 보관
+- 기록 변경의 저장·원격 제출 상태는 Integration-merged-task-records/result.md 참조.
+- 취소된 통합 폴더·브랜치는 이력으로 보존. 원격 통합 생성·브랜치 삭제·close-integration 실행 없음.

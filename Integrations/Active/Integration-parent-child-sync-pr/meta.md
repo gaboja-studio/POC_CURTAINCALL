@@ -17,7 +17,7 @@
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261017-054 | fix | @MoHoDu | fix/parent-child-sync-pr | [#147](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/147) | submitted (리뷰·CI 대기) |
+| Task-20261017-054 | fix | @MoHoDu | fix/parent-child-sync-pr | [#147](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/147) | done (dev 병합·Done 보관), 실제 전달 검증 미실행 |
 
 ## 공용 파일 소유 표
 
