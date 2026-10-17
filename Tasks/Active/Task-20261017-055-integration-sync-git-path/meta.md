@@ -2,7 +2,7 @@
 
 - **Title:** Ubuntu CI Git 실행 경로 단일 선택
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** assets-structure
 - **Current Skill:** submit-work
