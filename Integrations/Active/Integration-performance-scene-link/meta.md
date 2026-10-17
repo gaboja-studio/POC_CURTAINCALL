@@ -19,7 +19,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261017-057 | feat | @MoHoDu | feat/performance-scene-link | - | assigned |
+| Task-20261017-057 | feat | @MoHoDu | feat/performance-scene-link | #153 | submitted |
+| Task-20261017-058 | fix | @MoHoDu | fix/performance-revival-race | - | assigned |
 
 ## 준비 브랜치
 
@@ -36,12 +37,17 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 |---|---|---|
 | Assets/Scripts/Systems/SpaceLink/SpaceRoute.cs | Task-20261017-057 | 묘기별 씬 선택 |
 | Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs | Task-20261017-057 | 공연 전환 |
-| Assets/Scripts/Systems/SpaceLink/CampaignPerformanceEntry.cs | Task-20261017-057 | 신규 연결 진입 |
+| Assets/Scripts/Systems/SpaceLink/CampaignPerformanceEntry.cs | Task-20261017-058 | 2026-10-17 057 병합 후 이관 — 배치 재시도 |
 | Assets/Scripts/Systems/SpaceLink/CampaignTightropeAdapter.cs | Task-20261017-057 | 신규 줄타기 정산 |
-| Assets/Scripts/MainStage/Tightrope/Rope/TightropeRun.cs | Task-20261017-057 | 독립 정책 보존 hook |
+| Assets/Scripts/MainStage/Tightrope/Rope/TightropeRun.cs | Task-20261017-058 | 2026-10-17 057 병합 후 이관 — 종료 공연 판정 |
+| Assets/Scripts/MainStage/Tightrope/Rope/TightropeCourse.cs | Task-20261017-058 | 종료 공연 로컬 추락 판정 |
+| Assets/Scripts/MainStage/Tightrope/Rider/RopeLaneJumpRules.cs | Task-20261017-058 | 순간이동 착지 오인 |
+| Assets/Scripts/Systems/Player/PlayerMover.cs | Task-20261017-058 | 순간이동 착지 알림 순서 |
+| Assets/Scripts/Systems/Network/PlayerSync/NetworkPlayer.cs | Task-20261017-058 | 확정 사망 역송 |
 
 ## Decisions
 
 - Open: None
 - Decided: 2026-10-17 — PM 승인 계획으로 별도 연결 Task 하나 준비. 순차 gate/다른 작업자 실인계 없음. enhancement 브랜치 미수정.
+- Decided: 2026-10-17 — 실제 2인 FAIL(부활 후 대포에서 P2 사망)로 PM 본인 수정 Task058 준비. 겹치는 파일은 057에서 반환·이관. 통합 마감·dev 반영·enhancement 전달 보류.
 - Decided: 2026-10-17 — 준비 기록·빈 테스트 구역 최초 저장/push만 승인. 구현 코드 제출·병합 제외.
