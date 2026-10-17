@@ -12,7 +12,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
     /// 4단계 테스트 씬(밤 정비·스케줄표)을 4인 접속으로 확인할 수 있게 구성한다. 다시 실행해도 같은 결과가 된다.
     /// - 1단계 그레이박스가 없으면 1단계 메뉴로 만든다.
     /// - 맵 확인용 PlaySetup을 끄고, 카메라는 CinemachineBrain + 공용 PlayerFollowCamera로 바꾼다(2·3단계 씬과 같다).
-    /// - 3단계 상점·소지(상태·표시 오브젝트, ③ 수화기·배송구·④ 선반 컴포넌트)는 3단계 테스트 씬에서 그대로 복사한다.
+    /// - 3단계 상점·소지(상태·표시 오브젝트, ③ 수화기·배송구·④ 선반 컴포넌트)와 ③·④ 공간 배치(3단계에서 넓힌 상점 벽, 수화기와 같은 벽의 배송구 등)는 3단계 테스트 씬에서 그대로 복사한다.
     ///   3단계 코드를 직접 참조하지 않으려는 것이며, 3단계가 바뀌면 이 메뉴를 다시 실행한다.
     /// - 대기실 문(공장식 롤링 셔터)과 밤 정비 때 셔터를 내리는 `NightSchedule`(<see cref="NightDoorLock"/>)을 둔다.
     /// - 스케줄표 상태 `ScheduleState`(<see cref="ScheduleBoard"/>), 로비 스케줄표 판의 <see cref="ScheduleBoardView"/>와 클로즈업 카메라를 둔다.
@@ -39,6 +39,9 @@ namespace CurtainCall.WaitingRoom.EditorTools
 
         /// <summary>3단계 씬에서 통째로 복사하는 루트 오브젝트.</summary>
         static readonly string[] ShopRoots = { "ShopStorage", "ShopStorageViews" };
+
+        /// <summary>3단계 씬의 배치(위치·크기·회전)를 그대로 가져오는 공간. 3단계가 상점 벽·배송구를 기획서대로 손봤다.</summary>
+        static readonly string[] ShopRooms = { "S03_Shop", "S04_PropRoom" };
 
         /// <summary>그레이박스 안 같은 경로에 3단계 컴포넌트만 복사해 붙이는 오브젝트.</summary>
         static readonly string[] ShopFixtures = { "S03_Shop/Phone", "S03_Shop/DeliverySlot", "S04_PropRoom/HandoverShelf_4Tier" };
@@ -115,6 +118,15 @@ namespace CurtainCall.WaitingRoom.EditorTools
                     Undo.RegisterCreatedObjectUndo(copy, "Copy " + name);
                 }
 
+                // 3단계 씬에서 손본 배치(상점 벽 넓힘·배송구를 수화기와 같은 벽으로 등)는 1단계 생성 코드에 없으므로 그대로 가져온다.
+                foreach (var room in ShopRooms)
+                {
+                    var from = sourceGreybox.transform.Find(room);
+                    var to = greybox.transform.Find(room);
+                    if (from == null || to == null) { Debug.LogError($"[NightSchedule] {room} 없음(3단계 씬 또는 그레이박스)"); return false; }
+                    CopyLayout(from, to);
+                }
+
                 foreach (var path in ShopFixtures)
                 {
                     var from = sourceGreybox.transform.Find(path);
@@ -129,6 +141,30 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 EditorSceneManager.CloseScene(source, true); // 3단계 씬은 열어 보기만 하고 저장하지 않는다.
                 SceneManager.SetActiveScene(scene);
             }
+        }
+
+        /// <summary>
+        /// 같은 이름 경로의 자식끼리 위치·회전·크기·켜짐을 3단계 씬 값으로 맞춘다. 한쪽에만 있는 오브젝트는 건드리지 않고 알린다.
+        /// </summary>
+        static void CopyLayout(Transform from, Transform to)
+        {
+            int changed = 0;
+            foreach (Transform source in from)
+            {
+                var target = to.Find(source.name);
+                if (target == null) { Debug.LogWarning($"[NightSchedule] 4단계 그레이박스에 {source.name} 없음 — 배치를 가져오지 못했습니다."); continue; }
+                if (target.localPosition != source.localPosition || target.localRotation != source.localRotation
+                    || target.localScale != source.localScale || target.gameObject.activeSelf != source.gameObject.activeSelf)
+                {
+                    Undo.RecordObject(target, "Copy layout " + source.name);
+                    target.SetLocalPositionAndRotation(source.localPosition, source.localRotation);
+                    target.localScale = source.localScale;
+                    if (target.gameObject.activeSelf != source.gameObject.activeSelf) target.gameObject.SetActive(source.gameObject.activeSelf);
+                    changed++;
+                }
+                if (source.childCount > 0) CopyLayout(source, target);
+            }
+            if (changed > 0) Debug.Log($"[NightSchedule] {from.name}: 3단계 씬 배치 {changed}개를 가져왔습니다.");
         }
 
         /// <summary>도형(Transform·Mesh·Collider) 밖의 컴포넌트를 같은 종류끼리 덮어쓰거나 새로 붙인다.</summary>
