@@ -2,7 +2,7 @@
 
 - **Title:** 대기실 4단계 — 밤 정비와 스케줄표
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:** common-game-systems
 - **Current Skill:** start-work
