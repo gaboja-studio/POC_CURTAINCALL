@@ -1,3 +1,4 @@
+using CurtainCall.Cameras;
 using CurtainCall.LevelPreview;
 using CurtainCall.Network.Session;
 using Unity.Cinemachine;
@@ -16,7 +17,9 @@ namespace CurtainCall.WaitingRoom.EditorTools
     /// - 맵 확인용 PlaySetup을 끄고, 카메라는 CinemachineBrain + 공용 PlayerFollowCamera로 바꾼다(2~4단계 씬과 같다).
     /// - 5단계: 서비스 상태 `ExpertService`(<see cref="ExpertService"/>), ⑧ 문·입구·표지·소리(<see cref="ExpertRoomView"/>),
     ///   방 안 황금빛 조명, ③ 수화기 옆 서비스 칸(<see cref="ExpertServicePhonePanel"/>)을 둔다. ⑧ 문 자리에는 늘 켜진 보이지 않는 막을 세워 걸어서는 못 들어가게 한다.
-    /// - 접속 패널(공용), 밤까지 건너뛰는 4단계 테스트 패널, 5단계 테스트 패널을 둔다.
+    /// - 테스트 씬 전용 마우스 시점: 대기실 전체를 덮는 공용 <see cref="CameraViewZone"/>에 공용 `FreeThirdPerson` 시점을 건다
+    ///   (3인칭 비고정 — 왼쪽 클릭으로 커서를 잠그면 마우스로 화면을 돌린다). 공용 카메라 코드·설정은 고치지 않는다.
+    /// - 접속 패널(공용), 밤까지 건너뛰는 4단계 테스트 패널, 5단계 테스트 패널, 4인 AI 사전 점검용 자동 참가자(가상 플레이어 창 전용)를 둔다.
     /// </summary>
     public static class ExpertServiceSceneBuilder
     {
@@ -28,6 +31,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
         const string ExpertRoomPath = "S08_ExpertRoom";
         const string DoorName = "ExpertRoomDoor_Closed";
         const string PhonePath = "S03_Shop/Phone";
+        const string MouseLookName = "ExpertServiceMouseLook";
+        const string FreeLookPreset = "Assets/Resources/Settings/Camera/FreeThirdPerson.asset";
 
         /// <summary>문 가운데에서 방 안(+X, 구매자가 들어가 서는 곳)·문 앞 로비(-X, 다시 나타나는 곳)까지.</summary>
         const float InsideOffset = 1.6f, OutsideOffset = 1.4f;
@@ -52,6 +57,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             SetUpCamera(scene);
             if (!CopyFromNightScene(scene)) return;
             if (!SetUpExpertRoom(scene)) return;
+            SetUpMouseLook(scene);
             SetUpPanels(scene);
 
             EditorSceneManager.MarkSceneDirty(scene);
@@ -127,7 +133,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Undo.RegisterCreatedObjectUndo(service, "Add " + ServiceName);
             service.AddComponent<ExpertService>();
 
-            foreach (var name in new[] { "ExpertRoomBarrier", "ExpertRoomInside", "ExpertRoomOutside", "ExpertRoomSign", "ExpertRoomSound", "ExpertRoomGlow" })
+            foreach (var name in new[] { "ExpertRoomBarrier", "ExpertRoomInside", "ExpertRoomOutside", "ExpertRoomSign", "ExpertRoomSound", "ExpertRoomGlow", "ExpertRoomCurtain" })
             {
                 var old = room.Find(name);
                 if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
@@ -187,9 +193,22 @@ namespace CurtainCall.WaitingRoom.EditorTools
             glow.enabled = false;
             Undo.RegisterCreatedObjectUndo(glowObject, "Add ExpertRoomGlow");
 
+            // 붉은 커튼(기획서 3.3.1 8번 비고): 1단계의 한 장짜리 문 대신 좌우 두 장. 1단계 문은 이 씬에서만 끈다(막은 위 ExpertRoomBarrier).
+            Undo.RecordObject(door.gameObject, "Hide 1단계 door");
+            door.gameObject.SetActive(false);
+            var curtain = new GameObject("ExpertRoomCurtain").transform;
+            curtain.SetParent(room, false);
+            curtain.SetPositionAndRotation(door.position, Quaternion.LookRotation(right)); // 로컬 X = 커튼 폭 방향, Z = 방 안쪽
+            Undo.RegisterCreatedObjectUndo(curtain.gameObject, "Add ExpertRoomCurtain");
+            float width = door.localScale.z, height = door.localScale.y, thick = door.localScale.x;
+            var curtainMaterial = door.GetComponent<MeshRenderer>() != null ? door.GetComponent<MeshRenderer>().sharedMaterial : null;
+            var left = CurtainHalf(curtain, "Curtain_L", -width / 4f, width / 2f, height, thick, curtainMaterial);
+            var rightHalf = CurtainHalf(curtain, "Curtain_R", width / 4f, width / 2f, height, thick, curtainMaterial);
+
             var view = Undo.AddComponent<ExpertRoomView>(room.gameObject);
             var so = new SerializedObject(view);
-            so.FindProperty("door").objectReferenceValue = door;
+            so.FindProperty("curtainLeft").objectReferenceValue = left;
+            so.FindProperty("curtainRight").objectReferenceValue = rightHalf;
             so.FindProperty("inside").objectReferenceValue = inside;
             so.FindProperty("outside").objectReferenceValue = outside;
             so.FindProperty("sign").objectReferenceValue = sign;
@@ -199,6 +218,48 @@ namespace CurtainCall.WaitingRoom.EditorTools
 
             if (!phone.TryGetComponent<ExpertServicePhonePanel>(out _)) Undo.AddComponent<ExpertServicePhonePanel>(phone.gameObject);
             return true;
+        }
+
+        /// <summary>대기실 그레이박스 전체(높이 넉넉히)를 덮는 시점 구역. 들어와 있는 동안 마우스 시점(3인칭 비고정)을 요청한다.</summary>
+        static void SetUpMouseLook(Scene scene)
+        {
+            var old = FindRoot(scene, MouseLookName);
+            if (old != null) Undo.DestroyObjectImmediate(old);
+            var preset = AssetDatabase.LoadAssetAtPath<CameraViewPreset>(FreeLookPreset);
+            var greybox = FindRoot(scene, "WaitingRoomGreybox");
+            if (preset == null || greybox == null) { Debug.LogError($"[ExpertService] {FreeLookPreset} 또는 그레이박스 없음 — 마우스 시점을 두지 못했습니다."); return; }
+
+            var bounds = new Bounds(greybox.transform.position, Vector3.zero);
+            foreach (var renderer in greybox.GetComponentsInChildren<Renderer>()) bounds.Encapsulate(renderer.bounds);
+            bounds.Expand(new Vector3(2f, 6f, 2f));
+
+            var zone = new GameObject(MouseLookName);
+            SceneManager.MoveGameObjectToScene(zone, scene);
+            zone.transform.position = bounds.center;
+            var box = zone.AddComponent<BoxCollider>();
+            box.isTrigger = true;
+            box.size = bounds.size;
+            var body = zone.AddComponent<Rigidbody>();
+            body.isKinematic = true;
+            body.useGravity = false;
+            var view = zone.AddComponent<CameraViewZone>();
+            var so = new SerializedObject(view);
+            so.FindProperty("preset").objectReferenceValue = preset;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            Undo.RegisterCreatedObjectUndo(zone, "Add " + MouseLookName);
+        }
+
+        /// <summary>커튼 한쪽. 기준점이 가운데라 크기를 줄이면 제자리에서 주름져 좁아진다(충돌체 없음).</summary>
+        static Transform CurtainHalf(Transform parent, string name, float x, float width, float height, float thick, Material material)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = name;
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = new Vector3(x, 0f, 0f);
+            go.transform.localScale = new Vector3(width, height, thick);
+            Object.DestroyImmediate(go.GetComponent<Collider>());
+            if (material != null) go.GetComponent<MeshRenderer>().sharedMaterial = material;
+            return go.transform;
         }
 
         static Vector3 Flat(Vector3 v) => new(v.x, 0f, v.z);
@@ -224,6 +285,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
             if (!panels.TryGetComponent<NetworkSessionTestUI>(out _)) Undo.AddComponent<NetworkSessionTestUI>(panels);
             if (!panels.TryGetComponent<NightScheduleTestUI>(out _)) Undo.AddComponent<NightScheduleTestUI>(panels);
             if (!panels.TryGetComponent<ExpertServiceTestUI>(out _)) Undo.AddComponent<ExpertServiceTestUI>(panels);
+            // 4인 AI 사전 점검용 자동 참가자(MPPM 가상 플레이어 창에서만 움직인다)
+            if (!panels.TryGetComponent<ExpertServiceBot>(out _)) Undo.AddComponent<ExpertServiceBot>(panels);
         }
 
         static GameObject FindRoot(Scene scene, string name)

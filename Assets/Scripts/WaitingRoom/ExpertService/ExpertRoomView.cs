@@ -5,43 +5,61 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// ⑧ 전문가 대기실 화면 표시(각 화면이 <see cref="ExpertService"/> 상태를 보고 똑같이 그린다).
-    /// - 문: 예약·퇴실 때 위로 열리고, 비었거나 이용 중이면 닫힌다. 문 자리의 보이지 않는 막이 늘 통로를 막아 걸어서는 못 들어간다.
-    /// - 입구 F: 구매자만 안내가 뜨고 누르면 들어간다(다른 사람은 "구매자만" 안내). 들어가면 방 안으로, 복구가 끝나면 문 앞으로 순간이동한다.
-    /// - 쇠붙이 소리: 문이 닫혀 이용이 시작될 때와 복구가 끝날 때.
-    /// - 문 위 표지: 오늘 담당·이용 상태("담당자 부재중" 포함).
-    /// - 황금빛: 문이 열린 만큼 방 안 조명이 밝아져 문틈으로 새어 나온다(space-layout #8 "커튼 열림·황금빛 연출").
+    /// ⑧ 전문가 대기실 화면 표시(각 화면이 <see cref="ExpertService"/> 상태와 구매자 위치를 보고 똑같이 그린다).
+    /// 기준: 대기실 2차 기획서 3.3.1 8번 비고("붉은 커튼에 도착하면 커튼이 좌우로 열리면서 황금빛이 쏟아지는 연출"), 4.2.3.2 이용 방식.
+    /// - 붉은 커튼: 구매자가 커튼 앞에 오면 좌우로 열리고(예약 중), 들어가면 닫히고(이용 중), 복구가 끝나면 다시 열린다(퇴실).
+    ///   커튼 자리의 보이지 않는 막이 늘 통로를 막아 걸어서는 못 들어간다. 구매자 위치는 공용 위치 동기화 값이라 모든 화면이 같게 연다.
+    /// - 황금빛: 커튼이 열린 만큼 방 안 조명이 밝아져 쏟아져 나온다.
+    /// - 커튼 앞 F: 구매자(예약 중)만 들어간다. 다른 경우에는 들어가지 않고 이유만 안내한다.
+    /// - 쇠붙이 소리: 커튼이 닫혀 이용이 시작될 때와 복구가 끝날 때.
+    /// - 커튼 위 표지: 오늘 담당·이용 상태("담당자 부재중" 포함).
     /// </summary>
     public sealed class ExpertRoomView : MonoBehaviour, IShopTarget
     {
-        [SerializeField] Transform door;
+        [SerializeField] Transform curtainLeft;
+        [SerializeField] Transform curtainRight;
         [SerializeField] Transform inside;
         [SerializeField] Transform outside;
         [SerializeField] TextMesh sign;
         [SerializeField] AudioSource sound;
         [SerializeField] Light glow;
 
-        [Tooltip("문이 다 열렸을 때 방 안 황금빛 조명 밝기.")]
-        [SerializeField, Min(0f)] float glowIntensity = 6f;
+        [Tooltip("커튼이 다 열렸을 때 한쪽이 옆으로 비키는 거리(m).")]
+        [SerializeField, Min(.1f)] float slide = .85f;
 
-        [Tooltip("문이 열릴 때 올라가는 높이(m).")]
-        [SerializeField, Min(.5f)] float openLift = 2.8f;
+        [Tooltip("다 열렸을 때 커튼 한쪽 폭 비율(주름져 모인 모습).")]
+        [SerializeField, Range(.1f, 1f)] float bunched = .25f;
 
-        [Tooltip("문이 열리고 닫히는 속도(m/초).")]
-        [SerializeField, Min(.5f)] float doorSpeed = 4f;
+        [Tooltip("커튼이 열리고 닫히는 속도(초당 0~1).")]
+        [SerializeField, Min(.1f)] float curtainSpeed = 1.6f;
 
-        [Tooltip("입구 F가 닿는 수평 거리(m).")]
+        [Tooltip("구매자가 이 거리(m, 수평) 안에 오면 커튼이 열린다.")]
+        [SerializeField, Min(.5f)] float arriveDistance = 2.5f;
+
+        [Tooltip("커튼 앞 F가 닿는 수평 거리(m).")]
         [SerializeField, Min(.5f)] float reach = 2f;
 
-        Vector3 closedPosition;
+        [Tooltip("커튼이 다 열렸을 때 방 안 황금빛 조명 밝기.")]
+        [SerializeField, Min(0f)] float glowIntensity = 6f;
+
+        Vector3 leftClosed, rightClosed, leftScale, rightScale;
+        float open;
+
+        /// <summary>커튼이 열린 정도(0 닫힘 ~ 1 다 열림). 테스트 확인용.</summary>
+        public float CurtainOpen => open;
+
+        /// <summary>그 위치(발)가 커튼 앞 F 거리 안인지.</summary>
+        public bool InReach(Vector3 feet) => FlatDistance(feet) <= reach;
         ExpertService bound;
         AudioClip clank;
         string signText;
 
         void Awake()
         {
-            if (door != null) closedPosition = door.localPosition;
+            if (curtainLeft != null) { leftClosed = curtainLeft.localPosition; leftScale = curtainLeft.localScale; }
+            if (curtainRight != null) { rightClosed = curtainRight.localPosition; rightScale = curtainRight.localScale; }
             clank = MakeClank();
+            ApplyCurtain(0f);
         }
 
         void OnEnable() => ShopReach.Add(this);
@@ -59,14 +77,46 @@ namespace CurtainCall.WaitingRoom
             if (service != bound) Bind(service);
             if (service == null) return;
 
-            bool open = service.Phase is ExpertRoomPhase.Booked or ExpertRoomPhase.Exiting;
-            if (door != null)
-            {
-                var target = closedPosition + (open ? Vector3.up * openLift : Vector3.zero);
-                door.localPosition = Vector3.MoveTowards(door.localPosition, target, doorSpeed * Time.deltaTime);
-                UpdateGlow(Mathf.Clamp01((door.localPosition.y - closedPosition.y) / openLift));
-            }
+            float target = ShouldOpen(service) ? 1f : 0f;
+            open = Mathf.MoveTowards(open, target, curtainSpeed * Time.deltaTime);
+            ApplyCurtain(open);
             UpdateSign(service);
+        }
+
+        bool ShouldOpen(ExpertService service) => service.Phase switch
+        {
+            ExpertRoomPhase.Booked => BuyerArrived(service.Buyer),
+            ExpertRoomPhase.Exiting => true,
+            _ => false,
+        };
+
+        // 구매자가 커튼 앞에 왔는지. 모든 화면이 같은 동기화 위치로 판단한다.
+        bool BuyerArrived(ulong buyer)
+        {
+            foreach (var player in NetworkPlayer.All)
+                if (player.IsSpawned && player.OwnerClientId == buyer) return FlatDistance(player.transform.position) <= arriveDistance;
+            return false;
+        }
+
+        // 좌우 커튼: 열린 만큼 옆으로 비키며 주름져 좁아진다. 황금빛도 같은 만큼 밝힌다.
+        void ApplyCurtain(float t)
+        {
+            float eased = Mathf.SmoothStep(0f, 1f, t);
+            if (curtainLeft != null)
+            {
+                curtainLeft.localPosition = leftClosed + Vector3.left * (slide * eased);
+                curtainLeft.localScale = new Vector3(leftScale.x * Mathf.Lerp(1f, bunched, eased), leftScale.y, leftScale.z);
+            }
+            if (curtainRight != null)
+            {
+                curtainRight.localPosition = rightClosed + Vector3.right * (slide * eased);
+                curtainRight.localScale = new Vector3(rightScale.x * Mathf.Lerp(1f, bunched, eased), rightScale.y, rightScale.z);
+            }
+            if (glow != null)
+            {
+                glow.intensity = glowIntensity * eased;
+                glow.enabled = eased > .01f;
+            }
         }
 
         void Bind(ExpertService service)
@@ -84,21 +134,40 @@ namespace CurtainCall.WaitingRoom
             else if (after == ExpertRoomPhase.Exiting) MoveLocal(outside);
         }
 
+        // 커튼 앞이면 누구나 F 대상이 된다(들어가는 건 구매자만, 나머지는 안내만).
         public float Reach(Vector3 feet)
         {
-            var service = ExpertService.Instance;
-            if (service == null || service.Phase != ExpertRoomPhase.Booked || !service.LocalIsBuyer) return -1f;
+            if (ExpertService.Instance == null) return -1f;
             float distance = FlatDistance(feet);
             return distance <= reach ? distance : -1f;
         }
 
-        public void Interact() => ExpertService.Instance?.RequestEnter();
+        public void Interact()
+        {
+            var service = ExpertService.Instance;
+            if (service == null) return;
+            if (service.Phase == ExpertRoomPhase.Booked && service.LocalIsBuyer) { service.RequestEnter(); return; }
+            service.ShowLocalMessage(RefusalText(service));
+        }
+
+        static string RefusalText(ExpertService service) => service.Phase switch
+        {
+            ExpertRoomPhase.Booked => ExpertServiceBook.Explain(ExpertRefusal.NotBuyer),
+            ExpertRoomPhase.Working or ExpertRoomPhase.Exiting => "다른 사람이 전문가 서비스를 받고 있습니다.",
+            _ => !ExpertService.IsNight ? ExpertServiceBook.Explain(ExpertRefusal.NotNight)
+                : "전문가 서비스는 ③ 상점 수화기에서 먼저 구매하세요.",
+        };
 
         float FlatDistance(Vector3 feet)
         {
-            var at = door != null ? door.position : transform.position;
-            var d = feet - at;
+            var d = feet - transform.TransformPoint(CurtainCenterLocal());
             return new Vector2(d.x, d.z).magnitude;
+        }
+
+        Vector3 CurtainCenterLocal()
+        {
+            if (curtainLeft == null || curtainRight == null) return Vector3.zero;
+            return transform.InverseTransformPoint((curtainLeft.parent.TransformPoint(leftClosed) + curtainRight.parent.TransformPoint(rightClosed)) / 2f);
         }
 
         // 내 캐릭터만 옮긴다. 다른 화면은 공용 NetworkPlayer 위치 동기화로 같은 자리를 본다.
@@ -108,16 +177,8 @@ namespace CurtainCall.WaitingRoom
             var mover = NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerMover>() : null;
             if (mover == null && NetworkPlayer.All.Count == 0) mover = FindFirstObjectByType<PlayerMover>();
             if (mover == null) return;
-            // 공용 이동기는 출발점을 바꾸며 옮기는 방법만 연다. 마지막 순간이동이 문 앞(로비)이라 재시작 위치도 로비에 남는다.
+            // 공용 이동기는 출발점을 바꾸며 옮기는 방법만 연다. 마지막 순간이동이 커튼 앞(로비)이라 재시작 위치도 로비에 남는다.
             mover.SetStartPose(point.position, point.rotation);
-        }
-
-        // 문이 열린 정도(0~1)만큼 밝힌다. 닫혀 있으면 꺼 둔다.
-        void UpdateGlow(float open)
-        {
-            if (glow == null) return;
-            glow.intensity = glowIntensity * open;
-            glow.enabled = open > 0.01f;
         }
 
         void UpdateSign(ExpertService service)
@@ -130,7 +191,8 @@ namespace CurtainCall.WaitingRoom
                 ExpertRoomPhase.Exiting => "복구 완료",
                 _ => !ExpertService.IsNight ? "밤 정비 때 영업"
                     : ExpertService.Availability(ExpertKind.Medical) == ExpertRefusal.None ? "의료 전문가 대기 중"
-                    : "의료: 담당자 부재중",
+                    : ExpertService.Availability(ExpertKind.Facility) == ExpertRefusal.None ? "시설 담당자 근무 · 의료 부재중"
+                    : "담당자 부재중",
             };
             if (text == signText) return;
             signText = text;
@@ -143,7 +205,7 @@ namespace CurtainCall.WaitingRoom
             sound.PlayOneShot(clank);
         }
 
-        // 쇠붙이 부딪는 소리(임시, 에셋 없이 만든다): 금속성 배음 몇 개 + 짧은 잡음, 빠르게 사라진다.
+        // 쇠붙이 부딪는 날카로운 소리(임시, 에셋 없이 만든다): 금속성 배음 몇 개 + 짧은 잡음, 빠르게 사라진다.
         static AudioClip MakeClank()
         {
             const int rate = 44100;
@@ -168,10 +230,11 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             var service = ExpertService.Instance;
-            if (service == null || service.Phase != ExpertRoomPhase.Booked || !ShopReach.TryLocalFeet(out var feet) || FlatDistance(feet) > reach) return;
-            var rect = new Rect(Screen.width / 2f - 120, Screen.height * .62f, 300, 24);
-            if (ReferenceEquals(ShopReach.Focused, this)) GUI.Label(rect, "[F] ⑧ 전문가 대기실 들어가기");
-            else if (!service.LocalIsBuyer) GUI.Label(rect, "서비스를 구매한 사람만 들어갈 수 있습니다.");
+            if (service == null || !ReferenceEquals(ShopReach.Focused, this)) return;
+            var rect = new Rect(Screen.width / 2f - 230, Screen.height * .62f, 520, 24);
+            GUI.Label(rect, service.Phase == ExpertRoomPhase.Booked && service.LocalIsBuyer
+                ? "[F] ⑧ 전문가 대기실 들어가기"
+                : $"[F] ⑧ 전문가 대기실 — {RefusalText(service)}");
         }
     }
 }

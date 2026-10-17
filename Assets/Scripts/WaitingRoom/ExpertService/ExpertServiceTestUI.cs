@@ -17,7 +17,7 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             const float width = 300;
-            float height = folded ? 34 : 250;
+            float height = folded ? 34 : 280;
             GUILayout.BeginArea(new Rect(10, Screen.height - height - 10, width, height), GUI.skin.box);
             if (GUILayout.Button(folded ? "전문가 서비스 테스트 패널 펴기" : "전문가 서비스 테스트 패널 접기")) folded = !folded;
             if (folded) { GUILayout.EndArea(); return; }
@@ -31,6 +31,9 @@ namespace CurtainCall.WaitingRoom
             GUILayout.Label($"⑧ {ExpertServicePhonePanel.PhaseLabel(service.Phase)}"
                 + (service.Phase != ExpertRoomPhase.Idle ? $" — {WaitingRoomShop.PlayerLabel(service.Buyer)}" : "")
                 + $" · 공동 자금 {service.Balance} · 복구 {service.MedicalPrice}/개");
+            GUILayout.Label(service.Obstacle != ObstacleAdjust.None
+                ? $"시설 조정: {service.ObstacleDay}일차 {ExpertServiceBook.AdjustLabel(service.Obstacle)}"
+                : "시설 조정: 없음");
 
             var players = NetworkPlayer.All;
             if (players.Count == 0) GUILayout.Label("접속한 캐릭터가 없습니다.");
@@ -46,14 +49,35 @@ namespace CurtainCall.WaitingRoom
                 GUILayout.EndHorizontal();
             }
             if (!service.HasAuthority) GUILayout.Label("절단 버튼은 호스트만 씁니다.");
+            GUILayout.Label(NextStep(service));
             if (!string.IsNullOrEmpty(service.LastMessage)) GUILayout.Label(service.LastMessage);
             GUILayout.EndArea();
+        }
+
+        /// <summary>지금 무엇을 하면 의료 서비스를 쓸 수 있는지 한 줄 안내(테스트 순서).</summary>
+        static string NextStep(ExpertService service)
+        {
+            if (service.Phase == ExpertRoomPhase.Booked)
+                return service.LocalIsBuyer ? "다음: ⑧ 붉은 커튼 앞으로 가서 F" : "⑧: 구매자 입장 대기 중";
+            if (service.Phase != ExpertRoomPhase.Idle) return "⑧ 이용 중";
+            return service.LocalMedicalRefusal() switch
+            {
+                ExpertRefusal.NotNight => "다음: 오른쪽 패널 [밤 정비까지 건너뛰기]",
+                ExpertRefusal.WholeBody => "다음: [절단 1]로 팔다리를 잃은 뒤 ③ 수화기",
+                ExpertRefusal.AlreadyBooked => "다음: ⑧ 붉은 커튼 앞으로 가서 F",
+                ExpertRefusal.Absent => service.FacilityRefusal() == ExpertRefusal.None
+                    ? "의료 부재중 — ③ 수화기에서 시설 담당자(장애물 강화/약화) 이용 가능"
+                    : "오늘 밤은 의료 담당자 부재중 — 1·3일차 밤에 이용",
+                ExpertRefusal.NotAlive => "살아 있을 때만 이용할 수 있습니다",
+                ExpertRefusal.None => "다음: ③ 수화기(F) → 오른쪽 '전문가 서비스'에서 구매",
+                var other => ExpertServiceBook.Explain(other),
+            };
         }
 
         static string StaffLabel(ExpertKind kind) => kind switch
         {
             ExpertKind.Medical => "의료",
-            ExpertKind.Facility => "시설(의료 부재중)",
+            ExpertKind.Facility => "시설 담당자(의료 부재중)",
             _ => "없음",
         };
 
