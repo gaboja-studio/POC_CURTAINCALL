@@ -14,4 +14,6 @@
 - [third-party-branch-sync.md](third-party-branch-sync.md) — 브랜치 전환 전에 public/private Git·LFS를 준비하고 실패 시 사용자 파일을 보존한다. 안전 전환이 차단될 때
 - [ubuntu-git-executable-resolution.md](ubuntu-git-executable-resolution.md) — Ubuntu CI에서 Git 실행 경로가 여러 개로 반환되어 PowerShell 회귀가 실패할 때
 - [powershell-error-output-wrapping.md](powershell-error-output-wrapping.md) — PowerShell 오류 출력의 줄바꿈 때문에 예상 거부 정규식이 불일치할 때
+- [remote-player-judged-before-placement.md](remote-player-judged-before-placement.md) — 공연 씬 로드 직후 호스트가 원격의 옛 위치로 사망 판정한다. 연결 공연에서 참가자만 시작부터 죽어 있을 때
+- [demo-ui-includes-hud.md](demo-ui-includes-hud.md) — Demo 이름의 줄타기 UI를 통째로 끄면 HUD·게이지도 사라진다. 연결 모드에서 시연 UI를 숨길 때
 - [changed-subscriber-advances-campaign.md](changed-subscriber-advances-campaign.md) — Changed 알림 안에서 구독자가 런을 진행시킬 수 있어 알림 뒤 공연 좌표를 재확인. 런·보상 이벤트를 보낸 뒤 이어서 종료·정산 처리할 때

@@ -2,11 +2,11 @@
 
 - **Title:** 2인 부활 후 공연 전환 재사망 수정
 - **Type:** fix
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** player-sync
 - **Current Skill:** start-work
-- **Updated:** 2026-10-17
+- **Updated:** 2026-10-18
 
 Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별도) → working(작업 중) → submitted(PR 제출) → integrated(검증 통과) → done(dev 병합). 막히면 blocked.
 
