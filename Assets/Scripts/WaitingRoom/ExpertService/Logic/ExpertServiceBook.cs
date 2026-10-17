@@ -35,6 +35,8 @@ namespace CurtainCall.WaitingRoom
         NotAlive,
         /// <summary>다른 사람이 이미 예약·이용 중.</summary>
         Busy,
+        /// <summary>내가 이미 사서 예약·이용 중.</summary>
+        AlreadyBooked,
         NotEnoughFunds,
         NotBuyer,
         WrongPhase,
@@ -100,6 +102,7 @@ namespace CurtainCall.WaitingRoom
         /// </summary>
         public ExpertRefusal Book(ulong buyer, int day, bool night, bool alive, int lostLimbs, System.Func<bool> spend)
         {
+            if (HasBuyer && Buyer == buyer) return ExpertRefusal.AlreadyBooked;
             var refusal = CanBuyMedical(day, night, alive, lostLimbs);
             if (refusal != ExpertRefusal.None) return refusal;
             if (spend == null || !spend()) return ExpertRefusal.NotEnoughFunds;
@@ -166,6 +169,7 @@ namespace CurtainCall.WaitingRoom
             ExpertRefusal.WholeBody => "잃은 팔다리가 없습니다.",
             ExpertRefusal.NotAlive => "살아 있는 사람만 이용할 수 있습니다.",
             ExpertRefusal.Busy => "다른 사람이 전문가 대기실을 이용 중입니다.",
+            ExpertRefusal.AlreadyBooked => "이미 구매했습니다 — ⑧ 전문가 대기실 입구에서 F를 누르세요.",
             ExpertRefusal.NotEnoughFunds => "공동 자금이 모자라거나 지금은 쓸 수 없습니다.",
             ExpertRefusal.NotBuyer => "서비스를 구매한 사람만 들어갈 수 있습니다.",
             ExpertRefusal.WrongPhase => "지금은 들어갈 수 없습니다.",

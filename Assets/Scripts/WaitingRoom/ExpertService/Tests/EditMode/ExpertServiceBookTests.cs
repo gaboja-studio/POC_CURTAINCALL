@@ -78,6 +78,16 @@ namespace CurtainCall.WaitingRoom.Tests
         }
 
         [Test]
+        public void 구매자가_다시_사면_이미_구매했다고_알리고_자금을_쓰지_않는다()
+        {
+            var book = NewBook();
+            BookMedical(book);
+            bool spent = false;
+            Assert.AreEqual(ExpertRefusal.AlreadyBooked, book.Book(Buyer, 1, true, true, 1, () => spent = true));
+            Assert.IsFalse(spent);
+        }
+
+        [Test]
         public void 구매자만_들어갈_수_있다()
         {
             var book = NewBook();

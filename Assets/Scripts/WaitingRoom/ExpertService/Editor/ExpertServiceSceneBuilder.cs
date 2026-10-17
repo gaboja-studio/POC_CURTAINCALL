@@ -15,7 +15,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
     ///   앞 단계 코드를 직접 고치지 않으려는 것이며, 3·4단계가 바뀌면 이 메뉴를 다시 실행한다.
     /// - 맵 확인용 PlaySetup을 끄고, 카메라는 CinemachineBrain + 공용 PlayerFollowCamera로 바꾼다(2~4단계 씬과 같다).
     /// - 5단계: 서비스 상태 `ExpertService`(<see cref="ExpertService"/>), ⑧ 문·입구·표지·소리(<see cref="ExpertRoomView"/>),
-    ///   ③ 수화기 옆 서비스 칸(<see cref="ExpertServicePhonePanel"/>)을 둔다. ⑧ 문 자리에는 늘 켜진 보이지 않는 막을 세워 걸어서는 못 들어가게 한다.
+    ///   방 안 황금빛 조명, ③ 수화기 옆 서비스 칸(<see cref="ExpertServicePhonePanel"/>)을 둔다. ⑧ 문 자리에는 늘 켜진 보이지 않는 막을 세워 걸어서는 못 들어가게 한다.
     /// - 접속 패널(공용), 밤까지 건너뛰는 4단계 테스트 패널, 5단계 테스트 패널을 둔다.
     /// </summary>
     public static class ExpertServiceSceneBuilder
@@ -127,7 +127,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Undo.RegisterCreatedObjectUndo(service, "Add " + ServiceName);
             service.AddComponent<ExpertService>();
 
-            foreach (var name in new[] { "ExpertRoomBarrier", "ExpertRoomInside", "ExpertRoomOutside", "ExpertRoomSign", "ExpertRoomSound" })
+            foreach (var name in new[] { "ExpertRoomBarrier", "ExpertRoomInside", "ExpertRoomOutside", "ExpertRoomSign", "ExpertRoomSound", "ExpertRoomGlow" })
             {
                 var old = room.Find(name);
                 if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
@@ -174,6 +174,19 @@ namespace CurtainCall.WaitingRoom.EditorTools
             sound.maxDistance = 25f;
             Undo.RegisterCreatedObjectUndo(soundObject, "Add ExpertRoomSound");
 
+            // 방 안 황금빛(문이 열린 만큼 밝아진다). 편집 화면에서는 꺼 둔다.
+            var glowObject = new GameObject("ExpertRoomGlow");
+            glowObject.transform.SetParent(room, false);
+            glowObject.transform.position = new Vector3(0f, room.position.y + 2.2f, 0f) + Flat(door.position + right * 1.8f);
+            var glow = glowObject.AddComponent<Light>();
+            glow.type = LightType.Point;
+            glow.color = new Color(1f, .76f, .32f);
+            glow.range = 9f;
+            glow.intensity = 0f;
+            glow.shadows = LightShadows.None;
+            glow.enabled = false;
+            Undo.RegisterCreatedObjectUndo(glowObject, "Add ExpertRoomGlow");
+
             var view = Undo.AddComponent<ExpertRoomView>(room.gameObject);
             var so = new SerializedObject(view);
             so.FindProperty("door").objectReferenceValue = door;
@@ -181,11 +194,14 @@ namespace CurtainCall.WaitingRoom.EditorTools
             so.FindProperty("outside").objectReferenceValue = outside;
             so.FindProperty("sign").objectReferenceValue = sign;
             so.FindProperty("sound").objectReferenceValue = sound;
+            so.FindProperty("glow").objectReferenceValue = glow;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             if (!phone.TryGetComponent<ExpertServicePhonePanel>(out _)) Undo.AddComponent<ExpertServicePhonePanel>(phone.gameObject);
             return true;
         }
+
+        static Vector3 Flat(Vector3 v) => new(v.x, 0f, v.z);
 
         static Transform Point(Transform parent, string name, Vector3 position, Quaternion rotation)
         {

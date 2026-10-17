@@ -10,6 +10,7 @@ namespace CurtainCall.WaitingRoom
     /// - 입구 F: 구매자만 안내가 뜨고 누르면 들어간다(다른 사람은 "구매자만" 안내). 들어가면 방 안으로, 복구가 끝나면 문 앞으로 순간이동한다.
     /// - 쇠붙이 소리: 문이 닫혀 이용이 시작될 때와 복구가 끝날 때.
     /// - 문 위 표지: 오늘 담당·이용 상태("담당자 부재중" 포함).
+    /// - 황금빛: 문이 열린 만큼 방 안 조명이 밝아져 문틈으로 새어 나온다(space-layout #8 "커튼 열림·황금빛 연출").
     /// </summary>
     public sealed class ExpertRoomView : MonoBehaviour, IShopTarget
     {
@@ -18,6 +19,10 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] Transform outside;
         [SerializeField] TextMesh sign;
         [SerializeField] AudioSource sound;
+        [SerializeField] Light glow;
+
+        [Tooltip("문이 다 열렸을 때 방 안 황금빛 조명 밝기.")]
+        [SerializeField, Min(0f)] float glowIntensity = 6f;
 
         [Tooltip("문이 열릴 때 올라가는 높이(m).")]
         [SerializeField, Min(.5f)] float openLift = 2.8f;
@@ -59,6 +64,7 @@ namespace CurtainCall.WaitingRoom
             {
                 var target = closedPosition + (open ? Vector3.up * openLift : Vector3.zero);
                 door.localPosition = Vector3.MoveTowards(door.localPosition, target, doorSpeed * Time.deltaTime);
+                UpdateGlow(Mathf.Clamp01((door.localPosition.y - closedPosition.y) / openLift));
             }
             UpdateSign(service);
         }
@@ -104,6 +110,14 @@ namespace CurtainCall.WaitingRoom
             if (mover == null) return;
             // 공용 이동기는 출발점을 바꾸며 옮기는 방법만 연다. 마지막 순간이동이 문 앞(로비)이라 재시작 위치도 로비에 남는다.
             mover.SetStartPose(point.position, point.rotation);
+        }
+
+        // 문이 열린 정도(0~1)만큼 밝힌다. 닫혀 있으면 꺼 둔다.
+        void UpdateGlow(float open)
+        {
+            if (glow == null) return;
+            glow.intensity = glowIntensity * open;
+            glow.enabled = open > 0.01f;
         }
 
         void UpdateSign(ExpertService service)

@@ -73,7 +73,8 @@ namespace CurtainCall.WaitingRoom
             var me = NetworkPlayer.Local;
             bool alive = me != null && me.State == PlayerState.Normal;
             int lost = me != null ? PlayerCondition.CountLimbs(me.LostParts) : 0;
-            return book.CanBuyMedical(Day, IsNight, alive, lost);
+            var refusal = book.CanBuyMedical(Day, IsNight, alive, lost);
+            return refusal == ExpertRefusal.Busy && LocalIsBuyer ? ExpertRefusal.AlreadyBooked : refusal;
         }
 
         void Awake()
