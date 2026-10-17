@@ -54,6 +54,30 @@ namespace CurtainCall.Tightrope
         float restartAt = -1f;            // 실패 후 재시작할 시각(이 화면 기준). 실패가 아니면 -1
         float stoppedRemaining = -1f;     // 끝난 뒤(실패·성공) 멈춘 남은 시간
         int lastRestartFrame = -1;
+        bool externallyManaged;
+        bool externalStarted;
+
+        /// <summary>공용 진행 연결부가 시작·종료를 맡는다. 직접 실행의 기본값은 false.</summary>
+        public bool ExternallyManaged => externallyManaged;
+
+        public void SetExternallyManaged(bool value)
+        {
+            externallyManaged = value;
+            externalStarted = false;
+        }
+
+        /// <summary>호스트: 준비된 공용 공연을 신체 복구 없이 한 번 시작한다.</summary>
+        public bool StartExternalPerformance()
+        {
+            if (!externallyManaged || externalStarted || session == null || !session.IsHost
+                || session.GameState != GameSessionState.Playing || ParticipantCount == 0) return false;
+            externalStarted = true;
+            ServerRestart();
+            return true;
+        }
+
+        /// <summary>공용 정산이 먼저 끝나면 남은 묘기 판정을 멈춘다.</summary>
+        public void StopExternalPerformance() => externalStarted = false;
 
         /// <summary>씬의 묘기 진행. 없으면 null.</summary>
         public static TightropeRun Current
@@ -100,7 +124,7 @@ namespace CurtainCall.Tightrope
         /// <summary>호스트: 묘기를 처음부터 다시 시작한다(디버그 R). 호스트가 아니면 false.</summary>
         public bool RestartByHost()
         {
-            if (session == null || !session.IsHost || ParticipantCount == 0) return false;
+            if (externallyManaged || session == null || !session.IsHost || ParticipantCount == 0) return false;
             if (State == TightropeRunState.Succeeded)
                 return RetryByHost(Results.AttemptId, Round);
             ServerRestart();
@@ -111,7 +135,7 @@ namespace CurtainCall.Tightrope
         public bool RetryByHost(string attemptId, int round)
         {
             var result = Results?.Latest;
-            if (session == null || !session.IsHost || State != TightropeRunState.Succeeded
+            if (externallyManaged || session == null || !session.IsHost || State != TightropeRunState.Succeeded
                 || result == null || !result.Succeeded || result.AttemptId != attemptId
                 || result.Round != round || Results.AttemptId != attemptId || Round != round) return false;
             if (!session.RestartEndedGame()) return false;
@@ -220,7 +244,7 @@ namespace CurtainCall.Tightrope
 
         void ServerJudge()
         {
-            if (NetworkPlayer.All.Count == 0) return;
+            if (NetworkPlayer.All.Count == 0 || (externallyManaged && !externalStarted)) return;
 
             switch (State)
             {
@@ -244,7 +268,7 @@ namespace CurtainCall.Tightrope
                     break;
 
                 case TightropeRunState.Failed:
-                    if (Time.time >= restartAt) ServerRestart();
+                    if (!externallyManaged && Time.time >= restartAt) ServerRestart();
                     break;
             }
         }
@@ -303,7 +327,7 @@ namespace CurtainCall.Tightrope
                 if (player.State == PlayerState.Normal) player.ServerSetState(PlayerState.Arrived);
             stoppedRemaining = TimeRemaining;
             ServerSetState(TightropeRunState.Succeeded);
-            session.EndGame();
+            if (!externallyManaged) session.EndGame();
         }
 
         void ServerFail()
@@ -326,7 +350,8 @@ namespace CurtainCall.Tightrope
             bool playing = session.GameState == GameSessionState.Playing;
             runStartedAt = playing ? Time.time : -1f;
             SetRound(Round + 1);
-            NetworkPlayer.ServerRestartAll();
+            if (externallyManaged) HandlePlayerRestarted(null);
+            else NetworkPlayer.ServerRestartAll();
             if (playing) Results.BeginAttempt(Round);
             ServerSetState(playing ? TightropeRunState.Running : TightropeRunState.Waiting);
         }
@@ -335,12 +360,17 @@ namespace CurtainCall.Tightrope
         /// 호스트 규칙: 사망은 진행 중인 플레이어만, 묘기가 진행(또는 연습) 중일 때만 받는다. 도착 완료자는 사망하지 않는다.
         /// 도착 완료 요청은 진행 중인 플레이어가 묘기 진행 중일 때만 받는다.
         /// </summary>
-        bool CanChangeState(NetworkPlayer player, PlayerState next) => next switch
+        bool CanChangeState(NetworkPlayer player, PlayerState next)
         {
-            PlayerState.Fallen => player.State == PlayerState.Normal && (State == TightropeRunState.Waiting || State == TightropeRunState.Running),
-            PlayerState.Arrived => player.State == PlayerState.Normal && State == TightropeRunState.Running,
-            _ => true,
-        };
+            if (externallyManaged && !externalStarted
+                && (next == PlayerState.Fallen || next == PlayerState.Arrived)) return false;
+            return next switch
+            {
+                PlayerState.Fallen => player.State == PlayerState.Normal && (State == TightropeRunState.Waiting || State == TightropeRunState.Running),
+                PlayerState.Arrived => player.State == PlayerState.Normal && State == TightropeRunState.Running,
+                _ => true,
+            };
+        }
 
         void ServerSetState(TightropeRunState next)
         {
@@ -350,7 +380,7 @@ namespace CurtainCall.Tightrope
 
         void HandleGameState(GameSessionState state)
         {
-            if (session == null || !session.IsHost) return;
+            if (externallyManaged || session == null || !session.IsHost) return;
             if (state == GameSessionState.Playing && State == TightropeRunState.Waiting)
                 ServerRestart(); // 게임 시작: 모두 출발점에서 진행 시작
         }
@@ -497,7 +527,11 @@ namespace CurtainCall.Tightrope
             runStartedAt = runElapsed < 0f ? -1f : Time.time - runElapsed;
             stoppedRemaining = stopped;
             restartAt = (TightropeRunState)state == TightropeRunState.Failed ? Time.time + restartRemaining : -1f;
-            if (round != Round) performanceStartedAt = -1f;
+            if (round != Round)
+            {
+                performanceStartedAt = -1f;
+                if (externallyManaged) HandlePlayerRestarted(null);
+            }
             SetRound(round);
             if (performanceElapsed >= 0f) SetPerformanceStarted(performanceElapsed);
             else performanceStartedAt = -1f;
