@@ -2,10 +2,10 @@
 
 - **Title:** 부모·자식 동기화 PR 생성과 재사용
 - **Type:** fix
-- **Status:** submitted
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** assets-structure
-- **Current Skill:** implement-code
+- **Current Skill:** write-handoff
 - **Updated:** 2026-10-17
 
 ## Workspace
@@ -28,4 +28,5 @@
 - Open: None
 - Decided: 2026-10-17 — A와 독립된 dev 기준 B Task. 로컬 준비 Integration은 취소 이력이며 원격 통합을 만들지 않는다.
 - Decided: 2026-10-17 — PM 본인 로컬 기술 배정·착수 직접 기록 단회 승인. 별도 팀원 전달 N/A, 일반 gate 유지.
-- Decided: 2026-10-17 — 최초 준비 문서 로컬 commit 후 B 저장·push·dev 제출을 후속 승인. 사용자 “PR 진행해”로 확인된 #147 등록 완료. 병합·실제 동기화 PR 운용·C/private 변경은 별도 승인.
+- Decided: 2026-10-17 — 최초 준비 문서 로컬 commit 후 B 저장·push·dev 제출을 후속 승인. 사용자 “PR 진행해”로 확인된 #147 등록 완료. 당시 병합·실제 동기화 PR 운용·C/private 변경은 별도 승인.
+- Decided: 2026-10-17 — #147 dev 병합 확인 및 사용자 기록 정리 요청으로 Done 보관. done은 구현의 dev 반영 완료이며 실공동 검증을 뜻하지 않는다. 당시 CI 실패는 후속 055·056에서 해결됐고 실제 동기화 PR/CI E2E는 미실행이다.

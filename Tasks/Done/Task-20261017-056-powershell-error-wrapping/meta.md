@@ -2,10 +2,10 @@
 
 - **Title:** PowerShell 오류 출력 줄바꿈 회귀 수정
 - **Type:** fix
-- **Status:** submitted
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** assets-structure
-- **Current Skill:** submit-work
+- **Current Skill:** write-handoff
 - **Updated:** 2026-10-17
 
 ## Workspace
@@ -30,4 +30,5 @@
 - Decided: 2026-10-17 — 전체 ref 번호 검사·잠금으로 발급. PM 본인 직접 dev 기준 fix 준비·배정·착수, 실팀원 전달 N/A. 일반 gate 변경 없음.
 - Decided: 2026-10-17 — 기존 승인 계획의 최소 수정·3가지 회귀·로컬 검증을 수행. Read/Edit/Write로 편집 전 읽기·변경안 설명, 전용 편집 dryRun 없음.
 - Decided: 2026-10-17 — 게임 기능·운영 코드·workflow·에셋·private·실제 동기화는 제외. 초기 구현은 새 PR 등록·병합 제외.
-- Decided: 2026-10-17 — 사용자 "저장하고 PR 제출해서 온라인 검사까지 확인해줘"로 커밋·push·새 PR 제출·실제 CI 확인 승인. PR 미리보기 확인 후 등록하며 병합은 제외.
+- Decided: 2026-10-17 — 사용자 "저장하고 PR 제출해서 온라인 검사까지 확인해줘"로 커밋·push·새 PR 제출·실제 CI 확인 승인. PR 미리보기 확인 후 등록하며 당시 AI 병합은 제외.
+- Decided: 2026-10-17 — 사용자 #149 병합 및 기록 정리 요청으로 Done 보관. GitHub 병합 사실과 마지막 제출 커밋 9c5a0f3의 CI 전체 PASS를 확인했다. 실제 동기화·공동 테스트는 미실행이며 최초 요청에서는 기록을 로컬만 정리했다. 후속 마감 문서 제출 상태는 Integration-merged-task-records/result.md 참조.
