@@ -1,6 +1,8 @@
 # 검증 0단계: 구역 검사. 이 브랜치의 변경 파일이 허용된 곳인지 확인한다.
 #   허용: 내 Task 폴더(setup.md 제외), setup.md 작업 구역·배정된 공용 파일, Docs/Domains·Docs/References
-#   Task 없는 브랜치: resource/*는 Assets/Resources/ 및 지정 에셋 관리자의 _ThirdParty 포인터만, 급한 fix/*는 PM 전용·다른 Task 구역만 아니면 허용
+#   모두 허용(team-roles.md): 빌드 씬 목록, 게임 세팅 값, 새 에셋 추가(코드·씬 제외). 기존 에셋 수정·삭제는 PM·에셋 관리자
+#   급한 예외: Task 폴더의 exception.md가 있으면 위반을 [예외]로 보여 주고 통과(.meta 누락은 그대로 차단)
+#   Task 없는 브랜치: resource/*는 새 에셋 추가와 에셋 관리자의 수정·_ThirdParty 포인터만, 급한 fix/*는 PM 전용·다른 Task 구역만 아니면 허용
 #   위반: PM 전용 경로(.github/CODEOWNERS), 다른 Task 문서·진행 중인 다른 Task의 구역, 수정 금지, 구역 밖, .meta 누락
 # 로컬: 커밋 + 저장 안 한 변경 + 새 파일을 검사. GitHub Actions: -Branch -Base -Actor를 넘겨 PR 변경을 검사.
 [CmdletBinding()]
@@ -38,7 +40,8 @@ if ($task) {
         $refs = @("origin/$(Get-BaseBranch)") + @(& git -C $RepoRoot for-each-ref --format='%(refname:short)' 'refs/remotes/origin/integration/')
         $Base = $refs | Where-Object { $_ } | Sort-Object { $n = & git -C $RepoRoot rev-list --count "$_..HEAD" 2>$null; if ($LASTEXITCODE) { [int]::MaxValue } else { [int]$n } } | Select-Object -First 1
     }
-    $mine = [pscustomobject]@{ Allowed = @(if ($mode -eq 'resource') { 'Assets/Resources/' }); Forbidden = @() }
+    # resource/*의 리소스 추가는 아래 공통 허용(새 에셋)으로 통과한다. 기존 에셋 수정·삭제는 PM·에셋 관리자만.
+    $mine = [pscustomobject]@{ Allowed = @(); Forbidden = @() }
 }
 $label = if ($task) { $task.Id } elseif ($mode -eq 'resource') { 'resource, Task 없음' } else { '급한 fix, Task 없음' }
 $mergeBase = (& git -C $RepoRoot merge-base $Base HEAD 2>$null)
@@ -76,6 +79,10 @@ if ($mergeHeads.Count) {
 }
 # 받아 온 에셋에도 .meta가 빠지지 않았는지 검사한다.
 $metaChanged = @($metaChanged) + @($changed) | Where-Object { $_ } | Sort-Object -Unique
+# 새로 추가한 파일: 에셋 추가는 모두에게 허용하므로 수정·삭제와 구분한다.
+$added = [System.Collections.Generic.HashSet[string]]::new([string[]]@(@(& git -C $RepoRoot diff --name-only --no-renames --diff-filter=A $mergeBase.Trim()) + @($untracked) | Where-Object { $_ }))
+if ($LASTEXITCODE -ne 0) { throw '추가된 파일을 읽지 못했습니다.' }
+$exception = if ($task) { Get-UrgentException -TaskPath $task.Path } else { $null }
 
 $others = @(Get-ChildItem -LiteralPath (Get-RepoPath 'Tasks/Active') -Directory | Where-Object { $_.FullName -ne $task.Path } | ForEach-Object {
     $s = Join-Path $_.FullName 'setup.md'
@@ -101,15 +108,30 @@ foreach ($file in $changed) {
     }
     $inMine = Test-PathInArea -Path $file -Areas $mine.Allowed
     $owner = $others | Where-Object { Test-PathInArea -Path $file -Areas $_.Allowed } | Select-Object -First 1
+    if (-not $inMine) {
+        $free = Get-SharedAllowance -Path $file -IsNew $added.Contains($file) -HasTask ([bool]$task) -CanEditAssets ($isPm -or $isAssetManager)
+        if ($free) {
+            if ($free -eq '게임 세팅 연결 기능') { $notes.Add("게임 세팅 연결 기능 변경: $file (현재 Task와 관련된 변경인지 PR에서 확인)") }
+            if ($owner) { $notes.Add("진행 중인 Task($($owner.Name))의 구역에 $free`: $file (담당자에게 알리기)") }
+            continue
+        }
+    }
     if ($owner -and -not $inMine) { $violations.Add("진행 중인 다른 Task($($owner.Name))의 구역: $file"); continue }
     if ($owner -and $mode -eq 'resource') { $notes.Add("진행 중인 Task($($owner.Name))의 구역에 리소스 추가: $file (담당자에게 알리기)") }
     if (-not $inMine -and (Test-PathInArea -Path $file -Areas $mine.Forbidden)) { $violations.Add("수정 금지: $file"); continue }
     if ($mode -eq 'resource') {
-        if (-not $inMine -and -not $isPm) { $violations.Add("resource/*는 Assets/Resources/ 리소스만 (지정 에셋 관리자는 Assets/_ThirdParty 포인터도 허용): $file") }
+        if (-not $inMine -and -not $isPm) { $violations.Add("resource/*는 리소스 추가만 (기존 에셋 수정·삭제는 PM·에셋 관리자): $file") }
         continue
     }
     if ($inMine -or $mode -eq 'urgent-fix' -or $file -like 'Docs/Domains/*' -or $file -like 'Docs/References/*') { continue }
     if (-not $isPm) { $violations.Add("작업 구역 밖: $file") }
+}
+
+# 급한 예외: PM 구두 허락을 기록한 Task는 구역 위반을 막지 않고 모두 드러낸다. .meta 누락은 아래에서 그대로 막는다.
+if ($exception -and $violations.Count) {
+    $violations | ForEach-Object { Write-Output "[예외] $_" }
+    Write-Output "급한 예외 적용: $($exception.Reason) (승인 $($exception.ApprovedBy)) — PR에서 PM 사후 확인 필요"
+    $violations.Clear()
 }
 
 # .meta 누락: 새로 생기거나 바뀐 Assets 파일은 자신과 상위 폴더의 .meta가 있어야 한다.
@@ -123,10 +145,11 @@ foreach ($file in $metaChanged | Where-Object { $_ -like 'Assets/*' -and $_ -not
 foreach ($m in $missingMeta) { $violations.Add(".meta 없음: $m (Unity에서 해당 파일·폴더를 한 번 열면 생김)") }
 
 $notes | ForEach-Object { Write-Output "[주의] $_" }
+
 if ($violations.Count) {
     $violations | ForEach-Object { Write-Output "[위반] $_" }
     Write-Output "Scope: FAIL ($($violations.Count)) — 구역 밖 파일은 되돌리거나 PM에게 요청하세요."
     exit 1
 }
-Write-Output "Scope: OK ($($changed.Count) files, $label, 기준 $Base$(if ($isPm) { ', PM' }))"
+Write-Output "Scope: OK ($($changed.Count) files, $label, 기준 $Base$(if ($isPm) { ', PM' })$(if ($exception) { ', 급한 예외' }))"
 exit 0

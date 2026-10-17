@@ -75,6 +75,6 @@ MonoBehaviour:
     mode: 0
     hubScene: SpaceLink
     performanceScene: DummyPerformance
-    waitingRoomScene: DummyWaitingRoom
+    waitingRoomScene: WaitingRoomBase
     explorationScene: DummyExploration
     escapeRouteScene: DummyEscapeRoute
