@@ -2,7 +2,7 @@
 
 - **Title:** 게임 흐름의 실제 줄타기·인간 대포 씬 연결
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** start-lobby
 - **Current Skill:** submit-work
