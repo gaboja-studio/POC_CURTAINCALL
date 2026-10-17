@@ -13,12 +13,13 @@
 
 ## Files
 
-- 수정 예정:
-- 읽기 전용 참고:
+- 수정: `CampaignPerformanceEntry.cs`(호스트 사망 판정 대기·배치 완료 순서), 신규 `RevivalTests/`.
+- 읽기 전용 참고: `HumanCannonRouteSystem.cs`(낙하선 사망), `InjuryRevival.cs`, `CampaignTightropeAdapter.cs`(줄타기의 같은 대기 방식).
 
 ## Risks
 
--
+- 출발점 확인 전에는 연결 공연에서 사망·부상을 받지 않는다(소유자 순간이동 도착까지 보통 수 프레임).
+- 중간 공간에서 몸이 계속 떨어지는 현상은 남아 있다. 다음 공연 배치로 바로잡힌다.
 
 ## Auto Verification
 
