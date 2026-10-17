@@ -16,7 +16,7 @@ $dir = Get-RepoPath "Integrations/Active/Integration-$Slug"
 $template = Get-RepoPath 'Harness/Core/Templates/Integration'
 
 Assert-CleanTree -Hint '통합 브랜치를 만들기 전에 현재 작업을 저장하거나 정리하세요.'
-& git -C $RepoRoot fetch origin --prune --quiet
+& git -C $RepoRoot -c submodule.recurse=false fetch --no-recurse-submodules origin --prune --quiet
 if ($LASTEXITCODE -ne 0) { throw 'git fetch 실패' }
 & git -C $RepoRoot rev-parse --verify --quiet "refs/heads/$branch" | Out-Null
 if ($LASTEXITCODE -eq 0) { throw "로컬에 이미 있는 브랜치: $branch" }
@@ -37,8 +37,7 @@ if ($pm -and $pm -ne (Get-PmAccount)) { Write-Output "[경고] 현재 GitHub 계
 if (-not $PSCmdlet.ShouldProcess($branch, '통합 브랜치 생성')) { return }
 Assert-CommitIdentity
 
-& git -C $RepoRoot switch -c $branch $parentTip
-if ($LASTEXITCODE -ne 0) { throw 'git switch 실패' }
+Invoke-SafeBranchTransition -Path $RepoRoot -TargetCommit $parentTip -Branch $branch -CreateBranch
 
 New-Item -ItemType Directory -Path $dir -Force | Out-Null
 $today = Get-Date -Format 'yyyy-MM-dd'
