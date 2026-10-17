@@ -15,6 +15,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
     /// - 3단계 상점·소지(상태·표시 오브젝트, ③ 수화기·배송구·④ 선반 컴포넌트)는 3단계 테스트 씬에서 그대로 복사한다.
     ///   3단계 코드를 직접 참조하지 않으려는 것이며, 3단계가 바뀌면 이 메뉴를 다시 실행한다.
     /// - 밤 정비 때 대기실 문을 막는 `NightSchedule`(<see cref="NightDoorLock"/>)을 둔다.
+    /// - 스케줄표 상태 `ScheduleState`(<see cref="ScheduleBoard"/>), 로비 스케줄표 판의 <see cref="ScheduleBoardView"/>와 클로즈업 카메라를 둔다.
     /// - 접속 패널(공용)과 4단계 테스트 패널을 둔다.
     /// </summary>
     public static class NightScheduleSceneBuilder
@@ -27,6 +28,11 @@ namespace CurtainCall.WaitingRoom.EditorTools
         const string PanelsName = "NightScheduleTestPanels";
         const string NightRootName = "NightSchedule";
         const string MaterialFolder = "Assets/Scenes/Tests/WaitingRoom/Base/Materials";
+        const string ScheduleStateName = "ScheduleState";
+        const string BoardPath = "S01_Lobby/ScheduleBoard";
+
+        /// <summary>스케줄표 판 가운데에서 클로즈업 카메라까지(그레이박스 기준, 판은 북쪽 벽이라 로비 쪽 -Z).</summary>
+        static readonly Vector3 CloseUpOffset = new(0f, 0f, -1.7f);
 
         /// <summary>그레이박스 기준 대기실 문(로비 ↔ ⑥) 가운데와 크기. 1단계 벽 W_x+10의 출입구와 같다.</summary>
         static readonly Vector3 DoorCenter = new(10f, 1.5f, 0f);
@@ -63,6 +69,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             SetUpCamera(scene);
             if (!CopyShop(scene, greybox)) return;
             SetUpNightDoor(scene, greybox);
+            SetUpSchedule(scene, greybox);
             SetUpPanels(scene);
 
             EditorSceneManager.MarkSceneDirty(scene);
@@ -181,6 +188,40 @@ namespace CurtainCall.WaitingRoom.EditorTools
             var doorLock = root.AddComponent<NightDoorLock>();
             var so = new SerializedObject(doorLock);
             so.FindProperty("lockedDoor").objectReferenceValue = door;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// 스케줄표: 런 동안 남는 상태(`ScheduleState` 최상위, <see cref="ScheduleBoard"/>)와
+        /// 로비 스케줄표 판의 상호작용·창(<see cref="ScheduleBoardView"/>), 판 앞 클로즈업 카메라.
+        /// </summary>
+        static void SetUpSchedule(Scene scene, GameObject greybox)
+        {
+            var oldState = FindRoot(scene, ScheduleStateName);
+            if (oldState != null) Undo.DestroyObjectImmediate(oldState);
+            var state = new GameObject(ScheduleStateName);
+            SceneManager.MoveGameObjectToScene(state, scene);
+            Undo.RegisterCreatedObjectUndo(state, "Add " + ScheduleStateName);
+            state.AddComponent<ScheduleBoard>();
+
+            var boardGroup = greybox.transform.Find(BoardPath);
+            var boardShape = boardGroup != null ? boardGroup.Find("Board") : null;
+            if (boardGroup == null || boardShape == null) { Debug.LogError($"[NightSchedule] 그레이박스에 {BoardPath}/Board 없음"); return; }
+
+            // 판 앞(로비 쪽, -Z)에서 판을 바라보는 고정 카메라. 창을 열 때만 켠다.
+            var nightRoot = FindRoot(scene, NightRootName);
+            var cameraObject = new GameObject("ScheduleCloseUp");
+            cameraObject.transform.SetParent(nightRoot != null ? nightRoot.transform : null, false);
+            cameraObject.transform.SetPositionAndRotation(boardShape.position + greybox.transform.rotation * CloseUpOffset, greybox.transform.rotation);
+            if (nightRoot == null) SceneManager.MoveGameObjectToScene(cameraObject, scene);
+            var closeUp = cameraObject.AddComponent<CinemachineCamera>();
+            cameraObject.SetActive(false);
+
+            foreach (var old in boardGroup.GetComponents<ScheduleBoardView>()) Undo.DestroyObjectImmediate(old);
+            var view = Undo.AddComponent<ScheduleBoardView>(boardGroup.gameObject);
+            var so = new SerializedObject(view);
+            so.FindProperty("board").objectReferenceValue = boardShape;
+            so.FindProperty("closeUp").objectReferenceValue = closeUp;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

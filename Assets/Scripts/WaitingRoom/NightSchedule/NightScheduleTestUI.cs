@@ -12,6 +12,7 @@ namespace CurtainCall.WaitingRoom
     /// 4단계 테스트 씬 전용 작은 패널(화면 오른쪽 아래). 밤 정비까지 빨리 가서 확인하려는 것이며 정식 기능이 아니다.
     /// - 1인 테스트 시작: (에디터) 개발자 모드를 잠시 켜고 LAN 방 만들기 → 게임 시작 → 도입 끝 → 테스트 자금까지 한 번에 한다.
     /// - 런 진행(호스트): 공연 성공 정산·공연 종료, 쉬는 시간 → 다음 공연, 밤까지 건너뛰기.
+    /// - 오늘 스케줄(세트리스트)과 런이 부르는 공연을 함께 보이고, 밤이면 준비 완료(스케줄표와 같은 확정 검사)를 둔다.
     /// 공용 런 진행 패널(CampaignFlowTestUI)은 스케줄표 확정 검사 없이 밤 준비 완료를 누를 수 있어 이 씬에 두지 않는다.
     /// 여러 명 접속은 같은 씬의 공용 NetworkSessionTestUI로 한다.
     /// </summary>
@@ -23,6 +24,7 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("1인 테스트 시작 각 단계를 기다리는 최대 시간(초).")]
         [SerializeField, Min(1f)] float stepTimeout = 15f;
 
+        ScheduleBoardView boardView;
         bool folded;
         bool busy;
         bool? devModeBefore;
@@ -38,8 +40,12 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            const float width = 280;
-            float height = folded ? 34 : 260;
+            // 스케줄표 창이 열려 있으면 그 버튼을 가리지 않게 숨긴다.
+            if (boardView == null) boardView = FindFirstObjectByType<ScheduleBoardView>();
+            if (boardView != null && boardView.IsOpen) return;
+
+            const float width = 300;
+            float height = folded ? 34 : 300;
             GUILayout.BeginArea(new Rect(Screen.width - width - 10, Screen.height - height - 10, width, height), GUI.skin.box);
             if (GUILayout.Button(folded ? "밤 정비 테스트 패널 펴기" : "밤 정비 테스트 패널 접기")) folded = !folded;
             if (folded) { GUILayout.EndArea(); return; }
@@ -61,7 +67,8 @@ namespace CurtainCall.WaitingRoom
             {
                 var s = run.State;
                 GUILayout.Label($"{s.Day}일차 · {CampaignRun.Describe(s)}");
-                if (s.Phase == CampaignPhase.Night) GUILayout.Label($"밤 정비 — 준비 완료 {s.ReadyCount}/{s.RequiredCount}");
+                DrawTodaySetlist(s);
+                if (s.Phase == CampaignPhase.Night) DrawReady(run);
                 if (!authority) GUILayout.Label("런 진행 버튼은 호스트만 씁니다.");
             }
 
@@ -71,6 +78,36 @@ namespace CurtainCall.WaitingRoom
 
             if (!string.IsNullOrEmpty(message)) GUILayout.Label(message);
             GUILayout.EndArea();
+        }
+
+        /// <summary>오늘 공연 순서(스케줄표)와 런이 실제로 부를 공연이 같은지 확인용으로 보인다.</summary>
+        static void DrawTodaySetlist(in CampaignSnapshot s)
+        {
+            var schedule = ScheduleBoard.Instance;
+            if (schedule == null || s.Day < 1 || s.Day > ScheduleBook.Days) return;
+            var list = schedule.Book.Setlist(s.Day);
+            GUILayout.Label($"오늘 스케줄: {Name(schedule, list[0])} → {Name(schedule, list[1])}");
+        }
+
+        static string Name(ScheduleBoard schedule, string trick) => string.IsNullOrEmpty(trick) ? "미정" : schedule.TrickName(trick);
+
+        /// <summary>밤 정비 준비 완료. 스케줄표와 같은 검사(호스트는 확정 뒤에만)를 거친다.</summary>
+        static void DrawReady(CampaignRun run)
+        {
+            var s = run.State;
+            GUILayout.Label($"밤 정비 — 준비 완료 {s.ReadyCount}/{s.RequiredCount}");
+            var schedule = ScheduleBoard.Instance;
+            if (schedule == null) return;
+            if (run.IsLocalReady)
+            {
+                if (GUILayout.Button("준비 취소")) schedule.RequestReady(false);
+                return;
+            }
+            bool can = schedule.CanReady(out string reason);
+            bool wasEnabled = GUI.enabled;
+            GUI.enabled = wasEnabled && can;
+            if (GUILayout.Button(can ? "준비 완료" : $"준비 완료 — {reason}")) schedule.RequestReady(true);
+            GUI.enabled = wasEnabled;
         }
 
         void DrawHostButtons(CampaignRun run)
