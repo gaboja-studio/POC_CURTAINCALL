@@ -2,7 +2,7 @@
 
 - **Title:** 대기실 5단계 — 전문가 서비스
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:** common-game-systems
 - **Current Skill:** start-work
