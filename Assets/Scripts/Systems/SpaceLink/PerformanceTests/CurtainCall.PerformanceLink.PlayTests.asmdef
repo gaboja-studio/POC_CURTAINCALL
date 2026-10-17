@@ -1,0 +1,6 @@
+{
+  "name": "CurtainCall.PerformanceLink.PlayTests",
+  "rootNamespace": "CurtainCall.SpaceLink.Tests",
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}

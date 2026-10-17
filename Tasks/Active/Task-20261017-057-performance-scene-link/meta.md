@@ -2,10 +2,10 @@
 
 - **Title:** 게임 흐름의 실제 줄타기·인간 대포 씬 연결
 - **Type:** feat
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** start-lobby
-- **Current Skill:** start-work
+- **Current Skill:** submit-work
 - **Updated:** 2026-10-17
 
 Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별도) → working(작업 중) → submitted(PR 제출) → integrated(검증 통과) → done(dev 병합). 막히면 blocked.
