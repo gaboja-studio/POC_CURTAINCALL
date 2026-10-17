@@ -1,0 +1,8 @@
+{
+    "name": "CurtainCall.WaitingRoom.NightSchedule.EditModeTests",
+    "rootNamespace": "CurtainCall.WaitingRoom.Tests",
+    "references": ["CurtainCall.WaitingRoom.NightSchedule.Logic"],
+    "includePlatforms": ["Editor"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}
