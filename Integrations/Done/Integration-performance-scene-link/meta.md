@@ -1,7 +1,7 @@
 # Integration-performance-scene-link
 
 - **Feature:** 실제 공연 씬 연결
-- **Status:** testing
+- **Status:** to-dev
 - **Branch:** integration/performance-scene-link
 - **Base:** dev
 - **Active Task:**
@@ -19,8 +19,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261017-057 | feat | @MoHoDu | feat/performance-scene-link | #153 | integrated |
-| Task-20261017-058 | fix | @MoHoDu | fix/performance-revival-race | #155 | integrated |
+| Task-20261017-057 | feat | @MoHoDu | feat/performance-scene-link | #153 | done |
+| Task-20261017-058 | fix | @MoHoDu | fix/performance-revival-race | #155 | done |
 
 ## 준비 브랜치
 
