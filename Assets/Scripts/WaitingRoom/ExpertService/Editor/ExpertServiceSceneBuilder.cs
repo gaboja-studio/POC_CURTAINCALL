@@ -287,6 +287,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
             if (!panels.TryGetComponent<ExpertServiceTestUI>(out _)) Undo.AddComponent<ExpertServiceTestUI>(panels);
             // 4인 AI 사전 점검용 자동 참가자(MPPM 가상 플레이어 창에서만 움직인다)
             if (!panels.TryGetComponent<ExpertServiceBot>(out _)) Undo.AddComponent<ExpertServiceBot>(panels);
+            // 마우스 시점에서 ESC로 커서를 푼 뒤 패널을 눌러도 다시 잠기지 않게 하는 영역
+            if (!panels.TryGetComponent<ExpertServiceCursorRegions>(out _)) Undo.AddComponent<ExpertServiceCursorRegions>(panels);
         }
 
         static GameObject FindRoot(Scene scene, string name)

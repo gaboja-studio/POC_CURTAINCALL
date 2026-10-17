@@ -22,9 +22,8 @@ namespace CurtainCall.WaitingRoom
             var service = ExpertService.Instance;
             if (service == null || phoneBlocker == null || !phoneBlocker.IsBlocking) return;
 
-            GUI.depth = -100;
-            float x = Mathf.Min((Screen.width + ShopWidth) / 2f + 8f, Screen.width - Width);
-            var area = new Rect(x, (Screen.height - ShopHeight) / 2f, Width, Height);
+            GUI.depth = -101; // 수화기 창(-100)보다 앞에 그린다
+            var area = Placement();
             var tint = GUI.color;
             GUI.color = new Color(.12f, .12f, .14f, 1f);
             GUI.DrawTexture(area, Texture2D.whiteTexture);
@@ -39,6 +38,18 @@ namespace CurtainCall.WaitingRoom
                 GUILayout.Label($"⑧ 이용: {WaitingRoomShop.PlayerLabel(service.Buyer)} ({PhaseLabel(service.Phase)})");
             if (!string.IsNullOrEmpty(service.LastMessage)) GUILayout.Label(service.LastMessage);
             GUILayout.EndArea();
+        }
+
+        // 수화기 창 오른쪽에 붙인다. 화면이 좁아 겹치면 수화기 창 아래(그래도 모자라면 위)로 옮겨 가리지 않게 한다.
+        static Rect Placement()
+        {
+            float shopX = (Screen.width - ShopWidth) / 2f, shopY = (Screen.height - ShopHeight) / 2f;
+            float right = shopX + ShopWidth + 8f;
+            if (right + Width <= Screen.width - 4f) return new Rect(right, shopY, Width, Height);
+            float x = Mathf.Clamp(shopX + (ShopWidth - Width) / 2f, 4f, Mathf.Max(4f, Screen.width - Width - 4f));
+            float below = shopY + ShopHeight + 8f;
+            if (below + Height <= Screen.height - 4f) return new Rect(x, below, Width, Height);
+            return new Rect(x, Mathf.Max(4f, shopY - Height - 8f), Width, Height);
         }
 
         // 의료: 잃은 팔다리 모두 복구, 비용 = 개수 × 1개 가격

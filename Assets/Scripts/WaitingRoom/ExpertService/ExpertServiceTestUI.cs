@@ -12,13 +12,19 @@ namespace CurtainCall.WaitingRoom
     /// </summary>
     public sealed class ExpertServiceTestUI : MonoBehaviour
     {
+        /// <summary>화면 아래쪽에서 이 패널과 3단계 소지 안내(최대 2줄)가 차지하는 높이. 커서 잠금 예외 영역도 이 값을 쓴다.</summary>
+        public const float BottomReserve = 380f;
+
+        /// <summary>3단계 소지 안내(PropCarry) 상자 위로 띄우는 높이.</summary>
+        const float CarryGap = 72f;
+
         bool folded;
 
         void OnGUI()
         {
             const float width = 300;
-            float height = folded ? 34 : 280;
-            GUILayout.BeginArea(new Rect(10, Screen.height - height - 10, width, height), GUI.skin.box);
+            float height = folded ? 34 : 300;
+            GUILayout.BeginArea(new Rect(10, Screen.height - height - CarryGap, width, height), GUI.skin.box);
             if (GUILayout.Button(folded ? "전문가 서비스 테스트 패널 펴기" : "전문가 서비스 테스트 패널 접기")) folded = !folded;
             if (folded) { GUILayout.EndArea(); return; }
 
@@ -51,6 +57,7 @@ namespace CurtainCall.WaitingRoom
             if (!service.HasAuthority) GUILayout.Label("절단 버튼은 호스트만 씁니다.");
             GUILayout.Label(NextStep(service));
             if (!string.IsNullOrEmpty(service.LastMessage)) GUILayout.Label(service.LastMessage);
+            GUILayout.Label(Cursor.lockState == CursorLockMode.Locked ? "ESC: 커서 풀기(패널 클릭)" : "화면 빈 곳 클릭: 마우스 시점 다시 잠금");
             GUILayout.EndArea();
         }
 
