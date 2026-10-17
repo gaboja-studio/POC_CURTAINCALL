@@ -337019,6 +337019,7 @@ GameObject:
   - component: {fileID: 1170942098}
   - component: {fileID: 1170942099}
   - component: {fileID: 1170942100}
+  - component: {fileID: 1170942101}
   m_Layer: 0
   m_Name: ShopStorageViews
   m_TagString: Untagged
@@ -337054,8 +337055,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.SharedFundsView
   show: 1
-  ledgerLines: 5
-  receiptLines: 3
 --- !u!114 &1170942100
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -337071,6 +337070,25 @@ MonoBehaviour:
   reach: 1
   itemSize: 0.25
   color: {r: 0.55, g: 0.85, b: 1, a: 1}
+--- !u!114 &1170942101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1170942097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cb7615130e534cc5827825c133b6350, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.HeldPropsView
+  itemSize: 0.26
+  firstOffset: {x: 0, y: 0.95, z: 0.45}
+  stack: 0.28
+  backpackOffset: {x: 0, y: 1.15, z: -0.3}
+  backpackSize: {x: 0.42, y: 0.46, z: 0.2}
+  itemColor: {r: 0.55, g: 0.85, b: 1, a: 1}
+  backpackColor: {r: 0.55, g: 0.38, b: 0.2, a: 1}
 --- !u!1001 &1171698569
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -404940,6 +404958,91 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &1400708401
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1400708402}
+  - component: {fileID: 1400708403}
+  - component: {fileID: 1400708404}
+  - component: {fileID: 1400708405}
+  m_Layer: 0
+  m_Name: ShopStorageTestPanels
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1400708402
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1400708401}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1400708403
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1400708401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f75bfb5c30d9b456eaccaa3727c552d2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.Session.NetworkSessionTestUI
+  _address: 127.0.0.1:7777
+  _panelRect:
+    serializedVersion: 2
+    x: 10
+    y: 36
+    width: 300
+    height: 220
+--- !u!114 &1400708404
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1400708401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fff0c3bfd4a09c41a72eb13a6997101, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Campaign.CampaignFlowTestUI
+  _panelRect:
+    serializedVersion: 2
+    x: 320
+    y: 10
+    width: 330
+    height: 330
+--- !u!114 &1400708405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1400708401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d4fcf00d37cd4f67b05a87f74fadf17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ShopStorageTestUI
+  cheers: 10
+  stepTimeout: 15
 --- !u!1 &1401658976
 GameObject:
   m_ObjectHideFlags: 0
@@ -595068,8 +595171,9 @@ MonoBehaviour:
   reach: 1.2
   dropForward: -0.6
   perRow: 4
-  spacing: 0.35
-  itemSize: 0.25
+  spacing: 0.4
+  itemSize: 0.32
+  dropTime: 0.6
 --- !u!1 &2079210447
 GameObject:
   m_ObjectHideFlags: 0
@@ -611856,3 +611960,4 @@ SceneRoots:
   - {fileID: 1012572038}
   - {fileID: 1295052021}
   - {fileID: 1170942098}
+  - {fileID: 1400708402}

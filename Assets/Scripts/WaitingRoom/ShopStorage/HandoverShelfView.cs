@@ -131,8 +131,11 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            if (carry == null || !ReferenceEquals(ShopReach.Focused, this)) return;
+            if (carry == null) return;
             var shelf = carry.Shelf;
+            for (int i = 0; i < shapes.Length && i < shelf.Count; i++)
+                if (shapes[i] != null) PropLabels.Draw(shapes[i].transform.position + Vector3.up * itemSize, $"{i + 1}칸 {shelf[i].Name}");
+            if (!ReferenceEquals(ShopReach.Focused, this)) return;
             int filled = 0, empty = -1;
             for (int i = 0; i < shelf.Count; i++)
             {

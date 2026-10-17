@@ -4,9 +4,10 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// ③ 상점 수화기 아래 배송구. 주문한 물건이 앞바닥에 도형으로 놓이고, 가까이서 F를 누르면 가장 가까운 물건을 받는다.
+    /// ③ 상점 수화기 아래 배송구. 주문한 물건이 배송구 입구에서 나와 앞바닥으로 떨어지고(대기실 2차 기획서 4.3.2), 위에 품목 이름이 뜬다.
+    /// 가까이서 F를 누르면 가장 가까운 물건을 받는다. 받은 물건은 손에 들린다(<see cref="HeldPropsView"/>).
     /// 놓이는 자리는 주문 순서로만 정해서 네 화면이 같다. 도형은 화면마다 따로 그리는 표시용이다(충돌 없음).
-    /// 받은 물건을 들고 다니는 운반은 다음 항목(운반 한도)에서 붙인다.
+    /// 씬을 열 때 이미 배송구에 있던 물건은 떨어지는 움직임 없이 제자리에 둔다.
     /// </summary>
     public sealed class ShopDeliverySlot : MonoBehaviour
     {
@@ -18,22 +19,29 @@ namespace CurtainCall.WaitingRoom
 
         [Tooltip("한 줄에 놓는 개수와 간격(m).")]
         [SerializeField, Min(1)] int perRow = 4;
-        [SerializeField, Min(.1f)] float spacing = .35f;
-        [SerializeField, Min(.05f)] float itemSize = .25f;
+        [SerializeField, Min(.1f)] float spacing = .4f;
+        [SerializeField, Min(.05f)] float itemSize = .32f;
+
+        [Tooltip("배송구에서 나와 바닥에 닿을 때까지 걸리는 시간(초).")]
+        [SerializeField, Min(.05f)] float dropTime = .6f;
 
         readonly Dictionary<int, Item> shown = new();
         readonly List<int> stale = new();
         WaitingRoomShop shop;
         Material material;
+        bool loaded;
 
         sealed class Item : IShopTarget
         {
             public ShopDeliverySlot Slot;
             public ShopDelivery Delivery;
             public GameObject View;
+            public Vector3 From, To;
+            public float Started = -1f;
 
             public float Reach(Vector3 feet)
             {
+                if (Started >= 0f) return -1f; // 떨어지는 중에는 받지 않는다
                 Vector3 offset = feet - View.transform.position;
                 float distance = new Vector2(offset.x, offset.z).magnitude;
                 return distance <= Slot.reach ? distance : -1f;
@@ -49,6 +57,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (shop != null) shop.Changed -= Rebuild;
             shop = null;
+            loaded = false;
             foreach (var item in shown.Values) Drop(item);
             shown.Clear();
         }
@@ -66,6 +75,7 @@ namespace CurtainCall.WaitingRoom
                 shop.Changed += Rebuild;
                 Rebuild();
             }
+            Animate();
             ShopReach.Pump();
         }
 
@@ -81,6 +91,9 @@ namespace CurtainCall.WaitingRoom
             point.y = FloorHeight(point) + itemSize * .5f;
             return point;
         }
+
+        /// <summary>물건이 나오는 배송구 입구(방 안쪽 면).</summary>
+        Vector3 Mouth() => transform.position + transform.rotation * Vector3.forward * (Mathf.Sign(dropForward) * .1f);
 
         // 배송구는 벽에 떠 있으므로 아래로 바닥을 찾는다. 못 찾으면 배송구 높이.
         float FloorHeight(Vector3 point) =>
@@ -98,18 +111,41 @@ namespace CurtainCall.WaitingRoom
             {
                 var delivery = waiting[i];
                 stale.Remove(delivery.Order);
+                Vector3 target = DropPosition(i);
                 if (!shown.TryGetValue(delivery.Order, out var item))
                 {
                     item = new Item { Slot = this, Delivery = delivery, View = MakeView(delivery) };
                     shown.Add(delivery.Order, item);
                     ShopReach.Add(item);
+                    if (loaded)
+                    {
+                        item.From = Mouth();
+                        item.Started = Time.time;
+                    }
                 }
-                item.View.transform.SetPositionAndRotation(DropPosition(i), Quaternion.Euler(0f, transform.eulerAngles.y, 0f));
+                item.To = target;
+                if (item.Started < 0f) item.View.transform.position = target;
+                item.View.transform.rotation = Quaternion.Euler(0f, transform.eulerAngles.y, 0f);
             }
             foreach (int order in stale)
             {
                 Drop(shown[order]);
                 shown.Remove(order);
+            }
+            loaded = true;
+        }
+
+        // 입구에서 앞으로 밀려 나오며 떨어진다(앞쪽은 고르게, 높이는 점점 빠르게).
+        void Animate()
+        {
+            foreach (var item in shown.Values)
+            {
+                if (item.Started < 0f) continue;
+                float t = Mathf.Clamp01((Time.time - item.Started) / dropTime);
+                Vector3 p = Vector3.Lerp(item.From, item.To, t);
+                p.y = Mathf.Lerp(item.From.y, item.To.y, t * t);
+                item.View.transform.position = p;
+                if (t >= 1f) item.Started = -1f;
             }
         }
 
@@ -140,6 +176,8 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             if (shop == null) return;
+            foreach (var item in shown.Values)
+                PropLabels.Draw(item.View.transform.position + Vector3.up * itemSize, $"{item.Delivery.ItemName} #{item.Delivery.Order}");
             foreach (var item in shown.Values)
             {
                 if (!ReferenceEquals(ShopReach.Focused, item)) continue;

@@ -145,6 +145,8 @@ namespace CurtainCall.WaitingRoom
         {
             if (carry == null) return;
             foreach (var item in shown.Values)
+                PropLabels.Draw(item.Shape.transform.position + Vector3.up * itemSize, item.Prop.Item.Name);
+            foreach (var item in shown.Values)
             {
                 if (!ReferenceEquals(ShopReach.Focused, item)) continue;
                 GUI.Label(new Rect(Screen.width / 2f - 80, Screen.height * .62f, 320, 24),

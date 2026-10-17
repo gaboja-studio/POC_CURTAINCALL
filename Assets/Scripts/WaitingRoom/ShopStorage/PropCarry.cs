@@ -199,6 +199,7 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) UseShelf(ulong player)
         {
+            if (WaitingRoomShop.InPerformance) return (false, "공연 중에는 선반을 쓸 수 없습니다.");
             var refusal = book.UseShelf(player, Slots(player), out int slot, out bool placed, out var item);
             if (refusal != CarryRefusal.None) return (false, Explain(refusal));
             Debug.Log($"[Carry] 선반 {slot + 1}칸 {(placed ? "올림" : "꺼냄")} #{item.Uid} {item.Name} — {WaitingRoomShop.PlayerLabel(player)}");

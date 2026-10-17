@@ -158,8 +158,14 @@ namespace CurtainCall.WaitingRoom
             return NetworkPlayer.All.Count == 0 ? "나" : $"플레이어 #{clientId}";
         }
 
+        /// <summary>공연 중에는 구매·보관을 하지 않는다(게임 흐름 기획 2-3: 쉬는 시간·밤 정비만).</summary>
+        public static bool InPerformance => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Performance;
+
+        const string PerformanceRefusal = "공연 중에는 상점을 쓸 수 없습니다.";
+
         (bool, string) Buy(string itemId, ulong buyer)
         {
+            if (InPerformance) return (false, PerformanceRefusal);
             var refusal = book.Order(catalog, itemId, buyer, rewards.TrySpend, out var delivery);
             if (refusal != ShopRefusal.None) return (false, Explain(refusal));
             Debug.Log($"[Shop] 구매 #{delivery.Order} {delivery.ItemName} ← {PlayerLabel(buyer)} / 잔액 {rewards.Balance}");
@@ -169,6 +175,7 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) Claim(int order, ulong claimer)
         {
+            if (InPerformance) return (false, PerformanceRefusal);
             // 손에 들 수 있는지 먼저 본다. 못 들면 배송구에 그대로 남는다.
             int index = -1;
             for (int i = 0; i < book.Waiting.Count; i++) if (book.Waiting[i].Order == order) { index = i; break; }
