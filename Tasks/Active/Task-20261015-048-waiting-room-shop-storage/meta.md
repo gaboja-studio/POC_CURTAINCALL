@@ -2,7 +2,7 @@
 
 - **Title:** 대기실 3단계 — 상점과 소품실 보관
 - **Type:** feat
-- **Status:** assigned
+- **Status:** submitted
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:** common-game-systems
 - **Current Skill:** start-work
