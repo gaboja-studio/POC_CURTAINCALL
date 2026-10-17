@@ -14,9 +14,8 @@
 
 - `Assets/Scripts/Systems/SpaceLink/SpaceRoute.cs`
 - `Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs`
-- `Assets/Scripts/Systems/SpaceLink/CampaignPerformanceEntry.cs`
 - `Assets/Scripts/Systems/SpaceLink/CampaignTightropeAdapter.cs`
-- `Assets/Scripts/MainStage/Tightrope/Rope/TightropeRun.cs`
+- 반환 이력(2026-10-17, PR #153 병합 후 PM): CampaignPerformanceEntry.cs·TightropeRun.cs → Task-20261017-058로 이관.
 - 세팅 코드/값과 빌드 목록은 team-roles의 현재 Task 관련 공용 허용 적용.
 - 신규 코드의 Unity 생성 `.meta` 포함. 기존 Task052 소유 테스트 파일은 수정하지 않는다.
 
