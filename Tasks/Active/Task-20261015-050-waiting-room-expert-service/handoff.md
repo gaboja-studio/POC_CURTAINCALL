@@ -13,10 +13,10 @@
 - 대기 중인 결정: meta Open 참조.
 - 공용 파일 요청: 없음.
 ## Verification
-- 구역 검사: OK (2026-10-17)
-- 1 문서/규칙: 미실행
-- 2 컴파일: PASS (verify-unity -Compile, 2026-10-17)
-- 3 테스트: EditMode ExpertServiceBookTests 19/19 PASS (2026-10-17, 한 번에 복구·시설 조정 반영 뒤). PlayMode 테스트 없음(NO_PROJECT_TESTS).
+- 구역 검사: PASS (10-17)
+- 1 문서/규칙: PASS (10-17)
+- 2 컴파일: PASS (10-17)
+- 3 테스트: FAIL — 테스트 오류 (10-17). PlayMode 46개 중 44 통과, 실패 2 = 공용 SpaceLinkPlayTests(Additive_KeepsHubAndSwapsSpaceScenes, Single_FollowsPhasesAndKeepsRunState: DummyWaitingRoom 기대, 실제 WaitingRoomBase). 원인: 1단계 #123(00045af)이 BaseGameSettings.waitingRoomScene을 DummyWaitingRoom→WaitingRoomBase로 바꿨으나 SpaceLinkPlayTests.cs:138·198은 DummyWaitingRoom을 기대, 이 Task는 해당 파일·코드 미변경(기준 브랜치와 동일) — PM 보고 대상. 5단계는 PlayMode 테스트 없음(NO_PROJECT_TESTS), EditMode ExpertServiceBookTests 19/19 PASS.
 - 4 실행 로그: 1인 Play(호스트) 확인 2026-10-17 — 1일차 쉬는 시간 구매 거절("밤 정비 때만"), 1일차 밤 구매(자금 100→70)·문 열림·입구 F(Interact 직접 호출, 시뮬레이션 키는 백그라운드라 입력 미전달)·방 안 이동·복구(LeftLeg→None)·문 앞 재등장·문 닫힘, 2일차 밤 "담당자 부재중" 거절(자금 유지)·수화기 칸 비활성 표시. 콘솔 오류·경고 없음.
 - 4-2 기획 대조 Play 2026-10-17: 3곳 결손 → 역순 복구(왼팔 먼저)·모델 팔다리 복원 일치, 걸어서 통과 불가(막), 이용 중 문 닫힘·쇠붙이 소리, 온전한 몸·자금 부족·사망 거절, 밤 종료 시 예약 정리, 3일차 의료 재개·시설 부재중. 미확인: 4인 실제 접속 동기화, 실제 F 키 입력, 황금빛은 2026-10-17 추가(문이 열린 만큼 방 안 조명이 밝아짐, Play 확인).
 - 4-3 기획서 원문 대조 뒤 수정 Play 2026-10-17: 구매 전 커튼 앞 F 안내, 2곳 결손 한 번에 복구(비용 60)·구매자 도착 시 커튼 좌우 열림·황금빛·입장·재등장·커튼 닫힘, 2일차 시설 강화 구매(3일차 적용값)·재구매 거절, 마우스 시점 켜짐. 주의: Play 중 스크립트 저장 시 재컴파일로 ScheduleBoard.Update NRE 반복(코드 결함 아님) — Play를 멈춘 뒤 수정.
