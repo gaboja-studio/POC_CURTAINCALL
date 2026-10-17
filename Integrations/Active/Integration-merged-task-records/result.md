@@ -27,10 +27,13 @@
 
 - 사용자 요청: 기록 저장·PR 제출·온라인 검사 확인 승인. 병합은 제외.
 - PM 마무리 문서 예외로 integration/merged-task-records에만 저장·업로드한다. dev 직접 push 없음.
-- 제출 전 문서·컴파일·범위 검증 통과. 현재 지시로 추가 질문 없이 PR 미리보기 표시·등록·온라인 검사 확인까지 진행한다.
+- 저장·push: 260bc5c. PM 마무리 문서 예외로 업로드했으며 원격에서 PM 규칙 예외 적용 메시지를 확인했다. dev 직접 push 없음.
+- PR: [#150](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/150), integration/merged-task-records → dev, OPEN. 미리보기 표시 후 등록했으며 병합하지 않았다.
+- 제출본 260bc5c: [Verify Docs 39004795462](https://github.com/gaboja-studio/POC_CURTAINCALL/actions/runs/39004795462)의 verify-fast·third-party·commits 및 check-folder 39004764248 PASS(적용 대상 4개). verify-scope는 PM 통합 규칙상 SKIPPED.
+- 이 결과를 저장한 마지막 기록 커밋도 업로드 후 실제 온라인 검사 종료까지 별도 확인한다. 최종 커밋 결과는 최종 보고로 남기며 성공 기록 커밋을 반복하지 않는다.
 
 ## 다음 할 일
 
-1. 기록 저장·PR 미리보기 확인·등록 후 마지막 제출 커밋의 온라인 검사 종료까지 확인한다. 병합은 하지 않는다.
+1. PR #150의 마지막 기록 저장본 온라인 검사 종료를 확인하고 결과를 보고한다. 병합은 하지 않는다.
 2. 실제 전달은 별도 단계: 현재 부모/자식 상태 재조사 → sync-integration 미리보기 → 원격 쓰기 별도 승인.
 3. C 통합·충돌 해결·private 변경은 이번 작업에 포함하지 않는다.
