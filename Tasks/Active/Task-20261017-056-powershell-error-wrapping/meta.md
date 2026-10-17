@@ -2,7 +2,7 @@
 
 - **Title:** PowerShell 오류 출력 줄바꿈 회귀 수정
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** assets-structure
 - **Current Skill:** submit-work

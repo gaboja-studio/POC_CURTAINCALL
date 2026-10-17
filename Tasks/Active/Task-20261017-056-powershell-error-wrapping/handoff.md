@@ -1,13 +1,13 @@
 # Handoff
 
 ## 지금 상태
-- 단계: 검사 코드 수정·로컬 검증 완료. 사용자 저장·PR 제출·온라인 검사 확인 요청으로 저장 준비 중, PR·병합 없음.
+- 단계: 수정 저장·push 및 PR #149 제출 완료. 제출 커밋 ce9ace3의 실제 Ubuntu CI 전체 PASS, 제출 기록 저장 중. 병합하지 않음.
 - 기준: origin/dev 806e10d, private HEAD/gitlink c104565 불변.
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/149
 
 ## 다음 할 일
-1. save-work로 저장하고 새 PR 미리보기 확인 후 dev에 제출한다. 기존 PR #148은 갱신하지 않는다.
-2. 정확한 제출 커밋의 실제 GitHub Ubuntu CI 종료를 확인한다. 로컬 결과를 Ubuntu 통과로 보고하지 않는다.
+1. 제출 기록 저장 후 마지막 커밋의 실제 GitHub CI 종료까지 확인한다.
+2. PM 병합 판단 대기. 기존 PR #148은 갱신하지 않는다.
 3. 병합·실제 팀 작업 동기화·다른 Task·private 변경은 별도 승인 없이 하지 않는다.
 
 ## PM이 확인할 것
@@ -25,4 +25,4 @@
 ## 공동 테스트 결과
 - 일시/참여자/실제: 미실행. 자동 fixture를 공동 테스트로 대체하지 않음.
 - 재현/예상: plan.md 3항목의 자동 검증 완료. 예상 오류는 줄바꿈·ANSI가 있어도 인정하며 다른 오류·성공 종료는 거부한다. 기존 실제 PR 쓰기 차단 검사도 통과.
-- GitHub Ubuntu CI: SKIPPED(새 PR 미등록).
+- GitHub Ubuntu CI: PASS(2026-10-17, ce9ace3). [실제 실행](https://github.com/gaboja-studio/POC_CURTAINCALL/actions/runs/39003429997)의 4개 job 및 check-folder 모두 성공. workspace-flow 34개 통과, 기존 줄바꿈 실패 해소. 마지막 기록 커밋 결과는 제출 완료 보고에서 확인한다.
