@@ -15,7 +15,7 @@
 - 구역 검사: PASS (10-17)
 - 1 문서/규칙: PASS (10-17)
 - 2 컴파일: PASS (10-17)
-- 3 테스트: FAIL — PlayMode 46개 중 44 통과, 2 실패(10-17, check-work -Mode PlayMode). 실패는 공용 `SpaceLinkPlayTests`(Single_FollowsPhasesAndKeepsRunState: 대기실 기대 DummyWaitingRoom ↔ 실제 WaitingRoomBase, Additive_KeepsHubAndSwapsSpaceScenes) — 대기실 장소를 WaitingRoomBase로 바꾼 1단계 PR #123(BaseGameSettings·EditorBuildSettings)과 공용 테스트 기대값 불일치, 이 Task 변경과 무관. 이 Task EditMode 27/27 통과. 상점·소지 PlayMode 테스트는 없음.
+- 3 테스트: FAIL — 테스트 오류 (10-17). PlayMode 46개 중 44 통과·2 실패 = 공용 `SpaceLinkPlayTests`(Single_FollowsPhasesAndKeepsRunState, Additive_KeepsHubAndSwapsSpaceScenes) — 1단계 #123의 대기실 장소(WaitingRoomBase)와 테스트 기대값(DummyWaitingRoom) 불일치, **이 Task와 무관한 기존 실패**(2026-10-17 담당자 결정: PR 본문에 적고 PM에게 알림). 이 Task EditMode 27/27.
 - 4 실행 로그(AI 1인, LAN 호스트 1인·개발자 모드 임시 켬 → 끔, 공연 2회에 호응 넣어 자금 마련, F 실입력 대신 같은 진입점 Interact/Request* 호출):
   - 구매·수령: 자금 0 주문 거절 → 주문 시 잔액·장부(-10/-20) 감소 → 배송구 앞 바닥 도형 → 수령, 재수령 "이미 다른 사람이 받았습니다".
   - 운반: 2/2에서 수령 거절(배송구에 남음) → 임시 배낭 +2 → 4/4 → F 길게 내려놓기·줍기 → 외팔 시 한도 3, 넘친 1개 발밑 → 사망 중 유지.
