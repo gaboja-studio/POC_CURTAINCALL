@@ -1,4 +1,4 @@
-# PM 전용. integration/<slug>로 온 PR 현황 보기 / 하나씩 Squash 병합 / 뒤처진 PR 최신화. gh 필요.
+# PM 전용. integration/<slug> PR 현황 / 작업 PR만 Squash 병합·최신화. gh 필요.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][ValidatePattern('^[a-z0-9]+(?:-[a-z0-9]+)*$')][string]$Slug,
@@ -14,7 +14,7 @@ if ($gh.State -ne 'Ready') { throw "gh가 필요합니다: $($gh.Detail) (Skill:
 $repo = (Get-GitHubRepo).Slug
 $base = "integration/$Slug"
 $stateText = @{
-    CLEAN = '병합 가능'; BEHIND = '뒤처짐(Update 필요)'; DIRTY = '충돌'; BLOCKED = '승인·검사 대기'
+    CLEAN = '병합 가능'; BEHIND = '뒤처짐'; DIRTY = '충돌'; BLOCKED = '승인·검사 대기'
     UNSTABLE = '검사 실패'; UNKNOWN = '확인 중'; HAS_HOOKS = '병합 가능'; DRAFT = '초안'
 }
 
@@ -22,7 +22,20 @@ function Get-Prs { param([string]$State = 'open')
     (& $gh.Gh pr list --repo $repo --base $base --state $State --limit 100 --json number,title,headRefName,state,mergeStateStatus,isDraft) | ConvertFrom-Json
 }
 
+function Test-WorkHead {
+    param([string]$Head)
+    return $Head -cmatch '^(feat|fix|refactor|resource)/'
+}
+
 if ($Update) {
+    $prJson = & $gh.Gh pr view $Update --repo $repo --json baseRefName,headRefName,state
+    if ($LASTEXITCODE -ne 0) { throw "PR #$Update 조회 실패" }
+    $pr = $prJson | ConvertFrom-Json
+    if (-not $pr) { throw "PR #$Update 조회 실패" }
+    # 부모 head를 최신화하면 자식 변경이 부모로 역유입되므로 작업 head만 허용한다.
+    if (-not (Test-WorkHead $pr.headRefName)) { throw "PR #$Update 작업 head만 Update 가능: $($pr.headRefName). dev/integration head는 Update 금지입니다." }
+    if ($pr.baseRefName -ne $base) { throw "PR #$Update 의 대상이 $base 가 아님: $($pr.baseRefName)" }
+    if ($pr.state -ne 'OPEN') { throw "PR #$Update 가 열려 있지 않음: $($pr.state)" }
     & $gh.Gh pr update-branch $Update --repo $repo
     if ($LASTEXITCODE -ne 0) { throw "PR #$Update 최신화 실패 (충돌이면 담당자와 함께 해결)" }
     Write-Output "PR #$Update 를 최신 $base 로 갱신했습니다. 검사가 끝나면 병합하세요."
@@ -41,7 +54,13 @@ if ($Merge) {
     Write-Output "병합 완료(Squash): #$Merge $($pr.title)"
     Start-Sleep -Seconds 3
     $behind = @(Get-Prs | Where-Object { $_.mergeStateStatus -in 'BEHIND', 'DIRTY', 'UNKNOWN' })
-    foreach ($b in $behind) { Write-Output "  → #$($b.number) $($stateText[$b.mergeStateStatus] ?? $b.mergeStateStatus): pwsh -File Scripts/merge-integration.ps1 -Slug $Slug -Update $($b.number)" }
+    foreach ($b in $behind) {
+        if (Test-WorkHead $b.headRefName) {
+            Write-Output "  → #$($b.number) $($stateText[$b.mergeStateStatus] ?? $b.mergeStateStatus): pwsh -File Scripts/merge-integration.ps1 -Slug $Slug -Update $($b.number)"
+        } else {
+            Write-Output "  → #$($b.number) $($stateText[$b.mergeStateStatus] ?? $b.mergeStateStatus): 통합·동기화 PR은 Update 금지. 방향·SHA·리뷰·CI를 재검토하고 Merge commit 절차를 따르세요."
+        }
+    }
     exit 0
 }
 
@@ -49,7 +68,12 @@ if ($Merge) {
 $open = @(Get-Prs)
 $merged = @(Get-Prs -State merged)
 Write-Output "== $base PR 현황 =="
-foreach ($p in $open) { Write-Output ("  #{0,-4} {1,-14} {2}  ({3})" -f $p.number, ($p.isDraft ? '초안' : ($stateText[$p.mergeStateStatus] ?? $p.mergeStateStatus)), $p.title, $p.headRefName) }
+foreach ($p in $open) {
+    $status = $p.isDraft ? '초안' : ($stateText[$p.mergeStateStatus] ?? $p.mergeStateStatus)
+    if (-not (Test-WorkHead $p.headRefName)) { $status += ' / Update 금지·Merge commit' }
+    elseif ($p.mergeStateStatus -eq 'BEHIND') { $status += '(Update 필요)' }
+    Write-Output ("  #{0,-4} {1,-14} {2}  ({3})" -f $p.number, $status, $p.title, $p.headRefName)
+}
 foreach ($p in $merged) { Write-Output ("  #{0,-4} {1,-14} {2}" -f $p.number, '병합됨', $p.title) }
 
 $meta = Get-RepoPath "Integrations/Active/Integration-$Slug/meta.md"
@@ -62,4 +86,4 @@ if (Test-Path -LiteralPath $meta) {
     }
 }
 Write-Output ''
-Write-Output "병합: -Merge <번호>   최신화: -Update <번호>"
+Write-Output "작업 PR만: 병합 -Merge <번호> / 최신화 -Update <번호> (feat/fix/refactor/resource head). 통합·동기화 PR은 Merge commit, Update 금지."

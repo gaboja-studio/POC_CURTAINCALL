@@ -141,18 +141,30 @@ function Get-IntegrationMetadata {
 }
 
 function Assert-IntegrationLineage {
-    param([Parameter(Mandatory)][string]$Branch, [string]$Ref, [string]$Child, [switch]$AllowDone)
+    param([Parameter(Mandatory)][string]$Branch, [string]$Ref, [string]$Child, [switch]$AllowDone,
+        [System.Collections.IDictionary]$PinnedRefs, [switch]$RequireActive)
     $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
     if ($Child) { [void]$seen.Add($Child) }
     $first = $true
     while ($Branch -cne (Get-BaseBranch)) {
         if (-not $seen.Add($Branch)) { throw "통합 Base 자기참조/순환: $Branch" }
-        $info = if ($first -and $Ref) { Get-IntegrationMetadata -Branch $Branch -Ref $Ref -AllowDone:$AllowDone } else { Get-IntegrationMetadata -Branch $Branch }
+        $readRef = if ($null -ne $PinnedRefs) {
+            if (-not $PinnedRefs.Contains($Branch)) { throw "고정된 계보 SHA 누락: $Branch" }
+            $PinnedRefs[$Branch]
+        } elseif ($first -and $Ref) { $Ref } else { "refs/remotes/origin/$Branch" }
+        $info = Get-IntegrationMetadata -Branch $Branch -Ref $readRef -AllowDone:($first -and $AllowDone)
         $first = $false
+        if ($RequireActive -and (Get-MetaField -Text $info.Text -Field 'Status') -cnotin @('preparing', 'working', 'merging', 'testing', 'to-dev', 'blocked')) {
+            throw "활성 통합 상태가 아닙니다: $Branch"
+        }
         if (-not $info.Base) { throw "통합 Base 누락: $Branch" }
         $Branch = $info.Base
     }
-    & git -C $script:RepoRoot rev-parse --verify --quiet "refs/remotes/origin/$Branch^{commit}" | Out-Null
+    $baseRef = if ($null -ne $PinnedRefs) {
+        if (-not $PinnedRefs.Contains($Branch)) { throw "고정된 계보 SHA 누락: $Branch" }
+        $PinnedRefs[$Branch]
+    } else { "refs/remotes/origin/$Branch" }
+    & git -C $script:RepoRoot rev-parse --verify --quiet "$baseRef^{commit}" | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "원격 부모 브랜치가 없습니다: $Branch" }
 }
 
@@ -390,6 +402,44 @@ function Get-GhState {
     return [pscustomobject]@{ State = 'Ready'; Gh = $gh; Detail = "gh 준비됨 ($($repo.Slug))" }
 }
 
+function New-PrTemplateBody {
+    param([Parameter(Mandatory)][string]$Summary, [string]$Jira = '없음', [string]$Issues = '없음',
+        [string]$ScopeCheck = '미실행', [string]$CompileCheck = '미실행', [string]$TestCheck = '미실행',
+        [string]$PlayCheck = '미실행', [string]$MergeNote)
+    $template = Get-Content -LiteralPath (Get-RepoPath '.github/PULL_REQUEST_TEMPLATE.md') -Raw
+    $body = [System.Text.StringBuilder]::new()
+    foreach ($part in [regex]::Split($template, '(?m)^(?=## )')) {
+        if ($part -notmatch '^## (.+)') { [void]$body.Append($part); continue }
+        $heading = $Matches[1].Trim()
+        $value = switch -Regex ($heading) {
+            '요약' { $Summary }
+            'JIRA' { $Jira }
+            'Issue' { $Issues }
+            '검사' {
+                $lines = foreach ($line in ($part -split "`n")) {
+                    if ($line -notmatch '^\s*-\s*([^(:]+)') { continue }
+                    $label = $Matches[1].Trim()
+                    $check = switch -Regex ($label) {
+                        '구역' { $ScopeCheck }
+                        '컴파일' { $CompileCheck }
+                        '테스트' { $TestCheck }
+                        '플레이' { $PlayCheck }
+                        default { '미실행' }
+                    }
+                    "- ${label}: $check"
+                }
+                $lines -join "`n"
+            }
+            default { $null }
+        }
+        if ($null -eq $value) { [void]$body.Append($part) }
+        else { [void]$body.Append("## $heading`n`n$value`n`n") }
+    }
+    $text = $body.ToString().Trim() + "`n"
+    if ($MergeNote) { $text += "`n$MergeNote`n" }
+    return $text
+}
+
 function Open-Url {
     param([Parameter(Mandatory)][string]$Url)
     if ($IsMacOS) { & open $Url }
@@ -579,7 +629,8 @@ function Set-IntegrationTaskRow {
 
 function Assert-CleanTree {
     param([string]$Hint = '먼저 "저장해줘"로 저장하세요.')
-    $dirty = & git -C $script:RepoRoot status --porcelain
+    $dirty = & git --no-optional-locks -C $script:RepoRoot status --porcelain --untracked-files=all --ignore-submodules=none
+    if ($LASTEXITCODE -ne 0) { throw '작업 폴더 상태를 확인하지 못했습니다.' }
     if ($dirty) { throw "저장하지 않은 변경이 있습니다. $Hint`n$($dirty -join "`n")" }
 }
 
@@ -673,58 +724,302 @@ function Assert-CommitIdentity {
     }
 }
 
-# 외부 에셋 submodule(Assets/_ThirdParty)을 받는다. private 레포라 권한이 없으면 실패한다(Decisions/third-party-assets.md).
-function Update-ThirdParty {
-    param([string]$Path = $script:RepoRoot)
-    if (-not (Test-Path -LiteralPath (Join-Path $Path '.gitmodules'))) { return }
-    & git -C $Path config submodule.recurse true
-    & git -C $Path submodule update --init --recursive --quiet
-    if ($LASTEXITCODE -ne 0) {
-        throw '외부 에셋(Assets/_ThirdParty)을 받지 못했습니다. gaboja-studio/CURTAINCALL_PaidAssets 읽기 권한이 있는지 PM에게 확인하세요.'
+# Git 환경은 자식 프로세스에만 적용한다. 수신 중인 Git/LFS는 timeout으로 종료하지 않는다.
+function Invoke-TransitionGit {
+    param([string]$Path, [string[]]$Arguments, [switch]$AllowFailure)
+    $exe = (Get-Command git -CommandType Application -ErrorAction Stop | Select-Object -First 1).Source
+    $psi = [System.Diagnostics.ProcessStartInfo]::new($exe)
+    $psi.WorkingDirectory = $Path
+    foreach ($key in 'GIT_DIR', 'GIT_INDEX_FILE', 'GIT_WORK_TREE', 'GIT_PREFIX', 'GIT_COMMON_DIR', 'GIT_OBJECT_DIRECTORY', 'GIT_ALTERNATE_OBJECT_DIRECTORIES') {
+        [void]$psi.Environment.Remove($key)
     }
-    $removed = @(Remove-ThirdPartyLeftovers -Path $Path)
-    if ($removed.Count) { Write-Output "예전 외부 에셋 잔여 폴더를 정리했습니다: $($removed -join ', ')" }
+    $psi.Environment['GIT_LFS_SKIP_SMUDGE'] = '1'
+    $psi.Environment['GIT_OPTIONAL_LOCKS'] = '0'
+    foreach ($arg in (@('-C', $Path, '-c', 'submodule.recurse=false', '-c', 'core.quotePath=false') + $Arguments)) { $psi.ArgumentList.Add($arg) }
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.StandardOutputEncoding = [System.Text.UTF8Encoding]::new($false)
+    $psi.StandardErrorEncoding = [System.Text.UTF8Encoding]::new($false)
+    $process = [System.Diagnostics.Process]::Start($psi)
+    try {
+        $stdout = $process.StandardOutput.ReadToEndAsync()
+        $stderr = $process.StandardError.ReadToEndAsync()
+        while (-not $process.WaitForExit(30000)) { Write-Host '[대기] Git/LFS가 실행 중입니다. 강제 종료·잠금 삭제 없이 기다립니다.' }
+        $text = $stdout.GetAwaiter().GetResult()
+        [void]$stderr.GetAwaiter().GetResult()
+        if ($AllowFailure) { return [pscustomobject]@{ ExitCode = $process.ExitCode; Output = $text } }
+        if ($process.ExitCode -ne 0) { throw "Git 명령 실패 ($($Arguments[0]), exit $($process.ExitCode)). 권한·네트워크·Git 상태를 확인하세요. 자동 복구하지 않았습니다." }
+        return $text
+    } finally { $process.Dispose() }
 }
 
-# 외부 에셋이 공개 레포에 있던 시절의 경로. git이 지운 뒤에도 무시 파일(.mdb 등)이 남으면 Unity가 .meta를 다시 만들고
-# submodule 쪽 파일과 GUID가 겹쳐 submodule이 '변경됨'으로 보인다. git이 관리하지 않는 경로일 때만 지운다.
-$script:ThirdPartyLegacyPaths = @('Assets/Plugins/Demigiant', 'Assets/Plugins')
+function Test-ThirdPartyRepository {
+    param([string]$Path = $script:RepoRoot)
+    $sub = Join-Path $Path 'Assets/_ThirdParty'
+    if (-not (Test-Path -LiteralPath (Join-Path $sub '.git'))) { return $false }
+    $result = Invoke-TransitionGit $sub @('rev-parse', '--show-toplevel') -AllowFailure
+    return $result.ExitCode -eq 0 -and [IO.Path]::GetFullPath($result.Output.Trim()) -eq [IO.Path]::GetFullPath($sub)
+}
 
+function Get-TransitionGitlink {
+    param([string]$Path, [string]$Commit)
+    $rows = (Invoke-TransitionGit $Path @('ls-tree', '-r', '-z', $Commit)).Split([char]0, [StringSplitOptions]::RemoveEmptyEntries)
+    $links = @($rows | Where-Object { $_ -match '^160000 ' })
+    if (-not $links.Count) { return $null }
+    if ($links.Count -ne 1 -or $links[0] -notmatch '^160000 commit ([0-9a-f]{40,64})\tAssets/_ThirdParty$') { throw '지원하지 않는 submodule 구조입니다. 전환 전에 PM 확인이 필요합니다.' }
+    $sha = $Matches[1]
+    $config = Invoke-TransitionGit $Path @('config', '--blob', "${Commit}:.gitmodules", '--get-regexp', '^submodule\..*\.path$')
+    $entries = @($config.Trim() -split '\r?\n')
+    if ($entries.Count -ne 1 -or $entries[0] -notmatch '^submodule\..*\.path Assets/_ThirdParty$') { throw '대상 .gitmodules와 gitlink가 일치하지 않습니다.' }
+    return $sha
+}
+
+function Get-TransitionLfsFiles {
+    param([string]$Path, [string]$Commit)
+    $data = (Invoke-TransitionGit $Path @('lfs', 'ls-files', '--json', $Commit)) | ConvertFrom-Json
+    foreach ($file in $data.files) {
+        if ($file.oid_type -ne 'sha256' -or $file.oid -notmatch '^[0-9a-f]{64}$' -or $file.size -lt 0) { throw '지원하지 않는 LFS 포인터입니다.' }
+        $file
+    }
+}
+
+function Assert-TransitionLfsFiles {
+    param([string]$Path, [object[]]$Files, [switch]$Cache, [switch]$VerifyHash)
+    if (-not $Files.Count) { return }
+    if ($Cache) {
+        $line = ((Invoke-TransitionGit $Path @('lfs', 'env')) -split '\r?\n' | Where-Object { $_.StartsWith('LocalMediaDir=') } | Select-Object -First 1)
+        if (-not $line) { throw 'LFS 캐시 위치를 확인하지 못했습니다.' }
+        $media = $line.Substring('LocalMediaDir='.Length)
+    }
+    foreach ($file in $Files) {
+        $full = if ($Cache) { Join-Path $media "$($file.oid.Substring(0, 2))/$($file.oid.Substring(2, 2))/$($file.oid)" } else { Join-Path $Path $file.name }
+        if (-not (Test-Path -LiteralPath $full -PathType Leaf) -or (Get-Item -LiteralPath $full).Length -ne $file.size) { throw "LFS 실파일/캐시 누락 또는 크기 불일치: $($file.name)" }
+        if ($VerifyHash -and (Get-FileHash -LiteralPath $full -Algorithm SHA256).Hash -ine $file.oid) { throw "LFS hash 불일치: $($file.name)" }
+    }
+}
+
+function Assert-TransitionTrackedFiles {
+    param([string]$Path, [string]$Commit)
+    foreach ($row in (Invoke-TransitionGit $Path @('ls-tree', '-r', '-z', $Commit)).Split([char]0, [StringSplitOptions]::RemoveEmptyEntries)) {
+        if ($row -match '^160000 ') { continue }
+        $name = $row.Substring($row.IndexOf("`t") + 1)
+        if (-not (Test-Path -LiteralPath (Join-Path $Path $name))) { throw "추적 파일 누락: $name" }
+    }
+}
+
+function Get-ThirdPartyState {
+    param([string]$Path = $script:RepoRoot, [switch]$VerifyHash)
+    $state = [pscustomobject]@{ State = 'Error'; Detail = ''; Repo = $null }
+    try {
+        $sha = Get-TransitionGitlink $Path HEAD
+        if (-not $sha) {
+            if (Test-Path -LiteralPath (Join-Path $Path 'Assets/_ThirdParty')) { $state.Detail = 'gitlink 없는 외부 에셋 폴더가 남아 있습니다.'; return $state }
+            $state.State = 'Absent'; $state.Detail = '대상 submodule 없음'; return $state
+        }
+        if (-not (Test-ThirdPartyRepository $Path)) { $state.State = 'Uninitialized'; $state.Detail = '독립 submodule 초기화가 필요합니다.'; return $state }
+        $state.Repo = Join-Path $Path 'Assets/_ThirdParty'
+        if ((Invoke-TransitionGit $state.Repo @('rev-parse', 'HEAD')).Trim() -ne $sha) { $state.State = 'HeadMismatch'; $state.Detail = 'gitlink와 private HEAD가 다릅니다.'; return $state }
+        try { Assert-TransitionTrackedFiles $state.Repo HEAD } catch { $state.State = 'MissingFiles'; $state.Detail = $_.Exception.Message; return $state }
+        try { Assert-TransitionLfsFiles $state.Repo @(Get-TransitionLfsFiles $state.Repo HEAD) -VerifyHash:$VerifyHash } catch { $state.State = 'LfsIncomplete'; $state.Detail = $_.Exception.Message; return $state }
+        if ((Invoke-TransitionGit $state.Repo @('status', '--porcelain', '--untracked-files=all', '--ignore-submodules=none')).Trim()) { $state.State = 'Dirty'; $state.Detail = 'private 저장소에 보존할 변경이 있습니다.'; return $state }
+        $state.State = 'Ready'; $state.Detail = 'gitlink·추적 파일·LFS 실파일 확인'; return $state
+    } catch { $state.Detail = $_.Exception.Message; return $state }
+}
+
+function Test-ThirdPartyReady {
+    param([string]$Path = $script:RepoRoot)
+    return (Get-ThirdPartyState $Path).State -in 'Ready', 'Absent'
+}
+
+function Assert-TransitionIdle {
+    param([string]$Path)
+    foreach ($dir in @((Invoke-TransitionGit $Path @('rev-parse', '--absolute-git-dir')).Trim(), (Invoke-TransitionGit $Path @('rev-parse', '--path-format=absolute', '--git-common-dir')).Trim()) | Select-Object -Unique) {
+        if (@(Get-ChildItem -LiteralPath $dir -Filter '*.lock' -Force -ErrorAction Stop).Count) { throw 'Git 잠금이 있습니다. 잠금을 삭제하지 말고 진행 중 작업을 확인하세요.' }
+        $refs = Join-Path $dir 'refs'
+        if ((Test-Path -LiteralPath $refs) -and @(Get-ChildItem -LiteralPath $refs -Filter '*.lock' -Recurse -Force).Count) { throw 'Git ref 잠금이 있습니다.' }
+        foreach ($name in 'MERGE_HEAD', 'CHERRY_PICK_HEAD', 'REVERT_HEAD', 'rebase-merge', 'rebase-apply', 'sequencer', 'BISECT_START') {
+            if (Test-Path -LiteralPath (Join-Path $dir $name)) { throw "진행 중 Git 작업: $name" }
+        }
+    }
+    foreach ($running in @(Get-Process -Name git, git-lfs -ErrorAction SilentlyContinue)) {
+        try { if (-not $running.WaitForExit(2000)) { throw 'Git/LFS 프로세스가 실행 중입니다. 완료 후 다시 시도하세요(자동 종료하지 않음).' } }
+        finally { $running.Dispose() }
+    }
+}
+
+function Get-TransitionSnapshot {
+    param([string]$Path)
+    Assert-TransitionIdle $Path
+    if ((Invoke-TransitionGit $Path @('status', '--porcelain', '--untracked-files=all', '--ignore-submodules=none')).Trim()) { throw '저장하지 않은 변경이 있습니다. 자동 stash·삭제 없이 중단합니다.' }
+    if ((Invoke-TransitionGit $Path @('ls-files', '-v')) -cmatch '(?m)^[a-zS] ') { throw '숨긴 index 변경(assume-unchanged/skip-worktree)은 안전 전환에서 지원하지 않습니다.' }
+    $head = (Invoke-TransitionGit $Path @('rev-parse', 'HEAD')).Trim()
+    $index = (Invoke-TransitionGit $Path @('rev-parse', '--path-format=absolute', '--git-path', 'index')).Trim()
+    return [pscustomobject]@{
+        Head = $head
+        Branch = (Invoke-TransitionGit $Path @('symbolic-ref', '--quiet', '--short', 'HEAD') -AllowFailure).Output.Trim()
+        IndexHash = if (Test-Path -LiteralPath $index) { (Get-FileHash -LiteralPath $index).Hash } else { '' }
+    }
+}
+
+function Assert-TransitionSnapshot {
+    param([string]$Path, $Expected)
+    $actual = Get-TransitionSnapshot $Path
+    if ($actual.Head -ne $Expected.Head -or $actual.Branch -cne $Expected.Branch -or $actual.IndexHash -ne $Expected.IndexHash) { throw '준비 중 다른 작업이 HEAD·브랜치·index를 변경했습니다. 전환하지 않습니다.' }
+}
+
+function Assert-TransitionUntrackedCollision {
+    param([string]$Path, [string]$Commit)
+    $others = (Invoke-TransitionGit $Path @('ls-files', '--others', '-z')).Split([char]0, [StringSplitOptions]::RemoveEmptyEntries)
+    if (-not $others.Count) { return }
+    $targets = (Invoke-TransitionGit $Path @('ls-tree', '-r', '--name-only', '-z', $Commit)).Split([char]0, [StringSplitOptions]::RemoveEmptyEntries)
+    $set = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+    foreach ($name in $others) { [void]$set.Add($name.TrimEnd('/')) }
+    foreach ($target in $targets) {
+        $part = $target
+        while ($part) {
+            if ($set.Contains($part)) { throw "무시된 파일과 대상 경로가 충돌합니다: $part" }
+            $slash = $part.LastIndexOf('/'); $part = if ($slash -gt 0) { $part.Substring(0, $slash) } else { '' }
+        }
+    }
+    $targetSet = [Collections.Generic.HashSet[string]]::new([string[]]$targets, [StringComparer]::OrdinalIgnoreCase)
+    foreach ($other in $others) {
+        $part = $other.TrimEnd('/')
+        while ($part.Contains('/')) {
+            $part = $part.Substring(0, $part.LastIndexOf('/'))
+            if ($targetSet.Contains($part)) { throw "대상 파일 아래 무시된 파일이 있습니다: $other" }
+        }
+    }
+}
+
+function Prepare-TransitionRepository {
+    param([string]$Path, [string]$Commit)
+    $object = Invoke-TransitionGit $Path @('cat-file', '-e', "$Commit^{commit}") -AllowFailure
+    if ($object.ExitCode -ne 0) {
+        Write-Host '[준비] 대상 Git 객체를 받습니다(작업 폴더 전환 없음).'
+        [void](Invoke-TransitionGit $Path @('fetch', '--no-recurse-submodules', '--no-tags', 'origin', $Commit))
+        [void](Invoke-TransitionGit $Path @('cat-file', '-e', "$Commit^{commit}"))
+    }
+    Assert-TransitionUntrackedCollision $Path $Commit
+    $files = @(Get-TransitionLfsFiles $Path $Commit)
+    if ($files.Count) {
+        Write-Host "[준비] 대상 LFS $($files.Count)개를 확인·수신합니다."
+        [void](Invoke-TransitionGit $Path @('lfs', 'fetch', '--include=', '--exclude=', 'origin', $Commit))
+        Assert-TransitionLfsFiles $Path $files -Cache -VerifyHash
+    }
+    return [pscustomobject]@{ Path = $Path; Commit = $Commit; Files = $files }
+}
+
+function Complete-TransitionRepository {
+    param($Preparation)
+    if ((Invoke-TransitionGit $Preparation.Path @('rev-parse', 'HEAD')).Trim() -ne $Preparation.Commit) { throw '반영된 HEAD가 준비한 SHA와 다릅니다.' }
+    if ($Preparation.Files.Count) { [void](Invoke-TransitionGit $Preparation.Path @('-c', 'lfs.fetchinclude=', '-c', 'lfs.fetchexclude=', 'lfs', 'checkout')) }
+    Assert-TransitionTrackedFiles $Preparation.Path $Preparation.Commit
+    Assert-TransitionLfsFiles $Preparation.Path $Preparation.Files -VerifyHash
+}
+
+function Update-ThirdParty {
+    param([string]$Path = $script:RepoRoot, $Preparation)
+    if (-not $Preparation) {
+        $state = Get-ThirdPartyState $Path -VerifyHash
+        if ($state.State -notin 'Ready', 'Absent') { throw "외부 에셋: $($state.State) — $($state.Detail). 안전 전환 또는 PM 초기화가 필요합니다." }
+        return
+    }
+    if ((Get-TransitionGitlink $Path HEAD) -ne $Preparation.Commit) { throw '반영할 gitlink가 준비한 대상과 다릅니다.' }
+    Assert-TransitionIdle $Preparation.Path
+    if ((Invoke-TransitionGit $Preparation.Path @('status', '--porcelain', '--untracked-files=all')).Trim()) { throw '전환 중 private 변경이 발생했습니다. 보존 후 중단합니다.' }
+    [void](Invoke-TransitionGit $Path @('submodule', 'update', '--checkout', '--no-fetch', '--', 'Assets/_ThirdParty'))
+    Complete-TransitionRepository $Preparation
+}
+
+function Invoke-SafeBranchTransition {
+    param([string]$Path = $script:RepoRoot, [Parameter(Mandatory)][string]$TargetCommit, [string]$Branch, [switch]$CreateBranch, [switch]$Track)
+    $lock = $null
+    $phase = '사전 보호'
+    try {
+        $common = (Invoke-TransitionGit $Path @('rev-parse', '--path-format=absolute', '--git-common-dir')).Trim()
+        # 파일은 남겨 두고 열린 핸들만 잠근다. 다른 실행의 잠금 파일을 삭제할 경쟁을 만들지 않는다.
+        try { $lock = [IO.File]::Open((Join-Path $common 'harness-transition.guard'), 'OpenOrCreate', 'ReadWrite', 'None') } catch { throw '다른 안전 전환이 실행 중입니다.' }
+        $before = Get-TransitionSnapshot $Path
+        $target = (Invoke-TransitionGit $Path @('rev-parse', '--verify', "$TargetCommit^{commit}")).Trim()
+        $intermediate = $target
+        if ($Branch) {
+            [void](Invoke-TransitionGit $Path @('check-ref-format', '--branch', $Branch))
+            if ($CreateBranch -and $Track) { throw '새 브랜치와 원격 추적 옵션을 동시에 쓸 수 없습니다.' }
+            if (-not $CreateBranch) {
+                $ref = if ($Track) { "refs/remotes/origin/$Branch" } else { "refs/heads/$Branch" }
+                $intermediate = (Invoke-TransitionGit $Path @('rev-parse', '--verify', "$ref^{commit}")).Trim()
+                [void](Invoke-TransitionGit $Path @('merge-base', '--is-ancestor', $intermediate, $target))
+            }
+        } else {
+            if ($CreateBranch -or $Track) { throw '브랜치 이름이 필요합니다.' }
+            [void](Invoke-TransitionGit $Path @('merge-base', '--is-ancestor', $before.Head, $target))
+        }
+        $currentLink = Get-TransitionGitlink $Path $before.Head
+        $targetLink = Get-TransitionGitlink $Path $target
+        $middleLink = Get-TransitionGitlink $Path $intermediate
+        if ([bool]$currentLink -ne [bool]$targetLink -or [bool]$middleLink -ne [bool]$targetLink) { throw 'submodule 추가·제거 전환은 PM의 별도 초기화가 필요합니다.' }
+        $sub = $null; $subBefore = $null
+        if ($currentLink) {
+            $state = Get-ThirdPartyState $Path -VerifyHash
+            if ($state.State -ne 'Ready') { throw "외부 에셋 $($state.State): $($state.Detail)" }
+            $sub = $state.Repo; $subBefore = Get-TransitionSnapshot $sub
+            if ((Invoke-TransitionGit $sub @('ls-tree', '-r', 'HEAD')) -match '(?m)^160000 ') { throw '중첩 submodule 전환은 지원하지 않습니다.' }
+        } elseif (Test-Path -LiteralPath (Join-Path $Path 'Assets/_ThirdParty')) { throw 'gitlink 없는 외부 에셋 폴더가 남아 있습니다.' }
+        if (@(Get-ThirdPartyLeftovers $Path).Count) { throw '예전 외부 에셋 잔여 폴더가 있습니다. 자동 삭제하지 않습니다. PM에게 확인하세요.' }
+        Assert-TransitionTrackedFiles $Path $before.Head
+        Assert-TransitionLfsFiles $Path @(Get-TransitionLfsFiles $Path $before.Head) -VerifyHash
+        $phase = 'public 사전 수신'
+        $parentPreparation = Prepare-TransitionRepository $Path $target
+        if ($intermediate -ne $target) { [void](Prepare-TransitionRepository $Path $intermediate) }
+        $subPreparation = $null
+        if ($sub) {
+            $phase = 'private 사전 수신'
+            $subPreparation = Prepare-TransitionRepository $sub $targetLink
+            if ((Invoke-TransitionGit $sub @('ls-tree', '-r', $targetLink)) -match '(?m)^160000 ') { throw '대상 중첩 submodule은 지원하지 않습니다.' }
+            if ($middleLink -ne $targetLink) { [void](Prepare-TransitionRepository $sub $middleLink) }
+            Assert-TransitionSnapshot $sub $subBefore
+        }
+        $phase = '경쟁 재검사'
+        Assert-TransitionSnapshot $Path $before
+        if ($Branch -and -not $CreateBranch -and (Invoke-TransitionGit $Path @('rev-parse', "$ref^{commit}")).Trim() -ne $intermediate) { throw '준비 중 대상 브랜치가 변경되었습니다.' }
+        $phase = 'public 전환'
+        Write-Host '[전환] 사전 수신·검증 완료. 로컬 캐시만 사용합니다.'
+        if ($Branch) {
+            if ($CreateBranch) { [void](Invoke-TransitionGit $Path @('switch', '--no-overwrite-ignore', '-c', $Branch, $target)) }
+            elseif ($Track) { [void](Invoke-TransitionGit $Path @('switch', '--no-overwrite-ignore', '--track', "origin/$Branch")) }
+            else { [void](Invoke-TransitionGit $Path @('switch', '--no-overwrite-ignore', $Branch)) }
+        }
+        if ((Invoke-TransitionGit $Path @('rev-parse', 'HEAD')).Trim() -ne $target) { [void](Invoke-TransitionGit $Path @('merge', '--ff-only', '--no-overwrite-ignore', $target)) }
+        $phase = '캐시 반영·사후 검증'
+        if ($subPreparation) { Update-ThirdParty -Path $Path -Preparation $subPreparation }
+        Complete-TransitionRepository $parentPreparation
+        [void](Get-TransitionSnapshot $Path)
+        if ($sub) { [void](Get-TransitionSnapshot $sub) }
+        if ($Branch -and (Invoke-TransitionGit $Path @('branch', '--show-current')).Trim() -cne $Branch) { throw '사후 브랜치 불일치' }
+        Write-Host '[완료] HEAD·gitlink·추적 파일·LFS hash·변경 상태를 검증했습니다.'
+    } catch {
+        $reason = $_.Exception.Message
+        $heads = 'HEAD 조회 불가'
+        try {
+            $publicHead = (Invoke-TransitionGit $Path @('rev-parse', '--verify', 'HEAD')).Trim()
+            $privateHead = if (Test-ThirdPartyRepository $Path) { (Invoke-TransitionGit (Join-Path $Path 'Assets/_ThirdParty') @('rev-parse', '--verify', 'HEAD')).Trim() } else { '미초기화/없음' }
+            $heads = "public=$publicHead, private=$privateHead"
+        } catch { }
+        throw "안전 전환 중단 [$phase]: $reason 현재 HEAD: $heads. 자동 rollback·삭제 없이 현재 상태를 보존했습니다. PM에게 현재 상태 확인을 요청하세요."
+    } finally { if ($lock) { $lock.Dispose() } }
+}
+
+# 이전 경로는 진단만 한다. 비추적 파일과 Unity가 수정한 .meta도 임의로 지우거나 복구하지 않는다.
+$script:ThirdPartyLegacyPaths = @('Assets/Plugins/Demigiant', 'Assets/Plugins')
 function Get-ThirdPartyLeftovers {
     param([string]$Path = $script:RepoRoot)
     foreach ($rel in $script:ThirdPartyLegacyPaths) {
-        $full = Join-Path $Path $rel
-        if (-not (Test-Path -LiteralPath $full)) { continue }
-        if (@(& git -C $Path ls-files -- $rel "$rel.meta").Count) { continue }
-        # Assets/Plugins는 Demigiant 말고 다른 내용이 남아 있으면 건드리지 않는다.
-        $others = @(Get-ChildItem -LiteralPath $full -Force | Where-Object { $_.Name -notin 'Demigiant', 'Demigiant.meta', '.DS_Store' })
-        if ($rel -eq 'Assets/Plugins' -and $others.Count) { continue }
-        $rel
+        if ((Test-Path -LiteralPath (Join-Path $Path $rel)) -and -not (Invoke-TransitionGit $Path @('ls-files', '--', $rel, "$rel.meta")).Trim()) { $rel }
     }
 }
 
 function Remove-ThirdPartyLeftovers {
     param([string]$Path = $script:RepoRoot)
-    $leftovers = @(Get-ThirdPartyLeftovers -Path $Path)
-    if (-not $leftovers.Count) { return }
-    foreach ($rel in $leftovers) {
-        foreach ($target in "$rel", "$rel.meta") {
-            $full = Join-Path $Path $target
-            if (Test-Path -LiteralPath $full) { Remove-Item -LiteralPath $full -Recurse -Force }
-        }
-        $rel
-    }
-    # 잔여 폴더와 GUID가 겹치는 동안 Unity가 바꿔 둔 submodule 쪽 .meta를 되돌린다(잔여 폴더가 있었을 때만).
-    $sub = Join-Path $Path 'Assets/_ThirdParty'
-    if (Test-ThirdPartyReady -Path $Path) {
-        $changed = @(& git -C $sub diff --name-only -- '*.meta')
-        if ($changed.Count) { & git -C $sub checkout -- $changed; "Assets/_ThirdParty .meta $($changed.Count)개 복구" }
-    }
-}
-
-function Test-ThirdPartyReady {
-    param([string]$Path = $script:RepoRoot)
-    if (-not (Test-Path -LiteralPath (Join-Path $Path '.gitmodules'))) { return $true }
-    return [bool](Get-ChildItem -LiteralPath (Join-Path $Path 'Assets/_ThirdParty') -Force -ErrorAction SilentlyContinue |
-        Where-Object Name -ne '.git' | Select-Object -First 1)
+    if (@(Get-ThirdPartyLeftovers $Path).Count) { throw '자동 잔여물 정리는 지원하지 않습니다. 파일을 보존하고 PM에게 확인하세요.' }
 }
