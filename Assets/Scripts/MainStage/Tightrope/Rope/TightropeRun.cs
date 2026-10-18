@@ -38,6 +38,7 @@ namespace CurtainCall.Tightrope
     /// 제한시간·재시작 대기 시간은 외줄 세팅(진행)에서 쓸 때마다 읽는다.
     /// 코스 프리팹의 <see cref="TightropeCourse"/>와 같은 오브젝트에 둔다.
     /// <see cref="TightropeCampaignBridge"/>가 있으면 위의 독립 연습 종료·복구 대신 공용 공연 흐름을 따른다.
+    /// <see cref="ExternallyManaged"/>이면 SpaceLink가 배치 확인·시작·정산을 맡고 Bridge는 공용 스냅샷만 관찰한다.
     /// </summary>
     [RequireComponent(typeof(TightropeCourse))]
     public sealed class TightropeRun : MonoBehaviour
@@ -70,6 +71,36 @@ namespace CurtainCall.Tightrope
         float restartAt = -1f;            // 실패 후 재시작할 시각(이 화면 기준). 실패가 아니면 -1
         float stoppedRemaining = -1f;     // 끝난 뒤(실패·성공) 멈춘 남은 시간
         int lastRestartFrame = -1;
+        bool externallyManaged;
+        bool externalStarted;
+
+        /// <summary>공용 진행 연결부가 시작·종료를 맡는다. 직접 실행의 기본값은 false.</summary>
+        public bool ExternallyManaged => externallyManaged;
+
+        public void SetExternallyManaged(bool value)
+        {
+            externallyManaged = value;
+            externalStarted = false;
+        }
+
+        /// <summary>호스트: 준비된 공용 공연을 신체 복구 없이 한 번 시작한다.</summary>
+        public bool StartExternalPerformance()
+        {
+            if (!externallyManaged || externalStarted || session == null || !session.IsHost
+                || session.GameState != GameSessionState.Playing || ParticipantCount == 0) return false;
+            // 배치 완료와 시작 결정은 SpaceLink가 맡고, Bridge는 같은 공연의 상태만 관찰한다.
+            if (UsesCampaign)
+            {
+                if (!campaignBridge.PerformanceOpen) return false;
+                campaignPerformanceId = campaignBridge.PerformanceId;
+            }
+            externalStarted = true;
+            ServerRestart();
+            return true;
+        }
+
+        /// <summary>공용 정산이 먼저 끝나면 남은 묘기 판정을 멈춘다.</summary>
+        public void StopExternalPerformance() => externalStarted = false;
 
         /// <summary>씬의 묘기 진행. 없으면 null.</summary>
         public static TightropeRun Current
@@ -93,6 +124,9 @@ namespace CurtainCall.Tightrope
                 return campaignBridge != null && campaignBridge.isActiveAndEnabled;
             }
         }
+
+        /// <summary>외부 진입 연결부가 없을 때만 Bridge가 시작·도착·시간 초과를 정산한다.</summary>
+        bool BridgeManagesPerformance => !externallyManaged && UsesCampaign;
 
         /// <summary>제한시간(초).</summary>
         public float TimeLimit => GameSettings.Tightrope.Run.TimeLimit;
@@ -126,7 +160,7 @@ namespace CurtainCall.Tightrope
         /// <summary>호스트: 묘기를 처음부터 다시 시작한다(디버그 R). 호스트가 아니면 false.</summary>
         public bool RestartByHost()
         {
-            if (UsesCampaign || session == null || !session.IsHost || ParticipantCount == 0) return false;
+            if (externallyManaged || UsesCampaign || session == null || !session.IsHost || ParticipantCount == 0) return false;
             if (State == TightropeRunState.Succeeded)
                 return RetryByHost(Results.AttemptId, Round);
             ServerRestart();
@@ -136,7 +170,7 @@ namespace CurtainCall.Tightrope
         /// <summary>공용 공연 전 연습만 초기화한다. 방 인원·준비 상태와 공연 시작 여부는 유지한다.</summary>
         public bool ResetWaitingPracticeByHost()
         {
-            if (!UsesCampaign || session == null || !session.IsHost
+            if (!BridgeManagesPerformance || session == null || !session.IsHost
                 || session.GameState != GameSessionState.Waiting || ParticipantCount == 0) return false;
             NetworkPlayer.ServerRestoreEveryone();
             NetworkPlayer.ServerRestartAll();
@@ -147,7 +181,7 @@ namespace CurtainCall.Tightrope
         public bool RetryByHost(string attemptId, int round)
         {
             var result = Results?.Latest;
-            if (UsesCampaign || session == null || !session.IsHost || State != TightropeRunState.Succeeded
+            if (externallyManaged || UsesCampaign || session == null || !session.IsHost || State != TightropeRunState.Succeeded
                 || result == null || !result.Succeeded || result.AttemptId != attemptId
                 || result.Round != round || Results.AttemptId != attemptId || Round != round) return false;
             if (!session.RestartEndedGame()) return false;
@@ -258,7 +292,8 @@ namespace CurtainCall.Tightrope
 
         void ServerJudge()
         {
-            if (UsesCampaign)
+            if (NetworkPlayer.All.Count == 0 || (externallyManaged && !externalStarted)) return;
+            if (BridgeManagesPerformance)
             {
                 if (State != TightropeRunState.Running || !campaignBridge.PerformanceOpen
                     || campaignPerformanceId != campaignBridge.PerformanceId) return;
@@ -275,7 +310,6 @@ namespace CurtainCall.Tightrope
                 // 전멸·이탈은 공용 명부가 즉시 확정한다. 외줄에서 복구·재시작하지 않는다.
                 return;
             }
-            if (NetworkPlayer.All.Count == 0) return;
 
             switch (State)
             {
@@ -299,7 +333,7 @@ namespace CurtainCall.Tightrope
                     break;
 
                 case TightropeRunState.Failed:
-                    if (Time.time >= restartAt) ServerRestart();
+                    if (!externallyManaged && Time.time >= restartAt) ServerRestart();
                     break;
             }
         }
@@ -340,7 +374,7 @@ namespace CurtainCall.Tightrope
         /// </summary>
         void RequestLocalArrival()
         {
-            if (UsesCampaign) return; // 공용 공연은 도착 위치만 정산한다. 플레이어 상태를 잠그지 않는다.
+            if (BridgeManagesPerformance || (externallyManaged && !externalStarted)) return;
             var player = NetworkPlayer.Local;
             if (State != TightropeRunState.Running || player == null || player.State != PlayerState.Normal) return;
             if (!course.HasReachedFinish(player.transform.position)) return;
@@ -359,7 +393,7 @@ namespace CurtainCall.Tightrope
                 if (player.State == PlayerState.Normal) player.ServerSetState(PlayerState.Arrived);
             stoppedRemaining = TimeRemaining;
             ServerSetState(TightropeRunState.Succeeded);
-            session.EndGame();
+            if (!externallyManaged) session.EndGame();
         }
 
         void ServerFail()
@@ -382,7 +416,8 @@ namespace CurtainCall.Tightrope
             bool playing = session.GameState == GameSessionState.Playing;
             runStartedAt = playing ? Time.time : -1f;
             SetRound(Round + 1);
-            NetworkPlayer.ServerRestartAll();
+            if (externallyManaged) HandlePlayerRestarted(null);
+            else NetworkPlayer.ServerRestartAll();
             if (playing) Results.BeginAttempt(Round);
             ServerSetState(playing ? TightropeRunState.Running : TightropeRunState.Waiting);
         }
@@ -394,7 +429,9 @@ namespace CurtainCall.Tightrope
         bool CanChangeState(NetworkPlayer player, PlayerState next)
         {
             if (previousStateRule != null && !previousStateRule(player, next)) return false;
-            if (UsesCampaign)
+            if (externallyManaged && !externalStarted
+                && (next == PlayerState.Fallen || next == PlayerState.Arrived)) return false;
+            if (BridgeManagesPerformance)
             {
                 if (!campaignBridge.IsTightropePerformance) return true;
                 if (next == PlayerState.Arrived) return false;
@@ -425,8 +462,7 @@ namespace CurtainCall.Tightrope
 
         void HandleGameState(GameSessionState state)
         {
-            if (UsesCampaign) return;
-            if (session == null || !session.IsHost) return;
+            if (externallyManaged || UsesCampaign || session == null || !session.IsHost) return;
             if (state == GameSessionState.Playing && State == TightropeRunState.Waiting)
                 ServerRestart(); // 게임 시작: 모두 출발점에서 진행 시작
         }
@@ -439,7 +475,7 @@ namespace CurtainCall.Tightrope
             var previous = State;
             State = next;
             Debug.Log($"[Tightrope] 묘기 진행: {previous} → {next} (도착 {ArrivedCount}, 사망 {DeadCount}, 남은 시간 {TimeRemaining:0}s)");
-            if (next == TightropeRunState.Succeeded && !UsesCampaign) MoveLocalToFinish();
+            if (next == TightropeRunState.Succeeded && !BridgeManagesPerformance) MoveLocalToFinish();
             StateChanged?.Invoke(previous, next);
         }
 
@@ -449,6 +485,8 @@ namespace CurtainCall.Tightrope
         /// </summary>
         void MoveLocalToFinish()
         {
+            // 공용 정산/부활 뒤 도착한 지연 패킷은 다음 공간의 위치를 되돌리지 않는다.
+            if (externallyManaged && UsesCampaign && !campaignBridge.PerformanceOpen) return;
             BeforeSuccessMovement?.Invoke();
             PiggybackSystem.Current?.ReleaseForSuccess();
             var player = NetworkPlayer.Local;
@@ -474,10 +512,10 @@ namespace CurtainCall.Tightrope
         /// <summary>007 모두 재시작은 플레이어마다 오므로 한 프레임에 한 번만 알린다.</summary>
         void HandlePlayerRestarted(NetworkPlayer player)
         {
-            if (UsesCampaign)
+            if (BridgeManagesPerformance)
             {
                 if (session?.GameState != GameSessionState.Waiting) return;
-                if (player.IsOwner && player.TryGetComponent(out PlayerMover mover))
+                if (player != null && player.IsOwner && player.TryGetComponent(out PlayerMover mover))
                 {
                     Pose start = course.GetStartPose(player.Slot);
                     mover.SetStartPose(start.position, start.rotation, true);
@@ -490,9 +528,7 @@ namespace CurtainCall.Tightrope
             }
             if (lastRestartFrame == Time.frameCount) return;
             lastRestartFrame = Time.frameCount;
-            for (int lane = 0; lane < course.LaneCount; lane++) course.SetLaneBlocked(lane, false);
-            course.ClearBlockedSegments();
-            RunRestarted?.Invoke();
+            ResetCourseForCampaign();
         }
 
         // ── 공유 ───────────────────────────────────────────
@@ -531,6 +567,7 @@ namespace CurtainCall.Tightrope
 
         void ResetLocal()
         {
+            externalStarted = false;
             campaignPerformanceId = null;
             localPreparedRound = -1;
             hasPendingCampaignState = false;
@@ -615,8 +652,13 @@ namespace CurtainCall.Tightrope
             stoppedRemaining = stopped;
             restartAt = (TightropeRunState)state == TightropeRunState.Failed ? Time.time + restartRemaining : -1f;
             bool newRound = round != Round;
-            if (newRound) performanceStartedAt = -1f;
+            if (newRound)
+            {
+                performanceStartedAt = -1f;
+                if (externallyManaged) HandlePlayerRestarted(null);
+            }
             SetRound(round);
+            if (externallyManaged) externalStarted = (TightropeRunState)state == TightropeRunState.Running;
             if (performanceElapsed >= 0f) SetPerformanceStarted(performanceElapsed);
             else performanceStartedAt = -1f;
             SetState((TightropeRunState)state);
@@ -630,32 +672,36 @@ namespace CurtainCall.Tightrope
             if (message.Round < Round) { hasPendingCampaignState = false; return; }
             var result = campaignBridge.Result;
             bool settled = result != null && result.Performance.Id == message.PerformanceId;
-            bool running = !settled && campaignBridge.PerformanceOpen && campaignBridge.PerformanceId == message.PerformanceId
+            bool currentOpen = campaignBridge.PerformanceOpen && campaignBridge.PerformanceId == message.PerformanceId;
+            bool running = !settled && currentOpen
                 && message.State == TightropeRunState.Running;
-            if (!settled && !running) return;
+            bool externalTerminal = !settled && externallyManaged && currentOpen
+                && (message.State == TightropeRunState.Succeeded || message.State == TightropeRunState.Failed);
+            if (!settled && !running && !externalTerminal) return;
 
             hasPendingCampaignState = false;
             bool initialize = running && campaignPerformanceId != message.PerformanceId;
             campaignPerformanceId = message.PerformanceId;
             float elapsedSinceReceipt = Time.time - message.ReceivedAt;
             runStartedAt = message.RunElapsed < 0f ? -1f : Time.time - message.RunElapsed - (running ? elapsedSinceReceipt : 0f);
-            stoppedRemaining = settled ? (message.Stopped >= 0f ? message.Stopped
+            stoppedRemaining = settled || externalTerminal ? (message.Stopped >= 0f ? message.Stopped
                 : Mathf.Max(0f, TimeLimit - message.RunElapsed)) : -1f;
             restartAt = -1f;
             if (initialize) performanceStartedAt = -1f;
             SetRound(message.Round);
             if (initialize) ResetCourseForCampaign();
+            if (externallyManaged) externalStarted = running;
             if (running && message.PerformanceElapsed >= 0f)
                 SetPerformanceStarted(message.PerformanceElapsed + elapsedSinceReceipt);
             else if (running) performanceStartedAt = -1f;
             SetState(settled ? (result.Succeeded ? TightropeRunState.Succeeded : TightropeRunState.Failed)
-                : TightropeRunState.Running);
+                : message.State);
         }
 
         /// <summary>공용 명부 고정 후 호출한다. 신체 손실·사망 복구는 공용 생존 시스템만 담당한다.</summary>
         internal bool BeginCampaignPerformance(string performanceId)
         {
-            if (!UsesCampaign || session == null || !session.IsHost || string.IsNullOrEmpty(performanceId)
+            if (!BridgeManagesPerformance || session == null || !session.IsHost || string.IsNullOrEmpty(performanceId)
                 || !campaignBridge.PerformanceOpen || campaignBridge.PerformanceId != performanceId) return false;
             if (campaignPerformanceId == performanceId) return true;
             campaignPerformanceId = performanceId;
@@ -714,7 +760,7 @@ namespace CurtainCall.Tightrope
 
         void PrepareLocalCampaignStart()
         {
-            if (!UsesCampaign || !campaignBridge.PerformanceOpen || campaignBridge.PerformanceId != campaignPerformanceId
+            if (!BridgeManagesPerformance || !campaignBridge.PerformanceOpen || campaignBridge.PerformanceId != campaignPerformanceId
                 || State != TightropeRunState.Running || Round <= 0 || localPreparedRound == Round) return;
             var player = NetworkPlayer.Local;
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal

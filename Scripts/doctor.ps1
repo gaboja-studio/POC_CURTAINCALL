@@ -32,13 +32,15 @@ if ($LASTEXITCODE -ne 0) {
 } else {
     Add-Check OK 'git' "현재 '$branch', 기본 '$base'"
 }
+$thirdParty = Get-ThirdPartyState -Path $RepoRoot
+if ($thirdParty.State -in 'Ready', 'Absent') {
+    Add-Check OK 'third-party' "$($thirdParty.State): $($thirdParty.Detail)"
+} else {
+    Add-Check FAIL 'third-party' "$($thirdParty.State): $($thirdParty.Detail) — PM에게 준비 상태를 확인하세요(자동 다운로드 없음)."
+}
 $leftovers = @(Get-ThirdPartyLeftovers)
 if ($leftovers.Count) {
-    Add-Check WARN 'third-party' "예전 외부 에셋 잔여 폴더: $($leftovers -join ', ') — Unity를 닫고 '시작해줘'(start-work)로 자동 정리"
-} elseif (Test-ThirdPartyReady) {
-    Add-Check OK 'third-party' 'Assets/_ThirdParty 받음'
-} else {
-    Add-Check FAIL 'third-party' "외부 에셋 submodule을 받지 않음 — git submodule update --init (권한 없으면 PM에게 CURTAINCALL_PaidAssets 읽기 권한 요청)"
+    Add-Check WARN 'third-party-old' "예전 외부 에셋 잔여 폴더: $($leftovers -join ', ') — PM에게 정리를 요청하세요."
 }
 
 # 3. 작업 공간 (브랜치 종류별로 필요한 문서가 있는지)

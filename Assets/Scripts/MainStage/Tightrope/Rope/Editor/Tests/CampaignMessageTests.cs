@@ -51,9 +51,11 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Object.DestroyImmediate(sharedObject);
         }
 
-        [Test]
-        public void StartBeforeCommonSnapshot_WaitsThenInitializesExactlyOnce()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void StartBeforeCommonSnapshot_WaitsThenInitializesExactlyOnce(bool externallyManaged)
         {
+            run.SetExternallyManaged(externallyManaged);
             Receive(first.Id, TightropeRunState.Running, 7);
             Assert.That(run.State, Is.EqualTo(TightropeRunState.Waiting));
             Assert.That(run.Round, Is.Zero);
@@ -68,9 +70,11 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(resets, Is.EqualTo(1), "동일 공연 스냅샷 재전송은 위치를 다시 초기화하지 않는다.");
         }
 
-        [Test]
-        public void RewardOpenBeforeCampaignStep_DoesNotStartDuringIntro()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void RewardOpenBeforeCampaignStep_DoesNotStartDuringIntro(bool externallyManaged)
         {
+            run.SetExternallyManaged(externallyManaged);
             Common(first, CampaignPhase.Intro, true);
             Receive(first.Id, TightropeRunState.Running, 7);
             Assert.That(run.Round, Is.Zero);
@@ -81,9 +85,11 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(resets, Is.EqualTo(1));
         }
 
-        [Test]
-        public void SettlementBeforeLateStart_PreservesFailureWithoutCourseReset()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void SettlementBeforeLateStart_PreservesFailureWithoutCourseReset(bool externallyManaged)
         {
+            run.SetExternallyManaged(externallyManaged);
             var result = Result(first, false);
             Common(first, CampaignPhase.RestTime, false, result);
             Receive(first.Id, TightropeRunState.Running, 7);
@@ -95,9 +101,11 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(resets, Is.Zero);
         }
 
-        [Test]
-        public void PreviousPerformanceMessages_CannotInitializeOrEndNextPerformance()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void PreviousPerformanceMessages_CannotInitializeOrEndNextPerformance(bool externallyManaged)
         {
+            run.SetExternallyManaged(externallyManaged);
             Common(next, CampaignPhase.Performance, true);
             Receive(first.Id, TightropeRunState.Running, 7);
             Assert.That(run.Round, Is.Zero);
@@ -125,9 +133,11 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(resets, Is.Zero);
         }
 
-        [Test]
-        public void PublicSettlementEndsRunningClientWithoutWaitingForRunTerminalPacket()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void PublicSettlementEndsRunningClientWithoutWaitingForRunTerminalPacket(bool externallyManaged)
         {
+            run.SetExternallyManaged(externallyManaged);
             Common(first, CampaignPhase.Performance, true);
             Receive(first.Id, TightropeRunState.Running, 7);
             var result = Result(first, false);
@@ -149,6 +159,36 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(run.Round, Is.EqualTo(2));
             using var writer = (FastBufferWriter)Invoke(run, "WriteState");
             Assert.That(writer.Length, Is.EqualTo(21), "독립 연습의 기존 필드 형식은 유지한다.");
+        }
+
+        [Test]
+        public void ExternalTerminalBeforeSettlement_UsesOnlyCurrentOpenPerformance()
+        {
+            run.SetExternallyManaged(true);
+            int gatherings = 0;
+            run.BeforeSuccessMovement += () => gatherings++;
+            Common(first, CampaignPhase.Performance, true);
+            Receive(first.Id, TightropeRunState.Running, 7);
+            Receive(first.Id, TightropeRunState.Succeeded, 7);
+            Assert.That(run.State, Is.EqualTo(TightropeRunState.Succeeded));
+            Assert.That(gatherings, Is.EqualTo(1), "외부 관리의 현재 공연 성공만 정산 전 집결한다.");
+            Common(next, CampaignPhase.Performance, true);
+            Receive(first.Id, TightropeRunState.Succeeded, 7);
+            Assert.That(gatherings, Is.EqualTo(1));
+            Assert.That(resets, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ExternalLateSuccessAfterSettlement_DoesNotGatherRevivedPlayers()
+        {
+            run.SetExternallyManaged(true);
+            int gatherings = 0;
+            run.BeforeSuccessMovement += () => gatherings++;
+            Common(first, CampaignPhase.RestTime, false, Result(first, true));
+            Receive(first.Id, TightropeRunState.Succeeded, 7);
+            Assert.That(run.State, Is.EqualTo(TightropeRunState.Succeeded));
+            Assert.That(gatherings, Is.Zero, "다음 시간대 부활/관전 대상의 위치를 이전 도착점으로 바꾸지 않는다.");
+            Assert.That(resets, Is.Zero);
         }
 
         void Common(PerformanceIdentity identity, CampaignPhase phase, bool open, PerformanceResult result = null)

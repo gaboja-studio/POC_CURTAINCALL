@@ -58,6 +58,7 @@ namespace CurtainCall.Tightrope.UI
             if (!isActiveAndEnabled || restartingGeneration != 0 || Time.unscaledTime - lastRestartAt < 0.25f
                 || bridge == null || !bridge.isActiveAndEnabled || session == null || !session.IsHost
                 || NetworkPlayer.All.Count == 0) return false;
+            if (TightropeRun.Current != null && TightropeRun.Current.ExternallyManaged) return false;
             var campaign = bridge.Campaign;
             if (campaign == null || (campaign.State.Phase == CampaignPhase.Performance && !bridge.IsTightropePerformance)) return false;
             if (session.GameState == GameSessionState.Waiting)

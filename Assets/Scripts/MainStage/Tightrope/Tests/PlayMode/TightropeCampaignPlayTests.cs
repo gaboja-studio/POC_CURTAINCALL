@@ -243,6 +243,63 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator ExternalEntryOwnsPlacementStartAndSettlementWithBridgePresent()
+        {
+            var space = Get(Static("CurtainCall.Settings.GameSettings", "Base"), "SpaceTransition");
+            string previousScene = (string)Get(space, "TightropeScene");
+            Component entry = null;
+            try
+            {
+                Set(space, "tightropeScene", run.gameObject.scene.name);
+                Call(run, "SetExternallyManaged", true);
+                Assert.IsTrue((bool)Call(session, "StartGame"));
+                yield return Until(() => Phase == "Intro", 5, "관리 공연 도입");
+                GameType("CurtainCall.SpaceLink.CampaignPerformanceEntry").GetMethod("Prepare")
+                    .Invoke(null, new object[] { run.gameObject.scene });
+                entry = (Component)Object.FindAnyObjectByType(GameType("CurtainCall.SpaceLink.CampaignPerformanceEntry"));
+                Assert.IsNotNull(entry);
+                // 진입 배치를 잠시 지연한다. Adapter는 실제 Update를 계속 실행하며 배치 확인을 기다린다.
+                ((Behaviour)entry).enabled = false;
+                var adapter = entry.GetComponent(GameType("CurtainCall.SpaceLink.CampaignTightropeAdapter"));
+                Assert.IsNotNull(adapter);
+                Assert.IsTrue((bool)Call(campaign, "EndIntro"));
+                for (int i = 0; i < 5; i++) yield return null;
+                Assert.IsFalse((bool)Get(adapter, "Started"));
+                Assert.IsFalse((bool)Get(bridge, "PerformanceOpen"), "Bridge가 외부 배치 확인보다 먼저 명부를 열면 안 된다.");
+                Assert.AreEqual(0, Get(run, "Round"));
+                Assert.AreEqual("Waiting", Get(run, "State").ToString());
+                ((Behaviour)entry).enabled = true;
+                yield return Until(() => (bool)Get(adapter, "Started") && Get(run, "State").ToString() == "Running", 5,
+                    "배치 후 Adapter가 공연 한 번 시작");
+                Assert.AreEqual(1, Get(run, "Round"));
+                Assert.IsTrue((bool)Get(bridge, "PerformanceOpen"));
+                Assert.IsFalse((bool)Call(run, "StartExternalPerformance"), "중복 시작은 거절한다.");
+                Assert.IsFalse((bool)Call(run, "RestartByHost"));
+                Assert.IsFalse((bool)Call(run, "ResetWaitingPracticeByHost"));
+                var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+                Assert.IsFalse((bool)Call(hud, "RestartCourseByHost"), "실제 캠페인 씬의 R은 테스트용 전체 초기화를 실행하지 않는다.");
+                var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
+                Call(mover, "SetStartPose", finish.position, finish.rotation, true);
+                yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "Adapter 공용 정산");
+                Assert.AreEqual("Succeeded", Get(run, "State").ToString());
+                Assert.AreEqual("Playing", Get(session, "GameState").ToString());
+                Assert.AreEqual(1, ((ICollection)Get(rewards, "History")).Count);
+                Assert.AreEqual(1, Get(run, "Round"));
+                var results = Get(run, "Results");
+                Call(adapter, "HandleResult", Get(results, "Latest"));
+                Call(adapter, "LateUpdate");
+                yield return null;
+                Assert.AreEqual(1, ((ICollection)Get(rewards, "History")).Count);
+                Assert.AreEqual(1, Get(run, "Round"));
+            }
+            finally
+            {
+                Set(space, "tightropeScene", previousScene);
+                if (entry != null) Object.Destroy(entry.gameObject);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator FirstArrivalSettlesOnceAndKeepsSessionPlaying()
         {
             yield return BeginPerformance();

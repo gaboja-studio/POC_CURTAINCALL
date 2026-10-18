@@ -28,7 +28,7 @@ dev                  ──PR(Merge commit)──▶ integration/*   (공용 변
 
 - `feat/*`, `refactor/*`는 **항상** `integration/*`로만 제출한다. 작은 기능도 PM이 작은 integration을 만들어 받는다.
 - `fix/*`, `resource/*`는 새 기능 개발이 아니므로 통합 순서를 지키지 않고 `dev` 또는 특정 `integration/*`로 바로 PR할 수 있다.
-- 공용 변경은 `dev → Base=dev 통합` 또는 **선언된 부모 → 자식 통합** PR로 내려받는다(Merge commit). 임의 통합 간 동기화·자식의 dev 직행은 금지한다. 기존 일반 작업 브랜치는 GitHub **Update branch**로 받는다.
+- 공용 변경은 `dev → Base=dev 통합` 또는 **선언된 부모 → 직계 자식 통합** PR로 내려받는다(`sync-integration`, Merge commit). 임의 통합 간 동기화·자식의 dev 직행은 금지한다. 기존 일반 작업 브랜치는 GitHub **Update branch**로 받는다.
 - 명시적 준비 브랜치만 **소속 통합 → 그 Task 브랜치** 배정 문서 동기화 PR(Merge commit)을 허용한다. PR 생성은 실제 인계/착수 허가가 아니며 자동 merge·force 이동하지 않는다.
 - **어떤 작업 브랜치도 `builds/*`로 바로 PR하지 않는다.** `builds/*`는 `dev`에서만 받는다.
 - `dev`, `integration/*`, `builds/*`는 **PR로만** 바뀐다. 직접 push하지 않는다(브랜치 보호는 PM이 GitHub에서 설정).
@@ -80,12 +80,18 @@ dev                  ──PR(Merge commit)──▶ integration/*   (공용 변
 
 - PR·이슈 형식: `Harness/Project/Decisions/pr-issue-format.md`. 등록은 `submit-work` / `report-issue` Skill.
 - PM은 정해진 시간에 PR을 **하나씩** 병합한다(순서: 공용 파일 소유 Task → 의존 대상 Task → 나머지).
-- 앞 PR이 병합되어 뒤 PR이 뒤처지면 GitHub **Update branch**로 최신 내용을 받는다.
+- 앞 PR 병합으로 뒤처진 **일반 작업 head(feat/fix/refactor/resource)**만 GitHub **Update branch**로 받는다. `merge-integration -Update`는 실제 PR head·대상 base·OPEN 상태를 확인한다. dev/integration head에 Update하면 자식 내용이 부모로 역유입되므로 금지한다.
 - 충돌은 해당 Task 담당자와 PM이 함께 해결한다. **씬·프리팹 YAML 충돌은 AI가 해결하지 않는다.**
 - 통합을 마무리할 때 각 Task PR의 `closed #번호`를 `dev` PR 본문에 모은다(GitHub는 dev 병합 때만 이슈를 닫음).
 
-## 안전
+## 부모→자식 동기화 PR
+- PM의 gh 로그인으로 `pwsh -File Scripts/sync-integration.ps1 -Child integration/<slug> [-Parent <branch>] -DryRun` 미리보기 → 방향·SHA·변경 확인 → **별도 실행 승인** 후 `-DryRun`을 빼고 실행한다. 일반 요청/미리보기 승인을 실행 승인으로 보지 않는다.
+- 부모는 원격 child 메타 Base로 결정하며 `-Parent`는 그 값과 일치해야 한다. 로컬 체크아웃/메타와 독립적으로 필요한 원격 refs만 fetch하고 실제 부모→직계 child open PR을 생성/재사용한다.
+- `Created`=신규 생성, `Reused`=기존 open PR 재사용, `UpToDate`=부모 변경이 이미 포함되어 생성 없음. DryRun은 원격 쓰기 없는 예상 결과이며 실행 결과를 보장하지 않는다.
+- PR은 **리뷰·CI 대기 후 별도 승인된 Merge commit만** 허용한다(Squash·Update branch·자동 merge·보호 우회 금지). PR 생성/재사용이 병합 승인은 아니다.
+- GitHub API로 부모·자식 SHA를 원자적으로 고정할 수 없다. 미리보기/생성 후 branch SHA·방향·상태가 바뀌면 중단하고 최신 차이·리뷰·CI를 재검토한다. 실패 시 PR/브랜치 삭제·되돌리기·자동 복구 없이 현재 상태를 보고한다.
 
+## 안전
 - 수정 전 `git status`로 기존 변경을 보존한다. 관련 없는 변경을 섞지 않는다.
 - 비밀값, `.env`, 개인 설정, 생성된 Unity 폴더(`Library/` 등)를 커밋하지 않는다.
 - 새 에셋의 `.meta`를 함께 커밋한다.

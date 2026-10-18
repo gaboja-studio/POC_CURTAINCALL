@@ -331,6 +331,18 @@ namespace CurtainCall.Network.Session
             return true;
         }
 
+        /// <summary>호스트 전용. 끝난 게임을 대기로 되돌린다(로비 복귀). 세션 잠금을 풀어 다시 참가를 받고, 런 진행은 런 전으로 돌아간다.</summary>
+        public bool ReturnToLobby()
+        {
+            if (!IsHost || GameState != GameSessionState.Ended)
+                return false;
+
+            SetGameState(GameSessionState.Waiting);
+            _ = LockSessionAsync(false);
+            PushStateToClients();
+            return true;
+        }
+
         /// <summary>콘텐츠가 성공 결과를 확인한 뒤 호출하는 호스트 재도전 경계. 최초 시작 조건은 바꾸지 않는다.</summary>
         internal bool RestartEndedGame()
         {
@@ -387,20 +399,20 @@ namespace CurtainCall.Network.Session
                 _stateSync.ServerSet(GameState, PlayerCount);
         }
 
-        /// <summary>시작 후 세션을 잠가 방 코드로 더 들어오지 못하게 한다(접속 승인과 이중 방어).</summary>
-        async Task LockSessionAsync()
+        /// <summary>시작 후 세션을 잠가 방 코드로 더 들어오지 못하게 한다(접속 승인과 이중 방어). 로비 복귀 때는 푼다.</summary>
+        async Task LockSessionAsync(bool locked = true)
         {
             if (!(_connector is ServicesSessionConnector services) || !(services.CurrentSession is IHostSession host))
                 return;
 
             try
             {
-                host.IsLocked = true;
+                host.IsLocked = locked;
                 await host.SavePropertiesAsync();
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[Session] 세션 잠금 실패(접속 승인으로 막습니다): {e.Message}");
+                Debug.LogWarning($"[Session] 세션 {(locked ? "잠금" : "잠금 해제")} 실패(접속 승인으로 막습니다): {e.Message}");
             }
         }
 

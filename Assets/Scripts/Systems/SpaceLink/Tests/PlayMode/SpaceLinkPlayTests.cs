@@ -51,6 +51,8 @@ namespace CurtainCall.SpaceLink.Tests
 
         IEnumerator OpenHub()
         {
+            // 게임의 시작 씬은 로비(Task-052)지만, 이 테스트는 SpaceLink 허브로 장소 전환만 확인한다.
+            Override(Get(Settings("Base"), "SpaceTransition"), "hubScene", "SpaceLink");
             yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(HubPath, new LoadSceneParameters(LoadSceneMode.Single));
             yield return null;
             director = GameType("CurtainCall.SpaceLink.SpaceLinkDirector").GetMethod("EnsureExists").Invoke(null, null) as Component;

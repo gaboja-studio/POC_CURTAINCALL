@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CurtainCall.Tightrope
 {
-    /// <summary>외줄 코스를 공용 공연 명부·정산·시간대에 연결한다. 독립 연습 씬에는 붙이지 않는다.</summary>
+    /// <summary>외줄 코스를 공용 공연 명부·정산·시간대에 연결한다. SpaceLink 관리 씬에서는 시작·정산 없이 공용 상태만 관찰한다.</summary>
     [RequireComponent(typeof(TightropeRun))]
     [DefaultExecutionOrder(100)]
     public sealed class TightropeCampaignBridge : MonoBehaviour
@@ -57,7 +57,7 @@ namespace CurtainCall.Tightrope
                 Clear();
                 return;
             }
-            if (session.IsHost && IsTightropePerformance)
+            if (session.IsHost && IsTightropePerformance && !run.ExternallyManaged)
                 Rewards.BeginPerformance(Mathf.Clamp(difficulty, 1, 3), GameSettings.Tightrope.Reward);
             ObserveRewards();
         }
@@ -84,7 +84,7 @@ namespace CurtainCall.Tightrope
                     PerformanceId = identity.Id;
                     Result = null;
                 }
-                if (PerformanceOpen && NetworkSessionManager.Instance?.IsHost == true)
+                if (!run.ExternallyManaged && PerformanceOpen && NetworkSessionManager.Instance?.IsHost == true)
                     run.BeginCampaignPerformance(PerformanceId);
                 if (snapshot.Latest?.Performance.Id == PerformanceId) AcceptResult(snapshot.Latest);
                 run.SynchronizeCampaignState();
@@ -108,7 +108,7 @@ namespace CurtainCall.Tightrope
 
         internal bool TryFinishAtDestination()
         {
-            if (!PerformanceOpen || NetworkSessionManager.Instance?.IsHost != true) return false;
+            if (run.ExternallyManaged || !PerformanceOpen || NetworkSessionManager.Instance?.IsHost != true) return false;
             var arrivals = new Dictionary<string, string>();
             foreach (var participant in Rewards.State.Segments)
             {
@@ -120,7 +120,7 @@ namespace CurtainCall.Tightrope
             return arrivals.Count > 0 && Rewards.FinishPerformance(true, "Completed", arrivals);
         }
 
-        internal bool FinishTimedOut() => PerformanceOpen && NetworkSessionManager.Instance?.IsHost == true
+        internal bool FinishTimedOut() => !run.ExternallyManaged && PerformanceOpen && NetworkSessionManager.Instance?.IsHost == true
             && Rewards.FinishPerformance(false, "TimeExpired");
 
         void Clear()

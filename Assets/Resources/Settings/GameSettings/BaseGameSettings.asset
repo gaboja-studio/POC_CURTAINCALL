@@ -74,8 +74,10 @@ MonoBehaviour:
     limbLifetime: 0
   spaceTransition:
     mode: 0
-    hubScene: SpaceLink
+    hubScene: Lobby
     performanceScene: DummyPerformance
+    tightropeScene: proto_0.0.2
+    humanCannonScene: HumanCannon
     waitingRoomScene: DummyWaitingRoom
     explorationScene: DummyExploration
     escapeRouteScene: DummyEscapeRoute
