@@ -349,8 +349,14 @@ namespace CurtainCall.Settings
             [Tooltip("시작 씬(접속·런 시작, 도입·엔딩 때 돌아오는 곳). 추가 로드에서는 계속 떠 있는 코어 씬.")]
             [SerializeField] string hubScene = "SpaceLink";
 
-            [Tooltip("공연 시간대의 공간 씬.")]
+            [Tooltip("묘기별 씬이 지정되지 않은 공연 시간대의 공간 씬.")]
             [SerializeField] string performanceScene = "DummyPerformance";
+
+            [Tooltip("줄타기 공연 씬. 비어 있으면 기본 공연 씬을 쓴다.")]
+            [SerializeField] string tightropeScene = "";
+
+            [Tooltip("인간 대포 공연 씬. 비어 있으면 기본 공연 씬을 쓴다.")]
+            [SerializeField] string humanCannonScene = "";
 
             [Tooltip("쉬는 시간 시작·밤 정비의 공간 씬(대기실 로비).")]
             [SerializeField] string waitingRoomScene = "DummyWaitingRoom";
@@ -364,6 +370,8 @@ namespace CurtainCall.Settings
             public SpaceTransitionMode Mode => mode;
             public string HubScene => hubScene;
             public string PerformanceScene => performanceScene;
+            public string TightropeScene => tightropeScene;
+            public string HumanCannonScene => humanCannonScene;
             public string WaitingRoomScene => waitingRoomScene;
             public string ExplorationScene => explorationScene;
             public string EscapeRouteScene => escapeRouteScene;
