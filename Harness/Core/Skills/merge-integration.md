@@ -12,7 +12,10 @@ description: PM 전용. 작업 PR만 순차 Squash 병합하고 실제 공동 �
 3. **작업 head만** `-Merge <PR번호>`로 Squash. 실제 head가 dev/integration이면 스크립트가 차단하므로 정식 Merge commit 절차를 사용한다.
    - 통합→자기 메타 Base, 선언된 부모→자식, 소속 통합→등록된 준비 Task branch만 허용. 임의 방향·자식 dev 직행 금지.
    - 필수 리뷰/권한 차단은 다른 도구·admin·peer로 우회하지 않는다.
-4. 뒤처진 작업 PR은 `-Update <번호>`로 최신화. 충돌은 담당/PM과 해결, 씬·프리팹 YAML은 AI가 해결하지 않는다.
+4. 뒤처진 **feat/fix/refactor/resource head만** `-Update <번호>`로 최신화한다. 실제 PR head·요청 base·OPEN 상태 조회 실패/불일치면 쓰기 전에 중단한다. dev/integration head Update는 자식 내용의 부모 역유입 때문에 금지한다. 목록·병합 후 안내에서도 동기화 PR에 Update를 권하지 않는다.
+   - 부모→직계 자식 PR 준비는 `sync-integration` Skill: `pwsh -File Scripts/sync-integration.ps1 -Child integration/<slug> [-Parent <branch>] -DryRun` 미리보기 → **별도 실행 승인** → `-DryRun` 없이 실행한다. `Created`/`Reused`/`UpToDate`는 생성/재사용/이미 포함 상태이며 병합 승인이 아니다.
+   - 동기화 PR은 리뷰·CI 대기 후 별도 승인된 Merge commit만 허용한다(Squash·자동 merge·보호 우회 금지). API가 양쪽 SHA를 원자적으로 고정하지 못하므로 변경되면 재검토한다. 실패 시 삭제·되돌리기·자동 복구하지 않는다.
+   - 충돌은 담당/PM과 해결하며 씬·프리팹 YAML은 AI가 해결하지 않는다.
 5. 통합을 받아 컴파일·자동 테스트, 실제 공동 테스트를 수행한다. 결과대로 PR 병합/공동 테스트 todo 체크·Status integrated를 기록한다. 미실행을 PASS로 바꾸지 않는다.
 6. 순차 다음 단계 근거: handoff Verification `- 5 공동 테스트: PASS — 근거`와 `## 공동 테스트 결과`의 일시/참여자/재현/예상/실제 실행 기록. 앞 구역 반환·실 Jira URL 확보 후 다음 한 Task만 배정한다.
 7. 실패는 report-issue/후속 Task, 공용 연결이 필요하면 별도 연결 Task/소유 배정.
