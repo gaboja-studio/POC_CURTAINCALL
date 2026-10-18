@@ -47,6 +47,7 @@ namespace CurtainCall.HumanCannon
         public int ArrivedFlyers { get; private set; }
         public bool ShelterReady => AliveFlyers == ArrivedFlyers;
         public int TransportCount => runtime?.Length ?? 0;
+        public HumanCannonTransport Transport(int index) => index >= 0 && index < transports.Length ? transports[index] : null;
         public DepartureTravelState TransportState(int index) => runtime[index].State;
         public bool TrapOpen(int index) => runtime[index].Trap.IsOpen;
         public bool IsBoarding(int index) => runtime[index].Boarding.IsCounting;
@@ -62,6 +63,7 @@ namespace CurtainCall.HumanCannon
         public double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
             ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
         public string FireStatus(int index) => index < 0 || index >= fires.Length || fires[index] == null ? "없음"
+            : !fires[index].Available ? "사용 안 함"
             : fires[index].Finished ? "경계 종료" : !fires[index].Armed ? "대기"
             : fires[index].RemainingWarning(Clock) > 0 ? $"예고 {fires[index].RemainingWarning(Clock):F1}초" : "전진 중";
 
@@ -223,9 +225,20 @@ namespace CurtainCall.HumanCannon
             {
                 if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || player.OwnerClientId == carrier) continue;
                 AliveFlyers++;
-                if (shelter != null && shelter.SupportsLanding(player.transform.position)
-                    && cannon != null && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId)) ArrivedFlyers++;
+                // 쉼터 대포에 먼저 앉으면 발 위치가 바닥보다 높아진다. 대기 중인 동료도 합류 완료다.
+                // 이를 제외하면 대포는 두 번째 운송을, 승강기는 대포의 하차를 서로 기다린다.
+                if (IsSeatedAtShelter(player.OwnerClientId) || (shelter != null && shelter.SupportsLanding(player.transform.position)
+                    && cannon != null && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId))) ArrivedFlyers++;
             }
+        }
+
+        bool IsSeatedAtShelter(ulong actor)
+        {
+            if (cannon == null) return false;
+            int end = Math.Min(cannon.StationCount, shelterStationIndex + shelterStationCount);
+            for (int i = Math.Max(0, shelterStationIndex); i < end; i++)
+                if (cannon.Occupant(i) == actor) return true;
+            return false;
         }
 
         void HandleRequest(ulong actor, RouteAction action, int index, uint expected)
@@ -277,6 +290,9 @@ namespace CurtainCall.HumanCannon
                     if (carriedPilot == null) carriedPilot = rider.GetComponent<HumanCannonPilot>();
                     if (carriedPilot != null) { carriedPilot.BeginTransport(); carriedPilot.SetTransportPose(position, transit.Rotation); }
                 }
+                else if (HumanCannonTrampoline.Current != null && HumanCannonTrampoline.Current.Carrier == rider.OwnerClientId)
+                    // 원격 운반자의 회전은 소유자가 공유한 시선 방향이다. 리프트가 탑승 당시 방향으로 덮어쓰지 않는다.
+                    rider.transform.position = position;
                 else rider.transform.SetPositionAndRotation(position, transit.Rotation);
             }
             if (localIndex < 0 && carriedPilot != null)

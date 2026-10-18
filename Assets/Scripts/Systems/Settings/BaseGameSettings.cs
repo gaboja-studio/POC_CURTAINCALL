@@ -168,7 +168,7 @@ namespace CurtainCall.Settings
 
             public float FreeMoveSpeed => freeMoveSpeed;
             public float CourseMoveSpeed => courseMoveSpeed;
-            public float JumpHeight => jumpHeight;
+            public float JumpHeight => CharacterJumpHeightOverrides.Resolve(jumpHeight);
             public float TurnSpeed => turnSpeed;
             public float Gravity => gravity;
             public float CapsuleHeight => capsuleHeight;

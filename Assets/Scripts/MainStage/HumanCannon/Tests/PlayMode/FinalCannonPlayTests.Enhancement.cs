@@ -62,7 +62,7 @@ namespace CurtainCall.HumanCannon.Tests
                 yield return null;
             }
             Assert.That(Vector3.Dot(player.transform.position - rest, forward), Is.GreaterThanOrEqualTo(1f),
-                "입력으로 실제 몸을 톱의 고정 평면에서 앞으로 움직인다.");
+                "입력으로 실제 몸을 수평 톱날의 앞뒤 접촉 범위 밖으로 움직인다.");
             AssertBody(0);
             saw.enabled = true;
             double safeUntil = (double)Get(poles, "Clock") + 0.4;

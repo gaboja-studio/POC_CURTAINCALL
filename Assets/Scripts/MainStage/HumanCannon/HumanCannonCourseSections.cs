@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 namespace CurtainCall.HumanCannon
 {
-    /// <summary>현재 위치의 코스 구간만 표시한다. 체크포인트나 진행 상태는 변경하지 않는다.</summary>
+    /// <summary>현재 구간과 봉·트램폴린·대포의 상황별 조작 안내를 표시한다. 진행 상태는 변경하지 않는다.</summary>
     [DisallowMultipleComponent]
     public sealed class HumanCannonCourseSections : MonoBehaviour
     {
@@ -33,6 +33,12 @@ namespace CurtainCall.HumanCannon
         static readonly string[] labels = { "현재 구간  ·  출발", "현재 구간  ·  1구간", "현재 구간  ·  쉼터", "현재 구간  ·  2구간", "현재 구간  ·  최종구간" };
         GameObject overlay;
         TMP_Text label;
+        GameObject poleHint;
+        TMP_Text poleHintLabel;
+        GameObject carryHint;
+        TMP_Text carryHintLabel;
+        GameObject seatHint;
+        TMP_Text seatHintLabel;
         Section shown;
 
         public void Configure(Boundaries values, TMP_FontAsset labelFont = null)
@@ -40,6 +46,9 @@ namespace CurtainCall.HumanCannon
             boundaries = values;
             if (labelFont != null) font = labelFont;
             if (label != null && font != null) label.font = font;
+            if (poleHintLabel != null && font != null) poleHintLabel.font = font;
+            if (carryHintLabel != null && font != null) carryHintLabel.font = font;
+            if (seatHintLabel != null && font != null) seatHintLabel.font = font;
         }
 
         public static Section SectionAt(Vector3 position, Boundaries values)
@@ -68,6 +77,13 @@ namespace CurtainCall.HumanCannon
             if (overlay == null) BuildOverlay();
             if (overlay == null) return;
             overlay.SetActive(true);
+            bool seated = HumanCannonSystem.Current.IsSeated(local.OwnerClientId);
+            seatHint.SetActive(seated);
+            var trampoline = HumanCannonTrampoline.Current;
+            bool carrying = trampoline != null && trampoline.isActiveAndEnabled && trampoline.Carrier == local.OwnerClientId;
+            carryHint.SetActive(!seated && carrying);
+            poleHint.SetActive(!seated && !carrying && local.TryGetComponent<HumanCannonPilot>(out var pilot)
+                && pilot.isActiveAndEnabled && pilot.IsHoldingPole);
             var section = SectionAt(local.transform.position, boundaries);
             if (section == shown && label.text.Length > 0) return;
             shown = section;
@@ -110,6 +126,94 @@ namespace CurtainCall.HumanCannon
             label.color = new Color(0.91f, 0.97f, 1f);
             label.raycastTarget = false;
             label.text = string.Empty;
+            BuildPoleHint();
+            BuildCarryHint();
+            BuildSeatHint();
+        }
+
+        void BuildPoleHint()
+        {
+            poleHint = new GameObject("PoleReleaseHint", typeof(RectTransform), typeof(Image));
+            poleHint.transform.SetParent(overlay.transform, false);
+            var rect = poleHint.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0);
+            rect.anchoredPosition = new Vector2(0, 82); // 기존 구간 표시(22~70) 바로 위.
+            rect.sizeDelta = new Vector2(300, 52);
+            var background = poleHint.GetComponent<Image>();
+            background.color = new Color(0.035f, 0.055f, 0.085f, 0.94f);
+            background.raycastTarget = false;
+            var textObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            textObject.transform.SetParent(poleHint.transform, false);
+            var textRect = textObject.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(12, 0);
+            textRect.offsetMax = new Vector2(-12, 0);
+            poleHintLabel = textObject.GetComponent<TextMeshProUGUI>();
+            poleHintLabel.font = font;
+            poleHintLabel.fontSize = 25;
+            poleHintLabel.alignment = TextAlignmentOptions.Center;
+            poleHintLabel.color = Color.white;
+            poleHintLabel.raycastTarget = false;
+            poleHintLabel.text = "<color=#FFE08A><b>Space</b></color>  ·  봉 놓기";
+            poleHint.SetActive(false);
+        }
+
+        void BuildCarryHint()
+        {
+            carryHint = new GameObject("TrampolineCarryHint", typeof(RectTransform), typeof(Image));
+            carryHint.transform.SetParent(overlay.transform, false);
+            var rect = carryHint.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0);
+            rect.anchoredPosition = new Vector2(0, 82); // 구간 표시 위, 봉 안내와는 서로 다른 상태에서 표시.
+            rect.sizeDelta = new Vector2(620, 84);
+            var background = carryHint.GetComponent<Image>();
+            background.color = new Color(0.035f, 0.055f, 0.085f, 0.94f);
+            background.raycastTarget = false;
+            var textObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            textObject.transform.SetParent(carryHint.transform, false);
+            var textRect = textObject.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(16, 8);
+            textRect.offsetMax = new Vector2(-16, -8);
+            carryHintLabel = textObject.GetComponent<TextMeshProUGUI>();
+            carryHintLabel.font = font;
+            carryHintLabel.fontSize = 22;
+            carryHintLabel.alignment = TextAlignmentOptions.Center;
+            carryHintLabel.color = Color.white;
+            carryHintLabel.raycastTarget = false;
+            carryHintLabel.text = "<color=#FFE08A><b>W/S</b></color> 앞뒤 이동   ·   <color=#FFE08A><b>A/D</b></color> 옆걸음\n"
+                + "<color=#FFE08A><b>마우스</b></color> 방향 전환   ·   <color=#FFE08A><b>F</b></color> 길게 눌러 놓기";
+            carryHint.SetActive(false);
+        }
+
+        void BuildSeatHint()
+        {
+            seatHint = new GameObject("CannonSeatHint", typeof(RectTransform), typeof(Image));
+            seatHint.transform.SetParent(overlay.transform, false);
+            var rect = seatHint.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0);
+            rect.anchoredPosition = new Vector2(0, 82);
+            rect.sizeDelta = new Vector2(520, 52);
+            var background = seatHint.GetComponent<Image>();
+            background.color = new Color(0.035f, 0.055f, 0.085f, 0.94f);
+            background.raycastTarget = false;
+            var textObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+            textObject.transform.SetParent(seatHint.transform, false);
+            var textRect = textObject.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(16, 0);
+            textRect.offsetMax = new Vector2(-16, 0);
+            seatHintLabel = textObject.GetComponent<TextMeshProUGUI>();
+            seatHintLabel.font = font;
+            seatHintLabel.fontSize = 23;
+            seatHintLabel.alignment = TextAlignmentOptions.Center;
+            seatHintLabel.color = Color.white;
+            seatHintLabel.raycastTarget = false;
+            seatHintLabel.text = "<color=#FFE08A><b>F</b></color>로 발사   ·   <color=#FFE08A><b>F</b></color> 길게 눌러 내리기";
+            seatHint.SetActive(false);
         }
 
         void OnDisable()

@@ -2,6 +2,7 @@ using System;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -37,6 +38,7 @@ namespace CurtainCall.HumanCannon
         CustomMessagingManager messaging;
         HumanCannonPilot pilot;
         NetworkPlayer boundPlayer;
+        IDisposable jumpHeightOverride;
 
         public static HumanCannonSystem Current { get; private set; }
         public event Action<int, CannonAction, ulong> StateChanged;
@@ -98,6 +100,7 @@ namespace CurtainCall.HumanCannon
                 return;
             }
             Current = this;
+            jumpHeightOverride = CharacterJumpHeightOverrides.Register(this, () => GameSettings.HumanCannon.JumpHeight);
             CreateInjuryPolicy();
             ResetSeats();
             NetworkPlayer.LocalSpawned += Bind;
@@ -428,6 +431,8 @@ namespace CurtainCall.HumanCannon
 
         void OnDisable()
         {
+            jumpHeightOverride?.Dispose();
+            jumpHeightOverride = null;
             NetworkPlayer.LocalSpawned -= Bind;
             NetworkPlayer.LocalDespawned -= Unbind;
             NetworkPlayer.Restarted -= HandleRestart;

@@ -67,40 +67,32 @@ namespace CurtainCall.HumanCannon.Tests
         }
 
         [UnityTest]
-        public IEnumerator OriginalCourse_WindPresetsMoveGroundBodyHorizontally()
+        public IEnumerator OriginalCourse_AllDifficultiesHaveNoWindOrGroundDrift()
         {
             var hazards = HazardCourse();
             foreach (Behaviour hazard in ((IEnumerable)Get(hazards, "hazards")).Cast<Behaviour>()) hazard.enabled = false;
-            var zones = ((IEnumerable)Get(hazards, "windZones")).Cast<Component>().ToArray();
-            var zone = zones.First(item => (bool)Get(item, "affectsGround"));
-            foreach (var other in zones) ((Behaviour)other).enabled = other == zone;
-            var area = (BoxCollider)Get(zone, "Area");
-            var ray = new Ray(new Vector3(area.bounds.center.x, area.bounds.max.y + 1, area.bounds.center.z), Vector3.down);
-            Assert.IsTrue(Physics.Raycast(ray, out var support, 30, ~0, QueryTriggerInteraction.Ignore), "실제 송풍 구간 바닥");
-            Vector3 feet = support.point + Vector3.up * 0.01f;
-            Vector3 direction = (Vector3)Get(zone, "Direction");
-            Assert.That(direction.sqrMagnitude, Is.EqualTo(1).Within(0.001f));
+            Vector3 feet = new Vector3(0, 0.01f, 57);
             for (int level = 1; level <= 3; level++)
             {
                 Assert.IsTrue((bool)Call(hazards, "SetDifficulty", level));
                 Call(mover, "SetStartPose", feet, Quaternion.identity, true);
                 yield return null;
                 yield return new WaitForEndOfFrame();
-                float speed = 0.6f + (level - 1) * 0.2f;
-                var velocity = (Vector3)Call(hazards, "WindVelocity", player.transform.position, (float)Get(mover, "BodyHeight"), false);
-                Assert.That(Vector3.Distance(velocity, direction * speed), Is.LessThan(0.001f));
+                float height = (float)Get(mover, "BodyHeight");
+                var groundWindVelocity = (Vector3)Call(hazards, "WindVelocity", player.transform.position, height, false);
+                var airWindVelocity = (Vector3)Call(hazards, "WindVelocity", feet + Vector3.up * 3, height, true);
+                Assert.That(groundWindVelocity, Is.EqualTo(Vector3.zero), "난도와 관계없이 지상 강풍이 없어야 한다: " + level);
+                Assert.That(airWindVelocity, Is.EqualTo(Vector3.zero), "난도와 관계없이 공중 강풍이 없어야 한다: " + level);
+                Assert.IsTrue((bool)Get(mover, "Simulated"), "실제 이동 처리를 켠 상태에서 검사한다.");
+                Assert.IsFalse((bool)Get(mover, "IsAirborne"), "이전 송풍 구간의 바닥에서 시작한다.");
                 Vector3 before = player.transform.position;
-                float elapsed = 0;
                 for (int frame = 0; frame < 12; frame++)
-                {
                     yield return new WaitForEndOfFrame();
-                    elapsed += Time.deltaTime;
-                }
                 Vector3 displacement = player.transform.position - before;
-                Assert.That(Vector3.Distance(Vector3.ProjectOnPlane(displacement, Vector3.up), direction * speed * elapsed),
-                    Is.LessThan(0.025f), "Pilot의 실제 LateUpdate가 난도별 바람을 한 번씩 적용한다.");
-                Assert.That(Mathf.Abs(displacement.y), Is.LessThan(0.03f), "바람은 수직 속도를 더하지 않는다.");
-                Assert.IsFalse((bool)Get(mover, "IsAirborne"), "추가 이동 뒤에도 바닥 접촉 유지");
+                Assert.That(Vector3.ProjectOnPlane(displacement, Vector3.up).magnitude,
+                    Is.LessThan(0.001f), "입력 없이 이전 송풍 구간에 서 있어도 수평으로 밀리지 않는다: " + level);
+                Assert.That(Mathf.Abs(displacement.y), Is.LessThan(0.03f), "서 있는 바닥 높이를 유지한다.");
+                Assert.IsFalse((bool)Get(mover, "IsAirborne"), "검사 중에도 바닥 접촉 유지");
             }
         }
 

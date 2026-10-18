@@ -11,6 +11,7 @@ namespace CurtainCall.HumanCannon.Tests
         [UnityTest]
         public IEnumerator OriginalCourse_InjuryPolicyAndFlightCorrection_RestoreOnExit()
         {
+            DisableEnhancementThreats();
             var effects = player.GetComponent(GameType("CurtainCall.Damage.BodyDamageEffects"));
             var settings = StaticGet("CurtainCall.Settings.GameSettings", "Base");
             var damage = Get(settings, "BodyDamage");
@@ -23,12 +24,26 @@ namespace CurtainCall.HumanCannon.Tests
                 if (lost > 0) Call(player, "ServerCut", 1);
                 yield return null;
                 yield return null;
-                float expectedMove = lost == 0 ? 1f : lost == 1 ? 0.8f : (float)Get(damage, "CrawlSpeedMultiplier");
+                float expectedMove = lost == 0 ? 1f : 0.8f;
                 Assert.That((float)Get(mover, "SpeedMultiplier"), Is.EqualTo(expectedMove).Within(0.001f));
                 Assert.That((float)Get(mover, "JumpHeightMultiplier"), Is.EqualTo(
                     (float)Call(damage, "JumpHeightForLostLegs", Math.Min(2, lost))).Within(0.001f));
                 Assert.AreEqual(1f, Get(player.GetComponent(GameType("CurtainCall.Player.PlayerInteraction")), "ReachMultiplier"));
                 if (lost >= 2) Assert.AreEqual(Get(damage, "CrawlCapsuleHeight"), Get(mover, "BodyHeightOverride"));
+
+                // 정책 표시값뿐 아니라 공통 기어가기 배율을 거친 실제 CharacterController 이동도 확인한다.
+                Call(mover, "SetStartPose", new Vector3(0, 0.01f, 57), Quaternion.identity, true);
+                HazardSet(mover, "FreeMovement", true);
+                yield return WaitUntil(() => ((CharacterController)Get(mover, "Body")).isGrounded
+                    && !(bool)Get(mover, "IsAirborne"), 3, "이동 측정 전 실제 바닥 접촉");
+                yield return new WaitForEndOfFrame();
+                Assert.IsFalse((bool)Get(mover, "IsAirborne"));
+                Vector3 groundStart = player.transform.position;
+                Call(mover, "SetMoveInput", 1f, 0f);
+                Call(mover, "Update");
+                float groundSpeed = (float)Get(Get(settings, "Character"), "FreeMoveSpeed");
+                Assert.That(Vector3.ProjectOnPlane(player.transform.position - groundStart, Vector3.up).magnitude,
+                    Is.EqualTo(groundSpeed * expectedMove * Time.deltaTime).Within(0.002f), "두 다리/외팔도 지상 이동은 최소 80%");
 
                 Call(pilot, "Launch", 6, 1u, new Vector3(-40, 20, 0), Quaternion.identity, Vector3.up * 12);
                 var frame = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerInputFrame"));
@@ -36,7 +51,7 @@ namespace CurtainCall.HumanCannon.Tests
                 Call(pilot, "ReadInput", frame);
                 float x = player.transform.position.x;
                 Call(pilot, "SimulateFlight");
-                float air = lost == 0 ? 1f : lost == 1 ? 0.8f : 0.5f;
+                float air = lost == 0 ? 1f : 0.8f;
                 Assert.That(player.transform.position.x - x, Is.EqualTo(4.5f * air * Time.deltaTime).Within(0.002f));
                 x = player.transform.position.x;
                 Input(); Call(pilot, "SimulateFlight");

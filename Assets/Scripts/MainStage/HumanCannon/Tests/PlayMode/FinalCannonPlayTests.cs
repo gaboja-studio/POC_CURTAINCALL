@@ -189,7 +189,8 @@ namespace CurtainCall.HumanCannon.Tests
             var station = (Component)Call(system, "Station", index);
             var boarding = (Transform)Get(station, "BoardingPoint");
             Call(mover, "SetStartPose", boarding.position, Quaternion.identity, true);
-            yield return null;
+            yield return WaitUntil(() => ((CharacterController)Get(mover, "Body")).isGrounded
+                && !(bool)Get(player, "IsAirborne"), 3, "탑승 위치로 옮긴 뒤 실제 바닥 접촉과 공유 공중 상태 해제");
             Assert.AreEqual(index, Call(system, "FindBoardableStation", player));
             Input(tapped: true);
             yield return WaitUntil(() => (ulong)Call(system, "Occupant", index) == Actor, 2, "부상별 탑승 시간 뒤 호스트 확정");

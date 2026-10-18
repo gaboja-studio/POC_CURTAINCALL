@@ -65,7 +65,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var hazards = Field<HumanCannonHazard[]>(course, "hazards");
             var poleSaws = All<HumanCannonPoleSaw>();
             var poles = All<HumanCannonPole>();
-            Assert.That(poleSaws, Has.Length.EqualTo(poles.Length), "봉마다 독립 왕복 톱 하나");
+            Assert.That(poleSaws, Has.Length.EqualTo(poles.Length), "해제용 봉을 포함해 봉마다 독립 왕복 톱 하나");
             Assert.That(hazards, Has.Length.EqualTo(16 + poleSaws.Length));
             Assert.That(hazards, Has.All.Not.Null);
             CollectionAssert.AllItemsAreUnique(hazards);
@@ -81,8 +81,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(saw.Pole.HoldSeconds, Is.Zero, saw.name);
                 Assert.That(saw.Hazard.Kind, Is.EqualTo(CannonHazardKind.GroundSaw), saw.name);
                 Assert.That(Vector3.Distance(saw.Hazard.transform.position, saw.RailCenter), Is.LessThan(0.001f), saw.name);
-                Assert.That((saw.RailCenter - saw.Hazard.Travel).x, Is.EqualTo(-15).Within(0.001f), saw.name);
-                Assert.That((saw.RailCenter + saw.Hazard.Travel).x, Is.EqualTo(15).Within(0.001f), saw.name);
+                Assert.That((saw.RailCenter - saw.Hazard.Travel).x, Is.EqualTo(-24).Within(0.001f), saw.name);
+                Assert.That((saw.RailCenter + saw.Hazard.Travel).x, Is.EqualTo(24).Within(0.001f), saw.name);
                 Assert.That(saw.Hazard.PeriodSeconds, Is.EqualTo(4).Within(0.001f), saw.name);
                 Assert.That(Mathf.Abs(Vector3.Dot(saw.Hazard.Travel.normalized, saw.Pole.Forward)), Is.LessThan(0.001f),
                     "왕복은 W/S 회피 방향과 직교한다: " + saw.name);
@@ -96,23 +96,11 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void EightWindZones_AreRegisteredTriggersWithHorizontalVisibleFlow()
+        public void SavedCourse_HasNoRegisteredOrSceneWindZones()
         {
             var zones = Field<HumanCannonWindZone[]>(All<HumanCannonHazardCourse>().Single(), "windZones");
-            Assert.That(zones, Has.Length.EqualTo(8));
-            Assert.That(zones, Has.All.Not.Null);
-            CollectionAssert.AllItemsAreUnique(zones);
-            CollectionAssert.AreEquivalent(All<HumanCannonWindZone>(), zones);
-            foreach (var zone in zones)
-            {
-                Assert.That(zone.Area, Is.Not.Null, zone.name);
-                Assert.IsTrue(zone.Area.isTrigger, zone.name);
-                Assert.That(zone.Direction.y, Is.EqualTo(0).Within(0.00001f), zone.name);
-                Assert.That(zone.Direction.magnitude, Is.EqualTo(1).Within(0.00001f), zone.name);
-                var flow = zone.transform.Find("VisibleFlow");
-                Assert.That(flow, Is.Not.Null, zone.name);
-                Assert.That(flow.GetComponentsInChildren<LineRenderer>(true), Has.Length.EqualTo(16), zone.name);
-            }
+            Assert.That(zones, Is.Empty, "삭제한 강풍 구간이 코스에 등록되어 있으면 안 된다.");
+            Assert.That(All<HumanCannonWindZone>(), Is.Empty, "비활성 오브젝트에도 강풍 구간을 남기지 않는다.");
         }
 
         [Test]

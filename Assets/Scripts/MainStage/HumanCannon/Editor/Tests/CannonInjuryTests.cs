@@ -1,3 +1,4 @@
+using System.Reflection;
 using NUnit.Framework;
 
 namespace CurtainCall.HumanCannon.EditorTools.Tests
@@ -6,8 +7,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     {
         [TestCase(0, 1f, 1f)]
         [TestCase(1, 0.8f, 0.8f)]
-        [TestCase(2, 0.5f, 0.5f)]
-        public void Legs_ApplyApprovedMovementWithoutMultiplyingCrawlTwice(int legs, float move, float air)
+        [TestCase(2, 0.8f, 0.8f)]
+        public void Legs_KeepAtLeastEightyPercentAfterCommonCrawl(int legs, float move, float air)
         {
             var settings = new HumanCannonInjurySettings();
             float crawl = legs >= 2 ? 0.5f : 1f;
@@ -18,12 +19,45 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void ChangedCommonCrawl_NeverFasterThanOneLeg()
+        public void ChangedCommonCrawl_KeepsFloorWithoutMakingTwoLegLossFasterThanOneLeg()
         {
             var settings = new HumanCannonInjurySettings();
-            foreach (float crawl in new[] { 0f, 0.5f, 0.9f, 1f })
-                Assert.That(settings.MovePolicyMultiplier(2, crawl) * crawl, Is.LessThanOrEqualTo(0.8f));
+            foreach (float crawl in new[] { 0.1f, 0.5f, 0.9f, 1f })
+                Assert.That(settings.MovePolicyMultiplier(2, crawl) * crawl, Is.EqualTo(0.8f).Within(0.00001f));
         }
+
+        [Test]
+        public void OldSerializedLowMultipliers_AlsoUseTheEightyPercentFloor()
+        {
+            var settings = new HumanCannonInjurySettings();
+            Set(settings, "oneLegMove", 0.4f);
+            Set(settings, "oneLegAir", 0.7f);
+            Set(settings, "twoLegAir", 0.5f);
+            foreach (int legs in new[] { 1, 2 })
+            {
+                float common = legs == 2 ? 0.5f : 1f;
+                Assert.That(settings.MovePolicyMultiplier(legs, 0.5f) * common, Is.EqualTo(0.8f).Within(0.00001f));
+                Assert.That(settings.AirMultiplier(legs), Is.EqualTo(0.8f));
+            }
+        }
+
+        [Test]
+        public void ExistingFasterSettings_ArePreservedAndCommonZeroDoesNotDivide()
+        {
+            var settings = new HumanCannonInjurySettings();
+            Set(settings, "oneLegMove", 0.9f);
+            Set(settings, "oneLegAir", 0.9f);
+            Set(settings, "twoLegAir", 0.85f);
+            Assert.That(settings.MovePolicyMultiplier(1, 0.95f), Is.EqualTo(0.9f));
+            Assert.That(settings.MovePolicyMultiplier(2, 0.85f) * 0.85f, Is.EqualTo(0.85f).Within(0.00001f));
+            Assert.That(settings.MovePolicyMultiplier(2, 0.95f) * 0.95f, Is.EqualTo(0.9f).Within(0.00001f));
+            Assert.That(settings.AirMultiplier(1), Is.EqualTo(0.9f));
+            Assert.That(settings.AirMultiplier(2), Is.EqualTo(0.85f));
+            Assert.That(settings.MovePolicyMultiplier(2, 0f), Is.EqualTo(1f));
+        }
+
+        static void Set(HumanCannonInjurySettings settings, string field, float value) =>
+            typeof(HumanCannonInjurySettings).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(settings, value);
 
         [Test]
         public void DelayedRequest_DuplicateCannotAdvanceOrPostponeDeadline()

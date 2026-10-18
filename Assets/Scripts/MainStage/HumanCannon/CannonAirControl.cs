@@ -29,5 +29,19 @@ namespace CurtainCall.HumanCannon
             Vector3 right = Vector3.Cross(Vector3.up, forward);
             return (right * current.x + forward * current.y) * Mathf.Max(0f, speed);
         }
+
+        /// <summary>
+        /// 봉 도약의 수평 반동 중 현재 조작 방향과 같은 성분만 남긴다.
+        /// 입력이 없거나 계속 앞으로 누르면 긴 도약을 유지하고, 뒤/옆 입력은 관성에 밀리지 않는다.
+        /// 이미 제동한 속도를 복구하거나 수직 탄도를 바꾸지는 않는다.
+        /// </summary>
+        public static Vector3 SteerPoleMomentum(Vector3 velocity, Vector3 correction)
+        {
+            Vector3 direction = Vector3.ProjectOnPlane(correction, Vector3.up);
+            if (direction.sqrMagnitude < 0.000001f) return velocity;
+            direction.Normalize();
+            Vector3 horizontal = Vector3.ProjectOnPlane(velocity, Vector3.up);
+            return Vector3.up * velocity.y + direction * Mathf.Max(0f, Vector3.Dot(horizontal, direction));
+        }
     }
 }

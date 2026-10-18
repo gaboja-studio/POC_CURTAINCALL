@@ -46,6 +46,7 @@ namespace CurtainCall.HumanCannon
             groundRequest.Cancel();
             airControl.Clear();
             velocity = Vector3.zero;
+            steerPoleMomentum = false;
             latch.Reset();
             UpdatePolePose();
         }
@@ -57,6 +58,7 @@ namespace CurtainCall.HumanCannon
             Launch(station, launch, position, rotation, launchVelocity);
             flightSegment = segment;
             airControlSpeed = controlSpeed;
+            steerPoleMomentum = true;
             latch.Reset();
         }
 

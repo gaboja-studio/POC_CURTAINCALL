@@ -51,7 +51,7 @@ namespace CurtainCall.HumanCannon
                 carryingView.LookAhead = 0f;
                 carryingView.TransitionDuration = 0.18f;
             }
-            // 원본/연습 모두 확정된 손잡이 소유권으로 전환한다. 시선은 몸/장치 회전에 쓰지 않는다.
+            // 원본/연습 모두 확정된 손잡이 소유권으로 전환한다. 운반 중 수평 시선은 몸/장치 방향에도 적용한다.
             var trampoline = HumanCannonTrampoline.Current;
             bool carrying = trampoline != null && trampoline.Carrier == player.OwnerClientId;
             bool carryCamera = stationIndex < 0 && !IsFlying && carrying;

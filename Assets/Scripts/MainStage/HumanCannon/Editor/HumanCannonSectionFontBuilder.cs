@@ -11,12 +11,19 @@ namespace CurtainCall.HumanCannon.EditorTools
     public static class HumanCannonSectionFontBuilder
     {
         const string Path = "Assets/Scenes/Tests/MainStage/HumanCannon/Labels/section-korean.asset";
-        const string Characters = "현재 구간 · 출발1쉼터동료합류2반동과회피최종도착0123456789";
+        const string Characters = "현재 구간 · 출발1쉼터동료합류2반동과회피최종도착0123456789Space봉 놓기W/S A/D 앞뒤 이동옆걸음마우스방향전환F길게눌러F로 발사 · F 길게 눌러 내리기";
 
         public static TMP_FontAsset LoadFont()
         {
             var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(Path);
-            if (font != null) return font;
+            if (font != null)
+            {
+                if (!font.HasCharacters(Characters))
+                    CurtainCall.Fonts.EditorTools.StaticFontBaker.Bake(font, Characters);
+                if (!font.HasCharacters(Characters))
+                    throw new InvalidOperationException("구간·봉·트램폴린·대포 안내 글꼴에 필요한 문자를 굽지 못했습니다.");
+                return font;
+            }
             var source = AssetDatabase.LoadAssetAtPath<Font>("Assets/Resources/Fonts/Pretendard-Medium/Pretendard-Medium 1.otf");
             if (source == null) throw new InvalidOperationException("구간 표시 한글 원본 폰트가 없습니다.");
             font = TMP_FontAsset.CreateFontAsset(source, 48, 5, GlyphRenderMode.SDFAA, 512, 512, AtlasPopulationMode.Dynamic);
