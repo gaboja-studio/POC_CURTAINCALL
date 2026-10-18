@@ -56,10 +56,14 @@ namespace CurtainCall.Tightrope
         Sequence handholdTween;
         float handholdAlpha;
         GUIStyle handholdStyle;
+        bool gameplayActive;
+
+        bool IsGameplayActive => isActiveAndEnabled && TightropeCourse.Current != null && TightropeCourse.Current.IsGameplayActive;
 
         /// <summary>손잡기 착지 표시(내 화면만). 새 착지·재시작·사망에는 이전 연출을 정리한다.</summary>
         public void ShowHandholdLanding()
         {
+            if (!IsGameplayActive) return;
             ClearHandhold();
             handholdTween = DOTween.Sequence().SetUpdate(true)
                 .Append(DOTween.To(() => handholdAlpha, value => handholdAlpha = value, 1f, 0.2f))
@@ -78,6 +82,7 @@ namespace CurtainCall.Tightrope
         /// <summary>옆줄 착지의 겹친 동료가 합체 가능한지. 최종 연결은 호스트가 다시 확인한다.</summary>
         public bool CanLaneLink(NetworkPlayer climber, NetworkPlayer target, bool predictTopRelease = false)
         {
+            if (!IsGameplayActive) return false;
             if (climber == null || target == null || climber == target) return false;
             if (IsInStack(climber) && (!predictTopRelease || GetAbove(climber) != null
                 || BottomOf(climber.OwnerClientId) == BottomOf(target.OwnerClientId))) return false;
@@ -145,9 +150,7 @@ namespace CurtainCall.Tightrope
             NetworkPlayer.LocalSpawned -= Bind;
             NetworkPlayer.LocalDespawned -= Unbind;
             NetworkPlayer.Restarted -= HandleRestarted;
-            Unbind();
-            ClearHandhold();
-            ResetStackBalance();
+            LeaveGameplay();
             Unregister();
             if (session != null)
             {
@@ -174,6 +177,14 @@ namespace CurtainCall.Tightrope
                 HandleConnectionState(session.ConnectionState);
             }
 
+            if (!IsGameplayActive) { LeaveGameplay(); return; }
+            bool entered = !gameplayActive;
+            gameplayActive = true;
+            if (local == null) Unbind();
+            else if (interaction == null || interaction.gameObject != local.gameObject) Bind(local);
+            // 공연 스냅샷보다 먼저 받은 연결 패킷은 버렸을 수 있으므로 실제 입장 때 다시 받는다.
+            if (entered && session != null && session.ConnectionState == SessionConnectionState.Client) SendRequest(Request.Sync);
+
             if (session != null && session.IsHost)
             {
                 ServerResolveFalls();
@@ -185,6 +196,7 @@ namespace CurtainCall.Tightrope
         /// <summary>계산 전 위층 값을 읽어 넣는다. 단독·사망한 사람에게는 이전 목마 영향을 남기지 않는다.</summary>
         void UpdateStackBalance()
         {
+            if (!IsGameplayActive) return;
             foreach (var player in NetworkPlayer.All)
             {
                 if (player == null || !player.TryGetComponent(out PlayerBalance balance)) continue;
@@ -285,6 +297,7 @@ namespace CurtainCall.Tightrope
         void Bind(NetworkPlayer local)
         {
             Unbind();
+            if (local == null || !IsGameplayActive) return;
             interaction = local.GetComponent<PlayerInteraction>();
             if (interaction == null) return;
             interaction.InteractRequested += HandleInteract;
@@ -310,6 +323,7 @@ namespace CurtainCall.Tightrope
 
         void SendRequest(Request request)
         {
+            if (request != Request.Sync && !IsGameplayActive) return;
             if (session == null) return;
             if (session.IsHost)
             {
@@ -340,6 +354,11 @@ namespace CurtainCall.Tightrope
 
         void ServerHandle(ulong senderId, Request request)
         {
+            if (!IsGameplayActive && request != Request.Sync)
+            {
+                Reply(senderId, "거부: 외줄 공연이 진행 중이 아님");
+                return;
+            }
             switch (request)
             {
                 case Request.Interact:
@@ -356,13 +375,15 @@ namespace CurtainCall.Tightrope
 
         string ServerTryLink(ulong climberId)
         {
+            if (!IsGameplayActive) return "거부: 외줄 공연이 진행 중이 아님";
             var climber = FindPlayer(climberId);
             if (climber == null) return "거부: 내 캐릭터를 찾지 못함";
             if (climber.State != PlayerState.Normal) return "거부: 내 상태가 정상이 아님";
             if (climber.IsAirborne) return "거부: 공중에서는 올라갈 수 없음";
             if (IsInStack(climberId)) return "거부: 이미 목마에 속해 있음(단독만 올라감)";
 
-            float reach = GameSettings.Tightrope.Piggyback.LinkDistance;
+            // 올라타는 사람의 팔 상태가 도달 거리를 정한다. 받는 동료의 팔 손실은 이 요청에 곱하지 않는다.
+            float reach = LinkReach(climber);
             Vector3 from = climber.transform.position;
             ulong target = 0;
             float best = float.MaxValue;
@@ -387,6 +408,9 @@ namespace CurtainCall.Tightrope
             ServerBroadcast();
             return $"연결: {top}번 위로 올라감";
         }
+
+        static float LinkReach(NetworkPlayer climber) => GameSettings.Tightrope.Piggyback.LinkDistance
+            * (climber != null && climber.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f);
 
         string ServerTryUnlink(ulong riderId)
         {
@@ -467,6 +491,19 @@ namespace CurtainCall.Tightrope
             else NotifyChanged();
         }
 
+        void LeaveGameplay()
+        {
+            Unbind();
+            bool hadState = gameplayActive || belowOf.Count > 0 || aboveOf.Count > 0;
+            gameplayActive = false;
+            ClearHandhold();
+            if (!hadState) return;
+            // 성공뿐 아니라 시간 종료·다음 시간대로 이동할 때도 연결을 해제한다.
+            // 외줄을 사용하지 않은 프레임에는 공용 균형 값을 계속 덮어쓰지 않는다.
+            ReleaseForSuccess();
+            ResetStackBalance();
+        }
+
         void HandleRestarted(NetworkPlayer player)
         {
             ClearHandhold();
@@ -492,6 +529,7 @@ namespace CurtainCall.Tightrope
 
         void SendLinks(ulong clientId)
         {
+            if (!IsGameplayActive) LeaveGameplay();
             var manager = Messaging;
             if (manager == null) return;
             using var writer = WriteLinks();
@@ -535,6 +573,8 @@ namespace CurtainCall.Tightrope
 
         void HandleLinksMessage(ulong senderId, FastBufferReader reader)
         {
+            // 이전 공연의 늦은 연결 패킷이 휴식·다른 묘기에 목마를 되살리지 않는다.
+            if (!IsGameplayActive) { LeaveGameplay(); return; }
             belowOf.Clear();
             aboveOf.Clear();
             reader.ReadValueSafe(out int count);

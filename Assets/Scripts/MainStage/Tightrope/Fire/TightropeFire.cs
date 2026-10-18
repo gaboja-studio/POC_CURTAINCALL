@@ -44,6 +44,8 @@ namespace CurtainCall.Tightrope.Fire
         FireSettings snapshot;
         ulong activeMask, appliedMask;
         int round = -1, sequence, receivedSequence = -1;
+        int pendingSegment = -1;
+        float pendingIgniteAt = -1f, furthestDistance;
         float elapsed;
         double sampledAt;
         bool ticking;
@@ -54,8 +56,12 @@ namespace CurtainCall.Tightrope.Fire
         public FireSettings Settings => snapshot;
         public int Round => round;
         public float Elapsed => ticking ? elapsed + (float)Math.Max(0d, Clock - sampledAt) : elapsed;
-        public bool IsChasing => snapshot != null && run != null && round == run.Round
-            && run.IsPerformanceStarted && snapshot.chaseEnabled && Elapsed >= snapshot.chaseDelay;
+        public bool IsPerformanceActive => snapshot != null && run != null && course != null && round == run.Round
+            && run.IsPerformanceStarted && run.State == TightropeRunState.Running && course.IsGameplayActive;
+        public int PendingSegment => pendingSegment;
+        public float PendingIgniteAt => pendingIgniteAt;
+        public float FurthestDistance => furthestDistance;
+        public bool IsChasing => IsPerformanceActive && snapshot.chaseEnabled && Elapsed >= snapshot.chaseDelay;
         public float ChaseDistance => snapshot == null ? float.NaN : FireMath.ChaseDistance(snapshot, Elapsed);
         public string ExportSettings() => snapshot?.ToJson() ?? "";
         /// <summary>호스트에서만 발생. 사망 상태로 바꾸기 직전에 확정 원인을 알린다.</summary>
@@ -64,10 +70,9 @@ namespace CurtainCall.Tightrope.Fire
         public bool IsSegmentActive(int index) => index >= 0 && index < 64 && (activeMask & (1UL << index)) != 0;
         public float WarningRemaining(int index)
         {
-            if (snapshot == null || run == null || round != run.Round || !run.IsPerformanceStarted
+            if (!IsPerformanceActive
                 || index < 0 || index >= snapshot.segments.Length || IsSegmentActive(index)) return -1f;
-            float remaining = snapshot.segments[index].igniteAt - Elapsed;
-            return remaining >= 0f && remaining <= snapshot.warningSeconds ? remaining : -1f;
+            return FireMath.WarningRemaining(index, pendingSegment, pendingIgniteAt, Elapsed);
         }
 
         double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
@@ -133,9 +138,14 @@ namespace CurtainCall.Tightrope.Fire
             course.ClearBlockedSegments();
             appliedMask = 0;
             if (session == null || !session.IsHost) { ApplyBlocks(); return; }
-            snapshot = (GameSettings.Tightrope.Fire ?? new FireSettings()).Snapshot(course.FinishDistance);
+            var settings = GameSettings.Tightrope.Fire ?? new FireSettings();
+            int seed = settings.laneOrder == FireLaneOrder.RandomAll ? UnityEngine.Random.Range(0, int.MaxValue) : 0;
+            snapshot = settings.Snapshot(course.FinishDistance, course.LaneCount, seed);
             round = run.Round;
             activeMask = appliedMask = 0;
+            pendingSegment = -1;
+            pendingIgniteAt = -1f;
+            furthestDistance = 0f;
             elapsed = 0f;
             sampledAt = Clock;
             ticking = false;
@@ -173,23 +183,28 @@ namespace CurtainCall.Tightrope.Fire
 
         void Judge()
         {
-            if (session == null || !session.IsHost || run == null || !run.IsPerformanceStarted) return;
+            if (session == null || !session.IsHost || run == null || !run.IsPerformanceStarted
+                || run.State != TightropeRunState.Running || !course.IsGameplayActive) return;
             if (snapshot == null || round != run.Round) HandleRound();
             elapsed = run.PerformanceElapsed;
             sampledAt = Clock;
             ticking = true;
-            ulong before = activeMask;
-            for (int i = 0; i < snapshot.segments.Length; i++)
-                if (elapsed >= snapshot.segments[i].igniteAt) activeMask |= 1UL << i;
+            foreach (var player in NetworkPlayer.All)
+                if (player.isActiveAndEnabled && player.State == PlayerState.Normal
+                    && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen))
+                    furthestDistance = Mathf.Max(furthestDistance, Mathf.Clamp(course.GetDistance(player.transform.position), 0f, course.FinishDistance));
+            bool changed = FireMath.AdvanceSequence(snapshot, elapsed, furthestDistance, course.LaneCount,
+                ref activeMask, ref pendingSegment, ref pendingIgniteAt);
             ApplyBlocks();
-            if (before != activeMask || Time.unscaledTime >= nextBroadcast)
+            if (changed || Time.unscaledTime >= nextBroadcast)
             {
                 nextBroadcast = Time.unscaledTime + 1f;
                 Broadcast();
-                if (before != activeMask) Changed?.Invoke();
+                if (changed) Changed?.Invoke();
             }
             foreach (var player in NetworkPlayer.All)
             {
+                if (run.State != TightropeRunState.Running || !course.IsGameplayActive) break;
                 if (player.State != PlayerState.Normal) continue;
                 float distance = course.GetDistance(player.transform.position);
                 if (distance >= snapshot.safeDistance) continue;
@@ -211,14 +226,14 @@ namespace CurtainCall.Tightrope.Fire
 
         void Kill(NetworkPlayer player, FireKind kind, int segment, float distance)
         {
+            if (!player.ServerKill()) return;
             Hit?.Invoke(new FireHit(player, kind, segment, round, elapsed, distance));
-            player.ServerSetState(PlayerState.Fallen);
             Debug.Log($"[Fire] 회차 {round} · 슬롯 {player.Slot} · {kind}({segment}) · {elapsed:0.00}s · {distance:0.00}m", this);
         }
 
         void ApplyBlocks()
         {
-            if (snapshot == null || run == null || round != run.Round) return;
+            if (snapshot == null || run == null || course == null || round != run.Round || !course.IsGameplayActive) return;
             for (int i = 0; i < snapshot.segments.Length; i++)
             {
                 ulong bit = 1UL << i;
@@ -251,6 +266,9 @@ namespace CurtainCall.Tightrope.Fire
             {
                 snapshot = null;
                 activeMask = appliedMask = 0;
+                pendingSegment = -1;
+                pendingIgniteAt = -1f;
+                furthestDistance = 0f;
                 ticking = false;
                 round = -1;
                 Changed?.Invoke();
@@ -273,6 +291,9 @@ namespace CurtainCall.Tightrope.Fire
             writer.WriteValueSafe(Elapsed);
             writer.WriteValueSafe(Clock);
             writer.WriteValueSafe(ticking);
+            writer.WriteValueSafe(pendingSegment);
+            writer.WriteValueSafe(pendingIgniteAt);
+            writer.WriteValueSafe(furthestDistance);
             writer.WriteValueSafe(snapshot.ToJson());
             return writer;
         }
@@ -295,9 +316,15 @@ namespace CurtainCall.Tightrope.Fire
             reader.ReadValueSafe(out float incomingElapsed);
             reader.ReadValueSafe(out double at);
             reader.ReadValueSafe(out bool running);
+            reader.ReadValueSafe(out int incomingPending);
+            reader.ReadValueSafe(out float incomingIgniteAt);
+            reader.ReadValueSafe(out float incomingFurthest);
             reader.ReadValueSafe(out string json);
             var settings = FireSettings.FromJson(json);
             if (settings == null || settings.segments == null || settings.segments.Length > 64) return;
+            if (incomingPending < -1 || incomingPending >= settings.segments.Length
+                || float.IsNaN(incomingIgniteAt) || float.IsInfinity(incomingIgniteAt)
+                || float.IsNaN(incomingFurthest) || float.IsInfinity(incomingFurthest)) return;
             bool newRound = incomingRound != round;
             if (newRound)
             {
@@ -308,6 +335,9 @@ namespace CurtainCall.Tightrope.Fire
             receivedSequence = incomingSequence;
             if (newRound || snapshot == null) snapshot = settings;
             activeMask = mask;
+            pendingSegment = incomingPending;
+            pendingIgniteAt = incomingIgniteAt;
+            furthestDistance = incomingFurthest;
             elapsed = incomingElapsed;
             sampledAt = at;
             ticking = running;

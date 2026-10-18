@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CurtainCall.Dev;
 using CurtainCall.Settings;
@@ -50,8 +51,29 @@ namespace CurtainCall.Network.Session
         /// <summary>세션 최대 인원(정원).</summary>
         public int RequiredPlayers => GameSettings.Base.Session.MaxPlayers;
 
-        /// <summary>게임을 시작할 수 있는 최소 인원(호스트 포함). 개발자 모드면 1명(<see cref="DevMode.MinPlayers"/>).</summary>
-        public int MinPlayers => DevMode.MinPlayers(GameSettings.Base.Session.MinPlayers);
+        /// <summary>호스트 포함 최소 시작 인원. 기본 규칙·개발자 모드에 현재 콘텐츠의 완화 요청을 적용한다.</summary>
+        public int MinPlayers
+        {
+            get
+            {
+                int minimum = DevMode.MinPlayers(GameSettings.Base.Session.MinPlayers);
+                foreach (var request in _minimumStartPlayerRequests) minimum = Mathf.Min(minimum, request.Minimum);
+                return minimum;
+            }
+        }
+
+        /// <summary>
+        /// 이 세션에서 콘텐츠가 활성인 동안 최소 시작 인원을 낮춘다. OnDisable에서 반환한 토큰을 Dispose한다.
+        /// 여러 요청은 가장 낮은 값을 사용하며, 마지막 요청 해제 후 기본 규칙으로 돌아간다.
+        /// 전역 세팅·개발자 모드·접속 정원·현재 게임 상태는 바꾸지 않는다. 실제 시작 권한은 여전히 호스트에게 있다.
+        /// </summary>
+        public IDisposable RequestMinimumStartPlayers(int minimum)
+        {
+            if (minimum < 1) throw new ArgumentOutOfRangeException(nameof(minimum), "최소 시작 인원은 1명 이상이어야 합니다.");
+            var request = new MinimumStartPlayerRequest(this, minimum);
+            _minimumStartPlayerRequests.Add(request);
+            return request;
+        }
 
         /// <summary>호스트가 지금 게임을 시작할 수 있는지(대기 중 + 최소 인원 이상).</summary>
         public bool CanStartGame => IsHost && GameState == GameSessionState.Waiting && PlayerCount >= MinPlayers;
@@ -85,6 +107,26 @@ namespace CurtainCall.Network.Session
         GameSessionStateSync _stateSync;
         string _pendingDisconnectReason;
         bool _leaveRequested;
+        readonly List<MinimumStartPlayerRequest> _minimumStartPlayerRequests = new();
+
+        sealed class MinimumStartPlayerRequest : IDisposable
+        {
+            NetworkSessionManager owner;
+            public int Minimum { get; }
+
+            public MinimumStartPlayerRequest(NetworkSessionManager owner, int minimum)
+            {
+                this.owner = owner;
+                Minimum = minimum;
+            }
+
+            public void Dispose()
+            {
+                var previous = owner;
+                owner = null;
+                if (previous != null) previous._minimumStartPlayerRequests.Remove(this);
+            }
+        }
 
         void Awake()
         {
@@ -108,6 +150,7 @@ namespace CurtainCall.Network.Session
 
         void OnDestroy()
         {
+            _minimumStartPlayerRequests.Clear();
             if (Instance != this)
                 return;
 

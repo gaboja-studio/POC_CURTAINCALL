@@ -1,3 +1,4 @@
+using System;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
@@ -24,6 +25,10 @@ namespace CurtainCall.Tightrope
         bool failOnLanding; // 이번 옆줄 점프는 착지할 자리가 없어 착지 순간 추락
         NetworkPlayer laneLinkTarget;
         bool handholdLanding;
+        Func<int, bool> previousFilter;
+        Func<int, float> previousShift;
+
+        static bool IsGameplayActive => TightropeCourse.Current != null && TightropeCourse.Current.IsGameplayActive;
 
         void OnEnable()
         {
@@ -44,10 +49,13 @@ namespace CurtainCall.Tightrope
         void Bind(NetworkPlayer local)
         {
             Unbind();
+            if (local == null || !IsGameplayActive) return;
             mover = local.GetComponent<PlayerMover>();
             balance = local.GetComponent<PlayerBalance>();
             if (mover == null) return;
 
+            previousFilter = mover.LaneJumpFilter;
+            previousShift = mover.LaneLandingShift;
             mover.LaneJumpFilter = CanLaneJump;
             mover.LaneLandingShift = GetLandingShift;
             mover.AirborneChanged += HandleAirborne;
@@ -60,14 +68,28 @@ namespace CurtainCall.Tightrope
         {
             if (mover != null)
             {
-                if (mover.LaneJumpFilter == CanLaneJump) mover.LaneJumpFilter = null;
-                if (mover.LaneLandingShift == GetLandingShift) mover.LaneLandingShift = null;
+                bool ownsFilter = mover.LaneJumpFilter == CanLaneJump;
+                bool ownsShift = mover.LaneLandingShift == GetLandingShift;
+                if (ownsFilter) mover.LaneJumpFilter = previousFilter;
+                if (ownsShift) mover.LaneLandingShift = previousShift;
                 mover.AirborneChanged -= HandleAirborne;
-                mover.BlockLaneJumpOntoPlayer = blockOntoPlayerBefore;
+                if (ownsFilter && ownsShift && !mover.BlockLaneJumpOntoPlayer)
+                    mover.BlockLaneJumpOntoPlayer = blockOntoPlayerBefore;
+                if (ownsFilter && ownsShift && balance != null) balance.SetLaneLandingReduction(0f);
             }
             mover = null;
             balance = null;
+            previousFilter = null;
+            previousShift = null;
             ClearLanding();
+        }
+
+        void Update()
+        {
+            if (!IsGameplayActive) { Unbind(); return; }
+            var local = NetworkPlayer.Local;
+            if (local == null) { Unbind(); return; }
+            if (mover == null || mover.gameObject != local.gameObject) Bind(local);
         }
 
         void ClearLanding()
@@ -86,7 +108,7 @@ namespace CurtainCall.Tightrope
         public bool CanLaneJump(int direction)
         {
             var course = TightropeCourse.Current;
-            if (course == null || mover == null) return true;
+            if (course == null || !course.IsGameplayActive || mover == null) return true;
 
             Vector3 position = mover.transform.position;
             float from = course.GetDistance(position);
@@ -109,7 +131,7 @@ namespace CurtainCall.Tightrope
             var course = TightropeCourse.Current;
             lane = TightropeCourse.NoLane;
             distance = 0f;
-            if (course == null || mover == null) return true;
+            if (course == null || !course.IsGameplayActive || mover == null) return true;
 
             Vector3 landing = mover.GetLaneLandingPosition(direction);
             landing.y = LandingHeight();
@@ -175,7 +197,7 @@ namespace CurtainCall.Tightrope
         public bool IsHandholdLanding(int lane, float distance)
         {
             var course = TightropeCourse.Current;
-            if (course == null || mover == null || lane == TightropeCourse.NoLane) return false;
+            if (course == null || !course.IsGameplayActive || mover == null || lane == TightropeCourse.NoLane) return false;
 
             float reach = GameSettings.Tightrope.Handhold.Distance;
             float height = LandingHeight();
@@ -193,7 +215,7 @@ namespace CurtainCall.Tightrope
         NetworkPlayer FindLaneLinkTarget(int direction)
         {
             var system = PiggybackSystem.Current;
-            if (system == null || mover == null) return null;
+            if (!IsGameplayActive || system == null || mover == null) return null;
             var local = NetworkPlayer.Local;
             bool topRelease = system.GetBelow(local) != null && system.GetAbove(local) == null;
             if (!topRelease)
@@ -231,7 +253,7 @@ namespace CurtainCall.Tightrope
         {
             ClearLanding();
             var course = TightropeCourse.Current;
-            if (course == null || mover == null) return 0f;
+            if (course == null || !course.IsGameplayActive || mover == null) return 0f;
 
             float original = course.GetDistance(mover.GetLaneLandingPosition(direction));
             if (!TryGetLanding(direction, out int lane, out float distance))
@@ -250,6 +272,7 @@ namespace CurtainCall.Tightrope
 
         void HandleAirborne(bool airborne)
         {
+            if (!IsGameplayActive) { ClearLanding(); return; }
             if (airborne || mover == null || mover.CurrentJump != JumpKind.Lane) return;
             var local = NetworkPlayer.Local;
             var target = laneLinkTarget;

@@ -164,7 +164,9 @@ namespace CurtainCall.Cameras
         /// <summary>Fixed/Smart/Late 모두 pipeline 직전에 호출. 입력 적분은 Update에서만 한다.</summary>
         internal void PrepareView()
         {
-            if (!isActiveAndEnabled) return;
+            // Cinemachine은 편집 모드에도 pipeline을 호출한다. 플레이 전용 요청·커서는
+            // Awake 초기화가 없는 편집/Prefab Stage 오브젝트에 적용하지 않는다.
+            if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled) return;
             PreparingView?.Invoke();
             requests.RemoveWhere((source, value) => !SourceActive(source) || value.Preset == null);
             // 1인칭·3인칭 비고정은 로컬 캐릭터 기준이라 관전·소멸 중에는 후보에서 뺀다
@@ -215,7 +217,7 @@ namespace CurtainCall.Cameras
 
         internal void ApplyPose(ref CameraState state)
         {
-            if (!isActiveAndEnabled || selected == null) return;
+            if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || selected == null) return;
             if (IsFirstPerson)
             {
                 float height = selected.EyeHeight > 0f ? selected.EyeHeight : mover != null ? mover.BodyHeight * 0.9f : 1.6f;

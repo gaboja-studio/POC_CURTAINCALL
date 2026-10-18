@@ -31,6 +31,7 @@ namespace CurtainCall.Tightrope
         bool hopping;      // 내 캐릭터 제자리 점프 중(목마 유지)
         float hopHeight;   // 머리 위 높이(m)
         float hopSpeed;    // 위로 속도(m/s)
+        float hopGravity;  // 점프 시작 때 고정한 중력(m/s²)
         float launchedAt = -1f; // 분리 점프를 시작한 시각. 해제될 때까지 머리 위에 붙이지 않는다
         PlayerMover controlRestore; // 내려놓은 뒤 한 프레임 조작을 껐다가 켤 이동 부품(위에서 누른 SB가 내려놓는 순간 점프로 나가지 않게)
         PlayerBalance carriedBalance; // 위층의 전체 점프·제자리 점프 공중 상태를 함께 관리한다
@@ -80,6 +81,11 @@ namespace CurtainCall.Tightrope
 
         void LateUpdate()
         {
+            if (TightropeCourse.Current == null || !TightropeCourse.Current.IsGameplayActive)
+            {
+                Release();
+                return;
+            }
             var local = NetworkPlayer.Local;
             if (TightropeRun.Current != null && TightropeRun.Current.State == TightropeRunState.Succeeded)
             {
@@ -144,7 +150,7 @@ namespace CurtainCall.Tightrope
         {
             if (hopping)
             {
-                hopSpeed -= GameSettings.Base.Character.Gravity * Time.deltaTime;
+                hopSpeed -= hopGravity * Time.deltaTime;
                 hopHeight += hopSpeed * Time.deltaTime;
                 if (hopHeight <= 0f && hopSpeed < 0f) EndHop(local);
                 return;
@@ -172,6 +178,7 @@ namespace CurtainCall.Tightrope
         {
             hopping = true;
             hopHeight = 0f;
+            hopGravity = localMover.JumpGravity;
             hopSpeed = localMover.JumpSpeed;
             if (local.TryGetComponent(out PlayerBalance balance)) balance.SetAirborne(true); // 공중에서는 균형 정지
         }
@@ -194,7 +201,9 @@ namespace CurtainCall.Tightrope
             body.enabled = false; // 머리 위에 맞춰 둔 위치에서 바로 출발하도록 몸통 위치를 맞춘다
             body.enabled = true;
             mover.Simulated = true;
-            mover.LaunchJump(alongSpeed);
+            // 짧아진 체공 시간에도 기존 발판까지의 앞뒤 점프 거리를 보존한다.
+            float speedScale = Mathf.Sqrt(mover.JumpGravity / GameSettings.Base.Character.Gravity);
+            mover.LaunchJump(alongSpeed * speedScale);
             launchedAt = Time.time;
             system.RequestLocalRelease();
         }

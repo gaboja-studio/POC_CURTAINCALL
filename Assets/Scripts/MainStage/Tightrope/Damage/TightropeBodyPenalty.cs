@@ -10,19 +10,11 @@ namespace CurtainCall.Damage
     /// - 잃은 다리·팔마다 자연 흔들림 증가(다리 쪽 배율 × 팔 쪽 배율).
     /// - 두 다리: 착지 충격 증가(점프·옆줄 이동은 할 수 있지만 균형이 더 크게 흔들린다).
     /// - 팔: 목마 올라타기 가능 거리 감소.
-    /// 시작 정책이 빈 <see cref="BodyDamageEffects"/>의 기본 정책으로 등록된다(지금 콘텐츠는 외줄뿐).
+    /// 활성 외줄 코스의 CourseControlSwitcher가 참가자에게 적용하고, 코스를 떠나면 이전 정책으로 돌린다.
     /// </summary>
     [CreateAssetMenu(menuName = "CurtainCall/Body Penalty/Tightrope", fileName = "TightropeBodyPenalty")]
     public sealed class TightropeBodyPenalty : BodyPenaltyPolicy
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void RegisterAsDefault() => BodyDamageEffects.DefaultPolicyFactory = () =>
-        {
-            var policy = CreateInstance<TightropeBodyPenalty>();
-            policy.name = "TightropeBodyPenalty (기본)";
-            return policy;
-        };
-
         public override BodyPenalty Evaluate(PlayerCondition condition)
         {
             var penalty = BodyPenalty.None;

@@ -5,11 +5,12 @@ using Random = UnityEngine.Random;
 
 namespace CurtainCall.Player
 {
-    /// <summary>균형 게이지 구간. 가운데 초록, 양쪽 끝 빨강.</summary>
+    /// <summary>균형 게이지 구간. 초록 안정 → 노랑 경고 → 빨강 추락 위험.</summary>
     public enum BalanceZone
     {
         Green,
         Red,
+        Yellow, // 기존 Red의 직렬화 값(1)은 유지한다.
     }
 
     /// <summary>
@@ -66,10 +67,13 @@ namespace CurtainCall.Player
         /// <summary>초록 구간 경계(±). 게이지 표시용.</summary>
         public float GreenLimit => Rules.GreenLimit;
 
+        /// <summary>노란 경고 구간 끝(±). 이 값을 넘어선 빨강에서만 추락 시간을 센다.</summary>
+        public float WarningLimit => Rules.WarningLimit;
+
         /// <summary>이번 프레임의 자연 흔들림(초당, 방향 포함). 디버그 표시용.</summary>
         public float CurrentSway { get; private set; }
 
-        /// <summary>빨강에 연속으로 머문 시간(초). 초록으로 돌아오면 0.</summary>
+        /// <summary>빨강에 연속으로 머문 시간(초). 초록·노랑으로 돌아오면 0.</summary>
         public float RedTime { get; private set; }
 
         /// <summary>추락 기준 시간(초).</summary>
@@ -185,7 +189,8 @@ namespace CurtainCall.Player
 
         /// <summary>균형 값으로 구간을 구한다.</summary>
         public BalanceZone ZoneOf(float value) =>
-            Mathf.Abs(value) <= Rules.GreenLimit ? BalanceZone.Green : BalanceZone.Red;
+            Mathf.Abs(value) <= GreenLimit ? BalanceZone.Green :
+            Mathf.Abs(value) <= WarningLimit ? BalanceZone.Yellow : BalanceZone.Red;
 
         /// <summary>균형을 켜거나 끈다. 켜고 끌 때 모두 중앙에서 시작한다.</summary>
         public void SetBalanceActive(bool active)
@@ -231,7 +236,9 @@ namespace CurtainCall.Player
             if (mover != null) mover.AirborneChanged -= SetAirborne;
         }
 
-        void Update()
+        void Update() => Step(Time.deltaTime);
+
+        void Step(float deltaTime)
         {
             float correction = correctionInput;
             correctionInput = 0f; // 입력은 한 프레임만 유효하다. 조작 규칙이 매 프레임 다시 넣는다.
@@ -248,20 +255,20 @@ namespace CurtainCall.Player
                          + Value * rules.TiltAcceleration
                          + UpperPush
                          + correction * rules.CorrectionSpeed;
-            Value = Mathf.Clamp(Value + rate * Time.deltaTime, -MaxValue, MaxValue);
+            Value = Mathf.Clamp(Value + rate * deltaTime, -MaxValue, MaxValue);
 
-            UpdateRedTime();
+            UpdateRedTime(deltaTime);
         }
 
-        void UpdateRedTime()
+        void UpdateRedTime(float deltaTime)
         {
-            if (Zone == BalanceZone.Green)
+            if (Zone != BalanceZone.Red)
             {
                 RedTime = 0f;
                 return;
             }
 
-            RedTime += Time.deltaTime;
+            RedTime += deltaTime;
             float fallTime = FallTime;
             if (RedTime < fallTime) return;
 

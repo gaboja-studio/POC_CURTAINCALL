@@ -1,10 +1,11 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace CurtainCall.Player
 {
     /// <summary>
-    /// 균형 게이지 UI(빨강 | 초록 | 빨강 + 바늘)에 균형 값을 반영한다.
+    /// 균형 게이지 UI(빨강 | 노랑 | 초록 | 노랑 | 빨강 + 바늘)에 균형 값을 반영한다.
     /// 모양(스프라이트·색·크기·위치)은 프리팹에서 정하고, 이 스크립트는 바늘 위치·초록 폭·빨강 체류 막대만 움직인다.
     /// 프리팹: Assets/Resources/Prefabs/UIs/Player/BalanceGauge.prefab · 규칙: Harness/Project/Decisions/tightrope-balance.md
     /// </summary>
@@ -19,6 +20,9 @@ namespace CurtainCall.Player
         [Tooltip("초록 구간. 부모(게이지 막대) 기준 가로 앵커로 폭을 맞춘다.")]
         [SerializeField] RectTransform greenZone;
 
+        [Tooltip("노란 경고 구간. 기존 프리팹에서 비어 있으면 초록 뒤에 자동으로 생성한다.")]
+        [SerializeField] RectTransform warningZone;
+
         [Tooltip("바늘. 부모(게이지 막대) 기준 가로 앵커로 위치를 맞춘다.")]
         [SerializeField] RectTransform needle;
 
@@ -32,6 +36,7 @@ namespace CurtainCall.Player
         [SerializeField] TMP_Text valueLabel;
 
         Canvas canvas;
+        GameObject generatedWarning;
 
         /// <summary>표시할 플레이어. 온라인에서는 내 캐릭터를 넣는다.</summary>
         public PlayerBalance Target
@@ -57,6 +62,14 @@ namespace CurtainCall.Player
             bool show = target != null && target.IsActive;
             if (canvas != null) canvas.enabled = show;
             if (!show) return;
+
+            EnsureWarningZone();
+            if (warningZone != null)
+            {
+                float half = 0.5f * target.WarningLimit / PlayerBalance.MaxValue;
+                SetHorizontalAnchors(warningZone, 0.5f - half, 0.5f + half);
+                warningZone.gameObject.SetActive(target.WarningLimit > target.GreenLimit);
+            }
 
             if (greenZone != null)
             {
@@ -87,8 +100,34 @@ namespace CurtainCall.Player
                     ? "추락!"
                     : target.Zone == BalanceZone.Red
                         ? $"균형 {target.Value:+0;-0;0}  빨강 {target.RedTime:0.0} / {target.FallTime:0.0}s"
-                        : $"균형 {target.Value:+0;-0;0}";
+                        : target.Zone == BalanceZone.Yellow
+                            ? $"균형 {target.Value:+0;-0;0}  경고"
+                            : $"균형 {target.Value:+0;-0;0}";
             }
+        }
+
+        void EnsureWarningZone()
+        {
+            if (warningZone != null || greenZone == null || greenZone.parent == null) return;
+            // 기존 씬·프리팹에도 적용한다. 초록 아래, 바늘 아래에 두어 입력과 가독성을 방해하지 않는다.
+            generatedWarning = new GameObject("WarningZone", typeof(RectTransform), typeof(Image));
+            generatedWarning.hideFlags = HideFlags.DontSave;
+            warningZone = (RectTransform)generatedWarning.transform;
+            warningZone.SetParent(greenZone.parent, false);
+            warningZone.SetSiblingIndex(greenZone.GetSiblingIndex());
+            warningZone.anchorMin = Vector2.zero;
+            warningZone.anchorMax = Vector2.one;
+            warningZone.offsetMin = warningZone.offsetMax = Vector2.zero;
+            var image = generatedWarning.GetComponent<Image>();
+            image.color = new Color(1f, 0.75f, 0.08f, 1f);
+            image.raycastTarget = false;
+        }
+
+        void OnDestroy()
+        {
+            if (generatedWarning == null) return;
+            if (Application.isPlaying) Destroy(generatedWarning);
+            else DestroyImmediate(generatedWarning);
         }
 
         static void SetHorizontalAnchors(RectTransform rect, float min, float max)

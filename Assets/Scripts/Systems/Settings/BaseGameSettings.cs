@@ -192,14 +192,17 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class BalanceSettings
         {
-            [Tooltip("중앙에서 이 값(±, 게이지 ±100 기준)까지 초록, 넘으면 빨강. 기획 40.")]
-            [SerializeField, Range(0f, 100f)] float greenLimit = 40f;
+            [Tooltip("중앙에서 이 값(±, 게이지 ±100 기준)까지 초록. 외줄 고도화 초기값 30.")]
+            [SerializeField, Range(0f, 100f)] float greenLimit = 30f;
+
+            [Tooltip("초록 바깥부터 이 값(±)까지 노란 경고 구간. 넘으면 빨강이며, 노랑으로 돌아오면 추락 타이머가 초기화된다. 초기값 50.")]
+            [SerializeField, Range(0f, 100f)] float warningLimit = 50f;
 
             [Tooltip("빨강에 이 시간(초) 이상 머물면 추락. 기획 확정 2초.")]
             [SerializeField, Min(0.05f)] float fallTime = 2f;
 
-            [Tooltip("균형 보정(A/D)을 끝까지 눌렀을 때 바늘이 움직이는 양(초당). 기획 60.")]
-            [SerializeField, Min(0f)] float correctionSpeed = 60f;
+            [Tooltip("균형 보정(A/D)을 끝까지 눌렀을 때 바늘이 움직이는 양(초당). 외줄 고도화 초기값 85(이전 60).")]
+            [SerializeField, Min(0f)] float correctionSpeed = 85f;
 
             [Tooltip("걷는 중 자연 흔들림(초당). 기획 15.")]
             [SerializeField, Min(0f)] float movingSway = 15f;
@@ -213,7 +216,8 @@ namespace CurtainCall.Settings
             [Tooltip("기울기 가속: 초당 (현재 균형값 × 이 값)만큼 바깥으로 민다. 많이 기울수록 빨리 넘어간다. 기획 0.5.")]
             [SerializeField, Min(0f)] float tiltAcceleration = 0.5f;
 
-            public float GreenLimit => greenLimit;
+            public float GreenLimit => Mathf.Clamp(greenLimit, 0f, 100f);
+            public float WarningLimit => Mathf.Clamp(warningLimit, GreenLimit, 100f);
             public float FallTime => fallTime;
             public float CorrectionSpeed => correctionSpeed;
             public float MovingSway => movingSway;

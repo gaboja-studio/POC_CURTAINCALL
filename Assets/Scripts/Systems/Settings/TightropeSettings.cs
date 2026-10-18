@@ -145,10 +145,22 @@ namespace CurtainCall.Settings
             public float RestartDelay => restartDelay;
         }
 
-        /// <summary>줄 위 동작(착지 충격·옆줄 점프 흔들림). 걷기 속도·점프 높이는 공통 세팅(게임 기본 · 캐릭터)으로 옮겼다(Task-030).</summary>
+        /// <summary>줄 위 동작. 외줄 전용 속도·점프 높이·중력은 조작 규칙이 적용하고, 공용 부상 배율을 함께 적용한다.</summary>
         [Serializable]
         public sealed class RopeMovementSettings
         {
+            [Tooltip("외줄 위 걷기 속도(m/s). 목마 인원에 따른 감속은 없고, 부상 배율은 적용한다. 고도화 기본값 1.2(이전 0.8).")]
+            [SerializeField, Min(0.01f)] float moveSpeed = 1.2f;
+
+            [Tooltip("외줄 위 점프 높이(m, 발 기준 최고점). 부상 높이 배율을 곱한다. 0이면 공용 캐릭터 높이. 플랫폼에는 적용하지 않는다. 초기값 1.2.")]
+            [SerializeField, Min(0f)] float jumpHeight = 1.2f;
+
+            [Tooltip("외줄 점프의 중력 배율(×). 높이는 유지하면서 체공 시간을 줄인다. 플랫폼·다른 묘기에 영향 없음. 초기값 1.35.")]
+            [SerializeField, Min(0.1f)] float jumpGravityMultiplier = 1.35f;
+
+            [Tooltip("착지 직전 점프 입력을 기억하는 시간(초). 0이면 입력 여유를 끈다. 옆줄 방향은 누른 순간 기준.")]
+            [SerializeField, Range(0f, 0.3f)] float jumpInputBuffer = 0.15f;
+
             [Tooltip("착지 충격(균형 ±, 랜덤 방향). 목마 배율을 곱한다. 기획 10.")]
             [SerializeField, Min(0f)] float landingShock = 10f;
 
@@ -158,13 +170,17 @@ namespace CurtainCall.Settings
             [Tooltip("옆줄 점프 착지 충격(균형 ±, 랜덤 방향). 목마 배율을 곱한다. 기획 35.")]
             [SerializeField, Min(0f)] float laneLandingShock = 35f;
 
-            [Tooltip("옆줄 점프 착지 후 자연 흔들림 배율(×). 1.75(#17).")]
-            [SerializeField, Min(1f)] float laneSwayBoost = 1.75f;
+            [Tooltip("옆줄 점프 착지 후 자연 흔들림 배율(×). 고도화 초기값 1.5(이전 1.75).")]
+            [SerializeField, Min(1f)] float laneSwayBoost = 1.5f;
 
-            [Tooltip("옆줄 점프 착지 후 흔들림이 커지는 시간(초). 반복해도 쌓이지 않고 시간만 갱신. 기획 3.")]
-            [SerializeField, Min(0f)] float laneSwayBoostDuration = 3f;
+            [Tooltip("옆줄 점프 착지 후 흔들림이 커지는 시간(초). 반복해도 쌓이지 않고 시간만 갱신. 고도화 초기값 1.5(이전 3).")]
+            [SerializeField, Min(0f)] float laneSwayBoostDuration = 1.5f;
 
             public float LandingShock => landingShock;
+            public float MoveSpeed => Mathf.Max(0.01f, moveSpeed);
+            public float JumpHeight => Mathf.Max(0f, jumpHeight);
+            public float JumpGravityMultiplier => Mathf.Max(0.1f, jumpGravityMultiplier);
+            public float JumpInputBuffer => jumpInputBuffer;
             public float MinAirTimeForShock => minAirTimeForShock;
             public float LaneLandingShock => laneLandingShock;
             public float LaneSwayBoost => laneSwayBoost;
@@ -239,6 +255,24 @@ namespace CurtainCall.Settings
             [Tooltip("바라보는 점을 내 캐릭터 앞쪽으로 옮기는 거리(m). 앞 장애물이 화면 가운데로 온다. 기획 미정(임시 1.75).")]
             [SerializeField] float lookAhead = 1.75f;
 
+            [Tooltip("함께 화면에 담을 가까운 동료의 수평 거리(m).")]
+            [SerializeField, Min(0f)] float nearbyRadius = 6f;
+
+            [Tooltip("앞쪽 톱날을 미리 화면에 담는 거리(m).")]
+            [SerializeField, Min(0f)] float obstacleLookAhead = 8f;
+
+            [Tooltip("목마·동료·장애물을 담기 위해 카메라가 멀어질 수 있는 최대 거리(m).")]
+            [SerializeField, Min(0.5f)] float maximumDistance = 12f;
+
+            [Tooltip("화면 가장자리와 대상 사이의 여유(m).")]
+            [SerializeField, Min(0f)] float framingPadding = 0.5f;
+
+            [Tooltip("앞 장애물을 볼 때 추가로 앞을 바라보는 최대 거리(m).")]
+            [SerializeField, Min(0f)] float contextLookAhead = 2f;
+
+            [Tooltip("상황에 따라 구도가 넓어지고 돌아오는 완충 시간(초).")]
+            [SerializeField, Min(0.01f)] float framingSmoothTime = 0.45f;
+
             [Tooltip("카메라와 내 캐릭터 사이를 가리는 것(다른 플레이어·장애물)의 투명도(0 투명 ~ 1 불투명). 기획 미정(임시 0.35).")]
             [SerializeField, Range(0f, 1f)] float occluderAlpha = 0.35f;
 
@@ -252,6 +286,12 @@ namespace CurtainCall.Settings
             public float Distance => distance;
             public float LookHeight => lookHeight;
             public float LookAhead => lookAhead;
+            public float NearbyRadius => nearbyRadius;
+            public float ObstacleLookAhead => obstacleLookAhead;
+            public float MaximumDistance => maximumDistance;
+            public float FramingPadding => framingPadding;
+            public float ContextLookAhead => contextLookAhead;
+            public float FramingSmoothTime => framingSmoothTime;
             public float OccluderAlpha => occluderAlpha;
             public float OccluderRadius => occluderRadius;
             public float FadeSpeed => fadeSpeed;

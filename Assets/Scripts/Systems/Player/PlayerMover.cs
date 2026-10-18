@@ -24,7 +24,8 @@ namespace CurtainCall.Player
     /// 옆줄 점프의 허용 여부·착지 판정(줄 유무·합체·보정)은 외줄 기능이 <see cref="LaneJumpFilter"/> 등으로 붙인다.
     /// 목마 중 점프 규칙은 목마 기능이 정한다.
     /// 플레이어끼리는 물리로 밀지 않는다: 몸통 충돌을 끄고, 같은 줄 앞뒤에 다른 플레이어가 있으면 닿기 직전까지만 간다.
-    /// 속도·중력·점프·몸통 크기는 세팅(<see cref="GameSettings"/>)에서 매 프레임 읽는다(걷기 속도·점프 높이 = 게임 기본 · 캐릭터, 줄 간격 = 외줄 세팅).
+    /// 걷기·몸통 크기는 세팅(<see cref="GameSettings"/>)에서 읽는다. 점프 높이·부상 배율·중력은 이륙 때 고정하며,
+    /// 줄 위 높이·속도는 콘텐츠 override가 없으면 게임 기본 · 캐릭터 세팅, 줄 간격은 외줄 세팅을 쓴다.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class PlayerMover : MonoBehaviour
@@ -134,8 +135,26 @@ namespace CurtainCall.Player
 
         float speedMultiplier = 1f;
 
+        /// <summary>콘텐츠의 줄 위 기본 이동 속도(m/s). 0 이하면 공통 세팅. 부상 배율과 별도로 적용한다.</summary>
+        public float CourseSpeedOverride { get; set; }
+
+        /// <summary>줄 위 점프 중력 배율. 점프 높이는 보존한다. 기본 1, 플랫폼에는 적용하지 않는다.</summary>
+        public float CourseJumpGravityMultiplier { get; set; } = 1f;
+
+        /// <summary>콘텐츠의 줄 위 기본 점프 높이(m). 0 이하면 공통 세팅. 플랫폼은 무시하며 부상 배율은 별도로 곱한다.</summary>
+        public float CourseJumpHeightOverride { get; set; }
+
+        float jumpGravity, jumpHeight;
+        float LaunchGravity => Character.Gravity * (FreeMovement ? 1f : Mathf.Max(0.1f, CourseJumpGravityMultiplier));
+        float EffectiveGravity => CurrentJump != JumpKind.None && jumpGravity > 0f ? jumpGravity : LaunchGravity;
+        float LaunchHeight => (FreeMovement || CourseJumpHeightOverride <= 0f ? Character.JumpHeight : CourseJumpHeightOverride) * jumpHeightMultiplier;
+        float EffectiveJumpHeight => CurrentJump != JumpKind.None ? jumpHeight : LaunchHeight;
+
+        /// <summary>현재 점프에 적용되는 중력(m/s²). 목마 위 제자리 점프도 같은 높이·체공 규칙을 쓴다.</summary>
+        public float JumpGravity => EffectiveGravity;
+
         /// <summary>
-        /// 점프 높이 배율(×, 0 이상). 게임 기본 세팅 · 캐릭터의 점프 높이에 곱한다. 기본 1.
+        /// 점프 높이 배율(×, 0 이상). 콘텐츠가 고른 높이 또는 게임 기본 · 캐릭터 높이에 곱한다. 기본 1.
         /// 예: 다리를 잃으면 신체 손상 기능이 다리 단계별 배율을 넣는다(부상 기획: 탐색·공연 공통).
         /// </summary>
         public float JumpHeightMultiplier
@@ -244,11 +263,11 @@ namespace CurtainCall.Player
             + CourseRight * (Math.Sign(direction) * laneSpacing)
             + CourseForward * (Vector3.Dot(groundVelocity, CourseForward) * AirTime);
 
-        /// <summary>점프 초속(m/s).</summary>
-        public float JumpSpeed => Mathf.Sqrt(2f * Character.Gravity * Character.JumpHeight * jumpHeightMultiplier);
+        /// <summary>점프 초속(m/s). 공중에서는 이륙 시 선택한 높이·부상 배율·중력으로 계산한 값을 유지한다.</summary>
+        public float JumpSpeed => Mathf.Sqrt(2f * EffectiveGravity * EffectiveJumpHeight);
 
-        /// <summary>같은 높이로 착지할 때까지의 공중 시간(초).</summary>
-        public float AirTime => 2f * JumpSpeed / Character.Gravity;
+        /// <summary>같은 높이로 착지할 때까지의 공중 시간(초). 이륙 후 설정·조작 규칙·부상 배율이 바뀌어도 유지한다.</summary>
+        public float AirTime => 2f * JumpSpeed / EffectiveGravity;
 
         /// <summary>이동 명령을 받는지. 꺼져 있으면 이동·점프를 무시한다(중력은 계속 적용).</summary>
         public bool ControlEnabled { get; private set; } = true;
@@ -317,6 +336,8 @@ namespace CurtainCall.Player
         void Awake()
         {
             controller = GetComponent<CharacterController>();
+            // 높은 프레임에서 작은 이동·접지 보정도 누락 없이 적용한다.
+            controller.minMoveDistance = 0f;
             laneSpacing = GameSettings.Tightrope.Course.LaneSpacing;
             ApplyBodySize();
             startPosition = transform.position;
@@ -382,7 +403,8 @@ namespace CurtainCall.Player
                 }
                 else
                 {
-                    groundVelocity = forward * (move * Character.CourseMoveSpeed * speedMultiplier);
+                    float speed = CourseSpeedOverride > 0f ? CourseSpeedOverride : Character.CourseMoveSpeed;
+                    groundVelocity = forward * (move * speed * speedMultiplier);
                     IsMoving = !Mathf.Approximately(move, 0f);
                 }
 
@@ -399,7 +421,7 @@ namespace CurtainCall.Player
             else
             {
                 IsMoving = false;
-                verticalSpeed -= Character.Gravity * Time.deltaTime;
+                verticalSpeed -= EffectiveGravity * Time.deltaTime;
             }
 
             Vector3 horizontal = CurrentJump != JumpKind.None ? airVelocity : groundVelocity;
@@ -514,6 +536,8 @@ namespace CurtainCall.Player
 
         void StartJump(JumpKind kind, int laneDirection)
         {
+            jumpGravity = LaunchGravity; // 착지 전 조작 규칙이 바뀌어도 궤적과 옆줄 도착 위치를 유지한다.
+            jumpHeight = LaunchHeight;
             CurrentJump = kind;
             LaneJumpDirection = laneDirection;
             verticalSpeed = JumpSpeed;
@@ -544,6 +568,8 @@ namespace CurtainCall.Player
             if (airborne && CurrentJump == JumpKind.None)
             {
                 // 점프 없이 떨어지는 중: 걷던 속도를 그대로 유지
+                jumpGravity = LaunchGravity;
+                jumpHeight = LaunchHeight;
                 CurrentJump = JumpKind.Fall;
                 airVelocity = groundVelocity;
             }
@@ -567,6 +593,8 @@ namespace CurtainCall.Player
         void ClearJump()
         {
             CurrentJump = JumpKind.None;
+            jumpGravity = 0f;
+            jumpHeight = 0f;
             LaneJumpDirection = 0;
             airVelocity = Vector3.zero;
             laneAlongLimited = false;

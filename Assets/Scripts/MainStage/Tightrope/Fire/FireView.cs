@@ -28,8 +28,7 @@ namespace CurtainCall.Tightrope.Fire
         {
             course = TightropeCourse.Current;
             var settings = fire.Settings;
-            bool available = settings != null && course != null && TightropeRun.Current != null
-                && fire.Round == TightropeRun.Current.Round;
+            bool available = settings != null && course != null && fire.IsPerformanceActive;
             if (!available) { Hide(); return; }
             if (shown != settings || shownRound != fire.Round) Rebuild(settings);
             chase.gameObject.SetActive(fire.IsChasing);

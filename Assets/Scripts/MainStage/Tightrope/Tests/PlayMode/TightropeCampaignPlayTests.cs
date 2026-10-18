@@ -1,0 +1,890 @@
+using System;
+using System.Collections;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
+
+namespace CurtainCall.Tightrope.SystemIntegration.Tests
+{
+    /// <summary>저장된 씬의 실제 LAN 호스트 1명으로 공용 경계를 검사한다. 입력·위치는 합성하며 다중 클라이언트 검사는 아니다.</summary>
+    public sealed class TightropeCampaignPlayTests
+    {
+        const BindingFlags Members = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        const string ScenePath = "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity";
+        Component session, network, player, mover, bridge, run, course, campaign, rewards;
+        FieldInfo devModeCache;
+        object previousDevMode;
+        object runSettings;
+        float previousTimeLimit;
+
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            // 실제 LAN 호스트 1명 검사. PC의 EditorPrefs는 변경하지 않는다.
+            devModeCache = GameType("CurtainCall.Dev.DevMode").GetField("_enabled", BindingFlags.Static | BindingFlags.NonPublic);
+            previousDevMode = devModeCache.GetValue(null);
+            devModeCache.SetValue(null, false); // 실제 외줄 씬의 1인 시작 지원을 검증한다.
+            runSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Run");
+            previousTimeLimit = (float)Get(runSettings, "TimeLimit");
+            yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(
+                ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
+            yield return null;
+            bridge = Static("CurtainCall.Tightrope.TightropeCampaignBridge", "Current") as Component;
+            Assert.IsNotNull(bridge, "저장된 외줄 씬에 공용 공연 연결이 있어야 한다.");
+            session = Static("CurtainCall.Network.Session.NetworkSessionManager", "Instance") as Component;
+            network = (Component)Get(session, "NetworkManager");
+            campaign = (Component)Get(bridge, "Campaign");
+            rewards = (Component)Get(bridge, "Rewards");
+            run = Static("CurtainCall.Tightrope.TightropeRun", "Current") as Component;
+            course = Static("CurtainCall.Tightrope.TightropeCourse", "Current") as Component;
+            var host = (Task<bool>)Call(session, "HostLanAsync", Type.Missing);
+            yield return Until(() => host.IsCompleted, 10, "LAN 호스트 시작");
+            Assert.IsTrue(host.GetAwaiter().GetResult());
+            yield return Until(() =>
+            {
+                player = Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local") as Component;
+                return player != null && (bool)Get(player, "IsSpawned");
+            }, 10, "로컬 플레이어 생성");
+            mover = player.GetComponent(GameType("CurtainCall.Player.PlayerMover"));
+            ((Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerController"))).enabled = false;
+            ((Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerInputReader"))).enabled = false;
+            yield return null;
+        }
+
+        [UnityTearDown]
+        public IEnumerator TearDown()
+        {
+            if (session != null)
+            {
+                var leave = (Task)Call(session, "LeaveAsync");
+                yield return Until(() => leave.IsCompleted, 10, "LAN 방 정리");
+                if (leave.IsFaulted) throw leave.Exception;
+            }
+            if (network != null && (bool)Get(network, "IsListening")) Call(network, "Shutdown", Type.Missing);
+            yield return null;
+            foreach (var go in new[] { rewards, campaign, session, network }.Where(c => c != null).Select(c => c.gameObject).Distinct())
+                Object.Destroy(go);
+            yield return null;
+            session = network = player = mover = bridge = run = course = campaign = rewards = null;
+            devModeCache?.SetValue(null, previousDevMode);
+            if (runSettings != null) Set(runSettings, "timeLimit", previousTimeLimit);
+        }
+
+        [UnityTest]
+        public IEnumerator HealthyRopeWalkKeepsSpeedAtLowAndVeryHighFrameRates()
+        {
+            yield return BeginPerformance();
+            var saws = (Behaviour)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            var fire = (Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current");
+            saws.enabled = false;
+            fire.enabled = false;
+            float beforeCapture = Time.captureDeltaTime;
+            var body = (CharacterController)Get(mover, "Body");
+            float minimumRatio = float.PositiveInfinity;
+            try
+            {
+                foreach (int fps in new[] { 30, 120, 240, 2000 })
+                {
+                    Time.captureDeltaTime = 1f / fps;
+                    yield return StandOnRopeForSawTest(1, 4f);
+                    float expectedSpeed = (float)Get(mover, "CourseSpeedOverride");
+                    Assert.That(expectedSpeed, Is.GreaterThan(0f));
+                    float start = (float)Call(course, "GetDistance", player.transform.position);
+                    float duration = 0f;
+                    int airborneFrames = 0, freeMovementFrames = 0;
+                    for (int frame = 0; frame < 120; frame++)
+                    {
+                        Call(mover, "SetMoveInput", 1f);
+                        yield return null;
+                        duration += Time.deltaTime;
+                        if ((bool)Get(mover, "IsAirborne")) airborneFrames++;
+                        if ((bool)Get(mover, "FreeMovement")) freeMovementFrames++;
+                    }
+                    float measured = ((float)Call(course, "GetDistance", player.transform.position) - start) / duration;
+                    minimumRatio = Mathf.Min(minimumRatio, measured / expectedSpeed);
+                    Debug.Log($"[TightropeSpeedProbe] fps={fps}, expected={expectedSpeed:F4}, measured={measured:F4}, minimumMove={body.minMoveDistance:F4}, airborneFrames={airborneFrames}, freeMovementFrames={freeMovementFrames}, multiplier={Get(mover, "SpeedMultiplier")}, lostParts={Get(player, "LostParts")}");
+                    Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
+                    Assert.AreEqual(0, freeMovementFrames);
+                }
+                Assert.That(minimumRatio, Is.GreaterThan(0.95f), "건강한 단독 캐릭터의 줄 이동이 프레임 간격 때문에 누락되면 안 된다.");
+            }
+            finally { Time.captureDeltaTime = beforeCapture; }
+        }
+
+        [UnityTest]
+        public IEnumerator RopeJumpReachesConfiguredHeightAndLandsBackOnTheRope()
+        {
+            yield return BeginPerformance();
+            ((Behaviour)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current")).enabled = false;
+            ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
+            float beforeCapture = Time.captureDeltaTime;
+            try
+            {
+                Time.captureDeltaTime = 1f / 60f;
+                yield return StandOnRopeForSawTest(2, 4f);
+                float startY = player.transform.position.y;
+                float expectedHeight = (float)Get(mover, "CourseJumpHeightOverride");
+                Assert.That(expectedHeight, Is.GreaterThan(0f));
+                Call(mover, "RequestJump");
+                yield return Until(() => (bool)Get(mover, "IsAirborne"), 2, "높아진 점프 이륙");
+                float peakY = player.transform.position.y;
+                for (int frame = 0; frame < 180 && (bool)Get(mover, "IsAirborne"); frame++)
+                {
+                    peakY = Mathf.Max(peakY, player.transform.position.y);
+                    yield return null;
+                }
+                float measuredHeight = peakY - startY;
+                Debug.Log($"[TightropeJumpProbe] configured={expectedHeight:F3}, measured={measuredHeight:F3}, fps=60");
+                Assert.That(measuredHeight, Is.EqualTo(expectedHeight).Within(0.12f), "프레임 단위 중력 적분 오차를 제외하고 설정 높이만큼 뛰어야 한다.");
+                Assert.IsFalse((bool)Get(mover, "IsAirborne"));
+                Assert.IsFalse((bool)Get(mover, "FreeMovement"));
+                Assert.That(player.transform.position.y, Is.EqualTo(startY).Within(0.05f));
+                Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
+            }
+            finally { Time.captureDeltaTime = beforeCapture; }
+        }
+
+        [UnityTest]
+        public IEnumerator SoloButtonStartsOfflineWithoutDevModeAndRestoresStartRuleOnExit()
+        {
+            Assert.IsFalse((bool)Static("CurtainCall.Dev.DevMode", "Enabled"));
+            var baseSettings = Get(Static("CurtainCall.Settings.GameSettings", "Base"), "Session");
+            int originalMinimum = (int)Get(baseSettings, "MinPlayers");
+            var hud = (Behaviour)Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+            var leave = (Task)Call(session, "LeaveAsync");
+            yield return Until(() => leave.IsCompleted, 10, "혼자 시작 전 오프라인");
+            yield return null;
+            var start = (Task<bool>)Call(hud, "StartSoloAsync");
+            yield return Until(() => start.IsCompleted, 10, "혼자 시작 방 생성");
+            Assert.IsTrue(start.GetAwaiter().GetResult());
+            yield return Until(() => (bool)Get(bridge, "PerformanceOpen"), 10, "혼자 시작 공연 연결");
+            player = Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local") as Component;
+            mover = player.GetComponent(GameType("CurtainCall.Player.PlayerMover"));
+            ((Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerController"))).enabled = false;
+            ((Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerInputReader"))).enabled = false;
+            Assert.AreEqual(1, (int)Get(session, "PlayerCount"));
+            Assert.AreEqual(1, (int)Get(session, "MinPlayers"));
+            Assert.IsFalse((bool)Static("CurtainCall.Dev.DevMode", "Enabled"));
+            Assert.AreEqual(originalMinimum, (int)Get(baseSettings, "MinPlayers"));
+            var saws = Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            yield return Until(() => (bool)Call(saws, "IsHorizontalMoving", 0), 3, "혼자 시작 양옆 톱날 작동");
+            hud.enabled = false;
+            Assert.AreEqual(originalMinimum, (int)Get(session, "MinPlayers"), "외줄 전용 시작 인원 요청은 씬 수명에 한정된다.");
+            hud.enabled = true;
+            yield return null;
+            Assert.AreEqual(1, (int)Get(session, "MinPlayers"));
+        }
+
+        [UnityTest]
+        public IEnumerator ChosenStartingLaneSurvivesOneButtonCourseStart()
+        {
+            var chosen = (Vector3)Call(course, "GetLanePosition", (int)Get(course, "LaneCount") - 1, -2f);
+            Call(mover, "SetStartPose", chosen, Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
+            yield return null;
+            var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+            Assert.IsTrue((bool)Call(hud, "StartCourseByHost"));
+            yield return Until(() => (bool)Get(bridge, "PerformanceOpen"), 5, "한 번의 시작 요청으로 공연 진입");
+            yield return null;
+            Assert.That(Mathf.Abs((float)Call(course, "GetSide", player.transform.position) - (float)Call(course, "GetSide", chosen)), Is.LessThan(0.1f));
+            Assert.That((float)Call(course, "GetDistance", player.transform.position), Is.EqualTo(-2f).Within(0.1f));
+            Assert.IsFalse((bool)Get(mover, "IsAirborne"));
+            Assert.IsFalse((bool)Get(player.GetComponent(GameType("CurtainCall.Player.PlayerBalance")), "IsActive"));
+        }
+
+        [UnityTest]
+        public IEnumerator SessionStartWaitsForHudPerformanceButtonThenBothSidesMove()
+        {
+            var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+            Assert.IsFalse((bool)Call(hud, "StartPerformanceByHost"), "방 시작 전에는 공연만 따로 시작할 수 없다.");
+            Assert.IsTrue((bool)Call(session, "StartGame")); // 왼쪽 게임 시작 버튼과 같은 진입점
+            yield return Until(() => Phase == "Intro", 5, "공연 시작 버튼 대기");
+            yield return StandOnRopeForSawTest(1, 2f);
+            Assert.IsFalse((bool)Get(mover, "FreeMovement"), "도입 단계에도 줄 탑승 연습은 가능하다.");
+            var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            Vector3 leftBefore = (Vector3)Call(saws, "GetHorizontalPosition", 0);
+            Vector3 rightBefore = (Vector3)Call(saws, "GetHorizontalPosition", 1);
+            yield return new WaitForSeconds(0.2f);
+            Assert.AreEqual("Waiting", Get(run, "State").ToString());
+            Assert.AreEqual(leftBefore, (Vector3)Call(saws, "GetHorizontalPosition", 0));
+            Assert.AreEqual(rightBefore, (Vector3)Call(saws, "GetHorizontalPosition", 1));
+            Assert.IsFalse((bool)Call(saws, "IsHorizontalMoving", 0));
+            Assert.IsFalse((bool)Call(saws, "IsHorizontalMoving", 1));
+            Assert.IsTrue((bool)Call(hud, "StartPerformanceByHost")); // 실제 오른쪽 버튼과 같은 진입점
+            Assert.IsFalse((bool)Call(hud, "StartPerformanceByHost"), "중복 클릭은 공연을 다시 시작하지 않는다.");
+            yield return Until(() => (bool)Get(bridge, "PerformanceOpen") && Get(run, "State").ToString() == "Running", 5, "HUD 공연 시작");
+            yield return new WaitForSeconds(0.25f);
+            Vector3 right = (Vector3)Get(course, "Right");
+            Assert.IsTrue((bool)Call(saws, "IsHorizontalMoving", 0));
+            Assert.IsTrue((bool)Call(saws, "IsHorizontalMoving", 1));
+            Assert.That(Vector3.Dot((Vector3)Call(saws, "GetHorizontalPosition", 0) - leftBefore, right), Is.GreaterThan(0.2f), "왼쪽 톱날은 코스 안쪽인 오른쪽으로 움직인다.");
+            Assert.That(Vector3.Dot((Vector3)Call(saws, "GetHorizontalPosition", 1) - rightBefore, right), Is.LessThan(-0.2f), "오른쪽 톱날은 코스 안쪽인 왼쪽으로 움직인다.");
+            Assert.That((float)Get(run, "TimeRemaining"), Is.LessThan((float)Get(run, "TimeLimit")));
+        }
+
+        [UnityTest]
+        public IEnumerator OfficialStartWaitsForCampaignAndPreservesExistingInjury()
+        {
+            Call(player, "ServerSetOneArm");
+            int parts = Convert.ToInt32(Get(player, "LostParts"));
+            Assert.AreEqual(3, CountBits(parts));
+            yield return BeginPerformance();
+            Assert.AreEqual(parts, Convert.ToInt32(Get(player, "LostParts")), "공연 시작이 온전한 몸으로 복구하면 안 된다.");
+            Assert.IsTrue((bool)Get(run, "UsesCampaign"));
+            Assert.IsFalse((bool)Call(run, "RestartByHost"), "공연 중 R 재시작은 부활·중복 정산을 일으키면 안 된다.");
+            Assert.IsNotNull(Object.FindAnyObjectByType(GameType("CurtainCall.Cameras.CameraViewDirector")));
+            Assert.IsNotNull(Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud")));
+        }
+
+        [UnityTest]
+        public IEnumerator FirstArrivalSettlesOnceAndKeepsSessionPlaying()
+        {
+            yield return BeginPerformance();
+            Assert.AreNotEqual(0, Convert.ToInt32(Call(player, "ServerCut", 1)));
+            int parts = Convert.ToInt32(Get(player, "LostParts"));
+            yield return null;
+            var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
+            Call(mover, "SetStartPose", finish.position, finish.rotation, true);
+            yield return Until(() => Get(bridge, "Result") != null, 5, "도착 공용 정산");
+            var result = Get(bridge, "Result");
+            Assert.IsTrue((bool)Get(result, "Succeeded"));
+            Assert.AreEqual("Succeeded", Get(run, "State").ToString());
+            Assert.AreEqual("RestTime", Phase);
+            Assert.AreEqual("Playing", Get(session, "GameState").ToString(), "공연 성공은 방 종료가 아니다.");
+            Assert.AreEqual(parts, Convert.ToInt32(Get(player, "LostParts")));
+            long balance = Convert.ToInt64(Get(rewards, "Balance"));
+            Assert.IsFalse((bool)Call(rewards, "FinishPerformance", true, "Completed", null));
+            Assert.IsFalse((bool)Call(run, "RestartByHost"));
+            yield return null;
+            Assert.AreSame(result, Get(bridge, "Result"));
+            Assert.AreEqual(balance, Convert.ToInt64(Get(rewards, "Balance")));
+            Assert.AreEqual(1, ((ICollection)Get(rewards, "History")).Count);
+        }
+
+        [UnityTest]
+        public IEnumerator AllDeadRecordsDeathThenRevivesOneArmedWithoutRestart()
+        {
+            yield return BeginPerformance();
+            yield return null;
+            Assert.IsTrue((bool)Call(player, "ServerKill"));
+            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "전멸 정산과 다음 시간대");
+            var result = Get(bridge, "Result");
+            Assert.IsFalse((bool)Get(result, "Succeeded"));
+            Assert.AreEqual(1, ((ICollection)Get(result, "Deaths")).Count, "부활 전 사망이 정산에 남아야 한다.");
+            Assert.AreEqual(0L, Convert.ToInt64(Get(result, "Income")));
+            Assert.AreEqual("Failed", Get(run, "State").ToString());
+            var diagnostic = Get(Get(run, "Results"), "Latest");
+            var participant = ((IEnumerable)Get(diagnostic, "Participants")).Cast<object>().Single();
+            Assert.AreEqual("Fallen", Get(participant, "Outcome").ToString(), "외줄 진단에도 부활 전 사망이 남아야 한다.");
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+            Assert.AreEqual(3, CountBits(Convert.ToInt32(Get(player, "LostParts"))), "공용 부활은 외팔 상태여야 한다.");
+            int round = (int)Get(run, "Round");
+            yield return new WaitForSeconds(3.3f);
+            Assert.AreEqual("Failed", Get(run, "State").ToString());
+            Assert.AreEqual(round, Get(run, "Round"), "옛 3초 자동 재시작이 실행되면 안 된다.");
+            Assert.AreEqual(1, ((ICollection)Get(rewards, "History")).Count);
+        }
+
+        [UnityTest]
+        public IEnumerator TimeLimitEndsThroughSharedSettlementWithoutRestoringSurvivors()
+        {
+            yield return BeginPerformance();
+            Call(player, "ServerSetOneArm");
+            // 메모리의 제한시간만 줄여 실제 Update의 시간 초과 경로를 기다린다. 에셋은 저장하지 않는다.
+            Set(runSettings, "timeLimit", 1f);
+            yield return Until(() => Get(bridge, "Result") != null, 5, "제한시간 정산");
+            var result = Get(bridge, "Result");
+            Assert.IsFalse((bool)Get(result, "Succeeded"));
+            Assert.AreEqual("TimeExpired", Get(result, "EndReason"));
+            Assert.AreEqual("RestTime", Phase);
+            Assert.AreEqual(0, ((ICollection)Get(result, "Deaths")).Count);
+            Assert.AreEqual(3, CountBits(Convert.ToInt32(Get(player, "LostParts"))));
+        }
+
+        [UnityTest]
+        public IEnumerator FollowingHumanCannonPhaseDoesNotStartOrSettleTightrope()
+        {
+            yield return BeginPerformance();
+            Set(runSettings, "timeLimit", 1f);
+            yield return Until(() => Phase == "RestTime", 5, "공연 종료");
+            var result = Get(bridge, "Result");
+            Assert.IsTrue((bool)Call(campaign, "NotifyAllAtStageEntrance"));
+            yield return null;
+            Assert.AreEqual("HumanCannon", Get(Get(campaign, "State"), "TrickId"));
+            Assert.IsFalse((bool)Get(bridge, "IsTightropePerformance"));
+            Assert.IsFalse((bool)Get(bridge, "PerformanceOpen"));
+            var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
+            Call(mover, "SetStartPose", finish.position, finish.rotation, true);
+            yield return null;
+            Assert.AreSame(result, Get(bridge, "Result"));
+            Assert.AreNotEqual("Running", Get(run, "State").ToString());
+            Assert.AreEqual(1, ((ICollection)Get(rewards, "History")).Count);
+            Assert.IsTrue((bool)Call(player, "ServerKill"), "외줄이 다음 공연의 사망 판정을 막으면 안 된다.");
+        }
+
+        [UnityTest]
+        public IEnumerator CourseDisableReturnsSharedControlsAndInjuryPolicy()
+        {
+            yield return BeginPerformance();
+            var effects = player.GetComponent(GameType("CurtainCall.Damage.BodyDamageEffects"));
+            yield return Until(() => Get(effects, "Policy") != null, 3, "공연 조작 컴포넌트의 부상 정책 적용");
+            Assert.AreEqual("TightropeBodyPenalty", Get(effects, "Policy").GetType().Name);
+            var rope = (Vector3)Call(course, "GetLanePosition", 0, 2f);
+            Call(mover, "SetStartPose", rope, Quaternion.identity, true);
+            var controller = player.GetComponent(GameType("CurtainCall.Player.PlayerController"));
+            yield return Until(() => (bool)Get(controller, "HasAssignedScheme"), 3, "줄 착지와 외줄 조작 전환");
+            Assert.IsTrue((bool)Get(controller, "HasAssignedScheme"));
+            course.gameObject.SetActive(false);
+            yield return null;
+            Assert.IsFalse((bool)Get(controller, "HasAssignedScheme"));
+            var policy = Get(effects, "Policy");
+            Assert.IsTrue(policy == null || policy.GetType().Name != "TightropeBodyPenalty");
+            Assert.IsFalse((bool)Get(player.GetComponent(GameType("CurtainCall.Player.PlayerBalance")), "IsActive"));
+        }
+
+        [UnityTest]
+        public IEnumerator SawContactsFollowSharedCutOrderRegardlessOfSideOrKind()
+        {
+            yield return BeginPerformance();
+            var sawObject = new GameObject("Shared injury contact test");
+            var saw = (Behaviour)sawObject.AddComponent(GameType("CurtainCall.Tightrope.Saws.TightropeSaws"));
+            saw.enabled = false;
+            Set(saw, "course", course);
+            Set(saw, "run", run);
+            var body = Activator.CreateInstance(GameType("CurtainCall.Tightrope.Saws.BodyCapsule"),
+                player.transform.position, (float)Get(mover, "BodyHeight"), (float)Get(mover, "BodyRadius"));
+            int expected = 0;
+            var order = new[] { "LeftLeg", "RightLeg", "LeftArm", "RightArm" };
+            for (int i = 0; i < order.Length; i++)
+            {
+                var kind = Enum.Parse(GameType("CurtainCall.Tightrope.Saws.SawKind"), i % 2 == 0 ? "Horizontal" : "Vertical");
+                var rightContact = player.transform.position + (Vector3)Get(course, "Right") * 0.1f + Vector3.up * 1.2f;
+                Call(saw, "ServerTouch", player, body, kind, 100 + i, i, rightContact);
+                expected |= Convert.ToInt32(Enum.Parse(GameType("CurtainCall.Player.BodyPart"), order[i]));
+                Assert.AreEqual(expected, Convert.ToInt32(Get(player, "LostParts")), order[i]);
+            }
+            Assert.AreEqual("Fallen", Get(player, "State").ToString());
+            Object.Destroy(sawObject);
+            yield return Until(() => Get(bridge, "Result") != null, 5, "네 부위 손실의 공용 사망 정산");
+            Assert.AreEqual(1, ((ICollection)Get(Get(bridge, "Result"), "Deaths")).Count);
+        }
+
+        string Phase => Get(Get(campaign, "State"), "Phase").ToString();
+
+        [UnityTest]
+        public IEnumerator LobbyGroundRemainsSafeWithoutBalanceInput()
+        {
+            var balance = player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
+            Assert.IsFalse((bool)Get(balance, "IsActive"), "접속 직후 출발 바닥에서는 균형이 꺼져야 한다.");
+            yield return new WaitForSeconds(15f);
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+            Assert.IsFalse((bool)Get(balance, "HasFallen"));
+            Assert.IsFalse((bool)Get(balance, "IsActive"));
+        }
+
+        [UnityTest]
+        public IEnumerator WalkingOntoRopeAutomaticallyChangesControlsDuringIntroAndPerformance()
+        {
+            Assert.IsTrue((bool)Call(session, "StartGame"));
+            yield return Until(() => Phase == "Intro", 5, "도입 시작");
+            yield return WalkOnAndOffRope();
+            Assert.IsTrue((bool)Call(campaign, "EndIntro"));
+            yield return Until(() => (bool)Get(bridge, "PerformanceOpen"), 5, "공연 시작");
+            yield return WalkOnAndOffRope();
+        }
+
+        IEnumerator WalkOnAndOffRope()
+        {
+            var balance = player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
+            var controller = player.GetComponent(GameType("CurtainCall.Player.PlayerController"));
+            var switcher = course.GetComponent(GameType("CurtainCall.Tightrope.CourseControlSwitcher"));
+            Assert.IsFalse((bool)Get(balance, "IsActive"));
+            float deadline = Time.realtimeSinceStartup + 8f;
+            while ((float)Call(course, "GetDistance", player.transform.position) < 0.35f && Time.realtimeSinceStartup < deadline)
+            {
+                Call(mover, "SetMoveInput", 0f, 1f);
+                yield return null;
+            }
+            Assert.IsTrue((bool)Get(switcher, "IsLocalOnRope"), "바닥에서 걸어 진입하면 별도 키 없이 줄타기가 켜져야 한다.");
+            Assert.AreEqual("TightropeControlScheme", Get(controller, "Scheme").GetType().Name);
+            Assert.IsTrue((bool)Get(balance, "IsActive"));
+            Assert.IsFalse((bool)Get(mover, "FreeMovement"));
+            deadline = Time.realtimeSinceStartup + 8f;
+            while ((float)Call(course, "GetDistance", player.transform.position) > -0.5f && Time.realtimeSinceStartup < deadline)
+            {
+                Call(mover, "SetMoveInput", 0f, -1f);
+                yield return null;
+            }
+            yield return null;
+            Assert.IsFalse((bool)Get(switcher, "IsLocalOnRope"));
+            Assert.IsFalse((bool)Get(balance, "IsActive"), "출발 바닥으로 돌아오면 균형이 꺼져야 한다.");
+            Assert.IsTrue((bool)Get(mover, "FreeMovement"));
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+        }
+
+        [UnityTest]
+        public IEnumerator RKeyRestartsWholeCourseAndClearsInjuriesWithoutDuplicateSettlement()
+        {
+            yield return BeginPerformance();
+            Call(player, "ServerCut", 2);
+            Call(course, "SetLaneBlocked", 1, true);
+            Call(course, "BlockSegment", 3, 3f, 9f, true);
+            var position = (Vector3)Call(course, "GetLanePosition", 2, 4f);
+            Call(mover, "SetStartPose", position, Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
+            yield return new WaitForSeconds(0.3f);
+            int oldRound = (int)Get(run, "Round");
+            var oldId = (string)Get(bridge, "PerformanceId");
+            int historyCount = ((ICollection)Get(rewards, "History")).Count;
+            var oldKeyboard = Keyboard.current;
+            var originalInputSettings = InputSystem.settings;
+            var originalBackground = originalInputSettings.backgroundBehavior;
+            var originalEditorInput = originalInputSettings.editorInputBehaviorInPlayMode;
+            bool cloneSettings = UnityEditor.EditorUtility.IsPersistent(originalInputSettings);
+            // InputSystem은 교체된 임시 기본 설정을 파괴한다. 에셋인 경우만 복제하고 임시 설정은 값을 복구한다.
+            var testInputSettings = cloneSettings ? Object.Instantiate(originalInputSettings) : originalInputSettings;
+            if (cloneSettings) { testInputSettings.hideFlags = HideFlags.DontSave; InputSystem.settings = testInputSettings; }
+            // 화면 포커스를 조작하지 않는 검사에서도 합성 키가 정상 InputSystem 경로를 통과하게 한다.
+            testInputSettings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+            testInputSettings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                yield return Until(() => !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 3, "리셋 입력 허용");
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.R));
+                yield return null;
+                yield return null;
+                yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                yield return null;
+                yield return Until(() => (int)Get(run, "Round") > oldRound && (bool)Get(bridge, "PerformanceOpen"), 5, "R 전체 리셋");
+                Assert.AreNotEqual(oldId, Get(bridge, "PerformanceId"));
+                Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
+                Assert.AreEqual("Normal", Get(player, "State").ToString());
+                Assert.That((float)Call(course, "GetDistance", player.transform.position), Is.LessThan(0f));
+                Assert.IsFalse((bool)Get(player.GetComponent(GameType("CurtainCall.Player.PlayerBalance")), "IsActive"));
+                Assert.IsFalse((bool)Call(course, "IsLaneBlocked", 1));
+                Assert.IsFalse((bool)Call(course, "IsSegmentBlocked", 3, 5f));
+                Assert.IsFalse((bool)Get(run, "IsPerformanceStarted"));
+                Assert.That((float)Get(run, "TimeRemaining"), Is.GreaterThan((float)Get(run, "TimeLimit") - 1f));
+                Assert.AreEqual(historyCount, ((ICollection)Get(rewards, "History")).Count, "리셋으로 가짜 실패 정산이 생기면 안 된다.");
+                Assert.IsNull(Get(bridge, "Result"));
+                Assert.AreEqual("Playing", Get(session, "GameState").ToString());
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(keyboard);
+                if (oldKeyboard != null && oldKeyboard.added) oldKeyboard.MakeCurrent();
+                if (cloneSettings)
+                {
+                    InputSystem.settings = originalInputSettings;
+                    Object.Destroy(testInputSettings);
+                }
+                else
+                {
+                    testInputSettings.backgroundBehavior = originalBackground;
+                    testInputSettings.editorInputBehaviorInPlayMode = originalEditorInput;
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator LobbyResetRestoresStartAndHealthWithoutStartingGame()
+        {
+            Call(player, "ServerCut", 2);
+            Call(course, "SetLaneBlocked", 1, true);
+            Call(course, "BlockSegment", 3, 3f, 9f, true);
+            var position = (Vector3)Call(course, "GetLanePosition", 2, 4f);
+            Call(mover, "SetStartPose", position, Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
+            var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+            Assert.IsTrue((bool)Call(hud, "RestartCourseByHost"));
+            yield return null;
+            Assert.AreEqual("Waiting", Get(session, "GameState").ToString());
+            Assert.AreEqual("None", Phase);
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+            Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
+            Assert.That((float)Call(course, "GetDistance", player.transform.position), Is.LessThan(0f));
+            Assert.IsFalse((bool)Get(player.GetComponent(GameType("CurtainCall.Player.PlayerBalance")), "IsActive"));
+            Assert.IsFalse((bool)Call(course, "IsLaneBlocked", 1));
+            Assert.IsFalse((bool)Call(course, "IsSegmentBlocked", 3, 5f));
+            Assert.IsFalse((bool)Get(run, "IsPerformanceStarted"));
+            Assert.AreEqual(0, ((ICollection)Get(rewards, "History")).Count);
+        }
+
+        [UnityTest]
+        public IEnumerator FallRequestFromBeforeResetCannotKillFreshAttempt()
+        {
+            yield return BeginPerformance();
+            int oldEpoch = (int)Get(Get(player, "restartCount"), "Value");
+            int oldRound = (int)Get(run, "Round");
+            var fallen = Enum.Parse(GameType("CurtainCall.Network.PlayerSync.PlayerState"), "Fallen");
+            var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+            Assert.IsTrue((bool)Call(hud, "RestartCourseByHost"));
+            yield return Until(() => (int)Get(run, "Round") > oldRound && (bool)Get(bridge, "PerformanceOpen"), 5, "새 회차");
+            Assert.That((int)Get(Get(player, "restartCount"), "Value"), Is.GreaterThan(oldEpoch));
+            Call(player, "RequestStateRpc", fallen, oldEpoch);
+            yield return null;
+            Assert.AreEqual("Normal", Get(player, "State").ToString(), "리셋 전에 보낸 사망 요청은 버려야 한다.");
+            Assert.IsTrue((bool)Get(bridge, "PerformanceOpen"));
+            Call(player, "RequestState", fallen);
+            yield return Until(() => Get(bridge, "Result") != null, 5, "현재 회차의 정상 사망 요청");
+            Assert.IsFalse((bool)Get(Get(bridge, "Result"), "Succeeded"));
+        }
+
+        [UnityTest]
+        public IEnumerator WholeCourseResetAfterDeathStartsWithFreshLivingRoster()
+        {
+            yield return BeginPerformance();
+            Call(player, "ServerKill");
+            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "전멸 정산");
+            int oldRound = (int)Get(run, "Round");
+            var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+            Assert.IsTrue((bool)Call(hud, "RestartCourseByHost"));
+            Assert.IsFalse((bool)Call(hud, "RestartCourseByHost"), "같은 프레임 중복 리셋은 한 번만 처리한다.");
+            yield return Until(() => (int)Get(run, "Round") > oldRound && (bool)Get(bridge, "PerformanceOpen"), 5, "사망 후 리셋");
+            Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
+            Assert.IsNull(Get(bridge, "Result"));
+            var segments = ((IEnumerable)Get(Get(rewards, "State"), "Segments")).Cast<object>().ToArray();
+            Assert.AreEqual(1, segments.Length);
+            Assert.IsFalse((bool)Get(segments[0], "Dead"));
+            Assert.AreEqual(1, ((ICollection)Get(rewards, "History")).Count, "이전 결과를 중복 정산하지 않는다.");
+            yield return new WaitForSeconds(0.3f);
+            Assert.IsTrue((bool)Get(bridge, "PerformanceOpen"), "이전 사망 기록 때문에 새 공연이 바로 끝나면 안 된다.");
+        }
+
+        [UnityTest]
+        public IEnumerator EarlyLaneJumpPressSurvivesLandingAndUsesPressedDirectionOnce()
+        {
+            yield return BeginPerformance();
+            var position = (Vector3)Call(course, "GetLanePosition", 1, 4f);
+            Call(mover, "SetStartPose", position, Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
+            yield return null;
+            yield return Until(() => ((CharacterController)Get(mover, "Body")).isGrounded, 3, "줄 위 접지");
+            var balance = player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
+            Call(balance, "SetBalanceActive", false); // 입력 여유만 검사하며 균형 난수는 배제한다.
+            var scheme = ScriptableObject.CreateInstance(GameType("CurtainCall.Player.TightropeControlScheme"));
+            var context = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerControlContext"), new object[] { player.gameObject });
+            var frameType = GameType("CurtainCall.Player.PlayerInputFrame");
+            object Frame(bool press, int direction)
+            {
+                var frame = Activator.CreateInstance(frameType);
+                Set(frame, "ActionPressed", press);
+                Set(frame, "AuxDirection", direction);
+                return frame;
+            }
+            try
+            {
+                Call(scheme, "Tick", context, Frame(true, 0));
+                yield return Until(() => (bool)Get(mover, "IsAirborne"), 2, "첫 제자리 점프");
+                yield return Until(() => (float)Get(mover, "verticalSpeed") < 0f
+                    && player.transform.position.y - position.y < 0.28f, 3, "착지 직전");
+                Assert.IsTrue((bool)Get(mover, "IsAirborne"), "착지 전에 다음 점프를 눌러야 한다.");
+                Call(scheme, "Tick", context, Frame(true, 1));
+                float deadline = Time.realtimeSinceStartup + 2f;
+                while (Get(mover, "CurrentJump").ToString() != "Lane" && Time.realtimeSinceStartup < deadline)
+                {
+                    yield return null;
+                    Call(scheme, "Tick", context, Frame(false, -1));
+                }
+                Assert.AreEqual("Lane", Get(mover, "CurrentJump").ToString());
+                Assert.AreEqual(1, (int)Get(mover, "LaneJumpDirection"), "착지 전에 누른 오른쪽 방향을 유지해야 한다.");
+                yield return Until(() => !(bool)Get(mover, "IsAirborne"), 3, "옆줄 점프 착지");
+                var expected = (Vector3)Call(course, "GetLanePosition", 2, 4f);
+                Assert.That(Vector3.Distance(player.transform.position, expected), Is.LessThan(0.2f));
+                for (int i = 0; i < 4; i++)
+                {
+                    Call(scheme, "Tick", context, Frame(false, 1));
+                    yield return null;
+                    Assert.IsFalse((bool)Get(mover, "IsAirborne"), "한 번 누른 입력이 반복 점프하면 안 된다.");
+                }
+            }
+            finally
+            {
+                Call(scheme, "Exit", context);
+                Object.Destroy(scheme);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator SavedSceneBuildsOutlinesAndExistingCooperativeSystems()
+        {
+            yield return BeginPerformance();
+            yield return null;
+            var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            Assert.IsNotNull(saws, "톱날 프리팹 연결");
+            Assert.IsNotNull(Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current"), "기존 코스의 추격 불·구간 화재 연결");
+            Assert.IsNotNull(Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.Fire.FireView")));
+            Assert.IsNotNull(Static("CurtainCall.Tightrope.PiggybackSystem", "Current"));
+            Assert.IsNotNull(Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.PiggybackFollow")));
+            Assert.IsNotNull(Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.RopeLaneJumpRules")));
+            var outlineType = GameType("CurtainCall.Tightrope.TightropeOutline");
+            Assert.That(saws.GetComponentsInChildren(outlineType, true).Length, Is.GreaterThan(0));
+            Assert.That(course.GetComponentsInChildren(outlineType, true).Length, Is.EqualTo(2), "출발·도착 플랫폼");
+            var shader = Resources.Load<Shader>("TightropeOutline");
+            Assert.IsNotNull(shader);
+            Assert.IsFalse(UnityEditor.ShaderUtil.ShaderHasError(shader));
+        }
+
+        [UnityTest]
+        public IEnumerator WarningBandAndTunedWalkAreAppliedByAutomaticBoarding()
+        {
+            yield return BeginPerformance();
+            var position = (Vector3)Call(course, "GetLanePosition", 1, 2f);
+            Call(mover, "SetStartPose", position, Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
+            yield return Until(() => ((CharacterController)Get(mover, "Body")).isGrounded
+                && !(bool)Get(mover, "FreeMovement"), 3, "자동 줄 탑승");
+            var balance = player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
+            Assert.IsTrue((bool)Get(balance, "IsActive"));
+            ((Behaviour)balance).enabled = false; // 정확한 경고 값을 고정해 실제 UI 표시를 확인한다.
+            Call(balance, "SetDisplayedState", true, 40f);
+            yield return null;
+            Assert.AreEqual("Yellow", Get(balance, "Zone").ToString());
+            var gauge = Object.FindAnyObjectByType(GameType("CurtainCall.Player.BalanceGaugeView"));
+            Assert.IsNotNull(gauge);
+            Assert.AreSame(balance, Get(gauge, "Target"));
+            var band = Get(gauge, "warningZone") as RectTransform;
+            Assert.IsNotNull(band, "저장된 기존 게이지에도 노란 구간을 만든다.");
+            Assert.IsTrue(band.gameObject.activeInHierarchy);
+            Assert.That(band.anchorMin.x, Is.EqualTo(0.25f));
+            Assert.That(band.anchorMax.x, Is.EqualTo(0.75f));
+            float speed = (float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "RopeMovement"), "MoveSpeed");
+            Assert.That((float)Get(mover, "CourseSpeedOverride"), Is.EqualTo(speed));
+            float from = (float)Call(course, "GetDistance", player.transform.position);
+            float elapsed = 0f;
+            while (elapsed < 0.6f)
+            {
+                Call(mover, "SetMoveInput", 1f);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+            float travelled = (float)Call(course, "GetDistance", player.transform.position) - from;
+            Assert.That(travelled / elapsed, Is.EqualTo(speed).Within(0.15f), "실제 줄 위 이동 속도");
+        }
+
+        IEnumerator BeginPerformance()
+        {
+            Assert.IsTrue((bool)Call(session, "StartGame"));
+            yield return Until(() => Phase == "Intro", 5, "공용 도입 단계");
+            Assert.AreEqual("Waiting", Get(run, "State").ToString());
+            Assert.IsFalse((bool)Get(bridge, "PerformanceOpen"));
+            Assert.IsTrue((bool)Call(campaign, "EndIntro"));
+            yield return Until(() => (bool)Get(bridge, "PerformanceOpen") && Get(run, "State").ToString() == "Running", 5, "공용 외줄 공연 시작");
+        }
+
+        [UnityTest]
+        public IEnumerator MovingHorizontalSawCanBeJumpedWithoutDamage()
+        {
+            yield return BeginPerformance();
+            var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            var sawSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
+            float distance = (float)Call(sawSettings, "GetHorizontalDistance", 0);
+            yield return StandOnRopeForSawTest(0, distance);
+            Vector3 right = (Vector3)Get(course, "Right");
+            float SideGap() => Vector3.Dot((Vector3)Call(saws, "GetHorizontalPosition", 0) - player.transform.position, right);
+            // 실제 톱날이 점프 정점에 몸 중심을 지나가도록 한다. 복귀 중인 톱날은 선택하지 않는다.
+            float takeoffGap = (float)Call(sawSettings, "GetHorizontalSpeed", 0) * (float)Get(mover, "AirTime") * 0.5f;
+            float previousGap = SideGap();
+            bool readyToJump = false;
+            yield return Until(() =>
+            {
+                if (readyToJump) return true; // Until은 성공 직후 같은 프레임에 조건을 한 번 더 확인한다.
+                float gap = SideGap();
+                bool approaching = gap > previousGap;
+                previousGap = gap;
+                return readyToJump = approaching && gap >= -takeoffGap && gap < -0.8f;
+            }, 15, "첫 톱날 접근");
+            Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
+            Call(mover, "RequestJump");
+            yield return Until(() => (bool)Get(mover, "IsAirborne"), 2, "톱날 회피 점프");
+            float peak = player.transform.position.y;
+            float deadline = Time.realtimeSinceStartup + 3f;
+            while ((bool)Get(mover, "IsAirborne") && Time.realtimeSinceStartup < deadline)
+            {
+                peak = Mathf.Max(peak, player.transform.position.y);
+                Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")), "공중에서 발밑으로 지나간 톱날에 다치면 안 된다.");
+                yield return null;
+            }
+            Assert.IsFalse((bool)Get(mover, "IsAirborne"));
+            Assert.That(SideGap(), Is.GreaterThan(0.8f), "착지 전에 톱날이 몸 너비를 완전히 지나가야 한다.");
+            Assert.That(peak - course.transform.position.y, Is.GreaterThan((float)Get(sawSettings, "horizontalAttackTop")));
+            Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+        }
+
+        [UnityTest]
+        public IEnumerator MovingHorizontalSawStillHitsPlayerWhoDoesNotJump()
+        {
+            yield return BeginPerformance();
+            var sawSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
+            yield return StandOnRopeForSawTest(0, (float)Call(sawSettings, "GetHorizontalDistance", 0));
+            yield return Until(() => Convert.ToInt32(Get(player, "LostParts")) != 0, 15, "피하지 않은 톱날 접촉");
+            Assert.AreEqual(1, CountBits(Convert.ToInt32(Get(player, "LostParts"))), "판정을 끈 상태로 회피가 통과해서는 안 된다.");
+        }
+
+        [UnityTest]
+        public IEnumerator IncomingVerticalSawCanBeDodgedByLaneJump()
+        {
+            yield return BeginPerformance();
+            const float distance = 20f; // 기존 가로 톱날 사이의 줄을 사용한다.
+            yield return StandOnRopeForSawTest(1, distance);
+            var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            var sawSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
+            float speed = (float)Get(sawSettings, "verticalSpeed");
+            float elapsed = ((float)Get(sawSettings, "verticalSpawnDistance") - distance - 1.2f) / speed;
+            // 출현 대기 시간만 생략한다. 이후 이동·접촉·착지는 저장된 씬의 Update에서 처리한다.
+            Call(saws, "SetVertical", true, 1, 1, elapsed, -1f);
+            Call(mover, "RequestLaneJump", 1);
+            yield return Until(() => (bool)Get(mover, "IsAirborne"), 2, "옆줄 회피 시작");
+            yield return Until(() => !(bool)Get(mover, "IsAirborne"), 3, "옆줄 착지");
+            yield return Until(() => (float)Get(saws, "VerticalDistance") < distance - 0.8f, 4, "이전 줄로 톱날 통과");
+            var expected = (Vector3)Call(course, "GetLanePosition", 2, distance);
+            Assert.That(Vector3.Distance(player.transform.position, expected), Is.LessThan(0.2f));
+            Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+        }
+
+        [UnityTest]
+        public IEnumerator RestoredCourseFireWarnsBlocksThenResetsWithWholeCourse()
+        {
+            yield return BeginPerformance();
+            yield return StandOnRopeForSawTest(1, 4f);
+            var fire = (Component)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current");
+            Assert.IsNotNull(fire);
+            yield return Until(() => Get(fire, "Settings") != null, 3, "기존 화재 설정 연결");
+            var snapshot = Get(fire, "Settings");
+            Set(snapshot, "triggerMode", Enum.Parse(GameType("CurtainCall.Tightrope.Fire.FireTriggerMode"), "Time"));
+            var segments = (Array)Get(snapshot, "segments");
+            Assert.AreEqual((int)Get(course, "LaneCount") - 1, segments.Length, "한 줄을 제외한 모든 줄에 화재 단계를 둔다.");
+            // 이번 회차 메모리 복사본의 시간만 앞당긴다. 저장된 코스 배치·에셋은 변경하지 않는다.
+            var first = segments.GetValue(0);
+            Set(first, "lane", 1); // 색상·판정 회귀는 현재 검사자의 옆 줄로 고정한다.
+            Set(first, "igniteAt", (float)Get(run, "PerformanceElapsed") + 1.5f);
+            segments.SetValue(first, 0);
+            Set(snapshot, "warningSeconds", 1f);
+            Set(snapshot, "chaseDelay", 0f);
+            yield return Until(() => (int)Get(fire, "PendingSegment") == 0, 3, "시간 모드 화재 예고");
+            yield return null;
+            Assert.That((float)Call(fire, "WarningRemaining", 0), Is.GreaterThan(0f));
+            Assert.IsTrue((bool)Get(fire, "IsChasing"));
+            var view = fire.transform.Find("SegmentFire1");
+            Assert.IsNotNull(view);
+            Assert.IsTrue(view.gameObject.activeInHierarchy, "발화 전 예고 표시가 있어야 한다.");
+            var warning = view.GetComponent<Renderer>().sharedMaterial.color;
+            Assert.That(warning.g, Is.GreaterThan(0.7f), "발화 전에는 노란 경고를 표시한다.");
+            float chaseBefore = (float)Get(fire, "ChaseDistance");
+            yield return Until(() => (bool)Call(fire, "IsSegmentActive", 0), 3, "구간 실제 발화");
+            yield return null;
+            Assert.IsTrue((bool)Call(course, "IsSegmentBlocked", 0, 60f), "불붙은 줄 구간은 착지할 수 없어야 한다.");
+            Assert.That((float)Get(fire, "ChaseDistance"), Is.GreaterThan(chaseBefore));
+            Assert.That(view.GetComponent<Renderer>().sharedMaterial.color.g, Is.LessThan(0.3f), "발화 후에는 불 표시로 바뀐다.");
+            int oldRound = (int)Get(run, "Round");
+            var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+            Assert.IsTrue((bool)Call(hud, "RestartCourseByHost"));
+            yield return Until(() => (int)Get(fire, "Round") > oldRound && (bool)Get(bridge, "PerformanceOpen"), 5, "화재 포함 전체 리셋");
+            yield return null;
+            Assert.IsFalse((bool)Get(fire, "IsChasing"));
+            Assert.IsFalse((bool)Call(fire, "IsSegmentActive", 0));
+            Assert.IsFalse((bool)Call(course, "IsSegmentBlocked", 0, 60f));
+            Assert.That((float)Call(fire, "WarningRemaining", 0), Is.LessThan(0f));
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+            Assert.IsFalse(fire.transform.Find("ChaseFire").gameObject.activeInHierarchy);
+        }
+
+        [UnityTest]
+        public IEnumerator CourseConvergesOneLaneAtATimeAndSoloRouteRemainsOpen()
+        {
+            yield return BeginPerformance();
+            yield return StandOnRopeForSawTest(1, 2f);
+            var fire = (Component)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current");
+            var snapshot = Get(fire, "Settings");
+            Assert.AreEqual("LeadDistance", Get(snapshot, "triggerMode").ToString());
+            Set(snapshot, "warningSeconds", 0.2f); // 대기 시간만 줄이고 저장된 거리·순서·구간은 사용한다.
+            var segments = (Array)Get(snapshot, "segments");
+            Assert.AreEqual((int)Get(course, "LaneCount") - 1, segments.Length);
+            Assert.AreEqual("RandomAll", Get(snapshot, "laneOrder").ToString());
+            int safeLane = (int)Call(snapshot, "FindSurvivingLane", (int)Get(course, "LaneCount")) - 1;
+            Assert.That(safeLane, Is.InRange(0, (int)Get(course, "LaneCount") - 1));
+            for (int i = 0; i < segments.Length; i++)
+            {
+                var segment = segments.GetValue(i);
+                float trigger = (float)Get(segment, "triggerDistance");
+                var position = (Vector3)Call(course, "GetLanePosition", safeLane, trigger);
+                Call(mover, "SetStartPose", position, Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
+                int expected = i;
+                yield return Until(() => (int)Get(fire, "PendingSegment") == expected, 3, "다음 줄 예고");
+                Assert.IsFalse((bool)Call(fire, "IsSegmentActive", i), "예고가 끝나기 전에는 줄이 불타면 안 된다.");
+                for (int later = i + 1; later < segments.Length; later++)
+                    Assert.IsFalse((bool)Call(fire, "IsSegmentActive", later));
+                yield return Until(() => (bool)Call(fire, "IsSegmentActive", expected), 3, "예고 후 한 줄 발화");
+                int usable = Enumerable.Range(0, (int)Get(course, "LaneCount"))
+                    .Count(lane => (bool)Call(course, "IsLaneUsable", lane, trigger));
+                Assert.AreEqual((int)Get(course, "LaneCount") - i - 1, usable);
+                Assert.IsTrue((bool)Call(course, "IsLaneUsable", safeLane, trigger), "이번 회차에 남도록 정한 줄은 계속 안전해야 한다.");
+            }
+            var saws = Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            var sawSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
+            float aheadOfSurvivor = (float)Call(course, "GetDistance", player.transform.position) + 5f;
+            float elapsed = ((float)Get(sawSettings, "verticalSpawnDistance") - aheadOfSurvivor) / (float)Get(sawSettings, "verticalSpeed");
+            Call(saws, "SetVertical", true, safeLane, 1, elapsed, -1f);
+            yield return Until(() => !(bool)Get(saws, "IsVerticalActive"), 3, "혼자 남은 마지막 줄의 회피 불가능한 톱 해제");
+            var step = Activator.CreateInstance(GameType("CurtainCall.Tightrope.Saws.ObstacleStep"));
+            Set(step, "lane", safeLane);
+            object[] args = { step, null };
+            var spawn = saws.GetType().GetMethod("ServerSpawnVertical", Members);
+            Assert.IsFalse((bool)spawn.Invoke(saws, args), "같은 마지막 줄에 큰 톱날이 다시 생성되면 안 된다.");
+            int oldRound = (int)Get(run, "Round");
+            var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+            Assert.IsTrue((bool)Call(hud, "RestartCourseByHost"));
+            yield return Until(() => (int)Get(fire, "Round") > oldRound && (bool)Get(bridge, "PerformanceOpen"), 5, "수렴 코스 초기화");
+            Assert.AreEqual(-1, (int)Get(fire, "PendingSegment"));
+            for (int lane = 0; lane < (int)Get(course, "LaneCount"); lane++)
+                Assert.IsTrue((bool)Call(course, "IsLaneUsable", lane, 70f));
+            Assert.AreEqual("Normal", Get(player, "State").ToString());
+        }
+
+        [UnityTest]
+        public IEnumerator IncomingVerticalSawStillHitsPlayerWhoDoesNotDodge()
+        {
+            yield return BeginPerformance();
+            const float distance = 20f;
+            yield return StandOnRopeForSawTest(1, distance);
+            var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            var sawSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
+            float speed = (float)Get(sawSettings, "verticalSpeed");
+            float elapsed = ((float)Get(sawSettings, "verticalSpawnDistance") - distance - 1.2f) / speed;
+            Call(saws, "SetVertical", true, 1, 1, elapsed, -1f);
+            yield return Until(() => Convert.ToInt32(Get(player, "LostParts")) != 0, 3, "피하지 않은 정면 톱날 접촉");
+            Assert.AreEqual(1, CountBits(Convert.ToInt32(Get(player, "LostParts"))), "수직 톱날 판정 자체가 비활성화되어 있으면 안 된다.");
+        }
+
+        IEnumerator StandOnRopeForSawTest(int lane, float distance)
+        {
+            var position = (Vector3)Call(course, "GetLanePosition", lane, distance);
+            Call(mover, "SetStartPose", position, Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
+            yield return Until(() => ((CharacterController)Get(mover, "Body")).isGrounded
+                && !(bool)Get(mover, "FreeMovement"), 3, "톱날 검사 위치 줄 탑승");
+            // 회피 궤적만 검사한다. 균형 난수로 인한 추락은 별도 균형 검사에서 다룬다.
+            ((Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"))).enabled = false;
+        }
+
+        static int CountBits(int bits) { int count = 0; for (; bits != 0; bits &= bits - 1) count++; return count; }
+        static IEnumerator Until(Func<bool> predicate, float seconds, string reason)
+        {
+            float deadline = Time.realtimeSinceStartup + seconds;
+            while (!predicate() && Time.realtimeSinceStartup < deadline) yield return null;
+            Assert.IsTrue(predicate(), reason + " 시간 초과");
+        }
+        static Type GameType(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
+        static object Static(string type, string name) => GameType(type).GetProperty(name).GetValue(null);
+        static object Get(object target, string name) => target.GetType().GetProperty(name, Members) is PropertyInfo property
+            ? property.GetValue(target) : target.GetType().GetField(name, Members).GetValue(target);
+        static void Set(object target, string name, object value) => target.GetType().GetField(name, Members).SetValue(target, value);
+        static object Call(object target, string name, params object[] args) => target.GetType().GetMethods(Members)
+            .Single(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(target, args);
+    }
+}
