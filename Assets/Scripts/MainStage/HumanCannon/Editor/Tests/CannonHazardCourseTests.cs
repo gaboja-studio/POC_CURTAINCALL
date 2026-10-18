@@ -66,14 +66,14 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var poleSaws = All<HumanCannonPoleSaw>();
             var poles = All<HumanCannonPole>();
             Assert.That(poleSaws, Has.Length.EqualTo(poles.Length), "해제용 봉을 포함해 봉마다 독립 왕복 톱 하나");
-            Assert.That(hazards, Has.Length.EqualTo(16 + poleSaws.Length));
+            Assert.That(hazards, Has.Length.EqualTo(20 + poleSaws.Length));
             Assert.That(hazards, Has.All.Not.Null);
             CollectionAssert.AllItemsAreUnique(hazards);
             CollectionAssert.AreEquivalent(All<HumanCannonHazard>(), hazards);
             var originalHazards = hazards.Except(poleSaws.Select(s => s.Hazard)).ToArray();
             Assert.That(originalHazards.Count(h => h.Kind == CannonHazardKind.SpikeMace), Is.EqualTo(4));
             Assert.That(originalHazards.Count(h => h.Kind == CannonHazardKind.RotatingBlades), Is.EqualTo(4));
-            Assert.That(originalHazards.Count(h => h.Kind == CannonHazardKind.GroundSaw), Is.EqualTo(8));
+            Assert.That(originalHazards.Count(h => h.Kind == CannonHazardKind.GroundSaw), Is.EqualTo(12));
             CollectionAssert.AreEquivalent(poles, poleSaws.Select(s => s.Pole).ToArray());
             CollectionAssert.AllItemsAreUnique(poleSaws.Select(s => s.Hazard).ToArray());
             foreach (var saw in poleSaws)

@@ -23,7 +23,8 @@ namespace CurtainCall.HumanCannon.EditorTools
                 throw new InvalidOperationException("Play 종료 후 저장된 HumanCannon 전용 씬에서 실행하세요.");
             var saws = All<HumanCannonHazard>(scene.GetRootGameObjects())
                 .Where(h => h.Kind == CannonHazardKind.GroundSaw && h.GetComponent<HumanCannonPoleSaw>() == null).ToArray();
-            if (saws.Length != 8) throw new InvalidOperationException("기존 지상 톱 8개가 필요합니다.");
+            if (saws.Length != 8 && saws.Length != 12)
+                throw new InvalidOperationException("지상 톱 8개 또는 분산된 지상 톱 12개가 필요합니다.");
             Undo.IncrementCurrentGroup();
             int undo = Undo.GetCurrentGroup();
             Undo.SetCurrentGroupName("지상 톱 4초 왕복");
@@ -57,8 +58,8 @@ namespace CurtainCall.HumanCannon.EditorTools
                 throw new InvalidOperationException("기존 봉10/왕복 톱10 연결이 필요합니다.");
             var linked = poles.Where(p => p.LinkedGate != null).OrderBy(p => p.Grip.position.z).ToArray();
             var hazards = All<HumanCannonHazard>(roots);
-            if (linked.Length != 2 || hazards.Length != 26)
-                throw new InvalidOperationException("협동 관문2/일반 함정26 구성을 확인하세요.");
+            if (linked.Length != 2 || (hazards.Length != 26 && hazards.Length != 30))
+                throw new InvalidOperationException("협동 관문2/일반 함정26 또는 지상 톱 추가 후30 구성을 확인하세요.");
             Undo.IncrementCurrentGroup();
             int undo = Undo.GetCurrentGroup();
             Undo.SetCurrentGroupName("인간 대포 관문 접근과 수평 톱");

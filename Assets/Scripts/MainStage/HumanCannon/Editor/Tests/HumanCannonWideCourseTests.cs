@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Reflection;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -67,16 +68,45 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void GroundSaws_MatchAirbornePoleSawsAtFourSecondCycles()
+        public void GroundSaws_HaveDistinctRailsAndSpacedRoutesAtFourSecondCycles()
         {
             var ground = All<HumanCannonHazard>().Where(h => h.Kind == CannonHazardKind.GroundSaw
                 && h.GetComponent<HumanCannonPoleSaw>() == null).ToArray();
-            Assert.That(ground, Has.Length.EqualTo(8));
+            Assert.That(ground, Has.Length.EqualTo(12));
             foreach (var saw in ground)
             {
                 Assert.That(saw.PeriodSeconds, Is.EqualTo(4f), saw.name);
                 Assert.That(Mathf.Abs(saw.Travel.x), Is.EqualTo(24f).Within(.001f), saw.name);
                 Assert.That(Vector3.Distance(saw.Position(1.3, 1), saw.Position(5.3, 1)), Is.LessThan(.001f));
+                var rail = saw.GetComponent<LineRenderer>();
+                Assert.That(rail, Is.Not.Null, saw.name);
+                Assert.That(rail.sharedMaterial, Is.Not.Null, saw.name);
+                Assert.That(AssetDatabase.GetAssetPath(rail.sharedMaterial), Is.EqualTo(
+                    "Assets/Scenes/Tests/MainStage/HumanCannon/Materials/ground-saw-rail.mat"), saw.name);
+                var color = rail.sharedMaterial.color;
+                Assert.That(color.g, Is.GreaterThan(color.r), "지상 경로는 빨강보다 청록 성분이 강해야 한다: " + saw.name);
+                Assert.That(color.b, Is.GreaterThan(color.r), saw.name);
+            }
+            for (int section = 0; section < 2; section++)
+            {
+                var saws = ground.Where(s => (s.transform.position.z < 90f) == (section == 0))
+                    .OrderBy(s => s.transform.position.z).ToArray();
+                Assert.That(saws, Has.Length.EqualTo(6), "구간마다 지상 톱 여섯 개");
+                foreach (var saw in saws)
+                    Assert.That(saw.transform.position.y, Is.EqualTo(section * 6f + .6f).Within(.001f), saw.name);
+                for (int i = 1; i < saws.Length; i++)
+                    Assert.That(saws[i].transform.position.z - saws[i - 1].transform.position.z,
+                        Is.GreaterThanOrEqualTo(5.5f - .001f), "지상 톱 사이 이동·점프 여유");
+                var transport = All<HumanCannonTransport>().Single(t => t.name ==
+                    (section == 0 ? "DepartureTransport" : "ShelterDeparture"));
+                float front = transport.Position(1f).z
+                    + Mathf.Abs((transport.Rotation * Vector3.right).z) * transport.HalfSize.x
+                    + Mathf.Abs((transport.Rotation * Vector3.forward).z) * transport.HalfSize.y;
+                Assert.That(saws[0].transform.position.z - front, Is.GreaterThanOrEqualTo(2f - .001f),
+                    "운송 도착 발판 앞에서 첫 경로까지 2m 확보");
+                Assert.That(saws[0].transform.position.z - saws[0].Radius - front - .25f,
+                    Is.GreaterThan(0f), "첫 톱의 판정이 도착 발판 위 플레이어에게 닿지 않아야 한다");
+                Assert.That(saws[^1].transform.position.z, Is.EqualTo(61f + section * 76f).Within(.001f));
             }
             foreach (var saw in All<HumanCannonPoleSaw>()) Assert.That(saw.Hazard.PeriodSeconds, Is.EqualTo(4f));
         }
