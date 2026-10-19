@@ -170,6 +170,15 @@ namespace CurtainCall.Settings
             [Tooltip("다른 플레이어와 닿을 때 남기는 틈(m).")]
             [SerializeField, Min(0f)] float playerGap = 0.05f;
 
+            [Tooltip("달리기(LShift 홀드) 이동 속도 배율(×). 플랫폼 걷기 속도에 곱한다. 2026-10-19 PM 1.5. 플레이 중 바꾸면 바로 반영.")]
+            [SerializeField, Range(1f, 5f)] float sprintSpeedMultiplier = 1.5f;
+
+            [Tooltip("앉기(LCtrl 홀드) 이동 속도 배율(×). 플랫폼 걷기 속도에 곱한다. 2026-10-19 PM 0.5. 플레이 중 바꾸면 바로 반영.")]
+            [SerializeField, Range(0.05f, 1f)] float crouchSpeedMultiplier = 0.5f;
+
+            [Tooltip("앉았을 때 높이 비율(0~1, 몸통 캡슐 높이 기준). 발은 고정하고 겉모습·충돌 높이·1인칭 눈높이를 함께 낮춘다. 2026-10-19 PM 0.6. 플레이 중 바꾸면 바로 반영.")]
+            [SerializeField, Range(0.2f, 1f)] float crouchHeightRatio = 0.6f;
+
             public float FreeMoveSpeed => freeMoveSpeed;
             public float CourseMoveSpeed => courseMoveSpeed;
             public float JumpHeight => CharacterJumpHeightOverrides.Resolve(jumpHeight);
@@ -180,6 +189,9 @@ namespace CurtainCall.Settings
             public float ModelHeight => modelHeight;
             public float PushSpeed => pushSpeed;
             public float PlayerGap => playerGap;
+            public float SprintSpeedMultiplier => sprintSpeedMultiplier;
+            public float CrouchSpeedMultiplier => crouchSpeedMultiplier;
+            public float CrouchHeightRatio => crouchHeightRatio;
         }
 
         /// <summary>입력 판정.</summary>

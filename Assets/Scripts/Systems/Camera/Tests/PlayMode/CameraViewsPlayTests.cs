@@ -471,6 +471,146 @@ namespace CurtainCall.Cameras.Tests
             Assert.IsTrue(FirstPerson, "로컬 1인칭 유지");
         }
 
+        // Task-059 달리기·앉기(2026-10-19 PM): 테스트 키보드로 LShift·LCtrl을 눌러 공용 기본 이동 규칙을 확인한다.
+        bool Crouched => (bool)Get(Mover, "IsCrouched");
+        float BodyHeight => (float)Get(Mover, "BodyHeight");
+
+        [UnityTest]
+        public IEnumerator Locomotion_HoldSprintAndCrouch_ChangeSpeedWithCrouchPriority()
+        {
+            yield return Host(CameraViewsScene);
+            yield return Teleport(OutsideZone);
+            Assert.IsFalse(FirstPerson, "구역 밖 3인칭(코스 기준)");
+            yield return BeginKeyboard();
+
+            yield return Hold(Vector3.forward, "W 걷기", "W");
+            float walk = measuredSpeed;
+            yield return Teleport(OutsideZone);
+            yield return Hold(Vector3.forward, "W+LShift 달리기", "W", "LeftShift");
+            Assert.AreEqual(walk * 1.5f, measuredSpeed, walk * 0.1f, "달리기 1.5배");
+            Assert.IsFalse((bool)Get(Mover, "IsSprinting"), "떼면 걷기로 복귀");
+            yield return Teleport(OutsideZone);
+            yield return Hold((Vector3.forward + Vector3.right).normalized, "W+D+LShift 대각선 달리기", "W", "D", "LeftShift");
+            Assert.AreEqual(walk * 1.5f, measuredSpeed, walk * 0.1f, "대각선 달리기도 같은 속도");
+            yield return Teleport(OutsideZone);
+            yield return Hold(Vector3.forward, "W+LCtrl 앉기", "W", "LeftCtrl");
+            Assert.AreEqual(walk * 0.5f, measuredSpeed, walk * 0.1f, "앉기 0.5배");
+            Assert.IsFalse(Crouched, "떼면 일어섬");
+            yield return Teleport(OutsideZone);
+            yield return Hold(Vector3.forward, "W+LShift+LCtrl 동시", "W", "LeftShift", "LeftCtrl");
+            Assert.AreEqual(walk * 0.5f, measuredSpeed, walk * 0.1f, "동시에 누르면 앉기 우선");
+
+            // 달리기 중 점프: 뛴 순간의 달리기 속도로 날아간다
+            yield return Teleport(OutsideZone);
+            Keys("W", "LeftShift");
+            yield return Seconds(0.2f);
+            Keys("W", "LeftShift", "Space");
+            yield return WaitFor(() => (bool)Get(Mover, "IsAirborne"), 1f, "달리기 점프");
+            Vector3 start = local.transform.position;
+            float started = Time.time;
+            yield return Seconds(0.15f);
+            Vector3 delta = local.transform.position - start;
+            delta.y = 0f;
+            Assert.AreEqual(walk * 1.5f, delta.magnitude / (Time.time - started), walk * 0.15f, "달리기 점프 수평 속도 유지");
+            Keys();
+            yield return WaitFor(() => !(bool)Get(Mover, "IsAirborne"), 2f, "착지");
+        }
+
+        [UnityTest]
+        public IEnumerator Locomotion_Crouch_LowersBodyBlocksJumpAndStaysUnderCeiling()
+        {
+            yield return Host(CameraViewsScene);
+            yield return Teleport(OutsideZone);
+            yield return BeginKeyboard();
+            yield return Hold(Vector3.forward, "W 걷기", "W");
+            float walk = measuredSpeed;
+            yield return Teleport(OutsideZone);
+            yield return FixedSteps(3);
+
+            var slot = ((Component)local.GetComponent(GameType("CurtainCall.Player.PlayerModelSlot")));
+            var slotTransform = (Transform)Get(slot, "Slot");
+            float standing = BodyHeight;
+            float slotY = slotTransform.localScale.y;
+            float feet = local.transform.position.y;
+
+            Keys("LeftCtrl");
+            yield return Frames(3);
+            Assert.IsTrue(Crouched, "LCtrl 누르는 동안 앉음");
+            Assert.AreEqual(standing * 0.6f, BodyHeight, 0.01f, "몸통 높이 60%");
+            Assert.AreEqual(0.6f, (float)Get(Mover, "PostureHeightScale"), 0.01f);
+            Assert.AreEqual(slotY * 0.6f, slotTransform.localScale.y, 0.01f, "겉모습 높이 60%");
+            Assert.AreEqual(feet, local.transform.position.y, 0.02f, "발 고정");
+
+            Keys("LeftCtrl", "Space");
+            yield return Frames(5);
+            Assert.IsFalse((bool)Get(Mover, "IsAirborne"), "앉은 상태 점프 금지");
+
+            // 머리 위가 막히면 LCtrl을 떼도 앉은 채로 유지(속도·점프 제한 포함)
+            var ceiling = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            ceiling.name = "Locomotion Test Ceiling";
+            ceiling.transform.position = local.transform.position + Vector3.up * (standing * 0.6f + 0.25f);
+            ceiling.transform.localScale = new Vector3(4f, 0.1f, 4f);
+            Physics.SyncTransforms();
+            try
+            {
+                Keys();
+                yield return Frames(5);
+                Assert.IsTrue(Crouched, "머리 위가 막혀 앉은 채 유지");
+                Assert.AreEqual(standing * 0.6f, BodyHeight, 0.01f, "몸통을 천장 안으로 늘리지 않음");
+                Keys("Space");
+                yield return Frames(5);
+                Assert.IsFalse((bool)Get(Mover, "IsAirborne"), "막힌 앉기 유지 중 점프 금지");
+                yield return Hold(Vector3.forward, "막힌 앉기 유지 중 W+LShift", "W", "LeftShift");
+                Assert.AreEqual(walk * 0.5f, measuredSpeed, walk * 0.1f, "막힌 앉기 유지 중 달리지 않음");
+            }
+            finally
+            {
+                Object.Destroy(ceiling);
+            }
+            yield return FixedSteps(2);
+            yield return Frames(3);
+            Assert.IsFalse(Crouched, "공간이 생기면 일어섬");
+            Assert.AreEqual(standing, BodyHeight, 0.01f, "몸통 높이 복구");
+            Assert.AreEqual(slotY, slotTransform.localScale.y, 0.001f, "겉모습 크기 복구(누적 없음)");
+        }
+
+        [UnityTest]
+        public IEnumerator Locomotion_FirstPersonEyeFollowsCrouchForBothEyeHeightPaths()
+        {
+            yield return Host(CameraViewsScene);
+            yield return Teleport(InsideZone);
+            Assert.IsTrue(FirstPerson);
+            yield return BeginKeyboard();
+            float standingEye = EyePosition().y;
+
+            Keys("LeftCtrl");
+            yield return Frames(3);
+            Assert.IsTrue(Crouched);
+            AssertVector(EyePosition(), Camera.main.transform.position, "몸통 높이 기준 눈높이도 낮아짐", 0.05f);
+            Assert.Less(Camera.main.transform.position.y, standingEye - 0.3f, "앉은 눈높이");
+
+            var preset = ScriptableObject.CreateInstance(GameType("CurtainCall.Cameras.CameraViewPreset"));
+            Set(preset, "Kind", Enum.Parse(GameType("CurtainCall.Cameras.CameraViewKind"), "FirstPerson"));
+            Set(preset, "EyeHeight", 1.5f);
+            var source = new GameObject("Locomotion Eye Probe");
+            try
+            {
+                Call(director, "RequestView", source, preset, 50, Vector3.zero);
+                yield return Frames(3);
+                AssertVector(local.transform.position + Vector3.up * (1.5f * 0.6f), Camera.main.transform.position, "고정 눈높이 × 앉기 비율", 0.05f);
+                Keys();
+                yield return Frames(3);
+                AssertVector(local.transform.position + Vector3.up * 1.5f, Camera.main.transform.position, "일어서면 고정 눈높이", 0.05f);
+                Call(director, "ReleaseView", source);
+                yield return Frames(2);
+            }
+            finally
+            {
+                Object.Destroy(source);
+                Object.Destroy(preset);
+            }
+        }
+
         IEnumerator Host(string scene)
         {
 #if UNITY_EDITOR

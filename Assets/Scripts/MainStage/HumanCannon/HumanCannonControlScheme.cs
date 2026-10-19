@@ -23,7 +23,8 @@ namespace CurtainCall.HumanCannon
         public override void Tick(PlayerControlContext context, in PlayerInputFrame input)
         {
             if (Pilot == null) return;
-            if (!Pilot.IsDriving) base.Tick(context, input);
+            if (!Pilot.IsDriving) base.Tick(context, input); // 시작·포인트 플랫폼: 공용 달리기·앉기 포함
+            else context.LogUndefinedLocomotion(input, "인간 대포 탑승·비행"); // 대포 전용 이동 중 달리기·앉기는 미정: 로그만
             Pilot.ReadInput(input);
         }
     }

@@ -173,7 +173,8 @@ namespace CurtainCall.HumanCannon
         void TakeMovement()
         {
             if (!IsDriving) previousSimulation = mover.Simulated;
-            mover.ClearPendingInput();
+            mover.ClearPendingInput(); // 달리기·앉기 요청도 함께 비운다
+            mover.TryStand(); // 대포가 이동을 맡는 동안 자세는 바뀌지 않으므로 공간이 있으면 일어선 채로 맡긴다(막혀 있으면 앉은 채 유지)
             mover.Simulated = false;
         }
 

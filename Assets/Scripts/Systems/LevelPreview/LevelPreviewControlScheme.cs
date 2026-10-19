@@ -4,7 +4,8 @@ using UnityEngine;
 namespace CurtainCall.LevelPreview
 {
     /// <summary>
-    /// 맵 배치 확인용 조작 규칙(2026-10-09 PM @MoHoDu). 이동(W/S)·자세 제어(A/D) → 바라보는 방향 기준 8방향 이동, 기본 액션(Space) → 제자리 점프.
+    /// 맵 배치 확인용 조작 규칙(2026-10-09 PM @MoHoDu). 이동(W/S)·자세 제어(A/D) → 바라보는 방향 기준 8방향 이동, 기본 액션(Space) → 제자리 점프,
+    /// 달리기(LShift)·앉기(LCtrl) 홀드는 공용 플랫폼 규칙(<see cref="PlatformControlScheme.ApplyLocomotion"/>)과 같다.
     /// 바라보는 방향은 <see cref="LevelPreviewCamera"/>가 정한다. 맵 배치 씬(Assets/Scenes/Levels/)에서 공간을 둘러보는 용도이며 게임 조작이 아니다.
     /// <see cref="LevelPreviewCamera"/>가 시작할 때 플레이어에 끼운다.
     /// </summary>
@@ -38,7 +39,8 @@ namespace CurtainCall.LevelPreview
                 mover.SetMoveInput(Vector3.Dot(wish, mover.CourseRight), Vector3.Dot(wish, mover.CourseForward));
             }
 
-            if (input.ActionPressed) mover.RequestJump();
+            // 달리기·앉기·점프는 공용 플랫폼 규칙과 같다(속도·자세 규칙을 따로 두지 않는다)
+            PlatformControlScheme.ApplyLocomotion(context, input);
         }
     }
 }
