@@ -2,7 +2,7 @@
 
 - **Title:** 음성 채팅(생존자 거리 감쇠·사망자 분리)
 - **Type:** feat
-- **Status:** assigned
+- **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** voice-chat (`Docs/Domains/voice-chat.md`, 신규) · network-session · player-sync
 - **Current Skill:** start-work
@@ -18,8 +18,8 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 
 ## Goal
 
-- 테스트 씬에서 2명이 Services 방으로 접속해 생존자 거리 감쇠 음성, 사망자끼리 거리 무관 음성, 생존·사망 분리, 음소거 키를 확인할 수 있다.
-- 자동 생성 관리자라 모든 공간 씬에서 같은 규칙으로 동작한다(공용 프리팹 수정 없음).
+- Start에서 2명이 Services 방으로 접속해 로비·대기실·줄타기·인간 대포에서 생존자 거리 감쇠 음성, 사망자끼리 거리 무관 음성, 생존·사망 분리, 음소거 키를 확인할 수 있다.
+- 자동 생성 관리자라 씬·프리팹 수정 없이 Start 흐름의 확정 씬(세팅 `사용 씬`)에서만 동작한다.
 
 ## Scope
 
