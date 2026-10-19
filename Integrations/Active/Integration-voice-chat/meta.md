@@ -20,7 +20,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261020-063 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
+| Task-20261020-063 | feat | @MoHoDu | feat/voice-chat | - | assigned |
 
 ## 준비 브랜치
 
