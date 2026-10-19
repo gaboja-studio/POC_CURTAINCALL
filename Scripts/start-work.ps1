@@ -6,7 +6,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Lib/common.ps1')
 
 Assert-CleanTree -Hint 'Unity에서 저장한 뒤 "저장해줘"로 먼저 저장하거나, PM에게 알려 주세요.'
-& git -C $RepoRoot fetch origin --prune --quiet
+& git -C $RepoRoot -c submodule.recurse=false fetch --no-recurse-submodules origin --prune --quiet
 if ($LASTEXITCODE -ne 0) { throw '원격 저장소에서 최신 내용을 받지 못했습니다. 인터넷 연결이나 GitHub 연결을 확인하세요.' }
 
 $dirs = @(Get-ChildItem -LiteralPath (Get-RepoPath 'Tasks/Active') -Directory -Filter "$Id-*" -ErrorAction SilentlyContinue)
@@ -39,13 +39,12 @@ if ($LASTEXITCODE -ne 0) { throw '착수 대상 커밋 조회 실패' }
 $targetTask = Get-RefTask -Ref $targetTip -Id $Id -Branch $branch
 Assert-TaskStartGate -Task $targetTask
 
-& git -C $RepoRoot show-ref --verify --quiet "refs/heads/$branch"
-if ($LASTEXITCODE -eq 0) { & git -C $RepoRoot switch $branch } else { & git -C $RepoRoot switch --track "origin/$branch" }
-if ($LASTEXITCODE -ne 0) { throw "브랜치 이동 실패: $branch" }
-# 위에서 검증한 fetch 결과만 반영한다. pull로 재-fetch해 미검증 문서를 받지 않는다.
-& git -C $RepoRoot merge --ff-only --quiet $targetTip
-if ($LASTEXITCODE -ne 0) { throw '검증한 최신 내용을 자동으로 합치지 못했습니다. PM에게 알려 주세요.' }
-Update-ThirdParty
+# gate가 검증한 pinned 커밋만 반영하고 private/LFS 준비·검증까지 성공한 뒤 Task 문서를 바꾼다.
+if ($hasLocal) {
+    Invoke-SafeBranchTransition -Path $RepoRoot -TargetCommit $targetTip -Branch $branch
+} else {
+    Invoke-SafeBranchTransition -Path $RepoRoot -TargetCommit $targetTip -Branch $branch -Track
+}
 
 $task = Find-CurrentTask
 if (-not $task) { throw "브랜치 $branch 에 Task 폴더(Tasks/Active/$Id-*)가 없습니다. PM에게 알려 주세요." }

@@ -7,6 +7,13 @@
 - [agent-command-timeout.md](agent-command-timeout.md) — 검증 명령이 거부되거나 시간 초과로 끊길 때
 - [task-state-across-worktrees.md](task-state-across-worktrees.md) — doctor의 Task 상태 충돌이 서로 다른 worktree의 보관 시점 차이인지 확인할 때
 - [space-branch-update-without-pr.md](space-branch-update-without-pr.md) — PR 없는 공간 개인 브랜치는 Update branch 불가, git pull 또는 PM 앞당기기·merges API. dev 공용 변경을 공간 작업 브랜치까지 내려보낼 때
+- [integration-squash-sync.md](integration-squash-sync.md) — 통합 Squash 동기화의 계보 단절·재충돌과 생존 규칙 의존 코드. 인간 대포 상향 병합과 동기화 검사 때
 - [balance-on-outside-tightrope.md](balance-on-outside-tightrope.md) — 외줄 밖 씬에서 균형이 시작부터 켜져 서 있기만 해도 추락. 외줄이 아닌 씬에서 캐릭터가 저절로 쓰러질 때
+- [hub-spawn-before-environment-enable.md](hub-spawn-before-environment-enable.md) — 로비 환경 활성화보다 출발 위치 조회가 먼저 실행되면 기본 위치로 복귀한다. 공간에서 로비로 돌아올 때 위치가 틀리면 읽기
 - [third-party-scripts-after-checkout.md](third-party-scripts-after-checkout.md) — 외부 에셋을 나중에 받은 뒤 DOTween UI 모듈이 컴파일 입력에서 빠질 때
+- [third-party-branch-sync.md](third-party-branch-sync.md) — 브랜치 전환 전에 public/private Git·LFS를 준비하고 실패 시 사용자 파일을 보존한다. 안전 전환이 차단될 때
+- [ubuntu-git-executable-resolution.md](ubuntu-git-executable-resolution.md) — Ubuntu CI에서 Git 실행 경로가 여러 개로 반환되어 PowerShell 회귀가 실패할 때
+- [powershell-error-output-wrapping.md](powershell-error-output-wrapping.md) — PowerShell 오류 출력의 줄바꿈 때문에 예상 거부 정규식이 불일치할 때
+- [remote-player-judged-before-placement.md](remote-player-judged-before-placement.md) — 공연 씬 로드 직후 호스트가 원격의 옛 위치로 사망 판정한다. 연결 공연에서 참가자만 시작부터 죽어 있을 때
+- [demo-ui-includes-hud.md](demo-ui-includes-hud.md) — Demo 이름의 줄타기 UI를 통째로 끄면 HUD·게이지도 사라진다. 연결 모드에서 시연 UI를 숨길 때
 - [changed-subscriber-advances-campaign.md](changed-subscriber-advances-campaign.md) — Changed 알림 안에서 구독자가 런을 진행시킬 수 있어 알림 뒤 공연 좌표를 재확인. 런·보상 이벤트를 보낸 뒤 이어서 종료·정산 처리할 때

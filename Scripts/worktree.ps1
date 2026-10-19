@@ -13,9 +13,18 @@ if ($Add) {
     $root = Get-WorktreeRoot
     $path = [System.IO.Path]::GetFullPath((Join-Path $root ($Add -replace '/', '-')))
     if (Test-Path -LiteralPath $path) { throw "이미 있는 경로: $path" }
-    & git -C $RepoRoot fetch origin --quiet
+    & git -C $RepoRoot -c submodule.recurse=false fetch --no-recurse-submodules origin --quiet
+    if ($LASTEXITCODE -ne 0) { throw 'worktree 대상 확인용 git fetch 실패' }
     & git -C $RepoRoot show-ref --verify --quiet "refs/heads/$Add"
     $local = $LASTEXITCODE -eq 0
+    $targetRef = if ($local) { "refs/heads/$Add" } else { "refs/remotes/origin/$Add" }
+    $targetTip = (& git -C $RepoRoot rev-parse --verify "$targetRef^{commit}").Trim()
+    if ($LASTEXITCODE -ne 0) { throw "worktree 대상 커밋 조회 실패: $Add" }
+    $targetTree = @(& git -C $RepoRoot ls-tree -r $targetTip)
+    if ($LASTEXITCODE -ne 0) { throw "worktree 대상 tree 조회 실패: $Add" }
+    if ($targetTree | Where-Object { $_ -match '^160000\s' }) {
+        throw '초기화된 submodule에서만 안전전환 지원, 새 worktree 준비는 PM 별도'
+    }
     if (-not $PSCmdlet.ShouldProcess($path, "worktree 추가 ($Add)")) { return }
     New-Item -ItemType Directory -Path $root -Force | Out-Null
     if ($local) { & git -C $RepoRoot worktree add $path $Add } else { & git -C $RepoRoot worktree add --track -b $Add $path "origin/$Add" }

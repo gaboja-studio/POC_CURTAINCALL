@@ -31,9 +31,33 @@ namespace CurtainCall.SpaceLink
             return go.AddComponent<SpaceLinkDirector>();
         }
 
+        readonly struct TransitionRequest
+        {
+            public readonly SpaceId Space;
+            public readonly string SceneName;
+            readonly int generation;
+            readonly int day;
+            readonly int performanceIndex;
+            readonly string trickId;
+
+            public TransitionRequest(SpaceId space, string sceneName, in CampaignSnapshot state)
+            {
+                Space = space;
+                SceneName = sceneName;
+                generation = state.Generation;
+                day = state.Day;
+                performanceIndex = state.PerformanceIndex;
+                trickId = state.TrickId;
+            }
+
+            public bool Matches(in CampaignSnapshot state) => Space != SpaceId.Performance
+                || (state.Phase == CampaignPhase.Performance && state.Generation == generation && state.Day == day
+                    && state.PerformanceIndex == performanceIndex && state.TrickId == trickId);
+        }
+
         readonly List<string> log = new();
         CampaignRun campaign;
-        SpaceId? pending;
+        TransitionRequest? pending;
         Coroutine running;
         RestTimerState lastTimer;
         bool stepFailed;
@@ -117,14 +141,22 @@ namespace CurtainCall.SpaceLink
                 Debug.LogWarning("[SpaceLink] 장소 전환은 호스트(또는 오프라인 런)에서만 할 수 있습니다.");
                 return false;
             }
-            pending = target;
-            if (running == null) running = StartCoroutine(Run());
+            Enqueue(target, campaign.State);
             return true;
+        }
+
+        void Enqueue(SpaceId target, in CampaignSnapshot state)
+        {
+            // 오프라인 합성런은 기존 더미를 유지한다. 실제 묘기/단독 연습의 참가자는 LAN 경로로 준비한다.
+            string trickId = campaign.IsOfflineRun ? null : state.TrickId;
+            string sceneName = SpaceRoute.SceneName(target, GameSettings.Base.SpaceTransition, trickId);
+            pending = new TransitionRequest(target, sceneName, state);
+            if (running == null) running = StartCoroutine(Run());
         }
 
         void HandleStep(CampaignSnapshot s)
         {
-            if (HasAuthority) Request(SpaceRoute.ForPhase(s.Phase));
+            if (HasAuthority) Enqueue(SpaceRoute.ForPhase(s.Phase), s);
         }
 
         void HandleChanged()
@@ -141,22 +173,28 @@ namespace CurtainCall.SpaceLink
 
         IEnumerator Run()
         {
+            // 이동이 필요 없는 요청도 StartCoroutine의 반환값 대입 뒤에 끝나도록 한다.
+            yield return null;
             while (pending.HasValue)
             {
-                var target = pending.Value;
+                var request = pending.Value;
                 pending = null;
-                if (target != Current || (target == SpaceId.Hub && !IsLoaded(GameSettings.Base.SpaceTransition.HubScene)))
-                    yield return Transition(target);
+                if (!IsCurrent(request)) continue;
+                if (request.Space != Current || !IsLoaded(request.SceneName))
+                    yield return Transition(request);
             }
             running = null;
         }
 
-        IEnumerator Transition(SpaceId target)
+        bool IsCurrent(in TransitionRequest request) => HasAuthority && request.Matches(campaign.State);
+
+        IEnumerator Transition(TransitionRequest request)
         {
             var settings = GameSettings.Base.SpaceTransition;
             var mode = settings.Mode;
             var from = Current;
-            string sceneName = SpaceRoute.SceneName(target, settings);
+            var target = request.Space;
+            string sceneName = request.SceneName;
             stepFailed = false;
 
             if (mode == SpaceTransitionMode.Single)
@@ -172,14 +210,20 @@ namespace CurtainCall.SpaceLink
                     if (scene.name == sceneName) continue;
                     if (hub.isLoaded && SceneManager.GetActiveScene() == scene) SceneManager.SetActiveScene(hub);
                     yield return Unload(scene);
-                    if (stepFailed) break;
+                    if (stepFailed || !IsCurrent(request)) break;
                 }
-                if (!stepFailed && !IsLoaded(sceneName)) yield return Load(sceneName, LoadSceneMode.Additive);
+                if (!stepFailed && IsCurrent(request) && !IsLoaded(sceneName))
+                    yield return Load(sceneName, LoadSceneMode.Additive);
             }
 
             if (stepFailed)
             {
                 AddLog($"실패: {SpaceRoute.Describe(from)} → {SpaceRoute.Describe(target)} ({sceneName})");
+                yield break;
+            }
+            if (!IsCurrent(request))
+            {
+                AddLog($"폐기: 지난 공연 요청 ({sceneName})");
                 yield break;
             }
             AddLog($"{SpaceRoute.Describe(mode)}: {SpaceRoute.Describe(from)} → {SpaceRoute.Describe(target)} ({sceneName})");
@@ -191,18 +235,25 @@ namespace CurtainCall.SpaceLink
             var network = OnlineSceneManager();
             if (network == null)
             {
-                var op = SceneManager.LoadSceneAsync(sceneName, mode);
-                if (op == null) { Fail($"{sceneName} 씬을 열 수 없습니다(빌드 목록 확인)."); yield break; }
+                AsyncOperation op = null;
+                try { op = SceneManager.LoadSceneAsync(sceneName, mode); }
+                catch (Exception exception) { Fail($"{sceneName} 씬 로드 실패: {exception.Message}"); }
+                if (op == null)
+                {
+                    if (!stepFailed) Fail($"{sceneName} 씬을 열 수 없습니다(빌드 목록 확인).");
+                    yield break;
+                }
                 while (!op.isDone) yield return null;
+                if (!IsLoaded(sceneName)) Fail($"{sceneName} 씬 로드가 완료되지 않았습니다.");
                 yield break;
             }
 
             bool done = false;
             void Completed(string scene, LoadSceneMode loadMode, List<ulong> completed, List<ulong> timedOut)
             {
-                if (scene != sceneName) return;
+                if (scene != sceneName || loadMode != mode) return;
                 done = true;
-                if (timedOut.Count > 0) Debug.LogWarning($"[SpaceLink] {sceneName} 로드 시간 초과: {string.Join(", ", timedOut)}");
+                if (timedOut.Count > 0) Fail($"{sceneName} 로드 시간 초과: {string.Join(", ", timedOut)}");
             }
 
             network.OnLoadEventCompleted += Completed;
@@ -216,6 +267,7 @@ namespace CurtainCall.SpaceLink
             while (!done && OnlineSceneManager() == network) yield return null;
             network.OnLoadEventCompleted -= Completed;
             if (!done) Fail($"{sceneName} 로드 중 접속이 끊겼습니다.");
+            else if (!stepFailed && !IsLoaded(sceneName)) Fail($"{sceneName} 씬 로드가 완료되지 않았습니다.");
         }
 
         IEnumerator Unload(Scene scene)
@@ -224,16 +276,25 @@ namespace CurtainCall.SpaceLink
             var network = OnlineSceneManager();
             if (network == null)
             {
-                var op = SceneManager.UnloadSceneAsync(scene);
-                if (op == null) { Fail($"{sceneName} 씬을 닫을 수 없습니다."); yield break; }
+                AsyncOperation op = null;
+                try { op = SceneManager.UnloadSceneAsync(scene); }
+                catch (Exception exception) { Fail($"{sceneName} 씬 닫기 실패: {exception.Message}"); }
+                if (op == null)
+                {
+                    if (!stepFailed) Fail($"{sceneName} 씬을 닫을 수 없습니다.");
+                    yield break;
+                }
                 while (!op.isDone) yield return null;
+                if (scene.isLoaded) Fail($"{sceneName} 씬 닫기가 완료되지 않았습니다.");
                 yield break;
             }
 
             bool done = false;
             void Completed(string name, LoadSceneMode loadMode, List<ulong> completed, List<ulong> timedOut)
             {
-                if (name == sceneName) done = true;
+                if (name != sceneName) return;
+                done = true;
+                if (timedOut.Count > 0) Fail($"{sceneName} 닫기 시간 초과: {string.Join(", ", timedOut)}");
             }
 
             network.OnUnloadEventCompleted += Completed;
@@ -246,6 +307,8 @@ namespace CurtainCall.SpaceLink
             }
             while (!done && OnlineSceneManager() == network) yield return null;
             network.OnUnloadEventCompleted -= Completed;
+            if (!done) Fail($"{sceneName} 닫기 중 접속이 끊겼습니다.");
+            else if (!stepFailed && scene.isLoaded) Fail($"{sceneName} 씬 닫기가 완료되지 않았습니다.");
         }
 
         /// <summary>접속 중인 호스트면 NGO 씬 관리, 아니면 null(오프라인 로드).</summary>
@@ -261,6 +324,7 @@ namespace CurtainCall.SpaceLink
 
         void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
         {
+            CampaignPerformanceEntry.Prepare(scene);
             // 추가 로드: 공간 씬의 조명·새로 만든 오브젝트가 그 공간에 속하도록 활성 씬으로 둔다(클라이언트도 각자).
             if (mode != LoadSceneMode.Additive) return;
             if (SpaceRoute.TryFind(scene.name, GameSettings.Base.SpaceTransition, out var space) && space != SpaceId.Hub)

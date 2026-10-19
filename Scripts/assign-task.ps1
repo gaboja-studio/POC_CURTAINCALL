@@ -12,7 +12,7 @@ $ErrorActionPreference = 'Stop'
 $current = (& git -C $RepoRoot branch --show-current).Trim()
 if ($current -notmatch '^integration/(.+)$') { throw "통합 브랜치(integration/*)에서 실행하세요. 현재: $current" }
 $integrationMeta = Get-RepoPath "Integrations/Active/Integration-$($Matches[1])/meta.md"
-& git -C $RepoRoot fetch origin --prune --quiet
+& git -C $RepoRoot -c submodule.recurse=false fetch --no-recurse-submodules origin --prune --quiet
 if ($LASTEXITCODE -ne 0) { throw '배정 관계 확인용 git fetch 실패' }
 Assert-IntegrationLineage -Branch $current -Ref HEAD
 $integrationText = Get-Content -LiteralPath $integrationMeta -Raw

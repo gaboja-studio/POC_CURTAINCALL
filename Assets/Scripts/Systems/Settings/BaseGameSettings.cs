@@ -102,12 +102,16 @@ namespace CurtainCall.Settings
             [Tooltip("소집 경보 시점(초). 쉬는 시간이 이만큼 남으면 경보를 울린다. 기획 1분 = 60.")]
             [SerializeField, Min(0f)] float recallAlarmLeadTime = 60f;
 
+            [Tooltip("공연 실패 확정 뒤 묘기 화면을 비추는 시간(초). 이 시간이 지나야 다음 시간대·공간으로 넘어간다. 0이면 바로 넘어간다. 2026-10-19 PM 2초.")]
+            [SerializeField, Min(0f)] float failedPerformanceHold = 2f;
+
             public int DayCount => dayCount;
             public int PerformancesPerDay => performancesPerDay;
             public RestTimerMode RestTimerMode => restTimerMode;
             public float RestDuration => restDuration;
             public float GuideRestDuration => guideRestDuration;
             public float RecallAlarmLeadTime => recallAlarmLeadTime;
+            public float FailedPerformanceHold => failedPerformanceHold;
 
             /// <summary>1일차 <paramref name="index"/>번째(0부터) 공연 묘기. 없으면 빈 문자열.</summary>
             public string FirstDayTrick(int index) =>
@@ -168,7 +172,7 @@ namespace CurtainCall.Settings
 
             public float FreeMoveSpeed => freeMoveSpeed;
             public float CourseMoveSpeed => courseMoveSpeed;
-            public float JumpHeight => jumpHeight;
+            public float JumpHeight => CharacterJumpHeightOverrides.Resolve(jumpHeight);
             public float TurnSpeed => turnSpeed;
             public float Gravity => gravity;
             public float CapsuleHeight => capsuleHeight;
@@ -349,8 +353,14 @@ namespace CurtainCall.Settings
             [Tooltip("시작 씬(접속·런 시작, 도입·엔딩 때 돌아오는 곳). 추가 로드에서는 계속 떠 있는 코어 씬.")]
             [SerializeField] string hubScene = "SpaceLink";
 
-            [Tooltip("공연 시간대의 공간 씬.")]
+            [Tooltip("묘기별 씬이 지정되지 않은 공연 시간대의 공간 씬.")]
             [SerializeField] string performanceScene = "DummyPerformance";
+
+            [Tooltip("줄타기 공연 씬. 비어 있으면 기본 공연 씬을 쓴다.")]
+            [SerializeField] string tightropeScene = "";
+
+            [Tooltip("인간 대포 공연 씬. 비어 있으면 기본 공연 씬을 쓴다.")]
+            [SerializeField] string humanCannonScene = "";
 
             [Tooltip("쉬는 시간 시작·밤 정비의 공간 씬(대기실 로비).")]
             [SerializeField] string waitingRoomScene = "DummyWaitingRoom";
@@ -364,6 +374,8 @@ namespace CurtainCall.Settings
             public SpaceTransitionMode Mode => mode;
             public string HubScene => hubScene;
             public string PerformanceScene => performanceScene;
+            public string TightropeScene => tightropeScene;
+            public string HumanCannonScene => humanCannonScene;
             public string WaitingRoomScene => waitingRoomScene;
             public string ExplorationScene => explorationScene;
             public string EscapeRouteScene => escapeRouteScene;

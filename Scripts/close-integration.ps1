@@ -17,7 +17,13 @@ $branch = "integration/$Slug"
 $gh = Get-GhState
 $repo = try { (Get-GitHubRepo).Slug } catch { $null }
 if (-not $repo) { $gh = [pscustomobject]@{ State = 'NoRepo'; Gh = $null; Detail = 'origin이 GitHub 저장소가 아님' } }
-& git -C $RepoRoot fetch origin --prune --quiet
+# WhatIf는 remote-tracking ref/FETCH_HEAD도 바꾸지 않고 로컬에 있는 원격 snapshot만 검사한다.
+if (-not $WhatIfPreference) {
+    & git -C $RepoRoot -c submodule.recurse=false fetch --no-recurse-submodules origin --prune --quiet
+    if ($LASTEXITCODE -ne 0) { throw '통합 마무리용 git fetch 실패' }
+} else {
+    Write-Output '[미리보기] fetch·안전 전환을 실행하지 않습니다. 기존 origin ref 기준이며 실제 실행 때 다시 검증합니다.'
+}
 
 function Get-TaskBranches { param([string]$MetaText)
     @($MetaText -split "`n" | Where-Object { $_ -match '^\|\s*Task-\d{8}-\d{3}\s*\|' } | ForEach-Object {
@@ -26,37 +32,68 @@ function Get-TaskBranches { param([string]$MetaText)
 }
 
 if ($Cleanup) {
-    & git -C $RepoRoot rev-parse --verify --quiet "refs/remotes/origin/$branch" | Out-Null
+    $integrationTip = (& git -C $RepoRoot rev-parse --verify --quiet "refs/remotes/origin/$branch^{commit}").Trim()
     if ($LASTEXITCODE -ne 0) { throw "원격에 $branch 가 없습니다(이미 정리됨?)." }
-    & git -C $RepoRoot merge-base --is-ancestor "origin/$branch" "origin/$base"
+    $baseTip = (& git -C $RepoRoot rev-parse --verify --quiet "refs/remotes/origin/$base^{commit}").Trim()
+    if ($LASTEXITCODE -ne 0) { throw "원격 기본 브랜치 커밋 조회 실패: $base" }
+    & git -C $RepoRoot merge-base --is-ancestor $integrationTip $baseTip
     if ($LASTEXITCODE -ne 0) { throw "$branch 가 아직 $base 에 병합되지 않았습니다. dev PR을 먼저 병합하세요." }
-    $metaText = (& git -C $RepoRoot show "origin/${base}:Integrations/Done/Integration-$Slug/meta.md" 2>$null) -join "`n"
-    foreach ($b in Get-TaskBranches $metaText) {
+    $metaText = (& git -C $RepoRoot show "${baseTip}:Integrations/Done/Integration-$Slug/meta.md" 2>$null) -join "`n"
+    if ($LASTEXITCODE -ne 0) { throw "병합된 통합 기록 조회 실패: $Slug" }
+    $taskBranches = @(Get-TaskBranches $metaText)
+    $current = (& git -C $RepoRoot branch --show-current).Trim()
+    if ($LASTEXITCODE -ne 0) { throw '현재 브랜치 조회 실패' }
+    # 어느 원격/로컬 브랜치도 삭제하기 전에 필요한 switch/ff와 private 검증을 끝낸다.
+    if ($current -eq $branch -or $taskBranches -contains $current) {
+        if ($PSCmdlet.ShouldProcess($base, '삭제 전 기본 브랜치 안전 전환·검증')) {
+            & git -C $RepoRoot show-ref --verify --quiet "refs/heads/$base"
+            if ($LASTEXITCODE -eq 0) {
+                Invoke-SafeBranchTransition -Path $RepoRoot -TargetCommit $baseTip -Branch $base
+            } else {
+                Invoke-SafeBranchTransition -Path $RepoRoot -TargetCommit $baseTip -Branch $base -Track
+            }
+        } elseif (-not $WhatIfPreference) { return }
+    }
+    foreach ($b in $taskBranches) {
         & git -C $RepoRoot rev-parse --verify --quiet "refs/remotes/origin/$b" | Out-Null
         if ($LASTEXITCODE -ne 0) { continue }
         if ($gh.State -eq 'Ready') {
             $done = (& $gh.Gh pr list --repo $repo --head $b --base $branch --state merged --json number --jq 'length')
+            if ($LASTEXITCODE -ne 0) { throw "병합된 PR 조회 실패: $b" }
             if ($done -eq '0') { Write-Output "[건너뜀] $b — 병합된 PR이 없음"; continue }
         }
         if ($PSCmdlet.ShouldProcess($b, '작업 브랜치 삭제(원격·로컬)')) {
             & git -C $RepoRoot push origin --delete $b
-            & git -C $RepoRoot branch -D $b 2>$null
+            if ($LASTEXITCODE -ne 0) { throw "원격 작업 브랜치 삭제 실패: $b" }
+            & git -C $RepoRoot show-ref --verify --quiet "refs/heads/$b"
+            if ($LASTEXITCODE -eq 0) {
+                & git -C $RepoRoot branch -D $b
+                if ($LASTEXITCODE -ne 0) { throw "로컬 작업 브랜치 삭제 실패: $b" }
+            }
         }
     }
     if ($PSCmdlet.ShouldProcess($branch, '통합 브랜치 삭제(원격·로컬)')) {
-        $current = (& git -C $RepoRoot branch --show-current).Trim()
-        if ($current -eq $branch) { & git -C $RepoRoot switch $base; & git -C $RepoRoot pull --ff-only --quiet }
         & git -C $RepoRoot push origin --delete $branch
-        & git -C $RepoRoot branch -D $branch 2>$null
+        if ($LASTEXITCODE -ne 0) { throw "원격 통합 브랜치 삭제 실패: $branch" }
+        & git -C $RepoRoot show-ref --verify --quiet "refs/heads/$branch"
+        if ($LASTEXITCODE -eq 0) {
+            & git -C $RepoRoot branch -D $branch
+            if ($LASTEXITCODE -ne 0) { throw "로컬 통합 브랜치 삭제 실패: $branch" }
+        }
         Write-Output "정리 완료: $branch"
     }
     exit 0
 }
 
 $current = (& git -C $RepoRoot branch --show-current).Trim()
+if ($LASTEXITCODE -ne 0) { throw '현재 브랜치 조회 실패' }
 if ($current -ne $branch) { throw "$branch 에서 실행하세요. 현재: $current" }
 Assert-CleanTree -Hint '마무리 전에 준비 중인 변경을 커밋하거나 정리하세요.'
-& git -C $RepoRoot pull --ff-only --quiet
+$targetTip = (& git -C $RepoRoot rev-parse --verify "refs/remotes/origin/$branch^{commit}").Trim()
+if ($LASTEXITCODE -ne 0) { throw "원격 통합 커밋 조회 실패: $branch" }
+if ($PSCmdlet.ShouldProcess($branch, '통합 마무리 전 안전 ff·검증')) {
+    Invoke-SafeBranchTransition -Path $RepoRoot -TargetCommit $targetTip
+} elseif (-not $WhatIfPreference) { return }
 
 $intDir = Get-RepoPath "Integrations/Active/Integration-$Slug"
 if (-not (Test-Path -LiteralPath $intDir)) { throw "통합 기록이 없습니다: $intDir" }
