@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.HumanoidPresentation.PlayTests",
+    "optionalUnityReferences": ["TestAssemblies"],
+    "references": ["Unity.InputSystem"],
+    "autoReferenced": false
+}

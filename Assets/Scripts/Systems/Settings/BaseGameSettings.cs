@@ -184,6 +184,32 @@ namespace CurtainCall.Settings
             [Tooltip("앉았을 때 높이 비율(0~1, 몸통 캡슐 높이 기준). 발은 고정하고 겉모습·충돌 높이·1인칭 눈높이를 함께 낮춘다. 2026-10-19 PM 0.6. 플레이 중 바꾸면 바로 반영.")]
             [SerializeField, Range(0.2f, 1f)] float crouchHeightRatio = 0.6f;
 
+            [Header("플레이어 자리 색상")]
+            [InspectorName("플레이어 1 색상")]
+            [Tooltip("첫 번째 자리(0번) 플레이어 색상. 자리가 정해지지 않았거나 범위를 벗어나면 이 색상을 쓴다. 기본 빨강.")]
+            [SerializeField] Color playerColorRed = Color.red;
+
+            [InspectorName("플레이어 2 색상")]
+            [Tooltip("두 번째 자리(1번) 플레이어 색상. 기본 파랑.")]
+            [SerializeField] Color playerColorBlue = Color.blue;
+
+            [InspectorName("플레이어 3 색상")]
+            [Tooltip("세 번째 자리(2번) 플레이어 색상. 기본 노랑.")]
+            [SerializeField] Color playerColorYellow = Color.yellow;
+
+            [InspectorName("플레이어 4 색상")]
+            [Tooltip("네 번째 자리(3번) 플레이어 색상. 기본 초록.")]
+            [SerializeField] Color playerColorGreen = Color.green;
+
+            /// <summary>자리 번호(0부터)의 표시 색상. 미배정·범위 밖은 첫 번째 색상을 쓴다.</summary>
+            public Color GetPlayerColor(int slot) => slot switch
+            {
+                1 => playerColorBlue,
+                2 => playerColorYellow,
+                3 => playerColorGreen,
+                _ => playerColorRed,
+            };
+
             public float FreeMoveSpeed => freeMoveSpeed;
             public float CourseMoveSpeed => courseMoveSpeed;
             public float JumpHeight => CharacterJumpHeightOverrides.Resolve(jumpHeight);
