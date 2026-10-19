@@ -106,6 +106,7 @@ namespace CurtainCall.Damage
                 collapsedBones.Clear();
             }
             if (model == null) return; // 래그돌 중이거나 모델 없음. 모델이 돌아오면 다시 맞춘다
+            if (model.GetComponent<HumanoidModel>() != null) return; // 캡 메시 외형은 전용 표현기가 처리한다
 
             BodyPart target = condition.LostParts & PlayerCondition.AllLimbs;
             if ((appliedParts & ~target) != 0)

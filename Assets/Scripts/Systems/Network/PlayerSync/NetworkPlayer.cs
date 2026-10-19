@@ -34,6 +34,9 @@ namespace CurtainCall.Network.PlayerSync
         readonly NetworkVariable<JumpKind> jump = new(JumpKind.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         // 실제 앉은 상태(요청이 아님). 받는 화면은 공간 검사 없이 겉모습·몸통 높이만 맞춘다
         readonly NetworkVariable<bool> crouched = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        // 이동·달리기는 겉모습 표시용이며 판정에는 사용하지 않는다
+        readonly NetworkVariable<bool> moving = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        readonly NetworkVariable<bool> sprinting = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
         readonly NetworkVariable<bool> balanceActive = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         readonly NetworkVariable<float> balanceValue = new(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -90,6 +93,15 @@ namespace CurtainCall.Network.PlayerSync
 
         /// <summary>공중에 있는지(모든 화면에서 같음).</summary>
         public bool IsAirborne => CurrentJump != JumpKind.None;
+
+        /// <summary>표시용 이동 상태. 소유자·미생성 상태는 이동 부품, 생성된 남의 캐릭터는 소유자의 공유값을 읽는다.</summary>
+        public bool PresentationMoving => IsOwner || !IsSpawned ? mover.IsMoving : moving.Value;
+
+        /// <summary>표시용 달리기 상태. 소유자·미생성 상태는 이동 부품, 생성된 남의 캐릭터는 소유자의 공유값을 읽는다.</summary>
+        public bool PresentationSprinting => IsOwner || !IsSpawned ? mover.IsSprinting : sprinting.Value;
+
+        /// <summary>생성 시 현재 부상을 복원하는 동안에는 과거 절단 연출을 재생하지 않는다.</summary>
+        public bool IsApplyingInitialCondition { get; private set; }
 
         /// <summary>점프 상태가 바뀌었을 때(모든 화면). 인자는 새 상태.</summary>
         public event Action<JumpKind> JumpChanged;
@@ -342,7 +354,12 @@ namespace CurtainCall.Network.PlayerSync
             restartCount.OnValueChanged += HandleRestart;
             reviveCount.OnValueChanged += HandleRevive;
             lostParts.OnValueChanged += HandleLostPartsChanged;
-            if (condition != null) condition.SetLostParts(lostParts.Value); // 늦게 생성된 화면도 현재 몸 상태를 맞춘다
+            IsApplyingInitialCondition = true;
+            try
+            {
+                if (condition != null) condition.SetLostParts(lostParts.Value); // 늦게 생성된 화면도 현재 몸 상태를 맞춘다
+            }
+            finally { IsApplyingInitialCondition = false; }
             if (IsOwner)
             {
                 mover.Teleported += SendTeleport;
@@ -402,6 +419,10 @@ namespace CurtainCall.Network.PlayerSync
                 jump.Value = mover.CurrentJump;
             if (crouched.Value != mover.IsCrouched)
                 crouched.Value = mover.IsCrouched;
+            if (moving.Value != mover.IsMoving)
+                moving.Value = mover.IsMoving;
+            if (sprinting.Value != mover.IsSprinting)
+                sprinting.Value = mover.IsSprinting;
 
             if (balance != null)
             {
