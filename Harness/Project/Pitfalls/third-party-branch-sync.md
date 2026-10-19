@@ -1,7 +1,7 @@
 ---
 summary: 브랜치 전환 전에 public/private Git·LFS를 준비하고 실패 시 사용자 파일을 보존한다.
 status: active
-updated: 2026-10-17
+updated: 2026-10-19
 source: Task-20261017-053
 ---
 
@@ -28,6 +28,14 @@ source: Task-20261017-053
 - 미초기화·submodule 추가/제거·중첩 구조는 별도 준비가 필요하다. gitlink가 있는 새 worktree 생성도 이번 경로에서 차단한다.
 - 전환 후 실패는 자동 rollback하지 않는다. 현재 양쪽 HEAD와 파일 상태를 먼저 확인하고 PM에게 복구 판단을 요청한다.
 - private 바이너리 씬 속성과 공개 gitlink 변경은 별도 승인 대상이다. 이 하네스 수정이 private 에셋 수정까지 적용한 것은 아니다.
+
+## 바이너리 씬이 항상 수정됨으로 보일 때 (2026-10-19)
+
+- 증상: 아무것도 안 했는데 `Assets/_ThirdParty (modified content)`, 안쪽은 `LeartesStudios/AbandonedFactory/HDRP/Scene/AbandonedFactory.unity` 1개(크기 2바이트 차이). `submodule.recurse=true`라 브랜치 checkout이 막힌다.
+- 원인: 이 씬만 Unity 바이너리 직렬화인데 private `.gitattributes`의 `*.unity` → `eol=lf`가 바이너리 속 CRLF 바이트를 변환 대상으로 본다.
+- 확인: `git -C Assets/_ThirdParty hash-object --no-filters <파일>`이 `git rev-parse HEAD:<파일>`과 같으면 실제 변경 없음. 같으면 되돌리지 말고 아래로 해결한다.
+- 로컬 대처(커밋 안 됨, PC마다): `.git/modules/Assets/_ThirdParty/info/attributes`에 `LeartesStudios/AbandonedFactory/HDRP/Scene/AbandonedFactory.unity -text -diff -merge` 한 줄 추가.
+- 근본 대처: private 저장소 `.gitattributes`에 같은 줄 추가(에셋 관리자, 별도 승인).
 
 ## 확인 방법
 
