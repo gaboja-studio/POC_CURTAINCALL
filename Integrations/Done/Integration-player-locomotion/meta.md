@@ -1,7 +1,7 @@
 # Integration-player-locomotion
 
 - **Feature:** 달리기·앉기 공용 조작
-- **Status:** preparing
+- **Status:** to-dev
 - **Branch:** integration/player-locomotion
 - **Base:** dev
 - **Active Task:**
@@ -20,7 +20,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261019-059 | feat | @MoHoDu | feat/player-locomotion | - | assigned |
+| Task-20261019-059 | feat | @MoHoDu | feat/player-locomotion | - | done |
 
 ## 준비 브랜치
 
