@@ -66,6 +66,7 @@ modelSlot.SetModel(prefab);
 - 플랫폼 규칙(`PlatformControlScheme.ApplyLocomotion`)과 배치 미리보기·인간 대포 플랫폼이 같은 함수를 쓴다. 줄 위·대포 탑승/비행은 동작 없이 누른 순간 로그만 남긴다.
 - 실제 앉은 상태는 `NetworkPlayer`가 owner-write로 공유하고, 남의 캐릭터는 `SetRemoteCrouched`로 겉모습·몸통 높이만 맞춘다.
 - 1인칭: 몸통 높이 기준 눈높이는 자동으로 낮아지고, 고정 눈높이(프리셋 `EyeHeight`, 배치 미리보기)는 `PostureHeightScale`을 곱한다.
+- 겉모습: 지금은 `PlayerModelSlot`이 슬롯을 발 기준으로 위아래만 줄이는 **임시 표현**이다(사용자, 2026-10-19: 나중에 앉기 애니메이션으로 교체). 교체할 때는 `squashWhenCrouched`를 끄고 애니메이터가 `PlayerMover.IsCrouched`를 읽는다. 속도·점프·충돌 높이·머리 위 검사·눈높이·온라인 공유는 바꾸지 않는다. 겉모습 축소를 확인하는 PlayMode 검사(`CameraViewsPlayTests.Locomotion_Crouch_…`의 겉모습 높이 두 줄)도 같이 고친다.
 
 ## 의존 도메인
 

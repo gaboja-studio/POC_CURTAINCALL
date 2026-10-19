@@ -10,6 +10,8 @@ namespace CurtainCall.Player
     /// 맞출 키는 게임 기본 세팅(캐릭터 · 모델 맞춤 키)에서 모델을 끼울 때 읽는다.
     /// 앉으면(<see cref="PlayerMover.PostureHeightScale"/>) 슬롯을 발 기준으로 위아래만 줄여 겉모습 높이를 낮춘다(전용 애니메이션 없음, 2026-10-19 PM).
     /// 원래 슬롯 크기를 기준으로 매 프레임 다시 정하므로 누적되지 않고, 모델을 재거나 떼어 낼 때는 원래 크기로 돌려 둔다.
+    /// 이 축소는 앉기 애니메이션이 생기기 전 임시 표현이다. 애니메이션을 넣으면 <see cref="squashWhenCrouched"/>를 끄고
+    /// 애니메이터는 <see cref="PlayerMover.IsCrouched"/>(남의 캐릭터도 온라인으로 맞춰짐)를 읽는다. 속도·충돌 높이·눈높이는 그대로 이동 부품이 맡는다.
     /// </summary>
     public class PlayerModelSlot : MonoBehaviour
     {
@@ -21,6 +23,9 @@ namespace CurtainCall.Player
 
         [Tooltip("모델 크기를 캐릭터 키(세팅 · 모델 맞춤 키)에 맞출지. 끄면 프리팹 크기 그대로.")]
         [SerializeField] bool fitToHeight = true;
+
+        [Tooltip("앉으면 겉모습을 위아래로 줄여 낮출지(임시 표현). 앉기 애니메이션을 넣으면 끈다. 꺼도 속도·충돌 높이·1인칭 눈높이는 그대로 낮아진다.")]
+        [SerializeField] bool squashWhenCrouched = true;
 
         PlayerMover mover;
         Vector3 neutralScale = Vector3.one; // 자세로 줄이기 전 슬롯 크기
@@ -120,7 +125,7 @@ namespace CurtainCall.Player
             if (slot != null) SetPostureScale(1f);
         }
 
-        void ApplyPosture() => SetPostureScale(mover != null ? mover.PostureHeightScale : 1f);
+        void ApplyPosture() => SetPostureScale(squashWhenCrouched && mover != null ? mover.PostureHeightScale : 1f);
 
         /// <summary>슬롯의 위아래 크기만 원래 크기 × <paramref name="heightScale"/>로 둔다. 슬롯 원점이 발이므로 발은 그대로다.</summary>
         void SetPostureScale(float heightScale)
