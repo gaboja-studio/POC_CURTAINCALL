@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.CheerGauge.Core",
+    "rootNamespace": "CurtainCall.CheerGauge",
+    "references": ["CurtainCall.PerformanceReward.Core", "CurtainCall.PerformanceResults"],
+    "noEngineReferences": true
+}
