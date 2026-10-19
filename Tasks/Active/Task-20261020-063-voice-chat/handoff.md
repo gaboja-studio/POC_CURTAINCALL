@@ -1,15 +1,15 @@
 # Handoff
 
 ## 지금 상태
-- 단계: 구현 완료·미저장(커밋 전). worktree `D:\github\POC_CURTAINCALL-voice`, 전용 Unity 포트 7802.
+- 단계: 제출 완료(PR #186 → integration/voice-chat). worktree `D:\github\POC_CURTAINCALL-voice`(에디터는 닫음, 서드파티 원본 복구).
 - 동작하는 것: 컴파일 PASS, 음성 규칙 EditMode 16개 PASS. Start 흐름 Services 호스트 1인: Vivox 로그인 → 로비 생존자 채널 입장 → 추락 시 사망자 채널 전환 → 복귀 시 생존자 채널 재입장, 음소거 유지(2026-10-20).
 - 막힌 것: 없음. Vivox 활성화 완료(PM, 2026-10-20), `ProjectSettings/Packages/com.unity.services.vivox/Settings.json`에 server·domain·issuer 저장, `tokenKey` 빈 값·Test Mode 꺼짐 확인.
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/186
 
 ## 다음 할 일
-1. (PM) `ProjectSettings/Packages/com.unity.services.vivox/Settings.json`을 통합 브랜치에 커밋(Task 구역 밖 — 지금 verify-scope가 이 파일로 FAIL). 커밋 전 `tokenKey`가 비어 있는지 다시 확인.
-2. "저장해줘" → "검사해줘" → "제출해줘".
-3. 공동 테스트 3항목(2인, PC 2대 권장).
+1. (PM) PR #186 병합 → Integration meta 공용 파일 표에 Vivox `Settings.json` 추가·목표 문구 정정.
+2. 통합 후 공동 테스트 3항목(2인, PC 2대 권장, Start부터). 결과를 아래 "공동 테스트 결과"에 기록.
+3. 별도 fix: 외줄 `TightropeSurfaceControlTests` 기존 실패 3개(dev #184).
 
 ## PM이 확인할 것
 - 확인 요청: 다른 팀원 에디터도 Unity 계정 로그인·프로젝트 연결 필요 없음(서버 정보는 Settings.json으로 공유). 단 에디터가 anonymous면 Vivox 설정 화면을 열 수 없다(이 PC는 에디터 왼쪽 위 계정 버튼으로 다시 로그인해 해결).
