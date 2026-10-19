@@ -2,7 +2,7 @@
 
 ## JIRA
 
-- 관련 JIRA: 없음 — PM의 로컬 직접 작업 준비. 외부 이슈는 생성하지 않았다.
+- 관련 JIRA: [CC-152](https://hrjoo122770.atlassian.net/browse/CC-152) — 2026-10-20 사용자가 연결할 기존 이슈로 지정했다. 새 외부 이슈는 생성하지 않았다.
 
 ## 작업 구역
 
@@ -48,7 +48,7 @@ Packages/ProjectSettings/게임 규칙·모델 선정·절단 연출 등 결과�
 
 ## 인계 전 체크 (PM)
 
-- [x] 담당자 @MoHoDu, PM 권한·관련 JIRA 없음 기록
+- [x] 담당자 @MoHoDu, PM 권한·관련 JIRA CC-152 기록
 - [x] Unity에서 전용 빈 테스트 씬을 만들고 저장했다 (.meta 생성)
 - [x] 전용 테스트 폴더를 만들었다 (빈 폴더에는 .gitkeep)
 - [ ] plan.md 공동 테스트 초안을 구현 전에 확인했다
