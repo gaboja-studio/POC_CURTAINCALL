@@ -1,3 +1,4 @@
+using CurtainCall.Cameras;
 using UnityEngine;
 
 namespace CurtainCall.Network.Session
@@ -14,6 +15,23 @@ namespace CurtainCall.Network.Session
         bool _useLan;
 
         NetworkSessionManager _session;
+        CameraCursorExclusion _cursorExclusion;
+
+        void OnEnable()
+        {
+            // IMGUI는 EventSystem의 포인터 검사에 잡히지 않으므로 직접 영역을 등록한다.
+            _cursorExclusion = GetComponent<CameraCursorExclusion>();
+            if (_cursorExclusion == null)
+                _cursorExclusion = gameObject.AddComponent<CameraCursorExclusion>();
+            _cursorExclusion.SetScreenRect(_panelRect);
+            _cursorExclusion.enabled = true;
+        }
+
+        void OnDisable()
+        {
+            if (_cursorExclusion != null)
+                _cursorExclusion.enabled = false;
+        }
 
         void Start()
         {
@@ -22,6 +40,7 @@ namespace CurtainCall.Network.Session
 
         void OnGUI()
         {
+            _cursorExclusion.SetScreenRect(_panelRect);
             GUILayout.BeginArea(_panelRect, GUI.skin.box);
 
             if (_session == null)

@@ -13,7 +13,7 @@ source: 2026-10-13 저장소 확인 (Task-20261013-029)
 
 ## 사실
 
-- 씬(2026-10-13 확인): 공간 맵 배치 씬 `Assets/Scenes/Levels/`(main_stage·waiting_room·backstage·escape_route, 둘러보기용 `PlaySetup` 수준), 외줄 프로토타입 `Assets/Scenes/Prototypes/proto_0.0.2.unity`, 기능 테스트 씬 `Assets/Scenes/Tests/`(MainStage/Tightrope/*, Systems/*), 템플릿 `SampleScene.unity`. Build Settings 등록은 `SampleScene`·`proto_0.0.2`뿐
+- 씬(2026-10-13 확인): 공간 맵 배치 씬 `Assets/Scenes/Levels/`(main_stage·waiting_room·backstage·escape_route, 둘러보기용 `PlaySetup` 수준), 외줄 프로토타입 `Assets/Scenes/Prototypes/proto_0.0.2.unity`(2026-10-19부터 게임 플로우 외줄 씬은 `Tests/MainStage/Tightrope/Tightrope.unity`, `BaseGameSettings.spaceTransition.tightropeScene`), 기능 테스트 씬 `Assets/Scenes/Tests/`(MainStage/Tightrope/*, Systems/*), 템플릿 `SampleScene.unity`. Build Settings 등록은 `ProjectSettings/EditorBuildSettings.asset` 참고(Start·Lobby·공간·묘기 씬 포함)
 - 렌더: URP, `Assets/Settings/`에 `PC_RPAsset`/`PC_Renderer`, `Mobile_RPAsset`/`Mobile_Renderer`, `DefaultVolumeProfile`
 - 입력: 게임 입력은 `Assets/Resources/Input/PlayerControls.inputactions`(역할 Move·Posture·Action·DirectionLeft/Right·Interact) + 조작 규칙 `TightropeControlScheme.asset`. 템플릿 `Assets/InputSystem_Actions.inputactions`도 남아 있음. Active Input Handling = Input System only
 - 템플릿 잔여물: `Assets/Readme.asset`, `Assets/TutorialInfo/` (삭제 여부는 사람 결정)

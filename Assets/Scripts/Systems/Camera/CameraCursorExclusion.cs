@@ -12,6 +12,8 @@ namespace CurtainCall.Cameras
         void OnEnable() => regions.Add(this);
         void OnDisable() => regions.Remove(this);
 
+        public void SetScreenRect(Rect rect) => screenRect = rect;
+
         public static bool Contains(Vector2 screenPosition)
         {
             Vector2 guiPosition = new(screenPosition.x, Screen.height - screenPosition.y);

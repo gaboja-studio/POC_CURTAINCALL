@@ -155,6 +155,14 @@ namespace CurtainCall.Campaign
             return true;
         }
 
+        /// <summary>개발용 전체 리셋. 새 세대 식별자로 명부·자금·부상 초기화를 알리되 실패로 기록하지 않는다.</summary>
+        public bool DebugRestartRun()
+        {
+            if (!s.IsRunning || s.Generation == int.MaxValue) return false;
+            StartRun(s.Generation + 1, RunEndReason.None);
+            return true;
+        }
+
         void StartRun(int generation, RunEndReason previousEnd)
         {
             ready.Clear();

@@ -1,0 +1,7 @@
+{
+    "name": "CurtainCall.Tightrope.SystemIntegration.PlayTests",
+    "rootNamespace": "CurtainCall.Tightrope.SystemIntegration.Tests",
+    "references": ["Unity.InputSystem"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}

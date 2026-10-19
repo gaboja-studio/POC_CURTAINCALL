@@ -47,9 +47,10 @@ MonoBehaviour:
   input:
     longPressTime: 0.5
   balance:
-    greenLimit: 40
+    greenLimit: 30
+    warningLimit: 50
     fallTime: 2
-    correctionSpeed: 60
+    correctionSpeed: 85
     movingSway: 15
     idleSway: 5
     swayDirectionInterval: {x: 1, y: 2}
@@ -79,7 +80,7 @@ MonoBehaviour:
     mode: 0
     hubScene: Lobby
     performanceScene: DummyPerformance
-    tightropeScene: proto_0.0.2
+    tightropeScene: Tightrope
     humanCannonScene: HumanCannon
     waitingRoomScene: WaitingRoomBase
     explorationScene: DummyExploration

@@ -1,3 +1,8 @@
+using System.Runtime.CompilerServices;
+using CurtainCall.Settings;
+using CurtainCall.Tightrope.Control;
+using CurtainCall.Tightrope;
+using CurtainCall.Network.PlayerSync;
 using UnityEngine;
 
 namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Input/TightropeControlScheme.asset)
@@ -13,10 +18,41 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
     [CreateAssetMenu(menuName = "CurtainCall/Control Scheme/Tightrope", fileName = "TightropeControlScheme")]
     public class TightropeControlScheme : PlayerControlScheme
     {
+        readonly ConditionalWeakTable<PlayerControlContext, TightropeJumpBuffer> jumps = new();
+
+        public override void Enter(PlayerControlContext context)
+        {
+            ClearBuffer(context);
+            ApplyMovementSettings(context);
+        }
+
+        static void ApplyMovementSettings(PlayerControlContext context)
+        {
+            if (context.Mover == null) return;
+            context.Mover.CourseSpeedOverride = GameSettings.Tightrope.RopeMovement.MoveSpeed;
+            context.Mover.CourseJumpHeightOverride = GameSettings.Tightrope.RopeMovement.JumpHeight;
+            context.Mover.CourseJumpGravityMultiplier = GameSettings.Tightrope.RopeMovement.JumpGravityMultiplier;
+        }
+
+        void ClearBuffer(PlayerControlContext context)
+        {
+            if (!jumps.TryGetValue(context, out var buffer)) return;
+            if (context.Mover != null) context.Mover.Teleported -= buffer.Clear;
+            jumps.Remove(context);
+        }
+
         public override void Exit(PlayerControlContext context)
         {
+            CancelCatch(context);
+            ClearBuffer(context);
             context.HeldDirection = 0;
             if (context.Mover != null) context.Mover.ClearPendingInput();
+            if (context.Mover != null)
+            {
+                context.Mover.CourseSpeedOverride = 0f;
+                context.Mover.CourseJumpHeightOverride = 0f;
+                context.Mover.CourseJumpGravityMultiplier = 1f;
+            }
             if (context.Balance != null) context.Balance.SetCorrectionInput(0f);
         }
 
@@ -27,16 +63,60 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                 Exit(context);
                 return;
             }
+            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.TryHandleInput(context, input))
+            {
+                ClearBuffer(context);
+                context.Balance?.SetCorrectionInput(0f);
+                return;
+            }
+            if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.TryHandleInput(context, input))
+            {
+                ClearBuffer(context);
+                context.Balance?.SetCorrectionInput(0f);
+                return;
+            }
+            TightropeCannonAirControl.Current?.SetInput(context, input);
+            if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.TryHandleInput(context, input))
+            {
+                ClearBuffer(context);
+                context.Balance?.SetCorrectionInput(0f);
+                return;
+            }
             context.HeldDirection = input.AuxDirection;
             context.LogUndefinedLocomotion(input, "외줄 위"); // 줄 위 달리기·앉기는 미정(2026-10-19 PM): 로그만, 이동·균형·점프는 그대로
+            ApplyMovementSettings(context);
+            if (input.Move != 0f || input.ActionPressed || input.InteractLongPressed) CancelCatch(context);
 
             if (context.Mover != null)
             {
-                context.Mover.SetMoveInput(input.Move);
-                if (input.ActionPressed)
+                var mover = context.Mover;
+                if (!mover.isActiveAndEnabled || !mover.ControlEnabled
+                    || (context.Condition != null && context.Condition.AllLimbsLost))
                 {
-                    if (input.AuxDirection != 0) context.Mover.RequestLaneJump(input.AuxDirection);
-                    else context.Mover.RequestJump();
+                    Exit(context);
+                    return;
+                }
+                if (!mover.Simulated)
+                {
+                    // 목마 위층은 위치만 Follow가 맡는다. 균형 보정과 F 하차는 계속 받아야 한다.
+                    ClearBuffer(context);
+                    mover.ClearPendingInput();
+                }
+                else
+                {
+                    if (!jumps.TryGetValue(context, out var buffer))
+                    {
+                        buffer = new TightropeJumpBuffer();
+                        jumps.Add(context, buffer);
+                        mover.Teleported += buffer.Clear;
+                    }
+                    mover.SetMoveInput(input.Move);
+                    if (buffer.Resolve(input.ActionPressed, input.AuxDirection, !mover.IsAirborne,
+                        Time.timeAsDouble, GameSettings.Tightrope.RopeMovement.JumpInputBuffer, out int direction))
+                    {
+                        if (direction != 0) mover.RequestLaneJump(direction);
+                        else mover.RequestJump();
+                    }
                 }
             }
 
@@ -45,9 +125,18 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
 
             if (context.Interaction != null)
             {
-                if (input.InteractTapped) context.Interaction.RequestInteract();
+                if (input.InteractTapped && (input.Move != 0f || input.ActionPressed
+                    || TightropeCatchSystem.Current == null || !TightropeCatchSystem.Current.TryHandleLocalInteract()))
+                    context.Interaction.RequestInteract();
                 if (input.InteractLongPressed) context.Interaction.RequestRelease();
             }
+        }
+
+        static void CancelCatch(PlayerControlContext context)
+        {
+            if (NetworkPlayer.Local != null && context.Mover != null
+                && context.Mover.gameObject == NetworkPlayer.Local.gameObject)
+                TightropeCatchSystem.Current?.CancelLocal();
         }
     }
 }
