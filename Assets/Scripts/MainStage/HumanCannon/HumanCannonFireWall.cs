@@ -9,7 +9,7 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Transform boundary;
         [SerializeField] Transform visual;
         [Tooltip("시험용 불꽃 예고 시간(초). 마지막 대포 출발 여부와 무관하다.")]
-        [Min(0.1f), SerializeField] float warningSeconds = 15f;
+        [Min(0.1f), SerializeField] float warningSeconds = 30f;
         [Tooltip("시험용 전진 속도(m/s). 최종 밸런스가 아니다.")]
         [Min(0.01f), SerializeField] float speed = 0.7f;
         [Tooltip("공중/지상 압박 범위의 좌우 반폭(m).")]
@@ -18,6 +18,9 @@ namespace CurtainCall.HumanCannon
         [Min(1f), SerializeField] float height = 24f;
         [Tooltip("기획의 접촉 사망 설계안을 시험한다. 속도·판정은 실제 플레이에서 조정한다.")]
         [SerializeField] bool killOnContact = true;
+        [Tooltip("현재 코스에서 불꽃벽 사용. 끄면 예고·전진·접촉 피해·표시를 모두 보류한다.")]
+        [SerializeField] bool available = true;
+        public bool Available => available;
         public bool KillOnContact => killOnContact;
         public double ArmedAt { get; private set; } = -1;
         public bool Finished { get; private set; }
@@ -25,7 +28,7 @@ namespace CurtainCall.HumanCannon
         public bool IsConfigured => start != null && boundary != null && visual != null && speed > 0;
         public double EndTime => ArmedAt + warningSeconds + (IsConfigured ? Vector3.Distance(start.position, boundary.position) / speed : 0);
         public double RemainingWarning(double now) => Armed && !Finished ? System.Math.Max(0, ArmedAt + warningSeconds - now) : 0;
-        public bool Advancing(double now) => double.IsFinite(now) && now >= 0 && Armed && !Finished && now >= ArmedAt + warningSeconds;
+        public bool Advancing(double now) => available && double.IsFinite(now) && now >= 0 && Armed && !Finished && now >= ArmedAt + warningSeconds;
         public Vector3 Front(double now)
         {
             if (!IsConfigured) return transform.position;
@@ -35,14 +38,14 @@ namespace CurtainCall.HumanCannon
 
         public bool Arm(double now)
         {
-            if (Armed || !IsConfigured || !double.IsFinite(now) || now < 0) return false;
+            if (!available || Armed || !IsConfigured || !double.IsFinite(now) || now < 0) return false;
             ArmedAt = now;
             return true;
         }
 
         public bool Tick(double now)
         {
-            if (!double.IsFinite(now) || now < 0 || !Armed || Finished || now < EndTime) return false;
+            if (!available || !double.IsFinite(now) || now < 0 || !Armed || Finished || now < EndTime) return false;
             Finished = true;
             return true;
         }
@@ -67,10 +70,12 @@ namespace CurtainCall.HumanCannon
         public void Present(double now)
         {
             if (!IsConfigured) return;
-            visual.gameObject.SetActive(Armed && !Finished);
+            visual.gameObject.SetActive(available && Armed && !Finished);
             visual.position = Front(now) + Vector3.up * (height * 0.5f);
             visual.rotation = start.rotation;
             visual.localScale = new Vector3(halfWidth * 2f, height, Advancing(now) ? 0.45f : 0.1f);
         }
+
+        void OnDisable() { if (visual != null) visual.gameObject.SetActive(false); }
     }
 }

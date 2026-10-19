@@ -31,10 +31,12 @@ namespace CurtainCall.HumanCannon
         Vector3 velocity;
         Vector3 flightForward;
         float airControlSpeed;
+        bool steerPoleMomentum;
         Vector3 returnPosition;
         Quaternion returnRotation;
         bool hasReturnPose;
         public bool IsFlying { get; private set; }
+        internal Vector3 FlightVelocity => velocity;
         public bool IsDriving => stationIndex >= 0 || IsFlying || groundRequest.Pending || onTransport;
 
         internal void Initialize(HumanCannonSystem owner, NetworkPlayer local)
@@ -105,6 +107,7 @@ namespace CurtainCall.HumanCannon
         internal void Launch(int index, uint revision, Vector3 position, Quaternion rotation, Vector3 launchVelocity)
         {
             airControl.Clear();
+            steerPoleMomentum = false;
             TakeMovement();
             stationIndex = -1;
             flightStationIndex = index;
@@ -139,6 +142,7 @@ namespace CurtainCall.HumanCannon
             awaitingBounce = rejectedSurface = false;
             // 반동은 자동 전진 관성만 없앤다. WASD 보정은 누르는 동안 계속 적용한다.
             velocity = Vector3.up * upwardSpeed;
+            steerPoleMomentum = false;
             airControl.Clear();
             Teleport(contact + Vector3.up * 0.05f, transform.rotation);
         }
@@ -194,6 +198,7 @@ namespace CurtainCall.HumanCannon
             velocity = Vector3.zero;
             flightForward = Vector3.zero;
             airControlSpeed = 0f;
+            steerPoleMomentum = false;
             hasReturnPose = false;
         }
 
@@ -221,8 +226,10 @@ namespace CurtainCall.HumanCannon
             float gravity = GameSettings.Base.Character.Gravity;
             // 입력이 막혀도 탄도는 계속된다. 보정은 이번 프레임의 수평 변위에만 더한다.
             float controlMultiplier = system.Injuries.AirMultiplier(condition != null ? condition.LostLegCount : 0);
-            Vector3 correction = airControl.ConsumeVelocity(Time.frameCount, InputGate.IsBlocked, flightForward,
+            Vector3 inputForward = cannonView != null && cannonView.UsesMouseLook ? cannonView.ViewForward : flightForward;
+            Vector3 correction = airControl.ConsumeVelocity(Time.frameCount, InputGate.IsBlocked, inputForward,
                 airControlSpeed * controlMultiplier);
+            if (steerPoleMomentum) velocity = CannonAirControl.SteerPoleMomentum(velocity, correction);
             Vector3 wind = HumanCannonHazardCourse.Current != null
                 ? HumanCannonHazardCourse.Current.WindVelocity(transform.position, mover.BodyHeight, true) : Vector3.zero;
             Vector3 displacement = BallisticMotion.Step(ref velocity, correction + wind, gravity, dt);

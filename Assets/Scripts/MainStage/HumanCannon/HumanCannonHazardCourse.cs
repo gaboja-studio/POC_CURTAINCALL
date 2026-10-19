@@ -99,7 +99,10 @@ namespace CurtainCall.HumanCannon
         void HostContacts(double elapsed, float speed)
         {
             touchingNow.Clear(); cutThisFrame.Clear();
-            double beforeTime = previousElapsed >= 0 && elapsed - previousElapsed < 0.5 ? previousElapsed : elapsed;
+            bool forwardTime = previousElapsed >= 0 && elapsed > previousElapsed;
+            // 긴 프레임에도 최근 0.5초는 검사한다. 초기화/시간 역행 때는 현재 자세만 검사한다.
+            double beforeTime = forwardTime ? Math.Max(previousElapsed, elapsed - 0.5) : elapsed;
+            float startRatio = forwardTime ? (float)((beforeTime - previousElapsed) / (elapsed - previousElapsed)) : 1f;
             foreach (var player in NetworkPlayer.All)
             {
                 if (player == null || !player.IsSpawned || player.State != PlayerState.Normal
@@ -112,7 +115,10 @@ namespace CurtainCall.HumanCannon
                     restartPositions.Remove(player.OwnerClientId);
                     previousFeet.Remove(player.OwnerClientId);
                 }
-                Vector3 before = previousFeet.TryGetValue(player.OwnerClientId, out var old) && (old - feet).sqrMagnitude < 16f ? old : feet;
+                // 시간창을 자른 비율만큼 몸의 경로도 잘라 톱 시각과 같은 시점에서 시작한다.
+                // 4m 이상 순간이동은 기존처럼 연결하지 않는다.
+                Vector3 before = previousFeet.TryGetValue(player.OwnerClientId, out var old) && (old - feet).sqrMagnitude < 16f
+                    ? Vector3.Lerp(old, feet, startRatio) : feet;
                 for (int h = 0; h < hazards.Length; h++)
                 {
                     var hazard = hazards[h];

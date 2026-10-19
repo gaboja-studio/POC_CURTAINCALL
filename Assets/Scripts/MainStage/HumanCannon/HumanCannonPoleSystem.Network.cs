@@ -129,6 +129,7 @@ namespace CurtainCall.HumanCannon
                     HumanCannonSystem.Current?.CancelLocalPole(i);
                 }
                 inputSequence = 0;
+                lastInputDirection = 0;
                 nextInput = nextSnapshot = 0;
                 return;
             }

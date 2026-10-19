@@ -115,11 +115,61 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.IsFalse(gate.IsOccupied);
         }
 
+        [Test]
+        public void UnlimitedHold_KeepsGateStoppedUntilReleaseThenUsesNormalWarning()
+        {
+            var gate = new PoleGateState();
+            Assert.IsTrue(gate.TryGrab(7, 0, 10, 0));
+            Assert.IsTrue(gate.IsUnlimitedHold);
+            Assert.That(gate.HoldUntil, Is.Zero);
+            foreach (double now in new[] { 18d, 1000d, double.MaxValue })
+            {
+                Assert.IsFalse(gate.Tick(now, 2), "시간만 지나서는 손을 놓거나 관문을 재가동하지 않는다.");
+                Assert.That(gate.Occupant, Is.EqualTo(7ul));
+                Assert.That(gate.Phase, Is.EqualTo(PoleSawPhase.Retracted));
+                Assert.That(gate.Revision, Is.EqualTo(1u));
+            }
+            Assert.IsFalse(gate.TryGrab(8, gate.Revision, 1001, 0));
+            Assert.IsFalse(gate.TryRelease(8, gate.Revision, 1001, 2));
+            Assert.IsTrue(gate.TryRelease(7, gate.Revision, 1001, 2));
+            Assert.IsFalse(gate.IsUnlimitedHold);
+            Assert.That(gate.Phase, Is.EqualTo(PoleSawPhase.Warning));
+            Assert.IsFalse(gate.Tick(1002.999, 2));
+            Assert.IsTrue(gate.Tick(1003, 2));
+            Assert.That(gate.Phase, Is.EqualTo(PoleSawPhase.Active));
+        }
+
+        [Test]
+        public void UnlimitedSnapshot_KeepsOccupantAndResetRejectsDelayedState()
+        {
+            var host = new PoleGateState();
+            var client = new PoleGateState();
+            Assert.IsTrue(host.TryGrab(7, 0, 10, 0));
+            Assert.IsTrue(client.Receive(host.Revision, host.Occupant, host.Phase, host.HoldUntil, host.RearmAt));
+            Assert.IsTrue(client.IsUnlimitedHold);
+            Assert.IsFalse(client.Tick(1000, 2));
+            client.Reset();
+            Assert.IsFalse(client.IsOccupied);
+            Assert.IsFalse(client.IsUnlimitedHold);
+            Assert.IsFalse(client.Receive(host.Revision, host.Occupant, host.Phase, host.HoldUntil, host.RearmAt));
+            Assert.IsTrue(client.TryGrab(8, client.Revision, 1001, 0));
+            Assert.That(client.Occupant, Is.EqualTo(8ul));
+        }
+
+        [Test]
+        public void ZeroWarningDuration_DoesNotReleaseUnlimitedOccupant()
+        {
+            var gate = new PoleGateState();
+            Assert.IsTrue(gate.TryGrab(7, 0, 10, 0));
+            Assert.IsFalse(gate.TryRelease(7, gate.Revision, 20, 0));
+            Assert.IsTrue(gate.IsUnlimitedHold);
+            Assert.That(gate.Revision, Is.EqualTo(1u));
+        }
+
         [TestCase(-1d, 8f)]
         [TestCase(double.NaN, 8f)]
         [TestCase(double.PositiveInfinity, 8f)]
         [TestCase(double.MaxValue, 8f)]
-        [TestCase(10d, 0f)]
         [TestCase(10d, -1f)]
         [TestCase(10d, float.NaN)]
         [TestCase(10d, float.PositiveInfinity)]
@@ -156,7 +206,6 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TestCase(PoleSawPhase.Active, ulong.MaxValue, 18d, 0d)]
         [TestCase(PoleSawPhase.Active, ulong.MaxValue, 0d, 20d)]
         [TestCase(PoleSawPhase.Retracted, ulong.MaxValue, 18d, 0d)]
-        [TestCase(PoleSawPhase.Retracted, 7ul, 0d, 0d)]
         [TestCase(PoleSawPhase.Retracted, 7ul, 18d, 20d)]
         [TestCase(PoleSawPhase.Warning, 7ul, 0d, 20d)]
         [TestCase(PoleSawPhase.Warning, ulong.MaxValue, 18d, 20d)]

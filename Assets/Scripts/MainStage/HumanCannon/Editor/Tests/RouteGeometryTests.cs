@@ -53,6 +53,25 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TearDown]
         public void TearDown() => Object.DestroyImmediate(root);
 
+        [Test]
+        public void Fire_UnavailableCannotArmDamageOrShowEvenWithReceivedState_AndCanBeRestored()
+        {
+            Set(fire, "available", false);
+            Assert.IsFalse(fire.Arm(10));
+            fire.Receive(10, false);
+            Assert.IsFalse(fire.Advancing(20));
+            Assert.IsFalse(fire.Threatens(Vector3.forward * 5, 0.3f, 20));
+            Assert.IsFalse(fire.Tick(30));
+            fire.Present(20);
+            Assert.IsFalse(visual.gameObject.activeSelf);
+            fire.ResetWall();
+            Set(fire, "available", true);
+            Assert.IsTrue(fire.Arm(10));
+            Assert.IsTrue(fire.Threatens(Vector3.forward * 5, 0.3f, 20));
+            fire.Present(20);
+            Assert.IsTrue(visual.gameObject.activeSelf);
+        }
+
         [TestCase(1.85f, 0f, 0f, true)]
         [TestCase(-1.85f, 0f, 0f, true)]
         [TestCase(1.851f, 0f, 0f, false)]

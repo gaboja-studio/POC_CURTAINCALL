@@ -113,10 +113,10 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(ground.max.z, Is.EqualTo(7).Within(0.001f));
             Assert.That(floor.min.z, Is.EqualTo(16).Within(0.001f));
             Assert.That(ground.max.z, Is.LessThan(floor.min.z));
-            float jumpHeight = GameSettings.Base.Character.JumpHeight;
+            float jumpHeight = GameSettings.HumanCannon.JumpHeight;
             var bridges = All<Collider>().Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger)
                 .Where(c => c.bounds.min.z < 15.999f && c.bounds.max.z > 7.001f
-                    && c.bounds.min.x < 15f && c.bounds.max.x > -15f
+                    && c.bounds.min.x < 22f && c.bounds.max.x > -22f
                     && c.bounds.min.y <= jumpHeight && c.bounds.max.y >= -0.001f)
                 .Select(c => c.name).ToArray();
             Assert.That(bridges, Is.Empty, "출발 무대와 첫 코스 사이의 도보 틈을 Collider가 메우면 안 됩니다.");
@@ -129,7 +129,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var floor = FloorBounds(Find("SplitRouteCourse/FirstCourseFloor"));
             Assert.That(deck.max.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(deck.max.y - floor.max.y,
-                Is.GreaterThan(GameSettings.Base.Character.JumpHeight), "일반 점프로 쉼터 승강을 우회하면 안 됩니다.");
+                Is.GreaterThan(GameSettings.HumanCannon.JumpHeight), "일반 점프로 쉼터 승강을 우회하면 안 됩니다.");
             Assert.That(Find("SplitRouteCourse/ShelterDeck").GetComponent<HumanCannonLandingZone>(), Is.Not.Null);
         }
 
@@ -150,14 +150,26 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(transports[2].name, Is.EqualTo("ShelterDeparture"));
             var shelter = Field<HumanCannonLandingZone>(route, "shelter");
             Assert.That(shelter, Is.SameAs(Find("SplitRouteCourse/ShelterDeck").GetComponent<HumanCannonLandingZone>()));
-            Assert.That(Vector3.Distance(transports[1].StartPosition, new Vector3(-25, 0, 70)), Is.LessThan(0.001f));
-            Assert.That(Vector3.Distance(transports[1].Position(1), new Vector3(-18, 6, 78)), Is.LessThan(0.001f));
+            Assert.That(Vector3.Distance(transports[1].StartPosition, new Vector3(-32, 0, 70)), Is.LessThan(0.001f));
+            Assert.That(Vector3.Distance(transports[1].Position(1), new Vector3(-25, 6, 78)), Is.LessThan(0.001f));
             Assert.That(transports[2].StartPosition.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(transports[2].Position(1).y, Is.EqualTo(6).Within(0.001f));
         }
 
         [Test]
-        public void ExactlyTwoFireSections_StopAtShelterAndCushionWithoutAnotherFinalPressure()
+        public void GroundMarkers_IncludeBothUnsafeCourseFloorsWithoutChangingLandingRules()
+        {
+            var markers = All<HumanCannonGroundMarkers>().Single();
+            var expected = Find("SplitRouteCourse/FirstCourseFloor").GetComponentsInChildren<Collider>()
+                .Concat(Find("SplitRouteCourse/SecondCourseFloor").GetComponentsInChildren<Collider>())
+                .Where(c => c.enabled && !c.isTrigger).ToArray();
+            Assert.That(expected, Is.Not.Empty);
+            CollectionAssert.AreEquivalent(expected, Field<Collider[]>(markers, "courseFloors"));
+            Assert.That(Field<Material>(markers, "markerMaterial"), Is.Not.Null);
+        }
+
+        [Test]
+        public void TwoFireSections_AreEnabledWithThirtySecondWarningAndOriginalSpeed()
         {
             var route = All<HumanCannonRouteSystem>().Single();
             var fires = Field<HumanCannonFireWall[]>(route, "fires");
@@ -166,6 +178,10 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             CollectionAssert.AllItemsAreUnique(fires);
             CollectionAssert.AreEquivalent(All<HumanCannonFireWall>(), fires);
             Assert.That(fires.All(f => f.IsConfigured), Is.True);
+            Assert.That(fires.All(f => f.Available), Is.True, "두 구간 불꽃벽을 활성화한다.");
+            Assert.That(fires.All(f => Mathf.Approximately(Field<float>(f, "warningSeconds"), 30f)), Is.True);
+            Assert.That(fires.All(f => Mathf.Approximately(Field<float>(f, "speed"), 0.7f)), Is.True);
+            Assert.That(fires.All(f => !Field<Transform>(f, "visual").gameObject.activeSelf), Is.True);
             var firstBoundary = Field<Transform>(fires[0], "boundary");
             var secondBoundary = Field<Transform>(fires[1], "boundary");
             var shelter = FloorBounds(Find("SplitRouteCourse/ShelterDeck"));
@@ -183,13 +199,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void SixPoles_KeepOriginalIndicesAndBothCooperationGates()
+        public void TenPoles_KeepOriginalIndicesAndBothCooperationGates()
         {
             var systems = All<HumanCannonPoleSystem>();
             Assert.That(systems, Has.Length.EqualTo(1));
-            Assert.That(systems[0].PoleCount, Is.EqualTo(6));
+            Assert.That(systems[0].PoleCount, Is.EqualTo(10));
             var poles = Field<HumanCannonPole[]>(systems[0], "poles");
-            Assert.That(poles, Has.Length.EqualTo(6));
+            Assert.That(poles, Has.Length.EqualTo(10));
             Assert.That(poles, Has.All.Not.Null);
             CollectionAssert.AllItemsAreUnique(poles);
             CollectionAssert.AreEquivalent(All<HumanCannonPole>(), poles);
@@ -209,7 +225,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(gates[0].transform.root.name, Is.EqualTo("PoleGateCourse"));
             foreach (var gate in gates)
             {
-                Assert.That(gate.transform.Find("SawVisual").childCount, Is.EqualTo(13));
+                Assert.That(gate.transform.Find("SawVisual").childCount, Is.EqualTo(19));
                 Assert.That(gate.transform.Find("SawVisual/GateSawDisc0/Disc"), Is.Not.Null);
                 Assert.That(gate.transform.Find("Barrier").GetComponentsInChildren<Renderer>(true).All(r => !r.enabled), Is.True);
             }
@@ -308,8 +324,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var access = FloorBounds(Find("SplitRouteCourse/ShelterLiftAccess"));
             var firstFloor = FloorBounds(Find("SplitRouteCourse/FirstCourseFloor"));
             var deck = FloorBounds(Find("SplitRouteCourse/ShelterDeck"));
-            Assert.That(access.min.x, Is.EqualTo(-28).Within(0.001f));
-            Assert.That(access.max.x, Is.EqualTo(-15).Within(0.001f));
+            Assert.That(access.min.x, Is.EqualTo(-35).Within(0.001f));
+            Assert.That(access.max.x, Is.EqualTo(-22).Within(0.001f));
             Assert.That(access.min.z, Is.EqualTo(63).Within(0.001f));
             Assert.That(access.max.z, Is.EqualTo(66).Within(0.001f));
             Assert.That(access.max.y, Is.EqualTo(0).Within(0.001f));
@@ -325,14 +341,14 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void ShelterAccess_HasBodyClearanceThroughFenceOnlyAfterFirstGate()
+        public void ShelterAccess_HasBodyClearanceWithSideFencesRemoved()
         {
             var solids = All<Collider>().Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger).ToArray();
-            var passage = new Bounds(new Vector3(-15, 0.8f, 64.5f), new Vector3(1, 1.58f, 2.98f));
+            var passage = new Bounds(new Vector3(-22, 0.8f, 64.5f), new Vector3(1, 1.58f, 2.98f));
             var blockers = solids.Where(c => c.bounds.Intersects(passage)).Select(c => c.name).ToArray();
             Assert.That(blockers, Is.Empty, "z63..66 출입구는 캐릭터 높이까지 막힘이 없어야 합니다.");
-            Assert.That(solids.Any(c => c.bounds.Contains(new Vector3(-15, 1, 46))), Is.True, "구간 중간 관문 바로 전 측벽 보존");
-            Assert.That(solids.Any(c => c.bounds.Contains(new Vector3(-15, 1, 68))), Is.True, "출입구 뒤 측벽 보존");
+            Assert.That(solids.Any(c => c.bounds.Contains(new Vector3(-22, 1, 46))), Is.False, "구간 중간 측벽 제거");
+            Assert.That(solids.Any(c => c.bounds.Contains(new Vector3(-22, 1, 68))), Is.False, "출입구 뒤 측벽 제거");
             var firstGate = All<HumanCannonSawGate>().OrderBy(g => g.transform.position.z).First();
             Assert.That(FloorBounds(Find("SplitRouteCourse/ShelterLiftAccess")).min.z,
                 Is.GreaterThan(firstGate.transform.position.z + GameSettings.Base.Character.CapsuleRadius));
@@ -350,7 +366,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var body = playerPrefab.GetComponent<CharacterController>();
             Assert.That(body, Is.Not.Null);
             float drop = deck.max.y - lift.StartPosition.y;
-            float verticalSpeed = Mathf.Sqrt(2f * character.Gravity * character.JumpHeight);
+            float verticalSpeed = Mathf.Sqrt(2f * character.Gravity * GameSettings.HumanCannon.JumpHeight);
             float time = (verticalSpeed + Mathf.Sqrt(verticalSpeed * verticalSpeed + 2f * character.Gravity * drop)) / character.Gravity;
             float reach = character.FreeMoveSpeed * time + 2f * (character.CapsuleRadius + body.skinWidth);
             float liftGap = deck.min.x - (lift.StartPosition.x + lift.HalfSize.x);
@@ -366,7 +382,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         public void ShelterSideGap_HasNoFixedSupportBetweenDeckAndLowerLift()
         {
             // 기존 측벽의 두께를 제외한 옆 틈. 접근 통로와 첫 코스 바닥도 이 안으로 뻗지 않아야 한다.
-            var gap = new Bounds(new Vector3(-18.6f, -2, 69), new Vector3(6.6f, 15.8f, 5.8f));
+            var gap = new Bounds(new Vector3(-25.6f, -2, 69), new Vector3(6.6f, 15.8f, 5.8f));
             var blockers = All<Collider>().Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger)
                 .Where(c => c.GetComponentInParent<HumanCannonTransport>() == null && c.bounds.Intersects(gap))
                 .Select(c => c.name).ToArray();
