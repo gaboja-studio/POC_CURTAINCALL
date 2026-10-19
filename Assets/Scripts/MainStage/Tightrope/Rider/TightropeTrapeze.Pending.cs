@@ -6,6 +6,19 @@ namespace CurtainCall.Tightrope
 {
     public sealed partial class TightropeTrapeze
     {
+#if UNITY_EDITOR
+        public event System.Action<string> RequestObserved;
+#endif
+        [System.Diagnostics.Conditional("UNITY_EDITOR")]
+        void ObserveRequest(ulong actor, string phase, Command action, int pole)
+        {
+#if UNITY_EDITOR
+            if (RequestObserved == null || action == Command.Swing || action == Command.Sync) return;
+            var p = Find(actor);
+            var m = p != null ? p.GetComponent<PlayerMover>() : null;
+            RequestObserved.Invoke($"{phase} actor={actor} command={action} pole={pole} active={Active} airborne={p?.IsAirborne} control={m?.ControlEnabled} pass={m?.PassThrough} eligible={(p != null && Eligible(p))} position={p?.transform.position} grab={(p != null && pole >= 0 && CanGrab(p,pole))}");
+#endif
+        }
         const double RequestPositionGrace = .35d;
         sealed class PendingRequest
         {
@@ -28,7 +41,7 @@ namespace CurtainCall.Tightrope
             pendingRequests.Remove(actor);
             var request = new PendingRequest { Action = action, Round = round, Pole = pole,
                 Revision = revision, Token = token, Until = until };
-            if (!PendingRequestValid(actor, request)) { Publish(actor); return; }
+            if (!PendingRequestValid(actor, request)) { ObserveRequest(actor, "invalid", action, pole); Publish(actor); return; }
             if (!TryCompletePendingRequest(actor, request)) pendingRequests[actor] = request;
         }
 
@@ -41,7 +54,7 @@ namespace CurtainCall.Tightrope
             {
                 if (!pendingRequests.TryGetValue(actor, out var request)) continue;
                 if (!PendingRequestValid(actor, request))
-                { pendingRequests.Remove(actor); if (Alive(actor)) Publish(actor); continue; }
+                { ObserveRequest(actor, "expired", request.Action, request.Pole); pendingRequests.Remove(actor); if (Alive(actor)) Publish(actor); continue; }
                 TryCompletePendingRequest(actor, request);
             }
             pendingActors.Clear();
@@ -86,6 +99,7 @@ namespace CurtainCall.Tightrope
                 if (!CanAttach(player, request.Pole)) return false;
                 state.Lower = actor;
             }
+            ObserveRequest(actor, "accepted", request.Action, request.Pole);
             state.Revision++; pendingRequests.Remove(actor); flights.Remove(actor); Publish();
             return true;
         }

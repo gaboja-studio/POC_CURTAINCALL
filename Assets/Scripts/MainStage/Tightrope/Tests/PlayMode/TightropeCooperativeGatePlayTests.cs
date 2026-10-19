@@ -101,6 +101,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Set(replica, "InboundState", Get(replica, "OutboundState"));
                 Call(replica, "TransformStateUpdate");
                 Physics.SyncTransforms();
+                // 위치/부상을 검사하는 배치 완료 대역. 실제 복귀 통신은 Multiplayer 회귀 검사에서 다룬다.
+                ((IDictionary)Get(run, "placedPlayers"))[helper] = (int)Get(helper, "RestartVersion");
                 yield return null;
                 Assert.That(Vector3.Distance(helper.transform.position, basePosition), Is.LessThan(.01f));
                 if (injured)
@@ -269,7 +271,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator CooperativeGateBotBehindDiscKeepsWalkingUntilRearPlate()
+        public IEnumerator CooperativeGateBotBehindDiscOnlyWalksToRearPlateAsSecondFloor()
         {
             yield return BeginPerformance();
             ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
@@ -283,11 +285,16 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             {
                 ConfigureStationaryGateForTest(saws, settings, 6f);
                 helper = CreatePracticeBotTestPartner(1, 4f);
-                // 발판 앞 경계는 7.4m다. 경계에 서면 실제 버튼이 먼저 눌리므로 그 앞에서 입력을 검사한다.
-                yield return StandOnRopeForSawTest(1, 7.3f);
+                // 확대된 톱의 몸통 접촉 끝(7.35m)과 발판 시작(7.4m) 사이에서 입력을 검사한다.
+                yield return StandOnRopeForSawTest(1, 7.39f);
+                yield return Until(() => !(bool)Get(player, "IsAirborne"), 2f, "봇 판단 전 공유 착지 상태");
                 var brain = Activator.CreateInstance(GameType("CurtainCall.Tightrope.TightropePracticeBotBrain"), new object[] { player, helper });
                 var input = Call(brain, "BuildInput");
-                Assert.That((float)Get(input, "Move"), Is.EqualTo(1f), "톱 중심을 지났다는 이유만으로 발판 앞에서 멈추지 않는다.");
+                Assert.That((float)Get(input, "Move"), Is.Zero, "담당 층이 아닌 봇은 뒤 버튼을 먼저 밟지 않는다.");
+                StringAssert.Contains("2층 담당", (string)Get(brain, "Status"));
+                Set(brain, "gateLaunchFloor", 2);
+                input = Call(brain, "BuildInput");
+                Assert.That((float)Get(input, "Move"), Is.EqualTo(1f), "2층 담당은 톱 중심을 지나도 뒤 버튼까지 전진한다.");
             }
             finally
             {
