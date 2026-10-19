@@ -102,7 +102,7 @@ namespace CurtainCall.Network.PlayerSync
         public void RequestState(PlayerState next)
         {
             if (!IsSpawned || !IsOwner) return;
-            RequestStateRpc(next);
+            RequestStateRpc(next, restartCount.Value);
         }
 
         /// <summary>호스트: 요청 없이 상태를 바로 정한다.</summary>
@@ -303,8 +303,10 @@ namespace CurtainCall.Network.PlayerSync
         }
 
         [Rpc(SendTo.Server)]
-        void RequestStateRpc(PlayerState next)
+        void RequestStateRpc(PlayerState next, int requestedRestartCount)
         {
+            // 재시작을 아직 받지 못한 화면의 이전 추락 요청은 새 시도에 적용하지 않는다.
+            if (requestedRestartCount != restartCount.Value) return;
             if (state.Value == next) return;
             if (ServerCanChangeState != null && !ServerCanChangeState(this, next)) return;
             // 추락 요청은 장소의 사망 상태로 바꾼다(탈출로 = 리타이어)

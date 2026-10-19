@@ -161,7 +161,12 @@ namespace CurtainCall.Tightrope.Results
             Broadcast();
         }
 
-        public void Confirm(bool succeeded, TightropeEndReason reason, float elapsed, float remaining, float performanceElapsed)
+        public void Confirm(bool succeeded, TightropeEndReason reason, float elapsed, float remaining, float performanceElapsed) =>
+            ConfirmWithFinishers(succeeded, reason, elapsed, remaining, performanceElapsed, null);
+
+        /// <summary>공용 공연에서는 플레이어를 Arrived로 잠그지 않고 도착자 명부만 기록한다.</summary>
+        public void ConfirmWithFinishers(bool succeeded, TightropeEndReason reason, float elapsed, float remaining,
+            float performanceElapsed, ISet<ulong> directFinishers)
         {
             if (session == null || !session.IsHost || !attemptOpen || Find(AttemptId) != null
                 || reason > TightropeEndReason.TimeExpired || (int)reason < 0
@@ -173,7 +178,7 @@ namespace CurtainCall.Tightrope.Results
             {
                 person.outcome = (byte)(!person.connected ? ParticipantOutcome.Disconnected
                     : (PlayerState)person.state == PlayerState.Fallen ? ParticipantOutcome.Fallen
-                    : (PlayerState)person.state == PlayerState.Arrived ? ParticipantOutcome.DirectFinish
+                    : (PlayerState)person.state == PlayerState.Arrived || directFinishers?.Contains(person.clientId) == true ? ParticipantOutcome.DirectFinish
                     : succeeded ? ParticipantOutcome.CompanionSuccess : ParticipantOutcome.Unfinished);
             }
             latestData = new ResultData

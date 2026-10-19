@@ -10,13 +10,17 @@ namespace CurtainCall.Tightrope.Fire
         TightropeFire fire;
         TightropeCourse course;
         Transform chase;
-        readonly List<Transform> segments = new();
+        readonly List<Transform[]> segments = new();
+        readonly List<Vector2> segmentSpans = new(FireCourseSpans.MaximumPieces);
         Material flame, warning;
         FireSettings shown;
         int shownRound = -1;
+        float[] burnVisibleUntil = System.Array.Empty<float>();
 
         void Awake()
         {
+            // 화재 판정은 TightropeFire가 계속 처리하며, 숨김 봇은 표시만 생략한다.
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) { enabled = false; return; }
             fire = GetComponent<TightropeFire>();
             var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
             flame = new Material(shader) { color = new Color(1f, 0.15f, 0.03f) };
@@ -28,8 +32,7 @@ namespace CurtainCall.Tightrope.Fire
         {
             course = TightropeCourse.Current;
             var settings = fire.Settings;
-            bool available = settings != null && course != null && TightropeRun.Current != null
-                && fire.Round == TightropeRun.Current.Round;
+            bool available = settings != null && course != null && fire.IsPerformanceActive;
             if (!available) { Hide(); return; }
             if (shown != settings || shownRound != fire.Round) Rebuild(settings);
             chase.gameObject.SetActive(fire.IsChasing);
@@ -45,23 +48,38 @@ namespace CurtainCall.Tightrope.Fire
                 int lane = segment.lane - 1;
                 bool burning = fire.IsSegmentActive(i);
                 bool pending = fire.WarningRemaining(i) >= 0f;
-                var view = segments[i];
-                bool visible = lane >= 0 && lane < course.LaneCount && segment.to > segment.from && (burning || pending);
-                view.gameObject.SetActive(visible);
-                if (!visible) continue;
-                float height = burning ? 0.6f : 0.06f;
-                view.position = course.GetLanePosition(lane, (segment.from + segment.to) * 0.5f) + Vector3.up * (height * 0.5f + 0.02f);
-                view.rotation = Quaternion.LookRotation(course.Forward);
-                view.localScale = new Vector3(course.Shape.RopeWalkWidth, height, segment.to - segment.from);
-                view.GetComponent<Renderer>().sharedMaterial = burning ? flame : warning;
+                if (burning && burnVisibleUntil[i] < 0f) burnVisibleUntil[i] = Time.time + 2f;
+                bool showingFlame = burning && Time.time < burnVisibleUntil[i];
+                bool visible = lane >= 0 && lane < course.LaneCount && segment.to > segment.from && (showingFlame || pending);
+                fire.GetSegmentSpans(i, segmentSpans);
+                for (int piece = 0; piece < segments[i].Length; piece++)
+                {
+                    var view = segments[i][piece];
+                    bool showPiece = visible && piece < segmentSpans.Count;
+                    view.gameObject.SetActive(showPiece);
+                    if (!showPiece) continue;
+                    var span = segmentSpans[piece];
+                    float height = burning ? 0.6f : 0.06f;
+                    view.position = course.GetLanePosition(lane, (span.x + span.y) * 0.5f) + Vector3.up * (height * 0.5f + 0.02f);
+                    view.rotation = Quaternion.LookRotation(course.Forward);
+                    view.localScale = new Vector3(course.Shape.RopeWalkWidth, height, span.y - span.x);
+                    view.GetComponent<Renderer>().sharedMaterial = burning ? flame : warning;
+                }
             }
         }
 
         void Rebuild(FireSettings settings)
         {
-            foreach (var segment in segments) Destroy(segment.gameObject);
+            foreach (var pieces in segments) foreach (var piece in pieces) Destroy(piece.gameObject);
             segments.Clear();
-            for (int i = 0; i < settings.segments.Length; i++) segments.Add(Box($"SegmentFire{i + 1}"));
+            for (int i = 0; i < settings.segments.Length; i++)
+            {
+                var pieces = new Transform[FireCourseSpans.MaximumPieces];
+                for (int piece = 0; piece < pieces.Length; piece++) pieces[piece] = Box($"SegmentFire{i + 1}Part{piece + 1}");
+                segments.Add(pieces);
+            }
+            burnVisibleUntil = new float[settings.segments.Length];
+            System.Array.Fill(burnVisibleUntil, -1f);
             shown = settings;
             shownRound = fire.Round;
         }
@@ -82,7 +100,7 @@ namespace CurtainCall.Tightrope.Fire
         void Hide()
         {
             if (chase != null) chase.gameObject.SetActive(false);
-            foreach (var segment in segments) segment.gameObject.SetActive(false);
+            foreach (var pieces in segments) foreach (var piece in pieces) piece.gameObject.SetActive(false);
         }
 
         void OnDisable() => Hide();
