@@ -2,7 +2,7 @@
 
 ## 병합 결과
 
-- 기능 PR 병합 미실시. 2026-10-20 private main 6030fe10, 공개 feat/humanoid-characters b230924 저장·push 완료. 최신 dev 기반 원격 통합 브랜치 준비 후 작업 브랜치에 통합 기준을 충돌 없이 합쳤다. PR 본문 확인·등록은 남아 있다.
+- 기능 PR 병합 미실시. 2026-10-20 private main 6030fe10, 공개 feat/humanoid-characters b230924 저장·push 완료. 최신 dev 기반 원격 통합 브랜치 준비 후 작업 브랜치에 통합 기준을 충돌 없이 합쳤다. 사용자가 CC-152 연결·본문을 승인해 PR #188(https://github.com/gaboja-studio/POC_CURTAINCALL/pull/188)을 등록했다. 병합 승인은 별도다.
 
 ## 공동 테스트
 
