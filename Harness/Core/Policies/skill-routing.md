@@ -27,6 +27,7 @@ Skill 위치: `Harness/Core/Skills/<name>.md`, `Harness/Engine/Unity/Skills/<nam
 | "Task-○○○ 계획 세워줘" | `plan-task` |
 | "Task-○○○ 인계 전 점검해줘", "인계해줘" | `handoff-to-member` |
 | "○○ 통합 병합 진행해줘" | `merge-integration` |
+| "부모 변경을 자식 통합에 내려줘", "○○ 통합 동기화 PR 준비해줘" | `sync-integration` (미리보기 후 별도 실행 승인) |
 | "○○ 통합 마무리해줘" | `close-integration` |
 
 ## 공통 규칙

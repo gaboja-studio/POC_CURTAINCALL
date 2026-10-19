@@ -23,7 +23,7 @@ source: human (2026-10-08·10-15 PM @MoHoDu, 장소 10454669·게임 흐름 1556
 
 - 2026-10-15 / PM: 공연장 담당을 @lakuase2에서 **@RagSpirin**로 변경. 탈출로·대기실·백스테이지 담당과 과거 Done/History 작성자는 유지한다.
 - 공간 작업 브랜치(`feat/*` 등)는 자기 소속 통합 브랜치로만 PR한다. 인간 대포는 `integration/main-stage-human-cannon`(Base `integration/main-stage`)에 단계별 Squash, 부모에는 Merge commit([브랜치 전략](branch-strategy.md)). 기존 main-stage는 유지한다.
-- 공간 표는 경로 안내이지 포괄 수정 권한이 아니다. Task-025는 맵 배치 씬만, 인간 대포 Task는 `MainStage/HumanCannon/` 코드·테스트 구역만 순차 배정한다. 준비 브랜치·예약 구역은 착수 권한이 아니다.
+- 공간 표는 경로 안내이지 포괄 수정 권한이 아니다. Task-025는 맵 배치 씬만, 인간 대포 Task는 `MainStage/HumanCannon/` 코드·테스트 구역만 순차 소유한다. 2026-10-15 PM이 040~044 전부 @RagSpirin 인계 완료·순차 실행을 승인했다([순차 인계 결정](Human-cannon/sequential-handoff.md)); 현재 041만 활성 소유하며 후속 전환에 추가 인계 승인은 필요 없다.
 - 맵 배치 씬은 해당 공간 통합 안에서 Task 1개만 소유한다(공용 파일 소유 표).
 - 여러 공간이 함께 쓰는 코드는 `Assets/Scripts/Systems/`(네트워크·플레이어·카메라·세팅·기록), 테스트 씬은 `Assets/Scenes/Tests/Systems/`에 둔다. 공간 Task는 읽기만 하고, 수정은 PM이 배정한 Task에서만 한다.
 - `Assets/Resources/`는 모든 공간 공용이다. 공간 Task가 Resources 하위 폴더를 고치려면 해당 통합의 공용 파일 소유 표로 배정받는다.

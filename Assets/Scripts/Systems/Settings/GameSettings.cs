@@ -20,6 +20,9 @@ namespace CurtainCall.Settings
         [Tooltip("외줄 묘기 세팅(코스·진행·줄 위 동작·목마·보상).")]
         [SerializeField] TightropeSettings tightrope;
 
+        [Tooltip("인간대포 세팅(일반 점프 높이).")]
+        [SerializeField] HumanCannonSettings humanCannon;
+
         [Tooltip("대기실 세팅(상점·소품실·서비스·밤 정비).")]
         [SerializeField] WaitingRoomSettings waitingRoom;
 
@@ -32,6 +35,7 @@ namespace CurtainCall.Settings
         static GameSettings current;
         static BaseGameSettings fallbackBase;
         static TightropeSettings fallbackTightrope;
+        static HumanCannonSettings fallbackHumanCannon;
         static WaitingRoomSettings fallbackWaitingRoom;
         static ExplorationSettings fallbackExploration;
         static EscapeRouteSettings fallbackEscapeRoute;
@@ -58,6 +62,9 @@ namespace CurtainCall.Settings
 
         /// <summary>외줄 묘기 세팅.</summary>
         public static TightropeSettings Tightrope => Linked(Current.tightrope, ref fallbackTightrope);
+
+        /// <summary>인간대포 묘기 세팅.</summary>
+        public static HumanCannonSettings HumanCannon => Linked(Current.humanCannon, ref fallbackHumanCannon);
 
         /// <summary>대기실 세팅.</summary>
         public static WaitingRoomSettings WaitingRoom => Linked(Current.waitingRoom, ref fallbackWaitingRoom);

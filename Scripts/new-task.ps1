@@ -18,7 +18,7 @@ $integrationMeta = Get-RepoPath "Integrations/Active/Integration-$integrationSlu
 $template = Get-RepoPath 'Harness/Core/Templates/Task'
 if (-not $Assignee.StartsWith('@')) { $Assignee = "@$Assignee" }
 
-& git -C $RepoRoot fetch origin --prune --quiet
+& git -C $RepoRoot -c submodule.recurse=false fetch --no-recurse-submodules origin --prune --quiet
 if ($LASTEXITCODE -ne 0) { throw '원격 Task와 브랜치를 확인하지 못해 번호 발급을 중단합니다.' }
 
 $commonDir = (& git -C $RepoRoot rev-parse --path-format=absolute --git-common-dir).Trim()

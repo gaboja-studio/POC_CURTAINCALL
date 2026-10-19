@@ -25,6 +25,7 @@ MonoBehaviour:
     restDuration: 300
     guideRestDuration: 300
     recallAlarmLeadTime: 60
+    failedPerformanceHold: 2
   itemCarry:
     twoArmSlots: 2
     oneArmSlots: 1
@@ -73,8 +74,10 @@ MonoBehaviour:
     limbLifetime: 0
   spaceTransition:
     mode: 0
-    hubScene: SpaceLink
+    hubScene: Lobby
     performanceScene: DummyPerformance
+    tightropeScene: proto_0.0.2
+    humanCannonScene: HumanCannon
     waitingRoomScene: WaitingRoomBase
     explorationScene: DummyExploration
     escapeRouteScene: DummyEscapeRoute
