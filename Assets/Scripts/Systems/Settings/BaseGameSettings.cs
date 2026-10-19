@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace CurtainCall.Settings
 {
@@ -22,7 +24,7 @@ namespace CurtainCall.Settings
     }
 
     /// <summary>
-    /// 공통 세팅(세팅 5묶음 중 "공통"): 세션·런 진행·기물 소지·캐릭터·입력·균형 공통·연출·동기화. 묘기·공간과 상관없이 쓰는 값.
+    /// 공통 세팅(세팅 5묶음 중 "공통"): 세션·런 진행·기물 소지·캐릭터·입력·균형 공통·연출·동기화·음성 채팅. 묘기·공간과 상관없이 쓰는 값.
     /// 에셋: Assets/Resources/Settings/GameSettings/BaseGameSettings.asset. <see cref="GameSettings.Base"/>로 읽는다.
     /// 기본값은 2026-10-03 프리팹 값(옮기기 전 값)과 같다. 런 진행·기물 소지는 2026-10-14 PM 결정값.
     /// </summary>
@@ -49,6 +51,8 @@ namespace CurtainCall.Settings
         [SerializeField] BodyDamageSettings bodyDamage = new();
         [Header("장소 전환")]
         [SerializeField] SpaceTransitionSettings spaceTransition = new();
+        [Header("음성 채팅")]
+        [SerializeField] VoiceChatSettings voiceChat = new();
 
         public SessionSettings Session => session;
         public RunSettings Run => run;
@@ -60,6 +64,7 @@ namespace CurtainCall.Settings
         public SyncSettings Sync => sync;
         public BodyDamageSettings BodyDamage => bodyDamage;
         public SpaceTransitionSettings SpaceTransition => spaceTransition;
+        public VoiceChatSettings VoiceChat => voiceChat;
 
         void OnValidate() => balance.Validate();
 
@@ -399,5 +404,61 @@ namespace CurtainCall.Settings
             public string ExplorationScene => explorationScene;
             public string EscapeRouteScene => escapeRouteScene;
         }
+
+        /// <summary>
+        /// 음성 채팅. Start 흐름의 확정 씬에서만. 생존자 = 거리 감쇠, 사망자(추락·리타이어) = 거리 무관. 결정: Harness/Project/Decisions/voice-chat.md
+        /// 거리·감쇠 값은 채널에 들어갈 때 적용된다(플레이 중 바꾸면 다음 입장부터).
+        /// </summary>
+        [Serializable]
+        public sealed class VoiceChatSettings
+        {
+            [Tooltip("음성 채팅 사용. 끄면 음성 로그인·채널 입장을 하지 않는다.")]
+            [SerializeField] bool enabled = true;
+
+            [Tooltip("LAN(직접 IP) 테스트 접속에서도 음성을 쓴다. 인터넷·UGS 로그인이 필요하다. 기본 끔(자동 테스트가 로그인하지 않게).")]
+            [SerializeField] bool useOnLan;
+
+            [Tooltip("음성을 쓰는 씬 이름. Start 씬부터 실행해 이어진 흐름에서, 지금 씬이 이 목록에 있을 때만 동작한다. 백스테이지·탈출로 씬이 확정되면 추가.")]
+            [SerializeField] string[] scenes = { "Start", "Lobby", "WaitingRoomBase", "Tightrope", "HumanCannon" };
+
+            [Tooltip("생존자: 이 거리(m) 안에서는 최대 음량. 정수.")]
+            [SerializeField, Min(1)] int conversationalDistance = 2;
+
+            [Tooltip("생존자: 이 거리(m) 밖은 들리지 않는다. 정수, 대화 거리보다 커야 한다.")]
+            [SerializeField, Min(2)] int audibleDistance = 20;
+
+            [Tooltip("생존자: 대화 거리~들리는 거리 사이에서 줄어드는 모양. 직선 = 일정하게 줄어 들리는 거리에서 0(기본). 반비례 = 처음에 빨리 줄고 멀수록 천천히. 지수 = 매우 빨리 줄어듦.")]
+            [SerializeField] VoiceFadeModel fadeModel = VoiceFadeModel.Linear;
+
+            [Tooltip("생존자: 줄어드는 세기(배). 1 = 보통, 2 = 두 배 빨리 작아짐, 0.5 = 절반.")]
+            [SerializeField, Range(0.1f, 4f)] float fadeIntensity = 1f;
+
+            [Tooltip("말하는/듣는 위치 높이(캐릭터 발에서 m).")]
+            [SerializeField, Min(0f)] float mouthHeight = 1.55f;
+
+            [Tooltip("내 마이크 끄기/켜기 키(pressed). 기획 미정 임시값 — 조작키 합의 필요(control-keys.md).")]
+            [SerializeField] Key muteKey = Key.M;
+
+            public bool Enabled => enabled;
+            public bool UseOnLan => useOnLan;
+            public IReadOnlyList<string> Scenes => scenes ?? Array.Empty<string>();
+            public int ConversationalDistance => Mathf.Max(1, conversationalDistance);
+            public int AudibleDistance => Mathf.Max(audibleDistance, ConversationalDistance + 1);
+            public VoiceFadeModel FadeModel => fadeModel;
+            public float FadeIntensity => fadeIntensity;
+            public float MouthHeight => mouthHeight;
+            public Key MuteKey => muteKey;
+        }
+    }
+
+    /// <summary>생존자 음성이 거리에 따라 줄어드는 모양(Vivox AudioFadeModel과 같은 숫자).</summary>
+    public enum VoiceFadeModel
+    {
+        /// <summary>반비례: 대화 거리를 벗어나면 빨리 줄고 멀수록 천천히.</summary>
+        Inverse = 1,
+        /// <summary>직선: 들리는 거리에서 0이 되도록 일정하게 줄어든다.</summary>
+        Linear = 2,
+        /// <summary>지수: 대화 거리를 벗어나면 매우 빨리 줄어든다.</summary>
+        Exponential = 3,
     }
 }
