@@ -22,3 +22,4 @@ Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 - [mppm-clone-missing-files.md](mppm-clone-missing-files.md) — MPPM 복제본(Library/VP/)이 새 폴더·asmdef를 놓쳐 가상 플레이어가 "Could not read file …asmdef"로 꺼짐. 2번 플레이어 창이 시작하자마자 꺼질 때
 - [additive-scene-swap-order.md](additive-scene-swap-order.md) — 추가 로드로 씬을 바꿀 때 새 씬을 먼저 붙이면 EventSystem 등이 겹침, 이전 씬을 닫고 붙임. Additive 씬 전환을 만들거나 EventSystem 2개 경고가 뜰 때
 - [overlay-ui-capture.md](overlay-ui-capture.md) — 카메라 캡처에 Overlay UI가 빠짐, capture_game_view source=screen 사용. AI가 UI를 캡처해 확인할 때
+- [eval-argument-too-long.md](eval-argument-too-long.md) — Windows에서 32KB 넘는 C#을 eval에 넘기면 "Argument list too long", eval_file로 실행. 긴 에디터 스크립트를 eval로 돌릴 때

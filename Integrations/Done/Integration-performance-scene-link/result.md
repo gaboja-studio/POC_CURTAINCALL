@@ -29,7 +29,7 @@
 
 ## 정리
 
-- [ ] 작업 브랜치 삭제
-- [ ] `dev` 병합 완료 (PR:)
-- [ ] `integration/*` 브랜치 삭제
-- [ ] 이 폴더를 `Integrations/Done/`으로 이동
+- [x] 작업 브랜치 삭제 (2026-10-18, feat/performance-scene-link·fix/performance-revival-race)
+- [x] `dev` 병합 완료 (PR: #156, f05dda6)
+- [x] `integration/*` 브랜치 삭제 (2026-10-18)
+- [x] 이 폴더를 `Integrations/Done/`으로 이동
