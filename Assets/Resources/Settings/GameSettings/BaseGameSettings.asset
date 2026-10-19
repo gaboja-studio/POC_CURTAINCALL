@@ -77,7 +77,7 @@ MonoBehaviour:
     mode: 0
     hubScene: Lobby
     performanceScene: DummyPerformance
-    tightropeScene: proto_0.0.2
+    tightropeScene: Tightrope
     humanCannonScene: HumanCannon
     waitingRoomScene: WaitingRoomBase
     explorationScene: DummyExploration
