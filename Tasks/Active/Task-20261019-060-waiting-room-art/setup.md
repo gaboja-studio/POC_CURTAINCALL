@@ -8,7 +8,7 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 이 Task와 관련된 JIRA 번호를 모두 적는다. PR의 "관련 JIRA 이슈" 칸에 자동으로 들어간다. 없으면 `없음`.
 
-- 관련 JIRA: 미정 (PM이 인계 전 기입)
+- 관련 JIRA: https://hrjoo122770.atlassian.net/browse/CC-142
 
 순차 gate 통합(`Active Task` 있음)은 실제 `https://.../browse/CC-번호` URL이 필수이며 없음·미정은 배정할 수 없다.
 
@@ -53,10 +53,10 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 ## 인계 전 체크 (PM)
 
-- [ ] 관련 JIRA 번호를 모두 적었다
+- [x] 관련 JIRA 번호를 모두 적었다
 - [x] Unity에서 테스트 씬을 만들고 저장했다 (`.meta` 생성됨) — 기존 `WaitingRoomBase.unity` 사용
 - [x] 스크립트·에셋 폴더를 만들었다 (빈 폴더에는 `.gitkeep`) — 기존 폴더 사용
-- [ ] `plan.md`에 공동 테스트 항목을 합의해 적었다
+- [x] `plan.md`에 공동 테스트 항목을 합의해 적었다
 
 체크가 끝나면 `assign-task.ps1`이 기술 배정 준비를 올리고 작업 브랜치를 만든다. 기존 준비 branch는 `-UsePreparedBranch`로 검증 후 배정 문서 sync PR을 만든다(자동 병합·강제 이동 없음). 실제 전달 todo는 PM이 별도로 확인한다.
 

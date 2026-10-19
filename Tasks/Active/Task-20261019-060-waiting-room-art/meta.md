@@ -2,7 +2,7 @@
 
 - **Title:** 대기실 그레이박스 실제 에셋 고도화
 - **Type:** feat
-- **Status:** scaffolded
+- **Status:** assigned
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:** common-game-systems
 - **Current Skill:** start-work
