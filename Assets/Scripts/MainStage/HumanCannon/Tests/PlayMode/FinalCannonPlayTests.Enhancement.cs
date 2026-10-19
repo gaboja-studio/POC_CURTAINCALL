@@ -1,0 +1,124 @@
+using System;
+using System.Collections;
+using System.Linq;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
+
+namespace CurtainCall.HumanCannon.Tests
+{
+    public sealed partial class FinalCannonPlayTests
+    {
+        // 기존 LAN 테스트와 같이 입력 프레임을 주입한다. 실제 키보드·마우스 검사는 아니다.
+        // 잡기 직전 위치만 준비하고 점유, 반동, 시간 경과, 톱 접촉은 실제 호스트 업데이트로 확인한다.
+        [UnityTest]
+        public IEnumerator UnlimitedLinkedPole_RemainsHeldBeyondEightSeconds_ThenReleasesNormally()
+        {
+            DisableEnhancementThreats();
+            const int index = 1; // 기존 첫 구간 관문 해제봉
+            yield return GrabEnhancementPole(index);
+            var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
+            var pole = (Component)Call(poles, "Pole", index);
+            var state = Call(poles, "State", index);
+            var gate = Get(pole, "LinkedGate");
+            Assert.IsNotNull(gate);
+            Assert.IsTrue((bool)Get(state, "IsUnlimitedHold"));
+            double started = (double)Get(poles, "Clock");
+            while ((double)Get(poles, "Clock") - started < 8.5)
+            {
+                Assert.AreEqual(index, Get(pilot, "HeldPole"), "기존 8초가 지나도 자동으로 손을 놓지 않는다.");
+                Assert.AreEqual("Retracted", Get(gate, "Phase").ToString(), "협동 관문 정지는 점유 중 유지한다.");
+                AssertBody(0);
+                yield return null;
+            }
+            PoleEnhancementInput(0, release: true);
+            Assert.AreEqual(-1, Get(pilot, "HeldPole"));
+            Assert.IsTrue(Flying, "Space로 놓으면 기존 도약 비행을 시작한다.");
+            Assert.IsFalse((bool)Get(state, "IsOccupied"));
+            Assert.AreEqual("Warning", Get(state, "Phase").ToString());
+            AssertBody(0);
+        }
+
+        [UnityTest]
+        public IEnumerator PoleSaw_ActualSwingAvoidsContact_ThenCrossingCutsWithoutForcingRelease()
+        {
+            DisableEnhancementThreats();
+            const int index = 1;
+            yield return GrabEnhancementPole(index);
+            var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
+            var pole = (Component)Call(poles, "Pole", index);
+            var anchor = Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonPoleSaw"), FindObjectsSortMode.None)
+                .Cast<Component>().Single(item => (Component)Get(item, "Pole") == pole);
+            var saw = (Behaviour)Get(anchor, "Hazard");
+            // 접촉 여부를 분리해서 재현한다. 왕복 궤도는 EditMode 검사에서 확인하며 여기서는 중앙에 고정한다.
+            HazardSet(saw, "travel", Vector3.zero);
+            Vector3 rest = (Vector3)Call(pole, "HangingPosition", 0f);
+            Vector3 forward = (Vector3)Get(pole, "Forward");
+            float deadline = Time.realtimeSinceStartup + 3;
+            while (Vector3.Dot(player.transform.position - rest, forward) < 1f && Time.realtimeSinceStartup < deadline)
+            {
+                PoleEnhancementInput(1);
+                yield return null;
+            }
+            Assert.That(Vector3.Dot(player.transform.position - rest, forward), Is.GreaterThanOrEqualTo(1f),
+                "입력으로 실제 몸을 수평 톱날의 앞뒤 접촉 범위 밖으로 움직인다.");
+            AssertBody(0);
+            saw.enabled = true;
+            double safeUntil = (double)Get(poles, "Clock") + 0.4;
+            while ((double)Get(poles, "Clock") < safeUntil)
+            {
+                PoleEnhancementInput(1);
+                AssertBody(0);
+                yield return null;
+            }
+            deadline = Time.realtimeSinceStartup + 3;
+            while (Convert.ToInt32(Get(player, "LostParts")) == 0 && Time.realtimeSinceStartup < deadline)
+            {
+                PoleEnhancementInput(-1);
+                yield return null;
+            }
+            AssertBody(4); // 공용 순서의 첫 부위인 왼다리. 접촉 피해 함수를 직접 호출하지 않는다.
+            Assert.AreEqual(index, Get(pilot, "HeldPole"), "부상만 입고 살아 있으면 계속 매달린다.");
+            Assert.IsTrue((bool)Get(Call(poles, "State", index), "IsUnlimitedHold"));
+            Assert.AreEqual("Retracted", Get(Get(pole, "LinkedGate"), "Phase").ToString(),
+                "새 공중 톱의 부상이 지상 관문을 임의로 재가동하지 않는다.");
+        }
+
+        IEnumerator GrabEnhancementPole(int index)
+        {
+            var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
+            var pole = (Component)Call(poles, "Pole", index);
+            Assert.IsNotNull(pole);
+            yield return Board(0);
+            yield return ReleaseThenArm();
+            Input(tapped: true);
+            Assert.IsTrue(Flying);
+            // 호스트가 승인한 발사 식별자를 유지한 채 접근 위치만 준비한다.
+            var grip = (Transform)Get(pole, "Grip");
+            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), Call(pole, "HangingPosition", 0f), grip.rotation, Vector3.zero);
+            Input(tapped: true);
+            yield return WaitUntil(() => (int)Get(pilot, "HeldPole") == index, 2, "봉 잡기 호스트 확정");
+            yield return null;
+            Assert.AreEqual(Actor, Get(Call(poles, "State", index), "Occupant"));
+        }
+
+        void DisableEnhancementThreats()
+        {
+            foreach (Behaviour hazard in Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonHazard"), FindObjectsSortMode.None))
+                hazard.enabled = false;
+            foreach (Behaviour wind in Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonWindZone"), FindObjectsSortMode.None))
+                wind.enabled = false;
+            foreach (Component fire in Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonFireWall"), FindObjectsSortMode.None))
+                HazardSet(fire, "killOnContact", false);
+        }
+
+        void PoleEnhancementInput(float move, bool release = false)
+        {
+            var frame = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerInputFrame"));
+            frame.GetType().GetField("Move").SetValue(frame, move);
+            frame.GetType().GetField("ActionPressed").SetValue(frame, release);
+            Call(pilot, "ReadInput", frame);
+        }
+    }
+}

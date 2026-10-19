@@ -31,12 +31,12 @@ namespace CurtainCall.HumanCannon
                     bool samePass = previousSample.Phase == FinalSawPhase.Active && previousSample.CycleIndex == Sample.CycleIndex;
                     Vector3 center = VerticalPosition(now);
                     ApplyContact(player, mover, horizontalOrigins.Length, before, feet,
-                        samePass ? VerticalPosition(previousClock) : center, center, transform.right, verticalRadius);
+                        samePass ? VerticalPosition(previousClock) : center, center, PassNormal, verticalRadius);
                     if (secondaryVerticalView != null)
                     {
                         center = SecondaryVerticalPosition(now);
                         ApplyContact(player, mover, horizontalOrigins.Length + 1, before, feet,
-                            samePass ? SecondaryVerticalPosition(previousClock) : center, center, transform.right, verticalRadius);
+                            samePass ? SecondaryVerticalPosition(previousClock) : center, center, PassNormal, verticalRadius);
                     }
                 }
                 previousFeet[player.OwnerClientId] = feet;

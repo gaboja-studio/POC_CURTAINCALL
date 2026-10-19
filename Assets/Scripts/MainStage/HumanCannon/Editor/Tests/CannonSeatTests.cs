@@ -69,6 +69,36 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(diagonal.y, Is.Zero);
         }
 
+        [TestCase(4.5f)]
+        [TestCase(3.6f)]
+        public void PoleAirControl_OppositeOrSideInputRemovesUnwantedMomentum(float controlSpeed)
+        {
+            var launched = new Vector3(0, 12, 14);
+            var reverse = CannonAirControl.SteerPoleMomentum(launched, Vector3.back * controlSpeed);
+            Assert.That(reverse, Is.EqualTo(Vector3.up * 12));
+            Assert.That((reverse + Vector3.back * controlSpeed).z, Is.LessThan(0));
+            var sideways = CannonAirControl.SteerPoleMomentum(launched, Vector3.right * controlSpeed);
+            Assert.That(sideways, Is.EqualTo(Vector3.up * 12));
+            Assert.That(CannonAirControl.SteerPoleMomentum(reverse, Vector3.forward * controlSpeed),
+                Is.EqualTo(reverse), "입력 방향을 되돌려도 제동한 반동이 되살아나지 않는다.");
+        }
+
+        [Test]
+        public void PoleAirControl_NoInputOrForwardInputPreservesLongJump_AndTurningCannotAddEnergy()
+        {
+            var launched = new Vector3(0, 12, 14);
+            Assert.That(CannonAirControl.SteerPoleMomentum(launched, Vector3.zero), Is.EqualTo(launched));
+            Assert.That(CannonAirControl.SteerPoleMomentum(launched, Vector3.forward * 4.5f), Is.EqualTo(launched));
+            var diagonal = new Vector3(1, 0, 1).normalized;
+            var turned = CannonAirControl.SteerPoleMomentum(launched, diagonal * 4.5f);
+            Assert.That(turned.y, Is.EqualTo(12));
+            Assert.That(Vector3.Dot(Vector3.ProjectOnPlane(turned, Vector3.up).normalized, diagonal), Is.EqualTo(1).Within(0.001f));
+            Assert.That(Vector3.ProjectOnPlane(turned, Vector3.up).magnitude, Is.LessThan(14));
+            var rotation = Quaternion.Euler(0, 135, 0);
+            Assert.That(Vector3.Distance(CannonAirControl.SteerPoleMomentum(rotation * launched, rotation * diagonal),
+                rotation * turned), Is.LessThan(0.001f), "카메라/코스가 돌아가도 같은 세계 방향으로 제동");
+        }
+
         [Test]
         public void AirControl_ReleasedOrStaleInput_DoesNotCarryIntoNextFrame()
         {

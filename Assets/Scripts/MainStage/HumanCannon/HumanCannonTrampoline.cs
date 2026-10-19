@@ -1,3 +1,4 @@
+using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -20,7 +21,7 @@ namespace CurtainCall.HumanCannon
         [Min(0.1f), SerializeField] float grabDistance = 2f;
         [Tooltip("수직 반동 속도(m/s). 자동 전진은 멈추고 WASD 조절은 유지한다. 다리 부상으로 감소하지 않는다.")]
         [Min(0.1f), SerializeField] float upwardSpeed = 12f;
-        [Tooltip("땅에서 점프해 첫 반동을 시작한 플레이어의 WASD 수평 조절 속도(m/s).")]
+        [Tooltip("땅에서 점프해 첫 반동을 시작한 플레이어의 WASD 수평 조절 속도(m/s). 트램폴린 운반 이동도 같은 기본 속도를 쓴다.")]
         [Min(0f), SerializeField] float groundBounceAirControlSpeed = 3f;
         [Tooltip("테스트용 모두 재시작 시 트램폴린도 최초 위치로 돌린다.")]
         [SerializeField] bool resetPoseOnRestart = true;
@@ -42,6 +43,7 @@ namespace CurtainCall.HumanCannon
         public Vector3 Surface => transform.position + Vector3.up * surfaceHeight;
         public Vector2 HalfSize => halfSize;
         public float UpwardSpeed => upwardSpeed;
+        public float CarryMoveSpeed => groundBounceAirControlSpeed;
         public int LocalBounceCount { get; private set; }
 
         void OnEnable()
@@ -130,13 +132,24 @@ namespace CurtainCall.HumanCannon
             handleShownHeld = null;
         }
 
-        void FollowCarrier(NetworkPlayer carrier)
+        void FollowCarrier(NetworkPlayer carrier, bool alignToCarrier = false)
         {
-            // 손잡이의 발 위치 anchor를 캐릭터에 붙이고 중앙을 정면에 둔다.
+            // 운반자는 3인칭 카메라의 수평 시선을 바라보며 옆걸음/뒷걸음한다.
+            // 다른 화면에서는 그 운반자가 공유한 몸 방향을 사용한다. 관찰자의 카메라는 사용하지 않는다.
             Vector3 handleOffset = Vector3.Scale(transform.InverseTransformPoint(Handle.position), transform.lossyScale);
-            if (TrampolineCarryPose.TryCalculate(carrier.transform.position, carrier.transform.forward,
+            Vector3 facing = alignToCarrier || !carrier.IsLocal ? carrier.transform.forward
+                : Vector3.ProjectOnPlane(transform.position - Handle.position, Vector3.up);
+            var view = CameraViewDirector.Current;
+            // 봇은 마우스 시선 없이 직접 이동 입력을 만들므로 기존 운반 방향을 유지한다.
+            if (carrier.IsLocal && !HumanCannonBotWorker.IsWorkerProcess && !InputGate.IsBlocked
+                && view != null && view.LocalPlayer == carrier && view.IsFreeThirdPerson)
+                facing = view.ViewForward;
+            if (TrampolineCarryPose.TryCalculate(carrier.transform.position, facing,
                 handleOffset, out var position, out var rotation))
+            {
                 transform.SetPositionAndRotation(position, rotation);
+                carrier.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(facing, Vector3.up));
+            }
         }
 
         void ResetPreviousPose()
@@ -196,7 +209,7 @@ namespace CurtainCall.HumanCannon
                     () => HandleRequest(actor, action, revision, station, launch, segment, position, rotation, true))) return;
                 if (!CanGrab(player) || !ownership.TryApply(CannonAction.Board, actor, revision)) return;
                 HumanCannonSystem.Current.StartCarrying(actor);
-                FollowCarrier(player);
+                FollowCarrier(player, true);
             }
             else if (action == TrampolineAction.Drop)
             {
