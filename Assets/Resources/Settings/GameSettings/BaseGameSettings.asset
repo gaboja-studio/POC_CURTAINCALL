@@ -78,6 +78,6 @@ MonoBehaviour:
     performanceScene: DummyPerformance
     tightropeScene: proto_0.0.2
     humanCannonScene: HumanCannon
-    waitingRoomScene: DummyWaitingRoom
+    waitingRoomScene: WaitingRoomBase
     explorationScene: DummyExploration
     escapeRouteScene: DummyEscapeRoute
