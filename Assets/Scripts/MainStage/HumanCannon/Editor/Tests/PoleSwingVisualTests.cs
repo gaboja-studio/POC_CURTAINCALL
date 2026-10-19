@@ -104,10 +104,10 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(pole.SwingLength, Is.EqualTo(8).Within(0.001f));
             float expectedAngle = 30, expectedSpeed = 0;
             PoleSwingMotion.Step(ref expectedAngle, ref expectedSpeed, 0, 0.1f, 9.81f, 8, 300, 80, 180, 0.4f);
-            object[] args = { 30f, 0f, 0f, 0.1f, 9.81f };
-            typeof(HumanCannonPole).GetMethod("Step", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(pole, args);
-            Assert.That((float)args[0], Is.EqualTo(expectedAngle).Within(0.0001f));
-            Assert.That((float)args[1], Is.EqualTo(expectedSpeed).Within(0.0001f));
+            float angle = 30, speed = 0;
+            pole.Step(ref angle, ref speed, 0, 0.1f, 9.81f);
+            Assert.That(angle, Is.EqualTo(expectedAngle).Within(0.0001f));
+            Assert.That(speed, Is.EqualTo(expectedSpeed).Within(0.0001f));
             Near(pole.HangingPosition(0), grip.position - Vector3.up * 1.5f);
             Near(pole.ReleaseVelocity(0, 100), pole.Forward * (8 * 100 * Mathf.Deg2Rad) + Vector3.up * 6);
         }

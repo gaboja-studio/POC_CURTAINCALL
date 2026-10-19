@@ -39,6 +39,9 @@ EditorBuildSettings:
     path: Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity
     guid: 1db908e4809e2d140a0a244c8a96c7db
   - enabled: 1
+    path: Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity
+    guid: a8d70bdd8ec014298bab43a4ba1f47f4
+  - enabled: 1
     path: Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity
     guid: 0ce9037bd7c44c8b9d57785c26620388
   m_configObjects:

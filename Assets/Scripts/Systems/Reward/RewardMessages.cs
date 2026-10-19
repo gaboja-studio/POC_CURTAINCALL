@@ -99,6 +99,8 @@ namespace CurtainCall.Reward
         public int generation;
         public long revision;
         public long balance;
+        // JsonUtility는 null 중첩 클래스를 빈 객체로 복원하므로 존재 여부를 별도로 전송한다.
+        public bool hasPerformance;
         public RewardIdentityData performance;
         public bool open;
         public int cheer;
@@ -107,6 +109,7 @@ namespace CurtainCall.Reward
         public int survivalBonus;
         public int cutBonus;
         public RewardPersonData[] segments;
+        public bool hasLatest;
         public RewardResultData latest;
         public int ledgerCount;
         public int ledgerStart;
@@ -116,12 +119,15 @@ namespace CurtainCall.Reward
         {
             if (segments == null || segments.Length > 64 || ledger == null || ledger.Length > 20)
                 throw new ArgumentException("공유 상태 크기 오류");
+            if ((hasPerformance && performance == null) || (hasLatest && latest == null))
+                throw new ArgumentException("공유 상태의 공연·결과가 없습니다.");
             var people = new RewardSegment[segments.Length];
             var entries = new FundEntry[ledger.Length];
             for (int i = 0; i < people.Length; i++) people[i] = segments[i].ReadSegment();
             for (int i = 0; i < entries.Length; i++) entries[i] = ledger[i].Read();
-            return new RewardSnapshot(session, generation, revision, balance, performance?.Read(), open,
-                new RewardRules(cheer, jeer, cap, survivalBonus, cutBonus), people, latest?.Read(), ledgerCount, ledgerStart, entries);
+            return new RewardSnapshot(session, generation, revision, balance, hasPerformance ? performance.Read() : null, open,
+                new RewardRules(cheer, jeer, cap, survivalBonus, cutBonus), people, hasLatest ? latest.Read() : null,
+                ledgerCount, ledgerStart, entries);
         }
 
         public static RewardStateData From(RewardSnapshot value)
@@ -133,10 +139,10 @@ namespace CurtainCall.Reward
             return new RewardStateData
             {
                 session = value.SessionId, generation = value.Generation, revision = value.Revision, balance = value.Balance,
-                performance = RewardIdentityData.From(value.Performance), open = value.IsOpen,
+                hasPerformance = value.Performance != null, performance = RewardIdentityData.From(value.Performance), open = value.IsOpen,
                 cheer = value.Rules.Cheer, jeer = value.Rules.Jeer, cap = value.Rules.Cap,
                 survivalBonus = value.Rules.AllSurvivedBonus, cutBonus = value.Rules.CutBonus,
-                segments = people, latest = RewardResultData.From(value.Latest), ledgerCount = value.LedgerCount,
+                segments = people, hasLatest = value.Latest != null, latest = RewardResultData.From(value.Latest), ledgerCount = value.LedgerCount,
                 ledgerStart = value.LedgerStart, ledger = entries
             };
         }

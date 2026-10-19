@@ -6,23 +6,15 @@ namespace CurtainCall.Damage
 {
     /// <summary>
     /// 외줄의 신체 손상 불이익(2026-10-04 PM 임시 규칙). 수치는 외줄 세팅(신체 손상 불이익)에서 읽는다.
-    /// - 다리 하나: 이동 느려짐. 두 다리는 게임 공통 기어가기 속도를 쓴다(여기서 더 줄이지 않음).
-    /// - 잃은 다리·팔마다 자연 흔들림 증가(다리 쪽 배율 × 팔 쪽 배율).
+    /// - 다리 손상: 공통 기어가기 감속을 포함해 외줄 최소 이동 속도를 유지한다. 점프·캡슐 크기는 공통 규칙을 쓴다.
+    /// - 외줄 기본 흔들림에 잃은 다리·팔마다 추가 증가(외줄 배율 × 다리 배율 × 팔 배율).
     /// - 두 다리: 착지 충격 증가(점프·옆줄 이동은 할 수 있지만 균형이 더 크게 흔들린다).
     /// - 팔: 목마 올라타기 가능 거리 감소.
-    /// 시작 정책이 빈 <see cref="BodyDamageEffects"/>의 기본 정책으로 등록된다(지금 콘텐츠는 외줄뿐).
+    /// 활성 외줄 코스의 CourseControlSwitcher가 참가자에게 적용하고, 코스를 떠나면 이전 정책으로 돌린다.
     /// </summary>
     [CreateAssetMenu(menuName = "CurtainCall/Body Penalty/Tightrope", fileName = "TightropeBodyPenalty")]
     public sealed class TightropeBodyPenalty : BodyPenaltyPolicy
     {
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void RegisterAsDefault() => BodyDamageEffects.DefaultPolicyFactory = () =>
-        {
-            var policy = CreateInstance<TightropeBodyPenalty>();
-            policy.name = "TightropeBodyPenalty (기본)";
-            return policy;
-        };
-
         public override BodyPenalty Evaluate(PlayerCondition condition)
         {
             var penalty = BodyPenalty.None;
@@ -32,8 +24,14 @@ namespace CurtainCall.Damage
             int legs = condition.LostLegCount;
             int arms = condition.LostArmCount;
 
-            if (legs == 1) penalty.MoveSpeed = rules.OneLegMoveSpeed;
-            penalty.Sway = (1f + rules.SwayPerLostLeg * legs) * (1f + rules.SwayPerLostArm * arms);
+            if (legs == 1) penalty.MoveSpeed = Mathf.Max(rules.MinimumInjuredMoveSpeed, rules.OneLegMoveSpeed);
+            if (legs >= 2)
+            {
+                float crawl = GameSettings.Base.BodyDamage.CrawlSpeedMultiplier;
+                if (crawl > 0f) penalty.MoveSpeed = Mathf.Max(crawl, rules.MinimumInjuredMoveSpeed) / crawl;
+            }
+            penalty.Sway = GameSettings.Tightrope.RopeMovement.NaturalSwayMultiplier
+                * (1f + rules.SwayPerLostLeg * legs) * (1f + rules.SwayPerLostArm * arms);
             if (legs >= 2)
             {
                 penalty.LandingShock = rules.LeglessLandingShock;

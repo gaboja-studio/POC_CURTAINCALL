@@ -1,7 +1,7 @@
 {
     "name": "CurtainCall.CameraRequests.Tests",
     "rootNamespace": "CurtainCall.Cameras.Tests",
-    "references": ["CurtainCall.CameraRequests"],
+    "references": ["CurtainCall.CameraRequests", "Unity.Cinemachine"],
     "includePlatforms": ["Editor"],
     "optionalUnityReferences": ["TestAssemblies"],
     "autoReferenced": false
