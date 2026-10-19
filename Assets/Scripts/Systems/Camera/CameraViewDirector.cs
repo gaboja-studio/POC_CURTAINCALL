@@ -143,8 +143,8 @@ namespace CurtainCall.Cameras
                 cursorReleased = true;
                 UnlockCursor();
             }
-            else if (mouse != null && mouse.leftButton.wasPressedThisFrame && !PointerBlocked(mouse.position.ReadValue()))
-                cursorReleased = false;
+            else if (mouse != null && mouse.leftButton.wasPressedThisFrame)
+                cursorReleased = PointerBlocked(mouse.position.ReadValue());
 
             bool lockNow = Application.isFocused && !cursorReleased && !inputBlocked;
             if (lockNow != cursorLocked) ScheduleKeyboardSync();
