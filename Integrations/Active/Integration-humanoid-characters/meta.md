@@ -33,5 +33,5 @@
 
 ## Decisions
 
-- Open: 실제 모델 선정, 재접속/퇴장 후 슬롯 재사용, 절단 부위별 표현은 구현 중 PM 결정.
-- Decided: dev 작업 폴더와 Library를 공유하지 않는 별도 worktree에서 PM이 직접 작업한다.
+- Open: 부상 전용 동작·공연 접점/접지 개선, 실제 다중 클라이언트 확인, 최종 아트·배포 권리 확인.
+- Decided: 별도 worktree·전용 Library, Body Type 1 사전 분할/캡·현재 pose 독립 비산, 기존 슬롯/빈 번호 재사용·Inspector 4색, 이동/부상 규칙 보존. 원격 통합 브랜치 준비는 PM 저장 승인 범위이며 기능 PR 병합 승인은 별도다.
