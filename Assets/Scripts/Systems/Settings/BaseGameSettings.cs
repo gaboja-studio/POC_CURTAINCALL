@@ -102,12 +102,16 @@ namespace CurtainCall.Settings
             [Tooltip("소집 경보 시점(초). 쉬는 시간이 이만큼 남으면 경보를 울린다. 기획 1분 = 60.")]
             [SerializeField, Min(0f)] float recallAlarmLeadTime = 60f;
 
+            [Tooltip("공연 실패 확정 뒤 묘기 화면을 비추는 시간(초). 이 시간이 지나야 다음 시간대·공간으로 넘어간다. 0이면 바로 넘어간다. 2026-10-19 PM 2초.")]
+            [SerializeField, Min(0f)] float failedPerformanceHold = 2f;
+
             public int DayCount => dayCount;
             public int PerformancesPerDay => performancesPerDay;
             public RestTimerMode RestTimerMode => restTimerMode;
             public float RestDuration => restDuration;
             public float GuideRestDuration => guideRestDuration;
             public float RecallAlarmLeadTime => recallAlarmLeadTime;
+            public float FailedPerformanceHold => failedPerformanceHold;
 
             /// <summary>1일차 <paramref name="index"/>번째(0부터) 공연 묘기. 없으면 빈 문자열.</summary>
             public string FirstDayTrick(int index) =>
