@@ -166,6 +166,7 @@ namespace CurtainCall.SpaceLink.Tests
         const string RewardsType = "CurtainCall.Reward.PerformanceRewards";
         const string DirectorType = "CurtainCall.SpaceLink.SpaceLinkDirector";
         const string EntryType = "CurtainCall.SpaceLink.CampaignPerformanceEntry";
+        const string PracticeBotType = "CurtainCall.HumanCannon.HumanCannonPracticeBot";
         const string AdapterType = "CurtainCall.SpaceLink.CampaignTightropeAdapter";
         const string RunType = "CurtainCall.Tightrope.TightropeRun";
         const string CourseType = "CurtainCall.Tightrope.TightropeCourse";
@@ -340,6 +341,8 @@ namespace CurtainCall.SpaceLink.Tests
             yield return AssertCannonCameraPolicy();
             Assert.AreEqual("Waiting", Get(session, "GameState").ToString());
             Assert.IsNull(PerformanceLinkReflection.InScene(SceneManager.GetSceneByName(CannonScene), EntryType));
+            var practiceBot = (Behaviour)PerformanceLinkReflection.InScene(SceneManager.GetSceneByName(CannonScene), PracticeBotType);
+            Assert.IsTrue(practiceBot != null && practiceBot.enabled, "독립 실행은 에디터 연습 봇을 유지한다.");
         }
 
         [UnityTest]
@@ -514,6 +517,8 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.IsNotNull(PerformanceLinkReflection.InScene(SceneManager.GetSceneByName(CannonScene), EntryType));
             if (additive) Assert.IsTrue(syntheticHub.isLoaded);
             else Assert.AreEqual(1, SceneManager.sceneCount);
+            var practiceBot = (Behaviour)PerformanceLinkReflection.InScene(SceneManager.GetSceneByName(CannonScene), PracticeBotType);
+            Assert.IsTrue(practiceBot == null || !practiceBot.enabled, "연결 공연은 인간대포 연습 봇 패널을 숨긴다.");
             yield return AssertCannonCameraPolicy();
         }
 
