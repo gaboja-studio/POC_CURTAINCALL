@@ -41,6 +41,9 @@
 | `Assets/Resources/Prefabs/UIs/BackstageHud/`, `Assets/Resources/Fonts/BackstageHud/` | Task-20261019-061 | 백스테이지·로비 HUD3종·필요 시 폰트 |
 | `Assets/Scenes/Tests/BackstageHud/` | Task-20261019-061 | 백스테이지·로비 독립 확인 씬 |
 
+| `Assets/Resources/Prefabs/UIs/Notifications/`, `Assets/Resources/Fonts/Notifications/` | Task-20261019-061 | 알림3종·필요 시 Static 폰트 |
+| `Assets/Scenes/Tests/Notifications/` | Task-20261019-061 | C8 배너·토스트 독립 확인 씬 |
+
 ## Decisions
 
 - Open: None

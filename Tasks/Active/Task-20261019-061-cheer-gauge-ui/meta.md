@@ -1,5 +1,4 @@
 # Task-20261019-061
-
 - **Title:** UI 리소스 확보·조합·테스트
 - **Type:** feat
 - **Status:** working
@@ -7,28 +6,22 @@
 - **Domain:** Unity Assets 구조·코드 작업 구역
 - **Current Skill:** integrate-editor
 - **Updated:** 2026-10-20
-
 Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별도) → working(작업 중) → submitted(PR 제출) → integrated(검증 통과) → done(dev 병합). 막히면 blocked.
-
 ## Workspace
-
 - **Integration:** integration/ui-resources
-- **Branch:** feat/ui-resources (아이콘까지 공개8cda879 저장. HUD private main38442263 push 완료, 공연·백스테이지/로비 공개 저장은 이번 문서 포함 save-work 실행. 정식 인계 없음)
+- **Branch:** feat/ui-resources (이전 HUD 공개4a39ef2e73a2acd9b29897de7b4c6f90a836814d/private38442263306d87cfcd761f990bbaed31fe6e9fc2 원격 저장 완료. 알림 private 커밋0a705e6c/main1c0f6f0c push 확인, 공개 결과는 이 문서 포함 save-work 실행. 정식 인계 없음)
 - **Previous Task:**
-
 ## Goal
-
-- 승인된 UI 키트의 필요한 리소스 확보·조합·독립 테스트. 현재 C1·공용 버튼4종·패널2종·공용 아이콘25종·공연 HUD C2/C3/P1·백스테이지 W1/C4/C5/W6·로비 L1이 대상이며 다른 UI는 사용자 지시 후 추가한다.
+- 승인된 UI 키트 확보·조합·독립 테스트. C1·버튼4종·패널2종·아이콘25종·공연C2/C3/P1·백스테이지W1/C4/C5/W6·로비L1에 C8 배너·오른쪽 토스트를 추가한다. 다른 UI는 사용자 지시 후 추가한다.
 - C1 원본 미리보기와 같은 상단 중앙 프리팹을 확인하고, 환호·야유·사망에 따른 실제 합계와 단원별 원호 변화를 확인한다.
 - 난도 상한100/150/200, 1~4명과 공연 내 색 고정을 지원한다. 기존 공연 씬 배치는 제외한다.
-
 ## Scope
-
 - 작업 구역·공용 파일·수정 금지 목록은 `setup.md`(PM 작성)가 기준이다.
 - AI Setup Allowed: 전용 worktree의 setup.md 작업 구역 내 폴더·프리팹·폰트·테스트 씬 생성. private C1·버튼 키트 import와 setup의 조립기/namespace 수정 허용. 기존 메인 폴더/공용씬/보상 코드 변경 금지.
-
 ## Decisions
-
+- Decided: 2026-10-20 PM 지금까지 저장 재요청. 알림 private 키트·공개 결과/하네스/gitlink 커밋·push 승인, 무관 변경 제외. 다음 C6 interaction 키트는 저장 완료 후 조사·계획하며 이번 커밋에서 제외.
+- Decided: 2026-10-20 PM 알림 계획 승인. C8 배너·오른쪽 토스트3프리팹·독립 씬·unscaled 모션·전수/회귀 검증. 원본58실파일/PNG22 보존, 표시15=신규5+재사용10 정본 읽기 전용. 삭제·Git 저장·실게임 연결·큐/우선순위 제외.
+- Progress: Notifications 프리팹3종/독립 씬·안전 builder·전수 목록/하네스 기록 완료. 강화PlayMode9/9 두 번·실제44상태 화면·독립Play2회·참조/보호baseline111 변경0 및 기존 UI 개별 회귀 통과. 최초 입력 실패/수집 중단 이력과 기존 폰트 미결 보존, 최종check-work 구역/문서/컴파일·EditMode798/798 PASS. 상세 notifications-verification.md.
 - Open: 공유 동적 TMP2개는 시작부터 dirty이며 백스테이지 baseline 대비 추가 SHA 차이. 공용 버튼 글리프 검사 실패 재현. 기존 dirty 백업이 없어 임의 복구/공유 폰트 재작성은 보류, PM 확인 필요. 상세는 backstage-hud-verification.md.
 - Decided: 2026-10-20 PM 공연·백스테이지/로비 HUD까지 저장 요청. private 두 키트·공개 결과·하네스·gitlink 저장/push, 공유 폰트 현재 수정 상태도 미결 기록과 함께 보존. 새 notifications는 다음 조립 대상이며 이번 저장에서 제외.
 - Decided: 2026-10-20 PM 백스테이지·로비 HUD 계획 승인. W1/C4/C5/W6/L1·프리팹3종·합성 확인 씬·전수 점검. 기존 정본 읽기 전용, 원본 전체 보존, 삭제·Git 저장·실게임 연결 제외.

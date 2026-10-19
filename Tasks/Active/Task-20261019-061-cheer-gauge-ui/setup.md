@@ -1,11 +1,9 @@
 # Setup
 
-PM 자체 작업. 2026-10-20 원격 통합 준비·작업 저장/push 승인. PR·병합·정식 인계는 별도다.
-
+PM 자체 작업. 2026-10-20 원격 통합 준비·작업 저장/push 승인, 후속 알림 키트/공개 결과 저장 재요청 적용. PR·병합·정식 인계는 별도다.
 ## JIRA
 
 - 관련 JIRA: 없음
-
 ## 작업 구역
 
 - 테스트 씬: `Assets/Scenes/Tests/CheerGauge/`
@@ -32,28 +30,28 @@ PM 자체 작업. 2026-10-20 원격 통합 준비·작업 저장/push 승인. PR
 - 백스테이지 에셋: `Assets/Resources/Prefabs/UIs/BackstageHud/`, 필요 시 `Assets/Resources/Fonts/BackstageHud/`.
 - PM 백스테이지 키트: `Assets/_ThirdParty/curtaincall_backstage_hud_v1/` — 2026-10-20 계획 승인. 신규14 importer/.meta, 제공 Runtime/조립기의 namespace·안전 API·초기화 보정 허용. 재사용18 정본 읽기 전용. 프리팹3종·독립 합성 확인 씬, 전체 원본 보존. 삭제·Git 저장·실게임 연결 제외.
 - 백스테이지 기록: `Harness/Project/Facts/backstage-hud.md`, 사실 index, Task 전수 목록·검증 및 Integration 소유 표.
+- 알림 씬·코드: `Assets/Scenes/Tests/Notifications/`, `Assets/Scripts/Systems/Notifications/`.
+- 알림 에셋: `Assets/Resources/Prefabs/UIs/Notifications/`, 필요 시 `Assets/Resources/Fonts/Notifications/`.
+- PM 알림 키트: `Assets/_ThirdParty/curtaincall_notifications_v1/` — 2026-10-20 계획 승인. 신규5 importer/.meta, 제공 Runtime/조립기의 namespace·안전 진입점·전역 초기화 격리 허용. 재사용10 정본 읽기 전용. 프리팹3종·독립 합성 확인 씬·제공 모션 검증, 원본 전체 보존. 삭제·Git 저장·실게임 연결·알림 정책 추가 제외.
+- 알림 기록: `Harness/Project/Facts/notifications.md`, 사실 index, Task 전수 목록·검증 및 Integration 소유 표.
 - 준비 기록: `Integrations/Active/Integration-cheer-gauge-ui/`
 - PM 승인 정리: `Assets/_ThirdParty/curtaincall_c1_v1/`의 미참조 제공 코드·문서·미리보기·제작 자료와 동반 .meta 삭제. 필수 PNG8·TTF2·라이선스·상위 .meta 보존.
 - PM 하네스 기록: `Harness/Project/Decisions/third-party-assets.md`, `Harness/Project/Facts/c1-cheer-gauge.md`, `Harness/Project/Facts/index.md`, `Harness/Project/Facts/common-buttons.md`.
 - Task 문서: 이 Task 폴더 (자동 포함)
-
 ## 예약 구역
 
 - 없음
-
 ## 배정된 공용 파일
 
 - `Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab` — 신규 전용 UI
 - `Assets/Resources/Prefabs/UIs/CommonButtons/`, `Assets/Resources/Fonts/CommonButtons/` — 버튼4종·폰트
-
 ## 수정 금지
 
 - `Assets/Scenes/` — 위 전용 테스트 씬 외
 - `Assets/Scripts/Systems/Reward/` — 공개 API 읽기·구독만 허용
 - `ProjectSettings/`
 - `Packages/`
-- `Assets/_ThirdParty/` — 원본 폴더 변경 금지. PM 승인 예외: 이 worktree에 C1 키트 로컬 복사·Unity import/.meta 및 위 승인 정리·버튼·패널·아이콘·공연 HUD·백스테이지 키트의 위 조립 범위만 허용. 메인 원본·다른 private 자산 변경 금지. PNG·제공 코드 공개 재배포 금지.
-
+- `Assets/_ThirdParty/` — 원본 폴더 변경 금지. PM 승인 예외: 이 worktree에 C1 키트 로컬 복사·Unity import/.meta 및 위 승인 정리·버튼·패널·아이콘·공연 HUD·백스테이지·알림 키트의 위 조립 범위만 허용. 메인 원본·다른 private 자산 변경 금지. PNG·제공 코드 공개 재배포 금지.
 ## 인계 전 체크 (PM)
 
 - [x] 관련 JIRA 번호를 모두 적었다
@@ -62,7 +60,6 @@ PM 자체 작업. 2026-10-20 원격 통합 준비·작업 저장/push 승인. PR
 - [x] `plan.md`에 공동 테스트 항목을 합의해 적었다
 
 정식 인계 없음. PM 본인의 승인된 로컬 구현이며 assign-task의 자동 커밋·push를 실행하지 않는다.
-
 ## 테스트 씬 처리
 
 - 결정: 미정 (유지 / 삭제)
