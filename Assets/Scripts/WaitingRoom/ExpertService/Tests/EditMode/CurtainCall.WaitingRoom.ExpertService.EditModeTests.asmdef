@@ -1,0 +1,8 @@
+{
+    "name": "CurtainCall.WaitingRoom.ExpertService.EditModeTests",
+    "rootNamespace": "CurtainCall.WaitingRoom.Tests",
+    "references": ["CurtainCall.WaitingRoom.ExpertService.Logic"],
+    "includePlatforms": ["Editor"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}

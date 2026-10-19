@@ -237,6 +237,13 @@ function Get-PrFlow {
     }
     if (($Head -cmatch '^(feat|refactor)/' -and $Base -like 'integration/*') -or
         ($Head -cmatch '^(fix|resource)/' -and ($Base -ceq (Get-BaseBranch) -or $Base -like 'integration/*'))) { return 'squash' }
+    # PM이 단일 Task로 승인해 meta Integration을 dev로 선언한 feat/refactor만 dev로 바로 간다.
+    if ($Head -cmatch '^(feat|refactor)/' -and $Base -ceq (Get-BaseBranch)) {
+        & git -C $script:RepoRoot show-ref --verify --quiet "refs/heads/$Head"
+        $declared = if ($LASTEXITCODE -eq 0) { @(Get-TaskRefMetadata -Ref "refs/heads/$Head" | Where-Object { $_.Branch -ceq $Head }) } else { @() }
+        if ($declared.Count -eq 1 -and (Get-RefTask -Ref "refs/heads/$Head" -Branch $Head).Integration -ceq $Base) { return 'squash' }
+        throw "feat/refactor는 integration/*로만 제출합니다. dev 직행은 Task meta Integration이 $Base 로 선언된 경우만 허용: $Head"
+    }
     throw "대상 브랜치 규칙 위반: $Head → $Base"
 }
 

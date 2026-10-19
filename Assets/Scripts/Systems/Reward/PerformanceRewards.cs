@@ -51,6 +51,7 @@ namespace CurtainCall.Reward
         string retiredSession;
         float nextRequest;
         float nextTransitionRetry;
+        float transitionAt;
 
         public RewardSnapshot State => state;
         public RewardSnapshot LedgerPage => ledgerPage;
@@ -85,7 +86,7 @@ namespace CurtainCall.Reward
                 if (model.Revision != previous) Publish();
                 EndIfInsufficientSurvivors();
             }
-            if (pendingTransition && Time.unscaledTime >= nextTransitionRetry)
+            if (pendingTransition && Time.unscaledTime >= nextTransitionRetry && Time.unscaledTime >= transitionAt)
             {
                 nextTransitionRetry = Time.unscaledTime + 1f;
                 CompleteTransition();
@@ -263,7 +264,10 @@ namespace CurtainCall.Reward
                 if (!model.Confirm(trickSucceeded, endReason, judgements, OfficialMinSurvivors, ReadRules(), out result)) return false;
                 ClearObservers();
                 pendingTransition = true;
-                CompleteTransition();
+                // 실패는 사망·결과를 볼 수 있게 묘기 화면을 잠시 유지한 뒤 시간대를 넘긴다(설정 0이면 바로).
+                transitionAt = Time.unscaledTime + (result.Succeeded ? 0f : GameSettings.Base.Run.FailedPerformanceHold);
+                if (Time.unscaledTime >= transitionAt) CompleteTransition();
+                else Publish();
                 return true;
             }
             finally
