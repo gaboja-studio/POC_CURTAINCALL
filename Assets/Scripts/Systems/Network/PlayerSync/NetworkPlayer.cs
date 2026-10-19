@@ -32,6 +32,8 @@ namespace CurtainCall.Network.PlayerSync
 
         readonly NetworkVariable<int> slot = new(NoSlot);
         readonly NetworkVariable<JumpKind> jump = new(JumpKind.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        // 실제 앉은 상태(요청이 아님). 받는 화면은 공간 검사 없이 겉모습·몸통 높이만 맞춘다
+        readonly NetworkVariable<bool> crouched = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
         readonly NetworkVariable<bool> balanceActive = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         readonly NetworkVariable<float> balanceValue = new(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -344,7 +346,11 @@ namespace CurtainCall.Network.PlayerSync
                 mover.Teleported += SendTeleport;
                 if (balance != null) balance.Fell += RequestFall;
             }
-            else ShowRemoteBalance();
+            else
+            {
+                ShowRemoteBalance();
+                mover.SetRemoteCrouched(crouched.Value); // 늦게 생성된 화면도 지금 자세를 맞춘다
+            }
             if (State != PlayerState.Normal) ApplyState(State); // 늦게 생성된 화면도 현재 상태를 맞춘다
 
             if (IsServer)
@@ -385,12 +391,15 @@ namespace CurtainCall.Network.PlayerSync
             if (!IsOwner)
             {
                 ShowRemoteBalance();
+                mover.SetRemoteCrouched(crouched.Value);
                 return;
             }
 
             // 내 캐릭터: 바뀐 값만 보낸다(NetworkVariable은 변할 때만 전송된다)
             if (jump.Value != mover.CurrentJump)
                 jump.Value = mover.CurrentJump;
+            if (crouched.Value != mover.IsCrouched)
+                crouched.Value = mover.IsCrouched;
 
             if (balance != null)
             {

@@ -2,7 +2,7 @@
 
 - **Title:** 달리기·앉기 공용 조작
 - **Type:** feat
-- **Status:** assigned
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** player-control
 - **Current Skill:** start-work

@@ -160,5 +160,105 @@ namespace CurtainCall.Player.EditorTools.Tests
             InputGate.SetBlocking(null, true);
             Assert.IsFalse(InputGate.IsRequested);
         }
+
+        // Task-059 달리기·앉기(2026-10-19 PM): 키 역할, 공통 설정 기본값, 플레이어별 누름 판정, 미정 조작 로그.
+        [Test]
+        public void Locomotion_InputAssetHasSprintAndCrouchHoldKeys()
+        {
+            var asset = Resources.Load<UnityEngine.InputSystem.InputActionAsset>("Input/PlayerControls");
+            Assert.IsNotNull(asset, "공용 입력 에셋");
+            var map = asset.FindActionMap("Common", true);
+            AssertBinding(map.FindAction("Sprint", true), "<Keyboard>/leftShift", "달리기 LShift");
+            AssertBinding(map.FindAction("Crouch", true), "<Keyboard>/leftCtrl", "앉기 LCtrl");
+        }
+
+        static void AssertBinding(UnityEngine.InputSystem.InputAction action, string path, string what)
+        {
+            Assert.AreEqual(UnityEngine.InputSystem.InputActionType.Button, action.type, $"{what}: 버튼");
+            Assert.AreEqual(1, action.bindings.Count, $"{what}: 조합 없이 키 하나");
+            Assert.AreEqual(path, action.bindings[0].path, what);
+            Assert.IsTrue(string.IsNullOrEmpty(action.interactions), $"{what}: 누르는 동안(홀드) — 토글·탭 상호작용 없음");
+        }
+
+        [Test]
+        public void Locomotion_DefaultSettings_AreConfirmedValues()
+        {
+            var character = CurtainCall.Settings.GameSettings.Base.Character;
+            Assert.AreEqual(1.5f, character.SprintSpeedMultiplier, 0.0001f, "달리기 배율");
+            Assert.AreEqual(0.5f, character.CrouchSpeedMultiplier, 0.0001f, "앉기 이동 배율");
+            Assert.AreEqual(0.6f, character.CrouchHeightRatio, 0.0001f, "앉기 높이 비율");
+        }
+
+        [Test]
+        public void Locomotion_PressEdges_ArePerPlayerAndSurviveSchemeChange()
+        {
+            var a = new GameObject("Locomotion A");
+            var b = new GameObject("Locomotion B");
+            try
+            {
+                var first = new PlayerControlContext(a);
+                var second = new PlayerControlContext(b);
+                var held = new PlayerInputFrame { SprintHeld = true, CrouchHeld = true };
+
+                first.TrackLocomotionPresses(held, out bool sprint, out bool crouch);
+                Assert.IsTrue(sprint && crouch, "처음 누름");
+                first.TrackLocomotionPresses(held, out sprint, out crouch);
+                Assert.IsFalse(sprint || crouch, "누르고 있는 동안은 다시 누름 아님(규칙이 바뀌어도 같은 컨텍스트)");
+
+                second.TrackLocomotionPresses(held, out sprint, out crouch);
+                Assert.IsTrue(sprint && crouch, "다른 플레이어는 따로 판정");
+
+                first.TrackLocomotionPresses(default, out _, out _);
+                first.TrackLocomotionPresses(new PlayerInputFrame { SprintHeld = true }, out sprint, out crouch);
+                Assert.IsTrue(sprint, "뗐다가 다시 누름");
+                Assert.IsFalse(crouch);
+            }
+            finally
+            {
+                Object.DestroyImmediate(a);
+                Object.DestroyImmediate(b);
+            }
+        }
+
+        [Test]
+        public void Locomotion_UndefinedControl_LogsOncePerPressPerPlayer()
+        {
+            // 외줄 위·대포 탑승/비행 규칙이 부르는 도우미. 입력 막기(InputGate)는 프레임 상태에 묶여 있어 규칙 대신 도우미를 직접 확인한다.
+            var a = new GameObject("Rope Player A");
+            var b = new GameObject("Rope Player B");
+            int sprintLogs = 0, crouchLogs = 0;
+            void Count(string message, string stack, LogType type)
+            {
+                if (!message.Contains("외줄 위")) return;
+                if (message.Contains("달리기")) sprintLogs++;
+                if (message.Contains("앉기")) crouchLogs++;
+            }
+            Application.logMessageReceived += Count;
+            try
+            {
+                var first = new PlayerControlContext(a);
+                var second = new PlayerControlContext(b);
+                var held = new PlayerInputFrame { SprintHeld = true, CrouchHeld = true };
+                first.LogUndefinedLocomotion(held, "외줄 위");
+                first.LogUndefinedLocomotion(held, "외줄 위");
+                first.LogUndefinedLocomotion(held, "외줄 위");
+                Assert.AreEqual(1, sprintLogs, "누른 동안 달리기 로그 1번");
+                Assert.AreEqual(1, crouchLogs, "누른 동안 앉기 로그 1번");
+
+                second.LogUndefinedLocomotion(held, "외줄 위");
+                Assert.AreEqual(2, sprintLogs, "다른 플레이어는 따로 1번");
+
+                first.LogUndefinedLocomotion(default, "외줄 위");
+                first.LogUndefinedLocomotion(new PlayerInputFrame { CrouchHeld = true }, "외줄 위");
+                Assert.AreEqual(2, sprintLogs);
+                Assert.AreEqual(3, crouchLogs, "뗐다가 다시 누르면 다시 1번");
+            }
+            finally
+            {
+                Application.logMessageReceived -= Count;
+                Object.DestroyImmediate(a);
+                Object.DestroyImmediate(b);
+            }
+        }
     }
 }

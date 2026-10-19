@@ -72,6 +72,12 @@ namespace CurtainCall.Tightrope
 
         void Unbind()
         {
+            // 내가 끼운 규칙만 빼서 기본 쪽 규칙으로 돌린다. 다른 콘텐츠가 이미 다른 규칙을 끼웠으면 건드리지 않는다
+            if (controller != null && (controller.Scheme == ropeScheme || controller.Scheme == platformScheme))
+            {
+                if (mover != null) mover.ClearPendingInput();
+                controller.SetScheme(null);
+            }
             player = null;
             controller = null;
             mover = null;

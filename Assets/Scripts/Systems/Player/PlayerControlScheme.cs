@@ -43,5 +43,31 @@ namespace CurtainCall.Player
 
         /// <summary>조작 규칙이 지금 지정해 둔 방향(-1 왼쪽, 0 없음, +1 오른쪽). 외줄에서는 옆줄 이동 방향. 디버그 표시용으로도 읽는다.</summary>
         public int HeldDirection { get; set; }
+
+        bool sprintWasHeld;
+        bool crouchWasHeld;
+
+        /// <summary>
+        /// 달리기·앉기를 이번 프레임에 새로 눌렀는지 갱신한다. 규칙 에셋은 여러 플레이어가 함께 쓰므로 이전 상태는 플레이어(컨텍스트)마다 둔다.
+        /// 규칙이 바뀌어도 이전 상태를 이어 써서, 누른 채 경계를 넘을 때 다시 누른 것으로 보지 않는다. 모든 규칙이 매 프레임 부른다.
+        /// </summary>
+        public void TrackLocomotionPresses(in PlayerInputFrame input, out bool sprintPressed, out bool crouchPressed)
+        {
+            sprintPressed = input.SprintHeld && !sprintWasHeld;
+            crouchPressed = input.CrouchHeld && !crouchWasHeld;
+            sprintWasHeld = input.SprintHeld;
+            crouchWasHeld = input.CrouchHeld;
+        }
+
+        /// <summary>
+        /// 달리기·앉기 동작을 정하지 않은 조작(줄 위, 대포 탑승·비행 등)에서 쓴다. 새로 누른 순간에만 로그를 한 번 남기고 동작은 하지 않는다.
+        /// <paramref name="where"/>: 로그에 남길 조작 이름(예: "외줄 위").
+        /// </summary>
+        public void LogUndefinedLocomotion(in PlayerInputFrame input, string where)
+        {
+            TrackLocomotionPresses(input, out bool sprint, out bool crouch);
+            if (sprint) Debug.Log($"[Control] {where}: 달리기(LShift) 입력 — 이 조작에서는 동작이 정해지지 않았습니다.", Player);
+            if (crouch) Debug.Log($"[Control] {where}: 앉기(LCtrl) 입력 — 이 조작에서는 동작이 정해지지 않았습니다.", Player);
+        }
     }
 }

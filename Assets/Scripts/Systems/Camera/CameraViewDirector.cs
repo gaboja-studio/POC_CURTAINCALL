@@ -218,7 +218,9 @@ namespace CurtainCall.Cameras
             if (!isActiveAndEnabled || selected == null) return;
             if (IsFirstPerson)
             {
-                float height = selected.EyeHeight > 0f ? selected.EyeHeight : mover != null ? mover.BodyHeight * 0.9f : 1.6f;
+                // 몸통 높이 기준은 앉으면 이미 낮아지므로, 프리셋 고정 눈높이만 자세 비율을 곱한다(두 번 줄이지 않는다)
+                float height = selected.EyeHeight > 0f ? selected.EyeHeight * (mover != null ? mover.PostureHeightScale : 1f)
+                    : mover != null ? mover.BodyHeight * 0.9f : 1.6f;
                 SetPose(ref state, local.transform.position + Vector3.up * height, Quaternion.Euler(pitch, yaw, 0f));
                 state.ReferenceLookAt = CameraState.kNoPoint;
             }
