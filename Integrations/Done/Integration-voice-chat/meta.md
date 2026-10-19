@@ -1,7 +1,7 @@
 # Integration-voice-chat
 
 - **Feature:** 음성 채팅(생존자 거리 감쇠·사망자 분리)
-- **Status:** testing
+- **Status:** to-dev
 - **Branch:** integration/voice-chat
 - **Base:** dev
 - **Active Task:**
@@ -20,7 +20,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261020-063 | feat | @MoHoDu | feat/voice-chat | #186 | merged (공동 테스트 대기) |
+| Task-20261020-063 | feat | @MoHoDu | feat/voice-chat | #186 | done |
 
 ## 준비 브랜치
 
