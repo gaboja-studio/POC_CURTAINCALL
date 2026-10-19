@@ -232,6 +232,20 @@ switch ($Arguments[1]) {
         Assert ((Get-PrFlow dev integration/parent) -eq 'merge') 'legacy dev sync'
         FixtureGit switch integration/child | Out-Null
     }
+    Check 'feat to dev needs Task meta Integration dev' {
+        FixtureGit switch dev | Out-Null
+        FixtureGit switch -c feat/direct-dev | Out-Null
+        Put 'Tasks/Active/Task-20261015-003-direct-dev/meta.md' "# Task-20261015-003`n`n- **Type:** feat`n- **Branch:** feat/direct-dev`n- **Integration:** dev"
+        Commit | Out-Null
+        Assert ((Get-PrFlow feat/direct-dev dev) -eq 'squash') 'declared dev task'
+        FixtureGit switch dev | Out-Null
+        FixtureGit switch -c feat/undeclared | Out-Null
+        Put 'Tasks/Active/Task-20261015-004-undeclared/meta.md' "# Task-20261015-004`n`n- **Type:** feat`n- **Branch:** feat/undeclared`n- **Integration:** integration/child"
+        Commit | Out-Null
+        Reject { Get-PrFlow feat/undeclared dev } 'integration/\*로만'
+        Reject { Get-PrFlow feat/no-local-branch dev } 'integration/\*로만'
+        FixtureGit switch integration/child | Out-Null
+    }
     Check 'closed integration PR reads Done meta and only targets Base' {
         FixtureGit switch dev | Out-Null
         FixtureGit switch -c integration/closed | Out-Null

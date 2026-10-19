@@ -27,6 +27,7 @@ dev                  ──PR(Merge commit)──▶ integration/*   (공용 변
 ```
 
 - `feat/*`, `refactor/*`는 **항상** `integration/*`로만 제출한다. 작은 기능도 PM이 작은 integration을 만들어 받는다.
+  - 예외: PM이 담당자 한 명의 단일 Task로 승인하고 Task `meta.md`에 `Integration: dev`를 선언하면 `dev`로 바로 Squash PR한다(`Get-PrFlow`가 head 브랜치의 Task 선언을 확인). Task 폴더는 그 작업 브랜치에서 PM이 준비하고, 병합 후 PM이 Done으로 옮긴다.
 - `fix/*`, `resource/*`는 새 기능 개발이 아니므로 통합 순서를 지키지 않고 `dev` 또는 특정 `integration/*`로 바로 PR할 수 있다.
 - 공용 변경은 `dev → Base=dev 통합` 또는 **선언된 부모 → 직계 자식 통합** PR로 내려받는다(`sync-integration`, Merge commit). 임의 통합 간 동기화·자식의 dev 직행은 금지한다. 기존 일반 작업 브랜치는 GitHub **Update branch**로 받는다.
 - 명시적 준비 브랜치만 **소속 통합 → 그 Task 브랜치** 배정 문서 동기화 PR(Merge commit)을 허용한다. PR 생성은 실제 인계/착수 허가가 아니며 자동 merge·force 이동하지 않는다.
