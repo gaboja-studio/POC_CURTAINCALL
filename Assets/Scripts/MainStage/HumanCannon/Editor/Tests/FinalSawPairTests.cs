@@ -75,5 +75,26 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             return child;
         }
         void Set(string name, object value) => typeof(HumanCannonFinalSaws).GetField(name, Private).SetValue(saws, value);
+
+        [TestCase(0)]
+        [TestCase(1)]
+        public void LateralPasses_KeepHeightAndDepth_ReverseAtBothEdges_WithFlatContact(int cycle)
+        {
+            Set("lateralPasses", true); Set("horizontalHalfWidth", 24f);
+            double start = 10 + cycle * 6.5 + 2.5;
+            Vector3 before = saws.VerticalPosition(start);
+            Vector3 middle = saws.VerticalPosition(start + 2);
+            Vector3 after = saws.VerticalPosition(start + 3.999);
+            Assert.That(before.x, Is.EqualTo(cycle % 2 == 0 ? -24 : 24).Within(.001f));
+            Assert.That(after.x, Is.EqualTo(-before.x).Within(.02f));
+            Assert.That(middle.x, Is.Zero.Within(.001f));
+            Assert.That(middle.y, Is.EqualTo(before.y)); Assert.That(middle.z, Is.EqualTo(before.z));
+            Assert.That(Vector3.Dot(saws.PassNormal, Vector3.up), Is.GreaterThan(.999f));
+            var secondMiddle = saws.SecondaryVerticalPosition(start + 2);
+            Assert.That(Mathf.Abs(middle.z - secondMiddle.z), Is.GreaterThan(2.4f), "같은 순간 중앙에서 두 톱이 포개지지 않는다.");
+            typeof(HumanCannonFinalSaws).GetMethod("PresentVertical", Private).Invoke(saws,
+                new object[] { first, firstWarning, Array.Empty<Renderer>(), middle, FinalSawPhase.Active, 45f, Color.yellow });
+            Assert.That(Vector3.Dot(first.up, saws.PassNormal), Is.GreaterThan(.999f));
+        }
     }
 }

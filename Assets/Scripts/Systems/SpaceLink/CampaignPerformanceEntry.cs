@@ -50,12 +50,14 @@ namespace CurtainCall.SpaceLink
             if (entry.run != null) entry.run.SetExternallyManaged(true);
             else if (session.IsHost) entry.HoldDeathsUntilPlaced(); // 줄타기는 TightropeRun이 시작 전 판정을 막는다.
             // 줄타기 UI는 보존하고 공용 재시작·접속 테스트 패널만 제한한다.
+            // 인간대포 연습 봇은 에디터에서 TestHud.OnEnable이 sceneLoaded보다 먼저 붙이므로 함께 끈다.
             foreach (var root in scene.GetRootGameObjects())
             {
                 foreach (var behaviour in root.GetComponentsInChildren<MonoBehaviour>(true))
                     if (behaviour is PlayerCommandDebugHud
                         || behaviour.GetType().Name == "NetworkSessionTestUI"
-                        || behaviour.GetType().Name == "HumanCannonTestHud") behaviour.enabled = false;
+                        || behaviour.GetType().Name == "HumanCannonTestHud"
+                        || behaviour.GetType().Name == "HumanCannonPracticeBot") behaviour.enabled = false;
             }
             if (entry.run != null) go.AddComponent<CampaignTightropeAdapter>().Initialize(entry.run, entry);
         }

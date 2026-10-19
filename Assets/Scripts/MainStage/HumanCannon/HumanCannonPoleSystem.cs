@@ -15,6 +15,7 @@ namespace CurtainCall.HumanCannon
         {
             public readonly PoleGateState State = new();
             public float Angle, Speed, Input;
+            public PoleSwingInput SwingInput;
             public double LastInput;
             public uint InputSequence;
             public int Station;
@@ -25,6 +26,7 @@ namespace CurtainCall.HumanCannon
         double nextSnapshot;
         uint inputSequence;
         double nextInput;
+        int lastInputDirection;
         public static HumanCannonPoleSystem Current { get; private set; }
         public int PoleCount => poles.Length;
         public HumanCannonPole Pole(int index) => Valid(index) ? poles[index] : null;
@@ -61,7 +63,10 @@ namespace CurtainCall.HumanCannon
         internal void RequestRelease(int index) => SendRequest(PoleAction.Release, index, 0, 0, 0, 0f, 0);
         internal void RequestSwing(int index, float input)
         {
-            if (Clock < nextInput) return;
+            int direction = PoleSwingInput.DirectionOf(input);
+            // 짧은 키 놓기/방향 전환은 20Hz 유지 패킷 제한에 묻히지 않게 바로 전달한다.
+            if (Clock < nextInput && direction == lastInputDirection) return;
+            lastInputDirection = direction;
             nextInput = Clock + 0.05;
             SendRequest(PoleAction.Swing, index, 0, 0, 0, input, ++inputSequence);
         }
@@ -112,7 +117,8 @@ namespace CurtainCall.HumanCannon
                         else
                         {
                             float input = Clock - runtime.LastInput <= 0.3 ? runtime.Input : 0f;
-                            pole.Step(ref runtime.Angle, ref runtime.Speed, input, Time.deltaTime, GameSettings.Base.Character.Gravity);
+                            float drive = runtime.SwingInput.Step(input, Time.deltaTime);
+                            pole.Step(ref runtime.Angle, ref runtime.Speed, drive, Time.deltaTime, GameSettings.Base.Character.Gravity);
                         }
                     }
                     before = runtime.State.Occupant;
@@ -170,6 +176,7 @@ namespace CurtainCall.HumanCannon
                 if (FindGrabbable(player) != index || !cannon.MatchesFlight(actor, station, launch, segment)
                     || !runtime.State.TryGrab(actor, revision, Clock, poles[index].HoldSeconds)) return;
                 runtime.Angle = runtime.Speed = runtime.Input = 0f;
+                runtime.SwingInput = default;
                 runtime.InputSequence = 0;
                 runtime.LastInput = Clock;
                 runtime.Station = station; runtime.Launch = launch; runtime.Segment = segment;
@@ -184,6 +191,7 @@ namespace CurtainCall.HumanCannon
                 && sequence > runtime.InputSequence && float.IsFinite(input))
             {
                 runtime.Input = Mathf.Clamp(input, -1f, 1f);
+                runtime.SwingInput.Observe(runtime.Input);
                 runtime.InputSequence = sequence;
                 runtime.LastInput = Clock;
             }
@@ -224,6 +232,7 @@ namespace CurtainCall.HumanCannon
                 var runtime = states[i];
                 runtime.State.Reset();
                 runtime.Angle = runtime.Speed = runtime.Input = 0f;
+                runtime.SwingInput = default;
                 if (poles[i] != null) Publish(i, PoleEvent.Reset, CannonSeatState.Nobody);
             }
         }
