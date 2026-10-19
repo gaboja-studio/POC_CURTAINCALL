@@ -91,7 +91,8 @@ namespace CurtainCall.Tightrope
                         if (Clock - lastDriveAt > .3d) drive = 0f; // 인간대포와 같은 입력 만료 시간.
                         physicalPole.Step(ref angle, ref angularSpeed, drive, Time.deltaTime, GameSettings.Base.Character.Gravity);
                         changedAt = Clock;
-                        if (Clock - startedAt >= physicalPole.HoldSeconds) BeginReturn(true);
+                        // 인간대포 봉의 0초는 무제한이다. 제한이 설정된 경우에만 자동으로 놓는다.
+                        if (physicalPole.HoldSeconds > 0f && Clock - startedAt >= physicalPole.HoldSeconds) BeginReturn(true);
                         else if (Clock >= nextSnapshotAt) { version++; Publish(); nextSnapshotAt = Clock + .1d; }
                     }
                 }

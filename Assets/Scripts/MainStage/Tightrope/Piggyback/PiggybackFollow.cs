@@ -102,6 +102,14 @@ namespace CurtainCall.Tightrope
                     controlRestore = null;
                 }
             }
+            // A mount snapshot and Space can arrive in the same frame. Establish
+            // the carried pose before consuming that frame's jump input.
+            var newBelow = local != null ? system.GetBelow(local) : null;
+            if (localMover == null && newBelow != null && launchedAt < 0f)
+            {
+                UpdateLocal(local);
+                PlaceOnTop(local, newBelow, 0f);
+            }
             UpdateHop(local);
 
             // 아래층부터 차례로 맞춰야 3층 이상도 이번 프레임 위치를 따른다
@@ -261,6 +269,7 @@ namespace CurtainCall.Tightrope
                 {
                     localMover = mover;
                     localMover.Simulated = false;
+                    localMover.ResetExternalMotion(false);
                 }
                 return;
             }

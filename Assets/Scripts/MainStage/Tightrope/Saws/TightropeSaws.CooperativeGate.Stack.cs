@@ -93,8 +93,8 @@ namespace CurtainCall.Tightrope.Saws
             return false;
         }
 
-        static bool IsStandingStackMember(NetworkPlayer player) => player != null && player.IsSpawned
-            && player.isActiveAndEnabled && player.State == PlayerState.Normal && !player.IsAirborne
+        bool IsStandingStackMember(NetworkPlayer player) => player != null && player.IsSpawned
+            && player.isActiveAndEnabled && player.State == PlayerState.Normal && (run == null || run.IsParticipantReady(player)) && !player.IsAirborne
             && player.TryGetComponent(out PlayerMover mover)
             // 원격 이동 부품은 계산하지 않는다. 공중 여부는 공유 상태를 쓰고, 소유자만 로컬 조작 상태도 확인한다.
             && (!player.IsOwner || (!mover.IsAirborne && !mover.FreeMovement

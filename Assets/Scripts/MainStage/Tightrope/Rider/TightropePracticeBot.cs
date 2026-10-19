@@ -214,7 +214,12 @@ namespace CurtainCall.Tightrope
         {
             using var buttonsFrame = actions?.Begin();
             if (!Application.isEditor || !IsPracticeCourse()) return;
-            var area = new Rect(Mathf.Max(200f, Screen.width * .5f - 190f), 10f, 380f, 206f);
+            // 좁은 Game 뷰에서 중앙 봇 버튼이 오른쪽 '혼자 시작'을 가리지 않게 한다.
+            // 왼쪽 접속 버튼 아래의 빈 공간을 사용하고 오른쪽 공연 패널 폭을 확보한다.
+            bool narrow = Screen.width < 1160f;
+            var area = narrow
+                ? new Rect(10f, 200f, Mathf.Clamp(Screen.width - 400f, 180f, 380f), 206f)
+                : new Rect(Screen.width * .5f - 190f, 10f, 380f, 206f);
             GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label("외줄타기 · 연습 봇 1명");
             GUILayout.BeginHorizontal();

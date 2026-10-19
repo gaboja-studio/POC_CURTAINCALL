@@ -100,8 +100,10 @@ namespace CurtainCall.Tightrope.Saws
         bool verticalActive;
         int verticalLane;
         int verticalSerial;               // 출현 순번(1부터)
-        float verticalSpawnedAt;
-        float verticalLoweredAt = -1f;    // 발판이 눌린 시각. 안 눌렸으면 -1
+        double verticalSpawnedAt;
+        double SawClock => run != null ? run.Clock : Time.timeAsDouble;
+        float nextStateRequest;
+        double verticalLoweredAt = -1d;    // 발판이 눌린 시각. 안 눌렸으면 -1
 
         // 호스트 전용
         ObstacleSequence sequence;
@@ -149,7 +151,7 @@ namespace CurtainCall.Tightrope.Saws
         public int VerticalLane => verticalActive ? verticalLane : TightropeCourse.NoLane;
 
         /// <summary>수직 톱날 진행 거리(m). 없으면 NaN.</summary>
-        public float VerticalDistance => verticalActive ? settings.GetVerticalDistance(Time.time - verticalSpawnedAt) : float.NaN;
+        public float VerticalDistance => verticalActive ? settings.GetVerticalDistance((float)(SawClock - verticalSpawnedAt)) : float.NaN;
 
         /// <summary>발판이 눌렸는지(톱날이 내려가는 중).</summary>
         public bool IsPlatePressed => verticalActive && verticalLoweredAt >= 0f;
@@ -181,7 +183,7 @@ namespace CurtainCall.Tightrope.Saws
         {
             position = default;
             if (!verticalActive || course == null) return false;
-            float sinceLower = verticalLoweredAt < 0f ? -1f : Time.time - verticalLoweredAt;
+            float sinceLower = verticalLoweredAt < 0f ? -1f : (float)(SawClock - verticalLoweredAt);
             position = course.GetLanePosition(verticalLane, VerticalDistance)
                 + Vector3.up * (settings.verticalCenterHeight - settings.GetLowerOffset(sinceLower));
             return true;
@@ -249,6 +251,8 @@ namespace CurtainCall.Tightrope.Saws
                 ServerUpdateCooperativeGate();
                 ServerJudgeHits();
             }
+            if (session != null && session.ConnectionState == SessionConnectionState.Client && Time.unscaledTime >= nextStateRequest)
+            { nextStateRequest = Time.unscaledTime + 1f; SendRequest(); }
             UpdateViews();
         }
 
@@ -305,7 +309,7 @@ namespace CurtainCall.Tightrope.Saws
             foreach (var player in NetworkPlayer.All)
             {
                 string name = $"P{player.Slot + 1}";
-                if (player.State != PlayerState.Normal)
+                if ((player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player))))
                 {
                     parts.Add($"{name} {player.State}");
                     continue;
@@ -322,7 +326,7 @@ namespace CurtainCall.Tightrope.Saws
             float leader = float.NaN;
             foreach (var player in NetworkPlayer.All)
             {
-                if (player.State != PlayerState.Normal) continue;
+                if ((player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player)))) continue;
                 float distance = course.GetDistance(player.transform.position);
                 if (float.IsNaN(leader) || distance > leader) leader = distance;
             }
@@ -380,10 +384,10 @@ namespace CurtainCall.Tightrope.Saws
                 return;
             }
 
-            float sinceSpawn = Time.time - verticalSpawnedAt;
+            float sinceSpawn = (float)(SawClock - verticalSpawnedAt);
             if (verticalLoweredAt >= 0f)
             {
-                if (settings.HasLowered(Time.time - verticalLoweredAt)) ServerRemoveVertical();
+                if (settings.HasLowered((float)(SawClock - verticalLoweredAt))) ServerRemoveVertical();
                 return;
             }
             if (settings.HasVerticalReachedEnd(sinceSpawn))
@@ -434,7 +438,7 @@ namespace CurtainCall.Tightrope.Saws
             var lanes = new List<int>();
             foreach (var player in NetworkPlayer.All)
             {
-                if (player.State != PlayerState.Normal) continue;
+                if ((player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player)))) continue;
                 if (!course.TryGetRopePoint(player.transform.position, out int lane, out float distance)) continue;
                 if (distance < 0f || distance >= settings.verticalSpawnDistance || lanes.Contains(lane)) continue;
                 if (WouldBlockRequiredRoute(lane, settings.verticalSpawnDistance)) continue;
@@ -459,7 +463,7 @@ namespace CurtainCall.Tightrope.Saws
             if (!SawRouteSafety.HasEscapeLane(course, sawLane, sawDistance, fireSettings, pending)) return true;
             foreach (var player in NetworkPlayer.All)
             {
-                if (player == null || !player.isActiveAndEnabled || !player.IsSpawned || player.State != PlayerState.Normal) continue;
+                if (player == null || !player.isActiveAndEnabled || !player.IsSpawned || (player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player)))) continue;
                 float radius = player.TryGetComponent(out PlayerMover mover) ? mover.BodyRadius : 0f;
                 if (SawRouteSafety.BlocksPlayerRoute(course, player.transform.position, sawLane, sawDistance,
                     settings.verticalColliderDiameter * 0.5f + radius, fireSettings, pending)) return true;
@@ -507,7 +511,7 @@ namespace CurtainCall.Tightrope.Saws
             if (!TryGetPlatePosition(out Vector3 plate)) return false;
             foreach (var player in NetworkPlayer.All)
             {
-                if (player.State != PlayerState.Normal || !player.IsSpawned || !player.isActiveAndEnabled || player.IsAirborne
+                if ((player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player))) || !player.IsSpawned || !player.isActiveAndEnabled || player.IsAirborne
                     || !player.TryGetComponent(out PlayerMover mover) || mover.IsAirborne
                     || !course.TryGetSupportingRope(mover, out int supportedLane) || supportedLane != verticalLane) continue;
                 Vector3 offset = player.transform.position - plate;
@@ -530,7 +534,7 @@ namespace CurtainCall.Tightrope.Saws
 
             foreach (var player in NetworkPlayer.All)
             {
-                if (player.State != PlayerState.Normal || !player.TryGetComponent(out PlayerMover mover)) continue;
+                if ((player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player))) || !player.TryGetComponent(out PlayerMover mover)) continue;
                 var body = new BodyCapsule(player.transform.position, mover.BodyHeight, mover.BodyRadius);
 
                 for (int i = 0; i < settings.HorizontalCount; i++)
@@ -558,7 +562,7 @@ namespace CurtainCall.Tightrope.Saws
         void ServerTouch(NetworkPlayer player, in BodyCapsule body, SawKind kind, int sawKey, int index, Vector3 contact)
         {
             if (run == null || run.State != TightropeRunState.Running || course == null || !course.IsGameplayActive
-                || player == null || player.State != PlayerState.Normal) return;
+                || player == null || (player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player)))) return;
             var key = (sawKey, player.NetworkObjectId);
             touchingNow.Add(key);
             if (touching.Contains(key)) return;
@@ -583,8 +587,8 @@ namespace CurtainCall.Tightrope.Saws
             verticalActive = active;
             verticalLane = lane;
             verticalSerial = serial;
-            verticalSpawnedAt = Time.time - sinceSpawn;
-            verticalLoweredAt = active && sinceLower >= 0f ? Time.time - sinceLower : -1f;
+            verticalSpawnedAt = SawClock - sinceSpawn;
+            verticalLoweredAt = active && sinceLower >= 0f ? SawClock - sinceLower : -1d;
 
             if (active && !wasActive)
                 Debug.Log($"[Saws] 수직 톱날 #{serial} 출현: {lane}번 줄, {VerticalDistance:0.0}m");
@@ -784,6 +788,7 @@ namespace CurtainCall.Tightrope.Saws
         FastBufferWriter WriteHorizontal()
         {
             var writer = new FastBufferWriter(8 + horizontalCommands.Count * 9, Allocator.Temp, 64 * 1024);
+            writer.WriteValueSafe(run == null ? -1 : run.Round);
             writer.WriteValueSafe(horizontalCommands.Count);
             foreach (var (action, first, last, at) in horizontalCommands)
             {
@@ -797,16 +802,24 @@ namespace CurtainCall.Tightrope.Saws
 
         void HandleHorizontalMessage(ulong senderId, FastBufferReader reader)
         {
+            if (senderId != NetworkManager.ServerClientId || run == null || !reader.TryBeginRead(8)) return;
+            reader.ReadValueSafe(out int generation);
             reader.ReadValueSafe(out int count);
-            horizontalCommands.Clear();
+            if (generation != run.Round || count < 0 || count > 4096 || reader.Length - reader.Position != count * 9
+                || !reader.TryBeginRead(count * 9)) return;
+            var received = new List<(StepAction action, int first, int last, float at)>(count);
             for (int i = 0; i < count; i++)
             {
                 reader.ReadValueSafe(out byte action);
                 reader.ReadValueSafe(out short first);
                 reader.ReadValueSafe(out short last);
                 reader.ReadValueSafe(out float at);
-                horizontalCommands.Add(((StepAction)action, first, last, at));
+                if (action > (byte)StepAction.StopHorizontal || first < 1 || last < first
+                    || last > tracks.Length || !float.IsFinite(at) || at < 0f) return;
+                received.Add(((StepAction)action, first, last, at));
             }
+            horizontalCommands.Clear();
+            horizontalCommands.AddRange(received);
             RebuildHorizontalTracks();
         }
 
@@ -822,22 +835,28 @@ namespace CurtainCall.Tightrope.Saws
         FastBufferWriter WriteVertical()
         {
             var writer = new FastBufferWriter(32, Allocator.Temp);
+            writer.WriteValueSafe(run == null ? -1 : run.Round);
             writer.WriteValueSafe(verticalActive);
             writer.WriteValueSafe((byte)Mathf.Max(0, verticalLane));
             writer.WriteValueSafe(verticalSerial);
-            writer.WriteValueSafe(verticalActive ? Time.time - verticalSpawnedAt : 0f);
-            writer.WriteValueSafe(verticalActive && verticalLoweredAt >= 0f ? Time.time - verticalLoweredAt : -1f);
+            writer.WriteValueSafe(verticalSpawnedAt);
+            writer.WriteValueSafe(verticalLoweredAt);
             return writer;
         }
 
         void HandleVerticalMessage(ulong senderId, FastBufferReader reader)
         {
+            if (senderId != NetworkManager.ServerClientId || run == null || reader.Length - reader.Position != 26
+                || !reader.TryBeginRead(26)) return;
+            reader.ReadValueSafe(out int generation);
             reader.ReadValueSafe(out bool active);
             reader.ReadValueSafe(out byte lane);
             reader.ReadValueSafe(out int serial);
-            reader.ReadValueSafe(out float sinceSpawn);
-            reader.ReadValueSafe(out float sinceLower);
-            SetVertical(active, lane, serial, sinceSpawn, sinceLower);
+            reader.ReadValueSafe(out double spawned);
+            reader.ReadValueSafe(out double lowered);
+            if (generation != run.Round || lane >= course.LaneCount || serial < verticalSerial
+                || !double.IsFinite(spawned) || !double.IsFinite(lowered)) return;
+            SetVertical(active, lane, serial, (float)(SawClock - spawned), lowered < 0d ? -1f : (float)(SawClock - lowered));
         }
 
         void BroadcastHit(in SawHit hit)

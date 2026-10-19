@@ -22,7 +22,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             float finish = (float)Get(course, "FinishDistance");
             Assert.That(colliders.Cast<BoxCollider>().Sum(c => c.size.z), Is.EqualTo(finish - gapLength));
             var colors = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.sharedMaterial.color).Distinct().Count();
-            Assert.That(colors, Is.EqualTo(6), "진행 구간마다 서로 다른 줄 색상을 표시한다.");
+            int sectionColors = ((IEnumerable)Get(Get(course, "Shape"), "Sections")).Cast<object>()
+                .Select(section => (Color)Get(section, "color")).Distinct().Count();
+            Assert.That(colors, Is.EqualTo(sectionColors), "현재 코스의 진행 구간마다 지정된 줄 색상을 표시한다.");
             var unaffected = course.transform.Find("Generated/Rope0/ContinuousSupport");
             Call(course, "BlockSegment", 1, 0f, finish, false);
             yield return null;
@@ -35,7 +37,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return null;
             root = course.transform.Find("Generated/Rope1");
             Assert.That(root.GetComponentsInChildren<Collider>().Count(c => c.enabled), Is.EqualTo(expectedSupports));
-            Assert.That(root.GetComponentsInChildren<MeshRenderer>().Select(r => r.sharedMaterial.color).Distinct().Count(), Is.EqualTo(6));
+            Assert.That(root.GetComponentsInChildren<MeshRenderer>().Select(r => r.sharedMaterial.color).Distinct().Count(), Is.EqualTo(sectionColors));
         }
     }
 }

@@ -34,6 +34,7 @@ namespace CurtainCall.Tightrope
         }
         void Send(Command command, int index = -1, float input = 0f)
         {
+            ObserveRequest(NetworkPlayer.Local != null ? NetworkPlayer.Local.OwnerClientId : Nobody, "send", command, index);
             if (session == null || messaging == null) return;
             var local = NetworkPlayer.Local;
             uint revision = index >= 0 && index < PoleTotal ? poles[index].Revision : 0;
@@ -55,6 +56,7 @@ namespace CurtainCall.Tightrope
         }
         void HandleRequest(ulong sender, Command command, int index, uint revision, float input, uint token)
         {
+            ObserveRequest(sender, "receive", command, index);
             if (command == Command.Sync) { Publish(sender); return; }
             if (!Active) return;
             if (command == Command.Abort) { AbortActor(sender); return; }
@@ -173,7 +175,8 @@ namespace CurtainCall.Tightrope
             var local = NetworkPlayer.Local;
             if (localAbortWaiting && local != null && !FindHeld(local, out _, out _) && !flights.ContainsKey(local.OwnerClientId))
                 localAbortWaiting = false;
-            version = sequence; pendingUntil = 0d; ReconcileLocal();
+            // Periodic snapshots are not a rejection of an in-flight catch request.
+            version = sequence; ReconcileLocal();
         }
         static bool Finite(Vector3 value) => float.IsFinite(value.x) && float.IsFinite(value.y) && float.IsFinite(value.z);
     }

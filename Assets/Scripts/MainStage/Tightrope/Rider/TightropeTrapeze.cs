@@ -119,8 +119,9 @@ namespace CurtainCall.Tightrope
             if (Clock >= nextSnapshot) { Publish(); nextSnapshot = Clock + .1d; }
         }
         public bool IsHeld(NetworkPlayer player) => Active && FindHeld(player, out _, out _);
-        public bool IsInFlight(NetworkPlayer player) => Active && player != null && (player.IsLocal
-            ? localControl != null && localFlying : flights.ContainsKey(player.OwnerClientId));
+        public bool IsInFlight(NetworkPlayer player) => Active && player != null
+            && flights.TryGetValue(player.OwnerClientId, out var flight)
+            && (!player.IsLocal || (!localAborted && flight.Token > finishedFlightToken));
         public bool IsCrossing(NetworkPlayer player) => IsHeld(player) || IsInFlight(player);
         bool FindHeld(NetworkPlayer player, out int pole, out bool lower)
         {
@@ -160,6 +161,7 @@ namespace CurtainCall.Tightrope
         }
         bool TryRequestCatch(NetworkPlayer local)
         {
+            if (Clock < pendingUntil) return false;
             for (int i = 0; i < PoleTotal; i++)
             {
                 if (CanGrab(local, i)) { pendingUntil = Clock + .5d; Send(Command.Grab, i); return true; }

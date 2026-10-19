@@ -18,7 +18,7 @@ using UnityEngine.SceneManagement;
 namespace CurtainCall.Tightrope.Tests
 {
     /// <summary>명시적 Begin으로만 켜는 실제 LAN 검증 도구. 게임 동작은 공개 API와 합성 키 입력으로만 요청한다.</summary>
-    public sealed class TightropeMultiplayerProbe : MonoBehaviour
+    public sealed partial class TightropeMultiplayerProbe : MonoBehaviour
     {
         static TightropeMultiplayerProbe current;
         static readonly FieldInfo DevCache = typeof(DevMode).GetField("_enabled", BindingFlags.Static | BindingFlags.NonPublic);
@@ -31,7 +31,7 @@ namespace CurtainCall.Tightrope.Tests
         object previousDev;
         int previousTargetFrameRate;
         bool previousRunInBackground, overridesApplied, walking, autoBalance;
-        int walkDirection, resetFrames, emptyFrames;
+        int walkDirection, resetFrames, emptyFrames, interactFrames;
         float targetDistance, walkDeadline;
         bool performanceRequested;
         NetworkSessionManager session;
@@ -126,6 +126,14 @@ namespace CurtainCall.Tightrope.Tests
             return true;
         }
 
+        /// <summary>참가자의 실제 F 누름/뗌 입력으로 봉 요청과 응답을 검사한다.</summary>
+        public static bool PressInteract()
+        {
+            if (current == null || current.keyboard == null) return false;
+            current.walking = false; current.interactFrames = 2; current.emptyFrames = 2;
+            return true;
+        }
+
         public static bool StartPerformance()
         {
             if (current == null || current.session == null || !current.session.IsHost) return false;
@@ -150,6 +158,11 @@ namespace CurtainCall.Tightrope.Tests
 
         void Update()
         {
+            if (!journey) QueueProbeInput();
+        }
+
+        void QueueProbeInput()
+        {
             if (keyboard == null) return;
             if (performanceRequested && CampaignRun.Instance != null)
             {
@@ -170,7 +183,9 @@ namespace CurtainCall.Tightrope.Tests
             if (emptyFrames > 0) emptyFrames--;
             else if (resetFrames > 0 && (resetFrames < 2 || !blocked))
             { keys.Add(Key.R); resetFrames--; }
-            else if (!blocked)
+            else if (interactFrames > 0 && (interactFrames < 2 || !blocked))
+            { keys.Add(Key.F); interactFrames--; }
+            else if (!blocked && !JourneyKeys(keys))
             {
                 if (walking) keys.Add(walkDirection > 0 ? Key.W : Key.S);
                 var control = player != null ? player.GetComponent<PlayerController>() : null;
@@ -263,6 +278,7 @@ namespace CurtainCall.Tightrope.Tests
         {
             if (!overridesApplied) return;
             overridesApplied = false;
+            RestoreJourneyDevices();
             if (keyboard != null && keyboard.added) InputSystem.RemoveDevice(keyboard);
             keyboard = null;
             if (previousKeyboard != null && previousKeyboard.added) previousKeyboard.MakeCurrent();

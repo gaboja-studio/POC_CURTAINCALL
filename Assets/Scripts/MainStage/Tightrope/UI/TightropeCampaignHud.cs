@@ -12,6 +12,7 @@ namespace CurtainCall.Tightrope.UI
     /// <summary>독립 외줄 테스트 씬에서 공용 공연 시작과 정산 결과를 확인한다.</summary>
     public sealed class TightropeCampaignHud : MonoBehaviour
     {
+        static TightropeCampaignHud activeHud;
         int restartingGeneration;
         float lastRestartAt = -10f;
         NetworkSessionManager scopedSession;
@@ -22,8 +23,20 @@ namespace CurtainCall.Tightrope.UI
         TightropeActionButtons actions;
         static bool IsExternallyManaged => TightropeRun.Current != null && TightropeRun.Current.ExternallyManaged;
 
+        /// <summary>독립 테스트 씬의 시작 버튼이 필요한 동안 카메라가 커서를 잠그지 않게 한다.</summary>
+        public static bool RequiresStartCursor
+        {
+            get
+            {
+                if (activeHud == null || !activeHud.isActiveAndEnabled || IsExternallyManaged) return false;
+                var campaign = TightropeCampaignBridge.Current != null ? TightropeCampaignBridge.Current.Campaign : null;
+                return campaign == null || campaign.State.Phase == CampaignPhase.None || campaign.State.Phase == CampaignPhase.Intro;
+            }
+        }
+
         void OnEnable()
         {
+            activeHud = this;
             BindSoloStart();
             if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) return;
             actions = new TightropeActionButtons(transform, "Tightrope start", () =>
@@ -99,6 +112,7 @@ namespace CurtainCall.Tightrope.UI
 
         void OnDisable()
         {
+            if (activeHud == this) activeHud = null;
             actions?.Dispose(); actions = null;
             restartingGeneration = 0;
             startPending = false;
