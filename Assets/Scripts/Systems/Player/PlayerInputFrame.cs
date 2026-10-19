@@ -26,5 +26,11 @@ namespace CurtainCall.Player
 
         /// <summary>상호작용을 누르고 있는 동안 길게 누르기까지의 진행(0~1). 안 누르면 0. UI 표시용.</summary>
         public float InteractHoldProgress;
+
+        /// <summary>달리기(기본 LShift)를 누르고 있는지. 다른 키와 조합 없이 누르는 동안만 켜진다(2026-10-19 PM).</summary>
+        public bool SprintHeld;
+
+        /// <summary>앉기(기본 LCtrl)를 누르고 있는지. 다른 키와 조합 없이 누르는 동안만 켜진다(2026-10-19 PM).</summary>
+        public bool CrouchHeld;
     }
 }

@@ -41,6 +41,9 @@ MonoBehaviour:
     modelHeight: 1.73
     pushSpeed: 2
     playerGap: 0.05
+    sprintSpeedMultiplier: 1.5
+    crouchSpeedMultiplier: 0.5
+    crouchHeightRatio: 0.6
   input:
     longPressTime: 0.5
   balance:

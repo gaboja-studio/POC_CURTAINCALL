@@ -25,6 +25,8 @@ namespace CurtainCall.Player
         InputAction auxLeft;
         InputAction auxRight;
         InputAction interact;
+        InputAction sprint;
+        InputAction crouch;
         float interactPressedAt = -1f; // 누르고 있지 않으면 음수
         bool interactLongSent;
 
@@ -49,6 +51,8 @@ namespace CurtainCall.Player
             auxLeft = commonMap.FindAction("DirectionLeft", true);
             auxRight = commonMap.FindAction("DirectionRight", true);
             interact = commonMap.FindAction("Interact", true);
+            sprint = commonMap.FindAction("Sprint", true);
+            crouch = commonMap.FindAction("Crouch", true);
         }
 
         public bool ControlsReleased
@@ -108,6 +112,8 @@ namespace CurtainCall.Player
                 InteractTapped = tapped,
                 InteractLongPressed = longPressed,
                 InteractHoldProgress = holdProgress,
+                SprintHeld = sprint.IsPressed(),
+                CrouchHeld = crouch.IsPressed(),
             };
         }
 

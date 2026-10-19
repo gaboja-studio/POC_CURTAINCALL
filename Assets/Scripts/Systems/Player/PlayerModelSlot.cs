@@ -8,6 +8,8 @@ namespace CurtainCall.Player
     /// 모델은 슬롯 아래에 생성되며, 선택하면 캐릭터 키에 맞춰 크기를 맞추고 발을 바닥(슬롯 원점)에 붙인다.
     /// 모델 프리팹 위치: Assets/Resources/Prefabs/Characters/Players/Models/
     /// 맞출 키는 게임 기본 세팅(캐릭터 · 모델 맞춤 키)에서 모델을 끼울 때 읽는다.
+    /// 앉으면(<see cref="PlayerMover.PostureHeightScale"/>) 슬롯을 발 기준으로 위아래만 줄여 겉모습 높이를 낮춘다(전용 애니메이션 없음, 2026-10-19 PM).
+    /// 원래 슬롯 크기를 기준으로 매 프레임 다시 정하므로 누적되지 않고, 모델을 재거나 떼어 낼 때는 원래 크기로 돌려 둔다.
     /// </summary>
     public class PlayerModelSlot : MonoBehaviour
     {
@@ -19,6 +21,10 @@ namespace CurtainCall.Player
 
         [Tooltip("모델 크기를 캐릭터 키(세팅 · 모델 맞춤 키)에 맞출지. 끄면 프리팹 크기 그대로.")]
         [SerializeField] bool fitToHeight = true;
+
+        PlayerMover mover;
+        Vector3 neutralScale = Vector3.one; // 자세로 줄이기 전 슬롯 크기
+        bool scaleCaptured;
 
         /// <summary>모델이 붙는 위치(원점 = 발). 기울기 등 겉모습 연출은 이 슬롯을 돌린다.</summary>
         public Transform Slot
@@ -40,7 +46,12 @@ namespace CurtainCall.Player
         public GameObject DetachModel()
         {
             var model = CurrentModel;
-            if (model != null) model.transform.SetParent(null, true);
+            if (model != null)
+            {
+                // 앉은 채 떼어 내도 줄어든 크기가 떨어진 모델(래그돌)에 남지 않게 원래 크기로 돌린 뒤 뗀다
+                SetPostureScale(1f);
+                model.transform.SetParent(null, true);
+            }
             CurrentModel = null;
             return model;
         }
@@ -67,16 +78,19 @@ namespace CurtainCall.Player
 
             if (fitToHeight)
             {
-                // 기울어진 상태에서 바꿔도 키를 정확히 재도록 잠시 슬롯을 세운다
+                // 기울어지거나 앉은 상태에서 바꿔도 키를 정확히 재도록 잠시 슬롯을 세우고 원래 크기로 둔다
                 Quaternion tilt = slot.localRotation;
                 slot.localRotation = Quaternion.identity;
+                SetPostureScale(1f);
                 FitToHeight(CurrentModel.transform);
                 slot.localRotation = tilt;
+                ApplyPosture();
             }
         }
 
         void Awake()
         {
+            mover = GetComponent<PlayerMover>();
             EnsureSlot();
             if (modelPrefab != null)
                 SetModel(modelPrefab);
@@ -86,9 +100,35 @@ namespace CurtainCall.Player
 
         void EnsureSlot()
         {
-            if (slot != null) return;
-            slot = new GameObject("ModelSlot").transform;
-            slot.SetParent(transform, false);
+            if (slot == null)
+            {
+                slot = new GameObject("ModelSlot").transform;
+                slot.SetParent(transform, false);
+            }
+            if (!scaleCaptured)
+            {
+                neutralScale = slot.localScale;
+                scaleCaptured = true;
+            }
+        }
+
+        // 이동(Update) 뒤, 균형 기울기 등 다른 겉모습 연출과 같은 프레임에 반영한다. 기울기(회전)는 건드리지 않는다
+        void LateUpdate() => ApplyPosture();
+
+        void OnDisable()
+        {
+            if (slot != null) SetPostureScale(1f);
+        }
+
+        void ApplyPosture() => SetPostureScale(mover != null ? mover.PostureHeightScale : 1f);
+
+        /// <summary>슬롯의 위아래 크기만 원래 크기 × <paramref name="heightScale"/>로 둔다. 슬롯 원점이 발이므로 발은 그대로다.</summary>
+        void SetPostureScale(float heightScale)
+        {
+            if (slot == null) return;
+            Vector3 scale = neutralScale;
+            scale.y *= Mathf.Clamp(heightScale, 0.01f, 1f);
+            if (slot.localScale != scale) slot.localScale = scale;
         }
 
         /// <summary>모델 전체 높이를 캐릭터 키에 맞추고, 바닥을 슬롯 원점에 붙인다.</summary>
