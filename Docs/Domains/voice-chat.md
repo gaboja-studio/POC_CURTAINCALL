@@ -14,7 +14,7 @@ Start에서 시작해 이어지는 흐름의 확정 씬(`Start`·`Lobby`·`Waiti
 - `VoiceChatDevOverlay.cs` — **개발자 모드 전용** 확인 화면(IMGUI, 왼쪽 위). `VoiceChat`이 같은 오브젝트에 붙인다.
 - `Editor/Tests/VoiceRoomRulesTests.cs` — EditMode.
 
-세팅: 공통 세팅 `음성 채팅`(`BaseGameSettings.VoiceChat`) — 사용, LAN 사용(기본 끔), 사용 씬(기본 위 5개), 대화 거리 2m, 들리는 거리 20m, 감쇠 모양(직선)·세기, 입 높이, 음소거 키(임시 `M`).
+세팅: 공통 세팅 `음성 채팅`(`BaseGameSettings.VoiceChat`) — 사용, LAN 사용(기본 켬, 2026-10-20 fix), 사용 씬(기본 위 5개), 대화 거리 2m, 들리는 거리 20m, 감쇠 모양(직선)·세기, 입 높이, 음소거 키(임시 `M`).
 테스트 씬 없음: Start 흐름에서만 동작하므로 Start 씬부터 실행해 확인한다(개발자 모드면 확인 화면 표시).
 패키지: `com.unity.services.vivox` 16.12.1(통합 준비에서 PM 설치).
 
@@ -51,5 +51,5 @@ voice.IsLoggedIn; voice.LastError;
 - Unity Cloud 대시보드에서 프로젝트의 Vivox가 켜져 있어야 로그인된다. 꺼져 있으면 `LastError`·경고 로그만 남는다.
 - 백스테이지·탈출로 씬이 확정되거나 흐름 씬 이름이 바뀌면 세팅 `사용 씬`을 고친다(코드 수정 없음).
 - 새 사망 계열 `PlayerState`를 추가하면 `VoiceRoomRules.IsDead`와 테스트를 함께 고친다(관전 `CameraSpectator`와 같은 기준 유지).
-- LAN으로 음성을 확인하려면 세팅 `LAN 사용`을 켠다(기본 끔: LAN PlayMode 테스트가 로그인하지 않게).
+- LAN 접속도 기본으로 음성을 쓴다(인터넷 필요). LAN PlayMode 테스트는 테스트 씬을 직접 열어 Start 흐름 조건에서 걸러지므로 로그인하지 않는다. LAN 방 키(named message) 경로는 실제 2인 확인 전.
 - 같은 PC(MPPM)는 스피커 소리가 마이크로 다시 들어가 울린다. 사람 확인은 PC 2대 또는 이어폰.

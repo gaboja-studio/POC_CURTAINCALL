@@ -441,8 +441,8 @@ namespace CurtainCall.Settings
             [Tooltip("음성 채팅 사용. 끄면 음성 로그인·채널 입장을 하지 않는다.")]
             [SerializeField] bool enabled = true;
 
-            [Tooltip("LAN(직접 IP) 테스트 접속에서도 음성을 쓴다. 인터넷·UGS 로그인이 필요하다. 기본 끔(자동 테스트가 로그인하지 않게).")]
-            [SerializeField] bool useOnLan;
+            [Tooltip("LAN(직접 IP) 접속에서도 음성을 쓴다(기본 켬). Vivox 서버를 쓰므로 인터넷이 필요하다. 끄면 LAN 방에서는 음성 없음.")]
+            [SerializeField] bool useOnLan = true;
 
             [Tooltip("음성을 쓰는 씬 이름. Start 씬부터 실행해 이어진 흐름에서, 지금 씬이 이 목록에 있을 때만 동작한다. 백스테이지·탈출로 씬이 확정되면 추가.")]
             [SerializeField] string[] scenes = { "Start", "Lobby", "WaitingRoomBase", "Tightrope", "HumanCannon" };
