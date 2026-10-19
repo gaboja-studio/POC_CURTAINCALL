@@ -31,6 +31,8 @@
 | `Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab` | Task-20261019-061 | 신규 호응 HUD |
 | `Assets/Resources/Prefabs/UIs/CommonButtons/` | Task-20261019-061 | 승인된 공용 버튼4종 |
 | `Assets/Resources/Fonts/CommonButtons/` | Task-20261019-061 | 버튼 SemiBold TMP |
+| `Assets/Resources/Prefabs/UIs/BasicPanels/`, `Assets/Resources/Fonts/BasicPanels/` | Task-20261019-061 | 패널 조립·전용 폰트 |
+| `Assets/Scenes/Tests/BasicPanels/` | Task-20261019-061 | 패널 독립 확인 씬 |
 
 ## Decisions
 

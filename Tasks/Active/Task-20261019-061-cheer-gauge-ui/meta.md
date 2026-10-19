@@ -13,12 +13,12 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 ## Workspace
 
 - **Integration:** integration/ui-resources
-- **Branch:** feat/ui-resources (로컬 구현, 정식 원격 인계 없음)
+- **Branch:** feat/ui-resources (C1·버튼 1ebe65d 원격 저장 완료, 패널 private a971b415 저장·공개 save-work 진행, 정식 인계 없음)
 - **Previous Task:**
 
 ## Goal
 
-- 승인된 UI 키트의 필요한 리소스 확보·조합·독립 테스트. 현재 C1과 공용 버튼4종이 대상이며 다른 UI는 사용자 지시 후 추가한다.
+- 승인된 UI 키트의 필요한 리소스 확보·조합·독립 테스트. 현재 C1·공용 버튼4종·메뉴/확인 패널2종이 대상이며 다른 UI는 사용자 지시 후 추가한다.
 - C1 원본 미리보기와 같은 상단 중앙 프리팹을 확인하고, 환호·야유·사망에 따른 실제 합계와 단원별 원호 변화를 확인한다.
 - 난도 상한100/150/200, 1~4명과 공연 내 색 고정을 지원한다. 기존 공연 씬 배치는 제외한다.
 
@@ -30,6 +30,8 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 ## Decisions
 
 - Open: None
+- Decided: 2026-10-20 PM 패널 정상 동작 확인, 저장·미사용 자료 정리·하네스 이관 승인. 다른 패널 제작용 원본·공용 리소스·조립기는 보존하고 private 무관 변경은 제외한다.
+- Decided: 2026-10-20 PM 패널 키트 조립 계획 승인. 현재 Task에 BasicPanels 조립 프리팹·독립 확인 씬·제공 UI 전환 검증 추가. 기존 UI 정본 보존, 키트 삭제·Git 저장·실게임 연결 제외.
 - Decided: 2026-10-20 PM이 원격 통합 준비·저장/push 승인. origin/dev 5e9b1b04에서 원격 integration/ui-resources 생성, private 필수 키트는 main c15d9a11 저장. PR·병합은 별도 요청.
 - Decided: 2026-10-20 PM이 버튼 정상 동작을 확인하고 저장·미사용 제작 파일 정리·하네스 기록을 승인. 필수 의존성과 동작을 보존하고 삭제 전후 회귀 검사한다.
 - Decided: 2026-10-19 PM 지시. 현재 Task를 각종 UI 리소스 확보·조합·테스트로 변경, 로컬 브랜치 ui-resources로 개명. 버튼4종/확인씬 추가 승인, C1 보존. Task ID/폴더는 이력 유지.

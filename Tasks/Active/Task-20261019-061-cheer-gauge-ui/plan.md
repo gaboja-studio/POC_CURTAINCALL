@@ -4,6 +4,14 @@
 
 2026-10-19 PM 지시로 이 Task를 UI 리소스 확보·조합·테스트로 확장한다. C1 디자인/기능을 보존하며 제공 버튼 미리보기의 확인·취소·설정·일반 프리팹과 독립 확인 씬을 추가한다. 폴더/Task ID는 이력 보존을 위해 유지한다. 기존 보상/네트워크·게임 메뉴는 변경하지 않는다.
 
+## 패널 추가 (2026-10-20)
+
+- private panels_v1의 조립기·Runtime 재사용, 이번 키트 namespace만 PanelsV1/동봉 버튼 전용으로 격리. 기존 버튼 프리팹·SemiBold는 읽기 전용 참조.
+- 신규 패널 PNG7종만 import 설정. 메뉴384×400/확인창512×304·Y=-64, 제공 레이어/문구/160·120ms 연출과 안전한 첫 선택 유지.
+- BasicPanels 전용 Canvas 조립 프리팹 하나와 연결된 독립 확인 씬. Medium 폰트는 기존 글리프 충족 시 재사용, 부족 시 전용 생성.
+- public wrapper 안전 진입점, 기존 출력/dirty 씬 덮어쓰기 거부. 메뉴·확인창/Cancel/중복 신호·실제 Overlay·화면비·회귀 검사, 제공 아트 및 코드 private 유지.
+- 최초 조립에서는 삭제·저장 제외. 이후 2026-10-20 PM 정상 동작 확인·정리/저장 승인으로 검토 PNG4개·중복 README와 meta만 제거, 다른 패널 제작 원본·Tools·SVG·명세·라이선스 보존 및 private/public 저장. 실게임 연결·전역ESC/pause/커서 변경은 계속 제외.
+
 ## 공용 버튼 추가
 
 - private CurtainCallButton과 CommonButtonBuilder를 재사용한다. builder의 실제 입력/출력 경로·실행 진입점·연결 저장만 수정하고 제공 코드는 공개 복제하지 않는다.
