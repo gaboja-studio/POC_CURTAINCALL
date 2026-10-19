@@ -1,7 +1,7 @@
 ---
 summary: 이름에 Demo가 붙은 줄타기 UI를 통째로 끄면 HUD·균형 게이지까지 사라진다. 연결 모드에서 시연용 UI를 숨길 때
 status: active
-updated: 2026-10-18
+updated: 2026-10-19
 source: Task-20261017-057
 ---
 
@@ -21,7 +21,8 @@ TightropeDemoUI는 접속 패널과 실제 플레이 HUD를 한 컴포넌트에�
 
 ## 대처
 
-컴포넌트 전체를 끄지 않고 접속·전원 재시작 같은 패널만 막는다(CampaignPerformanceEntry는 PlayerCommandDebugHud·NetworkSessionTestUI·HumanCannonTestHud만 끈다).
+컴포넌트 전체를 끄지 않고 접속·전원 재시작 같은 패널만 막는다(CampaignPerformanceEntry는 PlayerCommandDebugHud·NetworkSessionTestUI·HumanCannonTestHud·HumanCannonPracticeBot만 끈다).
+HumanCannonPracticeBot은 에디터에서 TestHud.OnEnable이 붙이며, sceneLoaded(Prepare)는 OnEnable 뒤에 오므로 따로 꺼야 한다.
 
 ## 확인 방법
 

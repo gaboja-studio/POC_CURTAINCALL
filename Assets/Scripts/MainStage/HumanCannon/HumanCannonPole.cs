@@ -27,6 +27,7 @@ namespace CurtainCall.HumanCannon
         public float HoldSeconds => holdSeconds;
         public float WarningSeconds => warningSeconds;
         public float AirControlSpeed => airControlSpeed;
+        public float HangLength => hangLength;
         public Vector3 Forward => Vector3.ProjectOnPlane(Grip.forward, Vector3.up).normalized;
         public float SwingLength => TryCeilingPivot(out var pivot) ? Vector3.Distance(pivot, Grip.position) : hangLength;
         public Vector3 HangingPosition(float angle) => BarPosition(angle) - Vector3.up * hangLength;
@@ -82,7 +83,7 @@ namespace CurtainCall.HumanCannon
             cable.localScale = scale;
         }
 
-        internal void Step(ref float angle, ref float speed, float input, float dt, float gravity) =>
+        public void Step(ref float angle, ref float speed, float input, float dt, float gravity) =>
             PoleSwingMotion.Step(ref angle, ref speed, input, dt, gravity, SwingLength,
                 swingAcceleration, maxSwingAngle, maxSwingSpeed, swingDamping);
 

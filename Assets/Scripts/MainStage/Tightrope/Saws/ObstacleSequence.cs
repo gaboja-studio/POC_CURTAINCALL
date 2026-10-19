@@ -212,6 +212,7 @@ namespace CurtainCall.Tightrope.Saws
         readonly float speed, halfWidth;
         readonly bool initialLeft;
         readonly List<Run> runs = new();
+        readonly List<(float start, float end)> pauses = new();
 
         public HorizontalSawTrack(float speed, float halfWidth, bool startsLeft)
         {
@@ -223,6 +224,7 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>그 시각에 작동한다. 도는 중이면 무시, 끝으로 가는 중이면 정지를 취소한다.</summary>
         public void Start(float time)
         {
+            time = GetElapsed(time);
             if (runs.Count > 0)
             {
                 var last = runs[^1];
@@ -242,6 +244,7 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>그 시각에 정지한다(가까운 끝까지 간 뒤 멈춤). 멈춰 있으면 무시.</summary>
         public void Stop(float time)
         {
+            time = GetElapsed(time);
             if (runs.Count == 0) return;
             var last = runs[^1];
             if (!float.IsPositiveInfinity(last.stop) || time < last.start) return;
@@ -250,11 +253,37 @@ namespace CurtainCall.Tightrope.Saws
         }
 
         /// <summary>기록을 지우고 처음(출발 쪽 끝 대기)으로.</summary>
-        public void Clear() => runs.Clear();
+        public void Clear() { runs.Clear(); pauses.Clear(); }
+
+        /// <summary>협동 통로 동안 현재 위치에 멈춘다. 겹친 정지는 한 번만 세며 재개 때 위치가 튀지 않는다.</summary>
+        public void Pause(float start, float duration)
+        {
+            if (duration <= 0f) return;
+            float end = start + duration;
+            for (int i = pauses.Count - 1; i >= 0; i--)
+            {
+                var pause = pauses[i];
+                if (pause.end < start || pause.start > end) continue;
+                start = Mathf.Min(start, pause.start);
+                end = Mathf.Max(end, pause.end);
+                pauses.RemoveAt(i);
+            }
+            pauses.Add((start, end));
+        }
+
+        /// <summary>협동 통로에 의한 정지 시간을 제외한 이동·회전 시각.</summary>
+        public float GetElapsed(float time)
+        {
+            float elapsed = time;
+            foreach (var pause in pauses) elapsed -= Mathf.Clamp(time - pause.start, 0f, pause.end - pause.start);
+            return elapsed;
+        }
 
         /// <summary>그 시각에 움직이고 있는지(끝으로 가는 중 포함).</summary>
         public bool IsMoving(float time)
         {
+            foreach (var pause in pauses) if (time >= pause.start && time < pause.end) return false;
+            time = GetElapsed(time);
             if (runs.Count == 0) return false;
             var last = runs[^1];
             return time >= last.start && time < ParkTime(last);
@@ -263,6 +292,7 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>그 시각의 중심 옆 좌표(m, 코스 가운데 0, 오른쪽 +).</summary>
         public float GetSide(float time)
         {
+            time = GetElapsed(time);
             for (int i = runs.Count - 1; i >= 0; i--)
             {
                 var run = runs[i];

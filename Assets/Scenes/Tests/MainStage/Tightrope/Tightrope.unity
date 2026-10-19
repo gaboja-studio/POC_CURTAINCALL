@@ -285,7 +285,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 183364835}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 325320402c72a4be7bec403e680dbe9c, type: 3}
   m_Name: 
@@ -293,6 +293,7 @@ MonoBehaviour:
   fallKey: 25
   finishKey: 26
   toggleKey: 29
+  logLandings: 1
   visible: 1
   scale: 1.5
   markerSize: 0.25
@@ -353,6 +354,63 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e9d3a1e7b62934b2ab0ab9d13a45fe4d, type: 3}
+--- !u!1001 &445655322
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1265721669558176398, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_Name
+      value: TightropeSaws
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4622483775825717936, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
 --- !u!1001 &579777057
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -466,6 +524,63 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fae7b8f70df8e4f8bb2470ca1410bc7f, type: 3}
+--- !u!1001 &682573414
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4940172831943728440, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8413489186545113913, guid: f0f55abe05d7341079412a875384e580, type: 3}
+      propertyPath: m_Name
+      value: TightropeFire
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f0f55abe05d7341079412a875384e580, type: 3}
 --- !u!1 &697538859
 GameObject:
   m_ObjectHideFlags: 0
@@ -520,9 +635,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2331872781909530610, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3804338068807545770, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -4.5
+      objectReference: {fileID: 0}
     - target: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
       propertyPath: m_Name
       value: TightropeCourse
+      objectReference: {fileID: 0}
+    - target: {fileID: 5202966602762029436, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5280814123298984889, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -7.5
       objectReference: {fileID: 0}
     - target: {fileID: 8954170843485581687, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
       propertyPath: m_LocalPosition.x
@@ -567,8 +698,104 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 735797997}
+    - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 735797998}
+    - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 735797999}
+    - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 735798001}
+    - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 735798000}
+    - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 735798008}
   m_SourcePrefab: {fileID: 100100000, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+--- !u!1 &735797996 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+  m_PrefabInstance: {fileID: 735797995}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &735797997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a99c905f516f1a45a0c72c13d038df0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCampaignBridge
+  difficulty: 1
+--- !u!114 &735797998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ad229f571c6945dbb1bb3d94dd63c8c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.RopeLaneJumpRules
+--- !u!114 &735797999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f16c82da89604bc4090659ae40d72112, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCatchSystem
+--- !u!114 &735798000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e50e974cfa6645bd9704d0de97ee28a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeBalancePoseView
+--- !u!114 &735798001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 892cf9405be80ee409b6da3d9dd60355, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeHandholdRangeView
+--- !u!114 &735798008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 672b9cd1f7b0aaf46b2166e2cfa471ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropePracticeBot
 --- !u!1 &1006495035
 GameObject:
   m_ObjectHideFlags: 0
@@ -747,6 +974,64 @@ MonoBehaviour:
   testModels: []
   visible: 1
   scale: 1.5
+--- !u!1 &1560266620
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1560266623}
+  - component: {fileID: 1560266622}
+  - component: {fileID: 1560266621}
+  m_Layer: 0
+  m_Name: TightropeCooperation
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1560266621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560266620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 282c9acde574d458699755686dfdfd1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.PiggybackFollow
+--- !u!114 &1560266622
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560266620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02f2de0be9ca54ed6bc4ce65cdbef5e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.PiggybackSystem
+  showDebug: 0
+--- !u!4 &1560266623
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1560266620}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1957087404
 GameObject:
   m_ObjectHideFlags: 0
@@ -798,6 +1083,50 @@ MonoBehaviour:
     y: 10
     width: 340
     height: 320
+--- !u!1 &2041724840
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2041724842}
+  - component: {fileID: 2041724841}
+  m_Layer: 0
+  m_Name: TightropeCampaignHud
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2041724841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2041724840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e28c2d1a977fe64478636d99bc2a6803, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.UI.TightropeCampaignHud
+--- !u!4 &2041724842
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2041724840}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -811,3 +1140,7 @@ SceneRoots:
   - {fileID: 1097719284}
   - {fileID: 697538860}
   - {fileID: 183364836}
+  - {fileID: 2041724842}
+  - {fileID: 445655322}
+  - {fileID: 1560266623}
+  - {fileID: 682573414}

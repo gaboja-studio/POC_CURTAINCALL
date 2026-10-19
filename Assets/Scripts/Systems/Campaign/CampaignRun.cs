@@ -164,6 +164,13 @@ namespace CurtainCall.Campaign
         /// <summary>디버그: 쉬는 시간 남은 시간을 바꾼다(0이면 바로 끝난다).</summary>
         public bool DebugSetRemaining(float seconds) => HostDo(r => r.DebugSetRemaining(seconds), nameof(DebugSetRemaining));
 
+        /// <summary>에디터/개발 빌드의 코스 전체 재시험. 방은 유지하고 새 세대 도입부터 시작한다(호스트 전용).</summary>
+        public bool DebugRestartRun()
+        {
+            if ((!Application.isEditor && !CurtainCall.Dev.DevMode.Enabled) || !HasAuthority) return false;
+            return HostDo(r => r.DebugRestartRun(), nameof(DebugRestartRun));
+        }
+
         // ── 밤 정비 준비 완료 (누구나) ────────────────────────
 
         /// <summary>내 밤 정비 준비 완료를 바꾼다. 전원이 준비되면 다음 날 아침 쉬는 시간이 된다.</summary>
@@ -226,7 +233,7 @@ namespace CurtainCall.Campaign
             bool stepChanged = previous.Generation != next.Generation || previous.Day != next.Day || previous.Phase != next.Phase
                 || previous.Rest != next.Rest || previous.PerformanceIndex != next.PerformanceIndex;
 
-            if (newGeneration)
+            if (newGeneration && next.LastEnd != RunEndReason.None)
             {
                 Debug.Log($"[Campaign] 런 실패({next.LastEnd}) → 세대 {next.Generation}로 교체");
                 RunEnded?.Invoke(next.LastEnd);
