@@ -225,10 +225,9 @@ namespace CurtainCall.HumanCannon
                 airControlSpeed * controlMultiplier);
             Vector3 wind = HumanCannonHazardCourse.Current != null
                 ? HumanCannonHazardCourse.Current.WindVelocity(transform.position, mover.BodyHeight, true) : Vector3.zero;
-            Vector3 displacement = (velocity + correction + wind) * dt + Vector3.down * (0.5f * gravity * dt * dt);
+            Vector3 displacement = BallisticMotion.Step(ref velocity, correction + wind, gravity, dt);
             if (HumanCannonPoleSystem.Current != null)
                 displacement = HumanCannonPoleSystem.Current.ConstrainFlight(transform.position, displacement, mover.BodyRadius);
-            velocity.y -= gravity * dt;
             var trampoline = HumanCannonTrampoline.Current;
             if (!rejectedSurface && velocity.y <= 0f && trampoline != null &&
                 trampoline.TryContact(transform.position, transform.position + displacement, mover.BodyRadius, out var contact))

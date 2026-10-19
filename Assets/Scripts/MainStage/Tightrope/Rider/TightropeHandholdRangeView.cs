@@ -17,11 +17,14 @@ namespace CurtainCall.Tightrope
         RopeLaneJumpRules rules;
         Material material;
         public int VisibleRangeCount { get; private set; }
+        public int ReadyRangeCount { get; private set; }
 
         sealed class Marker
         {
             public GameObject Root;
             public Mesh Mesh;
+            public MeshRenderer Renderer;
+            public readonly MaterialPropertyBlock Properties = new();
             public readonly Vector3[] Vertices = new Vector3[Segments * 4];
             public readonly List<int> Triangles = new(Segments * 6);
         }
@@ -44,6 +47,7 @@ namespace CurtainCall.Tightrope
         void LateUpdate()
         {
             VisibleRangeCount = 0;
+            ReadyRangeCount = 0;
             var course = TightropeCourse.Current;
             var local = NetworkPlayer.Local;
             if (rules == null || !rules.isActiveAndEnabled || course == null || !course.IsGameplayActive
@@ -56,11 +60,25 @@ namespace CurtainCall.Tightrope
             seen.Clear();
             foreach (var other in PlayerMover.All)
             {
-                if (!rules.TryGetHandholdRange(other, out int lane, out float from, out float to)) continue;
+                var player = other.GetComponent<NetworkPlayer>();
+                var catches = TightropeCatchSystem.Current;
+                bool ready = catches != null && catches.IsReady(player);
+                bool success = catches != null && catches.SuccessRemaining(player) > 0f;
+                int lane = TightropeCourse.NoLane;
+                float from = 0f, to = 0f;
+                bool activeRange = catches != null && catches.TryGetCatchRange(player, out lane, out from, out to);
+                if (!activeRange && !rules.TryGetHandholdRange(other, out lane, out from, out to)) continue;
                 seen.Add(other);
                 if (!markers.TryGetValue(other, out var marker))
                     markers.Add(other, marker = CreateMarker());
-                if (Draw(marker, course, lane, from, to)) VisibleRangeCount++;
+                Color tint = success ? new Color(.15f, 1f, .35f) : ready
+                    ? (catches.ReadyRemaining(player) < 1f ? new Color(1f, .65f, .1f) : new Color(.15f, .95f, 1f))
+                    : new Color(.1f, .95f, 1f);
+                marker.Properties.SetColor("_BaseColor", tint);
+                marker.Properties.SetColor("_Color", tint);
+                marker.Renderer.SetPropertyBlock(marker.Properties);
+                if (Draw(marker, course, lane, from, to))
+                { VisibleRangeCount++; if (ready) ReadyRangeCount++; }
             }
             removed.Clear();
             foreach (var pair in markers)
@@ -81,7 +99,7 @@ namespace CurtainCall.Tightrope
             };
             marker.Root.transform.SetParent(transform, false);
             marker.Root.AddComponent<MeshFilter>().sharedMesh = marker.Mesh;
-            var renderer = marker.Root.AddComponent<MeshRenderer>();
+            var renderer = marker.Renderer = marker.Root.AddComponent<MeshRenderer>();
             renderer.sharedMaterial = material;
             renderer.shadowCastingMode = ShadowCastingMode.Off;
             renderer.receiveShadows = false;
@@ -122,6 +140,7 @@ namespace CurtainCall.Tightrope
         {
             foreach (var marker in markers.Values) marker.Root.SetActive(false);
             VisibleRangeCount = 0;
+            ReadyRangeCount = 0;
         }
 
         void OnDisable() => Hide();

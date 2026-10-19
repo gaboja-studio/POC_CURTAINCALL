@@ -97,7 +97,9 @@ namespace CurtainCall.Tightrope
             if (local == null) { Unbind(); return; }
             if (mover == null || mover.gameObject != local.gameObject) Bind(local);
             if (mover != null && mover.IsAirborne && mover.CurrentJump == JumpKind.Lane && !failOnLanding)
+            {
                 RefreshLandingHelp();
+            }
         }
 
         void ClearLanding()

@@ -194,6 +194,18 @@ namespace CurtainCall.Player
             StartJump(JumpKind.InPlace, 0);
         }
 
+        /// <summary>봉 등 외부 이동과 인계할 때 이전 점프·옆줄 목표를 비운다. 위치·조작 규칙은 바꾸지 않는다.</summary>
+        public void ResetExternalMotion(bool airborne)
+        {
+            ClearPendingInput();
+            verticalSpeed = 0f;
+            groundVelocity = Vector3.zero;
+            IsMoving = false;
+            ClearJump();
+            if (airborne) CurrentJump = JumpKind.Fall;
+            SetAirborne(airborne);
+        }
+
         /// <summary>목마 머리 위에서도 기존 허용·착지 규칙으로 옆줄 점프를 시작한다. 불가능하면 이동 상태를 바꾸지 않는다.</summary>
         public bool LaunchLaneJump(int direction)
         {
@@ -421,15 +433,20 @@ namespace CurtainCall.Player
             else
             {
                 IsMoving = false;
-                verticalSpeed -= EffectiveGravity * Time.deltaTime;
             }
 
             Vector3 horizontal = CurrentJump != JumpKind.None ? airVelocity : groundVelocity;
+            bool ballistic = CurrentJump != JumpKind.None || !grounded;
+            var velocity = new Vector3(horizontal.x, verticalSpeed, horizontal.z);
+            Vector3 displacement = ballistic ? BallisticMotion.Step(ref velocity, Vector3.zero, EffectiveGravity, Time.deltaTime)
+                : velocity * Time.deltaTime;
+            verticalSpeed = velocity.y;
+            Vector3 horizontalStep = new(displacement.x, 0f, displacement.z);
             Vector3 step = FreeMovement
-                ? LimitAgainstPlayers(horizontal * Time.deltaTime)
-                : LimitAlongCourse(horizontal * Time.deltaTime, forward);
+                ? LimitAgainstPlayers(horizontalStep)
+                : LimitAlongCourse(horizontalStep, forward);
             if (CurrentJump == JumpKind.Lane) step = LimitToLaneTarget(step);
-            controller.Move(step + Vector3.up * (verticalSpeed * Time.deltaTime));
+            controller.Move(step + Vector3.up * displacement.y);
 
             // 입력은 한 프레임만 유효하다. 조작 규칙이 매 프레임 다시 넣는다.
             moveInput = 0f;

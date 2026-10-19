@@ -26,19 +26,27 @@ namespace CurtainCall.Tightrope
             float end = Layout.GetLaneEnd(lane);
             if (end <= 0f) return spans;
             spans.Add(new Vector2(0f, end));
+            if (HasSwingGapOnLane(lane)) SubtractSpan(spans, SwingGapFrom, SwingGapTo);
+            if (IsRelayGapClosed(lane)) SubtractSpan(spans, SwingGapFrom, SwingGapTo);
+            if (IsTrapezeGapOnLane(lane)) SubtractSpan(spans, TrapezeGapFrom, TrapezeGapTo);
             foreach (var block in blockedSegments)
             {
                 if (block.lane != lane) continue;
-                for (int i = spans.Count - 1; i >= 0; i--)
-                {
-                    var span = spans[i];
-                    if (block.to <= span.x || block.from >= span.y) continue;
-                    spans.RemoveAt(i);
-                    if (block.to < span.y) spans.Insert(i, new Vector2(Mathf.Max(span.x, block.to), span.y));
-                    if (block.from > span.x) spans.Insert(i, new Vector2(span.x, Mathf.Min(span.y, block.from)));
-                }
+                SubtractSpan(spans, block.from, block.to);
             }
             return spans;
+        }
+
+        static void SubtractSpan(List<Vector2> spans, float from, float to)
+        {
+            for (int i = spans.Count - 1; i >= 0; i--)
+            {
+                var span = spans[i];
+                if (to <= span.x || from >= span.y) continue;
+                spans.RemoveAt(i);
+                if (to < span.y) spans.Insert(i, new Vector2(Mathf.Max(span.x, to), span.y));
+                if (from > span.x) spans.Insert(i, new Vector2(span.x, Mathf.Min(span.y, from)));
+            }
         }
 
         void RefreshLaneGeometry(int lane)

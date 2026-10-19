@@ -148,7 +148,7 @@ namespace CurtainCall.Tightrope
         {
             lane = NoLane;
             if (Mathf.Abs(position.y - transform.position.y) > Shape.RopeHeightTolerance) return false;
-            if (!TryGetRopePoint(position, out int nearest, out _)) return false;
+            if (!TryGetRopePoint(position, out int nearest, out float distance) || !IsLaneUsable(nearest, distance)) return false;
             if (Mathf.Abs(GetSide(position) - Layout.GetLaneSide(nearest)) > Shape.RopeWalkWidth * 0.5f + radius) return false;
             lane = nearest;
             return true;
@@ -214,7 +214,9 @@ namespace CurtainCall.Tightrope
 
         /// <summary>그 거리에 줄이 놓여 있고 막히지 않았는지(줄 전체 막힘 + 불타는 구간 등 구간 막힘).</summary>
         public bool IsLaneUsable(int lane, float distance) =>
-            Layout.LaneExists(lane, distance) && !IsLaneBlocked(lane) && !IsSegmentBlocked(lane, distance);
+            Layout.LaneExists(lane, distance) && !IsSwingGapOnLane(lane, distance) && !IsRelayGapClosed(lane, distance)
+            && !IsTrapezeGapOnLane(lane, distance)
+            && !IsLaneBlocked(lane) && !IsSegmentBlocked(lane, distance);
 
         /// <summary>그 줄의 그 거리가 막힌 구간 안인지.</summary>
         public bool IsSegmentBlocked(int lane, float distance)
@@ -311,6 +313,12 @@ namespace CurtainCall.Tightrope
         {
             if (current == null) current = this;
             Rebuild();
+            if (GetComponent<TightropeSwingPole>() == null) gameObject.AddComponent<TightropeSwingPole>();
+            if (GetComponent<TightropeCannonAirControl>() == null) gameObject.AddComponent<TightropeCannonAirControl>();
+            if (GetComponent<TightropeRelaySupport>() == null) gameObject.AddComponent<TightropeRelaySupport>();
+            if (GetComponent<TightropeRopeSway>() == null) gameObject.AddComponent<TightropeRopeSway>();
+            if (GetComponent<TightropeRelayGate>() == null) gameObject.AddComponent<TightropeRelayGate>();
+            if (GetComponent<TightropeTrapeze>() == null) gameObject.AddComponent<TightropeTrapeze>();
         }
 
         void OnEnable()
@@ -371,6 +379,9 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return;
             var player = NetworkPlayer.Local;
+            if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return;
+            if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)) return;
+            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return;
             if (player == null || player.State != PlayerState.Normal) return;
             if (player.transform.position.y >= transform.position.y - Shape.FallDepth) return;
 
@@ -563,9 +574,9 @@ namespace CurtainCall.Tightrope
 
             for (int lane = 0; lane < l.LaneCount; lane++)
             {
-                Vector3 start = GetLanePosition(lane, 0f);
                 Gizmos.color = ropeColor;
-                Gizmos.DrawLine(start, GetLanePosition(lane, l.GetLaneEnd(lane)));
+                foreach (var span in GetUsableSpans(lane))
+                    Gizmos.DrawLine(GetLanePosition(lane, span.x), GetLanePosition(lane, span.y));
 
                 // 옆줄 이동 가능 구간은 줄 옆에 초록 선
                 Gizmos.color = Color.green;
@@ -573,15 +584,20 @@ namespace CurtainCall.Tightrope
                 {
                     float from = Mathf.Max(0f, Mathf.Min(zone.x, zone.y));
                     float to = Mathf.Min(l.GetLaneEnd(lane), Mathf.Max(zone.x, zone.y));
-                    if (to > from)
-                        Gizmos.DrawLine(GetLanePosition(lane, from) + Vector3.up * 0.05f + right * 0.15f,
-                            GetLanePosition(lane, to) + Vector3.up * 0.05f + right * 0.15f);
+                    foreach (var span in GetUsableSpans(lane))
+                    {
+                        float visibleFrom = Mathf.Max(from, span.x), visibleTo = Mathf.Min(to, span.y);
+                        if (visibleTo > visibleFrom)
+                            Gizmos.DrawLine(GetLanePosition(lane, visibleFrom) + Vector3.up * 0.05f + right * 0.15f,
+                                GetLanePosition(lane, visibleTo) + Vector3.up * 0.05f + right * 0.15f);
+                    }
                 }
             }
 
             Gizmos.color = finishColor;
             Vector3 finishCenter = origin + forward * l.FinishDistance;
             Gizmos.DrawLine(finishCenter - right * width * 0.5f, finishCenter + right * width * 0.5f);
+            DrawPolePreview();
         }
 
         static void DrawRect(Vector3 center, float width, float length, Vector3 forward, Vector3 right)

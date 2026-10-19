@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -50,6 +51,7 @@ namespace CurtainCall.Tightrope.Fire
         double sampledAt;
         bool ticking;
         float nextBroadcast;
+        readonly List<Vector2> segmentSpans = new(FireCourseSpans.MaximumPieces);
 
         public static TightropeFire Current => current != null ? current : FindAnyObjectByType<TightropeFire>();
         /// <summary>이번 회차의 고정 설정. 결과 기록용 JSON은 ExportSettings를 쓴다.</summary>
@@ -64,6 +66,37 @@ namespace CurtainCall.Tightrope.Fire
         public bool IsChasing => IsPerformanceActive && snapshot.chaseEnabled && Elapsed >= snapshot.chaseDelay;
         public float ChaseDistance => snapshot == null ? float.NaN : FireMath.ChaseDistance(snapshot, Elapsed);
         public string ExportSettings() => snapshot?.ToJson() ?? "";
+
+        /// <summary>이 거리에서 소각 뒤 정확히 하나만 남도록 예정된 줄(0-based). 아직 타기 전에도 같은 줄을 반환한다.</summary>
+        public int SurvivingLaneAt(float distance)
+        {
+            if (snapshot == null || course == null || run == null || round != run.Round) return TightropeCourse.NoLane;
+            int survivor = TightropeCourse.NoLane;
+            for (int lane = 0; lane < course.LaneCount; lane++)
+            {
+                bool burns = false;
+                for (int i = 0; i < snapshot.segments.Length && !burns; i++)
+                {
+                    if (snapshot.segments[i].lane - 1 != lane) continue;
+                    GetSegmentSpans(i, segmentSpans);
+                    foreach (var span in segmentSpans)
+                        if (distance >= span.x && distance < span.y) { burns = true; break; }
+                }
+                if (burns || !course.IsLaneUsable(lane, distance)) continue;
+                if (survivor != TightropeCourse.NoLane) return TightropeCourse.NoLane;
+                survivor = lane;
+            }
+            return survivor;
+        }
+
+        public bool FinaleReadyAt(float distance)
+        {
+            int survivor = SurvivingLaneAt(distance);
+            if (survivor == TightropeCourse.NoLane) return false;
+            for (int lane = 0; lane < course.LaneCount; lane++)
+                if (lane != survivor && course.IsLaneUsable(lane, distance)) return false;
+            return true;
+        }
         /// <summary>호스트에서만 발생. 사망 상태로 바꾸기 직전에 확정 원인을 알린다.</summary>
         public event Action<FireHit> Hit;
         public event Action Changed;
@@ -73,6 +106,14 @@ namespace CurtainCall.Tightrope.Fire
             if (!IsPerformanceActive
                 || index < 0 || index >= snapshot.segments.Length || IsSegmentActive(index)) return -1f;
             return FireMath.WarningRemaining(index, pendingSegment, pendingIgniteAt, Elapsed);
+        }
+
+        /// <summary>원래 이벤트 번호는 유지하고 실제 소각 부분만 반환한다. 구간 끝은 기존처럼 제외한다.</summary>
+        public void GetSegmentSpans(int index, List<Vector2> result)
+        {
+            result.Clear();
+            if (snapshot == null || index < 0 || index >= snapshot.segments.Length) return;
+            FireCourseSpans.Get(snapshot.segments[index], course, result);
         }
 
         double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
@@ -161,7 +202,13 @@ namespace CurtainCall.Tightrope.Fire
             ApplyBlocks();
         }
 
-        void HandleRebuilt() { appliedMask = 0; ApplyBlocks(); }
+        void HandleRebuilt()
+        {
+            // 봉 구간이 바뀌면 이전 파생 소각 범위도 제거하고 현재 보호 범위로 다시 만든다.
+            course.ClearBlockedSegments();
+            appliedMask = 0;
+            ApplyBlocks();
+        }
 
         void HandlePerformance()
         {
@@ -216,8 +263,17 @@ namespace CurtainCall.Tightrope.Fire
                     var segment = snapshot.segments[i];
                     int lane = segment.lane - 1;
                     if (!IsSegmentActive(i) || lane < 0 || lane >= course.LaneCount) continue;
-                    if (!FireMath.SegmentContains(segment, distance, side, course.Layout.GetLaneSide(lane),
-                        course.Shape.RopeWalkWidth * 0.5f + radius)) continue;
+                    GetSegmentSpans(i, segmentSpans);
+                    bool hit = false;
+                    foreach (var span in segmentSpans)
+                    {
+                        segment.from = span.x; segment.to = span.y;
+                        if (!FireMath.SegmentContains(segment, distance, side, course.Layout.GetLaneSide(lane),
+                            course.Shape.RopeWalkWidth * 0.5f + radius)) continue;
+                        hit = true;
+                        break;
+                    }
+                    if (!hit) continue;
                     Kill(player, FireKind.Segment, i, distance);
                     break;
                 }
@@ -239,7 +295,8 @@ namespace CurtainCall.Tightrope.Fire
                 ulong bit = 1UL << i;
                 if ((activeMask & bit) == 0 || (appliedMask & bit) != 0) continue;
                 var segment = snapshot.segments[i];
-                course.BlockSegment(segment.lane - 1, segment.from, segment.to, false);
+                GetSegmentSpans(i, segmentSpans);
+                foreach (var span in segmentSpans) course.BlockSegment(segment.lane - 1, span.x, span.y, false);
                 appliedMask |= bit;
             }
         }

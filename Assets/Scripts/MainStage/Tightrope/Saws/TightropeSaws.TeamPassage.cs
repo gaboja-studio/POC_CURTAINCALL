@@ -59,6 +59,19 @@ namespace CurtainCall.Tightrope.Saws
             manager.SendNamedMessageToAll(TeamPassageMessage, writer, NetworkDelivery.ReliableFragmentedSequenced);
         }
 
+        /// <summary>버팀 발판의 양 끝 보호. 호스트만 기존 톱 정지·복귀·재접속 공유 경로를 사용한다.</summary>
+        public bool ServerOpenRelayPassage(int lane, float entry, float exit)
+        {
+            if (!isActiveAndEnabled || session == null || !session.IsHost || run == null || run.State != TightropeRunState.Running
+                || course == null || !course.IsGameplayActive || !course.HasSwingGapOnLane(lane)
+                || !float.IsFinite(entry) || !float.IsFinite(exit) || !course.IsLaneUsable(lane, entry)
+                || !course.IsLaneUsable(lane, exit) || settings.teamPassageDuration <= 0f
+                || IsTeamPassageOpen || teamPassages.Count > 250) return false;
+            OpenTeamPassageAt(lane, entry);
+            OpenTeamPassageAt(lane, exit);
+            return true;
+        }
+
         void PauseTracks(TeamPassageWindow passage)
         {
             for (int i = 0; i < tracks.Length; i++)

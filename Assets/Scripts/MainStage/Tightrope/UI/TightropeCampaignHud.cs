@@ -19,9 +19,20 @@ namespace CurtainCall.Tightrope.UI
         bool connectingSolo, startPending;
         float startDeadline;
         string startError;
+        TightropeActionButtons actions;
         static bool IsExternallyManaged => TightropeRun.Current != null && TightropeRun.Current.ExternallyManaged;
 
-        void OnEnable() => BindSoloStart();
+        void OnEnable()
+        {
+            BindSoloStart();
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) return;
+            actions = new TightropeActionButtons(transform, "Tightrope start", () =>
+            {
+                var session = NetworkSessionManager.Instance;
+                if (session == null || session.ConnectionState == SessionConnectionState.Offline) _ = StartSoloAsync();
+                else StartCourseByHost();
+            });
+        }
 
         void BindSoloStart()
         {
@@ -88,6 +99,7 @@ namespace CurtainCall.Tightrope.UI
 
         void OnDisable()
         {
+            actions?.Dispose(); actions = null;
             restartingGeneration = 0;
             startPending = false;
             soloStartScope?.Dispose();
@@ -179,6 +191,7 @@ namespace CurtainCall.Tightrope.UI
 
         void OnGUI()
         {
+            using var buttonsFrame = actions?.Begin();
             TightropeControlHints.Draw();
             if (IsExternallyManaged) return;
             var bridge = TightropeCampaignBridge.Current;
@@ -187,7 +200,8 @@ namespace CurtainCall.Tightrope.UI
             var state = campaign.State;
             var session = NetworkSessionManager.Instance;
             float width = Mathf.Min(370f, Screen.width - 20f);
-            GUILayout.BeginArea(new Rect(Mathf.Max(10f, Screen.width - width - 10f), 10f, width, Mathf.Min(360f, Screen.height - 20f)), GUI.skin.box);
+            var area = new Rect(Mathf.Max(10f, Screen.width - width - 10f), 10f, width, Mathf.Min(410f, Screen.height - 20f));
+            GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label("외줄타기 · 공연 진행");
             GUILayout.Label(session != null && session.IsHost
                 ? "R: 코스 전체 다시 시작 (부상·타이머·자금 초기화)"
@@ -195,15 +209,16 @@ namespace CurtainCall.Tightrope.UI
             if (state.Phase == CampaignPhase.None)
             {
                 GUILayout.Label("출발 플랫폼에서 원하는 줄을 골라 올라가세요.");
-                GUILayout.Label("완주는 2인 협동 · 혼자라면 시작 전에 연습 봇을 추가하세요.");
+                GUILayout.Label("완주는 4인 협동 · 마지막 정면 톱에서 4명 목마가 필요해요.");
+                GUILayout.Label("혼자 시작·연습 봇 1명: 앞쪽 구간 연습용");
                 if (session == null || session.ConnectionState == SessionConnectionState.Offline)
                 {
-                    if (!connectingSolo && GUILayout.Button("혼자 시작")) _ = StartSoloAsync();
+                    actions?.Reserve(0, "혼자 시작", area, !connectingSolo && !startPending);
                     GUILayout.Label("함께하려면 왼쪽에서 방을 만들거나 참가하세요.");
                 }
                 else if (session.IsHost && session.GameState == GameSessionState.Waiting && !startPending)
                 {
-                    if (GUILayout.Button("외줄타기 시작 (1명부터 가능)")) StartCourseByHost();
+                    actions?.Reserve(0, "외줄타기 시작 (1명부터 가능)", area);
                 }
                 else if (!session.IsHost) GUILayout.Label("방장이 공연을 시작할 때까지 기다려 주세요.");
             }
@@ -216,8 +231,7 @@ namespace CurtainCall.Tightrope.UI
                 if (session != null && session.IsHost)
                 {
                     GUILayout.Label("아래 버튼을 눌러 공연을 시작하세요.");
-                    if (!startPending && GUILayout.Button("외줄타기 시작 (톱날 작동)"))
-                        StartCourseByHost();
+                    actions?.Reserve(0, "외줄타기 시작 (톱날 작동)", area, !startPending);
                 }
                 else GUILayout.Label("방장이 공연을 시작할 때까지 기다려 주세요.");
             }
@@ -243,11 +257,14 @@ namespace CurtainCall.Tightrope.UI
                 GUILayout.Label("한 명이 도착하면 성공 · 전원 사망하거나 시간이 끝나면 실패");
                 GUILayout.Label("사망하면 공연이 끝날 때까지 관전합니다.");
                 var saws = Saws.TightropeSaws.Current;
-                if (saws != null && saws.IsCooperativeGateActive && !saws.IsCooperativeGatePassable)
+                if (saws != null && saws.IsCooperativeGateActive)
                 {
-                    GUILayout.Label($"{saws.CooperativeGateLane + 1}번 줄 · 큰 정면 톱 · F로 동료 위에 올라타세요.");
-                    GUILayout.Label("앞쪽 표시에서 위 동료가 W + Space → 뒤 발판 착지");
-                    GUILayout.Label("발판을 밟으면 톱이 위로 튀어 올라 통로가 열립니다.");
+                    GUILayout.Label($"최후반 {saws.CooperativeGateLane + 1}번 줄 · 정면 톱 한 번");
+                    GUILayout.Label("4층·3층: 먼저 넘어 버튼을 피하고 앞쪽 대기");
+                    GUILayout.Label("2층: 마지막으로 뒤 버튼 · 1층: 톱이 뛰면 전진");
+                    GUILayout.Label("정면 톱: 즉사·2.25m 홉 / 측면 톱: 절단");
+                    if (!saws.IsCooperativeStackApproved)
+                        GUILayout.Label($"현재 출발 표시에 {saws.CooperativeRequiredStackSize}명 목마가 필요합니다.");
                 }
                 var fire = Fire.TightropeFire.Current;
                 if (fire != null && fire.PendingSegment >= 0 && fire.Settings != null)

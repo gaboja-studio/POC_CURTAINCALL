@@ -42,6 +42,8 @@ namespace CurtainCall.Tightrope
         public void Reset()
         {
             releaseBelow = releaseAbove = TightropePracticeBot.Nobody;
+            gateBrainRound = gateBrainIndex = -1;
+            gateLaunchFloor = 0;
             nextJumpAt = nextInteractAt = Time.time + .6f;
             Status = "출발점에서 다시 준비 중";
         }
@@ -64,8 +66,12 @@ namespace CurtainCall.Tightrope
             { Status = "외줄 코스 대기"; return input; }
             if (player.State != PlayerState.Normal || (balance != null && balance.HasFallen))
             { Status = "봇 추락 · R로 다시 시작"; return input; }
+            if (HandleTrapeze(course, other, ref input)) return input;
+            if (HandleRelayGate(course, other, ref input)) return input;
             if (other == null || other.State != PlayerState.Normal)
             { Status = "동료를 기다립니다. 다시 시작은 R"; return input; }
+
+            if (HandleSwingGap(course, other, ref input)) return input;
 
             var stack = PiggybackSystem.Current;
             var below = stack != null ? stack.GetBelow(player) : null;

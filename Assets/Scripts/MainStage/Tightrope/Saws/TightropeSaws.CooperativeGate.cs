@@ -2,6 +2,7 @@ using System;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope.Fire;
 using UnityEngine;
 
 namespace CurtainCall.Tightrope.Saws
@@ -11,6 +12,7 @@ namespace CurtainCall.Tightrope.Saws
         int cooperativeGateIndex = -1, cooperativeGateLane = TightropeCourse.NoLane;
         bool cooperativeGateActive;
         float cooperativeGateStartedAt, cooperativeGateOpenedAt = -1f;
+        double cooperativeGateClockStartedAt;
         Transform cooperativeGateView, cooperativePlateRoot;
         MeshCollider cooperativeGateCollider;
         Transform cooperativeBlade;
@@ -23,14 +25,27 @@ namespace CurtainCall.Tightrope.Saws
         public float CooperativeGateStopDistance => ValidCooperativeGateIndex ? settings.cooperativeGateDistances[cooperativeGateIndex] : float.NaN;
         public float CooperativeGateDistance => !ValidCooperativeGateIndex ? float.NaN : CooperativeGateStopDistance
             + Mathf.Max(0f, settings.cooperativeGateApproachDistance - Mathf.Max(0f, GameElapsed - cooperativeGateStartedAt) * settings.cooperativeGateApproachSpeed);
-        public bool IsCooperativeGateStopped => IsCooperativeGateActive && !IsCooperativeGateOpening
+        public bool IsCooperativeGateStopped => IsCooperativeGateActive && CooperativeGateLiftOffset <= .001f
             && CooperativeGateDistance <= CooperativeGateStopDistance + .001f;
         public bool IsCooperativeGateOpening => IsCooperativeGateActive && cooperativeGateOpenedAt >= 0f;
         // 기존 표시 코드의 호환 별칭. 협동 관문은 실제로 위로 열린다.
         public bool IsCooperativeGateLowering => IsCooperativeGateOpening;
         public bool IsCooperativeGatePassable => !IsCooperativeGateActive
+            || cooperativeGateOpenedAt >= 0f
             || CooperativeGateLiftOffset >= GameSettings.Base.Character.CapsuleHeight + .25f;
         public float CooperativePlateDistance => CooperativeGateDistance + settings.cooperativeGatePlateOffset;
+        public bool IsFinaleSoloGate => settings.finaleSoloAutoOpen && !IsRequiredFinaleIndex(cooperativeGateIndex)
+            && course != null && FinaleGateCycle.Applies(cooperativeGateIndex,
+            settings.cooperativeGateDistances, course.FinishDistance, settings.finaleSoloStartFraction);
+        public float FinaleGateUntilOpen => FinalePhase.UntilOpen;
+        public float FinaleGateOpenRemaining => FinalePhase.OpenRemaining;
+        public bool IsFinaleGateClosing => FinalePhase.Closing;
+        double CooperativeGateClock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
+            ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
+        FinaleGateCycle.Phase FinalePhase => IsFinaleSoloGate ? FinaleGateCycle.Sample(
+            (float)(CooperativeGateClock - cooperativeGateClockStartedAt)
+                - settings.cooperativeGateApproachDistance / Mathf.Max(.1f, settings.cooperativeGateApproachSpeed),
+            settings.finaleGateClosedSeconds, settings.finaleGateOpenSeconds, settings.cooperativeGateOpenDuration) : default;
         public float CooperativeJumpLaunchDistance => CooperativeGateStopDistance
             - Mathf.Max(2.2f, settings.cooperativeGateHeight * .5f + GameSettings.Base.Character.CapsuleRadius
                 + settings.cooperativeGateLaunchTolerance + .25f);
@@ -41,9 +56,9 @@ namespace CurtainCall.Tightrope.Saws
         {
             get
             {
-                if (cooperativeGateOpenedAt < 0f) return 0f;
-                float t = Mathf.Clamp01((GameElapsed - cooperativeGateOpenedAt) / Mathf.Max(.01f, settings.cooperativeGateOpenDuration));
                 float height = Mathf.Max(settings.cooperativeGateHeight + .4f, GameSettings.Base.Character.CapsuleHeight + .5f);
+                if (cooperativeGateOpenedAt < 0f) return IsFinaleSoloGate ? height * FinalePhase.Lift : 0f;
+                float t = Mathf.Clamp01((GameElapsed - cooperativeGateOpenedAt) / Mathf.Max(.01f, settings.cooperativeGateOpenDuration));
                 return height * (2f * t - t * t); // 위로 튀어 정점에서 멈추는 포물선 상승 구간.
             }
         }
@@ -74,12 +89,13 @@ namespace CurtainCall.Tightrope.Saws
             if (!IsCooperativeGateStopped || course == null || !course.IsGameplayActive || stack == null
                 || player == null || !player.IsSpawned || player.State != PlayerState.Normal || player.IsAirborne
                 || !player.TryGetComponent(out PlayerMover mover) || mover.IsAirborne || mover.FreeMovement
-                || mover.JumpHeightMultiplier <= 0f || stack.GetAbove(player) != null) return false;
+                || mover.JumpHeightMultiplier <= 0f || stack.GetAbove(player) != null
+                || !IsApprovedCooperativeLaunch(player, stack)) return false;
             var bottom = stack.GetBelow(player);
             if (bottom == null) return false;
             while (stack.GetBelow(bottom) is { } next) bottom = next;
             if (!bottom.IsSpawned || bottom.State != PlayerState.Normal || bottom.IsAirborne
-                || !bottom.TryGetComponent(out PlayerMover bottomMover) || bottomMover.IsAirborne
+                || !bottom.TryGetComponent(out PlayerMover bottomMover) || (bottom.IsOwner && bottomMover.IsAirborne)
                 || !course.TryGetSupportingRope(bottomMover, out int lane)
                 || !TryGetCooperativeGateApproachPosition(lane, out var approach)) return false;
             Vector3 offset = player.transform.position - approach;
@@ -87,17 +103,23 @@ namespace CurtainCall.Tightrope.Saws
                 || Mathf.Abs(Vector3.Dot(offset, course.Right)) > settings.plateWidth * .5f) return false;
             float gravity = mover.JumpGravity;
             float normalHeight = mover.JumpSpeed * mover.JumpSpeed / (2f * gravity);
+            float landing = CooperativeLandingDistance(player);
+            if (!course.IsLaneUsable(lane, landing)) return false;
             return CooperativeGateGeometry.TryCalculateLaunch(player.transform.position.y - course.transform.position.y,
                 normalHeight, gravity, CooperativeGateStopDistance - course.GetDistance(player.transform.position),
-                mover.BodyRadius, settings, out jumpHeight, out alongSpeed);
+                mover.BodyRadius, landing - CooperativeGateStopDistance, settings, out jumpHeight, out alongSpeed);
         }
 
         void ResetCooperativeGates()
         {
+            ClearReleasedGates();
+            ResetCooperativeAdmission();
+            cooperativeGateRevision = receivedCooperativeGateRevision = 0;
             cooperativeGateIndex = -1;
             cooperativeGateLane = TightropeCourse.NoLane;
             cooperativeGateActive = false;
             cooperativeGateStartedAt = 0f;
+            cooperativeGateClockStartedAt = 0d;
             cooperativeGateOpenedAt = -1f;
             if (cooperativeGateCollider != null) cooperativeGateCollider.enabled = false;
             if (cooperativeGateView != null) cooperativeGateView.gameObject.SetActive(false);
@@ -115,26 +137,33 @@ namespace CurtainCall.Tightrope.Saws
                 if (!float.IsFinite(distance) || distance < 0f || distance + settings.cooperativeGatePlateOffset >= course.FinishDistance) return;
                 float leader = GetLeaderDistance();
                 if (float.IsNaN(leader) || leader < distance - settings.cooperativeGateTriggerLead) return;
+                // 소각 예정 줄은 먼저 고정하지만, 한 줄만 남았다고 속이거나 선두의 임의 줄을 선택하지 않는다.
+                if (IsRequiredFinaleIndex(next)
+                    && (TightropeFire.Current == null || TightropeFire.Current.SurvivingLaneAt(distance) == TightropeCourse.NoLane)) return;
                 SetCooperativeGate(next, true, GameElapsed, -1f);
                 BroadcastCooperativeGate();
                 return;
             }
             if (cooperativeGateOpenedAt >= 0f)
             {
-                if (GameElapsed - cooperativeGateOpenedAt < settings.cooperativeGateOpenDuration) return;
+                if (GameElapsed - cooperativeGateOpenedAt < settings.cooperativeGateHopDuration) return;
                 cooperativeGateActive = false;
                 BroadcastCooperativeGate();
                 return;
             }
             // 불타 사라진 줄에 보이지 않는 관문이나 발판을 남기지 않는다.
-            if (!course.IsLaneUsable(cooperativeGateLane, CooperativeGateStopDistance) || EveryonePassedCooperativeGate())
+            if (!IsFourStackFinaleGate
+                && (!course.IsLaneUsable(cooperativeGateLane, CooperativeGateStopDistance) || EveryonePassedCooperativeGate()))
             {
                 cooperativeGateActive = false;
                 BroadcastCooperativeGate();
                 return;
             }
-            if (!IsCooperativeGateStopped || !TryFindCooperativePlatePlayer(out var player, out int lane)) return;
+            if (ServerApproveCooperativeStack()) BroadcastCooperativeGate();
+            if (CooperativeGateDistance > CooperativeGateStopDistance + .001f
+                || !TryFindCooperativePlatePlayer(out var player, out int lane)) return;
             OpenTeamPassageAt(lane, CooperativePlateDistance);
+            ReleaseCooperativeGate();
             cooperativeGateOpenedAt = GameElapsed;
             BroadcastCooperativeGate();
         }
@@ -157,10 +186,12 @@ namespace CurtainCall.Tightrope.Saws
         {
             found = null;
             lane = TightropeCourse.NoLane;
+            if (!IsCooperativeStackApproved) return false;
             foreach (var player in NetworkPlayer.All)
             {
                 if (player == null || !player.IsSpawned || !player.isActiveAndEnabled || player.State != PlayerState.Normal || player.IsAirborne
-                    || !player.TryGetComponent(out PlayerMover mover) || mover.IsAirborne || mover.PassThrough
+                    || (IsFourStackFinaleGate && CooperativeAdmittedFloor(player) == 0)
+                    || !player.TryGetComponent(out PlayerMover mover) || (player.IsOwner && (mover.IsAirborne || mover.PassThrough))
                     || !course.TryGetSupportingRope(mover, out int supported) || !TryGetCooperativePlatePosition(supported, out var plate)) continue;
                 Vector3 offset = player.transform.position - plate;
                 if (Mathf.Abs(offset.y) > settings.plateHeightTolerance
@@ -175,6 +206,7 @@ namespace CurtainCall.Tightrope.Saws
 
         void ServerJudgeCooperativeGate(NetworkPlayer player, in BodyCapsule body)
         {
+            ServerJudgeReleasedGates(player, body);
             if (!IsCooperativeGateActive || IsCooperativeGatePassable) return;
             if (CooperativeGateGeometry.TryGetContact(body, CooperativeGateBase, course.Right,
                 settings.cooperativeGateHeight, settings.cooperativeGateThickness, out var contact))
@@ -183,8 +215,12 @@ namespace CurtainCall.Tightrope.Saws
 
         void SetCooperativeGate(int index, bool active, float started, float opened)
         {
+            if (index != cooperativeGateIndex) ResetCooperativeAdmission();
             if (index != cooperativeGateIndex || cooperativeGateLane == TightropeCourse.NoLane)
+            {
                 cooperativeGateLane = SelectCooperativeGateLane(index);
+                cooperativeGateClockStartedAt = CooperativeGateClock + started - GameElapsed;
+            }
             cooperativeGateIndex = index;
             cooperativeGateActive = active;
             cooperativeGateStartedAt = started;
@@ -194,6 +230,9 @@ namespace CurtainCall.Tightrope.Saws
         int SelectCooperativeGateLane(int index)
         {
             if (course == null || index < 0 || index >= settings.cooperativeGateDistances.Length) return TightropeCourse.NoLane;
+            if (IsRequiredFinaleIndex(index))
+                return TightropeFire.Current != null ? TightropeFire.Current.SurvivingLaneAt(settings.cooperativeGateDistances[index])
+                    : TightropeCourse.NoLane;
             int selected = TightropeCourse.NoLane;
             float leader = float.NegativeInfinity, stop = settings.cooperativeGateDistances[index];
             foreach (var player in NetworkPlayer.All)
@@ -213,18 +252,8 @@ namespace CurtainCall.Tightrope.Saws
 
         void BuildCooperativeGateViews(Transform root)
         {
-            cooperativeGateView = new GameObject("CooperativeGate").transform;
-            cooperativeGateView.SetParent(root, false);
-            float diameter = settings.cooperativeGateHeight, depth = settings.cooperativeGateThickness;
             // 기존 정면 톱과 같은 원판·톱니·회전축. 원판 하나의 크기만 확대한다.
-            cooperativeBlade = CreateSaw(cooperativeGateView, "IncomingSaw", null, diameter, depth, SawKind.Vertical);
-            var collision = new GameObject("DiscCollision").transform;
-            collision.SetParent(cooperativeGateView, false);
-            collision.localRotation = Quaternion.Euler(0f, 0f, -90f);
-            collision.localScale = new Vector3(diameter, depth * .5f, diameter);
-            cooperativeGateCollider = collision.gameObject.AddComponent<MeshCollider>();
-            cooperativeGateCollider.sharedMesh = cooperativeBlade.Find("Blade").GetComponent<MeshFilter>().sharedMesh;
-            cooperativeGateCollider.convex = true;
+            cooperativeGateView = BuildGateDisc(root, "CooperativeGate", out cooperativeGateCollider, out cooperativeBlade);
             cooperativePlateRoot = new GameObject("CooperativeGatePlates").transform;
             cooperativePlateRoot.SetParent(root, false);
             cooperativePlates = new Transform[course.LaneCount];
@@ -247,11 +276,11 @@ namespace CurtainCall.Tightrope.Saws
 
         void UpdateCooperativeGateViews()
         {
+            UpdateReleasedGateViews();
             if (cooperativeGateView == null) return;
-            bool visible = IsCooperativeGateActive || (settings.cooperativeGates && isActiveAndEnabled
-                && ValidCooperativeGateIndex && cooperativeGateOpenedAt >= 0f);
+            bool visible = IsCooperativeGateActive && cooperativeGateOpenedAt < 0f;
             cooperativeGateView.gameObject.SetActive(visible);
-            cooperativePlateRoot.gameObject.SetActive(IsCooperativeGateActive);
+            cooperativePlateRoot.gameObject.SetActive(visible);
             cooperativeGateCollider.enabled = IsCooperativeGateActive && !IsCooperativeGatePassable;
             if (!visible) return;
             Quaternion rotation = Quaternion.LookRotation(course.Forward, Vector3.up);

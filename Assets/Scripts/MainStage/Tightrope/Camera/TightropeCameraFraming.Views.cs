@@ -17,7 +17,8 @@ namespace CurtainCall.Cameras
 
         // 실제 표면 전환을 따르므로 줄 위 점프·목마 중에도 마우스 공전 3인칭을 유지한다.
         bool IsLocalOnRope => TightropeCourse.Current != null
-            && TightropeCourse.Current.TryGetComponent(out CourseControlSwitcher controls) && controls.IsLocalOnRope;
+            && ((TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(CurtainCall.Network.PlayerSync.NetworkPlayer.Local))
+                || (TightropeCourse.Current.TryGetComponent(out CourseControlSwitcher controls) && controls.IsLocalOnRope));
 
         bool CanUseLocalView => director != null && !CameraSpectator.IsSpectating
             && IsActivePlayer(director.LocalPlayer) && TightropeCourse.Current != null

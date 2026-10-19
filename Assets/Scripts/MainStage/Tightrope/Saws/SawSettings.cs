@@ -102,9 +102,30 @@ namespace CurtainCall.Tightrope.Saws
         [Min(0.05f)] public float cooperativeGateThickness = 0.2f;
         [Min(0.1f)] public float cooperativeGatePlateOffset = 2.2f;
         [Min(0.1f)] public float cooperativeGatePlateLength = 1.6f;
-        [Tooltip("뒤 발판을 밟았을 때 협동 관문이 위로 튀어 올라 길을 여는 시간(초).")]
+        [Tooltip("최후반 자동 개방의 상승·하강 시간(초).")]
         [FormerlySerializedAs("cooperativeGateLowerDuration")]
         [Min(0.1f)] public float cooperativeGateOpenDuration = 0.3f;
+        [Header("버튼으로 톱을 뒤로 넘기기 (초기 테스트값)")]
+        [Min(0.5f)] public float cooperativeGateHopDuration = 1.2f;
+        [Min(3f)] public float cooperativeGateHopDistance = 6f;
+        [Tooltip("이전 에셋과 편집기 도구의 호환값. 실제 톱 홉 높이는 기본 캡슐 높이 × cooperativeGateHopHeightMultiplier를 쓴다.")]
+        [Min(0f)] public float cooperativeGateHopHeight = 5f;
+        [Tooltip("톱 홉의 정점 높이 = 기본 캐릭터 캡슐 높이 × 이 값. 남은 목마를 자동으로 보호하지 않는다.")]
+        [Min(0.1f)] public float cooperativeGateHopHeightMultiplier = 1.5f;
+        [Header("최후반 4인 순차 도약")]
+        [Tooltip("최후반 관문마다 출발선의 실제 4인 목마를 먼저 확인한다. 이후 4·3층이 떠나도 2층의 발판 작동은 유지된다.")]
+        public bool finaleFourStackRequired;
+        [Range(0.5f, 1f)] public float finaleStartFraction = 0.8f;
+        [Tooltip("3·4층은 발판 뒤쪽 끝과 몸 반경을 지난 뒤 이 거리만큼 더 앞에 착지한다.")]
+        [Min(0.5f)] public float cooperativeGateUpperLandingOffset = 2f;
+        [Header("최후반 단독 통과 (초기 테스트값)")]
+        [Tooltip("기존 최후반 자동 개방을 유지할지. 4인 순차 도약 코스에서는 끈다.")]
+        public bool finaleSoloAutoOpen = true;
+        [Tooltip("마지막 관문이 이 코스 비율 이후에 있을 때만 주기적으로 열린다. 중반 협동 관문에는 적용하지 않는다.")]
+        [Range(0.5f, 1f)] public float finaleSoloStartFraction = 0.9f;
+        [Min(0.1f)] public float finaleGateClosedSeconds = 4f;
+        [Tooltip("완전히 열린 상태의 유지 시간. 다리 부상 상태의 보행도 통과할 수 있게 둔다.")]
+        [Min(0.1f)] public float finaleGateOpenSeconds = 4f;
         [Tooltip("목마 앞점프를 도와주는 출발선 앞뒤 허용 거리(m). 실제 두 사람 연결이 있어야 한다.")]
         [Min(0.05f)] public float cooperativeGateLaunchTolerance = 0.35f;
         [Tooltip("부상으로 목마가 낮아져도 관문 위로 확보하는 최소 점프 정점 여유(m).")]

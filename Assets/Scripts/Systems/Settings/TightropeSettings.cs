@@ -69,6 +69,28 @@ namespace CurtainCall.Settings
             [SerializeField] Vector2[] laneChangeZones = { new(0f, 100f) };
 
             [Header("모양")]
+            [Tooltip("기획 초기 테스트: 중간 줄을 끊고 회전봉으로 건너는 구간을 만든다. 짧은 테스트 코스에는 적용하지 않는다.")]
+            [SerializeField] bool swingGapEnabled = true;
+            [Tooltip("끊긴 구간을 해제봉 교대 관문으로 사용한다. 켜면 모든 줄이 끊기며 출발·도착 봉으로 연결한다.")]
+            [SerializeField] bool relayGapEnabled = true;
+            [Tooltip("양쪽에서 통로를 유지하는 데 필요한 봉 인원. 첫 관문 1, 심화 관문 2.")]
+            [SerializeField, Range(1, 2)] int relayRequiredHolders = 1;
+            [Tooltip("해제봉 최대 유지 시간(초). 첫 교대 관문 초기값 30. 놓기 예고는 인간대포 봉의 값을 사용한다.")]
+            [SerializeField, Range(8f, 120f)] float relayHoldSeconds = 30f;
+            [Tooltip("줄을 끊고 개별 봉을 둘 줄 번호(1부터). 나머지 줄은 이어진다. 초기 배치: 2·5번 줄.")]
+            [SerializeField] int[] swingGapLanes = { 2, 5 };
+            [Tooltip("끊어진 구간 시작 거리(m). 초기 테스트 128.")]
+            [SerializeField, Min(10f)] float swingGapStart = 128f;
+            [Tooltip("끊어진 줄 길이(m). 초기 테스트 8.")]
+            [SerializeField, Range(4f, 12f)] float swingGapLength = 8f;
+
+            [Header("공중 2인 봉 교대 구간")]
+            [SerializeField] bool trapezeEnabled = true;
+            [SerializeField, Min(10f)] float trapezeStart = 110f;
+            [SerializeField, Range(8f, 24f)] float trapezeLength = 16f;
+            [Tooltip("공중 봉 세 개를 배치할 줄 번호(1부터). 구간의 모든 줄을 끊어 봉으로 건너도록 한다.")]
+            [SerializeField, Min(1)] int trapezeLane = 3;
+
             [Tooltip("시작(대기) 플랫폼 길이(m). 기획 6.")]
             [SerializeField, Min(0.5f)] float startPlatformLength = 6f;
 
@@ -127,6 +149,19 @@ namespace CurtainCall.Settings
             public float SafetyNetDepth => safetyNetDepth;
             public float FallDepth => fallDepth;
             public CourseSection[] Sections => sections;
+            public bool SwingGapEnabled => swingGapEnabled;
+            public bool RelayGapEnabled => relayGapEnabled;
+            public int RelayRequiredHolders => Mathf.Clamp(relayRequiredHolders, 1, 2);
+            public float RelayHoldSeconds => Mathf.Clamp(relayHoldSeconds, 8f, 120f);
+            public bool TrapezeEnabled => trapezeEnabled;
+            public float TrapezeStart => trapezeStart;
+            public float TrapezeLength => Mathf.Clamp(trapezeLength, 8f, 24f);
+            public int TrapezeLane => Mathf.Clamp(trapezeLane, 1, LaneCount);
+            public int[] SwingGapLanes => swingGapLanes;
+            public bool HasSwingGapLane(int lane) => lane >= 0 && lane < laneCount
+                && swingGapLanes != null && Array.IndexOf(swingGapLanes, lane + 1) >= 0;
+            public float SwingGapStart => swingGapStart;
+            public float SwingGapLength => Mathf.Clamp(swingGapLength, 4f, 12f);
 
             /// <summary>값을 JSON으로(코스 값 공유용).</summary>
             public string ToJson() => JsonUtility.ToJson(this);
@@ -167,33 +202,47 @@ namespace CurtainCall.Settings
             public float RestartDelay => restartDelay;
         }
 
-        /// <summary>줄 위 동작. 외줄 전용 속도·점프 높이·중력은 조작 규칙이 적용하고, 공용 부상 배율을 함께 적용한다.</summary>
+        /// <summary>균형·착지 조정값. 인간대포 공통 이동·중력을 사용하며 점프 높이만 외줄 배율을 적용한다.</summary>
         [Serializable]
         public sealed class RopeMovementSettings
         {
-            [Tooltip("외줄 위 걷기 속도(m/s). 목마 인원에 따른 감속은 없고, 부상 배율은 적용한다. 인간대포 일반 이동과 같은 기본값 3.")]
-            [SerializeField, Min(0.01f)] float moveSpeed = 3f;
-
-            [Tooltip("외줄 위 점프 높이(m, 발 기준 최고점). 부상 높이 배율을 곱한다. 0이면 공용 캐릭터 높이. 플랫폼에는 적용하지 않는다. 초기값 1.2.")]
-            [SerializeField, Min(0f)] float jumpHeight = 1.2f;
-
-            [Tooltip("외줄 점프의 중력 배율(×). 높이는 유지하면서 체공 시간을 줄인다. 플랫폼·다른 묘기에 영향 없음. 초기값 1.35.")]
-            [SerializeField, Min(0.1f)] float jumpGravityMultiplier = 1.35f;
-
+            [Tooltip("공통 점프 높이에 곱하는 외줄 높이 배율. 2026-10-19 사용자 요청: 0.8m → 1.0m.")]
+            [SerializeField, Min(1f)] float jumpHeightMultiplier = 1.25f;
             [Tooltip("착지 직전 점프 입력을 기억하는 시간(초). 0이면 입력 여유를 끈다. 옆줄 방향은 누른 순간 기준.")]
             [SerializeField, Range(0f, 0.3f)] float jumpInputBuffer = 0.15f;
 
             [Tooltip("외줄의 자연 흔들림 배율(×). 걷기·제자리 흔들림에 적용하고 부상·목마·옆줄 착지 배율과 곱한다. A/D 보정 힘과 추락 기준은 바꾸지 않는다.")]
             [SerializeField, Min(0f)] float naturalSwayMultiplier = 1.5f;
 
-            [Tooltip("착지 충격(균형 ±, 랜덤 방향). 목마 배율을 곱한다. 기획 10.")]
+            [Header("동적인 줄 흔들림 (초기 조정값)")]
+            [Tooltip("서 있을 때에도 강약과 방향이 변하는 추가 흔들림(초당). 0이면 끈다.")]
+            [SerializeField, Min(0f)] float dynamicIdleSway = 6f;
+            [Tooltip("걷는 동안 추가 흔들림(초당). A/D 보정과 별도로 실제 균형에 반영한다.")]
+            [SerializeField, Min(0f)] float dynamicMovingSway = 12f;
+            [Tooltip("큰 흔들림의 초당 왕복 횟수. 더 빠르고 작은 흔들림도 함께 겹친다.")]
+            [SerializeField, Range(.1f, 2f)] float dynamicSwayFrequency = .55f;
+            [Tooltip("동일한 연결 줄 위 동료의 하중이 전달되는 앞뒤 거리(m). 가까울수록 강하다.")]
+            [SerializeField, Min(.1f)] float sharedSwayRange = 12f;
+            [Tooltip("가까운 동료 한 명당 자연·동적 흔들림에 더하는 배율. 총 증가는 최대 75%.")]
+            [SerializeField, Range(0f, .75f)] float sharedSwayPerPlayer = .25f;
+
+            public float DynamicIdleSway => Mathf.Max(0f, dynamicIdleSway);
+            public float DynamicMovingSway => Mathf.Max(0f, dynamicMovingSway);
+            public float DynamicSwayFrequency => Mathf.Clamp(dynamicSwayFrequency, .1f, 2f);
+            public float SharedSwayRange => Mathf.Max(.1f, sharedSwayRange);
+            public float SharedSwayPerPlayer => Mathf.Clamp(sharedSwayPerPlayer, 0f, .75f);
+
+            [Tooltip("착지 충격. 현재 기울어진 쪽으로 밀며 목마 배율을 곱한다. 기본 충격/100만큼 추락 위험도 더한다. 기획 10.")]
             [SerializeField, Min(0f)] float landingShock = 10f;
 
             [Tooltip("이 시간(초)보다 짧게 떠 있었으면 착지 충격을 주지 않는다(작은 턱 무시). 0.15.")]
             [SerializeField, Min(0f)] float minAirTimeForShock = 0.15f;
 
-            [Tooltip("옆줄 점프 착지 충격(균형 ±, 랜덤 방향). 목마 배율을 곱한다. 기획 35.")]
+            [Tooltip("옆줄 점프 착지 충격. 현재 기울어진 쪽으로 밀며 중앙에서는 점프 방향을 쓴다. 기획 35.")]
             [SerializeField, Min(0f)] float laneLandingShock = 35f;
+
+            [Tooltip("착지 위험을 해소하려면 줄 위 초록 구간에서 연속으로 안정시켜야 하는 시간(초). 공중 시간은 포함하지 않는다.")]
+            [SerializeField, Min(.1f)] float landingRecoverySeconds = 1.5f;
 
             [Tooltip("옆줄 점프 착지 후 자연 흔들림 배율(×). 고도화 초기값 1.5(이전 1.75).")]
             [SerializeField, Min(1f)] float laneSwayBoost = 1.5f;
@@ -201,14 +250,26 @@ namespace CurtainCall.Settings
             [Tooltip("옆줄 점프 착지 후 흔들림이 커지는 시간(초). 반복해도 쌓이지 않고 시간만 갱신. 고도화 초기값 1.5(이전 3).")]
             [SerializeField, Min(0f)] float laneSwayBoostDuration = 1.5f;
 
+            [Header("동료 착지 파동 (초기 테스트값)")]
+            [SerializeField, Min(0f)] float landingWaveRange = 6f;
+            [SerializeField, Min(0.1f)] float landingWaveSpeed = 10f;
+            [SerializeField, Range(0f, 15f)] float landingWaveShock = 6f;
+            [SerializeField, Min(0f)] float landingWaveDelay = .2f;
+
+            public float LandingWaveRange => Mathf.Clamp(landingWaveRange, 0f, 100f);
+            public float LandingWaveSpeed => Mathf.Clamp(landingWaveSpeed, .1f, 100f);
+            public float LandingWaveShock => Mathf.Clamp(landingWaveShock, 0f, 15f);
+            public float LandingWaveDelay => Mathf.Clamp(landingWaveDelay, 0f, 2f);
+
             public float LandingShock => landingShock;
-            public float MoveSpeed => Mathf.Max(0.01f, moveSpeed);
-            public float JumpHeight => Mathf.Max(0f, jumpHeight);
-            public float JumpGravityMultiplier => Mathf.Max(0.1f, jumpGravityMultiplier);
+            public float MoveSpeed => GameSettings.Base.Character.FreeMoveSpeed;
+            public float JumpHeight => GameSettings.Base.Character.JumpHeight * Mathf.Max(1f, jumpHeightMultiplier);
+            public float JumpGravityMultiplier => 1f;
             public float JumpInputBuffer => jumpInputBuffer;
             public float NaturalSwayMultiplier => Mathf.Max(0f, naturalSwayMultiplier);
             public float MinAirTimeForShock => minAirTimeForShock;
             public float LaneLandingShock => laneLandingShock;
+            public float LandingRecoverySeconds => Mathf.Max(.1f, landingRecoverySeconds);
             public float LaneSwayBoost => laneSwayBoost;
             public float LaneSwayBoostDuration => laneSwayBoostDuration;
         }
@@ -228,11 +289,22 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0f)] float activeDistance = 1.25f;
             [SerializeField, Range(0f, 1f)] float activeReduction = 0.9f;
 
+            [Header("봉 양쪽 교대 버팀 (고도화 초기값)")]
+            [Tooltip("봉 앞에서 F로 버티는 동료는 착지 충격을 완충하고, 양쪽 발판의 준비는 주변 톱 정지를 요청한다.")]
+            [SerializeField] bool relayBraceEnabled = true;
+            [Tooltip("끊어진 줄 시작점에서 뒤쪽 버팀 표시까지 거리(m). 봉 잡기 위치와 겹치지 않게 둔다.")]
+            [SerializeField, Min(2f)] float relaySourceOffset = 3f;
+            [Tooltip("버팀 표시의 앞뒤 위치 허용 거리(m).")]
+            [SerializeField, Range(.2f, 1f)] float relayPadRadius = .6f;
+
             public float Distance => distance;
             public float Reduction => reduction;
             public float ReadySeconds => Mathf.Max(.1f, readySeconds);
             public float ActiveDistance => Mathf.Max(0f, activeDistance);
             public float ActiveReduction => Mathf.Clamp01(activeReduction);
+            public bool RelayBraceEnabled => relayBraceEnabled;
+            public float RelaySourceOffset => Mathf.Max(2f, relaySourceOffset);
+            public float RelayPadRadius => Mathf.Clamp(relayPadRadius, .2f, 1f);
         }
 
         /// <summary>목마(여러 층으로 쌓기).</summary>

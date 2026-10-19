@@ -21,7 +21,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         {
             previousRandom = Random.state;
             previousRules = JsonUtility.ToJson(GameSettings.Base.Balance);
-            JsonUtility.FromJsonOverwrite("{\"greenLimit\":30,\"warningLimit\":50,\"fallTime\":2,\"idleSway\":0,\"movingSway\":0,\"tiltAcceleration\":0}", GameSettings.Base.Balance);
+            JsonUtility.FromJsonOverwrite("{\"greenLimit\":30,\"warningLimit\":50,\"fallTime\":2,\"warningFallRate\":0.33333334,\"idleSway\":0,\"movingSway\":0,\"tiltAcceleration\":0}", GameSettings.Base.Balance);
             player = new GameObject("Balance feedback test");
             balance = player.AddComponent<PlayerBalance>();
             balance.SetBalanceActive(true);
@@ -48,25 +48,28 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         public void ZoneBoundariesMatchBothSides(float value, BalanceZone zone) =>
             Assert.That(balance.ZoneOf(value), Is.EqualTo(zone));
 
-        [Test]
-        public void YellowNeverAccumulatesFallTimeAndRecoveryClearsRedTimer()
+        [TestCase(40f)]
+        [TestCase(-40f)]
+        public void YellowAccumulatesSlowlyAndOnlyGreenClearsTheSharedDangerTimer(float value)
         {
-            balance.SetDisplayedState(true, 40f);
-            Step(8f);
-            Assert.That(balance.RedTime, Is.Zero);
+            balance.SetDisplayedState(true, value);
+            Step(3f);
+            Assert.That(balance.RedTime, Is.EqualTo(1f).Within(.0001f));
             Assert.That(balance.HasFallen, Is.False);
             balance.SetDisplayedState(true, 60f);
-            Step(1.9f);
+            Step(.5f);
+            Assert.That(balance.RedTime, Is.EqualTo(1.5f).Within(.0001f));
             Assert.That(balance.HasFallen, Is.False);
             balance.SetDisplayedState(true, 50f);
-            Step(0.1f);
+            Step(.3f);
+            Assert.That(balance.RedTime, Is.EqualTo(1.6f).Within(.0001f), "빨강에서 노랑으로 와도 누적 시간은 유지된다.");
+            balance.SetDisplayedState(true, 30f);
+            Step(.1f);
             Assert.That(balance.RedTime, Is.Zero);
-            balance.SetDisplayedState(true, 60f);
-            Step(1.9f);
-            Assert.That(balance.HasFallen, Is.False, "노랑에서 회복한 뒤 이전 빨강 시간이 남으면 안 된다.");
+            balance.SetDisplayedState(true, value);
             int falls = 0;
             balance.Fell += () => falls++;
-            Step(0.2f);
+            Step(6.1f);
             Step(3f);
             Assert.That(balance.HasFallen, Is.True);
             Assert.That(falls, Is.EqualTo(1));
@@ -102,7 +105,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             }
             Assert.That(balance.HasFallen, Is.False);
             Assert.That(balance.Zone, Is.EqualTo(BalanceZone.Yellow), "정확한 반대 입력으로 2초 이내에 경고 구간까지 회복할 수 있어야 한다.");
-            Assert.That(balance.RedTime, Is.Zero);
+            Assert.That(balance.RedTime, Is.GreaterThan(0f), "초록까지 회복해야 위험 시간이 초기화된다.");
         }
 
         [Test]

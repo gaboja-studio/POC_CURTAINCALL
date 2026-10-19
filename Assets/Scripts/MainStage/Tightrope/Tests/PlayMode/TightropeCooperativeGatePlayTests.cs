@@ -48,7 +48,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                     Assert.That((float)Call(course, "GetDistance", player.transform.position), Is.LessThan(6f), "피격을 감수해도 닫힌 관문을 몸으로 통과할 수 없다.");
                     yield return null;
                 } while ((bool)Get(mover, "IsAirborne") && Time.realtimeSinceStartup < deadline);
-                Assert.That(peak, Is.GreaterThan(.9f));
+                float commonJump = (float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Base"), "Character"), "JumpHeight");
+                Assert.That(peak, Is.GreaterThan(commonJump - .1f));
                 for (int i = 0; i < 20; i++) { Call(mover, "SetMoveInput", 1f); yield return null; }
                 Assert.That((float)Call(course, "GetDistance", player.transform.position), Is.LessThan(6f));
                 Assert.IsTrue((bool)Get(saws, "IsCooperativeGateActive"));
@@ -64,7 +65,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator CooperativeGateTwoHighForwardJumpLandsOnPlateAndLiftsTheEnlargedDisc() => CooperativeGateJumpScenario(false);
+        public IEnumerator CooperativeGateTwoHighForwardJumpLandsOnPlateAndHopsTheDiscOverTeammate() => CooperativeGateJumpScenario(false);
 
         [UnityTest]
         public IEnumerator CooperativeGateInjuredTwoHighForwardJumpStillOpensRearPlate() => CooperativeGateJumpScenario(true);
@@ -143,10 +144,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 yield return Until(() => (bool)Get(saws, "IsCooperativeGatePassable"), 2f, "뒤 발판이 관문을 위로 튕겨 아래 통로를 엶");
                 var collider = saws.transform.Find("Generated/CooperativeGate").GetComponentInChildren<MeshCollider>();
                 Assert.IsFalse(collider.enabled);
-                Assert.That(gateView.position.y, Is.GreaterThan(closedGateHeight + 1.5f), "판정만 끄지 않고 보이는 톱 관문 자체가 위로 올라간다.");
-                yield return Until(() => !(bool)Get(saws, "IsCooperativeGateActive"), 2f, "상방 개방 완료");
-                Assert.IsTrue(gateView.gameObject.activeSelf, "해결한 관문은 열린 높이에 남아 아래 통로를 보여 준다.");
-                Assert.That(gateView.position.y, Is.GreaterThan(closedGateHeight + 2f));
+                yield return Until(() => saws.transform.Find("Generated/ReleasedGate0") is { } released
+                    && released.position.y > closedGateHeight + 1.5f, 1f, "톱이 실제로 동료 머리 위로 튀어 오른다.");
+                yield return Until(() => !(bool)Get(saws, "IsCooperativeGateActive"), 2f, "톱이 관문을 떠나 뒤쪽 줄에 착지");
+                Assert.IsFalse(gateView.gameObject.activeSelf, "원래 자리에 열린 톱이나 보이지 않는 벽을 남기지 않는다.");
                 Assert.IsTrue((bool)Get(saws, "IsTeamPassageOpen"));
                 Assert.That((float)Call(course, "GetDistance", helper.transform.position), Is.LessThan(6f), "아래 동료가 아직 앞에 있어도 뒤 발판으로 길을 연다.");
                 // 같은 통과자가 뒤로 걸어서 실제 충돌체가 열렸는지 확인한다(순간 이동 통과가 아니다).
@@ -282,7 +283,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             {
                 ConfigureStationaryGateForTest(saws, settings, 6f);
                 helper = CreatePracticeBotTestPartner(1, 4f);
-                yield return StandOnRopeForSawTest(1, 7.4f);
+                // 발판 앞 경계는 7.4m다. 경계에 서면 실제 버튼이 먼저 눌리므로 그 앞에서 입력을 검사한다.
+                yield return StandOnRopeForSawTest(1, 7.3f);
                 var brain = Activator.CreateInstance(GameType("CurtainCall.Tightrope.TightropePracticeBotBrain"), new object[] { player, helper });
                 var input = Call(brain, "BuildInput");
                 Assert.That((float)Get(input, "Move"), Is.EqualTo(1f), "톱 중심을 지났다는 이유만으로 발판 앞에서 멈추지 않는다.");

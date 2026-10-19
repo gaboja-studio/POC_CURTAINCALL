@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.IO;
-using System.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -18,33 +17,38 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.Ignore("로컬 봇 프로세스 검사를 요청한 실행에서만 사용합니다.");
             string executable = (string)Static("CurtainCall.Tightrope.TightropePracticeBot", "ExecutablePath");
             if (!File.Exists(executable)) Assert.Ignore("외줄 연습 봇 빌드가 없습니다: " + executable);
-            var panelObject = new GameObject("Explicit practice bot process test");
-            var panel = panelObject.AddComponent(GameType("CurtainCall.Tightrope.TightropePracticeBot"));
-            var roles = GameType("CurtainCall.Tightrope.TightropeBotRole");
+            var panel = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.TightropePracticeBot")) as Component;
+            GameObject panelObject = null;
+            if (panel == null)
+            {
+                panelObject = new GameObject("Explicit practice bot process test");
+                panel = panelObject.AddComponent(GameType("CurtainCall.Tightrope.TightropePracticeBot"));
+            }
             var stack = (Component)Static("CurtainCall.Tightrope.PiggybackSystem", "Current");
             Component bot = null;
             try
             {
-                var start = (Task<bool>)Call(panel, "StartBotAsync");
-                yield return Until(() => start.IsCompleted, 15f, "별도 봇 실행 요청");
-                Assert.IsTrue(start.GetAwaiter().GetResult(), (string)Get(panel, "Status"));
+                yield return ClickPracticeButton(panel, "봇 추가 · 로컬 연습");
+                yield return Until(() => (bool)Get(panel, "Running"), 15f, "실제 UI 클릭으로 별도 봇 실행 요청");
                 yield return Until(() => (bool)Get(panel, "Ready") && (int)Get(session, "PlayerCount") == 2, 45f,
                     "실제 두 번째 LAN 클라이언트 접속");
                 ulong botId = (ulong)Get(panel, "BotId");
                 yield return Until(() => (bot = FindPracticeProcessBot(botId)) != null, 5f, "호스트에 봇 플레이어 복제");
                 Assert.IsFalse((bool)Get(bot, "IsLocal"));
                 Assert.AreSame(player, Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local"));
-                yield return BeginPerformance();
+                var startHud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud")) as Component;
+                yield return ClickPracticeButton(startHud, "외줄타기 시작 (1명부터 가능)");
+                yield return Until(() => (bool)Get(bridge, "PerformanceOpen"), 10f, "실제 UI 클릭으로 2인 외줄 공연 시작");
                 // 이 검사는 소유권·입력·목마·R 수명 검증이다. 장애물은 별도 실제 회피 검사에서 확인한다.
                 ((Behaviour)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current")).enabled = false;
                 ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
                 yield return StandOnRopeForSawTest(1, 2f);
-                Call(panel, "SetRole", Enum.Parse(roles, "Upper"));
+                yield return ClickPracticeButton(panel, "봇이 위");
                 yield return Until(() => Call(stack, "GetBelow", bot) == player, 15f, "봇 실제 F 입력으로 사람 위 탑승");
                 Assert.That(Get(bot, "State").ToString(), Is.EqualTo("Normal"));
                 int round = (int)Get(run, "Round");
 
-                Call(panel, "SetRole", Enum.Parse(roles, "Lower"));
+                yield return ClickPracticeButton(panel, "봇이 아래");
                 yield return Until(() => Get(panel, "Role").ToString() == "Lower"
                     && Call(stack, "GetBelow", bot) == null && !(bool)Get(bot, "IsAirborne"), 10f,
                     "봇 실제 F 길게 하차 후 아래 역할 교대");
@@ -69,7 +73,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                     "worker 입력은 호스트의 조작 부품을 변경하지 않는다.");
                 Assert.IsFalse(((Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerInputReader"))).enabled);
 
-                Call(panel, "StopBot");
+                yield return ClickPracticeButton(panel, "봇 내보내기");
                 yield return Until(() => (int)Get(session, "PlayerCount") == 1 && !(bool)Get(panel, "Running")
                     && !(bool)Get(panel, "Busy"), 8f, "봇만 접속 종료하고 자식 프로세스 정리");
                 Assert.IsTrue((bool)Get(session, "IsHost"));
@@ -78,7 +82,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             finally
             {
                 Call(panel, "StopBot");
-                Object.Destroy(panelObject);
+                if (panelObject != null) Object.Destroy(panelObject);
             }
         }
 

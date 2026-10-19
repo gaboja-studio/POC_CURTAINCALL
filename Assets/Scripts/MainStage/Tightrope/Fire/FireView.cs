@@ -10,7 +10,8 @@ namespace CurtainCall.Tightrope.Fire
         TightropeFire fire;
         TightropeCourse course;
         Transform chase;
-        readonly List<Transform> segments = new();
+        readonly List<Transform[]> segments = new();
+        readonly List<Vector2> segmentSpans = new(FireCourseSpans.MaximumPieces);
         Material flame, warning;
         FireSettings shown;
         int shownRound = -1;
@@ -49,23 +50,34 @@ namespace CurtainCall.Tightrope.Fire
                 bool pending = fire.WarningRemaining(i) >= 0f;
                 if (burning && burnVisibleUntil[i] < 0f) burnVisibleUntil[i] = Time.time + 2f;
                 bool showingFlame = burning && Time.time < burnVisibleUntil[i];
-                var view = segments[i];
                 bool visible = lane >= 0 && lane < course.LaneCount && segment.to > segment.from && (showingFlame || pending);
-                view.gameObject.SetActive(visible);
-                if (!visible) continue;
-                float height = burning ? 0.6f : 0.06f;
-                view.position = course.GetLanePosition(lane, (segment.from + segment.to) * 0.5f) + Vector3.up * (height * 0.5f + 0.02f);
-                view.rotation = Quaternion.LookRotation(course.Forward);
-                view.localScale = new Vector3(course.Shape.RopeWalkWidth, height, segment.to - segment.from);
-                view.GetComponent<Renderer>().sharedMaterial = burning ? flame : warning;
+                fire.GetSegmentSpans(i, segmentSpans);
+                for (int piece = 0; piece < segments[i].Length; piece++)
+                {
+                    var view = segments[i][piece];
+                    bool showPiece = visible && piece < segmentSpans.Count;
+                    view.gameObject.SetActive(showPiece);
+                    if (!showPiece) continue;
+                    var span = segmentSpans[piece];
+                    float height = burning ? 0.6f : 0.06f;
+                    view.position = course.GetLanePosition(lane, (span.x + span.y) * 0.5f) + Vector3.up * (height * 0.5f + 0.02f);
+                    view.rotation = Quaternion.LookRotation(course.Forward);
+                    view.localScale = new Vector3(course.Shape.RopeWalkWidth, height, span.y - span.x);
+                    view.GetComponent<Renderer>().sharedMaterial = burning ? flame : warning;
+                }
             }
         }
 
         void Rebuild(FireSettings settings)
         {
-            foreach (var segment in segments) Destroy(segment.gameObject);
+            foreach (var pieces in segments) foreach (var piece in pieces) Destroy(piece.gameObject);
             segments.Clear();
-            for (int i = 0; i < settings.segments.Length; i++) segments.Add(Box($"SegmentFire{i + 1}"));
+            for (int i = 0; i < settings.segments.Length; i++)
+            {
+                var pieces = new Transform[FireCourseSpans.MaximumPieces];
+                for (int piece = 0; piece < pieces.Length; piece++) pieces[piece] = Box($"SegmentFire{i + 1}Part{piece + 1}");
+                segments.Add(pieces);
+            }
             burnVisibleUntil = new float[settings.segments.Length];
             System.Array.Fill(burnVisibleUntil, -1f);
             shown = settings;
@@ -88,7 +100,7 @@ namespace CurtainCall.Tightrope.Fire
         void Hide()
         {
             if (chase != null) chase.gameObject.SetActive(false);
-            foreach (var segment in segments) segment.gameObject.SetActive(false);
+            foreach (var pieces in segments) foreach (var piece in pieces) piece.gameObject.SetActive(false);
         }
 
         void OnDisable() => Hide();

@@ -341,6 +341,7 @@ namespace CurtainCall.Tightrope
         /// <summary>호스트: 진행 중인 플레이어가 도착선을 넘으면 도착 완료로 바꾼다(위치는 NetworkTransform으로 호스트에 온다).</summary>
         void ServerMarkArrivals()
         {
+            if (!HasClearedRequiredGates) return;
             foreach (var player in NetworkPlayer.All)
                 if (player.State == PlayerState.Normal && course.HasReachedFinish(player.transform.position))
                     player.ServerSetState(PlayerState.Arrived);
@@ -375,6 +376,7 @@ namespace CurtainCall.Tightrope
         void RequestLocalArrival()
         {
             if (BridgeManagesPerformance || (externallyManaged && !externalStarted)) return;
+            if (!HasClearedRequiredGates) return;
             var player = NetworkPlayer.Local;
             if (State != TightropeRunState.Running || player == null || player.State != PlayerState.Normal) return;
             if (!course.HasReachedFinish(player.transform.position)) return;
@@ -384,6 +386,9 @@ namespace CurtainCall.Tightrope
         }
 
         float nextArrivalRequest;
+
+        public bool HasClearedRequiredGates => Saws.TightropeSaws.Current == null
+            || !Saws.TightropeSaws.Current.isActiveAndEnabled || Saws.TightropeSaws.Current.AreRequiredGatesCleared;
 
         void ServerSucceed()
         {
@@ -442,7 +447,7 @@ namespace CurtainCall.Tightrope
             return next switch
             {
                 PlayerState.Fallen => player.State == PlayerState.Normal && (State == TightropeRunState.Waiting || State == TightropeRunState.Running),
-                PlayerState.Arrived => player.State == PlayerState.Normal && State == TightropeRunState.Running,
+                PlayerState.Arrived => player.State == PlayerState.Normal && State == TightropeRunState.Running && HasClearedRequiredGates,
                 _ => true,
             };
         }
@@ -720,7 +725,7 @@ namespace CurtainCall.Tightrope
         }
 
         internal bool HasCampaignArrival(NetworkPlayer player) => player != null && player.IsSpawned
-            && player.State == PlayerState.Normal && seenAtStart.Contains(player)
+            && player.State == PlayerState.Normal && seenAtStart.Contains(player) && HasClearedRequiredGates
             && course.HasReachedFinish(player.transform.position);
 
         /// <summary>공용 결과가 공개되면 고정한다. 시간대 변경·부활 전에 진단용 신체 상태도 저장한다.</summary>

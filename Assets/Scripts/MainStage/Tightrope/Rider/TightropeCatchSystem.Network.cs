@@ -107,24 +107,26 @@ namespace CurtainCall.Tightrope
             foreach (var pair in snapshot) ready.Add(pair.Key, pair.Value);
         }
 
-        void PublishSuccess(ulong jumper, ulong catcher)
+        void PublishSuccess(ulong jumper, ulong catcher, bool relay = false)
         {
-            ShowSuccess(jumper, catcher);
+            ShowSuccess(jumper, catcher, relay);
             if (messaging == null) return;
-            using var writer = new FastBufferWriter(20, Allocator.Temp);
+            using var writer = new FastBufferWriter(21, Allocator.Temp);
             writer.WriteValueSafe(round);
             writer.WriteValueSafe(jumper);
             writer.WriteValueSafe(catcher);
+            writer.WriteValueSafe(relay);
             messaging.SendNamedMessageToAll(SuccessMessage, writer, NetworkDelivery.ReliableSequenced);
         }
 
         void ReadSuccess(ulong sender, FastBufferReader reader)
         {
-            if (session == null || session.IsHost || sender != NetworkManager.ServerClientId || !reader.TryBeginRead(20)) return;
+            if (session == null || session.IsHost || sender != NetworkManager.ServerClientId || !reader.TryBeginRead(21)) return;
             reader.ReadValueSafe(out int generation);
             reader.ReadValueSafe(out ulong jumper);
             reader.ReadValueSafe(out ulong catcher);
-            if (generation == round && Active) ShowSuccess(jumper, catcher);
+            reader.ReadValueSafe(out bool relay);
+            if (generation == round && Active) ShowSuccess(jumper, catcher, relay);
         }
     }
 }

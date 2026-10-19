@@ -23,15 +23,21 @@ namespace CurtainCall.Tightrope.Saws
 
         /// <summary>목마 출발선에서만 쓰는 시작 속도. 낮아진 몸 높이를 보완하고 착지까지 궤적은 고정한다.</summary>
         public static bool TryCalculateLaunch(float footHeight, float normalHeight, float gravity, float launchGap,
-            float bodyRadius, SawSettings settings, out float jumpHeight, out float alongSpeed)
+            float bodyRadius, SawSettings settings, out float jumpHeight, out float alongSpeed) =>
+            TryCalculateLaunch(footHeight, normalHeight, gravity, launchGap, bodyRadius,
+                settings.cooperativeGatePlateOffset, settings, out jumpHeight, out alongSpeed);
+
+        /// <summary>상층은 발판 너머, 2층은 발판으로 보낸다. 출발 뒤에는 기존 고정 점프를 그대로 사용한다.</summary>
+        public static bool TryCalculateLaunch(float footHeight, float normalHeight, float gravity, float launchGap,
+            float bodyRadius, float landingOffset, SawSettings settings, out float jumpHeight, out float alongSpeed)
         {
             jumpHeight = alongSpeed = 0f;
-            float span = launchGap + settings.cooperativeGatePlateOffset;
+            float span = launchGap + landingOffset;
             float radius = settings.cooperativeGateHeight * .5f;
             float contactHalf = radius + bodyRadius + .04f;
             if (!float.IsFinite(footHeight) || footHeight < 0f || !float.IsFinite(gravity) || gravity <= 0f
                 || !float.IsFinite(normalHeight) || normalHeight < 0f || !float.IsFinite(span)
-                || launchGap <= contactHalf || settings.cooperativeGatePlateOffset <= contactHalf) return false;
+                || launchGap <= contactHalf || landingOffset <= contactHalf) return false;
             jumpHeight = Mathf.Max(normalHeight, settings.cooperativeGateHeight + settings.cooperativeGateJumpClearance - footHeight);
             float time = ForwardJumpRange(footHeight, jumpHeight, gravity, 1f);
             // 원판은 진행 방향으로도 반지름만큼 뻗는다. 앞뒤 원호에 맞춰 캡슐의 궤적을 확보한다.

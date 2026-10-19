@@ -26,7 +26,7 @@ namespace CurtainCall.Player
         [Tooltip("바늘. 부모(게이지 막대) 기준 가로 앵커로 위치를 맞춘다.")]
         [SerializeField] RectTransform needle;
 
-        [Tooltip("빨강 체류 시간 표시 묶음. 빨강에 있을 때만 보인다(선택).")]
+        [Tooltip("누적 추락 위험 표시 묶음. 착지·노랑·빨강 위험이 남아 있으면 보인다(선택).")]
         [SerializeField] GameObject redTimerRoot;
 
         [Tooltip("빨강 체류 막대. 부모 기준 가로 앵커 0~비율로 채운다(선택).")]
@@ -101,8 +101,10 @@ namespace CurtainCall.Player
                     : target.Zone == BalanceZone.Red
                         ? $"균형 {target.Value:+0;-0;0}  빨강 {target.RedTime:0.0} / {target.FallTime:0.0}s"
                         : target.Zone == BalanceZone.Yellow
-                            ? $"균형 {target.Value:+0;-0;0}  경고"
-                            : $"균형 {target.Value:+0;-0;0}";
+                            ? $"균형 {target.Value:+0;-0;0}  경고 {target.RedTime:0.0} / {target.FallTime:0.0}s · 천천히 누적"
+                            : redRatio > 0f
+                                ? $"균형 {target.Value:+0;-0;0}  착지 위험 {target.RedTime:0.0} / {target.FallTime:0.0}s · 안정 {target.LandingRecoveryRemaining:0.0}초"
+                                : $"균형 {target.Value:+0;-0;0}";
             }
         }
 

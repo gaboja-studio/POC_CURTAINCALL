@@ -1,4 +1,3 @@
-using System.Reflection;
 using CurtainCall.Settings;
 using NUnit.Framework;
 using UnityEngine;
@@ -7,7 +6,6 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
     public class PoleSwingMotionTests
     {
-        static readonly MethodInfo PoleStep = typeof(HumanCannonPole).GetMethod("Step", BindingFlags.Instance | BindingFlags.NonPublic);
 
         [Test]
         public void Offset_PositiveAndNegativeAnglesFollowPlanarForward()
@@ -143,7 +141,6 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             try
             {
                 var pole = root.AddComponent<HumanCannonPole>();
-                Assert.That(PoleStep, Is.Not.Null);
                 AssertVector(pole.HangingPosition(0), pole.Grip.position + Vector3.down * 1.5f);
                 float forwardAngle = 0, forwardSpeed = 0, backwardAngle = 0, backwardSpeed = 0;
                 float peakAngle = 0, peakDistance = 0;
@@ -151,8 +148,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 float gravity = GameSettings.Base.Character.Gravity;
                 for (int frame = 0; frame < Mathf.FloorToInt(1.2f * framesPerSecond); frame++)
                 {
-                    StepPole(pole, ref forwardAngle, ref forwardSpeed, 1, dt, gravity);
-                    StepPole(pole, ref backwardAngle, ref backwardSpeed, -1, dt, gravity);
+                    pole.Step(ref forwardAngle, ref forwardSpeed, 1, dt, gravity);
+                    pole.Step(ref backwardAngle, ref backwardSpeed, -1, dt, gravity);
                     Assert.IsTrue(float.IsFinite(forwardAngle) && float.IsFinite(forwardSpeed)
                         && float.IsFinite(backwardAngle) && float.IsFinite(backwardSpeed));
                     Assert.That(backwardAngle, Is.EqualTo(-forwardAngle).Within(0.0001f));
@@ -182,14 +179,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             try
             {
                 var pole = root.AddComponent<HumanCannonPole>();
-                Assert.That(PoleStep, Is.Not.Null);
                 float angle = 0, speed = 0;
                 float dt = 1f / framesPerSecond;
                 float gravity = GameSettings.Base.Character.Gravity;
                 int frame = 0;
                 while (angle < 45f && frame < Mathf.FloorToInt(0.7f * framesPerSecond))
                 {
-                    StepPole(pole, ref angle, ref speed, 1, dt, gravity);
+                    pole.Step(ref angle, ref speed, 1, dt, gravity);
                     frame++;
                 }
                 Assert.That(angle, Is.GreaterThanOrEqualTo(45f), "첫 전진 반동에서 0.7초 안에 도약 각도를 확보해야 합니다.");
@@ -199,15 +195,6 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(velocity.y, Is.GreaterThanOrEqualTo(7.5f));
             }
             finally { Object.DestroyImmediate(root); }
-        }
-
-        static void StepPole(HumanCannonPole pole, ref float angle, ref float speed, float input, float dt, float gravity)
-        {
-            // 런타임 봉의 실제 기본값을 사용하므로 조정값이 되돌아가면 회귀를 검출한다.
-            object[] arguments = { angle, speed, input, dt, gravity };
-            PoleStep.Invoke(pole, arguments);
-            angle = (float)arguments[0];
-            speed = (float)arguments[1];
         }
 
         static void AssertVector(Vector3 actual, Vector3 expected) =>

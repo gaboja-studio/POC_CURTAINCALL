@@ -105,6 +105,18 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Call(catches, "ServerHandle", 777UL, Enum.Parse(request, "Prepare"), 0UL);
                 Assert.IsTrue((bool)Call(catches, "IsReady", helper), "실제 줄 위 동료가 받을 준비를 한다.");
                 Assert.That((float)Get(catches, "CatchReduction"), Is.EqualTo(.9f).Within(.0001f));
+                object[] activeRange = { helper, 0, 0f, 0f };
+                Assert.IsTrue((bool)Call(catches, "TryGetCatchRange", activeRange));
+                Assert.That((float)activeRange[3] - (float)activeRange[2], Is.EqualTo(2.5f).Within(.01f), "준비 띠는 실제 능동 받기 범위를 표시한다.");
+                yield return null;
+                yield return null;
+                var poseView = catches.GetComponent(GameType("CurtainCall.Tightrope.TightropeCatchPoseView"));
+                Assert.That((int)Get(poseView, "PosedPlayerCount"), Is.GreaterThan(0), "원격 동료의 남은 팔로 받기 자세를 표시한다.");
+                if (System.IO.File.Exists(".harness/local/tightrope-feedback-capture"))
+                {
+                    ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/tightrope-ready.png"));
+                    yield return null;
+                }
 
                 Call(mover, "SetMoveInput", 0f);
                 Call(mover, "RequestLaneJump", 1);
@@ -119,6 +131,13 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.IsFalse(InStack(player), "받아주기는 자동 목마 합체와 다르다.");
                 Assert.IsFalse(InStack(helper));
                 StringAssert.Contains("받아줬어요", (string)Get(catches, "LocalFeedback"));
+                Assert.That((float)Call(catches, "SuccessRemaining", player), Is.GreaterThan(0f));
+                Assert.That((float)Call(catches, "SuccessRemaining", helper), Is.GreaterThan(0f), "성공 표시는 관찰하는 모두에게 두 참가자를 표시한다.");
+                if (System.IO.File.Exists(".harness/local/tightrope-feedback-capture"))
+                {
+                    ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/tightrope-catch-success.png"));
+                    yield return null;
+                }
                 Assert.AreEqual("Normal", Get(player, "State").ToString());
 
                 Call(scheme, "Tick", context, CatchFrame(tap: true));

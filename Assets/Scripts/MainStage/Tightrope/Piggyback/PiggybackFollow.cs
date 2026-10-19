@@ -270,7 +270,8 @@ namespace CurtainCall.Tightrope
             // 연쇄 추락·내 균형 추락으로 풀렸으면 내려놓지 않는다(그 자리에서 래그돌로 떨어진다)
             bool fell = local == null || local.State != PlayerState.Normal || system.WasDropped(local)
                         || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
-            bool putDown = !fell && Time.time - restartedAt > RestartGrace;
+            bool putDown = !fell && Time.time - restartedAt > RestartGrace
+                && (TightropeTrapeze.Current == null || !TightropeTrapeze.Current.IsCrossing(local));
             var bottom = localBottom;
             var released = localMover;
             Release();
@@ -329,7 +330,8 @@ namespace CurtainCall.Tightrope
             if (localMover != null)
             {
                 localMover.ClearPendingInput();
-                localMover.Simulated = true;
+                if (TightropeTrapeze.Current == null || !TightropeTrapeze.Current.IsCrossing(NetworkPlayer.Local))
+                    localMover.Simulated = true;
             }
             localMover = null;
             localBottom = null;

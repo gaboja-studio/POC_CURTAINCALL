@@ -63,6 +63,25 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                 Exit(context);
                 return;
             }
+            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.TryHandleInput(context, input))
+            {
+                ClearBuffer(context);
+                context.Balance?.SetCorrectionInput(0f);
+                return;
+            }
+            if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.TryHandleInput(context, input))
+            {
+                ClearBuffer(context);
+                context.Balance?.SetCorrectionInput(0f);
+                return;
+            }
+            TightropeCannonAirControl.Current?.SetInput(context, input);
+            if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.TryHandleInput(context, input))
+            {
+                ClearBuffer(context);
+                context.Balance?.SetCorrectionInput(0f);
+                return;
+            }
             context.HeldDirection = input.AuxDirection;
             ApplyMovementSettings(context);
             if (input.Move != 0f || input.ActionPressed || input.InteractLongPressed) CancelCatch(context);

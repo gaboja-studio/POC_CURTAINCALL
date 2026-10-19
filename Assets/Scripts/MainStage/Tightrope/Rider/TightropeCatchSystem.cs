@@ -14,8 +14,12 @@ namespace CurtainCall.Tightrope
         struct ReadyWindow { public double Until; public Vector3 Position; }
         readonly Dictionary<ulong, ReadyWindow> ready = new();
         readonly Dictionary<ulong, double> recentLaneJumps = new();
+        readonly Dictionary<ulong, (int Lane, double Until, bool Trapeze)> swingReleases = new();
+        readonly Dictionary<ulong, double> successes = new();
+        readonly Dictionary<ulong, bool> relaySuccesses = new();
         readonly Dictionary<ulong, (ulong Target, double Until)> pendingLandings = new();
         readonly List<ulong> expired = new();
+        readonly List<Rect> labelRects = new();
         int round = -1;
         bool wasActive;
         double nextRequestAt;
@@ -31,6 +35,13 @@ namespace CurtainCall.Tightrope
             && TightropeRun.Current.State == TightropeRunState.Running;
         double Now => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
             ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
+
+        void Awake()
+        {
+            // 기존 씬·프리팹을 다시 저장하지 않아도 이번 고도화를 독립/공연 코스에 함께 연결한다.
+            if (GetComponent<TightropeLandingWaves>() == null) gameObject.AddComponent<TightropeLandingWaves>();
+            if (GetComponent<TightropeCatchPoseView>() == null) gameObject.AddComponent<TightropeCatchPoseView>();
+        }
 
         void OnEnable()
         {
@@ -51,6 +62,9 @@ namespace CurtainCall.Tightrope
         {
             ready.Clear();
             recentLaneJumps.Clear();
+            swingReleases.Clear();
+            successes.Clear();
+            relaySuccesses.Clear();
             pendingLandings.Clear();
             feedback = null;
             feedbackUntil = nextRequestAt = 0;
@@ -99,6 +113,20 @@ namespace CurtainCall.Tightrope
         }
 
         public bool IsReady(NetworkPlayer player) => Remaining(player) > 0f;
+        public float ReadyRemaining(NetworkPlayer player) => Remaining(player);
+        public float SuccessRemaining(NetworkPlayer player) => Active && player != null && player.State == PlayerState.Normal
+            && successes.TryGetValue(player.OwnerClientId, out double until) ? Mathf.Max(0f, (float)(until - Now)) : 0f;
+        public bool TryGetCatchRange(NetworkPlayer player, out int lane, out float from, out float to)
+        {
+            lane = TightropeCourse.NoLane; from = to = 0f;
+            var course = TightropeCourse.Current;
+            if (course == null || player == null || (!IsReady(player) && SuccessRemaining(player) <= 0f)
+                || !player.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRope(mover, out lane)
+                || !course.TryGetRopePoint(player.transform.position, out int nearest, out float distance) || lane != nearest) return false;
+            from = distance - GameSettings.Tightrope.Handhold.ActiveDistance;
+            to = distance + GameSettings.Tightrope.Handhold.ActiveDistance;
+            return true;
+        }
         float Remaining(NetworkPlayer player) => Active && player != null
             && ready.TryGetValue(player.OwnerClientId, out var state) && CanPrepare(player)
             && Vector3.Distance(player.transform.position, state.Position) <= .15f
@@ -178,6 +206,23 @@ namespace CurtainCall.Tightrope
             if (catcher != null) Send(Request.Landed, catcher.OwnerClientId);
         }
 
+        public bool TryGetSwingLandingHelper(NetworkPlayer jumper, int lane, float distance, out NetworkPlayer helper, out float reduction)
+        {
+            reduction = 0f;
+            if (TryGetCatcher(jumper, lane, distance, out helper)) { reduction = CatchReduction; return true; }
+            var relay = TightropeRelaySupport.Current;
+            if (Active && relay != null && relay.TryGetLandingSupport(jumper, lane, distance, out helper))
+            { reduction = GameSettings.Tightrope.Handhold.Reduction; return true; }
+            helper = null; return false;
+        }
+
+        /// <summary>회전봉 호스트가 승인한 놓기만 받아주기 판정의 후보로 등록한다.</summary>
+        public void RegisterSwingRelease(NetworkPlayer player, int lane, bool trapeze = false)
+        {
+            if (!Active || session == null || !session.IsHost || player == null || player.State != PlayerState.Normal) return;
+            swingReleases[player.OwnerClientId] = (lane, Now + (trapeze ? 8d : 3d), trapeze);
+        }
+
         void ServerHandle(ulong sender, Request request, ulong target)
         {
             if (request == Request.Sync) { Publish(sender); return; }
@@ -191,6 +236,7 @@ namespace CurtainCall.Tightrope
                     Until = Now + GameSettings.Tightrope.Handhold.ReadySeconds, Position = player.transform.position
                 };
                 Publish();
+                TightropeRelaySupport.Current?.OnPrepared(player);
                 return;
             }
             if (request == Request.Landed && player != null && player.State == PlayerState.Normal && IsReady(Find(target)))
@@ -208,21 +254,34 @@ namespace CurtainCall.Tightrope
             var helper = Find(target);
             var course = TightropeCourse.Current;
             if (player == null || player == helper || player.State != PlayerState.Normal
-                || !IsReady(helper) || !recentLaneJumps.TryGetValue(sender, out double jumpedAt) || Now - jumpedAt > 1.0
+                || !IsReady(helper) || !HasRecentApproach(sender)
                 || !player.TryGetComponent(out PlayerMover mover) || (player.IsLocal ? mover.IsAirborne : player.IsAirborne)
                 || !course.TryGetSupportingRope(mover, out int supportingLane)
                 || !course.TryGetRopePoint(player.transform.position, out int lane, out float distance)
                 || supportingLane != lane
                 || !course.TryGetRopePoint(helper.transform.position, out int helperLane, out float helperDistance)
-                || helperLane != lane || Mathf.Abs(helperDistance - distance) > GameSettings.Tightrope.Handhold.ActiveDistance
+                || helperLane != lane
+                || (swingReleases.TryGetValue(sender, out var release) && Now <= release.Until
+                    && ((release.Lane >= 0 && lane != release.Lane)
+                        || (release.Trapeze ? !course.HasTrapezeGap || distance < course.TrapezeGapTo || distance > course.TrapezeGapTo + 30f
+                            : !course.HasSwingGap || distance < course.SwingGapTo || distance > course.SwingGapTo + 30f)))
                 || Mathf.Abs(player.transform.position.y - course.GetLanePosition(lane, distance).y) > .15f
                 || Mathf.Abs(course.GetSide(player.transform.position) - course.GetSide(course.GetLanePosition(lane, distance))) > .35f) return false;
+            bool relayLanding = Mathf.Abs(helperDistance - distance) > GameSettings.Tightrope.Handhold.ActiveDistance;
+            if (relayLanding && (!swingReleases.TryGetValue(sender, out var swing) || Now > swing.Until
+                || TightropeRelaySupport.Current == null
+                || !TightropeRelaySupport.Current.CanSupportLanding(player, helper, lane, distance))) return false;
             ready.Remove(target);
             recentLaneJumps.Remove(sender);
+            swingReleases.Remove(sender);
             Publish();
-            PublishSuccess(sender, target);
+            PublishSuccess(sender, target, relayLanding);
             return true;
         }
+
+        bool HasRecentApproach(ulong sender) =>
+            (recentLaneJumps.TryGetValue(sender, out double at) && Now - at <= 1d)
+            || (swingReleases.TryGetValue(sender, out var release) && Now <= release.Until);
 
         static NetworkPlayer Find(ulong id)
         {
@@ -231,11 +290,15 @@ namespace CurtainCall.Tightrope
             return null;
         }
 
-        void ShowSuccess(ulong jumper, ulong catcher)
+        void ShowSuccess(ulong jumper, ulong catcher, bool relay = false)
         {
+            successes[jumper] = successes[catcher] = Now + 1.2d;
+            relaySuccesses[jumper] = relaySuccesses[catcher] = relay;
             var local = NetworkPlayer.Local;
             if (local == null || (local.OwnerClientId != jumper && local.OwnerClientId != catcher)) return;
-            feedback = local.OwnerClientId == jumper ? "동료가 받아줬어요 — 착지 흔들림 감소" : "동료를 받아줬어요!";
+            feedback = relay
+                ? local.OwnerClientId == jumper ? "동료가 뒤에서 버텨줬어요 — 착지 흔들림 50% 감소" : "줄 버팀 성공! 이제 건너간 동료가 받아줄 차례예요"
+                : local.OwnerClientId == jumper ? "동료가 받아줬어요 — 착지 흔들림 감소" : "동료를 받아줬어요!";
             feedbackUntil = Now + 2.5;
         }
 
@@ -243,13 +306,35 @@ namespace CurtainCall.Tightrope
         {
             if (!Active || Camera.main == null || InputGate.IsBlocked) return;
             labelStyle ??= new GUIStyle(GUI.skin.box) { alignment = TextAnchor.MiddleCenter, fontSize = 16 };
+            labelRects.Clear();
             foreach (var other in NetworkPlayer.All)
             {
-                float left = Remaining(other);
-                if (left <= 0f) continue;
+                float left = Remaining(other), success = SuccessRemaining(other);
+                if (left <= 0f && success <= 0f) continue;
                 Vector3 point = Camera.main.WorldToScreenPoint(other.transform.position + Vector3.up * 2.1f);
                 if (point.z <= 0f) continue;
-                GUI.Box(new Rect(point.x - 80, Screen.height - point.y - 15, 160, 30), $"받을 준비 {left:0.0}초", labelStyle);
+                var rect = new Rect(point.x - 90, Screen.height - point.y - 18, 180, 36);
+                // 착지한 두 사람의 머리가 겹쳐도 성공 문구는 각각 읽을 수 있게 쌓는다.
+                for (int i = 0; i < labelRects.Count; i++)
+                    if (rect.Overlaps(labelRects[i])) { rect.y = labelRects[i].yMin - rect.height - 4f; i = -1; }
+                labelRects.Add(rect);
+                Color tint = success > 0f ? new Color(.2f, 1f, .45f) : left < 1f ? new Color(1f, .65f, .15f) : Color.cyan;
+                Color previous = GUI.backgroundColor, previousContent = GUI.contentColor;
+                GUI.backgroundColor = tint;
+                GUI.contentColor = tint;
+                GUI.Box(rect,
+                    success > 0f ? relaySuccesses.TryGetValue(other.OwnerClientId, out bool relay) && relay ? "버팀 성공!" : "받기 성공!"
+                        : TightropeRelaySupport.Current != null && TightropeRelaySupport.Current.TryGetPad(other, out _, out bool far) && !far
+                            ? $"버틸게! {left:0.0}초" : $"받을게! {left:0.0}초", labelStyle);
+                GUI.backgroundColor = previous;
+                GUI.contentColor = previousContent;
+                if (left > 0f)
+                {
+                    var previousColor = GUI.color;
+                    GUI.color = left < 1f ? new Color(1f, .65f, .15f) : Color.cyan;
+                    GUI.DrawTexture(new Rect(rect.x + 5f, rect.yMax - 5f, 170f * Mathf.Clamp01(left / GameSettings.Tightrope.Handhold.ReadySeconds), 4), Texture2D.whiteTexture);
+                    GUI.color = previousColor;
+                }
             }
         }
     }

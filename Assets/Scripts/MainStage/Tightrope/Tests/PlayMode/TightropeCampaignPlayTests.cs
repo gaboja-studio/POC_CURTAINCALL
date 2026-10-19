@@ -23,6 +23,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         object previousDevMode;
         object runSettings;
         float previousTimeLimit;
+        object legacyCourseSettings;
+        string previousCourseJson;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -33,6 +35,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             devModeCache.SetValue(null, false); // 실제 외줄 씬의 1인 시작 지원을 검증한다.
             runSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Run");
             previousTimeLimit = (float)Get(runSettings, "TimeLimit");
+            // 기존 회전봉·화재 시나리오의 배치를 명시한다. 새 협동 관문의 플레이 검증을 뜻하지 않는다.
+            legacyCourseSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Course");
+            previousCourseJson = JsonUtility.ToJson(legacyCourseSettings);
+            JsonUtility.FromJsonOverwrite("{\"relayGapEnabled\":false,\"trapezeEnabled\":false}", legacyCourseSettings);
             yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(
                 ScenePath, new LoadSceneParameters(LoadSceneMode.Single));
             yield return null;
@@ -75,6 +81,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             session = network = player = mover = bridge = run = course = campaign = rewards = null;
             devModeCache?.SetValue(null, previousDevMode);
             if (runSettings != null) Set(runSettings, "timeLimit", previousTimeLimit);
+            if (legacyCourseSettings != null && previousCourseJson != null)
+                JsonUtility.FromJsonOverwrite(previousCourseJson, legacyCourseSettings);
+            legacyCourseSettings = null; previousCourseJson = null;
         }
 
         [UnityTest]
@@ -356,9 +365,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var leave = (Task)Call(session, "LeaveAsync");
             yield return Until(() => leave.IsCompleted, 10, "혼자 시작 전 오프라인");
             yield return null;
-            var start = (Task<bool>)Call(hud, "StartSoloAsync");
-            yield return Until(() => start.IsCompleted, 10, "혼자 시작 방 생성");
-            Assert.IsTrue(start.GetAwaiter().GetResult());
+            yield return ClickPracticeButton(hud, "혼자 시작");
             yield return Until(() => (bool)Get(bridge, "PerformanceOpen"), 10, "혼자 시작 공연 연결");
             player = Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local") as Component;
             mover = player.GetComponent(GameType("CurtainCall.Player.PlayerMover"));
@@ -1071,7 +1078,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             {
                 var segment = segments.GetValue(i);
                 float trigger = (float)Get(segment, "triggerDistance");
-                var position = (Vector3)Call(course, "GetLanePosition", safeLane, trigger);
+                float probe = (bool)Call(course, "IsSwingGap", trigger) ? (float)Get(course, "SwingGapTo") + 1f : trigger;
+                var position = (Vector3)Call(course, "GetLanePosition", safeLane, probe);
                 Call(mover, "SetStartPose", position, Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
                 int expected = i;
                 yield return Until(() => (int)Get(fire, "PendingSegment") == expected, 3, "다음 줄 예고");
@@ -1080,9 +1088,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                     Assert.IsFalse((bool)Call(fire, "IsSegmentActive", later));
                 yield return Until(() => (bool)Call(fire, "IsSegmentActive", expected), 3, "예고 후 한 줄 발화");
                 int usable = Enumerable.Range(0, (int)Get(course, "LaneCount"))
-                    .Count(lane => (bool)Call(course, "IsLaneUsable", lane, trigger));
+                    .Count(lane => (bool)Call(course, "IsLaneUsable", lane, probe));
                 Assert.AreEqual((int)Get(course, "LaneCount") - i - 1, usable);
-                Assert.IsTrue((bool)Call(course, "IsLaneUsable", safeLane, trigger), "이번 회차에 남도록 정한 줄은 계속 안전해야 한다.");
+                Assert.IsTrue((bool)Call(course, "IsLaneUsable", safeLane, probe), "실제 끊어진 구간 바깥에서 화재 생존 줄을 검사한다.");
             }
             var saws = Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
             var sawSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");

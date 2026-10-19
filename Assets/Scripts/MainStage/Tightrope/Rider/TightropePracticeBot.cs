@@ -37,6 +37,14 @@ namespace CurtainCall.Tightrope
         float launchedAt, lastStatus;
         bool starting;
         int generation;
+        UI.TightropeActionButtons actions;
+
+        void OnEnable()
+        {
+            if (Application.isEditor) actions = new UI.TightropeActionButtons(transform, "Tightrope bot",
+                () => SetRole(TightropeBotRole.Follow), () => SetRole(TightropeBotRole.Upper), () => SetRole(TightropeBotRole.Lower),
+                () => { if (Running) StopBot(); else _ = StartBotAsync(); });
+        }
 
         void Update()
         {
@@ -196,6 +204,7 @@ namespace CurtainCall.Tightrope
 
         void OnDisable()
         {
+            actions?.Dispose(); actions = null;
             StopBot();
             messaging?.UnregisterNamedMessageHandler(StatusMessage);
             messaging = null;
@@ -203,13 +212,15 @@ namespace CurtainCall.Tightrope
 
         void OnGUI()
         {
+            using var buttonsFrame = actions?.Begin();
             if (!Application.isEditor || !IsPracticeCourse()) return;
-            GUILayout.BeginArea(new Rect(Mathf.Max(200f, Screen.width * .5f - 190f), 10f, 380f, 176f), GUI.skin.box);
+            var area = new Rect(Mathf.Max(200f, Screen.width * .5f - 190f), 10f, 380f, 206f);
+            GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label("외줄타기 · 연습 봇 1명");
             GUILayout.BeginHorizontal();
             foreach (TightropeBotRole role in Enum.GetValues(typeof(TightropeBotRole)))
-                if (GUILayout.Toggle(Role == role, role switch
-                    { TightropeBotRole.Upper => "봇이 위", TightropeBotRole.Lower => "봇이 아래", _ => "따라오기" }, GUI.skin.button)) SetRole(role);
+                actions?.Reserve((int)role, (Role == role ? "● " : "") + (role switch
+                    { TightropeBotRole.Upper => "봇이 위", TightropeBotRole.Lower => "봇이 아래", _ => "따라오기" }), area, !Busy);
             GUILayout.EndHorizontal();
             GUILayout.Label(Role switch
             {
@@ -219,11 +230,7 @@ namespace CurtainCall.Tightrope
             });
             GUILayout.Label("역할 변경: 착지·하차 후 적용 · 처음부터: R");
             GUILayout.Label(Status);
-            bool enabledBefore = GUI.enabled;
-            GUI.enabled &= !Busy;
-            if (GUILayout.Button(Running ? "봇 내보내기" : "봇 추가 · 로컬 연습"))
-            { if (Running) StopBot(); else _ = StartBotAsync(); }
-            GUI.enabled = enabledBefore;
+            actions?.Reserve(3, Running ? "봇 내보내기" : "봇 추가 · 로컬 연습", area, !Busy);
             GUILayout.EndArea();
         }
     }

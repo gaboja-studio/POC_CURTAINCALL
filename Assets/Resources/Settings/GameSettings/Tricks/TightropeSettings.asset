@@ -17,9 +17,20 @@ MonoBehaviour:
     laneCount: 6
     laneSpacing: 3
     laneEndDistances: []
-    finishDistance: 330
+    finishDistance: 165
     laneChangeZones:
-    - {x: 0, y: 330}
+    - {x: 0, y: 165}
+    swingGapEnabled: 1
+    relayGapEnabled: 1
+    relayRequiredHolders: 1
+    relayHoldSeconds: 30
+    swingGapLanes: 0200000005000000
+    swingGapStart: 40
+    swingGapLength: 8
+    trapezeEnabled: 1
+    trapezeStart: 100
+    trapezeLength: 16
+    trapezeLane: 3
     startPlatformLength: 6
     finishPlatformLength: 6
     sideMargin: 2
@@ -31,44 +42,51 @@ MonoBehaviour:
     safetyNetDepth: 6
     fallDepth: 1
     sections:
-    - endFraction: 0.22727273
+    - endFraction: 0.18181819
       label: "\uADE0\uD615\uACFC \uC810\uD504"
       color: {r: 0.18, g: 0.52, b: 1, a: 1}
-    - endFraction: 0.4090909
-      label: "\uC904\uBC14\uAFC8"
+    - endFraction: 0.45454547
+      label: "\uD574\uC81C\uBD09 \uAD50\uB300"
       color: {r: 0.12, g: 0.82, b: 0.7, a: 1}
-    - endFraction: 0.59090906
-      label: "\uCCAB \uD611\uB3D9 \uAD00\uBB38"
+    - endFraction: 0.6060606
+      label: "\uBAA9\uB9C8\uC640 \uB192\uC740 \uBD09"
       color: {r: 0.65, g: 0.4, b: 1, a: 1}
-    - endFraction: 0.77272725
-      label: "\uB3D9\uB8CC\uC640 \uD569\uB958"
+    - endFraction: 0.7878788
+      label: "\uACF5\uC911\uADF8\uB124"
       color: {r: 0.95, g: 0.38, b: 0.68, a: 1}
-    - endFraction: 0.95454544
-      label: "\uB9C8\uC9C0\uB9C9 \uC904 \uC120\uD0DD"
-      color: {r: 0.65, g: 0.85, b: 0.25, a: 1}
     - endFraction: 1
-      label: "\uD55C \uC904 \uD53C\uB0A0\uB808"
-      color: {r: 0.95, g: 0.95, b: 1, a: 1}
+      label: "\uD55C \uC904 \uCD5C\uC885 \uD611\uB3D9"
+      color: {r: 1, g: 0.65, b: 0.15, a: 1}
   run:
     timeLimit: 300
     restartDelay: 3
   ropeMovement:
-    moveSpeed: 3
-    jumpHeight: 1.2
-    jumpGravityMultiplier: 1.35
+    jumpHeightMultiplier: 1.25
     jumpInputBuffer: 0.15
     naturalSwayMultiplier: 1.5
+    dynamicIdleSway: 6
+    dynamicMovingSway: 12
+    dynamicSwayFrequency: 0.55
+    sharedSwayRange: 12
+    sharedSwayPerPlayer: 0.25
     landingShock: 10
     minAirTimeForShock: 0.15
     laneLandingShock: 35
     laneSwayBoost: 1.5
     laneSwayBoostDuration: 1.5
+    landingWaveRange: 6
+    landingWaveSpeed: 10
+    landingWaveShock: 6
+    landingWaveDelay: 0.2
   handhold:
     distance: 1
     reduction: 0.5
     readySeconds: 3
     activeDistance: 1.25
     activeReduction: 0.9
+    relayBraceEnabled: 1
+    relaySourceOffset: 3
+    relayPadRadius: 0.6
   piggyback:
     stackMultipliers:
     - 1
@@ -111,7 +129,7 @@ MonoBehaviour:
       delay: 0
       action: 0
       firstSaw: 1
-      lastSaw: 14
+      lastSaw: 16
       lane: -1
       repeat: 0
       repeatDelay: 0
@@ -127,33 +145,37 @@ MonoBehaviour:
       repeat: -1
       repeatDelay: 20
     horizontalSaws:
-    - distance: 24
+    - distance: 12
       startSide: 0
-    - distance: 42
+    - distance: 21
       startSide: 1
-    - distance: 60
+    - distance: 30
       startSide: 0
-    - distance: 87
+    - distance: 43.5
       startSide: 1
-    - distance: 105
+    - distance: 52.5
       startSide: 0
-    - distance: 123
+    - distance: 61.5
       startSide: 1
-    - distance: 141
+    - distance: 70.5
       startSide: 0
-    - distance: 183
+    - distance: 91.5
       startSide: 1
-    - distance: 201
+    - distance: 100.5
       startSide: 0
-    - distance: 219
+    - distance: 109.5
       startSide: 1
-    - distance: 237
+    - distance: 118.5
       startSide: 0
-    - distance: 249
+    - distance: 124.5
       startSide: 1
-    - distance: 267
+    - distance: 133.5
       startSide: 0
-    - distance: 285
+    - distance: 142.5
+      startSide: 1
+    - distance: 151
+      startSide: 0
+    - distance: 162
       startSide: 1
     horizontalFirstSpeed: 9.5
     horizontalLastSpeed: 12
@@ -162,8 +184,8 @@ MonoBehaviour:
     horizontalVisualDiameter: 1.2
     horizontalAttackTop: 0.2
     horizontalThickness: 0.1
-    verticalSpawnDistance: 75
-    verticalEndDistance: 7.5
+    verticalSpawnDistance: 37.5
+    verticalEndDistance: 3.75
     verticalSpeed: 3
     verticalColliderDiameter: 1
     verticalVisualDiameter: 1.2
@@ -171,16 +193,26 @@ MonoBehaviour:
     verticalThickness: 0.1
     cooperativeGates: 1
     cooperativeGateDistances:
-    - 170
-    - 320
-    cooperativeGateTriggerLead: 24
-    cooperativeGateApproachDistance: 12
+    - 158
+    cooperativeGateTriggerLead: 12
+    cooperativeGateApproachDistance: 6
     cooperativeGateApproachSpeed: 3
     cooperativeGateHeight: 2.1
     cooperativeGateThickness: 0.2
     cooperativeGatePlateOffset: 2.2
     cooperativeGatePlateLength: 1.6
     cooperativeGateOpenDuration: 0.3
+    cooperativeGateHopDuration: 1.2
+    cooperativeGateHopDistance: 6
+    cooperativeGateHopHeight: 5
+    cooperativeGateHopHeightMultiplier: 1.5
+    finaleFourStackRequired: 1
+    finaleStartFraction: 0.8
+    cooperativeGateUpperLandingOffset: 2
+    finaleSoloAutoOpen: 0
+    finaleSoloStartFraction: 0.9
+    finaleGateClosedSeconds: 4
+    finaleGateOpenSeconds: 4
     cooperativeGateLaunchTolerance: 0.35
     cooperativeGateJumpClearance: 0.6
     plateOffset: 1.5
@@ -203,33 +235,33 @@ MonoBehaviour:
     chaseDelay: 10
     chaseStart: -6
     chaseSpeed: 0.35
-    safeDistance: 330
-    warningSeconds: 20
+    safeDistance: 165
+    warningSeconds: 1.5
     triggerMode: 1
     laneOrder: 2
     segments:
     - lane: 1
-      from: 0
-      to: 330
+      from: 130
+      to: 165
       igniteAt: 50
-      triggerDistance: 15
+      triggerDistance: 120
     - lane: 2
-      from: 0
-      to: 330
+      from: 130
+      to: 165
       igniteAt: 80
-      triggerDistance: 75
+      triggerDistance: 120
     - lane: 3
-      from: 0
-      to: 330
+      from: 130
+      to: 165
       igniteAt: 110
-      triggerDistance: 135
+      triggerDistance: 120
     - lane: 4
-      from: 0
-      to: 330
+      from: 130
+      to: 165
       igniteAt: 140
-      triggerDistance: 195
+      triggerDistance: 120
     - lane: 5
-      from: 0
-      to: 330
+      from: 130
+      to: 165
       igniteAt: 170
-      triggerDistance: 255
+      triggerDistance: 120

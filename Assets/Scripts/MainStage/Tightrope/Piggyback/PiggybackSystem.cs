@@ -84,6 +84,10 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return false;
             if (climber == null || target == null || climber == target) return false;
+            var pole = TightropeSwingPole.Current;
+            if (pole != null && (pole.IsCrossing(climber) || pole.IsCrossing(target))) return false;
+            if (TightropeRelayGate.Current != null && (TightropeRelayGate.Current.IsHeld(climber) || TightropeRelayGate.Current.IsHeld(target))) return false;
+            if (TightropeTrapeze.Current != null && (TightropeTrapeze.Current.IsCrossing(climber) || TightropeTrapeze.Current.IsCrossing(target))) return false;
             if (IsInStack(climber) && (!predictTopRelease || GetAbove(climber) != null
                 || BottomOf(climber.OwnerClientId) == BottomOf(target.OwnerClientId))) return false;
             if (climber.State != PlayerState.Normal || target.State != PlayerState.Normal) return false;
@@ -379,6 +383,9 @@ namespace CurtainCall.Tightrope
             var climber = FindPlayer(climberId);
             if (climber == null) return "거부: 내 캐릭터를 찾지 못함";
             if (climber.State != PlayerState.Normal) return "거부: 내 상태가 정상이 아님";
+            if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(climber)) return "거부: 회전봉 사용 중";
+            if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(climber)) return "거부: 해제봉 사용 중";
+            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(climber)) return "거부: 공중 봉 사용 중";
             if (climber.IsAirborne) return "거부: 공중에서는 올라갈 수 없음";
             if (IsInStack(climberId)) return "거부: 이미 목마에 속해 있음(단독만 올라감)";
 
@@ -390,6 +397,9 @@ namespace CurtainCall.Tightrope
             foreach (var other in NetworkPlayer.All)
             {
                 if (other == null || other == climber || other.State != PlayerState.Normal) continue;
+                if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(other)) continue;
+                if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(other)) continue;
+                if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
                 Vector3 offset = other.transform.position - from;

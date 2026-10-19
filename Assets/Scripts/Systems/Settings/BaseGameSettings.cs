@@ -195,11 +195,13 @@ namespace CurtainCall.Settings
             [Tooltip("중앙에서 이 값(±, 게이지 ±100 기준)까지 초록. 외줄 고도화 초기값 30.")]
             [SerializeField, Range(0f, 100f)] float greenLimit = 30f;
 
-            [Tooltip("초록 바깥부터 이 값(±)까지 노란 경고 구간. 넘으면 빨강이며, 노랑으로 돌아오면 추락 타이머가 초기화된다. 초기값 50.")]
+            [Tooltip("초록 바깥부터 이 값(±)까지 노란 경고 구간. 노랑은 느리게, 빨강은 정상 속도로 추락 게이지가 쌓인다. 초기값 50.")]
             [SerializeField, Range(0f, 100f)] float warningLimit = 50f;
 
             [Tooltip("빨강에 이 시간(초) 이상 머물면 추락. 기획 확정 2초.")]
             [SerializeField, Min(0.05f)] float fallTime = 2f;
+            [Tooltip("노란 구간 추락 게이지 누적 속도(빨강=1). 초기 테스트 1/3. 초록에서만 초기화한다.")]
+            [SerializeField, Range(0f, 1f)] float warningFallRate = 1f / 3f;
 
             [Tooltip("균형 보정(A/D)을 끝까지 눌렀을 때 바늘이 움직이는 양(초당). 외줄 고도화 초기값 85(이전 60).")]
             [SerializeField, Min(0f)] float correctionSpeed = 85f;
@@ -219,6 +221,7 @@ namespace CurtainCall.Settings
             public float GreenLimit => Mathf.Clamp(greenLimit, 0f, 100f);
             public float WarningLimit => Mathf.Clamp(warningLimit, GreenLimit, 100f);
             public float FallTime => fallTime;
+            public float WarningFallRate => Mathf.Clamp01(warningFallRate);
             public float CorrectionSpeed => correctionSpeed;
             public float MovingSway => movingSway;
             public float IdleSway => idleSway;
