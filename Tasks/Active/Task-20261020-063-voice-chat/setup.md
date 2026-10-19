@@ -8,13 +8,13 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 이 Task와 관련된 JIRA 번호를 모두 적는다. PR의 "관련 JIRA 이슈" 칸에 자동으로 들어간다. 없으면 `없음`.
 
-- 관련 JIRA: 없음
+- 관련 JIRA: https://hrjoo122770.atlassian.net/browse/CC-151
 
 순차 gate 통합(`Active Task` 있음)은 실제 `https://.../browse/CC-번호` URL이 필수이며 없음·미정은 배정할 수 없다.
 
 ## 작업 구역
 
-- 테스트 씬: `Assets/Scenes/Tests/Systems/VoiceChat/`
+- 테스트 씬: `Assets/Scenes/Tests/Systems/VoiceChat/` — 삭제 예정(Start 흐름에서만 동작, 2026-10-20 PM). 확인은 Start 흐름 + 개발자 모드 오버레이
 - 스크립트 폴더: `Assets/Scripts/Systems/Voice/`
 - 에셋 폴더: 없음 (세팅 값은 아래 공용 파일)
 - Task 문서: 이 Task 폴더 (자동 포함)
@@ -32,6 +32,8 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 - `Assets/Scripts/Systems/Settings/BaseGameSettings.cs` — 끝에 `음성 채팅` 묶음 추가(기존 칸 변경 없음)
 - `Assets/Resources/Settings/GameSettings/BaseGameSettings.asset` — 음성 채팅 기본값
 - `Docs/Domains/index.md` — 음성 채팅 지도 1줄 추가
+- `Docs/Domains/voice-chat.md` — 음성 채팅 Domain Map(신규, PM 추가 2026-10-20)
+- `ProjectSettings/Packages/com.unity.services.vivox/Settings.json` — Vivox 서버 정보(server·domain·issuer, tokenKey 빈 값·Test Mode 꺼짐). PM 추가 2026-10-20
 - `ProjectSettings/EditorBuildSettings.asset` — 테스트 씬 등록이 필요할 때만(모든 작업자 허용 항목)
 
 ## 수정 금지
@@ -56,5 +58,5 @@ PM이 Unity에서 테스트 씬과 폴더를 직접 만든 뒤 작성한다.
 
 Task를 닫을 때 사람이 결정한다. 스크립트는 씬을 지우지 않는다.
 
-- 결정: 미정 (유지 / 삭제)
-- 결정자·날짜:
+- 결정: 삭제 (Start 흐름 씬에서만 음성이 동작하므로 별도 테스트 씬 불필요)
+- 결정자·날짜: @MoHoDu 2026-10-20
