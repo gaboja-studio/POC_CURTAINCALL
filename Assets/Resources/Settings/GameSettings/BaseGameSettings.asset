@@ -44,12 +44,17 @@ MonoBehaviour:
     sprintSpeedMultiplier: 1.5
     crouchSpeedMultiplier: 0.5
     crouchHeightRatio: 0.6
+    playerColorRed: {r: 1, g: 0, b: 0, a: 1}
+    playerColorBlue: {r: 0, g: 0, b: 1, a: 1}
+    playerColorYellow: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    playerColorGreen: {r: 0, g: 1, b: 0, a: 1}
   input:
     longPressTime: 0.5
   balance:
     greenLimit: 30
     warningLimit: 50
     fallTime: 2
+    warningFallRate: 0.33333334
     correctionSpeed: 85
     movingSway: 15
     idleSway: 5

@@ -47,6 +47,9 @@ namespace CurtainCall.Player
         /// <summary>지금 끼워진 모델 프리팹. 슬롯에 원래 있던 모델이면 null.</summary>
         public GameObject CurrentPrefab { get; private set; }
 
+        /// <summary>외형 생성·분리·교체가 끝났을 때. 현재 모델은 null일 수 있다.</summary>
+        public event System.Action ModelChanged;
+
         /// <summary>슬롯에서 떼어 낸 모델을 넘겨준다(래그돌 등). 슬롯은 비고, 다시 끼우려면 <see cref="SetModel"/>을 부른다.</summary>
         public GameObject DetachModel()
         {
@@ -58,6 +61,7 @@ namespace CurtainCall.Player
                 model.transform.SetParent(null, true);
             }
             CurrentModel = null;
+            ModelChanged?.Invoke();
             return model;
         }
 
@@ -70,7 +74,7 @@ namespace CurtainCall.Player
 
             CurrentPrefab = prefab;
             CurrentModel = null;
-            if (prefab == null) return;
+            if (prefab == null) { ModelChanged?.Invoke(); return; }
 
             CurrentModel = Instantiate(prefab, slot, false);
             CurrentModel.name = prefab.name;
@@ -91,6 +95,7 @@ namespace CurtainCall.Player
                 slot.localRotation = tilt;
                 ApplyPosture();
             }
+            ModelChanged?.Invoke();
         }
 
         void Awake()
