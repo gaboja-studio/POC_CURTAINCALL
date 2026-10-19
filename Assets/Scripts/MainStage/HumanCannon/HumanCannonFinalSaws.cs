@@ -26,6 +26,8 @@ namespace CurtainCall.HumanCannon
         [Min(0.1f), SerializeField] float verticalRadius = 1.2f;
         [Min(0.01f), SerializeField] float halfThickness = 0.1f;
         [SerializeField] float[] verticalLanes = { -6, -2, 2, 6 };
+        [Tooltip("예고 후 오는 두 톱도 바닥과 평행하게 눕혀 서로 다른 앞뒤 위치에서 좌우 왕복한다.")]
+        [SerializeField] bool lateralPasses;
 
         readonly FinalSawTimeline timeline = new();
         readonly HashSet<(int, ulong)> touching = new();
@@ -50,9 +52,10 @@ namespace CurtainCall.HumanCannon
         public bool VerticalActive => Sample.Phase == FinalSawPhase.Active;
         public int HorizontalCount => horizontalOrigins.Length;
         public int VerticalCount => secondaryVerticalView != null ? 2 : 1;
+        public Vector3 PassNormal => lateralPasses ? transform.up : transform.right;
         public string StatusText => !HasStarted ? "최종 톱: 첫 진입 대기"
-            : Sample.Phase == FinalSawPhase.Warning ? $"수직 톱 예고 {Sample.SecondsToNext:F1}초"
-            : $"수직 톱 통과 중 · 퇴장까지 {Sample.SecondsToNext:F1}초";
+            : Sample.Phase == FinalSawPhase.Warning ? $"왕복 톱 예고 {Sample.SecondsToNext:F1}초"
+            : $"왕복 톱 통과 중 · 퇴장까지 {Sample.SecondsToNext:F1}초";
 
         void OnEnable()
         {
@@ -117,6 +120,15 @@ namespace CurtainCall.HumanCannon
         Vector3 VerticalPositionAt(double now, int laneOffset)
         {
             var sample = FinalSawTimeline.Sample(HasStarted, startedAt, now, warningSeconds, travelSeconds);
+            if (lateralPasses)
+            {
+                // 한 예고/통과 주기마다 출발 방향을 바꿔 좌우 끝을 번갈아 잇는다.
+                bool fromLeft = (Math.Max(0, sample.CycleIndex) + laneOffset / 2) % 2 == 0;
+                float side = Mathf.Lerp(-horizontalHalfWidth, horizontalHalfWidth,
+                    fromLeft ? sample.Travel01 : 1f - sample.Travel01);
+                Vector3 center = Vector3.Lerp(verticalStart.position, verticalEnd.position, laneOffset == 0 ? .35f : .65f);
+                return center + transform.right * side;
+            }
             // 두 번째 톱은 같은 예고/통과 시각을 쓰고 네 발사 레인 중 두 칸 건너 위치한다.
             float lane = verticalLanes.Length > 0 && sample.CycleIndex >= 0
                 ? verticalLanes[(int)((sample.CycleIndex % verticalLanes.Length + laneOffset) % verticalLanes.Length)] : 0;
@@ -154,7 +166,7 @@ namespace CurtainCall.HumanCannon
         void PresentVertical(Transform blade, Transform marker, Renderer[] renderers, Vector3 position,
             FinalSawPhase phase, float spin, Color warning)
         {
-            Quaternion orientation = transform.rotation * Quaternion.Euler(0, 0, 90);
+            Quaternion orientation = transform.rotation * (lateralPasses ? Quaternion.identity : Quaternion.Euler(0, 0, 90));
             if (blade != null)
             {
                 blade.gameObject.SetActive(phase == FinalSawPhase.Active);

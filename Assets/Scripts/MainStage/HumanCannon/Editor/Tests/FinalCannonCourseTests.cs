@@ -86,7 +86,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(station.Muzzle.position.z, Is.EqualTo(stations[0].Muzzle.position.z).Within(0.001f), station.name);
                 Assert.That(Vector3.Angle(station.Muzzle.forward, Vector3.forward), Is.LessThan(0.001f), station.name);
                 Assert.That(Vector3.Distance(station.LaunchVelocity, new Vector3(0, 12, 8)), Is.LessThan(0.001f), station.name);
-                Assert.That(station.AirControlSpeed, Is.EqualTo(3f).Within(0.001f), station.name);
+                Assert.That(station.AirControlSpeed, Is.EqualTo(4.5f).Within(0.001f), station.name);
                 Assert.That(station.BoardingDistance, Is.EqualTo(2f).Within(0.001f), station.name);
             }
         }

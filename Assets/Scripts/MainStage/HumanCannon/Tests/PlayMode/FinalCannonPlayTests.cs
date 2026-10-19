@@ -131,7 +131,7 @@ namespace CurtainCall.HumanCannon.Tests
                 Assert.IsTrue(Flying, "놓은 뒤 새 F로 발사한다.");
                 Assert.AreEqual(ulong.MaxValue, Call(system, "Occupant", 6 + i));
                 Assert.That(Vector3.Distance((Vector3)Get(pilot, "velocity"), new Vector3(0, 12, 8)), Is.LessThan(0.001f));
-                Assert.AreEqual(3f, Get(pilot, "airControlSpeed"));
+                Assert.AreEqual(4.5f, Get(pilot, "airControlSpeed"));
                 Vector3 start = player.transform.position;
                 float highest = start.y;
                 float deadline = Time.realtimeSinceStartup + 8;
@@ -189,7 +189,8 @@ namespace CurtainCall.HumanCannon.Tests
             var station = (Component)Call(system, "Station", index);
             var boarding = (Transform)Get(station, "BoardingPoint");
             Call(mover, "SetStartPose", boarding.position, Quaternion.identity, true);
-            yield return null;
+            yield return WaitUntil(() => ((CharacterController)Get(mover, "Body")).isGrounded
+                && !(bool)Get(player, "IsAirborne"), 3, "탑승 위치로 옮긴 뒤 실제 바닥 접촉과 공유 공중 상태 해제");
             Assert.AreEqual(index, Call(system, "FindBoardableStation", player));
             Input(tapped: true);
             yield return WaitUntil(() => (ulong)Call(system, "Occupant", index) == Actor, 2, "부상별 탑승 시간 뒤 호스트 확정");

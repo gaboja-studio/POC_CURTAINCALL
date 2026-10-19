@@ -17,7 +17,7 @@ namespace CurtainCall.HumanCannon
         [Min(0f), SerializeField] float forwardSpeed = 8f;
         [Tooltip("임시 위쪽 발사 속도(m/s). 최종 밸런스 값이 아니다.")]
         [Min(0.1f), SerializeField] float upwardSpeed = 12f;
-        [Tooltip("비행 중 WASD 수평 보정 속도(m/s). 키를 놓으면 보정은 사라진다. 임시값 3.")]
+        [Tooltip("비행 중 시선 기준 WASD 수평 보정 속도(m/s). 키를 놓으면 보정은 사라진다.")]
         [Min(0f), SerializeField] float airControlSpeed = 3f;
 
         public Transform BoardingPoint => boardingPoint != null ? boardingPoint : transform;

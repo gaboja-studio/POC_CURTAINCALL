@@ -54,6 +54,21 @@ namespace CurtainCall.HumanCannon
     /// <summary>현재 비행의 발사 식별자. 재시작 전이나 다른 비행의 늦은 착지 요청은 무시한다.</summary>
     public sealed class CannonFlightState
     {
+        public readonly struct Flight
+        {
+            public readonly ulong Actor;
+            public readonly int StationIndex;
+            public readonly uint LaunchRevision, Segment;
+
+            public Flight(ulong actor, int stationIndex, uint launchRevision, uint segment)
+            {
+                Actor = actor;
+                StationIndex = stationIndex;
+                LaunchRevision = launchRevision;
+                Segment = segment;
+            }
+        }
+
         readonly Dictionary<ulong, (int StationIndex, uint LaunchRevision, uint Segment)> flights = new();
         readonly List<ulong> expired = new();
 
@@ -83,12 +98,40 @@ namespace CurtainCall.HumanCannon
         public void Remove(ulong actor) => flights.Remove(actor);
         public void Clear() => flights.Clear();
 
-        public void RemoveWhere(Predicate<ulong> predicate)
+        public Flight[] Capture()
+        {
+            var snapshot = new Flight[flights.Count];
+            int index = 0;
+            foreach (var pair in flights)
+                snapshot[index++] = new Flight(pair.Key, pair.Value.StationIndex, pair.Value.LaunchRevision, pair.Value.Segment);
+            return snapshot;
+        }
+
+        /// <summary>접속 시 호스트의 전체 목록을 복원한다. 봉/반동 진행 번호를 0으로 되돌리지 않는다.</summary>
+        public bool Restore(Flight[] snapshot, int stationCount)
+        {
+            if (snapshot == null || stationCount < 0) return false;
+            var actors = new HashSet<ulong>();
+            foreach (var flight in snapshot)
+                if (flight.Actor == CannonSeatState.Nobody || flight.StationIndex < -1 || flight.StationIndex >= stationCount
+                    || !actors.Add(flight.Actor)) return false;
+            flights.Clear();
+            foreach (var flight in snapshot)
+                flights.Add(flight.Actor, (flight.StationIndex, flight.LaunchRevision, flight.Segment));
+            return true;
+        }
+
+        public void RemoveWhere(Predicate<ulong> predicate, Action<Flight> removed = null)
         {
             expired.Clear();
             foreach (ulong actor in flights.Keys)
                 if (predicate(actor)) expired.Add(actor);
-            foreach (ulong actor in expired) flights.Remove(actor);
+            foreach (ulong actor in expired)
+            {
+                var flight = flights[actor];
+                flights.Remove(actor);
+                removed?.Invoke(new Flight(actor, flight.StationIndex, flight.LaunchRevision, flight.Segment));
+            }
             expired.Clear();
         }
     }
