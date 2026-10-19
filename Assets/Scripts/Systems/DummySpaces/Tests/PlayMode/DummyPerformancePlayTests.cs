@@ -144,9 +144,8 @@ namespace CurtainCall.DummySpaces.Tests
             Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-0"));
             Assert.IsNull(Get(rewards, "Latest"));
             Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-1"));
-            AssertNoSurvivorFailure();
             Assert.IsFalse((bool)Call(dummy, "Cut", "missing"));
-            yield return null;
+            yield return AssertNoSurvivorFailure();
         }
 
         [UnityTest]
@@ -156,12 +155,12 @@ namespace CurtainCall.DummySpaces.Tests
             Assert.IsTrue((bool)Call(dummy, "Kill", "Dummy-0"));
             Assert.IsNull(Get(rewards, "Latest"));
             Assert.IsTrue((bool)Call(rewards, "ObserveParticipant", "Dummy-1", 0, false, false));
-            AssertNoSurvivorFailure();
-            yield return null;
+            yield return AssertNoSurvivorFailure();
         }
 
-        void AssertNoSurvivorFailure()
+        IEnumerator AssertNoSurvivorFailure()
         {
+            float confirmedAt = Time.unscaledTime;
             var result = Get(rewards, "Latest");
             Assert.IsNotNull(result);
             Assert.IsFalse((bool)Get(result, "Succeeded"));
@@ -170,8 +169,21 @@ namespace CurtainCall.DummySpaces.Tests
             Assert.AreEqual(0L, Get(result, "Income"));
             Assert.AreEqual(0L, Get(rewards, "Balance"));
             Assert.IsFalse((bool)Get(Get(rewards, "State"), "IsOpen"));
-            Assert.AreEqual("RestTime", Get(Get(campaign, "State"), "Phase").ToString());
             Assert.IsFalse((bool)Call(dummy, "TimeExpired"), "공통 자동 실패 뒤 중복 종료 거절");
+
+            // 실패 확정 뒤 설정 시간 동안 공연 화면을 유지하고, 그 뒤에 한 번만 다음 시간대로 넘어간다.
+            var settings = GameType("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null);
+            float hold = (float)Get(Get(settings, "Run"), "FailedPerformanceHold");
+            Assert.Greater(hold, 0f, "저장 설정의 실패 유지 시간");
+            Assert.AreEqual("Performance", Phase, "실패 직후에는 묘기 화면 유지");
+            Assert.IsTrue((bool)Get(rewards, "TransitionPending"));
+            while (Phase == "Performance" && Time.unscaledTime - confirmedAt < hold + 2f) yield return null;
+            Assert.AreEqual("RestTime", Phase, "유지 시간이 지나면 쉬는 시간으로 진행");
+            Assert.GreaterOrEqual(Time.unscaledTime - confirmedAt, hold - 0.05f, "유지 시간보다 먼저 넘어가지 않음");
+            Assert.IsFalse((bool)Get(rewards, "TransitionPending"));
+            Assert.AreEqual(1, ((IEnumerable)Get(rewards, "History")).Cast<object>().Count(), "유지 중 중복 정산 없음");
         }
+
+        string Phase => Get(Get(campaign, "State"), "Phase").ToString();
     }
 }

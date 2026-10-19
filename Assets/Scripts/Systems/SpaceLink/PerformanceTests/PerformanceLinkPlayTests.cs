@@ -485,6 +485,33 @@ namespace CurtainCall.SpaceLink.Tests
         [UnityTest]
         public IEnumerator SamePerformanceSpace_AdditiveRemovesPreviousConfiguredScene() => SwapPerformanceScene(true);
 
+        /// <summary>2026-10-19 사용자 재현: 외팔 1인이 인간대포 함정에 닿아 사망 → 사망 장면 없이 바로 대기실. 실패 유지 시간 동안 묘기 씬을 비춘다.</summary>
+        [UnityTest]
+        public IEnumerator Managed_CannonLastSurvivorDeath_HoldsPerformanceSceneBeforeLeaving()
+        {
+            yield return SwapPerformanceScene(false);
+            rewards = Singleton(RewardsType);
+            Assert.IsNotNull(rewards);
+            Subscribe(rewards.GetType(), rewards, "ResultConfirmed", nameof(ResultConfirmed));
+            yield return WaitUntil(() => Get(rewards, "State") is object s && (bool)Get(s, "IsOpen"), 5f, "인간대포 공용 정산 시작");
+            float hold = (float)Get(Get(PerformanceLinkReflection.StaticGet("CurtainCall.Settings.GameSettings", "Base"), "Run"), "FailedPerformanceHold");
+            Assert.Greater(hold, 0f);
+            Call(player, "ServerCut", 4); // 함정 접촉 대신 공통 절단으로 네 곳을 잃는 사망을 합성한다.
+            float diedAt = Time.unscaledTime;
+            Assert.AreEqual("Fallen", Get(player, "State").ToString());
+            var result = Get(rewards, "Latest");
+            Assert.IsNotNull(result, "생존자 0명 실패는 바로 확정");
+            Assert.AreEqual("NoSurvivors", Get(result, "EndReason"));
+            Assert.AreEqual("Performance", Phase, "실패 직후에는 시간대를 넘기지 않는다.");
+            yield return new WaitForSecondsRealtime(hold * 0.5f);
+            Assert.AreEqual("Performance", Phase, "유지 시간 동안 묘기 씬 유지");
+            Assert.IsTrue(SceneManager.GetSceneByName(CannonScene).isLoaded);
+            Assert.AreEqual("Fallen", Get(player, "State").ToString(), "유지 중 다음 시간대 부활이 먼저 오지 않는다.");
+            yield return WaitUntil(() => Phase != "Performance", hold + 2f, "유지 시간 뒤 다음 시간대");
+            Assert.GreaterOrEqual(Time.unscaledTime - diedAt, hold - 0.05f);
+            Assert.AreEqual(1, resultCount, "유지 중 중복 정산 없음");
+        }
+
         IEnumerator SwapPerformanceScene(bool additive)
         {
             yield return CreateSyntheticCampaign();

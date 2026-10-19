@@ -25,6 +25,7 @@ MonoBehaviour:
     restDuration: 300
     guideRestDuration: 300
     recallAlarmLeadTime: 60
+    failedPerformanceHold: 2
   itemCarry:
     twoArmSlots: 2
     oneArmSlots: 1

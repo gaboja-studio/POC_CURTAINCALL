@@ -161,6 +161,9 @@ namespace CurtainCall.DummySpaces.Tests
             Assert.IsFalse((bool)Get(result, "Succeeded"));
             Assert.AreEqual("TimeExpired", Get(result, "EndReason"));
             Assert.AreEqual(0L, Get(result, "Income"));
+            // 실패는 설정한 유지 시간(기본 2초) 동안 공연 화면을 비춘 뒤 넘어간다.
+            float waited = 0f;
+            while (Phase == "Performance" && waited < 5f) { waited += Time.unscaledDeltaTime; yield return null; }
             Assert.AreEqual("RestTime", Phase, "031 결과 확정이 028 시간대를 전환");
             Assert.AreEqual(0f, Remaining);
             Assert.IsFalse(Running);
