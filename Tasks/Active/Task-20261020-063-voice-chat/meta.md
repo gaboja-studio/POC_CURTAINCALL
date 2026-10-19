@@ -2,7 +2,7 @@
 
 - **Title:** 음성 채팅(생존자 거리 감쇠·사망자 분리)
 - **Type:** feat
-- **Status:** submitted
+- **Status:** integrated
 - **Assignee:** @MoHoDu
 - **Domain:** voice-chat (`Docs/Domains/voice-chat.md`, 신규) · network-session · player-sync
 - **Current Skill:** start-work

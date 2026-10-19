@@ -10,7 +10,7 @@
 
 - 일시:
 - 참여:
-- 결과: 미실시
+- 결과: 미실시 (PM 결정 2026-10-20 — PC 1대라 불가, dev 병합 후 다음 날 팀 사후 검증)
 
 ## 남은 이슈
 
@@ -18,6 +18,7 @@
 
 - EditMode 기존 실패 3개 `TightropeSurfaceControlTests`(`CourseControlSwitcher`→`NetworkPlayer.CurrentJump` NRE, dev #184에서 유입) — 음성 무관, 후속 fix 필요.
 - 음소거 키 `M`은 임시값 — 조작키 합의 필요.
+- 공동 테스트 3항목 미실시 — dev에서 사후 검증, 실패 시 fix Task.
 
 ## 테스트 씬 처리
 
