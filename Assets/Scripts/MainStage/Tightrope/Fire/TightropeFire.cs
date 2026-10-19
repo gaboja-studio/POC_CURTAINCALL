@@ -237,7 +237,7 @@ namespace CurtainCall.Tightrope.Fire
             sampledAt = Clock;
             ticking = true;
             foreach (var player in NetworkPlayer.All)
-                if (player.isActiveAndEnabled && player.State == PlayerState.Normal
+                if (player.isActiveAndEnabled && player.State == PlayerState.Normal && (run == null || run.IsParticipantReady(player))
                     && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen))
                     furthestDistance = Mathf.Max(furthestDistance, Mathf.Clamp(course.GetDistance(player.transform.position), 0f, course.FinishDistance));
             bool changed = FireMath.AdvanceSequence(snapshot, elapsed, furthestDistance, course.LaneCount,
@@ -252,7 +252,7 @@ namespace CurtainCall.Tightrope.Fire
             foreach (var player in NetworkPlayer.All)
             {
                 if (run.State != TightropeRunState.Running || !course.IsGameplayActive) break;
-                if (player.State != PlayerState.Normal) continue;
+                if ((player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player)))) continue;
                 float distance = course.GetDistance(player.transform.position);
                 if (distance >= snapshot.safeDistance) continue;
                 if (IsChasing && distance <= ChaseDistance) { Kill(player, FireKind.Chase, -1, distance); continue; }

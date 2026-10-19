@@ -395,7 +395,7 @@ namespace CurtainCall.SpaceLink.Tests
             // 긴 실제 대기 대신 메모리의 제한시간만 임시 축소한다(에셋 저장 없음). 판정/정산은 실제 프레임으로 실행한다.
             object timing = Get(PerformanceLinkReflection.StaticGet("CurtainCall.Settings.GameSettings", "Tightrope"), "Run");
             Override(timing, "timeLimit", 0f);
-            Set(run, "runStartedAt", Time.time);
+            Set(run, "runStartedAt", Get(run, "Clock"));
             yield return WaitUntil(() => Get(rewards, "Latest") != null && Phase == "RestTime", 5f, "실패 정산");
             Assert.AreEqual("Failed", Get(run, "State").ToString());
             Assert.IsFalse((bool)Get(Get(rewards, "Latest"), "Succeeded"));

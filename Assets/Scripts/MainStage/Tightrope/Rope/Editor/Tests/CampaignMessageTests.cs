@@ -158,7 +158,28 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(run.State, Is.EqualTo(TightropeRunState.Running));
             Assert.That(run.Round, Is.EqualTo(2));
             using var writer = (FastBufferWriter)Invoke(run, "WriteState");
-            Assert.That(writer.Length, Is.EqualTo(21), "독립 연습의 기존 필드 형식은 유지한다.");
+            Assert.That(writer.Length, Is.EqualTo(33), "독립 연습도 서버 절대 시각을 공유한다.");
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void DelayedStatePreservesAbsoluteServerEpoch(bool campaignMode)
+        {
+            bridge.enabled = campaignMode;
+            if (campaignMode) Common(first, CampaignPhase.Performance, true);
+            double sentAt = run.Clock;
+            using var writer = new FastBufferWriter(256, Allocator.Temp);
+            writer.WriteValueSafe(123UL);
+            writer.WriteValueSafe((byte)TightropeRunState.Running); writer.WriteValueSafe(9);
+            writer.WriteValueSafe(sentAt); writer.WriteValueSafe(-1f);
+            writer.WriteValueSafe(sentAt); writer.WriteValueSafe(-1d);
+            if (campaignMode) writer.WriteValueSafe(first.Id);
+            using var reader = new FastBufferReader(writer, Allocator.Temp); reader.Seek(8);
+            Invoke(run, "HandleStateMessage", NetworkManager.ServerClientId, reader);
+            Assert.That(run.GetType().GetField("runStartedAt", Members).GetValue(run), Is.EqualTo(sentAt));
+            Assert.That(run.GetType().GetField("performanceStartedAt", Members).GetValue(run), Is.EqualTo(sentAt));
+            // 수신 시각으로 시작점을 다시 만들지 않는다. 이후 서버 시계가 보정돼도 같은 원점이다.
+            Assert.That(run.TimeRemaining, Is.EqualTo(Mathf.Max(0f, run.TimeLimit - (float)(run.Clock - sentAt))).Within(.01f));
         }
 
         [Test]
@@ -213,10 +234,10 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             using var writer = new FastBufferWriter(256, Allocator.Temp);
             writer.WriteValueSafe((byte)state);
             writer.WriteValueSafe(round);
-            writer.WriteValueSafe(1f);
+            writer.WriteValueSafe(run.Clock - 1d);
             writer.WriteValueSafe(-1f);
-            writer.WriteValueSafe(-1f);
-            writer.WriteValueSafe(0f);
+            writer.WriteValueSafe(-1d);
+            writer.WriteValueSafe(-1d);
             if (performanceId != null) writer.WriteValueSafe(performanceId);
             using var reader = new FastBufferReader(writer, Allocator.Temp);
             Invoke(run, "HandleStateMessage", NetworkManager.ServerClientId, reader);

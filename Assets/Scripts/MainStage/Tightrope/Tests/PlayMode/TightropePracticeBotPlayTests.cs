@@ -212,6 +212,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Set(replica, "InboundState", Get(replica, "OutboundState"));
             Call(replica, "TransformStateUpdate");
             Physics.SyncTransforms();
+            // 이 도우미는 이미 배치된 원격 참가자 대역이다. 실제 복귀 통신은 다중 프로세스 회귀 검사에서 검증한다.
+            ((System.Collections.IDictionary)Get(run, "placedPlayers"))[other] = (int)Get(other, "RestartVersion");
             return other;
         }
 

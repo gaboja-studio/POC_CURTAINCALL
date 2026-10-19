@@ -77,6 +77,9 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>자리 번호(0~인원-1). 출발 위치 순서. 정해지기 전에는 <see cref="NoSlot"/>.</summary>
         public int Slot => slot.Value;
 
+        /// <summary>호스트가 정한 복구 회차. 배치 확인 메시지가 이전 재시작의 것인지 구분한다.</summary>
+        public int RestartVersion => restartCount.Value;
+
         /// <summary>이 캐릭터가 이 컴퓨터 사람의 것인지.</summary>
         public bool IsLocal => IsOwner;
 

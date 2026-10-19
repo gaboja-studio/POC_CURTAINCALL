@@ -80,6 +80,10 @@ namespace CurtainCall.Tightrope
             var held = localControl;
             if (!Active || held.Player == null || held.Player.State != PlayerState.Normal || held.Mover == null || !held.Mover.Body.enabled)
             { ResetLocal(false); return; }
+            // Locally valid catches await the host at the requested position.
+            // Otherwise the low final pole can be approved after local fall death.
+            // ReconcileLocal clears the wait on approval; rejection times out.
+            if (Clock < pendingUntil) { air.Clear(); return; }
             var injuries = HumanCannonSystem.Current != null ? HumanCannonSystem.Current.Injuries : defaultInjuries;
             int lostLegs = held.Player.TryGetComponent(out PlayerCondition condition) ? condition.LostLegCount : 0;
             Vector3 correction = air.ConsumeVelocity(Time.frameCount, InputGate.IsBlocked, course.Forward, AirControlSpeed * injuries.AirMultiplier(lostLegs));

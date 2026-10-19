@@ -42,7 +42,8 @@ namespace CurtainCall.Tightrope
         }
         void ReadRequest(ulong sender, FastBufferReader reader)
         {
-            if (session == null || !session.IsHost || reader.Length != 10 || !reader.TryBeginRead(10)) return;
+            // NGO has already consumed the name hash; Length still includes that header.
+            if (session == null || !session.IsHost || reader.Length - reader.Position != 10 || !reader.TryBeginRead(10)) return;
             reader.ReadValueSafe(out byte operation); reader.ReadValueSafe(out int generation);
             reader.ReadValueSafe(out byte index); reader.ReadValueSafe(out uint revision);
             if (operation > (byte)Operation.Sync || index >= PoleCount
@@ -66,7 +67,7 @@ namespace CurtainCall.Tightrope
         void ReadState(ulong sender, FastBufferReader reader)
         {
             if (session == null || session.IsHost || sender != NetworkManager.ServerClientId
-                || reader.Length != 125 || !reader.TryBeginRead(125)) return;
+                || reader.Length - reader.Position != 125 || !reader.TryBeginRead(125)) return;
             reader.ReadValueSafe(out int generation); reader.ReadValueSafe(out int sequence); reader.ReadValueSafe(out byte count);
             run = TightropeRun.Current;
             if (run == null || generation != run.Round || sequence < 0 || count != PoleCount

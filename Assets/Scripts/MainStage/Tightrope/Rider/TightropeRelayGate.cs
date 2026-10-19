@@ -119,7 +119,7 @@ namespace CurtainCall.Tightrope
             && !stations[index].State.IsOccupied && course.IsLaneUsable(PoleLane(index), IsFarPole(index) ? ExitDistance : EntryDistance);
         public bool CanUsePole(int index, NetworkPlayer player)
         {
-            if (!IsPoleAvailable(index) || player == null || !player.IsSpawned || player.State != PlayerState.Normal
+            if (!IsPoleAvailable(index) || player == null || !player.IsSpawned || player.State != PlayerState.Normal || !run.IsParticipantReady(player)
                 || IsHeld(player) || !player.TryGetComponent(out PlayerMover mover) || !mover.ControlEnabled || mover.PassThrough
                 || (player.IsLocal && !mover.Simulated) || (player.IsLocal ? mover.IsAirborne : player.IsAirborne)
                 || !course.TryGetSupportingRope(mover, out int lane) || lane != PoleLane(index)
@@ -164,6 +164,7 @@ namespace CurtainCall.Tightrope
             RetryLocalAbort();
             if (!IsActive)
             {
+                ClearPendingGrabs();
                 RestoreBinding(false);
                 bool dirty = false;
                 foreach (var station in stations)
@@ -173,6 +174,7 @@ namespace CurtainCall.Tightrope
             }
             if (session != null && session.IsHost)
             {
+                ProcessPendingGrabs();
                 bool changed = false;
                 foreach (var station in stations)
                 {
@@ -204,11 +206,11 @@ namespace CurtainCall.Tightrope
         void ServerHandle(ulong sender, Operation operation, int index, uint revision)
         {
             if (operation == Operation.Sync) { Publish(sender); return; }
+            if (operation == Operation.Grab) { SubmitGrab(sender, index, revision); return; }
+            pendingGrabs.Remove(sender);
             if (!IsActive || index < 0 || index >= stations.Length) { Publish(sender); return; }
             var station = stations[index];
-            bool changed = operation == Operation.Grab
-                ? CanUsePole(index, Find(sender)) && station.State.TryGrab(sender, revision, Clock, course.Shape.RelayHoldSeconds)
-                : station.State.TryRelease(sender, revision, Clock, station.Pole.WarningSeconds);
+            bool changed = station.State.TryRelease(sender, revision, Clock, station.Pole.WarningSeconds);
             if (changed) { version++; ApplyConnections(); Publish(); }
             else Publish(sender);
         }
@@ -219,6 +221,7 @@ namespace CurtainCall.Tightrope
         }
         void ResetState()
         {
+            ClearPendingGrabs();
             foreach (var station in stations) station.State.Reset();
             version = 0; geometryMask = -1; pendingUntil = feedbackUntil = nextSnapshot = 0d; feedback = null;
             localAborted = localAbortWaiting = false; nextAbortRetry = 0d;
