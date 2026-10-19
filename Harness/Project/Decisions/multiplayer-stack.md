@@ -19,6 +19,7 @@ source: human (2026-09-30 PM @MoHoDu)
   - 패키지(NGO, Multiplayer Services, Multiplayer Play Mode)는 **PM이 통합 브랜치에 먼저 설치**한 뒤 작업을 인계한다. 작업자는 `Packages/`, `ProjectSettings/`를 수정하지 않는다.
   - 인원: 이번 구현은 **4명 기준**(4명이 모이면 시작).
   - 이번 범위 제외: 거리 기반 음성, 세션 런 데이터 저장.
+  - 2026-10-20 추가: 거리 기반 음성은 Vivox로 포함 → [voice-chat.md](voice-chat.md)
 
 - 2026-10-02 / PM(@MoHoDu): 기능과 동기화를 같이 만든다 → [feature-with-network.md](feature-with-network.md)
 

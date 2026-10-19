@@ -13,12 +13,14 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 ## 목표
 
-- 이 기능 묶음이 끝나면 dev에서 무엇을 할 수 있는지 1~2줄.
+- 온라인 세션(묘기·대기실·백스테이지·탈출로 전 공간)에서 상시 마이크 음성 채팅을 쓴다. 생존자끼리는 거리에 따라(2m 이내 최대, 20m 밖 무음) 들리고, 사망자(추락·리타이어)끼리는 거리와 무관하게 같은 크기로 들린다. 생존자와 사망자는 서로 들리지 않는다.
+- 음소거 키로 내 마이크를 끄고 켤 수 있다.
 
 ## Tasks
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
+| Task-20261020-063 | feat | @MoHoDu | (인계 때 생성) | - | scaffolded |
 
 ## 준비 브랜치
 
@@ -33,8 +35,12 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
+| `Packages/manifest.json`, `Packages/packages-lock.json` | PM(통합 준비) | Vivox(`com.unity.services.vivox` 16.12.1) 설치 — 통합 준비 커밋에서만 |
+| `Assets/Scripts/Systems/Settings/BaseGameSettings.cs` | Task-20261020-063 | 공통 세팅 끝에 `음성 채팅` 묶음 추가 |
+| `Assets/Resources/Settings/GameSettings/BaseGameSettings.asset` | Task-20261020-063 | 음성 채팅 기본값(2m/20m, 음소거 키) |
+| `Docs/Domains/index.md` | Task-20261020-063 | 음성 채팅 Domain Map 등록 |
 
 ## Decisions
 
-- Open: None
-- Decided: None
+- Open: 음소거 키 기본값(임시 `M`) — `control-keys.md` 목록 밖 키라 디스코드 `소집` 합의 필요. 세팅 값이라 코드 수정 없이 바꿀 수 있다.
+- Decided (2026-10-20 PM @MoHoDu): 솔루션 Vivox(UGS Authentication 재사용) / 상시 마이크 + 음소거 키 / 생존자·사망자 완전 분리(사망자는 생존자 목소리도 못 들음) / 생존자 거리 2m(최대 음량)~20m(무음) / 사망 = `Fallen`·`Retired`(관전 규칙과 같음) / 사용 공간 제한 없음.
