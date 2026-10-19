@@ -14,9 +14,12 @@ namespace CurtainCall.Tightrope.Fire
         Material flame, warning;
         FireSettings shown;
         int shownRound = -1;
+        float[] burnVisibleUntil = System.Array.Empty<float>();
 
         void Awake()
         {
+            // 화재 판정은 TightropeFire가 계속 처리하며, 숨김 봇은 표시만 생략한다.
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null) { enabled = false; return; }
             fire = GetComponent<TightropeFire>();
             var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
             flame = new Material(shader) { color = new Color(1f, 0.15f, 0.03f) };
@@ -44,8 +47,10 @@ namespace CurtainCall.Tightrope.Fire
                 int lane = segment.lane - 1;
                 bool burning = fire.IsSegmentActive(i);
                 bool pending = fire.WarningRemaining(i) >= 0f;
+                if (burning && burnVisibleUntil[i] < 0f) burnVisibleUntil[i] = Time.time + 2f;
+                bool showingFlame = burning && Time.time < burnVisibleUntil[i];
                 var view = segments[i];
-                bool visible = lane >= 0 && lane < course.LaneCount && segment.to > segment.from && (burning || pending);
+                bool visible = lane >= 0 && lane < course.LaneCount && segment.to > segment.from && (showingFlame || pending);
                 view.gameObject.SetActive(visible);
                 if (!visible) continue;
                 float height = burning ? 0.6f : 0.06f;
@@ -61,6 +66,8 @@ namespace CurtainCall.Tightrope.Fire
             foreach (var segment in segments) Destroy(segment.gameObject);
             segments.Clear();
             for (int i = 0; i < settings.segments.Length; i++) segments.Add(Box($"SegmentFire{i + 1}"));
+            burnVisibleUntil = new float[settings.segments.Length];
+            System.Array.Fill(burnVisibleUntil, -1f);
             shown = settings;
             shownRound = fire.Round;
         }

@@ -124,6 +124,19 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
+        public void LoosePieceOverlappingCastOriginDoesNotHideTheSupportingRope()
+        {
+            int lane = Mathf.Min(1, course.LaneCount - 1);
+            float side = course.Layout.GetLaneSide(lane);
+            AddRope(lane, side);
+            // 떨어져 나간 조각이 발 위 탐색구와 겹쳐도 발밑 줄은 그대로 있다.
+            AddBox("Loose limb beside feet", new Vector3(side + .25f, .4f, 4f), new Vector3(.2f, .2f, .2f));
+            MovePlayer(new Vector3(side, 0f, 4f));
+            Assert.That(course.TryGetSupportingRope(mover, out int supported), Is.True);
+            Assert.That(supported, Is.EqualTo(lane));
+        }
+
+        [Test]
         public void AirborneOrCarriedPlayer_PreservesExistingRopeBalance()
         {
             Invoke(switcher, "Bind", player);

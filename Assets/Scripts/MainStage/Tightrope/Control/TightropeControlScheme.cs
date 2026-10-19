@@ -1,6 +1,8 @@
 using System.Runtime.CompilerServices;
 using CurtainCall.Settings;
 using CurtainCall.Tightrope.Control;
+using CurtainCall.Tightrope;
+using CurtainCall.Network.PlayerSync;
 using UnityEngine;
 
 namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Input/TightropeControlScheme.asset)
@@ -41,6 +43,7 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
 
         public override void Exit(PlayerControlContext context)
         {
+            CancelCatch(context);
             ClearBuffer(context);
             context.HeldDirection = 0;
             if (context.Mover != null) context.Mover.ClearPendingInput();
@@ -62,6 +65,7 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
             }
             context.HeldDirection = input.AuxDirection;
             ApplyMovementSettings(context);
+            if (input.Move != 0f || input.ActionPressed || input.InteractLongPressed) CancelCatch(context);
 
             if (context.Mover != null)
             {
@@ -101,9 +105,18 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
 
             if (context.Interaction != null)
             {
-                if (input.InteractTapped) context.Interaction.RequestInteract();
+                if (input.InteractTapped && (input.Move != 0f || input.ActionPressed
+                    || TightropeCatchSystem.Current == null || !TightropeCatchSystem.Current.TryHandleLocalInteract()))
+                    context.Interaction.RequestInteract();
                 if (input.InteractLongPressed) context.Interaction.RequestRelease();
             }
+        }
+
+        static void CancelCatch(PlayerControlContext context)
+        {
+            if (NetworkPlayer.Local != null && context.Mover != null
+                && context.Mover.gameObject == NetworkPlayer.Local.gameObject)
+                TightropeCatchSystem.Current?.CancelLocal();
         }
     }
 }

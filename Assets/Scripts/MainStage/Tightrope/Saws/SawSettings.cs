@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace CurtainCall.Tightrope.Saws
 {
@@ -69,7 +70,7 @@ namespace CurtainCall.Tightrope.Saws
 
         [Header("수직 톱날")]
         [Tooltip("생성 거리(m). 기획 93.")]
-        public float verticalSpawnDistance = 93f;
+        public float verticalSpawnDistance = 75f;
 
         [Tooltip("제거 거리(m). 기획 5.")]
         public float verticalEndDistance = 5f;
@@ -89,6 +90,26 @@ namespace CurtainCall.Tightrope.Saws
         [Tooltip("두께(m). 임시값.")]
         [Min(0.01f)] public float verticalThickness = 0.1f;
 
+        [Header("목마 협동 톱 관문")]
+        [Tooltip("켜면 일반 정면 톱 출현 단계 대신 선두의 줄로 다가오는 큰 원형 톱을 사용한다.")]
+        public bool cooperativeGates;
+        [Tooltip("관문이 멈춰 팀을 기다리는 진행 거리(m). 오름차순으로 배치한다.")]
+        public float[] cooperativeGateDistances = { 170f, 320f };
+        [Min(0f)] public float cooperativeGateTriggerLead = 24f;
+        [Min(0f)] public float cooperativeGateApproachDistance = 12f;
+        [Min(0.1f)] public float cooperativeGateApproachSpeed = 3f;
+        [Min(0.1f)] public float cooperativeGateHeight = 2.1f;
+        [Min(0.05f)] public float cooperativeGateThickness = 0.2f;
+        [Min(0.1f)] public float cooperativeGatePlateOffset = 2.2f;
+        [Min(0.1f)] public float cooperativeGatePlateLength = 1.6f;
+        [Tooltip("뒤 발판을 밟았을 때 협동 관문이 위로 튀어 올라 길을 여는 시간(초).")]
+        [FormerlySerializedAs("cooperativeGateLowerDuration")]
+        [Min(0.1f)] public float cooperativeGateOpenDuration = 0.3f;
+        [Tooltip("목마 앞점프를 도와주는 출발선 앞뒤 허용 거리(m). 실제 두 사람 연결이 있어야 한다.")]
+        [Min(0.05f)] public float cooperativeGateLaunchTolerance = 0.35f;
+        [Tooltip("부상으로 목마가 낮아져도 관문 위로 확보하는 최소 점프 정점 여유(m).")]
+        [Min(0.1f)] public float cooperativeGateJumpClearance = 0.6f;
+
         [Header("발판(수직 톱날 뒤, 임시 형태)")]
         [Tooltip("톱날 중심에서 발판 중심까지 거리(m, 톱날 뒤 = 도착 쪽). 임시값.")]
         [Min(0f)] public float plateOffset = 1.5f;
@@ -105,6 +126,15 @@ namespace CurtainCall.Tightrope.Saws
         [Tooltip("이 시간(초) 동안 계속 밟아야 눌린다. 0이면 밟는 즉시. 임시값(Open: 누가·몇 초).")]
         [Min(0f)] public float plateHoldTime = 0f;
 
+        [Tooltip("협동 발판을 밟은 뒤 주변 가로 톱을 내리고 멈추는 시간(초).")]
+        [Min(0f)] public float teamPassageDuration = 6f;
+
+        [Tooltip("협동 발판 앞뒤로 안전하게 열리는 구간의 반길이(m).")]
+        [Min(0f)] public float teamPassageHalfLength = 6f;
+
+        [Tooltip("협동 통로가 끝나기 전 톱이 서서히 올라오며 재가동을 예고하는 시간(초).")]
+        [Min(0.1f)] public float teamPassageWarning = 1f;
+
         [Tooltip("눌린 뒤 톱날이 내려가는 시간(초). 기획 0.1~0.3, 기본 0.2(CC-64).")]
         [Range(0.1f, 0.3f)] public float verticalLowerDuration = 0.2f;
 
@@ -119,6 +149,12 @@ namespace CurtainCall.Tightrope.Saws
         [Min(0f)] public float hitCooldown = 1f;
 
         [Header("겉모습")]
+        [Tooltip("기본 가로 톱날 원판 색. 낮은 가로 톱날은 점프로 피한다.")]
+        public Color horizontalColor = new(0.05f, 0.8f, 0.85f);
+
+        [Tooltip("기본 정면 톱날 원판 색. 정면 톱날은 옆줄로 피한다. 별도 모델의 원본 재질은 보존한다.")]
+        public Color verticalColor = new(1f, 0.38f, 0.08f);
+
         [Tooltip("톱날 회전 속도(도/초). 겉모습만.")]
         public float spinSpeed = 720f;
 
@@ -149,7 +185,7 @@ namespace CurtainCall.Tightrope.Saws
         public static ObstacleStep[] CreateDefaultSteps() => new[]
         {
             new ObstacleStep("가로 전체", StepTrigger.GameStart, 0f, StepAction.StartHorizontal) { firstSaw = 1, lastSaw = 22 },
-            new ObstacleStep("수직", StepTrigger.PerformanceStart, 60f, StepAction.SpawnVertical) { repeat = -1, repeatDelay = 20f },
+            new ObstacleStep("수직", StepTrigger.PerformanceStart, 10f, StepAction.SpawnVertical) { repeat = -1, repeatDelay = 20f },
         };
 
         /// <summary>원문 5장 위치 22개, 출발 쪽은 번갈아(1번 왼쪽).</summary>
@@ -164,6 +200,19 @@ namespace CurtainCall.Tightrope.Saws
             var saws = new HorizontalSawEntry[distances.Length];
             for (int i = 0; i < saws.Length; i++)
                 saws[i] = new HorizontalSawEntry(distances[i], i % 2 == 0 ? SawStartSide.Left : SawStartSide.Right);
+            return saws;
+        }
+
+        /// <summary>초반 점프 간격을 넓히고 후반에 촘촘해지는 20개 배치. 실제 코스 길이에 비례하며 기본 설정을 자동 교체하지 않는다.</summary>
+        public static HorizontalSawEntry[] CreateLearningHorizontalSaws(float finishDistance)
+        {
+            float[] template = { 12f, 21f, 30f, 40f, 48f, 56f, 64f, 72f, 80f, 88f,
+                96f, 104f, 112f, 118f, 124f, 130f, 135f, 139f, 143f, 147f };
+            var saws = new HorizontalSawEntry[template.Length];
+            float scale = Mathf.Max(0f, finishDistance) / 150f;
+            for (int i = 0; i < saws.Length; i++)
+                saws[i] = new HorizontalSawEntry(template[i] * scale,
+                    i % 2 == 0 ? SawStartSide.Left : SawStartSide.Right);
             return saws;
         }
 

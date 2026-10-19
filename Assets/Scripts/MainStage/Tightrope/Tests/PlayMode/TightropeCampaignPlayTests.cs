@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 namespace CurtainCall.Tightrope.SystemIntegration.Tests
 {
     /// <summary>저장된 씬의 실제 LAN 호스트 1명으로 공용 경계를 검사한다. 입력·위치는 합성하며 다중 클라이언트 검사는 아니다.</summary>
-    public sealed class TightropeCampaignPlayTests
+    public sealed partial class TightropeCampaignPlayTests
     {
         const BindingFlags Members = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         const string ScenePath = "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity";
@@ -152,6 +152,201 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator AirborneInputCannotChangeLaunchDirectionOrNeighborLaneLanding()
+        {
+            yield return BeginPerformance();
+            ((Behaviour)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current")).enabled = false;
+            ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
+            float previousCapture = Time.captureDeltaTime;
+            try
+            {
+                Time.captureDeltaTime = 1f / 60f;
+                yield return StandOnRopeForSawTest(1, 4f);
+                float start = (float)Call(course, "GetDistance", player.transform.position);
+                Call(mover, "SetMoveInput", 1f);
+                Call(mover, "RequestLaneJump", 1);
+                yield return Until(() => (bool)Get(mover, "IsAirborne"), 2, "옆줄 점프 이륙");
+                Vector3 launchVelocity = (Vector3)Get(mover, "airVelocity");
+                for (int i = 0; i < 10; i++) { Call(mover, "SetMoveInput", 1f); yield return null; }
+                float forward = (float)Call(course, "GetDistance", player.transform.position);
+                Assert.That(forward - start, Is.GreaterThan(0.12f));
+                for (int i = 0; i < 10; i++) { Call(mover, "SetMoveInput", -1f); yield return null; }
+                float reverse = (float)Call(course, "GetDistance", player.transform.position);
+                Assert.That(reverse - forward, Is.GreaterThan(0.12f), "공중에서 S를 눌러도 이륙한 방향으로 계속 이동해야 한다.");
+                Assert.That((Vector3)Get(mover, "airVelocity"), Is.EqualTo(launchVelocity));
+                for (int frame = 0; frame < 150 && (bool)Get(mover, "IsAirborne"); frame++)
+                {
+                    Assert.That((Vector3)Get(mover, "airVelocity"), Is.EqualTo(launchVelocity), "입력을 놓아도 공중 속도는 유지한다.");
+                    Call(mover, "SetMoveInput", 0f);
+                    yield return null;
+                }
+                Assert.IsFalse((bool)Get(mover, "IsAirborne"));
+                float landing = (float)Call(course, "GetDistance", player.transform.position);
+                Assert.That(landing, Is.GreaterThan(reverse + 0.12f));
+                Vector3 destination = (Vector3)Call(course, "GetLanePosition", 2, landing);
+                Assert.That((float)Call(course, "GetSide", player.transform.position),
+                    Is.EqualTo((float)Call(course, "GetSide", destination)).Within(0.03f));
+                Assert.AreEqual("Normal", Get(player, "State").ToString());
+            }
+            finally { Time.captureDeltaTime = previousCapture; }
+        }
+
+        [UnityTest]
+        public IEnumerator AirInputCannotMoveReservedLandingBackIntoAnotherPlayer()
+        {
+            yield return BeginPerformance();
+            ((Behaviour)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current")).enabled = false;
+            ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
+            var other = new GameObject("Standing lane landing blocker");
+            float previousCapture = Time.captureDeltaTime;
+            try
+            {
+                Time.captureDeltaTime = 1f / 60f;
+                var otherMover = other.AddComponent(GameType("CurtainCall.Player.PlayerMover"));
+                Call(otherMover, "SetStartPose", (Vector3)Call(course, "GetLanePosition", 2, 4f), Quaternion.identity, true);
+                yield return StandOnRopeForSawTest(1, 4f);
+                Call(mover, "SetMoveInput", 0f);
+                Call(mover, "RequestLaneJump", 1);
+                yield return Until(() => (bool)Get(mover, "IsAirborne"), 2, "동료 뒤로 보정하는 점프");
+                Assert.IsTrue((bool)Get(mover, "laneAlongLimited"));
+                for (int frame = 0; frame < 150 && (bool)Get(mover, "IsAirborne"); frame++)
+                { Call(mover, "SetMoveInput", 1f); yield return null; }
+                Assert.IsFalse((bool)Get(mover, "IsAirborne"));
+                Vector3 separation = player.transform.position - other.transform.position;
+                separation.y = 0f;
+                Assert.That(separation.magnitude, Is.GreaterThanOrEqualTo((float)Get(mover, "BodyRadius")
+                    + (float)Get(otherMover, "BodyRadius") - 0.01f), "공중 W 입력이 동료 회피 보정의 착지점을 몸 안으로 옮기면 안 된다.");
+                Assert.AreEqual("Normal", Get(player, "State").ToString());
+            }
+            finally { Time.captureDeltaTime = previousCapture; Object.Destroy(other); }
+        }
+
+        [UnityTest]
+        public IEnumerator OrbitCameraKeepsItsFramingWhileSoloWalksTowardMovingSaws()
+        {
+            yield return BeginPerformance();
+            ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
+            var director = (Component)Static("CurtainCall.Cameras.CameraViewDirector", "Current");
+            var cameraRules = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Camera");
+            float beforeCapture = Time.captureDeltaTime;
+            float totalDistanceDrift = 0f, totalLookAheadDrift = 0f;
+            try
+            {
+                Time.captureDeltaTime = 1f / 60f;
+                for (int attempt = 0; attempt < 3; attempt++)
+                {
+                    yield return StandOnRopeForSawTest(1, 3.5f);
+                    yield return new WaitForSeconds(0.5f);
+                    float start = (float)Call(course, "GetDistance", player.transform.position);
+                    float maxDistanceDrift = 0f, maxLookAheadDrift = 0f;
+                    for (int frame = 0; frame < 100; frame++)
+                    {
+                        Call(mover, "SetMoveInput", 1f);
+                        yield return null;
+                        object view = Get(director, "CurrentView");
+                        maxDistanceDrift = Mathf.Max(maxDistanceDrift,
+                            Mathf.Abs((float)Get(view, "Distance") - (float)Get(cameraRules, "Distance")));
+                        maxLookAheadDrift = Mathf.Max(maxLookAheadDrift,
+                            Mathf.Abs((float)Get(view, "LookAhead") - (float)Get(cameraRules, "LookAhead")));
+                        Assert.IsTrue((bool)Get(director, "UsesMouseLook"));
+                    }
+                    float traveled = (float)Call(course, "GetDistance", player.transform.position) - start;
+                    Debug.Log($"[TightropeCameraWalkProbe] attempt={attempt}, traveled={traveled:F3}, maxDistanceDrift={maxDistanceDrift:F3}, maxLookAheadDrift={maxLookAheadDrift:F3}");
+                    Assert.That(traveled, Is.EqualTo(5f).Within(.1f));
+                    totalDistanceDrift = Mathf.Max(totalDistanceDrift, maxDistanceDrift);
+                    totalLookAheadDrift = Mathf.Max(totalLookAheadDrift, maxLookAheadDrift);
+                }
+                Assert.That(totalDistanceDrift, Is.LessThan(.01f), "옆에서 왕복하는 톱 때문에 단독 카메라가 줌을 반복하면 안 된다.");
+                Assert.That(totalLookAheadDrift, Is.LessThan(.01f), "톱을 따라 바라보는 지점이 바뀌면 전진감이 흔들린다.");
+            }
+            finally { Time.captureDeltaTime = beforeCapture; }
+        }
+
+        [UnityTest]
+        public IEnumerator CameraAutomaticallyUsesOrbitThirdPersonOnRopeAndHonorsInputBlock()
+        {
+            var framing = (Component)Static("CurtainCall.Cameras.TightropeCameraFraming", "Current");
+            var director = (Component)Static("CurtainCall.Cameras.CameraViewDirector", "Current");
+            Assert.IsNotNull(framing);
+            yield return Until(() => (bool)Get(framing, "IsLocalViewActive")
+                && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 3, "출발 플랫폼 기본 1인칭");
+            Assert.IsTrue((bool)Get(director, "IsFirstPerson"));
+            Assert.AreEqual("FirstPerson", Get(framing, "CurrentMode").ToString());
+            Assert.IsTrue((bool)Get(mover, "FreeMovement"));
+            Set(director, "yaw", 75f); // 마우스 장치 조작 없이 시선 상태를 합성한다.
+            Vector3 forward = (Vector3)Get(director, "ViewForward");
+            object blocker = new object();
+            var block = GameType("CurtainCall.Player.InputGate").GetMethod("SetBlocking");
+            try
+            {
+                block.Invoke(null, new[] { blocker, (object)true });
+                yield return null;
+                Assert.IsTrue((bool)Get(director, "inputBlocked"));
+                Assert.IsTrue((bool)Get(director, "IsFirstPerson"));
+                Assert.That(Vector3.Dot(forward, (Vector3)Get(director, "ViewForward")), Is.GreaterThan(0.999f));
+            }
+            finally { block.Invoke(null, new[] { blocker, (object)false }); }
+            yield return Until(() => !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 3, "메뉴 닫은 뒤 입력 재개");
+
+            yield return StandOnRopeForSawTest(1, 4f);
+            yield return Until(() => (bool)Get(framing, "IsLocalViewActive")
+                && Get(Get(director, "CurrentView"), "Kind").ToString() == "FreeThirdPerson", 3, "줄 탑승 자동 공전 3인칭");
+            Assert.AreEqual("FreeThirdPerson", Get(framing, "CurrentMode").ToString());
+            Assert.IsTrue((bool)Get(director, "UsesMouseLook"));
+            Assert.IsTrue((bool)Get(director, "IsFreeThirdPerson"));
+            yield return new WaitForSeconds(0.25f); // 시점 전환 보간이 끝난 실제 카메라 방향을 비교한다.
+            Vector3 ropeForward = (Vector3)Get(director, "ViewForward");
+            Set(director, "yaw", 235f);
+            yield return null;
+            Assert.IsTrue((bool)Get(director, "UsesMouseLook"));
+            Assert.That(Vector3.Dot(ropeForward, (Vector3)Get(director, "ViewForward")), Is.LessThan(-.9f),
+                "줄 위에서도 마우스 시선 상태를 따라 카메라가 돌아야 한다.");
+            float startDistance = (float)Call(course, "GetDistance", player.transform.position);
+            float startSide = (float)Call(course, "GetSide", player.transform.position);
+            for (int frame = 0; frame < 20; frame++)
+            {
+                Call(mover, "SetMoveInput", 1f);
+                yield return null;
+            }
+            Call(mover, "SetMoveInput", 0f);
+            Assert.That((float)Call(course, "GetDistance", player.transform.position), Is.GreaterThan(startDistance),
+                "카메라가 뒤를 보아도 W는 코스 앞쪽으로 이동한다.");
+            Assert.That((float)Call(course, "GetSide", player.transform.position), Is.EqualTo(startSide).Within(.01f));
+            try
+            {
+                block.Invoke(null, new[] { blocker, (object)true });
+                yield return null;
+                Assert.IsTrue((bool)Get(director, "inputBlocked"), "줄 위 메뉴도 마우스 공전 입력을 차단한다.");
+            }
+            finally { block.Invoke(null, new[] { blocker, (object)false }); }
+            yield return null;
+
+            Call(mover, "RequestJump");
+            yield return Until(() => (bool)Get(mover, "IsAirborne"), 2, "줄 위 점프 시작");
+            int airborneFrames = 0;
+            float landingDeadline = Time.realtimeSinceStartup + 3f;
+            while ((bool)Get(mover, "IsAirborne") && Time.realtimeSinceStartup < landingDeadline)
+            {
+                airborneFrames++;
+                Assert.AreEqual("FreeThirdPerson", Get(framing, "CurrentMode").ToString());
+                Assert.AreEqual("FreeThirdPerson", Get(Get(director, "CurrentView"), "Kind").ToString());
+                Assert.IsTrue((bool)Get(director, "UsesMouseLook"), "줄 사이 공중에서도 마우스 공전 3인칭을 유지한다.");
+                yield return null;
+            }
+            Assert.That(airborneFrames, Is.GreaterThan(0));
+            Assert.IsFalse((bool)Get(mover, "IsAirborne"), "줄 위로 다시 착지해야 한다.");
+            Assert.IsFalse((bool)Get(mover, "FreeMovement"));
+
+            var start = (Pose)Call(course, "GetStartPose", (int)Get(player, "Slot"));
+            Call(mover, "SetStartPose", start.position, start.rotation, true);
+            yield return Until(() => (bool)Get(mover, "FreeMovement") && !(bool)Get(mover, "IsAirborne")
+                && (bool)Get(director, "IsFirstPerson"), 3, "플랫폼 복귀 자동 1인칭");
+            Assert.AreEqual("FirstPerson", Get(framing, "CurrentMode").ToString());
+            Assert.IsTrue((bool)Get(director, "IsFirstPerson"));
+            Assert.IsTrue((bool)Get(director, "UsesMouseLook"));
+        }
+
+        [UnityTest]
         public IEnumerator SoloButtonStartsOfflineWithoutDevModeAndRestoresStartRuleOnExit()
         {
             Assert.IsFalse((bool)Static("CurtainCall.Dev.DevMode", "Enabled"));
@@ -278,6 +473,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.IsFalse((bool)Call(run, "ResetWaitingPracticeByHost"));
                 var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
                 Assert.IsFalse((bool)Call(hud, "RestartCourseByHost"), "실제 캠페인 씬의 R은 테스트용 전체 초기화를 실행하지 않는다.");
+                Assert.IsFalse((bool)Call(hud, "StartCourseByHost"));
+                Assert.IsFalse((bool)Call(hud, "StartPerformanceByHost"));
+                Assert.AreEqual(Get(Get(Static("CurtainCall.Settings.GameSettings", "Base"), "Session"), "MinPlayers"),
+                    Get(session, "MinPlayers"), "실제 캠페인에서는 테스트 씬의 1인 시작 예외를 해제한다.");
                 var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
                 Call(mover, "SetStartPose", finish.position, finish.rotation, true);
                 yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "Adapter 공용 정산");
@@ -787,6 +986,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         public IEnumerator IncomingVerticalSawCanBeDodgedByLaneJump()
         {
             yield return BeginPerformance();
+            ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
             const float distance = 20f; // 기존 가로 톱날 사이의 줄을 사용한다.
             yield return StandOnRopeForSawTest(1, distance);
             var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
@@ -799,6 +999,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return Until(() => (bool)Get(mover, "IsAirborne"), 2, "옆줄 회피 시작");
             yield return Until(() => !(bool)Get(mover, "IsAirborne"), 3, "옆줄 착지");
             yield return Until(() => (float)Get(saws, "VerticalDistance") < distance - 0.8f, 4, "이전 줄로 톱날 통과");
+            Assert.IsTrue((bool)Get(saws, "IsVerticalActive"), "화재 보호로 제거된 톱을 회피 성공으로 세지 않는다.");
             var expected = (Vector3)Call(course, "GetLanePosition", 2, distance);
             Assert.That(Vector3.Distance(player.transform.position, expected), Is.LessThan(0.2f));
             Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
@@ -863,7 +1064,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Set(snapshot, "warningSeconds", 0.2f); // 대기 시간만 줄이고 저장된 거리·순서·구간은 사용한다.
             var segments = (Array)Get(snapshot, "segments");
             Assert.AreEqual((int)Get(course, "LaneCount") - 1, segments.Length);
-            Assert.AreEqual("RandomAll", Get(snapshot, "laneOrder").ToString());
+                Assert.AreEqual("RandomConnected", Get(snapshot, "laneOrder").ToString());
             int safeLane = (int)Call(snapshot, "FindSurvivingLane", (int)Get(course, "LaneCount")) - 1;
             Assert.That(safeLane, Is.InRange(0, (int)Get(course, "LaneCount") - 1));
             for (int i = 0; i < segments.Length; i++)
@@ -905,9 +1106,33 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator FireWarningClearsAnExistingSawFromTheRequiredEscapeRoute()
+        {
+            yield return BeginPerformance();
+            var fire = (Component)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current");
+            var settings = Get(fire, "Settings");
+            var segments = (Array)Get(settings, "segments");
+            var warning = segments.GetValue(0);
+            int lane = (int)Get(warning, "lane") - 1;
+            yield return StandOnRopeForSawTest(lane, 4f);
+            var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            var sawSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
+            float elapsed = ((float)Get(sawSettings, "verticalSpawnDistance") - 8f) / (float)Get(sawSettings, "verticalSpeed");
+            Call(saws, "SetVertical", true, lane, 1, elapsed, -1f);
+            yield return null;
+            Assert.IsTrue((bool)Get(saws, "IsVerticalActive"), "경고 전에는 옆줄로 회피할 수 있는 정면 톱을 유지한다.");
+            Set(warning, "triggerDistance", 4f);
+            segments.SetValue(warning, 0);
+            yield return Until(() => (int)Get(fire, "PendingSegment") == 0, 3, "첫 줄 소각 경고");
+            yield return Until(() => !(bool)Get(saws, "IsVerticalActive"), 3, "탈출 경로의 기존 정면 톱 제거");
+            Assert.IsFalse((bool)Call(fire, "IsSegmentActive", 0), "불붙기 전에 이동 경로를 비워야 한다.");
+        }
+
+        [UnityTest]
         public IEnumerator IncomingVerticalSawStillHitsPlayerWhoDoesNotDodge()
         {
             yield return BeginPerformance();
+            ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
             const float distance = 20f;
             yield return StandOnRopeForSawTest(1, distance);
             var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");

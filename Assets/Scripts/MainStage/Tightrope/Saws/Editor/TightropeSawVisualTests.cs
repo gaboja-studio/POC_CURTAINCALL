@@ -79,6 +79,41 @@ namespace CurtainCall.Tightrope.Saws.EditorTools.Tests
             Assert.That(originalMesh != null && originalMaterial != null, Is.True);
         }
 
+        [Test]
+        public void HorizontalAndIncomingSawsUseDifferentConfiguredColors()
+        {
+            var (saws, root) = Fixture();
+            var horizontal = Create(saws, root, null, 1.2f, 0.1f, SawKind.Horizontal);
+            var incoming = Create(saws, root, null, 1.2f, 0.1f, SawKind.Vertical);
+            var horizontalColor = horizontal.Find("Blade").GetComponent<Renderer>().sharedMaterial.color;
+            var incomingColor = incoming.Find("Blade").GetComponent<Renderer>().sharedMaterial.color;
+            Assert.That(Vector4.Distance(horizontalColor, saws.Settings.horizontalColor), Is.LessThan(0.0001f));
+            Assert.That(Vector4.Distance(incomingColor, saws.Settings.verticalColor), Is.LessThan(0.0001f));
+            Assert.That(Vector4.Distance(horizontalColor, incomingColor), Is.GreaterThan(0.1f),
+                "두 종류의 톱은 재질 변환 오차보다 충분히 큰 색 차이를 유지한다.");
+            Assert.That(horizontal.GetComponentsInChildren<Collider>(true), Is.Empty);
+            Assert.That(incoming.GetComponentsInChildren<Collider>(true), Is.Empty);
+        }
+
+        [TestCase(100f)]
+        [TestCase(150f)]
+        public void LearningPlacementScalesToCourseAndLeavesRoomForEarlyJumps(float length)
+        {
+            var entries = SawSettings.CreateLearningHorizontalSaws(length);
+            Assert.That(entries.Length, Is.EqualTo(20));
+            Assert.That(entries[0].distance, Is.EqualTo(length * 0.08f).Within(0.0001f));
+            Assert.That(entries[2].distance, Is.EqualTo(length * 0.2f).Within(0.0001f));
+            Assert.That(entries[^1].distance, Is.EqualTo(length * 0.98f).Within(0.0001f));
+            for (int i = 1; i < entries.Length; i++)
+            {
+                Assert.That(entries[i].distance, Is.GreaterThan(entries[i - 1].distance));
+                Assert.That(entries[i].startSide, Is.Not.EqualTo(entries[i - 1].startSide));
+            }
+            float firstGap = entries[1].distance - entries[0].distance;
+            float finalGap = entries[^1].distance - entries[^2].distance;
+            Assert.That(firstGap, Is.GreaterThan(finalGap * 2f));
+        }
+
         (TightropeSaws saws, Transform root) Fixture()
         {
             var owner = Track(new GameObject("Saw visual test"));
@@ -92,9 +127,9 @@ namespace CurtainCall.Tightrope.Saws.EditorTools.Tests
         static void Release(TightropeSawVisualResources owner) => typeof(TightropeSawVisualResources)
             .GetMethod("OnDestroy", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(owner, null);
 
-        static Transform Create(TightropeSaws saws, Transform parent, GameObject prefab, float diameter, float thickness) =>
+        static Transform Create(TightropeSaws saws, Transform parent, GameObject prefab, float diameter, float thickness, SawKind kind = SawKind.Horizontal) =>
             (Transform)typeof(TightropeSaws).GetMethod("CreateSaw", BindingFlags.Instance | BindingFlags.NonPublic)
-                .Invoke(saws, new object[] { parent, "Test saw", prefab, diameter, thickness });
+                .Invoke(saws, new object[] { parent, "Test saw", prefab, diameter, thickness, kind });
 
         T Track<T>(T value) where T : Object
         {

@@ -100,6 +100,17 @@ namespace CurtainCall.Settings
             [Tooltip("캐릭터가 줄 높이보다 이만큼(m) 내려가면 추락 처리. 기획 값이 없어 테스트 값 1.")]
             [SerializeField, Min(0.1f)] float fallDepth = 1f;
 
+            [Tooltip("진행 구간의 끝 비율·이름·줄 색. 충돌면은 색 경계에서 끊기지 않는다.")]
+            [SerializeField] CourseSection[] sections =
+            {
+                new(.22727273f, "균형과 점프", new Color(.18f, .52f, 1f)),
+                new(.40909091f, "줄바꿈", new Color(.12f, .82f, .7f)),
+                new(.59090909f, "첫 협동 관문", new Color(.65f, .4f, 1f)),
+                new(.77272727f, "동료와 합류", new Color(.95f, .38f, .68f)),
+                new(.95454545f, "마지막 줄 선택", new Color(.65f, .85f, .25f)),
+                new(1f, "한 줄 피날레", new Color(.95f, .95f, 1f))
+            };
+
             public int LaneCount => laneCount;
             public float LaneSpacing => laneSpacing;
             public float[] LaneEndDistances => laneEndDistances;
@@ -115,6 +126,7 @@ namespace CurtainCall.Settings
             public float SpawnDistance => spawnDistance;
             public float SafetyNetDepth => safetyNetDepth;
             public float FallDepth => fallDepth;
+            public CourseSection[] Sections => sections;
 
             /// <summary>값을 JSON으로(코스 값 공유용).</summary>
             public string ToJson() => JsonUtility.ToJson(this);
@@ -129,6 +141,16 @@ namespace CurtainCall.Settings
 
             /// <summary>지금 값을 복사한다. 코스가 만들 때의 값을 붙잡아 두는 데 쓴다.</summary>
             public CourseSettings Clone() => FromJson(ToJson());
+        }
+
+        [Serializable]
+        public struct CourseSection
+        {
+            [Range(0f, 1f)] public float endFraction;
+            public string label;
+            public Color color;
+            public CourseSection(float endFraction, string label, Color color)
+            { this.endFraction = endFraction; this.label = label; this.color = color; }
         }
 
         /// <summary>묘기 진행(호스트 판정).</summary>
@@ -149,8 +171,8 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class RopeMovementSettings
         {
-            [Tooltip("외줄 위 걷기 속도(m/s). 목마 인원에 따른 감속은 없고, 부상 배율은 적용한다. 고도화 기본값 1.2(이전 0.8).")]
-            [SerializeField, Min(0.01f)] float moveSpeed = 1.2f;
+            [Tooltip("외줄 위 걷기 속도(m/s). 목마 인원에 따른 감속은 없고, 부상 배율은 적용한다. 인간대포 일반 이동과 같은 기본값 3.")]
+            [SerializeField, Min(0.01f)] float moveSpeed = 3f;
 
             [Tooltip("외줄 위 점프 높이(m, 발 기준 최고점). 부상 높이 배율을 곱한다. 0이면 공용 캐릭터 높이. 플랫폼에는 적용하지 않는다. 초기값 1.2.")]
             [SerializeField, Min(0f)] float jumpHeight = 1.2f;
@@ -160,6 +182,9 @@ namespace CurtainCall.Settings
 
             [Tooltip("착지 직전 점프 입력을 기억하는 시간(초). 0이면 입력 여유를 끈다. 옆줄 방향은 누른 순간 기준.")]
             [SerializeField, Range(0f, 0.3f)] float jumpInputBuffer = 0.15f;
+
+            [Tooltip("외줄의 자연 흔들림 배율(×). 걷기·제자리 흔들림에 적용하고 부상·목마·옆줄 착지 배율과 곱한다. A/D 보정 힘과 추락 기준은 바꾸지 않는다.")]
+            [SerializeField, Min(0f)] float naturalSwayMultiplier = 1.5f;
 
             [Tooltip("착지 충격(균형 ±, 랜덤 방향). 목마 배율을 곱한다. 기획 10.")]
             [SerializeField, Min(0f)] float landingShock = 10f;
@@ -181,6 +206,7 @@ namespace CurtainCall.Settings
             public float JumpHeight => Mathf.Max(0f, jumpHeight);
             public float JumpGravityMultiplier => Mathf.Max(0.1f, jumpGravityMultiplier);
             public float JumpInputBuffer => jumpInputBuffer;
+            public float NaturalSwayMultiplier => Mathf.Max(0f, naturalSwayMultiplier);
             public float MinAirTimeForShock => minAirTimeForShock;
             public float LaneLandingShock => laneLandingShock;
             public float LaneSwayBoost => laneSwayBoost;
@@ -197,8 +223,16 @@ namespace CurtainCall.Settings
             [Tooltip("손잡기 때 옆줄 착지 충격·흔들림 증가 감소율(0~1). 기획 0.5(50%).")]
             [SerializeField, Range(0f, 1f)] float reduction = 0.5f;
 
+            [Tooltip("F로 동료를 받을 준비를 유지하는 시간(초). 이동·점프하면 해제한다.")]
+            [SerializeField, Min(0.1f)] float readySeconds = 3f;
+            [SerializeField, Min(0f)] float activeDistance = 1.25f;
+            [SerializeField, Range(0f, 1f)] float activeReduction = 0.9f;
+
             public float Distance => distance;
             public float Reduction => reduction;
+            public float ReadySeconds => Mathf.Max(.1f, readySeconds);
+            public float ActiveDistance => Mathf.Max(0f, activeDistance);
+            public float ActiveReduction => Mathf.Clamp01(activeReduction);
         }
 
         /// <summary>목마(여러 층으로 쌓기).</summary>
@@ -307,6 +341,9 @@ namespace CurtainCall.Settings
             [Tooltip("다리 하나만 잃었을 때 이동 속도 배율(×). 두 다리를 잃으면 기어가기 속도(게임 기본 세팅)를 쓴다. 임시값 0.8.")]
             [SerializeField, Range(0f, 1f)] float oneLegMoveSpeed = 0.8f;
 
+            [Tooltip("외줄에서 다리를 잃어도 유지할 최소 이동 속도 배율. 공통 기어가기 감속을 포함한 최종 값이다.")]
+            [SerializeField, Range(0.01f, 1f)] float minimumInjuredMoveSpeed = 0.8f;
+
             [Tooltip("잃은 다리 하나당 자연 흔들림 증가(+). 1 + 이 값 × 잃은 다리 수. 임시값 0.25(하나 ×1.25, 둘 ×1.5).")]
             [SerializeField, Min(0f)] float swayPerLostLeg = 0.25f;
 
@@ -323,6 +360,7 @@ namespace CurtainCall.Settings
             [SerializeField, Range(0f, 0.5f)] float reachLossPerArm = 0.25f;
 
             public float OneLegMoveSpeed => oneLegMoveSpeed;
+            public float MinimumInjuredMoveSpeed => minimumInjuredMoveSpeed;
             public float SwayPerLostLeg => swayPerLostLeg;
             public float SwayPerLostArm => swayPerLostArm;
             public float LeglessLandingShock => leglessLandingShock;

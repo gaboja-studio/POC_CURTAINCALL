@@ -1,4 +1,5 @@
 using System.Reflection;
+using CurtainCall.Tightrope.Fire;
 using NUnit.Framework;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -93,6 +94,82 @@ namespace CurtainCall.Tightrope.Saws.EditorTools.Tests
             Assert.That(Blocks(1, 20f, 0, 30f, 0), Is.False, "현재 구역의 바로 옆 2번 줄로 피할 수 있다.");
             Assert.That(Blocks(1, 20f, 1, 30f, 1), Is.False, "구역 끝에서도 연결된 반대쪽 줄로 피할 수 있다.");
         }
+
+        [Test]
+        public void RequiredRouteProtectionDoesNotDependOnSurvivorCount()
+        {
+            BlockOtherLanes(1, 0f, course.FinishDistance);
+            Assert.That(SawRouteSafety.HasEscapeLane(course, 1, 30f), Is.False,
+                "최종 한 줄에는 2~4명이 함께 남아도 정면 톱을 생성/유지하지 않는다.");
+            for (int player = 0; player < 4; player++)
+                Assert.That(SawRouteSafety.BlocksPlayerRoute(course, course.GetLanePosition(1, 20f + player), 1, 30f, 0.8f), Is.True);
+            course.ClearBlockedSegments();
+            Assert.That(SawRouteSafety.HasEscapeLane(course, 1, 30f), Is.True);
+        }
+
+        [Test]
+        public void WarningProtectsAllCrossingsThroughBurningLaneAndTheSafeLanding()
+        {
+            var fire = Warning(2, course.LaneCount - 1, out int pending);
+            for (int sawLane = 0; sawLane <= 3; sawLane++)
+                Assert.That(WarningBlocks(fire, pending, 0, 20f, sawLane, 30f), Is.True,
+                    "1번 줄에서 경고 중인 3번 줄의 오른쪽까지 모든 이동 경로를 남긴다.");
+            Assert.That(WarningBlocks(fire, pending, 3, 20f, 2, 30f), Is.False,
+                "이미 안전한 쪽에 도착한 플레이어 때문에 지나온 줄의 톱까지 없애지 않는다.");
+            Assert.That(WarningBlocks(fire, -1, 0, 20f, 2, 30f), Is.False, "경고 해제/리셋 후 이동 경로 보호도 풀린다.");
+        }
+
+        [Test]
+        public void WarningProtectsTheOppositeDirectionAndExcludesItsDoomedEscapeLane()
+        {
+            var fire = Warning(1, 0, out int pending);
+            Assert.That(WarningBlocks(fire, pending, course.LaneCount - 1, 20f, 0, 30f), Is.True,
+                "이번에는 경고 줄의 왼쪽까지 넘어가는 착지 공간을 보호한다.");
+            Assert.That(SawRouteSafety.HasEscapeLane(course, 0, 30f, fire, pending), Is.False,
+                "곧 불탈 바로 옆줄을 안전한 정면 톱 회피처로 세지 않는다.");
+            Assert.That(SawRouteSafety.HasEscapeLane(course, 0, 30f), Is.True);
+        }
+
+        [Test]
+        public void WarningProtectionHonorsSectionBoundsAndAlreadyPassedSaws()
+        {
+            var fire = Warning(2, course.LaneCount - 1, out int pending);
+            var segment = fire.segments[pending];
+            segment.from = 50f;
+            segment.to = 90f;
+            fire.segments[pending] = segment;
+            Assert.That(WarningBlocks(fire, pending, 0, 20f, 2, 80f), Is.False);
+            Assert.That(WarningBlocks(fire, pending, 0, 60f, 2, 80f), Is.True);
+            Assert.That(WarningBlocks(fire, pending, 0, 60f, 2, 59f), Is.False);
+            Assert.That(WarningBlocks(fire, pending, 0, 90f, 2, 93f), Is.False);
+            Assert.That(WarningBlocks(fire, pending, 0, course.FinishDistance, 2, course.FinishDistance), Is.False);
+        }
+
+        [Test]
+        public void OtherIslandsDoNotCountAsAnEscape()
+        {
+            course.BlockSegment(1, 0f, course.FinishDistance, false);
+            Assert.That(course.IsLaneUsable(2, 30f), Is.True);
+            Assert.That(SawRouteSafety.HasEscapeLane(course, 0, 30f), Is.False);
+            Assert.That(SawRouteSafety.HasEscapeLane(course, 2, 30f), Is.True);
+        }
+
+        FireSettings Warning(int burningLane, int survivingLane, out int pending)
+        {
+            var fire = new FireSettings { safeDistance = course.FinishDistance, segments = new FireSegment[course.LaneCount - 1] };
+            pending = -1;
+            int index = 0;
+            for (int lane = 0; lane < course.LaneCount; lane++)
+            {
+                if (lane == survivingLane) continue;
+                if (lane == burningLane) pending = index;
+                fire.segments[index++] = new FireSegment(lane + 1, 0f, course.FinishDistance, 0f);
+            }
+            return fire;
+        }
+
+        bool WarningBlocks(FireSettings fire, int pending, int playerLane, float distance, int sawLane, float sawDistance) =>
+            SawRouteSafety.BlocksPlayerRoute(course, course.GetLanePosition(playerLane, distance), sawLane, sawDistance, 0.8f, fire, pending);
 
         void BlockOtherLanes(int remainingLane, float from, float to)
         {

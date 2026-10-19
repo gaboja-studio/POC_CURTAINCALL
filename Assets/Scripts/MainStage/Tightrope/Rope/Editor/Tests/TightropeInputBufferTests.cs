@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using System.Reflection;
 using CurtainCall.Player;
 using CurtainCall.Tightrope.Control;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Object = UnityEngine.Object;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
@@ -10,6 +12,51 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     public sealed class TightropeInputBufferTests
     {
         const BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic;
+        const BindingFlags StaticMembers = BindingFlags.Static | BindingFlags.NonPublic;
+        HashSet<PlayerInputReader> previousReaders;
+        HashSet<object> previousBlockers;
+        HashSet<Key> previousReleaseKeys;
+        bool previousRearming;
+        int previousCheckedFrame, previousBlockedFrame;
+
+        [SetUp]
+        public void IsolateInputGate()
+        {
+            // EditMode [Test] 사이에는 프레임이 진행되지 않을 수 있다. 다른 검사의
+            // "닫힌 프레임 입력 차단"을 물려받으면 Tick이 실행되지 않고 조기 종료된다.
+            previousReaders = new HashSet<PlayerInputReader>(GateSet<PlayerInputReader>("readers"));
+            previousBlockers = new HashSet<object>(GateSet<object>("blockers"));
+            previousReleaseKeys = new HashSet<Key>(GateSet<Key>("releaseKeys"));
+            previousRearming = (bool)GateField("rearming").GetValue(null);
+            previousCheckedFrame = (int)GateField("checkedFrame").GetValue(null);
+            previousBlockedFrame = (int)GateField("blockedFrame").GetValue(null);
+            typeof(InputGate).GetMethod("Reset", StaticMembers).Invoke(null, null);
+            Assert.IsFalse(InputGate.IsBlocked, "버퍼 검사는 입력을 실제로 해석하는 상태에서 시작해야 한다.");
+        }
+
+        [TearDown]
+        public void RestoreInputGate()
+        {
+            if (previousReaders == null) return;
+            RestoreGateSet("readers", previousReaders);
+            RestoreGateSet("blockers", previousBlockers);
+            RestoreGateSet("releaseKeys", previousReleaseKeys);
+            GateField("rearming").SetValue(null, previousRearming);
+            GateField("checkedFrame").SetValue(null, previousCheckedFrame);
+            GateField("blockedFrame").SetValue(null, previousBlockedFrame);
+            previousReaders = null;
+            previousBlockers = null;
+            previousReleaseKeys = null;
+        }
+
+        static FieldInfo GateField(string name) => typeof(InputGate).GetField(name, StaticMembers);
+        static HashSet<T> GateSet<T>(string name) => (HashSet<T>)GateField(name).GetValue(null);
+        static void RestoreGateSet<T>(string name, HashSet<T> snapshot)
+        {
+            var values = GateSet<T>(name);
+            values.Clear();
+            values.UnionWith(snapshot);
+        }
 
         [Test]
         public void EarlyPressKeepsDirectionAndFiresOnlyOnceAfterLanding()

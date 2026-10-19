@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CurtainCall.Tightrope.Fire
 {
     public enum FireTriggerMode { Time, LeadDistance }
-    public enum FireLaneOrder { Configured, RandomAll }
+    public enum FireLaneOrder { Configured, RandomAll, RandomConnected }
 
     /// <summary>호스트가 회차 시작에 복사하는 초기 화재 실험값. 플레이 중 편집은 다음 회차에 적용한다.</summary>
     [Serializable]
@@ -69,7 +69,8 @@ namespace CurtainCall.Tightrope.Fire
             copy.warningSeconds = NonNegative(copy.warningSeconds);
             if (copy.triggerMode != FireTriggerMode.Time && copy.triggerMode != FireTriggerMode.LeadDistance)
                 copy.triggerMode = FireTriggerMode.Time;
-            if (copy.laneOrder != FireLaneOrder.Configured && copy.laneOrder != FireLaneOrder.RandomAll)
+            if (copy.laneOrder != FireLaneOrder.Configured && copy.laneOrder != FireLaneOrder.RandomAll
+                && copy.laneOrder != FireLaneOrder.RandomConnected)
                 copy.laneOrder = FireLaneOrder.Configured;
             copy.segments ??= Array.Empty<FireSegment>();
             if (copy.segments.Length > 64) Array.Resize(ref copy.segments, 64);
@@ -93,8 +94,9 @@ namespace CurtainCall.Tightrope.Fire
         public FireSettings Snapshot(float finishDistance, int laneCount, int seed)
         {
             var copy = Snapshot(finishDistance);
-            if (copy.laneOrder != FireLaneOrder.RandomAll) return copy;
-            var order = FireMath.RandomLaneOrder(laneCount, seed);
+            if (copy.laneOrder == FireLaneOrder.Configured) return copy;
+            var order = copy.laneOrder == FireLaneOrder.RandomConnected
+                ? FireMath.RandomConnectedLaneOrder(laneCount, seed) : FireMath.RandomLaneOrder(laneCount, seed);
             int count = Mathf.Min(copy.segments.Length, order.Length - 1);
             if (copy.segments.Length != count) Array.Resize(ref copy.segments, count);
             for (int i = 0; i < count; i++) copy.segments[i].lane = order[i];
@@ -132,6 +134,23 @@ namespace CurtainCall.Tightrope.Fire
     /// <summary>높이를 사용하지 않는 화재 경계 계산.</summary>
     public static class FireMath
     {
+        /// <summary>최종 줄은 전체 중 무작위로 고르고, 남은 줄이 이어지도록 양끝에서 하나씩 태운다.</summary>
+        public static int[] RandomConnectedLaneOrder(int laneCount, int seed)
+        {
+            laneCount = Mathf.Max(1, laneCount);
+            var order = new int[laneCount];
+            var random = new System.Random(seed);
+            int survivor = random.Next(1, laneCount + 1);
+            int left = 1, right = laneCount;
+            for (int i = 0; i < laneCount - 1; i++)
+            {
+                bool fromLeft = left != survivor && (right == survivor || random.Next(2) == 0);
+                order[i] = fromLeft ? left++ : right--;
+            }
+            order[laneCount - 1] = survivor;
+            return order;
+        }
+
         /// <summary>왼쪽부터 1-based 줄 번호를 한 번씩 섞는다. 마지막 번호가 최종 생존줄이다.</summary>
         public static int[] RandomLaneOrder(int laneCount, int seed)
         {

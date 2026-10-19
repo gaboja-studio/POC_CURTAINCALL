@@ -17,6 +17,9 @@ namespace CurtainCall.Tightrope
     /// 판정은 조작하는 소유자 화면에서만 하고(뛰는 순간 한 번), 결과 움직임·추락은 007 공유를 그대로 쓴다.
     /// 씬에 코스(<see cref="TightropeCourse.Current"/>)가 없으면 막지도 보정하지도 않는다. 씬에 하나 둔다(보통 코스 옆).
     /// </summary>
+    [DefaultExecutionOrder(-40)]
+    [RequireComponent(typeof(TightropeCatchSystem))]
+    [RequireComponent(typeof(TightropeHandholdRangeView), typeof(TightropeBalancePoseView))]
     public sealed class RopeLaneJumpRules : MonoBehaviour
     {
         PlayerMover mover;
@@ -25,6 +28,9 @@ namespace CurtainCall.Tightrope
         bool failOnLanding; // 이번 옆줄 점프는 착지할 자리가 없어 착지 순간 추락
         NetworkPlayer laneLinkTarget;
         bool handholdLanding;
+        NetworkPlayer activeCatcher;
+        int landingLane = TightropeCourse.NoLane;
+        float landingDistance;
         Func<int, bool> previousFilter;
         Func<int, float> previousShift;
 
@@ -90,6 +96,8 @@ namespace CurtainCall.Tightrope
             var local = NetworkPlayer.Local;
             if (local == null) { Unbind(); return; }
             if (mover == null || mover.gameObject != local.gameObject) Bind(local);
+            if (mover != null && mover.IsAirborne && mover.CurrentJump == JumpKind.Lane && !failOnLanding)
+                RefreshLandingHelp();
         }
 
         void ClearLanding()
@@ -97,6 +105,8 @@ namespace CurtainCall.Tightrope
             failOnLanding = false;
             laneLinkTarget = null;
             handholdLanding = false;
+            activeCatcher = null;
+            landingLane = TightropeCourse.NoLane;
         }
 
         void HandleRestarted(NetworkPlayer player)
@@ -199,17 +209,29 @@ namespace CurtainCall.Tightrope
             var course = TightropeCourse.Current;
             if (course == null || !course.IsGameplayActive || mover == null || lane == TightropeCourse.NoLane) return false;
 
-            float reach = GameSettings.Tightrope.Handhold.Distance;
-            float height = LandingHeight();
             foreach (var other in PlayerMover.All)
             {
-                if (other == mover || other.PassThrough) continue;
-                Vector3 position = other.transform.position;
-                if (Mathf.Abs(position.y - height) >= Mathf.Max(mover.BodyHeight, other.BodyHeight)) continue;
-                if (!course.TryGetRopePoint(position, out int otherLane, out float otherDistance) || otherLane != lane) continue;
-                if (Mathf.Abs(otherDistance - distance) <= reach) return true;
+                if (TryGetHandholdRange(other, out int otherLane, out float from, out float to)
+                    && otherLane == lane && distance >= from && distance <= to) return true;
             }
             return false;
+        }
+
+        /// <summary>손잡기 판정과 화면 표시가 함께 쓰는 동료의 앞뒤 범위. 줄의 사용 가능 여부는 코스가 판정한다.</summary>
+        public bool TryGetHandholdRange(PlayerMover other, out int lane, out float from, out float to)
+        {
+            lane = TightropeCourse.NoLane;
+            from = to = 0f;
+            var course = TightropeCourse.Current;
+            if (course == null || !course.IsGameplayActive || mover == null
+                || other == null || other == mover || other.PassThrough) return false;
+            Vector3 position = other.transform.position;
+            if (Mathf.Abs(position.y - LandingHeight()) >= Mathf.Max(mover.BodyHeight, other.BodyHeight)) return false;
+            if (!course.TryGetRopePoint(position, out lane, out float distance)) return false;
+            float reach = GameSettings.Tightrope.Handhold.Distance;
+            from = distance - reach;
+            to = distance + reach;
+            return true;
         }
 
         NetworkPlayer FindLaneLinkTarget(int direction)
@@ -222,6 +244,7 @@ namespace CurtainCall.Tightrope
             {
                 var other = mover.FindPlayerAtLaneLanding(direction);
                 var target = other != null ? other.GetComponent<NetworkPlayer>() : null;
+                if (TightropeCatchSystem.Current != null && TightropeCatchSystem.Current.IsReady(target)) return null;
                 return system.CanLaneLink(local, target) ? target : null;
             }
 
@@ -235,6 +258,7 @@ namespace CurtainCall.Tightrope
                 offset.y = 0f;
                 if (offset.magnitude >= mover.BodyRadius + other.BodyRadius) continue;
                 var target = other.GetComponent<NetworkPlayer>();
+                if (TightropeCatchSystem.Current != null && TightropeCatchSystem.Current.IsReady(target)) continue;
                 if (system.CanLaneLink(local, target, true)) return target;
             }
             return null;
@@ -264,10 +288,21 @@ namespace CurtainCall.Tightrope
 
             // 균형은 착지 알림을 먼저 받으므로 감소율은 뛰는 순간 넣어 둔다(착지하면 균형이 0으로 되돌린다)
             laneLinkTarget = FindLaneLinkTarget(direction);
-            handholdLanding = laneLinkTarget != null || IsHandholdLanding(lane, distance);
-            if (balance != null)
-                balance.SetLaneLandingReduction(handholdLanding ? GameSettings.Tightrope.Handhold.Reduction : 0f);
+            landingLane = lane;
+            landingDistance = distance;
+            RefreshLandingHelp();
             return distance - original;
+        }
+
+        void RefreshLandingHelp()
+        {
+            activeCatcher = null;
+            var catches = TightropeCatchSystem.Current;
+            if (laneLinkTarget == null && catches != null)
+                catches.TryGetCatcher(NetworkPlayer.Local, landingLane, landingDistance, out activeCatcher);
+            handholdLanding = laneLinkTarget != null || IsHandholdLanding(landingLane, landingDistance);
+            if (balance != null) balance.SetLaneLandingReduction(activeCatcher != null ? catches.CatchReduction
+                : handholdLanding ? GameSettings.Tightrope.Handhold.Reduction : 0f);
         }
 
         void HandleAirborne(bool airborne)
@@ -276,6 +311,7 @@ namespace CurtainCall.Tightrope
             if (airborne || mover == null || mover.CurrentJump != JumpKind.Lane) return;
             var local = NetworkPlayer.Local;
             var target = laneLinkTarget;
+            var catcher = activeCatcher;
             bool helped = handholdLanding;
             bool failed = failOnLanding;
             ClearLanding();
@@ -286,7 +322,8 @@ namespace CurtainCall.Tightrope
             }
             if (local == null || local.State != PlayerState.Normal || (balance != null && balance.HasFallen)) return;
             var system = PiggybackSystem.Current;
-            if (target != null) system?.RequestLaneLanding(target);
+            if (catcher != null) TightropeCatchSystem.Current?.ReportLanding(catcher);
+            else if (target != null) system?.RequestLaneLanding(target);
             else if (helped) system?.ShowHandholdLanding();
         }
     }

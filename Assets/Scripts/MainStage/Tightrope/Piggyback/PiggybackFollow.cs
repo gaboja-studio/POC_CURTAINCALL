@@ -203,7 +203,21 @@ namespace CurtainCall.Tightrope
             mover.Simulated = true;
             // 짧아진 체공 시간에도 기존 발판까지의 앞뒤 점프 거리를 보존한다.
             float speedScale = Mathf.Sqrt(mover.JumpGravity / GameSettings.Base.Character.Gravity);
-            mover.LaunchJump(alongSpeed * speedScale);
+            var gate = Saws.TightropeSaws.Current;
+            float previousHeight = mover.CourseJumpHeightOverride;
+            try
+            {
+                // 관문의 실제 목마 출발선에서만 동료가 밀어 주는 도약을 보정한다.
+                // 다리를 잃은 동료와도 협동할 수 있으며, 일반·옆줄·공중 입력은 그대로 둔다.
+                if (alongSpeed > 0f && !mover.FreeMovement && gate != null
+                    && gate.TryGetCooperativeLaunch(local, out float height, out float speed))
+                {
+                    mover.CourseJumpHeightOverride = height / Mathf.Max(.01f, mover.JumpHeightMultiplier);
+                    mover.LaunchJump(speed);
+                }
+                else mover.LaunchJump(alongSpeed * speedScale);
+            }
+            finally { mover.CourseJumpHeightOverride = previousHeight; }
             launchedAt = Time.time;
             system.RequestLocalRelease();
         }

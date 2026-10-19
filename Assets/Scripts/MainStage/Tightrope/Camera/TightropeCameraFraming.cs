@@ -3,7 +3,6 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.Tightrope;
-using CurtainCall.Tightrope.Saws;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -11,10 +10,10 @@ namespace CurtainCall.Cameras
 {
     /// <summary>
     /// 외줄 전용 구도·가림 예외 공급자. 실제 코스가 있을 때만 공용 카메라에 요청한다.
-    /// 코스 뒤 월드 방향과 캐릭터 로컬 look offset 의미를 보존한다. 리그의 기존 GUID·타입은 유지한다.
+    /// 플랫폼은 1인칭, 줄 탑승·점프·목마는 마우스 공전 3인칭이다. 관전은 고정 구도를 사용한다.
     /// </summary>
     [RequireComponent(typeof(CameraViewDirector))]
-    public sealed class TightropeCameraFraming : CinemachineExtension
+    public sealed partial class TightropeCameraFraming : CinemachineExtension
     {
         CameraViewDirector director;
         CameraOcclusionFade fade;
@@ -23,6 +22,7 @@ namespace CurtainCall.Cameras
         NetworkPlayer framedPlayer;
         TightropeFramingMath.Frame currentFrame;
         bool hasFrame;
+        bool firstPersonFraming;
         bool hasSharedGroup;
         Vector3 sharedOffset, sharedCenter;
         readonly List<TightropeFramingMath.LayerSubject> layerSubjects = new();
@@ -40,9 +40,6 @@ namespace CurtainCall.Cameras
             director = GetComponent<CameraViewDirector>();
             fade = GetComponent<CameraOcclusionFade>();
             virtualCamera = GetComponent<CinemachineCamera>();
-            preset = ScriptableObject.CreateInstance<CameraViewPreset>();
-            preset.name = "Tightrope Runtime View";
-            preset.hideFlags = HideFlags.DontSave;
         }
 
         protected override void OnEnable()
@@ -50,6 +47,10 @@ namespace CurtainCall.Cameras
             base.OnEnable();
             if (director == null) director = GetComponent<CameraViewDirector>();
             director.PreparingView += Refresh;
+            if (Application.IsPlaying(gameObject))
+            {
+                Current = this;
+            }
         }
 
         void OnDisable()
@@ -57,36 +58,41 @@ namespace CurtainCall.Cameras
             if (director != null)
             {
                 director.PreparingView -= Refresh;
-                director.ReleaseView(this);
             }
-            if (fade != null) fade.ReleaseSource(this);
-            ResetFrame();
+            ReleaseViewScope();
+            if (Current == this) Current = null;
         }
 
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            if (preset != null) Destroy(preset);
+            DestroyPresets();
         }
 
         void Refresh()
         {
+            if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || director == null) return;
             var course = TightropeCourse.Current;
-            if (course == null || !course.IsGameplayActive)
+            if (course == null || !course.IsTraversalActive)
             {
-                director.ReleaseView(this);
-                if (fade != null) fade.ReleaseSource(this);
-                ResetFrame();
+                ReleaseViewScope();
                 return;
             }
+            EnsurePresets();
+            bool useLocal = CanUseLocalView;
+            bool useFirstPerson = useLocal && !IsLocalOnRope;
+            // 공용 자유 시점은 로컬 캐릭터를 중심으로 돈다. 관전 요청은 고정형으로 남겨
+            // 사망한 로컬 플레이어 대신 관전 대상을 계속 따라갈 수 있게 한다.
+            preset.Kind = useLocal ? CameraViewKind.FreeThirdPerson : CameraViewKind.ThirdPerson;
             var rules = GameSettings.Tightrope.Camera;
-            float fieldOfView = director.Settings != null && director.Settings.DefaultThirdPerson != null
-                ? director.Settings.DefaultThirdPerson.FieldOfView : 60f;
+            float fieldOfView = preset.FieldOfView;
             var baseline = new TightropeFramingMath.Frame(rules.Height, rules.Distance, rules.LookHeight, rules.LookAhead);
-            var focus = FocusTarget();
+            var focus = useLocal ? director.LocalPlayer.transform : FocusTarget();
             var subject = focus != null ? focus.GetComponentInParent<NetworkPlayer>() : null;
-            if (framedPlayer != subject) ResetFrame(); // 관전 대상·층이 바뀔 때 이전 그룹의 이동량을 넘기지 않는다.
+            if (!IsActivePlayer(subject)) { ReleaseViewScope(); return; }
+            if (framedPlayer != subject || firstPersonFraming != useFirstPerson) ResetFrame();
             framedPlayer = subject;
+            firstPersonFraming = useFirstPerson;
             if (!hasFrame) { currentFrame = baseline; hasFrame = true; }
             // PreparingView는 한 프레임에 Update와 Cinemachine에서 여러 번 호출될 수 있다.
             if (updatedFrame != Time.frameCount)
@@ -100,28 +106,34 @@ namespace CurtainCall.Cameras
                 if (focus != null && IsActivePlayer(framedPlayer))
                 {
                     hasSharedGroup = CollectSharedLayer(framedPlayer, rules.NearbyRadius, out sharedCenter);
-                    Vector3 anchor = hasSharedGroup ? sharedCenter : focus.position;
-                    Quaternion rotation = hasSharedGroup ? Quaternion.LookRotation(course.Forward, Vector3.up) : focus.rotation;
-                    if (hasSharedGroup) targetOffset = anchor - focus.position;
-                    if (CollectSubjects(course, anchor, framedPlayer, rules, out var subjects))
+                    // 공전은 내 캐릭터 중심을 유지하고, 관전만 동료들의 중심으로 이동한다.
+                    Vector3 anchor = !useLocal && hasSharedGroup ? sharedCenter : focus.position;
+                    Vector3 framingForward = useLocal && director.ViewForward.sqrMagnitude > .0001f
+                        ? director.ViewForward : course.Forward;
+                    Quaternion rotation = useLocal || hasSharedGroup
+                        ? Quaternion.LookRotation(framingForward, Vector3.up) : focus.rotation;
+                    if (!useLocal && hasSharedGroup) targetOffset = anchor - focus.position;
+                    bool hasContext = CollectSubjects(anchor, framedPlayer, rules, out var subjects);
+                    if (hasContext)
                     {
                         float aspect = Camera.main != null ? Camera.main.aspect
                             : Screen.width / (float)Mathf.Max(1, Screen.height);
-                        targetFrame = TightropeFramingMath.Fit(subjects, anchor, rotation, course.Forward,
+                        targetFrame = TightropeFramingMath.Fit(subjects, anchor, rotation, framingForward,
                             baseline, fieldOfView, aspect, rules.MaximumDistance, rules.FramingPadding, rules.ContextLookAhead);
                     }
                 }
-                currentFrame = TightropeFramingMath.Smooth(currentFrame, targetFrame, rules.FramingSmoothTime, Time.unscaledDeltaTime);
+                currentFrame = TightropeFramingMath.Smooth(currentFrame, targetFrame,
+                    rules.FramingSmoothTime, Time.unscaledDeltaTime);
                 float blend = rules.FramingSmoothTime <= 0f ? 1f : 1f - Mathf.Exp(-Time.unscaledDeltaTime / rules.FramingSmoothTime);
                 sharedOffset = Vector3.Lerp(sharedOffset, targetOffset, blend);
             }
-            preset.Kind = CameraViewKind.ThirdPerson;
             preset.Height = currentFrame.Height;
             preset.Distance = currentFrame.Distance;
             preset.LookHeight = currentFrame.LookHeight;
             preset.LookAhead = currentFrame.LookAhead;
-            preset.FieldOfView = fieldOfView;
-            director.RequestView(this, preset, 0, course.Forward);
+            director.RequestView(this, useFirstPerson ? firstView : preset, 0, course.Forward);
+            director.SetInputBlocked(InputGate.IsBlocked);
+            ownsInput = true;
             if (fade == null) return;
             occlusion.Radius = rules.OccluderRadius;
             occlusion.Alpha = rules.OccluderAlpha;
@@ -153,7 +165,7 @@ namespace CurtainCall.Cameras
             return shared;
         }
 
-        bool CollectSubjects(TightropeCourse course, Vector3 anchor, NetworkPlayer subject,
+        bool CollectSubjects(Vector3 anchor, NetworkPlayer subject,
             TightropeSettings.CameraSettings rules, out Bounds bounds)
         {
             bounds = PlayerBounds(subject);
@@ -169,29 +181,9 @@ namespace CurtainCall.Cameras
                 hasContext = true;
             }
 
-            var saws = TightropeSaws.Current;
-            var run = TightropeRun.Current;
-            if (saws == null || !saws.isActiveAndEnabled || run == null || run.State != TightropeRunState.Running) return hasContext;
-            for (int i = 0; i < saws.HorizontalCount; i++)
-                if (saws.TryGetHorizontalPosition(i, out var position) && IsUpcoming(position))
-                {
-                    bounds.Encapsulate(new Bounds(position, Vector3.one * saws.Settings.horizontalVisualDiameter));
-                    hasContext = true;
-                }
-            if (saws.TryGetVerticalPosition(out var vertical) && IsUpcoming(vertical))
-            {
-                bounds.Encapsulate(new Bounds(vertical, Vector3.one * saws.Settings.verticalVisualDiameter));
-                hasContext = true;
-            }
+            // 움직이는 톱을 따라 구도를 바꾸면 일정한 전진이 줌·시선 이동으로 상쇄된다.
+            // 동료·목마만 함께 담고, 장애물은 코스 안에서 움직이게 둔다.
             return hasContext;
-
-            bool IsUpcoming(Vector3 position)
-            {
-                Vector3 offset = position - anchor;
-                float ahead = Vector3.Dot(offset, course.Forward);
-                return ahead >= 0f && ahead <= rules.ObstacleLookAhead
-                    && Mathf.Abs(Vector3.Dot(offset, course.Right)) <= rules.NearbyRadius;
-            }
         }
 
         bool IsGroupStackMember(PiggybackSystem stack, NetworkPlayer subject, NetworkPlayer other)
@@ -206,12 +198,15 @@ namespace CurtainCall.Cameras
             CinemachineCore.Stage stage, ref CameraState state, float deltaTime)
         {
             // tracking target은 공용 로컬/관전 기능이 계속 소유한다. 다른 시점 요청이 이기면 손대지 않는다.
-            if (stage != CinemachineCore.Stage.Finalize || !Application.IsPlaying(gameObject)
-                || !isActiveAndEnabled || director == null || director.CurrentView != preset
-                || !IsActivePlayer(framedPlayer) || (!hasSharedGroup && sharedOffset.sqrMagnitude < 0.0001f)) return;
+            // 단독도 현재 프레임의 이동을 그대로 따른다. Follow의 감쇠를 한 번 더 거치면
+            // 프레임 간격이 변할 때 일정한 전진이 느려졌다 따라잡는 움직임으로 보인다.
+            // Aim 뒤에 적용해 구도만 확정하고, Finalize의 공용 시점 전환 보간은 유지한다.
+            if (stage != CinemachineCore.Stage.Aim || !Application.IsPlaying(gameObject)
+                || !isActiveAndEnabled || director == null || director.CurrentView != preset || director.UsesMouseLook
+                || !IsActivePlayer(framedPlayer)) return;
             var course = TightropeCourse.Current;
             var focus = FocusTarget();
-            if (course == null || !course.IsGameplayActive || focus == null) return;
+            if (course == null || !course.IsTraversalActive || focus == null) return;
             Quaternion rotation = hasSharedGroup ? Quaternion.LookRotation(course.Forward, Vector3.up) : focus.rotation;
             var pose = TightropeFramingMath.CameraPose(focus.position + sharedOffset, rotation, course.Forward,
                 currentFrame, out var look);

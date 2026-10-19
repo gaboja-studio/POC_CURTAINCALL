@@ -17,7 +17,7 @@ namespace CurtainCall.Tightrope
     /// 에디터에서는 기즈모로, 플레이 중에는 실제 메시·충돌체로 보인다. 플레이 중 세팅을 바꾸면 다시 만든다(잠겨 있으면 풀릴 때).
     /// 플레이 중에는 모든 플레이어의 옆줄 점프 거리를 줄 간격에 맞추고, 내 캐릭터가 줄 아래로 떨어지면 추락 처리한다.
     /// </summary>
-    public sealed class TightropeCourse : MonoBehaviour
+    public sealed partial class TightropeCourse : MonoBehaviour
     {
         /// <summary>줄 없음.</summary>
         public const int NoLane = CourseLayout.NoLane;
@@ -181,7 +181,9 @@ namespace CurtainCall.Tightrope
             {
                 var hit = hits[i];
                 if (hit.collider == null || hit.collider.transform.IsChildOf(mover.transform)
-                    || hit.normal.y < minimumNormal) continue;
+                    || hit.normal.y < minimumNormal || hit.distance <= .0001f) continue;
+                // 검사는 발보다 0.1m 위에서 시작한다. 처음부터 겹친 몸/절단 조각은
+                // 발 아래 지지면이 아니므로 거리 0의 가짜 바닥으로 선택하지 않는다.
                 int candidate = ropeSurfaces.TryGetValue(hit.collider, out int ropeLane) ? ropeLane : NoLane;
                 if (hit.distance > closest + 0.001f) continue;
                 // 겹친 바닥과 줄의 높이가 같다면 안전한 일반 바닥을 우선한다.
@@ -224,13 +226,14 @@ namespace CurtainCall.Tightrope
         }
 
         /// <summary>
-        /// 줄의 일부 구간을 막는다(예: 불타는 구간, 2026-10-03 규칙 — 줄은 이어져 있지만 그 구간은 쓸 수 없음).
+        /// 줄의 일부 구간을 막고 해당 시각 표시와 발판을 제거한다(예: 소각).
         /// 이 화면에만 적용되므로 온라인에서는 모든 화면이 같은 신호로 부른다. 화재 기능이 생기면 쓴다.
         /// </summary>
         public void BlockSegment(int lane, float from, float to, bool includeEnd = true)
         {
             if (lane < 0 || lane >= LaneCount) return;
             blockedSegments.Add((lane, Mathf.Min(from, to), Mathf.Max(from, to), includeEnd));
+            RefreshLaneGeometry(lane);
             SegmentsChanged?.Invoke();
         }
 
@@ -238,7 +241,10 @@ namespace CurtainCall.Tightrope
         public void ClearBlockedSegments()
         {
             if (blockedSegments.Count == 0) return;
+            var affected = new HashSet<int>();
+            foreach (var segment in blockedSegments) affected.Add(segment.lane);
             blockedSegments.Clear();
+            foreach (int lane in affected) RefreshLaneGeometry(lane);
             SegmentsChanged?.Invoke();
         }
 
@@ -253,6 +259,7 @@ namespace CurtainCall.Tightrope
         {
             if (lane < 0 || lane >= blocked.Length || blocked[lane] == isBlocked) return;
             blocked[lane] = isBlocked;
+            RefreshLaneGeometry(lane);
             LaneBlockedChanged?.Invoke(lane, isBlocked);
         }
 
@@ -489,16 +496,10 @@ namespace CurtainCall.Tightrope
                 new Vector3(width, c.PlatformThickness, c.StartPlatformLength), platformColor, true);
             TightropeOutline.AttachToHierarchy(startPlatform);
 
-            // 줄: 보이는 굵기는 가늘게, 충돌체는 걸을 수 있는 폭으로
-            for (int lane = 0; lane < l.LaneCount; lane++)
-            {
-                float end = l.GetLaneEnd(lane);
-                var rope = CreateBox($"Rope{lane}", new Vector3(l.GetLaneSide(lane), -c.RopeThickness * 0.5f, end * 0.5f),
-                    new Vector3(c.RopeThickness, c.RopeThickness, end), ropeColor, true);
-                var box = rope.GetComponent<BoxCollider>();
-                box.size = new Vector3(c.RopeWalkWidth / c.RopeThickness, 1f, 1f);
-                ropeSurfaces.Add(box, lane);
-            }
+            // 색상 경계와 무관하게 지지면은 연속이다. 불탄 줄은 메시와 지지면을 함께 제거한다.
+            laneGeometry.Clear();
+            for (int lane = 0; lane < l.LaneCount; lane++) RefreshLaneGeometry(lane);
+            BuildSectionSigns();
 
             // 도착 선과 도착 플랫폼: 도착까지 가는 줄들을 덮는다
             float finishMin = float.MaxValue, finishMax = float.MinValue;
@@ -537,8 +538,13 @@ namespace CurtainCall.Tightrope
             box.transform.SetParent(generated, false);
             box.transform.localPosition = localCenter;
             box.transform.localScale = size;
-            if (!withCollider) Destroy(box.GetComponent<Collider>());
-            box.GetComponent<Renderer>().material.color = color;
+            if (!withCollider)
+            {
+                box.GetComponent<Collider>().enabled = false;
+                Destroy(box.GetComponent<Collider>());
+            }
+            var renderer = box.GetComponent<Renderer>();
+            renderer.sharedMaterial = CourseMaterial(renderer.sharedMaterial, color);
             return box;
         }
 

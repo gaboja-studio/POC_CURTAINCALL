@@ -4,6 +4,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.Tightrope.Fire;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -15,6 +16,7 @@ namespace CurtainCall.Tightrope.Saws
     {
         Horizontal,
         Vertical,
+        CooperativeGate,
     }
 
     /// <summary>톱날 절단 결과(호스트가 정해 모든 화면에 알림).</summary>
@@ -57,7 +59,7 @@ namespace CurtainCall.Tightrope.Saws
     /// - 묘기 재시작(<see cref="TightropeRun.RunRestarted"/>)이면 처음 상태로.
     /// 수치는 <see cref="Settings"/>(<see cref="SawSettings"/>) 한 곳에 모은다. 씬에 코스(<see cref="TightropeCourse"/>·<see cref="TightropeRun"/>)와 함께 둔다.
     /// </summary>
-    public sealed class TightropeSaws : MonoBehaviour
+    public sealed partial class TightropeSaws : MonoBehaviour
     {
         const string VerticalMessage = "CurtainCall.Tightrope.Saws.Vertical";
         const string HorizontalMessage = "CurtainCall.Tightrope.Saws.Horizontal";
@@ -75,7 +77,6 @@ namespace CurtainCall.Tightrope.Saws
         [Tooltip("발판 모델. 발판 크기로 만든 프리팹.")]
         [SerializeField] GameObject platePrefab;
 
-        [SerializeField] Color sawColor = new(0.75f, 0.2f, 0.2f);
         [SerializeField] Color plateColor = new(1f, 0.8f, 0.2f);
         [SerializeField] Color platePressedColor = new(0.3f, 0.9f, 0.3f);
 
@@ -223,6 +224,8 @@ namespace CurtainCall.Tightrope.Saws
             if (current == this) current = null;
             if (run != null) run.RunRestarted -= HandleRunRestarted;
             Unregister();
+            ClearTeamPassages();
+            ResetCooperativeGates();
             if (session != null)
             {
                 session.ConnectionStateChanged -= HandleConnectionState;
@@ -243,6 +246,7 @@ namespace CurtainCall.Tightrope.Saws
             {
                 ServerTickSequence();
                 ServerUpdateVertical();
+                ServerUpdateCooperativeGate();
                 ServerJudgeHits();
             }
             UpdateViews();
@@ -258,6 +262,8 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>처음 상태로: 가로 톱날은 출발 쪽 끝 대기, 수직 톱날 없음, 순서 처음부터.</summary>
         void ResetObstacles()
         {
+            teamPassages.Clear();
+            ResetCooperativeGates();
             platePressedFor = 0f;
             touching.Clear();
             lastHitAt.Clear();
@@ -328,6 +334,8 @@ namespace CurtainCall.Tightrope.Saws
             var step = sequence[index];
             if (step.action == StepAction.SpawnVertical)
             {
+                // 협동 관문은 독립 진행 거리 순서를 사용한다. 기존 일반 톱 설정/경로 보호는 그대로 둔다.
+                if (settings.cooperativeGates) return true;
                 if (!ServerSpawnVertical(step, out string reason))
                 {
                     LogWait(index, reason);
@@ -365,8 +373,8 @@ namespace CurtainCall.Tightrope.Saws
         void ServerUpdateVertical()
         {
             if (!verticalActive) return;
-            // 화재 또는 동료 사망으로 마지막 피할 줄까지 없어지면 1인 완주 경로를 남긴다.
-            if (WouldBlockSoloRoute(verticalLane, VerticalDistance))
+            // 인원수와 무관하게 마지막 줄과 화재 경고 중 반드시 건너야 하는 길을 남긴다.
+            if (WouldBlockRequiredRoute(verticalLane, VerticalDistance))
             {
                 ServerRemoveVertical();
                 return;
@@ -388,6 +396,7 @@ namespace CurtainCall.Tightrope.Saws
             else platePressedFor = 0f;
             if (platePressedFor > 0f && platePressedFor >= settings.plateHoldTime)
             {
+                ServerOpenTeamPassage();
                 SetVertical(true, verticalLane, verticalSerial, sinceSpawn, 0f);
                 Broadcast();
             }
@@ -413,9 +422,9 @@ namespace CurtainCall.Tightrope.Saws
                     reason = $"지정한 {step.lane}번 줄을 쓸 수 없음";
                     return false;
                 }
-                if (WouldBlockSoloRoute(step.lane, settings.verticalSpawnDistance))
+                if (WouldBlockRequiredRoute(step.lane, settings.verticalSpawnDistance))
                 {
-                    reason = "진행자 1명의 마지막 사용 가능한 줄은 수직 톱날로 막지 않음";
+                    reason = "옆줄 회피 불가 또는 화재 경고 중 필수 이동 경로 보호";
                     return false;
                 }
                 SpawnVerticalOn(step.lane);
@@ -428,33 +437,34 @@ namespace CurtainCall.Tightrope.Saws
                 if (player.State != PlayerState.Normal) continue;
                 if (!course.TryGetRopePoint(player.transform.position, out int lane, out float distance)) continue;
                 if (distance < 0f || distance >= settings.verticalSpawnDistance || lanes.Contains(lane)) continue;
-                if (WouldBlockSoloRoute(lane, settings.verticalSpawnDistance)) continue;
+                if (WouldBlockRequiredRoute(lane, settings.verticalSpawnDistance)) continue;
                 lanes.Add(lane);
             }
             if (lanes.Count == 0)
             {
-                reason = $"고를 줄 없음(생성 지점 {settings.verticalSpawnDistance:0.#}m 앞의 진행자 줄이 없거나 1인 마지막 줄 보호 중)";
+                reason = $"고를 줄 없음(생성 지점 {settings.verticalSpawnDistance:0.#}m 앞의 진행자 줄이 없거나 회피 경로 보호 중)";
                 return false;
             }
             SpawnVerticalOn(lanes[UnityEngine.Random.Range(0, lanes.Count)]);
             return true;
         }
 
-        bool WouldBlockSoloRoute(int sawLane, float sawDistance)
+        bool WouldBlockRequiredRoute(int sawLane, float sawDistance)
         {
-            int survivors = 0;
-            Vector3 survivorPosition = default;
-            float survivorRadius = 0f;
+            var fire = TightropeFire.Current;
+            bool warningActive = run != null && fire != null && fire.IsPerformanceActive && fire.Round == run.Round
+                && fire.PendingSegment >= 0 && fire.WarningRemaining(fire.PendingSegment) >= 0f;
+            var fireSettings = warningActive ? fire.Settings : null;
+            int pending = warningActive ? fire.PendingSegment : -1;
+            if (!SawRouteSafety.HasEscapeLane(course, sawLane, sawDistance, fireSettings, pending)) return true;
             foreach (var player in NetworkPlayer.All)
             {
-                if (player == null || player.State != PlayerState.Normal) continue;
-                survivors++;
-                if (survivors > 1) return false;
-                survivorPosition = player.transform.position;
-                if (player.TryGetComponent(out PlayerMover mover)) survivorRadius = mover.BodyRadius;
+                if (player == null || !player.isActiveAndEnabled || !player.IsSpawned || player.State != PlayerState.Normal) continue;
+                float radius = player.TryGetComponent(out PlayerMover mover) ? mover.BodyRadius : 0f;
+                if (SawRouteSafety.BlocksPlayerRoute(course, player.transform.position, sawLane, sawDistance,
+                    settings.verticalColliderDiameter * 0.5f + radius, fireSettings, pending)) return true;
             }
-            return BlocksSoloRoute(course, survivors, survivorPosition, sawLane, sawDistance,
-                settings.verticalColliderDiameter * 0.5f + survivorRadius);
+            return false;
         }
 
         /// <summary>1명만 진행 중이고, 현재 줄에서 옆줄 이동으로 닿을 수 있는 회피 경로를 수직 톱날이 막는지.</summary>
@@ -497,7 +507,9 @@ namespace CurtainCall.Tightrope.Saws
             if (!TryGetPlatePosition(out Vector3 plate)) return false;
             foreach (var player in NetworkPlayer.All)
             {
-                if (player.State != PlayerState.Normal) continue;
+                if (player.State != PlayerState.Normal || !player.IsSpawned || !player.isActiveAndEnabled || player.IsAirborne
+                    || !player.TryGetComponent(out PlayerMover mover) || mover.IsAirborne
+                    || !course.TryGetSupportingRope(mover, out int supportedLane) || supportedLane != verticalLane) continue;
                 Vector3 offset = player.transform.position - plate;
                 if (Mathf.Abs(Vector3.Dot(offset, course.Forward)) > settings.plateLength * 0.5f) continue;
                 if (Mathf.Abs(Vector3.Dot(offset, course.Right)) > settings.plateWidth * 0.5f) continue;
@@ -523,6 +535,7 @@ namespace CurtainCall.Tightrope.Saws
 
                 for (int i = 0; i < settings.HorizontalCount; i++)
                 {
+                    if (IsHorizontalSafeForTeamPassage(i)) continue;
                     var disc = new SawDisc(GetHorizontalPosition(i), Vector3.up, horizontalRadius, settings.horizontalThickness * 0.5f);
                     if (SawMath.TryGetContact(disc, body, out Vector3 contact))
                         ServerTouch(player, body, SawKind.Horizontal, i, i, contact);
@@ -534,6 +547,7 @@ namespace CurtainCall.Tightrope.Saws
                     if (SawMath.TryGetContact(disc, body, out Vector3 contact))
                         ServerTouch(player, body, SawKind.Vertical, -verticalSerial, verticalSerial, contact);
                 }
+                ServerJudgeCooperativeGate(player, body);
             }
 
             touching.Clear();
@@ -580,7 +594,8 @@ namespace CurtainCall.Tightrope.Saws
 
         void RaiseHit(in SawHit hit)
         {
-            string saw = hit.Kind == SawKind.Horizontal ? $"가로 톱날 #{hit.Index + 1}" : $"수직 톱날 #{hit.Index}";
+            string saw = hit.Kind == SawKind.Horizontal ? $"가로 톱날 #{hit.Index + 1}"
+                : hit.Kind == SawKind.CooperativeGate ? $"목마 협동 관문 #{hit.Index + 1}" : $"수직 톱날 #{hit.Index}";
             string who = hit.Player != null ? $"P{hit.Player.Slot + 1}" : "(나간 플레이어)";
             string part = hit.Part == BodyPart.None ? "잘린 부위 없음(거절 또는 남은 부위 없음)" : hit.Part.ToString();
             string requested = hit.Kind == SawKind.Horizontal
@@ -608,9 +623,9 @@ namespace CurtainCall.Tightrope.Saws
 
             horizontalViews = new Transform[settings.HorizontalCount];
             for (int i = 0; i < horizontalViews.Length; i++)
-                horizontalViews[i] = CreateSaw(root, $"HorizontalSaw{i + 1:00}", horizontalPrefab, settings.horizontalVisualDiameter, settings.horizontalThickness);
+                horizontalViews[i] = CreateSaw(root, $"HorizontalSaw{i + 1:00}", horizontalPrefab, settings.horizontalVisualDiameter, settings.horizontalThickness, SawKind.Horizontal);
 
-            verticalView = CreateSaw(root, "VerticalSaw", verticalPrefab, settings.verticalVisualDiameter, settings.verticalThickness);
+            verticalView = CreateSaw(root, "VerticalSaw", verticalPrefab, settings.verticalVisualDiameter, settings.verticalThickness, SawKind.Vertical);
             verticalView.gameObject.SetActive(false);
 
             plateView = platePrefab != null
@@ -628,10 +643,11 @@ namespace CurtainCall.Tightrope.Saws
             }
             TightropeOutline.AttachToHierarchy(plateView.gameObject);
             plateView.gameObject.SetActive(false);
+            BuildCooperativeGateViews(root);
         }
 
         /// <summary>기본 톱날: 밝은 날·양면 회전 표식. 모든 도형은 지정된 시각 지름·두께 안에 둔다.</summary>
-        Transform CreateSaw(Transform parent, string name, GameObject prefab, float diameter, float thickness)
+        Transform CreateSaw(Transform parent, string name, GameObject prefab, float diameter, float thickness, SawKind kind)
         {
             if (prefab != null)
             {
@@ -643,7 +659,7 @@ namespace CurtainCall.Tightrope.Saws
             }
             var saw = new GameObject(name).transform;
             saw.SetParent(parent, false);
-            var bladeColor = Color.Lerp(sawColor, new Color(1f, 0.16f, 0.03f), 0.35f);
+            var bladeColor = kind == SawKind.Horizontal ? settings.horizontalColor : settings.verticalColor;
             CreatePrimitive(PrimitiveType.Cylinder, saw, "Blade", new Vector3(diameter * 0.9f, thickness * 0.46f, diameter * 0.9f), bladeColor, true);
             // 사각 톱니의 모서리까지 시각 반지름 안에 들어간다. 실제 접촉 판정은 기존 SawDisc를 그대로 쓴다.
             float toothDistance = diameter * (Mathf.Sqrt(0.25f - 0.06f * 0.06f) - 0.06f);
@@ -684,17 +700,20 @@ namespace CurtainCall.Tightrope.Saws
 
         void UpdateViews()
         {
+            UpdateCooperativeGateViews();
             float spin = Time.time * settings.spinSpeed;
             Quaternion courseRotation = Quaternion.LookRotation(course.Forward, Vector3.up);
 
             for (int i = 0; i < horizontalViews.Length; i++)
             {
-                horizontalViews[i].SetPositionAndRotation(GetHorizontalPosition(i), courseRotation * Quaternion.Euler(0f, spin, 0f));
+                float horizontalSpin = tracks[i].GetElapsed(GameElapsed) * settings.spinSpeed;
+                horizontalViews[i].SetPositionAndRotation(GetHorizontalPosition(i) - Vector3.up * TeamPassageLowerOffset(i),
+                    courseRotation * Quaternion.Euler(0f, horizontalSpin, 0f));
             }
 
             bool hasVertical = TryGetVerticalPosition(out Vector3 verticalCenter);
             verticalView.gameObject.SetActive(hasVertical);
-            plateView.gameObject.SetActive(hasVertical);
+            UpdateTeamPassagePlate(hasVertical, courseRotation);
             if (!hasVertical) return;
 
             // 회전축(+Y)을 코스 오른쪽으로 눕히고, 시작점 쪽으로 굴러가듯 돌린다
@@ -716,7 +735,8 @@ namespace CurtainCall.Tightrope.Saws
                     Register((RequestMessage, HandleRequest));
                     break;
                 case SessionConnectionState.Client:
-                    Register((VerticalMessage, HandleVerticalMessage), (HorizontalMessage, HandleHorizontalMessage), (HitMessage, HandleHitMessage));
+                    Register((VerticalMessage, HandleVerticalMessage), (HorizontalMessage, HandleHorizontalMessage), (HitMessage, HandleHitMessage),
+                        (TeamPassageMessage, HandleTeamPassageMessage), (CooperativeGateMessage, HandleCooperativeGateMessage));
                     SendRequest();
                     break;
                 case SessionConnectionState.Offline:
@@ -742,6 +762,10 @@ namespace CurtainCall.Tightrope.Saws
                 manager.SendNamedMessage(HorizontalMessage, senderId, writer, NetworkDelivery.ReliableFragmentedSequenced);
             using (var writer = WriteVertical())
                 manager.SendNamedMessage(VerticalMessage, senderId, writer, NetworkDelivery.ReliableSequenced);
+            using (var writer = WriteTeamPassages())
+                manager.SendNamedMessage(TeamPassageMessage, senderId, writer, NetworkDelivery.ReliableFragmentedSequenced);
+            using (var writer = WriteCooperativeGate())
+                manager.SendNamedMessage(CooperativeGateMessage, senderId, writer, NetworkDelivery.ReliableSequenced);
         }
 
         void BroadcastHorizontal()
@@ -771,15 +795,15 @@ namespace CurtainCall.Tightrope.Saws
         {
             reader.ReadValueSafe(out int count);
             horizontalCommands.Clear();
-            foreach (var track in tracks) track.Clear();
             for (int i = 0; i < count; i++)
             {
                 reader.ReadValueSafe(out byte action);
                 reader.ReadValueSafe(out short first);
                 reader.ReadValueSafe(out short last);
                 reader.ReadValueSafe(out float at);
-                ApplyHorizontal((StepAction)action, first, last, at);
+                horizontalCommands.Add(((StepAction)action, first, last, at));
             }
+            RebuildHorizontalTracks();
         }
 
         void SendRequest()
@@ -861,6 +885,8 @@ namespace CurtainCall.Tightrope.Saws
             messaging.UnregisterNamedMessageHandler(HorizontalMessage);
             messaging.UnregisterNamedMessageHandler(RequestMessage);
             messaging.UnregisterNamedMessageHandler(HitMessage);
+            messaging.UnregisterNamedMessageHandler(TeamPassageMessage);
+            messaging.UnregisterNamedMessageHandler(CooperativeGateMessage);
             messaging = null;
         }
     }

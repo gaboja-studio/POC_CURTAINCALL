@@ -139,7 +139,7 @@ namespace CurtainCall.Tightrope.Fire
             appliedMask = 0;
             if (session == null || !session.IsHost) { ApplyBlocks(); return; }
             var settings = GameSettings.Tightrope.Fire ?? new FireSettings();
-            int seed = settings.laneOrder == FireLaneOrder.RandomAll ? UnityEngine.Random.Range(0, int.MaxValue) : 0;
+            int seed = settings.laneOrder != FireLaneOrder.Configured ? UnityEngine.Random.Range(0, int.MaxValue) : 0;
             snapshot = settings.Snapshot(course.FinishDistance, course.LaneCount, seed);
             round = run.Round;
             activeMask = appliedMask = 0;

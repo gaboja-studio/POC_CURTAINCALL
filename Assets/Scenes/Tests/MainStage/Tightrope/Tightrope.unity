@@ -635,9 +635,25 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2331872781909530610, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3804338068807545770, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -4.5
+      objectReference: {fileID: 0}
     - target: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
       propertyPath: m_Name
       value: TightropeCourse
+      objectReference: {fileID: 0}
+    - target: {fileID: 5202966602762029436, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5280814123298984889, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -7.5
       objectReference: {fileID: 0}
     - target: {fileID: 8954170843485581687, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
       propertyPath: m_LocalPosition.x
@@ -689,6 +705,18 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
       insertIndex: -1
       addedObject: {fileID: 735797998}
+    - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 735797999}
+    - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 735798001}
+    - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 735798000}
+    - targetCorrespondingSourceObject: {fileID: 4610291309239535039, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 735798008}
   m_SourcePrefab: {fileID: 100100000, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
 --- !u!1 &735797996 stripped
 GameObject:
@@ -720,6 +748,54 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ad229f571c6945dbb1bb3d94dd63c8c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.RopeLaneJumpRules
+--- !u!114 &735797999
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f16c82da89604bc4090659ae40d72112, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCatchSystem
+--- !u!114 &735798000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e50e974cfa6645bd9704d0de97ee28a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeBalancePoseView
+--- !u!114 &735798001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 892cf9405be80ee409b6da3d9dd60355, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeHandholdRangeView
+--- !u!114 &735798008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 735797996}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 672b9cd1f7b0aaf46b2166e2cfa471ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropePracticeBot
 --- !u!1 &1006495035
 GameObject:
   m_ObjectHideFlags: 0
