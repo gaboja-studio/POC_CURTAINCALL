@@ -35,6 +35,11 @@
 | `Assets/Scenes/Tests/BasicPanels/` | Task-20261019-061 | 패널 독립 확인 씬 |
 | `Assets/Resources/Prefabs/UIs/CommonIcons/`, `Assets/Resources/Fonts/CommonIcons/` | Task-20261019-061 | 아이콘25종 catalog·비교 프리팹·필요 시 폰트 |
 | `Assets/Scenes/Tests/CommonIcons/` | Task-20261019-061 | 아이콘 독립 확인 씬 |
+| `Assets/Resources/Prefabs/UIs/PerformanceHud/`, `Assets/Resources/Fonts/PerformanceHud/` | Task-20261019-061 | 공연 HUD C2/C3/P1·필요 시 폰트 |
+| `Assets/Scenes/Tests/PerformanceHud/` | Task-20261019-061 | 공연 HUD 독립 확인 씬 |
+
+| `Assets/Resources/Prefabs/UIs/BackstageHud/`, `Assets/Resources/Fonts/BackstageHud/` | Task-20261019-061 | 백스테이지·로비 HUD3종·필요 시 폰트 |
+| `Assets/Scenes/Tests/BackstageHud/` | Task-20261019-061 | 백스테이지·로비 독립 확인 씬 |
 
 ## Decisions
 

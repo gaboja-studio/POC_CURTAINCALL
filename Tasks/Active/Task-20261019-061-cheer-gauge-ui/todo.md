@@ -30,6 +30,19 @@
 - [x] 아이콘 tint/크기/입력·실제 Overlay·기존 UI 회귀 검사 및 하네스 기록
 - [x] "검사해줘" 통과 (아이콘 포함 구역/문서/컴파일·EditMode798/798)
 - [x] PM 동작 확인·저장 요청 후 아이콘 전체 private main fe5b19fb 저장/push, 공개 코드·참조 자산·씬·하네스·gitlink 저장 (이 문서 포함 save-work 실행)
+- [x] 공연 HUD C2/C3/P1 조립·기존 C1 동시 확인 씬
+- [x] 공연 HUD 경계값·상태·입력·화면 검사 및 기존 UI 회귀
+- [x] 공연 HUD 전수 목록·제작 원본 보존·하네스 기록
+- [x] P1 주황 경고 누락 보정: 5구간/API·증분 prefab·경고/위험 샘플
+- [x] P1 경계·입력·화면·기존 회귀 재검증 및 하네스 갱신
+- [x] 백스테이지·로비 HUD 프리팹3종·독립 합성 확인 씬 조립
+- [x] 백스테이지88실파일 최신 SHA/GUID 전수 목록·하네스 사실/검증 초안 기록, 원본 전체 보존
+- [x] 백스테이지 PlayMode7/7·확인11버튼 Mouse/Enter·로비 공개/복사 합성 입력 검사
+- [x] 백스테이지 실제 화면24상태·Play 재진입2회·최종 참조 검사, 표준 check-work 구역/문서/컴파일·EditMode798/798 PASS
+- [x] 기존 UI 회귀 실행·실패 기록: Performance9/9·Icons3/3·Panels3/3·Cheer3/3·Buttons 입력 단독1/1 PASS, Buttons 전체 글리프 검사 FAIL
+- [ ] 공유 폰트2개 기존 dirty/baseline 추가 SHA 차이와 Buttons 글리프 실패 해결 — 원인 미확정/PM 확인 필요, 임의 복구 없음
+- [x] PM 백스테이지 동작 확인 및 공연·백스테이지/로비 HUD 저장 요청 — private main38442263, 공개 결과는 이 문서 포함 save-work 실행
+- [ ] 백스테이지·로비 HUD 최종 외형 승인 범위 확인 — Task working 유지, 공유 폰트 미결 별도
 - [ ] "제출해줘"로 PR 제출
 
 ## PM 통합

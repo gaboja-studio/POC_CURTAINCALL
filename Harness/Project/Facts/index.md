@@ -9,6 +9,8 @@
 - [unity-project.md](unity-project.md) — 씬·렌더·입력·코드·테스트 어셈블리 현황(2026-10-13). 에셋 경로를 찾거나 테스트를 만들 때
 - [team.md](team.md) — 현재 공간 담당(공연장·탈출로 @RagSpirin)과 PM 계정·과거 담당 구분. 담당자 배정·권한 확인 때
 - [local-environment.md](local-environment.md) — macOS 도구 경로. 스크립트·CLI가 실행되지 않을 때
+- [backstage-hud.md](backstage-hud.md) — 백스테이지 W1/C4/C5/W6·로비 L1 정본·표시 API·전체 원본 보존. HUD 배치/게임 데이터 연결 전에
+- [performance-hud.md](performance-hud.md) — 공연 HUD C2/C3/P1·표시 API·독립 확인 씬·제작 원본 보존. HUD 배치/게임 데이터 연결 전에
 - [common-icons.md](common-icons.md) — 공용 아이콘25종 catalog·비교 씬·정본 참조·전체 제작 자료 보존. 아이콘 사용/재제작 전에
 - [basic-panels.md](basic-panels.md) — 메뉴·나가기 확인 패널 정본·private 의존성·조립기. 패널 배치·수정 전에
 - [common-buttons.md](common-buttons.md) — 공용 버튼4종·private 의존성·중복 코드 공존·조립기. 버튼 배치/키트 정리 전에

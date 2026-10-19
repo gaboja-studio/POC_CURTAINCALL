@@ -5,7 +5,7 @@
 - **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** Unity Assets 구조·코드 작업 구역
-- **Current Skill:** save-work
+- **Current Skill:** integrate-editor
 - **Updated:** 2026-10-20
 
 Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별도) → working(작업 중) → submitted(PR 제출) → integrated(검증 통과) → done(dev 병합). 막히면 blocked.
@@ -13,12 +13,12 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 ## Workspace
 
 - **Integration:** integration/ui-resources
-- **Branch:** feat/ui-resources (패널까지 공개734e45e 저장, 아이콘 private main fe5b19fb 저장·push 완료. 공개 아이콘은 이 문서 포함 save-work로 저장·정식 인계 없음)
+- **Branch:** feat/ui-resources (아이콘까지 공개8cda879 저장. HUD private main38442263 push 완료, 공연·백스테이지/로비 공개 저장은 이번 문서 포함 save-work 실행. 정식 인계 없음)
 - **Previous Task:**
 
 ## Goal
 
-- 승인된 UI 키트의 필요한 리소스 확보·조합·독립 테스트. 현재 C1·공용 버튼4종·패널2종·공용 아이콘25종이 대상이며 다른 UI는 사용자 지시 후 추가한다.
+- 승인된 UI 키트의 필요한 리소스 확보·조합·독립 테스트. 현재 C1·공용 버튼4종·패널2종·공용 아이콘25종·공연 HUD C2/C3/P1·백스테이지 W1/C4/C5/W6·로비 L1이 대상이며 다른 UI는 사용자 지시 후 추가한다.
 - C1 원본 미리보기와 같은 상단 중앙 프리팹을 확인하고, 환호·야유·사망에 따른 실제 합계와 단원별 원호 변화를 확인한다.
 - 난도 상한100/150/200, 1~4명과 공연 내 색 고정을 지원한다. 기존 공연 씬 배치는 제외한다.
 
@@ -29,7 +29,11 @@ Status 순서: scaffolded(PM 준비) → assigned(기술 배정, 실전달 별�
 
 ## Decisions
 
-- Open: None
+- Open: 공유 동적 TMP2개는 시작부터 dirty이며 백스테이지 baseline 대비 추가 SHA 차이. 공용 버튼 글리프 검사 실패 재현. 기존 dirty 백업이 없어 임의 복구/공유 폰트 재작성은 보류, PM 확인 필요. 상세는 backstage-hud-verification.md.
+- Decided: 2026-10-20 PM 공연·백스테이지/로비 HUD까지 저장 요청. private 두 키트·공개 결과·하네스·gitlink 저장/push, 공유 폰트 현재 수정 상태도 미결 기록과 함께 보존. 새 notifications는 다음 조립 대상이며 이번 저장에서 제외.
+- Decided: 2026-10-20 PM 백스테이지·로비 HUD 계획 승인. W1/C4/C5/W6/L1·프리팹3종·합성 확인 씬·전수 점검. 기존 정본 읽기 전용, 원본 전체 보존, 삭제·Git 저장·실게임 연결 제외.
+- Decided: 2026-10-20 PM P1 경고 표시 누락 보정 계획 승인. 기존 Task에서 안전/주황/위험5구간·경계 API·합산 위험 표시·증분 prefab 보정·확인 씬/테스트를 수정한다. 게임 판정·실게임 연결·삭제·Git 저장 제외.
+- Decided: 2026-10-20 PM 공연 HUD 조립 계획 승인. C2/C3/P1·C1 정본 동시 확인 씬·전수 목록·경계값 검증, 원본 전체 보존. 삭제·Git 저장·실게임 연결 제외.
 - Decided: 2026-10-20 PM 아이콘 동작 확인 후 지금까지 내용 저장 요청. private 아이콘 전체와 공개 코드·참조 자산·씬·하네스·gitlink 커밋/push 승인. 무관 private 변경 제외, 삭제·PR·병합·실게임 연결 없음.
 - Decided: 2026-10-20 PM 아이콘25종 조립·전수 목록·독립 테스트 씬 계획 승인. 미래 사용 후보·제작 자료 전체 보존, 기존 UI 읽기 전용. 아이콘 삭제·Git 저장·실게임 연결 없음.
 - Decided: 2026-10-20 PM 패널 정상 동작 확인, 저장·미사용 자료 정리·하네스 이관 승인. 다른 패널 제작용 원본·공용 리소스·조립기는 보존하고 private 무관 변경은 제외한다.
