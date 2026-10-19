@@ -33,6 +33,8 @@
 | `Assets/Resources/Fonts/CommonButtons/` | Task-20261019-061 | 버튼 SemiBold TMP |
 | `Assets/Resources/Prefabs/UIs/BasicPanels/`, `Assets/Resources/Fonts/BasicPanels/` | Task-20261019-061 | 패널 조립·전용 폰트 |
 | `Assets/Scenes/Tests/BasicPanels/` | Task-20261019-061 | 패널 독립 확인 씬 |
+| `Assets/Resources/Prefabs/UIs/CommonIcons/`, `Assets/Resources/Fonts/CommonIcons/` | Task-20261019-061 | 아이콘25종 catalog·비교 프리팹·필요 시 폰트 |
+| `Assets/Scenes/Tests/CommonIcons/` | Task-20261019-061 | 아이콘 독립 확인 씬 |
 
 ## Decisions
 

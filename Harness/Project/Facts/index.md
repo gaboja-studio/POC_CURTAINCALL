@@ -9,6 +9,7 @@
 - [unity-project.md](unity-project.md) — 씬·렌더·입력·코드·테스트 어셈블리 현황(2026-10-13). 에셋 경로를 찾거나 테스트를 만들 때
 - [team.md](team.md) — 현재 공간 담당(공연장·탈출로 @RagSpirin)과 PM 계정·과거 담당 구분. 담당자 배정·권한 확인 때
 - [local-environment.md](local-environment.md) — macOS 도구 경로. 스크립트·CLI가 실행되지 않을 때
+- [common-icons.md](common-icons.md) — 공용 아이콘25종 catalog·비교 씬·정본 참조·전체 제작 자료 보존. 아이콘 사용/재제작 전에
 - [basic-panels.md](basic-panels.md) — 메뉴·나가기 확인 패널 정본·private 의존성·조립기. 패널 배치·수정 전에
 - [common-buttons.md](common-buttons.md) — 공용 버튼4종·private 의존성·중복 코드 공존·조립기. 버튼 배치/키트 정리 전에
 - [c1-cheer-gauge.md](c1-cheer-gauge.md) — C1 디자인 정본·필수 private 자산·재생성 한계. 프리팹 수정이나 키트 정리 전에

@@ -4,6 +4,13 @@
 
 2026-10-19 PM 지시로 이 Task를 UI 리소스 확보·조합·테스트로 확장한다. C1 디자인/기능을 보존하며 제공 버튼 미리보기의 확인·취소·설정·일반 프리팹과 독립 확인 씬을 추가한다. 폴더/Task ID는 이력 보존을 위해 유지한다. 기존 보상/네트워크·게임 메뉴는 변경하지 않는다.
 
+## 아이콘 추가 (2026-10-20)
+
+- 신규22+기존3=25종, 원본64px/표시32px. 전파일 점검 CSV와 미래 사용 후보 기록, Source/Tools/Docs/미리보기/폰트·라이선스 전부 보존.
+- 제공 CommonIconBuilder의 경로·고유 namespace·안전 진입점 보정. 기존3종은 해시 대조 후 정본 참조, 신규22종만 importer 설정.
+- CommonIcons 직접 참조 catalog·비교 Canvas 프리팹·독립 씬, dark/light/받침75 Image·제공 tint/16·24·32·48px 확인. 기존 버튼은 별도 인스턴스만 사용.
+- 원본·알파·여백·시트·플랫폼 설정·전체 참조·입력·실제 Overlay·회귀 검사, Harness 사실/Task 상세 기록. 삭제·commit/push·실게임 연결 없음.
+
 ## 패널 추가 (2026-10-20)
 
 - private panels_v1의 조립기·Runtime 재사용, 이번 키트 namespace만 PanelsV1/동봉 버튼 전용으로 격리. 기존 버튼 프리팹·SemiBold는 읽기 전용 참조.
