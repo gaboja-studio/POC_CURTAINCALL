@@ -169,7 +169,9 @@ namespace CurtainCall.Tightrope
                 if (onRope != true) Apply(true);
                 return;
             }
-            if (mover.IsAirborne) return; // 줄·플랫폼에 선 순간에만 바꾼다
+            // LateUpdate의 목마 분리 점프는 다음 이동 Update 전에 CurrentJump부터 바뀐다.
+            // 그 사이 머리 높이를 일반 바닥으로 오인해 봉 잡기 조작을 빼지 않는다.
+            if (mover.IsAirborne || player.IsAirborne) return;
             if (!mover.Simulated) return; // 위치를 다른 곳에 맡긴 동안(목마 위층)은 조작을 바꾸지 않는다
 
             bool rope = course.TryGetSupportingRope(mover, out int lane);

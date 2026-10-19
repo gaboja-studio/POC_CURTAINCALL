@@ -87,7 +87,7 @@ namespace CurtainCall.Tightrope.Saws
             jumpHeight = alongSpeed = 0f;
             var stack = PiggybackSystem.Current;
             if (!IsCooperativeGateStopped || course == null || !course.IsGameplayActive || stack == null
-                || player == null || !player.IsSpawned || player.State != PlayerState.Normal || player.IsAirborne
+                || player == null || !player.IsSpawned || (player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player))) || player.IsAirborne
                 || !player.TryGetComponent(out PlayerMover mover) || mover.IsAirborne || mover.FreeMovement
                 || mover.JumpHeightMultiplier <= 0f || stack.GetAbove(player) != null
                 || !IsApprovedCooperativeLaunch(player, stack)) return false;
@@ -175,7 +175,7 @@ namespace CurtainCall.Tightrope.Saws
                 + settings.cooperativeGatePlateLength * .5f;
             foreach (var player in NetworkPlayer.All)
             {
-                if (player == null || !player.IsSpawned || !player.isActiveAndEnabled || player.State != PlayerState.Normal) continue;
+                if (player == null || !player.IsSpawned || !player.isActiveAndEnabled || (player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player)))) continue;
                 found = true;
                 if (course.GetDistance(player.transform.position) <= rear) return false;
             }
@@ -189,7 +189,7 @@ namespace CurtainCall.Tightrope.Saws
             if (!IsCooperativeStackApproved) return false;
             foreach (var player in NetworkPlayer.All)
             {
-                if (player == null || !player.IsSpawned || !player.isActiveAndEnabled || player.State != PlayerState.Normal || player.IsAirborne
+                if (player == null || !player.IsSpawned || !player.isActiveAndEnabled || (player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player))) || player.IsAirborne
                     || (IsFourStackFinaleGate && CooperativeAdmittedFloor(player) == 0)
                     || !player.TryGetComponent(out PlayerMover mover) || (player.IsOwner && (mover.IsAirborne || mover.PassThrough))
                     || !course.TryGetSupportingRope(mover, out int supported) || !TryGetCooperativePlatePosition(supported, out var plate)) continue;
@@ -237,7 +237,7 @@ namespace CurtainCall.Tightrope.Saws
             float leader = float.NegativeInfinity, stop = settings.cooperativeGateDistances[index];
             foreach (var player in NetworkPlayer.All)
             {
-                if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) continue;
+                if (player == null || !player.IsSpawned || (player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player)))) continue;
                 int lane = course.Layout.GetLaneSlotAt(course.GetSide(player.transform.position));
                 float distance = course.GetDistance(player.transform.position);
                 if (distance <= leader || !course.IsLaneUsable(lane, stop)) continue;
