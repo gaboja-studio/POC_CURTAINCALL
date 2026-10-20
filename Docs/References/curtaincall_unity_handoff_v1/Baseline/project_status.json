@@ -1,0 +1,4123 @@
+{
+  "schema_version": "1.0.0",
+  "project": "CURTAIN CALL",
+  "style": "C — 무대감독 계기판",
+  "as_of_date": "2026-10-20",
+  "current_request": "C16 승인 후 타이틀 메뉴 T1/T2/T3 묶음 제작 재개",
+  "status_definition": {
+    "done": "해당 그래픽과 명세/조립 도구가 전달되었으며 다음 진행 요청으로 이전 묶음 검토를 마친 상태. 실제 게임 연결·Unity 실행 완료를 뜻하지 않음.",
+    "partial": "재사용 가능한 공용 판/아이콘/컨트롤 일부만 준비. 해당 전용 화면·효과의 제작과 조립은 남아 있음.",
+    "current": "T1/T2/T3 신규8 PNG와 타이틀·입력 패널 조립을 전달하고 이번 피드백을 기다리는 상태. 실제 Unity 실행은 미검증.",
+    "remaining": "전용 리소스 또는 최종 화면 조립이 아직 남음."
+  },
+  "baseline_manifest_path": "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Docs/resource_manifest.json",
+  "approved_prior_bundle_count": 15,
+  "prior_unique_png_count": 137,
+  "current_bundle": "curtaincall_title_v1",
+  "current_bundle_status": "pending_user_feedback",
+  "current_bundle_new_png_count": 8,
+  "current_bundle_reused_png_count": 15,
+  "cumulative_unique_png_count_after_current": 145,
+  "completion_percentage": null,
+  "percentage_note": "PNG 고유 수는 전체 화면/게임 연결의 완료율과 다르므로 백분율을 계산하지 않는다.",
+  "current_c9_approval": "Latest next-bundle request accepts the delivered C9 assembly; its frozen historical manifest remains unchanged.",
+  "all_unity_execution": "not_run",
+  "sources": [
+    {
+      "id": "S0",
+      "title": "확정 C안 그래픽 규칙",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_stage2/curtaincall_ui_contract_v1.json",
+      "relative_to_output": "curtaincall_stage2/curtaincall_ui_contract_v1.json"
+    },
+    {
+      "id": "S1",
+      "title": "C9까지 누적113개 목록",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1/Docs/resource_manifest.json",
+      "relative_to_output": "curtaincall_captions_v1/Docs/resource_manifest.json"
+    },
+    {
+      "id": "S2",
+      "title": "C1 호응 게이지 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_c1_v1/Docs/c1_assembly.json",
+      "relative_to_output": "curtaincall_c1_v1/Docs/c1_assembly.json"
+    },
+    {
+      "id": "S3",
+      "title": "공용 버튼 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Docs/buttons_assembly.json",
+      "relative_to_output": "curtaincall_buttons_v1/Docs/buttons_assembly.json"
+    },
+    {
+      "id": "S4",
+      "title": "메뉴·확인창 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Docs/panels_assembly.json",
+      "relative_to_output": "curtaincall_panels_v1/Docs/panels_assembly.json"
+    },
+    {
+      "id": "S5",
+      "title": "공용 아이콘25종 목록",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Docs/resource_manifest.json",
+      "relative_to_output": "curtaincall_icons_v1/Docs/resource_manifest.json"
+    },
+    {
+      "id": "S6",
+      "title": "공연 HUD 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Docs/hud_assembly.json",
+      "relative_to_output": "curtaincall_performance_hud_v1/Docs/hud_assembly.json"
+    },
+    {
+      "id": "S7",
+      "title": "대기실·로비 HUD 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Docs/hud_assembly.json",
+      "relative_to_output": "curtaincall_backstage_hud_v1/Docs/hud_assembly.json"
+    },
+    {
+      "id": "S8",
+      "title": "시스템 배너·토스트 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Docs/notification_assembly.json",
+      "relative_to_output": "curtaincall_notifications_v1/Docs/notification_assembly.json"
+    },
+    {
+      "id": "S9",
+      "title": "C6 상호작용 안내 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1/Docs/interaction_assembly.json",
+      "relative_to_output": "curtaincall_interaction_v1/Docs/interaction_assembly.json"
+    },
+    {
+      "id": "S10",
+      "title": "C15·패널 툴팁 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_tooltips_v1/Docs/tooltips_assembly.json",
+      "relative_to_output": "curtaincall_tooltips_v1/Docs/tooltips_assembly.json"
+    },
+    {
+      "id": "S11",
+      "title": "C7 가이드·키캡·마우스 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Docs/guides_assembly.json",
+      "relative_to_output": "curtaincall_guides_v1/Docs/guides_assembly.json"
+    },
+    {
+      "id": "S12",
+      "title": "C9 자막·방송 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1/Docs/captions_assembly.json",
+      "relative_to_output": "curtaincall_captions_v1/Docs/captions_assembly.json"
+    },
+    {
+      "id": "S13",
+      "title": "승인 C10 효과 제작 계획",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Docs/feedback_asset_plan.json",
+      "relative_to_output": "curtaincall_feedback_v1/Docs/feedback_asset_plan.json"
+    },
+    {
+      "id": "S14",
+      "title": "승인 C10 포함 누적117개 목록",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Docs/resource_manifest.json",
+      "relative_to_output": "curtaincall_feedback_v1/Docs/resource_manifest.json"
+    },
+    {
+      "id": "S15",
+      "title": "승인 C10 효과 레이어·TMP 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Docs/feedback_assembly.json",
+      "relative_to_output": "curtaincall_feedback_v1/Docs/feedback_assembly.json"
+    },
+    {
+      "id": "S16",
+      "title": "승인 월드 라벨 v2 제작 계획",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Docs/worldlabels_asset_plan.json",
+      "relative_to_output": "curtaincall_worldlabels_v2/Docs/worldlabels_asset_plan.json"
+    },
+    {
+      "id": "S17",
+      "title": "승인 월드 라벨 v2 포함 누적 129개 목록",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Docs/resource_manifest.json",
+      "relative_to_output": "curtaincall_worldlabels_v2/Docs/resource_manifest.json"
+    },
+    {
+      "id": "S18",
+      "title": "승인 월드 라벨 v2 5종 레이어·TMP 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Docs/worldlabels_assembly.json",
+      "relative_to_output": "curtaincall_worldlabels_v2/Docs/worldlabels_assembly.json"
+    },
+    {
+      "id": "S19",
+      "title": "승인 C11 제작 계획",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Docs/spectator_asset_plan.json",
+      "relative_to_output": "curtaincall_spectator_v1/Docs/spectator_asset_plan.json"
+    },
+    {
+      "id": "S20",
+      "title": "승인 C11 비네트·관전 HUD 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Docs/spectator_assembly.json",
+      "relative_to_output": "curtaincall_spectator_v1/Docs/spectator_assembly.json"
+    },
+    {
+      "id": "S21",
+      "title": "승인 C11 포함 누적131개 목록",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Docs/resource_manifest.json",
+      "relative_to_output": "curtaincall_spectator_v1/Docs/resource_manifest.json"
+    },
+    {
+      "id": "S22",
+      "title": "승인 C16 제작 계획",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Docs/curtain_asset_plan.json",
+      "relative_to_output": "curtaincall_curtain_v1/Docs/curtain_asset_plan.json"
+    },
+    {
+      "id": "S23",
+      "title": "승인 C16 천·술·로딩 레이어 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Docs/curtain_assembly.json",
+      "relative_to_output": "curtaincall_curtain_v1/Docs/curtain_assembly.json"
+    },
+    {
+      "id": "S24",
+      "title": "승인 C16 포함 누적137개 목록",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Docs/resource_manifest.json",
+      "relative_to_output": "curtaincall_curtain_v1/Docs/resource_manifest.json"
+    },
+    {
+      "id": "S25",
+      "title": "이번 T1/T2/T3 제작 계획",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Docs/title_asset_plan.json",
+      "relative_to_output": "curtaincall_title_v1/Docs/title_asset_plan.json"
+    },
+    {
+      "id": "S26",
+      "title": "이번 타이틀·입력 패널 레이어 조립",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Docs/title_assembly.json",
+      "relative_to_output": "curtaincall_title_v1/Docs/title_assembly.json"
+    },
+    {
+      "id": "S27",
+      "title": "이번 타이틀 포함 누적145개 목록",
+      "path": "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Docs/resource_manifest.json",
+      "relative_to_output": "curtaincall_title_v1/Docs/resource_manifest.json"
+    }
+  ],
+  "delivered_bundles": [
+    {
+      "order": "01",
+      "title": "C1 호응 게이지",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_c1_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_c1_v1.zip",
+      "new_unique_png_at_delivery": 8,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "02",
+      "title": "공용 버튼4종×4상태",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1_fixed.zip",
+      "new_unique_png_at_delivery": 20,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "03",
+      "title": "메뉴·확인창 기본 패널",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1.zip",
+      "new_unique_png_at_delivery": 7,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "04",
+      "title": "공용 아이콘25종",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1.zip",
+      "new_unique_png_at_delivery": 22,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "05",
+      "title": "C2·C3·P1 공연 HUD",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1.zip",
+      "new_unique_png_at_delivery": 20,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "06",
+      "title": "W1·C4·C5·W6·L1 대기실/로비 HUD",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1.zip",
+      "new_unique_png_at_delivery": 14,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "07",
+      "title": "C8 배너·토스트",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1.zip",
+      "new_unique_png_at_delivery": 5,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "08",
+      "title": "C6 상호작용 안내·홀드 링",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1.zip",
+      "new_unique_png_at_delivery": 2,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "09",
+      "title": "C15·패널 내부 툴팁",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_tooltips_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_tooltips_v1.zip",
+      "new_unique_png_at_delivery": 7,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "10",
+      "title": "C7 가이드·키캡·마우스",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1.zip",
+      "new_unique_png_at_delivery": 8,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "11",
+      "title": "C9 자막·화자·방송",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1.zip",
+      "new_unique_png_at_delivery": 0,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "12",
+      "title": "C10 환호·야유 피드백",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1.zip",
+      "new_unique_png_at_delivery": 4,
+      "current_status": "done",
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "13",
+      "title": "월드 라벨 v2 — 물리 표면3·근접 정보2",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2.zip",
+      "new_unique_png_at_delivery": 12,
+      "revision_additional_unique_png": 0,
+      "current_status": "done",
+      "unity_execution": "not_run",
+      "approval_instruction": "좋아 이제 다음 단계 진행해",
+      "approval_date": "2026-10-20"
+    },
+    {
+      "order": "14",
+      "title": "C11 관전·사망 비네트와 관전 HUD",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1.zip",
+      "new_unique_png_at_delivery": 2,
+      "current_status": "done",
+      "unity_execution": "not_run",
+      "approval_instruction": "다음 단계 진행해",
+      "approval_date": "2026-10-20"
+    },
+    {
+      "order": "15",
+      "title": "C16 장소 전환 커튼",
+      "bundle_directory": "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1",
+      "archive": "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1.zip",
+      "new_unique_png_at_delivery": 6,
+      "current_status": "done",
+      "unity_execution": "not_run",
+      "approval_instruction": "다음 진행해줘",
+      "approval_date": "2026-10-20"
+    }
+  ],
+  "items": [
+    {
+      "key": "style",
+      "category": "기준",
+      "ui": "공통",
+      "title": "C안 그래픽 규칙",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "색 토큰·단원4색·의미 색",
+        "Pretendard 크기·여백·테두리·9-slice",
+        "상태·노출·레이어·연출 기준"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S0"
+      ],
+      "asset_examples": [],
+      "note": "현재 제작 기준은 C안 무대감독 계기판. 2–4인 게임 범위를 사용한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c1",
+      "category": "HUD",
+      "ui": "C1",
+      "title": "팀 호응 게이지",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "천막 지붕·깃발",
+        "빈 링·흰 채움 링·숫자 받침",
+        "금속 테두리·추락 하이라이트",
+        "단원별 색 구간 및 TMP 조립"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S2"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_hud_cheergauge_roof_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/C1/Sprites/ui_hud_cheergauge_roof_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_c1_v1/Assets/CurtainCallUI/C1/Sprites/ui_hud_cheergauge_roof_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_cheergauge_fill_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/C1/Sprites/ui_hud_cheergauge_fill_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/C1/Sprites/ui_hud_cheergauge_fill_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_c1_v1/Assets/CurtainCallUI/C1/Sprites/ui_hud_cheergauge_fill_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_cheergauge_highlight_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/C1/Sprites/ui_hud_cheergauge_highlight_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_c1_v1/Assets/CurtainCallUI/C1/Sprites/ui_hud_cheergauge_highlight_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c2",
+      "category": "HUD",
+      "ui": "C2",
+      "title": "공연 남은 시간",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "시계 아이콘·숫자 받침",
+        "기본·30초 경고·10초 강조 표시"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S6"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_icon_clock_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_clock_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_clock_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_clock_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_accent_warning@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_accent_warning@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_accent_warning@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_accent_warning@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_accent_warning@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c3",
+      "category": "HUD",
+      "ui": "C3",
+      "title": "공연 진행도",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "트랙·눈금",
+        "내 위치·동료 위치 마커",
+        "추격 불·추락X·도착 깃발·최대도달▲",
+        "남은 거리 TMP·불 접근 경고"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S6"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_hud_progress_track_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_track_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_track_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_progress_self_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_self_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_self_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_progress_teammate_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_teammate_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_teammate_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_progress_fall_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_fall_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_fall_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_progress_max_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_max_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_max_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "p1",
+      "category": "HUD",
+      "ui": "P1",
+      "title": "외줄 균형 게이지",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "좌 위험·중앙 안전·우 위험 구간",
+        "경계·빗금·바늘",
+        "위험 체류 트랙·채움",
+        "좌우 빈 키캡과 TMP 자리"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S6"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_hud_balance_track_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_balance_track_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_balance_track_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_balance_needle_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_balance_needle_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_balance_needle_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_balance_dwelltrack_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_balance_dwelltrack_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_balance_dwelltrack_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "w1",
+      "category": "HUD",
+      "ui": "W1",
+      "title": "탐색 타이머",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "벽시계 베젤·눈금",
+        "링 채움·시간 받침",
+        "평소·멈춤·경보 상태"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S7"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_hud_backstageclock_bezel_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_backstageclock_bezel_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_backstageclock_bezel_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_backstageclock_ticks_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_backstageclock_ticks_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_backstageclock_ticks_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_backstageclock_accent_alarm@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_backstageclock_accent_alarm@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_backstageclock_accent_alarm@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c4",
+      "category": "HUD",
+      "ui": "C4",
+      "title": "공동 자금",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "작은 받침·화폐 아이콘",
+        "금액 TMP·금액 변화 강조"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S7"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_icon_currency_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_currency_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_currency_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_currency_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c5",
+      "category": "HUD",
+      "ui": "C5",
+      "title": "소지 슬롯",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "한 칸 단위 슬롯",
+        "기본·빈 칸·손에 든 칸 강조",
+        "기물 아이콘·수량/키 TMP 자리"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S7"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_hud_inventoryslot_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_inventoryslot_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_inventoryslot_body_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_inventoryslot_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_inventoryslot_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_inventoryslot_frame_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_inventoryslot_accent_selected@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_inventoryslot_accent_selected@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_hud_inventoryslot_accent_selected@2x.png"
+          ]
+        }
+      ],
+      "note": "칸 수와 잠깐 표시하는 종료 시점은 게임 코드에서 결정한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "w6",
+      "category": "HUD",
+      "ui": "W6",
+      "title": "무대 입구 집결",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "작은 받침·인원 아이콘",
+        "현재/목표 인원 TMP 조립"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S7"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_icon_person_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_person_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_person_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_person_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "l1",
+      "category": "HUD",
+      "ui": "L1",
+      "title": "로비 방 정보",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "정보 받침",
+        "눈 열림/닫힘·복사 버튼",
+        "가려진 코드의 TMP 점 표시",
+        "코드·방장·인원 TMP 자리"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S7"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_icon_eye_open_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_open_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_open_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_open_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_eye_closed_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_closed_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_closed_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_closed_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_copy_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_copy_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_copy_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_copy_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "코드 점 표시는 TMP로 그린다. 점을 별도 PNG로 제작하지 않는다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c8_banner",
+      "category": "시스템 알림",
+      "ui": "C8",
+      "title": "상단 시스템 텍스트 배너",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "공용 가로 띠·독립 상태선",
+        "제목/부제 TMP",
+        "일반·위험 상태와 선택 아이콘"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S8"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_banner_system_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Notifications/Sprites/ui_banner_system_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/Notifications/Sprites/ui_banner_system_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1/Assets/CurtainCallUI/Notifications/Sprites/ui_banner_system_body_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_banner_system_accent_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Notifications/Sprites/ui_banner_system_accent_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/Notifications/Sprites/ui_banner_system_accent_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "toast",
+      "category": "시스템 알림",
+      "ui": "C8 Toast",
+      "title": "오른쪽 토스트",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "한 줄 알림 판",
+        "일반·성공·실패 상태",
+        "상태 아이콘·TMP 및 등장/퇴장"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S8"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_hud_smallplate_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_star_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_thumb_down_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_thumb_down_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_thumb_down_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_thumb_down_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_thumb_down_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "같은 틀의 상태 조합으로 제작. 별도 토스트 PNG 3세트를 중복 생성하지 않는다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c6_prompt",
+      "category": "상호작용 안내",
+      "ui": "C6",
+      "title": "[F] 행동 안내판",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "작은 판·빈 키캡",
+        "사용 가능·불가 상태",
+        "행동·사유 TMP"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S9"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_hud_smallplate_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_keycap_basic_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c6_hold",
+      "category": "상호작용 안내",
+      "ui": "C6",
+      "title": "길게 누르기 진행 링",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "빈 링·흰 채움 링",
+        "키캡 둘레 Radial360 조립"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S9"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_prompt_hold_track_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Interaction/Sprites/ui_prompt_hold_track_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1/Assets/CurtainCallUI/Interaction/Sprites/ui_prompt_hold_track_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_prompt_hold_fill_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Interaction/Sprites/ui_prompt_hold_fill_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1/Assets/CurtainCallUI/Interaction/Sprites/ui_prompt_hold_fill_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c15",
+      "category": "툴팁",
+      "ui": "C15",
+      "title": "장치 근접 툴팁",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "9-slice 몸체·프레임·모서리",
+        "별도 아래 꼬리·연결 테두리",
+        "제목·설명 TMP"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S10"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_tooltip_plate_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_plate_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_tooltips_v1/Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_plate_body_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_tooltip_tail_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_tail_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_tooltips_v1/Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_tail_body_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_tooltip_tail_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_tail_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_tooltips_v1/Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_tail_frame_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "대상 감지와 월드 좌표 투영은 게임 연결 단계의 일이다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "panel_tooltip",
+      "category": "툴팁",
+      "ui": "공용",
+      "title": "패널 안 품목 설명 툴팁",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "근접 툴팁과 공용 판 사용",
+        "꼬리 없는 패널 모드",
+        "제목·설명 TMP"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S10"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_tooltip_bottom_edge_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_bottom_edge_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_tooltips_v1/Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_bottom_edge_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_tooltip_plate_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_plate_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_tooltips_v1/Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_plate_frame_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "품목 설명 판은 완료. 구매 패널 전체가 완성되었다는 뜻은 아니다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c7_guide",
+      "category": "가이드",
+      "ui": "C7",
+      "title": "조작 가이드 판",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "공용 작은 판",
+        "입력 표시·행동 TMP",
+        "한 번에 하나 표시 및 상위 HUD와 자리 우선순위"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S11"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_hud_smallplate_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "keycaps",
+      "category": "가이드",
+      "ui": "C7/공용",
+      "title": "빈 키캡 3종",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "일반 키",
+        "Space 등 넓은 키",
+        "아주 넓은 키",
+        "몸체·테두리 분리, 키 이름 TMP"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S6",
+        "S11"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_keycap_basic_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_keycap_wide_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Guides/Sprites/ui_keycap_wide_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/Guides/Sprites/ui_keycap_wide_body_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_keycap_extra_wide_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Guides/Sprites/ui_keycap_extra_wide_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/Guides/Sprites/ui_keycap_extra_wide_body_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "mouse",
+      "category": "가이드",
+      "ui": "C7/공용",
+      "title": "마우스 좌클릭·우클릭·이동",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "공통 마우스 몸체",
+        "좌/우 버튼 채움",
+        "별도 이동 방향"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S11"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_icon_mouse_base_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Guides/Sprites/ui_icon_mouse_base_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/Guides/Sprites/ui_icon_mouse_base_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_mouse_left_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Guides/Sprites/ui_icon_mouse_left_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/Guides/Sprites/ui_icon_mouse_left_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_mouse_right_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Guides/Sprites/ui_icon_mouse_right_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/Guides/Sprites/ui_icon_mouse_right_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_mouse_move_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Guides/Sprites/ui_icon_mouse_move_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/Guides/Sprites/ui_icon_mouse_move_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c9",
+      "category": "대사·나레이션",
+      "ui": "C9",
+      "title": "자막·화자 이름 칸·방송 표시",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "최하단 자막 띠",
+        "독립 폭의 화자 칸",
+        "방송 확성기",
+        "화자/본문 TMP, 대사·방송·화자 없음 모드"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S12"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_banner_system_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Notifications/Sprites/ui_banner_system_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/Notifications/Sprites/ui_banner_system_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1/Assets/CurtainCallUI/Notifications/Sprites/ui_banner_system_body_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_interaction_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_guides_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_megaphone_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_megaphone_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_megaphone_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_megaphone_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_captions_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_megaphone_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "이전 다음 진행 요청으로 C9 조립 검토를 마친 상태다. 기존 C9 파일의 당시 검토 대기 표기는 역사 기록이다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c10",
+      "category": "피드백 텍스트",
+      "ui": "C10",
+      "title": "환호·야유 효과 조각",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "신규 별빛·팡파레·토마토·충돌 효과4개",
+        "승인된 별·엄지 아래 아이콘2개 재사용",
+        "효과 레이어와 변화량 TMP의 분리 조립",
+        "환호·야유 및 손 잡아줌의 같은 효과 계열"
+      ],
+      "remaining_parts": [
+        "실제 Unity 프로젝트에서 실행 검증과 게임 이벤트 연결"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S5",
+        "S13",
+        "S14",
+        "S15"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_fx_cheer_sparkles_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Feedback/Sprites/ui_fx_cheer_sparkles_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Assets/CurtainCallUI/Feedback/Sprites/ui_fx_cheer_sparkles_normal@2x.png"
+          ],
+          "source_px": [
+            160,
+            128
+          ]
+        },
+        {
+          "filename": "ui_fx_cheer_fanfare_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Feedback/Sprites/ui_fx_cheer_fanfare_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Assets/CurtainCallUI/Feedback/Sprites/ui_fx_cheer_fanfare_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            128
+          ]
+        },
+        {
+          "filename": "ui_fx_boo_tomato_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Feedback/Sprites/ui_fx_boo_tomato_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Assets/CurtainCallUI/Feedback/Sprites/ui_fx_boo_tomato_normal@2x.png"
+          ],
+          "source_px": [
+            128,
+            128
+          ]
+        },
+        {
+          "filename": "ui_fx_boo_splat_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Feedback/Sprites/ui_fx_boo_splat_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Assets/CurtainCallUI/Feedback/Sprites/ui_fx_boo_splat_normal@2x.png"
+          ],
+          "source_px": [
+            192,
+            128
+          ]
+        },
+        {
+          "filename": "ui_icon_star_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png"
+          ],
+          "source_px": [
+            64,
+            64
+          ]
+        },
+        {
+          "filename": "ui_icon_thumb_down_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_thumb_down_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_feedback_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_thumb_down_normal@2x.png"
+          ],
+          "source_px": [
+            64,
+            64
+          ]
+        }
+      ],
+      "note": "C10의 신규 효과 4개와 승인 아이콘2개 재사용 조립은 이번 다음 진행 요청으로 검토를 마쳤다. 기존 C10 파일의 검토 중 표기는 당시 기록으로 유지한다. 변화량 TMP는 단원 색이고 손 잡아줌은 환호와 같은 효과 계열이다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "world_labels",
+      "category": "월드 라벨",
+      "ui": "L2/L3/H1/W4/W5",
+      "title": "월드 Canvas 표지판·이름표",
+      "status": "done",
+      "status_label": "전달·검토 완료",
+      "completed_parts": [
+        "Synty 로우폴리 소품과 맞춘 나무·천·종이 물리 표면3종의 4레이어12개 수정",
+        "기물·선반을 승인 metal plate4개로 구성하는 근접 정보 UI로 확정",
+        "깃발·사람·공구 아이콘 3개 승인 PNG 재사용",
+        "World Canvas5형태·TMP 분리 및 Item/Shelf의 명시 관찰자 거리 조건·수동 표시 게이트"
+      ],
+      "remaining_parts": [
+        "실제 Unity 프로젝트에서 실행·월드 배치·가독성 검증",
+        "진입·이탈 거리 튜닝, 장애물 가림·동시 표시 개수·멀티플레이 로컬 관찰자 연결"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S5",
+        "S6",
+        "S14",
+        "S16",
+        "S17",
+        "S18"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_worldlabel_wood_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_wood_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_wood_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            192
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_wood_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_wood_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_wood_body_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            192
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_wood_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_wood_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_wood_frame_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            192
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_wood_corners_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_wood_corners_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_wood_corners_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            192
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_cloth_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_cloth_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_cloth_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            192
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_cloth_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_cloth_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_cloth_body_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            192
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_cloth_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_cloth_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_cloth_frame_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            192
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_cloth_corners_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_cloth_corners_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_cloth_corners_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            192
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_paper_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_paper_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_paper_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            320
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_paper_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_paper_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_paper_body_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            320
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_paper_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_paper_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_paper_frame_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            320
+          ]
+        },
+        {
+          "filename": "ui_worldlabel_paper_corners_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_paper_corners_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/WorldLabels/Sprites/ui_worldlabel_paper_corners_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            320
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            112
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            112
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            112
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_corners_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_corners_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_corners_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            112
+          ]
+        },
+        {
+          "filename": "ui_icon_flag_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_flag_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_flag_normal@2x.png"
+          ],
+          "source_px": [
+            64,
+            64
+          ]
+        },
+        {
+          "filename": "ui_icon_person_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_person_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_person_normal@2x.png"
+          ],
+          "source_px": [
+            64,
+            64
+          ]
+        },
+        {
+          "filename": "ui_icon_tools_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_tools_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_worldlabels_v2/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_tools_normal@2x.png"
+          ],
+          "source_px": [
+            64,
+            64
+          ]
+        }
+      ],
+      "note": "월드 라벨 v2 사용자 검토 완료. 물리 소품3종(나무/천/종이)과 근접 정보 UI2종(기물/선반)의 용도 분리를 유지한다. 12개의 수정본이며 고유 PNG는 12개로 계산한다. 실제 Unity 실행 및 게임별 배치·거리·관찰자 연결은 미검증.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c11",
+      "category": "화면 효과",
+      "ui": "C11",
+      "title": "관전·사망 비네트와 관전 HUD",
+      "status": "done",
+      "status_label": "전달·검토 완료",
+      "completed_parts": [
+        "좌/우 독립 비네트 PNG2개, 각3840×2160 RGBA, 중앙60% 완전 투명",
+        "승인 smallplate4·기본 키캡2·눈/해골2를 원본바이트로 재사용",
+        "하단 관전 판360×64 UI와 TMP를 분리하는 조립 명세·에디터 도구",
+        "호출자가 전달한 상태·대상·키 표시를 반영하는 관전 UI 연결 도구"
+      ],
+      "remaining_parts": [
+        "실제 Unity 컴파일·임포트·Play Mode·폰트·서로 다른 화면 비율 검증",
+        "실제 관전 대상/카메라/입력/사망 이벤트 및 하단 HUD 우선순위 연결"
+      ],
+      "sources": [
+        "S0",
+        "S16",
+        "S17",
+        "S18",
+        "S19",
+        "S20",
+        "S21"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_fx_spectator_vignette_left_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Spectator/Sprites/ui_fx_spectator_vignette_left_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Assets/CurtainCallUI/Spectator/Sprites/ui_fx_spectator_vignette_left_normal@2x.png"
+          ],
+          "source_px": [
+            3840,
+            2160
+          ]
+        },
+        {
+          "filename": "ui_fx_spectator_vignette_right_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Spectator/Sprites/ui_fx_spectator_vignette_right_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Assets/CurtainCallUI/Spectator/Sprites/ui_fx_spectator_vignette_right_normal@2x.png"
+          ],
+          "source_px": [
+            3840,
+            2160
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            112
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            112
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            112
+          ]
+        },
+        {
+          "filename": "ui_hud_smallplate_corners_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_corners_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_corners_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            112
+          ]
+        },
+        {
+          "filename": "ui_keycap_basic_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png"
+          ],
+          "source_px": [
+            80,
+            80
+          ]
+        },
+        {
+          "filename": "ui_keycap_basic_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_frame_normal@2x.png"
+          ],
+          "source_px": [
+            80,
+            80
+          ]
+        },
+        {
+          "filename": "ui_icon_eye_open_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_open_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_open_normal@2x.png"
+          ],
+          "source_px": [
+            64,
+            64
+          ]
+        },
+        {
+          "filename": "ui_icon_skull_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_skull_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_spectator_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_skull_normal@2x.png"
+          ],
+          "source_px": [
+            64,
+            64
+          ]
+        }
+      ],
+      "note": "C11 그래픽·관전 HUD 사용자 검토 완료. 비네트2개와 승인8개를 재사용한 묶음이다. 실제 Unity 실행과 관전 대상/입력/카메라 이벤트 연결은 미검증.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c16",
+      "category": "화면 효과",
+      "ui": "C16",
+      "title": "장소 전환 커튼",
+      "status": "done",
+      "status_label": "전달·검토 완료",
+      "completed_parts": [
+        "왼쪽·오른쪽 커튼 천/술4개, 각2080×2400 RGBA, 정렬 캔버스 일치",
+        "상단 밸런스 천/술2개, 각3968×480 RGBA, 독립 뷰포트 상단 정렬",
+        "승인 흰색 별1개 바이트 동일 재사용, 별 본체/그림자 Image와 로딩 TMP 분리",
+        "열림·반닫힘·닫힘 검토 및450ms 전환용 레이어 조립 명세·에디터 도구",
+        "불투명 덮임과 이미지 무결성에 대한 정적 검증 도구"
+      ],
+      "remaining_parts": [
+        "실제 Unity 컴파일·임포트·Play Mode·폰트·화면비·성능 검증",
+        "실제 씬 로드·네트워크 준비 완료·전환 중 입력·Canvas 수명 연결"
+      ],
+      "sources": [
+        "S0",
+        "S19",
+        "S20",
+        "S21",
+        "S22",
+        "S23",
+        "S24"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_fx_curtain_left_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_left_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_left_body_normal@2x.png"
+          ],
+          "source_px": [
+            2080,
+            2400
+          ]
+        },
+        {
+          "filename": "ui_fx_curtain_left_fringe_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_left_fringe_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_left_fringe_normal@2x.png"
+          ],
+          "source_px": [
+            2080,
+            2400
+          ]
+        },
+        {
+          "filename": "ui_fx_curtain_right_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_right_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_right_body_normal@2x.png"
+          ],
+          "source_px": [
+            2080,
+            2400
+          ]
+        },
+        {
+          "filename": "ui_fx_curtain_right_fringe_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_right_fringe_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_right_fringe_normal@2x.png"
+          ],
+          "source_px": [
+            2080,
+            2400
+          ]
+        },
+        {
+          "filename": "ui_fx_curtain_valance_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_valance_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_valance_body_normal@2x.png"
+          ],
+          "source_px": [
+            3968,
+            480
+          ]
+        },
+        {
+          "filename": "ui_fx_curtain_valance_fringe_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_valance_fringe_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Assets/CurtainCallUI/TransitionCurtain/Sprites/ui_fx_curtain_valance_fringe_normal@2x.png"
+          ],
+          "source_px": [
+            3968,
+            480
+          ]
+        },
+        {
+          "filename": "ui_icon_star_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_curtain_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png"
+          ],
+          "source_px": [
+            64,
+            64
+          ]
+        }
+      ],
+      "note": "C16 신규6 PNG와 승인 별1 PNG, 전환 배치·조립 사용자 검토 완료. Unity 실행·씬/네트워크 연결은 미검증.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "t1",
+      "category": "타이틀 메뉴",
+      "ui": "T1",
+      "title": "타이틀 로고·메뉴 선택 표시",
+      "status": "current",
+      "status_label": "이번 제작·피드백 대기",
+      "completed_parts": [
+        "금색 CURTAIN CALL 로고 본체·독립 그림자2 PNG",
+        "메뉴 선택 밑줄1 PNG와 기존 포커스 마스크",
+        "메인 타이틀 레이어·TMP 메뉴·이벤트 연결 지점 조립"
+      ],
+      "remaining_parts": [
+        "이번 로고·메뉴 구성에 대한 사용자 피드백",
+        "방 만들기·설정·종료 이벤트의 실제 게임 동작 연결",
+        "실제 Unity 컴파일·임포트·Play Mode·폰트·기기 확인"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S25",
+        "S26",
+        "S27"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_logo_curtaincall_shadow@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_shadow@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_shadow@2x.png"
+          ],
+          "source_px": [
+            1536,
+            768
+          ]
+        },
+        {
+          "filename": "ui_logo_curtaincall_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_normal@2x.png"
+          ],
+          "source_px": [
+            1536,
+            768
+          ]
+        },
+        {
+          "filename": "ui_select_title_underline_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            16
+          ]
+        },
+        {
+          "filename": "ui_input_standard_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_hover@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_pressed@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_disabled@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_focus@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_focus@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_focus@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_panel_base_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_corners_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_divider_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            32
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_focus_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        }
+      ],
+      "note": "이번 타이틀 검토 묶음. 생성 그림과 정확한 공용 기하 PNG를 구분하고 실제 게임/네트워크 동작은 호출자가 연결한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "t2",
+      "category": "타이틀 메뉴",
+      "ui": "T2",
+      "title": "방 코드 참가 하위 페이지",
+      "status": "current",
+      "status_label": "이번 제작·피드백 대기",
+      "completed_parts": [
+        "공용 판4겹·구분선·확인/취소 버튼 재사용",
+        "방 코드 입력4상태·포커스·TMP·커서·선택 영역",
+        "방 코드 참가 페이지 배치와 입력 전달 이벤트"
+      ],
+      "remaining_parts": [
+        "이번 입력 패널 배치·상태 사용자 피드백",
+        "실제 방 코드 형식·입장 요청·오류/완료 처리 연결",
+        "실제 Unity 컴파일·임포트·Play Mode·폰트·기기 확인"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S25",
+        "S26",
+        "S27"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_logo_curtaincall_shadow@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_shadow@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_shadow@2x.png"
+          ],
+          "source_px": [
+            1536,
+            768
+          ]
+        },
+        {
+          "filename": "ui_logo_curtaincall_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_normal@2x.png"
+          ],
+          "source_px": [
+            1536,
+            768
+          ]
+        },
+        {
+          "filename": "ui_select_title_underline_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            16
+          ]
+        },
+        {
+          "filename": "ui_input_standard_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_hover@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_pressed@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_disabled@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_focus@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_focus@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_focus@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_panel_base_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_corners_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_divider_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            32
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_focus_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        }
+      ],
+      "note": "이번 타이틀 검토 묶음. 생성 그림과 정확한 공용 기하 PNG를 구분하고 실제 게임/네트워크 동작은 호출자가 연결한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "t3",
+      "category": "타이틀 메뉴",
+      "ui": "T3",
+      "title": "LAN 접속 하위 페이지",
+      "status": "current",
+      "status_label": "이번 제작·피드백 대기",
+      "completed_parts": [
+        "T2와 같은 공용 판·입력 틀·확인/취소 버튼 재사용",
+        "LAN 주소 입력 페이지 배치와 입력 전달 이벤트"
+      ],
+      "remaining_parts": [
+        "이번 LAN 입력 페이지 사용자 피드백",
+        "실제 LAN 접속·주소 검증·검색/연결 정책 연결",
+        "실제 Unity 컴파일·임포트·Play Mode·폰트·기기 확인"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S25",
+        "S26",
+        "S27"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_logo_curtaincall_shadow@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_shadow@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_shadow@2x.png"
+          ],
+          "source_px": [
+            1536,
+            768
+          ]
+        },
+        {
+          "filename": "ui_logo_curtaincall_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_normal@2x.png"
+          ],
+          "source_px": [
+            1536,
+            768
+          ]
+        },
+        {
+          "filename": "ui_select_title_underline_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            16
+          ]
+        },
+        {
+          "filename": "ui_input_standard_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_hover@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_pressed@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_disabled@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_focus@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_focus@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_focus@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_panel_base_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_corners_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_divider_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            32
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_focus_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        }
+      ],
+      "note": "이번 타이틀 검토 묶음. 생성 그림과 정확한 공용 기하 PNG를 구분하고 실제 게임/네트워크 동작은 호출자가 연결한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "title_lobby_dim",
+      "category": "타이틀·로비",
+      "ui": "공통",
+      "title": "타이틀·로비 전용 딤",
+      "status": "current",
+      "status_label": "이번 제작·피드백 대기",
+      "completed_parts": [
+        "타이틀 루트 내부에만 검정 alpha0.6 전체 화면 딤 조립; 별도 PNG 없음"
+      ],
+      "remaining_parts": [
+        "이번 타이틀 배치 사용자 피드백",
+        "로비 화면에서의 별도 연결·표시 정책",
+        "실제 Unity 컴파일·임포트·Play Mode·폰트·기기 확인"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S25",
+        "S26",
+        "S27"
+      ],
+      "asset_examples": [],
+      "note": "타이틀 전용 화면이며 텍스트는 TMP. 전체 화면 딤은 타이틀 루트가 소유한다. 로비 별도 조립은 아직 남음.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c13",
+      "category": "메뉴 패널",
+      "ui": "C13",
+      "title": "ESC 메뉴",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "작은 반투명 패널 기본 틀",
+        "계속하기·설정·나가기 버튼",
+        "제목/푸터 TMP·기본 메뉴 조립"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S4"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_panel_base_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_panel_base_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_panel_divider_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "설정 요청 콜백은 제공되나 설정 창 자체는 아직 없다. 게임 입력 전환과 방 이탈 처리는 게임 코드 연결 대상이다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c14",
+      "category": "메뉴 패널",
+      "ui": "C14",
+      "title": "설정 창",
+      "status": "partial",
+      "status_label": "부분 준비",
+      "completed_parts": [
+        "공용 패널·설정 버튼·톱니 아이콘 준비"
+      ],
+      "remaining_parts": [
+        "설정 창 내부 구성",
+        "슬라이더·토글 등 설정 컨트롤",
+        "설정 항목별 조립"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S3",
+        "S4"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_icon_settings_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_icon_settings_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_icon_settings_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_icon_settings_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_icon_settings_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_panel_base_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "confirm",
+      "category": "확인 대화상자",
+      "ui": "확인",
+      "title": "경고 확인창",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "작은 패널·경고 모서리·구분선",
+        "경고 아이콘",
+        "확인/취소 버튼·TMP",
+        "ESC 메뉴 위 확인창 조립"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S4"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_panel_base_accent_warning@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_accent_warning@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_accent_warning@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_warning_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_icon_warning_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_notifications_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_icon_warning_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_icon_warning_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_icon_warning_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "w2",
+      "category": "구매·판매 패널",
+      "ui": "W2",
+      "title": "낡은 수화기 구매·판매 패널",
+      "status": "partial",
+      "status_label": "부분 준비",
+      "completed_parts": [
+        "공용 패널·버튼",
+        "품목 설명 툴팁",
+        "화폐·배송 상자·수화기·의료·공구·기물 아이콘"
+      ],
+      "remaining_parts": [
+        "수화기 고정 장식",
+        "기물/서비스/장부 탭3개와 선택 상태",
+        "품목 줄 기본/선택/구매 불가",
+        "가격 자리·판매/배송 표시 연결",
+        "구매·판매 패널 전체 배치·조립"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S4",
+        "S5",
+        "S10"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_icon_phone_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_phone_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_phone_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_delivery_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_delivery_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_delivery_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_tooltip_plate_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_plate_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_tooltips_v1/Assets/CurtainCallUI/Tooltips/Sprites/ui_tooltip_plate_body_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "툴팁 검토 이미지 속 구매 맥락은 참고 조합이며 전용 구매 패널 납품은 아니다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "w3",
+      "category": "정보 패널",
+      "ui": "W3",
+      "title": "공연 스케줄표",
+      "status": "partial",
+      "status_label": "부분 준비",
+      "completed_parts": [
+        "스케줄 아이콘 준비"
+      ],
+      "remaining_parts": [
+        "낡은 일정표·플래너 종이 바탕",
+        "일차 칸·공연 칸",
+        "확정 도장 외형",
+        "일정 TMP와 패널 조립"
+      ],
+      "sources": [
+        "S0",
+        "S1"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_icon_schedule_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_schedule_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_schedule_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "확정 도장의 글자는 TMP로 올린다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "c12",
+      "category": "결과 패널",
+      "ui": "C12",
+      "title": "공연 결과",
+      "status": "partial",
+      "status_label": "부분 준비",
+      "completed_parts": [
+        "공용 패널·버튼",
+        "C3 트랙·단원 마커 형태",
+        "화폐·해골·도착 깃발 아이콘"
+      ],
+      "remaining_parts": [
+        "큰 결과 판의 전용 조립",
+        "실패/성공/대성공 제목 리본3종",
+        "C3의 큰 진행 막대·단원 마커 배치",
+        "보상 줄 바탕",
+        "공동 자금으로 이동하는 동전 효과"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S4",
+        "S5",
+        "S6"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_hud_progress_track_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_track_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_progress_track_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_currency_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_currency_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_currency_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_currency_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_icon_flag_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_flag_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_performance_hud_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_flag_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_flag_normal@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "control_confirm",
+      "category": "컨트롤",
+      "ui": "공용",
+      "title": "확인 버튼",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "기본·올림·누름·비활성4상태",
+        "그림자·포커스·아이콘/TMP 분리"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S3"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_btn_confirm_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "control_cancel",
+      "category": "컨트롤",
+      "ui": "공용",
+      "title": "취소·종료 버튼",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "기본·올림·누름·비활성4상태",
+        "그림자·포커스·아이콘/TMP 분리"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S3"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_btn_cancel_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "control_settings",
+      "category": "컨트롤",
+      "ui": "공용",
+      "title": "설정 버튼",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "기본·올림·누름·비활성4상태",
+        "그림자·포커스·아이콘/TMP 분리"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S3"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_btn_settings_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_settings_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_hover@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_hover@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_settings_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_pressed@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_pressed@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_settings_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_disabled@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_settings_disabled@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "control_general",
+      "category": "컨트롤",
+      "ui": "공용",
+      "title": "일반 버튼",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "기본·올림·누름·비활성4상태",
+        "그림자·포커스·아이콘/TMP 분리"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S3"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_btn_general_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_normal@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_general_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_hover@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_hover@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_general_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_pressed@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_pressed@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_general_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_disabled@2x.png",
+            "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_general_disabled@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "control_icon",
+      "category": "컨트롤",
+      "ui": "L1/공용",
+      "title": "아이콘 버튼",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "기본·올림·누름·비활성4상태",
+        "그림자·포커스",
+        "L1 눈 버튼용 독립 선택 표시"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S7"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_btn_icon_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_normal@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_icon_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_hover@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_icon_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_pressed@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_icon_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_disabled@2x.png"
+          ]
+        },
+        {
+          "filename": "ui_btn_icon_accent_selected@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_accent_selected@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_accent_selected@2x.png"
+          ]
+        }
+      ],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "control_tab",
+      "category": "컨트롤",
+      "ui": "공용",
+      "title": "탭",
+      "status": "remaining",
+      "status_label": "남음",
+      "completed_parts": [],
+      "remaining_parts": [
+        "4상태 몸체",
+        "독립 선택 표시",
+        "아이콘/TMP 조립"
+      ],
+      "sources": [
+        "S0",
+        "S1"
+      ],
+      "asset_examples": [],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "control_input",
+      "category": "컨트롤",
+      "ui": "공용",
+      "title": "입력 필드",
+      "status": "current",
+      "status_label": "이번 제작·피드백 대기",
+      "completed_parts": [
+        "입력 바탕4상태512×96 PNG와 독립 포커스 PNG",
+        "9-slice32,32,20,20·Pretendard TMP 입력/placeholder·커서/선택 영역"
+      ],
+      "remaining_parts": [
+        "이번4상태·포커스 사용자 피드백",
+        "프로젝트의 입력 모듈·IME·클립보드·Submit/Cancel 실제 실행 확인",
+        "실제 Unity 컴파일·임포트·Play Mode·폰트·기기 확인"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S25",
+        "S26",
+        "S27"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_logo_curtaincall_shadow@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_shadow@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_shadow@2x.png"
+          ],
+          "source_px": [
+            1536,
+            768
+          ]
+        },
+        {
+          "filename": "ui_logo_curtaincall_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_normal@2x.png"
+          ],
+          "source_px": [
+            1536,
+            768
+          ]
+        },
+        {
+          "filename": "ui_select_title_underline_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            16
+          ]
+        },
+        {
+          "filename": "ui_input_standard_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_normal@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_hover@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_pressed@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_disabled@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_input_standard_focus@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_focus@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_focus@2x.png"
+          ],
+          "source_px": [
+            512,
+            96
+          ]
+        },
+        {
+          "filename": "ui_panel_base_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_body_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_frame_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_base_corners_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            256
+          ]
+        },
+        {
+          "filename": "ui_panel_divider_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png"
+          ],
+          "source_px": [
+            256,
+            32
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_confirm_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_hover@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_pressed@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_cancel_disabled@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_shadow_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        },
+        {
+          "filename": "ui_btn_focus_normal@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png"
+          ],
+          "source_px": [
+            384,
+            112
+          ]
+        }
+      ],
+      "note": "이번 타이틀 검토 묶음. 생성 그림과 정확한 공용 기하 PNG를 구분하고 실제 게임/네트워크 동작은 호출자가 연결한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "control_slider",
+      "category": "컨트롤",
+      "ui": "공용",
+      "title": "슬라이더",
+      "status": "remaining",
+      "status_label": "남음",
+      "completed_parts": [],
+      "remaining_parts": [
+        "트랙·흰 채움",
+        "4상태 손잡이",
+        "값 TMP·포커스 조립"
+      ],
+      "sources": [
+        "S0",
+        "S1"
+      ],
+      "asset_examples": [],
+      "note": "",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "control_toggle",
+      "category": "컨트롤",
+      "ui": "공용",
+      "title": "일반 토글",
+      "status": "partial",
+      "status_label": "부분 준비",
+      "completed_parts": [
+        "L1 눈 아이콘 버튼의 선택 표시 준비"
+      ],
+      "remaining_parts": [
+        "공용 토글4상태 몸체",
+        "독립 ON/OFF 표시·손잡이",
+        "설정용 토글 조립"
+      ],
+      "sources": [
+        "S0",
+        "S1",
+        "S7"
+      ],
+      "asset_examples": [
+        {
+          "filename": "ui_btn_icon_accent_selected@2x.png",
+          "project_relative_path": "Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_accent_selected@2x.png",
+          "existing_local_paths": [
+            "/workspace/scratch/8b50162596f8/output/curtaincall_backstage_hud_v1/Assets/CurtainCallUI/BackstageHUD/Sprites/ui_btn_icon_accent_selected@2x.png"
+          ]
+        }
+      ],
+      "note": "L1 눈 버튼 선택선과 일반 설정 토글은 구분한다. 일반 토글 묶음은 아직 미제작이다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "common_icons",
+      "category": "아이콘",
+      "ui": "공용",
+      "title": "기본 아이콘25종",
+      "status": "done",
+      "status_label": "완료",
+      "completed_parts": [
+        "원래 요청한25종 전부",
+        "64×64 @2x 흰색 실루엣·동일 격자",
+        "톱니/닫기/경고는 이전 승인본 재사용"
+      ],
+      "remaining_parts": [],
+      "sources": [
+        "S1",
+        "S5"
+      ],
+      "asset_examples": [],
+      "note": "C7 마우스4개는 이25종에 별도로 추가되었으므로 아이콘 이름 기준 전체는29개다. 중복 사용은 고유 PNG 수에 더하지 않는다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "final_1",
+      "category": "최종 화면 목업",
+      "ui": "단계5-1",
+      "title": "공연 중 외줄·4인",
+      "status": "remaining",
+      "status_label": "남음",
+      "completed_parts": [
+        "C1·C2·C3·P1과 승인 C10 조각을 활용 가능"
+      ],
+      "remaining_parts": [
+        "환호 +15까지 포함한 최종1920×1080 화면 조립·미학 점검",
+        "만든 리소스만 사용했는지 확인",
+        "화면별 미학 원칙 점검1줄·조립 안내"
+      ],
+      "sources": [
+        "S0",
+        "S1"
+      ],
+      "asset_examples": [],
+      "note": "묶음별 검토 목업과 단계5의 최종7개 화면 납품을 구분한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "final_2",
+      "category": "최종 화면 목업",
+      "ui": "단계5-2",
+      "title": "공연 중 동료 추락",
+      "status": "remaining",
+      "status_label": "남음",
+      "completed_parts": [
+        "C1 하이라이트·C8 배너 부품 준비"
+      ],
+      "remaining_parts": [
+        "단원2 추락 배너·게이지 깜빡임을 함께 보여주는 최종 화면",
+        "만든 리소스만 사용했는지 확인",
+        "화면별 미학 원칙 점검1줄·조립 안내"
+      ],
+      "sources": [
+        "S0",
+        "S1"
+      ],
+      "asset_examples": [],
+      "note": "묶음별 검토 목업과 단계5의 최종7개 화면 납품을 구분한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "final_3",
+      "category": "최종 화면 목업",
+      "ui": "단계5-3",
+      "title": "대기실 쉬는 시간",
+      "status": "remaining",
+      "status_label": "남음",
+      "completed_parts": [
+        "W1·C4·C6 및 각 묶음 장면 목업 존재"
+      ],
+      "remaining_parts": [
+        "탐색 타이머·자금·[F] 수화기 들기 최종 화면으로 확정",
+        "만든 리소스만 사용했는지 확인",
+        "화면별 미학 원칙 점검1줄·조립 안내"
+      ],
+      "sources": [
+        "S0",
+        "S1"
+      ],
+      "asset_examples": [],
+      "note": "묶음별 검토 목업과 단계5의 최종7개 화면 납품을 구분한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "final_4",
+      "category": "최종 화면 목업",
+      "ui": "단계5-4",
+      "title": "수화기 구매 패널 열림",
+      "status": "remaining",
+      "status_label": "남음",
+      "completed_parts": [
+        "상단 HUD·기물 아이콘·패널 툴팁 준비"
+      ],
+      "remaining_parts": [
+        "W2 패널 제작 후 탭·품목·툴팁·HUD를 함께 최종 조립",
+        "만든 리소스만 사용했는지 확인",
+        "화면별 미학 원칙 점검1줄·조립 안내"
+      ],
+      "sources": [
+        "S0",
+        "S1"
+      ],
+      "asset_examples": [],
+      "note": "묶음별 검토 목업과 단계5의 최종7개 화면 납품을 구분한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "final_5",
+      "category": "최종 화면 목업",
+      "ui": "단계5-5",
+      "title": "공연 결과 대성공",
+      "status": "remaining",
+      "status_label": "남음",
+      "completed_parts": [
+        "C3 형태·화폐/깃발 아이콘 준비"
+      ],
+      "remaining_parts": [
+        "C12 결과 판·대성공 리본·보상 줄 제작 후 최종 화면",
+        "만든 리소스만 사용했는지 확인",
+        "화면별 미학 원칙 점검1줄·조립 안내"
+      ],
+      "sources": [
+        "S0",
+        "S1"
+      ],
+      "asset_examples": [],
+      "note": "묶음별 검토 목업과 단계5의 최종7개 화면 납품을 구분한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "final_6",
+      "category": "최종 화면 목업",
+      "ui": "단계5-6",
+      "title": "ESC 메뉴 + 나가기 확인창",
+      "status": "remaining",
+      "status_label": "남음",
+      "completed_parts": [
+        "메뉴·확인창 개별 조립과 검토 목업 존재"
+      ],
+      "remaining_parts": [
+        "공연 HUD와 통합한 전면 딤 없는 최종 화면",
+        "만든 리소스만 사용했는지 확인",
+        "화면별 미학 원칙 점검1줄·조립 안내"
+      ],
+      "sources": [
+        "S0",
+        "S1"
+      ],
+      "asset_examples": [],
+      "note": "묶음별 검토 목업과 단계5의 최종7개 화면 납품을 구분한다.",
+      "unity_runtime_validation": "not_run"
+    },
+    {
+      "key": "final_7",
+      "category": "최종 화면 목업",
+      "ui": "단계5-7",
+      "title": "전환 커튼이 반쯤 닫힘",
+      "status": "remaining",
+      "status_label": "남음",
+      "completed_parts": [
+        "화면 배치 기준 준비"
+      ],
+      "remaining_parts": [
+        "단계5의 반쯤 닫힌 최종 화면",
+        "만든 리소스만 사용했는지 확인",
+        "화면별 미학 원칙 점검1줄·조립 안내"
+      ],
+      "sources": [
+        "S0",
+        "S1"
+      ],
+      "asset_examples": [],
+      "note": "C16 묶음의 검토 목업과 단계5 최종7개 화면 납품을 구분한다. 최종 납품은 아직 남음.",
+      "unity_runtime_validation": "not_run"
+    }
+  ],
+  "common_icons": [
+    {
+      "name": "화폐",
+      "filename": "ui_icon_currency_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_currency_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_currency_normal@2x.png"
+    },
+    {
+      "name": "시계",
+      "filename": "ui_icon_clock_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_clock_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_clock_normal@2x.png"
+    },
+    {
+      "name": "불",
+      "filename": "ui_icon_fire_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_fire_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_fire_normal@2x.png"
+    },
+    {
+      "name": "사람/인원",
+      "filename": "ui_icon_person_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_person_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_person_normal@2x.png"
+    },
+    {
+      "name": "눈 열림",
+      "filename": "ui_icon_eye_open_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_open_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_open_normal@2x.png"
+    },
+    {
+      "name": "눈 닫힘",
+      "filename": "ui_icon_eye_closed_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_closed_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_eye_closed_normal@2x.png"
+    },
+    {
+      "name": "복사",
+      "filename": "ui_icon_copy_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_copy_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_copy_normal@2x.png"
+    },
+    {
+      "name": "톱니",
+      "filename": "ui_icon_settings_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_icon_settings_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_icon_settings_normal@2x.png"
+    },
+    {
+      "name": "닫기 X",
+      "filename": "ui_icon_close_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_icon_close_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_icon_close_normal@2x.png"
+    },
+    {
+      "name": "경고",
+      "filename": "ui_icon_warning_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_icon_warning_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_icon_warning_normal@2x.png"
+    },
+    {
+      "name": "확성기",
+      "filename": "ui_icon_megaphone_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_megaphone_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_megaphone_normal@2x.png"
+    },
+    {
+      "name": "상자/배송",
+      "filename": "ui_icon_delivery_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_delivery_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_delivery_normal@2x.png"
+    },
+    {
+      "name": "자물쇠",
+      "filename": "ui_icon_lock_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_lock_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_lock_normal@2x.png"
+    },
+    {
+      "name": "해골",
+      "filename": "ui_icon_skull_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_skull_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_skull_normal@2x.png"
+    },
+    {
+      "name": "깃발",
+      "filename": "ui_icon_flag_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_flag_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_flag_normal@2x.png"
+    },
+    {
+      "name": "별",
+      "filename": "ui_icon_star_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png"
+    },
+    {
+      "name": "엄지 아래",
+      "filename": "ui_icon_thumb_down_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_thumb_down_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_thumb_down_normal@2x.png"
+    },
+    {
+      "name": "전화 수화기",
+      "filename": "ui_icon_phone_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_phone_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_phone_normal@2x.png"
+    },
+    {
+      "name": "스케줄표",
+      "filename": "ui_icon_schedule_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_schedule_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_schedule_normal@2x.png"
+    },
+    {
+      "name": "의료 십자",
+      "filename": "ui_icon_medical_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_medical_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_medical_normal@2x.png"
+    },
+    {
+      "name": "공구",
+      "filename": "ui_icon_tools_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_tools_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_tools_normal@2x.png"
+    },
+    {
+      "name": "빵",
+      "filename": "ui_icon_bread_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_bread_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_bread_normal@2x.png"
+    },
+    {
+      "name": "물병",
+      "filename": "ui_icon_water_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_water_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_water_normal@2x.png"
+    },
+    {
+      "name": "붕대",
+      "filename": "ui_icon_bandage_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_bandage_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_bandage_normal@2x.png"
+    },
+    {
+      "name": "배낭",
+      "filename": "ui_icon_backpack_normal@2x.png",
+      "status": "done",
+      "source_px": "64×64",
+      "project_relative_path": "Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_backpack_normal@2x.png",
+      "local_path": "/workspace/scratch/8b50162596f8/output/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_backpack_normal@2x.png"
+    }
+  ],
+  "next_after_current": "설정 전용 화면·남은 컨트롤 — 이번 타이틀 묶음 피드백 후 진행",
+  "game_integration_remaining": [
+    "실제 Unity 컴파일·Sprite 임포트·Play Mode 확인",
+    "프로젝트의 Pretendard TMP Font Asset·한글 글리프·줄바꿈 확인",
+    "게임 데이터·네트워크·상황별 표시 호출 연결",
+    "화면별 Canvas 정렬·상호작용 입력 연결"
+  ],
+  "open_game_policies": [
+    "Q1 메뉴 입력",
+    "Q2 방장 이탈",
+    "Q3 소지 슬롯 수",
+    "Q4 최초 가이드 범위",
+    "Q5 C6/C15 표시 방식",
+    "Q6 접속 이탈 후 호응 최대값",
+    "Q7 C11 실제 관전 전환 키·관전 대상 선택·대상 없음·사망에서 관전으로 전환하는 게임 정책",
+    "Q8 C16 실제 씬 로드·전원 준비 완료·연결 실패·전환 중 입력과 Canvas 수명 정책",
+    "Q9 T1/T2/T3 실제 방 만들기·방 코드/주소 규칙·접속·설정·종료·입력 모듈 연결"
+  ],
+  "stages": [
+    {
+      "step": 1,
+      "title": "그래픽 규칙 제안",
+      "status": "done",
+      "scope": "C안 선택 완료"
+    },
+    {
+      "step": 2,
+      "title": "그래픽 규칙 확정",
+      "status": "done",
+      "scope": "C안 계약 문서 완료"
+    },
+    {
+      "step": 3,
+      "title": "핵심 리소스",
+      "status": "done",
+      "scope": "C1·공용 버튼·메뉴/확인창 기본 패널·아이콘 묶음 완료"
+    },
+    {
+      "step": 4,
+      "title": "나머지 리소스",
+      "status": "in_progress",
+      "scope": "C16까지15개 묶음 전달·검토 완료. T1/T2/T3 타이틀·입력 패널은 이번 피드백 대기. 전용 패널·남은 컨트롤 제작 예정."
+    },
+    {
+      "step": 5,
+      "title": "최종 화면 목업",
+      "status": "remaining",
+      "scope": "7개 최종 화면과 화면별 조립·미학 점검 남음"
+    }
+  ],
+  "current_bundle_total_png_count": 23,
+  "approved_unique_png_count": 137,
+  "review_pending_unique_png_count": 8,
+  "current_manifest_path": "/workspace/scratch/8b50162596f8/output/curtaincall_title_v1/Docs/resource_manifest.json",
+  "current_c10_approval": "Earlier next-bundle request accepted delivered C10 artwork and assembly; current request revises the world-label bundle, not a new approval of its physical artwork.",
+  "world_canvas_proposal": {
+    "status": "Usage split confirmed by user. Root scale, actual physical sizes, distance thresholds and scene placement remain review/tuning proposals.",
+    "render_mode": "WorldSpace",
+    "reference_pixels_per_unit": 100,
+    "sprite_pixels_per_unit": 200,
+    "pixels_per_unit_multiplier": 1,
+    "canvas_scaler": "ConstantPixelSize; scaleFactor1; dynamicPixelsPerUnit1",
+    "uniform_local_scale": 0.0025,
+    "physical_units": "If1Unityunit=1metre,320UI becomes0.8m. Parent Transform scale changes actual size.",
+    "root_pivot": [
+      0.5,
+      0.5
+    ],
+    "root_anchor": [
+      0.5,
+      0.5
+    ],
+    "root_local_position": [
+      0,
+      0,
+      0
+    ],
+    "parent": "Optional ordinary scene Transform with no Canvas ancestor. No existing transforms changed.",
+    "fixed_orientation_default": true,
+    "billboard_default": false,
+    "billboard": "Optional assigned Camera only; align root rotation with that camera; no Camera.main lookup; disable restores captured local rotation.",
+    "input": "No EventSystem/GraphicRaycaster, all Image/TMP raycastTargetfalse; CanvasGroup interactablefalse blocksRaycastsfalse.",
+    "proximity": {
+      "kinds": [
+        "Item",
+        "Shelf"
+      ],
+      "observer": "Explicitly assigned local player/observer Transform; no automatic Camera.main or global player discovery",
+      "enter_distance_world_units": 2.0,
+      "exit_distance_world_units": 2.4,
+      "threshold_status": "Provisional tunable defaults, not confirmed gameplay distances; Unity world units are not assumed metres",
+      "missing_observer": "hidden",
+      "manual_visibility_gate": "SetVisible(false) always hides; SetVisible(true) permits proximity-gated display",
+      "hysteresis": "Enter at or below enter threshold; remain inside until beyond exit threshold",
+      "line_of_sight": "Not implemented by distance gate. Occlusion and simultaneous label selection remain project policies."
+    }
+  },
+  "world_label_mapping": "Group ID only; no evidence assigns individual L2/L3/H1/W4/W5 IDs to material variants.",
+  "world_label_open_policies": [
+    "실제 부착 위치·회전·물리 크기",
+    "카메라 및 billboard 사용 여부",
+    "근접 진입·이탈 임계값 튜닝·장애물 가림·동시 표시 개수",
+    "실제 문구·기물명·선반 번호",
+    "실제 3D 표면의 프로젝트별 조명 재질 연결"
+  ],
+  "world_label_usage_confirmed": {
+    "physical_prop_surface": [
+      "Wood",
+      "Cloth",
+      "Paper"
+    ],
+    "proximity_information_ui": [
+      "Item",
+      "Shelf"
+    ]
+  },
+  "current_worldlabels_approval": {
+    "date": "2026-10-20",
+    "user_instruction": "좋아 이제 다음 단계 진행해",
+    "interpretation": "월드 라벨 v2 그래픽·조립을 검토 완료한 것으로 반영. 기물 이름표·선반 번호표만 근접 정보 UI이며 나무/천/종이는 실제 소품 표면.",
+    "historical_files_modified": false,
+    "unity_execution": "not_run"
+  },
+  "current_review_scope": "로고 본체·그림자, 메뉴 밑줄, 입력4상태·포커스의 신규8 PNG와 승인15 PNG를 사용한 T1/T2/T3 레이어 조립",
+  "current_assembly_review_status": "pending_user_feedback",
+  "current_layout_review_status": "pending_user_feedback",
+  "spectator_review_proposal": {
+    "hud_size_ui": [
+      360,
+      64
+    ],
+    "bottom_offset_ui": 160,
+    "vignette_layer_opacity": {
+      "hidden": 0,
+      "spectating": 0.4,
+      "dead": 0.7,
+      "no_target": 0.4
+    },
+    "opacity_meaning": "Multiplier on source alpha, not a full-screen dim percentage.",
+    "bottom_slot_priority": [
+      "C11",
+      "P1",
+      "W6",
+      "C7"
+    ],
+    "game_state_owned_by": "caller",
+    "artwork_and_layout_status": "approved_by_next_instruction"
+  },
+  "current_spectator_approval": {
+    "date": "2026-10-20",
+    "user_instruction": "다음 단계 진행해",
+    "interpretation": "C11 그래픽·관전 HUD 배치와 조립 검토 완료로 반영. 실제 Unity 실행·게임 연결까지 완료했다고 보지 않는다.",
+    "historical_files_modified": false,
+    "unity_execution": "not_run"
+  },
+  "curtain_review_proposal": {
+    "cloth_layer_count": 6,
+    "reused_star_sprite_count": 1,
+    "image_component_count": 8,
+    "tmp_component_count": 1,
+    "side_surface_size_ui": [
+      1040,
+      1200
+    ],
+    "valance_size_ui": [
+      1984,
+      240
+    ],
+    "body_stage_scale": "uniform cover of1920×1080",
+    "valance_scale": "viewportWidth/1920, viewport top anchored",
+    "duration_ms": {
+      "close": 450,
+      "open": 450
+    },
+    "loading_is_indeterminate": true,
+    "loading_only_while_closed": true,
+    "caller_owns": [
+      "scene loading",
+      "network readiness",
+      "input policy",
+      "Canvas lifetime"
+    ],
+    "artwork_and_layout_status": "approved_by_next_instruction",
+    "actual_unity_execution": "not_run"
+  },
+  "current_curtain_approval": {
+    "date": "2026-10-20",
+    "user_instruction": "다음 진행해줘",
+    "interpretation": "C16 그래픽·전환 조립 사용자 검토 완료로 반영. 실제 Unity 실행·게임 연결 완료를 뜻하지 않는다.",
+    "historical_files_modified": false,
+    "unity_execution": "not_run"
+  },
+  "title_review_proposal": {
+    "new_png_count": 8,
+    "reused_png_count": 15,
+    "main_logo_size_ui": [
+      768,
+      384
+    ],
+    "subpage_panel_size_ui": [
+      672,
+      432
+    ],
+    "shared_room_code_lan_panel": true,
+    "text_logo_exception_only": true,
+    "title_dim_alpha": 0.6,
+    "no_network_or_quit_implementation": true,
+    "artwork_and_layout_status": "pending_user_feedback",
+    "actual_unity_execution": "not_run"
+  }
+}

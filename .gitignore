@@ -137,3 +137,6 @@ InitTestScene*.unity*
 # 규칙: Harness/Project/Decisions/third-party-assets.md
 /[Aa]ssets/Plugins/Demigiant/
 /[Aa]ssets/Plugins/Demigiant.meta
+
+# Original handoff graphic archives are local references; runtime uses Assets prefabs.
+/Docs/References/curtaincall_unity_handoff_v1/Packages/

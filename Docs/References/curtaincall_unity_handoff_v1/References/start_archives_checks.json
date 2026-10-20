@@ -1,0 +1,46 @@
+[
+  {
+    "filename": "curtaincall_c1_v1.zip",
+    "bytes": 11570142,
+    "sha256": "af8352c8086a1e3853fa3769f41c970ae9d6d735479ce384a176eeedaf442ea3",
+    "zip_crc": "passed",
+    "docs": [
+      "curtaincall_c1_v1/Docs/RESOURCE_MANIFEST.md",
+      "curtaincall_c1_v1/Docs/UNITY_SETUP.md",
+      "curtaincall_c1_v1/Docs/c1_assembly.json",
+      "curtaincall_c1_v1/Docs/export_report.json",
+      "curtaincall_c1_v1/Docs/resource_manifest.json",
+      "curtaincall_c1_v1/Docs/resource_validation.json",
+      "curtaincall_c1_v1/Docs/sheet_layout.json"
+    ],
+    "scripts": [
+      "curtaincall_c1_v1/Assets/CurtainCallUI/C1/Editor/CheerGaugeBuilder.cs",
+      "curtaincall_c1_v1/Assets/CurtainCallUI/C1/Runtime/CheerGaugeView.cs"
+    ]
+  },
+  {
+    "filename": "curtaincall_performance_hud_v1.zip",
+    "bytes": 29453871,
+    "sha256": "191bee8e624385ff7bc7fec37b411baf4facb0941e1d774d9bbad1058f063685",
+    "zip_crc": "passed",
+    "docs": [
+      "curtaincall_performance_hud_v1/Docs/CONTRACT_REVIEW.md",
+      "curtaincall_performance_hud_v1/Docs/RESOURCE_MANIFEST.md",
+      "curtaincall_performance_hud_v1/Docs/UNITY_SETUP.md",
+      "curtaincall_performance_hud_v1/Docs/export_report.json",
+      "curtaincall_performance_hud_v1/Docs/hud_assembly.json",
+      "curtaincall_performance_hud_v1/Docs/hud_asset_plan.json",
+      "curtaincall_performance_hud_v1/Docs/preview_layout.json",
+      "curtaincall_performance_hud_v1/Docs/resource_manifest.json",
+      "curtaincall_performance_hud_v1/Docs/resource_validation.json",
+      "curtaincall_performance_hud_v1/Docs/sheet_layout.json"
+    ],
+    "scripts": [
+      "curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Editor/PerformanceHUDBuilder.cs",
+      "curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Runtime/PerformanceHUDView.cs",
+      "curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Runtime/PerformanceProgressView.cs",
+      "curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Runtime/PerformanceTimerView.cs",
+      "curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Runtime/TightropeBalanceView.cs"
+    ]
+  }
+]

@@ -1,0 +1,166 @@
+{
+  "as_of": "2026-10-20",
+  "bundles": [
+    {
+      "order": "01",
+      "title": "C1 호응 게이지",
+      "archive": "curtaincall_c1_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 8,
+      "file_size_bytes": 11570142,
+      "included_in_handoff": true,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "02",
+      "title": "공용 버튼4종×4상태",
+      "archive": "curtaincall_buttons_v1_fixed.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 20,
+      "file_size_bytes": 16066975,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "03",
+      "title": "메뉴·확인창 기본 패널",
+      "archive": "curtaincall_panels_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 7,
+      "file_size_bytes": 49118602,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "04",
+      "title": "공용 아이콘25종",
+      "archive": "curtaincall_icons_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 22,
+      "file_size_bytes": 12701446,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "05",
+      "title": "C2·C3·P1 공연 HUD",
+      "archive": "curtaincall_performance_hud_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 20,
+      "file_size_bytes": 29453871,
+      "included_in_handoff": true,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "06",
+      "title": "W1·C4·C5·W6·L1 대기실/로비 HUD",
+      "archive": "curtaincall_backstage_hud_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 14,
+      "file_size_bytes": 47474138,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "07",
+      "title": "C8 배너·토스트",
+      "archive": "curtaincall_notifications_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 5,
+      "file_size_bytes": 28821919,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "08",
+      "title": "C6 상호작용 안내·홀드 링",
+      "archive": "curtaincall_interaction_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 2,
+      "file_size_bytes": 27857847,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "09",
+      "title": "C15·패널 내부 툴팁",
+      "archive": "curtaincall_tooltips_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 7,
+      "file_size_bytes": 25379176,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "10",
+      "title": "C7 가이드·키캡·마우스",
+      "archive": "curtaincall_guides_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 8,
+      "file_size_bytes": 25422906,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "11",
+      "title": "C9 자막·화자·방송",
+      "archive": "curtaincall_captions_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 0,
+      "file_size_bytes": 24368996,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "12",
+      "title": "C10 환호·야유 피드백",
+      "archive": "curtaincall_feedback_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 4,
+      "file_size_bytes": 31286344,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "13",
+      "title": "월드 라벨 v2 — 물리 표면3·근접 정보2",
+      "archive": "curtaincall_worldlabels_v2.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 12,
+      "file_size_bytes": 59874632,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "14",
+      "title": "C11 관전·사망 비네트와 관전 HUD",
+      "archive": "curtaincall_spectator_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 2,
+      "file_size_bytes": 78219871,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "15",
+      "title": "C16 장소 전환 커튼",
+      "archive": "curtaincall_curtain_v1.zip",
+      "status": "art_approved",
+      "new_unique_png_at_delivery": 6,
+      "file_size_bytes": 120326441,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    },
+    {
+      "order": "16",
+      "title": "T1/T2/T3 타이틀·입력 필드",
+      "archive": "curtaincall_title_v1.zip",
+      "status": "pending_user_feedback",
+      "new_unique_png_at_delivery": 8,
+      "file_size_bytes": 54444618,
+      "included_in_handoff": false,
+      "unity_execution": "not_run"
+    }
+  ],
+  "note": "Archive filenames verified against saved file metadata/current delivered files. This is not a combined 145-sprite archive; older archive bytes are not all revalidated in this handoff task."
+}

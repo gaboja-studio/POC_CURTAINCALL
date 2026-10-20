@@ -1,0 +1,3961 @@
+{
+  "schema_version": "1.0.0",
+  "version": "1.0.0-review",
+  "date": "2026-10-20",
+  "bundle": "curtaincall_title_v1",
+  "style": "C — 무대감독 계기판",
+  "ui": [
+    "T1",
+    "T2",
+    "T3"
+  ],
+  "review_status": "pending_user_feedback",
+  "unity_execution": "not_run",
+  "canvas": {
+    "render_mode": "ScreenSpaceOverlay",
+    "scale_mode": "ScaleWithScreenSize",
+    "reference_resolution": [
+      1920,
+      1080
+    ],
+    "match_width_or_height": 0.5,
+    "reference_pixels_per_unit": 100,
+    "sprite_pixels_per_unit": 200,
+    "image_pixels_per_unit_multiplier": 1
+  },
+  "groups": [
+    {
+      "path": "Canvas/60_Panels",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "purpose": "Title/menu layer group below70_ConfirmDialogs,80_Tooltips,90_TransitionCurtain"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "components": [
+        "TitleMenuView"
+      ],
+      "purpose": "Stable active controller; runtime starts Hidden"
+    }
+  ],
+  "nodes": [
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals",
+      "parent": "Canvas/60_Panels/T1_TitleMenu",
+      "sibling_index": 0,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "additional_components": [
+        "CanvasGroup"
+      ],
+      "visible_when": "state != Hidden or exit fade in progress",
+      "runtime_initial_alpha": 0,
+      "animation": "Title-owned visuals:160ms enter120ms exit,unscaledDeltaTime; interactions disabled immediately onHide"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/00_TitleDim",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": null,
+      "asset_relative_path": null,
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Simple",
+      "border_lr_tb_px": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": true,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#000000",
+      "alpha_multiplier": 0.6,
+      "rule": "Title scene only; never placed inside generic gameplay-panel prefab"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals",
+      "sibling_index": 1,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0.5,
+          0.5
+        ],
+        "anchor_max": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "anchored_position_ui": [
+          0,
+          0
+        ],
+        "size_delta_ui": [
+          1920,
+          1080
+        ]
+      },
+      "uniform_scale_formula": "min(1,viewportWidth/1920,viewportHeight/1080)"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/00_Brand",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage",
+      "sibling_index": 0,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          576,
+          -48
+        ],
+        "size_delta_ui": [
+          768,
+          384
+        ],
+        "rect_top_left_ui": [
+          576,
+          48,
+          768,
+          384
+        ]
+      },
+      "rect_by_mode": {
+        "Main": {
+          "anchor_min": [
+            0,
+            1
+          ],
+          "anchor_max": [
+            0,
+            1
+          ],
+          "pivot": [
+            0,
+            1
+          ],
+          "anchored_position_ui": [
+            576,
+            -48
+          ],
+          "size_delta_ui": [
+            768,
+            384
+          ],
+          "rect_top_left_ui": [
+            576,
+            48,
+            768,
+            384
+          ]
+        },
+        "RoomCode": {
+          "anchor_min": [
+            0,
+            1
+          ],
+          "anchor_max": [
+            0,
+            1
+          ],
+          "pivot": [
+            0,
+            1
+          ],
+          "anchored_position_ui": [
+            768,
+            -88
+          ],
+          "size_delta_ui": [
+            384,
+            192
+          ],
+          "rect_top_left_ui": [
+            768,
+            88,
+            384,
+            192
+          ]
+        },
+        "Lan": {
+          "anchor_min": [
+            0,
+            1
+          ],
+          "anchor_max": [
+            0,
+            1
+          ],
+          "pivot": [
+            0,
+            1
+          ],
+          "anchored_position_ui": [
+            768,
+            -88
+          ],
+          "size_delta_ui": [
+            384,
+            192
+          ],
+          "rect_top_left_ui": [
+            768,
+            88,
+            384,
+            192
+          ]
+        }
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/00_Brand/00_Shadow",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/00_Brand",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": "logo_shadow",
+      "asset_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_shadow@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          -3
+        ],
+        "offset_max_ui": [
+          0,
+          -3
+        ]
+      },
+      "image_type": "Simple",
+      "border_lr_tb_px": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#05090B",
+      "alpha_multiplier": 0.32
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/00_Brand/10_Logo",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/00_Brand",
+      "sibling_index": 1,
+      "component": "Image",
+      "asset_key": "logo_body",
+      "asset_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Simple",
+      "border_lr_tb_px": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 1
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage",
+      "sibling_index": 1,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "additional_components": [
+        "CanvasGroup"
+      ],
+      "visible_when": "Main",
+      "animation": "Page enter160ms"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu",
+      "sibling_index": 0,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          780,
+          -488
+        ],
+        "size_delta_ui": [
+          360,
+          56
+        ],
+        "rect_top_left_ui": [
+          780,
+          488,
+          360,
+          56
+        ]
+      },
+      "additional_components": [
+        "TitleMenuItem"
+      ],
+      "event": "CreateRoomRequested",
+      "navigation": "Explicit vertical among enabled main rows; project EventSystem owns move/submit inputs"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom/00_HitTarget",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": null,
+      "asset_relative_path": null,
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Simple",
+      "border_lr_tb_px": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": true,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 0
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom/10_Content",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom",
+      "sibling_index": 1,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "pressed_offset_unity_ui": [
+        0,
+        -1
+      ]
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom/10_Content/00_LabelTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom/10_Content",
+      "sibling_index": 0,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          0,
+          0
+        ],
+        "size_delta_ui": [
+          360,
+          48
+        ],
+        "rect_top_left_ui": [
+          0,
+          0,
+          360,
+          48
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "SemiBold",
+        "size_ui": 28,
+        "color": "#F0EEDC"
+      },
+      "alignment": "Midline",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "방 만들기",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "colors_by_state": {
+        "normal": "#F0EEDC",
+        "hover": "#FFFFFF",
+        "pressed": "#F0EEDC",
+        "disabled": "#AAB0AD"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom/10_Content/10_Underline",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom/10_Content",
+      "sibling_index": 1,
+      "component": "Image",
+      "asset_key": "underline",
+      "asset_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          52,
+          -48
+        ],
+        "size_delta_ui": [
+          256,
+          8
+        ],
+        "rect_top_left_ui": [
+          52,
+          48,
+          256,
+          8
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#BBA36B",
+      "alpha_multiplier": 1,
+      "visible_when": "hover or EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom/20_Focus",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/00_CreateRoom",
+      "sibling_index": 2,
+      "component": "Image",
+      "asset_key": "button_focus",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#C7D8D9",
+      "alpha_multiplier": 1,
+      "visible_when": "EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu",
+      "sibling_index": 1,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          780,
+          -560
+        ],
+        "size_delta_ui": [
+          360,
+          56
+        ],
+        "rect_top_left_ui": [
+          780,
+          560,
+          360,
+          56
+        ]
+      },
+      "additional_components": [
+        "TitleMenuItem"
+      ],
+      "event": "ShowRoomCode",
+      "navigation": "Explicit vertical among enabled main rows; project EventSystem owns move/submit inputs"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode/00_HitTarget",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": null,
+      "asset_relative_path": null,
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Simple",
+      "border_lr_tb_px": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": true,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 0
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode/10_Content",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode",
+      "sibling_index": 1,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "pressed_offset_unity_ui": [
+        0,
+        -1
+      ]
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode/10_Content/00_LabelTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode/10_Content",
+      "sibling_index": 0,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          0,
+          0
+        ],
+        "size_delta_ui": [
+          360,
+          48
+        ],
+        "rect_top_left_ui": [
+          0,
+          0,
+          360,
+          48
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "SemiBold",
+        "size_ui": 28,
+        "color": "#F0EEDC"
+      },
+      "alignment": "Midline",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "방 코드로 참가",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "colors_by_state": {
+        "normal": "#F0EEDC",
+        "hover": "#FFFFFF",
+        "pressed": "#F0EEDC",
+        "disabled": "#AAB0AD"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode/10_Content/10_Underline",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode/10_Content",
+      "sibling_index": 1,
+      "component": "Image",
+      "asset_key": "underline",
+      "asset_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          52,
+          -48
+        ],
+        "size_delta_ui": [
+          256,
+          8
+        ],
+        "rect_top_left_ui": [
+          52,
+          48,
+          256,
+          8
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#BBA36B",
+      "alpha_multiplier": 1,
+      "visible_when": "hover or EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode/20_Focus",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/01_RoomCode",
+      "sibling_index": 2,
+      "component": "Image",
+      "asset_key": "button_focus",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#C7D8D9",
+      "alpha_multiplier": 1,
+      "visible_when": "EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu",
+      "sibling_index": 2,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          780,
+          -632
+        ],
+        "size_delta_ui": [
+          360,
+          56
+        ],
+        "rect_top_left_ui": [
+          780,
+          632,
+          360,
+          56
+        ]
+      },
+      "additional_components": [
+        "TitleMenuItem"
+      ],
+      "event": "ShowLan",
+      "navigation": "Explicit vertical among enabled main rows; project EventSystem owns move/submit inputs"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan/00_HitTarget",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": null,
+      "asset_relative_path": null,
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Simple",
+      "border_lr_tb_px": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": true,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 0
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan/10_Content",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan",
+      "sibling_index": 1,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "pressed_offset_unity_ui": [
+        0,
+        -1
+      ]
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan/10_Content/00_LabelTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan/10_Content",
+      "sibling_index": 0,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          0,
+          0
+        ],
+        "size_delta_ui": [
+          360,
+          48
+        ],
+        "rect_top_left_ui": [
+          0,
+          0,
+          360,
+          48
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "SemiBold",
+        "size_ui": 28,
+        "color": "#F0EEDC"
+      },
+      "alignment": "Midline",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "LAN 접속",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "colors_by_state": {
+        "normal": "#F0EEDC",
+        "hover": "#FFFFFF",
+        "pressed": "#F0EEDC",
+        "disabled": "#AAB0AD"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan/10_Content/10_Underline",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan/10_Content",
+      "sibling_index": 1,
+      "component": "Image",
+      "asset_key": "underline",
+      "asset_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          52,
+          -48
+        ],
+        "size_delta_ui": [
+          256,
+          8
+        ],
+        "rect_top_left_ui": [
+          52,
+          48,
+          256,
+          8
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#BBA36B",
+      "alpha_multiplier": 1,
+      "visible_when": "hover or EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan/20_Focus",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/02_Lan",
+      "sibling_index": 2,
+      "component": "Image",
+      "asset_key": "button_focus",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#C7D8D9",
+      "alpha_multiplier": 1,
+      "visible_when": "EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu",
+      "sibling_index": 3,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          780,
+          -704
+        ],
+        "size_delta_ui": [
+          360,
+          56
+        ],
+        "rect_top_left_ui": [
+          780,
+          704,
+          360,
+          56
+        ]
+      },
+      "additional_components": [
+        "TitleMenuItem"
+      ],
+      "event": "SettingsRequested",
+      "navigation": "Explicit vertical among enabled main rows; project EventSystem owns move/submit inputs"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings/00_HitTarget",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": null,
+      "asset_relative_path": null,
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Simple",
+      "border_lr_tb_px": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": true,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 0
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings/10_Content",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings",
+      "sibling_index": 1,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "pressed_offset_unity_ui": [
+        0,
+        -1
+      ]
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings/10_Content/00_LabelTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings/10_Content",
+      "sibling_index": 0,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          0,
+          0
+        ],
+        "size_delta_ui": [
+          360,
+          48
+        ],
+        "rect_top_left_ui": [
+          0,
+          0,
+          360,
+          48
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "SemiBold",
+        "size_ui": 28,
+        "color": "#F0EEDC"
+      },
+      "alignment": "Midline",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "설정",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "colors_by_state": {
+        "normal": "#F0EEDC",
+        "hover": "#FFFFFF",
+        "pressed": "#F0EEDC",
+        "disabled": "#AAB0AD"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings/10_Content/10_Underline",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings/10_Content",
+      "sibling_index": 1,
+      "component": "Image",
+      "asset_key": "underline",
+      "asset_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          52,
+          -48
+        ],
+        "size_delta_ui": [
+          256,
+          8
+        ],
+        "rect_top_left_ui": [
+          52,
+          48,
+          256,
+          8
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#BBA36B",
+      "alpha_multiplier": 1,
+      "visible_when": "hover or EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings/20_Focus",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/03_Settings",
+      "sibling_index": 2,
+      "component": "Image",
+      "asset_key": "button_focus",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#C7D8D9",
+      "alpha_multiplier": 1,
+      "visible_when": "EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu",
+      "sibling_index": 4,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          780,
+          -776
+        ],
+        "size_delta_ui": [
+          360,
+          56
+        ],
+        "rect_top_left_ui": [
+          780,
+          776,
+          360,
+          56
+        ]
+      },
+      "additional_components": [
+        "TitleMenuItem"
+      ],
+      "event": "QuitRequested",
+      "navigation": "Explicit vertical among enabled main rows; project EventSystem owns move/submit inputs"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit/00_HitTarget",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": null,
+      "asset_relative_path": null,
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Simple",
+      "border_lr_tb_px": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": true,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 0
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit/10_Content",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit",
+      "sibling_index": 1,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "pressed_offset_unity_ui": [
+        0,
+        -1
+      ]
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit/10_Content/00_LabelTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit/10_Content",
+      "sibling_index": 0,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          0,
+          0
+        ],
+        "size_delta_ui": [
+          360,
+          48
+        ],
+        "rect_top_left_ui": [
+          0,
+          0,
+          360,
+          48
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "SemiBold",
+        "size_ui": 28,
+        "color": "#F0EEDC"
+      },
+      "alignment": "Midline",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "종료",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "colors_by_state": {
+        "normal": "#F0EEDC",
+        "hover": "#FFFFFF",
+        "pressed": "#F0EEDC",
+        "disabled": "#AAB0AD"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit/10_Content/10_Underline",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit/10_Content",
+      "sibling_index": 1,
+      "component": "Image",
+      "asset_key": "underline",
+      "asset_relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          52,
+          -48
+        ],
+        "size_delta_ui": [
+          256,
+          8
+        ],
+        "rect_top_left_ui": [
+          52,
+          48,
+          256,
+          8
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#BBA36B",
+      "alpha_multiplier": 1,
+      "visible_when": "hover or EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit/20_Focus",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/10_MainMenu/04_Quit",
+      "sibling_index": 2,
+      "component": "Image",
+      "asset_key": "button_focus",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#C7D8D9",
+      "alpha_multiplier": 1,
+      "visible_when": "EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage",
+      "sibling_index": 2,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          624,
+          -328
+        ],
+        "size_delta_ui": [
+          672,
+          432
+        ],
+        "rect_top_left_ui": [
+          624,
+          328,
+          672,
+          432
+        ]
+      },
+      "additional_components": [
+        "CanvasGroup"
+      ],
+      "visible_when": "RoomCode or Lan",
+      "animation": "Page enter160ms"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/00_Shadow",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": "panel_shadow",
+      "asset_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          -1
+        ],
+        "offset_max_ui": [
+          0,
+          -1
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#05090B",
+      "alpha_multiplier": 0.32
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/10_Body",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel",
+      "sibling_index": 1,
+      "component": "Image",
+      "asset_key": "panel_body",
+      "asset_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 0.92
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/20_Frame",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel",
+      "sibling_index": 2,
+      "component": "Image",
+      "asset_key": "panel_frame",
+      "asset_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#C7D8D9",
+      "alpha_multiplier": 1
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/30_Corners",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel",
+      "sibling_index": 3,
+      "component": "Image",
+      "asset_key": "panel_corners",
+      "asset_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 1
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel",
+      "sibling_index": 4,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/00_HeadingTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content",
+      "sibling_index": 0,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          48,
+          -36
+        ],
+        "size_delta_ui": [
+          576,
+          40
+        ],
+        "rect_top_left_ui": [
+          48,
+          36,
+          576,
+          40
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "Bold",
+        "size_ui": 32,
+        "color": "#F0EEDC"
+      },
+      "alignment": "MidlineLeft",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "방 코드로 참가",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "text_by_mode": {
+        "RoomCode": "방 코드로 참가",
+        "Lan": "LAN 접속"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/10_DescriptionTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content",
+      "sibling_index": 1,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          48,
+          -88
+        ],
+        "size_delta_ui": [
+          576,
+          32
+        ],
+        "rect_top_left_ui": [
+          48,
+          88,
+          576,
+          32
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "Medium",
+        "size_ui": 24,
+        "color": "#B6C1BF"
+      },
+      "alignment": "MidlineLeft",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "친구가 알려준 방 코드를 입력하세요.",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "text_by_mode": {
+        "RoomCode": "친구가 알려준 방 코드를 입력하세요.",
+        "Lan": "접속할 LAN 주소를 입력하세요."
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/20_Divider",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content",
+      "sibling_index": 2,
+      "component": "Image",
+      "asset_key": "panel_divider",
+      "asset_relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          32,
+          -120
+        ],
+        "size_delta_ui": [
+          608,
+          16
+        ],
+        "rect_top_left_ui": [
+          32,
+          120,
+          608,
+          16
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        16,
+        16,
+        12,
+        12
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#C7D8D9",
+      "alpha_multiplier": 0.55
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/30_FieldLabelTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content",
+      "sibling_index": 3,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          48,
+          -160
+        ],
+        "size_delta_ui": [
+          576,
+          24
+        ],
+        "rect_top_left_ui": [
+          48,
+          160,
+          576,
+          24
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "Medium",
+        "size_ui": 18,
+        "color": "#B6C1BF"
+      },
+      "alignment": "MidlineLeft",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "방 코드",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "text_by_mode": {
+        "RoomCode": "방 코드",
+        "Lan": "접속 주소"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content",
+      "sibling_index": 4,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          48,
+          -192
+        ],
+        "size_delta_ui": [
+          576,
+          56
+        ],
+        "rect_top_left_ui": [
+          48,
+          192,
+          576,
+          56
+        ]
+      },
+      "additional_components": [
+        "TMP_InputField",
+        "TitleInputField",
+        "TitleCancelRelay"
+      ],
+      "policy": {
+        "line_type": "SingleLine",
+        "content_type": "Standard",
+        "character_limit": 0,
+        "force_uppercase": false,
+        "trim_outer_whitespace_on_submit": true,
+        "empty_submit_disabled": true,
+        "format_validation_owner": "game caller",
+        "rich_text": false,
+        "parse_ctrl_characters": false,
+        "caret_width_ui": 2,
+        "caret_color": "#F0EEDC",
+        "selection_color": "#4C8DDB",
+        "selection_alpha": 0.25,
+        "character_input_provider": "existing project EventSystem/InputModule"
+      },
+      "navigation": "Input -> Confirm/Back via explicit EventSystem navigation"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input/00_Body",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": "input_normal",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        20,
+        20
+      ],
+      "preserve_aspect": false,
+      "raycast_target": true,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 0.92,
+      "state_asset_keys": {
+        "normal": "input_normal",
+        "hover": "input_hover",
+        "pressed": "input_pressed",
+        "disabled": "input_disabled"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input/10_TextViewport",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input",
+      "sibling_index": 1,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          16,
+          8
+        ],
+        "offset_max_ui": [
+          -16,
+          -8
+        ]
+      },
+      "additional_components": [
+        "RectMask2D"
+      ]
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input/10_TextViewport/00_TextTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input/10_TextViewport",
+      "sibling_index": 0,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "Medium",
+        "size_ui": 24,
+        "color": "#F0EEDC"
+      },
+      "alignment": "MidlineLeft",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Overflow",
+      "raycast_target": false,
+      "sample_text": "",
+      "source": "TMP_InputField.text",
+      "alpha_multiplier": 1
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input/10_TextViewport/10_PlaceholderTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input/10_TextViewport",
+      "sibling_index": 1,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "Medium",
+        "size_ui": 24,
+        "color": "#B6C1BF"
+      },
+      "alignment": "MidlineLeft",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "방 코드 입력",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "text_by_mode": {
+        "RoomCode": "방 코드 입력",
+        "Lan": "IP 주소 또는 호스트 이름"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input/20_Focus",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/40_Input",
+      "sibling_index": 2,
+      "component": "Image",
+      "asset_key": "input_focus",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_focus@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        20,
+        20
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#C7D8D9",
+      "alpha_multiplier": 1,
+      "visible_when": "input has selection/focus",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/50_FeedbackTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content",
+      "sibling_index": 5,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          48,
+          -260
+        ],
+        "size_delta_ui": [
+          576,
+          48
+        ],
+        "rect_top_left_ui": [
+          48,
+          260,
+          576,
+          48
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "Medium",
+        "size_ui": 18,
+        "color": "#B6C1BF"
+      },
+      "alignment": "MidlineLeft",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": true,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "",
+      "source": "caller.SetFeedback(text,isError); no fake success",
+      "alpha_multiplier": 1,
+      "maximum_lines": 2,
+      "error_color": "#E06C78"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content",
+      "sibling_index": 6,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          48,
+          -328
+        ],
+        "size_delta_ui": [
+          264,
+          56
+        ],
+        "rect_top_left_ui": [
+          48,
+          328,
+          264,
+          56
+        ]
+      },
+      "additional_components": [
+        "CurtainCallButton",
+        "TitleCancelRelay"
+      ],
+      "event": "ShowMain/FormClosed",
+      "disabled_when": "never from formBusy"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back/00_Shadow",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": "button_shadow",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          -1
+        ],
+        "offset_max_ui": [
+          0,
+          -1
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#05090B",
+      "alpha_multiplier": 0.32
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back/10_Body",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back",
+      "sibling_index": 1,
+      "component": "Image",
+      "asset_key": "cancel_normal",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": true,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 0.92,
+      "state_asset_keys": {
+        "normal": "cancel_normal",
+        "hover": "cancel_hover",
+        "pressed": "cancel_pressed",
+        "disabled": "cancel_disabled"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back/20_Content",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back",
+      "sibling_index": 2,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "pressed_offset_unity_ui": [
+        0,
+        -1
+      ]
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back/20_Content/00_LabelTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back/20_Content",
+      "sibling_index": 0,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "SemiBold",
+        "size_ui": 28,
+        "color": "#F0EEDC"
+      },
+      "alignment": "Midline",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "뒤로",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "margin_lr_tb_ui": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "text_by_mode": {
+        "RoomCode": "뒤로",
+        "Lan": "뒤로"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back/30_Focus",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/60_Back",
+      "sibling_index": 3,
+      "component": "Image",
+      "asset_key": "button_focus",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#C7D8D9",
+      "alpha_multiplier": 1,
+      "visible_when": "EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content",
+      "sibling_index": 7,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          1
+        ],
+        "anchor_max": [
+          0,
+          1
+        ],
+        "pivot": [
+          0,
+          1
+        ],
+        "anchored_position_ui": [
+          360,
+          -328
+        ],
+        "size_delta_ui": [
+          264,
+          56
+        ],
+        "rect_top_left_ui": [
+          360,
+          328,
+          264,
+          56
+        ]
+      },
+      "additional_components": [
+        "CurtainCallButton",
+        "TitleCancelRelay"
+      ],
+      "event": "Trim input -> busy true -> mode request once",
+      "disabled_when": "empty input or formBusy"
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm/00_Shadow",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm",
+      "sibling_index": 0,
+      "component": "Image",
+      "asset_key": "button_shadow",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          -1
+        ],
+        "offset_max_ui": [
+          0,
+          -1
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#05090B",
+      "alpha_multiplier": 0.32
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm/10_Body",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm",
+      "sibling_index": 1,
+      "component": "Image",
+      "asset_key": "confirm_normal",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": true,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#FFFFFF",
+      "alpha_multiplier": 0.92,
+      "state_asset_keys": {
+        "normal": "confirm_normal",
+        "hover": "confirm_hover",
+        "pressed": "confirm_pressed",
+        "disabled": "confirm_disabled"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm/20_Content",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm",
+      "sibling_index": 2,
+      "component": "RectTransform",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "pressed_offset_unity_ui": [
+        0,
+        -1
+      ]
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm/20_Content/00_LabelTMP",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm/20_Content",
+      "sibling_index": 0,
+      "component": "TextMeshProUGUI",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "font": {
+        "family": "Pretendard",
+        "weight": "SemiBold",
+        "size_ui": 28,
+        "color": "#F0EEDC"
+      },
+      "alignment": "Midline",
+      "auto_size": false,
+      "rich_text": false,
+      "parse_ctrl_characters": false,
+      "wrap": false,
+      "overflow": "Ellipsis",
+      "raycast_target": false,
+      "sample_text": "참가",
+      "source": "runtime TMP text",
+      "alpha_multiplier": 1,
+      "margin_lr_tb_ui": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "text_by_mode": {
+        "RoomCode": "참가",
+        "Lan": "접속"
+      }
+    },
+    {
+      "path": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm/30_Focus",
+      "parent": "Canvas/60_Panels/T1_TitleMenu/00_Visuals/10_LayoutStage/20_FormPanel/40_Content/70_Confirm",
+      "sibling_index": 3,
+      "component": "Image",
+      "asset_key": "button_focus",
+      "asset_relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+      "rect_transform": {
+        "anchor_min": [
+          0,
+          0
+        ],
+        "anchor_max": [
+          1,
+          1
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "offset_min_ui": [
+          0,
+          0
+        ],
+        "offset_max_ui": [
+          0,
+          0
+        ]
+      },
+      "image_type": "Sliced",
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "preserve_aspect": false,
+      "raycast_target": false,
+      "pixels_per_unit_multiplier": 1,
+      "color": "#C7D8D9",
+      "alpha_multiplier": 1,
+      "visible_when": "EventSystem selection",
+      "disabled_color": "#7A6A5C"
+    }
+  ],
+  "assets": [
+    {
+      "key": "logo_shadow",
+      "filename": "ui_logo_curtaincall_shadow@2x.png",
+      "relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_shadow@2x.png",
+      "source_px": [
+        1536,
+        768
+      ],
+      "display_ui": [
+        768.0,
+        384.0
+      ],
+      "border_lr_tb_px": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Simple",
+      "new": true,
+      "tint": true,
+      "white_mask": true,
+      "ui": "T1",
+      "type": "타이틀 로고",
+      "states": [
+        "normal"
+      ],
+      "use": "로고의 독립 국소 그림자",
+      "text_baked": true,
+      "text_exception": "CURTAIN CALL title wordmark only",
+      "exact_text": "CURTAIN CALL",
+      "generated_source_relative_path": "Source/Generated/curtaincall_logo_imagegen_original.png",
+      "stretch_policy": "Preserve2:1 rectangle; uniform scale only; no9-slice."
+    },
+    {
+      "key": "logo_body",
+      "filename": "ui_logo_curtaincall_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_logo_curtaincall_normal@2x.png",
+      "source_px": [
+        1536,
+        768
+      ],
+      "display_ui": [
+        768.0,
+        384.0
+      ],
+      "border_lr_tb_px": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Simple",
+      "new": true,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T1",
+      "type": "타이틀 로고",
+      "states": [
+        "normal"
+      ],
+      "use": "금색 CURTAIN CALL 로고",
+      "text_baked": true,
+      "text_exception": "CURTAIN CALL title wordmark only",
+      "exact_text": "CURTAIN CALL",
+      "generated_source_relative_path": "Source/Generated/curtaincall_logo_imagegen_original.png",
+      "stretch_policy": "Preserve2:1 rectangle; uniform scale only; no9-slice."
+    },
+    {
+      "key": "underline",
+      "filename": "ui_select_title_underline_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/TitleMenu/Sprites/ui_select_title_underline_normal@2x.png",
+      "source_px": [
+        512,
+        16
+      ],
+      "display_ui": [
+        256.0,
+        8.0
+      ],
+      "border_lr_tb_px": [
+        16,
+        16,
+        0,
+        0
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": true,
+      "tint": true,
+      "white_mask": true,
+      "ui": "T1",
+      "type": "선택 표시",
+      "states": [
+        "hover",
+        "pressed",
+        "selected"
+      ],
+      "use": "메뉴 올림·선택 밑줄",
+      "text_baked": false,
+      "minimum_ui": [
+        32,
+        8
+      ],
+      "stretch_policy": "Horizontal stretch only; keep8UI rectangle height and2UI visible stroke."
+    },
+    {
+      "key": "input_normal",
+      "filename": "ui_input_standard_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_normal@2x.png",
+      "source_px": [
+        512,
+        96
+      ],
+      "display_ui": [
+        256.0,
+        48.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        20,
+        20
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": true,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "입력 필드",
+      "states": [
+        "normal"
+      ],
+      "use": "방 코드·LAN 주소 입력 바탕",
+      "text_baked": false,
+      "minimum_ui": [
+        160,
+        48
+      ]
+    },
+    {
+      "key": "input_hover",
+      "filename": "ui_input_standard_hover@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_hover@2x.png",
+      "source_px": [
+        512,
+        96
+      ],
+      "display_ui": [
+        256.0,
+        48.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        20,
+        20
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": true,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "입력 필드",
+      "states": [
+        "hover"
+      ],
+      "use": "방 코드·LAN 주소 입력 바탕",
+      "text_baked": false,
+      "minimum_ui": [
+        160,
+        48
+      ]
+    },
+    {
+      "key": "input_pressed",
+      "filename": "ui_input_standard_pressed@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_pressed@2x.png",
+      "source_px": [
+        512,
+        96
+      ],
+      "display_ui": [
+        256.0,
+        48.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        20,
+        20
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": true,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "입력 필드",
+      "states": [
+        "pressed"
+      ],
+      "use": "방 코드·LAN 주소 입력 바탕",
+      "text_baked": false,
+      "minimum_ui": [
+        160,
+        48
+      ]
+    },
+    {
+      "key": "input_disabled",
+      "filename": "ui_input_standard_disabled@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_disabled@2x.png",
+      "source_px": [
+        512,
+        96
+      ],
+      "display_ui": [
+        256.0,
+        48.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        20,
+        20
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": true,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "입력 필드",
+      "states": [
+        "disabled"
+      ],
+      "use": "방 코드·LAN 주소 입력 바탕",
+      "text_baked": false,
+      "minimum_ui": [
+        160,
+        48
+      ]
+    },
+    {
+      "key": "input_focus",
+      "filename": "ui_input_standard_focus@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonInputs/Sprites/ui_input_standard_focus@2x.png",
+      "source_px": [
+        512,
+        96
+      ],
+      "display_ui": [
+        256.0,
+        48.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        20,
+        20
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": true,
+      "tint": true,
+      "white_mask": true,
+      "ui": "T2/T3",
+      "type": "입력 필드",
+      "states": [
+        "focused"
+      ],
+      "use": "독립 입력 포커스 테두리",
+      "text_baked": false,
+      "minimum_ui": [
+        160,
+        48
+      ]
+    },
+    {
+      "key": "panel_shadow",
+      "filename": "ui_panel_base_shadow_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png",
+      "source_px": [
+        256,
+        256
+      ],
+      "display_ui": [
+        128.0,
+        128.0
+      ],
+      "border_lr_tb_px": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": true,
+      "white_mask": true,
+      "ui": "T2/T3",
+      "type": "공용 패널",
+      "states": [
+        "normal"
+      ],
+      "use": "참가 하위 페이지 국소 그림자",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_shadow_normal@2x.png",
+      "sha256": "d40985bbebd75eac5b6129d6eed9f2de8dada8568f2013f8fabe68886e4bd498"
+    },
+    {
+      "key": "panel_body",
+      "filename": "ui_panel_base_body_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png",
+      "source_px": [
+        256,
+        256
+      ],
+      "display_ui": [
+        128.0,
+        128.0
+      ],
+      "border_lr_tb_px": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "공용 패널",
+      "states": [
+        "normal"
+      ],
+      "use": "참가 하위 페이지 바탕",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_body_normal@2x.png",
+      "sha256": "03bdb6a1a415fb6eb6f7d3d34a5c624904f76de566c53a9afc28192dc36cf80e"
+    },
+    {
+      "key": "panel_frame",
+      "filename": "ui_panel_base_frame_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png",
+      "source_px": [
+        256,
+        256
+      ],
+      "display_ui": [
+        128.0,
+        128.0
+      ],
+      "border_lr_tb_px": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": true,
+      "white_mask": true,
+      "ui": "T2/T3",
+      "type": "공용 패널",
+      "states": [
+        "normal"
+      ],
+      "use": "참가 하위 페이지 테두리",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_frame_normal@2x.png",
+      "sha256": "21b2ae5d7bc494fc140681c65b40eef7ffd115d903268440379205a99aa39330"
+    },
+    {
+      "key": "panel_corners",
+      "filename": "ui_panel_base_corners_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png",
+      "source_px": [
+        256,
+        256
+      ],
+      "display_ui": [
+        128.0,
+        128.0
+      ],
+      "border_lr_tb_px": [
+        64,
+        64,
+        64,
+        64
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "공용 패널",
+      "states": [
+        "normal"
+      ],
+      "use": "참가 하위 페이지 모서리 장식",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_base_corners_normal@2x.png",
+      "sha256": "b1f26a2eced07153de40d15156ff849e7e2de7dcfd533fc4fb19077626055cb4"
+    },
+    {
+      "key": "panel_divider",
+      "filename": "ui_panel_divider_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png",
+      "source_px": [
+        256,
+        32
+      ],
+      "display_ui": [
+        128.0,
+        16.0
+      ],
+      "border_lr_tb_px": [
+        16,
+        16,
+        12,
+        12
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": true,
+      "white_mask": true,
+      "ui": "T2/T3",
+      "type": "공용 패널",
+      "states": [
+        "normal"
+      ],
+      "use": "제목과 입력 영역 구분선",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/ui_panel_divider_normal@2x.png",
+      "sha256": "67a16506b70fbfa1e573e51af8ec1f97cfd58d83491b04d0713ddb8ac4f3a45d"
+    },
+    {
+      "key": "confirm_normal",
+      "filename": "ui_btn_confirm_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png",
+      "source_px": [
+        384,
+        112
+      ],
+      "display_ui": [
+        192.0,
+        56.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "공용 버튼",
+      "states": [
+        "normal"
+      ],
+      "use": "참가·접속 버튼",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_normal@2x.png",
+      "sha256": "fa9c5777be70f9e19bbde9f5d2d120b3250105b0ec7c059d389e059bcfb22c8b"
+    },
+    {
+      "key": "confirm_hover",
+      "filename": "ui_btn_confirm_hover@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png",
+      "source_px": [
+        384,
+        112
+      ],
+      "display_ui": [
+        192.0,
+        56.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "공용 버튼",
+      "states": [
+        "hover"
+      ],
+      "use": "참가·접속 버튼",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_hover@2x.png",
+      "sha256": "bb21ddcdb982dc34d88d07348dee6d72aafe3b795e563df916048acd402b9985"
+    },
+    {
+      "key": "confirm_pressed",
+      "filename": "ui_btn_confirm_pressed@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png",
+      "source_px": [
+        384,
+        112
+      ],
+      "display_ui": [
+        192.0,
+        56.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "공용 버튼",
+      "states": [
+        "pressed"
+      ],
+      "use": "참가·접속 버튼",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_pressed@2x.png",
+      "sha256": "dd2e7b787e6180bfd255ded41fcf3c48d162f8570f05f3c6275037d8cf005936"
+    },
+    {
+      "key": "confirm_disabled",
+      "filename": "ui_btn_confirm_disabled@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png",
+      "source_px": [
+        384,
+        112
+      ],
+      "display_ui": [
+        192.0,
+        56.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "공용 버튼",
+      "states": [
+        "disabled"
+      ],
+      "use": "참가·접속 버튼",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_confirm_disabled@2x.png",
+      "sha256": "ad4df5f3ef063834c202b69bc63ae9306c58f3b9b0a76405bc6aefb330369837"
+    },
+    {
+      "key": "cancel_normal",
+      "filename": "ui_btn_cancel_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+      "source_px": [
+        384,
+        112
+      ],
+      "display_ui": [
+        192.0,
+        56.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "공용 버튼",
+      "states": [
+        "normal"
+      ],
+      "use": "뒤로 버튼",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_normal@2x.png",
+      "sha256": "cae514dd8bf6abf5f4ab205554c36509a0e814646ac2bc15872dc44bf0bd5229"
+    },
+    {
+      "key": "cancel_hover",
+      "filename": "ui_btn_cancel_hover@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png",
+      "source_px": [
+        384,
+        112
+      ],
+      "display_ui": [
+        192.0,
+        56.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "공용 버튼",
+      "states": [
+        "hover"
+      ],
+      "use": "뒤로 버튼",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_hover@2x.png",
+      "sha256": "5481fefb38551351e9e874bc03aad7160788de8564798993d5a761a2881caa52"
+    },
+    {
+      "key": "cancel_pressed",
+      "filename": "ui_btn_cancel_pressed@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png",
+      "source_px": [
+        384,
+        112
+      ],
+      "display_ui": [
+        192.0,
+        56.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "공용 버튼",
+      "states": [
+        "pressed"
+      ],
+      "use": "뒤로 버튼",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_pressed@2x.png",
+      "sha256": "3b57d15656e5039be07dfed9179d97cd4cfa837ae644be9502b80b5453d3c5e9"
+    },
+    {
+      "key": "cancel_disabled",
+      "filename": "ui_btn_cancel_disabled@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png",
+      "source_px": [
+        384,
+        112
+      ],
+      "display_ui": [
+        192.0,
+        56.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": false,
+      "white_mask": false,
+      "ui": "T2/T3",
+      "type": "공용 버튼",
+      "states": [
+        "disabled"
+      ],
+      "use": "뒤로 버튼",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_cancel_disabled@2x.png",
+      "sha256": "fc630563644e9a66e2004319a64d0c554237212d42cc768311a7dde8b67dec8f"
+    },
+    {
+      "key": "button_shadow",
+      "filename": "ui_btn_shadow_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png",
+      "source_px": [
+        384,
+        112
+      ],
+      "display_ui": [
+        192.0,
+        56.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": true,
+      "white_mask": true,
+      "ui": "T1/T2/T3",
+      "type": "공용 버튼",
+      "states": [
+        "normal"
+      ],
+      "use": "공용 버튼 국소 그림자",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_shadow_normal@2x.png",
+      "sha256": "b91384b9cdbaa78c3d100b30133f2fe0b492414a555912ef000626b46979c4be"
+    },
+    {
+      "key": "button_focus",
+      "filename": "ui_btn_focus_normal@2x.png",
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+      "source_px": [
+        384,
+        112
+      ],
+      "display_ui": [
+        192.0,
+        56.0
+      ],
+      "border_lr_tb_px": [
+        32,
+        32,
+        24,
+        24
+      ],
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "image_type": "Sliced",
+      "new": false,
+      "tint": true,
+      "white_mask": true,
+      "ui": "T1/T2/T3",
+      "type": "공용 버튼",
+      "states": [
+        "focused"
+      ],
+      "use": "공용 버튼 독립 포커스",
+      "text_baked": false,
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Sprites/ui_btn_focus_normal@2x.png",
+      "sha256": "b383c5eb9d3084adaea46bcca7806917659e8227d08b2aea40c924260fca79d0"
+    }
+  ],
+  "state_contract": {
+    "priority": [
+      "disabled",
+      "pressed",
+      "hover",
+      "normal"
+    ],
+    "focus": "independent_overlay",
+    "main_selection": "underline visible for pointer hover or EventSystem selection; keyboard focus outline follows EventSystem selection independently",
+    "menu_text": {
+      "normal": "#F0EEDC",
+      "hover": "#FFFFFF",
+      "pressed": "#F0EEDC",
+      "disabled": "#AAB0AD"
+    },
+    "menu_underline": {
+      "enabled": "#BBA36B",
+      "disabled": "#7A6A5C"
+    },
+    "focus_tint": {
+      "enabled": "#C7D8D9",
+      "disabled": "#7A6A5C"
+    },
+    "input_body_alpha": 0.92,
+    "button_body_alpha": 0.92,
+    "panel_body_alpha": 0.92,
+    "input_body": {
+      "normal": "#111B20",
+      "hover": "#2B3C42",
+      "pressed": "#142126",
+      "disabled": "#172126"
+    },
+    "pressed_button_content_offset_unity_ui": [
+      0,
+      -1
+    ],
+    "busy": "Disable input and submit, keep Back enabled; keep all necessary text at alpha1."
+  },
+  "runtime_contract": {
+    "requires": [
+      "Unity UI (uGUI)",
+      "TextMeshPro",
+      "Pretendard Medium/SemiBold/Bold TMP font assets"
+    ],
+    "actual_unity_execution": "not_run",
+    "automatic_eventsystem_creation": false,
+    "automatic_input_module_creation": false,
+    "no_network_calls": true,
+    "no_scene_manager_calls": true,
+    "no_application_quit_call": true,
+    "no_timescale_change": true,
+    "no_cursor_policy_change": true,
+    "no_input_polling": true,
+    "initial_state": "Hidden",
+    "runtime_api": [
+      "ShowMain",
+      "ShowRoomCode",
+      "ShowLan",
+      "Hide",
+      "SetFormBusy",
+      "SetFeedback"
+    ],
+    "events": [
+      "CreateRoomRequested",
+      "JoinRoomRequested(string)",
+      "LanConnectRequested(string)",
+      "SettingsRequested",
+      "QuitRequested",
+      "FormClosed"
+    ],
+    "submit": "Set busy before emitting once; caller completes connection or calls SetFormBusy(false). Back can cancel the form. Caller cancels stale asynchronous requests.",
+    "shared_runtime": {
+      "relative_path": "Assets/CurtainCallUI/CommonButtons/Runtime/CurtainCallButton.cs",
+      "source_approved_path": "/workspace/scratch/8b50162596f8/output/curtaincall_buttons_v1/Assets/CurtainCallUI/CommonButtons/Runtime/CurtainCallButton.cs",
+      "sha256": "432fd4932df890927c172073f567f008e4f249c3b11049a77b1886335a6e30b0"
+    },
+    "full_screen_rule": "The black0.6 dim belongs exclusively to the title-menu root, starts hidden at runtime, and is not part of BasicPanels."
+  },
+  "sprite_order": "Images back-to-front follow sibling_index. All production text remains TMP except CURTAIN CALL wordmark.",
+  "actual_scene_file_generated": false,
+  "builder_creates_editable_scene_hierarchy": true
+}

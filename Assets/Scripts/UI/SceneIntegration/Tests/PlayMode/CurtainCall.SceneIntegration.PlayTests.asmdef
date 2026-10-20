@@ -1,0 +1,6 @@
+{
+  "name": "CurtainCall.SceneIntegration.PlayTests",
+  "references": ["Unity.ugui"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}
