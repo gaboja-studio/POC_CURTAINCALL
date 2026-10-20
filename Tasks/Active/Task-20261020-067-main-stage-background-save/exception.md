@@ -7,3 +7,5 @@
 - **Paths:** `Assets/_ThirdParty`, `Tasks/Active/Task-20261020-067-main-stage-background-save/`, `Integrations/Active/Integration-main-stage/meta.md`
 
 작성자는 @RagSpirin을 유지하며 기존 팀 역할 명부를 변경하지 않는다. 공개 dev/integration 병합, PR 생성, 다른 사용자 변경 삭제는 이번 저장에 포함하지 않는다. private 신규 에셋만 커밋하고 기존 머티리얼 변경은 보존한다.
+
+- 2026-10-20 후속 승인: 현재 결정안에서 필요 없는 자산 제거와 용량 절감을 사용자가 직접 지시했다. Leartes 기존 재질 변경은 원본 파일 삭제 없이 복원하고, 소유한 공연장 폴더의 비활성 시안과 미사용 전용 자산만 제거한다. 기존 다른 PC 인계 요청에 이어 같은 작업 브랜치에 저장한다.
