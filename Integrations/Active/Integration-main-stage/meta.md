@@ -32,6 +32,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
 | Task-20261008-025 | feat | @RagSpirin | feat/main-stage-level-edit | - | assigned |
+| Task-20261020-067 | feat | @RagSpirin | feat/main-stage-background-submit | - | working |
 
 ## 공용 파일 소유 표
 
@@ -40,6 +41,8 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 | 파일 | 소유 Task | 이유 |
 |---|---|---|
 | `Assets/Scenes/Levels/main_stage.unity` | Task-20261008-025 | 공연장 맵 배치 씬은 Task 1개만 수정 |
+
+| `Assets/_ThirdParty` (curtaincall/PerformanceBackground 결과 연결) | Task-20261020-067 | 2026-10-20 현재 대화 PM 승인: private 저장 후 공개 gitlink 갱신 |
 
 ## Decisions
 
