@@ -407,7 +407,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 if (l.name.Contains("RedSpill") || l.name.Contains("Skylight") || l.type == LightType.Directional) continue;
                 Color.RGBToHSV(l.color, out float h, out float s, out _);
                 if (s > 0.25f && h > 0.02f && h < 0.15f) l.color = l.name.Contains("StringGlow") || l.name.Contains("Vanity") ? Tungsten : WarmBulb;
-                else if (h > 0.5f && h < 0.72f) l.color = CoolFill;
+                else if (h > 0.5f && h < 0.72f && l.intensity < 1.2f) l.color = CoolFill; // 은은한 채움광만(화장실 냉백색 전구 같은 주 조명은 유지)
                 var flicker = l.GetComponent<FlickerLight>();
                 if (flicker != null) flicker.emissionColor = l.color;
             }
