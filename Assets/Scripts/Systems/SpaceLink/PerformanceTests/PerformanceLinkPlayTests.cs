@@ -496,7 +496,10 @@ namespace CurtainCall.SpaceLink.Tests
             yield return WaitUntil(() => Get(rewards, "State") is object s && (bool)Get(s, "IsOpen"), 5f, "인간대포 공용 정산 시작");
             float hold = (float)Get(Get(PerformanceLinkReflection.StaticGet("CurtainCall.Settings.GameSettings", "Base"), "Run"), "FailedPerformanceHold");
             Assert.Greater(hold, 0f);
-            Call(player, "ServerCut", 4); // 함정 접촉 대신 공통 절단으로 네 곳을 잃는 사망을 합성한다.
+            yield return null;
+            yield return null; // 기존 진입 가드가 출발점 배치를 확인하게 한다.
+            Call(mover, "SetStartPose", new Vector3(0f, -500f, 0f), Quaternion.identity, true);
+            Call(player, "ServerCut", 4); // 낙하 위치에서 공통 절단 사망을 합성한다. 실제 함정 입력은 아니다.
             float diedAt = Time.unscaledTime;
             Assert.AreEqual("Fallen", Get(player, "State").ToString());
             var result = Get(rewards, "Latest");
@@ -510,6 +513,20 @@ namespace CurtainCall.SpaceLink.Tests
             yield return WaitUntil(() => Phase != "Performance", hold + 2f, "유지 시간 뒤 다음 시간대");
             Assert.GreaterOrEqual(Time.unscaledTime - diedAt, hold - 0.05f);
             Assert.AreEqual(1, resultCount, "유지 중 중복 정산 없음");
+            yield return WaitUntil(() => !(bool)Get(director, "IsTransitioning")
+                && Get(director, "Current").ToString() == "WaitingRoom", 20f, "밤 정비 대기실 복귀");
+            for (int i = 0; i < 5; i++) yield return null;
+            Assert.AreEqual("Night", Phase);
+            Assert.IsFalse(SceneManager.GetSceneByName(CannonScene).isLoaded);
+            Assert.AreEqual("Normal", Get(player, "State").ToString(), "부활 뒤 옛 공연 씬에서 다시 죽으면 안 된다.");
+            Assert.AreEqual(PerformanceLinkReflection.GameType("CurtainCall.Player.PlayerCondition")
+                .GetField("OneArmParts").GetValue(null), Get(player, "LostParts"));
+            var balance = player.GetComponent(PerformanceLinkReflection.GameType("CurtainCall.Player.PlayerBalance"));
+            Assert.IsFalse((bool)Get(balance, "HasFallen"));
+            Assert.IsTrue((bool)Get(mover, "ControlEnabled"));
+            var spectatorType = PerformanceLinkReflection.GameType("CurtainCall.Cameras.CameraSpectator");
+            Assert.IsNotEmpty(Object.FindObjectsByType(spectatorType, FindObjectsSortMode.None), "실제 관전 카메라가 있어야 한다.");
+            Assert.IsFalse((bool)PerformanceLinkReflection.StaticGet("CurtainCall.Cameras.CameraSpectator", "IsSpectating"));
         }
 
         IEnumerator SwapPerformanceScene(bool additive)
