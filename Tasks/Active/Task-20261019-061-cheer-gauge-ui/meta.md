@@ -11,12 +11,14 @@
 - **Branch:** feat/ui-scene-integration
 - 현재 worktree: D:/github/POC_CURTAINCALL-ui-scene-integration
 ## Goal / Scope
+- 2026-10-21 사용자: W2 상점·서비스·장부를 Assets 완성 프리팹으로 실제 데이터 연결하고 대체 임시 창 정리. waiting-room-shop.md에 구현·검증 기록.
 - 2026-10-21 사용자: 상점/스케줄 등 입력을 점유하는 창을 열면 커서 자동 표시, 종료하면 마우스 시선 조작과 숨김/잠금 복귀. 기존 공통 입력 차단 요청에 연결.
 - 2026-10-21 사용자: 수화기 위치/표현을 먼저 복구하고 Assets 완성 WorldLabels로 W4·W5 실제 데이터 연결 및 대체 임시 이름표 정리.
 - Assets 정본 C1/PerformanceHud 프리팹을 씬 인스턴스로 적용하고 기존 게임 공개 데이터에 연결한다.
 - 사용자 지정 적용 대상: Start/Lobby/WaitingRoomBase/Tightrope/HumanCannon 5개 씬. 첫 단계는 두 공연 씬 HUD이며 백스테이지·탈출로 신규 씬은 만들지 않는다.
 - 제작 원본/폰트/PNG/importer/9-slice는 보존. 인계 Packages ZIP 사용 금지.
 ## Decisions
+- 2026-10-21 사용자: 스케줄 공연은1~3일만,4일차 아침 뒤 종료. 결과 시간은 불 타이머 시작부터, 최대 거리는 출발/도착과 플레이어 위치 기준.1인 Dev는 최소 비용 대안. 타이틀은 첨부 중앙 시안으로 구성하며 기존 리소스 부족 임시 구현도 고도화한다. 구체 계획 next-plan.md.
 - 사용자 추가 지시: Dev 모드에서 특정 일차/콘텐츠부터 바로 검증. 기존 Dev 배지/F8 창, 새 테스트 세대, 실제 LAN 호스트 진입으로 구현했다.
 - 2026-10-20 사용자: 다음 적용은 HumanCannon부터 진행. 공통 C7/C15 정본과 인간대포 공간 상태 연결을 우선한다.
 - 2026-10-20 사용자: 공통 UI는 별도 UI 씬, 공간 종속 UI는 공간 씬, UI 루트로 Hierarchy 정리. C1/C2/C3 공통 씬과 외줄 P1로 분리했다.

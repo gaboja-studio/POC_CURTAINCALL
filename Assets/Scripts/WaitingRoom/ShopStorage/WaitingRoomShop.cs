@@ -74,6 +74,7 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>내 요청이 판정됐다(성공 여부, 안내 문구).</summary>
         public event Action<bool, string> RequestAnswered;
+        public event Action<string, bool, string> TrackedRequestAnswered;
 
         /// <summary>받으면 메는 배낭 품목인지.</summary>
         public bool IsBackpack(string itemId) => itemId != null && backpackIds.Contains(itemId);
@@ -134,11 +135,12 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>수화기로 품목을 주문한다. 결과는 <see cref="RequestAnswered"/>로 온다.</summary>
-        public void RequestPurchase(string itemId)
+        public void RequestPurchase(string itemId) => RequestPurchaseTracked(itemId, "");
+        public void RequestPurchaseTracked(string itemId, string requestId)
         {
-            if (HasAuthority) Answer(channel.LocalClientId, Buy(itemId, channel.LocalClientId));
-            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = BuyRequest, item = itemId })))
-                Answer(channel.LocalClientId, (false, "접속 중이 아니라 주문할 수 없습니다."));
+            if (HasAuthority) Answer(channel.LocalClientId, Buy(itemId, channel.LocalClientId), requestId);
+            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = BuyRequest, item = itemId, requestId = requestId })))
+                Answer(channel.LocalClientId, (false, "접속 중이 아니라 주문할 수 없습니다."), requestId);
         }
 
         /// <summary>배송구의 물건을 받는다. 같은 물건은 먼저 요청한 한 명만 받는다.</summary>
@@ -204,15 +206,16 @@ namespace CurtainCall.WaitingRoom
             _ => "배송구에 없는 물건입니다.",
         };
 
-        void Answer(ulong target, (bool ok, string text) result)
+        void Answer(ulong target, (bool ok, string text) result, string requestId = "")
         {
             if (target == channel.LocalClientId || !channel.IsHost)
             {
                 LastMessage = result.text;
                 RequestAnswered?.Invoke(result.ok, result.text);
+                TrackedRequestAnswered?.Invoke(requestId, result.ok, result.text);
                 return;
             }
-            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text }));
+            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text, requestId = requestId }));
         }
 
         void Publish()
@@ -233,7 +236,7 @@ namespace CurtainCall.WaitingRoom
             switch (request.kind)
             {
                 case SyncRequest: channel.SendState(JsonUtility.ToJson(StateData.From(book)), sender); break;
-                case BuyRequest: Answer(sender, Buy(request.item, sender)); break;
+                case BuyRequest: Answer(sender, Buy(request.item, sender), request.requestId); break;
                 case ClaimRequest: Answer(sender, Claim(request.order, sender)); break;
             }
         }
@@ -255,6 +258,7 @@ namespace CurtainCall.WaitingRoom
             if (result == null) return;
             LastMessage = result.text;
             RequestAnswered?.Invoke(result.ok, result.text);
+            TrackedRequestAnswered?.Invoke(result.requestId, result.ok, result.text);
         }
 
         void HandleReset()
@@ -268,8 +272,8 @@ namespace CurtainCall.WaitingRoom
             NotifyChanged();
         }
 
-        [Serializable] sealed class RequestData { public int kind; public string item; public int order; }
-        [Serializable] sealed class ResultData { public bool ok; public string text; }
+        [Serializable] sealed class RequestData { public int kind; public string item; public int order; public string requestId; }
+        [Serializable] sealed class ResultData { public bool ok; public string text; public string requestId; }
 
         [Serializable]
         sealed class DeliveryData

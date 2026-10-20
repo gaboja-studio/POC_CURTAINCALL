@@ -74,6 +74,7 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>방 단계가 바뀌었다(모든 화면). 이전 단계, 새 단계.</summary>
         public event Action<ExpertRoomPhase, ExpertRoomPhase> PhaseChanged;
+        public event Action<string, bool, string> TrackedRequestAnswered;
 
         /// <summary>오늘(런 일차). 런 전이면 0.</summary>
         public static int Day => CampaignRun.Instance != null ? CampaignRun.Instance.State.Day : 0;
@@ -147,19 +148,21 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>③ 수화기 창: 의료 신체 복구(잃은 팔다리 모두)를 산다. 결과는 <see cref="LastMessage"/>로 온다.</summary>
-        public void RequestMedical()
+        public void RequestMedical() => RequestMedicalTracked("");
+        public void RequestMedicalTracked(string requestId)
         {
-            if (HasAuthority) Answer(channel.LocalClientId, BuyMedical(channel.LocalClientId));
-            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = MedicalRequest })))
-                LastMessage = "접속 중이 아니라 구매할 수 없습니다.";
+            if (HasAuthority) Answer(channel.LocalClientId, BuyMedical(channel.LocalClientId), requestId);
+            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = MedicalRequest, requestId = requestId })))
+                Answer(channel.LocalClientId, (false, "접속 중이 아니라 구매할 수 없습니다."), requestId);
         }
 
         /// <summary>③ 수화기 창: 시설 담당자에게 다음 날 장애물 강화/약화를 산다.</summary>
-        public void RequestFacility(ObstacleAdjust choice)
+        public void RequestFacility(ObstacleAdjust choice) => RequestFacilityTracked(choice, "");
+        public void RequestFacilityTracked(ObstacleAdjust choice, string requestId)
         {
-            if (HasAuthority) Answer(channel.LocalClientId, BuyFacility(choice, channel.LocalClientId));
-            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = FacilityRequest, choice = (int)choice })))
-                LastMessage = "접속 중이 아니라 구매할 수 없습니다.";
+            if (HasAuthority) Answer(channel.LocalClientId, BuyFacility(choice, channel.LocalClientId), requestId);
+            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = FacilityRequest, choice = (int)choice, requestId = requestId })))
+                Answer(channel.LocalClientId, (false, "접속 중이 아니라 구매할 수 없습니다."), requestId);
         }
 
         /// <summary>⑧ 커튼 앞에서 F: 구매자만 들어간다.</summary>
@@ -228,10 +231,15 @@ namespace CurtainCall.WaitingRoom
             return null;
         }
 
-        void Answer(ulong target, (bool ok, string text) result)
+        void Answer(ulong target, (bool ok, string text) result, string requestId = "")
         {
-            if (target == channel.LocalClientId || !channel.IsHost) { LastMessage = result.text; return; }
-            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text }));
+            if (target == channel.LocalClientId || !channel.IsHost)
+            {
+                LastMessage = result.text;
+                TrackedRequestAnswered?.Invoke(requestId, result.ok, result.text);
+                return;
+            }
+            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text, requestId = requestId }));
         }
 
         void Publish(ExpertRoomPhase before)
@@ -250,9 +258,9 @@ namespace CurtainCall.WaitingRoom
             switch (request.kind)
             {
                 case SyncRequest: channel.SendState(JsonUtility.ToJson(StateData.From(book)), sender); break;
-                case MedicalRequest: Answer(sender, BuyMedical(sender)); break;
+                case MedicalRequest: Answer(sender, BuyMedical(sender), request.requestId); break;
                 case EnterRequest: Answer(sender, Enter(sender)); break;
-                case FacilityRequest: Answer(sender, BuyFacility((ObstacleAdjust)request.choice, sender)); break;
+                case FacilityRequest: Answer(sender, BuyFacility((ObstacleAdjust)request.choice, sender), request.requestId); break;
             }
         }
 
@@ -268,7 +276,11 @@ namespace CurtainCall.WaitingRoom
         void HandleResult(string json)
         {
             var result = JsonUtility.FromJson<ResultData>(json);
-            if (result != null) LastMessage = result.text;
+            if (result != null)
+            {
+                LastMessage = result.text;
+                TrackedRequestAnswered?.Invoke(result.requestId, result.ok, result.text);
+            }
         }
 
         void HandleReset()
@@ -281,8 +293,8 @@ namespace CurtainCall.WaitingRoom
             if (before != book.Phase) PhaseChanged?.Invoke(before, book.Phase);
         }
 
-        [Serializable] sealed class RequestData { public int kind; public int choice; }
-        [Serializable] sealed class ResultData { public bool ok; public string text; }
+        [Serializable] sealed class RequestData { public int kind; public int choice; public string requestId; }
+        [Serializable] sealed class ResultData { public bool ok; public string text; public string requestId; }
 
         [Serializable]
         sealed class StateData

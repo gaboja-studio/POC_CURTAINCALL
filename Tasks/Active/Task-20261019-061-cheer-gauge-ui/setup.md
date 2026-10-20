@@ -1,6 +1,7 @@
 # Setup
 2026-10-20 사용자 직접 지시로 이 checkout의 Task를 UI 씬 통합으로 전환한다. 이전 제작 권한은 History에 보존하며 현재 작업에 적용하지 않는다.
 ## 작업 구역
+- W2 사용자 직접 지시(2026-10-21): CommonWaitingRoomUI 씬에 ShopPanel 정본 인스턴스·SceneIntegration 어댑터, ShopPhone 표시 상태/API 및 임시 표시 억제, ExpertServicePhonePanel 대체 표시 제거. WaitingRoomShop.cs·ExpertService.cs의 기존 거래에 요청 ID 왕복/결과 이벤트만 추가(가격·권한·판정 유지). 관련 테스트·가이드 포함.
 - 사용자 후속 요청: 셔터/통로 정렬 및 전화기 발견성 수정, 모든 공간의 가까운 상호작용 사물 최대2개 공통 외곽선, 대기실 C6 정본 안내. `Assets/Scripts/WaitingRoom/ShopStorage/ShopReach.cs`, `ShopPhone.cs`, `ShopDeliverySlot.cs`, `FloorPropsView.cs`, `HandoverShelfView.cs`, `Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoardView.cs`, `Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs`에 표시용 공개 정보와 구형 안내 숨김을 연결한다. 기존 소지/서비스/네트워크 판정은 유지한다. 공통 UI 씬/SceneIntegration 및 기존 대상4개 공간 씬에서 상호작용 표시를 연결한다.
 - 사용자 후속 요청(2026-10-20): 최신 대기실 입력·전환 확인, W1/C4/C5/W6 기본 HUD와 대체된 임시 표시 정리. WaitingRoomBase와 공통 WaitingRoom UI 씬, SceneIntegration 코드를 사용한다. 기존 `ExplorationTimerView.cs`에는 임시 화면 생성만 끄는 옵션을 추가하여 종소리는 보존한다. `PropCarry.cs`에는 기존 소지 IMGUI 표시 속성과 요청 결과 알림 이벤트를 추가한다. 게임 판정·입력 규칙은 유지한다.
 - 사용자 후속 요청(2026-10-20): 편집용 UI 미리보기와 두 공연/결과 씬에서 교체 완료된 임시 UI 정리. `Assets/Scripts/MainStage/Tightrope/Tests/PlayMode/TightropeCampaignPlayTests.cs`의 구형 게이지 검증만 새 P1 대상으로 변경한다.

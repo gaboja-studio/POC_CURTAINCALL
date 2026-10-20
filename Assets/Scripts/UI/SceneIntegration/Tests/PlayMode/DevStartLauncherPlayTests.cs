@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.UI.SceneIntegration.Tests
 {
-    public sealed class DevStartLauncherPlayTests
+    public sealed partial class DevStartLauncherPlayTests
     {
         static Type T(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
         static object Get(object target, string name) => target.GetType().GetProperty(name).GetValue(target);

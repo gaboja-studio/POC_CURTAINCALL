@@ -367325,7 +367325,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1711727271}
   - component: {fileID: 1711727274}
-  - component: {fileID: 1711727275}
   m_Layer: 0
   m_Name: Phone
   m_TagString: Untagged
@@ -367362,18 +367361,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ShopPhone
   reach: 1.8
---- !u!114 &1711727275
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1711727270}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9904b1e039bcd49028a49bf5fec95275, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ExpertServicePhonePanel
+  showLegacyUi: 0
 --- !u!1 &1712204426
 GameObject:
   m_ObjectHideFlags: 0

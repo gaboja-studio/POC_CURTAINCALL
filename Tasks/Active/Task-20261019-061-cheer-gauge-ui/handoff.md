@@ -1,30 +1,28 @@
 # Handoff
 ## 현재
-- 2026-10-21 W4·W5/수화기/커서 수정은 3ac025f로 push 완료. 이후 사용자 요청으로 origin/feat/ui-resources b5bee0e 수신; 제작 Task 문서5개는 History/Ui-resources-b5bee0e 보존, 연결 Task 유지. 이번 수신은 push 미요청.
-- [커서 수정·Canvas 연결·사용자 확인](../../../Docs/Guides/Ui-scene-integration/interaction-cursor.md): CameraViewDirector에서 InputGate 직접 연결. UI 열기→표시, 마지막 창 닫기→게임 조작/숨김 복귀, ESC 중복 해제 차단.
-- [실제 수정 파일·데이터·사용법·검증](../../../Docs/Guides/Ui-scene-integration/waiting-room-worldlabels.md). Assets WorldLabelCloth/Item/Shelf 정본 사용, package 미사용, 원본/9-slice 유지.
-- 수화기: 아트 ba661044와 현재 모두 작은 Cube가 폐소품 옆에 남아 있었음. 기존 Assets 전화기 모델을 서쪽 배송구 위 (-18,1.5,70.8)에 연결. 배송구 -0.6 배출 방향을 +0.6으로 고쳐 벽 뒤 배송 해소.
-- UI/WorldLabels: W4 실제 전문가 상태, W5 배송/손/바닥/선반 이름과4칸. 기존 ExpertRoomSign 제거, 네 뷰 IMGUI 이름표 off. 선반 실제 아트/자기 충돌체 연결. C6 주문정보는 보조 줄.
-- Dev 시작: Mac ⌘+Shift+U / Windows Ctrl+Shift+U / F8·상단 배지. 실제 LAN 호스트/새 테스트 세대. [Dev 가이드](../../../Docs/Guides/Ui-scene-integration/dev-start.md).
-- 최신 수신: W2 ShopPanel, W3 SchedulePanel, C12 ResultsPanel, C14 SettingsPanel/공용3종, C16 TransitionCurtain, TitleLogo. Assets/Resources/Prefabs/UIs/ 정본이며 실제 연결은 후속. 타이틀은 로고만 제공, 전체 메뉴 아님.
-- [공통 상호작용](../../../Docs/Guides/Ui-scene-integration/interaction-highlights.md), [기존 검증](../../../Docs/Guides/Ui-scene-integration/interaction-verification.md), [HUD](../../../Docs/Guides/Ui-scene-integration/waiting-room-hud.md).
-- private는 수신 gitlink f32c85f로 갱신·clean. 기존 stash 유지, 로컬 폰트1/재질3·ui-workspace.md를 b84517f stash에 보존하고 병합 뒤 복귀. 정본 에셋 충돌 없음. TimeManager 직렬화 형식 변경도 공급본 수신.
+- 2026-10-21 W2 상점·서비스·장부 적용 완료, commit/push 미요청. [실제 수정 파일·사용자 확인·검증](../../../Docs/Guides/Ui-scene-integration/waiting-room-shop.md).
+- Assets ShopPanel 정본을 CommonWaitingRoomUI/UI/ShopPanelCanvas 인스턴스로 연결. WaitingRoomBase Phone의 구형 IMGUI off, ExpertServicePhonePanel 제거. 원본 프리팹/9-slice/package 변경 없음.
+- WaitingRoomShopUI가 실제 품목/가격/잔액/최근20 장부·배송/수령, 의료/시설 서비스 연결. 기존 거래 API에 요청ID 왕복·응답 이벤트 추가, 가격/판정 유지. 커서·입력과 씬 수명은 기존 공통 구조 사용.
+- 무응답15초는 장부·배송 확인 안내(거래 취소/자동 재시도 아님). 판매 API 없음. 게임 품목 자체는 기존 임시 도구/배낭이며 UI 데모 품목은 추가하지 않음.
+- 이전 연결3ac025f push 후 사용자 요청으로 ui-resources b5bee0e 수신92effe2. private gitlink f32c85f, 제작 Task 문서는 History/Ui-resources-b5bee0e 보존.
+- 이전 W4·W5/수화기: [가이드](../../../Docs/Guides/Ui-scene-integration/waiting-room-worldlabels.md). 서쪽 배송구 위 Phone(-18,1.5,70.8), 배송 방향+0.6. 실제 데이터·선반4칸/소지 표지 연결.
+- [커서](../../../Docs/Guides/Ui-scene-integration/interaction-cursor.md), [상호작용](../../../Docs/Guides/Ui-scene-integration/interaction-highlights.md), [대기실 HUD](../../../Docs/Guides/Ui-scene-integration/waiting-room-hud.md), [공연](../../../Docs/Guides/Ui-scene-integration/performance-upgrade.md).
+- Dev 진입: Mac ⌘+Shift+U / Windows Ctrl+Shift+U / 상단 배지. [사용법](../../../Docs/Guides/Ui-scene-integration/dev-start.md). 새 테스트 세대는 자금0.
+- 기존 폰트1/재질3·ui-workspace.md 변경은 별도 보존하며 이번 작업 산출물/저장 범위 아님. 기존 stash 유지.
 ## Verification
-- 구역 검사: PASS (10-21 실제 공급 -Base origin/feat/ui-resources, 654파일, 기존 exception.md 적용). 기본 통합 기준 검사는 공급 브랜치 불일치로 거부되어 실제 기준을 명시함.
+- 구역 검사: PASS (10-21)
 - 1 문서/규칙: PASS (10-21)
-- 2 컴파일: PASS (10-21 별도 verify-unity -Compile; check-work 자체는 SkipUnity)
-- 3 테스트: 수신 후 UI PlayMode30/30 PASS(ui-resources-b5bee0e-ui30.json), 주요 프리팹6개 로드·MissingScript0·의존파일 누락0, public/private LFS fsck OK. 새 키트별 테스트/실게임 연결/화면 검사는 미실행. 이전 카메라15/17 PASS·2 FAIL 유지.
-- 카메라 기존 실패: Locomotion_Crouch...는 모델0.6 축소 기대지만 현 Player.prefab squashWhenCrouched=0. Proto_Tightrope...는 고정3인칭 기대지만 현 공급자는 상황별1인칭. 이번 변경을 뺀 HEAD CameraViewDirector로 동일 실패 확인 후 수정본 복구. 기능/기대값 수정 없음.
-- 이전 W4/W5 첫 검사3/4에서 배송 방향 오류 발견/수정 후4/4 통과; 이번 UI30 전체에도 포함. 실제 구매/수령/바닥/선반 요청, 자금/전문가 단계는 주입. .harness/local/w4w5-interaction4-final.json 보존.
-- 이전 W4/W5 실제1920×1080 수화기/배송·W4·선반 검사. 장식/판자 가림 보정, Play 프레임2547→3678, 당시 Console 오류0/경고0. 제공 키트 CS0618 컴파일 경고 유지. 이번 커서는 자동 테스트로 확인.
-- 종료 상태: Edit mode, WaitingRoomBase + CommonInteractionUI dirty0. 정본 prefab 연결5개 확인. 새 scene 저장 완료.
-- 이전 Dev EditMode14/14·UI27/27·기본 SpaceLink6/6 통과. 확장 SpaceLink25는19 PASS/6 FAIL(구형 기대/전환)로 남아 있고 이번에 재실행/해결하지 않음.
-- 미실행: 커서의 물리 마우스 클릭/앱 포커스 왕복·Mac 입력, 사람 전체 동선/의료 구매~복구, 2~4인/재접속, 다른 화면비, 빌드/전체 프로젝트 테스트/성능.
+- 2 컴파일: PASS (별도 verify-unity -Compile; check-work 자체는 SkipUnity)
+- 3 테스트: W2 신규3/3·기존 포함 UI33/33 PASS, 문구 축약 후 최종W2도3/3(w2-final3.json). 자금·신체 손실은 주입, 거래/예약은 실제 LAN 호스트/API/버튼 이벤트. fixture 첫 오류와 Pipeline 재시도는 가이드 기록.
+- 실제1920×1080 세 탭 확인, 시설 강화 자금500→480·장부 일치, EventSystem1개. Play 프레임6027→18741, 현재 Console 오류0/경고0. 캡처 w2-items/services/ledger.png. 설명 말줄임은 문구 두 줄로 축약.
+- 종료: Edit mode, WaitingRoomBase+CommonWaitingRoomUI dirty0, 원래 Dev 설정 복원. 재로드 정본 연결/참조·MissingScript0·구형 서비스0 확인. 제공 키트 CS0618 등 기존 컴파일 경고와 실행 오류 구분.
+- 기존 카메라15/17의2 FAIL(구형 crouch 축소·고정1인칭 기대), 확장 SpaceLink25 중6 FAIL(구형 씬/전환)은 이전 기록 유지·이번 재실행 없음. 기본 SpaceLink6/6·Dev EditMode14/14는 이전 결과.
+- 미실행: 실제2~4인 동시 요청/재접속·지연/끊김, 물리 마우스·Mac 입력·앱 포커스 왕복, 의료 예약→입장→복구 전체 사람 동선, 다른 화면비·빌드·전체 프로젝트 테스트/성능.
 ## 다음
-- Dev로 수화기/주문 물건/손/바닥/선반과 전문가실 상태를 사용자 확인. W4·칸표지는 UI/WorldLabels에서 조절, 숨은 근접 표지는 Preview selected UI in Scene View 메뉴 사용.
-- 다음 적용 후보: W2 실제 상점/거래·커서 → W3 일정 표시/기존 편집 규칙 대조 → C12 결과/C16 전환 → C14 설정 → 타이틀 로고. 새 Facts 및 제작 검증 문서의 표시/입력 계약 확인 후 기존 정본을 인스턴스로 연결한다.
+- W2 사용자 확인: F 열기·세 탭·자금 있는 런의 구매/수령·의료1/3일 밤·시설2일 밤·ESC/닫기/커서. 상세 가이드 참조.
+- [남은 계획](../../../Docs/Guides/Ui-scene-integration/next-plan.md): W3(1~3일,4일 편성 요구 제거) → 기록/C12 → C16 → C10/HUD → 메뉴/설정 → 중앙 타이틀 시안 → Lobby → 전체 검증.1인 Dev 요약 재사용.
+- 기존 상단 Dev·밤 안내/음성 테스트 표시 겹침은 후속 HUD 정리 항목. W2로 대체되지 않은 시스템 UI는 이번에 제거하지 않음.
 ## PM이 확인할 것
-- 교훈 제안: UIInputBlocker는 입력 요청만 등록하므로 공통 카메라도 InputGate를 읽어야 한다. 창 닫기 ESC를 수동 커서 해제와 중복 처리하면 닫은 후 커서가 계속 남는다.
-- 교훈 제안(record-knowledge): 배치 이동 시 모델 유무뿐 아니라 벽 앞면·배송 배출 방향·기존 아트의 큰 충돌 박스를 확인해야 한다. 기존 텍스트 좌표 그대로 UI를 넣으면 벽/장식 뒤에 숨을 수 있다.
-- 교훈 제안: WaitingRoomExitWatch는 쉬는 시간에 나간 캐릭터의 재입장을 되돌린다. UI 테스트 순간이동을 방 밖으로 했다가 돌아오면 위치 검사가 실패하므로 내부 동선으로 검사한다.
-- 이전 교훈: 통로/셔터와 Area 합 대조; 테스트에서 ExpertService 씬을 먼저 unload; NGO Host 직전 additive UI 로드 완료 대기 및 공간전환 중 UI 로드 보류.
+- 교훈 제안(record-knowledge): ShopPanel의 Closed는 Hide에서도 발생한다. 이전 요청ID를 폐기하고 Phone/InputGate를 함께 닫아야 재열기·씬 전환 후 잔상이 없다.
+- 교훈 제안: RewardSnapshot은 장부 마지막 잔액과 Balance 일치를 검증한다. 테스트 자금만 주입하면 스냅샷 실패하므로 테스트 장부도 함께 준비한다.
+- 이전 교훈: UIInputBlocker와 카메라 커서 연결/ESC 중복 소비; 배치 시 벽 앞면·배송 방향·아트 충돌체 확인; UI 순간이동은 방 내부에서; NGO Host 직전 additive UI 로드 완료 대기.
