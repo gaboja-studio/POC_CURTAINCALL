@@ -5,12 +5,12 @@
 - 실제 WaitingRoom 활성·그레이박스/더미 선택 UI 비활성. 실제 로비 스폰 4개, 무대 통로 퇴장 경계, R10 집결, 기존 야간 셔터·스케줄표·카메라 연결 저장 완료.
 - 첫 개인 퇴장은 팀 타이머만 시작하고 대기실 씬·잔류자를 유지한다. 더미 fixture는 별도 탐색 씬 정책을 명시했다.
 - 개인 퇴장 이력과 외부 위치로 소유자 재진입을 보정한다. 다음 쉬는 시간에 초기화한다. 원격 소유자 공동 검증은 남았다.
-- 사용자 명시 승인으로 Task-064만 로컬 커밋 6bd83ca 분리, 로컬 integration 기준에 fast-forward. Task-065 미커밋, push·PR 없음. 기존 Vivox Settings.json 보존.
+- 사용자 승인으로 Task-064 6bd83ca와 Task-065 e22c088을 작업 브랜치에 push. 기존 Vivox Settings.json은 제외·로컬 보존.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/191 (dev 대상, 미병합)
 
 ## 다음 할 일
 
 1. 공동 테스트 최대 3항목: 부활·관전 해제 / 한 명 퇴장·타이머·잔류·집결 / 밤 잠금·F 스케줄·전원 준비.
-2. Task-065 저장·제출은 별도 사용자 요청 후 진행. 현재 수정은 미커밋 상태로 보존.
 
 ## Verification
 

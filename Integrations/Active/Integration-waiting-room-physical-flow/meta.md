@@ -10,14 +10,14 @@
 ## 목표
 
 - PM 직접 로컬 수정. 첫 퇴장 시 탐색 타이머만 시작하며 실제 대기실과 나머지 인원을 유지한다.
-- 선행 Task-064는 사용자 명시 승인으로 로컬 커밋 6bd83ca에 분리했다. 새 로컬 통합/작업 브랜치는 이 커밋을 포함한다. 원격 통합 생성·push·PR·병합 없음.
+- 선행 Task-064는 사용자 명시 승인으로 로컬 커밋 6bd83ca에 분리했다. 새 로컬 통합/작업 브랜치는 이 커밋을 포함한다. 원격 통합 생성 없음. 이후 사용자 승인으로 작업 브랜치 push·dev PR #191 제출, 미병합.
 - 로컬 검증은 verify-scope.ps1 -Base integration/waiting-room-physical-flow 사용. 원격 기준을 꾸며 만들지 않는다.
 
 ## Tasks
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261020-065 | fix | @MoHoDu | fix/waiting-room-physical-flow | 없음 | working |
+| Task-20261020-065 | fix | @MoHoDu | fix/waiting-room-physical-flow | #191 → dev | submitted |
 
 ## 공용 파일 소유 표
 

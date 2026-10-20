@@ -2,7 +2,7 @@
 
 - **Title:** 실제 대기실 복귀와 물리 출구 진행 연결
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** common-game-systems
 - **Current Skill:** investigate-bug
@@ -21,11 +21,11 @@
 
 ## Scope
 
-- 작업 구역은 setup.md 참조. 실제 씬 연결·전환 정책·개인 재진입 보정 구현 및 자동 검증 완료. 실제 2인 공동 확인 대기, 미커밋.
+- 작업 구역은 setup.md 참조. 실제 씬 연결·전환 정책·개인 재진입 보정 구현 및 자동 검증 완료. 실제 2인 공동 확인 대기, PR #191 제출(dev 대상·미병합).
 - AI Setup Allowed: None
 
 ## Decisions
 
 - Open: 실제 2인 공동 검증.
-- Decided: 사용자 명시 승인으로 Task-064만 로컬 커밋 6bd83ca에 분리, 로컬 통합 기준으로 사용. push·PR 없음.
+- Decided: 사용자 명시 승인으로 Task-064만 로컬 커밋 6bd83ca에 분리, 로컬 통합 기준으로 사용. 이후 승인으로 Task-065와 함께 push·dev PR #191 제출.
 - Decided: 밤 타이머 도입·새 백스테이지 제작·미병합 공간 브랜치 병합은 제외.
