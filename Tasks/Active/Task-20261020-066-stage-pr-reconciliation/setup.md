@@ -21,11 +21,11 @@
 - `Assets/Scripts/Systems/Network/PlayerSync/NetworkPlayer.cs` — RestartVersion/초기 조건 결합 검증, 확인된 회귀의 최소 수정만.
 - `Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity` — 이번 작업의 사용자 Editor 예외 승인에 한정. 기존 Task-044 소유권 자체는 유지.
 
-## 이번 작업의 Editor 예외 및 수정 금지
+## 이번 작업의 Editor 예외 및 에셋 저장 결정
 
-- `Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity` — 2026-10-20 사용자가 질문의 ‘AI의 Editor 작업 허용’을 선택. 이번 작업에서만 Unity Editor로 #193 기존 변경 재적용 허용. YAML 직접 병합·테스트 완화·새 밸런스 결정은 제외. 기존 Task 상태·소유권은 유지하며 이 연결 작업에만 편집 예외를 둔다.
-- 그 밖의 `Assets/Scenes/` 수정 금지. 기존 재질 2개 보존.
-- `Assets/_ThirdParty/` — 219개 재질 변경/HEAD 보존. 강제 갱신·discard·커밋·push·private PR 병합 금지.
+- `Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity` — 이번 작업에 한해 사용자 Editor 예외 승인으로 기존 #193 변경 재적용. YAML 직접 병합·테스트 완화·새 밸런스 결정 없음. 기존 Task 소유권 유지.
+- 그 밖의 씬 수정 금지 유지. 기존 public 재질2개는 2026-10-20 사용자의 기존 에셋 전체 저장·dev 병합 요청에 따라 현재 변경 그대로 저장한다.
+- `Assets/_ThirdParty/` — 같은 사용자 요청으로 기존 재질219개를 private에 저장하고 최신 main과 합쳐 push한 뒤 공개 포인터를 저장한다. 임의 폐기·강제push·보호 규칙 우회 금지.
 - `ProjectSettings/`
 - `Packages/`
 
