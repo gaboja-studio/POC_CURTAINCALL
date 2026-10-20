@@ -146,6 +146,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41fbb8fb41d394ea084fb33d70a30f0f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCourse
+  artProfile: {fileID: 0}
   spawnPoints:
   - {fileID: 5280814123298984889}
   - {fileID: 3804338068807545770}

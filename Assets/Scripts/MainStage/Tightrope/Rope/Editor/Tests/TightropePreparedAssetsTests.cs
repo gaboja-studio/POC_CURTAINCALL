@@ -77,7 +77,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         [Test]
         public void AllKitReferencesAndSourceMeshesResolveWithoutSceneObjects()
         {
-            foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { Kit.TrimEnd('/') }))
+            foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] {
+                Kit.TrimEnd('/'), "Assets/Resources/Prefabs/Objects/ETCs/PerformanceArtKit" }))
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 var root = AssetDatabase.LoadAssetAtPath<GameObject>(path);

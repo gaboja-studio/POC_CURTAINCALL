@@ -406,6 +406,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6513574863226662891, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: platePrefab
+      value: 
+      objectReference: {fileID: 2268463756089889208, guid: 5e9fb85d0ace6e74c98efb25f040fbf1, type: 3}
+    - target: {fileID: 6513574863226662891, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: verticalPrefab
+      value: 
+      objectReference: {fileID: 8693389361226902880, guid: 88a7fa433a068b04a9e5a3cc37aa8462, type: 3}
+    - target: {fileID: 6513574863226662891, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: horizontalPrefab
+      value: 
+      objectReference: {fileID: 3380331925942032540, guid: d7a404c6632835b4784662520a2be915, type: 3}
+    - target: {fileID: 6513574863226662891, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: cooperativeGatePrefab
+      value: 
+      objectReference: {fileID: 6654341279849457346, guid: 5bbe60086c4c72f4cbcb4b6381e9ff3d, type: 3}
+    - target: {fileID: 6513574863226662891, guid: 2d8cf906e00a640f7a489441702448fd, type: 3}
+      propertyPath: cooperativePlatePrefab
+      value: 
+      objectReference: {fileID: 7350541941575980834, guid: 26a9d0b9f55f4c149ab649b3e22dbc14, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -635,6 +655,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 531039770891401842, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
+      propertyPath: artProfile
+      value: 
+      objectReference: {fileID: 11400000, guid: 5551faede8b0ca940a4ee093290a99d4, type: 2}
     - target: {fileID: 2331872781909530610, guid: aee963c1828cc4d6b9f16bf3d8520bee, type: 3}
       propertyPath: m_LocalPosition.x
       value: -1.5
