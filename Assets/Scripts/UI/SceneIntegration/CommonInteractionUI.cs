@@ -35,6 +35,7 @@ namespace CurtainCall.UI.SceneIntegration
         {
             public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom;
             public float Distance;
+            public string Helper;
         }
         public void Configure(InteractionPromptView view, RectTransform anchor) { prompt = view; promptAnchor = anchor; }
         void Awake()
@@ -71,6 +72,7 @@ namespace CurtainCall.UI.SceneIntegration
                 if (target is not IShopPresentation p || p.VisualRoot == null || !p.VisualRoot.gameObject.activeInHierarchy) continue;
                 Add(p.VisualRoot, p.PresentationPoint, p.ActionLabel, p.IsAvailable, ReferenceEquals(target, ShopReach.Focused), feet);
                 candidates[candidates.Count - 1].WaitingRoom = true;
+                candidates[candidates.Count - 1].Helper = (target as IShopPresentationDetails)?.HelperLabel;
             }
             foreach (var item in lobby)
             {
@@ -109,7 +111,7 @@ namespace CurtainCall.UI.SceneIntegration
                 foreach (var candidate in selected) if (candidate.WaitingRoom) { focused = candidate; break; }
             if (focused == null) { if (prompt != null) prompt.HideImmediate(); return; }
             prompt.Show("F", focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
-                false, 0, focused.Focused ? "" : "가까이 다가가세요");
+                false, 0, focused.Focused ? focused.Helper ?? "" : "가까이 다가가세요");
             PositionPrompt(focused.Point, camera);
         }
         void Add(Transform root, Vector3 point, string action, bool available, bool focused, Vector3 feet)

@@ -188,7 +188,14 @@ namespace CurtainCall.WaitingRoom
         void UpdateSign(ExpertService service)
         {
             if (sign == null) return;
-            string text = service.Phase switch
+            string text = StatusText;
+            if (text == signText) return;
+            signText = text;
+            sign.text = text;
+        }
+
+        public string StatusText => ExpertService.Instance == null ? "담당자 부재중" : DescribeStatus(ExpertService.Instance);
+        static string DescribeStatus(ExpertService service) => service.Phase switch
             {
                 ExpertRoomPhase.Booked => $"{WaitingRoomShop.PlayerLabel(service.Buyer)} 입장 대기",
                 ExpertRoomPhase.Working => "이용 중",
@@ -198,10 +205,6 @@ namespace CurtainCall.WaitingRoom
                     : ExpertService.Availability(ExpertKind.Facility) == ExpertRefusal.None ? "시설 담당자 근무 · 의료 부재중"
                     : "담당자 부재중",
             };
-            if (text == signText) return;
-            signText = text;
-            sign.text = text;
-        }
 
         void PlayClank()
         {

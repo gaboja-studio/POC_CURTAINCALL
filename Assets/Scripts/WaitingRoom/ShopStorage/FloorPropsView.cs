@@ -14,6 +14,13 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, Min(.3f)] float reach = 1f;
         [SerializeField, Min(.05f)] float itemSize = .25f;
         [SerializeField] Color color = new(.55f, .85f, 1f);
+        [SerializeField] bool showLegacyLabels = true;
+
+        public void CollectLabels(List<ShopWorldLabel> labels)
+        {
+            foreach (var item in shown.Values)
+                if (item.Shape != null) labels.Add(new ShopWorldLabel(item.Shape.transform, item.Prop.Item.Name, Vector3.up * (itemSize + .12f)));
+        }
 
         readonly Dictionary<int, Item> shown = new();
         readonly List<int> stale = new();
@@ -148,8 +155,9 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             if (carry == null) return;
-            foreach (var item in shown.Values)
-                PropLabels.Draw(item.Shape.transform.position + Vector3.up * itemSize, item.Prop.Item.Name);
+            if (showLegacyLabels)
+                foreach (var item in shown.Values)
+                    PropLabels.Draw(item.Shape.transform.position + Vector3.up * itemSize, item.Prop.Item.Name);
             if (ShopReach.HasExternalPresentation) return;
             foreach (var item in shown.Values)
             {

@@ -21,6 +21,27 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         static FieldInfo DevCache => T("CurtainCall.Dev.DevMode").GetField("_enabled", BindingFlags.NonPublic | BindingFlags.Static);
         object previousDev;
         Component launcher;
+        object cursorTestKeyboard;
+        Component cursorTestExtraPanel;
+        void CursorTestKey(string key)
+        {
+            var input = T("UnityEngine.InputSystem.InputSystem");
+            cursorTestKeyboard ??= input.GetMethod("AddDevice", new[] { typeof(string), typeof(string), typeof(string) }).Invoke(null, new object[] { "Keyboard", null, null });
+            var keys = Array.CreateInstance(T("UnityEngine.InputSystem.Key"), key == null ? 0 : 1);
+            if (key != null) keys.SetValue(Enum.Parse(T("UnityEngine.InputSystem.Key"), key), 0);
+            var stateType = T("UnityEngine.InputSystem.LowLevel.KeyboardState");
+            var state = Activator.CreateInstance(stateType, new object[] { keys });
+            input.GetMethods().Single(m => m.Name == "QueueStateEvent" && m.IsGenericMethodDefinition).MakeGenericMethod(stateType)
+                .Invoke(null, new[] { cursorTestKeyboard, state, -1d });
+        }
+        IEnumerator CursorState(bool show)
+        {
+            float until = Time.realtimeSinceStartup + 3;
+            while ((Cursor.visible != show || Cursor.lockState != (show ? CursorLockMode.None : CursorLockMode.Locked)) && Time.realtimeSinceStartup < until)
+                yield return null;
+            Assert.AreEqual(show, Cursor.visible, "Cursor visibility must follow UI lifetime.");
+            Assert.AreEqual(show ? CursorLockMode.None : CursorLockMode.Locked, Cursor.lockState);
+        }
         object Point(int day, string phase, int slot, string trick) => Activator.CreateInstance(T("CurtainCall.Campaign.RunStartPoint"), day, Enum.Parse(T("CurtainCall.Campaign.RunStartPhase"), phase), slot, trick);
         object State => Static("CurtainCall.Campaign.CampaignRun", "Instance").GetType().GetProperty("State").GetValue(Static("CurtainCall.Campaign.CampaignRun", "Instance"));
         [UnitySetUp]
@@ -48,6 +69,51 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(1, Object.FindObjectsByType(T(scene == "WaitingRoomBase" ? "CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI" : "CurtainCall.UI.SceneIntegration.CommonPerformanceUI"), FindObjectsSortMode.None).Length);
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonInteractionUI"), FindObjectsSortMode.None).Length);
         }
+        [UnityTest]
+        public IEnumerator WaitingRoomPanels_AutomaticallyReleaseAndRestoreCursor()
+        {
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
+            CursorTestKey(null);
+            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            var director = Find("CurtainCall.Cameras.CameraViewDirector");
+            yield return new WaitForSecondsRealtime(.2f);
+            Assert.AreEqual(true, Get(director, "UsesMouseLook"));
+            yield return CursorState(false);
+            var phone = Find("CurtainCall.WaitingRoom.ShopPhone");
+            var schedule = Find("CurtainCall.WaitingRoom.ScheduleBoardView");
+            foreach (var panel in new[] { phone, schedule })
+            {
+                Vector3 point = (Vector3)Get(panel, "PresentationPoint");
+                Call(mover, "SetStartPose", new Vector3(point.x + (panel == phone ? 1f : 0), .1f, point.z), Quaternion.identity);
+                yield return new WaitForSecondsRealtime(.1f);
+                Call(panel, "Interact");
+                yield return CursorState(true);
+                Assert.AreEqual(true, Static("CurtainCall.Player.InputGate", "IsRequested"));
+                CursorTestKey("Escape"); yield return null; yield return null;
+                CursorTestKey(null);
+                yield return CursorState(false);
+                Assert.AreEqual(false, Static("CurtainCall.Player.InputGate", "IsRequested"));
+                // Button-close path, also usable by a future Canvas button.
+                Call(panel, "Interact"); yield return CursorState(true);
+                panel.GetType().GetMethod("SetOpen", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Invoke(panel, new object[] { false });
+                yield return CursorState(false);
+            }
+            // Multiple panels: closing one must not lock the cursor over another open panel.
+            cursorTestExtraPanel = new GameObject("CursorTestCanvasPanel").AddComponent(T("CurtainCall.Player.UIInputBlocker"));
+            yield return CursorState(true);
+            Call(schedule, "Interact");
+            Call(schedule, "SetOpen", false);
+            yield return null; yield return null;
+            Assert.IsTrue(Cursor.visible);
+            Object.Destroy(cursorTestExtraPanel.gameObject); cursorTestExtraPanel = null;
+            yield return CursorState(false);
+            // Outside a UI, the existing manual ESC cursor release must still work.
+            CursorTestKey("Escape"); yield return null; yield return null;
+            CursorTestKey(null); yield return CursorState(true);
+        }
+
         [UnityTest]
         public IEnumerator DirectHostLaunch_ReentryAndBothPerformances_ThenNightAndFinalMorning()
         {
@@ -109,6 +175,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTearDown]
         public IEnumerator Cleanup()
         {
+            if (cursorTestKeyboard != null) T("UnityEngine.InputSystem.InputSystem").GetMethod("RemoveDevice").Invoke(null, new[] { cursorTestKeyboard });
+            cursorTestKeyboard = null;
+            if (cursorTestExtraPanel != null) Object.Destroy(cursorTestExtraPanel.gameObject);
+            cursorTestExtraPanel = null;
             var flow = Find("CurtainCall.StartLobby.StartLobbyFlow");
             if (flow != null) Object.Destroy(flow.gameObject);
             yield return null;

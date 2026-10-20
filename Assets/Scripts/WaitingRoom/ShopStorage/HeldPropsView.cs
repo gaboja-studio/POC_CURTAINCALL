@@ -136,13 +136,26 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            if (carry == null) return;
+            if (carry == null || !showLegacyLabels) return;
             foreach (var (body, client) in bodies)
             {
                 if (body == null) continue;
                 var held = carry.Held(client);
                 if (held.Count == 0) continue;
                 PropLabels.Draw(body.TransformPoint(firstOffset + Vector3.up * (stack * held.Count)), held[held.Count - 1].Name);
+            }
+        }
+
+        [SerializeField] bool showLegacyLabels = true;
+        public void CollectLabels(List<ShopWorldLabel> labels)
+        {
+            if (carry == null) return;
+            foreach (var pair in shapes)
+            {
+                if (pair.Value == null) continue;
+                foreach (var item in carry.Held(pair.Key.client))
+                    if (item.Uid == pair.Key.uid)
+                        labels.Add(new ShopWorldLabel(pair.Value.transform, item.Name, Vector3.up * .3f));
             }
         }
     }

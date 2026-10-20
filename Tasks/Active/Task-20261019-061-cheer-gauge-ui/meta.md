@@ -4,13 +4,15 @@
 - **Status:** human-verify
 - **Assignee:** @MoHoDu
 - **Domain:** Unity Assets 구조·코드 작업 구역
-- **Current Skill:** save-work
+- **Current Skill:** integrate-editor
 - **Updated:** 2026-10-21
 ## Workspace
 - **Integration:** integration/ui-resources
 - **Branch:** feat/ui-scene-integration
 - 현재 worktree: D:/github/POC_CURTAINCALL-ui-scene-integration
 ## Goal / Scope
+- 2026-10-21 사용자: 상점/스케줄 등 입력을 점유하는 창을 열면 커서 자동 표시, 종료하면 마우스 시선 조작과 숨김/잠금 복귀. 기존 공통 입력 차단 요청에 연결.
+- 2026-10-21 사용자: 수화기 위치/표현을 먼저 복구하고 Assets 완성 WorldLabels로 W4·W5 실제 데이터 연결 및 대체 임시 이름표 정리.
 - Assets 정본 C1/PerformanceHud 프리팹을 씬 인스턴스로 적용하고 기존 게임 공개 데이터에 연결한다.
 - 사용자 지정 적용 대상: Start/Lobby/WaitingRoomBase/Tightrope/HumanCannon 5개 씬. 첫 단계는 두 공연 씬 HUD이며 백스테이지·탈출로 신규 씬은 만들지 않는다.
 - 제작 원본/폰트/PNG/importer/9-slice는 보존. 인계 Packages ZIP 사용 금지.

@@ -98,8 +98,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator ActualPhone_UsesC6AndF_ThenClosesAndReloadsWithoutDuplicates()
         {
             var phone = Find("CurtainCall.WaitingRoom.ShopPhone");
-            Place(new Vector3(-16.4f, .1f, 70));
-            camera.transform.position = new Vector3(-14.5f, 2.4f, 71.3f);
+            Assert.IsNotNull(phone.transform.Find("Handset"), "A real visible handset must replace the greybox cube.");
+            Assert.IsNull(phone.GetComponent<MeshRenderer>());
+            Assert.IsTrue(phone.GetComponentsInChildren<Renderer>().Any(r => r.enabled && r.bounds.size.y > .3f));
+            Place(phone.transform.position + new Vector3(1.2f, -1.4f, 0));
+            camera.transform.position = phone.transform.position + new Vector3(2.2f, .35f, .4f);
             camera.transform.LookAt(phone.transform);
             yield return Settle();
             Assert.Contains(phone.transform, Highlighted);
@@ -124,6 +127,100 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             while ((Find("CurtainCall.UI.SceneIntegration.CommonInteractionUI") == null || Find("CurtainCall.UI.SceneIntegration.CommonInteractionUI") == ui) && Time.realtimeSinceStartup < deadline) yield return null;
             yield return Settle();
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonInteractionUI"), FindObjectsSortMode.None).Length);
+        }
+
+        [UnityTest]
+        public IEnumerator WorldLabels_FollowDeliveryHeldFloorShelfAndVisibility()
+        {
+            var campaign = Find("CurtainCall.Campaign.CampaignRun");
+            Assert.IsTrue((bool)Call(campaign, "StartOfflineRun"));
+            Call(campaign, "EndIntro"); Call(campaign, "EndPerformance");
+            yield return Settle();
+            var binding = Find("CurtainCall.UI.SceneIntegration.WaitingRoomWorldLabels");
+            var rewards = Find("CurtainCall.Reward.PerformanceRewards");
+            var model = rewards.GetType().GetField("model", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(rewards);
+            // Seed only test funds; purchase, delivery, claim, drop and shelf use the production request path.
+            model.GetType().GetProperty("Balance").SetValue(model, 1000L);
+            var shop = Find("CurtainCall.WaitingRoom.WaitingRoomShop");
+            var carry = Find("CurtainCall.WaitingRoom.PropCarry");
+            var catalog = ((IEnumerable)Get(shop, "Catalog")).Cast<object>().First();
+            object Member(object o, string n) => o.GetType().GetField(n)?.GetValue(o) ?? Get(o, n);
+            string id = (string)Member(catalog, "Id"), name = (string)Member(catalog, "Name");
+            Call(shop, "RequestPurchase", id);
+            yield return new WaitForSecondsRealtime(.75f);
+            var order = ((IEnumerable)Get(shop, "Waiting")).Cast<object>().Single();
+            Assert.AreEqual(1, Get(binding, "ItemLabelCount"));
+            var label = binding.transform.Find("Items").GetChild(0);
+            var view = label.GetComponent(T("CurtainCall.UI.WorldLabelsV2.WorldLabelView"));
+            Assert.AreEqual(name, Get(view, "Title"));
+            Place(label.position + new Vector3(1, -label.position.y + .1f, 0));
+            Assert.Greater(label.position.x, -18f, "Delivery must land inside the west wall, not behind it.");
+            camera.transform.position = label.position + new Vector3(2, 1, 0); camera.transform.LookAt(label);
+            yield return Settle();
+            Assert.AreEqual(true, Get(view, "IsVisible"));
+            var promptText = ((Component)Get(ui, "Prompt")).GetComponentsInChildren<TMP_Text>(true);
+            Assert.IsTrue(promptText.Any(t => t.text.Contains("#") && t.text.Contains("주문")), "Order details belong in C6's helper line.");
+            camera.transform.rotation = Quaternion.Euler(0, 180, 0); yield return Settle();
+            Assert.AreEqual(false, Get(view, "IsVisible"));
+            camera.transform.LookAt(label);
+            Place(actor.transform.position + Vector3.right * 8); yield return Settle();
+            Assert.AreEqual(false, Get(view, "IsVisible"));
+            Call(shop, "RequestClaim", (int)Member(order, "Order"));
+            yield return new WaitForSecondsRealtime(.6f);
+            Assert.AreEqual(1, Get(binding, "ItemLabelCount"), "Claim removes the delivery label and creates the held label.");
+            // Stay inside: the production exit watcher intentionally rejects re-entry after leaving a rest period.
+            Place(new Vector3(-5, .1f, 67));
+            Call(carry, "RequestDrop"); yield return Settle();
+            Assert.AreEqual(1, Get(binding, "ItemLabelCount"));
+            Assert.IsTrue(binding.transform.Find("Items").Cast<Transform>().Any(t => t.name.Contains("FloorProp")));
+            var floorItem = ((IEnumerable)Get(carry, "Floor")).Cast<object>().Single();
+            int uid = (int)Member(Member(floorItem, "Item"), "Uid");
+            Call(carry, "RequestPickUp", uid); yield return new WaitForSecondsRealtime(.6f);
+            Call(carry, "RequestShelf"); yield return Settle();
+            Assert.AreEqual(1, Get(binding, "ItemLabelCount"));
+            Assert.IsTrue(binding.transform.Find("Items").Cast<Transform>().Any(t => t.name.Contains("ShelfProp")));
+            Assert.AreEqual(4, binding.transform.Cast<Transform>().Count(t => t.name.StartsWith("W5_ShelfSlot_")));
+            Place(new Vector3(-1.65f, .1f, 56f));
+            camera.transform.position = new Vector3(-1.65f, 1.6f, 57.4f);
+            camera.transform.LookAt(new Vector3(-1.65f, 1.2f, 54.72f));
+            yield return Settle(); yield return Settle();
+            foreach (Transform slot in binding.transform.Cast<Transform>().Where(t => t.name.StartsWith("W5_ShelfSlot_")))
+                Assert.AreEqual(true, Get(slot.GetComponent(T("CurtainCall.UI.WorldLabelsV2.WorldLabelView")), "IsVisible"),
+                    $"Shelf's own collider must not hide {slot.name}; viewport={camera.WorldToViewportPoint(slot.position)}; actor={actor.transform.position}; near={Get(slot.GetComponent(T("CurtainCall.UI.WorldLabelsV2.WorldLabelProximity")), "IsNear")}");
+            Call(carry, "RequestShelf"); yield return new WaitForSecondsRealtime(.6f);
+            Assert.AreEqual(1, Get(binding, "ItemLabelCount"));
+            ((Behaviour)binding).enabled = false; yield return null;
+            Assert.AreEqual(0, binding.transform.Find("Items").childCount);
+            ((Behaviour)binding).enabled = true; yield return Settle();
+            Assert.AreEqual(1, Get(binding, "ItemLabelCount"));
+        }
+
+        [UnityTest]
+        public IEnumerator ExpertLabel_ReadsActualServiceStateWithoutLegacySign()
+        {
+            var campaign = Find("CurtainCall.Campaign.CampaignRun");
+            Call(campaign, "StartOfflineRun"); Call(campaign, "EndIntro"); Call(campaign, "EndPerformance");
+            yield return Settle();
+            var binding = Find("CurtainCall.UI.SceneIntegration.WaitingRoomWorldLabels");
+            var label = Get(binding, "ExpertLabel");
+            Assert.AreEqual("밤 정비 때 영업", Get(label, "Title"));
+            var sign = ((Component)label).transform;
+            var origin = new Vector3(6.6f, 2f, 76.5f);
+            Assert.IsFalse(Physics.Raycast(origin, (sign.position - origin).normalized, Vector3.Distance(origin, sign.position) - .02f, ~0, QueryTriggerInteraction.Ignore), "W4 must be in front of the wall and valance.");
+            Assert.IsNull(GameObject.Find("ExpertRoomSign"));
+            Call(campaign, "NotifyAllAtStageEntrance"); Call(campaign, "EndPerformance");
+            yield return Settle();
+            Assert.AreEqual("의료 전문가 대기 중", Get(label, "Title"));
+            var service = Find("CurtainCall.WaitingRoom.ExpertService");
+            var book = service.GetType().GetField("book", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(service);
+            // Simulate a received authoritative service state; W4 must reflect all phases without controlling them.
+            foreach (var pair in new[] { ("Booked", "입장 대기"), ("Working", "이용 중"), ("Exiting", "복구 완료") })
+            {
+                book.GetType().GetProperty("Phase").SetValue(book, Enum.Parse(T("CurtainCall.WaitingRoom.ExpertRoomPhase"), pair.Item1));
+                ((Behaviour)service).enabled = false;
+                yield return Settle();
+                StringAssert.Contains(pair.Item2, (string)Get(label, "Title"));
+            }
         }
         [UnityTearDown]
         public IEnumerator Cleanup()

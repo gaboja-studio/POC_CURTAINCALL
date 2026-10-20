@@ -43,6 +43,7 @@ namespace CurtainCall.Cameras
         bool cursorOwned;
         bool cursorReleased;
         bool cursorLocked;
+        bool uiCursorRequested;
         int keyboardSyncs;
         float nextKeyboardSync;
         CursorLockMode previousLock;
@@ -135,18 +136,30 @@ namespace CurtainCall.Cameras
         {
             SyncKeyboardIfDue();
             PrepareView();
-            if (!UsesMouseLook) { ReleaseCursor(); return; }
+            bool uiRequested = InputGate.IsRequested;
+            bool uiClosing = uiCursorRequested && !uiRequested;
+            uiCursorRequested = uiRequested;
+            bool uiBlocked = InputGate.IsBlocked;
+            // 창을 닫은 ESC/클릭은 수동 커서 해제로 재사용하지 않는다.
+            // 여러 창이 열렸다면 마지막 요청이 사라지고 키를 뗀 뒤 조작을 복귀한다.
+            if (uiRequested || uiClosing) cursorReleased = false;
+            if (!UsesMouseLook)
+            {
+                ReleaseCursor();
+                if (uiRequested) UnlockCursor();
+                return;
+            }
             var mouse = Mouse.current;
             var keyboard = Keyboard.current;
-            if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
+            if (!uiBlocked && !uiClosing && keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
             {
                 cursorReleased = true;
                 UnlockCursor();
             }
-            else if (mouse != null && mouse.leftButton.wasPressedThisFrame)
+            else if (!uiBlocked && !uiClosing && mouse != null && mouse.leftButton.wasPressedThisFrame)
                 cursorReleased = PointerBlocked(mouse.position.ReadValue());
 
-            bool lockNow = Application.isFocused && !cursorReleased && !inputBlocked;
+            bool lockNow = Application.isFocused && !cursorReleased && !inputBlocked && !uiBlocked;
             if (lockNow != cursorLocked) ScheduleKeyboardSync();
             cursorLocked = lockNow;
             Cursor.lockState = lockNow ? CursorLockMode.Locked : CursorLockMode.None;

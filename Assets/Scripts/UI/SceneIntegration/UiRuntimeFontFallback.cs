@@ -15,10 +15,11 @@ namespace CurtainCall.UI.SceneIntegration
         readonly Dictionary<Font, TMP_FontAsset> generated = new();
         public void Configure(TMP_FontAsset font) { fallback = font; }
         public void ConfigureSources(Font medium, Font semiBold) { mediumSource = medium; semiBoldSource = semiBold; }
-        void Awake()
+        void Awake() => ApplyTo(transform);
+        public void ApplyTo(Transform root)
         {
             if (fallback == null) return;
-            foreach (var label in GetComponentsInChildren<TMP_Text>(true))
+            foreach (var label in root.GetComponentsInChildren<TMP_Text>(true))
             {
                 if (label.GetComponentInParent<CurtainCall.UI.GuidesV1.GuideView>() == null
                     && label.GetComponentInParent<CurtainCall.UI.TooltipsV1.TooltipView>() == null
@@ -28,7 +29,7 @@ namespace CurtainCall.UI.SceneIntegration
                     && label.GetComponentInParent<CommonWaitingRoomUI>() == null
                     && label.GetComponentInParent<CommonInteractionUI>() == null) continue;
                 var original = label.font;
-                if (original == null || original == fallback) continue;
+                if (original == null || original == fallback || copies.ContainsValue(original)) continue;
                 if (!copies.TryGetValue(original, out var copy))
                 {
                     copy = Instantiate(original);

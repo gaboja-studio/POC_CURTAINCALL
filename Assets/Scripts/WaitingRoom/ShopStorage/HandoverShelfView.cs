@@ -17,12 +17,26 @@ namespace CurtainCall.WaitingRoom
 
         [Tooltip("비우면 자식 중 이름이 Board_로 시작하는 판자를 이름 순으로 쓴다(아래 칸부터).")]
         [SerializeField] Transform[] boards = new Transform[0];
+        [SerializeField] bool showLegacyLabels = true;
+        [SerializeField] Transform visualRoot;
+        public IReadOnlyList<Transform> Boards => boards;
+        public void CollectLabels(List<ShopWorldLabel> labels)
+        {
+            if (carry == null) return;
+            for (int i = 0; i < shapes.Length && i < carry.Shelf.Count; i++)
+                if (shapes[i] != null)
+                {
+                    var offset = Vector3.up * (itemSize + .12f);
+                    if (VisualRoot.TryGetComponent<Collider>(out var frame)) offset.z = frame.bounds.max.z + .07f - shapes[i].transform.position.z;
+                    labels.Add(new ShopWorldLabel(shapes[i].transform, carry.Shelf[i].Name, offset, VisualRoot));
+                }
+        }
 
         readonly GameObject[] shapes = new GameObject[ItemCarryBook.ShelfSlots];
         PropCarry carry;
         Material material;
         Bounds area;
-        public Transform VisualRoot => transform;
+        public Transform VisualRoot => visualRoot != null ? visualRoot : transform;
         public Vector3 PresentationPoint => area.center;
         public bool IsAvailable => ActionLabel != "선반이 비어 있습니다";
         public string ActionLabel
@@ -148,8 +162,9 @@ namespace CurtainCall.WaitingRoom
         {
             if (carry == null) return;
             var shelf = carry.Shelf;
-            for (int i = 0; i < shapes.Length && i < shelf.Count; i++)
-                if (shapes[i] != null) PropLabels.Draw(shapes[i].transform.position + Vector3.up * itemSize, $"{i + 1}칸 {shelf[i].Name}");
+            if (showLegacyLabels)
+                for (int i = 0; i < shapes.Length && i < shelf.Count; i++)
+                    if (shapes[i] != null) PropLabels.Draw(shapes[i].transform.position + Vector3.up * itemSize, $"{i + 1}칸 {shelf[i].Name}");
             if (ShopReach.HasExternalPresentation || !ReferenceEquals(ShopReach.Focused, this)) return;
             int filled = 0, empty = -1;
             for (int i = 0; i < shelf.Count; i++)

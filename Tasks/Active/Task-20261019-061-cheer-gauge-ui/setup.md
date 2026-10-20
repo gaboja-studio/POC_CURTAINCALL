@@ -65,3 +65,12 @@
 - Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs: Dev 전용 동일 공간 재로딩. 일반 전환 규칙/설정 에셋은 유지.
 - SceneIntegration의 Editor/Tests 및 Tests/PlayMode: 진입·재진입·권한·상태 검사. 가이드와 Task 문서 갱신.
 - 기존 SceneIntegration/CommonUiSceneLoader.cs: Dev 진입 때 UI 로드 완료를 기다리고 공간 전환 중 새 UI 작업 보류. 원본 UI 프리팹/씬 변경 없음.
+
+## W4·W5 및 수화기 (2026-10-21 사용자 직접 지시)
+- WaitingRoomBase 씬: 수화기/배송구 위치와 기존 Assets 전화기 모델 연결, W4·W5 배치, 대체 임시 이름표 제거.
+- ShopReach.cs, FloorPropsView.cs, HeldPropsView.cs, HandoverShelfView.cs, ShopDeliverySlot.cs, ExpertRoomView.cs: 표시용 데이터 API와 기존 이름표 표시 제어만. 게임 판정/거래 규칙은 유지.
+- SceneIntegration/ 및 해당 테스트, Docs/Guides/Ui-scene-integration/: 연결 컴포넌트/에디터 설치/검증/가이드.
+- 완성 WorldLabels 프리팹과 제공 코드·폰트·PNG·9-slice 원본은 읽기 전용.
+
+## 상호작용 창 커서 (2026-10-21 사용자 직접 지시)
+- Assets/Scripts/Systems/Camera/CameraViewDirector.cs: 공통 InputGate와 커서 해제/복귀 연결, 창 종료 ESC와 수동 해제 충돌 방지. SceneIntegration 테스트/가이드 갱신. 카메라 구도/게임 판정/정본 에셋 유지.
