@@ -83,13 +83,14 @@ namespace CurtainCall.Tightrope.Saws
             var root = new GameObject(name).transform;
             root.SetParent(parent, false);
             float diameter = settings.cooperativeGateHeight, depth = settings.cooperativeGateThickness;
-            blade = CreateSaw(root, "IncomingSaw", null, diameter, depth, SawKind.Vertical);
+            blade = CreateSaw(root, "IncomingSaw", cooperativeGatePrefab, diameter, depth, SawKind.Vertical);
             var collision = new GameObject("DiscCollision").transform;
             collision.SetParent(root, false);
             collision.localRotation = Quaternion.Euler(0f, 0f, -90f);
             collision.localScale = new Vector3(diameter, depth * .5f, diameter);
             collider = collision.gameObject.AddComponent<MeshCollider>();
-            collider.sharedMesh = blade.Find("Blade").GetComponent<MeshFilter>().sharedMesh;
+            // Collision stays independent of the authored visual's hierarchy.
+            collider.sharedMesh = TightropeArtFit.UnitCylinder;
             collider.convex = true;
             return root;
         }

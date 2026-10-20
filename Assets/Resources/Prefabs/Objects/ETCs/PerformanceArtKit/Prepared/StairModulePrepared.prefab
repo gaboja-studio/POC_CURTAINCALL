@@ -1,0 +1,105 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &6034285399017076361
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 254366414171885102, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.8266302
+      objectReference: {fileID: 0}
+    - target: {fileID: 254366414171885102, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1.1071429
+      objectReference: {fileID: 0}
+    - target: {fileID: 677718319692741805, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 677718319692741805, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 2319080216462689358, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2319080216462689358, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2319080216462689358, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2319080216462689358, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2319080216462689358, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2319080216462689358, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2319080216462689358, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2319080216462689358, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2319080216462689358, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2319080216462689358, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4427115913204003595, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      propertyPath: m_Name
+      value: StairModulePrepared
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6585147018621878907, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9178413224476567042}
+  m_SourcePrefab: {fileID: 100100000, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+--- !u!1 &638722572150846706 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6585147018621878907, guid: d036507f4cf2132408b6957352cb155e, type: 3}
+  m_PrefabInstance: {fileID: 6034285399017076361}
+  m_PrefabAsset: {fileID: 0}
+--- !u!64 &9178413224476567042
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 638722572150846706}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 1107917099417751312, guid: 490403774c944474ea34a53ed99259e5, type: 3}

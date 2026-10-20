@@ -1,0 +1,138 @@
+{
+  "worker": "주형락",
+  "date": "2026-10-20",
+  "stage": "적용 준비 / 기존 씬 미적용",
+  "privateCommit": "b92b37a4db5ff840a82d26bf323c3b2831b2698a",
+  "sceneApplied": false,
+  "newAssetRequestIds": [],
+  "sharedIds": [
+    "3D-041",
+    "3D-042",
+    "3D-046",
+    "3D-052",
+    "3D-053",
+    "3D-054",
+    "3D-055"
+  ],
+  "prefabs": [
+    {
+      "file": "HorizontalSaw.prefab",
+      "thickness": 0.1,
+      "collisionDiameter": 1.0,
+      "visualDiameter": 1.2,
+      "axis": "+Y",
+      "source": "PerformanceArtKit/SawDisc.prefab"
+    },
+    {
+      "file": "IncomingSaw.prefab",
+      "thickness": 0.1,
+      "collisionDiameter": 1.0,
+      "visualDiameter": 1.2,
+      "axis": "+Y → runtime +X",
+      "source": "PerformanceArtKit/SawDisc.prefab"
+    },
+    {
+      "axis": "+Y → runtime +X",
+      "source": "PerformanceArtKit/SawDisc.prefab",
+      "diameter": 2.1,
+      "thickness": 0.2,
+      "file": "CooperativeSaw.prefab"
+    },
+    {
+      "collider": "없음 / 기존 수학 판정 사용",
+      "source": "PerformanceArtKit/PressurePlate.prefab",
+      "size": [
+        0.8,
+        0.04,
+        0.8
+      ],
+      "file": "ReleasePlate.prefab"
+    },
+    {
+      "collider": "없음 / 기존 수학 판정 사용",
+      "source": "PerformanceArtKit/PressurePlate.prefab",
+      "size": [
+        0.8,
+        0.04,
+        1.6
+      ],
+      "file": "CooperativePlate.prefab"
+    },
+    {
+      "pivot": "중심",
+      "source": "PerformanceArtKit/SharedReleasePole.prefab : VisualBar",
+      "size": [
+        1,
+        1,
+        1
+      ],
+      "file": "PoleBarUnitX.prefab"
+    },
+    {
+      "pivot": "중심",
+      "source": "PerformanceArtKit/SharedReleasePole.prefab : VisualBar",
+      "size": [
+        1,
+        1,
+        1
+      ],
+      "file": "PoleBarUnitY.prefab"
+    },
+    {
+      "pivot": "중심",
+      "source": "PerformanceArtKit/SharedReleasePole.prefab : LeftCable",
+      "size": [
+        1,
+        1,
+        1
+      ],
+      "file": "CableUnitY.prefab"
+    }
+  ],
+  "runtimeProfile": {
+    "collisionAuthority": "기존 Course·Saws·봉 시스템",
+    "net": "PerformanceArtKit/SafetyNetModule.prefab",
+    "rope": "PerformanceArtKit/RopeSegment.prefab",
+    "mutableDuringRun": false,
+    "supportWidth": 0.4,
+    "file": "TightropeArtProfile.asset",
+    "floor": "PerformanceArtKit/FloorModule.prefab",
+    "ropeThickness": 0.2
+  },
+  "preparedControllers": [
+    "Prepared/TightropeCoursePrepared.prefab",
+    "Prepared/TightropeSawsPrepared.prefab"
+  ],
+  "unchanged": [
+    "기존 씬",
+    "이동·점프·반동 수치",
+    "코스 길이·배치",
+    "줄 생성·소실 및 화재 규칙",
+    "톱 이동·접촉·온라인 동기화",
+    "카메라·조작"
+  ],
+  "currentCourse": {
+    "lanes": 6,
+    "length": 165
+  },
+  "verification": {
+    "runtimeArt": "PASS: 호스트 1명, 런타임 연결·줄 제거와 복구·봉 외형·톱 생성 검사",
+    "multiplayer": "SKIPPED: 이번 변경은 준비본이며 4인 검증을 수행하지 않음",
+    "editMode": {
+      "failed": 0,
+      "passed": 221,
+      "total": 221
+    },
+    "humanPlay": "SKIPPED: 준비본만 제작",
+    "compile": "PASS",
+    "scope": "Task 미배정으로 정식 구역 검사 불가. 사용자 지시 범위로 수행.",
+    "releasedGateRegression": "PASS: 협동 발판 → 톱 도약 → 착지 후 이동·접촉 → 스냅샷·재시작"
+  },
+  "notes": [
+    "외부 메시·텍스처는 private submodule 원본을 참조합니다.",
+    "단위 부품은 런타임에서 기존 실제 크기로 조정합니다.",
+    "톱 지름은 각 꼭짓점의 최대 반지름 기준이며 고정 방향 AABB 폭과 다를 수 있습니다.",
+    "공용 세부 원본 출처는 PerformanceArtKit/sources.json을 확인합니다.",
+    "기존 private 220개 변경과 프로젝트 자동 설정 변경은 저장 대상에서 제외합니다."
+  ]
+}

@@ -53,6 +53,7 @@ namespace CurtainCall.Tightrope
             SetRod(leftRod, pivot + Vector3.left * width * .5f, grip + Vector3.left * width * .5f);
             SetRod(rightRod, pivot + Vector3.right * width * .5f, grip + Vector3.right * width * .5f);
             crossbar.GetComponent<Renderer>().sharedMaterial = OwnCanLetGo ? green : orange;
+            TightropeArtFit.Tint(crossbar, OwnCanLetGo ? Color.green : new Color(1f, .55f, .08f));
             Vector3 predicted = PredictLanding(true);
             bool aimVisible = (OwnOccupied || flightMover != null) && course.TryGetRopePoint(predicted, out int predictedLane, out float predictedDistance)
                 && course.IsLaneUsable(predictedLane, predictedDistance);
@@ -110,6 +111,9 @@ namespace CurtainCall.Tightrope
             go.transform.SetParent(viewRoot, false); go.transform.localPosition = position; go.transform.localScale = scale;
             var collider = go.GetComponent<Collider>(); collider.enabled = false; Destroy(collider);
             go.GetComponent<Renderer>().sharedMaterial = material;
+            var profile = course != null ? course.ArtProfile : null;
+            if (profile != null && name == "RotatingBar") TightropeArtFit.Box(go.transform, profile.barX, material.color);
+            else if (profile != null && (name == "LeftRod" || name == "RightRod")) TightropeArtFit.Box(go.transform, profile.cableY, material.color);
             return go.transform;
         }
         static void SetRod(Transform rod, Vector3 a, Vector3 b)

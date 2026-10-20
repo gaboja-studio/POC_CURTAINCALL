@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2eee5763eac46e046afca9f6d7eebde6, type: 3}
+  m_Name: TightropeArtProfile
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeArtProfile
+  floor: {fileID: 2380734067692882306, guid: eeeae523938ff10459d2579dd708c7a8, type: 3}
+  rope: {fileID: 7701195024648908861, guid: 4df7b236bd3199543ac02b9c950bf6c3, type: 3}
+  safetyNet: {fileID: 6778141984679365692, guid: f9afdbcb88bc9ce48afcf46edc1f9e5d, type: 3}
+  barX: {fileID: 2426316796436217356, guid: 5f2b936540304804680398bcb54ad13d, type: 3}
+  barY: {fileID: 5156040357209490367, guid: 39e666ab39f6f234faabb07ebf03ade1, type: 3}
+  cableY: {fileID: 8011567531332474550, guid: 4421c91a39f0aba41978dd66ee0371f1, type: 3}

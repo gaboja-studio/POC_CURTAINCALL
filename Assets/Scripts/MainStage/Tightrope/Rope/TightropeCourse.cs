@@ -556,6 +556,7 @@ namespace CurtainCall.Tightrope
             }
             var renderer = box.GetComponent<Renderer>();
             renderer.sharedMaterial = CourseMaterial(renderer.sharedMaterial, color);
+            ApplyPreparedArt(box, objectName, color);
             return box;
         }
 

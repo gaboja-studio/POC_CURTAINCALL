@@ -42,6 +42,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Invoke(mover, "Awake");
             Invoke(balance, "Awake");
             Invoke(controller, "Awake");
+            // EditMode does not invoke this runtime lifecycle callback automatically.
+            Invoke(player, "Awake");
         }
 
         [TearDown]
