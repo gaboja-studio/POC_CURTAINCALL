@@ -1,0 +1,5 @@
+{
+    "name": "CurtainCall.PerformanceBackground",
+    "rootNamespace": "CurtainCall.PerformanceBackground",
+    "references": ["Unity.Netcode.Runtime"]
+}
