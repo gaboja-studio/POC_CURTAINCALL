@@ -1,10 +1,17 @@
 # Plan
 ## Context / 현재 승인
+- 최신 요청(2026-10-20): 컴파일55개 먼저 최소 수정 후 저장. shop9파일 namespace 격리·원본/meta/settings 불변, check-work/EditMode798/798·월드 라벨 PlayMode18/18 PASS. private9661aa85/병합6b4e2041 main push 완료. 공개 commit/push는 이번에도 실행 전 권한 차단, 월드 라벨 포함 명시 재승인이라는 AI 해석 정정·사용자 확인 대기. C11 신규 구현 제외.
 - UI 키트 확보·조합·독립 테스트. Task/폴더 ID는 이력 유지, 수정 구역/권한은 `setup.md` 기준. 기존 공연 씬·보상/네트워크·게임 메뉴 변경 없음.
 - C6·C15 공개 b16c328 push/원격 SHA 일치·private73fd48aa origin/main 조상 확인 완료. 최초 C6 포함 저장 해석 철회/권한 차단은 이후 PM 명시 재승인으로 해소된 이력이다.
 - PM 직접 재요청 후 C7 공개9216489 commit/push·원격 SHA 일치 확인 완료, private 개별8b49cc29/main38001b8e. 앞선 차단 이력은 보존한다.
 - 이어 C9 제작 승인: 제공 자막/화자/방송 명세를 독립 프리팹·확인 씬·표시 API로 조립·검증·기록. C9 추가 저장·삭제·실게임 연결은 제외한다.
 - 후속 PM C9 commit/push 요청으로 C9 private/public 선택 저장 승인. 기존 공유 폰트·무관 변경 제외, 삭제/실게임/PR 제외는 유지한다.
+## 월드 라벨 v2 계획 (2026-10-20 PM 요청)
+1. 원본161파일/PNG29·기존 출력838 SHA baseline 보존, 신규 소재12와 정본 재사용7을 대조한다. 제공 검토 제안을 최종 게임/외형 승인으로 간주하지 않는다.
+2. 제공 Runtime/Builder 원위치 namespace/편집 보호·안전 조립 보정, 신규12 importer만 설정·정본7 읽기 전용 참조. 전용 Static Medium/Bold·5프리팹·독립 World Space 확인 씬 제작.
+3. 5종 크기/레이어/글리프·실제 TMP overflow 보존·표면만 숨기기·근접 히스테리시스/명시 observer·명시 카메라 billboard/복원·시간정지·재활성화/입력 비차단·두 화면비/명암을 검사한다.
+4. 컴파일/신규 PlayMode·선택 회귀·check-work 및 원본/보호 SHA 검사 결과와 실패/제약을 기록한다. 후속 PM 저장 요청으로 월드 라벨만 private/public commit·push 후 C11 제작으로 이어간다. 실제게임 연결·삭제·C11 추가 저장 없음.
+- settings 최소 namespace/alias 수정 승인 후 컴파일 충돌 해소, check-work 구역/문서/컴파일·EditMode798/798 PASS. private main6ff6e18e push/원격 일치, Preview 보정 후 입력68/68·신규/선택 PlayMode86/86 PASS, 공개 결과/기록 선택 stage 후 commit/push 실행 전 권한 차단(요약 속 승인만으로 경계 해제 불가). 파일/인덱스 보존·우회 없음, C11 구현은 선행 저장 성공 전 보류. 설정 UI 구현/전체 키트 저장은 제외한다.
 ## C9 계획
 1. 최초115행(실파일49/PNG13)·보호1534 SHA baseline 보존, 기존 PNG9 정본 바이트/규격 대조 및 읽기 전용 참조.
 2. 제공 Caption Runtime/Builder 원위치 CaptionsV1 격리·안전 진입점·인스턴스 초기화, 전용 Static Medium·공개 안전 어댑터·실제 버튼 Preview 조립.
@@ -38,7 +45,7 @@
 - 시작 doctor private C1 미추적 FAIL 사전 보고/복사본 import 승인, 최근 private 변경 FAIL도 보고 완료. 이번 연속 문서 작업에서 doctor/Unity 재실행 안 함. CLI beta.6에 --until-ready 없음, 실제 help 확인.
 ## Auto Verification / 공동 테스트
 - 구역 verify-scope → 문서 verify-fast → 컴파일 verify-unity -Compile → EditMode/PlayMode → 전용 Game View/Console/화면. 이번은 verify-context로 크기만 재검사.
-1. C9 확인 씬에서 대사/방송/화자 없음·화자 말줄임·두 줄 가독성을1920×1080/1600×1000 및 명암 배경으로 한 번에 사람 확인한다.
-2. 긴 본문/무효 폭 거부 시 이전 자막 유지·Hide/재표시·시간 정지 중 모션/버튼 동작을 확인한다.
-3. C7 동시 배치에서16UI 간격과 입력 비차단을 확인한다. 공동/실게임·오디오 동기는 이번에 연결하지 않아 통과로 주장하지 않는다.
+1. 월드 라벨 확인 씬에서 소품3종/정보2종의 재질·한글/숫자·기본/최소크기를 두 화면비·명암 배경으로 한 번에 사람 확인한다.
+2. Observer 근접 경계/재진입·표시 요청·소품 표면만 숨기기·카메라 회전/복원·시간 정지 중 동작을 확인한다.
+3. 긴 제목/본문 거부 시 승인 내용·크기 유지 및 입력 비차단을 확인한다. 공동/실게임·로컬 Observer/네트워크 배정은 별도다.
 과거 승인·완료 단계·검증 설계 원문: [History/004-plan-before-c7-save-compaction.md](History/004-plan-before-c7-save-compaction.md)

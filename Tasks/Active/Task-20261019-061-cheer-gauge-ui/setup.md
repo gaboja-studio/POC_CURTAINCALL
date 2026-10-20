@@ -1,8 +1,14 @@
 # Setup
 PM 자체 작업. 관련 JIRA 없음. 정식 인계·PR·병합은 별도이며 assign-task 자동 커밋/push는 실행하지 않는다.
-최신 승인(2026-10-20): PM 직접 재요청으로 C7 공개9216489 commit/push·원격 SHA 일치 확인 완료(private 개별8b49cc29/main38001b8e). 이어 C9 조립·독립 확인·검증·기록을 진행한다. C9 추가 저장·삭제·실게임 연결은 제외한다.
+최신 승인(2026-10-20): PM 월드 라벨 저장 후 C11 관전·사망 UI 제작 요청 및 settings 중복 타입 최소 수정 승인. 이전 C7/C9 제작 시 저장 제외는 후속 각 저장 요청으로 대체됐다. 삭제·실게임 연결·C11 추가 저장은 제외한다.
 원문·지난 승인/체크: [History/002-setup-before-c7-save-compaction.md](History/002-setup-before-c7-save-compaction.md)
 ## 작업 구역
+- 2026-10-20 PM 현재 요청 원문: "유니티에 컴파일 에러가 55개 떠있는데 이걸 먼저 수정한 뒤에 저장해줘." shop9파일 namespace 최소 격리 후 컴파일/테스트 통과, private 저장 완료. 대기 중 월드 라벨 공개 저장까지 포함한다는 AI 해석은 명시적 재승인으로 기록하지 않는다. 공개 commit/push는 권한 검사에서 실행 전 차단되어 사용자 확인 대기. 새 UI 조립·실게임 연결·삭제·무관 변경 저장 제외.
+- 2026-10-20 PM 후속 요청: 월드 라벨 private/public commit·push 후 C11 관전·사망 UI 제작. 기존 월드 라벨 저장 제외는 이 요청으로 대체, 무관 변경 저장 제외는 유지한다.
+- PM 선택 승인 `최소 수정 포함`: `Assets/_ThirdParty/curtaincall_settings_v1/`의 중복 CommonButtons 타입과 그 참조 namespace만 격리해 컴파일 충돌을 해소한다. 설정 UI 구현·PNG/자료 삭제·무관 코드 변경은 제외한다.
+- PM 월드 라벨 v2 요청(2026-10-20): `Assets/Scripts/Systems/WorldLabels/`, `Assets/Scenes/Tests/WorldLabels/`, `Assets/Resources/Prefabs/UIs/WorldLabels/`, `Assets/Resources/Fonts/WorldLabels/` 신규 독립 조립·검증 허용.
+- PM 키트 `Assets/_ThirdParty/curtaincall_worldlabels_v2/`: 제공 Runtime/Builder 원위치 namespace·안전 진입점·초기화/명세 불일치 보정 및 신규 importer/.meta 허용. 기존 정본은 읽기 전용 참조, 전체 원본/PNG/GUID 보존. 실게임 연결·삭제·commit/push 제외.
+- 월드 라벨 기록: 이 Task 전수 목록/검증, `Harness/Project/Facts/worldlabels.md`·사실 index·현재 Integration 소유 표.
 - C1 씬/코드: `Assets/Scenes/Tests/CheerGauge/`, `Assets/Scripts/Systems/CheerGauge/`.
 - C1 에셋: `Assets/Resources/Prefabs/UIs/CheerGauge/`, `Assets/Resources/Fonts/CheerGauge/`.
 - 버튼 씬/코드: `Assets/Scenes/Tests/CommonButtons/`, `Assets/Scripts/Systems/CommonButtons/`.

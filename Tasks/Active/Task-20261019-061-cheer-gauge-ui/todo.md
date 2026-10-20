@@ -15,7 +15,14 @@
 - [x] PM 직접 재승인 후 C6·C15 private73fd48aa/main·공개b16c328/feat/ui-resources push 및 원격 확인, 무관 변경 제외.
 - [x] C7 원본 전수·정본 대조·안전 Runtime/Builder·독립 프리팹/확인 씬·하네스 기록.
 - [x] C7 6모드·차단·문자·모션·실제입력70/화면48+대비8·PlayMode88/88·check-work EditMode798/798 완료(제작 시 미커밋).
-- [x] 후속 PM C9 commit/push 승인 확인, private bab2b062/main2b67e36d push 완료·공개 C9 결과/기록/gitlink 선택 저장 대상 확인(기존 미커밋 경계 대체).
+- [x] 후속 PM C9 commit/push 승인으로 private bab2b062/main2b67e36d·공개9ede8a3 push/원격 확인 완료(기존 C9 미커밋 경계 대체; 월드 라벨 승인 아님).
+## 월드 라벨 v2 (2026-10-20)
+- [x] PM 제작 요청·전용 구역/소유 표 기록, doctor private dirty FAIL 보고·기존 변경 보존, 원본161/보호838 SHA baseline.
+- [x] 제공 Runtime/안전 Builder·Static Medium/Bold·5프리팹/독립 확인 씬 제작.
+- [x] 최종 검증: settings 최소 수정 승인 후 충돌 해소·check-work 구역/문서/컴파일·EditMode798/798 PASS. 보정 후 입력68/68·버튼 경계/overflow·최종 신규/선택 PlayMode86/86·원본/보호 SHA 통과. private main6ff6e18e 저장 완료.
+- [x] 컴파일55개 수정 — shop9파일 namespace 격리·현재 Console오류0/경고0·check-work/EditMode798/798·WorldLabel PlayMode18/18. private9661aa85/병합6b4e2041 main push 완료.
+- [ ] 월드 라벨 공개 결과/기록 및 컴파일 수정 저장 — 이번 공개 commit/push도 실행 전 권한 차단. 현재 요청을 월드 라벨 포함 명시적 재승인으로 해석한 문구는 정정했다. HEAD9ede8a3·선택 인덱스/파일 보존, 사용자 명시 확인 대기.
+- [ ] 월드 라벨 사람 최종 외형 확인 — 자동 검증과 별도.
 ## 남은 작업·경계
 - [ ] 인계 전 기술 점검 완료 — 정식 인계 아님.
 - [ ] 공유 Dynamic TMP2개 기존 dirty/추가 SHA 차이 및 Buttons 글리프 실패 원인 확인/해결 — PM 확인 필요, 임의 복구/공유 폰트 재작성 없음.

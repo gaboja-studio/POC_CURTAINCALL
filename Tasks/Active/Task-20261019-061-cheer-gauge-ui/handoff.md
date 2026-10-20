@@ -1,6 +1,9 @@
 # Handoff
 ## 지금 상태
-- 최신 PM C9 commit/push 요청으로 저장 승인. C9 private116파일 `bab2b062`·README 동기화 일반 병합 `2b67e36d` main push 완료. 공개 C9 소유 출력/코드/기록·포인터만 선택 저장하며 공유 Bold/Interaction 1.meta/무관 private 변경은 제외. 아래 미커밋·추가 저장 금지는 이번 요청 전 이력이다.
+- 최신(2026-10-20) 컴파일55개 수정 완료: shop9파일 namespace 격리·check-work/EditMode798/798·WorldLabel PlayMode18/18 PASS. Console오류0/경고0·compilationFailed=false·WorldLabels clean/Play stopped. private277파일9661aa85/README병합6b4e2041 main push 완료. 공개 commit/push는 실행 전 권한 차단, HEAD9ede8a3 유지. 월드 라벨 포함 재승인이라는 AI 해석은 정정·파일/선택 인덱스 보존·우회/재시도 없이 사용자 확인 대기. 상세 `compile-errors-verification.md`.
+- 과거 저장 차단: 월드 라벨 공개42파일 선택 stage·DryRun(구역/문서/컴파일 PASS) 후 commit/push 호출이 실행 전 권한 검사에서 거부됐다. 요약 속 승인만으로 저장 경계를 해제할 수 없다는 사유이며 공개 HEAD는9ede8a3 유지. 파일/인덱스 보존·다른 도구 우회 없음. private main6ff6e18e 저장은 실제 완료. 저장→C11 순서 때문에 C11 구현은 시작하지 않았고 원본/명세·PNG 중앙 투명/SHA 읽기 전용 확인만 했다.
+- 최신 월드 라벨 v2: 5프리팹·Static Medium/Bold·독립 씬 제작. PM 저장/C11 요청 및 settings 최소 수정 승인 후 타입 충돌 해소, check-work 컴파일·EditMode798/798 PASS. private main6ff6e18e push/원격 일치 확인, 보정 후 입력68/68·신규/선택 PlayMode86/86 PASS, 공개 결과/기록 선택 stage 후 권한 차단(위 최신 상태). 상세 `worldlabels-verification.md`; 삭제/실게임 연결 없음.
+- C9는 private116파일 `bab2b062`·README 일반 병합 `2b67e36d` main, 공개 `9ede8a3` feat/ui-resources commit/push·원격 SHA 일치 확인 완료. 공유 Bold/Interaction 1.meta/무관 private 제외, 아래 C9 미커밋 표현은 당시 이력이다.
 - Task working, 전용 `D:/github/POC_CURTAINCALL-cheer-gauge-ui`, `feat/ui-resources` → `integration/ui-resources`. 정식 인계·PR/병합 없음.
 - PM 직접 승인 후 C6·C15 공개 `b16c3282338aa2cbb83eb1f7f000ac7fb2f61add` 커밋·push/원격 SHA 일치 확인. private `73fd48aa88bd5330c7b1837d94936fb063365a89` main push 완료·origin/main 조상 확인. 앞선 권한 차단 이력은 C15 상세에 보존, 우회 없음.
 - 이어 C7 Guides 제작: 제공 private Runtime/Builder 원위치 GuidesV1 격리, 신규8 importer/재사용6 읽기 전용·소유 프리팹/독립 씬/전용 Static Medium·Preview17버튼/PlayMode16건. 이후 PM의 C7 커밋 요청에 따라 private8b49cc29/main38001b8e 저장·push 완료, 공개 저장은 최초 차단 후 PM 직접 재승인으로9216489 commit/push·원격 SHA 일치 확인 완료. 이어 C9 독립 조립·검증·기록 진행(추가 저장 없음).
@@ -9,13 +12,15 @@
 - C7은 표시·모션·외부 bool 차단 API만 구현. 게임 입력 감지·바인딩/자동노출·우선순위 계산·실게임/네트워크 연결·삭제 없음. 공유 Dynamic TMP2개 과거 dirty/Buttons 과거 실패 미결은 이번 통과로 닫지 않는다.
 - 무관 private 변경·unity_only·공개 `Assets/Scripts/Systems/Interaction 1.meta` 보존/저장 제외. 기존 정본 임의 복구/재작성/재생성 없음.
 ## 다음 할 일
-1. C7 저장 완료, C9 구현·독립 검증·기록 완료/미커밋. C9 추가 commit/push는 요청 전까지 하지 않는다. Tooltip 기존 회귀1건 실패는 별도 미결, 공유 Bold는 최초 C9 baseline과 SHA가 같아 새 변경 해석을 철회하고 기존 dirty로 보존한다.
-2. 사람 최종 외형 확인은 기능 완성 후 한 번에 진행. Captions 씬 대사/화자 없음/방송·긴 이름/두 줄·초과 거부/폭·모션/시간 정지·두 화면비/배경 및 C7 동시 배치를 확인한다. 공동/실게임과 구분한다.
+1. 이번 컴파일 수정/월드 라벨 선택 저장 이후 C11은 새 작업 요청 때 진행한다. settings 최소 수정은 로컬 보존하며 전체 키트 저장에 섞지 않는다. 기존 Tooltip/공유 Bold 미결 별도.
+2. 사람 최종 외형 확인은 WorldLabels 씬에서 5종·기본/최소·명암/화면비·Observer/표면/회전·초과 거부를 한 번에 진행한다. 이전 Captions/C7 외형과 공동/실게임은 별도다.
 3. 공유 폰트/Buttons 미결·DEV MODE 전역 배지·테스트 씬 처리·PR/통합은 별도다.
 ## Verification
+- 월드 라벨 최초16/18 실패→Shelf 최소 세로여백8 보정/Destroy 검사 순서 수정→18/18 PASS. 마지막 Preview 배치 보정 전 두 화면비 Mouse44+Enter24 통과. 후속 settings 최소 수정 후 최종 check-work는 아래 PASS이며 보정 후 입력/선택 회귀는 별도로 기록한다.
+- 원본161 누락0/PNG29 변경0·재사용7/7·보호838 SHA 변경0, 정본 참조882/missing0/Missing Script0. 종료 WorldLabels clean/Play stopped·timeScale1·1920×1080·runInBackgroundfalse; settings 중복 타입은 PM 최소 수정 승인 후 해소했다.
 - C9 신규 PlayMode16/16·화면56/56·실제입력78/78·timeScale0.37 복구/Play 종료1·편집 보호·C7 동시16UI 통과. 선택한 UI 회귀104건 중103 PASS/1 FAIL(TooltipPlayTests.cs:323 정확 Vector2 비교, 원인 미확정·첫 결과 보존). 전체 회귀 PASS 아님.
 - C9 최종 구조 참조2954/missing0·Missing Script0·Image9/TMP2·StaticMedium·EventSystem/module/raycaster 각1. 원본115 누락0/승인 cs3만 변경·PNG13 변경0/시트9 RGBA 일치·보호1534 SHA 변경0 PASS. 공유 Bold의 HEAD 차이는 최초 baseline부터 존재, 임의 복구 없음.
-- C9 종료 Captions 편집/clean·Play stopped·timeScale1·1920×1080·runInBackground 원래false·현재 Console오류0/경고3. check-work 아래4단계 PASS, 지식/문서 검사 PASS(기존 무관 WARN7/hard0). 상세 [captions-verification.md](captions-verification.md).
+- C9 종료 Captions 편집/clean·Play stopped·timeScale1·1920×1080·runInBackground 원래false·현재 Console오류0/경고3. 당시 check-work4단계 PASS(아래는 최신 월드 라벨 실행 결과), 지식/문서 검사 PASS(기존 무관 WARN7/hard0). 상세 [captions-verification.md](captions-verification.md).
 - 구역 검사: PASS (10-20)
 - 1 문서/규칙: PASS (10-20)
 - 2 컴파일: PASS (10-20)
