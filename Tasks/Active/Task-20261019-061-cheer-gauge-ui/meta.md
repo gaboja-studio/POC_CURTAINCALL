@@ -15,6 +15,8 @@
 - C1 미리보기의 상단 중앙 배치·환호/야유/사망 실제 합계·단원별 원호, 상한100/150/200·1~4명·공연 내 색 고정 유지. 기존 공연 씬 배치 제외.
 - 수정권한/공용 파일/금지 경계는 `setup.md` 기준. 전용 worktree 구역 내 생성·승인 private 조립기/namespace 보정만, 메인 폴더/공용씬/보상 코드 변경 금지.
 ## 현재 결정·결과
+- C14 후속 저장 요청(2026-10-20): 사용자 직접 "커밋 푸시해줘" 승인. private21파일 e1ddf391/main push·원격 SHA 확인 완료, 공개 C14 산출물/기록/gitlink·전용 SemiBold 한 파일 LFS 설정을 이번 선택 커밋으로 feat/ui-resources에 저장·push한다. 무관 results/title_logo 보존·저장 제외, PR/공개 통합 병합 없음. 아래 제작 당시 C14 저장 제외만 대체한다.
+- C14(2026-10-20): SettingsUi 전용 설정/공용3 프리팹·독립 씬 조립 완료, 기존 Systems/Settings 미수정. 기존 Medium/Bold 읽기 전용·전용 SemiBold Static8192(한글+ASCII11325) 생성. 보정 전 Compile/PlayMode23/23·두 화면비24캡처·합성 입력·참조2484 누락0·baseline626 보존 확인. Preview 국소 배경/하단 고정으로 대비·16:10 겹침 보정, 실제 프리팹 불변. 최종24캡처/비중첩·합성 입력 재통과, Compile/C14 Play23/23·C16 회귀16/16·check-work/EditMode798/798 PASS. 종료 clean/Play stopped·1920×1080·시간/백그라운드 복구·Console오류0/예상 C16 테스트 경고2([settings-ui-verification.md](settings-ui-verification.md)). 물리 입력/사람 외형·실기기/공동·실옵션/저장/Audio/Screen/PlayerPrefs·입력 소유/서비스 연결·C14 commit/push는 별도. C16 공개f9e8666/private76a7e908 push 완료와 구분한다.
 - 최신 사용자 직접 요청 "버그를 먼저 수정하고 계속 진행하자."에 따라 Schedule C#7 namespace만 최소 격리, 중복21개 해소·재컴파일 PASS. C11 Static폰트 재사용 안전복구 후 Canvas 전체 프리팹/독립 씬 생성, 신규 PlayMode26/26 및 선택 회귀50/50 PASS. 실행 UI 합성 입력72/72·두 화면비/명암24캡처 확인, 최종 check-work/컴파일·EditMode798/798 PASS, C11 clean/Play stopped·timeScale1·1920×1080·QA 입력 정책 값 복구/장치0(`spectator-verification.md`). 선행 공개2fe68a2 commit/push 완료와 구분하며 후속 사용자 "저장해줘" 요청으로 C11/Schedule private334파일1d3bee7d/README 병합11781eb2 main push·원격 확인 완료, 공개 C11 결과·기록/gitlink 선택 저장. 무관 변경·실게임 연결·삭제·PR/공개 통합 병합 제외. 아래 공개 차단은 완료 전 이력.
 - 최신 월드 라벨 공개 저장은 권한 검사에서 실행 전 거부(요약 속 승인만으로 저장 경계 해제 불가). 공개 HEAD9ede8a3·선택 stage42파일 보존, private main6ff6e18e 저장 완료. 우회하지 않았고 저장 후 순서인 C11 구현은 보류했다. 사용자 직접 확인이 필요하다.
 - 후속 PM C9 commit/push 요청으로 private `bab2b062`/README 일반 병합 `2b67e36d` main, 공개 `9ede8a3` feat/ui-resources push·원격 SHA 일치 확인 완료. 아래 C9 미커밋/저장 제외는 구현 당시 이력이며 월드 라벨 저장 승인으로 확대하지 않는다.
@@ -24,7 +26,7 @@
 - 2026-10-20 PM 직접 재승인 후 C7 공개9216489 push/원격 SHA 일치 확인 완료. 이어 C9 독립 프리팹/씬·표시 API·19버튼 구현, 신규 PlayMode16/16·화면56/입력78·시간 복구/동시 표시 검증 완료. 위 공개 대기는 당시 이력이며 C9 추가 저장 없음. 무관 변경·삭제·실게임 연결·PR/병합 제외.
 - C6 저장 포함이라는 최초 AI 해석 철회/권한 차단은 과거 이력. 이후 PM 직접 명시 재승인으로 C6·C15 저장 금지 해소 및 위 SHA 저장 완료; 과거 금지를 현재 승인으로 오인하지 않는다.
 ## C16 현재 상태 (2026-10-20)
-- PM 요청으로 C16 독립 프리팹/씬·표시 API·Preview9버튼·PlayMode16건 생성. 전체 원본 보존·기존 Static Medium/별 읽기 전용 재사용. 실제 게임 연결/삭제/commit/push 없음.
+- PM 요청으로 C16 독립 프리팹/씬·표시 API·Preview9버튼·PlayMode16건 생성. 전체 원본 보존·기존 Static Medium/별 읽기 전용 재사용. 실제 게임 연결/삭제 없음. 제작 당시 저장 제외 후 후속 요청으로 공개f9e8666/private76a7e908 저장·push 완료.
 - results 버튼 중복21개로 컴파일 차단됐으나 아래 PM 승인3파일 격리 후 정식 Compile·C16 PlayMode16/16 PASS. 긴문구 검사 두 번15/16은 TMP 플래그·측정 순서 보정 후 해소. Preview 합성 PointerClick13건/비활성 콜백1건 PASS(물리 입력 아님). Overlay/클립 경계 보정 후4화면비 명암16캡처·차폐 배경 차이0px·raycast72/합성 클릭104/비활성8 PASS. C11 회귀26/26·참조1070 누락0·C16 clean/종료 복구 확인. 최종 check-work 구역/문서/컴파일·EditMode798/798 PASS, 현재 Console오류0/경고0(`curtain-verification.md`).
 ## Open Decisions
 - PM이 `최소 수정 후 계속`을 선택(2026-10-20). results의 CommonButtons namespace와 ResultsPanelView/Builder 타입 참조3파일만 격리. results 기능 제작/PNG·GUID 변경·삭제·commit/push 제외는 유지한다. 격리 후 정식 Compile·C16 PlayMode16/16 통과. 별도 캡처에서 발견한 Preview Overlay/clip 경계 보정 후에도 C16 PlayMode16/16 재통과.

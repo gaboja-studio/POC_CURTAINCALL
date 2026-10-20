@@ -38,6 +38,12 @@
 - [x] PM 승인 results3파일 namespace 격리/차단 해소·C16 Play16/C11 회귀26 PASS·4화면비16캡처/배경 차이0px·합성 클릭104/raycast72/비활성8·원본 SHA/참조1070 누락0·기존 출력 보호/종료 복구 확인.
 - [x] 최종 보정 후 표준 check-work 구역/문서/컴파일·EditMode798/798 PASS. 현재 Console오류0/경고0·원본 SHA 재확인 PASS, 실패/통신 제약 이력 보존.
 - [ ] 사람 최종 외형 확인. 실제 장소 로드/네트워크/입력 정책·삭제·commit/push 제외.
+## C14 설정 UI (2026-10-20)
+- [x] PM 제작 요청·전용 SettingsUi 구역 배정·제공 문서/API 조사, 기존 게임 Settings 코드 분리.
+- [x] 원본/보호 baseline626·재사용16 대조·신규20 importer 확인. 기존 Medium(Spectator)/Bold(WorldLabels) 읽기 전용·전용 SemiBold Static8192/한글+ASCII11325 생성.
+- [x] 안전 조립 API/공개 어댑터·설정/공용3 프리팹·독립 SettingsUi 씬/명시 데모 조립, 기존 Systems/Settings 미수정.
+- [x] 최종 보정 후 Compile/PlayMode23/23·C16 회귀16/16·check-work/EditMode798/798 PASS. 두 화면비24캡처/비중첩·합성 입력·참조2484 누락0·baseline626 보존/종료 audit 확인. Console오류0/예상 C16 테스트 경고2, 기존 전체 PlayMode 미결은 별도([settings-ui-verification.md](settings-ui-verification.md)).
+- [ ] 사람 최종 외형/물리 입력·실기기·공동 확인. 실옵션 목록/저장/Audio/Screen/PlayerPrefs·입력 소유/서비스 연결·삭제·C14 commit/push 제외.
 ## 남은 작업·경계
 - [x] PM 예외 승인 전체 에셋 저장/공급 준비 기록 — private807파일 d409dc80·PM 선택 로컬219개 보존 병합62250960 main push 확인. 공개 전체 결과·정책·폰트 단일 LFS·수신용 양쪽 기록 보존/문서 충돌 절차를 이 기록과 함께 저장한다. 최종 공개 push/SHA는 원격 이력·최종 보고로 확인, 실패 시 완료 보고하지 않는다. 실제 pull/연결 씬 검증은 사용자 담당.
 - [ ] 인계 전 기술 점검 완료 — 정식 인계 아님.

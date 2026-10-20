@@ -6,6 +6,12 @@
 - PM 직접 재요청 후 C7 공개9216489 commit/push·원격 SHA 일치 확인 완료, private 개별8b49cc29/main38001b8e. 앞선 차단 이력은 보존한다.
 - 이어 C9 제작 승인: 제공 자막/화자/방송 명세를 독립 프리팹·확인 씬·표시 API로 조립·검증·기록. C9 추가 저장·삭제·실게임 연결은 제외한다.
 - 후속 PM C9 commit/push 요청으로 C9 private/public 선택 저장 승인. 기존 공유 폰트·무관 변경 제외, 삭제/실게임/PR 제외는 유지한다.
+## C14 설정 UI 계획 (2026-10-20 현재 요청)
+1. 완료: baseline626·신규20 importer/재사용16 대조, 승인 Builder1/신규 importer20 외 변경0·PNG변경0/누락0. SettingsUi 전용 코드이며 기존 Systems/Settings 미수정.
+2. 완료: 안전 조립 API·설정/공용3 프리팹·독립 SettingsUi 씬/명시 데모 조립. Spectator Medium/WorldLabels Bold 읽기 전용 재사용, 전용 SemiBold Static8192(전체 한글+ASCII11325) 생성.
+3. 보정 전 Compile/PlayMode23/23·두 화면비24캡처·합성 입력·참조2484 누락0·기존 출력 거절/종료 audit 확인. 첫 입력 실패는 렌더 등록 전 Graphic.depth=-1 검사로 QA220ms 대기 후 통과, 제품 Runtime 불변. 물리 Mouse/Keyboard·사람 승인과 구분한다.
+4. 완료: Preview 국소 배경/하단 고정으로 대비·16:10 겹침 보정(실제 프리팹 불변). 최종24캡처/비중첩·합성 입력·Compile/C14 Play23/23·C16 회귀16/16·check-work/EditMode798/798·clean 종료 복구 PASS, Console오류0/예상 C16 테스트 경고2. [settings-ui-verification.md](settings-ui-verification.md)에 실패/보정/최종 결과를 구분해 기록했다. 실제 옵션 목록/저장/Audio/Screen/PlayerPrefs·입력 소유/서비스 연결·실기기/공동·삭제·C14 commit/push 제외.
+- 사람 확인: 패널 점유/HUD 보호, 탭 선택/포커스 구분, 슬라이더·ON/OFF/disabled 가독성과 전환 손맛을 기능 완성 후 한 번에 확인한다. 공동/실게임 입력 소유·safe area는 별도다.
 ## C16 장소 전환 커튼 계획 (2026-10-20 현재 요청)
 1. 원본/기존 출력 SHA baseline·6 PNG 규격/불투명 차폐 영역·기존 별 정본 대조, 제공 명세 유지.
 2. 제공 Runtime/Builder 안전 보정·전용 조립 진입점, 기존 Static Medium 읽기 전용 재사용·Canvas 전체 프리팹/독립 확인 씬 제작.
