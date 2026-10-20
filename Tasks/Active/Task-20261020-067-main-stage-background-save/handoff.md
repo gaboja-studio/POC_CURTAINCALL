@@ -1,6 +1,7 @@
 # Handoff
 
 ## 현재 상태
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/196 (integration/main-stage, 검토 대기)
 - Task-067 / 제출 feat/main-stage-background-submit, 제작 feat/main-stage-background. [이전 제작 기록](History/001-background-art-before-trick-integration.md), [묘기 배경 제거 전](History/003-before-master-only.md).
 - 유지하는 원본: Assets/_ThirdParty/curtaincall/PerformanceBackground/Scenes/performance_background.unity. 지름 1164, 바닥 Y-1080, 무대 Y0, 천장 Y315.
 - 10-21 사용자 지시: 관객 모델을 제거하고 인간 대포·외줄 씬에서 공연장 배경을 제거. 작업한 원본 공연장만 유지.
@@ -29,4 +30,4 @@
 ## 다음 할 일
 1. 사용자가 관객 없는 원본 공연장의 배치·떠 보이는 지지 구조를 검토. 주기둥/브래킷/사슬 지지 보강은 아직 제안만 했으며 미적용.
 2. 실제 플레이 적용은 사용자 재지시 후 진행. 원본의 전체 치수와 묘기용 1/3 치수 차이를 주의.
-3. 저장 요청 시 private 에셋 먼저 저장 후 공개 문서/gitlink 저장. PR은 별도 요청 때.
+3. PR #196 리뷰·CI 확인 후 PM이 병합. 추가 변경은 제출 브랜치와 원본 작업 폴더의 차이를 먼저 확인.

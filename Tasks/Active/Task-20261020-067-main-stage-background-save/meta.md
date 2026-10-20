@@ -2,7 +2,7 @@
 
 - **Title:** 공용 공연장 배경 제작 및 다른 PC 인계
 - **Type:** feat
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage
 - **Current Skill:** integrate-editor

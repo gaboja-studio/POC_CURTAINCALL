@@ -9,7 +9,7 @@
 - [x] private 에셋 b6cc29c7 저장, origin/main에 포함 확인
 - [x] 다른 기능 이력을 제외한 feat/main-stage-background-submit 준비
 - [x] 구역·문서 검사, 제작 프로젝트 컴파일 및 EditMode 815/815 확인
-- [ ] "제출해줘"로 integration/main-stage 대상 PR 제출
+- [x] "제출해줘"로 integration/main-stage 대상 PR #196 제출
 
 ## 후속 검토
 - [ ] 사용자가 원본 공연장 미감·떠 보이는 지지 구조 검토
