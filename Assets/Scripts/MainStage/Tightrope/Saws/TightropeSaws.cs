@@ -71,11 +71,15 @@ namespace CurtainCall.Tightrope.Saws
         [Tooltip("가로 톱날 모델. 보이는 지름 크기로 만들고, 회전축이 위(+Y)인 프리팹.")]
         [SerializeField] GameObject horizontalPrefab;
 
-        [Tooltip("수직 톱날 모델. 보이는 지름 크기로 만들고, 회전축이 오른쪽(+X)인 프리팹.")]
+        [Tooltip("수직 톱날 모델. 기본 축은 +Y이며 런타임에 오른쪽(+X)으로 눕힌다.")]
         [SerializeField] GameObject verticalPrefab;
 
         [Tooltip("발판 모델. 발판 크기로 만든 프리팹.")]
         [SerializeField] GameObject platePrefab;
+
+        [Tooltip("협동 관문 외형. 비우면 기존 도형과 판정을 유지한다.")]
+        [SerializeField] GameObject cooperativeGatePrefab;
+        [SerializeField] GameObject cooperativePlatePrefab;
 
         [SerializeField] Color plateColor = new(1f, 0.8f, 0.2f);
         [SerializeField] Color platePressedColor = new(0.3f, 0.9f, 0.3f);
@@ -223,6 +227,7 @@ namespace CurtainCall.Tightrope.Saws
 
         void OnDisable()
         {
+            if (pathRoot != null) pathRoot.gameObject.SetActive(false);
             if (current == this) current = null;
             if (run != null) run.RunRestarted -= HandleRunRestarted;
             Unregister();
@@ -652,6 +657,7 @@ namespace CurtainCall.Tightrope.Saws
             TightropeOutline.AttachToHierarchy(plateView.gameObject);
             plateView.gameObject.SetActive(false);
             BuildCooperativeGateViews(root);
+            BuildPaths(root, resources);
         }
 
         /// <summary>기본 톱날: 밝은 날·양면 회전 표식. 모든 도형은 지정된 시각 지름·두께 안에 둔다.</summary>
@@ -709,6 +715,7 @@ namespace CurtainCall.Tightrope.Saws
         void UpdateViews()
         {
             UpdateCooperativeGateViews();
+            UpdatePaths();
             float spin = Time.time * settings.spinSpeed;
             Quaternion courseRotation = Quaternion.LookRotation(course.Forward, Vector3.up);
 

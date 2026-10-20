@@ -99,15 +99,17 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             try
             {
                 Time.captureDeltaTime = 1f / 60f;
+                yield return null; // Apply the fixed frame duration before launching.
                 Call(scheme, "Enter", context);
                 var input = CatchFrame(jump: true); Set(input, "AuxDirection", 1);
-                Call(scheme, "Tick", context, input); Call(mover, "Update");
+                Call(scheme, "Tick", context, input); yield return null;
                 Assert.AreEqual("Lane", Get(mover, "CurrentJump").ToString());
                 for (int i = 0; i < 120 && (bool)Get(mover, "IsAirborne"); i++)
                 {
                     input = CatchFrame(move: i % 2 == 0 ? 1f : -1f);
                     Set(input, "Posture", i % 2 == 0 ? -1f : 1f);
-                    Call(scheme, "Tick", context, input); Call(mover, "Update");
+                    // Advance the actual player loop so physics and landing callbacks run too.
+                    Call(scheme, "Tick", context, input); yield return null;
                     var air = Static("CurtainCall.Tightrope.TightropeCannonAirControl", "Current");
                     Assert.That((Vector3)Call(air, "Consume"), Is.EqualTo(Vector3.zero), "옆줄 점프는 WASD 공중 보정을 사용하지 않는다.");
                 }

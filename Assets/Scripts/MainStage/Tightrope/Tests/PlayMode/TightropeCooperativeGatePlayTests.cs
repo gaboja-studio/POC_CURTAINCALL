@@ -29,7 +29,11 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 var collider = view.GetComponentInChildren<MeshCollider>();
                 Assert.IsTrue(collider.enabled);
                 Assert.IsNull(view.Find("ContinuousSawFrame"));
-                Assert.IsNotNull(view.Find("IncomingSaw/Tooth0"), "기존 원판과 톱니 모양을 재사용한다.");
+                var prepared = Get(saws, "cooperativeGatePrefab") as GameObject;
+                if (prepared == null) Assert.IsNotNull(view.Find("IncomingSaw/Tooth0"));
+                else Assert.AreSame(prepared.GetComponentInChildren<MeshFilter>().sharedMesh,
+                    view.Find("IncomingSaw").GetComponentInChildren<MeshFilter>().sharedMesh,
+                    "준비한 원판 에셋을 재사용한다.");
                 Assert.That(collider.bounds.size.y, Is.EqualTo(2.1f).Within(.01f));
                 Assert.That(collider.bounds.size.z, Is.EqualTo(2.1f).Within(.01f));
                 Assert.That(collider.bounds.size.x, Is.EqualTo(.2f).Within(.01f));

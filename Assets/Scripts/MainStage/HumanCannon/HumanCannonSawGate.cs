@@ -18,6 +18,8 @@ namespace CurtainCall.HumanCannon
         MaterialPropertyBlock tint;
         Renderer[] renderers;
         Renderer[] barrierRenderers;
+        Transform[] blades;
+        Quaternion[] bladeRotations;
         Vector3 visualPosition;
         public bool CarrierPassed { get; private set; }
         public PoleSawPhase Phase { get; private set; } = PoleSawPhase.Active;
@@ -29,6 +31,13 @@ namespace CurtainCall.HumanCannon
             {
                 visualPosition = sawVisual.localPosition;
                 renderers = sawVisual.GetComponentsInChildren<Renderer>();
+                blades = new Transform[sawVisual.childCount];
+                bladeRotations = new Quaternion[blades.Length];
+                for (int i = 0; i < blades.Length; i++)
+                {
+                    blades[i] = sawVisual.GetChild(i);
+                    bladeRotations[i] = blades[i].localRotation;
+                }
             }
         }
 
@@ -53,9 +62,10 @@ namespace CurtainCall.HumanCannon
             tint.SetColor("_BaseColor", color);
             tint.SetColor("_Color", color);
             if (renderers != null) foreach (var item in renderers) if (item != null) item.SetPropertyBlock(tint);
-            if (phase == PoleSawPhase.Active)
-                foreach (Transform blade in sawVisual)
-                    blade.localRotation = Quaternion.Euler(0f, 0f, (float)(time * spinSpeed % 360.0));
+            if (phase == PoleSawPhase.Active && blades != null)
+                for (int i = 0; i < blades.Length; i++)
+                    if (blades[i] != null)
+                        blades[i].localRotation = bladeRotations[i] * Quaternion.Euler(0f, 0f, (float)(time * spinSpeed % 360.0));
         }
 
         internal bool HostTick(PoleSawPhase phase, ulong poleUser)

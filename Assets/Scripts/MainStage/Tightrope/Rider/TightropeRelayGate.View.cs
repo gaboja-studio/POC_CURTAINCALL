@@ -121,6 +121,9 @@ namespace CurtainCall.Tightrope
                 bool warning = transit ? OutboundWarning : ReturnWarning;
                 // 실제로 연결된 줄만 덧칠한다. 소각된 구간에 가짜 발판을 표시하지 않는다.
                 open &= LandingWaveMath.SharesSupport(course.GetUsableSpans(path.Lane), GapFrom + .02f, GapTo - .02f);
+                // Prepared relay rope carries its own round, striped appearance.
+                // Keep the old strip only for scenes without the prepared asset.
+                open &= course.ArtProfile == null || course.ArtProfile.relayRope == null;
                 path.Strip.gameObject.SetActive(open);
                 if (!open) continue;
                 path.Strip.SetPositionAndRotation(course.GetLanePosition(path.Lane, (GapFrom + GapTo) * .5f) + Vector3.up * .075f, facing);
@@ -170,6 +173,9 @@ namespace CurtainCall.Tightrope
             box.transform.SetParent(parent, false); box.GetComponent<MeshFilter>().sharedMesh = relayBoxMesh;
             var renderer = box.GetComponent<MeshRenderer>(); renderer.sharedMaterial = relayViewMaterial;
             renderer.shadowCastingMode = ShadowCastingMode.Off; renderer.receiveShadows = false;
+            var profile = course != null ? course.ArtProfile : null;
+            if (profile != null && name == "Bar") TightropeArtFit.Box(box.transform, profile.barX);
+            else if (profile != null && name.Contains("cable")) TightropeArtFit.Box(box.transform, profile.cableY);
             return box.transform;
         }
 
@@ -177,6 +183,7 @@ namespace CurtainCall.Tightrope
         {
             relayTint.SetColor("_BaseColor", color); relayTint.SetColor("_Color", color);
             item.GetComponent<Renderer>().SetPropertyBlock(relayTint);
+            TightropeArtFit.Tint(item, color);
         }
 
         static void SetRelayRod(Transform rod, Vector3 from, Vector3 to, float width)

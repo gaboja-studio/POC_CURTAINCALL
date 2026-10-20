@@ -20,7 +20,7 @@ namespace CurtainCall.Player
     /// <summary>
     /// 동작 부품: 코스 이동, 제자리 점프, 옆줄 점프. 키도 콘텐츠도 모르고, 조작 규칙이 함수를 불러 움직인다.
     /// 전진 방향은 카메라가 아니라 월드에 정해진 코스 방향(목적지 쪽)이다.
-    /// 공중에서는 뛴 순간의 수평 움직임(앞뒤·옆줄 방향)을 착지할 때까지 그대로 유지하고 입력으로 바꾸지 않는다.
+    /// 기본적으로 공중에서는 뛴 순간의 수평 움직임을 유지한다. FreeAirControl을 켠 일반 이동은 체공 중에도 조작한다.
     /// 옆줄 점프의 허용 여부·착지 판정(줄 유무·합체·보정)은 외줄 기능이 <see cref="LaneJumpFilter"/> 등으로 붙인다.
     /// 목마 중 점프 규칙은 목마 기능이 정한다.
     /// 플레이어끼리는 물리로 밀지 않는다: 몸통 충돌을 끄고, 같은 줄 앞뒤에 다른 플레이어가 있으면 닿기 직전까지만 간다.
@@ -93,12 +93,12 @@ namespace CurtainCall.Player
         /// <summary>이번 프레임 땅에서 코스 이동 중인지(조작 잠금 반영). 균형의 이동 중 흔들림 판정에 쓴다.</summary>
         public bool IsMoving { get; private set; }
 
-        /// <summary>이번 프레임 코스 이동 입력. +1 전진, -1 후진. 매 프레임 넣어야 하며 넣지 않으면 정지. 공중에서는 무시한다.</summary>
+        /// <summary>이번 프레임 코스 이동 입력. +1 전진, -1 후진. 매 프레임 넣어야 하며 넣지 않으면 정지. 공중 조작은 FreeAirControl이 허용한다.</summary>
         public void SetMoveInput(float forward) => moveInput = Mathf.Clamp(forward, -1f, 1f);
 
         /// <summary>
         /// 이번 프레임 일반 이동 입력(<see cref="FreeMovement"/>일 때). 코스 기준 옆(+1 오른쪽)·앞(+1 전진). 대각선도 같은 속도.
-        /// 매 프레임 넣어야 하며 공중에서는 무시한다.
+        /// 매 프레임 넣어야 하며 공중에서는 FreeAirControl을 켰을 때 반영한다.
         /// </summary>
         public void SetMoveInput(float side, float forward)
         {
@@ -160,6 +160,9 @@ namespace CurtainCall.Player
         /// 옆줄 점프는 줄타기 이동에서만 한다.
         /// </summary>
         public bool FreeMovement { get; set; }
+
+        /// <summary>일반 이동의 점프·낙하 중에도 매 프레임 방향 입력을 반영한다. 기본 꺼짐이며 옆줄 점프에는 적용하지 않는다.</summary>
+        public bool FreeAirControl { get; set; }
 
         /// <summary>
         /// 다른 플레이어가 이 플레이어 몸통을 통과하는지. 켜면 플레이어끼리 막기·옆줄 착지 겹침 검사에서 빠지고, 래그돌 등 물체와도 부딪히지 않는다.
@@ -551,6 +554,16 @@ namespace CurtainCall.Player
             else
             {
                 IsMoving = false;
+                if (FreeMovement && FreeAirControl && ControlEnabled && CurrentJump != JumpKind.Lane)
+                {
+                    Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * sideInput, 1f);
+                    airVelocity = input * (Character.FreeMoveSpeed * speedMultiplier);
+                    // 걸어서 낭떠러지를 벗어난 첫 프레임도 같은 입력으로 이동한다.
+                    if (CurrentJump == JumpKind.None) groundVelocity = airVelocity;
+                    if (input.sqrMagnitude > .0001f)
+                        transform.rotation = Quaternion.RotateTowards(transform.rotation,
+                            Quaternion.LookRotation(input, Vector3.up), Character.TurnSpeed * Time.deltaTime);
+                }
             }
 
             Vector3 horizontal = CurrentJump != JumpKind.None ? airVelocity : groundVelocity;

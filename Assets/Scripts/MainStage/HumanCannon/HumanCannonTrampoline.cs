@@ -17,6 +17,10 @@ namespace CurtainCall.HumanCannon
         [Min(0.1f), SerializeField] float surfaceHeight = 0.5f;
         [Tooltip("중앙 반동 면의 로컬 좌우/앞뒤 반폭(m). 운반 회전을 따라 판정한다.")]
         [SerializeField] Vector2 halfSize = new Vector2(2f, 2f);
+        [Tooltip("원형 천의 반동 판정. 기존 씬은 기본값인 사각형을 유지한다.")]
+        [SerializeField] bool circularSurface;
+        [Tooltip("운송 시 검사할 프레임의 좌우/앞뒤 반폭. 0이면 기존 반동 면 크기를 사용한다.")]
+        [SerializeField] Vector2 loadHalfSize;
         [Tooltip("손잡이 잡기 거리(m). 공용 상호작용 거리 배율 적용.")]
         [Min(0.1f), SerializeField] float grabDistance = 2f;
         [Tooltip("수직 반동 속도(m/s). 자동 전진은 멈추고 WASD 조절은 유지한다. 다리 부상으로 감소하지 않는다.")]
@@ -42,6 +46,8 @@ namespace CurtainCall.HumanCannon
         public Transform Handle => handle != null ? handle : transform;
         public Vector3 Surface => transform.position + Vector3.up * surfaceHeight;
         public Vector2 HalfSize => halfSize;
+        public bool CircularSurface => circularSurface;
+        public Vector2 LoadHalfSize => loadHalfSize.x > 0f && loadHalfSize.y > 0f ? loadHalfSize : halfSize;
         public float UpwardSpeed => upwardSpeed;
         public float CarryMoveSpeed => groundBounceAirControlSpeed;
         public int LocalBounceCount { get; private set; }
@@ -174,7 +180,14 @@ namespace CurtainCall.HumanCannon
 
         internal bool TryContact(Vector3 from, Vector3 to, float radius, out Vector3 contact) =>
             TrampolineContact.TryCross(from, to, previousSurface, Surface, previousRotation,
-                transform.rotation, halfSize, radius, out contact) && !BounceBlocked(contact);
+                transform.rotation, halfSize, radius, circularSurface, out contact) && !BounceBlocked(contact);
+
+        bool NearSurface(NetworkPlayer player, Vector3 contact)
+        {
+            Vector3 relative = Quaternion.Inverse(transform.rotation) * (contact - Surface);
+            return TrampolineContact.Contains(new Vector2(relative.x, relative.z), halfSize, 1f, circularSurface)
+                && Mathf.Abs(relative.y) <= 2f && (player.transform.position - contact).sqrMagnitude <= 25f;
+        }
 
         // 과승 실패 중에는 운반 트램폴린도 함께 떨어진다. 지연된 반동 요청에도 같은 판정을 사용한다.
         static bool BounceBlocked(Vector3 contact) => HumanCannonRouteSystem.Current != null
@@ -227,10 +240,8 @@ namespace CurtainCall.HumanCannon
         void HandleBounce(NetworkPlayer player, int station, uint launch, uint segment, Vector3 contact)
         {
             var cannon = HumanCannonSystem.Current;
-            Vector3 relative = Quaternion.Inverse(transform.rotation) * (contact - Surface);
             // 위치는 소유자가 계산한다. 지연 허용 폭 안의 접촉과 현재 비행 식별자를 함께 검사한다.
-            bool nearSurface = Mathf.Abs(relative.x) <= halfSize.x + 1f && Mathf.Abs(relative.z) <= halfSize.y + 1f
-                && Mathf.Abs(relative.y) <= 2f && (player.transform.position - contact).sqrMagnitude <= 25f;
+            bool nearSurface = NearSurface(player, contact);
             bool accepted = !BounceBlocked(contact) && Carrier != player.OwnerClientId && nearSurface && cannon != null
                 && cannon.ApplyRebound(player.OwnerClientId, station, launch, segment, contact, upwardSpeed);
             if (accepted)

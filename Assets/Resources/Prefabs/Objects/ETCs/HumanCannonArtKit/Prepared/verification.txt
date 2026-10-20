@@ -1,0 +1,8 @@
+검사 기록 — 2026-10-20
+Unity 컴파일: PASS
+HumanCannon EditMode 테스트: 460/460 PASS
+적용 준비 프리팹 검사: 16개 / 검사48개 PASS
+기존 씬: 파일 변경 없음, HumanCannon.unity dirty=false, 기존 사각 트램폴린 유지
+실제 코스 적용·플레이·멀티플레이 검사: 미실행 (이번 요청은 준비 작업)
+check-work 통합 검사: Task 없는 feat 브랜치로 실행 불가. 전체 검증 통과라고 보고하지 않음.
+저장 범위: 사용자 승인에 따라 Task 없이 작업한 코드·준비 프리팹·가이드. 씬·ProjectSettings·외부 원본 변경은 제외.

@@ -14,6 +14,7 @@ namespace CurtainCall.Tightrope.Saws
             public float InitialLift;
             public Transform View, Blade;
             public MeshCollider Collider;
+            public LineRenderer Path;
         }
 
         // 해결한 관문과 다음 관문은 독립적이다. 이전 톱이 이동 중이어도 다음 관문이 정상 등장한다.
@@ -83,13 +84,14 @@ namespace CurtainCall.Tightrope.Saws
             var root = new GameObject(name).transform;
             root.SetParent(parent, false);
             float diameter = settings.cooperativeGateHeight, depth = settings.cooperativeGateThickness;
-            blade = CreateSaw(root, "IncomingSaw", null, diameter, depth, SawKind.Vertical);
+            blade = CreateSaw(root, "IncomingSaw", cooperativeGatePrefab, diameter, depth, SawKind.Vertical);
             var collision = new GameObject("DiscCollision").transform;
             collision.SetParent(root, false);
             collision.localRotation = Quaternion.Euler(0f, 0f, -90f);
             collision.localScale = new Vector3(diameter, depth * .5f, diameter);
             collider = collision.gameObject.AddComponent<MeshCollider>();
-            collider.sharedMesh = blade.Find("Blade").GetComponent<MeshFilter>().sharedMesh;
+            // Collision stays independent of the authored visual's hierarchy.
+            collider.sharedMesh = TightropeArtFit.UnitCylinder;
             collider.convex = true;
             return root;
         }
@@ -102,6 +104,7 @@ namespace CurtainCall.Tightrope.Saws
 
         static void RemoveReleasedView(ReleasedGate gate)
         {
+            if (gate.Path != null) Destroy(gate.Path.gameObject);
             if (gate.View == null) return;
             gate.View.gameObject.SetActive(false);
             Destroy(gate.View.gameObject);
