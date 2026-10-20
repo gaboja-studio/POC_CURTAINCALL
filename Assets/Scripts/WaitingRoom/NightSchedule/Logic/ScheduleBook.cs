@@ -16,19 +16,20 @@ namespace CurtainCall.WaitingRoom
 
     /// <summary>
     /// 스케줄표(세트리스트) 규칙. 판정은 호스트 한 곳에서 이것으로만 한다.
-    /// 기준: schedule-board.md(1일차 고정, 하루 공연 2개, 4일차는 쓰기만 하고 실행 안 함), 2026-10-17 담당자 결정(Task-049 meta):
-    /// - 1일차 밤에 2·3일차를 쓰고 확정하면 2일차가 잠긴다. 3일차는 2일차 밤에 다시 열려 고친 뒤 확정하면 잠긴다. 3일차 밤에는 4일차를 쓰고 확정한다.
+    /// 2026-10-21 사용자 확정: 공연은 1~3일만. 4일차는 아침 뒤 종료하므로 편성하지 않는다.
+    /// - 1일차 밤에 2·3일차를 쓰고 확정하면 2일차가 잠긴다. 3일차는 2일차 밤에 다시 열려 고친 뒤 확정하면 잠긴다.
     /// - 그날 밤 확정 전에는 (호스트가) 준비 완료할 수 없다 — <see cref="IsConfirmedTonight"/>.
     /// - 같은 공연을 하루 2번 골라도 된다. 난도는 그 묘기의 런 안 출연 순번(1·2·3번째 이상 = 1·2·3).
     /// 세대 교체·런 재시작 때 <see cref="Clear"/>로 처음 상태로 돌린다.
     /// </summary>
     public sealed class ScheduleBook
     {
-        public const int Days = 4;
+        public const int Days = 4; // 기존 네트워크 배열 길이 유지. 마지막 칸은 항상 빈 값.
+        public const int PerformanceDays = 3;
         public const int SlotsPerDay = 2;
         public const int MaxDifficulty = 3;
 
-        /// <summary>실행하지 않는 마지막 일차(쓰기만 한다).</summary>
+        /// <summary>공연 편성이 없는 마지막 아침.</summary>
         public const int UnplayedDay = 4;
 
         readonly string[] firstDay;
@@ -78,12 +79,11 @@ namespace CurtainCall.WaitingRoom
             return false;
         }
 
-        /// <summary><paramref name="night"/>일차 밤에 쓰는 일차들. 1일차 밤 2·3, 2일차 밤 3, 3일차 밤 4.</summary>
+        /// <summary>1일차 밤 2·3, 2일차 밤 3. 이후는 편성 없음.</summary>
         public static int[] EditableDays(int night) => night switch
         {
             1 => new[] { 2, 3 },
             2 => new[] { 3 },
-            3 => new[] { 4 },
             _ => Array.Empty<int>(),
         };
 
@@ -94,7 +94,6 @@ namespace CurtainCall.WaitingRoom
         {
             1 => 2,
             2 => 3,
-            3 => 4,
             _ => 0,
         };
 
@@ -197,12 +196,12 @@ namespace CurtainCall.WaitingRoom
                 for (int i = 0; i < SlotsPerDay; i++)
                 {
                     string value = flatSlots[d * SlotsPerDay + i] ?? "";
-                    slots[d, i] = d == 0 ? firstDay[i] : (value == "" || IsChoice(value) ? value : "");
+                    slots[d, i] = d == 0 ? firstDay[i] : d >= PerformanceDays ? "" : (value == "" || IsChoice(value) ? value : "");
                 }
-                locked[d] = d == 0 || lockedDays[d];
+                locked[d] = d == 0 || (d < PerformanceDays && lockedDays[d]);
             }
             Night = night >= 0 && night <= Days ? night : 0;
-            IsConfirmedTonight = confirmedTonight;
+            IsConfirmedTonight = confirmedTonight || (Night > 0 && EditableDays(Night).Length == 0);
             Revision++;
             return true;
         }

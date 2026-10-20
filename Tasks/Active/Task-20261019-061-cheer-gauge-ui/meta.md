@@ -11,6 +11,7 @@
 - **Branch:** feat/ui-scene-integration
 - 현재 worktree: D:/github/POC_CURTAINCALL-ui-scene-integration
 ## Goal / Scope
+- 2026-10-21 사용자: W2 저장 후 W3 편집·확정·준비와4일차 편성 요구 제거. 실제 진행5개 씬만, 검증은 최종 필수 최소로 제한. W2는22ceebf push 완료, W3는 후속 미커밋.
 - 2026-10-21 사용자: W2 상점·서비스·장부를 Assets 완성 프리팹으로 실제 데이터 연결하고 대체 임시 창 정리. waiting-room-shop.md에 구현·검증 기록.
 - 2026-10-21 사용자: 상점/스케줄 등 입력을 점유하는 창을 열면 커서 자동 표시, 종료하면 마우스 시선 조작과 숨김/잠금 복귀. 기존 공통 입력 차단 요청에 연결.
 - 2026-10-21 사용자: 수화기 위치/표현을 먼저 복구하고 Assets 완성 WorldLabels로 W4·W5 실제 데이터 연결 및 대체 임시 이름표 정리.

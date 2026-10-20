@@ -311633,6 +311633,7 @@ MonoBehaviour:
   board: {fileID: 128821015}
   closeUp: {fileID: 1769245785}
   reach: 2
+  showLegacyUi: 0
   closeUpPriority: 100
 --- !u!1 &1446588933
 GameObject:

@@ -79,14 +79,15 @@ namespace CurtainCall.WaitingRoom.Tests
         }
 
         [Test]
-        public void 셋째_날_밤에는_4일차를_쓰고_확정해야_한다()
+        public void 셋째_날_밤에는_편성과_확정이_필요없다()
         {
             var book = NewBook();
             book.BeginNight(3);
-            Assert.AreEqual(ScheduleRefusal.Incomplete, book.Confirm());
-            Fill(book, 4, Cannon, Cannon);
-            Assert.AreEqual(ScheduleRefusal.None, book.Confirm());
-            Assert.IsTrue(book.IsLocked(4));
+            Assert.IsTrue(book.IsConfirmedTonight);
+            Assert.IsEmpty(ScheduleBook.EditableDays(3));
+            Assert.AreEqual(ScheduleRefusal.AlreadyConfirmed, book.Set(4, 0, Cannon));
+            Assert.AreEqual("", book.Get(4, 0));
+            Assert.IsFalse(book.IsLocked(4));
         }
 
         [Test]

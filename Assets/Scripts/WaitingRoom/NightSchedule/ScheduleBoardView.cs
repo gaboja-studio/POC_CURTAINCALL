@@ -22,6 +22,7 @@ namespace CurtainCall.WaitingRoom
 
         [Tooltip("스케줄표에 닿는 수평 거리(m).")]
         [SerializeField, Min(.5f)] float reach = 2f;
+        [SerializeField] bool showLegacyUi = true;
 
         [Tooltip("클로즈업 카메라 우선순위(플레이어 카메라보다 높게).")]
         [SerializeField] int closeUpPriority = 100;
@@ -117,6 +118,7 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
+            if (!showLegacyUi) return;
             var schedule = ScheduleBoard.Instance;
             if (schedule == null) return;
             if (!open)

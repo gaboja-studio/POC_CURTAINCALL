@@ -120,7 +120,7 @@ namespace CurtainCall.WaitingRoom
             reason = "";
             var run = CampaignRun.Instance;
             if (run == null || run.State.Phase != CampaignPhase.Night) { reason = "밤 정비 때만 준비 완료할 수 있습니다."; return false; }
-            if (HasAuthority && !book.IsConfirmedTonight) { reason = "스케줄표를 먼저 확정하세요."; return false; }
+            if (HasAuthority && ScheduleBook.EditableDays(run.State.Day).Length > 0 && !book.IsConfirmedTonight) { reason = "스케줄표를 먼저 확정하세요."; return false; }
             return true;
         }
 
