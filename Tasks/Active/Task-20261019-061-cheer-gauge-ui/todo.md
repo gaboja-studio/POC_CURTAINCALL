@@ -21,9 +21,18 @@
 - [x] 제공 Runtime/안전 Builder·Static Medium/Bold·5프리팹/독립 확인 씬 제작.
 - [x] 최종 검증: settings 최소 수정 승인 후 충돌 해소·check-work 구역/문서/컴파일·EditMode798/798 PASS. 보정 후 입력68/68·버튼 경계/overflow·최종 신규/선택 PlayMode86/86·원본/보호 SHA 통과. private main6ff6e18e 저장 완료.
 - [x] 컴파일55개 수정 — shop9파일 namespace 격리·현재 Console오류0/경고0·check-work/EditMode798/798·WorldLabel PlayMode18/18. private9661aa85/병합6b4e2041 main push 완료.
-- [ ] 월드 라벨 공개 결과/기록 및 컴파일 수정 저장 — 이번 공개 commit/push도 실행 전 권한 차단. 현재 요청을 월드 라벨 포함 명시적 재승인으로 해석한 문구는 정정했다. HEAD9ede8a3·선택 인덱스/파일 보존, 사용자 명시 확인 대기.
+- [x] 월드 라벨 공개 결과/기록 및 컴파일 수정 저장 — 사용자 직접 후속 요청으로 공개2fe68a2 commit/push·원격 SHA 일치 확인 완료. 이전 권한 차단/정정 이력은 검증 문서에 보존.
+## C11 관전·사망 UI (2026-10-20)
+- [x] 선행 저장 완료·PM 제공 키트/독립 구역 배정·원본129/PNG16/재사용8·보호2737 SHA baseline·생산 시트10/10 확인.
+- [x] 제공 Runtime/Builder namespace·안전 보정, 공개 ProjectBuilder/18버튼 Preview/PlayMode25개 코드 작성·전용 Static8192 Medium 생성·후속 정식 컴파일 PASS.
+- [x] 후속 사용자 버그 수정/계속 요청: Schedule203파일 중 C#7 namespace 선언만 격리, 원본/meta 변경0·재컴파일 PASS.
+- [x] Canvas 전체 프리팹/독립 씬 생성 — Static폰트 재사용 ResumeAfterFont·idle update 일회 조립으로 복구, 기존 출력 덮어쓰기 없음.
+- [x] 최종 신규26+선택50=PlayMode76/76·두 화면비/명암24캡처/실행 UI 합성 입력72/72·비활성 콜백/시간·슬롯 복구·참조3319 누락0·check-work/컴파일/EditMode798/798 PASS. 종료 C11 clean/Play stopped/timeScale1/1920×1080/runInBackgroundfalse·QA 장치0/입력 정책 값 복구. 첫 도구 실패 이력 및 원본/보호 SHA 기록.
+- [x] 후속 사용자 "저장해줘" 요청 적용 — private334파일1d3bee7d/README 병합11781eb2 main push·원격 확인. 공개 C11 결과·기록/gitlink는 이 기록과 함께 feat/ui-resources에 선택 저장, 무관 변경 제외.
+- [ ] 사람 최종 외형 확인(자동 검증과 별도). 실게임 연결·PR/공개 통합 병합 제외.
 - [ ] 월드 라벨 사람 최종 외형 확인 — 자동 검증과 별도.
 ## 남은 작업·경계
+- [x] PM 예외 승인 전체 에셋 저장/공급 준비 기록 — private807파일 d409dc80·PM 선택 로컬219개 보존 병합62250960 main push 확인. 공개 전체 결과·정책·폰트 단일 LFS·수신용 양쪽 기록 보존/문서 충돌 절차를 이 기록과 함께 저장한다. 최종 공개 push/SHA는 원격 이력·최종 보고로 확인, 실패 시 완료 보고하지 않는다. 실제 pull/연결 씬 검증은 사용자 담당.
 - [ ] 인계 전 기술 점검 완료 — 정식 인계 아님.
 - [ ] 공유 Dynamic TMP2개 기존 dirty/추가 SHA 차이 및 Buttons 글리프 실패 원인 확인/해결 — PM 확인 필요, 임의 복구/공유 폰트 재작성 없음.
 - [ ] 백스테이지·로비 최종 외형 승인 범위 확인; 공유 폰트 미결 별도, working 유지.

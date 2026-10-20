@@ -1,8 +1,13 @@
 # Setup
 PM 자체 작업. 관련 JIRA 없음. 정식 인계·PR·병합은 별도이며 assign-task 자동 커밋/push는 실행하지 않는다.
-최신 승인(2026-10-20): PM 월드 라벨 저장 후 C11 관전·사망 UI 제작 요청 및 settings 중복 타입 최소 수정 승인. 이전 C7/C9 제작 시 저장 제외는 후속 각 저장 요청으로 대체됐다. 삭제·실게임 연결·C11 추가 저장은 제외한다.
+최신 승인(2026-10-20): C11 완료 보고 후 사용자 직접 "저장해줘" 요청으로 이번 C11 결과·기록 및 Schedule namespace 충돌 수정의 private 저장/main push·공개 결과/gitlink 저장을 승인했다. 아래 C11/Schedule 추가 저장 제외는 제작 당시 경계이며 이 저장 요청으로 대체한다. 기존 공유 폰트·Interaction 1.meta·정책/브랜치 전략·무관 private 키트/Leartes 변경 저장·삭제·실게임 연결·PR/공개 통합 병합은 제외한다.
 원문·지난 승인/체크: [History/002-setup-before-c7-save-compaction.md](History/002-setup-before-c7-save-compaction.md)
 ## 작업 구역
+- 전체 업로드 준비의 전송 설정: GitHub 100MB 제한에 걸린 C11 전용 Static 폰트 한 파일을 `.gitattributes`에서 LFS로 지정한다. 폰트 실제 바이트·GUID·공유 폰트의 전송 방식은 바꾸지 않는다. 거절된 미공개 커밋만 amend하며 원격 이력 재작성·강제 push는 하지 않는다.
+- 2026-10-20 PM 후속 직접 승인: 작업과 무관한 에셋도 예외적으로 전부 저장·push한다. 현재 공개 공유 폰트·Interaction 1.meta 및 private Leartes/미추적 키트 전체를 포함하고, 기존 UI 공급 방향 정책/브랜치 전략 기록3파일도 함께 저장한다. 제작 브랜치를 원격에 준비해 `feat/ui-scene-integration`에서 사용자가 직접 pull하도록 한다. 수신 worktree 수정·자동 병합·강제 이동·삭제는 하지 않는다. 아래 과거 무관 변경 저장 제외를 이번 저장에 한해 대체한다.
+- 2026-10-20 사용자 직접 요청 "버그를 먼저 수정하고 계속 진행하자.": 현재 차단 원인인 `Assets/_ThirdParty/curtaincall_schedule_v1/` 제공 C#의 중복 버튼 타입 및 참조 namespace만 최소 격리하고 컴파일 확인 후 C11을 계속한다. Schedule 기능 제작·원본/PNG/GUID 변경·삭제·추가 commit/push는 제외.
+- 2026-10-20 현재 PM 요청: 대기 저장 완료 후 `Assets/_ThirdParty/curtaincall_spectator_v1/` C11 관전/사망 UI를 진행한다. 제공 Runtime/Builder 원위치 namespace·안전 진입점·초기화 보정 및 신규 비네트2 importer 수정 허용. 기존8 Sprite 정본은 읽기 전용 참조, 원본/PNG/GUID/라이선스 보존.
+- C11 전용 허용: `Assets/Scripts/Systems/Spectator/`, `Assets/Scenes/Tests/Spectator/`, `Assets/Resources/Prefabs/UIs/Spectator/`, `Assets/Resources/Fonts/Spectator/`. 독립 조립·확인 씬·Static Medium·표시 API/샘플/자동 검증과 Task 기록, `Harness/Project/Facts/spectator.md`·사실 index·현재 Integration 소유 표. 실게임/네트워크/카메라/사망 판정·슬롯 중재 정책 구현·삭제·C11 추가 commit/push는 제외.
 - 2026-10-20 PM 현재 요청 원문: "유니티에 컴파일 에러가 55개 떠있는데 이걸 먼저 수정한 뒤에 저장해줘." shop9파일 namespace 최소 격리 후 컴파일/테스트 통과, private 저장 완료. 대기 중 월드 라벨 공개 저장까지 포함한다는 AI 해석은 명시적 재승인으로 기록하지 않는다. 공개 commit/push는 권한 검사에서 실행 전 차단되어 사용자 확인 대기. 새 UI 조립·실게임 연결·삭제·무관 변경 저장 제외.
 - 2026-10-20 PM 후속 요청: 월드 라벨 private/public commit·push 후 C11 관전·사망 UI 제작. 기존 월드 라벨 저장 제외는 이 요청으로 대체, 무관 변경 저장 제외는 유지한다.
 - PM 선택 승인 `최소 수정 포함`: `Assets/_ThirdParty/curtaincall_settings_v1/`의 중복 CommonButtons 타입과 그 참조 namespace만 격리해 컴파일 충돌을 해소한다. 설정 UI 구현·PNG/자료 삭제·무관 코드 변경은 제외한다.

@@ -11,7 +11,7 @@
 - 승인 디자인·C1 보존, 버튼/패널/아이콘·공연/백스테이지/로비 HUD·C8·C6·C15·C7·C9 조립/독립 테스트. 기존 폴더 ID 유지.
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261019-061 | feat | @MoHoDu | feat/ui-resources | - | working; C9 저장 완료·월드 라벨 private 저장/공개 저장 준비, settings 충돌 해소 |
+| Task-20261019-061 | feat | @MoHoDu | feat/ui-resources | - | working; 공개2fe68a2 저장 완료·Schedule 충돌 해소/C11 조립·Play76/입력72/Edit798 통과, 사람 외형 별도 |
 ## 공용 파일 소유 표
 아래 소유 Task는 모두 Task-20261019-061. 권한·경계 상세는 해당 `setup.md` 기준.
 | 파일 | 이유 |
@@ -28,8 +28,9 @@
 | `Assets/Resources/Prefabs/UIs/Guides/`, `Assets/Resources/Fonts/Guides/`, `Assets/Scenes/Tests/Guides/` | C7 가이드/키캡/마우스·독립 씬 |
 | `Assets/Resources/Prefabs/UIs/Captions/`, `Assets/Resources/Fonts/Captions/`, `Assets/Scenes/Tests/Captions/` | C9 자막/화자/방송·독립 씬 |
 | `Assets/Resources/Prefabs/UIs/WorldLabels/`, `Assets/Resources/Fonts/WorldLabels/`, `Assets/Scenes/Tests/WorldLabels/` | PM 월드 라벨 v2 신규 독립 제작·검증; 실제 게임 연결 제외 |
+| `Assets/Resources/Prefabs/UIs/Spectator/`, `Assets/Resources/Fonts/Spectator/`, `Assets/Scenes/Tests/Spectator/` | 현재 PM C11 관전/사망 표시 API·독립 조립/검증, 실게임/카메라/사망 판정 제외 |
 ## 현재 결정·미결
-- 최신 요청: 컴파일55개 수정 후 저장. shop9파일 namespace 격리 후 오류0/경고0·check-work/EditMode798/798·WorldLabel PlayMode18/18 PASS. private9661aa85/README 일반 병합6b4e2041 main push 완료. 공개 commit/push는 이번에도 실행 전 권한 차단. 월드 라벨 포함 명시 재승인이라는 AI 해석 정정·파일/인덱스 보존·사용자 확인 대기. 무관 변경 보존·C11/PR 제외.
+- 선행 저장 완료: 공개2fe68a2/private6b4e2041. 후속 사용자 버그 수정/계속 요청으로 Schedule C#7 namespace 격리·중복21개 해소/컴파일 PASS. C11 Static폰트 안전 재사용·프리팹/독립 씬 생성·비활성 Preview 콜백 보강 후 신규26/선택 회귀50=PlayMode76/76 PASS, 실행 UI 합성 입력72/72·두 화면비/명암24캡처·check-work/컴파일·EditMode798/798 PASS. C11 clean/Play stopped/timeScale1/1920×1080/runInBackgroundfalse·QA 장치0/입력 정책 값 복구. 후속 사용자 "저장해줘" 요청으로 private334파일1d3bee7d/README 병합11781eb2 main push·원격 확인 완료, 공개 C11 결과·기록/gitlink 선택 저장. 실게임·삭제·PR/공개 통합 병합 제외, 무관 변경 보존. 아래 공개 차단은 완료 전 이력.
 - 월드 라벨 공개42파일 stage/DryRun PASS 뒤 commit/push 실행 전 권한 거부(요약 속 승인만으로 경계 해제 불가). 공개HEAD9ede8a3·파일/인덱스 보존·우회 없음. private main6ff6e18e 저장 완료, 사용자 직접 확인 전에는 저장 후 순서인 C11 구현 보류.
 - 2026-10-20 월드 라벨 v2: 5프리팹/독립 씬 제작. PM 저장/C11 요청·settings 최소 수정 승인 후 타입 충돌 해소, check-work 구역/문서/컴파일·EditMode798/798 PASS. private main6ff6e18e 저장/원격 일치, 보정 후 입력68/68·신규/선택 PlayMode86/86 PASS, 공개 결과/기록 선택 stage 후 권한 차단(위 최신 상태). 기존 정본 보존·삭제/실게임 연결 없음.
 - 후속 PM C9 commit/push 요청으로 private `bab2b062`/main `2b67e36d`·공개 `9ede8a3` push/원격 SHA 확인 완료. 무관 변경 제외, 아래 C9 저장 제외는 당시 이력이며 월드 라벨 저장 승인으로 확대하지 않는다.

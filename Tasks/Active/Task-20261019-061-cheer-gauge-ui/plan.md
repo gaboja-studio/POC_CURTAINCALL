@@ -1,11 +1,17 @@
 # Plan
 ## Context / 현재 승인
-- 최신 요청(2026-10-20): 컴파일55개 먼저 최소 수정 후 저장. shop9파일 namespace 격리·원본/meta/settings 불변, check-work/EditMode798/798·월드 라벨 PlayMode18/18 PASS. private9661aa85/병합6b4e2041 main push 완료. 공개 commit/push는 이번에도 실행 전 권한 차단, 월드 라벨 포함 명시 재승인이라는 AI 해석 정정·사용자 확인 대기. C11 신규 구현 제외.
+- 최신 요청(2026-10-20): 선행 저장은 공개2fe68a2/private9661aa85·6b4e2041 완료. 이어 C11 제작 중 발생한 Schedule 중복21개는 사용자 "버그를 먼저 수정하고 계속 진행하자." 요청으로 해당 kit C#7개 namespace만 격리·재컴파일 PASS. C11 정본/씬 조립 후 자동/실제 입력·화면 검증을 완료한다. 후속 사용자 "저장해줘" 요청으로 이번 C11/Schedule private/public 선택 저장을 허용한다(private1d3bee7d/README 병합11781eb2 main push 확인 완료). 무관 변경·삭제·실게임 연결·PR/공개 통합 병합 제외, 과거 저장 차단은 이력으로 보존.
 - UI 키트 확보·조합·독립 테스트. Task/폴더 ID는 이력 유지, 수정 구역/권한은 `setup.md` 기준. 기존 공연 씬·보상/네트워크·게임 메뉴 변경 없음.
 - C6·C15 공개 b16c328 push/원격 SHA 일치·private73fd48aa origin/main 조상 확인 완료. 최초 C6 포함 저장 해석 철회/권한 차단은 이후 PM 명시 재승인으로 해소된 이력이다.
 - PM 직접 재요청 후 C7 공개9216489 commit/push·원격 SHA 일치 확인 완료, private 개별8b49cc29/main38001b8e. 앞선 차단 이력은 보존한다.
 - 이어 C9 제작 승인: 제공 자막/화자/방송 명세를 독립 프리팹·확인 씬·표시 API로 조립·검증·기록. C9 추가 저장·삭제·실게임 연결은 제외한다.
 - 후속 PM C9 commit/push 요청으로 C9 private/public 선택 저장 승인. 기존 공유 폰트·무관 변경 제외, 삭제/실게임/PR 제외는 유지한다.
+## C11 관전·사망 UI 계획 (2026-10-20 현재 요청)
+1. 선행 공개2fe68a2 저장/원격 확인 후 제공 키트129파일·재사용8 정본/보호2737 SHA·시트10조각/비네트 중앙60% 투명 확인.
+2. 제공 Runtime/Builder SpectatorV1 격리·인스턴스 초기화·안전 조립 API, 신규 비네트2 importer만 보정. Static Medium·cross reference를 포함한 Canvas 전체 프리팹/독립 씬과 실제 버튼 Preview.
+3. 상태/원문/말줄임/키 폭·비차단/slot 퇴장·unscaled 반복/반전·timeScale0/disable·invalid 상태/수치·편집/기존출력 보호를 자동 검증하고 두 화면비/명암/실제입력을 확인한다.
+4. check-work·신규/선택 PlayMode·보호 SHA·참조/Console·clean 종료와 지식을 기록한다. 사람 최종 외형·공동/실게임·추가 저장은 제외.
+- 사람 확인3항목: 두 화면비·명암에서 비네트 강도/중앙 투명, 상태판/긴이름/키 가독성, 상태 전환/퇴장 중 하단 점유를 한 번에 확인한다.
 ## 월드 라벨 v2 계획 (2026-10-20 PM 요청)
 1. 원본161파일/PNG29·기존 출력838 SHA baseline 보존, 신규 소재12와 정본 재사용7을 대조한다. 제공 검토 제안을 최종 게임/외형 승인으로 간주하지 않는다.
 2. 제공 Runtime/Builder 원위치 namespace/편집 보호·안전 조립 보정, 신규12 importer만 설정·정본7 읽기 전용 참조. 전용 Static Medium/Bold·5프리팹·독립 World Space 확인 씬 제작.

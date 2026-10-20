@@ -1,8 +1,8 @@
 ---
-summary: 브랜치 7종·PR/Squash와 Merge commit·선언된 부모 통합/준비 브랜치 동기화·순차 인계·PM 전용 영역
+summary: 브랜치·PR/병합·부모 통합/준비 동기화·UI 제작→연결 직접 pull 예외·순차 인계·PM 권한
 status: active
-updated: 2026-10-15
-source: human (2026-09-29·10-02·10-09 팀 결정, 2026-10-15 PM 승인 작업 준비 계획)
+updated: 2026-10-20
+source: human (2026-09-29·10-02·10-09 팀 결정, 2026-10-15 PM 승인 계획, 2026-10-20 PM UI 직접 pull 지시)
 ---
 
 # 브랜치 전략
@@ -25,6 +25,9 @@ source: human (2026-09-29·10-02·10-09 팀 결정, 2026-10-15 PM 승인 작업 
   - Active Task 선택값이 있으면 한 단계만 배정/착수. 후속 scaffolded·예약 구역(Allowed 아님), 실제 Jira URL·앞 integrated/실공동 검증/소유 반환 후 다음 단계 개방.
   - 기술 배정과 실전달 todo 분리. 실제 전달은 PM 확인, 준비만으로 자동 체크 없음. 브랜치 강제 이동/재생성·자동 merge 금지.
   - 기존 close-integration은 Base=dev 전용. 자식 통합 마감/Done 흐름은 이번에 확장하지 않음.
+- 2026-10-20 / PM(@MoHoDu) UI 병렬 작업 예외: `feat/ui-resources`(제작) → `feat/ui-scene-integration`(연결) 직접 pull을 지속 허용한다. `integration/ui-resources` 선반영/매회 별도 공급 PR 승인은 필요 없다. 반대 방향·다른 브랜치는 제외한다.
+- 연결 worktree에서 명시적 source를 fetch/pull하고 FF 또는 일반 merge로 이력을 보존한다(필요한 수신 merge commit 포함). upstream/push 대상은 제작 브랜치로 바꾸지 않으며 자동 주기 실행·rebase/reset/force·구현 저장/push 승인은 포함하지 않는다.
+- 수신 전 public/private clean·씬 저장·Play/Prefab Stage 종료와 대상 Git/LFS 사전 준비, 수신 후 gitlink/private HEAD·실파일 검증을 지킨다. 충돌이면 중단·보고하고 씬/prefab YAML 자동 해결은 하지 않는다. 별도 연결 Task/수정 소유권·최종 PR 대상 규칙은 유지한다.
 - 작성자는 gh 로그인 계정만, AI 작성자·Co-Authored-By/Generated with 줄 금지.
 
 ## 이유

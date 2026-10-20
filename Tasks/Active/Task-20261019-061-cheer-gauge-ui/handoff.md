@@ -1,6 +1,7 @@
 # Handoff
 ## 지금 상태
-- 최신(2026-10-20) 컴파일55개 수정 완료: shop9파일 namespace 격리·check-work/EditMode798/798·WorldLabel PlayMode18/18 PASS. Console오류0/경고0·compilationFailed=false·WorldLabels clean/Play stopped. private277파일9661aa85/README병합6b4e2041 main push 완료. 공개 commit/push는 실행 전 권한 차단, HEAD9ede8a3 유지. 월드 라벨 포함 재승인이라는 AI 해석은 정정·파일/선택 인덱스 보존·우회/재시도 없이 사용자 확인 대기. 상세 `compile-errors-verification.md`.
+- 최신 PM 후속 요청(2026-10-20): 작업 외 에셋까지 전체 commit/push 승인. 이전 선택 저장은 공개 실행 전 권한 차단되어 HEAD2fe68a2/선택 인덱스를 보존했고, 이번 직접 요청으로 전체 저장을 진행한다. 공유 Bold·Interaction 1.meta·private 키트4종/Leartes 및 기존 공급 방향 정책3파일 포함. `feat/ui-scene-integration`은 사용자가 직접 수신하며 해당 worktree/브랜치는 수정하지 않는다. 수신 절차·최종 검사 결과는 `ui-resources-pull.md` 참조. 아래 무관 변경 제외·저장 대기는 이전 요청 당시 이력이다.
+- 최신(2026-10-20): 선행 공개2fe68a2/private6b4e2041 저장 완료. 후속 사용자 버그 수정/계속 요청에 따라 Schedule C#7 namespace만 격리, 중복21개 해소·정식 컴파일 PASS. C11 Static8192 재사용 안전복구로 Canvas 프리팹/독립 씬 생성·비활성 콜백 보강 후 신규26+선택50=PlayMode76/76 PASS. 합성 입력72/72·두 화면비/명암24캡처 확인·check-work/EditMode798/798 PASS. 종료 C11 clean/Play stopped/timeScale1/1920×1080/runInBackgroundfalse, QA 장치0·입력 정책 값 복구. 참조3319/missing0/스크립트누락0·씬 IsConfigured=true. 후속 사용자 "저장해줘" 요청 적용: private334파일1d3bee7d/README 병합11781eb2 main push·원격 확인 완료, 공개 C11 결과·기록/gitlink를 이 기록과 함께 feat/ui-resources에 저장한다. 무관 변경 제외. 상세 `spectator-verification.md`.
 - 과거 저장 차단: 월드 라벨 공개42파일 선택 stage·DryRun(구역/문서/컴파일 PASS) 후 commit/push 호출이 실행 전 권한 검사에서 거부됐다. 요약 속 승인만으로 저장 경계를 해제할 수 없다는 사유이며 공개 HEAD는9ede8a3 유지. 파일/인덱스 보존·다른 도구 우회 없음. private main6ff6e18e 저장은 실제 완료. 저장→C11 순서 때문에 C11 구현은 시작하지 않았고 원본/명세·PNG 중앙 투명/SHA 읽기 전용 확인만 했다.
 - 최신 월드 라벨 v2: 5프리팹·Static Medium/Bold·독립 씬 제작. PM 저장/C11 요청 및 settings 최소 수정 승인 후 타입 충돌 해소, check-work 컴파일·EditMode798/798 PASS. private main6ff6e18e push/원격 일치 확인, 보정 후 입력68/68·신규/선택 PlayMode86/86 PASS, 공개 결과/기록 선택 stage 후 권한 차단(위 최신 상태). 상세 `worldlabels-verification.md`; 삭제/실게임 연결 없음.
 - C9는 private116파일 `bab2b062`·README 일반 병합 `2b67e36d` main, 공개 `9ede8a3` feat/ui-resources commit/push·원격 SHA 일치 확인 완료. 공유 Bold/Interaction 1.meta/무관 private 제외, 아래 C9 미커밋 표현은 당시 이력이다.
@@ -12,7 +13,7 @@
 - C7은 표시·모션·외부 bool 차단 API만 구현. 게임 입력 감지·바인딩/자동노출·우선순위 계산·실게임/네트워크 연결·삭제 없음. 공유 Dynamic TMP2개 과거 dirty/Buttons 과거 실패 미결은 이번 통과로 닫지 않는다.
 - 무관 private 변경·unity_only·공개 `Assets/Scripts/Systems/Interaction 1.meta` 보존/저장 제외. 기존 정본 임의 복구/재작성/재생성 없음.
 ## 다음 할 일
-1. 이번 컴파일 수정/월드 라벨 선택 저장 이후 C11은 새 작업 요청 때 진행한다. settings 최소 수정은 로컬 보존하며 전체 키트 저장에 섞지 않는다. 기존 Tooltip/공유 Bold 미결 별도.
+1. C11 사람 최종 외형은 Spectator 확인 씬에서 두 화면비/명암·중앙 투명/상태판/키 가독성·전환/퇴장을 한 번에 확인한다. 자동 검증과 별도이며 실게임 연결·전용font/기존 출력 삭제·재생성/덮어쓰기·이번 후속 저장 요청 외 PR/통합 병합은 요청되지 않았다.
 2. 사람 최종 외형 확인은 WorldLabels 씬에서 5종·기본/최소·명암/화면비·Observer/표면/회전·초과 거부를 한 번에 진행한다. 이전 Captions/C7 외형과 공동/실게임은 별도다.
 3. 공유 폰트/Buttons 미결·DEV MODE 전역 배지·테스트 씬 처리·PR/통합은 별도다.
 ## Verification
