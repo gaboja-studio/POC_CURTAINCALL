@@ -134,6 +134,8 @@ namespace CurtainCall.Dev
                 until = Time.realtimeSinceStartup + 30;
                 while (CommonUiSceneLoader.IsLoading && Time.realtimeSinceStartup < until) yield return null;
                 if (CommonUiSceneLoader.IsLoading) { Status = "공통 UI 로딩 시간을 초과했습니다."; yield break; }
+                while (SceneCurtainTransition.IsActive && Time.realtimeSinceStartup < until) yield return null;
+                if (SceneCurtainTransition.IsActive) { Status = "커튼 전환 시간을 초과했습니다."; yield break; }
                 LastLaunchSucceeded = true;
                 Status = $"{point.Day}일차 테스트 시작 완료 · {ShortcutLabel}로 다시 선택";
                 IsOpen = false;

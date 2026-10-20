@@ -24,8 +24,11 @@ namespace CurtainCall.UI.SceneIntegration
         public static PerformanceEndingPresentation Current { get; private set; }
         [SerializeField] SystemNotificationsView notifications;
         [SerializeField] CurtainCallPanelView resultPanel;
+        [SerializeField] ResultsPanelView resultsView;
         [SerializeField] TMP_Text title, summary;
         [SerializeField] CanvasGroup black;
+        [SerializeField] TransitionCurtainView curtain;
+        public TransitionCurtainView Curtain => curtain;
         PerformanceRewards rewards;
         string deathIdentity, shownIdentity;
         PerformanceResult pending;
@@ -35,8 +38,9 @@ namespace CurtainCall.UI.SceneIntegration
         string observedPerformance;
         string resultBody;
         int lastCountdown = -1;
-        public bool ResultVisible => resultPanel != null && resultPanel.IsShown;
-        public bool BlackVisible => black != null && black.alpha > .99f;
+        public bool ResultVisible => (resultPanel != null && resultPanel.IsShown) || (resultsView != null && resultsView.IsVisible);
+        bool UsesResults => resultsView != null && pending != null && pending.Participants.Count >= 1 && pending.Participants.Count <= 4;
+        public bool BlackVisible => curtain != null ? curtain.IsBusy : black != null && black.alpha > .99f;
         public bool DeathVisible => notifications != null && notifications.Banner.IsVisible;
         float ResultAt => PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.ResultAt : 1.5f;
         float BlackAt => PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.BlackAt : 5.5f;
@@ -68,10 +72,19 @@ namespace CurtainCall.UI.SceneIntegration
             if (pending == null) return;
             if (snapshot.Performance.Id != pending.Performance.Id) { ResetPresentation(); return; }
             double elapsed = Time.unscaledTimeAsDouble - started;
-            if (elapsed >= ResultAt && !ResultVisible && !BlackVisible) resultPanel.SetVisible(true, false);
+            if (elapsed >= ResultAt && !ResultVisible && !BlackVisible)
+            {
+                if (UsesResults) resultsView.Open(BuildResults(pending), false);
+
+            }
             int seconds = Mathf.CeilToInt(Mathf.Max(0, BlackAt - (float)elapsed));
-            if (seconds != lastCountdown) { lastCountdown = seconds; summary.text = resultBody + $"\n다음 공간으로 이동  {seconds}초"; }
-            if (elapsed >= BlackAt) Cover();
+            if (seconds != lastCountdown)
+            {
+                lastCountdown = seconds;
+                if (UsesResults && resultsView.IsVisible) resultsView.SetPresentation(BuildResults(pending));
+
+            }
+            if (elapsed >= BlackAt && loadedAt < 0) Cover();
             float hold = PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.loadedHoldSeconds : .5f;
             if (loadedAt >= 0 && Time.unscaledTimeAsDouble - loadedAt >= Mathf.Max(.1f, hold)
                 && (SpaceLinkDirector.Instance == null || !SpaceLinkDirector.Instance.IsTransitioning)) ResetPresentation();
@@ -127,36 +140,51 @@ namespace CurtainCall.UI.SceneIntegration
             shownIdentity = result.Performance.Id;
             pending = result; started = Time.unscaledTimeAsDouble; loadedAt = -1;
             sourceScene = CommonUiSceneLoader.CurrentSpace.gameObject.scene.path;
-            long total = result.Participants.Sum(p => p.Segment);
-            var state = rewards != null ? rewards.State : null;
-            title.text = ResultTitle(result.Succeeded, total, result.Participants.Count, state != null ? state.Rules.Cap : 100);
-            var text = new StringBuilder();
-            text.Append(result.Performance.Day).Append("일차 · ").Append(result.Performance.TrickId == "Tightrope" ? "외줄타기" : "인간대포").Append('\n');
-            text.Append("팀 호응  ").Append(total).Append('\n');
-            text.Append("공동 자금 수입  +").Append(result.Income).Append('\n');
-            var entry = state?.Ledger.LastOrDefault(e => e.PerformanceId == result.Performance.Id && e.Kind == FundEntryKind.PerformanceIncome);
-            if (entry != null) text.Append("잔액  ").Append(entry.Balance - entry.Amount).Append(" → ").Append(entry.Balance).Append('\n');
-            text.Append('\n');
-            foreach (var person in result.Participants.OrderBy(p => p.Slot))
-                text.Append("단원 ").Append(person.Slot + 1).Append("   ")
-                    .Append(person.Dead ? "사망" : !person.Connected ? "연결 종료" : "생존")
-                    .Append("   호응 ").Append(person.Segment).Append("  +").Append(person.Settlement).Append('\n');
-            resultBody = text.ToString(); lastCountdown = -1;
-            summary.text = resultBody;
-            resultPanel.SetInputAllowed(false); resultPanel.SetVisible(false, true);
+            lastCountdown = -1;
             InputGate.SetBlocking(this, true);
             ObserveDeath();
         }
+        public ResultsPresentation BuildResults(PerformanceResult result)
+        {
+            var members = new List<ResultsMemberPresentation>();
+            float? maximum = null;
+            foreach (var person in result.Participants.OrderBy(p => p.Slot))
+            {
+                float? progress = result.CourseLength.HasValue && person.MaximumDistance.HasValue
+                    ? Mathf.Clamp01((float)(person.MaximumDistance.Value / result.CourseLength.Value)) : null;
+                if (progress.HasValue) maximum = Mathf.Max(maximum ?? 0, progress.Value);
+                int id = members.Count + 1;
+                bool local = NetworkPlayer.Local != null && NetworkPlayer.Local.OwnerClientId == person.ClientId;
+                string status = person.Dead ? "사망" : !person.Connected ? "연결 종료" : "생존";
+                members.Add(new ResultsMemberPresentation(id, $"단원 {person.Slot + 1}{(local ? " (나)" : "")} · {status}",
+                    progress, (person.MaximumDistance.HasValue ? $"최대 {person.MaximumDistance:0.0}m" : "기록 없음") + $" · +{person.Settlement}",
+                    Color.HSVToRGB((id - 1) * .23f, .5f, 1), local));
+            }
+            long score = result.Participants.Sum(p => p.Segment);
+            int cap = rewards?.State != null ? rewards.State.Rules.Cap : 100;
+            string heading = ResultTitle(result.Succeeded, score, result.Participants.Count, cap);
+            var outcome = !result.Succeeded ? ResultsOutcome.Failure : heading == "공연 대성공" ? ResultsOutcome.GrandSuccess : ResultsOutcome.Success;
+            var entry = rewards?.State?.Ledger.LastOrDefault(e => e.PerformanceId == result.Performance.Id && e.Kind == FundEntryKind.PerformanceIncome);
+            string time = result.ElapsedSeconds.HasValue ? $"완료 시간 {result.ElapsedSeconds:0.0}초" : "불 타이머 시작 전 종료";
+            return new ResultsPresentation(result.Performance.Id, result.Performance.Id, outcome, heading,
+                $"{result.Performance.Day}일차 · {(result.Performance.TrickId == "Tightrope" ? "외줄타기" : "인간대포")}", time,
+                "개인 최대 도달 거리", result.CourseLength.HasValue ? $"출발 0m → 도착 {result.CourseLength:0.0}m" : "코스 기록 없음",
+                maximum, "팀 호응", score.ToString(), "공연 정산", $"+{result.Income}", "공동 자금",
+                entry != null ? $"{entry.Balance - entry.Amount} → {entry.Balance}" : "확정 정산", (entry?.Balance ?? rewards?.Balance ?? 0).ToString(),
+                $"다음 공간으로 이동 {Mathf.Max(0, lastCountdown)}초", "", false, members.ToArray());
+        }
         void Cover()
         {
-            black.alpha = 1;
-            black.blocksRaycasts = true;
-            resultPanel.SetVisible(false, true);
+            if (curtain != null) { curtain.SetLoadingText("다음 공간 준비 중"); curtain.Close(); }
+            else if (black != null) black.alpha = 1;
+            if (black != null) black.blocksRaycasts = curtain == null;
+            if (resultPanel != null) resultPanel.SetVisible(false, true);
+            if (resultsView != null) resultsView.Hide();
         }
         // 개발용 IMGUI도 임시 검은 화면 위에 비치지 않게 한다. 게임 UI의 본체는 씬의 Canvas다.
         void OnGUI()
         {
-            if (!BlackVisible) return;
+            if (curtain != null || !BlackVisible) return;
             GUI.depth = -10000;
             var color = GUI.color;
             bool enabled = GUI.enabled;
@@ -173,13 +201,15 @@ namespace CurtainCall.UI.SceneIntegration
         {
             if (pending == null || scene.path == sourceScene || scene.path == ScenePath || scene.path == CommonPerformanceUI.ScenePath) return;
             if (!SpaceRoute.TryFind(scene.name, GameSettings.Base.SpaceTransition, out _)) return;
-            Cover(); loadedAt = Time.unscaledTimeAsDouble;
+            loadedAt = Time.unscaledTimeAsDouble;
         }
         public void ResetPresentation()
         {
             pending = null; loadedAt = -1;
+            if (curtain != null && !SceneCurtainTransition.IsActive) curtain.Open();
             if (black != null) { black.alpha = 0; black.blocksRaycasts = false; }
             if (resultPanel != null) resultPanel.SetVisible(false, true);
+            if (resultsView != null) resultsView.Hide();
             if (notifications != null) notifications.ResetForRuntime();
             InputGate.SetBlocking(this, false);
         }

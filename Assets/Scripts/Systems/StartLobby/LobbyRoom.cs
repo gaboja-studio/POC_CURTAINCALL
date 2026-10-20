@@ -63,6 +63,8 @@ namespace CurtainCall.StartLobby
         bool shown = true;
         bool menuOpen;
         bool placePending;
+        public LobbyInteractable FocusedInteraction { get; private set; }
+        public bool ExternalInteractionPresentation { get; set; }
 
         void Start()
         {
@@ -96,7 +98,7 @@ namespace CurtainCall.StartLobby
         void Update()
         {
             var director = SpaceLinkDirector.Instance;
-            bool visible = SceneManager.sceneCount == 1 && (director == null || !director.IsTransitioning);
+            bool visible = !SpaceLinkHub.HasLoadedSpace(gameObject.scene) && (director == null || !director.IsTransitioning);
             if (visible != shown)
             {
                 shown = visible;
@@ -107,7 +109,8 @@ namespace CurtainCall.StartLobby
                     ShowCursor();
                 }
             }
-            if (!shown || session == null || campaign == null) return;
+            if (!shown || session == null || campaign == null)
+            { FocusedInteraction = null; SetPrompt("", true); return; }
 
             if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
@@ -135,7 +138,7 @@ namespace CurtainCall.StartLobby
             var local = NetworkPlayer.Local;
             LobbyInteractable nearest = null;
             float best = float.MaxValue;
-            if (!menuOpen && local != null)
+            if (!menuOpen && !InputGate.IsBlocked && local != null && local.State == PlayerState.Normal)
             {
                 foreach (var item in interactables)
                 {
@@ -149,6 +152,7 @@ namespace CurtainCall.StartLobby
                 }
             }
 
+            FocusedInteraction = nearest;
             if (nearest == null)
             {
                 SetPrompt("", true);
@@ -162,6 +166,7 @@ namespace CurtainCall.StartLobby
         void SetPrompt(string text, bool usable)
         {
             if (prompt == null) return;
+            if (ExternalInteractionPresentation) text = "";
             if (prompt.text != text) prompt.text = text;
             prompt.color = usable ? Usable : Blocked;
         }

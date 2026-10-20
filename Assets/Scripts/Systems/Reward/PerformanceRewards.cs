@@ -63,6 +63,15 @@ namespace CurtainCall.Reward
         public bool TransitionPending => pendingTransition;
         public IReadOnlyList<PerformanceResult> History => model != null ? model.History : receivedHistory.AsReadOnly();
         public event Action Changed;
+        public event Action SampleRecords;
+        public bool RecordProgress(string identity, string participantId, double? elapsed, double length, double distance)
+            => CanMutate() && model.Record(identity, participantId, elapsed, length, distance);
+        void SamplePerformanceRecords()
+        {
+            if (SampleRecords == null) return;
+            foreach (Action handler in SampleRecords.GetInvocationList())
+                try { handler(); } catch (Exception error) { Debug.LogException(error); }
+        }
         public event Action<PerformanceResult> ResultConfirmed;
         /// <summary>정산 직전 호스트 관찰. 도착 환호를 같은 공연의 정산에 포함한다.</summary>
         public event Action<IReadOnlyDictionary<string, string>> BeforeSettlement;
@@ -84,6 +93,7 @@ namespace CurtainCall.Reward
             {
                 long previous = model.Revision;
                 model.ApplyRules(ReadRules());
+                SamplePerformanceRecords();
                 ObserveNetwork();
                 if (model.Revision != previous) Publish();
                 EndIfInsufficientSurvivors();
@@ -240,6 +250,7 @@ namespace CurtainCall.Reward
         {
             if (!CanMutate()) return false;
             long previous = model.Revision;
+            SamplePerformanceRecords();
             bool changed = model.Observe(participantId, lostParts, dead, connected, ReadRules());
             if (model.Revision != previous) Publish();
             if (changed) EndIfInsufficientSurvivors();
@@ -280,6 +291,7 @@ namespace CurtainCall.Reward
             if (trickSucceeded && BeforeSettlement != null)
                 foreach (Action<IReadOnlyDictionary<string, string>> observer in BeforeSettlement.GetInvocationList())
                     try { observer(judgements); } catch (Exception error) { Debug.LogException(error); }
+            SamplePerformanceRecords();
             ending = true;
             PerformanceResult result = null;
             try

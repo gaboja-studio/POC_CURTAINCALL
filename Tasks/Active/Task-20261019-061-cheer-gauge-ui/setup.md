@@ -1,6 +1,9 @@
 # Setup
 2026-10-20 사용자 직접 지시로 이 checkout의 Task를 UI 씬 통합으로 전환한다. 이전 제작 권한은 History에 보존하며 현재 작업에 적용하지 않는다.
 ## 작업 구역
+- 2026-10-21 사용자 로비 F/안내 수정: StartLobby/LobbyRoom.cs 입력 대상·공통 C6 표시 연동, SpaceLinkHub 실제 공간 검사 공유. LobbyReadyBoard.cs는 방 종료 후 수신자 없는 송신 방지. 입력·준비·레버 회귀 확인.
+- 2026-10-21 사용자 Start→Lobby 카메라 소실 수정: Systems/SpaceLink/SpaceLinkHub.cs의 공간 감지에 공통 UI 씬 제외. 실제 Start/Lobby 전환 회귀 검사 포함.
+- C12 사용자 직접 지시(2026-10-21): Systems/Results/PerformanceResult.cs, Systems/Reward/PerformanceRewards.cs·RewardMessages.cs·Logic/PerformanceRewardModel.cs 및 기록 테스트에 호스트 확정 시간/거리 스냅샷 추가. SceneIntegration과 PerformanceTransitionUI에 Assets ResultsPanel 연결. 정본·판정·보상·전환 시간 유지.
 - W3 사용자 직접 지시(2026-10-21): ScheduleBoardView.cs 표시 전환, ScheduleBoard.cs 준비 조건, NightSchedule/Logic/ScheduleBook.cs 4일 편성 제거 및 해당 규칙 테스트. CommonWaitingRoomUI·SceneIntegration에 Assets SchedulePanel/CommonButtons 인스턴스와 실제 편집/확정/준비 연결. 실제 Start/Lobby/Tightrope/HumanCannon/WaitingRoomBase와 이들이 사용하는 공통 UI만 대상, 임시 과거 씬 적용/검증 제외. 최종 최소 검증만 실행.
 - W2 사용자 직접 지시(2026-10-21): CommonWaitingRoomUI 씬에 ShopPanel 정본 인스턴스·SceneIntegration 어댑터, ShopPhone 표시 상태/API 및 임시 표시 억제, ExpertServicePhonePanel 대체 표시 제거. WaitingRoomShop.cs·ExpertService.cs의 기존 거래에 요청 ID 왕복/결과 이벤트만 추가(가격·권한·판정 유지). 관련 테스트·가이드 포함.
 - 사용자 후속 요청: 셔터/통로 정렬 및 전화기 발견성 수정, 모든 공간의 가까운 상호작용 사물 최대2개 공통 외곽선, 대기실 C6 정본 안내. `Assets/Scripts/WaitingRoom/ShopStorage/ShopReach.cs`, `ShopPhone.cs`, `ShopDeliverySlot.cs`, `FloorPropsView.cs`, `HandoverShelfView.cs`, `Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoardView.cs`, `Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs`에 표시용 공개 정보와 구형 안내 숨김을 연결한다. 기존 소지/서비스/네트워크 판정은 유지한다. 공통 UI 씬/SceneIntegration 및 기존 대상4개 공간 씬에서 상호작용 표시를 연결한다.
@@ -76,3 +79,7 @@
 
 ## 상호작용 창 커서 (2026-10-21 사용자 직접 지시)
 - Assets/Scripts/Systems/Camera/CameraViewDirector.cs: 공통 InputGate와 커서 해제/복귀 연결, 창 종료 ESC와 수동 해제 충돌 방지. SceneIntegration 테스트/가이드 갱신. 카메라 구도/게임 판정/정본 에셋 유지.
+
+## C12 1인·C16 (2026-10-21 사용자 직접 지시)
+- SceneIntegration에 정본 C12 표시 소스를 기반으로 1~4인 지원 로컬 어댑터 추가. 정본/그래픽 유지, 씬 컴포넌트만 교체. PerformanceTransitionUI에 커튼 인스턴스, 기존 요약/검은 오브젝트 정리.
+- Systems/SpaceLink/SpaceLinkDirector.cs와 Systems/StartLobby/StartLobbyFlow.cs에 커튼 차폐 대기/완료 훅 연결. 로드 판정/권한 유지. 실제5개 씬만 대상.

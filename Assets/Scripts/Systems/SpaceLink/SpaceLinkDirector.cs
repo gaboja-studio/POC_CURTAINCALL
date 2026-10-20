@@ -196,7 +196,11 @@ namespace CurtainCall.SpaceLink
                 pending = null;
                 if (!IsCurrent(request)) continue;
                 if (request.Reload || request.Space != Current || !IsLoaded(request.SceneName))
-                    yield return Transition(request);
+                {
+                    yield return CurtainCall.UI.SceneIntegration.SceneCurtainTransition.Cover();
+                    try { if (IsCurrent(request)) yield return Transition(request); }
+                    finally { CurtainCall.UI.SceneIntegration.SceneCurtainTransition.Complete(); }
+                }
             }
             running = null;
         }

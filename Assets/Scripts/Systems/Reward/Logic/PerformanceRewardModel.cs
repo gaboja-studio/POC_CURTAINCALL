@@ -15,6 +15,7 @@ namespace CurtainCall.Reward
             public bool Dead;
             public bool Connected = true;
             public long Amount;
+            public double? MaximumDistance;
         }
 
         readonly List<Participant> roster = new();
@@ -23,6 +24,7 @@ namespace CurtainCall.Reward
         readonly List<PerformanceResult> history = new();
         PerformanceIdentity performance;
         RewardRules rules;
+        double? elapsedSeconds, courseLength;
 
         public string SessionId { get; }
         public int Generation { get; private set; }
@@ -70,12 +72,27 @@ namespace CurtainCall.Reward
                 });
             }
             performance = identity;
+            elapsedSeconds = courseLength = null;
             roster.Clear();
             roster.AddRange(next);
             begun.Add(identity.Id);
             rules = currentRules;
             IsOpen = true;
             Revision++;
+            return true;
+        }
+
+        // Sample without publishing each frame; Confirm freezes the record.
+        public bool Record(string identity, string participantId, double? elapsed, double length, double distance)
+        {
+            if (!IsOpen || performance.Id != identity || !double.IsFinite(length) || length <= 0
+                || !double.IsFinite(distance) || (elapsed.HasValue && (!double.IsFinite(elapsed.Value) || elapsed.Value < 0))) return false;
+            var person = Find(participantId);
+            if (person == null) return false;
+            courseLength = length;
+            if (elapsed.HasValue) elapsedSeconds = Math.Max(elapsedSeconds ?? 0, elapsed.Value);
+            if (!person.Dead && person.Connected)
+                person.MaximumDistance = Math.Max(person.MaximumDistance ?? 0, Math.Clamp(distance, 0, length));
             return true;
         }
 
@@ -151,9 +168,9 @@ namespace CurtainCall.Reward
                     ? supplied : person.Dead ? "Dead" : !person.Connected ? "Disconnected" : person.Seed.Forfeit ? "Forfeited" : "Survived";
                 people[i] = new PerformanceParticipantResult(person.Seed.Id, person.Seed.ClientId, person.Seed.Slot,
                     RewardParticipantSeed.CountLimbs(person.Seed.LostParts), RewardParticipantSeed.CountLimbs(person.Parts),
-                    person.Dead, person.Connected, judgement, amount, failure == PerformanceFailure.None ? amount : 0);
+                    person.Dead, person.Connected, judgement, amount, failure == PerformanceFailure.None ? amount : 0, person.MaximumDistance);
             }
-            var next = new PerformanceResult(performance, failure, endReason, people);
+            var next = new PerformanceResult(performance, failure, endReason, people, elapsedSeconds, courseLength);
             if (next.Income > long.MaxValue - Balance) return false;
             long balance = Balance + next.Income;
             var entry = new FundEntry(ledger.Count + 1, Generation, performance.Day, FundEntryKind.PerformanceIncome,

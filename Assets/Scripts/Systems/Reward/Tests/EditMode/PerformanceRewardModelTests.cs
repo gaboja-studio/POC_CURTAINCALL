@@ -47,6 +47,41 @@ namespace CurtainCall.Reward.Tests
         }
 
         [Test]
+        public void PerformanceRecord_PreservesMaximumAndFreezesAtSettlement()
+        {
+            var model = BeginPair();
+            string id = model.Performance.Id;
+            Assert.IsFalse(model.Record("stale", "p1", 10, 100, 40));
+            Assert.IsTrue(model.Record(id, "p1", null, 100, 15));
+            Assert.IsTrue(model.Record(id, "p1", 3, 100, 60));
+            Assert.IsTrue(model.Record(id, "p1", 5, 100, 20));
+            Assert.IsTrue(model.Observe("p1", 0, true, true, DefaultRules));
+            Assert.IsTrue(model.Record(id, "p1", 7, 100, 90));
+            Assert.IsTrue(model.Record(id, "p2", 8, 100, 110));
+            var result = Settle(model, minimumSurvivors: 1);
+            Assert.AreEqual(8, result.ElapsedSeconds);
+            Assert.AreEqual(100, result.CourseLength);
+            Assert.AreEqual(60, result.Participants[0].MaximumDistance);
+            Assert.AreEqual(100, result.Participants[1].MaximumDistance);
+            Assert.IsFalse(model.Record(id, "p2", 20, 100, 0));
+            Assert.AreEqual(8, model.History[0].ElapsedSeconds);
+        }
+
+        [Test]
+        public void PerformanceRecord_PreTimerFailureIsUnknownAndNextPerformanceResets()
+        {
+            var model = BeginPair();
+            Assert.IsTrue(model.Record(model.Performance.Id, "p1", null, 100, 5));
+            Assert.IsNull(Settle(model, false).ElapsedSeconds);
+            Assert.IsTrue(model.Begin(Identity(index: 1), Pair(), DefaultRules));
+            Assert.IsFalse(model.Record(model.Performance.Id, "p1", double.NaN, 100, 50));
+            var next = Settle(model);
+            Assert.IsNull(next.ElapsedSeconds);
+            Assert.IsNull(next.CourseLength);
+            Assert.IsNull(next.Participants[0].MaximumDistance);
+        }
+
+        [Test]
         public void CheerAndJeer_ClampToCapAndZero_WithoutRevisionAtBounds()
         {
             var rules = new RewardRules(10, 7, 25, 0, 0);

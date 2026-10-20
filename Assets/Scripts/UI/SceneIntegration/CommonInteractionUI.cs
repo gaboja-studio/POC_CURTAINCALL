@@ -25,6 +25,7 @@ namespace CurtainCall.UI.SceneIntegration
         readonly List<InteractionOutline> outlines = new();
         readonly RaycastHit[] hits = new RaycastHit[64];
         LobbyInteractable[] lobby = System.Array.Empty<LobbyInteractable>();
+        LobbyRoom lobbyRoom;
         PlayerInputReader offlineReader;
         Material material;
         public int HighlightCount => outlines.Count;
@@ -33,7 +34,7 @@ namespace CurtainCall.UI.SceneIntegration
 
         sealed class Candidate
         {
-            public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom;
+            public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom, Lobby;
             public float Distance;
             public string Helper;
         }
@@ -49,7 +50,13 @@ namespace CurtainCall.UI.SceneIntegration
         }
         void OnEnable() { SceneManager.sceneLoaded += SceneLoaded; Refresh(); }
         void SceneLoaded(Scene _, LoadSceneMode mode) => Refresh();
-        void Refresh() => lobby = FindObjectsByType<LobbyInteractable>(FindObjectsSortMode.None);
+        void Refresh()
+        {
+            if (lobbyRoom != null) lobbyRoom.ExternalInteractionPresentation = false;
+            lobby = FindObjectsByType<LobbyInteractable>(FindObjectsSortMode.None);
+            lobbyRoom = FindFirstObjectByType<LobbyRoom>();
+            if (lobbyRoom != null) lobbyRoom.ExternalInteractionPresentation = prompt != null;
+        }
         PlayerInputReader Reader()
         {
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
@@ -78,7 +85,9 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 if (item == null || !item.isActiveAndEnabled) continue;
                 string action = item.Prompt(out bool usable);
-                Add(item.transform, Center(item.transform), action, usable, false, feet);
+                if (action.StartsWith("[F] ")) action = action.Substring(4);
+                Add(item.transform, Center(item.transform), action, usable, lobbyRoom != null && lobbyRoom.FocusedInteraction == item, feet);
+                candidates[candidates.Count - 1].Lobby = true;
             }
             AddCannon(feet);
             foreach (var candidate in candidates)
@@ -108,7 +117,7 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var candidate in candidates)
                 if (candidate.Focused && IsVisible(candidate, camera, reader.transform)) { focused = candidate; break; }
             if (focused == null)
-                foreach (var candidate in selected) if (candidate.WaitingRoom) { focused = candidate; break; }
+                foreach (var candidate in selected) if (candidate.WaitingRoom || candidate.Lobby) { focused = candidate; break; }
             if (focused == null) { if (prompt != null) prompt.HideImmediate(); return; }
             prompt.Show("F", focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
                 false, 0, focused.Focused ? focused.Helper ?? "" : "가까이 다가가세요");
@@ -183,7 +192,12 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var outline in outlines) outline.Dispose(); outlines.Clear();
             if (prompt != null) prompt.HideImmediate();
         }
-        void OnDisable() { SceneManager.sceneLoaded -= SceneLoaded; ShopReach.HasExternalPresentation = false; Hide(); }
+        void OnDisable()
+        {
+            SceneManager.sceneLoaded -= SceneLoaded; ShopReach.HasExternalPresentation = false;
+            if (lobbyRoom != null) lobbyRoom.ExternalInteractionPresentation = false;
+            Hide();
+        }
         void OnDestroy() { if (material != null) Destroy(material); }
     }
 }

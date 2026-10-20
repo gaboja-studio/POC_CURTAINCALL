@@ -88,7 +88,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (!Application.isPlaying) return;
             bool owned = !sharedScene || CommonUiSceneLoader.CurrentSpace == this;
             if (sharedScene) CommonUiSceneLoader.Unregister(this);
-            if (!ReferenceEquals(rewards, null)) rewards.Changed -= RefreshRewards;
+            if (!ReferenceEquals(rewards, null)) { rewards.Changed -= RefreshRewards; rewards.SampleRecords -= SampleRecords; }
             rewards = null;
             ClearHistory();
             if (owned && hud != null) hud.ResetForRuntime();
@@ -101,11 +101,51 @@ namespace CurtainCall.UI.SceneIntegration
 
         void BindRewards()
         {
-            if (!ReferenceEquals(rewards, null)) rewards.Changed -= RefreshRewards;
+            if (!ReferenceEquals(rewards, null)) { rewards.Changed -= RefreshRewards; rewards.SampleRecords -= SampleRecords; }
             rewards = PerformanceRewards.Instance;
             ClearHistory();
-            if (rewards != null) rewards.Changed += RefreshRewards;
+            if (rewards != null) { rewards.Changed += RefreshRewards; rewards.SampleRecords += SampleRecords; }
             RefreshRewards();
+        }
+
+        void SampleRecords()
+        {
+            var state = rewards != null ? rewards.State : null;
+            if (state?.Performance == null || !state.IsOpen || !rewards.HasAuthority
+                || state.Performance.TrickId != (humanCannon ? "HumanCannon" : "Tightrope")) return;
+            double? elapsed = null;
+            float length;
+            Vector3 axis = Vector3.zero;
+            var course = TightropeCourse.Current;
+            if (humanCannon)
+            {
+                if (cannonStart == null || cannonFinish == null) return;
+                axis = Vector3.ProjectOnPlane(cannonFinish.position - cannonStart.position, Vector3.up);
+                length = axis.magnitude; axis = axis.normalized;
+                var route = HumanCannonRouteSystem.Current;
+                double first = double.PositiveInfinity;
+                foreach (var wall in cannonFires)
+                    if (wall != null && wall.Armed) first = Math.Min(first, wall.ArmedAt);
+                if (route != null && double.IsFinite(first)) elapsed = Math.Max(0, route.Clock - first);
+            }
+            else
+            {
+                if (course == null) return;
+                length = course.FinishDistance;
+                var run = TightropeRun.Current;
+                var fire = TightropeFire.Current;
+                if (run != null && run.IsPerformanceStarted && fire != null && fire.Round == run.Round)
+                    elapsed = fire.Elapsed;
+            }
+            foreach (var person in state.Segments)
+                foreach (var player in NetworkPlayer.All)
+                {
+                    if (!player.IsSpawned || player.OwnerClientId != person.ClientId) continue;
+                    float distance = humanCannon ? Vector3.Dot(player.transform.position - cannonStart.position, axis)
+                        : course.GetDistance(player.transform.position);
+                    rewards.RecordProgress(state.Performance.Id, person.ParticipantId, elapsed, length, distance);
+                    break;
+                }
         }
 
         void ClearHistory()
