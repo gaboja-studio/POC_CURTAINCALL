@@ -211,6 +211,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2826695565488353755, guid: 974952598e2249d4f858fd2c4e02ec73, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4611347093166864778, guid: 974952598e2249d4f858fd2c4e02ec73, type: 3}
       propertyPath: m_Name
       value: InteractionPromptCanvas

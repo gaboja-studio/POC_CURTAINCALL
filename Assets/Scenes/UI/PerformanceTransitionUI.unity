@@ -249,6 +249,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: C12ResultsCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 8669654795917148122, guid: 0e15e0da9d9846d49b02fe571df52764, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4832335060172315051, guid: 0e15e0da9d9846d49b02fe571df52764, type: 3}
     m_RemovedGameObjects: []
@@ -851,6 +855,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: C16TransitionCurtainCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 5534396013626921883, guid: 9ae4b547b232f19498b53e7d73652437, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6474442347749340285, guid: 9ae4b547b232f19498b53e7d73652437, type: 3}
       propertyPath: m_SortingOrder
       value: 2000
@@ -1045,6 +1053,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 228788456}
     m_Modifications:
+    - target: {fileID: 521373193375076475, guid: 2c3e7b600ad8c384c9d55fa48672d2ab, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 822072496334031083, guid: 2c3e7b600ad8c384c9d55fa48672d2ab, type: 3}
       propertyPath: m_Name
       value: DeathNotificationCanvas

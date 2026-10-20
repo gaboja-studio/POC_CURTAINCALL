@@ -1006,6 +1006,10 @@ PrefabInstance:
       propertyPath: editorSampleVisible
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8355819731354516847, guid: 1b28508cfa57e6440b048593682c9e2a, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 8585059573836579730, guid: 1b28508cfa57e6440b048593682c9e2a, type: 3}
     m_RemovedGameObjects:

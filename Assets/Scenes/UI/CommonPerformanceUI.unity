@@ -127,6 +127,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 554505106}
     m_Modifications:
+    - target: {fileID: 161325672479442246, guid: bbe5b72131302f04e8722fd182b2b876, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 186007205196891751, guid: bbe5b72131302f04e8722fd182b2b876, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -549,6 +553,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: CommonFeedbackCanvas
       objectReference: {fileID: 0}
+    - target: {fileID: 6782637869252396296, guid: cf196125a34410d4487507f7fe751070, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -581,6 +589,10 @@ PrefabInstance:
     - target: {fileID: 2269441543141646231, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
       propertyPath: m_Name
       value: CommonSpectatorCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 2441262637925069964, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
       propertyPath: m_Pivot.x
@@ -830,6 +842,10 @@ PrefabInstance:
     - target: {fileID: 8261947102181618190, guid: 1b28508cfa57e6440b048593682c9e2a, type: 3}
       propertyPath: m_Enabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8355819731354516847, guid: 1b28508cfa57e6440b048593682c9e2a, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8358218697116716250, guid: 1b28508cfa57e6440b048593682c9e2a, type: 3}
       propertyPath: m_IsActive
@@ -1101,6 +1117,10 @@ PrefabInstance:
     - target: {fileID: 3707004486715709314, guid: d4c6ac30857034f41a3e4f83342a7660, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4612845857898485083, guid: d4c6ac30857034f41a3e4f83342a7660, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5079800441931155954, guid: d4c6ac30857034f41a3e4f83342a7660, type: 3}
       propertyPath: m_Name

@@ -365,6 +365,10 @@ PrefabInstance:
       propertyPath: m_RaycastTarget
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3527387950832070795, guid: 5a78fecdfe79f494b948403f108c6838, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4308971868014797202, guid: 5a78fecdfe79f494b948403f108c6838, type: 3}
       propertyPath: m_RaycastTarget
       value: 1
@@ -583,6 +587,10 @@ PrefabInstance:
     - target: {fileID: 3238275255899464815, guid: f4b5e08d9a44e3847bf9b348d21271d4, type: 3}
       propertyPath: m_TextStyleHashCode
       value: -1183493901
+      objectReference: {fileID: 0}
+    - target: {fileID: 3364478806382341080, guid: f4b5e08d9a44e3847bf9b348d21271d4, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5673771242764352999, guid: f4b5e08d9a44e3847bf9b348d21271d4, type: 3}
       propertyPath: m_Name
@@ -955,6 +963,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7347871087923768500, guid: 533768e369cd2e746a4749e318c0ee02, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 8633481126192984154, guid: 533768e369cd2e746a4749e318c0ee02, type: 3}
       propertyPath: m_Name
       value: BroadcastCaptionCanvas
@@ -1108,6 +1120,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1939518860}
     m_Modifications:
+    - target: {fileID: 521373193375076475, guid: 2c3e7b600ad8c384c9d55fa48672d2ab, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 822072496334031083, guid: 2c3e7b600ad8c384c9d55fa48672d2ab, type: 3}
       propertyPath: m_Name
       value: WaitingRoomNotificationsCanvas
@@ -1364,6 +1380,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1939518860}
     m_Modifications:
+    - target: {fileID: 586607135894611395, guid: 0ae188ab11f846d45af45e3627f19ca3, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1094575103796020326, guid: 0ae188ab11f846d45af45e3627f19ca3, type: 3}
       propertyPath: m_Pivot.x
       value: 0

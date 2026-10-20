@@ -369,6 +369,10 @@ PrefabInstance:
       propertyPath: m_sharedMaterial
       value: 
       objectReference: {fileID: 8307190250711044379, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
+    - target: {fileID: 1906562421890912793, guid: 114ead425615b3c42a70025b88948632, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2033827688809403242, guid: 114ead425615b3c42a70025b88948632, type: 3}
       propertyPath: m_Name
       value: C13_MenuCanvas
@@ -906,6 +910,10 @@ PrefabInstance:
       propertyPath: m_sharedMaterial
       value: 
       objectReference: {fileID: 8307190250711044379, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
+    - target: {fileID: 6606602212337702791, guid: dffce552da521374bb5daff5ae9c757a, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6913385762818167314, guid: dffce552da521374bb5daff5ae9c757a, type: 3}
       propertyPath: m_fontAsset
       value: 
@@ -1346,6 +1354,10 @@ PrefabInstance:
       propertyPath: m_sharedMaterial
       value: 
       objectReference: {fileID: 8307190250711044379, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
+    - target: {fileID: 6606602212337702791, guid: dffce552da521374bb5daff5ae9c757a, type: 3}
+      propertyPath: m_ScreenMatchMode
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6913385762818167314, guid: dffce552da521374bb5daff5ae9c757a, type: 3}
       propertyPath: m_text
       value: "\uB2E8\uC6D0\uBCC4 \uC74C\uC131"
@@ -1530,7 +1542,7 @@ MonoBehaviour:
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
-  m_ScreenMatchMode: 0
+  m_ScreenMatchMode: 1
   m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
@@ -1973,11 +1985,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
-  m_ScreenMatchMode: 0
+  m_ReferenceResolution: {x: 1920, y: 1080}
+  m_ScreenMatchMode: 1
   m_MatchWidthOrHeight: 0
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96

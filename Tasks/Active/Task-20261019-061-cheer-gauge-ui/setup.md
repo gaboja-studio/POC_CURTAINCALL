@@ -34,11 +34,7 @@
 - 현재 에디터 경로 확인 후 조회/배치/저장. 컴파일·EditMode·PlayMode·실제 공연/입력/화면을 구분한다.
 - 네트워크 다중 클라이언트를 실행하지 못하면 미실행으로 기록한다.
 
-## 2026-10-20 종료 연출 (사용자 직접 추가 지시)
-- 두 공연 로컬 사망 알림, 종료 대기/결과 표시 시간, 임시 검은 전환 씬 추가.
-- 기존 SceneIntegration/Scenes/UI 구역과 PerformanceRewards 전환 지연을 사용한다.
-- `Assets/Scripts/Systems/Settings/PerformanceEndingSettings.cs` 및 meta, `Assets/Resources/Settings/GameSettings/Tricks/Rewards/performance-ending.asset` 및 meta를 추가한다.
-- EditorBuildSettings에는 전환 UI 씬을 추가한다. 게임 성공/실패 판정·원본 UI 프리팹·그래픽은 유지한다.
+종료 연출 작업 구역은 [기록](History/ending-scope-20261020.md)에 유지한다.
 
 ## 2026-10-20 공통 호응 규칙 구현 (PM 사용자 직접 추가 지시)
 - HTML 4-1 임시 호응 규칙의 공통 구현을 이번 연결 Task에 추가한다. 아래 항목은 기존 읽기 전용/다른 게임 코드 수정 금지의 명시적 예외다.
@@ -86,3 +82,6 @@
 - SceneIntegration 코드·Editor·테스트, CommonPerformanceUI: C10 키트 조립·실제 호응 변화·HUD 중첩/종료 수명 연결. 완성 C10 프리팹 부재 확인 후 신규 Assets/Resources/Prefabs/UIs/Feedback/와 Images/UIs/Feedback/ 추가. 원본 PNG 바이트·파일명 유지, 복사본만 Sprite import.
 - MainStage/Tightrope/Piggyback/PiggybackSystem.cs: 손잡기 표시 이벤트 및 교체된 임시 표시 억제만. 보상/착지 판정 변경 없음.
 - Systems/Voice/VoiceChatDevOverlay.cs: 기존 Dev 음성 패널의 표시 오프셋/억제 API만. 공연 C3 아래 배치, 메뉴·관전·결과 중 숨김, 공통 UI 해제 시 원복.
+
+- 2026-10-21 사용자 Start 타이틀 지시: Start.unity 중앙 로고/메뉴·페이지 재배치, UI 루트 정리. Assets TitleLogo 인스턴스 사용, 원본 변경 없음.
+- 2026-10-21 사용자 팝업/화면비 지시: Start 참가/LAN을 BasicPanels/CommonButtons 인스턴스로 교체, 실제5개 진행 씬 및 공통 UI의 화면 Canvas를1920×1080/Expand로 통일. 월드 UI 크기 보존.

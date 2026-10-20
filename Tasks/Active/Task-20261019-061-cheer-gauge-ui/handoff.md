@@ -1,5 +1,6 @@
 # Handoff
 ## 현재
+- 메뉴/음성1671f2f commit/push 완료. Start 중앙 로고/세로 메뉴 적용(미커밋), 상세 Docs/Guides/Ui-scene-integration/start-title.md. 화면 캡처 확인, 콜백 검증은 Pipeline 시간 초과로 확인 불가.
 - C10 피드백·기본 자금·C12는5433637 commit/push 완료. C13/C14·음성 설정/HUD 후속 적용 완료, 미커밋. [현재 파일/검증/사용자 확인](../../../Docs/Guides/Ui-scene-integration/common-menu-settings.md).
 - Assets BasicPanels·SettingsPanel·CommonButtons 인스턴스를 CommonMenuUI/UI에 배치. Start/Lobby 구형 메뉴/설정 삭제. 실제5개 진행 씬 자동 additive·NGO UI 제외·ESC 최상단/커서/LeaveToStart 연결.
 - 게임 음량/전체화면·마이크/팀원 전체 음량/음소거 저장. 단원별 로컬 조절은 PlayerId별 이번 실행 유지·채널 변경 시 재적용. 후속 사용자 요청: 작은 마이크 아이콘+M, 음소거 사선 HUD. 실제 음성 송수신은 미실행.
@@ -23,3 +24,5 @@
 - 사용자 확인: 실제2기기 음성 송수신·M/마이크 상태·개별 음소거·채널 이동, ESC 메뉴/설정/나가기. 빌드 전체화면과 Mac 미실행. C10 기존 사용자 확인은 이전 가이드 유지.
 - 이전 교훈 제안: additive UI/배경 때문에 sceneCount>1로 공간 진입 판단 금지. 실제 SpaceRoute 사용; ShopPanel.Hide의 Closed 이벤트/요청ID/커서 수명; RewardSnapshot 장부-잔액 일치.
 - 의료 예약→복구·상점 다인·대기실3일밤→4일아침 사람 동선 확인은 기존 가이드의 미실행 항목 유지.
+
+- 후속: Start 참가/LAN 신규 프리팹 팝업 교체·참가/뒤로 참조 연결. 화면Canvas23개1920×1080 Expand 검증. Play 콜백/빈 코드 PASS, 캡처 확인. 다중 화면비 실제 플레이 미실행. 상세 start-title.md.
