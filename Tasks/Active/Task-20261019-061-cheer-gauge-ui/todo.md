@@ -44,6 +44,12 @@
 - [x] 안전 조립 API/공개 어댑터·설정/공용3 프리팹·독립 SettingsUi 씬/명시 데모 조립, 기존 Systems/Settings 미수정.
 - [x] 최종 보정 후 Compile/PlayMode23/23·C16 회귀16/16·check-work/EditMode798/798 PASS. 두 화면비24캡처/비중첩·합성 입력·참조2484 누락0·baseline626 보존/종료 audit 확인. Console오류0/예상 C16 테스트 경고2, 기존 전체 PlayMode 미결은 별도([settings-ui-verification.md](settings-ui-verification.md)).
 - [ ] 사람 최종 외형/물리 입력·실기기·공동 확인. 실옵션 목록/저장/Audio/Screen/PlayerPrefs·입력 소유/서비스 연결·삭제·C14 commit/push 제외.
+## W2 수화기 구매·판매 UI (2026-10-20)
+- [x] PM 제공 명세 확인·전용 ShopUi 작업 구역 배정. 선행 C14 공개6e5fb38/privatee1ddf391 저장 완료.
+- [x] 보호 baseline1205/시트49/정본40 대조·신규9 importer·기존 폰트 보존/전용 Static3자산 확인.
+- [x] 안전 조립 API·Canvas 프리팹/독립 ShopUi 씬·Preview24버튼·PlayMode35/35. 행 제목/부제 영역32/24 보정, 16:10 Preview 폭 맞춤.
+- [x] 최종 W2 Play35/35·C14 회귀23/23·C16 회귀16/16·check-work 구역/문서/Compile/Edit798/798 PASS. 두 화면비36캡처/합성 입력·Preview24버튼·참조2536 누락0·보호1205/예상 밖 변경0·clean 종료 복구 및 실패 이력 기록.
+- [ ] 사람 외형/손맛·물리 입력·실기기/공동 확인. 실제 거래/경제/서비스·입력 소유 연결은 별도. 후속 사용자 저장 승인으로 행 높이80 포함 private12파일42477d6f/main push·원격 일치 확인, 공개 W2 전체·gitlink는 feat/ui-resources 저장·push 진행(완료는 원격 SHA/최종 보고 확인). 무관 results/title_logo 제외.
 ## 남은 작업·경계
 - [x] PM 예외 승인 전체 에셋 저장/공급 준비 기록 — private807파일 d409dc80·PM 선택 로컬219개 보존 병합62250960 main push 확인. 공개 전체 결과·정책·폰트 단일 LFS·수신용 양쪽 기록 보존/문서 충돌 절차를 이 기록과 함께 저장한다. 최종 공개 push/SHA는 원격 이력·최종 보고로 확인, 실패 시 완료 보고하지 않는다. 실제 pull/연결 씬 검증은 사용자 담당.
 - [ ] 인계 전 기술 점검 완료 — 정식 인계 아님.

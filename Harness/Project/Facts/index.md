@@ -9,6 +9,7 @@
 - [unity-project.md](unity-project.md) — 씬·렌더·입력·코드·테스트 어셈블리 현황(2026-10-13). 에셋 경로를 찾거나 테스트를 만들 때
 - [team.md](team.md) — 현재 공간 담당(공연장·탈출로 @RagSpirin)과 PM 계정·과거 담당 구분. 담당자 배정·권한 확인 때
 - [local-environment.md](local-environment.md) — macOS 도구 경로. 스크립트·CLI가 실행되지 않을 때
+- [shop-ui.md](shop-ui.md) — W2 수화기 구매·판매 표시 패널·요청 토큰 계약과 독립 확인 씬. 조립/거래 어댑터 연결 전에
 - [settings-ui.md](settings-ui.md) — C14 설정 창·공용 컨트롤/staged 적용 토큰 계약. 조립·실제 옵션 서비스 연결 전에
 - [transition-curtain.md](transition-curtain.md) — C16 커튼 차폐/렌더 장벽·독립 프리팹·원본 보존. 전환 표시 배치·연결 전에
 - [spectator.md](spectator.md) — C11 관전/사망 표시·비네트·하단 슬롯 계약·독립 씬·원본 보존. 배치/호출·검증 전에

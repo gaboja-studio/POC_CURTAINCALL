@@ -6,6 +6,11 @@
 - PM 직접 재요청 후 C7 공개9216489 commit/push·원격 SHA 일치 확인 완료, private 개별8b49cc29/main38001b8e. 앞선 차단 이력은 보존한다.
 - 이어 C9 제작 승인: 제공 자막/화자/방송 명세를 독립 프리팹·확인 씬·표시 API로 조립·검증·기록. C9 추가 저장·삭제·실게임 연결은 제외한다.
 - 후속 PM C9 commit/push 요청으로 C9 private/public 선택 저장 승인. 기존 공유 폰트·무관 변경 제외, 삭제/실게임/PR 제외는 유지한다.
+## W2 수화기 구매·판매 UI 계획 (2026-10-20 현재 요청)
+1. 완료: 보호 baseline1205·신규9 importer/승인40 정본 대조, 시트49/49 일치. 기존 폰트는 보존하고 W2 Medium 공유-atlas 변형+Static512 U+2212 보조·고정 제목용 Bold Static2048을 생성했다.
+2. 완료: 제공 계약1056×552/(432,272), 3탭/동적 목록·설명·선택/포커스/거래 불가·전면 딤 없음 유지. 안전 조립 API·Canvas 프리팹/독립 씬/Preview24버튼 제작, 글자 영역·확인용16:10 잘림만 보정.
+3. 완료: 불변 자료·busy/토큰/다중 View/갱신·재진입·닫기/disable·unscaled·긴문구·스크롤 Play35/35. 두 화면비 합성 입력·명암36캡처·미리보기24버튼 확인. 실제 거래/경제/배송·입력 소유는 연결하지 않는다.
+4. 완료: W2 Play35/C14 회귀23/C16 회귀16·check-work/Edit798 통과, 참조2536 누락0·보호1205 예상 밖 변경0·종료 복구 및 실패 이력 기록. 사람 외형/실기기/공동·실거래 연결·commit/push는 별도다.
 ## C14 설정 UI 계획 (2026-10-20 현재 요청)
 1. 완료: baseline626·신규20 importer/재사용16 대조, 승인 Builder1/신규 importer20 외 변경0·PNG변경0/누락0. SettingsUi 전용 코드이며 기존 Systems/Settings 미수정.
 2. 완료: 안전 조립 API·설정/공용3 프리팹·독립 SettingsUi 씬/명시 데모 조립. Spectator Medium/WorldLabels Bold 읽기 전용 재사용, 전용 SemiBold Static8192(전체 한글+ASCII11325) 생성.
