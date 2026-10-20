@@ -18,3 +18,4 @@
 - [remote-player-judged-before-placement.md](remote-player-judged-before-placement.md) — 공연 씬 로드 직후 호스트가 원격의 옛 위치로 사망 판정한다. 연결 공연에서 참가자만 시작부터 죽어 있을 때
 - [demo-ui-includes-hud.md](demo-ui-includes-hud.md) — Demo 이름의 줄타기 UI를 통째로 끄면 HUD·게이지도 사라진다. 연결 모드에서 시연 UI를 숨길 때
 - [changed-subscriber-advances-campaign.md](changed-subscriber-advances-campaign.md) — Changed 알림 안에서 구독자가 런을 진행시킬 수 있어 알림 뒤 공연 좌표를 재확인. 런·보상 이벤트를 보낸 뒤 이어서 종료·정산 처리할 때
+- [revived-before-performance-unload.md](revived-before-performance-unload.md) — 공연 씬 해제 전 부활자가 옛 낙하·함정 판정으로 다시 사망. 부활 로그와 달리 대기실에서 관전이 지속될 때

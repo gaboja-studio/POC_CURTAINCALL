@@ -88,5 +88,21 @@ MonoBehaviour:
     tightropeScene: Tightrope
     humanCannonScene: HumanCannon
     waitingRoomScene: WaitingRoomBase
+    keepWaitingRoomOnExit: 1
     explorationScene: DummyExploration
     escapeRouteScene: DummyEscapeRoute
+  voiceChat:
+    enabled: 1
+    useOnLan: 1
+    scenes:
+    - Start
+    - Lobby
+    - WaitingRoomBase
+    - Tightrope
+    - HumanCannon
+    conversationalDistance: 2
+    audibleDistance: 20
+    fadeModel: 2
+    fadeIntensity: 1
+    mouthHeight: 1.55
+    muteKey: 27

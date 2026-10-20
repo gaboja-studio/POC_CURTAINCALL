@@ -415,7 +415,10 @@ namespace CurtainCall.Settings
             [Tooltip("쉬는 시간 시작·밤 정비의 공간 씬(대기실 로비).")]
             [SerializeField] string waitingRoomScene = "DummyWaitingRoom";
 
-            [Tooltip("쉬는 시간에 대기실에서 나간 뒤의 공간 씬(백스테이지 탐색).")]
+            [Tooltip("퇴장 시 같은 씬에서 탐색한다. 실제 대기실은 켜고, 별도 탐색 씬을 쓰는 더미 검증은 끈다.")]
+            [SerializeField] bool keepWaitingRoomOnExit = true;
+
+            [Tooltip("퇴장 시 같은 씬 유지가 꺼져 있을 때 이동할 공간 씬(백스테이지 탐색).")]
             [SerializeField] string explorationScene = "DummyExploration";
 
             [Tooltip("탈출 개시 뒤의 공간 씬(탈출로).")]
@@ -427,6 +430,7 @@ namespace CurtainCall.Settings
             public string TightropeScene => tightropeScene;
             public string HumanCannonScene => humanCannonScene;
             public string WaitingRoomScene => waitingRoomScene;
+            public bool KeepWaitingRoomOnExit => keepWaitingRoomOnExit;
             public string ExplorationScene => explorationScene;
             public string EscapeRouteScene => escapeRouteScene;
         }
