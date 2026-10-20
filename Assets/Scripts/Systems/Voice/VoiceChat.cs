@@ -22,7 +22,7 @@ namespace CurtainCall.Voice
     /// 생존자 = Vivox 위치 채널(거리 감쇠), 사망자(추락·리타이어) = 그룹 채널(거리 무관). 한 번에 한 채널만 들어가 두 무리는 서로 안 들린다.
     /// 상시 마이크 + 음소거 키. 결정: Harness/Project/Decisions/voice-chat.md, 값: 공통 세팅 <see cref="BaseGameSettings.VoiceChatSettings"/>.
     /// </summary>
-    public sealed class VoiceChat : MonoBehaviour
+    public sealed partial class VoiceChat : MonoBehaviour
     {
         const float FirstRetryDelay = 5f;
         const float MaxRetryDelay = 60f;
@@ -95,6 +95,8 @@ namespace CurtainCall.Voice
         {
             if (IsMicMuted == muted) return;
             IsMicMuted = muted;
+            PlayerPrefs.SetInt(MicMuteKey, muted ? 1 : 0);
+            PlayerPrefs.Save();
             ApplyMicMute();
             Debug.Log(muted ? "[Voice] 내 마이크 끔" : "[Voice] 내 마이크 켬");
             MicMutedChanged?.Invoke(muted);
@@ -111,6 +113,7 @@ namespace CurtainCall.Voice
                 return;
             }
             Instance = this;
+            LoadAudioPreferences();
         }
 
         void OnDestroy()
@@ -127,7 +130,7 @@ namespace CurtainCall.Voice
             bool active = settings.Enabled
                 && VoiceRoomRules.IsVoiceScene(StartLobbyFlow.Instance != null, SceneManager.GetActiveScene().name, settings.Scenes);
 
-            if (active && MuteKeyPressed(settings.MuteKey))
+            if (active && !CurtainCall.Player.InputGate.IsRequested && MuteKeyPressed(settings.MuteKey))
                 ToggleMicMuted();
 
             string key = active ? _roomKey.Resolve(NetworkSessionManager.Instance, settings.UseOnLan) : null;
@@ -226,6 +229,7 @@ namespace CurtainCall.Voice
                 Debug.Log("[Voice] 음성 로그인 완료");
             }
             ApplyMicMute();
+            ApplyDeviceLevels();
             return vivox.IsLoggedIn;
         }
 
@@ -242,6 +246,7 @@ namespace CurtainCall.Voice
             vivox.ChannelLeft += HandleChannelLeft;
             vivox.LoggedOut += HandleLoggedOut;
             vivox.ConnectionFailedToRecover += HandleLoggedOut;
+            vivox.ParticipantAddedToChannel += ApplyParticipantPreference;
         }
 
         void Unsubscribe()
@@ -253,6 +258,7 @@ namespace CurtainCall.Voice
             vivox.ChannelLeft -= HandleChannelLeft;
             vivox.LoggedOut -= HandleLoggedOut;
             vivox.ConnectionFailedToRecover -= HandleLoggedOut;
+            vivox.ParticipantAddedToChannel -= ApplyParticipantPreference;
         }
 
         // 내가 부르지 않았는데 채널에서 빠졌으면(연결 끊김 등) 다음 Update가 다시 들어간다.
@@ -272,8 +278,9 @@ namespace CurtainCall.Voice
         {
             if (!_vivoxReady) return;
             var vivox = VivoxService.Instance;
-            if (vivox == null || vivox.IsInputDeviceMuted == IsMicMuted) return;
-            if (IsMicMuted) vivox.MuteInputDevice();
+            bool muted = IsMicMuted || MicVolume <= 0f;
+            if (vivox == null || vivox.IsInputDeviceMuted == muted) return;
+            if (muted) vivox.MuteInputDevice();
             else vivox.UnmuteInputDevice();
         }
 

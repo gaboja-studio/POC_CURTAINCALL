@@ -6,7 +6,7 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 플레이어가 든 기물(<see cref="PropCarry.Held"/>)을 캐릭터 앞에 쌓아 보이고, 배낭을 메면 등 뒤에 상자로 보인다.
+    /// 플레이어가 든 기물(<see cref="PropCarry.Held"/>)을 선택한 한 개만 캐릭터 앞에 보이고, 배낭을 메면 등 뒤에 상자로 보인다.
     /// 모든 화면이 공유 상태를 그대로 그리므로 다른 사람이 무엇을 들고 있는지도 보인다. 도형은 표시용이다(충돌 없음).
     /// 접속하지 않은 씬 확인에서는 씬에 놓인 플레이어를 쓴다.
     /// </summary>
@@ -67,13 +67,12 @@ namespace CurtainCall.WaitingRoom
             stale.AddRange(shapes.Keys);
             foreach (var (body, client) in bodies)
             {
-                var held = carry.Held(client);
-                for (int i = 0; i < held.Count; i++)
+                var item = carry.Selected(client);
+                if (item.Uid != 0)
                 {
-                    var key = (client, held[i].Uid);
+                    var key = (client, item.Uid);
                     stale.Remove(key);
-                    var shape = Get(key, body, false);
-                    Place(shape, body, firstOffset + Vector3.up * (stack * i), Vector3.one * itemSize);
+                    Place(Get(key, body, false), body, firstOffset, Vector3.one * itemSize);
                 }
                 if (carry.HasBackpack(client))
                 {
@@ -136,13 +135,26 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            if (carry == null) return;
+            if (carry == null || !showLegacyLabels) return;
             foreach (var (body, client) in bodies)
             {
                 if (body == null) continue;
                 var held = carry.Held(client);
                 if (held.Count == 0) continue;
                 PropLabels.Draw(body.TransformPoint(firstOffset + Vector3.up * (stack * held.Count)), held[held.Count - 1].Name);
+            }
+        }
+
+        [SerializeField] bool showLegacyLabels = false;
+        public void CollectLabels(List<ShopWorldLabel> labels)
+        {
+            if (carry == null) return;
+            foreach (var pair in shapes)
+            {
+                if (pair.Value == null) continue;
+                foreach (var item in carry.Held(pair.Key.client))
+                    if (item.Uid == pair.Key.uid)
+                        labels.Add(new ShopWorldLabel(pair.Value.transform, item.Name, Vector3.up * .3f));
             }
         }
     }

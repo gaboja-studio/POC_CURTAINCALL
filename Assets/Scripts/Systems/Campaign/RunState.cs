@@ -163,6 +163,31 @@ namespace CurtainCall.Campaign
             return true;
         }
 
+        /// <summary>유효한 개발 시작 지점으로 새 세대를 만든다. 건너뛴 공연의 종료/보상 이벤트는 만들지 않는다.</summary>
+        public bool DebugStartAt(RunStartPoint point)
+        {
+            if (!point.IsValid(out _) || s.Generation == int.MaxValue) return false;
+            StartRun(s.Generation > 0 ? s.Generation + 1 : 1, RunEndReason.None);
+            s.Day = point.Day;
+            // 후속 공연도 미정으로 떨어지지 않도록 테스트 런에만 기본 편성을 둔다.
+            for (int day = 1; day <= Rules.DayCount; day++)
+            {
+                var list = new string[Rules.PerformancesPerDay];
+                for (int index = 0; index < list.Length; index++) list[index] = Rules.FirstDayTrick(index);
+                setlists[day] = list;
+            }
+            int next = point.Phase == RunStartPhase.Morning ? 0 : point.PerformanceIndex;
+            if (point.Day <= Rules.DayCount && point.Phase != RunStartPhase.Night) setlists[point.Day][next] = point.TrickId;
+            switch (point.Phase)
+            {
+                case RunStartPhase.Performance: EnterPerformance(next); break;
+                case RunStartPhase.Morning: EnterRest(RestKind.Morning, 0); break;
+                case RunStartPhase.Between: EnterRest(point.Day == 1 && next == 1 ? RestKind.Guide : RestKind.Between, next); break;
+                case RunStartPhase.Night: s.PerformanceIndex = Rules.PerformancesPerDay - 1; EnterNight(); break;
+            }
+            return true;
+        }
+
         void StartRun(int generation, RunEndReason previousEnd)
         {
             ready.Clear();
@@ -236,10 +261,8 @@ namespace CurtainCall.Campaign
 
         string TrickFor(int day, int index)
         {
-            if (day == 1) return Rules.FirstDayTrick(index);
-            return setlists.TryGetValue(day, out var list) && list != null && index >= 0 && index < list.Length
-                ? list[index] ?? ""
-                : "";
+            if (setlists.TryGetValue(day, out var list) && list != null && index >= 0 && index < list.Length) return list[index] ?? "";
+            return day == 1 ? Rules.FirstDayTrick(index) : "";
         }
 
         static bool Contains(IReadOnlyCollection<ulong> players, ulong id)

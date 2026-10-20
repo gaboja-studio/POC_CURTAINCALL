@@ -42,8 +42,68 @@ namespace CurtainCall.Reward.Tests
             var model = BeginPair();
             Assert.IsTrue(model.Cheer("p1", true, DefaultRules));
             Assert.IsTrue(model.Cheer("p2", true, DefaultRules));
-            Assert.AreEqual(20, Settle(model).Income);
+            Assert.AreEqual(40, Settle(model).Income);
             return model;
+        }
+
+        [TestCase(1, false)]
+        [TestCase(2, false)]
+        [TestCase(4, false)]
+        [TestCase(1, true)]
+        [TestCase(4, true)]
+        public void BaseFunds_UseStartingRosterAndPayExactlyOnce(int count, bool success)
+        {
+            var model = new PerformanceRewardModel(Session, 1);
+            var people = new RewardParticipantSeed[count];
+            for (int i = 0; i < count; i++) people[i] = new RewardParticipantSeed("p" + i, (ulong)i, i);
+            Assert.IsTrue(model.Begin(Identity(), people, DefaultRules));
+            model.Cheer("p0", true, DefaultRules);
+            if (!success) model.Observe("p0", 0, true, true, DefaultRules);
+            Assert.IsTrue(model.Confirm(success, "End", null, 1, DefaultRules, out var result));
+            Assert.AreEqual(count * 10, result.BaseReward);
+            Assert.AreEqual(success ? 10 : 0, result.BonusReward);
+            long expected = count * 10 + (success ? 10 : 0);
+            Assert.AreEqual(expected, result.Income);
+            Assert.AreEqual(expected, model.Balance);
+            Assert.AreEqual(expected, model.Ledger[0].Amount);
+            Assert.IsFalse(model.Confirm(success, "End", null, 1, DefaultRules, out _));
+            Assert.AreEqual(expected, model.Balance);
+            Assert.AreEqual(1, model.Ledger.Count);
+        }
+
+        [Test]
+        public void PerformanceRecord_PreservesMaximumAndFreezesAtSettlement()
+        {
+            var model = BeginPair();
+            string id = model.Performance.Id;
+            Assert.IsFalse(model.Record("stale", "p1", 10, 100, 40));
+            Assert.IsTrue(model.Record(id, "p1", null, 100, 15));
+            Assert.IsTrue(model.Record(id, "p1", 3, 100, 60));
+            Assert.IsTrue(model.Record(id, "p1", 5, 100, 20));
+            Assert.IsTrue(model.Observe("p1", 0, true, true, DefaultRules));
+            Assert.IsTrue(model.Record(id, "p1", 7, 100, 90));
+            Assert.IsTrue(model.Record(id, "p2", 8, 100, 110));
+            var result = Settle(model, minimumSurvivors: 1);
+            Assert.AreEqual(8, result.ElapsedSeconds);
+            Assert.AreEqual(100, result.CourseLength);
+            Assert.AreEqual(60, result.Participants[0].MaximumDistance);
+            Assert.AreEqual(100, result.Participants[1].MaximumDistance);
+            Assert.IsFalse(model.Record(id, "p2", 20, 100, 0));
+            Assert.AreEqual(8, model.History[0].ElapsedSeconds);
+        }
+
+        [Test]
+        public void PerformanceRecord_PreTimerFailureIsUnknownAndNextPerformanceResets()
+        {
+            var model = BeginPair();
+            Assert.IsTrue(model.Record(model.Performance.Id, "p1", null, 100, 5));
+            Assert.IsNull(Settle(model, false).ElapsedSeconds);
+            Assert.IsTrue(model.Begin(Identity(index: 1), Pair(), DefaultRules));
+            Assert.IsFalse(model.Record(model.Performance.Id, "p1", double.NaN, 100, 50));
+            var next = Settle(model);
+            Assert.IsNull(next.ElapsedSeconds);
+            Assert.IsNull(next.CourseLength);
+            Assert.IsNull(next.Participants[0].MaximumDistance);
         }
 
         [Test]
@@ -158,7 +218,7 @@ namespace CurtainCall.Reward.Tests
             Assert.IsFalse(model.Cheer("p1", true, DefaultRules));
             var result = Settle(model);
             Assert.IsTrue(result.Succeeded);
-            Assert.AreEqual(20, result.Income);
+            Assert.AreEqual(50, result.Income);
             Assert.AreEqual(1, result.Deaths.Count);
             Assert.AreEqual("p1", result.Deaths[0].ParticipantId);
             Assert.AreEqual(0, result.Deaths[0].Segment);
@@ -188,7 +248,7 @@ namespace CurtainCall.Reward.Tests
 
             var result = Settle(model, minimumSurvivors: 1);
             Assert.AreEqual(2, result.Deaths.Count);
-            Assert.AreEqual(10, result.Income);
+            Assert.AreEqual(40, result.Income);
         }
 
         [Test]
@@ -215,7 +275,7 @@ namespace CurtainCall.Reward.Tests
 
             var result = Settle(model, rules: rules);
             Assert.IsTrue(result.Succeeded, "연결된 생존자 두 명은 남아 있다");
-            Assert.AreEqual(20, result.Income, "이탈자가 있으면 전원 생존 보너스도 지급하지 않는다");
+            Assert.AreEqual(50, result.Income, "이탈자가 있으면 전원 생존 보너스도 지급하지 않는다");
             Assert.AreEqual(0, result.Deaths.Count);
             Assert.IsFalse(result.AllSurvived);
             Assert.IsFalse(result.Participants[0].Eligible);
@@ -242,7 +302,7 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(17, result.Participants[0].Settlement, "다른 사람은 호응 + 전원 생존 보너스");
             Assert.AreEqual(0, result.Participants[1].Settlement, "박탈 대상은 호응·보너스 모두 0");
             Assert.AreEqual("Forfeited", result.Participants[1].Judgement);
-            Assert.AreEqual(17, result.Income);
+            Assert.AreEqual(37, result.Income);
         }
 
         [Test]
@@ -263,8 +323,8 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(10, result.Participants[1].Settlement);
             Assert.AreEqual("Arrived", result.Participants[0].Judgement);
             Assert.AreEqual("Survived", result.Participants[1].Judgement);
-            Assert.AreEqual(30, result.Income);
-            Assert.AreEqual(30, model.Balance);
+            Assert.AreEqual(50, result.Income);
+            Assert.AreEqual(50, model.Balance);
             Assert.IsFalse(model.IsOpen);
             Assert.AreSame(result, model.Latest);
             Assert.AreSame(result, model.History[0]);
@@ -274,13 +334,13 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(1, entry.Generation);
             Assert.AreEqual(2, entry.Day);
             Assert.AreEqual(FundEntryKind.PerformanceIncome, entry.Kind);
-            Assert.AreEqual(30, entry.Amount);
-            Assert.AreEqual(30, entry.Balance);
+            Assert.AreEqual(50, entry.Amount);
+            Assert.AreEqual(50, entry.Balance);
             Assert.AreEqual(result.Performance.Id, entry.PerformanceId);
         }
 
         [Test]
-        public void Confirm_TrickFailure_PaysZeroAndKeepsExistingBalance()
+        public void Confirm_TrickFailure_PaysBaseFundsAndKeepsCheerSettlementZero()
         {
             var model = FundedPair();
             Assert.IsTrue(model.Begin(Identity(index: 1), Pair(), DefaultRules));
@@ -290,16 +350,16 @@ namespace CurtainCall.Reward.Tests
             var result = Settle(model, succeeded: false);
             Assert.IsFalse(result.Succeeded);
             Assert.AreEqual(PerformanceFailure.TrickFailed, result.Failure);
-            Assert.AreEqual(0, result.Income);
+            Assert.AreEqual(20, result.Income);
             foreach (var person in result.Participants)
             {
                 Assert.AreEqual(10, person.Segment, "실패 결과에도 끝날 때 남아 있던 구간은 기록한다");
                 Assert.AreEqual(0, person.Settlement);
             }
-            Assert.AreEqual(20, model.Balance);
+            Assert.AreEqual(60, model.Balance);
             Assert.AreEqual(2, model.Ledger.Count);
-            Assert.AreEqual(0, model.Ledger[1].Amount);
-            Assert.AreEqual(20, model.Ledger[1].Balance);
+            Assert.AreEqual(20, model.Ledger[1].Amount);
+            Assert.AreEqual(60, model.Ledger[1].Balance);
         }
 
         [Test]
@@ -316,7 +376,7 @@ namespace CurtainCall.Reward.Tests
             Assert.IsTrue(result.AllSurvived);
             Assert.AreEqual(25, result.Participants[0].Segment);
             Assert.AreEqual(25, result.Participants[1].Segment);
-            Assert.AreEqual(50, result.Income, "절단·전원 생존 보너스를 합쳐도 개인 상한을 넘지 않는다");
+            Assert.AreEqual(70, result.Income, "절단·전원 생존 보너스를 합쳐도 개인 상한을 넘지 않는다");
             Assert.AreEqual(settlementRules, model.Snapshot().Rules);
             Assert.AreEqual(25, model.Snapshot().Segments[1].Amount);
         }
@@ -331,7 +391,7 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(25, model.Snapshot().Segments[0].Amount, "두 비트의 곱은 int 범위를 넘지만 상한으로 정산한다");
             Assert.IsTrue(model.Observe("p1", 7, false, true, rules));
             Assert.AreEqual(25, model.Snapshot().Segments[0].Amount);
-            Assert.AreEqual(25, Settle(model, rules: rules).Income);
+            Assert.AreEqual(45, Settle(model, rules: rules).Income);
         }
 
         [Test]
@@ -346,8 +406,8 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(PerformanceFailure.InsufficientSurvivors, result.Failure);
             Assert.AreEqual(10, result.Participants[0].Segment);
             Assert.AreEqual(0, result.Participants[0].Settlement);
-            Assert.AreEqual(0, result.Income);
-            Assert.AreEqual(0, model.Balance);
+            Assert.AreEqual(20, result.Income);
+            Assert.AreEqual(20, model.Balance);
         }
 
         [Test]
@@ -360,8 +420,8 @@ namespace CurtainCall.Reward.Tests
             var result = Settle(model, minimumSurvivors: 1);
             Assert.IsTrue(result.Succeeded);
             Assert.AreEqual(PerformanceFailure.None, result.Failure);
-            Assert.AreEqual(10, result.Income);
-            Assert.AreEqual(10, model.Balance);
+            Assert.AreEqual(30, result.Income);
+            Assert.AreEqual(30, model.Balance);
             Assert.IsFalse(result.AllSurvived);
         }
 
@@ -374,7 +434,7 @@ namespace CurtainCall.Reward.Tests
 
             var result = Settle(model, minimumSurvivors: 1);
             Assert.AreEqual(PerformanceFailure.InsufficientSurvivors, result.Failure);
-            Assert.AreEqual(0, result.Income);
+            Assert.AreEqual(20, result.Income);
             Assert.AreEqual(1, result.Deaths.Count, "이탈자는 생존에서 빠지지만 사망자는 아니다");
         }
 
@@ -521,7 +581,7 @@ namespace CurtainCall.Reward.Tests
             Assert.IsFalse(model.Confirm(true, "End", null, 2, DefaultRules, out rejected));
             Assert.IsNull(rejected);
             Assert.AreEqual(after, model.Revision);
-            Assert.AreEqual(20, model.Balance);
+            Assert.AreEqual(40, model.Balance);
             Assert.AreEqual(1, model.Ledger.Count);
             Assert.AreEqual(1, model.History.Count);
             Assert.AreSame(result, model.Latest);
@@ -546,14 +606,14 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(10, model.History.Count);
             Assert.AreEqual(1, model.History[0].Performance.Index);
             Assert.AreEqual(10, model.Latest.Performance.Index);
-            Assert.AreEqual(220, model.Balance);
+            Assert.AreEqual(440, model.Balance);
             Assert.AreEqual(11, model.Ledger.Count, "결과 이력 제한으로 자금 장부를 지우지 않는다");
             long before = model.Revision;
 
             Assert.IsFalse(model.Begin(first, Pair(), DefaultRules), "화면 이력에서 빠진 공연도 다시 지급할 수 없다");
             Assert.IsFalse(model.Begin(Identity(day: 1, index: 9), Pair(), DefaultRules));
             Assert.AreEqual(before, model.Revision);
-            Assert.AreEqual(220, model.Balance);
+            Assert.AreEqual(440, model.Balance);
             Assert.AreEqual(10, model.History.Count);
         }
 
@@ -564,7 +624,7 @@ namespace CurtainCall.Reward.Tests
             long before = model.Revision;
 
             Assert.IsTrue(model.Spend(7, "신체 복구", 2));
-            Assert.AreEqual(13, model.Balance);
+            Assert.AreEqual(33, model.Balance);
             Assert.AreEqual(before + 1, model.Revision);
             Assert.AreEqual(2, model.Ledger.Count);
             var entry = model.Ledger[1];
@@ -573,10 +633,10 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(2, entry.Day);
             Assert.AreEqual(FundEntryKind.Expense, entry.Kind);
             Assert.AreEqual(-7, entry.Amount);
-            Assert.AreEqual(13, entry.Balance);
+            Assert.AreEqual(33, entry.Balance);
             Assert.AreEqual("신체 복구", entry.Description);
             Assert.AreEqual("", entry.PerformanceId);
-            Assert.IsTrue(model.Spend(13, "남은 자금 사용", 2));
+            Assert.IsTrue(model.Spend(33, "남은 자금 사용", 2));
             Assert.AreEqual(0, model.Balance, "잔액과 같은 지출도 허용한다");
         }
 
@@ -585,7 +645,7 @@ namespace CurtainCall.Reward.Tests
         {
             var model = FundedPair();
             var before = model.Snapshot();
-            Assert.IsFalse(model.Spend(21, "부족", 1));
+            Assert.IsFalse(model.Spend(41, "부족", 1));
             Assert.IsFalse(model.Spend(long.MaxValue, "부족", 1));
             Assert.IsFalse(model.Spend(-1, "음수", 1));
             Assert.IsFalse(model.Spend(long.MinValue, "음수", 1));
@@ -607,17 +667,17 @@ namespace CurtainCall.Reward.Tests
         {
             var model = FundedPair();
             Assert.IsTrue(model.Begin(Identity(day: 2), Pair(), DefaultRules));
-            Assert.AreEqual(20, model.Balance, "일차 전환은 공동 자금 초기화 경계가 아니다");
+            Assert.AreEqual(40, model.Balance, "일차 전환은 공동 자금 초기화 경계가 아니다");
             Assert.AreEqual(0, model.Snapshot().Segments[0].Amount);
             Assert.AreEqual(0, model.Snapshot().Segments[1].Amount);
             Assert.IsTrue(model.Cheer("p1", true, DefaultRules));
             Assert.IsTrue(model.Cheer("p2", true, DefaultRules));
 
-            Assert.AreEqual(20, Settle(model).Income);
-            Assert.AreEqual(40, model.Balance);
+            Assert.AreEqual(40, Settle(model).Income);
+            Assert.AreEqual(80, model.Balance);
             Assert.AreEqual(1, model.Ledger[0].Day);
             Assert.AreEqual(2, model.Ledger[1].Day);
-            Assert.AreEqual(40, model.Ledger[1].Balance);
+            Assert.AreEqual(80, model.Ledger[1].Balance);
         }
 
         [Test]
@@ -642,7 +702,7 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(FundEntryKind.GenerationReset, reset.Kind);
             Assert.AreEqual(2, reset.Generation);
             Assert.AreEqual(1, reset.Day);
-            Assert.AreEqual(-20, reset.Amount);
+            Assert.AreEqual(-40, reset.Amount);
             Assert.AreEqual(0, reset.Balance);
             long after = model.Revision;
             Assert.IsFalse(model.AdvanceGeneration(2, 1));
@@ -657,7 +717,7 @@ namespace CurtainCall.Reward.Tests
             Assert.IsTrue(model.Cheer("p2", true, DefaultRules));
             var current = Settle(model);
             Assert.AreNotEqual(previous.Performance.Id, current.Performance.Id);
-            Assert.AreEqual(20, model.Balance);
+            Assert.AreEqual(40, model.Balance);
             Assert.AreEqual(3, model.Ledger.Count);
             Assert.AreEqual(3, model.Ledger[2].Number);
         }
@@ -682,7 +742,7 @@ namespace CurtainCall.Reward.Tests
             entries[0] = new FundEntry(1, 1, 1, FundEntryKind.PerformanceIncome, 99, 99, "교체");
             Assert.AreSame(alive, result.Participants[0]);
             Assert.AreSame(dead, result.Deaths[0]);
-            Assert.AreEqual(10, result.Income);
+            Assert.AreEqual(30, result.Income);
             Assert.AreSame(segment, snapshot.Segments[0]);
             Assert.AreSame(entry, snapshot.Ledger[0]);
             Assert.AreEqual(10, snapshot.Balance);
@@ -722,12 +782,12 @@ namespace CurtainCall.Reward.Tests
             Assert.IsNull(cheered.Latest);
             Assert.AreEqual(0, cheered.LedgerCount);
             Assert.IsTrue(cheered.IsOpen);
-            Assert.AreEqual(10, settled.Balance);
+            Assert.AreEqual(30, settled.Balance);
             Assert.AreEqual(1, settled.Ledger.Count);
             Assert.AreEqual(1, settled.LedgerCount);
             Assert.AreSame(result, settled.Latest);
             Assert.IsFalse(settled.IsOpen);
-            Assert.AreEqual(5, model.Balance);
+            Assert.AreEqual(25, model.Balance);
             Assert.IsTrue(cheered.IsNewerThan(empty));
             Assert.IsTrue(settled.IsNewerThan(cheered));
             Assert.IsFalse(empty.IsNewerThan(settled));

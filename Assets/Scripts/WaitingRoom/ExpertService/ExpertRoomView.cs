@@ -14,7 +14,7 @@ namespace CurtainCall.WaitingRoom
     /// - 쇠붙이 소리: 커튼이 닫혀 이용이 시작될 때와 복구가 끝날 때.
     /// - 커튼 위 표지: 오늘 담당·이용 상태("담당자 부재중" 포함).
     /// </summary>
-    public sealed class ExpertRoomView : MonoBehaviour, IShopTarget
+    public sealed class ExpertRoomView : MonoBehaviour, IShopTarget, IShopPresentation
     {
         [SerializeField] Transform curtainLeft;
         [SerializeField] Transform curtainRight;
@@ -47,6 +47,10 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>커튼이 열린 정도(0 닫힘 ~ 1 다 열림). 테스트 확인용.</summary>
         public float CurtainOpen => open;
+        public Transform VisualRoot => curtainLeft != null ? curtainLeft : transform;
+        public Vector3 PresentationPoint => transform.TransformPoint(CurtainCenterLocal()) + Vector3.up;
+        public bool IsAvailable => ExpertService.Instance != null && ExpertService.Instance.Phase == ExpertRoomPhase.Booked && ExpertService.Instance.LocalIsBuyer;
+        public string ActionLabel => IsAvailable ? "전문가 대기실 들어가기" : ExpertService.Instance != null ? RefusalText(ExpertService.Instance) : "담당자 부재중";
 
         /// <summary>그 위치(발)가 커튼 앞 F 거리 안인지.</summary>
         public bool InReach(Vector3 feet) => FlatDistance(feet) <= reach;
@@ -184,7 +188,14 @@ namespace CurtainCall.WaitingRoom
         void UpdateSign(ExpertService service)
         {
             if (sign == null) return;
-            string text = service.Phase switch
+            string text = StatusText;
+            if (text == signText) return;
+            signText = text;
+            sign.text = text;
+        }
+
+        public string StatusText => ExpertService.Instance == null ? "담당자 부재중" : DescribeStatus(ExpertService.Instance);
+        static string DescribeStatus(ExpertService service) => service.Phase switch
             {
                 ExpertRoomPhase.Booked => $"{WaitingRoomShop.PlayerLabel(service.Buyer)} 입장 대기",
                 ExpertRoomPhase.Working => "이용 중",
@@ -194,10 +205,6 @@ namespace CurtainCall.WaitingRoom
                     : ExpertService.Availability(ExpertKind.Facility) == ExpertRefusal.None ? "시설 담당자 근무 · 의료 부재중"
                     : "담당자 부재중",
             };
-            if (text == signText) return;
-            signText = text;
-            sign.text = text;
-        }
 
         void PlayClank()
         {
@@ -230,7 +237,7 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             var service = ExpertService.Instance;
-            if (service == null || !ReferenceEquals(ShopReach.Focused, this)) return;
+            if (ShopReach.HasExternalPresentation || service == null || !ReferenceEquals(ShopReach.Focused, this)) return;
             var rect = new Rect(Screen.width / 2f - 230, Screen.height * .62f, 520, 24);
             GUI.Label(rect, service.Phase == ExpertRoomPhase.Booked && service.LocalIsBuyer
                 ? "[F] ⑧ 전문가 대기실 들어가기"

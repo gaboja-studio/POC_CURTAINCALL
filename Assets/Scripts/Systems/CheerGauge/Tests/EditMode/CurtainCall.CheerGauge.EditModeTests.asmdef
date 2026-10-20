@@ -1,0 +1,9 @@
+{
+    "name": "CurtainCall.CheerGauge.EditModeTests",
+    "rootNamespace": "CurtainCall.CheerGauge.Tests",
+    "references": ["CurtainCall.CheerGauge.Core", "CurtainCall.PerformanceReward.Core", "CurtainCall.PerformanceResults"],
+    "includePlatforms": ["Editor"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false,
+    "noEngineReferences": true
+}

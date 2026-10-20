@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a0ce5884b4eda749a6b82ab40a9701a, type: 3}
+  m_Name: temporary-audience
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.AudienceReactionSettings
+  cap: 100
+  closeDodge: 15
+  safeDodge: 5
+  cut: 30
+  safeArrival: 15
+  closeArrival: 30
+  stackedVertical: 50
+  laneChangeJeer: 30
+  hangingJeer: 15
+  trampoline: 15
+  lowerFloorJeer: 15
+  hangingSeconds: 3
+  lowerFloorSeconds: 10
+  closeDodgeMargin: 0.3
+  approachDistance: 8
+  clearanceDistance: 2
+  closeFireDistance: 3

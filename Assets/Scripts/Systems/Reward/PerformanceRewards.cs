@@ -63,7 +63,18 @@ namespace CurtainCall.Reward
         public bool TransitionPending => pendingTransition;
         public IReadOnlyList<PerformanceResult> History => model != null ? model.History : receivedHistory.AsReadOnly();
         public event Action Changed;
+        public event Action SampleRecords;
+        public bool RecordProgress(string identity, string participantId, double? elapsed, double length, double distance)
+            => CanMutate() && model.Record(identity, participantId, elapsed, length, distance);
+        void SamplePerformanceRecords()
+        {
+            if (SampleRecords == null) return;
+            foreach (Action handler in SampleRecords.GetInvocationList())
+                try { handler(); } catch (Exception error) { Debug.LogException(error); }
+        }
         public event Action<PerformanceResult> ResultConfirmed;
+        /// <summary>정산 직전 호스트 관찰. 도착 환호를 같은 공연의 정산에 포함한다.</summary>
+        public event Action<IReadOnlyDictionary<string, string>> BeforeSettlement;
 
         void Awake()
         {
@@ -82,6 +93,7 @@ namespace CurtainCall.Reward
             {
                 long previous = model.Revision;
                 model.ApplyRules(ReadRules());
+                SamplePerformanceRecords();
                 ObserveNetwork();
                 if (model.Revision != previous) Publish();
                 EndIfInsufficientSurvivors();
@@ -223,11 +235,22 @@ namespace CurtainCall.Reward
             return changed;
         }
 
+        public bool AddAudienceReaction(string participantId, int delta)
+        {
+            if (!CanMutate()) return false;
+            long previous = model.Revision;
+            ObserveNetwork();
+            bool changed = model.React(participantId, delta, ReadRules());
+            if (model.Revision != previous) Publish();
+            return changed;
+        }
+
         /// <summary>호스트 테스트/묘기 관찰 입력. 신체 손실은 0~15 비트마스크이며 결과에는 개수로 고정한다.</summary>
         public bool ObserveParticipant(string participantId, int lostParts, bool dead, bool connected = true)
         {
             if (!CanMutate()) return false;
             long previous = model.Revision;
+            SamplePerformanceRecords();
             bool changed = model.Observe(participantId, lostParts, dead, connected, ReadRules());
             if (model.Revision != previous) Publish();
             if (changed) EndIfInsufficientSurvivors();
@@ -243,7 +266,16 @@ namespace CurtainCall.Reward
             return true;
         }
 
-        RewardRules ReadRules() => rulesOverride ?? (table != null ? table.ReadRules(difficulty) : RewardRules.Temporary(difficulty));
+        RewardRules ReadRules()
+        {
+            if (rulesOverride.HasValue) return rulesOverride.Value;
+            var original = table != null ? table.ReadRules(difficulty) : RewardRules.Temporary(difficulty);
+            var audience = AudienceReactionSettings.Current;
+            string trick = campaign != null ? campaign.State.TrickId : null;
+            return audience != null && (trick == "Tightrope" || trick == "HumanCannon")
+                ? new RewardRules(original.Cheer, original.Jeer, Math.Max(1, audience.cap), original.AllSurvivedBonus, Math.Max(0, audience.cut))
+                : original;
+        }
         bool CanMutate() => HasAuthority && model != null && model.IsOpen && !ending && !pendingTransition;
 
         void EndIfInsufficientSurvivors()
@@ -256,6 +288,10 @@ namespace CurtainCall.Reward
         public bool FinishPerformance(bool trickSucceeded, string endReason, IReadOnlyDictionary<string, string> judgements = null)
         {
             if (!CanMutate() || campaign.State.Phase != CampaignPhase.Performance || !SamePerformance()) return false;
+            if (trickSucceeded && BeforeSettlement != null)
+                foreach (Action<IReadOnlyDictionary<string, string>> observer in BeforeSettlement.GetInvocationList())
+                    try { observer(judgements); } catch (Exception error) { Debug.LogException(error); }
+            SamplePerformanceRecords();
             ending = true;
             PerformanceResult result = null;
             try
@@ -264,8 +300,10 @@ namespace CurtainCall.Reward
                 if (!model.Confirm(trickSucceeded, endReason, judgements, OfficialMinSurvivors, ReadRules(), out result)) return false;
                 ClearObservers();
                 pendingTransition = true;
-                // 실패는 사망·결과를 볼 수 있게 묘기 화면을 잠시 유지한 뒤 시간대를 넘긴다(설정 0이면 바로).
-                transitionAt = Time.unscaledTime + (result.Succeeded ? 0f : GameSettings.Base.Run.FailedPerformanceHold);
+                // 결과는 즉시 확정/송신하고, 두 공연의 사망·결과·검은 전환 화면을 본 뒤 시간대를 넘긴다.
+                float hold = PerformanceEndingSettings.HoldFor(result.Performance.TrickId);
+                if (!result.Succeeded) hold = Mathf.Max(hold, GameSettings.Base.Run.FailedPerformanceHold);
+                transitionAt = Time.unscaledTime + hold;
                 if (Time.unscaledTime >= transitionAt) CompleteTransition();
                 else Publish();
                 return true;

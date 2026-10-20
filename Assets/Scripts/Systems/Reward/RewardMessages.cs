@@ -32,8 +32,10 @@ namespace CurtainCall.Reward
         public string judgement;
         public long segment;
         public long settlement;
+        public bool hasDistance;
+        public double maximumDistance;
         public RewardSegment ReadSegment() => new(id, client, slot, start, end, dead, connected, segment);
-        public PerformanceParticipantResult ReadResult() => new(id, client, slot, start, end, dead, connected, judgement, segment, settlement);
+        public PerformanceParticipantResult ReadResult() => new(id, client, slot, start, end, dead, connected, judgement, segment, settlement, hasDistance ? maximumDistance : null);
         public static RewardPersonData From(RewardSegment value) => new()
         {
             id = value.ParticipantId, client = value.ClientId, slot = value.Slot, start = value.StartingLostCount,
@@ -43,7 +45,8 @@ namespace CurtainCall.Reward
         {
             id = value.ParticipantId, client = value.ClientId, slot = value.Slot, start = value.StartingLostCount,
             end = value.EndingLostCount, dead = value.Dead, connected = value.Connected, segment = value.Segment,
-            judgement = value.Judgement, settlement = value.Settlement
+            judgement = value.Judgement, settlement = value.Settlement,
+            hasDistance = value.MaximumDistance.HasValue, maximumDistance = value.MaximumDistance ?? 0
         };
     }
 
@@ -54,12 +57,15 @@ namespace CurtainCall.Reward
         public byte failure;
         public string reason;
         public RewardPersonData[] people;
+        public bool hasElapsed, hasCourse;
+        public double elapsed, course;
         public PerformanceResult Read()
         {
             if (people == null || people.Length > 64) throw new ArgumentException("결과 명부 크기 오류");
             var copy = new PerformanceParticipantResult[people.Length];
             for (int i = 0; i < copy.Length; i++) copy[i] = people[i].ReadResult();
-            return new PerformanceResult(performance.Read(), (PerformanceFailure)failure, reason, copy);
+            return new PerformanceResult(performance.Read(), (PerformanceFailure)failure, reason, copy,
+                hasElapsed ? elapsed : null, hasCourse ? course : null);
         }
         public static RewardResultData From(PerformanceResult value)
         {
@@ -68,7 +74,9 @@ namespace CurtainCall.Reward
             for (int i = 0; i < people.Length; i++) people[i] = RewardPersonData.From(value.Participants[i]);
             return new RewardResultData
             {
-                performance = RewardIdentityData.From(value.Performance), failure = (byte)value.Failure, reason = value.EndReason, people = people
+                performance = RewardIdentityData.From(value.Performance), failure = (byte)value.Failure, reason = value.EndReason, people = people,
+                hasElapsed = value.ElapsedSeconds.HasValue, elapsed = value.ElapsedSeconds ?? 0,
+                hasCourse = value.CourseLength.HasValue, course = value.CourseLength ?? 0
             };
         }
     }

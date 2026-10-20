@@ -12,7 +12,7 @@ namespace CurtainCall.WaitingRoom
     /// 스케줄표 앞에서 F → 내 화면만 스케줄표 클로즈업 카메라로 바뀌고 창이 열린다(이동 입력 막음). ESC·닫기·멀어지면 닫힌다.
     /// 창: 1~4일차 공연·전문가·난도, 밤이면 호스트가 칸을 고르고 확정, 참가자는 실시간으로 보기만. 준비 완료 버튼도 둔다.
     /// </summary>
-    public sealed class ScheduleBoardView : MonoBehaviour
+    public sealed class ScheduleBoardView : MonoBehaviour, IShopTarget, IShopPresentation
     {
         [Tooltip("거리를 재는 스케줄표 판(없으면 이 오브젝트).")]
         [SerializeField] Transform board;
@@ -22,6 +22,7 @@ namespace CurtainCall.WaitingRoom
 
         [Tooltip("스케줄표에 닿는 수평 거리(m).")]
         [SerializeField, Min(.5f)] float reach = 2f;
+        [SerializeField] bool showLegacyUi = true;
 
         [Tooltip("클로즈업 카메라 우선순위(플레이어 카메라보다 높게).")]
         [SerializeField] int closeUpPriority = 100;
@@ -37,6 +38,13 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>창이 열려 있는가(내 화면).</summary>
         public bool IsOpen => open;
+        public Transform VisualRoot => Target;
+        public Vector3 PresentationPoint => Target.position;
+        public string ActionLabel => "스케줄표 보기";
+        public bool IsAvailable => !open && ScheduleBoard.Instance != null;
+        public float Reach(Vector3 feet) { float d = Flat(feet - Target.position); return d <= reach ? d : -1; }
+        public void Interact() { if (IsAvailable) SetOpen(true); }
+        void OnEnable() => ShopReach.Add(this);
 
         void Awake()
         {
@@ -45,16 +53,16 @@ namespace CurtainCall.WaitingRoom
             if (closeUp != null) closeUp.gameObject.SetActive(false);
         }
 
-        void OnDisable() => SetOpen(false);
+        void OnDisable() { ShopReach.Remove(this); SetOpen(false); }
 
         void Update()
         {
+            ShopReach.Pump();
             var reader = LocalReader();
             inReach = reader != null && Flat(reader.transform.position - Target.position) <= reach;
 
             if (!open)
             {
-                if (inReach && reader.isActiveAndEnabled && !InputGate.IsBlocked && reader.Current.InteractTapped) SetOpen(true);
                 return;
             }
 
@@ -110,11 +118,12 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
+            if (!showLegacyUi) return;
             var schedule = ScheduleBoard.Instance;
             if (schedule == null) return;
             if (!open)
             {
-                if (inReach && !InputGate.IsBlocked)
+                if (!ShopReach.HasExternalPresentation && inReach && !InputGate.IsBlocked)
                     GUI.Box(new Rect((Screen.width - 220) / 2f, Screen.height * .62f, 220, 28), "[F] 스케줄표 보기");
                 return;
             }

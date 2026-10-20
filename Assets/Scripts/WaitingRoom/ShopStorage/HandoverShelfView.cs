@@ -8,7 +8,7 @@ namespace CurtainCall.WaitingRoom
     /// 아니면 위 칸부터 꺼낸다(<see cref="PropCarry.RequestShelf"/>). 여기 올린 기물만 세대 교체 뒤 다음 세대로 넘어간다.
     /// 칸 위치는 자식 판자(이름이 "Board_"로 시작, 이름 순 = 아래부터)를 쓴다. 기물 도형은 화면마다 따로 그리는 표시용이다.
     /// </summary>
-    public sealed class HandoverShelfView : MonoBehaviour, IShopTarget
+    public sealed class HandoverShelfView : MonoBehaviour, IShopTarget, IShopPresentation
     {
         [Tooltip("선반에 닿는 수평 거리(m, 선반 앞면 기준).")]
         [SerializeField, Min(.3f)] float reach = 1.2f;
@@ -17,11 +17,40 @@ namespace CurtainCall.WaitingRoom
 
         [Tooltip("비우면 자식 중 이름이 Board_로 시작하는 판자를 이름 순으로 쓴다(아래 칸부터).")]
         [SerializeField] Transform[] boards = new Transform[0];
+        [SerializeField] bool showLegacyLabels = true;
+        [SerializeField] Transform visualRoot;
+        public IReadOnlyList<Transform> Boards => boards;
+        public void CollectLabels(List<ShopWorldLabel> labels)
+        {
+            if (carry == null) return;
+            for (int i = 0; i < shapes.Length && i < carry.Shelf.Count; i++)
+                if (shapes[i] != null)
+                {
+                    var offset = Vector3.up * (itemSize + .12f);
+                    if (VisualRoot.TryGetComponent<Collider>(out var frame)) offset.z = frame.bounds.max.z + .07f - shapes[i].transform.position.z;
+                    labels.Add(new ShopWorldLabel(shapes[i].transform, carry.Shelf[i].Name, offset, VisualRoot));
+                }
+        }
 
         readonly GameObject[] shapes = new GameObject[ItemCarryBook.ShelfSlots];
         PropCarry carry;
         Material material;
         Bounds area;
+        public Transform VisualRoot => visualRoot != null ? visualRoot : transform;
+        public Vector3 PresentationPoint => area.center;
+        public bool IsAvailable => ActionLabel != "선반이 비어 있습니다";
+        public string ActionLabel
+        {
+            get
+            {
+                if (carry == null) return "선반이 비어 있습니다";
+                bool filled = false; int empty = -1;
+                for (int i = 0; i < carry.Shelf.Count; i++)
+                    if (ItemCarryBook.IsEmpty(carry.Shelf[i])) { if (empty < 0) empty = i; } else filled = true;
+                var held = carry.Held(carry.LocalClientId);
+                return held.Count > 0 && empty >= 0 ? $"{held[held.Count - 1].Name} 선반 {empty + 1}칸에 올리기" : filled ? "선반 위 칸에서 꺼내기" : "선반이 비어 있습니다";
+            }
+        }
 
         void Awake()
         {
@@ -133,9 +162,10 @@ namespace CurtainCall.WaitingRoom
         {
             if (carry == null) return;
             var shelf = carry.Shelf;
-            for (int i = 0; i < shapes.Length && i < shelf.Count; i++)
-                if (shapes[i] != null) PropLabels.Draw(shapes[i].transform.position + Vector3.up * itemSize, $"{i + 1}칸 {shelf[i].Name}");
-            if (!ReferenceEquals(ShopReach.Focused, this)) return;
+            if (showLegacyLabels)
+                for (int i = 0; i < shapes.Length && i < shelf.Count; i++)
+                    if (shapes[i] != null) PropLabels.Draw(shapes[i].transform.position + Vector3.up * itemSize, $"{i + 1}칸 {shelf[i].Name}");
+            if (ShopReach.HasExternalPresentation || !ReferenceEquals(ShopReach.Focused, this)) return;
             int filled = 0, empty = -1;
             for (int i = 0; i < shelf.Count; i++)
             {

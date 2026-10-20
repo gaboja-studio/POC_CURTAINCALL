@@ -13,14 +13,17 @@ namespace CurtainCall.Voice
     {
         const float Width = 300f;
         const float Height = 220f;
+        public float PresentationTop { get; set; } = 80f;
+        public bool PresentationSuppressed { get; set; }
 
         void OnGUI()
         {
             var voice = VoiceChat.Instance;
-            if (!DevMode.Enabled || voice == null || voice.gameObject != gameObject) return;
+            if (!DevMode.Enabled || PresentationSuppressed || voice == null || voice.gameObject != gameObject
+                || (UI.SceneIntegration.CommonMenuUI.Current != null && UI.SceneIntegration.CommonMenuUI.Current.IsOpen)) return;
 
             var settings = GameSettings.Base.VoiceChat;
-            GUILayout.BeginArea(new Rect(Screen.width - Width - 10f, 80f, Width, Height), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(Screen.width - Width - 10f, PresentationTop, Width, Height), GUI.skin.box);
             GUILayout.Label($"음성: {RoomText(voice.Room)}   로그인 {(voice.IsLoggedIn ? "O" : "X")}");
             GUILayout.Label($"마이크: {(voice.IsMicMuted ? "꺼짐" : "켜짐")} ({settings.MuteKey})   생존 {settings.ConversationalDistance}~{settings.AudibleDistance}m");
             if (!string.IsNullOrEmpty(voice.LastError))

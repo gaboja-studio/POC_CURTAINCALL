@@ -24,6 +24,13 @@ namespace CurtainCall.WaitingRoom
 
         [Tooltip("배송구에서 나와 바닥에 닿을 때까지 걸리는 시간(초).")]
         [SerializeField, Min(.05f)] float dropTime = .6f;
+        [SerializeField] bool showLegacyLabels = true;
+
+        public void CollectLabels(List<ShopWorldLabel> labels)
+        {
+            foreach (var item in shown.Values)
+                if (item.View != null) labels.Add(new ShopWorldLabel(item.View.transform, item.Delivery.ItemName, Vector3.up * (itemSize + .12f)));
+        }
 
         readonly Dictionary<int, Item> shown = new();
         readonly List<int> stale = new();
@@ -31,13 +38,18 @@ namespace CurtainCall.WaitingRoom
         Material material;
         bool loaded;
 
-        sealed class Item : IShopTarget
+        sealed class Item : IShopTarget, IShopPresentation, IShopPresentationDetails
         {
             public ShopDeliverySlot Slot;
             public ShopDelivery Delivery;
             public GameObject View;
             public Vector3 From, To;
             public float Started = -1f;
+            public Transform VisualRoot => View != null ? View.transform : null;
+            public Vector3 PresentationPoint => View != null ? View.transform.position : Vector3.zero;
+            public string ActionLabel => Delivery.ItemName + " 받기";
+            public string HelperLabel => $"#{Delivery.Order} · {WaitingRoomShop.PlayerLabel(Delivery.Buyer)} 주문";
+            public bool IsAvailable => View != null && Started < 0f && Slot.shop != null;
 
             public float Reach(Vector3 feet)
             {
@@ -176,8 +188,10 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             if (shop == null) return;
-            foreach (var item in shown.Values)
-                PropLabels.Draw(item.View.transform.position + Vector3.up * itemSize, $"{item.Delivery.ItemName} #{item.Delivery.Order}");
+            if (showLegacyLabels)
+                foreach (var item in shown.Values)
+                    PropLabels.Draw(item.View.transform.position + Vector3.up * itemSize, $"{item.Delivery.ItemName} #{item.Delivery.Order}");
+            if (ShopReach.HasExternalPresentation) return;
             foreach (var item in shown.Values)
             {
                 if (!ReferenceEquals(ShopReach.Focused, item)) continue;

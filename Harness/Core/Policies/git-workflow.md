@@ -36,6 +36,7 @@ dev                  ──PR(Merge commit)──▶ integration/*   (공용 변
   - 예외: PM은 `integration/*`에 준비 작업(통합 기록, Task 폴더, 테스트 씬·폴더)과 마무리 작업(Done 이동)을 직접 올린다. 브랜치 보호의 **우회(bypass) 목록에 PM 계정만** 넣는다. `dev`는 PM도 PR로만 반영한다.
 - `integration/*`는 메타 **Base**의 최신 원격에서 만든다(기본 dev, 선택 부모 integration 존재·계보·순환 검사). 작업은 소속 통합, fix/resource는 PR 대상, builds는 빌드 시점 dev에서 만든다.
 - 합치기 단계에서 기능끼리 연결하는 작업도 **별도 Task(연결 Task)**로 만들어 같은 흐름을 탄다.
+- 특정 프로젝트에서 PM이 승인한 공급 브랜치 직접 pull 예외는 `Harness/Project/Decisions/branch-strategy.md`의 명시된 방향·범위에 한해 우선한다. 일반 Task/소유권·최종 PR 흐름은 유지한다.
 - `Scripts/new-pr.ps1`이 이 흐름에 어긋나는 PR을 거부한다.
 
 ## fix/* · resource/*

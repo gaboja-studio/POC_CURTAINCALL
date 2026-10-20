@@ -32,6 +32,7 @@ namespace CurtainCall.WaitingRoom
 
         [Tooltip("밤 정비 동안 화면 위쪽에 띄우는 안내.")]
         [SerializeField] string notice = "밤 정비 — 대기실 문이 잠겼습니다 · 탐색 시간 없음";
+        [SerializeField] bool showLegacyNotice = true;
 
         GUIStyle style;
         float closed; // 0 = 다 열림, 1 = 다 닫힘
@@ -98,7 +99,7 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            if (!IsLocked) return;
+            if (!showLegacyNotice || !IsLocked) return;
             style ??= new GUIStyle(GUI.skin.box) { fontSize = 16, alignment = TextAnchor.MiddleCenter };
             const float width = 420, height = 32;
             GUI.Box(new Rect((Screen.width - width) / 2f, 10, width, height), notice, style);

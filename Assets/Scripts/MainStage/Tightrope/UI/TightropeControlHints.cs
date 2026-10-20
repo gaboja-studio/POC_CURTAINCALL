@@ -47,17 +47,19 @@ namespace CurtainCall.Tightrope.UI
             return action + "\n버튼을 밟으면 톱이 뛰어요 · 아래 동료는 그때 전진하세요";
         }
 
-        public static void Draw()
+        public static bool ExternalPresentation { get; set; }
+
+        public static string CurrentText()
         {
             var course = TightropeCourse.Current;
             var local = NetworkPlayer.Local;
             if (course == null || !course.IsTraversalActive || local == null || local.State != PlayerState.Normal
-                || InputGate.IsBlocked) return;
+                || InputGate.IsBlocked) return null;
             var mover = local.GetComponent<PlayerMover>();
             var relay = TightropeRelayGate.Current;
             var trapeze = TightropeTrapeze.Current;
             bool relayHeld = relay != null && relay.IsHeld(local);
-            if (mover == null || (!mover.ControlEnabled && !relayHeld)) return;
+            if (mover == null || (!mover.ControlEnabled && !relayHeld)) return null;
             var stack = PiggybackSystem.Current;
             bool passenger = stack != null && stack.GetBelow(local) != null;
             bool carrying = stack != null && stack.GetAbove(local) != null;
@@ -91,6 +93,14 @@ namespace CurtainCall.Tightrope.UI
             if (!string.IsNullOrEmpty(gateHint)) content += "\n" + gateHint;
             if (saws != null && saws.IsTeamPassageOpen)
                 content += $"\n{(saws.IsTeamPassageWarning ? "주변 가로 톱 재가동 주의" : "주변 가로 톱 정지")} {saws.TeamPassageRemaining:0.0}초 · {saws.TeamPassageStartDistance:0}~{saws.TeamPassageEndDistance:0}m";
+            return content;
+        }
+
+        public static void Draw()
+        {
+            if (ExternalPresentation) return;
+            string content = CurrentText();
+            if (string.IsNullOrEmpty(content)) return;
             style ??= new GUIStyle(GUI.skin.box)
             {
                 alignment = TextAnchor.MiddleCenter,

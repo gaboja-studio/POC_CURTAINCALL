@@ -111,7 +111,10 @@ namespace CurtainCall.StartLobby
         void Broadcast()
         {
             Changed?.Invoke();
-            if (messaging == null || !session.IsHost) return;
+            // Shutdown also changes game state, after the last recipient has left.
+            var network = session != null ? session.NetworkManager : null;
+            if (messaging == null || !session.IsHost || network == null || !network.IsListening
+                || network.ShutdownInProgress || network.ConnectedClientsIds.Count == 0) return;
             using var writer = WriteState();
             messaging.SendNamedMessageToAll(StateMessage, writer, NetworkDelivery.ReliableSequenced);
         }

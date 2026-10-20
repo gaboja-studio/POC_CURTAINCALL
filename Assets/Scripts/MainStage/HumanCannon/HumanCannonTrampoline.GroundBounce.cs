@@ -25,6 +25,7 @@ namespace CurtainCall.HumanCannon
                 && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId)
                 && groundHistory.TryAccept(player.OwnerClientId, sequence, epoch, ownership.Revision)
                 && cannon.BeginGroundBounce(player.OwnerClientId, sequence, epoch, contact, upwardSpeed, groundBounceAirControlSpeed);
+            if (accepted) ServerBounced?.Invoke(player.OwnerClientId);
             if (player.IsLocal)
             {
                 if (accepted) LocalBounceCount++;

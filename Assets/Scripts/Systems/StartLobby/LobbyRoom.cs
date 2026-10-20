@@ -37,6 +37,7 @@ namespace CurtainCall.StartLobby
         public Button leave;
         public TMP_Text leaveLabel;
         public SettingsPanel settings;
+        public bool useCommonMenu;
 
         [Header("로비 물건")]
         public LobbyInteractable[] interactables = new LobbyInteractable[0];
@@ -63,6 +64,9 @@ namespace CurtainCall.StartLobby
         bool shown = true;
         bool menuOpen;
         bool placePending;
+        bool awayInSpace;
+        public LobbyInteractable FocusedInteraction { get; private set; }
+        public bool ExternalInteractionPresentation { get; set; }
 
         void Start()
         {
@@ -96,20 +100,26 @@ namespace CurtainCall.StartLobby
         void Update()
         {
             var director = SpaceLinkDirector.Instance;
-            bool visible = SceneManager.sceneCount == 1 && (director == null || !director.IsTransitioning);
+            bool hasSpace = SpaceLinkHub.HasLoadedSpace(gameObject.scene);
+            if (hasSpace) awayInSpace = true;
+            bool visible = !hasSpace && (director == null || !director.IsTransitioning);
             if (visible != shown)
             {
                 shown = visible;
                 if (!shown) SetMenu(false);
                 else
                 {
-                    placePending = true; // SpaceLinkHub가 출발 위치(로비 환경)를 다시 켠 뒤 LateUpdate에서
+                    // Intro requests the already-loaded hub too. Only a return from an actual
+                    // gameplay space needs placement; a temporary transition flag must not teleport.
+                    placePending = awayInSpace;
+                    awayInSpace = false;
                     ShowCursor();
                 }
             }
-            if (!shown || session == null || campaign == null) return;
+            if (!shown || session == null || campaign == null)
+            { FocusedInteraction = null; SetPrompt("", true); return; }
 
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (!useCommonMenu && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 if (settings != null && settings.gameObject.activeSelf) settings.Close();
                 else SetMenu(!menuOpen);
@@ -135,7 +145,7 @@ namespace CurtainCall.StartLobby
             var local = NetworkPlayer.Local;
             LobbyInteractable nearest = null;
             float best = float.MaxValue;
-            if (!menuOpen && local != null)
+            if (!menuOpen && !InputGate.IsBlocked && local != null && local.State == PlayerState.Normal)
             {
                 foreach (var item in interactables)
                 {
@@ -149,6 +159,7 @@ namespace CurtainCall.StartLobby
                 }
             }
 
+            FocusedInteraction = nearest;
             if (nearest == null)
             {
                 SetPrompt("", true);
@@ -162,6 +173,7 @@ namespace CurtainCall.StartLobby
         void SetPrompt(string text, bool usable)
         {
             if (prompt == null) return;
+            if (ExternalInteractionPresentation) text = "";
             if (prompt.text != text) prompt.text = text;
             prompt.color = usable ? Usable : Blocked;
         }

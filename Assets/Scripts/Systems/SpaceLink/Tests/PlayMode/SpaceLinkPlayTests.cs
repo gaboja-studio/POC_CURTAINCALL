@@ -248,7 +248,7 @@ namespace CurtainCall.SpaceLink.Tests
             Place(first, new Vector3(-2, .1f, 67));
             Place(second, new Vector3(2, .1f, 67));
             yield return null;
-            Place(first, new Vector3(12, .1f, 67.5f));
+            Place(first, new Vector3(12, .1f, 70f));
             yield return null;
             yield return null;
             yield return WaitIdle();
@@ -262,7 +262,7 @@ namespace CurtainCall.SpaceLink.Tests
             yield return null;
             yield return null;
             Assert.Greater(first.transform.position.x, 10, "퇴장자만 마지막 외부 위치로 보정한다");
-            Place(second, new Vector3(12, .1f, 67.5f));
+            Place(second, new Vector3(12, .1f, 70f));
             yield return null;
             yield return null;
             Assert.AreEqual(2, Get(watch, "LeftCount"));
@@ -286,7 +286,7 @@ namespace CurtainCall.SpaceLink.Tests
             yield return OpenPhysicalRoom();
             var reader = Actor("스케줄 상호작용", new Vector3(-7, .1f, 77.5f));
             yield return Signal("EndPerformance");
-            Place(reader, new Vector3(12, .1f, 67.5f));
+            Place(reader, new Vector3(12, .1f, 70f));
             yield return null;
             yield return null;
             Assert.IsTrue((bool)Call(director, "LeaveWaitingRoom"));
@@ -302,7 +302,7 @@ namespace CurtainCall.SpaceLink.Tests
             yield return new WaitForSeconds(3);
             Assert.IsTrue((bool)Get(door, "IsFullyClosed"));
             Physics.SyncTransforms();
-            Assert.IsTrue(Physics.OverlapCapsule(new Vector3(10, .5f, 67.5f), new Vector3(10, 1.5f, 67.5f), .3f,
+            Assert.IsTrue(Physics.OverlapCapsule(new Vector3(10, .5f, 70f), new Vector3(10, 1.5f, 70f), .3f,
                 ~0, QueryTriggerInteraction.Ignore).Any(c => c.transform.IsChildOf(((Component)door).transform)),
                 "그레이박스 로비 출구에 닫힌 야간 셔터 충돌체가 있어야 한다");
             Place(reader, new Vector3(-7, .1f, 77.5f));
@@ -340,7 +340,11 @@ namespace CurtainCall.SpaceLink.Tests
             var watch = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.WaitingRoomExitWatch"));
             Assert.AreEqual(0, Get(watch, "LeftCount"), "새 쉬는 시간에는 이전 퇴장 이력을 비운다");
             yield return new WaitForSeconds(3);
-            Place(reader, new Vector3(12, .1f, 67.5f));
+            Physics.SyncTransforms();
+            Assert.IsFalse(Physics.OverlapCapsule(new Vector3(10, .5f, 70f), new Vector3(10, 1.5f, 70f), .3f,
+                ~0, QueryTriggerInteraction.Ignore).Any(c => c.transform.IsChildOf(((Component)door).transform)),
+                "아침에는 실제 통로 중심의 셔터 충돌이 해제되어야 한다");
+            Place(reader, new Vector3(12, .1f, 70f));
             yield return null;
             yield return null;
             Assert.AreEqual("Running", Get(State, "Timer").ToString(), "다음 아침에도 첫 물리 퇴장으로 시작");

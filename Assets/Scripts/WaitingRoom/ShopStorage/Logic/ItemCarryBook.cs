@@ -74,17 +74,19 @@ namespace CurtainCall.WaitingRoom
         /// 선반 상호작용(F 한 번). 들고 있고 빈 칸이 있으면 마지막에 든 기물을 아래 칸부터 올린다.
         /// 아니면 손에 자리가 있을 때 위 칸부터 꺼낸다. 어느 칸이 바뀌었는지 <paramref name="slot"/>로 알린다.
         /// </summary>
-        public CarryRefusal UseShelf(ulong player, int slots, out int slot, out bool placed, out PropItem item)
+        public CarryRefusal UseShelf(ulong player, int slots, out int slot, out bool placed, out PropItem item, int selectedUid = 0)
         {
             slot = -1;
             placed = false;
             item = default;
             int empty = System.Array.FindIndex(shelf, IsEmpty);
-            if (Count(player) > 0 && empty >= 0)
+            if (selectedUid >= 0 && Count(player) > 0 && empty >= 0)
             {
                 var list = held[player];
-                item = list[list.Count - 1];
-                list.RemoveAt(list.Count - 1);
+                int index = selectedUid == 0 ? list.Count - 1 : list.FindIndex(p => p.Uid == selectedUid);
+                if (index < 0) return CarryRefusal.NothingHeld;
+                item = list[index];
+                list.RemoveAt(index);
                 shelf[empty] = item;
                 slot = empty;
                 placed = true;
@@ -181,14 +183,16 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>마지막에 든 기물을 그 자리 바닥에 내려놓는다.</summary>
-        public CarryRefusal Drop(ulong player, float x, float y, float z, out FloorProp dropped)
+        public CarryRefusal Drop(ulong player, float x, float y, float z, out FloorProp dropped, int selectedUid = 0)
         {
             dropped = default;
             if (Count(player) == 0) return CarryRefusal.NothingHeld;
             if (floor.Count >= FloorCapacity) return CarryRefusal.FloorFull;
             var list = held[player];
-            var item = list[list.Count - 1];
-            list.RemoveAt(list.Count - 1);
+            int index = selectedUid == 0 ? list.Count - 1 : list.FindIndex(p => p.Uid == selectedUid);
+            if (index < 0) return CarryRefusal.NothingHeld;
+            var item = list[index];
+            list.RemoveAt(index);
             dropped = new FloorProp(item, x, y, z);
             floor.Add(dropped);
             Revision++;

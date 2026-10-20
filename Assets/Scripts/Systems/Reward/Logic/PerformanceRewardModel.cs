@@ -15,6 +15,7 @@ namespace CurtainCall.Reward
             public bool Dead;
             public bool Connected = true;
             public long Amount;
+            public double? MaximumDistance;
         }
 
         readonly List<Participant> roster = new();
@@ -23,6 +24,7 @@ namespace CurtainCall.Reward
         readonly List<PerformanceResult> history = new();
         PerformanceIdentity performance;
         RewardRules rules;
+        double? elapsedSeconds, courseLength;
 
         public string SessionId { get; }
         public int Generation { get; private set; }
@@ -70,12 +72,27 @@ namespace CurtainCall.Reward
                 });
             }
             performance = identity;
+            elapsedSeconds = courseLength = null;
             roster.Clear();
             roster.AddRange(next);
             begun.Add(identity.Id);
             rules = currentRules;
             IsOpen = true;
             Revision++;
+            return true;
+        }
+
+        // Sample without publishing each frame; Confirm freezes the record.
+        public bool Record(string identity, string participantId, double? elapsed, double length, double distance)
+        {
+            if (!IsOpen || performance.Id != identity || !double.IsFinite(length) || length <= 0
+                || !double.IsFinite(distance) || (elapsed.HasValue && (!double.IsFinite(elapsed.Value) || elapsed.Value < 0))) return false;
+            var person = Find(participantId);
+            if (person == null) return false;
+            courseLength = length;
+            if (elapsed.HasValue) elapsedSeconds = Math.Max(elapsedSeconds ?? 0, elapsed.Value);
+            if (!person.Dead && person.Connected)
+                person.MaximumDistance = Math.Max(person.MaximumDistance ?? 0, Math.Clamp(distance, 0, length));
             return true;
         }
 
@@ -89,12 +106,15 @@ namespace CurtainCall.Reward
         }
 
         public bool Cheer(string participantId, bool positive, RewardRules currentRules)
+            => React(participantId, positive ? currentRules.Cheer : -currentRules.Jeer, currentRules);
+
+        public bool React(string participantId, int delta, RewardRules currentRules)
         {
             if (!IsOpen) return false;
             var person = Find(participantId);
             if (person == null || person.Dead || !person.Connected) return false;
             ApplyRules(currentRules);
-            long amount = Math.Clamp(person.Amount + (positive ? (long)rules.Cheer : -rules.Jeer), 0, rules.Cap);
+            long amount = Math.Clamp(person.Amount + (long)delta, 0, rules.Cap);
             if (amount == person.Amount) return false;
             person.Amount = amount;
             Revision++;
@@ -148,13 +168,13 @@ namespace CurtainCall.Reward
                     ? supplied : person.Dead ? "Dead" : !person.Connected ? "Disconnected" : person.Seed.Forfeit ? "Forfeited" : "Survived";
                 people[i] = new PerformanceParticipantResult(person.Seed.Id, person.Seed.ClientId, person.Seed.Slot,
                     RewardParticipantSeed.CountLimbs(person.Seed.LostParts), RewardParticipantSeed.CountLimbs(person.Parts),
-                    person.Dead, person.Connected, judgement, amount, failure == PerformanceFailure.None ? amount : 0);
+                    person.Dead, person.Connected, judgement, amount, failure == PerformanceFailure.None ? amount : 0, person.MaximumDistance);
             }
-            var next = new PerformanceResult(performance, failure, endReason, people);
+            var next = new PerformanceResult(performance, failure, endReason, people, elapsedSeconds, courseLength);
             if (next.Income > long.MaxValue - Balance) return false;
             long balance = Balance + next.Income;
             var entry = new FundEntry(ledger.Count + 1, Generation, performance.Day, FundEntryKind.PerformanceIncome,
-                next.Income, balance, next.Succeeded ? "공연 성공 정산" : "공연 실패 정산(0)", performance.Id);
+                next.Income, balance, next.Succeeded ? "공연 성공 정산" : "공연 실패 정산(기본 자금)", performance.Id);
             for (int i = 0; i < roster.Count; i++) roster[i].Amount = people[i].Segment;
             rules = currentRules;
             IsOpen = false;
