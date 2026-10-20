@@ -28,4 +28,4 @@ source: Task-20261019-061
 - 원본54실파일/PNG19 전체 보존. 생산14=신규8+PerformanceHud 정본6, 정본6 SHA/규격 읽기 전용 확인. 변경은 제공 코드3·신규8 importer meta뿐이다.
 - 입력 감지·자동 노출/우선순위/수명·게임/네트워크 연결 없음. Preview 시간 정지는 합성 검사용이고 종료/비활성/예외 시 원래 timeScale 복구.
 - reload 설정 변경·both OFF 지원 주장은 없다. 사람 외형 승인·공동 플레이와 자동 검증은 별개.
-- 상세 최초 실패/검증/전수 목록: Task의 `guides-verification.md`, `guides-inventory.csv`. 2026-10-20 PM C7 저장 요청으로 private8b49cc29/main38001b8e 저장 완료·공개 결과/하네스/gitlink를 함께 저장한다. C9는 이후 별도 작업이다.
+- 상세 최초 실패/검증/전수 목록: Task의 `guides-verification.md`, `guides-inventory.csv`. 2026-10-20 PM 직접 재승인 후 private8b49cc29/main38001b8e 및 공개9216489 저장·push 완료, 공개 원격 SHA 일치 확인. C9는 이후 별도 미커밋 작업이다.

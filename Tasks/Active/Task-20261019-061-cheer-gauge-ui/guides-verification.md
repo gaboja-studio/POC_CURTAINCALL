@@ -9,6 +9,7 @@
 - C9 captions·feedback·unity_only·무관 Leartes 변경 및 Interaction 1.meta는 저장 제외/보존. 공개 결과·Task/Integration·보존된 문서 History·gitlink는 이번 C7 저장에 포함한다.
 - 공개 저장 직전 DryRun은 구역/문서/컴파일 PASS(씬 clean, up_to_date), 테스트는 해당 저장 검사에서 SKIPPED였다. 문서 압축 후 기존 무관 WARN7/hard0만 남았다.
 - 공개 선택 add/commit/push 호출은 실행 전 권한 검사에서 거부됐다: C7 직접 승인이 현재 문맥에는 요약으로만 있어 재확인이 필요하다는 사유다. 다른 도구/명령 분할로 우회하지 않았다. 공개 저장 완료를 보고하지 않으며 파일을 보존한다. C9는 폴더·README 읽기 전용 확인만 했고, C7 저장 선행 조건이 미충족이므로 구현은 시작하지 않았다.
+- 이후 PM이 C7 공개 commit/push 후 C9 작업을 직접 재요청했다. 선택 스테이징/공개 diff --check PASS 후 공개92164890a9424a226eaf6f96710afc080de48f8a commit 및 feat/ui-resources push 성공, 로컬/원격 SHA 일치를 확인했다(39파일). 위 차단은 과거 이력이며 C9는 별도 미커밋 작업으로 시작한다.
 ## 전수·보존
 - [전수 CSV](guides-inventory.csv)에 최초54실파일+meta69=123행 경로/크기/SHA 기록. PNG19·Source/Tools/Docs/Previews/TTF/라이선스 전체 유지·누락0.
 - 생산14=신규8(넓은/아주 넓은 키캡4·마우스4)+기존 PerformanceHud 정본6(판4·일반 키캡2). 재사용6은 명세 SHA/규격 읽기 전용 검증·기존 importer 변경 없음. 신규8 meta만 보정.

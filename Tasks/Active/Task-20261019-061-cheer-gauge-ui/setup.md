@@ -1,6 +1,6 @@
 # Setup
 PM 자체 작업. 관련 JIRA 없음. 정식 인계·PR·병합은 별도이며 assign-task 자동 커밋/push는 실행하지 않는다.
-최신 승인: 사용자 C7 commit/push 후 C9 요청 중 C7 저장만 반영. 담당자 보고상 private 개별8b49cc29/main38001b8e push 완료·공개 저장 예정(결과 SHA 없음). 이번 압축은 커밋/push·Unity 금지, C9 구역 추가 없음. 조립 시 Git 저장 제외는 후속 명시 승인 범위에서만 대체한다.
+최신 승인(2026-10-20): PM 직접 재요청으로 C7 공개9216489 commit/push·원격 SHA 일치 확인 완료(private 개별8b49cc29/main38001b8e). 이어 C9 조립·독립 확인·검증·기록을 진행한다. C9 추가 저장·삭제·실게임 연결은 제외한다.
 원문·지난 승인/체크: [History/002-setup-before-c7-save-compaction.md](History/002-setup-before-c7-save-compaction.md)
 ## 작업 구역
 - C1 씬/코드: `Assets/Scenes/Tests/CheerGauge/`, `Assets/Scripts/Systems/CheerGauge/`.
@@ -39,16 +39,21 @@ PM 자체 작업. 관련 JIRA 없음. 정식 인계·PR·병합은 별도이며 
 - 툴팁 기록: `Harness/Project/Facts/tooltips.md`, 사실 index·Task 전수 목록/검증·Integration 소유 표.
 - C7 씬/코드: `Assets/Scenes/Tests/Guides/`, `Assets/Scripts/Systems/Guides/`.
 - C7 에셋: `Assets/Resources/Prefabs/UIs/Guides/`, 필요 시 `Assets/Resources/Fonts/Guides/`.
-- PM C7 키트: `Assets/_ThirdParty/curtaincall_guides_v1/` — 제공 Runtime/Builder 원위치 namespace·안전 진입점·인스턴스 초기화 보정·신규8 importer 허용. 기존6 Sprite 정본 SHA/규격 확인 후 읽기 전용 참조. 전체 원본 보존·삭제/실게임 연결/키 바인딩 결정 없음. 상위 HUD 차단은 수동 주입 API만. 최초 Git 저장 제외는 최신 C7 명시 저장 승인으로 대체(공개 저장 대기).
+- PM C7 키트: `Assets/_ThirdParty/curtaincall_guides_v1/` — 제공 Runtime/Builder 원위치 namespace·안전 진입점·인스턴스 초기화 보정·신규8 importer 허용. 기존6 Sprite 정본 SHA/규격 확인 후 읽기 전용 참조. 전체 원본 보존·삭제/실게임 연결/키 바인딩 결정 없음. 상위 HUD 차단은 수동 주입 API만. 최초 Git 저장 제외는 최신 C7 명시 저장 승인으로 대체(공개9216489 push 완료).
 - C7 기록: `Harness/Project/Facts/guides.md`, 사실 index·Task 전수 목록/검증·Integration 소유 표.
+- C9 씬/코드: `Assets/Scenes/Tests/Captions/`, `Assets/Scripts/Systems/Captions/`.
+- C9 에셋: `Assets/Resources/Prefabs/UIs/Captions/`, `Assets/Resources/Fonts/Captions/`.
+- PM C9 키트: `Assets/_ThirdParty/curtaincall_captions_v1/` — 제공 Runtime/Builder 원위치 namespace·안전 진입점·인스턴스 초기화 보정 허용. 재사용 PNG9 정본 SHA/규격 읽기 전용 참조, 원본 전체 보존·오디오 동기/큐/노출 정책·실게임 연결·삭제·추가 Git 저장 없음.
+- C9 기록: `Harness/Project/Facts/captions.md`, 사실 index·Task 전수 목록/검증·Integration 소유 표.
 - 준비 기록: `Integrations/Active/Integration-cheer-gauge-ui/`; Task 문서: 이 Task 폴더(자동 포함).
 - PM 승인 C1 정리: `Assets/_ThirdParty/curtaincall_c1_v1/` 미참조 제공 코드·문서·미리보기·제작 자료 및 동반 .meta 삭제. 필수 PNG8·TTF2·라이선스·상위 .meta 보존.
 - PM 하네스 기록: `Harness/Project/Decisions/third-party-assets.md`, `Harness/Project/Facts/c1-cheer-gauge.md`, `Harness/Project/Facts/index.md`, `Harness/Project/Facts/common-buttons.md`.
 ## 예약 구역·배정된 공용 파일
 - 예약 없음. 신규 전용 UI `Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab`; 버튼4종·폰트 `Assets/Resources/Prefabs/UIs/CommonButtons/`, `Assets/Resources/Fonts/CommonButtons/`.
+- 최신 PM `C9 커밋하고 push해줘.` 요청으로 위 C9 추가 Git 저장 제외만 대체: 해당 private 키트 저장/main push 및 공개 C9 결과·기록/gitlink 저장 허용. 공유 폰트/Interaction 1.meta/무관 키트·Leartes 변경 제외.
 ## 수정 금지
 - `Assets/Scenes/` 위 전용 테스트 씬 외; `Assets/Scripts/Systems/Reward/` 공개 API 읽기·구독만; `ProjectSettings/`, `Packages/`.
-- `Assets/_ThirdParty/` 원본 폴더 변경 금지. PM 예외는 이 worktree C1 로컬 복사/import/.meta·위 승인 정리 및 버튼/패널/아이콘/공연 HUD/백스테이지/알림/C6/툴팁/C7의 위 조립 범위만. 메인 원본·다른 private 자산 변경 및 PNG·제공 코드 공개 재배포 금지.
+- `Assets/_ThirdParty/` 원본 폴더 변경 금지. PM 예외는 이 worktree C1 로컬 복사/import/.meta·위 승인 정리 및 버튼/패널/아이콘/공연 HUD/백스테이지/알림/C6/툴팁/C7/C9의 위 조립 범위만. 메인 원본·다른 private 자산 변경 및 PNG·제공 코드 공개 재배포 금지.
 ## 인계 전 체크·테스트 씬 처리
 - [x] JIRA·Unity 씬 저장/.meta·스크립트/에셋 폴더(빈 폴더 없음)·plan 공동 테스트 항목 기록 완료. 정식 인계 없음.
 - 테스트 씬 유지/삭제 결정 미정; 결정자·날짜 미기입.

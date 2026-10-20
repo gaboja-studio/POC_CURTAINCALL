@@ -2,8 +2,15 @@
 ## Context / 현재 승인
 - UI 키트 확보·조합·독립 테스트. Task/폴더 ID는 이력 유지, 수정 구역/권한은 `setup.md` 기준. 기존 공연 씬·보상/네트워크·게임 메뉴 변경 없음.
 - C6·C15 공개 b16c328 push/원격 SHA 일치·private73fd48aa origin/main 조상 확인 완료. 최초 C6 포함 저장 해석 철회/권한 차단은 이후 PM 명시 재승인으로 해소된 이력이다.
-- 사용자 최신 요청은 C7 commit/push 후 C9. C7 저장 승인만 반영, C9 구역 추가/착수 없음. 이번 압축에서는 문서5개+History 외 수정·Unity·커밋/push 금지.
-- 제작 시 C7 미커밋; 이번 저장 중 담당자 보고로 private 개별8b49cc29/main38001b8e 일반 병합·push 완료(README 자동 갱신 충돌 후 강제 없이 처리). 공개 저장은 압축 후 예정이며 결과 SHA 없음.
+- PM 직접 재요청 후 C7 공개9216489 commit/push·원격 SHA 일치 확인 완료, private 개별8b49cc29/main38001b8e. 앞선 차단 이력은 보존한다.
+- 이어 C9 제작 승인: 제공 자막/화자/방송 명세를 독립 프리팹·확인 씬·표시 API로 조립·검증·기록. C9 추가 저장·삭제·실게임 연결은 제외한다.
+- 후속 PM C9 commit/push 요청으로 C9 private/public 선택 저장 승인. 기존 공유 폰트·무관 변경 제외, 삭제/실게임/PR 제외는 유지한다.
+## C9 계획
+1. 최초115행(실파일49/PNG13)·보호1534 SHA baseline 보존, 기존 PNG9 정본 바이트/규격 대조 및 읽기 전용 참조.
+2. 제공 Caption Runtime/Builder 원위치 CaptionsV1 격리·안전 진입점·인스턴스 초기화, 전용 Static Medium·공개 안전 어댑터·실제 버튼 Preview 조립.
+3. 1120×88/하단32·화자176×48·본문Medium24 두 줄64UI·화자18 한 줄·방송 기본 이름/아이콘·화자없음 확장·폭 독립 계약 유지. 긴 본문 실패 시 현재 cue/mesh 보존, 자동 분할/큐/오디오 동기 없음.
+4. 실제 TMP 측정·글리프/참조·폭/무효값/문자/편집/재진입·unscaled120/100ms/반복·반전·timeScale0·입력/두 화면비·명암 배경·회귀/check-work 검증, 최초 실패도 보존·하네스 기록.
+- C9 구현·신규 PlayMode16/16·화면56/입력78·복구/편집 보호·C7 동시16UI 검증 완료. 기존 Tooltip 회귀1건과 공유 Bold 기존 dirty는 별도 미결로 보존한다(최초 C9 baseline 대비 변화0). UI 회귀103/104, 표준 EditMode798/798·보호1534 변경0을 구분한다. 최종 상세는 `captions-verification.md`.
 ## C7 최종 계약·결과
 - 제공6모드·544×80/하단176·키40/96/144·마우스32·Medium24·120/100ms 모션 유지.
 - private 원위치 GuidesV1·안전 조립·인스턴스 초기화, 신규8 importer만 보정·기존6 정본 SHA/규격 대조 후 읽기 전용.원본54실파일/PNG19 전체 보존.
@@ -31,7 +38,7 @@
 - 시작 doctor private C1 미추적 FAIL 사전 보고/복사본 import 승인, 최근 private 변경 FAIL도 보고 완료. 이번 연속 문서 작업에서 doctor/Unity 재실행 안 함. CLI beta.6에 --until-ready 없음, 실제 help 확인.
 ## Auto Verification / 공동 테스트
 - 구역 verify-scope → 문서 verify-fast → 컴파일 verify-unity -Compile → EditMode/PlayMode → 전용 Game View/Console/화면. 이번은 verify-context로 크기만 재검사.
-1. 1920×1080 승인 미리보기 외형·상단 중앙 배치·합계155 확인.
-2. 실제 환호/야유·100 초과도 중앙 합계/원호 비율 일치.
-3. 사망 시 해당 단원 구간만 제거·다른 단원색 유지, 가능하면 호스트/참가자 동일 표시 확인.
+1. C9 확인 씬에서 대사/방송/화자 없음·화자 말줄임·두 줄 가독성을1920×1080/1600×1000 및 명암 배경으로 한 번에 사람 확인한다.
+2. 긴 본문/무효 폭 거부 시 이전 자막 유지·Hide/재표시·시간 정지 중 모션/버튼 동작을 확인한다.
+3. C7 동시 배치에서16UI 간격과 입력 비차단을 확인한다. 공동/실게임·오디오 동기는 이번에 연결하지 않아 통과로 주장하지 않는다.
 과거 승인·완료 단계·검증 설계 원문: [History/004-plan-before-c7-save-compaction.md](History/004-plan-before-c7-save-compaction.md)
