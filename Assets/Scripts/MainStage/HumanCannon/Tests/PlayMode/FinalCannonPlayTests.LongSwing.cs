@@ -9,6 +9,82 @@ namespace CurtainCall.HumanCannon.Tests
     public sealed partial class FinalCannonPlayTests
     {
         [UnityTest]
+        public IEnumerator OrdinaryJump_CanStartAndReverseMovementWhileAirborne_AndJumpAgain()
+        {
+            DisableEnhancementThreats();
+            Assert.IsTrue((bool)Get(mover, "FreeAirControl"));
+            var context = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerControlContext"), new object[] { player.gameObject });
+            var control = Get(controller, "Scheme");
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                yield return WaitUntil(() => ((CharacterController)Get(mover, "Body")).isGrounded, 3, "normal ground");
+                NormalInput(control, context, 0, true);
+                yield return WaitUntil(() => (bool)Get(mover, "IsAirborne"), 1, "ordinary Space jump");
+                foreach (float side in new[] { 1f, -1f })
+                {
+                    Vector3 before = player.transform.position;
+                    float deadline = Time.time + .1f;
+                    while (Time.time < deadline)
+                    {
+                        Assert.IsTrue((bool)Get(mover, "IsAirborne"), "방향 전환은 착지 전에 일어난다.");
+                        NormalInput(control, context, side, false);
+                        yield return null;
+                    }
+                    var view = Get(pilot, "cannonView");
+                    Vector3 forward = Vector3.ProjectOnPlane((Vector3)Get(view, "ViewForward"), Vector3.up).normalized;
+                    Assert.That(Vector3.Dot(player.transform.position - before, Vector3.Cross(Vector3.up, forward)) * side,
+                        Is.GreaterThan(.1f), "제자리 이륙 뒤에도 좌우 입력과 역방향 전환을 반영한다.");
+                }
+                NormalInput(control, context, 0, false);
+                yield return WaitUntil(() => !(bool)Get(mover, "IsAirborne"), 3, "land before next Space");
+            }
+            // 콘텐츠를 나갈 때 다른 공간에 옵션을 남기지 않는다.
+            Call(control, "Exit", context);
+            Assert.IsFalse((bool)Get(mover, "FreeAirControl"));
+            Call(control, "Enter", context);
+        }
+
+        void NormalInput(object control, object context, float side, bool jump)
+        {
+            var frame = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerInputFrame"));
+            frame.GetType().GetField("Posture").SetValue(frame, side);
+            frame.GetType().GetField("ActionPressed").SetValue(frame, jump);
+            Call(control, "Tick", context, frame);
+        }
+
+        [UnityTest]
+        public IEnumerator CannonLaunch_DirectionInputPreservesMomentum_ReleaseKeepsFlight_ThreeRestarts()
+        {
+            DisableEnhancementThreats();
+            foreach (var direction in new[] { Vector3.forward, Vector3.back, Vector3.right })
+            {
+                yield return Board(0);
+                yield return ReleaseThenArm();
+                Input(tapped: true);
+                Assert.IsTrue(Flying);
+                Vector3 launchHorizontal = Vector3.ProjectOnPlane((Vector3)Get(pilot, "velocity"), Vector3.up);
+                yield return null;
+                Vector3 before = player.transform.position;
+                PoleFlightDirection(direction);
+                yield return new WaitForEndOfFrame();
+                var horizontalSpeed = Vector3.ProjectOnPlane(player.transform.position - before, Vector3.up) / Time.deltaTime;
+                Assert.That(Vector3.Distance(horizontalSpeed, launchHorizontal + direction * 4.5f), Is.LessThan(.05f),
+                    "이전 방식대로 발사 관성 위에 방향키 보정만 더한다.");
+                Assert.That(((Vector3)Get(pilot, "velocity")).y, Is.GreaterThan(0), "수직 반동은 유지한다.");
+                yield return null;
+                before = player.transform.position;
+                Input();
+                yield return new WaitForEndOfFrame();
+                var releasedSpeed = Vector3.ProjectOnPlane(player.transform.position - before, Vector3.up) / Time.deltaTime;
+                Assert.That(Vector3.Distance(releasedSpeed, launchHorizontal),
+                    Is.LessThan(.05f), "키를 놓아도 원래 발사 관성으로 계속 비행해야 한다.");
+                Call(player, "RequestRestartAll");
+                yield return WaitUntil(() => !Flying && !(bool)StaticGet("CurtainCall.Player.InputGate", "IsBlocked"),
+                    3, "restart before next launch");
+            }
+        }
+
+        [UnityTest]
         public IEnumerator PoleHeldInput_ReturnsThroughCenterWithoutReleasingKey_AndRearmsAfterRestart()
         {
             DisableEnhancementThreats();
@@ -96,8 +172,11 @@ namespace CurtainCall.HumanCannon.Tests
                 before = player.transform.position;
                 Input();
                 yield return new WaitForEndOfFrame();
-                Assert.That(Vector3.ProjectOnPlane(player.transform.position - before, Vector3.up).magnitude,
-                    Is.LessThan(0.001f), "제동 후 키를 놓아도 옛 전진 관성이 되살아나지 않는다.");
+                var coast = Vector3.ProjectOnPlane(player.transform.position - before, Vector3.up) / Time.deltaTime;
+                Assert.That(Vector3.Dot(coast, Vector3.Cross(Vector3.up, forward)),
+                    Is.EqualTo(forwardSpeeds[attempt]).Within(.1f), "키를 놓아도 마지막 방향의 반동 속력을 유지한다.");
+                Assert.That(Vector3.ProjectOnPlane((Vector3)Get(pilot, "velocity"), Vector3.up).magnitude,
+                    Is.EqualTo(forwardSpeeds[attempt]).Within(.1f), "뒤/옆 방향 전환으로 반동이 걷기 속도로 줄지 않는다.");
                 Call(player, "RequestRestartAll");
                 yield return WaitUntil(() => !Flying && !(bool)StaticGet("CurtainCall.Player.InputGate", "IsBlocked"),
                     3, "R 재시작으로 다음 재현 준비");

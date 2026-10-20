@@ -46,9 +46,10 @@ LandingCushion, SawGateFrame, SpikeMace, CrossBlades 재사용.
 
 의존성·저장 상태
 공용 준비본은 현재 인간대포 브랜치의 5f38bea에 포함돼 있습니다.
-private 에셋은 현재 로컬 b92b37a4 기준으로 확인했습니다.
-인간대포 브랜치의 기록된 private 기준 c1045650에는 Battle Stadium이 없습니다.
-다른 PC 배포 전에는 담당자가 공용 준비본과 최신 private 기준을 함께 반영해야 합니다.
+필수 private 원본 기준은 b92b37a4db5ff840a82d26bf323c3b2831b2698a입니다.
+Assets/_ThirdParty 포인터와 실제 체크아웃을 이 기준에 맞춰야 합니다.
+이전 c1045650에는 Battle Stadium이 없어 대포10대와 트램폴린 등의 외형이 사라집니다.
+다른 PC에서도 공개 저장소와 submodule을 함께 갱신합니다.
 원본 외부 에셋은 수정하지 않았습니다.
 
 적용 준비본

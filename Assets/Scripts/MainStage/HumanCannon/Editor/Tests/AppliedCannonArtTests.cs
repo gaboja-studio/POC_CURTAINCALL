@@ -32,6 +32,77 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TearDown] public void CloseCopy() { if (preview.IsValid()) EditorSceneManager.ClosePreviewScene(preview); }
 
         [Test]
+        public void AppliedSceneMeshesAndMaterialsResolveFromTheCheckedOutDependency()
+        {
+            foreach (var filter in All<MeshFilter>())
+            {
+                Assert.That(filter.sharedMesh, Is.Not.Null, filter.name + " missing source mesh; check the private asset revision");
+                var renderer = filter.GetComponent<MeshRenderer>();
+                if (renderer == null) continue;
+                foreach (var material in renderer.sharedMaterials)
+                {
+                    Assert.That(material, Is.Not.Null, filter.name + " missing source material");
+                    Assert.That(material.shader != null && material.shader.isSupported, Is.True, filter.name + " unsupported source shader");
+                }
+            }
+        }
+
+        [Test]
+        public void SawDiscsTurnInPlaceWhileWallAndPassageStayAcrossTheCourse()
+        {
+            var gates = All<HumanCannonSawGate>();
+            Assert.That(gates.Length, Is.EqualTo(2));
+            foreach (var gate in gates)
+            {
+                var barrier = gate.transform.Find("Barrier").GetComponent<BoxCollider>();
+                var visual = gate.transform.Find("SawVisual");
+                var row = visual.GetChild(visual.childCount - 1).position - visual.GetChild(0).position;
+                Assert.That(Mathf.Abs(Vector3.Dot(row.normalized, Vector3.right)), Is.GreaterThan(.999f));
+                Assert.That(Vector3.Dot(gate.transform.forward, Vector3.forward), Is.GreaterThan(.999f));
+                Assert.That(barrier.bounds.size.x, Is.EqualTo(44f).Within(.001f));
+                Assert.That(barrier.bounds.size.z, Is.EqualTo(.6f).Within(.001f));
+                var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+                typeof(HumanCannonSawGate).GetMethod("Awake", flags).Invoke(gate, null);
+                foreach (double time in new[] { 0d, .25d, .75d })
+                {
+                    typeof(HumanCannonSawGate).GetMethod("Present", flags).Invoke(gate, new object[] { PoleSawPhase.Active, false, time });
+                    foreach (Transform disc in visual)
+                    {
+                        Assert.That(Vector3.Dot(disc.forward, Vector3.right), Is.GreaterThan(.999f), "Preserve the individual blade axis while spinning");
+                        Assert.That(disc.position.z, Is.EqualTo(gate.transform.position.z).Within(.001f), "Keep the wall row in place");
+                    }
+                }
+                var side = gate.transform.forward;
+                Assert.That(gate.Side(gate.transform.position - side), Is.EqualTo(-1).Within(.001f));
+                Assert.That(gate.Side(gate.transform.position + side), Is.EqualTo(1).Within(.001f));
+            }
+        }
+
+        [Test]
+        public void SawWallGapsStayVisibleButAreNarrowerThanThePlayerCapsule()
+        {
+            float bodyWidth = CurtainCall.Settings.GameSettings.Base.Character.CapsuleRadius * 2;
+            foreach (var gate in All<HumanCannonSawGate>())
+            {
+                var visual = gate.transform.Find("SawVisual");
+                Assert.That(visual.childCount, Is.EqualTo(44));
+                var blades = visual.Cast<Transform>().OrderBy(t => t.position.x).Select(t =>
+                {
+                    var renderers = t.GetComponentsInChildren<Renderer>().Where(r => r.enabled).ToArray();
+                    var bounds = renderers[0].bounds;
+                    foreach (var renderer in renderers.Skip(1)) bounds.Encapsulate(renderer.bounds);
+                    return bounds;
+                }).ToArray();
+                for (int i = 1; i < blades.Length; i++)
+                {
+                    float gap = blades[i].min.x - blades[i - 1].max.x;
+                    Assert.That(gap, Is.GreaterThan(.25f), "Keep breathing room between blades");
+                    Assert.That(gap, Is.LessThan(bodyWidth - .1f), "A player must not visually fit through the wall");
+                }
+            }
+        }
+
+        [Test]
         public void RoundFabricMatchesRadialBounceAndKeepsVisibleInteractiveHandle()
         {
             var trampoline = All<HumanCannonTrampoline>().Single();
@@ -50,6 +121,34 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(outer, Is.EqualTo(trampoline.LoadHalfSize.x).Within(.001f));
             Assert.That(trampoline.UpwardSpeed, Is.EqualTo(12));
             Assert.That(trampoline.CarryMoveSpeed, Is.EqualTo(4.5f));
+        }
+
+        [Test]
+        public void CannonsRestOnTheirWheels_AndLinkedPolesKeepVisibleWarningBands()
+        {
+            foreach (var station in All<HumanCannonStation>())
+            {
+                var visual = station.transform.Find("AppliedCannon/CannonVisual");
+                var wheels = visual.Find("cannon_001").GetComponent<MeshFilter>();
+                float bottom = wheels.sharedMesh.vertices.Min(v => wheels.transform.TransformPoint(v).y);
+                Assert.That(bottom, Is.EqualTo(station.transform.position.y).Within(.005f), station.name + " wheel contact");
+                foreach (var mesh in visual.GetComponentsInChildren<MeshFilter>())
+                    Assert.That(mesh.sharedMesh.vertices.Min(v => mesh.transform.TransformPoint(v).y),
+                        Is.GreaterThanOrEqualTo(station.transform.position.y - .005f), station.name + " buried art");
+                var localPoints = wheels.sharedMesh.vertices.Select(v =>
+                    station.transform.InverseTransformPoint(wheels.transform.TransformPoint(v))).ToArray();
+                Assert.That(localPoints.Max(v => v.x) - localPoints.Min(v => v.x),
+                    Is.EqualTo(1.92f).Within(.01f), station.name + " reduced width along its axle");
+            }
+            foreach (var pole in All<HumanCannonPole>())
+            {
+                Assert.That(Number(pole, "grabDistance"), Is.EqualTo(3f));
+                if (pole.LinkedGate == null) continue;
+                var bands = pole.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.name.StartsWith("BlackBand")).ToArray();
+                Assert.That(bands.Length, Is.EqualTo(5));
+                Assert.That(bands.All(r => r.enabled && r.transform.IsChildOf(Ref(pole, "visualBar"))), Is.True,
+                    "Warning bands must remain visible and move with the swinging bar");
+            }
         }
 
         [Test]
