@@ -23,6 +23,11 @@
 - C7 private 개별8b49cc29/main38001b8e 일반 병합·push 완료. 문맥 압축 직후 공개 저장 차단은 당시 이력이며 아래 직접 재승인 후 해소됐다.
 - 2026-10-20 PM 직접 재승인 후 C7 공개9216489 push/원격 SHA 일치 확인 완료. 이어 C9 독립 프리팹/씬·표시 API·19버튼 구현, 신규 PlayMode16/16·화면56/입력78·시간 복구/동시 표시 검증 완료. 위 공개 대기는 당시 이력이며 C9 추가 저장 없음. 무관 변경·삭제·실게임 연결·PR/병합 제외.
 - C6 저장 포함이라는 최초 AI 해석 철회/권한 차단은 과거 이력. 이후 PM 직접 명시 재승인으로 C6·C15 저장 금지 해소 및 위 SHA 저장 완료; 과거 금지를 현재 승인으로 오인하지 않는다.
+## C16 현재 상태 (2026-10-20)
+- PM 요청으로 C16 독립 프리팹/씬·표시 API·Preview9버튼·PlayMode16건 생성. 전체 원본 보존·기존 Static Medium/별 읽기 전용 재사용. 실제 게임 연결/삭제/commit/push 없음.
+- results 버튼 중복21개로 컴파일 차단됐으나 아래 PM 승인3파일 격리 후 정식 Compile·C16 PlayMode16/16 PASS. 긴문구 검사 두 번15/16은 TMP 플래그·측정 순서 보정 후 해소. Preview 합성 PointerClick13건/비활성 콜백1건 PASS(물리 입력 아님). Overlay/클립 경계 보정 후4화면비 명암16캡처·차폐 배경 차이0px·raycast72/합성 클릭104/비활성8 PASS. C11 회귀26/26·참조1070 누락0·C16 clean/종료 복구 확인. 최종 check-work 구역/문서/컴파일·EditMode798/798 PASS, 현재 Console오류0/경고0(`curtain-verification.md`).
+## Open Decisions
+- PM이 `최소 수정 후 계속`을 선택(2026-10-20). results의 CommonButtons namespace와 ResultsPanelView/Builder 타입 참조3파일만 격리. results 기능 제작/PNG·GUID 변경·삭제·commit/push 제외는 유지한다. 격리 후 정식 Compile·C16 PlayMode16/16 통과. 별도 캡처에서 발견한 Preview Overlay/clip 경계 보정 후에도 C16 PlayMode16/16 재통과.
 ## 미결
 - 공유 CheerGauge Bold Dynamic은 HEAD와 다르지만 최초 C9 baseline SHA와 현재 SHA 일치. 새 변경이라는 초기 해석은 철회, 기존 미결 파일 보존/임의 복구 금지. Tooltip 회귀20건 중1건 좌표 정밀 비교 실패 재현, C9 통과와 구분 (`captions-verification.md`).
 - 공유 Dynamic TMP2개 시작부터 dirty·백스테이지 baseline 대비 추가 SHA 차이, Buttons 전체 글리프 실패 재현. 원인 미확정·dirty 백업 없음; 임의 복구/공유 폰트 재작성 보류, PM 확인 필요 (`backstage-hud-verification.md`).

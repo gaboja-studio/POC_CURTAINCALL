@@ -29,7 +29,9 @@
 | `Assets/Resources/Prefabs/UIs/Captions/`, `Assets/Resources/Fonts/Captions/`, `Assets/Scenes/Tests/Captions/` | C9 자막/화자/방송·독립 씬 |
 | `Assets/Resources/Prefabs/UIs/WorldLabels/`, `Assets/Resources/Fonts/WorldLabels/`, `Assets/Scenes/Tests/WorldLabels/` | PM 월드 라벨 v2 신규 독립 제작·검증; 실제 게임 연결 제외 |
 | `Assets/Resources/Prefabs/UIs/Spectator/`, `Assets/Resources/Fonts/Spectator/`, `Assets/Scenes/Tests/Spectator/` | 현재 PM C11 관전/사망 표시 API·독립 조립/검증, 실게임/카메라/사망 판정 제외 |
+| `Assets/Resources/Prefabs/UIs/TransitionCurtain/`, `Assets/Resources/Fonts/TransitionCurtain/`, `Assets/Scenes/Tests/TransitionCurtain/` | PM C16 제공 계약 기반 독립 커튼 조립·검증, 실게임 로드/입력/영속화 제외 |
 ## 현재 결정·미결
+- C16(2026-10-20) 독립 프리팹/씬/Preview 제작·results 승인3파일 충돌 격리. C16 Play16/C11 회귀26 PASS·4화면비16캡처/차폐 배경 차이0px·합성 클릭104/raycast72 통과. 사람 외형·실게임 연결 별도, 이번 commit/push 없음. 세부·최종 표준 검사는 Task `curtain-verification.md` 참조.
 - 선행 저장 완료: 공개2fe68a2/private6b4e2041. 후속 사용자 버그 수정/계속 요청으로 Schedule C#7 namespace 격리·중복21개 해소/컴파일 PASS. C11 Static폰트 안전 재사용·프리팹/독립 씬 생성·비활성 Preview 콜백 보강 후 신규26/선택 회귀50=PlayMode76/76 PASS, 실행 UI 합성 입력72/72·두 화면비/명암24캡처·check-work/컴파일·EditMode798/798 PASS. C11 clean/Play stopped/timeScale1/1920×1080/runInBackgroundfalse·QA 장치0/입력 정책 값 복구. 후속 사용자 "저장해줘" 요청으로 private334파일1d3bee7d/README 병합11781eb2 main push·원격 확인 완료, 공개 C11 결과·기록/gitlink 선택 저장. 실게임·삭제·PR/공개 통합 병합 제외, 무관 변경 보존. 아래 공개 차단은 완료 전 이력.
 - 월드 라벨 공개42파일 stage/DryRun PASS 뒤 commit/push 실행 전 권한 거부(요약 속 승인만으로 경계 해제 불가). 공개HEAD9ede8a3·파일/인덱스 보존·우회 없음. private main6ff6e18e 저장 완료, 사용자 직접 확인 전에는 저장 후 순서인 C11 구현 보류.
 - 2026-10-20 월드 라벨 v2: 5프리팹/독립 씬 제작. PM 저장/C11 요청·settings 최소 수정 승인 후 타입 충돌 해소, check-work 구역/문서/컴파일·EditMode798/798 PASS. private main6ff6e18e 저장/원격 일치, 보정 후 입력68/68·신규/선택 PlayMode86/86 PASS, 공개 결과/기록 선택 stage 후 권한 차단(위 최신 상태). 기존 정본 보존·삭제/실게임 연결 없음.

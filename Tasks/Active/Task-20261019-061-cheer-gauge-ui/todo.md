@@ -31,6 +31,13 @@
 - [x] 후속 사용자 "저장해줘" 요청 적용 — private334파일1d3bee7d/README 병합11781eb2 main push·원격 확인. 공개 C11 결과·기록/gitlink는 이 기록과 함께 feat/ui-resources에 선택 저장, 무관 변경 제외.
 - [ ] 사람 최종 외형 확인(자동 검증과 별도). 실게임 연결·PR/공개 통합 병합 제외.
 - [ ] 월드 라벨 사람 최종 외형 확인 — 자동 검증과 별도.
+## C16 장소 전환 커튼 (2026-10-20)
+- [x] 전용 구역·제공 계약·원본129/PNG15·baseline1019·좌우 보장 alpha 영역 확인.
+- [x] 신규 importer6·제공 Builder 안전 API·공개 어댑터·프리팹/독립 씬/9버튼 Preview·Static Medium/공용 별 재사용·PlayMode16건 작성.
+- [x] 긴문구 검사 최종 재실행 — 첫/2차15/16·TMP 플래그/측정 API 순서 보정·results 승인3파일 격리 후 정식 Compile/C16 PlayMode16/16 PASS. 합성 Preview PointerClick13건/비활성 콜백1건 PASS.
+- [x] PM 승인 results3파일 namespace 격리/차단 해소·C16 Play16/C11 회귀26 PASS·4화면비16캡처/배경 차이0px·합성 클릭104/raycast72/비활성8·원본 SHA/참조1070 누락0·기존 출력 보호/종료 복구 확인.
+- [x] 최종 보정 후 표준 check-work 구역/문서/컴파일·EditMode798/798 PASS. 현재 Console오류0/경고0·원본 SHA 재확인 PASS, 실패/통신 제약 이력 보존.
+- [ ] 사람 최종 외형 확인. 실제 장소 로드/네트워크/입력 정책·삭제·commit/push 제외.
 ## 남은 작업·경계
 - [x] PM 예외 승인 전체 에셋 저장/공급 준비 기록 — private807파일 d409dc80·PM 선택 로컬219개 보존 병합62250960 main push 확인. 공개 전체 결과·정책·폰트 단일 LFS·수신용 양쪽 기록 보존/문서 충돌 절차를 이 기록과 함께 저장한다. 최종 공개 push/SHA는 원격 이력·최종 보고로 확인, 실패 시 완료 보고하지 않는다. 실제 pull/연결 씬 검증은 사용자 담당.
 - [ ] 인계 전 기술 점검 완료 — 정식 인계 아님.

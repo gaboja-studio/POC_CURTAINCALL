@@ -9,6 +9,7 @@
 - [unity-project.md](unity-project.md) — 씬·렌더·입력·코드·테스트 어셈블리 현황(2026-10-13). 에셋 경로를 찾거나 테스트를 만들 때
 - [team.md](team.md) — 현재 공간 담당(공연장·탈출로 @RagSpirin)과 PM 계정·과거 담당 구분. 담당자 배정·권한 확인 때
 - [local-environment.md](local-environment.md) — macOS 도구 경로. 스크립트·CLI가 실행되지 않을 때
+- [transition-curtain.md](transition-curtain.md) — C16 커튼 차폐/렌더 장벽·독립 프리팹·원본 보존. 전환 표시 배치·연결 전에
 - [spectator.md](spectator.md) — C11 관전/사망 표시·비네트·하단 슬롯 계약·독립 씬·원본 보존. 배치/호출·검증 전에
 - [worldlabels.md](worldlabels.md) — 월드 라벨 v2 소품3종·근접정보2종·명시 observer/camera·독립 씬. 정본 배치/표시·검증 전에
 - [captions.md](captions.md) — C9 자막·화자·방송 정본·수용 검사/폭 API·독립 씬·원본 보존. 자막 표시/검증 전에
