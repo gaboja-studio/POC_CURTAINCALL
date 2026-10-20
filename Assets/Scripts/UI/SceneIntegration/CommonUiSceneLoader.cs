@@ -75,6 +75,15 @@ namespace CurtainCall.UI.SceneIntegration
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() { instance = null; transitionHolds = 0; }
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void BootstrapMenus()
+        {
+            if (instance != null) return;
+            var root = new GameObject("CommonUiSceneLoader");
+            DontDestroyOnLoad(root);
+            instance = root.AddComponent<CommonUiSceneLoader>();
+        }
+
         public static void Register(PerformanceSceneBinding space)
         {
             if (instance == null)
@@ -113,7 +122,9 @@ namespace CurtainCall.UI.SceneIntegration
             bool waitingChanged = CurrentWaitingRoom != null ? !waiting.isLoaded : waiting.isLoaded && SceneManager.sceneCount > 1;
             var interaction = SceneManager.GetSceneByPath(CommonInteractionUI.ScenePath);
             bool interactionChanged = interactionSpaces.Count > 0 ? !interaction.isLoaded : interaction.isLoaded && SceneManager.sceneCount > 1;
-            if (loading == null && (interactionChanged || waitingChanged || (CurrentSpace != null ? !scene.isLoaded || PerformanceEndingPresentation.Current == null : scene.isLoaded && SceneManager.sceneCount > 1)))
+            var menu = SceneManager.GetSceneByPath(CommonMenuUI.ScenePath);
+            bool menuChanged = CommonMenuUI.HasSupportedSpace ? !menu.isLoaded : menu.isLoaded && SceneManager.sceneCount > 1;
+            if (loading == null && (menuChanged || interactionChanged || waitingChanged || (CurrentSpace != null ? !scene.isLoaded || PerformanceEndingPresentation.Current == null : scene.isLoaded && SceneManager.sceneCount > 1)))
                 loading = StartCoroutine(Reconcile());
         }
 
@@ -121,6 +132,15 @@ namespace CurtainCall.UI.SceneIntegration
         {
             // Single 전환/OnDisable과 같은 프레임에서 다음 공간이 등록될 수 있다.
             yield return null;
+            var menu = SceneManager.GetSceneByPath(CommonMenuUI.ScenePath);
+            if (CommonMenuUI.HasSupportedSpace && !menu.isLoaded)
+            {
+                if (Application.CanStreamedLevelBeLoaded(CommonMenuUI.ScenePath))
+                    yield return SceneManager.LoadSceneAsync(CommonMenuUI.ScenePath, LoadSceneMode.Additive);
+                else { Debug.LogError("[UI] CommonMenuUI must be enabled in the build scene list."); enabled = false; }
+            }
+            else if (!CommonMenuUI.HasSupportedSpace && menu.isLoaded && SceneManager.sceneCount > 1)
+                yield return SceneManager.UnloadSceneAsync(menu);
             if (CurrentSpace != null && PerformanceEndingPresentation.Current == null
                 && !SceneManager.GetSceneByPath(PerformanceEndingPresentation.ScenePath).isLoaded)
             {
@@ -181,9 +201,9 @@ namespace CurtainCall.UI.SceneIntegration
         }
 
         bool AllowNetworkLoad(int index, string name, LoadSceneMode mode) =>
-            name != "CommonPerformanceUI" && name != "PerformanceTransitionUI" && name != "CommonWaitingRoomUI" && name != "CommonInteractionUI" && (previousLoad == null || previousLoad(index, name, mode));
+            name != "CommonMenuUI" && name != "CommonPerformanceUI" && name != "PerformanceTransitionUI" && name != "CommonWaitingRoomUI" && name != "CommonInteractionUI" && (previousLoad == null || previousLoad(index, name, mode));
         bool AllowNetworkUnload(Scene scene) =>
-            scene.path != CommonPerformanceUI.ScenePath && scene.path != PerformanceEndingPresentation.ScenePath && scene.path != CommonWaitingRoomUI.ScenePath && scene.path != CommonInteractionUI.ScenePath && (previousUnload == null || previousUnload(scene));
+            scene.path != CommonMenuUI.ScenePath && scene.path != CommonPerformanceUI.ScenePath && scene.path != PerformanceEndingPresentation.ScenePath && scene.path != CommonWaitingRoomUI.ScenePath && scene.path != CommonInteractionUI.ScenePath && (previousUnload == null || previousUnload(scene));
 
         void DetachNetworkFilter()
         {

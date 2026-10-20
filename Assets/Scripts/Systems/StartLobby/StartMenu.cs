@@ -19,6 +19,7 @@ namespace CurtainCall.StartLobby
         public GameObject joinPage;
         public GameObject lanPage;
         public SettingsPanel settingsPage;
+        public bool useCommonSettings;
 
         [Header("메인")]
         public Button host;
@@ -64,7 +65,7 @@ namespace CurtainCall.StartLobby
             lanHost.onClick.AddListener(() => Run(HostLan));
             lanJoin.onClick.AddListener(() => Run(JoinLan));
             lanBack.onClick.AddListener(() => Show(Page.Main));
-            settingsPage.Closed += () => Show(Page.Main);
+            if (settingsPage != null) settingsPage.Closed += () => Show(Page.Main);
 
             Show(Page.Main);
             SetStatus(flow.TakeMessage());
@@ -76,8 +77,16 @@ namespace CurtainCall.StartLobby
             mainPage.SetActive(page == Page.Main);
             joinPage.SetActive(page == Page.Join);
             lanPage.SetActive(page == Page.Lan);
-            settingsPage.gameObject.SetActive(page == Page.Settings);
+            if (settingsPage != null) settingsPage.gameObject.SetActive(page == Page.Settings);
+            if (page == Page.Settings && useCommonSettings) StartCoroutine(OpenCommonSettings());
             if (page == Page.Join) code.Select();
+        }
+
+        System.Collections.IEnumerator OpenCommonSettings()
+        {
+            while (UI.SceneIntegration.CommonMenuUI.Current == null && Current == Page.Settings) yield return null;
+            if (Current == Page.Settings)
+                UI.SceneIntegration.CommonMenuUI.Current.OpenStartSettings(() => { if (this != null) Show(Page.Main); });
         }
 
         void Update()

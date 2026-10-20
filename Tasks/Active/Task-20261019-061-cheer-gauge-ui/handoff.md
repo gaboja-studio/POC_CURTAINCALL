@@ -1,6 +1,8 @@
 # Handoff
 ## 현재
-- C10 피드백·공연 HUD 보완과 인원×10 기본 자금·C12 변경 완료, 미커밋. [파일/데이터/사용자 확인](../../../Docs/Guides/Ui-scene-integration/performance-feedback.md).
+- C10 피드백·기본 자금·C12는5433637 commit/push 완료. C13/C14·음성 설정/HUD 후속 적용 완료, 미커밋. [현재 파일/검증/사용자 확인](../../../Docs/Guides/Ui-scene-integration/common-menu-settings.md).
+- Assets BasicPanels·SettingsPanel·CommonButtons 인스턴스를 CommonMenuUI/UI에 배치. Start/Lobby 구형 메뉴/설정 삭제. 실제5개 진행 씬 자동 additive·NGO UI 제외·ESC 최상단/커서/LeaveToStart 연결.
+- 게임 음량/전체화면·마이크/팀원 전체 음량/음소거 저장. 단원별 로컬 조절은 PlayerId별 이번 실행 유지·채널 변경 시 재적용. 후속 사용자 요청: 작은 마이크 아이콘+M, 음소거 사선 HUD. 실제 음성 송수신은 미실행.
 - C10 완성 프리팹 없음 확인 후 Assets 제공 키트 규격으로 신규 Feedback.prefab 조립, CommonPerformanceUI/UI/CommonFeedbackCanvas 연결. 원본/9-slice 보존, PNG 동일 바이트 복사본만 Sprite import.
 - 실제 호응 증감 표시·초기/중복/건너뛴 revision·사망/이탈 필터, 손잡기 숫자 없는 안내. 대체 손잡기/목마 임시 표시 억제. Dev 음성창은 C3 아래, 메뉴/관전/결과 숨김. 미대체 외줄 조작 안내 유지.
 - 모든 공연 시작 명부수×10을 성공/실패 모두 기존 Settlement 합계에 가산. 장부·중복 정산 방지 유지. C12 기본/호응 보상·이번 총액/잔액 표시.
@@ -11,13 +13,13 @@
 ## Verification
 - 구역 검사: PASS (10-21)
 - 1 문서/규칙: PASS (10-21)
-- 2 컴파일: PASS — 별도 Unity CLI recompile_status completed/failed=false. check-work는 중복 실행만 생략.
-- 3 테스트: PASS — 별도 집중 검사 EditMode 보상47/47·C10필터1/1, 실제 두 공연 PlayMode1/1(32.99초). 합성 호응/손잡기/종료 API·C12·커튼 검증. check-work에서만 중복 실행 생략.
-- 1920×1080 C10/C12 캡처 확인. 최종 Console 오류0/경고0, 편집 모드 Start dirty=false. 프리팹12 Image/누락Sprite0. 제공 키트 기존 CS0618 컴파일 경고와 실행 오류 구분.
-- 초기 설치 eval5초 시간 초과 후 실제 프리팹/씬 저장 확인, 재설치하지 않음. 검증 후 진단 호출의 임시 Dev 객체는 즉시 정리, Start 저장 변경 없음.
+- 2 컴파일: PASS — 별도 recompile_status completed/failed=false. check-work 중복 실행만 생략.
+- 3 테스트: PASS — 대기실 실제 포인터 입력으로 설정/취소/나가기 확인/돌아가기/계속하기·EventSystem1개·M/사선 HUD1/1(최종10.16초·아이콘 렌더러 포함). 기존 C13/C14 결과는 가이드 유지.
+- C13/C14 1920×1080 캡처 확인. 마이크 HUD/로비 안내 겹침 수정. CommonMenuUI 누락 스크립트0·직렬화 EventSystem0(실행 중 없으면1개 생성)·한글 누락0·dirty=false. 제공 키트 CS0618 및 테스트 종료 Vivox 입장 취소 경고는 실제 통화 성공과 구분.
+- C10/C12 이전 검증과 캡처는 performance-feedback.md 유지. 이번 Start/Lobby 저장은 구형 메뉴/설정 삭제·연결 플래그 변경.
 - 미실행: 실제2~4인 동시 실행·재접속/네트워크 지연, 물리 손잡기·전체 완주, Mac·다른 화면비·빌드·전체 프로젝트 테스트. 기존 카메라2개/확장 SpaceLink6개 실패는 이전 결과 유지, 이번 재실행 없음.
 ## 다음/PM 확인
-- [남은 계획](../../../Docs/Guides/Ui-scene-integration/next-plan.md): C13/C14 공통 메뉴/설정 → Start 중앙 시안 → Lobby. C16 원격 전원 차폐 ACK·다인 확인 남음.
-- 사용자 확인: Dev로 두 공연 진입, 실제 호응 조건→C10/C1 일치, 손잡기/사망 표시, 실패 결과 기본 자금과 대기실 장부. C10 위치는 공통 씬 C10_Feedback RectTransform에서 조절.
+- [남은 계획](../../../Docs/Guides/Ui-scene-integration/next-plan.md): Start 중앙 시안 → Lobby. C16 원격 전원 차폐 ACK·다인 확인 남음.
+- 사용자 확인: 실제2기기 음성 송수신·M/마이크 상태·개별 음소거·채널 이동, ESC 메뉴/설정/나가기. 빌드 전체화면과 Mac 미실행. C10 기존 사용자 확인은 이전 가이드 유지.
 - 이전 교훈 제안: additive UI/배경 때문에 sceneCount>1로 공간 진입 판단 금지. 실제 SpaceRoute 사용; ShopPanel.Hide의 Closed 이벤트/요청ID/커서 수명; RewardSnapshot 장부-잔액 일치.
 - 의료 예약→복구·상점 다인·대기실3일밤→4일아침 사람 동선 확인은 기존 가이드의 미실행 항목 유지.

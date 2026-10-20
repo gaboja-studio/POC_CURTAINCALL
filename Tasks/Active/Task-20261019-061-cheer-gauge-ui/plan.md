@@ -1,5 +1,5 @@
 # Plan
-최신: C10/기본 자금 적용. 상세 performance-feedback.md. 다음 C13/C14 메뉴·설정, 이후 Start/Lobby. 기존 완료 기록은 아래 유지.
+최신: C10/기본 자금5433637 push. C13/C14와 음성 설정·상태 HUD 적용, 상세 common-menu-settings.md. 다음 Start 시안 → Lobby. 실제 다인 음성 확인은 미실행. 기존 완료 기록은 아래 유지.
 현재 단계(2026-10-21): W3 61f4aa7 push 후 공연 기록/C12 적용. 호스트 불 타이머 경과·개인 최대 거리 불변 결과/전송, Assets ResultsPanel 인스턴스·1인 Dev 요약, 두 실제 공연만 핵심 검사. 상세: performance-results.md.
 2026-10-21 W2 저장22ceebf push, W3 적용 완료: [사용자 확인](../../../Docs/Guides/Ui-scene-integration/waiting-room-schedule.md). 다음은 기록/C12 → C16 → C10/HUD → C13/C14 → Start 시안 → Lobby. 실제 진행5개 씬과 사용하는 공통 UI만 적용하고 최종 필수 최소 검증으로 제한한다. 아래는 완료 단계 기록이다.
 사용자 확정:4일차 공연 편성 없음(3일차 밤의 기존 요구도 수정), 시간은 불 타이머 시작부터 결과 확정까지, 최대 거리는 출발→도착 기준 개인 위치의 최댓값,1인 Dev는 기존 요약 재사용 우선, 타이틀은 첨부 중앙 로고/세로 메뉴 시안 기준. 기존 임시 결과·검은 전환·메뉴·피드백도 고도화 범위다.

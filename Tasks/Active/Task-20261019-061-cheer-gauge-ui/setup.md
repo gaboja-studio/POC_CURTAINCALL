@@ -1,6 +1,8 @@
 # Setup
 2026-10-20 사용자 직접 지시로 이 checkout의 Task를 UI 씬 통합으로 전환한다. 이전 제작 권한은 History에 보존하며 현재 작업에 적용하지 않는다.
 ## 작업 구역
+- 2026-10-21 C13/C14 사용자 직접 지시: CommonMenuUI 공통 씬/SceneIntegration·테스트, Start/Lobby 씬 및 Systems/StartLobby/StartMenu.cs·LobbyRoom.cs 메뉴 진입/구형 UI 정리. 기존 ClientSettings·LeaveToStart 연결, 원본 프리팹 보존.
+- 2026-10-21 음성 추가 지시: Systems/Voice/VoiceChat.cs 및 VoiceChatPreferences.cs에 마이크/수신 음량·음소거·개별 단원 로컬 설정과 저장/재연결 적용. SceneIntegration 공통 마이크 상태 HUD/설정 연결. 기존 거리·생사 채널 규칙 유지.
 - 2026-10-21 사용자 로비 F/안내 수정: StartLobby/LobbyRoom.cs 입력 대상·공통 C6 표시 연동, SpaceLinkHub 실제 공간 검사 공유. LobbyReadyBoard.cs는 방 종료 후 수신자 없는 송신 방지. 입력·준비·레버 회귀 확인.
 - 2026-10-21 사용자 Start→Lobby 카메라 소실 수정: Systems/SpaceLink/SpaceLinkHub.cs의 공간 감지에 공통 UI 씬 제외. 실제 Start/Lobby 전환 회귀 검사 포함.
 - C12 사용자 직접 지시(2026-10-21): Systems/Results/PerformanceResult.cs, Systems/Reward/PerformanceRewards.cs·RewardMessages.cs·Logic/PerformanceRewardModel.cs 및 기록 테스트에 호스트 확정 시간/거리 스냅샷 추가. SceneIntegration과 PerformanceTransitionUI에 Assets ResultsPanel 연결. 정본·판정·보상·전환 시간 유지.

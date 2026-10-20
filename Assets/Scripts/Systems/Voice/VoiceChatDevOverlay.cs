@@ -19,7 +19,8 @@ namespace CurtainCall.Voice
         void OnGUI()
         {
             var voice = VoiceChat.Instance;
-            if (!DevMode.Enabled || PresentationSuppressed || voice == null || voice.gameObject != gameObject) return;
+            if (!DevMode.Enabled || PresentationSuppressed || voice == null || voice.gameObject != gameObject
+                || (UI.SceneIntegration.CommonMenuUI.Current != null && UI.SceneIntegration.CommonMenuUI.Current.IsOpen)) return;
 
             var settings = GameSettings.Base.VoiceChat;
             GUILayout.BeginArea(new Rect(Screen.width - Width - 10f, PresentationTop, Width, Height), GUI.skin.box);

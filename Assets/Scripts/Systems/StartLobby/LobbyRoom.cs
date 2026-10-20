@@ -37,6 +37,7 @@ namespace CurtainCall.StartLobby
         public Button leave;
         public TMP_Text leaveLabel;
         public SettingsPanel settings;
+        public bool useCommonMenu;
 
         [Header("로비 물건")]
         public LobbyInteractable[] interactables = new LobbyInteractable[0];
@@ -112,7 +113,7 @@ namespace CurtainCall.StartLobby
             if (!shown || session == null || campaign == null)
             { FocusedInteraction = null; SetPrompt("", true); return; }
 
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            if (!useCommonMenu && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             {
                 if (settings != null && settings.gameObject.activeSelf) settings.Close();
                 else SetMenu(!menuOpen);
