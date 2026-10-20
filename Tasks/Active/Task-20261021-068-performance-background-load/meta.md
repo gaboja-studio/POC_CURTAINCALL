@@ -2,7 +2,7 @@
 
 - **Title:** 모든 묘기 씬 공용 공연장 배경 자동 로드 연결
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** performance-background
 - **Current Skill:** implement-code

@@ -10,7 +10,7 @@
 - #197·#198은 충돌로 미병합. 사용자 승인으로 본 Task PR 제출·CI 후 병합 및 두 PR 닫기 예정.
 - 기존 Vivox 변경 제외. 재질 3개 소수점 자동 변경은 승인받아 원복. 외줄 Play가 만든 TightropeCourse.prefab 4줄 변경은 로컬 보존·제출 제외. 임시 캡처는 scratchpad로 이동.
 - 교훈: [NGO 로컬 배경 동기화](History/Networking/local-additive-scene-synchronization.md). 공용 Pitfalls는 Task-062 소유 구역이라 직접 제출하지 않고 제안으로 보관.
-- PR: 없음
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/199 — 9978056 구현 제출. 2026-10-21 사용자 재승인으로 PR 생성 완료. 추가 Unity 검사 없이 GitHub 필수 검사 후 Squash 병합하고 #197·#198을 닫는다.
 
 ## Verification
 
