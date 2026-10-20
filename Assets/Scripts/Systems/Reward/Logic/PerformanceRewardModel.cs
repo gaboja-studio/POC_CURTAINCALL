@@ -89,12 +89,15 @@ namespace CurtainCall.Reward
         }
 
         public bool Cheer(string participantId, bool positive, RewardRules currentRules)
+            => React(participantId, positive ? currentRules.Cheer : -currentRules.Jeer, currentRules);
+
+        public bool React(string participantId, int delta, RewardRules currentRules)
         {
             if (!IsOpen) return false;
             var person = Find(participantId);
             if (person == null || person.Dead || !person.Connected) return false;
             ApplyRules(currentRules);
-            long amount = Math.Clamp(person.Amount + (positive ? (long)rules.Cheer : -rules.Jeer), 0, rules.Cap);
+            long amount = Math.Clamp(person.Amount + (long)delta, 0, rules.Cap);
             if (amount == person.Amount) return false;
             person.Amount = amount;
             Revision++;

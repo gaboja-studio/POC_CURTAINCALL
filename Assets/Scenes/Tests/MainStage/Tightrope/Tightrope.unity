@@ -597,6 +597,56 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 999902744044419465, guid: fae7b8f70df8e4f8bb2470ca1410bc7f, type: 3}
   m_PrefabInstance: {fileID: 579777057}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &682248048
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 682248050}
+  - component: {fileID: 682248049}
+  m_Layer: 0
+  m_Name: PerformanceAudience
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &682248049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 682248048}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb2bb64b7011ab946a2c6fe2a63a5792, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Reward.PerformanceAudience
+  humanCannon: 0
+  cannonStart: {fileID: 0}
+  cannonFinish: {fileID: 0}
+  cannonFires: []
+  lowerFloorMaxY: 5
+  lowerFloorStartZ: 18
+--- !u!4 &682248050
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 682248048}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &682573414
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1345,3 +1395,4 @@ SceneRoots:
   - {fileID: 1560266623}
   - {fileID: 682573414}
   - {fileID: 277179046}
+  - {fileID: 682248050}

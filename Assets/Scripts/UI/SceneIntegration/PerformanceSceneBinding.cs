@@ -215,13 +215,16 @@ namespace CurtainCall.UI.SceneIntegration
             else
             {
                 var route = HumanCannonRouteSystem.Current;
+                bool completed = false;
                 if (route != null)
                     foreach (var wall in cannonFires)
-                        if (wall != null && wall.Available && wall.IsConfigured && wall.Armed && !wall.Finished)
+                        if (wall != null && wall.isActiveAndEnabled && wall.Available && wall.IsConfigured && wall.Armed)
                         {
+                            if (wall.Finished) { completed = true; continue; }
                             double seconds = Math.Max(0, wall.EndTime - route.Clock);
                             if (!remaining.HasValue || seconds < remaining.Value) remaining = seconds;
                         }
+                if (!remaining.HasValue && completed) remaining = 0;
             }
             hud.Timer.SetRemainingSeconds(remaining);
         }
@@ -258,9 +261,27 @@ namespace CurtainCall.UI.SceneIntegration
             }
             var fire = TightropeFire.Current;
             bool fireValid = !humanCannon && fire != null && fire.IsPerformanceActive;
-            hud.Progress.SetProgress(length, distances, localIndex,
-                fireValid && fire.IsChasing ? fire.ChaseDistance : (float?)null,
-                fireValid ? fire.FurthestDistance : (float?)null, falls, false);
+            float? fireDistance = fireValid && fire.Settings.chaseEnabled ? fire.ChaseDistance : (float?)null;
+            float? maximum = fireValid ? fire.FurthestDistance : (float?)null;
+            if (humanCannon && HumanCannonRouteSystem.Current != null)
+            {
+                // 같은 코스 축으로 투영한 실제 활성 불벽의 최전방. 경고 중에는 출발 위치다.
+                double clock = HumanCannonRouteSystem.Current.Clock;
+                foreach (var wall in cannonFires)
+                    if (wall != null && wall.isActiveAndEnabled && wall.Available && wall.IsConfigured && wall.Armed && !wall.Finished)
+                    {
+                        float front = Vector3.Dot(wall.Front(clock) - cannonStart.position, axis);
+                        if (!fireDistance.HasValue || front > fireDistance.Value) fireDistance = front;
+                    }
+            }
+            var solo = hud.Progress.GetComponent<SoloPerformanceProgress>();
+            if (distances.Count == 1 && solo != null)
+                solo.Show(length, distances[0], localIndex == 0, fireDistance, maximum, falls.Count > 0 ? falls[falls.Count - 1] : (float?)null);
+            else
+            {
+                if (solo != null) solo.Clear();
+                hud.Progress.SetProgress(length, distances, localIndex, fireDistance, maximum, falls, false);
+            }
         }
     }
 }

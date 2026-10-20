@@ -21,7 +21,8 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var label in GetComponentsInChildren<TMP_Text>(true))
             {
                 if (label.GetComponentInParent<CurtainCall.UI.GuidesV1.GuideView>() == null
-                    && label.GetComponentInParent<CurtainCall.UI.TooltipsV1.TooltipView>() == null) continue;
+                    && label.GetComponentInParent<CurtainCall.UI.TooltipsV1.TooltipView>() == null
+                    && label.GetComponentInParent<PerformanceEndingPresentation>() == null) continue;
                 var original = label.font;
                 if (original == null || original == fallback) continue;
                 if (!copies.TryGetValue(original, out var copy))
@@ -36,7 +37,7 @@ namespace CurtainCall.UI.SceneIntegration
                         {
                             complete = TMP_FontAsset.CreateFontAsset(source);
                             complete.hideFlags = HideFlags.DontSave;
-                            complete.TryAddCharacters("FSpace길게발사내리기트램펄린놓기봉잡기대포타기현재구간출발쉼터최종012[] ·");
+                            complete.TryAddCharacters("FSpace길게발사내리기트램펄린놓기봉잡기대포타기현재구간출발쉼터최종0123456789[] ·+공연성공실패팀호응동자금수입단원망했습니다이의개인은으로고정됩니다생존연결료잠시후다음간이동화면전환을완하지못상태를확인해세요");
                             generated.Add(source, complete);
                         }
                         copy.fallbackFontAssetTable.Add(complete);

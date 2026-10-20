@@ -1,20 +1,20 @@
 # Handoff
 ## 현재
-- Task-061은 사용자 지시로 UI 씬 통합으로 전환, 동일 checkout 유지. 이전 제작 기록은 History/Before-scene-integration.
-- 공통 씬 C1/C2/C3, 외줄 공간 P1. 사용자 Start→Tightrope 확인 완료. C2는 표시만, 게임 판정 보존.
-- origin/dev3a2bc88 merge a474bac, 이전 HUD 작업 push9db2069 완료. [수신 검증](dev-sync-verification.md).
-- 다음 순서를 HumanCannon으로 변경: 공통 C7/C15 정본 인스턴스, 공간 어댑터/구간 표시 적용. 사용자 요청으로 이번 추가분을 현재 feature 브랜치에 commit/push한다.
-- 씬2개 저장 완료, 현재 에디터 HumanCannon 열린 상태·Play 정지·dirty0·runInBackground 원래 false 복원.
+- Task061, 동일 checkout. 이전 push9a47cbe 이후 호응·시간·위치와 공연 종료 구현을 이번 저장 대상으로 확정했다.
+- 최신 사용자 요청: 두 공연 로컬 사망 알림, 1~2초 대기와 결과 표시 시간, 별도 검은 전환 씬. [종료 가이드](../../../Docs/Guides/Ui-scene-integration/performance-ending.md).
+- 기존 Assets Notifications/BasicPanels 프리팹 인스턴스로 PerformanceTransitionUI 씬 구성. 원본 PNG/9-slice/폰트 보존, 외부 package 사용 없음.
+- 결과는 즉시 확정·공유. 1.5초 대기→결과4초→검은 화면0.3초→기존 Campaign 전환→로드 완료 후0.5초. 사망 알림2초, 결과 입력 잠금, 전환 후 해제.
+- 앞선 HTML4-1 공통 호응/C2/C3 구현 유지. [호응 가이드](../../../Docs/Guides/Ui-scene-integration/audience-rules.md), [이전 검증](audience-verification.md).
 ## Verification
-- 통합 check-work: FAIL(scope279, 이전 수신 dev까지 비교). 후속 단계는 스크립트 내 SKIPPED. 검사/hook 우회 없음.
-- 저장 직전 별도 로컬 변경을 stash에 보존 후 개별 scope -Base HEAD: PASS18개. 기본 save-work 미리보기는 이전 dev까지 포함해 FAIL279이므로 실제 delta의 scope·fast·compile을 각각 검사하고 경로를 명시해 저장한다.
-- 개별 문서/규칙 PASS(기존 경고9개), 컴파일 PASS(up_to_date), PlayMode PASS12/12. [상세](human-cannon-verification.md).
-- 인간대포 호스트 합성 상태: C1 호응10, C2 2:25 감소, 공통 씬1개, P1없음. 대포 접근/탑승·운반·입력 차단/해제·Fallen 숨김 확인.
-- 1920×1080 접근/운반 화면 확인, 구간/안내 글자 누락 없음. 실제 물리 키 입력·봉 플레이·전체 코스·불 접촉 원인·다인·재접속·다른 해상도는 미실행.
-- C1 동적 폰트 캐시가 재생성돼 저장에서 제외한다. 기존 TightropeCourse/정책3개/ui-workspace와 함께 보관 후 복원, private219건도 보존. 원본 폰트/프리팹 변경은 이번 커밋에 포함하지 않는다.
-## 다음 작업
-- [인간대포 가이드](../../../Docs/Guides/Ui-scene-integration/human-cannon.md)의 사용자 조작 확인 후 Start/Lobby → WaitingRoomBase 적용.
-- C3 정본2~4인/1인 — 유지. 인간대포 불 마커·구간별 그래픽 트랙, C11/C12/C13 새 정본 화면, 최초1회 튜토리얼 저장은 미적용.
-- 최신 가이드 Docs/Guides/Ui-scene-integration/. 원문 Docs/References/curtaincall_unity_handoff_v1/. Packages ZIP 사용 금지.
-## PM이 확인할 것
-- 교훈 제안(record-knowledge): TMP_FontAsset 런타임 복사본은 OnDestroy가 공유 atlas/material도 지우려 한다. 빌린 참조를 해제 후 복사본만 파괴해야 한다. 회귀 테스트12개에 unload 검증 포함.
+- 최종 컴파일 PASS, UI PlayMode14/14 PASS. 보상 EditMode40/40은 앞선 호응 작업 검증 결과다.
+- 두 공연 호스트 합성 사망→결과→대기실/입력 복구 확인. 인간대포 성공 호응40/수입40→동일 전환 확인. 자세한 근거는 [종료 검증](ending-verification.md).
+- 종합 check-work는 기존 dev 병합 이력/Task 구역 중첩으로 FAIL. 개별 문서·컴파일·테스트와 구분한다.
+- 미실행: 실제 키보드 완주/불 접촉, 동료만 사망·관전, 2~4클라이언트·재접속·느린 로딩·타임아웃, 다른 해상도/빌드.
+- 기존 C1 폰트 캐시·TightropeCourse 프리팹·정책3개·ui-workspace·private submodule 변경은 보존한다.
+## 다음
+- 실제 다인 종료 흐름/이전 호응 규칙 확인과 Task 구역 중첩 조정.
+- 결과 전용 그래픽 준비 시 현재 BasicPanels 인스턴스 교체. C11 관전/C13 ESC 및 Start→Lobby→WaitingRoomBase 후속 UI 적용.
+
+- 최종 Fast OK(기존 경고9), 신규 콘솔 오류0. Start/Play 정지/runInBackground=false 복원. 검은 화면의 개발 IMGUI 일부 잔여 표시는 후속 정리 대상이다.
+
+- 2026-10-20 사용자 명시 승인: 구역 검사 예외로 이번 작업50개 파일만 커밋·push. 기존 별도 변경과 private submodule은 제외하며 검사 실패를 PASS로 바꾸지 않는다.

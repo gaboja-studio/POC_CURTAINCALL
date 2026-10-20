@@ -146,6 +146,8 @@ namespace CurtainCall.Tightrope.Saws
 
         /// <summary>수직 톱날이 나와 있는지.</summary>
         public bool IsVerticalActive => verticalActive;
+        public int VerticalSerial => verticalSerial;
+        public Vector3 CurrentCooperativeGateBase => CooperativeGateBase;
 
         /// <summary>수직 톱날이 있는 줄. 없으면 <see cref="TightropeCourse.NoLane"/>.</summary>
         public int VerticalLane => verticalActive ? verticalLane : TightropeCourse.NoLane;

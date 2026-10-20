@@ -95,7 +95,50 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             if (scene.isLoaded) yield return SceneManager.UnloadSceneAsync(scene);
             var loader = Object.FindFirstObjectByType(GameType("CurtainCall.UI.SceneIntegration.CommonUiSceneLoader")) as Component;
             if (loader != null) Object.Destroy(loader.gameObject);
+            var ending = Object.FindFirstObjectByType(GameType("CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation")) as Component;
+            if (ending != null) Object.Destroy(ending.gameObject);
+            var transition = SceneManager.GetSceneByPath("Assets/Scenes/UI/PerformanceTransitionUI.unity");
+            if (transition.isLoaded) yield return SceneManager.UnloadSceneAsync(transition);
             yield return null;
+        }
+
+        [UnityTest]
+        public IEnumerator SoloProgressUsesRealMarkerAndClearsInvalidData()
+        {
+            yield return SceneManager.LoadSceneAsync(CommonScene, LoadSceneMode.Additive);
+            var scene = SceneManager.GetSceneByPath(CommonScene);
+            var type = GameType("CurtainCall.UI.SceneIntegration.SoloPerformanceProgress");
+            var solo = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren(type, true)).Single();
+            object Field(string name) => type.GetField(name, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(solo);
+            var show = type.GetMethod("Show");
+            Assert.AreEqual(true, show.Invoke(solo, new object[] { 100f, 25f, true, 10f, 30f, null }));
+            var player = (RectTransform)Field("playerRoot");
+            var fire = (RectTransform)Field("fireRoot");
+            Assert.IsTrue(player.gameObject.activeSelf);
+            Assert.AreEqual(new Vector2(114, -30), player.anchoredPosition);
+            Assert.AreEqual(new Vector2(32, 32), player.sizeDelta);
+            Assert.AreEqual(new Vector2(60, -16), fire.anchoredPosition);
+            Assert.IsTrue(((Image)Field("fireMarker")).enabled);
+            Assert.AreEqual(false, show.Invoke(solo, new object[] { 0f, 25f, true, 10f, null, null }));
+            Assert.IsFalse(player.gameObject.activeSelf);
+            Assert.IsFalse(fire.gameObject.activeSelf);
+            Assert.AreEqual(true, show.Invoke(solo, new object[] { 100f, 60f, false, null, null, 20f }));
+            Assert.AreEqual(new Vector2(24, 24), player.sizeDelta);
+            Assert.IsFalse(fire.gameObject.activeSelf);
+            Assert.IsTrue(((Image)Field("fallMarker")).gameObject.activeSelf);
+            type.GetMethod("Clear").Invoke(solo, null);
+            Assert.IsFalse(((Image)Field("fallMarker")).gameObject.activeSelf);
+            var source = (Component)Field("source");
+            var roots = (RectTransform[])source.GetType().GetField("playerRoots", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(source);
+            foreach (int count in new[] { 2, 4 })
+            {
+                var distances = Enumerable.Range(0, count).Select(i => 10f + i * 20).ToArray();
+                Assert.AreEqual(true, source.GetType().GetMethod("SetProgress").Invoke(source,
+                    new object[] { 100f, distances, count - 1, 5f, null, Array.Empty<float>(), false }));
+                Assert.AreEqual(count, roots.Count(r => r.gameObject.activeSelf));
+                Assert.AreEqual(new Vector2(32, 32), roots[count - 1].sizeDelta);
+                Assert.IsTrue(fire.gameObject.activeSelf);
+            }
         }
 
         [UnityTest]

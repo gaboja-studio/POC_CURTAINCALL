@@ -45,6 +45,7 @@ namespace CurtainCall.HumanCannon
         public float UpwardSpeed => upwardSpeed;
         public float CarryMoveSpeed => groundBounceAirControlSpeed;
         public int LocalBounceCount { get; private set; }
+        public static event System.Action<ulong> ServerBounced;
 
         void OnEnable()
         {
@@ -235,6 +236,7 @@ namespace CurtainCall.HumanCannon
                 && cannon.ApplyRebound(player.OwnerClientId, station, launch, segment, contact, upwardSpeed);
             if (accepted)
             {
+                ServerBounced?.Invoke(player.OwnerClientId);
                 if (player.IsLocal) LocalBounceCount++;
                 foreach (ulong client in session.NetworkManager.ConnectedClientsIds)
                     if (client != NetworkManager.ServerClientId)

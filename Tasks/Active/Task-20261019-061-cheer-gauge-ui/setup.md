@@ -23,6 +23,21 @@
 - 현재 에디터 경로 확인 후 조회/배치/저장. 컴파일·EditMode·PlayMode·실제 공연/입력/화면을 구분한다.
 - 네트워크 다중 클라이언트를 실행하지 못하면 미실행으로 기록한다.
 
+## 2026-10-20 종료 연출 (사용자 직접 추가 지시)
+- 두 공연 로컬 사망 알림, 종료 대기/결과 표시 시간, 임시 검은 전환 씬 추가.
+- 기존 SceneIntegration/Scenes/UI 구역과 PerformanceRewards 전환 지연을 사용한다.
+- `Assets/Scripts/Systems/Settings/PerformanceEndingSettings.cs` 및 meta, `Assets/Resources/Settings/GameSettings/Tricks/Rewards/performance-ending.asset` 및 meta를 추가한다.
+- EditorBuildSettings에는 전환 UI 씬을 추가한다. 게임 성공/실패 판정·원본 UI 프리팹·그래픽은 유지한다.
+
+## 2026-10-20 공통 호응 규칙 구현 (PM 사용자 직접 추가 지시)
+- HTML 4-1 임시 호응 규칙의 공통 구현을 이번 연결 Task에 추가한다. 아래 항목은 기존 읽기 전용/다른 게임 코드 수정 금지의 명시적 예외다.
+- `Assets/Scripts/Systems/Reward/` — 호스트 점수 증감 API, 정산 전 도착 관찰, 공통 공연 호응 관찰 및 테스트.
+- `Assets/Scripts/Systems/Settings/AudienceReactionSettings.cs` 및 meta — 임시 호응 설정.
+- `Assets/Resources/Settings/GameSettings/Tricks/Rewards/temporary-audience.asset` 및 meta — 신규 설정 에셋.
+- `Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs`, `HumanCannonTrampoline.GroundBounce.cs` — 호스트 승인 반동 이벤트 공개만.
+- `Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs` — 수직 톱 출현 식별자 읽기 API만.
+- 기존 프리팹/그래픽/9-slice 및 공연 성공·실패 판정은 변경하지 않는다.
+
 ## 후속 사용자 지정 대상 (2026-10-20)
 - `Assets/Scenes/Start_Lobby/Start.unity`
 - `Assets/Scenes/Start_Lobby/Lobby.unity`

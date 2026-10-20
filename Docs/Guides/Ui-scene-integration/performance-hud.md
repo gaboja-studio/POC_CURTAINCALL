@@ -1,5 +1,7 @@
 # 공연 HUD 씬 적용
 
+최신 추가 구현·검증은 [공통 호응 규칙](audience-rules.md)을 따른다. 아래 초기 검증 기록은 당시 결과이며 현재 1인 진행도와 실제 호응 규칙은 추가 적용됐다.
+
 ## 기준과 보호 범위
 - Unity 6000.3.25f1, URP17.3.0, uGUI2.0.0/TMP, Input System1.20.0(신 입력만), NGO2.13.3, Multiplayer Services2.3.3, Pipeline0.8.0-exp.1.
 - 제작 기준 씬: Assets/Scenes/Tests/CheerGauge/C1CheerGauge.unity, Assets/Scenes/Tests/PerformanceHud/PerformanceHud.unity. 나머지 전달된 UI 검증 씬은 후속 적용 기준으로 보존한다.
@@ -26,8 +28,8 @@
 - 하단 P1은 로컬 균형이 활성이고 공연 중일 때만 표시, Fallen/Retired/HasFallen이면 숨긴다.
 
 ## 확인된 정본 제약
-- C1은 현재 게임 난이도별 cap100/150/200 및 시작 명부를 유지한다. 인계의 고정100으로 게임 상한을 덮어쓰지 않는다.
-- C3 SetProgress는2~4인만 허용한다. 1인 테스트에서는 unavailable 표시이며 가짜 두 번째 단원을 만들지 않는다. 1인 지원은 제작 측 API 변경 요청 대상이다.
+- C1은 시작 명부를 유지한다. 사용자 추가 지시로 두 공연의 임시 규칙 상한100/절단30을 공통 보상 시스템에서 적용한다.
+- C3 정본 SetProgress는2~4인이다. 1인은 동일 씬 인스턴스의 실제 마커를 SoloPerformanceProgress로 표시한다. 정본 API와 그래픽은 유지한다.
 - 외줄 최대 도달은 TightropeFire.FurthestDistance, 추락 위치는 로컬에서 마지막으로 관측한 거리다. 관측하지 못한 과거 값을 추정하지 않는다.
 
 ## 검증 상태

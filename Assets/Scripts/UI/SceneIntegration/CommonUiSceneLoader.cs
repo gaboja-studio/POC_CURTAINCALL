@@ -51,7 +51,7 @@ namespace CurtainCall.UI.SceneIntegration
             AttachNetworkFilter();
             spaces.RemoveAll(s => s == null);
             var scene = SceneManager.GetSceneByPath(CommonPerformanceUI.ScenePath);
-            if (loading == null && (CurrentSpace != null ? !scene.isLoaded : scene.isLoaded && SceneManager.sceneCount > 1))
+            if (loading == null && (CurrentSpace != null ? !scene.isLoaded || PerformanceEndingPresentation.Current == null : scene.isLoaded && SceneManager.sceneCount > 1))
                 loading = StartCoroutine(Reconcile());
         }
 
@@ -59,6 +59,13 @@ namespace CurtainCall.UI.SceneIntegration
         {
             // Single 전환/OnDisable과 같은 프레임에서 다음 공간이 등록될 수 있다.
             yield return null;
+            if (CurrentSpace != null && PerformanceEndingPresentation.Current == null
+                && !SceneManager.GetSceneByPath(PerformanceEndingPresentation.ScenePath).isLoaded)
+            {
+                if (Application.CanStreamedLevelBeLoaded(PerformanceEndingPresentation.ScenePath))
+                    yield return SceneManager.LoadSceneAsync(PerformanceEndingPresentation.ScenePath, LoadSceneMode.Additive);
+                else { Debug.LogError("[UI] PerformanceTransitionUI must be in the build scene list."); enabled = false; }
+            }
             var scene = SceneManager.GetSceneByPath(CommonPerformanceUI.ScenePath);
             if (CurrentSpace != null && !scene.isLoaded)
             {
@@ -93,9 +100,9 @@ namespace CurtainCall.UI.SceneIntegration
         }
 
         bool AllowNetworkLoad(int index, string name, LoadSceneMode mode) =>
-            name != "CommonPerformanceUI" && (previousLoad == null || previousLoad(index, name, mode));
+            name != "CommonPerformanceUI" && name != "PerformanceTransitionUI" && (previousLoad == null || previousLoad(index, name, mode));
         bool AllowNetworkUnload(Scene scene) =>
-            scene.path != CommonPerformanceUI.ScenePath && (previousUnload == null || previousUnload(scene));
+            scene.path != CommonPerformanceUI.ScenePath && scene.path != PerformanceEndingPresentation.ScenePath && (previousUnload == null || previousUnload(scene));
 
         void DetachNetworkFilter()
         {

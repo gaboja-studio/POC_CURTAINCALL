@@ -47,6 +47,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/UI/CommonPerformanceUI.unity
     guid: 379533d55b164c64a95cbf7e12794f1d
+  - enabled: 1
+    path: Assets/Scenes/UI/PerformanceTransitionUI.unity
+    guid: 847e4425e4a31a343960927212143b75
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
