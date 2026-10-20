@@ -17,6 +17,20 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         static Type GameType(string name) => AppDomain.CurrentDomain.GetAssemblies()
             .Select(a => a.GetType(name)).First(t => t != null);
 
+        [TestCase(0f, 0f)]
+        [TestCase(1920f, 1080f)]
+        [TestCase(960f, 540f)]
+        public void NearbyTooltipKeepsItsFullFootprintInsideTheScreen(float x, float y)
+        {
+            var method = GameType("CurtainCall.UI.SceneIntegration.HumanCannonUiBinding").GetMethod("ClampTooltip");
+            var size = new Vector2(384, 252.5f);
+            var position = (Vector2)method.Invoke(null, new object[] { new Vector2(x, y), size, new Vector2(1920, 1080) });
+            Assert.That(position.x, Is.GreaterThanOrEqualTo(24));
+            Assert.That(position.y, Is.GreaterThanOrEqualTo(24));
+            Assert.That(position.x + size.x, Is.LessThanOrEqualTo(1896));
+            Assert.That(position.y + size.y, Is.LessThanOrEqualTo(1056));
+        }
+
         [TestCase(-6d, 94d, 2d, 10d, 0d, 60d)]
         [TestCase(-6d, 94d, 2d, 10d, 20d, 40d)]
         [TestCase(-6d, 94d, 2d, 10d, 60d, 0d)]
@@ -107,6 +121,31 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var commonType = GameType("CurtainCall.UI.SceneIntegration.CommonPerformanceUI");
             var common = (Component)commonType.GetProperty("Current").GetValue(null);
             Assert.That(common, Is.Not.Null);
+            var guide = (Component)commonType.GetProperty("Guide").GetValue(common);
+            var tooltip = (Component)commonType.GetProperty("Tooltip").GetValue(common);
+            Assert.That(guide, Is.Not.Null);
+            Assert.That(tooltip, Is.Not.Null);
+            var textType = GameType("TMPro.TMP_Text");
+            foreach (var view in new[] { guide, tooltip })
+                foreach (var label in view.GetComponentsInChildren(textType, true))
+                {
+                    var font = textType.GetProperty("font").GetValue(label);
+                    var hasCharacter = font.GetType().GetMethod("HasCharacter", new[] { typeof(char), typeof(bool), typeof(bool) });
+                    foreach (char character in "FSpace길게발사내리기트램펄린놓기봉잡기대포타기[]".Distinct())
+                        Assert.That(hasCharacter.Invoke(font, new object[] { character, true, true }), Is.EqualTo(true), $"Missing {character} in {label.name}");
+                }
+            Assert.That(common.GetComponentsInChildren<GraphicRaycaster>(true), Is.Empty);
+            Assert.That(common.GetComponentsInChildren<Graphic>(true).Any(g => g.raycastTarget), Is.False);
+            var one = root.GetComponent(type);
+            var two = second.GetComponent(type);
+            commonType.GetMethod("ClaimHints").Invoke(common, new object[] { one });
+            commonType.GetMethod("ClaimHints").Invoke(common, new object[] { two });
+            var width = Enum.ToObject(GameType("CurtainCall.UI.GuidesV1.GuideKeyWidth"), 0);
+            Assert.That(guide.GetType().GetMethod("ShowKey").Invoke(guide, new[] { (object)"F", "발사", width }), Is.EqualTo(true));
+            commonType.GetMethod("ReleaseHints").Invoke(common, new object[] { one });
+            Assert.That(guide.GetType().GetProperty("HasRuntimePresentation").GetValue(guide), Is.EqualTo(true), "Previous owner must not clear the next space's guide");
+            commonType.GetMethod("ReleaseHints").Invoke(common, new object[] { two });
+            Assert.That(guide.GetType().GetProperty("HasRuntimePresentation").GetValue(guide), Is.EqualTo(false));
             var hud = commonType.GetProperty("Hud").GetValue(common);
             Assert.That((Object)hud.GetType().GetProperty("Balance").GetValue(hud) == null, Is.True, "P1 must not belong to the shared scene");
             second.SetActive(false);
