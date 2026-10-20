@@ -1,8 +1,8 @@
 # Handoff
 
 ## 지금 상태
-- 2026-10-20 사용자 요청으로 추가 검증 중단·구현 종료·dev 제출 단계 전환. PlayMode runner와 Editor 테스트 모두 취소 완료. 통합 완료를 뜻하지 않는다.
-- fix/stage-pr-conflicts → dev, 기준 dev=3a2bc88eb88e4319dabdd201966e3e2ff2aa624b. 원본 Unity 실행 중, 브랜치 전환 금지.
+- 사용자 요청으로 추가 검증 중단·PlayMode 취소·구현 작업 종료. 작업240파일을 cc1e78e로 커밋하고 fix/stage-pr-conflicts에 push 완료. 기존 재질2개·외부 자산 변경 제외.
+- dev PR 제출 실실행은 new-pr.ps1의 미커밋 변경 제한으로 차단. 기존 보존 변경을 숨기거나 버리지 않았으며 PR 생성/dev 병합 없음. 기준 dev=3a2bc88eb88e4319dabdd201966e3e2ff2aa624b. Unity 실행 중 브랜치 전환 금지.
 - #192 코드·dev 추가 충돌 해결 및 리소스 적용. Journey 불연속ID·2/4인·명부 변경 중단 보존. 외줄 씬6참조는 미적용(소유자/PM 후속 처리).
 - #192 독립 tree=1205d41c474f7ff35323a4a1429f21ace13e5d5b, 리소스 결합 tree=2ff92626571c5b8e4b1640615d22d1c7f09651c3.
 - #193 코드9충돌 해결, 수평 속력·방향 전환·public Pole.Step·FreeAirControl 기본false·중력 단일 적분 보존.

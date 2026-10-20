@@ -2,7 +2,7 @@
 
 - **Title:** 외줄·인간대포 PR 충돌 해결 및 최신 dev 결합
 - **Type:** fix
-- **Status:** working
+- **Status:** blocked
 - **Assignee:** @MoHoDu
 - **Domain:** MainStage / Tightrope / HumanCannon
 - **Current Skill:** submit-work
