@@ -36,7 +36,14 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         public IEnumerator SwingPoleUsesCannonMomentumAndAirControlThenTeammateCatchesTheLanding()
         {
             yield return BeginPerformance(); DisableSwingHazards();
+            // Verify prepared art on runtime instances; do not apply it to the saved scene.
+            var profile = Resources.Load<ScriptableObject>("Prefabs/Objects/ETCs/TightropeArtKit/TightropeArtProfile");
+            Assert.IsNotNull(profile);
+            Set(course, "artProfile", profile);
+            Call(course, "BuildMeshes");
+            yield return null;
             var pole = (Component)Call(Static("CurtainCall.Tightrope.TightropeSwingPole", "Current"), "ForLane", 1);
+            Call(pole, "BuildViews");
             float from = (float)Get(course, "SwingGapFrom"), to = (float)Get(course, "SwingGapTo");
             yield return StandOnRopeForSawTest(1, from - .8f);
             var scheme = ScriptableObject.CreateInstance(GameType("CurtainCall.Player.TightropeControlScheme"));
@@ -67,6 +74,16 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                     if ((bool)Get(pole, "CanLetGo") && predicted >= to + .55f && predicted <= to + 1.7f)
                     { releaseWindow = true; break; }
                     Call(scheme, "Tick", context, CatchFrame(move: 1f)); yield return null;
+                    Call(pole, "UpdateViews");
+                    var bar = (Transform)Get(pole, "crossbar");
+                    var art = bar.Find("Prepared Art");
+                    Assert.IsNotNull(art, "The runtime preparation must display the prepared moving pole.");
+                    var grip = (Vector3)Call(pole, "WorldFeet", Get(pole, "OwnAngle"), 1) + Vector3.up * 1.3f;
+                    Assert.That(Vector3.Distance(bar.position, grip), Is.LessThan(.001f),
+                        "The visible bar must follow the physical grip throughout the swing.");
+                    Assert.That(Vector3.Distance(art.position, bar.position), Is.LessThan(.001f));
+                    Assert.That(art.GetComponentsInChildren<Collider>().Length, Is.Zero,
+                        "Prepared art must not introduce extra collision or block the launch.");
                 }
                 Assert.IsTrue(releaseWindow, $"인간대포의 W 반동으로 건널 창이 있어야 한다. angle={Get(pole, "SwingAngle")}, predicted={Call(pole, "PredictLanding", true)}");
                 if (System.IO.File.Exists(".harness/local/tightrope-swing-capture"))

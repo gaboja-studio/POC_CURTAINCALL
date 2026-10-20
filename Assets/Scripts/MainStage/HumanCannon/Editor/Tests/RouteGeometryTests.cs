@@ -13,6 +13,28 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         HumanCannonFireWall fire;
         Transform platform, origin, destination, fireStart, boundary, visual;
 
+        [TestCase(0f)]
+        [TestCase(45f)]
+        [TestCase(90f)]
+        public void RoundLoad_FitsIndependentlyOfYaw(float yaw)
+        {
+            Set(trampoline, "circularSurface", true);
+            Set(trampoline, "loadHalfSize", Vector2.one * 1.4f);
+            trampoline.transform.rotation = Quaternion.Euler(0, yaw, 0);
+            Assert.IsTrue(transport.ContainsLoad(trampoline));
+        }
+
+        [Test]
+        public void LoadCheck_UsesOuterFrameRatherThanOnlyTheBounceFabric()
+        {
+            Set(trampoline, "circularSurface", true);
+            Set(trampoline, "loadHalfSize", Vector2.one * 1.4f);
+            trampoline.transform.position = Vector3.right * .7f;
+            Assert.IsFalse(transport.ContainsLoad(trampoline));
+            Set(trampoline, "loadHalfSize", Vector2.zero);
+            Assert.IsTrue(transport.ContainsLoad(trampoline));
+        }
+
         [SetUp]
         public void SetUp()
         {

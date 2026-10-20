@@ -1,0 +1,50 @@
+{
+  "scene": "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity",
+  "counts": {
+    "roundTrampolines": 1,
+    "hazards": 30,
+    "finalSaws": 6,
+    "metalPanels": 6,
+    "concreteSurfaces": 74,
+    "cushions": 1,
+    "cannons": 10,
+    "poles": 10,
+    "gates": 2
+  },
+  "colliders": 91,
+  "physicsPreserved": true,
+  "sourceCommit": "b92b37a4db5ff840a82d26bf323c3b2831b2698a",
+  "sceneSaved": true,
+  "worker": "주형락",
+  "date": "2026-10-20",
+  "retained": [
+    "원래 stations/hazards/poles/gates/transports 연결",
+    "기존 Collider 91개 전체의 형태·좌표·크기·활성 상태",
+    "대포 탑승·좌석·포구 위치",
+    "봉 Grip·천장 앵커·반동 수치",
+    "운송 경로·경첩·트랩문 판정",
+    "이동·점프·카메라·난이도 수치"
+  ],
+  "changedBindings": [
+    "Trampoline.circularSurface=true",
+    "Trampoline.loadHalfSize=(2.4753408,2.4753408)",
+    "Trampoline.handle=새 원형 외형의 같은 위치 Handle",
+    "Transport.boardingIndicators=새 금속 패널 Renderer"
+  ],
+  "stairs": "기존40단/단차를 유지해 FloorModule 외형 적용. 단차가 다른 StairModule 프리팹 전체를 사용하지 않음.",
+  "unusedSharedCandidates": [
+    "독립 로프 생성 구간",
+    "별도 협동 발판",
+    "안전망 구조 Trigger"
+  ],
+  "verification": {
+    "multiplayer": "4인/봇 미실행",
+    "scope": "정식 Task 미배정, doctor 미통과. 사용자 지시 범위에 한정.",
+    "dependency": "현재 private b92b37a4로 검사. 기록된 c1045650 기준의 다른 PC는 원본 동기화 필요.",
+    "input": "합성 입력/참조를 사용한 실제 LAN 호스트1명 실행 검사",
+    "playMode": "12/12 PASS: 중앙 반동 속도·높이 / 모서리 제외 / 원형 적재·양문 / 봉·줄 반동 / 도약 후 공중 제어 / 빠른 지상 톱 / 운반 속도 / 대포10대 탑승·취소 / 쿠션 착지 / 최종 비행4회 / 운반 카메라 구도·시선 이동",
+    "editMode": "470/470 PASS",
+    "humanPlay": "미실행",
+    "references": "누락 스크립트·메시·재질·직렬화 참조0"
+  }
+}

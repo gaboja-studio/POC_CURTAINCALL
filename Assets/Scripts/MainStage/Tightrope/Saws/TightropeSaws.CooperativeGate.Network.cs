@@ -56,7 +56,7 @@ namespace CurtainCall.Tightrope.Saws
                 || started < 0f || (opened != -1f && opened < started)
                 || lane < TightropeCourse.NoLane || course == null || lane >= course.LaneCount || (active && lane < 0)
                 || count < 0 || count > (settings.cooperativeGateDistances?.Length ?? 0) || count > 256
-                || (admittedCount != 0 && admittedCount != FinaleStackSize) || (admittedCount > 0 && index < 0)
+                || (admittedCount != 0 && !ValidFinaleStackSize(admittedCount)) || (admittedCount > 0 && index < 0)
                 || !reader.TryBeginRead(admittedCount * 8 + count * 20)) return;
             var admitted = new ulong[admittedCount];
             for (int i = 0; i < admittedCount; i++)

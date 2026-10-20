@@ -534,12 +534,7 @@ namespace CurtainCall.Tightrope
                 }
             }
 
-            if (c.SafetyNetDepth > 0f)
-            {
-                float length = c.StartPlatformLength + l.FinishDistance + c.FinishPlatformLength + 10f;
-                CreateBox("SafetyNet", new Vector3(0f, -c.SafetyNetDepth - 0.05f, (l.FinishDistance + c.FinishPlatformLength - c.StartPlatformLength) * 0.5f),
-                    new Vector3(width + 10f, 0.1f, length), netColor, true);
-            }
+            // No safety net or hidden catch collider beneath this course.
         }
 
         GameObject CreateBox(string objectName, Vector3 localCenter, Vector3 size, Color color, bool withCollider)
@@ -556,6 +551,7 @@ namespace CurtainCall.Tightrope
             }
             var renderer = box.GetComponent<Renderer>();
             renderer.sharedMaterial = CourseMaterial(renderer.sharedMaterial, color);
+            ApplyPreparedArt(box, objectName, color);
             return box;
         }
 
