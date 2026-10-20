@@ -21,6 +21,8 @@ namespace CurtainCall.Cameras
 
         /// <summary>관전 중인 플레이어. 관전 중이 아니거나 볼 사람이 없으면 null.</summary>
         public static NetworkPlayer Target { get; private set; }
+        /// <summary>정본 UI 연결 시 임시 IMGUI만 숨긴다. 관전 카메라/입력은 계속 동작한다.</summary>
+        public bool ShowLegacyOverlay { get; set; } = true;
 
         CinemachineCamera virtualCamera;
         int lastDirection; // 지난 프레임 A/D 입력(-1/0/+1). 누른 순간에만 바꾼다
@@ -106,7 +108,7 @@ namespace CurtainCall.Cameras
 
         void OnGUI()
         {
-            if (!IsSpectating) return;
+            if (!IsSpectating || !ShowLegacyOverlay) return;
             DrawDeathDim();
             labelStyle ??= new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 22, richText = true };
             string text = Target != null

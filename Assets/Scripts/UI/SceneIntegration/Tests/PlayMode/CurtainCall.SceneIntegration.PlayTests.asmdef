@@ -1,6 +1,6 @@
 {
   "name": "CurtainCall.SceneIntegration.PlayTests",
-  "references": ["Unity.ugui"],
+  "references": ["Unity.ugui", "Unity.TextMeshPro"],
   "optionalUnityReferences": ["TestAssemblies"],
   "autoReferenced": false
 }

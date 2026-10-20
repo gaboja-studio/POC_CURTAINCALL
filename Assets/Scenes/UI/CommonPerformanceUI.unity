@@ -384,6 +384,7 @@ GameObject:
   - component: {fileID: 554505106}
   - component: {fileID: 554505105}
   - component: {fileID: 554505107}
+  - component: {fileID: 554505108}
   m_Layer: 0
   m_Name: UI
   m_TagString: Untagged
@@ -423,6 +424,7 @@ Transform:
   - {fileID: 1285101901}
   - {fileID: 1460980998}
   - {fileID: 123489762}
+  - {fileID: 1222348072}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &554505107
@@ -440,6 +442,136 @@ MonoBehaviour:
   fallback: {fileID: 11400000, guid: f18b420a75730274bb798e31d7d2b030, type: 2}
   mediumSource: {fileID: 12800000, guid: cc7bb308443682348a1354a3ef95192b, type: 3}
   semiBoldSource: {fileID: 12800000, guid: fb6e6c4e625449d4f8b267bdb4011ea9, type: 3}
+--- !u!114 &554505108
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 554505104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa817c39d687f9c4d988313430f590cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.SceneIntegration.PerformanceSpectatorBinding
+  view: {fileID: 1222348071}
+--- !u!1001 &1222348070
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 554505106}
+    m_Modifications:
+    - target: {fileID: 2269441543141646231, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_Name
+      value: CommonSpectatorCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7774018527695548965, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+      propertyPath: m_SortingOrder
+      value: 90
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+--- !u!114 &1222348071 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6596867856649299585, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+  m_PrefabInstance: {fileID: 1222348070}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4fb588050f58e5d46988da20326fa98a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.SpectatorV1.SpectatorView
+--- !u!224 &1222348072 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 5889738747374604112, guid: 2d0075fcbc0eb0842a8740e24ca8c357, type: 3}
+  m_PrefabInstance: {fileID: 1222348070}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1285101900
 PrefabInstance:
   m_ObjectHideFlags: 0

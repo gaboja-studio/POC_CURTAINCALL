@@ -1,4 +1,5 @@
 # Plan
+현재 단계: 최신 dev864ed37 수신 후 C11/H1/C8/C12 연결 완료. 세부 구성과 검증은 performance-upgrade.md/upgrade-verification.md. 아래 기존 단계의 HUD·호응·종료 흐름을 유지한다.
 1. 기존 정본 프리팹/Canvas/게임 API 확인. 원본 PNG·9-slice·폰트와 제작 코드 변경 금지.
 2. 사용자 추가 지시: 공통 UI 씬에 C1/C2/C3, 외줄 공간 씬에 P1 정본 인스턴스. 두 공연 UI 루트를 정리하고 공통 씬 additive 수명을 관리한다. 연결 코드는 독립 SceneIntegration 폴더에 둔다.
 3. C1은 기존 보상 projection을 재사용. 사용자 확정 C2는 불의 안전 경계까지 남은 표시 시간, C3는 코스 거리·명부·추격 불, P1은 로컬 PlayerBalance를 읽는다. 인간대포 P1은 숨긴다.

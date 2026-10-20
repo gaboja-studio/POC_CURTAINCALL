@@ -22,6 +22,8 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 if (label.GetComponentInParent<CurtainCall.UI.GuidesV1.GuideView>() == null
                     && label.GetComponentInParent<CurtainCall.UI.TooltipsV1.TooltipView>() == null
+                    && label.GetComponentInParent<CurtainCall.UI.SpectatorV1.SpectatorView>() == null
+                    && label.GetComponentInParent<CurtainCall.UI.WorldLabelsV2.WorldLabelView>() == null
                     && label.GetComponentInParent<PerformanceEndingPresentation>() == null) continue;
                 var original = label.font;
                 if (original == null || original == fallback) continue;
@@ -37,7 +39,7 @@ namespace CurtainCall.UI.SceneIntegration
                         {
                             complete = TMP_FontAsset.CreateFontAsset(source);
                             complete.hideFlags = HideFlags.DontSave;
-                            complete.TryAddCharacters("FSpace길게발사내리기트램펄린놓기봉잡기대포타기현재구간출발쉼터최종0123456789[] ·+공연성공실패팀호응동자금수입단원망했습니다이의개인은으로고정됩니다생존연결료잠시후다음간이동화면전환을완하지못상태를확인해세요");
+                            complete.TryAddCharacters("FSpaceADFINISHm길게발사내리기트램펄린놓기봉잡기대포타기현재구간출발쉼터최종0123456789[] ·+-→공연성공실패팀호응동자금수입단원망했습니다이의개인은으로고정됩니다생존연결료잠시후다음간이동화면전환을완하지못상태를확인해세요관전대상없음플레이어중일차외줄타기잔액초합류반동과회피");
                             generated.Add(source, complete);
                         }
                         copy.fallbackFontAssetTable.Add(complete);

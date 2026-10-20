@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Collections.Generic;
 using System.Text;
 using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
@@ -30,6 +31,10 @@ namespace CurtainCall.UI.SceneIntegration
         PerformanceResult pending;
         double started, loadedAt = -1;
         string sourceScene;
+        readonly Dictionary<ulong, bool> observedDeaths = new();
+        string observedPerformance;
+        string resultBody;
+        int lastCountdown = -1;
         public bool ResultVisible => resultPanel != null && resultPanel.IsShown;
         public bool BlackVisible => black != null && black.alpha > .99f;
         public bool DeathVisible => notifications != null && notifications.Banner.IsVisible;
@@ -56,6 +61,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (snapshot == null || snapshot.Performance == null)
             { ResetPresentation(); shownIdentity = deathIdentity = null; return; }
             ObserveDeath();
+            ObserveTeammates(snapshot);
             // 공유 스냅샷이 구독보다 먼저 도착한 경우도 현재 공연 결과만 복원한다.
             if (pending == null && CommonUiSceneLoader.CurrentSpace != null && snapshot.Latest != null
                 && snapshot.Latest.Performance.Id == snapshot.Performance.Id) PresentResult(snapshot.Latest);
@@ -63,6 +69,8 @@ namespace CurtainCall.UI.SceneIntegration
             if (snapshot.Performance.Id != pending.Performance.Id) { ResetPresentation(); return; }
             double elapsed = Time.unscaledTimeAsDouble - started;
             if (elapsed >= ResultAt && !ResultVisible && !BlackVisible) resultPanel.SetVisible(true, false);
+            int seconds = Mathf.CeilToInt(Mathf.Max(0, BlackAt - (float)elapsed));
+            if (seconds != lastCountdown) { lastCountdown = seconds; summary.text = resultBody + $"\n다음 공간으로 이동  {seconds}초"; }
             if (elapsed >= BlackAt) Cover();
             float hold = PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.loadedHoldSeconds : .5f;
             if (loadedAt >= 0 && Time.unscaledTimeAsDouble - loadedAt >= Mathf.Max(.1f, hold)
@@ -74,6 +82,31 @@ namespace CurtainCall.UI.SceneIntegration
                 notifications.Banner.Show("화면 전환을 완료하지 못했습니다", "연결 상태를 확인해 주세요", BannerState.Danger, 4);
             }
         }
+        void ObserveTeammates(RewardSnapshot snapshot)
+        {
+            if (CommonUiSceneLoader.CurrentSpace == null) return;
+            if (observedPerformance != snapshot.Performance.Id)
+            {
+                observedPerformance = snapshot.Performance.Id; observedDeaths.Clear();
+                foreach (var person in snapshot.Segments) observedDeaths[person.ClientId] = person.Dead;
+                return; // 늦은 접속/공연 변경은 이전 사망 알림을 재생하지 않는다.
+            }
+            var deaths = new List<string>();
+            foreach (var person in snapshot.Segments)
+            {
+                if (observedDeaths.TryGetValue(person.ClientId, out bool previous) && !previous && person.Dead
+                    && (NetworkPlayer.Local == null || person.ClientId != NetworkPlayer.Local.OwnerClientId))
+                    deaths.Add($"단원 {person.Slot + 1}");
+                observedDeaths[person.ClientId] = person.Dead;
+            }
+            if (deaths.Count == 0) return;
+            string message = string.Join(", ", deaths) + " 사망";
+            // 본인 알림을 동료 알림으로 덮지 않는다.
+            if (DeathVisible) notifications.Toast.Show(message, ToastState.Failure, 2, ToastIcon.Warning);
+            else notifications.Banner.Show(message, "해당 단원의 호응은 0으로 고정됩니다", BannerState.Danger, 2, BannerIcon.Skull);
+        }
+        public static string ResultTitle(bool succeeded, long amount, int participants, int cap) => !succeeded ? "공연 실패" :
+            participants > 0 && cap > 0 && amount >= (double)participants * cap * .8 ? "공연 대성공" : "공연 성공";
         void ObserveDeath()
         {
             var local = NetworkPlayer.Local;
@@ -94,16 +127,22 @@ namespace CurtainCall.UI.SceneIntegration
             shownIdentity = result.Performance.Id;
             pending = result; started = Time.unscaledTimeAsDouble; loadedAt = -1;
             sourceScene = CommonUiSceneLoader.CurrentSpace.gameObject.scene.path;
-            title.text = result.Succeeded ? "공연 성공" : "공연 실패";
+            long total = result.Participants.Sum(p => p.Segment);
+            var state = rewards != null ? rewards.State : null;
+            title.text = ResultTitle(result.Succeeded, total, result.Participants.Count, state != null ? state.Rules.Cap : 100);
             var text = new StringBuilder();
-            text.Append("팀 호응  ").Append(result.Participants.Sum(p => p.Segment)).Append('\n');
-            text.Append("공동 자금 수입  +").Append(result.Income).Append("\n\n");
+            text.Append(result.Performance.Day).Append("일차 · ").Append(result.Performance.TrickId == "Tightrope" ? "외줄타기" : "인간대포").Append('\n');
+            text.Append("팀 호응  ").Append(total).Append('\n');
+            text.Append("공동 자금 수입  +").Append(result.Income).Append('\n');
+            var entry = state?.Ledger.LastOrDefault(e => e.PerformanceId == result.Performance.Id && e.Kind == FundEntryKind.PerformanceIncome);
+            if (entry != null) text.Append("잔액  ").Append(entry.Balance - entry.Amount).Append(" → ").Append(entry.Balance).Append('\n');
+            text.Append('\n');
             foreach (var person in result.Participants.OrderBy(p => p.Slot))
                 text.Append("단원 ").Append(person.Slot + 1).Append("   ")
                     .Append(person.Dead ? "사망" : !person.Connected ? "연결 종료" : "생존")
-                    .Append("   호응 ").Append(person.Segment).Append('\n');
-            text.Append("\n잠시 후 다음 공간으로 이동합니다");
-            summary.text = text.ToString();
+                    .Append("   호응 ").Append(person.Segment).Append("  +").Append(person.Settlement).Append('\n');
+            resultBody = text.ToString(); lastCountdown = -1;
+            summary.text = resultBody;
             resultPanel.SetInputAllowed(false); resultPanel.SetVisible(false, true);
             InputGate.SetBlocking(this, true);
             ObserveDeath();

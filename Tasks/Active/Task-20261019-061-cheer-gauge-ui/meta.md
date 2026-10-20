@@ -1,5 +1,5 @@
 # Task-20261019-061
-- **Title:** UI 씬 통합 · 공연 HUD와 인간대포 안내
+- **Title:** UI 씬 통합 · 공연 HUD·관전·표지·결과 연결
 - **Type:** feat
 - **Status:** working
 - **Assignee:** @MoHoDu
@@ -28,3 +28,6 @@
 
 ## 공연 종료 추가 지시
 - 2026-10-20 사용자: 두 공연 로컬 사망 알림, 결과 표시 대기, 별도 검은 전환 씬을 요청했다. 기존 정산/판정을 유지하고 표시와 공간 전환 사이에 대기를 추가한다.
+
+## 최신 공연 UI
+- 2026-10-20 사용자: origin/dev를 먼저 받은 뒤 새 Assets 프리팹으로 공연 UI/로직 연결을 고도화한다. dev864ed37 수신 후 C11/H1/C8/C12 연결 완료, 상세는 performance-upgrade.md 및 upgrade-verification.md.

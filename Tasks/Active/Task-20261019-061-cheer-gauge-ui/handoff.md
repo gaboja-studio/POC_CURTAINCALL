@@ -1,20 +1,24 @@
 # Handoff
 ## 현재
-- Task061, 동일 checkout. 이전 push9a47cbe 이후 호응·시간·위치와 공연 종료 구현을 이번 저장 대상으로 확정했다.
-- 최신 사용자 요청: 두 공연 로컬 사망 알림, 1~2초 대기와 결과 표시 시간, 별도 검은 전환 씬. [종료 가이드](../../../Docs/Guides/Ui-scene-integration/performance-ending.md).
-- 기존 Assets Notifications/BasicPanels 프리팹 인스턴스로 PerformanceTransitionUI 씬 구성. 원본 PNG/9-slice/폰트 보존, 외부 package 사용 없음.
-- 결과는 즉시 확정·공유. 1.5초 대기→결과4초→검은 화면0.3초→기존 Campaign 전환→로드 완료 후0.5초. 사망 알림2초, 결과 입력 잠금, 전환 후 해제.
-- 앞선 HTML4-1 공통 호응/C2/C3 구현 유지. [호응 가이드](../../../Docs/Guides/Ui-scene-integration/audience-rules.md), [이전 검증](audience-verification.md).
+- 후속: [씬 뷰 미리보기·구형 UI 정리](../../../Docs/Guides/Ui-scene-integration/layout-editing.md). 사용자 게이지 Y80 보존. 새 편집 메뉴, 중복 UI 제거, 독립 연습 도구 분리.
+- Task061, feat/ui-scene-integration, 동일 checkout. 사용자 지시대로 origin/dev864ed37을 먼저 pull/병합(f0ceb0b)하고 새 공연 UI를 연결했다.
+- 사용자 저장 요청: 리소스 병합 e6cc578·dev 병합 f0ceb0b와 이번 UI 고도화/편집 미리보기/구형 UI 정리를 feat/ui-scene-integration에 커밋·push한다. ui-workspace.md는 기존 로컬 메모로 제외한다.
+- 인간대포 충돌은 최신 dev 공간 씬을 채택한 뒤 Editor에서 기존 HUD/호응/안내를 복원했다. private62250960과 원본 프리팹·PNG·9-slice·폰트 유지.
+- 공통 C11 관전, 인간대포 H1 표지42개, C8 동료 사망, C12 대성공/정산/잔액/자동전환 초를 연결했다. [수정 파일·화면·데이터·확인 방법](../../../Docs/Guides/Ui-scene-integration/performance-upgrade.md).
+- C10/C14/C16은 테스트된 정본 프리팹 미수신. C13 메뉴와 결과의 추가 필드는 후속이다. 기존 검은 전환 유지.
+- 사용자 기존 ui-workspace.md 보존. 복구용 public54a6c49/privateaa1c499/dev수신전b00d1b8 stash 보관.
 ## Verification
-- 최종 컴파일 PASS, UI PlayMode14/14 PASS. 보상 EditMode40/40은 앞선 호응 작업 검증 결과다.
-- 두 공연 호스트 합성 사망→결과→대기실/입력 복구 확인. 인간대포 성공 호응40/수입40→동일 전환 확인. 자세한 근거는 [종료 검증](ending-verification.md).
-- 종합 check-work는 기존 dev 병합 이력/Task 구역 중첩으로 FAIL. 개별 문서·컴파일·테스트와 구분한다.
-- 미실행: 실제 키보드 완주/불 접촉, 동료만 사망·관전, 2~4클라이언트·재접속·느린 로딩·타임아웃, 다른 해상도/빌드.
-- 기존 C1 폰트 캐시·TightropeCourse 프리팹·정책3개·ui-workspace·private submodule 변경은 보존한다.
+- 최종 컴파일 PASS, UI PlayMode21/21 PASS. [검증 근거](upgrade-verification.md).
+- 두 공연 호스트 합성에서 관전 대상2→가상 D→대상3→대상 없음→부활 숨김 확인. 실제 원격 클라이언트 검증은 아니다.
+- 인간대포 표지36개 활성/6개 비활성/중복0, 한글 fallback 확인. 호응80 성공 결과와 잔액0→80, 대기실 전환 후 입력 해제 확인.
+- 후속 정리 후 UI21/21·외줄 탑승/경고 게이지1/1 PASS. 최종 Editor Tightrope/Play 정지/P1 편집 미리보기, Y80 유지. 상세 실패 이력은 검증 문서.
+- 구역 검사: FAIL — 구역 검사 실패 (10-20)
+- 저장 DryRun도 기존 병합 이력/구역 중첩으로 FAIL371. 사용자 예외 승인 및 이번 저장 지시에 따라 실제 UI 변경만 별도 검사·선택 저장한다. 실패를 PASS로 바꾸지 않는다.
+- 1 문서/규칙: 종합 SKIPPED(구역 검사 실패), 개별 Fast OK(기존 경고9)
+- 2 컴파일: 종합 SKIPPED(구역 검사 실패), 개별 Compile PASS
+- 3 테스트: 종합 SKIPPED(구역 검사 실패), 개별 PlayMode21/21 PASS
+- 실제2~4클라이언트, 실제 완주/불 접촉, 재접속, 다른 해상도/빌드/전체 스위트는 미실행.
 ## 다음
-- 실제 다인 종료 흐름/이전 호응 규칙 확인과 Task 구역 중첩 조정.
-- 결과 전용 그래픽 준비 시 현재 BasicPanels 인스턴스 교체. C11 관전/C13 ESC 및 Start→Lobby→WaitingRoomBase 후속 UI 적용.
-
-- 최종 Fast OK(기존 경고9), 신규 콘솔 오류0. Start/Play 정지/runInBackground=false 복원. 검은 화면의 개발 IMGUI 일부 잔여 표시는 후속 정리 대상이다.
-
-- 2026-10-20 사용자 명시 승인: 구역 검사 예외로 이번 작업50개 파일만 커밋·push. 기존 별도 변경과 private submodule은 제외하며 검사 실패를 PASS로 바꾸지 않는다.
+- 두 공연 실제 다인 관전·동료 사망·정산 회귀 확인. Task 구역 중첩 조정.
+- C13 ESC 입력 흐름, 결과 추가 정보와 정본 수신 후 C10/C14/C16.
+- 이후 Start→Lobby→WaitingRoomBase. [순서](../../../Docs/Guides/Ui-scene-integration/next-plan.md).

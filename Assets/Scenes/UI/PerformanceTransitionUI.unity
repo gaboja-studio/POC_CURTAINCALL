@@ -435,7 +435,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 6995470222613875891, guid: 114ead425615b3c42a70025b88948632, type: 3}
-    m_RemovedGameObjects: []
+    - {fileID: 2791818419845639323, guid: 114ead425615b3c42a70025b88948632, type: 3}
+    m_RemovedGameObjects:
+    - {fileID: 7590895923923883122, guid: 114ead425615b3c42a70025b88948632, type: 3}
+    - {fileID: 5890276229479097692, guid: 114ead425615b3c42a70025b88948632, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 6745205634726888683, guid: 114ead425615b3c42a70025b88948632, type: 3}
       insertIndex: -1
@@ -566,8 +569,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26
-  m_fontSizeBase: 26
+  m_fontSize: 23
+  m_fontSizeBase: 23
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
