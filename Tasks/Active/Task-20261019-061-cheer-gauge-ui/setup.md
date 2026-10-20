@@ -85,3 +85,4 @@
 
 - 2026-10-21 사용자 Start 타이틀 지시: Start.unity 중앙 로고/메뉴·페이지 재배치, UI 루트 정리. Assets TitleLogo 인스턴스 사용, 원본 변경 없음.
 - 2026-10-21 사용자 팝업/화면비 지시: Start 참가/LAN을 BasicPanels/CommonButtons 인스턴스로 교체, 실제5개 진행 씬 및 공통 UI의 화면 Canvas를1920×1080/Expand로 통일. 월드 UI 크기 보존.
+- 2026-10-21 로비 UI/시작 순간이동 사용자 지시: Lobby.unity·SceneIntegration에 Assets LobbyHud/Guides/알림 연결, 대체 HUD 제거. Systems/StartLobby/LobbyRoom.cs는 실제 공간 복귀에만 재배치하도록 수정, 실제 LAN 회귀 검사 포함.

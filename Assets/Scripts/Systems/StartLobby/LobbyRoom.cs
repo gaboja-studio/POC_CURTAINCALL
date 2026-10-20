@@ -64,6 +64,7 @@ namespace CurtainCall.StartLobby
         bool shown = true;
         bool menuOpen;
         bool placePending;
+        bool awayInSpace;
         public LobbyInteractable FocusedInteraction { get; private set; }
         public bool ExternalInteractionPresentation { get; set; }
 
@@ -99,14 +100,19 @@ namespace CurtainCall.StartLobby
         void Update()
         {
             var director = SpaceLinkDirector.Instance;
-            bool visible = !SpaceLinkHub.HasLoadedSpace(gameObject.scene) && (director == null || !director.IsTransitioning);
+            bool hasSpace = SpaceLinkHub.HasLoadedSpace(gameObject.scene);
+            if (hasSpace) awayInSpace = true;
+            bool visible = !hasSpace && (director == null || !director.IsTransitioning);
             if (visible != shown)
             {
                 shown = visible;
                 if (!shown) SetMenu(false);
                 else
                 {
-                    placePending = true; // SpaceLinkHub가 출발 위치(로비 환경)를 다시 켠 뒤 LateUpdate에서
+                    // Intro requests the already-loaded hub too. Only a return from an actual
+                    // gameplay space needs placement; a temporary transition flag must not teleport.
+                    placePending = awayInSpace;
+                    awayInSpace = false;
                     ShowCursor();
                 }
             }
