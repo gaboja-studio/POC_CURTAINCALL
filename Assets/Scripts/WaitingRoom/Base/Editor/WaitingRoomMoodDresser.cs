@@ -62,6 +62,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
             LoadMeshes();
 
             var old = greybox.Find(MoodName);
+            if (old != null && old.Find("InteriorArt") != null)
+                throw new System.InvalidOperationException("실내 고도화가 적용된 씬입니다. 통로와 실내 배치를 보존하려면 전체 분위기를 다시 생성하지 마세요.");
             if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
             WaitingRoomTunnelLayout.Apply(greybox);   // 기획서에 없는 터널 옆방 정리·집결 구역 옮기기(이미 했으면 그대로)
             WaitingRoomLayoutFitter.Fit(greybox);     // 카메라 구역 다시
@@ -87,6 +89,9 @@ namespace CurtainCall.WaitingRoom.EditorTools
             BuildLightingPass(mood);
             FitWiresToCeiling(mood);
             ShowStandInTargets(false);
+
+            WaitingRoomFurnisher.Apply(scene);
+            WaitingRoomVisibilityLighting.Apply(scene);
 
             AssetDatabase.SaveAssets();
             Selection.activeGameObject = mood.gameObject;
