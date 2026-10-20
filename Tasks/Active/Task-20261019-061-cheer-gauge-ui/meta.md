@@ -1,7 +1,7 @@
 # Task-20261019-061
 - **Title:** UI 씬 통합 · 공연 UI 및 대기실 기본 HUD 연결
 - **Type:** feat
-- **Status:** human-verify
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** Unity Assets 구조·코드 작업 구역
 - **Current Skill:** integrate-editor

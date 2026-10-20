@@ -1,4 +1,5 @@
 # Handoff
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/200
 ## 현재
 - 이전 Start·팝업·Canvas는2be6f00 commit/push 완료.
 - 로비 정본 HUD/순간이동 수정41bce04 commit/push 완료. 실제UI 누락 점검·대기실 임시UI 정리 완료, 이번 정리 미커밋. 상세 ui-audit.md.
