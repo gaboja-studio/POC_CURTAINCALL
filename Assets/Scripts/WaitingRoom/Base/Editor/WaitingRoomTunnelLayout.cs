@@ -8,40 +8,34 @@ using UnityEngine.SceneManagement;
 namespace CurtainCall.WaitingRoom.EditorTools
 {
     /// <summary>
-    /// ⑥ 무대 입구 통로를 프로토타입 터널 구성(길이 ~42m 터널 + 옆방 3개 + 끝의 공연 스테이지 입구)으로 다시 배치한다.
-    /// 유지: 대기실 문(로비 x=10·셔터), 커튼 방 열림 3·닫힘 5(열림 = 실제 방 출입구), 집결 판정 구역, ⑦ 공연 입구 커튼.
-    /// 옆방 3개: 공연 준비실·장비 보관소(남), 무대장치 작업실(북) — 내부는 WaitingRoomMoodDresser가 프로토타입에서 옮긴다.
-    /// 그레이박스 로컬 좌표. 이미 배치한 씬에는 다시 적용하지 않는다(벽 W_06_East 위치로 판별).
+    /// ⑥ 무대 입구 통로를 프로토타입 터널 구성(길이 ~42m 터널 + 끝의 ⑦ 공연 스테이지 입구)으로 다시 배치한다.
+    /// 유지: 대기실 문(로비 x=10·셔터), 커튼 방 열림 3·닫힘 5(열림 = 커튼 뒤 어두운 방), 집결 판정 구역, ⑦ 공연 입구 커튼.
+    /// 「대기실 2차 기획서」 3.3.1에 없는 터널 옆방(공연 준비실·장비 보관소·무대장치 작업실)은 두지 않는다(2026-10-20 사용자 지시).
+    /// 그레이박스 로컬 좌표. 터널 늘이기는 한 번만 하고(벽 W_06_East 위치로 판별), 옆방 제거·집결 구역 옮기기는 이전 배치에서 한 번만 옮긴다.
     /// </summary>
     public static class WaitingRoomTunnelLayout
     {
         const string GreyboxName = "WaitingRoomGreybox";
         const string WallMaterial = "Assets/Scenes/Tests/WaitingRoom/Base/Materials/GB_Wall.mat";
-        const string FloorMaterial = "Assets/Scenes/Tests/WaitingRoom/Base/Materials/GB_Floor.mat";
         const float OldEnd = 37f;
         public const float TunnelEnd = 52f;
-        public const float DoorWidth = 2.6f, DoorHeight = 2.8f;
-        public const float RoomCeiling = 6f;
         const float StageShift = 15f;             // ⑦ 입구 이동량(x 36.5 → 51.5)
         const float CurtainOffset = 3.7f;         // 커튼 방 장식의 벽 앞 위치(|z|)
 
         public static readonly Rect Tunnel = Rect.MinMaxRect(10f, -4f, TunnelEnd, 4f);
-        public static readonly Rect Gather = Rect.MinMaxRect(36f, -3.5f, 50f, 3.5f);
+        /// <summary>집결 판정 구역 처음 값: ⑦ 커튼(x ~51.6) 바로 앞 4m × 통로 폭 7m. 이후는 StageEntranceGather 인스펙터에서 조정.</summary>
+        public static readonly Rect Gather = Rect.MinMaxRect(47.2f, -3.5f, 51.2f, 3.5f);
+        const float GatherHeight = 3f;
 
-        /// <summary>옆방: 이름, 범위, 출입구 x, 쪽(+1 북 / -1 남), 프로토타입 백스테이지 방 이름, 프로토타입 월드 좌표 + 이동량 = 현재 그레이박스 로컬 좌표.</summary>
-        public static readonly (string name, string label, Rect rect, float doorX, int side, string proto, Vector3 offset)[] Rooms =
-        {
-            ("R1_PrepRoom", "공연 준비실", Rect.MinMaxRect(10f, -13.1f, 21f, -4f), 15.1f, -1, "공연준비실", new Vector3(-148.4f, 0f, -9.5f)), // 서쪽 벽 = 대기실 문 벽(x 10)이라 거울이 벽에 붙게 1.4m 더 당김
-            ("R2_EquipmentStore", "장비 보관소", Rect.MinMaxRect(21f, -13.1f, 31.6f, -4f), 25.5f, -1, "장비보관소", new Vector3(-147f, 0f, -9.5f)),
-            ("R3_StageWorkshop", "무대장치 작업실", Rect.MinMaxRect(19.4f, 4f, 31.7f, 13.2f), 25.5f, 1, "무대장치작업실", new Vector3(-144f, 0f, -8.5f)),
-        };
+        /// <summary>열린 커튼(커튼 뒤 어두운 방) 자리: x, 쪽(+1 북 / -1 남).</summary>
+        public static readonly (float x, int side)[] OpenDoors = { (15.1f, -1), (25.5f, -1), (25.5f, 1) };
 
         /// <summary>닫힌 커튼(통과 불가) 자리: x, 쪽.</summary>
         public static readonly (float x, int side)[] ClosedDoors = { (14f, 1), (36.5f, 1), (44.5f, 1), (38f, -1), (46f, -1) };
 
         /// <summary>터널 벽의 모든 커튼 자리(열림·닫힘) — 벽쪽 장식이 가리면 안 되는 x 구간.</summary>
         public static IEnumerable<(float x0, float x1, int side)> CurtainSpans =>
-            Rooms.Select(r => (r.doorX - 1.6f, r.doorX + 1.6f, r.side)).Concat(ClosedDoors.Select(d => (d.x - 1.6f, d.x + 1.6f, d.side)));
+            OpenDoors.Concat(ClosedDoors).Select(d => (d.x - 1.6f, d.x + 1.6f, d.side));
 
         [MenuItem("Tools/CurtainCall/대기실/무대 입구 통로 터널 배치(프로토타입 구성)")]
         static void ApplyMenu()
@@ -50,114 +44,97 @@ namespace CurtainCall.WaitingRoom.EditorTools
             var root = scene.GetRootGameObjects().FirstOrDefault(g => g.name == GreyboxName);
             if (root == null) { Debug.LogError($"[WaitingRoomTunnel] '{GreyboxName}' 없음"); return; }
             bool applied = Apply(root.transform);
-            WaitingRoomLayoutFitter.Fit(root.transform);            // 옆방 카메라 구역 포함해 다시 만든다
+            WaitingRoomLayoutFitter.Fit(root.transform);
             WaitingRoomLayoutFitter.FitMouseLookZone(scene, root.transform);
             EditorSceneManager.MarkSceneDirty(scene);
-            Debug.Log(applied ? "[WaitingRoomTunnel] 터널·옆방 3개·커튼 8곳·집결 구역·공연 입구를 다시 배치했습니다." : "[WaitingRoomTunnel] 이미 터널 배치됨 — 카메라 구역만 갱신");
+            Debug.Log(applied ? "[WaitingRoomTunnel] 터널·커튼 8곳·집결 구역·공연 입구를 다시 배치했습니다." : "[WaitingRoomTunnel] 이미 터널 배치됨 — 옆방 정리·카메라 구역만 갱신");
         }
 
+        /// <summary>터널을 늘이고(한 번만) 옆방을 정리하고 집결 구역을 새 방식으로 옮긴다. 터널을 처음 늘였으면 true.</summary>
         public static bool Apply(Transform greybox)
         {
-            var east = greybox.Find("Walls/W_06_East/Seg0");
-            if (east == null || Mathf.Abs(east.localPosition.x - OldEnd) > 0.05f) return false;
-
             var corridor = greybox.Find("S06_StageCorridor_Temp");
-            var walls = greybox.Find("Walls");
-            RebuildWalls(walls);
-            BuildRoomFloors(corridor);
-            MoveCurtainRooms(corridor.Find("CurtainRooms"));
-            MoveGatherZone(corridor);
-            ShiftStageEntrance(greybox.Find("S07_StageEntrance_Temp"));
-            AddRoomLabels(corridor);
+            var east = greybox.Find("Walls/W_06_East/Seg0");
+            bool first = east != null && Mathf.Abs(east.localPosition.x - OldEnd) < 0.05f;
+            if (first)
+            {
+                var walls = greybox.Find("Walls");
+                foreach (var n in new[] { "W_06_North_08_South", "W_06_South", "W_06_East" })
+                {
+                    var old = walls.Find(n);
+                    if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
+                }
+                BuildTunnelWalls(walls);
+                MoveCurtainRooms(corridor.Find("CurtainRooms"));
+                ShiftStageEntrance(greybox.Find("S07_StageEntrance_Temp"));
 
-            var floor = corridor.Find("Floor");
-            Undo.RecordObject(floor, "Tunnel Layout");
-            floor.localPosition = new Vector3(Tunnel.center.x, floor.localPosition.y, 0f);
-            floor.localScale = new Vector3(Tunnel.width, floor.localScale.y, Tunnel.height);
-            return true;
+                var floor = corridor.Find("Floor");
+                Undo.RecordObject(floor, "Tunnel Layout");
+                floor.localPosition = new Vector3(Tunnel.center.x, floor.localPosition.y, 0f);
+                floor.localScale = new Vector3(Tunnel.width, floor.localScale.y, Tunnel.height);
+            }
+            RemoveSideRooms(greybox);
+            MigrateGatherZone(corridor);
+            return first;
         }
 
         // ── 벽 ─────────────────────────────────────────────
 
-        static void RebuildWalls(Transform walls)
+        static void BuildTunnelWalls(Transform walls)
         {
-            foreach (var n in new[] { "W_06_North_08_South", "W_06_South", "W_06_East" })
-            {
-                var old = walls.Find(n);
-                if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
-            }
-            var doors = Rooms.Select(r => (r.doorX, r.side)).ToArray();
-            Wall(walls, "W_06_North_08_South", true, Tunnel.yMax, Tunnel.xMin, TunnelEnd, doors.Where(d => d.side > 0).Select(d => d.doorX));
-            Wall(walls, "W_06_South", true, Tunnel.yMin, Tunnel.xMin, TunnelEnd, doors.Where(d => d.side < 0).Select(d => d.doorX));
-            Wall(walls, "W_06_East", false, TunnelEnd, Tunnel.yMin, Tunnel.yMax, new float[0]);
-
-            // 옆방 바깥 벽(대기실 문 쪽 x=10 벽은 기존 벽 사용)
-            var r1 = Rooms[0].rect; var r2 = Rooms[1].rect; var r3 = Rooms[2].rect;
-            Wall(walls, "W_09_South_Rooms", true, r1.yMin, r1.xMin, r2.xMax, new float[0]);
-            Wall(walls, "W_09_Partition_R1R2", false, r1.xMax, r1.yMin, r1.yMax, new float[0]);
-            Wall(walls, "W_09_East_R2", false, r2.xMax, r2.yMin, r2.yMax, new float[0]);
-            Wall(walls, "W_09_West_R3", false, r3.xMin, r3.yMin, r3.yMax, new float[0]);
-            Wall(walls, "W_09_East_R3", false, r3.xMax, r3.yMin, r3.yMax, new float[0]);
-            Wall(walls, "W_09_North_R3", true, r3.yMax, r3.xMin, r3.xMax, new float[0]);
+            Wall(walls, "W_06_North_08_South", true, Tunnel.yMax, Tunnel.xMin, TunnelEnd);
+            Wall(walls, "W_06_South", true, Tunnel.yMin, Tunnel.xMin, TunnelEnd);
+            Wall(walls, "W_06_East", false, TunnelEnd, Tunnel.yMin, Tunnel.yMax);
         }
 
-        static void Wall(Transform parent, string name, bool alongX, float k, float from, float to, IEnumerable<float> doorCenters)
+        static void Wall(Transform parent, string name, bool alongX, float k, float from, float to)
         {
             var w = new GameObject(name).transform;
             Undo.RegisterCreatedObjectUndo(w.gameObject, "Tunnel Layout");
             w.SetParent(parent, false);
-            float height = WaitingRoomGreyboxBuilder.WallHeight;
-            int index = 0;
-            void Segment(float s0, float s1, float y0, float y1)
-            {
-                if (s1 - s0 < 0.01f) return;
-                float mid = (s0 + s1) / 2f, len = s1 - s0;
-                var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                go.name = "Seg" + index++;
-                go.transform.SetParent(w, false);
-                go.transform.localPosition = alongX ? new Vector3(mid, (y0 + y1) / 2f, k) : new Vector3(k, (y0 + y1) / 2f, mid);
-                go.transform.localScale = alongX ? new Vector3(len, y1 - y0, 0.3f) : new Vector3(0.3f, y1 - y0, len);
-                go.GetComponent<MeshRenderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(WallMaterial);
-            }
-            float cursor = from;
-            foreach (var c in doorCenters.OrderBy(c => c))
-            {
-                Segment(cursor, c - DoorWidth / 2f, 0f, height);
-                Segment(c - DoorWidth / 2f, c + DoorWidth / 2f, DoorHeight, height);
-                cursor = c + DoorWidth / 2f;
-            }
-            Segment(cursor, to, 0f, height);
+            float height = WaitingRoomGreyboxBuilder.WallHeight, len = to - from, mid = (from + to) / 2f;
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = "Seg0";
+            go.transform.SetParent(w, false);
+            go.transform.localPosition = alongX ? new Vector3(mid, height / 2f, k) : new Vector3(k, height / 2f, mid);
+            go.transform.localScale = alongX ? new Vector3(len, height, 0.3f) : new Vector3(0.3f, height, len);
+            go.GetComponent<MeshRenderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(WallMaterial);
         }
 
-        static void BuildRoomFloors(Transform corridor)
+        /// <summary>
+        /// 이전 배치에서 만든 터널 옆방 3개(벽 W_09_*, 바닥, 이름표, 터널 벽 출입구)를 지우고,
+        /// 열린 커튼 3곳은 원래 그레이박스처럼 커튼 뒤 어두운 방(DarkRoom)을 다시 켠다. 없으면 아무 일도 하지 않는다.
+        /// </summary>
+        static void RemoveSideRooms(Transform greybox)
         {
-            var group = new GameObject("RoomFloors").transform;
-            Undo.RegisterCreatedObjectUndo(group.gameObject, "Tunnel Layout");
-            group.SetParent(corridor, false);
-            foreach (var r in Rooms)
+            var walls = greybox.Find("Walls");
+            foreach (var w in walls.Cast<Transform>().Where(t => t.name.StartsWith("W_09_")).ToArray())
+                Undo.DestroyObjectImmediate(w.gameObject);
+            foreach (var n in new[] { "W_06_North_08_South", "W_06_South" })
             {
-                var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                go.name = "Floor_" + r.name;
-                go.transform.SetParent(group, false);
-                go.transform.localPosition = new Vector3(r.rect.center.x, -0.1f, r.rect.center.y);
-                go.transform.localScale = new Vector3(r.rect.width, 0.2f, r.rect.height);
-                go.GetComponent<MeshRenderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(FloorMaterial);
+                var wall = walls.Find(n);
+                if (wall == null || wall.childCount <= 1) continue; // 출입구가 없으면 조각이 하나
+                Undo.DestroyObjectImmediate(wall.gameObject);
+                Wall(walls, n, true, n == "W_06_South" ? Tunnel.yMin : Tunnel.yMax, Tunnel.xMin, TunnelEnd);
             }
+            var corridor = greybox.Find("S06_StageCorridor_Temp");
+            foreach (var t in corridor.Cast<Transform>().Where(t => t.name == "RoomFloors" || t.name.StartsWith("Label_R")).ToArray())
+                Undo.DestroyObjectImmediate(t.gameObject);
+            var rooms = corridor.Find("CurtainRooms");
+            if (rooms == null) return;
+            foreach (var dark in rooms.GetComponentsInChildren<Transform>(true).Where(t => t.name == "DarkRoom"))
+                if (!dark.gameObject.activeSelf) { Undo.RecordObject(dark.gameObject, "Tunnel Layout"); dark.gameObject.SetActive(true); }
         }
 
-        // ── 커튼 방 8곳: 열림 3 = 옆방 출입구, 닫힘 5 = 빈 벽 ─────────────
+        // ── 커튼 방 8곳: 열림 3·닫힘 5 ─────────────
 
         static void MoveCurtainRooms(Transform rooms)
         {
             if (rooms == null) return;
             var open = rooms.Cast<Transform>().Where(t => t.name.StartsWith("CurtainRoom_Open_")).OrderBy(t => t.name).ToArray();
             var closed = rooms.Cast<Transform>().Where(t => t.name.StartsWith("CurtainRoom_Closed_")).OrderBy(t => t.name).ToArray();
-            for (int i = 0; i < open.Length && i < Rooms.Length; i++)
-            {
-                MoveCurtain(open[i], Rooms[i].doorX, Rooms[i].side);
-                var dark = open[i].Find("DarkRoom");
-                if (dark != null) { Undo.RecordObject(dark.gameObject, "Tunnel Layout"); dark.gameObject.SetActive(false); } // 뒤에 실제 방이 생김
-            }
+            for (int i = 0; i < open.Length && i < OpenDoors.Length; i++)
+                MoveCurtain(open[i], OpenDoors[i].x, OpenDoors[i].side);
             for (int i = 0; i < closed.Length && i < ClosedDoors.Length; i++)
                 MoveCurtain(closed[i], ClosedDoors[i].x, ClosedDoors[i].side);
         }
@@ -174,7 +151,6 @@ namespace CurtainCall.WaitingRoom.EditorTools
             group.localRotation = Quaternion.Euler(0f, flip ? 180f : 0f, 0f);
             var rotated = group.localRotation * new Vector3(oldX, 0f, oldSide * CurtainOffset);
             group.localPosition = new Vector3(x, 0f, side * CurtainOffset) - rotated;
-            // 표지는 통로 쪽에서 바로 읽히게(그레이박스 원래 배치는 북쪽이 거울 글자)
             foreach (var t in group.GetComponentsInChildren<TextMesh>(true))
             {
                 Undo.RecordObject(t.transform, "Tunnel Layout");
@@ -182,30 +158,30 @@ namespace CurtainCall.WaitingRoom.EditorTools
             }
         }
 
-        static void MoveGatherZone(Transform corridor)
+        /// <summary>
+        /// 이전 방식(상자 크기 = 오브젝트 배율 14×3×7)의 집결 구역을 ⑦ 앞 4m로 옮기고, 범위를 StageEntranceGather 인스펙터 값으로 넘긴다.
+        /// 이미 넘긴 구역(배율 1)은 인스펙터에서 정한 값을 존중해 건드리지 않는다.
+        /// </summary>
+        static void MigrateGatherZone(Transform corridor)
         {
             var zone = corridor.Find("GatherZone");
-            if (zone != null)
-            {
-                Undo.RecordObject(zone, "Tunnel Layout");
-                zone.localPosition = new Vector3(Gather.center.x, zone.localPosition.y, Gather.center.y);
-                zone.localScale = new Vector3(Gather.width, zone.localScale.y, Gather.height);
-            }
+            if (zone == null || (zone.localScale - Vector3.one).sqrMagnitude < 0.0001f) return;
+            var gather = zone.GetComponent<StageEntranceGather>();
+            Undo.RecordObject(zone, "Tunnel Layout");
+            zone.localPosition = new Vector3(Gather.center.x, GatherHeight / 2f, Gather.center.y);
+            zone.localScale = Vector3.one;
+            var mr = zone.GetComponent<MeshRenderer>();
+            if (mr != null) mr.enabled = false;
+            if (gather == null) return;
+            var so = new SerializedObject(gather);
+            so.FindProperty("areaCenter").vector3Value = Vector3.zero;
+            so.FindProperty("areaSize").vector3Value = new Vector3(Gather.width, GatherHeight, Gather.height);
+            so.FindProperty("border").objectReferenceValue = corridor.Find("GatherZone_Border");
+            so.ApplyModifiedProperties();
             var border = corridor.Find("GatherZone_Border");
-            if (border == null) return;
-            void Set(string n, Vector3 p, Vector3 s)
-            {
-                var t = border.Find(n);
-                if (t == null) return;
-                Undo.RecordObject(t, "Tunnel Layout");
-                t.localPosition = p;
-                if (s != Vector3.zero) t.localScale = s;
-            }
-            Set("N", new Vector3(Gather.center.x, 0.01f, Gather.yMax - 0.05f), new Vector3(Gather.width, 0.02f, 0.1f));
-            Set("S", new Vector3(Gather.center.x, 0.01f, Gather.yMin + 0.05f), new Vector3(Gather.width, 0.02f, 0.1f));
-            Set("W", new Vector3(Gather.xMin + 0.05f, 0.01f, 0f), new Vector3(0.1f, 0.02f, Gather.height));
-            Set("E", new Vector3(Gather.xMax - 0.05f, 0.01f, 0f), new Vector3(0.1f, 0.02f, Gather.height));
-            Set("Label", new Vector3(Gather.center.x, 0.04f, Gather.yMin + 0.9f), Vector3.zero);
+            if (border != null)
+                foreach (Transform strip in border) Undo.RecordObject(strip, "Tunnel Layout");
+            gather.ApplyArea();
         }
 
         static void ShiftStageEntrance(Transform stage)
@@ -215,22 +191,6 @@ namespace CurtainCall.WaitingRoom.EditorTools
             {
                 Undo.RecordObject(t, "Tunnel Layout");
                 t.localPosition += new Vector3(StageShift, 0f, 0f);
-            }
-        }
-
-        /// <summary>옆방 바닥 이름표(통로의 기존 바닥 글씨를 복제해 글만 바꿈).</summary>
-        static void AddRoomLabels(Transform corridor)
-        {
-            var template = corridor.Find("Label");
-            if (template == null) return;
-            foreach (var r in Rooms)
-            {
-                var copy = Object.Instantiate(template.gameObject, corridor);
-                copy.name = "Label_" + r.name;
-                Undo.RegisterCreatedObjectUndo(copy, "Tunnel Layout");
-                copy.transform.localPosition = new Vector3(r.rect.center.x, template.localPosition.y, r.rect.center.y);
-                var text = copy.GetComponent<TextMesh>();
-                if (text != null) text.text = r.label;
             }
         }
     }

@@ -211,6 +211,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             WaitingRoomLayoutFitter.Fit(t); // 좁은 방 넓히기 + 가까운 카메라 구역(3인칭 카메라가 벽 밖으로 나가지 않게)
             WaitingRoomTunnelLayout.Apply(t); // ⑥ 프로토타입 터널 구성(옆방 3개·커튼 8곳·집결 구역·⑦ 입구 이동)
             WaitingRoomLayoutFitter.Fit(t); // 옆방 카메라 구역까지 다시
+            WaitingRoomRoomArranger.Arrange(t); // 가구를 벽 쪽으로·표지 맞춤
 
             Undo.RegisterCreatedObjectUndo(root, "Build Waiting Room Greybox");
             return root;

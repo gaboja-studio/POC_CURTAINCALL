@@ -222,8 +222,6 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Zone(root, "Zone_PropRoom", PropRoom, preset);
             Zone(root, "Zone_JunkStorage", JunkStorage, preset);
             Zone(root, "Zone_Corridor", Corridor, preset);
-            foreach (var room in WaitingRoomTunnelLayout.Rooms) // ⑥ 터널 옆방
-                Zone(root, "Zone_" + room.name, room.rect, preset);
             Zone(root, "Zone_ExpertRoom", ExpertRoom, preset);
         }
 
