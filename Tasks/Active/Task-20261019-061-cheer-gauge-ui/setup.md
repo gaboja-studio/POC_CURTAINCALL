@@ -34,6 +34,14 @@ PM 자체 작업. 2026-10-20 원격 통합 준비·작업 저장/push 승인, �
 - 알림 에셋: `Assets/Resources/Prefabs/UIs/Notifications/`, 필요 시 `Assets/Resources/Fonts/Notifications/`.
 - PM 알림 키트: `Assets/_ThirdParty/curtaincall_notifications_v1/` — 2026-10-20 계획 승인. 신규5 importer/.meta, 제공 Runtime/조립기의 namespace·안전 진입점·전역 초기화 격리 허용. 재사용10 정본 읽기 전용. 프리팹3종·독립 합성 확인 씬·제공 모션 검증, 원본 전체 보존. 삭제·Git 저장·실게임 연결·알림 정책 추가 제외.
 - 알림 기록: `Harness/Project/Facts/notifications.md`, 사실 index, Task 전수 목록·검증 및 Integration 소유 표.
+- C6 씬·코드: `Assets/Scenes/Tests/Interaction/`, `Assets/Scripts/Systems/Interaction/`.
+- C6 에셋: `Assets/Resources/Prefabs/UIs/Interaction/`, 필요 시 `Assets/Resources/Fonts/Interaction/`.
+- PM C6 키트: `Assets/_ThirdParty/curtaincall_interaction_v1/` — 2026-10-20 승인 계획에 따른 신규 링2 importer/.meta·제공 Runtime/Builder namespace·안전 진입점·인스턴스 초기화 보정 허용. 재사용6 정본은 읽기 전용, 전체 원본 보존. 삭제·커밋·push·실게임 연결 제외.
+- C6 기록: `Harness/Project/Facts/interaction.md`, 사실 index, Task 전수 목록·검증 및 Integration 소유 표.
+- 툴팁 씬·코드: `Assets/Scenes/Tests/Tooltips/`, `Assets/Scripts/Systems/Tooltips/`.
+- 툴팁 에셋: `Assets/Resources/Prefabs/UIs/Tooltips/`, 필요 시 `Assets/Resources/Fonts/Tooltips/`.
+- PM 툴팁 키트: `Assets/_ThirdParty/curtaincall_tooltips_v1/` — 2026-10-20 PM C15 근접·패널 품목 설명 묶음 요청. 제공 명세·코드·조립기를 원위치 재사용하고 namespace/안전 진입점/인스턴스 초기화 및 신규 importer 보정 허용. 독립 확인 씬·표시 API만, 기존 정본/전체 원본 보존·삭제/실게임 연결 없음. 최초 C6 포함 저장 해석은 권한 차단 후 철회·보존. 이후 PM의 "지금까지 변경 사항을 commit, push" 명시 재요청으로 C6·C15 private/public 저장만 승인, 무관 변경 제외. C7은 저장 확인 후 다음 단계다.
+- 툴팁 기록: `Harness/Project/Facts/tooltips.md`, 사실 index, Task 전수 목록·검증 및 Integration 소유 표.
 - 준비 기록: `Integrations/Active/Integration-cheer-gauge-ui/`
 - PM 승인 정리: `Assets/_ThirdParty/curtaincall_c1_v1/`의 미참조 제공 코드·문서·미리보기·제작 자료와 동반 .meta 삭제. 필수 PNG8·TTF2·라이선스·상위 .meta 보존.
 - PM 하네스 기록: `Harness/Project/Decisions/third-party-assets.md`, `Harness/Project/Facts/c1-cheer-gauge.md`, `Harness/Project/Facts/index.md`, `Harness/Project/Facts/common-buttons.md`.
@@ -51,7 +59,7 @@ PM 자체 작업. 2026-10-20 원격 통합 준비·작업 저장/push 승인, �
 - `Assets/Scripts/Systems/Reward/` — 공개 API 읽기·구독만 허용
 - `ProjectSettings/`
 - `Packages/`
-- `Assets/_ThirdParty/` — 원본 폴더 변경 금지. PM 승인 예외: 이 worktree에 C1 키트 로컬 복사·Unity import/.meta 및 위 승인 정리·버튼·패널·아이콘·공연 HUD·백스테이지·알림 키트의 위 조립 범위만 허용. 메인 원본·다른 private 자산 변경 금지. PNG·제공 코드 공개 재배포 금지.
+- `Assets/_ThirdParty/` — 원본 폴더 변경 금지. PM 승인 예외: 이 worktree에 C1 키트 로컬 복사·Unity import/.meta 및 위 승인 정리·버튼·패널·아이콘·공연 HUD·백스테이지·알림·C6·툴팁 키트의 위 조립 범위만 허용. 메인 원본·다른 private 자산 변경 금지. PNG·제공 코드 공개 재배포 금지.
 ## 인계 전 체크 (PM)
 
 - [x] 관련 JIRA 번호를 모두 적었다

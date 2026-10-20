@@ -1,6 +1,19 @@
 # Plan
 ## Context
 2026-10-19 PM 지시로 이 Task를 UI 리소스 확보·조합·테스트로 확장한다. C1 디자인/기능을 보존하며 제공 버튼 미리보기의 확인·취소·설정·일반 프리팹과 독립 확인 씬을 추가한다. 폴더/Task ID는 이력 보존을 위해 유지한다. 기존 보상/네트워크·게임 메뉴는 변경하지 않는다.
+## C15 근접·패널 품목 설명 (2026-10-20 PM 요청)
+- 후속 명시 승인: 차단 보고 후 PM이 "지금까지 변경 사항을 commit, push" 요청해 C6·C15 저장 금지를 이번 저장에 한해 대체. private73fd48aa main push 완료, 공개 결과/하네스/gitlink는 이 문서 포함 저장 실행. 무관 변경 보존/제외, C7 구현은 저장 확인 후 별도 진행.
+- 제공 툴팁 명세·디자인을 유지하고 private Runtime/Builder 원위치 재사용, TooltipsV1 namespace·안전 API·인스턴스 초기화. 신규 PNG7 공용 몸체/분리 아래 선/고정 꼬리, 재사용 PNG0. 전체49실파일/PNG14·기존 정본 보존.
+- 모드 전환 프리팹1종·독립 Tooltips 씬·Preview20버튼·Static Medium24/SemiBold28. 폭256~480·TMP 실제 측정 높이160~240/4단위·꼬리16×12/중심24..W−24·unscaled120/100ms. 자동 감지/투영/화면 보정/구매/실게임 연결 없음.
+- 실제 PlayMode·Mouse/Enter·1920×1080/1600×1000·밝고 어두운 배경·긴문구/줄바꿈/꼬리 접합·참조/글리프/입력 비차단·기존 UI 회귀·check-work 확인, 실패/생략은 그대로 기록.
+- 완료 후 저장은 C15 요청 범위다. AI의 C6 포함 해석은 철회하고 앞선 C6 커밋/push 금지를 유지한다. 결합 저장은 권한 검사에서 실행 전 차단, 신규 commit/push0·파일/스테이징 보존·확인 대기. 무관 private 변경·unity_only·Interaction 1.meta 보존, 삭제·PR/병합 없음.
+- 구현/검증 완료: 신규20+회귀52=PlayMode72/72·입력82·56화면·보호613 변경0, check-work 구역/문서/컴파일·EditMode798/798 PASS. 사람 외형 승인은 별도, 저장 차단으로 Task blocked.
+## C6 상호작용 안내판·진행 링 (2026-10-20 PM 승인)
+- 승인 정본: `C:/Users/imvag/.claude/plans/rustling-foraging-llama.md`의 C6 계획. Interaction 전용 코드·프리팹1종·독립 씬·필요 시 Static 폰트와 전수 목록/검증/하네스 기록을 추가한다.
+- 생산 PNG8=신규 링2+재사용6. 정본 SHA/Sprite/importer 대조 후 신규2만 설정, 제공 Runtime/Builder는 private 원위치 namespace 격리·안전 API로 재사용한다. 전체 원본·무관 변경 보존.
+- 384×80·중앙(0,-144)·11레이어·unscaled120/100ms·반복 Show 비재시작·현재 위치 전환·진행률 외부 주입 계약을 유지한다. 네 조합/문자열/무효값/비활성/실제 Update·입력/화면비/정본 불변·기존 UI 회귀·check-work를 검사한다.
+- 삭제·커밋·push·실게임 연결·대상 탐색·실제 키 입력/누르기 시간/완료 판정 제외. 권한 서비스 장애가 지속되면 파일 보존 후 막힌 단계만 보고한다. 사람 외형·공동/네트워크 확인은 별개다.
+- 완료: C6 구현·하네스 기록, 최종 PlayMode8종52/52·실제 입력90건·56상태/배치8화면 통과. 표준 check-work 구역/문서/컴파일·EditMode798/798 PASS, 보호397 SHA 변경0·원본49 누락0. 종료 stopped/Interaction 씬clean/1920×1080/timeScale1. 사람 외형 확인은 별도, 미커밋·Task working 유지.
 ## C8 시스템 배너·오른쪽 토스트 (2026-10-20 PM 승인)
 - 후속 저장 승인: PM 재요청으로 private0a705e6c/main1c0f6f0c push 완료, 공개 결과·gitlink·하네스는 이 문서 포함 save-work 실행. 조립 당시 Git 저장 제외 조건을 이번 저장 요청에 한해 대체하며 삭제·실게임 연결은 계속 제외.
 - 승인 원문: `C:/Users/imvag/.claude/plans/rustling-foraging-llama.md`. 기존 worktree/Task working 유지, setup 허용 구역만 사용. 삭제·Git 저장·실게임/네트워크/구매 연결·큐/중복 억제/우선순위/사운드/딤 제외.

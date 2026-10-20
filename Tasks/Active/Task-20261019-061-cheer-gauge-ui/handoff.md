@@ -1,27 +1,26 @@
 # Handoff
 ## 지금 상태
-- UI 리소스 확보·조합·테스트 Task working. 전용 `D:/github/POC_CURTAINCALL-cheer-gauge-ui`, `feat/ui-resources` → `integration/ui-resources`. 정식 인계 없음.
-- 이전 HUD 공개 `4a39ef2`/private `38442263` 저장 완료. PM 알림 저장 요청 후 private 키트 커밋 `0a705e6c`·main `1c0f6f0c` push 확인. 공개 알림 저장은 이 문서를 포함해 save-work 실행. 삭제·PR/병합·실게임 연결 없음.
-- 승인 계획은 plan.md, 구역은 setup.md. C8 배너·오른쪽 토스트의 제공 표시/모션·독립 합성 확인만 구현. 큐/중복 억제/우선순위·사운드·딤·게임 정책 제외.
-- Notifications 원본58실파일/PNG22 전체 보존, 표시15=신규5+재사용10 읽기 전용. [전수 목록](notifications-inventory.csv), [알림 검증](notifications-verification.md), `Harness/Project/Facts/notifications.md` 참조.
-- namespace 격리·안전 builder·Preview·프리팹3종/독립 씬 생성 완료. U+2028/U+2029 literal 컴파일 오류 수정, 전역 초기화/저장 부작용 제거. 기존 공유 Dynamic폰트 변경·렌더링 참조 제외.
-- 신규 PlayMode 최초8/9(시간정지 Mouse), 무수정 단독1/1·전체9/9 후 화면 보정/강화9/9 두 번 통과. 최초 입력 실패 원인 미확정. 기존 UI 개별 회귀·최종check-work 구역/문서/컴파일·EditMode798/798 PASS.
-- 신규 씬 C1 Canvas/문맥 Static폰트/Controls P1 가림을 증분 보정. 실제1920/1600 각22상태·총44캡처와 최종 비교이미지 둘 다 목시 확인, glyph/빈mesh 실패0. DEV MODE 전역 배지 겹침은 범위 밖으로 보존.
-- Sprite15/platform75·참조201/missing0·crop15 pixel 일치, 보호baseline111 변경0. 기존 정본/importer/ProjectSettings/Packages 변경 없음.
-- 기존 공연 C2/C3/P1·C1 및 백스테이지/로비 프리팹·확인 씬 완료. P1 5구간/10인자·구8인자 호환 유지. 상세 [performance-hud-verification.md](performance-hud-verification.md), [backstage-hud-verification.md](backstage-hud-verification.md).
-- 공유 Dynamic TMP2개(CheerGauge Bold/CommonButtons SemiBold)는 시작부터 dirty, 이전 baseline95항목 중93동일/2개 추가 SHA 차이. 원인 미확정·이전 dirty 백업 없음, 임의 복구/재작성 금지·PM 확인 필요.
-- 이전 Buttons 전체2건 FAIL(글리프/후속 클릭), 빈 호스트 재현·입력 단독1/1 PASS. 새 알림 통과로 미결을 덮지 않는다. private 무관 tracked220파일/4886삽입/931삭제·미추적 unity_only 보존.
-- C1·버튼·패널·아이콘 정본 재생성 없음. 이전 상세 verification.md/buttons-verification.md/panels-verification.md/icons-verification.md 참조.
+- 최신 중단: 공개 선택 스테이징과 save-work DryRun 통과(구역/문서/컴파일 PASS, 테스트 SKIPPED). 이후 commit/push 호출이 auto mode 권한 검사에서 실행 전 거부됐다. 검사기는 요약에 담긴 승인으로는 경계를 해제할 수 없으며 사용자 직접 확인이 필요하다고 보고했다. 공개 새 커밋/push 없음, 파일·인덱스 보존, 우회 없음. 저장 후 C7이라는 요청 순서를 지켜 C7은 아직 시작하지 않았다. 아래 저장 재개 문구는 이번 재차 차단 이전 이력이다.
+- Task working: C6·C15 구현/검증 완료, 차단 보고 후 PM이 "지금까지 변경 사항을 commit, push" 명시 재요청하여 저장 재개. 전용 `D:/github/POC_CURTAINCALL-cheer-gauge-ui`, `feat/ui-resources` → `integration/ui-resources`. 정식 인계·PR/병합 없음.
+- PM C15 근접·패널 품목 설명 묶음 구현 및 완료 후 저장 요청. AI가 이전 C6까지 포함한다고 확대 해석했으나 결합 저장은 실행 전 권한 검사에서 차단됐다. 해석 철회·앞선 C6 커밋/push 금지 유지, 신규 commit/push0·우회 없음.
+- C15 모드 전환 프리팹1종·독립 Tooltips 씬·Preview20버튼·안전 Builder·Static Medium/SemiBold2개·PlayMode20건 구현. 제공 private Runtime/Builder 원위치 namespace 격리·주입형 조립·인스턴스 초기화로 재사용.
+- 툴팁 원본49실파일/PNG14 전체 보존, 생산 신규7/기존 PNG 재사용0. 시트 RGBA7 일치·보호baseline613 SHA 변경0·원본 누락0. [전수 목록](tooltips-inventory.csv), [C15 검증](tooltips-verification.md), `Harness/Project/Facts/tooltips.md` 참조.
+- 표시 API/폭256..480·TMP 높이160..240·근접 고정 꼬리/패널 연속 아래 선·unscaled120/100ms만 구현. 감지/거리/시선/투영/추적/가장자리 보정·우선순위·구매·게임/네트워크 연결 없음.
+- C6 안내판/진행 링·독립 Interaction 씬의 완료 결과는 미저장 보존. 이전 최종52/52·입력90·56상태/배치8화면 이력은 [C6 검증](interaction-verification.md), `Harness/Project/Facts/interaction.md` 참조.
+- 기존 모든 UI 정본 보존. 공유 Dynamic TMP2개 과거 dirty/추가 SHA 차이·Buttons 과거 실패 원인은 미결이며 이번 통과로 닫지 않는다. 임의 복구/재작성 금지·PM 확인 필요.
+- private 무관 tracked 변경·미추적 unity_only·공개 `Assets/Scripts/Systems/Interaction 1.meta` 보존/저장 제외. private 작업 브랜치 `resource/ui-interaction-tooltips`·스테이징226파일 보존, 공개 인덱스 비어 있음.
+- 후속 명시 승인으로 C6·C15 private226파일 `73fd48aa88bd5330c7b1837d94936fb063365a89` main push 완료. 공개 결과/하네스/gitlink는 이 문서 포함 저장 실행. 이전 차단 이력은 아래 상세/검증 문서에 보존한다. C7은 이번 저장 후 별도 조사·구현.
 ## 다음 할 일
-1. 알림 구현·검증·하네스 기록 완료. 사람 최종 외형 확인 및 다음 UI 지시 대기.
-2. 독립 씬 Play연속2회·시간 복구·한 delta로 세 phase 소모 통과, 종료 stopped/clean/1920×1080/timeScale1/background=false 확인. reload 설정 변경 및 both OFF 지원 주장 금지.
-3. 사람 알림·백스테이지/로비 최종 외형 및 신규 그림 확인 대기. PM과 공유 폰트/Buttons 미결 별도 해결.
-4. 삭제·Git 저장·실게임 연결·제출·병합은 별도 요청. C1 구형 Builder 재실행 금지·사람 공동/네트워크·테스트 씬 처리·개발 배지 미결 보존.
+1. 새 명시 승인으로 저장 차단 해소. public 선택 스테이징/DryRun·push 확인 후 C7 guides 조사·작업 구역/계획 갱신 및 구현·검증한다. 새 C7 결과는 이번 저장 대상이 아니다.
+2. 사람 최종 외형 확인은 기능 완성 후 한 번에 진행한다. 근접/패널·긴문구·꼬리/두 화면비/배경·시간 정지/초기화를 독립 씬에서 확인하며 공동·실게임 확인과 구분한다.
+3. 공유 폰트/Buttons 미결·DEV MODE 전역 배지·테스트 씬 처리·PR/통합은 별도다.
 ## Verification
 - 구역 검사: PASS (10-20)
 - 1 문서/규칙: PASS (10-20)
 - 2 컴파일: PASS (10-20)
 - 3 테스트: PASS (EditMode, 798/798, 10-20)
-- 회귀 최종: Backstage7/7·Cheer3/3·Icons3/3·Buttons2/2·Performance9/9·Panels3/3 PASS. 첫 Performance8/9·Panels2/3(입력 Expected1 Actual0), Icons 조회 null로 수집 중단 후 재개한 이력 보존. 원인 미확정, Buttons 최신 통과로 과거 미결을 닫지 않는다.
-- 실제 화면44상태/참조/전수 검사는 완료, 사람 승인과 별개. 이전 백스테이지 check-work EditMode798/798을 이번 최종 결과로 재사용하지 않는다.
-- doctor FAIL은 시작 시 보고한 보존할 private 변경, 반복 실행/무관 변경 폐기 없음. 전체 PlayMode·사람 공동·네트워크 미검증.
+- 신규 Tooltip20/20 + 기존 Cheer3/Buttons2/Panels3/Icons3/Performance9/Backstage7/Notifications9/Interaction16 = PlayMode72/72 PASS, failed/skipped/inconclusive0. 실제 Update·unscaled·반전과 elapsed 주입 곡선 검사는 구분했다.
+- 최종 실제 Mouse/Enter82건 각1회·persistent listener1, 1920×1080/1600×1000·밝고 어두운 배경56화면 PASS. glyph/빈mesh·화면 밖·Controls 전체 rect와 툴팁 꼬리/모션 여유 겹침 오류0. 최초 집계 오류와 회귀 수집 HTTP400/전환 reset 이력은 C15 상세에 보존했다.
+- 구조: 직렬화 참조3115/missing0·Missing Script0·Sprite7/플랫폼49 override0·Static2·EventSystem/module 각1·Controls raycaster1·sorting8/10. Preview 원래timeScale.37 Reset/비활성/예외 복구·독립 Play 재진입 초기 숨김·정지 종료 후1 복구 PASS.
+- 종료 stopped/Tooltips 씬clean/1920×1080/timeScale1/background=false. 편집 Show 거부/보존·Builder 기존 출력 거부 PASS. 현재 Console errors0/compilationFailed=false, 과거 보존 버퍼와 구분한다.
+- doctor FAIL은 시작부터 보존할 private 변경으로 보고 완료. 최종 검사 후 저장 차단 문서만 갱신, scope268/verify-fast/knowledge9 재검사 PASS(길이 경고11·hard0). 현재 Console warnings5는 errors0/실제 컴파일 PASS와 구분한다. reload 설정 변경/both OFF 지원·전체 프로젝트 PlayMode·사람 외형/공동/네트워크는 미검증.

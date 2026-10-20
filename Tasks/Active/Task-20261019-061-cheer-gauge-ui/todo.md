@@ -8,7 +8,6 @@
 - [x] 담당자에게 실제 전달 — PM 확인
 
 ## 작업자
-
 - [x] "시작해줘"로 작업 시작
 - [x] 구현
   - [x] 공용 버튼4종·SemiBold TMP·프리팹 인스턴스 확인 씬 생성
@@ -49,10 +48,17 @@
 - [x] 표준 check-work 구역/문서/컴파일·EditMode798/798 및 알림 하네스 기록
 - [ ] 알림 최종 외형 사람 확인 — Task working 유지
 - [x] PM 알림 저장 재요청: private0a705e6c/main1c0f6f0c 원격 저장, 공개 결과·하네스/gitlink는 이 문서 포함 save-work 실행
+- [x] C6 전수 목록·재사용6 정본 대조·기존 자산 baseline 확보
+- [x] C6 private Runtime/Builder 안전 통합·프리팹/독립 씬/합성 Preview 조립
+- [x] C6 표시/모션/입력·화면비·기존 UI 회귀·check-work 검증
+- [x] C6 하네스 사실·검증·handoff 기록, 사람 외형 확인은 별도
+- [x] C15/품목 툴팁 원본 전수 목록·기존 정본 baseline·조립/독립 씬·Preview 구현
+- [x] 툴팁 모드·동적 높이·꼬리 접합·입력82·화면56·PlayMode72/72·check-work EditMode798/798
+- [x] 툴팁 하네스 사실·검증·handoff 및 저장 차단 기록
+- [ ] PM "지금까지 commit, push" 명시 재요청: private73fd48aa main push 완료. 공개 선택 스테이징/DryRun 통과 후 commit/push 재차 권한 거부·미실행, 파일/인덱스 보존·무관 변경 제외. C7은 선행 저장 완료 대기
 - [ ] "제출해줘"로 PR 제출
 
 ## PM 통합
-
 - [ ] PR 병합
 - [ ] 공동 테스트 통과
 - [ ] 테스트 씬 처리 결정 기록 (`setup.md`)
