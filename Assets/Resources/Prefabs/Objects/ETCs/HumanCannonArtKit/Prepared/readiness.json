@@ -1,0 +1,164 @@
+[
+  {
+    "id": "3D-042",
+    "title": "코스 콘크리트 바닥",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/PerformanceArtKit/Prepared/FloorModulePrepared.prefab",
+    "shape": "상면0, 4×0.25×4m BoxCollider",
+    "binding": "일반 바닥. 안전 착지/사망 규칙은 사용하는 코스에서 지정.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-043",
+    "title": "복귀 계단",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/PerformanceArtKit/Prepared/StairModulePrepared.prefab",
+    "shape": "원본 메시와 동일한 정적 MeshCollider",
+    "binding": "Rigidbody 없이 배치. 원본 계단 방향과 보행 경사를 유지.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-046",
+    "title": "공용 해제봉",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/PerformanceArtKit/Prepared/SharedReleasePolePrepared.prefab",
+    "shape": "Grip 중심0, 단위1m 중심 케이블; 물리 Collider 없음",
+    "binding": "기존 잡기·진자 로직의 Grip/VisualBar/LeftCable/RightCable/Anchor 필드에 연결. 추가 Rigidbody나 Joint를 중복하지 않음.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "variant": "공용 외형 연결본",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-053",
+    "title": "공중그네",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/PerformanceArtKit/Prepared/TrapezePrepared.prefab",
+    "shape": "Grip 중심0, 단위1m 중심 케이블; 물리 Collider 없음",
+    "binding": "기존 잡기·진자 로직의 Grip/VisualBar/LeftCable/RightCable/Anchor 필드에 연결. 추가 Rigidbody나 Joint를 중복하지 않음.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-052",
+    "title": "외줄 로프",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/PerformanceArtKit/Prepared/RopeSegmentPrepared.prefab",
+    "shape": "상면0, +Z방향3m, 시각 경계와 같은 Trigger",
+    "binding": "탑승/균형/불타기/네트워크는 기존 TightropeCourse의 선분 데이터와 연결. 고체 보행 바닥을 추가하지 않음.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-054",
+    "title": "협동 발판",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/PerformanceArtKit/Prepared/PressurePlatePrepared.prefab",
+    "shape": "0.8×0.12×1.6m 접촉 Trigger",
+    "binding": "발판 신호는 기존 협동 관문에 연결. 자동으로 별도 보상/연출을 추가하지 않음.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-055",
+    "title": "안전망",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/PerformanceArtKit/Prepared/SafetyNetModulePrepared.prefab",
+    "shape": "수평6×0.08×2m 구조 Trigger",
+    "binding": "기존 추락/구조 로직에 연결. 임의 반동을 추가하지 않음.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-044",
+    "title": "인간대포",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/CannonStationPrepared.prefab",
+    "shape": "현행 좌석/포구/탑승 기준. 발사·반동 값 복사",
+    "binding": "기존 HumanCannonSystem.stations 배열에 연결. 대포별 기존 발사 수치는 유지.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-045",
+    "title": "원형 운반 트램폴린",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RoundTrampolinePrepared.prefab",
+    "shape": "원형 반동 반경2m·상면0.5m. 프레임 실제 최대 외곽 반경2.475341m, 손잡이x=-2.8m. 회전 시 운송 면적이 늘지 않도록 원형 경계 검사.",
+    "binding": "새 프리팹만 circularSurface=true. 기존 씬은 사각 기본값 유지. 반동/공중 조절 속도는 현행 트램폴린 값 복사.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-046",
+    "title": "인간대포 공용 봉 연결본",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/ReleasePolePrepared.prefab",
+    "shape": "봉 폭4.4m·기본 줄8m, 현행 잡기/반동/해제 속도 복사",
+    "binding": "linkedGate는 배치할 관문에 연결. 봉마다 원래 앵커 높이·줄 길이 유지.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "variant": "인간대포 기능 연결본",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-050",
+    "title": "금속 양문 운송 발판",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/SplitFloorTransportPrepared.prefab",
+    "shape": "6×8m, 상면0. 좌우 경첩과 각각의 Collider 동시 개폐",
+    "binding": "기존 RouteSystem.transports 배열에 연결. 현행 출발 운송 시간 복사; 경로는 배치 지점의 기존 Start/Destination 유지.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-051",
+    "title": "착지 쿠션",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/LandingCushionPrepared.prefab",
+    "shape": "4×0.7×4m, 시각 상면과 안전 착지 면 모두0",
+    "binding": "기존 안전 착지 로직 재사용. 추가 점프/반동 없음.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-041",
+    "title": "왕복 톱날",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/SawDiscPrepared.prefab",
+    "shape": "원판 반경 0.65m; 두께 0.24m",
+    "binding": "기존 HumanCannonHazardCourse 배열에 연결. 이동 폭·주기·회전·피해 판정은 현행 대표 함정에서 복사. 위치별 값은 원래 배치 값을 유지.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-048",
+    "title": "가시 철퇴",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/SpikeMacePrepared.prefab",
+    "shape": "구 반경 0.65m",
+    "binding": "기존 HumanCannonHazardCourse 배열에 연결. 이동 폭·주기·회전·피해 판정은 현행 대표 함정에서 복사. 위치별 값은 원래 배치 값을 유지.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-049",
+    "title": "십자 회전 칼날",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/CrossBladesPrepared.prefab",
+    "shape": "직교한 두 캡슐/선분에 외형 정렬",
+    "binding": "기존 HumanCannonHazardCourse 배열에 연결. 이동 폭·주기·회전·피해 판정은 현행 대표 함정에서 복사. 위치별 값은 원래 배치 값을 유지.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  },
+  {
+    "id": "3D-047",
+    "title": "44m 톱 관문 연결본",
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/SawGatePrepared.prefab",
+    "shape": "현행 차단 Box44×2.4×0.6m 유지. 지지대를 폭44m 규격으로 확장",
+    "binding": "관문 전체를 보존해 생성. 기존 회전 날/해제 로직 유지; 기존 PoleSystem의 gate 배열과 linkedGate에 연결.",
+    "sceneApplied": false,
+    "worker": "주형락",
+    "preparationStatus": "프리팹 구성 및 검사 완료 / 씬 미적용"
+  }
+]
