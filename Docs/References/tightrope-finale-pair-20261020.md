@@ -39,3 +39,5 @@
 - `save-work.ps1 -DryRun`은 대응 Task 없음으로 구역 검사 FAIL. 사용자 승인된 기존 Task 미배정 작업 범위만 명시적으로 스테이징하며, 검사 스크립트·Git 훅·작성자 검증은 변경하거나 비활성화하지 않는다. PM의 범위 사후 확인이 필요하다.
 - 기존 private 에셋 220개 미저장 변경과 `ProjectSettings/MultiplayerManager.asset` 로컬 설정은 제외하고 보존한다.
 - 테스트 창의 확대 배율·배치와 입력 디버그 숨김은 로컬 표시 상태 조정이다. 게임 카메라 수치나 씬 변경으로 저장하지 않는다.
+- 구현 저장: `9289a62`를 원격 작업 브랜치에 push했다. 통합 최신 `a05f07f`를 합쳐 보는 과정에서 `Tests/PlayMode/TightropeCoursePresentationPlayTests.cs` 내용 충돌 및 `Tests/TightropeMultiplayerProbe.Journey.cs` add/add 충돌이 발생했다.
+- `submit-work` 규칙대로 merge를 abort했다. 검증한 구현을 보존했으며 충돌 표식은 남기지 않았다. 검토용 Draft PR로 제출하고 통합 담당자가 충돌을 확인하도록 명시한다. 통합 병합 이후 컴파일·관련 테스트 재검사가 필요하다.
