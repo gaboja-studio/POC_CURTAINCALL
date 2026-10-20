@@ -88,7 +88,16 @@ namespace CurtainCall.HumanCannon
         public bool ContainsLoad(HumanCannonTrampoline trampoline)
         {
             if (trampoline == null || !ContainsFeet(trampoline.Handle.position)) return false;
-            Vector2 size = trampoline.HalfSize;
+            Vector2 size = trampoline.LoadHalfSize;
+            if (trampoline.CircularSurface)
+            {
+                // 원형 프레임은 회전해도 운송 면적이 늘지 않는다. 손잡이는 위에서 별도로 검사한다.
+                float radius = Mathf.Max(trampoline.transform.TransformVector(Vector3.right * size.x).magnitude,
+                    trampoline.transform.TransformVector(Vector3.forward * size.y).magnitude);
+                foreach (Vector3 edge in new[] { Vector3.left, Vector3.right, Vector3.forward, Vector3.back })
+                    if (!ContainsFeet(trampoline.transform.position + Rotation * edge * radius, 0.05f)) return false;
+                return true;
+            }
             foreach (int x in new[] { -1, 1 })
                 foreach (int z in new[] { -1, 1 })
                     if (!ContainsFeet(trampoline.transform.TransformPoint(new Vector3(x * size.x, 0, z * size.y)), 0.05f))

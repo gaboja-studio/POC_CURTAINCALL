@@ -225,7 +225,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(gates[0].transform.root.name, Is.EqualTo("PoleGateCourse"));
             foreach (var gate in gates)
             {
-                Assert.That(gate.transform.Find("SawVisual").childCount, Is.EqualTo(19));
+                Assert.That(gate.transform.Find("SawVisual").childCount, Is.EqualTo(44));
                 Assert.That(gate.transform.Find("SawVisual/GateSawDisc0/Disc"), Is.Not.Null);
                 Assert.That(gate.transform.Find("Barrier").GetComponentsInChildren<Renderer>(true).All(r => !r.enabled), Is.True);
             }

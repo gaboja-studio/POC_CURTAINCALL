@@ -9,15 +9,17 @@ namespace CurtainCall.Tightrope.Saws
 {
     public sealed partial class TightropeSaws
     {
-        const int FinaleStackSize = 4;
-        readonly ulong[] cooperativeAdmittedPlayers = new ulong[FinaleStackSize];
+        const int MinimumFinaleStackSize = 2, MaximumFinaleStackSize = 4;
+        readonly ulong[] cooperativeAdmittedPlayers = new ulong[MaximumFinaleStackSize];
         int cooperativeAdmittedCount;
         uint cooperativeGateRevision, receivedCooperativeGateRevision;
 
         public bool IsFourStackFinaleGate => IsCooperativeGateActive && IsRequiredFinaleIndex(cooperativeGateIndex);
         public bool IsFinaleFourStackGate => IsFourStackFinaleGate;
-        public int CooperativeRequiredStackSize => IsFourStackFinaleGate ? FinaleStackSize : 2;
-        public bool IsCooperativeStackApproved => !IsFourStackFinaleGate || cooperativeAdmittedCount == FinaleStackSize;
+        // Legacy FourStack names/serialized setting identify the finale, not a four-player requirement.
+        public int CooperativeRequiredStackSize => MinimumFinaleStackSize;
+        public bool IsCooperativeStackApproved => !IsFourStackFinaleGate || ValidFinaleStackSize(cooperativeAdmittedCount);
+        static bool ValidFinaleStackSize(int count) => count >= MinimumFinaleStackSize && count <= MaximumFinaleStackSize;
         public float CooperativeUpperLandingDistance => CooperativeGateStopDistance + settings.cooperativeGatePlateOffset
             + settings.cooperativeGatePlateLength * .5f + GameSettings.Base.Character.CapsuleRadius
             + settings.cooperativeGateUpperLandingOffset;
@@ -68,25 +70,32 @@ namespace CurtainCall.Tightrope.Saws
 
         bool ServerApproveCooperativeStack()
         {
-            if (!IsFourStackFinaleGate || cooperativeAdmittedCount != 0 || !IsCooperativeGateStopped) return false;
+            if (!IsFourStackFinaleGate || !IsCooperativeGateStopped) return false;
             var fire = TightropeFire.Current;
             var stack = PiggybackSystem.Current;
             if (fire == null || !fire.FinaleReadyAt(CooperativeGateStopDistance) || stack == null) return false;
             foreach (var bottom in NetworkPlayer.All)
             {
-                if (!IsStandingStackMember(bottom) || stack.GetBelow(bottom) != null || stack.GetStackSize(bottom) != FinaleStackSize
+                int size = stack.GetStackSize(bottom);
+                if (!IsStandingStackMember(bottom) || stack.GetBelow(bottom) != null || !ValidFinaleStackSize(size)
+                    || size <= cooperativeAdmittedCount
                     || !bottom.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRope(mover, out int lane)
                     || !TryGetCooperativeGateApproachPosition(lane, out var approach)) continue;
                 Vector3 offset = bottom.transform.position - approach;
                 if (Mathf.Abs(Vector3.Dot(offset, course.Forward)) > settings.cooperativeGateLaunchTolerance
                     || Mathf.Abs(Vector3.Dot(offset, course.Right)) > settings.plateWidth * .5f) continue;
                 int count = 0;
-                for (var member = bottom; member != null && count < FinaleStackSize; member = stack.GetAbove(member))
+                // A third/fourth player may join before launch. Once any admitted member
+                // departs, never replace that roster with another pair or shrink it.
+                var candidates = new ulong[MaximumFinaleStackSize];
+                for (var member = bottom; member != null && count < size; member = stack.GetAbove(member))
                 {
                     if (!IsStandingStackMember(member)) break;
-                    cooperativeAdmittedPlayers[count++] = member.NetworkObjectId;
+                    if (count < cooperativeAdmittedCount && cooperativeAdmittedPlayers[count] != member.NetworkObjectId) break;
+                    candidates[count++] = member.NetworkObjectId;
                 }
-                if (count != FinaleStackSize) { ResetCooperativeAdmission(); continue; }
+                if (count != size) continue;
+                Array.Copy(candidates, cooperativeAdmittedPlayers, count);
                 cooperativeAdmittedCount = count;
                 return true;
             }

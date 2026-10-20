@@ -13,6 +13,12 @@ namespace CurtainCall.HumanCannon
         public static bool TryCross(Vector3 from, Vector3 to, Vector3 previousSurface, Vector3 surface,
             Quaternion previousRotation, Quaternion rotation,
             Vector2 halfSize, float bodyRadius, out Vector3 contact)
+            => TryCross(from, to, previousSurface, surface, previousRotation, rotation,
+                halfSize, bodyRadius, false, out contact);
+
+        public static bool TryCross(Vector3 from, Vector3 to, Vector3 previousSurface, Vector3 surface,
+            Quaternion previousRotation, Quaternion rotation,
+            Vector2 halfSize, float bodyRadius, bool circular, out Vector3 contact)
         {
             contact = Vector3.zero;
             if (!Finite(from) || !Finite(to) || !Finite(previousSurface) || !Finite(surface)
@@ -31,15 +37,26 @@ namespace CurtainCall.HumanCannon
             Vector3 surfaceAtContact = Vector3.LerpUnclamped(previousSurface, surface, fraction);
             Quaternion rotationAtContact = Quaternion.Slerp(previousRotation, rotation, fraction);
             Vector3 localContact = Quaternion.Inverse(rotationAtContact) * (feetAtContact - surfaceAtContact);
-            float reachX = halfSize.x + bodyRadius;
-            float reachZ = halfSize.y + bodyRadius;
-            if (!Finite(feetAtContact) || !Finite(surfaceAtContact) || !Finite(reachX) || !Finite(reachZ)
-                || !Finite(localContact) || Mathf.Abs(localContact.x) > reachX
-                || Mathf.Abs(localContact.z) > reachZ) return false;
+            if (!Finite(feetAtContact) || !Finite(surfaceAtContact) || !Finite(localContact)
+                || !Contains(new Vector2(localContact.x, localContact.z), halfSize, bodyRadius, circular)) return false;
 
             contact = feetAtContact;
             contact.y = surfaceAtContact.y;
             return true;
+        }
+
+        /// <summary>Circle uses the smaller half-size as its radius; callers use the same shape for host validation.</summary>
+        public static bool Contains(Vector2 point, Vector2 halfSize, float margin, bool circular)
+        {
+            if (!Finite(point.x) || !Finite(point.y) || !Finite(halfSize.x) || !Finite(halfSize.y)
+                || halfSize.x <= 0f || halfSize.y <= 0f || !Finite(margin) || margin < 0f) return false;
+            if (circular)
+            {
+                double reach = (double)Mathf.Min(halfSize.x, halfSize.y) + margin;
+                return (double)point.x * point.x + (double)point.y * point.y <= reach * reach;
+            }
+            float reachX = halfSize.x + margin, reachZ = halfSize.y + margin;
+            return Finite(reachX) && Finite(reachZ) && Mathf.Abs(point.x) <= reachX && Mathf.Abs(point.y) <= reachZ;
         }
 
         static bool Finite(Vector3 value) => Finite(value.x) && Finite(value.y) && Finite(value.z);

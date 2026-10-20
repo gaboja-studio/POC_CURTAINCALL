@@ -23,6 +23,9 @@ namespace CurtainCall.HumanCannon.Tests
             var state = Call(poles, "State", index);
             var gate = Get(pole, "LinkedGate");
             Assert.IsNotNull(gate);
+            foreach (Transform blade in ((Component)gate).transform.Find("SawVisual"))
+                Assert.That(Vector3.Dot(blade.forward, Vector3.right), Is.GreaterThan(.999f),
+                    "실제 호스트의 관문 업데이트 후에도 개별 톱날90도 방향을 유지한다.");
             Assert.IsTrue((bool)Get(state, "IsUnlimitedHold"));
             double started = (double)Get(poles, "Clock");
             while ((double)Get(poles, "Clock") - started < 8.5)
@@ -84,6 +87,29 @@ namespace CurtainCall.HumanCannon.Tests
             Assert.AreEqual("Retracted", Get(Get(pole, "LinkedGate"), "Phase").ToString(),
                 "새 공중 톱의 부상이 지상 관문을 임의로 재가동하지 않는다.");
         }
+
+
+        [UnityTest]
+        public IEnumerator PoleGrab_ExpandedReachAcceptsNearMiss_ButRejectsBeyondThreeMeters()
+        {
+            DisableEnhancementThreats();
+            var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
+            var pole = (Component)Call(poles, "Pole", 1);
+            var grip = (Transform)Get(pole, "Grip");
+            yield return Board(0);
+            yield return ReleaseThenArm();
+            Input(tapped: true);
+            var hang = (Vector3)Call(pole, "HangingPosition", 0f);
+            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), hang + Vector3.right * 3.25f, grip.rotation, Vector3.zero);
+            Input(tapped: true);
+            yield return null;
+            Assert.AreEqual(-1, Get(pilot, "HeldPole"), "3m 밖의 다른 봉을 원격으로 잡지 않는다.");
+            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), hang + Vector3.right * 2.75f, grip.rotation, Vector3.zero);
+            Input(tapped: true);
+            yield return WaitUntil(() => (int)Get(pilot, "HeldPole") == 1, 2, "expanded host grab reach");
+            Assert.AreEqual(Actor, Get(Call(poles, "State", 1), "Occupant"));
+        }
+
 
         IEnumerator GrabEnhancementPole(int index)
         {

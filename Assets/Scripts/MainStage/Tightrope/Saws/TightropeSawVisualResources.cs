@@ -10,6 +10,18 @@ namespace CurtainCall.Tightrope.Saws
         readonly Dictionary<(Material source, Color color, bool luminous), Material> colored = new();
         readonly List<Material> owned = new();
 
+        public Material Unlit(Color color)
+        {
+            var key = ((Material)null, color, false);
+            if (colored.TryGetValue(key, out var existing)) return existing;
+            var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
+            if (shader == null) return null;
+            var material = new Material(shader) { name = "Saw path laser", color = color,
+                hideFlags = HideFlags.HideAndDontSave };
+            owned.Add(material); colored.Add(key, material);
+            return material;
+        }
+
         public Material Colored(Material source, Color color, bool luminous = false)
         {
             var key = (source, color, luminous);

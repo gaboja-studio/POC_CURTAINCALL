@@ -112,14 +112,14 @@ namespace CurtainCall.Tightrope.Saws
         [Min(0f)] public float cooperativeGateHopHeight = 5f;
         [Tooltip("톱 홉의 정점 높이 = 기본 캐릭터 캡슐 높이 × 이 값. 남은 목마를 자동으로 보호하지 않는다.")]
         [Min(0.1f)] public float cooperativeGateHopHeightMultiplier = 1.5f;
-        [Header("최후반 4인 순차 도약")]
-        [Tooltip("최후반 관문마다 출발선의 실제 4인 목마를 먼저 확인한다. 이후 4·3층이 떠나도 2층의 발판 작동은 유지된다.")]
+        [Header("최후반 협동 도약 (2명부터)")]
+        [Tooltip("최후반 관문마다 출발선의 2~4인 목마를 확인한다. 접속 인원과 무관하게 2명으로 통과 가능하며, 3·4층이 떠나도 2층의 발판 작동은 유지된다.")]
         public bool finaleFourStackRequired;
         [Range(0.5f, 1f)] public float finaleStartFraction = 0.8f;
         [Tooltip("3·4층은 발판 뒤쪽 끝과 몸 반경을 지난 뒤 이 거리만큼 더 앞에 착지한다.")]
         [Min(0.5f)] public float cooperativeGateUpperLandingOffset = 2f;
         [Header("최후반 단독 통과 (초기 테스트값)")]
-        [Tooltip("기존 최후반 자동 개방을 유지할지. 4인 순차 도약 코스에서는 끈다.")]
+        [Tooltip("기존 최후반 자동 개방을 유지할지. 협동 도약 코스에서는 끈다.")]
         public bool finaleSoloAutoOpen = true;
         [Tooltip("마지막 관문이 이 코스 비율 이후에 있을 때만 주기적으로 열린다. 중반 협동 관문에는 적용하지 않는다.")]
         [Range(0.5f, 1f)] public float finaleSoloStartFraction = 0.9f;

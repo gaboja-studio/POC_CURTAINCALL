@@ -260,8 +260,10 @@ namespace CurtainCall.Tightrope.Saws
             cooperativeLaunchMarkers = new Transform[course.LaneCount];
             for (int lane = 0; lane < cooperativePlates.Length; lane++)
             {
-                cooperativePlates[lane] = CreatePrimitive(PrimitiveType.Cube, cooperativePlateRoot, $"Plate{lane + 1}",
-                    new Vector3(settings.plateWidth, .04f, settings.cooperativeGatePlateLength), plateColor, true);
+                cooperativePlates[lane] = cooperativePlatePrefab != null
+                    ? Instantiate(cooperativePlatePrefab, cooperativePlateRoot).transform
+                    : CreatePrimitive(PrimitiveType.Cube, cooperativePlateRoot, $"Plate{lane + 1}",
+                        new Vector3(settings.plateWidth, .04f, settings.cooperativeGatePlateLength), plateColor, true);
                 TightropeOutline.AttachToHierarchy(cooperativePlates[lane].gameObject);
                 float markerLength = settings.cooperativeGateLaunchTolerance * 2f;
                 cooperativeLaunchMarkers[lane] = CreatePrimitive(PrimitiveType.Cube, cooperativePlateRoot, $"Launch{lane + 1}",

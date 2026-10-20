@@ -36,6 +36,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 var view = saws.transform.Find("Generated/ReleasedGate0");
                 Assert.IsTrue(view.gameObject.activeSelf);
                 Assert.IsTrue(view.GetComponentInChildren<MeshCollider>().enabled, "착지 후 실제 충돌체도 계속 작동한다.");
+                var guide = saws.transform.Find("Generated/Saw paths (visual only)/Released path 0");
+                Assert.IsNotNull(guide);
+                Assert.IsTrue(guide.GetComponent<LineRenderer>().enabled);
+                Assert.That(guide.GetComponentsInChildren<Collider>(), Is.Empty);
                 yield return new WaitForSeconds(.3f);
                 Assert.That((float)Call(course, "GetDistance", ReleasedGatePosition(saws)),
                     Is.LessThan((float)Call(course, "GetDistance", landed) - .5f));

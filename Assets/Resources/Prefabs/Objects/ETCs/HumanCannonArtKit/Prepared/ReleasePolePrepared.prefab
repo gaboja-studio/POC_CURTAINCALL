@@ -1,0 +1,126 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &7253239380467379957
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4645756156963008472, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645756156963008472, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645756156963008472, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645756156963008472, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645756156963008472, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645756156963008472, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645756156963008472, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645756156963008472, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645756156963008472, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645756156963008472, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5761493341537780504, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      propertyPath: m_Name
+      value: ReleasePolePrepared
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5761493341537780504, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7843678151175126697}
+  m_SourcePrefab: {fileID: 100100000, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+--- !u!4 &1364191496122878440 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8522563363943917341, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+  m_PrefabInstance: {fileID: 7253239380467379957}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3124444133226360301 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5761493341537780504, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+  m_PrefabInstance: {fileID: 7253239380467379957}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7843678151175126697
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3124444133226360301}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbcf24a56d9ae414aa560772115c71a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
+  grip: {fileID: 8622164087042436247}
+  linkedGate: {fileID: 0}
+  visualBar: {fileID: 6554914853939957987}
+  leftCable: {fileID: 1364191496122878440}
+  rightCable: {fileID: 6416970701129603348}
+  leftAnchor: {fileID: 6456780227117527707}
+  rightAnchor: {fileID: 6708013396957654284}
+  hangLength: 1.5
+  grabDistance: 2
+  holdSeconds: 0
+  warningSeconds: 2
+  swingAcceleration: 180
+  maxSwingAngle: 50
+  maxSwingSpeed: 100
+  swingDamping: 0.4
+  releaseUpwardSpeed: 6
+  airControlSpeed: 4.5
+--- !u!4 &6416970701129603348 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4441963286703552481, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+  m_PrefabInstance: {fileID: 7253239380467379957}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6456780227117527707 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4410072564248534126, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+  m_PrefabInstance: {fileID: 7253239380467379957}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6554914853939957987 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4494331418887077398, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+  m_PrefabInstance: {fileID: 7253239380467379957}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6708013396957654284 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4161053846528394233, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+  m_PrefabInstance: {fileID: 7253239380467379957}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8622164087042436247 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1369299103324471906, guid: 4c60f942b4bc74a4b82fa95f69486e95, type: 3}
+  m_PrefabInstance: {fileID: 7253239380467379957}
+  m_PrefabAsset: {fileID: 0}

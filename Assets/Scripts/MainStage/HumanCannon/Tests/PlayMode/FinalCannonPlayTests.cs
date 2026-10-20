@@ -96,6 +96,16 @@ namespace CurtainCall.HumanCannon.Tests
             for (int index = 0; index < 10; index++)
             {
                 Assert.AreEqual("Waiting", Get(Call(route, "TransportState", 1), "Phase").ToString());
+                var station = (Component)Call(system, "Station", index);
+                var art = station.transform.Find("AppliedCannon");
+                Assert.IsNotNull(art, station.name + " missing applied cannon art");
+                var visible = art.GetComponentsInChildren<MeshFilter>();
+                Assert.That(visible.Length, Is.GreaterThan(0), station.name + " must have a visible cannon model");
+                foreach (var filter in visible)
+                {
+                    Assert.IsNotNull(filter.sharedMesh, station.name + " missing cannon mesh at runtime");
+                    Assert.IsTrue(filter.GetComponent<Renderer>().enabled, station.name + " cannon renderer disabled");
+                }
                 yield return Board(index);
                 yield return ReleaseThenArm();
                 Input(held: true, progress: 1);

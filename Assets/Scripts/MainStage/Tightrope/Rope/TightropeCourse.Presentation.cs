@@ -18,7 +18,7 @@ namespace CurtainCall.Tightrope
             return material;
         }
 
-        /// <summary>막힌 구간을 제외한 줄의 실제 지지 범위. 색상 경계는 물리 경계를 만들지 않는다.</summary>
+        /// <summary>막힌 구간을 제외한 줄의 실제 지지 범위. 구간 경계는 물리 경계를 만들지 않는다.</summary>
         public List<Vector2> GetUsableSpans(int lane)
         {
             var spans = new List<Vector2>();
@@ -77,20 +77,34 @@ namespace CurtainCall.Tightrope
                     for (int i = 0; i < sections.Length && start < span.y; i++)
                     {
                         float end = Mathf.Clamp(sections[i].endFraction * FinishDistance, start, FinishDistance);
-                        AddColoredSpan(root, lane, Mathf.Max(start, span.x), Mathf.Min(end, span.y), sections[i].color, i);
+                        AddRopeSpan(root, lane, Mathf.Max(start, span.x), Mathf.Min(end, span.y), i);
                         start = end;
                     }
-                if (start < span.y) AddColoredSpan(root, lane, Mathf.Max(start, span.x), span.y, ropeColor, -1);
+                if (start < span.y) AddRopeSpan(root, lane, Mathf.Max(start, span.x), span.y, -1);
             }
         }
 
-        void AddColoredSpan(Transform parent, int lane, float from, float to, Color color, int section)
+        void AddRopeSpan(Transform parent, int lane, float from, float to, int section)
         {
             if (to - from <= .001f) return;
+            // Split only the visible mesh at the relay boundary; support stays continuous.
+            if (HasRelayGap && from < SwingGapFrom && to > SwingGapFrom)
+            {
+                AddRopeSpan(parent, lane, from, SwingGapFrom, section);
+                AddRopeSpan(parent, lane, SwingGapFrom, to, section);
+                return;
+            }
+            if (HasRelayGap && from < SwingGapTo && to > SwingGapTo)
+            {
+                AddRopeSpan(parent, lane, from, SwingGapTo, section);
+                AddRopeSpan(parent, lane, SwingGapTo, to, section);
+                return;
+            }
             var shape = Shape;
-            var piece = CreateBox($"Section{section + 1}",
+            bool relay = HasRelayGap && from >= SwingGapFrom && to <= SwingGapTo;
+            var piece = CreateBox(relay ? $"RelayRope{section + 1}" : $"Section{section + 1}",
                 new Vector3(Layout.GetLaneSide(lane), -shape.RopeThickness * .5f, (from + to) * .5f),
-                new Vector3(shape.RopeThickness, shape.RopeThickness, to - from), color, false);
+                new Vector3(shape.RopeThickness, shape.RopeThickness, to - from), ropeColor, false);
             piece.transform.SetParent(parent, false);
         }
 
@@ -120,7 +134,7 @@ namespace CurtainCall.Tightrope
                 text.fontSize = 64;
                 text.characterSize = .035f;
                 text.anchor = TextAnchor.MiddleCenter;
-                text.color = sections[i].color;
+                text.color = new Color(.9f, .9f, .9f);
                 sectionSigns.Add(sign.transform);
                 start = Mathf.Clamp(sections[i].endFraction * FinishDistance, start, FinishDistance);
             }

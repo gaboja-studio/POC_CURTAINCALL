@@ -31,9 +31,9 @@ namespace CurtainCall.HumanCannon
         }
 
         /// <summary>
-        /// 봉 도약의 수평 반동 중 현재 조작 방향과 같은 성분만 남긴다.
-        /// 입력이 없거나 계속 앞으로 누르면 긴 도약을 유지하고, 뒤/옆 입력은 관성에 밀리지 않는다.
-        /// 이미 제동한 속도를 복구하거나 수직 탄도를 바꾸지는 않는다.
+        /// 봉 도약의 수평 속력을 유지하면서 입력 방향으로 반동을 돌린다.
+        /// 키를 놓으면 마지막 비행 방향으로 계속 날고, 반복 방향 전환으로 속력이 줄거나 늘지 않는다.
+        /// 수직 탄도는 바꾸지 않는다.
         /// </summary>
         public static Vector3 SteerPoleMomentum(Vector3 velocity, Vector3 correction)
         {
@@ -41,7 +41,7 @@ namespace CurtainCall.HumanCannon
             if (direction.sqrMagnitude < 0.000001f) return velocity;
             direction.Normalize();
             Vector3 horizontal = Vector3.ProjectOnPlane(velocity, Vector3.up);
-            return Vector3.up * velocity.y + direction * Mathf.Max(0f, Vector3.Dot(horizontal, direction));
+            return Vector3.up * velocity.y + direction * horizontal.magnitude;
         }
     }
 }

@@ -9,7 +9,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
     public sealed partial class TightropeCampaignPlayTests
     {
         [UnityTest]
-        public IEnumerator ColoredSectionsShareOneSupportAndBurnedRopeDisappearsUntilReset()
+        public IEnumerator NaturalRopeSectionsShareOneSupportAndBurnedRopeDisappearsUntilReset()
         {
             yield return null;
             var root = course.transform.Find("Generated/Rope1");
@@ -21,10 +21,14 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.That(colliders.Length, Is.EqualTo(expectedSupports), "실제 끊어진 구간에서만 나누며 색상 경계에는 충돌체 이음새를 만들지 않는다.");
             float finish = (float)Get(course, "FinishDistance");
             Assert.That(colliders.Cast<BoxCollider>().Sum(c => c.size.z), Is.EqualTo(finish - gapLength));
-            var colors = root.GetComponentsInChildren<MeshRenderer>().Select(r => r.sharedMaterial.color).Distinct().Count();
-            int sectionColors = ((IEnumerable)Get(Get(course, "Shape"), "Sections")).Cast<object>()
-                .Select(section => (Color)Get(section, "color")).Distinct().Count();
-            Assert.That(colors, Is.EqualTo(sectionColors), "현재 코스의 진행 구간마다 지정된 줄 색상을 표시한다.");
+            var visible = root.GetComponentsInChildren<MeshRenderer>().Where(r => r.enabled).ToArray();
+            Assert.That(visible.Length, Is.GreaterThan(0));
+            Assert.That(visible.Select(r => r.sharedMaterial).Distinct().Count(), Is.EqualTo(1), "구간색 대신 동일한 로프 재질을 사용한다.");
+            foreach (var renderer in visible)
+            {
+                var block = new MaterialPropertyBlock(); renderer.GetPropertyBlock(block);
+                Assert.IsFalse(block.HasColor("_BaseColor"), "에셋 본래 재질에 구간색을 덮지 않는다.");
+            }
             var unaffected = course.transform.Find("Generated/Rope0/ContinuousSupport");
             Call(course, "BlockSegment", 1, 0f, finish, false);
             yield return null;
@@ -37,7 +41,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return null;
             root = course.transform.Find("Generated/Rope1");
             Assert.That(root.GetComponentsInChildren<Collider>().Count(c => c.enabled), Is.EqualTo(expectedSupports));
-            Assert.That(root.GetComponentsInChildren<MeshRenderer>().Select(r => r.sharedMaterial.color).Distinct().Count(), Is.EqualTo(sectionColors));
+            Assert.That(root.GetComponentsInChildren<MeshRenderer>().Where(r => r.enabled).Select(r => r.sharedMaterial).Distinct().Count(), Is.EqualTo(1));
         }
     }
 }

@@ -35,12 +35,13 @@ namespace CurtainCall.HumanCannon.Tests
                 float deadline = Time.realtimeSinceStartup + 3;
                 while ((bool)Get(mover, "IsAirborne") && Time.realtimeSinceStartup < deadline)
                 {
+                    Call(mover, "SetMoveInput", 1f, 0f);
                     highest = Mathf.Max(highest, player.transform.position.y);
                     yield return null;
                 }
                 Assert.IsFalse((bool)Get(mover, "IsAirborne"));
                 Assert.That(highest - start.y, Is.EqualTo(expectedHeight).Within(0.12f), "실제 CharacterController 점프 최고점");
-                Assert.That(player.transform.position.x - start.x, Is.GreaterThan(1f), "옆 이동 입력과 점프 관성 유지");
+                Assert.That(player.transform.position.x - start.x, Is.GreaterThan(1f), "체공 중 유지한 옆 이동 입력 반영");
             }
             Call(player, "RequestRestartAll");
             yield return null; yield return null;

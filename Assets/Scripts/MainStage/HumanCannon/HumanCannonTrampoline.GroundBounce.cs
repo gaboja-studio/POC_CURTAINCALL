@@ -20,9 +20,7 @@ namespace CurtainCall.HumanCannon
         void HandleGroundBounce(NetworkPlayer player, uint epoch, uint sequence, Vector3 contact)
         {
             var cannon = HumanCannonSystem.Current;
-            Vector3 relative = Quaternion.Inverse(transform.rotation) * (contact - Surface);
-            bool nearSurface = Mathf.Abs(relative.x) <= halfSize.x + 1f && Mathf.Abs(relative.z) <= halfSize.y + 1f
-                && Mathf.Abs(relative.y) <= 2f && (player.transform.position - contact).sqrMagnitude <= 25f;
+            bool nearSurface = NearSurface(player, contact);
             bool accepted = !BounceBlocked(contact) && cannon != null && Carrier != player.OwnerClientId && nearSurface
                 && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId)
                 && groundHistory.TryAccept(player.OwnerClientId, sequence, epoch, ownership.Revision)

@@ -118,6 +118,8 @@ namespace CurtainCall.Tightrope
         {
             line.SetPosition(0, from); line.SetPosition(1, to); line.startColor = line.endColor = color;
             trapezeTint.SetColor("_BaseColor", color); trapezeTint.SetColor("_Color", color); line.SetPropertyBlock(trapezeTint);
+            var profile = course != null ? course.ArtProfile : null;
+            if (profile != null) TightropeArtFit.Line(line, line.name.StartsWith("Pole ") ? profile.barY : profile.cableY, from, to, color);
         }
         void HideViews() { if (trapezeViewRoot != null) trapezeViewRoot.gameObject.SetActive(false); }
         void DestroyViews()
