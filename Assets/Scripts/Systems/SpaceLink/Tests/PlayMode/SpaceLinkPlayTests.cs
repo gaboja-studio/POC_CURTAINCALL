@@ -18,7 +18,7 @@ namespace CurtainCall.SpaceLink.Tests
     public sealed class SpaceLinkPlayTests
     {
         const string HubPath = "Assets/Scenes/Tests/Systems/SpaceLink/SpaceLink.unity";
-        const int TransitionFrameLimit = 600;
+        const float TransitionTimeoutSeconds = 60f;
 
         object campaign;
         Component director;
@@ -116,13 +116,14 @@ namespace CurtainCall.SpaceLink.Tests
         IEnumerator WaitIdle()
         {
             yield return null;
-            int frames = 0;
-            while ((bool)Get(director, "IsTransitioning") && frames++ < TransitionFrameLimit)
+            // 배치 모드 프레임은 실제 시간보다 빠르므로 대형 아트 씬의 로딩을 초 단위로 기다린다.
+            float deadline = Time.realtimeSinceStartup + TransitionTimeoutSeconds;
+            while ((bool)Get(director, "IsTransitioning") && Time.realtimeSinceStartup < deadline)
             {
                 maxSceneCount = Math.Max(maxSceneCount, SceneManager.sceneCount);
                 yield return null;
             }
-            Assert.Less(frames, TransitionFrameLimit, "장소 전환이 끝나지 않음");
+            Assert.IsFalse((bool)Get(director, "IsTransitioning"), "장소 전환이 60초 안에 끝나지 않음");
             yield return null; // 새 공간 씬의 Start
         }
 
@@ -221,13 +222,13 @@ namespace CurtainCall.SpaceLink.Tests
         {
             yield return OpenPhysicalRoom();
             // 실제 입력 대신 위치를 주입하는 2인 판정 회귀다. 네트워크 공동 플레이를 대체하지 않는다.
-            var first = Actor("퇴장자", new Vector3(-2, .1f, -3));
-            var second = Actor("잔류자", new Vector3(2, .1f, -3));
+            var first = Actor("퇴장자", new Vector3(-2, .1f, 67));
+            var second = Actor("잔류자", new Vector3(2, .1f, 67));
             yield return Signal("EndPerformance");
             Assert.AreEqual("WaitingRoomBase", Active);
             var scene = SceneManager.GetActiveScene();
-            Assert.IsTrue(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom").activeSelf);
-            Assert.IsFalse(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").activeSelf);
+            Assert.IsFalse(scene.GetRootGameObjects().Any(g => g.name == "WaitingRoom" || g.name == "대기실"));
+            Assert.IsTrue(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").activeSelf);
             Assert.IsFalse(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomTestPanels").activeSelf);
             Assert.AreEqual("WaitingForExit", Get(State, "Timer").ToString());
             var spawnType = GameType("CurtainCall.Network.PlayerSync.PlayerSpawnPoints");
@@ -237,35 +238,42 @@ namespace CurtainCall.SpaceLink.Tests
                 object[] pose = { slot, 3f, Vector3.zero, Quaternion.identity };
                 spawnType.GetMethod("GetPose").Invoke(null, pose);
                 var position = (Vector3)pose[2];
-                Assert.That(position.x, Is.InRange(-10f, 10f));
-                Assert.That(position.z, Is.InRange(-10f, 10f));
-                Assert.Greater(position.y, 0, "더미 원점 대체가 아니라 실제 로비 스폰을 쓴다");
+                var greybox = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").transform;
+                var localPosition = greybox.InverseTransformPoint(position);
+                Assert.That(localPosition.x, Is.InRange(-10f, 10f));
+                Assert.That(localPosition.z, Is.InRange(-10f, 10f));
+                Assert.Greater(localPosition.y, 0, "실제 그레이박스 로비 스폰을 쓴다");
             }
             var watch = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.WaitingRoomExitWatch")) as Component;
-            Place(first, new Vector3(12, .1f, -2.5f));
+            Place(first, new Vector3(-2, .1f, 67));
+            Place(second, new Vector3(2, .1f, 67));
+            yield return null;
+            Place(first, new Vector3(12, .1f, 67.5f));
             yield return null;
             yield return null;
             yield return WaitIdle();
             Assert.AreEqual("Running", Get(State, "Timer").ToString());
             Assert.AreEqual(scene.handle, SceneManager.GetActiveScene().handle, "첫 퇴장으로 씬을 바꾸지 않는다");
             Assert.IsFalse(Loaded("DummyExploration"));
-            Assert.AreEqual(new Vector3(2, .1f, -3), second.transform.position, "잔류자는 이동시키지 않는다");
+            Assert.AreEqual(new Vector3(2, .1f, 67), second.transform.position, "잔류자는 이동시키지 않는다");
             Assert.AreEqual(1, Get(watch, "LeftCount"));
             float remaining = (float)Get(State, "TimeRemaining");
-            Place(first, new Vector3(0, .1f, -3));
+            Place(first, new Vector3(0, .1f, 67));
             yield return null;
             yield return null;
             Assert.Greater(first.transform.position.x, 10, "퇴장자만 마지막 외부 위치로 보정한다");
-            Place(second, new Vector3(12, .1f, -2.5f));
+            Place(second, new Vector3(12, .1f, 67.5f));
             yield return null;
             yield return null;
             Assert.AreEqual(2, Get(watch, "LeftCount"));
             Assert.LessOrEqual((float)Get(State, "TimeRemaining"), remaining, "후속 퇴장으로 제한 시간을 초기화하지 않는다");
-            Place(first, new Vector3(54, .1f, -2.5f));
+            var gather = (Component)Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.StageEntranceGather"));
+            var gatheredPosition = gather.transform.position - Vector3.up;
+            Place(first, gatheredPosition);
             yield return null;
             yield return null;
             Assert.AreEqual("RestTime", Phase, "일부 집결만으로 공연을 시작하지 않는다");
-            Place(second, new Vector3(54, .1f, -2.5f));
+            Place(second, gatheredPosition);
             yield return null;
             yield return WaitIdle();
             Assert.AreEqual("Performance", Phase);
@@ -276,9 +284,9 @@ namespace CurtainCall.SpaceLink.Tests
         public IEnumerator PhysicalRoom_NightLocksAndReadyStartsMorningWithoutReload()
         {
             yield return OpenPhysicalRoom();
-            var reader = Actor("스케줄 상호작용", new Vector3(-7, .1f, 7.5f));
+            var reader = Actor("스케줄 상호작용", new Vector3(-7, .1f, 77.5f));
             yield return Signal("EndPerformance");
-            Place(reader, new Vector3(12, .1f, -2.5f));
+            Place(reader, new Vector3(12, .1f, 67.5f));
             yield return null;
             yield return null;
             Assert.IsTrue((bool)Call(director, "LeaveWaitingRoom"));
@@ -294,19 +302,23 @@ namespace CurtainCall.SpaceLink.Tests
             yield return new WaitForSeconds(3);
             Assert.IsTrue((bool)Get(door, "IsFullyClosed"));
             Physics.SyncTransforms();
-            Assert.IsTrue(Physics.OverlapCapsule(new Vector3(10, .5f, -2.5f), new Vector3(10, 1.5f, -2.5f), .3f,
+            Assert.IsTrue(Physics.OverlapCapsule(new Vector3(10, .5f, 67.5f), new Vector3(10, 1.5f, 67.5f), .3f,
                 ~0, QueryTriggerInteraction.Ignore).Any(c => c.transform.IsChildOf(((Component)door).transform)),
-                "실제 로비 출구에 닫힌 야간 셔터 충돌체가 있어야 한다");
-            Place(reader, new Vector3(-7, .1f, 7.5f));
+                "그레이박스 로비 출구에 닫힌 야간 셔터 충돌체가 있어야 한다");
+            Place(reader, new Vector3(-7, .1f, 77.5f));
             reader.gameObject.AddComponent(GameType("CurtainCall.Player.PlayerInputReader"));
             var view = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.ScheduleBoardView"));
+            // 입력 리더 등록 직후에는 모든 키를 놓은 다음 프레임까지 InputGate가 막는다.
+            for (int frame = 0; frame < 30 && (bool)Static("CurtainCall.Player.InputGate", "IsBlocked"); frame++)
+                yield return null;
             yield return null;
+            var inReach = view.GetType().GetField("inReach", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.IsTrue((bool)inReach.GetValue(view), $"스케줄표 조작 거리: player={reader.transform.position}");
+            Assert.IsFalse((bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), "스케줄표 앞에서 입력이 차단되지 않음");
             Key("fKey", 1f);
-            yield return null;
-            yield return null;
+            yield return new WaitForSecondsRealtime(.05f);
             Key("fKey", 0f);
-            yield return null;
-            yield return null;
+            yield return new WaitForSecondsRealtime(.05f);
             Assert.IsTrue((bool)Get(view, "IsOpen"), "Input System F 누름·뗌 → 실제 스케줄표 열기");
             // 이후 스케줄 작성은 API 합성 검증이다. 키 입력 검증과 구분한다.
             var board = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
@@ -328,7 +340,7 @@ namespace CurtainCall.SpaceLink.Tests
             var watch = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.WaitingRoomExitWatch"));
             Assert.AreEqual(0, Get(watch, "LeftCount"), "새 쉬는 시간에는 이전 퇴장 이력을 비운다");
             yield return new WaitForSeconds(3);
-            Place(reader, new Vector3(12, .1f, -2.5f));
+            Place(reader, new Vector3(12, .1f, 67.5f));
             yield return null;
             yield return null;
             Assert.AreEqual("Running", Get(State, "Timer").ToString(), "다음 아침에도 첫 물리 퇴장으로 시작");

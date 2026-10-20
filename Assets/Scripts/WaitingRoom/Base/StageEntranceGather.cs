@@ -19,6 +19,14 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("화면 왼쪽 위에 집결 인원을 표시한다(공동 테스트 확인용).")]
         [SerializeField] bool showStatus = true;
 
+        [Header("판정 범위 (이 오브젝트 기준 로컬, m)")]
+        [Tooltip("판정 상자 중심. 이 오브젝트 위치에서의 거리.")]
+        [SerializeField] Vector3 areaCenter = Vector3.zero;
+        [Tooltip("판정 상자 크기(x = 통로 길이 방향, y = 높이, z = 통로 폭 방향).")]
+        [SerializeField] Vector3 areaSize = new(4f, 3f, 7f);
+        [Tooltip("바닥 테두리 묶음(자식 N·S·W·E 띠). 지정하면 범위를 바꿀 때 함께 맞춘다.")]
+        [SerializeField] Transform border;
+
         readonly List<PlayerMover> offlinePlayers = new();
         BoxCollider area;
         bool notified;
@@ -32,7 +40,51 @@ namespace CurtainCall.WaitingRoom
         /// <summary>판정 화면에서 전원 집결을 런 진행에 알렸다.</summary>
         public event Action Gathered;
 
-        void Awake() => area = GetComponent<BoxCollider>();
+        void Awake()
+        {
+            area = GetComponent<BoxCollider>();
+            ApplyArea();
+        }
+
+        void OnValidate() => ApplyArea();
+
+        /// <summary>인스펙터의 판정 범위를 상자 충돌체와 바닥 테두리에 반영한다.</summary>
+        public void ApplyArea()
+        {
+            var box = area != null ? area : GetComponent<BoxCollider>();
+            if (box == null) return;
+            areaSize = Vector3.Max(areaSize, new Vector3(0.5f, 0.5f, 0.5f));
+            box.center = areaCenter;
+            box.size = areaSize;
+            if (border == null) return;
+
+            var lossy = transform.lossyScale;
+            var c = transform.TransformPoint(areaCenter);
+            float hx = areaSize.x * lossy.x / 2f, hz = areaSize.z * lossy.z / 2f;
+            var right = transform.right;
+            var forward = transform.forward;
+            void Strip(string name, Vector3 at, float lengthX, float lengthZ)
+            {
+                var t = border.Find(name);
+                if (t == null) return;
+                var floor = new Vector3(at.x, border.position.y + 0.01f, at.z);
+                t.SetPositionAndRotation(floor, transform.rotation);
+                t.localScale = new Vector3(lengthX, t.localScale.y, lengthZ);
+            }
+            Strip("N", c + forward * (hz - 0.05f), hx * 2f, 0.1f);
+            Strip("S", c - forward * (hz - 0.05f), hx * 2f, 0.1f);
+            Strip("W", c - right * (hx - 0.05f), 0.1f, hz * 2f);
+            Strip("E", c + right * (hx - 0.05f), 0.1f, hz * 2f);
+        }
+
+        void OnDrawGizmosSelected()
+        {
+            Gizmos.color = new Color(1f, 0.8f, 0.2f, 0.35f);
+            Gizmos.matrix = transform.localToWorldMatrix;
+            Gizmos.DrawCube(areaCenter, areaSize);
+            Gizmos.color = new Color(1f, 0.8f, 0.2f, 1f);
+            Gizmos.DrawWireCube(areaCenter, areaSize);
+        }
 
         void Start()
         {

@@ -15,7 +15,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
     {
         const string RootName = "WaitingRoomGreybox";
         const string MaterialFolder = "Assets/Scenes/Tests/WaitingRoom/Base/Materials";
-        const float WallHeight = 5f;
+        public const float WallHeight = 10f; // 컨셉아트의 높은 공장 홀 비율(문 높이 3m는 유지)
         const float WallThickness = 0.3f;
         const float DoorHeight = 3f;
         static readonly Vector3 RootPosition = new(0f, 0f, 70f);
@@ -49,6 +49,142 @@ namespace CurtainCall.WaitingRoom.EditorTools
             EditorSceneManager.MarkSceneDirty(scene);
         }
 
+        /// <summary>
+        /// 다시 만들지 않고 씬의 벽·상점 기둥 윗단만 <see cref="WallHeight"/>까지 늘인다.
+        /// 다른 빌더(밤 정비·전문가 서비스)가 그레이박스에 붙인 오브젝트와 재질 교체를 보존할 때 쓴다.
+        /// </summary>
+        [MenuItem("Tools/CurtainCall/대기실/그레이박스 벽 높이 맞추기(재생성 없이)")]
+        static void FitHeightMenu()
+        {
+            var scene = SceneManager.GetActiveScene();
+            int changed = FitHeight(scene);
+            EditorSceneManager.MarkSceneDirty(scene);
+            Debug.Log($"[WaitingRoomGreybox] 벽 높이 {WallHeight}m로 {changed}개 조정");
+        }
+
+        public static int FitHeight(Scene scene)
+        {
+            Transform root = null;
+            foreach (var g in scene.GetRootGameObjects())
+                if (g.name == RootName) root = g.transform;
+            if (root == null) return 0;
+
+            var targets = new List<Transform>();
+            var walls = root.Find("Walls");
+            if (walls != null)
+                foreach (Transform wall in walls)
+                    foreach (Transform seg in wall) targets.Add(seg);
+            var pillar = root.Find("S03_Shop/Pillar");
+            if (pillar != null) targets.Add(pillar);
+
+            int changed = 0;
+            foreach (var t in targets)
+            {
+                float bottom = t.localPosition.y - t.localScale.y / 2f;
+                float top = t.localPosition.y + t.localScale.y / 2f;
+                if (Mathf.Abs(top - WallHeight) < 0.001f) continue;
+                Undo.RecordObject(t, "Fit Waiting Room Wall Height");
+                t.localScale = new Vector3(t.localScale.x, WallHeight - bottom, t.localScale.z);
+                t.localPosition = new Vector3(t.localPosition.x, (bottom + WallHeight) / 2f, t.localPosition.z);
+                changed++;
+            }
+            return changed;
+        }
+
+        // ── ① 로비 소형 원뿔 천막 ─────────────────────────────
+        // 「대기실 에셋 재사용 후보」① 로비: 출입 불가 장식, 크기를 줄여 스폰 뒤 배경. 아래 소품 더미는 WaitingRoomMoodDresser가 둔다. 치수는 미정이라 아래 값은 임시.
+        public static readonly Vector3 TentCenter = new(0f, 0f, 1.8f);
+        public const float TentRadius = 2f;
+        const float TentWallHeight = 1.8f, TentRoofHeight = 2.8f, TentEave = 0.35f;
+        const string TentConePath = "Assets/Scenes/Tests/WaitingRoom/Base/Prefabs/WaitingRoomTentCone.asset";
+
+        [MenuItem("Tools/CurtainCall/대기실/로비 천막 다시 만들기(소형 원뿔)")]
+        static void RebuildTentMenu()
+        {
+            var scene = SceneManager.GetActiveScene();
+            Transform root = null;
+            foreach (var g in scene.GetRootGameObjects())
+                if (g.name == RootName) root = g.transform;
+            var lobby = root != null ? root.Find("S01_Lobby") : null;
+            if (lobby == null) { Debug.LogError("[WaitingRoomGreybox] S01_Lobby 없음"); return; }
+            var old = lobby.Find("CircusTent");
+            int index = old != null ? old.GetSiblingIndex() : -1;
+            if (old != null) Undo.DestroyObjectImmediate(old.gameObject);
+            materials.Clear();
+            var tent = BuildTent(lobby);
+            if (index >= 0) tent.SetSiblingIndex(index);
+            Undo.RegisterCreatedObjectUndo(tent.gameObject, "Rebuild Lobby Tent");
+            EditorSceneManager.MarkSceneDirty(scene);
+        }
+
+        /// <summary>닫힌 원통 벽(16장, 출입구 없음) + 줄무늬 원뿔 지붕 + 금색 테 + 꼭대기 깃대·삼각기.</summary>
+        static Transform BuildTent(Transform p)
+        {
+            var tent = Group(p, "CircusTent");
+            tent.localPosition = TentCenter;
+            const int sides = 16;
+            float panelWidth = 2f * Mathf.PI * TentRadius / sides + 0.06f;
+            for (int i = 0; i < sides; i++)
+            {
+                float deg = (i + 0.5f) * (360f / sides), rad = deg * Mathf.Deg2Rad;
+                var panel = Box(tent, "Panel_" + i, new Vector3(Mathf.Sin(rad) * TentRadius, TentWallHeight / 2f, Mathf.Cos(rad) * TentRadius),
+                    new Vector3(panelWidth, TentWallHeight, 0.1f), i % 2 == 0 ? "GB_Door" : "GB_Cream");
+                panel.transform.localRotation = Quaternion.Euler(0f, deg, 0f);
+            }
+            Cyl(tent, "Trim", new Vector3(0f, TentWallHeight, 0f), TentRadius + 0.08f, 0.12f, "GB_Gold", false);
+
+            var roof = new GameObject("Roof");
+            roof.transform.SetParent(tent, false);
+            roof.transform.localPosition = new Vector3(0f, TentWallHeight, 0f);
+            roof.AddComponent<MeshFilter>().sharedMesh = TentCone();
+            roof.AddComponent<MeshRenderer>().sharedMaterial = Material("GB_Cream");
+
+            float apex = TentWallHeight + TentRoofHeight;
+            Cyl(tent, "Pole", new Vector3(0f, apex + 0.35f, 0f), 0.04f, 0.8f, "GB_Wood", false);
+            var pennant = Box(tent, "Pennant", new Vector3(0.22f, apex + 0.62f, 0f), new Vector3(0.4f, 0.2f, 0.02f), "GB_Door", false);
+            pennant.transform.localRotation = Quaternion.Euler(0f, 0f, -8f);
+            return tent;
+        }
+
+        /// <summary>처마가 벽 밖으로 조금 나온 원뿔. UV u = 둘레(줄무늬 8번 반복), v = 높이.</summary>
+        static Mesh TentCone()
+        {
+            var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(TentConePath);
+            if (mesh != null) return mesh;
+            const int segments = 32;
+            float radius = TentRadius + TentEave;
+            var verts = new List<Vector3>();
+            var uvs = new List<Vector2>();
+            var tris = new List<int>();
+            for (int i = 0; i <= segments; i++)
+            {
+                float t = i / (float)segments, a = t * Mathf.PI * 2f;
+                verts.Add(new Vector3(Mathf.Sin(a) * radius, -0.15f, Mathf.Cos(a) * radius)); uvs.Add(new Vector2(t * 8f, 0f));
+                verts.Add(new Vector3(0f, TentRoofHeight, 0f)); uvs.Add(new Vector2(t * 8f + 4f / segments, 1f));
+            }
+            for (int i = 0; i < segments; i++)
+            {
+                int b = i * 2;
+                // 바깥면(앞면 = Cross(b-a, c-a)가 바깥쪽)
+                tris.AddRange(new[] { b, b + 1, b + 2 });
+            }
+            mesh = new Mesh { name = "WaitingRoomTentCone" };
+            mesh.SetVertices(verts);
+            mesh.SetUVs(0, uvs);
+            mesh.SetTriangles(tris, 0);
+            var check = Vector3.Cross(verts[1] - verts[0], verts[2] - verts[0]);
+            if (Vector3.Dot(check, verts[0]) < 0f)
+            {
+                for (int i = 0; i < tris.Count; i += 3) (tris[i + 1], tris[i + 2]) = (tris[i + 2], tris[i + 1]);
+                mesh.SetTriangles(tris, 0);
+            }
+            mesh.RecalculateNormals();
+            mesh.RecalculateTangents();
+            mesh.RecalculateBounds();
+            AssetDatabase.CreateAsset(mesh, TentConePath);
+            return mesh;
+        }
+
         /// <summary>씬의 기존 그레이박스를 지우고 다시 만든다.</summary>
         public static GameObject Build(Scene scene)
         {
@@ -72,6 +208,10 @@ namespace CurtainCall.WaitingRoom.EditorTools
             BuildExpertRoom(Group(t, "S08_ExpertRoom"));
             BuildWalls(walls);
             walls.SetAsLastSibling();
+            WaitingRoomLayoutFitter.Fit(t); // 좁은 방 넓히기 + 가까운 카메라 구역(3인칭 카메라가 벽 밖으로 나가지 않게)
+            WaitingRoomTunnelLayout.Apply(t); // ⑥ 프로토타입 터널 구성(옆방 3개·커튼 8곳·집결 구역·⑦ 입구 이동)
+            WaitingRoomLayoutFitter.Fit(t); // 옆방 카메라 구역까지 다시
+            WaitingRoomRoomArranger.Arrange(t); // 가구를 벽 쪽으로·표지 맞춤
 
             Undo.RegisterCreatedObjectUndo(root, "Build Waiting Room Greybox");
             return root;
@@ -129,18 +269,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Floor(p, -10f, 10f, -9f, 9f);
             Label(p, "① 대기실 로비", new Vector3(0f, 0f, -5.3f));
 
-            // 원형 서커스 천막: 빨강/크림 벽판 16장(남쪽 입구 2칸 비움) + 계단식 지붕 + 기둥·무대
-            var tent = Group(p, "CircusTent");
-            const float radius = 4.5f;
-            for (int i = 0; i < 16; i++)
-            {
-                if (i == 7 || i == 8) continue;
-                float deg = (i + 0.5f) * 22.5f, rad = deg * Mathf.Deg2Rad;
-                var panel = Box(tent, "Panel_" + i, new Vector3(Mathf.Sin(rad) * radius, 1.5f, Mathf.Cos(rad) * radius),
-                    new Vector3(1.8f, 3f, 0.12f), i % 2 == 0 ? "GB_Door" : "GB_Cream");
-                panel.transform.localRotation = Quaternion.Euler(0f, deg, 0f);
-            }
-            Cyl(tent, "Roof", new Vector3(0f, 3.2f, 0f), 4.8f, 0.4f, "GB_Cream", false);
+            BuildTent(p);
 
             // 안내판(대기실 문 옆) · 스케줄표(북쪽 벽)
             var info = Group(p, "InfoBoard");
@@ -160,9 +289,10 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Sign(p, "⑤ 폐기물 보관소", new Vector3(-9.83f, 3.6f, 0f), -90f);
             Sign(p, "대기실 문 → ⑥", new Vector3(9.83f, 3.6f, 0f), 90f);
 
-            // ① 로비 스폰 4곳(천막 쪽을 본다)
+            // ① 로비 스폰 4곳: 소형 천막(배경)과 그 아래 소품 더미 앞 한 줄에서 +Z(천막 쪽)를 본다.
+            // 3인칭 카메라(뒤 4.5m)가 남쪽 벽(z=-9) 안에 남도록 z=-3.5.
             var spawnRoot = Group(p, "SpawnPoints");
-            var spawns = new[] { new Vector3(-2.5f, 0f, -6.5f), new Vector3(2.5f, 0f, -6.5f), new Vector3(-6.5f, 0f, -3f), new Vector3(6.5f, 0f, -3f) };
+            var spawns = new[] { new Vector3(-1f, 0f, -3.5f), new Vector3(1f, 0f, -3.5f), new Vector3(-3f, 0f, -3.5f), new Vector3(3f, 0f, -3.5f) };
             var points = new Transform[spawns.Length];
             for (int i = 0; i < spawns.Length; i++)
             {
