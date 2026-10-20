@@ -173,3 +173,4 @@ LightingData.asset     binary
 
 # 8192 Static TMP atlas (GitHub 100 MB 제한)
 "Assets/Resources/Fonts/Spectator/Pretendard-Medium SDF.asset" lfs
+"Assets/Resources/Fonts/SettingsUi/Pretendard-SemiBold SDF.asset" lfs
