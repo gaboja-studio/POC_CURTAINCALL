@@ -56,6 +56,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/UI/CommonInteractionUI.unity
     guid: 0197054d03895a6408c56fbf3bbf401f
+  - enabled: 1
+    path: Assets/_ThirdParty/curtaincall/PerformanceBackground/Scenes/performance_background.unity
+    guid: f9b7e653977b7ef48b30283d90f479c4
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
