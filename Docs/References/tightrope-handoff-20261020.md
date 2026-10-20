@@ -11,7 +11,7 @@
 
 ## 다음 할 일
 
-1. 다른 컴퓨터에서 이 브랜치를 받아 private submodule도 맞춘 뒤 Unity 6000.3.25f1로 Tightrope 씬을 연다. private 기준 SHA: `b92b37a4db5ff840a82d26bf323c3b2831b2698a`.
+1. 다른 컴퓨터에서 이 브랜치를 받고 아래 "외부 에셋 전체 저장" 절차로 private 보관 브랜치도 받는다. Unity 6000.3.25f1로 Tightrope 씬을 연다.
 2. 실제 플레이 화면을 재현해 아래 원인과 원본 모델의 모양·재질을 확인한다. 사용자와 미술 방향을 맞추고 최소 수정한다.
 3. 시각 수정 후 줄 소실/복구·봉 움직임·톱·발판 판정 및 실제 화면을 함께 검증한다.
 
@@ -41,9 +41,28 @@
 - 현재 브랜치에 대응하는 활성 Task가 없다. 사용자 직접 메시지로 PM 예외 허락을 확인했고 작업했다. PM 승인 시각은 제공되지 않았다.
 - `save-work.ps1 -DryRun`은 Task 부재로 구역 검사 실패. 정식 구역 검사 PASS로 보고하지 않는다. 저장 시에도 기존 예외와 사용자 저장 요청을 기록하고 이번 변경만 명시적으로 선택한다.
 - PM이 Task 배정 및 예외 변경 범위를 사후 확인해야 한다. 하네스·검사 스크립트·Git hook은 변경하거나 우회하지 않는다.
-- private 저장소에는 작업 전부터 이어진 변경이 879개 있다. 이번 공개 작업 커밋에 포함하지 않는다. 복구한 9개 원래 GUID는 private 기준 커밋에도 이미 존재하므로 공개 포인터를 바꿀 필요는 없다.
-- private 로컬 변경 전체를 다른 컴퓨터로 옮기는 별도 저장은 수행하지 않았다. 이 로컬 폴더를 지우거나 정리하지 않는다.
+- 처음 공개 작업을 저장할 때 private 변경 879개는 포함하지 않았다. 이후 사용자가 전체 저장·푸시를 명시적으로 요청해 아래 보관 브랜치에 전부 저장했다.
+- 공개 submodule 포인터는 기존 `b92b37a4db5ff840a82d26bf323c3b2831b2698a`를 유지한다. private main 병합은 수행하지 않았으며, 그 전에 보관 브랜치 포인터를 공개 저장소에 넣거나 push hook을 우회하지 않는다.
 
 ## 교훈 제안
 
 - 크기·참조·판정 자동 검사만으로 미술 적용 완료를 판단하지 않는다. 반복 모듈의 전역 확대와 원본 재질의 일괄 덧칠은 실제 화면으로 검토해야 한다.
+
+## 외부 에셋 전체 저장 · 2026-10-20
+
+- 사용자 요청: "써드파티 변경도 다른 컴퓨터에서 받을 수 있게 전부 저장하고 푸시해줘".
+- private 저장소: `gaboja-studio/CURTAINCALL_PaidAssets`.
+- 보관 브랜치: `resource/third-party/workspace-save-20261020`.
+- 원격 확인된 커밋: `91a0f61d5cb8293a5f963f18d0ad24df6582fd1b`.
+- 저장 내용: 기존 로컬 변경 전체 879개(머티리얼 220개, meta 658개, 제공 씬 1개). 작성자: gh 로그인 계정 RagSpirin. 충돌·diff 검사 문제 없음, 커밋 후 private 작업 트리 clean.
+- 기존 기준 커밋의 현재 상태를 보존했다. 원격 main의 다른 작업 20커밋을 로컬 스냅샷에 병합하지 않았다. 에셋 내용의 새 기능·미술 검증을 했다는 뜻은 아니다.
+- 다른 컴퓨터에서 공개 브랜치를 받은 뒤 아래 명령을 실행한다. 공개 submodule update만으로는 이 보관 브랜치를 선택하지 않는다.
+
+```powershell
+git submodule update --init --recursive
+git -C Assets/_ThirdParty fetch origin
+git -C Assets/_ThirdParty switch resource/third-party/workspace-save-20261020
+git -C Assets/_ThirdParty lfs pull
+```
+
+- 공개 저장소에서 `_ThirdParty` 포인터가 modified로 보이는 것은 보관 브랜치를 선택했기 때문이다. main 통합 전에 포인터만 저장하지 않는다.
