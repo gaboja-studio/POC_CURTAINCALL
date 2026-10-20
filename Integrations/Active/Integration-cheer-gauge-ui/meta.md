@@ -1,5 +1,4 @@
 # Integration-cheer-gauge-ui
-
 - **Feature:** UI 리소스 확보·조합·테스트
 - **Status:** preparing
 - **Branch:** integration/ui-resources
@@ -8,53 +7,31 @@
 - **PM:** @MoHoDu
 - **Merge Time:** 미정
 - **Updated:** 2026-10-20
-
-## 목표
-
-- PM 지시로 UI 리소스 확보·조합·테스트로 확장. C1을 보존하고 공용 버튼4종·확인씬을 추가한다. 기존 폴더 ID는 유지한다.
-
-## Tasks
-
+## 목표 / Tasks
+- 승인 디자인·C1 보존, 버튼/패널/아이콘·공연/백스테이지/로비 HUD·C8·C6·C15·C7 조립/독립 테스트. 기존 폴더 ID 유지.
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261019-061 | feat | @MoHoDu | feat/ui-resources | - | blocked (공개 commit/push 권한 검사 재차 거부·C7 선행 저장 대기) |
-
-## 준비 브랜치
-
-| Task | 브랜치 | 준비 기준 SHA | 승인 SHA |
-|---|---|---|---|
-
+| Task-20261019-061 | feat | @MoHoDu | feat/ui-resources | - | working; C7 구현/자동 검증 완료·공개 저장 대기 |
 ## 공용 파일 소유 표
-
-| 파일 | 소유 Task | 이유 |
-|---|---|---|
-| `Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab` | Task-20261019-061 | 신규 호응 HUD |
-| `Assets/Resources/Prefabs/UIs/CommonButtons/` | Task-20261019-061 | 승인된 공용 버튼4종 |
-| `Assets/Resources/Fonts/CommonButtons/` | Task-20261019-061 | 버튼 SemiBold TMP |
-| `Assets/Resources/Prefabs/UIs/BasicPanels/`, `Assets/Resources/Fonts/BasicPanels/` | Task-20261019-061 | 패널 조립·전용 폰트 |
-| `Assets/Scenes/Tests/BasicPanels/` | Task-20261019-061 | 패널 독립 확인 씬 |
-| `Assets/Resources/Prefabs/UIs/CommonIcons/`, `Assets/Resources/Fonts/CommonIcons/` | Task-20261019-061 | 아이콘25종 catalog·비교 프리팹·필요 시 폰트 |
-| `Assets/Scenes/Tests/CommonIcons/` | Task-20261019-061 | 아이콘 독립 확인 씬 |
-| `Assets/Resources/Prefabs/UIs/PerformanceHud/`, `Assets/Resources/Fonts/PerformanceHud/` | Task-20261019-061 | 공연 HUD C2/C3/P1·필요 시 폰트 |
-| `Assets/Scenes/Tests/PerformanceHud/` | Task-20261019-061 | 공연 HUD 독립 확인 씬 |
-
-| `Assets/Resources/Prefabs/UIs/BackstageHud/`, `Assets/Resources/Fonts/BackstageHud/` | Task-20261019-061 | 백스테이지·로비 HUD3종·필요 시 폰트 |
-| `Assets/Scenes/Tests/BackstageHud/` | Task-20261019-061 | 백스테이지·로비 독립 확인 씬 |
-
-| `Assets/Resources/Prefabs/UIs/Notifications/`, `Assets/Resources/Fonts/Notifications/` | Task-20261019-061 | 알림3종·필요 시 Static 폰트 |
-| `Assets/Scenes/Tests/Notifications/` | Task-20261019-061 | C8 배너·토스트 독립 확인 씬 |
-
-| `Assets/Resources/Prefabs/UIs/Interaction/`, `Assets/Resources/Fonts/Interaction/` | Task-20261019-061 | C6 안내판·내부 진행 링·필요 시 Static 폰트 |
-| `Assets/Scenes/Tests/Interaction/` | Task-20261019-061 | C6 독립 합성 확인 씬 |
-
-| `Assets/Resources/Prefabs/UIs/Tooltips/`, `Assets/Resources/Fonts/Tooltips/` | Task-20261019-061 | C15 근접·패널 품목 설명·Static 폰트 |
-| `Assets/Scenes/Tests/Tooltips/` | Task-20261019-061 | 툴팁 독립 합성 확인 씬 |
-
-## Decisions
-
-- Open: None
-- Decided: 2026-10-20 PM이 차단 보고 후 지금까지 변경 commit/push 명시 요청. C6·C15 저장에 한해 이전 금지 대체, private73fd48aa main push 완료·공개 결과/하네스/gitlink는 이번 저장. 무관 변경/삭제/PR·병합 제외, C7 guides는 저장 확인 뒤 별도 구현.
-- Decided: 2026-10-20 PM C15 근접·패널 품목 설명 묶음 구현·검증 및 완료 후 저장 요청. Tooltips 전용 구역·제공 디자인/API 유지, 전체 원본·정본 보존. C6 포함 승인이라는 AI 해석은 철회하고 C6 저장 금지 유지. 결합 저장은 권한 검사에서 실행 전 차단, 신규 commit/push0·파일/스테이징 보존·확인 대기. 무관 변경·삭제·실게임 연결·PR/병합 제외.
-- Decided: 2026-10-20 PM 승인 C6 구현·검증·기록은 Task-061의 Interaction 전용 구역에서 진행. 이전 UI 정본과 전체 원본 보존, 삭제·커밋·push·실게임 연결·PR/병합 없음. 사람 최종 외형 확인은 별도다.
-- Decided: 2026-10-20 PM이 원격 통합 준비·저장 승인. origin/dev 5e9b1b04ba04e925fafc6e1ad2ed9106184fe2b6에서 원격 integration/ui-resources 초기화. dirty 작업 이동·폐기 없이 진행, 로컬 통합 기준80d0178은 강제 이동하지 않음. 준비 기록은 이번 feat 저장에 포함하며 PR·병합은 미실행.
-- Decided: 2026-10-19 PM 승인. 미리보기 디자인 유지, 기존 공연 씬 수정 없음. Task/통합 폴더 ID는 이력 보존.
+아래 소유 Task는 모두 Task-20261019-061. 권한·경계 상세는 해당 `setup.md` 기준.
+| 파일 | 이유 |
+|---|---|
+| `Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab` | 신규 호응 HUD |
+| `Assets/Resources/Prefabs/UIs/CommonButtons/`, `Assets/Resources/Fonts/CommonButtons/` | 버튼4종·SemiBold TMP |
+| `Assets/Resources/Prefabs/UIs/BasicPanels/`, `Assets/Resources/Fonts/BasicPanels/`, `Assets/Scenes/Tests/BasicPanels/` | 패널 조립·폰트·독립 씬 |
+| `Assets/Resources/Prefabs/UIs/CommonIcons/`, `Assets/Resources/Fonts/CommonIcons/`, `Assets/Scenes/Tests/CommonIcons/` | 아이콘25종 catalog·비교 프리팹·필요 시 폰트·독립 씬 |
+| `Assets/Resources/Prefabs/UIs/PerformanceHud/`, `Assets/Resources/Fonts/PerformanceHud/`, `Assets/Scenes/Tests/PerformanceHud/` | C2/C3/P1·필요 시 폰트·독립 씬 |
+| `Assets/Resources/Prefabs/UIs/BackstageHud/`, `Assets/Resources/Fonts/BackstageHud/`, `Assets/Scenes/Tests/BackstageHud/` | 백스테이지/로비3종·필요 시 폰트·합성 씬 |
+| `Assets/Resources/Prefabs/UIs/Notifications/`, `Assets/Resources/Fonts/Notifications/`, `Assets/Scenes/Tests/Notifications/` | C8 배너/토스트3종·필요 시 Static·독립 씬 |
+| `Assets/Resources/Prefabs/UIs/Interaction/`, `Assets/Resources/Fonts/Interaction/`, `Assets/Scenes/Tests/Interaction/` | C6 안내판/링·필요 시 Static·합성 씬 |
+| `Assets/Resources/Prefabs/UIs/Tooltips/`, `Assets/Resources/Fonts/Tooltips/`, `Assets/Scenes/Tests/Tooltips/` | C15 근접/패널 품목 툴팁·Static·합성 씬 |
+| `Assets/Resources/Prefabs/UIs/Guides/`, `Assets/Resources/Fonts/Guides/`, `Assets/Scenes/Tests/Guides/` | C7 가이드/키캡/마우스·독립 씬 |
+## 현재 결정·미결
+- C6·C15 공개b16c328 push/원격 SHA 일치·private73fd48aa origin/main 조상 확인 완료. 과거 저장 해석 철회/차단은 이후 PM 직접 명시 재승인으로 해소된 이력.
+- C7 구현·기록·PlayMode88/88·실제입력70·화면48+대비8·check-work EditMode798/798 완료. 제작 시 미커밋, 사람 최종 외형은 별도.
+- 최신 사용자 요청은 C7 저장 후 C9. C7 저장만 승인 반영; 담당자 보고상 private 개별8b49cc29/main38001b8e 일반 병합·push 완료, 공개 저장은 압축 후 예정(결과 SHA 없음). C9 구역 추가 없음.
+- 이번 압축은 지정 문서5개+History만, 커밋/push·Unity 없음. 무관 변경·삭제·실게임 연결·PR/병합 제외, 정식 인계 없음.
+- 공유 Dynamic TMP2개 dirty/추가 SHA 차이·Buttons 글리프 실패 미결, 원인 미확정·임의 복구/폰트 재작성 보류·PM 확인 필요.
+- 백스테이지/로비 외형 승인 범위·알림/C6/C15/C7 사람 외형·PR·공동/네트워크 테스트·씬 유지/삭제 결정 대기.
+- 원격 integration/ui-resources는 origin/dev 5e9b1b04ba04e925fafc6e1ad2ed9106184fe2b6 기준 준비 완료. 로컬 통합 기준80d0178 강제 이동 없음; PR·병합 별도.
+과거 소유 표·준비/승인·저장 차단 원문: [History/001-meta-before-c7-save-compaction.md](History/001-meta-before-c7-save-compaction.md)

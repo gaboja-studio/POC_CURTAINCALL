@@ -9,6 +9,7 @@
 - [unity-project.md](unity-project.md) — 씬·렌더·입력·코드·테스트 어셈블리 현황(2026-10-13). 에셋 경로를 찾거나 테스트를 만들 때
 - [team.md](team.md) — 현재 공간 담당(공연장·탈출로 @RagSpirin)과 PM 계정·과거 담당 구분. 담당자 배정·권한 확인 때
 - [local-environment.md](local-environment.md) — macOS 도구 경로. 스크립트·CLI가 실행되지 않을 때
+- [guides.md](guides.md) — C7 조작 가이드·키캡·마우스 정본·차단 API·독립 씬·원본 보존. 표시/검증 전에
 - [tooltips.md](tooltips.md) — C15 근접·패널 품목 설명 정본·모드/배치 API·독립 씬·원본 보존. 툴팁 사용/검증 전에
 - [interaction.md](interaction.md) — C6 안내판·내부 진행 링 정본·표시 API·독립 씬·원본 보존. 배치·호출·검증 전에
 - [notifications.md](notifications.md) — C8 배너·오른쪽 토스트 정본·표시 API·독립 확인 씬·전체 원본 보존. 알림 UI 사용/검증 전에
