@@ -35,7 +35,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
         public static readonly Rect Restroom = Rect.MinMaxRect(3f, DormFront, 10f, DormBackNew);
         public static readonly Rect PropRoom = Rect.MinMaxRect(-10f, PropBackNew, 10f, PropFront);
         public static readonly Rect JunkStorage = Rect.MinMaxRect(JunkBackNew, -9f, JunkFront, 9f);
-        public static readonly Rect Corridor = Rect.MinMaxRect(10f, -4f, 37f, 4f);
+        public static readonly Rect Corridor = WaitingRoomTunnelLayout.Tunnel; // 프로토타입 터널 구성(x 10~52)
         public static readonly Rect ExpertRoom = Rect.MinMaxRect(10f, 4f, 18f, ExpertBackNew);
 
         [MenuItem("Tools/CurtainCall/대기실/좁은 방 넓히기·가까운 카메라 구역")]
@@ -222,6 +222,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Zone(root, "Zone_PropRoom", PropRoom, preset);
             Zone(root, "Zone_JunkStorage", JunkStorage, preset);
             Zone(root, "Zone_Corridor", Corridor, preset);
+            foreach (var room in WaitingRoomTunnelLayout.Rooms) // ⑥ 터널 옆방
+                Zone(root, "Zone_" + room.name, room.rect, preset);
             Zone(root, "Zone_ExpertRoom", ExpertRoom, preset);
         }
 

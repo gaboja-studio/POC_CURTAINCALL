@@ -76,6 +76,10 @@ namespace CurtainCall.WaitingRoom.EditorTools
             BuildFog(Group(mood, "Fog"));
             BuildDressing(Group(mood, "Dressing"));
             BuildTunnel(Group(mood, "Tunnel"));
+            BuildBackstageRooms(Group(mood, "BackstageRooms"));
+            BuildCeilingworks(Group(mood, "Ceilingworks"));
+            BuildRooms(Group(mood, "Rooms"));
+            BuildProtoFills(Group(mood, "ProtoFill"));
             FitWiresToCeiling(mood);
 
             AssetDatabase.SaveAssets();
@@ -137,7 +141,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
 
             string proto = gb switch
             {
-                "GB_Floor" => In("S02_") || In("S06_") || In("S08_") ? "V4_Floor_OldPlank" : "V4_Floor_WetConcrete",
+                "GB_Floor" => name.Contains("R2_") || name.Contains("R3_") ? "V4_Floor_WetConcrete" // 프로토타입 장비 보관소·작업실
+                    : In("S02_") || In("S06_") || In("S08_") ? "V4_Floor_OldPlank" : "V4_Floor_WetConcrete",
                 "GB_Wall" => In("W_06_") ? "V5_Vault_Concrete" : In("W_05_") || In("W_08_") ? "V4_Wall_PeeledPlaster" : "V4_Wall_DamagedConcrete",
                 "GB_Wood" => "V4_Wood_Old",
                 "GB_Metal" => name is "Pillar" or "Upright" ? "V4_Iron_Dark" : "V4_RustyMetal",
@@ -167,16 +172,18 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Ceiling(p, "Ceiling_JunkStorage", JunkStorage, "V4_Ceiling_RustyMetal");
             Ceiling(p, "Ceiling_Corridor", Corridor, "V4_Ceiling_RustyMetal");
             Ceiling(p, "Ceiling_ExpertRoom", ExpertRoom, "V4_Ceiling_Concrete");
+            foreach (var room in WaitingRoomTunnelLayout.Rooms) // ⑥ 터널 옆방: 프로토타입 백스테이지처럼 낮은 천장
+                Ceiling(p, "Ceiling_" + room.name, room.rect, "V4_Ceiling_Concrete", WaitingRoomTunnelLayout.RoomCeiling);
         }
 
-        static void Ceiling(Transform p, string name, Rect r, string material)
+        static void Ceiling(Transform p, string name, Rect r, string material, float height = CeilingY)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.name = name;
             Object.DestroyImmediate(go.GetComponent<Collider>());
             go.transform.SetParent(p, false);
-            go.transform.localPosition = new Vector3(r.center.x, CeilingY + 0.1f, r.center.y);
-            go.transform.localScale = new Vector3(r.width + 0.3f, 0.2f, r.height + 0.3f);
+            go.transform.localPosition = new Vector3(r.center.x, height + 0.1f, r.center.y);
+            go.transform.localScale = new Vector3(r.width - (height < CeilingY ? 0.3f : -0.3f), 0.2f, r.height - (height < CeilingY ? 0.3f : -0.3f)); // 낮은 천장은 벽 안쪽에 맞춘다
             var renderer = go.GetComponent<MeshRenderer>();
             renderer.sharedMaterial = ProtoMaterial(material);
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.TwoSided;
@@ -217,7 +224,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             // 무대 진입 통로 조명은 BuildTunnel이 둔다
 
             // 공연 스테이지 입구: 붉은 문틈 빛
-            Place(p, "StageEntrance_RedSpill", new[] { hall.Find("DoorRedSpill") }, new Vector3(35.4f, 1.5f, 0f));
+            Place(p, "StageEntrance_RedSpill", new[] { hall.Find("DoorRedSpill") }, new Vector3(WaitingRoomTunnelLayout.TunnelEnd - 1.6f, 1.5f, 0f));
         }
 
         static void Lamp(Transform p, string name, Transform lamp, Transform light, Vector2 at, float y, System.Action<Light> tune)
@@ -302,22 +309,392 @@ namespace CurtainCall.WaitingRoom.EditorTools
             }
         }
 
+        // ── 4단계: 공간별 이식(①②④⑤⑧) ───────────────────────────────
+        // 「대기실 에셋 재사용 후보」 공간별 항목에 맞춰 프로토타입 세트를 옮긴다. 그레이박스 기능 오브젝트는 그대로 두고,
+        // 출입구·동선·스폰은 비운다. ⑥⑦은 BuildTunnel, ① 천막 더미는 BuildTentPile.
+
+        static void BuildRooms(Transform p)
+        {
+            var hall = Src("대기실_본관");
+            var dressing = Src("분장실");
+            var junk = Src("대기실_본관/잡동사니");
+            var debris = Src("백스테이지2/잔해");
+
+            // ① 로비: 깃발줄 2줄(7m, 천막 깃대·쇠사슬 피함) + 트러스에 매단 줄무늬 낡은 천
+            var lobby = Group(p, "Lobby");
+            foreach (var (z, path) in new[] { (-6.5f, "Props/SM_Prop_FlagLine_01.prefab"), (0.5f, "Props/SM_Prop_FlagLine_02.prefab") })
+            {
+                var flags = Prefab(lobby, SyntyApocalypse + path, new Vector3(0f, 7f, z), 0f);
+                if (flags != null) flags.localScale = new Vector3((Lobby.width - 0.4f) / 27.42f, 1f, 1f);
+            }
+            var rags = Place(lobby, "TrussRags", new[] { Src("무대진입_터널/낡은천") }, new Vector3(0f, float.NaN, -4.5f));
+            HangFrom(rags, TrussBottom);
+            CullOutside(rags, Rect.MinMaxRect(Lobby.xMin + 0.5f, Lobby.yMin, Lobby.xMax - 0.5f, Lobby.yMax));
+
+            // ② 숙소: 침대 줄 앞에 프로토타입 철창·열린 철창문·명판(숙소1·2) — 침대 뒤 깊이 3.4m로 프로토타입과 같다
+            var dorm = Group(p, "Dormitory");
+            const float cellFront = 17.6f;
+            foreach (var (cell, x) in new[] { ("숙소/숙소_01", -7f), ("숙소/숙소_02", -1f) })
+            {
+                var c = hall.Find(cell);
+                if (c == null) continue;
+                var parts = new[] { c.Find("철창"), c.Find("철창문_열림"), c.Find("NamePlate"), c.Find("Text_" + c.name.Replace("숙소_0", "숙소")) }.Where(t => t != null).ToArray();
+                var copy = Place(dorm, "Cell_" + c.name, parts, new Vector3(x, float.NaN, cellFront));
+                // 프로토타입 칸 사이 옆 칸막이(깊이 5.1m)는 우리 칸 깊이(3.4m)보다 깊어 북쪽 벽을 뚫으므로 앞면 철창만 남긴다
+                // (칸막이 = 앞면보다 뒤에 있는 철창 조각·옆 레일)
+                var barsRoot = copy.GetComponentsInChildren<Transform>(true).First(t => t.name == "철창");
+                var pieces = barsRoot.Cast<Transform>().Select(t => (t, rs: t.GetComponentsInChildren<Renderer>(true))).Where(x => x.rs.Length > 0).ToArray();
+                float frontZ = pieces.Min(x => x.rs.Min(r => greybox.InverseTransformPoint(r.bounds.min).z));
+                foreach (var (piece, rs) in pieces)
+                {
+                    float minZ = rs.Min(r => greybox.InverseTransformPoint(r.bounds.min).z);
+                    float depth = rs.Max(r => r.bounds.size.z);
+                    if (minZ > frontZ + 0.1f || depth > 0.5f) Object.DestroyImmediate(piece.gameObject);
+                }
+                // 남은 앞면 철창이 (x, cellFront)에 오게 맞춘다
+                var front = Center(new[] { barsRoot });
+                var lf = greybox.InverseTransformPoint(front);
+                copy.position += greybox.TransformVector(new Vector3(x - lf.x, 0f, cellFront - lf.z));
+            }
+            // 서쪽 벽: 기존 사물함 옆에 프로토타입 사물함 한 칸(벽을 등지게), 가운데 벤치
+            Place(dorm, "Lockers", new[] { First(hall.Find("사물함_의상"), "사물함") }, new Vector3(-9.35f, float.NaN, 14.2f), yaw: 90f);
+            var lockerSet = hall.Find("사물함_의상");
+            Place(dorm, "Bench", lockerSet.Cast<Transform>().Where(t => t.name.StartsWith("Bench")).ToArray(), new Vector3(-4f, float.NaN, 14f));
+
+            // ④ 소품실·분장실: 북쪽 벽(문 동쪽)에 전구 거울 화장대 4칸 — 방을 향하게 180° 돌림
+            var vanity = dressing.Find("화장대");
+            Place(p, "PropRoom_Vanity", new[] { vanity }, new Vector3(8.6f, float.NaN, -9.3f), anchor: vanity?.Find("MirrorFrame"), yaw: 180f);
+
+            // ⑤ 폐기물 보관소: 낡은 매트리스 더미(북동 모서리), 빛바랜 현수막 "오늘도 웃어라"(남쪽 벽 위), 통·팔레트(남동 모서리)
+            var store = Group(p, "JunkStorage");
+            Place(store, "OldMattresses", debris.Cast<Transform>().Where(t => t.name == "OldMattress").ToArray(), new Vector3(-11.6f, float.NaN, 7.4f), yaw: 90f);
+            var banner = debris.Cast<Transform>().Where(t => t.name == "FadedBanner" || t.name.StartsWith("Text_")).ToArray();
+            Place(store, "FadedBanner", banner, new Vector3(-16f, float.NaN, -8.78f), anchor: banner.FirstOrDefault(t => t.name == "FadedBanner"));
+            CopyAt(store, junk.Find("SM_Barrel"), new Vector3(-10.9f, 0f, -8.2f), 0f);
+            CopyAt(store, junk.Find("SM_Barrel_1"), new Vector3(-11.8f, 0f, -8.0f), 35f);
+            CopyAt(store, junk.Find("SM_Woodpallet_2"), new Vector3(-13.0f, 0f, -7.9f), 80f);
+
+            // ⑧ 전문가 대기실: 로비 쪽 출입구 위 붉은 밸런스·금색 술(특별한 방 표시), 안쪽 나무 의자·철망 전구
+            var curtains = Src("무대진입_터널/커튼");
+            Place(p, "ExpertDoorValance", new[] { curtains?.Find("Rail"), curtains?.Find("Valance"), curtains?.Find("Fringe") }, new Vector3(9.78f, float.NaN, 6.5f), scale: new Vector3(1f, 1f, 2.4f / 6f));
+            var expert = Group(p, "ExpertRoom");
+            CopyAt(expert, junk.Find("SM_WW2_WoodenChair_c1_LOD0"), new Vector3(12.4f, 0f, 11.6f), 150f);
+            var lamps = Src("대기실_본관/조명");
+            Lamp(expert, "ExpertRoom_Lamp", lamps.GetChild(0), lamps.GetChild(1), new Vector2(14f, 10.2f), 4.1f, l => { l.intensity = 4f; l.range = 7f; });
+        }
+
+        // ── 4단계 디벨롭: 프로토타입 공간 구성 채우기 ─────────────────────────
+        // 프로토타입에서 우리 방에 대응하는 구역을 같은 벽 기준으로 겹쳐 놓고, 그 안의 배치를 통째로 옮긴다.
+        // 물건마다 ① 방 밖 ② 그레이박스 오브젝트·이미 놓은 장식과 겹침 ③ 출입구 앞·스폰 줄 ④ 6.5m 위(천장부)이면 뺀다.
+
+        static readonly (Vector2 at, Vector2 size)[] Clearances =
+        {
+            (new Vector2(-10f, 0f), new Vector2(4.4f, 3.6f)),     // 로비 ↔ ⑤ 문
+            (new Vector2(10f, 0f), new Vector2(4.4f, 3.6f)),      // 대기실 문(⑥)
+            (new Vector2(10f, 6.5f), new Vector2(4.4f, 2.6f)),    // ⑧ 문
+            (new Vector2(-4f, 9f), new Vector2(3.6f, 4.4f)),      // 로비 ↔ ② 문
+            (new Vector2(-2f, -9f), new Vector2(3.6f, 4.4f)),     // 로비 ↔ ④ 문
+            (new Vector2(3f, 11f), new Vector2(3.0f, 2.2f)),      // 숙소 ↔ 화장실 문
+            (new Vector2(0f, -3.5f), new Vector2(9f, 2.6f)),      // 스폰 줄
+            (new Vector2(7.2f, -5.6f), new Vector2(3.2f, 2.6f)),  // ③ 상점 수화기·배송구 앞
+        };
+
+        // 프로토타입 소품실·분장실 사이 칸막이벽(x 138 → 0). 물려줄 선반(z -20)·소품 선반 B(z -11.6)를 자르지 않는 구간만
+        static readonly Rect PropPartition = Rect.MinMaxRect(-0.15f, -18.6f, 0.15f, -12.2f);
+        const float PropPartitionHeight = 3.2f;
+
+        static void BuildProtoFills(Transform p)
+        {
+            var avoid = AvoidBounds();
+            int count = 0;
+            // ① 로비: 본관 남쪽 벽 줄(사물함·의상걸이·탈·벤치) + 「대기실」 간판 + 흩어진 잡동사니
+            var hall = Src("대기실_본관");
+            var lobbyOffset = new Vector3(-143.5f, 0f, -11.05f);
+            count += Fill(Group(p, "Lobby"), Children(hall.Find("사물함_의상")).Concat(Children(hall.Find("잡동사니"))).Append(hall.Find("Sign_대기실")), lobbyOffset, Lobby, avoid);
+            // ② 숙소: 프로토타입 칸 안 생활 소품(2층 침대 제외 — 그레이박스 침대는 이후 에셋 교체 대상)
+            var dormProps = new[] { "숙소/숙소_01/가구", "숙소/숙소_02/가구" }.SelectMany(path => Children(hall.Find(path))).Where(t => !t.name.StartsWith("철제2층침대"));
+            // 프로토타입 칸 깊이 5.1m > 우리 3.4m → 뒷벽(z 16 → 21) 기준으로 맞추고, 철창·침대와 겹치는 것은 자동으로 빠진다
+            count += Fill(Group(p, "Dormitory"), dormProps, new Vector3(-130f, 0f, 5f), Dormitory, avoid);
+            // ④ 소품실·분장실: 프로토타입 두 방을 나란히(폭 20m·깊이 ~11.6m, 남쪽 벽 기준). 화장대는 이미 북쪽 벽에.
+            //    두 방 사이 칸막이벽을 되살려 분장실 쪽 탈·선반이 벽에 걸리게 한다(이 벽은 겹침 검사 대상 아님)
+            var partition = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            partition.name = "PropRoom_Partition";
+            partition.transform.SetParent(Group(p, "PropRoomPartition"), false);
+            partition.transform.localPosition = new Vector3(PropPartition.center.x, PropPartitionHeight / 2f, PropPartition.center.y);
+            partition.transform.localScale = new Vector3(PropPartition.width, PropPartitionHeight, PropPartition.height);
+            var partitionRenderer = partition.GetComponent<MeshRenderer>();
+            partitionRenderer.sharedMaterial = ProtoMaterial("V4_Wall_DamagedConcrete");
+            ApplyTiledMesh(partitionRenderer);
+            var props = Src("소품실");
+            var dressing = Src("분장실");
+            var propItems = Children(props.Find("가구")).Concat(Children(props.Find("소품")))
+                .Concat(dressing.Cast<Transform>().Where(t => t.name != "화장대" && t.name != "조명" && !t.name.StartsWith("Sign_") && !t.name.StartsWith("FullMirror")));
+            count += Fill(Group(p, "PropRoom"), propItems, new Vector3(-138f, 0f, -10.5f), PropRoom, avoid);
+            // ⑤ 폐기물 보관소: 백스테이지2 남서쪽 모서리(벽을 따라 쌓인 먼지·드럼통·물웅덩이) — 같은 두 벽에 맞춤
+            var debris = Src("백스테이지2/잔해");
+            var junkItems = debris.Cast<Transform>().Where(t => t.name != "FadedBanner" && !t.name.StartsWith("Text_") && t.name != "OldMattress" && t.name != "Link");
+            count += Fill(Group(p, "JunkStorage"), junkItems, new Vector3(-101.85f, 0f, -0.65f), JunkStorage, avoid);
+            Debug.Log($"[WaitingRoomMood] 프로토타입 공간 구성 채우기: {count}개 배치");
+        }
+
+        /// <summary>겹치면 안 되는 범위(그레이박스 오브젝트 + 이미 놓은 바닥 장식). 바닥·벽·천장·글씨·천장부 장식은 제외.</summary>
+        static List<Bounds> AvoidBounds()
+        {
+            var list = new List<Bounds>();
+            var mood = greybox.Find(MoodName);
+            foreach (var r in greybox.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r is ParticleSystemRenderer || r.GetComponent<TextMesh>() != null) continue;
+                var t = r.transform;
+                string path = PathOf(t);
+                if (path.StartsWith("Walls/") || t.name.StartsWith("Floor") || path.Contains("RoomFloors") || path.Contains("GatherZone")) continue;
+                if (path.StartsWith(MoodName + "/Ceilings") || path.StartsWith(MoodName + "/Ceilingworks") || path.StartsWith(MoodName + "/Fog") ||
+                    path.StartsWith(MoodName + "/Lights") || path.StartsWith(MoodName + "/Tunnel") || path.StartsWith(MoodName + "/BackstageRooms")) continue;
+                if (path.StartsWith(MoodName + "/Dressing/Lobby_FloorStains") || r.bounds.size.y < 0.05f) continue; // 바닥 얼룩은 겹쳐도 됨
+                list.Add(LocalBounds(r.bounds));
+            }
+            return list;
+        }
+
+        static Bounds LocalBounds(Bounds world) => new(greybox.InverseTransformPoint(world.center), world.size);
+
+        static int Fill(Transform parent, IEnumerable<Transform> sources, Vector3 offset, Rect room, List<Bounds> avoid)
+        {
+            int n = 0;
+            // 벽 중심선 기준 범위 — 벽 안쪽 면(0.15)에 붙은 물건은 살리고 벽을 넘는 것만 뺀다
+            var inner = Rect.MinMaxRect(room.xMin + 0.05f, room.yMin + 0.05f, room.xMax - 0.05f, room.yMax - 0.05f);
+            var items = sources.Where(s => s != null && s.name != "조명" && !s.name.StartsWith("Lamp") && !s.name.StartsWith("CagedLamp"))
+                .Select(s => (src: s, rs: s.GetComponentsInChildren<Renderer>(true).Where(r => !(r is ParticleSystemRenderer)).ToArray()))
+                .Where(x => x.rs.Length > 0)
+                .Select(x => { var wb = x.rs[0].bounds; foreach (var r in x.rs) wb.Encapsulate(r.bounds); return (x.src, b: new Bounds(wb.center + offset, wb.size)); }) // 프로토타입 월드 + 이동량 = 그레이박스 로컬
+                .OrderBy(x => x.b.min.y)                                                                     // 받침이 먼저 판단되게
+                .ToArray();
+            var dropped = new List<Bounds>();
+            foreach (var (src, b) in items)
+            {
+                bool flat = b.size.y < 0.05f;
+                bool keep = !(b.max.y > 6.5f && b.min.y > 4f)                                               // 천장부는 3단계 몫
+                    && b.min.x >= inner.xMin && b.max.x <= inner.xMax && b.min.z >= inner.yMin && b.max.z <= inner.yMax
+                    && (flat || !Clearances.Any(c => Overlaps(b, c.at, c.size)))
+                    && (flat || !avoid.Any(a => a.Intersects(Shrink(b, 0.05f))))
+                    // 받침(선반·상자)이 빠졌으면 그 위에 얹힌 것도 뺀다 — 공중에 뜨지 않게
+                    && !dropped.Any(d => b.min.y > d.min.y + 0.1f && b.min.x < d.max.x && b.max.x > d.min.x && b.min.z < d.max.z && b.max.z > d.min.z);
+                if (!keep) { if (!flat) dropped.Add(b); continue; }
+                var copy = Duplicate(new[] { src })[0].transform;
+                copy.SetParent(parent, true);
+                copy.position = greybox.TransformPoint(src.position + offset);
+                n++;
+            }
+            return n;
+        }
+
+        static bool Overlaps(Bounds b, Vector2 at, Vector2 size) =>
+            b.min.x < at.x + size.x / 2f && b.max.x > at.x - size.x / 2f && b.min.z < at.y + size.y / 2f && b.max.z > at.y - size.y / 2f;
+
+        static Bounds Shrink(Bounds b, float by) => new(b.center, Vector3.Max(Vector3.zero, b.size - Vector3.one * (2f * by)));
+
+        /// <summary>묶음의 위끝이 주어진 높이(그레이박스 로컬)에 닿게 올리거나 내린다.</summary>
+        static void HangFrom(Transform group, float localTop)
+        {
+            var rs = group.GetComponentsInChildren<Renderer>(true);
+            if (rs.Length == 0) return;
+            float top = rs.Max(r => r.bounds.max.y);
+            group.position += Vector3.up * (greybox.TransformPoint(new Vector3(0f, localTop, 0f)).y - top);
+        }
+
+        // ── 3단계: 천장부(철골 트러스·배관·쇠사슬·천창·깜빡이는 전구) ─────────────
+        // 10m로 높아진 방의 위쪽(6m 이상)을 컨셉아트의 공장 홀처럼 채운다. 3인칭 카메라(최대 ~3.8m)·기능 오브젝트와 겹치지 않는 높이만 쓴다.
+        // ⑥ 통로는 터널 볼트가 따로 덮는다.
+
+        const float TrussBottom = 8.4f, TrussDepth = 1.2f;
+        const float PipeY = 7.6f, SmallPipeY = 6.9f;
+
+        static void BuildCeilingworks(Transform p)
+        {
+            var iron = ProtoMaterial("V4_Iron_Dark");
+
+            // 철골 트러스: (시작 x,z) → (끝 x,z). 벽 안쪽 0.2m에서 끊는다
+            var trusses = Group(p, "Trusses");
+            Truss(trusses, new Vector2(-9.8f, -4.5f), new Vector2(9.8f, -4.5f), iron);   // ① 로비 — 천창(z ±2.3)·천막 깃대 피함
+            Truss(trusses, new Vector2(-9.8f, 4.5f), new Vector2(9.8f, 4.5f), iron);
+            foreach (var x in new[] { -6f, 0f })                                          // ② 숙소
+                Truss(trusses, new Vector2(x, 9.2f), new Vector2(x, 20.8f), iron);
+            Truss(trusses, new Vector2(6.5f, 9.2f), new Vector2(6.5f, 20.8f), iron);      // ② 화장실
+            foreach (var x in new[] { -6f, 0f, 6f })                                      // ④ 소품실
+                Truss(trusses, new Vector2(x, -20.3f), new Vector2(x, -9.2f), iron);
+            foreach (var z in new[] { -6.5f, 0f, 6.5f })                                  // ⑤ 폐기물 보관소(전구 전선 z ±5 피함)
+                Truss(trusses, new Vector2(-21.8f, z), new Vector2(-10.2f, z), iron);
+            Truss(trusses, new Vector2(10.2f, 8.5f), new Vector2(17.8f, 8.5f), iron);     // ⑧ 전문가 대기실
+
+            // 벽을 따라가는 굵은 배관(프로토타입 12m 배관을 벽 길이에 맞춰 나눔) + 아래 가는 배관
+            var pipes = Group(p, "Pipes");
+            var hallPipes = Src("대기실_본관/배관");
+            var big = First(hallPipes, "SM_BigPipe");
+            var small = First(hallPipes, "SM_Smallpipe1");
+            var riser = First(hallPipes, "SM_Pipe_Big_01");
+            var valve = First(hallPipes, "SM_Pipe_Small_Valve_02");
+            PipeRun(pipes, big, -10f, 10f, PipeY, -8.4f, false);       // ① 로비 남·북 벽
+            PipeRun(pipes, big, -10f, 10f, PipeY, 8.4f, false);
+            PipeRun(pipes, small, -10f, 10f, SmallPipeY, 8.65f, false);
+            PipeRun(pipes, big, -10f, 10f, PipeY, 20.4f, false);       // ② 숙소·화장실 북벽
+            PipeRun(pipes, small, -10f, 3f, SmallPipeY, 20.65f, false);
+            PipeRun(pipes, big, -10f, 10f, PipeY, -19.9f, false);      // ④ 소품실 남벽
+            PipeRun(pipes, small, -10f, 10f, SmallPipeY, -20.15f, false);
+            PipeRun(pipes, big, -9f, 9f, PipeY, -21.4f, true);         // ⑤ 폐기물 보관소 서벽(Z 방향)
+            PipeRun(pipes, small, -9f, 9f, SmallPipeY, -21.65f, true);
+            // 로비 모서리 세로 배관(바닥 → 가로 배관 높이) + 밸브
+            // 로비 서쪽 두 모서리(동쪽은 ⑧ 전문가 대기실 문·상점 기둥이 있어 비움). 원본 기준점이 한쪽으로 치우쳐 x=-8.95면 벽에 붙는다
+            foreach (var (x, z) in new[] { (-8.95f, -8.3f), (-8.95f, 8.3f) })
+            {
+                var r = CopyAt(pipes, riser, new Vector3(x, 0f, z), 0f);
+                if (r != null) { r.localScale = Vector3.Scale(r.localScale, new Vector3(1f, PipeY / 6.2f, 1f)); r.localPosition = new Vector3(x, 0f, z); SnapBottom(r, 0f); }
+                CopyAt(pipes, valve, new Vector3(x, 1.5f, z + (z < 0 ? 0.7f : -0.7f)), z < 0 ? 0f : 180f);
+            }
+
+            // 쇠사슬: 프로토타입 본관 쇠사슬을 천장에 매달아(위끝 = 천장) 방 안만 남긴다
+            var chains = Src("대기실_본관/쇠사슬");
+            var lobbyInner = Rect.MinMaxRect(Lobby.xMin + 0.4f, Lobby.yMin + 0.4f, Lobby.xMax - 0.4f, Lobby.yMax - 0.4f);
+            var junkInner = Rect.MinMaxRect(JunkStorage.xMin + 0.4f, JunkStorage.yMin + 0.4f, JunkStorage.xMax - 0.4f, JunkStorage.yMax - 0.4f);
+            CullOutside(HangFromCeiling(Place(p, "Chains_Lobby", new[] { chains }, new Vector3(0f, float.NaN, 6.2f))), lobbyInner);
+            CullOutside(HangFromCeiling(Place(p, "Chains_JunkStorage", new[] { chains }, new Vector3(-16f, float.NaN, 0f), yaw: 90f)), junkInner);
+
+            // 천창 추가: 숙소·폐기물 보관소(차가운 빛줄기)
+            var hall = Src("대기실_본관/조명");
+            Place(p, "Dormitory_Skylight", new[] { hall.Find("Skylight"), hall.Find("SkylightBeam") }, new Vector3(-3f, CeilingY - 0.03f, 15f), anchor: hall.Find("Skylight"));
+            Place(p, "JunkStorage_Skylight", new[] { hall.Find("Skylight"), hall.Find("SkylightBeam") }, new Vector3(-16f, CeilingY - 0.03f, -2.5f), anchor: hall.Find("Skylight"));
+
+            // 깜빡이는 전구: 프로토타입 FlickerLight를 일부 철망 전구에
+            var lights = p.parent.Find("Lights");
+            Flicker(lights, "Lobby_Lamp", 1);
+            Flicker(lights, "Lobby_Lamp", 2);
+            Flicker(lights, "Dormitory_Lamp", 1);
+            Flicker(lights, "JunkStorage_Lamp", 0);
+        }
+
+        /// <summary>프랫 트러스: 위·아래 현재 + 수직재 1.5m 간격 + 대각재. 충돌체 없음.</summary>
+        static void Truss(Transform parent, Vector2 from, Vector2 to, Material material)
+        {
+            var t = Group(parent, "Truss");
+            var a = new Vector3(from.x, 0f, from.y);
+            var b = new Vector3(to.x, 0f, to.y);
+            var dir = (b - a).normalized;
+            float len = Vector3.Distance(a, b);
+            float yaw = Mathf.Atan2(dir.x, dir.z) * Mathf.Rad2Deg;
+            var mid = (a + b) / 2f;
+            const float bar = 0.16f;
+            RibPartYaw(t, "TopChord", mid + Vector3.up * (TrussBottom + TrussDepth), new Vector3(bar, bar, len), yaw, 0f, material);
+            RibPartYaw(t, "BottomChord", mid + Vector3.up * TrussBottom, new Vector3(bar, bar, len), yaw, 0f, material);
+            int bays = Mathf.Max(2, Mathf.RoundToInt(len / 1.5f));
+            float bay = len / bays;
+            float diagLen = Mathf.Sqrt(bay * bay + TrussDepth * TrussDepth);
+            float tilt = Mathf.Atan2(bay, TrussDepth) * Mathf.Rad2Deg;
+            for (int i = 0; i <= bays; i++)
+            {
+                var at = a + dir * (bay * i);
+                RibPartYaw(t, "Post", at + Vector3.up * (TrussBottom + TrussDepth / 2f), new Vector3(bar * 0.8f, TrussDepth, bar * 0.8f), yaw, 0f, material);
+                if (i == bays) continue;
+                var centre = at + dir * (bay / 2f) + Vector3.up * (TrussBottom + TrussDepth / 2f);
+                RibPartYaw(t, "Diagonal", centre, new Vector3(bar * 0.7f, diagLen, bar * 0.7f), yaw, i % 2 == 0 ? tilt : -tilt, material);
+            }
+            // 천장에 매다는 짧은 걸이 두 개
+            foreach (var f in new[] { 0.2f, 0.8f })
+                RibPartYaw(t, "Hanger", a + dir * (len * f) + Vector3.up * ((TrussBottom + TrussDepth + CeilingY) / 2f), new Vector3(0.06f, CeilingY - TrussBottom - TrussDepth, 0.06f), yaw, 0f, material);
+        }
+
+        static void RibPartYaw(Transform parent, string name, Vector3 position, Vector3 size, float yaw, float pitch, Material material)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = name;
+            Object.DestroyImmediate(go.GetComponent<Collider>());
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = position;
+            go.transform.localRotation = Quaternion.Euler(0f, yaw, 0f) * Quaternion.Euler(pitch, 0f, 0f);
+            go.transform.localScale = size;
+            var renderer = go.GetComponent<MeshRenderer>();
+            renderer.sharedMaterial = material;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; // 천장 철골 그림자가 화면을 어지럽히지 않게
+        }
+
+        /// <summary>프로토타입의 X 방향 배관 한 토막을 벽 길이에 맞게 여러 개로 나눠 이어 붙인다(길이 방향만 늘이거나 줄임).</summary>
+        static void PipeRun(Transform parent, Transform source, float from, float to, float y, float k, bool alongZ)
+        {
+            if (source == null) return;
+            var rs = source.GetComponentsInChildren<Renderer>(true);
+            var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds);
+            float pieceLen = b.size.x;
+            float len = Mathf.Abs(to - from);
+            int pieces = Mathf.Max(1, Mathf.CeilToInt(len / pieceLen - 0.15f));
+            float scale = len / (pieces * pieceLen);
+            for (int i = 0; i < pieces; i++)
+            {
+                float c = Mathf.Min(from, to) + (i + 0.5f) * len / pieces;
+                var copy = CopyAt(parent, source, Vector3.zero, alongZ ? 90f : 0f);
+                if (copy == null) continue;
+                copy.localScale = Vector3.Scale(copy.localScale, new Vector3(scale, 1f, 1f));
+                // 묶음 중심이 목표 위치에 오도록 맞춘다
+                var cr = copy.GetComponentsInChildren<Renderer>(true);
+                var cb = cr[0].bounds; foreach (var r in cr) cb.Encapsulate(r.bounds);
+                var target = greybox.TransformPoint(alongZ ? new Vector3(k, y, c) : new Vector3(c, y, k));
+                copy.position += target - cb.center;
+            }
+        }
+
+        static void SnapBottom(Transform t, float localY)
+        {
+            var rs = t.GetComponentsInChildren<Renderer>(true);
+            if (rs.Length == 0) return;
+            float bottom = rs.Min(r => r.bounds.min.y);
+            t.position += Vector3.up * (greybox.TransformPoint(new Vector3(0f, localY, 0f)).y - bottom);
+        }
+
+        /// <summary>묶음의 위끝이 천장에 닿게 올린다.</summary>
+        static Transform HangFromCeiling(Transform group)
+        {
+            var rs = group.GetComponentsInChildren<Renderer>(true);
+            if (rs.Length == 0) return group;
+            float top = rs.Max(r => r.bounds.max.y);
+            group.position += Vector3.up * (greybox.TransformPoint(new Vector3(0f, CeilingY - 0.05f, 0f)).y - top);
+            return group;
+        }
+
+        static void Flicker(Transform lights, string groupName, int index)
+        {
+            if (lights == null) return;
+            var groups = lights.Cast<Transform>().Where(t => t.name == groupName).ToArray();
+            if (index >= groups.Length) return;
+            var g = groups[index];
+            var light = g.GetComponentInChildren<Light>(true);
+            if (light == null) return;
+            var flicker = light.gameObject.GetComponent<FlickerLight>() ?? light.gameObject.AddComponent<FlickerLight>();
+            flicker.bulbs = g.GetComponentsInChildren<Renderer>(true).Where(r => r.name == "Bulb").ToArray();
+            flicker.emissionColor = light.color;
+            flicker.burstsPerSecond = 0.2f;
+        }
+
         // ── ⑥ 무대 입구 통로 → 프로토타입식 터널 ───────────────────────
         // 기능(커튼 방 열림 3·닫힘 5, 집결 판정 구역, ⑦ 공연 입구, 대기실 문 셔터)은 그대로 두고 외형만 터널로:
         // 콘크리트 반원 볼트, 커튼 방 사이 강철 리브, 벽면 배관, 판자 길, 전구줄·케이블·매단 전구, 깃발·포스터, ⑦ 금색 프로시니엄.
-        // 프로토타입 터널(폭 6m, 벽 z 6/12, x 157~198)을 통로(폭 8m, 벽 z -4/4, x 10~37)에 옮겨 쓴다.
+        // 프로토타입 터널(폭 6m, 벽 z 6/12, x 157~198)을 통로(폭 8m, 벽 z -4/4, x 10~52 — WaitingRoomTunnelLayout)에 옮겨 쓴다.
 
         const float VaultSpring = 3.6f;           // 커튼 방 상단 장식(3.3m)·표지(3.45m) 위에서 아치 시작
         const float VaultRadius = 4f;             // 통로 반폭
         const float VaultApex = VaultSpring + VaultRadius;
         const float ProtoTunnelLift = VaultApex - 6.2f; // 프로토타입 아치 꼭대기(6.2m) 대비
-        static readonly float[] RibXs = { 11f, 16.5f, 21.5f, 26.5f, 31.5f, 36.2f }; // 커튼 방 사이 틈
-        static readonly (float x0, float x1)[] CurtainSpans = { (12.4f, 15.6f), (17.4f, 20.6f), (22.4f, 25.6f), (27.4f, 30.6f) };
+        static readonly (float x0, float x1, int side)[] CurtainSpans = WaitingRoomTunnelLayout.CurtainSpans.ToArray();
 
-        /// <summary>그 위치의 천장 높이(통로 안이면 볼트 곡면).</summary>
+        /// <summary>프로토타입처럼 3m 간격 강철 리브. 커튼·출입구 앞(양쪽 벽 어느 쪽이든)은 건너뛴다.</summary>
+        static IEnumerable<float> RibXs()
+        {
+            for (float x = Corridor.xMin + 1f; x < Corridor.xMax - 0.5f; x += 3f)
+                if (!CurtainSpans.Any(s => x > s.x0 - 0.2f && x < s.x1 + 0.2f)) yield return x;
+        }
+
+        /// <summary>그 위치의 천장 높이(통로 안이면 볼트 곡면, 터널 옆방은 낮은 천장).</summary>
         static float CeilingAt(Vector3 local)
         {
-            if (!Corridor.Contains(new Vector2(local.x, local.z))) return CeilingY;
+            var at = new Vector2(local.x, local.z);
+            if (WaitingRoomTunnelLayout.Rooms.Any(r => r.rect.Contains(at))) return WaitingRoomTunnelLayout.RoomCeiling;
+            if (!Corridor.Contains(at)) return CeilingY;
             float z = Mathf.Clamp(local.z, -VaultRadius, VaultRadius);
             return VaultSpring + Mathf.Sqrt(VaultRadius * VaultRadius - z * z) - 0.05f;
         }
@@ -348,7 +725,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             // 강철 리브(기둥 + 아치 조각) — 프로토타입 리브와 같은 단면
             var ribs = Group(p, "SteelRibs");
             var rust = ProtoMaterial("V4_RustyMetal");
-            foreach (var x in RibXs)
+            foreach (var x in RibXs())
             {
                 var rib = Group(ribs, "Rib");
                 rib.localPosition = new Vector3(x, 0f, 0f);
@@ -384,8 +761,41 @@ namespace CurtainCall.WaitingRoom.EditorTools
 
             // ⑦ 공연 입구: 금색 프로시니엄(현재 대형 커튼 폭 7.7m에 맞춤) / 대기실 문 쪽: 붉은 밸런스
             var curtains = tunnel.Find("커튼");
-            Place(p, "StageProscenium", new[] { curtains?.Find("무대_프로시니엄") }, new Vector3(36.3f, 6.3f * 0.8f / 2f, 0f), scale: new Vector3(1f, 0.8f, 7.7f / 5.4f)); // 높이 6.3m × 0.8, 바닥에 닿게
+            Place(p, "StageProscenium", new[] { curtains?.Find("무대_프로시니엄") }, new Vector3(WaitingRoomTunnelLayout.TunnelEnd - 0.7f, 6.3f * 0.8f / 2f, 0f), scale: new Vector3(1f, 0.8f, 7.7f / 5.4f)); // 높이 6.3m × 0.8, 바닥에 닿게
             Place(p, "LobbyDoorValance", new[] { curtains?.Find("Rail"), curtains?.Find("Valance"), curtains?.Find("Fringe") }, new Vector3(10.45f, float.NaN, 0f), scale: new Vector3(1f, 1f, 3.6f / 6f));
+        }
+
+        /// <summary>
+        /// ⑥ 터널 옆방 3개에 프로토타입 백스테이지 방(공연 준비실·장비 보관소·무대장치 작업실)의 내부를 그대로 옮긴다.
+        /// 프로토타입 월드 좌표 + 방별 이동량 = 그레이박스 로컬 좌표(벽·출입구가 프로토타입과 맞도록 WaitingRoomTunnelLayout이 정함).
+        /// 방 이름 표지판(쇠사슬로 매단 것)은 터널 쪽 출입구 위에 둔다.
+        /// </summary>
+        static void BuildBackstageRooms(Transform p)
+        {
+            var backstage = Src("백스테이지1");
+            if (backstage == null) return;
+            foreach (var room in WaitingRoomTunnelLayout.Rooms)
+            {
+                var g = Group(p, room.name);
+                var protoRoom = backstage.Find(room.proto);
+                if (protoRoom == null) continue;
+                foreach (Transform child in protoRoom.Cast<Transform>().ToArray())
+                    CopyMapped(g, child, room.offset);
+
+                // 출입구 위 이름 표지(Sign_<이름>)와 그 양옆 쇠사슬
+                var sign = backstage.Cast<Transform>().FirstOrDefault(t => t.name.StartsWith("Sign_") && t.name.Replace(" ", "").Contains(room.proto));
+                if (sign == null) continue;
+                CopyMapped(g, sign, room.offset);
+                foreach (var chain in backstage.Cast<Transform>().Where(t => t.name == "SignChain" && Mathf.Abs(t.position.x - sign.position.x) < 1.6f && Mathf.Abs(t.position.z - sign.position.z) < 0.5f))
+                    CopyMapped(g, chain, room.offset);
+            }
+        }
+
+        static void CopyMapped(Transform parent, Transform source, Vector3 offset)
+        {
+            var copy = Duplicate(new[] { source })[0].transform;
+            copy.SetParent(parent, true);
+            copy.position = greybox.TransformPoint(source.position + offset);
         }
 
         static void RibPart(Transform parent, string name, Vector3 position, Vector3 size, float tiltX, Material material)
@@ -448,7 +858,8 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 // 벽을 따라 길게 이어지는 배관은 커튼 방 상단 장식·표지(~3.6m) 위로 올려 입구 위를 지나가게 한다
                 if (nearWall && hi.x - lo.x > 4f && lo.y < 3.8f) lift = 3.8f - lo.y;
                 // 그 밖의 높이가 있는 벽쪽 물건이 커튼 방 입구 높이에서 입구 폭과 겹치면 뺀다
-                else if (nearWall && lo.y < 3.4f && hi.y - lo.y > 0.05f && CurtainSpans.Any(s => lo.x < s.x1 && hi.x > s.x0)) continue;
+                else if (nearWall && lo.y < 3.4f && hi.y - lo.y > 0.05f &&
+                         CurtainSpans.Any(s => lo.x < s.x1 && hi.x > s.x0 && Mathf.Sign(lo.z + hi.z) == s.side)) continue;
                 // 아치 위로 올라간 부분은 볼트 아래로 내린다
                 float top = hi.y + lift, roof = CeilingAt(new Vector3((lo.x + hi.x) / 2f, 0f, (lo.z + hi.z) / 2f));
                 if (top > roof) lift -= top - roof;
