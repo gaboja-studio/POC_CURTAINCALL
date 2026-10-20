@@ -80,6 +80,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             BuildCeilingworks(Group(mood, "Ceilingworks"));
             BuildRooms(Group(mood, "Rooms"));
             BuildProtoFills(Group(mood, "ProtoFill"));
+            BuildLightingPass(mood);
             FitWiresToCeiling(mood);
 
             AssetDatabase.SaveAssets();
@@ -381,6 +382,104 @@ namespace CurtainCall.WaitingRoom.EditorTools
             CopyAt(expert, junk.Find("SM_WW2_WoodenChair_c1_LOD0"), new Vector3(12.4f, 0f, 11.6f), 150f);
             var lamps = Src("대기실_본관/조명");
             Lamp(expert, "ExpertRoom_Lamp", lamps.GetChild(0), lamps.GetChild(1), new Vector2(14f, 10.2f), 4.1f, l => { l.intensity = 4f; l.range = 7f; });
+        }
+
+        // ── 5단계: 조명·안개 (톤앤매너 4.2 라이팅·색감) ─────────────────────────
+        // 배경 = 차가운 청록(앰비언트·채움광), 시선 = 따뜻한 전구색 하나로 통일(+텅스텐 보조 1색), 강조 = 기능 지점 스포트라이트.
+        // 붉은 문틈 빛·천창 달빛은 의도된 대비색이라 유지. 대기실은 거점이라 안개를 덜고, 폐기물 보관소(뒤편)는 조금 더 짙게.
+
+        static readonly Color WarmBulb = new Color32(0xFF, 0xA6, 0x5A, 0xFF);
+        static readonly Color Tungsten = new Color32(0xFF, 0xC2, 0x7A, 0xFF);
+        static readonly Color CoolFill = new Color32(0x4E, 0x7F, 0x96, 0xFF);
+        static readonly Color SpotWarm = new Color32(0xFF, 0xD9, 0xA8, 0xFF);
+
+        static void BuildLightingPass(Transform mood)
+        {
+            // 앰비언트: 위는 청록, 바닥은 어두운 갈색 — 전구가 닿지 않는 곳도 형태는 읽히게
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.11f, 0.18f, 0.21f);
+            RenderSettings.ambientEquatorColor = new Color(0.10f, 0.12f, 0.14f);
+            RenderSettings.ambientGroundColor = new Color(0.06f, 0.05f, 0.045f);
+
+            // 색 통일: 주황 계열 = 전구색, 줄전구·분장 거울 = 텅스텐, 푸른 채움광 = 청록
+            foreach (var l in mood.GetComponentsInChildren<Light>(true))
+            {
+                if (l.name.Contains("RedSpill") || l.name.Contains("Skylight") || l.type == LightType.Directional) continue;
+                Color.RGBToHSV(l.color, out float h, out float s, out _);
+                if (s > 0.25f && h > 0.02f && h < 0.15f) l.color = l.name.Contains("StringGlow") || l.name.Contains("Vanity") ? Tungsten : WarmBulb;
+                else if (h > 0.5f && h < 0.72f) l.color = CoolFill;
+                var flicker = l.GetComponent<FlickerLight>();
+                if (flicker != null) flicker.emissionColor = l.color;
+            }
+
+            // 공간별 차가운 채움광(전구가 없는 벽면·구석이 검게 뭉개지지 않게)
+            var lights = Group(mood, "LightingPass");
+            foreach (var (n, at, range) in new[]
+            {
+                ("Dormitory", new Vector3(-3.5f, 6f, 15f), 14f), ("PropRoom", new Vector3(0f, 6f, -14.75f), 16f),
+                ("R1_PrepRoom", new Vector3(15.5f, 5f, -8.5f), 10f), ("R3_StageWorkshop", new Vector3(25.5f, 5f, 8.6f), 10f),
+            })
+                PointLight(lights, "CoolFill_" + n, at, CoolFill, 0.6f, range);
+
+            // 기능 지점 스포트라이트(따뜻한 빛 한 줄기 — 공동 테스트 "기능에 대한 피드백" 항목)
+            var gather = WaitingRoomTunnelLayout.Gather;
+            foreach (var (n, from, to, intensity, angle) in new[]
+            {
+                ("Spot_TentPile", new Vector3(0f, 8.3f, -2.5f), WaitingRoomGreyboxBuilder.TentCenter + Vector3.up * 1f, 9f, 38f),   // 링 스포트라이트 모티프
+                ("Spot_ShopPhone", new Vector3(6.3f, 4.6f, -4.8f), new Vector3(7.5f, 1.2f, -6.8f), 9f, 30f),
+                ("Spot_ScheduleBoard", new Vector3(-7f, 4.6f, 6.2f), new Vector3(-7f, 1.9f, 8.8f), 7f, 38f),
+                ("Spot_InfoBoard", new Vector3(6.2f, 4.6f, 3.2f), new Vector3(8.4f, 1.2f, 3.2f), 6f, 34f),
+                ("Spot_HandoverShelf", new Vector3(-1f, 4.6f, -17.2f), new Vector3(-1f, 1.2f, -20f), 7f, 40f),
+                ("Spot_PerformanceLog", new Vector3(-16.6f, 4.4f, 5.6f), new Vector3(-18.5f, 0.8f, 7f), 6.5f, 30f),
+                ("Spot_StageCurtain", new Vector3(gather.xMax - 2.5f, 6.2f, 0f), new Vector3(WaitingRoomTunnelLayout.TunnelEnd - 0.4f, 2f, 0f), 8f, 42f),
+            })
+            {
+                var go = new GameObject(n);
+                go.transform.SetParent(lights, false);
+                go.transform.localPosition = from;
+                go.transform.localRotation = Quaternion.LookRotation(to - from);
+                var spot = go.AddComponent<Light>();
+                spot.type = LightType.Spot;
+                spot.color = SpotWarm;
+                spot.intensity = intensity;
+                spot.range = Vector3.Distance(from, to) * 1.8f;
+                spot.spotAngle = angle;
+                spot.innerSpotAngle = angle * 0.55f;
+                spot.shadows = LightShadows.None;
+            }
+
+            // 안개: 로비는 스폰 화면이 뿌옇지 않게 덜고, 폐기물 보관소는 조금 더
+            ScaleFog(mood, "대기실_바닥안개", 0.6f, 1f);
+            ScaleFog(mood, "대기실_연무", 0.6f, 0.6f);
+            ScaleFog(mood, "백스테이지2_바닥안개", 1.6f, 1f);
+        }
+
+        static void PointLight(Transform parent, string name, Vector3 at, Color color, float intensity, float range)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = at;
+            var l = go.AddComponent<Light>();
+            l.type = LightType.Point;
+            l.color = color;
+            l.intensity = intensity;
+            l.range = range;
+            l.shadows = LightShadows.None;
+        }
+
+        static void ScaleFog(Transform mood, string name, float amount, float alpha)
+        {
+            var ps = mood.GetComponentsInChildren<ParticleSystem>(true).FirstOrDefault(p => p.name == name);
+            if (ps == null) return;
+            var main = ps.main;
+            main.maxParticles = Mathf.Max(10, Mathf.RoundToInt(main.maxParticles * amount));
+            var color = main.startColor.color;
+            main.startColor = new Color(color.r, color.g, color.b, color.a * alpha);
+            var emission = ps.emission;
+            var rate = emission.rateOverTime;
+            rate.constantMax *= amount;
+            rate.constantMin *= amount;
+            emission.rateOverTime = rate;
         }
 
         // ── 4단계 디벨롭: 프로토타입 공간 구성 채우기 ─────────────────────────
