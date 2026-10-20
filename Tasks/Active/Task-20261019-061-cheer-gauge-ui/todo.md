@@ -44,6 +44,11 @@
 - [x] 안전 조립 API/공개 어댑터·설정/공용3 프리팹·독립 SettingsUi 씬/명시 데모 조립, 기존 Systems/Settings 미수정.
 - [x] 최종 보정 후 Compile/PlayMode23/23·C16 회귀16/16·check-work/EditMode798/798 PASS. 두 화면비24캡처/비중첩·합성 입력·참조2484 누락0·baseline626 보존/종료 audit 확인. Console오류0/예상 C16 테스트 경고2, 기존 전체 PlayMode 미결은 별도([settings-ui-verification.md](settings-ui-verification.md)).
 - [ ] 사람 최종 외형/물리 입력·실기기·공동 확인. 실옵션 목록/저장/Audio/Screen/PlayerPrefs·입력 소유/서비스 연결·삭제·C14 commit/push 제외.
+## C12 공연 결과 패널 UI (2026-10-21)
+- [x] 사용자 제작 요청·ResultsUi 구역 배정·선행 W3 저장 확인·보호 baseline1277 확보.
+- [x] 명세/시트25·정본19 대조·Static 폰트·안전 조립 API·전용 프리팹/씬·Preview28 구현. 첫 Play25/28 보정 후 Compile·Play28/28·48캡처/합성 입력·선택 회귀55/55 통과.
+- [x] 사용자 TimeManager 포함 승인 후 차단 해소: check-work 구역/문서/Compile/Edit798/798·간격 기하1/1 PASS. private233파일 f60ae144 main push/원격 확인, 공개 C12/기록/gitlink/승인 TimeManager 저장·push 진행. 화면/입력/보존/참조1646 누락0/종료 복구·실패 이력 기록.
+- [ ] 사람 최종 외형/물리 입력·실기기/공동 확인. 실제 보상 지급/게임 흐름 연결·삭제·commit/push/PR/병합 제외.
 ## W3 공연 스케줄표 UI (2026-10-20)
 - [x] 사용자 제작 요청·전용 ScheduleUi 작업 구역 배정, 대상 Editor ready/ShopUi clean·보호 baseline1132 확보. 선행 W2 공개3b2a3a4/private42477d6f 저장 완료.
 - [x] 명세/생산20·정본12·폰트 대조와 제공 코드 안전 보정, 전용 프리팹/독립 씬/Preview21버튼 제작. 전용 Bold Static·일차28pt 렌더 여백 보정 후 Play20/20.

@@ -6,7 +6,7 @@
 - **Active Task:** Task-20261019-061 (로컬 PM 자체 작업)
 - **PM:** @MoHoDu
 - **Merge Time:** 미정
-- **Updated:** 2026-10-20
+- **Updated:** 2026-10-21
 ## 목표 / Tasks
 - 승인 디자인·C1 보존, 버튼/패널/아이콘·공연/백스테이지/로비 HUD·C8·C6·C15·C7·C9 조립/독립 테스트. 기존 폴더 ID 유지.
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
@@ -33,7 +33,9 @@
 | `Assets/Scripts/Systems/SettingsUi/`, `Assets/Resources/Prefabs/UIs/SettingsUi/`, `Assets/Resources/Fonts/SettingsUi/`, `Assets/Scenes/Tests/SettingsUi/` | PM C14 설정 창·공용 탭/슬라이더/토글 독립 제작·검증, 기존 게임 Settings 코드/실서비스 제외 |
 | `Assets/Scripts/Systems/ShopUi/`, `Assets/Resources/Prefabs/UIs/ShopUi/`, `Assets/Resources/Fonts/ShopUi/`, `Assets/Scenes/Tests/ShopUi/` | PM W2 수화기 구매·판매 표시 패널 독립 제작·검증, 실제 거래/경제/입력 소유 연결 제외 |
 | `Assets/Scripts/Systems/ScheduleUi/`, `Assets/Resources/Prefabs/UIs/ScheduleUi/`, `Assets/Resources/Fonts/ScheduleUi/`, `Assets/Scenes/Tests/ScheduleUi/` | PM W3 공연 스케줄표 독립 제작·검증, 실게임 일정/보상/입력 소유 연결 제외 |
+| `Assets/Scripts/Systems/ResultsUi/`, `Assets/Resources/Prefabs/UIs/ResultsUi/`, `Assets/Resources/Fonts/ResultsUi/`, `Assets/Scenes/Tests/ResultsUi/` | PM C12 공연 결과 패널 독립 제작·검증, 실제 보상/진행/입력 소유 연결 제외 |
 ## 현재 결정·미결
+- C12 저장(2026-10-21): 사용자 커밋/푸시·TimeManager 포함 승인, private233파일 f60ae144 main push/원격 일치 완료. 간격 기하1/1·check-work 구역/문서/Compile/Edit798/798 PASS. 공개 결과/기록/gitlink/TimeManager 저장·push 진행, title_logo 제외. 아래 차단/저장 제외는 이력이다. C12(2026-10-21) ResultsUi 프리팹/독립 씬·Preview28 제작, 시트25/정본19·보호1277+164 대조. 첫 Play25/28 보정 후 Play28/28·두 화면비 명암48캡처/합성 입력·회귀55/55 통과, 참조1646 누락0·종료 복구 확인. 최종 check-work는 구역 밖 TimeManager.asset 직렬화 변경으로 FAIL/후속 SKIPPED·PM 확인 필요. 원본/정본/공유 폰트 보존·실게임 연결/삭제/commit/push 제외. 선행 W3 공개0707167/private23b9d0a7 저장 완료.
 - W3 후속 저장(2026-10-21): 사용자 직접 커밋·푸시 승인, private12파일23b9d0a7 main push·원격 일치 확인 완료. 공개 W3 결과/기록/gitlink 저장·feat/ui-resources push 진행, 무관 results/title_logo 제외·보존/PR·통합 병합 없음. 아래 W3 저장 제외는 제작 당시 이력. W3(2026-10-20) ScheduleUi 프리팹/독립 씬·Preview21버튼 제작, 전용 Bold/일차 렌더 여백 보정 후 Play20/20·명암/두 화면비28캡처·합성 입력·회귀74/74 PASS. 보호1132 예상 밖 변경0·참조2301 누락0·clean 종료 복구 확인, 최종 check-work 구역/문서/Compile·Edit798/798 PASS. 상세 Task `schedule-ui-verification.md`. 실게임 연결/사람 외형/물리 입력/저장 제외. 선행 W2 공개3b2a3a4/private42477d6f 저장·push 완료와 구분한다.
 - W2(2026-10-20): ShopUi Canvas 프리팹/독립 씬·Preview24버튼 조립·표시 API 제작. 행 글자 영역/16:10 Preview 보정 후 Play35/35·두 화면비/명암36캡처·합성 입력 통과. 신규9/승인40, 보호1205 중 코드3/importer9 외 변경0·기존 폰트 불변. 세부 최종 검증은 Task `shop-ui-verification.md` 참조. 실제 거래/경제/배송/서비스·입력 소유·사람 외형/물리 입력·commit/push 제외. C14 공개6e5fb38/privatee1ddf391 저장 완료.
 - C14 후속 사용자 직접 저장 요청(2026-10-20): private21파일 e1ddf391/main push·원격 확인 완료. 공개 C14 산출물/기록/gitlink와 전용 SemiBold 단일 LFS 설정을 이번 feat/ui-resources 커밋으로 저장·push한다. 무관 results/title_logo 제외·보존, PR/공개 통합 병합 없음. 아래 C14 저장 없음은 제작 당시 이력이다.

@@ -6,7 +6,12 @@
 - PM 직접 재요청 후 C7 공개9216489 commit/push·원격 SHA 일치 확인 완료, private 개별8b49cc29/main38001b8e. 앞선 차단 이력은 보존한다.
 - 이어 C9 제작 승인: 제공 자막/화자/방송 명세를 독립 프리팹·확인 씬·표시 API로 조립·검증·기록. C9 추가 저장·삭제·실게임 연결은 제외한다.
 - 후속 PM C9 commit/push 요청으로 C9 private/public 선택 저장 승인. 기존 공유 폰트·무관 변경 제외, 삭제/실게임/PR 제외는 유지한다.
-## W3 공연 스케줄표 UI 계획 (2026-10-20 현재 요청)
+## C12 공연 결과 패널 UI 계획 (2026-10-21 현재 요청)
+1. 완료: 제공 계약/코드·시트25/정본19 대조·보호 baseline1277+164 확보. 원본/기존 UI·폰트 보존.
+2. 완료: 안전 조립 진입점·ResultsUi 프리팹/독립 씬·Preview28/테스트28·전용 Bold Static245문자 제작. 첫 Play25/28의 TMP 높이/테스트 null 보정 후 Compile·Play28/28 PASS. 실제 보상/진행/네트워크/입력 소유 연결 없음.
+3. 완료: Compile·C12 Play28/28·두 화면비 명암48캡처·합성 입력·W3/W2 회귀55/55, 원본/참조1646 누락0·clean 종료 복구 확인.
+4. 후속 저장 승인: TimeManager 포함 승인으로 구역 차단 해소·간격 기하1/1·check-work 구역/문서/Compile/Edit798/798 PASS. private233파일 f60ae144 main push/원격 확인, 공개 C12/기록/gitlink/TimeManager 저장·push 진행. 사람 외형/물리 입력·실기기/공동·PR/공개 통합 병합 별도.
+## W3 공연 스케줄표 UI 계획 (2026-10-20 당시 요청)
 1. 완료: 명세/Runtime/Builder·시트20/재사용 정본12 대조·보호 baseline1132 확보. 기존 ScheduleV1 격리를 유지한다.
 2. 완료: 신규 importer8/코드4 최소 보정·공유 Static Medium/SemiBold 읽기 전용, 말줄임표 누락 때문에 전용 Bold Static2048/107 생성. 전용 프리팹/독립 씬·Preview21버튼 제작, 실게임 연결 없음.
 3. 완료: 최초19/20의 일차28pt 세로 잘림을 라벨 높이40으로 보정 후 Play20/20 PASS. 1920×1080/1200·명암28캡처·화면비별 ray27/클릭22/휠3/Submit1/Cancel1·Preview21버튼 합성 검증 통과.
