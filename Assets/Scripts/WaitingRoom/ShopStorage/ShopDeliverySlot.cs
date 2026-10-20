@@ -31,13 +31,17 @@ namespace CurtainCall.WaitingRoom
         Material material;
         bool loaded;
 
-        sealed class Item : IShopTarget
+        sealed class Item : IShopTarget, IShopPresentation
         {
             public ShopDeliverySlot Slot;
             public ShopDelivery Delivery;
             public GameObject View;
             public Vector3 From, To;
             public float Started = -1f;
+            public Transform VisualRoot => View != null ? View.transform : null;
+            public Vector3 PresentationPoint => View != null ? View.transform.position : Vector3.zero;
+            public string ActionLabel => Delivery.ItemName + " 받기";
+            public bool IsAvailable => View != null && Started < 0f && Slot.shop != null;
 
             public float Reach(Vector3 feet)
             {
@@ -178,6 +182,7 @@ namespace CurtainCall.WaitingRoom
             if (shop == null) return;
             foreach (var item in shown.Values)
                 PropLabels.Draw(item.View.transform.position + Vector3.up * itemSize, $"{item.Delivery.ItemName} #{item.Delivery.Order}");
+            if (ShopReach.HasExternalPresentation) return;
             foreach (var item in shown.Values)
             {
                 if (!ReferenceEquals(ShopReach.Focused, item)) continue;

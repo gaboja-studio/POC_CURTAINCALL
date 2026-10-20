@@ -171,6 +171,16 @@ namespace CurtainCall.Campaign
             return HostDo(r => r.DebugRestartRun(), nameof(DebugRestartRun));
         }
 
+        /// <summary>Dev 모드의 호스트/오프라인 전용. 선택 지점에서 새 테스트 런을 시작한다.</summary>
+        public bool DebugStartAt(RunStartPoint point)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || !point.IsValid(out _)) return false;
+            if (!host.DebugStartAt(point)) return false;
+            localReady = false;
+            Apply(host.Snapshot);
+            return true;
+        }
+
         // ── 밤 정비 준비 완료 (누구나) ────────────────────────
 
         /// <summary>내 밤 정비 준비 완료를 바꾼다. 전원이 준비되면 다음 날 아침 쉬는 시간이 된다.</summary>

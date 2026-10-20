@@ -1,6 +1,8 @@
 # Setup
 2026-10-20 사용자 직접 지시로 이 checkout의 Task를 UI 씬 통합으로 전환한다. 이전 제작 권한은 History에 보존하며 현재 작업에 적용하지 않는다.
 ## 작업 구역
+- 사용자 후속 요청: 셔터/통로 정렬 및 전화기 발견성 수정, 모든 공간의 가까운 상호작용 사물 최대2개 공통 외곽선, 대기실 C6 정본 안내. `Assets/Scripts/WaitingRoom/ShopStorage/ShopReach.cs`, `ShopPhone.cs`, `ShopDeliverySlot.cs`, `FloorPropsView.cs`, `HandoverShelfView.cs`, `Assets/Scripts/WaitingRoom/NightSchedule/ScheduleBoardView.cs`, `Assets/Scripts/WaitingRoom/ExpertService/ExpertRoomView.cs`에 표시용 공개 정보와 구형 안내 숨김을 연결한다. 기존 소지/서비스/네트워크 판정은 유지한다. 공통 UI 씬/SceneIntegration 및 기존 대상4개 공간 씬에서 상호작용 표시를 연결한다.
+- 사용자 후속 요청(2026-10-20): 최신 대기실 입력·전환 확인, W1/C4/C5/W6 기본 HUD와 대체된 임시 표시 정리. WaitingRoomBase와 공통 WaitingRoom UI 씬, SceneIntegration 코드를 사용한다. 기존 `ExplorationTimerView.cs`에는 임시 화면 생성만 끄는 옵션을 추가하여 종소리는 보존한다. `PropCarry.cs`에는 기존 소지 IMGUI 표시 속성과 요청 결과 알림 이벤트를 추가한다. 게임 판정·입력 규칙은 유지한다.
 - 사용자 후속 요청(2026-10-20): 편집용 UI 미리보기와 두 공연/결과 씬에서 교체 완료된 임시 UI 정리. `Assets/Scripts/MainStage/Tightrope/Tests/PlayMode/TightropeCampaignPlayTests.cs`의 구형 게이지 검증만 새 P1 대상으로 변경한다.
 - 이 작업의 외부 인계 원문 보관: `Docs/References/curtaincall_unity_handoff_v1/` (이전 Guides 위치에서 이동, 원문 유지)
 - 공통 UI 씬: `Assets/Scenes/UI/`
@@ -9,6 +11,7 @@
 - 적용 가이드: `Docs/Guides/Ui-scene-integration/`
 - Task 문서: 현재 Task 폴더.
 ## 배정된 공용 파일
+- `Assets/Scripts/Systems/SpaceLink/Tests/PlayMode/SpaceLinkPlayTests.cs` — 실제 통로 Z=70에서 셔터 열림/닫힘을 검증하도록 기존 좌표 수정.
 - `ProjectSettings/EditorBuildSettings.asset` — 공통 UI 씬 등록만(사용자 추가 지시).
 - `Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity` — 사용자 지정 공연 HUD 씬 인스턴스 적용만. 다른 Task 게임 코드는 변경하지 않는다.
 - `Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity` — 기존 공연 내용 보존, 정본 HUD 인스턴스와 연결 컴포넌트 추가.
@@ -54,3 +57,11 @@
 ## 2026-10-20 최신 dev 이후 공연 UI 고도화
 - 사용자 지시로 기존 SceneIntegration/두 공연 씬/공통 UI 씬에서 C11·H1·C8·C12를 연결한다. 정본 프리팹·그래픽은 수정하지 않는다.
 - Assets/Scripts/Systems/Camera/CameraSpectator.cs: 카메라/입력 로직을 유지하고 임시 IMGUI 표시를 끄는 공개 속성만 추가한다. 관전 상태·입력·판정 변경은 없다.
+
+## Dev 시작 지점 (사용자 직접 추가 지시)
+- 기존 Dev 모드에 원하는 일차/공연/대기실 시점부터 테스트하는 런 시작 도구를 추가한다.
+- Assets/Scripts/Systems/DevMode/: 런 시작 도구·기존 배지 연결.
+- Assets/Scripts/Systems/Campaign/RunState.cs, CampaignRun.cs 및 새 RunStartPoint.cs: 검증된 Dev 시작 상태를 한 번에 적용하는 공개 API.
+- Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs: Dev 전용 동일 공간 재로딩. 일반 전환 규칙/설정 에셋은 유지.
+- SceneIntegration의 Editor/Tests 및 Tests/PlayMode: 진입·재진입·권한·상태 검사. 가이드와 Task 문서 갱신.
+- 기존 SceneIntegration/CommonUiSceneLoader.cs: Dev 진입 때 UI 로드 완료를 기다리고 공간 전환 중 새 UI 작업 보류. 원본 UI 프리팹/씬 변경 없음.

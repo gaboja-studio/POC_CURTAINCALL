@@ -42292,7 +42292,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.PropCarry
   floorCapacity: 32
   dropAhead: 0.45
-  showHud: 1
+  showHud: 0
 --- !u!114 &182835660
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181257,7 +181257,7 @@ Transform:
   m_GameObject: {fileID: 825768743}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 15, y: 3, z: 10}
+  m_LocalPosition: {x: 15, y: 3, z: 12}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -181282,7 +181282,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 10, y: 8, z: 20}
+  m_Size: {x: 10, y: 8, z: 16}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &826172082
 GameObject:
@@ -196130,7 +196130,7 @@ GameObject:
   - component: {fileID: 886208426}
   - component: {fileID: 886208425}
   m_Layer: 0
-  m_Name: ExplorationTimerUI
+  m_Name: ExplorationAnnouncements
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -196144,12 +196144,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 886208423}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 70}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1409269142}
+  m_Father: {fileID: 1636050161}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &886208425
 MonoBehaviour:
@@ -196164,6 +196164,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ExplorationTimerView
   announcer: {fileID: 886208426}
+  showLegacyUi: 0
   font: {fileID: 11400000, guid: f18b420a75730274bb798e31d7d2b030, type: 2}
   bellClip: {fileID: 0}
   bellVolume: 0.8
@@ -224688,8 +224689,8 @@ Transform:
   m_GameObject: {fileID: 1019098264}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 10.27, y: 0, z: -2.5}
-  m_LocalScale: {x: 1, y: 1, z: 1.6129032}
+  m_LocalPosition: {x: 10.27, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 928257856}
@@ -232985,7 +232986,7 @@ Transform:
   m_GameObject: {fileID: 1059354331}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 14, y: 2.5, z: 76.5}
+  m_LocalPosition: {x: 14, y: 3, z: 8.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -233010,7 +233011,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 8, y: 7, z: 5}
+  m_Size: {x: 8, y: 8, z: 9}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1059569156
 GameObject:
@@ -304337,7 +304338,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 622663378}
-  - {fileID: 886208424}
   m_Father: {fileID: 444687866}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1409377352
@@ -352910,6 +352910,66 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1635738113}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1636050159
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1636050161}
+  - component: {fileID: 1636050160}
+  - component: {fileID: 1636050162}
+  m_Layer: 0
+  m_Name: UI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1636050160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1636050159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87330a93447c290419834fa77bf8f09e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.SceneIntegration.WaitingRoomUiBinding
+  gather: {fileID: 70663178}
+  announcer: {fileID: 886208426}
+--- !u!4 &1636050161
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1636050159}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 886208424}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1636050162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1636050159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e545321fea6829544927cced3c30a2c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.SceneIntegration.InteractionSceneBinding
 --- !u!1 &1637000547
 GameObject:
   m_ObjectHideFlags: 0
@@ -462796,7 +462856,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2056157435}
-  - component: {fileID: 2056157434}
   - component: {fileID: 2056157433}
   - component: {fileID: 2056157432}
   m_Layer: 0
@@ -462840,19 +462899,6 @@ MonoBehaviour:
   reach: 1
   itemSize: 0.25
   color: {r: 0.55, g: 0.85, b: 1, a: 1}
---- !u!114 &2056157434
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2056157431}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ef0af07ae72ed4684b514e3971775fb7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.SharedFundsView
-  show: 1
 --- !u!4 &2056157435
 Transform:
   m_ObjectHideFlags: 0
@@ -485624,3 +485670,4 @@ SceneRoots:
   - {fileID: 1031826684}
   - {fileID: 332316794}
   - {fileID: 506323420}
+  - {fileID: 1636050161}

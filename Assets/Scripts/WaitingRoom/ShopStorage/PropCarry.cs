@@ -31,6 +31,7 @@ namespace CurtainCall.WaitingRoom
 
         [Tooltip("화면 왼쪽 아래에 내 소지·플레이어별 소지를 표시한다(공동 테스트 확인용).")]
         [SerializeField] bool showHud = true;
+        public bool ShowLegacyHud { get => showHud; set => showHud = value; }
 
         public static PropCarry Instance { get; private set; }
 
@@ -71,6 +72,8 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>소지·바닥 상태가 바뀌었다(모든 화면).</summary>
         public event Action Changed;
+        /// <summary>내 요청의 결과. 같은 실패가 반복되어도 매번 알린다.</summary>
+        public event Action<string> RequestAnswered;
 
         public IReadOnlyList<PropItem> Held(ulong player) => HasAuthority ? book.Held(player)
             : receivedHeld.TryGetValue(player, out var list) ? list.AsReadOnly() : Empty;
@@ -229,6 +232,7 @@ namespace CurtainCall.WaitingRoom
             if (target == LocalClientId || !channel.IsHost)
             {
                 LastMessage = result.text;
+                RequestAnswered?.Invoke(LastMessage);
                 return;
             }
             channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text }));
@@ -322,7 +326,11 @@ namespace CurtainCall.WaitingRoom
         void HandleResult(string json)
         {
             var result = JsonUtility.FromJson<ResultData>(json);
-            if (result != null) LastMessage = result.text;
+            if (result != null)
+            {
+                LastMessage = result.text;
+                RequestAnswered?.Invoke(LastMessage);
+            }
         }
 
         void HandleReset()

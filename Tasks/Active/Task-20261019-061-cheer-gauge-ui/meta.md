@@ -1,11 +1,11 @@
 # Task-20261019-061
-- **Title:** UI 씬 통합 · 공연 HUD·관전·표지·결과 연결
+- **Title:** UI 씬 통합 · 공연 UI 및 대기실 기본 HUD 연결
 - **Type:** feat
-- **Status:** working
+- **Status:** human-verify
 - **Assignee:** @MoHoDu
 - **Domain:** Unity Assets 구조·코드 작업 구역
-- **Current Skill:** integrate-editor
-- **Updated:** 2026-10-20
+- **Current Skill:** save-work
+- **Updated:** 2026-10-21
 ## Workspace
 - **Integration:** integration/ui-resources
 - **Branch:** feat/ui-scene-integration
@@ -15,6 +15,7 @@
 - 사용자 지정 적용 대상: Start/Lobby/WaitingRoomBase/Tightrope/HumanCannon 5개 씬. 첫 단계는 두 공연 씬 HUD이며 백스테이지·탈출로 신규 씬은 만들지 않는다.
 - 제작 원본/폰트/PNG/importer/9-slice는 보존. 인계 Packages ZIP 사용 금지.
 ## Decisions
+- 사용자 추가 지시: Dev 모드에서 특정 일차/콘텐츠부터 바로 검증. 기존 Dev 배지/F8 창, 새 테스트 세대, 실제 LAN 호스트 진입으로 구현했다.
 - 2026-10-20 사용자: 다음 적용은 HumanCannon부터 진행. 공통 C7/C15 정본과 인간대포 공간 상태 연결을 우선한다.
 - 2026-10-20 사용자: 공통 UI는 별도 UI 씬, 공간 종속 UI는 공간 씬, UI 루트로 Hierarchy 정리. C1/C2/C3 공통 씬과 외줄 P1로 분리했다.
 - 2026-10-20 사용자: C2는 불의 안전 지대 도달까지 표시만 한다. 성공/실패는 기존 로직을 유지하며 UI는 제어하지 않는다.

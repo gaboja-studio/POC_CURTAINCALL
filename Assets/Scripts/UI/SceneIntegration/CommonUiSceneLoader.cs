@@ -10,15 +10,70 @@ namespace CurtainCall.UI.SceneIntegration
     public sealed class CommonUiSceneLoader : MonoBehaviour
     {
         static CommonUiSceneLoader instance;
+        static int transitionHolds;
+        public static bool IsLoading => instance != null && instance.loading != null;
+
+        /// <summary>진행 중 로드는 끝내되 새 UI 씬 작업은 공간 전환이 끝날 때까지 보류한다.</summary>
+        public static System.IDisposable DeferSceneChanges() => new TransitionHold();
+        sealed class TransitionHold : System.IDisposable
+        {
+            bool disposed;
+            public TransitionHold() { transitionHolds++; }
+            public void Dispose()
+            {
+                if (disposed) return;
+                disposed = true;
+                transitionHolds = Mathf.Max(0, transitionHolds - 1);
+            }
+        }
         readonly List<PerformanceSceneBinding> spaces = new();
+        readonly List<WaitingRoomUiBinding> waitingRooms = new();
+        readonly List<InteractionSceneBinding> interactionSpaces = new();
+        public static void RegisterInteraction(InteractionSceneBinding space)
+        {
+            if (instance == null)
+            {
+                var root = new GameObject("CommonUiSceneLoader"); DontDestroyOnLoad(root);
+                instance = root.AddComponent<CommonUiSceneLoader>();
+            }
+            if (!instance.interactionSpaces.Contains(space)) instance.interactionSpaces.Add(space);
+        }
+        public static void UnregisterInteraction(InteractionSceneBinding space)
+        { if (instance != null) instance.interactionSpaces.Remove(space); }
         Coroutine loading;
         NetworkSceneManager networkScenes;
         NetworkSceneManager.VerifySceneBeforeLoadingDelegateHandler previousLoad;
         NetworkSceneManager.VerifySceneBeforeUnloadingDelegateHandler previousUnload;
         public static PerformanceSceneBinding CurrentSpace => instance != null ? instance.SelectSpace() : null;
+        public static WaitingRoomUiBinding CurrentWaitingRoom => instance != null ? instance.SelectWaitingRoom() : null;
+
+        public static void Register(WaitingRoomUiBinding space)
+        {
+            if (instance == null)
+            {
+                var root = new GameObject("CommonUiSceneLoader");
+                DontDestroyOnLoad(root);
+                instance = root.AddComponent<CommonUiSceneLoader>();
+            }
+            if (!instance.waitingRooms.Contains(space)) instance.waitingRooms.Add(space);
+        }
+
+        public static void Unregister(WaitingRoomUiBinding space)
+        {
+            if (instance != null) instance.waitingRooms.Remove(space);
+        }
+
+        WaitingRoomUiBinding SelectWaitingRoom()
+        {
+            // A hub may keep the waiting-room scene loaded during a performance.
+            if (SelectSpace() != null) return null;
+            for (int i = waitingRooms.Count - 1; i >= 0; i--)
+                if (waitingRooms[i] != null && waitingRooms[i].isActiveAndEnabled) return waitingRooms[i];
+            return null;
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() { instance = null; }
+        static void ResetStatics() { instance = null; transitionHolds = 0; }
 
         public static void Register(PerformanceSceneBinding space)
         {
@@ -49,9 +104,16 @@ namespace CurtainCall.UI.SceneIntegration
         void Update()
         {
             AttachNetworkFilter();
+            if (transitionHolds > 0) return;
             spaces.RemoveAll(s => s == null);
+            waitingRooms.RemoveAll(s => s == null);
+            interactionSpaces.RemoveAll(s => s == null);
             var scene = SceneManager.GetSceneByPath(CommonPerformanceUI.ScenePath);
-            if (loading == null && (CurrentSpace != null ? !scene.isLoaded || PerformanceEndingPresentation.Current == null : scene.isLoaded && SceneManager.sceneCount > 1))
+            var waiting = SceneManager.GetSceneByPath(CommonWaitingRoomUI.ScenePath);
+            bool waitingChanged = CurrentWaitingRoom != null ? !waiting.isLoaded : waiting.isLoaded && SceneManager.sceneCount > 1;
+            var interaction = SceneManager.GetSceneByPath(CommonInteractionUI.ScenePath);
+            bool interactionChanged = interactionSpaces.Count > 0 ? !interaction.isLoaded : interaction.isLoaded && SceneManager.sceneCount > 1;
+            if (loading == null && (interactionChanged || waitingChanged || (CurrentSpace != null ? !scene.isLoaded || PerformanceEndingPresentation.Current == null : scene.isLoaded && SceneManager.sceneCount > 1)))
                 loading = StartCoroutine(Reconcile());
         }
 
@@ -81,7 +143,26 @@ namespace CurtainCall.UI.SceneIntegration
                 if (CommonPerformanceUI.Current != null) CommonPerformanceUI.Current.Hide();
                 yield return SceneManager.UnloadSceneAsync(scene);
             }
+            var waiting = SceneManager.GetSceneByPath(CommonWaitingRoomUI.ScenePath);
+            if (CurrentWaitingRoom != null && !waiting.isLoaded)
+            {
+                if (Application.CanStreamedLevelBeLoaded(CommonWaitingRoomUI.ScenePath))
+                    yield return SceneManager.LoadSceneAsync(CommonWaitingRoomUI.ScenePath, LoadSceneMode.Additive);
+                else { Debug.LogError("[UI] CommonWaitingRoomUI must be enabled in the build scene list."); enabled = false; }
+            }
+            else if (CurrentWaitingRoom == null && waiting.isLoaded && SceneManager.sceneCount > 1)
+                yield return SceneManager.UnloadSceneAsync(waiting);
+            var interaction = SceneManager.GetSceneByPath(CommonInteractionUI.ScenePath);
+            if (interactionSpaces.Count > 0 && !interaction.isLoaded)
+            {
+                if (Application.CanStreamedLevelBeLoaded(CommonInteractionUI.ScenePath))
+                    yield return SceneManager.LoadSceneAsync(CommonInteractionUI.ScenePath, LoadSceneMode.Additive);
+                else { Debug.LogError("[UI] CommonInteractionUI must be enabled in the build scene list."); enabled = false; }
+            }
+            else if (interactionSpaces.Count == 0 && interaction.isLoaded && SceneManager.sceneCount > 1)
+                yield return SceneManager.UnloadSceneAsync(interaction);
             loading = null;
+            // The next Update can reconcile registrations which changed during an async load.
         }
 
         // HUD에는 NetworkObject가 없다. NGO의 늦은 참가 동기화에 공통 UI를 다시 싣지 않는다.
@@ -100,9 +181,9 @@ namespace CurtainCall.UI.SceneIntegration
         }
 
         bool AllowNetworkLoad(int index, string name, LoadSceneMode mode) =>
-            name != "CommonPerformanceUI" && name != "PerformanceTransitionUI" && (previousLoad == null || previousLoad(index, name, mode));
+            name != "CommonPerformanceUI" && name != "PerformanceTransitionUI" && name != "CommonWaitingRoomUI" && name != "CommonInteractionUI" && (previousLoad == null || previousLoad(index, name, mode));
         bool AllowNetworkUnload(Scene scene) =>
-            scene.path != CommonPerformanceUI.ScenePath && scene.path != PerformanceEndingPresentation.ScenePath && (previousUnload == null || previousUnload(scene));
+            scene.path != CommonPerformanceUI.ScenePath && scene.path != PerformanceEndingPresentation.ScenePath && scene.path != CommonWaitingRoomUI.ScenePath && scene.path != CommonInteractionUI.ScenePath && (previousUnload == null || previousUnload(scene));
 
         void DetachNetworkFilter()
         {

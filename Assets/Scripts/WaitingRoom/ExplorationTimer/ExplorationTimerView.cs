@@ -18,6 +18,8 @@ namespace CurtainCall.WaitingRoom
         const string FontResource = "Fonts/Pretendard-Medium/Pretendard-Medium SDF";
 
         [SerializeField] ExplorationTimerAnnouncer announcer;
+        [Tooltip("정본 HUD를 사용하는 씬에서는 끕니다. 방송 종소리는 유지합니다.")]
+        [SerializeField] bool showLegacyUi = true;
         [Tooltip("비우면 Resources의 Pretendard 폰트.")]
         [SerializeField] TMP_FontAsset font;
         [Tooltip("소집 경보 종소리. 비우면 임시 '딩동'을 만든다.")]
@@ -42,7 +44,7 @@ namespace CurtainCall.WaitingRoom
         void Awake()
         {
             if (announcer == null) announcer = FindFirstObjectByType<ExplorationTimerAnnouncer>();
-            BuildUi();
+            if (showLegacyUi) BuildUi();
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false;
             audioSource.spatialBlend = 0f;
@@ -63,6 +65,7 @@ namespace CurtainCall.WaitingRoom
 
         void LateUpdate()
         {
+            if (root == null) return;
             var s = run != null ? run.State : default;
             bool visible = s.Phase == CampaignPhase.RestTime;
             if (root.activeSelf != visible) root.SetActive(visible);
@@ -86,8 +89,11 @@ namespace CurtainCall.WaitingRoom
 
         void Show(ExplorationAnnouncement a)
         {
-            messageText.text = a.Message;
-            messageText.color = a.IsRecallAlarm ? alarmColor : normalColor;
+            if (messageText != null)
+            {
+                messageText.text = a.Message;
+                messageText.color = a.IsRecallAlarm ? alarmColor : normalColor;
+            }
             messageUntil = Time.unscaledTime + messageDuration;
             if (a.IsRecallAlarm && bellClip != null) audioSource.PlayOneShot(bellClip, bellVolume);
         }

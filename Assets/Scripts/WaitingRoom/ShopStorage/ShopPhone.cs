@@ -10,7 +10,7 @@ namespace CurtainCall.WaitingRoom
     /// 창의 [장부 보기]로 공동 자금 사용 내역을 열어 본다(평소 화면에는 잔액만, 게임 흐름 5-2).
     /// 창이 열린 동안 게임 입력을 막는다(커서도 풀린다). 테스트용 IMGUI 창이다.
     /// </summary>
-    public sealed class ShopPhone : MonoBehaviour, IShopTarget
+    public sealed class ShopPhone : MonoBehaviour, IShopTarget, IShopPresentation
     {
         [Tooltip("수화기에 닿는 수평 거리(m).")]
         [SerializeField, Min(.5f)] float reach = 1.8f;
@@ -19,6 +19,10 @@ namespace CurtainCall.WaitingRoom
         bool open;
         bool ledger;
         Vector2 scroll;
+        public Transform VisualRoot => transform;
+        public Vector3 PresentationPoint => transform.position;
+        public string ActionLabel => "수화기 들기 (상점)";
+        public bool IsAvailable => !open && WaitingRoomShop.Instance != null;
 
         void Awake()
         {
@@ -70,7 +74,7 @@ namespace CurtainCall.WaitingRoom
             if (shop == null) return;
             if (!open)
             {
-                if (ReferenceEquals(ShopReach.Focused, this))
+                if (!ShopReach.HasExternalPresentation && ReferenceEquals(ShopReach.Focused, this))
                     GUI.Label(new Rect(Screen.width / 2f - 80, Screen.height * .62f, 240, 24), "[F] 수화기 들기 (상점)");
                 return;
             }

@@ -5,6 +5,14 @@ using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
 {
+    /// <summary>표시 어댑터가 사용하는 실제 대상. 이동/생성/삭제에 따라 매 프레임 읽는다.</summary>
+    public interface IShopPresentation
+    {
+        Transform VisualRoot { get; }
+        Vector3 PresentationPoint { get; }
+        string ActionLabel { get; }
+        bool IsAvailable { get; }
+    }
     /// <summary>상점 F 상호작용 대상(수화기·배송구 물건·바닥 기물).</summary>
     public interface IShopTarget
     {
@@ -22,6 +30,8 @@ namespace CurtainCall.WaitingRoom
     public static class ShopReach
     {
         static readonly List<IShopTarget> targets = new();
+        public static IReadOnlyList<IShopTarget> Targets => targets;
+        public static bool HasExternalPresentation { get; set; }
         static PlayerInputReader offlineReader;
         static int pumpedFrame = -1;
 
@@ -85,6 +95,7 @@ namespace CurtainCall.WaitingRoom
         static void ResetStatics()
         {
             targets.Clear();
+            HasExternalPresentation = false;
             offlineReader = null;
             pumpedFrame = -1;
             Focused = null;

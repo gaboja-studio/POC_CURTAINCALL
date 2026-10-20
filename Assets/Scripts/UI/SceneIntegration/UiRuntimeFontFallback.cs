@@ -24,7 +24,9 @@ namespace CurtainCall.UI.SceneIntegration
                     && label.GetComponentInParent<CurtainCall.UI.TooltipsV1.TooltipView>() == null
                     && label.GetComponentInParent<CurtainCall.UI.SpectatorV1.SpectatorView>() == null
                     && label.GetComponentInParent<CurtainCall.UI.WorldLabelsV2.WorldLabelView>() == null
-                    && label.GetComponentInParent<PerformanceEndingPresentation>() == null) continue;
+                    && label.GetComponentInParent<PerformanceEndingPresentation>() == null
+                    && label.GetComponentInParent<CommonWaitingRoomUI>() == null
+                    && label.GetComponentInParent<CommonInteractionUI>() == null) continue;
                 var original = label.font;
                 if (original == null || original == fallback) continue;
                 if (!copies.TryGetValue(original, out var copy))

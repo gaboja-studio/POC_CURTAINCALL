@@ -35,15 +35,17 @@ namespace CurtainCall.SpaceLink
         {
             public readonly SpaceId Space;
             public readonly string SceneName;
+            public readonly bool Reload;
             readonly int generation;
             readonly int day;
             readonly int performanceIndex;
             readonly string trickId;
 
-            public TransitionRequest(SpaceId space, string sceneName, in CampaignSnapshot state)
+            public TransitionRequest(SpaceId space, string sceneName, in CampaignSnapshot state, bool reload = false)
             {
                 Space = space;
                 SceneName = sceneName;
+                Reload = reload;
                 generation = state.Generation;
                 day = state.Day;
                 performanceIndex = state.PerformanceIndex;
@@ -145,6 +147,18 @@ namespace CurtainCall.SpaceLink
             return true;
         }
 
+        /// <summary>새 Dev 시작 지점을 같은 씬에서도 초기화한다. 이 요청만 Single로 로드하며 저장 설정은 바꾸지 않는다.</summary>
+        public bool DebugReloadCurrentStep()
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || !campaign.State.IsRunning) return false;
+            var state = campaign.State;
+            var target = SpaceRoute.ForPhase(state.Phase);
+            string sceneName = SpaceRoute.SceneName(target, GameSettings.Base.SpaceTransition, campaign.IsOfflineRun ? null : state.TrickId);
+            pending = new TransitionRequest(target, sceneName, state, true);
+            if (running == null) running = StartCoroutine(Run());
+            return true;
+        }
+
         void Enqueue(SpaceId target, in CampaignSnapshot state)
         {
             // 오프라인 합성런은 기존 더미를 유지한다. 실제 묘기/단독 연습의 참가자는 LAN 경로로 준비한다.
@@ -181,7 +195,7 @@ namespace CurtainCall.SpaceLink
                 var request = pending.Value;
                 pending = null;
                 if (!IsCurrent(request)) continue;
-                if (request.Space != Current || !IsLoaded(request.SceneName))
+                if (request.Reload || request.Space != Current || !IsLoaded(request.SceneName))
                     yield return Transition(request);
             }
             running = null;
@@ -192,7 +206,7 @@ namespace CurtainCall.SpaceLink
         IEnumerator Transition(TransitionRequest request)
         {
             var settings = GameSettings.Base.SpaceTransition;
-            var mode = settings.Mode;
+            var mode = request.Reload ? SpaceTransitionMode.Single : settings.Mode;
             var from = Current;
             var target = request.Space;
             string sceneName = request.SceneName;

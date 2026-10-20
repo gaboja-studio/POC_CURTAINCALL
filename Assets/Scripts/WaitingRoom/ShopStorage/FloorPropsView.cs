@@ -29,11 +29,15 @@ namespace CurtainCall.WaitingRoom
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() => activeCount = 0;
 
-        sealed class Item : IShopTarget
+        sealed class Item : IShopTarget, IShopPresentation
         {
             public FloorPropsView View;
             public FloorProp Prop;
             public GameObject Shape;
+            public Transform VisualRoot => Shape != null ? Shape.transform : null;
+            public Vector3 PresentationPoint => Shape != null ? Shape.transform.position : Vector3.zero;
+            public string ActionLabel => Prop.Item.Name + " 줍기";
+            public bool IsAvailable => Shape != null && View.carry != null;
 
             public float Reach(Vector3 feet)
             {
@@ -146,6 +150,7 @@ namespace CurtainCall.WaitingRoom
             if (carry == null) return;
             foreach (var item in shown.Values)
                 PropLabels.Draw(item.Shape.transform.position + Vector3.up * itemSize, item.Prop.Item.Name);
+            if (ShopReach.HasExternalPresentation) return;
             foreach (var item in shown.Values)
             {
                 if (!ReferenceEquals(ShopReach.Focused, item)) continue;

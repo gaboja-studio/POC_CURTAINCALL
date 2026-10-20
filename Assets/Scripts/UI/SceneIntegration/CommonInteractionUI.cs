@@ -1,0 +1,187 @@
+using System.Collections.Generic;
+using CurtainCall.HumanCannon;
+using CurtainCall.Network.PlayerSync;
+using CurtainCall.Player;
+using CurtainCall.StartLobby;
+using CurtainCall.UI.InteractionV1;
+using CurtainCall.WaitingRoom;
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace CurtainCall.UI.SceneIntegration
+{
+    [DefaultExecutionOrder(500)]
+    public sealed class CommonInteractionUI : MonoBehaviour
+    {
+        public const string ScenePath = "Assets/Scenes/UI/CommonInteractionUI.unity";
+        [SerializeField] InteractionPromptView prompt;
+        [SerializeField] RectTransform promptAnchor;
+        [SerializeField, Min(.1f)] float highlightDistance = 4f;
+        [SerializeField, Range(0, 6)] float outlinePixels = 3f;
+        [SerializeField] Color outlineColor = new Color32(240, 238, 220, 255);
+        readonly List<Candidate> candidates = new();
+        readonly List<Candidate> selected = new();
+        readonly List<InteractionOutline> outlines = new();
+        readonly RaycastHit[] hits = new RaycastHit[64];
+        LobbyInteractable[] lobby = System.Array.Empty<LobbyInteractable>();
+        PlayerInputReader offlineReader;
+        Material material;
+        public int HighlightCount => outlines.Count;
+        public IReadOnlyList<Transform> Highlighted => outlines.ConvertAll(o => o.Target);
+        public InteractionPromptView Prompt => prompt;
+
+        sealed class Candidate
+        {
+            public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom;
+            public float Distance;
+        }
+        public void Configure(InteractionPromptView view, RectTransform anchor) { prompt = view; promptAnchor = anchor; }
+        void Awake()
+        {
+            var shader = Resources.Load<Shader>("TightropeOutline");
+            if (shader != null)
+            {
+                material = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, name = "Interaction highlight (runtime)" };
+                material.SetColor("_OutlineColor", outlineColor); material.SetFloat("_OutlinePixels", outlinePixels);
+            }
+        }
+        void OnEnable() { SceneManager.sceneLoaded += SceneLoaded; Refresh(); }
+        void SceneLoaded(Scene _, LoadSceneMode mode) => Refresh();
+        void Refresh() => lobby = FindObjectsByType<LobbyInteractable>(FindObjectsSortMode.None);
+        PlayerInputReader Reader()
+        {
+            if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            {
+                var local = NetworkPlayer.Local;
+                return local != null && local.State == PlayerState.Normal ? local.GetComponent<PlayerInputReader>() : null;
+            }
+            if (offlineReader == null) offlineReader = FindFirstObjectByType<PlayerInputReader>();
+            return offlineReader;
+        }
+        void LateUpdate()
+        {
+            ShopReach.HasExternalPresentation = prompt != null;
+            var reader = Reader(); var camera = Camera.main;
+            if (reader == null || !reader.isActiveAndEnabled || camera == null || InputGate.IsBlocked) { Hide(); return; }
+            candidates.Clear(); selected.Clear();
+            Vector3 feet = reader.transform.position;
+            foreach (var target in ShopReach.Targets)
+            {
+                if (target is not IShopPresentation p || p.VisualRoot == null || !p.VisualRoot.gameObject.activeInHierarchy) continue;
+                Add(p.VisualRoot, p.PresentationPoint, p.ActionLabel, p.IsAvailable, ReferenceEquals(target, ShopReach.Focused), feet);
+                candidates[candidates.Count - 1].WaitingRoom = true;
+            }
+            foreach (var item in lobby)
+            {
+                if (item == null || !item.isActiveAndEnabled) continue;
+                string action = item.Prompt(out bool usable);
+                Add(item.transform, Center(item.transform), action, usable, false, feet);
+            }
+            AddCannon(feet);
+            foreach (var candidate in candidates)
+            {
+                if (!candidate.Available || !IsVisible(candidate, camera, reader.transform) || candidate.Distance > highlightDistance) continue;
+                int index = 0;
+                while (index < selected.Count && (selected[index].Distance < candidate.Distance ||
+                    (Mathf.Approximately(selected[index].Distance, candidate.Distance) && selected[index].Root.GetInstanceID() < candidate.Root.GetInstanceID()))) index++;
+                selected.Insert(index, candidate);
+                if (selected.Count > 2) selected.RemoveAt(2);
+            }
+            for (int i = outlines.Count - 1; i >= 0; i--)
+            {
+                bool keep = false;
+                foreach (var candidate in selected) if (candidate.Root == outlines[i].Target) keep = true;
+                if (!keep) { outlines[i].Dispose(); outlines.RemoveAt(i); }
+            }
+            if (material != null)
+                foreach (var candidate in selected)
+                {
+                    bool exists = false;
+                    foreach (var outline in outlines) if (outline.Target == candidate.Root) exists = true;
+                    if (!exists) outlines.Add(new InteractionOutline(candidate.Root, material));
+                }
+            // F still goes to the game's focused target, never to a second highlighted object.
+            Candidate focused = null;
+            foreach (var candidate in candidates)
+                if (candidate.Focused && IsVisible(candidate, camera, reader.transform)) { focused = candidate; break; }
+            if (focused == null)
+                foreach (var candidate in selected) if (candidate.WaitingRoom) { focused = candidate; break; }
+            if (focused == null) { if (prompt != null) prompt.HideImmediate(); return; }
+            prompt.Show("F", focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
+                false, 0, focused.Focused ? "" : "가까이 다가가세요");
+            PositionPrompt(focused.Point, camera);
+        }
+        void Add(Transform root, Vector3 point, string action, bool available, bool focused, Vector3 feet)
+        {
+            candidates.Add(new Candidate { Root = root, Point = point, Action = action, Available = available, Focused = focused,
+                Distance = Vector3.Distance(feet + Vector3.up * .75f, point) });
+        }
+        void AddCannon(Vector3 feet)
+        {
+            var player = NetworkPlayer.Local; var system = HumanCannonSystem.Current;
+            if (player == null || system == null || player.State != PlayerState.Normal) return;
+            var trampoline = HumanCannonTrampoline.Current;
+            if (system.IsSeated(player.OwnerClientId) || trampoline != null && trampoline.Carrier == player.OwnerClientId) return;
+            if (!player.IsAirborne && !system.IsFlying(player.OwnerClientId))
+                for (int i = 0; i < system.StationCount; i++)
+                {
+                    var station = system.Station(i);
+                    if (station != null && station.isActiveAndEnabled && system.Occupant(i) == CannonSeatState.Nobody)
+                        Add(station.transform, station.BoardingPoint.position, "대포 타기", true, false, feet);
+                }
+            if (trampoline != null && trampoline.CanGrab(player)) Add(trampoline.transform, trampoline.Handle.position, "트램펄린 잡기", true, false, feet);
+            var poles = HumanCannonPoleSystem.Current;
+            if (poles != null && system.IsFlying(player.OwnerClientId) && poles.HeldBy(player.OwnerClientId) < 0)
+                for (int i = 0; i < poles.PoleCount; i++)
+                {
+                    var pole = poles.Pole(i);
+                    if (pole != null && pole.isActiveAndEnabled && !poles.State(i).IsOccupied && pole.IsInReach(player))
+                        Add(pole.transform, poles.HangingPosition(i), "봉 잡기", true, false, feet);
+                }
+        }
+        static Vector3 Center(Transform root)
+        {
+            var renderer = root.GetComponentInChildren<Renderer>();
+            return renderer != null ? renderer.bounds.center : root.position;
+        }
+        public static bool InViewAndRange(Camera camera, Vector3 feet, Vector3 point, float maxDistance)
+        {
+            if (camera == null || (point - feet).sqrMagnitude > maxDistance * maxDistance) return false;
+            Vector3 viewport = camera.WorldToViewportPoint(point);
+            return viewport.z > camera.nearClipPlane && viewport.x >= 0 && viewport.x <= 1 && viewport.y >= 0 && viewport.y <= 1;
+        }
+        bool IsVisible(Candidate target, Camera camera, Transform local)
+        {
+            if (!InViewAndRange(camera, local.position + Vector3.up * .75f, target.Point, highlightDistance)) return false;
+            Vector3 offset = target.Point - camera.transform.position;
+            int count = Physics.RaycastNonAlloc(camera.transform.position, offset.normalized, hits, Mathf.Max(0, offset.magnitude - .08f), ~0, QueryTriggerInteraction.Ignore);
+            if (count == hits.Length) return false;
+            for (int i = 0; i < count; i++)
+            {
+                var hit = hits[i].transform;
+                if (hit.IsChildOf(target.Root) || hit.IsChildOf(local)) continue;
+                return false;
+            }
+            return true;
+        }
+        void PositionPrompt(Vector3 point, Camera camera)
+        {
+            if (promptAnchor == null || promptAnchor.parent is not RectTransform parent) return;
+            Vector3 screen = camera.WorldToScreenPoint(point);
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, screen, null, out var local)) return;
+            // The outer view position is separate from the prefab Motion child's offsets.
+            var size = promptAnchor.rect.size;
+            float half = Mathf.Max(160, size.x * .5f);
+            promptAnchor.anchoredPosition = new Vector2(Mathf.Clamp(local.x, parent.rect.xMin + half, parent.rect.xMax - half),
+                Mathf.Clamp(local.y - 70, parent.rect.yMin + 100, parent.rect.yMax - 100));
+        }
+        void Hide()
+        {
+            foreach (var outline in outlines) outline.Dispose(); outlines.Clear();
+            if (prompt != null) prompt.HideImmediate();
+        }
+        void OnDisable() { SceneManager.sceneLoaded -= SceneLoaded; ShopReach.HasExternalPresentation = false; Hide(); }
+        void OnDestroy() { if (material != null) Destroy(material); }
+    }
+}
