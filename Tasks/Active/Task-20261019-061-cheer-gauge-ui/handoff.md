@@ -24,3 +24,5 @@
 - 이번 변경 미커밋. 기존 폰트/재질/ProjectSettings.asset/ui-workspace.md 변경은 보존했으며 이번 작업 산출물 아님.
 - 추가 사용자 수정: 외줄 배너 한글 폰트 교체(문구 누락 문자0), 같은 번호/빈 슬롯으로 집어넣기 및 재선택 꺼내기, 호스트 보관 상태 동기화. 빈손에서 자동 내려놓기/선반 올리기 방지. 실행 검증 미실행.
 - 2026-10-21 사용자: 최신 수정 정상 동작 확인, commit/push 및 dev PR 준비 요청. Scope/Fast/Compile PASS(문서 길이 WARN), dirty 씬0, 테스트 반복 생략. PR 초안: Docs/Guides/Ui-scene-integration/dev-pr.md. 저장 스크립트의 add -A 대신 명시 파일 staging으로 별도 변경 보존.
+
+- 2026-10-21 사용자 승인으로 잔여7개 정리. 원본 TTF 참조가 유효한 동적 폰트2개 캐시/재질3개 반올림/runInBackground 테스트 설정은 HEAD 복원. 오래된 미추적 ui-workspace.md 삭제. dev PR 준비 문서 반영, 전체 Play 검증 반복 없음.
