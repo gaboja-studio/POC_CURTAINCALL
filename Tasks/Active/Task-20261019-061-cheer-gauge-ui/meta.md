@@ -7,7 +7,7 @@
 - **Current Skill:** integrate-editor
 - **Updated:** 2026-10-21
 ## Workspace
-- **Integration:** integration/ui-resources
+- **Integration:** dev
 - **Branch:** feat/ui-scene-integration
 - 현재 worktree: D:/github/POC_CURTAINCALL-ui-scene-integration
 ## Goal / Scope

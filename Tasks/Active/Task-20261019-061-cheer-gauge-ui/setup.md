@@ -33,9 +33,7 @@
 ## 검증
 - 현재 에디터 경로 확인 후 조회/배치/저장. 컴파일·EditMode·PlayMode·실제 공연/입력/화면을 구분한다.
 - 네트워크 다중 클라이언트를 실행하지 못하면 미실행으로 기록한다.
-
 종료 연출 작업 구역은 [기록](History/ending-scope-20261020.md)에 유지한다.
-
 ## 2026-10-20 공통 호응 규칙 구현 (PM 사용자 직접 추가 지시)
 - HTML 4-1 임시 호응 규칙의 공통 구현을 이번 연결 Task에 추가한다. 아래 항목은 기존 읽기 전용/다른 게임 코드 수정 금지의 명시적 예외다.
 - `Assets/Scripts/Systems/Reward/` — 호스트 점수 증감 API, 정산 전 도착 관찰, 공통 공연 호응 관찰 및 테스트.
@@ -44,18 +42,14 @@
 - `Assets/Scripts/MainStage/HumanCannon/HumanCannonTrampoline.cs`, `HumanCannonTrampoline.GroundBounce.cs` — 호스트 승인 반동 이벤트 공개만.
 - `Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs` — 수직 톱 출현 식별자 읽기 API만.
 - 기존 프리팹/그래픽/9-slice 및 공연 성공·실패 판정은 변경하지 않는다.
-
 기존5개 대상 씬 범위는 [원문](History/scene-targets-20261020.md)에 유지한다. 최신 C10/보상 범위는 아래 참조.
-
 ## 공통 UI 씬 분리 (사용자 추가 지시)
 - Assets/Scenes/UI/ — 공통 UI 씬 추가. C1/C2/C3 공통, P1 공간 소유.
 - ProjectSettings/EditorBuildSettings.asset — 공통 UI additive 로딩을 위한 씬 등록만 수정 허용. 위 ProjectSettings 금지의 이 항목만 예외.
 - 두 공연 씬의 UI 루트 정리와 공통 씬 연결·수명 관리 포함.
-
 ## 2026-10-20 최신 dev 이후 공연 UI 고도화
 - 사용자 지시로 기존 SceneIntegration/두 공연 씬/공통 UI 씬에서 C11·H1·C8·C12를 연결한다. 정본 프리팹·그래픽은 수정하지 않는다.
 - Assets/Scripts/Systems/Camera/CameraSpectator.cs: 카메라/입력 로직을 유지하고 임시 IMGUI 표시를 끄는 공개 속성만 추가한다. 관전 상태·입력·판정 변경은 없다.
-
 ## Dev 시작 지점 (사용자 직접 추가 지시)
 - 기존 Dev 모드에 원하는 일차/공연/대기실 시점부터 테스트하는 런 시작 도구를 추가한다.
 - Assets/Scripts/Systems/DevMode/: 런 시작 도구·기존 배지 연결.
@@ -63,26 +57,23 @@
 - Assets/Scripts/Systems/SpaceLink/SpaceLinkDirector.cs: Dev 전용 동일 공간 재로딩. 일반 전환 규칙/설정 에셋은 유지.
 - SceneIntegration의 Editor/Tests 및 Tests/PlayMode: 진입·재진입·권한·상태 검사. 가이드와 Task 문서 갱신.
 - 기존 SceneIntegration/CommonUiSceneLoader.cs: Dev 진입 때 UI 로드 완료를 기다리고 공간 전환 중 새 UI 작업 보류. 원본 UI 프리팹/씬 변경 없음.
-
 ## W4·W5 및 수화기 (2026-10-21 사용자 직접 지시)
 - WaitingRoomBase 씬: 수화기/배송구 위치와 기존 Assets 전화기 모델 연결, W4·W5 배치, 대체 임시 이름표 제거.
 - ShopReach.cs, FloorPropsView.cs, HeldPropsView.cs, HandoverShelfView.cs, ShopDeliverySlot.cs, ExpertRoomView.cs: 표시용 데이터 API와 기존 이름표 표시 제어만. 게임 판정/거래 규칙은 유지.
 - SceneIntegration/ 및 해당 테스트, Docs/Guides/Ui-scene-integration/: 연결 컴포넌트/에디터 설치/검증/가이드.
 - 완성 WorldLabels 프리팹과 제공 코드·폰트·PNG·9-slice 원본은 읽기 전용.
-
 ## 상호작용 창 커서 (2026-10-21 사용자 직접 지시)
 - Assets/Scripts/Systems/Camera/CameraViewDirector.cs: 공통 InputGate와 커서 해제/복귀 연결, 창 종료 ESC와 수동 해제 충돌 방지. SceneIntegration 테스트/가이드 갱신. 카메라 구도/게임 판정/정본 에셋 유지.
-
 ## C12 1인·C16 (2026-10-21 사용자 직접 지시)
 - SceneIntegration에 정본 C12 표시 소스를 기반으로 1~4인 지원 로컬 어댑터 추가. 정본/그래픽 유지, 씬 컴포넌트만 교체. PerformanceTransitionUI에 커튼 인스턴스, 기존 요약/검은 오브젝트 정리.
 - Systems/SpaceLink/SpaceLinkDirector.cs와 Systems/StartLobby/StartLobbyFlow.cs에 커튼 차폐 대기/완료 훅 연결. 로드 판정/권한 유지. 실제5개 씬만 대상.
-
 ## C10·기본 자금 (2026-10-21 사용자 직접 지시)
 - Systems/Results/PerformanceResult.cs와 Systems/Reward/ 모델·테스트: 시작 참가 인원 ×10을 성공/실패 모두 기존 정산에 가산. 호스트 장부·중복 방지 유지.
 - SceneIntegration 코드·Editor·테스트, CommonPerformanceUI: C10 키트 조립·실제 호응 변화·HUD 중첩/종료 수명 연결. 완성 C10 프리팹 부재 확인 후 신규 Assets/Resources/Prefabs/UIs/Feedback/와 Images/UIs/Feedback/ 추가. 원본 PNG 바이트·파일명 유지, 복사본만 Sprite import.
 - MainStage/Tightrope/Piggyback/PiggybackSystem.cs: 손잡기 표시 이벤트 및 교체된 임시 표시 억제만. 보상/착지 판정 변경 없음.
 - Systems/Voice/VoiceChatDevOverlay.cs: 기존 Dev 음성 패널의 표시 오프셋/억제 API만. 공연 C3 아래 배치, 메뉴·관전·결과 중 숨김, 공통 UI 해제 시 원복.
-
 - 2026-10-21 사용자 Start 타이틀 지시: Start.unity 중앙 로고/메뉴·페이지 재배치, UI 루트 정리. Assets TitleLogo 인스턴스 사용, 원본 변경 없음.
 - 2026-10-21 사용자 팝업/화면비 지시: Start 참가/LAN을 BasicPanels/CommonButtons 인스턴스로 교체, 실제5개 진행 씬 및 공통 UI의 화면 Canvas를1920×1080/Expand로 통일. 월드 UI 크기 보존.
 - 2026-10-21 로비 UI/시작 순간이동 사용자 지시: Lobby.unity·SceneIntegration에 Assets LobbyHud/Guides/알림 연결, 대체 HUD 제거. Systems/StartLobby/LobbyRoom.cs는 실제 공간 복귀에만 재배치하도록 수정, 실제 LAN 회귀 검사 포함.
+- 2026-10-21 사용자 전체 점검: 실제5개 공간/공통UI만. WaitingRoomBase의 대체된 비활성 테스트UI 제거, NightDoorLock.cs 표시 옵션 및 CommonWaitingRoomUI 밤 배너 문구만 수정. 게임 문 잠금 판정 유지.
+- 2026-10-21 사용자: 상점/일정 hover·외줄 안내 교체, TightropeControlHints.cs의 문구 API/구형표시 전환 허용. 실행 검증은 사용자에게 위임. commit/push 및 dev 대상 PR 준비 승인(생성/병합은 미요청).

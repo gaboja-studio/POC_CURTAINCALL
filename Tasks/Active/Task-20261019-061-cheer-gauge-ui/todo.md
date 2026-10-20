@@ -72,3 +72,5 @@
 - [x] Start 타이틀: Assets 로고 인스턴스·중앙 메뉴·기존 코드/LAN/설정 참조 보존, 임시 타이틀 정리. 실행 클릭/네트워크 검증은 미완료(start-title.md).
 - [x] Start 참가/LAN 신규 팝업·버튼 연결, 실제 씬/공통 화면Canvas23개1920×1080 Expand 적용. 다중 화면비 실제 플레이는 미실행.
 - [x] LobbyHud·Guides·SystemBanner·Toast 정본 연결, 구형 화면 HUD 제거, 게임 시작 시 로비 재배치 조건 수정.
+- [x] 실제 진행UI10개 씬 프리팹/누락스크립트/임시표시 점검, 대기실 구형 패널3개·밤 중복 안내 정리. 미적용/보존 범위 ui-audit.md.
+- [x] 상점/일정 hover Tooltips·외줄 BasicPanels 안내 연결. 실행 검증은 사용자 위임, 미실행.

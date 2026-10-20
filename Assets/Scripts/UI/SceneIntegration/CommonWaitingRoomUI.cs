@@ -55,7 +55,7 @@ namespace CurtainCall.UI.SceneIntegration
             var state = run.State;
             bool rest = state.Phase == CampaignPhase.RestTime;
             if ((!wasActive || state.Phase != lastPhase) && state.Phase == CampaignPhase.Night)
-                notifications.Banner.Show("밤 정비", "대기실 문이 잠겼습니다", BannerState.Normal, announcementSeconds);
+                notifications.Banner.Show("밤 정비", "대기실 문이 잠겼습니다 · 탐색 시간 없음", BannerState.Normal, announcementSeconds);
             wasActive = true; lastPhase = state.Phase;
             if (Time.unscaledTime >= captionUntil) captions.Hide();
             hud.SetContext(true, rest, rest && space.LocalInGatherArea, !captions.IsVisible);

@@ -117489,9 +117489,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 506323420}
-  - component: {fileID: 506323419}
-  - component: {fileID: 506323418}
-  - component: {fileID: 506323421}
   - component: {fileID: 506323422}
   - component: {fileID: 506323423}
   m_Layer: 0
@@ -117501,39 +117498,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
---- !u!114 &506323418
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 506323417}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b79ddeaaadfe4447b67886e96a05cd4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.NightScheduleTestUI
-  cheers: 10
-  stepTimeout: 15
---- !u!114 &506323419
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 506323417}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f75bfb5c30d9b456eaccaa3727c552d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Network.Session.NetworkSessionTestUI
-  _address: 127.0.0.1:7777
-  _panelRect:
-    serializedVersion: 2
-    x: 10
-    y: 10
-    width: 340
-    height: 320
 --- !u!4 &506323420
 Transform:
   m_ObjectHideFlags: 0
@@ -117549,18 +117513,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &506323421
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 506323417}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc18f5f0f5d334016923bf3959c26e69, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ExpertServiceTestUI
 --- !u!114 &506323422
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -140550,6 +140502,7 @@ MonoBehaviour:
   blinkSeconds: 0.25
   notice: "\uBC24 \uC815\uBE44 \u2014 \uB300\uAE30\uC2E4 \uBB38\uC774 \uC7A0\uACBC\uC2B5\uB2C8\uB2E4
     \xB7 \uD0D0\uC0C9 \uC2DC\uAC04 \uC5C6\uC74C"
+  showLegacyNotice: 0
 --- !u!4 &639600462
 Transform:
   m_ObjectHideFlags: 0

@@ -21,6 +21,20 @@ namespace CurtainCall.UI.SceneIntegration
         float nextRefresh;
         int revision;
         public SchedulePanelView View => view;
+        public string HoverDescription(UnityEngine.UI.Button button)
+        {
+            var schedule = ScheduleBoard.Instance;
+            if (schedule == null) return "일정 정보를 기다리는 중입니다.";
+            if (button == readyButton)
+                return schedule.CanReady(out var reason) ? "준비 완료/취소를 전환합니다. 전원 준비 후 다음 시점으로 진행합니다." : reason;
+            if (button == confirmButton)
+                return schedule.Book.IsConfirmedTonight ? "이번 밤 일정이 확정되었습니다." : "호스트가 편성을 확정합니다. 확정한 일정은 다시 편집할 수 없습니다.";
+            int index = Array.IndexOf(editButtons, button);
+            if (index < 0) return null;
+            int day = index / 2 + 1;
+            return day == 1 ? "1일차 공연은 고정입니다." : schedule.Book.IsLocked(day) ? "확정된 일정입니다." :
+                schedule.HasAuthority && schedule.Book.IsEditable(day) ? "클릭할 때마다 공연을 변경합니다. 난도는 출연 순번에 따라 결정됩니다." : "밤 정비 시간에 호스트가 편집합니다.";
+        }
         public void Configure(SchedulePanelView panel, UnityEngine.UI.Button[] edits, UnityEngine.UI.Button confirm, UnityEngine.UI.Button ready)
         { view = panel; editButtons = edits; confirmButton = confirm; readyButton = ready; }
         void OnEnable()
