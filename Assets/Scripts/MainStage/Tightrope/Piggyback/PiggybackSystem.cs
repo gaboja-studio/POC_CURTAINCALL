@@ -43,6 +43,8 @@ namespace CurtainCall.Tightrope
 
         /// <summary>내 요청이 거부·처리됐을 때 결과 문구(내 화면만).</summary>
         public event Action<string> LocalResult;
+        public event Action HandholdLanded;
+        public bool SuppressLegacyFeedback { get; set; }
 
         // 위 사람 clientId → 바로 아래 사람 clientId
         readonly Dictionary<ulong, ulong> belowOf = new();
@@ -65,6 +67,8 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return;
             ClearHandhold();
+            HandholdLanded?.Invoke();
+            if (SuppressLegacyFeedback) return;
             handholdTween = DOTween.Sequence().SetUpdate(true)
                 .Append(DOTween.To(() => handholdAlpha, value => handholdAlpha = value, 1f, 0.2f))
                 .AppendInterval(1.2f)
@@ -709,7 +713,7 @@ namespace CurtainCall.Tightrope
 
         void OnGUI()
         {
-            if (handholdAlpha > 0f)
+            if (!SuppressLegacyFeedback && handholdAlpha > 0f)
             {
                 handholdStyle ??= new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 24 };
                 var previous = GUI.color;
@@ -717,7 +721,7 @@ namespace CurtainCall.Tightrope
                 GUI.Label(new Rect(0f, Screen.height * 0.65f, Screen.width, 40f), "손 잡아줌", handholdStyle);
                 GUI.color = previous;
             }
-            if (!showDebug || NetworkPlayer.Local == null) return;
+            if (SuppressLegacyFeedback || !showDebug || NetworkPlayer.Local == null) return;
             var local = NetworkPlayer.Local;
             var below = GetBelow(local);
             var above = GetAbove(local);

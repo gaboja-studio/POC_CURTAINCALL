@@ -83,6 +83,35 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 while ((Get(rewards, "State") == null || !(bool)Get(Get(rewards, "State"), "IsOpen")) && Time.realtimeSinceStartup < until) yield return null;
                 Assert.IsTrue((bool)Get(Get(rewards, "State"), "IsOpen"));
                 var binding = Find("CurtainCall.UI.SceneIntegration.PerformanceSceneBinding");
+                yield return new WaitForSecondsRealtime(.2f);
+                var common = Find("CurtainCall.UI.SceneIntegration.CommonPerformanceUI");
+                var feedback = Get(common, "Feedback");
+                Assert.IsNotNull(feedback);
+                var feedbackView = Get(feedback, "View");
+                var participant = ((IEnumerable)Get(Get(rewards, "State"), "Segments")).Cast<object>().First();
+                string participantId = (string)Get(participant, "ParticipantId");
+                Assert.IsTrue((bool)Call(rewards, "AddAudienceReaction", participantId, 20));
+                yield return new WaitForSecondsRealtime(.2f);
+                Assert.IsTrue((bool)Get(feedbackView, "IsVisible"), (string)Get(feedbackView, "LastIssue"));
+                var feedbackTexts = ((Component)feedbackView).GetComponentsInChildren<TMPro.TMP_Text>(true);
+                Assert.IsTrue(feedbackTexts.Any(t => t.text == "환호"));
+                ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath($".harness/local/c10-{trick}.png"));
+                yield return new WaitForSecondsRealtime(.8f);
+                Assert.IsTrue((bool)Call(rewards, "AddAudienceReaction", participantId, -5));
+                yield return new WaitForSecondsRealtime(.2f);
+                Assert.IsTrue(feedbackTexts.Any(t => t.text == "야유"));
+                Assert.IsTrue(feedbackTexts.Any(t => t.text == "−5"));
+                yield return new WaitForSecondsRealtime(.8f);
+                Assert.IsFalse((bool)Get(feedbackView, "HasRuntimePresentation"));
+                if (trick == "Tightrope")
+                {
+                    var piggyback = Find("CurtainCall.Tightrope.PiggybackSystem");
+                    Assert.IsTrue((bool)Get(piggyback, "SuppressLegacyFeedback"));
+                    Call(piggyback, "ShowHandholdLanding");
+                    yield return new WaitForSecondsRealtime(.2f);
+                    Assert.IsTrue(feedbackTexts.Any(t => t.text == "손 잡아줌"), (string)Get(feedbackView, "LastIssue"));
+                    Assert.AreEqual("", feedbackTexts.Single(t => t.name == "70_AmountTMP").text);
+                }
                 if (trick == "Tightrope")
                     Find("CurtainCall.Tightrope.TightropeRun").GetType().GetMethod("ServerStartPerformance", BindingFlags.NonPublic | BindingFlags.Instance)
                         .Invoke(Find("CurtainCall.Tightrope.TightropeRun"), null);
@@ -95,6 +124,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(.3f);
                 Assert.IsTrue((bool)Call(rewards, "FinishPerformance", false, "C12Verification", null));
                 var result = Get(rewards, "Latest");
+                Assert.AreEqual(10L, Get(result, "BaseReward"));
+                Assert.AreEqual(0L, Get(result, "BonusReward"));
+                Assert.AreEqual(10L, Get(result, "Income"));
+                Assert.AreEqual(10L, Get(rewards, "Balance"));
                 Assert.Greater(Convert.ToDouble(Get(result, "ElapsedSeconds")), 0);
                 Assert.Greater(Convert.ToDouble(Get(result, "CourseLength")), 0);
                 var people = ((IEnumerable)Get(result, "Participants")).Cast<object>().ToArray();
@@ -102,6 +135,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var dto = T("CurtainCall.Reward.RewardResultData");
                 var wire = dto.GetMethod("From").Invoke(null, new[] { result });
                 var copy = Call(JsonUtility.FromJson(JsonUtility.ToJson(wire), dto), "Read");
+                Assert.AreEqual(Get(result, "Income"), Get(copy, "Income"));
                 Assert.AreEqual(Convert.ToDouble(Get(result, "ElapsedSeconds")), Convert.ToDouble(Get(copy, "ElapsedSeconds")), .000001);
                 Assert.AreEqual(Convert.ToDouble(Get(people[0], "MaximumDistance")), Convert.ToDouble(Get(((IEnumerable)Get(copy, "Participants")).Cast<object>().First(), "MaximumDistance")), .000001);
                 var ending = Find("CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation");
@@ -109,6 +143,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(1.7f);
                 Assert.IsTrue((bool)Get(ending, "ResultVisible"));
                 var view = Private(ending, "resultsView");
+                var resultData = Call(ending, "BuildResults", result);
+                Assert.AreEqual("+10", Get(resultData, "BaseAmount"));
+                Assert.AreEqual("+0", Get(resultData, "BonusAmount"));
+                Assert.IsFalse((bool)Get(feedbackView, "HasRuntimePresentation"));
+                var voice = Find("CurtainCall.Voice.VoiceChatDevOverlay");
+                if (voice != null) Assert.IsTrue((bool)Get(voice, "PresentationSuppressed"));
                 Assert.IsTrue((bool)Get(view, "IsVisible"));
                 var layers = (Array)Private(view, "memberLayers");
                 Assert.AreEqual(1, layers.Cast<object>().Count(l => ((Component)Field(l, "root")).gameObject.activeSelf));

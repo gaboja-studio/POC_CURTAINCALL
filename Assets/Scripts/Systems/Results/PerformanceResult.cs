@@ -70,12 +70,15 @@ namespace CurtainCall.Results
     /// <summary>부활·시간대 전환 전에 확정한다. NetworkPlayer나 가변 명부를 노출하지 않는다.</summary>
     public sealed class PerformanceResult
     {
+        public const int BaseFundPerParticipant = 10;
         public PerformanceIdentity Performance { get; }
         public bool Succeeded => Failure == PerformanceFailure.None;
         public PerformanceFailure Failure { get; }
         public string EndReason { get; }
         public bool AllSurvived { get; }
         public long Income { get; }
+        public long BaseReward { get; }
+        public long BonusReward { get; }
         public double? ElapsedSeconds { get; }
         public double? CourseLength { get; }
         public IReadOnlyList<PerformanceParticipantResult> Participants { get; }
@@ -113,7 +116,10 @@ namespace CurtainCall.Results
             Performance = performance;
             Failure = failure;
             EndReason = endReason;
-            Income = income;
+            // 시작 명부를 기준으로 지급한다. 사망·이탈·공연 실패도 기본 자금은 유지한다.
+            BaseReward = checked(copy.Length * (long)BaseFundPerParticipant);
+            BonusReward = income;
+            Income = checked(BaseReward + BonusReward);
             AllSurvived = allSurvived;
             Participants = Array.AsReadOnly(copy);
             Deaths = deaths.AsReadOnly();

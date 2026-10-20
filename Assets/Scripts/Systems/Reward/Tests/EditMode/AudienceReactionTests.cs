@@ -35,7 +35,7 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(30, model.Snapshot().Segments[0].Amount);
             model.React("p", 15, rules);
             Assert.IsTrue(model.Confirm(true, "Completed", null, 1, rules, out var result));
-            Assert.AreEqual(45, result.Income);
+            Assert.AreEqual(65, result.Income);
             Assert.IsFalse(model.React("p", 15, rules));
         }
         [Test]

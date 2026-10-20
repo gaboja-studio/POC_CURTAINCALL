@@ -1,5 +1,5 @@
 # 남은 UI 적용·고도화 계획
-2026-10-21 · W2는22ceebf push 완료. W3 61f4aa7 push 완료([가이드](waiting-room-schedule.md)). 공연 기록/C12 적용([가이드](performance-results.md)), C16 로컬 전환 적용([가이드](curtain-transition.md)). 다음 C10/HUD, 원격 전원 차폐 검증 남음. 사용자 최신 지시: 실제 Start/Lobby/Tightrope/HumanCannon/WaitingRoomBase 및 연결 공통 UI만 대상. 과거 임시 씬 제외, 각 작업 최종 필수 최소 검증만 한다.
+2026-10-21 · W2는22ceebf push 완료. W3 61f4aa7 push 완료([가이드](waiting-room-schedule.md)). 공연 기록/C12 적용([가이드](performance-results.md)), C16 로컬 전환 적용([가이드](curtain-transition.md)). C10/HUD·기본 자금 적용([가이드](performance-feedback.md)). 다음 C13/C14, 원격 전원 차폐 검증 남음. 사용자 최신 지시: 실제 Start/Lobby/Tightrope/HumanCannon/WaitingRoomBase 및 연결 공통 UI만 대상. 과거 임시 씬 제외, 각 작업 최종 필수 최소 검증만 한다.
 
 ## 확정 기준
 - 스케줄은 실제 공연이 있는 1~3일차만 배치한다. 4일차는 아침 쉬는 시간 이후 끝나므로 공연 편성/확정 대상이 아니다. 현재 코드의 3일차 밤→4일차 편성 요구도 함께 제거 대상으로 삼는다.
@@ -12,7 +12,7 @@
 - 기능 연결 완료: 공연 HUD/호응 규칙/관전·사망, 대기실 HUD/W4·W5/상호작용·커서/Dev 진입. 새 패널과 겹침·수명·실제 데이터 표현은 다시 검증한다.
 - W2는 ShopPanel 정본으로 구매·서비스·최근 장부/배송 연결 완료. 기존 상점 IMGUI off·서비스 임시 컴포넌트 제거. UI33/33 통과, 실제2~4인 미실행.
 - 임시 대체 상태: BasicPanels 결과 요약, 검은 전환, 스케줄 IMGUI, 기존 시작·로비 메뉴/설정. 새 정본으로 고도화해야 완료다.
-- C10은 Assets/_ThirdParty/curtaincall_feedback_v1에 PNG·FeedbackView/Motion·Builder가 있다. 완성 .prefab은 확인되지 않았다. 리소스 없음으로 분류하지 않고 프리팹 조립·검증 준비 항목으로 관리한다. 원본 README의 미실행 기록을 현재 검증 완료로 해석하지 않는다.
+- C10은 Assets/_ThirdParty/curtaincall_feedback_v1에 PNG·FeedbackView/Motion·Builder가 있다. 완성 .prefab 부재 확인 후 Resources/Prefabs/UIs/Feedback/Feedback.prefab을 신규 조립·공통 공연 씬에 적용했다. 원본 README의 미실행 기록을 현재 검증 완료로 해석하지 않는다.
 
 ## 실행 순서와 완료 기준
 | 순서 | 작업 | 적용·고도화 내용 |
@@ -31,7 +31,7 @@
 - W2 구매/수령은 WaitingRoomShop, 서비스는 ExpertService, 잔액/장부는 PerformanceRewards. 판매 API는 확인되지 않아 데모 예시만으로 추가하지 않는다. 화면 요청 토큰과 실제 게임 응답 대응/연속 요청 방지를 확인한다.
 - W3는 ScheduleBook.EditableDays/LockedOnConfirm/BeginNight 및 ScheduleBoard.CanReady·Campaign 진행을 함께 점검한다. 사용자 최신 결정에 따라4일차 편성을 준비 조건에서 빼되,4일차 아침/최종 진행 상태를 없애거나3일차 밤을 건너뛰지 않는다. 기존 데이터 배열/동기화 형식은 최소 변경을 우선한다.
 - C12 시간은 호스트의 불 타이머 시작 신호/동기화 시계 재사용: 외줄 TightropeFire.Elapsed/공연 시작, 인간대포 최초 ArmedAt·Route.Clock 대조. UI를 늦게 열어도 시작점은 변하지 않는다. 시작 전 실패는 시간 미시작 상태로 표시하고 종료 뒤 숫자는 고정한다.
-- 거리 기록은 누적 이동거리가 아니다. 외줄 GetDistance/FinishDistance, 인간대포 기존 C3 출발·도착 축을 재사용하며 사망/도착/이탈 직전 종료 위치와 개인 최댓값을 보관한다. 로컬 HUD만 켜져야 기록되는 구조를 피하고 호스트 결과로 전달한다. 정산 공식/실패 판정은 변경하지 않는다.
+- 거리 기록은 누적 이동거리가 아니다. 외줄 GetDistance/FinishDistance, 인간대포 기존 C3 출발·도착 축을 재사용하며 사망/도착/이탈 직전 종료 위치와 개인 최댓값을 보관한다. 로컬 HUD만 켜져야 기록되는 구조를 피하고 호스트 결과로 전달한다. 실패 판정은 유지하며 사용자 최신 지시로 시작 인원×10 기본 자금을 기존 정산에 가산한다.
 - 결과 확인 버튼의 팀 진행 의미는 아직 미확정이다. 제안은 개인 결과 닫기만 담당하고 현재 호스트 자동 전환 시점을 유지하는 것. 전원 준비 방식이나 한 명 클릭으로 즉시 공간 전환하는 규칙은 별도 확정 전 추가하지 않는다.
 - 타이틀 시안은 화면 구성의 기준이며 배경 원본이 제공됐다는 뜻은 아니다. Assets의 실제 사용 가능한 배경/현재3D 씬을 먼저 확인한다. 로고/메뉴가 합쳐진 시안 전체를 배경으로 쓰지 않는다. 동일 배경이 없으면 별도 배경 자산 필요 여부를 기록하며 기존 아트로 가능한 구성을 우선한다.
 - C10 전용 완성 프리팹을 못 찾으면 조립·검증을 먼저 마치고 씬에서 인스턴스로 사용한다. 외부 인계 package의 재추출/원본 변경으로 대체하지 않는다. 새 설정 옵션·새 상품/경제 규칙·미제작 공간은 범위를 늘리지 않는다.

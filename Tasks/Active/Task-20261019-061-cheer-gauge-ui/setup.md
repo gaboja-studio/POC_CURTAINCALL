@@ -47,12 +47,7 @@
 - `Assets/Scripts/MainStage/Tightrope/Saws/TightropeSaws.cs` — 수직 톱 출현 식별자 읽기 API만.
 - 기존 프리팹/그래픽/9-slice 및 공연 성공·실패 판정은 변경하지 않는다.
 
-## 후속 사용자 지정 대상 (2026-10-20)
-- `Assets/Scenes/Start_Lobby/Start.unity`
-- `Assets/Scenes/Start_Lobby/Lobby.unity`
-- `Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity`
-- `Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity`
-- 위5개 씬만 적용. 첫 단계는 두 공연 씬의 HUD, 나머지는 후속 화면 단계에서 정본 존재 확인 후 적용한다. 게임 규칙/다른 Task 코드의 수정 권한으로 확대하지 않는다.
+기존5개 대상 씬 범위는 [원문](History/scene-targets-20261020.md)에 유지한다. 최신 C10/보상 범위는 아래 참조.
 
 ## 공통 UI 씬 분리 (사용자 추가 지시)
 - Assets/Scenes/UI/ — 공통 UI 씬 추가. C1/C2/C3 공통, P1 공간 소유.
@@ -83,3 +78,9 @@
 ## C12 1인·C16 (2026-10-21 사용자 직접 지시)
 - SceneIntegration에 정본 C12 표시 소스를 기반으로 1~4인 지원 로컬 어댑터 추가. 정본/그래픽 유지, 씬 컴포넌트만 교체. PerformanceTransitionUI에 커튼 인스턴스, 기존 요약/검은 오브젝트 정리.
 - Systems/SpaceLink/SpaceLinkDirector.cs와 Systems/StartLobby/StartLobbyFlow.cs에 커튼 차폐 대기/완료 훅 연결. 로드 판정/권한 유지. 실제5개 씬만 대상.
+
+## C10·기본 자금 (2026-10-21 사용자 직접 지시)
+- Systems/Results/PerformanceResult.cs와 Systems/Reward/ 모델·테스트: 시작 참가 인원 ×10을 성공/실패 모두 기존 정산에 가산. 호스트 장부·중복 방지 유지.
+- SceneIntegration 코드·Editor·테스트, CommonPerformanceUI: C10 키트 조립·실제 호응 변화·HUD 중첩/종료 수명 연결. 완성 C10 프리팹 부재 확인 후 신규 Assets/Resources/Prefabs/UIs/Feedback/와 Images/UIs/Feedback/ 추가. 원본 PNG 바이트·파일명 유지, 복사본만 Sprite import.
+- MainStage/Tightrope/Piggyback/PiggybackSystem.cs: 손잡기 표시 이벤트 및 교체된 임시 표시 억제만. 보상/착지 판정 변경 없음.
+- Systems/Voice/VoiceChatDevOverlay.cs: 기존 Dev 음성 패널의 표시 오프셋/억제 API만. 공연 C3 아래 배치, 메뉴·관전·결과 중 숨김, 공통 UI 해제 시 원복.

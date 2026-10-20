@@ -150,6 +150,7 @@ namespace CurtainCall.UI.SceneIntegration
 
         void ClearHistory()
         {
+            if (ownsCommon && CommonPerformanceUI.Current != null) CommonPerformanceUI.Current.Feedback?.Clear();
             projection.Reset(); performanceId = null; roster.Clear();
             previousDead.Clear(); lastDistances.Clear(); falls.Clear();
         }
@@ -159,6 +160,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (sharedScene && CommonUiSceneLoader.CurrentSpace != this) return;
             if (cheer == null) return;
             var snapshot = rewards != null ? rewards.State : null;
+            if (sharedScene && CommonPerformanceUI.Current != null) CommonPerformanceUI.Current.Feedback?.Observe(snapshot);
             if (!projection.TryProject(snapshot, out var frame))
             {
                 ClearHistory(); cheer.SetUnavailable(); return;
@@ -221,6 +223,8 @@ namespace CurtainCall.UI.SceneIntegration
             bool observing = local != null && (local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                 || (balance != null && balance.HasFallen));
             hud.SetContext(active, false, observing);
+            if (sharedScene && CommonPerformanceUI.Current != null)
+                CommonPerformanceUI.Current.Feedback?.SetContext(active && !observing && !InputGate.IsBlocked && rewards?.State?.IsOpen == true);
             if (localBalance != null) localBalance.SetContext(active && !humanCannon && balance != null && balance.IsActive, observing);
             bool wakingCheer = active && !cheer.gameObject.activeSelf;
             cheer.gameObject.SetActive(active);

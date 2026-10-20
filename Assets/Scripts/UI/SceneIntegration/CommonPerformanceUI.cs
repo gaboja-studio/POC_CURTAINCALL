@@ -15,6 +15,9 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField] C1CheerGaugeView cheer;
         public PerformanceHUDView Hud => hud;
         public C1CheerGaugeView Cheer => cheer;
+        [SerializeField] PerformanceFeedback feedback;
+        public PerformanceFeedback Feedback => feedback;
+        public void ConfigureFeedback(PerformanceFeedback value) { feedback = value; }
         [SerializeField] GuideView guide;
         [SerializeField] TooltipView tooltip;
         public GuideView Guide => guide;
@@ -35,6 +38,7 @@ namespace CurtainCall.UI.SceneIntegration
         public void Hide()
         {
             HideHints();
+            if (feedback != null) { feedback.SetContext(false); feedback.Clear(); }
             if (hud != null) hud.ResetForRuntime();
             if (cheer != null) { cheer.SetUnavailable(); cheer.gameObject.SetActive(false); }
         }

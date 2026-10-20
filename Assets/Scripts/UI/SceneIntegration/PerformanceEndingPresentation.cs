@@ -169,8 +169,8 @@ namespace CurtainCall.UI.SceneIntegration
             return new ResultsPresentation(result.Performance.Id, result.Performance.Id, outcome, heading,
                 $"{result.Performance.Day}일차 · {(result.Performance.TrickId == "Tightrope" ? "외줄타기" : "인간대포")}", time,
                 "개인 최대 도달 거리", result.CourseLength.HasValue ? $"출발 0m → 도착 {result.CourseLength:0.0}m" : "코스 기록 없음",
-                maximum, "팀 호응", score.ToString(), "공연 정산", $"+{result.Income}", "공동 자금",
-                entry != null ? $"{entry.Balance - entry.Amount} → {entry.Balance}" : "확정 정산", (entry?.Balance ?? rewards?.Balance ?? 0).ToString(),
+                maximum, $"기본 자금 ({result.Participants.Count}명 × 10)", $"+{result.BaseReward}", "호응 보상", $"+{result.BonusReward}", "공동 자금",
+                $"이번 공연 +{result.Income}" + (entry != null ? $" · {entry.Balance - entry.Amount} → {entry.Balance}" : ""), (entry?.Balance ?? rewards?.Balance ?? 0).ToString(),
                 $"다음 공간으로 이동 {Mathf.Max(0, lastCountdown)}초", "", false, members.ToArray());
         }
         void Cover()

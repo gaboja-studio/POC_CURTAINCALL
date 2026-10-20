@@ -7,6 +7,8 @@
 - 사망 안내 → 기존 대기 → 결과 → 검은 전환 → 공간 이동 순서는 유지. 확인 버튼은 표시하지 않고 자동 이동 초를 표시한다. 전원 준비/확인으로 전환하는 새 규칙 없음.
 - 원본 프리팹·PNG·9-slice·폰트·GUID 수정 없음. 필요하면 Tools/Curtain Call UI/Install C12 results로 기존 씬에 멱등 적용.
 
+최신: 기본 자금(시작 인원×10) + 기존 호응 정산. 실패도 기본 자금을 지급한다. C12에 두 보상과 총액/잔액 변화를 분리 표시. [C10·보상 가이드](performance-feedback.md).
+
 ## 데이터
 - PerformanceRewards 호스트가 매 프레임, 사망 관찰 직전, 정산 직전에 기록을 요청한다. PerformanceSceneBinding이 공간 데이터로 샘플링하며 결과창 표시 여부에 의존하지 않는다.
 - 외줄: 실제 불 타이머의 Elapsed, TightropeCourse.GetDistance/FinishDistance. 시작 전 종료는 ‘타이머 시작 전’ 표시.

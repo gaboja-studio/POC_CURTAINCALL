@@ -29,7 +29,8 @@ namespace CurtainCall.UI.SceneIntegration
                     && label.GetComponentInParent<CommonWaitingRoomUI>() == null
                     && label.GetComponentInParent<WaitingRoomShopUI>() == null
                     && label.GetComponentInParent<WaitingRoomScheduleUI>() == null
-                    && label.GetComponentInParent<CommonInteractionUI>() == null) continue;
+                    && label.GetComponentInParent<CommonInteractionUI>() == null
+                    && label.GetComponentInParent<FeedbackView>() == null) continue;
                 var original = label.font;
                 if (original == null || original == fallback || copies.ContainsValue(original)) continue;
                 if (!copies.TryGetValue(original, out var copy))
@@ -44,7 +45,7 @@ namespace CurtainCall.UI.SceneIntegration
                         {
                             complete = TMP_FontAsset.CreateFontAsset(source);
                             complete.hideFlags = HideFlags.DontSave;
-                            complete.TryAddCharacters("FSpaceADFINISHm길게발사내리기트램펄린놓기봉잡기대포타기현재구간출발쉼터최종0123456789[] ·+-→공연성공실패팀호응동자금수입단원망했습니다이의개인은으로고정됩니다생존연결료잠시후다음간이동화면전환을완하지못상태를확인해세요관전대상없음플레이어중일차외줄타기잔액초합류반동과회피");
+                            complete.TryAddCharacters("FSpaceADFINISHm길게발사내리기트램펄린놓기봉잡기대포타기현재구간출발쉼터최종0123456789[] ·+-→공연성공실패팀호응동자금수입단원망했습니다이의개인은으로고정됩니다생존연결료잠시후다음간이동화면전환을완하지못상태를확인해세요관전대상없음플레이어중일차외줄타기잔액초합류반동과회피기본보상이번명×환호야유손잡아줌−");
                             generated.Add(source, complete);
                         }
                         copy.fallbackFontAssetTable.Add(complete);

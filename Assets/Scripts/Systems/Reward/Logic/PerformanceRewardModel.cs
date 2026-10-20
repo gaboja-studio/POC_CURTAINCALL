@@ -174,7 +174,7 @@ namespace CurtainCall.Reward
             if (next.Income > long.MaxValue - Balance) return false;
             long balance = Balance + next.Income;
             var entry = new FundEntry(ledger.Count + 1, Generation, performance.Day, FundEntryKind.PerformanceIncome,
-                next.Income, balance, next.Succeeded ? "공연 성공 정산" : "공연 실패 정산(0)", performance.Id);
+                next.Income, balance, next.Succeeded ? "공연 성공 정산" : "공연 실패 정산(기본 자금)", performance.Id);
             for (int i = 0; i < roster.Count; i++) roster[i].Amount = people[i].Segment;
             rules = currentRules;
             IsOpen = false;
