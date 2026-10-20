@@ -77,3 +77,5 @@
 - 2026-10-21 로비 UI/시작 순간이동 사용자 지시: Lobby.unity·SceneIntegration에 Assets LobbyHud/Guides/알림 연결, 대체 HUD 제거. Systems/StartLobby/LobbyRoom.cs는 실제 공간 복귀에만 재배치하도록 수정, 실제 LAN 회귀 검사 포함.
 - 2026-10-21 사용자 전체 점검: 실제5개 공간/공통UI만. WaitingRoomBase의 대체된 비활성 테스트UI 제거, NightDoorLock.cs 표시 옵션 및 CommonWaitingRoomUI 밤 배너 문구만 수정. 게임 문 잠금 판정 유지.
 - 2026-10-21 사용자: 상점/일정 hover·외줄 안내 교체, TightropeControlHints.cs의 문구 API/구형표시 전환 허용. 실행 검증은 사용자에게 위임. commit/push 및 dev 대상 PR 준비 승인(생성/병합은 미요청).
+
+- 2026-10-21 사용자: 외줄 안내를 상황별 상단 알림으로 변경. PropCarry.cs·Logic/ItemCarryBook.cs·HeldPropsView.cs에 숫자1~5 선택/호스트 동기화/선택 기물 표시·내려놓기 연결. CommonMenuUI의 C5와 실제 대기실·두 공연 씬 적용. 기존 소지 한도 유지, 실행 검증 사용자 위임.

@@ -47,3 +47,19 @@
 - 사용자 요청으로 Play 테스트/실행 캡처 미실행. 에디터 배치용 컴파일만 PASS. 앞선1/1 결과는 이번 hover/외줄 후속 구현 검증 결과가 아님.
 - 확인: 상점 품목/서비스/불가품 hover, 스크롤·탭 전환·닫기/ESC, 일정 항목·확정·준비 버튼 hover, 툴팁 화면 가장자리, 외줄 지상/줄/목마/봉/릴레이/받기/관문/추락에서 안내 내용과 겹침·글자 잘림.
 - dev PR 준비: 사용자 직접 지시에 따라 Task Integration을dev로 변경. PR 생성·병합은 수행하지 않음.
+## 2026-10-21 상황별 외줄 안내·공통 C5 기물 선택
+- 이전 하단 BasicPanels 외줄 안내를 제거하고 Assets Notifications/SystemBanner 인스턴스로 교체했다. 출발 WASD → 줄 탑승 W/S·A/D → 움직이는 가로 톱8m 접근 SPACE 안내를4초씩 표시한다. 톱별1회, 플레이어 재생성 시 초기화. 메뉴·사망·전환 중 숨긴다.
+- CommonMenuUI에 Assets BackstageHud/InventorySlotTemplate 전체 프리팹 인스턴스를 추가했다. 시작/로비 제외, 실제 대기실·외줄·인간대포에서5개 슬롯을 상시 표시한다. 대기실의 기존4초 소지 표시 경로는 제거했다.
+- 1~5 숫자키는 실제 소지 항목 선택 요청을 호스트에 보낸다. 호스트가 소유권/한도를 검사하고 선택 UID를 기존 carry 스냅샷에 포함한다. 선택 강조·이름·손에 든 도형·F 길게 내려놓기·선반 올리기가 선택 항목을 사용한다. 메뉴/상점 입력 중에는 선택하지 않는다.
+- 기존 소지 한도(팔2=2, 팔1=1, 배낭+2)를 유지한다. 따라서 현재 정상 최대4칸이고5번은 잠금 표시다. 소지 한도5개 확대는 하지 않았다. 빈 칸/잠긴 칸 키는 무시한다.
+- 개별 기물 아트가 없는 품목은 delivery 공통 아이콘과 실제 이름으로 표시한다. 손의3D 표시는 기존 임시 큐브이며 선택한1개만 보인다. 기물 사용 효과는 이번 범위 아님.
+- 수정: CommonInventoryUI.cs(+meta), ContextualHudInstaller.cs(+meta), TightropeControlsPanel.cs, CommonWaitingRoomUI.cs, PropCarry.cs, HeldPropsView.cs, ItemCarryBook.cs, CommonMenuUI.unity, 실제 Tightrope/HumanCannon.unity, Task 문서.
+- 확인: Unity 컴파일 PASS, 변경3개 씬 참조 연결 정상/누락스크립트0, diff 공백 검사 PASS. PlayMode·다인 동기화·사용자 입력·시각 검증은 사용자 요청에 따라 미실행.
+- 사용자 확인: 출발/탑승/톱 접근 알림과 균형 게이지 중첩, 상점 수령 후1/2 교대와 손의 기물·이름 일치, 선택 기물 내려놓기/선반, 공연 전환 후 소지 유지, ESC·상점에서 숫자키 차단, 두 클라이언트 선택 상태/손 표시 일치.
+
+## 2026-10-21 사용자 수정: 한글 안내·기물 집어넣기
+- 실제 Tightrope 씬 ContextualControlsBanner 제목/설명 폰트를 SettingsUi Pretendard-SemiBold로 교체. 새3단계 안내 전체 문자의 폰트 누락0 확인. 정본 프리팹/폰트 에셋 보존, 설치 코드에도 같은 연결 적용.
+- 같은 번호 재입력 또는 빈 슬롯 번호 입력은 보유 기물을 유지하며 빈손으로 전환. 기물이 있는 번호를 다시 누르면 꺼낸다. 잠긴 빈 칸도 집어넣기 입력으로 사용할 수 있다. 호스트 선택 UID=-1을 명시적 보관 상태로 동기화하여 기존 자동 마지막 기물 선택과 구분한다.
+- 빈손에서 F 길게는 아무 기물도 내려놓지 않는다. 선반에서는 보관 중인 기물을 자동으로 올리지 않고 꺼내기 경로를 사용한다(소지 한도 유지).
+- 수정 파일: PropCarry.cs, Logic/ItemCarryBook.cs, Editor/ContextualHudInstaller.cs, 실제 Tightrope.unity. 이전 미커밋 변경 유지.
+- 사용자 확인: 같은 번호로 꺼내기/집어넣기 반복, 빈 칸으로 집어넣기, 물품 개수 유지, 빈손 상태의 F 길게, 다른 클라이언트의 손 표시. 실행·다인 검증 미실행.

@@ -22,15 +22,11 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField, Min(.5f)] float inventorySeconds = 4f;
         [SerializeField, Min(.5f)] float announcementSeconds = 4f;
         [SerializeField, Min(.1f)] float fundsAccentSeconds = 1f;
-        readonly List<InventorySlotData> slots = new();
-        readonly List<int> heldIds = new();
         ExplorationTimerAnnouncer announcer;
         PropCarry carry;
-        bool oldLegacyHud, inventoryReceived, hadBackpack, fundsReceived, wasActive;
-        int capacity = -1;
-        ulong localId;
+        bool oldLegacyHud, fundsReceived, wasActive;
         long lastFunds;
-        float inventoryUntil, captionUntil, fundsUntil;
+        float captionUntil, fundsUntil;
         CampaignPhase lastPhase;
         public BackstageHUDView Hud => hud;
 
@@ -58,7 +54,7 @@ namespace CurtainCall.UI.SceneIntegration
                 notifications.Banner.Show("밤 정비", "대기실 문이 잠겼습니다 · 탐색 시간 없음", BannerState.Normal, announcementSeconds);
             wasActive = true; lastPhase = state.Phase;
             if (Time.unscaledTime >= captionUntil) captions.Hide();
-            hud.SetContext(true, rest, rest && space.LocalInGatherArea, !captions.IsVisible);
+            hud.SetContext(true, rest, rest && space.LocalInGatherArea, false);
             if (rest)
             {
                 var rules = GameSettings.Base.Run;
@@ -79,8 +75,7 @@ namespace CurtainCall.UI.SceneIntegration
             }
             if (space.Gather != null) hud.Gather.SetCounts(space.Gather.InsideCount, space.Gather.AliveCount);
             else hud.Gather.SetUnavailable();
-            RefreshInventory();
-            if (Time.unscaledTime >= inventoryUntil) hud.Inventory.HideInventory();
+            hud.Inventory.HideInventory(); // CommonInventoryUI owns C5 across gameplay spaces.
         }
 
         void AttachAnnouncer(ExplorationTimerAnnouncer next)
@@ -107,7 +102,7 @@ namespace CurtainCall.UI.SceneIntegration
                 carry.ShowLegacyHud = oldLegacyHud;
                 carry.RequestAnswered -= PresentCarryMessage;
             }
-            carry = next; inventoryReceived = false; capacity = -1; heldIds.Clear();
+            carry = next;
             if (carry != null)
             {
                 oldLegacyHud = carry.ShowLegacyHud;
@@ -120,50 +115,6 @@ namespace CurtainCall.UI.SceneIntegration
         void PresentCarryMessage(string message)
         {
             if (!string.IsNullOrWhiteSpace(message)) notifications.Toast.Show(message, ToastState.Normal, announcementSeconds);
-        }
-
-        void RefreshInventory()
-        {
-            if (carry == null) { hud.Inventory.HideInventory(); return; }
-            ulong id = carry.LocalClientId;
-            var held = carry.Held(id);
-            int count = carry.Slots(id);
-            bool backpack = carry.HasBackpack(id);
-            bool changed = !inventoryReceived || localId != id || count != capacity || backpack != hadBackpack || held.Count != heldIds.Count;
-            for (int i = 0; !changed && i < held.Count; i++) changed = held[i].Uid != heldIds[i];
-            if (!changed) return;
-            bool show = inventoryReceived || held.Count > 0 || backpack;
-            inventoryReceived = true; localId = id; capacity = count; hadBackpack = backpack;
-            slots.Clear(); heldIds.Clear();
-            for (int i = 0; i < held.Count; i++) heldIds.Add(held[i].Uid);
-            for (int i = 0; i < count; i++)
-            {
-                bool occupied = i < held.Count;
-                // Existing gameplay drops the last held prop; it has no numeric selection binding.
-                slots.Add(new InventorySlotData { IsEmpty = !occupied, ItemSprite = occupied ? Icon(held[i].ItemId) : null,
-                    IsHeld = occupied && i == held.Count - 1, KeyLabel = "",
-                    QuantityLabel = occupied ? "1" : "" });
-            }
-            hud.Inventory.SetSlots(slots);
-            if (show)
-            {
-                hud.Inventory.ShowInventory(); inventoryUntil = Time.unscaledTime + inventorySeconds;
-                string item = held.Count > 0 ? " · " + held[held.Count - 1].Name : "";
-                notifications.Toast.Show($"소지 {held.Count}/{count}{(backpack ? " (배낭)" : "")}{item}", ToastState.Normal, inventorySeconds);
-            }
-        }
-
-        Sprite Icon(string key)
-        {
-            if (icons == null) return null;
-            Sprite fallback = null;
-            for (int i = 0; i < icons.Count; i++)
-            {
-                var entry = icons.GetEntry(i);
-                if (entry.key == key) return entry.sprite;
-                if (entry.key == "delivery") fallback = entry.sprite;
-            }
-            return fallback;
         }
 
         void OnDisable()
