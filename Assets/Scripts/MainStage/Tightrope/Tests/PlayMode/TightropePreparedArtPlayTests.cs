@@ -22,25 +22,39 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Call(course, "BuildMeshes");
             yield return null;
             var generated = (Transform)Get(course, "generated");
+            Assert.IsNull(generated.Find("SafetyNet"), "No visible net or hidden catch collider may remain.");
             var platform = generated.Find("StartPlatform");
             Assert.IsNotNull(platform.Find("Prepared Art"));
             Assert.IsTrue(platform.GetComponent<BoxCollider>().enabled);
             Assert.That(platform.GetComponentsInChildren<Collider>().Length, Is.EqualTo(1));
             Assert.IsFalse(platform.GetComponent<MeshRenderer>().enabled);
-            var rope = generated.Find("Rope0");
+            // A rebuild disables its old root immediately, but Destroy completes at end of frame.
+            Transform Rope() => generated.Cast<Transform>().Single(t => t.name == "Rope0" && t.gameObject.activeInHierarchy);
+            var rope = Rope();
             Assert.IsTrue(rope.GetComponentsInChildren<Transform>().Any(t => t.name == "Prepared Art"));
             var support = rope.Find("ContinuousSupport").GetComponent<BoxCollider>();
+            Physics.SyncTransforms();
+            Assert.IsTrue(support.enabled && support.gameObject.activeInHierarchy);
+            Assert.That(support.bounds.size.y, Is.GreaterThan(0));
             float width = (float)Get(Get(course, "Shape"), "RopeWalkWidth");
             Assert.That(support.size.x, Is.EqualTo(width));
+            var modules = rope.GetComponentsInChildren<Transform>().Where(t => t.name.StartsWith("Rope module ")).ToArray();
+            Assert.That(modules.Length, Is.GreaterThan(1));
+            foreach (var module in modules)
+            {
+                var renderer = module.GetComponentInChildren<MeshRenderer>();
+                Assert.That(renderer.bounds.size.z, Is.LessThanOrEqualTo(3.001f));
+                Assert.That(renderer.bounds.max.y, Is.EqualTo(support.bounds.max.y).Within(.001f), "Visual top must match rope support height.");
+            }
             Assert.IsTrue(rope.GetComponentsInChildren<Transform>().Where(t => t.name == "Prepared Art")
                 .All(t => t.GetComponentsInChildren<Collider>().Length == 0));
             Call(course, "SetLaneBlocked", 0, true);
             yield return null;
-            Assert.That(generated.Find("Rope0").GetComponentsInChildren<MeshRenderer>().Length, Is.Zero,
+            Assert.That(Rope().GetComponentsInChildren<MeshRenderer>().Length, Is.Zero,
                 "Burning/removing a lane must also remove its authored rope model.");
             Call(course, "SetLaneBlocked", 0, false);
             yield return null;
-            Assert.IsTrue(generated.Find("Rope0").GetComponentsInChildren<Transform>().Any(t => t.name == "Prepared Art"));
+            Assert.IsTrue(Rope().GetComponentsInChildren<Transform>().Any(t => t.name == "Prepared Art"));
 
             var poles = Static("CurtainCall.Tightrope.TightropeSwingPole", "Current");
             var pole = (Component)Call(poles, "ForLane", 1);

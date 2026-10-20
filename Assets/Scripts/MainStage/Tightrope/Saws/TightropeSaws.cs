@@ -227,6 +227,7 @@ namespace CurtainCall.Tightrope.Saws
 
         void OnDisable()
         {
+            if (pathRoot != null) pathRoot.gameObject.SetActive(false);
             if (current == this) current = null;
             if (run != null) run.RunRestarted -= HandleRunRestarted;
             Unregister();
@@ -656,6 +657,7 @@ namespace CurtainCall.Tightrope.Saws
             TightropeOutline.AttachToHierarchy(plateView.gameObject);
             plateView.gameObject.SetActive(false);
             BuildCooperativeGateViews(root);
+            BuildPaths(root, resources);
         }
 
         /// <summary>기본 톱날: 밝은 날·양면 회전 표식. 모든 도형은 지정된 시각 지름·두께 안에 둔다.</summary>
@@ -713,6 +715,7 @@ namespace CurtainCall.Tightrope.Saws
         void UpdateViews()
         {
             UpdateCooperativeGateViews();
+            UpdatePaths();
             float spin = Time.time * settings.spinSpeed;
             Quaternion courseRotation = Quaternion.LookRotation(course.Forward, Vector3.up);
 

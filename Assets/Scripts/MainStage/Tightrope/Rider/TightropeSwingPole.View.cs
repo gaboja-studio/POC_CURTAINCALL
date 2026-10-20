@@ -76,7 +76,7 @@ namespace CurtainCall.Tightrope
             viewRoot.SetParent(transform, false);
             var cyan = NewMaterial(new Color(.1f, .9f, 1f));
             orange = NewMaterial(new Color(1f, .55f, .08f)); green = NewMaterial(new Color(.15f, 1f, .3f));
-            var frame = NewMaterial(new Color(.8f, .25f, .15f));
+            var frame = NewMaterial(new Color(.28f, .3f, .32f));
             const float width = 1.4f;
             float laneSide = course.Layout.GetLaneSide(assignedLane);
             float center = course.SwingGapFrom - SwingPoleMath.EntryOffset;

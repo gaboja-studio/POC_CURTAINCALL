@@ -1,9 +1,9 @@
 {
   "worker": "주형락",
   "date": "2026-10-20",
-  "stage": "적용 준비 / 기존 씬 미적용",
+  "stage": "기존 씬 적용 / 안전망·구간색 제거 및 외형 정리",
   "privateCommit": "b92b37a4db5ff840a82d26bf323c3b2831b2698a",
-  "sceneApplied": false,
+  "sceneApplied": true,
   "newAssetRequestIds": [],
   "sharedIds": [
     "3D-041",
@@ -91,20 +91,22 @@
   ],
   "runtimeProfile": {
     "collisionAuthority": "기존 Course·Saws·봉 시스템",
-    "net": "PerformanceArtKit/SafetyNetModule.prefab",
-    "rope": "PerformanceArtKit/RopeSegment.prefab",
+    "net": "제거 / 하부 Collider 없음",
+    "rope": "WalkingRope.prefab / 갈색 원형 / 최대 3m 반복 / 구간색 없음",
     "mutableDuringRun": false,
     "supportWidth": 0.4,
     "file": "TightropeArtProfile.asset",
     "floor": "PerformanceArtKit/FloorModule.prefab",
-    "ropeThickness": 0.2
+    "ropeThickness": 0.2,
+    "sawPaths": "빨간 Unlit 레이저 / 폭 0.045m / 가로·정면·협동 톱 경로 / 충돌체 없음",
+    "relayRope": "RelayRope.prefab / 밝은 원형 줄과 짙은 반복 띠 / 추가 Collider 없음",
+    "suspensionCable": "CableUnitY.prefab / 짙은 금속 원통 / 기존 끝점·두께 유지"
   },
   "preparedControllers": [
     "Prepared/TightropeCoursePrepared.prefab",
     "Prepared/TightropeSawsPrepared.prefab"
   ],
   "unchanged": [
-    "기존 씬",
     "이동·점프·반동 수치",
     "코스 길이·배치",
     "줄 생성·소실 및 화재 규칙",
@@ -116,14 +118,14 @@
     "length": 165
   },
   "verification": {
-    "runtimeArt": "PASS: 호스트 1명, 런타임 연결·줄 제거와 복구·봉 외형·톱 생성 검사",
-    "multiplayer": "SKIPPED: 이번 변경은 준비본이며 4인 검증을 수행하지 않음",
+    "runtimeArt": "PASS: 5개 PlayMode 검사. 자연 재질·모듈·지지면·줄 제거/복구·봉 반동·협동 톱·재시작",
+    "multiplayer": "실제 MPPM 2인 시작→봉 교대→공중그네→2인 목마→뒤 발판→톱 도약→아래층 통과→참가자 결승 도달. 양쪽 Succeeded/관문해제 확인. 사망0; 참가자 도중 부상 있음. 2026-10-20 pair1 기록.",
     "editMode": {
       "failed": 0,
-      "passed": 221,
-      "total": 221
+      "passed": 225,
+      "total": 225
     },
-    "humanPlay": "SKIPPED: 준비본만 제작",
+    "humanPlay": "SKIPPED: 수동 조작 체감은 미검증. 런타임 SceneView 실제 렌더링 확인",
     "compile": "PASS",
     "scope": "Task 미배정으로 정식 구역 검사 불가. 사용자 지시 범위로 수행.",
     "releasedGateRegression": "PASS: 협동 발판 → 톱 도약 → 착지 후 이동·접촉 → 스냅샷·재시작"

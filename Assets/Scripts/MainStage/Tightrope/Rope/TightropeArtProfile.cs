@@ -7,6 +7,7 @@ namespace CurtainCall.Tightrope
     public sealed class TightropeArtProfile : ScriptableObject
     {
         public GameObject floor, rope, safetyNet;
+        public GameObject relayRope;
         public GameObject barX, barY, cableY;
     }
 }

@@ -14,6 +14,7 @@ namespace CurtainCall.Tightrope.Saws
             public float InitialLift;
             public Transform View, Blade;
             public MeshCollider Collider;
+            public LineRenderer Path;
         }
 
         // 해결한 관문과 다음 관문은 독립적이다. 이전 톱이 이동 중이어도 다음 관문이 정상 등장한다.
@@ -103,6 +104,7 @@ namespace CurtainCall.Tightrope.Saws
 
         static void RemoveReleasedView(ReleasedGate gate)
         {
+            if (gate.Path != null) Destroy(gate.Path.gameObject);
             if (gate.View == null) return;
             gate.View.gameObject.SetActive(false);
             Destroy(gate.View.gameObject);

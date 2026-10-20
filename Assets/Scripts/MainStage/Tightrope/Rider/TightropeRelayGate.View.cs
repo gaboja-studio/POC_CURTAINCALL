@@ -121,6 +121,9 @@ namespace CurtainCall.Tightrope
                 bool warning = transit ? OutboundWarning : ReturnWarning;
                 // 실제로 연결된 줄만 덧칠한다. 소각된 구간에 가짜 발판을 표시하지 않는다.
                 open &= LandingWaveMath.SharesSupport(course.GetUsableSpans(path.Lane), GapFrom + .02f, GapTo - .02f);
+                // Prepared relay rope carries its own round, striped appearance.
+                // Keep the old strip only for scenes without the prepared asset.
+                open &= course.ArtProfile == null || course.ArtProfile.relayRope == null;
                 path.Strip.gameObject.SetActive(open);
                 if (!open) continue;
                 path.Strip.SetPositionAndRotation(course.GetLanePosition(path.Lane, (GapFrom + GapTo) * .5f) + Vector3.up * .075f, facing);

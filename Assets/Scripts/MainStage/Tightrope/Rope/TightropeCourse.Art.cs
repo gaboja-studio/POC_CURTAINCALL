@@ -12,8 +12,9 @@ namespace CurtainCall.Tightrope
         {
             if (artProfile == null) return;
             if (role == "StartPlatform" || role == "FinishPlatform") TightropeArtFit.Box(box.transform, artProfile.floor);
-            else if (role == "SafetyNet") TightropeArtFit.Box(box.transform, artProfile.safetyNet);
-            else if (role.StartsWith("Section")) TightropeArtFit.Box(box.transform, artProfile.rope, color);
+            else if (role.StartsWith("Section")) TightropeArtFit.Rope(box.transform, artProfile.rope);
+            else if (role.StartsWith("RelayRope")) TightropeArtFit.Rope(box.transform,
+                artProfile.relayRope != null ? artProfile.relayRope : artProfile.rope);
         }
     }
 }

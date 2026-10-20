@@ -62,7 +62,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         {
             var profile = AssetDatabase.LoadAssetAtPath<TightropeArtProfile>(Kit + "TightropeArtProfile.asset");
             Assert.That(profile, Is.Not.Null);
-            foreach (var source in new[] { profile.floor, profile.rope, profile.safetyNet, profile.barX, profile.barY, profile.cableY })
+            Assert.That(profile.safetyNet, Is.Null, "The course must not connect an obsolete safety net.");
+            foreach (var source in new[] { profile.floor, profile.rope, profile.barX, profile.barY, profile.cableY })
             {
                 Assert.That(source, Is.Not.Null);
                 Assert.That(source.GetComponentsInChildren<Collider>(true), Is.Empty);

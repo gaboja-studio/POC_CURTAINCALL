@@ -4,7 +4,7 @@ using UnityEngine;
 namespace CurtainCall.Tightrope
 {
     /// <summary>Fits visual-only assets without changing the holder's colliders or motion.</summary>
-    public static class TightropeArtFit
+    public static partial class TightropeArtFit
     {
         const string ArtName = "Prepared Art";
         static readonly List<Renderer> renderers = new();
@@ -101,6 +101,8 @@ namespace CurtainCall.Tightrope
             foreach (var renderer in renderers)
             {
                 if (TightropeOutline.IsOutlineRenderer(renderer)) continue;
+                // Prepared metal/rope bodies keep their authored material; only grips and bands change state.
+                if (renderer.name == "MaterialBody") continue;
                 renderer.GetPropertyBlock(tint); tint.SetColor("_BaseColor", color); tint.SetColor("_Color", color); renderer.SetPropertyBlock(tint);
             }
             renderers.Clear();

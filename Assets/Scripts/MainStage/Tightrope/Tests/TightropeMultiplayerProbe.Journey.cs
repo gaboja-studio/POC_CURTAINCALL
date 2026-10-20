@@ -21,6 +21,8 @@ namespace CurtainCall.Tightrope.Tests
         string journeyLastEvent;
         string journeyReportPath;
         float journeyReportAt;
+        bool journeyHadPassenger;
+        float journeyPassengerReleasedAt = -100f;
 
         public static void SetJourneyReportPath(string path) { if (current != null) current.journeyReportPath = path; }
 
@@ -42,10 +44,11 @@ namespace CurtainCall.Tightrope.Tests
             }));
         }
 
-        /// <summary>4개의 실제 소유자 프로세스에서 입력만 생성한다. 위치·부상·관문 판정·난이도는 바꾸지 않는다.</summary>
+        /// <summary>2~4개의 실제 소유자 프로세스에서 입력만 생성한다. 위치·부상·관문 판정·난이도는 바꾸지 않는다.</summary>
         public static bool BeginJourney()
         {
-            if (current == null || NetworkPlayer.Local == null || NetworkPlayer.All.Count != 4) return false;
+            if (current == null || NetworkPlayer.Local == null
+                || (NetworkPlayer.All.Count != 2 && NetworkPlayer.All.Count != 4)) return false;
             var self = NetworkPlayer.Local;
             var partner = NetworkPlayer.All.First(p => p.OwnerClientId == (self.OwnerClientId ^ 1UL));
             current.journeyBrain = new TightropePracticeBotBrain(self, partner);
@@ -56,6 +59,8 @@ namespace CurtainCall.Tightrope.Tests
             current.journeyEvents.Clear(); current.journeyLastEvent = null;
             TightropeTrapeze.Current.RequestObserved += current.JourneyRequestObserved;
             current.journeyJumpAt = current.journeyTapAt = current.journeyLongUntil = 0f;
+            current.journeyHadPassenger = false;
+            current.journeyPassengerReleasedAt = -100f;
             current.walking = false; current.autoBalance = false;
             DevCache.SetValue(null, false);
             foreach (var device in InputSystem.devices.ToArray())
@@ -115,6 +120,9 @@ namespace CurtainCall.Tightrope.Tests
             var relay = TightropeRelayGate.Current;
             var saws = TightropeSaws.Current;
             var stack = PiggybackSystem.Current;
+            bool hasPassenger = stack.GetAbove(self) != null;
+            if (journeyHadPassenger && !hasPassenger) journeyPassengerReleasedAt = Time.time;
+            journeyHadPassenger = hasPassenger;
             int survivor = TightropeFire.Current.SurvivingLaneAt(course.FinishDistance - 1f);
             var input = new PlayerInputFrame();
             string detail = "";
@@ -153,15 +161,16 @@ namespace CurtainCall.Tightrope.Tests
                     if (saws.AreRequiredGatesCleared) { journeyPhase = 6; break; }
                     if (saws.IsCooperativeStackApproved && saws.IsCooperativeGateActive)
                     { input = journeyBrain.BuildInput(); detail = journeyBrain.Status; }
-                    else if (stack.GetBelow(self) != null) { detail = "waiting for four-stack approval"; }
-                    else if (self.OwnerClientId == 0) input = JourneyTravel(launch, survivor);
+                    else if (stack.GetBelow(self) != null) { detail = "waiting for team-stack approval"; }
+                    else if (stack.GetAbove(self) != null || self.OwnerClientId == 0) input = JourneyTravel(launch, survivor);
                     else
                     {
                         int size = stack.GetStackSize(bottom);
                         bool turn = size == (int)self.OwnerClientId;
-                        input = JourneyTravel(launch - (turn ? .7f : 1.8f + .8f * (int)self.OwnerClientId), survivor);
-                        if (turn && Mathf.Abs(course.GetDistance(bottom.transform.position) - distance) < 1.1f
-                            && Mathf.Abs(course.GetDistance(bottom.transform.position) - launch) < .2f && Time.time > journeyTapAt)
+                        float bottomDistance = course.GetDistance(bottom.transform.position);
+                        input = JourneyTravel(turn ? bottomDistance - .7f : launch - 1.8f - .8f * (int)self.OwnerClientId, survivor);
+                        if (turn && ownLane == survivor && Mathf.Abs(bottomDistance - distance) < 1.1f
+                            && !bottom.IsAirborne && !mover.IsAirborne && Time.time > journeyTapAt)
                         { input.Move = .01f; input.InteractTapped = true; journeyTapAt = Time.time + .8f; }
                     }
                     break;
@@ -171,6 +180,10 @@ namespace CurtainCall.Tightrope.Tests
             }
             if (!mover.FreeMovement && balance.IsActive && !trap.IsCrossing(self) && !relay.IsHeld(self))
                 input.Posture = TightropePracticeBotBrain.Correction(balance.Value);
+            // Both owners are automated here. Give the departing passenger time to reach
+            // the first pole instead of immediately sending another mount request.
+            if (journeyPhase == 3 && Time.time - journeyPassengerReleasedAt < 1.5f && !trap.IsCrossing(self))
+            { input.Move = 0; input.InteractTapped = input.InteractLongPressed = input.ActionPressed = false; }
             if (input.Move > .001f) keys.Add(Key.W);
             else if (input.Move < -.001f) keys.Add(Key.S);
             if (input.Posture > .15f) keys.Add(Key.D);
@@ -190,7 +203,7 @@ namespace CurtainCall.Tightrope.Tests
             return true;
         }
 
-        static bool EveryoneAfter(float distance) => NetworkPlayer.All.Count == 4
+        static bool EveryoneAfter(float distance) => NetworkPlayer.All.Count >= 2
             && NetworkPlayer.All.All(p => p.State == PlayerState.Normal && TightropeCourse.Current.GetDistance(p.transform.position) >= distance);
 
         PlayerInputFrame JourneyTravel(float target, int lane)
