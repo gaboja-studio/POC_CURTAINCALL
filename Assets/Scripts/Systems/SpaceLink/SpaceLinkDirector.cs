@@ -130,7 +130,7 @@ namespace CurtainCall.SpaceLink
         {
             if (!HasAuthority || campaign.State.Phase != CampaignPhase.RestTime || Current != SpaceId.WaitingRoom) return false;
             campaign.NotifyLeftWaitingRoom(); // A안은 이미 흐르는 중이라 무시돼도 이동은 한다.
-            return Request(SpaceId.Exploration);
+            return GameSettings.Base.SpaceTransition.KeepWaitingRoomOnExit || Request(SpaceId.Exploration);
         }
 
         /// <summary>장소로 바꾼다(호스트·오프라인 전용). 바꾸는 중이면 끝난 뒤 마지막 요청만 처리한다.</summary>
@@ -162,8 +162,9 @@ namespace CurtainCall.SpaceLink
         void HandleChanged()
         {
             var s = campaign.State;
-            // B안: 누군가 대기실에서 나와 타이머가 흐르기 시작하면 백스테이지로 간다(더미 대기실의 출구 버튼 포함).
-            if (HasAuthority && s.Phase == CampaignPhase.RestTime && lastTimer == RestTimerState.WaitingForExit
+            // 실제 물리 출구는 타이머만 시작한다. 별도 탐색 씬 전환은 더미 경로에서만 사용한다.
+            if (!GameSettings.Base.SpaceTransition.KeepWaitingRoomOnExit
+                && HasAuthority && s.Phase == CampaignPhase.RestTime && lastTimer == RestTimerState.WaitingForExit
                 && s.Timer == RestTimerState.Running && Current == SpaceId.WaitingRoom && pending == null)
                 Request(SpaceId.Exploration);
             lastTimer = s.Timer;
