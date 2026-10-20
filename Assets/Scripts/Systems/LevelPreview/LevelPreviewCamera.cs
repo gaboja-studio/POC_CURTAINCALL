@@ -16,7 +16,7 @@ namespace CurtainCall.LevelPreview
         [Tooltip("따라갈 플레이어(씬에 놓은 Player 프리팹).")]
         [SerializeField] PlayerController player;
 
-        [Tooltip("눈높이. 발(플레이어 원점)에서 잰 높이(m). 0이면 몸통 높이의 90%.")]
+        [Tooltip("서 있을 때 눈높이. 발(플레이어 원점)에서 잰 높이(m). 0이면 몸통 높이의 90%. 앉으면 앉기 높이 비율만큼 함께 낮아진다.")]
         [SerializeField, Min(0f)] float eyeHeight;
 
         [Tooltip("마우스 감도(마우스 이동 1픽셀당 도).")]
@@ -32,6 +32,7 @@ namespace CurtainCall.LevelPreview
         public static Vector3 ViewForward { get; private set; }
 
         PlayerMover mover;
+        LevelPreviewControlScheme scheme;
         float yaw;
         float pitch;
         bool modelHidden;
@@ -47,7 +48,9 @@ namespace CurtainCall.LevelPreview
 
             mover = player.GetComponent<PlayerMover>();
             yaw = player.transform.eulerAngles.y;
-            player.SetScheme(ScriptableObject.CreateInstance<LevelPreviewControlScheme>());
+            scheme = ScriptableObject.CreateInstance<LevelPreviewControlScheme>();
+            scheme.hideFlags = HideFlags.DontSave;
+            player.SetScheme(scheme);
             LockCursor(true);
         }
 
@@ -55,6 +58,13 @@ namespace CurtainCall.LevelPreview
         {
             ViewForward = Vector3.zero;
             LockCursor(false);
+            // 내가 끼운 규칙만 뺀다. 다른 기능이 이미 바꿔 끼웠으면 건드리지 않는다
+            if (scheme != null && player != null && player.Scheme == scheme) player.SetScheme(null);
+        }
+
+        void OnDestroy()
+        {
+            if (scheme != null) Destroy(scheme);
         }
 
         void Update()
@@ -79,7 +89,10 @@ namespace CurtainCall.LevelPreview
             // 모델은 PlayerModelSlot이 실행 중에 만들므로 생긴 뒤에 숨긴다.
             if (hideOwnModel && !modelHidden) HideModel();
 
-            float height = eyeHeight > 0f ? eyeHeight : (mover != null ? mover.BodyHeight * 0.9f : 1.6f);
+            // 몸통 높이 기준은 앉으면 이미 낮아지므로, 고정 눈높이만 자세 비율을 곱한다(두 번 줄이지 않는다)
+            float height = eyeHeight > 0f
+                ? eyeHeight * (mover != null ? mover.PostureHeightScale : 1f)
+                : (mover != null ? mover.BodyHeight * 0.9f : 1.6f);
             transform.SetPositionAndRotation(player.transform.position + Vector3.up * height, Quaternion.Euler(pitch, yaw, 0f));
         }
 

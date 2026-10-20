@@ -143,6 +143,31 @@ namespace CurtainCall.SpaceLink.Tests
         }
 
         [UnityTest]
+        public IEnumerator Managed_RevivedAtNightCannotDieInPreviousCannonScene()
+        {
+            yield return PrepareManagedCannon();
+            yield return WaitUntil(() => LocalPlaced, 3f, "인간대포 출발점 배치");
+            yield return Frames(3);
+            Teleport(Below);
+            Assert.IsTrue((bool)Call(player, "ServerKill"), "공연 중 낙하 사망은 허용한다.");
+            Assert.AreEqual("Fallen", State);
+
+            // 씬 전환보다 먼저 오는 밤 정비를 합성한다. 옛 씬과 낙하 위치는 그대로 남긴다.
+            object night = Get(campaign, "State");
+            Set(night, "Phase", EnumValue("CurtainCall.Campaign.CampaignPhase", "Night"));
+            Set(night, "PerformanceIndex", 1);
+            Call(campaign, "Apply", night);
+            Assert.AreEqual("Normal", State, "밤 정비 시작 시 외팔로 부활한다.");
+            Assert.IsFalse((bool)Call(player, "ServerKill"), "공연 종료 뒤 같은 프레임의 옛 함정 피해도 거부한다.");
+            yield return Frames(5);
+            Assert.AreEqual("Normal", State, "대기실 배치 전 옛 씬의 낙하 판정으로 다시 죽으면 안 된다.");
+            var balance = player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
+            Assert.IsFalse((bool)Get(balance, "HasFallen"));
+            Assert.IsTrue((bool)Get(mover, "ControlEnabled"));
+            Assert.AreEqual(GameType("CurtainCall.Player.PlayerCondition").GetField("OneArmParts").GetValue(null), Get(player, "LostParts"));
+        }
+
+        [UnityTest]
         public IEnumerator Standalone_CannonStillKillsPlayerBelowFallHeight()
         {
             Assert.IsNull(StaticGet(PlayerType, "ServerCanChangeState"), "단독 실행은 연결 판정 잠금이 없다.");

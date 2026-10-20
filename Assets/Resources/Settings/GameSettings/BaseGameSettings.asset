@@ -41,12 +41,20 @@ MonoBehaviour:
     modelHeight: 1.73
     pushSpeed: 2
     playerGap: 0.05
+    sprintSpeedMultiplier: 1.5
+    crouchSpeedMultiplier: 0.5
+    crouchHeightRatio: 0.6
+    playerColorRed: {r: 1, g: 0, b: 0, a: 1}
+    playerColorBlue: {r: 0, g: 0, b: 1, a: 1}
+    playerColorYellow: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    playerColorGreen: {r: 0, g: 1, b: 0, a: 1}
   input:
     longPressTime: 0.5
   balance:
     greenLimit: 30
     warningLimit: 50
     fallTime: 2
+    warningFallRate: 0.33333334
     correctionSpeed: 85
     movingSway: 15
     idleSway: 5
@@ -80,5 +88,21 @@ MonoBehaviour:
     tightropeScene: Tightrope
     humanCannonScene: HumanCannon
     waitingRoomScene: WaitingRoomBase
+    keepWaitingRoomOnExit: 1
     explorationScene: DummyExploration
     escapeRouteScene: DummyEscapeRoute
+  voiceChat:
+    enabled: 1
+    useOnLan: 1
+    scenes:
+    - Start
+    - Lobby
+    - WaitingRoomBase
+    - Tightrope
+    - HumanCannon
+    conversationalDistance: 2
+    audibleDistance: 20
+    fadeModel: 2
+    fadeIntensity: 1
+    mouthHeight: 1.55
+    muteKey: 27

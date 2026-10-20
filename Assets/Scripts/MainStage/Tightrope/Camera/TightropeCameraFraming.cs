@@ -3,6 +3,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.Tightrope;
+using CurtainCall.Tightrope.UI;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -132,7 +133,7 @@ namespace CurtainCall.Cameras
             preset.LookHeight = currentFrame.LookHeight;
             preset.LookAhead = currentFrame.LookAhead;
             director.RequestView(this, useFirstPerson ? firstView : preset, 0, course.Forward);
-            director.SetInputBlocked(InputGate.IsBlocked);
+            director.SetInputBlocked(InputGate.IsBlocked || TightropeCampaignHud.RequiresStartCursor);
             ownsInput = true;
             if (fade == null) return;
             occlusion.Radius = rules.OccluderRadius;

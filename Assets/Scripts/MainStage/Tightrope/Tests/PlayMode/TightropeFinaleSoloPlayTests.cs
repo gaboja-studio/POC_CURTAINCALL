@@ -9,7 +9,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
     public sealed partial class TightropeCampaignPlayTests
     {
         [UnityTest]
-        public IEnumerator FinaleGateAllowsAnInjuredLastSurvivorToWalkThroughAndFinish()
+        public IEnumerator OptionalSoloFinaleAllowsAnInjuredLastSurvivorToWalkThroughAndFinish()
         {
             yield return BeginPerformance();
             ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
@@ -19,8 +19,13 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var distancesBefore = (float[])Get(settings, "cooperativeGateDistances");
             float approachBefore = (float)Get(settings, "cooperativeGateApproachDistance");
             float closedBefore = (float)Get(settings, "finaleGateClosedSeconds");
+            bool fourBefore = (bool)Get(settings, "finaleFourStackRequired");
+            bool soloBefore = (bool)Get(settings, "finaleSoloAutoOpen");
             try
             {
+                // 현재 코스는 4인 필수. 이 검사는 별도의 선택형 1인 관문 모드를 명시적으로 켠다.
+                Set(settings, "finaleFourStackRequired", false);
+                Set(settings, "finaleSoloAutoOpen", true);
                 Set(settings, "finaleGateClosedSeconds", .5f);
                 float gate = (float)Get(course, "FinishDistance") - 5f;
                 ConfigureStationaryGateForTest(saws, settings, gate);
@@ -51,6 +56,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Set(settings, "cooperativeGateDistances", distancesBefore);
                 Set(settings, "cooperativeGateApproachDistance", approachBefore);
                 Set(settings, "finaleGateClosedSeconds", closedBefore);
+                Set(settings, "finaleFourStackRequired", fourBefore);
+                Set(settings, "finaleSoloAutoOpen", soloBefore);
             }
         }
     }

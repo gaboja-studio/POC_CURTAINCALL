@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace CurtainCall.Settings
 {
@@ -22,7 +24,7 @@ namespace CurtainCall.Settings
     }
 
     /// <summary>
-    /// 공통 세팅(세팅 5묶음 중 "공통"): 세션·런 진행·기물 소지·캐릭터·입력·균형 공통·연출·동기화. 묘기·공간과 상관없이 쓰는 값.
+    /// 공통 세팅(세팅 5묶음 중 "공통"): 세션·런 진행·기물 소지·캐릭터·입력·균형 공통·연출·동기화·음성 채팅. 묘기·공간과 상관없이 쓰는 값.
     /// 에셋: Assets/Resources/Settings/GameSettings/BaseGameSettings.asset. <see cref="GameSettings.Base"/>로 읽는다.
     /// 기본값은 2026-10-03 프리팹 값(옮기기 전 값)과 같다. 런 진행·기물 소지는 2026-10-14 PM 결정값.
     /// </summary>
@@ -49,6 +51,8 @@ namespace CurtainCall.Settings
         [SerializeField] BodyDamageSettings bodyDamage = new();
         [Header("장소 전환")]
         [SerializeField] SpaceTransitionSettings spaceTransition = new();
+        [Header("음성 채팅")]
+        [SerializeField] VoiceChatSettings voiceChat = new();
 
         public SessionSettings Session => session;
         public RunSettings Run => run;
@@ -60,6 +64,7 @@ namespace CurtainCall.Settings
         public SyncSettings Sync => sync;
         public BodyDamageSettings BodyDamage => bodyDamage;
         public SpaceTransitionSettings SpaceTransition => spaceTransition;
+        public VoiceChatSettings VoiceChat => voiceChat;
 
         void OnValidate() => balance.Validate();
 
@@ -170,6 +175,41 @@ namespace CurtainCall.Settings
             [Tooltip("다른 플레이어와 닿을 때 남기는 틈(m).")]
             [SerializeField, Min(0f)] float playerGap = 0.05f;
 
+            [Tooltip("달리기(LShift 홀드) 이동 속도 배율(×). 플랫폼 걷기 속도에 곱한다. 2026-10-19 PM 1.5. 플레이 중 바꾸면 바로 반영.")]
+            [SerializeField, Range(1f, 5f)] float sprintSpeedMultiplier = 1.5f;
+
+            [Tooltip("앉기(LCtrl 홀드) 이동 속도 배율(×). 플랫폼 걷기 속도에 곱한다. 2026-10-19 PM 0.5. 플레이 중 바꾸면 바로 반영.")]
+            [SerializeField, Range(0.05f, 1f)] float crouchSpeedMultiplier = 0.5f;
+
+            [Tooltip("앉았을 때 높이 비율(0~1, 몸통 캡슐 높이 기준). 발은 고정하고 겉모습·충돌 높이·1인칭 눈높이를 함께 낮춘다. 2026-10-19 PM 0.6. 플레이 중 바꾸면 바로 반영.")]
+            [SerializeField, Range(0.2f, 1f)] float crouchHeightRatio = 0.6f;
+
+            [Header("플레이어 자리 색상")]
+            [InspectorName("플레이어 1 색상")]
+            [Tooltip("첫 번째 자리(0번) 플레이어 색상. 자리가 정해지지 않았거나 범위를 벗어나면 이 색상을 쓴다. 기본 빨강.")]
+            [SerializeField] Color playerColorRed = Color.red;
+
+            [InspectorName("플레이어 2 색상")]
+            [Tooltip("두 번째 자리(1번) 플레이어 색상. 기본 파랑.")]
+            [SerializeField] Color playerColorBlue = Color.blue;
+
+            [InspectorName("플레이어 3 색상")]
+            [Tooltip("세 번째 자리(2번) 플레이어 색상. 기본 노랑.")]
+            [SerializeField] Color playerColorYellow = Color.yellow;
+
+            [InspectorName("플레이어 4 색상")]
+            [Tooltip("네 번째 자리(3번) 플레이어 색상. 기본 초록.")]
+            [SerializeField] Color playerColorGreen = Color.green;
+
+            /// <summary>자리 번호(0부터)의 표시 색상. 미배정·범위 밖은 첫 번째 색상을 쓴다.</summary>
+            public Color GetPlayerColor(int slot) => slot switch
+            {
+                1 => playerColorBlue,
+                2 => playerColorYellow,
+                3 => playerColorGreen,
+                _ => playerColorRed,
+            };
+
             public float FreeMoveSpeed => freeMoveSpeed;
             public float CourseMoveSpeed => courseMoveSpeed;
             public float JumpHeight => CharacterJumpHeightOverrides.Resolve(jumpHeight);
@@ -180,6 +220,9 @@ namespace CurtainCall.Settings
             public float ModelHeight => modelHeight;
             public float PushSpeed => pushSpeed;
             public float PlayerGap => playerGap;
+            public float SprintSpeedMultiplier => sprintSpeedMultiplier;
+            public float CrouchSpeedMultiplier => crouchSpeedMultiplier;
+            public float CrouchHeightRatio => crouchHeightRatio;
         }
 
         /// <summary>입력 판정.</summary>
@@ -372,7 +415,10 @@ namespace CurtainCall.Settings
             [Tooltip("쉬는 시간 시작·밤 정비의 공간 씬(대기실 로비).")]
             [SerializeField] string waitingRoomScene = "DummyWaitingRoom";
 
-            [Tooltip("쉬는 시간에 대기실에서 나간 뒤의 공간 씬(백스테이지 탐색).")]
+            [Tooltip("퇴장 시 같은 씬에서 탐색한다. 실제 대기실은 켜고, 별도 탐색 씬을 쓰는 더미 검증은 끈다.")]
+            [SerializeField] bool keepWaitingRoomOnExit = true;
+
+            [Tooltip("퇴장 시 같은 씬 유지가 꺼져 있을 때 이동할 공간 씬(백스테이지 탐색).")]
             [SerializeField] string explorationScene = "DummyExploration";
 
             [Tooltip("탈출 개시 뒤의 공간 씬(탈출로).")]
@@ -384,8 +430,65 @@ namespace CurtainCall.Settings
             public string TightropeScene => tightropeScene;
             public string HumanCannonScene => humanCannonScene;
             public string WaitingRoomScene => waitingRoomScene;
+            public bool KeepWaitingRoomOnExit => keepWaitingRoomOnExit;
             public string ExplorationScene => explorationScene;
             public string EscapeRouteScene => escapeRouteScene;
         }
+
+        /// <summary>
+        /// 음성 채팅. Start 흐름의 확정 씬에서만. 생존자 = 거리 감쇠, 사망자(추락·리타이어) = 거리 무관. 결정: Harness/Project/Decisions/voice-chat.md
+        /// 거리·감쇠 값은 채널에 들어갈 때 적용된다(플레이 중 바꾸면 다음 입장부터).
+        /// </summary>
+        [Serializable]
+        public sealed class VoiceChatSettings
+        {
+            [Tooltip("음성 채팅 사용. 끄면 음성 로그인·채널 입장을 하지 않는다.")]
+            [SerializeField] bool enabled = true;
+
+            [Tooltip("LAN(직접 IP) 접속에서도 음성을 쓴다(기본 켬). Vivox 서버를 쓰므로 인터넷이 필요하다. 끄면 LAN 방에서는 음성 없음.")]
+            [SerializeField] bool useOnLan = true;
+
+            [Tooltip("음성을 쓰는 씬 이름. Start 씬부터 실행해 이어진 흐름에서, 지금 씬이 이 목록에 있을 때만 동작한다. 백스테이지·탈출로 씬이 확정되면 추가.")]
+            [SerializeField] string[] scenes = { "Start", "Lobby", "WaitingRoomBase", "Tightrope", "HumanCannon" };
+
+            [Tooltip("생존자: 이 거리(m) 안에서는 최대 음량. 정수.")]
+            [SerializeField, Min(1)] int conversationalDistance = 2;
+
+            [Tooltip("생존자: 이 거리(m) 밖은 들리지 않는다. 정수, 대화 거리보다 커야 한다.")]
+            [SerializeField, Min(2)] int audibleDistance = 20;
+
+            [Tooltip("생존자: 대화 거리~들리는 거리 사이에서 줄어드는 모양. 직선 = 일정하게 줄어 들리는 거리에서 0(기본). 반비례 = 처음에 빨리 줄고 멀수록 천천히. 지수 = 매우 빨리 줄어듦.")]
+            [SerializeField] VoiceFadeModel fadeModel = VoiceFadeModel.Linear;
+
+            [Tooltip("생존자: 줄어드는 세기(배). 1 = 보통, 2 = 두 배 빨리 작아짐, 0.5 = 절반.")]
+            [SerializeField, Range(0.1f, 4f)] float fadeIntensity = 1f;
+
+            [Tooltip("말하는/듣는 위치 높이(캐릭터 발에서 m).")]
+            [SerializeField, Min(0f)] float mouthHeight = 1.55f;
+
+            [Tooltip("내 마이크 끄기/켜기 키(pressed). 기획 미정 임시값 — 조작키 합의 필요(control-keys.md).")]
+            [SerializeField] Key muteKey = Key.M;
+
+            public bool Enabled => enabled;
+            public bool UseOnLan => useOnLan;
+            public IReadOnlyList<string> Scenes => scenes ?? Array.Empty<string>();
+            public int ConversationalDistance => Mathf.Max(1, conversationalDistance);
+            public int AudibleDistance => Mathf.Max(audibleDistance, ConversationalDistance + 1);
+            public VoiceFadeModel FadeModel => fadeModel;
+            public float FadeIntensity => fadeIntensity;
+            public float MouthHeight => mouthHeight;
+            public Key MuteKey => muteKey;
+        }
+    }
+
+    /// <summary>생존자 음성이 거리에 따라 줄어드는 모양(Vivox AudioFadeModel과 같은 숫자).</summary>
+    public enum VoiceFadeModel
+    {
+        /// <summary>반비례: 대화 거리를 벗어나면 빨리 줄고 멀수록 천천히.</summary>
+        Inverse = 1,
+        /// <summary>직선: 들리는 거리에서 0이 되도록 일정하게 줄어든다.</summary>
+        Linear = 2,
+        /// <summary>지수: 대화 거리를 벗어나면 매우 빨리 줄어든다.</summary>
+        Exponential = 3,
     }
 }

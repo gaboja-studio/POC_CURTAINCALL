@@ -41,6 +41,9 @@ namespace CurtainCall.Cameras
             public Material[] Originals;
             public Material[] Copies; // 지원하지 않는 셰이더 칸은 null(원본 그대로)
             public Color[] BaseColors;
+            public bool[] PropertyColors;
+            public float[] PropertyAlphas;
+            public Renderer Renderer;
             public float Alpha = 1f;
             public bool Occluding;
         }
@@ -155,7 +158,7 @@ namespace CurtainCall.Cameras
 
         void Mark(Renderer renderer)
         {
-            if (!(renderer is MeshRenderer || renderer is SkinnedMeshRenderer)) return;
+            if (!renderer.enabled || !(renderer is MeshRenderer || renderer is SkinnedMeshRenderer)) return;
             if (!faded.TryGetValue(renderer, out var entry))
             {
                 entry = CreateFaded(renderer);
@@ -183,7 +186,18 @@ namespace CurtainCall.Cameras
             var shown = new Material[originals.Length];
             for (int i = 0; i < shown.Length; i++) shown[i] = copies[i] != null ? copies[i] : originals[i];
             renderer.sharedMaterials = shown;
-            return new Faded { Originals = originals, Copies = copies, BaseColors = colors };
+            var propertyColors = new bool[originals.Length];
+            var propertyAlphas = new float[originals.Length];
+            var block = new MaterialPropertyBlock();
+            for (int i = 0; i < originals.Length; i++)
+            {
+                renderer.GetPropertyBlock(block, i);
+                propertyColors[i] = block.HasColor(BaseColorId);
+                propertyAlphas[i] = propertyColors[i] ? block.GetColor(BaseColorId).a : 1f;
+                block.Clear();
+            }
+            return new Faded { Originals = originals, Copies = copies, BaseColors = colors,
+                PropertyColors = propertyColors, PropertyAlphas = propertyAlphas, Renderer = renderer };
         }
 
         /// <summary>URP Lit 계열 머티리얼의 투명 복사본. 지원하지 않으면 null.</summary>
@@ -213,13 +227,27 @@ namespace CurtainCall.Cameras
                 Color color = entry.BaseColors[i];
                 color.a *= entry.Alpha;
                 entry.Copies[i].SetColor(BaseColorId, color);
+                if (entry.PropertyColors[i] && entry.Renderer != null)
+                {
+                    var block = new MaterialPropertyBlock();
+                    entry.Renderer.GetPropertyBlock(block, i);
+                    Color propertyColor = block.GetColor(BaseColorId);
+                    propertyColor.a = entry.PropertyAlphas[i] * entry.Alpha;
+                    block.SetColor(BaseColorId, propertyColor);
+                    entry.Renderer.SetPropertyBlock(block, i);
+                }
             }
         }
 
         void Restore(Renderer renderer)
         {
             if (!faded.Remove(renderer, out var entry)) return;
-            if (renderer != null) renderer.sharedMaterials = entry.Originals;
+            if (renderer != null)
+            {
+                entry.Alpha = 1f;
+                ApplyAlpha(entry);
+                renderer.sharedMaterials = entry.Originals;
+            }
             foreach (var copy in entry.Copies)
                 if (copy != null) Destroy(copy);
         }

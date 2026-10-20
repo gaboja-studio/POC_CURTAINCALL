@@ -42,6 +42,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Invoke(mover, "Awake");
             Invoke(balance, "Awake");
             Invoke(controller, "Awake");
+            Invoke(player, "Awake");
         }
 
         [TearDown]

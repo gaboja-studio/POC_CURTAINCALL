@@ -26,6 +26,8 @@ namespace CurtainCall.Player
     /// 플레이어끼리는 물리로 밀지 않는다: 몸통 충돌을 끄고, 같은 줄 앞뒤에 다른 플레이어가 있으면 닿기 직전까지만 간다.
     /// 걷기·몸통 크기는 세팅(<see cref="GameSettings"/>)에서 읽는다. 점프 높이·부상 배율·중력은 이륙 때 고정하며,
     /// 줄 위 높이·속도는 콘텐츠 override가 없으면 게임 기본 · 캐릭터 세팅, 줄 간격은 외줄 세팅을 쓴다.
+    /// 달리기·앉기(<see cref="SetLocomotionInput"/>): 속도 = 기본 × 부상 배율 × 자세 배율, 앉으면 제자리 점프 금지·몸통이 발 기준으로 낮아지고,
+    /// 머리 위가 막혀 있으면 떼도 앉은 채 유지한다(2026-10-19 PM, 배율·비율 = 게임 기본 · 캐릭터).
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class PlayerMover : MonoBehaviour
@@ -40,10 +42,13 @@ namespace CurtainCall.Player
         [SerializeField] bool blockLaneJumpOntoPlayer = true;
 
         static readonly List<PlayerMover> active = new();
+        static readonly Collider[] headroomHits = new Collider[16];
 
         CharacterController controller;
         float moveInput;
         float sideInput; // 일반 이동의 옆 입력(+1 오른쪽)
+        bool sprintInput;
+        bool crouchInput;
         bool jumpRequested;
         int laneJumpRequested;
         Vector3 startPosition;
@@ -99,6 +104,55 @@ namespace CurtainCall.Player
         {
             sideInput = Mathf.Clamp(side, -1f, 1f);
             moveInput = Mathf.Clamp(forward, -1f, 1f);
+        }
+
+        /// <summary>
+        /// 이번 프레임 달리기·앉기 요청(누르고 있는지). 매 프레임 넣어야 하며 넣지 않으면 요청이 없는 것으로 본다(조작 규칙이 바뀌면 자동으로 풀린다).
+        /// 앉기 요청이 달리기보다 우선한다. 앉기를 떼도 머리 위가 막혀 있으면 일어날 때까지 앉은 상태(<see cref="IsCrouched"/>)를 유지한다.
+        /// </summary>
+        public void SetLocomotionInput(bool sprint, bool crouch)
+        {
+            sprintInput = sprint;
+            crouchInput = crouch;
+        }
+
+        /// <summary>실제로 앉아 있는지(앉기 요청과 다르다: 떼도 머리 위가 막혀 있으면 계속 앉아 있다). 앉으면 느리게 걷고 제자리 점프를 할 수 없다.</summary>
+        public bool IsCrouched { get; private set; }
+
+        /// <summary>지금 달리는 배율을 쓰는지. 앉아 있으면 달리지 않는다.</summary>
+        public bool IsSprinting { get; private set; }
+
+        /// <summary>
+        /// 자세 때문에 줄어든 높이 비율(0~1). 서 있으면 1. 겉모습·1인칭 눈높이가 같이 낮아지는 데 쓴다.
+        /// 부상으로 이미 낮아진 높이(<see cref="BodyHeightOverride"/>)를 기준으로 하므로 부상 높이를 두 번 줄이지 않는다.
+        /// </summary>
+        public float PostureHeightScale
+        {
+            get
+            {
+                float standing = StandingHeight;
+                return controller != null && standing > 0.0001f ? Mathf.Clamp01(controller.height / standing) : 1f;
+            }
+        }
+
+        /// <summary>남의 캐릭터(<see cref="Simulated"/>가 꺼짐)의 앉은 상태를 소유자가 보낸 값으로 맞춘다. 공간 검사는 소유자가 이미 했다.</summary>
+        public void SetRemoteCrouched(bool crouched)
+        {
+            if (Simulated) return;
+            IsCrouched = crouched;
+            IsSprinting = false;
+        }
+
+        /// <summary>앉아 있으면 머리 위 공간이 있을 때만 일어선다. 대포 탑승처럼 이동을 다른 기능에 맡기기 직전에 부른다. 일어섰거나 원래 서 있으면 true.</summary>
+        public bool TryStand()
+        {
+            crouchInput = false;
+            IsSprinting = false;
+            if (!IsCrouched) return true;
+            if (!HasHeadroom(StandingHeight)) return false;
+            IsCrouched = false;
+            ApplyBodySize();
+            return true;
         }
 
         /// <summary>
@@ -297,10 +351,12 @@ namespace CurtainCall.Player
             if (!enabled) ClearPendingInput();
         }
 
-        /// <summary>아직 실행하지 않은 입력만 비운다. 공중 속도·중력·착지 상태는 유지한다.</summary>
+        /// <summary>아직 실행하지 않은 입력만 비운다. 공중 속도·중력·착지 상태와 실제 앉은 상태(머리 위가 막혀 있을 수 있음)는 유지한다.</summary>
         public void ClearPendingInput()
         {
             moveInput = sideInput = 0f;
+            sprintInput = crouchInput = false;
+            IsSprinting = false;
             jumpRequested = false;
             laneJumpRequested = 0;
         }
@@ -351,7 +407,7 @@ namespace CurtainCall.Player
             // 높은 프레임에서 작은 이동·접지 보정도 누락 없이 적용한다.
             controller.minMoveDistance = 0f;
             laneSpacing = GameSettings.Tightrope.Course.LaneSpacing;
-            ApplyBodySize();
+            ApplyBodySize(true);
             startPosition = transform.position;
             startRotation = transform.rotation;
         }
@@ -374,10 +430,70 @@ namespace CurtainCall.Player
 
         void OnDisable() => active.Remove(this);
 
-        /// <summary>몸통(캡슐) 크기를 세팅(또는 <see cref="BodyHeightOverride"/>)에 맞춘다. 발 위치(원점)는 그대로 두고 중심만 옮긴다.</summary>
-        void ApplyBodySize()
+        /// <summary>서 있을 때 몸통 높이(m, 로컬). 부상 높이(<see cref="BodyHeightOverride"/>)가 있으면 그 값.</summary>
+        float StandingHeight => BodyHeightOverride > 0f ? BodyHeightOverride : Character.CapsuleHeight;
+
+        /// <summary>지금 자세의 목표 몸통 높이(m, 로컬). 앉으면 정상 캡슐 × 앉기 비율과 부상 높이 중 낮은 값(부상 높이를 두 번 줄이지 않는다).</summary>
+        float TargetHeight => IsCrouched
+            ? Mathf.Min(Character.CapsuleHeight * Character.CrouchHeightRatio, StandingHeight)
+            : StandingHeight;
+
+        /// <summary>자세에 따른 이동 속도 배율. 앉기가 달리기보다 우선한다.</summary>
+        float PostureSpeedMultiplier => IsCrouched ? Character.CrouchSpeedMultiplier : IsSprinting ? Character.SprintSpeedMultiplier : 1f;
+
+        /// <summary>
+        /// 앉기 요청 → 실제 앉은 상태·달리기 상태를 정한다. 앉기를 떼면 머리 위 공간이 있을 때만 일어선다.
+        /// 위치를 다른 곳에 맡긴 동안(<see cref="Simulated"/> 꺼짐)은 바꾸지 않는다(남의 캐릭터는 <see cref="SetRemoteCrouched"/>).
+        /// </summary>
+        void UpdatePosture()
         {
-            float height = BodyHeightOverride > 0f ? BodyHeightOverride : Character.CapsuleHeight;
+            if (!Simulated)
+            {
+                IsSprinting = false;
+                return;
+            }
+            if (ControlEnabled && crouchInput) IsCrouched = true;
+            else if (IsCrouched && HasHeadroom(StandingHeight)) IsCrouched = false;
+            IsSprinting = ControlEnabled && sprintInput && !IsCrouched;
+        }
+
+        /// <summary>
+        /// 몸통을 <paramref name="height"/>(m, 로컬)까지 늘려도 머리 위가 막히지 않는지. 지금 몸통 윗부분부터 목표 높이까지만 검사한다.
+        /// 자기 몸·자식(모델)·트리거·다른 플레이어 몸통(서로 통과)은 무시한다.
+        /// </summary>
+        bool HasHeadroom(float height)
+        {
+            if (controller == null || !controller.enabled) return true;
+            float scale = transform.lossyScale.y;
+            float current = controller.height * scale;
+            float target = height * scale;
+            if (target <= current + 0.001f) return true;
+
+            float radius = Mathf.Min(Character.CapsuleRadius, height * 0.5f)
+                * Mathf.Max(transform.lossyScale.x, transform.lossyScale.z) * 0.95f; // 옆벽에 닿은 것은 막힘으로 보지 않는다
+            Vector3 feet = transform.position;
+            Vector3 bottom = feet + Vector3.up * Mathf.Max(radius, current - radius);
+            Vector3 top = feet + Vector3.up * Mathf.Max(radius, target - radius);
+            int count = Physics.OverlapCapsuleNonAlloc(bottom, top, radius, headroomHits, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+            {
+                var hit = headroomHits[i];
+                if (hit == null || hit == controller || hit.transform.IsChildOf(transform)) continue;
+                if (hit is CharacterController && hit.TryGetComponent(out PlayerMover _)) continue;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// 몸통(캡슐) 크기를 세팅(또는 <see cref="BodyHeightOverride"/>, 앉은 자세)에 맞춘다. 발 위치(원점)는 그대로 두고 중심만 옮긴다.
+        /// 몸이 커질 때(기립·부상 회복·세팅 변경)는 머리 위가 막혀 있으면 지금 높이를 유지한다. <paramref name="force"/>면 검사하지 않는다(시작·남의 캐릭터).
+        /// </summary>
+        void ApplyBodySize(bool force = false)
+        {
+            float height = TargetHeight;
+            if (!force && Simulated && height > controller.height + 0.001f && !HasHeadroom(height))
+                height = controller.height;
             float radius = Mathf.Min(Character.CapsuleRadius, height * 0.5f);
             if (Mathf.Approximately(controller.height, height) && Mathf.Approximately(controller.radius, radius)) return;
             controller.height = height;
@@ -387,7 +503,9 @@ namespace CurtainCall.Player
 
         void Update()
         {
-            ApplyBodySize();
+            // 부상 높이·배율은 부상 기능이 따로 넣고(자세와 독립), 여기서 자세를 정한 뒤 둘을 합쳐 몸통 크기를 맞추고 이동한다.
+            UpdatePosture();
+            ApplyBodySize(!Simulated);
             if (!Simulated)
             {
                 ClearPendingInput();
@@ -407,7 +525,7 @@ namespace CurtainCall.Player
                 {
                     float side = ControlEnabled ? sideInput : 0f;
                     Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
-                    groundVelocity = input * (Character.FreeMoveSpeed * speedMultiplier);
+                    groundVelocity = input * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
                     IsMoving = input.sqrMagnitude > 0.0001f;
                     if (IsMoving)
                         transform.rotation = Quaternion.RotateTowards(transform.rotation,
@@ -416,7 +534,7 @@ namespace CurtainCall.Player
                 else
                 {
                     float speed = CourseSpeedOverride > 0f ? CourseSpeedOverride : Character.CourseMoveSpeed;
-                    groundVelocity = forward * (move * speed * speedMultiplier);
+                    groundVelocity = forward * (move * speed * speedMultiplier * PostureSpeedMultiplier);
                     IsMoving = !Mathf.Approximately(move, 0f);
                 }
 
@@ -425,7 +543,7 @@ namespace CurtainCall.Player
                     if (LaneJumpAllowed && CanLaneJump(laneJumpRequested)) StartJump(JumpKind.Lane, laneJumpRequested);
                     else verticalSpeed = -1f; // 옆줄 점프를 막아도 제자리 점프로 바꾸지 않는다
                 }
-                else if (ControlEnabled && jumpRequested && JumpAllowed)
+                else if (ControlEnabled && jumpRequested && JumpAllowed && !IsCrouched) // 앉아 있으면(일어설 공간이 없어 유지 중이어도) 뛰지 않는다
                     StartJump(JumpKind.InPlace, 0);
                 else
                     verticalSpeed = -1f; // 땅에 붙어 있도록 작은 하강 속도를 유지한다
@@ -451,6 +569,7 @@ namespace CurtainCall.Player
             // 입력은 한 프레임만 유효하다. 조작 규칙이 매 프레임 다시 넣는다.
             moveInput = 0f;
             sideInput = 0f;
+            sprintInput = crouchInput = false;
             jumpRequested = false;
             laneJumpRequested = 0;
 

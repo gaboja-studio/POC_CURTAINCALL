@@ -25,6 +25,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         float previousTimeLimit;
         object legacyCourseSettings;
         string previousCourseJson;
+        object sawSettingsSnapshotTarget;
+        string previousSawsJson;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -35,6 +37,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             devModeCache.SetValue(null, false); // 실제 외줄 씬의 1인 시작 지원을 검증한다.
             runSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Run");
             previousTimeLimit = (float)Get(runSettings, "TimeLimit");
+            sawSettingsSnapshotTarget = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
+            previousSawsJson = JsonUtility.ToJson(sawSettingsSnapshotTarget);
             // 기존 회전봉·화재 시나리오의 배치를 명시한다. 새 협동 관문의 플레이 검증을 뜻하지 않는다.
             legacyCourseSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Course");
             previousCourseJson = JsonUtility.ToJson(legacyCourseSettings);
@@ -84,6 +88,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             if (legacyCourseSettings != null && previousCourseJson != null)
                 JsonUtility.FromJsonOverwrite(previousCourseJson, legacyCourseSettings);
             legacyCourseSettings = null; previousCourseJson = null;
+            if (sawSettingsSnapshotTarget != null && previousSawsJson != null)
+                JsonUtility.FromJsonOverwrite(previousSawsJson, sawSettingsSnapshotTarget);
+            sawSettingsSnapshotTarget = null; previousSawsJson = null;
         }
 
         [UnityTest]
@@ -248,10 +255,12 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                     yield return new WaitForSeconds(0.5f);
                     float start = (float)Call(course, "GetDistance", player.transform.position);
                     float maxDistanceDrift = 0f, maxLookAheadDrift = 0f;
+                    float elapsed = 0f;
                     for (int frame = 0; frame < 100; frame++)
                     {
                         Call(mover, "SetMoveInput", 1f);
                         yield return null;
+                        elapsed += Time.deltaTime;
                         object view = Get(director, "CurrentView");
                         maxDistanceDrift = Mathf.Max(maxDistanceDrift,
                             Mathf.Abs((float)Get(view, "Distance") - (float)Get(cameraRules, "Distance")));
@@ -260,8 +269,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                         Assert.IsTrue((bool)Get(director, "UsesMouseLook"));
                     }
                     float traveled = (float)Call(course, "GetDistance", player.transform.position) - start;
-                    Debug.Log($"[TightropeCameraWalkProbe] attempt={attempt}, traveled={traveled:F3}, maxDistanceDrift={maxDistanceDrift:F3}, maxLookAheadDrift={maxLookAheadDrift:F3}");
-                    Assert.That(traveled, Is.EqualTo(5f).Within(.1f));
+                    Debug.Log($"[TightropeCameraWalkProbe] attempt={attempt}, traveled={traveled:F3}, elapsed={elapsed:F3}, maxDistanceDrift={maxDistanceDrift:F3}, maxLookAheadDrift={maxLookAheadDrift:F3}");
+                    Assert.That(traveled, Is.EqualTo((float)Get(mover, "CourseSpeedOverride") * elapsed).Within(.1f));
                     totalDistanceDrift = Mathf.Max(totalDistanceDrift, maxDistanceDrift);
                     totalLookAheadDrift = Mathf.Max(totalLookAheadDrift, maxLookAheadDrift);
                 }
@@ -403,7 +412,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         [UnityTest]
         public IEnumerator SessionStartWaitsForHudPerformanceButtonThenBothSidesMove()
         {
-            var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+            var hud = (Component)Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
+            var director = (Component)Static("CurtainCall.Cameras.CameraViewDirector", "Current");
             Assert.IsFalse((bool)Call(hud, "StartPerformanceByHost"), "방 시작 전에는 공연만 따로 시작할 수 없다.");
             Assert.IsTrue((bool)Call(session, "StartGame")); // 왼쪽 게임 시작 버튼과 같은 진입점
             yield return Until(() => Phase == "Intro", 5, "공연 시작 버튼 대기");
@@ -418,9 +428,13 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.AreEqual(rightBefore, (Vector3)Call(saws, "GetHorizontalPosition", 1));
             Assert.IsFalse((bool)Call(saws, "IsHorizontalMoving", 0));
             Assert.IsFalse((bool)Call(saws, "IsHorizontalMoving", 1));
-            Assert.IsTrue((bool)Call(hud, "StartPerformanceByHost")); // 실제 오른쪽 버튼과 같은 진입점
+            Assert.IsTrue((bool)Get(director, "inputBlocked"), "줄에 올라가도 공연 시작 버튼을 누를 커서를 유지한다.");
+            Assert.AreEqual(CursorLockMode.None, Cursor.lockState);
+            Assert.IsTrue(Cursor.visible);
+            yield return ClickPracticeButton(hud, "외줄타기 시작 (톱날 작동)");
             Assert.IsFalse((bool)Call(hud, "StartPerformanceByHost"), "중복 클릭은 공연을 다시 시작하지 않는다.");
             yield return Until(() => (bool)Get(bridge, "PerformanceOpen") && Get(run, "State").ToString() == "Running", 5, "HUD 공연 시작");
+            yield return Until(() => !(bool)Get(director, "inputBlocked"), 3, "공연 시작 후 마우스 시점 조작 재개");
             yield return new WaitForSeconds(0.25f);
             Vector3 right = (Vector3)Get(course, "Right");
             Assert.IsTrue((bool)Call(saws, "IsHorizontalMoving", 0));
@@ -447,6 +461,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         [UnityTest]
         public IEnumerator ExternalEntryOwnsPlacementStartAndSettlementWithBridgePresent()
         {
+            // 진입/정산만 검사한다. 순간이동으로 필수 4인 관문 통과를 대신하지 않는다.
+            Set(sawSettingsSnapshotTarget, "finaleFourStackRequired", false);
             var space = Get(Static("CurtainCall.Settings.GameSettings", "Base"), "SpaceTransition");
             string previousScene = (string)Get(space, "TightropeScene");
             Component entry = null;
@@ -508,13 +524,15 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         [UnityTest]
         public IEnumerator FirstArrivalSettlesOnceAndKeepsSessionPlaying()
         {
+            // 별도 관문 검사와 분리하여 공용 정산 경계만 구성한다. TearDown에서 원래 규칙을 복구한다.
+            Set(sawSettingsSnapshotTarget, "finaleFourStackRequired", false);
             yield return BeginPerformance();
             Assert.AreNotEqual(0, Convert.ToInt32(Call(player, "ServerCut", 1)));
             int parts = Convert.ToInt32(Get(player, "LostParts"));
             yield return null;
             var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
             Call(mover, "SetStartPose", finish.position, finish.rotation, true);
-            yield return Until(() => Get(bridge, "Result") != null, 5, "도착 공용 정산");
+            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "도착 공용 정산");
             var result = Get(bridge, "Result");
             Assert.IsTrue((bool)Get(result, "Succeeded"));
             Assert.AreEqual("Succeeded", Get(run, "State").ToString());
@@ -561,7 +579,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Call(player, "ServerSetOneArm");
             // 메모리의 제한시간만 줄여 실제 Update의 시간 초과 경로를 기다린다. 에셋은 저장하지 않는다.
             Set(runSettings, "timeLimit", 1f);
-            yield return Until(() => Get(bridge, "Result") != null, 5, "제한시간 정산");
+            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "제한시간 정산과 공용 단계 전환");
             var result = Get(bridge, "Result");
             Assert.IsFalse((bool)Get(result, "Succeeded"));
             Assert.AreEqual("TimeExpired", Get(result, "EndReason"));
@@ -612,7 +630,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator SawContactsFollowSharedCutOrderRegardlessOfSideOrKind()
+        public IEnumerator HorizontalSawContactsFollowSharedCutOrderRegardlessOfSide()
         {
             yield return BeginPerformance();
             var sawObject = new GameObject("Shared injury contact test");
@@ -626,7 +644,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var order = new[] { "LeftLeg", "RightLeg", "LeftArm", "RightArm" };
             for (int i = 0; i < order.Length; i++)
             {
-                var kind = Enum.Parse(GameType("CurtainCall.Tightrope.Saws.SawKind"), i % 2 == 0 ? "Horizontal" : "Vertical");
+                var kind = Enum.Parse(GameType("CurtainCall.Tightrope.Saws.SawKind"), "Horizontal");
                 var rightContact = player.transform.position + (Vector3)Get(course, "Right") * 0.1f + Vector3.up * 1.2f;
                 Call(saw, "ServerTouch", player, body, kind, 100 + i, i, rightContact);
                 expected |= Convert.ToInt32(Enum.Parse(GameType("CurtainCall.Player.BodyPart"), order[i]));
@@ -1036,7 +1054,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return null;
             Assert.That((float)Call(fire, "WarningRemaining", 0), Is.GreaterThan(0f));
             Assert.IsTrue((bool)Get(fire, "IsChasing"));
-            var view = fire.transform.Find("SegmentFire1");
+            var view = fire.transform.Find("SegmentFire1Part1");
             Assert.IsNotNull(view);
             Assert.IsTrue(view.gameObject.activeInHierarchy, "발화 전 예고 표시가 있어야 한다.");
             var warning = view.GetComponent<Renderer>().sharedMaterial.color;
@@ -1044,7 +1062,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             float chaseBefore = (float)Get(fire, "ChaseDistance");
             yield return Until(() => (bool)Call(fire, "IsSegmentActive", 0), 3, "구간 실제 발화");
             yield return null;
-            Assert.IsTrue((bool)Call(course, "IsSegmentBlocked", 0, 60f), "불붙은 줄 구간은 착지할 수 없어야 한다.");
+            float burnedProbe = (float)Get(first, "from") + .1f;
+            Assert.IsTrue((bool)Call(course, "IsSegmentBlocked", 0, burnedProbe), "불붙은 줄 구간은 착지할 수 없어야 한다.");
             Assert.That((float)Get(fire, "ChaseDistance"), Is.GreaterThan(chaseBefore));
             Assert.That(view.GetComponent<Renderer>().sharedMaterial.color.g, Is.LessThan(0.3f), "발화 후에는 불 표시로 바뀐다.");
             int oldRound = (int)Get(run, "Round");
@@ -1054,7 +1073,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return null;
             Assert.IsFalse((bool)Get(fire, "IsChasing"));
             Assert.IsFalse((bool)Call(fire, "IsSegmentActive", 0));
-            Assert.IsFalse((bool)Call(course, "IsSegmentBlocked", 0, 60f));
+            Assert.IsFalse((bool)Call(course, "IsSegmentBlocked", 0, burnedProbe));
             Assert.That((float)Call(fire, "WarningRemaining", 0), Is.LessThan(0f));
             Assert.AreEqual("Normal", Get(player, "State").ToString());
             Assert.IsFalse(fire.transform.Find("ChaseFire").gameObject.activeInHierarchy);
@@ -1078,7 +1097,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             {
                 var segment = segments.GetValue(i);
                 float trigger = (float)Get(segment, "triggerDistance");
-                float probe = (bool)Call(course, "IsSwingGap", trigger) ? (float)Get(course, "SwingGapTo") + 1f : trigger;
+                // 예고 선두 거리와 실제 소각 구간은 다르다. 소각 구간 안에서 연결 수를 검사한다.
+                float probe = Mathf.Max(trigger, (float)Get(segment, "from") + .1f);
+                if ((bool)Call(course, "IsSwingGap", probe)) probe = (float)Get(course, "SwingGapTo") + 1f;
                 var position = (Vector3)Call(course, "GetLanePosition", safeLane, probe);
                 Call(mover, "SetStartPose", position, Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
                 int expected = i;
@@ -1093,16 +1114,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.IsTrue((bool)Call(course, "IsLaneUsable", safeLane, probe), "실제 끊어진 구간 바깥에서 화재 생존 줄을 검사한다.");
             }
             var saws = Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
-            var sawSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
             float aheadOfSurvivor = (float)Call(course, "GetDistance", player.transform.position) + 5f;
-            float elapsed = ((float)Get(sawSettings, "verticalSpawnDistance") - aheadOfSurvivor) / (float)Get(sawSettings, "verticalSpeed");
-            Call(saws, "SetVertical", true, safeLane, 1, elapsed, -1f);
-            yield return Until(() => !(bool)Get(saws, "IsVerticalActive"), 3, "혼자 남은 마지막 줄의 회피 불가능한 톱 해제");
-            var step = Activator.CreateInstance(GameType("CurtainCall.Tightrope.Saws.ObstacleStep"));
-            Set(step, "lane", safeLane);
-            object[] args = { step, null };
-            var spawn = saws.GetType().GetMethod("ServerSpawnVertical", Members);
-            Assert.IsFalse((bool)spawn.Invoke(saws, args), "같은 마지막 줄에 큰 톱날이 다시 생성되면 안 된다.");
+            Assert.IsTrue((bool)Call(saws, "WouldBlockRequiredRoute", safeLane, aheadOfSurvivor),
+                "현재 최후반 한 줄에 회피 불가능한 일반 톱을 추가하는 경로는 보호한다.");
             int oldRound = (int)Get(run, "Round");
             var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
             Assert.IsTrue((bool)Call(hud, "RestartCourseByHost"));
@@ -1130,6 +1144,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return null;
             Assert.IsTrue((bool)Get(saws, "IsVerticalActive"), "경고 전에는 옆줄로 회피할 수 있는 정면 톱을 유지한다.");
             Set(warning, "triggerDistance", 4f);
+            Set(warning, "from", 0f); // 이번 검사의 탈출 경로(4m)를 포함하는 화재를 구성한다.
+            Set(settings, "warningSeconds", 4f);
             segments.SetValue(warning, 0);
             yield return Until(() => (int)Get(fire, "PendingSegment") == 0, 3, "첫 줄 소각 경고");
             yield return Until(() => !(bool)Get(saws, "IsVerticalActive"), 3, "탈출 경로의 기존 정면 톱 제거");
@@ -1149,7 +1165,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             float elapsed = ((float)Get(sawSettings, "verticalSpawnDistance") - distance - 1.2f) / speed;
             Call(saws, "SetVertical", true, 1, 1, elapsed, -1f);
             yield return Until(() => Convert.ToInt32(Get(player, "LostParts")) != 0, 3, "피하지 않은 정면 톱날 접촉");
-            Assert.AreEqual(1, CountBits(Convert.ToInt32(Get(player, "LostParts"))), "수직 톱날 판정 자체가 비활성화되어 있으면 안 된다.");
+            yield return Until(() => Get(bridge, "Result") != null, 3, "정면 톱 즉사의 공용 정산");
+            Assert.AreEqual(1, ((ICollection)Get(Get(bridge, "Result"), "Deaths")).Count,
+                "현재 정면 톱 규칙은 한 부위 절단이 아니라 즉사다.");
         }
 
         IEnumerator StandOnRopeForSawTest(int lane, float distance)

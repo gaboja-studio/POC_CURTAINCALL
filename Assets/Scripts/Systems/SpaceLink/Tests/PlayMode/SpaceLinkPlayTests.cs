@@ -24,6 +24,49 @@ namespace CurtainCall.SpaceLink.Tests
         Component director;
         int maxSceneCount; // 전환 중 한꺼번에 열린 씬 수의 최대
         readonly List<Action> restore = new();
+        readonly List<GameObject> actors = new();
+        object keyboard;
+
+        void Key(string name, float value)
+        {
+            var input = GameType("UnityEngine.InputSystem.InputSystem");
+            keyboard ??= input.GetMethod("AddDevice", new[] { typeof(string), typeof(string), typeof(string) })
+                .Invoke(null, new object[] { "Keyboard", null, null });
+            var keyType = GameType("UnityEngine.InputSystem.Key");
+            var keys = Array.CreateInstance(keyType, value > 0 ? 1 : 0);
+            if (value > 0) keys.SetValue(Enum.Parse(keyType, name.Substring(0, name.Length - 3), true), 0);
+            var stateType = GameType("UnityEngine.InputSystem.LowLevel.KeyboardState");
+            var state = Activator.CreateInstance(stateType, new object[] { keys });
+            input.GetMethods().Single(m => m.Name == "QueueStateEvent" && m.IsGenericMethodDefinition)
+                .MakeGenericMethod(stateType).Invoke(null, new[] { keyboard, state, -1d });
+        }
+
+        Component Actor(string name, Vector3 position)
+        {
+            var go = new GameObject(name);
+            Object.DontDestroyOnLoad(go);
+            actors.Add(go);
+            var mover = go.AddComponent(GameType("CurtainCall.Player.PlayerMover"));
+            mover.GetType().GetProperty("Simulated").SetValue(mover, false);
+            Place(mover, position);
+            return mover;
+        }
+
+        static void Place(Component mover, Vector3 position) =>
+            mover.GetType().GetMethod("SetStartPose", new[] { typeof(Vector3), typeof(Quaternion) })
+                .Invoke(mover, new object[] { position, Quaternion.identity });
+
+        IEnumerator OpenPhysicalRoom()
+        {
+            yield return OpenHub();
+            SetMode("Single");
+            SetTimer("FromLeavingWaitingRoom");
+            Override(Get(Settings("Base"), "SpaceTransition"), "waitingRoomScene", "WaitingRoomBase");
+            Override(Get(Settings("Base"), "SpaceTransition"), "keepWaitingRoomOnExit", true);
+            Assert.IsTrue((bool)Call(campaign, "StartOfflineRun"));
+            yield return WaitIdle();
+            yield return Signal("EndIntro");
+        }
 
         static Type GameType(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
         static object Get(object target, string name) => target.GetType().GetProperty(name) is PropertyInfo p ? p.GetValue(target) : target.GetType().GetField(name).GetValue(target);
@@ -53,6 +96,8 @@ namespace CurtainCall.SpaceLink.Tests
         {
             // 게임의 시작 씬은 로비(Task-052)지만, 이 테스트는 SpaceLink 허브로 장소 전환만 확인한다.
             Override(Get(Settings("Base"), "SpaceTransition"), "hubScene", "SpaceLink");
+            Override(Get(Settings("Base"), "SpaceTransition"), "waitingRoomScene", "DummyWaitingRoom");
+            Override(Get(Settings("Base"), "SpaceTransition"), "keepWaitingRoomOnExit", false);
             yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(HubPath, new LoadSceneParameters(LoadSceneMode.Single));
             yield return null;
             director = GameType("CurtainCall.SpaceLink.SpaceLinkDirector").GetMethod("EnsureExists").Invoke(null, null) as Component;
@@ -86,6 +131,19 @@ namespace CurtainCall.SpaceLink.Tests
         {
             foreach (var action in Enumerable.Reverse(restore)) action();
             restore.Clear();
+            foreach (var actor in actors) if (actor != null) Object.Destroy(actor);
+            actors.Clear();
+            if (keyboard != null)
+            {
+                GameType("UnityEngine.InputSystem.InputSystem").GetMethod("RemoveDevice")
+                    .Invoke(null, new[] { keyboard });
+                keyboard = null;
+            }
+            foreach (string type in new[] { "CurtainCall.WaitingRoom.ScheduleBoard", "CurtainCall.WaitingRoom.WaitingRoomShop", "CurtainCall.WaitingRoom.PropCarry" })
+            {
+                var manager = Static(type, "Instance") as Component;
+                if (manager != null) Object.Destroy(manager.gameObject);
+            }
             if (campaign is Component c && c != null) Call(campaign, "StopOfflineRun");
             var session = Static("CurtainCall.Network.Session.NetworkSessionManager", "Instance") as Component;
             var network = session != null ? Get(session, "NetworkManager") as Component : null;
@@ -156,6 +214,126 @@ namespace CurtainCall.SpaceLink.Tests
             yield return Signal("EndEscape", true);
             Assert.AreEqual("Ending", Phase);
             Assert.AreEqual("SpaceLink", Active, "엔딩은 시작 씬");
+        }
+
+        [UnityTest]
+        public IEnumerator PhysicalExit_KeepsRoomAndRejectsOnlyReturningPlayer()
+        {
+            yield return OpenPhysicalRoom();
+            // 실제 입력 대신 위치를 주입하는 2인 판정 회귀다. 네트워크 공동 플레이를 대체하지 않는다.
+            var first = Actor("퇴장자", new Vector3(-2, .1f, -3));
+            var second = Actor("잔류자", new Vector3(2, .1f, -3));
+            yield return Signal("EndPerformance");
+            Assert.AreEqual("WaitingRoomBase", Active);
+            var scene = SceneManager.GetActiveScene();
+            Assert.IsTrue(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom").activeSelf);
+            Assert.IsFalse(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").activeSelf);
+            Assert.IsFalse(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomTestPanels").activeSelf);
+            Assert.AreEqual("WaitingForExit", Get(State, "Timer").ToString());
+            var spawnType = GameType("CurtainCall.Network.PlayerSync.PlayerSpawnPoints");
+            Assert.AreEqual(1, Object.FindObjectsByType(spawnType, FindObjectsSortMode.None).Length);
+            for (int slot = 0; slot < 4; slot++)
+            {
+                object[] pose = { slot, 3f, Vector3.zero, Quaternion.identity };
+                spawnType.GetMethod("GetPose").Invoke(null, pose);
+                var position = (Vector3)pose[2];
+                Assert.That(position.x, Is.InRange(-10f, 10f));
+                Assert.That(position.z, Is.InRange(-10f, 10f));
+                Assert.Greater(position.y, 0, "더미 원점 대체가 아니라 실제 로비 스폰을 쓴다");
+            }
+            var watch = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.WaitingRoomExitWatch")) as Component;
+            Place(first, new Vector3(12, .1f, -2.5f));
+            yield return null;
+            yield return null;
+            yield return WaitIdle();
+            Assert.AreEqual("Running", Get(State, "Timer").ToString());
+            Assert.AreEqual(scene.handle, SceneManager.GetActiveScene().handle, "첫 퇴장으로 씬을 바꾸지 않는다");
+            Assert.IsFalse(Loaded("DummyExploration"));
+            Assert.AreEqual(new Vector3(2, .1f, -3), second.transform.position, "잔류자는 이동시키지 않는다");
+            Assert.AreEqual(1, Get(watch, "LeftCount"));
+            float remaining = (float)Get(State, "TimeRemaining");
+            Place(first, new Vector3(0, .1f, -3));
+            yield return null;
+            yield return null;
+            Assert.Greater(first.transform.position.x, 10, "퇴장자만 마지막 외부 위치로 보정한다");
+            Place(second, new Vector3(12, .1f, -2.5f));
+            yield return null;
+            yield return null;
+            Assert.AreEqual(2, Get(watch, "LeftCount"));
+            Assert.LessOrEqual((float)Get(State, "TimeRemaining"), remaining, "후속 퇴장으로 제한 시간을 초기화하지 않는다");
+            Place(first, new Vector3(54, .1f, -2.5f));
+            yield return null;
+            yield return null;
+            Assert.AreEqual("RestTime", Phase, "일부 집결만으로 공연을 시작하지 않는다");
+            Place(second, new Vector3(54, .1f, -2.5f));
+            yield return null;
+            yield return WaitIdle();
+            Assert.AreEqual("Performance", Phase);
+            Assert.AreEqual("DummyPerformance", Active);
+        }
+
+        [UnityTest]
+        public IEnumerator PhysicalRoom_NightLocksAndReadyStartsMorningWithoutReload()
+        {
+            yield return OpenPhysicalRoom();
+            var reader = Actor("스케줄 상호작용", new Vector3(-7, .1f, 7.5f));
+            yield return Signal("EndPerformance");
+            Place(reader, new Vector3(12, .1f, -2.5f));
+            yield return null;
+            yield return null;
+            Assert.IsTrue((bool)Call(director, "LeaveWaitingRoom"));
+            yield return WaitIdle();
+            Assert.AreEqual("WaitingRoomBase", Active, "API 퇴장 경로도 같은 씬 유지");
+            yield return Signal("NotifyAllAtStageEntrance");
+            yield return Signal("EndPerformance");
+            Assert.AreEqual("Night", Phase);
+            Assert.AreEqual("WaitingRoomBase", Active);
+            Assert.AreNotEqual("Running", Get(State, "Timer").ToString());
+            var door = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.NightDoorLock"));
+            Assert.IsTrue((bool)Get(door, "IsLocked"));
+            yield return new WaitForSeconds(3);
+            Assert.IsTrue((bool)Get(door, "IsFullyClosed"));
+            Physics.SyncTransforms();
+            Assert.IsTrue(Physics.OverlapCapsule(new Vector3(10, .5f, -2.5f), new Vector3(10, 1.5f, -2.5f), .3f,
+                ~0, QueryTriggerInteraction.Ignore).Any(c => c.transform.IsChildOf(((Component)door).transform)),
+                "실제 로비 출구에 닫힌 야간 셔터 충돌체가 있어야 한다");
+            Place(reader, new Vector3(-7, .1f, 7.5f));
+            reader.gameObject.AddComponent(GameType("CurtainCall.Player.PlayerInputReader"));
+            var view = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.ScheduleBoardView"));
+            yield return null;
+            Key("fKey", 1f);
+            yield return null;
+            yield return null;
+            Key("fKey", 0f);
+            yield return null;
+            yield return null;
+            Assert.IsTrue((bool)Get(view, "IsOpen"), "Input System F 누름·뗌 → 실제 스케줄표 열기");
+            // 이후 스케줄 작성은 API 합성 검증이다. 키 입력 검증과 구분한다.
+            var board = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
+            int night = (int)Get(State, "Day");
+            var days = (int[])GameType("CurtainCall.WaitingRoom.ScheduleBook").GetMethod("EditableDays").Invoke(null, new object[] { night });
+            foreach (int day in days)
+            {
+                Assert.AreEqual("None", Call(board, "Set", day, 0, "Tightrope").ToString());
+                Assert.AreEqual("None", Call(board, "Set", day, 1, "HumanCannon").ToString());
+            }
+            Assert.AreEqual("None", Call(board, "Confirm").ToString());
+            var scene = SceneManager.GetActiveScene();
+            Assert.IsTrue((bool)Call(board, "RequestReady", true));
+            yield return WaitIdle();
+            Assert.AreEqual("RestTime", Phase);
+            Assert.AreEqual("WaitingForExit", Get(State, "Timer").ToString());
+            Assert.AreEqual(scene.handle, SceneManager.GetActiveScene().handle);
+            Assert.IsFalse((bool)Get(door, "IsLocked"));
+            var watch = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.WaitingRoomExitWatch"));
+            Assert.AreEqual(0, Get(watch, "LeftCount"), "새 쉬는 시간에는 이전 퇴장 이력을 비운다");
+            yield return new WaitForSeconds(3);
+            Place(reader, new Vector3(12, .1f, -2.5f));
+            yield return null;
+            yield return null;
+            Assert.AreEqual("Running", Get(State, "Timer").ToString(), "다음 아침에도 첫 물리 퇴장으로 시작");
+            Assert.AreEqual(1, Get(watch, "LeftCount"));
+            Assert.AreEqual(scene.handle, SceneManager.GetActiveScene().handle);
         }
 
         [UnityTest]
