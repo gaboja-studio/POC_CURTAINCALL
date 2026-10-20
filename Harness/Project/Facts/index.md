@@ -9,6 +9,7 @@
 - [unity-project.md](unity-project.md) — 씬·렌더·입력·코드·테스트 어셈블리 현황(2026-10-13). 에셋 경로를 찾거나 테스트를 만들 때
 - [team.md](team.md) — 현재 공간 담당(공연장·탈출로 @RagSpirin)과 PM 계정·과거 담당 구분. 담당자 배정·권한 확인 때
 - [local-environment.md](local-environment.md) — macOS 도구 경로. 스크립트·CLI가 실행되지 않을 때
+- [title-logo.md](title-logo.md) — 타이틀 로고 정적2레이어·Sprite/1920기준 배치 계약. Canvas 배치·크기/그림자 조절 전에
 - [results-ui.md](results-ui.md) — C12 공연 결과 표시·확인 의도·장식 동전 계약과 독립 씬. 조립/결과 어댑터 연결 전에
 - [schedule-ui.md](schedule-ui.md) — W3 읽기 전용 3일 공연 일정표·독립 열 스크롤·현재/확정 표시 계약. 조립/일정 표시 어댑터 연결 전에
 - [shop-ui.md](shop-ui.md) — W2 수화기 구매·판매 표시 패널·요청 토큰 계약과 독립 확인 씬. 조립/거래 어댑터 연결 전에

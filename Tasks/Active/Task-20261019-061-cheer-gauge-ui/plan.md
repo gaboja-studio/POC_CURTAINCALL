@@ -6,7 +6,12 @@
 - PM 직접 재요청 후 C7 공개9216489 commit/push·원격 SHA 일치 확인 완료, private 개별8b49cc29/main38001b8e. 앞선 차단 이력은 보존한다.
 - 이어 C9 제작 승인: 제공 자막/화자/방송 명세를 독립 프리팹·확인 씬·표시 API로 조립·검증·기록. C9 추가 저장·삭제·실게임 연결은 제외한다.
 - 후속 PM C9 commit/push 요청으로 C9 private/public 선택 저장 승인. 기존 공유 폰트·무관 변경 제외, 삭제/실게임/PR 제외는 유지한다.
-## C12 공연 결과 패널 UI 계획 (2026-10-21 현재 요청)
+## 타이틀 로고 UI 프리팹 (2026-10-21 현재 요청)
+- 후속 사용자 커밋·푸시 승인으로 로고 private 키트/meta·공개 산출물/기록/gitlink 저장·push 진행. 아래 제작 당시 저장 제외만 대체한다.
+1. 완료: replacement_v2 명세/실제 Sprite와 기존 출력 없음 확인, 보호560파일 기준 확보. PNG/GUID 보존·신규 importer2만 설정.
+2. 완료: TitleLogo.prefab1개·본체/그림자2레이어 조립, Canvas는 외부 호스트 제공. 메뉴/런타임/영구 씬/commit/push 제외.
+3. 완료: check-work 구역/문서/Compile/Edit798/798·임시 Play Canvas 두 화면비/명암·3배치12캡처/mesh24/비차단24·참조39 누락0/원본560 보존/출력 보호/종료 복구 확인. 최초 문서 크기/QA API 실패와 보정은 title-logo-verification.md에 기록.
+## C12 공연 결과 패널 UI 계획 (2026-10-21 당시 요청)
 1. 완료: 제공 계약/코드·시트25/정본19 대조·보호 baseline1277+164 확보. 원본/기존 UI·폰트 보존.
 2. 완료: 안전 조립 진입점·ResultsUi 프리팹/독립 씬·Preview28/테스트28·전용 Bold Static245문자 제작. 첫 Play25/28의 TMP 높이/테스트 null 보정 후 Compile·Play28/28 PASS. 실제 보상/진행/네트워크/입력 소유 연결 없음.
 3. 완료: Compile·C12 Play28/28·두 화면비 명암48캡처·합성 입력·W3/W2 회귀55/55, 원본/참조1646 누락0·clean 종료 복구 확인.

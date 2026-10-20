@@ -1,21 +1,11 @@
 # Todo
 과거 완료 단계·정리/저장/검증 원문: [History/003-todo-before-c7-save-compaction.md](History/003-todo-before-c7-save-compaction.md)
+## 타이틀 로고 (2026-10-21)
+- [x] 후속 사용자 커밋·푸시 요청: 로고 private65파일 f32c85f2 main push·원격 SHA 일치·clean 확인. 공개 프리팹/기록/gitlink는 이 기록과 함께 저장하며 최종 push 완료는 원격 SHA/최종 보고로 확인한다. 제작 당시 저장 제외만 대체, 무관 변경·실게임·PR/병합 제외 유지.
+- [x] 실제 replacement_v2 명세·기존 출력·보호560파일 확인, 신규 Sprite2 importer와 정적 TitleLogo 프리팹1개 조립.
+- [x] check-work 구역/문서/Compile/Edit798/798·메인/방 코드/LAN 두 화면비/명암12렌더·mesh24/비차단24·참조39 누락0·원본560 보존/종료 복구 확인. [검증 기록](title-logo-verification.md). 사람 외형/실게임 연결·메뉴/런타임/영구 씬/commit/push 제외.
 ## 완료 요약
-- [x] PM 테스트 씬·폴더/setup 작성·plan 공동 테스트 합의·실제 전달 확인, 작업 시작/구현.
-- [x] C1 View·폰트·점수 변환/읽기 전용 연결·독립 씬·EditMode18/PlayMode3·1920/16:10 검증.
-- [x] 버튼4종·패널2종·아이콘25종 조립/확인 씬·입력/화면/회귀·전수 목록·하네스 기록.
-- [x] PM 승인 C1/버튼/패널 미참조 자료 정리·필수 의존성/제작 원본 보존·정리 후 회귀/저장.
-- [x] 원격 integration/ui-resources 준비 및 단계별 승인 private/public 저장.
-- [x] 공연 C2/C3/P1·C1 동시 확인, P1 경고5구간/API·증분 보정·경계/입력/화면/회귀.
-- [x] 백스테이지/로비3프리팹·합성 씬·88실파일 전수·PlayMode7/7·입력/24상태 화면·Play2회·check-work EditMode798/798.
-- [x] 기존 회귀 Performance9/9·Icons3/3·Panels3/3·Cheer3/3·Buttons 입력 단독1/1; Buttons 전체 글리프 실패 기록(해결 아님).
-- [x] C8 배너/토스트3프리팹·58실파일/PNG22·재사용10 대조·모션/입력/44화면·Play2회·check-work EditMode798/798·하네스 및 최초 실패 기록.
-- [x] C6 전수·정본6/보호baseline·안전 Runtime/Builder·프리팹/씬/Preview·PlayMode52/52·입력90·56상태/배치8화면·check-work·하네스.
-- [x] C15 전수·정본baseline·조립/독립 씬/Preview·높이/꼬리/입력82·화면56·PlayMode72/72·check-work EditMode798/798·하네스/저장 차단 이력.
-- [x] PM 직접 재승인 후 C6·C15 private73fd48aa/main·공개b16c328/feat/ui-resources push 및 원격 확인, 무관 변경 제외.
-- [x] C7 원본 전수·정본 대조·안전 Runtime/Builder·독립 프리팹/확인 씬·하네스 기록.
-- [x] C7 6모드·차단·문자·모션·실제입력70/화면48+대비8·PlayMode88/88·check-work EditMode798/798 완료(제작 시 미커밋).
-- [x] 후속 PM C9 commit/push 승인으로 private bab2b062/main2b67e36d·공개9ede8a3 push/원격 확인 완료(기존 C9 미커밋 경계 대체; 월드 라벨 승인 아님).
+- [x] C1~C9·버튼/패널/아이콘·공연/백스테이지·알림/가이드 구현·검증/선행 저장 완료. 원문: [History/005-todo-completed-ui-before-title-logo.md](History/005-todo-completed-ui-before-title-logo.md). 기존 Buttons/공유 폰트 미결은 아래에 유지한다.
 ## 월드 라벨 v2 (2026-10-20)
 - [x] PM 제작 요청·전용 구역/소유 표 기록, doctor private dirty FAIL 보고·기존 변경 보존, 원본161/보호838 SHA baseline.
 - [x] 제공 Runtime/안전 Builder·Static Medium/Bold·5프리팹/독립 확인 씬 제작.
