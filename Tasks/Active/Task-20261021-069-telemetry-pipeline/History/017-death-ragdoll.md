@@ -16,4 +16,4 @@
 - 대포 재실행 PASS(1/1,6.79초). 외줄 PASS와 합쳐 두 공연 회귀 완료. .harness/local/telemetry-ragdoll-{after-partial,cannon-pass}.json. 첫 실패는 숨기지 않고 별도 보관.
 - 최종 빌드 build_4c4a6a21a048 Succeeded(42.4초/errors0/warnings12), 두 태그 manifest 확인. Builds/Telemetry-0.1.0-Windows-TEST-ragdoll/CURTAINCALL.exe 실제 실행·Drive ACK 확인. 이전 final 폴더는 캐시 수정까지만 포함하므로 구분한다.
 - 승인된 자동 설정/폰트6개와 다음 빌드 태그off/off 복원. 기존4개 SHA256 보존. Scope/Fast/Compile PASS(151파일,씬dirty0,up_to_date). 첫 Scope는 자동 설정·공용 파일 배정 섹션 위치로 FAIL, 승인 경로를 배정된 공용 파일에 명시하고 자동 설정 복원 후 재검사 PASS.
-- PM 실제 빌드의 두 공연 사망 화면 확인 대기. 확인 전 dev PR은 생성하지 않는다.
+- PM 실제 최종 빌드의 두 공연 사망 화면에서 정상 작동 확인. 로그/설문 최소 확인 및 레그돌 자동·사람 검사 통과 후 dev PR 제출. 두PC는 보류 유지.
