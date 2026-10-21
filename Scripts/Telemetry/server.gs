@@ -141,6 +141,12 @@ function ccPublish_(book,all){
     // Leave room for the filter icon as well as UNVERSIONED / AVERAGE text.
     sheet.setColumnWidths(d[2],extra.length,130);
   });
+  // Break snapshots use the same projection as the chart, independent of daily rows.
+  var breakSheet=book.getSheetByName('자금 구간')||book.insertSheet('자금 구간'),breakRows=[];
+  breakSheet.getRange(1,1,1,12).setValues([['runId','gameDay','rest','rewards','spent','transactions','gameVersion','environment','balance','samples','carried','mode']]);
+  groups.forEach(function(g){var funds=TelemetryCore.dashboardView(all,Object.assign({},g.filters,{fundsInterval:'BREAK'})).funds;funds.breakRunSeries.forEach(function(p){breakRows.push([p.runId,p.day,p.rest,p.rewards,p.spent,p.transactions,g.version,g.environment,p.balance,1,p.carried,'RUN']);});funds.series.forEach(function(p){breakRows.push(['',p.day,p.rest,p.rewards,p.spent,'',g.version,g.environment,p.balance,p.samples,'','AVERAGE']);});});
+  ccReplace_(book,'자금 구간',breakRows);breakSheet.setFrozenRows(1);
+  if(breakSheet.getFilter())breakSheet.getFilter().remove();breakSheet.getRange(1,1,Math.max(2,breakRows.length+1),12).createFilter();breakSheet.setColumnWidths(1,12,130);
   book.getSheetByName('운영 상태').getRange('B8').setValue(new Date().toISOString());
 }
 function ccDashboard_(all,filters){
@@ -150,12 +156,15 @@ function ccDashboard_(all,filters){
   var data=TelemetryCore.aggregate(all,filters.environment,filters.runId,filters.gameVersion);
   data.gameVersion=version.selected;data.versionOptions=version.options;
   data.view=TelemetryCore.dashboardView(all,filters);data.runOptions=data.view.runOptions;
+  data.surveys=ccSurveyView_(ccBook_(),all,filters);
   return data;
 }
 function ccRefresh_(filters){
   return ccLock_(function(){
     var book=ccBook_(),count=ccImport_(book),rules=ccRules_(book);ccCompactDeleted_(book,rules);var all=ccReadEvents_(book);
     ccPublish_(book,all);
+    try{ccImportSurveys_(book,all);PropertiesService.getScriptProperties().setProperty('SURVEY_SYNC_ERROR','');}
+    catch(error){PropertiesService.getScriptProperties().setProperty('SURVEY_SYNC_ERROR',String(error.message||error).slice(0,300));}
     ccPruneRaw_(book,rules);
     ccAppend_(book.getSheetByName('갱신 이력'),[[new Date().toISOString(),count,all.length,'OK']]);
     var data=ccDashboard_(all,filters);

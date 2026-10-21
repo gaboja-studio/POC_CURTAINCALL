@@ -14,7 +14,7 @@ function fixture(){
   LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},
   SpreadsheetApp:{openById:()=>({getSheetByName:name=>tables[name]?sheet(name):null,insertSheet:sheet})},Session:{getActiveUser:()=>({getEmail:()=>activeEmail})},HtmlService:{createHtmlOutputFromFile:()=>({setTitle(){return this;}})}
  });
- vm.runInContext(fs.readFileSync(__dirname+'/core.gs','utf8')+'\n'+fs.readFileSync(__dirname+'/management.gs','utf8')+'\n'+fs.readFileSync(__dirname+'/server.gs','utf8'),context);
+ vm.runInContext(['core.gs','surveys-core.gs','management.gs','surveys-server.gs','server.gs'].map(name=>fs.readFileSync(__dirname+'/'+name,'utf8')).join('\n'),context);
  const batch={schemaVersion:1,batchId:crypto.randomUUID(),senderId:crypto.randomUUID(),appSessionId:crypto.randomUUID(),flushReason:'CHECKPOINT',events:[{eventId:crypto.randomUUID(),sequence:1,monotonicMs:1,occurredAt:'2026-10-21T00:00:00Z',environment:'TEST',playerId:'test',playerNumber:null,networkClientId:null,roomId:null,runId:null,attemptId:null,performanceId:null,breakId:null,sceneType:'TITLE',eventType:'GAME_STARTED',authority:'LOCAL',payload:{}}]};
  const send=(b=batch,token='test-only-token-0000000000000000000000000000')=>JSON.parse(context.doPost({postData:{contents:JSON.stringify({token,batchJson:JSON.stringify(b)})}}).text);
  return {context,tables,files,batch,send,failReceipt:()=>failReceipt=true,failDelete:()=>failDelete=true,properties,cache,mail,setEmail:value=>activeEmail=value,book:{getSheetByName:name=>tables[name]?sheet(name):null,insertSheet:sheet}};

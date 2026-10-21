@@ -296,7 +296,10 @@ var TelemetryCore = (function () {
     var runs=new Map();
     list.forEach(function(e){if(!e.runId)return;if(!runs.has(e.runId))runs.set(e.runId,[]);runs.get(e.runId).push(e);});
     var options=Array.from(runs.keys()).sort(function(a,b){return runs.get(b).slice(-1)[0].occurredAt.localeCompare(runs.get(a).slice(-1)[0].occurredAt)||a.localeCompare(b);});
-    var balances=[];
+    var runLabels=options.map(function(id){var es=runs.get(id);return {id:id,startedAt:es[0].occurredAt,day:Math.max.apply(null,es.map(function(e){return gameDay(e)||0;}))};});
+    function dateKey(value){var t=Date.parse(value);return Number.isFinite(t)?new Date(t+9*3600000).toISOString().slice(0,10):'';}
+    function onDate(id,date){return !date||runLabels.some(function(r){return r.id===id&&dateKey(r.startedAt)===date;});}
+    var balances=[],breakBalances=[];
     runs.forEach(function(items,id){
       var seen=new Set(),ledger=items.filter(function(e){if(e.eventType!=='FUNDS_CHANGED'||e.authority!=='HOST'||seen.has(e.payload.transactionId))return false;seen.add(e.payload.transactionId);return true;});
       // Ledger numbers survive client restarts/clock skew. Never sum duplicate snapshots.
@@ -306,15 +309,23 @@ var TelemetryCore = (function () {
       ledger.forEach(function(e){var p=e.payload,d=p.gameDay;first=Math.min(first,d);max=Math.max(max,d);var v=days.get(d)||{day:d,balance:null,rewards:0,spent:0,transactions:0};v.balance=p.balanceAfter;v.transactions++;var delta=p.balanceAfter-p.balanceBefore;if(p.category==='REWARD')v.rewards+=delta;if(['PURCHASE','SERVICE','EXPENSE'].indexOf(p.category)>=0)v.spent-=delta;days.set(d,v);});
       // Carry an observed balance across reached days, never infer an initial balance.
       for(var d=first;d<=Math.min(max,3660);d++){var v=days.get(d);if(v)last=v.balance;if(last!==null)balances.push({runId:id,day:d,balance:last,rewards:v?v.rewards:0,spent:v?v.spent:0,transactions:v?v.transactions:0,carried:!v});}
+      // Only observed breaks. Performance income is carried into the next observed break,
+      // never labelled as a break merely because a stale attempt/scene was retained.
+      var breaks=new Map();items.forEach(function(e){var m=/^D(\d+)T([123])$/.exec(e.breakId||'');if(!m||e.sceneType!=='WAITINGROOM')return;var key=Number(m[1])*3+Number(m[2]);if(!breaks.has(key))breaks.set(key,{key:key,day:Number(m[1]),rest:Number(m[2]),startedAt:e.occurredAt});});
+      var stages=Array.from(breaks.values()).sort(function(a,b){return a.key-b.key;});
+      var assignments=ledger.map(function(e){var m=/^D(\d+)T([123])$/.exec(e.breakId||'');if(m&&Number(m[1])===e.payload.gameDay)return Number(m[1])*3+Number(m[2]);var next=stages.find(function(s){return s.day>=e.payload.gameDay&&s.startedAt>=e.occurredAt;});return next?next.key:Infinity;});
+      var latest=-1;stages.forEach(function(stage){var rewards=0,spent=0,count=0;ledger.forEach(function(e,i){if(assignments[i]<=stage.key&&i>latest)latest=i;if(assignments[i]!==stage.key)return;count++;var p=e.payload,delta=p.balanceAfter-p.balanceBefore;if(p.category==='REWARD')rewards+=delta;if(['PURCHASE','SERVICE','EXPENSE'].includes(p.category))spent-=delta;});if(latest>=0)breakBalances.push({runId:id,day:stage.day,rest:stage.rest,order:stage.key,balance:ledger[latest].payload.balanceAfter,rewards:rewards,spent:spent,transactions:count,carried:count===0});});
     });
-    var fundsId=runs.has(filters.fundsRunId)?filters.fundsRunId:'',fundSeries=[];
-    if(fundsId)fundSeries=balances.filter(function(p){return p.runId===fundsId;}).map(function(p){return Object.assign({samples:1},p);});
+    var interval=filters.fundsInterval==='BREAK'?'BREAK':'DAY',source=(interval==='BREAK'?breakBalances:balances).filter(function(p){return onDate(p.runId,filters.fundsDate);});
+    var fundsId=runs.has(filters.fundsRunId)&&onDate(filters.fundsRunId,filters.fundsDate)?filters.fundsRunId:'',fundSeries=[];
+    if(fundsId)fundSeries=source.filter(function(p){return p.runId===fundsId;}).map(function(p){return Object.assign({samples:1},p);});
     else {
-      var grouped=new Map();balances.forEach(function(p){if(!grouped.has(p.day))grouped.set(p.day,[]);grouped.get(p.day).push(p);});
-      grouped.forEach(function(points,day){function mean(k){return points.reduce(function(s,p){return s+p[k];},0)/points.length;}fundSeries.push({day:day,balance:mean('balance'),rewards:mean('rewards'),spent:mean('spent'),samples:points.length});});
+      var grouped=new Map();source.forEach(function(p){var key=interval==='BREAK'?p.order:p.day;if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(p);});
+      grouped.forEach(function(points,key){function mean(k){return points.reduce(function(s,p){return s+p[k];},0)/points.length;}fundSeries.push({day:points[0].day,rest:points[0].rest,order:key,balance:mean('balance'),rewards:mean('rewards'),spent:mean('spent'),samples:points.length});});
     }
-    fundSeries.sort(function(a,b){return a.day-b.day;});
-    var selectedRun=runs.has(filters.timelineRunId)?filters.timelineRunId:options[0]||null;
+    fundSeries.sort(function(a,b){return (a.order||a.day)-(b.order||b.day);});
+    var timelineOptions=options.filter(function(id){return onDate(id,filters.timelineDate);});
+    var selectedRun=timelineOptions.includes(filters.timelineRunId)?filters.timelineRunId:timelineOptions[0]||null;
     var runEvents=(runs.get(selectedRun)||[]).filter(analysisEvent),phases=new Map();
     runEvents.forEach(function(e){
       var day=gameDay(e),rest=/^D\d+T(\d+)$/.exec(e.breakId||'');
@@ -338,7 +349,7 @@ var TelemetryCore = (function () {
     if(offset>=shown.length)offset=0;
     function slim(e){return {eventId:e.eventId,occurredAt:e.occurredAt,appSessionId:e.appSessionId,sequence:e.sequence,playerId:e.playerId,playerNumber:e.playerNumber,networkClientId:e.networkClientId,runId:e.runId,roomId:e.roomId,eventType:e.eventType,authority:e.authority,sceneType:e.sceneType,attemptId:e.attemptId,payload:e.payload};}
     var markers=shown.filter(function(e){return /^(SECTION_|PLAYER_DIED|LIMB_SEVERED|INJURY_CHANGED|TIGHTROPE_FELL|JUMP_RESULT|COOP_ACTIVATED|CANNON_|PERFORMANCE_STARTED|PERFORMANCE_LEFT|INTERACTION_FAILED)/.test(e.eventType);});
-    return {runOptions:options,runLabels:options.map(function(id){var es=runs.get(id);return {id:id,startedAt:es[0].occurredAt,day:Math.max.apply(null,es.map(function(e){return gameDay(e)||0;}))};}),funds:{runId:fundsId,mode:fundsId?'RUN':'AVERAGE',series:fundSeries,runSeries:balances,runCount:new Set(balances.map(function(p){return p.runId;})).size},
+    return {runOptions:options,runLabels:runLabels,funds:{runId:fundsId,mode:fundsId?'RUN':'AVERAGE',interval:interval,series:fundSeries,runSeries:balances,breakRunSeries:breakBalances,runCount:new Set(source.filter(function(p){return !fundsId||p.runId===fundsId;}).map(function(p){return p.runId;})).size},
       timeline:{runId:selectedRun,phases:phaseList.map(function(p){return {id:p.id,day:p.day,kind:p.kind,rest:p.rest,count:p.events.length,attempts:Array.from(p.attempts.values())};}),phaseId:phase?phase.id:null,attemptId:selectedAttempt,
         events:shown.slice(offset,offset+200).map(slim),offset:offset,total:shown.length,markers:markers.slice(0,400).map(slim),markerTotal:markers.length}};
   }

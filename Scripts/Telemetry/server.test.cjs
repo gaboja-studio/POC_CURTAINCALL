@@ -56,3 +56,10 @@ test('published summaries match dashboard aggregates for TEST/LIVE and each reco
  const counts=Object.fromEntries(Object.keys(definitions).concat('자금 일계').map(n=>[n,f.tables[n].length]));
  f.context.ccPublish_(f.book,all);for(const[n,count]of Object.entries(counts))assert.equal(f.tables[n].length,count,'refresh replaces instead of appending '+n);
 });
+test('published break balances equal chart averages and individual runs without modifying daily rows',()=>{
+ const f=fixture(),base={...f.batch.events[0],appSessionId:f.batch.appSessionId,gameVersion:'0.1.0',authority:'HOST',sceneType:'WAITINGROOM',breakId:'D1T3',performanceId:'D1P1'},all=[];
+ for(const [i,balance]of [100,200].entries()){const runId=crypto.randomUUID();all.push({...base,eventId:crypto.randomUUID(),runId,eventType:'FUNDS_CHANGED',payload:{transactionId:runId+':1',gameDay:1,balanceBefore:0,balanceAfter:balance,category:'REWARD'}});}
+ f.context.ccPublish_(f.book,all);const chart=f.context.ccDashboard_(all,{environment:'TEST',gameVersion:'0.1.0',fundsInterval:'BREAK'}).view.funds;
+ const rows=f.tables['자금 구간'].slice(1).filter(r=>r[6]==='0.1.0'&&r[7]==='TEST');assert.equal(rows.filter(r=>r[11]==='RUN').length,2);const average=rows.find(r=>r[11]==='AVERAGE');assert.equal(average[8],chart.series[0].balance);assert.equal(average[8],150);assert.equal(average[9],2);assert.equal(average[2],3);
+ f.context.ccPublish_(f.book,all);assert.equal(f.tables['자금 구간'].length,4);
+});

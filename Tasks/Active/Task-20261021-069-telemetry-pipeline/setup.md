@@ -11,6 +11,7 @@ PM(@MoHoDu) 직접 작업. 사용자가 지정한 현재 프로젝트에서 진�
 - `Scripts/Telemetry/` — PM Google 서버·검증 코드
 - `Docs/Log-system/`
 - `Docs/Domains/log-system.md`
+- `Harness/Project/Guides/Log-system/` — 2026-10-22 PM 요청: 비개발 기획자용 Windows·Mac 운영 안내
 - Task 문서: 이 Task 폴더 (자동 포함)
 
 ## 배정된 공용 파일
@@ -36,6 +37,10 @@ PM(@MoHoDu) 직접 작업. 사용자가 지정한 현재 프로젝트에서 진�
 - `ProjectSettings/`
 - `Packages/`
 - 위에서 명시 승인한 파일 이외의 진행 중인 다른 Task 코드·씬·프리팹
+
+## 빌드 차단 수정 예외
+- 2026-10-22 PM 명시 승인: `Assets/_ThirdParty/ithappy/Battle_Stadium/Scripts/Demonstration/Editor/Patrol/SplinePatrolWayPointEditor.cs`의 마지막 괄호를 UNITY_EDITOR 조건 안으로 이동. 비공개 저장소 커밋·제출 및 main 반영 후 공개 gitlink만 저장한다. 외부 원문은 공개 저장소에 넣지 않는다.
+- 같은 날 추가 승인: 같은 Editor 폴더의 `SplinePatrolCharacterEditor.cs` 전체와 `ObstaclePathEditor.cs`의 using UnityEditor를 UNITY_EDITOR 안으로 이동. 게임 규칙·리소스는 변경하지 않는다.
 
 ## Exclusive Assets
 - 신규 코드 폴더만, 기존 씬 배치·저장 없음.

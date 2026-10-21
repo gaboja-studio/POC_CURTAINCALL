@@ -8,13 +8,13 @@
 - [원본 JSON](https://drive.google.com/drive/folders/1MEeWD5UNdKcypZ6jAhXfaMkP6i84WAi5)
 - [로그 시트](https://docs.google.com/spreadsheets/d/1KCLPn1tEW5qsK16jcw8swZ75IeN6p6lG_82zRUOg7I8/edit)
 - [Apps Script 프로젝트](https://script.google.com/home/projects/1V4KUY5s1YNPdyGBJj_wr4XMjYLCaReUJUQ-5oG8acx9SDBOtCgYg15TO/edit)
-- 등록 멤버 대시보드(v20 이메일 인증·보관/멤버·선택 환경 버전/세션 삭제): https://script.google.com/macros/s/AKfycby1UfzhOaNl9ycjKYATPF-b32AkSskzupKQ--Zxj3Z_eIKraOqy9Aw1PYYLkqKewJ_wqw/exec
+- 등록 멤버 대시보드(v24 자금 구간·날짜 달력·고정 아이콘/드래그·설문 간격·세션 조회 최적화): https://script.google.com/macros/s/AKfycby1UfzhOaNl9ycjKYATPF-b32AkSskzupKQ--Zxj3Z_eIKraOqy9Aw1PYYLkqKewJ_wqw/exec
 - 수신 전용 v19(적재 영수증 재사용·삭제 기록 재전송 차단): https://script.google.com/macros/s/AKfycbyBQxQU6XRZXS1qPEs11K8U_i8cwkJEi68-yHgIL6XHe9yCYzyXf3MFjsw6m2cYKEKD3A/exec
 - 2026-10-21 ccScheduledRefresh_ 30분 트리거 1개·실행 이력·오류율 0% 확인. 본인 전용 배포를 v2로 갱신해 빈 화면 해결.
 - TEST 필터에서 실제 이벤트 159건·v4 통계 그룹/탭/타임라인 확인. 기본 LIVE 필터는 현재 데이터 없음. [화면·집계 기준](dashboard-design.md).
 
 ## 배포 순서
-1. node Scripts/Telemetry/prepare-deployment.cjs 실행. core.gs·management.gs·server.gs를 결합한 수신/웹용 소스를 .harness/local에 만든다.
+1. node Scripts/Telemetry/prepare-deployment.cjs 실행. core.gs·surveys-core.gs·management.gs·surveys-server.gs·server.gs를 결합한 수신/웹용 소스를 .harness/local에 만든다.
 2. dashboard.html을 이름 dashboard인 HTML 파일로 추가한다.
 3. appsscript.json의 시간대·서비스 범위를 적용한다.
 4. 프로젝트 설정 → 스크립트 속성에 INGEST_TOKEN을 충분히 긴 무작위 값으로 직접 설정한다.
@@ -26,6 +26,7 @@
 10. 대시보드 웹 주소를 시트 운영 상태 B7에 기록하고 실제 빈 상태·갱신 성공을 확인한다.
 
 ## Unity 설정
+- 새 빌드/Editor 실행은 PlaytestBuildTags manifest의 LOGS 태그가 있을 때만 기록·재전송한다. SURVEY_010은 독립이며 0.1.0에서만 가능. 빌드 담당자 메뉴·최초 열기 캐시는 [설문 안내](survey-guide.md). 기존 실행 파일에는 소급 적용되지 않는다.
 - 게임 버전은 Player Settings의 Version을 사용한다(현재 이미 0.1.0). 다음 빌드의 이 값만 변경하면 새 로그와 대시보드 선택지가 자동 구분된다. 배포 v12는 서버 코드 버전이며 게임 0.1.0과 별개다. 과거 대기 파일의 버전은 바꾸지 않는다.
 - 원격 전송은 설정이 없으면 비활성. 현재 Windows 사용자는 수신 URL·token 직접 설정 후 자동 전송 검증 완료.
 - 게임 프로세스 환경 변수 CURTAINCALL_TELEMETRY_URL: 수신 배포의 https://script.google.com/macros/s/.../exec.
@@ -48,7 +49,7 @@
 - 유료 Google Cloud·BigQuery·Looker Pro·외부 SaaS를 생성하지 않는다.
 
 ## 확인 명령
-- Node: node --test Scripts/Telemetry/core.test.cjs Scripts/Telemetry/server.test.cjs Scripts/Telemetry/dashboard.test.cjs Scripts/Telemetry/management.test.cjs
+- Node: node --test Scripts/Telemetry/core.test.cjs Scripts/Telemetry/server.test.cjs Scripts/Telemetry/dashboard.test.cjs Scripts/Telemetry/management.test.cjs Scripts/Telemetry/surveys.test.cjs
 - 로컬 예시 화면: node Scripts/Telemetry/preview-dashboard.cjs → http://127.0.0.1:8787 (예시 데이터는 TEST 선택).
 - Unity: pwsh -File Scripts/check-work.ps1
 - PlayMode: pwsh -File Scripts/verify-unity.ps1 -ProjectPath . -RunTests -Mode PlayMode
@@ -80,6 +81,6 @@
 - 참가자 미전달 원본은 자기 큐에 보존, 같은 환경의 다음 방 접속 때 전달. 호스트 수신 원본은 Google ACK까지 호스트에 보존. 전송권은 현재 호스트 또는 호스트였던 앱만, 현재 참가자는 제외한다. 아직 방을 만든 적 없는 앱은 큐만 보관한다.
 - TelemetryBuildProcessor가 빌드 담당자의 환경 설정을 Library/CurtainCallTelemetryBuild에만 생성하고 BuildPlayerContext로 StreamingAssets에 포함한다. Assets/Git에는 비밀값을 만들지 않는다. 누락 시 BuildFailedException. PC 실행은 내장 설정 우선, 에디터만 환경 설정을 사용한다.
 - 분산 클라이언트의 수신용 token은 배포 파일에서 추출 가능하다. Google 계정 OAuth/Drive 접근 권한이 아니며 비공개 데이터 조회 권한을 부여하지 않는다. 원격 로그의 부정 입력을 완전히 방지하는 인증으로 취급하지 않는다.
-- 실제 배포 PC 빌드 생성·네트워크 수신 확인과 멀티 전달 타이밍은 SKIPPED. 컴파일·설정 파일 로딩/전송 정책/디스크 전달 회귀만 검사.
+- Windows64 검증 빌드 생성·실제 exe Drive ACK·Events 런 적재·밤1/ESC 설문 브라우저를 확인했다. 다인 전달 타이밍·실제 설문 제출·Mac 실행은 보류. 빌드는 Development(TEST)이며 LIVE 배포 전체 검증과 구분한다.
 
 - 빌드 설정 포함 API 근거: https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Build.BuildPlayerContext.html

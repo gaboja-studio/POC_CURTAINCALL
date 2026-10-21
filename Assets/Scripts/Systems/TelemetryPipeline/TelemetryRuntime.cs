@@ -71,7 +71,7 @@ namespace CurtainCall.Telemetry.Pipeline
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Bootstrap()
         {
-            if (Instance != null) return;
+            if (Instance != null || !PlaytestBuildTags.Current().AllowsLogs) return;
             string name = SceneManager.GetActiveScene().name;
             if (name != "Start" && name != "Lobby" && name != "Tightrope" && name != "HummanCannon"
                 && name != "HumanCannon" && name != "WaitingRoomBase") return;
@@ -82,6 +82,7 @@ namespace CurtainCall.Telemetry.Pipeline
 
         void Awake()
         {
+            if (!PlaytestBuildTags.Current().AllowsLogs) { Destroy(gameObject); return; }
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
             Instance = this;
             try

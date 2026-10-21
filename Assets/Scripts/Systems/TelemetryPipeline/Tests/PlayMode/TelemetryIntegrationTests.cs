@@ -22,6 +22,17 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         Component runtime, session;
         Delegate listener;
         IDisposable minimumPlayers;
+#if UNITY_EDITOR
+        string logTagPreference;
+        bool previousLogTag;
+        [UnitySetUp] public IEnumerator EnableLogsForThisFixture()
+        {
+            logTagPreference = (string)Game("CurtainCall.Telemetry.Pipeline.PlaytestBuildTags").GetMethod("PreferenceKey").Invoke(null, new object[] { "LOGS" });
+            previousLogTag = UnityEditor.EditorPrefs.GetBool(logTagPreference, false);
+            UnityEditor.EditorPrefs.SetBool(logTagPreference, true);
+            yield return null;
+        }
+#endif
         static Type Game(string name) => Type.GetType(name + ", Assembly-CSharp", true);
         static object Read(object target, string name) => target.GetType().GetProperty(name).GetValue(target);
         static object Call(object target, string name, params object[] args) => target.GetType().GetMethod(name).Invoke(target, args);
@@ -457,6 +468,9 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             { var task = (Task)Call(session, "LeaveAsync"); float until = Time.realtimeSinceStartup + 10; while (!task.IsCompleted && Time.realtimeSinceStartup < until) yield return null; }
             events.Clear(); listener = null;
             minimumPlayers?.Dispose(); minimumPlayers = null;
+#if UNITY_EDITOR
+            if (logTagPreference != null) UnityEditor.EditorPrefs.SetBool(logTagPreference, previousLogTag);
+#endif
         }
         sealed class Observation { public string Type, Room, Attempt, Run, Break, Authority; public int? Slot; public IDictionary Payload; }
     }

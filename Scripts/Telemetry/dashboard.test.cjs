@@ -71,4 +71,24 @@ test('input noise and observed replicas stay out of analysis; raw totals preserv
 test('shared login yields two observed waiting users',()=>{const a=e('ZONE_ENTERED',{zoneType:'BEDROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL'}),b={...a,eventId:'other',playerNumber:1};assert.equal(core.aggregate([a,b],'TEST').zones[0].distinctPlayers,2);});
 test('search and native selection are separate',()=>{const html=fs.readFileSync(__dirname+'/dashboard.html','utf8');assert.ok(html.includes('<select id="timeline-run"'));assert.ok(html.includes('<select id="fund-run"'));assert.ok(html.includes('id="timeline-search"'));assert.equal(html.includes('list="run-options"'),false);});
 
+test('break balances carry observed income, keep periods separate and match selected-run averages',()=>{
+ const rows=[],rest=(run,day,part)=>rows.push(e('ZONE_ENTERED',{zoneType:'WAITINGROOM'},{runId:run,performanceId:'D'+day+'P1',breakId:'D'+day+'T'+part,sceneType:'WAITINGROOM'}));
+ rows.push(fund('run-a',1,0,100,1));rest('run-a',1,2);
+ rows.push({...fund('run-a',1,100,70,2),breakId:'D1T2'});rest('run-a',1,3);
+ rows.push({...fund('run-a',1,70,50,3),breakId:'D1T3'});rest('run-a',2,1);
+ rows.push(fund('run-b',1,0,200,1));rest('run-b',1,2);
+ const f=view(rows,{fundsInterval:'BREAK'}).funds;
+ assert.deepEqual(Array.from(f.series,p=>[p.day,p.rest,p.balance,p.samples]),[[1,2,135,2],[1,3,50,1],[2,1,50,1]]);
+ assert.equal(f.breakRunSeries.find(p=>p.day===2).carried,true);assert.equal(f.series.some(p=>p.day===1&&p.rest===1),false);
+ const single=view(rows,{fundsInterval:'BREAK',fundsRunId:'run-a'}).funds;assert.equal(single.series[0].balance,70);assert.equal(single.series[0].rewards,100);assert.equal(single.series[0].spent,30);
+ assert.equal(view([fund('run-a',1,0,100,1)],{fundsInterval:'BREAK'}).funds.series.length,0);
+});
+test('calendar uses Seoul start date, applies server-side before averages and allows clearing',()=>{
+ const a=fund('run-a',1,0,100,1),b=fund('run-b',1,0,200,1);a.occurredAt='2026-10-21T15:01:00Z';b.occurredAt='2026-10-21T14:59:00Z';
+ const d=view([a,b],{fundsDate:'2026-10-22',timelineDate:'2026-10-22',timelineRunId:'run-b'});assert.equal(d.funds.series[0].balance,100);assert.equal(d.timeline.runId,'run-a');
+ assert.equal(view([a,b],{fundsDate:'2026-10-23'}).funds.series.length,0);assert.equal(view([a,b],{fundsDate:''}).funds.series[0].balance,150);
+ const html=fs.readFileSync(__dirname+'/dashboard.html','utf8'),c=vm.createContext({});vm.runInContext(html.split('// SESSION_MODEL_BEGIN')[1].split('// SESSION_MODEL_END')[0],c);
+ assert.equal(c.sessionDate(a.occurredAt),'2026-10-22');assert.equal(c.matchingSessions(d.runLabels,'2026-10-22','run-b').length,0);assert.equal(c.matchingSessions(d.runLabels,'','RUN-B')[0].id,'run-b');
+});
+
 test('local end records resolve only an unambiguous slot in the same app and run',()=>{const a=e('ZONE_ENTERED',{zoneType:'WAITINGROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL'}),b={...a,eventId:'other',playerNumber:1,appSessionId:'app-b'},end={...a,eventId:'end',eventType:'ZONE_EXITED',playerNumber:'',networkClientId:'',payload:{zoneType:'WAITINGROOM',durationMs:10}},end2={...end,eventId:'end2',appSessionId:'app-b'};assert.equal(core.aggregate([a,b,end,end2],'TEST').zones[0].distinctPlayers,2);assert.equal(end.playerNumber,'');const ambiguous={...b,appSessionId:'app'};assert.equal(core.aggregate([a,ambiguous,end],'TEST').zones[0].distinctPlayers,3);});

@@ -1,28 +1,26 @@
 # Handoff
 
 ## 지금 상태
-- feat/telemetry-pipeline → integration/log-system, dev 12267d7 FF 수신. 기존 기반 커밋 5da374f 이후 변경은 미커밋, 이번 새 commit/push/PR/병합 없음.
-- Google 동일 URL: 수신 v19(04:08 KST), 등록 멤버 대시보드 v20(04:10 KST). 게임 0.1.0과 배포 버전은 별개. Drive/시트는 비공개, 30분 트리거 유지.
-- 등록 멤버 이메일 인증·인사말, 소유자 전용 멤버/원본 보관/삭제 관리 구현. 사용자 승인으로 대시보드 입구만 모든 사용자, 데이터 RPC는 등록 멤버 확인. 소유자 외 3명은 조회 전용.
-- 원본 기본1,000개, 적재 영수증 hash/count 일치 파일만 휴지통 이동. 미적재 보호·영수증 유지. 삭제는 선택 환경+버전 또는 체크한 여러 세션 → 소유자 이메일 OTP → 삭제 문구. TEST+LIVE 동시 삭제 라벨/동작 제거.
-- MailApp send-only 추가 권한 사용자 승인 완료. initializeDashboardManagement 실제 실행·멤버4행 확인. 실제 메일 발송/데이터 삭제는 미실행.
-- Events V열 gameVersion, 5개 통계 시트 TEST/LIVE·버전별 분리·웹 동일 집계. MPPM 실제 TEST/0.1.0 486사건·런1·공연2 복구. History/008,010,011 참조.
-- 런+플레이어 번호 분리·공연 도식/줌·분석 이벤트 필터·세션 검색/선택 분리, 호스트 단독 HTTPS·참가자 디스크 ACK·PC 빌드 설정 자동 포함. History/012-planner-timeline.md.
-- 구역 체류/재방문·이동/집결·거래/의료18단계·미수령/미이용·접촉 연결과 이전 검증은 History/001~009. 종료 미관측은 미확정, 치료는 현재 복구 여부로 완료.
-- 기획자 안내: Docs/Log-system/operator-guide.md·reading-guide.md·admin-guide.md. 관리 구현/검사는 History/013-dashboard-administration.md.
+- feat/telemetry-pipeline → dev. PM 단일 Task 직접 제출 승인(meta). dev84517ba(PR207 공연 수정)를 76eb3e8로 충돌 없이 병합. PR 미등록, dev 병합은 하지 않음.
+- Google 동일 URL: 수신v19·등록 멤버 대시보드v24. Drive/시트 비공개, 수동/30분 갱신 유지. 등록 멤버4명·메일 인증/관리자 보관·삭제 구현, 실제 삭제/외부 계정 조작은 미검증.
+- 호스트 단독 HTTPS·참가자 디스크 ACK·플레이어 번호/버전/TEST·LIVE 분리. 시간18단계·공연 좌표 도식·분석 필터·자금DAY/BREAK·날짜/검색/select·설문 통계 구현. 이전 세부 증거는 History/001~015.
+- 독립 LOGS/SURVEY_010 태그, 0.1.0 밤1/ESC 나가기 최초 브라우저·캐시·응답 시트 연결. 새 빌드 기본off/off. 폼 관리자는 PM만 수정. 설문-only는 플레이 로그 없이 응답만 집계.
+- [기획자 안내](../../../../Harness/Project/Guides/Log-system/index.md): Windows/Mac 검증·빌드, 관리자/팀원 접속, 통계 해석·캐시·버전 변경.
+- Windows64 Development+두 태그 빌드 성공. 최종 실행 파일: Builds/Telemetry-0.1.0-Windows-TEST-final/CURTAINCALL.exe. 이전 출력은 최신 dev 병합 전이므로 최종 폴더 사용.
+- 빌드 차단 외부 에셋3파일의 UNITY_EDITOR 경계만 PM 승인 수정. private PR2 main 병합, gitlink1a619e83은 origin/main 조상. 외부 원문 공개 반출 없음.
+- 승인된 빌드 자동 설정/폰트6개·에디터 태그off/off 복원. 기존 폰트1·머티리얼3 SHA256 동일 보존·커밋 제외. 테스트 SurveyCache2개는 보존, 재검증 초기화는 pc-files.md.
 
-## 다음 할 일
-- Docs/Log-system/remaining-work.md 기준. 통로 막힘/우회는 콘텐츠·판정 기준 미정으로 보류.
-- 외줄 발판/지속 손잡기·서버 미도달 실패의 확정 원천 필요. 일반 함정 밖 벽/장식물 전체 충돌은 미연결.
-- CODE 다인·재접속·실제 강제 종료/PC 전체 오프라인·물리 입력/마이크/의료·공연 공동 검증, 실제 PC 빌드/다인 호스트 전달은 보류.
-- 외부 계정 이메일 인증·실제 삭제의 전체 조작은 미검증. 사용자 새로고침 후 ‘모호성님 안녕하세요’·관리자 메뉴 실제 표시 확인(2026-10-22). 소유자 getDashboard 실행도 정상.
-- 이전 Unity 실행이 만든 폰트1·머티리얼3 자동 변경은 승인 없는 복원 없이 보존. 다른 Task/기존 미커밋 작업도 보존.
+## Verification
+- 구역 검사: PASS (origin/dev, PM; 기존 자동 에셋4개 제출 제외).
+- 1 문서/규칙: PASS (기존 크기 WARN만, hard0).
+- 2 컴파일: PASS (최신 dev 병합 후 completed/failed=false/errors0). 최종 복원 후 저장 직전 up_to_date 재확인.
+- 3 테스트: PASS (이번 Node84/84). 캐시 수정 EditMode8/8 PASS(이번). Start bootstrap PlayMode1/1은 동일 연결 코드의 직전 증거(History/014). 전체 Unity 테스트는 최소 검사 요청으로 SKIPPED, 기존 전체 목마 점프 실패/PlayMode 시간 초과 미해결.
+- 4 실행 로그: PASS (Windows exe 개발 메뉴 밤1→설문 자동 열기, PM 직접 ESC 나가기→종료 설문). 두 연결 코드 TEST/0.1.0/동일run/slot0 확인. 응답 제출 없음. Drive ACK 및 Events1585 RUN_STARTED 적재 확인.
+- 최신 dev+캐시 수정 최종 빌드: PASS (build_2c8ce100d5d9, errors0/warnings8, 24.528초). 새 exe 실제 실행·Drive ACK·내장 태그 확인. PM 밤1→ESC 재실행에서 설문 재열림 없음 확인. 일반 첫날 완주/두PC와 구분.
+- 증거: .harness/local/telemetry-windows-build-{latest,dev}.json, telemetry-windows-{player,dev-player}.log, telemetry-submit-node.txt. 상세 [History/016](History/016-windows-build-submission.md).
 
-## 검증·증거
-- 기본 check-work/저장 DryRun은 dev 수신77건 구역 오인으로 FAIL. 전체 통과 아님. origin/dev 기준 Scope 및 Fast를 별도로 사용.
-- 이전 Unity Compile PASS(up_to_date), 씬 dirty0·전송/설정 EditMode7/7·큐10/10. 이번 서버/문서만 변경하여 Unity/실플레이/두 PC는 SKIPPED.
-- 기존 전체 EditMode 목마 점프0.9/1.35 실패 미해결, 전체 PlayMode900초 시간 초과 이력 유지. 기본 verify-unity는 구 CLI 필드로 ENV_BLOCKED였으며 실제 editor_status/recompile_status 별도 확인.
-- Scope(origin/dev)/Fast PASS(기존 문서 경고). Node73/73 PASS: 집계·접근 차단·OTP 만료/반복/횟수·원본 보호·삭제 범위/재전송·중단 복구, 타 환경 보호 포함.
-- 실제 Google: 멤버4행, Code/HTML readback 일치·메일 scope5개 확인, 기존 URL 수신v19/대시보드v20 배포 완료. getDashboard 04:11:54~56 KST 정상 완료. 실제 메일/삭제를 검증이라고 실행하지 않음.
-- Drive 설치 소스 code/HTML/manifest 기존3ID 내용 갱신 완료. 클라우드 화면과 로컬 예시 화면 검증을 구분한다.
-- 증거: .harness/local/telemetry-management-v20-deployed.png, telemetry-management-preview.png; 이전 telemetry-final-{cannon,waiting}-20261022.json·telemetry-planner-v18-deployed.png 및 각 History.
+## 남은 확인
+- [남은 작업](../../../../Docs/Log-system/remaining-work.md): 통로 막힘/우회·외줄 발판/지속 손잡기 의미는 기획 보류. 새 원천이 필요한 미도달 실패/함정 밖 충돌 미연결.
+- CODE 두PC·재접속·강제 종료/PC 전체 오프라인·정상 공연/구매/의료 공동 플레이, Mac 빌드 보류.
+- 실제 설문 답변→시트/대시보드 수치 대조·다른 계정 인증·실제 삭제 미실행. 응답0은 표시 검증이며 실제 응답 검증이 아님.
+- Task는 공동 검증 완료/done으로 처리하지 않는다. PR 생성 후 링크·Status·todo 기록.

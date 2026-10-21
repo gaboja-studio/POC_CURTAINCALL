@@ -1,10 +1,12 @@
 # 기획자용 로그·대시보드 사용 안내
 
-2026-10-22 기준. 현재 게임 버전은 **0.1.0**이다. [통계 읽는 법](reading-guide.md)도 함께 참고한다.
+**최신 기획자 안내는 [하네스 운영 안내](../../Harness/Project/Guides/Log-system/index.md)에 있습니다. Windows·Mac 검증/빌드, 관리자/팀원 접속, 새 달력·자금 구간 보기까지 화면 순서로 설명합니다.**
+
+2026-10-22 기준. 현재 게임 버전은 **0.1.0**이다. [통계 읽는 법](reading-guide.md), [로그/설문 빌드 태그와 설문 사용법](survey-guide.md)도 참고한다. 새 빌드는 Unity의 **CurtainCall → 테스트 빌드 태그**에서 로그 수집을 체크해야 로그가 쌓인다. 기본은 꺼짐이다.
 
 ## 1. PC를 켜고 대시보드 열기
 
-1. Chrome을 열고 **ourhosu@gmail.com**으로 Google에 로그인한다.
+1. Chrome에서 등록된 계정으로 접속한다. 이메일 인증 화면이 나오면 등록 이메일로 인증번호를 받아 입력한다. 관리자는 **ourhosu@gmail.com**이다.
 2. [CURTAINCALL 대시보드](https://script.google.com/macros/s/AKfycby1UfzhOaNl9ycjKYATPF-b32AkSskzupKQ--Zxj3Z_eIKraOqy9Aw1PYYLkqKewJ_wqw/exec)를 연다. 즐겨찾기에 저장하면 다음부터 바로 열 수 있다.
 3. 상단에서 **환경**과 **게임 버전 0.1.0**을 고른다.
 4. **지금 갱신**을 누르고 ‘갱신 완료’와 최근 갱신 시각을 확인한다.

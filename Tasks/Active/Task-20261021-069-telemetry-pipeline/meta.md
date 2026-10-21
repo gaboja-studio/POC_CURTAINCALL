@@ -9,7 +9,7 @@
 - **Updated:** 2026-10-22
 
 ## Workspace
-- **Integration:** integration/log-system
+- **Integration:** dev
 - **Branch:** feat/telemetry-pipeline
 - **Previous Task:**
 
@@ -24,7 +24,7 @@
 ## Decisions
 - Decided: 2026-10-21 사용자 — 과금 금지, 지정 Drive 폴더, 새 시트·폴더, 방식 AI 선택.
 - Open: 의미가 확정된 세부 구역·실측 이동/능력·충돌 원인과 다중 클라이언트 사람 검증. 현재 연결 범위는 coverage.md.
-- PM 직접 로컬 작업. 커밋 요청이 없어 assign-task의 자동 커밋·push는 실행하지 않음.
+- PM 직접 단일 Task. 2026-10-22 사용자: Windows 빌드 생성+로그/설문 최소 실행 검증 통과 시 커밋·dev 직접 PR 제출 승인. git-workflow 단일 Task 예외로 Integration dev 선언. 두 PC/실제 설문 응답은 보류, 폼은 사용자만 수정.
 - Decided: 2026-10-21 사용자 — 후속 계획 순서대로 상세 이벤트 연결 계속. 현재 미커밋 기반의 Task를 이어서 공개 API 어댑터를 구현한다.
 - Decided: 2026-10-21 사용자 — 로그용 공개 API 추가·7개 파일 작업 구역 확장 승인.
 - Decided: 2026-10-21 사용자 — 대시보드 통계 그룹·한글 이름·묘기 탭·게이지/도넛·런별 자금/일차 도식 타임라인 개편. 본인 전용 v4 배포 완료.

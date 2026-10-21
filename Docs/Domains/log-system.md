@@ -11,6 +11,8 @@
 - InputLogAdapter.cs — 키 코드·uGUI 클릭·Vivox 본인 발화 구간.
 - Scripts/Telemetry/core.gs — 68종 이벤트 계약·검증·집계, 실패/운반·미수령/의료 미이용 요약.
 - Scripts/Telemetry/management.gs — 등록 이메일 인증·멤버/보관 설정·삭제 규칙/인증·원본 정리.
+- PlaytestBuildTags.cs·PlaytestSurveyRuntime.cs·SurveyLaunchPolicy.cs — 독립 LOGS/SURVEY_010·최초 밤/명시적 ESC 나가기·로컬 사용자 캐시.
+- Scripts/Telemetry/surveys-{core,server}.gs — 두 응답 시트 읽기·자동 연결 코드·세션/슬롯 매칭·문항 분포/중앙 시트.
 - Scripts/Telemetry/server.gs — Google 수신·Drive 원본·Sheets 적재·권한·트리거.
 - Scripts/Telemetry/dashboard.html — Apps Script 웹 화면.
 - Scripts/Telemetry/*.test.cjs — Node 계약·집계·서버 복구 테스트.
@@ -27,8 +29,10 @@
 - 추가 관측: Campaign.RestExpired/LocalReadyChanged, WaitingRoomSpawn.PlayerPlaced, ExpertRoomView.LocalMoved, CannonHazards.ContactDetected/HitConfirmed. 확정 피해 기록은 실제 신체/생존 상태와 결합한다.
 
 ## 문서
+- [기획자용 Windows·Mac 하네스 안내](../../Harness/Project/Guides/Log-system/index.md) — PC 검증·빌드·관리자/팀원 접속·통계 분석
 - [기획자 사용 안내](../Log-system/operator-guide.md), [통계 읽는 법](../Log-system/reading-guide.md)
 - [관리자 운영·게임 버전 변경](../Log-system/admin-guide.md)
+- [로그/설문 빌드 태그·설문 운영](../Log-system/survey-guide.md)
 - [계약](../Log-system/schema.md), [이벤트 목록](../Log-system/event-catalog.md)
 - [연결 단계](../Log-system/implementation-plan.md), [운영·설치](../Log-system/setup.md)
 - [실제 연결 범위와 미수집 지표](../Log-system/coverage.md)
