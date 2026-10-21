@@ -232,7 +232,7 @@ namespace CurtainCall.Settings
             public float SharedSwayRange => Mathf.Max(.1f, sharedSwayRange);
             public float SharedSwayPerPlayer => Mathf.Clamp(sharedSwayPerPlayer, 0f, .75f);
 
-            [Tooltip("착지 충격. 현재 기울어진 쪽으로 밀며 목마 배율을 곱한다. 기본 충격/100만큼 추락 위험도 더한다. 기획 10.")]
+            [Tooltip("착지 충격. 현재 기울어진 쪽으로 밀며 목마 배율을 곱한다. 추락 위험 시간은 직접 더하지 않는다. 기획 10.")]
             [SerializeField, Min(0f)] float landingShock = 10f;
 
             [Tooltip("이 시간(초)보다 짧게 떠 있었으면 착지 충격을 주지 않는다(작은 턱 무시). 0.15.")]
@@ -241,8 +241,8 @@ namespace CurtainCall.Settings
             [Tooltip("옆줄 점프 착지 충격. 현재 기울어진 쪽으로 밀며 중앙에서는 점프 방향을 쓴다. 기획 35.")]
             [SerializeField, Min(0f)] float laneLandingShock = 35f;
 
-            [Tooltip("착지 위험을 해소하려면 줄 위 초록 구간에서 연속으로 안정시켜야 하는 시간(초). 공중 시간은 포함하지 않는다.")]
-            [SerializeField, Min(.1f)] float landingRecoverySeconds = 1.5f;
+            [Tooltip("옆줄에 착지할 때 더하는 추락 게이지 비율(0~1). 0.05면 전체 바의 5%. 충격 완충·목마 배율과 무관하게 적용한다.")]
+            [SerializeField, Range(0f, 1f)] float laneLandingDangerRatio = .05f;
 
             [Tooltip("옆줄 점프 착지 후 자연 흔들림 배율(×). 고도화 초기값 1.5(이전 1.75).")]
             [SerializeField, Min(1f)] float laneSwayBoost = 1.5f;
@@ -269,7 +269,7 @@ namespace CurtainCall.Settings
             public float NaturalSwayMultiplier => Mathf.Max(0f, naturalSwayMultiplier);
             public float MinAirTimeForShock => minAirTimeForShock;
             public float LaneLandingShock => laneLandingShock;
-            public float LandingRecoverySeconds => Mathf.Max(.1f, landingRecoverySeconds);
+            public float LaneLandingDangerRatio => Mathf.Clamp01(laneLandingDangerRatio);
             public float LaneSwayBoost => laneSwayBoost;
             public float LaneSwayBoostDuration => laneSwayBoostDuration;
         }

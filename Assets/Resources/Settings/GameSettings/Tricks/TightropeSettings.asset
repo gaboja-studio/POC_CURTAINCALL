@@ -74,7 +74,7 @@ MonoBehaviour:
     landingShock: 10
     minAirTimeForShock: 0.15
     laneLandingShock: 35
-    landingRecoverySeconds: 1.5
+    laneLandingDangerRatio: 0.05
     laneSwayBoost: 1.5
     laneSwayBoostDuration: 1.5
     landingWaveRange: 6

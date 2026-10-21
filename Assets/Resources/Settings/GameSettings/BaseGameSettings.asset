@@ -55,6 +55,7 @@ MonoBehaviour:
     warningLimit: 50
     fallTime: 2
     warningFallRate: 0.33333334
+    greenRecoveryRate: 0.25
     correctionSpeed: 85
     movingSway: 15
     idleSway: 5

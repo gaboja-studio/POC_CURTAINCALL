@@ -48,12 +48,11 @@ namespace CurtainCall.Player
         float surfaceSwayMultiplier = 1f;
         float surfaceSway;
         float landingDirection = 1f;
-        float landingRecoveryRemaining;
 
         static BaseGameSettings.BalanceSettings Rules => GameSettings.Base.Balance;
         static TightropeSettings.RopeMovementSettings Rope => GameSettings.Tightrope.RopeMovement;
 
-        /// <summary>빨강 체류 시간이 추락 기준에 닿았을 때 한 번 보낸다.</summary>
+        /// <summary>누적 추락 위험이 추락 기준에 닿았을 때 한 번 보낸다.</summary>
         public event Action Fell;
 
         /// <summary>균형을 중앙으로 되돌렸을 때(재시작·켜기/끄기) 보낸다. 추락 연출을 되돌리는 데 쓴다.</summary>
@@ -77,16 +76,13 @@ namespace CurtainCall.Player
         /// <summary>이번 프레임의 자연 흔들림(초당, 방향 포함). 디버그 표시용.</summary>
         public float CurrentSway { get; private set; }
 
-        /// <summary>누적 추락 위험 시간(빨강 초 환산). 착지 위험도 더하며, 연속 착지 뒤에는 지상에서 안정시켜야 초기화한다.</summary>
+        /// <summary>노랑·빨강과 옆줄 착지로 누적한 추락 위험 시간(빨강 초 환산). 줄 위 초록 구간에서 설정한 비율로 서서히 회복한다.</summary>
         public float RedTime { get; private set; }
-
-        /// <summary>착지 위험을 해소하려면 줄 위 초록 구간에서 연속으로 유지해야 하는 남은 시간.</summary>
-        public float LandingRecoveryRemaining => landingRecoveryRemaining;
 
         /// <summary>추락 기준 시간(초).</summary>
         public float FallTime => Rules.FallTime;
 
-        /// <summary>누적 추락 위험 비율(0~1). 착지·노랑·빨강 위험을 합치며 1이면 추락한다.</summary>
+        /// <summary>누적 추락 위험 비율(0~1). 노랑·빨강·옆줄 착지 위험을 합치며 1이면 추락한다.</summary>
         public float RedTimeRatio => Mathf.Clamp01(RedTime / FallTime);
 
         /// <summary>추락했는지. 추락하면 다시 시작(<see cref="ResetBalance"/>)할 때까지 균형 계산을 멈춘다.</summary>
@@ -148,7 +144,6 @@ namespace CurtainCall.Player
                 airborneSince = Time.time;
                 landingDirection = mover != null && mover.LaneJumpDirection != 0
                     ? mover.LaneJumpDirection : Mathf.Abs(Value) > .001f ? Mathf.Sign(Value) : swayDirection;
-                if (landingRecoveryRemaining > 0f) landingRecoveryRemaining = Rope.LandingRecoverySeconds;
                 return;
             }
 
@@ -170,7 +165,7 @@ namespace CurtainCall.Player
         /// <summary>다음 실제 착지 한 번의 충격 완충율(0~1). 일반 도약과 옆줄 도약 모두 착지 후 자동 초기화한다.</summary>
         public void SetLandingReduction(float reduction) => laneLandingReduction = Mathf.Clamp01(reduction);
 
-        /// <summary>옆줄 착지 충격과 일정 시간 흔들림 증가를 준다. 감소율은 충격과 흔들림 증가분에 같이 적용한다.</summary>
+        /// <summary>옆줄 착지 충격·흔들림 증가·고정 비율의 추락 위험을 준다. 감소율은 충격과 흔들림 증가분에 적용한다.</summary>
         public void ApplyLaneLanding(float reduction)
         {
             if (!IsActive || HasFallen) return;
@@ -178,6 +173,8 @@ namespace CurtainCall.Player
             ApplyLandingShock(Rope.LaneLandingShock * laneLandingShockMultiplier * keep);
             laneBoostScale = 1f + (Rope.LaneSwayBoost - 1f) * keep;
             laneBoostUntil = Time.time + Rope.LaneSwayBoostDuration; // 쌓지 않고 시간만 갱신
+            RedTime = Mathf.Min(FallTime, RedTime + FallTime * Rope.LaneLandingDangerRatio);
+            if (RedTime >= FallTime) ForceFall();
         }
 
         /// <summary>옆줄 착지 후 흔들림 증가가 남아 있는 시간(초). 디버그 표시용.</summary>
@@ -194,10 +191,6 @@ namespace CurtainCall.Player
             float impact = direction * magnitude * StackMultiplier;
             Value = Mathf.Clamp(Value + impact, -MaxValue, MaxValue);
             LastShock = impact;
-            // 기본 충격에서 위험을 한 번만 더한다. 목마의 무게는 위의 바늘 이동에 이미 반영했다.
-            RedTime = Mathf.Min(FallTime, RedTime + FallTime * Mathf.Clamp01(magnitude / MaxValue));
-            landingRecoveryRemaining = Rope.LandingRecoverySeconds;
-            if (RedTime >= FallTime) ForceFall();
         }
 
         /// <summary>균형에 순간 충격을 준다(±크기, 랜덤 방향, 목마 배율 적용).</summary>
@@ -259,7 +252,6 @@ namespace CurtainCall.Player
             surfaceSwayMultiplier = 1f;
             surfaceSway = 0f;
             landingDirection = 1f;
-            landingRecoveryRemaining = 0f;
             PickSwayDirection();
         }
 
@@ -313,13 +305,9 @@ namespace CurtainCall.Player
         {
             if (Zone == BalanceZone.Green)
             {
-                landingRecoveryRemaining = Mathf.Max(0f, landingRecoveryRemaining - Mathf.Max(0f, deltaTime));
-                if (landingRecoveryRemaining > 0f) return;
-                RedTime = 0f;
+                RedTime = Mathf.Max(0f, RedTime - FallTime * Rules.GreenRecoveryRate * Mathf.Max(0f, deltaTime));
                 return;
             }
-
-            if (landingRecoveryRemaining > 0f) landingRecoveryRemaining = Rope.LandingRecoverySeconds;
 
             RedTime += Mathf.Max(0f, deltaTime) * (Zone == BalanceZone.Yellow ? Rules.WarningFallRate : 1f);
             float fallTime = FallTime;
