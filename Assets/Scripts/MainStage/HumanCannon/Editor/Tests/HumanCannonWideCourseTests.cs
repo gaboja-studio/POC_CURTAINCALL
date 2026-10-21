@@ -55,13 +55,15 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void MovingBlades_AreFlatAndTravelOnlyAcrossTheCourse()
+        public void MovingBlades_AreFlatAndDiagonalExceptForPoleSaws()
         {
             foreach (var hazard in All<HumanCannonHazard>().Where(h => h.Kind != CannonHazardKind.SpikeMace))
             {
                 Assert.That(Mathf.Abs(Vector3.Dot(hazard.BladeNormal, Vector3.up)), Is.GreaterThan(.999f), hazard.name);
                 Assert.That(Mathf.Abs(hazard.Travel.x), Is.EqualTo(24f).Within(.001f), hazard.name);
-                Assert.That(new Vector2(hazard.Travel.y, hazard.Travel.z).magnitude, Is.LessThan(.001f), hazard.name);
+                Assert.That(Mathf.Abs(hazard.Travel.y), Is.LessThan(.001f), hazard.name);
+                float angle = Mathf.Atan2(Mathf.Abs(hazard.Travel.z), Mathf.Abs(hazard.Travel.x)) * Mathf.Rad2Deg;
+                Assert.That(angle, Is.EqualTo(hazard.IsPoleSaw ? 0f : 30f).Within(.001f), hazard.name);
                 var visual = (Transform)typeof(HumanCannonHazard).GetField("visual", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(hazard);
                 Assert.That(Mathf.Abs(Vector3.Dot(visual.forward, hazard.BladeNormal)), Is.GreaterThan(.999f), "외형/판정 일치: " + hazard.name);
             }
@@ -138,11 +140,12 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 root.transform.position = Vector3.up;
                 hazard.ConfigureHorizontalSweep(Vector3.right * 24, 8);
                 hazard.Present(2, 1);
-                Assert.That(Vector3.Distance(visual.position, new Vector3(24, 1, 0)), Is.LessThan(.001f));
+                float diagonalZ = -24f * Mathf.Tan(30f * Mathf.Deg2Rad);
+                Assert.That(Vector3.Distance(visual.position, new Vector3(24, 1, diagonalZ)), Is.LessThan(.001f));
                 Assert.That(Mathf.Abs(Vector3.Dot(visual.forward, Vector3.up)), Is.GreaterThan(.999f));
-                Assert.IsTrue(hazard.Touches(new Vector3(24, 0, 0), 1.5f, .25f, 2, 1));
+                Assert.IsTrue(hazard.Touches(new Vector3(24, 0, diagonalZ), 1.5f, .25f, 2, 1));
                 Assert.IsFalse(hazard.Touches(Vector3.zero, 1.5f, .25f, 2, 1), "과거 원점에 보이지 않는 판정을 남기지 않는다.");
-                Assert.IsFalse(hazard.Touches(new Vector3(24, 1.5f, 0), 1.5f, .25f, 2, 1), "수평 톱보다 위로 지나가면 회피");
+                Assert.IsFalse(hazard.Touches(new Vector3(24, 1.5f, diagonalZ), 1.5f, .25f, 2, 1), "수평 톱보다 위로 지나가면 회피");
             }
             finally { Object.DestroyImmediate(root); }
         }

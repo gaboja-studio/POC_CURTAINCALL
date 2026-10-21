@@ -420,14 +420,15 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return StandOnRopeForSawTest(1, 2f);
             Assert.IsFalse((bool)Get(mover, "FreeMovement"), "도입 단계에도 줄 탑승 연습은 가능하다.");
             var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
-            Vector3 leftBefore = (Vector3)Call(saws, "GetHorizontalPosition", 0);
-            Vector3 rightBefore = (Vector3)Call(saws, "GetHorizontalPosition", 1);
+            int leftIndex = ActiveHorizontalSaw(saws, true), rightIndex = ActiveHorizontalSaw(saws, false);
+            Vector3 leftBefore = (Vector3)Call(saws, "GetHorizontalPosition", leftIndex);
+            Vector3 rightBefore = (Vector3)Call(saws, "GetHorizontalPosition", rightIndex);
             yield return new WaitForSeconds(0.2f);
             Assert.AreEqual("Waiting", Get(run, "State").ToString());
-            Assert.AreEqual(leftBefore, (Vector3)Call(saws, "GetHorizontalPosition", 0));
-            Assert.AreEqual(rightBefore, (Vector3)Call(saws, "GetHorizontalPosition", 1));
-            Assert.IsFalse((bool)Call(saws, "IsHorizontalMoving", 0));
-            Assert.IsFalse((bool)Call(saws, "IsHorizontalMoving", 1));
+            Assert.AreEqual(leftBefore, (Vector3)Call(saws, "GetHorizontalPosition", leftIndex));
+            Assert.AreEqual(rightBefore, (Vector3)Call(saws, "GetHorizontalPosition", rightIndex));
+            Assert.IsFalse((bool)Call(saws, "IsHorizontalMoving", leftIndex));
+            Assert.IsFalse((bool)Call(saws, "IsHorizontalMoving", rightIndex));
             Assert.IsTrue((bool)Get(director, "inputBlocked"), "줄에 올라가도 공연 시작 버튼을 누를 커서를 유지한다.");
             Assert.AreEqual(CursorLockMode.None, Cursor.lockState);
             Assert.IsTrue(Cursor.visible);
@@ -437,10 +438,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return Until(() => !(bool)Get(director, "inputBlocked"), 3, "공연 시작 후 마우스 시점 조작 재개");
             yield return new WaitForSeconds(0.25f);
             Vector3 right = (Vector3)Get(course, "Right");
-            Assert.IsTrue((bool)Call(saws, "IsHorizontalMoving", 0));
-            Assert.IsTrue((bool)Call(saws, "IsHorizontalMoving", 1));
-            Assert.That(Vector3.Dot((Vector3)Call(saws, "GetHorizontalPosition", 0) - leftBefore, right), Is.GreaterThan(0.2f), "왼쪽 톱날은 코스 안쪽인 오른쪽으로 움직인다.");
-            Assert.That(Vector3.Dot((Vector3)Call(saws, "GetHorizontalPosition", 1) - rightBefore, right), Is.LessThan(-0.2f), "오른쪽 톱날은 코스 안쪽인 왼쪽으로 움직인다.");
+            Assert.IsTrue((bool)Call(saws, "IsHorizontalMoving", leftIndex));
+            Assert.IsTrue((bool)Call(saws, "IsHorizontalMoving", rightIndex));
+            Assert.That(Vector3.Dot((Vector3)Call(saws, "GetHorizontalPosition", leftIndex) - leftBefore, right), Is.GreaterThan(0.2f), "왼쪽 톱날은 코스 안쪽인 오른쪽으로 움직인다.");
+            Assert.That(Vector3.Dot((Vector3)Call(saws, "GetHorizontalPosition", rightIndex) - rightBefore, right), Is.LessThan(-0.2f), "오른쪽 톱날은 코스 안쪽인 왼쪽으로 움직인다.");
             Assert.That((float)Get(run, "TimeRemaining"), Is.LessThan((float)Get(run, "TimeLimit")));
         }
 
@@ -957,18 +958,20 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return Until(() => (bool)Get(bridge, "PerformanceOpen") && Get(run, "State").ToString() == "Running", 5, "공용 외줄 공연 시작");
         }
 
-        [UnityTest]
+        [UnityTest, Category("PerformanceBalance")]
         public IEnumerator MovingHorizontalSawCanBeJumpedWithoutDamage()
         {
             yield return BeginPerformance();
             var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
             var sawSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
-            float distance = (float)Call(sawSettings, "GetHorizontalDistance", 0);
-            yield return StandOnRopeForSawTest(0, distance);
+            int sawIndex = ActiveHorizontalSaw(saws, true);
+            float side = (float)Call(course, "GetSide", (Vector3)Call(course, "GetLanePosition", 2, 0f));
+            float distance = (float)Call(course, "GetDistance", (Vector3)Call(saws, "HorizontalPositionAtSide", sawIndex, side));
+            yield return StandOnRopeForSawTest(2, distance);
             Vector3 right = (Vector3)Get(course, "Right");
-            float SideGap() => Vector3.Dot((Vector3)Call(saws, "GetHorizontalPosition", 0) - player.transform.position, right);
+            float SideGap() => Vector3.Dot((Vector3)Call(saws, "GetHorizontalPosition", sawIndex) - player.transform.position, right);
             // 실제 톱날이 점프 정점에 몸 중심을 지나가도록 한다. 복귀 중인 톱날은 선택하지 않는다.
-            float takeoffGap = (float)Call(sawSettings, "GetHorizontalSpeed", 0) * (float)Get(mover, "AirTime") * 0.5f;
+            float takeoffGap = (float)Call(sawSettings, "GetHorizontalSpeed", sawIndex) * (float)Get(mover, "AirTime") * 0.5f;
             float previousGap = SideGap();
             bool readyToJump = false;
             yield return Until(() =>
@@ -997,12 +1000,15 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.AreEqual("Normal", Get(player, "State").ToString());
         }
 
-        [UnityTest]
+        [UnityTest, Category("PerformanceBalance")]
         public IEnumerator MovingHorizontalSawStillHitsPlayerWhoDoesNotJump()
         {
             yield return BeginPerformance();
-            var sawSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
-            yield return StandOnRopeForSawTest(0, (float)Call(sawSettings, "GetHorizontalDistance", 0));
+            var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            int sawIndex = ActiveHorizontalSaw(saws, true);
+            float side = (float)Call(course, "GetSide", (Vector3)Call(course, "GetLanePosition", 2, 0f));
+            float distance = (float)Call(course, "GetDistance", (Vector3)Call(saws, "HorizontalPositionAtSide", sawIndex, side));
+            yield return StandOnRopeForSawTest(2, distance);
             yield return Until(() => Convert.ToInt32(Get(player, "LostParts")) != 0, 15, "피하지 않은 톱날 접촉");
             Assert.AreEqual(1, CountBits(Convert.ToInt32(Get(player, "LostParts"))), "판정을 끈 상태로 회피가 통과해서는 안 된다.");
         }
@@ -1169,6 +1175,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.AreEqual(1, ((ICollection)Get(Get(bridge, "Result"), "Deaths")).Count,
                 "현재 정면 톱 규칙은 한 부위 절단이 아니라 즉사다.");
         }
+
+        int ActiveHorizontalSaw(Component saws, bool? startsLeft = null) =>
+            Enumerable.Range(0, (int)Get(saws, "HorizontalCount")).First(i => (bool)Call(saws, "IsHorizontalEnabled", i)
+                && (!startsLeft.HasValue || (bool)Call(Get(saws, "Settings"), "StartsLeft", i) == startsLeft.Value));
 
         IEnumerator StandOnRopeForSawTest(int lane, float distance)
         {

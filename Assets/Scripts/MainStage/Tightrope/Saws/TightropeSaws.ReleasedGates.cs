@@ -49,7 +49,7 @@ namespace CurtainCall.Tightrope.Saws
                 settings.cooperativeGateApproachSpeed, gate.InitialLift);
             float distance = settings.cooperativeGateDistances[gate.Index] + motion.x;
             if (distance < 0f || distance >= course.FinishDistance || !course.IsLaneUsable(gate.Lane, distance)) return false;
-            position = course.GetLanePosition(gate.Lane, distance) + Vector3.up * motion.y;
+            position = IncomingPosition(gate.Lane, distance, settings.cooperativeGateDistances[gate.Index], motion.y, gate.Index);
             return true;
         }
 

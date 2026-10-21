@@ -1,4 +1,5 @@
 using CurtainCall.Tightrope.Saws;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -19,10 +20,22 @@ namespace CurtainCall.HumanCannon
         [SerializeField, Min(0.1f)] float bladeHalfLength = 1.3f;
         [SerializeField, Min(0.01f)] float bladeHalfThickness = 0.12f;
         [SerializeField, Min(1f)] float rotationSpeed = 60f;
+        int diagonalIndex;
         public CannonHazardKind Kind => kind;
         public float Radius => radius;
         public float PeriodSeconds => periodSeconds;
-        public Vector3 Travel => transform.TransformVector(travel);
+        public bool IsPoleSaw => GetComponent<HumanCannonPoleSaw>() != null;
+        public Vector3 Travel
+        {
+            get
+            {
+                Vector3 authored = transform.TransformVector(travel);
+                if (kind == CannonHazardKind.SpikeMace || IsPoleSaw) return authored;
+                Vector3 planar = Vector3.ProjectOnPlane(authored, Vector3.up);
+                return authored + Vector3.Cross(Vector3.up, planar)
+                    * TrickSettings.DiagonalSlope(diagonalIndex, GameSettings.HumanCannon.SawDiagonalDegrees);
+            }
+        }
         public Quaternion BladeRotation => transform.rotation * (horizontalBlade ? Quaternion.Euler(90, 0, 0) : Quaternion.identity);
         public Vector3 BladeNormal => BladeRotation * Vector3.forward;
 
@@ -74,6 +87,22 @@ namespace CurtainCall.HumanCannon
             if (visual == null) return;
             visual.SetPositionAndRotation(Position(elapsed, speed),
                 BladeRotation * Quaternion.Euler(0, 0, Angle(elapsed, speed)));
+        }
+
+        public void SetVisible(bool visible, int pathIndex)
+        {
+            diagonalIndex = pathIndex;
+            // 컴포넌트와 레일 원점은 유지하고 표시와 피해만 함께 제외한다.
+            if (visual != null) visual.gameObject.SetActive(visible);
+            if (TryGetComponent(out LineRenderer rail))
+            {
+                rail.enabled = visible;
+                if (!visible || IsPoleSaw) return;
+                Vector3 half = Travel;
+                rail.positionCount = 2;
+                rail.SetPosition(0, rail.useWorldSpace ? transform.position - half : transform.InverseTransformVector(-half));
+                rail.SetPosition(1, rail.useWorldSpace ? transform.position + half : transform.InverseTransformVector(half));
+            }
         }
     }
 }

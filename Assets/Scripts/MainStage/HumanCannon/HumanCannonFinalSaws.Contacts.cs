@@ -20,7 +20,7 @@ namespace CurtainCall.HumanCannon
                 if (HorizontalActive)
                     for (int i = 0; i < horizontalOrigins.Length; i++)
                     {
-                        if (horizontalOrigins[i] == null) continue;
+                        if (horizontalOrigins[i] == null || !IsSawEnabled(i)) continue;
                         Vector3 center = HorizontalPosition(i, now);
                         Vector3 previous = previousClock >= startedAt + warningSeconds ? HorizontalPosition(i, previousClock) : center;
                         ApplyContact(player, mover, i, before, feet, previous, center, transform.up, horizontalRadius);
@@ -30,9 +30,10 @@ namespace CurtainCall.HumanCannon
                     var previousSample = FinalSawTimeline.Sample(HasStarted, startedAt, previousClock, warningSeconds, travelSeconds);
                     bool samePass = previousSample.Phase == FinalSawPhase.Active && previousSample.CycleIndex == Sample.CycleIndex;
                     Vector3 center = VerticalPosition(now);
-                    ApplyContact(player, mover, horizontalOrigins.Length, before, feet,
-                        samePass ? VerticalPosition(previousClock) : center, center, PassNormal, verticalRadius);
-                    if (secondaryVerticalView != null)
+                    if (IsSawEnabled(horizontalOrigins.Length))
+                        ApplyContact(player, mover, horizontalOrigins.Length, before, feet,
+                            samePass ? VerticalPosition(previousClock) : center, center, PassNormal, verticalRadius);
+                    if (secondaryVerticalView != null && IsSawEnabled(horizontalOrigins.Length + 1))
                     {
                         center = SecondaryVerticalPosition(now);
                         ApplyContact(player, mover, horizontalOrigins.Length + 1, before, feet,
