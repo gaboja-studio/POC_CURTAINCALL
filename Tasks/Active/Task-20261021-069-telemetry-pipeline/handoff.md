@@ -1,7 +1,7 @@
 # Handoff
 
 ## 지금 상태
-- feat/telemetry-pipeline → dev. PM 단일 Task 직접 제출 승인(meta). dev84517ba(PR207 공연 수정)를 76eb3e8로 충돌 없이 병합. b6ae6f0 로그·설문·문서 로컬 저장. 레그돌 후속034a45e 저장. PR 미등록, dev 병합 없음.
+- feat/telemetry-pipeline → dev. PM 단일 Task 직접 제출 승인(meta). dev84517ba(PR207 공연 수정)를 76eb3e8로 충돌 없이 병합. b6ae6f0 로그·설문·문서 로컬 저장. 레그돌 후속034a45e 저장. PR208 제출, dev 병합 없음.
 - Google 동일 URL: 수신v19·등록 멤버 대시보드v24. Drive/시트 비공개, 수동/30분 갱신 유지. 등록 멤버4명·메일 인증/관리자 보관·삭제 구현, 실제 삭제/외부 계정 조작은 미검증.
 - 호스트 단독 HTTPS·참가자 디스크 ACK·플레이어 번호/버전/TEST·LIVE 분리. 시간18단계·공연 좌표 도식·분석 필터·자금DAY/BREAK·날짜/검색/select·설문 통계 구현. 이전 세부 증거는 History/001~015.
 - 독립 LOGS/SURVEY_010 태그, 0.1.0 밤1/ESC 나가기 최초 브라우저·캐시·응답 시트 연결. 새 빌드 기본off/off. 폼 관리자는 PM만 수정. 설문-only는 플레이 로그 없이 응답만 집계.
@@ -25,3 +25,5 @@
 - CODE 두PC·재접속·강제 종료/PC 전체 오프라인·정상 공연/구매/의료 공동 플레이, Mac 빌드 보류.
 - 실제 설문 답변→시트/대시보드 수치 대조·다른 계정 인증·실제 삭제 미실행. 응답0은 표시 검증이며 실제 응답 검증이 아님.
 - Task는 공동 검증 완료/done으로 처리하지 않는다. PR 생성 후 링크·Status·todo 기록.
+
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/208
