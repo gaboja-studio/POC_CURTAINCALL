@@ -63,6 +63,8 @@ namespace CurtainCall.Player
                 initialized = true;
                 // 분리된 래그돌의 월드 위치는 더 이상 슬롯 기준으로 되돌리지 않는다.
                 if (transform.parent != null) transform.localPosition = basePosition + Vector3.up * (next >= 2 ? CrawlHeightOffset : 0f);
+                // 정지한 기어가기의 속도는 거의 0이므로 전환을 기다리면 서 있는 포즈가 남는다.
+                if (next >= 2 && next < 4) Play("Crawl", .0001f);
                 if (Animator != null && !Animator.enabled) StopMotion();
                 foreach (var piece in pending)
                 {
@@ -173,7 +175,12 @@ namespace CurtainCall.Player
             if (!Animator.HasState(0, hash)) return;
             Motion = motion;
             stateHash = hash;
-            Animator.CrossFadeInFixedTime(hash, .12f);
+            if (motion == "Crawl")
+            {
+                Animator.Play(hash, 0, 0f);
+                Animator.Update(0f);
+            }
+            else Animator.CrossFadeInFixedTime(hash, .12f);
         }
 
         public void StopMotion()

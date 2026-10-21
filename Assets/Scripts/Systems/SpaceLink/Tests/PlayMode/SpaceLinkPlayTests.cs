@@ -218,7 +218,7 @@ namespace CurtainCall.SpaceLink.Tests
         }
 
         [UnityTest]
-        public IEnumerator PhysicalExit_KeepsRoomAndRejectsOnlyReturningPlayer()
+        public IEnumerator PhysicalExit_KeepsRoomAndAllowsReturningPlayerWithoutRestartingTimer()
         {
             yield return OpenPhysicalRoom();
             // 실제 입력 대신 위치를 주입하는 2인 판정 회귀다. 네트워크 공동 플레이를 대체하지 않는다.
@@ -261,7 +261,13 @@ namespace CurtainCall.SpaceLink.Tests
             Place(first, new Vector3(0, .1f, 67));
             yield return null;
             yield return null;
-            Assert.Greater(first.transform.position.x, 10, "퇴장자만 마지막 외부 위치로 보정한다");
+            Assert.AreEqual(new Vector3(0, .1f, 67), first.transform.position, "퇴장한 플레이어도 대기실에 재입장할 수 있다");
+            Assert.AreEqual(1, Get(watch, "LeftCount"), "재입장해도 이번 쉬는 시간의 첫 퇴장 기록을 유지한다");
+            Place(first, new Vector3(12, .1f, 70f));
+            yield return null;
+            yield return null;
+            Assert.AreEqual(1, Get(watch, "LeftCount"), "같은 플레이어가 다시 나가도 중복 집계하지 않는다");
+            Assert.LessOrEqual((float)Get(State, "TimeRemaining"), remaining, "재입장·재퇴장으로 탐색 시간을 초기화하지 않는다");
             Place(second, new Vector3(12, .1f, 70f));
             yield return null;
             yield return null;
@@ -278,6 +284,99 @@ namespace CurtainCall.SpaceLink.Tests
             yield return WaitIdle();
             Assert.AreEqual("Performance", Phase);
             Assert.AreEqual("DummyPerformance", Active);
+        }
+
+        [UnityTest]
+        public IEnumerator PhysicalRoom_PlayersCanPassEachOtherOnlyInsideRoom()
+        {
+            yield return OpenPhysicalRoom();
+            var first = Actor("상점 앞 플레이어", new Vector3(5.8f, .08f, 63.2f));
+            var second = Actor("퇴로 플레이어", new Vector3(6.2f, .08f, 63.2f));
+            yield return Signal("EndPerformance");
+            yield return null;
+            Assert.IsTrue((bool)Get(first, "IgnorePlayerBlocking"));
+            Assert.IsTrue((bool)Get(second, "IgnorePlayerBlocking"));
+            var limit = first.GetType().GetMethod("LimitAgainstPlayers", BindingFlags.Instance | BindingFlags.NonPublic);
+            var step = new Vector3(.8f, 0, 0);
+            Assert.AreEqual(step, limit.Invoke(first, new object[] { step }), "상대 몸통 방향 이동을 자르지 않는다");
+            var controller = first.GetComponent<CharacterController>();
+            Assert.IsTrue(controller.detectCollisions, "환경 충돌은 계속 켠다");
+            Assert.IsTrue(Physics.GetIgnoreCollision(controller, second.GetComponent<CharacterController>()));
+            controller.Move(step);
+            Assert.Greater(first.transform.position.x, second.transform.position.x, "실제 몸통도 서로 통과한다");
+
+            Place(first, new Vector3(12, .08f, 70));
+            Place(second, new Vector3(12.4f, .08f, 70));
+            yield return null;
+            yield return null;
+            Assert.IsFalse((bool)Get(first, "IgnorePlayerBlocking"), "밖에서는 원래 제한 복구");
+            Assert.IsFalse((bool)Get(second, "IgnorePlayerBlocking"));
+            Assert.That(((Vector3)limit.Invoke(first, new object[] { new Vector3(.1f, 0, 0) })).sqrMagnitude, Is.LessThan(.00001f));
+
+            Place(first, new Vector3(5.8f, .08f, 63.2f));
+            Place(second, new Vector3(6.2f, .08f, 63.2f));
+            yield return null;
+            yield return null;
+            Assert.IsTrue((bool)Get(first, "IgnorePlayerBlocking"));
+            var watch = (Component)Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.WaitingRoomExitWatch"));
+            watch.gameObject.SetActive(false);
+            Assert.IsFalse((bool)Get(first, "IgnorePlayerBlocking"), "공간 비활성·씬 해제 시 제한 복구");
+            Assert.IsFalse((bool)Get(second, "IgnorePlayerBlocking"));
+        }
+
+        [UnityTest]
+        public IEnumerator PhysicalRoom_GatherCoversCorridorWidthAndCurtainContact()
+        {
+            yield return OpenPhysicalRoom();
+            var first = Actor("커튼 앞 왼쪽", new Vector3(-2, .08f, 67));
+            var second = Actor("커튼 앞 오른쪽", new Vector3(2, .08f, 67));
+            yield return Signal("EndPerformance");
+            var gather = (Component)Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.StageEntranceGather"));
+            var area = gather.GetComponent<BoxCollider>().bounds;
+            Assert.That(area.min.x, Is.EqualTo(47.2f).Within(.01f));
+            Assert.That(area.max.x, Is.EqualTo(51.85f).Within(.01f));
+            Assert.That(area.min.z, Is.EqualTo(66.15f).Within(.01f));
+            Assert.That(area.max.z, Is.EqualTo(73.85f).Within(.01f));
+            foreach (float z in new[] { 66.45f, 69.52f, 71.42f, 73.55f })
+                Assert.IsTrue(area.Contains(new Vector3(51.29f, .58f, z)), "커튼 접촉 위치와 복도 양쪽을 포함한다");
+            Place(first, new Vector3(51.29f, .08f, 69.52f));
+            yield return null;
+            yield return null;
+            Assert.AreEqual(1, Get(gather, "InsideCount"));
+            Assert.AreEqual("RestTime", Phase, "일부만 커튼에 붙으면 기다린다");
+            Place(second, new Vector3(51.29f, .08f, 71.42f));
+            yield return null;
+            yield return WaitIdle();
+            Assert.AreEqual("Performance", Phase, "전원이 커튼에 붙어 있어도 공연으로 전환한다");
+            Assert.IsFalse((bool)Get(first, "IgnorePlayerBlocking"), "공연에서는 원래 이동 제한 복구");
+        }
+
+        [UnityTest]
+        public IEnumerator PhysicalRoom_ChairCollisionAllowsRetreatAtStandingAndCrawlingHeights()
+        {
+            yield return OpenPhysicalRoom();
+            var actor = Actor("의자 통행 검사", new Vector3(5.8f, .08f, 63.2f));
+            yield return Signal("EndPerformance");
+            var chair = GameObject.Find("WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_WW2_WoodenChair_c1_LOD0");
+            Assert.IsNotNull(chair);
+            Assert.IsFalse(chair.GetComponent<MeshCollider>().enabled);
+            var proxy = chair.GetComponent<BoxCollider>();
+            Assert.IsTrue(proxy.enabled);
+            var controller = actor.GetComponent<CharacterController>();
+            foreach (float height in new[] { .9f, .5f })
+            {
+                var p = proxy.bounds.center;
+                p.x = proxy.bounds.min.x - .4f;
+                p.y = .08f;
+                Place(actor, p);
+                controller.height = height;
+                controller.center = Vector3.up * height * .5f;
+                controller.Move(Vector3.right * .6f);
+                float contactX = actor.transform.position.x;
+                Assert.Less(contactX, proxy.bounds.min.x, "다리와 좌판 사이로 몸통이 들어가지 않는다");
+                controller.Move(Vector3.left * .6f);
+                Assert.Less(actor.transform.position.x, contactX - .4f, "접촉 후 반대쪽으로 빠져나올 수 있다");
+            }
         }
 
         [UnityTest]

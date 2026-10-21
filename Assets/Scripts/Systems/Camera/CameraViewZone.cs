@@ -10,6 +10,9 @@ namespace CurtainCall.Cameras
     {
         [SerializeField] CameraViewPreset preset;
         [SerializeField] int priority = 10;
+        [Tooltip("이미 진입한 뒤에는 이 거리만큼 구역 밖으로 완전히 나갈 때까지 좁은 시점을 유지한다(m). 진입 범위는 그대로다.")]
+        [SerializeField, Min(0f)] float exitPadding;
+        public float ExitPadding => exitPadding;
         BoxCollider volume;
         Collider[] overlaps = new Collider[16];
         CameraViewDirector registered;
@@ -48,6 +51,8 @@ namespace CurtainCall.Cameras
         {
             Vector3 scale = transform.lossyScale;
             Vector3 half = Vector3.Scale(volume.size * 0.5f, new Vector3(Mathf.Abs(scale.x), Mathf.Abs(scale.y), Mathf.Abs(scale.z)));
+            bool retaining = registered != null && exitPadding > 0f;
+            if (retaining) half += new Vector3(exitPadding, 0f, exitPadding);
             Vector3 center = transform.TransformPoint(volume.center);
             int count = Physics.OverlapBoxNonAlloc(center, half, overlaps, transform.rotation, ~0, QueryTriggerInteraction.Collide);
             if (count == overlaps.Length)
@@ -63,7 +68,9 @@ namespace CurtainCall.Cameras
                 var candidate = overlaps[i];
                 if (candidate == null || !candidate.enabled || !candidate.gameObject.activeInHierarchy ||
                     candidate.GetComponentInParent<NetworkPlayer>() != local) continue;
-                if (Physics.ComputePenetration(volume, transform.position, transform.rotation,
+                // OverlapBox는 확장된 회전 상자와 실제 콜라이더의 겹침을 검사한다.
+                // 유지 구간에서는 원래 작은 volume으로 다시 검사해 조기 해제하지 않는다.
+                if (retaining || Physics.ComputePenetration(volume, transform.position, transform.rotation,
                         candidate, candidate.transform.position, candidate.transform.rotation, out _, out _)) return true;
             }
             return false;

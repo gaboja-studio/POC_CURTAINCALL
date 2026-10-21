@@ -241,6 +241,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
             var so = new SerializedObject(view);
             so.FindProperty("preset").objectReferenceValue = preset;
             so.FindProperty("priority").intValue = ClosePriority;
+            so.FindProperty("exitPadding").floatValue = 1f;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

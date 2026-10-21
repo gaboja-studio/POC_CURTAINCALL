@@ -1,0 +1,77 @@
+# 대기실 긴급 후속 (2026-10-21)
+
+## 승인·변경
+- PM 채팅 직접 긴급 승인(16:20 KST). 현재 작업자 @gyumin9048-ctrl에게 이번 브랜치 작업만 임시 재배정하며 공통 역할 정책은 변경하지 않는다. exception.md 참조.
+- 상점 Phone·DeliverySlot을 S03_Shop 아래로 복구. 수화기 기준 world(7.5,1.45,63.2), 배송구는 같은 기둥 서쪽 면. 조명도 상점으로 이전.
+- 배송구 방향을 서쪽으로 바꿔 dropForward=.6의 배출물이 기둥 내부로 향하지 않게 했다. 접근점(6.5,.08,63.2) 캡슐 장애물0, 전화기까지 수평1m, 배출점은 로비 바닥 y=0을 검출했다.
+- WaitingRoomExitWatch의 외부 위치 복귀 보정만 제거. 재입장 허용, 최초 퇴장/팀 타이머/중복 집계 방지/쉬는 시간 종료 시 이력 초기화는 유지한다. 밤 셔터는 변경하지 않는다.
+- SpaceLinkPlayTests의 실제 방 퇴장 회귀를 재입장·재퇴장 허용 및 타이머 비초기화 기대값으로 갱신했다.
+
+## 사진의 어색한 소품 (조사만)
+- 숙소: Stage01_WaitingRoomBeds의 새 이층침대와 Stage01_Dormitory/PersonalClothes_0~3이 별개로 남아 있다. 천은 바닥 높이 .47~.83m, z≈82.65, 침대 앞단 z≈82.99라 천의 중심이 침대 앞쪽에 치우친다. 이전 침상용 배치를 새 침대에 맞추지 않은 잔여 소품이다.
+- 보관실: Stage02_JunkStorage/EastCrates_0~2의 작은 상자는 실제 상단 y≈.21m지만 EastCrateLuggage_0~2는 y=.52m 기준으로 배치돼 약 .31m 지지 간격이 있다. 사진의 트렁크 부양 현상과 일치한다.
+- 이 두 종류는 확인 요청 범위로 위치를 변경하지 않았다. 의자 끼임 수정도 이번 요청에 포함하지 않는다.
+
+## BUG-004·005 추가 지시
+- 사용자 승인: 대기실에서는 플레이어끼리 막지 않고, 집결 폭은 복도에 맞추며 커튼에 붙어도 집결되게 한다. 관련 긴급 예외 경로는 exception.md에 추가했다.
+- PlayerMover.IgnorePlayerBlocking은 플레이어 간 일반 이동 제한만 우회하며 controller.detectCollisions와 환경 충돌은 유지한다. WaitingRoomExitWatch가 대기실 내부 인원에 적용하고 외부/공연/공간 비활성 시 이전 값으로 복구한다. 추가 로드와 원격 캐릭터의 소유 씬에 의존하지 않고 기존 대기실 영역을 쓴다.
+- 집결 범위 world X47.2~51.85, Y0~3, Z66.15~73.85. 실제 양쪽 벽 안쪽과 끝벽 앞면을 읽어 설정했고 바닥 테두리도 ApplyArea로 동기화했다. 이전 커튼 접촉 위치 X51.29가 포함된다.
+- 회귀 추가: 상점 앞 두 몸통의 실제 통과·환경 충돌 켜짐·외부와 비활성 시 제한 복구, 복도 양쪽/커튼 접촉 범위 및 전원 집결 시 공연 전환.
+- 적용 전 씬의 기존 미저장 편집은 함께 보존·저장했다. 떠 있는 소품·카메라·의자는 변경하지 않았다.
+- 최종 검증: Unity 컴파일 completed/errors0, 구역·문서·diff 공백 검사 PASS. PlayMode8중7통과/1실패/생략0(24.1초). 두 신규 검사·재입장/타이머·밤 셔터 검사 PASS. 기존 Additive 씬 개수 예상2/실제3 실패 유지(SpaceLinkPlayTests.cs:458). 원격2프로세스 사람 공동 검증은 미실행.
+- PM 인계: PlayerMover.cs는 Task-062 구역이라 구역 검사에서 [예외]로 공개된다. 공통 코드를 수정했지만 대기실 내부에서만 정책을 적용하며, 후속 PR에서 예외를 검토한다. 교훈: 커튼 접촉면은 주름 깊이마다 달라 집결 범위는 실제 끝벽까지 포함해야 한다.
+
+## 검증
+- 구역 PASS: Task-065 긴급 예외, 기존 타 Task 에셋 변경은 별도 보존 경고.
+- verify-fast PASS: hard0, 기존 문서 길이 WARN12.
+- Unity 컴파일 completed/failed=false/errors0.
+- 상점 씬 저장 성공·missing scripts0, 배송구 앞 바닥과 접근 공간 확인. 실제 상점 구매·수령 조작은 미실행.
+- PlayMode SpaceLinkPlayTests 6건 중5통과/1실패/생략0(20.08초). 새 재입장·재퇴장/타이머 회귀와 기존 밤 셔터·준비→아침 회귀는 통과했다.
+- 실패: Additive_KeepsHubAndSwapsSpaceScenes, SpaceLinkPlayTests.cs:393, 예상 씬2/실제3. 이 작업에서는 해당 실패를 수정하거나 assertion을 완화하지 않았다. 전체 PASS로 보고하지 않는다.
+- 기존 폰트2·재질3·Vivox 로컬 변경은 이번 작업에서 수정/되돌림/커밋하지 않았다. 대기실 씬의 추가 로컬 미세 조정도 보존한다.
+- 커밋·push·PR은 요청되지 않아 수행하지 않는다. PM은 후속 PR에서 급한 예외를 확인한다.
+
+## 초기 자세·재진입 카메라·소품 후속
+- 후속 사용자 승인으로 앞선 '사진의 어색한 소품(조사만)'을 실제 배치 수정으로 진행했다. 천4개를 새 침대 앞단보다 .3m 안쪽(z83.288)으로 옮겼고, 트렁크3개의 아래면을 받침 상단+.003m로 맞췄다(이전 지지 간격 .310m).
+- 재진입 끊김 원인: 통로 프리셋은 TransitionDuration=.35지만 로비의 FreeThirdPerson은0이었다. 전역 프리셋은 유지하고 동일 값을 복제한 WaitingRoomLobbyCamera.asset에 .35초만 설정, 실제 로비 구역에 연결했다. 시점 종류·기본1/3인칭 선택은 바꾸지 않았다.
+- 초기 자세 원인: 정지 기어가기 속도 .0001에서 .12초 CrossFade가 거의 진행되지 않았다. HumanoidModel.Apply의 양다리 손실 초기화에서 Crawl을 요청하고, Crawl 진입은 Play+Update(0)으로 포즈부터 즉시 적용한다. 이동 중 기어가기 속도·절단 판정은 유지한다.
+- 의자: 현재 사람이 조정한 위치를 보존하고 원본 프리팹이 아닌 씬 인스턴스의 MeshCollider를 껐다. 실제 메시 bounds 크기의 BoxCollider를 추가해 좌판·다리 사이에 캐릭터 캡슐이 걸릴 틈을 없앴다. 벽·바닥 충돌 유지.
+- 회귀 추가: 재바인딩 직후 양다리/양다리+한팔 손실에서 이미 Crawl 상태·전환 대기0, 실제 대기실 호스트의 통로→로비 보간, 서기/낮은 캡슐에서 의자 접촉 후 후퇴.
+- 초기 포즈 회귀1/1 PASS(즉시 Crawl·전환 대기0), 실제 WaitingRoomBase LAN 호스트 카메라 회귀1/1 PASS(4.53초). 돌아올 때 시점 종류 유지·첫 프레임 보간 중·목표 도달을 확인했다.
+- SpaceLink 최신 회귀8/9 PASS(26.12초): 의자 접촉/후퇴·플레이어 통과·집결·재입장·밤 잠금 모두 통과. 기존 Additive 예상 씬2/실제3 실패는 유지했다(현재 테스트486행).
+- HumanoidPlayerTests 확장11/12 PASS(3.94초). KeyboardEventsReachReaderControllerAndHumanoidAnimation이 Walk 대신 JumpLand로 실패했으나, 단독 재검사1/1 PASS(.15초)였다. 프레임 의존 가능성이 있어 전체 PASS로 덮어쓰지 않으며 실패 이력을 유지한다.
+- 임시 카메라 렌더로 침대 천이 매트리스 위에 걸치고 트렁크가 받침에 닿은 화면을 확인했다. 검토 PNG는 프로젝트 Temp/waiting-room-bed-review.png·waiting-room-trunk-review.png에만 두고, 임시 Assets/Temp 진단 에셋은 정리했다.
+- 최종 Unity 대기실 씬 저장됨/isDirty=false, 컴파일 오류0·문서/구역·diff 공백 검사 PASS. 변경 코드는 파일 저장 완료, 커밋·push 없음. 원격 다인 공동 조작·일반적인 카메라 가림 전 구간 검증은 미실행이며 기본 1/3인칭 설정은 보류한다.
+
+## 천 지지 구조 정정 (사용자 재지시)
+- 원인: WaitingRoomDormitoryLayout.BuildPersonalItems는 원본의 TangledCloth 메시만 복제하고 줄/지지물은 생성하지 않았다. WaitingRoomRoomStages.ReplaceDormitoryBeds도 이전 천 위치를 유지했다. 앞선 침대 위로 옮긴 조치는 줄에 걸린 장식이라는 원본 의도에 맞지 않아 대체한다.
+- FitPersonalClothesline(greybox)를 추가해 천의 실제 상단 접힘선 방향을 줄에 맞추고, 숙소 앞쪽 local z11.6(월드81.6)에 약간 처진 줄과 벽 고정2개를 둔다. 천4개는 줄 높이2.25~2.3m에 걸리며 하단은 약1.9m, 침대 앞단과 깊이 방향으로1.28m 이상 분리된다. 장식 충돌체는 없다.
+- 최초 숙소 배치와 침대 교체 도구 모두 같은 보정 함수를 호출해 줄 없는 천/침대 겹침으로 되돌아가는 것을 막았다. 기존 원본 에셋과 가구 위치는 유지했다.
+- 검증: Unity 컴파일 PASS(errors0), 구역 PASS(긴급 예외 공개), 재적용2회 위치 변화0·줄24조각/고정2개로 중복0, 비대상 Transform 서명 동일. 임시 카메라 렌더로 천이 줄에 걸리고 가구와 분리된 화면 확인(Temp/waiting-room-clothesline-review.png). 씬 저장 완료, 별도 실행 테스트는 기능 변경이 없는 편집 배치 수정이라 추가하지 않았다.
+- PM 교훈 제안: 배치 소품은 메시의 아래면만 맞추지 말고 원본의 지지 구조(줄·걸이·받침)와 함께 옮겨야 한다. 원본 공간이 제거된 뒤에도 쓸 수 있는 국소 보정 함수를 남긴다.
+
+## 실제 지지면·카메라 출입 경계 정정
+- 사용자 화면에서 기존 WallAnchor_E가 실제 벽 없이 공간에 노출된 것을 확인했다. 이전에는 가정한 방 경계 좌표에 고정 마개만 두고 실제 지지면은 검증하지 않았다.
+- FitPersonalClothesline은 Rope/Rod 모드 모두 양끝 위쪽의 활성 천장 보수판 메시 하단 평면과 실제 면 범위에 닿는 지지점을 먼저 확인한다. 양쪽 모두 확보돼야 출력하며, 없으면 기존 구조를 지우기 전에 예외로 거부한다. 봉도 직선 본체와 양끝 천장 연결선을 함께 생성한다. 벽과 벽에 직접 고정하는 봉 모드는 제공하지 않으며 지지 없는 출력은 불가하다.
+- 현재 줄 양끝에서 천장까지 연결선2개(약1.974m/2.014m), 천장 매입 고정부2개를 생성했다. 실제 지지점 world(-9.78,4.274,81.6)/(2.78,4.314,81.6). 천장 렌더러를 잠시 비활성한 음성 검사에서 Rope/Rod 모두 거부되고 기존 구조 개수도 보존됐다. 검증 후 원래 천장 활성 상태로 복구·씬 저장했다.
+- CameraViewZone.exitPadding 기본0을 추가했다. 진입은 원래 상자, 이미 등록된 구역은 수평으로 padding만큼 확대한 실제 OverlapBox까지 몸통이 빠져나간 뒤 해제한다. 물리 tick·TriggerExit·teleport·비활성 정리는 유지한다.
+- 대기실의 좁은 구역6곳만 exitPadding=1m. WaitingRoomLayoutFitter 생성에도 같은 값을 적용했다. 좁은 공간에서 확대 시점으로 조기 전환하는 것을 막고, 여유 구간만 다시 밟아도 재진입하지 않는 경계 이력을 둔다. 기존0.35초 보간·기본 시점 종류는 유지한다.
+- 실행 검증: WaitingRoom_ReentryBlendsFromCorridorWithoutChangingViewKind 1/1 PASS(5.11초). 통로 x12→문턱x9.6에서 .4초 동안 가까운 시점 유지, x8.5 진입 후0.35초 보간 완료, 다시x9.6으로 돌아가도 넓은 시점 유지. 기존 exitPadding=0 구역 Zone_FirstPersonHidesLocalModelOnlyWhileRendering 1/1 PASS(1.22초).
+- 실제 지지면이 있을 때 Rod 모드도 본체1개와 천장 연결선2개가 같이 생성되는 것을 확인 후 Rope 모드로 복구·저장했다. 천장 연결면 렌더 목시 확인: Temp/waiting-room-ceiling-support-review.png.
+- 최종: Unity 컴파일·구역/문서·diff 검사 PASS, 씬 저장됨/isDirty=false. 이전 Additive 씬 개수 실패·키보드 회귀 불안정 이력은 이번 범위 밖으로 남기며 재실행하지 않았다. 커밋·push 없음.
+
+## 상자 주변 천 추가 제보
+- 사진은 InteriorArt/CanvasOnCrate_4이며 CanvasOnCrate_0/1·Stage02_JunkStorage의 FoldedCanvas도 같은 원인이다. InteriorArtPass는 원본 드레이프 메시만 복제해 상자 바닥 기준 .7/.78m에 두었지만 실제 상자는 높이 약 .28/.32m였다. 천에 지지 줄이 없어서 떠 있었다.
+- FitStoredCanvasSupports는 활성·표시된 실제 벽 Collider 표면을 탐색해 천 윗부분을 벽에서 .22m 떨어뜨리고, 전체 폭의 위쪽 메시 윤곽을 따라 줄을 연결한다. 줄 양끝은 .16m 위의 실제 벽 표면 고정부에 연결한다. 지지점이 모두 검증되기 전에는 기존 배치를 변경하지 않는다. 장식 충돌체는0이다.
+- 실내 배치와 보관실 재배치 도구에서 같은 보정을 호출한다. 보관실 재배치는 해당 방만 전달하여 다른 공간 수정 금지 규칙을 지킨다. 원본 에셋·상자·트렁크·밸브 위치는 그대로 보존했다.
+- 검증: 네 곳 각 줄13조각·벽 연결2개·고정2개, 중복0. 반복 적용 최대 위치차 .000002m 이하·회전0. 벽 Collider를 잠시 비활성하면 생성 거부 및 기존 구조 보존, 복구 후 비대상 Transform 서명 동일. 씬 저장 isDirty=false. Temp/CanvasOnCrate_4-supported.png 등 네 곳 임시 렌더를 직접 확인했다.
+- 이번 변경은 편집 배치이므로 별도 PlayMode 테스트는 추가하지 않았다. 이전 카메라·플레이어 테스트의 알려진 실패/미검증 항목은 유지한다. PM 교훈 제안: 숙소 천만 검사하면 상자 장식의 동일 메시 복제 경로를 놓친다. 활성 메시 종류별로 모든 생성 경로와 실제 지지물을 함께 점검한다.
+- 최종 Unity 컴파일 PASS(errors0), 구역 PASS(긴급 예외27파일), 문서 PASS(hard0·기존 WARN12), diff 공백 검사 PASS. 인계 문서 길이 제한 초과는 현재 스냅샷으로 압축해 해소했다. 파일 저장 완료, 커밋·push 없음.
+- 사용자 후속 "저장해줘"로 이번 대기실 변경의 커밋·원격 브랜치 push 승인. save-work 미리보기에서 구역·문서·에디터 ready/dirty0·Compile PASS(up_to_date) 확인. 스크립트 실행부의 add -A가 무관한 기존 파일도 포함하므로 같은 검증 후 대기실 관련21파일만 명시적으로 선택한다. 기존 테스트 실패/미검증 이력은 유지한다.
+
+## 제출 (10-21)
+- 작업 커밋78d6897·최신 dev 반영 커밋35b4394 원격 저장. 충돌 없고 기존 무관한 로컬 편집7파일 보존.
+- check-work PlayMode: 구역/문서/컴파일 PASS, 전체 테스트는900초 제한 내 결과가 없어 FAIL(결과 없음) 후 취소. 전체 통과로 간주하지 않는다.
+- 사용자 후속 "필요한 부분만 검사하고 제출해"에 따라 관련 필터만 실행: SpaceLinkPlayTests.Physical*5/5 PASS(21.76초), InitialLegLossStartsProneWithoutWaitingForMovement1/1, WaitingRoom_ReentryBlendsFromCorridorWithoutChangingViewKind1/1, Zone_FirstPersonHidesLocalModelOnlyWhileRendering1/1. 합계8/8·실패0·생략0.
+- PR #203: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/203 (dev 대상). 알려진 별도 실패·전체 검사 시간 초과·사람 공동 미검증·긴급 구역 예외를 본문에 명시했다. 자동 병합·dev 직접 push 없음.
+- new-pr 미리보기는 기존 무관한 로컬 편집도 미저장으로 막으므로, 해당 파일을 숨기거나 되돌리지 않고 동일 템플릿·방향/작성자/원격SHA/중복 검사 후 gh --body-file로 등록했다. 사용자 제출 지시를 실행 승인으로 적용했다.
