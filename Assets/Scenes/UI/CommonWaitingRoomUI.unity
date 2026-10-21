@@ -453,6 +453,10 @@ PrefabInstance:
       propertyPath: m_SortingOrder
       value: 250
       objectReference: {fileID: 0}
+    - target: {fileID: 5803276606749891776, guid: bbe5b72131302f04e8722fd182b2b876, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 6959515125243711978, guid: bbe5b72131302f04e8722fd182b2b876, type: 3}
       propertyPath: m_fontAsset
       value: 
@@ -1287,6 +1291,10 @@ PrefabInstance:
     - target: {fileID: 822072496334031083, guid: 2c3e7b600ad8c384c9d55fa48672d2ab, type: 3}
       propertyPath: m_Name
       value: WaitingRoomNotificationsCanvas
+      objectReference: {fileID: 0}
+    - target: {fileID: 6139675386868010830, guid: 2c3e7b600ad8c384c9d55fa48672d2ab, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -260
       objectReference: {fileID: 0}
     - target: {fileID: 7879968691106673599, guid: 2c3e7b600ad8c384c9d55fa48672d2ab, type: 3}
       propertyPath: m_Pivot.x

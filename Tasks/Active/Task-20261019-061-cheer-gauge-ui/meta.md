@@ -1,6 +1,6 @@
 # Task-20261019-061
 - **Title:** UI 씬 통합 · 공연 UI 및 대기실 기본 HUD 연결
-- **Type:** feat
+- **Type:** fix
 - **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** Unity Assets 구조·코드 작업 구역
@@ -8,8 +8,9 @@
 - **Updated:** 2026-10-21
 ## Workspace
 - **Integration:** dev
-- **Branch:** feat/ui-scene-integration
-- 현재 worktree: D:/github/POC_CURTAINCALL-ui-scene-integration
+- **Branch:** fix/tightrope-gauge-visibility
+- 현재 checkout: /Users/mohoseong/Documents/github/POC_CURTAINCALL
+- 기존 feat/ui-scene-integration은 PR #200으로 dev 병합 완료. 사용자 요청의 UI 시인성 후속 수정·dev PR은 현재 fix 브랜치에서 진행.
 ## Goal / Scope
 - 2026-10-21 사용자: W2 저장 후 W3 편집·확정·준비와4일차 편성 요구 제거. 실제 진행5개 씬만, 검증은 최종 필수 최소로 제한. W2는22ceebf push 완료, W3는 후속 미커밋.
 - 2026-10-21 사용자: W2 상점·서비스·장부를 Assets 완성 프리팹으로 실제 데이터 연결하고 대체 임시 창 정리. waiting-room-shop.md에 구현·검증 기록.
