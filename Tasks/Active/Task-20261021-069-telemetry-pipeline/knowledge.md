@@ -13,3 +13,6 @@
 - 사용자 INGEST_TOKEN 직접 설정 완료. 수신 웹 앱 공개 범위는 별도 자동 거절 후 사용자 명시 승인받아 v2 배포. 잘못된 token의 실제 HTTP 요청은 UNAUTHORIZED.
 - 본인 전용 v1은 빈 본문이었으나 같은 주소의 배포 버전을 검증된 v2로 갱신한 뒤 표시됨. 편집기 저장만으로 배포 코드가 바뀌지 않으므로 실제 배포 버전을 확인한다.
 - Unity 자동 전송·ACK 후 pending 0 확인. Play 종료 이벤트는 durable outbox에서 다음 실행으로 재전송됨. 즉시 종료 업로드와 구분해 보고한다.
+- PM 이관 제안(10-22): MPPM 메인/보조가 persistentDataPath·active.json을 공유해 쓰기 오류 발생. 보조 dataPath 해시 큐로 분리. 오래된 미전송 144묶음이 앞에 있으면 대시보드 갱신만으로 새 플레이가 오지 않음. 자세한 재현·증거는 Docs/Log-system/mppm-troubleshooting.md. Task-062 광역 Harness 소유 때문에 정식 지식 색인 수정은 보류.
+
+- PM 이관 제안: 같은 로그인 ID의 MPPM 플레이어를 playerId로 묶으면 타임라인/분모 혼합 및 협동 participants 중복 계약 거부. 방/런 안 slot 또는 접속 ID로 구분하고 계정 ID는 원본에 유지. Task-062 Harness 소유로 정식 색인 수정은 보류.

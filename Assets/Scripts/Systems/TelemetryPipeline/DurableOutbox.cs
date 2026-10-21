@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -16,8 +17,11 @@ namespace CurtainCall.Telemetry.Pipeline
         readonly string senderId;
         readonly string appSessionId;
         LogBatch active;
+        readonly HashSet<string> currentBatches = new();
         public string SenderId => senderId;
         public string AppSessionId => appSessionId;
+        public int PendingBatchCount => Directory.EnumerateFiles(root, "*.json")
+            .Count(p => Guid.TryParseExact(Path.GetFileNameWithoutExtension(p), "D", out _));
 
         public DurableOutbox(string directory, string applicationSession)
         {
@@ -77,12 +81,34 @@ namespace CurtainCall.Telemetry.Pipeline
             else if (File.ReadAllText(final) != json)
                 throw new InvalidDataException("Telemetry batch collision; originals retained.");
             File.Delete(activePath);
+            if (active.appSessionId == appSessionId) currentBatches.Add(active.batchId);
             active = NewBatch();
         }
 
         public string NextPath() => Directory.EnumerateFiles(root, "*.json")
             .Where(p => Guid.TryParseExact(Path.GetFileNameWithoutExtension(p), "D", out _))
-            .OrderBy(File.GetLastWriteTimeUtc).FirstOrDefault();
+            .OrderBy(p => currentBatches.Contains(Path.GetFileNameWithoutExtension(p)) ? 0 : 1)
+            .ThenBy(File.GetLastWriteTimeUtc).FirstOrDefault();
+
+        // ACK is sent only after the host has persisted this exact immutable client batch.
+        public string NextRelayPath() => Directory.EnumerateFiles(root, "*.json")
+            .Where(p => Guid.TryParseExact(Path.GetFileNameWithoutExtension(p), "D", out _))
+            .OrderBy(p => currentBatches.Contains(Path.GetFileNameWithoutExtension(p)) ? 0 : 1)
+            .ThenBy(File.GetLastWriteTimeUtc).FirstOrDefault(p =>
+            { try { return TransportPolicy.RelayBatch(LogJson.Parse<LogBatch>(File.ReadAllText(p))); } catch { return false; } });
+
+        public bool AcceptRelay(string raw)
+        {
+            if (Encoding.UTF8.GetByteCount(raw) > 120 * 1024) return false;
+            var batch = LogJson.Parse<LogBatch>(raw);
+            if (!TransportPolicy.RelayBatch(batch)) return false;
+            string path = Path.Combine(root, batch.batchId + ".json");
+            if (File.Exists(path)) return File.ReadAllText(path) == raw;
+            if (Directory.EnumerateFiles(root, "*.json").Sum(f => new FileInfo(f).Length) > MaxPendingBytes) return false;
+            AtomicWrite(path, raw);
+            currentBatches.Add(batch.batchId);
+            return true;
+        }
 
         public bool Acknowledge(string path, string batchId, string sha256, int acceptedEvents)
         {
@@ -92,6 +118,7 @@ namespace CurtainCall.Telemetry.Pipeline
             var batch = LogJson.Parse<LogBatch>(json);
             if (batch.batchId != batchId || batch.events.Count != acceptedEvents || Sha256(json) != sha256) return false;
             File.Delete(path);
+            currentBatches.Remove(batchId);
             return true;
         }
 

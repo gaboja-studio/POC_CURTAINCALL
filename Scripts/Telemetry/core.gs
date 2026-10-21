@@ -119,12 +119,20 @@ var TelemetryCore = (function () {
     if(requested&&options.indexOf(requested)<0)options.push(requested);
     return {selected:requested||options[0],options:options};
   }
+  function resolveParticipants(events){
+    var slots=new Map();
+    function scope(e){return JSON.stringify([e.appSessionId,e.roomId,e.runId]);}
+    events.forEach(function(e){if(e.authority!=='LOCAL'||!Number.isInteger(e.playerNumber))return;var key=scope(e);if(!slots.has(key))slots.set(key,new Set());slots.get(key).add(e.playerNumber);});
+    return events.map(function(e){var known=slots.get(scope(e));return !Number.isInteger(e.playerNumber)&&e.authority!=='HOST'&&known&&known.size===1?Object.assign({},e,{playerNumber:Array.from(known)[0],playerNumberSource:'SAME_APP_RUN_LOCAL_SLOT'}):e;});
+  }
+  function playerKey(e){var scope=e.runId||e.roomId||e.appSessionId||'';return scope+':'+(Number.isInteger(e.playerNumber)?'slot:'+e.playerNumber:e.networkClientId!=null&&e.networkClientId!==''?'client:'+e.networkClientId:'app:'+e.appSessionId+':id:'+e.playerId);}
+  function analysisEvent(e){return !/^(INPUT_KEY|BUTTON_INPUT|MICROPHONE_INPUT|SCENE_EXITED|TELEMETRY_GAP|PERFORMANCE_PROGRESS)$/.test(e.eventType)&&e.authority!=='OBSERVED';}
   function aggregate(events,environment,runId,gameVersion){
-    var list=ordered(events.filter(function(e){return e.environment===(environment||'LIVE')&&(!runId||e.runId===runId)&&(!gameVersion||versionOf(e)===gameVersion);}));
+    var list=ordered(resolveParticipants(events.filter(function(e){return e.environment===(environment||'LIVE')&&(!runId||e.runId===runId)&&(!gameVersion||versionOf(e)===gameVersion);})));
     var attempts=Object.create(null),tricks=Object.create(null),death=Object.create(null),zones=Object.create(null),usage=Object.create(null),funds=Object.create(null),transactions=new Set(),eligible=new Set(),facilityReservations=new Set();
     function group(e){var p=e.payload;var k=p.trickType+' / '+p.difficulty;return tricks[k]||(tricks[k]={trickType:p.trickType,difficulty:p.difficulty,attemptIds:new Set(),outcomes:Object.create(null),distances:Object.create(null),deaths:0,interactions:0});}
     list.forEach(function(e){
-      var p=e.payload;var person=e.runId+':'+e.playerId;
+      var p=e.payload;var person=playerKey(e);
       if(e.sceneType==='WAITINGROOM')eligible.add(person);
       if(/^PERFORMANCE_(STARTED|SUCCEEDED|FAILED)$/.test(e.eventType)&&e.authority==='HOST'){
         var g=group(e);g.attemptIds.add(e.attemptId);
@@ -133,9 +141,9 @@ var TelemetryCore = (function () {
       }
     });
     list.forEach(function(e){
-      var p=e.payload;var person=e.runId+':'+e.playerId;var g=attempts[e.attemptId];
+      var p=e.payload;var person=playerKey(e);var g=attempts[e.attemptId];
       if(e.eventType==='PERFORMANCE_PROGRESS'&&e.authority==='LOCAL'){
-        g=group(e);var dk=e.attemptId+':'+e.playerId;g.distances[dk]=Math.max(g.distances[dk]||0,p.maxDistance);
+        g=group(e);var dk=e.attemptId+':'+playerKey(e);g.distances[dk]=Math.max(g.distances[dk]||0,p.maxDistance);
       }
       if(e.eventType==='PLAYER_DIED'&&e.authority==='HOST'){
         if(g)g.deaths++;
@@ -284,7 +292,7 @@ var TelemetryCore = (function () {
   function gameDay(e){var m=/^D([1-9]\d*)[PT]/.exec(e.breakId||e.performanceId||'');return m?Number(m[1]):Number.isSafeInteger(e.payload.gameDay)&&e.payload.gameDay>0?e.payload.gameDay:null;}
   function dashboardView(events,filters){
     filters=filters||{};
-    var list=ordered(events.filter(function(e){return e.environment===(filters.environment==='TEST'?'TEST':'LIVE')&&(!filters.gameVersion||versionOf(e)===filters.gameVersion);}));
+    var list=ordered(resolveParticipants(events.filter(function(e){return e.environment===(filters.environment==='TEST'?'TEST':'LIVE')&&(!filters.gameVersion||versionOf(e)===filters.gameVersion);})));
     var runs=new Map();
     list.forEach(function(e){if(!e.runId)return;if(!runs.has(e.runId))runs.set(e.runId,[]);runs.get(e.runId).push(e);});
     var options=Array.from(runs.keys()).sort(function(a,b){return runs.get(b).slice(-1)[0].occurredAt.localeCompare(runs.get(a).slice(-1)[0].occurredAt)||a.localeCompare(b);});
@@ -307,7 +315,7 @@ var TelemetryCore = (function () {
     }
     fundSeries.sort(function(a,b){return a.day-b.day;});
     var selectedRun=runs.has(filters.timelineRunId)?filters.timelineRunId:options[0]||null;
-    var runEvents=runs.get(selectedRun)||[],phases=new Map();
+    var runEvents=(runs.get(selectedRun)||[]).filter(analysisEvent),phases=new Map();
     runEvents.forEach(function(e){
       var day=gameDay(e),rest=/^D\d+T(\d+)$/.exec(e.breakId||'');
       var kind=rest&&e.sceneType==='WAITINGROOM'?'BREAK':e.attemptId?'PERFORMANCE':'OTHER';
@@ -328,11 +336,11 @@ var TelemetryCore = (function () {
     var shown=phase?phase.events.filter(function(e){return !selectedAttempt||e.attemptId===selectedAttempt;}):[];
     var offset=Number.isSafeInteger(filters.timelineOffset)?Math.max(0,filters.timelineOffset):0;
     if(offset>=shown.length)offset=0;
-    function slim(e){return {eventId:e.eventId,occurredAt:e.occurredAt,appSessionId:e.appSessionId,sequence:e.sequence,playerId:e.playerId,playerNumber:e.playerNumber,eventType:e.eventType,authority:e.authority,sceneType:e.sceneType,attemptId:e.attemptId,payload:e.payload};}
+    function slim(e){return {eventId:e.eventId,occurredAt:e.occurredAt,appSessionId:e.appSessionId,sequence:e.sequence,playerId:e.playerId,playerNumber:e.playerNumber,networkClientId:e.networkClientId,runId:e.runId,roomId:e.roomId,eventType:e.eventType,authority:e.authority,sceneType:e.sceneType,attemptId:e.attemptId,payload:e.payload};}
     var markers=shown.filter(function(e){return /^(SECTION_|PLAYER_DIED|LIMB_SEVERED|INJURY_CHANGED|TIGHTROPE_FELL|JUMP_RESULT|COOP_ACTIVATED|CANNON_|PERFORMANCE_STARTED|PERFORMANCE_LEFT|INTERACTION_FAILED)/.test(e.eventType);});
-    return {runOptions:options,funds:{runId:fundsId,mode:fundsId?'RUN':'AVERAGE',series:fundSeries,runCount:new Set(balances.map(function(p){return p.runId;})).size},
+    return {runOptions:options,runLabels:options.map(function(id){var es=runs.get(id);return {id:id,startedAt:es[0].occurredAt,day:Math.max.apply(null,es.map(function(e){return gameDay(e)||0;}))};}),funds:{runId:fundsId,mode:fundsId?'RUN':'AVERAGE',series:fundSeries,runSeries:balances,runCount:new Set(balances.map(function(p){return p.runId;})).size},
       timeline:{runId:selectedRun,phases:phaseList.map(function(p){return {id:p.id,day:p.day,kind:p.kind,rest:p.rest,count:p.events.length,attempts:Array.from(p.attempts.values())};}),phaseId:phase?phase.id:null,attemptId:selectedAttempt,
         events:shown.slice(offset,offset+200).map(slim),offset:offset,total:shown.length,markers:markers.slice(0,400).map(slim),markerTotal:markers.length}};
   }
-  return {catalog:catalog,validate:validate,headers:headers,row:row,decode:decode,aggregate:aggregate,trickId:trickId,dashboardView:dashboardView,versionOf:versionOf,versionSelection:versionSelection};
+  return {catalog:catalog,validate:validate,headers:headers,row:row,decode:decode,aggregate:aggregate,trickId:trickId,dashboardView:dashboardView,versionOf:versionOf,versionSelection:versionSelection,playerKey:playerKey,analysisEvent:analysisEvent};
 })();

@@ -221,7 +221,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 below[player.OwnerClientId] = value;
                 if (lower == null) continue;
                 log.EmitFor(player, "COOP_ACTIVATED", new() { ["trickType"] = "TIGHTROPE", ["gimmickType"] = "PIGGYBACK",
-                    ["gimmickId"] = DetailLogIds.ObjectId(piggyback, "IN_"), ["participants"] = new[] { log.PlayerCode(player.OwnerClientId), log.PlayerCode(lower.OwnerClientId) },
+                    ["gimmickId"] = DetailLogIds.ObjectId(piggyback, "IN_"), ["participants"] = new[] { log.ParticipantCode(player.OwnerClientId), log.ParticipantCode(lower.OwnerClientId) },
                     ["height"] = piggyback.GetFloor(player) }, "HOST");
             }
         }
@@ -230,15 +230,15 @@ namespace CurtainCall.Telemetry.Pipeline
             if (!Host || attempt == null || ended || trick != "CANNON") return;
             var player = Find(actor); if (player == null) return;
             var trampoline = HumanCannonTrampoline.Current;
-            var ids = new List<string> { log.PlayerCode(actor) };
-            if (trampoline != null && trampoline.Carrier != CannonSeatState.Nobody && trampoline.Carrier != actor) ids.Add(log.PlayerCode(trampoline.Carrier));
+            var ids = new List<string> { log.ParticipantCode(actor) };
+            if (trampoline != null && trampoline.Carrier != CannonSeatState.Nobody && trampoline.Carrier != actor) ids.Add(log.ParticipantCode(trampoline.Carrier));
             log.EmitFor(player, "COOP_ACTIVATED", new() { ["trickType"] = trick, ["gimmickType"] = "TRAMPOLINE", ["gimmickId"] = DetailLogIds.ObjectId(trampoline, "IN_"), ["participants"] = ids }, "HOST");
         }
         void Handhold(NetworkPlayer actor, NetworkPlayer target)
         {
             if (!Host || attempt == null || ended || trick != "TIGHTROPE" || actor == null || target == null) return;
             log.EmitFor(actor, "COOP_ACTIVATED", new() { ["trickType"] = trick, ["gimmickType"] = "HANDHOLD",
-                ["gimmickId"] = DetailLogIds.ObjectId(piggyback, "IN_"), ["participants"] = new[] { log.PlayerCode(actor.OwnerClientId), log.PlayerCode(target.OwnerClientId) },
+                ["gimmickId"] = DetailLogIds.ObjectId(piggyback, "IN_"), ["participants"] = new[] { log.ParticipantCode(actor.OwnerClientId), log.ParticipantCode(target.OwnerClientId) },
                 ["source"] = "HOST_LANE_LANDING" }, "HOST");
         }
         void CannonCooperation()
@@ -267,7 +267,7 @@ namespace CurtainCall.Telemetry.Pipeline
         {
             var player = Find(actor); if (player == null || source == null) return;
             log.EmitFor(player, "COOP_ACTIVATED", new() { ["trickType"] = "CANNON", ["gimmickType"] = type,
-                ["gimmickId"] = DetailLogIds.ObjectId(source, "IN_"), ["participants"] = new[] { log.PlayerCode(actor) },
+                ["gimmickId"] = DetailLogIds.ObjectId(source, "IN_"), ["participants"] = new[] { log.ParticipantCode(actor) },
                 ["source"] = "HOST_STATE_TRANSITION" }, "HOST");
         }
         void Cannon(int index, CannonAction action, ulong actor)

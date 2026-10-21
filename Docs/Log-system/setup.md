@@ -8,19 +8,19 @@
 - [원본 JSON](https://drive.google.com/drive/folders/1MEeWD5UNdKcypZ6jAhXfaMkP6i84WAi5)
 - [로그 시트](https://docs.google.com/spreadsheets/d/1KCLPn1tEW5qsK16jcw8swZ75IeN6p6lG_82zRUOg7I8/edit)
 - [Apps Script 프로젝트](https://script.google.com/home/projects/1V4KUY5s1YNPdyGBJj_wr4XMjYLCaReUJUQ-5oG8acx9SDBOtCgYg15TO/edit)
-- 본인 전용 대시보드(v14 실패·운반·미수령·의료 미이용 추가, 버전 분리·시간·공연 도식 유지): https://script.google.com/macros/s/AKfycby1UfzhOaNl9ycjKYATPF-b32AkSskzupKQ--Zxj3Z_eIKraOqy9Aw1PYYLkqKewJ_wqw/exec
-- 수신 전용 v13(새 접촉·종료 계약, v14 집계와 호환): https://script.google.com/macros/s/AKfycbyBQxQU6XRZXS1qPEs11K8U_i8cwkJEi68-yHgIL6XHe9yCYzyXf3MFjsw6m2cYKEKD3A/exec
+- 등록 멤버 대시보드(v20 이메일 인증·보관/멤버·선택 환경 버전/세션 삭제): https://script.google.com/macros/s/AKfycby1UfzhOaNl9ycjKYATPF-b32AkSskzupKQ--Zxj3Z_eIKraOqy9Aw1PYYLkqKewJ_wqw/exec
+- 수신 전용 v19(적재 영수증 재사용·삭제 기록 재전송 차단): https://script.google.com/macros/s/AKfycbyBQxQU6XRZXS1qPEs11K8U_i8cwkJEi68-yHgIL6XHe9yCYzyXf3MFjsw6m2cYKEKD3A/exec
 - 2026-10-21 ccScheduledRefresh_ 30분 트리거 1개·실행 이력·오류율 0% 확인. 본인 전용 배포를 v2로 갱신해 빈 화면 해결.
 - TEST 필터에서 실제 이벤트 159건·v4 통계 그룹/탭/타임라인 확인. 기본 LIVE 필터는 현재 데이터 없음. [화면·집계 기준](dashboard-design.md).
 
 ## 배포 순서
-1. Scripts/Telemetry/core.gs·server.gs를 Apps Script 스크립트 파일로 추가한다.
+1. node Scripts/Telemetry/prepare-deployment.cjs 실행. core.gs·management.gs·server.gs를 결합한 수신/웹용 소스를 .harness/local에 만든다.
 2. dashboard.html을 이름 dashboard인 HTML 파일로 추가한다.
 3. appsscript.json의 시간대·서비스 범위를 적용한다.
 4. 프로젝트 설정 → 스크립트 속성에 INGEST_TOKEN을 충분히 긴 무작위 값으로 직접 설정한다.
-5. 스프레드시트·Drive·트리거·이메일 확인 접근을 승인한다. 이 앱은 결제 API를 사용하지 않는다.
-6. 대시보드 배포: 웹 앱, 본인만 접근, 본인으로 실행. doGet·RPC는 ownerEmail을 다시 확인한다.
-7. 수신 배포: 웹 앱 POST 용도. 게임이 Google 로그인 없이 호출하려면 요청 도달을 허용해야 한다.
+5. 스프레드시트·Drive·트리거·이메일 확인·메일 발송 접근 승인. initializeDashboardManagement를 소유자가 한 번 실행해 멤버/삭제 관리 시트를 준비한다. 결제 API는 없다.
+6. 대시보드 배포: telemetry-dashboard-code.txt(dashboardEnabled=true), 본인으로 실행·모든 사용자. 공개 입구 뒤 RPC마다 등록 이메일 인증을 확인하며 관리자 기능은 소유자만 가능하다.
+7. 수신 배포: telemetry-ingest-code.txt(dashboardEnabled=false), 본인으로 실행·모든 사용자. GET은 차단하고 POST token을 검증한다. 두 기존 배포를 각각 새 버전으로 갱신한 뒤 편집기는 웹용 소스로 유지한다.
 8. 수신 코드의 token 확인과 schema 제한은 필수. 인증 실패는 Drive/Sheets를 수정하지 않는다.
 9. installRefreshTrigger를 소유 계정으로 한 번 실행한다. 중복 설치하지 않는다.
 10. 대시보드 웹 주소를 시트 운영 상태 B7에 기록하고 실제 빈 상태·갱신 성공을 확인한다.
@@ -36,6 +36,8 @@
 - 이 스크립트의 보안 입력창에 token을 직접 입력한다. 채팅·명령줄 인자에 token을 넣지 않는다.
 - Editor·Development Build는 TEST. 정식 빌드는 LIVE로 분리한다.
 - 로컬: Application.persistentDataPath/TelemetryPipeline. active.json과 UUID.json pending 파일.
+- MPPM: 공유 persistentDataPath 충돌을 피하려고 보조 프로젝트의 dataPath 해시별 clients 하위 큐·설치 ID를 사용한다. 메인 기존 큐는 유지한다. 상태 조회: PendingBatchCount·LastUploadAt·LastUploadError; Editor/개발 빌드는 Console [Telemetry]에서 대기/Drive ACK 확인.
+- 통계 시트 v15: 5개 요약 시트에 gameVersion·environment 필터. TEST/LIVE 모두 집계, 과거 무버전은 UNVERSIONED. 자금 일계 mode=AVERAGE는 대시보드 기본 평균, RUN+runId는 개별 런. balance·samples·carried는 웹 그래프와 같은 원천/함수다. 평균과 개별 런 행은 합산하지 않는다.
 - LastError로 저장/전송 상태 확인. HTTP 200만으로 성공 처리하지 않고 batchId·SHA256·건수 검사.
 - 강제 종료는 GAME_EXITED를 보장하지 못한다. 마지막 디스크 배치와 재실행 복구로 결손을 줄인다.
 
@@ -46,7 +48,7 @@
 - 유료 Google Cloud·BigQuery·Looker Pro·외부 SaaS를 생성하지 않는다.
 
 ## 확인 명령
-- Node: node --test Scripts/Telemetry/core.test.cjs Scripts/Telemetry/server.test.cjs Scripts/Telemetry/dashboard.test.cjs
+- Node: node --test Scripts/Telemetry/core.test.cjs Scripts/Telemetry/server.test.cjs Scripts/Telemetry/dashboard.test.cjs Scripts/Telemetry/management.test.cjs
 - 로컬 예시 화면: node Scripts/Telemetry/preview-dashboard.cjs → http://127.0.0.1:8787 (예시 데이터는 TEST 선택).
 - Unity: pwsh -File Scripts/check-work.ps1
 - PlayMode: pwsh -File Scripts/verify-unity.ps1 -ProjectPath . -RunTests -Mode PlayMode
@@ -72,3 +74,12 @@
 - 21:05 KST v5: TEST 240건·침실/소품실 재방문 각 2회·체류 표시, 실제 ACK pending 0 확인. 합성 PlayMode 구역/운반 데이터이며 물리 입력 플레이 검증과 구분한다.
 - v6 배포(22:43 KST)·기존 수신 v3 호환, 공연 좌표 추가 테스트 ACK pending 0·TEST 259건 적재 확인. 과거 좌표 미수집은 도식 아래 접힌 목록에서 확인하며 실제 이동 경로를 추정하지 않는다.
 - v8(23:48 KST) 본인 전용 동일 URL에 이동·집결 평균/의료 상세 배포. 수신 v3·OAuth·토큰·30분 트리거 변경 없음. 신규 상세 TEST 배치 자동 재전송 pending 0을 확인했으며 이후 최종 회귀/종료의 새 배치는 다음 실행에 재전송된다.
+
+## 호스트 전송·PC 빌드 (2026-10-22)
+- 참가자는 원본 배치를 NGO ReliableFragmentedSequenced로 호스트에 전달한다. 호스트 디스크 저장 후 ID/hash/count 확인 응답, 이후 호스트만 HTTPS 전송. 원래 eventId/appSessionId/sequence/시계를 유지하므로 Google 기존 중복 제거가 적용된다.
+- 참가자 미전달 원본은 자기 큐에 보존, 같은 환경의 다음 방 접속 때 전달. 호스트 수신 원본은 Google ACK까지 호스트에 보존. 전송권은 현재 호스트 또는 호스트였던 앱만, 현재 참가자는 제외한다. 아직 방을 만든 적 없는 앱은 큐만 보관한다.
+- TelemetryBuildProcessor가 빌드 담당자의 환경 설정을 Library/CurtainCallTelemetryBuild에만 생성하고 BuildPlayerContext로 StreamingAssets에 포함한다. Assets/Git에는 비밀값을 만들지 않는다. 누락 시 BuildFailedException. PC 실행은 내장 설정 우선, 에디터만 환경 설정을 사용한다.
+- 분산 클라이언트의 수신용 token은 배포 파일에서 추출 가능하다. Google 계정 OAuth/Drive 접근 권한이 아니며 비공개 데이터 조회 권한을 부여하지 않는다. 원격 로그의 부정 입력을 완전히 방지하는 인증으로 취급하지 않는다.
+- 실제 배포 PC 빌드 생성·네트워크 수신 확인과 멀티 전달 타이밍은 SKIPPED. 컴파일·설정 파일 로딩/전송 정책/디스크 전달 회귀만 검사.
+
+- 빌드 설정 포함 API 근거: https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Build.BuildPlayerContext.html

@@ -31,6 +31,7 @@ namespace CurtainCall.Telemetry.Pipeline
         string endpoint;
         string token;
         bool quitting;
+        bool hasHosted;
         NetworkSessionManager session;
         CampaignRun campaign;
         bool wasRunning;
@@ -45,6 +46,12 @@ namespace CurtainCall.Telemetry.Pipeline
         WaitingRoomLogAdapter waitingLogs;
         InputLogAdapter inputLogs;
         public string LastError { get; private set; }
+        public string LastUploadError { get; private set; }
+        public string LastUploadAt { get; private set; }
+        public int PendingBatchCount => outbox?.PendingBatchCount ?? 0;
+        internal string PendingPath => outbox?.NextRelayPath();
+        internal bool AcceptRelay(string raw) => outbox != null && outbox.AcceptRelay(raw);
+        internal bool AcknowledgeRelay(string path, string id, string hash, int count) => outbox != null && outbox.Acknowledge(path, id, hash, count);
         public bool RemoteConfigured => !string.IsNullOrEmpty(endpoint) && !string.IsNullOrEmpty(token);
         public string CurrentRunId => localRun;
         public string CurrentAttemptId { get; private set; }
@@ -79,7 +86,7 @@ namespace CurtainCall.Telemetry.Pipeline
             Instance = this;
             try
             {
-                string root = Path.Combine(Application.persistentDataPath, "TelemetryPipeline");
+                string root = StorageDirectory(Application.persistentDataPath, Application.dataPath);
                 outbox = new DurableOutbox(root, Guid.NewGuid().ToString("D"));
                 playerId = outbox.SenderId; // Explicit fallback identity; never pretend it is a service login ID.
                 ConfigureFromEnvironment();
@@ -93,26 +100,29 @@ namespace CurtainCall.Telemetry.Pipeline
                 Emit("GAME_STARTED");
                 EnterScene(sceneName);
                 StartCoroutine(UploadLoop());
+                ReportProgress(RemoteConfigured ? "수집 시작 · 자동 전송 설정 완료" : "수집 시작 · 전송 미설정, PC에만 저장");
             }
             catch (Exception error) { StorageFailure(error); }
         }
 
         void ConfigureFromEnvironment()
         {
-            string proposed = Environment.GetEnvironmentVariable("CURTAINCALL_TELEMETRY_URL");
-            string proposedToken = Environment.GetEnvironmentVariable("CURTAINCALL_TELEMETRY_TOKEN");
-#if UNITY_EDITOR_WIN || UNITY_STANDALONE_WIN
-            // User setup can happen after Unity Hub starts; read its user-scoped values without printing them.
-            proposed ??= Environment.GetEnvironmentVariable("CURTAINCALL_TELEMETRY_URL", EnvironmentVariableTarget.User);
-            proposedToken ??= Environment.GetEnvironmentVariable("CURTAINCALL_TELEMETRY_TOKEN", EnvironmentVariableTarget.User);
-#endif
-            if (string.IsNullOrEmpty(proposed) || string.IsNullOrEmpty(proposedToken)) return;
-            if (!Uri.TryCreate(proposed, UriKind.Absolute, out var uri) || uri.Scheme != "https"
-                || uri.Host != "script.google.com" || !uri.AbsolutePath.StartsWith("/macros/s/", StringComparison.Ordinal)
-                || !uri.AbsolutePath.EndsWith("/exec", StringComparison.Ordinal) || !string.IsNullOrEmpty(uri.Query)
-                || proposedToken.Length < 32) { LastError = "Invalid telemetry endpoint configuration."; return; }
-            endpoint = proposed;
-            token = proposedToken;
+            // Distributed PC builds carry the builder's settings; players need no environment setup.
+            var configuration = !Application.isEditor ? TelemetryConfiguration.FromFile(Application.streamingAssetsPath) : null;
+            configuration ??= TelemetryConfiguration.FromEnvironment();
+            if (!configuration.IsValid) { LastError = "Invalid telemetry endpoint configuration."; return; }
+            endpoint = configuration.endpoint;
+            token = configuration.token;
+        }
+
+        // MPPM shares persistentDataPath with its parent Editor. Keep stable,
+        // separate virtual-project queues and leave the parent's existing queue intact.
+        public static string StorageDirectory(string persistentPath, string dataPath)
+        {
+            string root = Path.Combine(persistentPath, "TelemetryPipeline");
+            string normalized = dataPath.Replace('\\', '/').TrimEnd('/');
+            if (normalized.IndexOf("/Library/VP/", StringComparison.OrdinalIgnoreCase) < 0) return root;
+            return Path.Combine(root, "clients", DurableOutbox.Sha256(normalized.ToLowerInvariant()).Substring(0, 24));
         }
 
         public bool Emit(string eventType, Dictionary<string, object> payload = null, string authority = "LOCAL")
@@ -134,9 +144,9 @@ namespace CurtainCall.Telemetry.Pipeline
                     environment = Application.isEditor || Debug.isDebugBuild ? "TEST" : "LIVE",
                     gameVersion = Application.version,
                     playerId = subject != null ? PlayerCode(subject.OwnerClientId) : playerId,
-                    playerNumber = player != null && player.Slot >= 0 && player.Slot <= 3 ? player.Slot : eventType == "PLAYER_EXITED" ? lastPlayerNumber : null,
+                    playerNumber = player != null && player.Slot >= 0 && player.Slot <= 3 ? player.Slot : CurrentRoomId != null ? lastPlayerNumber : null,
                     networkClientId = session != null && session.NetworkManager != null && session.NetworkManager.IsListening
-                        ? (subject != null ? subject.OwnerClientId : session.NetworkManager.LocalClientId).ToString() : eventType == "PLAYER_EXITED" ? lastNetworkClientId : null,
+                        ? (subject != null ? subject.OwnerClientId : session.NetworkManager.LocalClientId).ToString() : CurrentRoomId != null ? lastNetworkClientId : null,
                     roomId = CurrentRoomId, runId = localRun, attemptId = CurrentAttemptId,
                     performanceId = state.Day > 0 ? $"D{state.Day}P{state.PerformanceIndex + 1}" : null,
                     sceneType = SceneType(sceneName), eventType = eventType, authority = authority,
@@ -159,6 +169,7 @@ namespace CurtainCall.Telemetry.Pipeline
         }
 
         public string PlayerCode(ulong clientId) => networkLogs?.PlayerCode(clientId) ?? playerId;
+        public string ParticipantCode(ulong clientId) => (CurrentRoomId ?? "unresolved") + ":client:" + clientId;
         public void UsePlayerIdentity(string identity) => playerId = string.IsNullOrEmpty(identity) ? FallbackPlayerId : identity;
         public void SetAttempt(string attemptId) => CurrentAttemptId = attemptId;
         public void SessionLeft()
@@ -192,6 +203,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 session = NetworkSessionManager.Instance;
             }
             networkLogs.Tick(session);
+            if (session != null && session.IsHost) hasHosted = true;
             if (CampaignRun.Instance != campaign)
             {
                 if (campaign != null) campaign.RunEnded -= RunEnded;
@@ -215,7 +227,8 @@ namespace CurtainCall.Telemetry.Pipeline
             performanceLogs.Tick();
             waitingLogs.Tick();
             inputLogs.Tick();
-            if (Time.unscaledTime >= nextSeal) { nextSeal = Time.unscaledTime + 15f; Seal("CHECKPOINT"); }
+            if (Time.unscaledTime >= nextSeal)
+            { nextSeal = Time.unscaledTime + 15f; Seal("CHECKPOINT"); }
         }
 
         public static string SharedRunId(string sharedSessionId, int runGeneration)
@@ -271,7 +284,19 @@ namespace CurtainCall.Telemetry.Pipeline
             if (name == "Start") Emit("TITLE_ENTERED");
         }
         public void Flush() => Seal("CHECKPOINT");
-        void Seal(string reason) { try { outbox?.Seal(reason); } catch (Exception error) { StorageFailure(error); } }
+        void Seal(string reason)
+        {
+            try
+            {
+                outbox?.Seal(reason);
+                if (PendingBatchCount > 0) ReportProgress($"로컬 저장 · 전송 대기 {PendingBatchCount}묶음 · {reason}");
+            }
+            catch (Exception error) { StorageFailure(error); }
+        }
+        static void ReportProgress(string message)
+        {
+            if (Application.isEditor || Debug.isDebugBuild) Debug.Log("[Telemetry] " + message);
+        }
         void StorageFailure(Exception error)
         {
             LastError = error is UnauthorizedAccessException ? "Telemetry storage permission denied." : "Telemetry storage unavailable; pending data retained.";
@@ -283,7 +308,10 @@ namespace CurtainCall.Telemetry.Pipeline
             float backoff = 2;
             while (!quitting)
             {
-                if (!RemoteConfigured) { yield return new WaitForSecondsRealtime(10); continue; }
+                bool host = session != null && session.IsHost;
+                bool client = session != null && session.ConnectionState == SessionConnectionState.Client;
+                if (!RemoteConfigured || !TransportPolicy.CanUpload(host, client, hasHosted))
+                { yield return new WaitForSecondsRealtime(2); continue; }
                 string path = null, raw = null;
                 try { path = outbox.NextPath(); if (path != null) raw = File.ReadAllText(path); }
                 catch (Exception error) { StorageFailure(error); }
@@ -306,9 +334,21 @@ namespace CurtainCall.Telemetry.Pipeline
                     }
                 }
                 catch { /* Retain original on malformed, mismatched or interrupted acknowledgement. */ }
-                if (accepted) { backoff = 2; LastError = null; }
-                else { LastError = "Telemetry upload not acknowledged; retry pending."; backoff = Math.Min(backoff * 2, 300); }
-                yield return new WaitForSecondsRealtime(accepted ? 1 : backoff + UnityEngine.Random.Range(0, 2f));
+                if (accepted)
+                {
+                    backoff = 2; LastError = null; LastUploadError = null;
+                    LastUploadAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                    ReportProgress($"Drive 저장 확인 · 전송 대기 {PendingBatchCount}묶음");
+                    // The request itself limits throughput; drain backlog without an extra pause.
+                    yield return null;
+                }
+                else
+                {
+                    if (LastUploadError == null) ReportProgress("Drive 전송 미확인 · 기록 보관 후 자동 재시도");
+                    LastUploadError = "Telemetry upload not acknowledged; retry pending.";
+                    LastError = LastUploadError; backoff = Math.Min(backoff * 2, 300);
+                    yield return new WaitForSecondsRealtime(backoff + UnityEngine.Random.Range(0, 2f));
+                }
             }
         }
         void OnApplicationPause(bool paused) { if (paused) Seal("CHECKPOINT"); }

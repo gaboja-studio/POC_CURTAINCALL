@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.StartLobby;
@@ -16,6 +17,7 @@ namespace CurtainCall.Telemetry.Pipeline
     sealed class NetworkLogAdapter : IDisposable
     {
         const string Request = "CurtainCall.Log.RoomRequest.v1", Snapshot = "CurtainCall.Log.RoomState.v1";
+        const string Relay = "CurtainCall.Log.Batch.v1", Receipt = "CurtainCall.Log.Receipt.v1";
         readonly TelemetryRuntime log;
         readonly Dictionary<ulong, string> identities = new();
         NetworkSessionManager session;
@@ -24,6 +26,9 @@ namespace CurtainCall.Telemetry.Pipeline
         string room, connectionIdentity;
         bool entered, signed;
         float nextRequest, nextFind;
+        float nextRelay;
+        string relayPath, relayHash, relayId;
+        int relayCount;
         public NetworkLogAdapter(TelemetryRuntime runtime) => log = runtime;
         public string PlayerCode(ulong clientId) => identities.TryGetValue(clientId, out string id) ? id
             : session?.NetworkManager != null && session.NetworkManager.LocalClientId == clientId ? log.CurrentPlayerId
@@ -65,6 +70,24 @@ namespace CurtainCall.Telemetry.Pipeline
                 var found = UnityEngine.Object.FindAnyObjectByType<LobbyReadyBoard>();
                 if (board != found) { if (board != null) board.Changed -= Signature; board = found; signed = board != null && board.LocalReady; if (board != null) board.Changed += Signature; }
             }
+            if (room != null && messages != null && session != null && !session.IsHost && Time.unscaledTime >= nextRelay)
+            {
+                nextRelay = Time.unscaledTime + 3;
+                try
+                {
+                    string path = log.PendingPath;
+                    if (path != null)
+                    {
+                        string raw = File.ReadAllText(path); var batch = LogJson.Parse<LogBatch>(raw);
+                        if (TransportPolicy.RelayBatch(batch))
+                        {
+                            relayPath = path; relayHash = DurableOutbox.Sha256(raw); relayId = batch.batchId; relayCount = batch.events.Count;
+                            Send(Relay, raw, NetworkManager.ServerClientId, true);
+                        }
+                    }
+                }
+                catch { /* Preserve the original until a host durability receipt arrives. */ }
+            }
         }
         string RoomType => session?.ActiveConnector is ServicesSessionConnector ? "CODE" : "LAN";
         void Connection(SessionConnectionState state)
@@ -82,9 +105,34 @@ namespace CurtainCall.Telemetry.Pipeline
                 identities[session.NetworkManager.LocalClientId] = log.CurrentPlayerId;
                 log.SetContext(room, log.CurrentRunId, log.CurrentAttemptId);
                 messages.RegisterNamedMessageHandler(Request, ReadRequest);
+                messages.RegisterNamedMessageHandler(Relay, ReadRelay);
                 log.Emit("ROOM_CREATED", new() { ["roomType"] = RoomType });
             }
-            else messages.RegisterNamedMessageHandler(Snapshot, ReadSnapshot);
+            else { messages.RegisterNamedMessageHandler(Snapshot, ReadSnapshot); messages.RegisterNamedMessageHandler(Receipt, ReadReceipt); }
+        }
+        void ReadRelay(ulong sender, FastBufferReader reader)
+        {
+            if (session == null || !session.IsHost || reader.Length > 256 * 1024
+                || !session.NetworkManager.ConnectedClientsIds.Contains(sender)) return;
+            try
+            {
+                reader.ReadValueSafe(out string raw);
+                if (!log.AcceptRelay(raw)) return;
+                var batch = LogJson.Parse<LogBatch>(raw);
+                Send(Receipt, batch.batchId + ":" + DurableOutbox.Sha256(raw) + ":" + batch.events.Count, sender);
+            }
+            catch { /* No receipt on invalid data or host disk failure. */ }
+        }
+        void ReadReceipt(ulong sender, FastBufferReader reader)
+        {
+            if (sender != NetworkManager.ServerClientId || reader.Length > 512 || relayPath == null) return;
+            try
+            {
+                reader.ReadValueSafe(out string value);
+                if (value != relayId + ":" + relayHash + ":" + relayCount) return;
+                if (log.AcknowledgeRelay(relayPath, relayId, relayHash, relayCount)) { relayPath = null; nextRelay = 0; }
+            }
+            catch { }
         }
         void ReadRequest(ulong sender, FastBufferReader reader)
         {
@@ -120,12 +168,13 @@ namespace CurtainCall.Telemetry.Pipeline
             }
             catch (Exception) { }
         }
-        void Send(string name, string value, ulong target)
+        void Send(string name, string value, ulong target, bool fragmented = false)
         {
             var network = session?.NetworkManager;
             if (messages == null || network == null || !network.IsListening || network.ShutdownInProgress) return;
-            using var writer = new FastBufferWriter(4096, Allocator.Temp);
-            writer.WriteValueSafe(value); messages.SendNamedMessage(name, target, writer, NetworkDelivery.ReliableSequenced);
+            using var writer = new FastBufferWriter(fragmented ? 256 * 1024 : 4096, Allocator.Temp);
+            writer.WriteValueSafe(value); messages.SendNamedMessage(name, target, writer,
+                fragmented ? NetworkDelivery.ReliableFragmentedSequenced : NetworkDelivery.ReliableSequenced);
         }
         void Signature()
         {
@@ -141,7 +190,9 @@ namespace CurtainCall.Telemetry.Pipeline
         void Unregister()
         {
             if (messages == null) return;
-            messages.UnregisterNamedMessageHandler(Request); messages.UnregisterNamedMessageHandler(Snapshot); messages = null;
+            messages.UnregisterNamedMessageHandler(Request); messages.UnregisterNamedMessageHandler(Snapshot);
+            messages.UnregisterNamedMessageHandler(Relay); messages.UnregisterNamedMessageHandler(Receipt);
+            messages = null; relayPath = null;
         }
         void Unbind()
         {

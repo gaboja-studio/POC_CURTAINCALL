@@ -17,6 +17,33 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
         DurableOutbox New() => new(directory, Guid.NewGuid().ToString("D"));
         static LogEvent Event() => new() { sequence = 1, eventType = "GAME_STARTED", occurredAt = "2026-10-21T08:00:00.000Z" };
 
+        [Test] public void MppmQueues_DoNotOverwriteParentOrEachOther_AndRecoverIndependently()
+        {
+            string mainRoot = TelemetryRuntime.StorageDirectory(directory, "D:/Game/Assets");
+            string cloneRoot = TelemetryRuntime.StorageDirectory(directory, "D:/Game/Library/VP/mppm1/Assets");
+            string otherRoot = TelemetryRuntime.StorageDirectory(directory, "D:/Game/Library/VP/mppm2/Assets");
+            Assert.That(mainRoot, Is.EqualTo(Path.Combine(directory, "TelemetryPipeline")));
+            Assert.That(cloneRoot, Is.Not.EqualTo(mainRoot));
+            Assert.That(otherRoot, Is.Not.EqualTo(cloneRoot));
+            Assert.That(TelemetryRuntime.StorageDirectory(directory, "d:\\game\\library\\vp\\mppm1\\assets"), Is.EqualTo(cloneRoot));
+            var main = new DurableOutbox(mainRoot, Guid.NewGuid().ToString("D"));
+            var clone = new DurableOutbox(cloneRoot, Guid.NewGuid().ToString("D"));
+            var parentEvent = Event(); var cloneEvent = Event();
+            main.Append(parentEvent); clone.Append(cloneEvent);
+            main.Seal("CHECKPOINT"); clone.Seal("CHECKPOINT");
+            Assert.That(main.PendingBatchCount, Is.EqualTo(1));
+            Assert.That(clone.PendingBatchCount, Is.EqualTo(1));
+            Assert.That(main.SenderId, Is.Not.EqualTo(clone.SenderId));
+            var recovered = new DurableOutbox(cloneRoot, Guid.NewGuid().ToString("D"));
+            Assert.That(LogJson.Parse<LogBatch>(File.ReadAllText(main.NextPath())).events[0].eventId, Is.EqualTo(parentEvent.eventId));
+            Assert.That(LogJson.Parse<LogBatch>(File.ReadAllText(recovered.NextPath())).events[0].eventId, Is.EqualTo(cloneEvent.eventId));
+            string pending = recovered.NextPath(), raw = File.ReadAllText(pending);
+            var batch = LogJson.Parse<LogBatch>(raw);
+            Assert.That(recovered.Acknowledge(pending, batch.batchId, DurableOutbox.Sha256(raw), 1), Is.True);
+            Assert.That(recovered.PendingBatchCount, Is.Zero);
+            Assert.That(main.PendingBatchCount, Is.EqualTo(1));
+        }
+
         [Test] public void CrashRecovery_RetainsOriginalAppAndEventIds()
         {
             var first = New(); var entry = Event(); first.Append(entry);
@@ -26,6 +53,19 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
             Assert.That(batch.appSessionId, Is.EqualTo(first.AppSessionId));
             Assert.That(batch.events[0].eventId, Is.EqualTo(entry.eventId));
             Assert.That(recovered.SenderId, Is.EqualTo(first.SenderId));
+        }
+        [Test] public void NewPlayUploadsBeforeHistoricalBacklog_WithoutDiscardingOlderBatches()
+        {
+            var old = New(); old.Append(Event()); old.Seal("CHECKPOINT");
+            string oldPath = old.NextPath(), original = File.ReadAllText(oldPath);
+            var current = New(); var entry = Event(); current.Append(entry); current.Seal("SCENE_CHANGED");
+            string pending = current.NextPath(), raw = File.ReadAllText(pending);
+            var batch = LogJson.Parse<LogBatch>(raw);
+            Assert.That(batch.events[0].eventId, Is.EqualTo(entry.eventId));
+            Assert.That(current.PendingBatchCount, Is.EqualTo(2));
+            Assert.That(current.Acknowledge(pending, batch.batchId, DurableOutbox.Sha256(raw), 1), Is.True);
+            Assert.That(current.NextPath(), Is.EqualTo(oldPath));
+            Assert.That(File.ReadAllText(oldPath), Is.EqualTo(original));
         }
         [Test] public void Ack_RequiresMatchingIdCountAndContentHash()
         {

@@ -37,6 +37,8 @@
 
 gameVersion은 schemaVersion과 별개다. 숫자 3개와 선택적 -/+ 접미사, 최대 64자. Events V열에 추가하고 기존 A~U열·원문·ID는 보존한다. 과거 누락을 0.1.0으로 소급하지 않는다. 요약 시트도 마지막 gameVersion 열로 구분한다.
 
+요약 v15는 기존 gameVersion 뒤 environment를 추가하여 TEST/LIVE를 함께 게시한다. 자금 일계는 뒤에 balance/samples/carried/mode를 추가한다. mode=RUN의 runId별 잔액과 AVERAGE의 일차 평균은 dashboardView의 같은 funds projection을 사용하며 합산 대상이 아니다. Events 원본과 과거 버전 값은 변경하지 않는다.
+
 CANNON_HAZARD_CONTACT는 일반 함정의 새 접촉마다 발행한다. cutApplied/part/lostCount와 CUT·NO_CUT·FRAME_LIMIT를 기록하며 기존 절단·사망 건수를 대체하거나 늘리지 않는다. BREAK_ENDED는 이전 breakId 문맥으로 발행하고 HOST는 presentNetworkClientIds를 보존한다. 종료가 없는 과거/오프라인 공백을 미수령·미이용으로 추정하지 않는다.
 
 ## 사용자 초안과의 대응
@@ -103,4 +105,4 @@ CANNON_HAZARD_CONTACT는 일반 함정의 새 접촉마다 발행한다. cutAppl
 - 종료 시 네트워크 완료를 기다리며 게임 UX를 변경하지 않는다. 미전송은 다음 실행에서 복구한다.
 - Sheets 50,000 이벤트 초과 시 명시적 CAPACITY_LIMIT. 조용히 앞부분만 집계하지 않는다.
 - 무료 Google 할당량 초과 시 오류·재시도. 유료 리소스 자동 생성·요금제 전환 없음.
-- 공개 수신 배포는 2026-10-21 사용자 명시 승인. token 없는 POST는 저장 거부, GET/RPC는 소유자만 허용.
+- 공개 수신 배포는 token 없는 POST 저장 거부·GET 차단. 별도 대시보드는 2026-10-22 사용자 승인으로 입구 공개·등록 이메일 인증 후 조회, 관리 RPC는 소유자만 허용.

@@ -48,9 +48,9 @@ test('player color follows slot across filters and event categories',()=>{
 });
 test('per-player lines follow time order, break across missing positions and never cross players',()=>{
  const a=point(10),b=point(20),gap=e('JUMP_RESULT'),c=point(30),other=point(50,0,0,{playerId:'p2',playerNumber:1});
- const d=routeCtx.routeGeometry([c,other,b,gap,a],'TIGHTROPE'),actor=d.actors.find(x=>x.key==='p1');
+ const d=routeCtx.routeGeometry([c,other,b,gap,a],'TIGHTROPE'),actor=d.actors.find(x=>x.key===routeCtx.routePlayerKey(a));
  assert.equal(actor.segments.length,2);assert.deepEqual(Array.from(actor.segments[0],p=>p.event.eventId),[a.eventId,b.eventId]);assert.equal(actor.segments[1][0].event.eventId,c.eventId);
- assert.equal(d.actors.find(x=>x.key==='p2').segments[0].length,1);
+ assert.equal(d.actors.find(x=>x.key===routeCtx.routePlayerKey(other)).segments[0].length,1);
 });
 test('coincident event icons spread without modifying recorded coordinates or path anchors',()=>{
  const rows=Array.from({length:25},()=>point(12)),before=JSON.stringify(rows),d=routeCtx.routeGeometry(rows,'TIGHTROPE');
@@ -64,3 +64,11 @@ test('new start, injury and interaction markers retain coordinate provenance',()
  const rows=[e('PERFORMANCE_STARTED',{trickType:'CANNON',position:{x:0,y:0,z:1},positionSource:'EMIT_OBSERVATION'},{attemptId:'a'}),e('INJURY_CHANGED',{position:{x:1,y:2,z:3}},{attemptId:'a'}),e('INTERACTION_FAILED',{reason:'BLOCKED'},{attemptId:'a'})];
  const d=view(rows);assert.equal(d.timeline.markers.length,3);assert.equal(d.timeline.markers[0].payload.positionSource,'EMIT_OBSERVATION');
 });
+
+test('same login separates slots, and relayed copies retain player identity',()=>{const a=point(10,0,0,{playerId:'shared',playerNumber:0}),b=point(20,0,0,{playerId:'shared',playerNumber:1}),c=point(30,0,0,{playerId:'changed',playerNumber:1,appSessionId:'other'});const d=routeCtx.routeGeometry([a,b,c],'TIGHTROPE');assert.equal(d.actors.length,2);assert.equal(d.actors.find(x=>x.key===routeCtx.routePlayerKey(b)).segments[0].length,2);});
+test('zoom changes spacing without changing source coordinates',()=>{const rows=[point(0),point(100)],a=routeCtx.routeGeometry(rows,'TIGHTROPE',1),b=routeCtx.routeGeometry(rows,'TIGHTROPE',3);assert.ok(b.points[1].x-b.points[0].x>a.points[1].x-a.points[0].x);assert.equal(a.points[1].u,b.points[1].u);});
+test('input noise and observed replicas stay out of analysis; raw totals preserved',()=>{const rows=[e('INPUT_KEY'),e('BUTTON_INPUT'),e('MICROPHONE_INPUT'),e('PLAYER_DIED',{cause:'FALL'},{attemptId:'a'}),e('PLAYER_DIED',{cause:'FALL'},{attemptId:'a',authority:'OBSERVED'})];assert.equal(view(rows).timeline.total,1);assert.equal(core.aggregate(rows,'TEST').eventCount,5);});
+test('shared login yields two observed waiting users',()=>{const a=e('ZONE_ENTERED',{zoneType:'BEDROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL'}),b={...a,eventId:'other',playerNumber:1};assert.equal(core.aggregate([a,b],'TEST').zones[0].distinctPlayers,2);});
+test('search and native selection are separate',()=>{const html=fs.readFileSync(__dirname+'/dashboard.html','utf8');assert.ok(html.includes('<select id="timeline-run"'));assert.ok(html.includes('<select id="fund-run"'));assert.ok(html.includes('id="timeline-search"'));assert.equal(html.includes('list="run-options"'),false);});
+
+test('local end records resolve only an unambiguous slot in the same app and run',()=>{const a=e('ZONE_ENTERED',{zoneType:'WAITINGROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL'}),b={...a,eventId:'other',playerNumber:1,appSessionId:'app-b'},end={...a,eventId:'end',eventType:'ZONE_EXITED',playerNumber:'',networkClientId:'',payload:{zoneType:'WAITINGROOM',durationMs:10}},end2={...end,eventId:'end2',appSessionId:'app-b'};assert.equal(core.aggregate([a,b,end,end2],'TEST').zones[0].distinctPlayers,2);assert.equal(end.playerNumber,'');const ambiguous={...b,appSessionId:'app'};assert.equal(core.aggregate([a,ambiguous,end],'TEST').zones[0].distinctPlayers,3);});

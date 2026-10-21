@@ -10,6 +10,7 @@
 - WaitingRoomZoneMap.cs·WaitingRoomTiming·StorageArrivalTracker.cs — 실제 구역 경계·배치/준비/집결 단조 시간·수령부터 소품실 도착 시간.
 - InputLogAdapter.cs — 키 코드·uGUI 클릭·Vivox 본인 발화 구간.
 - Scripts/Telemetry/core.gs — 68종 이벤트 계약·검증·집계, 실패/운반·미수령/의료 미이용 요약.
+- Scripts/Telemetry/management.gs — 등록 이메일 인증·멤버/보관 설정·삭제 규칙/인증·원본 정리.
 - Scripts/Telemetry/server.gs — Google 수신·Drive 원본·Sheets 적재·권한·트리거.
 - Scripts/Telemetry/dashboard.html — Apps Script 웹 화면.
 - Scripts/Telemetry/*.test.cjs — Node 계약·집계·서버 복구 테스트.
@@ -20,13 +21,14 @@
 - SetContext(roomId, runId, attemptId, authenticatedPlayerId): 상세 adapter 연결용.
 - Flush(): 현재 배치를 immutable outbox 파일로 닫기.
 - LastError/RemoteConfigured: 상태 확인, endpoint/token 원문 출력 금지.
-- 서버 refreshDashboard: 소유자 확인 후 적재·집계·페이지 데이터 반환.
+- 서버 refreshDashboard: 등록 멤버 인증 후 적재·집계·페이지 데이터 반환. 멤버/보관/삭제 관리는 소유자만 허용.
 - Recorded: 디스크 영속화 후 분리된 LogEvent 사본을 발행. 관측자 오류는 저장/게임에 전파하지 않는다.
 - 원천 공개 API: CourseSections.SectionAt(position), Cannon.LandingConfirmed, Piggyback.HandholdConfirmed, DeliverySlot.DeliveryStageChanged, Shop/Carry/Expert.OperationRejected. 범위는 Task-069 setup.md.
 - 추가 관측: Campaign.RestExpired/LocalReadyChanged, WaitingRoomSpawn.PlayerPlaced, ExpertRoomView.LocalMoved, CannonHazards.ContactDetected/HitConfirmed. 확정 피해 기록은 실제 신체/생존 상태와 결합한다.
 
 ## 문서
 - [기획자 사용 안내](../Log-system/operator-guide.md), [통계 읽는 법](../Log-system/reading-guide.md)
+- [관리자 운영·게임 버전 변경](../Log-system/admin-guide.md)
 - [계약](../Log-system/schema.md), [이벤트 목록](../Log-system/event-catalog.md)
 - [연결 단계](../Log-system/implementation-plan.md), [운영·설치](../Log-system/setup.md)
 - [실제 연결 범위와 미수집 지표](../Log-system/coverage.md)

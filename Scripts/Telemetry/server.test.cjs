@@ -1,28 +1,10 @@
-const {test}=require('node:test');const assert=require('node:assert/strict');const vm=require('node:vm');const fs=require('node:fs');const crypto=require('node:crypto');
-function fixture(){
- const tables={Events:[[]],Batches:[[]]},files=new Map();let failReceipt=false;
- function sheet(name){return {getName:()=>name,getLastRow:()=>tables[name].length,getMaxRows:()=>100000,insertRowsAfter(){},getRange(row,col,count,width){return {getValues:()=>tables[name].slice(row-1,row-1+count).map(r=>r.slice(col-1,col-1+width)),setValues(rows){if(name==='Batches'&&failReceipt){failReceipt=false;throw new Error('injected failure');}rows.forEach((r,i)=>{const target=tables[name][row-1+i]||[];r.forEach((v,j)=>target[col-1+j]=v);tables[name][row-1+i]=target;});}};}};}
- function file(name,raw){return {getName:()=>name,getBlob:()=>({getDataAsString:()=>raw}),getId:()=>name,getDateCreated:()=>new Date('2026-10-21T00:00:00Z')};}
- function iterator(arr){let i=0;return {hasNext:()=>i<arr.length,next:()=>arr[i++]};}
- const folder={getFilesByName:name=>iterator(files.has(name)?[files.get(name)]:[]),getFiles:()=>iterator([...files.values()]),createFile(name,raw){const f=file(name,raw);files.set(name,f);return f;}};
- const context=vm.createContext({
-  ContentService:{MimeType:{JSON:'json'},createTextOutput:text=>({text,setMimeType(){return this;}})},
-  PropertiesService:{getScriptProperties:()=>({getProperty:()=> 'test-only-token-0000000000000000000000000000'})},
-  Utilities:{newBlob:s=>({getBytes:()=>Buffer.from(s)}),DigestAlgorithm:{SHA_256:'sha256'},Charset:{UTF_8:'utf8'},computeDigest:(_,s)=>[...crypto.createHash('sha256').update(s).digest()]},
-  DriveApp:{getFolderById:()=>folder},MimeType:{PLAIN_TEXT:'text/plain'},
-  LockService:{getScriptLock:()=>({tryLock:()=>true,releaseLock(){}})},
-  SpreadsheetApp:{openById:()=>({getSheetByName:sheet})},Session:{getActiveUser:()=>({getEmail:()=>''})}
- });
- vm.runInContext(fs.readFileSync(__dirname+'/core.gs','utf8')+'\n'+fs.readFileSync(__dirname+'/server.gs','utf8'),context);
- const batch={schemaVersion:1,batchId:crypto.randomUUID(),senderId:crypto.randomUUID(),appSessionId:crypto.randomUUID(),flushReason:'CHECKPOINT',events:[{eventId:crypto.randomUUID(),sequence:1,monotonicMs:1,occurredAt:'2026-10-21T00:00:00Z',environment:'TEST',playerId:'test',playerNumber:null,networkClientId:null,roomId:null,runId:null,attemptId:null,performanceId:null,breakId:null,sceneType:'TITLE',eventType:'GAME_STARTED',authority:'LOCAL',payload:{}}]};
- const send=(b=batch,token='test-only-token-0000000000000000000000000000')=>JSON.parse(context.doPost({postData:{contents:JSON.stringify({token,batchJson:JSON.stringify(b)})}}).text);
- return {context,tables,files,batch,send,failReceipt:()=>failReceipt=true,book:{getSheetByName:sheet}};
-}
+const {test}=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const {fixture}=require('./server.fixture.cjs');
 test('ingest ACK is durable and token is absent from raw Drive files',()=>{const f=fixture();assert.equal(f.send().ok,true);assert.equal(f.files.size,1);assert.equal(f.send().ok,true);assert.equal(f.files.size,1);const raw=[...f.files.values()][0].getBlob().getDataAsString();assert.equal(raw.includes('test-only-token'),false);});
 test('bad token rejects without writes and same batch ID different bytes conflicts',()=>{const f=fixture();assert.equal(f.send(f.batch,'invalid').error,'UNAUTHORIZED');assert.equal(f.files.size,0);f.send();const changed=JSON.parse(JSON.stringify(f.batch));changed.events[0].payload={changed:true};assert.equal(f.send(changed).error,'BATCH_ID_CONFLICT');assert.equal(f.files.size,1);});
 test('partial event append before receipt failure retries exactly once',()=>{const f=fixture();f.send();f.failReceipt();assert.throws(()=>f.context.ccImport_(f.book),/injected failure/);assert.equal(f.tables.Events.length,2);assert.equal(f.tables.Batches.length,1);assert.equal(f.context.ccImport_(f.book),1);assert.equal(f.tables.Events.length,2);assert.equal(f.tables.Batches.length,2);assert.equal(f.context.ccImport_(f.book),0);});
 test('duplicate event in a different batch deduplicates and conflicting event is retained for review',()=>{const f=fixture();f.send();f.context.ccImport_(f.book);const b=JSON.parse(JSON.stringify(f.batch));b.batchId=crypto.randomUUID();f.send(b);f.context.ccImport_(f.book);assert.equal(f.tables.Events.length,2);b.batchId=crypto.randomUUID();b.events[0].playerId='changed';f.send(b);assert.throws(()=>f.context.ccImport_(f.book),/EVENT_ID_CONFLICT/);assert.equal(f.tables.Events.length,2);});
-test('anonymous execute-as-owner deployment cannot access dashboard/RPC',()=>{const f=fixture();assert.throws(()=>f.context.doGet(),/DASHBOARD_ACCESS_DENIED/);assert.throws(()=>f.context.refreshDashboard({}),/DASHBOARD_ACCESS_DENIED/);assert.throws(()=>f.context.getDashboard({}),/DASHBOARD_ACCESS_DENIED/);assert.throws(()=>f.context.installRefreshTrigger(),/DASHBOARD_ACCESS_DENIED/);assert.throws(()=>f.context.scheduledRefresh(),/DASHBOARD_ACCESS_DENIED/);});
+test('anonymous execute-as-owner deployment cannot access dashboard/RPC',()=>{const f=fixture();assert.ok(f.context.doGet());assert.throws(()=>f.context.refreshDashboard({}),/DASHBOARD_ACCESS_DENIED/);assert.throws(()=>f.context.getDashboard({}),/DASHBOARD_ACCESS_DENIED/);assert.throws(()=>f.context.installRefreshTrigger(),/DASHBOARD_ACCESS_DENIED/);assert.throws(()=>f.context.scheduledRefresh(),/DASHBOARD_ACCESS_DENIED/);});
 test('formula-like untrusted text is escaped for Sheets',()=>{const f=fixture();assert.equal(f.context.ccText_('=IMPORTXML("url")'),'\'=IMPORTXML("url")');assert.equal(f.context.ccText_(0),0);});
 
 test('version column appends safely and a changed version conflicts on replay',()=>{
@@ -41,4 +23,36 @@ test('dashboard defaults to current release, filters every view and never falls 
  d=f.context.ccDashboard_([old,current,next],{environment:'TEST',gameVersion:'0.1.0',timelineRunId:next.runId});assert.equal(d.eventCount,1);assert.equal(d.view.runOptions.length,1);assert.equal(d.view.timeline.events[0].eventId,current.eventId);
  assert.equal(f.context.ccDashboard_([old],{environment:'TEST',gameVersion:'0.1.0'}).eventCount,0);
  assert.equal(f.context.ccDashboard_([old,current],{environment:'TEST',gameVersion:'UNVERSIONED'}).eventCount,1);
+});
+
+test('published summaries match dashboard aggregates for TEST/LIVE and each recorded or missing version',()=>{
+ const f=fixture(),all=[];
+ for(const environment of ['TEST','LIVE'])for(const gameVersion of ['0.1.0','0.2.0',null]){
+  const runId=crypto.randomUUID(),attemptId=crypto.randomUUID();let sequence=0;
+  const add=(eventType,payload,extra={})=>all.push({...f.batch.events[0],eventId:crypto.randomUUID(),appSessionId:f.batch.appSessionId,environment,gameVersion,runId,attemptId,sequence:++sequence,sceneType:'WAITINGROOM',performanceId:'D1P1',eventType,payload,...extra});
+  add('PERFORMANCE_STARTED',{trickType:'TIGHTROPE',difficulty:1,retryIndex:1,playerCount:2,startingLostCount:0},{authority:'HOST'});
+  add('PERFORMANCE_SUCCEEDED',{trickType:'TIGHTROPE',difficulty:1,durationMs:10,survivors:1,arrivals:1},{authority:'HOST'});
+  add('PLAYER_DIED',{cause:'FALL'},{authority:'HOST'});add('ZONE_ENTERED',{zoneType:'BEDROOM'});add('ZONE_EXITED',{zoneType:'BEDROOM',durationMs:2500});
+  add('ITEM_COLLECTED',{itemType:'GLOVES'});add('FUNDS_CHANGED',{transactionId:runId+':1',gameDay:1,balanceBefore:0,balanceAfter:100,category:'REWARD'},{authority:'HOST'});
+  add('ZONE_ENTERED',{zoneType:'BEDROOM'},{performanceId:'D2P1'});
+ }
+ f.context.ccPublish_(f.book,all);
+ const value=v=>JSON.parse(JSON.stringify(v)),definitions={
+  '묘기 통계':['tricks',t=>[t.trickType,t.difficulty,t.attempts,t.completed,t.wins,t.winRate,t.avgMaxDistance,t.distanceSamples,t.deaths,t.interactions]],
+  '사망 원인':['deaths',d=>d.label.split(' / ').concat(d.deaths)],
+  '공간 이용':['zones',z=>[z.zoneType,z.visits,z.distinctPlayers,z.avgDwellSeconds,z.dwellSamples]],
+  '기물 서비스 이용':['usage',u=>[u.kind,u.itemOrServiceType,u.uses,u.users,u.eligibleUsers,u.usageRate]]};
+ for(const environment of ['TEST','LIVE'])for(const gameVersion of ['0.1.0','0.2.0','UNVERSIONED']){
+  const d=f.context.ccDashboard_(all,{environment,gameVersion});
+  for(const [name,[key,project]]of Object.entries(definitions)){
+   const rows=f.tables[name].slice(1).filter(r=>r.at(-1)===environment&&r.at(-2)===gameVersion).map(r=>r.slice(0,-2));
+   assert.deepEqual(value(rows),value(d[key].map(project)),name+' '+environment+' '+gameVersion);
+  }
+  const rows=f.tables['자금 일계'].slice(1).filter(r=>r[6]===gameVersion&&r[7]===environment);
+  assert.deepEqual(value(rows.filter(r=>r[11]==='AVERAGE').map(r=>[r[1],r[8],r[2],r[3],r[9]])),value(d.view.funds.series.map(p=>[p.day,p.balance,p.rewards,p.spent,p.samples])));
+  const run=d.runIds[0],view=f.context.ccDashboard_(all,{environment,gameVersion,fundsRunId:run}).view.funds;
+  assert.deepEqual(value(rows.filter(r=>r[0]===run&&r[11]==='RUN').map(r=>[r[1],r[8],r[2],r[3],r[10]])),value(view.series.map(p=>[p.day,p.balance,p.rewards,p.spent,p.carried])));
+ }
+ const counts=Object.fromEntries(Object.keys(definitions).concat('자금 일계').map(n=>[n,f.tables[n].length]));
+ f.context.ccPublish_(f.book,all);for(const[n,count]of Object.entries(counts))assert.equal(f.tables[n].length,count,'refresh replaces instead of appending '+n);
 });

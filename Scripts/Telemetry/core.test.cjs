@@ -94,7 +94,7 @@ test('winner denominator excludes unfinished and participant observations',()=>{
 test('test data never appears in LIVE and missing distance stays null',()=>{const p={trickType:'CANNON',difficulty:1};assert.equal(core.aggregate([event('PERFORMANCE_STARTED',p)],'LIVE').eventCount,0);assert.equal(core.aggregate([event('PERFORMANCE_STARTED',p)],'TEST').tricks[0].avgMaxDistance,null);});
 test('first host terminal outcome is stable even when it was a failure',()=>{const p={trickType:'CANNON',difficulty:1};const t=core.aggregate([event('PERFORMANCE_FAILED',p),event('PERFORMANCE_SUCCEEDED',p)],'TEST').tricks[0];assert.equal(t.completed,1);assert.equal(t.wins,0);assert.equal(t.winRate,0);});
 test('distance uses participant-attempt maxima, not sum of snapshots',()=>{
- const p={trickType:'TIGHTROPE',difficulty:1};const a=[event('PERFORMANCE_STARTED',p),event('PERFORMANCE_PROGRESS',{...p,maxDistance:10},{authority:'LOCAL'}),event('PERFORMANCE_PROGRESS',{...p,maxDistance:20},{authority:'LOCAL'}),event('PERFORMANCE_PROGRESS',{...p,maxDistance:0},{authority:'LOCAL',playerId:'p2'})];
+ const p={trickType:'TIGHTROPE',difficulty:1};const a=[event('PERFORMANCE_STARTED',p),event('PERFORMANCE_PROGRESS',{...p,maxDistance:10},{authority:'LOCAL'}),event('PERFORMANCE_PROGRESS',{...p,maxDistance:20},{authority:'LOCAL'}),event('PERFORMANCE_PROGRESS',{...p,maxDistance:0},{authority:'LOCAL',playerId:'p2',playerNumber:1,networkClientId:'1'})];
  const t=core.aggregate(a,'TEST').tricks[0];assert.equal(t.avgMaxDistance,10);assert.equal(t.distanceSamples,2);
 });
 test('funds count host ledger transaction once, excluding client replicas',()=>{
@@ -103,7 +103,7 @@ test('funds count host ledger transaction once, excluding client replicas',()=>{
  assert.equal(r.funds[0].transactions,1);assert.equal(r.funds[0].rewards,100);
 });
 test('usage denominator is observed waiting-room players, visits retain zero dwell',()=>{
- const a=[event('ZONE_ENTERED',{zoneType:'BEDROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL'}),event('ZONE_ENTERED',{zoneType:'BEDROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL',playerId:'p2'}),event('ZONE_EXITED',{zoneType:'BEDROOM',durationMs:0},{sceneType:'WAITINGROOM',authority:'LOCAL'}),event('SERVICE_RESERVED',{serviceType:'RESTORE_BODY'},{sceneType:'WAITINGROOM',authority:'LOCAL'})];
+ const a=[event('ZONE_ENTERED',{zoneType:'BEDROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL'}),event('ZONE_ENTERED',{zoneType:'BEDROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL',playerId:'p2',playerNumber:1,networkClientId:'1'}),event('ZONE_EXITED',{zoneType:'BEDROOM',durationMs:0},{sceneType:'WAITINGROOM',authority:'LOCAL'}),event('SERVICE_RESERVED',{serviceType:'RESTORE_BODY'},{sceneType:'WAITINGROOM',authority:'LOCAL'})];
  const r=core.aggregate(a,'TEST');assert.equal(r.usage[0].usageRate,.5);assert.equal(r.zones[0].avgDwellSeconds,0);
 });
 test('facility usage accepts host confirmation once, without local replica or medical host duplication',()=>{

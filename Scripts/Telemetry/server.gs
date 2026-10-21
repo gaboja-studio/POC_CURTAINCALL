@@ -2,7 +2,7 @@
 var CC_CONFIG = {
   spreadsheetId:'1KCLPn1tEW5qsK16jcw8swZ75IeN6p6lG_82zRUOg7I8',
   rawFolderId:'1MEeWD5UNdKcypZ6jAhXfaMkP6i84WAi5',
-  ownerEmail:'ourhosu@gmail.com', maxEvents:50000, maxBatchesPerRefresh:100
+  ownerEmail:'ourhosu@gmail.com', dashboardEnabled:true, maxEvents:50000, maxBatchesPerRefresh:100
 };
 function ccBook_(){return SpreadsheetApp.openById(CC_CONFIG.spreadsheetId);}
 function ccJson_(v){return ContentService.createTextOutput(JSON.stringify(v)).setMimeType(ContentService.MimeType.JSON);}
@@ -12,7 +12,7 @@ function ccOwner_(){
   // Never fall back to effective user: public execute-as-owner deployments would expose data.
   if(Session.getActiveUser().getEmail()!==CC_CONFIG.ownerEmail)throw new Error('DASHBOARD_ACCESS_DENIED');
 }
-function doGet(){ccOwner_();return HtmlService.createHtmlOutputFromFile('dashboard').setTitle('CURTAINCALL · 플레이 로그');}
+function doGet(){if(!CC_CONFIG.dashboardEnabled)throw new Error('INGEST_ONLY');return HtmlService.createHtmlOutputFromFile('dashboard').setTitle('CURTAINCALL · 플레이 로그');}
 function doPost(e){
   try{
     if(!e||!e.postData||Utilities.newBlob(e.postData.contents).getBytes().length>262144)throw new Error('BODY_LIMIT');
@@ -22,6 +22,9 @@ function doPost(e){
     if(typeof request.batchJson!=='string')throw new Error('BODY_LIMIT');
     var raw=request.batchJson,batch=TelemetryCore.validate(JSON.parse(raw)),hash=ccHash_(raw);
     var result=ccLock_(function(){
+      var book=ccBook_(),receipt=ccReceipts_(book)[batch.batchId];
+      if(receipt){if(receipt[1]!==hash||Number(receipt[5])!==batch.events.length)throw new Error('BATCH_ID_CONFLICT');return {ok:true,batchId:batch.batchId,sha256:hash,acceptedEvents:batch.events.length,stored:'SHEETS'};}
+      if(batch.events.every(function(event){return ccDeleted_(event,ccRules_(book));}))return {ok:true,batchId:batch.batchId,sha256:hash,acceptedEvents:batch.events.length,stored:'DISCARDED_BY_ADMIN'};
       var folder=DriveApp.getFolderById(CC_CONFIG.rawFolderId);
       var files=folder.getFilesByName(batch.batchId+'.json');var file;
       if(files.hasNext()){
@@ -48,7 +51,7 @@ function ccAppend_(sheet,rows){
   if(end>sheet.getMaxRows())sheet.insertRowsAfter(sheet.getMaxRows(),end-sheet.getMaxRows());
   sheet.getRange(end-rows.length+1,1,rows.length,rows[0].length).setValues(rows.map(function(r){return r.map(ccText_);}));
 }
-function ccReadEvents_(book){return ccRows_(book.getSheetByName('Events'),TelemetryCore.headers.length,CC_CONFIG.maxEvents).map(TelemetryCore.decode);}
+function ccReadEvents_(book){var rules=ccRules_(book);return ccRows_(book.getSheetByName('Events'),TelemetryCore.headers.length,CC_CONFIG.maxEvents).map(TelemetryCore.decode).filter(function(e){return !ccDeleted_(e,rules);});}
 function ccFingerprint_(row){return JSON.stringify(row.slice(0,19).concat([row[21]||'']));}
 function ccImport_(book){
   var batchSheet=book.getSheetByName('Batches'),eventSheet=book.getSheetByName('Events');
@@ -58,7 +61,7 @@ function ccImport_(book){
   var existing=ccRows_(eventSheet,TelemetryCore.headers.length,CC_CONFIG.maxEvents),ids={};
   existing.forEach(function(r){ids[r[0]]=ccFingerprint_(r);});
   var files=DriveApp.getFolderById(CC_CONFIG.rawFolderId).getFiles();var imported=0;
-  var start=Date.now();
+  var rules=ccRules_(book),start=Date.now();
   while(files.hasNext()&&imported<CC_CONFIG.maxBatchesPerRefresh&&Date.now()-start<180000){
     var file=files.next();if(!/^[0-9a-f-]{36}\.json$/i.test(file.getName()))continue;
     var id=file.getName().slice(0,-5);if(done[id])continue;
@@ -66,6 +69,7 @@ function ccImport_(book){
     if(b.batchId!==id)throw new Error('RAW_BATCH_ID_MISMATCH');
     var hash=ccHash_(raw),now=new Date().toISOString(),pending=[];
     b.events.forEach(function(e){
+      if(ccDeleted_(e,rules))return;
       var row=TelemetryCore.row(e,b,now),fingerprint=ccFingerprint_(row);
       if(ids[e.eventId]&&ids[e.eventId]!==fingerprint)throw new Error('EVENT_ID_CONFLICT');
       if(!ids[e.eventId]){pending.push(row);ids[e.eventId]=fingerprint;}
@@ -91,11 +95,51 @@ function ccPublish_(book,all){
     ['기물 서비스 이용','usage',7,function(u){return [u.kind,u.itemOrServiceType,u.uses,u.users,u.eligibleUsers,u.usageRate];}],
     ['자금 일계','funds',7,function(f){return [f.runId,f.gameDay,f.rewards,f.spent,f.netChange,f.transactions];}]
   ];
-  var versions=TelemetryCore.versionSelection(all,'LIVE').options.map(function(v){return {version:v,data:TelemetryCore.aggregate(all,'LIVE',null,v)};});
+  var groups=[];
+  ['TEST','LIVE'].forEach(function(environment){
+    TelemetryCore.versionSelection(all,environment).options.forEach(function(version){
+      var filters={environment:environment,gameVersion:version};
+      groups.push({version:version,environment:environment,data:TelemetryCore.aggregate(all,environment,null,version),filters:filters});
+    });
+  });
   definitions.forEach(function(d){
-    var rows=[];versions.forEach(function(v){v.data[d[1]].forEach(function(r){rows.push(d[3](r).concat([v.version]));});});
-    book.getSheetByName(d[0]).getRange(1,d[2],1,1).setValues([['gameVersion']]);
+    var rows=[];groups.forEach(function(g){
+      if(d[1]!=='funds')g.data[d[1]].forEach(function(r){rows.push(d[3](r).concat([g.version,g.environment]));});
+      else {
+        // Use the exact chart projection: ledger-order balance and carry only across reached days.
+        var funds=TelemetryCore.dashboardView(all,g.filters).funds,ledger={};
+        g.data.funds.forEach(function(f){ledger[f.runId+':'+f.gameDay]=f;});
+        funds.runSeries.forEach(function(p){
+          var f=ledger[p.runId+':'+p.day];
+          rows.push([p.runId,p.day,p.rewards,p.spent,f?f.netChange:0,p.transactions,g.version,g.environment,p.balance,1,p.carried,'RUN']);
+        });
+        funds.series.forEach(function(p){
+          var points=funds.runSeries.filter(function(r){return r.day===p.day;}),net=0,transactions=0;
+          points.forEach(function(r){var f=ledger[r.runId+':'+r.day];if(f)net+=f.netChange;transactions+=r.transactions;});
+          rows.push(['',p.day,p.rewards,p.spent,net/p.samples,transactions/p.samples,g.version,g.environment,p.balance,p.samples,'','AVERAGE']);
+        });
+      }
+    });
+    var sheet=book.getSheetByName(d[0]),extra=['gameVersion','environment'];
+    if(d[1]==='funds')extra=extra.concat(['balance','samples','carried','mode']);
+    sheet.getRange(1,d[2],1,extra.length).setValues([extra]);
+    sheet.getRange(1,d[2],1,extra.length).setNotes([extra.map(function(k){return {
+      gameVersion:'게임 버전. UNVERSIONED는 버전 수집 전 기록이며 0.1.0으로 추정하지 않습니다.',
+      environment:'TEST=Unity/MPPM/개발 빌드, LIVE=일반 빌드. 대시보드와 같은 환경·버전을 선택하세요.',
+      balance:'대시보드 자금 그래프와 같은 일차 말 관측 잔액입니다.',samples:'해당 일차 잔액의 런 표본 수입니다.',
+      carried:'true이면 도달한 일차에 이전 관측 잔액을 이월했습니다.',mode:'RUN=개별 런, AVERAGE=대시보드 기본 평균. 합산하지 말고 한 종류만 필터하세요.'
+    }[k];})]);
     ccReplace_(book,d[0],rows);
+    sheet.setFrozenRows(1);
+    var previousFilter=sheet.getFilter(),criteria=[],width=d[2]+extra.length-1;
+    if(previousFilter){
+      for(var col=1;col<=Math.min(width,previousFilter.getRange().getNumColumns());col++)criteria[col]=previousFilter.getColumnFilterCriteria(col);
+      previousFilter.remove();
+    }
+    var filter=sheet.getRange(1,1,Math.max(2,rows.length+1),width).createFilter();
+    criteria.forEach(function(c,col){if(c)filter.setColumnFilterCriteria(col,c);});
+    // Leave room for the filter icon as well as UNVERSIONED / AVERAGE text.
+    sheet.setColumnWidths(d[2],extra.length,130);
   });
   book.getSheetByName('운영 상태').getRange('B8').setValue(new Date().toISOString());
 }
@@ -110,8 +154,9 @@ function ccDashboard_(all,filters){
 }
 function ccRefresh_(filters){
   return ccLock_(function(){
-    var book=ccBook_(),count=ccImport_(book),all=ccReadEvents_(book);
+    var book=ccBook_(),count=ccImport_(book),rules=ccRules_(book);ccCompactDeleted_(book,rules);var all=ccReadEvents_(book);
     ccPublish_(book,all);
+    ccPruneRaw_(book,rules);
     ccAppend_(book.getSheetByName('갱신 이력'),[[new Date().toISOString(),count,all.length,'OK']]);
     var data=ccDashboard_(all,filters);
     data.totalTimelineRows=data.timeline.length;
@@ -122,9 +167,9 @@ function ccRefresh_(filters){
     return data;
   });
 }
-function refreshDashboard(filters){ccOwner_();return ccRefresh_(filters);}
+function refreshDashboard(filters,auth){var viewer=ccViewer_(auth),data=ccRefresh_(filters);data.viewer=viewer;return data;}
 // Changing a tab/filter reads saved rows; importing stays on the explicit/30-minute refresh path.
-function getDashboard(filters){ccOwner_();var data=ccDashboard_(ccReadEvents_(ccBook_()),filters);data.timeline=[];data.refreshedAt=new Date().toISOString();data.importedBatches=0;return data;}
+function getDashboard(filters,auth){var viewer=ccViewer_(auth),data=ccDashboard_(ccReadEvents_(ccBook_()),filters);data.viewer=viewer;data.timeline=[];data.refreshedAt=new Date().toISOString();data.importedBatches=0;return data;}
 function scheduledRefresh(){ccOwner_();return ccScheduledRefresh_();}
 function ccScheduledRefresh_(){return ccRefresh_({environment:'LIVE'}).eventCount;}
 function installRefreshTrigger(){

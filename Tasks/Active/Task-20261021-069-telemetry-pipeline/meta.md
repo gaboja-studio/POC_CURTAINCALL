@@ -5,7 +5,7 @@
 - **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** 로그·Google 파이프라인
-- **Current Skill:** save-work
+- **Current Skill:** implement-code
 - **Updated:** 2026-10-22
 
 ## Workspace
