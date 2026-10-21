@@ -63,6 +63,8 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             menu.Show(StartMenu.Page.Lan);
             menu.address.text = "127.0.0.1:17998";
             float began = Time.realtimeSinceStartup;
+            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex(
+                @"\[Session\] 접속 취소 \[Timeout\] mode=LAN"));
             menu.lanJoin.onClick.Invoke();
             Assert.IsTrue(menu.IsBusy);
             AssertLocked();
@@ -72,9 +74,10 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             menu.settings.onClick.Invoke();
             Assert.AreSame(connector, session.ActiveConnector);
             Assert.AreEqual(StartMenu.Page.Lan, menu.Current);
-            while (menu.IsBusy && Time.realtimeSinceStartup - began < 5) yield return null;
+            float timeoutSeconds = NetworkSessionManager.JoinTimeoutMilliseconds / 1000f;
+            while (menu.IsBusy && Time.realtimeSinceStartup - began < timeoutSeconds + 5) yield return null;
             Assert.IsFalse(menu.IsBusy);
-            Assert.That(Time.realtimeSinceStartup - began, Is.InRange(2.8f, 5f));
+            Assert.That(Time.realtimeSinceStartup - began, Is.InRange(timeoutSeconds - 0.2f, timeoutSeconds + 5f));
             Assert.AreEqual(SessionConnectionState.Offline, session.ConnectionState);
             Assert.AreEqual(Failure, menu.status.text);
             foreach (var button in Buttons) Assert.IsTrue(button.interactable, button.name);
@@ -127,8 +130,10 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         public IEnumerator LateFailureCannotCancelNewHostAndCancelledServicesCannotStart()
         {
             var old = new DelayedConnector();
+            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex(
+                @"\[Session\] 접속 취소 \[Timeout\] mode=DelayedConnector"));
             var join = session.JoinAsync(old, "INVALID");
-            float until = Time.realtimeSinceStartup + 5;
+            float until = Time.realtimeSinceStartup + NetworkSessionManager.JoinTimeoutMilliseconds / 1000f + 5;
             while (!join.IsCompleted && Time.realtimeSinceStartup < until) yield return null;
             Assert.IsTrue(join.IsCompleted);
             Assert.IsFalse(join.Result);
@@ -150,6 +155,47 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             yield return null;
             Assert.IsTrue(start.IsCanceled, "취소된 SDK 요청은 네트워크 설정을 만지기 전에 중단되어야 한다.");
             Assert.AreEqual(SessionConnectionState.Host, session.ConnectionState);
+        }
+
+        [UnityTest]
+        public IEnumerator PendingJoinSurvivesThreeSecondsAndUserCancellationIsLogged()
+        {
+            var pending = new DelayedConnector();
+            var join = session.JoinAsync(pending, "unused");
+            yield return new WaitForSecondsRealtime(3.2f);
+            Assert.IsFalse(join.IsCompleted, "이전 3초 제한으로 접속을 취소하면 안 된다.");
+            Assert.IsFalse(pending.Left);
+            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex(
+                @"\[Session\] 접속 취소 \[UserCancelled\] mode=DelayedConnector"));
+            var leave = session.LeaveAsync();
+            while (!leave.IsCompleted) yield return null;
+            pending.Result.SetCanceled();
+            float until = Time.realtimeSinceStartup + 2;
+            while (!join.IsCompleted && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsTrue(join.IsCompleted);
+            Assert.IsFalse(join.Result);
+            Assert.IsTrue(pending.Left);
+            Assert.AreEqual("접속을 취소했습니다.", session.LastDisconnectReason);
+        }
+
+        [UnityTest]
+        public IEnumerator StoppedNetworkReportsRejectionReasonInsteadOfTimeout()
+        {
+            var pending = new DelayedConnector();
+            var join = session.JoinAsync(pending, "unused");
+            typeof(NetworkSessionManager).GetField("_pendingDisconnectReason", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(session, "방이 가득 찼습니다.");
+            LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex(
+                @"\[Session\] 접속 취소 \[NetworkStopped\].*disconnectReason=방이 가득 찼습니다\."));
+            typeof(NetworkSessionManager).GetMethod("HandleStopped", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(session, new object[] { false });
+            pending.Result.SetCanceled();
+            float until = Time.realtimeSinceStartup + 2;
+            while (!join.IsCompleted && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsTrue(join.IsCompleted);
+            Assert.IsFalse(join.Result);
+            Assert.IsTrue(pending.Left);
+            Assert.AreEqual(SessionConnectionState.Offline, session.ConnectionState);
         }
     }
 }

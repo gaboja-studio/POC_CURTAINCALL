@@ -219,7 +219,9 @@ namespace CurtainCall.Network.Session
             JoinAsync(new ServicesSessionConnector(_networkManager, RequiredPlayers), code);
 
         public const string JoinFailureMessage = "방이 없거나 네트워크 연결이 불안정 합니다";
+        public const int JoinTimeoutMilliseconds = 30000;
         bool _cancellingConnect;
+        DateTime _connectStartedUtc;
 
         public async Task<bool> HostAsync(ISessionConnector connector)
         {
@@ -244,9 +246,14 @@ namespace CurtainCall.Network.Session
             if (!BeginConnect(connector)) return false;
             var completion = WaitForClientAsync(connector, joinKey);
             // 커넥터의 true는 연결 시작일 수 있다. NGO의 실제 Client 상태까지 같은 제한시간을 쓴다.
-            await Task.WhenAny(completion, Task.Delay(3000));
-            if (completion.IsCompleted && await completion) return true;
-            await CancelConnectAsync(connector, JoinFailureMessage);
+            await Task.WhenAny(completion, Task.Delay(JoinTimeoutMilliseconds));
+            if (completion.IsCompleted)
+            {
+                if (await completion) return true;
+                await CancelConnectAsync(connector, JoinFailureMessage, "JoinFailed");
+            }
+            else
+                await CancelConnectAsync(connector, JoinFailureMessage, "Timeout");
             return false;
         }
 
@@ -263,7 +270,9 @@ namespace CurtainCall.Network.Session
             }
             catch (Exception e)
             {
-                Debug.LogWarning($"[Session] 방 참가 실패: {e.Message}");
+                // SDK가 취소 예외를 감싸기도 한다. 이미 기록한 취소를 참가 오류로 중복 출력하지 않는다.
+                if (ReferenceEquals(_connector, connector) && !_cancellingConnect)
+                    Debug.LogWarning($"[Session] 방 참가 실패 [JoinError] mode={ConnectionMode(connector)}: {e}");
                 return false;
             }
         }
@@ -274,17 +283,23 @@ namespace CurtainCall.Network.Session
             if (connector == null || _cancellingConnect) return;
             if (ConnectionState == SessionConnectionState.Connecting)
             {
-                await CancelConnectAsync(connector, "접속을 취소했습니다.");
+                await CancelConnectAsync(connector, "접속을 취소했습니다.", "UserCancelled");
                 return;
             }
             _leaveRequested = true;
             await connector.LeaveAsync();
         }
 
-        async Task CancelConnectAsync(ISessionConnector connector, string reason)
+        static string ConnectionMode(ISessionConnector connector) =>
+            connector is LanSessionConnector ? "LAN" : connector is ServicesSessionConnector ? "Relay" : connector.GetType().Name;
+
+        async Task CancelConnectAsync(ISessionConnector connector, string reason, string cause = "HostFailed")
         {
             if (this == null || !ReferenceEquals(_connector, connector) || _cancellingConnect) return;
             _cancellingConnect = true;
+            string detail = !string.IsNullOrEmpty(_pendingDisconnectReason)
+                ? _pendingDisconnectReason : _networkManager.DisconnectReason;
+            Debug.Log($"[Session] 접속 취소 [{cause}] mode={ConnectionMode(connector)} elapsedMs={(DateTime.UtcNow - _connectStartedUtc).TotalMilliseconds:F0} timeoutMs={JoinTimeoutMilliseconds} disconnectReason={detail}");
             try
             {
                 // Services는 먼저 시도를 무효화한다. 늦은 HTTP 완료가 새 NGO 연결을 시작하지 못한다.
@@ -313,6 +328,7 @@ namespace CurtainCall.Network.Session
                 return false;
 
             _connector = connector;
+            _connectStartedUtc = DateTime.UtcNow;
             _pendingDisconnectReason = null;
             _leaveRequested = false;
             LastDisconnectReason = null;
@@ -508,7 +524,7 @@ namespace CurtainCall.Network.Session
                 return;
             if (ConnectionState == SessionConnectionState.Connecting)
             {
-                _ = CancelConnectAsync(_connector, JoinFailureMessage);
+                _ = CancelConnectAsync(_connector, JoinFailureMessage, "NetworkStopped");
                 return;
             }
 

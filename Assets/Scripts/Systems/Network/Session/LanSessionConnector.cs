@@ -45,7 +45,7 @@ namespace CurtainCall.Network.Session
         {
             if (!TryParseJoinKey(joinKey, _port, out string address, out ushort port))
             {
-                Debug.LogWarning($"[Session] 잘못된 주소입니다: '{joinKey}' (예: 192.168.0.10:7777)");
+                Debug.LogWarning("[Session] LAN 참가 실패 [InvalidAddress] (예: 192.168.0.10:7777)");
                 return Task.FromResult(false);
             }
 
@@ -55,6 +55,7 @@ namespace CurtainCall.Network.Session
 
             transport.SetConnectionData(address, port);
             bool started = _networkManager.StartClient();
+            if (!started) Debug.LogWarning("[Session] LAN 참가 실패 [ClientStartFailed]");
             JoinKey = started ? $"{address}:{port}" : null;
             return Task.FromResult(started);
         }
@@ -70,7 +71,7 @@ namespace CurtainCall.Network.Session
         {
             var transport = _networkManager.NetworkConfig.NetworkTransport as UnityTransport;
             if (transport == null)
-                Debug.LogError("[Session] NetworkManager에 UnityTransport가 설정되어 있지 않습니다.");
+                Debug.LogError("[Session] LAN 연결 실패 [MissingTransport]: NetworkManager에 UnityTransport가 설정되어 있지 않습니다.");
             return transport;
         }
 
