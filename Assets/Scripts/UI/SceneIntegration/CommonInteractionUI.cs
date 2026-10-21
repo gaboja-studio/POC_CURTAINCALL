@@ -38,7 +38,7 @@ namespace CurtainCall.UI.SceneIntegration
         {
             public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom, Lobby;
             public float Distance;
-            public string Helper;
+            public string Helper, Key = "F";
             public bool Hold, ScreenGuide;
         }
         public void Configure(InteractionPromptView view, RectTransform anchor) { prompt = view; promptAnchor = anchor; }
@@ -74,7 +74,7 @@ namespace CurtainCall.UI.SceneIntegration
         {
             ShopReach.HasExternalPresentation = prompt != null;
             var reader = Reader(); var camera = Camera.main;
-            if (reader == null || !reader.isActiveAndEnabled || camera == null || InputGate.IsBlocked) { Hide(); return; }
+            if (reader == null || !reader.isActiveAndEnabled || camera == null || InputGate.IsBlocked || SceneCurtainTransition.IsActive) { Hide(); return; }
             candidates.Clear(); selected.Clear();
             Vector3 feet = reader.transform.position;
             foreach (var target in ShopReach.Targets)
@@ -95,6 +95,7 @@ namespace CurtainCall.UI.SceneIntegration
                 candidates[candidates.Count - 1].Lobby = true;
             }
             AddCannon(feet);
+            AddTightropeDevices(feet);
             AddPiggyback(feet);
             foreach (var candidate in candidates)
             {
@@ -125,7 +126,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (focused == null)
                 foreach (var candidate in selected) if (candidate.WaitingRoom || candidate.Lobby) { focused = candidate; break; }
             if (focused == null || prompt == null) { if (prompt != null) prompt.HideImmediate(); return; }
-            prompt.Show("F", focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
+            prompt.Show(focused.Key, focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
                 focused.Hold, focused.Hold && focused.Available ? reader.Current.InteractHoldProgress : 0,
                 focused.Focused ? focused.Helper ?? "" : "가까이 다가가세요");
             var layout = prompt.GetComponent<NotificationTextLayout>();
@@ -140,6 +141,54 @@ namespace CurtainCall.UI.SceneIntegration
         {
             candidates.Add(new Candidate { Root = root, Point = point, Action = action, Available = available, Focused = focused,
                 Distance = Vector3.Distance(feet + Vector3.up * .75f, point) });
+        }
+        void AddTightropeDevices(Vector3 feet)
+        {
+            var player = NetworkPlayer.Local;
+            var course = TightropeCourse.Current;
+            if (player == null || player.State != PlayerState.Normal || course == null || !course.IsGameplayActive) return;
+            var relay = TightropeRelayGate.Current;
+            if (relay != null && relay.IsActive)
+            {
+                int held = relay.HeldPole(player);
+                if (held >= 0)
+                {
+                    DeviceGuide(player, feet, "F / F 홀드", "봉 놓기", true,
+                        $"SPACE로도 놓기 · 남은 {relay.HoldRemaining(held):0.0}초", true);
+                    return;
+                }
+                for (int i = 0; i < relay.PoleCount; i++)
+                    if (relay.CanUsePole(i, player))
+                    {
+                        Add(relay.PhysicalPole(i).transform, relay.PoleFeet(i) + Vector3.up, "매달려 길 만들기", true, true, feet);
+                        return;
+                    }
+            }
+            var trapeze = TightropeTrapeze.Current;
+            if (trapeze == null || !trapeze.IsActive) return;
+            if (trapeze.IsHeld(player))
+            {
+                bool lower = trapeze.IsLower(player);
+                bool canJump = lower || trapeze.PassengerAt(trapeze.HeldPole(player)) == ulong.MaxValue;
+                DeviceGuide(player, feet, "SPACE", lower ? "다음 봉으로 점프" : "봉에서 점프", canJump,
+                    canJump ? "공중에서 F로 봉 또는 동료를 잡으세요" : "아래 단원이 먼저 점프해야 합니다");
+                return;
+            }
+            // 실제 입력과 같은 순서로 봉 잡기/동료 잡기를 평가한다. 표시가 판정을 대신하지 않는다.
+            for (int i = 0; i < trapeze.PoleCount; i++)
+            {
+                if (trapeze.CanGrabPole(i, player))
+                { DeviceGuide(player, feet, "F", "봉 잡기", true, ""); return; }
+                if (trapeze.CanAttachToPole(i, player))
+                { DeviceGuide(player, feet, "F", "매달린 동료 잡기", true, ""); return; }
+            }
+            if (trapeze.IsInFlight(player))
+                DeviceGuide(player, feet, "F", "봉 또는 동료 잡기", false, "봉이나 동료 가까이 이동하세요");
+        }
+        void DeviceGuide(NetworkPlayer player, Vector3 feet, string key, string action, bool available, string helper, bool hold = false)
+        {
+            candidates.Add(new Candidate { Root = player.transform, Point = feet, Key = key, Action = action,
+                Available = available, Focused = true, ScreenGuide = true, Hold = hold, Helper = helper });
         }
         void AddPiggyback(Vector3 feet)
         {
