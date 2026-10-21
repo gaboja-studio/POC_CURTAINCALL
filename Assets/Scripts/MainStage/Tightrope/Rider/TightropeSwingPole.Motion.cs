@@ -20,6 +20,7 @@ namespace CurtainCall.Tightrope
         NetworkPlayer flightPlayer;
         bool flightSimulation;
         Vector3 flightVelocity;
+        float flightSpeedLimit;
         double flightUntil;
 
         void Bind(NetworkPlayer player)
@@ -54,28 +55,38 @@ namespace CurtainCall.Tightrope
             flightMover = mover; flightBalance = held.Balance; flightPlayer = held.Player;
             flightSimulation = held.Simulated; mover.Simulated = false;
             flightVelocity = physicalPole.ReleaseVelocity(returnAngle, angularSpeed);
+            flightSpeedLimit = SwingPoleMath.FlightSpeedLimit(mover.transform.position.y - course.transform.position.y,
+                flightVelocity.y, GameSettings.Base.Character.Gravity, Mathf.Max(.1f, LandingDistance - course.GetDistance(mover.transform.position)));
+            flightVelocity = SwingPoleMath.LimitFlightVelocity(flightVelocity, flightSpeedLimit);
             flightUntil = Clock + 6d; mover.Teleported += OnTeleported;
             Tell("인간대포와 같은 WASD 공중 조절 · 동료는 F 받기 준비");
         }
 
         Vector3 PredictLanding(bool forwardControl)
         {
+            if (!OwnOccupied && flightMover == null) return course.GetLanePosition(assignedLane, LandingDistance);
             Sample(out float value, out float speed);
             Vector3 position = OwnOccupied ? WorldFeet(value, lane) : flightMover != null ? flightMover.transform.position : course.GetLanePosition(assignedLane, LandingDistance);
             Vector3 velocity = OwnOccupied ? physicalPole.ReleaseVelocity(value, speed) : flightVelocity;
             float gravity = GameSettings.Base.Character.Gravity;
+            float speedLimit = OwnOccupied ? SwingPoleMath.FlightSpeedLimit(position.y - course.transform.position.y,
+                velocity.y, gravity, Mathf.Max(.1f, LandingDistance - course.GetDistance(position))) : flightSpeedLimit;
+            velocity = SwingPoleMath.LimitFlightVelocity(velocity, speedLimit);
             float square = velocity.y * velocity.y + 2f * gravity * (position.y - course.transform.position.y);
             if (square < 0f || gravity <= 0f) return position;
             float time = (velocity.y + Mathf.Sqrt(square)) / gravity;
             float control = TightropeCannonAirControl.Current != null ? TightropeCannonAirControl.Current.ControlSpeedFor(Find(holder)) : AirControlSpeed;
-            return position + (new Vector3(velocity.x, 0f, velocity.z) + (forwardControl ? course.Forward * control : Vector3.zero)) * time
+            Vector3 controlled = SwingPoleMath.LimitFlightVelocity(velocity + (forwardControl ? course.Forward * control : Vector3.zero), speedLimit);
+            Vector3 step = Vector3.ProjectOnPlane(controlled, Vector3.up) * time
                 + Vector3.down * (position.y - course.transform.position.y);
+            return position + step;
         }
         void SimulateFlight()
         {
             if (flightMover == null) return;
             if (!Active || flightPlayer == null || flightPlayer.State != PlayerState.Normal) { ResetFlight(); return; }
             Vector3 correction = TightropeCannonAirControl.Current != null ? TightropeCannonAirControl.Current.Consume() : Vector3.zero;
+            correction = SwingPoleMath.LimitFlightVelocity(flightVelocity + correction, flightSpeedLimit) - flightVelocity;
             Vector3 displacement = BallisticMotion.Step(ref flightVelocity, correction, GameSettings.Base.Character.Gravity, Time.deltaTime);
             var collision = flightMover.Body.Move(displacement);
             if ((collision & CollisionFlags.Above) != 0 && flightVelocity.y > 0f) flightVelocity.y = 0f;
