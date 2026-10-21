@@ -92,6 +92,8 @@ namespace CurtainCall.Tightrope.Saws
         CustomMessagingManager messaging;
 
         Transform[] horizontalViews = Array.Empty<Transform>();
+        public int ActiveHorizontalCount => TrickSettings.SawCount(HorizontalCount, GameSettings.Tightrope.SawDensity);
+        public bool IsHorizontalEnabled(int index) => TrickSettings.IncludesSaw(index, HorizontalCount, GameSettings.Tightrope.SawDensity);
 
         // 가로 톱날(모든 화면): 작동·정지 기록. 시각은 게임 경과 시간
         HorizontalSawTrack[] tracks = Array.Empty<HorizontalSawTrack>();
@@ -165,24 +167,41 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>가로 톱날 중심 위치(월드).</summary>
         public Vector3 GetHorizontalPosition(int index)
         {
-            float distance = settings.GetHorizontalDistance(index);
+            return HorizontalPositionAtSide(index, tracks[index].GetSide(GameElapsed));
+        }
+
+        Vector3 HorizontalPositionAtSide(int index, float side)
+        {
+            float slope = TrickSettings.DiagonalSlope(index, GameSettings.Tightrope.SawDiagonalDegrees);
+            float reach = settings.horizontalTravelHalfWidth * Mathf.Abs(slope) + settings.horizontalColliderDiameter * .5f;
+            float distance = Mathf.Clamp(settings.GetHorizontalDistance(index), reach, Mathf.Max(reach, course.FinishDistance - reach));
             return course.transform.position
-                + course.Forward * distance
-                + course.Right * tracks[index].GetSide(GameElapsed)
+                + course.Forward * (distance + side * slope)
+                + course.Right * side
                 + Vector3.up * settings.HorizontalCenterHeight;
+        }
+
+        // 진행축의 사선은 양옆 경계에서 반사한다. 관문은 정지점에서 원래 줄에 정확히 도착한다.
+        Vector3 IncomingPosition(int lane, float distance, float referenceDistance, float height, int index)
+        {
+            float side = course.Layout.GetLaneSide(lane);
+            float halfWidth = Mathf.Max(.1f, (course.LaneCount - 1) * course.LaneSpacing * .5f);
+            float shift = (distance - referenceDistance) * TrickSettings.DiagonalSlope(index, GameSettings.Tightrope.SawDiagonalDegrees);
+            side = Mathf.PingPong(side + shift + halfWidth, halfWidth * 2f) - halfWidth;
+            return course.transform.position + course.Forward * distance + course.Right * side + Vector3.up * height;
         }
 
         /// <summary>초기화 전·없는 번호에는 false. 카메라 등 외부 관찰자가 안전하게 위치를 조회한다.</summary>
         public bool TryGetHorizontalPosition(int index, out Vector3 position)
         {
             position = default;
-            if (course == null || index < 0 || index >= tracks.Length || tracks[index] == null) return false;
+            if (course == null || index < 0 || index >= tracks.Length || tracks[index] == null || !IsHorizontalEnabled(index)) return false;
             position = GetHorizontalPosition(index);
             return true;
         }
 
         /// <summary>가로 톱날이 움직이고 있는지(작동 중이거나 정지 명령 뒤 끝으로 가는 중).</summary>
-        public bool IsHorizontalMoving(int index) => tracks[index].IsMoving(GameElapsed);
+        public bool IsHorizontalMoving(int index) => IsHorizontalEnabled(index) && tracks[index].IsMoving(GameElapsed);
 
         /// <summary>수직 톱날 중심 위치(월드). 없으면 false.</summary>
         public bool TryGetVerticalPosition(out Vector3 position)
@@ -190,8 +209,8 @@ namespace CurtainCall.Tightrope.Saws
             position = default;
             if (!verticalActive || course == null) return false;
             float sinceLower = verticalLoweredAt < 0f ? -1f : (float)(SawClock - verticalLoweredAt);
-            position = course.GetLanePosition(verticalLane, VerticalDistance)
-                + Vector3.up * (settings.verticalCenterHeight - settings.GetLowerOffset(sinceLower));
+            position = IncomingPosition(verticalLane, VerticalDistance, settings.verticalEndDistance,
+                settings.verticalCenterHeight - settings.GetLowerOffset(sinceLower), verticalSerial);
             return true;
         }
 
@@ -546,7 +565,7 @@ namespace CurtainCall.Tightrope.Saws
 
                 for (int i = 0; i < settings.HorizontalCount; i++)
                 {
-                    if (IsHorizontalSafeForTeamPassage(i)) continue;
+                    if (!IsHorizontalEnabled(i) || IsHorizontalSafeForTeamPassage(i)) continue;
                     var disc = new SawDisc(GetHorizontalPosition(i), Vector3.up, horizontalRadius, settings.horizontalThickness * 0.5f);
                     if (SawMath.TryGetContact(disc, body, out Vector3 contact))
                         ServerTouch(player, body, SawKind.Horizontal, i, i, contact);
@@ -723,6 +742,8 @@ namespace CurtainCall.Tightrope.Saws
 
             for (int i = 0; i < horizontalViews.Length; i++)
             {
+                horizontalViews[i].gameObject.SetActive(IsHorizontalEnabled(i));
+                if (!IsHorizontalEnabled(i)) continue;
                 float horizontalSpin = tracks[i].GetElapsed(GameElapsed) * settings.spinSpeed;
                 horizontalViews[i].SetPositionAndRotation(GetHorizontalPosition(i) - Vector3.up * TeamPassageLowerOffset(i),
                     courseRotation * Quaternion.Euler(0f, horizontalSpin, 0f));

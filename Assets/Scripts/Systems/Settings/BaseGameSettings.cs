@@ -247,8 +247,11 @@ namespace CurtainCall.Settings
 
             [Tooltip("빨강에 이 시간(초) 이상 머물면 추락. 기획 확정 2초.")]
             [SerializeField, Min(0.05f)] float fallTime = 2f;
-            [Tooltip("노란 구간 추락 게이지 누적 속도(빨강=1). 초기 테스트 1/3. 초록에서만 초기화한다.")]
+            [Tooltip("노란 구간 추락 게이지 누적 속도(빨강=1). 초기 테스트 1/3. 초록에서는 회복 속도에 따라 서서히 줄인다.")]
             [SerializeField, Range(0f, 1f)] float warningFallRate = 1f / 3f;
+
+            [Tooltip("줄 위 초록 구간에서 초당 회복하는 추락 바의 비율(0~1). 0.25 = 초당 25%, 50% 위험은 2초에 회복. 공중에서는 회복하지 않는다.")]
+            [SerializeField, Range(0f, 1f)] float greenRecoveryRate = .25f;
 
             [Tooltip("균형 보정(A/D)을 끝까지 눌렀을 때 바늘이 움직이는 양(초당). 외줄 고도화 초기값 85(이전 60).")]
             [SerializeField, Min(0f)] float correctionSpeed = 85f;
@@ -269,6 +272,7 @@ namespace CurtainCall.Settings
             public float WarningLimit => Mathf.Clamp(warningLimit, GreenLimit, 100f);
             public float FallTime => fallTime;
             public float WarningFallRate => Mathf.Clamp01(warningFallRate);
+            public float GreenRecoveryRate => Mathf.Clamp01(greenRecoveryRate);
             public float CorrectionSpeed => correctionSpeed;
             public float MovingSway => movingSway;
             public float IdleSway => idleSway;

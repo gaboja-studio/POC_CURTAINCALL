@@ -39,6 +39,22 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TearDown]
         public void TearDown() => Object.DestroyImmediate(root);
 
+        [Test]
+        public void DiagonalSweepOnlyAppliesAfterThePoleSawExceptionIsRemoved()
+        {
+            Vector3 original = hazard.Travel;
+            hazard.SetVisible(true, 0);
+            AssertVector(hazard.Travel, original);
+            Object.DestroyImmediate(saw);
+            hazard.SetVisible(true, 0);
+            Vector3 first = hazard.Travel;
+            Assert.That(Vector3.Angle(first, original), Is.EqualTo(30f).Within(.001f));
+            hazard.SetVisible(true, 1);
+            Vector3 second = hazard.Travel;
+            Assert.That(Vector3.Angle(second, original), Is.EqualTo(30f).Within(.001f));
+            Assert.That(Vector3.Angle(first, second), Is.EqualTo(60f).Within(.001f));
+        }
+
         [TestCase(-65f)]
         [TestCase(65f)]
         public void SwingingBar_DoesNotDragSawAwayFromFixedTorsoPlane(float angle)

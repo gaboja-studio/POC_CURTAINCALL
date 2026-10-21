@@ -62,8 +62,8 @@ namespace CurtainCall.Tightrope.Saws
                 return height * (2f * t - t * t); // 위로 튀어 정점에서 멈추는 포물선 상승 구간.
             }
         }
-        Vector3 CooperativeGateBase => course.transform.position + course.Forward * CooperativeGateDistance
-            + course.Right * course.Layout.GetLaneSide(cooperativeGateLane) + Vector3.up * CooperativeGateLiftOffset;
+        Vector3 CooperativeGateBase => IncomingPosition(cooperativeGateLane, CooperativeGateDistance,
+            CooperativeGateStopDistance, CooperativeGateLiftOffset, cooperativeGateIndex);
 
         public bool TryGetCooperativePlatePosition(int lane, out Vector3 position)
         {

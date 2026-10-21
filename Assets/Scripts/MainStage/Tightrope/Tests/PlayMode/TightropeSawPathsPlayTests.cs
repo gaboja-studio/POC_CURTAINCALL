@@ -8,7 +8,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
 {
     public sealed partial class TightropeCampaignPlayTests
     {
-        [UnityTest]
+        [UnityTest, Category("PerformanceBalance")]
         public IEnumerator SawLaserPathsFollowActualRoutesAndResetWithoutAddingCollision()
         {
             yield return BeginPerformance();
@@ -21,21 +21,25 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.That(paths.GetComponentsInChildren<Collider>(true), Is.Empty);
             var horizontal = paths.GetComponentsInChildren<LineRenderer>().Where(l => l.name.StartsWith("Horizontal path ")).ToArray();
             Assert.That(horizontal.Length, Is.EqualTo((int)Get(saws, "HorizontalCount")));
+            Assert.That(horizontal.Count(line => line.enabled), Is.EqualTo((int)Get(saws, "ActiveHorizontalCount")));
             float halfWidth = (float)Get(settings, "horizontalTravelHalfWidth");
             Vector3 right = (Vector3)Get(course, "Right");
-            foreach (var line in horizontal)
+            foreach (var line in horizontal.Where(line => line.enabled))
             {
-                Assert.IsTrue(line.enabled);
-                Assert.That(Vector3.Distance(line.GetPosition(0), line.GetPosition(1)), Is.EqualTo(halfWidth * 2).Within(.001f));
-                Assert.That(Vector3.Dot((line.GetPosition(1) - line.GetPosition(0)).normalized, right), Is.GreaterThan(.999f));
+                Assert.That(Vector3.Distance(line.GetPosition(0), line.GetPosition(1)),
+                    Is.EqualTo(halfWidth * 2 / Mathf.Cos(30f * Mathf.Deg2Rad)).Within(.001f));
+                Assert.That(Vector3.Dot((line.GetPosition(1) - line.GetPosition(0)).normalized, right),
+                    Is.EqualTo(Mathf.Cos(30f * Mathf.Deg2Rad)).Within(.001f));
                 Assert.That(line.startWidth, Is.LessThan(.1f), "Thin guides must remain distinct from walkable ropes.");
                 Color color = line.sharedMaterial.color;
                 Assert.That(color.r, Is.GreaterThan(color.g * 10));
             }
-            var first = horizontal[0];
+            int firstIndex = System.Array.FindIndex(horizontal, line => line.enabled);
+            var first = horizontal[firstIndex];
             Vector3 midpoint = (first.GetPosition(0) + first.GetPosition(1)) * .5f;
-            Vector3 blade = (Vector3)Call(saws, "GetHorizontalPosition", 0);
-            Assert.That(Vector3.Cross(blade - midpoint, right).magnitude, Is.LessThan(.001f), "The saw must travel on the displayed axis.");
+            Vector3 blade = (Vector3)Call(saws, "GetHorizontalPosition", firstIndex);
+            Vector3 axis = (first.GetPosition(1) - first.GetPosition(0)).normalized;
+            Assert.That(Vector3.Cross(blade - midpoint, axis).magnitude, Is.LessThan(.001f), "The saw must travel on the displayed diagonal axis.");
             var incoming = paths.Find("Incoming path").GetComponent<LineRenderer>();
             Assert.IsFalse(incoming.enabled);
             Call(saws, "SetVertical", true, 1, 77, 0f, -1f);

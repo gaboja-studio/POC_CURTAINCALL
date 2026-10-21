@@ -37,16 +37,16 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TestCase(3)]
         [TestCase(4)]
         [TestCase(7)]
-        public void SharedPass_UsesTwoSeparatedLanesWithoutChangingTravel(int cycle)
+        public void SharedPass_UsesOpposingDiagonalLanesWithoutChangingHeightOrForwardTravel(int cycle)
         {
             double now = 10 + cycle * 6.5 + 3.5; // 예고 2.5초 뒤 통과 1초째.
             float[] lanes = { -6, -2, 2, 6 };
             Vector3 primary = saws.VerticalPosition(now);
             Vector3 secondary = saws.SecondaryVerticalPosition(now);
             Assert.That(saws.VerticalCount, Is.EqualTo(2));
-            Assert.That(primary.x, Is.EqualTo(lanes[cycle % 4]));
-            Assert.That(secondary.x, Is.EqualTo(lanes[(cycle + 2) % 4]));
-            Assert.That(Vector3.Distance(primary, secondary), Is.EqualTo(8).Within(0.001f));
+            float shift = 12f * Mathf.Tan(30f * Mathf.Deg2Rad);
+            Assert.That(primary.x, Is.EqualTo(lanes[cycle % 4] + shift).Within(.001f));
+            Assert.That(secondary.x, Is.EqualTo(lanes[(cycle + 2) % 4] - shift).Within(.001f));
             Assert.That(primary.y, Is.EqualTo(12));
             Assert.That(primary.z, Is.EqualTo(16).Within(0.001f));
             Assert.That(secondary.y, Is.EqualTo(primary.y));
@@ -78,7 +78,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
         [TestCase(0)]
         [TestCase(1)]
-        public void LateralPasses_KeepHeightAndDepth_ReverseAtBothEdges_WithFlatContact(int cycle)
+        public void LateralPasses_KeepHeightAndUseDiagonalDepth_ReverseAtBothEdges_WithFlatContact(int cycle)
         {
             Set("lateralPasses", true); Set("horizontalHalfWidth", 24f);
             double start = 10 + cycle * 6.5 + 2.5;
@@ -88,7 +88,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(before.x, Is.EqualTo(cycle % 2 == 0 ? -24 : 24).Within(.001f));
             Assert.That(after.x, Is.EqualTo(-before.x).Within(.02f));
             Assert.That(middle.x, Is.Zero.Within(.001f));
-            Assert.That(middle.y, Is.EqualTo(before.y)); Assert.That(middle.z, Is.EqualTo(before.z));
+            Assert.That(middle.y, Is.EqualTo(before.y));
+            Assert.That(Mathf.Abs((middle.z - before.z) / (middle.x - before.x)),
+                Is.EqualTo(Mathf.Tan(30f * Mathf.Deg2Rad)).Within(.001f));
             Assert.That(Vector3.Dot(saws.PassNormal, Vector3.up), Is.GreaterThan(.999f));
             var secondMiddle = saws.SecondaryVerticalPosition(start + 2);
             Assert.That(Mathf.Abs(middle.z - secondMiddle.z), Is.GreaterThan(2.4f), "같은 순간 중앙에서 두 톱이 포개지지 않는다.");

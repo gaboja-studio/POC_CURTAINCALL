@@ -101,6 +101,28 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 rotation * turned), Is.LessThan(0.001f), "카메라/코스가 돌아가도 같은 세계 방향으로 제동");
         }
 
+        [TestCase(0f, 14f, 8f)]
+        [TestCase(0f, -14f, 8f)]
+        [TestCase(14f, 14f, 8f)]
+        [TestCase(0f, 4f, 4f)]
+        [TestCase(0f, 0f, 0f)]
+        public void PoleJumpSpeedLimitPreservesHeightDirectionAndWeakLaunches(float x, float z, float expectedSpeed)
+        {
+            var velocity = new Vector3(x, 12f, z);
+            var limited = CannonAirControl.LimitPoleHorizontalSpeed(velocity, 8f);
+            Assert.That(limited.y, Is.EqualTo(12f));
+            Assert.That(Vector3.ProjectOnPlane(limited, Vector3.up).magnitude, Is.EqualTo(expectedSpeed).Within(.0001f));
+            if (expectedSpeed > 0f)
+                Assert.That(Vector3.Dot(Vector3.ProjectOnPlane(limited, Vector3.up).normalized, new Vector3(x, 0f, z).normalized), Is.EqualTo(1f).Within(.0001f));
+        }
+
+        [TestCase(0f)]
+        [TestCase(-1f)]
+        public void ZeroPoleJumpLimitRemovesHorizontalMotionOnly(float limit)
+        {
+            Assert.That(CannonAirControl.LimitPoleHorizontalSpeed(new Vector3(4f, -6f, 12f), limit), Is.EqualTo(Vector3.down * 6f));
+        }
+
         [Test]
         public void AirControl_ReleasedOrStaleInput_DoesNotCarryIntoNextFrame()
         {
