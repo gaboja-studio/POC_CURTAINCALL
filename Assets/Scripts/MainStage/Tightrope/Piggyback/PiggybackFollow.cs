@@ -187,7 +187,8 @@ namespace CurtainCall.Tightrope
             hopping = true;
             hopHeight = 0f;
             hopGravity = localMover.JumpGravity;
-            hopSpeed = localMover.JumpSpeed;
+            // 높이를 1.5배로 높이려면 수직 속도에는 sqrt(1.5)를 곱한다.
+            hopSpeed = localMover.JumpSpeed * Mathf.Sqrt(GameSettings.Tightrope.Piggyback.JumpHeightMultiplier);
             if (local.TryGetComponent(out PlayerBalance balance)) balance.SetAirborne(true); // 공중에서는 균형 정지
         }
 
@@ -213,19 +214,26 @@ namespace CurtainCall.Tightrope
             float speedScale = Mathf.Sqrt(mover.JumpGravity / GameSettings.Base.Character.Gravity);
             var gate = Saws.TightropeSaws.Current;
             float previousHeight = mover.CourseJumpHeightOverride;
+            float previousMultiplier = mover.JumpHeightMultiplier;
             try
             {
                 // 관문의 실제 목마 출발선에서만 동료가 밀어 주는 도약을 보정한다.
-                // 다리를 잃은 동료와도 협동할 수 있으며, 일반·옆줄·공중 입력은 그대로 둔다.
+                // 기존 협동 도약의 부상 보정에도 목마 높이 배율을 한 번만 더한다.
                 if (alongSpeed > 0f && !mover.FreeMovement && gate != null
                     && gate.TryGetCooperativeLaunch(local, out float height, out float speed))
                 {
-                    mover.CourseJumpHeightOverride = height / Mathf.Max(.01f, mover.JumpHeightMultiplier);
-                    mover.LaunchJump(speed);
+                    mover.CourseJumpHeightOverride = height / Mathf.Max(.01f, previousMultiplier);
+                    alongSpeed = speed;
                 }
-                else mover.LaunchJump(alongSpeed * speedScale);
+                else alongSpeed *= speedScale;
+                mover.JumpHeightMultiplier = previousMultiplier * GameSettings.Tightrope.Piggyback.JumpHeightMultiplier;
+                mover.LaunchJump(alongSpeed);
             }
-            finally { mover.CourseJumpHeightOverride = previousHeight; }
+            finally
+            {
+                mover.CourseJumpHeightOverride = previousHeight;
+                mover.JumpHeightMultiplier = previousMultiplier;
+            }
             launchedAt = Time.time;
             system.RequestLocalRelease();
         }
@@ -233,7 +241,13 @@ namespace CurtainCall.Tightrope
         void LaunchLane(int direction)
         {
             var mover = localMover;
-            if (!mover.LaunchLaneJump(direction)) return; // 거부되면 연결·추종 모두 유지한다
+            float previousMultiplier = mover.JumpHeightMultiplier;
+            try
+            {
+                mover.JumpHeightMultiplier = previousMultiplier * GameSettings.Tightrope.Piggyback.JumpHeightMultiplier;
+                if (!mover.LaunchLaneJump(direction)) return; // 거부되면 연결·추종 모두 유지한다
+            }
+            finally { mover.JumpHeightMultiplier = previousMultiplier; }
             var body = mover.Body;
             body.enabled = false;
             body.enabled = true;
