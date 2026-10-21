@@ -218,66 +218,99 @@ namespace CurtainCall.Network.Session
         public Task<bool> JoinSessionAsync(string code) =>
             JoinAsync(new ServicesSessionConnector(_networkManager, RequiredPlayers), code);
 
+        public const string JoinFailureMessage = "방이 없거나 네트워크 연결이 불안정 합니다";
+        bool _cancellingConnect;
+
         public async Task<bool> HostAsync(ISessionConnector connector)
         {
-            if (!BeginConnect(connector))
-                return false;
-
-            if (!await RunConnectAsync(connector.HostAsync, "방을 열지 못했습니다."))
-                return false;
-
-            SetState(SessionConnectionState.Host);
-            SpawnStateSync();
-            ServerRefresh();
-            return true;
+            if (!BeginConnect(connector)) return false;
+            try
+            {
+                if (await connector.HostAsync() && ReferenceEquals(_connector, connector) && !_cancellingConnect)
+                {
+                    SetState(SessionConnectionState.Host);
+                    SpawnStateSync();
+                    ServerRefresh();
+                    return true;
+                }
+            }
+            catch (Exception e) { Debug.LogWarning($"[Session] 방 생성 실패: {e.Message}"); }
+            await CancelConnectAsync(connector, "방을 열지 못했습니다.");
+            return false;
         }
 
         public async Task<bool> JoinAsync(ISessionConnector connector, string joinKey)
         {
-            if (!BeginConnect(connector))
-                return false;
+            if (!BeginConnect(connector)) return false;
+            var completion = WaitForClientAsync(connector, joinKey);
+            // 커넥터의 true는 연결 시작일 수 있다. NGO의 실제 Client 상태까지 같은 제한시간을 쓴다.
+            await Task.WhenAny(completion, Task.Delay(3000));
+            if (completion.IsCompleted && await completion) return true;
+            await CancelConnectAsync(connector, JoinFailureMessage);
+            return false;
+        }
 
-            // 실제 접속 완료는 HandleConnectionEvent에서 Client로 바뀐다.
-            return await RunConnectAsync(() => connector.JoinAsync(joinKey), "방에 들어가지 못했습니다.");
+        async Task<bool> WaitForClientAsync(ISessionConnector connector, string joinKey)
+        {
+            try
+            {
+                if (!await connector.JoinAsync(joinKey)) return false;
+                while (this != null && ReferenceEquals(_connector, connector) && !_cancellingConnect
+                    && ConnectionState == SessionConnectionState.Connecting)
+                    await Task.Delay(10);
+                return this != null && ReferenceEquals(_connector, connector) && !_cancellingConnect
+                    && ConnectionState == SessionConnectionState.Client;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[Session] 방 참가 실패: {e.Message}");
+                return false;
+            }
         }
 
         public async Task LeaveAsync()
         {
-            if (_connector == null)
+            var connector = _connector;
+            if (connector == null || _cancellingConnect) return;
+            if (ConnectionState == SessionConnectionState.Connecting)
+            {
+                await CancelConnectAsync(connector, "접속을 취소했습니다.");
                 return;
-
+            }
             _leaveRequested = true;
-            await _connector.LeaveAsync();
+            await connector.LeaveAsync();
         }
 
-        async Task<bool> RunConnectAsync(Func<Task<bool>> connect, string failReason)
+        async Task CancelConnectAsync(ISessionConnector connector, string reason)
         {
-            string reason = failReason;
+            if (this == null || !ReferenceEquals(_connector, connector) || _cancellingConnect) return;
+            _cancellingConnect = true;
             try
             {
-                if (await connect())
-                    return true;
+                // Services는 먼저 시도를 무효화한다. 늦은 HTTP 완료가 새 NGO 연결을 시작하지 못한다.
+                await connector.LeaveAsync();
             }
-            catch (Exception e)
+            catch (Exception e) { Debug.LogWarning($"[Session] 접속 취소 정리: {e.Message}"); }
+            finally
             {
-                Debug.LogWarning($"[Session] {failReason} {e}");
-                reason = $"{failReason} ({e.Message})";
+                if (_networkManager != null)
+                {
+                    if (_networkManager.IsListening) _networkManager.Shutdown();
+                    while (_networkManager != null && _networkManager.ShutdownInProgress) await Task.Delay(10);
+                }
+                if (this != null && ReferenceEquals(_connector, connector))
+                {
+                    _cancellingConnect = false;
+                    FailConnect(reason);
+                }
             }
-
-            // 먼저 Offline으로 바꿔 Shutdown이 부르는 HandleStopped가 종료를 두 번 알리지 않게 한다.
-            FailConnect(reason);
-            if (_networkManager.IsListening)
-                _networkManager.Shutdown();
-            return false;
         }
 
         bool BeginConnect(ISessionConnector connector)
         {
-            if (ConnectionState != SessionConnectionState.Offline)
-            {
-                Debug.LogWarning($"[Session] 이미 {ConnectionState} 상태입니다. 먼저 나가야 합니다.");
+            if (connector == null || _cancellingConnect || _networkManager.ShutdownInProgress
+                || _networkManager.IsListening || ConnectionState != SessionConnectionState.Offline)
                 return false;
-            }
 
             _connector = connector;
             _pendingDisconnectReason = null;
@@ -447,6 +480,7 @@ namespace CurtainCall.Network.Session
 
         void HandleConnectionEvent(NetworkManager networkManager, ConnectionEventData data)
         {
+            if (_cancellingConnect || ConnectionState == SessionConnectionState.Offline) return;
             bool isLocal = data.ClientId == networkManager.LocalClientId;
 
             switch (data.EventType)
@@ -470,8 +504,13 @@ namespace CurtainCall.Network.Session
         void HandleStopped(bool wasHost)
         {
             // 호스트는 서버·클라이언트 정지가 둘 다 오므로 한 번만 처리한다.
-            if (ConnectionState == SessionConnectionState.Offline)
+            if (_cancellingConnect || ConnectionState == SessionConnectionState.Offline)
                 return;
+            if (ConnectionState == SessionConnectionState.Connecting)
+            {
+                _ = CancelConnectAsync(_connector, JoinFailureMessage);
+                return;
+            }
 
             var previous = ConnectionState;
             string reason;

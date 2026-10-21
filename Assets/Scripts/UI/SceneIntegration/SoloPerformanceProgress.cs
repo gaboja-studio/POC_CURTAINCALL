@@ -47,6 +47,11 @@ namespace CurtainCall.UI.SceneIntegration
             HasValidData = true;
             return true;
         }
+        public void RemoveRemainingPrefix()
+        {
+            if (remainingText != null && remainingText.text.StartsWith("남은 ", System.StringComparison.Ordinal))
+                remainingText.text = remainingText.text.Substring(3);
+        }
         public void Clear()
         {
             if (HasValidData && source != null) source.SetUnavailable();

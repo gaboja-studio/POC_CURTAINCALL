@@ -70,6 +70,11 @@ namespace CurtainCall.UI.SceneIntegration
             bool holding = pilot != null && pilot.IsHoldingPole;
             var reader = player.GetComponent<PlayerInputReader>();
             bool holdingF = reader != null && reader.Current.InteractHoldProgress > 0;
+            bool hasInteractTarget = poles != null && poles.FindGrabbable(player) >= 0
+                || trampoline != null && trampoline.CanGrab(player) || cannon.FindBoardableStation(player) >= 0;
+            if (!holding && !seated && !cannon.IsFlying(player.OwnerClientId)
+                && (carrying || riding || !hasInteractTarget) && ShowTransportHint(player, route, carrying))
+            { HideGuide(); return; }
             if (holding) ShowGuide("Space", "봉 놓기", GuideKeyWidth.Wide);
             else if (riding) HideGuide();
             else if (carrying) ShowGuide("F 길게", "트램펄린 놓기", GuideKeyWidth.ExtraWide);
@@ -86,6 +91,44 @@ namespace CurtainCall.UI.SceneIntegration
                 if (index >= 0) ShowTooltip("cannon:" + index, "대포", "[F] 타기", cannon.Station(index).BoardingPoint.position);
                 else HideTooltip();
             }
+        }
+
+        bool ShowTransportHint(NetworkPlayer player, HumanCannonRouteSystem route, bool carrying)
+        {
+            if (route == null) return false;
+            int nearest = -1;
+            float best = 4f * 4f;
+            Vector3 point = Vector3.zero;
+            for (int i = 0; i < route.TransportCount; i++)
+            {
+                var transport = route.Transport(i);
+                if (transport == null || !transport.isActiveAndEnabled || !transport.IsConfigured) continue;
+                var state = route.TransportState(i);
+                bool ownRide = state.Phase == DeparturePhase.Moving && state.Rider == player.OwnerClientId;
+                if (state.Phase == DeparturePhase.Moving && !ownRide) continue;
+                Vector3 local = Quaternion.Inverse(transport.Rotation) * (player.transform.position - transport.Platform.position);
+                var edge = new Vector3(Mathf.Clamp(local.x, -transport.HalfSize.x, transport.HalfSize.x), 0,
+                    Mathf.Clamp(local.z, -transport.HalfSize.y, transport.HalfSize.y));
+                Vector3 anchor = transport.Platform.position + transport.Rotation * edge;
+                float distance = (anchor - player.transform.position).sqrMagnitude;
+                if (!ownRide && distance >= best) continue;
+                nearest = i; best = distance; point = anchor + Vector3.up;
+                if (ownRide) break;
+            }
+            if (nearest < 0) return false;
+            var phase = route.TransportState(nearest).Phase;
+            string text;
+            if (route.TrapOpen(nearest)) text = "발판이 열려 있습니다. 접근에 주의하세요";
+            else if (phase == DeparturePhase.Moving) text = "이동 중 · 도착할 때까지 대기하세요";
+            else if (phase == DeparturePhase.Arrived) text = "도착 · 걸어서 내리세요";
+            else if (!carrying) text = "트램펄린 운반자가 이용할 수 있습니다";
+            else if (nearest == 1 && !route.ShelterReady) text = "단원들이 쉼터에 도착할 때까지 대기하세요";
+            else if (route.CanStart(player, nearest)) text = route.IsBoarding(nearest)
+                ? $"자동 출발까지 {route.BoardingRemaining(nearest):0.0}초 · 발판에서 대기하세요"
+                : "자동 출발 준비 · 발판에서 대기하세요";
+            else text = "트램펄린을 들고 혼자 발판에 올라가세요";
+            ShowTooltip("transport:" + nearest + ":" + text, "리프트", text, point);
+            return true;
         }
 
         void ShowGuide(string key, string action, GuideKeyWidth width)
