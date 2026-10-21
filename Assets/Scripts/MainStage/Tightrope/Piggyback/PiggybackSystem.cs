@@ -44,6 +44,8 @@ namespace CurtainCall.Tightrope
         /// <summary>내 요청이 거부·처리됐을 때 결과 문구(내 화면만).</summary>
         public event Action<string> LocalResult;
         public event Action HandholdLanded;
+        /// <summary>호스트가 옆줄 손잡기 착지를 확정한 두 사람(착지자·접촉 대상). 표시 이벤트와 구분한다.</summary>
+        public event Action<NetworkPlayer, NetworkPlayer> HandholdConfirmed;
         public bool SuppressLegacyFeedback { get; set; }
 
         // 위 사람 clientId → 바로 아래 사람 clientId
@@ -140,6 +142,10 @@ namespace CurtainCall.Tightrope
             belowOf[climberId] = top;
             aboveOf[top] = climberId;
             ServerBroadcast();
+            if (HandholdConfirmed != null)
+                foreach (Action<NetworkPlayer, NetworkPlayer> observer in HandholdConfirmed.GetInvocationList())
+                    try { observer(climber, target); }
+                    catch (Exception error) { Debug.LogException(error, this); }
             return LaneLinkedResult;
         }
 

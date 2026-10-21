@@ -75,6 +75,17 @@ namespace CurtainCall.WaitingRoom
         public event Action Changed;
         /// <summary>내 요청의 결과. 같은 실패가 반복되어도 매번 알린다.</summary>
         public event Action<string> RequestAnswered;
+        /// <summary>판정 화면의 거절 결과: 요청자, 작업, 기물 UID(없으면 0), 실패 코드.</summary>
+        public event Action<ulong, string, int, string> OperationRejected;
+
+        (bool, string) Reject(ulong actor, string operation, int uid, string code, string text)
+        {
+            if (OperationRejected != null)
+                foreach (Action<ulong, string, int, string> observer in OperationRejected.GetInvocationList())
+                    try { observer(actor, operation, uid, code); }
+                    catch (Exception error) { Debug.LogException(error, this); }
+            return (false, text);
+        }
 
         public IReadOnlyList<PropItem> Held(ulong player) => HasAuthority ? book.Held(player)
             : receivedHeld.TryGetValue(player, out var list) ? list.AsReadOnly() : Empty;
@@ -215,11 +226,11 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) Drop(ulong player)
         {
-            if (!TryDropPoint(player, out var point)) return (false, "캐릭터를 찾지 못했습니다.");
+            if (!TryDropPoint(player, out var point)) return Reject(player, "DROP", 0, "PLAYER_NOT_FOUND", "캐릭터를 찾지 못했습니다.");
             int uid = Selected(player).Uid;
-            if (uid == 0) return (false, Explain(CarryRefusal.NothingHeld));
+            if (uid == 0) return Reject(player, "DROP", 0, "CARRY_NothingHeld", Explain(CarryRefusal.NothingHeld));
             var refusal = book.Drop(player, point.x, point.y, point.z, out var dropped, uid);
-            if (refusal != CarryRefusal.None) return (false, Explain(refusal));
+            if (refusal != CarryRefusal.None) return Reject(player, "DROP", uid, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 내려놓음 #{dropped.Item.Uid} {dropped.Item.Name} ← {WaitingRoomShop.PlayerLabel(player)}");
             Publish();
             return (true, $"{dropped.Item.Name}을 내려놓았습니다.");
@@ -228,7 +239,7 @@ namespace CurtainCall.WaitingRoom
         (bool, string) PickUp(int uid, ulong player)
         {
             var refusal = book.PickUp(uid, player, Slots(player), out var item);
-            if (refusal != CarryRefusal.None) return (false, Explain(refusal));
+            if (refusal != CarryRefusal.None) return Reject(player, "PICK_UP", uid, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 주움 #{item.Uid} {item.Name} → {WaitingRoomShop.PlayerLabel(player)}");
             Publish();
             return (true, $"{item.Name}을 주웠습니다.");
@@ -236,9 +247,9 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) UseShelf(ulong player)
         {
-            if (WaitingRoomShop.InPerformance) return (false, "공연 중에는 선반을 쓸 수 없습니다.");
+            if (WaitingRoomShop.InPerformance) return Reject(player, "SHELF", Selected(player).Uid, "IN_PERFORMANCE", "공연 중에는 선반을 쓸 수 없습니다.");
             var refusal = book.UseShelf(player, Slots(player), out int slot, out bool placed, out var item, Selected(player).Uid == 0 ? -1 : Selected(player).Uid);
-            if (refusal != CarryRefusal.None) return (false, Explain(refusal));
+            if (refusal != CarryRefusal.None) return Reject(player, "SHELF", Selected(player).Uid, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 선반 {slot + 1}칸 {(placed ? "올림" : "꺼냄")} #{item.Uid} {item.Name} — {WaitingRoomShop.PlayerLabel(player)}");
             Publish();
             return (true, placed ? $"{item.Name}을 선반 {slot + 1}칸에 올렸습니다." : $"선반 {slot + 1}칸에서 {item.Name}을 꺼냈습니다.");

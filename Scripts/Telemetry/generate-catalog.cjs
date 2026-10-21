@@ -1,0 +1,17 @@
+const fs=require('node:fs');const vm=require('node:vm');const path=require('node:path');
+const ctx=vm.createContext({});vm.runInContext(fs.readFileSync(path.join(__dirname,'core.gs'),'utf8'),ctx);
+let text='# 이벤트 목록 v1\n\n등록 계약과 실제 수집 상태는 다릅니다. 현재 자동 수집은 아래 ‘연결’ 열을 참고하세요.\n\n';
+text+='| eventType | 필수 payload | 연결 |\n|---|---|---|\n';
+const connected=new Set(['GAME_STARTED','GAME_EXITED','PLAYER_EXITED','SCENE_ENTERED','SCENE_EXITED','INJURY_CHANGED','TITLE_ENTERED','ROOM_CREATED','ROOM_ENTERED','RUN_STARTED','RUN_ENDED','FUNDS_CHANGED','TELEMETRY_GAP']);
+const adapters=new Set(['INPUT_KEY','BUTTON_INPUT','MICROPHONE_INPUT','SIGNATURE_CHANGED','PERFORMANCE_STARTED','PERFORMANCE_SUCCEEDED','PERFORMANCE_FAILED','PERFORMANCE_PROGRESS','SECTION_ENTERED','SECTION_EXITED','PLAYER_DIED','LIMB_SEVERED','PERFORMANCE_LEFT','TIGHTROPE_FELL','JUMP_RESULT','COOP_ACTIVATED','CANNON_FIRED','CANNON_FLIGHT_ENDED','ZONE_ENTERED','ZONE_EXITED','SCHEDULE_OPENED','SCHEDULE_CONFIRMED','READY_CHANGED','STAGE_ENTRANCE_REACHED','FIRST_PLAYER_LEFT','ALL_PLAYERS_ASSEMBLED','RECALL_ALARM','SHOP_OPENED','PURCHASE_COMPLETED','ITEM_COLLECTED','ITEM_STORED','PURCHASE_FAILED','ITEM_DROPPED','ITEM_PICKED_UP','ITEM_HANDED_OVER','SERVICE_OPENED','SERVICE_RESERVED','MEDICAL_ROOM_REACHED','MEDICAL_ENTERED','RESTORATION_COMPLETED','MEDICAL_RETURNED','SERVICE_FAILED','SERVICE_ABANDONED']);
+for(const name of ['DELIVERY_DISPATCHED','DELIVERY_AVAILABLE','COLLECTION_FAILED','STORAGE_FAILED','INTERACTION_FAILED'])adapters.add(name);
+adapters.add('STORAGE_REACHED');
+adapters.add('RECALL_EXPIRED');adapters.add('RESTORATION_VERIFIED');
+adapters.add('CANNON_HAZARD_CONTACT');
+adapters.add('BREAK_ENDED');
+for(const [name,fields] of Object.entries(ctx.TelemetryCore.catalog))text+=`| ${name} | ${Object.entries(fields).map(([k,v])=>`${k}: ${v}`).join(', ')||'없음'} | ${connected.has(name)?'기반 자동 수집':adapters.has(name)?'공개 API 연결·범위/실행 검증은 coverage.md':'후속 원천 연결 필요'} |\n`;
+text+='\n연결은 전체 항목의 실플레이 검증 완료를 뜻하지 않는다. [실제 범위·미연결 항목](coverage.md) 참조. optionalPositive/optionalBool은 명시적 null 또는 해당 타입만 허용한다.\n';
+text+='\n원천 스키마: Scripts/Telemetry/core.gs. 이 파일 변경 시 node Scripts/Telemetry/generate-catalog.cjs로 재생성.\n';
+fs.mkdirSync(path.join(__dirname,'../../Docs/Log-system'),{recursive:true});fs.writeFileSync(path.join(__dirname,'../../Docs/Log-system/event-catalog.md'),text);
+const json=JSON.stringify(ctx.TelemetryCore.catalog).replaceAll('"','""');
+fs.writeFileSync(path.join(__dirname,'../../Assets/Scripts/Systems/TelemetryPipeline/EventCatalog.cs'),`// Generated from Scripts/Telemetry/core.gs by generate-catalog.cjs.\nnamespace CurtainCall.Telemetry.Pipeline\n{\n    internal static class EventCatalog\n    {\n        internal const string Json = @"${json}";\n    }\n}\n`);

@@ -62,6 +62,10 @@ namespace CurtainCall.Campaign
 
         /// <summary>쉬는 시간 소집 경보(종료 1분 전, 공통 세팅).</summary>
         public event Action RecallAlarm;
+        /// <summary>판정 화면의 실제 시간 만료 직전 쉬는 시간. 표시 타이머 0과 구분한다.</summary>
+        public event Action<CampaignSnapshot> RestExpired;
+        /// <summary>내 준비 상태가 바뀌었을 때. 마지막 준비자의 즉시 시간대 전환보다 먼저 알린다.</summary>
+        public event Action<bool> LocalReadyChanged;
 
         /// <summary>런이 끝났다. 실패(기한 초과·전원 리타이어)면 이어서 다음 세대 도입이 시작된다.</summary>
         public event Action<RunEndReason> RunEnded;
@@ -103,7 +107,7 @@ namespace CurtainCall.Campaign
             {
                 if (!state.IsRunning) return;
                 bool changed = state.Phase == CampaignPhase.Night && host.RefreshNight(Players());
-                changed |= host.Tick(Time.deltaTime);
+                changed |= host.Tick(Time.deltaTime, Expired);
                 if (changed) Apply(host.Snapshot);
             }
             else if (state.Timer == RestTimerState.Running && state.TimeRemaining > 0f)
@@ -187,7 +191,11 @@ namespace CurtainCall.Campaign
         public bool SetReady(bool value)
         {
             if (state.Phase != CampaignPhase.Night) return false;
+            bool changedReady = localReady != value;
             localReady = value;
+            if (changedReady && LocalReadyChanged != null)
+                foreach (Action<bool> observer in LocalReadyChanged.GetInvocationList())
+                    try { observer(value); } catch (Exception error) { Debug.LogException(error, this); }
 
             if (host != null)
             {
@@ -209,6 +217,13 @@ namespace CurtainCall.Campaign
         }
 
         // ── 판정·적용 ────────────────────────────────────────
+
+        void Expired(CampaignSnapshot snapshot)
+        {
+            if (RestExpired != null)
+                foreach (Action<CampaignSnapshot> observer in RestExpired.GetInvocationList())
+                    try { observer(snapshot); } catch (Exception error) { Debug.LogException(error, this); }
+        }
 
         bool HostDo(Func<RunState, bool> op, string name)
         {
