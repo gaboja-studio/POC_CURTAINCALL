@@ -3,6 +3,8 @@ using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.StartLobby;
+using CurtainCall.Settings;
+using CurtainCall.Tightrope;
 using CurtainCall.UI.InteractionV1;
 using CurtainCall.WaitingRoom;
 using Unity.Netcode;
@@ -37,6 +39,7 @@ namespace CurtainCall.UI.SceneIntegration
             public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom, Lobby;
             public float Distance;
             public string Helper;
+            public bool Hold, ScreenGuide;
         }
         public void Configure(InteractionPromptView view, RectTransform anchor) { prompt = view; promptAnchor = anchor; }
         void Awake()
@@ -77,7 +80,9 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var target in ShopReach.Targets)
             {
                 if (target is not IShopPresentation p || p.VisualRoot == null || !p.VisualRoot.gameObject.activeInHierarchy) continue;
-                Add(p.VisualRoot, p.PresentationPoint, p.ActionLabel, p.IsAvailable, ReferenceEquals(target, ShopReach.Focused), feet);
+                string action = target is ExpertRoomView && !p.IsAvailable
+                    ? "서비스를 구매한 고객만 이용 가능합니다" : p.ActionLabel;
+                Add(p.VisualRoot, p.PresentationPoint, action, p.IsAvailable, ReferenceEquals(target, ShopReach.Focused), feet);
                 candidates[candidates.Count - 1].WaitingRoom = true;
                 candidates[candidates.Count - 1].Helper = (target as IShopPresentationDetails)?.HelperLabel;
             }
@@ -90,9 +95,10 @@ namespace CurtainCall.UI.SceneIntegration
                 candidates[candidates.Count - 1].Lobby = true;
             }
             AddCannon(feet);
+            AddPiggyback(feet);
             foreach (var candidate in candidates)
             {
-                if (!candidate.Available || !IsVisible(candidate, camera, reader.transform) || candidate.Distance > highlightDistance) continue;
+                if (candidate.ScreenGuide || !candidate.Available || !IsVisible(candidate, camera, reader.transform) || candidate.Distance > highlightDistance) continue;
                 int index = 0;
                 while (index < selected.Count && (selected[index].Distance < candidate.Distance ||
                     (Mathf.Approximately(selected[index].Distance, candidate.Distance) && selected[index].Root.GetInstanceID() < candidate.Root.GetInstanceID()))) index++;
@@ -118,16 +124,64 @@ namespace CurtainCall.UI.SceneIntegration
                 if (candidate.Focused && IsVisible(candidate, camera, reader.transform)) { focused = candidate; break; }
             if (focused == null)
                 foreach (var candidate in selected) if (candidate.WaitingRoom || candidate.Lobby) { focused = candidate; break; }
-            if (focused == null) { if (prompt != null) prompt.HideImmediate(); return; }
+            if (focused == null || prompt == null) { if (prompt != null) prompt.HideImmediate(); return; }
             prompt.Show("F", focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
-                false, 0, focused.Focused ? focused.Helper ?? "" : "가까이 다가가세요");
-            PositionPrompt(focused.Point, camera);
+                focused.Hold, focused.Hold && focused.Available ? reader.Current.InteractHoldProgress : 0,
+                focused.Focused ? focused.Helper ?? "" : "가까이 다가가세요");
+            var layout = prompt.GetComponent<NotificationTextLayout>();
+            if (layout == null) layout = prompt.gameObject.AddComponent<NotificationTextLayout>();
+            layout.RefreshLayout();
+            if (focused.ScreenGuide && promptAnchor != null && promptAnchor.parent is RectTransform parent)
+                promptAnchor.anchoredPosition = new Vector2(parent.rect.xMin + promptAnchor.rect.width * .5f + 24,
+                    parent.rect.yMin + promptAnchor.rect.height + 144);
+            else PositionPrompt(focused.Point, camera);
         }
         void Add(Transform root, Vector3 point, string action, bool available, bool focused, Vector3 feet)
         {
             candidates.Add(new Candidate { Root = root, Point = point, Action = action, Available = available, Focused = focused,
                 Distance = Vector3.Distance(feet + Vector3.up * .75f, point) });
         }
+        void AddPiggyback(Vector3 feet)
+        {
+            var player = NetworkPlayer.Local;
+            var system = PiggybackSystem.Current;
+            var course = TightropeCourse.Current;
+            if (player == null || player.State != PlayerState.Normal || system == null || !system.isActiveAndEnabled
+                || course == null || !course.IsGameplayActive || UsingTightropeDevice(player)) return;
+            if (system.GetBelow(player) != null)
+            {
+                bool canRelease = system.GetAbove(player) == null;
+                candidates.Add(new Candidate { Root = player.transform, Point = feet, Action = "목마 해제",
+                    Available = canRelease, Focused = true, ScreenGuide = true, Hold = true,
+                    Helper = canRelease ? "F를 길게 누르세요" : "위 단원이 내려온 뒤 해제할 수 있습니다" });
+                return;
+            }
+            if (player.IsAirborne || system.IsInStack(player)) return;
+            var catcher = TightropeCatchSystem.Current;
+            if (catcher != null && catcher.IsReady(player)) return;
+            float reach = GameSettings.Tightrope.Piggyback.LinkDistance;
+            if (player.TryGetComponent(out PlayerInteraction interaction)) reach *= interaction.ReachMultiplier;
+            NetworkPlayer target = null;
+            float best = float.MaxValue;
+            // F 선택 API가 없어 서버의 XZ 최근접/최하단 선택을 그대로 투영한다. 방향·층수 제한을 추가하지 않는다.
+            foreach (var other in NetworkPlayer.All)
+            {
+                if (other == null || other == player || other.State != PlayerState.Normal
+                    || UsingTightropeDevice(other) || system.GetBelow(other) != null) continue;
+                Vector3 offset = other.transform.position - feet;
+                offset.y = 0;
+                float distance = offset.magnitude;
+                if (distance > reach || distance >= best) continue;
+                target = other; best = distance;
+            }
+            if (target != null)
+                Add(target.transform, target.transform.position + Vector3.up, "목마 타기", true, true, feet);
+        }
+        static bool UsingTightropeDevice(NetworkPlayer player) =>
+            TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)
+            || TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)
+            || TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player);
+
         void AddCannon(Vector3 feet)
         {
             var player = NetworkPlayer.Local; var system = HumanCannonSystem.Current;
@@ -164,6 +218,7 @@ namespace CurtainCall.UI.SceneIntegration
         }
         bool IsVisible(Candidate target, Camera camera, Transform local)
         {
+            if (target.ScreenGuide) return true;
             if (!InViewAndRange(camera, local.position + Vector3.up * .75f, target.Point, highlightDistance)) return false;
             Vector3 offset = target.Point - camera.transform.position;
             int count = Physics.RaycastNonAlloc(camera.transform.position, offset.normalized, hits, Mathf.Max(0, offset.magnitude - .08f), ~0, QueryTriggerInteraction.Ignore);
@@ -185,7 +240,7 @@ namespace CurtainCall.UI.SceneIntegration
             var size = promptAnchor.rect.size;
             float half = Mathf.Max(160, size.x * .5f);
             promptAnchor.anchoredPosition = new Vector2(Mathf.Clamp(local.x, parent.rect.xMin + half, parent.rect.xMax - half),
-                Mathf.Clamp(local.y - 70, parent.rect.yMin + 100, parent.rect.yMax - 100));
+                Mathf.Clamp(local.y - 70, parent.rect.yMin + Mathf.Max(100, size.y + 16), parent.rect.yMax - 100));
         }
         void Hide()
         {

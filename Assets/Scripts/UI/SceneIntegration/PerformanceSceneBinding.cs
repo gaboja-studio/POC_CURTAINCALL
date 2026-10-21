@@ -326,6 +326,7 @@ namespace CurtainCall.UI.SceneIntegration
                 if (solo != null) solo.Clear();
                 hud.Progress.SetProgress(length, distances, localIndex, fireDistance, maximum, falls, false);
             }
+            solo?.RemoveRemainingPrefix();
         }
     }
 }
