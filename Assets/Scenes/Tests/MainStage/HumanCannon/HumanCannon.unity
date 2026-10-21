@@ -45463,7 +45463,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -86978,7 +86978,7 @@ MonoBehaviour:
   halfSize: {x: 2, y: 2}
   circularSurface: 1
   loadHalfSize: {x: 2.4753408, y: 2.4753408}
-  grabDistance: 2
+  grabDistance: 3
   upwardSpeed: 12
   groundBounceAirControlSpeed: 4.5
   resetPoseOnRestart: 1

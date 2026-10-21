@@ -22,7 +22,7 @@ namespace CurtainCall.HumanCannon
         [Tooltip("운송 시 검사할 프레임의 좌우/앞뒤 반폭. 0이면 기존 반동 면 크기를 사용한다.")]
         [SerializeField] Vector2 loadHalfSize;
         [Tooltip("손잡이 잡기 거리(m). 공용 상호작용 거리 배율 적용.")]
-        [Min(0.1f), SerializeField] float grabDistance = 2f;
+        [Min(0.1f), SerializeField] float grabDistance = 3f;
         [Tooltip("수직 반동 속도(m/s). 자동 전진은 멈추고 WASD 조절은 유지한다. 다리 부상으로 감소하지 않는다.")]
         [Min(0.1f), SerializeField] float upwardSpeed = 12f;
         [Tooltip("땅에서 점프해 첫 반동을 시작한 플레이어의 WASD 수평 조절 속도(m/s). 트램폴린 운반 이동도 같은 기본 속도를 쓴다.")]
