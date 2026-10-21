@@ -68,3 +68,10 @@
 - 이번 변경은 편집 배치이므로 별도 PlayMode 테스트는 추가하지 않았다. 이전 카메라·플레이어 테스트의 알려진 실패/미검증 항목은 유지한다. PM 교훈 제안: 숙소 천만 검사하면 상자 장식의 동일 메시 복제 경로를 놓친다. 활성 메시 종류별로 모든 생성 경로와 실제 지지물을 함께 점검한다.
 - 최종 Unity 컴파일 PASS(errors0), 구역 PASS(긴급 예외27파일), 문서 PASS(hard0·기존 WARN12), diff 공백 검사 PASS. 인계 문서 길이 제한 초과는 현재 스냅샷으로 압축해 해소했다. 파일 저장 완료, 커밋·push 없음.
 - 사용자 후속 "저장해줘"로 이번 대기실 변경의 커밋·원격 브랜치 push 승인. save-work 미리보기에서 구역·문서·에디터 ready/dirty0·Compile PASS(up_to_date) 확인. 스크립트 실행부의 add -A가 무관한 기존 파일도 포함하므로 같은 검증 후 대기실 관련21파일만 명시적으로 선택한다. 기존 테스트 실패/미검증 이력은 유지한다.
+
+## 제출 (10-21)
+- 작업 커밋78d6897·최신 dev 반영 커밋35b4394 원격 저장. 충돌 없고 기존 무관한 로컬 편집7파일 보존.
+- check-work PlayMode: 구역/문서/컴파일 PASS, 전체 테스트는900초 제한 내 결과가 없어 FAIL(결과 없음) 후 취소. 전체 통과로 간주하지 않는다.
+- 사용자 후속 "필요한 부분만 검사하고 제출해"에 따라 관련 필터만 실행: SpaceLinkPlayTests.Physical*5/5 PASS(21.76초), InitialLegLossStartsProneWithoutWaitingForMovement1/1, WaitingRoom_ReentryBlendsFromCorridorWithoutChangingViewKind1/1, Zone_FirstPersonHidesLocalModelOnlyWhileRendering1/1. 합계8/8·실패0·생략0.
+- PR #203: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/203 (dev 대상). 알려진 별도 실패·전체 검사 시간 초과·사람 공동 미검증·긴급 구역 예외를 본문에 명시했다. 자동 병합·dev 직접 push 없음.
+- new-pr 미리보기는 기존 무관한 로컬 편집도 미저장으로 막으므로, 해당 파일을 숨기거나 되돌리지 않고 동일 템플릿·방향/작성자/원격SHA/중복 검사 후 gh --body-file로 등록했다. 사용자 제출 지시를 실행 승인으로 적용했다.

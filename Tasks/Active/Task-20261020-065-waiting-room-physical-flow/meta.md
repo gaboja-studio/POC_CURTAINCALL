@@ -2,10 +2,10 @@
 
 - **Title:** 실제 대기실 복귀와 물리 출구 진행 연결
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @gyumin9048-ctrl
 - **Domain:** common-game-systems
-- **Current Skill:** save-work
+- **Current Skill:** submit-work
 - **Updated:** 2026-10-21
 
 ## Workspace

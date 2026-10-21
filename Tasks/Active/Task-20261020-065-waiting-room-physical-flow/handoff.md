@@ -2,6 +2,8 @@
 
 ## 지금 상태
 
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/203 (dev 대상, 대기실 후속 수정 제출; 이전 #191과 구분)
+- 제출 검증: 최신 dev 충돌 없이 병합·push. 전체 검사는900초 시간 초과 후 취소했고, 사용자 지시로 관련 PlayMode8/8 PASS만 검사해 제출했다. 전체 통과를 뜻하지 않는다. 구역·문서·컴파일 PASS, 원격 사람 공동 검증 미실행.
 - PM 긴급 승인으로 @gyumin9048-ctrl 임시 담당, `fix/waiting-room-bugs-improvements` → dev. [exception.md](exception.md), 상세 변경·검증 이력 [waiting-room-followup.md](waiting-room-followup.md).
 - 최신 추가 천: 사진은 CanvasOnCrate_4. 같은 원인의 CanvasOnCrate_0/1·FoldedCanvas까지4곳을 실제 벽에 연결된 줄에 걸었다. 전체 메시 상단 윤곽 지지·실내/보관실 재생성 연동, 장식 충돌체0. 씬 저장 완료.
 - 숙소 천4개는 침대 위 이동을 폐기하고 빨랫줄에 걸었다. Rope/Rod 모두 실제 천장 면을 먼저 확인하고 양끝 연결선2개와 고정부2개를 생성한다. 가정한 WallAnchor 좌표 고정 방식은 폐기했다.
