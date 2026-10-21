@@ -43,5 +43,9 @@ namespace CurtainCall.HumanCannon
             Vector3 horizontal = Vector3.ProjectOnPlane(velocity, Vector3.up);
             return Vector3.up * velocity.y + direction * horizontal.magnitude;
         }
+
+        /// <summary>봉 도약의 수평 속도만 제한한다. 상승·하강 속도와 수평 진행 방향은 유지한다.</summary>
+        public static Vector3 LimitPoleHorizontalSpeed(Vector3 velocity, float limit) =>
+            Vector3.up * velocity.y + Vector3.ClampMagnitude(Vector3.ProjectOnPlane(velocity, Vector3.up), Mathf.Max(0f, limit));
     }
 }

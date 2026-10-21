@@ -16,3 +16,4 @@ MonoBehaviour:
   sawDiagonalDegrees: 30
   reward: {fileID: 0}
   jumpHeight: 1.2
+  poleJumpHorizontalSpeedLimit: 8
