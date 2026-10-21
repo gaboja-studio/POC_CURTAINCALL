@@ -8,6 +8,24 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
 {
     public sealed partial class TightropeCampaignPlayTests
     {
+        [UnityTest, Category("PerformanceBalance")]
+        public IEnumerator SavedTightropeArtAndFixedLevelOneDensityWorkWithoutRuntimeRebinding()
+        {
+            yield return BeginPerformance();
+            Assert.IsNotNull(Get(course, "ArtProfile"), "The saved scene must opt into its enhancement art.");
+            var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
+            foreach (string field in new[] { "horizontalPrefab", "verticalPrefab", "platePrefab", "cooperativeGatePrefab", "cooperativePlatePrefab" })
+                Assert.IsNotNull(Get(saws, field), field);
+            yield return null;
+            var generated = saws.transform.Find("Generated");
+            var blades = generated.GetComponentsInChildren<Transform>(true)
+                .Where(t => t.parent == generated && t.name.StartsWith("HorizontalSaw")).ToArray();
+            Assert.That(blades.Count(t => t.gameObject.activeSelf), Is.EqualTo(10));
+            foreach (var blade in blades.Where(t => t.gameObject.activeSelf))
+                Assert.IsNotNull(blade.Find("Fit"), "Use the saved authored model, not a fallback cylinder.");
+            Assert.IsTrue(course.GetComponentsInChildren<Transform>(true).Any(t => t.name == "Prepared Art"));
+        }
+
         // Changes only runtime instances. The saved test scene keeps its original visual references.
         [UnityTest]
         public IEnumerator PreparedArtFollowsSupportRemovalPoleMotionAndSawRebuild()

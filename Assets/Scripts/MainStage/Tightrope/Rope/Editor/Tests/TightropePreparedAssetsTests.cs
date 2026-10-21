@@ -1,7 +1,9 @@
 using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
@@ -9,6 +11,37 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
     {
         const string Kit = "Assets/Resources/Prefabs/Objects/ETCs/TightropeArtKit/";
         static GameObject Asset(string name) => AssetDatabase.LoadAssetAtPath<GameObject>(Kit + name + ".prefab");
+
+        [Test]
+        public void SavedSceneConnectsEnhancementArtAndKeepsTheCurrentPerformanceUi()
+        {
+            const string path = "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity";
+            var previous = SceneManager.GetActiveScene();
+            var scene = SceneManager.GetSceneByPath(path);
+            bool openedHere = !scene.IsValid() || !scene.isLoaded;
+            if (openedHere) scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Additive);
+            try
+            {
+                var roots = scene.GetRootGameObjects();
+                var course = roots.SelectMany(root => root.GetComponentsInChildren<TightropeCourse>(true)).Single();
+                Assert.That(course.ArtProfile, Is.SameAs(AssetDatabase.LoadAssetAtPath<TightropeArtProfile>(Kit + "TightropeArtProfile.asset")));
+                var saws = roots.SelectMany(root => root.GetComponentsInChildren<Saws.TightropeSaws>(true)).Single();
+                var serialized = new SerializedObject(saws);
+                foreach (var pair in new[] {
+                    ("horizontalPrefab", "HorizontalSaw"), ("verticalPrefab", "IncomingSaw"),
+                    ("platePrefab", "ReleasePlate"), ("cooperativeGatePrefab", "CooperativeSaw"),
+                    ("cooperativePlatePrefab", "CooperativePlate") })
+                    Assert.That(serialized.FindProperty(pair.Item1).objectReferenceValue, Is.SameAs(Asset(pair.Item2)), pair.Item1);
+                Assert.IsTrue(roots.SelectMany(root => root.GetComponentsInChildren<MonoBehaviour>(true))
+                    .Any(component => component != null && component.GetType().FullName == "CurtainCall.UI.SceneIntegration.PerformanceSceneBinding"),
+                    "Restore only the art links; retain dev's current performance UI.");
+            }
+            finally
+            {
+                if (previous.IsValid() && previous.isLoaded) SceneManager.SetActiveScene(previous);
+                if (openedHere && scene.IsValid() && scene.isLoaded) EditorSceneManager.CloseScene(scene, true);
+            }
+        }
 
         [TestCase("HorizontalSaw", 1.2f, .1f)]
         [TestCase("IncomingSaw", 1.2f, .1f)]
