@@ -47,6 +47,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 ReplaceAssets();
                 ShabbyStructure();
                 ClutterAndMood();
+                FitStoredCanvasSupports(g);
                 if (before != ProtectedSignature() || proto != Signature(new[] { source, kit }))
                     throw new InvalidOperationException("보호 대상 변경 감지: 전체 실내 변경을 되돌립니다.");
                 LastReport = $"통로 보호 {protectedPaths.Count}개 루트 서명 동일; 프로토타입 2개 동일; 교체 WR01~WR07; 실내 생성 {art.GetComponentsInChildren<Transform>(true).Length}개";
@@ -291,6 +292,105 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Dust("Dust_Dormitory", new Vector3(-5, 3, 13), new Vector3(9, 2, 6));
             Dust("Dust_Props", new Vector3(-2, 3, -13), new Vector3(10, 2, 5));
             Dust("Dust_Lobby", new Vector3(-4, 4.4f, 1), new Vector3(8, 2, 10));
+        }
+
+        /// <summary>상자 주변에 남은 드레이프 천은 실제 벽에 연결한 줄과 함께 배치한다.</summary>
+        public static void FitStoredCanvasSupports(Transform greybox, Transform region = null)
+        {
+            if (EditorApplication.isPlaying) throw new InvalidOperationException("편집 모드에서만 가능합니다.");
+            var interior = greybox.Find("Mood/InteriorArt");
+            var walls = greybox.Find("Walls");
+            var surfaces = greybox.GetComponentsInChildren<Collider>().Where(c => c.enabled && !c.isTrigger &&
+                c.GetComponent<Renderer>() && c.GetComponent<Renderer>().enabled &&
+                (c.transform.IsChildOf(walls) || c.name.Contains("Wall"))).ToArray();
+            var cloths = (region ? region : interior).GetComponentsInChildren<Transform>().Where(t => t.name.StartsWith("CanvasOnCrate_") || t.name == "FoldedCanvas").ToArray();
+            var plans = new List<(Transform cloth, Quaternion rotation, Vector3 position, Vector3[] span, Vector3 anchorLeft, Vector3 anchorRight)>();
+            foreach (var cloth in cloths)
+            {
+                var filter = cloth.GetComponentsInChildren<MeshFilter>().First(f => f.sharedMesh && f.sharedMesh.name.Contains("TangledCloth"));
+                if (!filter.sharedMesh.isReadable) throw new InvalidOperationException("천 접힘선을 읽을 수 없습니다: " + cloth.name);
+                var points = filter.sharedMesh.vertices.Select(v => filter.transform.TransformPoint(v)).ToArray();
+                float top = points.Max(p => p.y);
+                var crest = points.Where(p => p.y >= top - .08f).ToArray();
+                var center = new Vector3(crest.Average(p => p.x), top - .008f, crest.Average(p => p.z));
+                float nearest = 3f; RaycastHit wallHit = default; Collider wall = null;
+                foreach (var direction in new[] { Vector3.left, Vector3.right, Vector3.forward, Vector3.back })
+                    foreach (var surface in surfaces)
+                        if (surface.Raycast(new Ray(center, direction), out var hit, nearest) && Mathf.Abs(hit.normal.y) < .1f)
+                        { nearest = hit.distance; wallHit = hit; wall = surface; }
+                if (!wall) throw new InvalidOperationException("천 생성 거부: 실제 벽 지지면이 없습니다: " + cloth.name);
+                var normal = wallHit.normal;
+                var tangent = Vector3.Cross(Vector3.up, normal).normalized;
+                float xx = crest.Sum(p => (p.x - center.x) * (p.x - center.x));
+                float zz = crest.Sum(p => (p.z - center.z) * (p.z - center.z));
+                float xz = crest.Sum(p => (p.x - center.x) * (p.z - center.z));
+                float angle = .5f * Mathf.Atan2(2 * xz, xx - zz);
+                var axis = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle));
+                if (Vector3.Dot(axis, tangent) < 0) tangent = -tangent;
+                var turn = Quaternion.FromToRotation(axis, tangent);
+                var target = wallHit.point + normal * .22f;
+                var rotated = points.Select(p => target + turn * (p - center)).ToArray();
+                float min = rotated.Min(p => Vector3.Dot(p - target, tangent));
+                float max = rotated.Max(p => Vector3.Dot(p - target, tangent));
+                // 가장 높은 한 점만 지지하지 않고 천 전체 폭의 실제 위쪽 윤곽을 따라 줄을 잇는다.
+                var span = new List<Vector3>();
+                for (int i = 0; i < 12; i++)
+                {
+                    float lo = Mathf.Lerp(min, max, i / 12f), hi = Mathf.Lerp(min, max, (i + 1f) / 12f);
+                    var band = rotated.Where(p => Vector3.Dot(p - target, tangent) >= lo - .0001f && Vector3.Dot(p - target, tangent) <= hi + .0001f).ToArray();
+                    if (band.Length == 0) continue;
+                    float y = band.Max(p => p.y);
+                    var edge = band.Where(p => p.y >= y - .008f).ToArray();
+                    span.Add(edge.Aggregate(Vector3.zero, (sum, p) => sum + p) / edge.Length + Vector3.up * .002f);
+                }
+                span.Insert(0, span[0] - tangent * .08f);
+                span.Add(span[span.Count - 1] + tangent * .08f);
+                Vector3 Anchor(Vector3 end)
+                {
+                    if (!wall.Raycast(new Ray(end + Vector3.up * .16f, -normal), out var hit, .5f))
+                        throw new InvalidOperationException("천 생성 거부: 줄 양끝의 벽 고정부가 면 밖입니다: " + cloth.name);
+                    return hit.point;
+                }
+                // 전체 지지점을 먼저 검증하므로 한 곳이라도 실패하면 기존 배치를 보존한다.
+                plans.Add((cloth, turn * cloth.rotation, target + turn * (cloth.position - center), span.ToArray(), Anchor(span[0]), Anchor(span[span.Count - 1])));
+            }
+            const string materialPath = "Assets/Scenes/Tests/WaitingRoom/Base/Materials/WR_Clothesline.mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            if (!material)
+            {
+                material = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = "WR_Clothesline", color = new Color(.45f, .36f, .23f) };
+                material.SetFloat("_Smoothness", .1f);
+                AssetDatabase.CreateAsset(material, materialPath);
+            }
+            foreach (var plan in plans)
+            {
+                var old = plan.cloth.Find("WallClothesline");
+                if (old) Undo.DestroyObjectImmediate(old.gameObject);
+                Undo.RecordObject(plan.cloth, "떠 있는 천 벽 지지 배치");
+                plan.cloth.SetPositionAndRotation(plan.position, plan.rotation);
+                var support = Group(plan.cloth, "WallClothesline");
+                void Rope(string name, Vector3 from, Vector3 to, float diameter)
+                {
+                    var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    Undo.RegisterCreatedObjectUndo(go, "벽에 고정한 천 지지 줄");
+                    go.name = name;
+                    // 천의 축소 스케일을 줄 굵기와 길이에 곱하지 않는다.
+                    go.transform.SetPositionAndRotation((from + to) * .5f, Quaternion.FromToRotation(Vector3.up, to - from));
+                    go.transform.localScale = new Vector3(diameter, Vector3.Distance(from, to) * .5f, diameter);
+                    go.transform.SetParent(support, true);
+                    go.GetComponent<Renderer>().sharedMaterial = material;
+                    Object.DestroyImmediate(go.GetComponent<Collider>());
+                }
+                for (int i = 1; i < plan.span.Length; i++) Rope("ClothSpan_" + i, plan.span[i - 1], plan.span[i], .026f);
+                Rope("WallTie_L", plan.span[0], plan.anchorLeft, .026f);
+                Rope("WallTie_R", plan.span[plan.span.Length - 1], plan.anchorRight, .026f);
+                var normal = Vector3.Cross((plan.span[plan.span.Length - 1] - plan.span[0]).normalized, Vector3.up);
+                Rope("WallFixing_L", plan.anchorLeft - normal * .01f, plan.anchorLeft + normal * .01f, .09f);
+                Rope("WallFixing_R", plan.anchorRight - normal * .01f, plan.anchorRight + normal * .01f, .09f);
+                foreach (var collider in plan.cloth.GetComponentsInChildren<Collider>(true))
+                { Undo.RecordObject(collider, "장식 천 충돌 해제"); collider.enabled = false; }
+            }
+            EditorSceneManager.MarkSceneDirty(greybox.gameObject.scene);
         }
 
         static void Dust(string name, Vector3 p, Vector3 size)

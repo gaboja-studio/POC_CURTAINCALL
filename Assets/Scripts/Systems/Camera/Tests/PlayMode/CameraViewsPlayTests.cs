@@ -201,6 +201,37 @@ namespace CurtainCall.Cameras.Tests
         }
 
         [UnityTest]
+        public IEnumerator WaitingRoom_ReentryBlendsFromCorridorWithoutChangingViewKind()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            Call(director, "SetInputBlocked", true);
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            yield return Teleport(new Vector3(12, .08f, 70));
+            SetView(0, 0);
+            yield return Seconds(.6f);
+            var close = (ScriptableObject)Get(director, "CurrentView");
+            Assert.AreEqual("WaitingRoomCloseThirdPerson", close.name);
+            float duration = (float)Get(close, "TransitionDuration");
+            yield return Teleport(new Vector3(9.6f, .08f, 70));
+            yield return Seconds(.4f);
+            Assert.AreSame(close, Get(director, "CurrentView"), "문턱을 지나는 동안은 좁은 시점을 유지한다");
+            Call(Mover, "SetStartPose", new Vector3(8.5f, .08f, 70), Quaternion.identity);
+            yield return FixedSteps(1);
+            yield return Frames(1);
+            var lobby = (ScriptableObject)Get(director, "CurrentView");
+            Assert.AreEqual("WaitingRoomLobbyCamera", lobby.name);
+            Assert.AreEqual(Get(close, "Kind"), Get(lobby, "Kind"), "시점 종류는 유지한다");
+            Assert.AreEqual(duration, (float)Get(lobby, "TransitionDuration"), .001f);
+            Assert.Greater(duration, 0);
+            var target = local.transform.position + new Vector3(0, (float)Get(lobby, "Height"), -(float)Get(lobby, "Distance"));
+            Assert.Greater(Vector3.Distance(Camera.main.transform.position, target), .1f, "재진입 첫 화면은 목표 위치로 즉시 자르지 않는다");
+            yield return Seconds(duration + .3f);
+            AssertVector(target, Camera.main.transform.position, "복귀 보간 완료", .2f);
+            yield return Teleport(new Vector3(9.6f, .08f, 70));
+            Assert.AreSame(lobby, Get(director, "CurrentView"), "경계 여유 구간에만 돌아가도 좁은 시점에 재진입하지 않는다");
+        }
+
+        [UnityTest]
         public IEnumerator Transition_BlendsOnWinnerChangeAndAppliesLiveEdits()
         {
             yield return Host(CameraViewsScene);

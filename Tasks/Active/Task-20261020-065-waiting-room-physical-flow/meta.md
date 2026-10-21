@@ -2,16 +2,16 @@
 
 - **Title:** 실제 대기실 복귀와 물리 출구 진행 연결
 - **Type:** fix
-- **Status:** submitted
-- **Assignee:** @MoHoDu
+- **Status:** working
+- **Assignee:** @gyumin9048-ctrl
 - **Domain:** common-game-systems
-- **Current Skill:** investigate-bug
-- **Updated:** 2026-10-20
+- **Current Skill:** save-work
+- **Updated:** 2026-10-21
 
 ## Workspace
 
-- **Integration:** integration/waiting-room-physical-flow
-- **Branch:** fix/waiting-room-physical-flow
+- **Integration:** dev
+- **Branch:** fix/waiting-room-bugs-improvements
 - **Previous Task:** Task-20261020-064
 
 ## Goal
@@ -25,6 +25,8 @@
 - AI Setup Allowed: None
 
 ## Decisions
+
+- Decided (2026-10-21 16:20 KST, PM 채팅 긴급 승인): 기존 Task-065의 입구 후속 수정을 현재 작업자 @gyumin9048-ctrl에게 임시 재배정한다. 기존 브랜치는 fix/waiting-room-physical-flow, 담당은 @MoHoDu였다. 현재 브랜치에서 상점 위치 복구·떠 있는 소품 조사·개인 재입장 허용 및 관련 회귀 검증을 수행한다. 예외는 exception.md에 기록하며 커밋·push는 별도 요청 전까지 하지 않는다.
 
 - Open: 실제 2인 공동 검증.
 - Decided: 사용자 명시 승인으로 Task-064만 로컬 커밋 6bd83ca에 분리, 로컬 통합 기준으로 사용. 이후 승인으로 Task-065와 함께 push·dev PR #191 제출.

@@ -2,29 +2,28 @@
 
 ## 지금 상태
 
-- 실제 WaitingRoom 활성·그레이박스/더미 선택 UI 비활성. 실제 로비 스폰 4개, 무대 통로 퇴장 경계, R10 집결, 기존 야간 셔터·스케줄표·카메라 연결 저장 완료.
-- 첫 개인 퇴장은 팀 타이머만 시작하고 대기실 씬·잔류자를 유지한다. 더미 fixture는 별도 탐색 씬 정책을 명시했다.
-- 개인 퇴장 이력과 외부 위치로 소유자 재진입을 보정한다. 다음 쉬는 시간에 초기화한다. 원격 소유자 공동 검증은 남았다.
-- 사용자 승인으로 Task-064 6bd83ca와 Task-065 e22c088을 작업 브랜치에 push. 기존 Vivox Settings.json은 제외·로컬 보존.
-- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/191 (dev 대상, 미병합)
+- PM 긴급 승인으로 @gyumin9048-ctrl 임시 담당, `fix/waiting-room-bugs-improvements` → dev. [exception.md](exception.md), 상세 변경·검증 이력 [waiting-room-followup.md](waiting-room-followup.md).
+- 최신 추가 천: 사진은 CanvasOnCrate_4. 같은 원인의 CanvasOnCrate_0/1·FoldedCanvas까지4곳을 실제 벽에 연결된 줄에 걸었다. 전체 메시 상단 윤곽 지지·실내/보관실 재생성 연동, 장식 충돌체0. 씬 저장 완료.
+- 숙소 천4개는 침대 위 이동을 폐기하고 빨랫줄에 걸었다. Rope/Rod 모두 실제 천장 면을 먼저 확인하고 양끝 연결선2개와 고정부2개를 생성한다. 가정한 WallAnchor 좌표 고정 방식은 폐기했다.
+- 상점 Phone/DeliverySlot 위치·배출 방향·조명 복구, 트렁크3개를 받침 높이에 맞춤. 원본 에셋·사람이 조정한 의자/수화기 미세 위치·다른 기존 미커밋 변경은 보존.
+- BUG-004: 대기실 내부 플레이어 간 이동 제한만 해제, 외부/공연/비활성 시 복구. 환경 충돌 유지. BUG-005: 집결 폭7.7m·길이4.65m, 복도 양벽 안쪽·커튼 뒤 끝벽까지 포함.
+- 개인 재입장 보정 제거, 첫 개인 퇴장 팀 타이머·잔류자·중복 집계 방지 유지. 기존 야간 셔터·스케줄표 연결 유지. 실제 로비 스폰4개, 더미 선택 UI 비활성.
+- 의자는 현 위치를 보존하고 메시 구멍 대신 메시 bounds의 BoxCollider 사용. 양다리 손실 초기 Crawl 포즈 즉시 적용.
+- 카메라: 대기실 전용 로비 프리셋으로 복귀0.35초 보간. 좁은6구역 exitPadding=1m로 몸통이 문턱을 완전히 벗어난 후 전환. 기본1/3인칭 변경 보류.
+- 이전10-20 제출: Task-064 6bd83ca·Task-065 e22c088, [PR #191](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/191) dev 대상 미병합. 10-21 후속 변경은 사용자 저장 요청으로 검증 후 현재 브랜치에 선택 커밋·push한다. 폰트·재질·UI·Vivox 기존 변경 제외.
 
 ## 다음 할 일
 
-1. 공동 테스트 최대 3항목: 부활·관전 해제 / 한 명 퇴장·타이머·잔류·집결 / 밤 잠금·F 스케줄·전원 준비.
+- PM은 후속 PR에서 Task-060 아트 도구·Task-062 PlayerMover/Humanoid/Camera 변경의 긴급 예외를 검토한다.
+- 원격2프로세스 공동 검증 미실행(MPPM 구성0). 사람 공동 확인: 부활·관전 해제 / 퇴장·팀 타이머·잔류·집결 / 밤 잠금·F 스케줄·전원 준비. 실제 상점 구매·수령 및 모든 카메라 가림 구간도 미검증.
+- 기존 Additive 씬 개수 실패 및 키보드 회귀 불안정은 남아 있다. PR 병합·커밋·push는 사용자 요청 시 진행.
+- 교훈 제안: 메시 복제 시 모든 생성 경로에서 실제 지지물도 함께 검사한다. 숙소만 확인하면 상자 장식의 동일 원인을 놓친다. 상세 후속 기록 참고.
 
 ## Verification
 
-- 구역: PASS(13파일), verify-scope.ps1 -Base integration/waiting-room-physical-flow. 최초 11건 실패는 Task-064 승인 커밋 분리로 해소했다.
-- 문서/규칙: PASS, 기존 길이 WARN 8/hard 0. 원격 integration 없음으로 check-work 대신 개별 계단식 검증.
-- 컴파일: PASS(completed), 열린 씬 1/dirty 0. 최종 참조 검사: missing scripts 0, 활성 스폰 묶음 1, 4개 스폰 캡슐 충돌 없음, 셔터·스케줄표 참조 유효.
-- PlayMode: SpaceLink 6/6, 부활 가드 4/4, 실제 인간대포 사망→대기실 외팔 부활·관전 해제 1/1 통과. 전체 EditMode 815/815 통과.
-- 실제 씬 회귀: 가상 키보드 F→스케줄표, 첫 퇴장·씬 유지·개인 재진입 차단·전원 집결, 야간 셔터 충돌체·스케줄 확정/준비·다음 아침 첫 퇴장까지 통과.
-- 기존 별개 줄타기 시간 초과 3건이 있는 PerformanceLink 전체 fixture는 이번에 재실행하지 않았다. 해당 부분까지 PASS라는 뜻이 아니다.
-- 중간 실패: 첫 밤 테스트는 1일차 밤 2·3일차 전부 채워야 하는데 2일차만 채운 fixture 오류. 수정 후 통과. F 입력의 delta bitfield 오류는 KeyboardState 전체 이벤트로 수정했다.
-- 실제 통로: 기존 장애물을 보존하고 캡슐 공간 격자 탐색으로 로비→R10 연속 경로 확인. 실제 조작 통행과는 구분한다.
-- 합성 위치/API 테스트는 사람 입력·NGO 2인 공동 플레이 PASS가 아니다. 늦은 입장자의 과거 퇴장 이력 복원은 미검증.
-
-## 공동 테스트 결과
-- 원격 2프로세스 미실행: MPPM ScenarioConfig 에셋·로드된 설정 모두 0개. 공식 Scenario 구성 추가는 구역 밖이라 수행하지 않았고 내부 VirtualProjectsApi 강제 실행도 제외했다.
-- 재개 전 구역·문서·컴파일 PASS(up_to_date), EditMode/dirty 0 유지. 원격 소유자 보정 동기화와 위 3개 사람 확인 항목은 미검증.
-- 전문가 시설은 기존 별도 배치를 보존했다. 새 방·시설 서비스 재설계 및 서비스 전체 재검증은 이번 범위 밖이다.
+- 최신 천4곳: 재적용 최대 위치차 .000002m 이하·회전0·구조 중복0, 벽 지지 누락 시 기존 구조 보존하며 생성 거부. 비대상 Transform 동일·렌더4곳 직접 확인, 씬 isDirty=false. Temp/CanvasOnCrate_4-supported.png 등 진단 화면 보관.
+- 최신 Unity 컴파일 completed/failed=false/errors0. 구역 PASS(27파일, origin/dev, 긴급 예외 공개), 문서 PASS(hard0·기존 WARN12), diff 공백 PASS. 편집 배치 변경에 별도 PlayMode 테스트 추가 없음.
+- 이전 출입 카메라 관련2/2 PASS: 문턱 유지→완전 진입 후0.35초 보간→경계 재진입 유지, 기본padding0 기존 회귀. 숙소 Rope/Rod 천장 지지·누락 거부·렌더 확인 PASS.
+- SpaceLink 최신8/9 PASS: 플레이어 실제 통과·집결·의자 접촉/후퇴·재입장·밤 잠금 통과. Additive_KeepsHubAndSwapsSpaceScenes 예상2/실제3 실패 유지(현재486행).
+- Humanoid 최신11/12 PASS: 초기 손실 Crawl 회귀 통과. KeyboardEventsReachReaderControllerAndHumanoidAnimation Walk 대신 JumpLand 실패, 단독 재검사1/1 PASS. 전체 PASS로 간주하지 않는다.
+- 10-20 당시 검증: SpaceLink6/6·부활 가드4/4·실제 인간대포 사망→대기실 외팔 부활1/1·EditMode815/815. 당시 성공은 현재 전체 테스트 PASS를 뜻하지 않는다. 이전 별개 줄타기 시간 초과3건은 재실행하지 않았다.

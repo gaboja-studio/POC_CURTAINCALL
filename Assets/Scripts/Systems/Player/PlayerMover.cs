@@ -164,6 +164,9 @@ namespace CurtainCall.Player
         /// <summary>일반 이동의 점프·낙하 중에도 매 프레임 방향 입력을 반영한다. 기본 꺼짐이며 옆줄 점프에는 적용하지 않는다.</summary>
         public bool FreeAirControl { get; set; }
 
+        /// <summary>공간 정책으로 플레이어 간 이동 제한만 무시한다. 벽·바닥 등 환경 충돌은 유지한다.</summary>
+        public bool IgnorePlayerBlocking { get; set; }
+
         /// <summary>
         /// 다른 플레이어가 이 플레이어 몸통을 통과하는지. 켜면 플레이어끼리 막기·옆줄 착지 겹침 검사에서 빠지고, 래그돌 등 물체와도 부딪히지 않는다.
         /// 예: 추락하면 모델은 래그돌로 떨어져 나가고 보이지 않는 몸통만 남으므로 외줄 기능이 켠다. 재시작하면 끈다.
@@ -636,10 +639,11 @@ namespace CurtainCall.Player
         /// </summary>
         Vector3 LimitAgainstPlayers(Vector3 step)
         {
+            if (IgnorePlayerBlocking) return step;
             Vector3 position = transform.position;
             foreach (var other in active)
             {
-                if (other == this || other.PassThrough) continue;
+                if (other == this || other.PassThrough || other.IgnorePlayerBlocking) continue;
                 Vector3 toOther = other.transform.position - position;
                 if (Mathf.Abs(toOther.y) >= Mathf.Max(BodyHeight, other.BodyHeight)) continue;
                 toOther.y = 0f;
