@@ -1,4 +1,5 @@
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -55,6 +56,7 @@ namespace CurtainCall.HumanCannon
             Quaternion rotation, Vector3 launchVelocity, float controlSpeed)
         {
             HeldPole = -1;
+            launchVelocity = CannonAirControl.LimitPoleHorizontalSpeed(launchVelocity, GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit);
             Launch(station, launch, position, rotation, launchVelocity);
             flightSegment = segment;
             airControlSpeed = controlSpeed;

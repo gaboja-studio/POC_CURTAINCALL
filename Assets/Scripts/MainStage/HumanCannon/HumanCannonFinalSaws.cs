@@ -4,6 +4,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Tightrope.Saws;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -111,8 +112,14 @@ namespace CurtainCall.HumanCannon
         {
             float elapsed = HasStarted ? Mathf.Max(0, (float)(now - startedAt - warningSeconds)) : 0;
             float side = SawMath.PingPongSide(horizontalSpeed, horizontalHalfWidth, index % 2 == 0, elapsed);
-            return horizontalOrigins[index].position + transform.right * side;
+            return horizontalOrigins[index].position + DiagonalOffset(side, index);
         }
+
+        Vector3 DiagonalOffset(float side, int index) => transform.right * side + transform.forward
+            * (side * TrickSettings.DiagonalSlope(index, GameSettings.HumanCannon.SawDiagonalDegrees));
+
+        public int TotalSawCount => horizontalOrigins.Length + (verticalView != null ? 1 : 0) + (secondaryVerticalView != null ? 1 : 0);
+        public bool IsSawEnabled(int index) => TrickSettings.IncludesSaw(index, TotalSawCount, GameSettings.HumanCannon.SawDensity);
 
         public Vector3 VerticalPosition(double now) => VerticalPositionAt(now, 0);
         public Vector3 SecondaryVerticalPosition(double now) => VerticalPositionAt(now, 2);
@@ -127,12 +134,15 @@ namespace CurtainCall.HumanCannon
                 float side = Mathf.Lerp(-horizontalHalfWidth, horizontalHalfWidth,
                     fromLeft ? sample.Travel01 : 1f - sample.Travel01);
                 Vector3 center = Vector3.Lerp(verticalStart.position, verticalEnd.position, laneOffset == 0 ? .35f : .65f);
-                return center + transform.right * side;
+                return center + DiagonalOffset(side, horizontalOrigins.Length + laneOffset / 2);
             }
             // 두 번째 톱은 같은 예고/통과 시각을 쓰고 네 발사 레인 중 두 칸 건너 위치한다.
             float lane = verticalLanes.Length > 0 && sample.CycleIndex >= 0
                 ? verticalLanes[(int)((sample.CycleIndex % verticalLanes.Length + laneOffset) % verticalLanes.Length)] : 0;
-            return Vector3.Lerp(verticalStart.position, verticalEnd.position, sample.Travel01) + transform.right * lane;
+            Vector3 position = Vector3.Lerp(verticalStart.position, verticalEnd.position, sample.Travel01) + transform.right * lane;
+            float along = Vector3.Dot(position - verticalEnd.position, transform.forward);
+            return position + transform.right * (along * TrickSettings.DiagonalSlope(horizontalOrigins.Length + laneOffset / 2,
+                GameSettings.HumanCannon.SawDiagonalDegrees));
         }
 
         void LateUpdate()
@@ -144,7 +154,7 @@ namespace CurtainCall.HumanCannon
             for (int i = 0; i < horizontalViews.Length && i < horizontalOrigins.Length; i++)
             {
                 if (horizontalViews[i] == null || horizontalOrigins[i] == null) continue;
-                horizontalViews[i].gameObject.SetActive(HasStarted);
+                horizontalViews[i].gameObject.SetActive(HasStarted && IsSawEnabled(i));
                 horizontalViews[i].SetPositionAndRotation(HorizontalPosition(i, now), transform.rotation * Quaternion.Euler(0, spin, 0));
                 if (HorizontalActive)
                 {
@@ -154,10 +164,11 @@ namespace CurtainCall.HumanCannon
             }
             if (verticalStart != null && verticalEnd != null)
             {
-                PresentVertical(verticalView, warningView, warningRenderers, VerticalPosition(now), sample.Phase, spin, warning);
+                PresentVertical(verticalView, warningView, warningRenderers, VerticalPosition(now),
+                    IsSawEnabled(horizontalOrigins.Length) ? sample.Phase : FinalSawPhase.Dormant, spin, warning);
                 if (secondaryVerticalView != null)
                     PresentVertical(secondaryVerticalView, secondaryWarningView, secondaryWarningRenderers,
-                        SecondaryVerticalPosition(now), sample.Phase, spin, warning);
+                        SecondaryVerticalPosition(now), IsSawEnabled(horizontalOrigins.Length + 1) ? sample.Phase : FinalSawPhase.Dormant, spin, warning);
             }
             if (session != null && session.IsHost) HostContacts(now);
             previousClock = now;

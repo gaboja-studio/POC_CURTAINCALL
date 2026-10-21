@@ -169,6 +169,26 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             }
         }
 
+        [Test]
+        public void CurrentBuildUsesSixtyPercentDensityWithoutRemovingAnyPoleSaw()
+        {
+            var settings = GameSettings.HumanCannon;
+            Assert.That(settings.SawDensity, Is.EqualTo(.6f));
+            var course = All<HumanCannonHazardCourse>().Single();
+            int ground = 0, blades = 0;
+            for (int i = 0; i < course.HazardCount; i++)
+            {
+                var hazard = course.Hazard(i);
+                bool enabled = course.IsHazardEnabled(i);
+                if (hazard.IsPoleSaw) { Assert.IsTrue(enabled, hazard.name); continue; }
+                if (!enabled) continue;
+                if (hazard.Kind == CannonHazardKind.GroundSaw) ground++;
+                if (hazard.Kind == CannonHazardKind.RotatingBlades) blades++;
+            }
+            Assert.That(ground, Is.EqualTo(8));
+            Assert.That(blades, Is.EqualTo(3));
+        }
+
         T[] All<T>() where T : Component => roots.SelectMany(root => root.GetComponentsInChildren<T>(true)).ToArray();
         static T Field<T>(object target, string name) =>
             (T)target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(target);

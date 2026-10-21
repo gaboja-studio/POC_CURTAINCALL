@@ -53,7 +53,7 @@ namespace CurtainCall.HumanCannon.Tests
             Call(control, "Tick", context, frame);
         }
 
-        [UnityTest]
+        [UnityTest, Category("PerformanceBalance")]
         public IEnumerator CannonLaunch_DirectionInputPreservesMomentum_ReleaseKeepsFlight_ThreeRestarts()
         {
             DisableEnhancementThreats();
@@ -131,10 +131,12 @@ namespace CurtainCall.HumanCannon.Tests
             }
         }
 
-        [UnityTest]
+        [UnityTest, Category("PerformanceBalance")]
         public IEnumerator LinkedPole_ForwardJumpAllowsImmediateReverseAndSideSteering_ThreeRestarts()
         {
             DisableEnhancementThreats();
+            float limit = (float)Get(StaticGet("CurtainCall.Settings.GameSettings", "HumanCannon"), "PoleJumpHorizontalSpeedLimit");
+            Assert.That(limit, Is.EqualTo(8f), "이번 빌드의 인간대포 봉 도약 상한");
             var reverseSpeeds = new float[3];
             var forwardSpeeds = new float[3];
             var lateralDrift = new float[3];
@@ -153,23 +155,33 @@ namespace CurtainCall.HumanCannon.Tests
                     yield return null;
                 }
                 Assert.That(Vector3.Dot(player.transform.position - neutral, forward), Is.GreaterThanOrEqualTo(3f));
+                var runtime = ((Array)Get(poles, "states")).GetValue(1);
+                var rawRelease = (Vector3)Call(pole, "ReleaseVelocity", Get(runtime, "Angle"), Get(runtime, "Speed"));
                 PoleEnhancementInput(1, release: true);
                 Assert.IsTrue(Flying);
                 Assert.AreEqual(-1, Get(pilot, "HeldPole"));
                 forwardSpeeds[attempt] = Vector3.Dot((Vector3)Get(pilot, "velocity"), forward);
-                Assert.That(forwardSpeeds[attempt], Is.GreaterThan(5f), "긴 줄의 반동을 충분히 받으며 출발");
+                Assert.That(forwardSpeeds[attempt], Is.EqualTo(limit).Within(.01f), "긴 줄에서 얻은 과도한 전진 속도를 제한한다.");
+                Assert.That(((Vector3)Get(pilot, "velocity")).y, Is.EqualTo(rawRelease.y).Within(.001f), "봉 도약의 높이는 유지한다.");
                 yield return null;
                 Vector3 before = player.transform.position;
+                PoleFlightDirection(forward);
+                yield return new WaitForEndOfFrame();
+                Assert.That(Vector3.Dot(player.transform.position - before, forward) / Time.deltaTime,
+                    Is.EqualTo(limit).Within(.1f), "전진 보정을 더해도 실제 속도가 상한을 넘지 않는다.");
+                yield return null;
+                before = player.transform.position;
                 PoleFlightDirection(-forward);
                 yield return new WaitForEndOfFrame();
                 reverseSpeeds[attempt] = Vector3.Dot(player.transform.position - before, forward) / Time.deltaTime;
+                Assert.That(reverseSpeeds[attempt], Is.EqualTo(-limit).Within(.1f));
                 yield return null;
                 before = player.transform.position;
                 PoleFlightDirection(Vector3.Cross(Vector3.up, forward));
                 yield return new WaitForEndOfFrame();
                 lateralDrift[attempt] = Mathf.Abs(Vector3.Dot(player.transform.position - before, forward)) / Time.deltaTime;
                 Assert.That(Vector3.Dot(player.transform.position - before, Vector3.Cross(Vector3.up, forward)) / Time.deltaTime,
-                    Is.GreaterThan(0.1f), "앞으로 멈출 뿐 아니라 실제 옆 방향으로 움직인다.");
+                    Is.EqualTo(limit).Within(.1f), "옆 방향도 같은 속도 상한 안에서 실제 이동한다.");
                 yield return null;
                 before = player.transform.position;
                 Input();
@@ -207,8 +219,8 @@ namespace CurtainCall.HumanCannon.Tests
         }
 
         /// <summary>실제 호스트의 W/S 프레임을 주입해 몸·봉·줄과 도약을 검사한다. 실제 키보드/화면 조작은 아니다.</summary>
-        [UnityTest]
-        public IEnumerator CeilingSwing_MovesBodyAndBarTogether_AndReleasesWithLongRopeMomentum()
+        [UnityTest, Category("PerformanceBalance")]
+        public IEnumerator CeilingSwing_MovesBodyAndBarTogether_AndReleasesWithLimitedHorizontalMomentum()
         {
             DisableEnhancementThreats();
             const int index = 1;
@@ -247,6 +259,8 @@ namespace CurtainCall.HumanCannon.Tests
             Vector3 expectedPosition = (Vector3)Call(pole, "HangingPosition", angle);
             Vector3 expectedVelocity = (Vector3)Call(pole, "ReleaseVelocity", angle, speed);
             Assert.That(Vector3.Dot(expectedVelocity, forward), Is.GreaterThan(5f), "실제 긴 줄의 전진 접선 속도가 충분히 남은 상태");
+            float limit = (float)Get(StaticGet("CurtainCall.Settings.GameSettings", "HumanCannon"), "PoleJumpHorizontalSpeedLimit");
+            expectedVelocity = Vector3.up * expectedVelocity.y + Vector3.ClampMagnitude(Vector3.ProjectOnPlane(expectedVelocity, Vector3.up), limit);
             PoleEnhancementInput(0, release: true);
             Assert.AreEqual(-1, Get(pilot, "HeldPole"));
             Assert.IsTrue(Flying);

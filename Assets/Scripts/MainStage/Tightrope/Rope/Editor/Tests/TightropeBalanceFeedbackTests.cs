@@ -13,7 +13,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         const BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic;
         GameObject player, gauge;
         PlayerBalance balance;
-        string previousRules;
+        string previousRules, previousRope;
         Random.State previousRandom;
 
         [SetUp]
@@ -21,7 +21,9 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         {
             previousRandom = Random.state;
             previousRules = JsonUtility.ToJson(GameSettings.Base.Balance);
-            JsonUtility.FromJsonOverwrite("{\"greenLimit\":30,\"warningLimit\":50,\"fallTime\":2,\"warningFallRate\":0.33333334,\"idleSway\":0,\"movingSway\":0,\"tiltAcceleration\":0}", GameSettings.Base.Balance);
+            previousRope = JsonUtility.ToJson(GameSettings.Tightrope.RopeMovement);
+            JsonUtility.FromJsonOverwrite("{\"laneLandingDangerRatio\":0.05}", GameSettings.Tightrope.RopeMovement);
+            JsonUtility.FromJsonOverwrite("{\"greenLimit\":30,\"warningLimit\":50,\"fallTime\":2,\"warningFallRate\":0.33333334,\"greenRecoveryRate\":0.25,\"idleSway\":0,\"movingSway\":0,\"tiltAcceleration\":0}", GameSettings.Base.Balance);
             player = new GameObject("Balance feedback test");
             balance = player.AddComponent<PlayerBalance>();
             balance.SetBalanceActive(true);
@@ -33,6 +35,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             if (gauge != null) Object.DestroyImmediate(gauge);
             Object.DestroyImmediate(player);
             JsonUtility.FromJsonOverwrite(previousRules, GameSettings.Base.Balance);
+            JsonUtility.FromJsonOverwrite(previousRope, GameSettings.Tightrope.RopeMovement);
             Random.state = previousRandom;
         }
 
@@ -50,7 +53,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
 
         [TestCase(40f)]
         [TestCase(-40f)]
-        public void YellowAccumulatesSlowlyAndOnlyGreenClearsTheSharedDangerTimer(float value)
+        public void YellowAccumulatesSlowlyAndOnlyGreenRecoversTheSharedDangerTimer(float value)
         {
             balance.SetDisplayedState(true, value);
             Step(3f);
@@ -65,6 +68,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(balance.RedTime, Is.EqualTo(1.6f).Within(.0001f), "빨강에서 노랑으로 와도 누적 시간은 유지된다.");
             balance.SetDisplayedState(true, 30f);
             Step(.1f);
+            Assert.That(balance.RedTime, Is.EqualTo(1.55f).Within(.0001f));
+            Step(4f);
             Assert.That(balance.RedTime, Is.Zero);
             balance.SetDisplayedState(true, value);
             int falls = 0;
@@ -92,6 +97,123 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
+        public void RepeatedLaneLandingsAddFivePercentagePointsEach()
+        {
+            balance.SetDisplayedState(true, 60f);
+            Step(.5f);
+            for (int i = 0; i < 10; i++) balance.ApplyLaneLanding(0f);
+            Assert.That(balance.LastShock, Is.Not.Zero, "착지의 바늘 충격은 유지한다.");
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.75f).Within(.0001f), "기존 25%에 착지 10회의 50%포인트를 더한다.");
+            Assert.That(balance.HasFallen, Is.False);
+        }
+
+        [TestCase(1f, 1, 0f)]
+        [TestCase(2f, 4, .9f)]
+        [TestCase(4f, 4, 1f)]
+        public void LaneLandingDangerIsFivePercentOfFullBarRegardlessOfShockModifiers(float fallTime, int stack, float reduction)
+        {
+            JsonUtility.FromJsonOverwrite("{\"fallTime\":" + fallTime.ToString(System.Globalization.CultureInfo.InvariantCulture) + "}", GameSettings.Base.Balance);
+            balance.SetStackSize(stack);
+            balance.LaneLandingShockMultiplier = 2f;
+            balance.ApplyLaneLanding(reduction);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.05f).Within(.0001f));
+        }
+
+        [Test]
+        public void LaneLandingCapsFullDangerAndFallsOnlyOnce()
+        {
+            balance.SetDisplayedState(true, 70f);
+            Step(1.96f);
+            int falls = 0;
+            balance.Fell += () => falls++;
+            balance.ApplyLaneLanding(0f);
+            balance.ApplyLaneLanding(0f);
+            Assert.That(balance.RedTime, Is.EqualTo(balance.FallTime));
+            Assert.That(balance.HasFallen, Is.True);
+            Assert.That(falls, Is.EqualTo(1));
+            balance.SetBalanceActive(false);
+            balance.ApplyLaneLanding(0f);
+            Assert.That(balance.RedTime, Is.Zero);
+        }
+
+        [Test]
+        public void ReturningToGreenStartsGradualRecoveryAfterLaneLanding()
+        {
+            balance.SetDisplayedState(true, 70f);
+            Step(.5f);
+            balance.ApplyLaneLanding(0f);
+            balance.SetDisplayedState(true, 0f);
+            Step(1f / 60f);
+            Assert.That(balance.RedTime, Is.EqualTo(.6f - .5f / 60f).Within(.0001f));
+            Step(2f);
+            Assert.That(balance.RedTime, Is.Zero);
+            Assert.That(balance.HasFallen, Is.False);
+        }
+
+        [Test]
+        public void HalfFullDangerBarTakesTwoGroundedGreenSecondsToRecover()
+        {
+            balance.SetDisplayedState(true, 70f);
+            Step(1f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.5f).Within(.0001f));
+            balance.SetDisplayedState(true, 0f);
+            Step(1f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.25f).Within(.0001f));
+            Step(1f);
+            Assert.That(balance.RedTime, Is.Zero);
+        }
+
+        [Test]
+        public void BriefGreenVisitAndAirborneGreenCannotEraseAccumulatedDanger()
+        {
+            balance.SetDisplayedState(true, 70f);
+            Step(1f);
+            balance.SetDisplayedState(true, 0f);
+            Step(.1f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.475f).Within(.0001f));
+            balance.SetAirborne(true);
+            Step(10f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.475f).Within(.0001f));
+            balance.SetAirborne(false);
+            balance.SetDisplayedState(true, 40f);
+            Step(.3f);
+            Assert.That(balance.RedTime, Is.EqualTo(1.05f).Within(.0001f));
+        }
+
+        [TestCase(30)]
+        [TestCase(60)]
+        [TestCase(144)]
+        public void GreenRecoveryRateIsIndependentOfFrameRate(int frameRate)
+        {
+            balance.SetDisplayedState(true, 70f);
+            Step(1f);
+            balance.SetDisplayedState(true, 0f);
+            for (int i = 0; i < frameRate; i++) Step(1f / frameRate);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.25f).Within(.0001f));
+        }
+
+        [TestCase(.6f, 10)]
+        [TestCase(.85f, 14)]
+        [TestCase(1f, 16)]
+        public void DensityKeepsSawCountsAcrossTheWholeCourse(float density, int expected)
+        {
+            int kept = 0;
+            for (int i = 0; i < 16; i++) if (TrickSettings.IncludesSaw(i, 16, density)) kept++;
+            Assert.That(kept, Is.EqualTo(expected));
+            Assert.That(TrickSettings.IncludesSaw(15, 16, density), Is.True, "도착 쪽을 통째로 비우지 않는다.");
+            Assert.That(TrickSettings.IncludesSaw(-1, 16, density), Is.False);
+            Assert.That(TrickSettings.IncludesSaw(0, 0, density), Is.False);
+        }
+
+        [TestCase(0, 30f)]
+        [TestCase(1, -30f)]
+        public void DiagonalPathsAlternateApprovedThirtyDegreeAngles(int index, float angle)
+        {
+            float slope = TrickSettings.DiagonalSlope(index, 30f);
+            Assert.That(Mathf.Atan(slope) * Mathf.Rad2Deg, Is.EqualTo(angle).Within(.001f));
+        }
+
+        [Test]
         public void HeldCounterInputCanRecoverFromDeepRedDespiteOutwardSway()
         {
             JsonUtility.FromJsonOverwrite("{\"idleSway\":22.5,\"tiltAcceleration\":0.5}", GameSettings.Base.Balance);
@@ -105,7 +227,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             }
             Assert.That(balance.HasFallen, Is.False);
             Assert.That(balance.Zone, Is.EqualTo(BalanceZone.Yellow), "정확한 반대 입력으로 2초 이내에 경고 구간까지 회복할 수 있어야 한다.");
-            Assert.That(balance.RedTime, Is.GreaterThan(0f), "초록까지 회복해야 위험 시간이 초기화된다.");
+            Assert.That(balance.RedTime, Is.GreaterThan(0f), "초록까지 돌아와야 위험 시간이 줄어들기 시작한다.");
         }
 
         [Test]

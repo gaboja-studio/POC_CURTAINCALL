@@ -9,6 +9,86 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
 {
     public sealed partial class TightropeCampaignPlayTests
     {
+        [UnityTest, Category("PerformanceBalance")]
+        public IEnumerator GreenDangerRecoveryRunsGraduallyAndPausesWhileAirborne()
+        {
+            yield return BeginPerformance();
+            ((Behaviour)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current")).enabled = false;
+            ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
+            yield return StandOnRopeForSawTest(1, 4f);
+            var balance = (Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
+            bool wasEnabled = balance.enabled;
+            float previousCapture = Time.captureDeltaTime;
+            try
+            {
+                // 시드 상태와 중앙 유지 입력만 제어하고 회복은 실제 Update에서 진행한다.
+                Time.captureDeltaTime = 1f / 60f;
+                Call(balance, "SetDisplayedState", true, 70f);
+                Call(balance, "Step", 1f);
+                Assert.That((float)Get(balance, "RedTimeRatio"), Is.EqualTo(.5f).Within(.001f));
+                balance.enabled = true;
+                for (int i = 0; i < 60; i++)
+                {
+                    Call(balance, "SetDisplayedState", true, 0f);
+                    yield return null;
+                }
+                float remaining = (float)Get(balance, "RedTimeRatio");
+                Assert.That(remaining, Is.EqualTo(.25f).Within(.01f));
+                Call(balance, "SetAirborne", true);
+                for (int i = 0; i < 60; i++) yield return null;
+                Assert.That((float)Get(balance, "RedTimeRatio"), Is.EqualTo(remaining).Within(.001f));
+                Call(balance, "SetAirborne", false);
+                for (int i = 0; i < 66; i++)
+                {
+                    Call(balance, "SetDisplayedState", true, 0f);
+                    yield return null;
+                }
+                Assert.That((float)Get(balance, "RedTime"), Is.Zero);
+                Assert.IsFalse((bool)Get(balance, "HasFallen"));
+            }
+            finally
+            {
+                balance.enabled = wasEnabled;
+                Time.captureDeltaTime = previousCapture;
+            }
+        }
+
+        [UnityTest, Category("PerformanceBalance")]
+        public IEnumerator RealLaneLandingsAddFivePercentagePointsOnlyOncePerLanding()
+        {
+            yield return BeginPerformance();
+            ((Behaviour)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current")).enabled = false;
+            ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
+            yield return StandOnRopeForSawTest(1, 4f);
+            var balance = (Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
+            bool wasEnabled = balance.enabled;
+            try
+            {
+                // 실제 이동/착지 이벤트를 쓰되, 위험 구간의 시간 누적은 분리해서 착지 자체만 검증한다.
+                balance.enabled = false;
+                Call(mover, "RequestJump");
+                yield return Until(() => (bool)Get(mover, "IsAirborne"), 2f, "제자리 점프 이륙");
+                yield return Until(() => !(bool)Get(mover, "IsAirborne"), 3f, "제자리 점프 착지");
+                Assert.That((float)Get(balance, "RedTimeRatio"), Is.Zero, "제자리 점프는 줄 변경 위험을 더하지 않는다.");
+                for (int i = 0; i < 4; i++)
+                {
+                    Call(balance, "SetDisplayedState", true, 0f);
+                    Call(mover, "SetMoveInput", 0f);
+                    Call(mover, "RequestLaneJump", i % 2 == 0 ? 1 : -1);
+                    yield return Until(() => (bool)Get(mover, "IsAirborne"), 2f, "옆줄 점프 이륙");
+                    Assert.That((float)Get(balance, "RedTimeRatio"), Is.EqualTo(.05f * i).Within(.0001f), "이륙 시점에는 추락 위험을 더하지 않는다.");
+                    yield return Until(() => !(bool)Get(mover, "IsAirborne"), 3f, "옆줄 점프 착지");
+                    Assert.That((float)Get(balance, "LastShock"), Is.Not.Zero);
+                    Assert.That((float)Get(balance, "RedTimeRatio"), Is.EqualTo(.05f * (i + 1)).Within(.0001f));
+                    Call(balance, "SetAirborne", false);
+                    Assert.That((float)Get(balance, "RedTimeRatio"), Is.EqualTo(.05f * (i + 1)).Within(.0001f), "착지 알림이 반복되어도 중복 적용하지 않는다.");
+                    Assert.IsFalse((bool)Get(balance, "HasFallen"));
+                    Assert.AreEqual("Normal", Get(player, "State").ToString());
+                }
+            }
+            finally { balance.enabled = wasEnabled; }
+        }
+
         [UnityTest]
         public IEnumerator HandholdRangeMatchesPassiveReachFollowsRemoteAndHidesBlockedOrRemovedHelpers()
         {

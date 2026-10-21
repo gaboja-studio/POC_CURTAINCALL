@@ -9,8 +9,48 @@ namespace CurtainCall.HumanCannon.Tests
 {
     public sealed partial class FinalCannonPlayTests
     {
+        [UnityTest, Category("PerformanceBalance")]
+        public IEnumerator FastSaw_FixedLevelOneHidesUnusedSawDamage_AndKeepsVisibleSawDamage()
+        {
+            DisableEnhancementThreats();
+            var course = (Component)StaticGet("CurtainCall.HumanCannon.HumanCannonHazardCourse", "Current");
+            Assert.That((int)Get(course, "Difficulty"), Is.EqualTo(1));
+            Component hidden = null;
+            Component visible = null;
+            for (int i = 0; i < (int)Get(course, "HazardCount"); i++)
+            {
+                var hazard = (Component)Call(course, "Hazard", i);
+                if (Get(hazard, "Kind").ToString() != "GroundSaw" || (bool)Get(hazard, "IsPoleSaw")) continue;
+                if ((bool)Call(course, "IsHazardEnabled", i)) visible ??= hazard;
+                else hidden ??= hazard;
+            }
+            Assert.IsNotNull(hidden);
+            Assert.IsNotNull(visible);
+            ((Behaviour)hidden).enabled = true;
+            Call(course, "LateUpdate");
+            Assert.IsFalse(((Transform)Get(hidden, "visual")).gameObject.activeSelf);
+            double elapsed = (double)Get(course, "Elapsed");
+            float height = (float)Get(mover, "BodyHeight");
+            var center = (Vector3)Call(hidden, "Position", elapsed, 1f);
+            Call(mover, "SetStartPose", center - Vector3.up * (height * .5f), Quaternion.identity, true);
+            Call(course, "ClearContacts");
+            Call(course, "HostContacts", elapsed, 1f);
+            AssertBody(0);
+
+            ((Behaviour)hidden).enabled = false;
+            ((Behaviour)visible).enabled = true;
+            Assert.IsTrue(((Transform)Get(visible, "visual")).gameObject.activeSelf);
+            elapsed = (double)Get(course, "Elapsed");
+            center = (Vector3)Call(visible, "Position", elapsed, 1f);
+            Call(mover, "SetStartPose", center - Vector3.up * (height * .5f), Quaternion.identity, true);
+            Call(course, "ClearContacts");
+            Call(course, "HostContacts", elapsed, 1f);
+            AssertBody(4);
+            yield break;
+        }
+
         /// <summary>실제 1인 호스트의 접촉 판정에 합성 시각을 준다. 실제 지연·키보드 입력 재현 검사는 아니다.</summary>
-        [UnityTest]
+        [UnityTest, Category("PerformanceBalance")]
         public IEnumerator FastSaw_HalfSecondGapStillCutsBetweenClearEndpoints_WithoutDuplicateCut()
         {
             var saw = PrepareSweepSaw(out var course, out var anchor);
@@ -24,7 +64,7 @@ namespace CurtainCall.HumanCannon.Tests
             yield break;
         }
 
-        [UnityTest]
+        [UnityTest, Category("PerformanceBalance")]
         public IEnumerator FastSaw_LongGapChecksRecentHalfSecond_AndCutsStationaryBody()
         {
             var saw = PrepareSweepSaw(out var course, out var anchor);
@@ -36,7 +76,7 @@ namespace CurtainCall.HumanCannon.Tests
             yield break;
         }
 
-        [UnityTest]
+        [UnityTest, Category("PerformanceBalance")]
         public IEnumerator FastSaw_LongGapClipsBodyPathToSameTimeWindow_WithoutInventingLateCrossing()
         {
             PrepareSweepSaw(out var course, out var anchor);

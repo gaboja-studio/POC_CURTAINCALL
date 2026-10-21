@@ -230,7 +230,13 @@ namespace CurtainCall.HumanCannon
             Vector3 inputForward = cannonView != null && cannonView.UsesMouseLook ? cannonView.ViewForward : flightForward;
             Vector3 correction = airControl.ConsumeVelocity(Time.frameCount, InputGate.IsBlocked, inputForward,
                 airControlSpeed * controlMultiplier);
-            if (steerPoleMomentum) velocity = CannonAirControl.SteerPoleMomentum(velocity, correction);
+            if (steerPoleMomentum)
+            {
+                float limit = GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit;
+                velocity = CannonAirControl.LimitPoleHorizontalSpeed(CannonAirControl.SteerPoleMomentum(velocity, correction), limit);
+                // 앞으로 누르고 있어도 보정이 속도 상한을 다시 넘기지 않게 최종 수평 이동에 적용한다.
+                correction = CannonAirControl.LimitPoleHorizontalSpeed(velocity + correction, limit) - velocity;
+            }
             Vector3 wind = HumanCannonHazardCourse.Current != null
                 ? HumanCannonHazardCourse.Current.WindVelocity(transform.position, mover.BodyHeight, true) : Vector3.zero;
             Vector3 displacement = BallisticMotion.Step(ref velocity, correction + wind, gravity, dt);

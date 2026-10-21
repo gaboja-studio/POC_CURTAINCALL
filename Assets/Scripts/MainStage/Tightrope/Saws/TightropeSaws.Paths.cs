@@ -46,11 +46,15 @@ namespace CurtainCall.Tightrope.Saws
             line.SetPosition(0, from); line.SetPosition(1, to);
         }
 
-        void IncomingPath(LineRenderer line, int lane, float from, float to, float height, bool visible)
+        void IncomingPath(LineRenderer line, int lane, float from, float to, float height, bool visible, int index = 0, float referenceDistance = float.NaN)
         {
             if (!visible) { line.enabled = false; return; }
-            DrawPath(line, course.GetLanePosition(lane, Mathf.Clamp(from, 0f, course.FinishDistance)) + Vector3.up * height,
-                course.GetLanePosition(lane, Mathf.Clamp(to, 0f, course.FinishDistance)) + Vector3.up * height, true);
+            if (float.IsNaN(referenceDistance)) referenceDistance = from;
+            int points = Mathf.Max(2, Mathf.CeilToInt(Mathf.Abs(to - from) / .25f) + 1);
+            line.positionCount = points;
+            line.enabled = line.sharedMaterial != null;
+            for (int i = 0; i < points; i++)
+                line.SetPosition(i, IncomingPosition(lane, Mathf.Lerp(from, to, i / (float)(points - 1)), referenceDistance, height, index));
         }
 
         void UpdatePaths()
@@ -59,23 +63,23 @@ namespace CurtainCall.Tightrope.Saws
             pathRoot.gameObject.SetActive(isActiveAndEnabled);
             for (int i = 0; i < horizontalPaths.Length; i++)
             {
-                Vector3 center = course.transform.position + course.Forward * settings.GetHorizontalDistance(i)
-                    + Vector3.up * (settings.HorizontalCenterHeight - TeamPassageLowerOffset(i));
-                Vector3 side = course.Right * settings.horizontalTravelHalfWidth;
-                DrawPath(horizontalPaths[i], center - side, center + side, true);
+                Vector3 lower = Vector3.up * TeamPassageLowerOffset(i);
+                DrawPath(horizontalPaths[i], HorizontalPositionAtSide(i, -settings.horizontalTravelHalfWidth) - lower,
+                    HorizontalPositionAtSide(i, settings.horizontalTravelHalfWidth) - lower, IsHorizontalEnabled(i));
             }
             bool incoming = TryGetVerticalPosition(out var position);
             IncomingPath(verticalPath, verticalLane, settings.verticalEndDistance, settings.verticalSpawnDistance,
-                position.y - course.transform.position.y, incoming);
+                position.y - course.transform.position.y, incoming, verticalSerial);
             IncomingPath(cooperativePath, cooperativeGateLane, CooperativeGateStopDistance,
                 CooperativeGateStopDistance + settings.cooperativeGateApproachDistance,
-                settings.cooperativeGateHeight * .5f, IsCooperativeGateActive && !IsCooperativeGateOpening);
+                settings.cooperativeGateHeight * .5f, IsCooperativeGateActive && !IsCooperativeGateOpening, cooperativeGateIndex);
             foreach (var gate in releasedGates)
             {
                 bool visible = TryReleasedPosition(gate, out var bottom);
                 if (visible && gate.Path == null) gate.Path = NewPath($"Released path {gate.Index}");
                 if (gate.Path != null)
-                    IncomingPath(gate.Path, gate.Lane, 0f, course.GetDistance(bottom), settings.cooperativeGateHeight * .5f, visible);
+                    IncomingPath(gate.Path, gate.Lane, 0f, course.GetDistance(bottom), settings.cooperativeGateHeight * .5f, visible,
+                        gate.Index, settings.cooperativeGateDistances[gate.Index]);
             }
         }
     }

@@ -20,7 +20,7 @@ namespace CurtainCall.Settings
         [Tooltip("외줄 묘기 세팅(코스·진행·줄 위 동작·목마·보상).")]
         [SerializeField] TightropeSettings tightrope;
 
-        [Tooltip("인간대포 세팅(일반 점프 높이).")]
+        [Tooltip("인간대포 세팅(일반 점프 높이·이번 빌드 톱날 배치 비율·사선 각도).")]
         [SerializeField] HumanCannonSettings humanCannon;
 
         [Tooltip("대기실 세팅(상점·소품실·서비스·밤 정비).")]

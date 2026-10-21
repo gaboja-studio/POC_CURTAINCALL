@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66f2a7882f2de49519005b9b55e031d5, type: 3}
   m_Name: TightropeSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.TightropeSettings
+  sawDensity: 0.6
+  sawDiagonalDegrees: 30
   reward: {fileID: 0}
   course:
     laneCount: 6
@@ -72,9 +74,11 @@ MonoBehaviour:
     landingShock: 10
     minAirTimeForShock: 0.15
     laneLandingShock: 35
-    landingRecoverySeconds: 1.5
+    laneLandingDangerRatio: 0.05
     laneSwayBoost: 1.5
     laneSwayBoostDuration: 1.5
+    trapezeEntryHeightTolerance: 1.2
+    trapezeEntryGrabDistance: 1.05
     landingWaveRange: 6
     landingWaveSpeed: 10
     landingWaveShock: 6
