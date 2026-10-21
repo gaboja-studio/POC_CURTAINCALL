@@ -1,3 +1,4 @@
+using System;
 using CurtainCall.Network.PlayerSync;
 using Unity.Collections;
 using Unity.Netcode;
@@ -11,6 +12,17 @@ namespace CurtainCall.HumanCannon
         const int LandingSize = 21; // actor + station + launch + segment + safe
         public int LocalSafeLandingCount { get; private set; }
 
+        /// <summary>호스트가 현재 비행의 착지를 판정한 뒤 한 번 알린다. Position은 판정 시 호스트의 플레이어 좌표다.</summary>
+        public event Action<ulong, int, uint, uint, Vector3, bool> LandingConfirmed;
+
+        void NotifyLanding(ulong actor, int station, uint revision, uint segment, Vector3 position, bool safe)
+        {
+            if (LandingConfirmed == null) return;
+            foreach (Action<ulong, int, uint, uint, Vector3, bool> observer in LandingConfirmed.GetInvocationList())
+                try { observer(actor, station, revision, segment, position, safe); }
+                catch (Exception error) { Debug.LogException(error, this); }
+        }
+
         void HandleLanding(NetworkPlayer player, int index, uint revision, uint segment, Vector3 position)
         {
             // 현재 좌석 소유권과 무관하게 해당 비행만 한 번 종료한다. R/이전 반동의 늦은 요청은 무시한다.
@@ -19,6 +31,7 @@ namespace CurtainCall.HumanCannon
             bool safe = (player.transform.position - position).sqrMagnitude <= 25f
                 && HumanCannonLandingZone.ContainsLanding(position);
             ApplyLanding(player.OwnerClientId, index, revision, segment, safe);
+            NotifyLanding(player.OwnerClientId, index, revision, segment, player.transform.position, safe);
             if (!safe) player.ServerKill();
             foreach (ulong client in session.NetworkManager.ConnectedClientsIds)
             {

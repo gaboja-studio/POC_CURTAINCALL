@@ -12,20 +12,40 @@ namespace CurtainCall.WaitingRoom
     /// </summary>
     public sealed class WaitingRoomSpawn : MonoBehaviour
     {
-        void OnEnable() => NetworkPlayer.LocalSpawned += DisableBalance;
+        NetworkPlayer waitingSlot;
+        /// <summary>이 화면에서 내 캐릭터의 대기실 출발 배치가 끝났다.</summary>
+        public static event System.Action<NetworkPlayer> PlayerPlaced;
+        void OnEnable() => NetworkPlayer.LocalSpawned += Spawned;
 
-        void OnDisable() => NetworkPlayer.LocalSpawned -= DisableBalance;
+        void OnDisable() { NetworkPlayer.LocalSpawned -= Spawned; StopWaiting(); }
 
         void Start()
         {
             var local = NetworkPlayer.Local;
             if (local == null) return;
             DisableBalance(local);
-            if (local.Slot == NetworkPlayer.NoSlot) return;
+            if (local.Slot == NetworkPlayer.NoSlot) { Spawned(local); return; }
 
             var mover = local.GetComponent<PlayerMover>();
             PlayerSpawnPoints.GetPose(local.Slot, mover.LaneSpacing, out Vector3 position, out Quaternion rotation);
             mover.SetStartPose(position, rotation);
+            Placed(local);
+        }
+
+        void Spawned(NetworkPlayer player)
+        {
+            DisableBalance(player);
+            StopWaiting();
+            if (player.Slot != NetworkPlayer.NoSlot) Placed(player);
+            else { waitingSlot = player; waitingSlot.SlotChanged += SlotAssigned; }
+        }
+        void SlotAssigned(int slot) { if (slot == NetworkPlayer.NoSlot) return; var player = waitingSlot; StopWaiting(); Placed(player); }
+        void StopWaiting() { if (waitingSlot != null) waitingSlot.SlotChanged -= SlotAssigned; waitingSlot = null; }
+        static void Placed(NetworkPlayer player)
+        {
+            if (PlayerPlaced != null)
+                foreach (System.Action<NetworkPlayer> observer in PlayerPlaced.GetInvocationList())
+                    try { observer(player); } catch (System.Exception error) { Debug.LogException(error); }
         }
 
         static void DisableBalance(NetworkPlayer player)

@@ -75,6 +75,8 @@ namespace CurtainCall.WaitingRoom
         /// <summary>방 단계가 바뀌었다(모든 화면). 이전 단계, 새 단계.</summary>
         public event Action<ExpertRoomPhase, ExpertRoomPhase> PhaseChanged;
         public event Action<string, bool, string> TrackedRequestAnswered;
+        /// <summary>호스트가 확정한 시설 구매: 구매자, 조정 종류, 적용 일차, 실제 지불 금액.</summary>
+        public event Action<ulong, ObstacleAdjust, int, long> FacilityReserved;
 
         /// <summary>오늘(런 일차). 런 전이면 0.</summary>
         public static int Day => CampaignRun.Instance != null ? CampaignRun.Instance.State.Day : 0;
@@ -176,6 +178,18 @@ namespace CurtainCall.WaitingRoom
         /// <summary>화면 안내 문구를 바꾼다(⑧ 커튼 앞 F 안내 등, 판정 없음).</summary>
         public void ShowLocalMessage(string text) => LastMessage = text;
 
+        /// <summary>판정 화면의 거절 결과: 요청자, MEDICAL_RESERVE/FACILITY_RESERVE/MEDICAL_ENTER, 실패 코드.</summary>
+        public event Action<ulong, string, ExpertRefusal> OperationRejected;
+
+        (bool, string) Reject(ulong actor, string operation, ExpertRefusal refusal)
+        {
+            if (OperationRejected != null)
+                foreach (Action<ulong, string, ExpertRefusal> observer in OperationRejected.GetInvocationList())
+                    try { observer(actor, operation, refusal); }
+                    catch (Exception error) { Debug.LogException(error, this); }
+            return (false, ExpertServiceBook.Explain(refusal));
+        }
+
         (bool, string) BuyMedical(ulong buyer)
         {
             var player = Find(buyer);
@@ -185,7 +199,7 @@ namespace CurtainCall.WaitingRoom
             var before = book.Phase;
             var refusal = book.BookMedical(buyer, Day, IsNight, alive, lost,
                 () => rewards.TrySpend(cost, $"의료 신체 복구 {lost}개 — {WaitingRoomShop.PlayerLabel(buyer)}"));
-            if (refusal != ExpertRefusal.None) return (false, ExpertServiceBook.Explain(refusal));
+            if (refusal != ExpertRefusal.None) return Reject(buyer, "MEDICAL_RESERVE", refusal);
             Debug.Log($"[Expert] 의료 신체 복구 {lost}개 구매({cost}) ← {WaitingRoomShop.PlayerLabel(buyer)} / 잔액 {rewards.Balance}");
             Publish(before);
             return (true, $"구매 완료({lost}개, {cost}) — ⑧ 전문가 대기실 커튼 앞으로 가세요.");
@@ -196,9 +210,13 @@ namespace CurtainCall.WaitingRoom
             var before = book.Phase;
             var refusal = book.BookFacility(choice, Day, IsNight,
                 () => rewards.TrySpend(facilityPrice, $"시설 {ExpertServiceBook.AdjustLabel(choice)} — {WaitingRoomShop.PlayerLabel(buyer)}"));
-            if (refusal != ExpertRefusal.None) return (false, ExpertServiceBook.Explain(refusal));
+            if (refusal != ExpertRefusal.None) return Reject(buyer, "FACILITY_RESERVE", refusal);
             Debug.Log($"[Expert] 시설 {ExpertServiceBook.AdjustLabel(choice)} → {book.ObstacleDay}일차 ← {WaitingRoomShop.PlayerLabel(buyer)} / 잔액 {rewards.Balance}");
             Publish(before);
+            if (FacilityReserved != null)
+                foreach (Action<ulong, ObstacleAdjust, int, long> observer in FacilityReserved.GetInvocationList())
+                    try { observer(buyer, choice, book.ObstacleDay, facilityPrice); }
+                    catch (Exception error) { Debug.LogException(error, this); }
             return (true, $"구매 완료 — {book.ObstacleDay}일차 공연에 {ExpertServiceBook.AdjustLabel(choice)}");
         }
 
@@ -206,7 +224,7 @@ namespace CurtainCall.WaitingRoom
         {
             var before = book.Phase;
             var refusal = book.Enter(who);
-            if (refusal != ExpertRefusal.None) return (false, ExpertServiceBook.Explain(refusal));
+            if (refusal != ExpertRefusal.None) return Reject(who, "MEDICAL_ENTER", refusal);
             Debug.Log($"[Expert] 입장 {WaitingRoomShop.PlayerLabel(who)}");
             Publish(before);
             return (true, "");

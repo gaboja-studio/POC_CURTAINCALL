@@ -56,13 +56,19 @@ namespace CurtainCall.Player
             foreach (var rb in bodies)
             {
                 rb.isKinematic = false;
+                rb.useGravity = true;
+                rb.constraints = RigidbodyConstraints.None;
                 rb.linearVelocity = carry + push;
+                rb.WakeUp();
             }
         }
 
         /// <summary>래그돌을 지우고 원래 모델을 다시 끼운다. 균형을 되돌리면 자동으로 불린다.</summary>
         public void Restore()
         {
+            // Balance/content cleanup may reset presentation before the confirmed death is revived.
+            if (TryGetComponent(out CurtainCall.Network.PlayerSync.NetworkPlayer player)
+                && player.IsSpawned && player.State == CurtainCall.Network.PlayerSync.PlayerState.Fallen) return;
             if (!IsLimp) return;
             Destroy(limpModel);
             limpModel = null;

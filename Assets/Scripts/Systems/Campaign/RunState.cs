@@ -64,13 +64,17 @@ namespace CurtainCall.Campaign
         }
 
         /// <summary>시간을 흘린다. 쉬는 시간 타이머가 흐르는 중이 아니면 false.</summary>
-        public bool Tick(float deltaTime)
+        public bool Tick(float deltaTime, System.Action<CampaignSnapshot> onExpired = null)
         {
             if (s.Phase != CampaignPhase.RestTime || s.Timer != RestTimerState.Running) return false;
             s.TimeRemaining -= deltaTime;
             if (s.TimeRemaining <= 0f)
             {
                 s.TimeRemaining = 0f;
+                // Observe the actual timeout before EndRest clears its timer/context.
+                if (onExpired != null)
+                    foreach (System.Action<CampaignSnapshot> observer in onExpired.GetInvocationList())
+                        try { observer(s); } catch { /* Observers cannot change progression. */ }
                 EndRest();
                 return true;
             }
