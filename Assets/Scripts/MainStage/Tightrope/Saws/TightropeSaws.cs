@@ -181,7 +181,7 @@ namespace CurtainCall.Tightrope.Saws
                 + Vector3.up * settings.HorizontalCenterHeight;
         }
 
-        // 진행축의 사선은 양옆 경계에서 반사한다. 관문은 정지점에서 원래 줄에 정확히 도착한다.
+        // 일반 진입 톱의 사선은 양옆 경계에서 반사한다. 협동 관문은 선택된 줄을 직진한다.
         Vector3 IncomingPosition(int lane, float distance, float referenceDistance, float height, int index)
         {
             float side = course.Layout.GetLaneSide(lane);

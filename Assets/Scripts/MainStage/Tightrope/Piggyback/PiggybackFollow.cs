@@ -206,23 +206,36 @@ namespace CurtainCall.Tightrope
         void Launch(NetworkPlayer local, float alongSpeed)
         {
             var mover = localMover;
+            var gate = Saws.TightropeSaws.Current;
+            float height = 0f, speed = 0f;
+            bool assisted = alongSpeed > 0f && !mover.FreeMovement && gate != null
+                && gate.TryGetCooperativeLaunch(local, out height, out speed);
+            var course = TightropeCourse.Current;
+            if (!assisted && alongSpeed > 0f && !mover.FreeMovement && gate != null
+                && gate.IsFourStackFinaleGate && !gate.IsCooperativeGatePassable && course != null)
+            {
+                float distance = course.GetDistance(local.transform.position);
+                // 마지막 관문에서 조건을 못 맞춘 앞점프는 목마를 유지한다.
+                float blockedLead = Mathf.Min(12f, GameSettings.Tightrope.Saws.cooperativeGateTriggerLead);
+                if (distance >= gate.CooperativeGateDistance - blockedLead
+                    && distance < gate.CooperativeGateDistance) return;
+            }
             var body = mover.Body;
             body.enabled = false; // 머리 위에 맞춰 둔 위치에서 바로 출발하도록 몸통 위치를 맞춘다
             body.enabled = true;
             mover.Simulated = true;
             // 짧아진 체공 시간에도 기존 발판까지의 앞뒤 점프 거리를 보존한다.
             float speedScale = Mathf.Sqrt(mover.JumpGravity / GameSettings.Base.Character.Gravity);
-            var gate = Saws.TightropeSaws.Current;
             float previousHeight = mover.CourseJumpHeightOverride;
             float previousMultiplier = mover.JumpHeightMultiplier;
             try
             {
                 // 관문의 실제 목마 출발선에서만 동료가 밀어 주는 도약을 보정한다.
                 // 기존 협동 도약의 부상 보정에도 목마 높이 배율을 한 번만 더한다.
-                if (alongSpeed > 0f && !mover.FreeMovement && gate != null
-                    && gate.TryGetCooperativeLaunch(local, out float height, out float speed))
+                if (assisted)
                 {
-                    mover.CourseJumpHeightOverride = height / Mathf.Max(.01f, previousMultiplier);
+                    mover.CourseJumpHeightOverride = height / Mathf.Max(.01f,
+                        previousMultiplier * GameSettings.Tightrope.Piggyback.JumpHeightMultiplier);
                     alongSpeed = speed;
                 }
                 else alongSpeed *= speedScale;
