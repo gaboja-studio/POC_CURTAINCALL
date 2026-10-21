@@ -7,6 +7,7 @@
 |---|---|
 | 내 PC에서 기록이 쌓이는지 확인 | [내 PC에서 검증하기](local-test.md) |
 | 로그·설문을 켜거나 끈 게임 파일 만들기 | [Windows·Mac 빌드 만들기](pc-build.md) |
+| 개발자 모드 구분·일반 플레이어용으로 배포 | [개발자 모드와 서비스용 빌드](service-build.md) |
 | 관리자 계정으로 접속·멤버·기록 관리 | [관리자 안내](dashboard-admin.md) |
 | 팀원이 재부팅 후 접속 | [팀원 안내](dashboard-member.md) |
 | 통계를 읽고 개선할 부분 찾기 | [대시보드 읽기·분석](dashboard-reading.md) |
