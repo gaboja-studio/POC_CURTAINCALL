@@ -1,6 +1,8 @@
 # Handoff
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/200
 ## 현재
+- 2026-10-21 후속 PR: 외줄 추락게이지/기물 슬롯 간격 및 대기실·외줄 안내·공연 사망 배너 Y-260 배치. dev #201(33bfe0e) fast-forward 후 UI 복원, 충돌 없음. 컴파일 PASS, 두 공연 씬 누락스크립트0, 추락 fill 높이15/P1 Y104/외줄 배너 Y-260 확인. Play·자동 테스트 생략(사용자 위임). 안전용 stash 유지.
+- 2026-10-21 사용자 후속: Tightrope.unity의 P1 씬 인스턴스만 수정. 추락 트랙 Y-56→13/높이12→23, 빨간 fill Y-60→9/높이4→15(후속 요청으로10에서50% 추가 확대), P1 Y80→104. 원본 프리팹·게임 로직 유지. 에디터 값 확인/씬 저장, Play·컴파일·자동 테스트는 실행하지 않음(사용자 검증 위임).
 - 이전 Start·팝업·Canvas는2be6f00 commit/push 완료.
 - 로비 정본 HUD/순간이동 수정41bce04 commit/push 완료. 실제UI 누락 점검·대기실 임시UI 정리 완료, 이번 정리 미커밋. 상세 ui-audit.md.
 - 게임 시작 순간이동: LobbyRoom이 단순 전환 플래그 종료를 복귀로 판단하던 문제 수정. 실제 공간 복귀에만 재배치.
