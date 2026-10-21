@@ -1,5 +1,7 @@
 # Project Pitfalls
 
+- [session-join-cancelled.md](session-join-cancelled.md) — 방 코드·LAN 참가의 취소 예외와 제한시간·취소 원인 로그를 확인할 때
+
 이 POC·이 개발 환경에서 겪은 함정. 상황에 맞는 파일 1개만 연다.
 
 - [Ui/](Ui/index.md) — UI 키트 수신 뒤 공통 타입 중복 컴파일 오류가 발생할 때
