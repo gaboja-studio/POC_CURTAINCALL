@@ -26,6 +26,7 @@ namespace CurtainCall.Tightrope
             public int Round, Pole;
             public uint Revision, Token;
             public double Until;
+            public bool Armed;
         }
         readonly Dictionary<ulong, PendingRequest> pendingRequests = new();
         readonly List<ulong> pendingActors = new();
@@ -37,7 +38,10 @@ namespace CurtainCall.Tightrope
             double until = Clock + RequestPositionGrace;
             if (pendingRequests.TryGetValue(actor, out var previous) && previous.Round == round
                 && previous.Action == action && previous.Pole == pole && previous.Revision == revision && previous.Token == token)
-                until = previous.Until;
+            {
+                if (PendingRequestValid(actor, previous)) TryCompletePendingRequest(actor, previous);
+                return; // 중복 F는 이미 받은 입력과 원래 유효 시간을 덮어쓰지 않는다.
+            }
             pendingRequests.Remove(actor);
             var request = new PendingRequest { Action = action, Round = round, Pole = pole,
                 Revision = revision, Token = token, Until = until };
@@ -88,15 +92,27 @@ namespace CurtainCall.Tightrope
                 return true;
             }
             var state = poles[request.Pole];
+            if (flights.TryGetValue(actor, out var flight))
+            {
+                if (!request.Armed)
+                {
+                    if (request.Action == Command.Grab ? !CanGrab(player, request.Pole) : !CanAttach(player, request.Pole)) return false;
+                    request.Armed = true;
+                    request.Until = flight.Until; // 50~100%에서 받은 F를 기존 비행 동안 유지한다.
+                }
+                float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
+                if (!Eligible(player) || !SwingPoleMath.InPoleReach(player.transform.position, Feet(request.Pole, request.Action == Command.Attach),
+                    reach, request.Action == Command.Attach)) return false;
+            }
             if (request.Action == Command.Grab)
             {
-                if (!CanGrab(player, request.Pole)) return false;
+                if (!request.Armed && !CanGrab(player, request.Pole)) return false;
                 state.Upper = actor; state.Angle = state.Speed = state.Drive = 0f;
                 state.Until = Clock + HoldSeconds; state.LastInput = state.SampledAt = Clock;
             }
             else
             {
-                if (!CanAttach(player, request.Pole)) return false;
+                if (!request.Armed && !CanAttach(player, request.Pole)) return false;
                 state.Lower = actor;
             }
             ObserveRequest(actor, "accepted", request.Action, request.Pole);

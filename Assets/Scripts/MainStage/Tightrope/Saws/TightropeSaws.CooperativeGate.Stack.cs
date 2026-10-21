@@ -20,11 +20,11 @@ namespace CurtainCall.Tightrope.Saws
         public int CooperativeRequiredStackSize => MinimumFinaleStackSize;
         public bool IsCooperativeStackApproved => !IsFourStackFinaleGate || ValidFinaleStackSize(cooperativeAdmittedCount);
         static bool ValidFinaleStackSize(int count) => count >= MinimumFinaleStackSize && count <= MaximumFinaleStackSize;
-        public float CooperativeUpperLandingDistance => CooperativeGateStopDistance + settings.cooperativeGatePlateOffset
+        public float CooperativeUpperLandingDistance => CooperativeGateDistance + settings.cooperativeGatePlateOffset
             + settings.cooperativeGatePlateLength * .5f + GameSettings.Base.Character.CapsuleRadius
             + settings.cooperativeGateUpperLandingOffset;
 
-        /// <summary>호스트가 확인한 최초 목마의 층. 위층이 먼저 떠나거나 사망해도 이 관문을 해결할 때까지 유지한다.</summary>
+        /// <summary>호스트가 승인한 목마의 층. 상층 도약은 유지하고 아래 두 담당자가 사망·이탈하면 재승인한다.</summary>
         public int CooperativeAdmittedFloor(NetworkPlayer player)
         {
             if (player == null) return 0;
@@ -70,10 +70,28 @@ namespace CurtainCall.Tightrope.Saws
 
         bool ServerApproveCooperativeStack()
         {
-            if (!IsFourStackFinaleGate || !IsCooperativeGateStopped) return false;
+            if (!IsFourStackFinaleGate || !CanUseCooperativeGate) return false;
             var fire = TightropeFire.Current;
             var stack = PiggybackSystem.Current;
-            if (fire == null || !fire.FinaleReadyAt(CooperativeGateStopDistance) || stack == null) return false;
+            if (fire == null || stack == null) return false;
+            // 이동 관문은 소각 완료를 기다릴 수 없다. 이미 확정된 마지막 생존 줄에서만 미리 승인한다.
+            if (CooperativeApproachSpeed > 0f
+                ? fire.SurvivingLaneAt(CooperativeGateStopDistance) != cooperativeGateLane
+                : !fire.FinaleReadyAt(CooperativeGateStopDistance)) return false;
+            bool changed = false;
+            // 정상적인 상층 도약으로 명부를 바꾸지 않는다. 필수 아래층이 사망·이탈한 경우만 다시 조립한다.
+            for (int floor = 0; floor < Math.Min(MinimumFinaleStackSize, cooperativeAdmittedCount); floor++)
+            {
+                bool alive = false;
+                foreach (var member in NetworkPlayer.All)
+                    if (member != null && member.IsSpawned && member.isActiveAndEnabled
+                        && member.NetworkObjectId == cooperativeAdmittedPlayers[floor] && member.State == PlayerState.Normal)
+                    { alive = true; break; }
+                if (alive) continue;
+                ResetCooperativeAdmission();
+                changed = true;
+                break;
+            }
             foreach (var bottom in NetworkPlayer.All)
             {
                 int size = stack.GetStackSize(bottom);
@@ -85,8 +103,7 @@ namespace CurtainCall.Tightrope.Saws
                 if (Mathf.Abs(Vector3.Dot(offset, course.Forward)) > settings.cooperativeGateLaunchTolerance
                     || Mathf.Abs(Vector3.Dot(offset, course.Right)) > settings.plateWidth * .5f) continue;
                 int count = 0;
-                // A third/fourth player may join before launch. Once any admitted member
-                // departs, never replace that roster with another pair or shrink it.
+                // 아래 두 담당자가 살아 있는 동안에는 기존 층을 유지하고 위쪽으로만 확장한다.
                 var candidates = new ulong[MaximumFinaleStackSize];
                 for (var member = bottom; member != null && count < size; member = stack.GetAbove(member))
                 {
@@ -99,7 +116,7 @@ namespace CurtainCall.Tightrope.Saws
                 cooperativeAdmittedCount = count;
                 return true;
             }
-            return false;
+            return changed;
         }
 
         bool IsStandingStackMember(NetworkPlayer player) => player != null && player.IsSpawned

@@ -21,6 +21,7 @@ namespace CurtainCall.Tightrope
         bool localFlying;
         uint localFlightToken, finishedFlightToken;
         Vector3 flightVelocity;
+        float flightSpeedLimit;
         double flightDeadline;
 
         void ReconcileLocal()
@@ -72,6 +73,13 @@ namespace CurtainCall.Tightrope
             mover.ResetExternalMotion(true); localControl.Balance?.SetAirborne(true);
             localFlying = true; localFlightToken = flight.Token;
             flightVelocity = flight.Velocity; flightDeadline = flight.Until; pendingUntil = 0d;
+            flightSpeedLimit = flight.From + 1 < PoleTotal
+                ? SwingPoleMath.PoleFlightSpeedLimit(flight.Position, flight.Target, course.Forward, flight.Velocity.y, GameSettings.Base.Character.Gravity)
+                : SwingPoleMath.FlightSpeedLimit(flight.Position.y - flight.Target.y, flight.Velocity.y,
+                    GameSettings.Base.Character.Gravity, Mathf.Max(.1f, Vector3.Dot(flight.Target - flight.Position, course.Forward)));
+            if (flightSpeedLimit <= 0f) // 동료 사망으로 추진 없이 떨어질 때도 기존 공중 조절은 유지한다.
+                flightSpeedLimit = SwingPoleMath.FlightSpeedLimit(flight.Position.y - course.transform.position.y,
+                    flight.Velocity.y, GameSettings.Base.Character.Gravity, Mathf.Max(.1f, Vector3.Dot(flight.Target - flight.Position, course.Forward)));
             Tell("공중 WASD 조절 · 다음 봉 또는 매달린 동료에게 가까이 가서 F");
         }
         void StepFlight()
@@ -80,13 +88,11 @@ namespace CurtainCall.Tightrope
             var held = localControl;
             if (!Active || held.Player == null || held.Player.State != PlayerState.Normal || held.Mover == null || !held.Mover.Body.enabled)
             { ResetLocal(false); return; }
-            // Locally valid catches await the host at the requested position.
-            // Otherwise the low final pole can be approved after local fall death.
-            // ReconcileLocal clears the wait on approval; rejection times out.
-            if (Clock < pendingUntil) { air.Clear(); return; }
+            // F 입력을 미리 받아도 봉에 닿을 때까지 같은 탄도를 계속 따른다.
             var injuries = HumanCannonSystem.Current != null ? HumanCannonSystem.Current.Injuries : defaultInjuries;
             int lostLegs = held.Player.TryGetComponent(out PlayerCondition condition) ? condition.LostLegCount : 0;
             Vector3 correction = air.ConsumeVelocity(Time.frameCount, InputGate.IsBlocked, course.Forward, AirControlSpeed * injuries.AirMultiplier(lostLegs));
+            correction = SwingPoleMath.LimitFlightVelocity(flightVelocity + correction, flightSpeedLimit) - flightVelocity;
             Vector3 displacement = BallisticMotion.Step(ref flightVelocity, correction, GameSettings.Base.Character.Gravity, Time.deltaTime);
             var collision = held.Mover.Body.Move(displacement);
             if ((collision & CollisionFlags.Above) != 0 && flightVelocity.y > 0f) flightVelocity.y = 0f;

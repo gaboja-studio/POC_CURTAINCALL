@@ -1,6 +1,7 @@
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace CurtainCall.Tightrope
         enum Command : byte { Sync, Grab, Attach, Release, Swing, Landed, Abort }
         const string RequestMessage = "CurtainCall.Tightrope.Trapeze.Request";
         const string StateMessage = "CurtainCall.Tightrope.Trapeze.State";
-        const int RequestBytes = 21, PoleBytes = 48, FlightBytes = 56;
+        const int RequestBytes = 21, PoleBytes = 48, FlightBytes = 68;
         NetworkSessionManager session;
         CustomMessagingManager messaging;
 
@@ -82,8 +83,12 @@ namespace CurtainCall.Tightrope
             pendingRequests.Remove(actor);
             if (!Alive(actor)) return;
             Sample(index, out float angle, out float speed);
-            flights[actor] = new FlightState { Token = ++nextFlightToken, From = index, Position = Feet(index, lower),
-                Velocity = propel ? poles[index].Physics.ReleaseVelocity(angle, speed) : Vector3.zero,
+            Vector3 position = Feet(index, lower);
+            Vector3 target = FlightTarget(index);
+            Vector3 velocity = propel ? poles[index].Physics.ReleaseVelocity(angle, speed) : Vector3.zero;
+            if (propel) velocity = PlanFlightVelocity(index, position, target, velocity, out _);
+            flights[actor] = new FlightState { Token = ++nextFlightToken, From = index, Position = position,
+                Velocity = velocity, Target = target,
                 Started = Clock, Until = Clock + 8d };
             TightropeLandingWaves.Current?.RegisterExternalLaunch(Find(actor), sharedAirborne: true);
             TightropeCatchSystem.Current?.RegisterSwingRelease(Find(actor), -1, trapeze: true);
@@ -124,6 +129,7 @@ namespace CurtainCall.Tightrope
             {
                 var flight = pair.Value; writer.WriteValueSafe(pair.Key); writer.WriteValueSafe(flight.Token); writer.WriteValueSafe(flight.From);
                 writer.WriteValueSafe(flight.Position); writer.WriteValueSafe(flight.Velocity);
+                writer.WriteValueSafe(flight.Target);
                 writer.WriteValueSafe(flight.Started); writer.WriteValueSafe(flight.Until);
             }
             if (recipient.HasValue) messaging.SendNamedMessage(StateMessage, recipient.Value, writer, NetworkDelivery.ReliableSequenced);
@@ -158,9 +164,10 @@ namespace CurtainCall.Tightrope
                 reader.ReadValueSafe(out ulong actor);
                 var flight = new FlightState(); reader.ReadValueSafe(out flight.Token); reader.ReadValueSafe(out flight.From);
                 reader.ReadValueSafe(out flight.Position); reader.ReadValueSafe(out flight.Velocity);
+                reader.ReadValueSafe(out flight.Target);
                 reader.ReadValueSafe(out flight.Started); reader.ReadValueSafe(out flight.Until);
                 if (actor == Nobody || !owners.Add(actor) || flight.Token == 0 || flight.From < 0 || flight.From >= PoleTotal
-                    || !Finite(flight.Position) || !Finite(flight.Velocity) || flight.Velocity.sqrMagnitude > 400f
+                    || !Finite(flight.Position) || !Finite(flight.Velocity) || !Finite(flight.Target) || flight.Velocity.sqrMagnitude > 400f
                     || !double.IsFinite(flight.Started) || !double.IsFinite(flight.Until) || flight.Started > timestamp + 1d
                     || flight.Until <= flight.Started || flight.Until > flight.Started + 9d) return;
                 incomingFlights.Add(actor, flight);

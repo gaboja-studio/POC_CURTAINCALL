@@ -9,6 +9,105 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
 {
     public sealed partial class TightropeCampaignPlayTests
     {
+        [UnityTest]
+        public IEnumerator TrapezeCatchWindowStartsAtHalfRangeAfterFastLaunch() => TrapezeRangeCatch(false, .5f);
+
+        [UnityTest]
+        public IEnumerator TrapezeCatchWindowIncludesRangeLimitForOccupiedNextPole() => TrapezeRangeCatch(true, 1f);
+
+        IEnumerator TrapezeRangeCatch(bool occupied, float fraction)
+        {
+            EnableTrapezeForEntryTest();
+            yield return BeginPerformance(); DisableSwingHazards();
+            var trapeze = Static("CurtainCall.Tightrope.TightropeTrapeze", "Current");
+            yield return Until(() => (bool)Get(trapeze, "IsActive"), 2f, "공중그네 준비");
+            var poles = (Array)Get(trapeze, "poles");
+            var first = poles.GetValue(0);
+            ulong owner = (ulong)Get(player, "OwnerClientId");
+            Component partner = null;
+            try
+            {
+                if (occupied)
+                {
+                    partner = CreatePracticeBotTestPartner((int)Get(trapeze, "LaneIndex"), (float)Get(trapeze, "EntryDistance") - 3f);
+                    var next = poles.GetValue(1);
+                    Set(next, "Upper", (ulong)Get(partner, "OwnerClientId"));
+                    Set(next, "Until", (double)Get(trapeze, "Clock") + 30d);
+                }
+                Set(first, "Upper", owner);
+                Set(first, "Until", (double)Get(trapeze, "Clock") + 30d);
+                Set(first, "Speed", 5000f); // 출발 시 과도한 반동을 실제 서버 발사 경로로 보낸다.
+                Call(trapeze, "ReconcileLocal");
+                Vector3 origin = player.transform.position;
+                var command = trapeze.GetType().GetNestedType("Command", BindingFlags.NonPublic);
+                Call(trapeze, "HandleRequest", owner, Enum.Parse(command, "Release"), 0, (uint)Get(first, "Revision"), 0f, 0u);
+                Call(trapeze, "ReconcileLocal");
+                float limit = (float)Call(trapeze, "FlightDistanceLimit", 0, origin);
+                Vector3 forward = (Vector3)Get(course, "Forward");
+                Vector3 launchVelocity = (Vector3)Get(trapeze, "flightVelocity");
+                Assert.That(Vector3.ProjectOnPlane(launchVelocity, Vector3.up).magnitude,
+                    Is.EqualTo((float)Get(trapeze, "flightSpeedLimit")).Within(.001f), "출발할 때 속도를 조정한다.");
+                Call(trapeze, "StepFlight");
+                Assert.That(Vector3.ProjectOnPlane(player.transform.position - origin, Vector3.up).magnitude,
+                    Is.LessThanOrEqualTo(limit + .02f), "큰 반동도 다음 봉 비거리 상한을 넘지 않는다.");
+                var body = (CharacterController)Get(mover, "Body");
+                body.enabled = false;
+                player.transform.position = origin + forward * (limit + .2f);
+                body.enabled = true;
+                Vector3 beyond = player.transform.position;
+                Call(trapeze, "StepFlight");
+                Assert.That(Vector3.Dot(player.transform.position - beyond, forward), Is.GreaterThan(0f),
+                    "경계를 지난 비행도 뒤로 잘라 내거나 제자리에 막지 않는다.");
+                body.enabled = false;
+                float gravity = (float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Base"), "Character"), "Gravity");
+                float horizontalSpeed = Vector3.Dot(launchVelocity, forward);
+                float beforeTime = limit * .49f / horizontalSpeed;
+                player.transform.position = origin + launchVelocity * beforeTime + Vector3.down * (.5f * gravity * beforeTime * beforeTime);
+                body.enabled = true;
+                Assert.IsFalse((bool)Call(trapeze, "TryRequestCatch", player), "절반 전 F는 잡히지 않는다.");
+                body.enabled = false;
+                float catchTime = limit * fraction / horizontalSpeed;
+                player.transform.position = origin + launchVelocity * catchTime + Vector3.down * (.5f * gravity * catchTime * catchTime);
+                Set(trapeze, "flightVelocity", launchVelocity + Vector3.down * (gravity * catchTime));
+                body.enabled = true;
+                Assert.IsFalse((bool)Call(trapeze, "CanGrabPole", 0, player), "출발 봉을 다시 잡아 도약 거리를 초기화하지 않는다.");
+                Assert.IsFalse((bool)Call(trapeze, "CanGrabPole", 2, player), "중간 봉을 건너뛰지 않는다.");
+                Vector3 beforeCatch = player.transform.position;
+                Assert.IsTrue((bool)Call(trapeze, "TryRequestCatch", player), "절반~상한 구간에서 F 입력을 받는다.");
+                if (fraction < 1f)
+                {
+                    Assert.That((int)Call(trapeze, "HeldPole", player), Is.EqualTo(-1), "먼 봉으로 즉시 이동하지 않는다.");
+                    Call(trapeze, "ReconcileLocal");
+                    Assert.That(Vector3.Distance(player.transform.position, beforeCatch), Is.LessThan(.001f));
+                    var requests = (IDictionary)Get(trapeze, "pendingRequests");
+                    object armed = requests[owner];
+                    Assert.IsTrue((bool)Get(armed, "Armed"));
+                    double until = (double)Get(armed, "Until");
+                    Call(trapeze, "HandleRequest", owner, Enum.Parse(command, "Grab"), 1, (uint)Get(poles.GetValue(1), "Revision"), 0f, (uint)Get(trapeze, "localFlightToken"));
+                    Assert.AreSame(armed, requests[owner]);
+                    Assert.That((double)Get(armed, "Until"), Is.EqualTo(until), "중복 입력이 대기 요청을 갱신하지 않는다.");
+                    float deadline = Time.realtimeSinceStartup + 2f;
+                    bool movedWhileWaiting = false;
+                    while (!(bool)Call(trapeze, "IsHeld", player) && Time.realtimeSinceStartup < deadline)
+                    {
+                        Vector3 previous = player.transform.position;
+                        yield return null;
+                        movedWhileWaiting |= Vector3.Distance(player.transform.position, previous) > .001f;
+                        if ((bool)Call(trapeze, "IsHeld", player))
+                            Assert.That(Vector3.Distance(previous, player.transform.position), Is.LessThan(1.1f), "최종 잡기에서도 몇 m씩 튀지 않는다.");
+                    }
+                    Assert.IsTrue(movedWhileWaiting, "F 응답을 기다리면서도 비행을 계속한다.");
+                }
+                Assert.That((int)Call(trapeze, "HeldPole", player), Is.EqualTo(1));
+                Assert.That((bool)Call(trapeze, "IsLower", player), Is.EqualTo(occupied));
+                Assert.IsFalse((bool)Call(trapeze, "IsInFlight", player));
+                Call(trapeze, "ReconcileLocal");
+                Assert.That(Vector3.Distance(player.transform.position, (Vector3)Call(trapeze, "PoleFeet", 1, occupied)),
+                    Is.LessThan(.01f));
+            }
+            finally { DestroyPracticeBotTestPartner(partner); }
+        }
+
         [UnityTest, Category("TightropeJourneyRegression")]
         public IEnumerator FirstTrapezePoleCatchesJumpFromLeglessPartner() => FirstTrapezePoleInjuredEntry(false);
 
@@ -168,12 +267,12 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             double waitingUntil = (double)Get(trapeze, "Clock") + .5d;
             Set(trapeze, "pendingUntil", waitingUntil);
             Call(trapeze, "StepFlight");
-            Assert.That(player.transform.position, Is.EqualTo(beforeReply), "잡기 답변 대기 중 먼저 추락하지 않는다.");
+            Assert.That(player.transform.position.y, Is.LessThan(beforeReply.y), "F 답변 대기 중에도 공중에 멈추지 않는다.");
             Assert.IsFalse((bool)Call(trapeze, "TryRequestCatch", player));
             Assert.That((double)Get(trapeze, "pendingUntil"), Is.EqualTo(waitingUntil), "중복 F로 대기 시간이 늘어나지 않는다.");
             Set(trapeze, "pendingUntil", (double)Get(trapeze, "Clock") - .01d);
             Call(trapeze, "StepFlight");
-            Assert.That(player.transform.position.y, Is.LessThan(beforeReply.y), "답변이 없으면 제한 시간 뒤 원래 비행을 재개한다.");
+            Assert.That(player.transform.position.y, Is.LessThan(beforeReply.y), "답변이 없어도 같은 비행을 계속한다.");
 
             uint ticket = (uint)Get(trapeze, "localFlightToken");
             Set(trapeze, "finishedFlightToken", ticket);

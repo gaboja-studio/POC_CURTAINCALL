@@ -70,16 +70,18 @@ namespace CurtainCall.Tightrope.Saws
             bool incoming = TryGetVerticalPosition(out var position);
             IncomingPath(verticalPath, verticalLane, settings.verticalEndDistance, settings.verticalSpawnDistance,
                 position.y - course.transform.position.y, incoming, verticalSerial);
-            IncomingPath(cooperativePath, cooperativeGateLane, CooperativeGateStopDistance,
-                CooperativeGateStopDistance + settings.cooperativeGateApproachDistance,
-                settings.cooperativeGateHeight * .5f, IsCooperativeGateActive && !IsCooperativeGateOpening, cooperativeGateIndex);
+            Vector3 gateCenter = Vector3.up * settings.cooperativeGateHeight * .5f;
+            DrawPath(cooperativePath,
+                course.GetLanePosition(cooperativeGateLane, CooperativeApproachSpeed > 0f ? 0f : CooperativeGateStopDistance) + gateCenter,
+                course.GetLanePosition(cooperativeGateLane, CooperativeGateStopDistance + settings.cooperativeGateApproachDistance) + gateCenter,
+                IsCooperativeGateActive && !IsCooperativeGateOpening);
             foreach (var gate in releasedGates)
             {
                 bool visible = TryReleasedPosition(gate, out var bottom);
                 if (visible && gate.Path == null) gate.Path = NewPath($"Released path {gate.Index}");
                 if (gate.Path != null)
-                    IncomingPath(gate.Path, gate.Lane, 0f, course.GetDistance(bottom), settings.cooperativeGateHeight * .5f, visible,
-                        gate.Index, settings.cooperativeGateDistances[gate.Index]);
+                    DrawPath(gate.Path, course.GetLanePosition(gate.Lane, 0f) + gateCenter,
+                        course.GetLanePosition(gate.Lane, course.GetDistance(bottom)) + gateCenter, visible);
             }
         }
     }

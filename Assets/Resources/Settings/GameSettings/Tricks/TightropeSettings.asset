@@ -31,7 +31,7 @@ MonoBehaviour:
     swingGapLength: 8
     trapezeEnabled: 1
     trapezeStart: 100
-    trapezeLength: 16
+    trapezeLength: 12
     trapezeLane: 3
     startPlatformLength: 6
     finishPlatformLength: 6
@@ -200,9 +200,9 @@ MonoBehaviour:
     cooperativeGates: 1
     cooperativeGateDistances:
     - 158
-    cooperativeGateTriggerLead: 12
+    cooperativeGateTriggerLead: 24
     cooperativeGateApproachDistance: 6
-    cooperativeGateApproachSpeed: 3
+    cooperativeGateApproachSpeed: 2
     cooperativeGateHeight: 2.1
     cooperativeGateThickness: 0.2
     cooperativeGatePlateOffset: 2.2
@@ -219,7 +219,7 @@ MonoBehaviour:
     finaleSoloStartFraction: 0.9
     finaleGateClosedSeconds: 4
     finaleGateOpenSeconds: 4
-    cooperativeGateLaunchTolerance: 0.35
+    cooperativeGateLaunchTolerance: 0.6
     cooperativeGateJumpClearance: 0.6
     plateOffset: 1.5
     plateLength: 0.8
@@ -242,7 +242,7 @@ MonoBehaviour:
     chaseStart: -6
     chaseSpeed: 0.35
     safeDistance: 165
-    warningSeconds: 1.5
+    warningSeconds: 2.5
     triggerMode: 1
     laneOrder: 2
     segments:

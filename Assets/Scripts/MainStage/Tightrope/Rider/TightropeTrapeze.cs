@@ -26,7 +26,7 @@ namespace CurtainCall.Tightrope
         {
             public uint Token;
             public int From;
-            public Vector3 Position, Velocity;
+            public Vector3 Position, Velocity, Target;
             public double Started, Until;
         }
         readonly PoleState[] poles = new PoleState[PoleTotal];
@@ -182,10 +182,10 @@ namespace CurtainCall.Tightrope
         {
             if (!Active || index < 0 || index >= PoleTotal || !Eligible(player) || poles[index].Upper != Nobody) return false;
             bool flying = flights.TryGetValue(player.OwnerClientId, out var flight) && Clock <= flight.Until;
-            if (index == 0) { if (!flying && !player.IsAirborne) return false; }
-            else if (!flying || index > flight.From + 1) return false;
-            Vector3 delta = player.transform.position - Feet(index, false);
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
+            if (flying) return CanCatchNextPole(player, index, flight, reach);
+            if (index != 0 || !player.IsAirborne) return false;
+            Vector3 delta = player.transform.position - Feet(index, false);
             var rules = GameSettings.Tightrope.RopeMovement;
             // 첫 봉은 다리 손상으로 낮아진 목마에서도 닿을 여유를 준다. 혼자 점프한 높이는 여전히 범위 밖이다.
             float vertical = index == 0 ? rules.TrapezeEntryHeightTolerance : .5f * reach;
@@ -197,13 +197,35 @@ namespace CurtainCall.Tightrope
         {
             if (!Active || !Eligible(player) || poles[index].Upper == Nobody || poles[index].Lower != Nobody) return false;
             bool flying = flights.TryGetValue(player.OwnerClientId, out var flight) && Clock <= flight.Until;
-            if (index != 0 && (!flying || index > flight.From + 1)) return false;
-            if (!flying && (!player.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRope(mover, out int lane) || lane != Lane)) return false;
-            Vector3 delta = player.transform.position - Feet(index, true);
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
-            return reach > 0f && Mathf.Abs(delta.y) <= (flying ? .7f : 1.2f) * reach
+            if (flying) return CanCatchNextPole(player, index, flight, reach);
+            if (index != 0 || !player.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRope(mover, out int lane) || lane != Lane) return false;
+            Vector3 delta = player.transform.position - Feet(index, true);
+            return reach > 0f && Mathf.Abs(delta.y) <= 1.2f * reach
                 && Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude <= 1.1f * 1.1f * reach * reach;
         }
+
+        float FlightDistanceLimit(int from, Vector3 origin)
+        {
+            return Mathf.Max(.1f, Vector3.Dot(FlightTarget(from) - origin, course.Forward));
+        }
+
+        Vector3 FlightTarget(int from) => from + 1 < PoleTotal ? Feet(from + 1, poles[from + 1].Upper != Nobody)
+            : course.GetLanePosition(Lane, course.TrapezeGapTo + 1f);
+
+        Vector3 PlanFlightVelocity(int from, Vector3 origin, Vector3 target, Vector3 velocity, out float speedLimit)
+        {
+            float gravity = GameSettings.Base.Character.Gravity;
+            if (from + 1 < PoleTotal) return SwingPoleMath.PoleFlightVelocity(origin, target, velocity, course.Forward,
+                gravity, poles[from].Physics.HangLength, out speedLimit);
+            speedLimit = SwingPoleMath.FlightSpeedLimit(origin.y - target.y, velocity.y, gravity,
+                Mathf.Max(.1f, Vector3.Dot(target - origin, course.Forward)));
+            return SwingPoleMath.LimitFlightVelocity(velocity, speedLimit);
+        }
+
+        bool CanCatchNextPole(NetworkPlayer player, int index, FlightState flight, float reach) => reach > 0f
+            && index == flight.From + 1 && SwingPoleMath.InCatchWindow(flight.Position, player.transform.position,
+                course.Forward, Mathf.Max(.1f, Vector3.Dot(flight.Target - flight.Position, course.Forward)), 1.1f * reach);
         void Sample(int index, out float angle, out float speed)
         {
             var state = poles[index]; angle = state.Angle; speed = state.Speed;
