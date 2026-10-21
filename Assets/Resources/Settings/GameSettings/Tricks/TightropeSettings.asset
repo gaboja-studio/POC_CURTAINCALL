@@ -101,6 +101,7 @@ MonoBehaviour:
     upperTransfer: 0.2
     linkDistance: 1.5
     fallShock: 10
+    jumpHeightMultiplier: 1.5
     forwardJumpSpeed: 2.2
     backwardJumpSpeed: 0.7
   camera:

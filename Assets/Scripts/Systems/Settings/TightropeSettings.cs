@@ -332,15 +332,19 @@ namespace CurtainCall.Settings
             [Tooltip("위층이 떨어질 때 바로 아래층이 받는 반동 충격(균형 ±, 랜덤 방향, 목마 배율 적용). 호스트 값으로 보낸다. 기획 미정(임시 10, 착지 충격과 같음).")]
             [SerializeField, Min(0f)] float fallShock = 10f;
 
-            [Tooltip("맨 위 W + SB 앞으로 분리 점프의 수평 속도(m/s, 높이는 혼자 점프와 같음). 2층 발 높이 1.5m에서 수직 톱날(지름 1.0m·상단 1.1m)을 넘게 정한 값: 약 2.4m 앞 착지. 기획 미정(임시 2.2).")]
+            [Tooltip("목마 맨 위 점프의 높이 배율(×). 부상 배율을 적용한 기존 높이에 곱하며, 제자리·앞뒤 분리·옆줄 분리 점프에 적용한다.")]
+            [SerializeField, Min(0f)] float jumpHeightMultiplier = 1.5f;
+
+            [Tooltip("맨 위 W + SB 앞으로 분리 점프의 수평 속도(m/s). 높이는 목마 점프 배율을 적용한다. 기획 미정(임시 2.2).")]
             [SerializeField, Min(0f)] float forwardJumpSpeed = 2.2f;
 
-            [Tooltip("맨 위 S + SB 뒤로 분리 점프의 수평 속도(m/s). 아래 사람과 겹치지 않게 착지하는 최소에 가까운 값: 약 0.75m 뒤 착지. 기획 미정(임시 0.7).")]
+            [Tooltip("맨 위 S + SB 뒤로 분리 점프의 수평 속도(m/s). 높이는 목마 점프 배율을 적용한다. 기획 미정(임시 0.7).")]
             [SerializeField, Min(0f)] float backwardJumpSpeed = 0.7f;
 
             public float UpperTransfer => upperTransfer;
             public float LinkDistance => linkDistance;
             public float FallShock => fallShock;
+            public float JumpHeightMultiplier => Mathf.Max(0f, jumpHeightMultiplier);
             public float ForwardJumpSpeed => forwardJumpSpeed;
             public float BackwardJumpSpeed => backwardJumpSpeed;
 
