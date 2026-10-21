@@ -60,10 +60,10 @@ namespace CurtainCall.WaitingRoom.EditorTools
                     Mute(dorm.Find("Bed_" + (char)('A' + i)));
                     Clone("Bed_" + (char)('A' + i), native, new Vector3(xs[i], .025f, 14.25f), 270, 1, true);
                     MoveBottom(dorm.Find("FootTrunk_" + i), new Vector3(xs[i] + .1f, 0, 12.6f));
-                    MoveBottom(dorm.Find("PersonalClothes_" + i), new Vector3(xs[i] + .15f, .47f, 12.65f));
                     var lamp = dorm.Find("BedsideLamp_" + i); var p = Local(lamp); p.y = 2.2f; Move(lamp, p);
                     var light = dorm.Find("BedsideGlow_" + i); p = Local(light); p.y = 2.35f; Move(light, p);
                 }
+                WaitingRoomDormitoryLayout.FitPersonalClothesline(g);
             });
         }
 
@@ -128,6 +128,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 Clone("EastCrateLuggage_" + i, Src("대기실_본관/잡동사니/트렁크"), new Vector3(-10.8f, .52f, z), i * 9, .5f);
             }
             Zone("Zone_JunkStorage", new Vector3(-14.1f, 3, 0), new Vector3(7.9f, 6, 16.7f));
+            WaitingRoomInteriorArtPass.FitStoredCanvasSupports(g, output);
             foreach (Transform t in g.Find("Mood/VisibilityLighting")) if (t.name.StartsWith("JunkStorage_"))
             { var at = Local(t); at.x = -14.1f; Move(t, at); var l = t.GetComponent<Light>(); Undo.RecordObject(l, "보관소 보조광"); l.intensity = 4.5f; }
         }

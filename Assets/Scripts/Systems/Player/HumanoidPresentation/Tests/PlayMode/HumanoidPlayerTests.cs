@@ -137,6 +137,27 @@ namespace CurtainCall.Tests.HumanoidPresentation
         }
 
         [UnityTest]
+        public IEnumerator InitialLegLossStartsProneWithoutWaitingForMovement()
+        {
+            var player = Player();
+            yield return null;
+            var presenter = (Behaviour)Part(player, "HumanoidPlayerPresentation");
+            foreach (int mask in new[] { 12, 13 })
+            {
+                presenter.enabled = false;
+                Mask(player, mask);
+                presenter.enabled = true;
+                var view = Model(player);
+                var animator = (Animator)view.GetType().GetField("Animator").GetValue(view);
+                Assert.That((string)Get(view, "Motion"), Is.EqualTo("Crawl"));
+                Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName("Crawl"), "첫 표시부터 서 있는 기본 상태 대신 기어가기 상태");
+                Assert.IsFalse(animator.IsInTransition(0), "정지 속도로 느려진 전환을 기다리지 않는다");
+                yield return null;
+                Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(0).IsName("Crawl"));
+            }
+        }
+
+        [UnityTest]
         public IEnumerator FourColorsPreserveCapsSharedMaterialsAndFragmentSnapshot()
         {
             var player = Player();

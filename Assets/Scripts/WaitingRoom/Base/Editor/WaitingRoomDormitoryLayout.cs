@@ -11,6 +11,7 @@ namespace CurtainCall.WaitingRoom.EditorTools
     /// <summary>구조도 ② 숙소만 조정한다. 원래 존재하던 비대상 오브젝트 전체를 비교하여 다른 공간 변경을 차단한다.</summary>
     public static class WaitingRoomDormitoryLayout
     {
+        public enum SuspendedSpanKind { Rope, Rod }
         const string Bundle = "Assets/Scenes/Tests/WaitingRoom/Base/Prefabs/WaitingRoomDormitoryLayout.asset";
         static Transform g, src, kit, output;
         static readonly List<Transform> allowed = new();
@@ -110,6 +111,105 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Clone("BedsideStool_B", new[] { src.Find("대기실_본관/숙소/숙소_01/가구/SM_CS1_Stool_01a_c1_LOD0") }, new Vector3(-5.6f, 0, 14), 13, .9f, true);
             Clone("PersonalBear", new[] { kit.Find("R02_Dormitory/Props/SM_Prop_Toy_Bear_01") }, new Vector3(1.15f, .59f, 14.85f), 180);
             Clone("StoredBedLinen", new[] { src.Find("대기실_본관/숙소/숙소_01/가구/SM_PAD_CardboardBox01_c1_LOD0") }, new Vector3(-9.05f, .72f, 11.45f), -8, .65f);
+            FitPersonalClothesline(g);
+        }
+
+        /// <summary>천의 위쪽 접힘선을 줄에 맞추고 침대 앞 가구와 분리한다. 원본 프로토타입 없이 재적용 가능.</summary>
+        public static void FitPersonalClothesline(Transform greybox, SuspendedSpanKind kind = SuspendedSpanKind.Rope)
+        {
+            if (EditorApplication.isPlaying) throw new InvalidOperationException("편집 모드에서만 가능합니다.");
+            var dorm = greybox.Find("Mood/InteriorArt/Stage01_Dormitory");
+            if (!dorm) throw new InvalidOperationException("숙소 배치가 없습니다.");
+            if (kind != SuspendedSpanKind.Rope && kind != SuspendedSpanKind.Rod) throw new ArgumentOutOfRangeException(nameof(kind));
+            const float startX = -9.78f, endX = 2.78f, z = 11.6f;
+            Vector3 Point(float x)
+            {
+                float t = Mathf.InverseLerp(startX, endX, x);
+                float sag = kind == SuspendedSpanKind.Rope ? .05f * Mathf.Sin(t * Mathf.PI) : 0f;
+                return greybox.TransformPoint(new Vector3(x, 2.3f - sag, z));
+            }
+            (Renderer surface, Vector3 point) CeilingAttachment(Vector3 from)
+            {
+                var ray = new Ray(from, Vector3.up);
+                foreach (var filter in dorm.GetComponentsInChildren<MeshFilter>().Where(f => f.name.StartsWith("CeilingRepairPanel_")))
+                {
+                    var renderer = filter.GetComponent<Renderer>();
+                    if (!renderer || !renderer.enabled || !filter.sharedMesh) continue;
+                    var meshBounds = filter.sharedMesh.bounds;
+                    var bottom = filter.transform.TransformPoint(new Vector3(meshBounds.center.x, meshBounds.min.y, meshBounds.center.z));
+                    var plane = new Plane(-filter.transform.up, bottom);
+                    if (!plane.Raycast(ray, out float distance) || distance > 6f) continue;
+                    var point = ray.GetPoint(distance);
+                    var local = filter.transform.InverseTransformPoint(point);
+                    if (local.x < meshBounds.min.x || local.x > meshBounds.max.x || local.z < meshBounds.min.z || local.z > meshBounds.max.z) continue;
+                    return (renderer, point);
+                }
+                throw new InvalidOperationException("줄/봉 생성 거부: 양끝을 고정할 실제 천장 지지면이 없습니다. 기존 배치는 유지합니다.");
+            }
+            // 좌표를 벽으로 간주하지 않는다. 줄과 봉 모두 양끝의 실제 천장 표면을 먼저 확인한다.
+            // 지지가 없으면 기존 구조를 지우거나 새 구조를 출력하기 전에 중단한다.
+            var west = CeilingAttachment(Point(startX));
+            var east = CeilingAttachment(Point(endX));
+            var line = dorm.Find("PersonalClothesline");
+            if (!line) line = Group(dorm, "PersonalClothesline");
+            foreach (Transform child in line.Cast<Transform>().ToArray()) Undo.DestroyObjectImmediate(child.gameObject);
+            const string materialPath = "Assets/Scenes/Tests/WaitingRoom/Base/Materials/WR_Clothesline.mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            if (!material)
+            {
+                material = new Material(Shader.Find("Universal Render Pipeline/Lit")) { name = "WR_Clothesline", color = new Color(.45f, .36f, .23f) };
+                material.SetFloat("_Smoothness", .1f);
+                AssetDatabase.CreateAsset(material, materialPath);
+            }
+            void Rope(string name, Vector3 from, Vector3 to, float diameter)
+            {
+                var go = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                Undo.RegisterCreatedObjectUndo(go, "숙소 빨랫줄 지지 구조");
+                go.name = name;
+                go.transform.SetParent(line, true);
+                go.transform.SetPositionAndRotation((from + to) * .5f, Quaternion.FromToRotation(Vector3.up, to - from));
+                go.transform.localScale = new Vector3(diameter, Vector3.Distance(from, to) * .5f, diameter);
+                go.GetComponent<Renderer>().sharedMaterial = material;
+                Object.DestroyImmediate(go.GetComponent<Collider>());
+            }
+            int segments = kind == SuspendedSpanKind.Rope ? 24 : 1;
+            for (int i = 0; i < segments; i++)
+                Rope((kind == SuspendedSpanKind.Rope ? "Rope_" : "Rod_") + i, Point(Mathf.Lerp(startX, endX, i / (float)segments)), Point(Mathf.Lerp(startX, endX, (i + 1f) / segments)), kind == SuspendedSpanKind.Rope ? .026f : .04f);
+            foreach (var support in new[] { (x: startX, hit: west), (x: endX, hit: east) })
+            {
+                string side = support.x == startX ? "W" : "E";
+                var attachment = support.hit.point;
+                Rope("CeilingSuspension_" + side, Point(support.x), attachment, .026f);
+                Rope("CeilingFixing_" + side, attachment - Vector3.up * .015f, attachment + Vector3.up * .015f, .1f);
+            }
+            float[] xs = { -8.45f, -6.35f, -2.25f, 1.35f };
+            for (int i = 0; i < xs.Length; i++)
+            {
+                var cloth = dorm.Find("PersonalClothes_" + i);
+                if (!cloth) throw new InvalidOperationException("개인 천 없음: " + i);
+                var filter = cloth.GetComponentInChildren<MeshFilter>();
+                if (!filter || !filter.sharedMesh.isReadable) throw new InvalidOperationException("천의 지지선 메시를 읽을 수 없습니다.");
+                Undo.RecordObject(cloth, "천 접힘선을 빨랫줄에 맞춤");
+                Vector3[] Points() => filter.sharedMesh.vertices.Select(v => filter.transform.TransformPoint(v)).ToArray();
+                var points = Points();
+                float top = points.Max(p => p.y);
+                var crest = points.Where(p => p.y >= top - .01f).ToArray();
+                float cx = crest.Average(p => p.x), cz = crest.Average(p => p.z);
+                float xx = crest.Sum(p => (p.x - cx) * (p.x - cx));
+                float zz = crest.Sum(p => (p.z - cz) * (p.z - cz));
+                float xz = crest.Sum(p => (p.x - cx) * (p.z - cz));
+                float angle = .5f * Mathf.Atan2(2f * xz, xx - zz);
+                var axis = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle));
+                cloth.rotation = Quaternion.FromToRotation(axis, greybox.right) * cloth.rotation;
+                points = Points(); top = points.Max(p => p.y);
+                crest = points.Where(p => p.y >= top - .01f).ToArray();
+                var attachment = new Vector3(crest.Average(p => p.x), top - .008f, crest.Average(p => p.z));
+                cloth.position += Point(xs[i]) - attachment;
+                foreach (var collider in cloth.GetComponentsInChildren<Collider>(true))
+                { Undo.RecordObject(collider, "장식 천 충돌 해제"); collider.enabled = false; }
+                if (PrefabUtility.IsPartOfPrefabInstance(cloth)) PrefabUtility.RecordPrefabInstancePropertyModifications(cloth);
+            }
+            EditorSceneManager.MarkSceneDirty(greybox.gameObject.scene);
         }
 
         public static void RefineCurrent()
