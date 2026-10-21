@@ -460,6 +460,76 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Assert.That(death.Payload["obstacleId"].ToString(), Is.EqualTo(obstacle));
             Assert.That(death.Attempt, Is.EqualTo(cut.Attempt));
         }
+        [UnityTest] public IEnumerator DeathRagdoll_TightropeStaysDetachedAndFalls() => DeathRagdoll(false);
+        [UnityTest] public IEnumerator DeathRagdoll_CannonStaysDetachedAndFalls() => DeathRagdoll(true);
+        IEnumerator DeathRagdoll(bool cannon)
+        {
+            yield return SceneManager.LoadSceneAsync(cannon ? "HumanCannon" : "Tightrope", LoadSceneMode.Single);
+            yield return null; yield return RemoveAutomaticSceneRouting(); Capture();
+            session = (Component)Game("CurtainCall.Network.Session.NetworkSessionManager").GetMethod("EnsureExists").Invoke(null, null);
+            minimumPlayers = (IDisposable)Call(session, "RequestMinimumStartPlayers", 1);
+            var host = (Task<bool>)Call(session, "HostLanAsync", (ushort)7789);
+            float until = Time.realtimeSinceStartup + 15;
+            while ((!host.IsCompleted || !events.Any(e => e.Type == "ROOM_ENTERED")) && Time.realtimeSinceStartup < until) yield return null;
+            Assert.That(host.IsCompleted && host.Result, Is.True);
+            Call(session, "StartGame"); yield return null;
+            var campaign = Static("CurtainCall.Campaign.CampaignRun", "Instance");
+            Call(campaign, "EndIntro"); yield return null;
+            if (cannon) { Call(campaign, "EndPerformance"); yield return null; Call(campaign, "NotifyAllAtStageEntrance"); }
+            until = Time.realtimeSinceStartup + 12;
+            while (!events.Any(e => e.Type == "PERFORMANCE_STARTED" && e.Payload["trickType"].ToString() == (cannon ? "CANNON" : "TIGHTROPE")) && Time.realtimeSinceStartup < until) yield return null;
+            Assert.That(events.Any(e => e.Type == "PERFORMANCE_STARTED"), Is.True);
+            var local = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            var mover = local.GetComponent(Game("CurtainCall.Player.PlayerMover"));
+            var balance = local.GetComponent(Game("CurtainCall.Player.PlayerBalance"));
+            var ragdoll = local.GetComponent(Game("CurtainCall.Player.PlayerRagdoll"));
+            var slot = local.GetComponent(Game("CurtainCall.Player.PlayerModelSlot"));
+            yield return new WaitForSecondsRealtime(.5f);
+            // Public confirmed death; the live course/controller remains enabled during the observation.
+            var model = (GameObject)Read(slot, "CurrentModel"); Assert.That(model, Is.Not.Null);
+            mover.GetType().GetProperty("Simulated").SetValue(mover, false);
+            local.transform.position = new Vector3(1000f, 30f, 1000f);
+            Call(local, "ServerKill");
+            Assert.That(Read(local, "State").ToString(), Is.EqualTo("Fallen"));
+            Assert.That(Read(ragdoll, "IsLimp"), Is.EqualTo(true), "Confirmed death must detach the model immediately");
+            Assert.That(Read(slot, "CurrentModel"), Is.Null);
+            var body = model.GetComponent<Rigidbody>(); Assert.That(body, Is.Not.Null);
+            Assert.That(body.isKinematic, Is.False); Assert.That(body.useGravity, Is.True);
+            float startY = body.position.y;
+            yield return new WaitForSeconds(.6f);
+            Assert.That(Read(ragdoll, "IsLimp"), Is.EqualTo(true), "Course cleanup must not revive a dead model");
+            Assert.That(Read(slot, "CurrentModel"), Is.Null);
+            Assert.That(model, Is.Not.Null);
+            Assert.That(body.position.y, Is.LessThan(startY - .5f), "Detached body must keep falling under gravity");
+            var guard = Game("CurtainCall.Network.PlayerSync.NetworkPlayer").GetProperty("ServerCanChangeState");
+            object previousGuard = guard.GetValue(null);
+            try
+            {
+                // Isolate confirmed death presentation after the solo course has already ended.
+                guard.SetValue(null, null);
+                foreach (string cause in cannon ? new[] { "CUT" } : new[] { "CUT", "BALANCE" })
+                {
+                    Call(local, "ServerRestoreAll"); yield return null;
+                    Assert.That(Read(ragdoll, "IsLimp"), Is.EqualTo(false), "An explicit revive still restores the model");
+                    local.transform.position = new Vector3(1000f, 30f, 1000f);
+                    model = (GameObject)Read(slot, "CurrentModel"); Assert.That(model, Is.Not.Null);
+                    if (cause == "CUT") Call(local, "ServerCut", 4);
+                    else Call(balance, "ForceFall");
+                    Assert.That(Read(local, "State").ToString(), Is.EqualTo("Fallen"), cause);
+                    Assert.That(Read(ragdoll, "IsLimp"), Is.EqualTo(true), cause);
+                    body = model.GetComponent<Rigidbody>(); Assert.That(body, Is.Not.Null, cause);
+                    startY = body.position.y;
+                    // Neither a repeated balance reset nor duplicate death confirmation may revive the corpse.
+                    Call(balance, "ResetBalance");
+                    yield return new WaitForSeconds(.6f);
+                    Assert.That(Read(ragdoll, "IsLimp"), Is.EqualTo(true), cause);
+                    Assert.That(Read(slot, "CurrentModel"), Is.Null, cause);
+                    Assert.That(body.useGravity && !body.isKinematic, Is.True, cause);
+                    Assert.That(body.position.y, Is.LessThan(startY - .5f), cause);
+                }
+            }
+            finally { guard.SetValue(null, previousGuard); }
+        }
         [UnityTearDown] public IEnumerator Cleanup()
         {
             yield return RemoveAutomaticSceneRouting();
