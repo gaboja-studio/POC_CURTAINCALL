@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CurtainCall.Network.Session;
 using TMPro;
@@ -6,10 +7,7 @@ using UnityEngine.UI;
 
 namespace CurtainCall.StartLobby
 {
-    /// <summary>
-    /// 시작 씬 메뉴(Task-052). 메인: 방 만들기 · 방 코드로 참가 · LAN · 설정 · 종료. 방을 열면 로비로 가고,
-    /// 참가하면 호스트가 있는 로비로 NGO가 옮겨 준다. 화면은 <c>StartLobbySceneBuilder</c>가 만든다.
-    /// </summary>
+    /// <summary>시작 씬의 방 생성·참가와 페이지 표시를 담당한다.</summary>
     public sealed class StartMenu : MonoBehaviour
     {
         public enum Page { Main, Join, Lan, Settings }
@@ -44,8 +42,11 @@ namespace CurtainCall.StartLobby
 
         NetworkSessionManager session;
         StartLobbyFlow flow;
-        bool busy;
-
+        bool busy, waitingForTransition, controlsLocked;
+        readonly Dictionary<Selectable, bool> controlStates = new();
+        public bool IsBusy => busy;
+        bool CanUseMenu => !busy && session != null && session.ConnectionState == SessionConnectionState.Offline
+            && !session.NetworkManager.ShutdownInProgress;
         public Page Current { get; private set; }
 
         void Start()
@@ -54,25 +55,24 @@ namespace CurtainCall.StartLobby
             Cursor.visible = true;
             flow = StartLobbyFlow.EnsureExists();
             session = NetworkSessionManager.EnsureExists();
-
             host.onClick.AddListener(() => Run(HostSession));
             join.onClick.AddListener(() => Show(Page.Join));
             lan.onClick.AddListener(() => Show(Page.Lan));
             settings.onClick.AddListener(() => Show(Page.Settings));
             quit.onClick.AddListener(Quit);
-            joinConfirm.onClick.AddListener(() => Run(JoinSession));
+            joinConfirm.onClick.AddListener(() => Run(JoinSession, true, true));
             joinBack.onClick.AddListener(() => Show(Page.Main));
             lanHost.onClick.AddListener(() => Run(HostLan));
-            lanJoin.onClick.AddListener(() => Run(JoinLan));
+            lanJoin.onClick.AddListener(() => Run(JoinLan, true));
             lanBack.onClick.AddListener(() => Show(Page.Main));
             if (settingsPage != null) settingsPage.Closed += () => Show(Page.Main);
-
             Show(Page.Main);
             SetStatus(flow.TakeMessage());
         }
 
         public void Show(Page page)
         {
+            if (!CanUseMenu) return;
             Current = page;
             mainPage.SetActive(page == Page.Main);
             joinPage.SetActive(page == Page.Join);
@@ -85,51 +85,85 @@ namespace CurtainCall.StartLobby
         System.Collections.IEnumerator OpenCommonSettings()
         {
             while (UI.SceneIntegration.CommonMenuUI.Current == null && Current == Page.Settings) yield return null;
-            if (Current == Page.Settings)
+            if (CanUseMenu && Current == Page.Settings)
                 UI.SceneIntegration.CommonMenuUI.Current.OpenStartSettings(() => { if (this != null) Show(Page.Main); });
         }
 
         void Update()
         {
-            bool idle = !busy && session != null && session.ConnectionState == SessionConnectionState.Offline;
-            foreach (var button in new[] { host, join, lan, joinConfirm, lanHost, lanJoin })
-                if (button != null) button.interactable = idle;
+            if (waitingForTransition && session != null && session.ConnectionState == SessionConnectionState.Offline)
+            {
+                waitingForTransition = busy = false;
+                SetStatus(Failure());
+            }
+            SetControlsLocked(!CanUseMenu);
         }
 
-        async void Run(System.Func<Task<bool>> action)
+        void SetControlsLocked(bool locked)
         {
-            if (busy || session == null || session.ConnectionState != SessionConnectionState.Offline) return;
+            if (controlsLocked == locked) return;
+            controlsLocked = locked;
+            if (locked)
+            {
+                controlStates.Clear();
+                foreach (var control in GetComponentsInChildren<Selectable>(true)) Lock(control);
+                foreach (var control in new Selectable[] { host, join, lan, settings, quit, joinConfirm, joinBack,
+                    lanHost, lanJoin, lanBack, code, address }) Lock(control);
+                foreach (var page in new[] { mainPage, joinPage, lanPage, settingsPage != null ? settingsPage.gameObject : null })
+                    if (page != null)
+                        foreach (var control in page.GetComponentsInChildren<Selectable>(true)) Lock(control);
+            }
+            else
+            {
+                foreach (var pair in controlStates) if (pair.Key != null) pair.Key.interactable = pair.Value;
+                controlStates.Clear();
+            }
+        }
+
+        void Lock(Selectable control)
+        {
+            if (control == null || controlStates.ContainsKey(control)) return;
+            controlStates.Add(control, control.interactable);
+            control.interactable = false;
+        }
+
+        async void Run(System.Func<Task<bool>> action, bool joining = false, bool requireCode = false)
+        {
+            if (!CanUseMenu) return;
+            if (requireCode && string.IsNullOrWhiteSpace(code.text))
+            {
+                SetStatus("방 코드를 입력하세요.");
+                return;
+            }
             busy = true;
+            SetControlsLocked(true);
             SetStatus("연결하는 중...");
             bool ok = false;
+            try { ok = await action(); }
+            catch (System.Exception e) { Debug.LogException(e); }
+            if (this == null) return;
+            if (ok)
+            {
+                // 접속 성공과 씬 전환 사이에도 다른 버튼을 받지 않는다.
+                waitingForTransition = true;
+                return;
+            }
             try
             {
-                ok = await action();
+                if (session != null && session.ConnectionState != SessionConnectionState.Offline)
+                    await session.LeaveAsync();
             }
-            catch (System.Exception e)
-            {
-                Debug.LogException(e);
-            }
+            catch (System.Exception e) { Debug.LogWarning($"[Start] 연결 정리 실패: {e.Message}"); }
+            if (this == null) return;
             busy = false;
-            if (this == null) return; // 성공해서 씬이 바뀌었다.
-            if (!ok) SetStatus(Failure());
+            string reason = Failure();
+            SetStatus(joining ? NetworkSessionManager.JoinFailureMessage : reason);
+            SetControlsLocked(!CanUseMenu);
         }
 
         async Task<bool> HostSession() => await session.HostSessionAsync() && flow.OpenLobbyAsHost();
-
         async Task<bool> HostLan() => await session.HostLanAsync() && flow.OpenLobbyAsHost();
-
-        Task<bool> JoinSession()
-        {
-            string value = code.text.Trim().ToUpperInvariant();
-            if (string.IsNullOrEmpty(value))
-            {
-                SetStatus("방 코드를 입력하세요.");
-                return Task.FromResult(true);
-            }
-            return session.JoinSessionAsync(value);
-        }
-
+        Task<bool> JoinSession() => session.JoinSessionAsync(code.text.Trim().ToUpperInvariant());
         Task<bool> JoinLan() => session.JoinLanAsync(address.text.Trim());
 
         string Failure()
@@ -144,8 +178,9 @@ namespace CurtainCall.StartLobby
             if (status != null) status.text = text ?? "";
         }
 
-        static void Quit()
+        void Quit()
         {
+            if (!CanUseMenu) return;
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else

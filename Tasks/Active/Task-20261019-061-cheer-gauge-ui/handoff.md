@@ -1,6 +1,7 @@
 # Handoff
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/202
 ## 현재
+- 2026-10-21 Start 접속 수정(사용자 계획/네트워크 구역 승인): NetworkSessionManager의 LAN/코드 참가를 실제 Client 접속까지3초 제한, 지정 실패 문구와 NGO 종료 완료 후 복구. ServicesSessionConnector는 취소 토큰을 커스텀 INetworkHandler에 연결, 늦은 SDK 시작/새 연결 종료 차단 및 원격 세션 정리 직렬화(HTTP 자체 취소 불가). StartMenu 전체 Selectable 즉시 잠금·기존 상태 복원, 중복 호출/페이지 전환 차단, 성공 시 전환까지 유지. 씬/원본 에셋 변경 없음, 이번 Start 수정 미커밋.
 - 공연 상호작용 후속: CommonInteractionUI에 기존 목마 F의 XZ 최근접/최하단·설정 도달거리 판정을 표시용으로 투영(공개 대상선택 API 없어 UI 내 동일 조회, 게임 코드 변경 없음). 앞뒤 중 실제 최근접1명에 목마 타기, 상단 단원은 좌하단 목마 해제/F 길게·홀드 진행 표시, 중간층은 위 단원 선해제 제한 안내, 맨 아래 숨김. HumanCannonUiBinding은 발판 가장자리4m 내 리프트 툴팁 및 CanStart/쉼터 집결/자동출발 초/이동·도착·함정 안내 연결(F 조작 없음). 컴파일·diff 공백 PASS, 신규 자동 테스트·Play·다인/화면 확인 미실행(사용자 위임). 이번 저장 대상에 포함.
 - 후속 문구: 공연1~4인 거리에서 '남은' 접두어만 제거(거리 계산 유지). 서비스 방 이용 불가 상호작용 문구를 '서비스를 구매한 고객만 이용 가능합니다'로 교체(입장 판정 유지). 기존 높이 어댑터를 C6에 확장, 매 Show의 고정32 높이 재설정을 보완하고 보조 문구/패널 높이·화면 하단 여백을 조정. 컴파일 PASS, 신규 C6 회귀 포함 테스트 실행은 Unity Pipeline 연결 단절로 결과 없음, Play 미실행. 이번 저장 대상에 포함.
 - 최신 후속: NotificationTextLayout 런타임 어댑터가 로드된 배너/토스트에 자동 부착. 각 문구 최대2줄, 제목 확대 시 부제 아래 이동, 패널 상단 고정·아래 확장/짧은 문구 높이 복원. 원본·씬 수정 없음. 컴파일 PASS, 신규 EditMode2/2 PASS(초기2개 실패는 EditMode TMP 투영 초기화 보완 후 통과), Play 미실행. 기존 별도 에셋/submodule 변경 보존, 이번 저장 대상에 포함.
@@ -12,6 +13,7 @@
 - 파일·연결·사람 확인: [로비](../../../Docs/Guides/Ui-scene-integration/lobby-ui.md), [Start](../../../Docs/Guides/Ui-scene-integration/start-title.md).
 - 기존 폰트2/재질3·ui-workspace.md는 별도 보존. 이번 작업 산출물 아님. 기존 stash 유지.
 ## Verification
+- Start: 최종 컴파일 PASS, StartConnectionTests3/3 PASS(5.96초, 2026-10-21 11:13:23Z XML). 최초3개는 SetUp session null로 실패, EnsureExists/프레임 대기 보완 후 통과. MCP는 Play 전환 중 단절되어 저장 XML로 결과 확인. 없는 LAN 약3초/입력 복구, 실패·성공 잠금/기존 비활성 상태 보존, 이전 요청의 늦은 실패·취소된 Services handler의 시작 차단 검사. 실제 코드/정상 Relay 접속/다인은 미실행, 사용자 위임.
 - 이번: 실제10개 씬 누락스크립트0, 컴파일 PASS, 대기실 알림·재등록 중복HUD 회귀1/1 PASS. 전체 실플레이는 미실행.
 - 컴파일 PASS, 실제 LAN 로비 PlayMode1/1 PASS(9.49초). 코드 보기/복사·서명·레버 시작·위치 유지 확인.
 - 미실행: 원격2~4인, 실제 F/포인터, 다중 화면비, 전체 완주 복귀, Mac/빌드.
