@@ -186,9 +186,12 @@ namespace CurtainCall.Tightrope
             else if (!flying || index > flight.From + 1) return false;
             Vector3 delta = player.transform.position - Feet(index, false);
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
-            // 발 위치를 좁게 검사하여 높이 1m의 혼자 점프로 첫 높은 봉을 잡지 못하게 한다.
-            return reach > 0f && Mathf.Abs(delta.y) <= .5f * reach
-                && Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude <= .85f * .85f * reach * reach;
+            var rules = GameSettings.Tightrope.RopeMovement;
+            // 첫 봉은 다리 손상으로 낮아진 목마에서도 닿을 여유를 준다. 혼자 점프한 높이는 여전히 범위 밖이다.
+            float vertical = index == 0 ? rules.TrapezeEntryHeightTolerance : .5f * reach;
+            float horizontal = (index == 0 ? rules.TrapezeEntryGrabDistance : .85f) * reach;
+            return reach > 0f && Mathf.Abs(delta.y) <= vertical
+                && Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude <= horizontal * horizontal;
         }
         bool CanAttach(NetworkPlayer player, int index)
         {

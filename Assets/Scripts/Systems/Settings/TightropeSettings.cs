@@ -250,6 +250,15 @@ namespace CurtainCall.Settings
             [Tooltip("옆줄 점프 착지 후 흔들림이 커지는 시간(초). 반복해도 쌓이지 않고 시간만 갱신. 고도화 초기값 1.5(이전 3).")]
             [SerializeField, Min(0f)] float laneSwayBoostDuration = 1.5f;
 
+            [Header("공중그네 첫 봉 잡기")]
+            [Tooltip("첫 높은 봉과 플레이어 발 높이의 허용 차이(m). 짧아진 목마 높이·점프에도 잡을 여유를 준다. 팔 부상은 수평 잡기 거리에 적용한다.")]
+            [SerializeField, Range(.1f, 1.2f)] float trapezeEntryHeightTolerance = 1.2f;
+            [Tooltip("첫 높은 봉의 수평 잡기 거리(m). 팔 부상의 상호작용 거리 배율을 곱한다.")]
+            [SerializeField, Min(.1f)] float trapezeEntryGrabDistance = 1.05f;
+
+            public float TrapezeEntryHeightTolerance => Mathf.Clamp(trapezeEntryHeightTolerance, .1f, 1.2f);
+            public float TrapezeEntryGrabDistance => Mathf.Max(.1f, trapezeEntryGrabDistance);
+
             [Header("동료 착지 파동 (초기 테스트값)")]
             [SerializeField, Min(0f)] float landingWaveRange = 6f;
             [SerializeField, Min(0.1f)] float landingWaveSpeed = 10f;

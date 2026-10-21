@@ -77,6 +77,8 @@ MonoBehaviour:
     laneLandingDangerRatio: 0.05
     laneSwayBoost: 1.5
     laneSwayBoostDuration: 1.5
+    trapezeEntryHeightTolerance: 1.2
+    trapezeEntryGrabDistance: 1.05
     landingWaveRange: 6
     landingWaveSpeed: 10
     landingWaveShock: 6

@@ -9,6 +9,97 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
 {
     public sealed partial class TightropeCampaignPlayTests
     {
+        [UnityTest, Category("TightropeJourneyRegression")]
+        public IEnumerator FirstTrapezePoleCatchesJumpFromLeglessPartner() => FirstTrapezePoleInjuredEntry(false);
+
+        [UnityTest, Category("TightropeJourneyRegression")]
+        public IEnumerator FirstTrapezePoleCatchesOneArmedJumpFromLeglessPartner() => FirstTrapezePoleInjuredEntry(true);
+
+        IEnumerator FirstTrapezePoleInjuredEntry(bool oneArmedUpper)
+        {
+            EnableTrapezeForEntryTest();
+            yield return BeginPerformance(); DisableSwingHazards();
+            var trapeze = Static("CurtainCall.Tightrope.TightropeTrapeze", "Current");
+            yield return Until(() => (bool)Get(trapeze, "IsActive"), 2f, "공중그네 준비");
+            int lane = (int)Get(trapeze, "LaneIndex");
+            float entry = (float)Get(trapeze, "EntryDistance");
+            yield return StandOnRopeForSawTest(lane, entry - 1.7f);
+            var partner = CreatePracticeBotTestPartner(lane, entry - 1f);
+            var reader = (Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerInputReader"));
+            try
+            {
+                Call(partner, "ServerCut", 2);
+                if (oneArmedUpper) Call(player, "ServerSetOneArm");
+                yield return null;
+                yield return null;
+                var partnerMover = partner.GetComponent(GameType("CurtainCall.Player.PlayerMover"));
+                Assert.That((float)Get(partnerMover, "BodyHeight"), Is.LessThan(1.1f));
+                reader.enabled = true;
+                yield return Until(() => !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 2f, "점프 입력 잠금 해제");
+                var stack = Static("CurtainCall.Tightrope.PiggybackSystem", "Current");
+                Call(stack, "ServerTryLink", (ulong)Get(player, "OwnerClientId"));
+                Assert.AreSame(partner, Call(stack, "GetBelow", player));
+                var follow = UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.PiggybackFollow"));
+                Set(reader, "<Current>k__BackingField", CatchFrame(move: 1f, jump: true));
+                Call(follow, "LateUpdate");
+                reader.enabled = false;
+                Assert.IsNull(Call(stack, "GetBelow", player));
+                var context = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerControlContext"), new object[] { player.gameObject });
+                var scheme = Get(player.GetComponent(GameType("CurtainCall.Player.PlayerController")), "Scheme");
+                float deadline = Time.time + 2f;
+                bool caught = false;
+                float nextTrace = 0f;
+                string trajectory = "";
+                while (Time.time < deadline && Get(player, "State").ToString() == "Normal")
+                {
+                    if (Time.time >= nextTrace)
+                    {
+                        nextTrace = Time.time + .1f;
+                        trajectory += $" y={player.transform.position.y-course.transform.position.y:F2},d={Call(course, "GetDistance", player.transform.position)},air={Get(player, "IsAirborne")},eligible={Call(trapeze, "Eligible", player)};";
+                    }
+                    if ((bool)Call(trapeze, "CanGrabPole", 0, player))
+                    {
+                        Assert.That(player.transform.position.y - course.transform.position.y, Is.LessThan(2f), "기존 2m 하한보다 낮은 실제 분리 점프를 검사한다.");
+                        Call(scheme, "Tick", context, CatchFrame(tap: true));
+                        caught = true;
+                        break;
+                    }
+                    yield return null;
+                }
+                Assert.IsTrue(caught, "부상으로 낮아진 목마에서도 실제 도약 중 F 잡기 범위에 도달해야 한다." + trajectory);
+                Assert.That((int)Call(trapeze, "HeldPole", player), Is.EqualTo(0));
+                yield return null;
+                Assert.IsTrue((bool)Call(trapeze, "IsHeld", player));
+            }
+            finally { reader.enabled = false; DestroyPracticeBotTestPartner(partner); }
+        }
+
+        [UnityTest, Category("TightropeJourneyRegression")]
+        public IEnumerator FirstTrapezePoleStillRejectsUnassistedGroundJump()
+        {
+            EnableTrapezeForEntryTest();
+            yield return BeginPerformance(); DisableSwingHazards();
+            var trapeze = Static("CurtainCall.Tightrope.TightropeTrapeze", "Current");
+            yield return Until(() => (bool)Get(trapeze, "IsActive"), 2f, "공중그네 준비");
+            yield return StandOnRopeForSawTest((int)Get(trapeze, "LaneIndex"), (float)Get(trapeze, "EntryDistance"));
+            Call(mover, "RequestJump");
+            yield return Until(() => (bool)Get(mover, "IsAirborne"), 2f, "혼자 제자리 점프");
+            do
+            {
+                Assert.IsFalse((bool)Call(trapeze, "CanGrabPole", 0, player));
+                Assert.IsFalse((bool)Call(trapeze, "TryRequestCatch", player));
+                yield return null;
+            } while ((bool)Get(mover, "IsAirborne"));
+            Assert.That((ulong)Call(trapeze, "HolderAt", 0), Is.EqualTo(ulong.MaxValue));
+        }
+
+        void EnableTrapezeForEntryTest()
+        {
+            JsonUtility.FromJsonOverwrite("{\"trapezeEnabled\":true}", legacyCourseSettings);
+            JsonUtility.FromJsonOverwrite("{\"trapezeEnabled\":true}", Get(course, "Shape"));
+            Call(course, "Rebuild");
+        }
+
         [UnityTest]
         [Category("TightropeJourneyRegression")]
         public IEnumerator MountAndForwardJumpInSameFrameStartsFromPartnersHead()
