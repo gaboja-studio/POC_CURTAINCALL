@@ -51,6 +51,7 @@ namespace CurtainCall.Tightrope
         // 위 사람 clientId → 바로 아래 사람 clientId
         readonly Dictionary<ulong, ulong> belowOf = new();
         readonly Dictionary<ulong, ulong> aboveOf = new();
+        readonly Dictionary<ulong, (ulong Helper, double Until)> trapezeEntries = new();
 
         NetworkSessionManager session;
         CustomMessagingManager messaging; // 핸들러를 등록한 곳(접속마다 새로 생긴다)
@@ -339,6 +340,7 @@ namespace CurtainCall.Tightrope
         {
             if (request != Request.Sync && !IsGameplayActive) return;
             if (session == null) return;
+            if (request == Request.Release) RememberTrapezeEntry(NetworkPlayer.Local);
             if (session.IsHost)
             {
                 ServerHandle(LocalClientId, request);
@@ -438,12 +440,48 @@ namespace CurtainCall.Tightrope
         static float LinkReach(NetworkPlayer climber) => GameSettings.Tightrope.Piggyback.LinkDistance
             * (climber != null && climber.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f);
 
-        string ServerTryUnlink(ulong riderId)
+        // 목마에서 분리 점프한 직후에도 같은 협동 진입을 허용한다. 단독 점프에는 기록이 없다.
+        void RememberTrapezeEntry(NetworkPlayer rider)
+        {
+            if (rider == null || GetAbove(rider) != null || GetBelow(rider) is not { } helper) return;
+            trapezeEntries[rider.OwnerClientId] = (helper.OwnerClientId, Time.timeAsDouble + PiggybackFollow.LaunchTimeout);
+        }
+
+        internal bool CanEnterTrapeze(NetworkPlayer rider)
+        {
+            if (!IsGameplayActive || rider == null || !rider.IsSpawned || rider.State != PlayerState.Normal
+                || GetAbove(rider) != null) return false;
+            var helper = GetBelow(rider);
+            if (helper == null)
+            {
+                if (!trapezeEntries.TryGetValue(rider.OwnerClientId, out var entry) || Time.timeAsDouble > entry.Until
+                    || !(rider.IsLocal && rider.TryGetComponent(out PlayerMover mover) ? mover.IsAirborne : rider.IsAirborne)) return false;
+                helper = FindPlayer(entry.Helper);
+            }
+            return helper != null && helper.IsSpawned && helper.State == PlayerState.Normal
+                && (!helper.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen);
+        }
+
+        internal void ConsumeTrapezeEntry(NetworkPlayer rider) => trapezeEntries.Remove(rider.OwnerClientId);
+
+        // 봉 점유를 먼저 공유해 원격 Follow가 연결 해제를 일반 하차로 처리하지 않게 한다.
+        internal bool TryReleaseTopForTrapeze(NetworkPlayer rider, Action transferred)
+        {
+            if (session == null || !session.IsHost || GetBelow(rider) == null || !CanEnterTrapeze(rider)) return false;
+            UnlinkTop(rider.OwnerClientId, transferred);
+            return true;
+        }
+
+        string ServerTryUnlink(ulong riderId) => UnlinkTop(riderId, null);
+
+        string UnlinkTop(ulong riderId, Action transferred)
         {
             if (!belowOf.TryGetValue(riderId, out ulong below)) return "거부: 내 아래에 아무도 없음";
             if (aboveOf.ContainsKey(riderId)) return "거부: 내 위에 사람이 있어 내려올 수 없음";
+            RememberTrapezeEntry(FindPlayer(riderId));
             belowOf.Remove(riderId);
             aboveOf.Remove(below);
+            transferred?.Invoke();
             ServerBroadcast();
             return "해제: 내려옴";
         }
@@ -510,6 +548,7 @@ namespace CurtainCall.Tightrope
         public void ReleaseForSuccess()
         {
             ClearHandhold();
+            trapezeEntries.Clear();
             belowOf.Clear();
             aboveOf.Clear();
             lastDropped.Clear();
@@ -533,6 +572,7 @@ namespace CurtainCall.Tightrope
         void HandleRestarted(NetworkPlayer player)
         {
             ClearHandhold();
+            trapezeEntries.Clear();
             // 모두 재시작이면 목마도 모두 푼다(호스트가 정해 보낸다)
             if (session == null || !session.IsHost || belowOf.Count == 0) return;
             belowOf.Clear();
@@ -678,6 +718,7 @@ namespace CurtainCall.Tightrope
 
         void HandleConnectionState(SessionConnectionState state)
         {
+            trapezeEntries.Clear();
             Unregister();
             switch (state)
             {

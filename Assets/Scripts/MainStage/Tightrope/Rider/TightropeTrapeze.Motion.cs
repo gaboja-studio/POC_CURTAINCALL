@@ -56,8 +56,11 @@ namespace CurtainCall.Tightrope
         {
             if (localControl != null) return localControl.Player == player;
             if (!player.TryGetComponent(out PlayerMover mover) || mover.Body == null) return false;
+            var stack = PiggybackSystem.Current;
+            bool carried = stack != null && stack.GetBelow(player) != null;
+            bool followed = stack != null && stack.TryGetComponent(out PiggybackFollow follow) && follow.ReleaseForTrapeze(player);
             localControl = new LocalControl { Player = player, Mover = mover, Balance = player.GetComponent<PlayerBalance>(),
-                Simulation = mover.Simulated, BodyEnabled = mover.Body.enabled };
+                Simulation = mover.Simulated || carried || followed, BodyEnabled = mover.Body.enabled };
             mover.Teleported += OnTeleported; mover.ClearPendingInput(); mover.Simulated = false;
             mover.ResetExternalMotion(true); localControl.Balance?.SetAirborne(true);
             TightropeCatchSystem.Current?.CancelLocal();

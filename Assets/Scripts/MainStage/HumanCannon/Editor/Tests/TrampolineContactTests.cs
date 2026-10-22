@@ -5,6 +5,34 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
     public class TrampolineContactTests
     {
+        static Bounds WholeDevice => new(new Vector3(0f, -.175f, -.2f), new Vector3(4.96f, .65f, 5.36f));
+
+        [Test]
+        public void WholeDevice_CatchesFrameCornerBeyondCircularFabric()
+        {
+            Assert.IsTrue(TrampolineContact.TryTouch(new Vector3(2.35f, 4f, 2.35f), new Vector3(2.35f, -2f, 2.35f),
+                Vector3.zero, Vector3.zero, Quaternion.identity, Quaternion.identity, WholeDevice, .3f, 1.5f, out var contact));
+            Assert.That(contact.y, Is.EqualTo(WholeDevice.max.y).Within(.0001f));
+        }
+
+        [Test]
+        public void WholeDevice_CatchesAscendingSideContactWithBodyInsteadOfFeet()
+        {
+            Assert.IsTrue(TrampolineContact.TryTouch(new Vector3(3.5f, -1.3f, 0), new Vector3(2.6f, -1f, 0),
+                Vector3.zero, Vector3.zero, Quaternion.identity, Quaternion.identity, WholeDevice, .3f, 1.5f, out var contact));
+            Assert.That(contact.y, Is.EqualTo(WholeDevice.max.y).Within(.0001f));
+        }
+
+        [Test]
+        public void WholeDevice_OutgoingBounceDoesNotImmediatelyBounceAgain()
+        {
+            var start = Vector3.up * (WholeDevice.max.y + .05f);
+            Assert.IsFalse(TrampolineContact.TryTouch(start, start + Vector3.up,
+                Vector3.zero, Vector3.zero, Quaternion.identity, Quaternion.identity, WholeDevice, .3f, 1.5f, out _));
+            Assert.IsFalse(TrampolineContact.TryTouch(Vector3.down * 3f, Vector3.down * 2.1f,
+                Vector3.zero, Vector3.zero, Quaternion.identity, Quaternion.identity, WholeDevice, .3f, 1.5f, out _));
+        }
+
         [Test]
         public void CircularSurface_DoesNotBounceOutsideTheFabricAtRectangleCorners()
         {
