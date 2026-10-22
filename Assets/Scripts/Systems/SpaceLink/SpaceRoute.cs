@@ -27,6 +27,8 @@ namespace CurtainCall.SpaceLink
             {
                 case CampaignPhase.Performance: return SpaceId.Performance;
                 case CampaignPhase.RestTime:
+                case CampaignPhase.DemoEnding:
+                case CampaignPhase.Dawn:
                 case CampaignPhase.Night: return SpaceId.WaitingRoom;
                 case CampaignPhase.Escape: return SpaceId.EscapeRoute;
                 default: return SpaceId.Hub; // 런 전·도입·엔딩

@@ -1,0 +1,5 @@
+{
+  "name": "CurtainCall.WaitingRoom.Collision.PlayTests",
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}
