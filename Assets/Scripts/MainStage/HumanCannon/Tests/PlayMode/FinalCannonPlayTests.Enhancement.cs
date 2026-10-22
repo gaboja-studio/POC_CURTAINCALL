@@ -86,6 +86,34 @@ namespace CurtainCall.HumanCannon.Tests
         }
 
         [UnityTest]
+        public IEnumerator UpperMetalMeshBlocksFlightWithoutCuttingAboveTheSawRow()
+        {
+            DisableEnhancementThreats();
+            yield return Board(0);
+            yield return ReleaseThenArm();
+            Input(tapped: true);
+            Assert.IsTrue(Flying);
+            var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
+            var gate = (Component)Get(Call(poles, "Pole", 1), "LinkedGate");
+            var row = gate.transform.Find("SawVisual").GetComponentsInChildren<Renderer>();
+            float sawTop = row.Max(r => r.bounds.max.y);
+            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"),
+                gate.transform.position + new Vector3(0, 3.4f, -1), Quaternion.identity, Vector3.forward * 4f);
+            bool blocked = false;
+            while (player.transform.position.y > sawTop + .3f)
+            {
+                AssertBody(0);
+                float side = Vector3.Dot(player.transform.position - gate.transform.position, gate.transform.forward);
+                Assert.That(side, Is.LessThan(0), "철망을 뚫고 통과하지 않는다.");
+                if (side > -.8f) blocked = true;
+                yield return null;
+            }
+            Assert.IsTrue(blocked, "톱날 위 철망에 실제 비행 충돌이 발생해야 한다.");
+            yield return WaitUntil(() => Convert.ToInt32(Get(player, "LostParts")) != 0, 2, "낙하 후 실제 톱날 접촉");
+            AssertBody(4);
+        }
+
+        [UnityTest]
         public IEnumerator PoleSaw_ActualSwingAvoidsContact_ThenCrossingCutsWithoutForcingRelease()
         {
             DisableEnhancementThreats();

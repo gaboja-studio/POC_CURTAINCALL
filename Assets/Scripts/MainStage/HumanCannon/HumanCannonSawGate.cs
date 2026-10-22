@@ -107,7 +107,16 @@ namespace CurtainCall.HumanCannon
             Bounds body = new Bounds(player.transform.position + Vector3.up * mover.BodyHeight * 0.5f,
                 new Vector3(mover.BodyRadius * 2f, mover.BodyHeight, mover.BodyRadius * 2f));
             body.Expand(contactPadding * 2f);
-            return barrier.bounds.Intersects(body);
+            // 철망까지 확장한 물리 벽과 톱날의 절단 범위를 구분한다.
+            Bounds sawBounds = barrier.bounds;
+            bool foundSaw = false;
+            if (renderers != null) foreach (var visual in renderers)
+            {
+                if (visual == null) continue;
+                if (!foundSaw) { sawBounds = visual.bounds; foundSaw = true; }
+                else sawBounds.Encapsulate(visual.bounds);
+            }
+            return sawBounds.Intersects(body);
         }
 
         /// <summary>공중 가상면을 사용하지 않는다. 기존 유한한 물리 벽만 충돌을 처리한다.</summary>
