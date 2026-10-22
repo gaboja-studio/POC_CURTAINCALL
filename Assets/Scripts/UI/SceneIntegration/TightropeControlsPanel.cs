@@ -78,8 +78,8 @@ namespace CurtainCall.UI.SceneIntegration
             var stack = PiggybackSystem.Current;
             bool top = stack != null && stack.GetBelow(local) != null && stack.GetAbove(local) == null;
             if (!top && trapeze.HolderAt(0) != ulong.MaxValue && trapeze.PassengerAt(0) == ulong.MaxValue)
-                return ShowOnce("trapeze-attach", "매달린 사람을 점프 후 F로 잡습니다");
-            return ShowOnce("trapeze-approach", "목마 최상단 인원이 점프 후 F를 눌러 매달리세요");
+                return ShowOnce("trapeze-attach", "매달린 동료 가까이에서 F를 누르세요");
+            return ShowOnce("trapeze-approach", "봉 가까이에서 F로 잡으세요 · 점프 중에도 가능합니다");
         }
         bool Obstacle(string key, string title, string subtitle = "")
         {

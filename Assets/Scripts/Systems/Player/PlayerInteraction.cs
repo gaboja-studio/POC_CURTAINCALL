@@ -1,4 +1,5 @@
 using System;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.Player
@@ -9,6 +10,18 @@ namespace CurtainCall.Player
     /// </summary>
     public class PlayerInteraction : MonoBehaviour
     {
+        /// <summary>발 원점 대신 현재 몸통 중심을 사용한다. 비활성 충돌체도 같은 위치를 반환한다.</summary>
+        public static Vector3 Center(Component actor)
+        {
+            if (actor.TryGetComponent(out PlayerMover mover) && mover.Body != null)
+                return actor.transform.TransformPoint(mover.Body.center);
+            return actor.transform.position + Vector3.up * (GameSettings.Base.Character.CapsuleHeight * .5f);
+        }
+
+        /// <summary>대상 중심의 구형 상호작용 범위. 입력·호스트·안내에서 함께 사용한다.</summary>
+        public static bool InRange(Component actor, Vector3 target, float radius) => actor != null
+            && float.IsFinite(radius) && radius > 0f && (Center(actor) - target).sqrMagnitude <= radius * radius;
+
         /// <summary>상호작용 요청(외줄: 목마 연결 시도, F 짧게).</summary>
         public event Action InteractRequested;
 

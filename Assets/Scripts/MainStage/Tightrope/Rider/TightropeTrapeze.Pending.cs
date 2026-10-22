@@ -19,7 +19,7 @@ namespace CurtainCall.Tightrope
             RequestObserved.Invoke($"{phase} actor={actor} command={action} pole={pole} active={Active} airborne={p?.IsAirborne} control={m?.ControlEnabled} pass={m?.PassThrough} eligible={(p != null && Eligible(p))} position={p?.transform.position} grab={(p != null && pole >= 0 && CanGrab(p,pole))}");
 #endif
         }
-        const double RequestPositionGrace = .35d;
+        const double RequestPositionGrace = .5d;
         sealed class PendingRequest
         {
             public Command Action;
@@ -98,11 +98,9 @@ namespace CurtainCall.Tightrope
                 {
                     if (request.Action == Command.Grab ? !CanGrab(player, request.Pole) : !CanAttach(player, request.Pole)) return false;
                     request.Armed = true;
-                    request.Until = flight.Until; // 50~100%에서 받은 F를 기존 비행 동안 유지한다.
+                    request.Until = flight.Until; // 범위 안에서 받은 F는 현재 비행의 같은 토큰으로만 확정한다.
                 }
-                float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
-                if (!Eligible(player) || !SwingPoleMath.InPoleReach(player.transform.position, Feet(request.Pole, request.Action == Command.Attach),
-                    reach, request.Action == Command.Attach)) return false;
+                if (!Eligible(player) || !InCatchRange(player, request.Pole, request.Action == Command.Attach)) return false;
             }
             if (request.Action == Command.Grab)
             {

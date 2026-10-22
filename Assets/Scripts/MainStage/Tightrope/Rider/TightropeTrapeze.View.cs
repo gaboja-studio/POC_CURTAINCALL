@@ -52,7 +52,7 @@ namespace CurtainCall.Tightrope
                     if (CanAttach(local, i)) return "F로 봉을 잡은 동료 몸에 매달리기 · 반동이 생기면 Space로 먼저 날아가기";
                 }
                 return distance < course.TrapezeGapFrom
-                    ? "공중그네 · 목마 위 사람이 W + Space로 뛰고 F로 높은 봉 잡기\n아래 사람은 봉을 잡은 동료 몸에 F로 매달리세요"
+                    ? "공중그네 · 봉 가까이에서 F로 잡기 · 점프 중에도 F 잡기\n동료 몸에도 가까이에서 F로 매달릴 수 있어요"
                     : "먼저 착지했다면 F로 동료 받기 준비 · 남은 동료는 마지막 낮은 봉으로 이동";
             }
         }
@@ -81,9 +81,9 @@ namespace CurtainCall.Tightrope
                 DrawLine(view.RightCable, pivot + side, grip + side, color);
                 view.BodyLink.gameObject.SetActive(state.Lower != Nobody);
                 if (state.Lower != Nobody) DrawLine(view.BodyLink, feet + Vector3.up * .15f, Feet(i, true) + Vector3.up * 1.6f, Color.yellow);
-                view.Label.text = i == 0 ? "1 · 높은 출발 봉" : i == 1 ? "2 · 동료와 교대하는 봉" : "3 · 혼자 내려오는 낮은 봉";
+                view.Label.text = i == 0 ? "1 · 출발 봉" : i == 1 ? "2 · 동료와 교대하는 봉" : "3 · 혼자 내려오는 낮은 봉";
                 view.Label.text += occupied ? $"\n{(state.Lower == Nobody ? "1" : "2")}명 · {left:0.0}초"
-                    : i == 0 ? "\n목마 위에서 W + Space → F" : "\n공중에서 F 잡기";
+                    : "\n가까이에서 F 잡기 · 점프 중에도 가능";
                 view.Label.color = color; view.Label.transform.position = pivot + Vector3.up * .65f;
                 if (camera != null) view.Label.transform.rotation = camera.transform.rotation;
             }

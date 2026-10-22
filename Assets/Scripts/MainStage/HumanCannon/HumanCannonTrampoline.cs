@@ -216,7 +216,7 @@ namespace CurtainCall.HumanCannon
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             float radius = grabDistance * reach;
-            return radius > 0f && (Handle.position - player.transform.position).sqrMagnitude <= radius * radius;
+            return PlayerInteraction.InRange(player, Surface, radius);
         }
 
         internal void RequestGrab() => SendRequest(TrampolineAction.Grab, -1, 0, 0, transform.position);

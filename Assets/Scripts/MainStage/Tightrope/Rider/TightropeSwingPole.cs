@@ -146,8 +146,8 @@ namespace CurtainCall.Tightrope
                 || !course.IsLaneUsable(supported, LandingDistance)) return false;
             if (PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
             if (IsCrossing(player)) return false;
-            return Mathf.Abs(course.GetDistance(player.transform.position) - (course.SwingGapFrom - SwingPoleMath.EntryOffset)) <= 1.2f
-                && Mathf.Abs(player.transform.position.y - course.transform.position.y) <= .3f;
+            float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
+            return PlayerInteraction.InRange(player, WorldFeet(0f, assignedLane) + Vector3.up * SwingPoleMath.GripHeight, 1.75f * reach);
         }
 
         void ServerHandle(ulong sender, Operation operation, float input)

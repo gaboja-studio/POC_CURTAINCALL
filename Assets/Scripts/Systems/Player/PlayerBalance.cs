@@ -128,8 +128,11 @@ namespace CurtainCall.Player
         float landingShockMultiplier = 1f;
         float laneLandingShockMultiplier = 1f;
 
-        /// <summary>공중에 있는지. 공중에서는 균형 값이 멈춘다.</summary>
+        /// <summary>공중에 있는지. 착지 충격과 콘텐츠의 공중 균형 규칙에 사용한다.</summary>
         public bool IsAirborne { get; private set; }
+
+        /// <summary>일반 도약 중에도 균형·위험 누적을 계속한다. 봉 등 외부 이동에서는 콘텐츠가 해제한다.</summary>
+        public bool ContinueWhileAirborne { get; set; }
 
         /// <summary>
         /// 공중에 뜸·착지를 알린다. 착지하면(<c>false</c>) 착지 충격을 준다.
@@ -277,13 +280,14 @@ namespace CurtainCall.Player
             float surfaceForce = surfaceSway;
             surfaceSwayMultiplier = 1f;
             surfaceSway = 0f;
-            if (!IsActive || HasFallen || IsAirborne) return;
+            if (!IsActive || HasFallen || IsAirborne && !ContinueWhileAirborne) return;
 
             if (Time.time >= nextDirectionChange)
                 PickSwayDirection();
 
             var rules = Rules;
-            bool moving = mover != null && mover.IsMoving;
+            bool moving = mover != null && (mover.IsMoving || IsAirborne && mover.Body != null
+                && Vector3.ProjectOnPlane(mover.Body.velocity, Vector3.up).sqrMagnitude > .0001f);
             CurrentSway = (swayDirection * (moving ? rules.MovingSway : rules.IdleSway) * surfaceMultiplier + surfaceForce)
                          * StackMultiplier * LaneBoostMultiplier * swayMultiplier;
 
@@ -305,7 +309,8 @@ namespace CurtainCall.Player
         {
             if (Zone == BalanceZone.Green)
             {
-                RedTime = Mathf.Max(0f, RedTime - FallTime * Rules.GreenRecoveryRate * Mathf.Max(0f, deltaTime));
+                if (!IsAirborne)
+                    RedTime = Mathf.Max(0f, RedTime - FallTime * Rules.GreenRecoveryRate * Mathf.Max(0f, deltaTime));
                 return;
             }
 

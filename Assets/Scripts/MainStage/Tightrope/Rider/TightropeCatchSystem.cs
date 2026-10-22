@@ -123,8 +123,12 @@ namespace CurtainCall.Tightrope
             if (course == null || player == null || (!IsReady(player) && SuccessRemaining(player) <= 0f)
                 || !player.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRope(mover, out lane)
                 || !course.TryGetRopePoint(player.transform.position, out int nearest, out float distance) || lane != nearest) return false;
-            from = distance - GameSettings.Tightrope.Handhold.ActiveDistance;
-            to = distance + GameSettings.Tightrope.Handhold.ActiveDistance;
+            float radius = GameSettings.Tightrope.Handhold.ActiveDistance;
+            float square = radius * radius - (player.transform.position - course.GetLanePosition(lane, distance)).sqrMagnitude;
+            if (!float.IsFinite(radius) || radius <= 0f || square < 0f) return false;
+            float along = Mathf.Sqrt(square);
+            from = distance - along;
+            to = distance + along;
             return true;
         }
         float Remaining(NetworkPlayer player) => Active && player != null
@@ -160,17 +164,7 @@ namespace CurtainCall.Tightrope
 
         bool HasMountTarget(NetworkPlayer local)
         {
-            float reach = GameSettings.Tightrope.Piggyback.LinkDistance;
-            if (local.TryGetComponent(out PlayerInteraction interaction)) reach *= interaction.ReachMultiplier;
-            foreach (var other in NetworkPlayer.All)
-            {
-                if (other == null || other == local || other.State != PlayerState.Normal) continue;
-                if (PiggybackSystem.Current != null && PiggybackSystem.Current.GetBelow(other) != null) continue;
-                Vector3 offset = other.transform.position - local.transform.position;
-                offset.y = 0;
-                if (offset.magnitude <= reach) return true;
-            }
-            return false;
+            return PiggybackSystem.Current != null && PiggybackSystem.Current.FindMountTarget(local) != null;
         }
 
         public void CancelLocal()
@@ -191,9 +185,9 @@ namespace CurtainCall.Tightrope
             foreach (var other in NetworkPlayer.All)
             {
                 if (other == jumper || !IsReady(other)
-                    || !course.TryGetRopePoint(other.transform.position, out int otherLane, out float otherDistance)
+                    || !course.TryGetRopePoint(other.transform.position, out int otherLane, out _)
                     || otherLane != lane) continue;
-                float delta = Mathf.Abs(otherDistance - distance);
+                float delta = Vector3.Distance(other.transform.position, course.GetLanePosition(lane, distance));
                 if (delta > best) continue;
                 best = delta;
                 catcher = other;
@@ -259,7 +253,7 @@ namespace CurtainCall.Tightrope
                 || !course.TryGetSupportingRope(mover, out int supportingLane)
                 || !course.TryGetRopePoint(player.transform.position, out int lane, out float distance)
                 || supportingLane != lane
-                || !course.TryGetRopePoint(helper.transform.position, out int helperLane, out float helperDistance)
+                || !course.TryGetRopePoint(helper.transform.position, out int helperLane, out _)
                 || helperLane != lane
                 || (swingReleases.TryGetValue(sender, out var release) && Now <= release.Until
                     && ((release.Lane >= 0 && lane != release.Lane)
@@ -267,7 +261,8 @@ namespace CurtainCall.Tightrope
                             : !course.HasSwingGap || distance < course.SwingGapTo || distance > course.SwingGapTo + 30f)))
                 || Mathf.Abs(player.transform.position.y - course.GetLanePosition(lane, distance).y) > .15f
                 || Mathf.Abs(course.GetSide(player.transform.position) - course.GetSide(course.GetLanePosition(lane, distance))) > .35f) return false;
-            bool relayLanding = Mathf.Abs(helperDistance - distance) > GameSettings.Tightrope.Handhold.ActiveDistance;
+            bool relayLanding = Vector3.Distance(helper.transform.position, course.GetLanePosition(lane, distance))
+                > GameSettings.Tightrope.Handhold.ActiveDistance;
             if (relayLanding && (!swingReleases.TryGetValue(sender, out var swing) || Now > swing.Until
                 || TightropeRelaySupport.Current == null
                 || !TightropeRelaySupport.Current.CanSupportLanding(player, helper, lane, distance))) return false;

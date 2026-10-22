@@ -105,6 +105,7 @@ namespace CurtainCall.Tightrope
 
         void ReleaseControls()
         {
+            if (balance != null) balance.ContinueWhileAirborne = false;
             // 다른 콘텐츠가 이후에 조작을 지정했다면 그 조작·이동·균형 상태를 보존한다.
             if (StillOwnsControls)
             {
@@ -146,6 +147,11 @@ namespace CurtainCall.Tightrope
             else ReleaseInjuryPolicies();
             if (player != NetworkPlayer.Local) Bind(NetworkPlayer.Local);
             UpdateSurfaceMode();
+            if (balance != null)
+                balance.ContinueWhileAirborne = StillOwnsControls && IsCourseActive() && onRope == true
+                    && !(TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player))
+                    && !(TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player))
+                    && !(TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player));
         }
 
         void UpdateSurfaceMode()

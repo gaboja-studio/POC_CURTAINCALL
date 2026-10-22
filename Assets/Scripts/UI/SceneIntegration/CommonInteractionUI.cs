@@ -150,12 +150,30 @@ namespace CurtainCall.UI.SceneIntegration
             var player = NetworkPlayer.Local;
             var course = TightropeCourse.Current;
             if (player == null || player.State != PlayerState.Normal || course == null || !course.IsGameplayActive) return;
-            var swing = TightropeSwingPole.Current?.ForPlayer(player);
-            if (swing != null && swing.PoleVisual != null && swing.CanGrabPole(player))
+            var trapeze = TightropeTrapeze.Current;
+            if (trapeze != null && trapeze.IsActive)
             {
-                Add(swing.PoleVisual, swing.PoleVisual.position, "봉 잡기", true, true, feet);
-                candidates[candidates.Count - 1].Pole = true;
-                return;
+                if (trapeze.IsHeld(player))
+                {
+                    bool lower = trapeze.IsLower(player);
+                    bool canJump = lower || trapeze.PassengerAt(trapeze.HeldPole(player)) == ulong.MaxValue;
+                    DeviceGuide(player, feet, "SPACE", lower ? "다음 봉으로 점프" : "봉에서 점프", canJump,
+                        canJump ? "공중에서 F로 봉 또는 동료를 잡으세요" : "아래 단원이 먼저 점프해야 합니다");
+                    return;
+                }
+                for (int i = 0; i < trapeze.PoleCount; i++)
+                {
+                    if (trapeze.CanGrabPole(i, player) && trapeze.PoleVisual(i) != null)
+                    {
+                        Add(trapeze.PoleVisual(i), Center(trapeze.PoleVisual(i)), "봉 잡기", true, true, feet);
+                        candidates[candidates.Count - 1].Pole = true;
+                        return;
+                    }
+                    if (trapeze.CanAttachToPole(i, player))
+                    { DeviceGuide(player, feet, "F", "매달린 동료 잡기", true, ""); return; }
+                }
+                if (trapeze.IsInFlight(player))
+                { DeviceGuide(player, feet, "F", "봉 또는 동료 잡기", false, "봉이나 동료 가까이 이동하세요"); return; }
             }
             var relay = TightropeRelayGate.Current;
             if (relay != null && relay.IsActive)
@@ -175,30 +193,12 @@ namespace CurtainCall.UI.SceneIntegration
                         return;
                     }
             }
-            var trapeze = TightropeTrapeze.Current;
-            if (trapeze == null || !trapeze.IsActive) return;
-            if (trapeze.IsHeld(player))
+            var swing = TightropeSwingPole.Current?.ForPlayer(player);
+            if (swing != null && swing.PoleVisual != null && swing.CanGrabPole(player))
             {
-                bool lower = trapeze.IsLower(player);
-                bool canJump = lower || trapeze.PassengerAt(trapeze.HeldPole(player)) == ulong.MaxValue;
-                DeviceGuide(player, feet, "SPACE", lower ? "다음 봉으로 점프" : "봉에서 점프", canJump,
-                    canJump ? "공중에서 F로 봉 또는 동료를 잡으세요" : "아래 단원이 먼저 점프해야 합니다");
-                return;
+                Add(swing.PoleVisual, swing.PoleVisual.position, "봉 잡기", true, true, feet);
+                candidates[candidates.Count - 1].Pole = true;
             }
-            // 실제 입력과 같은 순서로 봉 잡기/동료 잡기를 평가한다. 표시가 판정을 대신하지 않는다.
-            for (int i = 0; i < trapeze.PoleCount; i++)
-            {
-                if (trapeze.CanGrabPole(i, player) && trapeze.PoleVisual(i) != null)
-                {
-                    Add(trapeze.PoleVisual(i), Center(trapeze.PoleVisual(i)), "봉 잡기", true, true, feet);
-                    candidates[candidates.Count - 1].Pole = true;
-                    return;
-                }
-                if (trapeze.CanAttachToPole(i, player))
-                { DeviceGuide(player, feet, "F", "매달린 동료 잡기", true, ""); return; }
-            }
-            if (trapeze.IsInFlight(player))
-                DeviceGuide(player, feet, "F", "봉 또는 동료 잡기", false, "봉이나 동료 가까이 이동하세요");
         }
         void DeviceGuide(NetworkPlayer player, Vector3 feet, string key, string action, bool available, string helper, bool hold = false)
         {
@@ -223,23 +223,13 @@ namespace CurtainCall.UI.SceneIntegration
             if (player.IsAirborne || system.IsInStack(player)) return;
             var catcher = TightropeCatchSystem.Current;
             if (catcher != null && catcher.IsReady(player)) return;
-            float reach = GameSettings.Tightrope.Piggyback.LinkDistance;
-            if (player.TryGetComponent(out PlayerInteraction interaction)) reach *= interaction.ReachMultiplier;
-            NetworkPlayer target = null;
-            float best = float.MaxValue;
-            // F 선택 API가 없어 서버의 XZ 최근접/최하단 선택을 그대로 투영한다. 방향·층수 제한을 추가하지 않는다.
-            foreach (var other in NetworkPlayer.All)
-            {
-                if (other == null || other == player || other.State != PlayerState.Normal
-                    || UsingTightropeDevice(other) || system.GetBelow(other) != null) continue;
-                Vector3 offset = other.transform.position - feet;
-                offset.y = 0;
-                float distance = offset.magnitude;
-                if (distance > reach || distance >= best) continue;
-                target = other; best = distance;
-            }
+            if (candidates.Exists(candidate => candidate.Focused && candidate.Available)) return;
+            var target = system.FindMountTarget(player);
             if (target != null)
-                Add(target.transform, target.transform.position + Vector3.up, "목마 타기", true, true, feet);
+            {
+                Add(target.transform, PlayerInteraction.Center(target), "목마 타기", true, true, feet);
+                candidates[candidates.Count - 1].Pole = true;
+            }
         }
         static bool UsingTightropeDevice(NetworkPlayer player) =>
             TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)
@@ -252,18 +242,24 @@ namespace CurtainCall.UI.SceneIntegration
             if (player == null || system == null || player.State != PlayerState.Normal) return;
             var trampoline = HumanCannonTrampoline.Current;
             if (system.IsSeated(player.OwnerClientId) || trampoline != null && trampoline.Carrier == player.OwnerClientId) return;
-            if (!player.IsAirborne && !system.IsFlying(player.OwnerClientId))
-                for (int i = 0; i < system.StationCount; i++)
-                {
-                    var station = system.Station(i);
-                    if (station != null && station.isActiveAndEnabled && system.Occupant(i) == CannonSeatState.Nobody)
-                        Add(station.transform, station.BoardingPoint.position, "대포 타기", true, false, feet);
-                }
-            if (trampoline != null && trampoline.CanGrab(player)) Add(trampoline.transform, trampoline.Handle.position, "트램펄린 잡기", true, false, feet);
+            bool canCarry = trampoline != null && trampoline.CanGrab(player);
             var poles = HumanCannonPoleSystem.Current;
+            int focused = poles != null ? poles.FindGrabbable(player) : -1;
+            if (focused >= 0) canCarry = false;
+            int boardable = canCarry ? -1 : system.FindBoardableStation(player);
+            if (boardable >= 0)
+            {
+                var station = system.Station(boardable);
+                Add(station.transform, station.Seat.position, "대포 타기", true, true, feet);
+                candidates[candidates.Count - 1].Pole = true;
+            }
+            if (canCarry)
+            {
+                Add(trampoline.transform, trampoline.Surface, "트램펄린 잡기", true, true, feet);
+                candidates[candidates.Count - 1].Pole = true;
+            }
             if (poles != null && system.IsFlying(player.OwnerClientId) && poles.HeldBy(player.OwnerClientId) < 0)
             {
-                int focused = poles.FindGrabbable(player);
                 for (int i = 0; i < poles.PoleCount; i++)
                 {
                     var pole = poles.Pole(i);
@@ -277,8 +273,8 @@ namespace CurtainCall.UI.SceneIntegration
         }
         static Vector3 Center(Transform root)
         {
-            foreach (var source in root.GetComponentsInChildren<MeshRenderer>())
-                if (source.enabled && !source.name.StartsWith("__")) return source.bounds.center;
+            foreach (var source in root.GetComponentsInChildren<Renderer>())
+                if ((source is MeshRenderer || source is SkinnedMeshRenderer) && source.enabled && !source.name.StartsWith("__")) return source.bounds.center;
             Renderer renderer = root.GetComponentInChildren<MeshRenderer>();
             if (renderer == null) renderer = root.GetComponentInChildren<Renderer>();
             return renderer != null ? renderer.bounds.center : root.position;
