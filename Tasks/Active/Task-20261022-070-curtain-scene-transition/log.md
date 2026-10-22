@@ -22,3 +22,4 @@
 - 코드·Task 기록 ea8c263 커밋 및 push 완료. PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/214 (fix/curtain-scene-transition → dev). 병합 미실행.
 - 추가 사용자 요청으로 병합 전 최신 dev fetch·merge. ebc44c7(#213 공연·협동 패치)을 3f8179f에 충돌 없이 병합. 추가 코드 수정 필요 없음.
 - 최신 dev 병합 후 구역 PASS, 문서 PASS(기존 WARN 21/hard 0), 컴파일 PASS(completed), 영향받는 외줄·인간대포 C12 전환 PlayMode 1/1 PASS. 합성 UI·커튼 전체 재실행 및 실제 2인 검증은 최소 검증 요청에 따라 생략.
+- 사용자 추가 알림에 따라 dev e990b31(#215 데모 종료·밤낮·대기실 패치)을 f3150e7에 충돌 없이 병합. 구역·문서·컴파일 PASS, 상단 경고 UI 1/1 및 외줄·인간대포 C12 1/1 재실행 PASS. 추가 코드 수정 필요 없음. 같은 PR #214에 반영, PR 병합은 수행하지 않음.
