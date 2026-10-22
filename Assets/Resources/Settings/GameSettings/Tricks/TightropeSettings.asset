@@ -139,17 +139,6 @@ MonoBehaviour:
       lane: -1
       repeat: 0
       repeatDelay: 0
-    - name: "\uC218\uC9C1"
-      trigger: 1
-      reference: 
-      leaderDistance: 0
-      delay: 10
-      action: 2
-      firstSaw: 1
-      lastSaw: 1
-      lane: -1
-      repeat: -1
-      repeatDelay: 20
     horizontalSaws:
     - distance: 12
       startSide: 0
@@ -193,7 +182,7 @@ MonoBehaviour:
     verticalVisualDiameter: 1.2
     verticalCenterHeight: 0.6
     verticalThickness: 0.1
-    cooperativeGates: 1
+    cooperativeGates: 0
     cooperativeGateDistances:
     - 158
     cooperativeGateTriggerLead: 24
