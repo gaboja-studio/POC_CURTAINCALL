@@ -43,6 +43,53 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             yield break;
 #endif
         }
+        [UnityTest] public IEnumerator HostDisconnectKeepsEachParticipantRunAndQueuesExitWithoutMenuClick()
+        {
+            yield return SurveyOnlyBuildBootstrapsAndBindsMenuWithoutCreatingLogCollector();
+            var survey = (MonoBehaviour)UnityEngine.Object.FindAnyObjectByType(surveyType);
+            // Inspect the deferred launch without opening a real browser or changing the user's cache.
+            survey.enabled = false;
+            var sessionType = Type.GetType("CurtainCall.Network.Session.NetworkSessionManager, Assembly-CSharp", true);
+            var session = sessionType.GetProperty("Instance").GetValue(null);
+            Assert.That(session, Is.Not.Null);
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var connectionType = sessionType.GetProperty("ConnectionState").PropertyType;
+            string run = "7a9e2d31-8f5b-4cde-9201-1bfa8294a732";
+            for (int slot = 1; slot <= 3; slot++)
+            {
+                sessionType.GetMethod("SetState", flags).Invoke(session, new[] { Enum.Parse(connectionType, "Client") });
+                surveyType.GetField("currentRun", flags).SetValue(survey, run);
+                surveyType.GetField("currentSlot", flags).SetValue(survey, slot);
+                surveyType.GetField("currentIdentity", flags).SetValue(survey, "installation");
+                surveyType.GetField("pendingCode", flags).SetValue(survey, null);
+                // The participant has already despawned, but the session is still stopping.
+                surveyType.GetMethod("Update", flags).Invoke(survey, null);
+                Assert.That(surveyType.GetField("currentRun", flags).GetValue(survey), Is.EqualTo(run));
+                sessionType.GetMethod("HandleStopped", flags).Invoke(session, new object[] { false });
+                string code = (string)surveyType.GetField("pendingCode", flags).GetValue(survey);
+                Assert.That(code, Does.StartWith("CCS1.0_1_0.TEST.EXIT." + run.Replace("-", "") + "." + slot + "."));
+                Assert.That(surveyType.GetField("pendingIdentity", flags).GetValue(survey), Is.EqualTo("installation"));
+                Assert.That(surveyType.GetField("currentRun", flags).GetValue(survey), Is.Null);
+                // NGO stop and the menu can both report the same exit; keep one invitation.
+                sessionType.GetMethod("HandleStopped", flags).Invoke(session, new object[] { false });
+                surveyType.GetMethod("LeaveConfirmed", flags).Invoke(survey, null);
+                Assert.That(surveyType.GetField("pendingCode", flags).GetValue(survey), Is.EqualTo(code));
+            }
+        }
+        [UnityTest] public IEnumerator DisconnectWithoutPlayingNeverQueuesAnExitSurvey()
+        {
+            yield return SurveyOnlyBuildBootstrapsAndBindsMenuWithoutCreatingLogCollector();
+            var survey = (MonoBehaviour)UnityEngine.Object.FindAnyObjectByType(surveyType);
+            survey.enabled = false;
+            var sessionType = Type.GetType("CurtainCall.Network.Session.NetworkSessionManager, Assembly-CSharp", true);
+            var session = sessionType.GetProperty("Instance").GetValue(null);
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var connectionType = sessionType.GetProperty("ConnectionState").PropertyType;
+            sessionType.GetMethod("SetState", flags).Invoke(session, new[] { Enum.Parse(connectionType, "Client") });
+            surveyType.GetMethod("Update", flags).Invoke(survey, null);
+            sessionType.GetMethod("HandleStopped", flags).Invoke(session, new object[] { false });
+            Assert.That(surveyType.GetField("pendingCode", flags).GetValue(survey), Is.Null);
+        }
         [UnityTearDown] public IEnumerator Cleanup()
         {
 #if UNITY_EDITOR
