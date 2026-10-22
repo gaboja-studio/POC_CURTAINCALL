@@ -1,11 +1,11 @@
 # Task-20261015-044
 
-- **Title:** 인간대포 휴식 봉 분산 및 트램폴린 전체 접촉 완화
+- **Title:** 팔다리 손실별 외줄 협동 진입 및 인간대포 지상 톱 회피 보완
 - **Type:** fix
-- **Status:** submitted
+- **Status:** working
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
-- **Current Skill:** submit-work
+- **Current Skill:** implement-code
 - **Updated:** 2026-10-22
 
 ## Workspace
