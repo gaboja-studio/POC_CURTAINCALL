@@ -19,3 +19,4 @@
 - 최신 dev 07e5dc5 fast-forward 반영(종료 설문 패치). UI 추가 후 구역 PASS(16 files), 문서 PASS(WARN 20/hard 0), 컴파일 PASS(completed), UI PlayMode 1/1 PASS. 기존 커튼 4건 재실행·전체 스위트·실제 2인 생략.
 - Console 기존 UnityEditor.Search.SearchDatabase.ArgumentOutOfRangeException이 추가 검사 후에도 재발. 게임 코드 오류 0으로 일반화하지 않으며 긴급 패치에서 에디터 내부 문제 수정은 제외.
 - 사용자의 같은 PR 제출 요청으로 저장·제출 진행. 자동 에셋 잔여 변경을 보존하기 위해 전체 add/save-work 대신 승인 파일만 선별 커밋하며, dirty 전체를 막는 new-pr 대신 동일 템플릿의 gh 등록 사용. 자동 변경을 숨기거나 승인 파일에 섞지 않는다.
+- 코드·Task 기록 ea8c263 커밋 및 push 완료. PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/214 (fix/curtain-scene-transition → dev). 병합 미실행.

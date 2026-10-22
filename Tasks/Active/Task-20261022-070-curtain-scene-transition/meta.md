@@ -2,7 +2,7 @@
 
 - **Title:** 커튼 전환 동기화 및 탐색 경고 상단 표시 긴급 수정
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** 시작·로비 / 장소 전환
 - **Current Skill:** submit-work

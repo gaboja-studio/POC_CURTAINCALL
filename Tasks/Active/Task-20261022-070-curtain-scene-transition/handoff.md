@@ -5,7 +5,8 @@
 - Branch: fix/curtain-scene-transition → dev. Worktree: D:/github/POC_CURTAINCALL-curtain-fix.
 - 메인 프로젝트·다른 에이전트 변경 보존. 전용 Unity 6000.3.25f1, 7801 사용. 최신 dev 07e5dc5 fast-forward 반영.
 - 승인된 코드·테스트 다섯 파일: 커튼 닫힘 ACK·로컬 준비 장벽·늦은 종료 방어, 탐색 경고 상단 배너·최상위 정렬.
-- PM이 Task-061·062 중복 경로 및 추가 UI 긴급 예외 승인. 같은 dev PR 제출 요청 수신, 제출 준비 중.
+- PM이 Task-061·062 중복 경로 및 추가 UI 긴급 예외 승인. 코드 커밋 ea8c263 push 완료, dev PR 등록.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/214
 - 원인·한계: [커튼·NGO 장벽](History/Networking/curtain-load-barrier.md). 상세 검증 이력·제외 파일: log.md.
 
 ## Verification
@@ -23,6 +24,6 @@
 
 ## 다음 할 일
 
-1. 코드 다섯 파일·Task 문서만 선별 커밋·push하고 같은 dev PR 등록.
+1. PR #214 리뷰 후 dev 병합(미실행). 자동 에셋 변경은 계속 제출 제외.
 2. 신규 참가자 최초 NGO 동기화는 별도 경로라는 한계를 PR에 유지.
 3. 실제 2인 시나리오 수행. Task-061·062 담당자는 병합 후 중복 파일 재확인.
