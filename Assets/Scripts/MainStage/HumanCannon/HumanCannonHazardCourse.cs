@@ -26,6 +26,12 @@ namespace CurtainCall.HumanCannon
         uint revision;
         public static HumanCannonHazardCourse Current { get; private set; }
         public int Difficulty => difficulty;
+        /// <summary>판정 화면의 실제 절단 결과(플레이어·장애물·잘린 부위·검출 위치).</summary>
+        public event Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3> HitConfirmed;
+        /// <summary>절단 판정을 호출하기 직전의 실제 접촉. 피해 성공과는 구분한다.</summary>
+        public event Action<NetworkPlayer, HumanCannonHazard, Vector3> ContactDetected;
+        /// <summary>새 접촉의 최종 관측. 부상 없는 접촉과 같은 프레임의 판정 제한도 구분한다.</summary>
+        public event Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3, bool> ContactResolved;
 
         public int SawIndex(HumanCannonHazard target)
         {
@@ -162,7 +168,27 @@ namespace CurtainCall.HumanCannon
                             beforeTime + (elapsed - beforeTime) * t, hazardSpeed)) continue;
                         var key = (h, player.OwnerClientId);
                         touchingNow.Add(key);
-                        if (!touching.Contains(key) && cutThisFrame.Add(player.OwnerClientId)) player.ServerCut();
+                        if (!touching.Contains(key))
+                        {
+                            bool evaluated = cutThisFrame.Add(player.OwnerClientId);
+                            BodyPart cut = BodyPart.None;
+                            if (evaluated)
+                            {
+                              if (ContactDetected != null)
+                                foreach (Action<NetworkPlayer, HumanCannonHazard, Vector3> observer in ContactDetected.GetInvocationList())
+                                    try { observer(player, hazard, Vector3.Lerp(before, feet, t)); }
+                                    catch (Exception error) { Debug.LogException(error, this); }
+                              cut = player.ServerCut();
+                              if (cut != BodyPart.None && HitConfirmed != null)
+                                foreach (Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3> observer in HitConfirmed.GetInvocationList())
+                                    try { observer(player, hazard, cut, Vector3.Lerp(before, feet, t)); }
+                                    catch (Exception error) { Debug.LogException(error, this); }
+                            }
+                            if (ContactResolved != null)
+                                foreach (Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3, bool> observer in ContactResolved.GetInvocationList())
+                                    try { observer(player, hazard, cut, Vector3.Lerp(before, feet, t), evaluated); }
+                                    catch (Exception error) { Debug.LogException(error, this); }
+                        }
                         break;
                     }
                 }

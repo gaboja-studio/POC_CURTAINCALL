@@ -1,0 +1,5 @@
+{
+    "name": "CurtainCall.TelemetryPipeline.PlayTests",
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}

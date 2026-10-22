@@ -112,7 +112,10 @@ namespace CurtainCall.Tightrope
                 if (balance != null)
                 {
                     balance.SetCorrectionInput(0f);
-                    balance.SetBalanceActive(false);
+                    // Releasing a finished course is not a revive. ResetBalance also restores the model.
+                    if (balance.HasFallen || (player != null && player.State == PlayerState.Fallen))
+                        balance.SetDisplayedState(false, 0f);
+                    else balance.SetBalanceActive(false);
                 }
                 if (controller != null) controller.SetScheme(null);
                 else if (mover != null) mover.FreeMovement = true;

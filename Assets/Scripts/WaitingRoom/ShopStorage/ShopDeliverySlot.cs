@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,6 +12,16 @@ namespace CurtainCall.WaitingRoom
     /// </summary>
     public sealed class ShopDeliverySlot : MonoBehaviour
     {
+        /// <summary>새 주문의 실제 표시 단계. false=배출 시작, true=낙하 완료·수령 가능. 기존 재표시는 제외한다.</summary>
+        public static event Action<ShopDeliverySlot, ShopDelivery, bool> DeliveryStageChanged;
+
+        void NotifyStage(ShopDelivery delivery, bool available)
+        {
+            if (DeliveryStageChanged == null) return;
+            foreach (Action<ShopDeliverySlot, ShopDelivery, bool> observer in DeliveryStageChanged.GetInvocationList())
+                try { observer(this, delivery, available); }
+                catch (Exception error) { Debug.LogException(error, this); }
+        }
         [Tooltip("물건에 닿는 수평 거리(m).")]
         [SerializeField, Min(.3f)] float reach = 1.2f;
 
@@ -133,6 +144,7 @@ namespace CurtainCall.WaitingRoom
                     {
                         item.From = Mouth();
                         item.Started = Time.time;
+                        NotifyStage(delivery, false);
                     }
                 }
                 item.To = target;
@@ -157,7 +169,11 @@ namespace CurtainCall.WaitingRoom
                 Vector3 p = Vector3.Lerp(item.From, item.To, t);
                 p.y = Mathf.Lerp(item.From.y, item.To.y, t * t);
                 item.View.transform.position = p;
-                if (t >= 1f) item.Started = -1f;
+                if (t >= 1f)
+                {
+                    item.Started = -1f;
+                    NotifyStage(item.Delivery, true);
+                }
             }
         }
 

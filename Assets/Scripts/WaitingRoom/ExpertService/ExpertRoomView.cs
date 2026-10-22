@@ -16,6 +16,8 @@ namespace CurtainCall.WaitingRoom
     /// </summary>
     public sealed class ExpertRoomView : MonoBehaviour, IShopTarget, IShopPresentation
     {
+        /// <summary>내 캐릭터를 실제로 옮긴 뒤 알린다. bool은 복귀 여부.</summary>
+        public static event System.Action<ExpertRoomView, PlayerMover, bool> LocalMoved;
         [SerializeField] Transform curtainLeft;
         [SerializeField] Transform curtainRight;
         [SerializeField] Transform inside;
@@ -134,8 +136,8 @@ namespace CurtainCall.WaitingRoom
         {
             if (after == ExpertRoomPhase.Working || (before == ExpertRoomPhase.Working && after == ExpertRoomPhase.Exiting)) PlayClank();
             if (!bound.LocalIsBuyer) return;
-            if (after == ExpertRoomPhase.Working) MoveLocal(inside);
-            else if (after == ExpertRoomPhase.Exiting) MoveLocal(outside);
+            if (after == ExpertRoomPhase.Working) MoveLocal(inside, false);
+            else if (after == ExpertRoomPhase.Exiting) MoveLocal(outside, true);
         }
 
         // 커튼 앞이면 누구나 F 대상이 된다(들어가는 건 구매자만, 나머지는 안내만).
@@ -175,7 +177,7 @@ namespace CurtainCall.WaitingRoom
         }
 
         // 내 캐릭터만 옮긴다. 다른 화면은 공용 NetworkPlayer 위치 동기화로 같은 자리를 본다.
-        static void MoveLocal(Transform point)
+        void MoveLocal(Transform point, bool returned)
         {
             if (point == null) return;
             var mover = NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerMover>() : null;
@@ -183,6 +185,9 @@ namespace CurtainCall.WaitingRoom
             if (mover == null) return;
             // 공용 이동기는 출발점을 바꾸며 옮기는 방법만 연다. 마지막 순간이동이 커튼 앞(로비)이라 재시작 위치도 로비에 남는다.
             mover.SetStartPose(point.position, point.rotation);
+            if (LocalMoved != null)
+                foreach (System.Action<ExpertRoomView, PlayerMover, bool> observer in LocalMoved.GetInvocationList())
+                    try { observer(this, mover, returned); } catch (System.Exception error) { Debug.LogException(error, this); }
         }
 
         void UpdateSign(ExpertService service)

@@ -75,6 +75,17 @@ namespace CurtainCall.WaitingRoom
         /// <summary>내 요청이 판정됐다(성공 여부, 안내 문구).</summary>
         public event Action<bool, string> RequestAnswered;
         public event Action<string, bool, string> TrackedRequestAnswered;
+        /// <summary>판정 화면의 거절 결과: 요청자, 작업, 품목 ID, 주문 번호(없으면 0), 실패 코드. UI 문구와 분리한다.</summary>
+        public event Action<ulong, string, string, int, string> OperationRejected;
+
+        (bool, string) Reject(ulong actor, string operation, string item, int order, string code, string text)
+        {
+            if (OperationRejected != null)
+                foreach (Action<ulong, string, string, int, string> observer in OperationRejected.GetInvocationList())
+                    try { observer(actor, operation, item, order, code); }
+                    catch (Exception error) { Debug.LogException(error, this); }
+            return (false, text);
+        }
 
         /// <summary>받으면 메는 배낭 품목인지.</summary>
         public bool IsBackpack(string itemId) => itemId != null && backpackIds.Contains(itemId);
@@ -167,9 +178,9 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) Buy(string itemId, ulong buyer)
         {
-            if (InPerformance) return (false, PerformanceRefusal);
+            if (InPerformance) return Reject(buyer, "PURCHASE", itemId, 0, "IN_PERFORMANCE", PerformanceRefusal);
             var refusal = book.Order(catalog, itemId, buyer, rewards.TrySpend, out var delivery);
-            if (refusal != ShopRefusal.None) return (false, Explain(refusal));
+            if (refusal != ShopRefusal.None) return Reject(buyer, "PURCHASE", itemId, 0, "SHOP_" + refusal, Explain(refusal));
             Debug.Log($"[Shop] 구매 #{delivery.Order} {delivery.ItemName} ← {PlayerLabel(buyer)} / 잔액 {rewards.Balance}");
             Publish();
             return (true, $"{delivery.ItemName} 주문 완료 — 배송구를 확인하세요.");
@@ -177,7 +188,7 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) Claim(int order, ulong claimer)
         {
-            if (InPerformance) return (false, PerformanceRefusal);
+            if (InPerformance) return Reject(claimer, "COLLECT", null, order, "IN_PERFORMANCE", PerformanceRefusal);
             // 손에 들 수 있는지 먼저 본다. 못 들면 배송구에 그대로 남는다.
             int index = -1;
             for (int i = 0; i < book.Waiting.Count; i++) if (book.Waiting[i].Order == order) { index = i; break; }
@@ -185,11 +196,11 @@ namespace CurtainCall.WaitingRoom
             if (index >= 0 && carry != null)
             {
                 var carryRefusal = carry.CanReceive(claimer, IsBackpack(book.Waiting[index].ItemId));
-                if (carryRefusal != CarryRefusal.None) return (false, PropCarry.Explain(carryRefusal));
+                if (carryRefusal != CarryRefusal.None) return Reject(claimer, "COLLECT", book.Waiting[index].ItemId, order, "CARRY_" + carryRefusal, PropCarry.Explain(carryRefusal));
             }
 
             var refusal = book.Claim(order, claimer, out var delivery);
-            if (refusal != ShopRefusal.None) return (false, Explain(refusal));
+            if (refusal != ShopRefusal.None) return Reject(claimer, "COLLECT", null, order, "SHOP_" + refusal, Explain(refusal));
             bool backpack = IsBackpack(delivery.ItemId);
             if (carry != null) carry.Receive(claimer, new PropItem(delivery.Order, delivery.ItemId, delivery.ItemName), backpack);
             Debug.Log($"[Shop] 수령 #{delivery.Order} {delivery.ItemName} → {PlayerLabel(claimer)}");

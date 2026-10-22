@@ -471,7 +471,8 @@ namespace CurtainCall.Network.PlayerSync
                 mover.SetControlEnabled(false);
                 // 균형 추락은 이미 래그돌이 됐다. 신체 손상 사망처럼 호스트가 정한 추락은 여기서 무너뜨린다(이미 추락했으면 무시됨)
                 if (balance != null) balance.ForceFall();
-                else if (ragdoll != null) ragdoll.GoLimp();
+                // HasFallen can already be true when the host confirms death; ensure visuals independently.
+                if (ragdoll != null) ragdoll.GoLimp();
             }
             else if (ragdoll != null) ragdoll.GoLimp(); // 남의 캐릭터: 래그돌 연출은 각자 화면에서(물리 결과는 맞추지 않음)
         }
