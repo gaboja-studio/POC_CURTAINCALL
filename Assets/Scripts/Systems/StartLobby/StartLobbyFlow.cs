@@ -95,9 +95,15 @@ namespace CurtainCall.StartLobby
         System.Collections.IEnumerator LoadWithCurtain(bool lobby)
         {
             loading = true;
-            yield return CurtainCall.UI.SceneIntegration.SceneCurtainTransition.Cover();
+            uint curtainVersion = 0;
+            yield return CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CoverFor(version => curtainVersion = version);
             try
             {
+                if (!CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CanTransitionFor(curtainVersion))
+                {
+                    LastMessage = "커튼 닫힘을 확인하지 못해 씬 전환을 취소했습니다.";
+                    yield break;
+                }
                 var network = session != null ? session.NetworkManager : null;
                 if (!lobby) yield return SceneManager.LoadSceneAsync(StartScene, LoadSceneMode.Single);
                 else if (network != null && network.IsServer)
@@ -120,7 +126,7 @@ namespace CurtainCall.StartLobby
                     finally { scenes.OnLoadEventCompleted -= Completed; }
                 }
             }
-            finally { loading = false; CurtainCall.UI.SceneIntegration.SceneCurtainTransition.Complete(); }
+            finally { loading = false; CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CompleteFor(curtainVersion); }
         }
     }
 }

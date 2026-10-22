@@ -31,7 +31,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.GetSceneByName("CommonInteractionUI").isLoaded);
             Assert.IsFalse((bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive"));
             Assert.IsTrue(Camera.allCameras.Any(c => c.gameObject.scene.name == "Lobby"), "Lobby must keep rendering with additive UI loaded.");
-            Assert.IsTrue(GameObject.Find("Lobby Canvas") != null, "Lobby UI must remain active.");
+            var lobbyHud = Find("CurtainCall.UI.SceneIntegration.LobbyHudBinding");
+            Assert.IsNotNull(lobbyHud, "현재 로비 HUD 바인딩이 남아 있어야 합니다.");
+            Assert.IsTrue(lobbyHud.gameObject.activeInHierarchy);
+            var lobbyInfo = Field(lobbyHud, "info");
+            Assert.AreEqual(1f, ((CanvasGroup)Private(lobbyInfo, "visibility")).alpha, "커튼 전환 후 로비 HUD가 보여야 합니다.");
             Assert.IsFalse((bool)Static("CurtainCall.Player.InputGate", "IsBlocked"));
             var room = Find("CurtainCall.StartLobby.LobbyRoom");
             var board = Find("CurtainCall.StartLobby.LobbyReadyBoard");
@@ -67,6 +71,100 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue(UnityEngine.SceneManagement.SceneManager.GetSceneByName("Start").isLoaded);
             Assert.IsFalse((bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive"));
             Assert.IsTrue(Camera.allCameras.Any(c => c.gameObject.scene.name == "Start"));
+        }
+
+        [UnityTest]
+        public IEnumerator ExplorationWarnings_UseTopBannerAboveAllUi()
+        {
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            var ui = Find("CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI");
+            var notifications = Private(ui, "notifications");
+            var banner = (Component)Get(notifications, "Banner");
+            var captions = Private(ui, "captions");
+            var panel = (RectTransform)banner.transform;
+            var position = panel.anchoredPosition;
+            Call(captions, "HideImmediate");
+            // 표시 경로만 합성한다. 각 초의 실제 발생 시점은 변경하지 않는다.
+            foreach (int seconds in new[] { 60, 30, 20, 10 })
+            {
+                var announcement = Activator.CreateInstance(T("CurtainCall.WaitingRoom.ExplorationAnnouncement"),
+                    seconds, seconds == 60, $"공연 {seconds}초 전입니다");
+                Call(ui, "PresentAnnouncement", announcement);
+                yield return new WaitForSecondsRealtime(.25f);
+                Assert.IsTrue((bool)Get(banner, "IsVisible"));
+                Assert.IsFalse((bool)Get(captions, "IsVisible"), "탐색 경고가 하단 자막에 중복 표시되면 안 됩니다.");
+                Assert.AreEqual(1f, panel.anchorMin.y);
+                Assert.AreEqual(1f, panel.anchorMax.y);
+                Assert.AreEqual(position, panel.anchoredPosition, "기존 상단 알림 위치를 유지해야 합니다.");
+                var canvas = banner.GetComponent<Canvas>();
+                Assert.IsTrue(canvas.overrideSorting);
+                Assert.AreEqual(short.MaxValue, canvas.sortingOrder);
+                foreach (var layer in SortingLayer.layers)
+                    Assert.GreaterOrEqual(SortingLayer.GetLayerValueFromID(canvas.sortingLayerID),
+                        SortingLayer.GetLayerValueFromID(layer.id));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CurtainBarrier_HoldsThroughPresentationReset_AndRequiresEveryAcknowledgement()
+        {
+            UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
+            var transition = T("CurtainCall.UI.SceneIntegration.SceneCurtainTransition");
+            yield return (IEnumerator)transition.GetMethod("Cover").Invoke(null, null);
+            try
+            {
+                var coordinator = Find(transition.FullName);
+                var ending = Find("CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation");
+                var curtain = Get(ending, "Curtain");
+                Assert.IsTrue((bool)Static(transition.FullName, "CanTransition"));
+                Assert.IsTrue((bool)Get(curtain, "IsFullyCovered"));
+                Call(ending, "ResetPresentation");
+                yield return new WaitForSecondsRealtime(.6f);
+                Assert.IsTrue((bool)Get(curtain, "IsFullyCovered"), "결과 표시 초기화가 전환 커튼을 열면 안 됩니다.");
+                // 응답 대기 상태만 합성한다. 실제 두 PC의 메시지 왕복 검증은 별도로 필요하다.
+                var waiting = (System.Collections.Generic.HashSet<ulong>)Private(coordinator, "waiting");
+                waiting.Add(123);
+                Assert.IsFalse((bool)Static(transition.FullName, "CanTransition"));
+                waiting.Clear();
+                Assert.IsTrue((bool)Static(transition.FullName, "CanTransition"));
+                var loading = (System.Collections.Generic.HashSet<string>)Private(coordinator, "loadingScenes");
+                loading.Add("DelayedScene");
+                try
+                {
+                    transition.GetMethod("Complete").Invoke(null, null);
+                    yield return new WaitForSecondsRealtime(.6f);
+                    Assert.IsTrue((bool)Get(curtain, "IsFullyCovered"), "로컬 NGO 로드가 끝나기 전에는 열림 통지가 와도 닫혀 있어야 합니다.");
+                }
+                finally { loading.Clear(); }
+            }
+            finally { transition.GetMethod("Complete").Invoke(null, null); }
+            float until = Time.realtimeSinceStartup + 10;
+            while ((bool)Static(transition.FullName, "IsActive") && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsFalse((bool)Static(transition.FullName, "IsActive"));
+        }
+
+        [UnityTest]
+        public IEnumerator CurtainBarrier_NewCoverCancelsPreviousReveal()
+        {
+            UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
+            var transition = T("CurtainCall.UI.SceneIntegration.SceneCurtainTransition");
+            yield return (IEnumerator)transition.GetMethod("Cover").Invoke(null, null);
+            uint previous = (uint)Private(Find(transition.FullName), "sequence");
+            transition.GetMethod("Complete").Invoke(null, null);
+            yield return (IEnumerator)transition.GetMethod("Cover").Invoke(null, null);
+            try
+            {
+                Assert.IsFalse((bool)transition.GetMethod("CanTransitionFor").Invoke(null, new object[] { previous }));
+                transition.GetMethod("CompleteFor").Invoke(null, new object[] { previous });
+                yield return new WaitForSecondsRealtime(.6f);
+                var ending = Find("CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation");
+                Assert.IsTrue((bool)Static(transition.FullName, "CanTransition"));
+                Assert.IsTrue((bool)Get(Get(ending, "Curtain"), "IsFullyCovered"), "이전 전환의 열림이 새 전환을 노출하면 안 됩니다.");
+            }
+            finally { transition.GetMethod("Complete").Invoke(null, null); }
+            float until = Time.realtimeSinceStartup + 10;
+            while ((bool)Static(transition.FullName, "IsActive") && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsFalse((bool)Static(transition.FullName, "IsActive"));
         }
 
         [UnityTest]
