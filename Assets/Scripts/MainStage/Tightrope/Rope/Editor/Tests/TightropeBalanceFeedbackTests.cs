@@ -97,6 +97,45 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
+        public void RopeJumpKeepsSwayCounterInputAndDangerActive()
+        {
+            JsonUtility.FromJsonOverwrite("{\"idleSway\":15,\"correctionSpeed\":60}", GameSettings.Base.Balance);
+            balance.ContinueWhileAirborne = true;
+            balance.SetDisplayedState(true, 60f);
+            balance.SetAirborne(true);
+            Set(balance, "swayDirection", 1f);
+            Set(balance, "nextDirectionChange", float.MaxValue);
+            Step(.2f);
+            Assert.That(balance.Value, Is.GreaterThan(60f), "점프로 자연 흔들림을 멈출 수 없다.");
+            Assert.That(balance.RedTime, Is.EqualTo(.2f).Within(.0001f));
+            float beforeCorrection = balance.Value;
+            balance.SetCorrectionInput(-1f);
+            Step(.1f);
+            Assert.That(balance.Value, Is.LessThan(beforeCorrection), "공중에서도 기존 균형 보정 입력을 적용한다.");
+            int falls = 0;
+            balance.Fell += () => falls++;
+            Step(2f);
+            Step(2f);
+            Assert.That(balance.HasFallen, Is.True);
+            Assert.That(falls, Is.EqualTo(1), "공중에서도 위험이 가득 차면 한 번만 추락한다.");
+        }
+
+        [Test]
+        public void RopeJumpDoesNotRecoverDangerUntilGrounded()
+        {
+            balance.ContinueWhileAirborne = true;
+            balance.SetDisplayedState(true, 60f);
+            Step(.5f);
+            balance.SetDisplayedState(true, 0f);
+            balance.SetAirborne(true);
+            Step(.5f);
+            Assert.That(balance.RedTime, Is.EqualTo(.5f).Within(.0001f));
+            balance.SetAirborne(false);
+            Step(.5f);
+            Assert.That(balance.RedTime, Is.EqualTo(.25f).Within(.0001f));
+        }
+
+        [Test]
         public void RepeatedLaneLandingsAddFivePercentagePointsEach()
         {
             balance.SetDisplayedState(true, 60f);

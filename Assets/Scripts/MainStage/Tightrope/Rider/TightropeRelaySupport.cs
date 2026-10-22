@@ -28,10 +28,11 @@ namespace CurtainCall.Tightrope
                 || (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player))
                 || (PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player))) return false;
             if (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen) return false;
-            float distance = Course.GetDistance(player.transform.position);
-            if (Mathf.Abs(distance - EntryDistance) <= Rules.RelayPadRadius) return true;
+            float radius = Rules.RelayPadRadius;
+            if (radius <= 0f) return false;
+            if ((player.transform.position - Course.GetLanePosition(lane, EntryDistance)).sqrMagnitude <= radius * radius) return true;
             far = true;
-            return Mathf.Abs(distance - ExitDistance) <= Rules.RelayPadRadius;
+            return (player.transform.position - Course.GetLanePosition(lane, ExitDistance)).sqrMagnitude <= radius * radius;
         }
 
         public NetworkPlayer PreparedHelper(int lane, bool far)

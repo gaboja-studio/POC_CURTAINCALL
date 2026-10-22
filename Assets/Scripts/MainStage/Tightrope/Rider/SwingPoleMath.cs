@@ -51,13 +51,12 @@ namespace CurtainCall.Tightrope
             return LimitFlightVelocity(velocity, speedLimit);
         }
 
-        /// <summary>F 입력 뒤 최종 잡기는 기존 팔 닿는 거리와 높이 안에서만 확정한다.</summary>
-        public static bool InPoleReach(Vector3 position, Vector3 target, float reach, bool lower)
+        /// <summary>봉/동료 중심에서 모든 방향에 같은 반지름을 사용하는 구형 잡기 범위.</summary>
+        public static bool InPoleReach(Vector3 position, Vector3 target, float reach)
         {
             Vector3 delta = position - target;
-            float distance = (lower ? 1.1f : .85f) * reach;
-            return reach > 0f && Mathf.Abs(delta.y) <= (lower ? .7f : .5f) * reach
-                && delta.sqrMagnitude <= distance * distance;
+            float distance = 2.5f * reach;
+            return float.IsFinite(distance) && distance > 0f && delta.sqrMagnitude <= distance * distance;
         }
 
         /// <summary>다음 봉 방향 수평 비거리의 50~100%에서 잡을 수 있다. 옆 방향은 같은 통로 안으로 제한한다.</summary>

@@ -214,7 +214,9 @@ namespace CurtainCall.Tightrope
             foreach (var other in PlayerMover.All)
             {
                 if (TryGetHandholdRange(other, out int otherLane, out float from, out float to)
-                    && otherLane == lane && distance >= from && distance <= to) return true;
+                    && otherLane == lane && distance >= from && distance <= to
+                    && (other.transform.position - course.GetLanePosition(lane, distance)).sqrMagnitude
+                        <= GameSettings.Tightrope.Handhold.Distance * GameSettings.Tightrope.Handhold.Distance) return true;
             }
             return false;
         }
@@ -231,8 +233,11 @@ namespace CurtainCall.Tightrope
             if (Mathf.Abs(position.y - LandingHeight()) >= Mathf.Max(mover.BodyHeight, other.BodyHeight)) return false;
             if (!course.TryGetRopePoint(position, out lane, out float distance)) return false;
             float reach = GameSettings.Tightrope.Handhold.Distance;
-            from = distance - reach;
-            to = distance + reach;
+            float square = reach * reach - (position - course.GetLanePosition(lane, distance)).sqrMagnitude;
+            if (!float.IsFinite(reach) || reach <= 0f || square < 0f) return false;
+            float along = Mathf.Sqrt(square);
+            from = distance - along;
+            to = distance + along;
             return true;
         }
 

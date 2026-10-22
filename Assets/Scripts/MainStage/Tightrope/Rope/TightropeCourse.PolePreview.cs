@@ -16,7 +16,7 @@ namespace CurtainCall.Tightrope
         public Vector3 TrapezeRestingFeet(int index)
         {
             float along = TrapezeGapFrom + (index == 0 ? -1f : Shape.TrapezeLength * (index == 1 ? .38f : .74f));
-            float height = index == 0 ? 2.5f : index == 1 ? 3.1f : 1.1f;
+            float height = index == 0 ? 1.5f : index == 1 ? 2.1f : .6f;
             return GetLanePosition(Shape.TrapezeLane - 1, along) + Vector3.up * height;
         }
 
@@ -30,7 +30,7 @@ namespace CurtainCall.Tightrope
             if (HasTrapezeGap)
                 for (int i = 0; i < 3; i++)
                     DrawPole(TrapezeRestingFeet(i) + Vector3.up * 1.5f, i == 2 ? Color.green : Color.cyan,
-                        i == 0 ? "1 · 목마로 잡는 높은 봉" : i == 1 ? "2 · 동료 몸 잡고 교대" : "3 · 낮은 복귀 봉");
+                        i == 0 ? "1 · 가까이서 F 잡기" : i == 1 ? "2 · 동료 몸 잡고 교대" : "3 · 낮은 복귀 봉");
 #endif
         }
 

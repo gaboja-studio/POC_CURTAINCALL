@@ -175,34 +175,41 @@ namespace CurtainCall.Tightrope
                 || !player.TryGetComponent(out PlayerMover mover) || mover.PassThrough || !mover.ControlEnabled) return false;
             if (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen) return false;
             var stack = PiggybackSystem.Current;
-            return (stack == null || !stack.IsInStack(player))
+            return (stack == null || !stack.IsInStack(player) || stack.CanEnterTrapeze(player))
                 && (TightropeSwingPole.Current == null || !TightropeSwingPole.Current.IsCrossing(player));
         }
         bool CanGrab(NetworkPlayer player, int index)
         {
             if (!Active || index < 0 || index >= PoleTotal || !Eligible(player) || poles[index].Upper != Nobody) return false;
             bool flying = flights.TryGetValue(player.OwnerClientId, out var flight) && Clock <= flight.Until;
-            float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
-            if (flying) return CanCatchNextPole(player, index, flight, reach);
-            if (index != 0 || !player.IsAirborne) return false;
-            Vector3 delta = player.transform.position - Feet(index, false);
-            var rules = GameSettings.Tightrope.RopeMovement;
-            // 첫 봉은 다리 손상으로 낮아진 목마에서도 닿을 여유를 준다. 혼자 점프한 높이는 여전히 범위 밖이다.
-            float vertical = index == 0 ? rules.TrapezeEntryHeightTolerance : .5f * reach;
-            float horizontal = (index == 0 ? rules.TrapezeEntryGrabDistance : .85f) * reach * 1.25f;
-            return reach > 0f && Mathf.Abs(delta.y) <= vertical
-                && Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude <= horizontal * horizontal;
+            if (flying && index != flight.From + 1) return false;
+            if (!flying && index == 0 && (PiggybackSystem.Current == null || !PiggybackSystem.Current.CanEnterTrapeze(player))) return false;
+            return InCatchRange(player, index, false);
         }
         bool CanAttach(NetworkPlayer player, int index)
         {
-            if (!Active || !Eligible(player) || poles[index].Upper == Nobody || poles[index].Lower != Nobody) return false;
+            if (!Active || index < 0 || index >= PoleTotal || !Eligible(player)
+                || poles[index].Upper == Nobody || poles[index].Lower != Nobody
+                || !Alive(poles[index].Upper) || Clock >= poles[index].Until) return false;
             bool flying = flights.TryGetValue(player.OwnerClientId, out var flight) && Clock <= flight.Until;
+            if (flying && index != flight.From + 1) return false;
+            return InCatchRange(player, index, true);
+        }
+
+        bool InCatchRange(NetworkPlayer player, int index, bool lower)
+        {
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
-            if (flying) return CanCatchNextPole(player, index, flight, reach);
-            if (index != 0 || !player.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRope(mover, out int lane) || lane != Lane) return false;
-            Vector3 delta = player.transform.position - Feet(index, true);
-            return reach > 0f && Mathf.Abs(delta.y) <= 1.2f * reach
-                && Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude <= 1.4f * 1.4f * reach * reach;
+            // 팔 손실로 두 사람의 몸 간격보다 잡기 반경이 작아지지 않게 한다. 부상4 사망은 Eligible에서 제외된다.
+            if (reach > 0f) reach = Mathf.Max(.75f, reach);
+            Vector3 center = Feet(index, false);
+            if (lower)
+            {
+                var holder = Find(poles[index].Upper);
+                if (holder == null) return false;
+                center += PlayerInteraction.Center(holder) - holder.transform.position;
+            }
+            else center += Vector3.up * poles[index].Physics.HangLength;
+            return SwingPoleMath.InPoleReach(PlayerInteraction.Center(player), center, reach);
         }
 
         float FlightDistanceLimit(int from, Vector3 origin)
@@ -223,9 +230,6 @@ namespace CurtainCall.Tightrope
             return SwingPoleMath.LimitFlightVelocity(velocity, speedLimit);
         }
 
-        bool CanCatchNextPole(NetworkPlayer player, int index, FlightState flight, float reach) => reach > 0f
-            && index == flight.From + 1 && SwingPoleMath.InCatchWindow(flight.Position, player.transform.position,
-                course.Forward, Mathf.Max(.1f, Vector3.Dot(flight.Target - flight.Position, course.Forward)), 1.4f * reach);
         void Sample(int index, out float angle, out float speed)
         {
             var state = poles[index]; angle = state.Angle; speed = state.Speed;

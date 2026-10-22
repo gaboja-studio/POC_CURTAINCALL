@@ -12,7 +12,7 @@ namespace CurtainCall.HumanCannon
         [Header("반동 — Grip은 중립점, 천장 앵커는 회전 중심")]
         [SerializeField] Transform visualBar, leftCable, rightCable, leftAnchor, rightAnchor;
         [Tooltip("봉에서 발까지 거리(m)."), Min(0.2f), SerializeField] float hangLength = 1.5f;
-        [Tooltip("봉 아래 발 기준 잡기 거리(m)."), Min(0.1f), SerializeField] float grabDistance = 2f;
+        [Tooltip("봉 중심의 구형 잡기 거리(m)."), Min(0.1f), SerializeField] float grabDistance = 2f;
         [Tooltip("잡은 뒤 최대 유지 시간(초). 0이면 스스로 놓거나 사망할 때까지 유지한다."), Min(0f), SerializeField] float holdSeconds;
         [Tooltip("놓기/제한 시간 만료/사망 뒤 지상 관문 톱 재동작 예고(초)."), Min(0.1f), SerializeField] float warningSeconds = 2f;
         [Tooltip("W/S 반동 가속(도/초²)."), Min(0f), SerializeField] float swingAcceleration = 300f;
@@ -90,10 +90,14 @@ namespace CurtainCall.HumanCannon
         public bool IsInReach(NetworkPlayer player)
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
+            return PlayerInteraction.InRange(player, BarPosition(0), GrabRadius(player, 0f));
+        }
+
+        public float GrabRadius(NetworkPlayer player, float minimumReach)
+        {
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             // 씬별 기본 거리와 부상 배율에 25% 접근 여유를 적용한다. 표시와 호스트도 이 판정을 공유한다.
-            float radius = grabDistance * reach * 1.25f;
-            return radius > 0f && (player.transform.position - HangingPosition(0)).sqrMagnitude <= radius * radius;
+            return grabDistance * (reach > 0f ? Mathf.Max(minimumReach, reach) : reach) * 1.25f;
         }
     }
 }

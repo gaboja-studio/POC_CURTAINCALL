@@ -8,13 +8,10 @@ namespace CurtainCall.HumanCannon
     {
         readonly GroundBounceRequest groundRequest = new();
         Vector3 groundFrameStart;
-        bool sampledGroundJump;
 
         void SampleGroundJump()
         {
             groundFrameStart = transform.position;
-            sampledGroundJump = !IsDriving && mover != null && mover.Simulated
-                && mover.CurrentJump == JumpKind.InPlace;
         }
 
         void DetectGroundBounce()
@@ -24,10 +21,8 @@ namespace CurtainCall.HumanCannon
                 || player == null || player.State != PlayerState.Normal) return;
             var trampoline = HumanCannonTrampoline.Current;
             if (trampoline == null || trampoline.Carrier == player.OwnerClientId) return;
-            // 일반 이동 Update 전후 발 위치를 비교한다. 착지 프레임에 JumpKind가 지워져도 검출한다.
-            if ((!sampledGroundJump && mover.CurrentJump != JumpKind.InPlace)
-                || transform.position.y >= groundFrameStart.y) return;
-            if (!trampoline.TryContact(groundFrameStart, transform.position, mover.BodyRadius, out var contact)) return;
+            // 걷기·점프·낙하 모두 몸통이 장치 전체 외형에 닿으면 기존 반동을 요청한다.
+            if (!trampoline.TryContact(groundFrameStart, transform.position, mover.BodyRadius, mover.BodyHeight, out var contact)) return;
             TakeMovement();
             groundRequest.Begin(trampoline.NextGroundSequence(), trampoline.Revision);
             Teleport(contact + Vector3.up * 0.05f, transform.rotation);

@@ -51,6 +51,7 @@ namespace CurtainCall.Tightrope
         // 위 사람 clientId → 바로 아래 사람 clientId
         readonly Dictionary<ulong, ulong> belowOf = new();
         readonly Dictionary<ulong, ulong> aboveOf = new();
+        readonly Dictionary<ulong, (ulong Helper, double Until)> trapezeEntries = new();
 
         NetworkSessionManager session;
         CustomMessagingManager messaging; // 핸들러를 등록한 곳(접속마다 새로 생긴다)
@@ -339,6 +340,7 @@ namespace CurtainCall.Tightrope
         {
             if (request != Request.Sync && !IsGameplayActive) return;
             if (session == null) return;
+            if (request == Request.Release) RememberTrapezeEntry(NetworkPlayer.Local);
             if (session.IsHost)
             {
                 ServerHandle(LocalClientId, request);
@@ -399,45 +401,87 @@ namespace CurtainCall.Tightrope
             if (climber.IsAirborne) return "거부: 공중에서는 올라갈 수 없음";
             if (IsInStack(climberId)) return "거부: 이미 목마에 속해 있음(단독만 올라감)";
 
-            // 올라타는 사람의 팔 상태가 도달 거리를 정한다. 받는 동료의 팔 손실은 이 요청에 곱하지 않는다.
-            float reach = LinkReach(climber);
-            Vector3 from = climber.transform.position;
-            ulong target = 0;
-            float best = float.MaxValue;
-            foreach (var other in NetworkPlayer.All)
-            {
-                if (other == null || other == climber || other.State != PlayerState.Normal) continue;
-                if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(other)) continue;
-                if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(other)) continue;
-                if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(other)) continue;
-                // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
-                if (belowOf.ContainsKey(other.OwnerClientId)) continue;
-                Vector3 offset = other.transform.position - from;
-                offset.y = 0f;
-                float distance = offset.magnitude;
-                if (distance > reach || distance >= best) continue;
-                best = distance;
-                target = other.OwnerClientId;
-            }
-
-            if (best == float.MaxValue) return $"거부: {reach:0.##}m 안에 올라갈 동료가 없음";
-
-            ulong top = TopOf(target);
+            var target = FindMountTarget(climber);
+            if (target == null) return $"거부: {LinkReach(climber):0.##}m 안에 올라갈 동료가 없음";
+            ulong top = TopOf(target.OwnerClientId);
             belowOf[climberId] = top;
             aboveOf[top] = climberId;
             ServerBroadcast();
             return $"연결: {top}번 위로 올라감";
         }
 
+        /// <summary>F 입력·호스트 승인·상호작용 표시가 공유하는 구형 범위의 최근접 목마 대상.</summary>
+        public NetworkPlayer FindMountTarget(NetworkPlayer climber)
+        {
+            if (!IsGameplayActive || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
+                || climber.IsAirborne || IsInStack(climber) || UsingDevice(climber)) return null;
+            float reach = LinkReach(climber), best = float.PositiveInfinity;
+            NetworkPlayer target = null;
+            foreach (var other in NetworkPlayer.All)
+            {
+                if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)) continue;
+                // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
+                if (belowOf.ContainsKey(other.OwnerClientId)) continue;
+                Vector3 center = PlayerInteraction.Center(other);
+                float distance = (center - PlayerInteraction.Center(climber)).sqrMagnitude;
+                if (!PlayerInteraction.InRange(climber, center, reach) || distance > best
+                    || distance == best && target != null && other.OwnerClientId >= target.OwnerClientId) continue;
+                best = distance;
+                target = other;
+            }
+            return target;
+        }
+
+        static bool UsingDevice(NetworkPlayer player) =>
+            TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)
+            || TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)
+            || TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player);
+
         static float LinkReach(NetworkPlayer climber) => GameSettings.Tightrope.Piggyback.LinkDistance
             * (climber != null && climber.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f);
 
-        string ServerTryUnlink(ulong riderId)
+        // 목마에서 분리 점프한 직후에도 같은 협동 진입을 허용한다. 단독 점프에는 기록이 없다.
+        void RememberTrapezeEntry(NetworkPlayer rider)
+        {
+            if (rider == null || GetAbove(rider) != null || GetBelow(rider) is not { } helper) return;
+            trapezeEntries[rider.OwnerClientId] = (helper.OwnerClientId, Time.timeAsDouble + PiggybackFollow.LaunchTimeout);
+        }
+
+        internal bool CanEnterTrapeze(NetworkPlayer rider)
+        {
+            if (!IsGameplayActive || rider == null || !rider.IsSpawned || rider.State != PlayerState.Normal
+                || GetAbove(rider) != null) return false;
+            var helper = GetBelow(rider);
+            if (helper == null)
+            {
+                if (!trapezeEntries.TryGetValue(rider.OwnerClientId, out var entry) || Time.timeAsDouble > entry.Until
+                    || !(rider.IsLocal && rider.TryGetComponent(out PlayerMover mover) ? mover.IsAirborne : rider.IsAirborne)) return false;
+                helper = FindPlayer(entry.Helper);
+            }
+            return helper != null && helper.IsSpawned && helper.State == PlayerState.Normal
+                && (!helper.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen);
+        }
+
+        internal void ConsumeTrapezeEntry(NetworkPlayer rider) => trapezeEntries.Remove(rider.OwnerClientId);
+
+        // 봉 점유를 먼저 공유해 원격 Follow가 연결 해제를 일반 하차로 처리하지 않게 한다.
+        internal bool TryReleaseTopForTrapeze(NetworkPlayer rider, Action transferred)
+        {
+            if (session == null || !session.IsHost || GetBelow(rider) == null || !CanEnterTrapeze(rider)) return false;
+            UnlinkTop(rider.OwnerClientId, transferred);
+            return true;
+        }
+
+        string ServerTryUnlink(ulong riderId) => UnlinkTop(riderId, null);
+
+        string UnlinkTop(ulong riderId, Action transferred)
         {
             if (!belowOf.TryGetValue(riderId, out ulong below)) return "거부: 내 아래에 아무도 없음";
             if (aboveOf.ContainsKey(riderId)) return "거부: 내 위에 사람이 있어 내려올 수 없음";
+            RememberTrapezeEntry(FindPlayer(riderId));
             belowOf.Remove(riderId);
             aboveOf.Remove(below);
+            transferred?.Invoke();
             ServerBroadcast();
             return "해제: 내려옴";
         }
@@ -504,6 +548,7 @@ namespace CurtainCall.Tightrope
         public void ReleaseForSuccess()
         {
             ClearHandhold();
+            trapezeEntries.Clear();
             belowOf.Clear();
             aboveOf.Clear();
             lastDropped.Clear();
@@ -527,6 +572,7 @@ namespace CurtainCall.Tightrope
         void HandleRestarted(NetworkPlayer player)
         {
             ClearHandhold();
+            trapezeEntries.Clear();
             // 모두 재시작이면 목마도 모두 푼다(호스트가 정해 보낸다)
             if (session == null || !session.IsHost || belowOf.Count == 0) return;
             belowOf.Clear();
@@ -672,6 +718,7 @@ namespace CurtainCall.Tightrope
 
         void HandleConnectionState(SessionConnectionState state)
         {
+            trapezeEntries.Clear();
             Unregister();
             switch (state)
             {

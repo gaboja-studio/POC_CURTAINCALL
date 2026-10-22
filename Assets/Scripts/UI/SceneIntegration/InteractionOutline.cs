@@ -9,19 +9,22 @@ namespace CurtainCall.UI.SceneIntegration
     /// <summary>선택된 사물의 메시 외곽 셸. 원본 메시/재질/충돌체를 수정하지 않는다.</summary>
     public sealed class InteractionOutline : System.IDisposable
     {
-        sealed class Part { public Renderer Source; public MeshRenderer Shell; public Mesh Copy; public LODGroup Lod; }
+        sealed class Part { public Renderer Source, Shell; public Mesh Copy; public LODGroup Lod; }
         readonly List<Part> parts = new();
         readonly List<Material> sourceMaterials = new();
         public Transform Target { get; }
         public InteractionOutline(Transform target, Material material)
         {
             Target = target;
-            foreach (var source in target.GetComponentsInChildren<MeshRenderer>(true))
+            foreach (var source in target.GetComponentsInChildren<Renderer>(true))
             {
-                if (source.name.StartsWith("__") || !source.TryGetComponent<MeshFilter>(out var filter) || filter.sharedMesh == null) continue;
-                var mesh = filter.sharedMesh;
+                if (source.name.StartsWith("__")) continue;
+                var skin = source as SkinnedMeshRenderer;
+                Mesh mesh = skin != null ? skin.sharedMesh
+                    : source is MeshRenderer && source.TryGetComponent<MeshFilter>(out var filter) ? filter.sharedMesh : null;
+                if (mesh == null) continue;
                 Mesh copy = null;
-                if (mesh.isReadable && mesh.normals.Length == mesh.vertexCount)
+                if (skin == null && mesh.isReadable && mesh.normals.Length == mesh.vertexCount)
                 {
                     copy = Object.Instantiate(mesh); copy.hideFlags = HideFlags.HideAndDontSave;
                     copy.normals = TightropeOutline.SmoothNormals(mesh.vertices, mesh.normals);
@@ -29,8 +32,19 @@ namespace CurtainCall.UI.SceneIntegration
                 }
                 var go = new GameObject("__InteractionOutline") { hideFlags = HideFlags.HideAndDontSave, layer = source.gameObject.layer };
                 go.transform.SetParent(source.transform, false);
-                go.AddComponent<MeshFilter>().sharedMesh = mesh;
-                var shell = go.AddComponent<MeshRenderer>();
+                Renderer shell;
+                if (skin != null)
+                {
+                    var animated = go.AddComponent<SkinnedMeshRenderer>();
+                    animated.sharedMesh = mesh; animated.bones = skin.bones; animated.rootBone = skin.rootBone;
+                    animated.localBounds = skin.localBounds; animated.updateWhenOffscreen = skin.updateWhenOffscreen; animated.quality = skin.quality;
+                    shell = animated;
+                }
+                else
+                {
+                    go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                    shell = go.AddComponent<MeshRenderer>();
+                }
                 var materials = new Material[mesh.subMeshCount];
                 for (int i = 0; i < materials.Length; i++) materials[i] = material;
                 shell.sharedMaterials = materials;
@@ -55,6 +69,13 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var part in parts)
                 if (part.Shell != null)
                 {
+                    if (part.Source is SkinnedMeshRenderer source && part.Shell is SkinnedMeshRenderer animated)
+                    {
+                        animated.sharedMesh = source.sharedMesh;
+                        animated.localBounds = source.localBounds;
+                        if (source.sharedMesh != null)
+                            for (int i = 0; i < source.sharedMesh.blendShapeCount; i++) animated.SetBlendShapeWeight(i, source.GetBlendShapeWeight(i));
+                    }
                     part.Shell.enabled = part.Source != null && part.Source.enabled && part.Source.gameObject.activeInHierarchy && HasOpaqueDepth(part.Source);
                     part.Shell.forceRenderingOff = part.Source == null || part.Source.forceRenderingOff;
                 }

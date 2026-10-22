@@ -153,35 +153,35 @@ MonoBehaviour:
     horizontalSaws:
     - distance: 12
       startSide: 0
-    - distance: 21
+    - distance: 21.8
       startSide: 1
-    - distance: 30
+    - distance: 31.6
       startSide: 0
-    - distance: 43.5
+    - distance: 41.4
       startSide: 1
-    - distance: 52.5
+    - distance: 51.2
       startSide: 0
-    - distance: 61.5
+    - distance: 61
       startSide: 1
-    - distance: 70.5
+    - distance: 70.8
       startSide: 0
-    - distance: 91.5
+    - distance: 80.6
       startSide: 1
-    - distance: 100.5
+    - distance: 90.4
       startSide: 0
-    - distance: 109.5
+    - distance: 100.200005
       startSide: 1
-    - distance: 118.5
+    - distance: 110
       startSide: 0
-    - distance: 124.5
+    - distance: 119.8
       startSide: 1
-    - distance: 133.5
+    - distance: 129.6
       startSide: 0
-    - distance: 142.5
+    - distance: 139.40001
       startSide: 1
-    - distance: 151
+    - distance: 149.2
       startSide: 0
-    - distance: 162
+    - distance: 159
       startSide: 1
     horizontalFirstSpeed: 9.5
     horizontalLastSpeed: 12

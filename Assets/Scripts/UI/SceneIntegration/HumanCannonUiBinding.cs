@@ -83,18 +83,18 @@ namespace CurtainCall.UI.SceneIntegration
             else HideGuide();
 
             int pole = poles != null ? poles.FindGrabbable(player) : -1;
-            if (holding || riding || seated || carrying) HideTooltip();
+            if (interaction == null) interaction = FindFirstObjectByType<CommonInteractionUI>();
+            bool commonPrompt = interaction != null && interaction.isActiveAndEnabled && interaction.Prompt != null;
+            if (holding || riding || seated || carrying || hasInteractTarget && commonPrompt) HideTooltip();
             else if (pole >= 0)
             {
-                if (interaction == null) interaction = FindFirstObjectByType<CommonInteractionUI>();
-                if (interaction != null && interaction.isActiveAndEnabled && interaction.Prompt != null) HideTooltip();
-                else ShowTooltip("pole:" + pole, "봉", "[F] 잡기", poles.HangingPosition(pole));
+                ShowTooltip("pole:" + pole, "봉", "[F] 잡기", poles.HangingPosition(pole));
             }
-            else if (trampoline != null && trampoline.CanGrab(player)) ShowTooltip("trampoline", "트램펄린", "[F] 잡기", trampoline.Handle.position);
+            else if (trampoline != null && trampoline.CanGrab(player)) ShowTooltip("trampoline", "트램펄린", "[F] 잡기", trampoline.Surface);
             else
             {
                 int index = cannon.FindBoardableStation(player);
-                if (index >= 0) ShowTooltip("cannon:" + index, "대포", "[F] 타기", cannon.Station(index).BoardingPoint.position);
+                if (index >= 0) ShowTooltip("cannon:" + index, "대포", "[F] 타기", cannon.Station(index).Seat.position);
                 else HideTooltip();
             }
         }

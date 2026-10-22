@@ -208,7 +208,7 @@ namespace CurtainCall.Player
                     {
                         GUILayout.Label($"Balance  {balance.Value:+0.0;-0.0;0.0}  ({balance.Zone})", labelStyle);
                         GUILayout.Label($"Sway     {balance.CurrentSway:+0.0;-0.0;0.0}/s", labelStyle);
-                        GUILayout.Label($"Air      {(balance.IsAirborne ? "<b>공중 (균형 정지)</b>" : "땅")}   Shock {balance.LastShock:+0.0;-0.0;0.0}", labelStyle);
+                        GUILayout.Label($"Air      {(balance.IsAirborne ? balance.ContinueWhileAirborne ? "<b>공중 (균형 적용)</b>" : "<b>공중 (균형 정지)</b>" : "땅")}   Shock {balance.LastShock:+0.0;-0.0;0.0}", labelStyle);
                         if (balance.LaneBoostRemaining > 0f)
                             GUILayout.Label($"LaneBoost ×{balance.LaneBoostMultiplier:0.00}  {balance.LaneBoostRemaining:0.0}s", labelStyle);
                         GUILayout.Label($"Stack    {balance.StackSize}인  ×{balance.StackMultiplier:0.0}   Upper {balance.UpperPush:+0.0;-0.0;0.0}/s", labelStyle);

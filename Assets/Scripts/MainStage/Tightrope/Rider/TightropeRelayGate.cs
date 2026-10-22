@@ -127,8 +127,9 @@ namespace CurtainCall.Tightrope
             if (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen) return false;
             if (PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
             if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return false;
-            return Mathf.Abs(course.GetDistance(player.transform.position) - (IsFarPole(index) ? ExitDistance : EntryDistance)) <= 1.1f
-                && PhysicalPole(index).IsInReach(player);
+            var pole = PhysicalPole(index);
+            // 양팔 손실이어도 지상에서 2.2m 봉에 닿는 협동 역할은 유지한다.
+            return PlayerInteraction.InRange(player, pole.BarPosition(0), pole.GrabRadius(player, .75f));
         }
         public bool TryHandleInput(PlayerControlContext context, in PlayerInputFrame input)
         {

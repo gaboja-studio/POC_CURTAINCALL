@@ -1,6 +1,6 @@
 # Task-20261015-044
 
-- **Title:** 봉 잡기·상호작용 표시와 인간대포 왕복 톱 완화
+- **Title:** 묘기 부상별 협동 진행 및 인간대포 배치·접촉 보완
 - **Type:** fix
 - **Status:** submitted
 - **Assignee:** @RagSpirin
@@ -11,7 +11,8 @@
 ## Workspace
 
 - **Integration:** dev
-- **Branch:** fix/cannon-saw-gate-window
+- **Branch:** fix/four-player-course-feedback
+- 2026-10-22 4인 실플레이 후속: PR #210이 병합된 최신 dev 285bc14를 pull한 뒤 새 fix 브랜치에서 미완료 사람 확인의 피드백을 반영한다. 중간 일반 봉 축소 선택·공중 장애물 제거·외줄 봉 낮춤/범위 F·톱 경로 분산은 이번 사용자 직접 결정이며 기존 예외 범위의 연속 수정이다. 자동/플레이 테스트 실행 안 함, 코드·참조·배치·컴파일만 확인. 작업 시작은 항상 최신 dev 기준.
 - 2026-10-22 사용자 PM 허락·이번 수정 범위 예외 적용 요청으로 봉 표시 수정에 한해 기존 Task를 현재 fix 브랜치(dev 기준)에 연결한다. 이전 integration/main-stage-human-cannon·feat/human-cannon-hazards-course·PR #131 이력 유지. 후속 사용자 지시로 봉 잡기 거리 여유 확대 포함. 신규 UI/에셋 생성·삭제 제외.
 - **Previous Task:** Task-20261015-043
 - 043 PR #121/70e242a 통합·044 HEAD9a0d078 수신. 부모 이력 포함·tree 동일·로컬/원격 일치 확인 후 043 반환→044 단독 소유로 이관했다.
