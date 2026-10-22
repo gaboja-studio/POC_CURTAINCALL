@@ -103,8 +103,12 @@ namespace CurtainCall.UI.SceneIntegration
                 days[day - 1] = new ScheduleDayPresentation(day.ToString(), $"{day}일차 · {(day == 2 ? "시설" : "의료")}", run != null && run.State.Day == day, "", entries);
             }
             bool night = run != null && run.State.Phase == CampaignPhase.Night;
-            string context = night ? $"{run.State.Day}일차 밤 · 준비 {run.State.ReadyCount}/{run.State.RequiredCount}" : "공연 일정 1~3일 · 밤 정비 때 편집";
-            string footer = !string.IsNullOrEmpty(message) ? message : !night ? "4일차는 아침 쉬는 시간 이후 종료" :
+            string context = night ? $"{run.State.Day}일차 밤 · 준비 {run.State.ReadyCount}/{run.State.RequiredCount}"
+                : run != null && run.State.Phase == CampaignPhase.Dawn ? $"{run.State.Day}일차 밤 · 스케줄표를 닫으면 다음 날 아침으로 넘어갑니다"
+                : run != null && run.State.Phase == CampaignPhase.DemoEnding ? "4일차 아침 · 스케줄표를 닫으면 데모 종료 연출이 시작됩니다"
+                : "공연 일정 1~3일 · 밤 정비 때 편집";
+            string footer = !string.IsNullOrEmpty(message) ? message : run != null && (run.State.Phase == CampaignPhase.Dawn || run.State.Phase == CampaignPhase.DemoEnding)
+                ? "스케줄표를 닫아 연출을 진행하세요" : !night ? "공연 일정 보기" :
                 run.State.Day >= 3 ? "추가 편성 없이 준비할 수 있습니다" : !schedule.HasAuthority ? "호스트가 일정 편집·확정" : book.IsConfirmedTonight ? "이번 밤 일정 확정 완료" : "공연 항목을 클릭해 묘기 변경";
             return new SchedulePresentation(session ?? "unopened", (++revision).ToString(), "공연 스케줄", context, footer, days);
         }

@@ -23,11 +23,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         IEnumerator ReadyToMorning(int day, object ui)
         {
             Call(Get(Private(ui, "readyButton"), "onClick"), "Invoke");
+            Call(Get(ui, "View"), "Close");
             float until = Time.realtimeSinceStartup + 15;
-            while (Field(State, "Phase").ToString() == "Night" && Time.realtimeSinceStartup < until) yield return null;
+            while ((Field(State, "Phase").ToString() == "Night" || Field(State, "Phase").ToString() == "Dawn")
+                && Time.realtimeSinceStartup < until) yield return null;
             Assert.AreEqual(day, Field(State, "Day"));
-            Assert.AreEqual("RestTime", Field(State, "Phase").ToString());
-            yield return new WaitForSecondsRealtime(.2f);
+            Assert.AreEqual(day == 4 && Application.version == "0.1.0" ? "DemoEnding" : "RestTime", Field(State, "Phase").ToString());
+            yield return new WaitForSecondsRealtime(2.2f);
         }
         [UnityTest]
         public IEnumerator W3_EditConfirmReady_ThreeNightsAndFinalMorning()
@@ -98,7 +100,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(true, Call(book, "Load", 3, false, oldSlots, new bool[4]));
             Assert.AreEqual("", Call(book, "Get", 4, 0)); Assert.AreEqual(true, Get(book, "IsConfirmedTonight"));
             yield return ReadyToMorning(4, ui);
-            Assert.AreEqual(true, Field(State, "IsFinalMorning"));
+            Assert.AreEqual(Application.version != "0.1.0", Field(State, "IsFinalMorning"));
         }
     }
 }

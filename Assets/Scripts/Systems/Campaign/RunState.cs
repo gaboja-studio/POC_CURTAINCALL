@@ -8,7 +8,8 @@ namespace CurtainCall.Campaign
     /// 흐름(기획 게임 흐름 2-2, 9-1):
     ///   1일차: 도입 → 공연 → 가이드 쉬는 시간 → 공연 → 밤 정비
     ///   2일차~: 아침 쉬는 시간 → 공연 → 쉬는 시간 → 공연 → 밤 정비
-    ///   공연하는 날 수 다음 날: 아침 쉬는 시간만. 끝나면 런 실패 → 세대 교체 → 1일차 도입부터.
+    ///   공연하는 날 수 다음 날: 아침 쉬는 시간만. 끝나면 런 실패 → 세대 교체 → 1일차 첫 공연.
+    ///   0.1.0: 4일차 아침은 탐색 없이 데모 종료 연출로 전환한다.
     ///   쉬는 시간 중 탈출 개시 → 탈출로 → 성공이면 엔딩, 전원 리타이어면 런 실패.
     /// 수치(일수·공연 수·쉬는 시간 길이·타이머 방식)는 공통 세팅에서 쓸 때마다 읽는다.
     /// 각 메서드는 지금 시간대에 맞지 않는 신호면 아무것도 하지 않고 false를 돌려준다.
@@ -17,7 +18,17 @@ namespace CurtainCall.Campaign
     {
         readonly HashSet<ulong> ready = new();
         readonly Dictionary<int, string[]> setlists = new();
+        readonly bool demoVersion;
+        readonly bool dayPresentation;
         CampaignSnapshot s;
+
+        public RunState() : this(false) { }
+        public RunState(bool demoVersion) : this(demoVersion, false) { }
+        public RunState(bool demoVersion, bool dayPresentation)
+        {
+            this.demoVersion = demoVersion;
+            this.dayPresentation = dayPresentation;
+        }
 
         static BaseGameSettings.RunSettings Rules => GameSettings.Base.Run;
 
@@ -82,10 +93,11 @@ namespace CurtainCall.Campaign
             return true;
         }
 
-        /// <summary>밤 정비 준비 완료 표시. 밤 정비가 아니면 무시한다.</summary>
+        /// <summary>밤 준비 / 아침 전환 가림 완료 / 데모 종료 확인. 그 외 시간대면 무시한다.</summary>
         public bool SetReady(ulong clientId, bool value)
         {
-            if (s.Phase != CampaignPhase.Night) return false;
+            if (s.Phase != CampaignPhase.Night && s.Phase != CampaignPhase.Dawn && s.Phase != CampaignPhase.DemoEnding) return false;
+            if (s.Phase != CampaignPhase.Night && !value) return false;
             bool changed = value ? ready.Add(clientId) : ready.Remove(clientId);
             return changed;
         }
@@ -95,7 +107,7 @@ namespace CurtainCall.Campaign
         /// </summary>
         public bool RefreshNight(IReadOnlyCollection<ulong> players)
         {
-            if (s.Phase != CampaignPhase.Night) return false;
+            if (s.Phase != CampaignPhase.Night && s.Phase != CampaignPhase.Dawn && s.Phase != CampaignPhase.DemoEnding) return false;
             ready.RemoveWhere(id => !Contains(players, id));
             int before = s.ReadyCount, beforeRequired = s.RequiredCount;
             s.ReadyCount = ready.Count;
@@ -103,8 +115,19 @@ namespace CurtainCall.Campaign
 
             if (s.RequiredCount > 0 && s.ReadyCount >= s.RequiredCount)
             {
-                s.Day++;
-                EnterRest(RestKind.Morning, 0);
+                if (s.Phase == CampaignPhase.DemoEnding)
+                    FailRun(RunEndReason.Deadline);
+                else if (s.Phase == CampaignPhase.Night && dayPresentation)
+                {
+                    s.Phase = CampaignPhase.Dawn;
+                    ready.Clear();
+                    s.ReadyCount = 0;
+                }
+                else
+                {
+                    s.Day++;
+                    EnterRest(RestKind.Morning, 0);
+                }
                 return true;
             }
             return before != s.ReadyCount || beforeRequired != s.RequiredCount;
@@ -206,7 +229,11 @@ namespace CurtainCall.Campaign
             s.TrickId = TrickFor(1, 0);
         }
 
-        void FailRun(RunEndReason reason) => StartRun(s.Generation + 1, reason);
+        void FailRun(RunEndReason reason)
+        {
+            StartRun(s.Generation + 1, reason);
+            EnterPerformance(0);
+        }
 
         void EnterPerformance(int index)
         {
@@ -219,6 +246,17 @@ namespace CurtainCall.Campaign
 
         void EnterRest(RestKind kind, int nextPerformance)
         {
+            if (demoVersion && kind == RestKind.Morning && s.Day == 4)
+            {
+                ClearTimer();
+                s.Phase = CampaignPhase.DemoEnding;
+                s.Rest = RestKind.Morning;
+                s.PerformanceIndex = 0;
+                s.TrickId = "";
+                ready.Clear();
+                s.ReadyCount = 0;
+                return;
+            }
             var rules = Rules;
             s.Phase = CampaignPhase.RestTime;
             s.Rest = kind;

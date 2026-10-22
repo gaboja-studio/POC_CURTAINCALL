@@ -141,7 +141,8 @@ namespace CurtainCall.WaitingRoom
             // 화면이 낮아도 아래 버튼(확정·준비·닫기)이 잘리지 않게 창을 화면에 맞추고 일정만 스크롤한다.
             float width = Mathf.Min(560f, Screen.width - 20f), height = Mathf.Min(600f, Screen.height - 20f);
             GUILayout.BeginArea(new Rect((Screen.width - width) / 2f, (Screen.height - height) / 2f, width, height), GUI.skin.box);
-            GUILayout.Label(night > 0 ? $"스케줄표 — {night}일차 밤 정비" : "스케줄표 (보기만 — 작성은 밤 정비 때)", titleStyle);
+            GUILayout.Label(run != null && run.State.Phase == CampaignPhase.DemoEnding ? "스케줄표 — 4일차 아침"
+                : night > 0 ? $"스케줄표 — {night}일차 밤 정비" : "스케줄표 (보기만 — 작성은 밤 정비 때)", titleStyle);
             GUILayout.Label("하루: 아침 쉬는 시간 → 공연 1 → 쉬는 시간 → 공연 2 → 밤 정비");
 
             scroll = GUILayout.BeginScrollView(scroll);
@@ -149,7 +150,7 @@ namespace CurtainCall.WaitingRoom
             GUILayout.EndScrollView();
 
             GUILayout.Space(6);
-            if (night > 0)
+            if (night > 0 && run != null && run.State.Phase == CampaignPhase.Night)
             {
                 if (book.IsConfirmedTonight) GUILayout.Label("이번 밤 스케줄을 확정했습니다.");
                 else if (host)
