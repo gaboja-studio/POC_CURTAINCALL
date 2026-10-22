@@ -98,8 +98,8 @@ namespace CurtainCall.HumanCannon.EditorTools
                 }
                 foreach (var saw in saws)
                 {
-                    saw.ConfigureAcrossMap(saw.Pole, saw.Hazard, -SawHalfWidth, SawHalfWidth, 4f);
-                    saw.Hazard.ConfigureHorizontalSweep(Vector3.right * SawHalfWidth, 4f);
+                    saw.ConfigureAcrossMap(saw.Pole, saw.Hazard, -SawHalfWidth, SawHalfWidth, 6f);
+                    saw.Hazard.ConfigureHorizontalSweep(Vector3.right * SawHalfWidth, 6f);
                     EditorUtility.SetDirty(saw);
                 }
                 foreach (var hazard in hazards)

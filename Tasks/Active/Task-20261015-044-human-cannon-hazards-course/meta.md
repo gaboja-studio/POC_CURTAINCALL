@@ -1,17 +1,18 @@
 # Task-20261015-044
 
-- **Title:** 인간 대포 5단계 — 함정과 4인 코스 검증
-- **Type:** feat
+- **Title:** 봉 잡기·상호작용 표시와 인간대포 왕복 톱 완화
+- **Type:** fix
 - **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
 - **Current Skill:** submit-work
-- **Updated:** 2026-10-16
+- **Updated:** 2026-10-22
 
 ## Workspace
 
-- **Integration:** integration/main-stage-human-cannon
-- **Branch:** feat/human-cannon-hazards-course
+- **Integration:** dev
+- **Branch:** fix/cannon-saw-gate-window
+- 2026-10-22 사용자 PM 허락·이번 수정 범위 예외 적용 요청으로 봉 표시 수정에 한해 기존 Task를 현재 fix 브랜치(dev 기준)에 연결한다. 이전 integration/main-stage-human-cannon·feat/human-cannon-hazards-course·PR #131 이력 유지. 후속 사용자 지시로 봉 잡기 거리 여유 확대 포함. 신규 UI/에셋 생성·삭제 제외.
 - **Previous Task:** Task-20261015-043
 - 043 PR #121/70e242a 통합·044 HEAD9a0d078 수신. 부모 이력 포함·tree 동일·로컬/원격 일치 확인 후 043 반환→044 단독 소유로 이관했다.
 

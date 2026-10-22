@@ -10,6 +10,27 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
     public sealed partial class TightropeCampaignPlayTests
     {
         [UnityTest]
+        public IEnumerator PoleInteraction_TrapezeUsesExistingOutlineAndFPrompt()
+        {
+            EnableTrapezeForEntryTest();
+            yield return BeginPerformance(); DisableSwingHazards();
+            var trapeze = Static("CurtainCall.Tightrope.TightropeTrapeze", "Current");
+            yield return Until(() => UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.UI.SceneIntegration.CommonInteractionUI")) != null,
+                15f, "기존 상호작용 UI 비동기 로드");
+            yield return Until(() => (bool)Get(trapeze, "IsActive"), 2f, "공중그네 준비");
+            var feet = (Vector3)Call(trapeze, "PoleFeet", 0, false);
+            Call(mover, "SetStartPose", feet, course.transform.rotation);
+            Call(mover, "LaunchJump", 1f);
+            yield return null;
+            Assert.IsTrue((bool)Call(trapeze, "CanGrabPole", 0, player));
+            var visual = (Transform)Call(trapeze, "PoleVisual", 0);
+            AssertExistingPoleInteraction(visual, feet + Vector3.up * 1.6f, true);
+            Call(trapeze, "TryRequestCatch", player);
+            Assert.IsTrue((bool)Call(trapeze, "IsHeld", player));
+            AssertExistingPoleInteraction(visual, feet + Vector3.up * 1.6f, false);
+        }
+
+        [UnityTest]
         public IEnumerator TrapezeCatchWindowStartsAtHalfRangeAfterFastLaunch() => TrapezeRangeCatch(false, .5f);
 
         [UnityTest]

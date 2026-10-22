@@ -127,7 +127,7 @@ namespace CurtainCall.Tightrope
             if (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen) return false;
             if (PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
             if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return false;
-            return Mathf.Abs(course.GetDistance(player.transform.position) - (IsFarPole(index) ? ExitDistance : EntryDistance)) <= .8f
+            return Mathf.Abs(course.GetDistance(player.transform.position) - (IsFarPole(index) ? ExitDistance : EntryDistance)) <= 1.1f
                 && PhysicalPole(index).IsInReach(player);
         }
         public bool TryHandleInput(PlayerControlContext context, in PlayerInputFrame input)

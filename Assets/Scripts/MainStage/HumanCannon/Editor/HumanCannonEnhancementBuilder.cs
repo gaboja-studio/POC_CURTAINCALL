@@ -54,7 +54,7 @@ namespace CurtainCall.HumanCannon.EditorTools
                 }
                 foreach (var saw in saws)
                 {
-                    saw.ConfigureAcrossMap(saw.Pole, saw.Hazard, -15f, 15f, 4f);
+                    saw.ConfigureAcrossMap(saw.Pole, saw.Hazard, -15f, 15f, 6f);
                     saw.Hazard.Present(0, 1);
                     EditorUtility.SetDirty(saw);
                     EditorUtility.SetDirty(saw.Hazard);
@@ -132,7 +132,7 @@ namespace CurtainCall.HumanCannon.EditorTools
                     data.FindProperty("radius").floatValue = 0.55f;
                     data.FindProperty("phase").floatValue = -Mathf.PI * 0.5f + i * 0.6f;
                     data.ApplyModifiedPropertiesWithoutUndo();
-                    saw.gameObject.AddComponent<HumanCannonPoleSaw>().ConfigureAcrossMap(poles[i], saw, -15f, 15f, 4f);
+                    saw.gameObject.AddComponent<HumanCannonPoleSaw>().ConfigureAcrossMap(poles[i], saw, -15f, 15f, 6f);
                     saw.Present(0, 1);
                     HumanCannonOutline.AttachToHierarchy(saw.gameObject, outline);
                     hazards.GetArrayElementAtIndex(originalCount + i).objectReferenceValue = saw;

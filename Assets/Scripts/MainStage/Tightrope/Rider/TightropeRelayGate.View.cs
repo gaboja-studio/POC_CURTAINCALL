@@ -33,6 +33,8 @@ namespace CurtainCall.Tightrope
         static readonly Color RelayOrange = new(1f, .55f, .08f);
         static readonly Color RelayIdle = new(.3f, .37f, .43f);
 
+        public Transform PoleVisual(int index) => index >= 0 && index < relayPoleViews.Count ? relayPoleViews[index].Bar : null;
+
         public string LocalHint
         {
             get

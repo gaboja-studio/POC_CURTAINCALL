@@ -160,24 +160,60 @@ namespace CurtainCall.HumanCannon.Tests
 
 
         [UnityTest]
-        public IEnumerator PoleGrab_ExpandedReachAcceptsNearMiss_ButRejectsBeyondThreeMeters()
+        public IEnumerator PoleGrab_ExpandedReachAcceptsNearMiss_ButRejectsBeyondTolerance()
         {
             DisableEnhancementThreats();
             var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
             var pole = (Component)Call(poles, "Pole", 1);
             var grip = (Transform)Get(pole, "Grip");
+            yield return WaitUntil(() => Object.FindAnyObjectByType(GameType("CurtainCall.UI.SceneIntegration.CommonInteractionUI")) != null,
+                15f, "기존 상호작용 UI 비동기 로드");
             yield return Board(0);
             yield return ReleaseThenArm();
             Input(tapped: true);
             var hang = (Vector3)Call(pole, "HangingPosition", 0f);
-            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), hang + Vector3.right * 3.25f, grip.rotation, Vector3.zero);
+            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), hang + Vector3.right * 4f, grip.rotation, Vector3.zero);
+            AssertPoleInteractionUI(pole, false);
             Input(tapped: true);
             yield return null;
-            Assert.AreEqual(-1, Get(pilot, "HeldPole"), "3m 밖의 다른 봉을 원격으로 잡지 않는다.");
-            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), hang + Vector3.right * 2.75f, grip.rotation, Vector3.zero);
+            Assert.AreEqual(-1, Get(pilot, "HeldPole"), "25% 여유를 더한 3.75m 밖에서는 잡지 않는다.");
+            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), hang + Vector3.right * 3.5f, grip.rotation, Vector3.zero);
+            AssertPoleInteractionUI(pole, true);
             Input(tapped: true);
             yield return WaitUntil(() => (int)Get(pilot, "HeldPole") == 1, 2, "expanded host grab reach");
             Assert.AreEqual(Actor, Get(Call(poles, "State", 1), "Occupant"));
+            AssertPoleInteractionUI(pole, false);
+        }
+
+        void AssertPoleInteractionUI(Component pole, bool expected)
+        {
+            var ui = (Component)Object.FindAnyObjectByType(GameType("CurtainCall.UI.SceneIntegration.CommonInteractionUI"));
+            Assert.IsNotNull(ui, "기존 공통 상호작용 UI 씬을 사용한다.");
+            var camera = Camera.main;
+            var cameraPosition = camera.transform.position;
+            var cameraRotation = camera.transform.rotation;
+            bool wasEnabled = reader.enabled;
+            try
+            {
+                var point = (Vector3)Call(pole, "HangingPosition", 0f);
+                camera.transform.position = point + Vector3.up * .75f - Vector3.forward * 2f;
+                camera.transform.LookAt(point);
+                reader.enabled = true;
+                Physics.SyncTransforms();
+                Call(ui, "LateUpdate");
+                var highlighted = (System.Collections.IEnumerable)Get(ui, "Highlighted");
+                bool found = highlighted.Cast<Transform>().Contains(pole.transform);
+                Assert.AreEqual(expected, found, "잡기 범위·점유에 맞춰 기존 외곽선이 표시/해제되어야 한다.");
+                var prompt = Get(ui, "Prompt");
+                Assert.AreEqual(expected, Get(prompt, "IsVisible"), "같은 F 입력 대상의 기존 C6 안내를 사용한다.");
+                if (expected)
+                {
+                    Assert.AreEqual("F", Get(Get(prompt, "keyLabel"), "text"));
+                    Assert.AreEqual("봉 잡기", Get(Get(prompt, "actionLabel"), "text"));
+                    Assert.IsTrue(pole.GetComponentsInChildren<MeshRenderer>().Any(r => r.name == "__InteractionOutline" && r.enabled));
+                }
+            }
+            finally { reader.enabled = wasEnabled; camera.transform.SetPositionAndRotation(cameraPosition, cameraRotation); }
         }
 
 

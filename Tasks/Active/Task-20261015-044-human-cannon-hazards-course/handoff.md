@@ -1,8 +1,14 @@
 # Handoff
 
 ## 지금 상태
+- 2026-10-22 저장·제출 요청: fix/cannon-saw-gate-window의 기존 dev 대상 초안 PR #210에 봉 잡기/표시·톱 완화를 추가한다. 사용자 PM 허락 전달·급한 예외 적용. 기존 아웃라인/C6만 재사용, 신규 UI/프리팹/에셋 생성·삭제 없음.
+- 사용자 후속 결정: 잡기 여유 확대 후 실제 잡기 가능할 때만 표시. 인간대포 기본3m×1.25=3.75m(부상 배율 유지), 외줄 회전봉 접근±0.9→1.2m·연결봉±0.8→1.1m·공중그네 첫 봉 수평25%/다음 봉 옆 허용1.1→1.4m. 도약 진행50~100% 창·첫 봉 높이 조건·점유/호스트 승인 유지.
+- 실제 봉 메시를 기존 InteractionOutline 대상으로 연결하고 실제 F 선택 API로 안내를 선택한다. 잡기 가능한 봉은 기존4m 표시 제한으로 누락되지 않도록 한다. 인간대포 C15 봉 툴팁은 C6가 연결된 동안 숨겨 중복을 막는다. 공통 UI 로더는 변경하지 않았다.
+- 최신 후속 완화: 기존 봉 주변 왕복 톱10개의 저장 주기4→6초. 빌더도6초로 맞춰 재적용 시 유지한다. 공통 상호작용 외곽선3→6픽셀·HDR색(3,2.8,2.2)로 기존 UI 씬에 저장. 기존 검정 윤곽보다 뒤에 그리며 비활성 기본 도형 대신 활성 메시 중심을 표시점으로 사용한다. 새 UI/셰이더/에셋 없음.
+- 아침 작업 대조: 6e4e8ab/bb69ab7/629a9c2는 HEAD 선조. feat/tightrope-enhancement·fix/human-cannon-air-control-art의 ArtKit 에셋은 현재와 동일(readme 제외), 현재 외줄 씬의 가로/수직/협동 톱 참조와 아트 프로필 연결 유지. private 서브모듈과 origin/main 차이는 README뿐. 기존 폰트·재질·MPPM 로컬 변경 보존.
+- 사용자 요청으로 플레이 검증은 사람이 진행. Start 씬에서 수동 확인 대기. 최신 dev 포함(HEAD만3커밋 앞섬), git merge-tree 충돌 없음. 실제 병합은 하지 않았다.
 - submitted / submit-work — 2026-10-16 사용자 요청으로 구현20f0d90 커밋·push 및 PR 제출 완료, PM 리뷰 대기. 부모70e242a 최신 확인. [최신 배치·확인 순서](History/20261016-strategic-poles-and-saw-walls.md).
-- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/131
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/210
 - 기존 코스만 유지·총60m 연장·목표10분. 봉16개 격자 폐기→구간별 일반2/해제1 총6개 전략 분산. 높이는 반동 정점보다0.5m 아래(바닥 기준7.34m).
 - 보이는 봉/검정띠/케이블은 공유 반동 각도로 플레이어 앞뒤 이동을 추종, 놓으면0도 복귀. 상부 고정점/물리 Grip/반동 힘/릴리즈 속도 유지·실제 천장 면 없음.
 - 함정/송풍 두 배: 가시추4·회전 날개4·지상톱8·송풍8. 최종 가로톱4/수직2, 예고·공유주기·속도·반경 유지. 바람줄기16개씩/큰 화살표/범위선으로 방향 표시.
@@ -16,11 +22,11 @@
 
 ## Verification
 - 환경: doctor044 최초1회 FAIL0/WARN3, Unity6000.3.25f1 사용. 이번 연속 작업에서는 재실행하지 않음.
-- 구역 검사: 자동 FAIL8 — [PM 순차 이관 위임](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)에 해당하는 Integration3/043문서4/044setup1. 수동 감사 일치, 코드/씬/재질은044 Allowed 안·공용 금지 경로 변경0.
-- 1 문서/규칙: check-work 후속 SKIPPED, 별도 verify-fast PASS(hard0/기존 WARN6)·diff --check PASS.
-- 2 컴파일: 별도 PASS — completed/failed:false, 제출 직전 에디터 저장/정지/준비 확인.
-- 3 테스트: 별도 PASS — EditMode350/350(0.74초), 실제 LAN호스트 PlayMode9/9(25.67초). 같은 구현 검사 재사용, 실입력/실제4인 결과로 대체하지 않음.
-- 4 씬: 저장·root15·봉6·일반 함정16·송풍8·최종톱6. Scene View에서 중앙 톱 열·분산 봉·청록 바람 표시 확인, Play 종료 후 저장 상태 확인.
+- 구역 검사: PASS (10-22)
+- 1 문서/규칙: PASS (10-22)
+- 2 컴파일: PASS (2026-10-22 최종 verify-unity -Compile completed). diff --check PASS, 미해결 충돌 없음.
+- 3 테스트: SKIPPED(사용자가 직접 테스트 지시). 앞선 합성2건은 UI 비동기 로드 대기 누락으로 FAIL2/2였으며 준비 코드만 보완, 이후 재실행하지 않음. 실제 플레이 PASS 아님.
+- 4 씬: 에디터 SerializedObject 저장/조회로 톱10개6초·외곽선6픽셀/HDR색 확인. git diff는 HumanCannon 씬 주기10줄과 CommonInteractionUI 색/두께2줄만 변경. Start 씬으로 복귀·dirty0. 화면의 실제 가시성/생존 여유는 사람 확인 대기.
 - 5 사람 확인/실제4인: 미실행. human-verify 유지.
 
 ## PM이 확인할 것

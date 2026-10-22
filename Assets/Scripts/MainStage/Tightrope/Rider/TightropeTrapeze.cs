@@ -189,7 +189,7 @@ namespace CurtainCall.Tightrope
             var rules = GameSettings.Tightrope.RopeMovement;
             // 첫 봉은 다리 손상으로 낮아진 목마에서도 닿을 여유를 준다. 혼자 점프한 높이는 여전히 범위 밖이다.
             float vertical = index == 0 ? rules.TrapezeEntryHeightTolerance : .5f * reach;
-            float horizontal = (index == 0 ? rules.TrapezeEntryGrabDistance : .85f) * reach;
+            float horizontal = (index == 0 ? rules.TrapezeEntryGrabDistance : .85f) * reach * 1.25f;
             return reach > 0f && Mathf.Abs(delta.y) <= vertical
                 && Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude <= horizontal * horizontal;
         }
@@ -202,7 +202,7 @@ namespace CurtainCall.Tightrope
             if (index != 0 || !player.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRope(mover, out int lane) || lane != Lane) return false;
             Vector3 delta = player.transform.position - Feet(index, true);
             return reach > 0f && Mathf.Abs(delta.y) <= 1.2f * reach
-                && Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude <= 1.1f * 1.1f * reach * reach;
+                && Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude <= 1.4f * 1.4f * reach * reach;
         }
 
         float FlightDistanceLimit(int from, Vector3 origin)
@@ -225,7 +225,7 @@ namespace CurtainCall.Tightrope
 
         bool CanCatchNextPole(NetworkPlayer player, int index, FlightState flight, float reach) => reach > 0f
             && index == flight.From + 1 && SwingPoleMath.InCatchWindow(flight.Position, player.transform.position,
-                course.Forward, Mathf.Max(.1f, Vector3.Dot(flight.Target - flight.Position, course.Forward)), 1.1f * reach);
+                course.Forward, Mathf.Max(.1f, Vector3.Dot(flight.Target - flight.Position, course.Forward)), 1.4f * reach);
         void Sample(int index, out float angle, out float speed)
         {
             var state = poles[index]; angle = state.Angle; speed = state.Speed;
