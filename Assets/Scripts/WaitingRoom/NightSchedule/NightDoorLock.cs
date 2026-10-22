@@ -75,7 +75,8 @@ namespace CurtainCall.WaitingRoom
         static bool ShouldLock()
         {
             var run = CampaignRun.Instance;
-            return run != null && run.State.Phase == CampaignPhase.Night;
+            return run != null && (run.State.Phase == CampaignPhase.Night || run.State.Phase == CampaignPhase.Dawn
+                || run.State.Phase == CampaignPhase.DemoEnding);
         }
 
         void Apply(bool locked, bool initial)
@@ -99,7 +100,7 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            if (!showLegacyNotice || !IsLocked) return;
+            if (!showLegacyNotice || !IsLocked || CampaignRun.Instance?.State.Phase == CampaignPhase.DemoEnding) return;
             style ??= new GUIStyle(GUI.skin.box) { fontSize = 16, alignment = TextAnchor.MiddleCenter };
             const float width = 420, height = 32;
             GUI.Box(new Rect((Screen.width - width) / 2f, 10, width, height), notice, style);

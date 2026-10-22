@@ -431,6 +431,13 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.AreEqual("None", Call(board, "Confirm").ToString());
             var scene = SceneManager.GetActiveScene();
             Assert.IsTrue((bool)Call(board, "RequestReady", true));
+            Assert.AreEqual("Dawn", Phase);
+            Assert.IsTrue((bool)Get(view, "IsOpen"));
+            yield return new WaitForSecondsRealtime(.2f);
+            Assert.AreEqual("Dawn", Phase, "스케줄표를 닫기 전에는 밤낮 연출/아침 전환 대기");
+            Call(view, "SetOpen", false);
+            float morningDeadline = Time.realtimeSinceStartup + 5;
+            while (Phase == "Dawn" && Time.realtimeSinceStartup < morningDeadline) yield return null;
             yield return WaitIdle();
             Assert.AreEqual("RestTime", Phase);
             Assert.AreEqual("WaitingForExit", Get(State, "Timer").ToString());

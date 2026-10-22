@@ -50,7 +50,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.IsFalse(run.NotifyAllAtStageEntrance());
             run.DebugSetRemaining(0);
             run.Tick(.1f);
-            Assert.AreEqual(CampaignPhase.Intro, run.Snapshot.Phase);
+            Assert.AreEqual(CampaignPhase.Performance, run.Snapshot.Phase);
             Assert.AreEqual(RunEndReason.Deadline, run.Snapshot.LastEnd);
         }
 

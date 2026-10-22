@@ -22,6 +22,10 @@ namespace CurtainCall.Campaign
         Escape,
         /// <summary>탈출 성공 엔딩.</summary>
         Ending,
+        /// <summary>0.1.0 한정: 4일차 아침 데모 종료 연출. 탐색 타이머 없음.</summary>
+        DemoEnding,
+        /// <summary>밤 준비 완료 후 화면을 가리는 중. 전원 페이드아웃 완료 후 다음 날 아침.</summary>
+        Dawn,
     }
 
     /// <summary>쉬는 시간 종류.</summary>
