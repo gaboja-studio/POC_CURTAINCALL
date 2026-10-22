@@ -1,11 +1,11 @@
 # Task-20261015-044
 
-- **Title:** 팔다리 손실별 외줄 협동 진입 및 인간대포 지상 톱 회피 보완
+- **Title:** 묘기 부상별 협동 진행 및 인간대포 배치·접촉 보완
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
-- **Current Skill:** implement-code
+- **Current Skill:** submit-work
 - **Updated:** 2026-10-22
 
 ## Workspace
