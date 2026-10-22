@@ -22,6 +22,8 @@
 - 빌드를 다시 만들거나 같은 PC에서 게임을 재시작하는 것만으로 캐시는 초기화되지 않는다.
 
 ## 캐시를 지워 다시 확인하기
+Unity에서는 재생을 모두 멈추고 **CurtainCall → 설문 캐시 초기화 → 기본 플레이어만 / MPPM 보조 플레이어 포함**을 사용한다. 0.1.0 두 폼의 열림 표시만 지우고 로그·대기 배치·Google 응답은 보존한다. 같은 PC 저장공간을 공유하는 빌드에도 적용된다. 아래는 수동 방법이다.
+
 1. 게임을 종료한다.
 2. 현재 프로젝트는 `%USERPROFILE%\AppData\LocalLow\DefaultCompany\POC_CURTAINCALL\TelemetryPipeline\SurveyCache`다. 회사명·제품명을 바꿨다면 Unity Player Settings 값에 따라 경로도 바뀐다.
 3. 이 **SurveyCache 폴더만** 지운다. 옆의 로그 파일은 지우지 않는다.
