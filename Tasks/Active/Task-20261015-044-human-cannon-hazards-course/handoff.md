@@ -1,6 +1,7 @@
 # Handoff
 
 ## 지금 상태
+- 최신 후속: dev da76115를 기존 작업 브랜치에 pull 후 사용자 요청대로 외줄 정면톱 비활성화. Unity 에디터로 TightropeSettings의 cooperativeGates=false 및 기존 수직 SpawnVertical 실행 항목 제거(가로 전체 단계/14개 유지). 다른 톱/인간대포 미수정, 씬 clean·설정 저장 확인. 도착 판정은 관문 기록 독립, 비활성 관문 통과 가능·충돌체/피해/표시 꺼짐 정적 확인. 컴파일 PASS(up_to_date), 실제/자동 테스트 미실행, 이번 변경 미커밋/미제출.
 - 최신 후속: dev 374675e를 기존 작업 브랜치에 pull 후 정면/협동 관문 톱 즉사를 기존 ServerCut(1부위)으로 변경. 가로/정면/관문이 기존 플레이어별 hitCooldown(1초) 공유, 지속 접촉 1회·실제 절단 부위 공유·마지막 부위 사망 유지. 사용자 Play 종료 확인 후 수정. 893b770 선별 저장·push 및 dev 대상 PR #218 제출 완료. 실제/자동 테스트 미실행.
 - 최신 후속: 외줄 도착 시 1명 즉시 클리어 복원. 기존 작업 브랜치에 dev 2c870af pull 완료. TightropeRun의 독립/연결/캠페인 도착에서 관문 완료 기록 조건 제거, 원격 도착 요청은 호스트 위치도 확인. 참가 준비/정상 생존/공연 세대·시작 확인·호스트 권한 유지. Unity Play 종료 확인 후 수정, 컴파일 PASS(completed), 테스트 SKIPPED. ef247bd 저장·push 및 dev 대상 PR #217 제출 완료.
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/218
@@ -24,8 +25,8 @@
 - 환경: 연속 작업 최초 doctor FAIL0/WARN1(CLI 버전 차이), 중복 실행 안 함. 현재 Unity stopped/ready, Start 씬 clean.
 - 구역 검사: PASS (10-22)
 - 문서/규칙: PASS (2026-10-22 check-work -SkipUnity).
-- 2 컴파일: PASS (2026-10-22 정면/관문 톱 절단 변경 후 별도 verify-unity -Compile completed). check-work -SkipUnity는 구역/문서 검사에만 사용.
-- 3 테스트: SKIPPED — 사용자 수행 지시, 실제/자동 테스트 미실행. 정면/관문 피격·지속 접촉·종류 간 겹침·외팔 마지막 부위·호스트/클라이언트 확인 대기.
+- 2 컴파일: PASS (2026-10-22 정면톱 비활성화 후 verify-unity -Compile up_to_date). check-work -SkipUnity는 구역/문서 검사에만 사용.
+- 3 테스트: SKIPPED — 사용자 수행 지시. 다음 플레이에서 정면톱 미출현·가로톱 유지·1명 도착 클리어 실제 확인 대기.
 - 에디터 참조: HumanCannon missing scripts0·broken serialized references0·dirty=false, grabDistance4/UpwardSpeed12 유지. 설정 톱14/시작 범위14·그네 레일 겹침0.
 - 정적 코드: 동일 플레이어 잡기/반동 상호 배제·다른 플레이어 영향·대기 해제·프레임 중복 입력·하층 우선 순서 검토. git diff --check PASS, 미해결 병합 충돌0. 새로운 추적 대상 파일 없음.
 
