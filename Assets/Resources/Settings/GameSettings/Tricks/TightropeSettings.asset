@@ -135,7 +135,7 @@ MonoBehaviour:
       delay: 0
       action: 0
       firstSaw: 1
-      lastSaw: 16
+      lastSaw: 14
       lane: -1
       repeat: 0
       repeatDelay: 0
@@ -168,10 +168,6 @@ MonoBehaviour:
     - distance: 80.6
       startSide: 1
     - distance: 90.4
-      startSide: 0
-    - distance: 100.200005
-      startSide: 1
-    - distance: 110
       startSide: 0
     - distance: 119.8
       startSide: 1

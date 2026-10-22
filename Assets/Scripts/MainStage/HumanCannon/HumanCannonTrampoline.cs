@@ -22,7 +22,7 @@ namespace CurtainCall.HumanCannon
         [Tooltip("운송 시 검사할 프레임의 좌우/앞뒤 반폭. 0이면 기존 반동 면 크기를 사용한다.")]
         [SerializeField] Vector2 loadHalfSize;
         [Tooltip("손잡이 잡기 거리(m). 공용 상호작용 거리 배율 적용.")]
-        [Min(0.1f), SerializeField] float grabDistance = 3f;
+        [Min(0.1f), SerializeField] float grabDistance = 4f;
         [Tooltip("수직 반동 속도(m/s). 자동 전진은 멈추고 WASD 조절은 유지한다. 다리 부상으로 감소하지 않는다.")]
         [Min(0.1f), SerializeField] float upwardSpeed = 12f;
         [Tooltip("땅에서 점프해 첫 반동을 시작한 플레이어의 WASD 수평 조절 속도(m/s). 트램폴린 운반 이동도 같은 기본 속도를 쓴다.")]
@@ -39,6 +39,9 @@ namespace CurtainCall.HumanCannon
         Quaternion previousRotation;
         Bounds contactBounds;
         bool contactBoundsReady;
+        bool localGrabPending;
+        uint localGrabRevision;
+        double localGrabUntil;
         bool carrierRecoveryPending;
         Renderer[] handleRenderers;
         MaterialPropertyBlock[] idleHandleProperties;
@@ -222,7 +225,31 @@ namespace CurtainCall.HumanCannon
             return PlayerInteraction.InRange(player, Surface, radius);
         }
 
-        internal void RequestGrab() => SendRequest(TrampolineAction.Grab, -1, 0, 0, transform.position);
+        internal void RequestGrab()
+        {
+            var player = NetworkPlayer.Local;
+            if (!CanGrab(player) || GrabPending(player)) return;
+            localGrabPending = true;
+            localGrabRevision = ownership.Revision;
+            var condition = player.GetComponent<PlayerCondition>();
+            // 호스트의 외팔 대기와 왕복 지연 동안 같은 플레이어의 반동 요청을 보내지 않는다.
+            localGrabUntil = Time.timeAsDouble + 1.5d
+                + HumanCannonSystem.Current.Injuries.InteractionSeconds(condition != null && condition.IsOneArm);
+            SendRequest(TrampolineAction.Grab, -1, 0, 0, transform.position);
+        }
+
+        internal bool GrabPending(NetworkPlayer player)
+        {
+            if (player == null) return false;
+            if (player.IsLocal && localGrabPending)
+            {
+                if (localGrabRevision != ownership.Revision || Time.timeAsDouble > localGrabUntil || !CanGrab(player))
+                    localGrabPending = false;
+                else return true;
+            }
+            return session != null && session.IsHost && HumanCannonSystem.Current != null
+                && HumanCannonSystem.Current.HasPendingTrampolineGrab(player, ownership.Revision);
+        }
         internal void RequestDrop() => SendRequest(TrampolineAction.Drop, -1, 0, 0, transform.position);
 
         internal bool TryContact(Vector3 from, Vector3 to, float radius, float height, out Vector3 contact) =>
@@ -313,7 +340,7 @@ namespace CurtainCall.HumanCannon
             var cannon = HumanCannonSystem.Current;
             // 위치는 소유자가 계산한다. 지연 허용 폭 안의 접촉과 현재 비행 식별자를 함께 검사한다.
             bool nearSurface = NearSurface(player, contact);
-            bool accepted = !BounceBlocked(contact) && Carrier != player.OwnerClientId && nearSurface && cannon != null
+            bool accepted = !GrabPending(player) && !BounceBlocked(contact) && Carrier != player.OwnerClientId && nearSurface && cannon != null
                 && cannon.ApplyRebound(player.OwnerClientId, station, launch, segment, contact, upwardSpeed);
             if (accepted)
             {
@@ -329,6 +356,7 @@ namespace CurtainCall.HumanCannon
 
         void HandleRestart(NetworkPlayer player)
         {
+            localGrabPending = false;
             if (player.IsLocal) LocalBounceCount = 0;
             if (session == null || !session.IsHost) return;
             carrierRecoveryPending = false;
@@ -352,6 +380,7 @@ namespace CurtainCall.HumanCannon
 
         void OnDisable()
         {
+            localGrabPending = false;
             RestoreHandleAppearance();
             NetworkPlayer.Restarted -= HandleRestart;
             Unregister();

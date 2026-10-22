@@ -120,6 +120,7 @@ namespace CurtainCall.HumanCannon
 
         void HandleConnection(SessionConnectionState state)
         {
+            localGrabPending = false;
             Unregister();
             if (state == SessionConnectionState.Offline)
             {

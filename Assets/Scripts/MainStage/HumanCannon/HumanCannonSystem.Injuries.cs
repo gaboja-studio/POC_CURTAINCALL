@@ -71,5 +71,8 @@ namespace CurtainCall.HumanCannon
             injuryInteractions.Schedule(target.OwnerClientId, device, revision, Time.timeAsDouble, delay, isValid, complete);
             return true;
         }
+
+        internal bool HasPendingTrampolineGrab(NetworkPlayer target, uint revision) =>
+            target != null && injuryInteractions.HasPending(target.OwnerClientId, -1, revision);
     }
 }

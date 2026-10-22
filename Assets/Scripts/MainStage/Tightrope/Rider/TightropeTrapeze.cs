@@ -39,6 +39,7 @@ namespace CurtainCall.Tightrope
         double nextSnapshot, nextDrive, pendingUntil, feedbackUntil;
         string feedback;
         bool localAborted, localAbortWaiting;
+        int controlledInputFrame = -1;
         public static TightropeTrapeze Current { get; private set; }
         public float AirControlSpeed => poles[0]?.Physics != null ? poles[0].Physics.AirControlSpeed : 3f;
         public string LocalFeedback => Clock < feedbackUntil ? feedback : null;
@@ -98,6 +99,11 @@ namespace CurtainCall.Tightrope
             if (!Active) { ResetLocal(); ClearState(); return; }
             if (session != null && session.IsHost) HostStep();
             ReconcileLocal();
+            // 봉 점유 중에는 외줄/플랫폼 조작 규칙 전환과 무관하게 입력을 받는다.
+            var local = NetworkPlayer.Local;
+            if (local != null && (IsHeld(local) || IsInFlight(local))
+                && local.TryGetComponent(out PlayerInputReader reader) && reader.isActiveAndEnabled)
+                ReadControlledInput(local, reader.Current);
         }
         void HostStep()
         {
@@ -142,22 +148,29 @@ namespace CurtainCall.Tightrope
             if (held || IsInFlight(local))
             {
                 context.Mover.ClearPendingInput();
-                air.SetInput(new Vector2(input.Posture, input.Move), Time.frameCount);
-                if (!InputGate.IsBlocked)
-                {
-                    if (held && !lower && Clock >= nextDrive)
-                    { Send(Command.Swing, pole, input.Move); nextDrive = Clock + .05d; }
-                    if (held && input.ActionPressed)
-                    {
-                        if (!lower && poles[pole].Lower != Nobody) Tell("아래 동료가 먼저 Space로 날아가야 해요");
-                        else Send(Command.Release, pole);
-                    }
-                    if (!held && input.InteractTapped) TryRequestCatch(local);
-                }
+                ReadControlledInput(local, input);
                 return true;
             }
             if (Clock < pendingUntil) { context.Mover.ClearPendingInput(); return true; }
             return !InputGate.IsBlocked && input.InteractTapped && TryRequestCatch(local);
+        }
+
+        void ReadControlledInput(NetworkPlayer local, in PlayerInputFrame input)
+        {
+            if (controlledInputFrame == Time.frameCount) return;
+            controlledInputFrame = Time.frameCount; // 조작 규칙 경로와 이중으로 Space/F를 보내지 않는다.
+            if (!Active || localAborted || local.State != PlayerState.Normal || InputGate.IsBlocked) { air.Clear(); return; }
+            bool held = FindHeld(local, out int pole, out bool lower);
+            if (!held && !IsInFlight(local)) return;
+            air.SetInput(new Vector2(input.Posture, input.Move), Time.frameCount);
+            if (held && !lower && Clock >= nextDrive)
+            { Send(Command.Swing, pole, input.Move); nextDrive = Clock + .05d; }
+            if (held && input.ActionPressed)
+            {
+                if (!lower && poles[pole].Lower != Nobody) Tell("아래 동료가 먼저 Space로 날아가야 해요");
+                else Send(Command.Release, pole);
+            }
+            if (!held && input.InteractTapped) TryRequestCatch(local);
         }
         bool TryRequestCatch(NetworkPlayer local)
         {
