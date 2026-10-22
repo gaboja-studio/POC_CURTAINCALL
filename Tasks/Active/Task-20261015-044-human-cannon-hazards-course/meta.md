@@ -1,8 +1,8 @@
 # Task-20261015-044
 
-- **Title:** 4인 코스 피드백·구형 상호작용·점프 게이지 회피 수정
+- **Title:** 인간대포 휴식 봉 분산 및 트램폴린 전체 접촉 완화
 - **Type:** fix
-- **Status:** submitted
+- **Status:** working
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
 - **Current Skill:** submit-work
