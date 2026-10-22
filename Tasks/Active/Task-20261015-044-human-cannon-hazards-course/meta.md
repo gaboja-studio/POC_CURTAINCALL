@@ -2,7 +2,7 @@
 
 - **Title:** 4인 코스 피드백·구형 상호작용·점프 게이지 회피 수정
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
 - **Current Skill:** submit-work

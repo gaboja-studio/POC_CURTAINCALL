@@ -1,7 +1,8 @@
 # Handoff
 
 ## 지금 상태
-- 2026-10-22 4인 후속 수정. PR #210 병합 후 최신 dev 285bc146을 pull하고 fix/four-player-course-feedback에서 작업했다. 저장 직전 git pull --ff-only origin dev 완료(Already up to date, 285bc146). PR 생성 직전에도 dev pull을 반복 확인한다. 점프 회피 수정 후 사용자 저장·제출 재개 지시 수신. 최신 dev 및 검증 확인 후 이번 변경만 선별 커밋·push하고 dev 대상 PR 제출 진행. 사용자 폰트·재질 변경 보존.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/211
+- 2026-10-22 4인 후속 수정. PR #210 병합 후 최신 dev 285bc146을 pull하고 fix/four-player-course-feedback에서 작업했다. 저장 직전 git pull --ff-only origin dev 완료(Already up to date, 285bc146). PR 생성 직전 git pull --ff-only origin dev도 Already up to date. 사용자 재개 지시로 구현 32a3879 커밋·push 및 dev 대상 PR #211 제출 완료. 사용자 폰트·재질 변경 보존.
 - 인간대포 일반 휴식 봉5+관문 연결2=총7개. 일반 봉은 초반 z16/x-19,0,19와 중간 쉼터 z82.5/x-19,19. 연결 봉 z44/120 유지. 봉/천장 지지대를 함께 이동해 줄 길이8m 유지. 관문 이후 연속 봉 동선을 줄였으며 실제 단독 우회 여부는 사람이 확인한다.
 - 공중 장애물18개(봉 톱10·가시추4·회전날4)와 최종 공중 톱 컨트롤러1개 제거. 지상 톱12·톱 벽2 유지. PoleSystem/HazardCourse 배열7/12로 정리.
 - 외줄 그네 발 기준 높이2.5/3.1/1.1→1.5/2.1/0.6m. 지상/점프 구분 없는 F 한 번 잡기. 위치 수신 여유0.35→0.5초, 비행 다음 봉·점유·생존·호스트 토큰/버전 유지.
@@ -15,7 +16,7 @@
 
 ## 다음 할 일
 1. 사용자가 Start에서 4인으로 일반 봉 쉼터/단독 우회·구형 접근/F·목마 대상 아웃라인·톱 간격을 확인한다. 실제4인 PASS 아님.
-2. 사용자 재개 지시에 따라 dev 대상 PR 제출 후 PM 검토/사람 검증 대기. 사용자 폰트·재질5개는 별도 변경으로 보존한다.
+2. PR #211의 PM 검토/사람 검증 대기. 사용자 폰트·재질5개는 별도 변경으로 보존한다.
 
 ## Verification
 - 환경: 연속 작업 최초 doctor FAIL0/WARN1(CLI 버전 차이), 중복 실행 안 함.
