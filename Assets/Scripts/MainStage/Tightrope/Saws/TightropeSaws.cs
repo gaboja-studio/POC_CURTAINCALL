@@ -19,11 +19,11 @@ namespace CurtainCall.Tightrope.Saws
         CooperativeGate,
     }
 
-    /// <summary>톱날 접촉 결과(호스트가 정해 모든 화면에 알림). 정면 톱은 절단 없이 즉사한다.</summary>
+    /// <summary>톱날 접촉으로 잘린 부위(호스트가 정해 모든 화면에 알림).</summary>
     public readonly struct SawHit
     {
         public readonly NetworkPlayer Player;
-        /// <summary>가로 톱에 실제로 잘린 부위. 정면 톱의 즉사에는 None.</summary>
+        /// <summary>실제로 잘린 부위.</summary>
         public readonly BodyPart Part;
         /// <summary>닿은 위치로 정한 연출용 부위. 실제 손실은 공용 고정 순서를 따른다.</summary>
         public readonly BodyPart Requested;
@@ -54,7 +54,7 @@ namespace CurtainCall.Tightrope.Saws
     /// - 수직 톱날: 호스트가 줄·출현·내려감을 정해 NGO 이름 붙은 메시지로 공유하고, 위치는 각 화면이 시간으로 계산한다.
     ///   뒤의 발판(임시 형태)을 살아 있는 플레이어가 밟으면 톱날이 빠르게 내려간 뒤 사라진다. 눌림 판정(<see cref="IsPlatePressed"/>)과 겉모습은 분리돼 있다.
     /// - 판정: 호스트가 묘기 진행 중에 진행 중인 플레이어(<see cref="PlayerState.Normal"/>)만 본다(도착 완료·사망 무시). 020 신체 손상에 절단을 요청한다(규칙 #9):
-    ///   가로 톱날은 순서 절단(<see cref="NetworkPlayer.ServerCut"/>), 정면 톱날은 즉사(<see cref="NetworkPlayer.ServerKill"/>)를 사용한다.
+    ///   가로·정면·협동 관문 톱날 모두 순서 절단(<see cref="NetworkPlayer.ServerCut"/>)으로 한 부위씩 자른다.
     ///   실제로 잘린 부위를 모든 화면에 <see cref="Hit"/>로 알리고 로그로 남긴다. 패널티·탈락·공유는 020이 한다.
     /// - 묘기 재시작(<see cref="TightropeRun.RunRestarted"/>)이면 처음 상태로.
     /// 수치는 <see cref="Settings"/>(<see cref="SawSettings"/>) 한 곳에 모은다. 씬에 코스(<see cref="TightropeCourse"/>·<see cref="TightropeRun"/>)와 함께 둔다.
@@ -596,20 +596,16 @@ namespace CurtainCall.Tightrope.Saws
             touchingNow.Add(key);
             if (touching.Contains(key)) return;
             if (lastHitAt.TryGetValue(key, out float last) && Time.time - last < settings.hitCooldown) return;
-            // 서로 다른 톱이 겹쳐도 같은 접촉 순간에 팔다리가 여러 개 잘리지 않는다. 정면 즉사에는 적용하지 않는다.
-            if (kind == SawKind.Horizontal && lastPlayerCutAt.TryGetValue(player.NetworkObjectId, out float playerLast)
+            // 톱 종류가 달라도 같은 접촉 순간에 팔다리가 여러 개 잘리지 않는다.
+            if (lastPlayerCutAt.TryGetValue(player.NetworkObjectId, out float playerLast)
                 && Time.time - playerLast < settings.hitCooldown) return;
             lastHitAt[key] = Time.time;
 
-            // 가로 절단과 정면 즉사를 분리한다. 버튼을 일찍 누른 상층도 실제 톱의 접촉을 면제하지 않는다.
+            // 기존 공용 순서로 한 부위만 자른다. 버튼을 일찍 누른 상층도 실제 톱의 접촉을 면제하지 않는다.
             var requested = SawMath.DecidePart(contact, body, course.Right, settings.waistHeight);
-            BodyPart cut = BodyPart.None;
-            if (kind == SawKind.Horizontal)
-            {
-                cut = player.ServerCut();
-                if (cut != BodyPart.None) lastPlayerCutAt[player.NetworkObjectId] = Time.time;
-            }
-            else if (!player.ServerKill()) return;
+            BodyPart cut = player.ServerCut();
+            if (cut == BodyPart.None) return;
+            lastPlayerCutAt[player.NetworkObjectId] = Time.time;
             var hit = new SawHit(player, cut, requested, kind, index, contact, contact.y - body.Feet.y);
             RaiseHit(hit);
             BroadcastHit(hit);
@@ -640,8 +636,7 @@ namespace CurtainCall.Tightrope.Saws
             string saw = hit.Kind == SawKind.Horizontal ? $"가로 톱날 #{hit.Index + 1}"
                 : hit.Kind == SawKind.CooperativeGate ? $"목마 협동 관문 #{hit.Index + 1}" : $"수직 톱날 #{hit.Index}";
             string who = hit.Player != null ? $"P{hit.Player.Slot + 1}" : "(나간 플레이어)";
-            string part = hit.Kind != SawKind.Horizontal ? "즉사"
-                : hit.Part == BodyPart.None ? "잘린 부위 없음(거절 또는 남은 부위 없음)" : hit.Part.ToString();
+            string part = hit.Part == BodyPart.None ? "잘린 부위 없음(거절 또는 남은 부위 없음)" : hit.Part.ToString();
             string requested = hit.Kind == SawKind.Horizontal
                 ? $"순서 절단, 닿은 쪽 {((hit.Requested & (BodyPart.LeftArm | BodyPart.LeftLeg)) != 0 ? "왼쪽" : "오른쪽")}"
                 : $"닿은 부위 {hit.Requested}";
