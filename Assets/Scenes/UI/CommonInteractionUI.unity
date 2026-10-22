@@ -293,8 +293,8 @@ MonoBehaviour:
   prompt: {fileID: 1459116551}
   promptAnchor: {fileID: 1459116549}
   highlightDistance: 4
-  outlinePixels: 3
-  outlineColor: {r: 0.9411765, g: 0.93333334, b: 0.8627451, a: 1}
+  outlinePixels: 6
+  outlineColor: {r: 3, g: 2.8, b: 2.2, a: 1}
 --- !u!4 &1793227118
 Transform:
   m_ObjectHideFlags: 0

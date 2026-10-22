@@ -78,7 +78,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             CollectionAssert.AllItemsAreUnique(poleSaws.Select(s => s.Hazard).ToArray());
             foreach (var saw in poleSaws)
             {
-                Assert.That(saw.Pole.HoldSeconds, Is.Zero, saw.name);
+                Assert.That(saw.Pole.HoldSeconds, Is.EqualTo(saw.Pole.LinkedGate != null ? 40f : 0f), saw.name);
                 Assert.That(saw.Hazard.Kind, Is.EqualTo(CannonHazardKind.GroundSaw), saw.name);
                 Assert.That(Vector3.Distance(saw.Hazard.transform.position, saw.RailCenter), Is.LessThan(0.001f), saw.name);
                 Assert.That((saw.RailCenter - saw.Hazard.Travel).x, Is.EqualTo(-24).Within(0.001f), saw.name);

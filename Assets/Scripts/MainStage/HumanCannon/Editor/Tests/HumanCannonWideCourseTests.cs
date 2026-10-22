@@ -110,7 +110,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                     Is.GreaterThan(0f), "첫 톱의 판정이 도착 발판 위 플레이어에게 닿지 않아야 한다");
                 Assert.That(saws[^1].transform.position.z, Is.EqualTo(61f + section * 76f).Within(.001f));
             }
-            foreach (var saw in All<HumanCannonPoleSaw>()) Assert.That(saw.Hazard.PeriodSeconds, Is.EqualTo(4f));
+            foreach (var saw in All<HumanCannonPoleSaw>()) Assert.That(saw.Hazard.PeriodSeconds, Is.EqualTo(6f));
         }
 
         [Test]

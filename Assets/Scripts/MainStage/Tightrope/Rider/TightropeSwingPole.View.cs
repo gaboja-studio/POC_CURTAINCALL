@@ -16,6 +16,7 @@ namespace CurtainCall.Tightrope
         TightropeSettings.CourseSettings shownShape;
         readonly List<Material> viewMaterials = new();
         Material orange, green;
+        public Transform PoleVisual => crossbar;
         public string LocalHint
             => LocalPole.OwnLocalHint;
         string OwnLocalHint

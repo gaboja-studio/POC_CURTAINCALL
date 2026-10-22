@@ -19,6 +19,7 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField] TMP_Text sectionLabel;
         PerformanceSceneBinding space;
         CommonPerformanceUI owned;
+        CommonInteractionUI interaction;
         bool legacyEnabled;
         string shownGuide, shownTarget;
         static readonly string[] Sections = { "현재 구간 · 출발", "현재 구간 · 1구간", "현재 구간 · 쉼터", "현재 구간 · 2구간", "현재 구간 · 최종구간" };
@@ -83,7 +84,12 @@ namespace CurtainCall.UI.SceneIntegration
 
             int pole = poles != null ? poles.FindGrabbable(player) : -1;
             if (holding || riding || seated || carrying) HideTooltip();
-            else if (pole >= 0) ShowTooltip("pole:" + pole, "봉", "[F] 잡기", poles.HangingPosition(pole));
+            else if (pole >= 0)
+            {
+                if (interaction == null) interaction = FindFirstObjectByType<CommonInteractionUI>();
+                if (interaction != null && interaction.isActiveAndEnabled && interaction.Prompt != null) HideTooltip();
+                else ShowTooltip("pole:" + pole, "봉", "[F] 잡기", poles.HangingPosition(pole));
+            }
             else if (trampoline != null && trampoline.CanGrab(player)) ShowTooltip("trampoline", "트램펄린", "[F] 잡기", trampoline.Handle.position);
             else
             {

@@ -20,8 +20,8 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField] InteractionPromptView prompt;
         [SerializeField] RectTransform promptAnchor;
         [SerializeField, Min(.1f)] float highlightDistance = 4f;
-        [SerializeField, Range(0, 6)] float outlinePixels = 3f;
-        [SerializeField] Color outlineColor = new Color32(240, 238, 220, 255);
+        [SerializeField, Range(0, 6)] float outlinePixels = 6f;
+        [SerializeField, ColorUsage(false, true)] Color outlineColor = new Color(3f, 2.8f, 2.2f, 1f);
         readonly List<Candidate> candidates = new();
         readonly List<Candidate> selected = new();
         readonly List<InteractionOutline> outlines = new();
@@ -36,7 +36,7 @@ namespace CurtainCall.UI.SceneIntegration
 
         sealed class Candidate
         {
-            public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom, Lobby;
+            public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom, Lobby, Pole;
             public float Distance;
             public string Helper, Key = "F";
             public bool Hold, ScreenGuide;
@@ -49,6 +49,8 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 material = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, name = "Interaction highlight (runtime)" };
                 material.SetColor("_OutlineColor", outlineColor); material.SetFloat("_OutlinePixels", outlinePixels);
+                // 기존 검정 외곽선 다음에 그려 상호작용 강조가 덮이지 않게 한다.
+                material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 2;
             }
         }
         void OnEnable() { SceneManager.sceneLoaded += SceneLoaded; Refresh(); }
@@ -99,7 +101,8 @@ namespace CurtainCall.UI.SceneIntegration
             AddPiggyback(feet);
             foreach (var candidate in candidates)
             {
-                if (candidate.ScreenGuide || !candidate.Available || !IsVisible(candidate, camera, reader.transform) || candidate.Distance > highlightDistance) continue;
+                if (candidate.ScreenGuide || !candidate.Available || !IsVisible(candidate, camera, reader.transform)
+                    || !candidate.Pole && candidate.Distance > highlightDistance) continue;
                 int index = 0;
                 while (index < selected.Count && (selected[index].Distance < candidate.Distance ||
                     (Mathf.Approximately(selected[index].Distance, candidate.Distance) && selected[index].Root.GetInstanceID() < candidate.Root.GetInstanceID()))) index++;
@@ -147,6 +150,13 @@ namespace CurtainCall.UI.SceneIntegration
             var player = NetworkPlayer.Local;
             var course = TightropeCourse.Current;
             if (player == null || player.State != PlayerState.Normal || course == null || !course.IsGameplayActive) return;
+            var swing = TightropeSwingPole.Current?.ForPlayer(player);
+            if (swing != null && swing.PoleVisual != null && swing.CanGrabPole(player))
+            {
+                Add(swing.PoleVisual, swing.PoleVisual.position, "봉 잡기", true, true, feet);
+                candidates[candidates.Count - 1].Pole = true;
+                return;
+            }
             var relay = TightropeRelayGate.Current;
             if (relay != null && relay.IsActive)
             {
@@ -158,9 +168,10 @@ namespace CurtainCall.UI.SceneIntegration
                     return;
                 }
                 for (int i = 0; i < relay.PoleCount; i++)
-                    if (relay.CanUsePole(i, player))
+                    if (relay.CanUsePole(i, player) && relay.PoleVisual(i) != null)
                     {
-                        Add(relay.PhysicalPole(i).transform, relay.PoleFeet(i) + Vector3.up, "매달려 길 만들기", true, true, feet);
+                        Add(relay.PoleVisual(i), relay.PoleVisual(i).position, "매달려 길 만들기", true, true, feet);
+                        candidates[candidates.Count - 1].Pole = true;
                         return;
                     }
             }
@@ -177,8 +188,12 @@ namespace CurtainCall.UI.SceneIntegration
             // 실제 입력과 같은 순서로 봉 잡기/동료 잡기를 평가한다. 표시가 판정을 대신하지 않는다.
             for (int i = 0; i < trapeze.PoleCount; i++)
             {
-                if (trapeze.CanGrabPole(i, player))
-                { DeviceGuide(player, feet, "F", "봉 잡기", true, ""); return; }
+                if (trapeze.CanGrabPole(i, player) && trapeze.PoleVisual(i) != null)
+                {
+                    Add(trapeze.PoleVisual(i), Center(trapeze.PoleVisual(i)), "봉 잡기", true, true, feet);
+                    candidates[candidates.Count - 1].Pole = true;
+                    return;
+                }
                 if (trapeze.CanAttachToPole(i, player))
                 { DeviceGuide(player, feet, "F", "매달린 동료 잡기", true, ""); return; }
             }
@@ -247,16 +262,25 @@ namespace CurtainCall.UI.SceneIntegration
             if (trampoline != null && trampoline.CanGrab(player)) Add(trampoline.transform, trampoline.Handle.position, "트램펄린 잡기", true, false, feet);
             var poles = HumanCannonPoleSystem.Current;
             if (poles != null && system.IsFlying(player.OwnerClientId) && poles.HeldBy(player.OwnerClientId) < 0)
+            {
+                int focused = poles.FindGrabbable(player);
                 for (int i = 0; i < poles.PoleCount; i++)
                 {
                     var pole = poles.Pole(i);
                     if (pole != null && pole.isActiveAndEnabled && !poles.State(i).IsOccupied && pole.IsInReach(player))
-                        Add(pole.transform, poles.HangingPosition(i), "봉 잡기", true, false, feet);
+                    {
+                        Add(pole.transform, Center(pole.transform), "봉 잡기", true, i == focused, feet);
+                        candidates[candidates.Count - 1].Pole = true;
+                    }
                 }
+            }
         }
         static Vector3 Center(Transform root)
         {
-            var renderer = root.GetComponentInChildren<Renderer>();
+            foreach (var source in root.GetComponentsInChildren<MeshRenderer>())
+                if (source.enabled && !source.name.StartsWith("__")) return source.bounds.center;
+            Renderer renderer = root.GetComponentInChildren<MeshRenderer>();
+            if (renderer == null) renderer = root.GetComponentInChildren<Renderer>();
             return renderer != null ? renderer.bounds.center : root.position;
         }
         public static bool InViewAndRange(Camera camera, Vector3 feet, Vector3 point, float maxDistance)
@@ -268,7 +292,8 @@ namespace CurtainCall.UI.SceneIntegration
         bool IsVisible(Candidate target, Camera camera, Transform local)
         {
             if (target.ScreenGuide) return true;
-            if (!InViewAndRange(camera, local.position + Vector3.up * .75f, target.Point, highlightDistance)) return false;
+            float range = target.Pole ? Mathf.Max(highlightDistance, target.Distance + .01f) : highlightDistance;
+            if (!InViewAndRange(camera, local.position + Vector3.up * .75f, target.Point, range)) return false;
             Vector3 offset = target.Point - camera.transform.position;
             int count = Physics.RaycastNonAlloc(camera.transform.position, offset.normalized, hits, Mathf.Max(0, offset.magnitude - .08f), ~0, QueryTriggerInteraction.Ignore);
             if (count == hits.Length) return false;

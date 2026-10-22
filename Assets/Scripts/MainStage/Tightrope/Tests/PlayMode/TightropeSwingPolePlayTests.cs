@@ -10,6 +10,59 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
     public sealed partial class TightropeCampaignPlayTests
     {
         [UnityTest]
+        public IEnumerator PoleInteraction_SwingUsesExistingOutlineAndFPrompt()
+        {
+            yield return BeginPerformance(); DisableSwingHazards();
+            yield return Until(() => UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.UI.SceneIntegration.CommonInteractionUI")) != null,
+                15f, "기존 상호작용 UI 비동기 로드");
+            yield return StandOnRopeForSawTest(1, (float)Get(course, "SwingGapFrom") - .8f);
+            var pole = Call(Static("CurtainCall.Tightrope.TightropeSwingPole", "Current"), "ForLane", 1);
+            Assert.IsTrue((bool)Call(pole, "CanGrabPole", player));
+            var visual = (Transform)Get(pole, "PoleVisual");
+            AssertExistingPoleInteraction(visual, visual.position, true);
+            Call(mover, "SetStartPose", player.transform.position - (Vector3)Get(course, "Forward") * 6f, course.transform.rotation);
+            AssertExistingPoleInteraction(visual, visual.position, false);
+        }
+
+        void AssertExistingPoleInteraction(Transform visual, Vector3 point, bool expected, string action = "봉 잡기")
+        {
+            var ui = (Component)UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.UI.SceneIntegration.CommonInteractionUI"));
+            Assert.IsNotNull(ui, "저장된 공연 씬의 공통 상호작용 UI를 재사용한다.");
+            Assert.IsNotNull(visual);
+            var camera = Camera.main;
+            Vector3 previousPosition = camera.transform.position;
+            Quaternion previousRotation = camera.transform.rotation;
+            var inputReader = (Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerInputReader"));
+            bool wasEnabled = inputReader.enabled;
+            try
+            {
+                camera.transform.position = point - (Vector3)Get(course, "Forward") * 2f + Vector3.up * .25f;
+                camera.transform.LookAt(point);
+                inputReader.enabled = true;
+                Physics.SyncTransforms();
+                Call(ui, "LateUpdate");
+                bool highlighted = false;
+                foreach (Transform item in (IEnumerable)Get(ui, "Highlighted")) if (item == visual) highlighted = true;
+                Assert.AreEqual(expected, highlighted, "실제 봉 메시가 기존 상호작용 외곽선의 대상이어야 한다.");
+                var prompt = Get(ui, "Prompt");
+                if (expected)
+                {
+                    Assert.AreEqual(true, Get(prompt, "IsVisible"));
+                    Assert.AreEqual("F", Get(Get(prompt, "keyLabel"), "text"));
+                    Assert.AreEqual(action, Get(Get(prompt, "actionLabel"), "text"));
+                    bool shell = false;
+                    foreach (var renderer in visual.GetComponentsInChildren<MeshRenderer>())
+                        if (renderer.name == "__InteractionOutline" && renderer.enabled) shell = true;
+                    Assert.IsTrue(shell, "기존 아트 메시를 기존 InteractionOutline으로 강조한다.");
+                }
+                else
+                    Assert.IsFalse((bool)Get(prompt, "IsVisible") && (string)Get(Get(prompt, "actionLabel"), "text") == action,
+                        "범위를 벗어나면 해당 봉의 F 안내를 숨긴다.");
+            }
+            finally { inputReader.enabled = wasEnabled; camera.transform.SetPositionAndRotation(previousPosition, previousRotation); }
+        }
+
+        [UnityTest]
         public IEnumerator SwingGapHasNoHiddenSupportAndSurvivesWholeCourseRestart()
         {
             yield return BeginPerformance(); DisableSwingHazards();

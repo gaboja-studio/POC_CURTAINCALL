@@ -91,7 +91,8 @@ namespace CurtainCall.HumanCannon
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
-            float radius = grabDistance * reach;
+            // 씬별 기본 거리와 부상 배율에 25% 접근 여유를 적용한다. 표시와 호스트도 이 판정을 공유한다.
+            float radius = grabDistance * reach * 1.25f;
             return radius > 0f && (player.transform.position - HangingPosition(0)).sqrMagnitude <= radius * radius;
         }
     }

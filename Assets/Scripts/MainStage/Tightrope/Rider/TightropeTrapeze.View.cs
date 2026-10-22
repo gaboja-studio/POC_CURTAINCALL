@@ -18,6 +18,8 @@ namespace CurtainCall.Tightrope
         TMP_FontAsset trapezeRuntimeFont;
         MaterialPropertyBlock trapezeTint;
 
+        public Transform PoleVisual(int index) => index >= 0 && index < PoleTotal && views[index]?.Bar != null ? views[index].Bar.transform : null;
+
         public string LocalHint
         {
             get
