@@ -2,7 +2,7 @@
 
 - **Title:** 인간대포 휴식 봉 분산 및 트램폴린 전체 접촉 완화
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
 - **Current Skill:** submit-work
