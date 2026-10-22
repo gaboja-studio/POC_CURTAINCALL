@@ -50,7 +50,8 @@ namespace CurtainCall.HumanCannon
             if (barrier != null)
             {
                 barrier.enabled = phase == PoleSawPhase.Active;
-                if (barrierRenderers != null) foreach (var visual in barrierRenderers) if (visual != null) visual.enabled = false;
+                if (barrierRenderers != null) foreach (var visual in barrierRenderers)
+                    if (visual != null) visual.enabled = phase == PoleSawPhase.Active && visual.transform != barrier.transform;
             }
             if (sawVisual == null) return;
             tint ??= new MaterialPropertyBlock();
@@ -109,17 +110,8 @@ namespace CurtainCall.HumanCannon
             return barrier.bounds.Intersects(body);
         }
 
-        /// <summary>지상 담당 통과 전 비행자의 위/옆 경로 건너뛰기를 막는다.</summary>
-        internal Vector3 ConstrainFlight(Vector3 from, Vector3 displacement, float radius)
-        {
-            if (CarrierPassed) return displacement;
-            float before = Side(from);
-            float after = Side(from + displacement);
-            float boundary = Mathf.Max(before, -radius);
-            if (before <= 0f && after > boundary)
-                displacement -= transform.forward * (after - boundary);
-            return displacement;
-        }
+        /// <summary>공중 가상면을 사용하지 않는다. 기존 유한한 물리 벽만 충돌을 처리한다.</summary>
+        internal Vector3 ConstrainFlight(Vector3 from, Vector3 displacement, float radius) => displacement;
 
         internal void ResetGate()
         {

@@ -14,16 +14,17 @@ namespace CurtainCall.HumanCannon
         public bool IsOccupied => Occupant != Nobody;
         public bool IsUnlimitedHold => IsOccupied && HoldUntil == 0;
 
-        public bool TryGrab(ulong actor, uint expectedRevision, double now, float holdSeconds)
+        public bool TryGrab(ulong actor, uint expectedRevision, double now, float holdSeconds, bool fixedGateWindow = false)
         {
             if (actor == Nobody || IsOccupied || expectedRevision != Revision || !ValidTime(now)
-                || !float.IsFinite(holdSeconds) || holdSeconds < 0) return false;
+                || !float.IsFinite(holdSeconds) || holdSeconds < 0 || (fixedGateWindow && holdSeconds <= 0)) return false;
             // 0은 무제한 점유다. 유한 제한을 쓰는 기존 호출은 같은 만료 시각 규칙을 유지한다.
             double deadline = 0;
             if (holdSeconds > 0 && !TryDeadline(now, holdSeconds, out deadline)) return false;
             Occupant = actor;
             HoldUntil = deadline;
-            RearmAt = 0;
+            // 연결 관문은 기존 유지 시간과 재가동 시각으로 잡은 순간의 정지 구간을 고정한다.
+            RearmAt = fixedGateWindow ? deadline : 0;
             Phase = PoleSawPhase.Retracted;
             Revision++;
             return true;
@@ -33,7 +34,13 @@ namespace CurtainCall.HumanCannon
         {
             if (actor == Nobody || actor != Occupant || expectedRevision != Revision
                 || !TryDeadline(now, warningSeconds, out double deadline)) return false;
-            BeginWarning(deadline);
+            if (RearmAt > 0)
+            {
+                Occupant = Nobody;
+                HoldUntil = 0;
+                Revision++;
+            }
+            else BeginWarning(deadline);
             return true;
         }
 
@@ -41,7 +48,15 @@ namespace CurtainCall.HumanCannon
         {
             if (!ValidTime(now) || !ValidDuration(warningSeconds)) return false;
             bool changed = false;
-            if (Phase == PoleSawPhase.Retracted && HoldUntil > 0 && now >= HoldUntil)
+            if (RearmAt > 0 && Phase == PoleSawPhase.Retracted)
+            {
+                if (now < RearmAt - warningSeconds) return false;
+                // 예고는 정지 구간의 마지막에 포함한다. 아직 잡고 있으면 만료 때까지 유지한다.
+                Phase = PoleSawPhase.Warning;
+                Revision++;
+                changed = true;
+            }
+            if (Phase == PoleSawPhase.Retracted && RearmAt == 0 && HoldUntil > 0 && now >= HoldUntil)
             {
                 // 늦은 프레임이 유지 시간이나 예고 시간을 늘리지 않도록 실제 만료 시각을 기준으로 한다.
                 if (!TryDeadline(HoldUntil, warningSeconds, out double deadline)) return false;
@@ -50,6 +65,8 @@ namespace CurtainCall.HumanCannon
             }
             if (Phase == PoleSawPhase.Warning && now >= RearmAt)
             {
+                Occupant = Nobody;
+                HoldUntil = 0;
                 Phase = PoleSawPhase.Active;
                 RearmAt = 0;
                 Revision++;
@@ -73,8 +90,10 @@ namespace CurtainCall.HumanCannon
             bool valid = phase switch
             {
                 PoleSawPhase.Active => occupant == Nobody && holdUntil == 0 && rearmAt == 0,
-                PoleSawPhase.Retracted => occupant != Nobody && rearmAt == 0,
-                PoleSawPhase.Warning => occupant == Nobody && holdUntil == 0 && rearmAt > 0,
+                PoleSawPhase.Retracted => (occupant != Nobody && rearmAt == 0)
+                    || (rearmAt > 0 && ((occupant == Nobody && holdUntil == 0) || (occupant != Nobody && holdUntil == rearmAt))),
+                PoleSawPhase.Warning => rearmAt > 0 && ((occupant == Nobody && holdUntil == 0)
+                    || (occupant != Nobody && holdUntil == rearmAt)),
                 _ => false
             };
             if (!valid) return false;

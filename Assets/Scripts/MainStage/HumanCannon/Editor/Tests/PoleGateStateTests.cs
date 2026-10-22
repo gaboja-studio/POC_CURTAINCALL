@@ -5,6 +5,67 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
     public class PoleGateStateTests
     {
         [Test]
+        public void FixedGateWindow_ReleaseKeepsTheOriginalFortySecondDeadline()
+        {
+            var gate = new PoleGateState();
+            Assert.IsTrue(gate.TryGrab(7, 0, 10, 40, true));
+            Assert.That(gate.RearmAt, Is.EqualTo(50));
+            Assert.IsTrue(gate.TryRelease(7, gate.Revision, 12, 2));
+            Assert.IsFalse(gate.IsOccupied);
+            Assert.That(gate.Phase, Is.EqualTo(PoleSawPhase.Retracted));
+            Assert.IsFalse(gate.Tick(47.999, 2));
+            Assert.IsTrue(gate.Tick(48, 2));
+            Assert.That(gate.Phase, Is.EqualTo(PoleSawPhase.Warning));
+            Assert.IsFalse(gate.Tick(49.999, 2));
+            Assert.IsTrue(gate.Tick(50, 2));
+            Assert.That(gate.Phase, Is.EqualTo(PoleSawPhase.Active));
+            Assert.That(gate.RearmAt, Is.Zero);
+        }
+
+        [Test]
+        public void FixedGateWindow_HeldWarningDoesNotReleaseBeforeExpiryAndSnapshotsRoundTrip()
+        {
+            var host = new PoleGateState();
+            var client = new PoleGateState();
+            host.TryGrab(7, 0, 10, 40, true);
+            Assert.IsTrue(client.Receive(host.Revision, host.Occupant, host.Phase, host.HoldUntil, host.RearmAt));
+            Assert.IsTrue(host.Tick(48, 2));
+            Assert.That(host.Occupant, Is.EqualTo(7ul));
+            Assert.IsTrue(client.Receive(host.Revision, host.Occupant, host.Phase, host.HoldUntil, host.RearmAt));
+            Assert.IsTrue(host.Tick(50, 2));
+            Assert.IsFalse(host.IsOccupied);
+            Assert.IsTrue(client.Receive(host.Revision, host.Occupant, host.Phase, host.HoldUntil, host.RearmAt));
+            Assert.That(client.Phase, Is.EqualTo(PoleSawPhase.Active));
+        }
+
+        [Test]
+        public void FixedGateWindow_AbandonSnapshotAndRegrabUseExistingDeadlines()
+        {
+            var host = new PoleGateState();
+            var client = new PoleGateState();
+            host.TryGrab(7, 0, 10, 40, true);
+            host.TryRelease(7, host.Revision, 11, 2);
+            Assert.IsTrue(client.Receive(host.Revision, host.Occupant, host.Phase, host.HoldUntil, host.RearmAt));
+            Assert.IsTrue(client.TryGrab(8, client.Revision, 20, 40, true));
+            Assert.That(client.RearmAt, Is.EqualTo(60));
+            Assert.IsTrue(client.Tick(100, 2));
+            Assert.IsFalse(client.IsOccupied);
+            Assert.That(client.Phase, Is.EqualTo(PoleSawPhase.Active));
+            client.Reset();
+            Assert.That(client.RearmAt, Is.Zero);
+            Assert.IsFalse(client.Receive(host.Revision, host.Occupant, host.Phase, host.HoldUntil, host.RearmAt));
+        }
+
+        [Test]
+        public void FixedGateWindow_RejectsMissingDurationWithoutTakingOccupancy()
+        {
+            var gate = new PoleGateState();
+            Assert.IsFalse(gate.TryGrab(7, 0, 10, 0, true));
+            Assert.IsFalse(gate.IsOccupied);
+            Assert.That(gate.Revision, Is.Zero);
+        }
+
+        [Test]
         public void HoldAndWarning_TransitionAtExactDeadlines()
         {
             var gate = new PoleGateState();

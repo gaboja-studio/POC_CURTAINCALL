@@ -25,41 +25,41 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void FlyingAboveRetractedSawStillWaitsForGroundCarrier()
+        public void FlyingAboveRetractedSawDoesNotWaitForGroundCarrier()
         {
             Present(PoleSawPhase.Retracted, false);
             Vector3 from = new Vector3(0f, 30f, -3f);
 
             Vector3 movement = Constrain(from, new Vector3(0f, 0f, 10f));
 
-            AssertVector(new Vector3(0f, 0f, 2.6f), movement);
-            Assert.That(gate.Side(from + movement), Is.EqualTo(-Radius).Within(0.0001f));
+            AssertVector(new Vector3(0f, 0f, 10f), movement);
+            Assert.That(gate.Side(from + movement), Is.GreaterThan(0f));
         }
 
         [Test]
-        public void FlyingBeyondSideFenceCannotBypassRequiredPassage()
+        public void FlyingBeyondSideFenceHasNoInfiniteGatePlane()
         {
             Present(PoleSawPhase.Active, false);
             Vector3 from = new Vector3(100f, 5f, -3f);
 
             Vector3 movement = Constrain(from, new Vector3(0f, 0f, 10f));
 
-            AssertVector(new Vector3(0f, 0f, 2.6f), movement);
-            Assert.That(gate.Side(from + movement), Is.LessThan(0f));
+            AssertVector(new Vector3(0f, 0f, 10f), movement);
+            Assert.That(gate.Side(from + movement), Is.GreaterThan(0f));
         }
 
         [Test]
-        public void BlockedDiagonalFlightKeepsLateralAndVerticalMovement()
+        public void DiagonalFlightKeepsItsEntireRequestedMovement()
         {
             Present(PoleSawPhase.Warning, false);
 
             Vector3 movement = Constrain(new Vector3(5f, 9f, -3f), new Vector3(7f, -2f, 10f));
 
-            AssertVector(new Vector3(7f, -2f, 2.6f), movement);
+            AssertVector(new Vector3(7f, -2f, 10f), movement);
         }
 
         [Test]
-        public void TranslatedQuarterTurnGateConstrainsItsOwnForwardAxis()
+        public void TranslatedQuarterTurnGateHasNoVirtualForwardPlane()
         {
             gateObject.transform.SetPositionAndRotation(new Vector3(12f, 0f, 8f), Quaternion.Euler(0f, 90f, 0f));
             Present(PoleSawPhase.Retracted, false);
@@ -67,8 +67,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
             Vector3 movement = Constrain(from, new Vector3(10f, 2f, 7f));
 
-            AssertVector(new Vector3(2.6f, 2f, 7f), movement);
-            Assert.That(gate.Side(from + movement), Is.EqualTo(-Radius).Within(0.0001f));
+            AssertVector(new Vector3(10f, 2f, 7f), movement);
+            Assert.That(gate.Side(from + movement), Is.GreaterThan(0f));
         }
 
         [Test]
@@ -83,15 +83,15 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void StartingInsideRadiusMarginDoesNotPermitForwardBypass()
+        public void StartingInsideFormerMarginKeepsForwardFlight()
         {
             Present(PoleSawPhase.Retracted, false);
             Vector3 from = new Vector3(0f, 5f, -0.1f);
 
             Vector3 movement = Constrain(from, new Vector3(2f, 3f, 4f));
 
-            AssertVector(new Vector3(2f, 3f, 0f), movement);
-            Assert.That(gate.Side(from + movement), Is.EqualTo(-0.1f).Within(0.0001f));
+            AssertVector(new Vector3(2f, 3f, 4f), movement);
+            Assert.That(gate.Side(from + movement), Is.GreaterThan(0f));
         }
 
         [Test]
@@ -107,14 +107,14 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void ResetRequiresGroundCarrierPassAgain()
+        public void ResetPreservesGateStateWithoutRestoringAnAirPlane()
         {
             Present(PoleSawPhase.Retracted, true);
             typeof(HumanCannonSawGate).GetMethod("ResetGate", InternalInstance).Invoke(gate, null);
 
             Vector3 movement = Constrain(new Vector3(0f, 5f, -3f), new Vector3(0f, 0f, 10f));
 
-            AssertVector(new Vector3(0f, 0f, 2.6f), movement);
+            AssertVector(new Vector3(0f, 0f, 10f), movement);
             Assert.That(gate.CarrierPassed, Is.False);
             Assert.That(gate.Phase, Is.EqualTo(PoleSawPhase.Active));
         }
@@ -131,6 +131,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             rotor.SetParent(visual, false);
             var barrier = new GameObject("Barrier").AddComponent<BoxCollider>();
             var wallRenderer = barrier.gameObject.AddComponent<MeshRenderer>();
+            var fenceRenderer = new GameObject("VisibleFence").AddComponent<MeshRenderer>();
+            fenceRenderer.transform.SetParent(barrier.transform, false);
             barrier.transform.SetParent(gateObject.transform, false);
             barrier.center = Vector3.up * 1.2f;
             barrier.size = new Vector3(30f, 2.4f, 0.6f);
@@ -142,23 +144,27 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
             Assert.That(barrier.enabled, Is.True);
             Assert.That(wallRenderer.enabled, Is.False);
+            Assert.That(fenceRenderer.enabled, Is.True);
             var stoppedRotation = rotor.localRotation;
 
             Present(PoleSawPhase.Retracted, false, 1d);
             Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
             Assert.That(Quaternion.Angle(rotor.localRotation, stoppedRotation), Is.LessThan(0.001f));
             Assert.That(barrier.enabled, Is.False);
+            Assert.That(fenceRenderer.enabled, Is.False);
 
             Present(PoleSawPhase.Warning, true, 2d);
             Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
             Assert.That(Quaternion.Angle(rotor.localRotation, stoppedRotation), Is.LessThan(0.001f));
             Assert.That(barrier.enabled, Is.False, "예고 중에는 지상 담당자에게 피해를 주지 않는다.");
+            Assert.That(fenceRenderer.enabled, Is.False);
 
             Present(PoleSawPhase.Active, true, 2.5d);
             Assert.That(barrier.enabled, Is.True);
             Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
             Assert.That(Quaternion.Angle(rotor.localRotation, stoppedRotation), Is.GreaterThan(1f));
             Assert.That(wallRenderer.enabled, Is.False);
+            Assert.That(fenceRenderer.enabled, Is.True);
         }
 
         void Present(PoleSawPhase phase, bool passed, double time = 0d)
