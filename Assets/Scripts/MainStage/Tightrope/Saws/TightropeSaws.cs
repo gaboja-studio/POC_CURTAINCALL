@@ -172,7 +172,8 @@ namespace CurtainCall.Tightrope.Saws
 
         Vector3 HorizontalPositionAtSide(int index, float side)
         {
-            float slope = TrickSettings.DiagonalSlope(index, GameSettings.Tightrope.SawDiagonalDegrees);
+            // 같은 기울기의 평행 레일을 사용해 인접 톱의 왕복 경로가 X자로 교차하지 않게 한다.
+            float slope = TrickSettings.DiagonalSlope(0, GameSettings.Tightrope.SawDiagonalDegrees);
             float reach = settings.horizontalTravelHalfWidth * Mathf.Abs(slope) + settings.horizontalColliderDiameter * .5f;
             float distance = Mathf.Clamp(settings.GetHorizontalDistance(index), reach, Mathf.Max(reach, course.FinishDistance - reach));
             return course.transform.position

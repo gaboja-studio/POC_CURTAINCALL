@@ -172,9 +172,9 @@ namespace CurtainCall.HumanCannon
             {
                 var station = stations[i];
                 if (station == null || !station.isActiveAndEnabled || seats[i].State.IsOccupied) continue;
-                float distance = (station.BoardingPoint.position - player.transform.position).sqrMagnitude;
+                float distance = (station.Seat.position - PlayerInteraction.Center(player)).sqrMagnitude;
                 float radius = station.BoardingDistance * reach;
-                if (radius <= 0f || distance > radius * radius || distance >= best) continue;
+                if (!PlayerInteraction.InRange(player, station.Seat.position, radius) || distance >= best) continue;
                 nearest = i;
                 best = distance;
             }

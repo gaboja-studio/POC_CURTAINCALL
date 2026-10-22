@@ -399,35 +399,41 @@ namespace CurtainCall.Tightrope
             if (climber.IsAirborne) return "거부: 공중에서는 올라갈 수 없음";
             if (IsInStack(climberId)) return "거부: 이미 목마에 속해 있음(단독만 올라감)";
 
-            // 올라타는 사람의 팔 상태가 도달 거리를 정한다. 받는 동료의 팔 손실은 이 요청에 곱하지 않는다.
-            float reach = LinkReach(climber);
-            Vector3 from = climber.transform.position;
-            ulong target = 0;
-            float best = float.MaxValue;
-            foreach (var other in NetworkPlayer.All)
-            {
-                if (other == null || other == climber || other.State != PlayerState.Normal) continue;
-                if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(other)) continue;
-                if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(other)) continue;
-                if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(other)) continue;
-                // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
-                if (belowOf.ContainsKey(other.OwnerClientId)) continue;
-                Vector3 offset = other.transform.position - from;
-                offset.y = 0f;
-                float distance = offset.magnitude;
-                if (distance > reach || distance >= best) continue;
-                best = distance;
-                target = other.OwnerClientId;
-            }
-
-            if (best == float.MaxValue) return $"거부: {reach:0.##}m 안에 올라갈 동료가 없음";
-
-            ulong top = TopOf(target);
+            var target = FindMountTarget(climber);
+            if (target == null) return $"거부: {LinkReach(climber):0.##}m 안에 올라갈 동료가 없음";
+            ulong top = TopOf(target.OwnerClientId);
             belowOf[climberId] = top;
             aboveOf[top] = climberId;
             ServerBroadcast();
             return $"연결: {top}번 위로 올라감";
         }
+
+        /// <summary>F 입력·호스트 승인·상호작용 표시가 공유하는 구형 범위의 최근접 목마 대상.</summary>
+        public NetworkPlayer FindMountTarget(NetworkPlayer climber)
+        {
+            if (!IsGameplayActive || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
+                || climber.IsAirborne || IsInStack(climber) || UsingDevice(climber)) return null;
+            float reach = LinkReach(climber), best = float.PositiveInfinity;
+            NetworkPlayer target = null;
+            foreach (var other in NetworkPlayer.All)
+            {
+                if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)) continue;
+                // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
+                if (belowOf.ContainsKey(other.OwnerClientId)) continue;
+                Vector3 center = PlayerInteraction.Center(other);
+                float distance = (center - PlayerInteraction.Center(climber)).sqrMagnitude;
+                if (!PlayerInteraction.InRange(climber, center, reach) || distance > best
+                    || distance == best && target != null && other.OwnerClientId >= target.OwnerClientId) continue;
+                best = distance;
+                target = other;
+            }
+            return target;
+        }
+
+        static bool UsingDevice(NetworkPlayer player) =>
+            TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)
+            || TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)
+            || TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player);
 
         static float LinkReach(NetworkPlayer climber) => GameSettings.Tightrope.Piggyback.LinkDistance
             * (climber != null && climber.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f);
