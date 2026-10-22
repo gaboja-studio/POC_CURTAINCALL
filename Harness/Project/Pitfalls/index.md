@@ -1,5 +1,7 @@
 # Project Pitfalls
 
+- [Telemetry/](Telemetry/index.md) — 로그·설문의 연결 종료와 최초 실행 시점을 확인할 때
+
 - [death-ragdoll-reset.md](death-ragdoll-reset.md) — 공연 사망 뒤 조작 정리가 레그돌을 복구할 때
 
 - [session-join-cancelled.md](session-join-cancelled.md) — 방 코드·LAN 참가의 취소 예외와 제한시간·취소 원인 로그를 확인할 때
