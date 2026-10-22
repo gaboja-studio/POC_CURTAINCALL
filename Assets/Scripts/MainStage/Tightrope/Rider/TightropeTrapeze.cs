@@ -175,7 +175,7 @@ namespace CurtainCall.Tightrope
                 || !player.TryGetComponent(out PlayerMover mover) || mover.PassThrough || !mover.ControlEnabled) return false;
             if (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen) return false;
             var stack = PiggybackSystem.Current;
-            return (stack == null || !stack.IsInStack(player))
+            return (stack == null || !stack.IsInStack(player) || stack.CanEnterTrapeze(player))
                 && (TightropeSwingPole.Current == null || !TightropeSwingPole.Current.IsCrossing(player));
         }
         bool CanGrab(NetworkPlayer player, int index)
@@ -183,6 +183,7 @@ namespace CurtainCall.Tightrope
             if (!Active || index < 0 || index >= PoleTotal || !Eligible(player) || poles[index].Upper != Nobody) return false;
             bool flying = flights.TryGetValue(player.OwnerClientId, out var flight) && Clock <= flight.Until;
             if (flying && index != flight.From + 1) return false;
+            if (!flying && index == 0 && (PiggybackSystem.Current == null || !PiggybackSystem.Current.CanEnterTrapeze(player))) return false;
             return InCatchRange(player, index, false);
         }
         bool CanAttach(NetworkPlayer player, int index)
@@ -198,6 +199,8 @@ namespace CurtainCall.Tightrope
         bool InCatchRange(NetworkPlayer player, int index, bool lower)
         {
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
+            // 팔 손실로 두 사람의 몸 간격보다 잡기 반경이 작아지지 않게 한다. 부상4 사망은 Eligible에서 제외된다.
+            if (reach > 0f) reach = Mathf.Max(.75f, reach);
             Vector3 center = Feet(index, false);
             if (lower)
             {

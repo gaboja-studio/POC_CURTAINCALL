@@ -1,6 +1,6 @@
 # Task-20261015-044
 
-- **Title:** 4인 코스 피드백·구형 상호작용·점프 게이지 회피 수정
+- **Title:** 묘기 부상별 협동 진행 및 인간대포 배치·접촉 보완
 - **Type:** fix
 - **Status:** submitted
 - **Assignee:** @RagSpirin

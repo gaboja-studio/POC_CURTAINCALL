@@ -102,19 +102,22 @@ namespace CurtainCall.Tightrope
                 }
                 if (!Eligible(player) || !InCatchRange(player, request.Pole, request.Action == Command.Attach)) return false;
             }
-            if (request.Action == Command.Grab)
+            if (!request.Armed && (request.Action == Command.Grab ? !CanGrab(player, request.Pole) : !CanAttach(player, request.Pole))) return false;
+            var stack = PiggybackSystem.Current;
+            void CompleteCatch()
             {
-                if (!request.Armed && !CanGrab(player, request.Pole)) return false;
-                state.Upper = actor; state.Angle = state.Speed = state.Drive = 0f;
-                state.Until = Clock + HoldSeconds; state.LastInput = state.SampledAt = Clock;
+                if (request.Action == Command.Grab)
+                {
+                    state.Upper = actor; state.Angle = state.Speed = state.Drive = 0f;
+                    state.Until = Clock + HoldSeconds; state.LastInput = state.SampledAt = Clock;
+                }
+                else state.Lower = actor;
+                stack?.ConsumeTrapezeEntry(player);
+                ObserveRequest(actor, "accepted", request.Action, request.Pole);
+                state.Revision++; pendingRequests.Remove(actor); flights.Remove(actor); Publish();
             }
-            else
-            {
-                if (!request.Armed && !CanAttach(player, request.Pole)) return false;
-                state.Lower = actor;
-            }
-            ObserveRequest(actor, "accepted", request.Action, request.Pole);
-            state.Revision++; pendingRequests.Remove(actor); flights.Remove(actor); Publish();
+            if (stack != null && stack.IsInStack(player)) return stack.TryReleaseTopForTrapeze(player, CompleteCatch);
+            CompleteCatch();
             return true;
         }
 

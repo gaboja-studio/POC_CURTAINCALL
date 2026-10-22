@@ -90,10 +90,14 @@ namespace CurtainCall.HumanCannon
         public bool IsInReach(NetworkPlayer player)
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
+            return PlayerInteraction.InRange(player, BarPosition(0), GrabRadius(player, 0f));
+        }
+
+        public float GrabRadius(NetworkPlayer player, float minimumReach)
+        {
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             // 씬별 기본 거리와 부상 배율에 25% 접근 여유를 적용한다. 표시와 호스트도 이 판정을 공유한다.
-            float radius = grabDistance * reach * 1.25f;
-            return PlayerInteraction.InRange(player, BarPosition(0), radius);
+            return grabDistance * (reach > 0f ? Mathf.Max(minimumReach, reach) : reach) * 1.25f;
         }
     }
 }

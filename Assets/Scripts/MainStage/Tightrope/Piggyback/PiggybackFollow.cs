@@ -20,7 +20,7 @@ namespace CurtainCall.Tightrope
     public sealed class PiggybackFollow : MonoBehaviour
     {
         const float RestartGrace = 1f;     // 재시작 직후 이 시간(초) 안에 풀린 연결은 내려놓지 않는다
-        const float LaunchTimeout = 1.5f;  // 분리 점프 후 이 시간(초)이 지나도 해제되지 않으면(거부 등) 다시 머리 위로
+        internal const float LaunchTimeout = 1.5f;  // 분리 점프 후 이 시간(초)이 지나도 해제되지 않으면(거부 등) 다시 머리 위로
         const float RemoteHopMin = 0.05f;  // 남의 위 사람: 머리보다 이만큼(m) 이상 높게 받으면 제자리 점프 중으로 보고 그 높이로 보인다
 
         PiggybackSystem system;
@@ -41,6 +41,8 @@ namespace CurtainCall.Tightrope
         /// <summary>맨 아래의 공유된 공중 상태와 내 제자리 점프를 합친다. 둘 다 끝나야 착지 충격을 한 번 받는다.</summary>
         void UpdateCarriedAirborne(NetworkPlayer local)
         {
+            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(local))
+            { carriedBalance = null; return; }
             var below = local != null ? system.GetBelow(local) : null;
             bool carried = below != null && launchedAt < 0f && local.State == PlayerState.Normal
                            && local.TryGetComponent(out PlayerBalance balance) && !balance.HasFallen;
@@ -60,7 +62,8 @@ namespace CurtainCall.Tightrope
             var local = NetworkPlayer.Local;
             bool airborne = local != null && local.State == PlayerState.Normal && !carriedBalance.HasFallen
                             && carriedBalance.TryGetComponent(out PlayerMover mover) && mover.IsAirborne;
-            carriedBalance.SetAirborne(airborne);
+            if (TightropeTrapeze.Current == null || !TightropeTrapeze.Current.IsCrossing(local))
+                carriedBalance.SetAirborne(airborne);
             carriedBalance = null;
         }
 
@@ -104,7 +107,8 @@ namespace CurtainCall.Tightrope
             }
             // A mount snapshot and Space can arrive in the same frame. Establish
             // the carried pose before consuming that frame's jump input.
-            var newBelow = local != null ? system.GetBelow(local) : null;
+            bool trapeze = TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(local);
+            var newBelow = local != null && !trapeze ? system.GetBelow(local) : null;
             if (localMover == null && newBelow != null && launchedAt < 0f)
             {
                 UpdateLocal(local);
@@ -120,6 +124,8 @@ namespace CurtainCall.Tightrope
                 {
                     var above = system.GetAbove(below);
                     if (above == null) break;
+                    if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(above))
+                    { below = above; continue; }
                     if (above != local) PlaceOnTop(above, below, RemoteHop(above, below));
                     else if (launchedAt < 0f) PlaceOnTop(above, below, hopping ? hopHeight : 0f);
                     below = above;
@@ -165,6 +171,7 @@ namespace CurtainCall.Tightrope
             }
 
             if (TightropeInputGate.IsBlocked || local == null || localMover == null || launchedAt >= 0f) return;
+            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(local)) return;
             if (system.GetBelow(local) == null || system.GetAbove(local) != null) return; // 맨 위만(중간층은 점프 불가)
             if (local.State != PlayerState.Normal || !local.TryGetComponent(out PlayerInputReader reader) || !reader.enabled) return;
 
@@ -272,6 +279,8 @@ namespace CurtainCall.Tightrope
         /// <summary>내 캐릭터가 위에 있으면 이동 계산을 끄고, 내려오면 켜고 내려놓는다.</summary>
         void UpdateLocal(NetworkPlayer local)
         {
+            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(local))
+            { ReleaseForTrapeze(local); return; }
             var below = local != null ? system.GetBelow(local) : null;
 
             if (launchedAt >= 0f)
@@ -349,6 +358,16 @@ namespace CurtainCall.Tightrope
             if (player == null || !player.IsLocal) return;
             restartedAt = Time.time;
             Release();
+        }
+
+        internal bool ReleaseForTrapeze(NetworkPlayer player)
+        {
+            if (player == null || !player.IsLocal || localMover == null || localMover.gameObject != player.gameObject) return false;
+            var released = localMover;
+            Release();
+            // 다음 Update에 그네가 인계받더라도 목마의 Simulated=false를 복원값으로 저장하지 않는다.
+            released.Simulated = true;
+            return true;
         }
 
         /// <summary>내 캐릭터의 이동 계산을 되돌린다(내려놓지 않음).</summary>

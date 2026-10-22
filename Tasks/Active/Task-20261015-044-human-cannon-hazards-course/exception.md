@@ -15,3 +15,6 @@
 - 2026-10-22 제출 전 사용자 중단/추가 수정 지시: 외줄 점프를 반복해 게이지 패널티를 회피하는 문제를 수정한 뒤 멈춘다. `Assets/Scripts/Systems/Player/PlayerBalance.cs`, `Assets/Scripts/Systems/Player/PlayerCommandDebugHud.cs`, `Assets/Scripts/MainStage/Tightrope/Rope/CourseControlSwitcher.cs`, `Assets/Scripts/MainStage/Tightrope/Rope/Editor/Tests/TightropeBalanceFeedbackTests.cs`의 기존 구현/회귀 항목을 수정한다. 일반·옆줄·목마 점프 중 균형/위험 누적 지속, 공중 초록 회복 없음, 봉/장치 외부 이동의 균형 정지는 유지한다. 이전 저장·제출 진행은 보류하며 commit/push/PR 생성하지 않는다.
 
 - 2026-10-22 점프 회피 수정 후 사용자가 저장·제출을 다시 명시적으로 지시했다. 이전 보류 해제, 이번 수정만 선별 커밋·push·dev 대상 PR 제출을 진행한다. 사용자 폰트/재질 로컬 변경은 보존한다.
+- 2026-10-22 PR #211 병합 후 사용자 직접 후속 수정: 새 브랜치를 만들지 않고 기존 fix/four-player-course-feedback 유지, 최신 dev 07e5dc5 pull 완료. 인간대포 일반 봉5개를 대포에서 떨어진 코스 전후/좌우로 분산하고, 트램폴린은 중앙 천 하강 교차가 아니라 프레임/손잡이를 포함한 전체 외형에 몸통이 닿으면 반동하도록 완화한다. 기존 HumanCannon 씬/코드/검사 항목만 수정하며 플레이·자동 테스트는 실행하지 않는다.
+- 2026-10-22 사용자 조사안 승인·후속 범위 정정: 남은 팔다리4/3/2/1개와 좌우 조합 전체에서 기존 협동 흐름으로 진행하도록 수정한다. 목마 상층→봉→하층 동료 잡기→교대 순서를 유지하고 단독 진입을 차단하며, 기존 `PiggybackSystem.cs`/`PiggybackFollow.cs`의 해제·위치/이동 인계를 재사용한다. 기존 Rider 그네/연결봉 범위 하한 및 HumanCannonPole 범위 조회·소유 HumanCannon 씬의 지상 톱12개 높이만 보완한다. 공용 부상/사망 규칙·새 UI/에셋·자동/플레이 테스트 실행·commit/push/PR 갱신은 포함하지 않는다.
+- 2026-10-22 후속 사용자 요청: PR #213의 기존 내용과 이번 부상별 협동 진행 수정을 함께 저장·제출하도록 명시 승인했다. 기존 브랜치에서 관련 파일만 커밋·push하고 동일 PR #213의 제목/설명을 최종 범위에 맞춰 갱신한다. 폰트·재질5개는 제외/보존, 실제/자동 테스트는 계속 사용자 수행.

@@ -37,6 +37,8 @@ namespace CurtainCall.HumanCannon
         Quaternion initialRotation;
         Vector3 previousSurface;
         Quaternion previousRotation;
+        Bounds contactBounds;
+        bool contactBoundsReady;
         bool carrierRecoveryPending;
         Renderer[] handleRenderers;
         MaterialPropertyBlock[] idleHandleProperties;
@@ -65,6 +67,7 @@ namespace CurtainCall.HumanCannon
             Current = this;
             initialPosition = transform.position;
             initialRotation = transform.rotation;
+            contactBoundsReady = false;
             ResetPreviousPose();
             PresentHandleOwnership();
             NetworkPlayer.Restarted += HandleRestart;
@@ -222,15 +225,38 @@ namespace CurtainCall.HumanCannon
         internal void RequestGrab() => SendRequest(TrampolineAction.Grab, -1, 0, 0, transform.position);
         internal void RequestDrop() => SendRequest(TrampolineAction.Drop, -1, 0, 0, transform.position);
 
-        internal bool TryContact(Vector3 from, Vector3 to, float radius, out Vector3 contact) =>
-            TrampolineContact.TryCross(from, to, previousSurface, Surface, previousRotation,
-                transform.rotation, halfSize, radius, circularSurface, out contact) && !BounceBlocked(contact);
+        internal bool TryContact(Vector3 from, Vector3 to, float radius, float height, out Vector3 contact) =>
+            TrampolineContact.TryTouch(from, to, previousSurface, Surface, previousRotation,
+                transform.rotation, ContactBounds(), radius, height, out contact) && !BounceBlocked(contact);
+
+        Bounds ContactBounds()
+        {
+            if (contactBoundsReady) return contactBounds;
+            var size = LoadHalfSize;
+            contactBounds = new Bounds(new Vector3(0f, -surfaceHeight * .5f, 0f),
+                new Vector3(size.x * 2f, surfaceHeight, size.y * 2f));
+            Quaternion inverse = Quaternion.Inverse(transform.rotation);
+            foreach (var renderer in GetComponentsInChildren<Renderer>(true))
+            {
+                if (!renderer.enabled || !renderer.gameObject.activeInHierarchy || renderer.name.StartsWith("__")) continue;
+                var bounds = renderer.localBounds;
+                for (int i = 0; i < 8; i++)
+                {
+                    Vector3 corner = bounds.center + Vector3.Scale(bounds.extents,
+                        new Vector3((i & 1) == 0 ? -1f : 1f, (i & 2) == 0 ? -1f : 1f, (i & 4) == 0 ? -1f : 1f));
+                    contactBounds.Encapsulate(inverse * (renderer.transform.TransformPoint(corner) - Surface));
+                }
+            }
+            contactBoundsReady = true;
+            return contactBounds;
+        }
 
         bool NearSurface(NetworkPlayer player, Vector3 contact)
         {
             Vector3 relative = Quaternion.Inverse(transform.rotation) * (contact - Surface);
-            return TrampolineContact.Contains(new Vector2(relative.x, relative.z), halfSize, 1f, circularSurface)
-                && Mathf.Abs(relative.y) <= 2f && (player.transform.position - contact).sqrMagnitude <= 25f;
+            var bounds = ContactBounds();
+            bounds.Expand(new Vector3(2f, 4f, 2f));
+            return bounds.Contains(relative) && (player.transform.position - contact).sqrMagnitude <= 25f;
         }
 
         // 과승 실패 중에는 운반 트램폴린도 함께 떨어진다. 지연된 반동 요청에도 같은 판정을 사용한다.
