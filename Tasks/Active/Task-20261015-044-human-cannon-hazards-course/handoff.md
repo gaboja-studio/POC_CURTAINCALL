@@ -1,6 +1,7 @@
 # Handoff
 
 ## 지금 상태
+- 최신 후속: 외줄 도착 시 1명 즉시 클리어 복원. 기존 작업 브랜치에 dev 2c870af pull 완료. TightropeRun의 독립/연결/캠페인 도착에서 관문 완료 기록 조건 제거, 원격 도착 요청은 호스트 위치도 확인. 참가 준비/정상 생존/공연 세대·시작 확인·호스트 권한 유지. Unity Play 종료 확인 후 수정, 컴파일 PASS(completed), 테스트 SKIPPED. 이번 변경 미커밋/미제출.
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/216
 - 2026-10-22 후속 버그 수정. 기존 fix/four-player-course-feedback로 복귀해 최신 dev 8e1bdf9 fast-forward pull 완료. 이전 PR #213은 MERGED, 그 내용 모두 포함. 사용자 저장·제출 지시로 c64da6a 선별 커밋·push 완료, dev 대상 PR #216 제출. 새 브랜치 없음.
 - 사용자 확인: “혼자 그네 못 탐”은 이미 잡은 뒤 W/S·Space가 안 되는 증상. 첫 진입의 목마 협동 조건은 유지. 사용자 Play 종료 확인 후 코드/에셋 수정, 플레이/자동 테스트 실행 안 함.
@@ -22,8 +23,8 @@
 - 환경: 연속 작업 최초 doctor FAIL0/WARN1(CLI 버전 차이), 중복 실행 안 함. 현재 Unity stopped/ready, Start 씬 clean.
 - 구역 검사: PASS (10-22)
 - 문서/규칙: PASS (2026-10-22 check-work -SkipUnity).
-- 2 컴파일: PASS (2026-10-22 마지막 입력/조작 규칙·대기 시계 보완 후 별도 verify-unity -Compile completed). check-work는 자동 테스트 방지를 위해 -SkipUnity로 실행해 해당 단계만 생략 처리됨.
-- 3 테스트: SKIPPED — 사용자 직접 수행 지시, 자동/PlayMode·실제 입력 재현 없음. 부작용 없음/완주 PASS로 단정하지 않는다.
+- 2 컴파일: PASS (2026-10-22 외줄 도착 조건 수정 후 별도 verify-unity -Compile completed). check-work -SkipUnity는 구역/문서 검사에만 사용.
+- 3 테스트: SKIPPED — 사용자 수행 지시. Play/자동 테스트 미실행, 실제 클리어 재현 확인은 사용자 대기.
 - 에디터 참조: HumanCannon missing scripts0·broken serialized references0·dirty=false, grabDistance4/UpwardSpeed12 유지. 설정 톱14/시작 범위14·그네 레일 겹침0.
 - 정적 코드: 동일 플레이어 잡기/반동 상호 배제·다른 플레이어 영향·대기 해제·프레임 중복 입력·하층 우선 순서 검토. git diff --check PASS, 미해결 병합 충돌0. 새로운 추적 대상 파일 없음.
 

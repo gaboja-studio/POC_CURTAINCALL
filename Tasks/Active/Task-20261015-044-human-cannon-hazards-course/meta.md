@@ -2,10 +2,10 @@
 
 - **Title:** 그네 조작·연속 절단 및 트램폴린 잡기·반동 충돌 보완
 - **Type:** fix
-- **Status:** submitted
+- **Status:** working
 - **Assignee:** @RagSpirin
 - **Domain:** MainStage / HumanCannon
-- **Current Skill:** submit-work
+- **Current Skill:** implement-code
 - **Updated:** 2026-10-22
 
 ## Workspace
