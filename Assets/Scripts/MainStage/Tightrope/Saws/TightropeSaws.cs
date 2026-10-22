@@ -119,6 +119,7 @@ namespace CurtainCall.Tightrope.Saws
         readonly HashSet<(int saw, ulong player)> touching = new();
         readonly HashSet<(int saw, ulong player)> touchingNow = new();
         readonly Dictionary<(int saw, ulong player), float> lastHitAt = new();
+        readonly Dictionary<ulong, float> lastPlayerCutAt = new();
 
         /// <summary>씬의 톱날. 없으면 null.</summary>
         public static TightropeSaws Current
@@ -298,6 +299,7 @@ namespace CurtainCall.Tightrope.Saws
             platePressedFor = 0f;
             touching.Clear();
             lastHitAt.Clear();
+            lastPlayerCutAt.Clear();
             verticalStep = -1;
             waitReasons.Clear();
             sequence = new ObstacleSequence(settings.steps);
@@ -594,12 +596,19 @@ namespace CurtainCall.Tightrope.Saws
             touchingNow.Add(key);
             if (touching.Contains(key)) return;
             if (lastHitAt.TryGetValue(key, out float last) && Time.time - last < settings.hitCooldown) return;
+            // 서로 다른 톱이 겹쳐도 같은 접촉 순간에 팔다리가 여러 개 잘리지 않는다. 정면 즉사에는 적용하지 않는다.
+            if (kind == SawKind.Horizontal && lastPlayerCutAt.TryGetValue(player.NetworkObjectId, out float playerLast)
+                && Time.time - playerLast < settings.hitCooldown) return;
             lastHitAt[key] = Time.time;
 
             // 가로 절단과 정면 즉사를 분리한다. 버튼을 일찍 누른 상층도 실제 톱의 접촉을 면제하지 않는다.
             var requested = SawMath.DecidePart(contact, body, course.Right, settings.waistHeight);
             BodyPart cut = BodyPart.None;
-            if (kind == SawKind.Horizontal) cut = player.ServerCut();
+            if (kind == SawKind.Horizontal)
+            {
+                cut = player.ServerCut();
+                if (cut != BodyPart.None) lastPlayerCutAt[player.NetworkObjectId] = Time.time;
+            }
             else if (!player.ServerKill()) return;
             var hit = new SawHit(player, cut, requested, kind, index, contact, contact.y - body.Feet.y);
             RaiseHit(hit);

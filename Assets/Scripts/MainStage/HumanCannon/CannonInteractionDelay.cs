@@ -19,6 +19,9 @@ namespace CurtainCall.HumanCannon
         readonly List<KeyValuePair<ulong, Entry>> snapshot = new();
         public int Count => pending.Count;
 
+        public bool HasPending(ulong actor, int target, uint revision) =>
+            pending.TryGetValue(actor, out var entry) && entry.Target == target && entry.Revision == revision && entry.IsValid();
+
         public void Schedule(ulong actor, int target, uint revision, double now, double duration,
             Func<bool> isValid, Action complete)
         {

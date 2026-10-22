@@ -171,6 +171,12 @@ namespace CurtainCall.Tightrope
             if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired
                 || (balance != null && balance.HasFallen)) return; // 도착 완료는 계속 바꾼다(세리머니 공간은 일반 이동)
 
+            if (IsCourseActive() && TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player))
+            {
+                // 봉/동료를 잡은 뒤에는 발의 줄 지지 여부나 동료 수와 무관하게 그네 입력을 유지한다.
+                if (onRope != true) Apply(true);
+                return;
+            }
             var stack = PiggybackSystem.Current;
             if (IsCourseActive() && stack != null && stack.isActiveAndEnabled && stack.GetBelow(player) != null)
             {

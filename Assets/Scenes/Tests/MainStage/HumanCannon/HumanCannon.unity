@@ -81001,7 +81001,7 @@ MonoBehaviour:
   halfSize: {x: 2, y: 2}
   circularSurface: 1
   loadHalfSize: {x: 2.4753408, y: 2.4753408}
-  grabDistance: 3
+  grabDistance: 4
   upwardSpeed: 12
   groundBounceAirControlSpeed: 4.5
   resetPoseOnRestart: 1
