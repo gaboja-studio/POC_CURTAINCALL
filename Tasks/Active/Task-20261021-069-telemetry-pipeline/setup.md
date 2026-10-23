@@ -6,6 +6,7 @@ PM(@MoHoDu) 직접 작업. 사용자가 지정한 현재 프로젝트에서 진�
 - 관련 JIRA: 없음 (PM 직접 요청, 순차 gate 통합 아님)
 
 ## 작업 구역
+- 2026-10-23 사용자 LIVE 빌드 후속 요청: 최대 FPS 설정(기본 60·해제 가능). `Assets/Scripts/Systems/Settings/BaseGameSettings.cs`, `FrameRateController.cs` 및 `.meta`, `Assets/Resources/Settings/GameSettings/BaseGameSettings.asset`의 프레임 설정만 추가. 기존 미커밋 변경 보존.
 - `Assets/Scripts/Systems/TelemetryPipeline/`
 - `Assets/Scripts/Systems/TelemetryPipeline.meta`
 - `Scripts/Telemetry/` — PM Google 서버·검증 코드

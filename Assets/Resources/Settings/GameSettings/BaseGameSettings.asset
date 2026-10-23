@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f58d5f62778d945ba81f667dea44aee7, type: 3}
   m_Name: BaseGameSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.BaseGameSettings
+  frameRate:
+    limitEnabled: 1
+    maxFps: 60
   session:
     maxPlayers: 4
     minPlayers: 2

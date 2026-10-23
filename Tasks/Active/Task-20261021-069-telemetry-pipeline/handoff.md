@@ -1,6 +1,7 @@
 # Handoff
 
 ## 지금 상태
+- 2026-10-23 사용자 LIVE 빌드 후속: BaseGameSettings의 프레임 제한(기본 켬·60FPS), 자동 FrameRateController 추가. 해제 시 targetFrameRate=-1, 실행 중 VSync=0, Play 종료 시 이전 엔진값 복원. 씬 저장·빌드·커밋·push 없음. 사용법은 service-build.md.
 - feat/telemetry-pipeline → dev. PM 단일 Task 직접 제출 승인(meta). dev84517ba(PR207 공연 수정)를 76eb3e8로 충돌 없이 병합. b6ae6f0 로그·설문·문서 로컬 저장. 레그돌 후속034a45e 저장. PR208 제출, dev 병합 없음.
 - Google 동일 URL: 수신v19·등록 멤버 대시보드v24. Drive/시트 비공개, 수동/30분 갱신 유지. 등록 멤버4명·메일 인증/관리자 보관·삭제 구현, 실제 삭제/외부 계정 조작은 미검증.
 - 호스트 단독 HTTPS·참가자 디스크 ACK·플레이어 번호/버전/TEST·LIVE 분리. 시간18단계·공연 좌표 도식·분석 필터·자금DAY/BREAK·날짜/검색/select·설문 통계 구현. 이전 세부 증거는 History/001~015.
@@ -11,10 +12,11 @@
 - 승인된 빌드 자동 설정/폰트6개·에디터 태그off/off 복원. 기존 폰트1·머티리얼3 SHA256 동일 보존·커밋 제외. 테스트 SurveyCache2개는 보존, 재검증 초기화는 pc-files.md.
 
 ## Verification
-- 구역 검사: PASS (origin/dev, PM; 기존 자동 에셋4개 제출 제외).
-- 1 문서/규칙: PASS (기존 크기 WARN만, hard0).
-- 2 컴파일: PASS (최신 dev 병합 후 completed/failed=false/errors0). 최종 복원 후 저장 직전 up_to_date 재확인.
-- 3 테스트: PASS (이번 Node84/84). 캐시 수정 EditMode8/8 PASS(이번). Start bootstrap PlayMode1/1은 동일 연결 코드의 직전 증거(History/014). 전체 Unity 테스트는 최소 검사 요청으로 SKIPPED, 기존 전체 목마 점프 실패/PlayMode 시간 초과 미해결.
+- 2026-10-23 FPS 후속 별도 검사: 문서 PASS(기존 크기 WARN), 컴파일 PASS(up_to_date), PlayMode FrameRateSettingsTests 1/1 PASS(2.14초: 부트스트랩·120 변경·해제·60 복원·씬 이동 유지·0 입력 방어). 최초 테스트는 DontSave 객체를 일반 검색해 실패했고 인스턴스 확인으로 수정 후 통과. 빌드 실행·실측 FPS는 미검증. check-work 전체는 작업 전부터 있던 ProjectSettings.asset·UnityConnectSettings.asset의 다른 Task 구역 변경 때문에 FAIL; 기존 변경은 보존. 아래 자동 검사 행은 전체 작업 폴더 결과이며 이번 코드의 컴파일 결과와 구분.
+- 구역 검사: FAIL — 구역 검사 실패 (10-23)
+- 1 문서/규칙: SKIPPED(구역 검사 실패)
+- 2 컴파일: SKIPPED(구역 검사 실패)
+- 3 테스트: SKIPPED(구역 검사 실패)
 - 4 실행 로그: PASS (Windows exe 개발 메뉴 밤1→설문 자동 열기, PM 직접 ESC 나가기→종료 설문). 두 연결 코드 TEST/0.1.0/동일run/slot0 확인. 응답 제출 없음. Drive ACK 및 Events1585 RUN_STARTED 적재 확인.
 - 최신 dev+캐시 수정 최종 빌드: PASS (build_2c8ce100d5d9, errors0/warnings8, 24.528초). 새 exe 실제 실행·Drive ACK·내장 태그 확인. PM 밤1→ESC 재실행에서 설문 재열림 없음 확인. 일반 첫날 완주/두PC와 구분.
 - 레그돌 후속: 외줄 사망 후 ReleaseControls의 BalanceReset이 모델 복구하는 결함 재현·수정. 두 실제 공연 씬 PlayMode 회귀 PASS(외줄6.15초·대포6.79초, 공개 API 합성/중력 실측), 반복 사망·전체절단·균형추락·정상부활 확인. Windows 재빌드 PASS(errors0/warnings12/42.4초)·Drive ACK, PM이 실제 최종 빌드의 두 공연 사망 레그돌 정상 동작 확인. [History/017](History/017-death-ragdoll.md).

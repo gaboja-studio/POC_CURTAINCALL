@@ -31,6 +31,9 @@ namespace CurtainCall.Settings
     [CreateAssetMenu(menuName = "CurtainCall/Settings/Base Game Settings", fileName = "BaseGameSettings")]
     public sealed class BaseGameSettings : ScriptableObject
     {
+        [Header("프레임 제한")]
+        [SerializeField] FrameRateSettings frameRate = new();
+
         [Header("세션")]
         [SerializeField] SessionSettings session = new();
         [Header("런 진행")]
@@ -54,6 +57,7 @@ namespace CurtainCall.Settings
         [Header("음성 채팅")]
         [SerializeField] VoiceChatSettings voiceChat = new();
 
+        public FrameRateSettings FrameRate => frameRate;
         public SessionSettings Session => session;
         public RunSettings Run => run;
         public ItemCarrySettings ItemCarry => itemCarry;
@@ -67,6 +71,22 @@ namespace CurtainCall.Settings
         public VoiceChatSettings VoiceChat => voiceChat;
 
         void OnValidate() => balance.Validate();
+
+        [Serializable]
+        public sealed class FrameRateSettings
+        {
+            [InspectorName("FPS 제한 사용")]
+            [Tooltip("켜면 최대 FPS를 제한합니다. 끄면 FPS 제한을 해제합니다. 플레이 중 변경도 반영되며, 빌드에는 빌드 당시 값이 포함됩니다. VSync는 실행 중 꺼집니다.")]
+            [SerializeField] bool limitEnabled = true;
+
+            [InspectorName("최대 FPS")]
+            [Tooltip("초당 최대 프레임 수(FPS). 기본 60. 제한을 켰을 때만 적용됩니다.")]
+            [SerializeField, Min(1)] int maxFps = 60;
+
+            public bool LimitEnabled => limitEnabled;
+            public int MaxFps => Mathf.Max(1, maxFps);
+            public int TargetFrameRate => limitEnabled ? MaxFps : -1;
+        }
 
         /// <summary>세션(방) 인원.</summary>
         [Serializable]

@@ -19,6 +19,13 @@ Unity에서 재생한 기록은 Development Build 체크와 관계없이 TEST입
 
 ## 서비스용 빌드 만들기
 
+### 최대 FPS 조절
+
+Project 창에서 `Assets/Resources/Settings/GameSettings/BaseGameSettings.asset`을 선택하고 Inspector의 **프레임 제한**을 펼칩니다.
+- **FPS 제한 사용** 체크 + **최대 FPS: 60**이 기본값입니다. 숫자를 바꾸면 해당 FPS로 제한합니다.
+- 제한을 풀려면 **FPS 제한 사용** 체크를 끕니다. 실행 중 VSync도 꺼지므로 모니터 주사율로 제한하지 않습니다.
+- Unity 재생 중 변경도 반영됩니다. 배포한 게임에 적용하려면 설정 후 **새로 빌드**해야 합니다.
+
 Windows·Mac 모두 아래 순서입니다. 빌드는 최신 프로젝트를 준비한 담당 PC에서 진행합니다.
 
 1. Unity 재생을 멈춥니다. **Edit → Project Settings → Player → Version**이 배포할 버전인지 확인합니다. 현재 설문은 **0.1.0 전용**입니다.
