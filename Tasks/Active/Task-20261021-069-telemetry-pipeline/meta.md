@@ -1,16 +1,16 @@
 # Task-20261021-069
 
 - **Title:** 전체 게임 로그·Google 기반 및 공개 이벤트 연결
-- **Type:** feat
-- **Status:** submitted
+- **Type:** fix
+- **Status:** working
 - **Assignee:** @MoHoDu
 - **Domain:** 로그·Google 파이프라인
-- **Current Skill:** implement-code
-- **Updated:** 2026-10-22
+- **Current Skill:** save-work
+- **Updated:** 2026-10-26
 
 ## Workspace
 - **Integration:** dev
-- **Branch:** feat/telemetry-pipeline
+- **Branch:** fix/dashboard-refresh-cache
 - **Previous Task:**
 
 ## Goal
@@ -22,6 +22,8 @@
 - AI Setup Allowed: None
 
 ## Decisions
+- Decided: 2026-10-26 사용자 — 0.2.0 Development+Dev Mode+LOGS 빌드 완료 후 현재 로그·설문 변경을 저장하고 dev에 반영 요청. 관련 변경만 커밋·PR·병합하며 다른 Task 변경은 보존한다.
+- Decided: 2026-10-26 사용자 — 최신 dev를 현 fix 브랜치에 받고 참가자 타임라인 누락 수정. 기존 Task-069 구역으로 계속하며 이전 feat 브랜치의 PR208 이력은 handoff에 보존. 커밋·push·빌드 요청은 없음.
 - Decided: 2026-10-21 사용자 — 과금 금지, 지정 Drive 폴더, 새 시트·폴더, 방식 AI 선택.
 - Open: 의미가 확정된 세부 구역·실측 이동/능력·충돌 원인과 다중 클라이언트 사람 검증. 현재 연결 범위는 coverage.md.
 - PM 직접 단일 Task. 2026-10-22 사용자: Windows 빌드 생성+로그/설문 최소 실행 검증 통과 시 커밋·dev 직접 PR 제출 승인. git-workflow 단일 Task 예외로 Integration dev 선언. 두 PC/실제 설문 응답은 보류, 폼은 사용자만 수정.

@@ -9,6 +9,7 @@ adapters.add('STORAGE_REACHED');
 adapters.add('RECALL_EXPIRED');adapters.add('RESTORATION_VERIFIED');
 adapters.add('CANNON_HAZARD_CONTACT');
 adapters.add('BREAK_ENDED');
+adapters.add('PERFORMANCE_ROSTER');adapters.add('PLAYER_ARRIVED');
 for(const [name,fields] of Object.entries(ctx.TelemetryCore.catalog))text+=`| ${name} | ${Object.entries(fields).map(([k,v])=>`${k}: ${v}`).join(', ')||'없음'} | ${connected.has(name)?'기반 자동 수집':adapters.has(name)?'공개 API 연결·범위/실행 검증은 coverage.md':'후속 원천 연결 필요'} |\n`;
 text+='\n연결은 전체 항목의 실플레이 검증 완료를 뜻하지 않는다. [실제 범위·미연결 항목](coverage.md) 참조. optionalPositive/optionalBool은 명시적 null 또는 해당 타입만 허용한다.\n';
 text+='\n원천 스키마: Scripts/Telemetry/core.gs. 이 파일 변경 시 node Scripts/Telemetry/generate-catalog.cjs로 재생성.\n';

@@ -8,13 +8,14 @@
 - [원본 JSON](https://drive.google.com/drive/folders/1MEeWD5UNdKcypZ6jAhXfaMkP6i84WAi5)
 - [로그 시트](https://docs.google.com/spreadsheets/d/1KCLPn1tEW5qsK16jcw8swZ75IeN6p6lG_82zRUOg7I8/edit)
 - [Apps Script 프로젝트](https://script.google.com/home/projects/1V4KUY5s1YNPdyGBJj_wr4XMjYLCaReUJUQ-5oG8acx9SDBOtCgYg15TO/edit)
-- 등록 멤버 대시보드(v24 자금 구간·날짜 달력·고정 아이콘/드래그·설문 간격·세션 조회 최적화): https://script.google.com/macros/s/AKfycby1UfzhOaNl9ycjKYATPF-b32AkSskzupKQ--Zxj3Z_eIKraOqy9Aw1PYYLkqKewJ_wqw/exec
-- 수신 전용 v19(적재 영수증 재사용·삭제 기록 재전송 차단): https://script.google.com/macros/s/AKfycbyBQxQU6XRZXS1qPEs11K8U_i8cwkJEi68-yHgIL6XHe9yCYzyXf3MFjsw6m2cYKEKD3A/exec
+- 등록 멤버 대시보드(v36 M2 호스트 타임라인·설문 버전/회차·기존 보관/캐시 유지): https://script.google.com/macros/s/AKfycby1UfzhOaNl9ycjKYATPF-b32AkSskzupKQ--Zxj3Z_eIKraOqy9Aw1PYYLkqKewJ_wqw/exec
+- [갱신·캐시 운영](refresh-cache.md): 비공개 Drive 캐시, 실패 복구와 소유자 진단 방법.
+- 수신 전용 v35(M2 호스트 명단·도착 계약·기존 인증/중복 방지 유지): https://script.google.com/macros/s/AKfycbyBQxQU6XRZXS1qPEs11K8U_i8cwkJEi68-yHgIL6XHe9yCYzyXf3MFjsw6m2cYKEKD3A/exec
 - 2026-10-21 ccScheduledRefresh_ 30분 트리거 1개·실행 이력·오류율 0% 확인. 본인 전용 배포를 v2로 갱신해 빈 화면 해결.
 - TEST 필터에서 실제 이벤트 159건·v4 통계 그룹/탭/타임라인 확인. 기본 LIVE 필터는 현재 데이터 없음. [화면·집계 기준](dashboard-design.md).
 
 ## 배포 순서
-1. node Scripts/Telemetry/prepare-deployment.cjs 실행. core.gs·surveys-core.gs·management.gs·surveys-server.gs·server.gs를 결합한 수신/웹용 소스를 .harness/local에 만든다.
+1. node Scripts/Telemetry/prepare-deployment.cjs 실행. core.gs·surveys-core.gs·management.gs·surveys-server.gs·server.gs·refresh-cache.gs를 결합한 수신/웹용 소스를 .harness/local에 만든다.
 2. dashboard.html을 이름 dashboard인 HTML 파일로 추가한다.
 3. appsscript.json의 시간대·서비스 범위를 적용한다.
 4. 프로젝트 설정 → 스크립트 속성에 INGEST_TOKEN을 충분히 긴 무작위 값으로 직접 설정한다.
@@ -23,11 +24,11 @@
 7. 수신 배포: telemetry-ingest-code.txt(dashboardEnabled=false), 본인으로 실행·모든 사용자. GET은 차단하고 POST token을 검증한다. 두 기존 배포를 각각 새 버전으로 갱신한 뒤 편집기는 웹용 소스로 유지한다.
 8. 수신 코드의 token 확인과 schema 제한은 필수. 인증 실패는 Drive/Sheets를 수정하지 않는다.
 9. installRefreshTrigger를 소유 계정으로 한 번 실행한다. 중복 설치하지 않는다.
-10. 대시보드 웹 주소를 시트 운영 상태 B7에 기록하고 실제 빈 상태·갱신 성공을 확인한다.
+10. 대시보드 웹 주소를 시트 운영 상태 B7에 기록한다. 소유자가 scheduledRefresh를 한 번 실행해 첫 캐시를 만든 뒤 checkDashboardCache로 조회를 확인한다. 일반 접속에서는 첫 집계도 자동으로 시작하지 않는다.
 
 ## Unity 설정
-- 새 빌드/Editor 실행은 PlaytestBuildTags manifest의 LOGS 태그가 있을 때만 기록·재전송한다. SURVEY_010은 독립이며 0.1.0에서만 가능. 빌드 담당자 메뉴·최초 열기 캐시는 [설문 안내](survey-guide.md). 기존 실행 파일에는 소급 적용되지 않는다.
-- 게임 버전은 Player Settings의 Version을 사용한다(현재 이미 0.1.0). 다음 빌드의 이 값만 변경하면 새 로그와 대시보드 선택지가 자동 구분된다. 배포 v12는 서버 코드 버전이며 게임 0.1.0과 별개다. 과거 대기 파일의 버전은 바꾸지 않는다.
+- 새 빌드/Editor 실행은 PlaytestBuildTags manifest의 LOGS 태그가 있을 때만 기록·재전송한다. 설문 태그는 독립이며 설정된 버전 범위에 맞는 설문만 가능. 빌드 담당자 메뉴·최초 열기 캐시는 [설문 안내](survey-guide.md). 기존 실행 파일에는 소급 적용되지 않는다.
+- 게임 버전은 Player Settings의 Version을 사용한다(현재 0.2.0). 다음 빌드의 이 값만 변경하면 새 로그와 대시보드 선택지가 자동 구분된다. 배포 v12는 서버 코드 버전이며 게임 0.1.0과 별개다. 과거 대기 파일의 버전은 바꾸지 않는다.
 - 원격 전송은 설정이 없으면 비활성. 현재 Windows 사용자는 수신 URL·token 직접 설정 후 자동 전송 검증 완료.
 - 게임 프로세스 환경 변수 CURTAINCALL_TELEMETRY_URL: 수신 배포의 https://script.google.com/macros/s/.../exec.
 - CURTAINCALL_TELEMETRY_TOKEN: Apps Script INGEST_TOKEN과 같은 값. 문서·커밋·콘솔에 넣지 않는다.
@@ -60,7 +61,7 @@
 - [웹 앱 배포](https://developers.google.com/apps-script/guides/web)
 - [ContentService 리디렉션](https://developers.google.com/apps-script/guides/content)
 - JSON 응답은 googleusercontent.com으로 리디렉션될 수 있다. 실제 UnityWebRequest 왕복으로 확인한다.
-- 50,000 이벤트·100배치/갱신 상한. 많은 데이터는 원본 보존한 채 별도 보관·집계 분할을 계획한다.
+- Events 적재 안전 상한 200,000건·100배치/갱신. 50,000행 이상에서는 Drive 저장본과 전체 내용이 일치한 처리 행만 옮긴다. LIVE30/TEST7일 후 상세를 정리해도 세션 요약·설문은 남는다. 대시보드 수집 이벤트는 키·버튼·마이크 입력을 제외한 수다. [보관·증분 처리 기준](session-retention.md).
 
 ## 현재 확인된 실제 데이터 경로
 - Start Play에서 GAME_STARTED/SCENE_ENTERED/TITLE_ENTERED를 디스크 저장했고, Editor 종료로 GAME_EXITED도 기록했다.

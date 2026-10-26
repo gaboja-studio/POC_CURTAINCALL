@@ -22,6 +22,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         Component runtime, session;
         Delegate listener;
         IDisposable minimumPlayers;
+        object savedOutbox;
 #if UNITY_EDITOR
         string logTagPreference;
         bool previousLogTag;
@@ -50,10 +51,19 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
                 Slot = (int?)Field("playerNumber"), Payload = (IDictionary)Field("payload"), Attempt = (string)Field("attemptId"),
                 Run = (string)Field("runId"), Break = (string)Field("breakId"), Authority = (string)Field("authority") });
         }
-        void Capture()
+        void Capture(bool isolateStorage = false)
         {
             runtime = (Component)Static("CurtainCall.Telemetry.Pipeline.TelemetryRuntime", "Instance");
             Assert.That(runtime, Is.Not.Null);
+            if (isolateStorage)
+            {
+                // Local regression only: never submit the new event schema to an older Google deployment.
+                ((MonoBehaviour)runtime).StopAllCoroutines();
+                var field = runtime.GetType().GetField("outbox", BindingFlags.Instance | BindingFlags.NonPublic);
+                savedOutbox = field.GetValue(runtime);
+                var path = Path.Combine(Application.temporaryCachePath, "telemetry-host-regression", Guid.NewGuid().ToString("N"));
+                field.SetValue(runtime, Activator.CreateInstance(Game("CurtainCall.Telemetry.Pipeline.DurableOutbox"), path, Guid.NewGuid().ToString("D")));
+            }
             var recorded = runtime.GetType().GetEvent("Recorded");
             var parameter = Expression.Parameter(recorded.EventHandlerType.GetGenericArguments()[0]);
             listener = Expression.Lambda(recorded.EventHandlerType,
@@ -94,7 +104,6 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
                 var initial = JsonUtility.FromJson<UploadProbeBatch>(active);
                 Assert.That(initial.events.Length, Is.EqualTo(1));
                 Assert.That(initial.events[0].gameVersion, Is.EqualTo(Application.version));
-                Assert.That(initial.events[0].gameVersion, Is.EqualTo("0.1.0"));
                 // Reopen an unsealed queue: the same disk recovery path used by the next game launch.
                 var recovered = Activator.CreateInstance(boxType, directory, Guid.NewGuid().ToString("D"));
                 outboxField.SetValue(runtime, recovered);
@@ -197,7 +206,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         {
             yield return SceneManager.LoadSceneAsync("Tightrope", LoadSceneMode.Single); yield return null;
             yield return RemoveAutomaticSceneRouting();
-            Capture();
+            Capture(true);
             session = (Component)Game("CurtainCall.Network.Session.NetworkSessionManager").GetMethod("EnsureExists").Invoke(null, null);
             minimumPlayers = (IDisposable)Call(session, "RequestMinimumStartPlayers", 1);
             var host = (Task<bool>)Call(session, "HostLanAsync", (ushort)7789);
@@ -212,6 +221,10 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             deadline = Time.realtimeSinceStartup + 15;
             while (!events.Any(e => e.Type == "PERFORMANCE_STARTED") && Time.realtimeSinceStartup < deadline) yield return null;
             var started = events.Single(e => e.Type == "PERFORMANCE_STARTED");
+            Assert.That(started.Authority, Is.EqualTo("HOST"));
+            Assert.That(events.Count(e => e.Type == "PERFORMANCE_ROSTER"), Is.EqualTo(1));
+            Assert.That(started.Payload["collectionSource"].ToString(), Is.EqualTo("HOST_PLAYER"));
+            Assert.That(started.Slot, Is.EqualTo(0));
             Assert.That(started.Attempt, Is.Not.Null); Assert.That(started.Run, Is.Not.Null);
             Assert.That(started.Payload.Contains("position"), Is.True);
             Assert.That(started.Payload["positionSource"].ToString(), Is.EqualTo("EMIT_OBSERVATION"));
@@ -537,6 +550,11 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             if (session != null && Read(session, "ConnectionState").ToString() != "Offline")
             { var task = (Task)Call(session, "LeaveAsync"); float until = Time.realtimeSinceStartup + 10; while (!task.IsCompleted && Time.realtimeSinceStartup < until) yield return null; }
             events.Clear(); listener = null;
+            if (savedOutbox != null && runtime != null)
+            {
+                runtime.GetType().GetField("outbox", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(runtime, savedOutbox);
+                savedOutbox = null;
+            }
             minimumPlayers?.Dispose(); minimumPlayers = null;
 #if UNITY_EDITOR
             if (logTagPreference != null) UnityEditor.EditorPrefs.SetBool(logTagPreference, previousLogTag);

@@ -13,6 +13,15 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         string logsKey, surveysKey;
         bool previousLogs, previousSurveys;
         Type surveyType, logType;
+#if UNITY_EDITOR
+        string previousVersion;
+        [UnitySetUp] public IEnumerator UseTheSurveyVersionForLegacyRegression()
+        {
+            previousVersion = UnityEditor.PlayerSettings.bundleVersion;
+            UnityEditor.PlayerSettings.bundleVersion = "0.1.0";
+            yield return null;
+        }
+#endif
         static Type Game(string name) => Type.GetType("CurtainCall.Telemetry.Pipeline." + name + ", Assembly-CSharp", true);
         [UnityTest] public IEnumerator SurveyOnlyBuildBootstrapsAndBindsMenuWithoutCreatingLogCollector()
         {
@@ -76,6 +85,22 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
                 Assert.That(surveyType.GetField("pendingCode", flags).GetValue(survey), Is.EqualTo(code));
             }
         }
+        [UnityTest] public IEnumerator M2DoesNotCreateM1SurveyEvenWhenSurveyTagIsOn()
+        {
+#if UNITY_EDITOR
+            UnityEditor.PlayerSettings.bundleVersion = "0.2.0";
+            var tags = Game("PlaytestBuildTags");
+            logsKey = (string)tags.GetMethod("PreferenceKey").Invoke(null, new object[] { "LOGS" });
+            surveysKey = (string)tags.GetMethod("PreferenceKey").Invoke(null, new object[] { "SURVEY_010" });
+            previousLogs = UnityEditor.EditorPrefs.GetBool(logsKey, false); previousSurveys = UnityEditor.EditorPrefs.GetBool(surveysKey, false);
+            UnityEditor.EditorPrefs.SetBool(logsKey, false); UnityEditor.EditorPrefs.SetBool(surveysKey, true);
+            surveyType = Game("PlaytestSurveyRuntime");
+            yield return SceneManager.LoadSceneAsync("Start", LoadSceneMode.Single); yield return null;
+            Assert.That(UnityEngine.Object.FindAnyObjectByType(surveyType), Is.Null);
+#else
+            Assert.Ignore("Editor-only tag setup."); yield break;
+#endif
+        }
         [UnityTest] public IEnumerator DisconnectWithoutPlayingNeverQueuesAnExitSurvey()
         {
             yield return SurveyOnlyBuildBootstrapsAndBindsMenuWithoutCreatingLogCollector();
@@ -93,6 +118,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         [UnityTearDown] public IEnumerator Cleanup()
         {
 #if UNITY_EDITOR
+            if (previousVersion != null) UnityEditor.PlayerSettings.bundleVersion = previousVersion;
             if (logsKey != null) UnityEditor.EditorPrefs.SetBool(logsKey, previousLogs);
             if (surveysKey != null) UnityEditor.EditorPrefs.SetBool(surveysKey, previousSurveys);
             if (surveyType != null) { var item = UnityEngine.Object.FindAnyObjectByType(surveyType); if (item != null) UnityEngine.Object.Destroy(item); }

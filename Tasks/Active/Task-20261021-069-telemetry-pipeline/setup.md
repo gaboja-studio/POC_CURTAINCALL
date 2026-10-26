@@ -6,6 +6,7 @@ PM(@MoHoDu) 직접 작업. 사용자가 지정한 현재 프로젝트에서 진�
 - 관련 JIRA: 없음 (PM 직접 요청, 순차 gate 통합 아님)
 
 ## 작업 구역
+- 2026-10-26 PM M2 버전 요청: `ProjectSettings/ProjectSettings.asset`의 bundleVersion만 0.2.0으로 변경. 이 PC의 LOGS 켬/SURVEY_010 끔, 버전 가이드·관련 검사 갱신.
 - 2026-10-23 사용자 LIVE 빌드 후속 요청: 최대 FPS 설정(기본 60·해제 가능). `Assets/Scripts/Systems/Settings/BaseGameSettings.cs`, `FrameRateController.cs` 및 `.meta`, `Assets/Resources/Settings/GameSettings/BaseGameSettings.asset`의 프레임 설정만 추가. 기존 미커밋 변경 보존.
 - `Assets/Scripts/Systems/TelemetryPipeline/`
 - `Assets/Scripts/Systems/TelemetryPipeline.meta`
@@ -15,6 +16,8 @@ PM(@MoHoDu) 직접 작업. 사용자가 지정한 현재 프로젝트에서 진�
 - `Harness/Project/Guides/Log-system/` — 2026-10-22 PM 요청: 비개발 기획자용 Windows·Mac 운영 안내
 - `Harness/Project/Pitfalls/death-ragdoll-reset.md` — 긴급 사망 레그돌 수정 교훈
 - `Harness/Project/Pitfalls/index.md` — 위 교훈 링크만 추가
+- `Harness/Project/Pitfalls/Telemetry/host-observation-roster.md`, `Harness/Project/Pitfalls/Telemetry/index.md` — 2026-10-26 PM 요청의 공연 참가자 누락 교훈
+- `Harness/Project/Pitfalls/Telemetry/sheets-client-id-replay.md` — 이번 로그 갱신 수정에서 확인한 Sheets 플레이어 번호·재처리 문제 기록. 다른 Task 코드·문서는 변경하지 않는다.
 - Task 문서: 이 Task 폴더 (자동 포함)
 
 ## 배정된 공용 파일

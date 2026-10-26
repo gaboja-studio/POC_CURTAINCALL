@@ -1,8 +1,41 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),crypto=require('node:crypto');
 const {fixture}=require('./server.fixture.cjs');
+test('import expands a full Events grid before formatting new IDs',()=>{
+ const f=fixture();f.grids.set('Events',1);f.send();assert.equal(f.context.ccImport_(f.book),1);assert.equal(f.grids.get('Events'),2);assert.equal(f.tables.Events.length,2);
+});
+test('dashboard reads exclude raw inputs without deleting the raw Events rows',()=>{
+ const f=fixture();f.send();f.context.ccImport_(f.book);const row=f.tables.Events[1];
+ for(const type of ['INPUT_KEY','BUTTON_INPUT','MICROPHONE_INPUT']){const r=row.slice();r[0]=crypto.randomUUID();r[16]=type;f.tables.Events.push(r);}
+ assert.equal(f.context.ccReadEvents_(f.book).length,1);assert.equal(f.tables.Events.length,5);
+});
 test('ingest ACK is durable and token is absent from raw Drive files',()=>{const f=fixture();assert.equal(f.send().ok,true);assert.equal(f.files.size,1);assert.equal(f.send().ok,true);assert.equal(f.files.size,1);const raw=[...f.files.values()][0].getBlob().getDataAsString();assert.equal(raw.includes('test-only-token'),false);});
 test('bad token rejects without writes and same batch ID different bytes conflicts',()=>{const f=fixture();assert.equal(f.send(f.batch,'invalid').error,'UNAUTHORIZED');assert.equal(f.files.size,0);f.send();const changed=JSON.parse(JSON.stringify(f.batch));changed.events[0].payload={changed:true};assert.equal(f.send(changed).error,'BATCH_ID_CONFLICT');assert.equal(f.files.size,1);});
 test('partial event append before receipt failure retries exactly once',()=>{const f=fixture();f.send();f.failReceipt();assert.throws(()=>f.context.ccImport_(f.book),/injected failure/);assert.equal(f.tables.Events.length,2);assert.equal(f.tables.Batches.length,1);assert.equal(f.context.ccImport_(f.book),1);assert.equal(f.tables.Events.length,2);assert.equal(f.tables.Batches.length,2);assert.equal(f.context.ccImport_(f.book),0);});
+test('Sheets numeric client ID coercion does not block partial-import recovery or replay',()=>{
+ const f=fixture();f.batch.events[0].networkClientId='2';f.send();f.failReceipt();assert.throws(()=>f.context.ccImport_(f.book),/injected failure/);
+ f.tables.Events[1][9]=2;assert.equal(f.context.ccImport_(f.book),1);assert.equal(f.tables.Events.length,2);
+ const b=JSON.parse(JSON.stringify(f.batch));b.batchId=crypto.randomUUID();f.send(b);assert.equal(f.context.ccImport_(f.book),1);assert.equal(f.tables.Events.length,2);
+ b.batchId=crypto.randomUUID();b.events[0].networkClientId='3';f.send(b);assert.throws(()=>f.context.ccImport_(f.book),/EVENT_ID_CONFLICT/);
+});
+test('client ID normalization preserves absent, zero, leading-zero and large identities',()=>{
+ const f=fixture(),row=f.context.TelemetryCore.row({...f.batch.events[0],networkClientId:'0'},f.batch,'now'),fp=f.context.ccFingerprint_;
+ assert.equal(fp(row),fp(row.map((v,i)=>i===9?0:v)));
+ for(const changed of ['',null,'00','9007199254740993'])assert.notEqual(fp(row),fp(row.map((v,i)=>i===9?changed:v)));
+});
+test('LIVE batches take priority over a TEST backlog and the complete-folder fallback still imports TEST',()=>{
+ const f=fixture();f.send();const live=JSON.parse(JSON.stringify(f.batch));live.batchId=crypto.randomUUID();live.events[0].eventId=crypto.randomUUID();live.events[0].environment='LIVE';f.send(live);
+ f.context.CC_CONFIG.maxBatchesPerRefresh=1;assert.equal(f.context.ccImport_(f.book),1);assert.equal(f.tables.Events[1][6],'LIVE');
+ assert.equal(f.context.ccImport_(f.book),1);assert.equal(f.tables.Events[2][6],'TEST');assert.equal(f.context.ccImport_(f.book),0);
+});
+test('a mid-group receipt failure preserves every event exactly once on retry',()=>{
+ const f=fixture();for(let i=0;i<26;i++){const b=JSON.parse(JSON.stringify(f.batch));b.batchId=crypto.randomUUID();b.events[0].eventId=crypto.randomUUID();b.events[0].networkClientId='2';f.send(b);}
+ f.failReceipt();assert.throws(()=>f.context.ccImport_(f.book),/injected failure/);assert.equal(f.tables.Events.length,26);assert.equal(f.tables.Batches.length,1);
+ for(const row of f.tables.Events.slice(1))row[9]=2;
+ assert.equal(f.context.ccImport_(f.book),26);assert.equal(f.tables.Events.length,27);assert.equal(f.tables.Batches.length,27);
+});
+test('Drive priority search failure or indexing delay falls back without skipping raw files',()=>{
+ for(const broken of [true,false]){const f=fixture();f.send();const folder=f.context.DriveApp.getFolderById(f.context.CC_CONFIG.rawFolderId);folder.searchFiles=()=>{if(broken)throw Error('search unavailable');return {hasNext:()=>false};};assert.equal(f.context.ccImport_(f.book),1);assert.equal(f.tables.Events.length,2);}
+});
 test('duplicate event in a different batch deduplicates and conflicting event is retained for review',()=>{const f=fixture();f.send();f.context.ccImport_(f.book);const b=JSON.parse(JSON.stringify(f.batch));b.batchId=crypto.randomUUID();f.send(b);f.context.ccImport_(f.book);assert.equal(f.tables.Events.length,2);b.batchId=crypto.randomUUID();b.events[0].playerId='changed';f.send(b);assert.throws(()=>f.context.ccImport_(f.book),/EVENT_ID_CONFLICT/);assert.equal(f.tables.Events.length,2);});
 test('anonymous execute-as-owner deployment cannot access dashboard/RPC',()=>{const f=fixture();assert.ok(f.context.doGet());assert.throws(()=>f.context.refreshDashboard({}),/DASHBOARD_ACCESS_DENIED/);assert.throws(()=>f.context.getDashboard({}),/DASHBOARD_ACCESS_DENIED/);assert.throws(()=>f.context.installRefreshTrigger(),/DASHBOARD_ACCESS_DENIED/);assert.throws(()=>f.context.scheduledRefresh(),/DASHBOARD_ACCESS_DENIED/);});
 test('formula-like untrusted text is escaped for Sheets',()=>{const f=fixture();assert.equal(f.context.ccText_('=IMPORTXML("url")'),'\'=IMPORTXML("url")');assert.equal(f.context.ccText_(0),0);});

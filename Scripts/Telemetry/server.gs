@@ -2,7 +2,7 @@
 var CC_CONFIG = {
   spreadsheetId:'1KCLPn1tEW5qsK16jcw8swZ75IeN6p6lG_82zRUOg7I8',
   rawFolderId:'1MEeWD5UNdKcypZ6jAhXfaMkP6i84WAi5',
-  ownerEmail:'ourhosu@gmail.com', dashboardEnabled:true, maxEvents:50000, maxBatchesPerRefresh:100
+  ownerEmail:'ourhosu@gmail.com', dashboardEnabled:true, maxEvents:200000, maxBatchesPerRefresh:100
 };
 function ccBook_(){return SpreadsheetApp.openById(CC_CONFIG.spreadsheetId);}
 function ccJson_(v){return ContentService.createTextOutput(JSON.stringify(v)).setMimeType(ContentService.MimeType.JSON);}
@@ -51,8 +51,37 @@ function ccAppend_(sheet,rows){
   if(end>sheet.getMaxRows())sheet.insertRowsAfter(sheet.getMaxRows(),end-sheet.getMaxRows());
   sheet.getRange(end-rows.length+1,1,rows.length,rows[0].length).setValues(rows.map(function(r){return r.map(ccText_);}));
 }
-function ccReadEvents_(book){var rules=ccRules_(book);return ccRows_(book.getSheetByName('Events'),TelemetryCore.headers.length,CC_CONFIG.maxEvents).map(TelemetryCore.decode).filter(function(e){return !ccDeleted_(e,rules);});}
-function ccFingerprint_(row){return JSON.stringify(row.slice(0,19).concat([row[21]||'']));}
+function ccReadEvents_(book){
+  var sessions=ccSessionRead_(book);if(sessions)return sessions;
+  var rules=ccRules_(book),sheet=book.getSheetByName('Events'),count=sheet.getLastRow()-1,result=[];
+  if(count>CC_CONFIG.maxEvents)throw new Error('CAPACITY_LIMIT_Events');
+  for(var start=2;start<=count+1;start+=5000){
+    var rows=sheet.getRange(start,1,Math.min(5000,count+2-start),TelemetryCore.headers.length).getValues();
+    rows.forEach(function(row){
+      // Key/button/microphone details remain in Events and raw files. They are
+      // not planner metrics and must not dominate every dashboard computation.
+      if(/^(INPUT_KEY|BUTTON_INPUT|MICROPHONE_INPUT)$/.test(row[16]))return;
+      var event=TelemetryCore.decode(row);if(!ccDeleted_(event,rules))result.push(event);
+    });
+  }return result;
+}
+function ccFingerprint_(row){
+  var stable=row.slice(0,19);
+  // Sheets can return a short numeric network client ID as a number even though
+  // the wire contract stores it as text. Compare its canonical text identity.
+  stable[9]=stable[9]===null||stable[9]===undefined?'':String(stable[9]);
+  return JSON.stringify(stable.concat([row[21]||'']));
+}
+function ccRawImportFiles_(folder){
+  // Index lag/search failures must not drop files: the complete folder is always
+  // the second pass. Shared receipts deduplicate both passes.
+  var first=null;try{first=folder.searchFiles("trashed = false and fullText contains 'LIVE'");}catch(error){}
+  var rest=null;
+  return {hasNext:function(){
+    if(first){try{if(first.hasNext())return true;}catch(error){}first=null;}
+    if(!rest)rest=folder.getFiles();return rest.hasNext();
+  },next:function(){return first?first.next():rest.next();}};
+}
 function ccImport_(book){
   var batchSheet=book.getSheetByName('Batches'),eventSheet=book.getSheetByName('Events');
   eventSheet.getRange(1,22,1,1).setValues([['gameVersion']]);
@@ -60,9 +89,23 @@ function ccImport_(book){
   receipts.forEach(function(r){if(r[6]==='IMPORTED')done[r[0]]=r[1];});
   var existing=ccRows_(eventSheet,TelemetryCore.headers.length,CC_CONFIG.maxEvents),ids={};
   existing.forEach(function(r){ids[r[0]]=ccFingerprint_(r);});
-  var files=DriveApp.getFolderById(CC_CONFIG.rawFolderId).getFiles();var imported=0;
-  var rules=ccRules_(book),start=Date.now();
-  while(files.hasNext()&&imported<CC_CONFIG.maxBatchesPerRefresh&&Date.now()-start<180000){
+  var sessionState=ccSessionState_(),loadedSessions=new Set();
+  var files=ccRawImportFiles_(DriveApp.getFolderById(CC_CONFIG.rawFolderId)),imported=0,staged=[],stagedReceipts=[];
+  var rules=ccRules_(book),start=Date.now(),scannedAll=false;
+  function flush(){
+    if(!stagedReceipts.length)return;
+    var rows=staged,receipts=stagedReceipts;staged=[];stagedReceipts=[];
+    if(rows.length){
+      var end=existing.length+rows.length+1;
+      if(end>eventSheet.getMaxRows())eventSheet.insertRowsAfter(eventSheet.getMaxRows(),end-eventSheet.getMaxRows());
+      eventSheet.getRange(existing.length+2,10,rows.length,1).setNumberFormat('@');
+    }
+    // Events first; a crash before receipts is recovered by the same fingerprints.
+    ccAppend_(eventSheet,rows);existing.push.apply(existing,rows);
+    ccAppend_(batchSheet,receipts);
+  }
+  try{
+  while(files.hasNext()&&imported<CC_CONFIG.maxBatchesPerRefresh&&Date.now()-start<90000){
     var file=files.next();if(!/^[0-9a-f-]{36}\.json$/i.test(file.getName()))continue;
     var id=file.getName().slice(0,-5);if(done[id])continue;
     var raw=file.getBlob().getDataAsString('UTF-8'),b=TelemetryCore.validate(JSON.parse(raw));
@@ -70,15 +113,28 @@ function ccImport_(book){
     var hash=ccHash_(raw),now=new Date().toISOString(),pending=[];
     b.events.forEach(function(e){
       if(ccDeleted_(e,rules))return;
+      var sk=SessionCore.key(Object.assign({appSessionId:b.appSessionId},e)),saved=sessionState&&sessionState.sessions[sk];
+      if(saved&&!saved.archivedAt&&!loadedSessions.has(sk)){
+        ccSessionDetail_(saved).forEach(function(old){ids[old.eventId]=ccFingerprint_(TelemetryCore.row(old,old,old.receivedAt));});loadedSessions.add(sk);
+      }
       var row=TelemetryCore.row(e,b,now),fingerprint=ccFingerprint_(row);
       if(ids[e.eventId]&&ids[e.eventId]!==fingerprint)throw new Error('EVENT_ID_CONFLICT');
       if(!ids[e.eventId]){pending.push(row);ids[e.eventId]=fingerprint;}
     });
-    if(existing.length+pending.length>CC_CONFIG.maxEvents)throw new Error('CAPACITY_LIMIT_Events');
-    // Crash after Events append is safe: next import sees eventIds before recording receipt.
-    ccAppend_(eventSheet,pending);existing.push.apply(existing,pending);
-    ccAppend_(batchSheet,[[b.batchId,hash,file.getId(),file.getDateCreated().toISOString(),now,b.events.length,'IMPORTED']]);
+    if(existing.length+staged.length+pending.length>CC_CONFIG.maxEvents)throw new Error('CAPACITY_LIMIT_Events');
+    staged.push.apply(staged,pending);
+    stagedReceipts.push([b.batchId,hash,file.getId(),file.getDateCreated().toISOString(),now,b.events.length,'IMPORTED']);
     done[id]=hash;imported++;
+    if(stagedReceipts.length>=25)flush();
+  }
+  scannedAll=!files.hasNext();
+  }finally{flush();
+    var pending=0,scan=DriveApp.getFolderById(CC_CONFIG.rawFolderId).getFiles(),scanned=0,complete=true,began=Date.now();
+    while(scan.hasNext()){if(Date.now()-began>10000){complete=false;break;}var name=scan.next().getName();scanned++;if(/^[0-9a-f-]{36}\.json$/i.test(name)&&!done[name.slice(0,-5)])pending++;}
+    // A completed import pass has already examined every original. A shorter
+    // status-only scan must not keep retention suspended forever on a large folder.
+    if(scannedAll&&pending===0)complete=true;
+    PropertiesService.getScriptProperties().setProperty('IMPORT_STATUS',JSON.stringify({pendingBatches:pending,pendingExact:complete,importedBatches:imported,checkedAt:new Date().toISOString()}));
   }
   return imported;
 }
@@ -99,7 +155,7 @@ function ccPublish_(book,all){
   ['TEST','LIVE'].forEach(function(environment){
     TelemetryCore.versionSelection(all,environment).options.forEach(function(version){
       var filters={environment:environment,gameVersion:version};
-      groups.push({version:version,environment:environment,data:TelemetryCore.aggregate(all,environment,null,version),filters:filters});
+      groups.push({version:version,environment:environment,data:ccAggregate_(all,environment,null,version),filters:filters});
     });
   });
   definitions.forEach(function(d){
@@ -107,7 +163,7 @@ function ccPublish_(book,all){
       if(d[1]!=='funds')g.data[d[1]].forEach(function(r){rows.push(d[3](r).concat([g.version,g.environment]));});
       else {
         // Use the exact chart projection: ledger-order balance and carry only across reached days.
-        var funds=TelemetryCore.dashboardView(all,g.filters).funds,ledger={};
+        var funds=ccView_(all,g.filters).funds,ledger={};
         g.data.funds.forEach(function(f){ledger[f.runId+':'+f.gameDay]=f;});
         funds.runSeries.forEach(function(p){
           var f=ledger[p.runId+':'+p.day];
@@ -144,41 +200,27 @@ function ccPublish_(book,all){
   // Break snapshots use the same projection as the chart, independent of daily rows.
   var breakSheet=book.getSheetByName('자금 구간')||book.insertSheet('자금 구간'),breakRows=[];
   breakSheet.getRange(1,1,1,12).setValues([['runId','gameDay','rest','rewards','spent','transactions','gameVersion','environment','balance','samples','carried','mode']]);
-  groups.forEach(function(g){var funds=TelemetryCore.dashboardView(all,Object.assign({},g.filters,{fundsInterval:'BREAK'})).funds;funds.breakRunSeries.forEach(function(p){breakRows.push([p.runId,p.day,p.rest,p.rewards,p.spent,p.transactions,g.version,g.environment,p.balance,1,p.carried,'RUN']);});funds.series.forEach(function(p){breakRows.push(['',p.day,p.rest,p.rewards,p.spent,'',g.version,g.environment,p.balance,p.samples,'','AVERAGE']);});});
+  groups.forEach(function(g){var funds=ccView_(all,Object.assign({},g.filters,{fundsInterval:'BREAK'})).funds;funds.breakRunSeries.forEach(function(p){breakRows.push([p.runId,p.day,p.rest,p.rewards,p.spent,p.transactions,g.version,g.environment,p.balance,1,p.carried,'RUN']);});funds.series.forEach(function(p){breakRows.push(['',p.day,p.rest,p.rewards,p.spent,'',g.version,g.environment,p.balance,p.samples,'','AVERAGE']);});});
   ccReplace_(book,'자금 구간',breakRows);breakSheet.setFrozenRows(1);
   if(breakSheet.getFilter())breakSheet.getFilter().remove();breakSheet.getRange(1,1,Math.max(2,breakRows.length+1),12).createFilter();breakSheet.setColumnWidths(1,12,130);
   book.getSheetByName('운영 상태').getRange('B8').setValue(new Date().toISOString());
 }
-function ccDashboard_(all,filters){
+function ccDashboard_(all,filters,surveySnapshot){
   filters=Object.assign({},filters||{});
-  var version=TelemetryCore.versionSelection(all,filters.environment,filters.gameVersion);
+  surveySnapshot=surveySnapshot||ccSurveySnapshot_(ccBook_());
+  var version=TelemetryCore.versionSelection(all.concat(surveySnapshot.rows),filters.environment,filters.gameVersion);
   filters.gameVersion=version.selected;
-  var data=TelemetryCore.aggregate(all,filters.environment,filters.runId,filters.gameVersion);
+  var data=ccAggregate_(all,filters.environment,filters.runId,filters.gameVersion);
   data.gameVersion=version.selected;data.versionOptions=version.options;
-  data.view=TelemetryCore.dashboardView(all,filters);data.runOptions=data.view.runOptions;
-  data.surveys=ccSurveyView_(ccBook_(),all,filters);
+  data.view=ccView_(all,filters,true);data.runOptions=data.view.runOptions;
+  data.surveys=surveySnapshot?ccSurveyFromSnapshot_(surveySnapshot,all,filters):ccSurveyView_(ccBook_(),all,filters);
+  // The UI uses the paged view.timeline; never persist/send the aggregate's full raw timeline.
+  data.timeline=[];
   return data;
-}
-function ccRefresh_(filters){
-  return ccLock_(function(){
-    var book=ccBook_(),count=ccImport_(book),rules=ccRules_(book);ccCompactDeleted_(book,rules);var all=ccReadEvents_(book);
-    ccPublish_(book,all);
-    try{ccImportSurveys_(book,all);PropertiesService.getScriptProperties().setProperty('SURVEY_SYNC_ERROR','');}
-    catch(error){PropertiesService.getScriptProperties().setProperty('SURVEY_SYNC_ERROR',String(error.message||error).slice(0,300));}
-    ccPruneRaw_(book,rules);
-    ccAppend_(book.getSheetByName('갱신 이력'),[[new Date().toISOString(),count,all.length,'OK']]);
-    var data=ccDashboard_(all,filters);
-    data.totalTimelineRows=data.timeline.length;
-    // Explicit paged display; all events participate in aggregates.
-    var offset=filters&&Number.isSafeInteger(filters.offset)?Math.max(0,filters.offset):0;
-    data.timeline=data.timeline.slice(offset,offset+200);
-    data.refreshedAt=new Date().toISOString();data.importedBatches=count;
-    return data;
-  });
 }
 function refreshDashboard(filters,auth){var viewer=ccViewer_(auth),data=ccRefresh_(filters);data.viewer=viewer;return data;}
 // Changing a tab/filter reads saved rows; importing stays on the explicit/30-minute refresh path.
-function getDashboard(filters,auth){var viewer=ccViewer_(auth),data=ccDashboard_(ccReadEvents_(ccBook_()),filters);data.viewer=viewer;data.timeline=[];data.refreshedAt=new Date().toISOString();data.importedBatches=0;return data;}
+function getDashboard(filters,auth){var viewer=ccViewer_(auth),data=ccDashboardCache_(filters);data.viewer=viewer;return data;}
 function scheduledRefresh(){ccOwner_();return ccScheduledRefresh_();}
 function ccScheduledRefresh_(){return ccRefresh_({environment:'LIVE'}).eventCount;}
 function installRefreshTrigger(){
