@@ -2,11 +2,11 @@
 
 - **Title:** 휴머노이드 모델 교체·입장 순서 캐릭터 배정·부상 절단
 - **Type:** feat
-- **Status:** submitted
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** player-control
 - **Current Skill:** submit-work
-- **Updated:** 2026-10-20
+- **Updated:** 2026-10-22
 
 ## Workspace
 

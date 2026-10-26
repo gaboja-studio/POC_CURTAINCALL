@@ -30,7 +30,7 @@
 2. PlayerCondition 차분에서 전환 전 모든 신규 사지를 bake → 누적 본체 전환 → 단면 impulse. legacy LimbDismemberment와 상호 배제. 초기손실/late join은 조각 미생성, 복구/종료는 소유 리소스 정리.
 3. 정상 이동/앉기/점프 및 공개 공연 상태에 클립을 연결한다. 한발은 정상 클립, 양다리/한팔은 army_crawl 임시 표현; 전용 hop/한팔/팔점프 완성으로 보고하지 않는다. root motion=false, 부상 판정·행동은 유지한다.
 4. BaseGameSettings Character에 1~4색, 기존 NetworkPlayer.Slot/빈번호 재사용 유지. surface MPB/캡 보존/조각 당시 색상, 원격 이동·달리기 표현만 최소 동기화한다. 게임 내 색상 UI는 추가하지 않는다.
-5. 구역→문서→compile→기존11 EditMode+신규 EditMode/PlayMode→실제 입력·공연 회귀. 다중 클라이언트/입력/접지/출처 미검증은 그대로 보고한다. 사람 확인 전 done 처리하지 않는다.
+5. 구역→문서→compile→기존11 EditMode+신규 EditMode/PlayMode→실제 입력·공연 회귀. 다중 클라이언트/입력/접지/출처 미검증은 그대로 보고한다. 당초 사람 확인 전 done 보류였으나, 2026-10-22 PM 요청으로 #188/#189 dev 반영 완료 기록만 마감한다. 사람 확인·미완 동작·권리 확인은 미해결로 보존한다.
 
 ## Files
 

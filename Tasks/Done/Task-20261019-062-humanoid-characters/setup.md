@@ -14,7 +14,7 @@
 - 패키지: `Packages/`
 - CI·훅·공용 도구 설정: `.github/`, `.githooks/`, `.claude/`, `.mcp.json`
 - 작업 지침: `AGENTS.md`, `CLAUDE.md`
-- 통합 기록: `Integrations/Active/Integration-humanoid-characters/`
+- 통합 기록: `Integrations/Done/Integration-humanoid-characters/` (2026-10-22 완료 기록 마감; 아래 작업 구역은 당시 승인 이력)
 - Task 문서: 이 Task 폴더 (자동 포함)
 
 2026-10-19 PM @MoHoDu의 명시적 요청으로 이 Task에 한해 넓은 작업 구역을 승인한다. 스크립트·리소스·씬·문서의 추가/수정/삭제를 허용한다. 프로젝트의 전역 권한 정책이나 AI 실행 권한 모드는 변경하지 않는다. 실제 변경은 휴머노이드 모델 교체·입장 순서 캐릭터 배정·부상 절단과 관련된 것으로 한정한다.

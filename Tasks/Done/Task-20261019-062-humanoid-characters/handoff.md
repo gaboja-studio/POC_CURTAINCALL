@@ -1,7 +1,9 @@
 # Handoff
 ## 지금 상태
 
-- 2026-10-20, Task submitted(PR #188). 실제 Player 연결 구현, 사람 공동 플레이/다중 클라이언트 완료 아님. worktree D:/github/POC_CURTAINCALL-humanoid-characters, feat/humanoid-characters, 전용 Unity6000.3.25f1/PID44020/7801만 사용. 공개 구현/검증72ec843·JIRA 연결e100d68 push 완료, 최신 통합 기준5b3a85c 반영; PR #188 등록.
+- 2026-10-22 PM 요청으로 done(dev 반영 완료 기록 마감). #188 Squash `111edb2e` → #189 dev 병합 `f9e0e0a4` 완료. 사람 공동 플레이/다중 클라이언트 완료는 아니다.
+- 전용 worktree 제거 완료. 로컬 프리팹·미추적 파일·private 서브모듈 변경은 `D:/github/Worktree-backups/curtaincall-20261022-174457`에 백업·해시 검증 후 보존했다.
+- 이번 검사: 구역 SKIPPED(PM), 문서 PASS(verify-fast, WARN18/HARD0), 컴파일 ENV_BLOCKED(연결된 에디터 없음), 테스트 SKIPPED(문서 마감). 아래 과거 검증과 구분한다.
 - Player.prefab → private Task062/PlayerPresentation/Humanoid.prefab. HumanoidPresentation이 기존 Slot/Condition/Mover/공연 상태를 읽는다. root motion=false/squash=false, 기존 이동·입력·충돌·부상 판정 보존.
 - 정상 Idle/Walk/Run/Crouch/CrouchWalk/JumpStart·Loop·Land/Fall, 외줄 Tightrope, 대포 Flying·Crouch, 소품·트램폴린 Carry 상체 레이어 연결. pickup/reach hand는 미리보기만. 기존 CatchPose(600) 팔/BalancePose(500) 부모 슬롯 소유권 유지.
 - 한발은 정상 모션, 양다리/한팔은 army_crawl 임시 재사용(정지/공중 지지 포즈). hop/한팔 끌기/팔점프 완성 아님. CrawlHeightOffset=-.05, 정상 키 맞춤과 분리.
@@ -22,8 +24,8 @@
 ## 남은 확인 / 보존
 
 - SKIPPED: 다중 클라이언트/실제4슬롯·late join·퇴장 재접속·씬 전환, PropCarry 소품 운반 실연결, 사람 플레이, 전체 프로젝트 PlayMode, 순차50회. 초기 네트워크 flag 합성 검사를 실제 late join 완료로 취급하지 않는다.
-- 사람 공동 테스트는 기능 완성 후 한 번에 ①4인 색상 ②부상·비산·복구/원격 ③이동·공연·카메라. Task done 처리하지 않음. 부상 전용 클립/손 접점/자연스러운 접지 후속 필요.
+- 사람 공동 테스트는 기능 완성 후 한 번에 ①4인 색상 ②부상·비산·복구/원격 ③이동·공연·카메라. 기존 사람 확인 전 done 보류 조건은 2026-10-22 PM의 dev 완료 기록 마감 요청으로 대체하되, 공동 검증 미실시는 그대로 유지. 부상 전용 클립/손 접점/자연스러운 접지 후속 필요.
 - 사용자8개 private Mixamo는 Humanoid/49본 기준 TRS 보정, SkeletonBone name/parentName 보존. GUID/localID/길이/60fps/원본 바이너리 유지. 개별 출처·배포 권리는 미확인. Quaternius Standard CC0/실제43클립. 외부 공개/구매/업로드 없음.
 - dev/다른 worktree·LeartesStudios dirty·TightropeCourse.prefab 기존 위치4곳·.playwright-mcp 보존. 기존 검증 씬/검증 MISSING 정지 정책 유지. HumanoidPlayerBuilder.Build 재실행 금지(기존 출력 guard). CLI beta.6 named --caller/--skill 호환 예외 유지.
 - 저장: private Task062 c10ca97e/main6030fe10·공개 b230924 push 완료. private main 반영은 사용자 직접 실행. 최신 dev dcfbd22 기반 원격 integration 준비 및 작업 브랜치 merge5b3a85c 완료. 초기화 보완·최종 검증72ec843 및 CC-152 연결e100d68 push 완료. 지식: Harness/Project/Facts/humanoid-validation.md, Harness/Engine/Unity/Pitfalls/Initialization/editmode-awake-fixture.md.
-- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/188 — CC-152, 본문 승인 후 등록; 병합 미실시/별도 승인.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/188 — CC-152, 본문 승인 후 등록·병합 완료, dev 반영은 #189.
