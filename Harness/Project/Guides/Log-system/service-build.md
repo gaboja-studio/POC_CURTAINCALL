@@ -28,13 +28,13 @@ Project 창에서 `Assets/Resources/Settings/GameSettings/BaseGameSettings.asset
 
 Windows·Mac 모두 아래 순서입니다. 빌드는 최신 프로젝트를 준비한 담당 PC에서 진행합니다.
 
-1. Unity 재생을 멈춥니다. **Edit → Project Settings → Player → Version**이 배포할 버전인지 확인합니다. 현재 설문은 **0.1.0 전용**입니다.
-2. **CurtainCall → 테스트 빌드 태그**에서 로그 수집과 0.1.0 설문을 각각 선택합니다. 둘 다 기본은 꺼짐입니다. **현재 설정 확인**으로 다시 확인합니다.
+1. Unity 재생을 멈춥니다. **Edit → Project Settings → Player → Version**이 배포할 버전인지 확인합니다. M2는 **0.2.0**입니다. 기존 M1 설문은 **0.1.x 전용**입니다.
+2. **CurtainCall → 테스트 빌드 태그**에서 로그 수집과 설문 사용을 각각 선택합니다. 현재 M2는 로그 켬·설문 끔입니다. 둘 다 기본은 꺼짐입니다. **현재 설정 확인**으로 다시 확인합니다.
 3. **File → Build Profiles**를 엽니다. Windows 배포는 **Windows**, Mac 배포는 **macOS**를 선택합니다.
 4. **Development Build 체크를 해제**합니다. Tools의 Dev Mode 체크를 대신 끄는 것이 아닙니다.
-5. 씬 목록은 팀 설정을 유지하고 시작 씬이 Start인지 확인합니다. **Build**를 눌러 새 폴더에 만듭니다. 이름 예: `Builds/0.1.0-Windows-LIVE` 또는 `Builds/0.1.0-Mac-LIVE`.
+5. 씬 목록은 팀 설정을 유지하고 시작 씬이 Start인지 확인합니다. **Build**를 눌러 새 폴더에 만듭니다. 이름 예: `Builds/0.2.0-Windows-LIVE` 또는 `Builds/0.2.0-Mac-LIVE`.
 6. Windows는 완성된 `.exe`, Mac은 `.app`을 일반적으로 실행합니다. `-devmode`가 붙은 테스트용 바로가기나 실행 명령은 사용하지 않습니다.
-7. 로그를 켰다면 플레이 후 대시보드에서 **환경: 실제 플레이 / 게임 버전: 0.1.0**을 선택하고 **지금 갱신**으로 확인합니다.
+7. 로그를 켰다면 플레이 후 대시보드에서 **환경: 실제 플레이 / 게임 버전: 0.2.0**을 선택하고 **지금 갱신**으로 확인합니다.
 8. Windows는 `.exe`와 같은 폴더의 **모든 파일·폴더**, Mac은 완성된 **`.app`**을 압축해 전달합니다.
 
 Windows·Mac별 설치·빌드 화면의 자세한 순서는 [빌드 만들기](pc-build.md)를 따릅니다.

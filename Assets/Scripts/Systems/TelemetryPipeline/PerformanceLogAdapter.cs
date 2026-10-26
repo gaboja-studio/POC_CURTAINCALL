@@ -8,6 +8,7 @@ using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Results;
 using CurtainCall.Reward;
+using CurtainCall.SpaceLink;
 using CurtainCall.Tightrope;
 using CurtainCall.Tightrope.Fire;
 using CurtainCall.Tightrope.Results;
@@ -25,6 +26,10 @@ namespace CurtainCall.Telemetry.Pipeline
         readonly Dictionary<ulong, string> launches = new();
         readonly Dictionary<int, ulong> poleOccupants = new();
         readonly Dictionary<int, uint> transportRevisions = new();
+        readonly Dictionary<ulong, ParticipantObservation> participants = new();
+        string rosterSignature;
+        readonly HashSet<NetworkPlayer> seenPlaced = new();
+        string placementKey;
         PerformanceRewards rewards;
         TightropeResults results;
         TightropeSaws saws;
@@ -32,12 +37,12 @@ namespace CurtainCall.Telemetry.Pipeline
         HumanCannonSystem cannons;
         HumanCannonCourseSections cannonSections;
         HumanCannonHazardCourse cannonHazards;
+        CampaignPerformanceEntry entry;
         PiggybackSystem piggyback;
         string attempt, trick;
         string sharedPerformance;
-        float began, sectionAt, nextProgress;
-        int section, maximumSection, difficulty = 1;
-        double maximumDistance;
+        float began, nextProgress;
+        int maximumSection, difficulty = 1;
         bool ended;
         readonly Dictionary<ulong, ulong> below = new();
         public PerformanceLogAdapter(TelemetryRuntime runtime)
@@ -49,6 +54,7 @@ namespace CurtainCall.Telemetry.Pipeline
         public void Tick()
         {
             Bind();
+            ObservePlacement();
             foreach (var hooks in players.Values.ToArray()) hooks.Flush();
             var shared = rewards?.State;
             var run = TightropeRun.Current;
@@ -69,22 +75,14 @@ namespace CurtainCall.Telemetry.Pipeline
                 if (attempt != null && !ended) Leave("ATTEMPT_REPLACED");
                 attempt = next; trick = nextTrick; ended = false; began = Time.unscaledTime;
                 sharedPerformance = shared?.IsOpen == true ? shared.Performance?.Id : null;
-                section = maximumSection = 0; maximumDistance = 0; sectionAt = began; launches.Clear(); below.Clear(); poleOccupants.Clear(); transportRevisions.Clear();
+                maximumSection = 0; participants.Clear(); rosterSignature = null; launches.Clear(); below.Clear(); poleOccupants.Clear(); transportRevisions.Clear();
                 difficulty = nextTrick == "CANNON" && HumanCannonHazardCourse.Current != null ? HumanCannonHazardCourse.Current.Difficulty : 1;
                 log.SetAttempt(attempt);
                 foreach (var hooks in players.Values) hooks.BeginAttempt();
-                var local = NetworkPlayer.Local;
-                log.Emit("PERFORMANCE_STARTED", new() { ["trickType"] = trick, ["difficulty"] = difficulty,
-                    ["retryIndex"] = trick == "TIGHTROPE" ? Math.Max(1, run != null ? run.Round : 1) : 1,
-                    ["playerCount"] = Math.Clamp(NetworkPlayer.All.Count, 1, 4), ["startingLostCount"] = local != null ? DetailLogIds.Lost(local.LostParts) : 0 }, Host ? "HOST" : "LOCAL");
             }
             if (attempt == null || ended) return;
             log.SetAttempt(attempt);
-            ObserveSection();
-            var localPlayer = NetworkPlayer.Local; var course = TightropeCourse.Current;
-            if (Host) foreach (var player in NetworkPlayer.All) maximumSection = Math.Max(maximumSection, Section(player));
-            if (trick == "TIGHTROPE" && localPlayer != null && localPlayer.State == PlayerState.Normal && course != null)
-                maximumDistance = Math.Max(maximumDistance, Math.Clamp(course.GetDistance(localPlayer.transform.position), 0, course.FinishDistance));
+            if (Host) { ObserveRoster(shared); ObservePlayers(); }
             if (Host && trick == "CANNON" && cannons != null)
             {
                 foreach (ulong actor in launches.Keys.ToArray())
@@ -108,6 +106,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 if (cannons != null) { cannons.StateChanged += Cannon; cannons.LandingConfirmed += Landed; }
             }
             if (cannonSections == null && cannons != null) cannonSections = UnityEngine.Object.FindAnyObjectByType<HumanCannonCourseSections>();
+            if (entry == null) entry = UnityEngine.Object.FindAnyObjectByType<CampaignPerformanceEntry>();
             if (cannonHazards != HumanCannonHazardCourse.Current)
             {
                 if (cannonHazards != null) { cannonHazards.ContactDetected -= CannonContact; cannonHazards.ContactResolved -= CannonContactResolved; }
@@ -149,32 +148,142 @@ namespace CurtainCall.Telemetry.Pipeline
             int index = course.GetSectionIndex(course.GetDistance(player.transform.position));
             return index < 0 ? 0 : index + 1;
         }
-        void ObserveSection()
+        void ObserveRoster(RewardSnapshot shared)
         {
-            var local = NetworkPlayer.Local; int current = Section(local);
-            if (local == null || local.State != PlayerState.Normal || current == 0 || current == section) return;
-            CloseSection(current > section ? "PASSED" : "RETREATED");
-            section = current; maximumSection = Math.Max(maximumSection, current); sectionAt = Time.unscaledTime;
-            log.Emit("SECTION_ENTERED", new() { ["sectionId"] = section, ["lostCount"] = DetailLogIds.Lost(local.LostParts) });
+            // The official roster survives missing/late character objects and client log relays.
+            if (shared != null && sharedPerformance != null && shared.Performance?.Id == sharedPerformance)
+                foreach (var person in shared.Segments)
+                    AddParticipant(person.ClientId, person.Slot, person.StartingLostCount);
+            else if (results != null)
+                foreach (var person in results.Participants)
+                    AddParticipant(person.ClientId, person.Slot, DetailLogIds.Lost(person.StartingLostParts));
+            if (participants.Count == 0) return;
+            foreach (var person in participants.Values)
+            {
+                var player = Find(person.Client);
+                if (player != null && player.Slot is >= 0 and <= 3) person.Slot = player.Slot;
+            }
+            var people = participants.Values.OrderBy(p => p.Client).Select(p => new {
+                playerId = log.PlayerCode(p.Client), networkClientId = p.Client.ToString(), playerNumber = p.Slot }).ToArray();
+            string signature = LogJson.Serialize(people);
+            if (signature != rosterSignature && log.Emit("PERFORMANCE_ROSTER", new() {
+                ["trickType"] = trick, ["difficulty"] = difficulty, ["playerCount"] = people.Length,
+                ["participants"] = people, ["collectionSource"] = "HOST_ROSTER" }, "HOST"))
+            { rosterSignature = signature; log.Flush(); }
         }
-        void CloseSection(string reason)
+        void AddParticipant(ulong client, int slot, int lost)
         {
-            if (section > 0) log.Emit("SECTION_EXITED", new() { ["sectionId"] = section, ["durationMs"] = (Time.unscaledTime - sectionAt) * 1000d, ["reason"] = reason });
-            section = 0;
+            if (!participants.ContainsKey(client)) participants.Add(client, new ParticipantObservation {
+                Client = client, Slot = slot is >= 0 and <= 3 ? slot : null, StartingLost = lost });
+        }
+        bool Ready(NetworkPlayer player)
+        {
+            if (player == null || !player.IsSpawned || player.Slot is < 0 or > 3 || player.IsApplyingInitialCondition
+                || TelemetryRuntime.SceneType(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name) != "MAINSTAGE") return false;
+            string scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            if (trick == "TIGHTROPE" ? scene != "Tightrope" : scene is not ("HummanCannon" or "HumanCannon")) return false;
+            var run = TightropeRun.Current;
+            if (trick == "TIGHTROPE" && run != null && !run.ExternallyManaged) return run.IsParticipantReady(player);
+            if (entry != null && player.IsLocal) return entry.IsCurrentPerformance && entry.LocalPlaced;
+            return seenPlaced.Contains(player);
+        }
+        void ObservePlacement()
+        {
+            if (!Host) return;
+            var state = CampaignRun.Instance != null ? CampaignRun.Instance.State : default;
+            string scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            string key = log.CurrentRunId + ":" + state.Generation + ":" + state.Day + ":" + state.PerformanceIndex + ":" + scene;
+            if (key != placementKey) { placementKey = key; seenPlaced.Clear(); }
+            if (TelemetryRuntime.SceneType(scene) != "MAINSTAGE") return;
+            // Managed performances can open before the remote owner's placement arrives.
+            // Observe the actual spawn pose, never treat an old waiting-room position as the start.
+            foreach (var player in NetworkPlayer.All)
+            {
+                if (player == null || !player.IsSpawned || player.Slot is < 0 or > 3 || player.State != PlayerState.Normal
+                    || !player.TryGetComponent(out PlayerMover mover)) continue;
+                PlayerSpawnPoints.GetPose(player.Slot, mover.LaneSpacing, out var position, out _);
+                if (Vector3.Distance(player.transform.position, position) <= 1.5f) seenPlaced.Add(player);
+            }
+        }
+        bool StartPlayer(NetworkPlayer player, bool gameplayObserved = false)
+        {
+            if (!Host || player == null || !participants.TryGetValue(player.OwnerClientId, out var person)) return false;
+            if (person.Started) return true;
+            bool ready = Ready(player);
+            if (!ready && !gameplayObserved || player.Slot is < 0 or > 3) return false;
+            var run = TightropeRun.Current;
+            var payload = new Dictionary<string, object> { ["trickType"] = trick, ["difficulty"] = difficulty,
+                ["retryIndex"] = trick == "TIGHTROPE" ? Math.Max(1, run != null ? run.Round : 1) : 1,
+                ["playerCount"] = participants.Count, ["startingLostCount"] = person.StartingLost,
+                ["collectionSource"] = "HOST_PLAYER", ["startObservation"] = ready ? "READY" : "FIRST_GAMEPLAY_EVENT" };
+            // A late first observation proves participation, not the original spawn coordinates/time.
+            if (!ready) { payload["position"] = null; payload["positionSource"] = "START_NOT_OBSERVED"; }
+            person.Started = log.EmitFor(player, "PERFORMANCE_STARTED", payload, "HOST");
+            if (person.Started) log.Flush();
+            return person.Started;
+        }
+        void ObservePlayers()
+        {
+            foreach (var person in participants.Values)
+            {
+                var player = Find(person.Client);
+                if (!StartPlayer(player)) continue;
+                if (player.State == PlayerState.Arrived) { Arrived(player); continue; }
+                if (player.State != PlayerState.Normal) continue;
+                int current = Section(player);
+                if (current > 0 && current != person.Section)
+                {
+                    if (!CloseSection(player, current > person.Section ? "PASSED" : "RETREATED")) continue;
+                    if (log.EmitFor(player, "SECTION_ENTERED", new() { ["sectionId"] = current,
+                        ["lostCount"] = DetailLogIds.Lost(player.LostParts), ["collectionSource"] = "HOST_PLAYER" }, "HOST"))
+                    { person.Section = current; person.SectionAt = Time.unscaledTime; }
+                }
+                maximumSection = Math.Max(maximumSection, current);
+                var course = TightropeCourse.Current;
+                if (trick == "TIGHTROPE" && course != null)
+                    person.MaxDistance = Math.Max(person.MaxDistance, Math.Clamp(course.GetDistance(player.transform.position), 0, course.FinishDistance));
+            }
+        }
+        bool CloseSection(NetworkPlayer player, string reason)
+        {
+            if (player == null || !participants.TryGetValue(player.OwnerClientId, out var person) || person.Section == 0) return true;
+            if (!log.EmitFor(player, "SECTION_EXITED", new() { ["sectionId"] = person.Section,
+                ["durationMs"] = (Time.unscaledTime - person.SectionAt) * 1000d, ["reason"] = reason,
+                ["collectionSource"] = "HOST_PLAYER" }, "HOST")) return false;
+            person.Section = 0; return true;
+        }
+        void Arrived(NetworkPlayer player)
+        {
+            if (!StartPlayer(player, true) || !participants.TryGetValue(player.OwnerClientId, out var person) || person.Arrived) return;
+            int at = Section(player);
+            person.Arrived = log.EmitFor(player, "PLAYER_ARRIVED", new() { ["sectionId"] = at > 0 ? at : null,
+                ["position"] = DetailLogIds.Position(player.transform.position), ["lostCount"] = DetailLogIds.Lost(player.LostParts),
+                ["collectionSource"] = "HOST_PLAYER" }, "HOST");
+            if (person.Arrived) CloseSection(player, "ARRIVED");
         }
         void Progress()
         {
-            var local = NetworkPlayer.Local; var course = TightropeCourse.Current;
-            if (attempt == null || trick != "TIGHTROPE" || local == null || course == null) return;
-            log.Emit("PERFORMANCE_PROGRESS", new() { ["trickType"] = trick, ["difficulty"] = difficulty, ["maxDistance"] = maximumDistance });
+            if (!Host || attempt == null || trick != "TIGHTROPE") return;
+            foreach (var person in participants.Values)
+            {
+                var player = Find(person.Client);
+                if (person.Started && player != null) log.EmitFor(player, "PERFORMANCE_PROGRESS", new() {
+                    ["trickType"] = trick, ["difficulty"] = difficulty, ["maxDistance"] = person.MaxDistance,
+                    ["collectionSource"] = "HOST_PLAYER" }, "HOST");
+            }
         }
         void RewardResult(PerformanceResult result)
         {
             if (result == null || sharedPerformance != result.Performance.Id) return;
-            var local = NetworkPlayer.Local;
-            var person = local != null ? result.Participants.FirstOrDefault(p => p.ClientId == local.OwnerClientId) : null;
-            if (person?.MaximumDistance != null) log.Emit("PERFORMANCE_PROGRESS", new() { ["trickType"] = trick, ["difficulty"] = difficulty,
-                ["maxDistance"] = person.MaximumDistance.Value, ["source"] = "HOST_RESULT" });
+            if (Host) foreach (var person in result.Participants)
+            {
+                var player = Find(person.ClientId);
+                if (player == null) continue;
+                if (person.Judgement is "Arrived" or "DirectFinish") Arrived(player);
+                if (person.MaximumDistance.HasValue) log.EmitFor(player, "PERFORMANCE_PROGRESS", new() {
+                    ["trickType"] = trick, ["difficulty"] = difficulty, ["maxDistance"] = person.MaximumDistance.Value,
+                    ["source"] = "HOST_RESULT", ["collectionSource"] = "HOST_PLAYER" }, "HOST");
+            }
             int arrivals = result.Participants.Count(p => p.Judgement == "Arrived" || p.Judgement == "DirectFinish");
             Terminal(result.Performance.Id, result.Succeeded, result.ElapsedSeconds.HasValue ? result.ElapsedSeconds.Value * 1000 : (Time.unscaledTime - began) * 1000d,
                 result.Participants.Count(p => !p.Dead && p.Connected), arrivals, result.EndReason, result.ElapsedSeconds.HasValue ? "HOST_RESULT" : "OBSERVER_INTERVAL");
@@ -191,7 +300,7 @@ namespace CurtainCall.Telemetry.Pipeline
             if (attempt == null || ended || !confirmed.Add(resultId)) return;
             foreach (var hooks in players.Values) hooks.Flush();
             foreach (ulong actor in launches.Keys.ToArray()) EndFlight(actor, "PERFORMANCE_ENDED");
-            Progress(); CloseSection("PERFORMANCE_ENDED");
+            Progress(); foreach (var person in participants.Values) CloseSection(Find(person.Client), "PERFORMANCE_ENDED");
             var payload = new Dictionary<string, object> { ["trickType"] = trick, ["difficulty"] = difficulty, ["durationMs"] = duration,
                 ["durationSource"] = source, ["maxSection"] = maximumSection };
             if (success) { payload["survivors"] = survivors; payload["arrivals"] = arrivals; }
@@ -204,9 +313,15 @@ namespace CurtainCall.Telemetry.Pipeline
             if (attempt == null || ended) return;
             foreach (var hooks in players.Values) hooks.Flush();
             Progress();
-            log.Emit("PERFORMANCE_LEFT", new() { ["trickType"] = trick, ["sectionId"] = section > 0 ? section : null, ["reason"] = reason });
+            if (Host) foreach (var person in participants.Values)
+            {
+                var player = Find(person.Client);
+                if (player != null) log.EmitFor(player, "PERFORMANCE_LEFT", new() { ["trickType"] = trick,
+                    ["sectionId"] = person.Section > 0 ? person.Section : null, ["reason"] = reason,
+                    ["collectionSource"] = "HOST_PLAYER" }, "HOST");
+            }
             foreach (ulong actor in launches.Keys.ToArray()) EndFlight(actor, reason);
-            CloseSection("PERFORMANCE_ENDED"); ended = true;
+            foreach (var person in participants.Values) CloseSection(Find(person.Client), "PERFORMANCE_ENDED"); ended = true;
         }
         public void SceneLeaving() { Leave("SCENE_CHANGED"); attempt = null; log.SetAttempt(null); }
         void Saw(SawHit hit) { if (hit.Player != null && players.TryGetValue(hit.Player, out var p)) p.Hit("SAW_" + hit.Kind.ToString().ToUpperInvariant(), "OB_" + DurableOutbox.Sha256("tightrope:saw:" + hit.Kind + ":" + hit.Index).Substring(0, 12)); }
@@ -277,6 +392,7 @@ namespace CurtainCall.Telemetry.Pipeline
             if (action != CannonAction.Launch || index < 0 || index >= cannons.StationCount) return;
             var player = Find(actor); var station = cannons.Station(index);
             if (player == null || station == null) return;
+            StartPlayer(player, true);
             if (launches.ContainsKey(actor)) EndFlight(actor, "RELAUNCHED");
             string launch = Guid.NewGuid().ToString("D"); Vector3 velocity = station.LaunchVelocity;
             int firingSection = Section(player);
@@ -305,6 +421,15 @@ namespace CurtainCall.Telemetry.Pipeline
             launches.Remove(actor);
         }
         static NetworkPlayer Find(ulong actor) => NetworkPlayer.All.FirstOrDefault(p => p != null && p.OwnerClientId == actor);
+        sealed class ParticipantObservation
+        {
+            public ulong Client;
+            public int? Slot;
+            public int StartingLost, Section;
+            public float SectionAt;
+            public double MaxDistance;
+            public bool Started, Arrived;
+        }
         public void Dispose()
         {
             if (rewards != null) rewards.ResultConfirmed -= RewardResult;
@@ -381,7 +506,12 @@ namespace CurtainCall.Telemetry.Pipeline
             DamageObservation Snapshot() => new() { Frame = Time.frameCount, Lost = DetailLogIds.Lost(player.LostParts),
                 Position = Time.frameCount == hitFrame && contactPosition.HasValue ? contactPosition.Value : player.transform.position,
                 Section = owner.Section(player), Cause = Time.frameCount == hitFrame ? cause : "UNKNOWN", Obstacle = Time.frameCount == hitFrame ? obstacle : null };
-            void State(PlayerState before, PlayerState after) { if (after == PlayerState.Fallen && before != after && owner.attempt != null && !owner.ended && !deathEmitted) death = Snapshot(); }
+            void State(PlayerState before, PlayerState after)
+            {
+                if (owner.attempt == null || owner.ended) return;
+                if (after == PlayerState.Fallen && before != after && !deathEmitted) death = Snapshot();
+                if (after == PlayerState.Arrived && before != after && owner.Host) owner.Arrived(player);
+            }
             void Body(BodyPart before, BodyPart after)
             {
                 if (player.IsApplyingInitialCondition) return;
@@ -398,12 +528,13 @@ namespace CurtainCall.Telemetry.Pipeline
                 if (!owner.ended && !deadAtStart && !deathEmitted && death == null && player.State == PlayerState.Fallen) death = Snapshot();
                 if (owner.Host)
                 {
+                    if (death != null || cuts.Count > 0) owner.StartPlayer(player, true);
                     foreach (var cut in cuts) owner.log.EmitFor(player, "LIMB_SEVERED", new() { ["sectionId"] = cut.Section > 0 ? cut.Section : null, ["position"] = DetailLogIds.Position(cut.Position),
                         ["part"] = cut.Part.ToString(), ["afterLostCount"] = cut.Lost, ["obstacleId"] = cut.Obstacle, ["cause"] = cut.Cause }, "HOST");
                     if (death != null) deathEmitted = owner.log.EmitFor(player, "PLAYER_DIED", new() { ["sectionId"] = death.Section > 0 ? death.Section : null, ["position"] = DetailLogIds.Position(death.Position),
                         ["cause"] = death.Cause, ["lostCount"] = death.Lost, ["obstacleId"] = death.Obstacle }, "HOST");
                 }
-                if (death != null && player.IsLocal) { FinishJump(false); owner.CloseSection("DIED"); }
+                if (death != null) { if (player.IsLocal) FinishJump(false); if (owner.Host) owner.CloseSection(player, "DIED"); }
                 if (death != null && !owner.Host) deathEmitted = true;
                 cuts.Clear(); death = null;
             }

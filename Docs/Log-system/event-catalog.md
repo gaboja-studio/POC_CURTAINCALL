@@ -19,7 +19,9 @@
 | SIGNATURE_CHANGED | signed: bool | 공개 API 연결·범위/실행 검증은 coverage.md |
 | RUN_STARTED | playerCount: players | 기반 자동 수집 |
 | RUN_ENDED | reason: text | 기반 자동 수집 |
+| PERFORMANCE_ROSTER | trickType: trick, difficulty: difficulty, playerCount: players, participants: roster | 공개 API 연결·범위/실행 검증은 coverage.md |
 | PERFORMANCE_STARTED | trickType: trick, difficulty: difficulty, retryIndex: positive, playerCount: players, startingLostCount: limbs | 공개 API 연결·범위/실행 검증은 coverage.md |
+| PLAYER_ARRIVED | sectionId: optionalPositive, position: position, lostCount: limbs | 공개 API 연결·범위/실행 검증은 coverage.md |
 | PERFORMANCE_SUCCEEDED | trickType: trick, difficulty: difficulty, durationMs: duration, survivors: count, arrivals: count | 공개 API 연결·범위/실행 검증은 coverage.md |
 | PERFORMANCE_FAILED | trickType: trick, difficulty: difficulty, durationMs: duration, reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
 | PERFORMANCE_PROGRESS | trickType: trick, difficulty: difficulty, maxDistance: duration | 공개 API 연결·범위/실행 검증은 coverage.md |

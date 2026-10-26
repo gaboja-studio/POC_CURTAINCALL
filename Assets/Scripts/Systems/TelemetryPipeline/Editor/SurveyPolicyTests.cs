@@ -23,6 +23,47 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
             Assert.That(SurveyLaunchPolicy.Url(SurveyLaunchPolicy.Night, SurveyLaunchPolicy.NightEntry, code), Does.Contain("entry.280071335="));
             Assert.That(SurveyLaunchPolicy.Url(SurveyLaunchPolicy.Exit, SurveyLaunchPolicy.ExitEntry, code), Does.Contain("entry.809038892="));
         }
+        [Test] public void M2AllowsLogsButNeverOpensM1SurveysEvenWithTheOldTag()
+        {
+            var config = new PlaytestBuildTags { gameVersion = "0.2.0", tags = new[] { PlaytestBuildTags.Logs, PlaytestBuildTags.Surveys } };
+            Assert.That(config.AllowsLogs, Is.True);
+            Assert.That(config.AllowsSurveys("0.2.0"), Is.False);
+            Assert.That(config.AllowsSurveys("0.1.0"), Is.False);
+        }
+        [TestCase("0.1.9", "0.1.x", true)]
+        [TestCase("0.10.0", "0.1.x", false)]
+        [TestCase("0.2.0", "0.1.x", false)]
+        [TestCase("0.2.1", "0.2.0", false)]
+        [TestCase("0.2.1", "*", true)]
+        [TestCase("0.2.1", "0.*", false)]
+        public void VersionRangesKeepExactLogsAndSelectOnlyRequestedBuilds(string version, string pattern, bool expected)
+            => Assert.That(VersionSelection.Matches(version, pattern), Is.EqualTo(expected));
+        [Test] public void PatchBuildKeepsTheClaimWhileANewRoundCanOpenAgain()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "curtaincall-survey-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                var survey = new PlaytestCollectionSettings().night; var cache = new SurveyLaunchCache(root);
+                cache.TryOpen("installation", SurveyLaunchPolicy.Night, SurveyLaunchPolicy.NightEntry, "legacy", _ => {});
+                Assert.That(survey.Matches("0.1.9"), Is.True);
+                Assert.That(cache.TryOpen("installation", SurveyLaunchPolicy.Night, survey, "patch", _ => {}), Is.False);
+                survey.round = 2;
+                Assert.That(cache.TryOpen("installation", SurveyLaunchPolicy.Night, survey, "new-round", _ => {}), Is.True);
+                Assert.That(new SurveyLaunchCache(root).TryOpen("installation", SurveyLaunchPolicy.Night, survey, "restart", _ => {}), Is.False);
+            }
+            finally { if (Directory.Exists(root)) { foreach (var file in Directory.GetFiles(root)) File.Delete(file); Directory.Delete(root); } }
+        }
+        [Test] public void M2SurveyCodeKeepsActualPatchAndRound()
+        {
+            var config = new PlaytestBuildTags { gameVersion = "0.2.3", tags = new[] { PlaytestBuildTags.Logs, PlaytestBuildTags.Surveys } };
+            var survey = config.Collection.night; survey.versions = "0.2.x"; survey.id = "M2_NIGHT"; survey.round = 2;
+            config.Collection.logVersions = "0.2.x";
+            Assert.That(config.AllowsLogs && config.AllowsSurveys("0.2.3"), Is.True);
+            string code = SurveyLaunchPolicy.Code(survey, "0.2.3", SurveyLaunchPolicy.Night, "TEST", "7a9e2d31-8f5b-4cde-9201-1bfa8294a732", 3, new string('a', 32), DateTime.UtcNow);
+            Assert.That(code, Does.StartWith("CCS2.0_2_3.TEST.NIGHT1.")); Assert.That(code, Does.EndWith(".M2_NIGHT.2"));
+            config.Collection.logVersions = "0.1.x";
+            Assert.That(config.AllowsLogs, Is.False); Assert.That(config.AllowsSurveys("0.2.3"), Is.True);
+        }
         [Test] public void RestartAndNextRunCannotReopenButDifferentFormAndAccountCan()
         {
             string root = Path.Combine(Path.GetTempPath(), "curtaincall-survey-" + Guid.NewGuid().ToString("N"));

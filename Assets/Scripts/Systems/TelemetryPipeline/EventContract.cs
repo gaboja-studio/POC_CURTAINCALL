@@ -28,6 +28,11 @@ namespace CurtainCall.Telemetry.Pipeline
             "position" => v is JObject && new[] { "x", "y", "z" }.All(k => Number(v[k])),
             "ids" => v is JArray list && list.Count is >= 1 and <= 4 && list.All(Text)
                 && list.Values<string>().Distinct().Count() == list.Count,
+            "roster" => v is JArray people && people.Count is >= 1 and <= 4 && people.All(p => p is JObject
+                && Text(p["playerId"]) && p["networkClientId"]?.Type == JTokenType.String
+                && System.Text.RegularExpressions.Regex.IsMatch(p.Value<string>("networkClientId"), "^[0-9]{1,20}$")
+                && (p["playerNumber"]?.Type == JTokenType.Null || Integer(p["playerNumber"], 0, 3)))
+                && people.Select(p => p.Value<string>("networkClientId")).Distinct().Count() == people.Count,
             "roomType" => OneOf(v, "CODE", "LAN"), "trick" => OneOf(v, "TIGHTROPE", "CANNON"),
             "fundCategory" => OneOf(v, "REWARD", "PURCHASE", "SERVICE", "EXPENSE", "OTHER", "RESET"),
             "limbs" => Integer(v, 0, 4), "players" => Integer(v, 1, 4), "difficulty" => Integer(v, 1, 3),
@@ -54,7 +59,7 @@ namespace CurtainCall.Telemetry.Pipeline
             var payload = JObject.FromObject(entry.payload);
             if (payload.ToString(Newtonsoft.Json.Formatting.None).Length > 8192) return false;
             if (schema.Properties().Any(p => !Value(payload[p.Name], p.Value.Value<string>()))) return false;
-            if (System.Text.RegularExpressions.Regex.IsMatch(entry.eventType, "^(PERFORMANCE_|SECTION_|PLAYER_DIED|LIMB_SEVERED|TIGHTROPE_|JUMP_|COOP_|CANNON_)")
+            if (System.Text.RegularExpressions.Regex.IsMatch(entry.eventType, "^(PERFORMANCE_|SECTION_|PLAYER_DIED|PLAYER_ARRIVED|LIMB_SEVERED|TIGHTROPE_|JUMP_|COOP_|CANNON_)")
                 && (!Id(entry.runId) || !Id(entry.attemptId))) return false;
             return entry.eventType != "MICROPHONE_INPUT"
                 || DateTimeOffset.Parse(payload.Value<string>("endedAt")) >= DateTimeOffset.Parse(payload.Value<string>("startedAt"));

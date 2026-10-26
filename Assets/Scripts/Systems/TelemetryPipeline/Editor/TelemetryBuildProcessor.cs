@@ -10,8 +10,11 @@ namespace CurtainCall.Telemetry.Pipeline.Editor
         public override void PrepareForBuild(BuildPlayerContext context)
         {
             var tags = PlaytestBuildTags.Current();
-            if (tags.Has(PlaytestBuildTags.Surveys) && (Application.version != "0.1.0" || !SurveyLaunchPolicy.Configured))
-                throw new BuildFailedException("0.1.0 설문 태그는 버전 0.1.0과 두 설문 연결 질문 설정이 필요합니다.");
+            tags.Collection.Validate();
+            if (tags.Has(PlaytestBuildTags.Logs) && !tags.AllowsLogs)
+                throw new BuildFailedException("로그 태그가 켜져 있지만 현재 버전이 수집 대상이 아닙니다. 로그·설문 설정을 확인하세요.");
+            if (tags.Has(PlaytestBuildTags.Surveys) && !tags.AllowsSurveys(Application.version))
+                throw new BuildFailedException("현재 버전에서 실행할 설문이 없습니다. 설문 태그를 끄거나 로그·설문 설정의 대상 버전을 확인하세요.");
             string directory = Path.Combine(Path.GetDirectoryName(Application.dataPath), "Library", "CurtainCallTelemetryBuild");
             Directory.CreateDirectory(directory);
             string manifest = Path.Combine(directory, PlaytestBuildTags.FileName);

@@ -3,6 +3,35 @@ const ctx=vm.createContext({});vm.runInContext(fs.readFileSync(__dirname+'/core.
 let seq=0;function e(type,payload={},extra={}){return {eventId:'e'+(++seq),occurredAt:new Date(Date.UTC(2026,9,21,0,0,seq)).toISOString(),sequence:seq,appSessionId:'app',environment:'TEST',runId:'run-a',attemptId:null,breakId:null,performanceId:'D1P1',playerId:'p1',playerNumber:0,authority:'HOST',sceneType:'MAINSTAGE',eventType:type,payload,...extra};}
 function fund(run,day,before,after,num){return e('FUNDS_CHANGED',{transactionId:'ledger:'+num,gameDay:day,balanceBefore:before,balanceAfter:after,category:after>=before?'REWARD':'EXPENSE'},{runId:run,performanceId:'D'+day+'P1'});}
 const view=(rows,f={})=>core.dashboardView(rows,{environment:'TEST',...f});
+
+test('official four-player roster keeps silent participants and later starts separate across days',()=>{
+ const people=Array.from({length:4},(_,i)=>({playerId:'p'+i,playerNumber:i,networkClientId:String(10+i)}));
+ const roster=e('PERFORMANCE_ROSTER',{trickType:'CANNON',difficulty:1,playerCount:4,participants:people},{attemptId:'a'});
+ const start=e('PERFORMANCE_STARTED',{trickType:'CANNON',collectionSource:'HOST_PLAYER'},{attemptId:'a',playerNumber:0,networkClientId:'10'});
+ const late=e('SECTION_ENTERED',{sectionId:2},{attemptId:'a',playerNumber:null,networkClientId:'13'});
+ const second=e('PERFORMANCE_ROSTER',{trickType:'TIGHTROPE',difficulty:1,playerCount:2,participants:people.slice(0,2)},{attemptId:'b',performanceId:'D2P1'});
+ const d=view([roster,start,late,second],{timelinePhase:'D1/PERFORMANCE',timelineAttemptId:'a'}).timeline;
+ assert.deepEqual(Array.from(d.participants,p=>p.playerNumber),[0,1,2,3]);assert.equal(d.recordedPlayers,2);
+ assert.equal(d.participants[1].rosterOnly,true);assert.equal(d.participants[0].startRecorded,true);assert.equal(d.participants[3].startRecorded,false);
+ assert.equal(d.markers.find(p=>p.eventId===late.eventId).playerNumber,3);
+ const day2=view([roster,start,late,second],{timelinePhase:'D2/PERFORMANCE',timelineAttemptId:'b'}).timeline;
+ assert.equal(day2.participants.length,2);assert.equal(day2.recordedPlayers,0);assert.equal(day2.markers.length,0);
+ assert.equal(core.aggregate([roster,second],'TEST').tricks.reduce((n,g)=>n+g.completed,0),0);
+});
+test('host starts replace relayed copies, retain late unknown positions and do not double count progress',()=>{
+ const started=e('PERFORMANCE_STARTED',{trickType:'TIGHTROPE',difficulty:1,collectionSource:'HOST_PLAYER',position:null,startObservation:'FIRST_GAMEPLAY_EVENT'},{attemptId:'a'});
+ const local={...started,eventId:'old-client',authority:'LOCAL',payload:{...started.payload,collectionSource:undefined}};
+ const progress=e('PERFORMANCE_PROGRESS',{trickType:'TIGHTROPE',difficulty:1,maxDistance:42,collectionSource:'HOST_PLAYER'},{attemptId:'a'});
+ const d=view([started,local,progress]).timeline;assert.equal(d.markers.length,1);assert.equal(d.markers[0].payload.position,null);
+ const a=core.aggregate([started,local,progress,{...progress,eventId:'old-progress',authority:'LOCAL'}],'TEST');assert.equal(a.tricks[0].attempts,1);assert.equal(a.tricks[0].distanceSamples,1);assert.equal(a.tricks[0].avgMaxDistance,42);
+});
+test('dense timelines never sample out starts, arrivals or deaths even beyond the marker budget',()=>{
+ const rows=Array.from({length:440},()=>e('SECTION_ENTERED',{sectionId:1},{attemptId:'a'}));
+ const start=e('PERFORMANCE_STARTED',{trickType:'TIGHTROPE'},{attemptId:'a'}),arrival=e('PLAYER_ARRIVED',{position:{x:0,y:0,z:100}},{attemptId:'a'});
+ rows.splice(71,0,start);rows.splice(220,0,arrival);
+ const d=view(rows).timeline;assert.ok(d.markers.some(x=>x.eventId===start.eventId));assert.ok(d.markers.some(x=>x.eventId===arrival.eventId));
+ const critical=Array.from({length:410},()=>e('LIMB_SEVERED',{part:'Arm'},{attemptId:'a'}));assert.equal(view(critical).timeline.markers.length,410);
+});
 test('average balance averages runs after deduplicating ledger, and carries only observed balances',()=>{
  const f=fund('run-a',1,0,100,1),rows=[f,{...f,eventId:'replica'},fund('run-b',1,0,200,1),e('ZONE_ENTERED',{zoneType:'BEDROOM'},{performanceId:'D2P1'})];
  const d=view(rows);assert.equal(d.funds.series[0].balance,150);assert.equal(d.funds.series[0].samples,2);assert.equal(d.funds.series[1].balance,100);assert.equal(d.funds.series[1].samples,1);
@@ -92,3 +121,21 @@ test('calendar uses Seoul start date, applies server-side before averages and al
 });
 
 test('local end records resolve only an unambiguous slot in the same app and run',()=>{const a=e('ZONE_ENTERED',{zoneType:'WAITINGROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL'}),b={...a,eventId:'other',playerNumber:1,appSessionId:'app-b'},end={...a,eventId:'end',eventType:'ZONE_EXITED',playerNumber:'',networkClientId:'',payload:{zoneType:'WAITINGROOM',durationMs:10}},end2={...end,eventId:'end2',appSessionId:'app-b'};assert.equal(core.aggregate([a,b,end,end2],'TEST').zones[0].distinctPlayers,2);assert.equal(end.playerNumber,'');const ambiguous={...b,appSessionId:'app'};assert.equal(core.aggregate([a,ambiguous,end],'TEST').zones[0].distinctPlayers,3);});
+
+const refreshHtml=fs.readFileSync(__dirname+'/dashboard.html','utf8'),refreshModel=vm.createContext({});
+vm.runInContext(refreshHtml.split('// REFRESH_MODEL_BEGIN')[1].split('// REFRESH_MODEL_END')[0],refreshModel);
+test('refresh button disables immediately for an own request and for another user active refresh',()=>{
+ assert.equal(refreshModel.refreshButtonDisabled(null,true),true);assert.equal(refreshModel.refreshButtonDisabled({refreshing:true},false),true);assert.equal(refreshModel.refreshButtonDisabled({refreshing:false},false),false);
+});
+test('refresh status distinguishes first refresh, running with cached results and five-minute cooldown',()=>{
+ assert.match(refreshModel.refreshStatusText({refreshing:true,cacheAvailable:true},5),/이전 완료/);assert.match(refreshModel.refreshStatusText({refreshing:true,cacheAvailable:false},0),/첫 갱신/);
+ assert.match(refreshModel.refreshStatusText({cacheAvailable:false},0),/완료된 갱신이 없습니다/);
+ assert.match(refreshModel.refreshStatusText({cacheAvailable:true,serverNow:'2026-10-22T01:00:00Z',nextRefreshAt:'2026-10-22T01:04:00Z'},5),/5분/);
+ assert.match(refreshModel.refreshStatusText({cacheAvailable:true,serverNow:'2026-10-22T01:05:00Z',nextRefreshAt:'2026-10-22T01:04:00Z'},5),/지금 갱신/);
+});
+test('opening, signing in and background status polling never start an import',()=>{
+ const startup=refreshHtml.split('function initializeAccess()')[1].split("$('login-send')")[0],login=refreshHtml.split("$('login-confirm').onclick=")[1].split("$('logout').onclick=")[0];
+ assert.equal(startup.includes('load(true)'),false);assert.ok(startup.includes('load(false)'));assert.equal(login.includes('load(true)'),false);
+ assert.equal(refreshHtml.includes('setInterval(()=>{if(viewer&&!deletionPreview)load(true)'),false);assert.ok(refreshHtml.includes('setInterval(pollRefreshState,15000)'));
+ const poll=refreshHtml.split('function pollRefreshState()')[1].split('function load(importFiles)')[0];assert.equal(poll.includes('refreshDashboard'),false);assert.ok(poll.includes('getDashboardRefreshState'));
+});

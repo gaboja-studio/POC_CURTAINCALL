@@ -16,6 +16,7 @@ namespace CurtainCall.Telemetry.Pipeline
     {
         static PlaytestSurveyRuntime instance;
         SurveyLaunchCache cache;
+        PlaytestBuildTags configuration;
         CurtainCallMenuPanels menu;
         NetworkSessionManager session;
         string currentRun, currentIdentity, pendingCode, pendingIdentity;
@@ -27,13 +28,14 @@ namespace CurtainCall.Telemetry.Pipeline
         static void Watch() { SceneManager.sceneLoaded -= SceneLoaded; SceneManager.sceneLoaded += SceneLoaded; }
         static void SceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            if (instance != null || !PlaytestBuildTags.Current().AllowsSurveys(Application.version) || !SurveyLaunchPolicy.Configured) return;
+            if (instance != null || !PlaytestBuildTags.Current().AllowsSurveys(Application.version)) return;
             if (TelemetryRuntime.SceneType(scene.name) == "UNKNOWN") return;
             var go = new GameObject(nameof(PlaytestSurveyRuntime)); DontDestroyOnLoad(go); go.AddComponent<PlaytestSurveyRuntime>();
         }
         void Awake()
         {
-            if (!PlaytestBuildTags.Current().AllowsSurveys(Application.version)) { Destroy(gameObject); return; }
+            configuration = PlaytestBuildTags.Current();
+            if (!configuration.AllowsSurveys(Application.version)) { Destroy(gameObject); return; }
             if (instance != null && instance != this) { Destroy(gameObject); return; }
             instance = this;
             string root = TelemetryRuntime.StorageDirectory(Application.persistentDataPath, Application.dataPath);
@@ -73,15 +75,16 @@ namespace CurtainCall.Telemetry.Pipeline
             // persistentDataPath already separates OS users; keep the survey claim stable there.
             currentIdentity ??= SurveyLaunchCache.LocalIdentity;
             var step = campaign.State;
-            if (step.Day == 1 && step.Phase == CampaignPhase.Night && SceneManager.GetSceneByName("WaitingRoomBase").isLoaded
-                && !cache.WasOpened(currentIdentity, SurveyLaunchPolicy.Night))
+            var night = configuration.Collection.night;
+            if (night.Matches(Application.version) && step.Day == night.nightDay && step.Phase == CampaignPhase.Night && SceneManager.GetSceneByName("WaitingRoomBase").isLoaded
+                && !cache.WasOpened(currentIdentity, SurveyLaunchPolicy.Night, night))
                 Open(currentIdentity, SurveyLaunchPolicy.Night, NewCode(SurveyLaunchPolicy.Night));
         }
-        string NewCode(string kind) => SurveyLaunchPolicy.Code(kind, EnvironmentName, currentRun, currentSlot, Guid.NewGuid().ToString("N"), DateTime.UtcNow);
+        string NewCode(string kind) => SurveyLaunchPolicy.Code(configuration.Collection.For(kind), Application.version, kind, EnvironmentName, currentRun, currentSlot, Guid.NewGuid().ToString("N"), DateTime.UtcNow);
         void LeaveConfirmed()
         {
             // Use the pre-exit snapshot: the menu's earlier listener may already have stopped NGO.
-            if (currentRun == null || currentSlot < 0 || pendingCode != null) return;
+            if (currentRun == null || currentSlot < 0 || pendingCode != null || !configuration.Collection.exit.Matches(Application.version)) return;
             pendingCode = NewCode(SurveyLaunchPolicy.Exit); pendingIdentity = currentIdentity; pendingUntil = Time.unscaledTime + 60;
         }
         void Disconnected(string reason)
@@ -93,8 +96,9 @@ namespace CurtainCall.Telemetry.Pipeline
         {
             try
             {
-                if (!cache.WasOpened(identity, kind)) cache.TryOpen(identity, kind,
-                    kind == SurveyLaunchPolicy.Night ? SurveyLaunchPolicy.NightEntry : SurveyLaunchPolicy.ExitEntry, code, Application.OpenURL);
+                var survey = configuration.Collection.For(kind);
+                if (survey.Matches(Application.version) && !cache.WasOpened(identity, kind, survey))
+                    cache.TryOpen(identity, kind, survey, code, Application.OpenURL);
             }
             catch (Exception) { Debug.LogWarning("[Survey] 설문 브라우저를 열지 못했습니다. 다음 해당 시점에 다시 시도합니다."); }
         }

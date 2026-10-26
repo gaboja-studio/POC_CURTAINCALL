@@ -9,6 +9,16 @@ const app=randomUUID(),sender=randomUUID(),run=randomUUID(),attempt=randomUUID()
 function event(type,payload={},extra={}){return {eventId:randomUUID(),occurredAt:'2026-10-21T08:00:00.000Z',sequence:1,monotonicMs:1,environment:'TEST',playerId:'p1',playerNumber:0,networkClientId:'0',roomId:null,runId:run,attemptId:attempt,performanceId:'D1P1',breakId:null,sceneType:'MAINSTAGE',eventType:type,authority:'HOST',payload,...extra,appSessionId:app,senderId:sender};}
 function batch(events){return {schemaVersion:1,batchId:randomUUID(),senderId:sender,appSessionId:app,flushReason:'CHECKPOINT',events:events.map((e,i)=>({...e,sequence:i+1}))};}
 
+test('host roster accepts unresolved slots but rejects duplicate clients and invalid slot identities',()=>{
+ const people=Array.from({length:4},(_,i)=>({playerId:'player-'+i,networkClientId:String(i),playerNumber:i===3?null:i}));
+ const roster=event('PERFORMANCE_ROSTER',{trickType:'CANNON',difficulty:1,playerCount:4,participants:people});
+ assert.doesNotThrow(()=>core.validate(batch([roster])));
+ people[3].networkClientId='0';assert.throws(()=>core.validate(batch([roster])));people[3].networkClientId='3';
+ people[3].playerNumber=4;assert.throws(()=>core.validate(batch([roster])));
+ const arrived=event('PLAYER_ARRIVED',{position:{x:0,y:1,z:50},sectionId:null,lostCount:0});assert.doesNotThrow(()=>core.validate(batch([arrived])));
+ arrived.attemptId=null;assert.throws(()=>core.validate(batch([arrived])));
+});
+
 test('cannon contact without a cut is valid and never inflates deaths or limb damage',()=>{
  const p={sectionId:1,position:{x:1,y:2,z:3},obstacleId:'OB_contact',hazardType:'GroundSaw',cutApplied:false,part:'None',lostCount:0,reason:'FRAME_LIMIT'};
  const hit=event('CANNON_HAZARD_CONTACT',p);core.validate(batch([hit]));

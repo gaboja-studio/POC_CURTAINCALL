@@ -1,0 +1,23 @@
+{
+  "logVersions": "*",
+  "night": {
+    "enabled": true,
+    "id": "M1_NIGHT1",
+    "title": "M1 밤 정비",
+    "versions": "0.1.x",
+    "formUrl": "https://docs.google.com/forms/d/e/1FAIpQLSf7S8t3P0098MWYzE-Xf6uaDuffXMAn_qErGyE8DnnTFiElIA/viewform",
+    "entry": "entry.280071335",
+    "round": 1,
+    "nightDay": 1
+  },
+  "exit": {
+    "enabled": true,
+    "id": "M1_EXIT",
+    "title": "M1 게임 종료",
+    "versions": "0.1.x",
+    "formUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdK2_FooH6fIpRj_8etZ_8eMfZYTBLMqTJEL3gNs9L19rXMvA/viewform",
+    "entry": "entry.809038892",
+    "round": 1,
+    "nightDay": 1
+  }
+}

@@ -7,6 +7,23 @@ test('code rejects wrong version, form, environment, player and malformed contex
  assert.equal(survey.parse(code(),'NIGHT1').runId,run);assert.equal(survey.parse(code('EXIT'),'NIGHT1'),null);
  for(const value of [code().replace('0_1_0','0_1_1'),code().replace('.TEST.','.ALL.'),code('NIGHT1',4),'CC_LINK_SAMPLE',''])assert.equal(survey.parse(value,'NIGHT1'),null);
 });
+test('new survey codes preserve exact patch, campaign and round while old codes remain supported',()=>{
+ const modern=code().replace('CCS1.0_1_0','CCS2.0_2_3')+'.M2_NIGHT.2',r=survey.parse(modern,'NIGHT1');
+ assert.equal(r.gameVersion,'0.2.3');assert.equal(r.surveyId,'M2_NIGHT');assert.equal(r.surveyRound,2);
+ assert.equal(survey.parse(code(),'NIGHT1').surveyId,'M1_NIGHT1');
+ for(const bad of [modern.replace('.M2_NIGHT.2','.M2_NIGHT.0'),modern.replace('.M2_NIGHT.2','.../bad.2'),modern.replace('0_2_3','no-version')])assert.equal(survey.parse(bad,'NIGHT1'),null);
+ assert.equal(survey.decode(survey.row({...response(),...r})).surveyRound,2);
+ const a={...response(),...r},b={...response('NIGHT1',1),...r,surveyRound:3};
+ assert.equal(survey.summary([a,b],[],{environment:'TEST',gameVersion:'0.2.3',surveyCampaign:'M2_NIGHT:2'}).total,1);
+ assert.equal(survey.summary([a,b],[],{environment:'TEST',gameVersion:'0.2.0'}).total,0);
+ assert.equal(survey.summary([a,b],[],{environment:'TEST',gameVersion:'0.2.3'}).campaignOptions.length,2);
+});
+test('survey sheet publication separates patch versions and rounds and preserves legacy defaults',()=>{
+ const {fixture}=require('./server.fixture.cjs'),f=fixture(),a=response(),b={...response(),gameVersion:'0.2.3',surveyId:'M2_NIGHT',surveyRound:2};
+ f.context.ccPublishSurveys_(f.book,[a,b],[]);
+ const rows=f.tables['설문 통계'].slice(1);assert.equal(rows.length,2);assert.equal(rows[0][0],'0.1.0');assert.equal(rows[1][0],'0.2.3');assert.equal(rows[1][8],'M2_NIGHT');assert.equal(rows[1][9],2);
+ assert.equal(f.context.ccSurveySources_().length,2);
+});
 test('response reader tolerates owner spacing, excludes unknown link and deduplicates the same invitation',()=>{
  const header=['타임스탬프','방코드를 입력해주세요','1. 재미','플레이 기록 연결 코드 (자동입력)'];
  const row=['2026-10-22T00:01:00Z','WRONG','재미있었다',code()],d=survey.read([header,row,row,['2026-10-22T00:01:00Z','','보통이었다','']],'NIGHT1','sheet');

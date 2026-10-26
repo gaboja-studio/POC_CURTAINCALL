@@ -12,7 +12,9 @@ var TelemetryCore = (function () {
     MICROPHONE_INPUT:{startedAt:'utc',endedAt:'utc'}, TITLE_ENTERED:{},
     ROOM_CREATED:{roomType:'roomType'}, ROOM_ENTERED:{roomType:'roomType',isHost:'bool'},
     SIGNATURE_CHANGED:{signed:'bool'}, RUN_STARTED:{playerCount:'players'}, RUN_ENDED:{reason:'text'},
+    PERFORMANCE_ROSTER:{trickType:'trick',difficulty:'difficulty',playerCount:'players',participants:'roster'},
     PERFORMANCE_STARTED:{trickType:'trick',difficulty:'difficulty',retryIndex:'positive',playerCount:'players',startingLostCount:'limbs'},
+    PLAYER_ARRIVED:{sectionId:'optionalPositive',position:'position',lostCount:'limbs'},
     PERFORMANCE_SUCCEEDED:{trickType:'trick',difficulty:'difficulty',durationMs:'duration',survivors:'count',arrivals:'count'},
     PERFORMANCE_FAILED:{trickType:'trick',difficulty:'difficulty',durationMs:'duration',reason:'text'},
     PERFORMANCE_PROGRESS:{trickType:'trick',difficulty:'difficulty',maxDistance:'duration'},
@@ -61,6 +63,7 @@ var TelemetryCore = (function () {
     if(type==='bool') return typeof v==='boolean';
     if(type==='position') return object(v) && ['x','y','z'].every(function(k){return typeof v[k]==='number' && Number.isFinite(v[k]);});
     if(type==='ids') return Array.isArray(v) && v.length>=1 && v.length<=4 && v.every(text) && new Set(v).size===v.length;
+    if(type==='roster') return Array.isArray(v)&&v.length>=1&&v.length<=4&&v.every(function(p){return object(p)&&text(p.playerId)&&typeof p.networkClientId==='string'&&/^\d{1,20}$/.test(p.networkClientId)&&(p.playerNumber===null||integer(p.playerNumber,0,3));})&&new Set(v.map(function(p){return p.networkClientId;})).size===v.length;
     if(type==='duration') return typeof v==='number' && Number.isFinite(v) && v>=0;
     if(type==='roomType') return v==='CODE'||v==='LAN';
     if(type==='trick') return v==='TIGHTROPE'||v==='CANNON';
@@ -94,7 +97,7 @@ var TelemetryCore = (function () {
       check(Object.prototype.hasOwnProperty.call(catalog,e.eventType)&&object(e.payload),'EVENT_TYPE');
       check(JSON.stringify(e.payload).length<=8192,'PAYLOAD_SIZE');
       Object.keys(catalog[e.eventType]).forEach(function(k){check(value(e.payload[k],catalog[e.eventType][k]),'PAYLOAD_'+e.eventType+'_'+k);});
-      if (/^(PERFORMANCE_|SECTION_|PLAYER_DIED|LIMB_SEVERED|TIGHTROPE_|JUMP_|COOP_|CANNON_)/.test(e.eventType))
+      if (/^(PERFORMANCE_|SECTION_|PLAYER_DIED|PLAYER_ARRIVED|LIMB_SEVERED|TIGHTROPE_|JUMP_|COOP_|CANNON_)/.test(e.eventType))
         check(value(e.runId,'uuid')&&value(e.attemptId,'uuid'),'PERFORMANCE_CONTEXT');
       if(e.eventType==='MICROPHONE_INPUT')check(Date.parse(e.payload.endedAt)>=Date.parse(e.payload.startedAt),'MICROPHONE_TIME');
     });
@@ -120,10 +123,13 @@ var TelemetryCore = (function () {
     return {selected:requested||options[0],options:options};
   }
   function resolveParticipants(events){
-    var slots=new Map();
+    var slots=new Map(),clients=new Map();
     function scope(e){return JSON.stringify([e.appSessionId,e.roomId,e.runId]);}
+    function client(e){return JSON.stringify([e.roomId,e.runId,String(e.networkClientId)]);}
+    var identities=events.slice();events.forEach(function(e){if(e.eventType==='PERFORMANCE_ROSTER'&&e.authority==='HOST'&&Array.isArray(e.payload.participants))e.payload.participants.forEach(function(p){identities.push(Object.assign({},e,p));});});
+    identities.forEach(function(e){if(!Number.isInteger(e.playerNumber)||e.networkClientId==null||e.networkClientId==='')return;var k=client(e);if(!clients.has(k))clients.set(k,new Set());clients.get(k).add(e.playerNumber);});
     events.forEach(function(e){if(e.authority!=='LOCAL'||!Number.isInteger(e.playerNumber))return;var key=scope(e);if(!slots.has(key))slots.set(key,new Set());slots.get(key).add(e.playerNumber);});
-    return events.map(function(e){var known=slots.get(scope(e));return !Number.isInteger(e.playerNumber)&&e.authority!=='HOST'&&known&&known.size===1?Object.assign({},e,{playerNumber:Array.from(known)[0],playerNumberSource:'SAME_APP_RUN_LOCAL_SLOT'}):e;});
+    return events.map(function(e){var known=slots.get(scope(e)),mapped=e.networkClientId!=null&&e.networkClientId!==''?clients.get(client(e)):null;if(!Number.isInteger(e.playerNumber)&&mapped&&mapped.size===1)return Object.assign({},e,{playerNumber:Array.from(mapped)[0],playerNumberSource:'SAME_RUN_CLIENT'});return !Number.isInteger(e.playerNumber)&&e.authority!=='HOST'&&known&&known.size===1?Object.assign({},e,{playerNumber:Array.from(known)[0],playerNumberSource:'SAME_APP_RUN_LOCAL_SLOT'}):e;});
   }
   function playerKey(e){var scope=e.runId||e.roomId||e.appSessionId||'';return scope+':'+(Number.isInteger(e.playerNumber)?'slot:'+e.playerNumber:e.networkClientId!=null&&e.networkClientId!==''?'client:'+e.networkClientId:'app:'+e.appSessionId+':id:'+e.playerId);}
   function analysisEvent(e){return !/^(INPUT_KEY|BUTTON_INPUT|MICROPHONE_INPUT|SCENE_EXITED|TELEMETRY_GAP|PERFORMANCE_PROGRESS)$/.test(e.eventType)&&e.authority!=='OBSERVED';}
@@ -134,15 +140,15 @@ var TelemetryCore = (function () {
     list.forEach(function(e){
       var p=e.payload;var person=playerKey(e);
       if(e.sceneType==='WAITINGROOM')eligible.add(person);
-      if(/^PERFORMANCE_(STARTED|SUCCEEDED|FAILED)$/.test(e.eventType)&&e.authority==='HOST'){
+      if(/^PERFORMANCE_(ROSTER|STARTED|SUCCEEDED|FAILED)$/.test(e.eventType)&&e.authority==='HOST'){
         var g=group(e);g.attemptIds.add(e.attemptId);
         attempts[e.attemptId]=g;
-        if(e.eventType!=='PERFORMANCE_STARTED'&&!Object.prototype.hasOwnProperty.call(g.outcomes,e.attemptId))g.outcomes[e.attemptId]=e.eventType==='PERFORMANCE_SUCCEEDED';
+        if(/^PERFORMANCE_(SUCCEEDED|FAILED)$/.test(e.eventType)&&!Object.prototype.hasOwnProperty.call(g.outcomes,e.attemptId))g.outcomes[e.attemptId]=e.eventType==='PERFORMANCE_SUCCEEDED';
       }
     });
     list.forEach(function(e){
       var p=e.payload;var person=playerKey(e);var g=attempts[e.attemptId];
-      if(e.eventType==='PERFORMANCE_PROGRESS'&&e.authority==='LOCAL'){
+      if(e.eventType==='PERFORMANCE_PROGRESS'&&(e.authority==='LOCAL'||e.authority==='HOST'&&p.collectionSource==='HOST_PLAYER')){
         g=group(e);var dk=e.attemptId+':'+playerKey(e);g.distances[dk]=Math.max(g.distances[dk]||0,p.maxDistance);
       }
       if(e.eventType==='PLAYER_DIED'&&e.authority==='HOST'){
@@ -174,11 +180,11 @@ var TelemetryCore = (function () {
     });
     function avg(a){return a.length?a.reduce(function(s,n){return s+n;},0)/a.length:null;}
     return {eventCount:list.length,runIds:Array.from(new Set(list.map(function(e){return e.runId;}).filter(Boolean))),
-      timeline:list,
+      timeline:list,eligibleUsers:eligible.size,
       tricks:Object.keys(tricks).sort().map(function(k){var g=tricks[k],outcomes=Object.values(g.outcomes),ds=Object.values(g.distances);return {trickType:g.trickType,difficulty:g.difficulty,attempts:g.attemptIds.size,completed:outcomes.length,wins:outcomes.filter(Boolean).length,winRate:outcomes.length?outcomes.filter(Boolean).length/outcomes.length:null,avgMaxDistance:avg(ds),distanceSamples:ds.length,deaths:g.deaths,interactions:g.interactions};}),
       deaths:Object.keys(death).sort().map(function(k){return {label:k,deaths:death[k]};}),
       zones:Object.values(zones).map(function(z){return {zoneType:z.zoneType,visits:z.visits,distinctPlayers:z.people.size,avgDwellSeconds:avg(z.durations),dwellSamples:z.durations.length};}),
-      usage:Object.values(usage).map(function(u){var observed=Array.from(u.people).filter(function(p){return eligible.has(p);}).length;return {kind:u.kind,itemOrServiceType:u.type,uses:u.uses,users:u.people.size,eligibleUsers:eligible.size,usageRate:eligible.size?observed/eligible.size:null};}),
+      usage:Object.values(usage).map(function(u){var observed=Array.from(u.people).filter(function(p){return eligible.has(p);}).length;return {kind:u.kind,itemOrServiceType:u.type,uses:u.uses,users:u.people.size,observedUsers:observed,eligibleUsers:eligible.size,usageRate:eligible.size?observed/eligible.size:null};}),
       waiting:waitingMetrics(list),stageTimings:stageMetrics(list),operations:operationMetrics(list),outstanding:outstandingMetrics(list),funds:Object.values(funds)};
   }
   function outstandingMetrics(events){
@@ -326,9 +332,10 @@ var TelemetryCore = (function () {
     fundSeries.sort(function(a,b){return (a.order||a.day)-(b.order||b.day);});
     var timelineOptions=options.filter(function(id){return onDate(id,filters.timelineDate);});
     var selectedRun=timelineOptions.includes(filters.timelineRunId)?filters.timelineRunId:timelineOptions[0]||null;
-    var runEvents=(runs.get(selectedRun)||[]).filter(analysisEvent),phases=new Map();
+    var selectedEvents=runs.get(selectedRun)||[],runEvents=selectedEvents.filter(analysisEvent),phases=new Map(),attemptDays=new Map();
+    selectedEvents.forEach(function(e){if(e.attemptId&&/^PERFORMANCE_(ROSTER|STARTED)$/.test(e.eventType)&&gameDay(e))attemptDays.set(e.attemptId,gameDay(e));});
     runEvents.forEach(function(e){
-      var day=gameDay(e),rest=/^D\d+T(\d+)$/.exec(e.breakId||'');
+      var day=e.attemptId&&attemptDays.has(e.attemptId)?attemptDays.get(e.attemptId):gameDay(e),rest=/^D\d+T(\d+)$/.exec(e.breakId||'');
       var kind=rest&&e.sceneType==='WAITINGROOM'?'BREAK':e.attemptId?'PERFORMANCE':'OTHER';
       var key='D'+(day||'?')+'/'+kind+(kind==='BREAK'?'/'+rest[1]:'');
       if(!phases.has(key))phases.set(key,{id:key,day:day,kind:kind,rest:kind==='BREAK'?Number(rest[1]):null,events:[],attempts:new Map()});
@@ -344,14 +351,28 @@ var TelemetryCore = (function () {
     var phase=phases.get(filters.timelinePhase)||phaseList[0]||null;
     var attempts=phase?Array.from(phase.attempts.values()):[];
     var selectedAttempt=attempts.some(function(a){return a.id===filters.timelineAttemptId;})?filters.timelineAttemptId:attempts.length?attempts[0].id:null;
-    var shown=phase?phase.events.filter(function(e){return !selectedAttempt||e.attemptId===selectedAttempt;}):[];
+    var shown=phase?phase.events.filter(function(e){return e.eventType!=='PERFORMANCE_ROSTER'&&(!selectedAttempt||e.attemptId===selectedAttempt);}):[];
+    // New hosts own these observations. Keep legacy-only clients, but never show both copies.
+    var hostTypes=new Set(shown.filter(function(e){return e.authority==='HOST'&&e.payload.collectionSource==='HOST_PLAYER';}).map(function(e){return playerKey(e)+':'+e.eventType;}));
+    shown=shown.filter(function(e){return e.authority==='HOST'||!hostTypes.has(playerKey(e)+':'+e.eventType);});
     var offset=Number.isSafeInteger(filters.timelineOffset)?Math.max(0,filters.timelineOffset):0;
     if(offset>=shown.length)offset=0;
     function slim(e){return {eventId:e.eventId,occurredAt:e.occurredAt,appSessionId:e.appSessionId,sequence:e.sequence,playerId:e.playerId,playerNumber:e.playerNumber,networkClientId:e.networkClientId,runId:e.runId,roomId:e.roomId,eventType:e.eventType,authority:e.authority,sceneType:e.sceneType,attemptId:e.attemptId,payload:e.payload};}
-    var markers=shown.filter(function(e){return /^(SECTION_|PLAYER_DIED|LIMB_SEVERED|INJURY_CHANGED|TIGHTROPE_FELL|JUMP_RESULT|COOP_ACTIVATED|CANNON_|PERFORMANCE_STARTED|PERFORMANCE_LEFT|INTERACTION_FAILED)/.test(e.eventType);});
+    var markers=shown.filter(function(e){return /^(SECTION_|PLAYER_DIED|PLAYER_ARRIVED|LIMB_SEVERED|INJURY_CHANGED|TIGHTROPE_FELL|JUMP_RESULT|COOP_ACTIVATED|CANNON_|PERFORMANCE_STARTED|PERFORMANCE_LEFT|INTERACTION_FAILED)/.test(e.eventType);});
+    var participantEvents=selectedEvents.filter(function(e){return selectedAttempt&&e.attemptId===selectedAttempt;}),participants=new Map(),expected=0;
+    participantEvents.forEach(function(e){
+      if(/^PERFORMANCE_(ROSTER|STARTED)$/.test(e.eventType))expected=Math.max(expected,Number(e.payload.playerCount)||0);
+      if(e.eventType!=='PERFORMANCE_ROSTER'||e.authority!=='HOST'||!Array.isArray(e.payload.participants))return;
+      e.payload.participants.forEach(function(p){if(!Number.isInteger(p.playerNumber))return;var person=Object.assign(slim(e),p,{rosterOnly:true,startRecorded:false});participants.set(playerKey(person),person);});
+    });
+    participantEvents.forEach(function(e){if(e.eventType==='PERFORMANCE_ROSTER'||!Number.isInteger(e.playerNumber))return;var k=playerKey(e),person=participants.get(k);if(!person){person=slim(e);participants.set(k,person);}person.rosterOnly=false;if(e.eventType==='PERFORMANCE_STARTED')person.startRecorded=true;});
+    // Fair sampling per participant; a busy host must never consume every marker slot.
+    var markerGroups=new Map();markers.forEach(function(e){var k=playerKey(e);if(!markerGroups.has(k))markerGroups.set(k,[]);markerGroups.get(k).push(e);});
+    var selectedMarkers=[],quota=Math.max(1,Math.floor(400/Math.max(1,markerGroups.size)));
+    markerGroups.forEach(function(es){if(es.length<=quota){selectedMarkers.push.apply(selectedMarkers,es);return;}var chosen=new Set([es[0],es[es.length-1]]);es.filter(function(e){return /^(PERFORMANCE_STARTED|PERFORMANCE_LEFT|PLAYER_ARRIVED|PLAYER_DIED|LIMB_SEVERED|TIGHTROPE_FELL)$/.test(e.eventType);}).forEach(function(e){chosen.add(e);});var remaining=quota-chosen.size;for(var i=0;i<remaining;i++)chosen.add(es[Math.floor((i+1)*es.length/(remaining+1))]);selectedMarkers.push.apply(selectedMarkers,Array.from(chosen));});
     return {runOptions:options,runLabels:runLabels,funds:{runId:fundsId,mode:fundsId?'RUN':'AVERAGE',interval:interval,series:fundSeries,runSeries:balances,breakRunSeries:breakBalances,runCount:new Set(source.filter(function(p){return !fundsId||p.runId===fundsId;}).map(function(p){return p.runId;})).size},
       timeline:{runId:selectedRun,phases:phaseList.map(function(p){return {id:p.id,day:p.day,kind:p.kind,rest:p.rest,count:p.events.length,attempts:Array.from(p.attempts.values())};}),phaseId:phase?phase.id:null,attemptId:selectedAttempt,
-        events:shown.slice(offset,offset+200).map(slim),offset:offset,total:shown.length,markers:markers.slice(0,400).map(slim),markerTotal:markers.length}};
+        events:shown.slice(offset,offset+200).map(slim),offset:offset,total:shown.length,markers:ordered(selectedMarkers).map(slim),markerTotal:markers.length,participants:Array.from(participants.values()).sort(function(a,b){return a.playerNumber-b.playerNumber;}),recordedPlayers:Array.from(participants.values()).filter(function(p){return !p.rosterOnly;}).length,expectedPlayers:expected||null}};
   }
   return {catalog:catalog,validate:validate,headers:headers,row:row,decode:decode,aggregate:aggregate,trickId:trickId,dashboardView:dashboardView,versionOf:versionOf,versionSelection:versionSelection,playerKey:playerKey,analysisEvent:analysisEvent};
 })();

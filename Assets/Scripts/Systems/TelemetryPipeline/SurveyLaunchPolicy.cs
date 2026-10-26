@@ -26,6 +26,19 @@ namespace CurtainCall.Telemetry.Pipeline
             if (!ValidEntry(entry) || kind != Night && kind != Exit) throw new ArgumentException("Survey entry not configured.");
             return (kind == Night ? NightForm : ExitForm) + "?usp=pp_url&" + entry + "=" + Uri.EscapeDataString(code);
         }
+        public static string Code(SurveyDefinition survey, string version, string kind, string environment, string runId, int slot, string invitationId, DateTime openedAt)
+        {
+            string legacy = Code(kind, environment, runId, slot, invitationId, openedAt);
+            if (!survey.Matches(version)) throw new ArgumentException("Survey is not enabled for this version.");
+            if (version == "0.1.0" && survey.Legacy(kind)) return legacy;
+            var parts = legacy.Split('.'); parts[0] = "CCS2"; parts[1] = Uri.EscapeDataString(version.Replace('.', '_'));
+            return string.Join(".", parts) + "." + survey.id + "." + survey.round;
+        }
+        public static string Url(SurveyDefinition survey, string code)
+        {
+            if (!survey.Valid) throw new ArgumentException("Survey not configured.");
+            return survey.formUrl + "?usp=pp_url&" + survey.entry + "=" + Uri.EscapeDataString(code);
+        }
     }
 
     /// <summary>One local marker per account/installation and form, independent of log collection.</summary>
@@ -49,9 +62,24 @@ namespace CurtainCall.Telemetry.Pipeline
         }
         public bool TryOpen(string identity, string kind, string entry, string code, Action<string> open)
         {
-            string url = SurveyLaunchPolicy.Url(kind, entry, code), path = Marker(identity, kind);
-            Directory.CreateDirectory(root);
             if (WasOpened(identity, kind)) return false;
+            return Claim(Marker(identity, kind), SurveyLaunchPolicy.Url(kind, entry, code), code, open);
+        }
+        string Marker(string identity, string kind, SurveyDefinition survey)
+        {
+            if (!survey.Valid || string.IsNullOrEmpty(identity)) throw new ArgumentException("Invalid survey cache identity.");
+            return survey.Legacy(kind) ? Marker(identity, kind) : Path.Combine(root, "campaign-" + DurableOutbox.Sha256(survey.id + ":" + survey.round + ":" + kind + ":" + identity) + ".opened");
+        }
+        public bool WasOpened(string identity, string kind, SurveyDefinition survey) => survey.Legacy(kind)
+            ? WasOpened(identity, kind) : File.Exists(Marker(identity, kind, survey));
+        public bool TryOpen(string identity, string kind, SurveyDefinition survey, string code, Action<string> open)
+        {
+            if (WasOpened(identity, kind, survey)) return false;
+            return Claim(Marker(identity, kind, survey), SurveyLaunchPolicy.Url(survey, code), code, open);
+        }
+        bool Claim(string path, string url, string code, Action<string> open)
+        {
+            Directory.CreateDirectory(root);
             // CreateNew makes simultaneous callbacks/processes claim the same marker at most once.
             FileStream stream;
             try { stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None); }
