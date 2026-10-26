@@ -178,7 +178,8 @@ const build = async ($: EngineInterface, gh: GhMode): Promise<Snapshot> => {
   const activeRoot = `${top}/Tasks/Active`
   const active: Array<{ dir: string; id: string; meta: ReturnType<typeof parseMeta> }> = []
   for (const dir of await listDirs($, activeRoot)) {
-    const metaText = await readText($, `${activeRoot}/${dir}/meta.md`)
+    const planText = await readText($, `${activeRoot}/${dir}/plan.md`)
+    const metaText = planText && parseMeta(planText).branch ? planText : await readText($, `${activeRoot}/${dir}/meta.md`)
     if (metaText === null) continue
     active.push({ dir, id: dir.match(/^Task-\d+-\d+/)?.[0] ?? dir, meta: parseMeta(metaText) })
   }
@@ -211,7 +212,7 @@ const build = async ($: EngineInterface, gh: GhMode): Promise<Snapshot> => {
     const doneDirs = (await listDirs($, doneRoot)).reverse().slice(0, DONE_LIMIT)
     const done: TaskLink[] = []
     for (const dir of doneDirs) {
-      const meta = parseMeta((await readText($, `${doneRoot}/${dir}/meta.md`)) ?? '')
+      const meta = parseMeta((await readText($, `${doneRoot}/${dir}/plan.md`)) || (await readText($, `${doneRoot}/${dir}/meta.md`)) || '')
       done.push({ id: dir.match(/^Task-\d+-\d+/)?.[0] ?? dir, title: meta.title, branch: meta.branch })
     }
     const myOtherTasks = active
@@ -328,7 +329,7 @@ export const register: Register = on => {
     )
 
     if (data.mode === 'integration') {
-      const canMerge = sameLogin(data.login, data.pm) && data.prs.length > 0 && !isWorking
+      const canMerge = data.login !== null && data.prs.length > 0 && !isWorking
       const slug = data.branch.replace(/^integration\//, '')
       return (
         <Box flexDirection="column">
@@ -372,7 +373,7 @@ export const register: Register = on => {
 
     const task = data.tasks[selected]
     if (!task) return next(e)
-    const isAllowed = task.isMine && task.branch === data.branch && !isWorking
+    const isAllowed = task.branch === data.branch && !isWorking
     return (
       <Box flexDirection="column">
         {header}

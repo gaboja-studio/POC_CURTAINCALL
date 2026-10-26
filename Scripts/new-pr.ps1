@@ -1,20 +1,16 @@
 # .github/PULL_REQUEST_TEMPLATE.md를 채워 PR을 만든다.
 #   gh가 준비되어 있으면 바로 등록, 아니면(-Browser 포함) 내용이 채워진 GitHub 작성 페이지를 연다.
-#   브랜치 흐름: feat|refactor/* → integration/* → 메타 Base → dev → builds/*
-#               선언된 부모 → 자식 / 소속 통합 → 준비 Task branch sync (Merge commit)
-#               fix|resource/* → dev 또는 integration/*  (builds/* 직행 불가, tests/*는 제출 불가)
-# 채우는 값: 요약(-Summary), JIRA(Task setup.md), Issue 번호(-Issues), 검사 결과(Task handoff.md)
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Summary,
     # 이슈 번호. -Issues 9,10 / -Issues "9,10" / -Issues 9 10 모두 받는다(pwsh -File은 "9,10"을 문자열 하나로 넘긴다).
     [string[]]$Issues = @(),
-    # PR 제목의 한 줄 요약. 생략하면 Task meta.md의 Title.
+    # PR 제목의 한 줄 요약. 생략하면 Task plan.md의 Title.
     [string]$Title,
-    # 대상 브랜치. 생략하면 Task meta.md의 Integration (Task 없는 fix/*·resource/*는 dev).
+    # 대상 브랜치. 생략하면 Task plan.md의 Base (Task 없는 fix/*·resource/*는 dev).
     [string]$Base,
     [string]$PlayCheck = '미실행',
-    # 검사 결과 칸 직접 지정(Task가 없는 통합 PR 등). 생략하면 Task handoff.md의 Verification을 쓴다.
+    # 검사 결과 직접 지정. 생략하면 Task log.md의 최신 검사 결과를 쓴다.
     [string]$ScopeCheck,
     [string]$CompileCheck,
     [string]$TestCheck,
@@ -31,36 +27,32 @@ $head = (& git -C $RepoRoot branch --show-current).Trim()
 $task = Find-CurrentTask
 $repo = Get-GitHubRepo
 
-# 부모/준비 관계는 최신 원격 메타로 확인한다(브랜치 이동 없음).
-if ($head -like 'integration/*' -or $head -ceq (Get-BaseBranch)) {
-    & git -C $RepoRoot -c submodule.recurse=false fetch --no-recurse-submodules origin --prune --quiet
-    if ($LASTEXITCODE -ne 0) { throw 'PR 관계 확인용 git fetch 실패' }
-}
-
 # 1) 대상 브랜치와 제목
-if (-not $Base -and $head -like 'integration/*') { $Base = (Get-IntegrationMetadata -Branch $head -Ref HEAD -AllowDone).Base }
+
 if ($task) {
-    $meta = Join-Path $task.Path 'meta.md'
-    if (-not $Base) { $Base = Get-MetaField -MetaPath $meta -Field 'Integration' }
+    $meta = Get-TaskPlanPath $task.Path
+    if (-not $Base) { $Base = Get-MetaField -MetaPath $meta -Field 'Base' }
     if (-not $Title) { $Title = Get-MetaField -MetaPath $meta -Field 'Title' }
     $prTitle = "[$($task.Type)] $($task.Id) $Title"
 } else {
-    if (-not $Base -and $head -match '^(fix|resource)/') { $Base = Get-BaseBranch }
+    if (-not $Base) { $Base = Get-BaseBranch }
     if (-not $Base -or -not $Title) { throw "현재 브랜치($head)에 대응하는 Task가 없음. -Base와 -Title을 직접 지정하세요." }
     $kind = switch -Regex ($head) { '^integration/' { 'integration' } '^dev$' { if ($Base -like 'integration/*') { 'sync' } else { 'build' } } default { ($head -split '/')[0] } }
     $prTitle = "[$kind] $Title"
 }
 
+if (-not $Base) { $Base=Get-BaseBranch }
 $mergeMethod = Get-PrFlow -Head $head -Base $Base
 if ($mergeMethod -eq 'merge') { $prTitle = $prTitle -replace '^\[integration\]', '[integration/sync]' }
-if (-not $Title) { $problems.Add('PR 제목 요약이 비어 있음 (meta.md Title 또는 -Title)') }
+if (-not $Title) { $problems.Add('PR 제목 요약이 비어 있음 (plan.md Title 또는 -Title)') }
 
 # 2) 본문: 템플릿을 제목(## ...)별로 채운다
 $verification = @{}
 if ($task) {
-    $section = Get-MarkdownSection -Path (Join-Path $task.Path 'handoff.md') -Heading 'Verification'
-    foreach ($line in ($section -split "`n")) {
-        if ($line -match '^\s*-\s*(.+?):\s*(.*)$') { $verification[$Matches[1].Trim()] = $Matches[2].Trim() }
+    $log = Get-Content -LiteralPath (Join-Path $task.Path 'log.md') -Raw
+    $latest = @($log -split '\r?\n' | Where-Object { $_ -match ' 검사: ' } | Select-Object -Last 1)
+    foreach ($m in [regex]::Matches(($latest -join ''), '(안전성|문서/규칙|컴파일|테스트)=([^;\r\n]+)')) {
+        $verification[$m.Groups[1].Value] = $m.Groups[2].Value.Trim()
     }
 }
 function Get-Check { param([string]$Label)
@@ -71,7 +63,7 @@ function Get-Check { param([string]$Label)
 
 $jira = '없음'
 if ($task) {
-    $raw = Get-MarkdownSection -Path (Join-Path $task.Path 'setup.md') -Heading 'JIRA'
+    $raw = Get-MarkdownSection -Path (Join-Path $task.Path 'plan.md') -Heading 'JIRA'
     $keys = @([regex]::Matches("$raw", '\b[A-Z][A-Z0-9]+-\d+\b') | ForEach-Object Value | Sort-Object -Unique)
     if ($keys.Count) { $jira = $keys -join ', ' }
 }
@@ -82,25 +74,18 @@ $Issues = @($Issues | ForEach-Object { $_ -split '[,\s]+' } | Where-Object { $_ 
 })
 $issueText = if ($Issues.Count) { ($Issues | ForEach-Object { "closed #$_" }) -join "`n" } else { '없음' }
 
-# Task 없는 fix/*·resource/*는 handoff.md가 없으므로 구역 검사를 여기서 돌려 결과를 적는다.
 $noTaskScope = $null
-if (-not $task -and -not $ScopeCheck -and $head -match '^(fix|resource)/') {
-    $scopeOut = @(& ([System.Environment]::ProcessPath) -NoProfile -File (Join-Path $PSScriptRoot 'verify-scope.ps1') -Branch $head -Base "origin/$Base" 2>&1)
-    $noTaskScope = if ($LASTEXITCODE -eq 0) { "PASS ($(Get-Date -Format 'MM-dd'), Task 없음)" } else { 'FAIL — 구역 검사 실패' }
-    if ($LASTEXITCODE -ne 0) { $scopeOut | ForEach-Object { Write-Output $_ }; $problems.Add('구역 검사 실패 (위 [위반] 항목 확인)') }
-}
-
 $checks = @{
-    ScopeCheck = $(if ($ScopeCheck) { $ScopeCheck } elseif ($noTaskScope) { $noTaskScope } elseif (-not $task) { '해당 없음 (Task 없는 PM 브랜치)' } else { Get-Check '구역 검사' })
-    CompileCheck = $(if ($CompileCheck) { $CompileCheck } else { Get-Check '2 컴파일' })
-    TestCheck = $(if ($TestCheck) { $TestCheck } else { Get-Check '3 테스트' })
+    ScopeCheck = $(if ($ScopeCheck) { $ScopeCheck } elseif ($noTaskScope) { $noTaskScope } elseif (-not $task) { '기록 참조' } else { Get-Check '안전성' })
+    CompileCheck = $(if ($CompileCheck) { $CompileCheck } else { Get-Check '컴파일' })
+    TestCheck = $(if ($TestCheck) { $TestCheck } else { Get-Check '테스트' })
     PlayCheck = $PlayCheck
 }
-$mergeNote = if ($mergeMethod -eq 'merge') { '병합 방식: Merge commit (부모/통합 동기화, Squash 금지). 준비 branch sync는 배정 문서 수신용이며 실제 인계 확인을 대체하지 않습니다.' } else { '' }
+$mergeNote = if ($mergeMethod -eq 'merge') { '병합 방식: Merge commit. 선택한 방향으로 공유합니다.' } else { '병합 방식: Squash. dev 반영 전 지정 팀원이 검토합니다.' }
 $bodyText = New-PrTemplateBody -Summary $Summary -Jira $jira -Issues $issueText @checks -MergeNote $mergeNote
 
 # 3) 원격 상태 확인
-$dirty = & git -C $RepoRoot status --porcelain
+$dirty = & git -C $RepoRoot status --porcelain --ignore-submodules=all
 if ($dirty) { $problems.Add('저장(커밋)하지 않은 변경이 있음. 먼저 "저장해줘"') }
 & git -C $RepoRoot ls-remote --exit-code --heads origin $Base *> $null
 if ($LASTEXITCODE -ne 0) { $problems.Add("대상 브랜치가 원격에 없음: $Base (PM 확인 필요)") }
@@ -164,13 +149,7 @@ if ($Browser -or $gh.State -ne 'Ready') {
     Write-Output "PR 등록 완료: $prUrl"
 }
 
-# 4) Task 문서 갱신 (gh로 등록해 URL을 아는 경우만. 브라우저 방식은 등록 후 AI가 갱신)
+# 실제 생성된 PR 링크만 log에 기록한다. 중간 Status는 없다.
 if ($task -and $prUrl) {
-    $handoff = Join-Path $task.Path 'handoff.md'
-    $text = [regex]::Replace((Get-Content -LiteralPath $handoff -Raw), '(?m)^- PR:.*$', "- PR: $prUrl")
-    Set-Content -LiteralPath $handoff -Value $text -Encoding utf8NoBOM -NoNewline
-    $metaText = [regex]::Replace((Get-Content -LiteralPath $meta -Raw), '(?m)^(- \*\*Status:\*\*).*$', '$1 submitted')
-    Set-Content -LiteralPath $meta -Value $metaText -Encoding utf8NoBOM -NoNewline
-    [void](Set-TodoChecked -TodoPath (Join-Path $task.Path 'todo.md') -Text '"제출해줘"로 PR 제출')
-    Write-Output 'handoff.md에 PR 링크, meta.md Status를 submitted, todo.md 제출 항목을 기록했습니다. (이 변경은 다음 저장 때 함께 올라갑니다)'
+    Add-TaskLog -TaskPath $task.Path -Text "- $(Get-Date -Format yyyy-MM-dd) PR: $prUrl ($head → $Base)"
 }

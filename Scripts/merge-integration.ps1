@@ -1,7 +1,8 @@
-# PM 전용. integration/<slug> PR 현황 / 작업 PR만 Squash 병합·최신화. gh 필요.
+# 지정 검토자용. integration/<slug> PR 현황 / 작업 PR만 Squash 병합·최신화. gh 필요.
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)][ValidatePattern('^[a-z0-9]+(?:-[a-z0-9]+)*$')][string]$Slug,
+    [ValidatePattern('^[a-z0-9]+(?:-[a-z0-9]+)*$')][string]$Slug,
+    [string]$Base,
     [int]$Merge,
     [int]$Update
 )
@@ -12,7 +13,7 @@ $ErrorActionPreference = 'Stop'
 $gh = Get-GhState
 if ($gh.State -ne 'Ready') { throw "gh가 필요합니다: $($gh.Detail) (Skill: setup-gh)" }
 $repo = (Get-GitHubRepo).Slug
-$base = "integration/$Slug"
+if (-not $Base) { $Base=if ($Slug) { "integration/$Slug" } else { Get-BaseBranch } }
 $stateText = @{
     CLEAN = '병합 가능'; BEHIND = '뒤처짐'; DIRTY = '충돌'; BLOCKED = '승인·검사 대기'
     UNSTABLE = '검사 실패'; UNKNOWN = '확인 중'; HAS_HOOKS = '병합 가능'; DRAFT = '초안'
@@ -45,13 +46,18 @@ if ($Update) {
 if ($Merge) {
     $pr = (& $gh.Gh pr view $Merge --repo $repo --json baseRefName,headRefName,headRefOid,state,mergeStateStatus,title) | ConvertFrom-Json
     if ($LASTEXITCODE -ne 0 -or -not $pr) { throw "PR #$Merge 조회 실패" }
-    Assert-WorkPrHead -Head $pr.headRefName
+    $method=Get-PrFlow -Head $pr.headRefName -Base $Base
     if ($pr.baseRefName -ne $base) { throw "PR #$Merge 의 대상이 $base 가 아님: $($pr.baseRefName)" }
     if ($pr.state -ne 'OPEN') { throw "PR #$Merge 가 열려 있지 않음: $($pr.state)" }
     if ($pr.mergeStateStatus -in 'DIRTY', 'BEHIND') { throw "PR #$Merge 상태: $($stateText[$pr.mergeStateStatus]). 먼저 해결하세요." }
-    & $gh.Gh pr merge $Merge --repo $repo --squash --match-head-commit $pr.headRefOid
+    if ($Base -ceq (Get-BaseBranch)) {
+        $reviewJson=& $gh.Gh pr view $Merge --repo $repo --json reviewDecision
+        if ($LASTEXITCODE -ne 0 -or ($reviewJson | ConvertFrom-Json).reviewDecision -cne 'APPROVED') { throw 'dev 반영은 지정 팀원 검토가 필요합니다.' }
+    }
+    $mergeFlag=if ($method -eq 'squash') { '--squash' } else { '--merge' }
+    & $gh.Gh pr merge $Merge --repo $repo $mergeFlag --match-head-commit $pr.headRefOid
     if ($LASTEXITCODE -ne 0) { throw "PR #$Merge 병합 실패" }
-    Write-Output "병합 완료(Squash): #$Merge $($pr.title)"
+    Write-Output "병합 완료($method): #$Merge $($pr.title)"
     Start-Sleep -Seconds 3
     $behind = @(Get-Prs | Where-Object { $_.mergeStateStatus -in 'BEHIND', 'DIRTY', 'UNKNOWN' })
     foreach ($b in $behind) {

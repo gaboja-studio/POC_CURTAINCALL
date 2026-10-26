@@ -11,8 +11,8 @@ description: 버그 제보·QA 요청. .github/ISSUE_TEMPLATE 폼의 칸을 쉬�
    - "버그" → `bug`, "QA/검증 요청" → `qa`. 그 밖의 템플릿도 목록에 나온 이름으로 쓴다.
 2. 채울 수 있는 칸은 먼저 자동으로 채운다:
    - QA `branch`: 현재 브랜치 전체 이름
-   - QA `scene`: Task `setup.md`의 테스트 씬
-   - QA `steps`: Task `plan.md`의 공동 테스트 항목 (1, 2, 3 순서로)
+   - QA `scene`: 현재 요청과 실제 변경에서 확인한 씬
+   - QA `steps`: 현재 목적을 확인할 최소 재현 순서
    - Bug `situation`: 대화나 Console/Editor.log에서 확인한 재현 순서
    - `references`: 관련 Task 번호, PR 링크, 로그 요약
 3. 비어 있는 **필수 칸만** 쉬운 질문으로 하나씩 묻는다. 예:

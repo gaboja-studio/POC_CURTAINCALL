@@ -8,6 +8,10 @@ on:
       - dev
       - "integration/**"
       - "builds/**"
+      - "feat/**"
+      - "fix/**"
+      - "refactor/**"
+      - "resource/**"
 
 jobs:
   verify-fast:
@@ -20,22 +24,14 @@ jobs:
         shell: pwsh
         run: ./Scripts/verify-fast.ps1
 
-      - name: Test third-party asset manager scope
+      - name: Test simplified task and sharing workflow
         shell: pwsh
-        run: ./Scripts/Tests/third-party-scope.test.ps1 -ScratchRoot "${{ runner.temp }}"
+        run: ./Scripts/Tests/harness-flow.test.ps1 -ScratchRoot "${{ runner.temp }}"
 
-      - name: Test parent-child integration sync
+      - name: Test asset helper with local Git and LFS
         shell: pwsh
-        run: ./Scripts/Tests/integration-sync.test.ps1 -ScratchRoot "${{ runner.temp }}"
-
-      - name: Test workspace flow
-        shell: pwsh
-        run: ./Scripts/Tests/workspace-flow.test.ps1 -ScratchRoot "${{ runner.temp }}"
-
+        run: ./Scripts/Tests/asset-helper.test.ps1 -ScratchRoot "${{ runner.temp }}"
   verify-scope:
-    # 작업 브랜치 PR만: 작업 구역 밖 수정, PM 전용 경로, 다른 Task 구역, .meta 누락을 검사한다.
-    # Task 없는 resource/*는 Assets/Resources/ 및 지정 에셋 관리자의 _ThirdParty 포인터만, 급한 fix/*는 PM 전용·다른 Task 구역만 막는다.
-    if: startsWith(github.head_ref, 'feat/') || startsWith(github.head_ref, 'fix/') || startsWith(github.head_ref, 'refactor/') || startsWith(github.head_ref, 'resource/')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

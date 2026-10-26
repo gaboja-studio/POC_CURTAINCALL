@@ -3,6 +3,8 @@
 마지막 갱신: 2026-10-16 · 결정 근거: `Harness/Project/Decisions/third-party-assets.md`
 컨플루언스에 공유할 때는 이 문서를 최신으로 고친 뒤 그대로 옮긴다.
 
+2026-10-27부터 에디터 작업 후 저장·공유와 브랜치 이동 뒤 버전 맞추기는 [에셋 도우미](asset-helper.md)를 사용한다. 아래 Desktop 수동 절차는 참고용이다.
+
 ## 한눈에
 - Asset Store 등 **밖에서 받은 에셋은 무료·유료 상관없이** 비공개 저장소 `CURTAINCALL_PaidAssets`에만 둔다.
 - 이 비공개 저장소는 게임 프로젝트 안의 `Assets/_ThirdParty` 폴더로 연결되어 있다(서브모듈). 겉보기엔 그냥 폴더지만 **저장(커밋)하는 곳이 따로**다.

@@ -6,7 +6,7 @@
 ## 기본 읽기(Default-read) 범위
 
 1. `AGENTS.md`
-2. 현재 Task의 `handoff.md`, `meta.md`, `setup.md`, `todo.md`, `plan.md`
+2. 현재 Task의 `plan.md`, `todo.md`
 3. Domain Map 1개, 현재 단계 Skill 1개
 4. 필요한 지식 폴더의 `index.md` + 파일 1개
 
@@ -20,12 +20,10 @@
 | Target | Warn | Hard |
 |---|---|---|
 | `AGENTS.md` | 60 | 80 |
-| `task/meta.md` | 40 | 50 |
-| `task/setup.md` | 70 | 90 |
 | `task/plan.md` | 80 | 100 |
 | `task/todo.md` | 60 | 80 |
-| `task/handoff.md` | 30 | 40 |
 | `task/log.md` | 100 | 130 |
+| `integration/plan.md` | 60 | 80 |
 | `integration/meta.md` | 60 | 80 |
 | `integration/checklist.md` | 80 | 100 |
 | `integration/result.md` | 60 | 80 |
@@ -63,7 +61,7 @@
 
 ## 검사 시점
 
-1. AI가 문서를 고친 뒤 저장·제출·인계 전(`save-work`, `submit-work`, `write-handoff`)
+1. AI가 문서를 고친 뒤 저장·제출·인계 전(`save-work`, `submit-work`, `write-handoff`(log 갱신))
 2. 커밋 전: `pwsh -File Scripts/verify-fast.ps1`
 3. PR: GitHub Actions `verify-docs`가 자동으로 검사한다(`.github/workflows/verify-docs.yml`)
 

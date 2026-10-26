@@ -13,7 +13,7 @@ $subPath = 'Assets/_ThirdParty'
 $subRepo = 'gaboja-studio/CURTAINCALL_PaidAssets'
 
 # Assets/ 최상위에 둘 수 있는 것. Asset Store 패키지는 보통 최상위에 자기 폴더를 만들므로 여기서 걸린다.
-# 직접 만든 콘텐츠용 최상위 폴더가 새로 필요하면 PM이 이 목록과 Docs/Guides/assets-folder-rules.md를 함께 고친다.
+# 직접 만든 콘텐츠용 최상위 폴더가 필요하면 담당자가 이 목록과 배치 안내를 함께 갱신한다.
 $allowedTop = @(
     '_ThirdParty', 'InputSystem_Actions.inputactions', 'Readme.asset',
     'Resources', 'Scenes', 'Scripts', 'Settings', 'TextMesh Pro', 'TutorialInfo'

@@ -11,7 +11,7 @@ export type Meta = {
 }
 
 const field = (text: string, name: string): string => {
-  const found = text.match(new RegExp(`\\*\\*${name}:\\*\\*\\s*(.+)`))
+  const found = text.match(new RegExp(`\\*\\*${name}:\\*\\*[^\\S\\r\\n]*([^\\r\\n]+)`))
   return found?.[1] ? found[1].trim().replace(/^`|`$/g, '') : ''
 }
 
@@ -19,7 +19,7 @@ export const parseMeta = (text: string): Meta => ({
   title: field(text, 'Title'),
   assignee: field(text, 'Assignee').replace(/^@/, ''),
   branch: field(text, 'Branch'),
-  integration: field(text, 'Integration'),
+  integration: field(text, 'Base') || field(text, 'Integration'),
   status: field(text, 'Status'),
 })
 

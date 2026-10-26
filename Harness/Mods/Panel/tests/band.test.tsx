@@ -86,7 +86,7 @@ const taskWorld = (login: string): World => ({
   status: '# branch.head feat/panel\n# branch.upstream origin/feat/panel\n# branch.ab +0 -0\n1 .M N... 1 1 1 a b x\n',
   files: {
     '/repo/Harness/Project/Facts/team.md': TEAM,
-    [`/repo/Tasks/Active/${TASK_DIR}/meta.md`]: META('MoHoDu', 'feat/panel'),
+    [`/repo/Tasks/Active/${TASK_DIR}/plan.md`]: META('MoHoDu', 'feat/panel').replace('Integration:', 'Base:'),
     [`/repo/Tasks/Active/${TASK_DIR}/todo.md`]: TODO('x', '-', ' '),
   },
   shows: { [`origin/feat/panel:Tasks/Active/${TASK_DIR}/todo.md`]: TODO('x', ' ', ' ') },
@@ -133,11 +133,11 @@ test('숨기기를 누르면 한 줄로 줄고, 보이기로 다시 펼친다', 
   await ui.unmount()
 })
 
-test('담당자가 아니면 버튼이 모두 꺼진다', async ($, on) => {
+test('담당자가 달라도 현재 작업 브랜치에서 작업할 수 있다', async ($, on) => {
   fake(on, taskWorld('someone'))
   const ui = await start($, /@someone/)
   for (const key of ['save', 'submit', 'next']) {
-    expect((await ui.find({ key }))?.props.dimColor).toBe(true)
+    expect((await ui.find({ key }))?.props.dimColor).toBe(false)
   }
   await ui.unmount()
 })
@@ -154,7 +154,7 @@ const integrationWorld = (login: string): World => ({
   basePrs: [{ number: 7, title: '패널', headRefName: 'feat/panel', mergeable: 'MERGEABLE', isDraft: false }],
 })
 
-test('통합 브랜치: PR과 연결 Task를 보여 주고 PM만 합치자가 켜진다', async ($, on) => {
+test('통합 브랜치: PR과 연결 Task를 보여 주고 로그인한 검토자가 합치자를 요청한다', async ($, on) => {
   fake(on, integrationWorld('MoHoDu'))
   const ui = await start($, /#7 Task-20261010-001/)
   expect(await ui.find({ type: 'Text', text: /병합 가능/ })).toBeDefined()
@@ -162,10 +162,10 @@ test('통합 브랜치: PR과 연결 Task를 보여 주고 PM만 합치자가 �
   await ui.unmount()
 })
 
-test('통합 브랜치: PM이 아니면 합치자가 꺼진다', async ($, on) => {
+test('통합 브랜치: PM이 아닌 팀원도 합치자를 요청한다', async ($, on) => {
   fake(on, integrationWorld('worker'))
   const ui = await start($, /@worker/)
-  expect((await ui.find({ key: 'merge' }))?.props.dimColor).toBe(true)
+  expect((await ui.find({ key: 'merge' }))?.props.dimColor).toBe(false)
   await ui.unmount()
 })
 

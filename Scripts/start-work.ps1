@@ -1,66 +1,54 @@
-# 작업자의 "시작해줘"·"이어서 해줘". 원격 최신 받기 → Task 작업 브랜치로 이동 → 최신 반영 → Status를 working으로.
+# plan의 Branch로 시작·재개한다. 상태·PM 인계·Jira gate와 자동 저장은 없다.
 [CmdletBinding()]
-param([Parameter(Mandatory)][ValidatePattern('^Task-\d{8}-\d{3}$')][string]$Id)
-
-$ErrorActionPreference = 'Stop'
+param([Parameter(Mandatory)][ValidatePattern('^Task-\d{8}-\d{3}$')][string]$Id, [string]$Base, [switch]$Fetch)
+$ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Lib/common.ps1')
-
-Assert-CleanTree -Hint 'Unity에서 저장한 뒤 "저장해줘"로 먼저 저장하거나, PM에게 알려 주세요.'
-& git -C $RepoRoot -c submodule.recurse=false fetch --no-recurse-submodules origin --prune --quiet
-if ($LASTEXITCODE -ne 0) { throw '원격 저장소에서 최신 내용을 받지 못했습니다. 인터넷 연결이나 GitHub 연결을 확인하세요.' }
-
-$dirs = @(Get-ChildItem -LiteralPath (Get-RepoPath 'Tasks/Active') -Directory -Filter "$Id-*" -ErrorAction SilentlyContinue)
-if ($dirs.Count -gt 1) { throw "$Id Task 폴더가 여러 개입니다. PM에게 알려 주세요." }
-if ($dirs.Count -eq 1) {
-    $candidates = @(((Get-MetaField -MetaPath (Join-Path $dirs[0].FullName 'meta.md') -Field 'Branch') -replace '\s*\(.*\)$', '').Trim())
-} else {
-    $candidates = @(Get-TaskRefMetadata -Id $Id | ForEach-Object { $_.Branch } | Sort-Object -Unique)
+if ($Fetch) {
+    & git -C $RepoRoot -c submodule.recurse=false fetch --no-recurse-submodules origin --prune --quiet
+    if ($LASTEXITCODE -ne 0) { throw '최신 ref 확인 실패' }
 }
-if ($candidates.Count -eq 0) { throw "$Id Task 메타데이터가 없습니다. PM에게 인계가 끝났는지 확인하세요." }
-if ($candidates.Count -gt 1) { throw "$Id Branch 값이 서로 다릅니다: $($candidates -join ', '). PM에게 알려 주세요." }
-$branch = $candidates[0]
-if ($branch -cnotmatch $script:TaskBranchPattern) { throw "$Id Branch 값이 올바르지 않습니다: $branch" }
-& git -C $RepoRoot show-ref --verify --quiet "refs/heads/$branch"
-$hasLocal = $LASTEXITCODE -eq 0
-& git -C $RepoRoot show-ref --verify --quiet "refs/remotes/origin/$branch"
-$hasRemote = $LASTEXITCODE -eq 0
-if (-not $hasLocal -and -not $hasRemote) { throw "$Id 작업 브랜치가 없습니다: $branch. PM에게 알려 주세요." }
-$targetRef = if ($hasRemote) { "refs/remotes/origin/$branch" } else { "refs/heads/$branch" }
-if ($hasLocal -and $hasRemote) {
-    & git -C $RepoRoot merge-base --is-ancestor "refs/heads/$branch" $targetRef
-    if ($LASTEXITCODE -ne 0) {
-        & git -C $RepoRoot merge-base --is-ancestor $targetRef "refs/heads/$branch"
-        if ($LASTEXITCODE -ne 0) { throw '작업 브랜치가 원격과 갈라졌습니다. PM에게 알려 주세요.' }
-        $targetRef = "refs/heads/$branch"
+$dirs=@(Get-ChildItem -LiteralPath (Get-RepoPath 'Tasks/Active') -Directory -Filter "$Id-*" -ErrorAction SilentlyContinue)
+if ($dirs.Count -gt 1) { throw "Task가 여러 개입니다: $Id" }
+if ($dirs.Count) {
+    $plan=Get-TaskPlanPath $dirs[0].FullName
+    $branch=("$(Get-MetaField -MetaPath $plan -Field Branch)" -replace '\s*\(.*\)$','').Trim()
+    if (-not $Base) { $Base=Get-MetaField -MetaPath $plan -Field Base }
+} else {
+    $candidates=@(Get-TaskRefMetadata -Id $Id | Select-Object -ExpandProperty Branch -Unique)
+    if ($candidates.Count -ne 1) { throw 'Task를 찾을 수 없거나 브랜치가 여러 개입니다. Task 또는 -Fetch를 확인하세요.' }
+    $branch=$candidates[0]
+}
+if ($branch -cnotmatch $script:TaskBranchPattern) { throw "작업 브랜치 이름 오류: $branch" }
+$current=(& git -C $RepoRoot branch --show-current).Trim()
+if ($current -ceq $branch) {
+    Write-Output "이어 하기: $Id ($branch). plan.md → todo.md; 인계·구역 승인 없음."
+    exit 0
+}
+$target=$null
+foreach ($candidate in "refs/heads/$branch","refs/remotes/origin/$branch") {
+    & git -C $RepoRoot rev-parse --verify --quiet "$candidate^{commit}" | Out-Null
+    if ($LASTEXITCODE -eq 0) { $target=$candidate; break }
+}
+if (-not $target) {
+    if (-not $dirs.Count) { throw '브랜치를 만들 Task 문서가 없습니다.' }
+    if (-not $Base) { $Base=Get-BaseBranch }
+    $baseRef=$null
+    foreach ($candidate in "refs/remotes/origin/$Base","refs/heads/$Base") {
+        & git -C $RepoRoot rev-parse --verify --quiet "$candidate^{commit}" | Out-Null
+        if ($LASTEXITCODE -eq 0) { $baseRef=$candidate; break }
     }
-}
-$targetTip = (& git -C $RepoRoot rev-parse --verify "$targetRef^{commit}").Trim()
-if ($LASTEXITCODE -ne 0) { throw '착수 대상 커밋 조회 실패' }
-$targetTask = Get-RefTask -Ref $targetTip -Id $Id -Branch $branch
-Assert-TaskStartGate -Task $targetTask
-
-# gate가 검증한 pinned 커밋만 반영하고 private/LFS 준비·검증까지 성공한 뒤 Task 문서를 바꾼다.
-if ($hasLocal) {
-    Invoke-SafeBranchTransition -Path $RepoRoot -TargetCommit $targetTip -Branch $branch
+    if (-not $baseRef) { throw "기준 브랜치가 없습니다: $Base" }
+    # Task 3문서만 미추적이면 기준 브랜치에서 새 작업 브랜치를 열 수 있다.
+    $dirty=@(& git -C $RepoRoot -c core.quotePath=false status --porcelain --untracked-files=all --ignore-submodules=all)
+    if ($LASTEXITCODE -ne 0) { throw '작업 상태 확인 실패' }
+    $prefix='Tasks/Active/'+$dirs[0].Name+'/'
+    if (@($dirty | Where-Object { -not $_.StartsWith('?? '+$prefix) }).Count) { throw '다른 미저장 변경이 있습니다. 보존 후 별도 작업 공간을 사용하세요.' }
+    & git -C $RepoRoot -c submodule.recurse=false switch --no-recurse-submodules -c $branch $baseRef
+    if ($LASTEXITCODE -ne 0) { throw '새 작업 브랜치 생성 실패; 기존 파일을 보존했습니다.' }
 } else {
-    Invoke-SafeBranchTransition -Path $RepoRoot -TargetCommit $targetTip -Branch $branch -Track
+    Assert-CleanTree -Hint '미저장 변경은 보존하고 별도 작업 공간을 사용하세요.'
+    $tip=(& git -C $RepoRoot rev-parse "$target^{commit}").Trim()
+    if ($target.StartsWith('refs/heads/')) { Invoke-SafeBranchTransition -Path $RepoRoot -TargetCommit $tip -Branch $branch }
+    else { Invoke-SafeBranchTransition -Path $RepoRoot -TargetCommit $tip -Branch $branch -Track }
 }
-
-$task = Find-CurrentTask
-if (-not $task) { throw "브랜치 $branch 에 Task 폴더(Tasks/Active/$Id-*)가 없습니다. PM에게 알려 주세요." }
-$meta = Join-Path $task.Path 'meta.md'
-if ((Get-MetaField -MetaPath $meta -Field 'Status') -eq 'assigned') {
-    Set-MetaField -MetaPath $meta -Field 'Status' -Value 'working'
-    Set-MetaField -MetaPath $meta -Field 'Updated' -Value (Get-Date -Format 'yyyy-MM-dd')
-    Write-Output '상태를 working으로 바꿨습니다(다음 "저장해줘" 때 함께 저장됩니다).'
-}
-if (Set-TodoChecked -TodoPath (Join-Path $task.Path 'todo.md') -Text '"시작해줘"로 작업 시작') {
-    Write-Output 'todo.md "시작해줘"로 작업 시작을 체크했습니다.'
-}
-
-$areas = Get-SetupAreas -SetupPath (Join-Path $task.Path 'setup.md')
-Write-Output ''
-Write-Output "Task:     $($task.Id) — $(Get-MetaField -MetaPath $meta -Field 'Title')"
-Write-Output "브랜치:   $branch → 제출 대상 $(Get-MetaField -MetaPath $meta -Field 'Integration')"
-Write-Output "작업 구역: $($areas.Allowed -join ', ')"
-Write-Output "읽을 문서: $($task.Rel)handoff.md → meta.md → setup.md → todo.md → plan.md"
+Write-Output "작업: $Id ($branch). plan.md → todo.md."

@@ -1,0 +1,22 @@
+# Log
+
+- 2026-10-27 합의한 에디터 작업 후 저장·공유 / Desktop·Fork 이동 후 에셋 버전 맞추기 구현. Windows asset-helper.vbs, Mac ZIP의 Finder 앱, 로컬 브라우저 UI. Unity 임포트·이동·게임 브랜치 전환 기능은 넣지 않음.
+- private 에셋 먼저 업로드 후 public gitlink만 별도 인덱스로 저장. 다른 게임 변경·스테이징 보존. dev 직접 저장·force push 없음. parent 미공유 커밋은 섞어 올리지 않고 Desktop/Fork 동기화 안내.
+- 스냅샷으로 동시 변경 검출, 에디터 잠금 검사, 에셋 .meta 검사, 내 수정·커밋 보관 및 목록에서 복구. LFS stash는 복구 시 smudge를 허용해야 실제 바이트가 복원됨을 확인해 Pitfalls에 기록.
+- 로컬 Git/LFS fixture 최종 12/12 PASS: 읽기 전용 상태/Detached HEAD, 미리보기 무효화, 타 게임 스테이징·미저장 보존, 최신이 아닌 pinned 버전 적용·clean mismatch 저장 방지, dirty·untracked 보관, 버튼 복구, Unity 잠금, 미공유 game commit 차단, .meta 누락, private 갈라짐 검토 브랜치, public push 중단·중복 없는 재시도.
+- Windows wscript 더블클릭 경로로 실제 화면 열기·현재 브랜치·미리보기 확인. Playwright 데스크톱·390px 레이아웃, 최종 페이지 콘솔 오류 없음. 인증 없는 HTTP 저장 요청 403 확인. Mac ZIP의 실행 권한 확인; Mac 실기기 미검증.
+- 실제 프로젝트 에셋·게임 코드·씬 변경 없음. 실제 계정 로그인·GitHub 저장·업로드는 실행하지 않았고, 테스트는 임시 local bare 저장소에서만 실행. 실제 인증·서버 보호에 따른 동작은 최초 사람 사용 때 확인 필요.
+- check-work -Base HEAD -NoRecord: 안전성·문서 PASS, Unity 변경 없음으로 컴파일 생략. PowerShell 전체 구문·JS 구문·diff 공백·지식 검사 PASS. 기존 문서 길이 WARN13·차단0.
+- 현재 feat/asset-helper, 기존 하네스 미커밋 변경 보존. commit/push/PR 없음. 다음 사용은 Docs/Guides/asset-helper.md; 검토 브랜치는 Merge commit 방식으로 통합 후 같은 저장 버튼 재시도.
+- 사용자 실제 테스트 후속: private branch 업로드와 public 작업 브랜치 업로드만으로 팀 공유 완료라고 표시한 설계 결함을 수정. 완료 기록을 보존하고 화면에 private 업로드·작업 업로드·원격 dev 확인을 구분한다. dev 확인 실패는 unknown/미완료.
+- 비공개 통합 PR과 public 에셋 전용 dev PR을 준비한다. public PR은 sparse 임시 worktree에서 원격 dev 기준 gitlink만 변경하고, 업로드 전에 실제 diff를 검사한다. 사용자 작업 브랜치·미저장·스테이징을 바꾸지 않으며 dev 직접 push·자동 병합 없음.
+- 후속 검증은 로컬 bare 저장소의 PR 생성 경계 mock과 실제 Git branch/push를 사용한다. dev 병합 전 대기, 원격 dev 연결 반영 후 완료, 연결 실패 시 이전 완료 폐기를 추가. 실제 사용자 에셋의 재업로드·PR 생성·병합은 실행하지 않았다.
+- 최종 후속 회귀 16/16 PASS. 이전 버전이 완료 기록을 삭제한 pointer-only 작업도 검증 후 이어갈 수 있다. 현재 사용자가 진행한 실제 public 커밋 8dcba87은 보존하며, 이번 수정 중 실제 origin/dev 반영·추가 push·PR 생성은 실행하지 않았다. 브라우저에서 단계 표시·JS/PowerShell 구문·문서 검사 확인.
+- 임시 항목 정리 후속: 실제 dev-pr worktree가 남아 있음을 확인. 빈 checkout에서 read-tree로 인덱스만 채운 탓에 루트 파일 7개가 누락되어 정상 worktree remove가 거부됐고 실패 코드가 묻혔다. sparse 설정 후 read-tree -mu HEAD로 파일까지 채우며 삭제 실패는 화면에 보존·보류 사유로 표시한다.
+- 에셋 연결 변경만 있는 작업 브랜치는 dev PR에 재사용. 별도 공유 브랜치가 필요한 경우에만 sparse worktree를 생성하고 준비 직후 제거. 원격 dev 반영 후 receipt의 공유 브랜치·private saved 브랜치를 예상 커밋·통합·추가 수정·사용 중 worktree 검사 후 로컬·원격에서 정리한다. 게임 작업·kept/before-restore·stash 보관·다른 도구 worktree는 보존한다. public Squash 병합은 pointer-only diff와 실제 dev 연결로 검증한다.
+- 상태의 다시 확인에서도 정리하며 브랜치를 바꾼 경우 이전 미정리 완료 기록도 이어간다. worker는 정리 후 상태·snapshot을 다시 읽어 private helper 브랜치의 정상 detach로 인한 오래된 미리보기를 방지한다.
+- 로컬 Git/LFS 회귀 21/21 + 이전 브랜치 공유 정리 추가 1 PASS(총 22). pending 보존·브랜치 재사용·숨김 루트 파일과 임시 폴더 제거·로컬/원격 private/public 정리·추가 커밋/수정 폴더/복구 기록 보존·Squash 확인을 포함. 추가 검사는 동일 fixture에서 수행했으며 22항목을 회귀 파일에 수록했다.
+- 사용자 정리 요청에 따라 실제 남은 dev-pr-34d988dd22314a0f8683aef741bd28a4의 생성 누락 파일만 checkout-index(덮어쓰기 없음)로 복구. origin/dev·private main 통합 확인 후 resource/asset-share-86fc532c9ae6-5d525bb1c78e와 private asset-helper/saved-20261027-014210-482b72를 로컬·원격에서 제거하고 임시 worktree도 제거했다. 원격 조회·worktree 목록으로 재확인. feat/asset-helper·부모 인덱스/미저장 파일·private SHA 86fc532 보존을 비교했다. commit·새 업로드·PR 생성·추가 병합은 하지 않았다.
+- 실제 브라우저에서 팀 공유 완료와 임시 항목 정리 완료 표시 확인. 구문·문서/지식 검사 PASS, 기존 길이 WARN13 유지. Unity 변경 없음으로 컴파일/Unity 테스트는 생략한다.
+- 2026-10-27 사용자 커밋·업로드 및 origin/dev 반영 요청 수신. 하네스 간소화와 도우미를 함께 저장하고 최신 dev 완료 기록을 보존해 PR로 제출한다. 실제 dev 규칙은 PM 팀 1명 검토·verify-third-party 필수, 자동 병합 비활성. 보호 우회 없이 검토 조건을 따른다.
+- 7ac810df 커밋을 origin/feat/asset-helper에 업로드했다. 최신 dev 통합에서 UI·캐릭터·장면 전환의 완료 기록을 원격 원문대로 보존하고 중복 Active 사본을 정리했다. dev와 게임 코드·씬·에셋·설정·Done 기록 차이가 없음을 확인했다. 통합 전 과거 이력 기준 컴파일 시도는 연결된 에디터 없어 ENV_BLOCKED였으며, 실제 이번 변경의 Unity 변경 없음과 구분한다.

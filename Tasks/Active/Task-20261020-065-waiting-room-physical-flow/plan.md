@@ -1,44 +1,30 @@
-# Plan
+# Task-20261020-065
+
+- **Title:** 실제 대기실 복귀와 물리 출구 진행 연결
+- **Type:** fix
+- **Assignee:** @gyumin9048-ctrl
+- **Branch:** fix/waiting-room-bugs-improvements
+- **Base:** dev
 
 ## Context
-
+- 공연 종료 후 실제 대기실로 복귀하고, 개인의 물리 퇴장으로 팀 탐색 타이머가 시작되어야 한다.
+- 더미 탐색 씬으로 전원을 이동하지 않고 실제 무대 입구 집결로 다음 공연에 진입한다.
 공연 후 실제 대기실 대신 예전 UI 선택용 그레이박스가 나타난다. 첫 개인 퇴장으로 팀 탐색 타이머가 시작되어야 하지만 SpaceLinkDirector는 대기실 전체를 DummyExploration으로 교체한다.
 
-## Approach
+## 현재 참고
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/203 (dev 대상, 대기실 후속 수정 제출; 이전 #191과 구분)
+- 제출 검증: 최신 dev 충돌 없이 병합·push. 전체 검사는900초 시간 초과 후 취소했고, 사용자 지시로 관련 PlayMode8/8 PASS만 검사해 제출했다. 전체 통과를 뜻하지 않는다. 구역·문서·컴파일 PASS, 원격 사람 공동 검증 미실행.
+- PM 긴급 승인으로 @gyumin9048-ctrl 임시 담당, `fix/waiting-room-bugs-improvements` → dev. [exception.md](exception.md), 상세 변경·검증 이력 [waiting-room-followup.md](waiting-room-followup.md).
+- 최신 추가 천: 사진은 CanvasOnCrate_4. 같은 원인의 CanvasOnCrate_0/1·FoldedCanvas까지4곳을 실제 벽에 연결된 줄에 걸었다. 전체 메시 상단 윤곽 지지·실내/보관실 재생성 연동, 장식 충돌체0. 씬 저장 완료.
+- 숙소 천4개는 침대 위 이동을 폐기하고 빨랫줄에 걸었다. Rope/Rod 모두 실제 천장 면을 먼저 확인하고 양끝 연결선2개와 고정부2개를 생성한다. 가정한 WallAnchor 좌표 고정 방식은 폐기했다.
 
-1. 기존 미커밋 Task-064 보존·분리를 먼저 해결하고 setup.md 작업 구역을 확정한다. 사용자 요청 없는 커밋·push·PR·병합은 하지 않는다.
-2. BaseGameSettings.SpaceTransitionSettings에 같은 씬 유지/별도 탐색 씬 로드 정책을 명시한다. 실제 설정은 유지, 기존 더미 테스트는 별도 로드를 명시한다.
-3. SpaceLinkDirector.HandleChanged와 LeaveWaitingRoom 양쪽에 정책을 적용한다. 실제 첫 퇴장은 타이머만 시작하며 나머지 인원·대기실 씬을 유지한다.
-4. Unity 에디터에서 WaitingRoomBase의 실제 WaitingRoom을 활성화한다. 기존 로비를 복귀 스폰, 로비→무대 통로 문을 퇴장/야간 잠금 경계, R10_StageEntrance를 집결 구역으로 연결한다.
-5. 그레이박스에서 기능 참조·스폰·스케줄표 F 상호작용·폰 등을 실제 배치로 함께 옮긴다. 활성 스폰 묶음 하나만 유지하고 더미 이동 선택 UI를 끈다.
-6. WaitingRoomExitWatch의 개인 퇴장 기록을 재사용해 나간 인원의 역방향 재진입만 막는다. 미퇴장자 퇴장은 허용하며 해당 쉬는 시간 종료 시 초기화한다. 로컬 이동 권한·호스트 판정을 일치시킨다.
-7. 기존 StageEntranceGather→CampaignRun의 생존자 전원 집결 및 밤 스케줄 확정·전원 준비 흐름을 재사용한다.
+## 남은 확인
+- PM은 후속 PR에서 Task-060 아트 도구·Task-062 PlayerMover/Humanoid/Camera 변경의 긴급 예외를 검토한다.
+- 원격2프로세스 공동 검증 미실행(MPPM 구성0). 사람 공동 확인: 부활·관전 해제 / 퇴장·팀 타이머·잔류·집결 / 밤 잠금·F 스케줄·전원 준비. 실제 상점 구매·수령 및 모든 카메라 가림 구간도 미검증.
+- 기존 Additive 씬 개수 실패 및 키보드 회귀 불안정은 남아 있다. PR 병합·커밋·push는 사용자 요청 시 진행.
+- 교훈 제안: 메시 복제 시 모든 생성 경로에서 실제 지지물도 함께 검사한다. 숙소만 확인하면 상자 장식의 동일 원인을 놓친다. 상세 후속 기록 참고.
 
-## Files
-
-- 구현: Systems/SpaceLink/SpaceLinkDirector.cs, Systems/Settings/BaseGameSettings.cs, 게임 설정 에셋, WaitingRoomBase 씬, WaitingRoom/ExplorationTimer 출구 코드, SpaceLink PlayMode 테스트.
-- 기존 Task-064 세 구현/테스트 파일은 추가 수정하지 않고 회귀만 재실행한다.
-
-## Risks
-
-- 실제 문/통로가 통행 불가능하면 임의로 벽을 열거나 새 동선을 만들지 않고 사람 결정을 요청한다.
-- 밤은 타이머 없음·출구 잠금이다. 아침 첫 퇴장부터 기본 B안 300초가 흐른다.
-- 같은 씬 이름을 설정하는 우회, 전체 셔터로 개인 재입장 금지를 대체하는 구현은 제외한다.
-- 미완성 backstage 씬을 연결하거나 미병합 공간 브랜치를 가져오지 않는다.
-- 씬·설정 에셋은 Unity 에디터에서만 수정하며 raw YAML을 편집하지 않는다.
-
-## Auto Verification
-
-- 최초 구역 검사 FAIL은 사용자 승인 Task-064 로컬 커밋 6bd83ca 분리로 해소. 원격 없는 로컬 integration 기준을 명시하며 선행 실패 시 후속 검증을 진행하지 않는다.
-- 구역→문서→컴파일→관련 EditMode/PlayMode→실제 입력/로그 순서.
-- 실제 맵 활성·그레이박스 비활성, 실제 로비 스폰, 출구/집결/셔터 참조, 더미 버튼 미노출 확인.
-- 출구 전 타이머 미시작, 첫 퇴장 후 감소, DummyExploration 미로드·씬 handle 유지·남은 인원 잔류, 후속 퇴장으로 초기화 없음.
-- 개인 재입장 금지·미퇴장자 퇴장 허용·생존자 전원 집결로 다음 공연 확인.
-- 인간대포→밤 잠금/타이머 없음→스케줄/준비→아침 첫 퇴장 확인. Task-064 재사망 회귀도 유지.
-- 합성 상태·위치 주입은 로직 테스트로만 보고하며 실제 입력·2인 공동 검증과 구분한다.
-
-## 공동 테스트 항목
-
-1. 공연 종료 후 실제 로비 복귀·스폰·외팔 부활·관전 해제 확인.
-2. 아침/낮 한 명만 퇴장 시 즉시 타이머·나머지 대기실 잔류·퇴장자 재입장 금지, 생존자 전원 무대 입구 집결 시 다음 공연 확인.
-3. 인간대포 후 밤 출구 잠금·탐색 타이머 없음, 기존 스케줄표 F 상호작용·전원 준비로 아침 전환 확인.
+## 기록
+- 현재 할 일은 [todo.md](todo.md), 특별한 문제·결과·다음 행동은 [log.md](log.md).
+- [이전 계획](History/Harness-v1/plan.md) · [현재 상태·미검증 원문](History/Harness-v1/handoff.md) · [목표·결정 원문](History/Harness-v1/meta.md).
+- [기존 경로·참조 정보](History/Harness-v1/setup.md)는 참고용이다. 작업 구역·인계·Status·순차 공동 테스트 제한은 적용하지 않는다.

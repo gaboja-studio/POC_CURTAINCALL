@@ -5,6 +5,9 @@ updated: 2026-10-20
 source: human (2026-10-09 PM @MoHoDu, 2026-10-16 권한 위임, 2026-10-19 C1·2026-10-20 버튼 정리 승인)
 ---
 
+> 2026-10-27: [하네스 간소화](/Harness/Project/Decisions/harness-simplification.md)가 우선한다. 아래 PM 전용·구역·인계·순차 착수·부모 자식 제한은 과거 기준이다. 게임 의도·외부 에셋 비공개 보관·참조 보존은 유지한다.
+
+
 # 외부 에셋 보관
 ## 언제 읽나
 Asset Store 등 외부에서 받은 에셋을 넣거나 옮길 때, 팀원이 `Assets/_ThirdParty`를 받지 못할 때, CI에서 Unity 컴파일을 돌릴 때.

@@ -9,3 +9,5 @@
 - 보존 대상222/222 SHA256 일치, private HEAD 유지, dev 원격 SHA 3a2bc88eb88e4319dabdd201966e3e2ff2aa624b 확인.
 - 전체 EditMode 재실행858/858 통과. 첫 회차 실패는 이번 재실행에서 미재현, 원인 해결로 단정하지 않음. 전체 PlayMode 회귀 검사 시작.
 - 현재 공개 작업만 독립 인덱스 tree=62bbaf08c99f8613cd81a8901e887ab14004763b 보존(미완성 스냅샷). 기존 public 재질2개와 private 제외, 실제 Git 인덱스 staged0. 커밋/제출 완료 아님.
+
+- 2026-10-27 하네스 3문서로 이관. [이전 현재 상태·검사·미검증](History/Harness-v1/handoff.md), [결정](History/Harness-v1/meta.md), [참조 경로](History/Harness-v1/setup.md). 예전 구역·인계·세부 상태는 현재 제한이 아님.
