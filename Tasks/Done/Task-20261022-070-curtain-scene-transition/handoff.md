@@ -2,7 +2,9 @@
 
 ## 지금 상태
 
-- Branch: fix/curtain-scene-transition → dev. Worktree: D:/github/POC_CURTAINCALL-curtain-fix.
+- 2026-10-22 PM 요청으로 done(dev 반영 완료 기록 마감). #214가 dev에 병합됨(`8e1bdf99`, 2026-10-22 08:23:35 UTC).
+- Worktree 제거 완료. 제외된 로컬 변경은 `D:/github/Worktree-backups/curtaincall-20261022-174457`에 백업·해시 검증 후 보존했다.
+- 이번 검사: 구역 SKIPPED(PM), 문서 PASS(verify-fast, WARN18/HARD0), 컴파일 ENV_BLOCKED(연결된 에디터 없음), 테스트 SKIPPED(문서 마감). 아래 PASS는 기존 전용 에디터 검증 기록이다.
 - 메인 프로젝트·다른 에이전트 변경 보존. 전용 Unity 6000.3.25f1, 7801 사용. 최신 dev e990b31(#215) 병합(f3150e7), 충돌 없음.
 - 승인된 코드·테스트 다섯 파일: 커튼 닫힘 ACK·로컬 준비 장벽·늦은 종료 방어, 탐색 경고 상단 배너·최상위 정렬.
 - PM이 Task-061·062 중복 경로 및 추가 UI 긴급 예외 승인. 코드 커밋 ea8c263 push 완료, dev PR 등록.
@@ -24,6 +26,6 @@
 
 ## 다음 할 일
 
-1. PR #214 리뷰 후 dev 병합(미실행). 자동 에셋 변경은 계속 제출 제외.
+1. PR #214 dev 병합 완료. 자동 에셋 변경은 dev 미반영·백업 보존.
 2. 신규 참가자 최초 NGO 동기화는 별도 경로라는 한계를 PR에 유지.
 3. 실제 2인 시나리오 수행. Task-061·062 담당자는 병합 후 중복 파일 재확인.
