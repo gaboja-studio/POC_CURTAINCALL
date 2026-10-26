@@ -19,3 +19,4 @@
 - 사용자 정리 요청에 따라 실제 남은 dev-pr-34d988dd22314a0f8683aef741bd28a4의 생성 누락 파일만 checkout-index(덮어쓰기 없음)로 복구. origin/dev·private main 통합 확인 후 resource/asset-share-86fc532c9ae6-5d525bb1c78e와 private asset-helper/saved-20261027-014210-482b72를 로컬·원격에서 제거하고 임시 worktree도 제거했다. 원격 조회·worktree 목록으로 재확인. feat/asset-helper·부모 인덱스/미저장 파일·private SHA 86fc532 보존을 비교했다. commit·새 업로드·PR 생성·추가 병합은 하지 않았다.
 - 실제 브라우저에서 팀 공유 완료와 임시 항목 정리 완료 표시 확인. 구문·문서/지식 검사 PASS, 기존 길이 WARN13 유지. Unity 변경 없음으로 컴파일/Unity 테스트는 생략한다.
 - 2026-10-27 사용자 커밋·업로드 및 origin/dev 반영 요청 수신. 하네스 간소화와 도우미를 함께 저장하고 최신 dev 완료 기록을 보존해 PR로 제출한다. 실제 dev 규칙은 PM 팀 1명 검토·verify-third-party 필수, 자동 병합 비활성. 보호 우회 없이 검토 조건을 따른다.
+- 7ac810df 커밋을 origin/feat/asset-helper에 업로드했다. 최신 dev 통합에서 UI·캐릭터·장면 전환의 완료 기록을 원격 원문대로 보존하고 중복 Active 사본을 정리했다. dev와 게임 코드·씬·에셋·설정·Done 기록 차이가 없음을 확인했다. 통합 전 과거 이력 기준 컴파일 시도는 연결된 에디터 없어 ENV_BLOCKED였으며, 실제 이번 변경의 Unity 변경 없음과 구분한다.

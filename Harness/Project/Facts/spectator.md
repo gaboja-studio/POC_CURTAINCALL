@@ -15,7 +15,7 @@ source: Task-20261019-061
 - 현재 독립 조립 구역: `Assets/Scripts/Systems/Spectator/`, `Assets/Scenes/Tests/Spectator/`, `Assets/Resources/Prefabs/UIs/Spectator/`, `Assets/Resources/Fonts/Spectator/`.
 - 정본 `Assets/Resources/Prefabs/UIs/Spectator/Spectator.prefab`(Canvas 전체), 확인 씬 `Assets/Scenes/Tests/Spectator/Spectator.unity`, 전용 Static Medium8192. 2026-10-20 Schedule 타입 충돌 해소·폰트 재사용 안전복구 후 생성, 비활성 Preview 콜백 시간 재정지 방지 가드까지 보강 후 신규 PlayMode26/26 통과. 사람 최종 외형/실게임 검증과 구분한다.
 - 조립 API `CurtainCall.Spectator.Editor.SpectatorProjectBuilder.Build()`는 기존 출력 보호. `ResumeAfterFont()`는 온전한 전용 Static폰트/원본 GUID·글리프·빈 출력만 확인해 재사용하고 idle update 틱에서 일회 조립한다. 기존 정본 재생성/덮어쓰기 용도가 아니다.
-- 진행/실행 결과: `Tasks/Active/Task-20261019-061-cheer-gauge-ui/spectator-verification.md`. 제공 문서의 `not_run`은 배포 시 정적 검토 기록이며 프로젝트의 실행 검증과 구분한다.
+- 진행/실행 결과: `Tasks/Done/Task-20261019-061-cheer-gauge-ui/spectator-verification.md`. 제공 문서의 `not_run`은 배포 시 정적 검토 기록이며 프로젝트의 실행 검증과 구분한다.
 
 ## 제공 계약
 - 신규 비네트2 RGBA3840×2160. 중앙60%/반대쪽 alpha0, 전체 Stretch/Simple/PreserveAspect false·PPU200/max4096/비압축. 픽셀만 약63.3MiB이며 실제 플랫폼 메모리 측정값은 아니다.

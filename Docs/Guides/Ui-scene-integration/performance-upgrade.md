@@ -29,7 +29,7 @@
 ## 변경 파일
 - 신규: UI/SceneIntegration/PerformanceSpectatorBinding.cs, PerformanceWorldLabelBinding.cs, Editor/PerformanceUpgradeInstaller.cs, Tests/PlayMode/PerformanceUpgradePlayTests.cs와 각 meta.
 - 수정: Systems/Camera/CameraSpectator.cs, UI/SceneIntegration/PerformanceEndingPresentation.cs, UiRuntimeFontFallback.cs, Tests/PlayMode/PerformanceEndingPlayTests.cs 및 테스트 asmdef.
-- 저장 씬: HumanCannon.unity, CommonPerformanceUI.unity, PerformanceTransitionUI.unity. Task/적용 가이드 갱신. 실제 검증은 [고도화 검증](../../../Tasks/Active/Task-20261019-061-cheer-gauge-ui/upgrade-verification.md).
+- 저장 씬: HumanCannon.unity, CommonPerformanceUI.unity, PerformanceTransitionUI.unity. Task/적용 가이드 갱신. 실제 검증은 [고도화 검증](../../../Tasks/Done/Task-20261019-061-cheer-gauge-ui/upgrade-verification.md).
 
 ## Unity 확인 순서
 1. Start에서 외줄/인간대포로 진입해 기존 C1/C2/C3/외줄 균형과 인간대포 F 안내가 유지되는지 확인한다.

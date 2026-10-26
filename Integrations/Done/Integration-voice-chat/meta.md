@@ -1,13 +1,14 @@
 # Integration-voice-chat
 
 - **Feature:** 음성 채팅(생존자 거리 감쇠·사망자 분리)
-- **Status:** to-dev
+- **Status:** done
 - **Branch:** integration/voice-chat
 - **Base:** dev
 - **Active Task:**
 - **PM:** @MoHoDu
-- **Merge Time:**
-- **Updated:** 2026-10-20
+- **Merge Time:** #187 dev 병합 2026-10-19 19:43:42 UTC (`3a36545d`)
+- **Updated:** 2026-10-22
+- 후속 #190 LAN 음성 기본 켜짐 dev 병합(`7241c1f2`) 확인. PM 요청으로 voicefix worktree 제거·기록 정리. 실제 2인 공동 검증은 미실시 유지.
 
 Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차 병합) → testing(공동 테스트) → to-dev(dev로 PR) → done. 막히면 blocked.
 

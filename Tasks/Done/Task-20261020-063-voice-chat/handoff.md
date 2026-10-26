@@ -1,7 +1,9 @@
 # Handoff
 
 ## 지금 상태
-- 단계: integrated(PR #186 Squash 병합 f6c5499, 2026-10-20). 공동 테스트 미실시 — PM 결정으로 dev 병합 후 다음 날 사후 검증.
+- 단계: done. #186 Squash `f6c5499e` → #187 dev `3a36545d` 병합 완료. 후속 #190(`7241c1f2`)으로 LAN에서도 음성 기본 켜짐 반영.
+- 2026-10-22 PM 요청으로 voicefix worktree 제거 및 완료 기록 보강. 로컬 백업: `D:/github/Worktree-backups/curtaincall-20261022-174457`. 공동 테스트는 미실시 상태 유지.
+- 이번 검사: 구역 SKIPPED(PM), 문서 PASS(verify-fast, WARN18/HARD0), 컴파일 ENV_BLOCKED(연결된 에디터 없음), 테스트 SKIPPED(문서 마감). 아래 기존 PASS/FAIL은 그대로 보존한다.
 - 동작하는 것: 컴파일 PASS, 음성 규칙 EditMode 16개 PASS. Start 흐름 Services 호스트 1인: Vivox 로그인 → 로비 생존자 채널 입장 → 추락 시 사망자 채널 전환 → 복귀 시 생존자 채널 재입장, 음소거 유지(2026-10-20).
 - 막힌 것: 없음. Vivox 활성화 완료(PM, 2026-10-20), `ProjectSettings/Packages/com.unity.services.vivox/Settings.json`에 server·domain·issuer 저장, `tokenKey` 빈 값·Test Mode 꺼짐.
 - PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/186
