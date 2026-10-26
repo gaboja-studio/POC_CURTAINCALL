@@ -15,7 +15,7 @@ source: Task-20261019-061
 - 정본 `Assets/Resources/Prefabs/UIs/TransitionCurtain/TransitionCurtain.prefab`(Canvas 전체), 확인 씬 `Assets/Scenes/Tests/TransitionCurtain/TransitionCurtain.unity`.
 - 공개 코드/검증 `Assets/Scripts/Systems/TransitionCurtain/`. `TransitionCurtainProjectBuilder.Build()`는 기존 출력 덮어쓰기 거절·dirty 씬/Play/import/PrefabStage 거절·additive 격리 조립. 기존 정본 재생성용이 아니다.
 - 공용 Icons 별과 C11 Spectator Static Medium 읽기 전용 참조. 이 의존성 없이 독립 배포되지 않는다.
-- 실행 결과·실패 이력 `Tasks/Active/Task-20261019-061-cheer-gauge-ui/curtain-verification.md`, 개별 경로·SHA 전수 목록은 로컬 비공개 검증자료로 보존하고 공개 저장에서 제외한다.
+- 실행 결과·실패 이력 `Tasks/Done/Task-20261019-061-cheer-gauge-ui/curtain-verification.md`, 개별 경로·SHA 전수 목록은 로컬 비공개 검증자료로 보존하고 공개 저장에서 제외한다.
 
 ## 제공 표시 계약
 - Image8/TMP1, 1920×1080/Match .5/PPU200. 천·술6 PNG Simple/FullRect·비압축4096·9-slice 없음. 원본 텍스처 픽셀 약90.72MiB는 산술치이며 Profiler 실측이 아니다.

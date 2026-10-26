@@ -30,4 +30,4 @@
 5. 같은 세션에서 다음 공연까지 진행하여 이전 결과가 재표시되거나 공통 UI가 중복되지 않는지 확인한다.
 6. 2~4클라이언트, 느린 로딩, 연결 해제/재접속, 다른 해상도와 최종 빌드 검증은 미실행이다. 현재 자동 테스트/호스트 합성 실행은 실제 키보드 완주를 대체하지 않는다.
 
-검증 상세: [Task 기록](../../../Tasks/Active/Task-20261019-061-cheer-gauge-ui/ending-verification.md).
+검증 상세: [Task 기록](../../../Tasks/Done/Task-20261019-061-cheer-gauge-ui/ending-verification.md).

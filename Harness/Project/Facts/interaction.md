@@ -23,7 +23,7 @@ source: Task-20261019-061-cheer-gauge-ui
 - 선행 Awake의 Show는 enabled+activeInHierarchy로 검사해 자기 Awake 전에도 허용하고 기존 runtimePresentation을 보존한다. reload 설정은 변경하지 않으며 양쪽 OFF 지원은 주장하지 않는다.
 - 삭제·커밋·push·실게임/네트워크·실제 키 입력/진행 타이머/완료 이벤트·사운드·딤은 이번 범위 밖이다.
 ## 확인 방법
-- [전수 목록](../../../Tasks/Active/Task-20261019-061-cheer-gauge-ui/interaction-inventory.csv), [검증 기록](../../../Tasks/Active/Task-20261019-061-cheer-gauge-ui/interaction-verification.md).
+- [전수 목록](../../../Tasks/Done/Task-20261019-061-cheer-gauge-ui/interaction-inventory.csv), [검증 기록](../../../Tasks/Done/Task-20261019-061-cheer-gauge-ui/interaction-verification.md).
 - 신규 PlayMode16/16 통과. 선행 Awake·초기 컴파일/조립·화면/입력 수집 실패는 검증 문서에 보존한다. 화면·기존 회귀·표준 검사 최종 결과는 해당 문서가 기준이다.
 - 문맥 HUD는 Start/전환/Reset에서 합성값으로 표시하며 게임 연결이 아니다. 기존 안전한 Static 문맥 폰트는 유지하고 Dynamic만 새 씬에서 대체한다. Controls는 중앙 C6/P1/W6·좌하단 인벤토리를 피하는 양쪽 배치다.
 - Pipeline0.8.0-exp.1의 simulate_key 호출 성공만으로 Submit 성공을 판정하지 않는다. Enter는 정상 프레임에 KeyboardState를 QueueStateEvent한 뒤 호출 수로 확인한다. 직접 onClick/OnSubmit 호출은 실제 입력 증거가 아니다.
