@@ -2,7 +2,7 @@
 
 - **Title:** 전체 게임 로그·Google 기반 및 공개 이벤트 연결
 - **Type:** fix
-- **Status:** working
+- **Status:** submitted
 - **Assignee:** @MoHoDu
 - **Domain:** 로그·Google 파이프라인
 - **Current Skill:** save-work

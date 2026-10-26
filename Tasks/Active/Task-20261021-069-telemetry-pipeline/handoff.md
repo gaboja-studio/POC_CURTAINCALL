@@ -1,6 +1,7 @@
 # Handoff
 
 ## 지금 상태
+- 현재 제출: 14a4263에 로그·설문 변경58파일 저장, PR220 → dev. 사용자 병합 요청에 따라 필수 검사 통과 후 Squash 예정. 공동 검증은 별도 보류하며 완료로 처리하지 않는다.
 - 2026-10-26 저장·dev 반영 요청: 현재 로그·설문·버전 변경만 제출한다. 아래 과거 단계의 미배포/미커밋 표기는 당시 이력이며, 최신 배포·빌드 상태는 첫 빌드 인계 행과 History/021 기준이다. 다른 Task 문서 변경은 이번 제출에서 제외한다.
 - 2026-10-26 M2 빌드 인계: Windows0.2.0 Development+LOGS/설문끔, Dev Mode 실행 바로가기 생성. 빌드 오류0·수집 시작 확인. Google 수신v35/대시보드v36 기존 URL 반영 완료. 직접 플레이는 PM 진행. [빌드 위치·증거](History/021-m2-windows-build.md).
 - 2026-10-26 M2 후속: 게임 0.2.0, 로그/설문별 정확 버전·패치 범위·전체 선택, 밤 정비/퇴장 폼·회차 설정 화면 추가. PM은 새 빌드 적용 방식 선택. M1은 0.1.x, 이 PC 로그 켬·설문 끔. [안내](../../../../Harness/Project/Guides/Log-system/versioning.md). Google 재배포 전으로 새 계약 수집 테스트 보류.
@@ -34,4 +35,4 @@
 - 실제 설문 답변→시트/대시보드 수치 대조·다른 계정 인증·실제 삭제 미실행. 응답0은 표시 검증이며 실제 응답 검증이 아님.
 - Task는 공동 검증 완료/done으로 처리하지 않는다. PR 생성 후 링크·Status·todo 기록.
 
-- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/208
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/220
