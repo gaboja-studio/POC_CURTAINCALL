@@ -1,33 +1,17 @@
 # Code Folders
 
-여러 작업자가 동시에 Unity 코드를 만들 때 서로의 파일을 건드리지 않게 하는 폴더 규칙.
+## 배치
 
-## 폴더 구조
+| 종류 | 위치 |
+|---|---|
+| C# 기능 코드 | Assets/Scripts/<Feature>/ |
+| 씬 | Assets/Scenes/ |
+| 선택 테스트 씬·프리팹 | Assets/Scenes/Tests/<Feature>/ 와 Prefabs/ |
+| 외부 에셋 | Assets/_ThirdParty/ (private submodule) |
 
-| 무엇 | 위치 | 만드는 사람 |
-|---|---|---|
-| 기능 코드 (C#은 모두 여기) | `Assets/Scripts/<Feature>/` (기능·작업별로 폴더 분리) | PM이 폴더 생성, 담당자가 채움 |
-| Task 테스트 씬 | `Assets/Scenes/Tests/<Feature>/` | PM |
-| 테스트 전용 프리팹 | `Assets/Scenes/Tests/<Feature>/Prefabs/` | 담당자 |
-| 공용 씬 | `Assets/Scenes/` (Tests 밖) | 공용 파일 소유 표로만 배정 |
-| 외부(서드파티) 에셋 | `Assets/_ThirdParty/` (private submodule) | PM·지정 에셋 관리자 (`Harness/Project/Decisions/third-party-assets.md`) |
-
-- C# 코드는 `Assets/Scripts/` 밖에 두지 않고, 씬은 `Assets/Scenes/` 밖에 두지 않는다(`Harness/Project/Decisions/asset-placement.md`).
-- `setup.md`에는 수정 금지로 `Assets/Scenes/`를 두고, 해당 Task의 `Assets/Scenes/Tests/<Feature>/`만 작업 구역으로 연다.
-
-- 폴더명은 Unity 관례(PascalCase, 예: `CurtainOpen`)를 따른다. 하네스 폴더 이름 규칙은 `Assets/`에 적용하지 않는다.
-- 빈 폴더는 git에 올라가지 않으므로 PM이 폴더를 만들 때 `.gitkeep`을 넣는다(Unity는 점으로 시작하는 파일을 무시함).
-- 각 Task의 작업 구역은 `setup.md`에 적힌 폴더가 기준이다.
-
-## 다른 사람의 폴더
-
-- **진행 중인 다른 Task의 작업 구역은 수정하지 않는다.** `verify-scope`가 다른 Task의 `setup.md`를 읽어 막는다.
-- 이미 `dev`에 합쳐진 이전 기능의 코드는 수정해도 된다. 단 PM이 그 경로를 현재 Task `setup.md`의 작업 구역에 넣어야 한다(주로 `fix/*`, `refactor/*`).
-- 공동 시스템(`Assets/Scripts/Systems/`)의 공개 기능은 모든 작업자가 자유롭게 호출·참조·구독하고, 그 프리팹을 내 씬에 배치해도 된다(2026-10-16 PM). 공동 시스템 코드를 **고치는 것**은 Task 작업 구역에 있을 때만 한다(게임 세팅 연결은 프로젝트 `game-settings.md`).
-- 서로의 기능을 연결하는 코드는 합치기 단계의 **연결 Task**에서만 작성한다. 연결 Task의 `setup.md`에는 연결할 여러 폴더를 작업 구역으로 적는다.
-
-## 연결을 쉽게 만드는 습관
-
-- 다른 기능이 내 기능을 쓸 수 있도록 공개 진입점(public 메서드, 이벤트)을 한 곳에 모은다.
-- 다른 기능의 내부 클래스를 직접 참조하지 않는다(공동 시스템의 공개 기능은 예외). 필요하면 연결 Task에서 처리한다.
-- 새 에셋·폴더는 Unity 안에서 만들고 옮긴다(`.meta` 유지).
+- 담당자가 필요한 폴더를 만들고 수정한다. PM 사전 생성·구역 배정은 없다.
+- 기능별 폴더는 찾기 쉽게 나누는 기준이며 수정 권한 경계가 아니다.
+- 다른 기능과 공동 시스템의 코드 읽기·공개 기능 사용·참조·연결은 자유롭다. 목적에 필요한 관련 코드도 고칠 수 있다.
+- 연결 Task·공용 파일 소유 표·setup 허용 경로는 요구하지 않는다. 동시에 바꾸는 파일은 담당자와 겹침을 알릴 내용을 기록한다.
+- 기존 공개 진입점을 활용하고 불필요하게 내부 구현에 의존하지 않는다.
+- Unity 폴더명은 PascalCase. 에셋·폴더 생성·이동은 Unity에서 하고 `.meta`/GUID를 보존한다.

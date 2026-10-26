@@ -23,3 +23,5 @@
 - 추가 사용자 요청으로 병합 전 최신 dev fetch·merge. ebc44c7(#213 공연·협동 패치)을 3f8179f에 충돌 없이 병합. 추가 코드 수정 필요 없음.
 - 최신 dev 병합 후 구역 PASS, 문서 PASS(기존 WARN 21/hard 0), 컴파일 PASS(completed), 영향받는 외줄·인간대포 C12 전환 PlayMode 1/1 PASS. 합성 UI·커튼 전체 재실행 및 실제 2인 검증은 최소 검증 요청에 따라 생략.
 - 사용자 추가 알림에 따라 dev e990b31(#215 데모 종료·밤낮·대기실 패치)을 f3150e7에 충돌 없이 병합. 구역·문서·컴파일 PASS, 상단 경고 UI 1/1 및 외줄·인간대포 C12 1/1 재실행 PASS. 추가 코드 수정 필요 없음. 같은 PR #214에 반영, PR 병합은 수행하지 않음.
+
+- 2026-10-27 하네스 3문서로 이관. [이전 현재 상태·검사·미검증](History/Harness-v1/handoff.md), [결정](History/Harness-v1/meta.md), [참조 경로](History/Harness-v1/setup.md). 예전 구역·인계·세부 상태는 현재 제한이 아님.

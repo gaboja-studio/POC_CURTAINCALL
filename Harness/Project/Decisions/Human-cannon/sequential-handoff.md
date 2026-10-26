@@ -5,6 +5,9 @@ updated: 2026-10-15
 source: human (2026-10-15 현재 사용자 PM @MoHoDu 명시 확인)
 ---
 
+> 2026-10-27: [하네스 간소화](/Harness/Project/Decisions/harness-simplification.md)가 우선한다. 아래 PM 전용·구역·인계·순차 착수·부모 자식 제한은 과거 기준이다. 게임 의도·외부 에셋 비공개 보관·참조 보존은 유지한다.
+
+
 # 인간 대포 인계 완료와 순차 실행
 
 ## 언제 읽나

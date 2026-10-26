@@ -16,7 +16,7 @@ source: 2026-09-29 git remote -v 확인
 - 원격: `origin` → `https://github.com/gaboja-studio/POC_CURTAINCALL.git`
 - 기본(Base) 브랜치: `dev`
 - 작업 브랜치: `<feat|fix|refactor>/<slug>`, 통합 브랜치: `integration/<기능-slug>` (전체 규칙: `Decisions/branch-strategy.md`)
-- PM 전용 경로 지정: `.github/CODEOWNERS`
+- 2026-10-27부터 PM 전용 경로 제한은 없다. dev PR 검토는 지정 팀원이 하며 실제 저장소 권한을 따른다.
 - 라벨: `bug`(버그 제보), `qa`(QA 검증 요청) — 이슈 양식이 자동으로 붙인다
 - worktree 루트: `.env`의 `WORKTREE_ROOT`, 없으면 리포 상위 폴더의 `github-worktrees/POC_CURTAINCALL`
 - Git LFS·Unity 병합 설정: `.gitattributes`

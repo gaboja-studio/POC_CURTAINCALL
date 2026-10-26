@@ -1,15 +1,5 @@
 # Todo
 
-## PM 준비
-
-- [x] 별도 worktree·feat/humanoid-characters 브랜치 생성
-- [x] private 외부 에셋 독립 초기화
-- [x] setup.md에 넓은 PM 수정 권한 기록
-- [x] 전용 Unity 실행 (프로젝트 경로 확인, 포트 7801)
-- [x] 에디터 초기화/응답 지연 해소 후 빈 테스트 씬·폴더 생성
-- [ ] plan.md 공동 테스트 초안 확인
-- [x] Unity 컴파일 검증
-
 ## 작업자 (PM 직접 구현)
 
 - [x] PM 본인이 이 Task를 직접 작업한다고 요청
@@ -47,9 +37,5 @@
   - [x] private main 6030fe10·공개 작업 브랜치 b230924 커밋/push
   - [x] "제출해줘"로 PR 제출
 
-## PM 통합
 
-- [x] 원격 integration/humanoid-characters 준비 (2026-10-20 최신 origin/dev dcfbd22 기준)
-- [ ] PR 병합
-- [ ] 공동 테스트 결과 기록
-- [ ] 테스트 씬 처리 결정 및 dev 반영
+이전 체크 목록은 [원문](History/Harness-v1/todo.md)에 보존. 현재 계획에 맞춰 항목을 갱신한다.

@@ -1,36 +1,26 @@
 # Skill Routing
 
-사용자가 아래처럼 말하면 해당 Skill 파일을 읽고 그 절차를 따른다. 표현이 조금 달라도 뜻이 같으면 같은 Skill이다.
-Skill 위치: `Harness/Core/Skills/<name>.md`, `Harness/Engine/Unity/Skills/<name>.md`
+역할별 호출 제한은 없다. 아래 표현과 뜻이 같으면 해당 Skill을 따른다.
+위치: `Harness/Core/Skills/`, `Harness/Engine/Unity/Skills/`.
 
-## 작업자
-
-| 사용자가 하는 말 | Skill |
+| 요청 | Skill |
 |---|---|
-| "Task-○○○ 시작해줘", "이어서 해줘" | `start-work` |
-| (구현 요청) "커튼이 3초 동안 열리게 해줘" | `implement-code` (씬·프리팹 조작이면 `integrate-editor`) |
-| "저장해줘" | `save-work` |
-| "검사해줘" | `check-work` |
-| "제출해줘" | `submit-work` |
-| "버그 제보해줘", "QA 요청해줘" | `report-issue` |
-| "오늘 여기까지", "인계 메모 써줘" | `write-handoff` |
-| "막혔어", "이상해", "오류가 떠" | `investigate-bug` |
-| "GitHub 연결해줘" | `setup-gh` |
-| "PM한테 급하게 허락받았어", "급한 예외 적용해줘", `/urgent-exception` | `urgent-exception` (정말 급할 때만, `team-roles.md` "급한 예외") |
+| Task 만들어줘 | scaffold-task |
+| Task 시작해줘 / 이어서 해줘 | start-work |
+| 계획 잡아줘 | plan-task |
+| 구현·기능 수정 | implement-code (씬·프리팹이면 integrate-editor) |
+| 저장해줘 | save-work |
+| 검사해줘 | check-work |
+| 제출해줘 | submit-work |
+| 버그·QA 등록해줘 | report-issue |
+| 오늘 여기까지 / 인계 메모 | write-handoff (log 갱신) |
+| 막혔어 / 이상해 / 오류 | investigate-bug |
+| GitHub 연결해줘 | setup-gh |
+| 통합 브랜치 만들어줘 | start-integration (선택) |
+| 인계해줘 / 인계 전 점검 | handoff-to-member (목적·남은 일 안내, 별도 승인 없음) |
+| 통합 병합 진행해줘 | merge-integration |
+| 변경 받아줘 / 동기화 PR | sync-integration |
+| 통합 마무리해줘 | close-integration |
+| 급한 예외 적용해줘 | urgent-exception (과거 구역 예외는 불필요) |
 
-## PM
-
-| 사용자가 하는 말 | Skill |
-|---|---|
-| "○○ 통합 브랜치 만들어줘" | `start-integration` |
-| "○○ feat Task 만들어줘, 담당은 A" | `scaffold-task` |
-| "Task-○○○ 계획 세워줘" | `plan-task` |
-| "Task-○○○ 인계 전 점검해줘", "인계해줘" | `handoff-to-member` |
-| "○○ 통합 병합 진행해줘" | `merge-integration` |
-| "부모 변경을 자식 통합에 내려줘", "○○ 통합 동기화 PR 준비해줘" | `sync-integration` (미리보기 후 별도 실행 승인) |
-| "○○ 통합 마무리해줘" | `close-integration` |
-
-## 공통 규칙
-
-- 작업자가 PM용 말을 하면 수행하지 않고 "PM 권한이 필요한 작업"이라고 알린다(`team-roles.md`).
-- Skill 추가·삭제·수정은 PM만 한다.
+스킬·MCP 사용·추가를 PM 전용으로 제한하지 않는다. 외부 쓰기·저장·병합은 사용자가 요청한 범위에서 한다.

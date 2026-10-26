@@ -11,7 +11,7 @@ foreach ($check in 'verify-structure.ps1', 'verify-knowledge.ps1', 'verify-conte
     if ($LASTEXITCODE -ne 0) { $failed.Add($check) }
 }
 
-& git -C $RepoRoot diff --check
+& git -C $RepoRoot -c core.safecrlf=false diff --check --ignore-submodules=all
 if ($LASTEXITCODE -ne 0) { $failed.Add('git diff --check') }
 
 Write-Output ''

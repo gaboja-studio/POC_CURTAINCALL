@@ -31,3 +31,5 @@
 - 저장 전 공개 에셋 점검: 러그4개의 외부 모델 복제 메시를 독립 제작 격자 천 메시로 교체, 원래 바닥 높이와 배치 유지. 외부 재질26건은 보존/저장 제외. 현재 Task 변경만 저장 절차 진행.
 - 제출 요청 점검: 구역/문서/컴파일 PASS, PlayMode96건 중91통과/3실패/2생략(SpaceLink 원인 미확정). dev3a2bc88 사전 merge-tree에서 대기실 씬 충돌 확인. 실제 merge/PR 등록은 규칙에 따라 보류, 아트ff15645 보존·상세submission.md 기록.
 - 실패·충돌 안내 후 사용자가 "PR 전송해" 재요청. 해당 사항을 본문에 공개하고 PR #194(feat/waiting-room-art→dev) 등록, GitHub CONFLICTING 확인. 실제 충돌 해결·병합 미실행, submitted 상태·검사 재시도 필요 기록.
+
+- 2026-10-27 하네스 3문서로 이관. [이전 현재 상태·검사·미검증](History/Harness-v1/handoff.md), [결정](History/Harness-v1/meta.md), [참조 경로](History/Harness-v1/setup.md). 예전 구역·인계·세부 상태는 현재 제한이 아님.

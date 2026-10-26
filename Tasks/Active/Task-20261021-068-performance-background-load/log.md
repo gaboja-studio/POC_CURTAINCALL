@@ -6,3 +6,5 @@
 ## 2026-10-21
 
 - Task 번호는 new-task.ps1로 발급. 원격 dev 기반 같은 폴더에서 배경 포인터·로더를 연결했다. #197 통합 및 #198 동기화 충돌은 본 Task의 dev 대상 fix PR로 대체하며 사용자에게 제출·CI 후 병합·기존 PR 닫기 승인을 받았다. 실제 2인/늦은 참가/성능은 미검증으로 유지한다.
+
+- 2026-10-27 하네스 3문서로 이관. [이전 현재 상태·검사·미검증](History/Harness-v1/handoff.md), [결정](History/Harness-v1/meta.md), [참조 경로](History/Harness-v1/setup.md). 예전 구역·인계·세부 상태는 현재 제한이 아님.

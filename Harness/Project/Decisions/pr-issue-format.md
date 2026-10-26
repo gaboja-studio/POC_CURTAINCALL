@@ -19,7 +19,7 @@ PR이나 이슈를 만들 때, `.github` 템플릿을 고칠 때, 통합(integra
     - 통합 → dev: `[integration] 기능 묶음 이름`, dev → builds: `[build] 버전`, dev → 통합: `[sync] 내려받는 변경`
   - 이슈 제목: `[BUG] 한 줄 요약`, `[QA] 한 줄 요약` (각 yml의 `title:`이 기준)
   - PR 본문 칸: 작업 내용 요약 / 관련 JIRA 이슈 / Issue 번호(`closed #번호`) / 검사 결과
-  - JIRA 번호는 PM이 Task 준비 때 `setup.md`의 JIRA 칸에 모두 적는다. PR에 자동으로 들어간다.
+  - JIRA는 선택 사항이다. 관련 번호가 있으면 plan의 JIRA 절에 적어 PR에 포함한다. 준비·착수 조건은 아니다.
   - 이슈 폼의 칸마다 `id`를 둔다(웹페이지 방식에서 칸 미리 채우기용).
   - 커밋·PR·이슈 어디에도 AI 이름(작성자, `Co-Authored-By`, `Generated with`)을 넣지 않는다. 커밋은 gh 로그인 계정으로만 한다(2026-09-29 추가, `git-workflow.md` "작성자").
   - 등록 수단: `Scripts/new-pr.ps1`, `Scripts/new-issue.ps1`. gh가 준비되지 않으면 `setup-gh` Skill로 최대 2회 시도하고, 그래도 실패하면 사용자 동의 후 웹페이지 방식으로 등록한다.

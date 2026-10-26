@@ -14,7 +14,7 @@
 
 - 어느 Unity 프로젝트에서도 통하는 내용 → `Harness/Engine/Unity/{Pitfalls,Decisions,Facts}/`
 - 이 POC에만 해당하는 내용 → `Harness/Project/{Pitfalls,Decisions,Facts}/`
-- 엔진과 무관한 작업 방식 자체 → 지식 파일이 아니라 `Harness/Core/Policies/`의 정책 개정(사람 승인 필요)
+- 엔진과 무관한 작업 방식 자체 → `Harness/Core/Policies/` 정책에 반영한다. 사람의 현재 요청 범위에서 진행한다.
 
 판단이 애매하면 Project에 먼저 적고, 다른 프로젝트에서도 반복되면 Engine으로 옮긴다.
 

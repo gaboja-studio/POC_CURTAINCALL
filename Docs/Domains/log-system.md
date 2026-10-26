@@ -25,7 +25,7 @@
 - LastError/RemoteConfigured: 상태 확인, endpoint/token 원문 출력 금지.
 - 서버 refreshDashboard: 등록 멤버 인증 후 적재·집계·페이지 데이터 반환. 멤버/보관/삭제 관리는 소유자만 허용.
 - Recorded: 디스크 영속화 후 분리된 LogEvent 사본을 발행. 관측자 오류는 저장/게임에 전파하지 않는다.
-- 원천 공개 API: CourseSections.SectionAt(position), Cannon.LandingConfirmed, Piggyback.HandholdConfirmed, DeliverySlot.DeliveryStageChanged, Shop/Carry/Expert.OperationRejected. 범위는 Task-069 setup.md.
+- 원천 공개 API: CourseSections.SectionAt(position), Cannon.LandingConfirmed, Piggyback.HandholdConfirmed, DeliverySlot.DeliveryStageChanged, Shop/Carry/Expert.OperationRejected. 현재 목적은 Task-069 plan.md, 옛 경로 정보는 History/Harness-v1/setup.md 참고.
 - 추가 관측: Campaign.RestExpired/LocalReadyChanged, WaitingRoomSpawn.PlayerPlaced, ExpertRoomView.LocalMoved, CannonHazards.ContactDetected/HitConfirmed. 확정 피해 기록은 실제 신체/생존 상태와 결합한다.
 
 ## 문서
