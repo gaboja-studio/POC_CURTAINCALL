@@ -1,17 +1,18 @@
 # Integration-cheer-gauge-ui
 - **Feature:** UI 리소스 확보·조합·테스트
-- **Status:** preparing
+- **Status:** done
 - **Branch:** integration/ui-resources
 - **Base:** dev
-- **Active Task:** Task-20261019-061 (로컬 PM 자체 작업)
+- **Active Task:**
 - **PM:** @MoHoDu
-- **Merge Time:** 미정
-- **Updated:** 2026-10-21
+- **Merge Time:** dev 반영 #200 (2026-10-20 21:33:20 UTC), 후속 #206 (2026-10-21 11:52:30 UTC)
+- **Updated:** 2026-10-22
+- PM 요청으로 dev 완료 기록 마감. 제작 tip `b5bee0e7` dev 포함·worktree 제거 완료. 사람 외형/공동 검증 및 씬 유지/삭제 결정은 별도 미결로 보존.
 ## 목표 / Tasks
 - 승인 디자인·C1 보존, 버튼/패널/아이콘·공연/백스테이지/로비 HUD·C8·C6·C15·C7·C9 조립/독립 테스트. 기존 폴더 ID 유지.
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261019-061 | feat | @MoHoDu | feat/ui-resources | - | working; 공개2fe68a2 저장 완료·Schedule 충돌 해소/C11 조립·Play76/입력72/Edit798 통과, 사람 외형 별도 |
+| Task-20261019-061 | feat → fix | @MoHoDu | feat/ui-resources → feat/ui-scene-integration → fix/tightrope-gauge-visibility | #200·#202·#205·#206 | done(dev 반영); 사람 검증 별도 |
 ## 공용 파일 소유 표
 아래 소유 Task는 모두 Task-20261019-061. 권한·경계 상세는 해당 `setup.md` 기준.
 | 파일 | 이유 |
@@ -42,7 +43,7 @@
 - W3 후속 저장(2026-10-21): 사용자 직접 커밋·푸시 승인, private12파일23b9d0a7 main push·원격 일치 확인 완료. 공개 W3 결과/기록/gitlink 저장·feat/ui-resources push 진행, 무관 results/title_logo 제외·보존/PR·통합 병합 없음. 아래 W3 저장 제외는 제작 당시 이력. W3(2026-10-20) ScheduleUi 프리팹/독립 씬·Preview21버튼 제작, 전용 Bold/일차 렌더 여백 보정 후 Play20/20·명암/두 화면비28캡처·합성 입력·회귀74/74 PASS. 보호1132 예상 밖 변경0·참조2301 누락0·clean 종료 복구 확인, 최종 check-work 구역/문서/Compile·Edit798/798 PASS. 상세 Task `schedule-ui-verification.md`. 실게임 연결/사람 외형/물리 입력/저장 제외. 선행 W2 공개3b2a3a4/private42477d6f 저장·push 완료와 구분한다.
 - W2(2026-10-20): ShopUi Canvas 프리팹/독립 씬·Preview24버튼 조립·표시 API 제작. 행 글자 영역/16:10 Preview 보정 후 Play35/35·두 화면비/명암36캡처·합성 입력 통과. 신규9/승인40, 보호1205 중 코드3/importer9 외 변경0·기존 폰트 불변. 세부 최종 검증은 Task `shop-ui-verification.md` 참조. 실제 거래/경제/배송/서비스·입력 소유·사람 외형/물리 입력·commit/push 제외. C14 공개6e5fb38/privatee1ddf391 저장 완료.
 - C14 후속 사용자 직접 저장 요청(2026-10-20): private21파일 e1ddf391/main push·원격 확인 완료. 공개 C14 산출물/기록/gitlink와 전용 SemiBold 단일 LFS 설정을 이번 feat/ui-resources 커밋으로 저장·push한다. 무관 results/title_logo 제외·보존, PR/공개 통합 병합 없음. 아래 C14 저장 없음은 제작 당시 이력이다.
-- C14(2026-10-20): SettingsUi 전용 설정/공용3 프리팹·독립 씬 조립 완료, 기존 Systems/Settings 미수정. 기존 Medium/Bold 읽기 전용·전용 SemiBold Static8192(한글+ASCII11325) 생성. 보정 전 Compile/PlayMode23/23·두 화면비24캡처·합성 입력·참조2484 누락0·baseline626 보존 확인(물리 입력/사람 승인 아님). Preview 국소 배경/하단 고정으로 대비·16:10 겹침 보정(실제 프리팹 불변). 최종24캡처/비중첩·합성 입력·Compile/C14 Play23/23·C16 회귀16/16·check-work/EditMode798/798 PASS, clean/Play stopped/시간·백그라운드 복구·Console오류0/예상 C16 테스트 경고2. 상세 [settings-ui-verification.md](../../../Tasks/Active/Task-20261019-061-cheer-gauge-ui/settings-ui-verification.md). 실옵션/저장/Audio/Screen/PlayerPrefs·입력 소유/서비스 연결·사람 외형/실기기/공동은 별도. C16 공개f9e8666/private76a7e908 저장 완료와 별개이며 C14 commit/push 없음.
+- C14(2026-10-20): SettingsUi 전용 설정/공용3 프리팹·독립 씬 조립 완료, 기존 Systems/Settings 미수정. 기존 Medium/Bold 읽기 전용·전용 SemiBold Static8192(한글+ASCII11325) 생성. 보정 전 Compile/PlayMode23/23·두 화면비24캡처·합성 입력·참조2484 누락0·baseline626 보존 확인(물리 입력/사람 승인 아님). Preview 국소 배경/하단 고정으로 대비·16:10 겹침 보정(실제 프리팹 불변). 최종24캡처/비중첩·합성 입력·Compile/C14 Play23/23·C16 회귀16/16·check-work/EditMode798/798 PASS, clean/Play stopped/시간·백그라운드 복구·Console오류0/예상 C16 테스트 경고2. 상세 [settings-ui-verification.md](../../../Tasks/Done/Task-20261019-061-cheer-gauge-ui/settings-ui-verification.md). 실옵션/저장/Audio/Screen/PlayerPrefs·입력 소유/서비스 연결·사람 외형/실기기/공동은 별도. C16 공개f9e8666/private76a7e908 저장 완료와 별개이며 C14 commit/push 없음.
 - C16(2026-10-20) 독립 프리팹/씬/Preview 제작·results 승인3파일 충돌 격리. C16 Play16/C11 회귀26 PASS·4화면비16캡처/차폐 배경 차이0px·합성 클릭104/raycast72 통과. 사람 외형·실게임 연결 별도. 제작 당시 저장 제외 후 후속 요청으로 공개f9e8666/private76a7e908 저장·push 완료. 세부·최종 표준 검사는 Task `curtain-verification.md` 참조.
 - 선행 저장 완료: 공개2fe68a2/private6b4e2041. 후속 사용자 버그 수정/계속 요청으로 Schedule C#7 namespace 격리·중복21개 해소/컴파일 PASS. C11 Static폰트 안전 재사용·프리팹/독립 씬 생성·비활성 Preview 콜백 보강 후 신규26/선택 회귀50=PlayMode76/76 PASS, 실행 UI 합성 입력72/72·두 화면비/명암24캡처·check-work/컴파일·EditMode798/798 PASS. C11 clean/Play stopped/timeScale1/1920×1080/runInBackgroundfalse·QA 장치0/입력 정책 값 복구. 후속 사용자 "저장해줘" 요청으로 private334파일1d3bee7d/README 병합11781eb2 main push·원격 확인 완료, 공개 C11 결과·기록/gitlink 선택 저장. 실게임·삭제·PR/공개 통합 병합 제외, 무관 변경 보존. 아래 공개 차단은 완료 전 이력.
 - 월드 라벨 공개42파일 stage/DryRun PASS 뒤 commit/push 실행 전 권한 거부(요약 속 승인만으로 경계 해제 불가). 공개HEAD9ede8a3·파일/인덱스 보존·우회 없음. private main6ff6e18e 저장 완료, 사용자 직접 확인 전에는 저장 후 순서인 C11 구현 보류.

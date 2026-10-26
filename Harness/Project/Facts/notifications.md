@@ -25,7 +25,7 @@ source: Task-20261019-061-cheer-gauge-ui
 - DEV MODE/인원규칙 예외 badge는 기존 전역 디버그 표시로 문맥 C1/W1 상단과 겹친다. 기존 표시 정책 변경 없음.
 - 실제 게임/네트워크/구매 연결·알림 큐/중복 억제/우선순위·게임 정책·사운드·딤은 구현 범위 밖. 원본 삭제 없음. 2026-10-20 PM 저장 요청으로 private 키트0a705e6c/main1c0f6f0c push, 공개 결과·gitlink는 Task save-work 대상. Task working 유지.
 ## 확인 방법
-- [알림 검증 기록](../../../Tasks/Active/Task-20261019-061-cheer-gauge-ui/notifications-verification.md), [전수 목록](../../../Tasks/Active/Task-20261019-061-cheer-gauge-ui/notifications-inventory.csv).
+- [알림 검증 기록](../../../Tasks/Done/Task-20261019-061-cheer-gauge-ui/notifications-verification.md), [전수 목록](../../../Tasks/Done/Task-20261019-061-cheer-gauge-ui/notifications-inventory.csv).
 - 신규 PlayMode 최초8/9(시간정지 Mouse Expected1 Actual0) 후 무수정 단독1/1·전체 재9/9(3.01s), 화면 보정 후 강화9/9를 두 번 통과. 최초 입력 실패 원인 미확정. 독립 Play연속2회·시간 원복·실제 한 delta로 세 phase 소모 검사 통과.
 - 실제1920×1080/1600×1000 각22상태·총44장 캡처, 두 report failures[]·Static/glyph/전체빈mesh0. 최종 전체 비교이미지 둘 다 목시 확인, 사람 외형 승인과 구분한다.
 - importer15/platform75 PASS·참조201/missing0·원본crop15 pixel 일치·보호baseline111 변경0. 최종check-work 구역/문서/컴파일·EditMode798/798 PASS. ProjectSettings/Packages 미변경, 종료stopped/clean/1920×1080/runInBackground=false/timeScale1 확인.

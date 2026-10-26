@@ -2,7 +2,8 @@
 
 ## 병합 결과
 
-- 기능 PR 병합 미실시. 2026-10-20 private main 6030fe10, 공개 feat/humanoid-characters b230924 저장·push 완료. 최신 dev 기반 원격 통합 브랜치 준비 후 작업 브랜치에 통합 기준을 충돌 없이 합쳤다. 사용자가 CC-152 연결·본문을 승인해 PR #188(https://github.com/gaboja-studio/POC_CURTAINCALL/pull/188)을 등록했다. 병합 승인은 별도다.
+- PR #188로 기능을 통합에 Squash 병합(`111edb2e`), PR #189로 dev에 Merge commit 병합(`f9e0e0a4`, 2026-10-19 20:04:01 UTC) 완료. private main `6030fe10` 공급 이력 보존.
+- 2026-10-22 PM 요청으로 dev 반영 완료 기록을 마감하고 Task·통합을 Done으로 이동했다. 아래 미실시 공동 테스트·미결 항목을 통과 처리한 것은 아니다.
 
 ## 공동 테스트
 
@@ -21,6 +22,7 @@
 
 ## 정리
 
-- [ ] dev 병합 완료
+- [x] dev 병합 완료 (#189)
+- [x] 2026-10-22 PM 요청으로 작업 worktree 백업 후 제거 (브랜치 삭제 아님)
 - [ ] 작업 브랜치·통합 브랜치 정리 (별도 승인)
-- [ ] Integrations/Done/ 이동
+- [x] Integrations/Done/ 이동

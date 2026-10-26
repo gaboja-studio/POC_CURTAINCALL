@@ -1,6 +1,10 @@
 # Handoff
-- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/205 (병합 완료 확인. 이번 외줄1일차 가이드는 병합 후 후속 저장이며 새 PR 미생성)
-## 현재
+## 완료 기록 (2026-10-22)
+- PM 요청으로 dev 반영 완료 상태를 done으로 마감. #200·#202·#205 및 외줄1일차 가이드 #206(`12267d77`) 병합 완료. 제작 branch tip `b5bee0e7`도 dev에 포함된다.
+- 제작 worktree 제거 완료. 로컬 변경은 `D:/github/Worktree-backups/curtaincall-20261022-174457`에 백업·해시 검증 후 보존했다. 메인 dev 기존 폰트 변경은 유지.
+- 이번 검사: 구역 SKIPPED(PM), 문서 PASS(verify-fast, WARN18/HARD0), 컴파일 ENV_BLOCKED(연결된 에디터 없음), 테스트 SKIPPED(문서 마감). 아래 과거 PASS와 구분한다.
+- 실제 다인·입력·시각·완주/재접속 등 아래 미실시 확인과 기존 실패는 미해결로 남긴다. done은 사람 검증 PASS 의미가 아니다.
+## 이전 구현·제출 기록 (당시 상태, 최신 병합 상태는 위 완료 기록 기준)
 - 2026-10-21 dev 제출 준비: 사용자 요청으로 origin/dev123cf3e(접속 제한시간/취소 진단) 병합9609b03, 충돌 없음. 병합 후 Scope/Fast/Compile PASS(dirty 씬0, 문서 WARN14/HARD0). 컴파일 직후 Pipeline 일시 단절 후 연결 복구, 신규 TightropeGuideTests3/3 PASS로 기존 미실행 상태 해소. 실제 화면/다인 Play는 미실행·사용자 위임. 별도 에셋/submodule 보존. PR 범위는 외줄1일차 가이드/장치 조작 표시 및 관련 테스트·Task 문서만.
 - 2026-10-21 사용자 승인 외줄 가이드: TightropeControlsPanel에서 실제1일차 외줄 공연만 노티 표시. 장애물 안내 종료 후 Q/E+SPACE1회, RelayGate 접근/매달림 최대 설정초, Trapeze 최상단/아래 단원/위·아래 매달림 문구, 일반 수직톱·협동관문 버튼 안내. 기존4초/8m 사용, 알림 덮어쓰기 금지·세대/공연/라운드/로컬별 이력 초기화. CommonInteractionUI는 실제 CanUse/CanGrab/CanAttach로 F 매달리기·F/F홀드 놓기·SPACE 점프/공중F 표시(이후 일차도 유지). 게임 입력/판정·씬·에셋 변경 없음. 컴파일·diff 공백 PASS, 신규 TightropeGuideTests3개 실행은 Pipeline 127.0.0.1:7800 연결 실패로 결과 없음·플레이/다인 사용자 위임. 사용자 저장 요청으로 이번 커밋에 포함. 저장 검사 Scope/Fast/Compile PASS, dirty 씬0, 테스트 반복 생략. 별도 폰트/재질/대기실 에셋/submodule 변경 제외. PR #205 병합 후 후속 변경으로 dev 미제출.
 - 2026-10-21 Start 접속 수정(사용자 계획/네트워크 구역 승인): NetworkSessionManager의 LAN/코드 참가를 실제 Client 접속까지3초 제한, 지정 실패 문구와 NGO 종료 완료 후 복구. ServicesSessionConnector는 취소 토큰을 커스텀 INetworkHandler에 연결, 늦은 SDK 시작/새 연결 종료 차단 및 원격 세션 정리 직렬화(HTTP 자체 취소 불가). StartMenu 전체 Selectable 즉시 잠금·기존 상태 복원, 중복 호출/페이지 전환 차단, 성공 시 전환까지 유지. 씬/원본 에셋 변경 없음. b52c92a commit/push 완료, 공연 안내80713ac과 함께 PR #205 제출. 별도 폰트/재질/대기실 에셋/submodule 변경 제외를 사용자 승인받아 원격 HEAD 확인 후 gh로 생성. 저장 검사 Scope/Fast/Compile PASS, 핵심 테스트 결과 재사용. pre-push 훅은 실행 권한 없어 미실행, PR 병합은 하지 않음.

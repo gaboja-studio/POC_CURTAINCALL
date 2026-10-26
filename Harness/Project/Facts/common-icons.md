@@ -27,5 +27,5 @@ source: Task-20261019-061, PM 아이콘 조립·전수 점검 계획 승인
 - 제공 조립기 namespace는 `CurtainCall.UI.IconsV1.Editor`, private 실제 경로/정본 참조/안전 진입점만 보정했다.
 - 전체81실파일(meta 제외)/PNG53을 보존한다. Source 생성22+초기이력3, Tools6·Docs·시트·검토목업·SVG·폰트·라이선스는 미래 제작/확장용이다.
 - 원본·도구·검토자료는 런타임 미참조라는 이유로 삭제하지 않는다. 폰트 OFL은 아이콘 전체 라이선스의 근거가 아니다.
-- 전수 경로·SHA256·GUID·실사용 정본·향후 사용 후보: `Tasks/Active/Task-20261019-061-cheer-gauge-ui/icons-inventory.csv`.
+- 전수 경로·SHA256·GUID·실사용 정본·향후 사용 후보: `Tasks/Done/Task-20261019-061-cheer-gauge-ui/icons-inventory.csv`.
 - 검증: 같은 Task의 `icons-verification.md`. 실게임·네트워크 연결 없음. 사람 최종 그림 승인과 합성 입력 검사를 구분한다.

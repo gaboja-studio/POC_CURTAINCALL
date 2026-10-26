@@ -1,24 +1,24 @@
 # Integration-humanoid-characters
 
 - **Feature:** 휴머노이드 캐릭터·입장 순서 배정·부상 절단
-- **Status:** active
+- **Status:** done
 - **Branch:** integration/humanoid-characters
 - **Base:** dev
-- **Active Task:** Task-20261019-062
+- **Active Task:**
 - **PM:** @MoHoDu
-- **Merge Time:** 미정
-- **Updated:** 2026-10-20
+- **Merge Time:** #189 dev 병합 2026-10-19 20:04:01 UTC (`f9e0e0a4`)
+- **Updated:** 2026-10-22
 
 ## 목표
 
 - 실제 휴머노이드 모델과 입장 순서에 따른 최대 4인 캐릭터 배정, 기존 부상 상태에 연결한 절단 표현을 PM이 직접 구현한다.
-- 2026-10-20 저장·제출 승인. private main 6030fe10 저장 완료, 원격 integration/humanoid-characters를 최신 origin/dev dcfbd22에서 준비했다. 실제 Player 연결·자동 검증 완료, 사람 공동 플레이/다중 클라이언트 확인 및 PR 본문 승인은 남아 있다.
+- private main `6030fe10` 공급·실제 Player 연결·자동 검증 후 #188/#189 병합 완료. 2026-10-22 PM 요청으로 dev 반영 완료 기록 마감·worktree 제거. 사람 공동 플레이/다중 클라이언트·아트/권리·테스트 씬 유지/삭제 결정은 미결로 보존.
 
 ## Tasks
 
 | Task | 종류 | 담당 | 브랜치 | PR | 상태 |
 |---|---|---|---|---|---|
-| Task-20261019-062 | feat | @MoHoDu | feat/humanoid-characters | - | working |
+| Task-20261019-062 | feat | @MoHoDu | feat/humanoid-characters | #188 → dev #189 | done(dev 반영); 사람 검증 별도 |
 
 ## 공용 파일 소유 표
 

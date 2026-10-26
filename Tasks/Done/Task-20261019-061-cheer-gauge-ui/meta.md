@@ -1,11 +1,11 @@
 # Task-20261019-061
 - **Title:** UI 씬 통합 · 공연 UI 및 대기실 기본 HUD 연결
 - **Type:** fix
-- **Status:** submitted
+- **Status:** done
 - **Assignee:** @MoHoDu
 - **Domain:** Unity Assets 구조·코드 작업 구역
 - **Current Skill:** integrate-editor
-- **Updated:** 2026-10-21
+- **Updated:** 2026-10-22
 ## Workspace
 - **Integration:** dev
 - **Branch:** fix/tightrope-gauge-visibility

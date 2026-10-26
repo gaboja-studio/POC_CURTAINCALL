@@ -11,7 +11,7 @@ source: Task-20261019-061
 - 설정 창/공용 컨트롤을 조립하거나 실제 옵션 서비스에 연결하기 전에.
 
 ## 소유·제작 상태
-- `Assets/Scripts/Systems/SettingsUi/` 전용 코드로 `Assets/Resources/Prefabs/UIs/SettingsUi/`에 SettingsPanel.prefab 및 공용 탭/슬라이더/토글 총4개, `Assets/Scenes/Tests/SettingsUi/SettingsUi.unity` 독립 씬 조립 완료. 독립 제작·자동/실행 캡처 검증 완료이며 상세는 [Task 검증 기록](../../../Tasks/Active/Task-20261019-061-cheer-gauge-ui/settings-ui-verification.md) 기준이다.
+- `Assets/Scripts/Systems/SettingsUi/` 전용 코드로 `Assets/Resources/Prefabs/UIs/SettingsUi/`에 SettingsPanel.prefab 및 공용 탭/슬라이더/토글 총4개, `Assets/Scenes/Tests/SettingsUi/SettingsUi.unity` 독립 씬 조립 완료. 독립 제작·자동/실행 캡처 검증 완료이며 상세는 [Task 검증 기록](../../../Tasks/Done/Task-20261019-061-cheer-gauge-ui/settings-ui-verification.md) 기준이다.
 - Spectator Medium/WorldLabels Bold는 읽기 전용 재사용, `Assets/Resources/Fonts/SettingsUi/`에 전용 SemiBold Static8192(전체 한글+ASCII11325문자) 생성.
 - 보정 전 Compile·C14 PlayMode23/23, 1920×1080/1920×1200 각 명암·세 탭·0/50/100%·disabled/focus 12장씩24 실행캡처 확인. 화면비별 합성 raycast15/클릭6/Move6·Preview 클릭17/비활성 콜백 차단1 통과(물리 Mouse/Keyboard·사람 승인 아님). 첫 입력 실패는 활성 직후 Graphic.depth=-1인 렌더 등록 전 검사 때문이며 QA220ms 대기로 통과, 제품 Runtime 불변.
 - 참조2484/missing0/MissingScript0·기존 출력 덮어쓰기 거절, baseline626 대비 승인 Builder1/신규 importer20 외 변경0·PNG변경0/누락0. 당시 audit 씬 clean/Play stopped/timeScale1/runInBackgroundfalse.

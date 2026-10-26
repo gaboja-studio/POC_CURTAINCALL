@@ -50,6 +50,6 @@
 ## PM 통합
 
 - [x] 원격 integration/humanoid-characters 준비 (2026-10-20 최신 origin/dev dcfbd22 기준)
-- [ ] PR 병합
+- [x] #188 기능·#189 dev PR 병합 확인, 2026-10-22 PM 요청으로 done·Done 이동 및 worktree 제거
 - [ ] 공동 테스트 결과 기록
 - [ ] 테스트 씬 처리 결정 및 dev 반영
