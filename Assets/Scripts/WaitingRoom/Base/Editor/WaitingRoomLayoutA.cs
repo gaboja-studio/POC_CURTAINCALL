@@ -422,6 +422,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 foreach (var path in new[] { "Mood/VisibilityLighting/Corridor_Near", "Mood/VisibilityLighting/Corridor_Middle", "Mood/VisibilityLighting/Corridor_Far",
                              "Mood/VisibilityLighting/StageEntrance", "Mood/Lights/StageEntrance_RedSpill", "Mood/LightingPass/Spot_StageCurtain", "S06_StageCorridor_Temp/Label" })
                     Route(Required(path), "Lighting");
+                FaceStageSign(art.Find("WallDressing/Sign_무대 →"));
                 var vaultSource = Required("Mood/Tunnel/Vault");
                 var vault = Copy(vaultSource, art);
                 vault.localScale = Vector3.Scale(vault.localScale, new Vector3((CorX1 - CorX0) / 42f, 1, 1));
@@ -466,6 +467,103 @@ namespace CurtainCall.WaitingRoom.Editor
             catch { Undo.RevertAllDownToGroup(undo); throw; }
         }
 
+        // The original "무대 →" sign reads toward the lobby from the south wall; on the north wall the arrow points at the stage.
+        public static void FaceStageSign(Transform sign)
+        {
+            sign.rotation = Quaternion.Euler(0, 180, 0) * sign.rotation;
+            float fromWall = sign.position.z - W(0, CorZ0).z;
+            sign.position = new Vector3(sign.position.x, sign.position.y, W(0, CorZ1).z - fromWall);
+        }
+
+        // Stage 5 lounge (plan LG, inside the lobby south of the spawn): a half-open rest corner. A faded curtain screen on the
+        // west, a crate pile behind the couch on the south and a short curtain on the east; the north stays open to the tent.
+        // No gameplay function. Built as its own root so a lobby rebuild keeps it.
+        const float LoungeX0 = -2.8f, LoungeX1 = 2.8f, LoungeZ0 = -11.8f, LoungeZ1 = -6.3f;
+        const string SyntyProps = "Assets/_ThirdParty/Synty/PolygonApocalypse/Prefabs/Props/";
+
+        public static string BuildLounge()
+        {
+            var (scene, target) = Begin();
+            if (target.Find("S01_Lobby") == null) throw new InvalidOperationException("Build the lobby first.");
+            var original = Snapshot(source);
+            int undo = StartUndo("Layout A: build lounge");
+            try
+            {
+                Remove(target, "LG_Lounge");
+                var lounge = Group(target, "LG_Lounge", W((LoungeX0 + LoungeX1) * .5f, (LoungeZ0 + LoungeZ1) * .5f));
+                // Layered worn carpet and a patterned rug mark the corner on the cracked slab.
+                Box(lounge, "WornCarpet", W(0, -9.4f, .012f), new Vector3(4.8f, .01f, 3.8f), Mat("LA_CarpetWorn")).rotation = Quaternion.Euler(0, 4, 0);
+                PlaceProp(SyntyProps + "SM_Prop_Rug_05", lounge, W(-.1f, -9.5f, .02f), 0, false);
+
+                var seats = Group(lounge, "Seating", lounge.position);
+                PlaceProp(SyntyProps + "SM_Prop_Couch_01", seats, W(0, -11.15f), 0);
+                PlaceProp(SyntyProps + "SM_Prop_Chair_Soft_01", seats, W(-2.05f, -9.3f), 75);
+                PlaceProp(SyntyProps + "SM_Prop_Chair_Soft_01", seats, W(2.1f, -9.7f), -100);
+                PlaceProp(SyntyProps + "SM_Prop_CoffeeTable_02", seats, W(0, -9.35f), 6);
+                PlaceProp(SyntyProps + "SM_Prop_Radio_01", seats, W(.35f, -9.3f, .53f), -20, false);
+                PlaceProp("Assets/_ThirdParty/Synty/PolygonGeneric/Prefabs/Props/SM_Gen_Prop_Mug_01", seats, W(-.3f, -9.45f, .53f), 40, false);
+                // Side crate with a small lamp: the corner's one warm pool.
+                PlaceCopy("Mood/InteriorArt/CircusStorageCrate_0", seats, W(-2.15f, -11.2f), 10f);
+                var lamp = PlaceProp(SyntyProps + "SM_Prop_Lamp_01", seats, W(-2.15f, -11.2f), 30, false);
+                lamp.position += Vector3.up * (Footprint(seats.GetChild(seats.childCount - 2)).max.y + .01f);
+                Point(lounge, "LampPool", lamp.position + Vector3.up * .45f, new Color(1f, .7f, .42f), 1.6f, 5.5f, LightShadows.Soft);
+
+                // Screens: curtain on posts west, crate pile south, a short curtain east.
+                var screens = Group(lounge, "Screens", lounge.position);
+                CurtainScreen(screens, new Vector2(LoungeX0 - .1f, LoungeZ0 + .2f), new Vector2(LoungeX0 - .1f, -7.6f), 2.5f);
+                CurtainScreen(screens, new Vector2(LoungeX1 + .1f, LoungeZ0 + .2f), new Vector2(LoungeX1 + .1f, -10.1f), 2.2f);
+                PlaceCopy("Mood/InteriorArt/CircusStorageCrate_1", screens, W(-1.2f, -12.2f), -6f);
+                PlaceCopy("Mood/InteriorArt/StorageTrunk_1", screens, W(.9f, -12.25f), 2f);
+                PlaceCopy("Mood/InteriorArt/CanvasOnCrate_1", screens, W(-1.2f, -12.2f, .7f), 20f);
+                for (int i = 0; i < 3; i++) PlaceFactory("SM_Woodpallet_1", screens, W(2.3f, -12.2f, i * .29f), 90 + i * 6);
+
+                // A sagging bulb string between the screen posts, lower and dimmer than the hall's strings.
+                BulbString(lounge, W(LoungeX0 - .1f, -7.6f, 2.5f), W(LoungeX1 + .1f, -10.1f, 2.2f), .7f);
+                Decal(lounge, "RustStain", 2.2f, -7.4f, 1.4f, 1.1f, Mat("LA_RustDecal"));
+
+                int remapped = RemapReferences(lounge);
+                Physics.SyncTransforms();
+                AssertUnchanged(original);
+                ValidateLounge(lounge);
+                Finish(scene, undo, "stage-05-lounge-copy-manifest.md", "5단계 휴게실 복제·배치 목록", lounge, remapped, 0);
+                return $"Lounge built; objects={lounge.GetComponentsInChildren<Transform>(true).Length}; lights={lounge.GetComponentsInChildren<Light>().Length}; sourceUnchanged=true";
+            }
+            catch { Undo.RevertAllDownToGroup(undo); throw; }
+        }
+
+        static Transform PlaceProp(string prefab, Transform parent, Vector3 position, float yaw, bool collide = true)
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>(prefab + ".prefab") ?? throw new InvalidOperationException("Missing prefab " + prefab);
+            var go = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent);
+            go.transform.SetPositionAndRotation(position, Quaternion.Euler(0, yaw, 0));
+            // Small table-top props and the rug are walked over or never touched; their colliders only snag the player.
+            if (!collide) foreach (var c in go.GetComponentsInChildren<Collider>(true)) Object.DestroyImmediate(c);
+            Manifest.Add($"- 에셋 {Path.GetFileName(prefab)} → {AnimationUtility.CalculateTransformPath(go.transform, null)}");
+            return go.transform;
+        }
+
+        static void CurtainScreen(Transform parent, Vector2 a, Vector2 b, float height)
+        {
+            foreach (var p in new[] { a, b })
+                Box(parent, "ScreenPost", W(p.x, p.y, height * .5f), new Vector3(.08f, height, .08f), Mat("V4_Iron_Dark"), true);
+            var mid = (a + b) * .5f; float length = Vector2.Distance(a, b);
+            var along = new Vector3(b.x - a.x, 0, b.y - a.y).normalized;
+            Box(parent, "ScreenRod", W(mid.x, mid.y, height - .05f), Size(along, length, .04f, .04f), Mat("LA_Bronze"));
+            // Hung slightly short of the floor and of one post, so it reads as cloth rather than a wall.
+            var cloth = Box(parent, "FadedCurtain", W(mid.x, mid.y, (height - .1f + .35f) * .5f) - along * .25f, Size(along, length - .6f, height - .45f, .05f), Mat("LA_TentRed"), true);
+            cloth.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.TwoSided;
+        }
+
+        static void ValidateLounge(Transform lounge)
+        {
+            if (lounge.GetComponentsInChildren<Component>(true).Any(c => c == null)) throw new InvalidOperationException("Missing script in lounge");
+            var spawn = lounge.parent.Find("S01_Lobby/Gameplay/SpawnPoints");
+            foreach (Transform p in spawn) if (p.name.StartsWith("Spawn_")) CheckStanding(p.position, lounge.parent, "spawn " + p.name);
+            foreach (var (x, z, what) in new[] { (0f, -7.4f, "lounge front"), (-1.1f, -8.5f, "west chair side"), (1.1f, -8.5f, "east chair side"), (0f, LobbyS + .8f, "behind the corner"), (-4f, -9.3f, "west of the screen"), (4f, -9.3f, "east of the screen") })
+                CheckStanding(W(x, z, .1f), lounge.parent, what);
+            if (lounge.GetComponentsInChildren<Light>().Length > 2) throw new InvalidOperationException("Too many lounge lights");
+        }
+
         // The night lock (lobby <-> 06) moves onto the wider 06 door. The roller shutter hangs on the corridor side so its housing
         // clears the lobby marquee; the locked sign and warning lamp face the lobby, where players wait at night.
         static void BuildNightShutter(Transform corridor)
@@ -492,6 +590,8 @@ namespace CurtainCall.WaitingRoom.Editor
 
         // The waiting-room exit watch (start of the exploration timer): the union of the built waiting-room spaces.
         // Walking out through the 06 door counts as going backstage. Rebuild after adding a room that belongs to the waiting room.
+        // Undecided (2026-10-27): whether the new rooms from stage 5 on (09 and beyond, outside the lobby) are waiting room or backstage.
+        // Until the planner decides, they are not added here; the lounge sits inside the lobby box already.
         static void BuildWaitingRoomArea(Transform target)
         {
             Remove(target, "ExplorationTimer");
