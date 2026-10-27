@@ -121,3 +121,8 @@
 - 사용자가 현재 대화에서 `목록에 있는 씬 46개와 전용 테스트 8개 삭제를 승인해.`라고 직접 승인했다. 검증 종료 뒤 준비한 AssetDatabase 스크립트로54개와 대응 meta 삭제·빌드 목록 정리 완료. 별도 Editor 검사: 대상/meta 잔존0·삭제 씬 Build 항목0·enabled11개 존재·Levels5개·disabled DummyEscapeRoute 보존·미저장 씬0.
 - 삭제 후 최종 check-work(-RunTests -Mode EditMode -NoRecord): 안전성·문서/규칙·컴파일 PASS, EditMode1049/1049 통과·생략0, hard0·길이 경고14. 실제 씬 개별 회귀: PerformanceLink11/11·SpaceLink6/6·PerformanceRoute5/5·PerformanceBackground11/11·CameraViews1/1·WaitingRoomHud2/2, 합계36/36 통과·실패/생략0. 전체 PlayMode·실제 키 입력·2인 공동 플레이·사람 최종 플레이는 미실행이며 해당 통과로 확대하지 않는다.
 - 공용 prefab/폰트 생성과 결합된 수동 개발 씬 빌더는 보존했다. Builder 자동 재생성 훅은 발견되지 않았으며 실행하지 않았다. 메뉴 자체 폐지/분리는 후속 정리 대상이다. 기존 폰트 변경 보존, commit/push/merge 없음. 다음은 별도 M2 보상 정산·신체 복구 묶음 및 정식 탈출 연결 결정이다.
+
+## 2026-10-28 현재 구현분 dev 제출
+- 구현 커밋 da0c0e37 저장 완료. 사용자 승인 후 Confluence28377195 v2에 기획자용 적용 현황 체크리스트 게시·재조회 완료. 서비스는 쉬는 시간·밤 정비 이용 가능이 확정 규칙이며 기존 날짜·밤 제한 제거는 후속 구현이다.
+- 기존 PR224 MERGED 확인 후 사용자 제출 요청에 따라 PR225 생성: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/225 (feat/game-system-upgrade → dev). 병합은 하지 않았다. 코드 변경이 없어 기존 최종 검사 결과를 사용했다.
+- fetch 후 merge-tree 사전 확인: origin/dev 및 exit-route/design-map(55f1458e), waiting-room/design-rooms(3c1f83dd), tight-rope/enhancement(79e48fe8)와 텍스트 충돌 없음. design-rooms와 WaitingRoomShopUI.cs 변경은 겹치지만 자동 병합 가능. 외줄 tip은 이미 포함되어 있다. 향후 변경·동작 호환은 보장하지 않으며 통합 플레이와 삭제된 개발 씬 생성 메뉴 재실행 주의가 필요하다.
