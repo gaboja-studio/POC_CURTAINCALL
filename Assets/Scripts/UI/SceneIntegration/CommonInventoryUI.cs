@@ -35,7 +35,7 @@ namespace CurtainCall.UI.SceneIntegration
                 for (int i = 0; i < Keys.Length; i++) if (Keyboard.current[Keys[i]].wasPressedThisFrame) carry.RequestSelectSlot(i);
             ulong id = carry != null ? carry.LocalClientId : 0;
             var held = carry != null ? carry.Held(id) : null;
-            int capacity = carry != null ? carry.Slots(id) : SurvivalRules.ItemSlots(local != null ? local.GetComponent<PlayerCondition>() : null, false);
+            int capacity = carry != null ? carry.Slots(id) : SurvivalRules.ItemSlots();
             var selected = carry != null ? carry.Selected(id) : default;
             string next = $"{id}:{capacity}:{selected.Uid}";
             if (held != null) foreach (var item in held) next += $":{item.Uid}:{item.ItemId}:{item.Name}";

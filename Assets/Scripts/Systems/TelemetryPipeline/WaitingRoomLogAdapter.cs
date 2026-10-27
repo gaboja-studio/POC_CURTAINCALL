@@ -366,7 +366,7 @@ namespace CurtainCall.Telemetry.Pipeline
             if (verifyFlow == null || Time.frameCount < verifyAfterFrame) return;
             var local = NetworkPlayer.Local; var mover = local != null ? local.GetComponent<PlayerMover>() : null;
             if (local == null || mover == null || carry == null) return;
-            int slots = carry.Slots(local.OwnerClientId), expected = SurvivalRules.ItemSlots(2, carry.HasBackpack(local.OwnerClientId));
+            int slots = carry.Slots(local.OwnerClientId), expected = SurvivalRules.ItemSlots();
             log.Emit("RESTORATION_VERIFIED", new() { ["flowId"] = verifyFlow, ["lostCount"] = DetailLogIds.Lost(local.LostParts),
                 ["movementRestored"] = Mathf.Approximately(mover.SpeedMultiplier, 1),
                 ["jumpRestored"] = mover.JumpAllowed && Mathf.Approximately(mover.JumpHeightMultiplier, 1), ["capacityRestored"] = slots == expected,

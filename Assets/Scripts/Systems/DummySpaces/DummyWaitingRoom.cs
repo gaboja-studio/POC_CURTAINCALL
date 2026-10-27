@@ -11,7 +11,6 @@ namespace CurtainCall.DummySpaces
     {
         DummySpaceDiagnostics diagnostics;
         int previewLostCount = 3;
-        bool backpack;
         public DummySpaceDiagnostics Diagnostics => diagnostics;
         public int SpendAmount => GameSettings.WaitingRoom.DummySpendAmount;
         public int PreviewLostCount
@@ -19,20 +18,8 @@ namespace CurtainCall.DummySpaces
             get => previewLostCount;
             set => previewLostCount = Mathf.Clamp(value, 0, 3);
         }
-        public bool PreviewBackpack
-        {
-            get => backpack;
-            set => backpack = value;
-        }
         public BodyPart PreviewRestorePart => PlayerCondition.NextRestore(PlayerCondition.PartsForLostCount(previewLostCount));
-        public int PreviewSlots
-        {
-            get
-            {
-                int arms = 2 - PlayerCondition.CountLimbs(PlayerCondition.PartsForLostCount(previewLostCount) & PlayerCondition.Arms);
-                return SurvivalRules.ItemSlots(arms, backpack);
-            }
-        }
+        public int PreviewSlots => SurvivalRules.ItemSlots();
 
         void Awake() => diagnostics = GetComponent<DummySpaceDiagnostics>();
 

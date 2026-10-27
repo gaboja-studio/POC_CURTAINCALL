@@ -167,7 +167,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TestCase(-80f)] [TestCase(0f)] [TestCase(80f)]
         public void EveryPoleKeepsBarAndCableAlignedThroughoutSwing(float angle)
         {
-            var poles = All<HumanCannonPole>(); Assert.That(poles.Length, Is.EqualTo(10));
+            // Task-044 2026-10-22 실플레이 피드백: 휴식 봉5 + 연결 봉2 유지.
+            var poles = All<HumanCannonPole>(); Assert.That(poles.Length, Is.EqualTo(7));
             foreach (var pole in poles)
             {
                 pole.PresentSwing(angle); var bar = Ref(pole, "visualBar");
@@ -229,7 +230,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Near(box.size, bounds.size, box.name + " collider size"); found++;
             }
             Assert.That(found, Is.EqualTo(81), "74 concrete surfaces + 6 transport panels + cushion");
-            Assert.That(All<Collider>().Length, Is.EqualTo(91), "Visual replacement must not add physical blockers");
+            Assert.That(All<Collider>().Length, Is.EqualTo(90), "공중 장애물 제거로 최종 톱 EntryZone 트리거1개만 줄고 지상 충돌체는 유지한다.");
         }
 
         [Test]

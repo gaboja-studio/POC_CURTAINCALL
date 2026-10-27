@@ -64,7 +64,7 @@
 | 씬 전환 | 신규 | 없음 | `LoadScene`·NGO 씬 전환 호출 없음. 기획 9-1 전환 계기 |
 | 출발 위치 | 재사용 | `PlayerSync/PlayerSpawnPoints.cs` | 씬의 자리 번호 순 위치. 대기실 로비·무대 입구 등 공간마다 하나 |
 | 무대 입구 통로·탈출 입구 집결 판정 | 신규 | 조사 당시 없음(이후 `WaitingRoom/Base/StageEntranceGather.cs`) | 쉬는 시간 종료·조기 시작·탈출 개시 계기. M2: 쉬는 시간 안전지대 없음, 무대 입구 통로 진입이 유일한 복귀 |
-| 기물 소지(팔 개수 무관 기본 2칸) | 신규 | 없음 | 조사 당시 기물·슬롯 코드 없음, 입력 에셋에 1/2/3 역할 없음. 플레이어 범위 데이터(기획 9-2). 2026-10-28 배낭·외팔 슬롯 감소 삭제, 개수는 공통 세팅 |
+| 기물 소지(팔 개수 무관 기본 2칸) | 반영(Task-076, 2026-10-28) | `Systems/Settings/BaseGameSettings.cs`·`Survival/SurvivalRules.cs`·`WaitingRoom/ShopStorage/PropCarry.cs` | `ItemCarry.BaseSlots`로 통일, 배낭 판매·수령·소지/공유 상태·외형 제거. 기존 씬 배낭은 카탈로그에서 제외. 장부18건·W2 9건 통과, 구형 HUD/더미·전체 검사 실패는 Task log 참조 |
 | 공통 조작 역할 추가 | 수정 후 재사용 | `Assets/Resources/Input/PlayerControls.inputactions`, `PlayerInputReader.cs` | 역할은 Move·Posture·Action·DirectionLeft/Right·Interact뿐. 달리기·앉기·기물 슬롯·카메라 휠·LM+RM 교차 없음(조작키 기획) |
 
 ## 결정 매칭 (1차 조사 Open → 기획 답)
@@ -102,7 +102,7 @@
 - 쉬는 시간 A/B·B안 기본(대기실을 나가면 300초 타이머 시작, 대기실 안전): `BaseGameSettings.RestTimerMode`·`restDuration`, `RunState.NotifyLeftWaitingRoom`, `WaitingRoom/ExplorationTimer/WaitingRoomExitWatch.cs`, `DummyExploration.IsSafe`. 대기실 재진입 막기는 코드에 없음(`WaitingRoomExitWatch`는 재입장 허용).
 - 일차별 전문가(의료 1·3일차, 시설 2일차)·"담당자 부재중"·서비스 밤 전용: `WaitingRoom/ExpertService/Logic/ExpertServiceBook.cs`(`Availability`·`NotNight`·`Absent`), `UI/SceneIntegration/WaitingRoomShopUI.cs`("밤 정비 때 이용 가능" 문구). 시설 서비스 삭제 미반영: `ExpertServiceBook.cs`(`ExpertKind.Facility`·`ObstacleAdjust`·`BookFacility`), `ExpertServicePhonePanel.DrawFacility`, `WaitingRoomShopUI.cs` "시설 서비스" 항목, `NightSchedule/ScheduleBoardView.cs` 전문가 열("시설 담당자").
 - 신체 복구가 잃은 부위 전부를 한 번에, 부위당 30 고정(1~3부위 선택·100토큰/+25 상승·런 초기화 없음): `WaitingRoom/ExpertService/ExpertService.cs`(`medicalPrice`·`Restore`), `ExpertServiceBook.MedicalCost`. 공용 `NetworkPlayer.ServerRestorePart`는 역순 1개.
-- 기물 구매가 쉬는 시간에도 됨(공연 중만 거절): `WaitingRoom/ShopStorage/WaitingRoomShop.cs`. 밤 정비 문 잠김(셔터로 무대 입구 통로 차단): `WaitingRoom/NightSchedule/NightDoorLock.cs`. M2는 전력 차단·로비와 이어진 탐색 방 입구 철창으로 일부 영역 외 탐색 제한.
+- 기물 구매 밤 제한은 2026-10-28 Task-076에서 코드 반영(호스트 `WaitingRoomShop.CanPurchase`·W2/임시 UI, PlayMode 상점5건 통과). 배송 수령·보관 규칙은 유지. 아직 미반영: 밤 정비 문 잠김(셔터로 무대 입구 통로 차단): `WaitingRoom/NightSchedule/NightDoorLock.cs`. M2는 전력 차단·로비와 이어진 탐색 방 입구 철창으로 일부 영역 외 탐색 제한.
 - 밤 정비 종료가 준비 완료 버튼(호스트는 스케줄표 확정 뒤): `NightSchedule/ScheduleBoard.cs`(`CanReady`·`RequestReady`) → `CampaignRun.SetReady`·`RunState.SetReady`(`ReadyCount`), `UI/SceneIntegration/WaitingRoomScheduleUI.cs`("준비 완료" 버튼). M2: 각자 침대 상호작용 → 모두 누우면 수면 연출 → 다음 날(침대 상호작용 코드 없음). 런마다 방을 섞는 런타임 코드도 확인 안 됨(대기실 배치는 `WaitingRoom/Base/Editor/` 빌더의 고정 배치).
 - 난이도 단계: 반복 횟수 자동 상승 코드는 없고 단계는 컴포넌트 고정값(`TightropeCampaignBridge`·`CampaignTightropeAdapter` 1, `HumanCannonHazardCourse.difficulty`). 세트리스트는 묘기 이름만(`RunState.SetSetlist`), 클리어 단계·단계 선택 없음. 단계별 1인 상한 연결은 확인 안 함.
 - 인간 대포 추락 즉사: `MainStage/HumanCannon/HumanCannonSystem.Landing.cs`(안전 착지 실패 → `ServerKill`), `HumanCannonRouteSystem.cs`(낙하 높이 → `ServerKill`). 외줄 추락 즉사(7초 매달림·동료 F 2초 끌어올리기·목마 낙하 시 한 줄에 한 명 잡기 없음): `PlayerBalance.Fell` → `NetworkPlayer`의 `RequestFall`, `MainStage/Tightrope/Rope/TightropeCourse.cs`(줄 아래 낙하), 목마 연쇄 추락도 바로 낙하. 환호 포인트는 `MainStage/`에 코드 없음.
