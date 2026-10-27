@@ -2,7 +2,7 @@
 
 원본: WaitingRoomGreybox(비활성 보존). 생성 도구: WaitingRoomLayoutA.
 
-오브젝트: 32, 내부 참조 재연결: 0, 바깥 참조 재연결: 1
+오브젝트: 36, 내부 참조 재연결: 0, 바깥 참조 재연결: 1
 
 - WaitingRoomGreybox/S03_Shop → WaitingRoom_LayoutA/S03_Shop
 - WaitingRoomGreybox/Mood/Lights/Lobby_Lamp → WaitingRoom_LayoutA/S03_Shop/LayoutA_Additions/PhoneCagedLamp

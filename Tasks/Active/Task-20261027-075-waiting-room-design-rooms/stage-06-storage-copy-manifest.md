@@ -1,0 +1,58 @@
+# 6단계 배관 구역·폐기물 보관소 복제 목록
+
+원본: WaitingRoomGreybox(비활성 보존). 생성 도구: WaitingRoomLayoutA.
+
+오브젝트: 700, 내부 참조 재연결: 0, 바깥 참조 재연결: 0
+
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/LowSortingPartition → WaitingRoom_LayoutA/S05_JunkStorage/Archive/LowSortingPartition
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveShelf_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveShelf_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_0_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_0_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_0_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_0_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_0_2 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_0_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_0_3 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_0_3
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_0_4 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_0_4
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveBooks_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveBooks_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveShelf_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveShelf_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_1_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_1_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_1_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_1_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_1_2 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_1_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_1_3 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_1_3
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_1_4 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_1_4
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveBooks_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveBooks_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveShelf_2 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveShelf_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_2_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_2_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_2_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_2_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_2_2 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_2_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_2_3 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_2_3
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_2_4 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_2_4
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveBooks_2 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveBooks_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveDesk → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveDesk
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveChair → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveChair
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveDeskLamp → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveDeskLamp
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveDeskLampGlow → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveDeskLampGlow
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveRug → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveRug
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/WestArchiveShelf → WaitingRoom_LayoutA/S05_JunkStorage/Archive/WestArchiveShelf
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/StoredCostume_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/StoredCostume_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/CostumeTrunk_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/CostumeTrunk_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/SortedStorageShelf_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/SortedStorageShelf_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/StoredCostume_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/StoredCostume_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/CostumeTrunk_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/CostumeTrunk_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/SortedStorageShelf_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/SortedStorageShelf_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RetiredCircusEquipment → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RetiredCircusEquipment
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RetiredChair → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RetiredChair
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordsDesk → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordsDesk
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordsChair → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordsChair
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordsDeskLamp → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordsDeskLamp
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordsDeskLampGlow → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordsDeskLampGlow
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/StoredBarrel_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/StoredBarrel_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/StoredBarrel_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/StoredBarrel_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/EastCrates_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/EastCrates_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/EastCrateLuggage_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/EastCrateLuggage_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/EastCrates_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/EastCrates_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/EastCrateLuggage_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/EastCrateLuggage_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/EastCrates_2 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/EastCrates_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/EastCrateLuggage_2 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/EastCrateLuggage_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage03_PropRoom/StoredMascotHead_0 → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/StoredMascotHead_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage03_PropRoom/StoredMascotHead_1 → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/StoredMascotHead_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage03_PropRoom/StoredMascotHead_2 → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/StoredMascotHead_2
+- WaitingRoomGreybox/Mood/Lights/Lobby_Lamp → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/StorageLamp

@@ -2,7 +2,7 @@
 
 원본: WaitingRoomGreybox(비활성 보존). 생성 도구: WaitingRoomLayoutA.
 
-오브젝트: 336, 내부 참조 재연결: 1, 바깥 참조 재연결: 0
+오브젝트: 380, 내부 참조 재연결: 1, 바깥 참조 재연결: 0
 
 - WaitingRoomGreybox/Mood/InteriorArt/Stage01_WaitingRoomBeds/Bed_A → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/Bed_A
 - WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/BedsideLamp_0 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/BedsideLamp_0
@@ -71,3 +71,4 @@
 - WaitingRoomGreybox/Mood/Lights/Restroom_Lights/LampLight → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/LampLight
 - WaitingRoomGreybox/Mood/InteriorArt/Restroom_PatchedCeiling → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Restroom_PatchedCeiling
 - WaitingRoomGreybox/CameraZones/Zone_Restroom → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Zone_Restroom
+- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S02_Dormitory/Restroom/BreachClosure/DestinationSign
