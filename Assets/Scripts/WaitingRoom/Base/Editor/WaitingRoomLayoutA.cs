@@ -105,6 +105,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 BuildLobbyGameplay(lobby);
                 Group(lobby, "LoungeReservation", W(0, -9.3f)); // Stage 5 builds the lounge here.
                 if (target.Find("S04_PropRoom") != null) OpenPortal(target, "04"); // rooms already built keep their doorway open
+                if (target.Find("S02_Dormitory") != null) OpenPortal(target, "02");
                 int remapped = RemapReferences(lobby);
                 int outer = RemapExistingReferences(scene, lobby);
                 Physics.SyncTransforms();
@@ -225,6 +226,189 @@ namespace CurtainCall.WaitingRoom.Editor
                 return $"Prop room built; objects={room.GetComponentsInChildren<Transform>(true).Length}; lights={room.GetComponentsInChildren<Light>().Length}; remapped={remapped}; outerRefs={outer}; sourceUnchanged=true";
             }
             catch { Undo.RevertAllDownToGroup(undo); throw; }
+        }
+
+        // Stage 3 dormitory + restroom (plan 02): one footprint split by a partition. The lobby door opens into the dormitory,
+        // the restroom is reached through the partition. Original 20 x 8.7 m content is compressed into 14.2 x 8 m.
+        const float DormX0 = 3.6f, DormX1 = 12f, RestX0 = 12.2f, RestX1 = 17.8f, DormZ0 = 14.5f, DormZ1 = 22.5f, DormHeight = 4.6f;
+        const float DormDoorX = 7.8f, DormDoorWidth = 3f, RestDoorZ = 16.1f, RestDoorWidth = 1.4f;
+
+        public static string BuildDormitory()
+        {
+            var (scene, target) = Begin();
+            if (target.Find("S01_Lobby") == null) throw new InvalidOperationException("Build the lobby first.");
+            var original = Snapshot(source);
+            int undo = StartUndo("Layout A: build dormitory and restroom");
+            try
+            {
+                Remove(target, "S02_Dormitory");
+                var root = Group(target, "S02_Dormitory", W((DormX0 + RestX1) * .5f, (DormZ0 + DormZ1) * .5f));
+                var dorm = Group(root, "Dormitory", W((DormX0 + DormX1) * .5f, (DormZ0 + DormZ1) * .5f));
+                var rest = Group(root, "Restroom", W((RestX0 + RestX1) * .5f, (DormZ0 + DormZ1) * .5f));
+                RoomShell(dorm, "LA_Dorm", DormX0, DormX1, DormZ0, DormZ1, DormHeight, 2.2f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                    new[] { (2, RestDoorZ, RestDoorWidth, .1f), (3, DormDoorX, DormDoorWidth, .5f) }, eastThickness: .1f);
+                RoomShell(rest, "LA_Restroom", RestX0, RestX1, DormZ0, DormZ1, DormHeight, 2.2f, Mat("LA_TealTile"), Mat("LA_TealTileDark"), Mat("LA_WallConcrete"),
+                    new[] { (0, RestDoorZ, RestDoorWidth, .1f) }, westThickness: .1f);
+                // One collider under both rooms and the lobby doorway, so the wall thickness has floor.
+                var floorCollider = new GameObject("FloorCollider"); floorCollider.transform.SetParent(root, false);
+                floorCollider.transform.position = W((DormX0 + RestX1) * .5f, (LobbyN - .1f + DormZ1) * .5f, -.1f);
+                floorCollider.AddComponent<BoxCollider>().size = new Vector3(RestX1 - DormX0 + .2f, .2f, DormZ1 - LobbyN + .1f);
+
+                // Dormitory: original items keep their own shape; positions compress along X and shift north by +6.6 m.
+                const string art = "Mood/InteriorArt/Stage01_Dormitory/";
+                float DX(float oldX) => 7.7f + (oldX + 3.7f) * .72f;
+                const float dz = 6.6f - 70f; // world z old -> local z new
+                var beds = Group(dorm, "Beds", dorm.position);
+                var bedOldX = new[] { -8.6f, -6.5f, -2.4f, 1.2f }; var bedNewX = new[] { 4.2f, 5.7f, 8.6f, 11.3f }; var letters = new[] { "A", "B", "C", "D" };
+                for (int i = 0; i < 4; i++)
+                {
+                    var paths = new List<string> { "Mood/InteriorArt/Stage01_WaitingRoomBeds/Bed_" + letters[i], art + "BedsideLamp_" + i, art + "BedsideGlow_" + i, art + "FootTrunk_" + i, art + "PersonalClothes_" + i };
+                    if (i == 1) paths.Add(art + "BedsideStool_B");
+                    if (i == 3) paths.Add(art + "PersonalBear");
+                    PlaceGroup(paths.ToArray(), beds, new Vector2(bedOldX[i], 70f), bedNewX[i], 0, 0);
+                }
+                PlaceGroup(new[] { art + "FadedTwoDoorLockers" }, beds, new Vector2(-4.6f, 70f), 7.1f, 0, 0);
+                PlaceGroup(new[] { art + "DarkWoodWardrobe" }, beds, new Vector2(-.7f, 70f), 9.9f, 0, 0);
+                // Every copy above was placed with dz = 0; push them all north onto the new wall line.
+                foreach (Transform t in beds) t.position += new Vector3(0, 0, dz + 70f);
+                var living = Group(dorm, "Living", dorm.position);
+                // West-wall items keep their distance from the west wall.
+                foreach (var n in new[] { "WestPersonalDresser", "StoredBedLinen", "PreviousGenerationWallMarks" })
+                {
+                    var o = Required(art + n);
+                    var t = Copy(o, living);
+                    t.position = new Vector3(W(DormX0 + (o.position.x + 9.85f), 0).x, o.position.y, o.position.z + dz + 70f);
+                }
+                for (int i = 0; i < 6; i++) { var o = Required(art + "OldWallStud_" + i); var t = Copy(o, living); t.position = new Vector3(W(DX(o.position.x), 0).x, o.position.y, o.position.z + dz + 70f); }
+                for (int i = 0; i < 4; i++) { var o = Required(art + "CeilingRepairPanel_" + i); var t = Copy(o, living); t.position = new Vector3(W(DX(o.position.x), 0).x, DormHeight - .15f, o.position.z + dz + 70f); t.localScale = Vector3.Scale(t.localScale, new Vector3(.8f, 1, 1.15f)); }
+                var line = Copy(Required(art + "PersonalClothesline"), living);
+                line.localScale = Vector3.Scale(line.localScale, new Vector3(.62f, 1, 1));
+                MoveCenter(line, (DormX0 + DormX1) * .5f, Required(art + "PersonalClothesline").position.z + dz);
+                PlaceItem(art + "WornEntryRug", living, DormDoorX, DormZ0 + 2.1f, 0);
+                var sky = Group(dorm, "Skylight", dorm.position);
+                PlaceGroup(new[] { "Mood/Ceilingworks/Dormitory_Skylight" }.Concat(Enumerable.Range(0, 5).Select(i => art + "SkylightGrille_" + i)).Concat(Enumerable.Range(0, 3).Select(i => art + "SkylightCrossbar_" + i)).ToArray(),
+                    sky, new Vector2(-3f, 83.4f), DormDoorX, 83.4f + dz, 0);
+                foreach (Transform t in sky) t.position = new Vector3(t.position.x, Mathf.Min(t.position.y, DormHeight - .3f), t.position.z);
+                var lamps = Required("Mood/Lights").Cast<Transform>().Where(t => t.name == "Dormitory_Lamp").ToArray();
+                for (int i = 0; i < lamps.Length; i++)
+                {
+                    var t = Copy(lamps[i], dorm);
+                    t.position = new Vector3(W(DX(lamps[i].position.x), 0).x, 3.6f, lamps[i].position.z + dz + 70f);
+                }
+                var dormZone = Copy(Required("CameraZones/Zone_Dormitory"), dorm);
+                dormZone.position = W((DormX0 + DormX1) * .5f, (DormZ0 + DormZ1) * .5f, 3f);
+                dormZone.GetComponent<BoxCollider>().size = new Vector3(DormX1 - DormX0 - .2f, 6f, DormZ1 - DormZ0 - .2f);
+
+                // Restroom: stalls on the north wall, sinks on the south wall; X compresses around the room centre.
+                float RX(float oldX) => 15f + (oldX - 6.5f) * .8f;
+                float RZ(float oldZ) => DormZ0 + (oldZ - 79.15f) * .952f;
+                const string furn = "Mood/Furnishings/Restroom/";
+                var fixtures = Group(rest, "Fixtures", rest.position);
+                foreach (Transform o in Required("Mood/Furnishings/Restroom"))
+                {
+                    var t = Copy(o, fixtures);
+                    float x = o.name.StartsWith("Sink") ? 15f + (o.position.x - 6.15f) : o.name == "SinkMirrors" ? 15f + (o.position.x - 6.15f) : RX(o.position.x);
+                    t.position = new Vector3(W(x, 0).x, o.position.y, W(0, RZ(o.position.z)).z);
+                }
+                foreach (var path in new[] { "Mood/Dressing/Restroom_Wet", "Mood/Dressing/Restroom_Dustbin", "Mood/Lights/Restroom_Lights" })
+                    foreach (Transform o in Required(path))
+                    {
+                        if (o.name == "Puddle") continue; // V4_Puddle renders as a black slab; replaced by a decal below
+                        var t = Copy(o, fixtures);
+                        t.position = new Vector3(W(RX(o.position.x), 0).x, o.position.y, W(0, RZ(o.position.z)).z);
+                    }
+                PlaceItem("Mood/InteriorArt/Restroom_PatchedCeiling", rest, (RestX0 + RestX1) * .5f, (DormZ0 + DormZ1) * .5f, 0)
+                    .position += Vector3.down * (4.35f - (DormHeight - .25f));
+                Point(rest, "ColdPanel_0", W(14f, 20f, DormHeight - .3f), Hex("CFE8E6"), 1.4f, 6f);
+                Point(rest, "ColdPanel_1", W(16f, 16.5f, DormHeight - .3f), Hex("CFE8E6"), 1.2f, 6f);
+                foreach (var (x, z) in new[] { (14f, 20f), (16f, 16.5f) })
+                    Box(rest, "CeilingPanel", W(x, z, DormHeight - .04f), new Vector3(1.2f, .04f, .6f), Mat("V4_Skylight"));
+                var restZone = Copy(Required("CameraZones/Zone_Restroom"), rest);
+                restZone.position = W((RestX0 + RestX1) * .5f, (DormZ0 + DormZ1) * .5f, 3f);
+                restZone.GetComponent<BoxCollider>().size = new Vector3(RestX1 - RestX0 - .2f, 6f, DormZ1 - DormZ0 - .2f);
+                Decal(rest, "Crack", 13.4f, 18.4f, 1.8f, 1.8f, Mat("LA_CrackDecal"));
+                Decal(rest, "WetPuddle", 14.6f, 17.6f, 2.2f, 1.6f, Mat("LA_PuddleDecal"));
+                Decal(dorm, "RustStain", 5f, 16f, 1.8f, 1.4f, Mat("LA_RustDecal"));
+
+                OpenPortal(target, "02");
+                int remapped = RemapReferences(root);
+                int outer = RemapExistingReferences(scene, root);
+                Physics.SyncTransforms();
+                AssertUnchanged(original);
+                ValidateDormitory(root);
+                Finish(scene, undo, "stage-03-dormitory-copy-manifest.md", "3단계 숙소·화장실 복제 목록", root, remapped, outer);
+                return $"Dormitory built; objects={root.GetComponentsInChildren<Transform>(true).Length}; lights={root.GetComponentsInChildren<Light>().Length}; remapped={remapped}; outerRefs={outer}; sourceUnchanged=true";
+            }
+            catch { Undo.RevertAllDownToGroup(undo); throw; }
+        }
+
+        static void ValidateDormitory(Transform root)
+        {
+            var portal = root.parent.Find("S01_Lobby/FutureConnections/Portal_02");
+            if (portal != null && portal.Find("TemporaryClosure") != null) throw new InvalidOperationException("Dormitory portal still closed");
+            if (root.GetComponentsInChildren<Component>(true).Any(c => c == null)) throw new InvalidOperationException("Missing script in dormitory");
+            if (!Physics.Raycast(W(DormDoorX, LobbyN + .25f, 1f), Vector3.down, out var hit, 2f) || Mathf.Abs(hit.point.y) > .01f)
+                throw new InvalidOperationException("No floor under the dormitory doorway");
+            foreach (var (x, z, what) in new[] { (DormDoorX, LobbyN + .25f, "dorm doorway"), (DormDoorX, DormZ0 + 1.2f, "dorm entry"), (7.8f, 18.2f, "bed aisle"),
+                         (DormX1 - .8f, RestDoorZ, "partition door west"), ((DormX1 + RestX0) * .5f, RestDoorZ, "partition door"), (RestX0 + 1f, RestDoorZ, "restroom entry"), (15f, 18.5f, "restroom middle") })
+                CheckStanding(W(x, z, .1f), root.parent, what);
+            if (root.GetComponentsInChildren<Light>().Length > 12) throw new InvalidOperationException("Too many dormitory lights");
+        }
+
+        // Rectangular room shell. doors: (side 0=W 1=N 2=E 3=S, world-axis coordinate along that side, width, blocker depth).
+        static void RoomShell(Transform room, string prefix, float x0, float x1, float z0, float z1, float height, float ledger,
+            Material floorMat, Material lower, Material upper, (int side, float at, float width, float depth)[] doors, float westThickness = .5f, float eastThickness = .5f)
+        {
+            var walls = new (Vector2 a, Vector2 b, Vector2 inward, Door[] doors, float[] pilasters)[]
+            {
+                (new(x0, z0), new(x0, z1), new(1, 0), doors.Where(d => d.side == 0).Select(d => new Door("", "", d.at - z0, d.width)).ToArray(), Array.Empty<float>()),
+                (new(x0, z1), new(x1, z1), new(0, -1), doors.Where(d => d.side == 1).Select(d => new Door("", "", d.at - x0, d.width)).ToArray(), Array.Empty<float>()),
+                (new(x1, z1), new(x1, z0), new(-1, 0), doors.Where(d => d.side == 2).Select(d => new Door("", "", z1 - d.at, d.width)).ToArray(), Array.Empty<float>()),
+                (new(x1, z0), new(x0, z0), new(0, 1), doors.Where(d => d.side == 3).Select(d => new Door("", "", x1 - d.at, d.width)).ToArray(), Array.Empty<float>()),
+            };
+            var thickness = new[] { westThickness, .5f, eastThickness, .5f };
+            var shell = Group(room, "Shell", room.position);
+            var b = new MeshBuilder(prefix + "Floor", 1);
+            for (float x = x0; x < x1 - .01f; x += 3.5f)
+            for (float z = z0; z < z1 - .01f; z += 3.5f)
+            {
+                float xe = Mathf.Min(x1, x + 3.5f), ze = Mathf.Min(z1, z + 3.5f);
+                b.Quad(0, new Vector3(x, 0, z), new Vector3(x, 0, ze), new Vector3(xe, 0, ze), new Vector3(xe, 0, z), Vector3.up, floorMat.name.Contains("Teal") ? 1.2f : 3.5f);
+            }
+            MeshObject(shell, "Floor", Origin, SaveMesh(b.Build()), floorMat);
+            MeshObject(shell, "WallSurfaces", Origin, WallMesh(prefix + "Walls", walls, height, ledger, DoorHeight, lower.name.Contains("Teal") ? 1.2f : 4f), lower, upper);
+            var structure = Group(shell, "WallStructure", room.position);
+            for (int s = 0; s < 4; s++)
+            {
+                var wall = walls[s];
+                Vector2 u = (wall.b - wall.a).normalized; float length = Vector2.Distance(wall.a, wall.b);
+                var inward = new Vector3(wall.inward.x, 0, wall.inward.y); var along = new Vector3(u.x, 0, u.y);
+                float depth = thickness[s], cursor = 0, from = 0;
+                foreach (var d in wall.doors.Append(new Door("", "", length + 100, 0)))
+                {
+                    float end = Mathf.Min(length, d.At - d.Width * .5f);
+                    if (end - cursor > .05f) ThinBlocker(structure, wall.a + u * ((cursor + end) * .5f), along, inward, end - cursor, 0, height, depth);
+                    float to = Mathf.Min(length, d.At - d.Width * .5f - .2f);
+                    if (to - from > .05f) { var m = wall.a + u * ((from + to) * .5f); Box(structure, "SteelLedger", W(m.x, m.y, ledger) + inward * .08f, Size(along, to - from, .24f, .16f), Mat("V4_Iron_Dark")); }
+                    if (d.At > length) break;
+                    var p = wall.a + u * d.At;
+                    ThinBlocker(structure, p, along, inward, d.Width, DoorHeight, height, depth);
+                    foreach (var side in new[] { -1f, 1f })
+                        Box(structure, "DoorReveal", W(p.x, p.y, DoorHeight * .5f) + along * side * (d.Width * .5f + .1f) - inward * depth * .5f, Size(along, .2f, DoorHeight, depth + .12f), Mat("V4_Iron_Dark"), true);
+                    Box(structure, "RevealLintel", W(p.x, p.y, DoorHeight + .12f) - inward * depth * .5f, Size(along, d.Width + .4f, .24f, depth + .12f), Mat("V4_RustyMetal"));
+                    cursor = d.At + d.Width * .5f; from = d.At + d.Width * .5f + .2f;
+                }
+            }
+            Box(shell, "Ceiling", W((x0 + x1) * .5f, (z0 + z1) * .5f, height + .1f), new Vector3(x1 - x0 + .4f, .2f, z1 - z0 + .4f), Mat("LA_WallRust"));
+        }
+
+        static void ThinBlocker(Transform parent, Vector2 mid, Vector3 along, Vector3 inward, float width, float y0, float y1, float depth)
+        {
+            var go = new GameObject(y0 > 0 ? "DoorHeaderCollider" : "WallCollider");
+            go.transform.SetParent(parent, true);
+            go.transform.position = W(mid.x, mid.y, (y0 + y1) * .5f) - inward * depth * .5f;
+            go.AddComponent<BoxCollider>().size = Size(along, width, y1 - y0, depth);
+            go.isStatic = true;
         }
 
         static readonly (Vector2 a, Vector2 b, Vector2 inward, Door[] doors, float[] pilasters)[] PropWalls =
@@ -987,7 +1171,7 @@ namespace CurtainCall.WaitingRoom.Editor
 
         static Mesh WallMesh() => WallMesh("LA_LobbyWalls", Walls, WallHeight, LedgerY, DoorHeight);
 
-        static Mesh WallMesh(string name, (Vector2 a, Vector2 b, Vector2 inward, Door[] doors, float[] pilasters)[] walls, float height, float ledger, float doorHeight)
+        static Mesh WallMesh(string name, (Vector2 a, Vector2 b, Vector2 inward, Door[] doors, float[] pilasters)[] walls, float height, float ledger, float doorHeight, float lowerTile = 4f)
         {
             var b = new MeshBuilder(name, 2);
             foreach (var wall in walls)
@@ -1004,11 +1188,11 @@ namespace CurtainCall.WaitingRoom.Editor
                 foreach (var d in wall.doors.Append(new Door("", "", length + 100, 0)))
                 {
                     float end = Mathf.Min(length, d.At - d.Width * .5f);
-                    Face(cursor, end, 0, ledger, 0, 4f);
+                    Face(cursor, end, 0, ledger, 0, lowerTile);
                     Face(cursor, end, ledger, height, 1, 3f);
                     if (d.At > length) break;
                     float s = d.At - d.Width * .5f, e = d.At + d.Width * .5f;
-                    Face(s, e, doorHeight, ledger, 0, 4f);
+                    Face(s, e, doorHeight, ledger, 0, lowerTile);
                     Face(s, e, Mathf.Max(ledger, doorHeight), height, 1, 3f);
                     cursor = e;
                 }
@@ -1155,6 +1339,9 @@ namespace CurtainCall.WaitingRoom.Editor
                 "LA_Paper" => Lit(name, Hex("BFB6A2"), .05f),
                 "LA_HazardPaint" => Lit(name, Hex("8C7A2E"), .15f),
                 "LA_JointDark" => Lit(name, Hex("161311"), 0f),
+                // 청록 타일 #5E8C86: restroom floor and lower walls, the only cold surface in the map.
+                "LA_TealTile" => Lit(name, Color.white, .45f, TileTexture()),
+                "LA_TealTileDark" => Lit(name, Hex("8FA9A5"), .4f, TileTexture()),
                 "LA_Bulb" => Bulb(),
                 // The rust texture is a 2x2 atlas; the two left cells (splatter, speckle) read as floor stains.
                 "LA_RustDecal" => Region(DecalMaterial(name, "LA_RustDecal.png", RustTexture, .15f, 3001), 0, .5f),
@@ -1264,6 +1451,42 @@ namespace CurtainCall.WaitingRoom.Editor
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
             tex.SetPixels(output); tex.Apply();
             return tex;
+        }
+
+        // Grimy teal ceramic tiles: 4 x 4 tiles per texture (0.3 m each at 1.2 m per repeat), dirty grout, per-tile tint, stains.
+        static Texture2D TileTexture()
+        {
+            EnsureFolder();
+            string path = $"{AssetDir}/LA_TealTile.png";
+            var existing = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            if (existing != null) return existing;
+            const int size = 512, tiles = 4;
+            var teal = Hex("5E8C86"); var grout = Hex("2C2A26");
+            var tex = new Texture2D(size, size, TextureFormat.RGB24, false);
+            var pixels = new Color[size * size];
+            var rng = new System.Random(2);
+            var tint = Enumerable.Range(0, tiles * tiles).Select(_ => .85f + (float)rng.NextDouble() * .25f).ToArray();
+            for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                float u = x / (float)size * tiles, v = y / (float)size * tiles;
+                int tx = (int)u, ty = (int)v; float fx = u - tx, fy = v - ty;
+                float edge = Mathf.Min(Mathf.Min(fx, 1 - fx), Mathf.Min(fy, 1 - fy));
+                // Tileable stains: sines with whole periods across the texture.
+                float stain = .5f + .25f * Mathf.Sin(u * 1.57f + Mathf.Sin(v * 3.14f) * 2f) + .25f * Mathf.Sin(v * 3.14f + Mathf.Sin(u * 1.57f) * 1.5f);
+                var c = teal * tint[ty * tiles + tx];
+                c = Color.Lerp(c, c * .6f + Hex("4A3A22") * .25f, Mathf.Clamp01((stain - .6f) * 2f));
+                c = Color.Lerp(c, Color.white * .9f, Mathf.Pow(1 - Mathf.Clamp01(fy * 3f), 6f) * .12f); // glaze highlight
+                if (edge < .035f) c = Color.Lerp(grout, c, edge / .035f * .3f);
+                pixels[y * size + x] = new Color(c.r, c.g, c.b);
+            }
+            tex.SetPixels(pixels); tex.Apply();
+            File.WriteAllBytes(path, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            importer.wrapMode = TextureWrapMode.Repeat; importer.anisoLevel = 4; importer.SaveAndReimport();
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
         }
 
         // Faded white five-point star with paint dropout, like the floor marks on the reference.
