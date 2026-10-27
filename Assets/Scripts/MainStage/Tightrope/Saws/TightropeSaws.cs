@@ -92,6 +92,9 @@ namespace CurtainCall.Tightrope.Saws
         CustomMessagingManager messaging;
 
         Transform[] horizontalViews = Array.Empty<Transform>();
+        TightropeOutline[] horizontalOutlines = Array.Empty<TightropeOutline>();
+        // 얇은 가로 톱은 멀리서 화면 고정 두께 테두리에 묻히므로 거리에 따라 테두리를 줄여 없앤다.
+        const float HorizontalOutlineWidth = 3f, HorizontalOutlineFullDistance = 5f, HorizontalOutlineHiddenDistance = 14f;
         public int ActiveHorizontalCount => TrickSettings.SawCount(HorizontalCount, GameSettings.Tightrope.SawDensity);
         public bool IsHorizontalEnabled(int index) => TrickSettings.IncludesSaw(index, HorizontalCount, GameSettings.Tightrope.SawDensity);
 
@@ -661,8 +664,12 @@ namespace CurtainCall.Tightrope.Saws
             var resources = root.gameObject.AddComponent<TightropeSawVisualResources>();
 
             horizontalViews = new Transform[settings.HorizontalCount];
+            horizontalOutlines = new TightropeOutline[horizontalViews.Length];
             for (int i = 0; i < horizontalViews.Length; i++)
+            {
                 horizontalViews[i] = CreateSaw(root, $"HorizontalSaw{i + 1:00}", horizontalPrefab, settings.horizontalVisualDiameter, settings.horizontalThickness, SawKind.Horizontal);
+                horizontalOutlines[i] = horizontalViews[i].GetComponent<TightropeOutline>();
+            }
 
             verticalView = CreateSaw(root, "VerticalSaw", verticalPrefab, settings.verticalVisualDiameter, settings.verticalThickness, SawKind.Vertical);
             verticalView.gameObject.SetActive(false);
@@ -744,6 +751,7 @@ namespace CurtainCall.Tightrope.Saws
             UpdatePaths();
             float spin = Time.time * settings.spinSpeed;
             Quaternion courseRotation = Quaternion.LookRotation(course.Forward, Vector3.up);
+            var viewer = Camera.main;
 
             for (int i = 0; i < horizontalViews.Length; i++)
             {
@@ -752,6 +760,12 @@ namespace CurtainCall.Tightrope.Saws
                 float horizontalSpin = tracks[i].GetElapsed(GameElapsed) * settings.spinSpeed;
                 horizontalViews[i].SetPositionAndRotation(GetHorizontalPosition(i) - Vector3.up * TeamPassageLowerOffset(i),
                     courseRotation * Quaternion.Euler(0f, horizontalSpin, 0f));
+                if (viewer != null && i < horizontalOutlines.Length && horizontalOutlines[i] != null)
+                {
+                    float distance = Vector3.Distance(viewer.transform.position, horizontalViews[i].position);
+                    horizontalOutlines[i].SetWidth(HorizontalOutlineWidth
+                        * (1f - Mathf.InverseLerp(HorizontalOutlineFullDistance, HorizontalOutlineHiddenDistance, distance)));
+                }
             }
 
             bool hasVertical = TryGetVerticalPosition(out Vector3 verticalCenter);
