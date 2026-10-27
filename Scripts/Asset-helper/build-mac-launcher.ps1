@@ -13,6 +13,9 @@ $plist=@'
 $shell=@'
 #!/bin/sh
 ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)
+# Finder does not load the shell profile that adds Homebrew tools to PATH.
+PATH="/opt/homebrew/bin:/usr/local/bin:${PATH:-/usr/bin:/bin:/usr/sbin:/sbin}"
+export PATH
 PWSH=$(command -v pwsh 2>/dev/null)
 if [ -z "$PWSH" ]; then
   for candidate in /opt/homebrew/bin/pwsh /usr/local/bin/pwsh; do

@@ -1,5 +1,7 @@
 # Log
 
+- Mac 런처 후속 check-work -Base HEAD -NoRecord 재실행 완료: 안전성·문서/규칙 PASS, 기존 문서 길이 WARN12·차단0. Unity 변경 없음으로 컴파일·Unity 테스트 생략. Git LFS ZIP 비교의 샌드박스 제한은 권한 확보 후 해소됐다.
+- 2026-10-27 Mac Finder 런처에서 Homebrew PATH 누락으로 공통 Invoke-TransitionGit의 LFS 조회가 exit 1이 되는 조건을 재현했다. 앱·ZIP 생성 스크립트에 Apple Silicon/Intel Homebrew 경로를 추가하고 ZIP을 재생성했다. 제한된 PATH에서 실제 LFS ls-files 조회, 셸 구문, ZIP 내용 일치·Unix 실행 권한 확인 PASS. 실제 맞추기·원격 다운로드·Unity 실행은 수행하지 않았다. dev에서 사용자 요청 파일만 수정했으며 브랜치 변경·commit/push 없음. 최초 check-work는 Git LFS clean의 .git/lfs/tmp 쓰기 샌드박스 제한으로 중단되어 권한을 확보해 재검사한다.
 - 2026-10-27 합의한 에디터 작업 후 저장·공유 / Desktop·Fork 이동 후 에셋 버전 맞추기 구현. Windows asset-helper.vbs, Mac ZIP의 Finder 앱, 로컬 브라우저 UI. Unity 임포트·이동·게임 브랜치 전환 기능은 넣지 않음.
 - private 에셋 먼저 업로드 후 public gitlink만 별도 인덱스로 저장. 다른 게임 변경·스테이징 보존. dev 직접 저장·force push 없음. parent 미공유 커밋은 섞어 올리지 않고 Desktop/Fork 동기화 안내.
 - 스냅샷으로 동시 변경 검출, 에디터 잠금 검사, 에셋 .meta 검사, 내 수정·커밋 보관 및 목록에서 복구. LFS stash는 복구 시 smudge를 허용해야 실제 바이트가 복원됨을 확인해 Pitfalls에 기록.
