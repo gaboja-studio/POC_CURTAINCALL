@@ -104,6 +104,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 BuildLighting(Group(lobby, "Lighting", Origin));
                 BuildLobbyGameplay(lobby);
                 Group(lobby, "LoungeReservation", W(0, -9.3f)); // Stage 5 builds the lounge here.
+                if (target.Find("S04_PropRoom") != null) OpenPortal(target, "04"); // rooms already built keep their doorway open
                 int remapped = RemapReferences(lobby);
                 int outer = RemapExistingReferences(scene, lobby);
                 Physics.SyncTransforms();
@@ -153,18 +154,230 @@ namespace CurtainCall.WaitingRoom.Editor
             catch { Undo.RevertAllDownToGroup(undo); throw; }
         }
 
-        // A rebuilt shop leaves the label pointing at the destroyed copy (null); point it at the new slot.
-        static int ConnectWorldLabels(Scene scene, ShopDeliverySlot slot)
+        // Stage 3 prop room: the original room's three zones (costumes, 4-tier shelves, dressing) are copied and re-laid
+        // into the plan footprint, which is shorter (11.2 x 9.6 m inside) than the original 16 x 8.5 m room.
+        const float PropX0 = 6.9f, PropX1 = 18.1f, PropZ0 = -14.1f, PropZ1 = -4.5f, PropHeight = 5.6f, PropDoorZ = -8.7f, PropDoorWidth = 2.6f;
+
+        public static string BuildPropRoom()
+        {
+            var (scene, target) = Begin();
+            if (target.Find("S01_Lobby") == null) throw new InvalidOperationException("Build the lobby first.");
+            var original = Snapshot(source);
+            int undo = StartUndo("Layout A: build prop room");
+            try
+            {
+                Remove(target, "S04_PropRoom");
+                var room = Group(target, "S04_PropRoom", W((PropX0 + PropX1) * .5f, (PropZ0 + PropZ1) * .5f));
+                BuildPropShell(room);
+                const string art = "Mood/InteriorArt/Stage03_PropRoom/";
+
+                // West/south-west: costumes in use. Racks move from the original west wall onto the south wall.
+                var costumes = Group(room, "CostumeZone", room.position);
+                PlaceItem(art + "WestActiveCostumes_0", costumes, 8.3f, -13.55f, -90);
+                PlaceItem(art + "WestActiveCostumes_1", costumes, 10.6f, -13.55f, -90);
+                PlaceItem(art + "CostumeCupboard", costumes, 7.55f, -11.6f, 90);
+                PlaceGroup(new[] { art + "CostumeRepairBench", art + "RepairChair" }, costumes, new Vector2(-4.8f, 57.45f), 9.9f, -11.2f, 0);
+                for (int i = 0; i < 3; i++) PlaceItem(art + "StoredMascotHead_" + i, costumes, 8.1f + i * 1.15f, -14f, 0);
+
+                // North wall shelves and the functional 4-tier handover shelf across the middle of the room.
+                var shelves = Group(room, "ShelfZone", room.position);
+                PlaceItem(art + "NorthShelf_West", shelves, 9.1f, -4.85f, 0);
+                PlaceItem(art + "NorthShelf_East", shelves, 11.7f, -4.85f, 0);
+                PlaceGroup(new[] { art + "SouthGeneralPropShelf", art + "PreviousToy" }, shelves, new Vector2(1.8f, 54.9f), 14.6f, -4.85f, 180);
+                PlaceGroup(new[] { "WaitingRoomGameplay/HandoverShelf_4Tier", "Mood/Furnishings/PropRoom/HandoverShelf_Visual", "Mood/LightingPass/Spot_HandoverShelf" },
+                    shelves, new Vector2(-1.7f, 54.85f), 13.3f, -8.4f, 0);
+                PlaceItem(art + "CoolToolsAccent", shelves, 16.8f, -5.2f, 0);
+
+                // South and east walls: bulb-framed dressing mirrors, the brightest spot in the room.
+                var dressing = Group(room, "DressingZone", room.position);
+                var south = new List<string>();
+                foreach (var i in new[] { "0", "1" })
+                    foreach (var n in new[] { "SouthDressingDesk_", "SouthDressingMirror_", "SouthDressingChair_", "SouthBulbs_", "VanityWarm_", "DressingRug_", "WigStand_", "MakeupJar_" })
+                        south.Add(art + n + i);
+                PlaceGroup(south.ToArray(), dressing, new Vector2(5.5f, 53.5f), 14.7f, -13.25f, 0);
+                PlaceGroup(new[] { art + "EastDressingDesk", art + "EastDressingMirror", art + "EastDressingChair", art + "EastBulbs", art + "EastVanityWarm" },
+                    dressing, new Vector2(7f, 58.8f), PropX1 - 1.05f, -10.2f, 0);
+
+                // Original hanging lamps, sagging ceiling canvas and dust, fitted to the shorter room.
+                var mood = Group(room, "Mood", room.position);
+                PlaceItem("Mood/Lights/PropRoom_Lights", mood, 11f, -6.8f, 0);
+                PlaceItem("Mood/Lights/DressingCorner_Lights", mood, 14.6f, -11f, 0);
+                PlaceItem("Mood/InteriorArt/Dust_Props", mood, 12.5f, -9.3f, 0);
+                var canvas = Copy(Required("Mood/InteriorArt/PropRoom_PatchedCeiling"), mood);
+                canvas.localScale = new Vector3((PropX1 - PropX0) / 15.8f, 1, (PropZ1 - PropZ0) / 8.3f);
+                MoveCenter(canvas, (PropX0 + PropX1) * .5f, (PropZ0 + PropZ1) * .5f);
+                foreach (var (x, z, s) in new[] { (8f, -9.5f, 2.2f), (16.5f, -6f, 1.8f), (12f, -12.5f, 1.6f) })
+                    Decal(mood, "RustStain", x, z, s, s * .8f, Mat("LA_RustDecal"));
+                Decal(mood, "Crack", 10.5f, -6.4f, 2.6f, 2.6f, Mat("LA_CrackDecal"));
+
+                // Room camera framing: the original close-view zone, resized to the new room.
+                var zone = Copy(Required("CameraZones/Zone_PropRoom"), room);
+                zone.position = W((PropX0 + PropX1) * .5f, (PropZ0 + PropZ1) * .5f, 3f);
+                zone.GetComponent<BoxCollider>().size = new Vector3(PropX1 - PropX0 - .2f, 6f, PropZ1 - PropZ0 - .2f);
+
+                OpenPortal(target, "04");
+                int remapped = RemapReferences(room);
+                int outer = RemapExistingReferences(scene, room) + ConnectWorldLabels(scene, "shelf", room.GetComponentInChildren<HandoverShelfView>());
+                Physics.SyncTransforms();
+                AssertUnchanged(original);
+                ValidatePropRoom(scene, room);
+                Finish(scene, undo, "stage-03-proproom-copy-manifest.md", "3단계 소품실 복제 목록", room, remapped, outer);
+                return $"Prop room built; objects={room.GetComponentsInChildren<Transform>(true).Length}; lights={room.GetComponentsInChildren<Light>().Length}; remapped={remapped}; outerRefs={outer}; sourceUnchanged=true";
+            }
+            catch { Undo.RevertAllDownToGroup(undo); throw; }
+        }
+
+        static readonly (Vector2 a, Vector2 b, Vector2 inward, Door[] doors, float[] pilasters)[] PropWalls =
+        {
+            (new(PropX0, PropZ0), new(PropX0, PropZ1), new(1, 0), new[] { new Door("04", "", PropDoorZ - PropZ0, PropDoorWidth) }, Array.Empty<float>()),
+            (new(PropX0, PropZ1), new(PropX1, PropZ1), new(0, -1), Array.Empty<Door>(), new[] { 6.3f }),
+            (new(PropX1, PropZ1), new(PropX1, PropZ0), new(-1, 0), Array.Empty<Door>(), new[] { 6.7f }),
+            (new(PropX1, PropZ0), new(PropX0, PropZ0), new(0, 1), Array.Empty<Door>(), new[] { 4.9f }),
+        };
+
+        static void BuildPropShell(Transform room)
+        {
+            var shell = Group(room, "Shell", room.position);
+            var b = new MeshBuilder("LA_PropRoomFloor", 1);
+            for (float x = PropX0; x < PropX1 - .01f; x += 3.5f)
+            for (float z = PropZ0; z < PropZ1 - .01f; z += 3.5f)
+            {
+                float xe = Mathf.Min(PropX1, x + 3.5f), ze = Mathf.Min(PropZ1, z + 3.5f);
+                b.Quad(0, new Vector3(x, 0, z), new Vector3(x, 0, ze), new Vector3(xe, 0, ze), new Vector3(xe, 0, z), Vector3.up, 3.5f);
+            }
+            var floor = MeshObject(shell, "Floor_BrokenConcrete", Origin, SaveMesh(b.Build()), Mat("LA_FloorConcrete"));
+            // Reaches under the doorway to the lobby floor edge (X 6.4), closing the gap inside the wall thickness.
+            AddBox(floor, new Vector3((NotchX - .1f + PropX1) * .5f, -.1f, (PropZ0 + PropZ1) * .5f), new Vector3(PropX1 - NotchX + .1f, .2f, PropZ1 - PropZ0 + .2f));
+            // Low room: concrete up to the steel ledger at 2.4 m, rusted plate above, under a 5.6 m ceiling.
+            MeshObject(shell, "WallSurfaces", Origin, WallMesh("LA_PropRoomWalls", PropWalls, PropHeight, 2.4f, DoorHeight), Mat("LA_WallConcrete"), Mat("LA_WallRust"));
+            var structure = Group(shell, "WallStructure", room.position);
+            foreach (var wall in PropWalls)
+            {
+                Vector2 u = (wall.b - wall.a).normalized; float length = Vector2.Distance(wall.a, wall.b);
+                var inward = new Vector3(wall.inward.x, 0, wall.inward.y); var along = new Vector3(u.x, 0, u.y);
+                float cursor = 0;
+                foreach (var d in wall.doors.Append(new Door("", "", length + 100, 0)))
+                {
+                    float end = Mathf.Min(length, d.At - d.Width * .5f);
+                    if (end - cursor > .05f) Blocker(structure, wall.a + u * ((cursor + end) * .5f), along, inward, end - cursor, 0, PropHeight);
+                    if (d.At > length) break;
+                    var p = wall.a + u * d.At;
+                    Blocker(structure, p, along, inward, d.Width, DoorHeight, PropHeight);
+                    // Reveal between the lobby face and this room's face.
+                    foreach (var side in new[] { -1f, 1f })
+                        Box(structure, "DoorReveal", W(p.x, p.y, DoorHeight * .5f) + along * side * (d.Width * .5f + .12f) - inward * .25f, Size(along, .24f, DoorHeight, .62f), Mat("V4_Iron_Dark"), true);
+                    Box(structure, "RevealLintel", W(p.x, p.y, DoorHeight + .14f) - inward * .25f, Size(along, d.Width + .5f, .28f, .62f), Mat("V4_RustyMetal"));
+                    cursor = d.At + d.Width * .5f;
+                }
+                // The ledger sits below the door head, so it stops at openings.
+                float from = 0;
+                foreach (var d in wall.doors.Append(new Door("", "", length + 100, 0)))
+                {
+                    float to = Mathf.Min(length, d.At - d.Width * .5f - .24f);
+                    if (to - from > .05f)
+                    {
+                        var m = wall.a + u * ((from + to) * .5f);
+                        Box(structure, "SteelLedger", W(m.x, m.y, 2.4f) + inward * .1f, Size(along, to - from, .3f, .2f), Mat("V4_Iron_Dark"));
+                    }
+                    from = d.At + d.Width * .5f + .24f;
+                }
+                foreach (var at in wall.pilasters)
+                {
+                    var p = wall.a + u * at;
+                    Box(structure, "IBeam", W(p.x, p.y, PropHeight * .5f) + inward * .2f, Size(along, .4f, PropHeight, .4f), Mat("V4_Iron_Dark"), true);
+                }
+            }
+            var overhead = Group(room, "Overhead", room.position);
+            Box(overhead, "Ceiling", W((PropX0 + PropX1) * .5f, (PropZ0 + PropZ1) * .5f, PropHeight + .1f), new Vector3(PropX1 - PropX0 + .6f, .2f, PropZ1 - PropZ0 + .6f), Mat("LA_WallRust"));
+            foreach (var x in new[] { 9.5f, 13f, 16.4f })
+                Box(overhead, "CeilingBeam", W(x, (PropZ0 + PropZ1) * .5f, PropHeight - .2f), new Vector3(.25f, .4f, PropZ1 - PropZ0), Mat("V4_Iron_Dark"));
+            PipeRun(overhead, new(PropX0 + .4f, PropZ1 - .4f), new(PropX1 - .4f, PropZ1 - .4f), 4.9f, .16f);
+        }
+
+        // Copies one original item and moves it so its footprint centre lands on (x, z), turned by yaw. Height is kept.
+        static Transform PlaceItem(string path, Transform parent, float x, float z, float yaw)
+        {
+            var original = Required(path);
+            var c = FootprintCenter(original);
+            return PlaceGroupCore(new[] { original }, parent, new Vector2(c.x, c.z), x, z, yaw)[0];
+        }
+
+        static Transform[] PlaceGroup(string[] paths, Transform parent, Vector2 pivotWorld, float x, float z, float yaw) =>
+            PlaceGroupCore(paths.Select(Required).ToArray(), parent, pivotWorld, x, z, yaw);
+
+        // Rigid move of several originals: positions rotate about the old pivot and land on the new one.
+        static Transform[] PlaceGroupCore(Transform[] originals, Transform parent, Vector2 pivotWorld, float x, float z, float yaw)
+        {
+            var turn = Quaternion.Euler(0, yaw, 0);
+            var pivotOld = new Vector3(pivotWorld.x, 0, pivotWorld.y);
+            var pivotNew = W(x, z);
+            return originals.Select(o =>
+            {
+                var copy = Copy(o, parent);
+                copy.SetPositionAndRotation(pivotNew + turn * (o.position - pivotOld), turn * o.rotation);
+                return copy;
+            }).ToArray();
+        }
+
+        static Vector3 FootprintCenter(Transform t)
+        {
+            var renderers = t.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0) return t.position;
+            var b = renderers[0].bounds;
+            foreach (var r in renderers) b.Encapsulate(r.bounds);
+            return b.center;
+        }
+
+        static void MoveCenter(Transform t, float x, float z)
+        {
+            var c = FootprintCenter(t); var target = W(x, z);
+            t.position += new Vector3(target.x - c.x, 0, target.z - c.z);
+        }
+
+        // A built room opens its lobby portal: the temporary curtain and shutter go, the sign stays.
+        static void OpenPortal(Transform target, string id)
+        {
+            var portal = target.Find("S01_Lobby/FutureConnections/Portal_" + id);
+            if (portal == null) return;
+            foreach (var n in new[] { "TemporaryClosure", "RollerShutter" })
+            {
+                var t = portal.Find(n);
+                if (t != null) Undo.DestroyObjectImmediate(t.gameObject);
+            }
+        }
+
+        static void ValidatePropRoom(Scene scene, Transform room)
+        {
+            var shelves = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<HandoverShelfView>()).Where(s => s.gameObject.activeInHierarchy).ToArray();
+            if (shelves.Length != 1 || !shelves[0].transform.IsChildOf(room)) throw new InvalidOperationException("Expected one active handover shelf in the prop room");
+            foreach (var labels in scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<WaitingRoomWorldLabels>(true)))
+                if (new SerializedObject(labels).FindProperty("shelf").objectReferenceValue != shelves[0])
+                    throw new InvalidOperationException("World labels do not point at the copied handover shelf");
+            var portal = room.parent.Find("S01_Lobby/FutureConnections/Portal_04");
+            if (portal != null && portal.Find("TemporaryClosure") != null) throw new InvalidOperationException("Prop room portal still closed");
+            if (room.GetComponentsInChildren<Component>(true).Any(c => c == null)) throw new InvalidOperationException("Missing script in prop room");
+            if (!Physics.Raycast(W(NotchX + .25f, PropDoorZ, 1f), Vector3.down, out var gapHit, 2f) || Mathf.Abs(gapHit.point.y) > .01f)
+                throw new InvalidOperationException("No floor under the prop room doorway");
+            foreach (var (x, z, what) in new[] { (PropX0 + 2f, PropDoorZ, "prop room entry"), (NotchX + .25f, PropDoorZ, "prop room doorway"), (13.3f, -7.3f, "shelf north side"), (13.3f, -9.6f, "shelf south side"),
+                         (11.5f, -11.6f, "costume aisle"), (16.2f, -8f, "east aisle") })
+                CheckStanding(W(x, z, .1f), room.parent, what);
+            if (room.GetComponentsInChildren<Light>().Length > 12) throw new InvalidOperationException("Too many prop room lights");
+        }
+
+        static int ConnectWorldLabels(Scene scene, ShopDeliverySlot slot) => ConnectWorldLabels(scene, "delivery", slot);
+
+        // A rebuilt room leaves the label pointing at the destroyed copy (null); point it at the new component.
+        static int ConnectWorldLabels(Scene scene, string field, Component target)
         {
             int changed = 0;
             foreach (var labels in scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<WaitingRoomWorldLabels>(true)))
             {
-                var so = new SerializedObject(labels); var p = so.FindProperty("delivery");
-                if (p.objectReferenceValue == slot) continue;
+                var so = new SerializedObject(labels); var p = so.FindProperty(field);
+                if (p.objectReferenceValue == target) continue;
                 if (p.objectReferenceValue is Component c && !c.transform.IsChildOf(source)) continue;
-                Undo.RecordObject(labels, "Connect Layout A delivery slot");
-                p.objectReferenceValue = slot; so.ApplyModifiedProperties(); changed++;
-                Manifest.Add($"- 참조 재연결: {AnimationUtility.CalculateTransformPath(labels.transform, null)} WaitingRoomWorldLabels.delivery → {AnimationUtility.CalculateTransformPath(slot.transform, null)}");
+                Undo.RecordObject(labels, "Connect Layout A " + field);
+                p.objectReferenceValue = target; so.ApplyModifiedProperties(); changed++;
+                Manifest.Add($"- 참조 재연결: {AnimationUtility.CalculateTransformPath(labels.transform, null)} WaitingRoomWorldLabels.{field} → {AnimationUtility.CalculateTransformPath(target.transform, null)}");
             }
             return changed;
         }
@@ -772,10 +985,12 @@ namespace CurtainCall.WaitingRoom.Editor
             return SaveMesh(b.Build());
         }
 
-        static Mesh WallMesh()
+        static Mesh WallMesh() => WallMesh("LA_LobbyWalls", Walls, WallHeight, LedgerY, DoorHeight);
+
+        static Mesh WallMesh(string name, (Vector2 a, Vector2 b, Vector2 inward, Door[] doors, float[] pilasters)[] walls, float height, float ledger, float doorHeight)
         {
-            var b = new MeshBuilder("LA_LobbyWalls", 2);
-            foreach (var wall in Walls)
+            var b = new MeshBuilder(name, 2);
+            foreach (var wall in walls)
             {
                 Vector2 u = (wall.b - wall.a).normalized; float length = Vector2.Distance(wall.a, wall.b);
                 var normal = new Vector3(wall.inward.x, 0, wall.inward.y);
@@ -789,12 +1004,12 @@ namespace CurtainCall.WaitingRoom.Editor
                 foreach (var d in wall.doors.Append(new Door("", "", length + 100, 0)))
                 {
                     float end = Mathf.Min(length, d.At - d.Width * .5f);
-                    Face(cursor, end, 0, LedgerY, 0, 4f);
-                    Face(cursor, end, LedgerY, WallHeight, 1, 3f);
+                    Face(cursor, end, 0, ledger, 0, 4f);
+                    Face(cursor, end, ledger, height, 1, 3f);
                     if (d.At > length) break;
                     float s = d.At - d.Width * .5f, e = d.At + d.Width * .5f;
-                    Face(s, e, DoorHeight, LedgerY, 0, 4f);
-                    Face(s, e, LedgerY, WallHeight, 1, 3f);
+                    Face(s, e, doorHeight, ledger, 0, 4f);
+                    Face(s, e, Mathf.Max(ledger, doorHeight), height, 1, 3f);
                     cursor = e;
                 }
             }
