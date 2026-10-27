@@ -106,6 +106,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 Group(lobby, "LoungeReservation", W(0, -9.3f)); // Stage 5 builds the lounge here.
                 if (target.Find("S04_PropRoom") != null) OpenPortal(target, "04"); // rooms already built keep their doorway open
                 if (target.Find("S02_Dormitory") != null) OpenPortal(target, "02");
+                if (target.Find("S06_StageCorridor") != null) OpenPortal(target, "06");
                 int remapped = RemapReferences(lobby);
                 int outer = RemapExistingReferences(scene, lobby);
                 Physics.SyncTransforms();
@@ -355,6 +356,216 @@ namespace CurtainCall.WaitingRoom.Editor
             if (root.GetComponentsInChildren<Light>().Length > 12) throw new InvalidOperationException("Too many dormitory lights");
         }
 
+        // Stage 4 performance route (plan 06 + 07). The original 42 m backstage tunnel is copied in four chunks into the
+        // 21 m corridor east of the lobby; its stage-curtain end becomes the wider 07 stage entrance. The night shutter,
+        // the all-gathered check and the waiting-room exit watch move with it.
+        const float CorX0 = 15.2f, CorX1 = 36.3f, CorZ0 = -3.5f, CorZ1 = 4.5f, RouteHeight = 7.6f;
+        const float StageX0 = 36.5f, StageX1 = 42.8f, StageZ0 = -4.5f, StageZ1 = 5.5f;
+        const float RouteDoorZ = .5f, RouteDoorWidth = 5f, StageDoorWidth = 7f, RouteDz = .5f; // old tunnel centre (world z 70) -> 06 door centre
+
+        // Kept chunks of the original tunnel (world X from, to, shift). The fourth pair of curtain rooms (x 41-46.5) is left out.
+        static readonly (float from, float to, float shift)[] RouteChunks = { (10f, 17.5f, 4.7f), (22.5f, 29.5f, -.3f), (34f, 41f, -4.8f), (46.5f, 52.3f, -9f) };
+        const int StageChunk = 3;
+        // Single items from the left-out stretches that the shorter route still needs.
+        static readonly Dictionary<string, float> RouteOverrides = new() { { "TunnelFill", -4.25f }, { "Sign_무대 →", -8f }, { "Corridor_Far", -8.5f } };
+
+        public static string BuildStageRoute()
+        {
+            var (scene, target) = Begin();
+            if (target.Find("S01_Lobby") == null) throw new InvalidOperationException("Build the lobby first.");
+            var original = Snapshot(source);
+            int undo = StartUndo("Layout A: build stage corridor and entrance");
+            try
+            {
+                Remove(target, "S06_StageCorridor");
+                Remove(target, "S07_StageEntrance");
+                var corridor = Group(target, "S06_StageCorridor", W((CorX0 + CorX1) * .5f, RouteDoorZ));
+                var stage = Group(target, "S07_StageEntrance", W((StageX0 + StageX1) * .5f, RouteDoorZ));
+                RoomShell(corridor, "LA_Corridor", CorX0, CorX1, CorZ0, CorZ1, RouteHeight, 2.2f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                    new[] { (0, RouteDoorZ, RouteDoorWidth, .1f), (2, RouteDoorZ, StageDoorWidth, .1f) }, eastThickness: .1f);
+                RoomShell(stage, "LA_StageEntrance", StageX0, StageX1, StageZ0, StageZ1, RouteHeight, 2.6f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                    new[] { (0, RouteDoorZ, StageDoorWidth, .1f) }, westThickness: .1f);
+                // One collider from the lobby doorway to the stage curtain, so both wall thicknesses have floor.
+                var floorCollider = new GameObject("FloorCollider"); floorCollider.transform.SetParent(corridor, false);
+                floorCollider.transform.position = W((LobbyW - .1f + StageX1) * .5f, (StageZ0 + StageZ1) * .5f, -.1f);
+                floorCollider.AddComponent<BoxCollider>().size = new Vector3(StageX1 - LobbyW + .3f, .2f, StageZ1 - StageZ0 + .2f);
+
+                // Tunnel art, curtain rooms and lights keep their shape and height; each moves rigidly with its chunk.
+                var art = Group(corridor, "TunnelArt", corridor.position);
+                var stageArt = Group(stage, "StageArt", stage.position);
+                var groups = new Dictionary<(Transform, string), Transform>();
+                void Route(Transform o, string group)
+                {
+                    var bounds = Footprint(o);
+                    int chunk = Array.FindIndex(RouteChunks, c => bounds.center.x >= c.from && bounds.center.x < c.to);
+                    bool special = RouteOverrides.TryGetValue(o.name, out float shift);
+                    if (!special && (chunk < 0 || bounds.size.x > 7f)) return; // long pipe runs are rebuilt to the new length below
+                    if (!special) shift = RouteChunks[chunk].shift;
+                    if (chunk == StageChunk && group == "SteelRibs") return; // ribs span the 8 m tunnel, not the wider entrance
+                    var room = chunk == StageChunk ? stageArt : art;
+                    // The entrance is 1 m wider each side, so items standing against the old tunnel walls follow the walls out.
+                    float dz = RouteDz + (chunk != StageChunk || group == "Curtains" || group.StartsWith("S07") ? 0
+                        : bounds.center.z < 67.5f ? StageZ0 - CorZ0 : bounds.center.z > 72.5f ? StageZ1 - CorZ1 : 0);
+                    if (o.name.StartsWith("Puddle")) // V4_Puddle renders as a black slab; a puddle decal takes its place
+                    {
+                        Decal(room, "WetPuddle", bounds.center.x + shift, bounds.center.z - Origin.z + dz, bounds.size.x, Mathf.Max(bounds.size.z, .6f), Mat("LA_PuddleDecal"));
+                        return;
+                    }
+                    if (!groups.TryGetValue((room, group), out var parent)) groups[(room, group)] = parent = Group(room, group, room.position);
+                    Copy(o, parent).position = o.position + new Vector3(shift, 0, dz);
+                }
+                foreach (var path in new[] { "Mood/Tunnel/SteelRibs", "Mood/Tunnel/WallDressing", "Mood/Tunnel/FloorWalkway", "Mood/Tunnel/StringLights", "Mood/Tunnel/Cables",
+                             "Mood/Tunnel/Lights", "Mood/Tunnel/Rags", "Mood/Tunnel/StageProscenium", "S06_StageCorridor_Temp/CurtainRooms", "Mood/Furnishings/Corridor", "S07_StageEntrance_Temp" })
+                    foreach (Transform o in Required(path)) Route(o, path.Substring(path.LastIndexOf('/') + 1));
+                foreach (Transform o in Required("Mood/Curtains"))
+                    if (o.name.StartsWith("Curtain_CurtainRoom") || o.name == "Curtain_StageEntrance") Route(o, "Curtains");
+                foreach (var path in new[] { "Mood/VisibilityLighting/Corridor_Near", "Mood/VisibilityLighting/Corridor_Middle", "Mood/VisibilityLighting/Corridor_Far",
+                             "Mood/VisibilityLighting/StageEntrance", "Mood/Lights/StageEntrance_RedSpill", "Mood/LightingPass/Spot_StageCurtain", "S06_StageCorridor_Temp/Label" })
+                    Route(Required(path), "Lighting");
+                var vaultSource = Required("Mood/Tunnel/Vault");
+                var vault = Copy(vaultSource, art);
+                vault.localScale = Vector3.Scale(vault.localScale, new Vector3((CorX1 - CorX0) / 42f, 1, 1));
+                vault.position = new Vector3(W((CorX0 + CorX1) * .5f, 0).x, vaultSource.position.y, vaultSource.position.z + RouteDz);
+                PipeRun(art, new(CorX0 + .3f, CorZ0 + .35f), new(CorX1 - .3f, CorZ0 + .35f), 4.1f, .3f);
+
+                // 07: the stage curtain fills the east wall; faded drapes close the gaps either side of the proscenium, a bulb row marks it.
+                foreach (var (z, width) in new[] { (StageZ0 + .6f, 1.2f), (StageZ1 - .55f, 1.1f) })
+                {
+                    Box(stageArt, "FadedDrape", W(StageX1 - .12f, z, 2.8f), new Vector3(.08f, 5.6f, width), Mat("LA_TentRed"));
+                    Box(stageArt, "DrapeRod", W(StageX1 - .2f, z, 5.65f), new Vector3(.06f, .06f, width + .2f), Mat("LA_Bronze"));
+                }
+                for (int i = 0; i <= 13; i++) Bulb(stageArt, W(StageX1 - .9f, Mathf.Lerp(-3.2f, 4.3f, i / 13f), 5.3f));
+
+                // Room camera framing: the original corridor zone, once per room.
+                var zone = Copy(Required("CameraZones/Zone_Corridor"), corridor);
+                zone.position = W((CorX0 + CorX1) * .5f, RouteDoorZ, 3f);
+                zone.GetComponent<BoxCollider>().size = new Vector3(CorX1 - CorX0 - .2f, 6f, CorZ1 - CorZ0 - .2f);
+                var stageZone = Copy(Required("CameraZones/Zone_Corridor"), stage, "Zone_StageEntrance");
+                stageZone.position = W((StageX0 + StageX1) * .5f, (StageZ0 + StageZ1) * .5f, 3f);
+                stageZone.GetComponent<BoxCollider>().size = new Vector3(StageX1 - StageX0 - .2f, 6f, StageZ1 - StageZ0 - .2f);
+
+                // All-gathered check in front of the stage curtain (Task-060: 4 x 7 m before 07) with its floor border.
+                var gameplay = Group(stage, "Gameplay", stage.position);
+                foreach (var path in new[] { "WaitingRoomGameplay/GatherZone", "S06_StageCorridor_Temp/GatherZone_Border" })
+                    Copy(Required(path), gameplay).position = Required(path).position + new Vector3(RouteChunks[StageChunk].shift, 0, RouteDz);
+
+                BuildNightShutter(corridor);
+                OpenPortal(target, "06");
+                BuildWaitingRoomArea(target);
+                int remapped = RemapReferences(corridor) + RemapReferences(stage) + RemapReferences(target.Find("ExplorationTimer"));
+                var gather = stage.GetComponentInChildren<StageEntranceGather>();
+                gather.ApplyArea(); // lays the floor border strips around the moved box
+                int outer = RemapExistingReferences(scene, corridor) + RemapExistingReferences(scene, stage) + Connect<WaitingRoomUiBinding>(scene, "gather", gather);
+                Physics.SyncTransforms();
+                AssertUnchanged(original);
+                ValidateStageRoute(scene, corridor, stage);
+                Finish(scene, undo, "stage-04-route-copy-manifest.md", "4단계 무대 통로·스테이지 입구 복제 목록", corridor, remapped, outer);
+                return $"Stage route built; corridor={corridor.GetComponentsInChildren<Transform>(true).Length} stage={stage.GetComponentsInChildren<Transform>(true).Length}; " +
+                    $"lights={corridor.GetComponentsInChildren<Light>().Length + stage.GetComponentsInChildren<Light>().Length}; remapped={remapped}; outerRefs={outer}; sourceUnchanged=true";
+            }
+            catch { Undo.RevertAllDownToGroup(undo); throw; }
+        }
+
+        // The night lock (lobby <-> 06) moves onto the wider 06 door. The roller shutter hangs on the corridor side so its housing
+        // clears the lobby marquee; the locked sign and warning lamp face the lobby, where players wait at night.
+        static void BuildNightShutter(Transform corridor)
+        {
+            var night = Copy(Required("NightSchedule"), corridor);
+            Object.DestroyImmediate(night.Find("ScheduleCloseUp").gameObject); // the lobby already owns the schedule close-up
+            var door = night.Find("WaitingRoomShutter");
+            var shutter = door.Find("Shutter");
+            var widen = new Vector3(1, DoorHeight / 3f, RouteDoorWidth / 3.33f); // old opening 3.33 x 3 m
+            door.rotation = Quaternion.Euler(0, 180, 0) * door.rotation;
+            door.localScale = Vector3.Scale(door.localScale, widen);
+            float plane = CorX0 + .25f;
+            door.position += W(plane, RouteDoorZ) - new Vector3(shutter.position.x, 0, shutter.position.z);
+            foreach (var t in new[] { door.Find("Sign_잠김"), door.Find("WarningLamp") })
+            {
+                t.localScale = Vector3.Scale(t.localScale, new Vector3(1 / widen.x, 1 / widen.y, 1 / widen.z));
+                t.rotation = Quaternion.Euler(0, 180, 0) * t.rotation;
+            }
+            var sign = door.Find("Sign_잠김");
+            sign.position = new Vector3(2 * W(plane, 0).x - sign.position.x, sign.position.y, sign.position.z); // mirrored to the lobby face of the shutter
+            var lamp = door.Find("WarningLamp");
+            lamp.position = new Vector3(W(LobbyW - .2f, 0).x, DoorHeight + .75f, lamp.position.z); // above the marquee, on the lobby wall
+        }
+
+        // The waiting-room exit watch (start of the exploration timer): the union of the built waiting-room spaces.
+        // Walking out through the 06 door counts as going backstage. Rebuild after adding a room that belongs to the waiting room.
+        static void BuildWaitingRoomArea(Transform target)
+        {
+            Remove(target, "ExplorationTimer");
+            var area = Copy(Required("ExplorationTimer/WaitingRoomArea"), Group(target, "ExplorationTimer", Origin));
+            var boxes = area.GetComponentsInChildren<BoxCollider>(true);
+            if (boxes.Length != 4) throw new InvalidOperationException("Expected four waiting-room area boxes");
+            var rects = new (string name, float x0, float x1, float z0, float z1, bool on)[]
+            {
+                ("Area_Lobby", -LobbyW, NotchX, LobbyS, LobbyN, true),
+                ("Area_LobbyEast", NotchX, LobbyW, NotchZ, LobbyN, true),
+                ("Area_Dormitory", DormX0, RestX1, LobbyN, DormZ1, target.Find("S02_Dormitory") != null),
+                ("Area_PropRoom", NotchX, PropX1, PropZ0, NotchZ, target.Find("S04_PropRoom") != null),
+            };
+            for (int i = 0; i < 4; i++)
+            {
+                var (name, x0, x1, z0, z1, on) = rects[i];
+                var box = boxes[i];
+                box.name = name;
+                box.transform.SetPositionAndRotation(W((x0 + x1) * .5f, (z0 + z1) * .5f, 3f), Quaternion.identity);
+                box.transform.localScale = Vector3.one;
+                box.center = Vector3.zero; box.size = new Vector3(x1 - x0, 8f, z1 - z0); box.enabled = on;
+            }
+        }
+
+        static void ValidateStageRoute(Scene scene, Transform corridor, Transform stage)
+        {
+            T Active<T>(Transform under) where T : Component
+            {
+                var all = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<T>()).Where(c => c.gameObject.activeInHierarchy).ToArray();
+                if (all.Length != 1 || !all[0].transform.IsChildOf(under)) throw new InvalidOperationException($"Expected one active {typeof(T).Name} under {under.name}, found {all.Length}");
+                return all[0];
+            }
+            var gather = Active<StageEntranceGather>(stage);
+            if (!(new SerializedObject(gather).FindProperty("border").objectReferenceValue is Transform border) || !border.IsChildOf(stage))
+                throw new InvalidOperationException("Gather border still points at the original");
+            foreach (var binding in scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<WaitingRoomUiBinding>(true)))
+                if (binding.Gather != gather) throw new InvalidOperationException("UI binding does not point at the copied gather zone");
+            if (!gather.GetComponent<BoxCollider>().bounds.Contains(W(40.5f, RouteDoorZ, .6f))) throw new InvalidOperationException("Gather zone not in front of the stage curtain");
+
+            var doorLock = Active<NightDoorLock>(corridor);
+            var shutter = (Transform)new SerializedObject(doorLock).FindProperty("shutter").objectReferenceValue;
+            if (shutter == null || !shutter.IsChildOf(corridor)) throw new InvalidOperationException("Night lock shutter still points at the original");
+            // Close the shutter as the night does, then make sure nobody fits through the 06 door.
+            var open = shutter.localScale;
+            shutter.localScale = new Vector3(open.x, 1, open.z);
+            Physics.SyncTransforms();
+            var panel = shutter.GetComponent<Collider>();
+            bool sealedDoor = new[] { -1.8f, RouteDoorZ, 2.8f }.All(z =>
+                Physics.OverlapCapsule(W(shutter.position.x, z, .4f), W(shutter.position.x, z, 1.5f), .3f, ~0, QueryTriggerInteraction.Ignore).Contains(panel));
+            shutter.localScale = open;
+            Physics.SyncTransforms();
+            if (!sealedDoor) throw new InvalidOperationException("Closed night shutter does not seal the 06 door");
+
+            var watch = Active<WaitingRoomExitWatch>(corridor.parent.Find("ExplorationTimer"));
+            var areas = watch.GetComponentsInChildren<BoxCollider>();
+            bool Inside(float x, float z) => areas.Any(a => a.enabled && a.bounds.Contains(W(x, z, .6f)));
+            foreach (var (x, z, inside, what) in new[] { (.5f, -5.6f, true, "spawn"), (12f, 8f, true, "lobby east"), (LobbyW - .3f, RouteDoorZ, true, "lobby side of 06 door"),
+                         (CorX0 + 1f, RouteDoorZ, false, "corridor"), (40f, RouteDoorZ, false, "stage entrance") })
+                if (Inside(x, z) != inside) throw new InvalidOperationException($"Exit watch wrong at {what}");
+            if (corridor.parent.Find("S02_Dormitory") != null && !Inside(DormDoorX, 18f)) throw new InvalidOperationException("Exit watch misses the dormitory");
+            if (corridor.parent.Find("S04_PropRoom") != null && !Inside(13.3f, -7.3f)) throw new InvalidOperationException("Exit watch misses the prop room");
+
+            var portal = corridor.parent.Find("S01_Lobby/FutureConnections/Portal_06");
+            if (portal != null && portal.Find("TemporaryClosure") != null) throw new InvalidOperationException("06 portal still closed");
+            if (corridor.GetComponentsInChildren<Component>(true).Concat(stage.GetComponentsInChildren<Component>(true)).Any(c => c == null)) throw new InvalidOperationException("Missing script in stage route");
+            if (!Physics.Raycast(W(LobbyW + .25f, RouteDoorZ, 1f), Vector3.down, out var hit, 2f) || Mathf.Abs(hit.point.y) > .01f)
+                throw new InvalidOperationException("No floor under the 06 doorway");
+            foreach (var (x, z, what) in new[] { (LobbyW + .25f, RouteDoorZ, "06 doorway"), (CorX0 + 1.2f, RouteDoorZ, "corridor entry"), (20f, RouteDoorZ, "first curtain rooms"),
+                         (26f, RouteDoorZ, "second curtain rooms"), (32f, RouteDoorZ, "third curtain rooms"), ((CorX1 + StageX0) * .5f, RouteDoorZ, "07 opening"),
+                         (40f, RouteDoorZ, "gather zone"), (39f, StageZ0 + 1.6f, "07 south side"), (39f, StageZ1 - 1.6f, "07 north side") })
+                CheckStanding(W(x, z, .1f), corridor.parent, what);
+            if (corridor.GetComponentsInChildren<Light>().Length + stage.GetComponentsInChildren<Light>().Length > 14) throw new InvalidOperationException("Too many stage route lights");
+        }
+
         // Rectangular room shell. doors: (side 0=W 1=N 2=E 3=S, world-axis coordinate along that side, width, blocker depth).
         static void RoomShell(Transform room, string prefix, float x0, float x1, float z0, float z1, float height, float ledger,
             Material floorMat, Material lower, Material upper, (int side, float at, float width, float depth)[] doors, float westThickness = .5f, float eastThickness = .5f)
@@ -503,13 +714,15 @@ namespace CurtainCall.WaitingRoom.Editor
             }).ToArray();
         }
 
-        static Vector3 FootprintCenter(Transform t)
+        static Vector3 FootprintCenter(Transform t) => Footprint(t).center;
+
+        static Bounds Footprint(Transform t)
         {
             var renderers = t.GetComponentsInChildren<Renderer>(true);
-            if (renderers.Length == 0) return t.position;
+            if (renderers.Length == 0) return new Bounds(t.position, Vector3.zero);
             var b = renderers[0].bounds;
             foreach (var r in renderers) b.Encapsulate(r.bounds);
-            return b.center;
+            return b;
         }
 
         static void MoveCenter(Transform t, float x, float z)
@@ -549,19 +762,20 @@ namespace CurtainCall.WaitingRoom.Editor
         }
 
         static int ConnectWorldLabels(Scene scene, ShopDeliverySlot slot) => ConnectWorldLabels(scene, "delivery", slot);
+        static int ConnectWorldLabels(Scene scene, string field, Component target) => Connect<WaitingRoomWorldLabels>(scene, field, target);
 
-        // A rebuilt room leaves the label pointing at the destroyed copy (null); point it at the new component.
-        static int ConnectWorldLabels(Scene scene, string field, Component target)
+        // A rebuilt room leaves an outside field pointing at the destroyed copy (null); point it at the new component.
+        static int Connect<T>(Scene scene, string field, Component target) where T : MonoBehaviour
         {
             int changed = 0;
-            foreach (var labels in scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<WaitingRoomWorldLabels>(true)))
+            foreach (var owner in scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<T>(true)))
             {
-                var so = new SerializedObject(labels); var p = so.FindProperty(field);
+                var so = new SerializedObject(owner); var p = so.FindProperty(field);
                 if (p.objectReferenceValue == target) continue;
                 if (p.objectReferenceValue is Component c && !c.transform.IsChildOf(source)) continue;
-                Undo.RecordObject(labels, "Connect Layout A " + field);
+                Undo.RecordObject(owner, "Connect Layout A " + field);
                 p.objectReferenceValue = target; so.ApplyModifiedProperties(); changed++;
-                Manifest.Add($"- 참조 재연결: {AnimationUtility.CalculateTransformPath(labels.transform, null)} WaitingRoomWorldLabels.{field} → {AnimationUtility.CalculateTransformPath(target.transform, null)}");
+                Manifest.Add($"- 참조 재연결: {AnimationUtility.CalculateTransformPath(owner.transform, null)} {typeof(T).Name}.{field} → {AnimationUtility.CalculateTransformPath(target.transform, null)}");
             }
             return changed;
         }
@@ -575,7 +789,9 @@ namespace CurtainCall.WaitingRoom.Editor
             ValidateLobby(target.Find("S01_Lobby"));
             var shop = target.Find("S03_Shop");
             if (shop != null) ValidateShop(scene, shop);
-            return "Structure PASS; lobby" + (shop != null ? " + shop pillar" : "") + "; legacy inactive";
+            var corridor = target.Find("S06_StageCorridor");
+            if (corridor != null) ValidateStageRoute(scene, corridor, target.Find("S07_StageEntrance"));
+            return "Structure PASS; lobby" + (shop != null ? " + shop pillar" : "") + (corridor != null ? " + stage route" : "") + "; legacy inactive";
         }
 
         public static string WritePlan()
@@ -918,7 +1134,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 Box(slab, "LiftedPlate", W(sx0 + dx, sz0 + dz, .06f), new Vector3(sx, .12f, sz), Mat("LA_FloorConcrete")).rotation = Quaternion.Euler(rx, random.Next(0, 90), rz);
             for (int i = 0; i < 5; i++)
                 Pipe(slab, W(sx0 - .8f + i * .38f, sz0 - .2f, .05f), new Vector3(1, .12f, .15f * (i - 2)), 1.6f, .018f).name = "ExposedRebar";
-            PlaceFactory("SM_MetalPlate1", slab, W(sx0 - 1.1f, sz0 + 1.3f, .02f), 17);
+            LayPlate(PlaceFactory("SM_MetalPlate1", slab, W(sx0 - 1.1f, sz0 + 1.3f, .02f), 17), sx0 - .5f, sz0 + .3f);
             for (int i = 0; i < 14; i++)
             {
                 var p = W(sx0 + (float)(random.NextDouble() * 4 - 2), sz0 + (float)(random.NextDouble() * 3.2 - 1.6), .05f);
@@ -935,6 +1151,15 @@ namespace CurtainCall.WaitingRoom.Editor
                 quad.rotation = Quaternion.Euler(90, random.Next(0, 360), 0);
                 quad.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
             }
+        }
+
+        // SM_MetalPlate1 is an upright 3.5 x 4 m sheet; laid flat and scaled down it covers the hole as a low step.
+        public static void LayPlate(Transform plate, float x, float z)
+        {
+            plate.SetPositionAndRotation(plate.position, Quaternion.Euler(90, 17, 0));
+            plate.localScale = Vector3.one * .6f;
+            MoveCenter(plate, x, z);
+            plate.position += Vector3.up * (.01f - Footprint(plate).min.y);
         }
 
         static void JointLine(Transform parent, Vector2 a, Vector2 b)
@@ -1560,7 +1785,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 while (p.Next(true))
                     if (p.propertyType == SerializedPropertyType.ObjectReference && TargetTransform(p.objectReferenceValue) is Transform t && t.IsChildOf(old))
                     {
-                        if (mb is WaitingRoomWorldLabels) continue; // re-pointed when the shop is rebuilt
+                        if (mb is WaitingRoomWorldLabels || mb is WaitingRoomUiBinding) continue; // re-pointed when the room is rebuilt
                         throw new InvalidOperationException($"{mb.name}.{p.propertyPath} references {name}; refusing to rebuild");
                     }
             }

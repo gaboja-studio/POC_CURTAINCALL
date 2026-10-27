@@ -1,0 +1,91 @@
+# 4단계 무대 통로·스테이지 입구 복제 목록
+
+원본: WaitingRoomGreybox(비활성 보존). 생성 도구: WaitingRoomLayoutA.
+
+오브젝트: 951, 내부 참조 재연결: 2, 바깥 참조 재연결: 1
+
+- WaitingRoomGreybox/Mood/Tunnel/SteelRibs/Rib → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/SteelRibs/Rib
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_Pipe_Medium_01 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/SM_Pipe_Medium_01
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_Pipe_Medium_01 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/WallDressing/SM_Pipe_Medium_01
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/PipeDust → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/PipeDust
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_Pipe_Medium_02 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/WallDressing/SM_Pipe_Medium_02
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/PipeDust → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/WallDressing/PipeDust
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/PipeCap → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/PipeCap
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_Smallpipe1 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/SM_Smallpipe1
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_Smallpipe1 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/WallDressing/SM_Smallpipe1
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_Pipe_Small_Valve_02 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/SM_Pipe_Small_Valve_02
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/DropPipe → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/WallDressing/DropPipe
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_Pipe_Small_Valve_02 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/WallDressing/SM_Pipe_Small_Valve_02
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/Poster → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/Poster
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/Sign_무대 → → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/Sign_무대 →
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/트렁크 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/트렁크
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/CrateDust → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/CrateDust
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_Barrel → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/SM_Barrel
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_Barrel_1 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/SM_Barrel_1
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_Plasticbarrel → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/WallDressing/SM_Plasticbarrel
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_CS1_Stool_01a_c1_LOD0 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/SM_CS1_Stool_01a_c1_LOD0
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/SM_MVV_HangingCloth05_c1_LOD0 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/SM_MVV_HangingCloth05_c1_LOD0
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/북 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/WallDressing/북
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/Cable → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/Cable
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/Flag → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/WallDressing/Flag
+- WaitingRoomGreybox/Mood/Tunnel/FloorWalkway/Plank → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/FloorWalkway/Plank
+- WaitingRoomGreybox/Mood/Tunnel/FloorWalkway/Plank → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/FloorWalkway/Plank
+- WaitingRoomGreybox/Mood/Tunnel/StringLights/Cable → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/StringLights/Cable
+- WaitingRoomGreybox/Mood/Tunnel/StringLights/StringBulb → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/StringLights/StringBulb
+- WaitingRoomGreybox/Mood/Tunnel/StringLights/Cable → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/StringLights/Cable
+- WaitingRoomGreybox/Mood/Tunnel/StringLights/StringBulb → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/StringLights/StringBulb
+- WaitingRoomGreybox/Mood/Tunnel/Cables/Cable → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Cables/Cable
+- WaitingRoomGreybox/Mood/Tunnel/Cables/Cable → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/Cables/Cable
+- WaitingRoomGreybox/Mood/Tunnel/Lights/CagedLamp → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Lights/CagedLamp
+- WaitingRoomGreybox/Mood/Tunnel/Lights/LampLight → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Lights/LampLight
+- WaitingRoomGreybox/Mood/Tunnel/Lights/CagedLamp → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/Lights/CagedLamp
+- WaitingRoomGreybox/Mood/Tunnel/Lights/LampLight → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/Lights/LampLight
+- WaitingRoomGreybox/Mood/Tunnel/Lights/TunnelFill → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Lights/TunnelFill
+- WaitingRoomGreybox/Mood/Tunnel/Lights/StageSpill → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/Lights/StageSpill
+- WaitingRoomGreybox/Mood/Tunnel/Rags/Rag_0 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Rags/Rag_0
+- WaitingRoomGreybox/Mood/Tunnel/Rags/Rag_2 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Rags/Rag_2
+- WaitingRoomGreybox/Mood/Tunnel/Rags/Rag_3 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Rags/Rag_3
+- WaitingRoomGreybox/Mood/Tunnel/Rags/Rag_4 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Rags/Rag_4
+- WaitingRoomGreybox/Mood/Tunnel/Rags/Rag_5 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Rags/Rag_5
+- WaitingRoomGreybox/Mood/Tunnel/StageProscenium/무대_프로시니엄 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/StageProscenium/무대_프로시니엄
+- WaitingRoomGreybox/S06_StageCorridor_Temp/CurtainRooms/CurtainRoom_Open_N_1 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/CurtainRooms/CurtainRoom_Open_N_1
+- WaitingRoomGreybox/S06_StageCorridor_Temp/CurtainRooms/CurtainRoom_Closed_N_2 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/CurtainRooms/CurtainRoom_Closed_N_2
+- WaitingRoomGreybox/S06_StageCorridor_Temp/CurtainRooms/CurtainRoom_Open_S_2 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/CurtainRooms/CurtainRoom_Open_S_2
+- WaitingRoomGreybox/S06_StageCorridor_Temp/CurtainRooms/CurtainRoom_Closed_N_3 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/CurtainRooms/CurtainRoom_Closed_N_3
+- WaitingRoomGreybox/S06_StageCorridor_Temp/CurtainRooms/CurtainRoom_Closed_S_3 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/CurtainRooms/CurtainRoom_Closed_S_3
+- WaitingRoomGreybox/S06_StageCorridor_Temp/CurtainRooms/CurtainRoom_Open_N_4 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/CurtainRooms/CurtainRoom_Open_N_4
+- WaitingRoomGreybox/Mood/Furnishings/Corridor/ReadyPropsCrate → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Corridor/ReadyPropsCrate
+- WaitingRoomGreybox/Mood/Furnishings/Corridor/ReadyPropsTrunk → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Corridor/ReadyPropsTrunk
+- WaitingRoomGreybox/S07_StageEntrance_Temp/Label → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/Label
+- WaitingRoomGreybox/S07_StageEntrance_Temp/CurtainFold_0 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/CurtainFold_0
+- WaitingRoomGreybox/S07_StageEntrance_Temp/CurtainFold_1 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/CurtainFold_1
+- WaitingRoomGreybox/S07_StageEntrance_Temp/CurtainFold_2 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/CurtainFold_2
+- WaitingRoomGreybox/S07_StageEntrance_Temp/CurtainFold_3 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/CurtainFold_3
+- WaitingRoomGreybox/S07_StageEntrance_Temp/CurtainFold_4 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/CurtainFold_4
+- WaitingRoomGreybox/S07_StageEntrance_Temp/CurtainFold_5 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/CurtainFold_5
+- WaitingRoomGreybox/S07_StageEntrance_Temp/CurtainFold_6 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/CurtainFold_6
+- WaitingRoomGreybox/S07_StageEntrance_Temp/CurtainFold_7 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/CurtainFold_7
+- WaitingRoomGreybox/S07_StageEntrance_Temp/Valance → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/Valance
+- WaitingRoomGreybox/S07_StageEntrance_Temp/Sign_⑦ 공연 스테이지 입구 → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/S07_StageEntrance_Temp/Sign_⑦ 공연 스테이지 입구
+- WaitingRoomGreybox/Mood/Curtains/Curtain_CurtainRoom_Open_N_1 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Curtains/Curtain_CurtainRoom_Open_N_1
+- WaitingRoomGreybox/Mood/Curtains/Curtain_CurtainRoom_Closed_N_2 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Curtains/Curtain_CurtainRoom_Closed_N_2
+- WaitingRoomGreybox/Mood/Curtains/Curtain_CurtainRoom_Open_S_2 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Curtains/Curtain_CurtainRoom_Open_S_2
+- WaitingRoomGreybox/Mood/Curtains/Curtain_CurtainRoom_Closed_N_3 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Curtains/Curtain_CurtainRoom_Closed_N_3
+- WaitingRoomGreybox/Mood/Curtains/Curtain_CurtainRoom_Closed_S_3 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Curtains/Curtain_CurtainRoom_Closed_S_3
+- WaitingRoomGreybox/Mood/Curtains/Curtain_CurtainRoom_Open_N_4 → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Curtains/Curtain_CurtainRoom_Open_N_4
+- WaitingRoomGreybox/Mood/Curtains/Curtain_StageEntrance → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/Curtains/Curtain_StageEntrance
+- WaitingRoomGreybox/Mood/VisibilityLighting/Corridor_Near → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Lighting/Corridor_Near
+- WaitingRoomGreybox/Mood/VisibilityLighting/Corridor_Middle → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Lighting/Corridor_Middle
+- WaitingRoomGreybox/Mood/VisibilityLighting/Corridor_Far → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Lighting/Corridor_Far
+- WaitingRoomGreybox/Mood/VisibilityLighting/StageEntrance → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/Lighting/StageEntrance
+- WaitingRoomGreybox/Mood/Lights/StageEntrance_RedSpill → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/Lighting/StageEntrance_RedSpill
+- WaitingRoomGreybox/Mood/LightingPass/Spot_StageCurtain → WaitingRoom_LayoutA/S07_StageEntrance/StageArt/Lighting/Spot_StageCurtain
+- WaitingRoomGreybox/S06_StageCorridor_Temp/Label → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Lighting/Label
+- WaitingRoomGreybox/Mood/Tunnel/Vault → WaitingRoom_LayoutA/S06_StageCorridor/TunnelArt/Vault
+- WaitingRoomGreybox/CameraZones/Zone_Corridor → WaitingRoom_LayoutA/S06_StageCorridor/Zone_Corridor
+- WaitingRoomGreybox/CameraZones/Zone_Corridor → WaitingRoom_LayoutA/S07_StageEntrance/Zone_StageEntrance
+- WaitingRoomGreybox/WaitingRoomGameplay/GatherZone → WaitingRoom_LayoutA/S07_StageEntrance/Gameplay/GatherZone
+- WaitingRoomGreybox/S06_StageCorridor_Temp/GatherZone_Border → WaitingRoom_LayoutA/S07_StageEntrance/Gameplay/GatherZone_Border
+- WaitingRoomGreybox/NightSchedule → WaitingRoom_LayoutA/S06_StageCorridor/NightSchedule
+- WaitingRoomGreybox/ExplorationTimer/WaitingRoomArea → WaitingRoom_LayoutA/ExplorationTimer/WaitingRoomArea
+- 참조 재연결: UI WaitingRoomUiBinding.gather → WaitingRoom_LayoutA/S07_StageEntrance/Gameplay/GatherZone
