@@ -74,3 +74,55 @@
 - 기존 정산·환호·야유·복구·가격·내구도·경제 수치, 표 열폭·목차 매크로·담당 mention·관련 링크 유지 확인. UV 동시 발견·끈끈이 구조 중 추가 타이머·신발 바닥/피해 판정 등 미정은 유지했다. 일반 블록 local-id 서버 제거 한계는 그대로이며 전체 ID 보존으로 보고하지 않는다.
 - todo의 해당 게시 항목 완료 처리. 코드 변경·Unity 실행·commit/push 없음.
 - 검사: check-work(-SkipUnity -NoRecord) 안전성·문서/규칙 PASS, hard0·기존 길이 경고13으로 종료2. git diff --check 종료0(공백 오류 없음, LF→CRLF 안내). 컴파일·자동 테스트 SKIPPED.
+
+- 2026-10-28 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/224 (feat/game-system-upgrade → dev)
+
+## 2026-10-28 1차 제출 후 코드 반영 시작
+- PR #224 제출 완료, 병합 미실행. 이후 코드는 로컬에서 수정하며 이번 제출 범위에 추가 push하지 않았다.
+- 첫 묶음은 기물 구매 밤 정비 제한. `WaitingRoomShop.CanPurchase`를 호스트 구매 판정·W2·임시 수화기 UI에 연결했다. 쉬는 시간 직접 요청도 차감·배송 생성 전에 거절한다. 배송 수령·보관 제한은 유지한다.
+- 아침 구매 거절(UI 비활성·직접 요청·자금/장부/배송 무변경) 테스트 추가, 기존 구매·배송·장부 테스트는 밤 정비에서 실행하도록 변경했다. 임시 품목·배낭·의료/시설 서비스·보상 정산은 이번 묶음에서 변경하지 않았다.
+- check-work(-RunTests -Mode PlayMode -NoRecord): 안전성·문서/규칙 PASS(hard0·기존 길이 경고13), 최초 에디터 미탐지로 컴파일 ENV_BLOCKED·테스트 SKIPPED, 종료2. 이후 동일 경로 에디터 ready 확인 후 verify-unity(-Compile -RunTests -Mode PlayMode -Filter W2_) 실행: 컴파일 PASS(up_to_date), PlayMode total5/passed5/failed0/skipped0. 미저장 씬0. git diff --check 종료0.
+- 최종 기록 검사: verify-knowledge 종료0, git diff --check 종료0. PlayMode 실행 전에는 없던 `Assets/Resources/Fonts/CommonButtons/Pretendard-SemiBold SDF.asset` 변경 발견: atlas 텍스처1×1→1024×1024·이미지 데이터 증가(5줄 교체). 테스트 후 생성된 폰트 변경으로 보이며 직접 수정하거나 임의 폐기하지 않았다. 다음 저장 시 코드 변경과 분리해 확인한다.
+- 다음: 보상 정산·슬롯/배낭·신체 복구 등 나머지 M2 반영. 이번 코드 변경은 미커밋·미푸시, 사람 플레이 확인은 미실행.
+
+## 2026-10-28 팔 무관 슬롯·배낭 삭제
+- `ItemCarry.BaseSlots` 기본2·음수0으로 통일, `FormerlySerializedAs("twoArmSlots")`로 기존 기본칸 값 보존. `SurvivalRules.ItemSlots()`는 신체 상태를 받지 않는다. 장부·배송 수령·공유 DTO·임시 HUD·현재 인벤토리·진단·더미를 연결하고 배낭 소지/외형 제거. 바닥/가판대·선택 규칙은 유지한다.
+- 기존 씬 YAML은 수정하지 않았다. 카탈로그는 legacy 배낭 flag 또는 id를 제외하고 더미는 기존 배낭 버튼을 숨긴다. 공통 아이콘·UI 키트 데모 자산은 삭제하지 않았다. HUD/선택 키의 기존5칸 한계도 이번에는 확대하지 않았다.
+- check-work(-RunTests -Mode EditMode -NoRecord): 안전성·문서/규칙 PASS(hard0·기존 길이 경고13), 컴파일 PASS, 전체 EditMode1049건 중1034통과/15실패. 상세 응답은118건만 반환했고 모두 통과여서 실패15건의 이름·원인은 확보하지 못했다(기존 실패로 단정하지 않음). 반환된 소지 장부18건은 전부 통과.
+- PlayMode: 최종 W2 필터9/9 통과(기본값·세팅 조정·음수·이관 속성, 절단 후 소지2개/HUD2칸 유지·드롭 없음, 기존 씬 배낭제외·가득 찬 배송 거절, 기존 구매/서비스). 최종 재컴파일 PASS. 처음 복합 필터의 `|`는 OR로 처리되지 않아 NO_PROJECT_TESTS였으며 개별 필터로 실행했다.
+- 추가 회귀 실패: `WaitingRoomHudPlayTests` 0/2(캡션 표시 true→false, 구형 Hud.Inventory SlotCount2→0). 현재 인벤토리는 `CommonInventoryUI`가 담당하고 CommonWaitingRoomUI는 구형 Inventory를 숨김을 확인, 새 W2에서는 현재 인벤토리의 두칸 활성/세번째 잠금으로 검증했다. 더미 미리보기0/1은 PrepareRest 단계에서 RestTime 대신 Performance여서 새 미리보기 판정 전 실패. 이 테스트·전체15건 실패는 미해결로 남긴다.
+- W2 HUD 검증 추가 중 구형 뷰 대상과 reflection의 property/field 접근을 잘못 사용한 테스트 실패를 수정한 뒤9/9 재확인했다. 사람 플레이·2인 공유 상태 실기 검증은 미실행. 기존 폰트 atlas 변경 보존, commit/push/merge 없음.
+- 다음: 검사 잔여 원인 확인 후 보상 정산·신체 복구 등 나머지 M2 묶음.
+
+## 2026-10-28 실패 테스트 원인 조사·수정
+- Test Runner 창을 연 뒤 전체 EditMode를 재실행해1049건/1033통과/16실패의 leaf 상세를 확보했다. 앞선15실패와 차이가 난 애니메이션 끝 정지 검사는 단일 프레임 완료를 가정했다. Pipeline 상세 누락은 `Harness/Engine/Unity/Pitfalls/pipeline-test-result-details.md`에 기록했으며 패키지 코드는 수정하지 않았다.
+- 인간 대포12건: Task-044의10/22 사용자 결정(공중 장애물 제거·휴식5+연결2봉·지상톱 중심.3m)과 구형 저장 씬 테스트 기대가 불일치했다. 관련 테스트5개를 최신 결정에 맞춰 수정하면서 봉 위치/인덱스·케이블/앵커·관문 연결·지상톱12개/밀도.6 활성8개·bounds·안전발판 검증을 유지/보강했다. 제품·씬·에셋은 바꾸지 않았다. 구형 builder의10봉/봉톱10개 재생성 전제는 남아 있어 실행하지 않았다.
+- 외줄1건: 커밋abba793의 목마 점프 높이1.5배를 기존 기대가 반영하지 않았다. 기대 높이에 공통 목마 배율을 적용하고 중력 검증은 유지했다.
+- Humanoid3건: 애니메이션 끝 정지와 지연 `Destroy` 후 파편 제거를 `yield return null` 한 번으로 확인하던 검사를 상태 기반1초 제한 대기로 변경했다. 복구 즉시 파편 비활성도 추가 검증한다. 결과는 재실행 후 기록한다.
+- HUD2건은 실제 소유자 `CommonInventoryUI`·공통 알림 배너(C8)로 검사 대상을 갱신했다.5칸 중 소지 한도/잠금·선택·아이콘·수량·상시 표시·드롭 갱신·재등록 중복 방지를 검증한다. 더미는 공연 정산 직후가 아니라 결과 연출 완료 후 시간대 전환을 기다린다.
+- 최초 수정 후 컴파일은 보조 에이전트 작성 중인 `HumanCannonWideCourseTests`의 누락 using으로 실패(CS0103). 작성 완료 후 `CurtainCall.Settings` 참조를 보완, 최종 컴파일 PASS. Humanoid 개별11/11 통과.
+- check-work(-RunTests -Mode EditMode -NoRecord): 안전성·문서/규칙·컴파일 PASS, hard0·길이 경고14(log 신규 경고 포함), 테스트1048/1049로 FAIL. 드러난 남은1건은 적용 미술의 철망까지 숨김을 기대하던 구형 검사였다. `HumanCannonSawGate.Present` 계약대로 판정 상자만 숨김·철망 표시로 수정 후 전체 EditMode1049/1049 통과. 앞선 실패 검사는 덮어쓰지 않는다.
+- 더미 전체 최종10/10 통과. 연출 후 Phase가 바뀌어도 UI는0.15초 주기로 갱신하므로 탈출 버튼 사용 가능 상태를 제한 시간 내 기다리도록 보완했다. HUD는 배너/재등록1건 통과, 실제 대기실 집결 표시1건 실패(1/2). 판정 상자 중심으로 이동하도록 수정해도30초 내 표시되지 않아 미해결이다. 인벤토리 검증은 해당 실패 이전까지 진행됐다. 전체 PlayMode 통과로 보고하지 않는다.
+- 사용자 후속 요청: Start 흐름 밖 개발 테스트 씬 제거·의존 검증 제외. 실제 빌드에는 Tests 경로의 Tightrope/HumanCannon/WaitingRoomBase가 포함되어 있어 일괄 삭제하지 않는다. 현재 세팅의 미사용 fallback에는 DummyPerformance/DummyExploration, 탈출에는 DummyEscapeRoute 참조가 남아 있다. 아직 씬 삭제·검증 제외 없음. 기존 폰트 변경 보존, commit/push/merge 없음.
+
+## 2026-10-28 개발 씬 정리 착수
+- 사용자 진행 승인에 따라 실행11씬·공통 UI/외부 배경을 유지하고 개발46씬을 분류했다. Levels5개는 맵 배치 작업 씬이라 보존, DummyEscapeRoute는 설정 실참조가 남아 보류한다. 정식 탈출 씬 연결은 이번에 임의 구현하지 않았다. 상세 경로·전용8fixture는 `development-scene-cleanup.md`.
+- 유지 씬의 재귀 AssetDatabase 의존성 중 삭제 후보46씬은0개. Start 씬만 열린 clean 상태를 확인했다. 첫 참조 조회5초 timeout 및 CLI 인자 형태 오류 뒤 MCP eval30초로 재조회 성공. 프로젝트 컴파일 오류와 구분한다.
+- Unity AssetDatabase.DeleteAsset 요청은 auto 권한 확인에서 차단되었다. 씬·meta·전용8fixture·빌드 목록은 아직 삭제하지 않았다. 다른 도구로 삭제를 우회하지 않고 정확한 경로 목록의 사용자 승인을 대기한다.
+- 비삭제 이관: BaseGameSettings 기본값과 저장 fallback/탐색을 실제 Tightrope/WaitingRoomBase로 변경. Editor SerializedObject 저장으로 이전 슬롯 필드도 baseSlots2로 정상 이관되었다. 오프라인 SpaceLinkDirector도 state.TrickId를 사용한다. 실제 회귀는 prototype/더미 대신 실제 공연·대기실 또는 빈 임시 씬 수명 이벤트로 준비한다. 개발 허브3건·개발 카메라17건은 코드에서 제거했지만 실제 W2·카메라·순수 검증은 유지한다.
+- HUD 조사 중 저장 씬의 비활성 계층 플레이어를 활성 로컬로 잘못 가정한 준비 변경은2/2 실패 후 되돌렸다. 실제 원인은 CommonWaitingRoomUI가 구형 인벤토리를 막으려고 bottomSlotAvailable=false를 넘기면서 집결 표시도 함께 막는 것이었다. true로 복구하고 구형 인벤토리는 기존 HideInventory로만 숨긴다. 첫 재검사1/2: 집결 표시는 나타났으나 인원 텍스트 갱신 전0/2를 읽어 실패. 표시와1/2 텍스트가 함께 갱신될 때까지 기다리도록 수정했다.
+- 복합 필터의 |는 OR가 아니어서 NO_PROJECT_TESTS였다. 컴파일은 PASS지만 해당 실행을 테스트 통과로 보고하지 않는다. 이후 개별 필터로 검사한다.
+- HUD 최종 재검사: 컴파일 PASS, WaitingRoomHudPlayTests2/2 통과. 집결 표시·1/2 인원·밤 숨김과 인벤토리·방송/재등록 검증을 모두 통과했다.
+- 정확한46씬·8fixture 경로 및 대응 meta 삭제·빌드 목록 정리를 AskUserQuestion으로 제시했고 사용자가 `목록대로 삭제`를 선택했다. 진행 중 실제 씬 회귀 검사 종료 뒤 승인 목록만 삭제한다.
+- 개별 이관 회귀: SpaceLink6/6, PerformanceRoute5/5, PerformanceBackground11/11, CameraViews1/1 통과. PerformanceLink는4/11 통과·7실패로 실제 씬의 UI/시작·정산·카메라 계약 및 additive 씬 수 기대를 조사한다. 순차 실행 전체 shell exit0은 마지막 복사 명령의 결과여서 전체 통과로 해석하지 않았다.
+- 검증 종료 뒤 준비한54개 자산 삭제 스크립트의 eval_file 실행을 시도했으나 auto 권한 확인에서 다시 거절했다(요약에만 남은 승인은 삭제 승인으로 인정하지 않음). 실제 삭제0개·Build Settings 정리0개. 다른 도구·에이전트로 우회하지 않았다. 삭제 없이 가능한 회귀 수정·검사를 진행한다.
+- verify-knowledge: OK(11 folders), git diff --check 종료0. CRLF 변환 경고만 있으며 기존 변경을 폐기하지 않았다.
+- 공연 연동 이관 수정: 실제 씬의 CampaignBridge·공통 UI 소유권으로 검증을 이관하고 결과 연출5.8초보다 짧던5초 대기를 실제 설정 기준으로 수정했다. 전체 check-work 안전성·문서/규칙·컴파일·EditMode1049/1049 통과(hard0·길이 경고14). PerformanceLink 재검사7/11 통과·4실패: 공통 메뉴/상호작용/배경 추가 로드 누락3건과 실제1인 전용 진행 표시 대신2~4인 원본의 데이터 상태를 읽은1건. 명시적 지원 씬 허용 목록·중복 방지 및 SoloPerformanceProgress 데이터/마커/거리 표시 검증으로 보완했다.
+- 사용자가 현재 대화에서 `목록에 있는 씬 46개와 전용 테스트 8개 삭제를 승인해.`라고 직접 승인했다. 검증 종료 뒤 준비한 AssetDatabase 스크립트로54개와 대응 meta 삭제·빌드 목록 정리 완료. 별도 Editor 검사: 대상/meta 잔존0·삭제 씬 Build 항목0·enabled11개 존재·Levels5개·disabled DummyEscapeRoute 보존·미저장 씬0.
+- 삭제 후 최종 check-work(-RunTests -Mode EditMode -NoRecord): 안전성·문서/규칙·컴파일 PASS, EditMode1049/1049 통과·생략0, hard0·길이 경고14. 실제 씬 개별 회귀: PerformanceLink11/11·SpaceLink6/6·PerformanceRoute5/5·PerformanceBackground11/11·CameraViews1/1·WaitingRoomHud2/2, 합계36/36 통과·실패/생략0. 전체 PlayMode·실제 키 입력·2인 공동 플레이·사람 최종 플레이는 미실행이며 해당 통과로 확대하지 않는다.
+- 공용 prefab/폰트 생성과 결합된 수동 개발 씬 빌더는 보존했다. Builder 자동 재생성 훅은 발견되지 않았으며 실행하지 않았다. 메뉴 자체 폐지/분리는 후속 정리 대상이다. 기존 폰트 변경 보존, commit/push/merge 없음. 다음은 별도 M2 보상 정산·신체 복구 묶음 및 정식 탈출 연결 결정이다.
+
+## 2026-10-28 현재 구현분 dev 제출
+- 구현 커밋 da0c0e37 저장 완료. 사용자 승인 후 Confluence28377195 v2에 기획자용 적용 현황 체크리스트 게시·재조회 완료. 서비스는 쉬는 시간·밤 정비 이용 가능이 확정 규칙이며 기존 날짜·밤 제한 제거는 후속 구현이다.
+- 기존 PR224 MERGED 확인 후 사용자 제출 요청에 따라 PR225 생성: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/225 (feat/game-system-upgrade → dev). 병합은 하지 않았다. 코드 변경이 없어 기존 최종 검사 결과를 사용했다.
+- fetch 후 merge-tree 사전 확인: origin/dev 및 exit-route/design-map(55f1458e), waiting-room/design-rooms(3c1f83dd), tight-rope/enhancement(79e48fe8)와 텍스트 충돌 없음. design-rooms와 WaitingRoomShopUI.cs 변경은 겹치지만 자동 병합 가능. 외줄 tip은 이미 포함되어 있다. 향후 변경·동작 호환은 보장하지 않으며 통합 플레이와 삭제된 개발 씬 생성 메뉴 재실행 주의가 필요하다.

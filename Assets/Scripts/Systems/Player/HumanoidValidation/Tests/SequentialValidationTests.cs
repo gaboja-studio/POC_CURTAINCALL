@@ -242,7 +242,10 @@ namespace CurtainCall.Tests.HumanoidValidation
                 AssertStage(validation, stage, stage);
                 for (int i = 0; i < stage; i++) Assert.That(validation.Piece(i), Is.SameAs(earlier[i]));
                 for (int i = stage; i < 4; i++) Assert.That(validation.Piece(i), Is.Null);
-                yield return null;
+                Assert.That(earlier[stage].gameObject.activeSelf, Is.False, "복구 즉시 파편을 숨겨야 합니다.");
+                float deadline = Time.realtimeSinceStartup + 1f;
+                while (earlier[stage] != null && Time.realtimeSinceStartup < deadline)
+                    yield return null;
                 Assert.That(earlier[stage] == null, Is.True, "복구한 파편 오브젝트를 제거해야 합니다.");
             }
             validation.Call("RestorePrevious");
@@ -284,7 +287,10 @@ namespace CurtainCall.Tests.HumanoidValidation
             for (int i = 0; i < 4; i++) Assert.That(validation.Piece(i), Is.SameAs(pieces[i]));
             validation.Call("RestoreAll");
             AssertStage(validation, 0, 0);
-            yield return null;
+            Assert.That(pieces.All(p => !p.gameObject.activeSelf), Is.True, "전체 복구 즉시 파편을 숨겨야 합니다.");
+            float deadline = Time.realtimeSinceStartup + 1f;
+            while (pieces.Any(p => p != null) && Time.realtimeSinceStartup < deadline)
+                yield return null;
             Assert.That(pieces.All(p => p == null), Is.True);
         }
 

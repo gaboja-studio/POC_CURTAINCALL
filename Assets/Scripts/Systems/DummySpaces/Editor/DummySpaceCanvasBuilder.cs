@@ -137,7 +137,6 @@ namespace CurtainCall.DummySpaces.EditorTools
                 Flow(content, "spend", "지출만 검증 · 물품 없음");
                 Group(content, "조회 입력 → 규칙 확인");
                 Flow(content, "lost", "조회 손실 수 변경  0 ~ 3");
-                Flow(content, "backpack", "조회 배낭 유무 변경");
                 Flow(content, "restorePreview", "복구 / 소지 칸 조회", true);
                 ServerButtons(content, true);
             }
