@@ -8,6 +8,8 @@
 
 이 POC·이 개발 환경에서 겪은 함정. 상황에 맞는 파일 1개만 연다.
 
+- [imported-factory-lod.md](imported-factory-lod.md) — 공장 프리팹이 조감도에서는 보이고 근접 카메라에서는 사라질 때
+
 - [Ui/](Ui/index.md) — UI 키트 수신 뒤 공통 타입 중복 컴파일 오류가 발생할 때
 - [shell-rosetta-brew.md](shell-rosetta-brew.md) — brew install 실패 또는 pwsh를 찾지 못할 때
 - [duplicate-unity-cli.md](duplicate-unity-cli.md) — doctor의 unity-cli가 WARN이거나 셸마다 CLI 버전이 다를 때
