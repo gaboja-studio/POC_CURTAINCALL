@@ -1,8 +1,8 @@
 ---
-summary: 공통 조작키 — hold/pressed 구분·F·카메라/UI, 1인칭 기본 이동은 수평 시선 W/S·3인칭 유지(연결 미구현)
+summary: 공통 조작키 — hold/pressed 구분·F(매달린 동료 2초 끌어올리기 포함, M2)·카메라/UI, 1인칭 기본 이동은 수평 시선 W/S·3인칭 유지(연결 미구현)
 status: active
-updated: 2026-10-15
-source: human (Confluence 조작키 역할 구성 11633076, 2026-10-13 추가 항목 포함·2026-10-15 재확인)
+updated: 2026-10-27
+source: human (Confluence 조작키 역할 구성 11633076, 2026-10-13 추가 항목 포함·2026-10-15 재확인; Confluence 27721807 M2 변경점(2026-10-27), Task-20261027-076)
 ---
 
 # 공통 조작키 역할
@@ -14,7 +14,7 @@ source: human (Confluence 조작키 역할 구성 11633076, 2026-10-13 추가 �
 ## 결정
 
 - PC 전용, 최초 키 기준(이후 설정 변경 가능):
-  - **캐릭터**: WASD hold 이동(줄타기 A/D 균형), Q/E hold 좌/우 감시, Space pressed 수직 점프, Q/E 또는 WASD+Space 방향 점프. F pressed 상호작용, F hold 취소.
+  - **캐릭터**: WASD hold 이동(줄타기 A/D 균형), Q/E hold 좌/우 감시, Space pressed 수직 점프, Q/E 또는 WASD+Space 방향 점프. F pressed 상호작용(예: 줄타기에서 줄에 매달린 동료 끌어올리기, 입력 후 2초 동작, M2), F hold 상호작용 취소.
   - **단독 입력**: L Shift hold 달리기, L Ctrl hold 앉기.
   - **복합 입력(2026-10-13 추가)**: WASD+L Shift **pressed 달리기 상태 toggle**, 여기에 Space로 달리기 방향 점프. WASD+L Ctrl **pressed 앉기 상태 toggle**. 단독 hold와 혼동하지 않는다.
   - **카메라**: 마우스 좌우/상하 시점, 휠 클릭 대상 집중(락온), 휠 위 줌아웃/아래 줌인.
