@@ -2,13 +2,13 @@
 
 이 POC의 확인 가능한 현재 상태. 상황에 맞는 파일 1개만 연다.
 
-- [overview.md](overview.md) — 기획 개요와 현재 구현 상태. 게임 규칙·UX·씬 Task를 계획할 때
-- [game-flow.md](game-flow.md) — 최신 게임 흐름(2026-10-15): 런·B 기본 쉬는 시간·밤·전화부스 서비스·호응/자금·탈출·세대 교체. 게임 흐름과 인간 대포 예외를 대조할 때
-- [run-state.md](run-state.md) — 런 상태 범위(세션/런/플레이어)·장소 전환 계기·전환 때 넘기는 데이터. 런 진행 관리자·장소 전환을 설계할 때
+- [overview.md](overview.md) — 기획 개요(M2 2026-10-27)와 현재 구현 상태. 게임 규칙·UX·씬 Task를 계획할 때
+- [game-flow.md](game-flow.md) — 최신 게임 흐름(M2 2026-10-27): 하루 시계·안전지대 없는 쉬는 시간·밤 정비·서비스 상시·기물 밤 구매·토큰 공동 자금·보상 확정 규칙·신체 복구 100/+25·난이도 단계 선택·탈출·세대 교체. 게임 흐름과 인간 대포 예외를 대조할 때
+- [run-state.md](run-state.md) — 런 상태 범위(세션/런/플레이어, 묘기별 클리어 단계·신체 복구 가격 단계)·장소 전환 계기(대기실 통합)·전환 때 넘기는 데이터. 런 진행 관리자·장소 전환을 설계할 때
 - [repository.md](repository.md) — 원격·기본 브랜치·명명 규칙. 브랜치·worktree·커밋 작업 전에
 - [humanoid-validation.md](humanoid-validation.md) — Body Type 1 순차 절단·8개 미리보기·실Player 표현/슬롯 색상과 부상 전용 제약. 절단 모델 준비·외형 연결 시
 - [unity-project.md](unity-project.md) — 씬·렌더·입력·코드·테스트 어셈블리 현황(2026-10-13). 에셋 경로를 찾거나 테스트를 만들 때
-- [team.md](team.md) — 현재 공간 담당(공연장·탈출로 @RagSpirin)과 PM 계정·과거 담당 구분. 담당자 배정·권한 확인 때
+- [team.md](team.md) — 현재 공간 담당(공연장·탈출로 @RagSpirin, 대기실 @gyumin9048-ctrl)과 PM 계정·과거 담당 구분. 담당자 배정·권한 확인 때
 - [local-environment.md](local-environment.md) — macOS 도구 경로. 스크립트·CLI가 실행되지 않을 때
 - [title-logo.md](title-logo.md) — 타이틀 로고 정적2레이어·Sprite/1920기준 배치 계약. Canvas 배치·크기/그림자 조절 전에
 - [results-ui.md](results-ui.md) — C12 공연 결과 표시·확인 의도·장식 동전 계약과 독립 씬. 조립/결과 어댑터 연결 전에

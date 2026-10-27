@@ -17,7 +17,8 @@ if ($Fetch -and -not $WhatIfPreference) {
     if ($LASTEXITCODE -ne 0) { throw '원격 ref 확인 실패' }
 }
 $branch=if ($UseCurrentBranch) { (& git -C $RepoRoot branch --show-current).Trim() } else { "$Type/$Slug" }
-if ($branch -cnotmatch $script:TaskBranchPattern -or ($branch -split '/')[0] -cne $Type) { throw 'Task 종류와 작업 브랜치를 맞추세요.' }
+$branchPattern=if ($UseCurrentBranch) { '^(feat|fix|refactor)/(?:[a-z0-9]+(?:-[a-z0-9]+)*/)*[a-z0-9]+(?:-[a-z0-9]+)*$' } else { $script:TaskBranchPattern }
+if ($branch -cnotmatch $branchPattern -or ($branch -split '/')[0] -cne $Type) { throw 'Task 종류와 작업 브랜치를 맞추세요.' }
 if (-not $Assignee.StartsWith('@')) { $Assignee="@$Assignee" }
 $registered=@(Get-TaskRefMetadata -Ref HEAD | Where-Object Branch -CEQ $branch)
 $working=@(Get-AllTaskFolders | Where-Object { $_.State -eq 'Active' -and (Get-MetaField -MetaPath (Get-TaskPlanPath $_.Path) -Field Branch) -ceq $branch })
