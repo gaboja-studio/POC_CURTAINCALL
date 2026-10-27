@@ -29,3 +29,4 @@
 - [basic-panels.md](basic-panels.md) — 메뉴·나가기 확인 패널 정본·private 의존성·조립기. 패널 배치·수정 전에
 - [common-buttons.md](common-buttons.md) — 공용 버튼4종·private 의존성·중복 코드 공존·조립기. 버튼 배치/키트 정리 전에
 - [c1-cheer-gauge.md](c1-cheer-gauge.md) — C1 디자인 정본·필수 private 자산·재생성 한계. 프리팹 수정이나 키트 정리 전에
+- [Waiting-room/](Waiting-room/index.md) — 기존 대기실 그레이박스를 복제·재배치할 때 원본 씬·분산 아트·기능 위치 확인
