@@ -2,8 +2,13 @@
 
 원본: WaitingRoomGreybox(비활성 보존). 생성 도구: WaitingRoomLayoutA.
 
-오브젝트: 700, 내부 참조 재연결: 0, 바깥 참조 재연결: 0
+오브젝트: 787, 내부 참조 재연결: 0, 바깥 참조 재연결: 0
 
+- 에셋 SM_Prop_Pipes_Valves_01 → WaitingRoom_LayoutA/P05_PipeZone/Pipes/SM_Prop_Pipes_Valves_01
+- 에셋 SM_Pipe_Small_Meter → WaitingRoom_LayoutA/P05_PipeZone/Pipes/SM_Pipe_Small_Meter
+- 에셋 SM_Pipe_Small_Valve_01 → WaitingRoom_LayoutA/P05_PipeZone/Pipes/SM_Pipe_Small_Valve_01
+- 에셋 SM_Prop_Sign_Danger_01 → WaitingRoom_LayoutA/P05_PipeZone/Pipes/SM_Prop_Sign_Danger_01
+- 에셋 SM_Prop_Sign_Caution_01 → WaitingRoom_LayoutA/P05_PipeZone/Pipes/SM_Prop_Sign_Caution_01
 - WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/LowSortingPartition → WaitingRoom_LayoutA/S05_JunkStorage/Archive/LowSortingPartition
 - WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/ArchiveShelf_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/ArchiveShelf_0
 - WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/RecordFolder_0_0 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/RecordFolder_0_0
@@ -52,6 +57,10 @@
 - WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/EastCrateLuggage_1 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/EastCrateLuggage_1
 - WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/EastCrates_2 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/EastCrates_2
 - WaitingRoomGreybox/Mood/InteriorArt/Stage02_JunkStorage/EastCrateLuggage_2 → WaitingRoom_LayoutA/S05_JunkStorage/Archive/EastCrateLuggage_2
+- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/BoothSign
+- WaitingRoomGreybox/Mood/InteriorArt/CircusStorageCrate_0 → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/CircusStorageCrate_0
+- WaitingRoomGreybox/Mood/InteriorArt/CircusStorageCrate_1 → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/CircusStorageCrate_1
+- WaitingRoomGreybox/Mood/Tunnel/WallDressing/Poster → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/CircusPoster
 - WaitingRoomGreybox/Mood/InteriorArt/Stage03_PropRoom/StoredMascotHead_0 → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/StoredMascotHead_0
 - WaitingRoomGreybox/Mood/InteriorArt/Stage03_PropRoom/StoredMascotHead_1 → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/StoredMascotHead_1
 - WaitingRoomGreybox/Mood/InteriorArt/Stage03_PropRoom/StoredMascotHead_2 → WaitingRoom_LayoutA/S05_JunkStorage/UnderSheets/StoredMascotHead_2

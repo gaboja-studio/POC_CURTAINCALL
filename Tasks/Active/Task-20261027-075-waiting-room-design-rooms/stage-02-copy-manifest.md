@@ -2,7 +2,7 @@
 
 원본: WaitingRoomGreybox(비활성 보존). 생성 도구: WaitingRoomLayoutA.
 
-오브젝트: 1044, 내부 참조 재연결: 1, 바깥 참조 재연결: 0
+오브젝트: 1040, 내부 참조 재연결: 1, 바깥 참조 재연결: 0
 
 - WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_09/DestinationSign
 - WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_02/DestinationSign

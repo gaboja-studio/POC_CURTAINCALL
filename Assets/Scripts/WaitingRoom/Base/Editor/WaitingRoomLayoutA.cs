@@ -72,7 +72,10 @@ namespace CurtainCall.WaitingRoom.Editor
         // Doors into rooms not built yet stay closed with a temporary curtain until that room is built.
 
         public static Vector2 ToLocal(float px, float py) => new((px - LobbyCenterPx.x) / PxPerMeter, -(py - LobbyCenterPx.y) / PxPerMeter);
-        static Vector3 W(float x, float z, float y = 0) => Origin + new Vector3(x, y, z);
+        // Floor level of the room being built: 0 for the ground floor, B1Level while building the basement (stage 8).
+        static float LevelY;
+        const float B1Level = -5f;
+        static Vector3 W(float x, float z, float y = 0) => Origin + new Vector3(x, y + LevelY, z);
 
         // Lobby hall: 29.4 x 28 m with the prop room cut into the south-east corner, as on the plan.
         const float LobbyW = 14.7f, LobbyN = 14f, LobbyS = -14f, NotchX = 6.4f, NotchZ = -4f;
@@ -120,6 +123,8 @@ namespace CurtainCall.WaitingRoom.Editor
                 if (target.Find("S09_PracticeRoom") != null) OpenPortal(target, "09");
                 if (target.Find("WC_WestCorridor") != null) OpenPortal(target, "WC");
                 if (target.Find("S08_ElevatorHall") != null) OpenPortal(target, "08");
+                if (target.Find("S11_StageGear") != null) OpenPortal(target, "11");
+                if (target.Find("S12_CargoBay") != null) OpenPortal(target, "12");
                 int remapped = RemapReferences(lobby);
                 int outer = RemapExistingReferences(scene, lobby);
                 Physics.SyncTransforms();
@@ -656,8 +661,10 @@ namespace CurtainCall.WaitingRoom.Editor
         // Stage 6 pipe zone (plan 05P) and waste storage (plan 05). Reached only through the restroom's broken wall: a low passage
         // crowded with pipes, then an orderly archive of past generations (records, costumes, retired circus props under sheets),
         // laid out from the original junk storage's own shelves, desks and costumes.
-        const float PipeX0 = 18.3f, PipeX1 = 27.2f, PipeZ0 = 17.4f, PipeZ1 = 21.2f, PipeHeight = 4.8f; // above the 4.2 m door head, so the broken wall shows no gap
-        const float StoreX0 = 27.2f, StoreX1 = 42.2f, StoreZ0 = 13.7f, StoreZ1 = 26.8f, StoreHeight = 6f, PipeDoorZ = 19.3f, PipeDoorWidth = 2.4f;
+        // The pipe zone is a 9 m high pipe gallery running north past the restroom: pipe racks on both walls, risers, a valve
+        // manifold and pumps at the north end. Waste storage opens off it through two wide openings.
+        const float PipeX0 = 18.3f, PipeX1 = 27.2f, PipeZ0 = 13.7f, PipeZ1 = 34f, PipeHeight = 9f;
+        const float StoreX0 = 27.2f, StoreX1 = 42.2f, StoreZ0 = 13.7f, StoreZ1 = 34f, StoreHeight = 7f, PipeDoorZ = 19.3f, PipeDoorWidth = 4f, PipeDoorNorthZ = 29f, ArchiveBackZ = 26.8f;
 
         public static string BuildStorageWing()
         {
@@ -671,29 +678,18 @@ namespace CurtainCall.WaitingRoom.Editor
                 Remove(target, "S05_JunkStorage");
                 var pipes = Group(target, "P05_PipeZone", W((PipeX0 + PipeX1) * .5f, (PipeZ0 + PipeZ1) * .5f));
                 RoomShell(pipes, "LA_PipeZone", PipeX0, PipeX1, PipeZ0, PipeZ1, PipeHeight, 1.6f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
-                    new[] { (0, BreachZ, BreachWidth, .5f), (2, PipeDoorZ, PipeDoorWidth, .1f) }, eastThickness: .1f);
+                    new[] { (0, BreachZ, BreachWidth, .5f), (2, PipeDoorZ, PipeDoorWidth, .1f), (2, PipeDoorNorthZ, PipeDoorWidth, .1f) }, eastThickness: .1f);
                 var floorCollider = new GameObject("FloorCollider"); floorCollider.transform.SetParent(pipes, false);
                 floorCollider.transform.position = W((RestX1 - .1f + StoreX1) * .5f, (StoreZ0 + StoreZ1) * .5f, -.1f);
                 floorCollider.AddComponent<BoxCollider>().size = new Vector3(StoreX1 - RestX1 + .3f, .2f, StoreZ1 - StoreZ0 + .2f);
-                // Pipes crowd both walls and the ceiling; the middle stays a walkable 1.6 m lane.
-                var run = Group(pipes, "Pipes", pipes.position);
-                foreach (var (z, y, r) in new[] { (PipeZ0 + .35f, .45f, .32f), (PipeZ0 + .3f, 1.35f, .22f), (PipeZ1 - .3f, .7f, .26f), (PipeZ1 - .3f, 2.4f, .2f), (PipeZ0 + .6f, 3.0f, .18f), (PipeZ1 - .7f, 3.05f, .14f) })
-                    PipeRun(run, new(PipeX0 + .1f, z), new(PipeX1 - .1f, z), y, r);
-                foreach (var x in new[] { 20.5f, 23.4f, 26f })
-                {
-                    Pipe(run, W(x, PipeZ1 - .3f, PipeHeight * .5f), Vector3.up, PipeHeight, .12f);
-                    var wheel = Prim(run, PrimitiveType.Cylinder, "ValveWheel", W(x, PipeZ1 - .55f, 1.5f), new Vector3(.45f, .03f, .45f), Mat("LA_Bronze"));
-                    wheel.rotation = Quaternion.Euler(90, 0, 0);
-                }
-                foreach (var (x, z, sz) in new[] { (21f, 19.3f, 1.6f), (24.8f, 19f, 1.2f) })
-                    Decal(run, "OilPuddle", x, z, sz, sz * .7f, Mat("LA_PuddleDecal"));
-                Point(run, "PipeGlow", W(23f, 19.3f, PipeHeight - .4f), new Color(.85f, .72f, .45f), .9f, 6f);
+                PipeGallery(Group(pipes, "Pipes", pipes.position));
                 BrokenWall(pipes, new Vector2(PipeX0, BreachZ), Vector3.forward, Vector3.right, BreachWidth, Mat("LA_WallConcrete"));
 
                 var store = Group(target, "S05_JunkStorage", W((StoreX0 + StoreX1) * .5f, (StoreZ0 + StoreZ1) * .5f));
                 RoomShell(store, "LA_JunkStorage", StoreX0, StoreX1, StoreZ0, StoreZ1, StoreHeight, 2.4f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
-                    new[] { (0, PipeDoorZ, PipeDoorWidth, .1f) }, westThickness: .1f);
-                // The original archive turns a quarter so its back wall becomes this room's north wall; spacing along the wall eases.
+                    new[] { (0, PipeDoorZ, PipeDoorWidth, .1f), (0, PipeDoorNorthZ, PipeDoorWidth, .1f) }, westThickness: .1f);
+                // The original archive turns a quarter so its back wall lines up on Z 26.8, the old north wall, and its shelves now
+                // divide the store from the north bay; spacing along the line eases.
                 var archive = Group(store, "Archive", store.position);
                 var skip = new[] { "InnerWestWall", "NorthPatchedWall", "SouthPatchedWall", "LowRoof", "WestRepairStud" };
                 foreach (Transform o in Required("Mood/InteriorArt/Stage02_JunkStorage"))
@@ -702,25 +698,21 @@ namespace CurtainCall.WaitingRoom.Editor
                     var c = FootprintCenter(o);
                     var copy = Copy(o, archive);
                     copy.rotation = Quaternion.Euler(0, 90, 0) * o.rotation;
-                    MoveCenter(copy, 34.7f + (c.z - 70f) * .85f, StoreZ1 - .1f - (c.x + 18.2f));
+                    MoveCenter(copy, 34.7f + (c.z - 70f) * .85f, ArchiveBackZ - .1f - (c.x + 18.2f));
                 }
                 foreach (var l in archive.GetComponentsInChildren<Light>()) l.color = new Color(1f, .66f, .34f);
                 // Nothing may stand in front of the only door: anything mapped there moves north along the west wall.
                 var doorway = new Bounds(W(StoreX0 + 1f, PipeDoorZ, 1f), new Vector3(2f, 2f, PipeDoorWidth + .6f));
                 foreach (Transform item in archive)
                     if (Footprint(item).Intersects(doorway)) MoveCenter(item, FootprintCenter(item).x, PipeDoorZ + PipeDoorWidth * .5f + .4f + Footprint(item).extents.z);
-                // Retired circus equipment under dust sheets in the south half, an aisle to the door left open.
+                // Retired circus equipment in the south and middle bays, aisles to both openings left clear.
                 var sheets = Group(store, "UnderSheets", store.position);
-                foreach (var (x, z, sx, sy, sz, yaw) in new[] { (31f, 15.6f, 2.2f, 1.6f, 1.6f, 8f), (35.4f, 15.3f, 3f, 2.2f, 1.8f, -4f), (39.8f, 16.2f, 1.8f, 1.2f, 2.4f, 15f) })
-                {
-                    Box(sheets, "SheetedShape", W(x, z, sy * .5f), new Vector3(sx, sy, sz), Mat("LA_TentCream"), true).rotation = Quaternion.Euler(0, yaw, 0);
-                    Box(sheets, "SheetHem", W(x, z, .12f), new Vector3(sx + .25f, .24f, sz + .25f), Mat("LA_TentCream")).rotation = Quaternion.Euler(0, yaw + 3, 0);
-                }
+                RetiredProps(sheets);
                 for (int i = 0; i < 3; i++) PlaceCopy("Mood/InteriorArt/Stage03_PropRoom/StoredMascotHead_" + i, sheets, W(33.2f + i * .7f, 18.2f), 160f + i * 25f);
-                foreach (var (x, z, sz) in new[] { (30f, 19.5f, 2f), (37.5f, 18.6f, 2.4f), (40.5f, 23f, 1.6f) })
+                foreach (var (x, z, sz) in new[] { (30f, 19.5f, 2f), (37.5f, 18.6f, 2.4f), (40.5f, 23f, 1.6f), (33f, 28.5f, 2.2f) })
                     Decal(sheets, "RustStain", x, z, sz, sz * .8f, Mat("LA_RustDecal"));
                 var lamp = Required("Mood/Lights").Cast<Transform>().First(t => t.name == "Lobby_Lamp");
-                foreach (var p in new[] { W(31.5f, 20.5f, 4f), W(38.5f, 18.5f, 4f) })
+                foreach (var p in new[] { W(31.5f, 20.5f, 4f), W(38.5f, 18.5f, 4f), W(35f, 27.5f, 4.2f) })
                 {
                     var copy = Copy(lamp, sheets, "StorageLamp");
                     copy.position = p;
@@ -741,19 +733,121 @@ namespace CurtainCall.WaitingRoom.Editor
             catch { Undo.RevertAllDownToGroup(undo); throw; }
         }
 
+        // Pipe gallery: three-tier racks along both walls (broken at the breach and the openings, upper runs bridge over them),
+        // big risers, a header along the roof, a valve manifold and two pumps at the north end; a 2.4 m lane stays clear.
+        static void PipeGallery(Transform g)
+        {
+            var west = new[] { (21f, 33.5f) };
+            var east = new[] { (14.2f, 17f), (21.6f, 26.7f), (31.3f, 33.5f) };
+            foreach (var (x, runs) in new[] { (PipeX0 + .75f, west), (PipeX1 - .75f, east) })
+                foreach (var (z0, z1) in runs)
+                {
+                    for (float z = z0; z <= z1 + .01f; z += Mathf.Max(1f, (z1 - z0) / Mathf.Max(1, Mathf.Round((z1 - z0) / 3f))))
+                        foreach (var dx in new[] { -.6f, .6f }) Box(g, "RackPost", W(x + dx, z, 2.6f), new Vector3(.12f, 5.2f, .12f), Mat("V4_Iron_Dark"));
+                    foreach (var y in new[] { .6f, 2.2f, 3.9f }) Box(g, "RackBeam", W(x, (z0 + z1) * .5f, y - .25f), new Vector3(1.3f, .08f, z1 - z0), Mat("V4_RustyMetal"));
+                    foreach (var (y, dx, r) in new[] { (.6f, -.3f, .28f), (.6f, .32f, .2f), (2.2f, -.25f, .22f), (2.2f, .3f, .16f), (3.9f, 0f, .3f) })
+                        PipeRun(g, new(x + dx, z0), new(x + dx, z1), y + r - .2f, r);
+                    var col = new GameObject("RackCollider"); col.transform.SetParent(g, false); col.transform.position = W(x, (z0 + z1) * .5f, 2.2f);
+                    col.AddComponent<BoxCollider>().size = new Vector3(1.4f, 4.4f, z1 - z0 + .2f);
+                }
+            // Upper runs along the whole gallery, above the openings, and a big header under the roof.
+            foreach (var (x, y, r) in new[] { (PipeX0 + .5f, 5.4f, .26f), (PipeX1 - .5f, 5.2f, .3f), (PipeX1 - .9f, 6.1f, .18f), (22.7f, 7.6f, .5f) })
+                PipeRun(g, new(x, PipeZ0 + .3f), new(x, PipeZ1 - .3f), y, r);
+            foreach (var z in new[] { 15.2f, 24.2f, 32.6f })
+            {
+                Pipe(g, W(22.7f, z, 3.8f), Vector3.up, 7.6f, .34f).name = "Riser";
+                Box(g, "RiserBand", W(22.7f, z, 1.2f), new Vector3(.8f, .12f, .8f), Mat("LA_Bronze"));
+            }
+            for (float z = PipeZ0 + 1.5f; z < PipeZ1; z += 4f) Box(g, "RoofHanger", W(22.7f, z, 8.4f), new Vector3(1.4f, .1f, .12f), Mat("V4_Iron_Dark"));
+            // North end: valve manifold on the wall and two pumps.
+            for (int i = 0; i < 3; i++) PlaceProp(SyntyProps + "SM_Prop_Pipes_Valves_01", g, W(20.6f + i * 2.4f, PipeZ1 - .25f), 180).localScale = Vector3.one * 1.4f;
+            foreach (var x in new[] { 20.6f, 24.8f })
+            {
+                Prim(g, PrimitiveType.Cylinder, "PumpBody", W(x, 32.3f, .55f), new Vector3(1f, .55f, 1f), Mat("V4_RustyMetal"), true);
+                Prim(g, PrimitiveType.Cylinder, "PumpMotor", W(x, 32.3f, 1.45f), new Vector3(.6f, .35f, .6f), Mat("LA_HazardPaint"));
+                Pipe(g, W(x, 32.3f + .9f, .6f), Vector3.forward, 1.6f, .14f);
+            }
+            for (int i = 0; i < 5; i++)
+            {
+                PlaceProp(LeartesProps + "SM_Pipe_Small_Meter", g, W(PipeX0 + .06f, 23f + i * 1.8f, 1.6f), 90, false);
+                PlaceProp(LeartesProps + "SM_Pipe_Small_Valve_01", g, W(PipeX1 - 1.45f, 22.4f + i * 1f, 1.1f), 0, false);
+            }
+            PlaceProp(SyntyProps + "SM_Prop_Sign_Danger_01", g, W(PipeX1 - .05f, 17.2f, 1.8f), -90, false);
+            PlaceProp(SyntyProps + "SM_Prop_Sign_Caution_01", g, W(PipeX0 + .05f, 28f, 1.8f), 90, false);
+            foreach (var (x, z, sz) in new[] { (21f, 19.3f, 1.6f), (24.8f, 19f, 1.2f), (22.7f, 24.8f, 2f), (21.4f, 31.2f, 1.6f) })
+                Decal(g, "OilPuddle", x, z, sz, sz * .7f, Mat("LA_PuddleDecal"));
+            Point(g, "PipeGlow", W(22.7f, 19.3f, 4.2f), new Color(.85f, .72f, .45f), 1.4f, 9f);
+            Point(g, "PipeGlowNorth", W(22.7f, 30.5f, 4.2f), new Color(.85f, .66f, .4f), 1.3f, 9f);
+            Point(g, "GalleryCold", W(22.7f, 25f, 7.2f), new Color(.62f, .74f, .9f), .8f, 14f);
+        }
+
+        // Retired equipment of earlier troupes, finished pieces rather than sheeted blocks: a ticket booth, an old cannon
+        // barrel on its carriage with a dust sheet half pulled off, a carousel horse on its pole, a stack of wagon wheels and a
+        // costume rail; a sheet over one tall piece.
+        static void RetiredProps(Transform g)
+        {
+            // Ticket booth: striped roof, a window with bars, a sign.
+            var b = W(31f, 15.8f);
+            Box(g, "BoothBody", b + Vector3.up * 1.1f, new Vector3(1.8f, 2.2f, 1.6f), Mat("LA_TentRed"), true);
+            Box(g, "BoothTrim", b + Vector3.up * 2.25f, new Vector3(1.9f, .12f, 1.7f), Mat("V4_Gold_Trim"));
+            Box(g, "BoothRoof", b + Vector3.up * 2.55f, new Vector3(2.1f, .5f, 1.9f), Mat("V4_CircusStripes"));
+            Box(g, "BoothWindow", b + new Vector3(0, 1.35f, .81f), new Vector3(1f, .7f, .02f), Mat("V4_Black"));
+            for (int i = 0; i < 5; i++) Box(g, "BoothBar", b + new Vector3(-.4f + i * .2f, 1.35f, .83f), new Vector3(.03f, .7f, .03f), Mat("LA_Bronze"));
+            var sign = Copy(Required("S01_Lobby/Sign_② 숙소"), g, "BoothSign", false);
+            sign.gameObject.SetActive(true); sign.SetPositionAndRotation(b + new Vector3(0, 2.05f, .86f), Quaternion.LookRotation(Vector3.back));
+            var t = sign.GetComponent<TextMesh>(); t.text = "매표소"; t.anchor = TextAnchor.MiddleCenter; t.fontSize = 64; t.characterSize = .035f; t.color = new Color(.9f, .8f, .55f);
+            // Old cannon: bronze barrel on a wheeled carriage, a dust sheet over the back half.
+            var c = W(35.6f, 15.6f);
+            var barrel = Prim(g, PrimitiveType.Cylinder, "CannonBarrel", c + Vector3.up * 1.15f, new Vector3(.7f, 1.4f, .7f), Mat("LA_Bronze"));
+            barrel.rotation = Quaternion.Euler(70, 90, 0);
+            Prim(g, PrimitiveType.Cylinder, "CannonMuzzle", c + new Vector3(1.3f, 1.6f, 0), new Vector3(.85f, .08f, .85f), Mat("LA_Bronze")).rotation = Quaternion.Euler(70, 90, 0);
+            Box(g, "CannonCarriage", c + Vector3.up * .55f, new Vector3(2f, .5f, .9f), Mat("V4_Wood_Old"), true);
+            foreach (var dz in new[] { -.55f, .55f }) Prim(g, PrimitiveType.Cylinder, "CarriageWheel", c + new Vector3(-.2f, .5f, dz), new Vector3(1f, .06f, 1f), Mat("V4_Wood_Old")).rotation = Quaternion.Euler(90, 0, 0);
+            Box(g, "DustSheet", c + new Vector3(-.75f, .95f, 0), new Vector3(.8f, .7f, 1f), Mat("LA_TentCream")).rotation = Quaternion.Euler(0, 0, 18);
+            Box(g, "DustSheetFold", c + new Vector3(-.55f, .55f, .52f), new Vector3(1f, .8f, .04f), Mat("LA_TentCream")).rotation = Quaternion.Euler(0, 0, 10);
+            Box(g, "DustSheetHem", c + new Vector3(-.9f, .12f, .1f), new Vector3(1.1f, .24f, 1.4f), Mat("LA_TentCream")).rotation = Quaternion.Euler(0, 12, 0);
+            // Carousel horse on its brass pole.
+            var h = W(39.8f, 16.2f);
+            Prim(g, PrimitiveType.Cylinder, "HorsePole", h + Vector3.up * 1.3f, new Vector3(.08f, 1.3f, .08f), Mat("LA_Bronze"));
+            Box(g, "HorseBody", h + Vector3.up * 1.2f, new Vector3(.4f, .45f, 1.1f), Mat("LA_TentCream"));
+            Box(g, "HorseNeck", h + new Vector3(0, 1.55f, .5f), new Vector3(.3f, .55f, .3f), Mat("LA_TentCream")).rotation = Quaternion.Euler(-30, 0, 0);
+            Box(g, "HorseHead", h + new Vector3(0, 1.85f, .72f), new Vector3(.26f, .28f, .5f), Mat("LA_TentCream"));
+            Box(g, "HorseSaddle", h + Vector3.up * 1.45f, new Vector3(.44f, .08f, .4f), Mat("V4_Velvet_Red"));
+            foreach (var (dx, dz) in new[] { (-.14f, .4f), (.14f, .4f), (-.14f, -.4f), (.14f, -.4f) })
+                Box(g, "HorseLeg", h + new Vector3(dx, .78f, dz), new Vector3(.1f, .5f, .1f), Mat("LA_TentCream")).rotation = Quaternion.Euler(dz > 0 ? -25 : 25, 0, 0);
+            Box(g, "HorseBase", h + Vector3.up * .05f, new Vector3(.8f, .1f, .8f), Mat("V4_Wood_Old"), true);
+            // Stack of wagon wheels and a tall sheeted piece in the north bay; a costume rail of faded acts.
+            for (int i = 0; i < 4; i++)
+                MeshObject(g, "WagonWheel", W(30.4f, 31.6f, .08f + i * .12f), SaveMesh(RingMesh("LA_WagonWheel", .5f, .65f, 24)), Mat("V4_Wood_Old"));
+            Box(g, "WheelStackCollider", W(30.4f, 31.6f, .3f), new Vector3(1.3f, .6f, 1.3f), Mat("V4_Wood_Old"), true).GetComponent<MeshRenderer>().enabled = false;
+            Box(g, "SheetedTall", W(39.6f, 31.2f, 1.4f), new Vector3(1.6f, 2.8f, 1.4f), Mat("LA_TentCream"), true).rotation = Quaternion.Euler(0, 10, 0);
+            Box(g, "SheetHem", W(39.6f, 31.2f, .12f), new Vector3(1.9f, .24f, 1.7f), Mat("LA_TentCream")).rotation = Quaternion.Euler(0, 14, 0);
+            Box(g, "CostumeRail", W(35.4f, 31.8f, 1.8f), new Vector3(3.2f, .04f, .04f), Mat("LA_Bronze"));
+            foreach (var dx in new[] { -1.6f, 1.6f }) Box(g, "CostumeRailPost", W(35.4f + dx, 31.8f, .9f), new Vector3(.05f, 1.8f, .05f), Mat("LA_Bronze"));
+            for (int i = 0; i < 8; i++)
+                Box(g, "RetiredCostume", W(34f + i * .38f, 31.8f, 1.2f), new Vector3(.08f, 1.1f, .5f), Mat(i % 3 == 0 ? "V4_Harlequin" : i % 3 == 1 ? "LA_TentRed" : "V4_Velvet_Red"));
+            foreach (var (x, z, yaw, k) in new[] { (32.6f, 33.2f, 4f, 0), (33.5f, 33.1f, -6f, 1), (32.9f, 33.1f, 0f, 0), (41.4f, 28.4f, 90f, 1), (41.3f, 29.4f, 84f, 0) })
+                PlaceCopy("Mood/InteriorArt/CircusStorageCrate_" + k, g, W(x, z, x == 32.9f ? .62f : 0f), yaw);
+            WallPoster(g, W(StoreX1, 31f), -90);
+            Banner(g, W(36f, StoreZ1, 4.4f), Vector3.back);
+            Box(g, "CostumeRailCollider", W(35.4f, 31.8f, .9f), new Vector3(3.3f, 1.8f, .6f), Mat("LA_TentRed"), true).GetComponent<MeshRenderer>().enabled = false;
+        }
+
         static void ValidateStorageWing(Transform pipes, Transform store)
         {
             var root = pipes.parent;
             if (root.Find("S02_Dormitory/Restroom/BreachClosure") != null) throw new InvalidOperationException("Restroom breach still closed");
             if (pipes.GetComponentsInChildren<Component>(true).Concat(store.GetComponentsInChildren<Component>(true)).Any(c => c == null)) throw new InvalidOperationException("Missing script in storage wing");
             foreach (var (x, z, what) in new[] { (RestX1 - .8f, BreachZ, "restroom side of the breach"), (RestX1 + .25f, BreachZ, "in the breach"), (PipeX0 + 1f, BreachZ, "pipe zone entry"),
-                         (23f, 19.3f, "pipe zone middle"), (PipeX1 - .8f, PipeDoorZ, "pipe zone end"), (StoreX0 + 1f, PipeDoorZ, "storage entry"), (34.5f, 19.8f, "storage aisle"), (39.6f, 20f, "storage east") })
+                         (23f, 19.3f, "pipe zone crossing"), (PipeX1 - .8f, PipeDoorZ, "pipe zone south opening"), (StoreX0 + 1f, PipeDoorZ, "storage entry"), (34.5f, 19.8f, "storage aisle"), (39.6f, 20f, "storage east"),
+                         (22.7f, 15f, "gallery south end"), (22.7f, 25f, "gallery middle"), (21f, 31f, "gallery north west"), (24.6f, 31f, "gallery north east"), (PipeX1 - .8f, PipeDoorNorthZ, "pipe zone north opening"),
+                         (StoreX0 + 1f, PipeDoorNorthZ, "storage north entry"), (32f, 24.5f, "storage middle"), (36f, 29.5f, "storage north bay") })
                 CheckStanding(W(x, z, .1f), root, what);
             // Only one way in: the storage room has no door but the pipe zone's.
             foreach (var r in store.GetComponentsInChildren<Renderer>())
                 if (r.bounds.min.x < W(StoreX0 - .2f, 0).x || r.bounds.max.x > W(StoreX1 + .1f, 0).x || r.bounds.max.z > W(0, StoreZ1 + .1f).z || r.bounds.min.z < W(0, StoreZ0 - .1f).z)
                     if (!r.transform.IsChildOf(store.Find("Shell"))) throw new InvalidOperationException("Outside the storage room: " + r.name);
-            if (pipes.GetComponentsInChildren<Light>().Length + store.GetComponentsInChildren<Light>().Length > 6) throw new InvalidOperationException("Too many storage wing lights");
+            if (pipes.GetComponentsInChildren<Light>().Length + store.GetComponentsInChildren<Light>().Length > 8) throw new InvalidOperationException("Too many storage wing lights");
         }
 
         // A wall knocked through: jagged chunks along both jambs and the head, rubble and bent rebar on the floor.
@@ -779,6 +873,791 @@ namespace CurtainCall.WaitingRoom.Editor
                     .rotation = Quaternion.Euler(R(0, 360), R(0, 360), 0);
             for (int i = 0; i < 3; i++)
                 Pipe(g, p + along * (width * .5f - .05f) * (i % 2 == 0 ? 1 : -1) + Vector3.up * R(.6f, 3f), inward + Vector3.up * R(-.3f, .3f), R(.3f, .6f), .012f).name = "Rebar";
+        }
+
+        // ---------- stage 7: workshop (10), stage gear store (11), cargo bay (12) ----------
+        // 10 sits north of the west corridor and west of the practice room; 11 and 12 south of the lobby, joined by a door.
+        // 11 and 12 also hold the candidate spots where the cannon and the trampoline may turn up (plan section 4); the random
+        // spawning itself is designed later, so the spots are marked and kept clear only.
+        const float WsX0 = -27.8f, WsX1 = CorrX0, WsZ0 = 12.25f, WsZ1 = 21.5f, WsHeight = 6f;
+        // Logistics hall south of the lobby: 52 x 33.4 m, 12 m to the roof. 11 west of the divide, 12 east of it.
+        const float WhX0 = -24f, WhX1 = 28f, WhZ0 = -48f, WhZ1 = -14.6f, WhHeight = 12f, WhDivideX = 3f;
+        const float Gate11X = -8.5f, Gate11Width = 6.4f, Gate12X = 4.2f, Gate12Width = 4f;
+
+        static void FloorCollider(Transform room, float x0, float x1, float z0, float z1)
+        {
+            var go = new GameObject("FloorCollider"); go.transform.SetParent(room, false);
+            go.transform.position = W((x0 + x1) * .5f, (z0 + z1) * .5f, -.1f);
+            go.AddComponent<BoxCollider>().size = new Vector3(x1 - x0 + 1f, .2f, z1 - z0 + 1f);
+        }
+
+        static void OpenClosure(Transform target, string path)
+        {
+            var t = target.Find(path);
+            if (t != null) Undo.DestroyObjectImmediate(t.gameObject);
+        }
+
+        static Transform CagedLamp(Transform parent, Vector3 at, float intensity, Color? tint = null)
+        {
+            var copy = Copy(Required("Mood/Lights").Cast<Transform>().First(t => t.name == "Lobby_Lamp"), parent, "CagedLamp");
+            copy.position = at;
+            foreach (var r in copy.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = ShadowCastingMode.Off;
+            foreach (var l in copy.GetComponentsInChildren<Light>(true)) { l.intensity *= intensity; if (tint.HasValue) l.color = tint.Value; }
+            return copy;
+        }
+
+        // Floor ring with a label, marking a spot kept clear for a randomly placed performance object.
+        static void SpawnCandidate(Transform parent, string name, Vector2 at, float radius)
+        {
+            Group(parent, name, W(at.x, at.y));
+            MeshObject(parent, name + "_Mark", W(at.x, at.y, .011f), SaveMesh(RingMesh("LA_SpawnMark", radius - .08f, radius, 40)), Mat("LA_HazardPaint"));
+            Box(parent, name + "_Cross", W(at.x, at.y, .012f), new Vector3(.6f, .004f, .06f), Mat("LA_HazardPaint"));
+            Box(parent, name + "_Cross", W(at.x, at.y, .012f), new Vector3(.06f, .004f, .6f), Mat("LA_HazardPaint"));
+        }
+
+        public static string BuildWorkshop()
+        {
+            var (scene, target) = Begin();
+            if (target.Find("WC_WestCorridor") == null || target.Find("S09_PracticeRoom") == null) throw new InvalidOperationException("Build the west corridor and the practice room first.");
+            var original = Snapshot(source);
+            int undo = StartUndo("Layout A: build workshop");
+            try
+            {
+                Remove(target, "S10_Workshop");
+                var room = Group(target, "S10_Workshop", W((WsX0 + WsX1) * .5f, (WsZ0 + WsZ1) * .5f));
+                RoomShell(room, "LA_Workshop", WsX0, WsX1, WsZ0, WsZ1, WsHeight, 2.4f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                    new[] { (3, WcNorthDoorX, 2.8f, .5f), (2, PracWestDoorZ, WsDoorWidth, .1f) }, eastThickness: .1f);
+                FloorCollider(room, WsX0, WsX1, WsZ0, WsZ1);
+                var g = Group(room, "Workshop", room.position);
+                // North wall: two workbenches under a tool wall; a vice, cans and offcuts on the benches.
+                foreach (var x in new[] { -25f, -21.2f })
+                    PlaceProp(SyntyProps + "SM_Prop_Workbench_01", g, W(x, WsZ1 - .55f), 180);
+                Box(g, "ToolWall", W(-23.1f, WsZ1 - .06f, 2.3f), new Vector3(6.6f, 1.6f, .05f), Mat("V4_Wood_Old"));
+                for (int i = 0; i < 14; i++)
+                    Box(g, "HangingTool", W(-26.1f + i * .45f, WsZ1 - .1f, 2.1f + (i % 3) * .3f), new Vector3(.06f, .35f + (i % 4) * .08f, .04f), Mat(i % 3 == 0 ? "LA_Bronze" : "V4_Iron_Dark"));
+                // Centre: a half-rebuilt show prop (a giant wheel on trestles) and sawhorses with planks.
+                foreach (var x in new[] { -23.6f, -20.4f })
+                    foreach (var dz in new[] { -.5f, .5f })
+                        Box(g, "TrestleLeg", W(x, 16.6f + dz, .4f), new Vector3(.08f, .8f, .08f), Mat("V4_Wood_Old"), true);
+                Box(g, "TrestleTop", W(-22f, 16.6f, .82f), new Vector3(4.2f, .08f, 1.3f), Mat("V4_Floor_OldPlank"), true);
+                var wheel = W(-22f, 16.6f, 1.25f);
+                MeshObject(g, "WheelRim", wheel, SaveMesh(RingMesh("LA_WheelRim", 1.15f, 1.3f, 36)), Mat("V4_Wood_Old"));
+                for (int i = 0; i < 8; i++) Box(g, "WheelSpoke", wheel + Vector3.up * .02f, new Vector3(2.3f, .04f, .06f), Mat("V4_Wood_Old")).rotation = Quaternion.Euler(0, i * 22.5f, 0);
+                Prim(g, PrimitiveType.Cylinder, "WheelHub", wheel + Vector3.up * .04f, new Vector3(.3f, .05f, .3f), Mat("LA_Bronze"));
+                // West wall: lumber rack; south-east: welding corner.
+                for (int i = 0; i < 6; i++)
+                    Box(g, "Lumber", W(WsX0 + .35f, 15.4f + i * .1f, .2f + i * .12f), new Vector3(.2f, .1f, 4f), Mat("V4_Wood_Old")).rotation = Quaternion.Euler(0, 0, i * 2);
+                foreach (var z in new[] { 13.5f, 17.5f }) Box(g, "RackPost", W(WsX0 + .2f, z, 1.1f), new Vector3(.08f, 2.2f, .08f), Mat("V4_Iron_Dark"), true);
+                foreach (var (x, z) in new[] { (-17.3f, 13f), (-17f, 13.3f), (-17.6f, 13.4f) }) PlaceFactory("SM_Gascylender", g, W(x, z), 0);
+                PlaceFactory("SM_Cablespool", g, W(-17.4f, 15.8f, .76f), 30);
+                PlaceFactory("SM_Barrel", g, W(-26.9f, 13.1f), 0);
+                foreach (var (x, z, s) in new[] { (-22f, 14f, 2f), (-18.6f, 15.6f, 1.6f), (-25.5f, 19f, 1.8f) })
+                    Decal(g, "OilPuddle", x, z, s, s * .7f, Mat("LA_PuddleDecal"));
+                Decal(g, "Crack", -20f, 19.4f, 2.4f, 2.4f, Mat("LA_CrackDecal"));
+                CagedLamp(g, W(-22f, 16.6f, 4f), .9f);
+                CagedLamp(g, W(-23f, WsZ1 - 1.2f, 3.6f), .6f);
+                // East bay (widened to the corridor): a rigging repair bench, a tool cart and parts shelving.
+                PlaceProp(SyntyProps + "SM_Prop_Workbench_01", g, W(-14.2f, WsZ1 - .55f), 180);
+                PlaceProp(SyntyProps + "SM_Prop_WorkShelf_01", g, W(-11.6f, WsZ1 - .4f), 180);
+                PlaceProp("Assets/_ThirdParty/LeartesStudios/HDRP/Art/Prefabs/SM_ToolCart", g, W(-16.4f, 20.2f), 15);
+                for (int i = 0; i < 3; i++) MeshObject(g, "RopeCoil", W(-14f + i * .2f, 13.3f, .02f + i * .05f), SaveMesh(RingMesh("LA_RopeCoil", .22f, .42f, 20)), Mat("LA_TentCream"));
+                Box(g, "SpareRigging", W(-12.4f, 13f, .3f), new Vector3(1.6f, .6f, .9f), Mat("V4_Wood_Old"), true);
+                CagedLamp(g, W(-14f, 17f, 4.2f), .7f);
+                PipeRun(g, new(WsX0 + .3f, WsZ1 - .3f), new(WsX1 - .3f, WsZ1 - .3f), 5f, .16f);
+
+                OpenClosure(target, "WC_WestCorridor/Connections/Closure_10 작업실");
+                OpenClosure(target, "S09_PracticeRoom/Corridor/Connections/Closure_10 작업실");
+                int remapped = RemapReferences(room);
+                Physics.SyncTransforms();
+                AssertUnchanged(original);
+                foreach (var (x, z, what) in new[] { (WcNorthDoorX, WsZ0 - .25f, "10 south doorway"), (WcNorthDoorX, WsZ0 + 1.2f, "10 entry"), (WsX1 - 1.2f, PracWestDoorZ, "10 east entry"),
+                             (WsX1 + .2f, PracWestDoorZ, "09 doorway"), (-22f, 14.6f, "in front of the trestles"), (-22f, 19.3f, "behind the trestles") })
+                    CheckStanding(W(x, z, .1f), target, what);
+                if (room.GetComponentsInChildren<Light>().Length > 5) throw new InvalidOperationException("Too many workshop lights");
+                Finish(scene, undo, "stage-07-workshop-copy-manifest.md", "7단계 작업실 복제·배치 목록", room, remapped, 0);
+                return $"Workshop built; objects={room.GetComponentsInChildren<Transform>(true).Length}; lights={room.GetComponentsInChildren<Light>().Length}";
+            }
+            catch { Undo.RevertAllDownToGroup(undo); throw; }
+        }
+
+        // 11 and 12 are two zones of one logistics hall, not two rooms: the stage gear store to the west, the cargo floor to the
+        // east, split by a double pallet rack row with open aisles, floor paint and hanging zone boards. The lobby opens into
+        // each zone through a wide opening. The cannon / trampoline candidate spots (plan section 4) are marked and kept clear.
+        public static string BuildStageGear()
+        {
+            var (scene, target) = Begin();
+            if (target.Find("S01_Lobby") == null) throw new InvalidOperationException("Build the lobby first.");
+            var original = Snapshot(source);
+            int undo = StartUndo("Layout A: build logistics hall (11, 12)");
+            try
+            {
+                Remove(target, "S11_StageGear");
+                Remove(target, "S12_CargoBay");
+                var gear = Group(target, "S11_StageGear", W((WhX0 + WhDivideX) * .5f, (WhZ0 + WhZ1) * .5f));
+                var hall = Group(gear, "LogisticsHall", W((WhX0 + WhX1) * .5f, (WhZ0 + WhZ1) * .5f));
+                RoomShell(hall, "LA_LogisticsHall", WhX0, WhX1, WhZ0, WhZ1, WhHeight, 3f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                    new[] { (1, Gate11X, Gate11Width, .5f), (1, Gate12X, Gate12Width, .5f) });
+                FloorCollider(hall, WhX0, WhX1, WhZ0, WhZ1);
+                HallFrame(hall);
+                var bay = Group(target, "S12_CargoBay", W((WhDivideX + WhX1) * .5f, (WhZ0 + WhZ1) * .5f));
+                StageGearZone(Group(gear, "Zone11", gear.position));
+                CargoZone(Group(bay, "Zone12", bay.position));
+                // Divider: one double rack row on the zone line, open at the front, the cross aisle and the back.
+                foreach (var (z0, z1) in WhRackRuns) PalletRack(bay, WhDivideX, z0, z1, true);
+
+                OpenPortal(target, "11");
+                OpenPortal(target, "12");
+                int remapped = RemapReferences(gear) + RemapReferences(bay);
+                Physics.SyncTransforms();
+                AssertUnchanged(original);
+                ValidateLogisticsHall(target);
+                int lights = gear.GetComponentsInChildren<Light>().Length + bay.GetComponentsInChildren<Light>().Length;
+                if (lights > 10) throw new InvalidOperationException("Too many lights in the logistics hall: " + lights);
+                Finish(scene, undo, "stage-07-bays-copy-manifest.md", "물류 창고 홀(11 무대 장치 · 12 화물 적재) 배치 목록", gear, remapped, 0);
+                return $"Logistics hall built; 11={gear.GetComponentsInChildren<Transform>(true).Length} 12={bay.GetComponentsInChildren<Transform>(true).Length} lights={lights}";
+            }
+            catch { Undo.RevertAllDownToGroup(undo); throw; }
+        }
+
+        static readonly (float z0, float z1)[] WhRackRuns = { (-29f, -22f), (-43f, -35f) };
+        static readonly Vector2[] WhCandidates = { new(-10f, -28f), new(-11f, -39.5f), new(7f, -32f), new(15f, -18.4f) };
+
+        // Steel columns on a grid, roof trusses and purlins under a dark corrugated roof.
+        static void HallFrame(Transform hall)
+        {
+            var f = Group(hall, "Frame", hall.position);
+            foreach (var x in WhColumnX)
+                foreach (var z in WhColumnZ)
+                {
+                    Box(f, "Column", W(x, z, WhHeight * .5f), new Vector3(.45f, WhHeight, .45f), Mat("V4_Iron_Dark"), true);
+                    Box(f, "ColumnFlange", W(x, z, WhHeight * .5f), new Vector3(.08f, WhHeight, .7f), Mat("V4_RustyMetal"));
+                    Box(f, "BasePlate", W(x, z, .04f), new Vector3(.8f, .08f, .8f), Mat("V4_RustyMetal"));
+                    for (int i = 0; i < 2; i++) Box(f, "HazardWrap", W(x, z, .4f + i * .5f), new Vector3(.5f, .22f, .5f), Mat(i == 0 ? "LA_HazardPaint" : "V4_Black"));
+                }
+            foreach (var z in WhColumnZ.Append(WhZ1 + .3f).Append(WhZ0 + .3f))
+            {
+                Box(f, "TrussChord", W((WhX0 + WhX1) * .5f, z, WhHeight - .35f), new Vector3(WhX1 - WhX0, .3f, .25f), Mat("V4_Iron_Dark"));
+                Box(f, "TrussChord", W((WhX0 + WhX1) * .5f, z, WhHeight - 1.6f), new Vector3(WhX1 - WhX0, .22f, .2f), Mat("V4_Iron_Dark"));
+                for (float x = WhX0 + 1.3f; x < WhX1 - 1f; x += 2.6f)
+                    Box(f, "TrussWeb", W(x, z, WhHeight - .98f), new Vector3(.08f, 1.5f, .08f), Mat("V4_RustyMetal")).rotation = Quaternion.Euler(0, 0, ((int)(x * 10) % 2 == 0 ? 35 : -35));
+            }
+            for (float x = WhX0 + 2f; x < WhX1; x += 4.4f)
+                Box(f, "Purlin", W(x, (WhZ0 + WhZ1) * .5f, WhHeight - .15f), new Vector3(.18f, .18f, WhZ1 - WhZ0), Mat("V4_RustyMetal"));
+            Box(f, "RoofSheet", W((WhX0 + WhX1) * .5f, (WhZ0 + WhZ1) * .5f, WhHeight - .02f), new Vector3(WhX1 - WhX0, .02f, WhZ1 - WhZ0), Mat("V4_Ceiling_RustyMetal"));
+            // Old ductwork and cable trays along the north and south walls.
+            PipeRun(f, new(WhX0 + .5f, WhZ1 - .5f), new(WhX1 - .5f, WhZ1 - .5f), WhHeight - 2.4f, .35f);
+            PipeRun(f, new(WhX0 + .5f, WhZ0 + .6f), new(WhX1 - .5f, WhZ0 + .6f), WhHeight - 2.2f, .22f);
+            Box(f, "CableTray", W((WhX0 + WhX1) * .5f, WhZ1 - 1.2f, WhHeight - 3f), new Vector3(WhX1 - WhX0 - 1f, .08f, .5f), Mat("V4_Iron_Dark"));
+            // Cold dim fill so the far end reads as a hall, not as a black void.
+            Point(f, "HallFill", W(2f, -31f, WhHeight - 2f), new Color(.55f, .66f, .82f), .55f, 40f);
+            foreach (var (x, z) in new[] { (-20f, -30f), (-2f, -46f), (26f, -30f) })
+                Decal(f, "Stain", x, z, 3.2f, 2.6f, Mat("LA_RustDecal"));
+            foreach (var (x, z) in new[] { (-6f, -34f), (12f, -26f), (22f, -44f), (-18f, -45f) })
+                Decal(f, "Crack", x, z, 2.6f, 2.6f, Mat("LA_CrackDecal"));
+        }
+
+        static readonly float[] WhColumnX = { -15.4f, -6.2f, 25.1f };
+        static readonly float[] WhColumnZ = { -25.5f, -37f };
+
+        // Industrial pendant: a shade on a rod with a sodium-warm point light.
+        static void HallLamp(Transform parent, Vector2 at, float intensity, float range = 15f)
+        {
+            Rope(parent, W(at.x, at.y, WhHeight - .4f), W(at.x, at.y, 8.4f), .02f);
+            PlaceProp(SyntyProps + "SM_Prop_Light_Industrial_Ceiling_01", parent, W(at.x, at.y, 8.4f), 0, false).localScale = Vector3.one * 2.4f;
+            Prim(parent, PrimitiveType.Sphere, "LampGlow", W(at.x, at.y, 7.75f), Vector3.one * .3f, Mat("LA_Bulb")).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+            Point(parent, "HallLamp", W(at.x, at.y, 7.4f), new Color(1f, .74f, .46f), intensity, range);
+        }
+
+        // Hanging zone board read from the lobby side.
+        static void ZoneBoard(Transform parent, string text, Vector2 at, float y)
+        {
+            var g = Group(parent, "ZoneBoard", W(at.x, at.y, y));
+            Box(g, "Board", W(at.x, at.y, y), new Vector3(6.2f, 1.5f, .08f), Mat("V4_Sign_Wood"));
+            Box(g, "BoardFrame", W(at.x, at.y, y), new Vector3(6.4f, 1.7f, .05f), Mat("V4_Iron_Dark")).position += Vector3.forward * .05f;
+            foreach (var s in new[] { -2.6f, 2.6f }) Rope(g, W(at.x + s, at.y, y + .75f), W(at.x + s, at.y, WhHeight - 1.6f), .015f);
+            var sign = Copy(Required("S01_Lobby/Sign_② 숙소"), g, "ZoneText", false);
+            sign.gameObject.SetActive(true);
+            sign.SetPositionAndRotation(W(at.x, at.y - .06f, y), Quaternion.LookRotation(Vector3.back));
+            var t = sign.GetComponent<TextMesh>(); t.text = text; t.anchor = TextAnchor.MiddleCenter; t.fontSize = 64; t.characterSize = .07f; t.color = new Color(.92f, .84f, .62f);
+        }
+
+        // Steel pallet racking along Z: blue uprights, orange beams, loaded pallets on three levels; one solid collider.
+        static void PalletRack(Transform parent, float x, float z0, float z1, bool doubleRow)
+        {
+            var g = Group(parent, "PalletRack", W(x, (z0 + z1) * .5f));
+            float depth = doubleRow ? 2.4f : 1.15f, top = 6.2f;
+            int bays = Mathf.Max(1, Mathf.RoundToInt((z1 - z0) / 2.7f)); float bay = (z1 - z0) / bays;
+            var rows = doubleRow ? new[] { -.6f, .6f } : new[] { 0f };
+            for (int i = 0; i <= bays; i++)
+                foreach (var sx in new[] { -depth * .5f, depth * .5f })
+                {
+                    Box(g, "Upright", W(x + sx, z0 + i * bay, top * .5f), new Vector3(.09f, top, .09f), Mat("LA_RackBlue"));
+                    if (i < bays) for (int k = 0; k < 4; k++) Box(g, "Brace", W(x + sx, z0 + (i + .5f) * bay, .9f + k * 1.4f), new Vector3(.03f, .03f, bay - .1f), Mat("LA_RackBlue")).rotation = Quaternion.Euler(k % 2 == 0 ? 25 : -25, 0, 0);
+                }
+            foreach (var y in new[] { .15f, 2.1f, 4.05f })
+            {
+                foreach (var sx in new[] { -depth * .5f, depth * .5f })
+                    Box(g, "Beam", W(x + sx, (z0 + z1) * .5f, y), new Vector3(.07f, .14f, z1 - z0), Mat("LA_RackOrange"));
+                for (int i = 0; i < bays; i++)
+                    foreach (var r in rows)
+                    {
+                        if (random.NextDouble() < .18) continue;
+                        float cz = z0 + (i + .5f) * bay, cx = x + r;
+                        Box(g, "Pallet", W(cx, cz, y + .14f), new Vector3(1f, .14f, bay - .45f), Mat("V4_Wood_Old"));
+                        float h = .7f + (float)random.NextDouble() * .9f;
+                        var load = random.NextDouble();
+                        Box(g, load < .5 ? "CartonLoad" : load < .8 ? "WrappedLoad" : "CrateLoad", W(cx, cz, y + .21f + h * .5f), new Vector3(.95f, h, bay - .6f),
+                            Mat(load < .5 ? "LA_Cardboard" : load < .8 ? "LA_Wrap" : "V4_Wood_Old"));
+                    }
+            }
+            Box(g, "TopTie", W(x, (z0 + z1) * .5f, top), new Vector3(depth, .08f, .08f), Mat("LA_RackBlue"));
+            var col = new GameObject("RackCollider"); col.transform.SetParent(g, false); col.transform.position = W(x, (z0 + z1) * .5f, top * .5f);
+            col.AddComponent<BoxCollider>().size = new Vector3(depth + .1f, top, z1 - z0 + .1f);
+            // Floor paint marking the rack footprint.
+            foreach (var sx in new[] { -depth * .5f - .25f, depth * .5f + .25f })
+                Box(g, "AisleLine", W(x + sx, (z0 + z1) * .5f, .011f), new Vector3(.1f, .004f, z1 - z0 + .6f), Mat("LA_HazardPaint")).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+        }
+
+        // 11: the stage gear zone — scenery flats slotted in a tall rack, a rigging tower with a fly grid and a hanging drop,
+        // show wheels, rolled curtains, stored stage lamps and circus trunks.
+        static void StageGearZone(Transform z11)
+        {
+            // Scenery dock along the west wall: slotted flats, 4.8 m tall, 3 m deep.
+            var dock = Group(z11, "SceneryDock", W(-22.3f, -31f));
+            foreach (var y in new[] { .1f, 5.2f })
+                foreach (var x in new[] { WhX0 + .15f, -20.9f })
+                    Box(dock, "SlotRail", W(x, -31f, y), new Vector3(.12f, .12f, 26f), Mat("V4_Iron_Dark"));
+            for (float z = -44f; z <= -18f; z += 1.6f)
+                foreach (var x in new[] { WhX0 + .15f, -20.9f })
+                    Box(dock, "SlotPost", W(x, z, 2.65f), new Vector3(.08f, 5.2f, .08f), Mat("V4_Iron_Dark"));
+            var paints = new[] { "LA_TentRed", "V4_CircusStripes", "V4_Harlequin", "LA_TentCream", "V4_Velvet_Red", "V4_Floor_OldPlank", "V4_CircusStripes" };
+            int n = 0;
+            for (float z = -43.4f; z <= -18.4f; z += .55f, n++)
+            {
+                if (n % 6 == 5) continue;
+                float h = 3.4f + (n * 7 % 5) * .3f;
+                Box(dock, "SceneryFlat", W(-22.4f, z, h * .5f + .05f), new Vector3(2.7f, h, .07f), Mat(paints[n % paints.Length]));
+            }
+            var dc = new GameObject("DockCollider"); dc.transform.SetParent(dock, false); dc.transform.position = W(-22.4f, -31f, 2.6f);
+            dc.AddComponent<BoxCollider>().size = new Vector3(3.3f, 5.2f, 26.2f);
+
+            // Rigging tower in the front-west corner: lattice legs, a pin rail, ropes up to a fly grid spanning the zone.
+            var rig = Group(z11, "RiggingTower", W(-17.6f, -18.4f));
+            foreach (var dx in new[] { -1f, 1f }) foreach (var dz in new[] { -1f, 1f })
+                Box(rig, "TowerLeg", W(-17.6f + dx, -18.4f + dz, 5f), new Vector3(.14f, 10f, .14f), Mat("V4_RustyMetal"), true);
+            for (int i = 0; i < 7; i++)
+                foreach (var (dx, dz, yaw) in new[] { (0f, -1f, 0f), (0f, 1f, 0f), (-1f, 0f, 90f), (1f, 0f, 90f) })
+                    Box(rig, "TowerBrace", W(-17.6f + dx, -18.4f + dz, .9f + i * 1.4f), new Vector3(2.6f, .05f, .05f), Mat("V4_Iron_Dark")).rotation = Quaternion.Euler(0, yaw, i % 2 == 0 ? 32 : -32);
+            Box(rig, "PinRail", W(-16.45f, -18.4f, 1.3f), new Vector3(.14f, .14f, 2.2f), Mat("V4_Wood_Old"));
+            Box(rig, "FlyGrid", W(-6.5f, -24f, 9.6f), new Vector3(22f, .25f, .25f), Mat("V4_Iron_Dark"));
+            Box(rig, "FlyGrid", W(-6.5f, -33f, 9.6f), new Vector3(22f, .25f, .25f), Mat("V4_Iron_Dark"));
+            for (int i = 0; i < 6; i++)
+            {
+                float z = -19.3f + i * .36f;
+                Rope(rig, W(-16.4f, z, 1.35f), W(-16.6f, z, 9.6f), .015f);
+            }
+            // A painted drop hung out on its battens (bottom edge at 3.6 m, walk under it), with sandbag counterweights.
+            Box(rig, "Batten", W(-8f, -28.5f, 9.3f), new Vector3(12f, .1f, .1f), Mat("V4_Iron_Dark"));
+            Box(rig, "HangingDrop", W(-8f, -28.5f, 6.45f), new Vector3(11.6f, 5.6f, .05f), Mat("V4_CircusStripes"));
+            Box(rig, "DropBottom", W(-8f, -28.5f, 3.65f), new Vector3(11.8f, .08f, .08f), Mat("V4_Iron_Dark"));
+            foreach (var x in new[] { -13.8f, -2.2f }) Rope(rig, W(x, -28.5f, 9.6f), W(x, -28.5f, 9.3f), .015f);
+            foreach (var z in new[] { -19.1f, -18.2f, -17.6f })
+            {
+                Rope(rig, W(-15.8f, z, 9.5f), W(-15.8f, z, 2.6f + (z + 20) * 2f), .015f);
+                Box(rig, "Sandbag", W(-15.8f, z, 2.35f + (z + 20) * 2f), new Vector3(.35f, .5f, .3f), Mat("V6_Sandbag"));
+            }
+            // South wall: two giant show wheels, a two-level curtain rack and trunks.
+            foreach (var (x, s) in new[] { (-16f, 1.6f), (-11.6f, 1.25f) })
+            {
+                var c = W(x, WhZ0 + .7f, s + .05f);
+                MeshObject(z11, "ShowWheel", c, SaveMesh(RingMesh("LA_ShowWheel", s - .18f, s, 40)), Mat("V4_Wood_Old")).transform.rotation = Quaternion.Euler(-80, 0, 0);
+                for (int k = 0; k < 8; k++) Box(z11, "ShowWheelSpoke", c, new Vector3(.06f, s * 2f, .05f), Mat("V4_Wood_Old")).rotation = Quaternion.Euler(10, 0, k * 22.5f);
+                Prim(z11, PrimitiveType.Cylinder, "ShowWheelHub", c, new Vector3(.4f, .08f, .4f), Mat("LA_Bronze")).rotation = Quaternion.Euler(-80, 0, 0);
+                Box(z11, "WheelBlock", W(x, WhZ0 + .7f, .5f), new Vector3(s * 1.6f, 1f, .5f), Mat("V4_Wood_Old"), true).gameObject.GetComponent<MeshRenderer>().enabled = false;
+            }
+            var rack = Group(z11, "CurtainRack", W(-4.5f, WhZ0 + .9f));
+            foreach (var x in new[] { -8.5f, -4.5f, -.5f }) Box(rack, "RackArmPost", W(x, WhZ0 + .4f, 1.9f), new Vector3(.18f, 3.8f, .18f), Mat("LA_RackBlue"));
+            foreach (var y in new[] { 1.1f, 2.6f })
+            {
+                Box(rack, "RackArm", W(-4.5f, WhZ0 + .9f, y), new Vector3(8.6f, .1f, 1.1f), Mat("LA_RackOrange"));
+                for (int i = 0; i < 4; i++)
+                    Prim(rack, PrimitiveType.Cylinder, "RolledCurtain", W(-4.5f, WhZ0 + .6f + i * .27f, y + .2f + (i % 2) * .05f), new Vector3(.32f, 4f, .32f), Mat(i % 2 == 0 ? "V4_Velvet_Red" : "LA_TentCream")).rotation = Quaternion.Euler(0, 0, 90);
+            }
+            var rc = new GameObject("RackCollider"); rc.transform.SetParent(rack, false); rc.transform.position = W(-4.5f, WhZ0 + .8f, 1.9f);
+            rc.AddComponent<BoxCollider>().size = new Vector3(8.8f, 3.8f, 1.4f);
+            foreach (var (x, z, yaw, k) in new[] { (-1.4f, -44.6f, 8f, 0), (-.2f, -43.8f, -4f, 1), (-1.1f, -43.2f, 90f, 0), (-19f, -15.6f, 0f, 1), (-17.8f, -15.5f, 12f, 0) })
+                PlaceCopy("Mood/InteriorArt/CircusStorageCrate_" + k, z11, W(x, z), yaw);
+            // Stored stage lamps on their stands and a trapeze bar left on a crate.
+            for (int i = 0; i < 3; i++)
+            {
+                var p = W(-1.2f, -20f - i * 1.1f);
+                foreach (var a in new[] { 0f, 120f, 240f }) Box(z11, "LampLeg", p + Quaternion.Euler(0, a, 0) * new Vector3(0, .55f, .3f), new Vector3(.04f, 1.2f, .04f), Mat("V4_Iron_Dark")).rotation = Quaternion.Euler(-14, a, 0);
+                Box(z11, "LampPost", p + Vector3.up * 1.4f, new Vector3(.05f, 1.6f, .05f), Mat("V4_Iron_Dark"));
+                Prim(z11, PrimitiveType.Cylinder, "StageLampBody", p + Vector3.up * 2.25f, new Vector3(.45f, .3f, .45f), Mat("V4_Black")).rotation = Quaternion.Euler(70 - i * 15, i * 30, 0);
+            }
+            var lampCollider = new GameObject("LampStandsCollider"); lampCollider.transform.SetParent(z11, false); lampCollider.transform.position = W(-1.2f, -21.1f, 1.2f);
+            lampCollider.AddComponent<BoxCollider>().size = new Vector3(1f, 2.4f, 3.4f);
+            ZoneBoard(z11, "11  무대 장치 보관", new Vector2(-8.5f, -17.2f), 6.2f);
+            Box(z11, "ZoneFloorCode", W(-8.5f, -21.4f, .011f), new Vector3(3.2f, .004f, .9f), Mat("LA_HazardPaint")).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+            SpawnCandidate(z11, "PerformanceObjectCandidate_11_A", WhCandidates[0], 2.6f);
+            SpawnCandidate(z11, "PerformanceObjectCandidate_11_B", WhCandidates[1], 2.6f);
+            HallLamp(z11, new Vector2(-10f, -28f), 2.2f);
+            HallLamp(z11, new Vector2(-11f, -39.5f), 1.8f);
+            HallLamp(z11, new Vector2(-18.5f, -31f), 1.3f, 11f);
+        }
+
+        // 12: the cargo floor — pallet rack rows with forklift aisles, shipping containers, three closed loading docks, an
+        // overhead gantry crane and a staging area of wrapped loads.
+        static void CargoZone(Transform z12)
+        {
+            foreach (var x in new[] { 11f, 18.5f })
+                foreach (var (z0, z1) in WhRackRuns) PalletRack(z12, x, z0, z1, true);
+            // Containers along the east wall, one stacked, one with its doors open and crates spilling out.
+            var cont = SyntyProps + "SM_Prop_Shipping_Container_0";
+            PlaceProp(cont + "1", z12, W(26.4f, -21.2f), 0);
+            PlaceProp(cont + "2", z12, W(26.4f, -21.2f, 2.62f), 3);
+            PlaceProp(cont + "3", z12, W(26.4f, -40.4f), 180);
+            foreach (var (x, z) in new[] { (26.2f, -44.4f), (25.4f, -45.3f) }) PlaceProp(SyntyProps + "SM_Prop_Crate_01", z12, W(x, z), x * 20);
+            // Loading docks on the south wall: closed roller doors, bumpers, levellers and hazard frames.
+            foreach (var x in new[] { 9.2f, 16.4f, 23.2f })
+            {
+                var d = W(x, WhZ0);
+                Box(z12, "DockShutter", d + new Vector3(0, 2.3f, .08f), new Vector3(3.8f, 4.6f, .06f), Mat("V4_Ceiling_RustyMetal"));
+                for (int i = 0; i < 12; i++) Box(z12, "ShutterRib", d + new Vector3(0, .2f + i * .38f, .12f), new Vector3(3.8f, .04f, .03f), Mat("V4_Iron_Dark"));
+                Box(z12, "ShutterHousing", d + new Vector3(0, 4.9f, .25f), new Vector3(4.2f, .5f, .5f), Mat("V4_Iron_Dark"));
+                Box(z12, "DockLeveller", d + new Vector3(0, .02f, 1.2f), new Vector3(2.4f, .04f, 2.2f), Mat("V4_RustyMetal"));
+                foreach (var s in new[] { -1f, 1f })
+                {
+                    Box(z12, "DockBumper", d + new Vector3(s * 2.15f, .55f, .2f), new Vector3(.3f, .5f, .3f), Mat("V4_Black"), true);
+                    for (int i = 0; i < 7; i++) Box(z12, "HazardEdge", d + new Vector3(s * 2.05f, .35f + i * .65f, .1f), new Vector3(.18f, .32f, .02f), Mat(i % 2 == 0 ? "LA_HazardPaint" : "V4_Black"));
+                }
+                Box(z12, "DockControl", d + new Vector3(2.6f, 1.4f, .1f), new Vector3(.3f, .45f, .15f), Mat("LA_HazardPaint"));
+            }
+            // Staging area: wrapped pallets waiting by the docks, a pallet jack, empty pallet stacks.
+            foreach (var (x, z) in new[] { (5.6f, -46f), (6.9f, -46.1f), (12.6f, -46.2f), (20f, -46f) })
+            {
+                Box(z12, "StagedPallet", W(x, z, .07f), new Vector3(1.1f, .14f, 1.1f), Mat("V4_Wood_Old"), true);
+                Box(z12, "StagedLoad", W(x, z, .7f), new Vector3(1.05f, 1.15f, 1.05f), Mat(x > 10 ? "LA_Wrap" : "LA_Cardboard"), true);
+            }
+            for (int i = 0; i < 6; i++) PlaceFactory("SM_Woodpallet_1", z12, W(26.6f, -33f, i * .29f), i * 5);
+            Box(z12, "PalletJackForks", W(13.6f, -44.6f, .08f), new Vector3(.6f, .08f, 1.2f), Mat("V4_RustyMetal"), true);
+            Box(z12, "PalletJackHandle", W(13.6f, -43.9f, .6f), new Vector3(.06f, 1f, .06f), Mat("V4_RustyMetal")).rotation = Quaternion.Euler(-20, 0, 0);
+            Forklift(z12, new Vector2(22f, -32.2f), -90f);
+            // Gantry crane: runways on brackets along both long sides, a bridge across the zone, trolley, chain and hook.
+            foreach (var x in new[] { WhDivideX + 1.5f, WhX1 - .5f })
+            {
+                Box(z12, "CraneRunway", W(x, (WhZ0 + WhZ1) * .5f, 9.2f), new Vector3(.35f, .5f, WhZ1 - WhZ0 - 1f), Mat("V4_Iron_Dark"));
+                for (float z = WhZ1 - 3f; z > WhZ0; z -= 7.5f) Box(z12, "RunwayHanger", W(x, z, 10.3f), new Vector3(.12f, 1.8f, .12f), Mat("V4_Iron_Dark"));
+            }
+            Box(z12, "CraneBridge", W((WhDivideX + 1.5f + WhX1 - .5f) * .5f, -37.5f, 9.75f), new Vector3(WhX1 - WhDivideX - 2f, .7f, .6f), Mat("LA_HazardPaint"));
+            Box(z12, "CraneTrolley", W(14f, -37.5f, 9.2f), new Vector3(1.2f, .6f, 1f), Mat("V4_Iron_Dark"));
+            Rope(z12, W(14f, -37.5f, 8.9f), W(14f, -37.5f, 6.1f), .03f);
+            Box(z12, "CraneHook", W(14f, -37.5f, 5.9f), new Vector3(.14f, .45f, .35f), Mat("V4_RustyMetal"));
+            ZoneBoard(z12, "12  화물 적재", new Vector2(13f, -17.2f), 6.2f);
+            Box(z12, "ZoneFloorCode", W(4.2f, -21.4f, .011f), new Vector3(3f, .004f, .9f), Mat("LA_HazardPaint")).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+            Box(z12, "CrossAisleLine", W(15.5f, -29.6f, .011f), new Vector3(WhX1 - WhDivideX - 2f, .004f, .1f), Mat("LA_HazardPaint")).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+            Box(z12, "CrossAisleLine", W(15.5f, -34.4f, .011f), new Vector3(WhX1 - WhDivideX - 2f, .004f, .1f), Mat("LA_HazardPaint")).GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.Off;
+            SpawnCandidate(z12, "PerformanceObjectCandidate_12_A", WhCandidates[2], 2.6f);
+            SpawnCandidate(z12, "PerformanceObjectCandidate_12_B", WhCandidates[3], 2.6f);
+            HallLamp(z12, new Vector2(7f, -32f), 2f);
+            HallLamp(z12, new Vector2(15f, -18.4f), 2f);
+            HallLamp(z12, new Vector2(16.4f, -44.8f), 1.6f, 12f);
+            HallLamp(z12, new Vector2(22.4f, -25.6f), 1.3f, 11f);
+        }
+
+        // A worn counterbalance forklift: body, counterweight, cage, mast and forks. One collider for the whole truck.
+        static void Forklift(Transform parent, Vector2 at, float yaw)
+        {
+            var g = Group(parent, "Forklift", W(at.x, at.y));
+            g.rotation = Quaternion.Euler(0, yaw, 0);
+            Vector3 P(float x, float y, float z) => g.TransformPoint(new Vector3(x, y, z));
+            Transform B(string name, float x, float y, float z, float sx, float sy, float sz, string mat)
+            {
+                var t = Box(g, name, P(x, y, z), new Vector3(sx, sy, sz), Mat(mat)); t.rotation = g.rotation; return t;
+            }
+            B("Body", 0, .75f, 0, 1.15f, .9f, 2.1f, "LA_HazardPaint");
+            B("Counterweight", 0, .85f, -1.1f, 1.15f, .9f, .4f, "V4_Iron_Dark");
+            B("Seat", 0, 1.35f, -.3f, .5f, .35f, .5f, "V4_Black");
+            foreach (var sx in new[] { -.5f, .5f }) foreach (var sz in new[] { -.75f, .45f }) B("CagePost", sx, 1.75f, sz, .06f, 1.1f, .06f, "V4_Black");
+            B("CageRoof", 0, 2.3f, -.15f, 1.1f, .06f, 1.3f, "V4_Black");
+            foreach (var sx in new[] { -.35f, .35f }) B("Mast", sx, 1.4f, 1.15f, .1f, 2.8f, .14f, "V4_Iron_Dark");
+            B("Carriage", 0, .45f, 1.28f, .9f, .5f, .08f, "V4_Iron_Dark");
+            foreach (var sx in new[] { -.25f, .25f }) B("Fork", sx, .1f, 1.85f, .12f, .05f, 1.1f, "V4_RustyMetal");
+            foreach (var sx in new[] { -.58f, .58f }) foreach (var sz in new[] { -.7f, .65f })
+            {
+                var w = Prim(g, PrimitiveType.Cylinder, "Wheel", P(sx, .3f, sz), new Vector3(.55f, .1f, .55f), Mat("V4_Black"));
+                w.rotation = g.rotation * Quaternion.Euler(0, 0, 90);
+            }
+            var c = new GameObject("ForkliftCollider"); c.transform.SetParent(g, false); c.transform.localPosition = new Vector3(0, 1.15f, .3f);
+            c.AddComponent<BoxCollider>().size = new Vector3(1.3f, 2.3f, 3.2f);
+        }
+
+        static void ValidateLogisticsHall(Transform target)
+        {
+            foreach (var (x, z, what) in new[] { (Gate11X, LobbyS - .3f, "11 gate"), (Gate11X, WhZ1 - 1.5f, "11 arrival"), (Gate12X, LobbyS - .3f, "12 gate"), (Gate12X, WhZ1 - 1.5f, "12 arrival"),
+                         (-18.8f, -31f, "scenery dock aisle"), (-10f, -32.5f, "under the drop"), (-4f, -42f, "11 back"), (WhDivideX, -18.5f, "front cross"), (WhDivideX, -32f, "middle cross"), (WhDivideX, -45.5f, "back cross"),
+                         (7f, -25f, "aisle 1"), (14.7f, -25f, "aisle 2"), (22.2f, -25f, "aisle 3"), (7f, -39f, "aisle 1 south"), (14.7f, -39f, "aisle 2 south"), (22.2f, -39f, "aisle 3 south"),
+                         (9.2f, -46.6f, "dock 1"), (16.4f, -46.6f, "dock 2"), (23.2f, -46.6f, "dock 3") })
+                CheckStanding(W(x, z, .1f), target, what);
+            foreach (var c in WhCandidates)
+            {
+                var hits = Physics.OverlapCapsule(W(c.x, c.y, .3f), W(c.x, c.y, 3f), 2.5f, ~0, QueryTriggerInteraction.Ignore).Where(h => h.transform.IsChildOf(target) && !h.name.StartsWith("Floor")).Select(h => h.name).ToArray();
+                if (hits.Length > 0) throw new InvalidOperationException($"Spawn candidate at ({c.x}, {c.y}) blocked: {string.Join(",", hits)}");
+            }
+        }
+
+        // ---------- stage 8: stairwell, B1 machine room (13), office (14), changing room, escape entrance ----------
+        // The stairwell drops 5 m from the west corridor's west end in two flights around a mid landing. B1 follows the plan:
+        // stairs - 13 - short corridor - 14 - changing room, and 13 - corridor - escape entrance. The escape course itself is
+        // not built here; its entrance is a sealed door (puzzle and route designed separately).
+        const float StairHallX0 = -33.1f, StairHallX1 = -27.8f, StairHallZ0 = 4.5f, StairHallZ1 = 17.3f, B1Height = 4.6f;
+        const float FlightAX0 = -33f, FlightAX1 = -30.55f, FlightBX0 = -30.35f, FlightBX1 = -27.9f;
+        const float MachineX0 = -27.8f, MachineX1 = -2f, MachineZ0 = .9f, MachineZ1 = 16f, MachineDoorZ = 7f, PitLevel = -10f;
+        // Catwalk at the B1 doors (west and south walls) over the equipment pit; a steel stair drops 5 m into the pit.
+        const float CatwalkWestX = -25.6f, CatwalkSouthZ = 3.1f, CatwalkEastX = -14.5f, PitStairX0 = -25.4f, PitStairX1 = -24f, PitStairTopZ = 15f;
+        const string LeartesProps = "Assets/_ThirdParty/LeartesStudios/HDRP/Art/Prefabs/";
+        const float LinkX0 = -27.8f, LinkX1 = -25.8f, LinkZ0 = -3.5f, LinkZ1 = .4f, LinkWestX = -26.8f, LinkWestDoorZ = -2.5f;
+        const float OfficeX0 = -35f, OfficeX1 = -27.8f, OfficeZ0 = -6.3f, OfficeZ1 = -.4f, ChangeDoorX = -31f;
+        const float ChangeX0 = -33.6f, ChangeX1 = -24.4f, ChangeZ0 = -14.1f, ChangeZ1 = -6.8f;
+        const float EscCorrX0 = -18.2f, EscCorrX1 = -16f, EscCorrZ0 = -4.1f, EscapeDoorX = -17.1f;
+        const float EscapeX0 = -23.6f, EscapeX1 = -15f, EscapeZ0 = -9.1f, EscapeZ1 = -4.6f;
+
+        public static string BuildBasement()
+        {
+            var (scene, target) = Begin();
+            if (target.Find("WC_WestCorridor") == null) throw new InvalidOperationException("Build the west corridor first.");
+            var original = Snapshot(source);
+            int undo = StartUndo("Layout A: build stairwell and B1");
+            try
+            {
+                foreach (var n in new[] { "ST_Stairwell", "B1_MachineRoom", "B1_OfficeLink", "B1_Office", "B1_ChangingRoom", "B1_EscapeCorridor", "B1_EscapeEntrance" }) Remove(target, n);
+                var st = Group(target, "ST_Stairwell", W((StairHallX0 + StairHallX1) * .5f, (StairHallZ0 + StairHallZ1) * .5f));
+                // Ground-floor shaft: walls and roof, no floor; the top landing continues the west corridor.
+                RoomShell(Group(st, "GroundLevel", st.position), "LA_StairUpper", StairHallX0, StairHallX1, StairHallZ0, StairHallZ1, 5f, 2.2f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                    new[] { (2, WcDoorZ, WcDoorWidth, .1f) }, eastThickness: .1f, withFloor: false);
+                Box(st, "TopLanding", W((StairHallX0 + StairHallX1) * .5f, (WcZ0 + WcZ1) * .5f, -.1f), new Vector3(StairHallX1 - StairHallX0, .2f, WcZ1 - WcZ0), Mat("LA_FloorConcrete"), true);
+                MezzRailAt(st, new(StairHallX0, WcZ0), new(StairHallX1, WcZ0), 0f);
+                MezzRailAt(st, new(FlightBX0 - .2f, WcZ1), new(StairHallX1, WcZ1), 0f);
+                // Two flights around a mid landing, a guard wall between them.
+                StairFlight(st, FlightAX0, FlightAX1, WcZ1, 1f, 0f, 12);
+                float midZ0 = WcZ1 + 12 * StairTread;
+                Box(st, "MidLanding", W((FlightAX0 + FlightBX1) * .5f, (midZ0 + StairHallZ1) * .5f, -2.4f - .1f), new Vector3(FlightBX1 - FlightAX0, .2f, StairHallZ1 - midZ0), Mat("LA_WallRust"), true);
+                StairFlight(st, FlightBX0, FlightBX1, midZ0, -1f, -2.4f, 13);
+                Box(st, "FlightGuard", W((FlightAX1 + FlightBX0) * .5f, (WcZ1 + midZ0) * .5f, -1.95f), new Vector3(FlightBX0 - FlightAX1, 6.1f, midZ0 - WcZ1), Mat("V4_Iron_Dark"), true);
+                CagedLamp(st, W(-30.4f, 16.2f, 3.2f), .6f);
+                // B1 stair hall: open to the shaft above, door east into 13.
+                LevelY = B1Level;
+                RoomShell(Group(st, "B1Level", W((StairHallX0 + StairHallX1) * .5f, (StairHallZ0 + StairHallZ1) * .5f)), "LA_StairLower", StairHallX0, StairHallX1, StairHallZ0, StairHallZ1, 5f, 2.2f,
+                    Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"), new[] { (2, MachineDoorZ, 2.4f, .1f) }, eastThickness: .1f, withCeiling: false);
+                FloorCollider(st, StairHallX0, StairHallX1, StairHallZ0, StairHallZ1);
+                CagedLamp(st, W(-29f, 7f, 3.6f), .7f, new Color(.78f, .86f, .95f));
+
+                BuildMachineRoom(target);
+                BuildOfficeAndChanging(target);
+                BuildEscapeEntrance(target);
+                LevelY = 0;
+
+                OpenClosure(target, "WC_WestCorridor/Connections/Closure_계단 (B1)");
+                int remapped = 0;
+                foreach (var n in new[] { "ST_Stairwell", "B1_MachineRoom", "B1_OfficeLink", "B1_Office", "B1_ChangingRoom", "B1_EscapeCorridor", "B1_EscapeEntrance" }) remapped += RemapReferences(target.Find(n));
+                Physics.SyncTransforms();
+                AssertUnchanged(original);
+                ValidateBasement(target);
+                Finish(scene, undo, "stage-08-basement-copy-manifest.md", "8단계 계단·B1 복제·배치 목록", st, remapped, 0);
+                int lights = new[] { "ST_Stairwell", "B1_MachineRoom", "B1_Office", "B1_ChangingRoom", "B1_EscapeEntrance" }.Sum(n => target.Find(n).GetComponentsInChildren<Light>().Length);
+                return $"Stairwell and B1 built; lights={lights}";
+            }
+            catch { LevelY = 0; Undo.RevertAllDownToGroup(undo); throw; }
+        }
+
+        static void MezzRailAt(Transform parent, Vector2 a, Vector2 b, float floorY) => MezzRail(parent, a, b, floorY + LevelY);
+
+        // One straight flight: treads on stringers with a ramp collider under them. dir +1 climbs north from z0, -1 descends south.
+        static void StairFlight(Transform parent, float x0, float x1, float zStart, float dir, float yTop, int steps)
+        {
+            float run = steps * StairTread, rise = steps * StairRiser, sx = (x0 + x1) * .5f, w = x1 - x0;
+            // dir +1: from (zStart, yTop) north, going down; dir -1: from (zStart, yTop) south, going down.
+            for (int i = 0; i < steps; i++)
+                Box(parent, "Tread", W(sx, zStart + dir * (i + .5f) * StairTread, yTop - (i + 1) * StairRiser + .03f), new Vector3(w, .05f, StairTread + .02f), Mat("V4_Iron_Dark"));
+            float len = Mathf.Sqrt(run * run + rise * rise), angle = Mathf.Atan2(rise, run) * Mathf.Rad2Deg;
+            var mid = W(sx, zStart + dir * run * .5f, yTop - rise * .5f);
+            var ramp = new GameObject("FlightRamp"); ramp.transform.SetParent(parent, false);
+            ramp.transform.SetPositionAndRotation(mid + Vector3.down * .05f, Quaternion.Euler(dir * angle, 0, 0));
+            ramp.AddComponent<BoxCollider>().size = new Vector3(w, .1f, len);
+            foreach (var x in new[] { x0 + .03f, x1 - .03f })
+            {
+                Box(parent, "Stringer", mid + new Vector3(x - sx, -.1f, 0), new Vector3(.06f, .3f, len), Mat("V4_RustyMetal")).rotation = Quaternion.Euler(dir * angle, 0, 0);
+                Box(parent, "Handrail", mid + new Vector3(x - sx, 1f, 0), new Vector3(.05f, .05f, len), Mat("V4_Iron_Dark")).rotation = Quaternion.Euler(dir * angle, 0, 0);
+            }
+        }
+
+        // 13 machine room: a two-storey plant pit. The B1 doors (stairs, 14, escape route) open onto an L-shaped catwalk along the
+        // west and south walls; below it, 10 m down from the lobby floor, boilers, a compressor line, pumps and tanks are tied
+        // together by an overhead pipe rack. Cold equipment light with one warm lamp and a red warning beacon.
+        static void BuildMachineRoom(Transform target)
+        {
+            var room = Group(target, "B1_MachineRoom", W((MachineX0 + MachineX1) * .5f, (MachineZ0 + MachineZ1) * .5f));
+            float keep = LevelY;
+            LevelY = PitLevel;
+            RoomShell(Group(room, "PitLevel", room.position), "LA_MachinePit", MachineX0, MachineX1, MachineZ0, MachineZ1, B1Level - PitLevel, 2.4f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                Array.Empty<(int, float, float, float)>(), withCeiling: false);
+            FloorCollider(room, MachineX0, MachineX1, MachineZ0, MachineZ1);
+            var pit = Group(room, "Plant", W((MachineX0 + MachineX1) * .5f, (MachineZ0 + MachineZ1) * .5f));
+            BuildPowerPlant(pit);
+
+            // The catwalk level: walls and the three doors, no floor of its own; grating decks on posts along two walls.
+            LevelY = B1Level;
+            RoomShell(Group(room, "CatwalkLevel", room.position), "LA_MachineRoom", MachineX0, MachineX1, MachineZ0, MachineZ1, B1Height, 2.2f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                new[] { (0, MachineDoorZ, 2.4f, .5f), (3, LinkWestX, 2f, .5f), (3, EscapeDoorX, 2f, .5f) }, withFloor: false);
+            var walk = Group(room, "Catwalk", W(-22f, 5f));
+            foreach (var (x0, x1, z0, z1) in new[] { (MachineX0, CatwalkWestX, MachineZ0, MachineZ1), (CatwalkWestX, CatwalkEastX, MachineZ0, CatwalkSouthZ), (CatwalkWestX, PitStairX1 + .2f, PitStairTopZ, MachineZ1) })
+            {
+                Box(walk, "Grating", W((x0 + x1) * .5f, (z0 + z1) * .5f, -.04f), new Vector3(x1 - x0, .08f, z1 - z0), Mat("V4_Iron_Dark"), true);
+                Box(walk, "GratingEdge", W((x0 + x1) * .5f, (z0 + z1) * .5f, -.2f), new Vector3(x1 - x0 + .04f, .25f, z1 - z0 + .04f), Mat("V4_RustyMetal"));
+            }
+            for (float z = MachineZ0 + 1.5f; z < MachineZ1; z += 3f) Box(walk, "CatwalkPost", W(CatwalkWestX - .1f, z, -2.6f), new Vector3(.14f, 5f, .14f), Mat("V4_Iron_Dark"), true);
+            for (float x = CatwalkWestX + 2.5f; x < CatwalkEastX; x += 3f) Box(walk, "CatwalkPost", W(x, CatwalkSouthZ - .1f, -2.6f), new Vector3(.14f, 5f, .14f), Mat("V4_Iron_Dark"), true);
+            MezzRail(walk, new(CatwalkWestX, CatwalkSouthZ), new(CatwalkWestX, PitStairTopZ), 0f);
+            MezzRail(walk, new(CatwalkWestX, CatwalkSouthZ), new(CatwalkEastX, CatwalkSouthZ), 0f);
+            MezzRail(walk, new(CatwalkEastX, MachineZ0), new(CatwalkEastX, CatwalkSouthZ), 0f);
+            MezzRail(walk, new(PitStairX1 + .2f, PitStairTopZ), new(PitStairX1 + .2f, MachineZ1), 0f);
+            MezzRail(walk, new(PitStairX1, PitStairTopZ), new(PitStairX1 + .2f, PitStairTopZ), 0f);
+            StairFlight(walk, PitStairX0, PitStairX1, PitStairTopZ, -1f, 0f, Mathf.RoundToInt((B1Level - PitLevel) / StairRiser));
+            // Cold strip lights over the catwalk, a control desk by the stairs door and warning signage at the rail.
+            var cold = new Color(.72f, .84f, .95f);
+            foreach (var (x, z) in new[] { (-26.7f, 9.5f), (-19f, 2f) })
+            {
+                Box(walk, "StripLight", W(x, z, B1Height - .08f), new Vector3(.18f, .06f, 1.6f), Mat("LA_Bulb"));
+                Point(walk, "ColdStrip", W(x, z, B1Height - .45f), cold, 1.2f, 9f);
+            }
+            for (int i = 0; i < 6; i++) Box(walk, "RailHazard", W(-22f + i * .9f, CatwalkSouthZ + .02f, .25f), new Vector3(.45f, .3f, .02f), Mat(i % 2 == 0 ? "LA_HazardPaint" : "V4_Black"));
+            PlantControl(walk);
+            Box(walk, "GaugePanel", W(MachineX0 + .06f, 11.5f, 1.6f), new Vector3(.06f, 1f, 2.4f), Mat("V4_Iron_Dark"));
+            for (int i = 0; i < 6; i++)
+                Prim(walk, PrimitiveType.Cylinder, "Gauge", W(MachineX0 + .1f, 10.6f + i * .36f, 1.75f - (i % 2) * .35f), new Vector3(.22f, .02f, .22f), Mat("LA_Bronze")).rotation = Quaternion.Euler(0, 0, 90);
+            LevelY = keep;
+        }
+
+        static void BuildOfficeAndChanging(Transform target)
+        {
+            var link = Group(target, "B1_OfficeLink", W((LinkX0 + LinkX1) * .5f, (LinkZ0 + LinkZ1) * .5f));
+            RoomShell(link, "LA_OfficeLink", LinkX0, LinkX1, LinkZ0, LinkZ1, B1Height, 2.2f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                new[] { (1, LinkWestX, 2f, .5f), (0, LinkWestDoorZ, 2f, .1f) }, westThickness: .1f);
+            FloorCollider(link, LinkX0, LinkX1, LinkZ0, LinkZ1);
+            PipeRun(Group(link, "Pipes", link.position), new(LinkX1 - .25f, LinkZ0 + .2f), new(LinkX1 - .25f, LinkZ1 - .2f), 3.9f, .12f);
+
+            // 14: facility office — desk and lamp, a control wall of gauges and switches, dead monitors, key board, files.
+            var office = Group(target, "B1_Office", W((OfficeX0 + OfficeX1) * .5f, (OfficeZ0 + OfficeZ1) * .5f));
+            RoomShell(office, "LA_Office", OfficeX0, OfficeX1, OfficeZ0, OfficeZ1, B1Height, 2.2f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                new[] { (2, LinkWestDoorZ, 2f, .1f), (3, ChangeDoorX, 2f, .5f) }, eastThickness: .1f);
+            FloorCollider(office, OfficeX0, OfficeX1, OfficeZ0, OfficeZ1);
+            var o = Group(office, "Office", office.position);
+            Box(o, "Desk", W(-32.6f, -1.6f, .4f), new Vector3(2f, .8f, .9f), Mat("V4_Wood_Old"), true);
+            PlaceProp(SyntyProps + "SM_Prop_Study_Chair_01", o, W(-32.6f, -2.6f), 0);
+            Box(o, "DeskLampShade", W(-33.3f, -1.4f, 1.15f), new Vector3(.25f, .15f, .25f), Mat("V4_Iron_Dark"));
+            Point(o, "DeskLamp", W(-33.3f, -1.4f, 1f), new Color(1f, .7f, .4f), 1.2f, 4.5f);
+            for (int i = 0; i < 3; i++)
+            {
+                Box(o, "DeadMonitor", W(-32.2f + i * .55f, -1.35f, 1.05f), new Vector3(.45f, .4f, .4f), Mat("V4_Black"));
+                Box(o, "MonitorGlass", W(-32.2f + i * .55f, -1.56f, 1.05f), new Vector3(.36f, .3f, .01f), Mat(i == 1 ? "LA_Bulb" : "V4_Iron_Dark"));
+            }
+            Box(o, "ControlWall", W(OfficeX0 + .08f, -3.4f, 1.5f), new Vector3(.08f, 1.6f, 3.6f), Mat("V4_Iron_Dark"));
+            for (int i = 0; i < 8; i++)
+                Prim(o, PrimitiveType.Cylinder, "Gauge", W(OfficeX0 + .14f, -4.8f + i * .4f, 1.9f - (i % 2) * .45f), new Vector3(.24f, .02f, .24f), Mat("LA_Bronze")).rotation = Quaternion.Euler(0, 0, 90);
+            Box(o, "KeyBoard", W(-29.4f, OfficeZ1 - .07f, 1.7f), new Vector3(1f, .7f, .04f), Mat("V4_Wood_Old"));
+            for (int i = 0; i < 6; i++) Box(o, "Key", W(-29.8f + i * .16f, OfficeZ1 - .1f, 1.75f - (i % 2) * .2f), new Vector3(.03f, .1f, .02f), Mat("LA_Bronze"));
+            foreach (var z in new[] { -5.6f, -4.9f }) Box(o, "FilingCabinet", W(-28.4f, z, .7f), new Vector3(.7f, 1.4f, .6f), Mat("V4_Partition_RustGreen"), true);
+            Decal(o, "Crack", -31f, -4.6f, 2f, 2f, Mat("LA_CrackDecal"));
+
+            // Changing room: lockers, benches, a bulb-framed vanity and a costume rail.
+            var change = Group(target, "B1_ChangingRoom", W((ChangeX0 + ChangeX1) * .5f, (ChangeZ0 + ChangeZ1) * .5f));
+            RoomShell(change, "LA_ChangingRoom", ChangeX0, ChangeX1, ChangeZ0, ChangeZ1, B1Height, 2.2f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                new[] { (1, ChangeDoorX, 2f, .5f) });
+            FloorCollider(change, ChangeX0, ChangeX1, ChangeZ0, ChangeZ1);
+            var c = Group(change, "Changing", change.position);
+            var lockers = Required("Mood/InteriorArt/Stage01_Dormitory/FadedTwoDoorLockers");
+            for (int i = 0; i < 4; i++)
+            {
+                var l = Copy(lockers, c, "Lockers");
+                l.rotation = Quaternion.Euler(0, 180, 0) * lockers.rotation;
+                var fc = FootprintCenter(lockers);
+                l.position += W(-32f + i * 1.25f, ChangeZ0 + .45f) - new Vector3(FootprintCenter(l).x, 0, FootprintCenter(l).z) + new Vector3(0, LevelY, 0) * 0;
+                l.position = new Vector3(l.position.x, lockers.position.y + LevelY, l.position.z);
+            }
+            foreach (var z in new[] { -11.4f, -9.4f }) PlaceProp(SyntyProps + "SM_Prop_Plank_Bench_01", c, W(-28.2f, z), 90);
+            Box(c, "VanityMirror", W(ChangeX1 - .06f, -10.4f, 1.6f), new Vector3(.04f, 1f, 2.4f), Mat("LA_Mirror"));
+            Box(c, "VanityShelf", W(ChangeX1 - .25f, -10.4f, .85f), new Vector3(.45f, .06f, 2.6f), Mat("V4_Wood_Old"), true);
+            for (int i = 0; i < 10; i++) Bulb(c, W(ChangeX1 - .1f, -11.6f + i * .27f, 2.15f));
+            Point(c, "VanityGlow", W(ChangeX1 - .8f, -10.4f, 1.9f), new Color(1f, .72f, .45f), 1.4f, 5f);
+            Box(c, "CostumeRail", W(-27f, ChangeZ1 - .5f, 1.8f), new Vector3(3f, .04f, .04f), Mat("LA_Bronze"));
+            for (int i = 0; i < 7; i++) Box(c, "HangingCostume", W(-28.3f + i * .42f, ChangeZ1 - .5f, 1.2f), new Vector3(.08f, 1.1f, .5f), Mat(i % 3 == 0 ? "V4_Harlequin" : i % 3 == 1 ? "LA_TentRed" : "LA_TentCream"));
+            CagedLamp(c, W(-30.5f, -9.8f, 3.6f), .6f);
+        }
+
+        static void BuildEscapeEntrance(Transform target)
+        {
+            var corr = Group(target, "B1_EscapeCorridor", W((EscCorrX0 + EscCorrX1) * .5f, (EscCorrZ0 + LinkZ1) * .5f));
+            RoomShell(corr, "LA_EscapeCorridor", EscCorrX0, EscCorrX1, EscCorrZ0, LinkZ1, B1Height, 2.2f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                new[] { (1, EscapeDoorX, 2f, .5f), (3, EscapeDoorX, 2f, .5f) });
+            FloorCollider(corr, EscCorrX0, EscCorrX1, EscCorrZ0, LinkZ1);
+            var ex = Group(target, "B1_EscapeEntrance", W((EscapeX0 + EscapeX1) * .5f, (EscapeZ0 + EscapeZ1) * .5f));
+            RoomShell(ex, "LA_EscapeEntrance", EscapeX0, EscapeX1, EscapeZ0, EscapeZ1, B1Height, 2.2f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                new[] { (1, EscapeDoorX, 2f, .5f) });
+            FloorCollider(ex, EscapeX0, EscapeX1, EscapeZ0, EscapeZ1);
+            var g = Group(ex, "SealedDoor", W(-19.3f, EscapeZ0));
+            // The way out: a heavy steel door in the south wall, wheel-locked and chained, with a keypad (puzzle designed later).
+            var d = W(-19.3f, EscapeZ0);
+            Box(g, "DoorFrame", d + new Vector3(0, 1.85f, .1f), new Vector3(3.2f, 3.7f, .2f), Mat("V4_Iron_Dark"));
+            Box(g, "EscapeDoor", d + new Vector3(0, 1.7f, .22f), new Vector3(2.6f, 3.4f, .12f), Mat("LA_SteelPlate"), true);
+            for (int i = 0; i < 4; i++) Box(g, "DoorRib", d + new Vector3(0, .5f + i * .8f, .3f), new Vector3(2.5f, .08f, .04f), Mat("V4_RustyMetal"));
+            Prim(g, PrimitiveType.Cylinder, "LockWheel", d + new Vector3(0, 1.6f, .34f), new Vector3(.8f, .04f, .8f), Mat("LA_Bronze")).rotation = Quaternion.Euler(90, 0, 0);
+            foreach (var s in new[] { 1f, -1f }) Rope(g, d + new Vector3(-1.2f * s, 3.2f, .36f), d + new Vector3(1.2f * s, .3f, .36f), .03f);
+            Box(g, "Keypad", d + new Vector3(1.7f, 1.4f, .14f), new Vector3(.25f, .35f, .08f), Mat("V4_Black"));
+            for (int i = 0; i < 9; i++) Box(g, "KeypadKey", d + new Vector3(1.62f + (i % 3) * .08f, 1.48f - (i / 3) * .08f, .19f), new Vector3(.05f, .05f, .02f), Mat(i == 4 ? "LA_Bulb" : "V4_Iron_Dark"));
+            var sign = Copy(Required("S01_Lobby/Sign_② 숙소"), g, "EscapeSign", false);
+            sign.gameObject.SetActive(true);
+            sign.SetPositionAndRotation(d + new Vector3(0, 3.95f, .25f), Quaternion.LookRotation(Vector3.back));
+            var text = sign.GetComponent<TextMesh>(); text.text = "탈출로"; text.anchor = TextAnchor.MiddleCenter; text.fontSize = 64; text.characterSize = .06f; text.color = new Color(.85f, .3f, .25f);
+            for (int i = 0; i < 9; i++) Box(g, "HazardStripe", d + new Vector3(-1.6f + i * .4f, .012f, .9f), new Vector3(.2f, .004f, 1.2f), Mat(i % 2 == 0 ? "LA_HazardPaint" : "V4_Black")).rotation = Quaternion.Euler(0, 30, 0);
+            Point(g, "WarningBeacon", d + new Vector3(0, 3.6f, .8f), new Color(1f, .2f, .12f), 1.6f, 6f);
+            Prim(g, PrimitiveType.Sphere, "BeaconGlass", d + new Vector3(0, 3.62f, .3f), Vector3.one * .22f, Mat("V4_Glow_Red"));
+            Point(g, "ColdFill", W(-19.3f, -6f, B1Height - .4f), new Color(.72f, .84f, .95f), .9f, 6f);
+            Decal(g, "RustStain", -21.5f, -6.4f, 1.8f, 1.4f, Mat("LA_RustDecal"));
+        }
+
+        // The plant that powers the whole facility, laid out as one readable chain from west to east: two boilers raise steam,
+        // the steam main feeds the turbine-generator on the north wall, and everything ends at the distribution manifold on the
+        // east wall, where every line in the building leaves through the ceiling behind its own valve and destination tag. The
+        // facility's incoming lines cross the roof of the pit into the same manifold. Power runs from the generator through
+        // cable trays to the switchboard row on the south wall; the control desk and the mimic board of the pipe network
+        // overlook it all from the catwalk.
+        static readonly string[] ManifoldLines = { "로비", "숙소 · 화장실", "연습 공연장", "물류 창고", "작업실", "배관 구역", "무대 통로" };
+        const float ManifoldX = -3.1f, ManifoldZ0 = 4.4f, ManifoldZ1 = 14.6f, SteamMainZ = 11.6f;
+
+        static void BuildPowerPlant(Transform pit)
+        {
+            // Boilers: horizontal shells on saddles with a firebox door, rivet bands, a gauge and a steam dome feeding the main.
+            foreach (var z in new[] { 13.3f, 9.7f })
+            {
+                var c = W(-19.5f, z, 1.5f);
+                Prim(pit, PrimitiveType.Cylinder, "BoilerShell", c, new Vector3(2.3f, 3f, 2.3f), Mat("V4_RustyMetal"), true).rotation = Quaternion.Euler(0, 0, 90);
+                foreach (var dx in new[] { -2.4f, -.8f, .8f, 2.4f })
+                    Prim(pit, PrimitiveType.Cylinder, "RivetBand", c + Vector3.right * dx, new Vector3(2.38f, .05f, 2.38f), Mat("V4_Iron_Dark")).rotation = Quaternion.Euler(0, 0, 90);
+                Prim(pit, PrimitiveType.Cylinder, "FireboxDoor", c + Vector3.left * 3.02f, new Vector3(1.1f, .04f, 1.1f), Mat("V4_Black")).rotation = Quaternion.Euler(0, 0, 90);
+                Box(pit, "FireboxGlow", c + new Vector3(-3.06f, -.35f, 0), new Vector3(.02f, .25f, .7f), Mat("V4_Glow_Red"));
+                foreach (var dx in new[] { -2f, 2f }) Box(pit, "BoilerSaddle", W(-19.5f + dx, z, .3f), new Vector3(.35f, .6f, 1.9f), Mat("V4_Iron_Dark"), true);
+                Prim(pit, PrimitiveType.Cylinder, "SteamDome", c + new Vector3(1.2f, 1.25f, 0), new Vector3(.7f, .35f, .7f), Mat("V4_RustyMetal"));
+                Pipe(pit, c + new Vector3(1.2f, 1.25f + (6.6f - 2.75f) * .5f, 0), Vector3.up, 6.6f - 2.75f, .22f).name = "SteamRiser";
+                Pipe(pit, W(-18.3f, (z + SteamMainZ) * .5f, 6.6f), Vector3.forward, Mathf.Abs(SteamMainZ - z), .22f).name = "SteamRiser";
+                PlaceProp(LeartesProps + "SM_Pipe_Small_Meter", pit, c + new Vector3(-2.6f, .9f, -1.16f), 180, false);
+            }
+            // Steam main along the roof from the boilers to the turbine and on to the manifold.
+            Pipe(pit, W((-18.3f + ManifoldX) * .5f, SteamMainZ, 6.6f), Vector3.right, ManifoldX + 18.3f, .42f).name = "SteamMain";
+            foreach (var x in new[] { -14f, -8f }) Box(pit, "MainBand", W(x, SteamMainZ, 6.6f), new Vector3(.12f, .95f, .95f), Mat("LA_HazardPaint"));
+            // Turbine-generator on the north wall, fed by a drop from the main.
+            PlaceProp(LeartesProps + "SM_Machinery_04", pit, W(-8f, 14.1f), 0);
+            Pipe(pit, W(-12f, SteamMainZ + .9f, 5.2f), Vector3.up, 2.8f, .25f).name = "TurbineFeed";
+            Pipe(pit, W(-12f, (SteamMainZ + 12.6f) * .5f + .2f, 3.8f), Vector3.forward, 1.6f, .25f).name = "TurbineFeed";
+            // Feed pump and condenser set in the middle, returning to the boilers.
+            PlaceProp(LeartesProps + "SM_Machinery_03", pit, W(-10.5f, 7f), 0);
+            Pipe(pit, W(-15.8f, 7f, 1f), Vector3.right, 2.2f, .18f).name = "FeedReturn";
+            // Distribution manifold on the east wall: one header, a riser per destination with valve, gauge and tag.
+            Pipe(pit, W(ManifoldX, (ManifoldZ0 + ManifoldZ1) * .5f, 1.4f), Vector3.forward, ManifoldZ1 - ManifoldZ0 + .6f, .5f).name = "ManifoldHeader";
+            foreach (var z in new[] { ManifoldZ0 - .3f, ManifoldZ1 + .3f }) Prim(pit, PrimitiveType.Cylinder, "HeaderCap", W(ManifoldX, z, 1.4f), new Vector3(1.15f, .08f, 1.15f), Mat("LA_Bronze")).rotation = Quaternion.Euler(90, 0, 0);
+            foreach (var z in new[] { ManifoldZ0 + .4f, (ManifoldZ0 + ManifoldZ1) * .5f, ManifoldZ1 - .4f }) Box(pit, "HeaderSaddle", W(ManifoldX, z, .45f), new Vector3(.9f, .9f, .3f), Mat("V4_Iron_Dark"), true);
+            for (int i = 0; i < ManifoldLines.Length; i++)
+            {
+                float z = ManifoldZ0 + .7f + i * (ManifoldZ1 - ManifoldZ0 - 1.4f) / (ManifoldLines.Length - 1);
+                var riser = Pipe(pit, W(ManifoldX + .25f, z, (1.9f + B1Level - PitLevel + B1Height) * .5f), Vector3.up, B1Level - PitLevel + B1Height - 1.9f, .2f); riser.name = "DistributionRiser";
+                Box(pit, "RiserBand", W(ManifoldX + .25f, z, 3.9f), new Vector3(.48f, .14f, .48f), Mat(i % 3 == 0 ? "LA_HazardPaint" : i % 3 == 1 ? "V4_Velvet_Red" : "LA_RackBlue"));
+                var wheel = Prim(pit, PrimitiveType.Cylinder, "ValveWheel", W(ManifoldX - .2f, z, 2.7f), new Vector3(.55f, .03f, .55f), Mat("LA_Bronze")); wheel.rotation = Quaternion.Euler(0, 0, 90);
+                Box(pit, "ValveBody", W(ManifoldX + .05f, z, 2.7f), new Vector3(.35f, .4f, .4f), Mat("V4_Iron_Dark"));
+                PlaceProp(LeartesProps + "SM_Pipe_Small_Meter", pit, W(ManifoldX + .02f, z, 3.35f), -90, false);
+                var tag = Copy(Required("S01_Lobby/Sign_② 숙소"), pit, "LineTag", false);
+                tag.gameObject.SetActive(true);
+                tag.SetPositionAndRotation(W(ManifoldX - .05f, z, 4.4f), Quaternion.LookRotation(Vector3.right));
+                Box(pit, "TagPlate", W(ManifoldX + .02f, z, 4.4f), new Vector3(.03f, .28f, 1.1f), Mat("V4_Sign_Wood"));
+                var t = tag.GetComponent<TextMesh>(); t.text = ManifoldLines[i]; t.anchor = TextAnchor.MiddleCenter; t.fontSize = 48; t.characterSize = .028f; t.color = new Color(.92f, .84f, .62f);
+            }
+            var head = Copy(Required("S01_Lobby/Sign_② 숙소"), pit, "ManifoldSign", false);
+            head.gameObject.SetActive(true);
+            head.SetPositionAndRotation(W(ManifoldX - 1.05f, (ManifoldZ0 + ManifoldZ1) * .5f, 6.2f), Quaternion.LookRotation(Vector3.right));
+            var ht = head.GetComponent<TextMesh>(); ht.text = "주 배관 분배실"; ht.anchor = TextAnchor.MiddleCenter; ht.fontSize = 64; ht.characterSize = .07f; ht.color = new Color(.92f, .84f, .62f);
+            Box(pit, "ManifoldSignBoard", W(ManifoldX - 1f, (ManifoldZ0 + ManifoldZ1) * .5f, 6.2f), new Vector3(.04f, 1f, 4.2f), Mat("V4_Sign_Wood"));
+            foreach (var dz in new[] { -1.8f, 1.8f }) Rope(pit, W(ManifoldX - 1f, (ManifoldZ0 + ManifoldZ1) * .5f + dz, 6.7f), W(ManifoldX - 1f, (ManifoldZ0 + ManifoldZ1) * .5f + dz, 8.1f), .015f);
+            Pipe(pit, W(ManifoldX, SteamMainZ, (1.4f + 6.6f) * .5f), Vector3.up, 5.2f, .4f).name = "MainDrop";
+            // The facility's incoming lines: they come through the west wall above the catwalk doors and cross the roof to the manifold.
+            foreach (var (z, y, r) in new[] { (5.85f, 8.6f, .22f), (7.3f, 8.75f, .18f), (8.75f, 8.6f, .26f), (13.15f, 8.4f, .2f) })
+            {
+                Pipe(pit, W((MachineX0 + ManifoldX) * .5f, z, y), Vector3.right, ManifoldX - MachineX0, r).name = "FacilityLine";
+                Pipe(pit, W(ManifoldX, z, (y + 1.4f) * .5f), Vector3.up, y - 1.4f, r).name = "FacilityLineDrop";
+            }
+            for (float x = -23.5f; x < MachineX1; x += 3f)
+                Box(pit, "PipeRackBeam", W(x, (MachineZ0 + MachineZ1) * .5f, 8.1f), new Vector3(.2f, .25f, MachineZ1 - MachineZ0), Mat("V4_Iron_Dark"));
+            // Power: cable trays from the generator to the switchboard row on the south wall, then up through the roof.
+            Box(pit, "CableTray", W(-6f, 8f, 5.9f), new Vector3(.5f, .1f, 9.4f), Mat("V4_Iron_Dark"));
+            Box(pit, "CableBundle", W(-6f, 8f, 6f), new Vector3(.4f, .12f, 9.4f), Mat("V4_Black"));
+            Box(pit, "CableTray", W(-8.5f, 1.8f, 5.9f), new Vector3(9f, .1f, .5f), Mat("V4_Iron_Dark"));
+            Box(pit, "CableRise", W(-12.8f, 1.5f, 7.7f), new Vector3(.4f, 3.6f, .14f), Mat("V4_Black"));
+            for (int i = 0; i < 6; i++)
+            {
+                var p = W(-12.3f + i * 1.45f, MachineZ0 + .4f, 1.1f);
+                Box(pit, "SwitchboardCabinet", p, new Vector3(1.4f, 2.2f, .6f), Mat("V4_Partition_RustGreen"), true);
+                Box(pit, "CabinetDoorLine", p + new Vector3(0, 0, .31f), new Vector3(.02f, 2f, .01f), Mat("V4_Black"));
+                for (int k = 0; k < 3; k++) Prim(pit, PrimitiveType.Sphere, "IndicatorLamp", p + new Vector3(-.4f + k * .15f, .8f, .31f), Vector3.one * .06f, Mat(k == i % 3 ? "V4_Glow_Red" : "LA_Bulb"));
+                Box(pit, "BreakerHandle", p + new Vector3(.35f, .2f, .33f), new Vector3(.08f, .3f, .06f), Mat("V4_Black"));
+            }
+            PlaceProp(LeartesProps + "SM_Control_Panel", pit, W(-23.6f, 4.2f), 180);
+            foreach (var (x, z) in new[] { (-27.1f, 13.6f), (-26.4f, 13.9f), (-27.1f, 12.8f) }) PlaceFactory("SM_Barrel", pit, W(x, z), x * 30);
+            foreach (var (x, z, sz) in new[] { (-16.2f, 11.6f, 2.4f), (-5f, 9f, 2f), (-22.8f, 6.4f, 1.8f) })
+                Decal(pit, "OilPuddle", x, z, sz, sz * .7f, Mat("LA_PuddleDecal"));
+            Decal(pit, "RustStain", -9f, 4.4f, 2.4f, 1.8f, Mat("LA_RustDecal"));
+            Point(pit, "BoilerGlow", W(-19.5f, 11.5f, 3.6f), new Color(1f, .6f, .3f), 1.8f, 9f);
+            Point(pit, "ManifoldLight", W(-4.6f, 9.5f, 5.4f), new Color(1f, .74f, .46f), 1.8f, 9f);
+            Point(pit, "PitCold", W(-11f, 6f, 6.6f), new Color(.66f, .8f, .95f), 1.1f, 14f);
+            Point(pit, "WarningBeacon", W(-14.6f, 3.4f, 5.4f), new Color(1f, .2f, .12f), 1f, 6f);
+            Prim(pit, PrimitiveType.Sphere, "BeaconGlass", W(-14.6f, MachineZ0 + .25f, 5.4f), Vector3.one * .22f, Mat("V4_Glow_Red"));
+        }
+
+        // Control desk and the mimic board of the facility's pipe network, on the south catwalk overlooking the plant.
+        static void PlantControl(Transform walk)
+        {
+            var board = W(-21f, MachineZ0 + .05f, 1.9f);
+            Box(walk, "MimicBoard", board, new Vector3(5f, 1.5f, .06f), Mat("V4_Partition_RustGreen"));
+            var colors = new[] { "V4_Velvet_Red", "LA_RackBlue", "LA_HazardPaint" };
+            Box(walk, "MimicLine", board + new Vector3(0, -.45f, .04f), new Vector3(4.4f, .05f, .01f), Mat("LA_Bronze"));
+            for (int i = 0; i < ManifoldLines.Length; i++)
+            {
+                float x = -2f + i * .66f;
+                Box(walk, "MimicLine", board + new Vector3(x, -.05f, .04f), new Vector3(.05f, .8f, .01f), Mat(colors[i % 3]));
+                Prim(walk, PrimitiveType.Sphere, "MimicLamp", board + new Vector3(x, .45f, .05f), Vector3.one * .07f, Mat(i == 3 ? "V4_Glow_Red" : "LA_Bulb"));
+            }
+            Box(walk, "MimicBoiler", board + new Vector3(-2.2f, -.45f, .045f), new Vector3(.3f, .2f, .01f), Mat("LA_TentCream"));
+            Box(walk, "ControlDesk", W(-21f, MachineZ0 + .3f, .45f), new Vector3(3.2f, .9f, .55f), Mat("V4_Iron_Dark"), true);
+            Box(walk, "DeskTop", W(-21f, MachineZ0 + .34f, .93f), new Vector3(3.3f, .06f, .62f), Mat("V4_RustyMetal")).rotation = Quaternion.Euler(-12, 0, 0);
+            for (int i = 0; i < 10; i++) Box(walk, "DeskSwitch", W(-22.4f + i * .3f, MachineZ0 + .45f, .99f), new Vector3(.05f, .1f, .05f), Mat(i % 4 == 0 ? "V4_Glow_Red" : "V4_Black"));
+            PlaceProp(SyntyProps + "SM_Prop_Study_Chair_01", walk, W(-21f, MachineZ0 + 1f, 0), 180);
+        }
+
+        static void ValidateBasement(Transform target)
+        {
+            LevelY = 0;
+            foreach (var (x, z, y, what) in new[] { (WcX0 + .8f, WcDoorZ, 0f, "top landing"), (-31.8f, 13.4f, -1.2f, "flight A"), (-31f, 16.2f, -2.4f, "mid landing"), (-29.1f, 13.4f, -3.8f, "flight B"),
+                         (-29.1f, 10.6f, B1Level, "stair foot"), (-29.1f, MachineDoorZ, B1Level, "under the landing"), (MachineX0 + 1f, MachineDoorZ, B1Level, "13 catwalk entry"), (-26.7f, 13.6f, B1Level, "west catwalk"),
+                         (-20f, 2f, B1Level, "south catwalk"), (-24.7f, 15.5f, B1Level, "pit stair head"), (-24.7f, 6.6f, PitLevel, "pit stair foot"), (-14.5f, 11f, PitLevel, "between boilers and turbine"),
+                         (-5f, 8f, PitLevel, "in front of the manifold"), (-12f, 3.9f, PitLevel, "pit south lane"), (-19.5f, 11.5f, PitLevel, "between the boilers"), (LinkWestX, -1.4f, B1Level, "office link"), (-30f, -2.5f, B1Level, "14"), (-31f, -8.2f, B1Level, "changing entry"),
+                         (-29f, -11f, B1Level, "changing middle"), (EscapeDoorX, -1.8f, B1Level, "escape corridor"), (EscapeDoorX, -6f, B1Level, "escape entrance"), (-19.3f, -7.8f, B1Level, "in front of the sealed door"),
+                         (StairHallX1, MachineDoorZ, B1Level, "stairs-13 doorway"), (LinkWestX, MachineZ0, B1Level, "13-link doorway"), (LinkX0, LinkWestDoorZ, B1Level, "link-14 doorway"),
+                         (ChangeDoorX, OfficeZ0, B1Level, "14-changing doorway"), (EscapeDoorX, MachineZ0, B1Level, "13-escape doorway"), (EscapeDoorX, EscapeZ1, B1Level, "escape entrance doorway") })
+            {
+                var feet = W(x, z, y + .1f);
+                if (!Physics.Raycast(feet + Vector3.up * .8f, Vector3.down, out var hit, 2f, ~0, QueryTriggerInteraction.Ignore) || hit.point.y < feet.y - .7f) throw new InvalidOperationException("No floor at " + what);
+                var blockers = Physics.OverlapCapsule(hit.point + Vector3.up * .45f, hit.point + Vector3.up * 1.5f, .3f, ~0, QueryTriggerInteraction.Ignore)
+                    .Where(c => c.transform.IsChildOf(target) && !c.name.StartsWith("Floor") && c.name != "FlightRamp").ToArray();
+                if (blockers.Length > 0) throw new InvalidOperationException($"Blocked {what}: {string.Join(",", blockers.Select(b => b.name))}");
+            }
+            if (!Physics.Raycast(W(-19.3f, -8f, B1Level + 1.2f), Vector3.back, 2f, ~0, QueryTriggerInteraction.Ignore)) throw new InvalidOperationException("Escape door is open");
+            if (target.Find("WC_WestCorridor/Connections/Closure_계단 (B1)") != null) throw new InvalidOperationException("Stairs door still closed");
         }
 
         // Stage 5 lounge (plan LG, inside the lobby south of the spawn): a half-open rest corner. A faded curtain screen on the
@@ -837,15 +1716,17 @@ namespace CurtainCall.WaitingRoom.Editor
             catch { Undo.RevertAllDownToGroup(undo); throw; }
         }
 
-        // Stage 5 practice room (plan 09, north-west of the lobby), enlarged on 2026-10-27 after the planner's concept art:
-        // a high factory bay around a raised circus ring with a radial star floor, harlequin skirt and low railing, under a torn
-        // striped canopy and a circular light rig; two small stands, cages, banners and pennants. Big enough to actually practise:
-        // a tightrope lane across the ring between two wooden towers, and a human-cannon lane from the ring's south edge
-        // to the landing mats in the north. The practice interactions themselves come later (M2); only their lanes are kept clear.
-        const float PracX0 = -16.1f, PracX1 = .8f, PracZ0 = 14.5f, PracZ1 = 36f, PracHeight = 12f, PracDoorX = -7.8f, PracDoorWidth = 3.8f;
-        static readonly Vector2 PracRing = new(-7.65f, 25.2f), CannonLaunch = new(-7.65f, 21f), CannonLanding = new(-7.65f, 33.9f);
-        // Towers stand just off the ring with a walkway behind them, so the ring can be walked round on the floor.
-        const float PracRingRadius = 5.6f, PracRingDeck = .18f, PracWestDoorZ = 18.5f, RopeHeight = 3.5f, TowerWestX = -14.25f, TowerEastX = -1.05f;
+        // Practice arena (plan 09). Reached from the lobby through a service corridor, not straight through a door: the
+        // corridor also opens west into the 10 workshop. The arena is a high factory bay around a raised circus ring that
+        // stands surround on every side (four aisles), under a torn canopy and a light rig. Big enough to practise for real:
+        // a tightrope lane across the ring between two towers, and a human-cannon lane from the south platform to the north
+        // mats and net. The practice interactions come later (M2); their lanes are built and kept clear.
+        const float PracX0 = -32f, PracX1 = 12f, PracZ0 = 26f, PracZ1 = 64f, PracHeight = 16f, PracDoorX = -7.8f, PracDoorWidth = 5.5f;
+        const float CorrX0 = -10.55f, CorrX1 = -5.05f, CorrZ0 = 14.5f, CorrHeight = 7f, WsDoorWidth = 4f;
+        static readonly Vector2 PracRing = new(-7.8f, 45f), CannonLaunch = new(-7.8f, 38.6f), CannonLanding = new(-7.8f, 51.6f);
+        const float PracRingRadius = 8f, PracRingDeck = .18f, PracWestDoorZ = 18.5f, RopeHeight = 3.5f, TowerWestX = -14.4f, TowerEastX = -1.2f;
+        const float StandIn = 10.6f, StandTread = 1f, StandRise = .45f, StandAisle = 8.5f; const int StandTiers = 5;
+        static float StandOut => StandIn + StandTiers * StandTread;
 
         // West corridor (plan band under 10): from the lobby west door to the stairs (west end, down to B1),
         // with the workshop (10) door on its north side. Stairs and 10 are later stages, so both doors start closed.
@@ -868,8 +1749,8 @@ namespace CurtainCall.WaitingRoom.Editor
                 floorCollider.AddComponent<BoxCollider>().size = new Vector3(-LobbyW + .1f - WcX0 + .1f, .2f, WcZ1 - WcZ0 + .2f);
 
                 var connections = Group(root, "Connections", root.position);
-                TempClosure(connections, new Vector2(WcX0, WcDoorZ), Vector3.forward, Vector3.right, WcDoorWidth, "계단 (B1)");
-                TempClosure(connections, new Vector2(WcNorthDoorX, WcZ1), Vector3.right, Vector3.back, 2.8f, "10 작업실");
+                if (target.Find("ST_Stairwell") == null) TempClosure(connections, new Vector2(WcX0, WcDoorZ), Vector3.forward, Vector3.right, WcDoorWidth, "계단 (B1)");
+                if (target.Find("S10_Workshop") == null) TempClosure(connections, new Vector2(WcNorthDoorX, WcZ1), Vector3.right, Vector3.back, 2.8f, "10 작업실");
 
                 // A plain service passage: pipes overhead, a few drums and crates against the south wall, two dim caged lamps.
                 var dressing = Group(root, "Dressing", root.position);
@@ -912,8 +1793,8 @@ namespace CurtainCall.WaitingRoom.Editor
             foreach (var (x, z, what) in new[] { (-LobbyW - .25f, WcDoorZ, "corridor doorway"), (WcX1 - 1f, WcDoorZ, "corridor east"), (-21.5f, WcDoorZ, "corridor middle"), (WcX0 + 1.2f, WcDoorZ, "corridor west end") })
                 CheckStanding(W(x, z, .1f), root.parent, what);
             // Both doors into unbuilt rooms stay shut.
-            if (!Physics.Raycast(W(WcX0 + 1.2f, WcDoorZ, 1f), Vector3.left, 2f)) throw new InvalidOperationException("Stairs door is open into nothing");
-            if (!Physics.Raycast(W(WcNorthDoorX, WcZ1 - 1f, 1f), Vector3.forward, 2f)) throw new InvalidOperationException("Workshop door is open into nothing");
+            if (root.parent.Find("ST_Stairwell") == null && !Physics.Raycast(W(WcX0 + 1.2f, WcDoorZ, 1f), Vector3.left, 2f)) throw new InvalidOperationException("Stairs door is open into nothing");
+            if (root.parent.Find("S10_Workshop") == null && !Physics.Raycast(W(WcNorthDoorX, WcZ1 - 1f, 1f), Vector3.forward, 2f)) throw new InvalidOperationException("Workshop door is open into nothing");
             if (root.GetComponentsInChildren<Light>().Length > 3) throw new InvalidOperationException("Too many west corridor lights");
         }
 
@@ -921,6 +1802,7 @@ namespace CurtainCall.WaitingRoom.Editor
         // inward points into the room being built; the closure sits in the wall thickness on the far side.
         static void TempClosure(Transform parent, Vector2 at, Vector3 along, Vector3 inward, float width, string label)
         {
+            parent = Group(parent, "Closure_" + label, W(at.x, at.y));
             var p = W(at.x, at.y);
             Box(parent, "TemporaryClosure", p + Vector3.up * DoorHeight * .5f - inward * .3f, Size(along, width, DoorHeight, .1f), Mat("V4_Velvet_Red_Cloth"), true);
             Box(parent, "RollerShutter", p + Vector3.up * (DoorHeight - .7f) - inward * .2f, Size(along, width + .1f, 1.4f, .06f), Mat("V4_Ceiling_RustyMetal"));
@@ -937,41 +1819,91 @@ namespace CurtainCall.WaitingRoom.Editor
             var (scene, target) = Begin();
             if (target.Find("S01_Lobby") == null) throw new InvalidOperationException("Build the lobby first.");
             var original = Snapshot(source);
-            int undo = StartUndo("Layout A: build practice room");
+            int undo = StartUndo("Layout A: build practice arena");
             try
             {
                 Remove(target, "S09_PracticeRoom");
-                var room = Group(target, "S09_PracticeRoom", W((PracX0 + PracX1) * .5f, (PracZ0 + PracZ1) * .5f));
-                RoomShell(room, "LA_Practice", PracX0, PracX1, PracZ0, PracZ1, PracHeight, 2.4f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
-                    new[] { (3, PracDoorX, PracDoorWidth, .5f), (0, PracWestDoorZ, 2.8f, .5f) });
-                // 09 - 10 door in the west wall; closed until the workshop is built.
-                var connections = Group(room, "Connections", room.position);
-                TempClosure(connections, new Vector2(PracX0, PracWestDoorZ), Vector3.forward, Vector3.right, 2.8f, "10 작업실");
-                var floorCollider = new GameObject("FloorCollider"); floorCollider.transform.SetParent(room, false);
-                floorCollider.transform.position = W((PracX0 + PracX1) * .5f, (LobbyN - .1f + PracZ1) * .5f, -.1f);
-                floorCollider.AddComponent<BoxCollider>().size = new Vector3(PracX1 - PracX0 + .2f, .2f, PracZ1 - LobbyN + .1f);
-                var overhead = Group(room, "Overhead", room.position);
-                foreach (var z in new[] { 17.5f, 22.4f, 28f, 33.2f })
-                    Box(overhead, "RoofBeam", W((PracX0 + PracX1) * .5f, z, PracHeight - .25f), new Vector3(PracX1 - PracX0, .5f, .3f), Mat("V4_Iron_Dark"));
-                PipeRun(overhead, new(PracX0 + .4f, PracZ1 - .4f), new(PracX1 - .4f, PracZ1 - .4f), 10.6f, .22f);
-                PipeRun(overhead, new(PracX1 - .4f, PracZ0 + .4f), new(PracX1 - .4f, PracZ1 - .4f), 10.2f, .16f);
-                BoardedWindow(overhead, W(-4f, PracZ1, 8.4f), Vector3.right, Vector3.back, 3f, 1.4f);
-                BoardedWindow(overhead, W(-11.5f, PracZ1, 8.4f), Vector3.right, Vector3.back, 3f, 1.4f);
+                var room = Group(target, "S09_PracticeRoom", W((PracX0 + PracX1) * .5f, (CorrZ0 + PracZ1) * .5f));
+                BuildPracticeCorridor(Group(room, "Corridor", W((CorrX0 + CorrX1) * .5f, (CorrZ0 + PracZ0) * .5f)), target);
+                var arena = Group(room, "Arena", W((PracX0 + PracX1) * .5f, (PracZ0 + PracZ1) * .5f));
+                RoomShell(arena, "LA_Practice", PracX0, PracX1, PracZ0, PracZ1, PracHeight, 3f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                    new[] { (3, PracDoorX, PracDoorWidth, .5f) });
+                FloorCollider(arena, PracX0, PracX1, PracZ0, PracZ1);
+                var overhead = Group(arena, "Overhead", arena.position);
+                for (float z = PracZ0 + 3.8f; z < PracZ1; z += 7.6f)
+                {
+                    Box(overhead, "RoofTruss", W((PracX0 + PracX1) * .5f, z, PracHeight - .3f), new Vector3(PracX1 - PracX0, .4f, .3f), Mat("V4_Iron_Dark"));
+                    Box(overhead, "RoofTrussLow", W((PracX0 + PracX1) * .5f, z, PracHeight - 1.8f), new Vector3(PracX1 - PracX0, .25f, .2f), Mat("V4_Iron_Dark"));
+                    for (float x = PracX0 + 1.5f; x < PracX1 - 1f; x += 3f)
+                        Box(overhead, "TrussWeb", W(x, z, PracHeight - 1.05f), new Vector3(.08f, 1.6f, .08f), Mat("V4_RustyMetal")).rotation = Quaternion.Euler(0, 0, ((int)x % 2 == 0) ? 35 : -35);
+                }
+                PipeRun(overhead, new(PracX0 + .5f, PracZ1 - .5f), new(PracX1 - .5f, PracZ1 - .5f), PracHeight - 3f, .32f);
+                PipeRun(overhead, new(PracX1 - .5f, PracZ0 + .5f), new(PracX1 - .5f, PracZ1 - .5f), PracHeight - 3.6f, .2f);
+                PipeRun(overhead, new(PracX0 + .5f, PracZ0 + .5f), new(PracX0 + .5f, PracZ1 - .5f), PracHeight - 3.2f, .24f);
+                foreach (var x in new[] { -24f, -14f, 0f })
+                    BoardedWindow(overhead, W(x, PracZ1, 11.5f), Vector3.right, Vector3.back, 3.4f, 1.6f);
 
-                BuildPracticeRing(Group(room, "PracticeRing", W(PracRing.x, PracRing.y)));
-                BuildPracticeLanes(Group(room, "PracticeLanes", room.position));
-                BuildPracticeCanopy(Group(room, "CanopyAndRig", W(PracRing.x, PracRing.y)));
-                BuildPracticeSurroundings(Group(room, "Surroundings", room.position));
+                BuildPracticeRing(Group(arena, "PracticeRing", W(PracRing.x, PracRing.y)));
+                BuildPracticeLanes(Group(arena, "PracticeLanes", arena.position));
+                BuildPracticeCanopy(Group(arena, "CanopyAndRig", W(PracRing.x, PracRing.y)));
+                BuildPracticeSurroundings(Group(arena, "Surroundings", arena.position));
 
                 OpenPortal(target, "09");
                 int remapped = RemapReferences(room);
                 Physics.SyncTransforms();
                 AssertUnchanged(original);
                 ValidatePracticeRoom(room);
-                Finish(scene, undo, "stage-05-practice-copy-manifest.md", "5단계 연습실(확장) 복제·배치 목록", room, remapped, 0);
-                return $"Practice room built; objects={room.GetComponentsInChildren<Transform>(true).Length}; lights={room.GetComponentsInChildren<Light>().Length}; sourceUnchanged=true";
+                Finish(scene, undo, "stage-05-practice-copy-manifest.md", "연습 공연장(09)·연결 복도 배치 목록", room, remapped, 0);
+                return $"Practice arena built; objects={room.GetComponentsInChildren<Transform>(true).Length}; lights={room.GetComponentsInChildren<Light>().Length}; sourceUnchanged=true";
             }
             catch { Undo.RevertAllDownToGroup(undo); throw; }
+        }
+
+        // Service corridor from the lobby to the arena: pipes and cable trays overhead, caged lamps, lockers and a notice
+        // board, direction signs; a wide opening west into the workshop.
+        static void BuildPracticeCorridor(Transform corr, Transform target)
+        {
+            RoomShell(corr, "LA_PracticeCorridor", CorrX0, CorrX1, CorrZ0, PracZ0, CorrHeight, 2.4f, Mat("LA_FloorConcrete"), Mat("LA_WallConcrete"), Mat("LA_WallRust"),
+                new[] { (3, PracDoorX, PracDoorWidth, .5f), (1, PracDoorX, PracDoorWidth, .5f), (0, PracWestDoorZ, WsDoorWidth, .1f) }, westThickness: .1f);
+            FloorCollider(corr, CorrX0, CorrX1, CorrZ0 - .5f, PracZ0);
+            var connections = Group(corr, "Connections", corr.position);
+            if (target.Find("S10_Workshop") == null) TempClosure(connections, new Vector2(CorrX0, PracWestDoorZ), Vector3.forward, Vector3.right, WsDoorWidth, "10 작업실");
+            var g = Group(corr, "Dressing", corr.position);
+            PipeRun(g, new(CorrX0 + .3f, CorrZ0 + .2f), new(CorrX0 + .3f, PracZ0 - .2f), CorrHeight - 1f, .2f);
+            PipeRun(g, new(CorrX1 - .3f, CorrZ0 + .2f), new(CorrX1 - .3f, PracZ0 - .2f), CorrHeight - 1.5f, .14f);
+            PipeRun(g, new(CorrX1 - .55f, CorrZ0 + .2f), new(CorrX1 - .55f, PracZ0 - .2f), CorrHeight - .8f, .1f);
+            Box(g, "CableTray", W((CorrX0 + CorrX1) * .5f, (CorrZ0 + PracZ0) * .5f, CorrHeight - .5f), new Vector3(.5f, .08f, PracZ0 - CorrZ0), Mat("V4_Iron_Dark"));
+            CagedLamp(g, W(-7.8f, 17.2f, CorrHeight - 1.3f), .8f);
+            CagedLamp(g, W(-7.8f, 23.2f, CorrHeight - 1.3f), .8f);
+            var lockers = Required("Mood/InteriorArt/Stage01_Dormitory/FadedTwoDoorLockers");
+            for (int i = 0; i < 3; i++)
+            {
+                var l = Copy(lockers, g, "CorridorLockers");
+                l.rotation = Quaternion.Euler(0, -90, 0) * lockers.rotation;
+                var fc = FootprintCenter(l);
+                l.position += W(CorrX1 - .4f, 20.4f + i * 1.25f) - new Vector3(fc.x, 0, fc.z);
+                l.position = new Vector3(l.position.x, lockers.position.y, l.position.z);
+            }
+            PlaceProp(SyntyProps + "SM_Prop_Plank_Bench_01", g, W(CorrX1 - .55f, 18.2f), 90);
+            Box(g, "NoticeBoard", W(CorrX1 - .06f, 18f, 1.7f), new Vector3(.05f, 1.1f, 1.6f), Mat("V4_Wood_Old"));
+            for (int i = 0; i < 6; i++) Box(g, "Notice", W(CorrX1 - .1f, 17.45f + (i % 3) * .5f, 1.45f + (i / 3) * .45f), new Vector3(.01f, .32f, .24f), Mat("LA_Paper")).rotation = Quaternion.Euler(i * 4 - 8, 0, 0);
+            PlaceFactory("SM_fireextinguisher", g, W(CorrX0 + .25f, 24.6f), 90);
+            foreach (var z in new[] { CorrZ0 + .4f, PracZ0 - .4f })
+                for (int i = 0; i < 6; i++) Box(g, "HazardStripe", W(CorrX0 + .5f + i * .9f, z, .012f), new Vector3(.45f, .004f, .5f), Mat(i % 2 == 0 ? "LA_HazardPaint" : "V4_Black")).rotation = Quaternion.Euler(0, 35, 0);
+            CorridorSign(g, "연습 공연장  ↑", W(-7.8f, PracZ0 - .6f, CorrHeight - 2.4f), Quaternion.LookRotation(Vector3.forward));
+            CorridorSign(g, "←  10 작업실", W(CorrX0 + .08f, PracWestDoorZ, 4.75f), Quaternion.LookRotation(Vector3.left));
+            WallPoster(g, W(CorrX1, 24.2f), -90);
+            Decal(g, "RustStain", -9.4f, 21f, 1.6f, 1.2f, Mat("LA_RustDecal"));
+            Decal(g, "Crack", -6.4f, 16.6f, 1.8f, 1.8f, Mat("LA_CrackDecal"));
+        }
+
+        static void CorridorSign(Transform parent, string text, Vector3 at, Quaternion facing)
+        {
+            var back = Box(parent, "SignBoard", at + facing * Vector3.forward * .04f, new Vector3(2.8f, .6f, .05f), Mat("V4_Sign_Wood")); back.rotation = facing;
+            var sign = Copy(Required("S01_Lobby/Sign_② 숙소"), parent, "DirectionSign", false);
+            sign.gameObject.SetActive(true);
+            sign.SetPositionAndRotation(at, facing);
+            var t = sign.GetComponent<TextMesh>(); t.text = text; t.anchor = TextAnchor.MiddleCenter; t.fontSize = 64; t.characterSize = .045f; t.color = new Color(.92f, .84f, .62f);
         }
 
         // Raised ring (low enough to step onto): radial star floor, harlequin skirt, wooden rim and a low railing open
@@ -1033,74 +1965,119 @@ namespace CurtainCall.WaitingRoom.Editor
             TapeRect(lanes, CannonLaunch, 3f, 2.6f, PracRingDeck);
             // Landing: two stacked mats and a slack net frame against the north wall.
             foreach (var (h, yaw) in new[] { (.3f, 0f), (.6f, 3f) })
-                Box(lanes, "LandingMat", W(CannonLanding.x, CannonLanding.y, h - .15f), new Vector3(5.4f, .3f, 3f), Mat("LA_MatWorn"), true).rotation = Quaternion.Euler(0, yaw, 0);
+                Box(lanes, "LandingMat", W(CannonLanding.x, CannonLanding.y, PracRingDeck + h - .15f), new Vector3(5.4f, .3f, 3f), Mat("LA_MatWorn"), true).rotation = Quaternion.Euler(0, yaw, 0);
             foreach (var dx in new[] { -3f, 3f })
-                Box(lanes, "NetPost", W(CannonLanding.x + dx, PracZ1 - .4f, 2.2f), new Vector3(.12f, 4.4f, .12f), Mat("V4_RustyMetal"), true);
-            Box(lanes, "CatchNet", W(CannonLanding.x, PracZ1 - .45f, 2.4f), new Vector3(5.9f, 3.6f, .02f), Mat("V6_Rope"));
-            TapeRect(lanes, CannonLanding, 6f, 3.6f, 0f);
+                Box(lanes, "NetPost", W(CannonLanding.x + dx, CannonLanding.y + 2f, PracRingDeck + 2.2f), new Vector3(.12f, 4.4f, .12f), Mat("V4_RustyMetal"), true);
+            for (int i = 0; i <= 14; i++)
+                Box(lanes, "NetStrand", W(CannonLanding.x - 2.9f + i * (5.8f / 14), CannonLanding.y + 1.95f, PracRingDeck + 2.4f), new Vector3(.02f, 3.6f, .02f), Mat("V6_Rope"));
+            for (int i = 0; i <= 9; i++)
+                Box(lanes, "NetStrand", W(CannonLanding.x, CannonLanding.y + 1.95f, PracRingDeck + .6f + i * .4f), new Vector3(5.9f, .02f, .02f), Mat("V6_Rope"));
+            Box(lanes, "NetTopBar", W(CannonLanding.x, CannonLanding.y + 2f, PracRingDeck + 4.3f), new Vector3(6.1f, .08f, .08f), Mat("V4_RustyMetal"));
+            // The wire itself between the tower decks, and the cannon platform: a steel cradle base with rails and wheel chocks
+            // where the cannon stands once it has been found.
+            Rope(lanes, W(TowerWestX + .85f, PracRing.y, RopeHeight + .1f), W(TowerEastX - .85f, PracRing.y, RopeHeight + .1f), .018f);
+            var plat = W(CannonLaunch.x, CannonLaunch.y, PracRingDeck);
+            Box(lanes, "CannonPlatform", plat + Vector3.up * .06f, new Vector3(2.8f, .12f, 2.4f), Mat("LA_SteelPlate"));
+            foreach (var dx in new[] { -.7f, .7f }) Box(lanes, "CannonRail", plat + new Vector3(dx, .16f, 0), new Vector3(.1f, .08f, 2.2f), Mat("V4_Iron_Dark"));
+            foreach (var dx in new[] { -1.25f, 1.25f }) Box(lanes, "WheelChock", plat + new Vector3(dx, .18f, -.6f), new Vector3(.2f, .16f, .3f), Mat("LA_HazardPaint"));
+            TapeRect(lanes, CannonLanding, 6f, 3.6f, PracRingDeck);
         }
 
         // Torn red-cream canopy high over the ring, a circular truss rig with spot fixtures, and bulb strings to the walls.
         static void BuildPracticeCanopy(Transform top)
         {
             var c = W(PracRing.x, PracRing.y);
-            var canopy = MeshObject(top, "TornCanopy", c + Vector3.up * 9.4f, TentMesh("LA_PracticeCanopy", 16, 7.6f, 2.2f), Mat("LA_TentRed"), Mat("LA_TentCream"));
+            var canopy = MeshObject(top, "TornCanopy", c + Vector3.up * 12.2f, TentMesh("LA_PracticeCanopy", 20, 11f, 2.8f), Mat("LA_TentRed"), Mat("LA_TentCream"));
             canopy.GetComponent<MeshRenderer>().shadowCastingMode = ShadowCastingMode.TwoSided;
-            Prim(top, PrimitiveType.Cylinder, "CanopyCrown", c + Vector3.up * 11.65f, new Vector3(1f, .1f, 1f), Mat("LA_Bronze"));
-            const float rigY = 8.2f, rigR = 2.6f;
-            for (int i = 0; i < 24; i++)
+            Prim(top, PrimitiveType.Cylinder, "CanopyCrown", c + Vector3.up * 15.05f, new Vector3(1.2f, .1f, 1.2f), Mat("LA_Bronze"));
+            const float rigY = 10.4f, rigR = 4.2f;
+            for (int i = 0; i < 32; i++)
             {
-                var p = Ring(c, i * 15f, rigR); var q = Ring(c, (i + 1) * 15f, rigR);
-                Box(top, "RigTruss", (p + q) * .5f + Vector3.up * rigY, new Vector3(Vector3.Distance(p, q) + .02f, .22f, .22f), Mat("V4_Iron_Dark"))
+                var p = Ring(c, i * 11.25f, rigR); var q = Ring(c, (i + 1) * 11.25f, rigR);
+                Box(top, "RigTruss", (p + q) * .5f + Vector3.up * rigY, new Vector3(Vector3.Distance(p, q) + .02f, .3f, .3f), Mat("V4_Iron_Dark"))
                     .rotation = Quaternion.LookRotation(Vector3.Cross(q - p, Vector3.up));
             }
             for (int i = 0; i < 4; i++) Rope(top, Ring(c, 45 + i * 90, rigR) + Vector3.up * rigY, Ring(c, 45 + i * 90, rigR * .6f) + Vector3.up * (PracHeight - .4f), .03f);
-            for (int i = 0; i < 8; i++)
+            for (int i = 0; i < 12; i++)
             {
-                var p = Ring(c, i * 45f + 22.5f, rigR) + Vector3.up * (rigY - .3f);
-                Prim(top, PrimitiveType.Cylinder, "SpotFixture", p, new Vector3(.32f, .22f, .32f), Mat("V4_Black")).rotation = Quaternion.FromToRotation(Vector3.up, (c - p).normalized);
-                Bulb(top, p + (c - p).normalized * .25f);
+                var p = Ring(c, i * 30f + 15f, rigR) + Vector3.up * (rigY - .35f);
+                Prim(top, PrimitiveType.Cylinder, "SpotFixture", p, new Vector3(.4f, .28f, .4f), Mat("V4_Black")).rotation = Quaternion.FromToRotation(Vector3.up, (c - p).normalized);
+                Bulb(top, p + (c - p).normalized * .3f);
             }
             var warm = new Color(1f, .78f, .5f);
-            Spot(top, "RingSpot_Centre", c + Vector3.up * (rigY - .3f) + Vector3.back * rigR, c, warm, 9f, 16f, 50f);
-            Spot(top, "RingSpot_Launch", c + Vector3.up * (rigY - .3f) + Vector3.left * rigR, W(CannonLaunch.x, CannonLaunch.y), warm, 5.5f, 14f, 36f);
-            Spot(top, "RingSpot_Landing", c + Vector3.up * (rigY - .3f) + Vector3.forward * rigR, W(CannonLanding.x, CannonLanding.y), warm, 6f, 16f, 36f);
-            foreach (var (x, z) in new[] { (PracX0 + .3f, 17f), (PracX0 + .3f, 33f), (PracX1 - .3f, 17f), (PracX1 - .3f, 33f), (-12f, PracZ1 - .3f), (-3.5f, PracZ1 - .3f), (-12f, PracZ0 + .3f), (-3.5f, PracZ0 + .3f) })
+            Spot(top, "RingSpot_Centre", c + Vector3.up * (rigY - .3f) + Vector3.back * rigR, c, warm, 14f, 22f, 62f);
+            Spot(top, "RingSpot_Launch", c + Vector3.up * (rigY - .3f) + Vector3.left * rigR, W(CannonLaunch.x, CannonLaunch.y), warm, 8f, 18f, 34f);
+            Spot(top, "RingSpot_Landing", c + Vector3.up * (rigY - .3f) + Vector3.forward * rigR, W(CannonLanding.x, CannonLanding.y), warm, 8f, 18f, 34f);
+            // Four lighting towers behind the stands on the diagonals; bulb strings sag from the rig to each tower head.
+            foreach (var deg in new[] { 45f, 135f, 225f, 315f })
             {
-                var to = W(x, z, 9.6f);
-                BulbString(top, Ring(c, Mathf.Atan2(to.z - c.z, to.x - c.x) * Mathf.Rad2Deg, rigR) + Vector3.up * rigY, to, .9f);
+                var b = Ring(c, deg, StandOut + 1.1f);
+                foreach (var dx in new[] { -.45f, .45f }) foreach (var dz in new[] { -.45f, .45f })
+                    Box(top, "LightTowerLeg", b + new Vector3(dx, 4.5f, dz), new Vector3(.1f, 9f, .1f), Mat("V4_RustyMetal"), true);
+                for (int i = 0; i < 6; i++) Box(top, "LightTowerBrace", b + Vector3.up * (.8f + i * 1.4f), new Vector3(.95f, .05f, .95f), Mat("V4_Iron_Dark"));
+                var head = b + Vector3.up * 9.2f;
+                Box(top, "LightTowerHead", head, new Vector3(1.4f, .3f, 1.4f), Mat("V4_Iron_Dark"));
+                for (int i = 0; i < 3; i++)
+                {
+                    var f = head + Quaternion.Euler(0, -deg + 90, 0) * new Vector3((i - 1) * .45f, .35f, 0);
+                    Prim(top, PrimitiveType.Cylinder, "TowerSpot", f, new Vector3(.36f, .25f, .36f), Mat("V4_Black")).rotation = Quaternion.FromToRotation(Vector3.up, (c - f).normalized);
+                }
+                BulbString(top, Ring(c, deg, rigR) + Vector3.up * rigY, head + Vector3.up * .2f, 1f);
             }
         }
 
         // Two small stands facing the ring, cages and the old circus props in the corners, banners and pennants on the walls.
         static void BuildPracticeSurroundings(Transform s)
         {
-            foreach (var (wallX, dir) in new[] { (PracX0, 1f), (PracX1, -1f) })
+            var c = W(PracRing.x, PracRing.y);
+            var arcs = new[] { 0f, 90f, 180f, 270f }.Select(a => (a + StandAisle, a + 90f - StandAisle)).ToArray();
+            var stands = MeshObject(s, "Stands", c, SaveMesh(StandsMesh("LA_Stands", arcs)), Mat("LA_WallConcrete"), Mat("V4_Floor_OldPlank"));
+            stands.AddComponent<MeshCollider>().sharedMesh = stands.GetComponent<MeshFilter>().sharedMesh;
+            foreach (var (a0, a1) in arcs)
             {
-                for (int tier = 0; tier < 3; tier++)
+                // A padded barrier in front of the first row and a rail along the back, both following the arc.
+                for (float a = a0; a < a1 - .5f; a += 6f)
                 {
-                    float h = .45f * (3 - tier), x = wallX + dir * (.35f + tier * .7f);
-                    Box(s, "StandTier", W(x, 29.2f, h * .5f), new Vector3(.7f, h, 3.6f), Mat("V4_Wood_Old"), true);
-                    Box(s, "StandSeat", W(x, 29.2f, h + .02f), new Vector3(.72f, .05f, 3.62f), Mat("LA_TentRed"));
+                    float b = Mathf.Min(a + 6f, a1);
+                    var p = Ring(c, a, StandIn - .08f); var q = Ring(c, b, StandIn - .08f);
+                    Box(s, "RingBarrier", (p + q) * .5f + Vector3.up * .5f, new Vector3(Vector3.Distance(p, q) + .02f, 1f, .1f), Mat(((int)(a / 6f)) % 2 == 0 ? "V4_Harlequin" : "LA_TentRed"))
+                        .rotation = Quaternion.LookRotation(Vector3.Cross(q - p, Vector3.up));
+                    var r0 = Ring(c, a, StandOut - .1f); var r1 = Ring(c, b, StandOut - .1f);
+                    float top = StandTiers * StandRise;
+                    Box(s, "BackRail", (r0 + r1) * .5f + Vector3.up * (top + 1f), new Vector3(Vector3.Distance(r0, r1) + .02f, .06f, .06f), Mat("V4_Iron_Dark"), true)
+                        .rotation = Quaternion.LookRotation(Vector3.Cross(r1 - r0, Vector3.up));
+                    Box(s, "BackRailPost", r0 + Vector3.up * (top + .5f), new Vector3(.06f, 1f, .06f), Mat("V4_Iron_Dark"));
+                    // Rows of wooden bench boards on every tier, some missing.
+                    for (int t = 0; t < StandTiers; t++)
+                    {
+                        if (random.NextDouble() < .12) continue;
+                        var s0 = Ring(c, a + .4f, StandIn + t * StandTread + .65f); var s1 = Ring(c, b - .4f, StandIn + t * StandTread + .65f);
+                        Box(s, "BenchBoard", (s0 + s1) * .5f + Vector3.up * ((t + 1) * StandRise + .22f), new Vector3(Vector3.Distance(s0, s1), .06f, .32f), Mat("V4_Wood_Old"))
+                            .rotation = Quaternion.LookRotation(Vector3.Cross(s1 - s0, Vector3.up));
+                    }
                 }
-                Box(s, "StandRail", W(wallX + dir * .1f, 29.2f, 2.3f), new Vector3(.06f, .06f, 3.6f), Mat("V4_Iron_Dark"));
-                var lamp = Copy(Required("Mood/Lights").Cast<Transform>().First(t => t.name == "Lobby_Lamp"), s, "StandLamp");
-                lamp.position = W(wallX + dir * 1.1f, 31.4f, 3.4f);
-                foreach (var r in lamp.GetComponentsInChildren<Renderer>(true)) r.shadowCastingMode = ShadowCastingMode.Off;
-                foreach (var l in lamp.GetComponentsInChildren<Light>(true)) l.intensity *= .6f;
-                Cage(s, W(wallX + dir * .95f, PracZ1 - .95f));
             }
-            // Old circus props along the south-west corner, clear of both doors.
+            // Left behind in the seats: paper cups, a torn programme or two, a dropped cushion.
+            for (int i = 0; i < 18; i++)
+            {
+                var (a0, a1) = arcs[i % 4];
+                float a = a0 + (float)random.NextDouble() * (a1 - a0); int t = random.Next(StandTiers);
+                var p = Ring(c, a, StandIn + t * StandTread + .3f) + Vector3.up * ((t + 1) * StandRise + .03f);
+                Box(s, i % 3 == 0 ? "Cushion" : "Litter", p, i % 3 == 0 ? new Vector3(.4f, .08f, .35f) : new Vector3(.12f, .02f, .18f), Mat(i % 3 == 0 ? "V4_Velvet_Red" : "LA_Paper")).rotation = Quaternion.Euler(0, a * 3, 0);
+            }
+            // Perimeter: cages in two corners, the old circus props by the entrance, banners and pennants on the walls.
+            Cage(s, W(PracX0 + 1.4f, PracZ1 - 1.4f));
+            Cage(s, W(PracX1 - 1.4f, PracZ1 - 1.4f));
             var props = Copy(Required("Mood/Dressing/Lobby_TentPile/CircusProps"), s);
             var spots = new Dictionary<string, Queue<Vector2>>
             {
-                ["북"] = new(new Vector2[] { new(-15.2f, 15.4f) }),
-                ["BigBall"] = new(new Vector2[] { new(-13.9f, 15.2f) }),
-                ["Hoop"] = new(new Vector2[] { new(-12.5f, 15f) }),
-                ["트렁크"] = new(new Vector2[] { new(-11.1f, 15.1f) }),
-                ["HarlequinBall"] = new(new Vector2[] { new(-13.1f, 16.1f), new(-15.4f, 16.5f), new(-10.4f, 15.8f) }),
-                ["JugglingPin"] = new(new Vector2[] { new(-12.1f, 16f), new(-14.6f, 16.4f), new(-11.7f, 15.6f) }),
-                ["ClownShoe"] = new(new Vector2[] { new(-13.6f, 16.5f) }),
+                ["북"] = new(new Vector2[] { new(-15.2f, 27f) }),
+                ["BigBall"] = new(new Vector2[] { new(-13.9f, 26.8f) }),
+                ["Hoop"] = new(new Vector2[] { new(-12.5f, 26.6f) }),
+                ["트렁크"] = new(new Vector2[] { new(-17f, 26.9f) }),
+                ["HarlequinBall"] = new(new Vector2[] { new(-13.1f, 27.7f), new(-15.4f, 28.1f), new(-16.4f, 27.6f) }),
+                ["JugglingPin"] = new(new Vector2[] { new(-12.1f, 27.6f), new(-14.6f, 28f), new(-16f, 28.3f) }),
+                ["ClownShoe"] = new(new Vector2[] { new(-13.6f, 28.1f) }),
             };
             foreach (Transform prop in props)
             {
@@ -1109,22 +2086,57 @@ namespace CurtainCall.WaitingRoom.Editor
                 MoveCenter(prop, at.x, at.y);
                 prop.position += Vector3.up * -Footprint(prop).min.y;
             }
-            PlaceFactory("SM_Barrel_1", s, W(PracX1 - .6f, PracZ0 + .7f), 0);
-            for (int i = 0; i < 4; i++)
-                Pipe(s, W(PracX1 - .6f - i * .06f, 16.2f + i * .35f, 2.2f), new Vector3(-.18f, 1, .02f * i), 4.4f, .025f).name = "BalancePole";
+            // Balance poles in a rack and rope coils by the west tower aisle.
+            for (int i = 0; i < 5; i++)
+                Pipe(s, W(PracX0 + .5f + i * .08f, 40f + i * .35f, 2.2f), new Vector3(.18f, 1, .02f * i), 4.4f, .025f).name = "BalancePole";
+            Box(s, "PoleRack", W(PracX0 + .35f, 40.7f, .4f), new Vector3(.3f, .8f, 2.2f), Mat("V4_Wood_Old"), true);
             for (int i = 0; i < 3; i++)
-                MeshObject(s, "RopeCoil", W(-2.2f + i * .15f, 15.5f, .02f + i * .05f), SaveMesh(RingMesh("LA_RopeCoil", .22f, .42f, 20)), Mat("LA_TentCream"));
-            WallPoster(s, W(-14.2f, PracZ0), 0);
-            WallPoster(s, W(-3.4f, PracZ0), 0);
-            // Hanging banners and pennant strings.
-            foreach (var (x, z, yaw) in new[] { (PracX0, 22f, 90f), (PracX0, 33f, 90f), (PracX1, 22f, -90f), (PracX1, 33f, -90f) })
-                Banner(s, W(x, z, 6.6f), Quaternion.Euler(0, yaw, 0) * Vector3.forward);
-            foreach (var (a, b) in new[] { (new Vector2(PracX0 + .2f, PracZ0 + .2f), new Vector2(PracX1 - .2f, PracZ0 + .2f)), (new Vector2(PracX0 + .2f, PracZ1 - .2f), new Vector2(PracX1 - .2f, PracZ1 - .2f)),
-                         (new Vector2(PracX0 + .2f, PracZ0 + .2f), new Vector2(PracX0 + .2f, PracZ1 - .2f)), (new Vector2(PracX1 - .2f, PracZ0 + .2f), new Vector2(PracX1 - .2f, PracZ1 - .2f)) })
-                Pennants(s, W(a.x, a.y, 7.4f), W(b.x, b.y, 7.4f));
-            foreach (var (x, z, sz) in new[] { (-4f, 16f, 2.2f), (-14.4f, 24.6f, 1.8f), (-.6f, 34f, 1.6f), (-12.5f, 34.5f, 2f) })
+                MeshObject(s, "RopeCoil", W(PracX0 + 1.2f, 44f + i * .15f, .02f + i * .05f), SaveMesh(RingMesh("LA_RopeCoil", .22f, .42f, 20)), Mat("LA_TentCream"));
+            PlaceFactory("SM_Barrel_1", s, W(PracX1 - .7f, PracZ0 + .8f), 0);
+            WallPoster(s, W(-17f, PracZ0), 0);
+            WallPoster(s, W(1.4f, PracZ0), 0);
+            foreach (var (x, z, yaw) in new[] { (PracX0, 36f, 90f), (PracX0, 54f, 90f), (PracX1, 36f, -90f), (PracX1, 54f, -90f) })
+                Banner(s, W(x, z, 8.6f), Quaternion.Euler(0, yaw, 0) * Vector3.forward);
+            foreach (var (a, b) in new[] { (new Vector2(PracX0 + .2f, PracZ0 + .2f), new Vector2(PracX1 - .2f, PracZ0 + .2f)), (new Vector2(PracX0 + .2f, PracZ1 - .2f), new Vector2(PracX1 - .2f, PracZ1 - .2f)) })
+                Pennants(s, W(a.x, a.y, 9.6f), W(b.x, b.y, 9.6f));
+            foreach (var (x, z, sz) in new[] { (-20f, 30f, 2.6f), (6f, 58f, 2.2f), (-26f, 58f, 2.4f), (8f, 31f, 2f) })
                 Decal(s, "RustStain", x, z, sz, sz * .8f, Mat("LA_RustDecal"));
-            Point(s, "LandingPool", W(CannonLanding.x, CannonLanding.y, 4.4f), new Color(1f, .7f, .42f), 1.4f, 7f);
+            Point(s, "LandingPool", W(CannonLanding.x, CannonLanding.y, 5f), new Color(1f, .7f, .42f), 2f, 9f);
+            Point(s, "PerimeterFill", W(PracX0 + 4f, PracZ1 - 6f, 9f), new Color(.55f, .66f, .82f), 1f, 28f);
+            Point(s, "PerimeterFill", W(PracX1 - 4f, PracZ0 + 6f, 9f), new Color(.55f, .66f, .82f), 1f, 28f);
+        }
+
+        // Stepped stands as annular sectors around the local origin: wooden tread on every tier (submesh 1), concrete risers,
+        // back and end faces (submesh 0).
+        static Mesh StandsMesh(string name, (float a0, float a1)[] arcs)
+        {
+            var b = new MeshBuilder(name, 2);
+            Vector3 P(float r, float deg, float y) => new(Mathf.Cos(deg * Mathf.Deg2Rad) * r, y, Mathf.Sin(deg * Mathf.Deg2Rad) * r);
+            Vector3 Radial(float deg) => new(Mathf.Cos(deg * Mathf.Deg2Rad), 0, Mathf.Sin(deg * Mathf.Deg2Rad));
+            Vector3 Tangent(float deg) => new(-Mathf.Sin(deg * Mathf.Deg2Rad), 0, Mathf.Cos(deg * Mathf.Deg2Rad));
+            float rOut = StandOut, top = StandTiers * StandRise;
+            foreach (var (a0, a1) in arcs)
+            {
+                int segs = Mathf.CeilToInt((a1 - a0) / 3f);
+                for (int i = 0; i < segs; i++)
+                {
+                    float d0 = a0 + (a1 - a0) * i / segs, d1 = a0 + (a1 - a0) * (i + 1) / segs, dm = (d0 + d1) * .5f;
+                    for (int t = 0; t < StandTiers; t++)
+                    {
+                        float r0 = StandIn + t * StandTread, r1 = r0 + StandTread, h = (t + 1) * StandRise;
+                        b.Quad(1, P(r0, d0, h), P(r1, d0, h), P(r1, d1, h), P(r0, d1, h), Vector3.up, 2f);
+                        b.Quad(0, P(r0, d0, h - StandRise), P(r0, d1, h - StandRise), P(r0, d1, h), P(r0, d0, h), -Radial(dm), 3f);
+                    }
+                    b.Quad(0, P(rOut, d0, 0), P(rOut, d0, top), P(rOut, d1, top), P(rOut, d1, 0), Radial(dm), 3f);
+                }
+                for (int t = 0; t < StandTiers; t++)
+                {
+                    float r = StandIn + t * StandTread;
+                    b.Quad(0, P(r, a0, t * StandRise), P(rOut, a0, t * StandRise), P(rOut, a0, (t + 1) * StandRise), P(r, a0, (t + 1) * StandRise), -Tangent(a0), 3f);
+                    b.Quad(0, P(r, a1, t * StandRise), P(rOut, a1, t * StandRise), P(rOut, a1, (t + 1) * StandRise), P(r, a1, (t + 1) * StandRise), Tangent(a1), 3f);
+                }
+            }
+            return b.Build();
         }
 
         static void Cage(Transform parent, Vector3 at)
@@ -1232,28 +2244,32 @@ namespace CurtainCall.WaitingRoom.Editor
         static void ValidatePracticeRoom(Transform room)
         {
             var portal = room.parent.Find("S01_Lobby/FutureConnections/Portal_09");
-            if (portal != null && portal.Find("TemporaryClosure") != null) throw new InvalidOperationException("Practice room portal still closed");
-            if (room.GetComponentsInChildren<Component>(true).Any(c => c == null)) throw new InvalidOperationException("Missing script in practice room");
+            if (portal != null && portal.Find("TemporaryClosure") != null) throw new InvalidOperationException("Practice corridor portal still closed");
+            if (room.GetComponentsInChildren<Component>(true).Any(c => c == null)) throw new InvalidOperationException("Missing script in practice arena");
             if (!Physics.Raycast(W(PracDoorX, LobbyN + .25f, 1f), Vector3.down, out var hit, 2f) || Mathf.Abs(hit.point.y) > .01f)
-                throw new InvalidOperationException("No floor under the practice room doorway");
-            foreach (var (x, z, what) in new[] { (PracDoorX, LobbyN + .25f, "practice doorway"), (PracDoorX, PracZ0 + 1.2f, "practice entry"), (PracRing.x, PracRing.y - PracRingRadius + .4f, "ring south opening"),
-                         (PracRing.x, PracRing.y, "ring centre"), (CannonLaunch.x, CannonLaunch.y, "cannon launch"), (PracRing.x, PracRing.y + PracRingRadius + .6f, "landing front"),
-                         (PracX0 + .9f, PracWestDoorZ, "in front of the 10 door"), (-15.2f, 21.5f, "west aisle"), (0f, 21.5f, "east aisle"), (-15.65f, PracRing.y, "behind the west tower"), (.35f, PracRing.y, "behind the east tower"), (-12.4f, 34.6f, "north-west aisle"), (-3f, 34.6f, "north-east aisle") })
-                CheckStanding(W(x, z, .1f), room.parent, what);
+                throw new InvalidOperationException("No floor under the practice corridor doorway");
+            var c = PracRing; float mid = (PracRingRadius + StandIn) * .5f, back = StandOut + .9f;
+            var points = new List<(float, float, string)> { (PracDoorX, LobbyN + .25f, "corridor doorway"), (PracDoorX, 20f, "corridor"), (CorrX0 + .9f, PracWestDoorZ, "in front of the 10 opening"),
+                (PracDoorX, PracZ0 + .2f, "arena doorway"), (PracDoorX, PracZ0 + 1.5f, "arena entry"), (c.x, c.y - PracRingRadius + .4f, "ring south opening"), (c.x, c.y, "ring centre"),
+                (CannonLaunch.x + 2.2f, CannonLaunch.y, "beside the cannon platform"), (c.x, c.y + PracRingRadius - 3.4f, "in front of the landing mats") };
+            foreach (var deg in new[] { 0f, 90f, 180f, 270f }) { var p = Ring(new Vector3(c.x, 0, c.y), deg, mid); points.Add((p.x, p.z, "walkway " + deg)); var q = Ring(new Vector3(c.x, 0, c.y), deg, StandOut - .5f); points.Add((q.x, q.z, "aisle " + deg)); }
+            foreach (var deg in new[] { 20f, 110f, 160f, 250f, 290f }) { var p = Ring(new Vector3(c.x, 0, c.y), deg, back); points.Add((p.x, p.z, "behind the stands " + deg)); }
+            foreach (var (x, z, what) in points) CheckStanding(W(x, z, .1f), room.parent, what);
             // Both lanes must be clear of anything solid: the rope line across the ring and the cannon's flight corridor.
             var rope = Physics.OverlapBox(W((TowerWestX + TowerEastX) * .5f, PracRing.y, RopeHeight + .8f), new Vector3((TowerEastX - TowerWestX - 2f) * .5f, 2.2f, .7f), Quaternion.identity, ~0, QueryTriggerInteraction.Ignore)
-                .Where(c => c.transform.IsChildOf(room)).ToArray();
-            if (rope.Length > 0) throw new InvalidOperationException("Tightrope lane blocked: " + string.Join(",", rope.Select(c => c.name)));
+                .Where(h => h.transform.IsChildOf(room)).ToArray();
+            if (rope.Length > 0) throw new InvalidOperationException("Tightrope lane blocked: " + string.Join(",", rope.Select(h => h.name)));
             var flight = Physics.OverlapBox(W(PracRing.x, (CannonLaunch.y + CannonLanding.y) * .5f, 5f), new Vector3(1.5f, 3.6f, (CannonLanding.y - CannonLaunch.y) * .5f - 1.6f), Quaternion.identity, ~0, QueryTriggerInteraction.Ignore)
-                .Where(c => c.transform.IsChildOf(room)).ToArray();
-            if (flight.Length > 0) throw new InvalidOperationException("Cannon lane blocked: " + string.Join(",", flight.Select(c => c.name)));
+                .Where(h => h.transform.IsChildOf(room)).ToArray();
+            if (flight.Length > 0) throw new InvalidOperationException("Cannon lane blocked: " + string.Join(",", flight.Select(h => h.name)));
             if (TowerEastX - TowerWestX < 12f || CannonLanding.y - CannonLaunch.y < 12f) throw new InvalidOperationException("Practice lanes too short");
-            if (room.GetComponentsInChildren<Light>().Length > 8) throw new InvalidOperationException("Too many practice room lights");
-            foreach (var r in room.GetComponentsInChildren<Renderer>())
-                if (r.bounds.min.x < W(PracX0 - .05f, 0).x || r.bounds.max.x > W(PracX1 + .05f, 0).x || r.bounds.max.z > W(0, PracZ1 + .05f).z || r.bounds.max.y > PracHeight + .3f)
-                    if (!r.transform.IsChildOf(room.Find("Shell")) && !r.transform.IsChildOf(room.Find("Overhead")) && !r.transform.IsChildOf(room.Find("Connections")))
-                        throw new InvalidOperationException("Outside the practice room: " + r.name);
-            if (!Physics.Raycast(W(PracX0 + .9f, PracWestDoorZ, 1f), Vector3.left, 2f)) throw new InvalidOperationException("09 - 10 door is open into nothing");
+            if (room.GetComponentsInChildren<Light>().Length > 10) throw new InvalidOperationException("Too many practice arena lights");
+            var arena = room.Find("Arena");
+            foreach (var r in arena.GetComponentsInChildren<Renderer>())
+                if (r.bounds.min.x < W(PracX0 - .05f, 0).x || r.bounds.max.x > W(PracX1 + .05f, 0).x || r.bounds.max.z > W(0, PracZ1 + .05f).z || r.bounds.min.z < W(0, PracZ0 - .6f).z || r.bounds.max.y > PracHeight + .3f)
+                    if (!r.transform.IsChildOf(arena.Find("Shell")) && !r.transform.IsChildOf(arena.Find("Overhead")))
+                        throw new InvalidOperationException("Outside the practice arena: " + r.name);
+            if (room.parent.Find("S10_Workshop") == null && !Physics.Raycast(W(CorrX0 + .9f, PracWestDoorZ, 1f), Vector3.left, 2f)) throw new InvalidOperationException("Corridor - 10 opening is open into nothing");
         }
 
         // Flat annulus (or disc when inner = 0) in the XZ plane around the local origin.
@@ -1406,14 +2422,15 @@ namespace CurtainCall.WaitingRoom.Editor
 
         // Rectangular room shell. doors: (side 0=W 1=N 2=E 3=S, world-axis coordinate along that side, width, blocker depth).
         static void RoomShell(Transform room, string prefix, float x0, float x1, float z0, float z1, float height, float ledger,
-            Material floorMat, Material lower, Material upper, (int side, float at, float width, float depth)[] doors, float westThickness = .5f, float eastThickness = .5f)
+            Material floorMat, Material lower, Material upper, (int side, float at, float width, float depth)[] doors, float westThickness = .5f, float eastThickness = .5f,
+            bool withFloor = true, bool withCeiling = true)
         {
             var walls = new (Vector2 a, Vector2 b, Vector2 inward, Door[] doors, float[] pilasters)[]
             {
-                (new(x0, z0), new(x0, z1), new(1, 0), doors.Where(d => d.side == 0).Select(d => new Door("", "", d.at - z0, d.width)).ToArray(), Array.Empty<float>()),
-                (new(x0, z1), new(x1, z1), new(0, -1), doors.Where(d => d.side == 1).Select(d => new Door("", "", d.at - x0, d.width)).ToArray(), Array.Empty<float>()),
-                (new(x1, z1), new(x1, z0), new(-1, 0), doors.Where(d => d.side == 2).Select(d => new Door("", "", z1 - d.at, d.width)).ToArray(), Array.Empty<float>()),
-                (new(x1, z0), new(x0, z0), new(0, 1), doors.Where(d => d.side == 3).Select(d => new Door("", "", x1 - d.at, d.width)).ToArray(), Array.Empty<float>()),
+                (new(x0, z0), new(x0, z1), new(1, 0), doors.Where(d => d.side == 0).Select(d => new Door("", "", d.at - z0, d.width)).OrderBy(d => d.At).ToArray(), Array.Empty<float>()),
+                (new(x0, z1), new(x1, z1), new(0, -1), doors.Where(d => d.side == 1).Select(d => new Door("", "", d.at - x0, d.width)).OrderBy(d => d.At).ToArray(), Array.Empty<float>()),
+                (new(x1, z1), new(x1, z0), new(-1, 0), doors.Where(d => d.side == 2).Select(d => new Door("", "", z1 - d.at, d.width)).OrderBy(d => d.At).ToArray(), Array.Empty<float>()),
+                (new(x1, z0), new(x0, z0), new(0, 1), doors.Where(d => d.side == 3).Select(d => new Door("", "", x1 - d.at, d.width)).OrderBy(d => d.At).ToArray(), Array.Empty<float>()),
             };
             var thickness = new[] { westThickness, .5f, eastThickness, .5f };
             var shell = Group(room, "Shell", room.position);
@@ -1424,8 +2441,8 @@ namespace CurtainCall.WaitingRoom.Editor
                 float xe = Mathf.Min(x1, x + 3.5f), ze = Mathf.Min(z1, z + 3.5f);
                 b.Quad(0, new Vector3(x, 0, z), new Vector3(x, 0, ze), new Vector3(xe, 0, ze), new Vector3(xe, 0, z), Vector3.up, floorMat.name.Contains("Teal") ? 1.2f : 3.5f);
             }
-            MeshObject(shell, "Floor", Origin, SaveMesh(b.Build()), floorMat);
-            MeshObject(shell, "WallSurfaces", Origin, WallMesh(prefix + "Walls", walls, height, ledger, DoorHeight, lower.name.Contains("Teal") ? 1.2f : 4f), lower, upper);
+            if (withFloor) MeshObject(shell, "Floor", W(0, 0), SaveMesh(b.Build()), floorMat);
+            MeshObject(shell, "WallSurfaces", W(0, 0), WallMesh(prefix + "Walls", walls, height, ledger, DoorHeight, lower.name.Contains("Teal") ? 1.2f : 4f), lower, upper);
             var structure = Group(shell, "WallStructure", room.position);
             for (int s = 0; s < 4; s++)
             {
@@ -1450,7 +2467,7 @@ namespace CurtainCall.WaitingRoom.Editor
                     cursor = d.At + d.Width * .5f; from = d.At + d.Width * .5f + .2f;
                 }
             }
-            Box(shell, "Ceiling", W((x0 + x1) * .5f, (z0 + z1) * .5f, height + .1f), new Vector3(x1 - x0 + .4f, .2f, z1 - z0 + .4f), Mat("LA_WallRust"));
+            if (withCeiling) Box(shell, "Ceiling", W((x0 + x1) * .5f, (z0 + z1) * .5f, height + .1f), new Vector3(x1 - x0 + .4f, .2f, z1 - z0 + .4f), Mat("LA_WallRust"));
         }
 
         static void ThinBlocker(Transform parent, Vector2 mid, Vector3 along, Vector3 inward, float width, float y0, float y1, float depth)
@@ -1637,11 +2654,12 @@ namespace CurtainCall.WaitingRoom.Editor
             }
             if (target.Find("S02_Dormitory")) doors.Add(("restroom partition", new(DormX1 + .1f, RestDoorZ), new(0, 1), new(-1, 0), RestDoorWidth, .15f, .15f, 0f));
             if (target.Find("S07_StageEntrance")) doors.Add(("06-07 opening", new((CorX1 + StageX0) * .5f, RouteDoorZ), new(0, 1), new(-1, 0), StageDoorWidth, .15f, .15f, 0f));
-            if (target.Find("S09_PracticeRoom")) doors.Add(("09-10 door", new(PracX0, PracWestDoorZ), new(0, 1), new(1, 0), 2.8f, .05f, -1f, 0f));
+            bool workshop = target.Find("S10_Workshop") != null, stairs = target.Find("ST_Stairwell") != null;
+            if (target.Find("S09_PracticeRoom")) doors.Add(("corridor - 10 opening", new(CorrX0, PracWestDoorZ), new(0, 1), new(1, 0), WsDoorWidth, .05f, workshop ? .15f : -1f, 0f));
             if (target.Find("WC_WestCorridor"))
             {
-                doors.Add(("corridor stairs door", new(WcX0, WcDoorZ), new(0, 1), new(1, 0), WcDoorWidth, .05f, -1f, 0f));
-                doors.Add(("corridor 10 door", new(WcNorthDoorX, WcZ1), new(1, 0), new(0, -1), 2.8f, .05f, -1f, 0f));
+                doors.Add(("corridor stairs door", new(WcX0, WcDoorZ), new(0, 1), new(1, 0), WcDoorWidth, .05f, stairs ? .15f : -1f, 0f));
+                doors.Add(("corridor 10 door", new(WcNorthDoorX, WcZ1), new(1, 0), new(0, -1), 2.8f, .05f, workshop ? .55f : -1f, 0f));
             }
             if (target.Find("P05_PipeZone"))
             {
@@ -1652,6 +2670,15 @@ namespace CurtainCall.WaitingRoom.Editor
             {
                 doors.Add(("expert booth curtain", new(BoothX0, BoothDoorZ), new(0, 1), new(1, 0), BoothDoorWidth, .1f, .1f, 0f));
                 doors.Add(("freight lift gate", new(HallX1, LiftZ), new(0, 1), new(-1, 0), LiftWidth, .25f, -1f, 0f)); // the gate itself stands .1 m inside the wall line
+            }
+            if (stairs)
+            {
+                doors.Add(("B1 stair hall - 13", new(StairHallX1, MachineDoorZ), new(0, 1), new(-1, 0), 2.4f, .15f, .55f, B1Level));
+                doors.Add(("13 - 14 corridor", new(LinkWestX, MachineZ0), new(1, 0), new(0, 1), 2f, .55f, .55f, B1Level));
+                doors.Add(("14 corridor - 14", new(LinkX0, LinkWestDoorZ), new(0, 1), new(1, 0), 2f, .15f, .15f, B1Level));
+                doors.Add(("14 - changing", new(ChangeDoorX, OfficeZ0), new(1, 0), new(0, 1), 2f, .15f, .55f, B1Level));
+                doors.Add(("13 - escape corridor", new(EscapeDoorX, MachineZ0), new(1, 0), new(0, 1), 2f, .55f, .55f, B1Level));
+                doors.Add(("escape corridor - entrance", new(EscapeDoorX, EscapeZ1), new(1, 0), new(0, 1), 2f, .15f, .55f, B1Level));
             }
             doors.Add(("lobby stair foot", new((StairX0 + StairX1) * .5f, StairZ0), new(1, 0), new(0, -1), StairX1 - StairX0, .05f, -1f, 0f));
             doors.Add(("lobby stair head", new((StairX0 + StairX1) * .5f, MezzSouthZ), new(1, 0), new(0, 1), StairX1 - StairX0, .05f, -1f, MezzY));
@@ -1723,7 +2750,7 @@ namespace CurtainCall.WaitingRoom.Editor
             (new(LobbyW, LobbyN), new(LobbyW, NotchZ), new(-1, 0), new[] { new Door("08", "08 전문가 대기실", 4.7f, 3.6f), new Door("06", "06 무대 입구 통로", 13.5f, 5f, true) }, new[] { 8.6f }),
             (new(LobbyW, NotchZ), new(NotchX, NotchZ), new(0, 1), Array.Empty<Door>(), new[] { 4.2f }),
             (new(NotchX, NotchZ), new(NotchX, LobbyS), new(-1, 0), new[] { new Door("04", "04 소품실", 4.7f, PropDoorWidth) }, Array.Empty<float>()),
-            (new(NotchX, LobbyS), new(-LobbyW, LobbyS), new(0, 1), new[] { new Door("12", "12 화물 적재 장소", 2.4f, 3.8f), new Door("11", "11 무대 장치 보관실", 13.6f, 4.2f) }, new[] { 7.4f, 18.2f }),
+            (new(NotchX, LobbyS), new(-LobbyW, LobbyS), new(0, 1), new[] { new Door("12", "12 화물 적재 장소", NotchX - Gate12X, Gate12Width), new Door("11", "11 무대 장치 보관실", NotchX - Gate11X, Gate11Width) }, new[] { 7.4f, 19.4f }),
             // West: only the west corridor (plan band under 10). B1 is reached by its stairs, not from the lobby.
             (new(-LobbyW, LobbyS), new(-LobbyW, LobbyN), new(1, 0), new[] { new Door("WC", "서쪽 복도 · 10 작업실 · 계단", WcDoorZ - LobbyS, WcDoorWidth) }, new[] { 3.6f, 8.9f, 17.5f }),
         };
@@ -2425,7 +3452,7 @@ namespace CurtainCall.WaitingRoom.Editor
 
         static void CheckStanding(Vector3 feet, Transform root, string what)
         {
-            if (!Physics.Raycast(feet + Vector3.up, Vector3.down, out var hit, 3f) || hit.point.y > .2f) throw new InvalidOperationException("No floor at " + what);
+            if (!Physics.Raycast(feet + Vector3.up, Vector3.down, out var hit, 3f) || hit.point.y > feet.y + .1f) throw new InvalidOperationException("No floor at " + what);
             var blockers = Physics.OverlapCapsule(feet + Vector3.up * .4f, feet + Vector3.up * 1.5f, .3f, ~0, QueryTriggerInteraction.Ignore)
                 .Where(c => c.transform.IsChildOf(root) && !c.name.StartsWith("Floor")).ToArray();
             if (blockers.Length > 0) throw new InvalidOperationException($"Blocked {what}: {string.Join(",", blockers.Select(b => b.name))}");
@@ -2659,6 +3686,11 @@ namespace CurtainCall.WaitingRoom.Editor
                 "LA_Bronze" => Lit(name, Hex("7E5E2E"), .45f, metallic: .6f),
                 "LA_Paper" => Lit(name, Hex("BFB6A2"), .05f),
                 "LA_HazardPaint" => Lit(name, Hex("8C7A2E"), .15f),
+                // Logistics hall: blue rack uprights, orange beams, carton and stretch-wrapped loads.
+                "LA_RackBlue" => Lit(name, Hex("2C4560"), .3f, metallic: .4f),
+                "LA_RackOrange" => Lit(name, Hex("9A4A1C"), .3f, metallic: .3f),
+                "LA_Cardboard" => Lit(name, Hex("7D6040"), .05f),
+                "LA_Wrap" => Lit(name, Hex("8E9396"), .55f),
                 // Practice room: sawdust ring floor, worn landing mats, dull mirror glass.
                 "LA_Sawdust" => Lit(name, Hex("7A6448"), .04f),
                 "LA_MatWorn" => Lit(name, Hex("3F4D52"), .1f),
@@ -2858,7 +3890,7 @@ namespace CurtainCall.WaitingRoom.Editor
             if (scene.path != ScenePath || EditorApplication.isPlaying) throw new InvalidOperationException("Open WaitingRoomBase in Edit mode.");
             source = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").transform;
             if (source.gameObject.activeSelf) throw new InvalidOperationException("Original Greybox must stay inactive.");
-            Copies.Clear(); Manifest.Clear(); Materials.Clear();
+            Copies.Clear(); Manifest.Clear(); Materials.Clear(); LevelY = 0;
             random = new System.Random(75);
             return (scene, scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform);
         }
