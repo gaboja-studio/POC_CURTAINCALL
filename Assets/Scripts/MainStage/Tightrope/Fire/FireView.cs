@@ -3,10 +3,12 @@ using UnityEngine;
 
 namespace CurtainCall.Tightrope.Fire
 {
-    /// <summary>충돌체 없는 임시 화재 표시. 호스트의 확정 발화는 빨강, 발화 예고는 노랑이다.</summary>
+    /// <summary>충돌체 없는 화재 표시. 추격 불은 연결된 파티클 불벽, 구간 발화는 임시 상자(확정 빨강·예고 노랑)다.</summary>
     [RequireComponent(typeof(TightropeFire))]
     public sealed class FireView : MonoBehaviour
     {
+        /// <summary>비우면 임시 빨간 상자를 쓴다. 불벽은 너비 1m 기준으로 만들고 X 배율로 코스 폭을 맞춘다.</summary>
+        [SerializeField] Transform chaseEffect;
         TightropeFire fire;
         TightropeCourse course;
         Transform chase;
@@ -25,7 +27,7 @@ namespace CurtainCall.Tightrope.Fire
             var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
             flame = new Material(shader) { color = new Color(1f, 0.15f, 0.03f) };
             warning = new Material(shader) { color = new Color(1f, 0.8f, 0.02f) };
-            chase = Box("ChaseFire");
+            chase = chaseEffect != null ? chaseEffect : Box("ChaseFire");
         }
 
         void Update()
@@ -38,9 +40,11 @@ namespace CurtainCall.Tightrope.Fire
             chase.gameObject.SetActive(fire.IsChasing);
             if (fire.IsChasing)
             {
-                chase.position = course.transform.position + course.Forward * fire.ChaseDistance + Vector3.up * 0.8f;
+                float width = (course.LaneCount - 1) * course.LaneSpacing + course.Shape.SideMargin * 2f;
+                bool effect = chaseEffect != null;
+                chase.position = course.transform.position + course.Forward * fire.ChaseDistance + Vector3.up * (effect ? 0f : 0.8f);
                 chase.rotation = Quaternion.LookRotation(course.Forward);
-                chase.localScale = new Vector3((course.LaneCount - 1) * course.LaneSpacing + course.Shape.SideMargin * 2f, 1.6f, 0.25f);
+                chase.localScale = effect ? new Vector3(width, 1f, 1f) : new Vector3(width, 1.6f, 0.25f);
             }
             for (int i = 0; i < segments.Count; i++)
             {
