@@ -41,3 +41,17 @@
 
 - 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - CC-159에 2단계 체크리스트·검증 결과·미검증 항목·다음 상점 작업 반영 확인. 최종 WaitingRoomBase isDirty=false. 원본 및 별도 프로토타입 보존.
+
+## 2026-10-27 — 1·2단계 고도화와 3단계 상점
+- 사용자 요청에 따라 2단계 결과를 커밋했다(d04bab5, push 안 함).
+- 1차 고도화(23px=1m, 체크 타일, 원통형 상점 부스)는 사용자 피드백으로 폐기: 공간이 좁고 균일함, 바닥은 녹슨·깨진 콘크리트, 상점은 원본 기둥 그대로. Task-060 Layout/global.md·lobby.md를 톤앤매너 정본으로 확인했다.
+- 기준 좌표를 18px=1m로 바꿨다(layout-a-plan.md). 로비를 29.4×28m·천장 13m 폐공장 홀로 다시 만들었다. 손상 콘크리트 바닥과 녹·균열·웅덩이·슬래브 이음매·깨진 슬래브, 처진 천막·전구 줄, 캣워크·트러스·배관·내부 기둥을 비대칭으로 배치했고 조명은 15개다. 상세: stage-02-report.md.
+- 도구 WaitingRoomLayoutA.cs로 교체하고 WaitingRoomLayoutAStage02.cs를 삭제했다. 생성 에셋은 Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/에 있고 1차 시도 에셋(체크 타일·부스 메시)은 삭제했다.
+- 3단계 상점: 원본 S03_Shop 기둥을 그대로 복제해 (-10.8,-6)에 180° 돌려 배치했다. 수화기 위 램프 1개, WorldLabels.delivery를 재연결했다. 상세: stage-03-report.md.
+- 발견·수정: 비활성 루트의 GetComponentsInChildren()이 꺼진 원본을 반환해 WaitingRoomShopUI·WaitingRoomScheduleUI가 원본 수화기·일정판에 묶였다. 활성 컴포넌트만 고르게 수정했다(UI 공용 코드 겹침 알림 필요). 함정 기록: Harness/Project/Pitfalls/inactive-root-component-scan.md.
+- 데칼 함정: URP Lit 투명의 Preserve Specular가 켜져 있으면 투명 영역에 반사가 남아 사각형으로 보인다. 도구에서 끄도록 했다.
+- 검증: BuildLobby/BuildShop/Validate PASS(원본 6,035개 직렬화 동일, 스폰·출입구 9곳·수화기·배송구 앞 여유와 도달 거리). Play Mode CharacterController(r0.3,h1.5) 이동 30/30, 2,308프레임, 발 높이 0.080~0.100, 막힘·낙하 없음. Play 중 콘솔 오류 0개. 씬 저장 isDirty=false.
+- Play Mode 중 Pretendard-SemiBold SDF.asset이 동적 폰트로 저절로 바뀌었다(알려진 함정). 작업 결과가 아니므로 커밋 대상에서 제외한다.
+- 미검증: 구매·일정판 UI 실제 상호작용, 배송 낙하, 네트워크 카메라 추적, 4인 접속, 공연 왕복, 성능 계측. 다음: 3단계 소품실(04) → 숙소·화장실(02). 최종 공간감·톤은 담당자가 확인한다.
+
+- 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

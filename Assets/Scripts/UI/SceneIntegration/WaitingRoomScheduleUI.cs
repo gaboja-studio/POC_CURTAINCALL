@@ -56,7 +56,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (boardView != null && (room == null || boardView.gameObject.scene != room.gameObject.scene))
             { boardView.SetOpen(false); view.Hide(); boardView = null; }
             if (boardView == null && room != null)
-                boardView = room.gameObject.scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<ScheduleBoardView>()).FirstOrDefault();
+                boardView = room.gameObject.scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<ScheduleBoardView>()).FirstOrDefault(b => b.isActiveAndEnabled);
             if (ownedEvents != null && FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Any(e => e != ownedEvents && e.isActiveAndEnabled))
             { Destroy(ownedEvents.gameObject); ownedEvents = null; }
             bool open = boardView != null && boardView.isActiveAndEnabled && boardView.IsOpen && ScheduleBoard.Instance != null;
@@ -68,7 +68,7 @@ namespace CurtainCall.UI.SceneIntegration
                     var events = new GameObject("ScheduleEventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
                     events.transform.SetParent(transform, false); ownedEvents = events.GetComponent<EventSystem>();
                 }
-                var phone = room.gameObject.scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<ShopPhone>()).FirstOrDefault();
+                var phone = room.gameObject.scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<ShopPhone>()).FirstOrDefault(p => p.isActiveAndEnabled);
                 if (phone != null) phone.SetOpen(false);
                 session = Guid.NewGuid().ToString("N"); message = ""; lastKey = null;
                 view.Open(Build());

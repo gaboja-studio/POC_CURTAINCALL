@@ -15,7 +15,9 @@ source: Task-20261027-075, 사용자 기준 정정 및 Editor 계층 조사
 - 방은 S01_Lobby, S02_Dormitory(하위 Restroom), S03_Shop, S04_PropRoom, S06_StageCorridor_Temp, S07_StageEntrance_Temp다.
 - 완성 아트·조명은 `Mood/` 여러 그룹과 공용 `Walls/`에도 분산된다. 방 루트만 복제하면 누락된다.
 - 공간 종속 기능은 `WaitingRoomGameplay/`(스폰·선반·집결·전문가실), `NightSchedule/`(셔터), `ExplorationTimer/`(탐색 경계)와 상점 방에 있다. 루트 밖 서비스·UI·카메라는 중복 생성하지 않고 새 공간 참조로 연결한다.
-- Task-075 1단계에서 원본 Greybox는 내용·ID를 보존하고 비활성화했다. 2단계에서 `WaitingRoom_LayoutA/S01_Lobby`에 로비·분산 아트·벽·조명·스폰 4곳·일정판을 복제했다. 로비 단독 충돌 이동 확인 완료, 나머지 방은 아직 미구현이다.
+- Task-075 1단계에서 원본 Greybox는 내용·ID를 보존하고 비활성화했다. 새 맵은 `WaitingRoom_LayoutA`이며 `Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutA.cs`가 방 단위로 생성한다(로비 `BuildLobby`, 상점 `BuildShop`). 기준 좌표는 조감도 A 18px = 1m, 로비 29.4×28m 폐공장 홀.
+- 상점은 원본 `S03_Shop` 기둥(수화기·배송구)을 그대로 복제해 쓴다. 새 부스로 바꾸지 않는다(2026-10-27 사용자 지시).
+- 원본 루트가 비활성이어도 `GetComponentsInChildren()`은 원본 컴포넌트를 반환한다. 기능 검색은 활성 컴포넌트로 거른다(`Harness/Project/Pitfalls/inactive-root-component-scan.md`).
 - 일정판은 `NightSchedule/ScheduleCloseUp` 카메라를 참조한다. 일정판 복제 시 이 카메라도 복제·재연결해야 비활성 원본 참조가 남지 않는다.
 
 ## 확인 방법

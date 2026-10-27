@@ -1,94 +1,40 @@
-# 2단계 로비 복제 목록
+# 2단계 로비 재구성 복제 목록
 
-원본: WaitingRoomGreybox. 복제 후 원본 ID·직렬화·하위 활성값 보존 확인.
+원본: WaitingRoomGreybox(비활성 보존). 생성 도구: WaitingRoomLayoutA.
 
-새 로비 오브젝트: 668, 내부 참조 재연결: 1, 바깥 참조 재연결: 0
+오브젝트: 1233, 내부 참조 재연결: 1, 바깥 참조 재연결: 0
 
-- WaitingRoomGreybox/S01_Lobby → WaitingRoom_LayoutA/S01_Lobby/Contents
-- WaitingRoomGreybox/Mood/Ceilings/Ceiling_Lobby → WaitingRoom_LayoutA/S01_Lobby/Overhead/Ceiling_Lobby
-- WaitingRoomGreybox/Mood/Dressing/Lobby_TentPile → WaitingRoom_LayoutA/S01_Lobby/Art/Mood_Dressing_Lobby_TentPile
-- WaitingRoomGreybox/Mood/Dressing/Lobby_FloorStains → WaitingRoom_LayoutA/S01_Lobby/Art/Mood_Dressing_Lobby_FloorStains
-- WaitingRoomGreybox/Mood/ProtoFill/Lobby → WaitingRoom_LayoutA/S01_Lobby/Art/Mood_ProtoFill_Lobby
-- WaitingRoomGreybox/Mood/Furnishings/Lobby → WaitingRoom_LayoutA/S01_Lobby/Art/Mood_Furnishings_Lobby
-- WaitingRoomGreybox/Mood/InteriorArt/WR01_SlumpedTent → WaitingRoom_LayoutA/S01_Lobby/Art/Mood_InteriorArt_WR01_SlumpedTent
-- WaitingRoomGreybox/Mood/InteriorArt/WR02_LobbyCostumeRail → WaitingRoom_LayoutA/S01_Lobby/Art/Mood_InteriorArt_WR02_LobbyCostumeRail
-- WaitingRoomGreybox/Mood/Rooms/Lobby → WaitingRoom_LayoutA/S01_Lobby/Overhead/Lobby_FlagsAndCloth
-- WaitingRoomGreybox/Mood/Ceilingworks/Chains_Lobby → WaitingRoom_LayoutA/S01_Lobby/Overhead/Chains_Lobby
-- WaitingRoomGreybox/Mood/InteriorArt/Lobby_SaggingCanvas_W → WaitingRoom_LayoutA/S01_Lobby/Overhead/Lobby_SaggingCanvas_W
-- WaitingRoomGreybox/Mood/InteriorArt/Lobby_SaggingCanvas_E → WaitingRoom_LayoutA/S01_Lobby/Overhead/Lobby_SaggingCanvas_E
-- WaitingRoomGreybox/Mood/InteriorArt/Lobby_RustCrossBeam_0 → WaitingRoom_LayoutA/S01_Lobby/Overhead/Lobby_RustCrossBeam_0
-- WaitingRoomGreybox/Mood/InteriorArt/Lobby_RustCrossBeam_1 → WaitingRoom_LayoutA/S01_Lobby/Overhead/Lobby_RustCrossBeam_1
-- WaitingRoomGreybox/Mood/InteriorArt/Lobby_RustCrossBeam_2 → WaitingRoom_LayoutA/S01_Lobby/Overhead/Lobby_RustCrossBeam_2
-- WaitingRoomGreybox/Mood/InteriorArt/Lobby_RustCrossBeam_3 → WaitingRoom_LayoutA/S01_Lobby/Overhead/Lobby_RustCrossBeam_3
-- WaitingRoomGreybox/Mood/InteriorArt/CircusStorageCrate_0 → WaitingRoom_LayoutA/S01_Lobby/Art/CircusStorageCrate_0
-- WaitingRoomGreybox/Mood/InteriorArt/StorageTrunk_0 → WaitingRoom_LayoutA/S01_Lobby/Art/StorageTrunk_0
-- WaitingRoomGreybox/Mood/InteriorArt/CanvasOnCrate_0 → WaitingRoom_LayoutA/S01_Lobby/Art/CanvasOnCrate_0
-- WaitingRoomGreybox/Mood/InteriorArt/CircusStorageCrate_1 → WaitingRoom_LayoutA/S01_Lobby/Art/CircusStorageCrate_1
-- WaitingRoomGreybox/Mood/InteriorArt/StorageTrunk_1 → WaitingRoom_LayoutA/S01_Lobby/Art/StorageTrunk_1
-- WaitingRoomGreybox/Mood/InteriorArt/CanvasOnCrate_1 → WaitingRoom_LayoutA/S01_Lobby/Art/CanvasOnCrate_1
-- WaitingRoomGreybox/Mood/InteriorArt/Lobby_WarmPractical → WaitingRoom_LayoutA/S01_Lobby/Lighting/Lobby_WarmPractical
-- WaitingRoomGreybox/Mood/Lights/Lobby_Lamp → WaitingRoom_LayoutA/S01_Lobby/Lighting/Lobby_Lamp
-- WaitingRoomGreybox/Mood/Lights/Lobby_Lamp → WaitingRoom_LayoutA/S01_Lobby/Lighting/Lobby_Lamp
-- WaitingRoomGreybox/Mood/Lights/Lobby_Lamp → WaitingRoom_LayoutA/S01_Lobby/Lighting/Lobby_Lamp
-- WaitingRoomGreybox/Mood/Lights/Lobby_Lamp → WaitingRoom_LayoutA/S01_Lobby/Lighting/Lobby_Lamp
-- WaitingRoomGreybox/Mood/Lights/Lobby_FillCold → WaitingRoom_LayoutA/S01_Lobby/Lighting/Lobby_FillCold
-- WaitingRoomGreybox/Mood/Lights/Lobby_Skylight → WaitingRoom_LayoutA/S01_Lobby/Overhead/Lobby_Skylight
-- WaitingRoomGreybox/Mood/Lights/Lobby_Skylight → WaitingRoom_LayoutA/S01_Lobby/Overhead/Lobby_Skylight
-- WaitingRoomGreybox/Mood/VisibilityLighting/Lobby_West → WaitingRoom_LayoutA/S01_Lobby/Lighting/Lobby_West
-- WaitingRoomGreybox/Mood/VisibilityLighting/Lobby_East → WaitingRoom_LayoutA/S01_Lobby/Lighting/Lobby_East
-- WaitingRoomGreybox/Mood/LightingPass/Spot_TentPile → WaitingRoom_LayoutA/S01_Lobby/Lighting/Spot_TentPile
-- WaitingRoomGreybox/Mood/LightingPass/Spot_ScheduleBoard → WaitingRoom_LayoutA/S01_Lobby/Lighting/Spot_ScheduleBoard
-- WaitingRoomGreybox/Mood/LightingPass/Spot_InfoBoard → WaitingRoom_LayoutA/S01_Lobby/Lighting/Spot_InfoBoard
-- WaitingRoomGreybox/Mood/Ceilingworks/Pipes/SM_BigPipe → WaitingRoom_LayoutA/S01_Lobby/Overhead/SM_BigPipe
-- WaitingRoomGreybox/Mood/Ceilingworks/Pipes/SM_BigPipe → WaitingRoom_LayoutA/S01_Lobby/Overhead/SM_BigPipe
-- WaitingRoomGreybox/Mood/Ceilingworks/Pipes/SM_BigPipe → WaitingRoom_LayoutA/S01_Lobby/Overhead/SM_BigPipe
-- WaitingRoomGreybox/Mood/Ceilingworks/Pipes/SM_BigPipe → WaitingRoom_LayoutA/S01_Lobby/Overhead/SM_BigPipe
-- WaitingRoomGreybox/Mood/Ceilingworks/Pipes/SM_Smallpipe1 → WaitingRoom_LayoutA/S01_Lobby/Overhead/SM_Smallpipe1
-- WaitingRoomGreybox/Mood/Ceilingworks/Pipes/SM_Smallpipe1 → WaitingRoom_LayoutA/S01_Lobby/Overhead/SM_Smallpipe1
-- WaitingRoomGreybox/Mood/Ceilingworks/Pipes/SM_Smallpipe1 → WaitingRoom_LayoutA/S01_Lobby/Overhead/SM_Smallpipe1
-- WaitingRoomGreybox/Mood/Ceilingworks/Pipes/SM_Smallpipe1 → WaitingRoom_LayoutA/S01_Lobby/Overhead/SM_Smallpipe1
-- WaitingRoomGreybox/Mood/Ceilingworks/Pipes/SM_Pipe_Small_Valve_02 → WaitingRoom_LayoutA/S01_Lobby/Overhead/SM_Pipe_Small_Valve_02
-- WaitingRoomGreybox/Mood/Ceilingworks/Pipes/SM_Pipe_Small_Valve_02 → WaitingRoom_LayoutA/S01_Lobby/Overhead/SM_Pipe_Small_Valve_02
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/DoorHeader
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_09/TemporaryClosure
 - WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_09/DestinationSign
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/DoorHeader
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_02/TemporaryClosure
 - WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_02/DestinationSign
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/DoorHeader
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_11/TemporaryClosure
-- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_11/DestinationSign
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/DoorHeader
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_12/TemporaryClosure
-- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_12/DestinationSign
-- WaitingRoomGreybox/Walls/W_z+9/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/DoorHeader
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_03/TemporaryClosure
-- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_03/DestinationSign
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/DoorHeader
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_10/TemporaryClosure
-- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_10/DestinationSign
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/DoorHeader
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_04/TemporaryClosure
-- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_04/DestinationSign
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/DoorHeader
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_06/TemporaryClosure
-- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_06/DestinationSign
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/DoorHeader
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_08/TemporaryClosure
 - WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_08/DestinationSign
-- WaitingRoomGreybox/Walls/W_x-10/Seg0 → WaitingRoom_LayoutA/S01_Lobby/Walls/Wall
+- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_06/DestinationSign
+- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_04/DestinationSign
+- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_12/DestinationSign
+- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_11/DestinationSign
+- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_13/DestinationSign
+- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S01_Lobby/FutureConnections/Portal_10/DestinationSign
+- 폐공장 에셋 SM_Railing → WaitingRoom_LayoutA/S01_Lobby/Structure/SM_Railing
+- 폐공장 에셋 SM_Ladder1 → WaitingRoom_LayoutA/S01_Lobby/Structure/SM_Ladder1
+- WaitingRoomGreybox/Mood/InteriorArt/CircusStorageCrate_1 → WaitingRoom_LayoutA/S01_Lobby/CircusTent/RingProps/CircusStorageCrate_1
+- WaitingRoomGreybox/Mood/InteriorArt/CanvasOnCrate_1 → WaitingRoom_LayoutA/S01_Lobby/CircusTent/RingProps/CanvasOnCrate_1
+- WaitingRoomGreybox/Mood/InteriorArt/StorageTrunk_1 → WaitingRoom_LayoutA/S01_Lobby/CircusTent/RingProps/StorageTrunk_1
+- 폐공장 에셋 SM_Barrel_1 → WaitingRoom_LayoutA/S01_Lobby/CircusTent/RingProps/SM_Barrel_1
+- 폐공장 에셋 SM_MetalPlate1 → WaitingRoom_LayoutA/S01_Lobby/FloorWear/BrokenSlab/SM_MetalPlate1
+- 폐공장 에셋 SM_Woodpallet_1 → WaitingRoom_LayoutA/S01_Lobby/Dressing/SM_Woodpallet_1
+- WaitingRoomGreybox/Mood/InteriorArt/CircusStorageCrate_0 → WaitingRoom_LayoutA/S01_Lobby/Dressing/CircusStorageCrate_0
+- 폐공장 에셋 SM_Barrel → WaitingRoom_LayoutA/S01_Lobby/Dressing/SM_Barrel
+- 폐공장 에셋 SM_Barrel_1 → WaitingRoom_LayoutA/S01_Lobby/Dressing/SM_Barrel_1
+- 폐공장 에셋 SM_Grid → WaitingRoom_LayoutA/S01_Lobby/Dressing/SM_Grid
+- WaitingRoomGreybox/Mood/Furnishings/Lobby/WaitingChair → WaitingRoom_LayoutA/S01_Lobby/Dressing/WaitingChair
+- WaitingRoomGreybox/Mood/Furnishings/Lobby/PackedTrunk → WaitingRoom_LayoutA/S01_Lobby/Dressing/PackedTrunk
+- WaitingRoomGreybox/Mood/InteriorArt/CircusStorageCrate_1 → WaitingRoom_LayoutA/S01_Lobby/Dressing/CircusStorageCrate_1
+- WaitingRoomGreybox/Mood/InteriorArt/StorageTrunk_1 → WaitingRoom_LayoutA/S01_Lobby/Dressing/StorageTrunk_1
+- WaitingRoomGreybox/Mood/InteriorArt/CanvasOnCrate_1 → WaitingRoom_LayoutA/S01_Lobby/Dressing/CanvasOnCrate_1
+- 폐공장 에셋 SM_Cablespool → WaitingRoom_LayoutA/S01_Lobby/Dressing/SM_Cablespool
+- 폐공장 에셋 SM_Gascylender → WaitingRoom_LayoutA/S01_Lobby/Dressing/SM_Gascylender
+- WaitingRoomGreybox/Mood/InteriorArt/WR02_LobbyCostumeRail → WaitingRoom_LayoutA/S01_Lobby/Dressing/WR02_LobbyCostumeRail
+- WaitingRoomGreybox/Mood/Furnishings/Lobby/CostumeStand → WaitingRoom_LayoutA/S01_Lobby/Dressing/CostumeStand
+- WaitingRoomGreybox/Mood/Lights/Lobby_Lamp → WaitingRoom_LayoutA/S01_Lobby/Lighting/Lobby_Lamp
 - WaitingRoomGreybox/WaitingRoomGameplay/SpawnPoints → WaitingRoom_LayoutA/S01_Lobby/Gameplay/SpawnPoints
 - WaitingRoomGreybox/WaitingRoomGameplay/ScheduleBoard → WaitingRoom_LayoutA/S01_Lobby/Gameplay/ScheduleBoard
 - WaitingRoomGreybox/NightSchedule/ScheduleCloseUp → WaitingRoom_LayoutA/S01_Lobby/Gameplay/ScheduleCloseUp
