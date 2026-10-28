@@ -436,34 +436,35 @@ namespace CurtainCall.WaitingRoom.Editor
             var lobby = target.Find("S01_Lobby");
             var floor = lobby.Find("Frame8Lobby/RoundFloor").GetComponent<Renderer>().bounds;
             var hub = new Vector3(floor.center.x, floor.max.y, floor.center.z);
-            var at = hub + new Vector3(.5f, 0, 3.2f);
+            var at = hub + new Vector3(.5f, 0, 4.4f);
             Remove(lobby, "ShabbyChristmasTent");
             var g = Group(lobby, "ShabbyChristmasTent", at); g.rotation = Quaternion.Euler(0, 18, 0);
             var rng = new System.Random(1225);
             float R(float a, float b) => a + (float)rng.NextDouble() * (b - a);
 
-            const float baseR = 1.15f, height = 2.75f;
+            // User: twice the first one-person size (2.3 m → 4.6 m across). Props keep their own size; only the ring they sit on grows.
+            const float K = 2f, baseR = 1.15f * K, height = 2.75f * K;
             Material red = DoubleSided(Lit("LA_XmasTentRed", Hex("7A2421") * .92f, .06f)), cream = DoubleSided(Lit("LA_XmasTentCream", Hex("B9A889") * .9f, .05f));
             var tent = MeshObject(g, "SlumpedConeTent", at, SaveMesh(SlumpedCone(baseR, height)), red, cream);
             tent.transform.rotation = g.rotation;
             tent.AddComponent<MeshCollider>().sharedMesh = tent.GetComponent<MeshFilter>().sharedMesh;
             // Lean of the apex, so pole, topper and lights follow the slump.
-            var apex = g.TransformPoint(new Vector3(.28f, height - .08f, .12f));
+            var apex = g.TransformPoint(new Vector3(.28f * K, height - .08f * K, .12f * K));
             var gold = Mat("LA_Bronze");
-            Rod(g, "TentPole", g.TransformPoint(new Vector3(.12f, height - .5f, .05f)), apex + (apex - g.TransformPoint(new Vector3(0, height - .6f, 0))).normalized * .35f, .025f, Mat("V4_Wood_Old"));
-            var star = MeshObject(g, "CrookedStarTopper", apex + Vector3.up * .48f, SaveMesh(StarMesh(.22f, .09f, .05f)), gold);
+            Rod(g, "TentPole", g.TransformPoint(new Vector3(.12f * K, height - .5f * K, .05f * K)), apex + (apex - g.TransformPoint(new Vector3(0, height - .6f * K, 0))).normalized * .35f * K, .025f * K, Mat("V4_Wood_Old"));
+            var star = MeshObject(g, "CrookedStarTopper", apex + Vector3.up * .48f * K, SaveMesh(StarMesh(.36f, .15f, .08f)), gold);
             star.transform.rotation = Quaternion.LookRotation(g.right, Vector3.up) * Quaternion.Euler(0, 0, -23);
             // Scalloped hem and four short guy ropes to stakes.
-            for (int i = 0; i < 16; i++)
+            for (int i = 0; i < 28; i++)
             {
-                float a = i * Mathf.PI * 2 / 16; var p = g.TransformPoint(new Vector3(Mathf.Cos(a) * (baseR + .03f), .32f, Mathf.Sin(a) * (baseR + .03f)));
-                var flap = Prim(g, PrimitiveType.Cube, "HemScallop", p, new Vector3(.42f, .2f, .02f), i % 2 == 0 ? cream : red);
+                float a = i * Mathf.PI * 2 / 28; var p = g.TransformPoint(new Vector3(Mathf.Cos(a) * (baseR + .03f), .5f, Mathf.Sin(a) * (baseR + .03f)));
+                var flap = Prim(g, PrimitiveType.Cube, "HemScallop", p, new Vector3(.56f, .32f, .02f), i % 2 == 0 ? cream : red);
                 flap.rotation = Quaternion.LookRotation(p - new Vector3(at.x, p.y, at.z)) * Quaternion.Euler(R(-8, 14), 0, R(-6, 6));
             }
             foreach (float deg in new[] { 30f, 120f, 210f, 300f })
             {
-                var a = deg * Mathf.Deg2Rad; var top = g.TransformPoint(new Vector3(Mathf.Cos(a) * .55f, 1.6f, Mathf.Sin(a) * .55f));
-                var stake = g.TransformPoint(new Vector3(Mathf.Cos(a) * 1.95f, .04f, Mathf.Sin(a) * 1.95f));
+                var a = deg * Mathf.Deg2Rad; var top = g.TransformPoint(new Vector3(Mathf.Cos(a) * .55f * K, 1.6f * K, Mathf.Sin(a) * .55f * K));
+                var stake = g.TransformPoint(new Vector3(Mathf.Cos(a) * (baseR + 1.6f), .04f, Mathf.Sin(a) * (baseR + 1.6f)));
                 Rod(g, "GuyRope", top, stake, .009f, Mat("V6_Rope"));
                 Prim(g, PrimitiveType.Cylinder, "Stake", stake + Vector3.up * .06f, new Vector3(.04f, .08f, .04f), Mat("V4_Wood_Old"));
             }
@@ -473,12 +474,12 @@ namespace CurtainCall.WaitingRoom.Editor
             var dead = Lit("LA_XmasBulbDead", new Color(.25f, .22f, .18f), .6f);
             var wire = Mat("V4_Black");
             Vector3 prev = default; int bulbs = 0; var liveBulbs = new List<Renderer>();
-            for (int i = 0; i <= 120; i++)
+            for (int i = 0; i <= 240; i++)
             {
-                float t = i / 120f, h = .38f + t * (height - .62f), turns = 3.2f;
+                float t = i / 240f, h = .38f * K + t * (height - .62f * K), turns = 3.6f;
                 float r = ConeRadius(baseR, height, h) + .045f, a = t * turns * Mathf.PI * 2;
-                var lean = new Vector3(.28f, 0, .12f) * Mathf.Pow(h / height, 2.2f);
-                var p = g.TransformPoint(new Vector3(Mathf.Cos(a) * r, h - .06f * Mathf.Sin(t * 37), Mathf.Sin(a) * r) + lean);
+                var lean = new Vector3(.28f, 0, .12f) * K * Mathf.Pow(h / height, 2.2f);
+                var p = g.TransformPoint(new Vector3(Mathf.Cos(a) * r, h - .06f * K * Mathf.Sin(t * 37), Mathf.Sin(a) * r) + lean);
                 if (i > 0) Rod(g, "LightWire", prev, p, .006f, wire);
                 if (i % 3 == 0)
                 {
@@ -490,12 +491,12 @@ namespace CurtainCall.WaitingRoom.Editor
                 prev = p;
             }
             // One warm pool under the "tree" (it's the most saturated, brightest point of the hall), with a tired flicker.
-            var glow = new GameObject("TreeGlow").AddComponent<Light>(); glow.transform.SetParent(g, false); glow.transform.position = at + Vector3.up * 2.4f + g.forward * 1.2f;
-            glow.type = LightType.Point; glow.color = new Color(1, .78f, .5f); glow.intensity = 6f; glow.range = 7.5f; glow.shadows = LightShadows.None;
+            var glow = new GameObject("TreeGlow").AddComponent<Light>(); glow.transform.SetParent(g, false); glow.transform.position = at + Vector3.up * 2.4f * K + g.forward * 1.2f * K;
+            glow.type = LightType.Point; glow.color = new Color(1, .78f, .5f); glow.intensity = 9f; glow.range = 12f; glow.shadows = LightShadows.None;
             var fl = glow.gameObject.AddComponent<WaitingRoomFlickerLight>(); fl.bulbs = liveBulbs.Take(8).ToArray(); fl.averageGap = 11; fl.dipLevel = new Vector2(.45f, .8f);
             // Concept art: bulb strings fan out from the tent's tip to the top of the hall wall. A string that would
             // cross the stairs, deck or any fitting is skipped.
-            var tip = apex + Vector3.up * .3f; int strings = 0;
+            var tip = apex + Vector3.up * .3f * K; int strings = 0;
             float wallR = new Vector2(floor.extents.x, floor.extents.z).magnitude / Mathf.Sqrt(2) - .3f;
             for (int k = 0; k < 8; k++)
             {
@@ -516,12 +517,12 @@ namespace CurtainCall.WaitingRoom.Editor
                 Prim(strand, PrimitiveType.Cube, "WallHook", end, new Vector3(.12f, .12f, .12f), Mat("V4_Iron_Dark"));
                 strings++;
             }
-            var rugMesh = Prim(g, PrimitiveType.Cylinder, "WornRoundRug", at + Vector3.up * .006f, new Vector3(4.6f, .004f, 4.2f), Mat("LA_CarpetWorn"));
+            var rugMesh = Prim(g, PrimitiveType.Cylinder, "WornRoundRug", at + Vector3.up * .006f, new Vector3(8.4f, .004f, 7.7f), Mat("LA_CarpetWorn"));
             Object.DestroyImmediate(rugMesh.GetComponent<Collider>());
 
             // "Presents": crates, gift-wrapped boxes and circus tools tumbled around the hem.
             int props = 0;
-            Vector3 Around(float ring, float deg) { var a = deg * Mathf.Deg2Rad; return g.TransformPoint(new Vector3(Mathf.Cos(a) * ring, 0, Mathf.Sin(a) * ring)); }
+            Vector3 Around(float ring, float deg) { ring += baseR - 1.15f; var a = deg * Mathf.Deg2Rad; return g.TransformPoint(new Vector3(Mathf.Cos(a) * ring, 0, Mathf.Sin(a) * ring)); }
             foreach (var (deg, ring, w, h, d, ribbon) in new[] { (-20f, 1.55f, .55f, .42f, .5f, 0), (15f, 1.45f, .38f, .3f, .38f, 1), (95f, 1.6f, .7f, .5f, .55f, 2), (150f, 1.5f, .42f, .36f, .42f, 0), (200f, 1.65f, .5f, .28f, .6f, 1), (255f, 1.5f, .34f, .34f, .34f, 2), (320f, 1.6f, .6f, .45f, .45f, 1) })
             {
                 var p = Around(ring, deg); var box = Group(g, "GiftBox", p + Vector3.up * h * .5f); box.rotation = Quaternion.Euler(R(-4, 4), R(0, 360), R(-6, 9));
@@ -577,12 +578,13 @@ namespace CurtainCall.WaitingRoom.Editor
             const int gores = 14, cols = 4, rows = 12; var rng = new System.Random(7);
             var v = new List<Vector3>(); var uv = new List<Vector2>(); var tris = new[] { new List<int>(), new List<int>() };
             var dents = Enumerable.Range(0, 5).Select(_ => (a: (float)rng.NextDouble() * Mathf.PI * 2, h: .25f + (float)rng.NextDouble() * .5f, depth: .08f + (float)rng.NextDouble() * .1f)).ToArray();
+            float sc = height / 2.75f;
             Vector3 P(float a, float t)
             {
                 float h = t * height, r = ConeRadius(baseR, height, h);
                 r *= 1 - .12f * Mathf.Sin(t * Mathf.PI) * (.6f + .4f * Mathf.Sin(a * 3 + 1)); // sag between ribs
-                foreach (var d in dents) { float da = Mathf.DeltaAngle(a * Mathf.Rad2Deg, d.a * Mathf.Rad2Deg) / 40f, dh = (t - d.h) / .14f; r -= d.depth * Mathf.Exp(-(da * da + dh * dh)); }
-                var lean = new Vector3(.28f, 0, .12f) * Mathf.Pow(t, 2.2f); float droop = -.12f * Mathf.Pow(t, 4);
+                foreach (var d in dents) { float da = Mathf.DeltaAngle(a * Mathf.Rad2Deg, d.a * Mathf.Rad2Deg) / 40f, dh = (t - d.h) / .14f; r -= d.depth * sc * Mathf.Exp(-(da * da + dh * dh)); }
+                var lean = new Vector3(.28f, 0, .12f) * sc * Mathf.Pow(t, 2.2f); float droop = -.12f * sc * Mathf.Pow(t, 4);
                 return new Vector3(Mathf.Cos(a) * Mathf.Max(r, .01f), h + droop, Mathf.Sin(a) * Mathf.Max(r, .01f)) + lean;
             }
             for (int s = 0; s < gores; s++)

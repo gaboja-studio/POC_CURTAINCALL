@@ -92,9 +92,10 @@ namespace CurtainCall.WaitingRoom.Editor
 
         // Same rig as the prototype ClothCurtainBuilder (ring/hem bones, pinned rail row), with deeper, irregular
         // pleats, a finer grid and a looser hem so the fabric folds and flutters instead of reading as a corrugated sheet.
-        static CurtainPanel StageClothPanel(Transform parent, string name, float x0, float width, float height, Material m, bool gatherToEnd, int seed)
+        static CurtainPanel StageClothPanel(Transform parent, string name, float x0, float width, float height, Material m, bool gatherToEnd, int seed,
+            float cellX = .115f, float cellY = .27f, string meshPath = StageClothMeshPath, float drift = 1.15f, float sway = 1f)
         {
-            int nx = Mathf.RoundToInt(width / .115f) + 1, ny = Mathf.RoundToInt(height / .27f) + 1;
+            int nx = Mathf.RoundToInt(width / cellX) + 1, ny = Mathf.RoundToInt(height / cellY) + 1;
             float dx = width / (nx - 1), dy = height / (ny - 1);
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
@@ -130,8 +131,8 @@ namespace CurtainCall.WaitingRoom.Editor
             var mesh = new Mesh { name = "LA_StageCurtain_" + name, vertices = verts, uv = uvs, triangles = tris, boneWeights = weights };
             mesh.bindposes = bones.Select(b => b.worldToLocalMatrix * go.transform.localToWorldMatrix).ToArray();
             mesh.RecalculateNormals(); mesh.RecalculateTangents(); mesh.RecalculateBounds();
-            if (AssetDatabase.LoadMainAssetAtPath(StageClothMeshPath) == null) AssetDatabase.CreateAsset(mesh, StageClothMeshPath);
-            else AssetDatabase.AddObjectToAsset(mesh, StageClothMeshPath);
+            if (AssetDatabase.LoadMainAssetAtPath(meshPath) == null) AssetDatabase.CreateAsset(mesh, meshPath);
+            else AssetDatabase.AddObjectToAsset(mesh, meshPath);
 
             var smr = go.AddComponent<SkinnedMeshRenderer>();
             smr.sharedMesh = mesh; smr.bones = bones; smr.rootBone = go.transform; smr.sharedMaterial = m; smr.updateWhenOffscreen = true;
@@ -140,13 +141,13 @@ namespace CurtainCall.WaitingRoom.Editor
             for (int v = 0; v < k.Length; v++)
             {
                 float down = Mathf.Clamp01(-verts[v].y / height);
-                k[v].maxDistance = verts[v].y > -.01f ? 0 : 1.15f * Mathf.Pow(down, .65f);
+                k[v].maxDistance = verts[v].y > -.01f ? 0 : drift * Mathf.Pow(down, .65f);
                 k[v].collisionSphereDistance = 0;
             }
             cloth.coefficients = k;
             cloth.stretchingStiffness = .95f; cloth.bendingStiffness = .06f; cloth.damping = .1f; cloth.friction = .6f;
             cloth.useGravity = true; cloth.worldVelocityScale = .5f; cloth.worldAccelerationScale = 1;
-            cloth.collisionMassScale = .2f; cloth.randomAcceleration = new Vector3(2.4f, 0, 3.4f); cloth.sleepThreshold = .001f;
+            cloth.collisionMassScale = .2f; cloth.randomAcceleration = new Vector3(2.4f, 0, 3.4f) * sway; cloth.sleepThreshold = .001f;
 
             var panel = go.AddComponent<CurtainPanel>();
             panel.rings = rings; panel.hems = hems; panel.hemY = -height; panel.closedX = closedX; panel.gatherToEnd = gatherToEnd;
