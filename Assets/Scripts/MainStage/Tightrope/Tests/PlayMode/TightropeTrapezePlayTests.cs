@@ -11,27 +11,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
     {
         [UnityTest]
         public IEnumerator PoleInteraction_TrapezeUsesExistingOutlineAndFPrompt()
-        {
-            EnableTrapezeForEntryTest();
-            yield return BeginPerformance(); DisableSwingHazards();
-            var trapeze = Static("CurtainCall.Tightrope.TightropeTrapeze", "Current");
-            yield return Until(() => UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.UI.SceneIntegration.CommonInteractionUI")) != null,
-                15f, "기존 상호작용 UI 비동기 로드");
-            yield return Until(() => (bool)Get(trapeze, "IsActive"), 2f, "공중그네 준비");
-            var feet = (Vector3)Call(trapeze, "PoleFeet", 0, false);
-            Call(mover, "SetStartPose", feet, course.transform.rotation);
-            Call(mover, "LaunchJump", 1f);
-            yield return null;
-            Assert.IsTrue((bool)Call(trapeze, "CanGrabPole", 0, player));
-            var visual = (Transform)Call(trapeze, "PoleVisual", 0);
-            AssertExistingPoleInteraction(visual, feet + Vector3.up * 1.6f, true);
-            Call(trapeze, "TryRequestCatch", player);
-            Assert.IsTrue((bool)Call(trapeze, "IsHeld", player));
-            AssertExistingPoleInteraction(visual, feet + Vector3.up * 1.6f, false);
-        }
+            => FirstTrapezePoleInjuredEntry(false, verifyInteraction: true);
 
         [UnityTest]
-        public IEnumerator TrapezeCatchWindowStartsAtHalfRangeAfterFastLaunch() => TrapezeRangeCatch(false, .5f);
+        public IEnumerator TrapezeCatchRequiresActualNextPoleContactAfterFastLaunch() => TrapezeRangeCatch(false, .5f);
 
         [UnityTest]
         public IEnumerator TrapezeCatchWindowIncludesRangeLimitForOccupiedNextPole() => TrapezeRangeCatch(true, 1f);
@@ -93,38 +76,46 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 body.enabled = true;
                 Assert.IsFalse((bool)Call(trapeze, "CanGrabPole", 0, player), "출발 봉을 다시 잡아 도약 거리를 초기화하지 않는다.");
                 Assert.IsFalse((bool)Call(trapeze, "CanGrabPole", 2, player), "중간 봉을 건너뛰지 않는다.");
-                Vector3 beforeCatch = player.transform.position;
-                Assert.IsTrue((bool)Call(trapeze, "TryRequestCatch", player), "절반~상한 구간에서 F 입력을 받는다.");
                 if (fraction < 1f)
                 {
-                    Assert.That((int)Call(trapeze, "HeldPole", player), Is.EqualTo(-1), "먼 봉으로 즉시 이동하지 않는다.");
-                    Call(trapeze, "ReconcileLocal");
-                    Assert.That(Vector3.Distance(player.transform.position, beforeCatch), Is.LessThan(.001f));
+                    Assert.IsFalse((bool)Call(trapeze, "InCatchRange", player, 1, false), "절반 비거리는 실제 다음 봉 접촉이 아니다.");
+                    Assert.IsFalse((bool)Call(trapeze, "TryRequestCatch", player), "절반 비거리 F를 예약하지 않는다.");
                     var requests = (IDictionary)Get(trapeze, "pendingRequests");
-                    object armed = requests[owner];
-                    Assert.IsTrue((bool)Get(armed, "Armed"));
-                    double until = (double)Get(armed, "Until");
+                    Assert.That(requests.Count, Is.Zero, "로컬 범위 밖 F는 서버 요청을 만들지 않는다.");
+                    Vector3 beforeCatch = player.transform.position;
+                    // 클라이언트의 접촉 F가 위치 동기화보다 먼저 도착한 서버 경로는 별도로 검사한다.
                     Call(trapeze, "HandleRequest", owner, Enum.Parse(command, "Grab"), 1, (uint)Get(poles.GetValue(1), "Revision"), 0f, (uint)Get(trapeze, "localFlightToken"));
-                    Assert.AreSame(armed, requests[owner]);
-                    Assert.That((double)Get(armed, "Until"), Is.EqualTo(until), "중복 입력이 대기 요청을 갱신하지 않는다.");
-                    float deadline = Time.realtimeSinceStartup + 2f;
-                    bool movedWhileWaiting = false;
-                    while (!(bool)Call(trapeze, "IsHeld", player) && Time.realtimeSinceStartup < deadline)
-                    {
-                        Vector3 previous = player.transform.position;
-                        yield return null;
-                        movedWhileWaiting |= Vector3.Distance(player.transform.position, previous) > .001f;
-                        if ((bool)Call(trapeze, "IsHeld", player))
-                            Assert.That(Vector3.Distance(previous, player.transform.position), Is.LessThan(1.1f), "최종 잡기에서도 몇 m씩 튀지 않는다.");
-                    }
-                    Assert.IsTrue(movedWhileWaiting, "F 응답을 기다리면서도 비행을 계속한다.");
+                    object waiting = requests[owner];
+                    Assert.IsNotNull(waiting);
+                    Assert.IsFalse((bool)Get(waiting, "Armed"), "서버 위치가 범위 밖이면 비행 끝까지 예약하지 않는다.");
+                    double until = (double)Get(waiting, "Until");
+                    Assert.That(until, Is.EqualTo((double)Get(trapeze, "Clock") + .5d).Within(.001d));
+                    Call(trapeze, "HandleRequest", owner, Enum.Parse(command, "Grab"), 1, (uint)Get(poles.GetValue(1), "Revision"), 0f, (uint)Get(trapeze, "localFlightToken"));
+                    Assert.AreSame(waiting, requests[owner]);
+                    Assert.That((double)Get(waiting, "Until"), Is.EqualTo(until), "중복 입력이 위치 대기 기한을 갱신하지 않는다.");
+                    Call(trapeze, "ReconcileLocal");
+                    Assert.That((int)Call(trapeze, "HeldPole", player), Is.EqualTo(-1), "먼 봉으로 즉시 이동하지 않는다.");
+                    Assert.That(Vector3.Distance(player.transform.position, beforeCatch), Is.LessThan(.001f));
+                    Call(trapeze, "StepFlight");
+                    Assert.That(Vector3.Distance(player.transform.position, beforeCatch), Is.GreaterThan(.001f), "서버 위치 대기 중에도 비행을 계속한다.");
+                    Assert.IsFalse((bool)Call(trapeze, "IsHeld", player));
+                    // 다음 봉까지 테스트 위치를 전진시킨 뒤 실제 접촉에서만 대기 요청을 확정한다.
+                    body.enabled = false;
+                    player.transform.position = (Vector3)Call(trapeze, "PoleFeet", 1, false);
+                    body.enabled = true;
                 }
+                Assert.IsTrue((bool)Call(trapeze, "InCatchRange", player, 1, occupied), "잡기는 다음 봉/동료의 실제 구형 범위 안에서만 허용한다.");
+                Vector3 contact = player.transform.position;
+                if (fraction < 1f) Call(trapeze, "ProcessPendingRequests");
+                else Assert.IsTrue((bool)Call(trapeze, "TryRequestCatch", player));
+                Assert.That(((IDictionary)Get(trapeze, "pendingRequests")).Count, Is.Zero);
                 Assert.That((int)Call(trapeze, "HeldPole", player), Is.EqualTo(1));
                 Assert.That((bool)Call(trapeze, "IsLower", player), Is.EqualTo(occupied));
                 Assert.IsFalse((bool)Call(trapeze, "IsInFlight", player));
                 Call(trapeze, "ReconcileLocal");
                 Assert.That(Vector3.Distance(player.transform.position, (Vector3)Call(trapeze, "PoleFeet", 1, occupied)),
                     Is.LessThan(.01f));
+                Assert.That(Vector3.Distance(player.transform.position, contact), Is.LessThan(1.1f), "실제 접촉 뒤 잡기 보정도 몇 m씩 순간 이동하지 않는다.");
             }
             finally { DestroyPracticeBotTestPartner(partner); }
         }
@@ -135,7 +126,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         [UnityTest, Category("TightropeJourneyRegression")]
         public IEnumerator FirstTrapezePoleCatchesOneArmedJumpFromLeglessPartner() => FirstTrapezePoleInjuredEntry(true);
 
-        IEnumerator FirstTrapezePoleInjuredEntry(bool oneArmedUpper)
+        IEnumerator FirstTrapezePoleInjuredEntry(bool oneArmedUpper, bool verifyInteraction = false)
         {
             EnableTrapezeForEntryTest();
             yield return BeginPerformance(); DisableSwingHazards();
@@ -143,6 +134,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return Until(() => (bool)Get(trapeze, "IsActive"), 2f, "공중그네 준비");
             int lane = (int)Get(trapeze, "LaneIndex");
             float entry = (float)Get(trapeze, "EntryDistance");
+            if (verifyInteraction)
+                yield return Until(() => UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.UI.SceneIntegration.CommonInteractionUI")) != null,
+                    15f, "기존 상호작용 UI 비동기 로드");
             yield return StandOnRopeForSawTest(lane, entry - 1.7f);
             var partner = CreatePracticeBotTestPartner(lane, entry - 1f);
             var reader = (Behaviour)player.GetComponent(GameType("CurtainCall.Player.PlayerInputReader"));
@@ -180,6 +174,20 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                     if ((bool)Call(trapeze, "CanGrabPole", 0, player))
                     {
                         Assert.That(player.transform.position.y - course.transform.position.y, Is.LessThan(2f), "기존 2m 하한보다 낮은 실제 분리 점프를 검사한다.");
+                        Assert.IsTrue((bool)Call(stack, "CanEnterTrapeze", player), "실제 목마 분리 점프로 첫 봉 진입 자격을 얻는다.");
+                        if (verifyInteraction)
+                        {
+                            // UI의 입력 잠금 대기 동안만 궤적을 고정한다. 자격/공중 상태는 실제 분리 점프 그대로 쓴다.
+                            bool simulated = (bool)Get(mover, "Simulated");
+                            mover.GetType().GetProperty("Simulated").SetValue(mover, false);
+                            try
+                            {
+                                var visual = (Transform)Call(trapeze, "PoleVisual", 0);
+                                var feet = (Vector3)Call(trapeze, "PoleFeet", 0, false);
+                                yield return AssertExistingPoleInteraction(visual, feet + Vector3.up * 1.6f, true);
+                            }
+                            finally { mover.GetType().GetProperty("Simulated").SetValue(mover, simulated); }
+                        }
                         Call(scheme, "Tick", context, CatchFrame(tap: true));
                         caught = true;
                         break;
@@ -190,6 +198,12 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.That((int)Call(trapeze, "HeldPole", player), Is.EqualTo(0));
                 yield return null;
                 Assert.IsTrue((bool)Call(trapeze, "IsHeld", player));
+                if (verifyInteraction)
+                {
+                    var visual = (Transform)Call(trapeze, "PoleVisual", 0);
+                    var feet = (Vector3)Call(trapeze, "PoleFeet", 0, false);
+                    yield return AssertExistingPoleInteraction(visual, feet + Vector3.up * 1.6f, false);
+                }
             }
             finally { reader.enabled = false; DestroyPracticeBotTestPartner(partner); }
         }

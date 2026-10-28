@@ -14,7 +14,8 @@ namespace CurtainCall.HumanCannon.Tests
         public IEnumerator OriginalCourse_DifficultyChangesBeforeLaunch_ThenLocks()
         {
             var hazards = HazardCourse();
-            Assert.AreEqual(10, Get(StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current"), "PoleCount"));
+            // Task-044의 저장 코스: 휴식 봉5 + 관문 연결 봉2. 난도 변경/잠금 검증은 그대로 유지한다.
+            Assert.AreEqual(7, Get(StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current"), "PoleCount"));
             Assert.IsFalse((bool)Call(hazards, "SetDifficulty", 0));
             Assert.IsFalse((bool)Call(hazards, "SetDifficulty", 4));
             foreach (int level in new[] { 2, 3, 1 })

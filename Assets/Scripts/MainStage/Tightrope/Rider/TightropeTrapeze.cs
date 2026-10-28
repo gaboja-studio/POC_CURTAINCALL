@@ -99,6 +99,8 @@ namespace CurtainCall.Tightrope
             if (!Active) { ResetLocal(); ClearState(); return; }
             if (session != null && session.IsHost) HostStep();
             ReconcileLocal();
+            // 봉에 매달린 동안 쌓인 추락 위험을 천천히 회복한다. 네트워크 동기화로 ReconcileLocal이 더 불려도 한 프레임 한 번만.
+            if (localControl != null && IsHeld(localControl.Player)) localControl.Balance?.RecoverWhileSupported(Time.deltaTime);
             // 봉 점유 중에는 외줄/플랫폼 조작 규칙 전환과 무관하게 입력을 받는다.
             var local = NetworkPlayer.Local;
             if (local != null && (IsHeld(local) || IsInFlight(local))

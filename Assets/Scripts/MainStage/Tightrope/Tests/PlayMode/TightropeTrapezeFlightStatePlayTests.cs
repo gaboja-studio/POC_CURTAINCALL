@@ -68,15 +68,40 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             player.transform.position = origin + (Vector3)Get(course, "Forward") * (limit * .6f) + Vector3.down * 3f;
             body.enabled = true;
             Vector3 before = player.transform.position;
-            Assert.IsTrue((bool)Call(trapeze, "TryRequestCatch", player));
+            var requests = (IDictionary)Get(trapeze, "pendingRequests");
+            Assert.IsFalse((bool)Call(trapeze, "InCatchRange", player, 1, false));
+            Assert.IsFalse((bool)Call(trapeze, "TryRequestCatch", player), "봉 아래의 이른 F는 비거리와 무관하게 거절한다.");
+            Assert.That(requests.Count, Is.Zero, "로컬 범위 밖 F는 예약을 만들지 않는다.");
+            // 접촉한 클라이언트의 F보다 서버 위치가 늦는 경우만 짧은 위치 대기를 허용한다.
+            var next = ((Array)Get(trapeze, "poles")).GetValue(1);
+            uint revision = (uint)Get(next, "Revision"), token = (uint)Get(trapeze, "localFlightToken");
+            Call(trapeze, "HandleRequest", owner, Enum.Parse(command, "Grab"), 1, revision, 0f, token);
+            Assert.That(requests.Count, Is.EqualTo(1));
+            object waiting = requests[owner];
+            Assert.IsFalse((bool)Get(waiting, "Armed"));
+            double until = (double)Get(waiting, "Until");
+            Assert.That(until, Is.EqualTo((double)Get(trapeze, "Clock") + .5d).Within(.001d));
+            Call(trapeze, "HandleRequest", owner, Enum.Parse(command, "Grab"), 1, revision, 0f, token);
+            Assert.AreSame(waiting, requests[owner]);
+            Assert.That((double)Get(waiting, "Until"), Is.EqualTo(until), "중복 F는 원래 서버 위치 대기 기한을 늘리지 않는다.");
             Call(trapeze, "ProcessPendingRequests");
             Call(trapeze, "ReconcileLocal");
             Assert.IsFalse((bool)Call(trapeze, "IsHeld", player));
             Assert.That(Vector3.Distance(player.transform.position, before), Is.LessThan(.001f), "봉 아래에서 위로 순간 이동하지 않는다.");
-            Assert.That(((IDictionary)Get(trapeze, "pendingRequests")).Count, Is.EqualTo(1));
+            Assert.That(requests.Count, Is.EqualTo(1));
+            Set(waiting, "Until", (double)Get(trapeze, "Clock") - .01d);
+            Call(trapeze, "ProcessPendingRequests");
+            Assert.That(requests.Count, Is.Zero, "위치가 도착하지 않은 요청은 비행 중이어도 원래 짧은 기한에 만료한다.");
+            Assert.IsTrue((bool)Call(trapeze, "IsInFlight", player));
+            Call(trapeze, "HandleRequest", owner, Enum.Parse(command, "Grab"), 1, revision, 0f, token);
+            Assert.That(requests.Count, Is.EqualTo(1), "abort 직전 실제 대기 요청을 다시 만든다.");
             Call(trapeze, "OnRestarted", player);
-            Assert.That(((IDictionary)Get(trapeze, "pendingRequests")).Count, Is.Zero);
+            Assert.That(requests.Count, Is.Zero);
             Assert.IsFalse((bool)Call(trapeze, "IsInFlight", player));
+            Assert.IsFalse((bool)Call(trapeze, "IsHeld", player));
+            Assert.That(((IDictionary)Get(trapeze, "flights")).Count, Is.Zero);
+            Assert.IsTrue((bool)Get(mover, "Simulated"));
+            Assert.IsTrue(body.enabled);
         }
 
         byte[] TrapezeFlightPacket(object trapeze, ulong owner, uint version, Vector3 target)

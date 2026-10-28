@@ -344,6 +344,16 @@ namespace CurtainCall.Player
             ForceFall();
         }
 
+        /// <summary>
+        /// 봉에 매달려 몸이 지지되는 동안 쌓인 추락 위험을 초록 구간과 같은 속도로 천천히 줄인다.
+        /// 매달린 동안은 공중 상태라 균형 계산이 멈추므로, 봉 기능이 매 프레임 한 번 부른다. 균형 값·흔들림은 바꾸지 않는다.
+        /// </summary>
+        public void RecoverWhileSupported(float deltaTime)
+        {
+            if (!IsActive || HasFallen) return;
+            RedTime = Mathf.Max(0f, RedTime - FallTime * Rules.GreenRecoveryRate * Mathf.Max(0f, deltaTime));
+        }
+
         /// <summary>균형과 상관없이 바로 추락시킨다(예: 줄이 아닌 곳에 착지). 이미 추락했으면 무시한다. <see cref="Fell"/>을 보낸다.</summary>
         public void ForceFall()
         {
