@@ -8,3 +8,8 @@ Confluence 커튼 콜 대기실 2차 기획서 20348931(2026-10-15 최종 작성
 - [schedule-board.md](schedule-board.md) — 하루 시계·스케줄표·세트리스트(1일차 고정, 2·3일차 선택, 4일차 실행 불가)·난이도 단계 선택·플래너 노트 UI. 스케줄표·세트리스트를 만들 때
 - [shop-storage.md](shop-storage.md) — 수화기 구매(기물은 밤 정비만)·배송구 수령·소품실 가판대 보관. 상점·기물 보관을 만들 때
 - [open-items.md](open-items.md) — 플레이어 상태/조작 보류(M1 이후)·별도 기획서·미확정 규칙 목록. 대기실 Task 범위를 정하거나 미정 항목을 확인할 때
+
+- [retired-troupe-display.md](retired-troupe-display.md) — 보관소의 훼손 단원 4명을 캐비닛 옆 벽면에 일렬 진열하는 기준. 유해/코스튬 배치 때
+- [stage-entrance-reveal.md](stage-entrance-reveal.md) — 무대 입구 천 커튼: 한 명 도착 시 걷힘·황금빛·금가루, 모두 떠나면 닫힘. 무대 입구 연출 때
+- [practice-ring.md](practice-ring.md) — 연습실 링 40m(평면만 2.5배)·외줄 연장·옆 트램펄린/인간 대포·관중석. 연습실 링 배치 때
+- [lobby-tree-tent.md](lobby-tree-tent.md) — 로비 중앙: 크리스마스트리 같은 초라한 1인용 원뿔 천막과 그 아래 서커스 도구·상자. 로비 장식 때
