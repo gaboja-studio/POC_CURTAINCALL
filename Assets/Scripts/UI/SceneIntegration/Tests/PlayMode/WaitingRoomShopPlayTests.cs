@@ -84,7 +84,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var slots = Member(inventory, "slots");
             Assert.AreEqual(1f, ((Component)Call(slots, "GetSlot", 0)).GetComponent<CanvasGroup>().alpha);
             Assert.AreEqual(1f, ((Component)Call(slots, "GetSlot", 1)).GetComponent<CanvasGroup>().alpha);
-            Assert.AreEqual(.35f, ((Component)Call(slots, "GetSlot", 2)).GetComponent<CanvasGroup>().alpha);
+            Assert.AreEqual(2, Get(slots, "SlotCount"));
+            Assert.IsNull(Call(slots, "GetSlot", 2), "HUD는 두 슬롯만 표시합니다.");
             Assert.AreEqual(2, ((IEnumerable)Call(carry, "Held", me)).Cast<object>().Count());
             Assert.AreEqual(0, ((IEnumerable)Get(carry, "Floor")).Cast<object>().Count());
             Call(shop, "RequestPurchase", (string)Member(catalog[0], "Id"));

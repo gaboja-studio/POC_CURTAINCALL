@@ -43,7 +43,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(model, "Begin", id, people, rules);
             Set(reward, "state", Call(model, "Snapshot", -1)); yield return null; yield return null;
             Assert.AreEqual(false, Get(ending, "DeathVisible"));
-            Call(model, "Observe", "other", 0, true, true, rules);
+            Call(model, "Observe", "other", 0, true, true, rules, false);
             Set(reward, "state", Call(model, "Snapshot", -1)); yield return null;
             yield return new WaitForSecondsRealtime(.2f);
             Assert.AreEqual(true, Get(ending, "DeathVisible"));
@@ -81,7 +81,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var people = Array.CreateInstance(person.GetType(), 1); people.SetValue(person, 0);
                 var rules = Activator.CreateInstance(T("CurtainCall.Reward.RewardRules"), 10, 5, 100, 0, 30);
                 Assert.AreEqual(true, Call(model, "Begin", id, people, rules));
-                Call(model, "React", "p", 40, rules);
+                Call(model, "React", "p", 40, rules, false);
                 var confirm = new object[] { succeeded, "TestEnd", null, 1, rules, null };
                 Assert.AreEqual(true, Call(model, "Confirm", confirm));
                 Set(reward, "state", Call(model, "Snapshot", -1));
@@ -92,7 +92,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Set(ending, "started", Time.unscaledTimeAsDouble - 2);
                 yield return null;
                 Assert.AreEqual(true, Get(ending, "ResultVisible"));
-                var title = Get(ending, "title");
+                var title = Get(Get(Get(ending, "resultsView"), "textLayers"), "title");
                 Assert.AreEqual(succeeded ? "공연 성공" : "공연 실패", Get(title, "text"));
                 Set(ending, "started", Time.unscaledTimeAsDouble - 6);
                 yield return null;
@@ -101,7 +101,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Call(ending, "SceneLoaded", destination, LoadSceneMode.Single);
                 Assert.AreEqual(true, Get(ending, "BlackVisible"));
                 Set(ending, "loadedAt", Time.unscaledTimeAsDouble - 1);
-                yield return null;
+                // 목적지 준비 후에도 실제 커튼의 열림 애니메이션이 끝나야 가림이 해제된다.
+                deadline = Time.realtimeSinceStartupAsDouble + 5;
+                while ((bool)Get(ending, "BlackVisible") && Time.realtimeSinceStartupAsDouble < deadline) yield return null;
                 Assert.AreEqual(false, Get(ending, "BlackVisible"));
                 Assert.AreEqual(false, T("CurtainCall.Player.InputGate").GetProperty("IsRequested").GetValue(null));
                 yield return null;

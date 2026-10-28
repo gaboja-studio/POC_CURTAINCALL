@@ -14,7 +14,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     {
         IEnumerator ClickMenuButton(Mouse mouse, Component owner, string name)
         {
-            var button = owner.GetComponentsInChildren<Button>(true).Single(b=>b.name==name);
+            var control = owner.GetComponentsInChildren<Selectable>(true).Single(b => b.name == name);
+            yield return ClickMenuControl(mouse, control);
+        }
+        IEnumerator ClickMenuControl(Mouse mouse, Selectable button)
+        {
+            // 탭의 네이티브 Toggle도 실제 포인터 입력과 최상단 레이캐스트로 검증합니다.
+            Assert.IsTrue(button.gameObject.activeInHierarchy);
             Assert.IsTrue(button.IsInteractable());
             var rect = (RectTransform)button.transform;
             var position = RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center));
@@ -31,6 +37,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator CommonMenu_WaitingRoom_RealPointerClicksAndCompactMicrophone()
         {
             UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
+            yield return IsolatedMenuHost();
             yield return Launch(2,"Morning",0,"Tightrope","WaitingRoomBase"); yield return MenuReady();
             var mouse = InputSystem.AddDevice<Mouse>();
             var voice = Find("CurtainCall.Voice.VoiceChat"); bool muted = (bool)Get(voice,"IsMicMuted");
@@ -43,7 +50,28 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return ClickMenuButton(mouse,menu,"Button_Settings");
                 var settings=Get(owner,"Settings"); var main=(Component)Get(settings,"Main");
                 Assert.IsTrue((bool)Get(main,"IsVisible"));
-                yield return ClickMenuButton(mouse,main,"50_Cancel");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/settings-upgrade-main.png")); yield return null;
+                Assert.IsTrue((bool)Call(main, "IsPageEnabled", 0));
+                yield return ClickMenuButton(mouse, main, "01_Tab");
+                var frameRate = SettingsRow(main, 1, "FrameRate");
+                Call(main, "Reveal", (RectTransform)frameRate); yield return null;
+                string before = frameRate.Find("20_ValueTMP").GetComponent<TMPro.TMP_Text>().text;
+                yield return ClickMenuButton(mouse, frameRate, "30_Next");
+                Assert.AreNotEqual(before, frameRate.Find("20_ValueTMP").GetComponent<TMPro.TMP_Text>().text);
+                Assert.AreEqual(1, Get(main,"CurrentPage"));
+                var reset = TabReset(main, "graphics");
+                Call(main, "Reveal", (RectTransform)reset.transform.parent); yield return null;
+                yield return ClickMenuControl(mouse, reset);
+                StringAssert.StartsWith("60 FPS", SettingsRow(main, 1, "FrameRate").Find("20_ValueTMP").GetComponent<TMPro.TMP_Text>().text);
+                yield return ClickMenuButton(mouse, main, "00_Tab");
+                var abandon = SettingsRow(main, 0, "RunAbandon");
+                Call(main, "Reveal", (RectTransform)abandon); yield return null;
+                yield return ClickMenuButton(mouse, abandon, "10_Action");
+                Assert.IsTrue((bool)Get(settings,"IsExtensionOpen"));
+                Assert.IsTrue((bool)Get(main, "IsConfirmationOpen"));
+                yield return ClickMenuControl(mouse, SettingsConfirmationButton(main, "20_Back"));
+                Assert.IsFalse((bool)Get(main, "IsConfirmationOpen"));
+                yield return ClickMenuControl(mouse, (Button)Get(main, "CancelButton"));
                 Assert.IsTrue((bool)Get(menu,"IsMenuOpen"));
                 yield return ClickMenuButton(mouse,menu,"Button_RequestLeave");
                 Assert.IsTrue((bool)Get(menu,"IsConfirmationOpen"));

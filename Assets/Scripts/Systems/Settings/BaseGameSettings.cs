@@ -373,6 +373,14 @@ namespace CurtainCall.Settings
             [Tooltip("추락해 래그돌로 무너질 때 기울어 있던 쪽으로 밀어 주는 속도(m/s). 0이면 그냥 무너진다.")]
             [SerializeField, Min(0f)] float ragdollTiltPush = 1.5f;
 
+            [Tooltip("줄에 매달린 외형의 추가 흔들림 최대 각도(도). 0이면 추가 흔들림 없음. 판정·버티기 시간에는 영향 없음.")]
+            [SerializeField, Range(0f, 45f)] float ropeHangSwayAngle = 18f;
+
+            [Tooltip("봉·그네·리프트에 매달린 외형의 추가 흔들림 최대 각도(도). 장치 자체 운동과 별개.")]
+            [SerializeField, Range(0f, 45f)] float poleHangSwayAngle = 12f;
+
+            public float RopeHangSwayAngle => Mathf.Clamp(ropeHangSwayAngle, 0f, 45f);
+            public float PoleHangSwayAngle => Mathf.Clamp(poleHangSwayAngle, 0f, 45f);
             public float MaxTiltAngle => maxTiltAngle;
             public float TiltFollowSharpness => tiltFollowSharpness;
             public float RagdollTiltPush => ragdollTiltPush;

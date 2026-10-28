@@ -211,6 +211,7 @@ namespace CurtainCall.WaitingRoom
         void PlayClank()
         {
             if (sound == null || clank == null) return;
+            CurtainCall.Settings.LocalAudioController.Register(sound, CurtainCall.Settings.LocalAudioCategory.Sfx);
             sound.PlayOneShot(clank);
         }
 

@@ -62,6 +62,12 @@
 - [x] DayClockTests 26/26 PASS·밤 정비 실제 프리팹 렌더 확인
 - [x] 완료 check-work 안전성/문서·규칙/컴파일 PASS(길이 경고 17건·hard 0, 전체 테스트 선택 생략·별도 시계 검사 26/26)
 
+## 저장·dev 통합·제출
+- [x] 현재 공개/비공개 구현을 병합 전 커밋으로 보존
+- [x] origin/dev·private main 통합, 에셋 포인터 충돌 해결
+- [x] 통합 회귀·완료 검사 후 병합 결과 저장(EditMode 103/103, UI PlayMode 전체 54/55 후 남은 클래스 2/2·55개 대상 통과 확보, check-work PASS)
+- [ ] origin push·dev 대상 PR 제출·링크 기록
+
 ## 순간 끊김 수정
 - [x] UploadLoop 준비·ACK 작업 스레드 분리 및 동시 파일 접근 보호
 - [x] 기존 영속화·재시도 계약과 비동기 경합·취소 회귀 검사(최종 24/24 PASS)

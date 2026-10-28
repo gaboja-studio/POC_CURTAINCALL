@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CurtainCall.StartLobby;
 using Unity.Services.Vivox;
 using UnityEngine;
 
@@ -43,8 +44,10 @@ namespace CurtainCall.Voice
             if (!_vivoxReady) return;
             var service = VivoxService.Instance;
             service.SetInputDeviceVolume(ToVivoxVolume(MicVolume));
-            service.SetOutputDeviceVolume(ToVivoxVolume(TeamVolume));
-            if (IsTeamMuted || TeamVolume <= 0) service.MuteOutputDevice(); else service.UnmuteOutputDevice();
+            // Vivox uses native output, not AudioListener. Apply master once, never BGM/SFX.
+            float output = TeamVolume * ClientSettings.Volume;
+            service.SetOutputDeviceVolume(ToVivoxVolume(output));
+            if (IsTeamMuted || output <= 0) service.MuteOutputDevice(); else service.UnmuteOutputDevice();
         }
 
         public float ParticipantVolume(string id) => participantPreferences.TryGetValue(id, out var value) ? value.volume : 1;

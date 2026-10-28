@@ -65,6 +65,8 @@ namespace CurtainCall.Campaign
         EscapeAllRetired,
         /// <summary>한 명 이상 탈출로 목적지 도착 → 엔딩.</summary>
         EscapeSucceeded,
+        /// <summary>호스트가 대기실에서 현재 런을 포기함 → 다음 세대 1일차.</summary>
+        Abandoned,
     }
 
     /// <summary>
