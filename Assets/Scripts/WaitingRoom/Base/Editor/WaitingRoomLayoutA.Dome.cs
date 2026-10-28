@@ -9,15 +9,15 @@ namespace CurtainCall.WaitingRoom.Editor
 {
     public static partial class WaitingRoomLayoutA
     {
-        // Round domed lobby (user decision 2026-10-28): 42 m across, 10 m drum, 16 m crown. Its east edge meets the
+        // Compact domed lobby: 38 m across, 10 m drum, 16 m crown. Enclosed corridors separate the outer rooms;
         // fixed stage approach and its south edge the logistics hall openings; the shop, expert lift, dormitory and
         // restroom sit inside it. Every way out is a short corridor so rooms can later be re-placed freely.
         static readonly Vector2 DomeC = new(-6f, 77.4f);
-        const float DomeR = 21f, DomeWallH = 10f, DomeTopH = 16f, DomeWallT = .5f, LiftAngle = 15f;
-        static readonly Vector3 DormRoot0 = new(10.7f, 0, 87.85f), DormShift = new(-12.75f, 0, -.1f);
+        const float DomeR = 19f, DomeWallH = 10f, DomeTopH = 16f, DomeWallT = .5f, LiftAngle = 0f;
+        static readonly Vector3 DormRoot0 = new(10.7f, 0, 87.85f), DormShift = new(-12.75f, 0, -3.2f);
         static readonly Vector3 PropRoot0 = new(12.5f, 0, 60.7f), PropShift = new(6f, 0, 0);
         static readonly Vector3 WorkshopRoot0 = new(-19.18f, 0, 86.88f), WorkshopShift = new(-24f, 0, -17.5f);
-        static readonly Vector3 LoungeRoot0 = new(-1.53f, 0, 59.4f), LoungeShift = new(-15.5f, 0, 8.7f);
+        static readonly Vector3 LoungeRoot0 = new(-1.53f, 0, 59.4f), LoungeShift = new(-12.5f, 0, 9.7f);
         static readonly Vector3 LiftRoot0 = new(14.82f, 0, 79.3f);
 
         // A straight corridor along O + u t (side offset s across it). Each end is either a circle wall or a fixed t.
@@ -27,6 +27,8 @@ namespace CurtainCall.WaitingRoom.Editor
             public Vector2? StartC; public float StartR, StartT; // leaves the start circle (exit side) or starts at StartT
             public Vector2? EndC; public float EndR, EndT;       // enters the end circle (near side) or ends at EndT
             public bool Lamp = true;
+            public System.Func<Vector2, bool> OpeningMask;
+            public float WallGapSide, WallGapA, WallGapB;
             public Vector2 N => new(-U.y, U.x);
             public float T0(float s) => StartC is Vector2 c ? Root(c, StartR, s, true) : StartT;
             public float T1(float s) => EndC is Vector2 c ? Root(c, EndR, s, false) : EndT;
@@ -39,6 +41,7 @@ namespace CurtainCall.WaitingRoom.Editor
             // A point of a circular wall lies in this opening when it is inside the band and on the passage's side.
             public bool Cuts(Vector2 c, Vector2 p, float pad = 0)
             {
+                if (OpeningMask != null) return (c - DomeC).sqrMagnitude < .01f && OpeningMask(p);
                 bool start = StartC is Vector2 sc && (sc - c).sqrMagnitude < .01f, end = EndC is Vector2 ec && (ec - c).sqrMagnitude < .01f;
                 bool through = StartC == null && EndC == null;
                 if (!start && !end && !through) return false;
@@ -51,17 +54,23 @@ namespace CurtainCall.WaitingRoom.Editor
         static List<Passage> LobbyPassages() => new()
         {
             new() { Name = "Stage", Label = "", O = new(-6f, 70.5f), U = Vector2.right, W = 9f, H = 9.2f, StartC = DomeC, StartR = DomeR, EndT = 20.75f, Lamp = false },
-            new() { Name = "Logistics11", Label = "11 무대 장치", O = new(-8.65f, 77.4f), U = Vector2.down, W = 9.1f, H = 9f, StartC = DomeC, StartR = DomeR, EndT = 21.55f, Lamp = false },
+            new() { Name = "Logistics11", Label = "11 무대 장치", O = new(-8.65f, 77.4f), U = Vector2.down, W = 4.4f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 21.55f },
             // Narrower than the hall opening (x -1.5..6.4) so its east wall clears the prop room passage; the rest is infilled.
-            new() { Name = "Logistics12", Label = "12 화물 적재", O = new(1.8f, 77.4f), U = Vector2.down, W = 6.6f, H = 9f, StartC = DomeC, StartR = DomeR, EndT = 21.55f, Lamp = false },
+            new() { Name = "Logistics12", Label = "12 화물 적재", O = new(1.8f, 77.4f), U = Vector2.down, W = 4.4f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 21.55f },
             new() { Name = "Stairs", Label = "계단 · B1", O = new(-6f, 79.95f), U = Vector2.left, W = 3.6f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 21.8f },
             new() { Name = "Workshop", Label = "10 작업실", O = new(-6f, 71f), U = Vector2.left, W = 4.2f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 28.55f },
-            new() { Name = "PropRoom", Label = "04 소품실", O = new(-6f, 61.3f), U = Vector2.right, W = 3.6f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 18.45f },
-            new() { Name = "Lift", Label = "", O = DomeC, U = new(Mathf.Cos(LiftAngle * Mathf.Deg2Rad), Mathf.Sin(LiftAngle * Mathf.Deg2Rad)), W = 3.8f, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = DomeR + .14f, Lamp = false },
-            new() { Name = "Practice", Label = "09 연습실", O = new(-20f, 77.4f), U = Vector2.up, W = 4.4f, H = 5f, StartC = DomeC, StartR = DomeR, EndC = PracC, EndR = PracR },
+            new() { Name = "PropRoom", Label = "04 소품실", O = new(-6f, 70f + PropDoorZ), U = Vector2.right, W = PropDoorWidth, H = 4.2f, StartC = DomeC, StartR = DomeR, EndT = 18.45f },
+            new() { Name = "Practice", Label = "09 연습실", O = new(-20.5f, 77.4f), U = Vector2.up, W = 3.6f, H = 5f, StartC = DomeC, StartR = DomeR, EndC = PracC, EndR = PracR },
             // Behind the restroom's breakable wall: a low pipe crawl through the drum to the pipe zone.
-            new() { Name = "HiddenPipeCrawl", Label = "", O = new(5.35f, 88.85f), U = Vector2.right, W = 1.9f, H = 2.4f, StartT = 0, EndT = 12.75f, Lamp = false },
+            HiddenPipePassage(),
         };
+
+        static Passage HiddenPipePassage()
+        {
+            var a = new Vector2(5.35f, 88.95f + DormShift.z); var b = new Vector2(18.1f, 88.85f);
+            var d = b - a; var u = d.normalized;
+            return new Passage { Name = "HiddenPipeCrawl", Label = "", O = a - u * .3f, U = u, W = 1.9f, H = 2.4f, StartT = 0, EndT = d.magnitude + .6f, Lamp = false };
+        }
 
         public static string BuildDomeLobby()
         {
@@ -70,6 +79,9 @@ namespace CurtainCall.WaitingRoom.Editor
             {
                 var lobby = target.Find("S01_Lobby");
                 RelayoutAroundDome(target);
+                Physics.SyncTransforms();
+                RecutPropRoomEntrance(target);
+                MoveFacility(lobby.Find("Gameplay/SpawnPoints"), new Vector3(-6f, .1f, 74f));
                 foreach (var n in new[] { "Shell", "Overhead", "Structure", "FutureConnections" }) MuteFacility(lobby.Find(n));
                 var frontage = target.Find("FacilityConnections/LogisticsFrontages");
                 foreach (var t in frontage.Cast<Transform>().Where(t => t.name is "LobbyEastInfill" or "ExpertOriginalHeader" or "LobbySouthInfill").ToArray()) MuteFacility(t);
@@ -77,9 +89,9 @@ namespace CurtainCall.WaitingRoom.Editor
                 var passages = LobbyPassages();
                 BuildRoundHall(g, "LA_Dome", DomeC, DomeR, DomeWallH, DomeTopH, passages, 16, true);
                 foreach (var p in passages) BuildPassage(g, p);
-                Box(g, "HallOpeningInfill", new Vector3(5.75f, 4.5f, 55.82f), new Vector3(1.3f, 9f, .3f), Mat("LA_WallConcrete"), true);
+                FitLogisticsCorridorEnds(g);
                 // Lobby leftovers outside the drum, inside the dorm block or across a corridor mouth go.
-                var dorm = Rect.MinMaxRect(-17.6f, 83.4f, 5.6f, 95.2f);
+                var dorm = Rect.MinMaxRect(-17.6f, 80.3f, 5.8f, 92.1f);
                 foreach (var group in new[] { "Dressing", "FloorWear", "Lighting" })
                 {
                     var gr = lobby.Find(group); if (gr == null) continue;
@@ -93,13 +105,14 @@ namespace CurtainCall.WaitingRoom.Editor
                 // Room shells were only ever seen from inside (single-sided walls, ceiling facing down). Inside the dome the
                 // dorm and restroom are seen from the plaza and from a high camera, so give them outer faces and a roof.
                 foreach (var path in new[] { "S02_Dormitory/Dormitory", "S02_Dormitory/Restroom" }) SkinRoomExterior(target.Find(path), Group(g, "Skin_" + path.Split('/')[1], g.position));
+                PlaceLobbyShop(target, g);
                 // The dorm door faces the plaza; its sign replaces the old lobby portal sign. The schedule board already hangs on that wall.
                 FacilityLabel(g, "02 숙소 · 화장실", new Vector3(DormDoorX + DormShift.x, 4.75f, W(0, DormZ0).z + DormShift.z - .56f), Quaternion.identity, .06f);
                 // Lighting: a ring of caged lamps under the ribs plus a key light over the plaza.
-                for (int i = 0; i < 6; i++)
+                for (int i = 0; i < 4; i++)
                 {
-                    float a = (i * 60f + 30f) * Mathf.Deg2Rad; var p = DomeC + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 11f;
-                    if (dorm.Contains(p)) p = DomeC + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 5f;
+                    float a = (i * 90f + 30f) * Mathf.Deg2Rad; var p = DomeC + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * 11f;
+                    if (dorm.Contains(p)) p = new Vector2(-10f + i * 1.5f, 77f);
                     TrimCord(CagedLamp(g, new Vector3(p.x, 6.8f, p.y), 1.6f, WhiteLight), DomeHeightAt((p - DomeC).magnitude, DomeR, DomeWallH, DomeTopH));
                 }
                 Point(g, "PlazaKey", new Vector3(DomeC.x, 11f, DomeC.y - 6f), WhiteLight, 3.5f, 26f, LightShadows.Soft);
@@ -108,6 +121,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 {
                     FitBox(area.Find("Area_Lobby"), DomeC.x - DomeR, DomeC.x + DomeR, DomeC.y - DomeR, DomeC.y + DomeR, -1, 7);
                     MuteFacility(area.Find("Area_LobbyEast"));
+                    FitPassageWaitingAreas(area, passages);
                     var prop = target.Find("S04_PropRoom/Shell/WallSurfaces"); if (prop != null) { var b = prop.GetComponent<Renderer>().bounds; FitBox(area.Find("Area_PropRoom"), b.min.x, b.max.x, b.min.z, b.max.z, -1, 7); }
                 }
                 Physics.SyncTransforms(); AssertUnchanged(original);
@@ -145,15 +159,14 @@ namespace CurtainCall.WaitingRoom.Editor
         static void RelayoutAroundDome(Transform target)
         {
             void Place(string path, Vector3 to) { var t = target.Find(path); if (t != null && (t.position - to).sqrMagnitude > 1e-6f) MoveFacility(t, to); }
-            Place("S02_Dormitory", DormRoot0 + DormShift);
+            PlaceDormitoryWithFittings(target, DormRoot0 + DormShift);
             Place("S04_PropRoom", PropRoot0 + PropShift);
             Place("S10_Workshop", WorkshopRoot0 + WorkshopShift);
             Place("LG_Lounge", LoungeRoot0 + LoungeShift);
             var lift = target.Find("S08_ElevatorHall/FreightLift");
             if (lift != null)
             {
-                float a = LiftAngle * Mathf.Deg2Rad; var p = DomeC + new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * (DomeR + .12f);
-                Undo.RecordObject(lift, "Turn lift to the plaza"); lift.SetPositionAndRotation(new Vector3(p.x, 0, p.y), Quaternion.Euler(0, -LiftAngle, 0));
+                Undo.RecordObject(lift, "Place lift inside lobby service bank"); lift.SetPositionAndRotation(new Vector3(8f, 0, 78.1f), Quaternion.identity);
             }
             // The rectangular lobby's own corridors are replaced by the dome's short passages.
             MuteFacility(target.Find("WC_WestCorridor"));
@@ -173,10 +186,12 @@ namespace CurtainCall.WaitingRoom.Editor
         }
 
         // Floor disc, drum wall with openings cut for the passages, spherical cap, steel ring beam, ribs and pilasters.
-        static Transform BuildRoundHall(Transform g, string prefix, Vector2 c, float R, float wallH, float topH, List<Passage> passages, int ribs, bool ledger)
+        static Transform BuildRoundHall(Transform g, string prefix, Vector2 c, float R, float wallH, float topH, List<Passage> passages, int ribs, bool ledger, bool wallsOnly = false)
         {
             var floorMat = Mat("LA_FloorConcrete"); var lower = Mat("LA_WallConcrete"); var upper = CinderMaterial(false); var steel = Mat("LA_SteelPlate"); var dark = Mat("V4_Iron_Dark");
             const int seg = 160;
+            if (!wallsOnly)
+            {
             // Floor: concentric rings (world-scale UVs come from MeshBuilder).
             var fb = new MeshBuilder(prefix + "Floor", 1);
             int rings = Mathf.CeilToInt(R / 3f);
@@ -192,6 +207,7 @@ namespace CurtainCall.WaitingRoom.Editor
             }
             var floor = MeshObject(g, "RoundFloor", Vector3.zero, SaveMesh(fb.Build()), floorMat);
             floor.AddComponent<MeshCollider>().sharedMesh = floor.GetComponent<MeshFilter>().sharedMesh;
+            }
             // Drum wall.
             var wb = new MeshBuilder(prefix + "Wall", 2); var cols = Group(g, "WallColliders", g.position);
             float ledgerY = Mathf.Min(4.6f, wallH * .45f);
@@ -230,6 +246,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 if (ia) { Piece(A, X, hit.H, wallH); Piece(X, B, 0, wallH); } else { Piece(A, X, 0, wallH); Piece(X, B, hit.H, wallH); }
             }
             var wall = MeshObject(g, "DrumWall", Vector3.zero, SaveMesh(wb.Build()), lower, upper);
+            if (wallsOnly) return g;
             // Cap: spherical shell from the drum top to the crown, panelled steel seen from below.
             float h = topH - wallH, rs = (R * R + h * h) / (2 * h), cy = topH - rs, phi0 = Mathf.Asin(R / rs);
             var cb = new MeshBuilder(prefix + "Cap", 1); const int capRings = 10;
@@ -300,9 +317,13 @@ namespace CurtainCall.WaitingRoom.Editor
             floorCol.AddComponent<BoxCollider>().size = new Vector3(p.W + .4f, .2f, tMax - tMin + .6f);
             foreach (var (s, a, b) in new[] { (-hw - .1f, t0l, t1l), (hw + .1f, t0r, t1r) })
             {
-                if (b - a < .05f) continue;
-                var c = P(s, (a + b) * .5f, p.H * .5f);
-                Box(pg, "PassageWall", c, new Vector3(.2f, p.H, b - a + .04f), Mat("LA_WallConcrete"), true).rotation = Quaternion.LookRotation(u3);
+                var spans = p.WallGapSide != 0 && Mathf.Sign(s) == p.WallGapSide ? new[] { (a, Mathf.Min(b, p.WallGapA)), (Mathf.Max(a, p.WallGapB), b) } : new[] { (a, b) };
+                foreach (var (lo, hi) in spans)
+                {
+                    if (hi - lo < .05f) continue;
+                    var c = P(s, (lo + hi) * .5f, p.H * .5f);
+                    Box(pg, "PassageWall", c, new Vector3(.2f, p.H, hi - lo + .04f), Mat("LA_WallConcrete"), true).rotation = Quaternion.LookRotation(u3);
+                }
             }
             var top = P(0, (tMin + tMax) * .5f, p.H + .15f);
             Box(pg, "PassageRoof", top, new Vector3(p.W + .4f, .3f, tMax - tMin + .2f), Mat("LA_WallConcrete")).rotation = Quaternion.LookRotation(u3);

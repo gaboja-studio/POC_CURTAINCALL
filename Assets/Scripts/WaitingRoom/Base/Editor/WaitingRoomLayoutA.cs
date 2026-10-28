@@ -182,7 +182,7 @@ namespace CurtainCall.WaitingRoom.Editor
 
         // Stage 3 prop room: the original room's three zones (costumes, 4-tier shelves, dressing) are copied and re-laid
         // into the plan footprint, which is shorter (11.2 x 9.6 m inside) than the original 16 x 8.5 m room.
-        const float PropX0 = 6.9f, PropX1 = 18.1f, PropZ0 = -14.1f, PropZ1 = -4.5f, PropHeight = 5.6f, PropDoorZ = -8.7f, PropDoorWidth = 3.4f;
+        const float PropX0 = 6.9f, PropX1 = 18.1f, PropZ0 = -14.1f, PropZ1 = -4.5f, PropHeight = 5.6f, PropDoorZ = -6.6f, PropDoorWidth = 3.4f;
 
         public static string BuildPropRoom()
         {
@@ -2662,9 +2662,15 @@ namespace CurtainCall.WaitingRoom.Editor
                 // Round lobby: every passage mouth on the drum, plus the far ends of the passages at the moved rooms.
                 Vector2 L(Vector2 w) => new(w.x - Origin.x, w.y - Origin.z);
                 foreach (var p in LobbyPassages().Where(p => p.StartC != null))
-                    doors.Add(("dome " + p.Name, L(p.At(0, p.T0(0))), p.N, -p.U, p.W, p.Name == "Lift" ? .5f : .05f, p.Name == "Lift" ? -1f : .55f, 0f)); // the closed lift gate stands at the drum; its turned door corners reach .4 m into an axis-aligned box
+                {
+                    // The threshold is a curved chord. Check the clear rectangular strips before its first edge and
+                    // after its last edge, rather than putting a rectangle through the side of the circular wall.
+                    float a = Mathf.Min(p.T0(-p.W * .5f), p.T0(p.W * .5f)), b = Mathf.Max(p.T0(-p.W * .5f), p.T0(p.W * .5f));
+                    doors.Add(("dome " + p.Name + " inner", L(p.At(0, a)), p.N, -p.U, p.W, .05f, -1f, 0f));
+                    doors.Add(("dome " + p.Name + " outer", L(p.At(0, b)), p.N, -p.U, p.W, -1f, .55f, 0f));
+                }
                 doors.Add(("02 dorm door", L(new Vector2(DormDoorX + DormShift.x, W(0, DormZ0).z + DormShift.z)), new(1, 0), new(0, -1), DormDoorWidth, .05f, .55f, 0f));
-                doors.Add(("04 prop room door", L(new Vector2(6.4f + PropShift.x, 61.3f)), new(0, 1), new(-1, 0), PropDoorWidth, .05f, .55f, 0f));
+                doors.Add(("04 prop room door", L(new Vector2(6.4f + PropShift.x, 70f + PropDoorZ)), new(0, 1), new(-1, 0), PropDoorWidth, .05f, .55f, 0f));
                 doors.Add(("10 workshop door", L(new Vector2(CorrX0 + WorkshopShift.x, W(0, PracWestDoorZ).z + WorkshopShift.z)), new(0, 1), new(1, 0), WsDoorWidth, .05f, .15f, 0f));
                 doors.Add(("stairwell door", new(WcX0, WcDoorZ), new(0, 1), new(1, 0), WcDoorWidth, .05f, .15f, 0f));
             }
@@ -2728,6 +2734,7 @@ namespace CurtainCall.WaitingRoom.Editor
             source = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").transform;
             var target = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform;
             Physics.SyncTransforms();
+            if (target.Find("Frame8Layout") != null) return ValidateFrame8(target);
             ValidateLobby(target.Find("S01_Lobby"));
             var shop = target.Find("S03_Shop");
             if (shop != null) ValidateShop(scene, shop);
@@ -3462,11 +3469,13 @@ namespace CurtainCall.WaitingRoom.Editor
                     throw new InvalidOperationException("World labels do not point at the copied delivery slot");
             var pillar = shop.Find("Pillar");
             if (pillar == null || pillar.lossyScale != Required("S03_Shop/Pillar").lossyScale) throw new InvalidOperationException("Pillar must stay as the original");
-            // Stand in front of the phone face (+X after the turn) and check both interactions are in reach.
-            var stand = new Vector3(phones[0].transform.position.x + .75f, .1f, phones[0].transform.position.z);
+            // Follow the occupied pillar face when the service alcove is turned towards the plaza.
+            var offset = phones[0].transform.position - pillar.position;
+            var facing = Mathf.Abs(offset.x) >= Mathf.Abs(offset.z) ? Vector3.right * Mathf.Sign(offset.x) : Vector3.forward * Mathf.Sign(offset.z);
+            var stand = phones[0].transform.position + facing * .75f; stand.y = .1f;
             CheckStanding(stand, shop.parent, "shop phone front");
             if (Flat(phones[0].transform.position - stand) > 1.8f) throw new InvalidOperationException("Phone out of reach");
-            var slotStand = new Vector3(slots[0].transform.position.x + .75f, .1f, slots[0].transform.position.z);
+            var slotStand = slots[0].transform.position + facing * .75f; slotStand.y = .1f;
             CheckStanding(slotStand, shop.parent, "delivery slot front");
             if (Flat(slots[0].transform.position - slotStand) > 1.2f) throw new InvalidOperationException("Delivery slot out of reach");
         }
@@ -3907,7 +3916,7 @@ namespace CurtainCall.WaitingRoom.Editor
 
         // ---------- scene helpers ----------
 
-        static (Scene, Transform) Begin()
+        static (Scene, Transform) Begin(bool allowFrame8 = false)
         {
             var scene = SceneManager.GetActiveScene();
             if (scene.path != ScenePath || EditorApplication.isPlaying) throw new InvalidOperationException("Open WaitingRoomBase in Edit mode.");
@@ -3915,7 +3924,9 @@ namespace CurtainCall.WaitingRoom.Editor
             if (source.gameObject.activeSelf) throw new InvalidOperationException("Original Greybox must stay inactive.");
             Copies.Clear(); Manifest.Clear(); Materials.Clear(); LevelY = 0;
             random = new System.Random(75);
-            return (scene, scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform);
+            var target = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA").transform;
+            if (!allowFrame8 && target.Find("Frame8Layout") != null) throw new InvalidOperationException("Frame8 layout: use BuildFrame8Layout; old coordinate generators would change preserved rooms.");
+            return (scene, target);
         }
 
         static int StartUndo(string label)

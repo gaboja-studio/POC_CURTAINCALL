@@ -9,9 +9,8 @@ namespace CurtainCall.WaitingRoom.Editor
 {
     public static partial class WaitingRoomLayoutA
     {
-        // Round practice hall (user decision 2026-10-28): 52 m across, 18 m high, a 26 m ring raised 0.6 m with
-        // four practice stations on it — a 22 m tightrope between towers, a cannon lane onto a catch trampoline,
-        // a free trampoline and a trapeze rig — and a small two-tier stand. Reached by a corridor from the dome.
+        // Preserve the 52m round hall, 18m roof and small stand. Restore the original 16m ring and canopy,
+        // including its 0.6m deck, lanes, access steps and ladder collision repairs, inside this hall.
         static readonly Vector2 PracC = new(-20f, 128.5f);
         const float PracR = 26f, PracWallH = 12f, PracTopH = 18f, RingR = 13f, RingDeckH = .6f;
 
@@ -25,17 +24,12 @@ namespace CurtainCall.WaitingRoom.Editor
                 Remove(room, "RoundArena"); var g = Group(room, "RoundArena", new Vector3(PracC.x, 0, PracC.y));
                 var entry = LobbyPassages().Single(p => p.Name == "Practice");
                 BuildRoundHall(g, "LA_PracticeHall", PracC, PracR, PracWallH, PracTopH, new List<Passage> { entry }, 20, true);
-                var ring = Group(g, "Ring", g.position); RaisedRing(ring);
-                var st = Group(g, "Stations", g.position);
-                Tightrope(Group(st, "Tightrope", g.position));
-                CannonLane(Group(st, "CannonLane", g.position));
-                FreeTrampoline(Group(st, "Trampoline", g.position));
-                TrapezeRig(Group(st, "Trapeze", g.position));
+                RestoreLegacyPracticeRing(room);
                 SmallStand(Group(g, "Stand", g.position));
                 PracticeLights(Group(g, "Lights", g.position));
                 Physics.SyncTransforms(); AssertUnchanged(original);
                 Undo.CollapseUndoOperations(undo); EditorSceneManager.MarkSceneDirty(scene); AssetDatabase.SaveAssets();
-                return $"Round practice hall {PracR * 2} m, ring {RingR * 2} m";
+                return $"Round practice hall {PracR * 2} m, original ring {PracRingRadius * 2} m restored";
             }
             catch { Undo.RevertAllDownToGroup(undo); throw; }
         }
