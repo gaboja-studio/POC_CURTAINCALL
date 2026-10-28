@@ -1,8 +1,8 @@
 ---
 summary: C14 설정 창·공용 탭/슬라이더/토글의 독립 조립과 staged 적용 토큰 계약
 status: active
-updated: 2026-10-20
-source: Task-20261019-061
+updated: 2026-10-28
+source: Task-20261019-061, Task-20261027-076
 ---
 
 # C14 설정 UI
@@ -18,6 +18,13 @@ source: Task-20261019-061
 - Preview 독립 샘플은1888×96 dark/raycastfalse 국소 배경과 함께 하단 고정해 밝은 배경 대비와16:10 중앙 패널 겹침을 방지한다. 실제 프리팹 색/입력 계약은 불변이다. 보정 후 두 화면비×명암24캡처·패널/샘플 비중첩·합성 입력 통과, 최종 Compile/C14 Play23/23·C16 회귀16/16·check-work/EditMode798/798 PASS. 물리 입력·사람 외형/실게임 검증과 commit/push는 별도다.
 - 기존 `Assets/Scripts/Systems/Settings/`는 게임 규칙 설정이며 UI 소유 구역이 아니다.
 - private `curtaincall_settings_v1` 제공 Runtime 원위치 사용. 복제 버튼만 `CurtainCall.UI.SettingsV1.CommonButtons`, 나머지 설정/공용 컨트롤은 `CurtainCall.UI`이다. 전체 원본/PNG/GUID/자료 보존, 재사용16 Sprite·기존 폰트 읽기 전용/신규20 importer만 보정한다.
+
+## 실제 게임 연결 (Task-076, 2026-10-28)
+- 아래 C14 원본 계약은 보존한다. 실제 게임은 `CommonSettingsUI`+`SettingsTabsView`의 게임/그래픽/조작/사운드/기타5탭을 사용하고 기존3탭 인스턴스는 숨긴다. 게임 탭은 런 진행 중만 활성, 긴 목록은 스크롤. 씬/프리팹/private 원본 변경 없음.
+- 그래픽은 화면3모드·지원 해상도·FPS30/60기본/90/120/144/165/240/무제한. `ClientSettings` PC별 저장/기존 bool 이관, VSync0·시작/변경 시 FPS 적용(공통 Base 매 프레임 강제 제거), 에디터 Screen 변경 없음. 모든 탭 draft는 적용 때 저장·취소 때 폐기.
+- 조작은 `InputBindingPreferences` Common 키10행·복합 축 part 재지정/중복 거절/기본값 복원/저장, 기존·새 Reader에 적용. ESC·M·마우스 시점·게임패드는 고정. 사운드는 전체/BGM/SFX·전체 음성/내 마이크/팀원별·마이크on/off·Vivox 입력/출력 목록/선택. `LocalAudioController.Register`로 BGM/SFX 분류, 현재 BGM 재생 코드 없음. 게임 출력 기기는 OS가 관리한다.
+- 사용자 결정: 런 포기는 온라인 호스트 전용(오프라인 허용). 대기실 쉬는 시간/밤 재확인 후 `CampaignRun.AbandonRun`→정식 실패→다음 세대1일차 첫 공연, 방 유지. 권한/상태/전환·오래된 확인 재검사. 기타는 확인된 개발자·에셋 출처/Pretendard OFL 원문, BM 등 미확인 라이선스는 확인 중 표시.
+- 현재5탭 검사: 입력17/17·음량7/7·설정3/3·메뉴/포인터3/3. 실제2인·장치 전환·PC 빌드 화면/재실행·게임패드 실기와 전체 라이선스 검토는 미완료. 이전 런 상태6/6·그래픽21/21은 앞 묶음 결과다.
 
 ## 표시·입력 계약
 - 1920×1080/Match .5/PPU100 Canvas, Sprite PPU200. 패널784×552·stage 등비 축소, 전체 화면 딤/입력 차단판 없음. 외부 HUD 입력 차단·일시정지·커서 소유는 제공하지 않는다.
