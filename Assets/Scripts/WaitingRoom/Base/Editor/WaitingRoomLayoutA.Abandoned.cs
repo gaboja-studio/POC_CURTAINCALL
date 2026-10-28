@@ -36,7 +36,7 @@ namespace CurtainCall.WaitingRoom.Editor
         }
         static void AbText(Transform p,string text,Vector3 at,float size,Color color)
         {
-            var g=AbGroup(p,"Label_"+text,at);g.localRotation=Quaternion.Euler(0,180,0);var t=g.gameObject.AddComponent<TextMesh>();
+            var g=AbGroup(p,"Label_"+text,at);g.localRotation=Quaternion.Euler(0,180,0);var t=g.gameObject.AddComponent<TextMesh>();DepthText(t);
             t.text=text;t.fontSize=64;t.characterSize=size;t.anchor=TextAnchor.MiddleCenter;t.color=color;
             g.GetComponent<MeshRenderer>().shadowCastingMode=ShadowCastingMode.Off;
         }
@@ -77,7 +77,6 @@ namespace CurtainCall.WaitingRoom.Editor
                 AbChair(records,new Vector3(-1.35f,0,1.2f),-14);
                 AbChair(records,new Vector3(.4f,0,1.6f),23);
                 AbMonitor(g,new Vector3(2.3f,3.5f,-9.8f),5.2f,2.35f,true);
-                AbText(g,"ARCHIVE / 04",new Vector3(2.3f,5.1f,-9.72f),.07f,Hex("A99E7C"));
                 AbCabinet(g,new Vector3(-5.8f,0,-9.1f),0,3,true);
                 AbBrokenFrame(g,new Vector3(-3.35f,2.75f,-9.89f),7);
                 AbBrokenFrame(g,new Vector3(-5.3f,3.2f,-9.89f),-12);
@@ -153,13 +152,14 @@ namespace CurtainCall.WaitingRoom.Editor
                 // Plates hang on the plinth face so reaching limbs never cover them.
                 var plate=AbGroup(display,"ExhibitNumber_"+(i+1),new Vector3(-depth*.5f-.05f,top*.5f,centre),90);
                 AbBox(plate,"BrassInventoryPlate",Vector3.zero,new Vector3(.5f,.15f,.02f),Mat("LA_Bronze"));
-                var label=AbGroup(plate,"Number",new Vector3(0,0,-.012f));var text=label.gameObject.AddComponent<TextMesh>();text.text="0"+(i+1)+" / RETIRED";text.fontSize=48;text.characterSize=.016f;text.anchor=TextAnchor.MiddleCenter;text.color=Hex("D0BD8C");
+                var label=AbGroup(plate,"Number",new Vector3(0,0,-.012f));var text=label.gameObject.AddComponent<TextMesh>();DepthText(text);text.text="0"+(i+1)+" / RETIRED";text.fontSize=48;text.characterSize=.016f;text.anchor=TextAnchor.MiddleCenter;text.color=Hex("D0BD8C");
             }
             if(cursor-.2f>length*.5f)throw new InvalidOperationException("Exhibit row overruns the wall plinth");
-            var frontLabel=AbGroup(display,"ExhibitWallLabel",new Vector3(depth*.5f-.03f,2.4f,0),90);
+            // Above the wall ledger and between two wall columns: depth-tested text is hidden by anything in front of it.
+            var frontLabel=AbGroup(display,"ExhibitWallLabel",new Vector3(depth*.5f-.03f,2.9f,-1.65f),90);
             AbBox(frontLabel,"LabelBackboard",new Vector3(0,0,.005f),new Vector3(2.6f,.36f,.02f),AbDark());
             var wallText=AbGroup(frontLabel,"Text",new Vector3(0,0,-.012f));
-            var frontText=wallText.gameObject.AddComponent<TextMesh>();frontText.text="RETIRED TROUPE / ARCHIVE";frontText.fontSize=64;frontText.characterSize=.025f;frontText.anchor=TextAnchor.MiddleCenter;frontText.color=Hex("B5A37C");
+            var frontText=wallText.gameObject.AddComponent<TextMesh>();DepthText(frontText);frontText.text="RETIRED TROUPE / ARCHIVE";frontText.fontSize=64;frontText.characterSize=.025f;frontText.anchor=TextAnchor.MiddleCenter;frontText.color=Hex("B5A37C");
             float rail=-depth*.5f-.12f,end=length*.5f-.05f;
             foreach(float z in new[]{-end,end})
             {AbRod(display,"DisplayBoundaryPost",new Vector3(rail,0,z),new Vector3(rail,.75f,z),.025f,AbMetal());}
@@ -199,30 +199,51 @@ namespace CurtainCall.WaitingRoom.Editor
             AbBox(g,"DrawerPedestal",new Vector3(width*.5f-.4f,.48f,0),new Vector3(.56f,.85f,.7f),AbPaint(),true);
             foreach(float y in new[]{.28f,.57f,.82f})AbBox(g,"DrawerPull",new Vector3(width*.5f-.4f,y,.37f),new Vector3(.23f,.025f,.04f),AbDark());
         }
+        // Old beige CRT workstation, powered off: yellowed plastic, a curved dead tube behind a recessed bezel.
         static void AbComputer(Transform p,Vector3 at,bool broken)
         {
             var g=AbGroup(p,broken?"DeadTerminal":"DormantComputer",at);
-            AbBox(g,"CRTCase",new Vector3(0,.3f,-.13f),new Vector3(.72f,.58f,.61f),AbPaint());
-            AbBox(g,"CRTGlass",new Vector3(0,.31f,.185f),new Vector3(.56f,.41f,.015f),Mat("V4_Black"));
-            AbBox(g,"Keyboard",new Vector3(0,.025f,.48f),new Vector3(.72f,.05f,.24f),AbPaint());
-            for(int r=0;r<4;r++)for(int c=0;c<12;c++)AbBox(g,"Key",new Vector3(-.31f+c*.055f,.059f,.4f+r*.047f),new Vector3(.038f,.018f,.031f),AbDark());
-            AbBox(g,"ComputerTower",new Vector3(.66f,.33f,-.1f),new Vector3(.35f,.66f,.6f),AbPaint());
-            for(int i=0;i<7;i++)AbBox(g,"Vent",new Vector3(.66f,.16f+i*.045f,.207f),new Vector3(.24f,.015f,.014f),AbDark());
-            if(broken)for(int i=0;i<3;i++)AbRod(g,"CrackedScreen",new Vector3(-.2f+i*.11f,.14f,.2f),new Vector3(.15f,.48f-i*.08f,.2f),.005f,Mat("LA_Wrap"));
+            var beige=OldPlastic("LA_OldPlasticBeige",new Color(.66f,.61f,.5f),.32f);var dark=OldPlastic("LA_OldPlasticDark",new Color(.09f,.09f,.095f),.42f);
+            AbBox(g,"CRTCase",new Vector3(0,.3f,-.16f),new Vector3(.72f,.58f,.55f),beige);
+            AbBox(g,"CRTBackHousing",new Vector3(0,.32f,-.48f),new Vector3(.5f,.42f,.22f),beige);
+            foreach(var (x,y,sx,sy) in new[]{(0f,.555f,.72f,.07f),(0f,.065f,.72f,.11f),(-.325f,.31f,.07f,.44f),(.325f,.31f,.07f,.44f)})AbBox(g,"CRTBezel",new Vector3(x,y,.13f),new Vector3(sx,sy,.04f),beige);
+            var tube=AbShape(g,"PoweredOffTube",PrimitiveType.Sphere,new Vector3(0,.31f,.1f),new Vector3(.58f,.44f,.09f),DeadScreen());
+            AbShape(g,"PowerLedOff",PrimitiveType.Cylinder,new Vector3(.28f,.07f,.152f),new Vector3(.016f,.004f,.016f),dark).localRotation=Quaternion.Euler(90,0,0);
+            AbBox(g,"BrandBadge",new Vector3(-.24f,.07f,.152f),new Vector3(.09f,.025f,.004f),dark);
+            AbBox(g,"Keyboard",new Vector3(0,.025f,.48f),new Vector3(.72f,.05f,.24f),beige);
+            for(int r=0;r<4;r++)for(int c=0;c<12;c++)AbBox(g,"Key",new Vector3(-.31f+c*.055f,.059f,.4f+r*.047f),new Vector3(.038f,.018f,.031f),r==3&&c>3&&c<9?beige:OldPlastic("LA_OldPlasticKey",new Color(.55f,.52f,.45f),.3f));
+            AbBox(g,"ComputerTower",new Vector3(.66f,.33f,-.1f),new Vector3(.35f,.66f,.6f),beige);
+            AbBox(g,"FloppyDrive",new Vector3(.66f,.5f,.205f),new Vector3(.22f,.03f,.01f),dark);
+            for(int i=0;i<7;i++)AbBox(g,"Vent",new Vector3(.66f,.16f+i*.045f,.207f),new Vector3(.24f,.015f,.014f),dark);
+            if(broken)for(int i=0;i<3;i++)AbRod(g,"CrackedScreen",new Vector3(-.2f+i*.11f,.14f,.152f),new Vector3(.15f,.48f-i*.08f,.152f),.004f,Mat("LA_Wrap"));
         }
+        // Wall of six monitors in a steel frame, all switched off: dark glass with dust, plastic bezels, unlit standby LEDs.
         static void AbMonitor(Transform p,Vector3 at,float w,float h,bool wall)
         {
             var g=AbGroup(p,"LargeMonitoringScreen",at);
             AbBox(g,"SteelHousing",Vector3.zero,new Vector3(w+.22f,h+.22f,.22f),AbDark());
-            AbBox(g,"DeadGlass",new Vector3(0,0,.12f),new Vector3(w,h,.018f),Mat("V4_Black"));
+            var bezel=OldPlastic("LA_OldPlasticDark",new Color(.09f,.09f,.095f),.42f);float cw=w/3,ch=h/2;
             for(int r=0;r<2;r++)for(int c=0;c<3;c++)
             {
-                var v=new Vector3((c-1)*(w/3),(.5f-r)*(h/2),.135f);
-                AbBox(g,"OfflineCameraFeed",v,new Vector3(w/3-.07f,h/2-.07f,.008f),c==0&&r==0?AbGlow():AbPaint());
-                AbText(g,$"CAM {r*3+c+1:00}\nNO SIGNAL",v+new Vector3(0,0,.015f),.035f,Hex("8D9C87"));
-                for(int j=0;j<5;j++)AbBox(g,"Scanline",v+new Vector3(0,-.35f+j*.15f,.012f),new Vector3(w/3-.1f,.012f,.006f),AbDark());
+                var v=new Vector3((c-1)*cw,(.5f-r)*ch,.14f);
+                AbBox(g,"MonitorBezel",v,new Vector3(cw-.03f,ch-.03f,.07f),bezel);
+                AbBox(g,"PoweredOffScreen",v+new Vector3(0,.012f,.037f),new Vector3(cw-.14f,ch-.17f,.006f),DeadScreen());
+                AbShape(g,"StandbyLedOff",PrimitiveType.Cylinder,v+new Vector3(cw*.5f-.1f,-ch*.5f+.05f,.037f),new Vector3(.02f,.004f,.02f),Mat("V4_Black")).localRotation=Quaternion.Euler(90,0,0);
             }
             AbRod(g,"ScreenPowerCable",new Vector3(w*.5f,-h*.5f,0),new Vector3(w*.5f,-at.y+.2f,0),.025f,AbDark());
+        }
+        static Material OldPlastic(string name,Color c,float smooth)
+        {
+            var m=Lit(name,c,smooth,GeneratedTexture(name+"_Grime.png",256,false,(u,v)=>{float n=Fbm(u*6+1,v*6+4),s=Mathf.PerlinNoise(u*80,v*80);float k=.82f+.18f*n-(s>.8f?(s-.8f)*.8f:0);return new Color(k,k*.98f,k*.95f);}));
+            m.SetFloat("_SpecularHighlights",1);m.DisableKeyword("_SPECULARHIGHLIGHTS_OFF");m.SetFloat("_EnvironmentReflections",0);m.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
+            EditorUtility.SetDirty(m);return m;
+        }
+        // Switched-off screen: near-black glossy glass catching room lights, with a film of dust and smudges.
+        static Material DeadScreen()
+        {
+            var m=Lit("LA_DeadScreenGlass",new Color(.07f,.08f,.085f),.86f,GeneratedTexture("LA_DeadScreen_Dust.png",256,false,(u,v)=>{float d=Fbm(u*5+9,v*5+3),sp=Mathf.PerlinNoise(u*140,v*140);float k=.18f+.22f*Mathf.SmoothStep(.45f,.8f,d)+(sp>.82f?.35f:0)+.1f*Mathf.Pow(1-v,3);return new Color(k,k,k*1.05f);}));
+            m.SetFloat("_SpecularHighlights",1);m.DisableKeyword("_SPECULARHIGHLIGHTS_OFF");m.SetFloat("_EnvironmentReflections",0);m.EnableKeyword("_ENVIRONMENTREFLECTIONS_OFF");
+            EditorUtility.SetDirty(m);return m;
         }
         static void AbCabinet(Transform p,Vector3 at,float yaw,int count,bool electrical)
         {

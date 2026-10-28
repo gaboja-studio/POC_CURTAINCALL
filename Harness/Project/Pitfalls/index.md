@@ -30,3 +30,4 @@
 - [inactive-root-component-scan.md](inactive-root-component-scan.md) — 비활성 루트에서 GetComponentsInChildren()이 꺼진 원본까지 반환한다. 원본을 꺼서 보존하고 복제본을 찾는 코드를 쓸 때
 - [mesh-copyserialized-stale-render.md](mesh-copyserialized-stale-render.md) — 쓰이는 메시 에셋을 CopySerialized로 덮어쓰면 화면은 예전 메시를 그린다. 절차적 메시를 같은 경로에 다시 저장할 때
 - [revived-before-performance-unload.md](revived-before-performance-unload.md) — 공연 씬 해제 전 부활자가 옛 낙하·함정 판정으로 다시 사망. 부활 로그와 달리 대기실에서 관전이 지속될 때
+- [textmesh-default-shader-through-walls.md](textmesh-default-shader-through-walls.md) — 생성한 TextMesh 기본 재질은 깊이를 무시해 벽 너머로 보인다. 에디터 코드로 표지·번호 글자를 만들 때

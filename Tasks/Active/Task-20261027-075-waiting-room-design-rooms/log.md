@@ -56,3 +56,14 @@
 - Validate PASS, missing 0, 통과 표본 막힘 0(배관 구역 끝 기존 밸브 1), 플레이 중 새 오류 없음. 씬 저장. commit/push 없음.
 
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-10-29 다듬기 3차
+
+- 상세 [polish-03-report.md](polish-03-report.md). 벽 너머 글자는 TextMesh 기본 재질이 깊이를 무시해서였다(씬 전체 18개 교체). 깊이 검사 뒤 가려진 전시 라벨은 철골·기둥을 피해 이동.
+- Validate PASS, missing 0, 스폰 막힘 0. 씬 저장. commit/push 없음.
+
+- 2026-10-29 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-29 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

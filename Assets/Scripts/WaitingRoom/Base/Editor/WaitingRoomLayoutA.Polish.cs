@@ -113,7 +113,7 @@ namespace CurtainCall.WaitingRoom.Editor
             // Load plate and caged amber beacon.
             LBox(g, "LoadPlate", new Vector3(-.44f, 3.9f, 2f), new Vector3(.02f, .5f, .3f), Mat("LA_HazardPaint"));
             var plateText = Group(g, "LoadPlateText", g.TransformPoint(new Vector3(-.46f, 3.9f, 2f))); plateText.localRotation = Quaternion.Euler(0, 90, 0);
-            var tm = plateText.gameObject.AddComponent<TextMesh>(); tm.text = "MAX\n2000kg"; tm.fontSize = 48; tm.characterSize = .018f; tm.anchor = TextAnchor.MiddleCenter; tm.color = new Color(.08f, .07f, .06f);
+            var tm = plateText.gameObject.AddComponent<TextMesh>(); DepthText(tm); tm.text = "MAX\n2000kg"; tm.fontSize = 48; tm.characterSize = .018f; tm.anchor = TextAnchor.MiddleCenter; tm.color = new Color(.08f, .07f, .06f);
             var beacon = Group(g, "AmberBeacon", g.TransformPoint(new Vector3(-.35f, 5.85f, -1.7f)));
             LShape(beacon, PrimitiveType.Cylinder, "BeaconBase", new Vector3(0, -.2f, 0), new Vector3(.22f, .06f, .22f), dark);
             var dome = LShape(beacon, PrimitiveType.Sphere, "BeaconDome", Vector3.zero, new Vector3(.2f, .26f, .2f), Emissive("LA_AmberBeacon", new Color(.8f, .45f, .05f), new Color(2.4f, 1.1f, .1f)));
@@ -444,7 +444,8 @@ namespace CurtainCall.WaitingRoom.Editor
 
             // User: twice the first one-person size (2.3 m → 4.6 m across). Props keep their own size; only the ring they sit on grows.
             const float K = 2f, baseR = 1.15f * K, height = 2.75f * K;
-            Material red = DoubleSided(Lit("LA_XmasTentRed", Hex("7A2421") * .92f, .06f)), cream = DoubleSided(Lit("LA_XmasTentCream", Hex("B9A889") * .9f, .05f));
+            var canvas = WornCanvasTexture();
+            Material red = DoubleSided(Lit("LA_XmasTentRed", Hex("7A2421") * .95f, .06f, canvas)), cream = DoubleSided(Lit("LA_XmasTentCream", Hex("B9A889") * .95f, .05f, canvas));
             var tent = MeshObject(g, "SlumpedConeTent", at, SaveMesh(SlumpedCone(baseR, height)), red, cream);
             tent.transform.rotation = g.rotation;
             tent.AddComponent<MeshCollider>().sharedMesh = tent.GetComponent<MeshFilter>().sharedMesh;
@@ -458,8 +459,36 @@ namespace CurtainCall.WaitingRoom.Editor
             for (int i = 0; i < 28; i++)
             {
                 float a = i * Mathf.PI * 2 / 28; var p = g.TransformPoint(new Vector3(Mathf.Cos(a) * (baseR + .03f), .5f, Mathf.Sin(a) * (baseR + .03f)));
-                var flap = Prim(g, PrimitiveType.Cube, "HemScallop", p, new Vector3(.56f, .32f, .02f), i % 2 == 0 ? cream : red);
-                flap.rotation = Quaternion.LookRotation(p - new Vector3(at.x, p.y, at.z)) * Quaternion.Euler(R(-8, 14), 0, R(-6, 6));
+                if (rng.Next(5) == 0) continue; // torn away
+                bool hanging = rng.Next(4) == 0;
+                var flap = Prim(g, PrimitiveType.Cube, "HemScallop", p + (hanging ? Vector3.down * .18f : Vector3.zero), new Vector3(.56f, .32f, .02f), i % 2 == 0 ? cream : red);
+                flap.rotation = Quaternion.LookRotation(p - new Vector3(at.x, p.y, at.z)) * Quaternion.Euler(R(-8, 14) + (hanging ? 25 : 0), 0, R(-6, 6) + (hanging ? R(-35, 35) : 0));
+            }
+            // Frayed strips hanging from the hem and the holes, and patches sewn on with coarse stitches.
+            Vector3 Surface(float deg, float h, float lift)
+            {
+                float a = deg * Mathf.Deg2Rad, r = ConeRadius(baseR, height, h) * (1 - .12f * Mathf.Sin(h / height * Mathf.PI) * .8f) + lift;
+                return g.TransformPoint(new Vector3(Mathf.Cos(a) * r, h, Mathf.Sin(a) * r) + new Vector3(.28f, 0, .12f) * K * Mathf.Pow(h / height, 2.2f));
+            }
+            for (int i = 0; i < 22; i++)
+            {
+                float deg = R(0, 360), h = i < 16 ? R(.3f, .55f) : R(1.2f, 3.2f), len = R(.18f, .55f);
+                var top = Surface(deg, h, .03f); var strip = Prim(g, PrimitiveType.Cube, "FrayedStrip", top + Vector3.down * len * .5f, new Vector3(R(.04f, .11f), len, .008f), rng.Next(2) == 0 ? red : cream);
+                strip.rotation = Quaternion.LookRotation(top - new Vector3(at.x, top.y, at.z)) * Quaternion.Euler(R(-12, 25), 0, R(-14, 14));
+            }
+            var patchMat = Lit("LA_TentPatch", new Color(.42f, .36f, .26f), .05f, GeneratedTexture("LA_TentPatch.png", 128, false, (u, v) => { bool line = Mathf.Repeat(u * 6, 1) < .15f || Mathf.Repeat(v * 6, 1) < .15f; float n = .85f + .15f * Mathf.PerlinNoise(u * 30, v * 30); return line ? new Color(.45f * n, .2f * n, .14f * n) : new Color(n, n * .95f, n * .85f); }));
+            for (int i = 0; i < 7; i++)
+            {
+                float deg = R(0, 360), h = R(.7f, height * .65f), size = R(.22f, .42f);
+                var c = Surface(deg, h, .015f); var outward = (c - new Vector3(at.x, c.y, at.z)).normalized;
+                var patch = Prim(g, PrimitiveType.Cube, "SewnPatch", c, new Vector3(size, size * R(.7f, 1.1f), .01f), i % 3 == 0 ? patchMat : i % 2 == 0 ? cream : red);
+                patch.rotation = Quaternion.LookRotation(outward) * Quaternion.Euler(-14, 0, R(-20, 20));
+                for (int k = 0; k < 10; k++)
+                {
+                    float e = (k / 10f) * 4; int side = (int)e; float f = e - side;
+                    var local = side switch { 0 => new Vector3(Mathf.Lerp(-.5f, .5f, f), .5f, 0), 1 => new Vector3(.5f, Mathf.Lerp(.5f, -.5f, f), 0), 2 => new Vector3(Mathf.Lerp(.5f, -.5f, f), -.5f, 0), _ => new Vector3(-.5f, Mathf.Lerp(-.5f, .5f, f), 0) };
+                    var st = Prim(g, PrimitiveType.Cube, "Stitch", patch.TransformPoint(local * .92f) + outward * .008f, new Vector3(.006f, .035f, .004f), Mat("V4_Black")); st.rotation = patch.rotation * Quaternion.Euler(0, 0, side % 2 == 0 ? 0 : 90);
+                }
             }
             foreach (float deg in new[] { 30f, 120f, 210f, 300f })
             {
@@ -568,6 +597,18 @@ namespace CurtainCall.WaitingRoom.Editor
             return $"Christmas-tree tent at {at:F1}: {bulbs} fairy bulbs, {props} props underneath, {strings} bulb strings to the wall";
         });
 
+        // Faded canvas: dirt rising from the ground, water streaks running down, mildew spots and sun-bleached patches.
+        static Texture2D WornCanvasTexture() => GeneratedTexture("LA_TentCanvasWorn.png", 512, false, (u, v) =>
+        {
+            float weave = .94f + .06f * (Mathf.Sin(u * 900) * Mathf.Sin(v * 900));
+            float dirt = Mathf.SmoothStep(.32f, 0f, v + (Fbm(u * 8, 2) - .5f) * .12f);
+            float streak = Mathf.Pow(Mathf.PerlinNoise(u * 40, 3.3f), 6) * Mathf.SmoothStep(.95f, .3f, v) * 1.6f;
+            float mildew = Mathf.SmoothStep(.72f, .8f, Fbm(u * 14 + 5, v * 14 + 2)) * .5f;
+            float bleach = Mathf.SmoothStep(.55f, .75f, Fbm(u * 3 + 7, v * 3 + 1)) * .18f;
+            float k = weave * (1 - dirt * .55f - streak * .25f - mildew * .35f) + bleach;
+            return new Color(k * (1 - dirt * .08f), k * (1 - dirt * .12f), k * (1 - dirt * .2f));
+        });
+
         static float ConeRadius(float baseR, float height, float h) => baseR * Mathf.Pow(Mathf.Clamp01(1 - h / height), .92f);
 
         static Material DoubleSided(Material m) { m.SetFloat("_Cull", 0); m.doubleSidedGI = true; EditorUtility.SetDirty(m); return m; }
@@ -587,6 +628,14 @@ namespace CurtainCall.WaitingRoom.Editor
                 var lean = new Vector3(.28f, 0, .12f) * sc * Mathf.Pow(t, 2.2f); float droop = -.12f * sc * Mathf.Pow(t, 4);
                 return new Vector3(Mathf.Cos(a) * Mathf.Max(r, .01f), h + droop, Mathf.Sin(a) * Mathf.Max(r, .01f)) + lean;
             }
+            // Worn canvas: a ragged, uneven hem, several holes of different shapes, and gores sagging apart at seams.
+            var holes = new Dictionary<int, Func<int, int, bool>>
+            {
+                [4] = (i, j) => j < 4 && i > 0 && i < 3,
+                [9] = (i, j) => j >= 5 && j <= 7 && (i == 1 || (i == 2 && j == 6)),
+                [12] = (i, j) => j >= 2 && j <= 3 && i >= 2,
+                [6] = (i, j) => j == 8 && i == 1,
+            };
             for (int s = 0; s < gores; s++)
             {
                 int start = v.Count;
@@ -594,13 +643,16 @@ namespace CurtainCall.WaitingRoom.Editor
                 for (int i = 0; i <= cols; i++)
                 {
                     float a = (s + (float)i / cols) * Mathf.PI * 2 / gores, t = (float)j / rows;
-                    v.Add(P(a, t)); uv.Add(new Vector2((float)i / cols, t));
+                    var p = P(a, t);
+                    if (j == 0) p.y -= (float)rng.NextDouble() * .09f * sc; // uneven, stretched hem
+                    v.Add(p); uv.Add(new Vector2((s * cols + i) / (float)cols * .5f, t));
                 }
-                bool torn = s == 4;
+                holes.TryGetValue(s, out var hole);
                 for (int j = 0; j < rows; j++)
                 for (int i = 0; i < cols; i++)
                 {
-                    if (torn && j < 4 && i > 0 && i < 3) continue; // ragged gap low on one gore
+                    if (hole != null && hole(i, j)) continue;
+                    if (j == 0 && rng.NextDouble() < .3) continue; // tattered hem
                     int a0 = start + j * (cols + 1) + i, b0 = a0 + 1, c0 = a0 + cols + 1, d0 = c0 + 1;
                     tris[s % 2].AddRange(new[] { a0, c0, b0, b0, c0, d0 });
                 }
