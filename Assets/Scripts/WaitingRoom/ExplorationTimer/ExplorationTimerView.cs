@@ -48,6 +48,7 @@ namespace CurtainCall.WaitingRoom
             audioSource = gameObject.AddComponent<AudioSource>();
             audioSource.playOnAwake = false;
             audioSource.spatialBlend = 0f;
+            LocalAudioController.Register(audioSource, LocalAudioCategory.Sfx);
             if (bellClip == null) bellClip = MakeBell();
         }
 

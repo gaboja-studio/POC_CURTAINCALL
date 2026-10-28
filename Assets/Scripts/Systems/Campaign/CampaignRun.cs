@@ -178,6 +178,23 @@ namespace CurtainCall.Campaign
         /// <summary>호스트: 이번 런에서 그 묘기를 성공한 가장 높은 단계(없으면 0).</summary>
         public int ClearedTier(string trickId) => host != null ? host.ClearedTier(trickId) : 0;
 
+        /// <summary>호스트/오프라인이 대기실의 쉬는 시간·밤 정비에서만 런을 포기할 수 있다.</summary>
+        public bool CanAbandonRun => HasAuthority
+            && (state.Phase == CampaignPhase.RestTime || state.Phase == CampaignPhase.Night)
+            && CurtainCall.SpaceLink.SpaceLinkDirector.Instance != null
+            && CurtainCall.SpaceLink.SpaceLinkDirector.Instance.Current == CurtainCall.SpaceLink.SpaceId.WaitingRoom
+            && !CurtainCall.SpaceLink.SpaceLinkDirector.Instance.IsTransitioning
+            && !CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive
+            && !(CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation.Current != null
+                && CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation.Current.ResultVisible);
+
+        /// <summary>클라이언트 요청을 전달하지 않고 호스트 자신의 확인만 받는다.</summary>
+        public bool AbandonRun(CampaignSnapshot expected)
+        {
+            if (!CanAbandonRun) return false;
+            return HostDo(r => r.AbandonRun(expected), nameof(AbandonRun));
+        }
+
         /// <summary>디버그: 쉬는 시간 남은 시간을 바꾼다(0이면 바로 끝난다).</summary>
         public bool DebugSetRemaining(float seconds) => HostDo(r => r.DebugSetRemaining(seconds), nameof(DebugSetRemaining));
 

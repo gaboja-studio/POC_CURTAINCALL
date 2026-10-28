@@ -200,6 +200,17 @@ namespace CurtainCall.Campaign
             return true;
         }
 
+        /// <summary>확인창을 연 시간대가 그대로일 때만 현재 런을 실패 처리한다.</summary>
+        public bool AbandonRun(CampaignSnapshot expected)
+        {
+            if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night)
+                || s.Generation == int.MaxValue || s.Generation != expected.Generation
+                || s.Day != expected.Day || s.Phase != expected.Phase || s.Rest != expected.Rest
+                || s.PerformanceIndex != expected.PerformanceIndex) return false;
+            FailRun(RunEndReason.Abandoned);
+            return true;
+        }
+
         /// <summary>개발용 전체 리셋. 새 세대 식별자로 명부·자금·부상 초기화를 알리되 실패로 기록하지 않는다.</summary>
         public bool DebugRestartRun()
         {

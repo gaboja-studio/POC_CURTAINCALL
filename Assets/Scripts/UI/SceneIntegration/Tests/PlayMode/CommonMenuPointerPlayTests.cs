@@ -43,6 +43,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return ClickMenuButton(mouse,menu,"Button_Settings");
                 var settings=Get(owner,"Settings"); var main=(Component)Get(settings,"Main");
                 Assert.IsTrue((bool)Get(main,"IsVisible"));
+                ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/settings-upgrade-main.png")); yield return null;
+                yield return ClickMenuButton(mouse,main,"Tab_1");
+                yield return ClickMenuButton(mouse,SettingsRow(main,1,"FrameRate"),"Next");
+                Assert.AreEqual(1, Get(main,"CurrentPage"));
+                yield return ClickMenuButton(mouse,main,"Tab_0");
+                var extension=owner.GetComponentsInChildren<Canvas>(true).Single(c=>c.name=="SettingsExtensionCanvas");
+                yield return ClickMenuButton(mouse,main,"AbandonRun");
+                Assert.IsTrue((bool)Get(settings,"IsExtensionOpen"));
+                yield return ClickMenuButton(mouse,extension,"Cancel");
                 yield return ClickMenuButton(mouse,main,"50_Cancel");
                 Assert.IsTrue((bool)Get(menu,"IsMenuOpen"));
                 yield return ClickMenuButton(mouse,menu,"Button_RequestLeave");

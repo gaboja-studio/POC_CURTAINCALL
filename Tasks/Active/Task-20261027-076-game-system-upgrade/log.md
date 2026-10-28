@@ -2,25 +2,16 @@
 
 특별한 문제·해결·검사 결과·다음 할 일·PR 링크만 짧게 남긴다.
 
-## 2026-10-27 환경 준비
-- 시작 doctor(-SkipEditor): FAIL 1(task-ids 061·062·070), WARN 2(unity-cli 문서 버전 차이·skill-links 없음).
-- task-ids: 원인은 병합 완료된 `integration/task-document-closeout` worktree의 `Tasks/Active`에 남은 빈 폴더 3개였다(Done 이동 후 Git이 빈 폴더를 남김, 파일 0개). 빈 폴더만 삭제했다.
-- Unity CLI `1.0.0-beta.13` → `beta.14` self-update. 변경 사항을 `Harness/Engine/Unity/Facts/unity-cli.md`에 기록했다. `verify-unity.ps1`은 폐기 예정인 status 행 `project` 대신 `projectPath`를 먼저 읽게 했다. 에디터를 연결한 상태로 확인하지는 않았다.
-- 재실행 doctor(-SkipEditor): FAIL 0, WARN 1(skill-links 없음, 로컬 선택 설정).
-- `setup-links.ps1` 실패: Windows 심볼릭 링크에 관리자 권한 또는 개발자 모드가 필요하다(개발자 모드 꺼짐). 실패로 남은 빈 `.claude/skills` 폴더는 지웠다. 사용자가 개발자 모드를 켠 뒤 다시 실행한다.
+## 2026-10-28 런 포기·그래픽 설정 구현
+- 계획 준비 후 사용자가 호스트 전용 런 포기를 확정하고 구현 요청. doctor fail0/warn1(skill-links), Unity6000.3.25f1/worktree 일치·미저장 씬0 확인. 기존 Task-076/feat/game-system-m2에서 구현, commit/push/외부 게시 없음.
+- 정식 `Abandoned` 사유를 enum 끝에 추가, `RunState`/`CampaignRun.AbandonRun`이 권한·대기실 쉬는 시간/밤·전환 상태·확인 세대/시간대를 재검증해 기존 실패 경로로 다음 세대1일차 첫 공연 시작. 방 유지·부상 복구·자금 리셋 확인. 소지/배송/복구 비용의 기존 세대 감시 경로 유지, 실제2인 전체 데이터 검증은 미완료.
+- `ClientSettings`에3모드·유효 지원 해상도·FPS30/60기본/90/120/144/165/240/-1 저장/이관/적용. `FrameRateController` 매 프레임 공통값 강제를 제거하고 로컬 설정 단일 적용. 공통 FPS 개발값은 이제 자동 반영되지 않음.
+- C14의3탭×3행/Slider·Toggle 계약을 보존: 게임 탭에 그래픽 보조 분류/런 포기 버튼, `SettingsExtensionPanel`에서3행 이전/다음 선택·적용/취소·포기 예/아니요. 마이크/팀원 음성 유지. 씬/프리팹/private 원본 수정 없음, C# 신규 meta는 Unity가 생성.
+- 검사: 컴파일PASS·EditMode RunAbandon6/6·PlayMode FrameRateSettings21/21·SettingsUpgrade2/2·CommonMenu3/3(포인터 클릭 포함). 최초 SettingsUpgrade1/2는 씬 전환 종료 직후 InputGate 해제를 같은 프레임에 요구해 실패, 최대3초 상태 대기로 수정 후2/2. 첫 캡처의 누락 화살표 글리프는 ASCII로 교체·최종 캡처 확인. 전체 회귀는 미실행, 기존 M2 회귀 실패를 해결한 것으로 보지 않음.
+- 테스트 후 공용 CommonButtons 동적 글꼴에 ellipsis/underscore 캐시 변경 발견·보존(임의 폐기 없음). Vivox Settings.json은 git 상태에 잡혔지만 실제 내용 diff/numstat 없음(줄바꿈 안내만), 비밀값 출력·수정 없음. PC 빌드 실제 화면 전환/재실행·실제2인·게임패드 확인은 manual-verification에 미확인으로 추가.
 
-- 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(Unity 변경 없음); 테스트=SKIPPED(자동 테스트 선택 안 함)
 
-## 2026-10-27 M2 변경점 문서 반영
-- 기준: Confluence 27721807 "M2 게임 시스템 변경점 정리" + 사용자 결정(쉬는 시간 A/B 삭제·시작 즉시 시계·안전지대 없음, 난이도는 세트리스트에서 클리어 단계+1까지 선택·단계별 1인 호응 상한 증가, 신체 복구 가격 팀 전체·런마다 초기화, 외줄 복귀는 F 입력 후 2초 동작).
-- Confluence 반영: 게임 흐름 기획(15564804, v15), 부상 기획서(14254330), 장소 별 구조 및 역할(10454669), 조작키 역할 구성(11633076). 주형락 제안 페이지(10551649)는 대상 아님. 논의 기록(13861046)은 폴더 밖이라 미반영.
-- 하네스 반영: Decisions 22개, Facts 5개, `Docs/Domains/common-game-systems.md`(M2 미반영 구현 목록 추가).
-- 추가 결정(H1~H9) 반영: 방은 런마다 섞고 진행도는 런 동안 유지, "물려줄 선반" → 가판대, 밤 정비는 전력 차단·철창과 침대 수면으로 종료, 외줄 매달림 7초·동료 F 2초 끌어올리기·목마 낙하 한 줄에 한 명, 환호 포인트 수치는 보상 시스템 기획(27459631), 시설 서비스 삭제(서비스는 신체 복구만). 범위: Facts 3개(game-flow·overview·run-state), Decisions 13개(대기실 6·외줄 3·control-keys·injury-rules·인간 대포 injury-hazards·index), 도메인 지도 M2 미반영 구현(시설 서비스·밤 준비 완료·외줄 매달림·랜덤 방).
-- 문제: Confluence MCP 갱신은 본문 전체를 한 번에 보내야 해서 큰 페이지는 막힌다. HTML의 `data-local-id`를 빼면 크기가 절반 가까이 준다(인라인 코멘트가 없을 때만 안전).
-- 추가 결정 게시 확인: 부상 기획서 v14는 게시 후 본문·이미지·목차 보존 확인. 장소·조작키는 담당 에이전트가 API 사용 한도로 종료됐지만, 직접 다시 읽어 가판대·철창·침대·동료 끌어올리기 반영을 확인했다. 게임 흐름 페이지는 API 사용 한도로 중단되고 직접 게시도 권한 검사에서 거부됐으나, 사용자 명시 승인 후 v16 게시 완료. 게시 후 HTML 재조회로 추가 결정과 첨부 이미지 2개 보존을 확인했다. 새 보상 결정(토큰·호응 환산·완주 보너스·사망 시 절반 인정 등)은 별도 논의 중이며 이번 게시에는 포함하지 않았다.
-- 문서 검사(-SkipUnity -NoRecord): hard 0, FAIL 0, 기존 길이 경고 10개로 종료 코드 2. 컴파일·테스트는 생략. `git diff --check` 공백 오류 없음.
-
-- 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(-SkipUnity); 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 환경 준비·M2 문서 반영 초기 기록 원문: [History/007-environment-and-m2-document-start.md](History/007-environment-and-m2-document-start.md).
 
 ## 2026-10-27 보상 시스템 기획
 - Confluence 보상 시스템 초안(27459631) v3 게시 후 본문 재조회 확인. 토큰·공동 자금, 호응도와 생존·사망 정산, 난이도별 완주 보너스, 환호·야유·관심 감소, 공용 환호 포인트, 신체 복구 100·이용마다 +25를 표와 흐름표로 정리했다. 공연 실패는 전원 사망으로 명시했다.
@@ -128,3 +119,10 @@
 - 최종 check-work(-NoRecord): 안전성·문서/규칙·컴파일 PASS, hard0·경고14, 자동 테스트 SKIPPED(사용자 요청에 따른 최소 검사). 사람 확인은 [manual-verification.md](manual-verification.md)로 묶음 인계.
 - 후속 매달림(2026-10-28): Hanging Idle Humanoid·loop import/기존 controller 연결, 실제 손바닥·팔뼈와 모델만 줄/봉에 정렬. 외줄 추락·대포/외줄 그네·리프트 점유 lifecycle에서 균형/일반 추락 위험 동결. 외줄 추락만7초 채움 게이지·구조 중 정지·복귀 균형/게이지0, 그네 탑승 중 외줄 구조 거절. 변경 후 check-work(-NoRecord) 안전성·문서/규칙·컴파일 PASS(hard0·경고14), 테스트 SKIPPED. 실제 포즈·손 위치·2인 구조는 manual-verification으로 인계. _ThirdParty/Task062/PlayerPresentation/Player.controller도 미커밋 변경이므로 추후 private 레포 반영 필요. commit/push 없음. 스크린샷 후속 보정: 봉은 회전을 유지하고 손 접점을6cm 하향(인스펙터 조정 가능), 줄은 실제 양손 축을 줄과 나란히 맞추도록 외형 yaw 회전·해제 시 복원. doctor는 기존 private controller dirty로 FAIL(수정 차단 아님), 후속 check-work 안전성·문서/규칙·컴파일 PASS, 테스트 SKIPPED. 실제 보정 화면은 사용자 확인. 저장·제출 요청에 따라 FBX를 Unity MoveAsset으로 private Task062/PlayerPresentation으로 이동(GUID·컨트롤러 clip 참조·Humanoid/loop 유지 확인), private feat/game-system-m2의87265bf7 커밋·push 완료. 무관 BM_Fonts와 동적 폰트2개는 제외하고 M2 코드·설정·문서·gitlink만 제출하며, 최신 컴파일 PASS 재사용·자동 테스트/플레이 생략·기존 회귀 실패 유지. 공개 로컬 커밋fb492089 완료, push는 pre-push의 private87265bf7 main 미포함 규칙으로 차단(우회/병합 없음). private 에셋 PR 생성은 다른 저장소 명시 승인 필요로 도구 차단되어 미생성. 공개 PR도 미생성, new-pr -DryRun 본문 준비만 완료. 비공개 저장소 PR 생성 승인 및 검토·main 반영 후 공개 push/PR 재개 필요. 사용자 후속 요청으로 앞선 폰트 제외 방침 변경: BM_Fonts11종을 Unity MoveAsset으로 private BM_Fonts에 이동(GUID11/11 보존·Resources.Load 코드 참조 없음), private65ed2de6 커밋·push 및 공개 TMP폰트2개/gitlink b82f532 로컬 커밋 완료. 개별 폰트 라이선스 원문 미확인(비공개 보관이 라이선스 의무를 면제하지 않음). PR 승인 응답 후 도구가 저장소 이름 명시 승인 필요로 재차 차단했으나, 사용자 재승인 후 private PR4 생성 완료: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/4 (feat/game-system-m2→main, 애니메이션·폰트11종). 병합 미실행. 공개 push/PR은 private main 선행 반영 대기였으나 사용자 병합 후 PR4 MERGED·private65ed2de6의main 포함 확인, 공개 push 성공.
 - 2026-10-28 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/227 (feat/game-system-m2 → dev). OPEN·MERGEABLE, PM 팀 검토 요청 확인. 기존 컴파일 검사 재사용·추가 테스트 생략. 공개 dev 병합은 미실행.
+
+- 앞 묶음 런 포기·그래픽 구현/검사 원문은 [History/008](History/008-abandon-and-graphics-implementation.md)에 보존.
+## 2026-10-28 설정 5탭 재구성
+- 게임/그래픽/조작/사운드/기타5탭·인게임 게임 탭 활성·스크롤/draft/취소/적용 구현. C14 원본·씬/private 불변. Common10키 재지정·중복/ESC/M 거절·기본값·GUID 저장·Reader 반영. 전체/BGM/SFX·음성 전체/입력/개별 팀원·마이크on/off·Vivox 기기 조회/선택 연결, 기존 종/금속음 SFX 직접 등록. BGM 재생 코드 없음·게임 출력은 OS 관리. 기타 개발자/출처·Pretendard OFL 원문, BM 등 미확인은 확인 중 표시.
+- 검사: 컴파일PASS, 입력EditMode17/17·음량7/7·설정PlayMode3/3·메뉴/실제 포인터3/3. 초기 테스트 helper 미작성 컴파일실패는 helper 추가 후 해결, 복합필터 `|`는 NO_PROJECT_TESTS여서 각각 실행. 캡처 확인 후 슬라이더 손잡이 과대 높이·조작 축 레이블 보정/스크롤바 추가, 설정3/3 재통과. 전체 회귀 실행 아님.
+- 최종 check-work(-NoRecord): 안전성·문서/규칙·컴파일PASS(hard0·경고15), Knowledge OK(11폴더)·diff-check 오류0(줄바꿈 경고만). 전체 테스트SKIPPED, 관련30건은 개별 통과. 이전 피날레3/대포간헐/Telemetry 실패는 유지. 실제2인/장치·PC빌드/재실행·게임패드·전체 라이선스 검토 미완료는 manual-verification에 기록.
+- 사용자 후속: 디자인은 아직 만족하지 않으며 추후 지시로 개선, 현재까지 저장·푸시 요청. 앞선 미커밋 기능·관련 폰트 동적 캐시는 포함하고 Vivox 설정은 실내용 diff 없음 확인. feat/game-system-m2 저장·푸시 진행, 기존 검사 재사용·자동 테스트 재실행 없음. 실제 검증/라이선스 미완료와 기존 회귀 실패는 유지.
