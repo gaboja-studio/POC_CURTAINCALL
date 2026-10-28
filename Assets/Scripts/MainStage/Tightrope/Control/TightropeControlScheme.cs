@@ -63,6 +63,13 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                 Exit(context);
                 return;
             }
+            // M2 추락 매달림: 매달린 사람은 조작 불가, 근처 동료는 F 짧게로 끌어올리기(2초 동안 다른 조작 없음, F 길게 취소).
+            if (TightropeHangSystem.Current != null && TightropeHangSystem.Current.TryHandleInput(context, input))
+            {
+                ClearBuffer(context);
+                context.Balance?.SetCorrectionInput(0f);
+                return;
+            }
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.TryHandleInput(context, input))
             {
                 ClearBuffer(context);

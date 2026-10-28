@@ -229,15 +229,20 @@ namespace CurtainCall.UI.SceneIntegration
             bool observing = local != null && (local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                 || (balance != null && balance.HasFallen));
             hud.SetContext(active, false, observing);
+            // C2는 표시만 제거한다. 불 추격과 공연 종료 판정은 기존 시스템이 계속 담당한다.
+            if (hud.Timer != null) hud.Timer.gameObject.SetActive(false);
+            if (localBalance != null)
+                HudLayout.PlaceBalance((RectTransform)localBalance.transform, CurtainCall.Settings.GameSettings.Base.HudLayout.BalancePosition);
             if (sharedScene && CommonPerformanceUI.Current != null)
                 CommonPerformanceUI.Current.Feedback?.SetContext(active && !observing && !InputGate.IsBlocked && rewards?.State?.IsOpen == true);
-            if (localBalance != null) localBalance.SetContext(active && !humanCannon && balance != null && balance.IsActive, observing);
+            var hangs = TightropeHangSystem.Current;
+            bool hanging = !humanCannon && hangs != null && hangs.IsHanging(local);
+            if (localBalance != null) localBalance.SetContext(active && !humanCannon && balance != null && (balance.IsActive || hanging), observing);
             bool wakingCheer = active && !cheer.gameObject.activeSelf;
             cheer.gameObject.SetActive(active);
             // 씬에 비활성으로 저장된 C1은 첫 활성화 때 Awake에서 데이터를 초기화한다.
             if (wakingCheer) RefreshRewards();
             if (!active) { hud.Timer.SetUnavailable(); hud.Progress.SetUnavailable(); if (localBalance != null) localBalance.SetUnavailable(); return; }
-            RefreshTimer();
             RefreshProgress(course, local);
             if (localBalance != null && (humanCannon || balance == null)) localBalance.SetUnavailable();
             else if (localBalance != null)
@@ -247,36 +252,9 @@ namespace CurtainCall.UI.SceneIntegration
                 localBalance.SetBalance(balance.Value / PlayerBalance.MaxValue,
                     -balance.GreenLimit / PlayerBalance.MaxValue, balance.GreenLimit / PlayerBalance.MaxValue,
                     -balance.WarningLimit / PlayerBalance.MaxValue, balance.WarningLimit / PlayerBalance.MaxValue,
-                    balance.RedTimeRatio, "A", "D", posture < -0.5f, posture > 0.5f);
+                    hanging ? hangs.HangDangerRatio(local) : balance.RedTimeRatio,
+                    "A", "D", !hanging && posture < -0.5f, !hanging && posture > 0.5f);
             }
-        }
-
-        void RefreshTimer()
-        {
-            double? remaining = null;
-            if (!humanCannon)
-            {
-                var fire = TightropeFire.Current;
-                var settings = fire != null ? fire.Settings : null;
-                if (settings != null && settings.chaseEnabled && observedRun != null && fire.Round == observedRun.Round)
-                    remaining = FireBoundarySeconds(settings.chaseStart, settings.safeDistance, settings.chaseSpeed,
-                        settings.chaseDelay, fire.Elapsed);
-            }
-            else
-            {
-                var route = HumanCannonRouteSystem.Current;
-                bool completed = false;
-                if (route != null)
-                    foreach (var wall in cannonFires)
-                        if (wall != null && wall.isActiveAndEnabled && wall.Available && wall.IsConfigured && wall.Armed)
-                        {
-                            if (wall.Finished) { completed = true; continue; }
-                            double seconds = Math.Max(0, wall.EndTime - route.Clock);
-                            if (!remaining.HasValue || seconds < remaining.Value) remaining = seconds;
-                        }
-                if (!remaining.HasValue && completed) remaining = 0;
-            }
-            hud.Timer.SetRemainingSeconds(remaining);
         }
 
         void RefreshProgress(TightropeCourse course, NetworkPlayer local)

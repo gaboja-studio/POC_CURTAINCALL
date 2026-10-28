@@ -80,9 +80,6 @@ namespace CurtainCall.DummySpaces
             if (next.Phase == CampaignPhase.RestTime && next.Timer == RestTimerState.Running
                 && (observedStep.Phase != CampaignPhase.RestTime || observedStep.Timer != RestTimerState.Running))
                 Story("탐색 제한 시간 시작 · 시간이 실제로 흐릅니다.");
-            if (next.Phase == CampaignPhase.RestTime && next.Timer == RestTimerState.WaitingForExit
-                && (observedStep.Phase != CampaignPhase.RestTime || observedStep.Timer != RestTimerState.WaitingForExit))
-                Story("탐색 시작 대기 · 첫 대기실 출구 입력을 기다립니다.");
             observedStep = next;
         }
 

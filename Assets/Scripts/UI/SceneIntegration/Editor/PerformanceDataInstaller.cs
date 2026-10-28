@@ -51,16 +51,6 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                     values.FindProperty("humanCannon").boolValue = path == PerformanceSceneInstaller.CannonScenePath;
                     foreach (string name in new[] { "cannonStart", "cannonFinish" })
                         values.FindProperty(name).objectReferenceValue = space.FindProperty(name).objectReferenceValue;
-                    var fires = space.FindProperty("cannonFires");
-                    values.FindProperty("cannonFires").arraySize = fires.arraySize;
-                    for (int i = 0; i < fires.arraySize; i++) values.FindProperty("cannonFires").GetArrayElementAtIndex(i).objectReferenceValue = fires.GetArrayElementAtIndex(i).objectReferenceValue;
-                    if (path == PerformanceSceneInstaller.CannonScenePath)
-                    {
-                        var sections = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<HumanCannonCourseSections>(true)).Single();
-                        var bounds = new SerializedObject(sections).FindProperty("boundaries");
-                        values.FindProperty("lowerFloorMaxY").floatValue = bounds.FindPropertyRelative("RaisedMinY").floatValue;
-                        values.FindProperty("lowerFloorStartZ").floatValue = bounds.FindPropertyRelative("FirstStartZ").floatValue;
-                    }
                     values.ApplyModifiedPropertiesWithoutUndo();
                     EditorSceneManager.MarkSceneDirty(scene); EditorSceneManager.SaveScene(scene);
                 }

@@ -44,6 +44,8 @@ namespace CurtainCall.Player
             }
 
             actions = Instantiate(source);
+            InputBindingPreferences.ApplySavedOverrides(actions);
+            InputBindingPreferences.Changed += RefreshBindingPreferences;
             commonMap = actions.FindActionMap(CommonMap, true);
             move = commonMap.FindAction("Move", true);
             posture = commonMap.FindAction("Posture", true);
@@ -89,8 +91,19 @@ namespace CurtainCall.Player
             ClearPendingInput();
         }
 
+        // Awake~Destroy 동안 구독하여 비활성 Reader도 다음 활성화 전에 최신 키를 가진다.
+        void RefreshBindingPreferences()
+        {
+            bool wasEnabled = commonMap != null && commonMap.enabled;
+            commonMap?.Disable();
+            InputBindingPreferences.ApplySavedOverrides(actions);
+            ClearPendingInput();
+            if (wasEnabled) commonMap.Enable();
+        }
+
         void OnDestroy()
         {
+            InputBindingPreferences.Changed -= RefreshBindingPreferences;
             if (actions != null) Destroy(actions);
         }
 

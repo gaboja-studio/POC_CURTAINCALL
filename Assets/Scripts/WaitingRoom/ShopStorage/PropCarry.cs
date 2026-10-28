@@ -10,12 +10,12 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 기물 소지의 공개 진입점: 손에 든 기물·배낭·바닥 기물. 판정은 상점과 같은 화면(호스트 또는 오프라인 런)이 한다.
-    /// - 한도: 공용 <see cref="SurvivalRules.ItemSlots(PlayerCondition, bool)"/>(공통 세팅 · 기물 소지: 팔 2개 2, 팔 1개 1, 배낭 +2).
+    /// 기물 소지의 공개 진입점: 손에 든 기물·바닥 기물. 판정은 상점과 같은 화면(호스트 또는 오프라인 런)이 한다.
+    /// - 한도: 공용 <see cref="SurvivalRules.ItemSlots"/>(공통 세팅 · 기물 소지: 팔 개수와 무관하게 기본 2칸).
     /// - F 길게: 선택한 기물을 발밑에 내려놓는다. 바닥 기물은 누구나 F로 줍는다(<see cref="FloorPropsView"/>).
-    /// - 팔을 잃어 한도가 줄면 넘친 만큼 그 자리에 떨어진다. 사망 중·공연 중에는 떨어뜨리지 않는다(공연 사망·잡힘에도 기물 유지).
+    /// - 신체 손상으로 소지 한도가 줄거나 기물이 떨어지지 않는다. 공통 세팅의 한도 자체가 줄면 초과분을 내려놓는다. 사망 중·공연 중에는 떨어뜨리지 않는다(공연 사망·잡힘에도 기물 유지).
     /// - ④ 소품실: 바닥 기물은 런 동안 개수 제한 없이 남는다. 물려줄 선반 4칸(<see cref="HandoverShelfView"/>)에 올린 기물만 세대 교체 뒤에도 남는다.
-    /// - 세대 교체(런 실패) 때 선반만 남기고 손·배낭·바닥 기물을 비운다(게임 흐름 기획 5-5·6-2). 방이 바뀌면 선반까지 비운다.
+    /// - 세대 교체(런 실패) 때 선반만 남기고 손·바닥 기물을 비운다(게임 흐름 기획 5-5·6-2). 방이 바뀌면 선반까지 비운다.
     /// 런 동안 남도록 씬이 바뀌어도 유지된다(DontDestroyOnLoad, 씬 최상위에 둔다). 표시·HUD·한도 초과 떨어뜨리기는 대기실 씬이 열려 있을 때만 한다.
     /// 탈출로 리타이어 때 소실은 이 범위 밖이다.
     /// </summary>
@@ -37,7 +37,6 @@ namespace CurtainCall.WaitingRoom
 
         readonly Dictionary<ulong, int> selected = new();
         readonly Dictionary<ulong, List<PropItem>> receivedHeld = new();
-        readonly HashSet<ulong> receivedBackpacks = new();
         readonly List<FloorProp> receivedFloor = new();
         readonly PropItem[] receivedShelf = new PropItem[ItemCarryBook.ShelfSlots];
         readonly List<FloorProp> trimmed = new();
@@ -90,10 +89,8 @@ namespace CurtainCall.WaitingRoom
         public IReadOnlyList<PropItem> Held(ulong player) => HasAuthority ? book.Held(player)
             : receivedHeld.TryGetValue(player, out var list) ? list.AsReadOnly() : Empty;
 
-        public bool HasBackpack(ulong player) => HasAuthority ? book.HasBackpack(player) : receivedBackpacks.Contains(player);
-
-        /// <summary>지금 몸 상태로 지닐 수 있는 개수.</summary>
-        public int Slots(ulong player) => SurvivalRules.ItemSlots(FindCondition(player), HasBackpack(player));
+        /// <summary>신체 상태와 관계없이 지닐 수 있는 개수.</summary>
+        public int Slots(ulong player) => SurvivalRules.ItemSlots();
 
         // UID selection survives list shifts and is replicated with the carry snapshot.
         public PropItem Selected(ulong player)
@@ -201,7 +198,6 @@ namespace CurtainCall.WaitingRoom
         public static string Explain(CarryRefusal refusal) => refusal switch
         {
             CarryRefusal.HandsFull => "손이 가득 찼습니다. F 길게로 내려놓은 뒤 받으세요.",
-            CarryRefusal.AlreadyHasBackpack => "이미 배낭을 메고 있습니다.",
             CarryRefusal.NothingHeld => "들고 있는 기물이 없습니다.",
             CarryRefusal.FloorFull => "바닥에 더 놓을 수 없습니다.",
             CarryRefusal.ShelfFull => "선반 4칸이 모두 찼고 손에도 자리가 없습니다.",
@@ -212,12 +208,12 @@ namespace CurtainCall.WaitingRoom
         // ---- 상점이 쓰는 판정 화면 전용 진입점 ----
 
         /// <summary>판정 화면: 상점 배송구에서 받을 수 있는지.</summary>
-        public CarryRefusal CanReceive(ulong player, bool backpack) => book.CanTake(player, Slots(player), backpack);
+        public CarryRefusal CanReceive(ulong player) => book.CanTake(player, Slots(player));
 
-        /// <summary>판정 화면: 상점 배송구에서 받은 기물을 들린다(또는 배낭을 메운다).</summary>
-        public CarryRefusal Receive(ulong player, PropItem item, bool backpack)
+        /// <summary>판정 화면: 상점 배송구에서 받은 기물을 들린다.</summary>
+        public CarryRefusal Receive(ulong player, PropItem item)
         {
-            var refusal = book.Take(player, Slots(player), item, backpack);
+            var refusal = book.Take(player, Slots(player), item);
             if (refusal == CarryRefusal.None) Publish();
             return refusal;
         }
@@ -307,12 +303,6 @@ namespace CurtainCall.WaitingRoom
             return reader != null ? reader.transform : null;
         }
 
-        static PlayerCondition FindCondition(ulong clientId)
-        {
-            var body = FindBody(clientId);
-            return body != null ? body.GetComponent<PlayerCondition>() : null;
-        }
-
         static bool IsDead(ulong clientId)
         {
             var player = FindPlayer(clientId);
@@ -354,14 +344,12 @@ namespace CurtainCall.WaitingRoom
             if (state == null) return;
             receivedHeld.Clear();
             selected.Clear();
-            receivedBackpacks.Clear();
             foreach (var p in state.players ?? Array.Empty<PlayerData>())
             {
                 var list = new List<PropItem>();
                 foreach (var item in p.held ?? Array.Empty<ItemData>()) list.Add(item.Read());
                 receivedHeld[p.client] = list;
                 selected[p.client] = p.selectedUid;
-                if (p.backpack) receivedBackpacks.Add(p.client);
             }
             receivedFloor.Clear();
             foreach (var f in state.floor ?? Array.Empty<FloorData>()) receivedFloor.Add(new FloorProp(f.item.Read(), f.x, f.y, f.z));
@@ -386,7 +374,6 @@ namespace CurtainCall.WaitingRoom
             book.Clear();
             selected.Clear();
             receivedHeld.Clear();
-            receivedBackpacks.Clear();
             receivedFloor.Clear();
             Array.Clear(receivedShelf, 0, receivedShelf.Length);
             seenGeneration = 0;
@@ -405,7 +392,7 @@ namespace CurtainCall.WaitingRoom
             public static ItemData From(PropItem i) => new() { uid = i.Uid, id = i.ItemId, name = i.Name };
         }
 
-        [Serializable] sealed class PlayerData { public ulong client; public bool backpack; public int selectedUid; public ItemData[] held; }
+        [Serializable] sealed class PlayerData { public ulong client; public int selectedUid; public ItemData[] held; }
         [Serializable] sealed class FloorData { public ItemData item; public float x, y, z; }
 
         [Serializable]
@@ -424,7 +411,7 @@ namespace CurtainCall.WaitingRoom
                     var held = book.Held(client);
                     var items = new ItemData[held.Count];
                     for (int i = 0; i < items.Length; i++) items[i] = ItemData.From(held[i]);
-                    players.Add(new PlayerData { client = client, backpack = book.HasBackpack(client), selectedUid = selected.TryGetValue(client, out int uid) ? uid : 0, held = items });
+                    players.Add(new PlayerData { client = client, selectedUid = selected.TryGetValue(client, out int uid) ? uid : 0, held = items });
                 }
                 var floor = new FloorData[book.Floor.Count];
                 for (int i = 0; i < floor.Length; i++)
@@ -447,7 +434,7 @@ namespace CurtainCall.WaitingRoom
             var mine = Held(me);
             var lines = new List<string>
             {
-                $"소지 {mine.Count}/{Slots(me)}{(HasBackpack(me) ? " (배낭)" : "")}  [F 길게] 내려놓기",
+                $"소지 {mine.Count}/{Slots(me)}  [F 길게] 내려놓기",
             };
             for (int i = 0; i < mine.Count; i++) lines.Add($"  {i + 1}. {mine[i].Name} #{mine[i].Uid}");
             if (NetworkPlayer.All.Count > 1)
@@ -455,7 +442,7 @@ namespace CurtainCall.WaitingRoom
                 {
                     if (!player.IsSpawned || player.OwnerClientId == me) continue;
                     ulong id = player.OwnerClientId;
-                    lines.Add($"{WaitingRoomShop.PlayerLabel(id)}: {Held(id).Count}/{Slots(id)}{(HasBackpack(id) ? " (배낭)" : "")}");
+                    lines.Add($"{WaitingRoomShop.PlayerLabel(id)}: {Held(id).Count}/{Slots(id)}");
                 }
             if (!string.IsNullOrEmpty(LastMessage)) lines.Add(LastMessage);
 

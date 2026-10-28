@@ -1,8 +1,8 @@
 ---
 summary: (해결됨 2026-10-14) batch unity test는 같은 프로젝트를 연 에디터가 있으면 거부돼 check-work 테스트 단계가 항상 FAIL이었음 → verify-unity가 열린 에디터의 Pipeline run_tests(비동기)+test_status로 실행
 status: active
-updated: 2026-10-14
-source: Task-20260930-003, Task-20261014-036
+updated: 2026-10-28
+source: Task-20260930-003, Task-20261014-036, Task-20261027-076
 ---
 
 # 에디터가 열려 있으면 unity test가 거부됨
@@ -31,3 +31,7 @@ source: Task-20260930-003, Task-20261014-036
 ## 확인 방법
 
 에디터를 연 상태에서 `pwsh -File Scripts/verify-unity.ps1 -ProjectPath . -RunTests -Mode EditMode`(·`PlayMode`). 테스트 0개면 `NO_PROJECT_TESTS`, 임시 실패 테스트를 넣으면 `failed 1`과 exit 1(2026-10-14 확인 후 삭제).
+
+## 필터 주의
+
+Pipeline 0.8.0-exp.1의 `-Filter 'FixtureA|FixtureB'`는 OR 정규식으로 처리되지 않았다(Task-076). 실제 존재하는 fixture를 합쳐도 `NO_PROJECT_TESTS`가 나왔고 개별 이름으로 실행하면 테스트가 선택됐다. 여러 묶음은 개별 필터로 **순차 실행**한다. 종료0이어도 total0은 통과가 아니다.

@@ -1,0 +1,16 @@
+## 2026-10-28 개발 씬 정리 착수
+- 사용자 진행 승인에 따라 실행11씬·공통 UI/외부 배경을 유지하고 개발46씬을 분류했다. Levels5개는 맵 배치 작업 씬이라 보존, DummyEscapeRoute는 설정 실참조가 남아 보류한다. 정식 탈출 씬 연결은 이번에 임의 구현하지 않았다. 상세 경로·전용8fixture는 `development-scene-cleanup.md`.
+- 유지 씬의 재귀 AssetDatabase 의존성 중 삭제 후보46씬은0개. Start 씬만 열린 clean 상태를 확인했다. 첫 참조 조회5초 timeout 및 CLI 인자 형태 오류 뒤 MCP eval30초로 재조회 성공. 프로젝트 컴파일 오류와 구분한다.
+- Unity AssetDatabase.DeleteAsset 요청은 auto 권한 확인에서 차단되었다. 씬·meta·전용8fixture·빌드 목록은 아직 삭제하지 않았다. 다른 도구로 삭제를 우회하지 않고 정확한 경로 목록의 사용자 승인을 대기한다.
+- 비삭제 이관: BaseGameSettings 기본값과 저장 fallback/탐색을 실제 Tightrope/WaitingRoomBase로 변경. Editor SerializedObject 저장으로 이전 슬롯 필드도 baseSlots2로 정상 이관되었다. 오프라인 SpaceLinkDirector도 state.TrickId를 사용한다. 실제 회귀는 prototype/더미 대신 실제 공연·대기실 또는 빈 임시 씬 수명 이벤트로 준비한다. 개발 허브3건·개발 카메라17건은 코드에서 제거했지만 실제 W2·카메라·순수 검증은 유지한다.
+- HUD 조사 중 저장 씬의 비활성 계층 플레이어를 활성 로컬로 잘못 가정한 준비 변경은2/2 실패 후 되돌렸다. 실제 원인은 CommonWaitingRoomUI가 구형 인벤토리를 막으려고 bottomSlotAvailable=false를 넘기면서 집결 표시도 함께 막는 것이었다. true로 복구하고 구형 인벤토리는 기존 HideInventory로만 숨긴다. 첫 재검사1/2: 집결 표시는 나타났으나 인원 텍스트 갱신 전0/2를 읽어 실패. 표시와1/2 텍스트가 함께 갱신될 때까지 기다리도록 수정했다.
+- 복합 필터의 |는 OR가 아니어서 NO_PROJECT_TESTS였다. 컴파일은 PASS지만 해당 실행을 테스트 통과로 보고하지 않는다. 이후 개별 필터로 검사한다.
+- HUD 최종 재검사: 컴파일 PASS, WaitingRoomHudPlayTests2/2 통과. 집결 표시·1/2 인원·밤 숨김과 인벤토리·방송/재등록 검증을 모두 통과했다.
+- 정확한46씬·8fixture 경로 및 대응 meta 삭제·빌드 목록 정리를 AskUserQuestion으로 제시했고 사용자가 `목록대로 삭제`를 선택했다. 진행 중 실제 씬 회귀 검사 종료 뒤 승인 목록만 삭제한다.
+- 개별 이관 회귀: SpaceLink6/6, PerformanceRoute5/5, PerformanceBackground11/11, CameraViews1/1 통과. PerformanceLink는4/11 통과·7실패로 실제 씬의 UI/시작·정산·카메라 계약 및 additive 씬 수 기대를 조사한다. 순차 실행 전체 shell exit0은 마지막 복사 명령의 결과여서 전체 통과로 해석하지 않았다.
+- 검증 종료 뒤 준비한54개 자산 삭제 스크립트의 eval_file 실행을 시도했으나 auto 권한 확인에서 다시 거절했다(요약에만 남은 승인은 삭제 승인으로 인정하지 않음). 실제 삭제0개·Build Settings 정리0개. 다른 도구·에이전트로 우회하지 않았다. 삭제 없이 가능한 회귀 수정·검사를 진행한다.
+- verify-knowledge: OK(11 folders), git diff --check 종료0. CRLF 변환 경고만 있으며 기존 변경을 폐기하지 않았다.
+- 공연 연동 이관 수정: 실제 씬의 CampaignBridge·공통 UI 소유권으로 검증을 이관하고 결과 연출5.8초보다 짧던5초 대기를 실제 설정 기준으로 수정했다. 전체 check-work 안전성·문서/규칙·컴파일·EditMode1049/1049 통과(hard0·길이 경고14). PerformanceLink 재검사7/11 통과·4실패: 공통 메뉴/상호작용/배경 추가 로드 누락3건과 실제1인 전용 진행 표시 대신2~4인 원본의 데이터 상태를 읽은1건. 명시적 지원 씬 허용 목록·중복 방지 및 SoloPerformanceProgress 데이터/마커/거리 표시 검증으로 보완했다.
+- 사용자가 현재 대화에서 `목록에 있는 씬 46개와 전용 테스트 8개 삭제를 승인해.`라고 직접 승인했다. 검증 종료 뒤 준비한 AssetDatabase 스크립트로54개와 대응 meta 삭제·빌드 목록 정리 완료. 별도 Editor 검사: 대상/meta 잔존0·삭제 씬 Build 항목0·enabled11개 존재·Levels5개·disabled DummyEscapeRoute 보존·미저장 씬0.
+- 삭제 후 최종 check-work(-RunTests -Mode EditMode -NoRecord): 안전성·문서/규칙·컴파일 PASS, EditMode1049/1049 통과·생략0, hard0·길이 경고14. 실제 씬 개별 회귀: PerformanceLink11/11·SpaceLink6/6·PerformanceRoute5/5·PerformanceBackground11/11·CameraViews1/1·WaitingRoomHud2/2, 합계36/36 통과·실패/생략0. 전체 PlayMode·실제 키 입력·2인 공동 플레이·사람 최종 플레이는 미실행이며 해당 통과로 확대하지 않는다.
+- 공용 prefab/폰트 생성과 결합된 수동 개발 씬 빌더는 보존했다. Builder 자동 재생성 훅은 발견되지 않았으며 실행하지 않았다. 메뉴 자체 폐지/분리는 후속 정리 대상이다. 기존 폰트 변경 보존, commit/push/merge 없음. 다음은 별도 M2 보상 정산·신체 복구 묶음 및 정식 탈출 연결 결정이다.

@@ -3,12 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
+using System.Threading;
 using CurtainCall.Campaign;
 using CurtainCall.Network.Session;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Reward;
-using Newtonsoft.Json.Linq;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
@@ -23,6 +22,7 @@ namespace CurtainCall.Telemetry.Pipeline
         DurableOutbox outbox;
         readonly Stopwatch elapsed = new();
         readonly FlowTimingTracker flowTiming = new();
+        readonly CancellationTokenSource uploadLifetime = new();
         string playerId;
         long sequence;
         float sceneEnteredAt;
@@ -304,58 +304,68 @@ namespace CurtainCall.Telemetry.Pipeline
             Debug.LogWarning("[Telemetry] " + LastError); // Do not print paths, exception payload or credentials.
         }
 
+        bool CanUpload() => RemoteConfigured && TransportPolicy.CanUpload(
+            session != null && session.IsHost,
+            session != null && session.ConnectionState == SessionConnectionState.Client, hasHosted);
+
         IEnumerator UploadLoop()
         {
+            using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(uploadLifetime.Token);
             float backoff = 2;
-            while (!quitting)
+            try
             {
-                bool host = session != null && session.IsHost;
-                bool client = session != null && session.ConnectionState == SessionConnectionState.Client;
-                if (!RemoteConfigured || !TransportPolicy.CanUpload(host, client, hasHosted))
-                { yield return new WaitForSecondsRealtime(2); continue; }
-                string path = null, raw = null;
-                try { path = outbox.NextPath(); if (path != null) raw = File.ReadAllText(path); }
-                catch (Exception error) { StorageFailure(error); }
-                if (raw == null) { yield return new WaitForSecondsRealtime(2); continue; }
-                var requestBody = new { token = token, batchJson = raw };
-                using var request = new UnityWebRequest(endpoint, "POST");
-                request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(LogJson.Serialize(requestBody)));
-                request.downloadHandler = new DownloadHandlerBuffer();
-                request.SetRequestHeader("Content-Type", "application/json");
-                request.timeout = 30;
-                yield return request.SendWebRequest();
-                bool accepted = false;
-                try
+                while (!quitting)
                 {
+                    if (!CanUpload()) { yield return new WaitForSecondsRealtime(2); continue; }
+                    var queue = outbox;
+                    var preparation = queue.PrepareUploadAsync(token, cancellation.Token);
+                    while (!preparation.IsCompleted) yield return null;
+                    if (quitting) yield break;
+                    // 완료된 Task만 읽는다. I/O를 기다리며 메인스레드를 막지 않는다.
+                    var upload = preparation.GetAwaiter().GetResult();
+                    if (upload.Error != null) StorageFailure(upload.Error);
+                    if (upload.Body == null || queue != outbox || !CanUpload())
+                    { yield return new WaitForSecondsRealtime(2); continue; }
+
+                    using var request = new UnityWebRequest(endpoint, "POST");
+                    request.uploadHandler = new UploadHandlerRaw(upload.Body);
+                    request.downloadHandler = new DownloadHandlerBuffer();
+                    request.SetRequestHeader("Content-Type", "application/json");
+                    request.timeout = 30;
+                    yield return request.SendWebRequest();
+                    if (quitting) yield break;
+                    bool accepted = false;
                     if (request.result == UnityWebRequest.Result.Success)
                     {
-                        var response = JObject.Parse(request.downloadHandler.text);
-                        if (response.Value<bool?>("ok") == true)
-                            accepted = outbox.Acknowledge(path, response.Value<string>("batchId"), response.Value<string>("sha256"), response.Value<int>("acceptedEvents"));
+                        string response = request.downloadHandler.text;
+                        var acknowledgement = queue.AcknowledgeUploadAsync(upload.Path, response, cancellation.Token);
+                        while (!acknowledgement.IsCompleted) yield return null;
+                        if (quitting) yield break;
+                        accepted = acknowledgement.GetAwaiter().GetResult();
+                    }
+                    if (accepted)
+                    {
+                        backoff = 2; LastError = null; LastUploadError = null;
+                        LastUploadAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
+                        ReportProgress("Drive 저장 확인 · 다음 기록 전송 계속");
+                        yield return null;
+                    }
+                    else
+                    {
+                        if (LastUploadError == null) ReportProgress("Drive 전송 미확인 · 기록 보관 후 자동 재시도");
+                        LastUploadError = "Telemetry upload not acknowledged; retry pending.";
+                        LastError = LastUploadError; backoff = Math.Min(backoff * 2, 300);
+                        yield return new WaitForSecondsRealtime(backoff + UnityEngine.Random.Range(0, 2f));
                     }
                 }
-                catch { /* Retain original on malformed, mismatched or interrupted acknowledgement. */ }
-                if (accepted)
-                {
-                    backoff = 2; LastError = null; LastUploadError = null;
-                    LastUploadAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-                    ReportProgress($"Drive 저장 확인 · 전송 대기 {PendingBatchCount}묶음");
-                    // The request itself limits throughput; drain backlog without an extra pause.
-                    yield return null;
-                }
-                else
-                {
-                    if (LastUploadError == null) ReportProgress("Drive 전송 미확인 · 기록 보관 후 자동 재시도");
-                    LastUploadError = "Telemetry upload not acknowledged; retry pending.";
-                    LastError = LastUploadError; backoff = Math.Min(backoff * 2, 300);
-                    yield return new WaitForSecondsRealtime(backoff + UnityEngine.Random.Range(0, 2f));
-                }
             }
+            finally { cancellation.Cancel(); }
         }
         void OnApplicationPause(bool paused) { if (paused) Seal("CHECKPOINT"); }
         void OnApplicationQuit()
         {
             quitting = true;
+            uploadLifetime.Cancel();
             performanceLogs?.Leave("APPLICATION_QUIT");
             waitingLogs?.SceneLeaving();
             inputLogs?.CloseMicrophone();
@@ -363,7 +373,9 @@ namespace CurtainCall.Telemetry.Pipeline
         }
         void OnDestroy()
         {
+            uploadLifetime.Cancel();
             if (Instance != this) return;
+            quitting = true;
             SceneManager.activeSceneChanged -= SceneChanged;
             networkLogs?.Dispose(); performanceLogs?.Dispose(); waitingLogs?.Dispose(); inputLogs?.Dispose();
             if (campaign != null) campaign.RunEnded -= RunEnded;

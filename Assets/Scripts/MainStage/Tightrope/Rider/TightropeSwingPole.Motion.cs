@@ -30,6 +30,7 @@ namespace CurtainCall.Tightrope
                 BodyEnabled = mover.Body.enabled, Simulated = mover.Simulated };
             mover.Teleported += OnTeleported;
             mover.ClearPendingInput(); mover.Simulated = false; mover.Body.enabled = false;
+            if (binding.Balance != null) binding.Balance.IsSuspended = true;
             binding.Balance?.SetAirborne(true); pendingUntil = 0d;
         }
         void PlaceLocal()
@@ -42,6 +43,7 @@ namespace CurtainCall.Tightrope
         void EndBinding(bool launch)
         {
             var held = binding; binding = null;
+            if (held?.Balance != null) held.Balance.IsSuspended = false;
             if (held == null || held.Mover == null) return;
             var mover = held.Mover;
             if (launch) mover.transform.SetPositionAndRotation(WorldFeet(returnAngle, lane), Quaternion.LookRotation(course.Forward));

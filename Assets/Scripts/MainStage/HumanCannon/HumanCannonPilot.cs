@@ -187,6 +187,7 @@ namespace CurtainCall.HumanCannon
                 mover.Simulated = previousSimulation;
             }
             stationIndex = -1;
+            if (IsHoldingPole && TryGetComponent(out PlayerBalance balance)) balance.IsSuspended = false;
             HeldPole = -1;
             onTransport = false;
             groundRequest.Cancel();

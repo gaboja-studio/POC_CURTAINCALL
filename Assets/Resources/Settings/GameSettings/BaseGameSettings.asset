@@ -24,15 +24,25 @@ MonoBehaviour:
     firstDayTricks:
     - Tightrope
     - HumanCannon
-    restTimerMode: 1
     restDuration: 300
     guideRestDuration: 300
+    morningRest:
+      unlimited: 0
+      seconds: 300
+    noonRest:
+      unlimited: 0
+      seconds: 300
+    guideRest:
+      unlimited: 0
+      seconds: 300
+    nightMaintenance:
+      unlimited: 1
+      seconds: 300
+    timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2
   itemCarry:
-    twoArmSlots: 2
-    oneArmSlots: 1
-    backpackBonus: 2
+    baseSlots: 2
   character:
     freeMoveSpeed: 3
     courseMoveSpeed: 0.5
@@ -64,6 +74,8 @@ MonoBehaviour:
     idleSway: 5
     swayDirectionInterval: {x: 1, y: 2}
     tiltAcceleration: 0.5
+  hudLayout:
+    balancePosition: 0
   presentation:
     maxTiltAngle: 25
     tiltFollowSharpness: 10
@@ -88,12 +100,12 @@ MonoBehaviour:
   spaceTransition:
     mode: 0
     hubScene: Lobby
-    performanceScene: DummyPerformance
+    performanceScene: Tightrope
     tightropeScene: Tightrope
     humanCannonScene: HumanCannon
     waitingRoomScene: WaitingRoomBase
     keepWaitingRoomOnExit: 1
-    explorationScene: DummyExploration
+    explorationScene: WaitingRoomBase
     escapeRouteScene: DummyEscapeRoute
   voiceChat:
     enabled: 1

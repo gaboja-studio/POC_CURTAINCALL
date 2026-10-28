@@ -75,6 +75,29 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.That(progress.gameObject.activeSelf, Is.False);
             Assert.That(root.GetComponentsInChildren<GraphicRaycaster>(true), Is.Empty);
             Assert.That(root.GetComponentsInChildren<Graphic>(true).Any(g => g.raycastTarget), Is.False);
+            var balance = (Component)hud.GetType().GetProperty("Balance").GetValue(hud);
+            var settings = GameType("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null);
+            var layout = settings.GetType().GetProperty("HudLayout").GetValue(settings);
+            var field = layout.GetType().GetField("balancePosition", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+            var original = field.GetValue(layout);
+            try
+            {
+                field.SetValue(layout, Enum.ToObject(field.FieldType, 1));
+                yield return null;
+                var rect = (RectTransform)balance.transform;
+                Assert.AreEqual(new Vector2(.5f, 1), rect.anchorMin);
+                Assert.AreEqual(new Vector2(0, -40), rect.anchoredPosition);
+                Assert.AreEqual(-56, ((RectTransform)rect.Find("60_DwellTrack")).anchoredPosition.y);
+                Assert.AreEqual(-60, ((RectTransform)rect.Find("61_DwellFill")).anchoredPosition.y);
+                field.SetValue(layout, Enum.ToObject(field.FieldType, 0));
+                yield return null;
+                Assert.AreEqual(new Vector2(.5f, 0), rect.anchorMin);
+                Assert.AreEqual(new Vector2(0, 28), rect.anchoredPosition);
+                Assert.AreEqual(13, ((RectTransform)rect.Find("60_DwellTrack")).anchoredPosition.y);
+                Assert.AreEqual(9, ((RectTransform)rect.Find("61_DwellFill")).anchoredPosition.y);
+                Assert.IsFalse(timer.gameObject.activeSelf);
+            }
+            finally { field.SetValue(layout, original); }
             binding.enabled = false;
             Assert.That(old.enabled, Is.True);
             Assert.That(legacy.GetComponent<Canvas>().enabled, Is.True);

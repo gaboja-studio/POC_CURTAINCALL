@@ -16,7 +16,7 @@ namespace CurtainCall.Campaign
         Performance,
         /// <summary>쉬는 시간(아침·가이드·공연 사이).</summary>
         RestTime,
-        /// <summary>밤 정비. 타이머 없음, 전원 준비 완료로 끝난다.</summary>
+        /// <summary>밤 정비. 기본 무제한이며, 전원 준비 완료 또는 설정한 제한시간 만료로 끝난다.</summary>
         Night,
         /// <summary>탈출로. 쉬는 시간 타이머는 멈춘다.</summary>
         Escape,
@@ -45,12 +45,14 @@ namespace CurtainCall.Campaign
     {
         /// <summary>쉬는 시간이 아니다.</summary>
         None,
-        /// <summary>B안: 아직 아무도 대기실에서 나오지 않아 멈춰 있다.</summary>
+        /// <summary>옛 B안(대기실에서 나와야 시작) 값. M2에서 쓰지 않지만 전송 숫자를 지키려고 남긴다.</summary>
         WaitingForExit,
         /// <summary>흐르는 중.</summary>
         Running,
         /// <summary>탈출 개시로 멈췄다.</summary>
         Stopped,
+        /// <summary>제한시간 없음. 남은 시간은 유한한 0으로 전송하고 소집 경보를 울리지 않는다.</summary>
+        Unlimited = 4,
     }
 
     /// <summary>런이 끝난 이유. 숫자로 전송하므로 값은 끝에만 추가한다.</summary>
@@ -63,6 +65,8 @@ namespace CurtainCall.Campaign
         EscapeAllRetired,
         /// <summary>한 명 이상 탈출로 목적지 도착 → 엔딩.</summary>
         EscapeSucceeded,
+        /// <summary>호스트가 대기실에서 현재 런을 포기함 → 다음 세대 1일차.</summary>
+        Abandoned,
     }
 
     /// <summary>
@@ -93,6 +97,8 @@ namespace CurtainCall.Campaign
         public int RequiredCount;
         /// <summary>직전 런이 끝난 이유. 세대 1 첫 런은 <see cref="RunEndReason.None"/>.</summary>
         public RunEndReason LastEnd;
+        /// <summary>지금 또는 다음 공연의 난이도 단계(1~3). 공연이 정해지지 않았으면 0. 1일차는 1단계 고정(M2).</summary>
+        public int Difficulty;
 
         public bool IsRunning => Phase != CampaignPhase.None;
 
@@ -104,7 +110,7 @@ namespace CurtainCall.Campaign
             Generation == other.Generation && Day == other.Day && Phase == other.Phase && Rest == other.Rest
             && PerformanceIndex == other.PerformanceIndex && Timer == other.Timer && AlarmRaised == other.AlarmRaised
             && ReadyCount == other.ReadyCount && RequiredCount == other.RequiredCount && LastEnd == other.LastEnd
-            && TrickId == other.TrickId;
+            && TrickId == other.TrickId && Difficulty == other.Difficulty;
 
         internal void Write(FastBufferWriter writer)
         {
@@ -121,6 +127,7 @@ namespace CurtainCall.Campaign
             writer.WriteValueSafe(ReadyCount);
             writer.WriteValueSafe(RequiredCount);
             writer.WriteValueSafe((byte)LastEnd);
+            writer.WriteValueSafe((byte)Difficulty);
         }
 
         internal static CampaignSnapshot Read(FastBufferReader reader)
@@ -139,10 +146,12 @@ namespace CurtainCall.Campaign
             reader.ReadValueSafe(out s.ReadyCount);
             reader.ReadValueSafe(out s.RequiredCount);
             reader.ReadValueSafe(out byte lastEnd);
+            reader.ReadValueSafe(out byte difficulty);
             s.Phase = (CampaignPhase)phase;
             s.Rest = (RestKind)rest;
             s.Timer = (RestTimerState)timer;
             s.LastEnd = (RunEndReason)lastEnd;
+            s.Difficulty = difficulty;
             return s;
         }
     }

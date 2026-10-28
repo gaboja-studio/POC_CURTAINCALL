@@ -34,6 +34,7 @@ namespace CurtainCall.Tightrope
             mover.Teleported += OnTeleported;
             mover.ClearPendingInput(); mover.Simulated = false; mover.Body.enabled = false;
             mover.ResetExternalMotion(true);
+            if (binding.Balance != null) binding.Balance.IsSuspended = true;
             binding.Balance?.SetAirborne(true);
             pendingUntil = 0d;
             PlaceHeldPlayers();
@@ -53,6 +54,7 @@ namespace CurtainCall.Tightrope
         void RestoreBinding(bool placeOnRope)
         {
             var held = binding; binding = null;
+            if (held?.Balance != null) held.Balance.IsSuspended = false;
             if (held == null || held.Mover == null) return;
             var mover = held.Mover;
             mover.Teleported -= OnTeleported;

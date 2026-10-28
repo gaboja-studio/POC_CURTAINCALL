@@ -97,6 +97,11 @@ namespace CurtainCall.DummySpaces
             foreach (var action in actions)
             {
                 string id = action.id;
+                if (id == "backpack")
+                {
+                    if (action.button != null) action.button.gameObject.SetActive(false);
+                    continue;
+                }
                 Listen(action.button, () => Execute(id));
             }
             if (panelToggle != null) Listen(panelToggle, TogglePanel);
@@ -218,7 +223,7 @@ namespace CurtainCall.DummySpaces
                 case "escapeStart": return (waiting != null || exploration != null) && campaign.HasAuthority && phase == CampaignPhase.RestTime;
                 case "room": return exploration != null;
                 case "expire": return exploration != null && campaign.HasAuthority && phase == CampaignPhase.RestTime;
-                case "lost": case "backpack": case "restorePreview": return waiting != null;
+                case "lost": case "restorePreview": return waiting != null;
                 case "catchPreview": return exploration != null;
                 case "server": return Players().Count > 0;
                 case "restore": return waiting != null && ServerPlayer() != null && ServerPlayer().IsServer;
@@ -239,7 +244,6 @@ namespace CurtainCall.DummySpaces
             if (id == "row") { selected = (selected + 1) % escape.InputRows; Refresh(); return; }
             if (id == "server") { serverIndex = (serverIndex + 1) % Players().Count; Refresh(); return; }
             if (id == "lost") { waiting.PreviewLostCount = (waiting.PreviewLostCount + 1) % 4; Refresh(); return; }
-            if (id == "backpack") { waiting.PreviewBackpack = !waiting.PreviewBackpack; Refresh(); return; }
 
             var before = Snapshot();
             var previousResult = diagnostics.Rewards.Latest;
@@ -263,12 +267,12 @@ namespace CurtainCall.DummySpaces
                 case "cheer": title = $"자리 {selected + 1} 환호"; api = "031 AddCheer (정산 전 입력)"; applied = performance.Cheer(SelectedParticipant); break;
                 case "timeout": title = "공연 제한 시간 종료"; api = "031 FinishPerformance(false) → 028"; applied = performance.TimeExpired(); break;
                 case "spend": title = $"공동 자금 {waiting.SpendAmount} 지출"; api = "031 TrySpend / 물품·유료 치료 미연결"; applied = waiting.Spend(); summary = applied ? "지출만 반영했습니다. 상품 지급·치료 완료가 아닙니다." : "잔액 또는 권한을 확인하세요. 지출은 반영되지 않았습니다."; break;
-                case "leave": title = "대기실 출구 입력"; api = "028 NotifyLeftWaitingRoom / 구역은 더미 입력"; applied = Leave(); break;
+                case "leave": title = "대기실 출구 입력"; api = "구역은 더미 입력 / 타이머는 이미 흐름"; applied = Leave(); break;
                 case "escapeStart": title = "탈출 개시 → 탈출로"; api = "028 StartEscape / 전원 집결 가정, 자동 집결 감지 아님"; applied = diagnostics.Invoke("탈출 개시 → StartEscape", diagnostics.Campaign.StartEscape); break;
-                case "room": title = "대기실 구역 입력"; api = "더미 구역 → A/B 안전 조건 조회"; exploration.EnterWaitingRoom(); applied = exploration.Zone == "대기실"; dummy = true; break;
+                case "room": title = "대기실 구역 입력"; api = "더미 구역 → 안전 조건 조회(대기실도 안전하지 않음)"; exploration.EnterWaitingRoom(); applied = exploration.Zone == "대기실"; dummy = true; break;
                 case "stage": title = "무대 입구 + 전원 집결 가정"; api = "더미 구역 → 028 NotifyAllAtStageEntrance"; applied = exploration.EnterStage(); break;
                 case "expire": title = "탐색 타이머 만료 요청"; api = "028 DebugSetRemaining(0) → 다음 Tick"; applied = exploration.Expire(); summary = "요청 후 다음 Tick에서 현행 전환을 확인하세요. 추격 정리 대기는 미연결입니다."; break;
-                case "restorePreview": title = "신체 복구·소지 칸 조회"; api = "030 PlayerCondition.NextRestore → SurvivalRules.ItemSlots"; query = true; applied = true; summary = $"손실 {waiting.PreviewLostCount} → 복구 {waiting.PreviewRestorePart}\n배낭 {(waiting.PreviewBackpack ? "있음" : "없음")} → 소지 {waiting.PreviewSlots}칸\n실제 신체·인벤토리·자금은 바뀌지 않습니다."; diagnostics.Note("규칙 미리보기", title, summary); break;
+                case "restorePreview": title = "신체 복구·소지 칸 조회"; api = "030 PlayerCondition.NextRestore → SurvivalRules.ItemSlots"; query = true; applied = true; summary = $"손실 {waiting.PreviewLostCount} → 복구 {waiting.PreviewRestorePart}\n팔 개수 무관 소지 {waiting.PreviewSlots}칸\n실제 신체·인벤토리·자금은 바뀌지 않습니다."; diagnostics.Note("규칙 미리보기", title, summary); break;
                 case "catchPreview": title = "탐색 잡힘 규칙 조회"; api = "030 SurvivalRules.ResolveCatch / 실제 추격 아님"; query = true; applied = true; summary = $"조회 손실 {GameSettings.Exploration.DummyLostCount} → {exploration.Preview()}\n실제 신체 변경·끌려가기·무대 이동이 아닙니다."; break;
                 case "restore": title = "서버 신체 1부위 복구"; api = "030 NetworkPlayer.ServerRestorePart / 지출·일정 분리"; applied = diagnostics.RestorePlayer(ServerPlayer()); break;
                 case "catch": title = "서버 잡힘 적용"; api = "030 NetworkPlayer.ServerCatch / 현재 장소 일치 확인"; applied = diagnostics.CatchPlayer(ServerPlayer(), escape != null ? SurvivalPlace.EscapeRoute : SurvivalPlace.Exploration); break;
@@ -385,8 +389,8 @@ namespace CurtainCall.DummySpaces
                 else foreach (var p in list)
                     sb.AppendLine($"{(p.ParticipantId == SelectedParticipant ? "▶" : "·")} 자리 {p.Slot + 1}   {(p.Dead ? "사망" : !p.Connected ? "이탈" : performance.HasArrived(p.ParticipantId) ? "도착" : "진행")}   손실 {p.LostCount}   호응 {p.Amount}");
             }
-            if (waiting != null) sb.Append($"복구 조회 손실  {waiting.PreviewLostCount}\n배낭 입력  {(waiting.PreviewBackpack ? "있음" : "없음")}   /   조회 {waiting.PreviewSlots}칸\n더미 지출 요청액  {waiting.SpendAmount}");
-            if (exploration != null) sb.Append($"현재 더미 구역  {exploration.Zone}\n안전 조건  {(exploration.IsSafe ? "안전" : "안전 밖")}   /   방식 {GameSettings.Base.Run.RestTimerMode}\n잡힘 조회 손실  {GameSettings.Exploration.DummyLostCount}");
+            if (waiting != null) sb.Append($"복구 조회 손실  {waiting.PreviewLostCount}\n팔 개수 무관 소지 {waiting.PreviewSlots}칸\n더미 지출 요청액  {waiting.SpendAmount}");
+            if (exploration != null) sb.Append($"현재 더미 구역  {exploration.Zone}\n안전 조건  {(exploration.IsSafe ? "안전" : "안전 밖")}\n잡힘 조회 손실  {GameSettings.Exploration.DummyLostCount}");
             if (escape != null)
             {
                 selected = Mathf.Clamp(selected, 0, escape.InputRows - 1);
@@ -425,7 +429,7 @@ namespace CurtainCall.DummySpaces
             if (waiting != null)
             {
                 if (c.Phase == CampaignPhase.Night) return $"<b>밤 정비</b>   준비 {c.ReadyCount} / {c.RequiredCount}\n모두 '밤 준비'를 누르면 다음 날 아침";
-                if (c.Phase == CampaignPhase.RestTime) return $"<b>쉬는 시간</b>   {(c.Timer == RestTimerState.WaitingForExit ? "출구로 나가면 탐색 시간 시작" : "탐색 시간 흐르는 중")}\n탈출 개시·출구는 왼쪽 패널 [조작]";
+                if (c.Phase == CampaignPhase.RestTime) return $"<b>쉬는 시간</b>   탐색 시간 흐르는 중\n탈출 개시·출구는 왼쪽 패널 [조작]";
                 return "<b>대기실</b>   쉬는 시간·밤 정비에 사용";
             }
             if (exploration != null)
@@ -472,9 +476,7 @@ namespace CurtainCall.DummySpaces
                 float limit = state.Rest == RestKind.Guide ? GameSettings.Base.Run.GuideRestDuration : GameSettings.Base.Run.RestDuration;
                 timer = ClockText(state.TimeRemaining);
                 ratio = limit > 0 ? state.TimeRemaining / limit : 0;
-                heading = state.Timer == RestTimerState.WaitingForExit
-                    ? "탐색 제한 시간 · 첫 출구 입력 대기 (아직 감소하지 않음)"
-                    : state.Timer == RestTimerState.Running ? $"탐색 제한 시간 · 진행 중{(state.AlarmRaised ? " · 소집 경보" : "")}"
+                heading = state.Timer == RestTimerState.Running ? $"탐색 제한 시간 · 진행 중{(state.AlarmRaised ? " · 소집 경보" : "")}"
                     : "탐색 제한 시간 · 정지";
             }
             else if (state.Phase == CampaignPhase.Performance && performance != null)

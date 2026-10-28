@@ -17,6 +17,7 @@ namespace CurtainCall.HumanCannon
         CampaignRun campaign;
         PerformanceRewards rewards;
         string performanceId;
+        string appliedTierStep;
         public static HumanCannonDestination Current { get; private set; }
         public bool PracticeCompleted { get; private set; }
         public bool PracticeFailed { get; private set; }
@@ -54,8 +55,14 @@ namespace CurtainCall.HumanCannon
             }
             bool humanCannon = campaign.State.Phase == CampaignPhase.Performance && campaign.State.TrickId == "HumanCannon";
             if (humanCannon && session.IsHost)
-                rewards.BeginPerformance(HumanCannonHazardCourse.Current != null
-                    ? HumanCannonHazardCourse.Current.Difficulty : difficultyLevel);
+            {
+                var hazards = HumanCannonHazardCourse.Current;
+                int chosen = campaign.State.Difficulty;
+                // 밤 정비에서 고른 단계를 공연마다 한 번, 발사 전 장애물에 맞춘다(발사 뒤에는 장애물 쪽에서 잠근다).
+                string step = $"{campaign.State.Generation}:{campaign.State.Day}:{campaign.State.PerformanceIndex}";
+                if (hazards != null && chosen > 0 && appliedTierStep != step && hazards.SetDifficulty(chosen)) appliedTierStep = step;
+                rewards.BeginPerformance(hazards != null ? hazards.Difficulty : chosen > 0 ? chosen : difficultyLevel);
+            }
             var identity = rewards.State?.Performance;
             if (identity?.TrickId == "HumanCannon" && performanceId != identity.Id)
             {

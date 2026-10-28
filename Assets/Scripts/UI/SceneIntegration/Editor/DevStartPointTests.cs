@@ -32,7 +32,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             var run = new RunState();
             run.DebugStartAt(new RunStartPoint(day, RunStartPhase.Between, 1, "Tightrope"));
             Assert.AreEqual(kind, run.Snapshot.Rest);
-            Assert.AreEqual(GameSettings.Base.Run.RestTimerMode == RestTimerMode.FromRestStart ? RestTimerState.Running : RestTimerState.WaitingForExit, run.Snapshot.Timer);
+            Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer, "M2: 쉬는 시간 시작부터 흐른다");
             Assert.Greater(run.Snapshot.TimeRemaining, 0);
             run.NotifyAllAtStageEntrance();
             Assert.AreEqual(CampaignPhase.Performance, run.Snapshot.Phase);

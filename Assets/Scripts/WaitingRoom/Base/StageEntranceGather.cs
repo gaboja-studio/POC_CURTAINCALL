@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Survival;
 using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
@@ -45,6 +46,16 @@ namespace CurtainCall.WaitingRoom
             area = GetComponent<BoxCollider>();
             ApplyArea();
         }
+
+        // 쉬는 시간 만료 잡힘 판정(RestTimeoutCatch)에 무대 입구 통로 안 여부를 알려 준다.
+        void OnEnable() => RestTimeoutCatch.IsAtStageEntrance = IsInside;
+        void OnDisable()
+        {
+            if (RestTimeoutCatch.IsAtStageEntrance == (Func<NetworkPlayer, bool>)IsInside) RestTimeoutCatch.IsAtStageEntrance = null;
+        }
+
+        /// <summary>이 플레이어가 무대 입구 통로 판정 상자 안에 있는지.</summary>
+        public bool IsInside(NetworkPlayer player) => player != null && area != null && Contains(player.transform.position);
 
         void OnValidate() => ApplyArea();
 

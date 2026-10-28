@@ -315,8 +315,10 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Step(1.6f);
             Assert.That(balance.RedTimeRatio, Is.EqualTo(.8f).Within(.0001f));
 
-            // 봉에 매달리면 공중 상태라 균형 계산 자체는 멈춘다.
+            // 최신 봉 바인딩처럼 일반 공중 균형이 켜져 있어도 매달림은 계산을 멈춘다.
             balance.SetAirborne(true);
+            balance.ContinueWhileAirborne = true;
+            balance.IsSuspended = true;
             Step(1f);
             Assert.That(balance.RedTimeRatio, Is.EqualTo(.8f).Within(.0001f), "공중 정지만으로는 위험이 줄지 않는다.");
 
