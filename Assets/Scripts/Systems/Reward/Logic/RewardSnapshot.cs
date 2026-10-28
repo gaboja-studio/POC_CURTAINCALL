@@ -45,6 +45,7 @@ namespace CurtainCall.Reward
         public int LostCount { get; }
         public bool Dead { get; }
         public bool Connected { get; }
+        /// <summary>현재 호응도. 사망자는 사망 전 값으로 고정(정산은 절반 인정), 이탈자는 0.</summary>
         public long Amount { get; }
 
         public RewardSegment(string participantId, ulong clientId, int slot, int startingLostCount, int lostCount,
@@ -52,7 +53,7 @@ namespace CurtainCall.Reward
         {
             if (string.IsNullOrWhiteSpace(participantId) || participantId.Length > 100 || slot < -1 || slot > 63
                 || startingLostCount < 0 || startingLostCount > 4 || lostCount < 0 || lostCount > 4 || amount < 0
-                || ((!connected || dead) && amount != 0)) throw new ArgumentException("호응 구간이 올바르지 않습니다.");
+                || (!connected && amount != 0)) throw new ArgumentException("호응 구간이 올바르지 않습니다.");
             ParticipantId = participantId;
             ClientId = clientId;
             Slot = slot;

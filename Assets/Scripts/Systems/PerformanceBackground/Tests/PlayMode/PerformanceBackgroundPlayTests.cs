@@ -58,9 +58,9 @@ namespace CurtainCall.PerformanceBackground.Tests
         {
             performance = SceneManager.CreateScene("Tightrope");
             SceneManager.SetActiveScene(performance);
-            // CreateScene은 sceneLoaded를 발행하지 않으므로 빈 additive 씬 로드로 실제 이벤트를 발생시킨다.
-            yield return SceneManager.LoadSceneAsync("DummyExploration", LoadSceneMode.Additive);
-            next = SceneManager.GetSceneByName("DummyExploration");
+            // CreateScene은 sceneLoaded를 발행하지 않는다. 빈 임시 씬의 sceneUnloaded 이벤트로 재조정한다.
+            trigger = SceneManager.CreateScene("PerformanceBackgroundEventTrigger");
+            yield return SceneManager.UnloadSceneAsync(trigger);
             yield return WaitFor(() => Background.isLoaded && Placement() != null);
             Assert.AreEqual(performance, SceneManager.GetActiveScene());
             Assert.That(Placement().position.z, Is.EqualTo(55.833333f).Within(0.001f));
@@ -79,8 +79,8 @@ namespace CurtainCall.PerformanceBackground.Tests
         {
             performance = SceneManager.CreateScene("Tightrope");
             SceneManager.SetActiveScene(performance);
-            yield return SceneManager.LoadSceneAsync("DummyExploration", LoadSceneMode.Additive);
-            trigger = SceneManager.GetSceneByName("DummyExploration");
+            trigger = SceneManager.CreateScene("PerformanceBackgroundEventTrigger");
+            yield return SceneManager.UnloadSceneAsync(trigger);
             yield return WaitFor(() => Background.isLoaded && Placement() != null);
             var initialBackground = Background;
             next = SceneManager.CreateScene("HumanCannon");
@@ -91,7 +91,6 @@ namespace CurtainCall.PerformanceBackground.Tests
             Assert.AreEqual(1, BackgroundCount());
             SceneManager.SetActiveScene(original);
             yield return SceneManager.UnloadSceneAsync(next);
-            yield return SceneManager.UnloadSceneAsync(trigger);
             yield return WaitFor(() => !Background.isLoaded && !LoaderBusy());
         }
 
@@ -99,8 +98,8 @@ namespace CurtainCall.PerformanceBackground.Tests
         public IEnumerator LeavingWhileLoadIsPendingDoesNotLeaveBackgroundBehind()
         {
             performance = SceneManager.CreateScene("HumanCannon");
-            yield return SceneManager.LoadSceneAsync("DummyExploration", LoadSceneMode.Additive);
-            next = SceneManager.GetSceneByName("DummyExploration");
+            trigger = SceneManager.CreateScene("PerformanceBackgroundEventTrigger");
+            yield return SceneManager.UnloadSceneAsync(trigger);
             yield return null;
             yield return SceneManager.UnloadSceneAsync(performance);
             // 진행 중인 비동기 로드가 끝난 뒤에도 배경이 남지 않는지 확인한다.

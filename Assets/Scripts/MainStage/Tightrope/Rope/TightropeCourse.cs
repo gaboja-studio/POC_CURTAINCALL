@@ -382,6 +382,7 @@ namespace CurtainCall.Tightrope
             if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return;
             if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)) return;
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return;
+            if (TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(player)) return; // 줄 아래에 매달려 버티는 중
             if (player == null || player.State != PlayerState.Normal) return;
             if (player.transform.position.y >= transform.position.y - Shape.FallDepth) return;
 

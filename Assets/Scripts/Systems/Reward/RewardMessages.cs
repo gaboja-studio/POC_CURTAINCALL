@@ -32,10 +32,11 @@ namespace CurtainCall.Reward
         public string judgement;
         public long segment;
         public long settlement;
+        public long completionBonus;
         public bool hasDistance;
         public double maximumDistance;
         public RewardSegment ReadSegment() => new(id, client, slot, start, end, dead, connected, segment);
-        public PerformanceParticipantResult ReadResult() => new(id, client, slot, start, end, dead, connected, judgement, segment, settlement, hasDistance ? maximumDistance : null);
+        public PerformanceParticipantResult ReadResult() => new(id, client, slot, start, end, dead, connected, judgement, segment, settlement, hasDistance ? maximumDistance : null, completionBonus);
         public static RewardPersonData From(RewardSegment value) => new()
         {
             id = value.ParticipantId, client = value.ClientId, slot = value.Slot, start = value.StartingLostCount,
@@ -45,7 +46,7 @@ namespace CurtainCall.Reward
         {
             id = value.ParticipantId, client = value.ClientId, slot = value.Slot, start = value.StartingLostCount,
             end = value.EndingLostCount, dead = value.Dead, connected = value.Connected, segment = value.Segment,
-            judgement = value.Judgement, settlement = value.Settlement,
+            judgement = value.Judgement, settlement = value.Settlement, completionBonus = value.CompletionBonus,
             hasDistance = value.MaximumDistance.HasValue, maximumDistance = value.MaximumDistance ?? 0
         };
     }
@@ -114,7 +115,7 @@ namespace CurtainCall.Reward
         public int cheer;
         public int jeer;
         public int cap;
-        public int survivalBonus;
+        public int completionBonus;
         public int cutBonus;
         public RewardPersonData[] segments;
         public bool hasLatest;
@@ -134,7 +135,7 @@ namespace CurtainCall.Reward
             for (int i = 0; i < people.Length; i++) people[i] = segments[i].ReadSegment();
             for (int i = 0; i < entries.Length; i++) entries[i] = ledger[i].Read();
             return new RewardSnapshot(session, generation, revision, balance, hasPerformance ? performance.Read() : null, open,
-                new RewardRules(cheer, jeer, cap, survivalBonus, cutBonus), people, hasLatest ? latest.Read() : null,
+                new RewardRules(cheer, jeer, cap, completionBonus, cutBonus), people, hasLatest ? latest.Read() : null,
                 ledgerCount, ledgerStart, entries);
         }
 
@@ -149,7 +150,7 @@ namespace CurtainCall.Reward
                 session = value.SessionId, generation = value.Generation, revision = value.Revision, balance = value.Balance,
                 hasPerformance = value.Performance != null, performance = RewardIdentityData.From(value.Performance), open = value.IsOpen,
                 cheer = value.Rules.Cheer, jeer = value.Rules.Jeer, cap = value.Rules.Cap,
-                survivalBonus = value.Rules.AllSurvivedBonus, cutBonus = value.Rules.CutBonus,
+                completionBonus = value.Rules.CompletionBonus, cutBonus = value.Rules.CutBonus,
                 segments = people, hasLatest = value.Latest != null, latest = RewardResultData.From(value.Latest), ledgerCount = value.LedgerCount,
                 ledgerStart = value.LedgerStart, ledger = entries
             };

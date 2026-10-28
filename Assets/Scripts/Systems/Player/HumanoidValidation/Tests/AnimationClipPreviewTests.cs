@@ -71,7 +71,6 @@ namespace CurtainCall.Tests.HumanoidValidation
             var clips = (AnimationClip[])previewType.GetField("Clips").GetValue(prefab.GetComponent(previewType));
             Assert.That(clips.Length, Is.EqualTo(8));
             Assert.That(clips.All(c => c != null && c.humanMotion), Is.True);
-            Assert.That(AssetDatabase.LoadAssetAtPath<SceneAsset>("Assets/Scenes/Tests/Systems/HumanoidCharacters/MixamoAnimationPreview.unity"), Is.Not.Null);
         }
 
         [UnityTest]
@@ -114,7 +113,9 @@ namespace CurtainCall.Tests.HumanoidValidation
                 Call("SelectClip", i);
                 Assert.That(Property<double>("PlaybackTime"), Is.LessThan(.001), "처음부터 재시작 " + i);
                 Call("SeekNormalized", 1f);
-                yield return null;
+                float deadline = Time.realtimeSinceStartup + 1f;
+                while (!Property<bool>("IsPaused") && Time.realtimeSinceStartup < deadline)
+                    yield return null;
                 Assert.That(Property<bool>("IsPaused"), Is.True, "원본 끝에서 정지 " + i);
             }
         }

@@ -155,7 +155,7 @@ namespace CurtainCall.UI.SceneIntegration
                 if (progress.HasValue) maximum = Mathf.Max(maximum ?? 0, progress.Value);
                 int id = members.Count + 1;
                 bool local = NetworkPlayer.Local != null && NetworkPlayer.Local.OwnerClientId == person.ClientId;
-                string status = person.Dead ? "사망" : !person.Connected ? "연결 종료" : "생존";
+                string status = person.Dead ? "사망(호응 절반 인정)" : !person.Connected ? "연결 종료" : person.Arrived ? "완주" : "생존";
                 members.Add(new ResultsMemberPresentation(id, $"단원 {person.Slot + 1}{(local ? " (나)" : "")} · {status}",
                     progress, (person.MaximumDistance.HasValue ? $"최대 {person.MaximumDistance:0.0}m" : "기록 없음") + $" · +{person.Settlement}",
                     Color.HSVToRGB((id - 1) * .23f, .5f, 1), local));
@@ -169,7 +169,7 @@ namespace CurtainCall.UI.SceneIntegration
             return new ResultsPresentation(result.Performance.Id, result.Performance.Id, outcome, heading,
                 $"{result.Performance.Day}일차 · {(result.Performance.TrickId == "Tightrope" ? "외줄타기" : "인간대포")}", time,
                 "개인 최대 도달 거리", result.CourseLength.HasValue ? $"출발 0m → 도착 {result.CourseLength:0.0}m" : "코스 기록 없음",
-                maximum, $"기본 자금 ({result.Participants.Count}명 × 10)", $"+{result.BaseReward}", "호응 보상", $"+{result.BonusReward}", "공동 자금",
+                maximum, "호응 보상 (생존 ×2 · 사망 ½×2)", $"+{result.CheerReward}", $"완주 보너스 ({result.Participants.Count(p => p.Arrived)}명)", $"+{result.CompletionReward}", "공동 자금",
                 $"이번 공연 +{result.Income}" + (entry != null ? $" · {entry.Balance - entry.Amount} → {entry.Balance}" : ""), (entry?.Balance ?? rewards?.Balance ?? 0).ToString(),
                 $"다음 공간으로 이동 {Mathf.Max(0, lastCountdown)}초", "", false, members.ToArray());
         }

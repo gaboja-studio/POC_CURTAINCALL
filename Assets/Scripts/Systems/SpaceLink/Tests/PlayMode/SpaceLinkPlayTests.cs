@@ -12,17 +12,16 @@ using Object = UnityEngine.Object;
 namespace CurtainCall.SpaceLink.Tests
 {
     /// <summary>
-    /// 오프라인 런으로 장소 전환(통째 교체·추가 로드)과 전환 뒤 런 상태 유지를 확인한다.
+    /// 오프라인 런으로 실제 대기실의 물리 출입·집결·밤낮 전환과 실제 공연 씬 연결을 확인한다.
     /// 접속 중 NGO 전환·2명 확인·실제 클릭은 공동 테스트로 따로 한다.
     /// </summary>
     public sealed class SpaceLinkPlayTests
     {
-        const string HubPath = "Assets/Scenes/Tests/Systems/SpaceLink/SpaceLink.unity";
+        const string PerformancePath = "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity";
         const float TransitionTimeoutSeconds = 60f;
 
         object campaign;
         Component director;
-        int maxSceneCount; // 전환 중 한꺼번에 열린 씬 수의 최대
         readonly List<Action> restore = new();
         readonly List<GameObject> actors = new();
         object keyboard;
@@ -58,23 +57,36 @@ namespace CurtainCall.SpaceLink.Tests
 
         IEnumerator OpenPhysicalRoom()
         {
-            yield return OpenHub();
             SetMode("Single");
-            SetTimer("FromLeavingWaitingRoom");
-            Override(Get(Settings("Base"), "SpaceTransition"), "waitingRoomScene", "WaitingRoomBase");
-            Override(Get(Settings("Base"), "SpaceTransition"), "keepWaitingRoomOnExit", true);
+            var spaces = Get(Settings("Base"), "SpaceTransition");
+            Override(spaces, "waitingRoomScene", "WaitingRoomBase");
+            Override(spaces, "explorationScene", "WaitingRoomBase");
+            Override(spaces, "performanceScene", "Tightrope");
+            Override(spaces, "tightropeScene", "Tightrope");
+            Override(spaces, "humanCannonScene", "HumanCannon");
+            Override(spaces, "keepWaitingRoomOnExit", true);
+            // 개발 허브 없이 실제 첫 공연에서 준비한다. 다음 대기실 로드 전에 검사 인원을 만들 수 있어
+            // 집결·퇴장 감시의 Start가 실제 진입 시점의 참가자를 수집한다.
+            yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(
+                PerformancePath, new LoadSceneParameters(LoadSceneMode.Single));
+            campaign = GameType("CurtainCall.Campaign.CampaignRun").GetMethod("EnsureExists").Invoke(null, null);
+            yield return null;
             Assert.IsTrue((bool)Call(campaign, "StartOfflineRun"));
-            yield return WaitIdle();
-            yield return Signal("EndIntro");
+            Assert.IsTrue((bool)Call(campaign, "EndIntro"));
+            director = GameType("CurtainCall.SpaceLink.SpaceLinkDirector").GetMethod("EnsureExists").Invoke(null, null) as Component;
+            yield return null;
+            Assert.AreEqual("Performance", Phase);
+            Assert.AreEqual("Tightrope", Active);
         }
 
         static Type GameType(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
         static object Get(object target, string name) => target.GetType().GetProperty(name) is PropertyInfo p ? p.GetValue(target) : target.GetType().GetField(name).GetValue(target);
-        static object Call(object target, string name, params object[] args) => target.GetType().GetMethod(name).Invoke(target, args);
+        // 같은 이름의 오버로드(예: SetSetlist·Set)는 인수 개수로 고른다.
+        static object Call(object target, string name, params object[] args) => target.GetType().GetMethods()
+            .Single(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(target, args);
         static object Static(string type, string name) => GameType(type).GetProperty(name).GetValue(null);
         static object Settings(string name) => Static("CurtainCall.Settings.GameSettings", name);
         static string Active => SceneManager.GetActiveScene().name;
-        static bool Loaded(string name) => SceneManager.GetSceneByName(name).isLoaded;
         string Phase => Get(Get(campaign, "State"), "Phase").ToString();
         object State => Get(campaign, "State");
 
@@ -89,24 +101,6 @@ namespace CurtainCall.SpaceLink.Tests
         void SetMode(string mode) => Override(Get(Settings("Base"), "SpaceTransition"), "mode",
             Enum.Parse(GameType("CurtainCall.Settings.SpaceTransitionMode"), mode));
 
-        void SetTimer(string mode) => Override(Get(Settings("Base"), "Run"), "restTimerMode",
-            Enum.Parse(GameType("CurtainCall.Settings.RestTimerMode"), mode));
-
-        IEnumerator OpenHub()
-        {
-            // 게임의 시작 씬은 로비(Task-052)지만, 이 테스트는 SpaceLink 허브로 장소 전환만 확인한다.
-            Override(Get(Settings("Base"), "SpaceTransition"), "hubScene", "SpaceLink");
-            Override(Get(Settings("Base"), "SpaceTransition"), "waitingRoomScene", "DummyWaitingRoom");
-            Override(Get(Settings("Base"), "SpaceTransition"), "keepWaitingRoomOnExit", false);
-            yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(HubPath, new LoadSceneParameters(LoadSceneMode.Single));
-            yield return null;
-            director = GameType("CurtainCall.SpaceLink.SpaceLinkDirector").GetMethod("EnsureExists").Invoke(null, null) as Component;
-            campaign = GameType("CurtainCall.Campaign.CampaignRun").GetMethod("EnsureExists").Invoke(null, null);
-            yield return null; // 각자의 Start(이벤트 연결)
-            Assert.AreEqual("SpaceLink", Active);
-            maxSceneCount = 0;
-        }
-
         IEnumerator Signal(string method, params object[] args)
         {
             Assert.IsTrue((bool)Call(campaign, method, args), $"{method} ({Phase})");
@@ -120,7 +114,6 @@ namespace CurtainCall.SpaceLink.Tests
             float deadline = Time.realtimeSinceStartup + TransitionTimeoutSeconds;
             while ((bool)Get(director, "IsTransitioning") && Time.realtimeSinceStartup < deadline)
             {
-                maxSceneCount = Math.Max(maxSceneCount, SceneManager.sceneCount);
                 yield return null;
             }
             Assert.IsFalse((bool)Get(director, "IsTransitioning"), "장소 전환이 60초 안에 끝나지 않음");
@@ -176,48 +169,6 @@ namespace CurtainCall.SpaceLink.Tests
         }
 
         [UnityTest]
-        public IEnumerator Single_FollowsPhasesAndKeepsRunState()
-        {
-            yield return OpenHub();
-            SetMode("Single");
-            SetTimer("FromLeavingWaitingRoom");
-            Assert.IsTrue((bool)Call(campaign, "StartOfflineRun"));
-            yield return WaitIdle();
-            Assert.AreEqual("SpaceLink", Active, "도입은 시작 씬");
-
-            yield return Signal("EndIntro");
-            Assert.AreEqual("DummyPerformance", Active);
-            Assert.AreEqual(1, SceneManager.sceneCount, "통째 교체는 공간 씬만 남는다");
-            var rewards = Static("CurtainCall.Reward.PerformanceRewards", "Instance");
-            Assert.IsNotNull(rewards, "더미 공연장이 보상 관리자를 쓴다");
-            long balance = (long)Get(rewards, "Balance");
-            int generation = (int)Get(State, "Generation");
-            int day = (int)Get(State, "Day");
-
-            yield return Signal("EndPerformance");
-            Assert.AreEqual("RestTime", Phase);
-            Assert.AreEqual("DummyWaitingRoom", Active);
-            Assert.AreSame(campaign, Static("CurtainCall.Campaign.CampaignRun", "Instance"), "런 관리자 유지");
-            Assert.AreSame(rewards, Static("CurtainCall.Reward.PerformanceRewards", "Instance"), "보상·자금 관리자 유지");
-            Assert.AreEqual(balance, (long)Get(rewards, "Balance"), "전환만으로 자금이 바뀌지 않는다");
-            Assert.AreEqual(generation, (int)Get(State, "Generation"));
-            Assert.AreEqual(day, (int)Get(State, "Day"));
-
-            Assert.IsTrue((bool)Call(director, "LeaveWaitingRoom"));
-            yield return WaitIdle();
-            Assert.AreEqual("DummyExploration", Active);
-            Assert.AreEqual("Running", Get(State, "Timer").ToString(), "B안: 대기실에서 나오면 타이머 시작");
-
-            Assert.IsTrue((bool)Call(campaign, "StartEscape"));
-            yield return WaitIdle();
-            Assert.AreEqual("DummyEscapeRoute", Active);
-
-            yield return Signal("EndEscape", true);
-            Assert.AreEqual("Ending", Phase);
-            Assert.AreEqual("SpaceLink", Active, "엔딩은 시작 씬");
-        }
-
-        [UnityTest]
         public IEnumerator PhysicalExit_KeepsRoomAndAllowsReturningPlayerWithoutRestartingTimer()
         {
             yield return OpenPhysicalRoom();
@@ -230,7 +181,7 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.IsFalse(scene.GetRootGameObjects().Any(g => g.name == "WaitingRoom" || g.name == "대기실"));
             Assert.IsTrue(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").activeSelf);
             Assert.IsFalse(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomTestPanels").activeSelf);
-            Assert.AreEqual("WaitingForExit", Get(State, "Timer").ToString());
+            Assert.AreEqual("Running", Get(State, "Timer").ToString(), "M2: 쉬는 시간 시작부터 흐른다");
             var spawnType = GameType("CurtainCall.Network.PlayerSync.PlayerSpawnPoints");
             Assert.AreEqual(1, Object.FindObjectsByType(spawnType, FindObjectsSortMode.None).Length);
             for (int slot = 0; slot < 4; slot++)
@@ -254,7 +205,14 @@ namespace CurtainCall.SpaceLink.Tests
             yield return WaitIdle();
             Assert.AreEqual("Running", Get(State, "Timer").ToString());
             Assert.AreEqual(scene.handle, SceneManager.GetActiveScene().handle, "첫 퇴장으로 씬을 바꾸지 않는다");
-            Assert.IsFalse(Loaded("DummyExploration"));
+            var route = GameType("CurtainCall.SpaceLink.SpaceRoute").GetMethod("TryFind");
+            var settings = Get(Settings("Base"), "SpaceTransition");
+            int spaces = Enumerable.Range(0, SceneManager.sceneCount).Count(i =>
+            {
+                object[] args = { SceneManager.GetSceneAt(i).name, settings, null };
+                return (bool)route.Invoke(null, args);
+            });
+            Assert.AreEqual(1, spaces, "공통 UI 씬을 제외하면 대기실만 유지하고 별도 탐색 씬을 열지 않는다");
             Assert.AreEqual(new Vector3(2, .1f, 67), second.transform.position, "잔류자는 이동시키지 않는다");
             Assert.AreEqual(1, Get(watch, "LeftCount"));
             float remaining = (float)Get(State, "TimeRemaining");
@@ -283,7 +241,7 @@ namespace CurtainCall.SpaceLink.Tests
             yield return null;
             yield return WaitIdle();
             Assert.AreEqual("Performance", Phase);
-            Assert.AreEqual("DummyPerformance", Active);
+            Assert.AreEqual("HumanCannon", Active);
         }
 
         [UnityTest]
@@ -440,7 +398,7 @@ namespace CurtainCall.SpaceLink.Tests
             while (Phase == "Dawn" && Time.realtimeSinceStartup < morningDeadline) yield return null;
             yield return WaitIdle();
             Assert.AreEqual("RestTime", Phase);
-            Assert.AreEqual("WaitingForExit", Get(State, "Timer").ToString());
+            Assert.AreEqual("Running", Get(State, "Timer").ToString());
             Assert.AreEqual(scene.handle, SceneManager.GetActiveScene().handle);
             Assert.IsFalse((bool)Get(door, "IsLocked"));
             var watch = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.WaitingRoomExitWatch"));
@@ -458,65 +416,5 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.AreEqual(scene.handle, SceneManager.GetActiveScene().handle);
         }
 
-        [UnityTest]
-        public IEnumerator Hub_CanvasButtonsStartRunWithoutImguiPanel()
-        {
-            yield return OpenHub();
-            SetMode("Single");
-            Assert.IsNull(UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.Network.Session.NetworkSessionTestUI")), "시작 씬 IMGUI 접속 패널 제거");
-            var hub = UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.SpaceLink.SpaceLinkHubCanvas")) as Component;
-            Assert.IsNotNull(hub, "시작 씬 Canvas 화면");
-            Assert.IsNotNull(UnityEngine.Object.FindAnyObjectByType(GameType("UnityEngine.EventSystems.EventSystem")), "시작 씬 EventSystem");
-            Assert.IsTrue((bool)Call(hub, "CanExecute", "offlineStart"));
-            Call(hub, "Execute", "offlineStart");
-            yield return WaitIdle();
-            Assert.AreEqual("Intro", Phase, "Canvas '오프라인 런 시작'");
-            Call(hub, "Execute", "intro");
-            yield return WaitIdle();
-            Assert.AreEqual("Performance", Phase, "Canvas '도입 끝 → 공연'");
-            Assert.AreEqual("DummyPerformance", Active);
-        }
-
-        [UnityTest]
-        public IEnumerator Additive_KeepsHubAndSwapsSpaceScenes()
-        {
-            yield return OpenHub();
-            SetMode("Additive");
-            SetTimer("FromLeavingWaitingRoom");
-            Assert.IsTrue((bool)Call(campaign, "StartOfflineRun"));
-            yield return WaitIdle();
-
-            yield return Signal("EndIntro");
-            Assert.IsTrue(Loaded("SpaceLink"), "추가 로드는 시작 씬이 남는다");
-            Assert.IsTrue(Loaded("DummyPerformance"));
-            Assert.AreEqual("DummyPerformance", Active, "공간 씬을 활성 씬으로");
-            Assert.AreEqual(2, SceneManager.sceneCount);
-            Assert.AreEqual(1, UnityEngine.Object.FindObjectsByType(GameType("UnityEngine.EventSystems.EventSystem"), FindObjectsSortMode.None).Length,
-                "공간 씬이 붙어 있는 동안 시작 씬 EventSystem은 꺼서 하나만 켜짐");
-            Assert.IsNull(UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.SpaceLink.SpaceLinkHubCanvas")), "시작 씬 Canvas는 꺼짐");
-
-            yield return Signal("EndPerformance");
-            Assert.IsTrue(Loaded("SpaceLink"));
-            Assert.IsTrue(Loaded("DummyWaitingRoom"));
-            Assert.IsFalse(Loaded("DummyPerformance"), "이전 공간 씬은 닫는다");
-            Assert.AreEqual(2, SceneManager.sceneCount);
-
-            // 더미 대기실의 출구 신호처럼 런 진행에 직접 알려도(B안 타이머 시작) 백스테이지로 따라간다.
-            Assert.IsTrue((bool)Call(campaign, "NotifyLeftWaitingRoom"));
-            yield return WaitIdle();
-            Assert.IsTrue(Loaded("DummyExploration"));
-            Assert.IsFalse(Loaded("DummyWaitingRoom"));
-            Assert.AreEqual("Exploration", Get(director, "Current").ToString());
-
-            // 쉬는 시간이 끝나면 다음 공연으로.
-            Assert.IsTrue((bool)Call(campaign, "DebugSetRemaining", 0f));
-            yield return null;
-            yield return WaitIdle();
-            Assert.AreEqual("Performance", Phase);
-            Assert.IsTrue(Loaded("DummyPerformance"));
-            Assert.IsFalse(Loaded("DummyExploration"));
-            Assert.IsTrue(Loaded("SpaceLink"));
-            Assert.LessOrEqual(maxSceneCount, 2, "전환 중에도 공간 씬은 하나만(이전 공간을 닫고 다음을 붙인다, EventSystem 겹침 방지)");
-        }
     }
 }

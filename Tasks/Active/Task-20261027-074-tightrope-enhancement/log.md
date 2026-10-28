@@ -1,0 +1,29 @@
+# Log
+
+- 2026-10-27 작업 세팅: 사용자 요청에 따라 `feat/tight-rope/enhancement`에 Task-074를 연결하고 담당자를 @lakuase2로 설정했다. 게임 코드·씬 수정은 하지 않았다. 다음 작업은 현황 조사와 고도화 범위·수용 기준 구체화다.
+- 초기 doctor(-SkipEditor): FAIL — 현 브랜치에 대응하는 Active Task 없음. 이번 Task 생성으로 누락을 보완했다. unity-cli 버전 문서 차이와 gh 로그인 필요 경고가 있었다. 문서 세팅에는 영향 없으며 Unity CLI 사용·커밋 시 각각 확인한다. 동일 작업의 doctor는 반복하지 않았다.
+
+- 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(Unity 변경 없음); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-10-27 추격 불 연출: 빨간 상자였던 추격 불을 파티클 불벽(`Tightrope/Prefabs/ChaseFire/ChaseFireWall.prefab`: 불꽃·밑불·불씨·주황 점광원, 생성 텍스처·URP 가산 머티리얼)으로 교체했다. `FireView.chaseEffect`에 연결하면 실행 중 추격 거리로 이동하고 X 배율로 코스 폭(19m)을 맞춘다. 비우면 기존 상자로 돌아간다. `Tightrope.unity`의 추격 시작 위치(z=-6)에 배치해 편집 화면에서 볼 수 있다. 플레이 중 이동과 화면 느낌은 사람이 확인해야 한다. 씬 저장 시 TMP 글자색 오버라이드와 vivox `Settings.json`이 에디터에 의해 함께 바뀌었다.
+- 2026-10-27 수평톱 외형·이펙트: MoHoDoo의 예외 허용에 따라 공용 아트 키트 `HorizontalSaw.prefab`·`HorizontalSaw.mat`을 수정했다. 크기(외형 1.2m·판정 1.0m·두께 0.1m)는 유지했다. 날은 밝은 강철로 바꾸고 0.09m로 얇게 했으며, 빨강 허브·노랑 경고 링(발광)과 불꽃 스파크(`SawSpark.mat/png`)를 더했다. 스파크는 이동 거리 기준(9개/m)으로 나와 발판으로 멈춘 동안에는 나오지 않는다. `TightropePreparedAssetsTests` 11/11 통과, `PreparedArtFollowsSupportRemovalPoleMotionAndSawRebuild` 통과. `SavedTightropeArtAndFixedLevelOneDensityWorkWithoutRuntimeRebinding`은 활성 수평톱 수 10 기대·9 실제로 실패하며, 원본 프리팹으로 되돌려도 같아 기존 실패다(밀도·배치 설정 확인 필요). 저장 중 `Pretendard-Bold SDF.asset`이 에디터에 의해 함께 바뀌었다.
+
+- 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-10-27 수평톱 외형 재수정: 사용자 피드백(빨강 허브·노랑 링이 별로)에 따라 허브·링과 해당 머티리얼을 제거했다. 외부 모델 날 대신 생성 메시 `HorizontalSawBlade.asset`(갈고리형 톱니 18개, 날끝 지름 1.2m·두께 0.09m, 회전 방향으로 날끝)을 넣고 `HorizontalSawBody.mat` 어두운 몸체(0.62m)·강철 축으로 대비를 줬다. 스파크는 유지했다. `TightropePreparedAssetsTests` 11/11 통과.
+- 2026-10-27 수평톱 중앙 금속화: 사용자 요청으로 어두운 몸체를 없애고 날판 전체를 동심원 연마 강철(`HorizontalSawBrushed.png`)로 바꿨다. 원형톱 표식으로 중앙 플랜지(`HorizontalSawFlange.mat`)·볼트·축 구멍(`HorizontalSawSlot.mat`)을 더했다. 팽창 슬롯 검은 선은 사용자 요청으로 뺐다. `HorizontalSawBody.mat`은 삭제했다. `TightropePreparedAssetsTests` 11/11, `PreparedArtFollowsSupportRemovalPoleMotionAndSawRebuild` 통과.
+- 2026-10-27 수평톱 위협적 외형: 사용자 요청으로 날 메시를 앞으로 굽은 갈고리 톱니 14개(깊은 홈, 날끝 지름 1.2m 유지)로 바꾸고 귀 자르기 삼각분할로 생성했다. 톱니 영역은 그을린 어두운 쇠, 날끝은 주황 발광(`HorizontalSawHeat.png` 발광 맵)으로 달궈진 느낌을 줬다. 중앙은 검은 플랜지·회색 볼트·축 구멍. `TightropePreparedAssetsTests` 11/11 통과.
+- 2026-10-27 수평톱 금속감: 주황 발광이 싸 보인다는 피드백으로 발광·그을린 톱니를 제거하고 `HorizontalSawHeat.png`를 삭제했다. 날 메시 테두리에 0.009m 모따기를 넣어 금속 하이라이트를 만들고, 금속·광택 맵(`HorizontalSawGloss.png`: 날판 반무광 0.6~0.78, 톱니 0.9)과 중립 강철색을 적용했다. 금속도 1은 기본 하늘 반사로 파랗게 떠 0.85로 낮췄다. 중앙은 어두운 금속 플랜지·연마 볼트·축 구멍. `TightropePreparedAssetsTests` 11/11 통과.
+- 2026-10-27 수평톱 원거리 외곽선: 실행 중 확인 결과 `TightropeOutline` 3px(화면 고정)이 거의 옆에서 보이는 얇은 가로 톱을 멀리서 검은 막대로 덮고, 중앙 원판 메시들이 날 안쪽에 검은 고리를 만들었다. `TightropeSaws`에서 가로 톱만 카메라 거리 5m까지 3px, 14m에서 0이 되도록 테두리를 줄였다. 중앙 플랜지·볼트·축 구멍은 날 텍스처에 그리고 별도 메시와 `HorizontalSawFlange/Slot.mat`을 삭제했으며 날 두께를 0.1m로 맞췄다. Play 중 3/7/12/25m 촬영으로 확인. Tightrope 에디터 테스트 267개 중 266 통과, 실패 1개 `PiggybackHopUsesSameHeightAndGravityAsRopeJump`(목마 점프 높이 0.9 기대·1.35 실제)는 톱과 무관. `PreparedArtFollowsSupportRemovalPoleMotionAndSawRebuild`는 아래 검사 참고.
+
+- 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-10-27 톱날 경로 선 비활성화: 사용자 요청으로 `TightropeSaws.Paths.cs`에 `showSawPaths`(기본 꺼짐) 인스펙터 토글을 추가했다. 꺼지면 가로·정면·협동·해제 톱 경로 LineRenderer를 `forceRenderingOff`로 그리지 않고 경로 계산·활성 상태는 유지한다. Play 중 활성 9개·표시 0개 확인, `SawLaserPathsFollowActualRoutesAndResetWithoutAddingCollision` 통과. 아트 키트 readme의 "전기톱 경로 표시" 항목은 현재 기본값과 달라졌다.
+- 2026-10-28 톱날 스파크 확대: 사용자 요청으로 `HorizontalSaw.prefab` Sparks 시작 크기를 0.035~0.07m에서 0.06~0.12m로, 늘임 길이 배율을 1.5에서 2로 올렸다. 방출량·속도·수명은 유지. Play 중 4m 촬영으로 확인.
+- 2026-10-28 균형 위험 게이지 깜빡임: 사용자 요청으로 상단 위험 게이지(P1 Balance `61_DwellFill`)가 70% 이상이면 `60_DwellTrack` 테두리를 빨간 외곽선(5px)으로 깜빡이게 했다. 70%에서 초당 3회, 100%에 가까울수록 7회까지 빨라진다. 외부 HUD(`_ThirdParty` 서브모듈) 코드·프리팹은 바꾸지 않고 `BalanceRiskBlink`를 `PerformanceSceneBinding.OnEnable`에서 붙이며 채움 비율만 읽는다. `BalanceRiskBlinkPlayTests` 1/1, `PerformanceSceneBindingPlayTests` 13/13 통과. Play 중 위험 85% 주입으로 화면 확인.
+- 2026-10-28 균형 위험 게이지 깜빡임 수정: 바깥 5px 외곽선이 흰 테두리 밖에 그려지고 어둡다는 피드백으로 `Outline`을 없애고 `60_DwellTrack` 이미지 색 자체를 원래 흰색↔밝은 빨강(1, 0.08, 0.05)으로 깜빡이게 바꿨다. 같은 흰 테두리 위치가 빨갛게 변하며, 위험이 내려가면 원래 색으로 복구한다. `BalanceRiskBlinkPlayTests` 갱신·통과, Play 중 85% 주입 화면 확인.
+- 2026-10-28 균형 위험 테두리 두께: 원래 테두리는 스프라이트 선이라 두께를 바꿀 수 없어, 깜빡일 때만 `60_DwellTrack` 자식으로 같은 영역에 둥근 테두리(`60_DwellTrackWarning`, 실행 중 생성 9분할 스프라이트, 바깥선에서 안쪽 4px, 모서리 6px)를 겹쳐 밝은 빨강으로 함께 깜빡인다. 채움 막대까지 여백 4px 안이다. `thickness`(1~6px) 인스펙터 값으로 조절. `BalanceRiskBlinkPlayTests` 통과, Play 중 85% 주입 화면 확인.
+- 2026-10-28 균형바 구간색 테두리: 사용자 요청으로 하단 균형바 프레임(`40_Frame`)을 바늘 구간에 맞춰 초록·노랑·빨강으로 바꾼다. `BalanceZoneFrame`이 프레임 색을 바꾸고 같은 자리에 4px 둥근 테두리(`40_FrameZone`)를 겹친다. 구간은 `PerformanceSceneBinding`이 `PlayerBalance.Zone`으로 넘기고, 표시할 균형이 없으면 원래 프레임으로 되돌린다. 둥근 테두리 생성은 `HudRing`으로 분리해 `BalanceRiskBlink`와 함께 쓴다. `BalanceRiskBlinkPlayTests` 2/2, `PerformanceSceneBindingPlayTests` 13/13 통과, Play 중 세 구간 화면 확인.
+- 2026-10-28 균형바 구간 색 진하게: 사용자 요청으로 `BalanceZoneFrame`이 실행 시 `10_Zones`의 구간 색을 원본 파스텔(#73C7A1/#F2B45B/#E06C78)보다 짙은 초록(0.08,0.6,0.34)·노랑(0.95,0.62,0)·빨강(0.8,0.1,0.14)으로 칠한다. 프리팹·외부 HUD는 그대로. `BalanceRiskBlinkPlayTests` 2/2 통과, Play 화면 확인.
+- 2026-10-28 균형바 테두리 두께: 사용자 요청으로 `BalanceZoneFrame` 테두리를 4px에서 2.5px로 줄였다. 상단 위험 게이지 깜빡임 테두리는 4px 그대로. Play 화면 확인.
+- 2026-10-28 균형바 테두리 원복: 사용자 요청으로 구간색 테두리(프레임 색 변경·`40_FrameZone` 겹침)를 없애고 원래 흰 테두리로 되돌렸다. 짙은 구간 색은 유지하며 컴포넌트를 `BalanceZoneColors`로 바꾸고 `PerformanceSceneBinding`의 구간 전달을 제거했다. `BalanceRiskBlinkPlayTests` 2/2, `PerformanceSceneBindingPlayTests` 13/13 통과, Play 화면 확인.
+- 2026-10-28 제출: dev 대상 PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/226 (9210081, 균형 위험 깜빡임·구간 색·톱날 스파크). 이전 커밋 79e48fe(추격 불벽·수평톱 외형·경로 선)는 이미 dev에 포함됨. `new-pr.ps1`이 중첩 브랜치 이름(`feat/tight-rope/enhancement`)을 제출용으로 허용하지 않아 같은 템플릿 본문으로 `gh pr create`를 직접 사용했다. 지정 팀원 검토 대기.

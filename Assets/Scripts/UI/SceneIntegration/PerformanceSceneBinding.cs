@@ -80,6 +80,12 @@ namespace CurtainCall.UI.SceneIntegration
                 legacyBalance.enabled = false;
                 if (legacyCanvas != null) legacyCanvas.enabled = false;
             }
+            // 위험 게이지 70% 이상 테두리 깜빡임, 균형바 구간 색 진하게. 외부 HUD 프리팹은 그대로 두고 실행 중에만 붙인다.
+            if (localBalance != null)
+            {
+                if (!localBalance.TryGetComponent(out BalanceRiskBlink _)) localBalance.gameObject.AddComponent<BalanceRiskBlink>();
+                if (!localBalance.TryGetComponent(out BalanceZoneColors _)) localBalance.gameObject.AddComponent<BalanceZoneColors>();
+            }
             BindRewards();
         }
 
@@ -225,7 +231,9 @@ namespace CurtainCall.UI.SceneIntegration
             hud.SetContext(active, false, observing);
             if (sharedScene && CommonPerformanceUI.Current != null)
                 CommonPerformanceUI.Current.Feedback?.SetContext(active && !observing && !InputGate.IsBlocked && rewards?.State?.IsOpen == true);
-            if (localBalance != null) localBalance.SetContext(active && !humanCannon && balance != null && balance.IsActive, observing);
+            var hangs = TightropeHangSystem.Current;
+            bool hanging = !humanCannon && hangs != null && hangs.IsHanging(local);
+            if (localBalance != null) localBalance.SetContext(active && !humanCannon && balance != null && (balance.IsActive || hanging), observing);
             bool wakingCheer = active && !cheer.gameObject.activeSelf;
             cheer.gameObject.SetActive(active);
             // 씬에 비활성으로 저장된 C1은 첫 활성화 때 Awake에서 데이터를 초기화한다.
@@ -241,7 +249,8 @@ namespace CurtainCall.UI.SceneIntegration
                 localBalance.SetBalance(balance.Value / PlayerBalance.MaxValue,
                     -balance.GreenLimit / PlayerBalance.MaxValue, balance.GreenLimit / PlayerBalance.MaxValue,
                     -balance.WarningLimit / PlayerBalance.MaxValue, balance.WarningLimit / PlayerBalance.MaxValue,
-                    balance.RedTimeRatio, "A", "D", posture < -0.5f, posture > 0.5f);
+                    hanging ? hangs.HangDangerRatio(local) : balance.RedTimeRatio,
+                    "A", "D", !hanging && posture < -0.5f, !hanging && posture > 0.5f);
             }
         }
 

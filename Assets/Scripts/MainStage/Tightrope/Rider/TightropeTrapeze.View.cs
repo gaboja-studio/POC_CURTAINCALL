@@ -19,6 +19,12 @@ namespace CurtainCall.Tightrope
         MaterialPropertyBlock trapezeTint;
 
         public Transform PoleVisual(int index) => index >= 0 && index < PoleTotal && views[index]?.Bar != null ? views[index].Bar.transform : null;
+        public Vector3 GripPoint(NetworkPlayer player)
+        {
+            if (!FindHeld(player, out int index, out bool lower)) return player != null ? player.transform.position : Vector3.zero;
+            return lower ? Feet(index, false) + Vector3.up * .15f
+                : Feet(index, false) + Vector3.up * poles[index].Physics.HangLength;
+        }
 
         public string LocalHint
         {

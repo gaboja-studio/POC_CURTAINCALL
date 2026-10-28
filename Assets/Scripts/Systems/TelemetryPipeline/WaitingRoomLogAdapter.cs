@@ -81,10 +81,10 @@ namespace CurtainCall.Telemetry.Pipeline
             shopOpen = newShop;
             string selectedService = shopView != null && shopView.View != null ? shopView.View.SelectedEntryId : null;
             bool newService = InWaitingRoom && shopView != null && shopView.View != null && shopView.View.IsVisible
-                && shopView.View.CurrentTab == ShopTab.Services && selectedService is "medical" or "facility";
+                && shopView.View.CurrentTab == ShopTab.Services && selectedService is not null && selectedService.StartsWith("medical");
             if (newService && (!serviceOpen || serviceEntry != selectedService))
             { serviceScreenFlow = Guid.NewGuid().ToString("D"); log.Emit("SERVICE_OPENED", new() { ["flowId"] = serviceScreenFlow,
-                ["serviceType"] = selectedService == "facility" ? "FACILITY" : "RESTORE_BODY" }); }
+                ["serviceType"] = "RESTORE_BODY" }); }
             serviceEntry = newService ? selectedService : null;
             serviceOpen = newService;
             bool newSchedule = InWaitingRoom && scheduleView != null && scheduleView.IsOpen;
@@ -145,9 +145,9 @@ namespace CurtainCall.Telemetry.Pipeline
             }
             if (medical != ExpertService.Instance)
             {
-                if (medical != null) { medical.PhaseChanged -= MedicalPhase; medical.OperationRejected -= ServiceRejected; medical.FacilityReserved -= FacilityReserved; }
+                if (medical != null) { medical.PhaseChanged -= MedicalPhase; medical.OperationRejected -= ServiceRejected; }
                 medical = ExpertService.Instance;
-                if (medical != null) { medical.PhaseChanged += MedicalPhase; medical.OperationRejected += ServiceRejected; medical.FacilityReserved += FacilityReserved; }
+                if (medical != null) { medical.PhaseChanged += MedicalPhase; medical.OperationRejected += ServiceRejected; }
             }
             if (schedule != ScheduleBoard.Instance) { if (schedule != null) schedule.Confirmed -= Confirmed; schedule = ScheduleBoard.Instance; if (schedule != null) schedule.Confirmed += Confirmed; }
             if (carry != PropCarry.Instance)
@@ -252,7 +252,7 @@ namespace CurtainCall.Telemetry.Pipeline
         {
             var actor = Find(actorId); if (actor == null || medical?.HasAuthority != true) return;
             log.EmitFor(actor, "SERVICE_FAILED", new() { ["flowId"] = actor.IsLocal && medicalFlow != null ? medicalFlow : Guid.NewGuid().ToString("D"),
-                ["operation"] = operation, ["serviceType"] = operation == "FACILITY_RESERVE" ? "FACILITY" : "RESTORE_BODY",
+                ["operation"] = operation, ["serviceType"] = "RESTORE_BODY",
                 ["reason"] = "EXPERT_" + reason }, "HOST");
         }
         void MedicalPhase(ExpertRoomPhase before, ExpertRoomPhase after)
@@ -262,9 +262,10 @@ namespace CurtainCall.Telemetry.Pipeline
             {
                 medicalFlow = Guid.NewGuid().ToString("D"); medicalBefore = medical.BookedLimbs; medicalReached = medicalReturned = false;
                 medicalEnteredAt = movedInsideAt = movedOutsideAt = null;
-                log.Emit("SERVICE_RESERVED", new() { ["flowId"] = medicalFlow, ["serviceType"] = "RESTORE_BODY", ["lostCount"] = medicalBefore,
-                    ["targetCount"] = medicalBefore, ["amount"] = medicalBefore * medical.MedicalPrice,
-                    ["screenFlowId"] = serviceOpen && serviceEntry == "medical" ? serviceScreenFlow : null });
+                log.Emit("SERVICE_RESERVED", new() { ["flowId"] = medicalFlow, ["serviceType"] = "RESTORE_BODY",
+                    ["lostCount"] = NetworkPlayer.Local != null ? DetailLogIds.Lost(NetworkPlayer.Local.LostParts) : medicalBefore,
+                    ["targetCount"] = medicalBefore, ["amount"] = medical.BookedCost,
+                    ["screenFlowId"] = serviceOpen && serviceEntry != null && serviceEntry.StartsWith("medical") ? serviceScreenFlow : null });
             }
             if (medicalFlow == null) return;
             if (after == ExpertRoomPhase.Exiting)
@@ -279,13 +280,6 @@ namespace CurtainCall.Telemetry.Pipeline
                     ["reason"] = before == ExpertRoomPhase.Exiting ? "RETURN_NOT_OBSERVED" : "RESERVATION_CLEARED" });
                 medicalFlow = null;
             }
-        }
-        void FacilityReserved(ulong buyer, ObstacleAdjust choice, int day, long amount)
-        {
-            var actor = Find(buyer); if (actor == null || medical?.HasAuthority != true) return;
-            log.EmitFor(actor, "SERVICE_RESERVED", new() { ["flowId"] = Guid.NewGuid().ToString("D"), ["serviceType"] = "FACILITY",
-                ["lostCount"] = 0, ["targetCount"] = 0, ["amount"] = amount, ["adjustment"] = choice.ToString(), ["appliesOnDay"] = day,
-                ["screenFlowId"] = actor.IsLocal && serviceOpen && serviceEntry == "facility" ? serviceScreenFlow : null }, "HOST");
         }
         void Confirmed(int day) { if (scheduleFlow != null) log.Emit("SCHEDULE_CONFIRMED", new() { ["flowId"] = scheduleFlow, ["gameDay"] = day }); }
         void Placed(NetworkPlayer player) { if (!InWaitingRoom) return; placedPlayer = player; placedAt = Time.unscaledTimeAsDouble; }
@@ -366,7 +360,7 @@ namespace CurtainCall.Telemetry.Pipeline
             if (verifyFlow == null || Time.frameCount < verifyAfterFrame) return;
             var local = NetworkPlayer.Local; var mover = local != null ? local.GetComponent<PlayerMover>() : null;
             if (local == null || mover == null || carry == null) return;
-            int slots = carry.Slots(local.OwnerClientId), expected = SurvivalRules.ItemSlots(2, carry.HasBackpack(local.OwnerClientId));
+            int slots = carry.Slots(local.OwnerClientId), expected = SurvivalRules.ItemSlots();
             log.Emit("RESTORATION_VERIFIED", new() { ["flowId"] = verifyFlow, ["lostCount"] = DetailLogIds.Lost(local.LostParts),
                 ["movementRestored"] = Mathf.Approximately(mover.SpeedMultiplier, 1),
                 ["jumpRestored"] = mover.JumpAllowed && Mathf.Approximately(mover.JumpHeightMultiplier, 1), ["capacityRestored"] = slots == expected,
@@ -396,7 +390,7 @@ namespace CurtainCall.Telemetry.Pipeline
             WaitingRoomSpawn.PlayerPlaced -= Placed; ExpertRoomView.LocalMoved -= MedicalMoved;
             if (shop != null) { shop.Changed -= ShopChanged; shop.OperationRejected -= ShopRejected; }
             if (carry != null) { carry.Changed -= CarryChanged; carry.OperationRejected -= CarryRejected; }
-            if (medical != null) { medical.PhaseChanged -= MedicalPhase; medical.OperationRejected -= ServiceRejected; medical.FacilityReserved -= FacilityReserved; }
+            if (medical != null) { medical.PhaseChanged -= MedicalPhase; medical.OperationRejected -= ServiceRejected; }
             if (schedule != null) schedule.Confirmed -= Confirmed; UnbindCampaign();
             if (gather != null) gather.Gathered -= Gathered; if (exit != null) exit.PlayerLeft -= FirstLeft;
         }

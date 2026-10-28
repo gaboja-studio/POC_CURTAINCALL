@@ -99,9 +99,10 @@ namespace CurtainCall.WaitingRoom
             if (ledger) DrawLedger(shop);
             else
             {
+                if (!WaitingRoomShop.CanPurchase) GUILayout.Label(WaitingRoomShop.PurchaseTimeRefusal);
                 foreach (var item in shop.Catalog)
                 {
-                    GUI.enabled = item.Price <= shop.Balance;
+                    GUI.enabled = WaitingRoomShop.CanPurchase && item.Price <= shop.Balance;
                     if (GUILayout.Button($"{item.Name} — {item.Price}")) shop.RequestPurchase(item.Id);
                 }
                 GUI.enabled = true;

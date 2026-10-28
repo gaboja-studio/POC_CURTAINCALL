@@ -54,8 +54,10 @@ $status = Invoke-NativeWithTimeout -FilePath $unity -TimeoutSeconds 15 -Argument
 $statusJson = ConvertFrom-UnityJson $status.StdOut
 # 같은 경로로 시작하는 MPPM 가상 플레이어(<project>/Library/VP/...)도 함께 나오므로 경로가 정확히 같은 에디터만 센다
 # (Harness/Engine/Unity/Pitfalls/mppm-virtual-player-status.md)
+# CLI beta.14부터 행의 project 키는 폐기 예정이므로 projectPath를 먼저 읽는다.
 $instances = @($statusJson.data.instances | Where-Object {
-    $_.project -and ([System.IO.Path]::GetFullPath($_.project).TrimEnd('/') -eq $project.TrimEnd('/'))
+    $instancePath = $_.projectPath ?? $_.project
+    $instancePath -and ([System.IO.Path]::GetFullPath($instancePath).TrimEnd('/') -eq $project.TrimEnd('/'))
 })
 if ($status.TimedOut -or $instances.Count -eq 0) {
     Write-Output 'ENV_BLOCKED: 연결된 에디터 없음. 수정은 시도하지 않았음 (Pitfalls/editor-not-visible.md).'

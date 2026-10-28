@@ -134,6 +134,9 @@ namespace CurtainCall.Player
         /// <summary>일반 도약 중에도 균형·위험 누적을 계속한다. 봉 등 외부 이동에서는 콘텐츠가 해제한다.</summary>
         public bool ContinueWhileAirborne { get; set; }
 
+        /// <summary>줄·봉에 매달린 동안 자연 흔들림·충격·일반 추락 위험 누적을 멈춘다. 제한 시간은 콘텐츠가 별도 표시한다.</summary>
+        public bool IsSuspended { get; set; }
+
         /// <summary>
         /// 공중에 뜸·착지를 알린다. 착지하면(<c>false</c>) 착지 충격을 준다.
         /// 같은 오브젝트의 PlayerMover가 있으면 자동으로 연결된다. 목마 전체 점프처럼 다른 기능이 몸을 띄울 때 직접 부른다.
@@ -171,13 +174,13 @@ namespace CurtainCall.Player
         /// <summary>옆줄 착지 충격·흔들림 증가·고정 비율의 추락 위험을 준다. 감소율은 충격과 흔들림 증가분에 적용한다.</summary>
         public void ApplyLaneLanding(float reduction)
         {
-            if (!IsActive || HasFallen) return;
+            if (!IsActive || HasFallen || IsSuspended) return;
             float keep = 1f - Mathf.Clamp01(reduction);
             ApplyLandingShock(Rope.LaneLandingShock * laneLandingShockMultiplier * keep);
             laneBoostScale = 1f + (Rope.LaneSwayBoost - 1f) * keep;
             laneBoostUntil = Time.time + Rope.LaneSwayBoostDuration; // 쌓지 않고 시간만 갱신
             RedTime = Mathf.Min(FallTime, RedTime + FallTime * Rope.LaneLandingDangerRatio);
-            if (RedTime >= FallTime) ForceFall();
+            if (RedTime >= FallTime) GaugeFall();
         }
 
         /// <summary>옆줄 착지 후 흔들림 증가가 남아 있는 시간(초). 디버그 표시용.</summary>
@@ -188,7 +191,7 @@ namespace CurtainCall.Player
 
         void ApplyLandingShock(float magnitude)
         {
-            if (!IsActive || HasFallen || !float.IsFinite(magnitude) || magnitude <= 0f) return;
+            if (!IsActive || HasFallen || IsSuspended || !float.IsFinite(magnitude) || magnitude <= 0f) return;
             // 착지가 우연한 중앙 복귀가 되지 않게 현재 기울기를 강화한다. 중앙이면 이륙 방향을 쓴다.
             float direction = Mathf.Abs(Value) > .001f ? Mathf.Sign(Value) : landingDirection;
             float impact = direction * magnitude * StackMultiplier;
@@ -199,7 +202,7 @@ namespace CurtainCall.Player
         /// <summary>균형에 순간 충격을 준다(±크기, 랜덤 방향, 목마 배율 적용).</summary>
         public void ApplyShock(float magnitude)
         {
-            if (!IsActive || HasFallen) return;
+            if (!IsActive || HasFallen || IsSuspended) return;
             float direction = Random.value < 0.5f ? -1f : 1f;
             Value = Mathf.Clamp(Value + direction * magnitude * StackMultiplier, -MaxValue, MaxValue);
             LastShock = direction * magnitude * StackMultiplier;
@@ -280,7 +283,7 @@ namespace CurtainCall.Player
             float surfaceForce = surfaceSway;
             surfaceSwayMultiplier = 1f;
             surfaceSway = 0f;
-            if (!IsActive || HasFallen || IsAirborne && !ContinueWhileAirborne) return;
+            if (!IsActive || HasFallen || IsSuspended || IsAirborne && !ContinueWhileAirborne) return;
 
             if (Time.time >= nextDirectionChange)
                 PickSwayDirection();
@@ -319,6 +322,25 @@ namespace CurtainCall.Player
             if (RedTime < fallTime) return;
 
             RedTime = fallTime;
+            GaugeFall();
+        }
+
+        /// <summary>
+        /// 추락 게이지가 넘쳤을 때 먼저 묻는 곳(M2 외줄 매달림). true를 돌려주면 이 균형은 추락하지 않고 게이지만 비운다.
+        /// 줄 밖 착지·바닥선 같은 <see cref="ForceFall"/>은 거치지 않는다.
+        /// </summary>
+        public static Func<PlayerBalance, bool> GaugeFallCatcher;
+
+        void GaugeFall()
+        {
+            if (HasFallen) return;
+            if (GaugeFallCatcher != null && GaugeFallCatcher(this))
+            {
+                RedTime = 0f;
+                Value = 0f;
+                CurrentSway = 0f;
+                return;
+            }
             ForceFall();
         }
 

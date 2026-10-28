@@ -24,8 +24,8 @@ namespace CurtainCall.WaitingRoom
             public string id;
             public string name;
             [Min(1)] public long price = 1;
-            [Tooltip("받으면 메는 배낭(칸을 차지하지 않고 소지 한도 +). 한 사람 한 개.")]
-            public bool backpack;
+            // 기존 씬에 저장된 배낭 품목은 판매 목록에서 제외한다.
+            [HideInInspector] public bool backpack;
         }
 
         [Header("임시값 — 정식 품목·가격 아님(M1 범위 밖)")]
@@ -34,7 +34,6 @@ namespace CurtainCall.WaitingRoom
             new Entry { id = "tool-a", name = "임시 공연 도구 A", price = 10 },
             new Entry { id = "tool-b", name = "임시 공연 도구 B", price = 15 },
             new Entry { id = "escape", name = "임시 탈출 도구", price = 20 },
-            new Entry { id = "backpack", name = "임시 배낭", price = 25, backpack = true },
         };
 
         [Tooltip("배송구 바닥에 동시에 놓일 수 있는 최대 개수(메시지 크기 보호용 임시값).")]
@@ -43,7 +42,6 @@ namespace CurtainCall.WaitingRoom
         public static WaitingRoomShop Instance { get; private set; }
 
         readonly List<ShopItem> catalog = new();
-        readonly HashSet<string> backpackIds = new();
         readonly List<ShopDelivery> receivedWaiting = new();
         readonly List<ShopReceipt> receivedReceipts = new();
         ShopDeliveryBook book;
@@ -87,9 +85,6 @@ namespace CurtainCall.WaitingRoom
             return (false, text);
         }
 
-        /// <summary>받으면 메는 배낭 품목인지.</summary>
-        public bool IsBackpack(string itemId) => itemId != null && backpackIds.Contains(itemId);
-
         void Awake()
         {
             // 대기실 씬이 다시 열리면 씬에 놓인 사본은 버리고, 런 동안 남아 있던 상점을 그대로 쓴다.
@@ -104,9 +99,8 @@ namespace CurtainCall.WaitingRoom
             book = new ShopDeliveryBook(slotCapacity);
             foreach (var entry in items)
             {
-                if (entry == null || string.IsNullOrEmpty(entry.id) || entry.price <= 0) continue;
+                if (entry == null || entry.backpack || entry.id == "backpack" || string.IsNullOrEmpty(entry.id) || entry.price <= 0) continue;
                 catalog.Add(new ShopItem(entry.id, string.IsNullOrEmpty(entry.name) ? entry.id : entry.name, entry.price));
-                if (entry.backpack) backpackIds.Add(entry.id);
             }
             channel = new ShopChannel("CurtainCall.WaitingRoom.Shop", HandleRequest, HandleState, HandleResult, HandleReset,
                 () => channel.Request(JsonUtility.ToJson(new RequestData { kind = SyncRequest })));
@@ -171,14 +165,18 @@ namespace CurtainCall.WaitingRoom
             return NetworkPlayer.All.Count == 0 ? "나" : $"플레이어 #{clientId}";
         }
 
-        /// <summary>공연 중에는 구매·보관을 하지 않는다(게임 흐름 기획 2-3: 쉬는 시간·밤 정비만).</summary>
+        /// <summary>공연 중에는 배송 수령·보관을 하지 않는다. 구매는 별도로 밤 정비에만 허용한다.</summary>
         public static bool InPerformance => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Performance;
+
+        /// <summary>기물 주문은 밤 정비에만 가능하다. 배송 수령·보관의 공연 중 제한과는 별개다.</summary>
+        public static bool CanPurchase => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Night;
+        public const string PurchaseTimeRefusal = "기물은 밤 정비에만 구매할 수 있습니다.";
 
         const string PerformanceRefusal = "공연 중에는 상점을 쓸 수 없습니다.";
 
         (bool, string) Buy(string itemId, ulong buyer)
         {
-            if (InPerformance) return Reject(buyer, "PURCHASE", itemId, 0, "IN_PERFORMANCE", PerformanceRefusal);
+            if (!CanPurchase) return Reject(buyer, "PURCHASE", itemId, 0, "NOT_NIGHT", PurchaseTimeRefusal);
             var refusal = book.Order(catalog, itemId, buyer, rewards.TrySpend, out var delivery);
             if (refusal != ShopRefusal.None) return Reject(buyer, "PURCHASE", itemId, 0, "SHOP_" + refusal, Explain(refusal));
             Debug.Log($"[Shop] 구매 #{delivery.Order} {delivery.ItemName} ← {PlayerLabel(buyer)} / 잔액 {rewards.Balance}");
@@ -195,17 +193,16 @@ namespace CurtainCall.WaitingRoom
             var carry = PropCarry.Instance;
             if (index >= 0 && carry != null)
             {
-                var carryRefusal = carry.CanReceive(claimer, IsBackpack(book.Waiting[index].ItemId));
+                var carryRefusal = carry.CanReceive(claimer);
                 if (carryRefusal != CarryRefusal.None) return Reject(claimer, "COLLECT", book.Waiting[index].ItemId, order, "CARRY_" + carryRefusal, PropCarry.Explain(carryRefusal));
             }
 
             var refusal = book.Claim(order, claimer, out var delivery);
             if (refusal != ShopRefusal.None) return Reject(claimer, "COLLECT", null, order, "SHOP_" + refusal, Explain(refusal));
-            bool backpack = IsBackpack(delivery.ItemId);
-            if (carry != null) carry.Receive(claimer, new PropItem(delivery.Order, delivery.ItemId, delivery.ItemName), backpack);
+            if (carry != null) carry.Receive(claimer, new PropItem(delivery.Order, delivery.ItemId, delivery.ItemName));
             Debug.Log($"[Shop] 수령 #{delivery.Order} {delivery.ItemName} → {PlayerLabel(claimer)}");
             Publish();
-            return (true, backpack ? $"{delivery.ItemName}을 멨습니다." : $"{delivery.ItemName} 수령");
+            return (true, $"{delivery.ItemName} 수령");
         }
 
         static string Explain(ShopRefusal refusal) => refusal switch

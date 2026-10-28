@@ -58,7 +58,8 @@ namespace CurtainCall.Tightrope
                 return;
             }
             if (session.IsHost && IsTightropePerformance && !run.ExternallyManaged)
-                Rewards.BeginPerformance(Mathf.Clamp(difficulty, 1, 3), GameSettings.Tightrope.Reward);
+                // 밤 정비에서 고른 단계(런 상태)를 쓴다. 런이 단계를 모르면 씬 기본값.
+                Rewards.BeginPerformance(Mathf.Clamp(Campaign.State.Difficulty > 0 ? Campaign.State.Difficulty : difficulty, 1, 3), GameSettings.Tightrope.Reward);
             ObserveRewards();
         }
 

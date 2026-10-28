@@ -31,15 +31,10 @@ namespace CurtainCall.WaitingRoom
             var service = ExpertService.Instance;
             if (service == null) { GUILayout.Label("ExpertService 없음 — 씬 구성 메뉴를 실행하세요."); GUILayout.EndArea(); return; }
 
-            int day = ExpertService.Day;
-            var staff = ExpertServiceBook.StaffFor(day);
-            GUILayout.Label($"{day}일차 · {(ExpertService.IsNight ? "밤 정비" : "밤 아님")} · 오늘 담당: {StaffLabel(staff)}");
+            GUILayout.Label($"{ExpertService.Day}일차 · {(ExpertService.IsServiceTime ? "신체 복구 이용 가능" : "공연 중")}");
             GUILayout.Label($"⑧ {ExpertServicePhonePanel.PhaseLabel(service.Phase)}"
                 + (service.Phase != ExpertRoomPhase.Idle ? $" — {WaitingRoomShop.PlayerLabel(service.Buyer)}" : "")
-                + $" · 공동 자금 {service.Balance} · 복구 {service.MedicalPrice}/개");
-            GUILayout.Label(service.Obstacle != ObstacleAdjust.None
-                ? $"시설 조정: {service.ObstacleDay}일차 {ExpertServiceBook.AdjustLabel(service.Obstacle)}"
-                : "시설 조정: 없음");
+                + $" · 공동 자금 {service.Balance} · 복구 {service.MedicalPrice}/개 (팀 이용 {service.TeamUses}회)");
 
             var players = NetworkPlayer.All;
             if (players.Count == 0) GUILayout.Label("접속한 캐릭터가 없습니다.");
@@ -69,24 +64,14 @@ namespace CurtainCall.WaitingRoom
             if (service.Phase != ExpertRoomPhase.Idle) return "⑧ 이용 중";
             return service.LocalMedicalRefusal() switch
             {
-                ExpertRefusal.NotNight => "다음: 오른쪽 패널 [밤 정비까지 건너뛰기]",
+                ExpertRefusal.InPerformance => "다음: 쉬는 시간이나 밤 정비로 넘어간 뒤 이용",
                 ExpertRefusal.WholeBody => "다음: [절단 1]로 팔다리를 잃은 뒤 ③ 수화기",
                 ExpertRefusal.AlreadyBooked => "다음: ⑧ 붉은 커튼 앞으로 가서 F",
-                ExpertRefusal.Absent => service.FacilityRefusal() == ExpertRefusal.None
-                    ? "의료 부재중 — ③ 수화기에서 시설 담당자(장애물 강화/약화) 이용 가능"
-                    : "오늘 밤은 의료 담당자 부재중 — 1·3일차 밤에 이용",
                 ExpertRefusal.NotAlive => "살아 있을 때만 이용할 수 있습니다",
-                ExpertRefusal.None => "다음: ③ 수화기(F) → 오른쪽 '전문가 서비스'에서 구매",
+                ExpertRefusal.None => "다음: ③ 수화기(F) → 오른쪽 '신체 복구'에서 개수를 골라 구매",
                 var other => ExpertServiceBook.Explain(other),
             };
         }
-
-        static string StaffLabel(ExpertKind kind) => kind switch
-        {
-            ExpertKind.Medical => "의료",
-            ExpertKind.Facility => "시설 담당자(의료 부재중)",
-            _ => "없음",
-        };
 
         static string Parts(BodyPart lost)
         {

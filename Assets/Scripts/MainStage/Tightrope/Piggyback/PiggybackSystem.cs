@@ -520,13 +520,22 @@ namespace CurtainCall.Tightrope
             {
                 if (!IsInStack(id)) continue; // 이번에 이미 끊긴 사람
                 var player = FindPlayer(id);
-                if (player == null || player.State != PlayerState.Fallen) continue;
+                var hangs = TightropeHangSystem.Current;
+                // M2: 줄에 매달린 사람도 목마에서 떨어진 것이다.
+                bool hanging = hangs != null && player != null && player.State == PlayerState.Normal && hangs.IsHanging(player);
+                if (player == null || (player.State != PlayerState.Fallen && !hanging)) continue;
                 changed = true;
 
                 for (ulong current = id; aboveOf.TryGetValue(current, out ulong up); current = up)
                 {
                     var upper = FindPlayer(up);
-                    if (upper != null && upper.State == PlayerState.Normal) upper.ServerSetState(PlayerState.Fallen);
+                    // M2 목마 낙하: 아래부터 먼저 떨어진 순서로 근처 줄을 한 줄에 한 명씩 잡고, 잡을 줄이 없으면 낙사한다.
+                    if (upper != null && upper.State == PlayerState.Normal)
+                    {
+                        if (hangs != null && TightropeCourse.Current != null)
+                            hangs.ServerTryHang(upper, TightropeCourse.Current.GetDistance(upper.transform.position));
+                        else upper.ServerSetState(PlayerState.Fallen);
+                    }
                     (dropped ??= new List<ulong>()).Add(up);
                 }
 
@@ -682,8 +691,10 @@ namespace CurtainCall.Tightrope
                 ulong id = local.OwnerClientId;
                 if (lastDropped.Contains(id))
                 {
-                    ShowResult("연쇄 추락: 아래 사람이 떨어짐");
-                    balance.ForceFall();
+                    // M2: 호스트가 줄을 잡게 했으면 매달림이 몸을 붙잡는다. 잡을 줄이 없었으면 호스트가 낙사로 바꾼다.
+                    bool hanging = TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(local);
+                    ShowResult(hanging ? "목마 낙하: 줄을 잡고 매달림" : "연쇄 추락: 아래 사람이 떨어짐");
+                    if (!hanging && TightropeHangSystem.Current == null) balance.ForceFall();
                 }
                 else if (shocked != null && shocked.Contains(id))
                 {

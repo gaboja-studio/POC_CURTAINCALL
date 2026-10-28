@@ -17,5 +17,7 @@ MonoBehaviour:
   difficultyOneCap: 100
   difficultyTwoCap: 150
   difficultyThreeCap: 200
-  allSurvivedBonus: 0
-  cutBonus: 0
+  difficultyOneCompletion: 100
+  difficultyTwoCompletion: 150
+  difficultyThreeCompletion: 200
+  cutBonus: 10
