@@ -14,7 +14,7 @@
 - [results-ui.md](results-ui.md) — C12 공연 결과 표시·확인 의도·장식 동전 계약과 독립 씬. 조립/결과 어댑터 연결 전에
 - [schedule-ui.md](schedule-ui.md) — W3 읽기 전용 3일 공연 일정표·독립 열 스크롤·현재/확정 표시 계약. 조립/일정 표시 어댑터 연결 전에
 - [shop-ui.md](shop-ui.md) — W2 수화기 구매·판매 표시 패널·요청 토큰 계약과 독립 확인 씬. 조립/거래 어댑터 연결 전에
-- [settings-ui.md](settings-ui.md) — C14 원본 계약·실게임5탭·키 재지정·사운드/음성 기기·로컬 그래픽·호스트 런 포기. 설정 UI·실제 옵션 서비스 연결 전에
+- [settings-ui.md](settings-ui.md) — C14 v1·실게임 v2 프리팹/5탭·키 재지정·음성 기기·그래픽·런 포기·폰트/토큰 계약. 설정 UI·실제 옵션 서비스 연결 전에
 - [transition-curtain.md](transition-curtain.md) — C16 커튼 차폐/렌더 장벽·독립 프리팹·원본 보존. 전환 표시 배치·연결 전에
 - [spectator.md](spectator.md) — C11 관전/사망 표시·비네트·하단 슬롯 계약·독립 씬·원본 보존. 배치/호출·검증 전에
 - [worldlabels.md](worldlabels.md) — 월드 라벨 v2 소품3종·근접정보2종·명시 observer/camera·독립 씬. 정본 배치/표시·검증 전에

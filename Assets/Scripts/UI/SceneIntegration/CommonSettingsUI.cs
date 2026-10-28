@@ -5,51 +5,45 @@ using CurtainCall.StartLobby;
 using CurtainCall.Campaign;
 using CurtainCall.Player;
 using CurtainCall.Voice;
+using CurtainCall.UI.SettingsV2;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using V2View = CurtainCall.UI.SettingsV2.SettingsPanelView;
+using V2Value = CurtainCall.UI.SettingsV2.SettingsValue;
 
 namespace CurtainCall.UI.SceneIntegration
 {
-    /// <summary>설정 편집값을 탭 사이에 보존하고 적용할 때만 로컬 서비스에 전달한다.</summary>
+    /// <summary>v2 프리팹의 편집 세션을 기존 로컬 설정·입력·음성·런 서비스에 연결한다.</summary>
     public sealed class CommonSettingsUI : MonoBehaviour
     {
-        // 기존 씬의 C14 인스턴스와 참조를 보존한다.
+        public const string PrefabResource = "Prefabs/UIs/SettingsUiV2/C14_Settings_v2";
+        // 기존 씬의 C14 참조와 Configure 계약은 보존하되 표시하지 않는다.
         [SerializeField] SettingsPanelView main;
         [SerializeField] SettingsPanelView teammates;
         [SerializeField] CanvasGroup mainGroup;
         [SerializeField] UnityEngine.UI.Button teammateButton;
         [SerializeField] TMP_Text controlsHint;
         [SerializeField] TMP_Text teammateHint;
-        SettingsTabsView view;
-        SettingsExtensionPanel extension;
-        UnityEngine.UI.Button abandonButton;
+        V2View view;
         Action closed;
-        bool gameplayContext, confirmingAbandon;
+        bool gameplayContext, closing, loadingDevices;
         CampaignSnapshot abandonContext;
         Resolution[] resolutions;
-        int resolutionIndex, fpsIndex, modeIndex;
-        float volume, bgmVolume, sfxVolume, micVolume, teamVolume;
-        bool micMuted, teamMuted;
-        readonly Dictionary<string, (float volume, bool muted)> peers = new();
         InputActionAsset inputDraft;
-        InputAction captureAction;
-        int captureIndex, captureFrame;
-        UnityEngine.UI.Button captureButton;
-        readonly Dictionary<string, UnityEngine.UI.Button> bindingButtons = new();
-        Action<string, bool> modeText, resolutionText, fpsText, inputDeviceText, outputDeviceText;
-        string[] inputIds = Array.Empty<string>(), outputIds = Array.Empty<string>();
-        string[] inputNames = Array.Empty<string>(), outputNames = Array.Empty<string>();
-        string inputDeviceId, outputDeviceId;
-        bool devicesTouched, busy, applying;
-        int session;
+        readonly Dictionary<string, InputBindingPreferences.BindingEntry> bindings = new();
+        readonly Dictionary<string, (float volume, bool muted)> peers = new();
+        SettingsRebindRequest capture;
+        int captureFrame, session;
         VoiceChat deviceVoice;
+        string selectedInput = "unavailable", selectedOutput = "unavailable";
+        bool inputTouched, outputTouched;
         static readonly FullScreenMode[] ScreenModes = { FullScreenMode.ExclusiveFullScreen, FullScreenMode.FullScreenWindow, FullScreenMode.Windowed };
         static readonly string[] ScreenLabels = { "전체 화면", "전체 화면 창", "창 모드" };
-        public bool IsExtensionOpen => extension != null && extension.IsOpen;
-        public bool IsCapturingBinding => captureAction != null;
-        public SettingsTabsView Main => view;
+        public bool IsExtensionOpen => view != null && view.IsConfirmationOpen;
+        public bool IsCapturingBinding => view != null && view.IsRebinding;
+        public V2View Main => view;
         public SettingsPanelView Teammates => teammates;
         public bool IsOpen => view != null && view.IsVisible;
 
@@ -59,270 +53,308 @@ namespace CurtainCall.UI.SceneIntegration
         void Awake()
         {
             main.Hide(); teammates.Hide();
-            var root = new GameObject("SettingsTabsCanvas", typeof(RectTransform)); root.transform.SetParent(transform, false);
-            view = root.AddComponent<SettingsTabsView>(); view.Initialize(controlsHint.font);
-            view.PageChanged += _ => CancelBindingCapture();
-            extension = new SettingsExtensionPanel(transform, controlsHint.font);
+            var prefab = Resources.Load<GameObject>(PrefabResource);
+            if (prefab == null) throw new InvalidOperationException("설정 v2 제품 프리팹이 없습니다: " + PrefabResource);
+            var root = new GameObject("SettingsV2Canvas", typeof(RectTransform), typeof(Canvas), typeof(UnityEngine.UI.CanvasScaler), typeof(UnityEngine.UI.GraphicRaycaster));
+            root.transform.SetParent(transform, false);
+            var canvas = root.GetComponent<Canvas>(); canvas.renderMode = RenderMode.ScreenSpaceOverlay; canvas.sortingOrder = 315; canvas.referencePixelsPerUnit = 100;
+            var scaler = root.GetComponent<UnityEngine.UI.CanvasScaler>();
+            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920, 1080); scaler.matchWidthOrHeight = .5f; scaler.referencePixelsPerUnit = 100;
+            var instance = Instantiate(prefab, root.transform, false); instance.name = "C14_SettingsV2";
+            view = instance.GetComponent<V2View>(); view.IsExternallyRoutedCancel = true;
+            view.ApplyRequested += Apply;
+            view.ActionRequested += HandleAction;
+            view.ActionConfirming += _ => { if (CampaignRun.Instance != null) abandonContext = CampaignRun.Instance.State; };
+            view.RebindRequested += request => { capture = request; captureFrame = Time.frameCount; };
+            view.RebindCancelled += _ => capture = null;
+            view.DraftChanged += DraftChanged;
+            view.Closed += OnViewClosed;
         }
         public void Open(bool gameplay, Action onClosed)
         {
-            Close(); closed = onClosed; devicesTouched = false; inputDeviceId = outputDeviceId = null; busy = false;
+            Close(); closed = onClosed;
             var run = CampaignRun.Instance;
             gameplayContext = gameplay && run != null && run.State.Phase != CampaignPhase.None;
-            volume = ClientSettings.Volume; bgmVolume = ClientSettings.BgmVolume; sfxVolume = ClientSettings.SfxVolume;
-            var voice = VoiceChat.Instance;
-            micVolume = voice != null ? voice.MicVolume : 1; teamVolume = voice != null ? voice.TeamVolume : 1;
-            micMuted = voice != null && voice.IsMicMuted; teamMuted = voice != null && voice.IsTeamMuted;
-            peers.Clear(); bindingButtons.Clear();
-            inputDraft = InputBindingPreferences.CreateDraft();
+            inputDraft = InputBindingPreferences.CreateDraft(); bindings.Clear(); peers.Clear();
+            inputTouched = outputTouched = false; selectedInput = selectedOutput = "unavailable";
+            deviceVoice = VoiceChat.Instance;
             resolutions = ClientSettings.AvailableResolutions;
-            resolutionIndex = Array.FindIndex(resolutions, r => r.width == ClientSettings.ResolutionWidth && r.height == ClientSettings.ResolutionHeight);
-            if (resolutionIndex < 0) resolutionIndex = 0;
-            modeIndex = Array.IndexOf(ScreenModes, ClientSettings.ScreenMode); if (modeIndex < 0) modeIndex = 1;
-            fpsIndex = 0;
-            for (int i = 0; i < ClientSettings.AvailableFrameRateLimits.Count; i++)
-                if (ClientSettings.AvailableFrameRateLimits[i] == ClientSettings.FrameRateLimit) fpsIndex = i;
-            view.Open(gameplayContext, ApplySettings, CancelMain); view.SetBusy(false);
-            BuildGame(); BuildGraphics(); BuildControls(); BuildSound(); BuildCredits();
-            RefreshGraphics(); RefreshGame();
+            var catalog = BuildCatalog();
+            if (!view.Open(catalog, out string error))
+            { Debug.LogError("설정 v2를 열지 못했습니다: " + error); OnViewClosed(); return; }
+            if (deviceVoice != null) deviceVoice.DevicesChanged += RefreshDevices;
+            RefreshDevices(); RefreshGame(); DraftChanged(view.GetDraftSnapshot());
             if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(view.CancelButton.gameObject);
         }
-        void BuildGame()
+        SettingsCatalog BuildCatalog()
         {
-            view.Paragraph(0, "GameHint", "게임 진행 중에만 사용할 수 있습니다.\n런 포기는 대기실의 쉬는 시간·밤에 호스트만 실행할 수 있습니다.");
-            abandonButton = view.ActionRow(0, "RunAbandon", "현재 런을 실패 처리하고 새 런 시작", "런 포기", RequestAbandon);
-            abandonButton.name = "AbandonRun";
+            var catalog = new SettingsCatalog();
+            string[] ids = { "game", "graphics", "controls", "audio", "other" }, labels = { "게임", "그래픽", "조작", "사운드", "기타" };
+            for (int i = 0; i < 5; i++) catalog.pages.Add(new SettingsPage { id = ids[i], label = labels[i], enabled = i != 0 || gameplayContext });
+            catalog.reservedBindingIds.AddRange(new[] { "<Keyboard>/escape", "<Keyboard>/m" });
+            var game = catalog.pages[0];
+            game.notice = "게임 진행 중에만 사용할 수 있습니다.\n런 포기는 대기실의 쉬는 시간·밤에 호스트만 실행할 수 있습니다.";
+            var abandon = ActionRow("RunAbandon", "현재 런을 실패 처리하고 새 런 시작", "런 포기");
+            abandon.requiresRunPermission = true;
+            abandon.confirmationTitle = "런 포기";
+            abandon.confirmationBody = "정말 현재 런을 포기하고 새로 시작하겠습니까?\n모든 단원이 다음 런 1일차부터 다시 시작합니다.";
+            game.rows.Add(abandon);
+            var graphics = catalog.pages[1];
+            graphics.rows.Add(Choice("ScreenMode", "화면 모드", ((int)ClientSettings.ScreenMode).ToString(), ScreenModes.Select((m, i) => new SettingsChoice(((int)m).ToString(), ScreenLabels[i]))));
+            string resolution = ClientSettings.ResolutionWidth + "x" + ClientSettings.ResolutionHeight;
+            graphics.rows.Add(Choice("Resolution", "해상도", resolution, resolutions.Select(r => new SettingsChoice(r.width + "x" + r.height, $"{r.width} × {r.height}"))));
+            graphics.rows.Last().disabledValueLabel = "데스크톱 해상도 사용";
+            graphics.rows.Add(Choice("FrameRate", "FPS 제한", ClientSettings.FrameRateLimit.ToString(), ClientSettings.AvailableFrameRateLimits.Select(f => new SettingsChoice(f.ToString(), f < 0 ? "제한 없음" : f == 60 ? "60 FPS (기본)" : $"{f} FPS"))));
+            graphics.rows.Add(Paragraph("GraphicsHint", "전체 화면 창은 데스크톱 해상도를 사용합니다.\n변경한 설정은 적용을 누르면 이 PC에 저장됩니다."));
+            var controls = catalog.pages[2];
+            controls.notice = "변경 버튼을 누르고 새 키를 입력하세요. ESC로 입력 대기를 취소합니다.\n중복 키는 사용할 수 없습니다. ESC 메뉴·M 마이크·마우스 시점·게임패드는 고정 입력입니다.";
+            if (inputDraft != null) foreach (var entry in InputBindingPreferences.GetBindings(inputDraft))
+            {
+                string id = entry.BindingId.ToString(); bindings[id] = entry;
+                controls.rows.Add(new SettingsRow { id = id, label = ActionLabel(entry.ActionName, entry.PartName), kind = SettingsRowKind.Rebind,
+                    value = new V2Value { rowId = id, bindingId = entry.Path, bindingDisplay = entry.DisplayName } });
+            }
+            if (inputDraft == null) controls.rows.Add(Paragraph("NoBindings", "입력 설정을 불러오지 못했습니다."));
+            var voice = deviceVoice; var sound = catalog.pages[3];
+            sound.rows.Add(Slider("volume", "게임 전체 음량", ClientSettings.Volume));
+            sound.rows.Add(Slider("bgmVolume", "배경음 음량", ClientSettings.BgmVolume));
+            sound.rows.Add(Slider("sfxVolume", "효과음 음량", ClientSettings.SfxVolume));
+            sound.rows.Add(Slider("teamVolume", "전체 음성 수신 음량", voice != null ? voice.TeamVolume : 1));
+            sound.rows.Add(Slider("micVolume", "내 마이크 입력 음량", voice != null ? voice.MicVolume : 1));
+            sound.rows.Add(Toggle("micEnabled", "마이크 켜기", voice == null || !voice.IsMicMuted));
+            sound.rows.Add(Toggle("teamMuted", "전체 음성 수신 음소거", voice != null && voice.IsTeamMuted));
+            sound.rows.Add(Choice("InputDevice", "음성 입력 기기", "unavailable", new[] { new SettingsChoice("unavailable", "기기 목록을 불러와 주세요"), new SettingsChoice(VoiceChat.SystemDefaultDeviceId, "시스템 기본 기기") }));
+            sound.rows.Add(Choice("OutputDevice", "음성 출력 기기", "unavailable", new[] { new SettingsChoice("unavailable", "기기 목록을 불러와 주세요"), new SettingsChoice(VoiceChat.SystemDefaultDeviceId, "시스템 기본 기기") }));
+            var load = ActionRow("LoadDevices", "기기 목록 새로고침 (음성 서비스 연결)", "기기 목록 불러오기"); load.requiresConfirmation = false; sound.rows.Add(load);
+            sound.rows.Add(Paragraph("DeviceHint", "출력 기기 선택은 음성 채팅에 적용됩니다. 게임 소리 출력은 운영체제에서 변경하세요.\n마이크 접근 권한이 필요하며, 기기를 연결·해제하면 목록이 갱신됩니다."));
+            var others = voice != null ? voice.Participants.Where(p => !p.IsSelf).ToArray() : Array.Empty<Unity.Services.Vivox.VivoxParticipant>();
+            if (others.Length == 0) sound.rows.Add(Paragraph("NoPeers", "현재 음성 채널에 다른 단원이 없습니다."));
+            foreach (var peer in others)
+            {
+                string id = peer.PlayerId, name = string.IsNullOrWhiteSpace(peer.DisplayName) ? "단원" : peer.DisplayName;
+                peers[id] = (voice.ParticipantVolume(id), voice.ParticipantMuted(id));
+                sound.rows.Add(Slider("peerVolume_" + id, name + " · 음량", peers[id].volume));
+                sound.rows.Add(Toggle("peerMuted_" + id, name + " · 음소거", peers[id].muted));
+            }
+            var credits = catalog.pages[4];
+            credits.rows.Add(Paragraph("Developers", "개발자\nMoHoDu · 총괄 시스템 / 기획 조율\nmingyu (gyumin9048-ctrl) · 대기실 / 에셋 관리\nRagSpirin · 공연장 / 탈출로\nlakuase2 · 기존 공연장 개발 기여"));
+            credits.rows.Add(Paragraph("AssetCredits", "에셋 및 소프트웨어\nPretendard — Kil Hyung-jin · SIL Open Font License 1.1 (아래 원문)\nQuaternius Standard — Quaternius · CC0 1.0\nhttps://creativecommons.org/publicdomain/zero/1.0/\nDOTween / DOTween Pro — Copyright (c) 2014-2026 Daniele Giardini - Demigiant\nhttps://dotween.demigiant.com/license.php"));
+            credits.rows.Add(Paragraph("CreditsNotice", "추가 외부 에셋·BM 폰트 및 패키지의 개별 배포 조건은 확인 중입니다.\n현재 목록은 전체 라이선스 검토 완료나 모든 권리 확보를 뜻하지 않습니다."));
+            var license = Resources.Load<TextAsset>("Fonts/Pretendard-License");
+            credits.rows.Add(Paragraph("PretendardLicense", license != null ? license.text : "Pretendard 라이선스 원문을 불러오지 못했습니다."));
+            foreach (var page in catalog.pages)
+            {
+                bool resettable = page.id == "graphics" || page.id == "audio" || page.id == "controls" && inputDraft != null;
+                var reset = ActionRow("Reset_" + page.id, resettable ? page.label + " 설정을 기본값으로 되돌립니다.\n적용을 눌러야 저장됩니다." : "초기화할 설정이 없습니다.", "초기화");
+                reset.requiresConfirmation = false; reset.actionStyle = "tab"; reset.enabled = resettable;
+                page.rows.Add(reset);
+            }
+            return catalog;
         }
-        void BuildGraphics()
-        {
-            modeText = view.Choice(1, "ScreenMode", "화면 모드", "", d => { modeIndex = Wrap(modeIndex + d, ScreenModes.Length); RefreshGraphics(); });
-            resolutionText = view.Choice(1, "Resolution", "해상도", "", d => { resolutionIndex = Wrap(resolutionIndex + d, resolutions.Length); RefreshGraphics(); });
-            fpsText = view.Choice(1, "FrameRate", "FPS 제한", "", d => { fpsIndex = Wrap(fpsIndex + d, ClientSettings.AvailableFrameRateLimits.Count); RefreshGraphics(); });
-            view.Paragraph(1, "GraphicsHint", "전체 화면 창은 데스크톱 해상도를 사용합니다.\n변경한 설정은 적용을 누르면 이 PC에 저장됩니다.");
-        }
-        void RefreshGraphics()
-        {
-            modeText(ScreenLabels[modeIndex], true);
-            var resolution = resolutions[resolutionIndex]; bool desktop = ScreenModes[modeIndex] == FullScreenMode.FullScreenWindow;
-            resolutionText(desktop ? "데스크톱 해상도 사용" : $"{resolution.width} × {resolution.height}", !desktop);
-            int fps = ClientSettings.AvailableFrameRateLimits[fpsIndex];
-            fpsText(fps < 0 ? "제한 없음" : fps == 60 ? "60 FPS (기본)" : $"{fps} FPS", true);
-        }
-        static int Wrap(int index, int count) => (index % count + count) % count;
-        public void OpenGraphics() { if (IsOpen && !IsExtensionOpen) view.ShowPage(1); }
-
-        void BuildControls()
-        {
-            view.Paragraph(2, "ControlsHint", "변경 버튼을 누르고 새 키를 입력하세요. ESC로 입력 대기를 취소합니다.\n중복 키는 사용할 수 없습니다. ESC 메뉴·M 마이크·마우스 시점·게임패드는 고정 입력입니다.");
-            if (inputDraft == null) { view.Paragraph(2, "NoBindings", "입력 설정을 불러오지 못했습니다."); return; }
-            var map = inputDraft.FindActionMap("Common");
-            foreach (var action in map.actions)
-                for (int i = 0; i < action.bindings.Count; i++)
-                {
-                    var binding = action.bindings[i];
-                    if (binding.isComposite || !binding.effectivePath.StartsWith("<Keyboard>/", StringComparison.OrdinalIgnoreCase)) continue;
-                    var target = action; int index = i;
-                    string id = action.id + ":" + i;
-                    var button = view.ActionRow(2, id, ActionLabel(action.name, binding.name), action.GetBindingDisplayString(i), () => BeginBindingCapture(target, index));
-                    bindingButtons[id] = button;
-                }
-            view.ActionRow(2, "ResetBindings", "조작 키 기본값 복원 (적용 전까지 미저장)", "기본값 복원", () =>
-            { CancelBindingCapture(); inputDraft.RemoveAllBindingOverrides(); RefreshBindingLabels(); view.SetMessage("기본 키로 되돌렸습니다. 적용을 눌러 저장하세요."); });
-        }
+        static SettingsRow Paragraph(string id, string text) => new() { id = id, label = text, kind = SettingsRowKind.Paragraph };
+        static SettingsRow Slider(string id, string label, float value) => new() { id = id, label = label, kind = SettingsRowKind.Slider, value = new V2Value { rowId = id, number = value } };
+        static SettingsRow Toggle(string id, string label, bool value) => new() { id = id, label = label, kind = SettingsRowKind.Toggle, value = new V2Value { rowId = id, toggle = value } };
+        static SettingsRow Choice(string id, string label, string selected, IEnumerable<SettingsChoice> choices) => new() { id = id, label = label, kind = SettingsRowKind.Choice, choices = choices.ToList(), value = new V2Value { rowId = id, choiceId = selected } };
+        static SettingsRow ActionRow(string id, string label, string button) => new() { id = id, label = label, kind = SettingsRowKind.Action, actionId = id, confirmationTitle = button, confirmationBody = label, confirmationButton = button };
         static string ActionLabel(string name, string part)
         {
             if (name == "Move") return part == "negative" ? "뒤로 이동" : "앞으로 이동";
             if (name == "Posture") return part == "negative" ? "왼쪽 이동 / 균형" : "오른쪽 이동 / 균형";
-            string label = name switch { "Action" => "점프 / 행동", "DirectionLeft" => "왼쪽 보조 행동", "DirectionRight" => "오른쪽 보조 행동", "Interact" => "상호작용", "Sprint" => "달리기", "Crouch" => "앉기", _ => name };
-            string direction = part switch { "negative" => "감소", "positive" => "증가", _ => part };
-            return string.IsNullOrEmpty(direction) ? label : label + " · " + direction;
+            return name switch { "Action" => "점프 / 행동", "DirectionLeft" => "왼쪽 보조 행동", "DirectionRight" => "오른쪽 보조 행동", "Interact" => "상호작용", "Sprint" => "달리기", "Crouch" => "앉기", _ => name };
         }
-        void BeginBindingCapture(InputAction action, int index)
+        void DraftChanged(List<V2Value> values)
         {
-            CancelBindingCapture(); captureAction = action; captureIndex = index; captureFrame = Time.frameCount;
-            captureButton = bindingButtons[action.id + ":" + index]; captureButton.GetComponentInChildren<TMP_Text>().text = "새 키 입력…";
-            view.SetMessage("새 키를 누르세요. ESC는 취소, M은 마이크 단축키로 예약되어 있습니다.");
-        }
-        public void CancelBindingCapture()
-        {
-            if (captureAction == null) return;
-            captureAction = null; captureButton = null; RefreshBindingLabels(); view.SetMessage("");
-        }
-        void RefreshBindingLabels()
-        {
-            if (inputDraft == null) return;
-            foreach (var action in inputDraft.FindActionMap("Common").actions)
-                for (int i = 0; i < action.bindings.Count; i++)
-                    if (bindingButtons.TryGetValue(action.id + ":" + i, out var button)) button.GetComponentInChildren<TMP_Text>().text = action.GetBindingDisplayString(i);
-        }
-        void Update()
-        {
-            if (!IsOpen || captureAction == null || Keyboard.current == null || Time.frameCount <= captureFrame) return;
-            foreach (var key in Keyboard.current.allKeys)
-            {
-                if (!key.wasPressedThisFrame) continue;
-                if (key.keyCode == Key.Escape) { CancelBindingCapture(); return; }
-                if (key.keyCode == Key.M) { view.SetMessage("M은 마이크 단축키입니다. 다른 키를 선택하세요."); return; }
-                if (!InputBindingPreferences.TryRebind(inputDraft, captureAction.bindings[captureIndex].id, "<Keyboard>/" + key.name, out string error))
-                { view.SetMessage(error); return; }
-                CancelBindingCapture(); view.SetMessage("키를 변경했습니다. 적용을 눌러 저장하세요."); return;
-            }
-        }
-        void BuildSound()
-        {
-            view.Slider(3, "volume", "게임 전체 음량", volume, v => volume = v);
-            view.Slider(3, "bgmVolume", "배경음 음량", bgmVolume, v => bgmVolume = v);
-            view.Slider(3, "sfxVolume", "효과음 음량", sfxVolume, v => sfxVolume = v);
-            view.Slider(3, "teamVolume", "전체 음성 수신 음량", teamVolume, v => teamVolume = v);
-            view.Slider(3, "micVolume", "내 마이크 입력 음량", micVolume, v => micVolume = v);
-            view.Toggle(3, "micEnabled", "마이크 켜기", !micMuted, v => micMuted = !v);
-            view.Toggle(3, "teamMuted", "전체 음성 수신 음소거", teamMuted, v => teamMuted = v);
-            BuildDevices();
-            var voice = VoiceChat.Instance;
-            if (voice == null) view.Paragraph(3, "VoiceUnavailable", "음성 서비스를 준비 중입니다. 장치·팀원 정보는 연결 후 다시 열면 표시됩니다.");
-            var others = voice != null ? voice.Participants.Where(p => !p.IsSelf).ToArray() : Array.Empty<Unity.Services.Vivox.VivoxParticipant>();
-            if (others.Length == 0) view.Paragraph(3, "NoPeers", "현재 음성 채널에 다른 단원이 없습니다.");
-            foreach (var peer in others)
-            {
-                string id = peer.PlayerId;
-                peers[id] = (voice.ParticipantVolume(id), voice.ParticipantMuted(id));
-                string name = string.IsNullOrWhiteSpace(peer.DisplayName) ? "단원" : peer.DisplayName;
-                view.Slider(3, "peerVolume_" + id, name + " · 음량", peers[id].volume, v => { var p = peers[id]; peers[id] = (v, p.muted); });
-                view.Toggle(3, "peerMuted_" + id, name + " · 음소거", peers[id].muted, v => { var p = peers[id]; peers[id] = (p.volume, v); });
-            }
-        }
-        void BuildDevices()
-        {
-            deviceVoice = VoiceChat.Instance;
-            inputDeviceText = view.Choice(3, "InputDevice", "음성 입력 기기", "준비 필요", d =>
-            {
-                if (inputIds.Length == 0) return;
-                inputDeviceId = inputIds[Wrap(Array.IndexOf(inputIds, inputDeviceId) + d, inputIds.Length)];
-                devicesTouched = true; RefreshDevices();
-            }, false);
-            outputDeviceText = view.Choice(3, "OutputDevice", "음성 출력 기기", "준비 필요", d =>
-            {
-                if (outputIds.Length == 0) return;
-                outputDeviceId = outputIds[Wrap(Array.IndexOf(outputIds, outputDeviceId) + d, outputIds.Length)];
-                devicesTouched = true; RefreshDevices();
-            }, false);
-            view.ActionRow(3, "LoadDevices", "기기 목록 새로고침 (음성 서비스 연결)", "기기 목록 불러오기", LoadDevices);
-            view.Paragraph(3, "DeviceHint", "출력 기기 선택은 음성 채팅에 적용됩니다. 게임 소리 출력은 운영체제에서 변경하세요.\n마이크 접근 권한이 필요하며, 기기를 연결·해제하면 목록이 갱신됩니다.");
-            if (deviceVoice != null) deviceVoice.DevicesChanged += RefreshDevices;
-            RefreshDevices();
+            var mode = values.Find(v => v.rowId == "ScreenMode");
+            if (mode != null) view.SetRowAvailability("Resolution", mode.choiceId != ((int)FullScreenMode.FullScreenWindow).ToString(),
+                mode.choiceId == ((int)FullScreenMode.FullScreenWindow).ToString() ? "전체 화면 창은 데스크톱 해상도를 사용합니다." : "");
+            var input = values.Find(v => v.rowId == "InputDevice"); var output = values.Find(v => v.rowId == "OutputDevice");
+            if (input != null && input.choiceId != selectedInput) { selectedInput = input.choiceId; inputTouched = true; }
+            if (output != null && output.choiceId != selectedOutput) { selectedOutput = output.choiceId; outputTouched = true; }
         }
         void RefreshDevices()
         {
-            if (!IsOpen || deviceVoice == null || inputDeviceText == null) return;
-            inputIds = deviceVoice.AvailableInputDevices.Select(d => d.DeviceID).ToArray();
-            outputIds = deviceVoice.AvailableOutputDevices.Select(d => d.DeviceID).ToArray();
-            inputNames = deviceVoice.AvailableInputDevices.Select(d => d.DeviceName).ToArray();
-            outputNames = deviceVoice.AvailableOutputDevices.Select(d => d.DeviceName).ToArray();
-            if (!devicesTouched)
-            {
-                inputDeviceId = deviceVoice.EffectiveInputDevice?.DeviceID;
-                outputDeviceId = deviceVoice.EffectiveOutputDevice?.DeviceID;
-            }
-            int input = Array.IndexOf(inputIds, inputDeviceId), output = Array.IndexOf(outputIds, outputDeviceId);
-            inputDeviceText(input >= 0 ? inputNames[input] : deviceVoice.AreAudioDevicesReady ? "사용 가능한 기기 없음 / 연결 해제" : "기기 목록을 불러와 주세요", inputIds.Length > 0);
-            outputDeviceText(output >= 0 ? outputNames[output] : deviceVoice.AreAudioDevicesReady ? "사용 가능한 기기 없음 / 연결 해제" : "기기 목록을 불러와 주세요", outputIds.Length > 0);
+            if (!IsOpen || deviceVoice == null) return;
+            var inputs = deviceVoice.AvailableInputDevices.Select(d => new SettingsChoice(d.DeviceID, d.DeviceName)).ToList();
+            var outputs = deviceVoice.AvailableOutputDevices.Select(d => new SettingsChoice(d.DeviceID, d.DeviceName)).ToList();
+            if (!inputTouched) selectedInput = (deviceVoice.ActiveInputDevice ?? deviceVoice.EffectiveInputDevice)?.DeviceID ?? "unavailable";
+            if (!outputTouched) selectedOutput = (deviceVoice.ActiveOutputDevice ?? deviceVoice.EffectiveOutputDevice)?.DeviceID ?? "unavailable";
+            UpdateDevice("InputDevice", inputs, selectedInput);
+            UpdateDevice("OutputDevice", outputs, selectedOutput);
         }
-        async void LoadDevices()
+        void UpdateDevice(string rowId, List<SettingsChoice> choices, string selected)
         {
-            if (busy || deviceVoice == null) { view.SetMessage("음성 서비스를 준비 중입니다."); return; }
-            int current = session; busy = true; view.SetMessage("음성 기기 목록을 불러오는 중입니다…");
+            if (!choices.Exists(c => c.id == VoiceChat.SystemDefaultDeviceId))
+                choices.Add(new SettingsChoice(VoiceChat.SystemDefaultDeviceId, "시스템 기본 기기"));
+            if (!choices.Exists(c => c.id == selected)) choices.Insert(0, new SettingsChoice(selected,
+                deviceVoice.AreAudioDevicesReady ? "사용 가능한 기기 없음 / 연결 해제" : "기기 목록을 불러와 주세요"));
+            view.SetChoices(rowId, choices, selected, "");
+        }
+        bool SyncBindings(List<V2Value> values, out string error)
+        {
+            error = ""; if (inputDraft == null) return true;
+            inputDraft.RemoveAllBindingOverrides();
+            foreach (var value in values)
+            {
+                if (!bindings.TryGetValue(value.rowId, out var binding)) continue;
+                if (!InputBindingPreferences.TryValidateKeyPath(value.bindingId, out string path, out error)) return false;
+                var action = inputDraft.FindAction(binding.ActionId);
+                action.ApplyBindingOverride(binding.BindingIndex, path);
+            }
+            return InputBindingPreferences.TryValidateDraft(inputDraft, out error);
+        }
+        void Update()
+        {
+            if (!IsOpen || capture == null || Keyboard.current == null || Time.frameCount <= captureFrame) return;
+            foreach (var key in Keyboard.current.allKeys)
+            {
+                if (!key.wasPressedThisFrame) continue;
+                if (key.keyCode == Key.Escape) return; // CommonMenuUI가 캡처 취소를 한 번만 전달한다.
+                var request = capture; capture = null;
+                if (!SyncBindings(view.GetDraftSnapshot(), out string error)
+                    || !bindings.TryGetValue(request.rowId, out var entry)
+                    || !InputBindingPreferences.TryRebind(inputDraft, entry.BindingId, "<Keyboard>/" + key.name, out error))
+                { view.RejectRebind(request.token, string.IsNullOrEmpty(error) ? "키를 변경할 수 없습니다." : error); return; }
+                var updated = InputBindingPreferences.GetBindings(inputDraft).First(b => b.BindingId == entry.BindingId);
+                view.CompleteRebind(request.token, updated.Path, updated.DisplayName, out _); return;
+            }
+        }
+        async void HandleAction(SettingsActionRequest request)
+        {
+            if (request.actionId == "RunAbandon")
+            {
+                var run = CampaignRun.Instance;
+                bool success = gameplayContext && run != null && run.AbandonRun(abandonContext);
+                view.CompleteAction(request.token, success, "런 상태가 변경되어 포기할 수 없습니다.");
+                if (success) CommonMenuUI.Current?.CloseAll();
+                return;
+            }
+            if (request.actionId.StartsWith("Reset_", StringComparison.Ordinal))
+            {
+                if (view.CompleteAction(request.token, true, null, false)) ResetPage(request.actionId.Substring(6));
+                return;
+            }
+            if (request.actionId != "LoadDevices") { view.CompleteAction(request.token, false, "지원하지 않는 동작입니다."); return; }
+            view.CompleteAction(request.token, true, null, false);
+            if (loadingDevices || deviceVoice == null) { view.ShowMessage("음성 서비스를 준비 중입니다."); return; }
+            int current = session; loadingDevices = true; view.ShowMessage("음성 기기 목록을 불러오는 중입니다…");
             try
             {
                 bool ready = await deviceVoice.InitializeAudioDevicesAsync();
                 if (current != session || !IsOpen) return;
-                RefreshDevices(); view.SetMessage(ready ? "기기 목록을 갱신했습니다." : "기기 목록을 불러오지 못했습니다.");
+                RefreshDevices(); view.ShowMessage(ready ? "기기 목록을 갱신했습니다." : "기기 목록을 불러오지 못했습니다.");
             }
-            catch (Exception) { if (current == session && IsOpen) view.SetMessage("음성 기기를 불러오지 못했습니다. 연결·마이크 권한을 확인하세요."); }
-            finally { if (current == session) busy = false; }
+            catch (Exception) { if (current == session && IsOpen) view.ShowMessage("음성 기기를 불러오지 못했습니다. 연결·마이크 권한을 확인하세요."); }
+            finally { if (current == session) loadingDevices = false; }
         }
-        void BuildCredits()
+        void ResetPage(string page)
         {
-            view.Paragraph(4, "Developers", "개발자\nMoHoDu · 총괄 시스템 / 기획 조율\nmingyu (gyumin9048-ctrl) · 대기실 / 에셋 관리\nRagSpirin · 공연장 / 탈출로\nlakuase2 · 기존 공연장 개발 기여", 210);
-            view.Paragraph(4, "AssetCredits", "에셋 및 소프트웨어\nPretendard — Kil Hyung-jin · SIL Open Font License 1.1 (아래 원문)\nQuaternius Standard — Quaternius · CC0 1.0\nhttps://creativecommons.org/publicdomain/zero/1.0/\nDOTween / DOTween Pro — Copyright (c) 2014-2026 Daniele Giardini - Demigiant\nhttps://dotween.demigiant.com/license.php", 240);
-            view.Paragraph(4, "CreditsNotice", "추가 외부 에셋·BM 폰트 및 패키지의 개별 배포 조건은 확인 중입니다.\n현재 목록은 전체 라이선스 검토 완료나 모든 권리 확보를 뜻하지 않습니다.", 90);
-            var license = Resources.Load<TextAsset>("Fonts/Pretendard-License");
-            view.Paragraph(4, "PretendardLicense", license != null ? license.text : "Pretendard 라이선스 원문을 불러오지 못했습니다.");
+            var values = new List<V2Value>();
+            switch (page)
+            {
+                case "graphics":
+                    var resolution = ClientSettings.DefaultResolution;
+                    values.Add(new V2Value { rowId = "ScreenMode", choiceId = ((int)ClientSettings.DefaultScreenMode).ToString() });
+                    values.Add(new V2Value { rowId = "Resolution", choiceId = resolution.width + "x" + resolution.height });
+                    values.Add(new V2Value { rowId = "FrameRate", choiceId = ClientSettings.DefaultFrameRateLimit.ToString() });
+                    break;
+                case "controls":
+                    if (inputDraft == null) return;
+                    inputDraft.RemoveAllBindingOverrides();
+                    values.AddRange(InputBindingPreferences.GetBindings(inputDraft).Select(b => new V2Value { rowId = b.BindingId.ToString(), bindingId = b.Path, bindingDisplay = b.DisplayName }));
+                    break;
+                case "audio":
+                    values.Add(new V2Value { rowId = "volume", number = ClientSettings.DefaultVolume });
+                    values.Add(new V2Value { rowId = "bgmVolume", number = ClientSettings.DefaultBgmVolume });
+                    values.Add(new V2Value { rowId = "sfxVolume", number = ClientSettings.DefaultSfxVolume });
+                    values.Add(new V2Value { rowId = "teamVolume", number = 1 });
+                    values.Add(new V2Value { rowId = "micVolume", number = 1 });
+                    values.Add(new V2Value { rowId = "micEnabled", toggle = true });
+                    values.Add(new V2Value { rowId = "teamMuted", toggle = false });
+                    values.Add(new V2Value { rowId = "InputDevice", choiceId = VoiceChat.SystemDefaultDeviceId });
+                    values.Add(new V2Value { rowId = "OutputDevice", choiceId = VoiceChat.SystemDefaultDeviceId });
+                    foreach (var id in peers.Keys)
+                    {
+                        values.Add(new V2Value { rowId = "peerVolume_" + id, number = 1 });
+                        values.Add(new V2Value { rowId = "peerMuted_" + id, toggle = false });
+                    }
+                    break;
+                default: return;
+            }
+            if (view.SetDraftValues(values)) view.ShowMessage("이 탭을 초기화했습니다. 적용을 눌러 저장하세요.");
         }
-        public void RequestAbandon()
+        async void Apply(SettingsApplyRequest request)
         {
-            var run = CampaignRun.Instance;
-            if (!IsOpen || view.CurrentPage != 0 || !gameplayContext || IsExtensionOpen || run == null || !run.CanAbandonRun) return;
-            abandonContext = run.State; confirmingAbandon = true; view.SetCovered(true);
-            extension.Open("런 포기", "정말 현재 런을 포기하고 새로 시작하겠습니까?\n모든 단원이 다음 런 1일차부터 다시 시작합니다.", "예", ConfirmAbandon, RestoreMain);
-        }
-        public void ConfirmAbandon()
-        {
-            if (!IsExtensionOpen || !confirmingAbandon) return;
-            extension.SetAcceptEnabled(false);
-            var run = CampaignRun.Instance;
-            if (run == null || !run.AbandonRun(abandonContext))
-            { extension.SetMessage("런 상태가 변경되어 포기할 수 없습니다. 아니요를 눌러 돌아가 주세요."); return; }
-            confirmingAbandon = false; CommonMenuUI.Current?.CloseAll();
-        }
-        void RestoreMain()
-        {
-            confirmingAbandon = false; if (!IsOpen) return;
-            view.SetCovered(false);
-            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(abandonButton.gameObject);
+            int current = session;
+            bool Current() => this != null && view != null && current == session && view.IsRequestCurrent(request.token);
+            try
+            {
+                if (loadingDevices) { view.CompleteApply(request.token, false, "기기 조회가 끝난 뒤 적용해 주세요."); return; }
+                if (!SyncBindings(request.values, out string error)) { view.CompleteApply(request.token, false, error); return; }
+                var values = request.values.ToDictionary(v => v.rowId);
+                if (deviceVoice != null)
+                {
+                    if (inputTouched && selectedInput != "unavailable" && !await deviceVoice.SelectInputDeviceAsync(selectedInput))
+                    { if (Current()) view.CompleteApply(request.token, false, "선택한 입력 기기가 사라졌습니다. 목록을 새로고침하세요."); return; }
+                    if (!Current()) return;
+                    if (outputTouched && selectedOutput != "unavailable" && !await deviceVoice.SelectOutputDeviceAsync(selectedOutput))
+                    { if (Current()) view.CompleteApply(request.token, false, "출력 기기가 사라졌습니다. 입력 기기는 이미 적용됐을 수 있습니다."); return; }
+                }
+                if (!Current()) return;
+                if (inputDraft != null && !InputBindingPreferences.TryApply(inputDraft, out error)) { view.CompleteApply(request.token, false, error); return; }
+                var resolution = resolutions.First(r => r.width + "x" + r.height == values["Resolution"].choiceId);
+                var mode = (FullScreenMode)int.Parse(values["ScreenMode"].choiceId);
+                ClientSettings.SetGraphics(mode, resolution.width, resolution.height, int.Parse(values["FrameRate"].choiceId));
+                ClientSettings.Volume = values["volume"].number; ClientSettings.BgmVolume = values["bgmVolume"].number; ClientSettings.SfxVolume = values["sfxVolume"].number; ClientSettings.Save();
+                var voice = VoiceChat.Instance;
+                voice?.ApplyAudioPreferences(values["micVolume"].number, !values["micEnabled"].toggle, values["teamVolume"].number, values["teamMuted"].toggle);
+                foreach (var id in peers.Keys) voice?.SetParticipantPreference(id, values["peerVolume_" + id].number, values["peerMuted_" + id].toggle);
+                view.CompleteApply(request.token, true);
+            }
+            catch (Exception) { if (Current()) view.CompleteApply(request.token, false, "설정을 모두 적용하지 못했습니다. 연결·장치를 확인하세요. 일부 값은 적용됐을 수 있습니다."); }
         }
         void LateUpdate() { if (IsOpen) RefreshGame(); }
         void RefreshGame()
         {
-            if (abandonButton == null) return;
             var run = CampaignRun.Instance;
-            abandonButton.interactable = gameplayContext && run != null && run.CanAbandonRun;
-            abandonButton.GetComponentInChildren<TMP_Text>().text = run != null && !run.HasAuthority ? "런 포기 (호스트 전용)" : "런 포기";
+            view.SetRunPermission(gameplayContext && run != null && run.CanAbandonRun,
+                run != null && !run.HasAuthority ? "런 포기는 호스트만 실행할 수 있습니다." : "대기실의 쉬는 시간·밤에만 런을 포기할 수 있습니다.");
         }
-        public async void ApplySettings()
-        {
-            if (!IsOpen || IsExtensionOpen || IsCapturingBinding || busy) return;
-            if (inputDraft != null && !InputBindingPreferences.TryValidateDraft(inputDraft, out string validationError))
-            { view.SetMessage(validationError); return; }
-            int current = session; busy = applying = true; view.SetBusy(true);
-            try
-            {
-                if (devicesTouched && deviceVoice != null)
-                {
-                    if (inputDeviceId != null && !await deviceVoice.SelectInputDeviceAsync(inputDeviceId))
-                    { view.SetMessage("선택한 입력 기기가 사라졌습니다. 목록을 새로고침하세요."); return; }
-                    if (current != session || !IsOpen) return;
-                    if (outputDeviceId != null && !await deviceVoice.SelectOutputDeviceAsync(outputDeviceId))
-                    { view.SetMessage("선택한 출력 기기가 사라졌습니다. 입력 기기는 이미 적용됐을 수 있습니다."); return; }
-                    if (current != session || !IsOpen) return;
-                }
-                if (inputDraft != null && !InputBindingPreferences.TryApply(inputDraft, out string error))
-                { view.SetMessage(error); return; }
-                var resolution = resolutions[resolutionIndex];
-                ClientSettings.SetGraphics(ScreenModes[modeIndex], resolution.width, resolution.height, ClientSettings.AvailableFrameRateLimits[fpsIndex]);
-                ClientSettings.Volume = volume; ClientSettings.BgmVolume = bgmVolume; ClientSettings.SfxVolume = sfxVolume; ClientSettings.Save();
-                var voice = VoiceChat.Instance;
-                voice?.ApplyAudioPreferences(micVolume, micMuted, teamVolume, teamMuted);
-                foreach (var peer in peers) voice?.SetParticipantPreference(peer.Key, peer.Value.volume, peer.Value.muted);
-                busy = applying = false; CancelMain();
-            }
-            catch (Exception) { if (current == session && IsOpen) view.SetMessage("설정을 모두 적용하지 못했습니다. 연결·장치를 확인하세요. 일부 값은 적용됐을 수 있습니다."); }
-            finally { if (current == session) { busy = applying = false; if (IsOpen) view.SetBusy(false); } }
-        }
+        public void OpenGraphics() { if (IsOpen) view.ShowPage(1); }
         public void OpenTeammates() { if (IsOpen) view.ShowPage(3); }
-        public void CancelTop()
-        { if (applying) return; if (IsExtensionOpen) extension.Cancel(); else if (IsCapturingBinding) CancelBindingCapture(); else if (IsOpen) CancelMain(); }
-        void CancelMain()
-        { if (applying) return; var callback = closed; closed = null; Close(); callback?.Invoke(); }
-        public void Close()
+        public void ApplySettings() => view?.RequestApply();
+        public void CancelBindingCapture() { if (IsCapturingBinding) view.Cancel(); }
+        public void CancelTop() => view?.Cancel();
+        public void RequestAbandon()
         {
-            session++; busy = applying = false;
+            if (!IsOpen || view.CurrentPage != 0) return;
+            RefreshGame();
+            var row = view.transform.Find("00_Visuals/40_Content/30_Scroll/00_Viewport/00_Content/RunAbandon_Row/10_Action");
+            var button = row != null ? row.GetComponent<UnityEngine.UI.Button>() : null;
+            if (button != null && button.interactable) button.onClick.Invoke();
+        }
+        public void ConfirmAbandon()
+        {
+            if (!IsExtensionOpen) return;
+            view.transform.Find("00_Visuals/90_ActionConfirmation/00_Dialog/40_Content/30_Confirm").GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+        }
+        void OnViewClosed()
+        {
+            var callback = closing ? null : closed; closed = null;
+            Cleanup(); callback?.Invoke();
+        }
+        void Cleanup()
+        {
+            session++; loadingDevices = false; capture = null;
             if (deviceVoice != null) deviceVoice.DevicesChanged -= RefreshDevices;
             deviceVoice = null;
-            CancelBindingCapture(); extension?.Hide(); confirmingAbandon = false; view?.Hide();
-            main.Hide(); teammates.Hide();
-            if (inputDraft != null) Destroy(inputDraft); inputDraft = null; closed = null;
+            if (inputDraft != null) Destroy(inputDraft); inputDraft = null;
         }
-        void OnDestroy()
-        { session++; if (deviceVoice != null) deviceVoice.DevicesChanged -= RefreshDevices; if (inputDraft != null) Destroy(inputDraft); }
+        public void Close()
+        {
+            closing = true; closed = null; view?.Hide(); closing = false; Cleanup();
+            main.Hide(); teammates.Hide();
+        }
+        void OnDestroy() => Cleanup();
     }
 }
