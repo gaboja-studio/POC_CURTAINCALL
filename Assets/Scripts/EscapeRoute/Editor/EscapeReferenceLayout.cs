@@ -26,6 +26,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             PolishAContext();
             BuildVerticalCavern();
             BuildBrutalistRoute();
+            ApplyIndustrialFinish();
+            BuildRunnerEscape();
             EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
         }
 

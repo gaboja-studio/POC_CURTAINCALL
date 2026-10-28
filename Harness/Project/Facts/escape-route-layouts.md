@@ -10,6 +10,8 @@ source: Task-20261027-073, 저장 씬·정적 구조 검사·Play Mode 상태 �
 ## 언제 읽나
 탈출로 배경을 둘러보거나 A/B/C 구조를 수정·재생성할 때.
 
+- 최신 A07: `19_RunnerEscape`, X140–400/Z78 중심260m. 측면 배출4곳·상부 낙하3곳·22m 그네 단절/설치3곳·밝은 외벽 출구. 하부48m, 기본 주행폭14m. 17의 옛07/관련18 소품은 비활성 보존했고08을 새 출구로 이동했다. Task의 `a-runner-route.md`가 아래 옛07·외곽 치수보다 우선한다. `EscapeRunnerLayout/Details/Deck/Validation.cs`로 제작/검사하며 실제 기믹 동작은 미구현이다. 19 재생성은 해당 그룹 수동 편집을 교체한다.
+
 - A: `Assets/Scenes/Levels/escape_route.unity`. 대포·외줄 선행, 트램폴린·그네 후행. 2026-10-28 후속으로 03은 `16_VerticalFacility`의 50×50m 수직 설비실(Y-90–44)로 대체했다. Y0→Y-6 횡단→계단→기존04 Y+2이며 03의 이전 Y+2 발판 기준은 더 이상 적용하지 않는다.
 - B: `Assets/Scenes/Levels/escape_route_b.unity`. 트램폴린·그네 선행, 대포·Y+4 고립 발판·대각 외줄 후행, 긴 하강과 재합류.
 - C: `Assets/Scenes/Levels/escape_route_c.unity`. 횡단 축이 꺾이는 대포·Y+2 편심 발판·대각 외줄, 남쪽 그네 횡단, 북상 질주와 출구.
