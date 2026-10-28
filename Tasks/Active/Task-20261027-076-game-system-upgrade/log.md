@@ -114,7 +114,7 @@
 
 ## 2026-10-29 인간대포 지면 사망 카메라
 - 모든 사망에1.5m 하강을 적용해 땅 아래로 들어가던 문제 수정. 발 아래 지면 감지 시 하강0·바닥 위 최소1.2m/수평2.5m에서 사망 위치를 바라보고 고정. 공중 하강도 SphereCast로 지면 앞에서 제한하며 생존자 관전/부활 복귀는 유지.
-- CameraViews6/6·DeathRagdoll6/6 통과. 실제 대포 호스트+통제 바닥에서2부위 선부상→ServerFallInjury→4부위 사망·Brain 지면 위·사망 위치 화면 중앙 검사 포함(실제 키보드/2PC 아님). doctor 기존 Task077 중복FAIL·Unity정상. 최종 check-work 안전성·문서/규칙·컴파일PASS(hard0·경고16·dirty0), 전체 테스트SKIPPED·관련12건 개별 통과·diff-check0. 사람 최종 연출 미확인. 사용자 전체 저장/dev 제출 요청에 따라 사망 래그돌·손 접점/흔들림·카메라·회귀/문서 및 CheerGauge Bold 아틀라스 텍스처 변경을 함께 저장한다(글리프/설정 변경 없음). origin/dev와HEAD 일치 확인, dev PR·PM 팀 검토 요청 예정이며 직접 병합하지 않는다.
+- CameraViews6/6·DeathRagdoll6/6 통과. 실제 대포 호스트+통제 바닥에서2부위 선부상→ServerFallInjury→4부위 사망·Brain 지면 위·사망 위치 화면 중앙 검사 포함(실제 키보드/2PC 아님). doctor 기존 Task077 중복FAIL·Unity정상. 최종 check-work 안전성·문서/규칙·컴파일PASS(hard0·경고16·dirty0), 전체 테스트SKIPPED·관련12건 개별 통과·diff-check0. 사람 최종 연출 미확인. 사용자 전체 저장/dev 제출 요청에 따라 사망 래그돌·손 접점/흔들림·카메라·회귀/문서 및 CheerGauge Bold 아틀라스 텍스처 변경을 함께 저장한다(글리프/설정 변경 없음). origin/dev와HEAD 일치 후9b1b0749 저장/push, dev PR [#231](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/231) 제출. 생성 명령의 reviewer 추가는 오류를 반환했으나 재조회에서PM 팀 검토 요청 등록·OPEN/MERGEABLE 확인(검토 대기BLOCKED). dev 직접 병합하지 않았다.
 
 ## 2026-10-28~29 외줄 구조 실패 사망 연출·후속 수정
 - 사용자 요청에 따라 작업 전 origin/dev를 fetch하고 e2749d1d까지 fast-forward 반영(파일 충돌 없음). doctor는 기존 Task077 번호 중복으로 FAIL, skill-links WARN, 에디터/도구 정상. 다른 Task의 중복 상태는 수정하지 않았다.
