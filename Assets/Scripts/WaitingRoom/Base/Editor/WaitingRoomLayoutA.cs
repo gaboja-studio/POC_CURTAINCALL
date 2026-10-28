@@ -2383,7 +2383,9 @@ namespace CurtainCall.WaitingRoom.Editor
                 throw new InvalidOperationException("Gather border still points at the original");
             foreach (var binding in scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<WaitingRoomUiBinding>(true)))
                 if (binding.Gather != gather) throw new InvalidOperationException("UI binding does not point at the copied gather zone");
-            if (!gather.GetComponent<BoxCollider>().bounds.Contains(W(40.5f, RouteDoorZ, .6f))) throw new InvalidOperationException("Gather zone not in front of the stage curtain");
+            // Right after the copy the curtain is the short route's (40.5); the source-faithful pass moves it before the long route's curtain.
+            var zone = gather.GetComponent<BoxCollider>().bounds;
+            if (!zone.Contains(W(40.5f, RouteDoorZ, .6f)) && !zone.Contains(W(ShowCurtain - 4f, RouteDoorZ, .6f))) throw new InvalidOperationException("Gather zone not in front of the stage curtain");
 
             var doorLock = Active<NightDoorLock>(corridor);
             var shutter = (Transform)new SerializedObject(doorLock).FindProperty("shutter").objectReferenceValue;
@@ -2642,31 +2644,46 @@ namespace CurtainCall.WaitingRoom.Editor
         public static List<string> AuditDoorways(Transform target)
         {
             var doors = new List<(string name, Vector2 at, Vector2 along, Vector2 inward, float width, float inside, float outside, float y)>();
-            foreach (var wall in Walls)
-            {
-                var u = (wall.b - wall.a).normalized;
-                foreach (var d in wall.doors)
+            bool Active(string path) => target.Find(path) is Transform t && t.gameObject.activeInHierarchy;
+            bool dome = Active("S01_Lobby/Dome");
+            if (!dome)
+                foreach (var wall in Walls)
                 {
-                    var portal = target.Find("S01_Lobby/FutureConnections/Portal_" + d.Id);
-                    bool open = portal != null && portal.Find("TemporaryClosure") == null;
-                    doors.Add(("lobby " + d.Id, wall.a + u * d.At, u, wall.inward, d.Width, .05f, open ? .55f : -1f, 0f));
+                    var u = (wall.b - wall.a).normalized;
+                    foreach (var d in wall.doors)
+                    {
+                        var portal = target.Find("S01_Lobby/FutureConnections/Portal_" + d.Id);
+                        bool open = portal != null && portal.Find("TemporaryClosure") == null;
+                        doors.Add(("lobby " + d.Id, wall.a + u * d.At, u, wall.inward, d.Width, .05f, open ? .55f : -1f, 0f));
+                    }
                 }
+            else
+            {
+                // Round lobby: every passage mouth on the drum, plus the far ends of the passages at the moved rooms.
+                Vector2 L(Vector2 w) => new(w.x - Origin.x, w.y - Origin.z);
+                foreach (var p in LobbyPassages().Where(p => p.StartC != null))
+                    doors.Add(("dome " + p.Name, L(p.At(0, p.T0(0))), p.N, -p.U, p.W, p.Name == "Lift" ? .5f : .05f, p.Name == "Lift" ? -1f : .55f, 0f)); // the closed lift gate stands at the drum; its turned door corners reach .4 m into an axis-aligned box
+                doors.Add(("02 dorm door", L(new Vector2(DormDoorX + DormShift.x, W(0, DormZ0).z + DormShift.z)), new(1, 0), new(0, -1), DormDoorWidth, .05f, .55f, 0f));
+                doors.Add(("04 prop room door", L(new Vector2(6.4f + PropShift.x, 61.3f)), new(0, 1), new(-1, 0), PropDoorWidth, .05f, .55f, 0f));
+                doors.Add(("10 workshop door", L(new Vector2(CorrX0 + WorkshopShift.x, W(0, PracWestDoorZ).z + WorkshopShift.z)), new(0, 1), new(1, 0), WsDoorWidth, .05f, .15f, 0f));
+                doors.Add(("stairwell door", new(WcX0, WcDoorZ), new(0, 1), new(1, 0), WcDoorWidth, .05f, .15f, 0f));
             }
-            if (target.Find("S02_Dormitory")) doors.Add(("restroom partition", new(DormX1 + .1f, RestDoorZ), new(0, 1), new(-1, 0), RestDoorWidth, .15f, .15f, 0f));
-            if (target.Find("S07_StageEntrance")) doors.Add(("06-07 opening", new((CorX1 + StageX0) * .5f, RouteDoorZ), new(0, 1), new(-1, 0), StageDoorWidth, .15f, .15f, 0f));
-            bool workshop = target.Find("S10_Workshop") != null, stairs = target.Find("ST_Stairwell") != null;
-            if (target.Find("S09_PracticeRoom")) doors.Add(("corridor - 10 opening", new(CorrX0, PracWestDoorZ), new(0, 1), new(1, 0), WsDoorWidth, .05f, workshop ? .15f : -1f, 0f));
-            if (target.Find("WC_WestCorridor"))
+            var dormShift = dome ? new Vector2(DormShift.x, DormShift.z) : Vector2.zero;
+            if (Active("S02_Dormitory")) doors.Add(("restroom partition", new Vector2(DormX1 + .1f, RestDoorZ) + dormShift, new(0, 1), new(-1, 0), RestDoorWidth, .15f, .15f, 0f));
+            if (Active("S07_StageEntrance")) doors.Add(("06-07 opening", new((CorX1 + StageX0) * .5f, RouteDoorZ), new(0, 1), new(-1, 0), StageDoorWidth, .15f, .15f, 0f));
+            bool workshop = Active("S10_Workshop"), stairs = Active("ST_Stairwell");
+            if (Active("S09_PracticeRoom/Corridor")) doors.Add(("corridor - 10 opening", new(CorrX0, PracWestDoorZ), new(0, 1), new(1, 0), WsDoorWidth, .05f, workshop ? .15f : -1f, 0f));
+            if (Active("WC_WestCorridor"))
             {
                 doors.Add(("corridor stairs door", new(WcX0, WcDoorZ), new(0, 1), new(1, 0), WcDoorWidth, .05f, stairs ? .15f : -1f, 0f));
                 doors.Add(("corridor 10 door", new(WcNorthDoorX, WcZ1), new(1, 0), new(0, -1), 2.8f, .05f, workshop ? .55f : -1f, 0f));
             }
-            if (target.Find("P05_PipeZone"))
+            if (Active("P05_PipeZone"))
             {
-                doors.Add(("restroom breach", new(RestX1, BreachZ), new(0, 1), new(-1, 0), BreachWidth, .05f, .55f, 0f));
+                doors.Add(("restroom breach", new Vector2(RestX1, BreachZ) + dormShift, new(0, 1), new(-1, 0), BreachWidth, .05f, .55f, 0f));
                 doors.Add(("pipe zone - 05", new(StoreX0, PipeDoorZ), new(0, 1), new(1, 0), PipeDoorWidth, .05f, .55f, 0f));
             }
-            if (target.Find("S08_ElevatorHall"))
+            if (Active("S08_ElevatorHall") && !dome)
             {
                 doors.Add(("expert booth curtain", new(BoothX0, BoothDoorZ), new(0, 1), new(1, 0), BoothDoorWidth, .1f, .1f, 0f));
                 doors.Add(("freight lift gate", new(HallX1, LiftZ), new(0, 1), new(-1, 0), LiftWidth, .25f, -1f, 0f)); // the gate itself stands .1 m inside the wall line
@@ -2680,10 +2697,13 @@ namespace CurtainCall.WaitingRoom.Editor
                 doors.Add(("13 - escape corridor", new(EscapeDoorX, MachineZ0), new(1, 0), new(0, 1), 2f, .55f, .55f, B1Level));
                 doors.Add(("escape corridor - entrance", new(EscapeDoorX, EscapeZ1), new(1, 0), new(0, 1), 2f, .15f, .55f, B1Level));
             }
-            doors.Add(("lobby stair foot", new((StairX0 + StairX1) * .5f, StairZ0), new(1, 0), new(0, -1), StairX1 - StairX0, .05f, -1f, 0f));
-            doors.Add(("lobby stair head", new((StairX0 + StairX1) * .5f, MezzSouthZ), new(1, 0), new(0, 1), StairX1 - StairX0, .05f, -1f, MezzY));
+            if (Active("S01_Lobby/Structure"))
+            {
+                doors.Add(("lobby stair foot", new((StairX0 + StairX1) * .5f, StairZ0), new(1, 0), new(0, -1), StairX1 - StairX0, .05f, -1f, 0f));
+                doors.Add(("lobby stair head", new((StairX0 + StairX1) * .5f, MezzSouthZ), new(1, 0), new(0, 1), StairX1 - StairX0, .05f, -1f, MezzY));
+            }
             string[] fittings = { "Floor", "WallSurfaces", "Sill", "Threshold", "Reveal", "Jamb", "Lintel", "TemporaryClosure", "RollerShutter", "DestinationSign", "SignPlate", "Bulb", "Marquee",
-                                  "Joint", "Tape", "Hazard", "Curtain", "커튼", "Chunk", "Rebar", "Ramp", "Grating", "Landing", "Deck", "Decal", "Rope", "Puddle", "Stain", "Crack", "Bloom", "Paint", "Paper", "Splinter", "Rubble" };
+                                  "Joint", "Tape", "Hazard", "Curtain", "DoorPull", "DoorStiffener", "커튼", "Chunk", "Rebar", "Ramp", "Grating", "Landing", "Deck", "Decal", "Rope", "Puddle", "Stain", "Crack", "Bloom", "Paint", "Paper", "Splinter", "Rubble" };
             bool Fitting(Transform t) => fittings.Any(f => t.name.Contains(f)) || t.GetComponentsInParent<Transform>().Any(p => p.name.StartsWith("Portal_") || p.name == "WaitingRoomShutter" || p.name == "Connections");
             var problems = new List<string>();
             foreach (var d in doors)
@@ -3418,13 +3438,16 @@ namespace CurtainCall.WaitingRoom.Editor
                 CheckStanding(p.position, lobby.parent, "spawn " + p.name);
             }
             foreach (Transform portal in lobby.Find("FutureConnections"))
-                CheckStanding(portal.Find("Approach").position, lobby.parent, "approach " + portal.name);
-            // Second level: decks, bridge and stair flights are walkable from above; the torn bridge end is barred.
-            foreach (var (x, z, what) in new[] { (-8.5f, 12.4f, "north deck"), (-13.1f, 8f, "west deck"), (-8.6f, BridgeZ, "bridge"), ((StairX0 + StairX1) * .5f, StairZ0 + 2f, "stair flight") })
-                if (!Physics.Raycast(W(x, z, MezzY + 2f), Vector3.down, out var deckHit, MezzY + 2f, ~0, QueryTriggerInteraction.Ignore) || deckHit.point.y < .5f)
-                    throw new InvalidOperationException("Nothing to stand on at the " + what);
-            if (!Physics.Raycast(W(BridgeTornX - 1.5f, BridgeZ, MezzY + .7f), Vector3.right, 2f, ~0, QueryTriggerInteraction.Ignore))
-                throw new InvalidOperationException("Torn bridge end is not barred");
+                if (portal.gameObject.activeInHierarchy) CheckStanding(portal.Find("Approach").position, lobby.parent, "approach " + portal.name);
+            // Second level (rectangular lobby only; the dome has none): decks, bridge and stair flights walkable, torn bridge end barred.
+            if (lobby.Find("Structure") is Transform mezz && mezz.gameObject.activeInHierarchy)
+            {
+                foreach (var (x, z, what) in new[] { (-8.5f, 12.4f, "north deck"), (-13.1f, 8f, "west deck"), (-8.6f, BridgeZ, "bridge"), ((StairX0 + StairX1) * .5f, StairZ0 + 2f, "stair flight") })
+                    if (!Physics.Raycast(W(x, z, MezzY + 2f), Vector3.down, out var deckHit, MezzY + 2f, ~0, QueryTriggerInteraction.Ignore) || deckHit.point.y < .5f)
+                        throw new InvalidOperationException("Nothing to stand on at the " + what);
+                if (!Physics.Raycast(W(BridgeTornX - 1.5f, BridgeZ, MezzY + .7f), Vector3.right, 2f, ~0, QueryTriggerInteraction.Ignore))
+                    throw new InvalidOperationException("Torn bridge end is not barred");
+            }
             if (lobby.GetComponentsInChildren<Light>().Length > 16) throw new InvalidOperationException("Too many lobby lights");
         }
 
@@ -3742,9 +3765,9 @@ namespace CurtainCall.WaitingRoom.Editor
 
         static Material Bulb()
         {
-            var m = Lit("LA_Bulb", Hex("FFC98A"), .6f);
+            var m = Lit("LA_Bulb", Hex("FFF7EC"), .6f);
             m.EnableKeyword("_EMISSION");
-            m.SetColor("_EmissionColor", Hex("FFB45A") * 2.6f);
+            m.SetColor("_EmissionColor", Hex("FFF3E2") * 2.6f);
             m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
             EditorUtility.SetDirty(m);
             return m;

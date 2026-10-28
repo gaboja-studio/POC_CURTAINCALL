@@ -74,7 +74,7 @@ namespace CurtainCall.WaitingRoom.Editor
             SeatStoredProps(target);
             // The moved clothesline keeps its source ceiling drops; finish them at the dorm's actual ceiling.
             var line=target.Find("S02_Dormitory/Dormitory/Living/PersonalClothesline");
-            if(line!=null)foreach(var fixing in line.Cast<Transform>().Where(t=>t.name.StartsWith("CeilingFixing")))
+            if(line!=null&&line.gameObject.activeInHierarchy)foreach(var fixing in line.Cast<Transform>().Where(t=>t.name.StartsWith("CeilingFixing")))
             {
                 var b=fixing.GetComponent<Renderer>().bounds;AttachToStructure(g,new Vector3(b.center.x,b.max.y,b.center.z),Path(fixing),line,6);
             }
@@ -197,7 +197,7 @@ namespace CurtainCall.WaitingRoom.Editor
         static void RehangDormClothes(Transform target)
         {
             var line=target.Find("S02_Dormitory/Dormitory/Living/PersonalClothesline");var clothes=target.Find("S02_Dormitory/Dormitory/Beds/PersonalClothes_0");
-            if(line==null||clothes==null)return;
+            if(line==null||clothes==null||!line.gameObject.activeInHierarchy)return; // the expanded dorm lays the clothes on the beds instead
             var rope=line.Cast<Transform>().Where(t=>t.name.StartsWith("Rope_")).Select(t=>t.GetComponent<Renderer>().bounds.center.z).Average();
             float dz=clothes.position.z-.02f-rope;if(Mathf.Abs(dz)<.01f)return;
             MoveFacility(line,line.position+Vector3.forward*dz);SupportEvidence.Add(new{kind="rehung-clothesline",dz});

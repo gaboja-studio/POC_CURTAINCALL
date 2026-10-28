@@ -38,8 +38,22 @@
 - 원본 Snapshot 보존, 비대상 직렬화 대조, 사다리 반복 재현/회귀, 실제 PlayerMover 이동, 서비스 문/입퇴장 fixture, 외벽 표본 광선과 플레이 시점 화면 확인.
 - 생성기 재실행 시 물류 연결부 ID 유지 확인. 필요한 에셋/씬 저장, 개발 묶음 완료 시 check-work. 검사 실패/생략은 그대로 기록한다.
 - 사용자가 commit/push를 요청할 때만 실행한다. 다른 선행 에셋 변경을 보존한다.
-- 이번 결과는 [facility-detail-report.md](facility-detail-report.md), 직전 선택 복원은 [selective-rollback-report.md](selective-rollback-report.md).
+- 9단계 1차 결과는 [stage-09-report.md](stage-09-report.md). 이전 결과는 [facility-detail-report.md](facility-detail-report.md), 직전 선택 복원은 [selective-rollback-report.md](selective-rollback-report.md).
 
 ## 2026-10-28 접합부·매달림 지지 수정 (현재 추가 지시)
 
 - 외피 틈과 떠 있는 소품을 실측하고 현재 배치를 유지해 막음/접지/지지를 추가한다. 특히 천 고정점부터 실제 빔·천장·기둥까지 연결하며 허공에서 줄이 끝나지 않게 한다. 원본이나 무관한 구역은 재생성하지 않는다.
+
+## 2026-10-28 환경 디테일 단계 (현재 지시)
+
+- 대기실·백스테이지는 하나의 대기실이다(M2). 조명은 전반적으로 밝게 하되, 로비→06→07로 갈수록 밝아지게 한다.
+- 참고 이미지 기반 환경 작업은 복도·지하를 먼저 하고, 다른 공간은 사용자 지시 순서로 한다. 결과는 [env-01-report.md](env-01-report.md).
+
+## 2026-10-28 구조 변경 지시 (로비 돔·원형 연습실)
+
+- 로비: 원형 돔. 상점, 전문가 대기실(승강기), 숙소·화장실이 돔 안에 들어간다.
+- 연습실: 원형으로 더 크게 만든다. 관객석은 줄이고 공연 링은 키운다. 링 크기에 맞춰 외줄을 늘리고, 인간 대포·트램펄린·인간 그네 연습 공간을 링에 추가한다.
+- 입구는 복도 형태의 통로로 만든다. 다른 방들은 이후 복도로 연결되도록 수정할 예정이다.
+- 방 프리팹화는 이번에 하지 않는다(사용자 지시).
+- 사용자 결정: 돔 지름 42m·높이 16m(주변 방은 돔 밖으로 밀고 복도로 연결), 숙소·화장실은 벽·천장 있는 방, 연습실 지름 52m·높이 18m·링 지름 26m. 결과 [struct-01-report.md](struct-01-report.md).
+- 생성 순서: BuildDomeLobby → BuildRoundPracticeRoom → ExpandDormitory → RepairVisibleSeamsAndSupports → SealExteriorOpenings → DetailCorridorsAndBasement → FactoryFinish → FurnishCircusSpaces → LiftLighting → FitMouseLookZone. 숙소를 다시 만들면 돔 외피를 위해 BuildDomeLobby를 한 번 더 돌린다.
