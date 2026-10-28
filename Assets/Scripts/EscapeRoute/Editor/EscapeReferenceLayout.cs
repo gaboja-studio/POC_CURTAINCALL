@@ -22,6 +22,11 @@ namespace CurtainCall.EscapeRoute.EditorTools
         {
             PrepareReference();
             BuildReferenceStart(); BuildReferenceMiddle(); BuildReferenceEnd(); DressReferenceDepth(); FinishReference(); ApplyWideLayout(); ConfigurePlayerReference(); ApplyConcreteLook();
+            ApplyCavernReveal();
+            PolishAContext();
+            BuildVerticalCavern();
+            BuildBrutalistRoute();
+            EditorSceneManager.SaveScene(SceneManager.GetActiveScene());
         }
 
         public static void PrepareReference()

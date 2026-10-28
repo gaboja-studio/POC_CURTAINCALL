@@ -1,5 +1,23 @@
 # Log
 
+- 최종 정리: A/B/C 씬과 B/C PNG·SVG 구조도, `variants.md`를 로컬 저장했다. 묶음 check-work 안전성·문서·컴파일 PASS, 자동 테스트 SKIPPED. A 자유 비행 화면으로 돌아간다. Unity/TMP가 기본 `LiberationSans SDF.asset`도 자동 갱신했으므로 해당 부수 변경과 기존 ProjectSettings·private 포인터 차이는 향후 작업 저장 대상과 구분한다. 임의 reset/discard·commit/push 없음.
+
+- 2026-10-28 취침 전 요청 완료 묶음: A의 회색 콘크리트·빛을 유지하며 반복 드럼통을 작업 구역 두 곳으로 줄이고 배수 홈/그레이팅·습윤 가장자리·케이블 릴·작업대·팔레트·점검함·작은 표식·굽이의 반사광을 추가했다. `Label_` 제작 라벨은 Play에서만 숨기고 `Wayfinding_` 현장 표식은 유지한다. 배경 원본/공용 플레이어/private 에셋은 수정하지 않았다.
+- B `escape_route_b.unity`: 트램폴린·엇갈린 그네 선행, 남하 굽이 뒤 대포·Y+4 고립 발판·대각 외줄, 12m 하강과 합류. C `escape_route_c.unity`: 가로 진입에서 북쪽 대포 횡단, Y+2 편심 발판·대각 외줄, 동쪽 하강 굽이와 남쪽 그네 횡단, 북상 질주·출구. 네 묘기 자리·큰 층고/깊이·재합류·밝은 외부와 자유 비행을 모두 포함한다. 구조의 상세 선택은 제작 제안이며 실제 조작·사거리·난도는 미검증이다.
+- B/C를 각기 별도 내부 구조로 생성하고 A의 렌더 설정·외부 배경·미리보기 연결을 보존했다. `Variants` 관련 Editor 파일과 A/B/C 열기 메뉴, `Layout/{b,c}-plan.{svg,png}`, `variants.md`를 추가했다. C 재생성의 외부 위치가 누적되지 않게 고정했으며 C04→C05의 입구 방향 불일치를 최종 X119 중심으로 수정했다.
+- B/C 저장 후 정적 검사: 각각 구역 연결 9/9(반경 0.3m SphereCast), 바닥 높이 11/11, 단절부 3/3, 누락 스크립트/오류·누락 재질 0/0. 결과는 `.harness/local/exit-route-{b,c}-structure.json`. 실제 게임플레이 테스트와 구분한다. A/B/C Play 기동에서 자유 비행 활성·기존 걷기 정지, 큰 제작 라벨 표시 0개를 확인했다. 입력 주입·자동 이동·묘기 통과 시험은 하지 않았다.
+- Unity의 일시적 Play 리로드 중 C 조회 연결이 한 번 끊겼으나, 별도 재조회에서 참조·라벨 상태를 확인했다. 최종 콘솔 groundTruth는 compilationFailed=false·consoleErrors=0이다. 기존 `_ThirdParty` 포인터 차이와 ProjectSettings 변경은 보존했으며 commit/push는 하지 않았다. 런타임 A/B/C 선택·대기실 연결·묘기·협동·추격·탈출 판정은 이번 배경 범위 밖이다.
+
+- 2026-10-28 비행 연결 확인: check-work 안전성·문서·컴파일 PASS, 자동 테스트 SKIPPED. 저장된 씬에서 Play Mode 진입 후 비행 컴포넌트 활성, 기존 걷기 카메라 정지, 씬 Player 비활성, 시작 카메라 (15, 1.64, 10), 속도 12m/s·가속 4배를 읽기 전용으로 확인했다. Play Mode를 켜 두었으며 AI 이동 입력은 주입하지 않았다. 실제 비행 조작은 사용자가 확인한다. commit/push 없음.
+
+- 2026-10-28 사용자 요청으로 Play Mode에서 여러 구역을 날아다니는 미리보기를 추가했다. `EscapeRouteFlyCamera`를 탈출로 Main Camera에 연결했다. WASD·마우스, Space 상승·Ctrl 하강, Shift 가속(12→48m/s), Esc 커서 해제·화면 클릭 재잠금. 중력·충돌 없이 카메라만 이동하며 HUD·순간이동·자동 복귀는 없다. 기존 걷기 카메라·씬 Player는 비행 중에만 정지하고 비활성화 시 이전 활성 상태·조작 규칙을 복원한다. 공용 플레이어 프리팹과 시스템 코드는 수정하지 않았다.
+
+- 2026-10-27 03 압도감 후속: 사용자가 “규모는 큰데 압도감이 부족함”을 확인하고 첫 진입 개선을 승인했다. 편집 모드에서 `14_CavernReveal`에 낮은 문틀·끝막이, 연속 하부 외피, 수직 집관과 상·하부 점검 구조, 14m 설비 점검구·사람 크기 점검문, 중성 조명 6개를 배치했다. 원본 에셋·다른 구역·전역 하늘/주광은 수정하지 않았다.
+- 제작 도구 `EscapeCavernReveal.cs`는 같은 그룹을 교체하므로 재적용 시 중복하지 않는다. 전체 구조도 재배치의 마지막에도 이 패스를 적용하도록 연결했다. 외곽 규모와 기존 발판 Transform은 유지한다. 새 점검 발판은 충돌체 없는 시각 기준으로 플레이 우회 경로를 만들지 않았다.
+- 정적 조회: 출발부 3점 Y0, 중간·도착부 Y+2, 단절부 2점은 아래 12m 내 바닥 없음. 입구 눈높이 통과선은 막힘 없음. 새 하부 외피의 상단은 Y0이며 초기 조정 중 생긴 진입부 높이 간섭을 최종본에서 바로잡았다. AI 플레이 입력·이동 시험은 하지 않았다.
+- 씬 저장·재개방 후 `14_CavernReveal` 1개/직접 자식 48개/조명 6개, 점검문 실제 높이 2.2m, 누락 스크립트·오류/누락 재질 0, dirty=false 확인. 편집기 카메라로 진입부 전후와 공동 내부를 캡처했다. 실제 플레이 감각·다인 통과·성능은 미검증이다.
+- 첫 `unity recompile --strict`는 기존 `_ThirdParty` TMP obsolete 경고 14개 때문에 종료 1이었다. 후속 recompile_status는 completed·failed=false·errors=[]·compilationFailed=false이며, 이번 묶음의 최종 판정은 아래 check-work 결과를 따른다. 기존 submodule 포인터 차이·ProjectSettings의 로컬 변경은 보존했다. commit/push 없음.
+
 - 저장 직전 검사: check-work -SkipUnity의 안전성·문서/규칙 PASS, 기존 문서 길이 경고 12개·hard 0. Unity 재컴파일/자동 테스트는 생략했으며 읽기 전용 `recompile_status`에서 completed, failed=false, errors=[], compilationFailed=false를 확인했다. `git diff --check` 통과, 원격 작업 브랜치와 HEAD의 선행/후행 0/0, private submodule은 깨끗하고 origin/main에 커밋이 존재한다. 전체 변경을 자동 stage하는 save-work 스크립트 대신 스킬의 명시 경로 stage 절차로 관련 파일만 저장한다.
 
 - 2026-10-27 다른 컴퓨터 작업 준비: 사용자 저장 요청으로 현재 `feat/exit-route/design-map`의 맵·전용 재질·Editor 제작 도구·Task/지식 기록을 저장·업로드한다. Unity의 자동 직렬화 부수 변경인 LiberationSans SDF와 MultiplayerManager 설정은 작업 커밋에 포함하지 않고 로컬에 보존한다. `_ThirdParty`는 변경 없이 기존 submodule 커밋 `86fc532c9ae6a99e830ad1aa9d68a97878cfa064`를 사용한다.
@@ -33,3 +51,43 @@
 - 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(-SkipUnity); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-28 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-28 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-10-28 A 첫 공동 수직 설비실
+- 사용자 요청: 더 깊고 거대한 시설 안에 갇힌 느낌. 큰 방에 소품을 붙이는 방식에서 단면·설비 중심으로 수정.
+- 실제 작업 체크아웃 C:/Unity/POC_CURTAINCALL, feat/exit-route/design-map. 기존 C 씬은 편집 모드·저장 상태를 확인한 뒤 A를 열었다. 기존 doctor는 이 연속 작업에서 실행한 기록이 있어 반복하지 않았다.
+- `EscapeVerticalCavern.cs` 추가. 새16 그룹은 월드미터, 50×50m 외피·Y-90–44, 지름12m/높이120m 주 설비·교각·공급관·상부 크레인·4개 점검층. 실제 경로 Y0→Y-6→Y+2, 40단0.2m 계단.
+- 기존03/14 및 대응 천장/깊이 장식/인체 기준은 비활성 보존. A 전체 빌더에도 새 패스 연결. B/C 재생성/저장 없음. 원본 외부 프리팹·공용 렌더 환경 유지.
+- 에디터 상태 조회 후 A 씬을 `.harness/local/escape-vertical-before/escape_route.unity`에 백업했다. 사용자/기존 변경(_ThirdParty gitlink, ProjectSettings, TMP 폰트, _Recovery 포함)은 보존했다.
+- `ValidateVerticalCavern`: 바닥6/6, 계단40/40, 단절2/2, 연결3/3, 누락 스크립트/재질0, 월드배율·이전 구조 비활성·비행 카메라 검사 통과. 이동 입력/자동 플레이 없음, 실제 묘기 기능과 성능은 미검증.
+- 편집 카메라 진입·아래층·하부 깊이 캡처 확인. 하부 과한 조명과 떠 보이는 계단/발판 지지대를 보완 후 재확인했다. 캡처: 기존 시각자료 폴더의 a-vertical-entry.png, a-vertical-depth.png, a-vertical-low-angle.png.
+- 첫 eval은 void 반환 컴파일 오류로 변경 없음. 컴파일 도중 발행된 생성 job은 도메인 리로드로 없어졌고, 새 그룹 부재 확인 후 다시 실행했다. 완료된 생성·재검사 모두 성공.
+- 편집 위치와 대체 치수는 variants.md와 Facts/escape-route-layouts.md에 반영. commit/push 없음. 다음: 사용자의 공간 감정·묘기 치수 검토.
+
+- 2026-10-28 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 최종 check-work: 안전성 PASS, Structure/Knowledge OK, 문서 길이 기존 경고12·hard0. 작업 전부터 존재한 Assets/_Recovery.meta 및 _Recovery/0.unity(.meta)의 최상위 경로 규칙 위반으로 문서/규칙 FAIL, 컴파일은 선행 실패로 SKIPPED, 자동 테스트 SKIPPED. 사용자 복구 파일은 이동/삭제하지 않았으며 별도 verify-unity -Compile로 컴파일을 확인한다.
+- 별도 verify-unity 결과: Editor ready, 열린 A 씬 dirty0, Compile PASS(up_to_date), Tests SKIPPED. Scene View를 첫 공동 입구 눈높이에 맞춰 남겼다.
+
+## 2026-10-28 A 전체 브루탈리즘 확장
+- 사용자: A 첫 공동 방향을 나머지 구간에 적용하고, 세련된 인상을 줄이며 브루탈리즘 강화 요청.
+- 시작 시 C:/Unity/POC_CURTAINCALL, feat/exit-route/design-map, A 편집 모드/dirty false 확인. doctor는 동일 연속 작업에서 반복하지 않음. 원본 씬 백업 `.harness/local/escape-brutalist-before/`.
+- 새 `17_BrutalistRoute`와 EscapeBrutalistRoute/End/Validation 추가. 01 낮은 하중보, 02 압축 갤러리, 03 원통을 감싼 콘크리트 코어, 04 수로 선반, 05 깊이100m/착지Y-8, 06 상행40단, 07 반출 트렌치/6m 두께 방벽 두 겹을 구현. 기존08과15/16 유지, 대체 구형 구간은 비활성 보존.
+- 기존 콘크리트 텍스처를 새 전용 무광 재질에 사용하고 실제 미터 UV 메시를 Unity AssetDatabase로 생성. 원본 외부 에셋과 B/C 씬 저장/재생성 없음. 첫 공동 기존 Renderer에만 전용 콘크리트 재질 적용, 공유 원본 재질 변경 없음.
+- 화면 검토 후06 상단 과한 조명 완화·계단 난간 지지·05/07 인체 크기 기준 보완. 캡처 a-brutal-01/02-v1/03-v1/04-v1/05-depth/06/07/exit-v1.png는 기존 시각자료 폴더에 저장.
+- 정적 검증92/92: 바닥19·계단50·연결16·단절3·누락 스크립트/재질·메시 영속성·배율. A03 기존검사도 Failures0. 첫 영속성 검사에서 TMP 자동 재생성 텍스트 메시를 에셋으로 요구하던 검사 조건을 수정했으며 실제 형상 메시 누락은 없었다.
+- 씬 저장 후 재개방해 정적 검사 재통과, 보고서 `.harness/local/exit-route-a-brutalist-validation.txt`. 자동 이동/Play/묘기 통과 시험 없음. 성능은 미검증.
+- Scene View가 없던 상태에서는 GetWindow<SceneView>로 열어 캡처했다. 정확한 눈높이 배치에는 camera.fieldOfView 대신 cameraSettings.fieldOfView로 LookAtDirect 거리를 계산해야 한다는 점을 확인해 마지막 깊이 캡처에 반영.
+- 최신 구조는 a-brutalist-route.md, Facts/escape-route-layouts.md, Decisions/escape-background-direction.md에 기록. 기존 사용자 복구파일/ProjectSettings/TMP/서브모듈 차이 보존, commit/push 없음.
+
+- 2026-10-28 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 최종 check-work: 안전성 PASS, Structure/Knowledge OK, 기존 문서 경고12·hard0. 작업 전부터 존재한 _Recovery 경로 위반3개로 문서/규칙 FAIL 및 통합 컴파일 SKIPPED. 복구 파일 보존. 별도 verify-unity -Compile PASS(up_to_date), Tests SKIPPED; verify-knowledge OK. A 씬 재개방 후 dirty0이며 Unity Scene View는 둘째 공동 입구에 남겼다.
+
+## 2026-10-28 사용자 저장 요청
+- save-work 절차에 따라 현재 작업 브랜치에 작업 파일만 커밋·push한다. 작성자 gh @RagSpirin 확인. A 씬은 편집모드/dirty0이며 최신 정적 검사·컴파일 결과를 재사용한다.
+- 이전 전체 검사에서 걸렸던 사용자 Unity 복구 파일3개는 삭제/이동 없이 로컬 .git/info/exclude에 정확한 경로만 등록해 저장 대상에서 제외했다. 공유 .gitignore와 검사 규칙은 변경하지 않는다.
+- _ThirdParty gitlink, Multiplayer/Vivox 설정, 공용 LiberationSans TMP 폰트는 기존 별도 변경으로 stage하지 않는다. 이번 Task의 A/B/C 씬, 제작/비행 코드, 전용 머티리얼/메시/라벨 글리프, 구조도와 관련 문서만 저장한다.

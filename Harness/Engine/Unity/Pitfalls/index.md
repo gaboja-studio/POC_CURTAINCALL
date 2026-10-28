@@ -1,5 +1,7 @@
 # Unity Pitfalls
 
+- [scene-view-eye-position.md](scene-view-eye-position.md) — 실제 눈높이 SceneView 캡처의 카메라 거리를 계산할 때
+
 Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 
 - [Initialization/](Initialization/index.md) — 컴포넌트 생성·역직렬화 초기화 예외를 확인할 때.
