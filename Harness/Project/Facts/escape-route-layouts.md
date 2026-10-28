@@ -21,3 +21,5 @@ source: Task-20261027-073, 저장 씬·정적 구조 검사·Play Mode 상태 �
 - 현재는 배경 구조안이다. 묘기·문/협동 장치·추격 AI·탈출 판정·런타임 세트 선택·대기실 세트 연결은 구현하지 않았다.
 - A 수직 설비실: `EscapeVerticalCavern.cs` 제작 / `EscapeVerticalValidation.cs` 정적 확인. 기존03·14와 일부 보조 구조는 비활성 보존. 새 그룹은 실제 미터 단위이며 부모의1.25 배율을 상쇄한다. 구형03 조정 메뉴 대신 새 수직 설비실 메뉴를 사용한다.
 - A 나머지 최신 구조: `17_BrutalistRoute` / `EscapeBrutalistRoute.cs`·`EscapeBrutalistEnd.cs`. 04 깊은 수로, 05 하부100m·도착Y-8, 06 상행40단, 07 반출 트렌치와 두꺼운 외벽. Task의 `a-brutalist-route.md`가 이전 A 기준보다 우선한다. `EscapeRouteMeshes/`의 실제 미터 UV 메시와 전용 무광 재질을 참조한다.
+- A 현재 사용감/밝기 보완: `18_WorkingFacilityFinish` / `EscapeIndustrialFinish.cs`·`EscapeIndustrialDetails.cs`. 기존 구조에 배관·케이블·정비 적치·보수/누수 흔적을 추가한다. 새 충돌체는 없고 주변광 RGB(.36,.37,.38), 넓은 작업등, Main Camera의 Skybox 표시를 사용한다. 최초 적용 메뉴는 기존18 그룹이 있으면 재생성을 거부하며 이후에는 씬에서 편집한다.
+- `SurfaceWear.shader`는 기존 private 에셋의 마스크를 참조하는 표면 곱셈 오염 재질이다. 공유 재질·텍스처 원본을 수정하지 않는다. 밝기는 동일 카메라의 저장 캡처로 비교했고 PC/모니터 간 동일하게 보이는지는 미검증이다.

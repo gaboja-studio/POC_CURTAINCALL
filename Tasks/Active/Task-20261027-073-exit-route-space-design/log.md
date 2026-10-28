@@ -91,3 +91,16 @@
 - save-work 절차에 따라 현재 작업 브랜치에 작업 파일만 커밋·push한다. 작성자 gh @RagSpirin 확인. A 씬은 편집모드/dirty0이며 최신 정적 검사·컴파일 결과를 재사용한다.
 - 이전 전체 검사에서 걸렸던 사용자 Unity 복구 파일3개는 삭제/이동 없이 로컬 .git/info/exclude에 정확한 경로만 등록해 저장 대상에서 제외했다. 공유 .gitignore와 검사 규칙은 변경하지 않는다.
 - _ThirdParty gitlink, Multiplayer/Vivox 설정, 공용 LiberationSans TMP 폰트는 기존 별도 변경으로 stage하지 않는다. 이번 Task의 A/B/C 씬, 제작/비행 코드, 전용 머티리얼/메시/라벨 글리프, 구조도와 관련 문서만 저장한다.
+
+- 2026-10-28 작업 환경 준비: 원격 재조회 후 feat/exit-route/design-map과 origin이 380fc5ef에서 동일함을 확인했다. Unity 6000.3.25f1/Pipeline을 C:/Unity/POC_CURTAINCALL로 명시해 연결하고 저장된 A 씬을 다시 열었다. 편집 모드에서 17_BrutalistRoute를 선택해 Scene View에 맞췄다. Transform 15641개, 누락 스크립트/재질 0, 자유 비행 활성 및 기존 걷기 카메라/Player 참조 연결을 확인했다. 씬 미저장 변경 없음, 기존 로컬 에셋/설정 3개 변경 보존. 컴파일 실패 false. 콘솔 오류 2개는 기존 Vivox 자격 증명 조회 HTTP 403이며 배경 편집 준비와 구분한다. 코드/씬 수정·플레이 모드 진입·이동 입력·자동 테스트는 수행하지 않았다.
+
+- 2026-10-28 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(-SkipUnity); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-28 현재 피드백 반영: 사용자가 저장한 A 씬을 .harness/local/escape-industrial-feedback/escape-route-before.unity에 백업하고18_WorkingFacilityFinish를 추가했다. Flat 주변광 RGB(.21,.22,.23)→(.36,.37,.38), 근거리 작업등 spot112도/inner38도, 국소 확산 작업등으로 어두운 벽/설비 가독성을 보완했다. 로컬 Main Camera의 검은 단색 배경을 Skybox로 바꿔 맑은 출구 하늘을 복원했다. 배관/밸브/처진 케이블/정비 물품/국소 누수/보수 흔적429개 Transform, 충돌체0. 기존 구조와 B/C·공용 재질·private 원본은 보존했다. 5개 같은 카메라의 전후 PNG를 같은 로컬 폴더에 보관했다.
+- 정적 확인: A 92개 검사 통과, 기존 수직 공동 검사 실패0, 추가 그룹 누락 스크립트/재질0·쉐이더 오류0. 저장 후 재개방에서18 그룹/주변광/Skybox/dirty=false 확인. 이동 입력·자동 플레이·성능 테스트 미실시. 현재 장치 화면만 확인했으며 이전 데스크톱과의 밝기 차이 원인은 확정하지 않았다.
+- Vivox: 403은 과거 로그에만 남았지만 읽기 전용 인증/credentials 엔드포인트 재요청도403이었다. 자격 증명은 출력/저장하지 않았다. 사용자가 다른 계정일 수 있다고 답했으므로 프로젝트 권한이 있는 Unity 계정 로그인 후 재확인이 필요하다. 서비스를 끄거나 인증 오류를 숨기는 코드 수정은 하지 않았다.
+- 제작 도중 편집 도구의 LoadAllAssetsAtPath(ScenePath)가 ReadObjectThreaded 오류를 유발해 즉시 제거했다. 호출 이후 적용은 완료됐고 기존/추가 구조 검사 및 재개방 확인을 통과했다. 해당 오류 원인을 수정한 후 콘솔을 비우고 최종 검사를 진행한다.
+
+- 2026-10-28 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-28 저장 요청: A 사용감/가독성 수정 씬, 전용 재질6종, 편집 도구2개, 표면 오염 셰이더와 관련 Task/지식 문서만 명시 경로로 저장한다. 최종 check-work의 안전성·문서·컴파일 PASS 및 정적 동선 결과를 재사용하며 이후 변경은 todo 완료 표시와 저장 기록뿐이다. escape-labels의 자동 생성 글리프/폰트 기능 캐시, 공용 LiberationSans 폰트, MultiplayerManager의 기존 로컬 변경은 커밋에서 제외하고 보존한다. Vivox403의 계정 재로그인/재확인과 실제 플레이·성능 확인은 남아 있다.
