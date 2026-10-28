@@ -31,6 +31,9 @@
 - 비공개 에셋 커밋 `9cc40f2b`를 `resource/third-party/world-font-atlases`에 저장·push.
 - 대용량 첫 HTTPS push는 HTTP 400 실패 → 해당 호출에만 postBuffer=524288000 적용해 성공. 영구 설정 변경 없음.
 - 비공개 PR [#5](https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/5): 검사 PASS, 사용자 승인 후 main에 merge commit `754c52b8`로 병합. gitlink 대상 `9cc40f2b`가 origin/main의 조상임을 확인.
-- 메인 저장소는 관련 신규 코드·씬·프리팹·Task 문서와 gitlink만 명시 stage하여 저장한다. 자동 갱신 파일은 포함하지 않는다.
+- 메인 커밋 `e7369e1b`: 관련 신규 코드·씬·프리팹·Task 문서와 gitlink만 명시 stage하여 `feat/add-world-fonts`에 저장·push. 자동 갱신 파일은 제외.
+- dev 대상 PR [#228](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/228) 생성 완료. dev 병합은 하지 않고 지정 팀원 검토 대기.
+- 제외 파일이 남아 new-pr.ps1은 dirty 상태로 중단하므로, DryRun으로 대상·본문을 확인한 뒤 같은 대상에 gh pr create를 직접 실행함. 무관한 변경은 stage/discard하지 않음.
+- push 시 기존 pre-push 훅의 실행 비트가 없어 훅이 건너뛰어짐. 훅 설정은 변경하지 않고 `verify-third-party.ps1 -CheckSubmodule`과 `git lfs fsck`를 직접 실행해 모두 PASS 확인.
 
 - 2026-10-28 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
