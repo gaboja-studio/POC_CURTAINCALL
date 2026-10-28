@@ -71,12 +71,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(0, legacyInventory.GetComponent<CanvasGroup>().alpha, "구형 HUD와 실제 소지 UI가 중복 표시되면 안 된다.");
                 Assert.AreEqual(1, ((CanvasGroup)Get(inventoryUi, "group")).alpha);
                 Assert.AreEqual(1, inventory.GetComponent<CanvasGroup>().alpha);
-                Assert.AreEqual(5, Get(inventory, "SlotCount"), "현재 소지 UI는 잠긴 칸을 포함해 1–5번을 표시한다.");
+                Assert.AreEqual(2, Get(inventory, "SlotCount"), "소지 UI는 기획에 맞게 1–2번만 표시한다.");
+                var inventoryRect = (RectTransform)inventory.transform;
+                Assert.AreEqual(new Vector2(1, 0), inventoryRect.anchorMin);
+                Assert.AreEqual(new Vector2(1, 0), inventoryRect.pivot);
                 var carryState = Find("CurtainCall.WaitingRoom.PropCarry");
                 ulong localId = (ulong)Get(carryState, "LocalClientId");
                 Assert.AreEqual(heldCount, ((IEnumerable)Call(carryState, "Held", localId)).Cast<object>().Count());
                 int capacity = (int)Call(carryState, "Slots", localId);
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < 2; i++)
                 {
                     var slot = (Component)Call(inventory, "GetSlot", i);
                     Assert.AreEqual(i < capacity ? 1f : .35f, slot.GetComponent<CanvasGroup>().alpha);
@@ -87,16 +90,17 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     Assert.AreEqual(i < heldCount ? "1" : "", ((TMP_Text)Private(slot, "quantityText")).text);
                     Assert.AreEqual(i < heldCount && i == heldCount - 1, ((UnityEngine.UI.Image)Private(slot, "selectedAccent")).enabled);
                 }
-                Assert.AreEqual(selectedName == null ? "빈손 · 1–5 기물 선택" : $"{selectedName} · 손에 듦", ((TMP_Text)Get(inventoryUi, "selectedLabel")).text);
+                Assert.AreEqual(selectedName == null ? "빈손 · 1–2 기물 선택" : $"{selectedName} · 손에 듦", ((TMP_Text)Get(inventoryUi, "selectedLabel")).text);
             }
             // M2: 옛 남은 시간 시계 대신 같은 자리에 원형 하루 시계를 보인다.
             Assert.IsFalse(clock.gameObject.activeSelf, "옛 W1 시계는 숨긴다");
             var dayClock = Get(ui, "DayClockDisplay");
             Assert.IsNotNull(dayClock);
             Assert.AreEqual(true, Get(dayClock, "IsShown"));
-            StringAssert.Contains("쉬는 시간", (string)Get(dayClock, "DayText"));
-            StringAssert.StartsWith("남은 시간", (string)Get(dayClock, "RemainingText"));
-            Assert.Greater((float)Get(dayClock, "TimerFill"), 0f);
+            StringAssert.Contains("일차", (string)Get(dayClock, "DayText"));
+            StringAssert.Contains(":", (string)Get(dayClock, "RemainingText"));
+            Assert.AreEqual(true, Get(Get(dayClock, "Snapshot"), "hasRemaining"));
+            Assert.IsNotNull(((Component)dayClock).GetComponent(T("CurtainCall.UI.DayClockV2.DayClockView")), "제공 패키지 프리팹을 사용한다");
             Assert.AreSame(clock.transform.parent, ((Component)dayClock).transform.parent, "같은 HUD 자리에 붙인다");
             Assert.AreEqual(true, Get(View(hud, "Funds"), "HasValidData"));
             var rewards = Find("CurtainCall.Reward.PerformanceRewards");
@@ -137,9 +141,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsFalse(clock.gameObject.activeSelf, "Night must not show a countdown.");
             var nightClock = Get(ui, "DayClockDisplay");
             Assert.AreEqual(true, Get(nightClock, "IsShown"), "밤 정비에도 하루 시각은 보인다");
-            Assert.AreEqual("", Get(nightClock, "RemainingText"), "밤 정비에는 타이머가 없다");
-            StringAssert.Contains("밤 정비", (string)Get(nightClock, "DayText"));
-            Assert.AreEqual("4:00", Get(nightClock, "TimeText"));
+            Assert.AreEqual("제한 없음", Get(nightClock, "RemainingText"), "기본 밤 정비는 무제한이다");
+            Assert.AreEqual("Maintenance", Get(Get(nightClock, "Snapshot"), "phase").ToString());
+            Assert.AreEqual(960d, Get(Get(nightClock, "Snapshot"), "minuteOfDay"));
             Assert.IsTrue(View(hud, "Funds").gameObject.activeSelf);
             Assert.AreEqual(0, gather.GetComponent<CanvasGroup>().alpha);
         }

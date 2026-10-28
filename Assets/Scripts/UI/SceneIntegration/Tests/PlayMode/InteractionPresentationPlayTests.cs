@@ -101,16 +101,19 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsNotNull(phone.transform.Find("Handset"), "A real visible handset must replace the greybox cube.");
             Assert.IsNull(phone.GetComponent<MeshRenderer>());
             Assert.IsTrue(phone.GetComponentsInChildren<Renderer>().Any(r => r.enabled && r.bounds.size.y > .3f));
-            Place(phone.transform.position + new Vector3(1.2f, -1.4f, 0));
-            camera.transform.position = phone.transform.position + new Vector3(2.2f, .35f, .4f);
+            Place(phone.transform.position + new Vector3(-1.2f, -1.4f, 0));
+            camera.transform.position = phone.transform.position + new Vector3(-2.2f, .35f, .4f);
             camera.transform.LookAt(phone.transform);
             yield return Settle();
-            Assert.Contains(phone.transform, Highlighted);
+            Assert.Contains(phone.transform, Highlighted,
+                $"available={Get(phone, "IsAvailable")}, actor={actor.transform.position}, camera={camera.transform.position}, " +
+                $"blocked={T("CurtainCall.Player.InputGate").GetProperty("IsBlocked").GetValue(null)}, " +
+                $"occluders={string.Join(",", Physics.RaycastAll(camera.transform.position, (phone.transform.position - camera.transform.position).normalized, Vector3.Distance(camera.transform.position, phone.transform.position) - .08f, ~0, QueryTriggerInteraction.Ignore).Select(h => h.transform.name))}");
             var prompt = (Component)Get(ui, "Prompt");
             StringAssert.Contains("수화기 들기", string.Join(" ", prompt.GetComponentsInChildren<TMP_Text>(true).Select(t => t.text)));
             Assert.AreSame(phone, T("CurtainCall.WaitingRoom.ShopReach").GetProperty("Focused").GetValue(null));
             Key("F"); yield return new WaitForSecondsRealtime(.05f);
-            Key(null); yield return new WaitForSecondsRealtime(.05f);
+            Key(null); yield return Settle();
             Assert.IsTrue((bool)phone.GetType().GetField("open", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(phone));
             Assert.IsTrue((bool)T("CurtainCall.Player.InputGate").GetProperty("IsBlocked").GetValue(null));
             Assert.IsEmpty(Highlighted, "An open shop window suppresses world hints.");
@@ -135,6 +138,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var campaign = Find("CurtainCall.Campaign.CampaignRun");
             Assert.IsTrue((bool)Call(campaign, "StartOfflineRun"));
             Call(campaign, "EndIntro"); Call(campaign, "EndPerformance");
+            Call(campaign, "NotifyAllAtStageEntrance"); Call(campaign, "EndPerformance");
+            var state = Get(campaign, "State");
+            Assert.AreEqual("Night", state.GetType().GetField("Phase").GetValue(state).ToString());
             yield return Settle();
             var binding = Find("CurtainCall.UI.SceneIntegration.WaitingRoomWorldLabels");
             var rewards = Find("CurtainCall.Reward.PerformanceRewards");
@@ -153,13 +159,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var label = binding.transform.Find("Items").GetChild(0);
             var view = label.GetComponent(T("CurtainCall.UI.WorldLabelsV2.WorldLabelView"));
             Assert.AreEqual(name, Get(view, "Title"));
-            Place(label.position + new Vector3(1, -label.position.y + .1f, 0));
+            Place(new Vector3(label.position.x, .1f, label.position.z + .35f));
             Assert.Greater(label.position.x, -18f, "Delivery must land inside the west wall, not behind it.");
             camera.transform.position = label.position + new Vector3(2, 1, 0); camera.transform.LookAt(label);
             yield return Settle();
             Assert.AreEqual(true, Get(view, "IsVisible"));
             var promptText = ((Component)Get(ui, "Prompt")).GetComponentsInChildren<TMP_Text>(true);
-            Assert.IsTrue(promptText.Any(t => t.text.Contains("#") && t.text.Contains("주문")), "Order details belong in C6's helper line.");
+            Assert.IsTrue(promptText.Any(t => t.text.Contains("#") && t.text.Contains("주문")),
+                "Order details belong in C6's helper line. Actual: " + string.Join(" | ", promptText.Select(t => t.text)));
             camera.transform.rotation = Quaternion.Euler(0, 180, 0); yield return Settle();
             Assert.AreEqual(false, Get(view, "IsVisible"));
             camera.transform.LookAt(label);
@@ -203,14 +210,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return Settle();
             var binding = Find("CurtainCall.UI.SceneIntegration.WaitingRoomWorldLabels");
             var label = Get(binding, "ExpertLabel");
-            Assert.AreEqual("밤 정비 때 영업", Get(label, "Title"));
+            Assert.AreEqual("신체 복구 영업 중", Get(label, "Title"));
             var sign = ((Component)label).transform;
             var origin = new Vector3(6.6f, 2f, 76.5f);
             Assert.IsFalse(Physics.Raycast(origin, (sign.position - origin).normalized, Vector3.Distance(origin, sign.position) - .02f, ~0, QueryTriggerInteraction.Ignore), "W4 must be in front of the wall and valance.");
             Assert.IsNull(GameObject.Find("ExpertRoomSign"));
             Call(campaign, "NotifyAllAtStageEntrance"); Call(campaign, "EndPerformance");
             yield return Settle();
-            Assert.AreEqual("의료 전문가 대기 중", Get(label, "Title"));
+            Assert.AreEqual("신체 복구 영업 중", Get(label, "Title"));
             var service = Find("CurtainCall.WaitingRoom.ExpertService");
             var book = service.GetType().GetField("book", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(service);
             // Simulate a received authoritative service state; W4 must reflect all phases without controlling them.

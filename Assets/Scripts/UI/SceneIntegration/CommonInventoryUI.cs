@@ -16,8 +16,9 @@ namespace CurtainCall.UI.SceneIntegration
         public CanvasGroup group;
         public TMP_Text selectedLabel;
         public CommonIconCatalog icons;
-        readonly List<InventorySlotData> data = new(5);
-        static readonly Key[] Keys = { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5 };
+        public const int VisibleSlotCount = 2;
+        readonly List<InventorySlotData> data = new(VisibleSlotCount);
+        static readonly Key[] Keys = { Key.Digit1, Key.Digit2 };
         string signature;
         void Awake() => InputGate.AddReleaseKeys(Keys);
         void LateUpdate()
@@ -42,21 +43,21 @@ namespace CurtainCall.UI.SceneIntegration
             if (signature != next)
             {
                 signature = next; data.Clear();
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < VisibleSlotCount; i++)
                 {
                     bool occupied = held != null && i < held.Count;
                     data.Add(new InventorySlotData { IsEmpty = !occupied, ItemSprite = occupied ? Icon(held[i].ItemId) : null,
                         IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity ? (i + 1).ToString() : $"{i + 1} 잠금", QuantityLabel = occupied ? "1" : "" });
                 }
                 slots.SetSlots(data);
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < VisibleSlotCount; i++)
                 {
                     var view = slots.GetSlot(i);
                     var opacity = view.GetComponent<CanvasGroup>();
                     if (opacity == null) opacity = view.gameObject.AddComponent<CanvasGroup>();
                     opacity.alpha = i < capacity ? 1f : .35f;
                 }
-                selectedLabel.text = selected.Uid != 0 ? $"{selected.Name} · 손에 듦" : "빈손 · 1–5 기물 선택";
+                selectedLabel.text = selected.Uid != 0 ? $"{selected.Name} · 손에 듦" : "빈손 · 1–2 기물 선택";
             }
             slots.SetContext(true); slots.ShowInventory();
         }

@@ -511,9 +511,6 @@ MonoBehaviour:
   humanCannon: 0
   cannonStart: {fileID: 0}
   cannonFinish: {fileID: 0}
-  cannonFires: []
-  lowerFloorMaxY: 5
-  lowerFloorStartZ: 18
 --- !u!4 &682248050
 Transform:
   m_ObjectHideFlags: 0
@@ -933,7 +930,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1865196063981099919, guid: 1b28508cfa57e6440b048593682c9e2a, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 104
+      value: 28
       objectReference: {fileID: 0}
     - target: {fileID: 1964490152315456316, guid: 1b28508cfa57e6440b048593682c9e2a, type: 3}
       propertyPath: m_Pivot.x
@@ -1101,7 +1098,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5433455061911669651, guid: d9af732ed88ad0c4eb3e74dc9daf7a8e, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -260
+      value: -40
       objectReference: {fileID: 0}
     - target: {fileID: 6516463005867919000, guid: d9af732ed88ad0c4eb3e74dc9daf7a8e, type: 3}
       propertyPath: m_fontAsset
@@ -1271,10 +1268,7 @@ MonoBehaviour:
   itemSize: 0.26
   firstOffset: {x: 0, y: 0.95, z: 0.45}
   stack: 0.28
-  backpackOffset: {x: 0, y: 1.15, z: -0.3}
-  backpackSize: {x: 0.42, y: 0.46, z: 0.2}
   itemColor: {r: 0.55, g: 0.85, b: 1, a: 1}
-  backpackColor: {r: 0.55, g: 0.38, b: 0.2, a: 1}
   showLegacyLabels: 0
 --- !u!4 &1350985580
 Transform:

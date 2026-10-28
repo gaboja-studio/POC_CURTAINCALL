@@ -81,9 +81,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var client = T("CurtainCall.StartLobby.ClientSettings");
                 client.GetMethod("SetGraphics").Invoke(null, new object[] { FullScreenMode.Windowed, (int)Static(client.FullName, "ResolutionWidth"), (int)Static(client.FullName, "ResolutionHeight"), 144 });
                 client.GetProperty("Volume").SetValue(null, .23f); client.GetProperty("BgmVolume").SetValue(null, .27f);
-                var voice = Find("CurtainCall.Voice.VoiceChat"); Call(voice, "ApplyAudioPreferences", .24f, true, .35f, true);
-                Assert.IsFalse((bool)Get(voice, "AreAudioDevicesReady"), "이 검사는 네트워크 연결 없이 초기화합니다.");
-                PlayerPrefs.SetString("CurtainCall.Voice.InputDevice", "reset-test-input"); PlayerPrefs.SetString("CurtainCall.Voice.OutputDevice", "reset-test-output"); PlayerPrefs.Save();
+                var voice = Find("CurtainCall.Voice.VoiceChat");
+                // VoiceChat은 씬 전환 후에도 앞선 검사의 SDK 초기화 상태를 유지한다.
+                bool devicesWereReady = (bool)Get(voice, "AreAudioDevicesReady");
+                Call(voice, "ApplyAudioPreferences", .24f, true, .35f, true);
+                Assert.AreEqual(devicesWereReady, Get(voice, "AreAudioDevicesReady"), "음량 변경은 장치 서비스를 새로 초기화하거나 종료하지 않습니다.");
+                // 준비된 SDK에서는 실제 선택과 일치하는 저장값을 사용한다(가짜 ID는 오프라인 경로만).
+                string inputBefore = devicesWereReady ? (string)Get(Get(voice, "ActiveInputDevice"), "DeviceID") : "reset-test-input";
+                string outputBefore = devicesWereReady ? (string)Get(Get(voice, "ActiveOutputDevice"), "DeviceID") : "reset-test-output";
+                PlayerPrefs.SetString("CurtainCall.Voice.InputDevice", inputBefore); PlayerPrefs.SetString("CurtainCall.Voice.OutputDevice", outputBefore); PlayerPrefs.Save();
                 var start = Find("CurtainCall.StartLobby.StartMenu"); var owner = Find("CurtainCall.UI.SceneIntegration.CommonMenuUI");
                 var settings = Get(owner, "Settings");
                 void OpenSettings() => Call(start, "Show", Enum.Parse(T("CurtainCall.StartLobby.StartMenu+Page"), "Settings"));
@@ -99,21 +105,37 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(.8f, SettingsSlider(view, "volume").value); Assert.AreEqual(1f, SettingsSlider(view, "bgmVolume").value);
                 Assert.AreEqual(1f, SettingsSlider(view, "micVolume").value); Assert.IsTrue(SettingsToggle(view, "micEnabled").isOn); Assert.IsFalse(SettingsToggle(view, "teamMuted").isOn);
                 Assert.AreEqual(.27f, Static(client.FullName, "BgmVolume")); Assert.IsTrue((bool)Get(voice, "IsMicMuted"));
-                Assert.AreEqual("reset-test-input", PlayerPrefs.GetString("CurtainCall.Voice.InputDevice"));
+                Assert.AreEqual(inputBefore, PlayerPrefs.GetString("CurtainCall.Voice.InputDevice"));
                 Call(view, "ShowPage", 4); yield return null;
                 Assert.IsFalse(TabReset(view, "other").interactable); Assert.IsFalse((bool)Get(settings, "IsExtensionOpen"));
                 yield return MenuEscape();
                 Assert.AreEqual(144, Static(client.FullName, "FrameRateLimit")); Assert.AreEqual(.27f, Static(client.FullName, "BgmVolume"));
-                Assert.AreEqual("reset-test-output", PlayerPrefs.GetString("CurtainCall.Voice.OutputDevice"));
+                Assert.AreEqual(outputBefore, PlayerPrefs.GetString("CurtainCall.Voice.OutputDevice"));
                 OpenSettings(); yield return null; Call(view, "ShowPage", 3); yield return null;
                 TabReset(view, "audio").onClick.Invoke(); yield return null;
                 var resetRow = SettingsRow(view, 3, "Reset_audio"); Call(view, "Reveal", (RectTransform)resetRow); yield return new WaitForSecondsRealtime(.2f);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/settings-v2-reset-audio.png")); yield return null;
                 Call(view, "RequestApply"); yield return null;
+                // 이미 초기화된 SDK의 기본 기기 선택은 비동기로 완료된다.
+                double applyDeadline = Time.realtimeSinceStartupAsDouble + 15;
+                while ((bool)Get(owner, "IsOpen") && Time.realtimeSinceStartupAsDouble < applyDeadline) yield return null;
                 Assert.IsFalse((bool)Get(owner, "IsOpen")); Assert.AreEqual(.8f, Static(client.FullName, "Volume")); Assert.AreEqual(1f, Static(client.FullName, "BgmVolume"));
                 Assert.AreEqual(1f, Get(voice, "MicVolume")); Assert.AreEqual(1f, Get(voice, "TeamVolume")); Assert.IsFalse((bool)Get(voice, "IsMicMuted")); Assert.IsFalse((bool)Get(voice, "IsTeamMuted"));
-                Assert.IsFalse(PlayerPrefs.HasKey("CurtainCall.Voice.InputDevice")); Assert.IsFalse(PlayerPrefs.HasKey("CurtainCall.Voice.OutputDevice"));
-                Assert.IsFalse((bool)Get(voice, "AreAudioDevicesReady")); Assert.AreEqual(144, Static(client.FullName, "FrameRateLimit"));
+                Assert.AreEqual(devicesWereReady, Get(voice, "AreAudioDevicesReady"), "오디오 초기화는 SDK 준비 상태를 유지하며 미초기화 상태에서는 네트워크 초기화를 시작하지 않습니다.");
+                if (devicesWereReady)
+                {
+                    string defaultDevice = (string)T("CurtainCall.Voice.VoiceChat").GetField("SystemDefaultDeviceId").GetRawConstantValue();
+                    Assert.AreEqual(defaultDevice, PlayerPrefs.GetString("CurtainCall.Voice.InputDevice"));
+                    Assert.AreEqual(defaultDevice, PlayerPrefs.GetString("CurtainCall.Voice.OutputDevice"));
+                    Assert.AreEqual(defaultDevice, Get(Get(voice, "ActiveInputDevice"), "DeviceID"));
+                    Assert.AreEqual(defaultDevice, Get(Get(voice, "ActiveOutputDevice"), "DeviceID"));
+                }
+                else
+                {
+                    Assert.IsFalse(PlayerPrefs.HasKey("CurtainCall.Voice.InputDevice"));
+                    Assert.IsFalse(PlayerPrefs.HasKey("CurtainCall.Voice.OutputDevice"));
+                }
+                Assert.AreEqual(144, Static(client.FullName, "FrameRateLimit"));
                 OpenSettings(); yield return null; Call(view, "ShowPage", 3); yield return null; Assert.AreEqual(1f, SettingsSlider(view, "bgmVolume").value);
                 Call(view, "ShowPage", 1); yield return null; TabReset(view, "graphics").onClick.Invoke(); yield return null; Call(view, "RequestApply"); yield return null;
                 Assert.AreEqual(60, Static(client.FullName, "FrameRateLimit")); Assert.AreEqual(60, Application.targetFrameRate); Assert.AreEqual(FullScreenMode.FullScreenWindow, Static(client.FullName, "ScreenMode"));

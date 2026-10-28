@@ -24,6 +24,8 @@
 - [interaction.md](interaction.md) — C6 안내판·내부 진행 링 정본·표시 API·독립 씬·원본 보존. 배치·호출·검증 전에
 - [notifications.md](notifications.md) — C8 배너·오른쪽 토스트 정본·표시 API·독립 확인 씬·전체 원본 보존. 알림 UI 사용/검증 전에
 - [backstage-hud.md](backstage-hud.md) — 백스테이지 W1/C4/C5/W6·로비 L1 정본·표시 API·전체 원본 보존. HUD 배치/게임 데이터 연결 전에
+- [day-clock.md](day-clock.md) — W1 v2.7 디자인 프리팹·일정 시각/링·타입별 실제 제한시간과 무제한. 대기실 시계·타이머 변경 전에
+- [hud-layout.md](hud-layout.md) — 실게임 HUD 위치·2칸 인벤토리·균형/추락 게이지 1·2안 설정. 실게임 HUD 배치 변경 전에
 - [performance-hud.md](performance-hud.md) — 공연 HUD C2/C3/P1·표시 API·독립 확인 씬·제작 원본 보존. HUD 배치/게임 데이터 연결 전에
 - [common-icons.md](common-icons.md) — 공용 아이콘25종 catalog·비교 씬·정본 참조·전체 제작 자료 보존. 아이콘 사용/재제작 전에
 - [basic-panels.md](basic-panels.md) — 메뉴·나가기 확인 패널 정본·private 의존성·조립기. 패널 배치·수정 전에

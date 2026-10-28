@@ -11,7 +11,7 @@ namespace CurtainCall.Campaign
     ///   공연하는 날 수 다음 날: 아침 쉬는 시간만. 끝나면 런 실패 → 세대 교체 → 1일차 첫 공연.
     ///   0.1.0: 4일차 아침은 탐색 없이 데모 종료 연출로 전환한다.
     ///   쉬는 시간 중 탈출 개시 → 탈출로 → 성공이면 엔딩, 전원 리타이어면 런 실패.
-    /// 쉬는 시간 타이머는 시작하자마자 흐른다(M2). 수치(일수·공연 수·쉬는 시간 길이)는 공통 세팅에서 쓸 때마다 읽는다.
+    /// 유한 제한시간은 단계 진입부터 흐른다(M2). 제한시간은 진입할 때, 나머지 수치는 필요할 때 공통 세팅에서 읽는다.
     /// 각 메서드는 지금 시간대에 맞지 않는 신호면 아무것도 하지 않고 false를 돌려준다.
     /// </summary>
     public sealed class RunState
@@ -73,12 +73,19 @@ namespace CurtainCall.Campaign
         /// <summary>시간을 흘린다. 쉬는 시간 타이머가 흐르는 중이 아니면 false.</summary>
         public bool Tick(float deltaTime, System.Action<CampaignSnapshot> onExpired = null)
         {
-            if (s.Phase != CampaignPhase.RestTime || s.Timer != RestTimerState.Running) return false;
+            if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night)
+                || s.Timer != RestTimerState.Running || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime) || deltaTime < 0f) return false;
             s.TimeRemaining -= deltaTime;
             if (s.TimeRemaining <= 0f)
             {
                 s.TimeRemaining = 0f;
-                // Observe the actual timeout before EndRest clears its timer/context.
+                // 밤 정비 만료는 수면으로만 넘긴다. 쉬는 시간 소집·잡힘 이벤트는 호출하지 않는다.
+                if (s.Phase == CampaignPhase.Night)
+                {
+                    CompleteNight();
+                    return true;
+                }
+                // 쉬는 시간 상태가 지워지기 전에 실제 만료를 알린다.
                 if (onExpired != null)
                     foreach (System.Action<CampaignSnapshot> observer in onExpired.GetInvocationList())
                         try { observer(s); } catch { /* Observers cannot change progression. */ }
@@ -113,12 +120,8 @@ namespace CurtainCall.Campaign
             {
                 if (s.Phase == CampaignPhase.DemoEnding)
                     FailRun(RunEndReason.Deadline);
-                else if (s.Phase == CampaignPhase.Night && dayPresentation)
-                {
-                    s.Phase = CampaignPhase.Dawn;
-                    ready.Clear();
-                    s.ReadyCount = 0;
-                }
+                else if (s.Phase == CampaignPhase.Night)
+                    CompleteNight();
                 else
                 {
                     s.Day++;
@@ -189,10 +192,11 @@ namespace CurtainCall.Campaign
             return true;
         }
 
-        /// <summary>디버그: 쉬는 시간 남은 시간을 바꾼다(타이머가 멈춰 있으면 흐르게 한다).</summary>
+        /// <summary>디버그: 쉬는 시간·밤 정비를 명시한 유한 제한시간으로 바꾼다.</summary>
         public bool DebugSetRemaining(float seconds)
         {
-            if (s.Phase != CampaignPhase.RestTime) return false;
+            if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night)
+                || float.IsNaN(seconds) || float.IsInfinity(seconds)) return false;
             s.TimeRemaining = seconds < 0f ? 0f : seconds;
             s.Timer = RestTimerState.Running;
             s.AlarmRaised = false;
@@ -311,11 +315,8 @@ namespace CurtainCall.Campaign
             s.PerformanceIndex = nextPerformance;
             s.IsFinalMorning = kind == RestKind.Morning && s.Day > rules.DayCount;
             if (s.IsFinalMorning) { s.TrickId = ""; s.Difficulty = 0; } else RefreshCurrent(s.Day, nextPerformance);
-            s.TimeRemaining = kind == RestKind.Guide ? rules.GuideRestDuration : rules.RestDuration;
-            s.AlarmRaised = false;
-            // M2: 쉬는 시간이 시작되자마자 흐른다. 대기실도 안전하지 않다(옛 A/B안 삭제).
-            s.Timer = RestTimerState.Running;
-            CheckAlarm();
+            // 제한시간은 진입할 때만 적용한다. 도중 설정 변경으로 남은 시간을 재시작하지 않는다.
+            StartTimer(rules.TimeLimit(kind));
         }
 
         void EnterNight()
@@ -324,8 +325,32 @@ namespace CurtainCall.Campaign
             s.Rest = RestKind.None;
             s.TrickId = ""; s.Difficulty = 0;
             ClearTimer();
+            StartTimer(Rules.NightMaintenance);
             ready.Clear();
             s.ReadyCount = 0;
+        }
+
+        // 전원 준비와 제한시간 만료는 같은 밤 종료 경로를 쓴다.
+        void CompleteNight()
+        {
+            ClearTimer();
+            ready.Clear();
+            s.ReadyCount = 0;
+            if (dayPresentation)
+                s.Phase = CampaignPhase.Dawn;
+            else
+            {
+                s.Day++;
+                EnterRest(RestKind.Morning, 0);
+            }
+        }
+
+        void StartTimer(BaseGameSettings.RunSettings.RestTimeLimitSettings limit)
+        {
+            s.Timer = limit.Unlimited ? RestTimerState.Unlimited : RestTimerState.Running;
+            s.TimeRemaining = limit.Unlimited ? 0f : limit.Seconds;
+            s.AlarmRaised = false;
+            CheckAlarm();
         }
 
         void EndRest()
@@ -346,7 +371,8 @@ namespace CurtainCall.Campaign
 
         void CheckAlarm()
         {
-            if (s.Timer == RestTimerState.Running && !s.AlarmRaised && s.TimeRemaining <= Rules.RecallAlarmLeadTime)
+            if (s.Phase == CampaignPhase.RestTime && s.Timer == RestTimerState.Running
+                && !s.AlarmRaised && s.TimeRemaining <= Rules.RecallAlarmLeadTime)
                 s.AlarmRaised = true;
         }
 

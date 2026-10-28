@@ -1,105 +1,72 @@
+using System;
 using CurtainCall.Campaign;
+using CurtainCall.UI.DayClockV2;
 
 namespace CurtainCall.UI.SceneIntegration
 {
-    /// <summary>원형 하루 시계 한 장면. 표시만 하며 게임 시간을 바꾸지 않는다.</summary>
-    public readonly struct DayClockReading
-    {
-        public readonly int Day;
-        /// <summary>하루 시각(시, 0~24 소수).</summary>
-        public readonly float Hours;
-        public readonly string Period;
-        public readonly bool HasTimer;
-        public readonly float Remaining;
-        /// <summary>남은 쉬는 시간 비율(1 → 0).</summary>
-        public readonly float RemainingRatio;
-        public readonly bool Alarm;
-
-        public DayClockReading(int day, float hours, string period, bool hasTimer, float remaining, float remainingRatio, bool alarm)
-        {
-            Day = day; Hours = hours; Period = period; HasTimer = hasTimer;
-            Remaining = remaining; RemainingRatio = remainingRatio; Alarm = alarm;
-        }
-
-        /// <summary>"오전"/"오후".</summary>
-        public string Meridiem => Hours < 12f ? "오전" : "오후";
-
-        /// <summary>12시간제 "h:mm".</summary>
-        public string TimeText
-        {
-            get
-            {
-                int minutes = (int)System.Math.Floor(Hours * 60f + .0001f);
-                int hour = minutes / 60 % 12;
-                return $"{(hour == 0 ? 12 : hour)}:{minutes % 60:00}";
-            }
-        }
-
-        public string RemainingText
-        {
-            get
-            {
-                int seconds = (int)System.Math.Ceiling(System.Math.Max(0f, Remaining));
-                return $"{seconds / 60}:{seconds % 60:00}";
-            }
-        }
-    }
-
-    /// <summary>
-    /// M2 하루 시계(게임 시스템 변경점 3-1). 오전 8~10시 아침 쉬는 시간, 10~12시 오전 공연, 12~14시 낮 쉬는 시간,
-    /// 14~16시 오후 공연, 16~20시 밤 정비(타이머 없음), 그 외 수면. 쉬는 시간 실제 5분이 시계 2시간이다.
-    /// 1일차는 오전 공연부터, 마지막 날 다음 날은 아침 쉬는 시간만 있다(런 진행이 정한다).
-    /// </summary>
+    /// <summary>런의 실제 남은 초와 설정된 하루 시각을 분리해 프리팹에 전달한다.</summary>
     public static class DayClock
     {
-        public const float MorningRest = 8f, MorningShow = 10f, NoonRest = 12f, AfternoonShow = 14f, Night = 16f, Sleep = 20f;
-        const float RestHours = 2f;
-
-        /// <summary>하루 시간대 구간(시작·끝 시각과 종류). 12시간 원판에 한 바퀴로 그린다.</summary>
-        public static readonly (float start, float end, DayClockBand band)[] Bands =
+        public static bool TryRead(in CampaignSnapshot state, float totalSeconds,
+            DayClockCompiledSchedule schedule, out DayClockSnapshot snapshot)
         {
-            (MorningRest, MorningShow, DayClockBand.Rest),
-            (MorningShow, NoonRest, DayClockBand.Performance),
-            (NoonRest, AfternoonShow, DayClockBand.Rest),
-            (AfternoonShow, Night, DayClockBand.Performance),
-            (Night, Sleep, DayClockBand.Night),
-        };
-
-        /// <summary>런 상태를 하루 시계로 바꾼다. 하루 시계가 없는 시간대(로비·도입·탈출·엔딩)면 false.</summary>
-        public static bool TryRead(in CampaignSnapshot s, float restTotal, out DayClockReading reading)
-        {
-            reading = default;
-            switch (s.Phase)
+            snapshot = default;
+            if (schedule == null) return false;
+            DayClockPhase phase;
+            switch (state.Phase)
             {
                 case CampaignPhase.RestTime:
-                {
-                    bool morning = s.Rest == RestKind.Morning;
-                    float ratio = restTotal > 0 ? Clamp01(s.TimeRemaining / restTotal) : 0f;
-                    float start = morning ? MorningRest : NoonRest;
-                    reading = new DayClockReading(s.Day, start + RestHours * (1f - ratio), morning ? "아침 쉬는 시간" : "낮 쉬는 시간",
-                        s.Timer == RestTimerState.Running, s.TimeRemaining, ratio, s.AlarmRaised);
-                    return true;
-                }
+                    phase = state.Rest == RestKind.Morning ? DayClockPhase.MorningBreak : DayClockPhase.NoonBreak;
+                    break;
                 case CampaignPhase.Performance:
-                    reading = new DayClockReading(s.Day, s.PerformanceIndex == 0 ? MorningShow : AfternoonShow,
-                        s.PerformanceIndex == 0 ? "오전 공연" : "오후 공연", false, 0f, 0f, false);
-                    return true;
-                case CampaignPhase.Night:
-                    reading = new DayClockReading(s.Day, Night, "밤 정비", false, 0f, 0f, false);
-                    return true;
-                case CampaignPhase.Dawn:
-                    reading = new DayClockReading(s.Day, Sleep, "수면", false, 0f, 0f, false);
-                    return true;
-                default:
-                    return false;
+                    phase = state.PerformanceIndex == 0 ? DayClockPhase.MorningShow : DayClockPhase.AfternoonShow;
+                    break;
+                case CampaignPhase.Night: phase = DayClockPhase.Maintenance; break;
+                case CampaignPhase.Dawn: phase = DayClockPhase.Sleep; break;
+                default: return false;
             }
+            bool timedPhase = state.Phase == CampaignPhase.RestTime || state.Phase == CampaignPhase.Night;
+            bool unlimited = timedPhase && state.Timer == RestTimerState.Unlimited;
+            bool hasRemaining = timedPhase && (state.Timer == RestTimerState.Running || state.Timer == RestTimerState.Stopped);
+            bool hasTime = TryRange(schedule, phase, out int start, out int duration);
+            double progress = hasRemaining && totalSeconds > 0 && DayClockScheduleMath.IsFinite(totalSeconds)
+                && DayClockScheduleMath.IsFinite(state.TimeRemaining)
+                ? Math.Clamp(1d - state.TimeRemaining / totalSeconds, 0d, 1d) : 0d;
+            // 시작 포함·끝 제외. 완료 프레임에도 다음 단계의 영역을 가리키지 않는다.
+            double minute = (start + Math.Min(duration * progress, Math.Max(0, duration - .001d))) % 1440d;
+            snapshot = new DayClockSnapshot(true, state.Day, phase, minute, hasTime,
+                state.TimeRemaining, hasRemaining, state.Timer == RestTimerState.Stopped)
+            { isUnlimited = unlimited };
+            return true;
         }
 
-        /// <summary>12시간 원판에서 12시 방향부터 시계 방향 각도(도).</summary>
-        public static float Angle(float hours) => hours % 12f / 12f * 360f;
-
-        static float Clamp01(float value) => value < 0f ? 0f : value > 1f ? 1f : value;
+        public static bool TryRange(DayClockCompiledSchedule schedule, DayClockPhase phase, out int start, out int duration)
+        {
+            start = duration = 0;
+            if (schedule == null) return false;
+            bool found = false;
+            int firstEnd = 0, lastStart = 0;
+            foreach (var part in schedule.intervals)
+            {
+                if (part.phase != phase) continue;
+                if (!found) { start = part.startMinute; firstEnd = part.endMinute; }
+                lastStart = part.startMinute;
+                duration += part.endMinute - part.startMinute;
+                found = true;
+            }
+            // 자정을 통과하는 명시 구간은 [0,end), [start,1440)로 분리돼 있다.
+            if (found && phase != DayClockPhase.Sleep && start == 0 && duration > firstEnd)
+                start = lastStart;
+            if (phase == DayClockPhase.Sleep)
+            {
+                // 수면은 밤 정비 끝에서 시작하는 여집합 구간을 우선한다.
+                foreach (var part in schedule.intervals)
+                    if (part.phase == DayClockPhase.Maintenance && part.endMinute < 1440)
+                        foreach (var sleep in schedule.intervals)
+                            if (sleep.phase == DayClockPhase.Sleep && sleep.startMinute == part.endMinute)
+                            { start = sleep.startMinute; duration = sleep.endMinute - sleep.startMinute; return true; }
+            }
+            return found;
+        }
     }
-
-    public enum DayClockBand : byte { Rest, Performance, Night }
 }
