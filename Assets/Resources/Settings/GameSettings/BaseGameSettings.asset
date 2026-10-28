@@ -24,7 +24,6 @@ MonoBehaviour:
     firstDayTricks:
     - Tightrope
     - HumanCannon
-    restTimerMode: 1
     restDuration: 300
     guideRestDuration: 300
     recallAlarmLeadTime: 60

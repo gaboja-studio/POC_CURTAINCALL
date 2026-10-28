@@ -368,11 +368,14 @@ namespace CurtainCall.Player
         }
 
         /// <summary>출발 위치·방향으로 되돌린다(재시작).</summary>
-        public void ResetToStart()
+        public void ResetToStart() => Relocate(startPosition, startRotation);
+
+        /// <summary>출발 위치는 그대로 두고 지금 위치만 옮긴다(예: 코스 밖으로 떨어진 뒤 마지막 대포 앞으로). 다른 화면도 보간 없이 옮긴다.</summary>
+        public void Relocate(Vector3 position, Quaternion rotation)
         {
             ClearPendingInput();
             controller.enabled = false; // CharacterController는 꺼야 위치를 바로 옮길 수 있다
-            transform.SetPositionAndRotation(startPosition, startRotation);
+            transform.SetPositionAndRotation(position, rotation);
             controller.enabled = true;
             IgnoreOtherPlayers();
             verticalSpeed = 0f;

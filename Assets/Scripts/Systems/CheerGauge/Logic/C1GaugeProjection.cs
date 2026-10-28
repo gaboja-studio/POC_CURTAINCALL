@@ -86,7 +86,8 @@ namespace CurtainCall.CheerGauge
                     for (int i = 0; i < order.Length; i++)
                     {
                         var segment = byId[order[i]];
-                        scores[i] = segment.Dead || !segment.Connected ? 0 : segment.Amount;
+                        // 사망자는 게이지를 지우지 않고 절반 인정으로 보여 준다(보상 확정 규칙). 이탈자는 0.
+                        scores[i] = !segment.Connected ? 0 : segment.Dead ? segment.Amount / 2 : segment.Amount;
                         total += scores[i];
                     }
                 }

@@ -222,10 +222,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(.3f);
                 Assert.IsTrue((bool)Call(rewards, "FinishPerformance", false, "C12Verification", null));
                 var result = Get(rewards, "Latest");
-                Assert.AreEqual(10L, Get(result, "BaseReward"));
-                Assert.AreEqual(0L, Get(result, "BonusReward"));
-                Assert.AreEqual(10L, Get(result, "Income"));
-                Assert.AreEqual(10L, Get(rewards, "Balance"));
+                // 기본 자금 없이 호응 보상만. 환호 +a 후 야유 −5가 남긴 호응도를 실패여도 생존 ×2로 지급한다.
+                long cheer = (long)Get(result, "CheerReward");
+                Assert.AreEqual(0L, Get(result, "CompletionReward"));
+                Assert.AreEqual(cheer, Get(result, "Income"));
+                Assert.AreEqual(cheer, Get(rewards, "Balance"));
+                Assert.AreEqual(0L, cheer % 2, "생존자 호응 × 2");
                 Assert.Greater(Convert.ToDouble(Get(result, "ElapsedSeconds")), 0);
                 Assert.Greater(Convert.ToDouble(Get(result, "CourseLength")), 0);
                 var people = ((IEnumerable)Get(result, "Participants")).Cast<object>().ToArray();
@@ -242,8 +244,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsTrue((bool)Get(ending, "ResultVisible"));
                 var view = Private(ending, "resultsView");
                 var resultData = Call(ending, "BuildResults", result);
-                Assert.AreEqual("+10", Get(resultData, "BaseAmount"));
+                Assert.AreEqual($"+{cheer}", Get(resultData, "BaseAmount"));
                 Assert.AreEqual("+0", Get(resultData, "BonusAmount"));
+                StringAssert.StartsWith("호응 보상", (string)Get(resultData, "BaseLabel"));
                 Assert.IsFalse((bool)Get(feedbackView, "HasRuntimePresentation"));
                 var voice = Find("CurtainCall.Voice.VoiceChatDevOverlay");
                 if (voice != null) Assert.IsTrue((bool)Get(voice, "PresentationSuppressed"));

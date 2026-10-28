@@ -112,14 +112,14 @@ namespace CurtainCall.CheerGauge.Tests
             Assert.IsTrue((bool)Call(preview, "ChangeScore", 0, false));
             Assert.AreEqual("15", TotalText);
             Assert.IsTrue((bool)Call(preview, "KillFirst"));
-            Assert.AreEqual("10", TotalText);
+            // 사망자 호응 5는 지우지 않고 절반(2)으로 인정해 보여 준다.
+            Assert.AreEqual("12", TotalText);
             yield return new WaitForSecondsRealtime(0.3f);
-            Assert.IsFalse(Fill(1).enabled);
             Assert.Greater(Fill(2).fillAmount, 0);
             root.SetActive(false);
             root.SetActive(true);
             yield return null;
-            Assert.AreEqual("10", TotalText);
+            Assert.AreEqual("12", TotalText);
             var rewardType = GameType("CurtainCall.Reward.PerformanceRewards");
             var previous = (Component)rewardType.GetProperty("Instance").GetValue(null);
             Object.Destroy(previous.gameObject);

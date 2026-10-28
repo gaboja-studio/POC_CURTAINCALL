@@ -45,7 +45,7 @@ namespace CurtainCall.Campaign
     {
         /// <summary>쉬는 시간이 아니다.</summary>
         None,
-        /// <summary>B안: 아직 아무도 대기실에서 나오지 않아 멈춰 있다.</summary>
+        /// <summary>옛 B안(대기실에서 나와야 시작) 값. M2에서 쓰지 않지만 전송 숫자를 지키려고 남긴다.</summary>
         WaitingForExit,
         /// <summary>흐르는 중.</summary>
         Running,
@@ -93,6 +93,8 @@ namespace CurtainCall.Campaign
         public int RequiredCount;
         /// <summary>직전 런이 끝난 이유. 세대 1 첫 런은 <see cref="RunEndReason.None"/>.</summary>
         public RunEndReason LastEnd;
+        /// <summary>지금 또는 다음 공연의 난이도 단계(1~3). 공연이 정해지지 않았으면 0. 1일차는 1단계 고정(M2).</summary>
+        public int Difficulty;
 
         public bool IsRunning => Phase != CampaignPhase.None;
 
@@ -104,7 +106,7 @@ namespace CurtainCall.Campaign
             Generation == other.Generation && Day == other.Day && Phase == other.Phase && Rest == other.Rest
             && PerformanceIndex == other.PerformanceIndex && Timer == other.Timer && AlarmRaised == other.AlarmRaised
             && ReadyCount == other.ReadyCount && RequiredCount == other.RequiredCount && LastEnd == other.LastEnd
-            && TrickId == other.TrickId;
+            && TrickId == other.TrickId && Difficulty == other.Difficulty;
 
         internal void Write(FastBufferWriter writer)
         {
@@ -121,6 +123,7 @@ namespace CurtainCall.Campaign
             writer.WriteValueSafe(ReadyCount);
             writer.WriteValueSafe(RequiredCount);
             writer.WriteValueSafe((byte)LastEnd);
+            writer.WriteValueSafe((byte)Difficulty);
         }
 
         internal static CampaignSnapshot Read(FastBufferReader reader)
@@ -139,10 +142,12 @@ namespace CurtainCall.Campaign
             reader.ReadValueSafe(out s.ReadyCount);
             reader.ReadValueSafe(out s.RequiredCount);
             reader.ReadValueSafe(out byte lastEnd);
+            reader.ReadValueSafe(out byte difficulty);
             s.Phase = (CampaignPhase)phase;
             s.Rest = (RestKind)rest;
             s.Timer = (RestTimerState)timer;
             s.LastEnd = (RunEndReason)lastEnd;
+            s.Difficulty = difficulty;
             return s;
         }
     }

@@ -6,15 +6,6 @@ using UnityEngine.Serialization;
 
 namespace CurtainCall.Settings
 {
-    /// <summary>쉬는 시간 타이머가 언제부터 흐르는지. 결정: Harness/Project/Decisions/run-rules.md #1</summary>
-    public enum RestTimerMode
-    {
-        /// <summary>A안: 쉬는 시간이 시작되자마자 흐른다. 대기실도 복귀 지점.</summary>
-        FromRestStart = 0,
-        /// <summary>B안(기본): 대기실에서 백스테이지로 처음 나온 순간부터 흐른다. 복귀는 무대 입구 통로만.</summary>
-        FromLeavingWaitingRoom = 1,
-    }
-
     /// <summary>장소(공간 씬)를 바꾸는 방식. 결정: Task-20261013-032 plan.md (2026-10-16 PM)</summary>
     public enum SpaceTransitionMode
     {
@@ -116,10 +107,7 @@ namespace CurtainCall.Settings
             [Tooltip("1일차 공연 순서(묘기 이름, 고정). 2일차부터는 밤 정비 때 정하는 세트리스트를 쓴다. 기획 줄타기 → 인간 대포.")]
             [SerializeField] string[] firstDayTricks = { "Tightrope", "HumanCannon" };
 
-            [Tooltip("쉬는 시간 타이머 방식. B안 = 대기실에서 백스테이지로 나온 순간부터(기본), A안 = 쉬는 시간 시작부터. A/B 테스트용(2026-10-14 PM).")]
-            [SerializeField] RestTimerMode restTimerMode = RestTimerMode.FromLeavingWaitingRoom;
-
-            [Tooltip("쉬는 시간 길이(초). 아침·공연 사이 공통. 기획 5분 = 300.")]
+            [Tooltip("쉬는 시간 길이(초). 아침·공연 사이 공통. 시작하자마자 흐른다(M2, 안전한 곳 없음). 기획 5분 = 300.")]
             [SerializeField, Min(1f)] float restDuration = 300f;
 
             [Tooltip("가이드 쉬는 시간 길이(초). 1일차 첫 공연 뒤 쉬는 시간. 기획 미정(플레이테스트로 결정) — 임시 300.")]
@@ -133,7 +121,6 @@ namespace CurtainCall.Settings
 
             public int DayCount => dayCount;
             public int PerformancesPerDay => performancesPerDay;
-            public RestTimerMode RestTimerMode => restTimerMode;
             public float RestDuration => restDuration;
             public float GuideRestDuration => guideRestDuration;
             public float RecallAlarmLeadTime => recallAlarmLeadTime;

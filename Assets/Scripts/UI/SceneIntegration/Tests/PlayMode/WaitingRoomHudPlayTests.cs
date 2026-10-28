@@ -89,18 +89,19 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 }
                 Assert.AreEqual(selectedName == null ? "빈손 · 1–5 기물 선택" : $"{selectedName} · 손에 듦", ((TMP_Text)Get(inventoryUi, "selectedLabel")).text);
             }
-            Assert.IsTrue(clock.gameObject.activeSelf);
-            Assert.AreEqual(true, Get(clock, "HasValidData"));
+            // M2: 옛 남은 시간 시계 대신 같은 자리에 원형 하루 시계를 보인다.
+            Assert.IsFalse(clock.gameObject.activeSelf, "옛 W1 시계는 숨긴다");
+            var dayClock = Get(ui, "DayClockDisplay");
+            Assert.IsNotNull(dayClock);
+            Assert.AreEqual(true, Get(dayClock, "IsShown"));
+            StringAssert.Contains("쉬는 시간", (string)Get(dayClock, "DayText"));
+            StringAssert.StartsWith("남은 시간", (string)Get(dayClock, "RemainingText"));
+            Assert.Greater((float)Get(dayClock, "TimerFill"), 0f);
+            Assert.AreSame(clock.transform.parent, ((Component)dayClock).transform.parent, "같은 HUD 자리에 붙인다");
             Assert.AreEqual(true, Get(View(hud, "Funds"), "HasValidData"));
             var rewards = Find("CurtainCall.Reward.PerformanceRewards");
             StringAssert.Contains(((long)Get(rewards, "Balance")).ToString("N0", System.Globalization.CultureInfo.InvariantCulture), Text(View(hud, "Funds")));
-            if (Get(Get(campaign, "State"), "Timer").ToString() == "WaitingForExit")
-            {
-                StringAssert.Contains("멈춤", Text(clock));
-                Assert.IsTrue((bool)Call(campaign, "NotifyLeftWaitingRoom"));
-                yield return null;
-                StringAssert.Contains("탐색", Text(clock));
-            }
+            Assert.AreEqual("Running", Get(Get(campaign, "State"), "Timer").ToString(), "M2: 쉬는 시간 시작부터 흐른다");
             Assert.IsNull(GameObject.Find("ExplorationTimerCanvas"));
             Assert.IsNull(Find("CurtainCall.WaitingRoom.SharedFundsView"));
             var carry = Find("CurtainCall.WaitingRoom.PropCarry");
@@ -134,6 +135,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue((bool)Call(campaign, "EndPerformance"));
             yield return null;
             Assert.IsFalse(clock.gameObject.activeSelf, "Night must not show a countdown.");
+            var nightClock = Get(ui, "DayClockDisplay");
+            Assert.AreEqual(true, Get(nightClock, "IsShown"), "밤 정비에도 하루 시각은 보인다");
+            Assert.AreEqual("", Get(nightClock, "RemainingText"), "밤 정비에는 타이머가 없다");
+            StringAssert.Contains("밤 정비", (string)Get(nightClock, "DayText"));
+            Assert.AreEqual("4:00", Get(nightClock, "TimeText"));
             Assert.IsTrue(View(hud, "Funds").gameObject.activeSelf);
             Assert.AreEqual(0, gather.GetComponent<CanvasGroup>().alpha);
         }
@@ -163,7 +169,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return null;
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI"), FindObjectsSortMode.None).Length);
             var registeredUi = Find("CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI");
-            Assert.AreEqual(true, Get(View(Get(registeredUi, "Hud"), "Clock"), "HasValidData"));
+            Assert.AreEqual(true, Get(Get(registeredUi, "DayClockDisplay"), "IsShown"), "다시 붙은 HUD도 하루 시계를 보인다");
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonInventoryUI"), FindObjectsSortMode.None).Length);
             announcer.GetType().GetMethod("Raise", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(announcer, new object[] {30, false});
             yield return new WaitForSecondsRealtime(.3f);

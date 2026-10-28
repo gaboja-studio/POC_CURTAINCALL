@@ -94,10 +94,6 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             values.FindProperty("humanCannon").boolValue=true;
             values.FindProperty("cannonStart").objectReferenceValue=system.Station(0).Muzzle;
             values.FindProperty("cannonFinish").objectReferenceValue=finish.transform;
-            values.FindProperty("cannonFires").arraySize=fires.Length;
-            for(int i=0;i<fires.Length;i++) values.FindProperty("cannonFires").GetArrayElementAtIndex(i).objectReferenceValue=fires[i];
-            values.FindProperty("lowerFloorMaxY").floatValue=bounds.RaisedMinY;
-            values.FindProperty("lowerFloorStartZ").floatValue=bounds.FirstStartZ;
             values.ApplyModifiedPropertiesWithoutUndo();
             foreach(var root in scene.GetRootGameObjects())
                 if(root!=ui && (root.GetComponent<Canvas>()!=null || root.name=="SessionUI" || root.name=="DebugHud")) root.transform.SetParent(ui.transform,true);

@@ -17,6 +17,11 @@ namespace CurtainCall.Tightrope
         readonly List<Material> viewMaterials = new();
         Material orange, green;
         public Transform PoleVisual => crossbar;
+        public Vector3 GripPoint(NetworkPlayer player)
+        {
+            var pole = ForPlayer(player);
+            return pole.WorldFeet(pole.OwnAngle, pole.assignedLane) + Vector3.up * SwingPoleMath.GripHeight;
+        }
         public string LocalHint
             => LocalPole.OwnLocalHint;
         string OwnLocalHint

@@ -36,7 +36,9 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
 #endif
         static Type Game(string name) => Type.GetType(name + ", Assembly-CSharp", true);
         static object Read(object target, string name) => target.GetType().GetProperty(name).GetValue(target);
-        static object Call(object target, string name, params object[] args) => target.GetType().GetMethod(name).Invoke(target, args);
+        // 같은 이름의 오버로드(예: RequestMedical()/RequestMedical(int))는 인수 개수로 고른다.
+        static object Call(object target, string name, params object[] args) => target.GetType().GetMethods()
+            .Single(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(target, args);
         static object Static(string type, string name) => Game(type).GetProperty(name).GetValue(null);
         static IEnumerator RemoveAutomaticSceneRouting()
         {
@@ -256,6 +258,10 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Assert.That(Call(campaign, "EndIntro"), Is.EqualTo(true));
             Assert.That(Call(campaign, "EndPerformance"), Is.EqualTo(true));
             yield return new WaitForSecondsRealtime(.8f);
+            // 앞선 테스트의 장소 전환 정리가 늦으면 대기실 부품이 다시 준비될 때까지 기다린다.
+            deadline = Time.realtimeSinceStartup + 10;
+            while ((Static("CurtainCall.WaitingRoom.WaitingRoomShop", "Instance") == null || Static("CurtainCall.WaitingRoom.PropCarry", "Instance") == null
+                || Static("CurtainCall.WaitingRoom.ExpertService", "Instance") == null) && Time.realtimeSinceStartup < deadline) yield return null;
             var shop = Static("CurtainCall.WaitingRoom.WaitingRoomShop", "Instance");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var service = Static("CurtainCall.WaitingRoom.ExpertService", "Instance");
@@ -265,7 +271,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Call(shop, "RequestPurchase", "telemetry-unknown-item");
             var rejected = events.Where(e => e.Type == "PURCHASE_FAILED").ToArray();
             Assert.That(rejected.Length, Is.EqualTo(2), "Repeated rejected actions are distinct attempts.");
-            Assert.That(rejected.All(e => e.Authority == "HOST" && e.Slot == 0 && e.Payload["reason"].ToString() == "SHOP_UnknownItem"), Is.True);
+            Assert.That(rejected.All(e => e.Authority == "HOST" && e.Slot == 0 && e.Payload["reason"].ToString() == "NOT_NIGHT"), Is.True, "기물 구매는 밤 정비에만 된다(2026-10-28).");
             Call(shop, "RequestClaim", 9999);
             Assert.That(events.Single(e => e.Type == "COLLECTION_FAILED").Payload["reason"].ToString(), Is.EqualTo("SHOP_NotFound"));
             Call(carry, "RequestShelf");
@@ -277,6 +283,32 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Assert.That(failures.Length, Is.EqualTo(2));
             CollectionAssert.AreEquivalent(new[] { "MEDICAL_RESERVE", "MEDICAL_ENTER" }, failures.Select(e => e.Payload["operation"].ToString()).ToArray());
             Assert.That(failures.All(e => e.Payload["reason"].ToString().StartsWith("EXPERT_")), Is.True);
+            // Read the actual authored camera volumes. This is synthetic movement, not a physical-input test.
+            var local = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            var mover = local.GetComponent(Game("CurtainCall.Player.PlayerMover"));
+            var volumes = UnityEngine.Object.FindObjectsByType(Game("CurtainCall.Cameras.CameraViewZone"), FindObjectsSortMode.None).Cast<Component>().ToArray();
+            Assert.That(volumes.Count(v => v.transform.parent?.name == "CameraZones"), Is.EqualTo(6));
+            void MoveToRoom(string name)
+            {
+                var box = volumes.Single(v => v.name == name).GetComponent<BoxCollider>();
+                var position = box.transform.TransformPoint(box.center + Vector3.down * (box.size.y * .5f - .1f));
+                mover.GetType().GetMethod("SetStartPose", new[] { typeof(Vector3), typeof(Quaternion) }).Invoke(mover, new object[] { position, Quaternion.identity });
+            }
+            // Exercise the real host Tick timeout. State after timeout has already cleared its timer.
+            Call(campaign, "DebugSetRemaining", .15f);
+            deadline = Time.realtimeSinceStartup + 5;
+            while (!events.Any(e => e.Type == "RECALL_EXPIRED") && Time.realtimeSinceStartup < deadline) yield return null;
+            var expired = events.Single(e => e.Type == "RECALL_EXPIRED");
+            Assert.That(events.Count(e => e.Type == "BREAK_ENDED" && e.Break == "D1T2"), Is.EqualTo(1));
+            Assert.That(expired.Break, Is.EqualTo("D1T2"));
+            Assert.That(expired.Payload["timerSource"].ToString(), Is.EqualTo("HOST_TICK_EXPIRED"));
+            var snapshot = Read(campaign, "State");
+            Assert.That(snapshot.GetType().GetField("Phase").GetValue(snapshot).ToString(), Is.EqualTo("Performance"));
+            // M2: 무대 입구 밖에서 쉬는 시간이 끝나 잡혔으므로 외팔(잃은 팔다리 3)로 공연에 나갔다.
+            Assert.That(Read(local, "LostParts").ToString(), Is.EqualTo("LeftArm, LeftLeg, RightLeg"));
+            Assert.That(Call(campaign, "EndPerformance"), Is.EqualTo(true)); yield return null;
+            yield return new WaitForSecondsRealtime(.2f);
+            // 1일차 밤 정비: 기물 구매·배송·보관 흐름(밤 정비에만 구매).
             var rewards = Static("CurtainCall.Reward.PerformanceRewards", "Instance");
             var model = rewards.GetType().GetField("model", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(rewards);
             // Synthetic test funds only; purchase/animation/claim/storage below use unchanged production code.
@@ -299,17 +331,6 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             var delivery = ((IEnumerable)Read(shop, "Waiting")).Cast<object>().Single();
             int order = (int)Read(delivery, "Order");
             Call(shop, "RequestClaim", order); yield return null;
-            // Read the actual authored camera volumes. This is synthetic movement, not a physical-input test.
-            var local = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
-            var mover = local.GetComponent(Game("CurtainCall.Player.PlayerMover"));
-            var volumes = UnityEngine.Object.FindObjectsByType(Game("CurtainCall.Cameras.CameraViewZone"), FindObjectsSortMode.None).Cast<Component>().ToArray();
-            Assert.That(volumes.Count(v => v.transform.parent?.name == "CameraZones"), Is.EqualTo(6));
-            void MoveToRoom(string name)
-            {
-                var box = volumes.Single(v => v.name == name).GetComponent<BoxCollider>();
-                var position = box.transform.TransformPoint(box.center + Vector3.down * (box.size.y * .5f - .1f));
-                mover.GetType().GetMethod("SetStartPose", new[] { typeof(Vector3), typeof(Quaternion) }).Invoke(mover, new object[] { position, Quaternion.identity });
-            }
             MoveToRoom("Zone_Dormitory"); yield return new WaitForSecondsRealtime(.2f);
             Assert.That(events.Any(e => e.Type == "ZONE_ENTERED" && e.Payload["zoneType"].ToString() == "BEDROOM"), Is.True);
             Assert.That(events.Any(e => e.Type == "STORAGE_REACHED"), Is.False);
@@ -333,19 +354,6 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             yield return new WaitForSecondsRealtime(.8f);
             Assert.That(events.Count(e => e.Type == "DELIVERY_AVAILABLE"), Is.EqualTo(1));
             Assert.That(events.Any(e => e.Type == "ZONE_ENTERED" && e.Payload["spawnToZoneMs"] != null), Is.True);
-            // Exercise the real host Tick timeout. State after timeout has already cleared its timer.
-            Call(campaign, "DebugSetRemaining", .15f);
-            deadline = Time.realtimeSinceStartup + 5;
-            while (!events.Any(e => e.Type == "RECALL_EXPIRED") && Time.realtimeSinceStartup < deadline) yield return null;
-            var expired = events.Single(e => e.Type == "RECALL_EXPIRED");
-            Assert.That(events.Count(e => e.Type == "BREAK_ENDED" && e.Break == "D1T2"), Is.EqualTo(1));
-            Assert.That(expired.Break, Is.EqualTo("D1T2"));
-            Assert.That(expired.Payload["timerSource"].ToString(), Is.EqualTo("HOST_TICK_EXPIRED"));
-            var snapshot = Read(campaign, "State");
-            Assert.That(snapshot.GetType().GetField("Phase").GetValue(snapshot).ToString(), Is.EqualTo("Performance"));
-            Assert.That(Call(campaign, "EndPerformance"), Is.EqualTo(true)); yield return null;
-            Call(local, "ServerCut", 2);
-            yield return new WaitForSecondsRealtime(.2f);
             Call(service, "RequestMedical"); yield return null;
             var reservation = events.Single(e => e.Type == "SERVICE_RESERVED");
             Call(service, "RequestEnter");
@@ -371,6 +379,11 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             var entranceBox = gather.GetComponent<BoxCollider>();
             var exitBoxes = exit.GetComponentsInChildren<BoxCollider>().Where(b => b.enabled).ToArray();
             var outPosition = new Vector3(exitBoxes.Max(b => b.bounds.max.x) + .5f, local.transform.position.y, local.transform.position.z);
+            // 밤낮 전환 연출이 끝나 2일차 아침 쉬는 시간이 된 뒤, 대기실 안에서 한 번 관찰된 다음에 나간다.
+            deadline = Time.realtimeSinceStartup + 10;
+            while (Read(campaign, "State").GetType().GetField("Phase").GetValue(Read(campaign, "State")).ToString() != "RestTime"
+                && Time.realtimeSinceStartup < deadline) yield return null;
+            yield return null; yield return null;
             mover.GetType().GetProperty("Simulated").SetValue(mover, false);
             mover.GetType().GetMethod("SetStartPose", new[] { typeof(Vector3), typeof(Quaternion) }).Invoke(mover, new object[] { outPosition, Quaternion.identity });
             yield return new WaitForSecondsRealtime(.2f);
@@ -394,13 +407,9 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Assert.That(Call(campaign, "EndPerformance"), Is.EqualTo(true));
             Assert.That(Call(campaign, "NotifyAllAtStageEntrance"), Is.EqualTo(true));
             Assert.That(Call(campaign, "EndPerformance"), Is.EqualTo(true)); yield return null;
-            // Day 2 night: facility purchase is confirmed on the host and must not create a medical workflow.
-            var adjustment = Enum.Parse(service.GetType().GetMethod("RequestFacility").GetParameters()[0].ParameterType, "Strengthen");
-            Call(service, "RequestFacility", adjustment);
-            var facility = events.Single(e => e.Type == "SERVICE_RESERVED" && e.Payload["serviceType"].ToString() == "FACILITY");
-            Assert.That(facility.Authority, Is.EqualTo("HOST"));
-            Assert.That(Convert.ToInt32(facility.Payload["appliesOnDay"]), Is.EqualTo(3));
-            Assert.That(Convert.ToInt64(facility.Payload["amount"]), Is.EqualTo(Convert.ToInt64(Read(service, "FacilityPrice"))));
+            // M2: 시설 서비스는 없어졌고 서비스 예약 기록은 신체 복구뿐이다.
+            Assert.That(service.GetType().GetMethod("RequestFacility"), Is.Null);
+            Assert.That(events.Any(e => e.Type == "SERVICE_RESERVED" && e.Payload["serviceType"].ToString() == "FACILITY"), Is.False);
         }
         [UnityTest]
         public IEnumerator Cannon_ActualHazardContactsPreserveObstacleIdentityAndDoNotRepeatWhileTouching()

@@ -12,20 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a0ce5884b4eda749a6b82ab40a9701a, type: 3}
   m_Name: temporary-audience
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.AudienceReactionSettings
-  cap: 100
-  closeDodge: 15
-  safeDodge: 5
-  cut: 30
-  safeArrival: 15
-  closeArrival: 30
-  stackedVertical: 50
-  laneChangeJeer: 30
-  hangingJeer: 15
-  trampoline: 15
-  lowerFloorJeer: 15
-  hangingSeconds: 3
-  lowerFloorSeconds: 10
+  cooperation: 10
+  objectFirst: 5
+  closeDodge: 5
+  fallJeer: 15
+  stallJeer: 10
+  stallSeconds: 15
+  stallProgress: 1
+  interestGrace: 20
+  interestDecay: 1
   closeDodgeMargin: 0.3
   approachDistance: 8
   clearanceDistance: 2
-  closeFireDistance: 3

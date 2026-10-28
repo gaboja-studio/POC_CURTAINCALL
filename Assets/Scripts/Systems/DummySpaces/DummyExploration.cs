@@ -12,7 +12,8 @@ namespace CurtainCall.DummySpaces
         public DummySpaceDiagnostics Diagnostics => diagnostics;
         public string Zone { get; private set; } = "대기실";
         public CatchOutcome PreviewCatch => SurvivalRules.ResolveCatch(SurvivalPlace.Exploration, GameSettings.Exploration.DummyLostCount);
-        public bool IsSafe => Zone == "무대 입구" || (Zone == "대기실" && GameSettings.Base.Run.RestTimerMode == RestTimerMode.FromRestStart);
+        // M2: 대기실도 안전하지 않다. 무대 입구 통로만 복귀 지점이다.
+        public bool IsSafe => Zone == "무대 입구";
 
         void Awake() => diagnostics = GetComponent<DummySpaceDiagnostics>();
 
@@ -24,9 +25,7 @@ namespace CurtainCall.DummySpaces
                 return false;
             }
             Zone = "백스테이지";
-            diagnostics.Note("더미 입력", "출구 구역", "백스테이지 (이동/위치 동기화 없음)");
-            // A안은 이미 진행 중이므로 false일 수 있어도 구역 입력 자체는 유효하다.
-            diagnostics.Invoke("출구 → NotifyLeftWaitingRoom", diagnostics.Campaign.NotifyLeftWaitingRoom);
+            diagnostics.Note("더미 입력", "출구 구역", "백스테이지 (이동/위치 동기화 없음, 타이머는 이미 흐름)");
             return true;
         }
 
