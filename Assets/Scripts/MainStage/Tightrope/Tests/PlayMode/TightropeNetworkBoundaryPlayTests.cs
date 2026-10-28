@@ -119,7 +119,14 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Call(relay, "ReadRequest", 779UL, reader);
                 Assert.AreEqual(779UL, (ulong)Call(relay, "HolderAt", 0));
                 Assert.IsTrue((bool)Get(relay, "OutboundOpen"));
-                Assert.IsTrue((bool)Call(relay, "IsLaneConnected", (int)Get(relay, "TransitLane")));
+                // 출발 봉은 잡을 때 봉이 없는 줄 하나를 무작위로 연다. 그 줄만 이어진다.
+                int opened = (int)Call(relay, "OpenedLane", 0);
+                int laneCount = (int)Get(course, "LaneCount");
+                Assert.That(opened, Is.InRange(0, laneCount - 1));
+                Assert.AreNotEqual((int)Call(relay, "PoleLane", 0), opened, "출발 봉이 있는 줄은 열지 않는다.");
+                Assert.AreNotEqual((int)Call(relay, "PoleLane", 1), opened, "출발 봉이 있는 줄은 열지 않는다.");
+                for (int lane = 0; lane < laneCount; lane++)
+                    Assert.AreEqual(lane == opened, (bool)Call(relay, "IsLaneConnected", lane), $"{lane + 1}번 줄");
             }
             finally { DestroyPracticeBotTestPartner(other); }
         }
