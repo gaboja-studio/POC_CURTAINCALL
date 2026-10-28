@@ -26,3 +26,4 @@
 - 2026-10-28 균형바 구간 색 진하게: 사용자 요청으로 `BalanceZoneFrame`이 실행 시 `10_Zones`의 구간 색을 원본 파스텔(#73C7A1/#F2B45B/#E06C78)보다 짙은 초록(0.08,0.6,0.34)·노랑(0.95,0.62,0)·빨강(0.8,0.1,0.14)으로 칠한다. 프리팹·외부 HUD는 그대로. `BalanceRiskBlinkPlayTests` 2/2 통과, Play 화면 확인.
 - 2026-10-28 균형바 테두리 두께: 사용자 요청으로 `BalanceZoneFrame` 테두리를 4px에서 2.5px로 줄였다. 상단 위험 게이지 깜빡임 테두리는 4px 그대로. Play 화면 확인.
 - 2026-10-28 균형바 테두리 원복: 사용자 요청으로 구간색 테두리(프레임 색 변경·`40_FrameZone` 겹침)를 없애고 원래 흰 테두리로 되돌렸다. 짙은 구간 색은 유지하며 컴포넌트를 `BalanceZoneColors`로 바꾸고 `PerformanceSceneBinding`의 구간 전달을 제거했다. `BalanceRiskBlinkPlayTests` 2/2, `PerformanceSceneBindingPlayTests` 13/13 통과, Play 화면 확인.
+- 2026-10-28 제출: dev 대상 PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/226 (9210081, 균형 위험 깜빡임·구간 색·톱날 스파크). 이전 커밋 79e48fe(추격 불벽·수평톱 외형·경로 선)는 이미 dev에 포함됨. `new-pr.ps1`이 중첩 브랜치 이름(`feat/tight-rope/enhancement`)을 제출용으로 허용하지 않아 같은 템플릿 본문으로 `gh pr create`를 직접 사용했다. 지정 팀원 검토 대기.
