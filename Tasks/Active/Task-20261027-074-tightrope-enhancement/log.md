@@ -40,3 +40,4 @@
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 2026-10-29 dev 통합: `origin/dev` 93490861을 현재 브랜치에 자동 병합, 미해결 충돌 0개. dev M2 매달림·구조와 봉 위험 회복을 보존하고 IsSuspended 회복 테스트를 보강했다. private 포인터 f5131050 동기화·LFS pull 완료, private 변경 없음.
 - 별도 검사: Tightrope EditMode 274/274, 공연 HUD 13/13, 균형 강조 2/2 PASS. Relay 1/2·Trapeze 6/9·Swing 2/6·Hang 부분 문자열 23/25로 실패가 남아 있다. 기존 기록/정적 dev 비교와 미검증 범위는 [통합 검사](integration-verification.md)에 기록했다. 전체 정상 또는 전체 테스트 PASS로 처리하지 않는다.
+- 2026-10-29 제출: 통합 커밋 4119ed07 push 후 [Draft PR #233](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/233) 생성(`feat/tight-rope/enhancement` → `dev`). PM 팀 검토 요청을 실제 조회로 확인했다. MERGEABLE이며 PlayMode 실패 10건 때문에 Draft 유지, dev 병합하지 않음. 다음 작업은 실패 확인·후속 수정·사람 플레이 검증 후 Ready 판단이다.
