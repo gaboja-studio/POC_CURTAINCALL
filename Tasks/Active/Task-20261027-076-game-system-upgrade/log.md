@@ -126,3 +126,5 @@
 
 ## 2026-10-28 설정 v2 저장·제출 요청
 - 사용자 origin push·dev 제출 요청. PR229는 MERGED 확인. private `resource/third-party/settings-v2`에360c4610, 공개에1a58fac1 로컬 저장. 원본 문서/라이선스 공백·Python EOF 경고 보존. 최초 private push/PR 호출은 Auto 분류기 `Create Public Surface` 거절로 미실행·우회 없음. 이후 사용자가 저장소 이름과 push/main PR 생성을 직접 승인하여 private push 완료(LFS41개), PR6 생성·OPEN/MERGEABLE 확인: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/6 . 병합 미실행. private main 반영 후 공개 포인터 push·새 dev PR 필요. 최신 컴파일/관련7건 검사 재사용.
+
+- 2026-10-28 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/230 (feat/game-system-m2 → dev), PM 팀 검토 요청. 사용자 PR6 병합 후 MERGED·360c4610의main 포함 확인, 공개97a203bc origin push 완료. 최초 CONFLICTING은 dev의9cc40f2b와설정360c4610 에셋 포인터 분기만 확인됨. 두 커밋을 모두 포함한 private main e7765d41로 포인터 갱신하여 공개 후속 저장·push한다. dev 병합은 미실행.
