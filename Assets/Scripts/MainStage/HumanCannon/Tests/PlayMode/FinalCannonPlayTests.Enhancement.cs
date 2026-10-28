@@ -121,41 +121,64 @@ namespace CurtainCall.HumanCannon.Tests
             yield return GrabEnhancementPole(index);
             var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
             var pole = (Component)Call(poles, "Pole", index);
-            var anchor = Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonPoleSaw"), FindObjectsSortMode.None)
-                .Cast<Component>().Single(item => (Component)Get(item, "Pole") == pole);
-            var saw = (Behaviour)Get(anchor, "Hazard");
-            // 접촉 여부를 분리해서 재현한다. 왕복 궤도는 EditMode 검사에서 확인하며 여기서는 중앙에 고정한다.
-            HazardSet(saw, "travel", Vector3.zero);
-            Vector3 rest = (Vector3)Call(pole, "HangingPosition", 0f);
-            Vector3 forward = (Vector3)Get(pole, "Forward");
-            float deadline = Time.realtimeSinceStartup + 3;
-            while (Vector3.Dot(player.transform.position - rest, forward) < 1f && Time.realtimeSinceStartup < deadline)
+            // Task-044에서 저장 코스의 봉 톱은 제거됐다. 제품 배치는 복구하지 않고 테스트 수명 동안만
+            // 독립 톱을 등록해 기존 반동 회피/호스트 접촉 절단/점유 유지 회귀를 계속 검사한다.
+            var course = HazardCourse();
+            var originalHazards = (Array)Get(course, "hazards");
+            var sawObject = new GameObject("PoleSaw_ContactRegression_TestOnly");
+            try
             {
-                PoleEnhancementInput(1);
-                yield return null;
-            }
-            Assert.That(Vector3.Dot(player.transform.position - rest, forward), Is.GreaterThanOrEqualTo(1f),
-                "입력으로 실제 몸을 수평 톱날의 앞뒤 접촉 범위 밖으로 움직인다.");
-            AssertBody(0);
-            saw.enabled = true;
-            double safeUntil = (double)Get(poles, "Clock") + 0.4;
-            while ((double)Get(poles, "Clock") < safeUntil)
-            {
-                PoleEnhancementInput(1);
+                var saw = (Behaviour)sawObject.AddComponent(GameType("CurtainCall.HumanCannon.HumanCannonHazard"));
+                saw.enabled = false;
+                HazardSet(saw, "kind", Enum.Parse(GameType("CurtainCall.HumanCannon.CannonHazardKind"), "GroundSaw"));
+                HazardSet(saw, "radius", .55f);
+                HazardSet(saw, "bladeHalfThickness", .12f);
+                var anchor = sawObject.AddComponent(GameType("CurtainCall.HumanCannon.HumanCannonPoleSaw"));
+                Call(anchor, "Configure", pole, saw, 0f);
+                // 왕복 궤도는 EditMode에서 확인한다. 이 검사는 중립 몸통 평면의 접촉만 분리한다.
+                HazardSet(saw, "travel", Vector3.zero);
+                var testHazards = Array.CreateInstance(originalHazards.GetType().GetElementType(), originalHazards.Length + 1);
+                Array.Copy(originalHazards, testHazards, originalHazards.Length);
+                testHazards.SetValue(saw, originalHazards.Length);
+                HazardSet(course, "hazards", testHazards);
+
+                Vector3 rest = (Vector3)Call(pole, "HangingPosition", 0f);
+                Vector3 forward = (Vector3)Get(pole, "Forward");
+                float deadline = Time.realtimeSinceStartup + 3;
+                while (Vector3.Dot(player.transform.position - rest, forward) < 1f && Time.realtimeSinceStartup < deadline)
+                {
+                    PoleEnhancementInput(1);
+                    yield return null;
+                }
+                Assert.That(Vector3.Dot(player.transform.position - rest, forward), Is.GreaterThanOrEqualTo(1f),
+                    "입력으로 실제 몸을 톱날의 앞뒤 접촉 범위 밖으로 움직인다.");
                 AssertBody(0);
-                yield return null;
+                saw.enabled = true;
+                double safeUntil = (double)Get(poles, "Clock") + 0.4;
+                while ((double)Get(poles, "Clock") < safeUntil)
+                {
+                    PoleEnhancementInput(1);
+                    AssertBody(0);
+                    yield return null;
+                }
+                deadline = Time.realtimeSinceStartup + 3;
+                while (Convert.ToInt32(Get(player, "LostParts")) == 0 && Time.realtimeSinceStartup < deadline)
+                {
+                    PoleEnhancementInput(-1);
+                    yield return null;
+                }
+                AssertBody(4); // 공용 순서의 첫 부위인 왼다리. 접촉 피해 함수를 직접 호출하지 않는다.
+                Assert.AreEqual(index, Get(pilot, "HeldPole"), "부상만 입고 살아 있으면 계속 매달린다.");
+                Assert.IsFalse((bool)Get(Call(poles, "State", index), "IsUnlimitedHold"));
+                Assert.AreEqual("Retracted", Get(Get(pole, "LinkedGate"), "Phase").ToString(),
+                    "테스트 공중 톱의 부상이 지상 관문을 임의로 재가동하지 않는다.");
             }
-            deadline = Time.realtimeSinceStartup + 3;
-            while (Convert.ToInt32(Get(player, "LostParts")) == 0 && Time.realtimeSinceStartup < deadline)
+            finally
             {
-                PoleEnhancementInput(-1);
-                yield return null;
+                HazardSet(course, "hazards", originalHazards);
+                sawObject.SetActive(false);
+                Object.Destroy(sawObject);
             }
-            AssertBody(4); // 공용 순서의 첫 부위인 왼다리. 접촉 피해 함수를 직접 호출하지 않는다.
-            Assert.AreEqual(index, Get(pilot, "HeldPole"), "부상만 입고 살아 있으면 계속 매달린다.");
-            Assert.IsFalse((bool)Get(Call(poles, "State", index), "IsUnlimitedHold"));
-            Assert.AreEqual("Retracted", Get(Get(pole, "LinkedGate"), "Phase").ToString(),
-                "새 공중 톱의 부상이 지상 관문을 임의로 재가동하지 않는다.");
         }
 
 

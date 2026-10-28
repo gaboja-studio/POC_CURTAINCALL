@@ -40,4 +40,9 @@
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 2026-10-29 dev 통합: `origin/dev` 93490861을 현재 브랜치에 자동 병합, 미해결 충돌 0개. dev M2 매달림·구조와 봉 위험 회복을 보존하고 IsSuspended 회복 테스트를 보강했다. private 포인터 f5131050 동기화·LFS pull 완료, private 변경 없음.
 - 별도 검사: Tightrope EditMode 274/274, 공연 HUD 13/13, 균형 강조 2/2 PASS. Relay 1/2·Trapeze 6/9·Swing 2/6·Hang 부분 문자열 23/25로 실패가 남아 있다. 기존 기록/정적 dev 비교와 미검증 범위는 [통합 검사](integration-verification.md)에 기록했다. 전체 정상 또는 전체 테스트 PASS로 처리하지 않는다.
+- 2026-10-29 실패 후속 수정 완료: 테스트 7개 파일에서 오래된 fixture·입력/배치/UI 연출 준비 조건을 수정했다. 제품 runtime·저장 씬·프리팹·private 에셋은 변경하지 않았다. 최초 실패 10개 시나리오 모두 통과 확인. 최종 PlayMode Relay 2/2, Trapeze 9/9, Swing 6/6(인간 대포 2건 포함), Hang 부분 문자열 25/25 PASS(매달림 전용 25건이 아니며 필터 사이 중복이 있음). UI 단독 2/2·봇 역할 교대 단독 1/1도 PASS. 전체 프로젝트 테스트 실행은 생략했다. 세부 원인/보존한 assertion은 [통합 검사 후속 절](integration-verification.md)에 기록했다.
+- 후속 check-work: 안전성·문서/규칙·컴파일 PASS, 길이 WARN 19/hard 0, dirty scene 0. 자동 전체 테스트는 SKIPPED이며 위 별도 검사와 구분한다. 지식 기록 verify-knowledge PASS. 검증 당시 commit/push/PR Ready 전환은 하지 않았다. 이후 사용자 요청으로 후속 수정 commit/push 및 PR #233 검사 결과 갱신을 진행한다. Draft는 유지하며, 담당자의 실제 2인 및 최종 플레이 경험 확인은 남아 있다.
+- 2026-10-29 실패 수정 착수: 사용자 요청으로 실패 10건 원인 확인·수정 진행. doctor는 Task-20261028-077 중복/상태 충돌로 FAIL 1건, Unity·gh·private 연결은 정상이다. 해당 문서 ID 중복은 테스트 수정과 무관하여 이번 범위에서 변경하지 않고 doctor를 반복하지 않았다.
 - 2026-10-29 제출: 통합 커밋 4119ed07 push 후 [Draft PR #233](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/233) 생성(`feat/tight-rope/enhancement` → `dev`). PM 팀 검토 요청을 실제 조회로 확인했다. MERGEABLE이며 PlayMode 실패 10건 때문에 Draft 유지, dev 병합하지 않음. 다음 작업은 실패 확인·후속 수정·사람 플레이 검증 후 Ready 판단이다.
+
+- 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

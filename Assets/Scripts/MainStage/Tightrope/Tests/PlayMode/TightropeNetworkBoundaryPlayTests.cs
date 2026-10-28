@@ -19,7 +19,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var relay = (Component)Static("CurtainCall.Tightrope.TightropeRelayGate", "Current");
             int lane = (int)Call(relay, "PoleLane", 0);
             float entry = (float)Get(relay, "EntryDistance");
-            var other = CreatePracticeBotTestPartner(lane, entry - 2f);
+            // 현재 봉 잡기 반경(부상 보정 포함) 밖에서 요청을 보내 위치 도착 대기를 검사한다.
+            var other = CreatePracticeBotTestPartner(lane, entry - 4f);
             try
             {
                 yield return null;
@@ -34,7 +35,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                     Call(relay, "ReadRequest", 779UL, reader);
                 }
                 Send(0, Revision());
-                Assert.That(pending.Count, Is.EqualTo(1));
+                Assert.That(pending.Count, Is.EqualTo(1), $"active={Get(relay, "IsActive")}, ready={Call(run, "IsParticipantReady", other)}, available={Call(relay, "IsPoleAvailable", 0)}, held={Call(relay, "HeldPole", other)}, pos={other.transform.position}, state={Get(other, "State")}");
                 double deadline = (double)Get(pending[779UL], "Until");
                 Send(0, Revision());
                 Assert.That((double)Get(pending[779UL], "Until"), Is.EqualTo(deadline), "중복 요청이 기한을 연장하면 안 된다.");
@@ -45,7 +46,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.AreEqual(779UL, (ulong)Call(relay, "HolderAt", 0));
                 Assert.That(pending.Count, Is.Zero);
                 Send(1, Revision());
-                other.transform.position -= (Vector3)Get(course, "Forward") * 2f;
+                other.transform.position -= (Vector3)Get(course, "Forward") * 4f;
                 Physics.SyncTransforms();
                 Send(0, Revision());
                 Assert.That(pending.Count, Is.EqualTo(1));

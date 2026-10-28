@@ -956,6 +956,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.IsFalse((bool)Get(bridge, "PerformanceOpen"));
             Assert.IsTrue((bool)Call(campaign, "EndIntro"));
             yield return Until(() => (bool)Get(bridge, "PerformanceOpen") && Get(run, "State").ToString() == "Running", 5, "공용 외줄 공연 시작");
+            yield return null;
+            yield return Until(() => (bool)Call(run, "IsParticipantReady", player)
+                && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 10, "공연 배치 확인과 입력 재개");
         }
 
         [UnityTest, Category("PerformanceBalance")]

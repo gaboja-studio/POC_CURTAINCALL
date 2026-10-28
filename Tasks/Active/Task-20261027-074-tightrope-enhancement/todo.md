@@ -10,5 +10,6 @@
 - [x] 통합 결과 저장·origin push·dev Draft PR #233 및 PM 팀 검토 요청
 - [ ] 실패 확인·후속 수정 후 Draft 해제 여부 판단
 - [x] 수정 묶음 완료 시 check-work 실행, 결과·미검증 사항·다음 할 일 기록
-- [ ] PlayMode 실패 10건(Relay 1·Trapeze 3·Swing 4·Hang 부분 문자열 2) 담당자 확인·후속 수정
+- [x] PlayMode 실패 10건(Relay 1·Trapeze 3·Swing 4·Hang 부분 문자열 2) 원인 확인·fixture 수정·각 실패 시나리오 통과 확인
+- [x] 후속 수정 최종 관련 회귀와 check-work 결과 기록
 - [ ] 담당자가 공연의 재미·방향·최종 플레이 경험 확인

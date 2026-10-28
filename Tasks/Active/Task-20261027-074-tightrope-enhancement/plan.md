@@ -18,6 +18,10 @@
 - 관련 지도: [외줄 묘기](../../../Docs/Domains/tightrope-course.md). 과거 조사 날짜의 구현·계획 표기는 현재 코드와 대조한다.
 - 조사 진입점: `Assets/Scripts/MainStage/Tightrope/`, `Assets/Resources/Settings/GameSettings/Tricks/TightropeSettings.asset`. 실제 씬·프리팹과 공용 시스템 연결은 담당자가 확인한다.
 
+### 2026-10-29 실패 테스트 후속 수정
+- 사용자 요청: 통합 검사 실패 10건의 원인을 확인하고 수정한다. 현재 제품 계약과 실제 비동기 준비 조건을 기준으로 fixture를 정리하며, assertion 삭제나 제품 설정 변경으로 통과시키지 않는다.
+- 원래 실패한 시나리오와 관련 회귀 테스트를 재실행하고 결과를 기록한다. 이번 후속 수정에서는 별도 요청 없이 commit/push·PR Ready 전환·dev 병합하지 않는다.
+
 ## 계획
 1. [start-work](../../../Harness/Core/Skills/start-work.md)를 따라 현재 브랜치에서 이어 간다.
 2. 외줄 공연의 코스·조작·장애물·진행·결과와 관련 씬을 조사해 개선 항목과 확인 방법을 정한다. 미정 게임 의도는 [human-decision](../../../Harness/Core/Policies/human-decision.md)을 따른다.
