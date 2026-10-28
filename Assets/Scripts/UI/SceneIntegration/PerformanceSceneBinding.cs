@@ -80,6 +80,12 @@ namespace CurtainCall.UI.SceneIntegration
                 legacyBalance.enabled = false;
                 if (legacyCanvas != null) legacyCanvas.enabled = false;
             }
+            // 위험 게이지 70% 이상 테두리 깜빡임, 균형바 구간 색 진하게. 외부 HUD 프리팹은 그대로 두고 실행 중에만 붙인다.
+            if (localBalance != null)
+            {
+                if (!localBalance.TryGetComponent(out BalanceRiskBlink _)) localBalance.gameObject.AddComponent<BalanceRiskBlink>();
+                if (!localBalance.TryGetComponent(out BalanceZoneColors _)) localBalance.gameObject.AddComponent<BalanceZoneColors>();
+            }
             BindRewards();
         }
 
