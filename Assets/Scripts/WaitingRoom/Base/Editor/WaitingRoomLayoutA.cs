@@ -17,7 +17,7 @@ namespace CurtainCall.WaitingRoom.Editor
     // Tone follows Task-060 Layout/global.md: darkness by default, warm bulb pools only at functional points,
     // dark walls and pipes, rusted broken concrete, a faded tent as the only saturated element.
     // The preserved WaitingRoomGreybox is only read and copied. Only generated LayoutA roots are replaced.
-    public static class WaitingRoomLayoutA
+    public static partial class WaitingRoomLayoutA
     {
         const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
         const string AssetDir = "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA";
@@ -3905,6 +3905,11 @@ namespace CurtainCall.WaitingRoom.Editor
 
         static void Finish(Scene scene, int undo, string manifestFile, string title, Transform root, int remapped, int outer)
         {
+            // Fit against the whole active layout, including expanded rooms and basement floors.
+            // Keeping the old Greybox volume makes those spaces fall back to a fixed camera.
+            var layout = scene.GetRootGameObjects().Single(g => g.name == "WaitingRoom_LayoutA");
+            ApplyFacilityRevision(scene, layout.transform);
+            CurtainCall.WaitingRoom.EditorTools.WaitingRoomLayoutFitter.FitMouseLookZone(scene, layout.transform);
             Undo.CollapseUndoOperations(undo);
             EditorSceneManager.MarkSceneDirty(scene);
             AssetDatabase.SaveAssets();
