@@ -125,4 +125,4 @@
 - 최종 check-work(-NoRecord) 종료0: 안전성·문서/규칙·컴파일PASS(up_to_date), hard0·길이 경고16, 전체 자동 테스트SKIPPED(관련7건 개별 통과). Knowledge OK·diff-check 오류0, 씬 dirty0. 실제2인/물리 기기/PC 재실행·사람 디자인 승인은 manual-verification에 유지. 이 검사 시점에는 공개/비공개 미커밋·미푸시, PR229 미반영.
 
 ## 2026-10-28 설정 v2 저장·제출 요청
-- 사용자 origin push·dev 제출 요청. PR229는 MERGED 확인. private `resource/third-party/settings-v2`에360c4610 로컬 저장. 원본 문서/라이선스 공백·Python EOF 경고 보존. private push/PR 생성 복합 호출은 Auto 분류기의 `Create Public Surface` 권한 거절로 실행되지 않았으며 우회하지 않음. 공개 변경도 로컬 저장하되 push/dev PR은 미실행. private 게시 직접 승인 및 main 반영 후 공개 포인터 push·새 dev PR 필요(임의 병합 없음). 최신 컴파일/관련7건 검사 재사용.
+- 사용자 origin push·dev 제출 요청. PR229는 MERGED 확인. private `resource/third-party/settings-v2`에360c4610, 공개에1a58fac1 로컬 저장. 원본 문서/라이선스 공백·Python EOF 경고 보존. 최초 private push/PR 호출은 Auto 분류기 `Create Public Surface` 거절로 미실행·우회 없음. 이후 사용자가 저장소 이름과 push/main PR 생성을 직접 승인하여 private push 완료(LFS41개), PR6 생성·OPEN/MERGEABLE 확인: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/6 . 병합 미실행. private main 반영 후 공개 포인터 push·새 dev PR 필요. 최신 컴파일/관련7건 검사 재사용.
