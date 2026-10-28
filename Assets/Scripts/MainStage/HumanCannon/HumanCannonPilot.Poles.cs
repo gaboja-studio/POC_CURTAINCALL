@@ -38,6 +38,7 @@ namespace CurtainCall.HumanCannon
             if (HeldPole == index) return;
             TakeMovement();
             HeldPole = index;
+            if (TryGetComponent(out PlayerBalance balance)) balance.IsSuspended = true;
             stationIndex = -1;
             flightStationIndex = station;
             launchRevision = launch;
@@ -56,6 +57,7 @@ namespace CurtainCall.HumanCannon
             Quaternion rotation, Vector3 launchVelocity, float controlSpeed)
         {
             HeldPole = -1;
+            if (TryGetComponent(out PlayerBalance balance)) balance.IsSuspended = false;
             launchVelocity = CannonAirControl.LimitPoleHorizontalSpeed(launchVelocity, GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit);
             Launch(station, launch, position, rotation, launchVelocity);
             flightSegment = segment;

@@ -8,9 +8,9 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 대기실 퇴장 감지(탐색 제한 시간 B안의 시작 계기). 런 알림·이벤트는 호스트·오프라인 전용이다.
-    /// 쉬는 시간에 대기실 영역(이 오브젝트와 자식의 BoxCollider 합) 안에서 <b>보였던</b> 살아 있는 플레이어가 영역 밖(백스테이지)으로 나가면,
-    /// 그 쉬는 시간에 처음 한 번 <see cref="CampaignRun.NotifyLeftWaitingRoom"/>을 부른다. A안(처음부터 흐름)이면 부르지 않는다.
+    /// 대기실 퇴장 감지와 대기실 안 캐릭터끼리 길막 해제. 퇴장 이벤트는 호스트·오프라인 전용이다(기록용).
+    /// 쉬는 시간에 대기실 영역(이 오브젝트와 자식의 BoxCollider 합) 안에서 <b>보였던</b> 살아 있는 플레이어가 영역 밖으로 나가면 알린다.
+    /// M2에서 쉬는 시간 타이머는 시작하자마자 흐르므로 퇴장이 타이머를 시작하지 않는다(옛 B안 삭제).
     /// 위치로만 판정하므로 원격 캐릭터도 동기화된 위치로 센다(<see cref="StageEntranceGather"/>와 같은 방식).
     /// 재입장은 허용하며 나간 플레이어 목록은 중복 퇴장 알림 방지를 위해 쉬는 시간이 끝날 때까지 유지한다.
     /// </summary>
@@ -25,16 +25,12 @@ namespace CurtainCall.WaitingRoom
         BoxCollider[] areas;
         CampaignRun trackedRun;
         CampaignSnapshot trackedStep;
-        bool notified;
 
         /// <summary>이번 쉬는 시간에 대기실에서 나간 인원.</summary>
         public int LeftCount => left.Count;
 
         /// <summary>판정 화면에서 플레이어가 이번 쉬는 시간에 처음 대기실에서 나갔다.</summary>
         public event Action<Transform> PlayerLeft;
-
-        /// <summary>판정 화면에서 첫 퇴장을 런 진행에 알렸다(탐색 제한 시간 시작).</summary>
-        public event Action TimerStarted;
 
         /// <summary>이 화면에서 안→밖 이동을 관찰한 플레이어가 이번 쉬는 시간에 나갔는지.</summary>
         public bool HasLeft(Component player) => player != null && left.Contains(player.transform);
@@ -82,18 +78,7 @@ namespace CurtainCall.WaitingRoom
 
                 Debug.Log($"[WaitingRoom] {player.name} 대기실 → 백스테이지 ({left.Count}명째)");
                 PlayerLeft?.Invoke(player);
-                TryStartTimer(run);
             }
-        }
-
-        void TryStartTimer(CampaignRun run)
-        {
-            // 쉬는 시간마다 한 번만 알린다. A안은 이미 흐르므로 부르지 않는다.
-            if (notified || run.State.Timer != RestTimerState.WaitingForExit) return;
-            notified = true;
-            if (!run.NotifyLeftWaitingRoom()) return;
-            Debug.Log($"[WaitingRoom] 첫 퇴장 → 탐색 제한 시간 시작 {run.State.TimeRemaining:0}초");
-            TimerStarted?.Invoke();
         }
 
         void RemoveDestroyed()
@@ -161,7 +146,6 @@ namespace CurtainCall.WaitingRoom
         {
             trackedRun = null;
             trackedStep = default;
-            notified = false;
             seenInside.Clear();
             left.Clear();
         }

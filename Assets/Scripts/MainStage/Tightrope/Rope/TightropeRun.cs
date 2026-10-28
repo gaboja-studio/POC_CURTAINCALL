@@ -238,6 +238,8 @@ namespace CurtainCall.Tightrope
             course = GetComponent<TightropeCourse>();
             Results = GetComponent<TightropeResults>();
             if (Results == null) Results = gameObject.AddComponent<TightropeResults>();
+            // M2 추락 매달림은 씬을 바꾸지 않고 진행과 함께 붙인다(코스 같은 오브젝트).
+            if (course != null && !TryGetComponent(out TightropeHangSystem _)) gameObject.AddComponent<TightropeHangSystem>();
         }
 
         void OnEnable()

@@ -28,18 +28,20 @@ namespace CurtainCall.Reward
         public bool ChangedLane => changedLane;
     }
 
-    /// <summary>조건이 끊기면 초기화. 연속 조건의 경과만 세며 긴 프레임에 중복 발행하지 않는다.</summary>
-    public sealed class AudienceDuration
+    /// <summary>
+    /// 시간 끌기 판정. 진행 가능한 상태에서 <c>step</c>만큼 앞으로 가지 못한 채 <c>seconds</c>가 지나면 한 번 알리고 다시 센다.
+    /// 제외 상태(받기 대기·강제 이동·비행 등)에서는 타이머를 지운다.
+    /// </summary>
+    public sealed class AudienceStall
     {
-        double started = -1;
-        bool issued;
-        public bool Tick(bool active, double now, double seconds, bool repeat)
+        double since = double.NaN;
+        float best;
+        public bool Sample(bool active, float progress, double now, double seconds, float step)
         {
-            if (!active) { started = -1; issued = false; return false; }
-            if (started < 0 || now < started) { started = now; issued = false; }
-            if (issued || now - started < seconds) return false;
-            if (repeat) started = now;
-            else issued = true;
+            if (!active || double.IsNaN(since) || now < since) { since = active ? now : double.NaN; best = progress; return false; }
+            if (progress >= best + step) { best = progress; since = now; return false; }
+            if (now - since < seconds) return false;
+            since = now;
             return true;
         }
     }

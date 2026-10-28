@@ -24,11 +24,14 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField, Min(.1f)] float fundsAccentSeconds = 1f;
         ExplorationTimerAnnouncer announcer;
         PropCarry carry;
+        DayClockView dayClock;
         bool oldLegacyHud, fundsReceived, wasActive;
         long lastFunds;
         float fundsUntil;
         CampaignPhase lastPhase;
         public BackstageHUDView Hud => hud;
+        /// <summary>M2 원형 하루 시계. 기존 남은 시간 시계(W1) 자리에 만들어 대신 보인다.</summary>
+        public DayClockView DayClockDisplay => dayClock;
 
         public void Configure(BackstageHUDView view, CaptionView caption, SystemNotificationsView messages, CommonIconCatalog catalog)
         { hud = view; captions = caption; notifications = messages; icons = catalog; }
@@ -44,6 +47,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (!active)
             {
                 hud.SetContext(false, false, false, false);
+                if (dayClock != null) dayClock.Hide();
                 if (wasActive) { captions.HideImmediate(); notifications.HideAllImmediate(); }
                 wasActive = false; fundsReceived = false;
                 return;
@@ -53,15 +57,12 @@ namespace CurtainCall.UI.SceneIntegration
             if ((!wasActive || state.Phase != lastPhase) && state.Phase == CampaignPhase.Night)
                 notifications.Banner.Show("밤 정비", "대기실 문이 잠겼습니다 · 탐색 시간 없음", BannerState.Normal, announcementSeconds);
             wasActive = true; lastPhase = state.Phase;
-            hud.SetContext(true, rest, rest && space.LocalInGatherArea, true);
-            if (rest)
-            {
-                var rules = GameSettings.Base.Run;
-                float total = state.Rest == RestKind.Guide ? rules.GuideRestDuration : rules.RestDuration;
-                float remaining = Mathf.Max(0, state.TimeRemaining);
-                var clockState = state.Timer != RestTimerState.Running ? BackstageClockState.Paused : state.AlarmRaised ? BackstageClockState.Alarm : BackstageClockState.Normal;
-                hud.Clock.SetClock(remaining, total > 0 ? Mathf.Clamp01(remaining / total) : 0, clockState);
-            }
+            // 옛 W1(남은 시간만) 시계는 끄고, 같은 자리에 원형 하루 시계를 보인다(M2, 밤 정비에도 시각 표시).
+            hud.SetContext(true, false, rest && space.LocalInGatherArea, true);
+            var rules = GameSettings.Base.Run;
+            float total = state.Rest == RestKind.Guide ? rules.GuideRestDuration : rules.RestDuration;
+            if (EnsureDayClock() && DayClock.TryRead(state, total, out var reading)) dayClock.Show(reading);
+            else if (dayClock != null) dayClock.Hide();
             var rewards = PerformanceRewards.Instance;
             if (rewards == null || rewards.State == null) { hud.Funds.SetUnavailable(); fundsReceived = false; }
             else
@@ -75,6 +76,21 @@ namespace CurtainCall.UI.SceneIntegration
             if (space.Gather != null) hud.Gather.SetCounts(space.Gather.InsideCount, space.Gather.AliveCount);
             else hud.Gather.SetUnavailable();
             hud.Inventory.HideInventory(); // CommonInventoryUI owns C5 across gameplay spaces.
+        }
+
+        // 옛 시계와 같은 부모·자리에 한 번 만든다(씬·프리팹을 고치지 않는다).
+        bool EnsureDayClock()
+        {
+            if (dayClock != null) return true;
+            if (hud == null || hud.Clock == null) return false;
+            var old = (RectTransform)hud.Clock.transform;
+            float size = Mathf.Clamp(Mathf.Max(old.rect.width, old.rect.height), 180f, 240f);
+            dayClock = DayClockView.Create(old.parent, size);
+            var rect = (RectTransform)dayClock.transform;
+            rect.anchorMin = old.anchorMin; rect.anchorMax = old.anchorMax; rect.pivot = old.pivot;
+            rect.anchoredPosition = old.anchoredPosition;
+            rect.sizeDelta = new Vector2(size, size);
+            return true;
         }
 
         void AttachAnnouncer(ExplorationTimerAnnouncer next)
@@ -128,6 +144,7 @@ namespace CurtainCall.UI.SceneIntegration
         {
             AttachAnnouncer(null); AttachCarry(null);
             if (hud != null) hud.ResetForRuntime();
+            if (dayClock != null) dayClock.Hide();
             if (captions != null) captions.HideImmediate();
             if (notifications != null) notifications.HideAllImmediate();
             wasActive = false; fundsReceived = false;

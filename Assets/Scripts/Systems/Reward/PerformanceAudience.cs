@@ -4,60 +4,65 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.Tightrope;
-using CurtainCall.Tightrope.Fire;
 using CurtainCall.Tightrope.Saws;
 using UnityEngine;
 
 namespace CurtainCall.Reward
 {
-    /// <summary>HTML 4-1 공통 공연 관찰. 호스트만 기존 보상 데이터를 갱신하며 UI 수명과 독립적이다.</summary>
+    /// <summary>
+    /// 공통 공연 관찰. 호스트만 보상 데이터를 갱신하며 UI 수명과 독립적이다.
+    /// 기준: 보상 확정 규칙 — 근접 회피 +5, 목마 협동 회피 각 +10, 오브제(트램펄린) 최초 성공 +5, 시간 끌기 15초마다 −10, 추락 −15(외줄은 매달림 시작).
+    /// 도착 자체에는 환호를 주지 않고 호응도를 고정한다(완주 보너스는 정산이 지급).
+    /// </summary>
     [DefaultExecutionOrder(150)]
     public sealed class PerformanceAudience : MonoBehaviour
     {
         [SerializeField] bool humanCannon;
         [SerializeField] Transform cannonStart, cannonFinish;
-        [SerializeField] HumanCannonFireWall[] cannonFires;
-        [SerializeField] float lowerFloorMaxY = 5, lowerFloorStartZ = 18;
         readonly Dictionary<(ulong, string), AudienceEncounter> encounters = new();
-        readonly Dictionary<ulong, AudienceDuration> hanging = new();
-        readonly Dictionary<ulong, int> heldPoles = new();
+        readonly Dictionary<ulong, AudienceStall> stalls = new();
+        readonly HashSet<ulong> bounced = new();
         readonly Dictionary<int, int> gateLanes = new();
-        readonly HashSet<string> arrivals = new();
-        readonly List<NetworkPlayer> lower = new();
-        readonly AudienceDuration lowerTimer = new();
         PerformanceRewards rewards;
         string identity;
         AudienceReactionSettings Settings => AudienceReactionSettings.Current;
         bool Active => rewards != null && rewards.HasAuthority && rewards.State?.IsOpen == true
             && rewards.State.Performance?.TrickId == (humanCannon ? "HumanCannon" : "Tightrope");
 
-        void OnEnable() => HumanCannonTrampoline.ServerBounced += Bounce;
-        void Bind()
+        void OnEnable()
         {
-            if (rewards == PerformanceRewards.Instance) return;
-            if (rewards != null) rewards.BeforeSettlement -= Arrive;
-            rewards = PerformanceRewards.Instance;
-            if (rewards != null) rewards.BeforeSettlement += Arrive;
+            HumanCannonTrampoline.ServerBounced += Bounce;
+            HumanCannonSystem.ServerFell += CannonFell;
+            TightropeHangSystem.ServerHangStarted += RopeFell;
         }
+        // 외줄 추락은 매달림 시작에 한 번 −15(뒤 낙사에 중복 차감 없음).
+        void RopeFell(ulong client)
+        {
+            Bind();
+            if (!humanCannon && Active && Settings != null) React(client, -Settings.fallJeer);
+        }
+        // 같은 추락 1회 −15(인간 대포는 바닥·낭떠러지 추락 부상 때).
+        void CannonFell(ulong client)
+        {
+            Bind();
+            if (humanCannon && Active && Settings != null) React(client, -Settings.fallJeer);
+        }
+        void Bind() => rewards = PerformanceRewards.Instance;
         void ResetAttempt()
         {
-            encounters.Clear(); hanging.Clear(); heldPoles.Clear(); arrivals.Clear(); gateLanes.Clear();
-            lowerTimer.Tick(false, 0, 1, true);
+            encounters.Clear(); stalls.Clear(); bounced.Clear(); gateLanes.Clear();
         }
         void Update() => Bind();
         void LateUpdate()
         {
             if (!Active || Settings == null) { identity = null; ResetAttempt(); return; }
             if (identity != rewards.State.Performance.Id) { identity = rewards.State.Performance.Id; ResetAttempt(); }
-            lower.Clear();
             foreach (var player in NetworkPlayer.All)
             {
                 if (!Eligible(player)) continue;
                 if (humanCannon) ObserveCannon(player);
                 else ObserveRope(player);
             }
-            if (humanCannon && lowerTimer.Tick(lower.Count >= 2, Time.timeAsDouble, Settings.lowerFloorSeconds, true))
-                foreach (var player in lower) React(player.OwnerClientId, -Settings.lowerFloorJeer);
         }
         bool Eligible(NetworkPlayer player)
         {
@@ -66,16 +71,30 @@ namespace CurtainCall.Reward
                 if (segment.ClientId == player.OwnerClientId) return segment.Connected && !segment.Dead;
             return false;
         }
-        void React(ulong client, int delta)
+        string Participant(ulong client)
         {
-            if (!Active) return;
             foreach (var segment in rewards.State.Segments)
-                if (segment.ClientId == client) { rewards.AddAudienceReaction(segment.ParticipantId, delta); return; }
+                if (segment.ClientId == client) return segment.ParticipantId;
+            return null;
+        }
+        void React(ulong client, int delta, bool resetInterest = false)
+        {
+            if (!Active || (delta == 0 && !resetInterest)) return;
+            string id = Participant(client);
+            if (id != null) rewards.AddAudienceReaction(id, delta, resetInterest);
         }
         void Bounce(ulong client)
         {
             Bind();
-            if (humanCannon && Active && Settings != null) React(client, Settings.trampoline);
+            // 같은 오브제의 의도 행동 성공은 공연당 최초 1회. 트램펄린은 한 사람당 처음 튀어 오른 한 번만 센다.
+            if (humanCannon && Active && Settings != null && bounced.Add(client)) React(client, Settings.objectFirst);
+        }
+        /// <summary>진행이 없을 때 시간 끌기 야유. 야유도 관심 감소 유예를 다시 센다.</summary>
+        void Stall(NetworkPlayer player, bool active, float progress)
+        {
+            if (!stalls.TryGetValue(player.OwnerClientId, out var stall)) stalls[player.OwnerClientId] = stall = new AudienceStall();
+            if (stall.Sample(active, progress, Time.timeAsDouble, Settings.stallSeconds, Settings.stallProgress))
+                React(player.OwnerClientId, -Settings.stallJeer, true);
         }
         void Sample(NetworkPlayer player, string key, float distance, bool touches, bool near, bool vertical = false, bool changedLane = false)
         {
@@ -84,19 +103,22 @@ namespace CurtainCall.Reward
             bool stacked = vertical && PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player);
             if (!encounter.Sample(distance, Settings.approachDistance, Settings.clearanceDistance,
                 (int)player.LostParts, touches, near, stacked, changedLane)) return;
-            int delta = vertical && encounter.WasStacked && !encounter.ChangedLane ? Settings.stackedVertical
-                : vertical && encounter.ChangedLane ? -Settings.laneChangeJeer
-                : encounter.WasClose ? Settings.closeDodge : Settings.safeDodge;
+            // 줄을 바꿔 피한 것은 환호도 야유도 없다. 다치지 않고 잘한 것 자체에 야유하지 않는다.
+            int delta = vertical && encounter.ChangedLane ? 0
+                : vertical && encounter.WasStacked ? Settings.cooperation
+                : encounter.WasClose ? Settings.closeDodge : 0;
             React(player.OwnerClientId, delta);
         }
         void ObserveRope(NetworkPlayer player)
         {
             var course = TightropeCourse.Current;
             var saws = TightropeSaws.Current;
-            if (course == null || saws == null || !player.TryGetComponent(out PlayerMover mover)) return;
+            if (course == null || !player.TryGetComponent(out PlayerMover mover)) return;
+            float distance = course.GetDistance(player.transform.position);
+            Stall(player, RopeStallActive(player), distance);
+            if (saws == null) return;
             var body = new BodyCapsule(player.transform.position, mover.BodyHeight, mover.BodyRadius);
             var nearBody = new BodyCapsule(player.transform.position, mover.BodyHeight, mover.BodyRadius + Settings.closeDodgeMargin);
-            float distance = course.GetDistance(player.transform.position);
             var s = saws.Settings;
             for (int i = 0; i < saws.HorizontalCount; i++)
             {
@@ -128,6 +150,19 @@ namespace CurtainCall.Reward
                     SawMath.TryGetContact(disc, body, out _), SawMath.TryGetContact(disc, nearBody, out _), true, lane != saws.VerticalLane);
             }
         }
+        /// <summary>동료 받기 대기·목마·봉/그네 이동처럼 스스로 진행하지 않는 상태는 시간 끌기에서 뺀다.</summary>
+        static bool RopeStallActive(NetworkPlayer player)
+        {
+            if (player.IsAirborne) return false;
+            var hangs = TightropeHangSystem.Current;
+            if (hangs != null && (hangs.IsHanging(player) || hangs.IsRescuing(player))) return false;
+            if (PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
+            if (TightropeCatchSystem.Current != null && TightropeCatchSystem.Current.IsReady(player)) return false;
+            if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)) return false;
+            if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return false;
+            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return false;
+            return true;
+        }
         static int NearestLane(TightropeCourse course, Vector3 position, float distance)
         {
             float nearest = float.PositiveInfinity;
@@ -141,20 +176,22 @@ namespace CurtainCall.Reward
         }
         void ObserveCannon(NetworkPlayer player)
         {
-            var poles = HumanCannonPoleSystem.Current;
-            int pole = poles != null ? poles.HeldBy(player.OwnerClientId) : -1;
-            if (!hanging.TryGetValue(player.OwnerClientId, out var timer)) hanging[player.OwnerClientId] = timer = new AudienceDuration();
-            if (!heldPoles.TryGetValue(player.OwnerClientId, out int previous) || previous != pole) timer.Tick(false, 0, 1, false);
-            heldPoles[player.OwnerClientId] = pole;
-            if (timer.Tick(pole >= 0, Time.timeAsDouble, Settings.hangingSeconds, false)) React(player.OwnerClientId, -Settings.hangingJeer);
-            var cannon = HumanCannonSystem.Current;
-            if (!player.IsAirborne && pole < 0 && player.transform.position.y < lowerFloorMaxY
-                && player.transform.position.z >= lowerFloorStartZ && cannon != null
-                && !cannon.IsSeated(player.OwnerClientId) && !cannon.IsFlying(player.OwnerClientId)) lower.Add(player);
-            var hazards = HumanCannonHazardCourse.Current;
-            if (hazards == null || !hazards.IsSynchronized || cannonStart == null || cannonFinish == null
-                || !player.TryGetComponent(out PlayerMover mover)) return;
+            var destination = HumanCannonDestination.Current;
+            if (destination != null && destination.HasArrived(player))
+            {
+                string id = Participant(player.OwnerClientId);
+                if (id != null) rewards.MarkArrived(id);
+                return;
+            }
+            if (cannonStart == null || cannonFinish == null) return;
             Vector3 axis = Vector3.ProjectOnPlane(cannonFinish.position - cannonStart.position, Vector3.up).normalized;
+            var cannon = HumanCannonSystem.Current;
+            var poles = HumanCannonPoleSystem.Current;
+            bool moving = player.IsAirborne || (cannon != null && (cannon.IsSeated(player.OwnerClientId) || cannon.IsFlying(player.OwnerClientId)))
+                || (poles != null && poles.HeldBy(player.OwnerClientId) >= 0);
+            Stall(player, !moving, Vector3.Dot(player.transform.position - cannonStart.position, axis));
+            var hazards = HumanCannonHazardCourse.Current;
+            if (hazards == null || !hazards.IsSynchronized || !player.TryGetComponent(out PlayerMover mover)) return;
             for (int i = 0; i < hazards.HazardCount; i++)
             {
                 var hazard = hazards.Hazard(i);
@@ -169,47 +206,11 @@ namespace CurtainCall.Reward
                     hazard.Touches(player.transform.position, mover.BodyHeight, mover.BodyRadius + Settings.closeDodgeMargin, hazards.Elapsed, speed));
             }
         }
-        void Arrive(IReadOnlyDictionary<string, string> judgements)
-        {
-            if (!Active || Settings == null || judgements == null) return;
-            foreach (var pair in judgements)
-            {
-                if (pair.Value != "Arrived" || !arrivals.Add(pair.Key)) continue;
-                NetworkPlayer player = null;
-                foreach (var segment in rewards.State.Segments)
-                    if (segment.ParticipantId == pair.Key)
-                        foreach (var candidate in NetworkPlayer.All)
-                            if (candidate != null && candidate.OwnerClientId == segment.ClientId) player = candidate;
-                if (player == null) continue;
-                bool close = false;
-                if (!humanCannon)
-                {
-                    var fire = TightropeFire.Current;
-                    var course = TightropeCourse.Current;
-                    if (fire != null && fire.IsChasing && course != null)
-                    {
-                        float gap = course.GetDistance(player.transform.position) - fire.ChaseDistance;
-                        close = gap >= 0 && gap <= Settings.closeFireDistance;
-                    }
-                }
-                else if (cannonFires != null && HumanCannonRouteSystem.Current != null && cannonStart != null && cannonFinish != null)
-                {
-                    var axis = Vector3.ProjectOnPlane(cannonFinish.position - cannonStart.position, Vector3.up).normalized;
-                    double now = HumanCannonRouteSystem.Current.Clock;
-                    foreach (var fire in cannonFires)
-                        if (fire != null && fire.isActiveAndEnabled && fire.Available && fire.Armed && !fire.Finished && fire.Advancing(now))
-                        {
-                            float gap = Vector3.Dot(player.transform.position - fire.Front(now), axis);
-                            close |= gap >= 0 && gap <= Settings.closeFireDistance;
-                        }
-                }
-                rewards.AddAudienceReaction(pair.Key, close ? Settings.closeArrival : Settings.safeArrival);
-            }
-        }
         void OnDisable()
         {
             HumanCannonTrampoline.ServerBounced -= Bounce;
-            if (rewards != null) rewards.BeforeSettlement -= Arrive;
+            HumanCannonSystem.ServerFell -= CannonFell;
+            TightropeHangSystem.ServerHangStarted -= RopeFell;
             rewards = null; identity = null; ResetAttempt();
         }
     }

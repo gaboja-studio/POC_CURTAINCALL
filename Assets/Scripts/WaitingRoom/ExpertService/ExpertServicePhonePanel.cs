@@ -6,7 +6,7 @@ namespace CurtainCall.WaitingRoom
     /// <summary>
     /// ③ 수화기 창 옆 "전문가 서비스" 칸(게임 흐름 5-3-1: 전화부스 팝업 구매). 3단계 수화기 창을 고치지 않으려고
     /// 같은 오브젝트의 입력 막기(<see cref="UIInputBlocker"/>)가 켜져 있을 때 = 수화기 창이 열렸을 때 오른쪽에 붙여 그린다.
-    /// 오늘 스케줄에 없는 서비스는 비활성 + "담당자 부재중"(기획서 4.2.3.2). 테스트용 IMGUI 창이다.
+    /// 서비스는 신체 복구 하나이며 쉬는 시간·밤 정비 언제든 쓴다(M2). 테스트용 IMGUI 창이다.
     /// </summary>
     public sealed class ExpertServicePhonePanel : MonoBehaviour
     {
@@ -29,10 +29,9 @@ namespace CurtainCall.WaitingRoom
             GUI.DrawTexture(area, Texture2D.whiteTexture);
             GUI.color = tint;
             GUILayout.BeginArea(area, GUI.skin.box);
-            GUILayout.Label($"전문가 서비스 — {(ExpertService.Day > 0 ? ExpertService.Day + "일차 " : "")}{(ExpertService.IsNight ? "밤" : "밤 아님")} (임시 가격)");
+            GUILayout.Label($"신체 복구 서비스 — {(ExpertService.IsServiceTime ? "이용 가능" : "공연 중 이용 불가")}");
 
             DrawMedical(service);
-            DrawFacility(service);
 
             if (service.Phase != ExpertRoomPhase.Idle)
                 GUILayout.Label($"⑧ 이용: {WaitingRoomShop.PlayerLabel(service.Buyer)} ({PhaseLabel(service.Phase)})");
@@ -52,38 +51,27 @@ namespace CurtainCall.WaitingRoom
             return new Rect(x, Mathf.Max(4f, shopY - Height - 8f), Width, Height);
         }
 
-        // 의료: 잃은 팔다리 모두 복구, 비용 = 개수 × 1개 가격
+        // 신체 복구: 1~3개를 골라 산다. 비용 = 지금 1개당 가격 × 개수, 팀 이용 1회마다 다음 단가가 오른다.
         static void DrawMedical(ExpertService service)
         {
-            var refusal = service.LocalMedicalRefusal();
-            long cost = service.LocalMedicalCost;
-            bool canBuy = refusal == ExpertRefusal.None && service.Balance >= cost;
-            string label = refusal == ExpertRefusal.None || refusal == ExpertRefusal.Busy || refusal == ExpertRefusal.AlreadyBooked
-                ? $"의료 — 신체 복구 {ExpertService.LocalLostLimbs}개 — {cost} ({service.MedicalPrice}/개)"
-                : $"의료 — 신체 복구 ({service.MedicalPrice}/개)";
-            if (!canBuy) label += $"\n({(refusal != ExpertRefusal.None ? ExpertServiceBook.Explain(refusal) : "공동 자금 부족")})";
-            GUI.enabled = canBuy;
-            if (GUILayout.Button(label, GUILayout.Height(40))) service.RequestMedical();
-            GUI.enabled = true;
-        }
-
-        // 시설: 다음 날 장애물 강화(보상 강화)/약화(보상 저하) 중 하나, 그날 밤 한 번
-        static void DrawFacility(ExpertService service)
-        {
-            var refusal = service.FacilityRefusal();
-            bool canBuy = refusal == ExpertRefusal.None && service.Balance >= service.FacilityPrice;
-            GUILayout.Label(refusal == ExpertRefusal.AlreadyAdjusted
-                ? $"시설 담당자 — {service.ObstacleDay}일차: {ExpertServiceBook.AdjustLabel(service.Obstacle)} (구매함)"
-                : $"시설 담당자 — 다음 날 장애물 조정 — {service.FacilityPrice}"
-                    + (canBuy ? "" : $" ({(refusal != ExpertRefusal.None ? ExpertServiceBook.Explain(refusal) : "공동 자금 부족")})"));
-            GUI.enabled = canBuy;
+            int max = ExpertService.LocalMaxParts;
+            GUILayout.Label($"신체 복구 — 1개당 {service.MedicalPrice} (팀 이용 {service.TeamUses}회)");
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("장애물 강화\n(보상 강화)", GUILayout.Height(40))) service.RequestFacility(ObstacleAdjust.Strengthen);
-            if (GUILayout.Button("장애물 약화\n(보상 저하)", GUILayout.Height(40))) service.RequestFacility(ObstacleAdjust.Weaken);
+            for (int parts = 1; parts <= ExpertService.MaxPartsPerUse; parts++)
+            {
+                var refusal = service.LocalMedicalRefusal(parts);
+                long cost = service.MedicalCost(parts);
+                bool canBuy = refusal == ExpertRefusal.None && service.Balance >= cost;
+                GUI.enabled = canBuy;
+                if (GUILayout.Button($"{parts}개\n{cost}", GUILayout.Height(40))) service.RequestMedical(parts);
+            }
             GUILayout.EndHorizontal();
             GUI.enabled = true;
+            var reason = service.LocalMedicalRefusal();
+            if (reason != ExpertRefusal.None) GUILayout.Label(ExpertServiceBook.Explain(reason));
+            else if (service.Balance < service.MedicalCost(1)) GUILayout.Label("공동 자금 부족");
+            else GUILayout.Label($"잃은 팔다리 {ExpertService.LocalLostLimbs}개 · 이번에 최대 {max}개");
         }
-
         public static string PhaseLabel(ExpertRoomPhase phase) => phase switch
         {
             ExpertRoomPhase.Booked => "입장 대기",

@@ -15,7 +15,7 @@ namespace CurtainCall.Reward
     {
         [SerializeField] RewardTable rewardTable;
         readonly Dictionary<string, int> dummyParts = new();
-        readonly string[] inputs = { "10", "5", "100", "0", "0" };
+        readonly string[] inputs = { "10", "5", "100", "100", "10" };
         CampaignRun campaign;
         PerformanceRewards rewards;
         NetworkSessionManager session;
@@ -149,7 +149,7 @@ namespace CurtainCall.Reward
         void DrawRules()
         {
             GUILayout.Space(6);
-            GUILayout.Label("검증용 수치: 환호 / 야유 감소량 / 상한 / 전원 생존 보너스 / 절단 보너스");
+            GUILayout.Label("검증용 수치: 환호 / 야유 감소량 / 상한 / 완주 보너스 / 절단 보너스");
             GUILayout.BeginHorizontal();
             for (int i = 0; i < inputs.Length; i++) inputs[i] = GUILayout.TextField(inputs[i], GUILayout.MinWidth(45));
             GUILayout.EndHorizontal();
@@ -178,7 +178,7 @@ namespace CurtainCall.Reward
             var result = rewards.Latest;
             if (result != null)
             {
-                GUILayout.Label($"최근 결과: {(result.Succeeded ? "성공" : "실패")} / {result.EndReason} / {result.Failure} / 수입 {result.Income} / 전원 생존 {result.AllSurvived}");
+                GUILayout.Label($"최근 결과: {(result.Succeeded ? "성공" : "실패")} / {result.EndReason} / {result.Failure} / 수입 {result.Income} (호응 {result.CheerReward} + 완주 {result.CompletionReward})");
                 foreach (var person in result.Participants)
                     GUILayout.Label($"자리 {person.Slot + 1}: {person.Judgement}, 손실 {person.StartingLostCount}→{person.EndingLostCount}, 정산 {person.Settlement}");
             }

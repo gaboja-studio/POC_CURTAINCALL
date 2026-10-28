@@ -58,7 +58,7 @@ namespace CurtainCall.Campaign
 
             var s = _run.State;
             var rules = GameSettings.Base.Run;
-            GUILayout.Label($"런 진행 테스트 — 타이머 {(rules.RestTimerMode == RestTimerMode.FromRestStart ? "A안(시작부터)" : "B안(대기실에서 나온 뒤)")}");
+            GUILayout.Label("런 진행 테스트 — 쉬는 시간 타이머는 시작부터 흐름(M2)");
             GUILayout.Label($"판정: {(_run.IsOfflineRun ? "오프라인" : _run.HasAuthority ? "호스트" : "받는 쪽")}");
             GUILayout.Label($"세대 {s.Generation} · {s.Day}일차 / {rules.DayCount}일 · {CampaignRun.Describe(s)}");
 
@@ -107,8 +107,6 @@ namespace CurtainCall.Campaign
                     if (GUILayout.Button("공연 종료")) _run.EndPerformance();
                     break;
                 case CampaignPhase.RestTime:
-                    if (s.Timer == RestTimerState.WaitingForExit && GUILayout.Button("대기실에서 나옴(B안 타이머 시작)"))
-                        _run.NotifyLeftWaitingRoom();
                     if (!s.IsFinalMorning && GUILayout.Button("전원 무대 입구 통로 진입")) _run.NotifyAllAtStageEntrance();
                     if (GUILayout.Button("남은 시간 65초로(경보 확인)")) _run.DebugSetRemaining(65f);
                     if (GUILayout.Button("타이머 끝")) _run.DebugSetRemaining(0f);
@@ -127,7 +125,6 @@ namespace CurtainCall.Campaign
         {
             switch (s.Timer)
             {
-                case RestTimerState.WaitingForExit: return $"대기 중(누가 대기실에서 나오면 시작) {s.TimeRemaining:0}초";
                 case RestTimerState.Running: return $"{Mathf.FloorToInt(s.TimeRemaining / 60f)}:{Mathf.FloorToInt(s.TimeRemaining % 60f):00}";
                 case RestTimerState.Stopped: return $"멈춤 {s.TimeRemaining:0}초";
                 default: return "-";

@@ -26,7 +26,8 @@ namespace CurtainCall.DummySpaces
         public bool Spend() => diagnostics.Invoke($"지출 검증 {SpendAmount} → 031 TrySpend (기물 지급 없음)",
             () => diagnostics.Rewards.TrySpend(SpendAmount, "더미 지출 검증 — 기물 지급/치료 아님"));
 
-        public bool Leave() => diagnostics.Invoke("대기실 출구 수동 신호 → 028 NotifyLeftWaitingRoom", diagnostics.Campaign.NotifyLeftWaitingRoom);
+        public bool Leave() => diagnostics.Invoke("대기실 출구 수동 신호(타이머는 쉬는 시간 시작부터 흐름)",
+            () => diagnostics.Campaign.State.Phase == CurtainCall.Campaign.CampaignPhase.RestTime);
         public bool Ready() => diagnostics.Invoke("밤 준비 → 028 SetReady", () => diagnostics.Campaign.SetReady(!diagnostics.Campaign.IsLocalReady));
     }
 }

@@ -6,7 +6,7 @@ namespace CurtainCall.Reward.Tests
     public class AudienceReactionTests
     {
         const string Session = "11111111111111111111111111111111";
-        readonly RewardRules rules = new(10, 5, 100, 0, 30);
+        readonly RewardRules rules = new(10, 5, 100, 100, 10);
         PerformanceRewardModel Begin()
         {
             var model = new PerformanceRewardModel(Session, 1);
@@ -15,7 +15,7 @@ namespace CurtainCall.Reward.Tests
             return model;
         }
         [Test]
-        public void ReactionsClampAndFallCannotBeReversed()
+        public void ReactionsClampAndDeathFreezesCheer()
         {
             var model = Begin();
             model.React("p", 50, rules); model.React("p", 30, rules); model.React("p", 30, rules);
@@ -23,20 +23,32 @@ namespace CurtainCall.Reward.Tests
             model.React("p", -30, rules); Assert.AreEqual(70, model.Snapshot().Segments[0].Amount);
             model.Observe("p", 0, true, true, rules);
             Assert.IsFalse(model.React("p", 50, rules));
+            Assert.IsFalse(model.React("p", -50, rules), "사망 후 호응도는 고정");
             model.Observe("p", 0, false, true, rules);
-            Assert.AreEqual(0, model.Snapshot().Segments[0].Amount);
+            Assert.AreEqual(70, model.Snapshot().Segments[0].Amount, "사망 전 호응도를 지우지 않는다");
             Assert.IsTrue(model.Snapshot().Segments[0].Dead);
         }
         [Test]
-        public void CutIsAwardedOnceAndArrivalIncludedInSettlement()
+        public void CutIsAwardedOnceAndSurvivorDoublesCheer()
         {
             var model = Begin();
             model.Observe("p", 1, false, true, rules); model.Observe("p", 1, false, true, rules);
-            Assert.AreEqual(30, model.Snapshot().Segments[0].Amount);
+            Assert.AreEqual(10, model.Snapshot().Segments[0].Amount, "절단 1개당 +10, 같은 부위 중복 없음");
             model.React("p", 15, rules);
             Assert.IsTrue(model.Confirm(true, "Completed", null, 1, rules, out var result));
-            Assert.AreEqual(65, result.Income);
+            Assert.AreEqual(50, result.Participants[0].Settlement, "생존 호응 25 × 2");
+            Assert.AreEqual(50, result.Income);
             Assert.IsFalse(model.React("p", 15, rules));
+        }
+        [Test]
+        public void CutThatKillsStillCountsBeforeFreeze()
+        {
+            var model = Begin();
+            model.React("p", 20, rules);
+            model.Observe("p", 15, false, true, rules);
+            var segment = model.Snapshot().Segments[0];
+            Assert.IsTrue(segment.Dead);
+            Assert.AreEqual(60, segment.Amount, "20 + 절단 4개 × 10 뒤 사망 고정");
         }
         [Test]
         public void JeerAtZeroAndUnknownOrDisconnectedMemberCannotGain()
@@ -46,6 +58,53 @@ namespace CurtainCall.Reward.Tests
             Assert.IsFalse(model.React("missing", 50, rules));
             model.Observe("p", 0, false, false, rules);
             Assert.IsFalse(model.React("p", 50, rules));
+            Assert.AreEqual(0, model.Snapshot().Segments[0].Amount, "이탈자는 0");
+        }
+        [Test]
+        public void InterestDecaysAfterGraceAndCheerRestartsGrace()
+        {
+            var model = Begin();
+            model.React("p", 30, rules);
+            Assert.IsFalse(model.Tick(0, 20, 1), "첫 호출은 유예 시작만");
+            Assert.IsFalse(model.Tick(20.5, 20, 1));
+            Assert.IsTrue(model.Tick(21, 20, 1));
+            Assert.AreEqual(29, model.Snapshot().Segments[0].Amount);
+            Assert.IsTrue(model.Tick(24.2, 20, 1));
+            Assert.AreEqual(26, model.Snapshot().Segments[0].Amount, "초당 −1, 긴 프레임은 지난 초만큼");
+            model.React("p", 5, rules);
+            Assert.IsFalse(model.Tick(44, 20, 1), "환호 뒤 20초 유예를 다시 센다");
+            Assert.IsTrue(model.Tick(45.2, 20, 1));
+            Assert.AreEqual(30, model.Snapshot().Segments[0].Amount);
+        }
+        [Test]
+        public void StallJeerRestartsGraceAndTeammateCheerDoesNot()
+        {
+            var model = Begin();
+            model.React("p", 30, rules); model.React("q", 30, rules);
+            model.Tick(0, 20, 1);
+            model.Tick(10, 20, 1);
+            model.React("q", 10, rules);
+            Assert.IsTrue(model.Tick(21, 20, 1));
+            Assert.AreEqual(29, model.Snapshot().Segments[0].Amount, "동료 환호로 본인 감소는 멈추지 않는다");
+            Assert.AreEqual(40, model.Snapshot().Segments[1].Amount);
+            Assert.IsTrue(model.React("p", -10, rules, true));
+            Assert.AreEqual(19, model.Snapshot().Segments[0].Amount);
+            model.Tick(40, 20, 1);
+            Assert.AreEqual(19, model.Snapshot().Segments[0].Amount, "시간 끌기 야유가 유예 20초를 다시 센다");
+            Assert.AreEqual(30, model.Snapshot().Segments[1].Amount, "q는 31초부터 초당 −1");
+        }
+        [Test]
+        public void ArrivedAndDeadDoNotDecay()
+        {
+            var model = Begin();
+            model.React("p", 30, rules); model.React("q", 30, rules);
+            model.Tick(0, 20, 1);
+            Assert.IsTrue(model.MarkArrived("p"));
+            model.Observe("q", 0, true, true, rules);
+            Assert.IsFalse(model.Tick(60, 20, 1));
+            Assert.AreEqual(30, model.Snapshot().Segments[0].Amount);
+            Assert.AreEqual(30, model.Snapshot().Segments[1].Amount);
+            Assert.IsFalse(model.React("p", 10, rules), "완주 뒤 고정");
         }
         [Test]
         public void DodgeRequiresApproachAndIsAwardedOnlyOnce()
@@ -77,28 +136,20 @@ namespace CurtainCall.Reward.Tests
             Assert.IsTrue(encounter.WasStacked); Assert.IsTrue(encounter.ChangedLane);
         }
         [Test]
-        public void HangingPenaltyOncePerContinuousHold()
+        public void StallRequiresContinuousNoProgressAndRepeats()
         {
-            var timer = new AudienceDuration();
-            Assert.IsFalse(timer.Tick(true, 0, 3, false));
-            Assert.IsFalse(timer.Tick(true, 2.99, 3, false));
-            Assert.IsTrue(timer.Tick(true, 3, 3, false));
-            Assert.IsFalse(timer.Tick(true, 10, 3, false));
-            timer.Tick(false, 11, 3, false);
-            Assert.IsFalse(timer.Tick(true, 12, 3, false));
-            Assert.IsTrue(timer.Tick(true, 15, 3, false));
-        }
-        [Test]
-        public void LowerFloorRequiresContinuousTenSecondsAndRepeats()
-        {
-            var timer = new AudienceDuration();
-            timer.Tick(true, 0, 10, true);
-            timer.Tick(false, 9, 10, true);
-            Assert.IsFalse(timer.Tick(true, 10, 10, true));
-            Assert.IsFalse(timer.Tick(true, 19.99, 10, true));
-            Assert.IsTrue(timer.Tick(true, 20, 10, true));
-            Assert.IsFalse(timer.Tick(true, 20, 10, true));
-            Assert.IsTrue(timer.Tick(true, 30, 10, true));
+            var stall = new AudienceStall();
+            Assert.IsFalse(stall.Sample(true, 0, 0, 15, 1));
+            Assert.IsFalse(stall.Sample(true, .5f, 14.9, 15, 1));
+            Assert.IsTrue(stall.Sample(true, .5f, 15, 15, 1));
+            Assert.IsFalse(stall.Sample(true, .5f, 29.9, 15, 1));
+            Assert.IsTrue(stall.Sample(true, .5f, 30, 15, 1), "15초마다 반복");
+            Assert.IsFalse(stall.Sample(true, 1.6f, 44, 15, 1), "진행하면 다시 센다");
+            Assert.IsFalse(stall.Sample(true, 1.6f, 58, 15, 1));
+            Assert.IsTrue(stall.Sample(true, 1.6f, 59, 15, 1));
+            Assert.IsFalse(stall.Sample(false, 1.6f, 80, 15, 1), "받기 대기 등 제외 상태는 지운다");
+            Assert.IsFalse(stall.Sample(true, 1.6f, 90, 15, 1));
+            Assert.IsTrue(stall.Sample(true, 1.6f, 105, 15, 1));
         }
     }
 }

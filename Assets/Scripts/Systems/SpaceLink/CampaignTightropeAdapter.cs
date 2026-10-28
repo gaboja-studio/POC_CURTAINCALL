@@ -55,8 +55,8 @@ namespace CurtainCall.SpaceLink
                 if (player.State == PlayerState.Normal
                     && Vector3.Distance(player.transform.position, course.GetStartPose(player.Slot).position) > 1.5f) return;
             }
-            // 난도 선택이 없는 기존 줄타기는 공용 기본 난도(1)·기존 보상 에셋을 사용한다.
-            if (!rewards.BeginPerformance(1, GameSettings.Tightrope.Reward)) return;
+            // 밤 정비에서 고른 단계(런 상태, 1일차는 1)로 공용 정산을 연다.
+            if (!rewards.BeginPerformance(Mathf.Clamp(campaign.State.Difficulty, 1, 3), GameSettings.Tightrope.Reward)) return;
             performance = campaign.State;
             if (!run.StartExternalPerformance()) return;
             started = true;
