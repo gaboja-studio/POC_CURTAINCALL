@@ -199,14 +199,16 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void TenPoles_KeepOriginalIndicesAndBothCooperationGates()
+        public void SevenPoles_KeepOriginalIndicesAndBothCooperationGates()
         {
             var systems = All<HumanCannonPoleSystem>();
             Assert.That(systems, Has.Length.EqualTo(1));
-            Assert.That(systems[0].PoleCount, Is.EqualTo(10));
+            // Task-044 2026-10-22: 휴식 봉5 + 관문 연결 봉2, 기존 인덱스0–3 보존.
+            Assert.That(systems[0].PoleCount, Is.EqualTo(7));
             var poles = Field<HumanCannonPole[]>(systems[0], "poles");
-            Assert.That(poles, Has.Length.EqualTo(10));
+            Assert.That(poles, Has.Length.EqualTo(7));
             Assert.That(poles, Has.All.Not.Null);
+            Assert.That(poles.Count(p => p.LinkedGate == null), Is.EqualTo(5));
             CollectionAssert.AllItemsAreUnique(poles);
             CollectionAssert.AreEquivalent(All<HumanCannonPole>(), poles);
             Assert.That(poles[0].transform, Is.SameAs(Find("PoleGateCourse/NormalPole")));
@@ -227,7 +229,11 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             {
                 Assert.That(gate.transform.Find("SawVisual").childCount, Is.EqualTo(44));
                 Assert.That(gate.transform.Find("SawVisual/GateSawDisc0/Disc"), Is.Not.Null);
-                Assert.That(gate.transform.Find("Barrier").GetComponentsInChildren<Renderer>(true).All(r => !r.enabled), Is.True);
+                var barrier = gate.transform.Find("Barrier");
+                Assert.That(barrier.GetComponent<Renderer>().enabled, Is.False, "기존 판정 상자는 숨긴다.");
+                var fence = barrier.GetComponentsInChildren<Renderer>(true).Where(r => r.transform != barrier).ToArray();
+                Assert.That(fence, Is.Not.Empty, "적용된 철망 외형은 유지한다.");
+                Assert.That(fence.All(r => r.enabled), Is.True, "Active 관문은 철망 외형을 표시한다.");
             }
         }
 

@@ -153,7 +153,7 @@ namespace CurtainCall.SpaceLink
             if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || !campaign.State.IsRunning) return false;
             var state = campaign.State;
             var target = SpaceRoute.ForPhase(state.Phase);
-            string sceneName = SpaceRoute.SceneName(target, GameSettings.Base.SpaceTransition, campaign.IsOfflineRun ? null : state.TrickId);
+            string sceneName = SpaceRoute.SceneName(target, GameSettings.Base.SpaceTransition, state.TrickId);
             pending = new TransitionRequest(target, sceneName, state, true);
             if (running == null) running = StartCoroutine(Run());
             return true;
@@ -161,8 +161,8 @@ namespace CurtainCall.SpaceLink
 
         void Enqueue(SpaceId target, in CampaignSnapshot state)
         {
-            // 오프라인 합성런은 기존 더미를 유지한다. 실제 묘기/단독 연습의 참가자는 LAN 경로로 준비한다.
-            string trickId = campaign.IsOfflineRun ? null : state.TrickId;
+            // 오프라인에서도 런에 선택된 실제 묘기 씬으로 이동한다.
+            string trickId = state.TrickId;
             string sceneName = SpaceRoute.SceneName(target, GameSettings.Base.SpaceTransition, trickId);
             pending = new TransitionRequest(target, sceneName, state);
             if (running == null) running = StartCoroutine(Run());

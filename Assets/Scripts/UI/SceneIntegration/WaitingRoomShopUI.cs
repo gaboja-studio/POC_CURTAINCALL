@@ -95,10 +95,10 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 foreach (var item in shop.Catalog)
                 {
-                    string reason = WaitingRoomShop.InPerformance ? "공연 중에는 구매할 수 없습니다." : shop.Balance < item.Price ? "공동 자금 부족" : "";
-                    string icon = shop.IsBackpack(item.Id) ? "backpack" : view.ResolveIcon(item.Id) != null ? item.Id : "delivery";
+                    string reason = !WaitingRoomShop.CanPurchase ? WaitingRoomShop.PurchaseTimeRefusal : shop.Balance < item.Price ? "공동 자금 부족" : "";
+                    string icon = view.ResolveIcon(item.Id) != null ? item.Id : "delivery";
                     entries.Add(new ShopEntryPresentation("item:" + item.Id, ShopTab.Items, icon, item.Name, "구매 후 배송구에서 수령", item.Price.ToString(),
-                        shop.IsBackpack(item.Id) ? "수령하면 배낭을 멥니다. 한 사람당 하나만 사용할 수 있습니다." : "공동 자금으로 주문합니다. 배송구에서 직접 수령하세요.",
+                        "공동 자금으로 주문합니다. 배송구에서 직접 수령하세요.",
                         "구매 " + item.Price, reason.Length == 0, reason, "배송구 대기 " + shop.Waiting.Count + "개", "delivery", new ShopActionPresentation("buy", "구매")));
                 }
             }
@@ -119,7 +119,7 @@ namespace CurtainCall.UI.SceneIntegration
                         $"수령 #{r.Delivery.Order}", "수령 완료", $"{WaitingRoomShop.PlayerLabel(r.Delivery.Buyer)} 주문 → {WaitingRoomShop.PlayerLabel(r.Claimer)} 수령", "", true));
             }
             return new ShopPresentation(session ?? "unopened", (++revision).ToString(), "상점 수화기", ShopTab.Items, "",
-                $"공동 자금 {shop?.Balance ?? 0} · 배송구 대기 {shop?.Waiting.Count ?? 0}개",
+                $"공동 자금 {shop?.Balance ?? 0} · 배송구 대기 {shop?.Waiting.Count ?? 0}개 · {(WaitingRoomShop.CanPurchase ? "밤 정비 · 구매 가능" : "기물 구매는 밤 정비에만 가능")}",
                 $"공동 자금 {shop?.Balance ?? 0} · {ExpertService.Day}일차 · {(ExpertService.IsNight ? "밤 정비" : "밤 정비 때 이용 가능")}", "최근 공동 자금 장부 · 배송 및 수령 기록", entries.ToArray());
         }
         void AddServices(List<ShopEntryPresentation> entries)

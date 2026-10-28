@@ -124,7 +124,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
-        public void PiggybackHopUsesSameHeightAndGravityAsRopeJump()
+        public void PiggybackHopAppliesConfiguredHeightMultiplierAndRopeGravity()
         {
             var go = new GameObject("Piggyback hop test");
             var system = new GameObject("Piggyback hop follow");
@@ -142,7 +142,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 typeof(PiggybackFollow).GetMethod("StartHop", Members).Invoke(follow, new object[] { player });
                 float speed = (float)typeof(PiggybackFollow).GetField("hopSpeed", Members).GetValue(follow);
                 float gravity = (float)typeof(PiggybackFollow).GetField("hopGravity", Members).GetValue(follow);
-                Assert.That(speed * speed / (2f * gravity), Is.EqualTo(1.2f * 0.75f).Within(0.0001f));
+                Assert.That(speed * speed / (2f * gravity), Is.EqualTo(1.2f * 0.75f * GameSettings.Tightrope.Piggyback.JumpHeightMultiplier).Within(0.0001f));
                 Assert.That(gravity, Is.EqualTo(mover.JumpGravity));
             }
             finally { Object.DestroyImmediate(system); Object.DestroyImmediate(go); }

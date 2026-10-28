@@ -22,7 +22,6 @@ namespace CurtainCall.Survival
 
         readonly List<string> _log = new();
         Vector2 _scroll;
-        bool _backpack;
 
         void OnEnable()
         {
@@ -133,16 +132,14 @@ namespace CurtainCall.Survival
             float jump = mover != null ? mover.JumpHeightMultiplier : 1f;
             GUILayout.Label($"{(effects.IsCrawling ? "기어가기 · " : "")}이동 ×{p.MoveSpeed:0.##} · 손 닿는 거리 ×{p.Reach:0.##} · 점프 높이 ×{jump:0.##}"
                             + $" ({GameSettings.Base.Character.JumpHeight * jump:0.##}m)");
-            _backpack = GUILayout.Toggle(_backpack, "배낭 있음(기물 칸 계산용)");
         }
 
         void DrawPlayer(NetworkPlayer player, bool host)
         {
-            player.TryGetComponent(out PlayerCondition condition);
             int lost = PlayerCondition.CountLimbs(player.LostParts);
             string me = player.IsLocal ? " (나)" : "";
             GUILayout.Label($"P{player.Slot}{me} · {StateName(player.State)} · 잃은 팔다리 {lost} ({BodyName(lost)}) · {Describe(player.LostParts)}"
-                            + $" · 기물 {SurvivalRules.ItemSlots(condition, _backpack)}칸");
+                            + $" · 기물 {SurvivalRules.ItemSlots()}칸");
             if (!host) return;
 
             GUILayout.BeginHorizontal();

@@ -38,8 +38,7 @@ namespace CurtainCall.WaitingRoom
     {
         None,
         HandsFull,
-        AlreadyHasBackpack,
-        NotFound,
+        NotFound = 3, // 삭제된 배낭 거절 코드(2)는 재사용하지 않는다.
         NothingHeld,
         FloorFull,
         ShelfFull,
@@ -48,8 +47,7 @@ namespace CurtainCall.WaitingRoom
 
     /// <summary>
     /// 기물 소지·바닥 기물·물려줄 선반 장부(판정 화면 전용 순수 로직).
-    /// 한도(<c>slots</c>)는 부르는 쪽이 몸 상태로 계산해 넘긴다(공용 SurvivalRules.ItemSlots).
-    /// 배낭은 칸을 차지하지 않고 한도를 늘리는 표시로만 남는다. 한 사람 한 개.
+    /// 한도(<c>slots</c>)는 부르는 쪽이 공통 세팅에서 읽어 넘긴다(공용 SurvivalRules.ItemSlots).
     /// 물려줄 선반(소품실 4칸)은 세대 교체 뒤에도 남는다(게임 흐름 기획 5-5·6-2). 나머지는 세대 교체 때 비운다.
     /// </summary>
     public sealed class ItemCarryBook
@@ -58,7 +56,6 @@ namespace CurtainCall.WaitingRoom
         public const int ShelfSlots = 4;
 
         readonly Dictionary<ulong, List<PropItem>> held = new();
-        readonly HashSet<ulong> backpacks = new();
         readonly List<FloorProp> floor = new();
         readonly PropItem[] shelf = new PropItem[ShelfSlots];
         static readonly IReadOnlyList<PropItem> Empty = new List<PropItem>().AsReadOnly();
@@ -105,13 +102,12 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>
-        /// 세대 교체: 물려줄 선반만 남기고 손·배낭·바닥(소품실 보관 포함)을 비운다.
+        /// 세대 교체: 물려줄 선반만 남기고 손·바닥(소품실 보관 포함)을 비운다.
         /// </summary>
         public void ResetGeneration()
         {
-            if (held.Count == 0 && backpacks.Count == 0 && floor.Count == 0) return;
+            if (held.Count == 0 && floor.Count == 0) return;
             held.Clear();
-            backpacks.Clear();
             floor.Clear();
             Revision++;
         }
@@ -132,12 +128,12 @@ namespace CurtainCall.WaitingRoom
 
         public IReadOnlyList<FloorProp> Floor => floor.AsReadOnly();
 
-        /// <summary>기물을 들고 있거나 배낭을 멘 사람.</summary>
+        /// <summary>기물을 들고 있는 사람.</summary>
         public IEnumerable<ulong> Players
         {
             get
             {
-                var seen = new HashSet<ulong>(backpacks);
+                var seen = new HashSet<ulong>();
                 foreach (var pair in held) if (pair.Value.Count > 0) seen.Add(pair.Key);
                 return seen;
             }
@@ -148,22 +144,18 @@ namespace CurtainCall.WaitingRoom
 
         public int Count(ulong player) => held.TryGetValue(player, out var list) ? list.Count : 0;
 
-        public bool HasBackpack(ulong player) => backpacks.Contains(player);
-
         /// <summary>새로 받을 수 있는지(돈·배송구를 건드리기 전 확인용).</summary>
-        public CarryRefusal CanTake(ulong player, int slots, bool backpack)
+        public CarryRefusal CanTake(ulong player, int slots)
         {
-            if (backpack) return backpacks.Contains(player) ? CarryRefusal.AlreadyHasBackpack : CarryRefusal.None;
             return Count(player) < slots ? CarryRefusal.None : CarryRefusal.HandsFull;
         }
 
-        /// <summary>받는다. 배낭이면 메고, 아니면 손에 든다.</summary>
-        public CarryRefusal Take(ulong player, int slots, PropItem item, bool backpack)
+        /// <summary>받은 기물을 손에 든다.</summary>
+        public CarryRefusal Take(ulong player, int slots, PropItem item)
         {
-            var refusal = CanTake(player, slots, backpack);
+            var refusal = CanTake(player, slots);
             if (refusal != CarryRefusal.None) return refusal;
-            if (backpack) backpacks.Add(player);
-            else List(player).Add(item);
+            List(player).Add(item);
             Revision++;
             return CarryRefusal.None;
         }
@@ -226,7 +218,6 @@ namespace CurtainCall.WaitingRoom
         {
             System.Array.Clear(shelf, 0, ShelfSlots);
             held.Clear();
-            backpacks.Clear();
             floor.Clear();
             Revision++;
         }

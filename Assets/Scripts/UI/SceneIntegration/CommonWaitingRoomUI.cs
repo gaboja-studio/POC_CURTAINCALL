@@ -53,7 +53,7 @@ namespace CurtainCall.UI.SceneIntegration
             if ((!wasActive || state.Phase != lastPhase) && state.Phase == CampaignPhase.Night)
                 notifications.Banner.Show("밤 정비", "대기실 문이 잠겼습니다 · 탐색 시간 없음", BannerState.Normal, announcementSeconds);
             wasActive = true; lastPhase = state.Phase;
-            hud.SetContext(true, rest, rest && space.LocalInGatherArea, false);
+            hud.SetContext(true, rest, rest && space.LocalInGatherArea, true);
             if (rest)
             {
                 var rules = GameSettings.Base.Run;

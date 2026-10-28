@@ -5,6 +5,8 @@ namespace CurtainCall.Tightrope.Saws
 {
     public sealed partial class TightropeSaws
     {
+        [Tooltip("톱날 이동 경로를 빨간 레이저 선으로 표시한다. 꺼도 경로 계산은 유지하고 그리기만 생략한다.")]
+        [SerializeField] bool showSawPaths;
         Transform pathRoot;
         Material pathMaterial;
         LineRenderer[] horizontalPaths;
@@ -36,6 +38,7 @@ namespace CurtainCall.Tightrope.Saws
             line.numCapVertices = 4;
             line.shadowCastingMode = ShadowCastingMode.Off; line.receiveShadows = false;
             line.enabled = false;
+            line.forceRenderingOff = !showSawPaths;
             return line;
         }
 
