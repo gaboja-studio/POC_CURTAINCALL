@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace CurtainCall.Cameras
@@ -55,6 +56,17 @@ namespace CurtainCall.Cameras
         float transitionFov;
         CameraState lastOutput;
         bool hasOutput;
+        const float DeathDropDuration = 0.6f;
+        const float DeathDropDistance = 1.5f;
+        const float DeathWatchDuration = 1.5f;
+        bool deathSeen;
+        bool deathView;
+        bool hasDeathOutput;
+        float deathStarted;
+        float deathDropDistance;
+        CameraState deathOutput;
+
+        internal bool IsShowingDeathFall => deathView && Time.unscaledTime - deathStarted < DeathWatchDuration;
 
         public static CameraViewDirector Current { get; private set; }
         /// <summary>pipeline 판정 직전 콘텐츠가 동적 요청 값을 갱신할 기회. 입력 적분은 하지 않는다.</summary>
@@ -88,10 +100,23 @@ namespace CurtainCall.Cameras
             }
         }
 
-        void OnEnable() => Current = this;
+        void OnEnable()
+        {
+            Current = this;
+            SceneManager.activeSceneChanged += OnActiveSceneChanged;
+        }
+
+        void OnActiveSceneChanged(Scene previous, Scene next)
+        {
+            ResetDeathView();
+            hasOutput = false;
+            transitionDuration = 0f;
+        }
 
         void OnDisable()
         {
+            SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+            ResetDeathView();
             ReleaseCursor();
             requests.Clear();
             firstPerson = freeThirdPerson = false;
@@ -122,6 +147,7 @@ namespace CurtainCall.Cameras
         public void SetLocalPlayer(NetworkPlayer player)
         {
             if (local == player) return;
+            ResetDeathView();
             ReleaseCursor();
             requests.Clear();
             local = player;
@@ -180,6 +206,8 @@ namespace CurtainCall.Cameras
             // Cinemachine은 편집 모드에도 pipeline을 호출한다. 플레이 전용 요청·커서는
             // Awake 초기화가 없는 편집/Prefab Stage 오브젝트에 적용하지 않는다.
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled) return;
+            // 관전 대상·시점 요청이 바뀌기 전에 직전 Finalize 출력을 한 번만 잡는다.
+            RefreshDeathView();
             PreparingView?.Invoke();
             requests.RemoveWhere((source, value) => !SourceActive(source) || value.Preset == null);
             // 1인칭·3인칭 비고정은 로컬 캐릭터 기준이라 관전·소멸 중에는 후보에서 뺀다
@@ -255,8 +283,102 @@ namespace CurtainCall.Cameras
                     state.Lens.FieldOfView = Mathf.Lerp(transitionFov, state.Lens.FieldOfView, t);
                 }
             }
+            if (deathView)
+            {
+                // Follow/Aim/Noise 뒤 Finalize에서 덮어쓴다. 여러 pipeline 호출도 같은 절대 시간·고정 기준점을 쓴다.
+                if (!hasDeathOutput)
+                {
+                    deathOutput = state;
+                    hasDeathOutput = true;
+                    PrepareDeathOutput();
+                }
+                float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((Time.unscaledTime - deathStarted) / DeathDropDuration));
+                state.Lens = deathOutput.Lens;
+                SetPose(ref state, deathOutput.GetFinalPosition() + Vector3.down * (deathDropDistance * t),
+                    deathOutput.GetFinalOrientation());
+                state.ReferenceLookAt = CameraState.kNoPoint;
+            }
             lastOutput = state;
             hasOutput = true;
+        }
+
+        void RefreshDeathView()
+        {
+            bool dead = local != null && IsDead(local);
+            if (!dead)
+            {
+                if (deathView) ResumeFromDeathView();
+                ResetDeathView();
+                return;
+            }
+            if (deathSeen) return;
+            deathSeen = deathView = true;
+            deathStarted = Time.unscaledTime;
+            deathOutput = lastOutput;
+            hasDeathOutput = hasOutput;
+            if (hasDeathOutput) PrepareDeathOutput();
+        }
+
+        void PrepareDeathOutput()
+        {
+            Vector3 position = deathOutput.GetFinalPosition();
+            bool grounded = false;
+            RaycastHit ground = default;
+            foreach (var hit in Physics.RaycastAll(local.transform.position + Vector3.up * .5f,
+                Vector3.down, 1.25f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                if (!IsDeathSurface(hit.collider) || hit.normal.y < .5f) continue;
+                if (!grounded || hit.distance < ground.distance) { grounded = true; ground = hit; }
+            }
+            if (grounded)
+            {
+                // 지면 사망은 낙하 연출로 더 내려가지 않는다. 바닥 위에서 마지막 사망 위치를 비춘다.
+                Vector3 target = ground.point + Vector3.up * .35f;
+                Vector3 away = Horizontal(position - target);
+                if (away == Vector3.zero) away = -Horizontal(local.transform.forward);
+                Vector3 flatOffset = Vector3.ProjectOnPlane(position - target, Vector3.up);
+                if (flatOffset.sqrMagnitude < 2.5f * 2.5f)
+                {
+                    position.x = target.x + away.x * 2.5f;
+                    position.z = target.z + away.z * 2.5f;
+                }
+                position.y = Mathf.Max(position.y, ground.point.y + 1.2f);
+                SetPose(ref deathOutput, position, Quaternion.LookRotation(target - position, Vector3.up));
+                deathDropDistance = 0f;
+                return;
+            }
+            deathDropDistance = DeathDropDistance;
+            // 공중 사망도 카메라 하강 경로에 바닥이 있으면 그 위에서 멈춘다.
+            foreach (var hit in Physics.SphereCastAll(position, .25f, Vector3.down, DeathDropDistance,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                if (IsDeathSurface(hit.collider) && hit.normal.y > .5f)
+                    deathDropDistance = Mathf.Min(deathDropDistance, Mathf.Max(0f, hit.distance - .05f));
+        }
+
+        bool IsDeathSurface(Collider collider) => collider != null && !(collider is CharacterController)
+            && !collider.transform.IsChildOf(local.transform)
+            && (collider.attachedRigidbody == null || collider.attachedRigidbody.isKinematic);
+
+        /// <summary>짧은 낙하 관찰 뒤 생존자 관전으로만 해제한다. 생존자가 없으면 고정 출력을 유지한다.</summary>
+        internal void ResumeFromDeathView()
+        {
+            if (!deathView) return;
+            deathView = hasDeathOutput = false;
+            deathOutput = default;
+            // Camera.main은 Brain 갱신 전 화면일 수 있다. 방금 고정한 pipeline 출력에서 이어간다.
+            transitionStarted = Time.unscaledTime;
+            transitionDuration = hasOutput && selected != null ? Mathf.Max(0f, selected.TransitionDuration) : 0f;
+            transitionPosition = lastOutput.GetFinalPosition();
+            transitionRotation = lastOutput.GetFinalOrientation();
+            transitionFov = lastOutput.Lens.FieldOfView;
+        }
+
+        void ResetDeathView()
+        {
+            deathSeen = deathView = hasDeathOutput = false;
+            deathOutput = default;
+            deathStarted = 0f;
+            deathDropDistance = 0f;
         }
 
         CameraViewPreset DefaultView => settings != null && settings.DefaultThirdPerson != null ? settings.DefaultThirdPerson : fallback;

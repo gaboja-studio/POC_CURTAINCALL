@@ -88,10 +88,11 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 Assert.That((int)Get(view, "PieceCount"), Is.EqualTo(stage));
                 var rb = (Rigidbody)Call(view, "GetPieceBody", stage - 1);
                 Assert.That(rb, Is.Not.Null);
-                Assert.That(rb.GetComponent<SkinnedMeshRenderer>(), Is.Null);
-                Assert.That(rb.GetComponents<Joint>(), Is.Empty);
+                Assert.That(rb.GetComponentInChildren<SkinnedMeshRenderer>(), Is.Not.Null);
+                Assert.That(rb.GetComponentsInChildren<CharacterJoint>().Length, Is.EqualTo(1));
+                Assert.That(rb.GetComponentsInChildren<Rigidbody>().Length, Is.EqualTo(2));
                 Assert.That(rb.useGravity, Is.True);
-                Assert.That(rb.GetComponent<MeshFilter>().sharedMesh.vertexCount, Is.GreaterThan(0));
+                Assert.That(rb.GetComponentInChildren<SkinnedMeshRenderer>().sharedMesh.vertexCount, Is.GreaterThan(0));
                 Assert.That((int)Get(legacy, "PieceCount"), Is.Zero);
                 Vector3 start = rb.position;
                 yield return new WaitForFixedUpdate();
@@ -105,6 +106,45 @@ namespace CurtainCall.Tests.HumanoidPresentation
             view = Model(player);
             Assert.That((int)Get(view, "Stage"), Is.Zero);
             Assert.That((int)Get(view, "PieceCount"), Is.Zero);
+        }
+
+        [UnityTest]
+        public IEnumerator DetachedLimbsKeepCutSurfaceAndBendTheirRenderedSkinImmediately()
+        {
+            var player = Player();
+            player.transform.position += Vector3.up * 10f;
+            yield return null;
+            var view = Model(player);
+            var limbs = (SkinnedMeshRenderer[])view.GetType().GetField("Limbs").GetValue(view);
+            for (int index = 0; index < 4; index++)
+            {
+                var before = new Mesh();
+                var after = new Mesh();
+                try
+                {
+                    limbs[index].BakeMesh(before);
+                    var expected = before.vertices.Select(v => limbs[index].transform.TransformPoint(v)).ToArray();
+                    Mask(player, new[] { 4, 12, 13, 15 }[index]);
+                    var root = (Rigidbody)Call(view, "GetPieceBody", index);
+                    var renderer = root.GetComponentInChildren<SkinnedMeshRenderer>();
+                    Assert.That(renderer, Is.Not.Null);
+                    Assert.That(renderer.sharedMesh.subMeshCount, Is.EqualTo(limbs[index].sharedMesh.subMeshCount));
+                    renderer.BakeMesh(after);
+                    var initial = after.vertices;
+                    for (int i = 0; i < initial.Length; i++)
+                        Assert.That(Vector3.Distance(renderer.transform.TransformPoint(initial[i]), expected[i]), Is.LessThan(.003f), $"절단 순간의 위치·캡을 유지해야 한다(부위{index}, 정점{i}).");
+                    foreach (var bone in renderer.bones)
+                        Assert.That(bone.IsChildOf(root.transform) || bone == root.transform, Is.True, "살아 있는 원본 뼈를 참조하면 안 된다.");
+                    var lower = root.GetComponentInChildren<CharacterJoint>();
+                    Quaternion held = Quaternion.Inverse(root.rotation) * lower.transform.rotation;
+                    foreach (var rb in root.GetComponentsInChildren<Rigidbody>()) Assert.That(rb.isKinematic, Is.False);
+                    for (int i = 0; i < 25; i++) yield return new WaitForFixedUpdate();
+                    Assert.That(Quaternion.Angle(held, Quaternion.Inverse(root.rotation) * lower.transform.rotation), Is.GreaterThan(15f), "절단 직후 무릎/팔꿈치가 물리로 움직여야 한다.");
+                    renderer.BakeMesh(after);
+                    Assert.That(after.vertices.Zip(initial, Vector3.Distance).Max(), Is.GreaterThan(.03f), "덩어리 회전뿐 아니라 실제 표시 메시가 구부러져야 한다.");
+                }
+                finally { Object.Destroy(before); Object.Destroy(after); }
+            }
         }
 
         [UnityTest]
@@ -186,11 +226,11 @@ namespace CurtainCall.Tests.HumanoidPresentation
             var piece = (Rigidbody)Call(view, "GetPieceBody", 0);
             Call(view, "SetColor", Color.magenta);
             var pieceBlock = new MaterialPropertyBlock();
-            piece.GetComponent<Renderer>().GetPropertyBlock(pieceBlock, 0);
+            piece.GetComponentInChildren<Renderer>().GetPropertyBlock(pieceBlock, 0);
             Assert.That(pieceBlock.GetColor("_BaseColor"), Is.EqualTo(snapshot));
             Assert.That(cap.color, Is.EqualTo(capBefore));
             for (int i = 0; i < materials.Length; i++) Assert.That(materials[i].color, Is.EqualTo(shared[i]));
-            Assert.That(Physics.GetIgnoreCollision(piece.GetComponent<Collider>(), player.GetComponent<CharacterController>()), Is.True);
+            Assert.That(Physics.GetIgnoreCollision(piece.GetComponentInChildren<Collider>(), player.GetComponent<CharacterController>()), Is.True);
             Assert.That(piece.gameObject.layer, Is.EqualTo(Physics.IgnoreRaycastLayer));
         }
 
@@ -207,10 +247,17 @@ namespace CurtainCall.Tests.HumanoidPresentation
             Assert.That((bool)Get(ragdoll, "IsLimp"), Is.True);
             Assert.That(Model(player), Is.Null);
             Assert.That(((Animator)previous.GetType().GetField("Animator").GetValue(previous)).enabled, Is.False);
-            var collider = previous.GetComponent<BoxCollider>();
+            Assert.That(previous.GetComponent<BoxCollider>().enabled, Is.False);
+            var animator = (Animator)previous.GetType().GetField("Animator").GetValue(previous);
+            var collider = animator.GetBoneTransform(HumanBodyBones.Hips).GetComponentInChildren<CapsuleCollider>();
             Assert.That(collider, Is.Not.Null);
             Assert.That(collider.enabled, Is.True);
-            Assert.That(collider.size.sqrMagnitude, Is.GreaterThan(.001f));
+            Assert.That(previous.GetComponentsInChildren<CharacterJoint>().Length, Is.GreaterThan(1));
+            foreach (var body in previous.GetComponentsInChildren<Rigidbody>())
+            {
+                Assert.That(body.isKinematic, Is.False);
+                Assert.That(body.useGravity, Is.True);
+            }
             previous.transform.position += new Vector3(2f, 1f, 0f);
             Vector3 detachedPosition = previous.transform.position;
             Mask(player, 15);
@@ -226,6 +273,102 @@ namespace CurtainCall.Tests.HumanoidPresentation
             Assert.That(current, Is.Not.SameAs(previous));
             Assert.That((int)Get(current, "Stage"), Is.EqualTo(1));
             Assert.That((int)Get(current, "PieceCount"), Is.Zero);
+        }
+
+        [UnityTest]
+        public IEnumerator HangingDeathImmediatelyReleasesAnimatedArmsAndFalls()
+        {
+            var player = Player();
+            player.transform.position += Vector3.up * 8f;
+            yield return null;
+            var view = Model(player);
+            var animator = (Animator)view.GetType().GetField("Animator").GetValue(view);
+            animator.Play("Hanging", 0, .5f);
+            animator.Update(0f);
+            var hand = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+            var hips = animator.GetBoneTransform(HumanBodyBones.Hips);
+            Vector3 heldHand = hips.InverseTransformPoint(hand.position);
+            var skin = (SkinnedMeshRenderer)view.GetType().GetField("Original").GetValue(view);
+            var mesh = new Mesh();
+            skin.BakeMesh(mesh);
+            var heldSkin = mesh.vertices.Select(v => hips.InverseTransformPoint(skin.transform.TransformPoint(v))).ToArray();
+            Object.Destroy(mesh);
+            float startY = hips.position.y;
+            Quaternion startRotation = hips.rotation;
+            var ragdoll = Part(player, "PlayerRagdoll");
+            Call(ragdoll, "GoLimp");
+            Assert.That(animator.enabled, Is.False, "사망 호출 프레임부터 애니메이션을 중지해야 한다.");
+            Vector3 spin = view.transform.InverseTransformDirection(hips.GetComponent<Rigidbody>().angularVelocity);
+            Assert.That(Mathf.Abs(spin.x), Is.GreaterThan(1f));
+            Assert.That(Mathf.Abs(spin.y), Is.GreaterThan(1f));
+            Assert.That(Mathf.Abs(spin.z), Is.GreaterThan(1f), "몸통도 한 축이 아닌 세 축으로 회전하며 낙하해야 한다.");
+            Assert.That(view.GetComponentsInChildren<Rigidbody>().Length, Is.EqualTo(11));
+            Assert.That(view.GetComponentsInChildren<CharacterJoint>().Length, Is.EqualTo(10));
+            Call(ragdoll, "GoLimp");
+            Assert.That(view.GetComponentsInChildren<Rigidbody>().Length, Is.EqualTo(11), "사망 재확정은 멱등이어야 한다.");
+            for (int i = 0; i < 35; i++) yield return new WaitForFixedUpdate();
+            Assert.That(hips.position.y, Is.LessThan(startY - 1f));
+            Assert.That(Quaternion.Angle(startRotation, hips.rotation), Is.GreaterThan(45f), "낙하 중 몸통의 실제 회전도 눈에 띄게 변해야 한다.");
+            Assert.That(Vector3.Distance(heldHand, hips.InverseTransformPoint(hand.position)), Is.GreaterThan(.2f),
+                "몸 전체 회전과 낙하를 제외하고도 손이 20cm 이상 풀려야 한다.");
+            mesh = new Mesh();
+            skin.BakeMesh(mesh);
+            var releasedSkin = mesh.vertices.Select(v => hips.InverseTransformPoint(skin.transform.TransformPoint(v))).ToArray();
+            Object.Destroy(mesh);
+            Assert.That(releasedSkin.Zip(heldSkin, Vector3.Distance).Max(), Is.GreaterThan(.2f), "표시 스킨도 Hanging 스냅샷에 고정되면 안 된다.");
+        }
+
+        [UnityTest]
+        public IEnumerator HangPalmsStayOnContactAndRopePoleSwayAreIndependent()
+        {
+            var player = Player();
+            yield return null;
+            var view = Model(player);
+            var animator = (Animator)view.GetType().GetField("Animator").GetValue(view);
+            var presentation = Part(player, "HumanoidPlayerPresentation");
+            var rules = Get(TypeFor("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null), "Presentation");
+            var rope = rules.GetType().GetField("ropeHangSwayAngle", BindingFlags.Instance | BindingFlags.NonPublic);
+            var pole = rules.GetType().GetField("poleHangSwayAngle", BindingFlags.Instance | BindingFlags.NonPublic);
+            object oldRope = rope.GetValue(rules), oldPole = pole.GetValue(rules);
+            var restore = presentation.GetType().GetMethod("RestoreHangAlignment", BindingFlags.Instance | BindingFlags.NonPublic);
+            var pose = presentation.GetType().GetMethod("ApplyHangPose", BindingFlags.Instance | BindingFlags.NonPublic);
+            var palm = presentation.GetType().GetMethod("Palm", BindingFlags.Static | BindingFlags.NonPublic);
+            Vector3 grip = player.transform.position + Vector3.up * 2f;
+            Quaternion Pose(bool onRope)
+            {
+                restore.Invoke(presentation, null);
+                animator.Play("Hanging", 0, .5f);
+                animator.Update(0f);
+                Vector3 axis = onRope ? Vector3.forward : Vector3.right;
+                pose.Invoke(presentation, new object[] { grip, axis, onRope });
+                Vector3 contact = grip + (onRope ? Vector3.zero : Vector3.down * .06f);
+                foreach (bool left in new[] { true, false })
+                {
+                    var actual = (Vector3)palm.Invoke(null, new object[] { animator, left });
+                    Assert.That(Vector3.Distance(actual, contact + axis * (left ? -.18f : .18f)), Is.LessThan(.015f),
+                        $"{(onRope ? "줄" : "봉")} {(left ? "왼손" : "오른손")} 접점이 흔들림 중에도 유지되어야 한다.");
+                }
+                return view.transform.rotation;
+            }
+            try
+            {
+                while (Mathf.Abs(Mathf.Sin(Time.time * Mathf.PI * 1.6f)) < .5f) yield return null;
+                rope.SetValue(rules, 0f); pole.SetValue(rules, 0f);
+                Quaternion ropeStill = Pose(true), poleStill = Pose(false);
+                pole.SetValue(rules, 20f);
+                Assert.That(Quaternion.Angle(ropeStill, Pose(true)), Is.LessThan(.01f));
+                Assert.That(Quaternion.Angle(poleStill, Pose(false)), Is.GreaterThan(5f));
+                pole.SetValue(rules, 0f); rope.SetValue(rules, 20f);
+                Assert.That(Quaternion.Angle(poleStill, Pose(false)), Is.LessThan(.01f));
+                Assert.That(Quaternion.Angle(ropeStill, Pose(true)), Is.GreaterThan(5f));
+                rope.SetValue(rules, 45f); pole.SetValue(rules, 45f);
+                Pose(true); Pose(false);
+            }
+            finally
+            {
+                restore.Invoke(presentation, null);
+                rope.SetValue(rules, oldRope); pole.SetValue(rules, oldPole);
+            }
         }
 
         [UnityTest]
@@ -348,7 +491,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
             Mask(player, 4);
             var piece = (Rigidbody)Call(view, "GetPieceBody", 0);
             var block = new MaterialPropertyBlock();
-            piece.GetComponent<Renderer>().GetPropertyBlock(block, 0);
+            piece.GetComponentInChildren<Renderer>().GetPropertyBlock(block, 0);
             Color snapshot = block.GetColor("_BaseColor");
             var settings = TypeFor("CurtainCall.Settings.GameSettings").GetProperty("Base", BindingFlags.Public | BindingFlags.Static).GetValue(null);
             var character = Get(settings, "Character");
@@ -360,7 +503,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 yield return null;
                 yield return null;
                 Assert.That((Color)Get(view, "SurfaceColor"), Is.EqualTo(Color.cyan));
-                piece.GetComponent<Renderer>().GetPropertyBlock(block, 0);
+                piece.GetComponentInChildren<Renderer>().GetPropertyBlock(block, 0);
                 Assert.That(block.GetColor("_BaseColor"), Is.EqualTo(snapshot));
             }
             finally { field.SetValue(character, original); }

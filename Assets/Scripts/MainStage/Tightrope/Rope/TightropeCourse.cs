@@ -121,6 +121,14 @@ namespace CurtainCall.Tightrope
         /// <summary>코스 오른쪽(수평, 정규화).</summary>
         public Vector3 Right => Vector3.Cross(Vector3.up, Forward);
 
+        /// <summary>사망한 몸이 줄의 보행용 지지면에 걸리지 않고 아래로 떨어지게 한다. 플랫폼 충돌은 유지한다.</summary>
+        public void IgnoreRopeCollision(Collider body)
+        {
+            if (body == null) return;
+            foreach (var surface in ropeSurfaces.Keys)
+                if (surface != null) Physics.IgnoreCollision(body, surface);
+        }
+
         // ── 조회 ────────────────────────────────────────────
 
         /// <summary>위치의 진행 거리(m). 출발선이 0, 전진 방향이 +.</summary>
