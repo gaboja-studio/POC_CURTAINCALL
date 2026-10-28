@@ -38,6 +38,8 @@ namespace CurtainCall.Settings
         [SerializeField] InputSettings input = new();
         [Header("균형 공통")]
         [SerializeField] BalanceSettings balance = new();
+        [Header("HUD 배치")]
+        [SerializeField] HudLayoutSettings hudLayout = new();
         [Header("연출")]
         [SerializeField] PresentationSettings presentation = new();
         [Header("동기화")]
@@ -56,6 +58,7 @@ namespace CurtainCall.Settings
         public CharacterSettings Character => character;
         public InputSettings Input => input;
         public BalanceSettings Balance => balance;
+        public HudLayoutSettings HudLayout => hudLayout;
         public PresentationSettings Presentation => presentation;
         public SyncSettings Sync => sync;
         public BodyDamageSettings BodyDamage => bodyDamage;
@@ -63,6 +66,22 @@ namespace CurtainCall.Settings
         public VoiceChatSettings VoiceChat => voiceChat;
 
         void OnValidate() => balance.Validate();
+
+        public enum BalanceHudPosition
+        {
+            [InspectorName("1안 · 하단 중앙")] BottomCenter = 0,
+            [InspectorName("2안 · 상단 중앙")] TopCenter = 1,
+        }
+
+        [Serializable]
+        public sealed class HudLayoutSettings
+        {
+            [InspectorName("균형/추락 게이지 위치")]
+            [Tooltip("1안은 기존 인벤토리 자리인 하단 중앙, 2안은 상단 중앙입니다. 플레이 중에도 즉시 반영되며, 상단 팝업은 게이지 아래로 이동합니다.")]
+            [SerializeField] BalanceHudPosition balancePosition = BalanceHudPosition.BottomCenter;
+
+            public BalanceHudPosition BalancePosition => balancePosition;
+        }
 
         [Serializable]
         public sealed class FrameRateSettings
@@ -96,7 +115,7 @@ namespace CurtainCall.Settings
 
         /// <summary>런(1~N일차 + 마지막 날 다음 날 아침 쉬는 시간) 진행. 기획: 게임 흐름 2-2·2-4, 결정: run-rules.md</summary>
         [Serializable]
-        public sealed class RunSettings
+        public sealed class RunSettings : ISerializationCallbackReceiver
         {
             [Tooltip("공연하는 날 수(일). 이 다음 날 아침 쉬는 시간이 마지막 탈출 기회이고, 그것이 끝나면 런 실패. 기획 3.")]
             [SerializeField, Min(1)] int dayCount = 3;
@@ -108,10 +127,53 @@ namespace CurtainCall.Settings
             [SerializeField] string[] firstDayTricks = { "Tightrope", "HumanCannon" };
 
             [Tooltip("쉬는 시간 길이(초). 아침·공연 사이 공통. 시작하자마자 흐른다(M2, 안전한 곳 없음). 기획 5분 = 300.")]
-            [SerializeField, Min(1f)] float restDuration = 300f;
+            [SerializeField, HideInInspector, Min(1f)] float restDuration = 300f;
 
             [Tooltip("가이드 쉬는 시간 길이(초). 1일차 첫 공연 뒤 쉬는 시간. 기획 미정(플레이테스트로 결정) — 임시 300.")]
-            [SerializeField, Min(1f)] float guideRestDuration = 300f;
+            [SerializeField, HideInInspector, Min(1f)] float guideRestDuration = 300f;
+
+            [Header("시간대별 실제 제한시간 · 다음 단계 진입부터 적용")]
+            [SerializeField, InspectorName("아침 쉬는 시간")] RestTimeLimitSettings morningRest;
+            [SerializeField, InspectorName("낮 쉬는 시간")] RestTimeLimitSettings noonRest;
+            [SerializeField, InspectorName("첫날 가이드 쉬는 시간")] RestTimeLimitSettings guideRest;
+            [SerializeField, InspectorName("밤 정비")] RestTimeLimitSettings nightMaintenance;
+            [SerializeField, HideInInspector] bool timeLimitsMigrated;
+
+            /// <summary>단계 진입 때 적용하는 실제 제한시간. 무제한이어도 초 값은 유한하게 보관한다.</summary>
+            [Serializable]
+            public sealed class RestTimeLimitSettings
+            {
+                [SerializeField, InspectorName("제한 없음")] bool unlimited;
+                [Tooltip("제한 없음이 꺼져 있을 때 사용하는 실제 초. 하루 시계의 시작·끝 시각과 별개입니다.")]
+                [SerializeField, Min(1f), InspectorName("제한시간(초)")] float seconds = 300f;
+
+                public RestTimeLimitSettings() { }
+                public RestTimeLimitSettings(bool unlimited, float seconds = 300f)
+                { this.unlimited = unlimited; this.seconds = seconds; }
+
+                public bool Unlimited => unlimited;
+                public float Seconds => float.IsNaN(seconds) || float.IsInfinity(seconds) ? 300f : Mathf.Max(1f, seconds);
+            }
+
+            // 기존 에셋은 Unity가 비어 있는 인라인 객체를 만들기 전에 저장한 공통/가이드 값을 이관한다.
+            void EnsureTimeLimits()
+            {
+                if (!timeLimitsMigrated)
+                {
+                    morningRest = new RestTimeLimitSettings(false, restDuration);
+                    noonRest = new RestTimeLimitSettings(false, restDuration);
+                    guideRest = new RestTimeLimitSettings(false, guideRestDuration);
+                    nightMaintenance = new RestTimeLimitSettings(true);
+                    timeLimitsMigrated = true;
+                }
+                morningRest ??= new RestTimeLimitSettings(false, restDuration);
+                noonRest ??= new RestTimeLimitSettings(false, restDuration);
+                guideRest ??= new RestTimeLimitSettings(false, guideRestDuration);
+                nightMaintenance ??= new RestTimeLimitSettings(true);
+            }
+
+            public void OnBeforeSerialize() => EnsureTimeLimits();
+            public void OnAfterDeserialize() => EnsureTimeLimits();
 
             [Tooltip("소집 경보 시점(초). 쉬는 시간이 이만큼 남으면 경보를 울린다. 기획 1분 = 60.")]
             [SerializeField, Min(0f)] float recallAlarmLeadTime = 60f;
@@ -121,8 +183,19 @@ namespace CurtainCall.Settings
 
             public int DayCount => dayCount;
             public int PerformancesPerDay => performancesPerDay;
-            public float RestDuration => restDuration;
-            public float GuideRestDuration => guideRestDuration;
+            public RestTimeLimitSettings MorningRest { get { EnsureTimeLimits(); return morningRest; } }
+            public RestTimeLimitSettings NoonRest { get { EnsureTimeLimits(); return noonRest; } }
+            public RestTimeLimitSettings GuideRest { get { EnsureTimeLimits(); return guideRest; } }
+            public RestTimeLimitSettings NightMaintenance { get { EnsureTimeLimits(); return nightMaintenance; } }
+            public float RestDuration => NoonRest.Seconds;
+            public float GuideRestDuration => GuideRest.Seconds;
+
+            public RestTimeLimitSettings TimeLimit(CurtainCall.Campaign.RestKind rest) => rest switch
+            {
+                CurtainCall.Campaign.RestKind.Morning => MorningRest,
+                CurtainCall.Campaign.RestKind.Guide => GuideRest,
+                _ => NoonRest,
+            };
             public float RecallAlarmLeadTime => recallAlarmLeadTime;
             public float FailedPerformanceHold => failedPerformanceHold;
 

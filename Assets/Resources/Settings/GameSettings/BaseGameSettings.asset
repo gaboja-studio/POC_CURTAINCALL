@@ -26,6 +26,19 @@ MonoBehaviour:
     - HumanCannon
     restDuration: 300
     guideRestDuration: 300
+    morningRest:
+      unlimited: 0
+      seconds: 300
+    noonRest:
+      unlimited: 0
+      seconds: 300
+    guideRest:
+      unlimited: 0
+      seconds: 300
+    nightMaintenance:
+      unlimited: 1
+      seconds: 300
+    timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2
   itemCarry:
@@ -61,6 +74,8 @@ MonoBehaviour:
     idleSway: 5
     swayDirectionInterval: {x: 1, y: 2}
     tiltAcceleration: 0.5
+  hudLayout:
+    balancePosition: 0
   presentation:
     maxTiltAngle: 25
     tiltFollowSharpness: 10

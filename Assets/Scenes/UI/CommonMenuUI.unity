@@ -1605,11 +1605,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1322484384}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 96}
-  m_SizeDelta: {x: 600, y: 32}
-  m_Pivot: {x: 0.5, y: 0}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
+  m_AnchoredPosition: {x: -48, y: 100}
+  m_SizeDelta: {x: 400, y: 32}
+  m_Pivot: {x: 1, y: 0}
 --- !u!114 &1055223245
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1630,7 +1630,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: "\uBE48\uC190 \xB7 1\u20132 \uAE30\uBB3C \uC120\uD0DD"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
   m_sharedMaterial: {fileID: 8307190250711044379, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
@@ -1664,7 +1664,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 2
+  m_HorizontalAlignment: 4
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -1841,20 +1841,24 @@ PrefabInstance:
     m_TransformParent: {fileID: 197145948}
     m_Modifications:
     - target: {fileID: 2142820150562471293, guid: 141f6185343b14d429231cebb14fd4b8, type: 3}
+      propertyPath: m_Pivot.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2142820150562471293, guid: 141f6185343b14d429231cebb14fd4b8, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2142820150562471293, guid: 141f6185343b14d429231cebb14fd4b8, type: 3}
       propertyPath: m_AnchorMin.x
-      value: 0.5
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2142820150562471293, guid: 141f6185343b14d429231cebb14fd4b8, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 352
+      value: 136
       objectReference: {fileID: 0}
     - target: {fileID: 2142820150562471293, guid: 141f6185343b14d429231cebb14fd4b8, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -176
+      value: -48
       objectReference: {fileID: 0}
     - target: {fileID: 2142820150562471293, guid: 141f6185343b14d429231cebb14fd4b8, type: 3}
       propertyPath: m_AnchoredPosition.y

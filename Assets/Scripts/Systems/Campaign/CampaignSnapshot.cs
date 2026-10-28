@@ -16,7 +16,7 @@ namespace CurtainCall.Campaign
         Performance,
         /// <summary>쉬는 시간(아침·가이드·공연 사이).</summary>
         RestTime,
-        /// <summary>밤 정비. 타이머 없음, 전원 준비 완료로 끝난다.</summary>
+        /// <summary>밤 정비. 기본 무제한이며, 전원 준비 완료 또는 설정한 제한시간 만료로 끝난다.</summary>
         Night,
         /// <summary>탈출로. 쉬는 시간 타이머는 멈춘다.</summary>
         Escape,
@@ -51,6 +51,8 @@ namespace CurtainCall.Campaign
         Running,
         /// <summary>탈출 개시로 멈췄다.</summary>
         Stopped,
+        /// <summary>제한시간 없음. 남은 시간은 유한한 0으로 전송하고 소집 경보를 울리지 않는다.</summary>
+        Unlimited = 4,
     }
 
     /// <summary>런이 끝난 이유. 숫자로 전송하므로 값은 끝에만 추가한다.</summary>

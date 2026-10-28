@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 namespace CurtainCall.UI.SceneIntegration
 {
-    /// <summary>정본 알림의 폭과 상단 위치를 유지하며 텍스트를 최대 두 줄로 배치한다.</summary>
+    /// <summary>알림 텍스트를 최대 두 줄로 배치하고 상단 배너는 HUD 배치에 맞춰 정렬한다.</summary>
     [DisallowMultipleComponent]
     public sealed class NotificationTextLayout : MonoBehaviour
     {
@@ -14,7 +14,7 @@ namespace CurtainCall.UI.SceneIntegration
         float baseHeight, titleHeight, subtitleHeight, messageHeight;
         string previousTitle, previousSubtitle, previousMessage;
         float previousWidth;
-        bool initialized, interaction;
+        bool initialized, interaction, banner;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Bootstrap()
@@ -47,6 +47,7 @@ namespace CurtainCall.UI.SceneIntegration
         {
             if (initialized) return;
             panel = (RectTransform)transform;
+            banner = GetComponent<SystemBannerView>() != null;
             title = transform.Find("Motion/60_TitleTMP")?.GetComponent<TMP_Text>();
             subtitle = transform.Find("Motion/70_SubtitleTMP")?.GetComponent<TMP_Text>();
             message = transform.Find("Motion/60_MessageTMP")?.GetComponent<TMP_Text>();
@@ -70,6 +71,13 @@ namespace CurtainCall.UI.SceneIntegration
 
         void LateUpdate()
         {
+            if (banner)
+            {
+                var space = CommonUiSceneLoader.CurrentSpace;
+                bool balanceAtTop = space != null && space.LocalBalance != null
+                    && CurtainCall.Settings.GameSettings.Base.HudLayout.BalancePosition == CurtainCall.Settings.BaseGameSettings.BalanceHudPosition.TopCenter;
+                HudLayout.PlaceBanner(panel, balanceAtTop);
+            }
             if (previousTitle != title?.text || previousSubtitle != subtitle?.text
                 || previousMessage != message?.text || !Mathf.Approximately(previousWidth, panel.rect.width))
                 RefreshLayout();
