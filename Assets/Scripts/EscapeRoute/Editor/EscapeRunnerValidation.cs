@@ -11,8 +11,11 @@ namespace CurtainCall.EscapeRoute.EditorTools
     {
         public static string ValidateRunnerEscape()
         {
-            if (SceneManager.GetActiveScene().path != ScenePath || EditorApplication.isPlayingOrWillChangePlaymode)
-                throw new InvalidOperationException("A 편집 모드가 필요합니다.");
+            string scenePath = SceneManager.GetActiveScene().path;
+            bool sharedVariant = (scenePath == VariantBPath && GameObject.Find(RootName + "/" + TraversalSpacePrefix + "B") != null)
+                || (scenePath == VariantCPath && GameObject.Find(RootName + "/" + TraversalSpacePrefix + "C") != null);
+            if ((scenePath != ScenePath && !sharedVariant) || EditorApplication.isPlayingOrWillChangePlaymode)
+                throw new InvalidOperationException("A 또는 A 기반 B/C 편집 모드가 필요합니다.");
             var group = GameObject.Find(RootName + "/" + RunnerGroup);
             if (group == null) throw new InvalidOperationException("마지막 질주 구조가 없습니다.");
             Physics.SyncTransforms();

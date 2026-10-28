@@ -14,6 +14,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var scene = SceneManager.GetActiveScene();
             bool b = scene.path == VariantBPath;
             if (!b && scene.path != VariantCPath) throw new InvalidOperationException("B/C 구조 씬을 먼저 여세요.");
+            if (GameObject.Find(RootName + "/" + TraversalSpacePrefix + (b ? "B" : "C")) != null)
+                return ValidateASharedVariant();
             var errors = new List<string>();
             var background = scene.GetRootGameObjects().First(g => g.name == RootName);
             Physics.SyncTransforms();
