@@ -66,7 +66,7 @@
 - [x] 현재 공개/비공개 구현을 병합 전 커밋으로 보존
 - [x] origin/dev·private main 통합, 에셋 포인터 충돌 해결
 - [x] 통합 회귀·완료 검사 후 병합 결과 저장(EditMode 103/103, UI PlayMode 전체 54/55 후 남은 클래스 2/2·55개 대상 통과 확보, check-work PASS)
-- [ ] origin push·dev 대상 PR 제출·링크 기록(private PR7 main 미병합으로 pre-push 훅 차단, PM 팀 검토 요청 명령 성공이나 실제 요청 목록 비어 있음·지정 확인 필요)
+- [x] origin push·dev 대상 PR 제출·링크 기록(private PR7 병합 후 훅 통과, 공개 PR232 제출·PM 팀 검토 요청 확인)
 
 ## 순간 끊김 수정
 - [x] UploadLoop 준비·ACK 작업 스레드 분리 및 동시 파일 접근 보호
