@@ -24,10 +24,15 @@ namespace CurtainCall.Player
             public int Index;
             public GameObject Object;
             public Mesh Mesh;
+            public Rigidbody Body;
+            public Vector3 CutLocal;
             public float Expires;
         }
 
         readonly List<Piece> pieces = new();
+        readonly List<(BodyPart Part, Rigidbody Body, Collider Collider)> ragdollParts = new();
+        bool articulated;
+        readonly Dictionary<Transform, Quaternion> restRotations = new();
         MaterialPropertyBlock block;
         static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         static readonly int ColorId = Shader.PropertyToID("_Color");
@@ -36,6 +41,13 @@ namespace CurtainCall.Player
         int stateHash;
 
         bool positionCaptured;
+
+        void Awake()
+        {
+            if (Original == null || Original.rootBone == null) return;
+            foreach (var bone in Original.rootBone.GetComponentsInChildren<Transform>())
+                restRotations[bone] = bone.localRotation;
+        }
 
         public static int StageFor(BodyPart parts)
         {
@@ -60,6 +72,13 @@ namespace CurtainCall.Player
                 Original.enabled = next == 0;
                 for (int i = 0; i < 4; i++) { Bodies[i].enabled = next == i + 1; Limbs[i].enabled = false; }
                 Stage = next;
+                foreach (var part in ragdollParts)
+                    if ((current & part.Part) != 0)
+                    {
+                        part.Collider.enabled = false;
+                        foreach (var joint in part.Body.GetComponents<CharacterJoint>()) Destroy(joint);
+                        part.Body.isKinematic = true;
+                    }
                 initialized = true;
                 // 분리된 래그돌의 월드 위치는 더 이상 슬롯 기준으로 되돌리지 않는다.
                 if (transform.parent != null) transform.localPosition = basePosition + Vector3.up * (next >= 2 ? CrawlHeightOffset : 0f);
@@ -69,19 +88,26 @@ namespace CurtainCall.Player
                 foreach (var piece in pending)
                 {
                     piece.Object.SetActive(true);
-                    var rb = piece.Object.GetComponent<Rigidbody>();
+                    var rb = piece.Body;
                     var settings = GameSettings.Base.BodyDamage;
                     Vector3 outward = CutPoint(piece) - transform.position;
                     outward.y = 0;
                     outward = outward.sqrMagnitude > .0001f ? outward.normalized : transform.right;
-                    rb.linearVelocity = body != null ? body.velocity : Vector3.zero;
-                    rb.angularVelocity = UnityEngine.Random.onUnitSphere * settings.LimbSpin;
+                    foreach (var limbBody in piece.Object.GetComponentsInChildren<Rigidbody>())
+                    {
+                        limbBody.isKinematic = false;
+                        limbBody.linearVelocity = body != null ? body.velocity : Vector3.zero;
+                        limbBody.angularVelocity = ReleaseSpin(limbBody) + UnityEngine.Random.onUnitSphere * settings.LimbSpin;
+                    }
                     rb.AddForceAtPosition(outward * settings.LimbFlingSpeed + Vector3.up * settings.LimbFlingUpSpeed,
                         CutPoint(piece), ForceMode.Impulse);
-                    var collider = piece.Object.GetComponent<Collider>();
-                    foreach (var other in FindObjectsByType<Collider>(FindObjectsSortMode.None))
-                        if (other != collider && (other.isTrigger || other.attachedRigidbody != null || other is CharacterController))
-                            Physics.IgnoreCollision(collider, other);
+                    foreach (var collider in piece.Object.GetComponentsInChildren<Collider>())
+                    {
+                        foreach (var other in FindObjectsByType<Collider>(FindObjectsSortMode.None))
+                            if (other != collider && (other.isTrigger || other.attachedRigidbody != null || other is CharacterController))
+                                Physics.IgnoreCollision(collider, other);
+                        CurtainCall.Tightrope.TightropeCourse.Current?.IgnoreRopeCollision(collider);
+                    }
                     pieces.Add(piece);
                 }
                 pending.Clear();
@@ -102,22 +128,35 @@ namespace CurtainCall.Player
                 piece.Object.layer = Physics.IgnoreRaycastLayer;
                 piece.Object.transform.SetPositionAndRotation(source.transform.position, source.transform.rotation);
                 piece.Object.transform.localScale = source.transform.lossyScale;
-                piece.Object.AddComponent<MeshFilter>().sharedMesh = piece.Mesh;
-                var renderer = piece.Object.AddComponent<MeshRenderer>();
+                Vector3 cut = BakedCutPoint(piece);
+                var bones = new Dictionary<Transform, Transform>();
+                var skeleton = CloneSkeleton(source.rootBone, piece.Object.transform, bones);
+                var upperId = new[] { HumanBodyBones.LeftUpperLeg, HumanBodyBones.RightUpperLeg, HumanBodyBones.LeftUpperArm, HumanBodyBones.RightUpperArm }[index];
+                var lowerId = new[] { HumanBodyBones.LeftLowerLeg, HumanBodyBones.RightLowerLeg, HumanBodyBones.LeftLowerArm, HumanBodyBones.RightLowerArm }[index];
+                var endId = new[] { HumanBodyBones.LeftFoot, HumanBodyBones.RightFoot, HumanBodyBones.LeftHand, HumanBodyBones.RightHand }[index];
+                var upper = bones[Animator.GetBoneTransform(upperId)];
+                var lower = bones[Animator.GetBoneTransform(lowerId)];
+                var end = bones[Animator.GetBoneTransform(endId)];
+                // 절단면의 몸통 쪽 가중치도 함께 운반한다. 원본 뼈나 고정된 복제 뼈에 매달리지 않는다.
+                upper.SetParent(piece.Object.transform, true);
+                skeleton.SetParent(upper, true);
+                var skin = new GameObject("Detached Skin").transform;
+                skin.gameObject.layer = Physics.IgnoreRaycastLayer;
+                skin.SetPositionAndRotation(source.transform.position, source.transform.rotation);
+                skin.localScale = source.transform.lossyScale;
+                skin.SetParent(upper, true);
+                var renderer = skin.gameObject.AddComponent<SkinnedMeshRenderer>();
+                renderer.sharedMesh = source.sharedMesh;
                 renderer.sharedMaterials = source.sharedMaterials;
+                renderer.quality = source.quality;
+                renderer.rootBone = skeleton;
+                renderer.bones = Array.ConvertAll(source.bones, bone => bones[bone]);
+                renderer.updateWhenOffscreen = true;
                 Tint(renderer, SurfaceColor, Original.sharedMesh.subMeshCount);
-                var collider = piece.Object.AddComponent<BoxCollider>();
-                collider.center = piece.Mesh.bounds.center;
-                collider.size = piece.Mesh.bounds.size;
-                var rb = piece.Object.AddComponent<Rigidbody>();
-                rb.mass = 1;
-                rb.useGravity = true;
-                rb.interpolation = RigidbodyInterpolation.Interpolate;
-                rb.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
-                if (body != null) Physics.IgnoreCollision(collider, body);
-                foreach (var other in FindObjectsByType<Collider>(FindObjectsSortMode.None))
-                    if (other != collider && (other.isTrigger || other.attachedRigidbody != null || other is CharacterController))
-                        Physics.IgnoreCollision(collider, other);
+                float radius = index < 2 ? .075f : .055f;
+                piece.Body = AddRagdollBone(upper, lower.position, null, PlayerCondition.CutOrder[index], 2f, radius, false);
+                AddRagdollBone(lower, end.position, piece.Body, PlayerCondition.CutOrder[index], 1f, radius * .8f, false);
+                piece.CutLocal = upper.InverseTransformPoint(cut);
                 float lifetime = GameSettings.Base.BodyDamage.LimbLifetime;
                 piece.Expires = lifetime > 0 ? Time.time + lifetime : float.PositiveInfinity;
                 CutPoint(piece);
@@ -126,7 +165,22 @@ namespace CurtainCall.Player
             catch { Dispose(piece); throw; }
         }
 
-        static Vector3 CutPoint(Piece piece)
+        static Transform CloneSkeleton(Transform source, Transform parent, Dictionary<Transform, Transform> bones)
+        {
+            var clone = new GameObject(source.name).transform;
+            clone.gameObject.layer = Physics.IgnoreRaycastLayer;
+            clone.SetPositionAndRotation(source.position, source.rotation);
+            clone.localScale = source.lossyScale;
+            clone.SetParent(parent, true);
+            bones.Add(source, clone);
+            foreach (Transform child in source)
+                if (child.name != "Ragdoll Collider") CloneSkeleton(child, clone, bones);
+            return clone;
+        }
+
+        static Vector3 CutPoint(Piece piece) => piece.Body.transform.TransformPoint(piece.CutLocal);
+
+        static Vector3 BakedCutPoint(Piece piece)
         {
             var vertices = piece.Mesh.vertices;
             var triangles = piece.Mesh.GetTriangles(piece.Mesh.subMeshCount - 1);
@@ -183,9 +237,115 @@ namespace CurtainCall.Player
             else Animator.CrossFadeInFixedTime(hash, .12f);
         }
 
+        /// <summary>현재 포즈의 Humanoid 뼈에 물리를 연결한다. 절단된 사지는 만들지 않는다.</summary>
+        public void EnableRagdoll()
+        {
+            if (articulated || Animator == null || !Animator.isHuman) return;
+            StopMotion();
+            var hips = Animator.GetBoneTransform(HumanBodyBones.Hips);
+            var chest = Animator.GetBoneTransform(HumanBodyBones.Chest);
+            if (chest == null) chest = Animator.GetBoneTransform(HumanBodyBones.Spine);
+            var head = Animator.GetBoneTransform(HumanBodyBones.Head);
+            if (hips == null || chest == null || head == null) return;
+            articulated = true;
+            Original.updateWhenOffscreen = true;
+            foreach (var renderer in Bodies) renderer.updateWhenOffscreen = true;
+            var rootCollider = GetComponent<BoxCollider>();
+            if (rootCollider != null) rootCollider.enabled = false;
+            // 매달린 자세로 관절을 만들면 그 자세가 제한각의 기준이 된다. 중립 자세에서 구성한 뒤 현재 포즈로 돌린다.
+            var pose = new Dictionary<Transform, Quaternion>();
+            foreach (var pair in restRotations)
+            {
+                pose[pair.Key] = pair.Key.localRotation;
+                pair.Key.localRotation = pair.Value;
+            }
+            RelaxShoulder(HumanBodyBones.LeftUpperArm, HumanBodyBones.LeftLowerArm);
+            RelaxShoulder(HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm);
+            var pelvis = AddRagdollBone(hips, chest.position, null, BodyPart.None, 8f, .14f);
+            var torso = AddRagdollBone(chest, head.position, pelvis, BodyPart.None, 8f, .16f);
+            AddRagdollBone(head, head.position + (head.position - chest.position).normalized * .2f,
+                torso, BodyPart.None, 3f, .11f);
+            AddRagdollLimb(HumanBodyBones.LeftUpperArm, HumanBodyBones.LeftLowerArm, HumanBodyBones.LeftHand, torso, BodyPart.LeftArm, .055f);
+            AddRagdollLimb(HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, HumanBodyBones.RightHand, torso, BodyPart.RightArm, .055f);
+            AddRagdollLimb(HumanBodyBones.LeftUpperLeg, HumanBodyBones.LeftLowerLeg, HumanBodyBones.LeftFoot, pelvis, BodyPart.LeftLeg, .075f);
+            AddRagdollLimb(HumanBodyBones.RightUpperLeg, HumanBodyBones.RightLowerLeg, HumanBodyBones.RightFoot, pelvis, BodyPart.RightLeg, .075f);
+            foreach (var pair in pose) pair.Key.localRotation = pair.Value;
+            // 연결되지 않은 부위끼리도 자기 충돌을 막아 물리 시작 직후 튀거나 떨리지 않게 한다.
+            for (int i = 0; i < ragdollParts.Count; i++)
+                for (int j = i + 1; j < ragdollParts.Count; j++)
+                    Physics.IgnoreCollision(ragdollParts[i].Collider, ragdollParts[j].Collider);
+        }
+
+        void RelaxShoulder(HumanBodyBones upperId, HumanBodyBones lowerId)
+        {
+            var upper = Animator.GetBoneTransform(upperId);
+            var lower = Animator.GetBoneTransform(lowerId);
+            if (upper == null || lower == null) return;
+            Vector3 direction = (lower.position - upper.position).normalized;
+            upper.rotation = Quaternion.FromToRotation(direction, (direction - transform.up).normalized) * upper.rotation;
+        }
+
+        void AddRagdollLimb(HumanBodyBones upperBone, HumanBodyBones lowerBone, HumanBodyBones endBone,
+            Rigidbody parent, BodyPart part, float radius)
+        {
+            if ((PlayerCondition.PartsForLostCount(Stage) & part) != 0) return;
+            var upper = Animator.GetBoneTransform(upperBone);
+            var lower = Animator.GetBoneTransform(lowerBone);
+            var end = Animator.GetBoneTransform(endBone);
+            if (upper == null || lower == null || end == null) return;
+            var first = AddRagdollBone(upper, lower.position, parent, part, 2f, radius);
+            AddRagdollBone(lower, end.position, first, part, 1f, radius * .8f);
+        }
+
+        Rigidbody AddRagdollBone(Transform bone, Vector3 end, Rigidbody parent, BodyPart part, float mass, float radius, bool track = true)
+        {
+            // 콜라이더는 뼈 로컬 축과 무관하게 실제 두 관절 사이를 덮는다.
+            var shape = new GameObject("Ragdoll Collider");
+            shape.layer = Physics.IgnoreRaycastLayer;
+            shape.transform.SetPositionAndRotation((bone.position + end) * .5f, Quaternion.FromToRotation(Vector3.up, end - bone.position));
+            shape.transform.SetParent(bone, true);
+            var capsule = shape.AddComponent<CapsuleCollider>();
+            capsule.radius = radius;
+            capsule.height = Mathf.Max(radius * 2f, Vector3.Distance(bone.position, end));
+            var body = bone.gameObject.AddComponent<Rigidbody>();
+            body.mass = mass;
+            body.isKinematic = true;
+            body.interpolation = RigidbodyInterpolation.Interpolate;
+            body.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            body.solverIterations = 12;
+            if (parent != null)
+            {
+                var joint = bone.gameObject.AddComponent<CharacterJoint>();
+                joint.connectedBody = parent;
+                joint.axis = bone.InverseTransformDirection((end - bone.position).normalized);
+                Vector3 swing = Vector3.ProjectOnPlane(transform.forward, end - bone.position).normalized;
+                if (swing.sqrMagnitude < .01f) swing = Vector3.ProjectOnPlane(transform.right, end - bone.position).normalized;
+                joint.swingAxis = bone.InverseTransformDirection(swing);
+                joint.lowTwistLimit = new SoftJointLimit { limit = -70f };
+                joint.highTwistLimit = new SoftJointLimit { limit = 70f };
+                float swingLimit = mass >= 3f ? 40f : mass > 1f ? 70f : 100f;
+                joint.swing1Limit = new SoftJointLimit { limit = swingLimit };
+                joint.swing2Limit = new SoftJointLimit { limit = swingLimit };
+                joint.enableProjection = true;
+                joint.enablePreprocessing = false;
+            }
+            if (track) ragdollParts.Add((part, body, capsule));
+            return body;
+        }
+
+        public Vector3 ReleaseSpin(Rigidbody body)
+        {
+            // 몸 전체는 세 축으로 구르고, 팔다리는 서로 다른 회전으로 풀려 일체로 굳지 않게 한다.
+            Vector3 tumble = transform.TransformDirection(new Vector3(2.2f, 1.6f, 2.8f));
+            if (body.mass >= 3f) return tumble;
+            float side = Vector3.Dot(body.worldCenterOfMass - transform.position, transform.right) >= 0 ? 1f : -1f;
+            return tumble + transform.forward * (side * (body.mass > 1f ? 4f : -6f));
+        }
+
         public void StopMotion()
         {
             if (Animator != null) Animator.enabled = false;
+            if (articulated) return;
             // 기존 한 덩어리 래그돌이 현재 남은 몸의 실제 스킨 범위로 바닥과 충돌하게 한다.
             var collider = GetComponent<BoxCollider>();
             if (collider == null) return;
@@ -207,7 +367,7 @@ namespace CurtainCall.Player
         public Rigidbody GetPieceBody(int index)
         {
             foreach (var piece in pieces)
-                if (piece.Index == index && piece.Object != null) return piece.Object.GetComponent<Rigidbody>();
+                if (piece.Index == index && piece.Object != null) return piece.Body;
             return null;
         }
         void Update()

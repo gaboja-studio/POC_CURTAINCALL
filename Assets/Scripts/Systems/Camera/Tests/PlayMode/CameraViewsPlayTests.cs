@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
@@ -90,6 +91,213 @@ namespace CurtainCall.Cameras.Tests
             yield return Teleport(new Vector3(9.6f, .08f, 70));
             Assert.AreSame(lobby, Get(director, "CurrentView"), "경계 여유 구간에만 돌아가도 좁은 시점에 재진입하지 않는다");
         }
+
+        [UnityTest]
+        public IEnumerator DeathView_FinalizeDropsOnlyThenHoldsDespiteTargetAndPresetChanges()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            Call(director, "SetInputBlocked", true);
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            yield return Teleport(local.transform.position + Vector3.up * 12f);
+            yield return Seconds(.6f);
+            var camera = director.GetComponent<CinemachineCamera>();
+            var before = camera.State;
+            SetDead();
+            camera.InternalUpdateCameraState(Vector3.up, -1f);
+            AssertVector(before.GetFinalPosition(), camera.State.GetFinalPosition(), "사망 직전 출력에서 시작", .05f);
+            Assert.That(SpectatorTarget, Is.Null, "낙하 관찰 중 관전 대상 없음");
+
+            var request = ScriptableObject.CreateInstance(GameType("CurtainCall.Cameras.CameraViewPreset"));
+            try
+            {
+                request.GetType().GetField("Height").SetValue(request, 40f);
+                request.GetType().GetField("FieldOfView").SetValue(request, 100f);
+                Call(director, "RequestView", director, request, 1000, Vector3.right);
+                Call(Mover, "SetStartPose", local.transform.position + new Vector3(20f, -30f, 15f), Quaternion.Euler(0f, 120f, 0f));
+                SetPrivate(director, "deathStarted", Time.unscaledTime - .3f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                AssertVector(before.GetFinalPosition() + Vector3.down * .75f, camera.State.GetFinalPosition(), "절반 시간에는 아래로만 이동", .02f);
+                var halfway = camera.State;
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                AssertVector(halfway.GetFinalPosition(), camera.State.GetFinalPosition(), "같은 프레임 pipeline 재호출은 누적 이동하지 않음");
+                Assert.Less(Quaternion.Angle(before.GetFinalOrientation(), camera.State.GetFinalOrientation()), .01f);
+                Assert.AreEqual(before.Lens.FieldOfView, camera.State.Lens.FieldOfView, .001f, "시점 요청의 줌 변경도 차단");
+
+                SetPrivate(director, "deathStarted", Time.unscaledTime - 2f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                var stopped = before.GetFinalPosition() + Vector3.down * 1.5f;
+                AssertVector(stopped, camera.State.GetFinalPosition(), "최대 1.5m에서 정지");
+                yield return Frames(4);
+                AssertVector(stopped, camera.State.GetFinalPosition(), "생존자 없으면 관전 대기 시간 뒤에도 고정");
+                AssertVector(stopped, Camera.main.transform.position, "Brain에도 최종 고정 포즈 적용", .02f);
+                Assert.Less(Quaternion.Angle(before.GetFinalOrientation(), camera.State.GetFinalOrientation()), .01f);
+
+                Call(local, "ServerRestoreAll");
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.IsFalse((bool)GetPrivate(director, "deathView"), "부활 시 고정 해제");
+                Assert.IsFalse((bool)Get(GameType("CurtainCall.Cameras.CameraSpectator"), "IsSpectating"));
+                yield return Seconds(.8f);
+                Assert.Greater(Vector3.Distance(stopped, camera.State.GetFinalPosition()), 1f, "부활 뒤 다시 추적");
+            }
+            finally
+            {
+                Call(director, "ReleaseView", director);
+                Object.Destroy(request);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator DeathView_GroundDeathStaysAboveFloorAndLooksAtCorpseLocation()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try
+            {
+                floor.transform.position = new Vector3(1000f, 29.5f, 1000f);
+                floor.transform.localScale = new Vector3(20f, 1f, 20f);
+                Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+                yield return Teleport(new Vector3(1000f, 30.05f, 1000f));
+                Physics.SyncTransforms();
+                var camera = director.GetComponent<CinemachineCamera>();
+                var low = camera.State;
+                low.RawPosition = new Vector3(1000f, 30.1f, 1000f);
+                low.PositionCorrection = Vector3.zero;
+                SetPrivate(director, "lastOutput", low);
+                SetDead();
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                var held = camera.State;
+                Assert.That(held.GetFinalPosition().y, Is.GreaterThanOrEqualTo(31.2f));
+                Vector3 target = new Vector3(1000f, 30.35f, 1000f);
+                Assert.That(Vector3.Angle(held.GetFinalOrientation() * Vector3.forward, target - held.GetFinalPosition()), Is.LessThan(.1f));
+                Assert.That((float)GetPrivate(director, "deathDropDistance"), Is.Zero);
+                Call(Mover, "SetStartPose", local.transform.position + Vector3.down * 20f, Quaternion.identity);
+                SetPrivate(director, "deathStarted", Time.unscaledTime - 2f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                AssertVector(held.GetFinalPosition(), camera.State.GetFinalPosition(), "땅 아래 캐릭터 루트나 하강 연출을 따라가지 않음");
+                yield return Frames(3);
+                AssertVector(held.GetFinalPosition(), Camera.main.transform.position, "실제 화면도 바닥 위에 고정", .02f);
+                Vector3 viewport = Camera.main.WorldToViewportPoint(target);
+                Assert.That(viewport.z, Is.GreaterThan(0f));
+                Assert.That(viewport.x, Is.EqualTo(.5f).Within(.02f));
+                Assert.That(viewport.y, Is.EqualTo(.5f).Within(.02f), "사망 위치가 화면 중앙에 보여야 한다.");
+            }
+            finally { Object.Destroy(floor); }
+        }
+
+        [UnityTest]
+        public IEnumerator DeathView_AirborneDropStopsBeforeCameraTouchesFloor()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try
+            {
+                floor.transform.position = new Vector3(1000f, 29.5f, 1000f);
+                floor.transform.localScale = new Vector3(20f, 1f, 20f);
+                Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+                yield return Teleport(new Vector3(1000f, 40f, 1000f));
+                Physics.SyncTransforms();
+                var camera = director.GetComponent<CinemachineCamera>();
+                var low = camera.State;
+                low.RawPosition = new Vector3(1000f, 31f, 1000f);
+                low.PositionCorrection = Vector3.zero;
+                SetPrivate(director, "lastOutput", low);
+                SetDead();
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                SetPrivate(director, "deathStarted", Time.unscaledTime - 1f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.That(camera.State.GetFinalPosition().y, Is.GreaterThanOrEqualTo(30.29f), "공중 사망도 카메라가 지면을 뚫고 하강하면 안 된다.");
+                Assert.That(camera.State.GetFinalPosition().y, Is.LessThan(31f), "가능한 만큼의 짧은 하강은 유지한다.");
+            }
+            finally { Object.Destroy(floor); }
+        }
+
+        [UnityTest]
+        public IEnumerator DeathView_SurvivorSelectionWaitsThenReturnsToExistingSpectating()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            // 다른 PC 연결 검증이 아니라 대상 선택 회귀다. 미생성 플레이어를 생존자 목록에만 넣는다.
+            var survivorObject = new GameObject("Camera test survivor");
+            var survivor = survivorObject.AddComponent(GameType(PlayerType));
+            var players = (IList)Get(GameType(PlayerType), "All");
+            players.Add(survivor);
+            try
+            {
+                survivor.transform.position = local.transform.position + Vector3.right * 10f;
+                var camera = director.GetComponent<CinemachineCamera>();
+                SetDead();
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.That(SpectatorTarget, Is.Null);
+                Assert.AreSame(local.transform, camera.Target.TrackingTarget);
+                SetPrivate(director, "deathStarted", Time.unscaledTime - 1.4f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.That(SpectatorTarget, Is.Null, "1.5초 전에는 생존자가 있어도 전환하지 않음");
+                SetPrivate(director, "deathStarted", Time.unscaledTime - 1.6f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.AreSame(survivor, SpectatorTarget);
+                Assert.AreSame(survivor.transform, camera.Target.TrackingTarget);
+                Assert.IsTrue(camera.FollowTargetChanged, "PrePipeline 관전 전환도 Body 전에 대상 캐시에 반영");
+                Assert.IsTrue(camera.LookAtTargetChanged, "Aim 캐시도 같은 pipeline에서 갱신");
+                Assert.IsFalse((bool)GetPrivate(director, "deathView"));
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.IsFalse((bool)GetPrivate(director, "deathView"), "같은 사망을 pipeline마다 재시작하지 않음");
+            }
+            finally
+            {
+                players.Remove(survivor);
+                Object.Destroy(survivorObject);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator DeathView_DisableAndActiveSceneChangeDiscardPreviousAnchor()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            var camera = director.GetComponent<CinemachineCamera>();
+            SetDead();
+            camera.InternalUpdateCameraState(Vector3.up, -1f);
+            Assert.IsTrue((bool)GetPrivate(director, "deathView"));
+            var behaviour = (Behaviour)director;
+            behaviour.enabled = false;
+            Assert.IsFalse((bool)GetPrivate(director, "deathView"));
+            Assert.IsFalse((bool)GetPrivate(director, "hasDeathOutput"));
+            behaviour.enabled = true;
+            camera.InternalUpdateCameraState(Vector3.up, -1f);
+            Assert.IsTrue((bool)GetPrivate(director, "deathView"));
+            var spectator = (Behaviour)director.GetComponent(GameType("CurtainCall.Cameras.CameraSpectator"));
+            spectator.enabled = false;
+            Assert.IsFalse((bool)GetPrivate(director, "deathView"), "관전 비활성화도 화면 고정 정리");
+            spectator.enabled = true;
+            Call(local, "ServerRestoreAll");
+            camera.InternalUpdateCameraState(Vector3.up, -1f);
+            SetDead();
+            camera.InternalUpdateCameraState(Vector3.up, -1f);
+
+            var previous = SceneManager.GetActiveScene();
+            var next = SceneManager.CreateScene("Camera death cleanup test");
+            try
+            {
+                Assert.IsTrue(SceneManager.SetActiveScene(next));
+                Assert.IsFalse((bool)GetPrivate(director, "deathView"));
+                Assert.IsFalse((bool)GetPrivate(director, "hasOutput"), "다음 씬에서 이전 출력 기준점을 재사용하지 않음");
+                Assert.That(SpectatorTarget, Is.Null);
+                Assert.IsFalse((bool)Get(GameType("CurtainCall.Cameras.CameraSpectator"), "IsSpectating"));
+            }
+            finally
+            {
+                SceneManager.SetActiveScene(previous);
+                SceneManager.UnloadSceneAsync(next);
+            }
+        }
+
+        object SpectatorTarget => Get(GameType("CurtainCall.Cameras.CameraSpectator"), "Target");
+
+        void SetDead() => Call(local, "ServerSetState", Enum.Parse(GameType("CurtainCall.Network.PlayerSync.PlayerState"), "Fallen"));
+
+        static object GetPrivate(object target, string name) => target.GetType()
+            .GetField(name, BindingFlags.NonPublic | BindingFlags.Instance).GetValue(target);
+
+        static void SetPrivate(object target, string name, object value) => target.GetType()
+            .GetField(name, BindingFlags.NonPublic | BindingFlags.Instance).SetValue(target, value);
 
         IEnumerator Host(string scene)
         {
