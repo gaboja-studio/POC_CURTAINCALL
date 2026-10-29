@@ -16,6 +16,9 @@ MonoBehaviour:
   - name: "\uD1A0\uB07C"
     prefab: {fileID: 2908563419136654939, guid: 2785f1c4450616b449849296d575196d, type: 3}
     outfitPrefabs: []
+  - name: "\uACF0"
+    prefab: {fileID: 1160928663633974094, guid: b80a7925185a00e44bc4dcafd8ca4d99, type: 3}
+    outfitPrefabs: []
   outfits:
   - "\uBE68\uAC15"
   - "\uD30C\uB791"
