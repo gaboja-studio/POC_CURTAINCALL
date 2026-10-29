@@ -136,6 +136,24 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
+        public void LaneJumpFreezesDangerInRedUntilLanding()
+        {
+            var mover = player.AddComponent<PlayerMover>();
+            Set(balance, "mover", mover);
+            balance.ContinueWhileAirborne = true;
+            balance.SetDisplayedState(true, 60f);
+            Step(.5f);
+            typeof(PlayerMover).GetProperty(nameof(PlayerMover.CurrentJump)).SetValue(mover, JumpKind.Lane);
+            balance.SetAirborne(true);
+            Step(3f);
+            Assert.That(balance.RedTime, Is.EqualTo(.5f).Within(.0001f), "옆줄 점프 중에는 빨강이어도 추락 위험이 쌓이지 않는다.");
+            Assert.That(balance.HasFallen, Is.False);
+            typeof(PlayerMover).GetProperty(nameof(PlayerMover.CurrentJump)).SetValue(mover, JumpKind.InPlace);
+            Step(.5f);
+            Assert.That(balance.RedTime, Is.EqualTo(1f).Within(.0001f), "일반 점프는 공중에서도 계속 쌓인다.");
+        }
+
+        [Test]
         public void RepeatedLaneLandingsAddFivePercentagePointsEach()
         {
             balance.SetDisplayedState(true, 60f);

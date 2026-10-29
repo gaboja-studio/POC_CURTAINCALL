@@ -146,9 +146,9 @@ MonoBehaviour:
       startSide: 1
     - distance: 31.6
       startSide: 0
-    - distance: 41.4
+    - distance: 43.4
       startSide: 1
-    - distance: 51.2
+    - distance: 56.3
       startSide: 0
     - distance: 61
       startSide: 1
@@ -225,7 +225,7 @@ MonoBehaviour:
     chaseEnabled: 1
     chaseDelay: 10
     chaseStart: -6
-    chaseSpeed: 0.35
+    chaseSpeed: 1
     safeDistance: 165
     warningSeconds: 2.5
     triggerMode: 1

@@ -47,10 +47,12 @@ namespace CurtainCall.Tightrope
         public Vector3 PoleFeet(int index) => course.RelayPoleGround(index);
         public ulong HolderAt(int index) => stations[index].State.Occupant;
         public float HoldRemaining(int index) => stations[index].State.IsOccupied ? Mathf.Max(0f, (float)(stations[index].State.HoldUntil - Clock)) : 0f;
-        public bool OutboundOpen => IsActive && (GroupOpen(false) || GroupOpen(true));
-        public bool ReturnOpen => IsActive && GroupOpen(true);
-        public bool OutboundWarning => OutboundOpen && !GroupHeld(false) && !GroupHeld(true);
-        public bool ReturnWarning => ReturnOpen && !GroupHeld(true);
+        // 줄은 봉을 실제로 잡고 있는 동안에만 이어진다. 놓으면 그 봉이 연 줄은 바로 끊긴다.
+        public bool OutboundOpen => IsActive && (GroupHeld(false) || GroupHeld(true));
+        public bool ReturnOpen => IsActive && GroupHeld(true);
+        // 경고: 줄을 이어 주는 봉들이 모두 유지 시간 마지막 예고 구간에 들어갔다.
+        public bool OutboundWarning => OutboundOpen && (!GroupHeld(false) || GroupInWarning(false)) && (!GroupHeld(true) || GroupInWarning(true));
+        public bool ReturnWarning => ReturnOpen && GroupInWarning(true);
         public float OutboundWarningRemaining => OutboundWarning ? Mathf.Max(GroupWarningRemaining(false), GroupWarningRemaining(true)) : 0f;
         public float ReturnWarningRemaining => ReturnWarning ? GroupWarningRemaining(true) : 0f;
         public float WarningRemaining => OutboundWarning && ReturnWarning
@@ -59,15 +61,15 @@ namespace CurtainCall.Tightrope
 
         float GroupWarningRemaining(bool far)
         {
-            if (!GroupOpen(far)) return 0f;
+            if (!GroupHeld(far)) return 0f;
             float first = float.PositiveInfinity, last = 0f;
             foreach (var station in stations)
-                if (station != null && station.Far == far && station.State.Phase == PoleSawPhase.Warning)
+                if (station != null && station.Far == far && station.State.IsOccupied && station.State.Phase == PoleSawPhase.Warning)
                 {
                     float time = Mathf.Max(0f, (float)(station.State.RearmAt - Clock));
                     first = Mathf.Min(first, time); last = Mathf.Max(last, time);
                 }
-            // 두 명 유지 설정에서는 먼저 놓은 봉의 예고가 끝나는 순간 연결 조건을 잃는다.
+            // 두 명 유지 설정에서는 먼저 끝나는 봉의 유지 시간이 다하는 순간 연결 조건을 잃는다.
             return RequiredHolders > 1 && float.IsFinite(first) ? first : last;
         }
         public string LocalFeedback => Clock < feedbackUntil ? feedback : null;
@@ -97,12 +99,11 @@ namespace CurtainCall.Tightrope
                     Quaternion.LookRotation(course.Forward));
             }
         }
-        bool GroupOpen(bool far)
+        bool GroupInWarning(bool far)
         {
-            int count = 0;
             foreach (var station in stations)
-                if (station != null && station.Far == far && station.State.Phase != PoleSawPhase.Active) count++;
-            return count >= RequiredHolders;
+                if (station != null && station.Far == far && station.State.IsOccupied && station.State.Phase == PoleSawPhase.Warning) return true;
+            return false;
         }
         bool GroupHeld(bool far)
         {
@@ -112,8 +113,8 @@ namespace CurtainCall.Tightrope
             return count >= RequiredHolders;
         }
         /// <summary>
-        /// 봉마다 잡을 때 정한 줄 하나를 연다. 출발 봉이 연 줄은 그 봉이 열려 있거나 교대 봉 쪽이 연결을 유지하는 동안,
-        /// 교대 봉이 연 줄은 그 교대 봉이 열려 있는 동안 이어진다. 열린 줄끼리는 겹치지 않는다.
+        /// 봉마다 잡을 때 정한 줄 하나를 연다. 그 줄은 그 봉을 잡고 있는 동안에만 이어지고 놓으면 바로 끊긴다.
+        /// 열린 줄끼리는 겹치지 않는다.
         /// </summary>
         public bool IsLaneConnected(int lane) => LaneOwner(lane) >= 0;
         /// <summary>이 줄을 지금 열고 있는 봉 번호. 없으면 -1.</summary>
@@ -136,27 +137,21 @@ namespace CurtainCall.Tightrope
         bool StationConnected(int index)
         {
             var station = stations[index];
-            if (!IsActive || station.Opened < 0) return false;
-            bool farOpen = GroupOpen(true);
-            if (station.Far) return farOpen && station.State.Phase != PoleSawPhase.Active;
-            // 교대 봉 쪽이 열려 있으면 출발 봉을 놓아도 그 봉이 연 줄은 유지된다(기존 규칙).
-            return (GroupOpen(false) || farOpen) && (station.State.Phase != PoleSawPhase.Active || farOpen);
+            return IsActive && station.Opened >= 0 && station.State.IsOccupied && GroupHeld(station.Far);
         }
         /// <summary>
         /// 출발 봉은 봉이 있는 줄을 빼고, 교대 봉은 전체 줄에서 고른다. 다른 봉이 지금 쓰는 줄과는 겹치지 않는다.
-        /// 이전에 연 줄이 아직 이어져 있으면(교대 봉이 유지 중) 건너는 동료가 떨어지지 않게 그대로 둔다.
         /// </summary>
         int PickLane(int index)
         {
             var station = stations[index];
-            if (station.Opened >= 0 && StationConnected(index)) return station.Opened;
             laneCandidates.Clear();
             for (int lane = 0; lane < course.LaneCount; lane++)
             {
                 if (!station.Far && (lane == PoleLane(0) || lane == PoleLane(1))) continue;
                 bool taken = false;
                 for (int j = 0; j < stations.Length && !taken; j++)
-                    taken = j != index && stations[j].Opened == lane && (StationConnected(j) || stations[j].State.Phase != PoleSawPhase.Active);
+                    taken = j != index && stations[j].Opened == lane && stations[j].State.IsOccupied;
                 if (!taken) laneCandidates.Add(lane);
             }
             return laneCandidates.Count > 0 ? laneCandidates[UnityEngine.Random.Range(0, laneCandidates.Count)] : TransitLane;
@@ -242,9 +237,9 @@ namespace CurtainCall.Tightrope
                     }
                     changed |= station.State.Tick(Clock, station.Pole.WarningSeconds);
                 }
-                // 놓고 예고까지 끝나 더 이상 이어지지 않는 줄은 비워 다음 잡기에서 다시 고르게 한다.
+                // 봉을 놓으면 그 봉이 연 줄을 비운다. 다음에 잡을 때 다시 고른다.
                 for (int i = 0; i < stations.Length; i++)
-                    if (stations[i].Opened >= 0 && stations[i].State.Phase == PoleSawPhase.Active && !StationConnected(i))
+                    if (stations[i].Opened >= 0 && !stations[i].State.IsOccupied)
                     { stations[i].Opened = NoLane; changed = true; }
                 if (changed) version++;
                 if (changed || Clock >= nextSnapshot) { Publish(); nextSnapshot = Clock + .5d; }
