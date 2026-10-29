@@ -165,7 +165,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         {
             yield return SceneManager.LoadSceneAsync("Start", LoadSceneMode.Single);
             yield return null;
-            Capture();
+            Capture(isolateStorage: true);
             session = (Component)Game("CurtainCall.Network.Session.NetworkSessionManager").GetMethod("EnsureExists").Invoke(null, null);
             var host = (Task<bool>)Call(session, "HostLanAsync", (ushort)7789);
             float deadline = Time.realtimeSinceStartup + 30;

@@ -23,7 +23,73 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
             if (Directory.Exists(directory)) Directory.Delete(directory, true);
         }
         DurableOutbox New() => new(directory, Guid.NewGuid().ToString("D"));
+        static LogEvent RelayEvent() => new() { sequence = 1, occurredAt = "2026-10-29T00:00:00Z", monotonicMs = 0,
+            environment = "TEST", gameVersion = "0.1.0", playerId = "test-client", playerNumber = 1,
+            networkClientId = "1", sceneType = "TITLE", eventType = "GAME_STARTED", authority = "LOCAL" };
         static LogEvent Event() => new() { sequence = 1, eventType = "GAME_STARTED", occurredAt = "2026-10-21T08:00:00.000Z" };
+
+        [UnityTest] public IEnumerator AsyncRelay_PreservesExactBytesPriorityAndActiveWhilePreparing()
+        {
+            var old = New(); old.Append(RelayEvent()); old.Seal("CHECKPOINT");
+            string historical = old.NextRelayPath(), historicalRaw = File.ReadAllText(historical);
+            var queue = New(); queue.Append(RelayEvent()); queue.Seal("SCENE_CHANGED");
+            string expected = queue.NextRelayPath(), raw = File.ReadAllText(expected);
+            var work = queue.PrepareRelayAsync();
+            queue.Append(RelayEvent());
+            while (!work.IsCompleted) yield return null;
+            var prepared = work.GetAwaiter().GetResult();
+            Assert.That(prepared.Error, Is.Null); Assert.That(prepared.Path, Is.EqualTo(expected));
+            Assert.That(prepared.Raw, Is.EqualTo(raw)); Assert.That(prepared.Hash, Is.EqualTo(DurableOutbox.Sha256(raw)));
+            Assert.That(prepared.BatchId, Is.EqualTo(LogJson.Parse<LogBatch>(raw).batchId));
+            Assert.That(prepared.EventCount, Is.EqualTo(1));
+            Assert.That(File.ReadAllText(historical), Is.EqualTo(historicalRaw));
+            Assert.That(File.Exists(Path.Combine(directory, "active.json")), Is.True);
+        }
+
+        [UnityTest] public IEnumerator AsyncRelay_SkipsHostBatchesAndMalformedFilesWithoutDeletingThem()
+        {
+            var old = New(); old.Append(RelayEvent()); old.Seal("CHECKPOINT");
+            string expected = old.NextRelayPath();
+            var queue = New(); var host = RelayEvent(); host.authority = "HOST";
+            queue.Append(host); queue.Seal("CHECKPOINT");
+            string hostPath = queue.NextPath(), hostRaw = File.ReadAllText(hostPath);
+            string broken = Path.Combine(directory, Guid.NewGuid().ToString("D") + ".json"); File.WriteAllText(broken, "broken");
+            var work = queue.PrepareRelayAsync(); while (!work.IsCompleted) yield return null;
+            Assert.That(work.Result.Path, Is.EqualTo(expected));
+            Assert.That(File.ReadAllText(hostPath), Is.EqualTo(hostRaw)); Assert.That(File.ReadAllText(broken), Is.EqualTo("broken"));
+        }
+
+        [UnityTest] public IEnumerator AsyncRelay_CancellationAndWrongReceiptKeepOriginalUntilExactDurableAck()
+        {
+            var queue = New(); queue.Append(RelayEvent()); queue.Seal("CHECKPOINT");
+            string path = queue.NextRelayPath(), raw = File.ReadAllText(path);
+            var batch = LogJson.Parse<LogBatch>(raw);
+            using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
+            var cancelled = queue.PrepareRelayAsync(cancellation.Token); while (!cancelled.IsCompleted) yield return null;
+            Assert.That(cancelled.Result.Path, Is.Null);
+            var wrong = queue.AcknowledgeRelayAsync(path, batch.batchId, "wrong", batch.events.Count);
+            while (!wrong.IsCompleted) yield return null;
+            Assert.That(wrong.Result, Is.False);
+            var stopped = queue.AcknowledgeRelayAsync(path, batch.batchId, DurableOutbox.Sha256(raw), batch.events.Count, cancellation.Token);
+            while (!stopped.IsCompleted) yield return null;
+            Assert.That(stopped.Result, Is.False); Assert.That(File.ReadAllText(path), Is.EqualTo(raw));
+            var accepted = queue.AcknowledgeRelayAsync(path, batch.batchId, DurableOutbox.Sha256(raw), batch.events.Count);
+            while (!accepted.IsCompleted) yield return null;
+            Assert.That(accepted.Result, Is.True); Assert.That(File.Exists(path), Is.False); Assert.That(queue.PendingBatchCount, Is.Zero);
+        }
+
+        [UnityTest] public IEnumerator AsyncRelay_ReceiptRacingUploaderDeletesOnceAndPreservesNewActive()
+        {
+            var queue = New(); queue.Append(RelayEvent()); queue.Seal("CHECKPOINT");
+            var preparation = queue.PrepareRelayAsync(); while (!preparation.IsCompleted) yield return null;
+            var prepared = preparation.Result; queue.Append(RelayEvent());
+            var relayAck = queue.AcknowledgeRelayAsync(prepared.Path, prepared.BatchId, prepared.Hash, prepared.EventCount);
+            var uploadAck = queue.AcknowledgeUploadAsync(prepared.Path, Ack(prepared.Raw));
+            while (!relayAck.IsCompleted || !uploadAck.IsCompleted) yield return null;
+            Assert.That(new[] { relayAck.Result, uploadAck.Result }.Count(x => x), Is.EqualTo(1));
+            Assert.That(queue.PendingBatchCount, Is.Zero);
+            Assert.That(LogJson.Parse<LogBatch>(File.ReadAllText(Path.Combine(directory, "active.json"))).events.Count, Is.EqualTo(1));
+        }
 
         [Test] public void MppmQueues_DoNotOverwriteParentOrEachOther_AndRecoverIndependently()
         {
