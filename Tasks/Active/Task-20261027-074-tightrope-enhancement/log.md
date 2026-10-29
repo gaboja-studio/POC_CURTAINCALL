@@ -62,3 +62,4 @@
 
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 2026-10-29 커밋: 사용자 요청으로 이번 작업분(옆줄 점프 위험 정지·줄 소각 불꽃·해제봉 점유 연결·표시 숨김 토글·톱 위치·불 속도)만 커밋, push 안 함. `TightropeCourse.prefab`은 `showSectionSigns` 줄만 넣었다. 시작 자리 Slot0~3 +3m 이동은 사용자가 옮긴 것이 아니라고 확인해 커밋에서 제외하고 작업 폴더에 남겨 두었다(되돌리지 않음). 폰트 SDF 자동 변경·Vivox 줄바꿈 변경도 제외.
+- 2026-10-29 제출: PR #233은 이미 dev에 Squash 병합됨. 후속 커밋 b3cbe2c6을 새 [PR #234](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/234)(`feat/tight-rope/enhancement` → `dev`, Ready)로 제출하고 PM 팀 검토를 요청했다. 최신 dev와 충돌 없음, CI 1/1 통과, 검토 대기로 BLOCKED. 화재 PlayMode 테스트 마지막 줄 `Find("ChaseFire")` 기존 실패는 PR에 명시. 사람 플레이 확인 남음.
