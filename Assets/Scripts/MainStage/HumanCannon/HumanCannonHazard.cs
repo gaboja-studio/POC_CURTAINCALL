@@ -4,13 +4,16 @@ using UnityEngine;
 
 namespace CurtainCall.HumanCannon
 {
-    public enum CannonHazardKind { SpikeMace, RotatingBlades, GroundSaw }
+    public enum CannonHazardKind { SpikeMace, RotatingBlades, GroundSaw, FallingLoad, FireJet }
 
     /// <summary>고정 코스에 배치하는 일반 절단 함정. 움직임은 공유 시각, 피해는 HazardCourse 호스트가 담당한다.</summary>
     public sealed class HumanCannonHazard : MonoBehaviour
     {
         [SerializeField] CannonHazardKind kind;
         [SerializeField] Transform visual;
+        [Tooltip("선택적 공유 시각 예고/직선 통과. 없으면 기존 왕복 동작을 유지한다.")]
+        [SerializeField] HumanCannonHazardCue cue;
+        [SerializeField] Vector3 boxSize = Vector3.one;
         [Tooltip("톱날을 바닥과 평행하게 눕힌다. 외형과 접촉 판정에 같은 회전을 적용한다.")]
         [SerializeField] bool horizontalBlade;
         [SerializeField] Vector3 travel = new Vector3(4, 0, 0);
@@ -25,6 +28,7 @@ namespace CurtainCall.HumanCannon
         public float Radius => radius;
         public float PeriodSeconds => periodSeconds;
         public bool IsPoleSaw => GetComponent<HumanCannonPoleSaw>() != null;
+        public bool KillsOnContact => kind == CannonHazardKind.FallingLoad || kind == CannonHazardKind.FireJet;
         public Vector3 Travel
         {
             get
@@ -53,12 +57,15 @@ namespace CurtainCall.HumanCannon
             travel = displacement;
             periodSeconds = seconds;
         }
-        public Vector3 Position(double elapsed, float speed) => transform.position + Travel
+        public Vector3 Position(double elapsed, float speed) => cue != null ? cue.Position(elapsed) : transform.position + Travel
             * Mathf.Sin((float)(elapsed * speed * Mathf.PI * 2 / periodSeconds + phase));
         float Angle(double elapsed, float speed) => (float)(elapsed * speed * rotationSpeed % 360);
 
         public bool Touches(Vector3 feet, float height, float bodyRadius, double elapsed, float speed)
         {
+            if (cue != null && !cue.Live(elapsed)) return false;
+            if (KillsOnContact)
+                return CannonHazardGeometry.BoxTouches(Position(elapsed, speed), boxSize, feet, height, bodyRadius);
             if (kind == CannonHazardKind.SpikeMace)
                 return CannonHazardGeometry.SphereTouches(Position(elapsed, speed), radius, feet, height, bodyRadius);
             if (kind == CannonHazardKind.GroundSaw)
@@ -77,7 +84,7 @@ namespace CurtainCall.HumanCannon
 
         public int SweepSteps(Vector3 before, Vector3 after, double dt, float speed)
         {
-            float motion = Travel.magnitude * Mathf.PI * 2 / periodSeconds;
+            float motion = cue != null ? cue.MaximumSpeed : Travel.magnitude * Mathf.PI * 2 / periodSeconds;
             if (kind == CannonHazardKind.RotatingBlades) motion += bladeHalfLength * rotationSpeed * Mathf.Deg2Rad;
             return Mathf.Clamp(Mathf.CeilToInt((Vector3.Distance(before, after) + motion * speed * (float)dt) / 0.12f), 1, 64);
         }
@@ -85,15 +92,15 @@ namespace CurtainCall.HumanCannon
         public void Present(double elapsed, float speed)
         {
             if (visual == null) return;
-            visual.SetPositionAndRotation(Position(elapsed, speed),
-                BladeRotation * Quaternion.Euler(0, 0, Angle(elapsed, speed)));
+            visual.SetPositionAndRotation(Position(elapsed, speed), KillsOnContact ? transform.rotation
+                : BladeRotation * Quaternion.Euler(0, 0, Angle(elapsed, speed)));
         }
 
-        public void SetVisible(bool visible, int pathIndex)
+        public void SetVisible(bool visible, int pathIndex, double elapsed = 0)
         {
             diagonalIndex = pathIndex;
             // 컴포넌트와 레일 원점은 유지하고 표시와 피해만 함께 제외한다.
-            if (visual != null) visual.gameObject.SetActive(visible);
+            if (visual != null) visual.gameObject.SetActive(visible && (cue == null || cue.Visible(elapsed)));
             if (TryGetComponent(out LineRenderer rail))
             {
                 rail.enabled = visible;

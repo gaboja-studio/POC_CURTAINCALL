@@ -1,6 +1,8 @@
 using System;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Tightrope;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -27,7 +29,8 @@ namespace CurtainCall.HumanCannon
         /// </summary>
         public static void ServerFallInjury(NetworkPlayer player)
         {
-            if (player == null || !player.IsServer || player.State != PlayerState.Normal) return;
+            if (player == null || !player.IsServer || player.State != PlayerState.Normal
+                || EscapeDevelopmentSession.FallConsequencesSuppressed(player)) return;
             // 추락 야유를 먼저 알리고 절단한다. 절단으로 사망하면 그 뒤 호응도는 고정된다.
             if (ServerFell != null)
                 foreach (Action<ulong> observer in ServerFell.GetInvocationList())
@@ -53,7 +56,7 @@ namespace CurtainCall.HumanCannon
             if (!flying.Matches(player.OwnerClientId, index, revision, segment)) return;
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return;
             bool safe = (player.transform.position - position).sqrMagnitude <= 25f
-                && HumanCannonLandingZone.ContainsLanding(position);
+                && IsSafeLandingSurface(player.GetComponent<PlayerMover>(), position);
             ApplyLanding(player.OwnerClientId, index, revision, segment, safe);
             NotifyLanding(player.OwnerClientId, index, revision, segment, player.transform.position, safe);
             // 부딪힌 바닥에서 부상 상태로 계속한다(2026-10-28 사용자 결정). 코스 아래 낭떠러지는 경로 시스템이 같은 추락으로 한 번만 처리한다.
@@ -69,6 +72,16 @@ namespace CurtainCall.HumanCannon
                 writer.WriteValueSafe((byte)(safe ? 1 : 0));
                 messaging.SendNamedMessage(LandingMessage, client, writer, NetworkDelivery.ReliableSequenced);
             }
+        }
+
+        internal static bool IsSafeLandingSurface(PlayerMover mover, Vector3 feet)
+        {
+            var course = TightropeCourse.Current;
+            // 좁은 줄의 가장자리에 몸통이 지지되어도 발 중심은 박스 밖일 수 있다.
+            // 좌표상 줄 근처라는 이유가 아니라 실제 외줄 조작 전환과 같은 접촉으로 승인한다.
+            if (course != null && course.UsesSceneGeometry && course.IsTraversalActive
+                && course.TryGetSupportingRopeAt(mover, feet, out _)) return true;
+            return HumanCannonLandingZone.ContainsLanding(feet);
         }
 
         void HandleLandingMessage(ulong sender, FastBufferReader reader)

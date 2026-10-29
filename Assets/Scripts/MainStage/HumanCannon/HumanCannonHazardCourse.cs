@@ -14,6 +14,8 @@ namespace CurtainCall.HumanCannon
         [SerializeField] HumanCannonHazard[] hazards = Array.Empty<HumanCannonHazard>();
         [SerializeField] HumanCannonWindZone[] windZones = Array.Empty<HumanCannonWindZone>();
         [SerializeField, Range(1, 3)] int difficulty = 1;
+        [Tooltip("탈출로처럼 개별 설계한 장치는 공용 톱 밀도와 무관하게 모두 사용한다. 원본 묘기는 기본 false.")]
+        [SerializeField] bool useAuthoredHazardCount;
         NetworkSessionManager session;
         HumanCannonSystem cannon;
         readonly HashSet<(int, ulong)> touching = new(), touchingNow = new();
@@ -48,6 +50,7 @@ namespace CurtainCall.HumanCannon
         {
             if (index < 0 || index >= hazards.Length || hazards[index] == null) return false;
             var hazard = hazards[index];
+            if (useAuthoredHazardCount || hazard.KillsOnContact) return true;
             if (hazard.IsPoleSaw || hazard.Kind == CannonHazardKind.SpikeMace) return true;
             int count = 0;
             foreach (var other in hazards)
@@ -125,7 +128,7 @@ namespace CurtainCall.HumanCannon
                 var hazard = hazards[i];
                 if (hazard == null) continue;
                 bool enabled = IsHazardEnabled(i);
-                hazard.SetVisible(enabled, SawIndex(hazard));
+                hazard.SetVisible(enabled, SawIndex(hazard), elapsed);
                 if (enabled) hazard.Present(elapsed, hazard.IsPoleSaw ? 1f : speed);
             }
             if (session != null && session.IsHost && !Resolved) HostContacts(elapsed, speed);
@@ -143,6 +146,8 @@ namespace CurtainCall.HumanCannon
             {
                 if (player == null || !player.IsSpawned || player.State != PlayerState.Normal
                     || !player.TryGetComponent(out PlayerMover mover)) continue;
+                // 검토 비행 등 공용 피해 가드가 닫힌 동안 접촉 기록도 쌓지 않는다.
+                if (NetworkPlayer.ServerCanChangeState != null && !NetworkPlayer.ServerCanChangeState(player, PlayerState.Fallen)) continue;
                 Vector3 feet = player.transform.position;
                 // 원격 소유자의 재시작 순간이동이 도착하기 전 옛 함정 위치로 다시 절단하지 않는다.
                 if (restartPositions.TryGetValue(player.OwnerClientId, out var spawn))
@@ -178,7 +183,8 @@ namespace CurtainCall.HumanCannon
                                 foreach (Action<NetworkPlayer, HumanCannonHazard, Vector3> observer in ContactDetected.GetInvocationList())
                                     try { observer(player, hazard, Vector3.Lerp(before, feet, t)); }
                                     catch (Exception error) { Debug.LogException(error, this); }
-                              cut = player.ServerCut();
+                              if (hazard.KillsOnContact) player.ServerKill();
+                              else cut = player.ServerCut();
                               if (cut != BodyPart.None && HitConfirmed != null)
                                 foreach (Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3> observer in HitConfirmed.GetInvocationList())
                                     try { observer(player, hazard, cut, Vector3.Lerp(before, feet, t)); }

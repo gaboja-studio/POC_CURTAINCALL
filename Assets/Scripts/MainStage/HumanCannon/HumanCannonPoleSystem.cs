@@ -11,6 +11,9 @@ namespace CurtainCall.HumanCannon
     public sealed partial class HumanCannonPoleSystem : MonoBehaviour
     {
         [SerializeField] HumanCannonPole[] poles = Array.Empty<HumanCannonPole>();
+        [Tooltip("이 레벨에서는 지상·일반 점프·낙하 중 가까운 원본 봉을 F로 잡는다.")]
+        [SerializeField] bool allowPlatformJumpGrab;
+        uint platformLaunch;
         sealed class Runtime
         {
             public readonly PoleGateState State = new();
@@ -20,6 +23,8 @@ namespace CurtainCall.HumanCannon
             public uint InputSequence;
             public int Station;
             public uint Launch, Segment;
+            public Vector3 ReleasePosition, ReleaseVelocity;
+            public Quaternion ReleaseRotation = Quaternion.identity;
         }
         Runtime[] states;
         NetworkSessionManager session;
@@ -44,7 +49,7 @@ namespace CurtainCall.HumanCannon
         public int FindGrabbable(NetworkPlayer player)
         {
             var cannon = HumanCannonSystem.Current;
-            if (player == null || cannon == null || !cannon.IsFlying(player.OwnerClientId)
+            if (player == null || cannon == null || (!cannon.IsFlying(player.OwnerClientId) && !CanEnterFromPlatform(player))
                 || HeldBy(player.OwnerClientId) >= 0 || cannon.IsSeated(player.OwnerClientId)) return -1;
             if (HumanCannonTrampoline.Current != null && HumanCannonTrampoline.Current.Carrier == player.OwnerClientId) return -1;
             int closest = -1;
@@ -60,6 +65,9 @@ namespace CurtainCall.HumanCannon
 
         internal void RequestGrab(int index, int station, uint launch, uint segment) =>
             SendRequest(PoleAction.Grab, index, station, launch, segment, 0f, 0);
+        internal bool CanEnterFromPlatform(NetworkPlayer player) => allowPlatformJumpGrab && player != null
+            && player.IsSpawned && player.State == PlayerState.Normal;
+        internal void RequestPlatformGrab(int index) => SendRequest(PoleAction.PlatformGrab, index, 0, 0, 0, 0, 0);
         internal void RequestRelease(int index) => SendRequest(PoleAction.Release, index, 0, 0, 0, 0f, 0);
         internal void RequestSwing(int index, float input)
         {
@@ -71,6 +79,17 @@ namespace CurtainCall.HumanCannon
             SendRequest(PoleAction.Swing, index, 0, 0, 0, input, ++inputSequence);
         }
         public Vector3 HangingPosition(int index) => poles[index].HangingPosition(states[index].Angle);
+
+        bool CanGrabRequested(NetworkPlayer player, int index, double observedElapsed)
+        {
+            if (FindGrabbable(player) == index) return true;
+            var cannon = HumanCannonSystem.Current;
+            if (player == null || cannon == null || !Valid(index) || states[index].State.IsOccupied
+                || HeldBy(player.OwnerClientId) >= 0 || cannon.IsSeated(player.OwnerClientId)
+                || (!cannon.IsFlying(player.OwnerClientId) && !CanEnterFromPlatform(player))
+                || HumanCannonTrampoline.Current != null && HumanCannonTrampoline.Current.Carrier == player.OwnerClientId) return false;
+            return poles[index].IsInReachAt(player, observedElapsed);
+        }
 
         internal Vector3 ConstrainFlight(Vector3 from, Vector3 displacement, float radius)
         {
@@ -155,7 +174,7 @@ namespace CurtainCall.HumanCannon
         }
 
         void HandleRequest(ulong actor, PoleAction action, int index, uint revision, int station,
-            uint launch, uint segment, float input, uint sequence)
+            uint launch, uint segment, float input, uint sequence, double observedElapsed)
         {
             if (session == null || !session.IsHost) return;
             if (action == PoleAction.Sync)
@@ -171,16 +190,20 @@ namespace CurtainCall.HumanCannon
             if (runtime.State.Tick(Clock, poles[index].WarningSeconds))
                 Publish(index, expiredActor != CannonSeatState.Nobody && !runtime.State.IsOccupied ? PoleEvent.Released : PoleEvent.Sync, expiredActor);
             if (player == null || player.State != PlayerState.Normal || cannon == null || revision != runtime.State.Revision) return;
-            if (action == PoleAction.Grab)
+            if (action == PoleAction.Grab || action == PoleAction.PlatformGrab)
             {
-                if (FindGrabbable(player) != index || !cannon.MatchesFlight(actor, station, launch, segment)
+                bool fromPlatform = action == PoleAction.PlatformGrab;
+                if (!CanGrabRequested(player, index, observedElapsed) || (fromPlatform
+                    ? !CanEnterFromPlatform(player) || cannon.IsFlying(actor)
+                    : !cannon.MatchesFlight(actor, station, launch, segment))
                     || !runtime.State.TryGrab(actor, revision, Clock, poles[index].HoldSeconds, poles[index].LinkedGate != null)) return;
+                if (fromPlatform) { station = CannonFlightState.PoleEntrySource; launch = ++platformLaunch; segment = 0; }
                 runtime.Angle = runtime.Speed = runtime.Input = 0f;
                 runtime.SwingInput = default;
                 runtime.InputSequence = 0;
                 runtime.LastInput = Clock;
                 runtime.Station = station; runtime.Launch = launch; runtime.Segment = segment;
-                Publish(index, PoleEvent.Grabbed, actor);
+                Publish(index, fromPlatform ? PoleEvent.PlatformGrabbed : PoleEvent.Grabbed, actor);
             }
             else if (action == PoleAction.Release)
             {
@@ -202,16 +225,17 @@ namespace CurtainCall.HumanCannon
             var runtime = states[index];
             var cannon = HumanCannonSystem.Current;
             if (cannon == null) return;
-            if (action == PoleEvent.Grabbed)
+            if (action == PoleEvent.Grabbed || action == PoleEvent.PlatformGrabbed)
             {
+                if (action == PoleEvent.PlatformGrabbed) cannon.BeginPoleFlight(actor, runtime.Launch);
                 cannon.ApplyPoleGrab(actor, runtime.Station, runtime.Launch, runtime.Segment, index);
                 runtime.Segment++;
             }
             else if (action == PoleEvent.Released)
             {
                 cannon.ApplyPoleRelease(actor, runtime.Station, runtime.Launch, runtime.Segment,
-                    HangingPosition(index), poles[index].Grip.rotation,
-                    poles[index].ReleaseVelocity(runtime.Angle, runtime.Speed), poles[index].AirControlSpeed);
+                    runtime.ReleasePosition, runtime.ReleaseRotation,
+                    runtime.ReleaseVelocity, poles[index].AirControlSpeed);
                 runtime.Segment++;
             }
             else if (action == PoleEvent.Abandoned) cannon.AbandonPole(actor);
@@ -235,6 +259,14 @@ namespace CurtainCall.HumanCannon
                 runtime.SwingInput = default;
                 if (poles[i] != null) Publish(i, PoleEvent.Reset, CannonSeatState.Nobody);
             }
+        }
+
+        public void ServerReleaseForInspection(ulong actor)
+        {
+            if (session == null || !session.IsHost) return;
+            int index = HeldBy(actor);
+            if (index >= 0 && states[index].State.TryRelease(actor, states[index].State.Revision, Clock, poles[index].WarningSeconds))
+                Publish(index, PoleEvent.Abandoned, actor);
         }
 
         bool Valid(int index) => index >= 0 && states != null && index < states.Length && poles[index] != null && poles[index].isActiveAndEnabled;

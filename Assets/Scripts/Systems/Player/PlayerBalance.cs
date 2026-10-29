@@ -1,4 +1,6 @@
 using System;
+using CurtainCall.EscapeRoute;
+using CurtainCall.Network.PlayerSync;
 using CurtainCall.Settings;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -342,6 +344,13 @@ namespace CurtainCall.Player
         void GaugeFall()
         {
             if (HasFallen) return;
+            if (EscapeDevelopmentSession.FallConsequencesSuppressed(this))
+            {
+                RedTime = 0f;
+                Value = 0f;
+                CurrentSway = 0f;
+                return;
+            }
             if (GaugeFallCatcher != null && GaugeFallCatcher(this))
             {
                 RedTime = 0f;
@@ -366,6 +375,10 @@ namespace CurtainCall.Player
         public void ForceFall()
         {
             if (HasFallen) return;
+            // 정상 플레이 중 추락만 임시 차단한다. 위험물로 이미 확정된 사망은
+            // NetworkPlayer.ApplyState가 이 경로로 표시하므로 그대로 반영한다.
+            if (EscapeDevelopmentSession.FallConsequencesSuppressed(this)
+                && (!TryGetComponent(out NetworkPlayer player) || player.State == PlayerState.Normal)) return;
             HasFallen = true;
             CurrentSway = 0f;
             Fell?.Invoke();

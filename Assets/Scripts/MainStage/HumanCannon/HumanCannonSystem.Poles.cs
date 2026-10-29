@@ -5,6 +5,20 @@ namespace CurtainCall.HumanCannon
     public sealed partial class HumanCannonSystem
     {
         internal bool MatchesFlight(ulong actor, int index, uint launch, uint segment) => flying.Matches(actor, index, launch, segment);
+        internal void BeginPoleFlight(ulong actor, uint launch) => flying.Begin(actor, CannonFlightState.PoleEntrySource, launch);
+
+        /// <summary>검토 모드가 호스트 승인 뒤 호출한다. 기존 점유/비행 해제 메시지를 사용하고 부상/출발점은 바꾸지 않는다.</summary>
+        public void ServerReleaseForInspection(ulong actor)
+        {
+            if (session == null || !session.IsHost) return;
+            HumanCannonPoleSystem.Current?.ServerReleaseForInspection(actor);
+            HumanCannonTrampoline.Current?.ServerReleaseForInspection(actor);
+            for (int i = 0; i < seats.Length; i++)
+                if (seats[i].State.Occupant == actor && seats[i].State.TryApply(CannonAction.Release, actor, seats[i].State.Revision))
+                    Publish(i, CannonAction.Release, actor, Vector3.zero, Quaternion.identity, Vector3.zero);
+            flying.RemoveWhere(id => id == actor, SendFlightRemoved);
+            if (boundPlayer != null && boundPlayer.OwnerClientId == actor && pilot != null) pilot.ReleaseMovement();
+        }
 
         internal void ApplyPoleGrab(ulong actor, int station, uint launch, uint segment, int pole)
         {

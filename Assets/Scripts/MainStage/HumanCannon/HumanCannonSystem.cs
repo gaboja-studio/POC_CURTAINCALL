@@ -24,6 +24,8 @@ namespace CurtainCall.HumanCannon
 
         [Tooltip("대포 목록. 네 화면에서 같은 씬·같은 순서여야 한다.")]
         [SerializeField] HumanCannonStation[] stations = Array.Empty<HumanCannonStation>();
+        [Tooltip("비행이 코스 밖으로 종료되는 높이. 깊은 시설 씬만 별도로 지정한다.")]
+        [SerializeField] float flightFloorHeight = -10f;
 
         sealed class SeatRuntime
         {
@@ -43,6 +45,7 @@ namespace CurtainCall.HumanCannon
         public static HumanCannonSystem Current { get; private set; }
         public event Action<int, CannonAction, ulong> StateChanged;
         public int StationCount => stations.Length;
+        public float FlightFloorHeight => flightFloorHeight;
         public HumanCannonStation Station(int index) => stations[index];
         public ulong Occupant(int index) => seats[index].State.Occupant;
         public bool IsFlying(ulong playerId) => flying.Contains(playerId);
