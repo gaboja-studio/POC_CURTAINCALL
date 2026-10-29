@@ -137,6 +137,10 @@ namespace CurtainCall.Player
         /// <summary>줄·봉에 매달린 동안 자연 흔들림·충격·일반 추락 위험 누적을 멈춘다. 제한 시간은 콘텐츠가 별도 표시한다.</summary>
         public bool IsSuspended { get; set; }
 
+        /// <summary>동료 구조 중 균형·충격·추락 위험 누적을 멈춘다. 매달림 상태와 별도로 구조 기능이 관리한다.</summary>
+        public bool IsRescueSupported { get; set; }
+        bool BalancePaused => IsSuspended || IsRescueSupported;
+
         /// <summary>
         /// 공중에 뜸·착지를 알린다. 착지하면(<c>false</c>) 착지 충격을 준다.
         /// 같은 오브젝트의 PlayerMover가 있으면 자동으로 연결된다. 목마 전체 점프처럼 다른 기능이 몸을 띄울 때 직접 부른다.
@@ -174,7 +178,7 @@ namespace CurtainCall.Player
         /// <summary>옆줄 착지 충격·흔들림 증가·고정 비율의 추락 위험을 준다. 감소율은 충격과 흔들림 증가분에 적용한다.</summary>
         public void ApplyLaneLanding(float reduction)
         {
-            if (!IsActive || HasFallen || IsSuspended) return;
+            if (!IsActive || HasFallen || BalancePaused) return;
             float keep = 1f - Mathf.Clamp01(reduction);
             ApplyLandingShock(Rope.LaneLandingShock * laneLandingShockMultiplier * keep);
             laneBoostScale = 1f + (Rope.LaneSwayBoost - 1f) * keep;
@@ -191,7 +195,7 @@ namespace CurtainCall.Player
 
         void ApplyLandingShock(float magnitude)
         {
-            if (!IsActive || HasFallen || IsSuspended || !float.IsFinite(magnitude) || magnitude <= 0f) return;
+            if (!IsActive || HasFallen || BalancePaused || !float.IsFinite(magnitude) || magnitude <= 0f) return;
             // 착지가 우연한 중앙 복귀가 되지 않게 현재 기울기를 강화한다. 중앙이면 이륙 방향을 쓴다.
             float direction = Mathf.Abs(Value) > .001f ? Mathf.Sign(Value) : landingDirection;
             float impact = direction * magnitude * StackMultiplier;
@@ -202,7 +206,7 @@ namespace CurtainCall.Player
         /// <summary>균형에 순간 충격을 준다(±크기, 랜덤 방향, 목마 배율 적용).</summary>
         public void ApplyShock(float magnitude)
         {
-            if (!IsActive || HasFallen || IsSuspended) return;
+            if (!IsActive || HasFallen || BalancePaused) return;
             float direction = Random.value < 0.5f ? -1f : 1f;
             Value = Mathf.Clamp(Value + direction * magnitude * StackMultiplier, -MaxValue, MaxValue);
             LastShock = direction * magnitude * StackMultiplier;
@@ -283,7 +287,7 @@ namespace CurtainCall.Player
             float surfaceForce = surfaceSway;
             surfaceSwayMultiplier = 1f;
             surfaceSway = 0f;
-            if (!IsActive || HasFallen || IsSuspended || IsAirborne && !ContinueWhileAirborne) return;
+            if (!IsActive || HasFallen || BalancePaused || IsAirborne && !ContinueWhileAirborne) return;
 
             if (Time.time >= nextDirectionChange)
                 PickSwayDirection();

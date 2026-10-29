@@ -19,6 +19,23 @@
 
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
+## 2026-10-29 구조·사용자 로비 저장 및 참가자 끊김 착수
+- 사용자 요청: 구조 수정과 직접 편집한 Lobby.unity를 먼저 저장하고 두 번째 참가자의 입장 후 3~5초 끊김을 수정한다.
+- Lobby.unity의 안내 글꼴/색상·가구 위치/회전·콜라이더·Canvas 채널 변경을 그대로 포함한다. 별도의 LiberationSans SDF - Fallback.asset 변경은 제외·보존한다. Unity 열린 Start 씬은 dirty 0이다.
+- 앞 구조 검사(균형 EditMode 36/36·호스트 PlayMode 3/3)를 재사용하며 저장 직전 규칙·컴파일을 확인한다. 공개 push의 private main 선반영 차단 조건은 아직 같아 우회하지 않는다.
+
 ## 2026-10-29 설정창 저장·구조 수정 착수
 - 사용자 요청으로 설정창 변경을 먼저 저장한다. private 설정 UI는 `98904299`로 커밋하고 같은 이름의 원격 작업 브랜치에 push했다. 공개 저장에는 해당 gitlink와 앞 묶음의 코드·검사·Task 문서를 함께 포함한다.
 - `save-work` 절차를 사용하며 앞 묶음의 EditMode 18/18·PlayMode 5/5 결과를 재사용한다. Unity 조작은 CLI만 사용한다.
+- 공개 `71bb378c` 커밋 저장 완료. 공개 push는 pre-push의 `verify-third-party -CheckSubmodule`이 private `98904299`가 main에 없다고 거절했다. private 작업 브랜치에는 push됐으나 main 병합·훅 우회는 하지 않았다. 공개 로컬 커밋을 보존한 뒤 다음 수정에 착수했다.
+
+## 2026-10-29 줄 매달림 팀원 구조 수정
+- 원인: 구조 시작 수평 1.5m·코스용 높이 허용만 사용하고 이동 입력이 있으면 F를 거절했다. 구조 중 보정 입력은 막지만 PlayerBalance 자체의 자연 흔들림/위험 누적은 계속됐다.
+- HangSettings 초기값 수평 2.5m·전용 높이 허용 0.75m로 완화하고 이동 중 F를 허용했다. 시작 프레임 이동 입력을 지우며 공중·낮은 매달림 높이·그네/리프트/해제봉 탑승은 계속 거절한다. 안내와 호스트가 같은 WithinRescueReach를 쓴다.
+- 호스트가 승인한 장부의 구조자에게 로컬 소유자만 IsRescueSupported를 적용한다. 클라이언트는 ReadState 수신 즉시 갱신한다. 자연 흔들림·보정·균형 충격·추락 위험 누적을 정지하며 IsSuspended와 별도로 관리한다. 완료/취소/거리 이탈/대상 소멸/부상/라운드 변경/세션 이탈/비활성화 후 해제한다. 위험물의 직접 ForceFall은 유지한다.
+- Unity CLI 컴파일 PASS, TightropeBalanceFeedbackTests EditMode 36/36·HangRescue_ PlayMode 3/3 PASS. 실제 씬의 LAN 호스트와 합성 원격 소유 캐릭터로 범위·높이·공중 거절·이동 중 입력·2초 전체 보호·완료/취소/이탈/소멸/비활성화 해제를 검증했다. 실제 두 클라이언트 RPC 지연 검증은 아니다.
+- Task-074와 겹치는 TightropeHangSystem(.Network)·PlayerBalance·TightropeSettings 변경에 주의한다. 씬/프리팹은 변경하지 않았다. 구조 수정은 아직 미커밋이며 원격 공개 push 차단은 위 기록대로 남아 있다.
+
+- 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

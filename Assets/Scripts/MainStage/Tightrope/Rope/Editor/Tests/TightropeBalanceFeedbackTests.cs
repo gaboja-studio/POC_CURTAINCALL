@@ -337,6 +337,37 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         void Step(float deltaTime) => Invoke(balance, "Step", deltaTime);
+
+        [Test]
+        public void RescueSupportFreezesBalanceDangerAndShocksWithoutOwningSuspension()
+        {
+            balance.SetDisplayedState(true, 80f); Step(.6f);
+            float value = balance.Value, danger = balance.RedTime;
+            balance.IsRescueSupported = true;
+            balance.SetCorrectionInput(-1f); balance.SetSurfaceSway(8f, 100f);
+            Step(5f); balance.ApplyShock(100f); balance.ApplyLaneLanding(0f);
+            balance.SetAirborne(true); balance.SetAirborne(false);
+            Assert.That(balance.Value, Is.EqualTo(value));
+            Assert.That(balance.RedTime, Is.EqualTo(danger));
+            Assert.That(balance.HasFallen, Is.False);
+            balance.IsSuspended = true;
+            balance.IsRescueSupported = false;
+            Step(3f);
+            Assert.That(balance.RedTime, Is.EqualTo(danger), "구조 종료가 다른 매달림 보호를 풀면 안 된다.");
+            balance.IsSuspended = false;
+            Step(.2f);
+            Assert.That(balance.RedTime, Is.EqualTo(danger + .2f).Within(.0001f));
+            balance.ApplyShock(5f);
+            Assert.That(balance.Value, Is.Not.EqualTo(value), "구조가 끝나면 충격도 다시 받는다.");
+        }
+
+        [Test]
+        public void RescueSupportDoesNotPreventExplicitHazardFalls()
+        {
+            balance.IsRescueSupported = true;
+            balance.ForceFall();
+            Assert.That(balance.HasFallen, Is.True, "구조 중에도 실제 위험물·코스 이탈에 의한 사망 규칙은 유지한다.");
+        }
         static void Set(object target, string name, object value) => target.GetType().GetField(name, Members).SetValue(target, value);
         static object Invoke(object target, string name, params object[] args) => target.GetType().GetMethod(name, Members).Invoke(target, args);
     }

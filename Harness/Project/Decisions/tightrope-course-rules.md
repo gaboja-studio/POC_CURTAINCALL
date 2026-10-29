@@ -1,8 +1,8 @@
 ---
 summary: 외줄 상세 규칙(2026-10-03 기획+PM, M2 2026-10-27) — 4명·5분, 추락 시 7초 매달림·동료가 F 2초로 끌어올림·목마 낙하 한 줄에 한 명·환호 포인트(M2), 묘기 시작 = 첫 사람이 줄에 오름, 1명 도착 즉시 클리어(살아 있는 전원 도착 지점으로, 게임 종료)·도착 없이 전원 사망/시간 종료면 실패(묘기 재시작), 4줄 0~100m·간격 3m·불타는 구간으로 후반 줄 감소, 이동 0.5·점프 0.8·캡슐 1.5/0.6, 가로 톱날 3.0→4.5m/s·수직 톱날(목마 유도, 발판 0.1~0.3초 하강), 톱날 = 부위 절단(가로 톱날은 다리→다리→팔 순서, 네 팔다리 모두 잃으면 탈락)
 status: active
-updated: 2026-10-28
-source: human (2026-10-03 PM @MoHoDu, 기획 tightrope-prototype-rules.docx + 검토 권유서 결정; Confluence 27721807 M2 변경점(2026-10-27), Task-20261027-076; Confluence 보상 시스템 27459631(2026-10-27 확정))
+updated: 2026-10-29
+source: human (2026-10-03 PM @MoHoDu, 기획 tightrope-prototype-rules.docx + 검토 권유서 결정; Confluence 27721807 M2 변경점(2026-10-27), Task-20261027-076; Confluence 보상 시스템 27459631(2026-10-27 확정); 2026-10-29 사용자 구조 판정 완화·구조자 균형 보호, Task-20261029-078)
 ---
 
 # 외줄 코스·진행·장애물 규칙
@@ -13,6 +13,8 @@ source: human (2026-10-03 PM @MoHoDu, 기획 tightrope-prototype-rules.docx + �
 원문 요약: `Docs/References/tightrope-rules-summary.md`(수치 표). 검토 근거: `Integrations/Active/Integration-tightrope-prototype/rules-review-20261003.md`. 조작·목마: [tightrope-rules.md](tightrope-rules.md), 균형: [tightrope-balance.md](tightrope-balance.md).
 
 ## 결정
+
+- 2026-10-29 사용자(Task-078): 매달린 팀원의 구조 판정을 후하게 하고 구조하는 동안 구조자의 균형이 깨지지 않게 한다. 구현 초기값은 수평 2.5m·발 높이 허용 0.75m(`GameSettings.Tightrope.Hang`)이며 아래 #1-1의 이전 임시 거리 1.5m를 대체한다. 이동 중 F도 받고 호스트 승인 동안 균형/충격/위험 누적을 멈춘다. 완료·취소·이탈 시 원래 균형 계산으로 복귀하며 최종 체감·실제 2클라이언트 지연은 미확인이다.
 
 > 현재 공통 종료·보상은 [런 규칙](run-rules.md)과 [보상 규칙](reward-rules.md)이 우선한다. 실패=전원 사망이며 사망 전 호응도½×2토큰 지급, 도착자만 완주 보너스. 아래 #2의 시간 종료 실패·자동 도착 처리·묘기 재시작은 옛 프로토타입 기록으로, 최신 정산에서 실제 도착자/비도착 생존자를 어떻게 연결할지는 구현 대조가 필요하다. 자동 이동을 새 완주 보너스 지급 근거로 단정하지 않는다.
 

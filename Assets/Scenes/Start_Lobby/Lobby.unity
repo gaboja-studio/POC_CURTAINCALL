@@ -781,6 +781,10 @@ PrefabInstance:
       propertyPath: m_SortingOrder
       value: 30
       objectReference: {fileID: 0}
+    - target: {fileID: 1078020594984953917, guid: a0e999d5672b14442b0e5fd37985d2a6, type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
     - target: {fileID: 1504303943305008752, guid: a0e999d5672b14442b0e5fd37985d2a6, type: 3}
       propertyPath: m_Name
       value: LobbyHud
@@ -2447,15 +2451,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\uBB34\uB300 \uC785\uAD6C"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: f18b420a75730274bb798e31d7d2b030, type: 2}
-  m_sharedMaterial: {fileID: 1397317949662160823, guid: f18b420a75730274bb798e31d7d2b030, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: fc3e1b3c16d5f494da07d68a9d0db144, type: 2}
+  m_sharedMaterial: {fileID: 6054104694105400200, guid: fc3e1b3c16d5f494da07d68a9d0db144, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4284927218
-  m_fontColor: {r: 0.95, g: 0.8, b: 0.4, a: 1}
+    rgba: 4288920773
+  m_fontColor: {r: 0.7735849, g: 0.73693866, b: 0.63857245, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2545,7 +2549,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 1397317949662160823, guid: f18b420a75730274bb798e31d7d2b030, type: 2}
+  - {fileID: 6054104694105400200, guid: fc3e1b3c16d5f494da07d68a9d0db144, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -7549,11 +7553,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4780994544949668, guid: b6f461fb4bebb2543bf61e750d192f71, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4.3
+      value: -3.82
       objectReference: {fileID: 0}
     - target: {fileID: 4780994544949668, guid: b6f461fb4bebb2543bf61e750d192f71, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.07
       objectReference: {fileID: 0}
     - target: {fileID: 4780994544949668, guid: b6f461fb4bebb2543bf61e750d192f71, type: 3}
       propertyPath: m_LocalPosition.z
@@ -7561,7 +7565,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4780994544949668, guid: b6f461fb4bebb2543bf61e750d192f71, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.7071068
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4780994544949668, guid: b6f461fb4bebb2543bf61e750d192f71, type: 3}
       propertyPath: m_LocalRotation.x
@@ -7569,7 +7573,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4780994544949668, guid: b6f461fb4bebb2543bf61e750d192f71, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.7071068
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4780994544949668, guid: b6f461fb4bebb2543bf61e750d192f71, type: 3}
       propertyPath: m_LocalRotation.z
@@ -7625,8 +7629,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 3.494077, y: 0.5279875, z: 0.80463654}
-  m_Center: {x: 0, y: 0.19717309, z: 0}
+  m_Size: {x: 0.89133406, y: 0.5279875, z: 3.515077}
+  m_Center: {x: -0.0060326457, y: 0.19717309, z: -0.022265673}
 --- !u!1 &1496412996
 GameObject:
   m_ObjectHideFlags: 0
@@ -8662,15 +8666,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\uCEE4\uD2BC \uB808\uBC84"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: f18b420a75730274bb798e31d7d2b030, type: 2}
-  m_sharedMaterial: {fileID: 1397317949662160823, guid: f18b420a75730274bb798e31d7d2b030, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 6c7a15a37e04b4959bdfb47140d8680b, type: 2}
+  m_sharedMaterial: {fileID: -6767230660995032207, guid: 6c7a15a37e04b4959bdfb47140d8680b, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4284927218
-  m_fontColor: {r: 0.95, g: 0.8, b: 0.4, a: 1}
+    rgba: 4288920774
+  m_fontColor: {r: 0.7764706, g: 0.7372549, b: 0.6392157, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -8760,7 +8764,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 1397317949662160823, guid: f18b420a75730274bb798e31d7d2b030, type: 2}
+  - {fileID: -6767230660995032207, guid: 6c7a15a37e04b4959bdfb47140d8680b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

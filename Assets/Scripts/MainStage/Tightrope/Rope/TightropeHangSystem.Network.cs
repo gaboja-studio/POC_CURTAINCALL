@@ -139,6 +139,7 @@ namespace CurtainCall.Tightrope
             }
             book.Replace(snapshot);
             snapshotAt = Now;
+            UpdateRescuerBalance();
         }
 
         void SendRescued(TightropeHangBook.Hang hang)
