@@ -153,6 +153,13 @@ namespace CurtainCall.Player
                 var renderer = skin.gameObject.AddComponent<SkinnedMeshRenderer>();
                 renderer.sharedMesh = source.sharedMesh;
                 renderer.sharedMaterials = source.sharedMaterials;
+                var snapshotBlock = new MaterialPropertyBlock();
+                for (int slot = 0; slot < Original.sharedMesh.subMeshCount; slot++)
+                {
+                    source.GetPropertyBlock(snapshotBlock, slot);
+                    renderer.SetPropertyBlock(snapshotBlock, slot);
+                    snapshotBlock.Clear();
+                }
                 renderer.quality = source.quality;
                 renderer.rootBone = skeleton;
                 renderer.bones = Array.ConvertAll(source.bones, bone => bones[bone]);

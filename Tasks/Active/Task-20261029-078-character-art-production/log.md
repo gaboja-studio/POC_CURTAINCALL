@@ -1,5 +1,10 @@
 # Log
 
+## 2026-10-30 V16 플레이어 바리에이션
+- origin/dev e58b207f를 병합51150752. 문서목차는 양측 항목을 유지하고 submodule은 양쪽 조상을 포함한 private main20b7565b를 선택했다. doctor의 Task077중복/서브모듈샌드박스 오판은 기존이슈.
+- 4슬롯 버건디/블루/머스터드/세이지 팔레트 및 패턴을 atlas 기반 셰이더와 MaterialPropertyBlock으로 적용. 기존9메시/55본/3단계부상 상태를 공유한다. NetworkPlayer.Slot으로 설정하고 분리 시 PropertyBlock도 복제해 조각의 색상 스냅샷을 보존한다. 네 외형 비교렌더는 private Source~/Previews/rabbit-v16-variants.png.
+- 신규 clean 재질과 기존혈흔 셰이더의 카메라 페이드 호환 속성/블렌드를 추가. 최초 검사16/17의 페이드실패는 shader import 후 수정; 최종 PlayMode17/17. check-work 안전성/문서/컴파일 PASS. 온라인2인 실세션과 사람의 최종 미술 평가는 미실시. private shader/재질 및 public 코드/프리팹은 아직 커밋되지 않은 로컬 작업이다.
+
 ## 2026-10-29 v12 제작·게임 연결
 - 새 사용자 요청은 MCP 연결부터 실제 Player 교체까지다. Blender5.2.3/애드온1.8 연결 및 기본 큐브 씬 확인. computer-use로 Blender 창도 확인했다. Unity6000.3.25f1 Start 씬 clean/편집 모드 확인.
 - doctor 1회: Task077 중복, third-party 초기화 오판. sandbox 밖 git submodule status에서 정상 커밋 확인. 새 다운로드 없음. gh 미로그인은 commit/push 미요청이므로 작업 차단 아님.
@@ -81,3 +86,18 @@
 
 - 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - PR11 사용자병합20b7565b 확인/fast-forward. check-work 안전성·문서/규칙·Unity컴파일PASS. 마지막검사후타이머자동meta11개원복하고상위포인터/정리기록만저장. 게임원본리소스변경없음.
+
+- 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(-SkipUnity); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-10-30 로비 모델·의상 설정
+- PlayerAppearanceCatalog Resources 설정에 플레이어별 기본 모델/의상, 모델 프리팹·선택적인 의상별 프리팹, 의상 이름/토끼 색상을 둔다. 기본은 토끼 빨강·파랑·노랑·초록. 의상은 현재 4종.
+- 호스트가 자리별 기본값을 사용하되 이미 선택된 의상을 피해 순환 배정하며 로비 변경 요청을 검증하고 NetworkVariable로 복제한다. Humanoid 외형은 선택 프리팹을 사용하며 기존 절단/부상 연결을 유지한다.
+- 실제 호스트 로비 선택·시작 PlayMode 테스트 1/1 통과. 충돌한 기본값의 빈 의상 선택 로직도 검사했으나 실제 원격 2클라이언트 동기화는 미검증. 추가 모델의 기능과 부상 재질은 해당 프리팹에서 별도 구성 필요.
+
+- 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(-SkipUnity); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=FAIL; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

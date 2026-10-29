@@ -904794,6 +904794,7 @@ MonoBehaviour:
   cleanTrim: {fileID: 2100000, guid: e23995a041aa18e46bf01ae14e2287c5, type: 2}
   light: {fileID: 2100000, guid: 720a58b25274b4949863131b91e7658d, type: 2}
   heavy: {fileID: 2100000, guid: 62d9207ec78691642a55ca83490913ea, type: 2}
+  variantClean: {fileID: 2100000, guid: 936c94ad76aa81a49a9959279a5d13fa, type: 2}
 --- !u!1 &2919134043403860436
 GameObject:
   m_ObjectHideFlags: 0

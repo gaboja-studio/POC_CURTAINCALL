@@ -72,7 +72,7 @@ namespace CurtainCall.Player
             landUntil = 0;
             if (model == null) return;
             model.Animator.enabled = true;
-            color = GameSettings.Base.Character.GetPlayerColor(network != null ? network.Slot : 0);
+            color = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
             model.SetColor(color);
             ApplySurface(model);
             model.Apply(condition.LostParts, condition.LostParts, false, mover.Body);
@@ -94,6 +94,7 @@ namespace CurtainCall.Player
         void ApplySurface(HumanoidModel target)
         {
             if (target == null || !target.TryGetComponent<CurtainCall.CharacterArt.RabbitSurfaceStates>(out var surface)) return;
+            surface.SetVariant(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
             bool dead = condition.AllLimbsLost || (network != null &&
                 (network.State == PlayerState.Fallen || network.State == PlayerState.Retired));
             surface.SetState(dead || condition.LostCount >= 3
@@ -113,10 +114,16 @@ namespace CurtainCall.Player
         {
             RestoreHangAlignment();
             IsHanging = false;
+            var catalog = CurtainCall.CharacterArt.PlayerAppearanceCatalog.Current;
+            if (network != null && network.IsSpawned && catalog != null && catalog.Valid(network.AppearanceModel, network.AppearanceOutfit))
+            {
+                var desired = catalog.PrefabFor(network.AppearanceModel, network.AppearanceOutfit);
+                if (slot.CurrentModel != null && slot.CurrentPrefab != desired) slot.SetModel(desired);
+            }
             BindModel();
             ApplySurface(model != null ? model : detached);
             if (model == null) return;
-            Color next = GameSettings.Base.Character.GetPlayerColor(network != null ? network.Slot : 0);
+            Color next = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
             if (color != next) { color = next; model.SetColor(color); }
             model.Animator.SetLayerWeight(1, 0f);
             if (condition.AllLimbsLost) { model.Play("Death"); return; }

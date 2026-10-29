@@ -10,6 +10,7 @@
 `References/rabbit-four-views.png`를 기준으로 연결된 Blender에서 모델링·UV·리깅·스키닝 후 Unity 실제 캐릭터를 교체한다. 이동·조작·기존 애니메이션·절단·래그돌·복구·카메라 표시 계약을 유지한다. 과거 v11의 실제 Player 변경 보류보다 이번 명시적 교체 요청이 우선한다.
 
 ## 보존·제약
+V16: 최신origin/dev e58b207f를51150752로병합(목차두항목보존/private main포인터유지). 4인슬롯에따른버건디/블루/머스터드/세이지 의상팔레트와서로다른패치문양을제작한다. 동일55본/9메시/9922tri, 슬롯지정/재생성/분리조각/3부상표면계약유지. 이번요청에는새제작커밋·푸시요청없음.
 제작 자료 정리(2026-10-30): 현재 제작 정본은 `Assets/_ThirdParty/CharacterArt/Rabbit/Source~/Source/V15/rabbit-material-states-v15.blend`. 원화/최종V12~V15/atlas/제작스크립트/보고서/최종비교를 Source~로 보관했다. 아래 원래Task경로는 과거결과 기록이며 현위치는 private Source~/README.md 및 cleanup-manifest.json 참조. 불필요 중간/백업과Unity구시험은 저장소밖 복구폴더로 정리했다.
 2026-10-30 후속: 게임용 모델/9메시/텍스처/머티리얼/셰이더19개를 `_ThirdParty/CharacterArt/Rabbit/`로 GUID 이동. 코드·Player용Rabbit.prefab은 공개 위치 유지. private PR10은 사용자가 병합 완료. 공통 Player·NetworkManager·빌드씬11개 참조 조사. 실제 Player는0부상Clean/1~2Light/3~4또는Fallen·Retired사망Heavy 자동전환, 모델재생성/복구도 현재 상태를 재적용한다. 저장·푸시 명시 승인됨.
 v15 제작: 기존 Clean 머티리얼 보존, Light/Heavy 2머티리얼 추가. 후속 피드백에 따라 중간 Light를 혈흔.60/오염.48로 강화(Heavy .94/.88), 총3상태 유지. 상태 선택·9스킨/절단 당시 조각 재질 보존 및 Editor2/PlayMode16 통과. [재질 사용법](References/material-states.md), 비교 씬 RabbitMaterialStates.unity. 자동 부상 단계 연동 규칙은 추가하지 않는다.
@@ -38,3 +39,7 @@ v14 후속 완료: 얼굴780→358tri/음영 완화, 팔·바지·신발180tri �
 
 ## 검증 경계
 수학/자동 검사 통과와 원화 재현 완성도·사람의 최종 플레이를 구분한다. 원본의 촘촘한 봉제/패치 마감, 귀 보조 물리, 경사/계단·연속 접점/옷 자기겹침, 동시4인 성능 및 온라인 실기기 확인은 별도 기록한다.
+
+## 플레이어 외형 설정
+- 플레이어 1~4의 기본 모델과 의상을 설정 에셋에서 지정하고 로비에서 개인이 변경한다. 호스트가 선택을 검증하고 신규 참가자에게 미사용 의상을 우선 배정한다.
+- 모델 옵션에는 기본 프리팹과 선택적인 의상별 프리팹을 연결한다. 추후 모델도 기존 HumanoidModel·애니메이션·절단 계약과 부상별 표면 구현을 갖춰야 한다.
