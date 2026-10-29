@@ -170,5 +170,102 @@ namespace CurtainCall.WaitingRoom.Editor
             for (int i = 0; i + 1 < runs.Count; i += 2) { var m = (runs[i].run.b + runs[i + 1].run.a) * .5f + runs[i].run.inward * (W * .6f); if (Physics.Raycast(new Vector3(m.x, deckY + .5f, m.z), Vector3.down, .8f, ~0, QueryTriggerInteraction.Ignore)) bridged++; }
             return $"Cargo walkway: {segments} deck segments along east/north/west walls, {gaps} jump gaps of {gap} m (bridged {bridged}), {goods} goods; walk blocked {blocked}/{samples}";
         });
+
+        // ================= Freight that could not stand =================
+        // Rack slots are about 2 m long but carried one 1 m pallet, so half of every load hung past it, and trunks sat
+        // across two crates of different heights. Fill each slot with two pallets, then settle the freight bottom-up:
+        // an item rests on the highest thing under it and its centre must lie over that support; a top item that
+        // overhangs is centred on what it sits on, and one that cannot be is taken off the stack.
+
+        static float Overlap(Bounds a, Bounds b)
+            => Mathf.Max(0, Mathf.Min(a.max.x, b.max.x) - Mathf.Max(a.min.x, b.min.x)) * Mathf.Max(0, Mathf.Min(a.max.z, b.max.z) - Mathf.Max(a.min.z, b.min.z));
+
+        static bool CentreOver(Bounds item, Bounds s, float margin = 0f)
+            => item.center.x >= s.min.x - margin && item.center.x <= s.max.x + margin && item.center.z >= s.min.z - margin && item.center.z <= s.max.z + margin;
+
+        sealed class Freight { public Transform Root; public List<Transform> Parts = new List<Transform>(); public bool Fixed; public Bounds B => Bounds(Parts); }
+
+        static Bounds Bounds(List<Transform> parts)
+        {
+            var b = VisibleBounds(parts[0]); foreach (var p in parts.Skip(1)) b.Encapsulate(VisibleBounds(p)); return b;
+        }
+
+        // Settles `freight` bottom-up on the fixed supports and on each other. Returns (dropped, centred, removed).
+        static (int dropped, int centred, int removed) SettleFreight(List<Freight> all)
+        {
+            int dropped = 0, centred = 0, removed = 0;
+            foreach (var f in all.Where(f => !f.Fixed).OrderBy(f => f.B.min.y).ToArray())
+            {
+                var b = f.B; float area = Mathf.Max(b.size.x * b.size.z, 1e-4f);
+                var below = all.Where(o => o != f && o.Root.gameObject.activeSelf).Select(o => (o, ob: o.B))
+                    .Where(x => x.ob.max.y <= b.min.y + .06f && Overlap(b, x.ob) > area * .02f).ToList();
+                if (below.Count == 0) continue;
+                float h = below.Max(x => x.ob.max.y);
+                var top = below.Where(x => x.ob.max.y > h - .04f).ToList();
+                var span = top[0].ob; foreach (var x in top) span.Encapsulate(x.ob); // pieces resting at one height carry together
+                bool stable = CentreOver(b, span) && top.Sum(x => Overlap(b, x.ob)) >= area * .5f;
+                if (top.Any(x => x.o.Root.name.Contains("Sack"))) // a sagging sack pile has no flat top to carry anything
+                {
+                    foreach (var p in f.Parts) { Undo.RecordObject(p.gameObject, "Remove freight"); p.gameObject.SetActive(false); }
+                    removed++; continue;
+                }
+                if (!stable)
+                {
+                    var s = top.OrderByDescending(x => Overlap(b, x.ob)).First();
+                    bool canCentre = !s.o.Fixed && b.size.x <= s.ob.size.x * 1.2f && b.size.z <= s.ob.size.z * 1.2f;
+                    if (canCentre)
+                    {
+                        var shift = new Vector3(s.ob.center.x - b.center.x, 0, s.ob.center.z - b.center.z);
+                        var moved = new Bounds(b.center + shift + Vector3.up * (h - b.min.y), b.size);
+                        moved.Expand(new Vector3(-.04f, -.04f, -.04f));
+                        canCentre = !all.Any(o => o != f && o != s.o && o.Root.gameObject.activeSelf && !o.Fixed && o.B.Intersects(moved));
+                        if (canCentre) { foreach (var p in f.Parts) { Undo.RecordObject(p, "Centre freight"); p.position += shift; } centred++; }
+                    }
+                    if (!canCentre && s.o.Fixed && top.Any(x => CentreOver(b, x.ob, .05f))) canCentre = true; // a load just past a pallet edge
+                    if (!canCentre) { foreach (var p in f.Parts) Undo.RecordObject(p.gameObject, "Remove freight"); foreach (var p in f.Parts) p.gameObject.SetActive(false); removed++; continue; }
+                    b = f.B;
+                }
+                float gap = b.min.y - h;
+                if (Mathf.Abs(gap) > .01f) { foreach (var p in f.Parts) { Undo.RecordObject(p, "Settle freight"); p.position += Vector3.down * gap; } dropped++; }
+            }
+            return (dropped, centred, removed);
+        }
+
+        public static string SettleRackFreight() => RunPass("Rack freight that can stand", target =>
+        {
+            int pallets = 0; var tally = (dropped: 0, centred: 0, removed: 0);
+            foreach (var rs in target.GetComponentsInChildren<Transform>().Where(t => t.name == "RackStock").ToArray())
+            {
+                var decks = rs.Cast<Transform>().Where(t => t.name == "RackDeck").Select(t => (t, b: VisibleBounds(t))).ToList();
+                // One pallet per half slot along the rack.
+                var run = decks[0].b; foreach (var d in decks) run.Encapsulate(d.b);
+                bool alongX = run.size.x > run.size.z; // slots are nearly square, so read the direction from the whole rack
+                foreach (var pal in rs.Cast<Transform>().Where(t => t.gameObject.activeSelf && t.name.StartsWith("SM_Prop_Pallet")).ToArray())
+                {
+                    var pb = VisibleBounds(pal);
+                    var deck = decks.FirstOrDefault(d => CentreOver(pb, d.b) && Mathf.Abs(d.b.max.y - pb.min.y) < .1f); if (deck.t == null) continue;
+                    float slot = alongX ? deck.b.size.x : deck.b.size.z, have = alongX ? pb.size.x : pb.size.z;
+                    if (have > slot * .7f) continue;
+                    var axis = alongX ? Vector3.right : Vector3.forward; float q = have * .5f + .01f; // the two pallets butt together
+                    var along = Vector3.Scale(deck.b.center - pb.center, axis);
+                    Undo.RecordObject(pal, "Pallet half slot"); pal.position += along - axis * q;
+                    var src = PrefabUtility.GetCorrespondingObjectFromSource(pal.gameObject);
+                    var twin = (src != null ? (GameObject)PrefabUtility.InstantiatePrefab(src, rs) : Object.Instantiate(pal.gameObject, rs)).transform;
+                    twin.name = pal.name; twin.SetPositionAndRotation(pal.position + axis * (2 * q), pal.rotation); twin.localScale = pal.localScale;
+                    Undo.RegisterCreatedObjectUndo(twin.gameObject, "Pallet twin"); pallets++;
+                }
+                var all = new List<Freight>();
+                foreach (var t in rs.Cast<Transform>().Where(t => t.gameObject.activeSelf && t.name != "StepBeam" && t.name != "CartonTape" && t.name != "LoadStrap"))
+                    all.Add(new Freight { Root = t, Parts = { t }, Fixed = t.name == "RackDeck" || t.name.StartsWith("SM_Prop_Pallet") });
+                // Tape rides on its carton, straps on their wrapped load.
+                foreach (var t in rs.Cast<Transform>().Where(t => t.gameObject.activeSelf && (t.name == "CartonTape" || t.name == "LoadStrap")))
+                {
+                    var host = all.Where(f => f.Root.name == (t.name == "CartonTape" ? "Carton" : "WrappedLoad")).OrderBy(f => (f.B.center - VisibleBounds(t).center).sqrMagnitude).FirstOrDefault();
+                    host?.Parts.Add(t);
+                }
+                var r = SettleFreight(all); tally.dropped += r.dropped; tally.centred += r.centred; tally.removed += r.removed;
+            }
+            return $"Rack freight: {pallets} pallets added to fill slots; {tally.dropped} settled, {tally.centred} centred on their support, {tally.removed} taken off unstable stacks";
+        });
     }
 }
