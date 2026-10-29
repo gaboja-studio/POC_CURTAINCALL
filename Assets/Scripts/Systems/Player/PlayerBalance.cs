@@ -308,8 +308,12 @@ namespace CurtainCall.Player
             UpdateRedTime(deltaTime);
         }
 
+        bool IsLaneJumping => IsAirborne && mover != null && mover.CurrentJump == JumpKind.Lane;
+
         void UpdateRedTime(float deltaTime)
         {
+            // 옆줄 점프 중에는 추락 위험을 쌓지도 줄이지도 않는다. 착지 위험은 ApplyLaneLanding이 한 번 준다.
+            if (IsLaneJumping) return;
             if (Zone == BalanceZone.Green)
             {
                 if (!IsAirborne)

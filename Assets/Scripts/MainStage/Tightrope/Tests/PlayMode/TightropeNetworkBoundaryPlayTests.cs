@@ -128,6 +128,19 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.AreNotEqual((int)Call(relay, "PoleLane", 1), opened, "출발 봉이 있는 줄은 열지 않는다.");
                 for (int lane = 0; lane < laneCount; lane++)
                     Assert.AreEqual(lane == opened, (bool)Call(relay, "IsLaneConnected", lane), $"{lane + 1}번 줄");
+
+                // 봉을 놓으면 고정 유지 구간이 남아 있어도 그 봉이 연 줄은 바로 끊긴다.
+                using var release = new FastBufferWriter(18, Allocator.Temp);
+                release.WriteValueSafe(123UL);
+                release.WriteValueSafe((byte)1); release.WriteValueSafe((int)Get(run, "Round"));
+                release.WriteValueSafe((byte)0); release.WriteValueSafe((uint)Get(Get(station, "State"), "Revision"));
+                using var releaseReader = new FastBufferReader(release, Allocator.Temp);
+                releaseReader.Seek(8);
+                Call(relay, "ReadRequest", 779UL, releaseReader);
+                Assert.AreEqual(ulong.MaxValue, (ulong)Call(relay, "HolderAt", 0));
+                Assert.IsFalse((bool)Get(relay, "OutboundOpen"), "놓으면 통로가 바로 닫힌다.");
+                for (int lane = 0; lane < laneCount; lane++)
+                    Assert.IsFalse((bool)Call(relay, "IsLaneConnected", lane), $"놓은 뒤 {lane + 1}번 줄");
             }
             finally { DestroyPracticeBotTestPartner(other); }
         }
