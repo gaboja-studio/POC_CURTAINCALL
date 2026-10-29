@@ -233,7 +233,7 @@ namespace CurtainCall.WaitingRoom.Editor
             var upper = Group(s, "HangingFlight", top); upper.localRotation = Quaternion.Euler(58, 0, 4);
             foreach (float x in new[] { -.65f, .65f }) LRod(upper, "BentStringer", Vector3.zero, new Vector3(x * .9f, 0, 2.6f), .07f, dark);
             for (int k = 0; k < 7; k++) LBox(upper, "Tread", new Vector3(0, -.02f, .2f + k * .34f), new Vector3(1.2f, .04f, .26f), plate).localRotation = Quaternion.Euler(0, 0, (float)rng.NextDouble() * 10 - 5);
-            var lowerAt = top + dir * (run * .62f); lowerAt.y = FloorAt(lowerAt, 1) + .05f;
+            var lowerAt = top + dir * (run * .62f); lowerAt.y = FloorAt(new Vector3(lowerAt.x, top.y - rise + .5f, lowerAt.z), .5f) + .05f;
             var lower = Group(s, "FallenFlight", lowerAt); lower.rotation = Quaternion.LookRotation(dir) * Quaternion.Euler(-14, 22, 9);
             foreach (float x in new[] { -.65f, .65f }) LRod(lower, "Stringer", new Vector3(x, 0, -1.5f), new Vector3(x, .9f, 1.6f), .07f, dark);
             for (int k = 0; k < 8; k++) LBox(lower, "Tread", new Vector3(0, .1f + k * .1f, -1.3f + k * .38f), new Vector3(1.2f, .04f, .26f), plate);

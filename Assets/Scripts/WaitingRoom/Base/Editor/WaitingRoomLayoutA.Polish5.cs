@@ -61,6 +61,20 @@ namespace CurtainCall.WaitingRoom.Editor
             return "Settled: " + string.Join("; ", fixes);
         });
 
+        // The collapsed stair's bottom flight and loose treads were placed at deck height (the floor probe started at
+        // the deck and never reached the slab). Drop them onto the hall floor.
+        public static string DropCollapsedStairFlight() => RunPass("Drop collapsed stair flight", target =>
+        {
+            var stair = target.Find("S11_StageGear/HallMezzanine/CollapsedStair"); var fixes = new List<string>();
+            foreach (var t in stair.Cast<Transform>().Where(t => t.name == "FallenFlight" || t.name == "LooseTread").ToArray())
+            {
+                var b = VisibleBounds(t); float floor = FloorAt(new Vector3(b.center.x, .5f, b.center.z), .5f); float gap = b.min.y - floor;
+                if (gap < .03f) continue;
+                Undo.RecordObject(t, "Drop stair piece"); t.position += Vector3.down * (gap - .01f); fixes.Add($"{t.name} -{gap:F2}");
+            }
+            return "Collapsed stair: " + (fixes.Count > 0 ? string.Join("; ", fixes) : "already on the floor");
+        });
+
         // The Zone11 board hangs on the hall side of the sealed entry but its text faced the wall, so it read mirrored.
         public static string FlipZone11Board() => RunPass("Flip mirrored zone 11 board", target =>
         {
