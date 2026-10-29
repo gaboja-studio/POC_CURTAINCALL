@@ -9,6 +9,13 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
 {
     public sealed partial class TightropeCampaignPlayTests
     {
+        long LocalAudienceAmount()
+        {
+            foreach (var segment in (IEnumerable)Get(Get(rewards, "State"), "Segments"))
+                if ((ulong)Get(segment, "ClientId") == (ulong)Get(player, "OwnerClientId"))
+                    return (long)Get(segment, "Amount");
+            throw new AssertionException("Local reward segment missing");
+        }
         IEnumerator PrepareHangRescue()
         {
             yield return BeginPerformance();
@@ -89,14 +96,17 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Call(balance, "SetDisplayedState", true, 90f);
                 Set(balance, "<RedTime>k__BackingField", .5f);
                 balance.enabled = true;
+                long beforeRescue = LocalAudienceAmount();
                 Call(hangs, "ServerRescue", Get(player, "OwnerClientId"), Get(target, "OwnerClientId"));
                 Assert.IsTrue((bool)Get(balance, "IsRescueSupported"));
+                Assert.AreEqual(beforeRescue, LocalAudienceAmount(), "구조 시작에는 지급하지 않는다.");
                 yield return new WaitForSeconds(.3f);
                 Assert.That((float)Get(balance, "Value"), Is.EqualTo(90f));
                 Assert.That((float)Get(balance, "RedTime"), Is.EqualTo(.5f));
                 Assert.IsFalse((bool)Get(balance, "HasFallen"));
                 yield return Until(() => !(bool)Call(hangs, "IsRescuing", player), 4f, "동료 끌어올리기 완료");
                 Assert.IsFalse((bool)Call(hangs, "IsHanging", target));
+                Assert.AreEqual(beforeRescue + 10, LocalAudienceAmount(), "실제 구조 완료에 협동 환호를 한 번 지급한다.");
                 Assert.IsFalse((bool)Get(balance, "IsRescueSupported"));
                 Assert.IsFalse((bool)Get(balance, "HasFallen"));
                 Call(balance, "Step", .1f);

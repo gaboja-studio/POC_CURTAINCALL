@@ -22,6 +22,7 @@ namespace CurtainCall.Tightrope
 
         /// <summary>호스트: 누군가 줄에 매달렸다(접속 번호). 관객 추락 야유는 이때 한 번(뒤 낙사에 중복 없음).</summary>
         public static event Action<ulong> ServerHangStarted;
+        public static event Action<ulong, ulong> ServerRescueSucceeded;
 
         readonly TightropeHangBook book = new();
         TightropeCourse course;
@@ -170,7 +171,13 @@ namespace CurtainCall.Tightrope
             {
                 changed = true;
                 if (outcome == TightropeHangBook.Outcome.Dropped) Find(id)?.ServerKill();
-                else SendRescued(hang);
+                else
+                {
+                    SendRescued(hang);
+                    if (ServerRescueSucceeded != null)
+                        foreach (Action<ulong, ulong> observer in ServerRescueSucceeded.GetInvocationList())
+                            try { observer(hang.Rescuer, hang.Id); } catch (Exception error) { Debug.LogException(error); }
+                }
             }
             if (changed) { UpdateRescuerBalance(); Publish(); }
         }

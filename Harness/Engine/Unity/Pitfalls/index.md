@@ -1,5 +1,7 @@
 # Unity Pitfalls
 
+- [svg-preview-vertex-limit.md](svg-preview-vertex-limit.md) — 복잡한 SVG 검토 시트를 임포트할 때 65535 정점 한도 예외가 나는 경우.
+
 Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 
 - [Initialization/](Initialization/index.md) — 컴포넌트 생성·역직렬화 초기화 예외를 확인할 때.

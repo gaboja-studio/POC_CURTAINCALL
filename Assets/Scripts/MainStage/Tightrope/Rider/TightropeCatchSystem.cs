@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
@@ -27,6 +28,7 @@ namespace CurtainCall.Tightrope
         double feedbackUntil;
         GUIStyle labelStyle;
         public static TightropeCatchSystem Current { get; private set; }
+        public static event Action<ulong, ulong> ServerCatchSucceeded;
         public float LocalReadyRemaining => Remaining(NetworkPlayer.Local);
         public string LocalFeedback => Now < feedbackUntil ? feedback : null;
         public float CatchReduction => GameSettings.Tightrope.Handhold.ActiveReduction;
@@ -271,6 +273,9 @@ namespace CurtainCall.Tightrope
             swingReleases.Remove(sender);
             Publish();
             PublishSuccess(sender, target, relayLanding);
+            if (ServerCatchSucceeded != null)
+                foreach (Action<ulong, ulong> observer in ServerCatchSucceeded.GetInvocationList())
+                    try { observer(sender, target); } catch (Exception error) { Debug.LogException(error); }
             return true;
         }
 
