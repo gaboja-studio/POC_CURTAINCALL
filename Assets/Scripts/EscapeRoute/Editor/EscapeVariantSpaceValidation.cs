@@ -42,6 +42,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var scene = SceneManager.GetActiveScene(); bool b = scene.path == VariantBPath;
             if ((!b && scene.path != VariantCPath) || Application.isPlaying) throw new InvalidOperationException("B/C 편집 씬이 필요합니다.");
             var background = GameObject.Find(RootName);
+            if (background.transform.Find("29_" + (b ? "B" : "C") + "_OriginalMechanics") != null)
+                return new { scene = scene.name, mechanics = ValidateCompletedEscape(), traversal = ValidateVariantTraversal(), joints = ValidateEscapeJoints() };
             var group = background.transform.Find(TraversalSpacePrefix + (b ? "B" : "C"));
             if (group == null) throw new InvalidOperationException("A 기반 공간이 없습니다.");
             var failures = new List<string>(); int floors = 0, links = 0;

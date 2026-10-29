@@ -1,6 +1,6 @@
 # Project Facts
 
-- [escape-route-layouts.md](escape-route-layouts.md) — 탈출로 A/B/C 씬을 열거나 자유 비행·라벨·구조 검사 범위를 확인할 때
+- [escape-route-layouts.md](escape-route-layouts.md) — 탈출로 A/B/C 지상 그네·장거리 대포·연속 그네·교대 화염·개발 실행을 확인할 때
 
 이 POC의 확인 가능한 현재 상태. 상황에 맞는 파일 1개만 연다.
 

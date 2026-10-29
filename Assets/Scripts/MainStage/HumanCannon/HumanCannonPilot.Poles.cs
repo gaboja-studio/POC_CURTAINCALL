@@ -30,6 +30,11 @@ namespace CurtainCall.HumanCannon
                     return true;
                 }
             }
+            if (!IsDriving && input.InteractTapped && poles.CanEnterFromPlatform(player))
+            {
+                int nearest = poles.FindGrabbable(player);
+                if (nearest >= 0) { poles.RequestPlatformGrab(nearest); return true; }
+            }
             return false;
         }
 

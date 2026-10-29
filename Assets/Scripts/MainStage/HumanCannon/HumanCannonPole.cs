@@ -20,6 +20,7 @@ namespace CurtainCall.HumanCannon
         [Tooltip("최대 각속도(도/초)."), Min(1f), SerializeField] float maxSwingSpeed = 180f;
         [Tooltip("반동 감쇠(1/초)."), Min(0f), SerializeField] float swingDamping = 0.4f;
         [Tooltip("손을 놓을 때 접선 속도에 더하는 상승 속도(m/s)."), Min(0f), SerializeField] float releaseUpwardSpeed = 6f;
+        [Tooltip("이 봉의 도약 상승 속도 상한(m/s). 0이면 원본 반동을 그대로 사용한다. 긴 케이블의 레벨별 높이 조정용."), Min(0f), SerializeField] float maxReleaseUpwardSpeed;
         [Tooltip("봉 도약 뒤 WASD 수평 조절(m/s)."), Min(0f), SerializeField] float airControlSpeed = 3f;
 
         public Transform Grip => grip != null ? grip : transform;
@@ -27,6 +28,7 @@ namespace CurtainCall.HumanCannon
         public float HoldSeconds => holdSeconds;
         public float WarningSeconds => warningSeconds;
         public float AirControlSpeed => airControlSpeed;
+        public float MaxReleaseUpwardSpeed => maxReleaseUpwardSpeed;
         public float HangLength => hangLength;
         public Vector3 Forward => Vector3.ProjectOnPlane(Grip.forward, Vector3.up).normalized;
         public float SwingLength => TryCeilingPivot(out var pivot) ? Vector3.Distance(pivot, Grip.position) : hangLength;
@@ -45,7 +47,10 @@ namespace CurtainCall.HumanCannon
             Vector3 tangent = TryCeilingPivot(out var pivot)
                 ? Vector3.Cross(Vector3.Cross(Forward, Vector3.up), BarPosition(angle) - pivot) * (speed * Mathf.Deg2Rad)
                 : PoleSwingMotion.Velocity(angle, speed, hangLength, Forward);
-            return tangent + Vector3.up * releaseUpwardSpeed;
+            Vector3 velocity = tangent + Vector3.up * releaseUpwardSpeed;
+            // 수평 반동과 하강은 보존한다. 원본 씬은 기본값 0으로 기존 도약을 유지한다.
+            if (maxReleaseUpwardSpeed > 0f) velocity.y = Mathf.Min(velocity.y, maxReleaseUpwardSpeed);
+            return velocity;
         }
 
         bool TryCeilingPivot(out Vector3 pivot)

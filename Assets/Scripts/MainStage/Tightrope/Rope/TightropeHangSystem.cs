@@ -111,7 +111,8 @@ namespace CurtainCall.Tightrope
             if (!Active) { player.ServerKill(); return false; }
             if (preferredLane < 0 && !course.TryGetRopePoint(player.transform.position, out preferredLane, out _))
                 preferredLane = course.Layout.GetLaneSlotAt(course.GetSide(player.transform.position));
-            int lane = book.PickLane(preferredLane, distance, course.LaneCount, Rules.LaneReach, Rules.LaneOccupyDistance, course.IsLaneUsable);
+            int lane = book.PickLane(preferredLane, distance, course.LaneCount,
+                course.HasIndependentRopes ? 0 : Rules.LaneReach, Rules.LaneOccupyDistance, course.IsLaneUsable);
             if (lane < 0)
             {
                 player.ServerKill(); Publish(); return false;
@@ -145,6 +146,15 @@ namespace CurtainCall.Tightrope
             bool changed = false;
             foreach (var hang in book.All) if (hang.Rescuer == rescuerId) changed |= book.CancelPull(hang.Id);
             if (changed) Publish();
+        }
+
+        public void ServerReleaseForInspection(ulong actor)
+        {
+            if (!IsHost) return;
+            book.Remove(actor);
+            ServerCancel(actor);
+            if (localHang != null && localHang.Player.OwnerClientId == actor) ReleaseLocal(false);
+            Publish();
         }
 
         void ServerTick(float deltaTime)

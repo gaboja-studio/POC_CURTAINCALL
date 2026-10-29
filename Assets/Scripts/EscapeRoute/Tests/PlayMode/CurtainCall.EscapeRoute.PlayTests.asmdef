@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.EscapeRoute.PlayTests",
+    "references": ["Unity.Netcode.Runtime"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}

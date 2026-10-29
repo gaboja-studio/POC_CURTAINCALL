@@ -1,5 +1,7 @@
 # Project Pitfalls
 
+- [escape-depth-route.md](escape-depth-route.md) — 탈출로 묘기 도달·운반 트램폴린 묻힘·대포 목표 표식·교체 구조 잔여물 확인
+
 - [Telemetry/](Telemetry/index.md) — 로그·설문의 연결 종료와 최초 실행 시점을 확인할 때
 
 - [death-ragdoll-reset.md](death-ragdoll-reset.md) — 공연 사망 뒤 조작 정리가 레그돌을 복구할 때

@@ -198,6 +198,9 @@ namespace CurtainCall.Player
         /// <summary>콘텐츠의 줄 위 기본 이동 속도(m/s). 0 이하면 공통 세팅. 부상 배율과 별도로 적용한다.</summary>
         public float CourseSpeedOverride { get; set; }
 
+        /// <summary>공간별 일반 보행/달리기 배율. 외줄 속도와 부상 배율은 변경하지 않는다.</summary>
+        public float FreeMovementSpeedScale { get; set; } = 1f;
+
         /// <summary>줄 위 점프 중력 배율. 점프 높이는 보존한다. 기본 1, 플랫폼에는 적용하지 않는다.</summary>
         public float CourseJumpGravityMultiplier { get; set; } = 1f;
 
@@ -401,7 +404,7 @@ namespace CurtainCall.Player
         {
             get
             {
-                Vector3 dir = destination != null ? destination.position - startPosition : courseDirection;
+                Vector3 dir = CourseForwardOverride ?? (destination != null ? destination.position - startPosition : courseDirection);
                 dir.y = 0f;
                 return dir.sqrMagnitude > 0.0001f ? dir.normalized : Vector3.zero;
             }
@@ -409,6 +412,9 @@ namespace CurtainCall.Player
 
         /// <summary>코스 기준 오른쪽(수평, 정규화).</summary>
         public Vector3 CourseRight => Vector3.Cross(Vector3.up, CourseForward);
+
+        /// <summary>구간 조작 동안만 사용할 전진축. null이면 원래 목적지/코스 방향을 사용하며 재시작 위치는 바꾸지 않는다.</summary>
+        public Vector3? CourseForwardOverride { get; set; }
 
         void Awake()
         {
@@ -534,7 +540,7 @@ namespace CurtainCall.Player
                 {
                     float side = ControlEnabled ? sideInput : 0f;
                     Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
-                    groundVelocity = input * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
+                    groundVelocity = input * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier * FreeMovementSpeedScale);
                     IsMoving = input.sqrMagnitude > 0.0001f;
                     if (IsMoving)
                         transform.rotation = Quaternion.RotateTowards(transform.rotation,
@@ -563,7 +569,7 @@ namespace CurtainCall.Player
                 if (FreeMovement && FreeAirControl && ControlEnabled && CurrentJump != JumpKind.Lane)
                 {
                     Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * sideInput, 1f);
-                    airVelocity = input * (Character.FreeMoveSpeed * speedMultiplier);
+                    airVelocity = input * (Character.FreeMoveSpeed * speedMultiplier * FreeMovementSpeedScale);
                     // 걸어서 낭떠러지를 벗어난 첫 프레임도 같은 입력으로 이동한다.
                     if (CurrentJump == JumpKind.None) groundVelocity = airVelocity;
                     if (input.sqrMagnitude > .0001f)

@@ -3,6 +3,7 @@
 이 POC에서 사람이 확정한 결정. 상황에 맞는 파일 1개만 연다. AI 추천안은 여기가 아니라 Task의 Open Decisions에 둔다.
 
 - [escape-background-direction.md](escape-background-direction.md) — 탈출로의 중성 콘크리트·흐린 내부/햇빛 강한 갈대밭 대비·기존 캐릭터 사용. 공통 맵과 B/C 배경을 제작할 때
+- [escape-control-baseline.md](escape-control-baseline.md) — A/B/C 동일한 1인 개발환경(방/게임 오버 없음), 인간대포 기본 조작·외줄 전용 전환·공통 그네 기준
 
 - [branch-strategy.md](branch-strategy.md) — 브랜치·PR 흐름, UI 제작→연결 직접 pull 예외, 병합 방식, PM 전용 영역. 브랜치를 만들거나 PR 대상을 정할 때
 - [pr-issue-format.md](pr-issue-format.md) — PR·이슈 제목과 본문 형식, JIRA·이슈 번호 규칙. PR·이슈를 만들거나 .github 템플릿을 고칠 때

@@ -39,6 +39,9 @@ namespace CurtainCall.HumanCannon
         internal Vector3 FlightVelocity => velocity;
         public bool IsDriving => stationIndex >= 0 || IsFlying || groundRequest.Pending || onTransport;
 
+        /// <summary>이 플레이어에 연결된 원본 조작 인스턴스. 다른 구간 조작을 마친 뒤 같은 Pilot으로 복귀할 때 쓴다.</summary>
+        public PlayerControlScheme ControlScheme => scheme;
+
         internal void Initialize(HumanCannonSystem owner, NetworkPlayer local)
         {
             system = owner;
@@ -178,6 +181,8 @@ namespace CurtainCall.HumanCannon
             mover.Simulated = false;
         }
 
+        public void ClearMotionForInspection() => ReleaseMovement();
+
         internal void ReleaseMovement()
         {
             airControl.Clear();
@@ -255,7 +260,7 @@ namespace CurtainCall.HumanCannon
             var collision = mover.Body.Move(displacement);
             if ((collision & CollisionFlags.Above) != 0 && velocity.y > 0f) velocity.y = 0f;
             // 운반자의 정상 몸 점프는 여기로 들어오지 않는다. 코스 밖으로 떨어진 비행도 종료한다.
-            if (((collision & CollisionFlags.Below) != 0 && velocity.y <= 0f) || transform.position.y < -10f)
+            if (((collision & CollisionFlags.Below) != 0 && velocity.y <= 0f) || transform.position.y < system.FlightFloorHeight)
             {
                 // 호스트가 쿠션/일반 바닥을 확정할 때까지 착지 위치와 비행 식별자를 유지한다.
                 awaitingLanding = true;

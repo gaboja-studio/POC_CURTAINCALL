@@ -6,6 +6,18 @@ namespace CurtainCall.HumanCannon
     /// <summary>Host-side hazard contact against the standing or crawling player capsule.</summary>
     public static class CannonHazardGeometry
     {
+        /// <summary>수직 플레이어 캡슐과 축 정렬 낙하물/불꽃 체적. 경고만 표시하는 시간에는 호출하지 않는다.</summary>
+        public static bool BoxTouches(Vector3 center, Vector3 size, Vector3 feet, float height, float radius)
+        {
+            if (!Finite(center) || !Finite(size) || !Finite(feet) || !Dimension(height) || !Dimension(radius)
+                || size.x <= 0 || size.y <= 0 || size.z <= 0) return false;
+            double dx = Math.Max(0, Math.Abs((double)feet.x-center.x)-size.x*.5);
+            double dz = Math.Max(0, Math.Abs((double)feet.z-center.z)-size.z*.5);
+            double bottom = (double)feet.y+radius, top = (double)feet.y+Math.Max(radius,height-radius);
+            double dy = Math.Max(0, Math.Max(center.y-size.y*.5-top, bottom-center.y-size.y*.5));
+            return dx*dx+dy*dy+dz*dz <= (double)radius*radius;
+        }
+
         public static bool SphereTouches(Vector3 center, float hazardRadius, Vector3 feet,
             float bodyHeight, float bodyRadius) =>
             SegmentTouches(center, center, hazardRadius, feet, bodyHeight, bodyRadius);

@@ -21,7 +21,7 @@ namespace CurtainCall.HumanCannon
         {
             var cannon = HumanCannonSystem.Current;
             bool nearSurface = NearSurface(player, contact);
-            bool accepted = !GrabPending(player) && !BounceBlocked(contact) && cannon != null && Carrier != player.OwnerClientId && nearSurface
+            bool accepted = BounceReady && !GrabPending(player) && !BounceBlocked(contact) && cannon != null && Carrier != player.OwnerClientId && nearSurface
                 && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId)
                 && groundHistory.TryAccept(player.OwnerClientId, sequence, epoch, ownership.Revision)
                 && cannon.BeginGroundBounce(player.OwnerClientId, sequence, epoch, contact, upwardSpeed, groundBounceAirControlSpeed);

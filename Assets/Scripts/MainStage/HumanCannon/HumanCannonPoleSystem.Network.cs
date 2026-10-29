@@ -9,8 +9,8 @@ namespace CurtainCall.HumanCannon
 {
     public sealed partial class HumanCannonPoleSystem
     {
-        enum PoleAction : byte { Sync, Grab, Release, Swing }
-        enum PoleEvent : byte { Sync, Grabbed, Released, Abandoned, Reset }
+        enum PoleAction : byte { Sync, Grab, Release, Swing, PlatformGrab }
+        enum PoleEvent : byte { Sync, Grabbed, Released, Abandoned, Reset, PlatformGrabbed }
         const string RequestMessage = "CurtainCall.HumanCannon.Pole.Request";
         const string StateMessage = "CurtainCall.HumanCannon.Pole.State";
         const int RequestSize = 29;
@@ -106,7 +106,7 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out uint launch);
             reader.ReadValueSafe(out uint segment);
             reader.ReadValueSafe(out byte passed);
-            if (index < 0 || index >= states.Length || poles[index] == null || action > (byte)PoleEvent.Reset
+            if (index < 0 || index >= states.Length || poles[index] == null || action > (byte)PoleEvent.PlatformGrabbed
                 || passed > 1 || !float.IsFinite(angle) || !float.IsFinite(speed)) return;
             var runtime = states[index];
             if ((PoleEvent)action != PoleEvent.Sync && revision <= runtime.State.Revision) return;

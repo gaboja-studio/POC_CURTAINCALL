@@ -46,7 +46,10 @@ namespace CurtainCall.EscapeRoute.EditorTools
             check("identity world scale", (group.transform.lossyScale - Vector3.one).sqrMagnitude < .0001f);
             check("legacy inactive", !group.transform.parent.Find("03_CannonRopeVoid_50x25").gameObject.activeSelf && !group.transform.parent.Find(RevealGroup).gameObject.activeSelf);
             var camera = UnityEngine.Object.FindFirstObjectByType<CurtainCall.EscapeRoute.EscapeRouteFlyCamera>();
-            check("fly camera", camera != null && camera.enabled);
+            var solo = UnityEngine.Object.FindAnyObjectByType<EscapeSoloReview>();
+            var inspection = UnityEngine.Object.FindAnyObjectByType<EscapeInspectionCamera>();
+            check("active map review camera", (inspection != null && inspection.enabled)
+                || (camera != null && (camera.enabled || (solo != null && solo.enabled && solo.view == camera.GetComponent<Camera>()))));
             report.AppendLine("Failures=" + failures + "; static geometry only, no gameplay traversal.");
             return report.ToString();
         }

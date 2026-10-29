@@ -31,7 +31,7 @@ namespace CurtainCall.HumanCannon
         {
             if (cannonView == null) return;
             if (!isActiveAndEnabled || system == null || player == null || player.State != PlayerState.Normal
-                || cannonView.LocalPlayer != player)
+                || cannonView.LocalPlayer != player || (controller != null && controller.Scheme != scheme))
             {
                 ClearCannonViewRequest();
                 return;
