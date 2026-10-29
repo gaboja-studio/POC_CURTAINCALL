@@ -4,7 +4,7 @@
 - **Type:** fix
 - **Assignee:** @MoHoDu
 - **Branch:** fix/waiting-room-resttimer
-- **Base:** fix/controls-and-rope-rescue
+- **Base:** dev
 
 ## Context
 사용자가 추가한 private curtaincall_resttimer_v2_8 패키지의 11 PNG·Runtime·조립기를 이용해 실제 대기실 W1을 교체한다. 중앙은 남은 시간 또는 무한대, 하단은 시간대 아이콘과 D-3→D-0만 표시한다. 일차 표기는 사용자 확인 완료. Unity 조작은 CLI만 사용한다.

@@ -27,3 +27,9 @@
 ## 남은 확인
 - 사람 최종 외형·실제 두 PC에서 동일 버전/설정의 표시 동기화.
 - 사용자 저장 요청 전이므로 commit/push 없음. 기존 private main 선반영 push 훅은 우회하지 않는다.
+
+## PR 제출 전 최신 dev 확인
+- origin/dev를 b47035ab로 작업 브랜치에 병합 후 컴파일 통과.
+- 대기실 HUD PlayMode 2/2와 외줄/인간 대포 UI·정산 PlayMode 1/1 재확인.
+- private 에셋 PR #8 검사 SUCCESS 및 사용자 승인 Merge commit으로 main 반영 완료. gitlink 80ff0ad7 ancestry 검사 통과.
+- 폴더 정리의 이동/삭제는 아직 실행하지 않았으며 dev PR에서 제외한다.

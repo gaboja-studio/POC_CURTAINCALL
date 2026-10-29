@@ -21,3 +21,7 @@
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 좌상단 복원 후 RestTimerTests 14/14·실제 대기실 PlayMode 1/1 통과, 낮 캡처에서 기존 다이얼 중심의 좌상단 배치 확인. 최종 check-work 안전성/문서/컴파일 PASS. 표시 내용과 타이머 동작은 유지, 미커밋.
 - 사용자 저장·push 요청: 타이머 패키지 77파일을 private 80ff0ad7로 저장하고 fix/waiting-room-resttimer push 완료(LFS 포함). 제공 validate_resources.py의 파일 끝 빈 줄 경고 1건은 원본 보존. 공개 저장은 이번 타이머·좌상단 복원·프리팹/씬·검사/문서와 gitlink만 포함, 기존 폰트 2개는 제외한다. 기존 private main 선반영 훅은 우회하지 않는다.
+- 사용자 순서 변경: _ThirdParty 정리는 실제 이동/삭제 전에 보류하고 현재 에셋·기능 PR을 먼저 진행한다. Task-080 조사 문서는 커밋에서 제외한다.
+- 최신 origin/dev를 b47035ab로 충돌 없이 작업 브랜치에 병합. dev에 이미 반영된 설정/구조/Relay 수정은 중복 PR 대상에서 빠지고 개인 호응·타이머 및 에셋 포인터가 남는다.
+- private 에셋 PR https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/8 생성·Update Asset List 검사 SUCCESS. 사용자 명시 승인 후 Merge commit으로 main 반영하여 gitlink 80ff0ad7의 ancestry를 보존했고 공개 push 훅 선행조건 통과 확인. GitHub 연결 도구는 private 404여서 gh CLI 사용.
+- 최신 dev 병합 후 가벼운 PlayMode 재확인: WaitingRoomHudPlayTests 2/2(타이머·자금/인벤토리·집결·재등록), C12_BothActualPerformances_RecordAndDisplay 1/1(외줄/인간 대포 실제 UI·정산) 통과. 결과는 .harness/local/pre-pr-*-play-results.json. 현재 dev PR에는 정리 Task-080·별도 폰트 2개를 포함하지 않는다.
