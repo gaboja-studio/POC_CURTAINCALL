@@ -51,6 +51,9 @@ namespace CurtainCall.HumanCannon
             if (seatHintLabel != null && font != null) seatHintLabel.font = font;
         }
 
+        /// <summary>이 씬에 실제 설정된 경계로 구간을 조회한다. 진행 상태는 바꾸지 않는다.</summary>
+        public Section SectionAt(Vector3 position) => SectionAt(position, boundaries);
+
         public static Section SectionAt(Vector3 position, Boundaries values)
         {
             // 리프트 아래 운반자가 위층 쉼터/2구간으로 표시되지 않도록 발 높이도 확인한다.

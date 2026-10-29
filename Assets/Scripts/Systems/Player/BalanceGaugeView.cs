@@ -102,9 +102,7 @@ namespace CurtainCall.Player
                         ? $"균형 {target.Value:+0;-0;0}  빨강 {target.RedTime:0.0} / {target.FallTime:0.0}s"
                         : target.Zone == BalanceZone.Yellow
                             ? $"균형 {target.Value:+0;-0;0}  경고 {target.RedTime:0.0} / {target.FallTime:0.0}s · 천천히 누적"
-                            : redRatio > 0f
-                                ? $"균형 {target.Value:+0;-0;0}  착지 위험 {target.RedTime:0.0} / {target.FallTime:0.0}s · 안정 {target.LandingRecoveryRemaining:0.0}초"
-                                : $"균형 {target.Value:+0;-0;0}";
+                            : $"균형 {target.Value:+0;-0;0}";
             }
         }
 

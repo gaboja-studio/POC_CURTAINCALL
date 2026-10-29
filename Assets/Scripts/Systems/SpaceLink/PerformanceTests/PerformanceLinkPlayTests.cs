@@ -81,8 +81,17 @@ namespace CurtainCall.SpaceLink.Tests
         }
 
         [Test]
-        public void NewSettings_EmptyTrickMappingsKeepLegacyPerformanceFallback()
+        public void NewSettings_SelectActualPerformanceScenes()
         {
+            Assert.AreEqual("Tightrope", Resolve("Performance", "Tightrope"));
+            Assert.AreEqual("HumanCannon", Resolve("Performance", "HumanCannon"));
+        }
+
+        [Test]
+        public void EmptyTrickMappingsKeepLegacyPerformanceFallback()
+        {
+            Set("tightropeScene", "");
+            Set("humanCannonScene", "");
             Assert.AreEqual("", PerformanceLinkReflection.Get(settings, "TightropeScene"));
             Assert.AreEqual("", PerformanceLinkReflection.Get(settings, "HumanCannonScene"));
             string fallback = (string)PerformanceLinkReflection.Get(settings, "PerformanceScene");
@@ -96,9 +105,9 @@ namespace CurtainCall.SpaceLink.Tests
         public void BothTricksResolveIndependently_UnknownAndBlankMappingsFallback()
         {
             Set("performanceScene", "Fallback");
-            Set("tightropeScene", "proto_0.0.2");
+            Set("tightropeScene", "Tightrope");
             Set("humanCannonScene", "HumanCannon");
-            Assert.AreEqual("proto_0.0.2", Resolve("Performance", "Tightrope"));
+            Assert.AreEqual("Tightrope", Resolve("Performance", "Tightrope"));
             Assert.AreEqual("HumanCannon", Resolve("Performance", "HumanCannon"));
             foreach (string trick in new[] { null, "", "Unknown", "tightrope" })
                 Assert.AreEqual("Fallback", Resolve("Performance", trick));
@@ -108,12 +117,12 @@ namespace CurtainCall.SpaceLink.Tests
                 Assert.AreEqual("Fallback", Resolve("Performance", "Tightrope"));
                 Assert.AreEqual("HumanCannon", Resolve("Performance", "HumanCannon"));
             }
-            Set("tightropeScene", "proto_0.0.2");
+            Set("tightropeScene", "Tightrope");
             foreach (string blank in new[] { null, "", " \t" })
             {
                 Set("humanCannonScene", blank);
                 Assert.AreEqual("Fallback", Resolve("Performance", "HumanCannon"));
-                Assert.AreEqual("proto_0.0.2", Resolve("Performance", "Tightrope"));
+                Assert.AreEqual("Tightrope", Resolve("Performance", "Tightrope"));
             }
             foreach (string space in new[] { "Hub", "WaitingRoom", "Exploration", "EscapeRoute" })
                 Assert.AreEqual(Resolve(space), Resolve(space, "Tightrope"), "공연 외 장소는 묘기에 영향받지 않는다.");
@@ -125,7 +134,7 @@ namespace CurtainCall.SpaceLink.Tests
             var asset = Resources.Load<ScriptableObject>("Settings/GameSettings/BaseGameSettings");
             Assert.IsNotNull(asset);
             var saved = PerformanceLinkReflection.Get(asset, "SpaceTransition");
-            foreach (var mapping in new[] { (Trick: "Tightrope", Scene: "proto_0.0.2"), (Trick: "HumanCannon", Scene: "HumanCannon") })
+            foreach (var mapping in new[] { (Trick: "Tightrope", Scene: "Tightrope"), (Trick: "HumanCannon", Scene: "HumanCannon") })
             {
                 string scene = (string)PerformanceLinkReflection.StaticCall(Route, "SceneName",
                     PerformanceLinkReflection.EnumValue(Space, "Performance"), saved, mapping.Trick);
@@ -138,10 +147,13 @@ namespace CurtainCall.SpaceLink.Tests
         [Test]
         public void TryFindRecognizesFallbackAndBothPerformanceScenes_ForAdditiveCleanup()
         {
+            // 기본 대기실/탐색은 같은 실제 씬을 공유한다. 이 순수 검사는 장소별 독립 이름으로 역매핑을 확인한다.
+            Set("waitingRoomScene", "RouteWaitingRoom");
+            Set("explorationScene", "RouteExploration");
             Set("performanceScene", "Fallback");
-            Set("tightropeScene", "proto_0.0.2");
+            Set("tightropeScene", "Tightrope");
             Set("humanCannonScene", "HumanCannon");
-            foreach (string scene in new[] { "Fallback", "proto_0.0.2", "HumanCannon" }) AssertFound(scene, "Performance");
+            foreach (string scene in new[] { "Fallback", "Tightrope", "HumanCannon" }) AssertFound(scene, "Performance");
             foreach (string space in new[] { "Hub", "WaitingRoom", "Exploration", "EscapeRoute" }) AssertFound(Resolve(space), space);
             foreach (string scene in new[] { null, "", "NotASpace" })
             {
@@ -157,9 +169,13 @@ namespace CurtainCall.SpaceLink.Tests
     /// </summary>
     public sealed class PerformanceLinkPlayTests
     {
-        const string TightropePath = "Assets/Scenes/Prototypes/proto_0.0.2.unity";
-        const string TightropeScene = "proto_0.0.2";
+        const string TightropePath = "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity";
+        const string TightropeScene = "Tightrope";
         const string CannonScene = "HumanCannon";
+        const string CommonUiType = "CurtainCall.UI.SceneIntegration.CommonPerformanceUI";
+        const string BindingType = "CurtainCall.UI.SceneIntegration.PerformanceSceneBinding";
+        const string CommonUiPath = "Assets/Scenes/UI/CommonPerformanceUI.unity";
+        const string EndingType = "CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation";
         const string SessionType = "CurtainCall.Network.Session.NetworkSessionManager";
         const string PlayerType = "CurtainCall.Network.PlayerSync.NetworkPlayer";
         const string CampaignType = "CurtainCall.Campaign.CampaignRun";
@@ -190,6 +206,9 @@ namespace CurtainCall.SpaceLink.Tests
         string Phase => Get(Get(campaign, "State"), "Phase").ToString();
         object Results => Get(run, "Results");
         int Round => (int)Get(run, "Round");
+        float SettlementWait => Mathf.Max((float)PerformanceLinkReflection.StaticCall(
+            "CurtainCall.Settings.PerformanceEndingSettings", "HoldFor", "Tightrope"),
+            (float)Get(Get(PerformanceLinkReflection.StaticGet("CurtainCall.Settings.GameSettings", "Base"), "Run"), "FailedPerformanceHold")) + 5f;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -266,64 +285,89 @@ namespace CurtainCall.SpaceLink.Tests
         }
 
         [UnityTest]
-        public IEnumerator Standalone_SyntheticStartAndFinish_KeepSessionEndAndGuardedRetry()
+        public IEnumerator Standalone_ActualSceneBridgeSettlesOnce_WithoutSessionEndOrTrickRetry()
         {
-            // 실제 접속자는 1명이다. 최초 시작 최소인원 검증은 별도 공동 테스트이며 Playing 알림만 합성한다.
-            Call(session, "SetGameState", EnumValue(GameStateType, "Playing"));
-            yield return WaitUntil(() => Get(run, "State").ToString() == "Running", 5f, "독립 줄타기 시작");
+            // 실제 씬은 SpaceLink 진입부가 없어도 저장된 CampaignBridge가 공용 런을 따른다.
+            // 최소 인원 시작/2인 입력은 합성하지 않고, 기존처럼 호스트 1명의 런 상태만 준비한다.
+            yield return CreateSyntheticCampaign();
+            Set(session, "<GameState>k__BackingField", EnumValue(GameStateType, "Playing"));
+            Assert.IsTrue((bool)Get(run, "UsesCampaign"));
+            Assert.IsNull(PerformanceLinkReflection.InScene(SceneManager.GetSceneByName(TightropeScene), EntryType));
+            rewards = Singleton(RewardsType);
+            Subscribe(rewards.GetType(), rewards, "ResultConfirmed", nameof(ResultConfirmed));
+            Assert.IsTrue((bool)Call(campaign, "EndIntro"));
+            yield return WaitUntil(() => Get(run, "State").ToString() == "Running"
+                && (bool)Get(Get(rewards, "State"), "IsOpen"), 5f, "실제 씬 Bridge 공연 시작");
+            yield return null; // 공용 시작 배치·출발 확인 후 도착 경계를 검사한다.
             Assert.Greater(Round, 0);
-            Assert.Greater(restartCount, 0, "독립 실행의 기존 전원 재시작 경로");
+            Assert.AreEqual(0, restartCount, "공용 Bridge는 전원 복구/재시작을 부르지 않는다.");
             Assert.IsTrue((bool)Get(Results, "IsAttemptOpen"));
             MoveToFinish();
-            yield return WaitUntil(() => Get(run, "State").ToString() == "Succeeded", 5f, "저장 코스의 호스트 도착 판정");
-            Assert.AreEqual("Ended", Get(session, "GameState").ToString(), "독립 성공은 기존처럼 방을 종료한다.");
+            yield return WaitUntil(() => Get(run, "State").ToString() == "Succeeded"
+                && Get(rewards, "Latest") != null, 5f, "실제 코스 도착과 공용 정산");
             object result = Get(Results, "Latest");
             Assert.IsNotNull(result);
             Assert.IsTrue((bool)Get(result, "Succeeded"));
+            Assert.IsTrue((bool)Get(Get(rewards, "Latest"), "Succeeded"));
             string attempt = (string)Get(result, "AttemptId");
             int round = Round;
+            long balance = (long)Get(rewards, "Balance");
+            Assert.IsFalse((bool)Call(run, "RestartByHost"));
             Assert.IsFalse((bool)Call(run, "RetryByHost", "old-attempt", round));
-            // 단독 LAN의 재도전 상태 경계만 검사하기 위한 합성 세션 카운트다. 가짜 NetworkPlayer는 만들지 않는다.
-            int count = (int)Get(session, "PlayerCount");
-            bool retried;
-            try
-            {
-                Set(session, "<PlayerCount>k__BackingField", (int)Get(session, "MinPlayers"));
-                retried = (bool)Call(run, "RetryByHost", attempt, round);
-            }
-            finally { Set(session, "<PlayerCount>k__BackingField", count); }
-            Assert.IsTrue(retried);
-            Assert.AreEqual("Running", Get(run, "State").ToString());
-            Assert.AreEqual("Playing", Get(session, "GameState").ToString());
-            Assert.AreEqual(round + 1, Round);
-            Assert.AreNotEqual(attempt, Get(Results, "AttemptId"));
-            Assert.IsFalse((bool)Call(run, "RetryByHost", attempt, round), "이전 결과 중복 재도전 거절");
-            Assert.IsFalse((bool)Get(run, "ExternallyManaged"));
+            Assert.IsFalse((bool)Call(run, "RetryByHost", attempt, round), "실제 씬에서는 최신 결과도 묘기 단독 재도전할 수 없다.");
+            Assert.IsFalse((bool)Call(rewards, "FinishPerformance", true, "duplicate", null));
+            yield return WaitUntil(() => Phase == "RestTime", SettlementWait, "결과 연출 뒤 다음 시간대");
+            Assert.AreEqual("Playing", Get(session, "GameState").ToString(), "공용 공연 성공은 방을 끝내지 않는다.");
+            Assert.AreEqual(1, resultCount);
+            Assert.AreEqual(balance, Get(rewards, "Balance"));
+            Assert.AreEqual(round, Round);
+            Assert.AreEqual(attempt, Get(Results, "AttemptId"));
+            Assert.IsFalse((bool)Get(run, "ExternallyManaged"), "SpaceLink 없이 저장된 Bridge만 사용했다.");
         }
 
         [UnityTest]
-        public IEnumerator Managed_KeepsOriginalTightropeUiAndHudVisible()
+        public IEnumerator Managed_KeepsActualSharedHudAndLocalBalanceVisible()
         {
             var scene = SceneManager.GetSceneByName(TightropeScene);
-            var ui = (Behaviour)PerformanceLinkReflection.InScene(scene, "CurtainCall.Tightrope.UI.TightropeDemoUI");
-            var debug = (Behaviour)PerformanceLinkReflection.InScene(scene, "CurtainCall.Tightrope.TightropeRunDebug");
-            Assert.IsNotNull(ui);
-            Assert.IsTrue(ui.isActiveAndEnabled, "독립 실행 UI 기본 상태");
-            bool debugEnabled = debug != null && debug.enabled;
+            var binding = (Behaviour)PerformanceLinkReflection.InScene(scene, BindingType);
+            Assert.IsNotNull(binding, "실제 공연 씬의 UI 연결부");
+            Assert.IsTrue(binding.isActiveAndEnabled);
+            yield return WaitForSharedUi(binding);
+            var common = (Component)PerformanceLinkReflection.StaticGet(CommonUiType, "Current");
+            var hud = (Component)Get(common, "Hud");
+            var localBalance = (Component)Get(binding, "LocalBalance");
+            Assert.IsNotNull(localBalance, "P1은 공통 UI가 아니라 실제 공간 씬 소유다.");
+            Assert.AreEqual(scene, localBalance.gameObject.scene);
             yield return PrepareManagedIntro();
             yield return StartManagedPerformance();
-            yield return new WaitForSecondsRealtime(0.15f);
-            Assert.IsTrue(ui.isActiveAndEnabled, "연결 진입도 기존 UI를 숨기지 않는다.");
-            if (debug != null) Assert.AreEqual(debugEnabled, debug.enabled, "기존 디버그 표시 설정 보존");
-            var view = ui.GetComponent(PerformanceLinkReflection.GameType("CurtainCall.Tightrope.UI.TightropeDemoView"));
-            Assert.IsTrue((bool)Get(view, "Built"));
-            Assert.IsFalse((bool)Get(view, "LobbyVisible"), "진행 중에는 접속창 대신 HUD를 표시한다.");
-            var hud = (Component)Get(view, "HudText");
-            Assert.IsTrue(hud.gameObject.activeInHierarchy);
-            StringAssert.Contains("남은 시간", (string)Get(hud, "text"));
-            Assert.IsTrue(((Component)Get(view, "Gauge")).gameObject.activeInHierarchy);
-            Assert.IsTrue(ui.GetComponent<Canvas>().enabled);
-            Assert.IsFalse((bool)Call(run, "RestartByHost"), "UI 복원이 연결 공연의 전체 재시작 보호를 해제하면 안 된다.");
+            // 플랫폼에서는 P1을 숨기는 것이 정상이다. 실제 줄 위 상태에서 게이지 표시를 검사한다.
+            var rope = (Vector3)Call(course, "GetLanePosition", (int)Get(player, "Slot"), 1f);
+            Call(mover, "SetStartPose", rope, Quaternion.identity, true);
+            Set(mover, "Simulated", true); // 실제 접지 판정으로 CourseControlSwitcher가 P1을 켜게 한다.
+            yield return WaitUntil(() => (bool)Get(localBalance, "HasValidData")
+                && ((CanvasGroup)Get(localBalance, "visibility")).alpha > 0f,
+                5f, "실제 줄 위 로컬 균형 게이지");
+            Assert.IsTrue(binding.isActiveAndEnabled, "연결 진입도 공간 UI 연결부를 숨기지 않는다.");
+            Assert.AreSame(hud, Get(binding, "Hud"), "연결 진입 전후 공통 HUD 소유권 유지");
+            var timer = (Component)Get(hud, "Timer");
+            Assert.IsTrue(timer.gameObject.activeInHierarchy);
+            Assert.IsTrue((bool)Get(timer, "HasValidData"), "타이머는 실제 공연 데이터를 표시한다.");
+            Assert.IsTrue(timer.GetComponentInParent<Canvas>().isActiveAndEnabled);
+            var progress = (Component)Get(hud, "Progress");
+            var solo = progress.GetComponent(PerformanceLinkReflection.GameType("CurtainCall.UI.SceneIntegration.SoloPerformanceProgress"));
+            Assert.IsNotNull(solo, "실제 1인 명부의 진행 표시 연결부");
+            Assert.IsTrue((bool)Get(solo, "HasValidData"));
+            Assert.IsFalse((bool)Get(progress, "HasValidData"), "2~4인 원본 대신 1인 표시가 소유한다.");
+            Assert.IsTrue(((Component)Get(solo, "playerRoot")).gameObject.activeInHierarchy);
+            StringAssert.Contains("m", (string)Get(Get(solo, "remainingText"), "text"));
+            Assert.IsTrue(progress.GetComponentInParent<Canvas>().isActiveAndEnabled);
+            var cheer = (Component)Get(common, "Cheer");
+            Assert.IsTrue(cheer.gameObject.activeInHierarchy, "공용 호응 게이지 표시");
+            Assert.IsTrue((bool)Get(cheer, "HasData"));
+            Assert.AreEqual(1, Get(cheer, "ParticipantCount"), "실제 호스트 명부의 호응 표시");
+            Assert.IsTrue(localBalance.gameObject.activeInHierarchy);
+            Assert.IsTrue(localBalance.GetComponentInParent<Canvas>().isActiveAndEnabled);
+            Assert.IsFalse((bool)Call(run, "RestartByHost"), "실제 UI 연결이 관리 공연의 전체 재시작 보호를 해제하면 안 된다.");
         }
 
         [UnityTest]
@@ -358,7 +402,7 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.AreEqual(0, reviveCount);
             long before = (long)Get(rewards, "Balance");
             MoveToFinish();
-            yield return WaitUntil(() => Get(rewards, "Latest") != null && Phase == "RestTime", 5f, "공용 정산 후 다음 시간대");
+            yield return WaitUntil(() => Get(rewards, "Latest") != null && Phase == "RestTime", SettlementWait, "공용 정산·결과 연출 후 다음 시간대");
             object result = Get(rewards, "Latest");
             object tightropeResult = Get(Results, "Latest");
             Assert.AreEqual(1, resultCount);
@@ -396,7 +440,7 @@ namespace CurtainCall.SpaceLink.Tests
             object timing = Get(PerformanceLinkReflection.StaticGet("CurtainCall.Settings.GameSettings", "Tightrope"), "Run");
             Override(timing, "timeLimit", 0f);
             Set(run, "runStartedAt", Get(run, "Clock"));
-            yield return WaitUntil(() => Get(rewards, "Latest") != null && Phase == "RestTime", 5f, "실패 정산");
+            yield return WaitUntil(() => Get(rewards, "Latest") != null && Phase == "RestTime", SettlementWait, "실패 정산·결과 연출");
             Assert.AreEqual("Failed", Get(run, "State").ToString());
             Assert.IsFalse((bool)Get(Get(rewards, "Latest"), "Succeeded"));
             Assert.AreEqual(1, resultCount);
@@ -494,9 +538,14 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.IsNotNull(rewards);
             Subscribe(rewards.GetType(), rewards, "ResultConfirmed", nameof(ResultConfirmed));
             yield return WaitUntil(() => Get(rewards, "State") is object s && (bool)Get(s, "IsOpen"), 5f, "인간대포 공용 정산 시작");
-            float hold = (float)Get(Get(PerformanceLinkReflection.StaticGet("CurtainCall.Settings.GameSettings", "Base"), "Run"), "FailedPerformanceHold");
+            float hold = Mathf.Max((float)PerformanceLinkReflection.StaticCall(
+                "CurtainCall.Settings.PerformanceEndingSettings", "HoldFor", "HumanCannon"),
+                (float)Get(Get(PerformanceLinkReflection.StaticGet("CurtainCall.Settings.GameSettings", "Base"), "Run"), "FailedPerformanceHold"));
             Assert.Greater(hold, 0f);
-            Call(player, "ServerCut", 4); // 함정 접촉 대신 공통 절단으로 네 곳을 잃는 사망을 합성한다.
+            yield return null;
+            yield return null; // 기존 진입 가드가 출발점 배치를 확인하게 한다.
+            Call(mover, "SetStartPose", new Vector3(0f, -500f, 0f), Quaternion.identity, true);
+            Call(player, "ServerCut", 4); // 낙하 위치에서 공통 절단 사망을 합성한다. 실제 함정 입력은 아니다.
             float diedAt = Time.unscaledTime;
             Assert.AreEqual("Fallen", Get(player, "State").ToString());
             var result = Get(rewards, "Latest");
@@ -510,6 +559,20 @@ namespace CurtainCall.SpaceLink.Tests
             yield return WaitUntil(() => Phase != "Performance", hold + 2f, "유지 시간 뒤 다음 시간대");
             Assert.GreaterOrEqual(Time.unscaledTime - diedAt, hold - 0.05f);
             Assert.AreEqual(1, resultCount, "유지 중 중복 정산 없음");
+            yield return WaitUntil(() => !(bool)Get(director, "IsTransitioning")
+                && Get(director, "Current").ToString() == "WaitingRoom", 20f, "밤 정비 대기실 복귀");
+            for (int i = 0; i < 5; i++) yield return null;
+            Assert.AreEqual("Night", Phase);
+            Assert.IsFalse(SceneManager.GetSceneByName(CannonScene).isLoaded);
+            Assert.AreEqual("Normal", Get(player, "State").ToString(), "부활 뒤 옛 공연 씬에서 다시 죽으면 안 된다.");
+            Assert.AreEqual(PerformanceLinkReflection.GameType("CurtainCall.Player.PlayerCondition")
+                .GetField("OneArmParts").GetValue(null), Get(player, "LostParts"));
+            var balance = player.GetComponent(PerformanceLinkReflection.GameType("CurtainCall.Player.PlayerBalance"));
+            Assert.IsFalse((bool)Get(balance, "HasFallen"));
+            Assert.IsTrue((bool)Get(mover, "ControlEnabled"));
+            var spectatorType = PerformanceLinkReflection.GameType("CurtainCall.Cameras.CameraSpectator");
+            Assert.IsNotEmpty(Object.FindObjectsByType(spectatorType, FindObjectsSortMode.None), "실제 관전 카메라가 있어야 한다.");
+            Assert.IsFalse((bool)PerformanceLinkReflection.StaticGet("CurtainCall.Cameras.CameraSpectator", "IsSpectating"));
         }
 
         IEnumerator SwapPerformanceScene(bool additive)
@@ -543,10 +606,35 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.AreSame(campaign, Singleton(CampaignType));
             Assert.IsNotNull(PerformanceLinkReflection.InScene(SceneManager.GetSceneByName(CannonScene), EntryType));
             if (additive) Assert.IsTrue(syntheticHub.isLoaded);
-            else Assert.AreEqual(1, SceneManager.sceneCount);
+            var binding = (Behaviour)PerformanceLinkReflection.InScene(SceneManager.GetSceneByName(CannonScene), BindingType);
+            Assert.IsNotNull(binding);
+            yield return WaitForSharedUi(binding);
+            // 실제 공연이 추가 로드하는 공통 UI·배경만 허용하고 공간 씬은 정확히 비교한다.
+            var loaded = Enumerable.Range(0, SceneManager.sceneCount).Select(SceneManager.GetSceneAt).ToArray();
+            var supporting = new[] { CommonUiPath, "Assets/Scenes/UI/PerformanceTransitionUI.unity",
+                "Assets/Scenes/UI/CommonMenuUI.unity", "Assets/Scenes/UI/CommonInteractionUI.unity",
+                "Assets/_ThirdParty/curtaincall/PerformanceBackground/Scenes/performance_background.unity" };
+            CollectionAssert.AreEquivalent(additive ? new[] { CannonScene, syntheticHub.name } : new[] { CannonScene },
+                loaded.Where(s => !supporting.Contains(s.path)).Select(s => s.name).ToArray(),
+                "이전 공간이나 불필요한 씬을 남기면 안 된다.");
+            Assert.AreEqual(1, loaded.Count(s => s.path == CommonUiPath), "공통 HUD 씬 중복 없음");
+            foreach (string path in supporting) Assert.LessOrEqual(loaded.Count(s => s.path == path), 1, path);
             var practiceBot = (Behaviour)PerformanceLinkReflection.InScene(SceneManager.GetSceneByName(CannonScene), PracticeBotType);
             Assert.IsTrue(practiceBot == null || !practiceBot.enabled, "연결 공연은 인간대포 연습 봇 패널을 숨긴다.");
             yield return AssertCannonCameraPolicy();
+        }
+
+        IEnumerator WaitForSharedUi(Behaviour binding)
+        {
+            yield return WaitUntil(() => SceneManager.GetSceneByPath(CommonUiPath).isLoaded
+                && !(bool)PerformanceLinkReflection.StaticGet("CurtainCall.UI.SceneIntegration.CommonUiSceneLoader", "IsLoading")
+                && PerformanceLinkReflection.StaticGet(CommonUiType, "Current") is Component common
+                && PerformanceLinkReflection.StaticGet(EndingType, "Current") != null
+                && Get(common, "Hud") is Component && Get(binding, "Hud") == Get(common, "Hud"),
+                15f, "실제 공간의 공통 UI 로드와 소유권 연결");
+            Assert.IsTrue(binding.isActiveAndEnabled);
+            Assert.AreEqual(1, Object.FindObjectsByType(PerformanceLinkReflection.GameType(CommonUiType),
+                FindObjectsSortMode.None).Length, "공통 UI 관리자 중복 없음");
         }
 
         IEnumerator AssertCannonCameraPolicy()
@@ -573,7 +661,10 @@ namespace CurtainCall.SpaceLink.Tests
             var station = Call(system, "Station", 6);
             var boarding = (Transform)Get(station, "BoardingPoint");
             Call(mover, "SetStartPose", boarding.position, Quaternion.identity, true);
-            yield return null;
+            // IsTransitioning 해제 직후에도 커튼 열림/키 해제 대기는 남을 수 있다.
+            // 준비 전에 보낸 합성 F 입력은 실제 입력 정책상 버려지므로, 막힘·접지가 풀린 뒤 한 번 보낸다.
+            yield return WaitUntil(() => !(bool)PerformanceLinkReflection.StaticGet("CurtainCall.Player.InputGate", "IsBlocked")
+                && (int)Call(system, "FindBoardableStation", player) == 6, 10f, "커튼 입력 잠금 해제와 실제 대포 탑승 준비");
             object frame = Activator.CreateInstance(PerformanceLinkReflection.GameType("CurtainCall.Player.PlayerInputFrame"));
             Set(frame, "InteractTapped", true);
             Call(pilot, "ReadInput", frame); // 입력 프레임 합성: 카메라·탑승 연결 검사이며 실제 F 키 검사가 아니다.

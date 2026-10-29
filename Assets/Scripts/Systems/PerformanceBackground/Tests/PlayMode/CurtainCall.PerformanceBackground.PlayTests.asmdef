@@ -1,0 +1,7 @@
+{
+    "name": "CurtainCall.PerformanceBackground.PlayTests",
+    "rootNamespace": "CurtainCall.PerformanceBackground.Tests",
+    "references": ["CurtainCall.PerformanceBackground", "Unity.Netcode.Runtime", "Unity.Networking.Transport"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}

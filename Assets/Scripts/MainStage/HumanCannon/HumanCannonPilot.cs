@@ -173,7 +173,8 @@ namespace CurtainCall.HumanCannon
         void TakeMovement()
         {
             if (!IsDriving) previousSimulation = mover.Simulated;
-            mover.ClearPendingInput();
+            mover.ClearPendingInput(); // 달리기·앉기 요청도 함께 비운다
+            mover.TryStand(); // 대포가 이동을 맡는 동안 자세는 바뀌지 않으므로 공간이 있으면 일어선 채로 맡긴다(막혀 있으면 앉은 채 유지)
             mover.Simulated = false;
         }
 
@@ -186,10 +187,10 @@ namespace CurtainCall.HumanCannon
                 mover.Simulated = previousSimulation;
             }
             stationIndex = -1;
+            if (IsHoldingPole && TryGetComponent(out PlayerBalance balance)) balance.IsSuspended = false;
             HeldPole = -1;
             onTransport = false;
             groundRequest.Cancel();
-            sampledGroundJump = false;
             flightStationIndex = -1;
             launchRevision = 0;
             flightSegment = 0;
@@ -229,15 +230,21 @@ namespace CurtainCall.HumanCannon
             Vector3 inputForward = cannonView != null && cannonView.UsesMouseLook ? cannonView.ViewForward : flightForward;
             Vector3 correction = airControl.ConsumeVelocity(Time.frameCount, InputGate.IsBlocked, inputForward,
                 airControlSpeed * controlMultiplier);
-            if (steerPoleMomentum) velocity = CannonAirControl.SteerPoleMomentum(velocity, correction);
+            if (steerPoleMomentum)
+            {
+                float limit = GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit;
+                velocity = CannonAirControl.LimitPoleHorizontalSpeed(CannonAirControl.SteerPoleMomentum(velocity, correction), limit);
+                // 앞으로 누르고 있어도 보정이 속도 상한을 다시 넘기지 않게 최종 수평 이동에 적용한다.
+                correction = CannonAirControl.LimitPoleHorizontalSpeed(velocity + correction, limit) - velocity;
+            }
             Vector3 wind = HumanCannonHazardCourse.Current != null
                 ? HumanCannonHazardCourse.Current.WindVelocity(transform.position, mover.BodyHeight, true) : Vector3.zero;
             Vector3 displacement = BallisticMotion.Step(ref velocity, correction + wind, gravity, dt);
             if (HumanCannonPoleSystem.Current != null)
                 displacement = HumanCannonPoleSystem.Current.ConstrainFlight(transform.position, displacement, mover.BodyRadius);
             var trampoline = HumanCannonTrampoline.Current;
-            if (!rejectedSurface && velocity.y <= 0f && trampoline != null &&
-                trampoline.TryContact(transform.position, transform.position + displacement, mover.BodyRadius, out var contact))
+            if (!rejectedSurface && trampoline != null && !trampoline.GrabPending(player) &&
+                trampoline.TryContact(transform.position, transform.position + displacement, mover.BodyRadius, mover.BodyHeight, out var contact))
             {
                 // 호스트 반동 응답 전에는 바닥 사망을 요청하지 않는다. R/사망은 이 대기도 해제한다.
                 awaitingBounce = true;

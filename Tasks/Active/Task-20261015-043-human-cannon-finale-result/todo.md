@@ -7,7 +7,6 @@
 ## 승인 및 단계 전환
 
 - [x] @RagSpirin 담당·040~044 전체 인계·순차 실행 승인 — 2026-10-15 PM @MoHoDu
-- [x] 담당자에게 실제 전달 — PM 확인
 - [x] 실제 JIRA URL 연결·제목 확인 — CC-129
 - [x] 단계별 4인 PASS 선행조건 폐기·전체 통합 후 공동 테스트 결정 — [순차 인계 결정](../../../Harness/Project/Decisions/Human-cannon/sequential-handoff.md)
 - [x] 042 구현 통합 및 최신 부모 수신 확인 — #111/75862ef, 부모204be8c·dev d8b6db2를 HEAD0128623이 포함
@@ -51,10 +50,5 @@
 - [ ] 사용자 실입력 시점·회피·단독 완주 테스트 — [순서/구현 상태](History/20261016-finale-complete.md)
 - [x] PR 제출 — [#121](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/121), 대상 integration/main-stage-human-cannon
 
-## PM 통합
 
-- [x] PR 병합 — #121/70e242a, 044 HEAD9a0d078 수신 확인
-- [ ] 공용 종료 연결·생존 1명 기준 변경 및 시작 인원/기타 규칙 보존 근거 확인
-- [ ] 전체 통합 후 plan의 3묶음 실제 4인 공동 테스트 및 통합 종료 결과 기록
-- [x] 개별 검사·구현 통합 후 integrated 판정·소유권 반납 — #121/70e242a, 044로 단독 이관; 실제4인 미실행 유지
-- [ ] 테스트 씬 처리 결정 기록
+이전 체크 목록은 [원문](History/Harness-v1/todo.md)에 보존. 현재 계획에 맞춰 항목을 갱신한다.

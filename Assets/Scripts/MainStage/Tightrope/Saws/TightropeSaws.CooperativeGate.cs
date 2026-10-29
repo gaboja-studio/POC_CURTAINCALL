@@ -23,10 +23,22 @@ namespace CurtainCall.Tightrope.Saws
         public int CooperativeGateIndex => cooperativeGateIndex;
         public int CooperativeGateLane => cooperativeGateLane;
         public float CooperativeGateStopDistance => ValidCooperativeGateIndex ? settings.cooperativeGateDistances[cooperativeGateIndex] : float.NaN;
-        public float CooperativeGateDistance => !ValidCooperativeGateIndex ? float.NaN : CooperativeGateStopDistance
-            + Mathf.Max(0f, settings.cooperativeGateApproachDistance - Mathf.Max(0f, GameElapsed - cooperativeGateStartedAt) * settings.cooperativeGateApproachSpeed);
-        public bool IsCooperativeGateStopped => IsCooperativeGateActive && CooperativeGateLiftOffset <= .001f
+        public float CooperativeGateDistance => !ValidCooperativeGateIndex ? float.NaN : CooperativeGateDistanceAt(cooperativeGateIndex,
+            (cooperativeGateOpenedAt >= 0f ? cooperativeGateOpenedAt : GameElapsed) - cooperativeGateStartedAt);
+        public bool IsCooperativeGateStopped => IsCooperativeGateActive && CooperativeApproachSpeed <= 0f && CooperativeGateLiftOffset <= .001f
             && CooperativeGateDistance <= CooperativeGateStopDistance + .001f;
+        // 마지막 필수 관문만 정지점 제한 없이 전진한다. 이전 일반 관문 동작은 유지한다.
+        bool ContinuesCooperativeApproach(int index) => IsRequiredFinaleIndex(index)
+            && index == settings.cooperativeGateDistances.Length - 1;
+        float CooperativeApproachSpeed => ContinuesCooperativeApproach(cooperativeGateIndex)
+            ? Mathf.Max(0f, settings.cooperativeGateApproachSpeed) : 0f;
+        bool CanUseCooperativeGate => IsCooperativeGateActive && !IsCooperativeGateOpening
+            && (CooperativeApproachSpeed > 0f || IsCooperativeGateStopped);
+        float CooperativeGateDistanceAt(int index, float elapsed)
+        {
+            float remaining = settings.cooperativeGateApproachDistance - Mathf.Max(0f, elapsed) * settings.cooperativeGateApproachSpeed;
+            return settings.cooperativeGateDistances[index] + (ContinuesCooperativeApproach(index) ? remaining : Mathf.Max(0f, remaining));
+        }
         public bool IsCooperativeGateOpening => IsCooperativeGateActive && cooperativeGateOpenedAt >= 0f;
         // 기존 표시 코드의 호환 별칭. 협동 관문은 실제로 위로 열린다.
         public bool IsCooperativeGateLowering => IsCooperativeGateOpening;
@@ -46,9 +58,10 @@ namespace CurtainCall.Tightrope.Saws
             (float)(CooperativeGateClock - cooperativeGateClockStartedAt)
                 - settings.cooperativeGateApproachDistance / Mathf.Max(.1f, settings.cooperativeGateApproachSpeed),
             settings.finaleGateClosedSeconds, settings.finaleGateOpenSeconds, settings.cooperativeGateOpenDuration) : default;
-        public float CooperativeJumpLaunchDistance => CooperativeGateStopDistance
-            - Mathf.Max(2.2f, settings.cooperativeGateHeight * .5f + GameSettings.Base.Character.CapsuleRadius
-                + settings.cooperativeGateLaunchTolerance + .25f);
+        public float CooperativeJumpLaunchDistance => (CooperativeApproachSpeed > 0f ? CooperativeGateDistance : CooperativeGateStopDistance)
+            - Mathf.Max(CooperativeApproachSpeed > 0f ? settings.cooperativeGateApproachDistance : 2.2f,
+                Mathf.Max(2.2f, settings.cooperativeGateHeight * .5f + GameSettings.Base.Character.CapsuleRadius
+                + settings.cooperativeGateLaunchTolerance + .25f));
 
         bool ValidCooperativeGateIndex => settings.cooperativeGateDistances != null && cooperativeGateIndex >= 0
             && cooperativeGateIndex < settings.cooperativeGateDistances.Length;
@@ -62,8 +75,8 @@ namespace CurtainCall.Tightrope.Saws
                 return height * (2f * t - t * t); // 위로 튀어 정점에서 멈추는 포물선 상승 구간.
             }
         }
-        Vector3 CooperativeGateBase => course.transform.position + course.Forward * CooperativeGateDistance
-            + course.Right * course.Layout.GetLaneSide(cooperativeGateLane) + Vector3.up * CooperativeGateLiftOffset;
+        Vector3 CooperativeGateBase => course.GetLanePosition(cooperativeGateLane, CooperativeGateDistance)
+            + Vector3.up * CooperativeGateLiftOffset;
 
         public bool TryGetCooperativePlatePosition(int lane, out Vector3 position)
         {
@@ -81,12 +94,12 @@ namespace CurtainCall.Tightrope.Saws
             return true;
         }
 
-        /// <summary>정지 관문의 표시된 출발선에 있는 실제 목마 최상층만 시작 궤적을 보정한다.</summary>
+        /// <summary>톱 앞 출발선의 실제 목마 최상층만 보정한다. 이동하는 톱과 발판의 상대 속도를 반영한다.</summary>
         public bool TryGetCooperativeLaunch(NetworkPlayer player, out float jumpHeight, out float alongSpeed)
         {
             jumpHeight = alongSpeed = 0f;
             var stack = PiggybackSystem.Current;
-            if (!IsCooperativeGateStopped || course == null || !course.IsGameplayActive || stack == null
+            if (!CanUseCooperativeGate || course == null || !course.IsGameplayActive || stack == null
                 || player == null || !player.IsSpawned || (player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player))) || player.IsAirborne
                 || !player.TryGetComponent(out PlayerMover mover) || mover.IsAirborne || mover.FreeMovement
                 || mover.JumpHeightMultiplier <= 0f || stack.GetAbove(player) != null
@@ -105,9 +118,16 @@ namespace CurtainCall.Tightrope.Saws
             float normalHeight = mover.JumpSpeed * mover.JumpSpeed / (2f * gravity);
             float landing = CooperativeLandingDistance(player);
             if (!course.IsLaneUsable(lane, landing)) return false;
-            return CooperativeGateGeometry.TryCalculateLaunch(player.transform.position.y - course.transform.position.y,
-                normalHeight, gravity, CooperativeGateStopDistance - course.GetDistance(player.transform.position),
-                mover.BodyRadius, landing - CooperativeGateStopDistance, settings, out jumpHeight, out alongSpeed);
+            float gateDistance = CooperativeGateDistance;
+            if (!CooperativeGateGeometry.TryCalculateLaunch(player.transform.position.y - course.transform.position.y,
+                normalHeight, gravity, gateDistance - course.GetDistance(player.transform.position),
+                mover.BodyRadius, landing - gateDistance, settings, out jumpHeight, out alongSpeed)) return false;
+            // 목마 높이 배율을 반영한 실제 체공 시간으로 이동 발판까지의 상대 속도를 맞춘다.
+            jumpHeight *= GameSettings.Tightrope.Piggyback.JumpHeightMultiplier;
+            float flightTime = CooperativeGateGeometry.ForwardJumpRange(player.transform.position.y - course.transform.position.y,
+                jumpHeight, gravity, 1f);
+            alongSpeed = (landing - course.GetDistance(player.transform.position)) / flightTime - CooperativeApproachSpeed;
+            return alongSpeed > 0f;
         }
 
         void ResetCooperativeGates()
@@ -160,7 +180,7 @@ namespace CurtainCall.Tightrope.Saws
                 return;
             }
             if (ServerApproveCooperativeStack()) BroadcastCooperativeGate();
-            if (CooperativeGateDistance > CooperativeGateStopDistance + .001f
+            if ((CooperativeApproachSpeed <= 0f && CooperativeGateDistance > CooperativeGateStopDistance + .001f)
                 || !TryFindCooperativePlatePlayer(out var player, out int lane)) return;
             OpenTeamPassageAt(lane, CooperativePlateDistance);
             ReleaseCooperativeGate();
@@ -260,8 +280,10 @@ namespace CurtainCall.Tightrope.Saws
             cooperativeLaunchMarkers = new Transform[course.LaneCount];
             for (int lane = 0; lane < cooperativePlates.Length; lane++)
             {
-                cooperativePlates[lane] = CreatePrimitive(PrimitiveType.Cube, cooperativePlateRoot, $"Plate{lane + 1}",
-                    new Vector3(settings.plateWidth, .04f, settings.cooperativeGatePlateLength), plateColor, true);
+                cooperativePlates[lane] = cooperativePlatePrefab != null
+                    ? Instantiate(cooperativePlatePrefab, cooperativePlateRoot).transform
+                    : CreatePrimitive(PrimitiveType.Cube, cooperativePlateRoot, $"Plate{lane + 1}",
+                        new Vector3(settings.plateWidth, .04f, settings.cooperativeGatePlateLength), plateColor, true);
                 TightropeOutline.AttachToHierarchy(cooperativePlates[lane].gameObject);
                 float markerLength = settings.cooperativeGateLaunchTolerance * 2f;
                 cooperativeLaunchMarkers[lane] = CreatePrimitive(PrimitiveType.Cube, cooperativePlateRoot, $"Launch{lane + 1}",

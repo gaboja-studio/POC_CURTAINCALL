@@ -29,7 +29,11 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 var collider = view.GetComponentInChildren<MeshCollider>();
                 Assert.IsTrue(collider.enabled);
                 Assert.IsNull(view.Find("ContinuousSawFrame"));
-                Assert.IsNotNull(view.Find("IncomingSaw/Tooth0"), "기존 원판과 톱니 모양을 재사용한다.");
+                var prepared = Get(saws, "cooperativeGatePrefab") as GameObject;
+                if (prepared == null) Assert.IsNotNull(view.Find("IncomingSaw/Tooth0"));
+                else Assert.AreSame(prepared.GetComponentInChildren<MeshFilter>().sharedMesh,
+                    view.Find("IncomingSaw").GetComponentInChildren<MeshFilter>().sharedMesh,
+                    "준비한 원판 에셋을 재사용한다.");
                 Assert.That(collider.bounds.size.y, Is.EqualTo(2.1f).Within(.01f));
                 Assert.That(collider.bounds.size.z, Is.EqualTo(2.1f).Within(.01f));
                 Assert.That(collider.bounds.size.x, Is.EqualTo(.2f).Within(.01f));
@@ -148,6 +152,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.IsFalse(collider.enabled);
                 yield return Until(() => saws.transform.Find("Generated/ReleasedGate0") is { } released
                     && released.position.y > closedGateHeight + 1.5f, 1f, "톱이 실제로 동료 머리 위로 튀어 오른다.");
+                Vector3 releasedPosition = saws.transform.Find("Generated/ReleasedGate0").position;
+                Vector3 releasedLane = (Vector3)Call(course, "GetLanePosition", 1, 6f);
+                Assert.That(Mathf.Abs(Vector3.Dot(releasedPosition - releasedLane, (Vector3)Get(course, "Right"))),
+                    Is.LessThan(.001f), "발판으로 튀긴 뒤에도 같은 줄을 직진한다.");
                 yield return Until(() => !(bool)Get(saws, "IsCooperativeGateActive"), 2f, "톱이 관문을 떠나 뒤쪽 줄에 착지");
                 Assert.IsFalse(gateView.gameObject.activeSelf, "원래 자리에 열린 톱이나 보이지 않는 벽을 남기지 않는다.");
                 Assert.IsTrue((bool)Get(saws, "IsTeamPassageOpen"));
@@ -189,10 +197,25 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Set(settings, "cooperativeGates", true);
                 Set(settings, "cooperativeGateDistances", new[] { 6f });
                 Set(settings, "cooperativeGateApproachDistance", 12f);
-                Call(saws, "SetCooperativeGate", 0, true, (float)Get(saws, "GameElapsed"), -1f);
+                Set(settings, "cooperativeGateApproachSpeed", 3f); // 이 회귀 검사는 명시적으로 3m/s인 일반 정지 관문.
+                float approachStarted = (float)Get(saws, "GameElapsed");
+                Call(saws, "SetCooperativeGate", 0, true, approachStarted, -1f);
                 Assert.That((float)Get(saws, "CooperativeGateDistance"), Is.EqualTo(18f).Within(.001f));
                 yield return new WaitForSeconds(.2f);
-                Assert.That((float)Get(saws, "CooperativeGateDistance"), Is.InRange(16.8f, 17.6f));
+                // 저프레임에서도 실제 게임 시계로 3m/s 접근을 확인한다. 프레임 대기가 정확히 0.2초라고 가정하지 않는다.
+                float approachElapsed = (float)Get(saws, "GameElapsed") - approachStarted;
+                Assert.That(approachElapsed, Is.GreaterThan(0f));
+                Assert.That((float)Get(saws, "CooperativeGateDistance"),
+                    Is.EqualTo(Mathf.Max(6f, 18f - approachElapsed * 3f)).Within(.001f));
+                Call(saws, "UpdateViews");
+                Vector3 approachLane = (Vector3)Call(course, "GetLanePosition", (int)Get(saws, "CooperativeGateLane"), 6f);
+                Vector3 right = (Vector3)Get(course, "Right");
+                Assert.That(Mathf.Abs(Vector3.Dot(saws.transform.Find("Generated/CooperativeGate").position - approachLane, right)),
+                    Is.LessThan(.001f), "접근 중에도 정지 줄의 정면에 있는 실제 톱과 충돌체");
+                var path = saws.transform.Find("Generated/Saw paths (visual only)/Cooperative path").GetComponent<LineRenderer>();
+                Assert.IsTrue(path.enabled);
+                for (int i = 0; i < path.positionCount; i++)
+                    Assert.That(Mathf.Abs(Vector3.Dot(path.GetPosition(i) - approachLane, right)), Is.LessThan(.001f), "기존 예고선도 실제 직진 경로와 일치");
                 object writer = Call(saws, "WriteCooperativeGate");
                 byte[] bytes;
                 try { bytes = (byte[])Call(writer, "ToArray"); }
@@ -311,6 +334,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Set(settings, "cooperativeGates", true);
             Set(settings, "cooperativeGateDistances", new[] { distance });
             Set(settings, "cooperativeGateApproachDistance", 0f); // 접근 대기만 생략. 충돌·목마·비행·발판 판정은 실제 Update 사용.
+            Set(settings, "cooperativeGateApproachSpeed", 0f); // 이 도우미는 정지 관문 회귀 검사 전용.
             Call(saws, "SetCooperativeGate", 0, true, (float)Get(saws, "GameElapsed"), -1f);
             Set(saws, "cooperativeGateLane", 1);
         }

@@ -1,9 +1,11 @@
 ---
-summary: 공간 4곳(대기실·공연장·탈출로·백스테이지)마다 통합 브랜치·맵 배치 씬·테스트 씬 폴더·스크립트 폴더·담당자를 나눈다. 여러 공간이 쓰는 코드는 Scripts/Systems/, 불러와 쓰는 에셋은 Resources 공용
+summary: 공간 4곳(대기실·공연장·탈출로·백스테이지; M2 기획은 백스테이지를 대기실로 통합, 구현 구조는 아직 4곳)마다 통합 브랜치·맵 배치 씬·테스트 씬 폴더·스크립트 폴더·담당자를 나눈다. 여러 공간이 쓰는 코드는 Scripts/Systems/, 불러와 쓰는 에셋은 Resources 공용
 status: active
-updated: 2026-10-15
-source: human (2026-10-08·10-15 PM @MoHoDu, 장소 10454669·게임 흐름 15564804 재확인)
+updated: 2026-10-27
+source: human (2026-10-08·10-15 PM @MoHoDu, 장소 10454669·게임 흐름 15564804 재확인; Confluence 27721807 M2 변경점(2026-10-27), Task-20261027-076)
 ---
+
+> 2026-10-27: [하네스 간소화](/Harness/Project/Decisions/harness-simplification.md)가 우선한다. 아래 PM 전용·구역·인계·순차 착수·부모 자식 제한은 과거 기준이다. 게임 의도·외부 에셋 비공개 보관·참조 보존은 유지한다.
 
 # 공간별 작업 공간
 
@@ -21,16 +23,16 @@ source: human (2026-10-08·10-15 PM @MoHoDu, 장소 10454669·게임 흐름 1556
 | 탈출로 | `integration/escape-route` | `Assets/Scenes/Levels/escape_route.unity` | `Assets/Scenes/Tests/EscapeRoute/` | `Assets/Scripts/EscapeRoute/` | @RagSpirin |
 | 백스테이지 | `integration/back-stage` | `Assets/Scenes/Levels/backstage.unity` | `Assets/Scenes/Tests/BackStage/` | `Assets/Scripts/BackStage/` | @gyumin9048-ctrl |
 
+- 2026-10-27 M2: 기획은 대기실과 백스테이지를 **대기실** 하나로 통합한다(탐색·장애물·단서·탈출 4단계·추격이 대기실 안에서 일어남, 담당 @gyumin9048-ctrl 그대로). 위 백스테이지 줄의 브랜치·씬·폴더는 지금 저장소에 있는 구현 구조이며 아직 분리돼 있다.
+
 - 2026-10-15 / PM: 공연장 담당을 @lakuase2에서 **@RagSpirin**로 변경. 탈출로·대기실·백스테이지 담당과 과거 Done/History 작성자는 유지한다.
 - 공간 작업 브랜치(`feat/*` 등)는 자기 소속 통합 브랜치로만 PR한다. 인간 대포는 `integration/main-stage-human-cannon`(Base `integration/main-stage`)에 단계별 Squash, 부모에는 Merge commit([브랜치 전략](branch-strategy.md)). 기존 main-stage는 유지한다.
-- 공간 표는 경로 안내이지 포괄 수정 권한이 아니다. Task-025는 맵 배치 씬만, 인간 대포 Task는 `MainStage/HumanCannon/` 코드·테스트 구역만 순차 소유한다. 2026-10-15 PM이 040~044 전부 @RagSpirin 인계 완료·순차 실행을 승인했다([순차 인계 결정](Human-cannon/sequential-handoff.md)); 현재 041만 활성 소유하며 후속 전환에 추가 인계 승인은 필요 없다.
-- 맵 배치 씬은 해당 공간 통합 안에서 Task 1개만 소유한다(공용 파일 소유 표).
+- 공간 표는 경로 안내이지 포괄 수정 권한이 아니다. Task-025는 맵 배치 씬만, 인간 대포 Task는 `MainStage/HumanCannon/` 코드·테스트 구역만 순차 소유한다. 2026-10-15 PM이 040~044 전부 @RagSpirin 인계 완료·순차 실행을 승인했다([순차 인계 결정](Human-cannon/sequential-handoff.md)); 현재 041만 활성 소유하며 후속 전환에 추가 인계 승인은 필요 없다. 맵 배치 씬은 해당 공간 통합 안에서 Task 1개만 소유한다(공용 파일 소유 표).
 - 여러 공간이 함께 쓰는 코드는 `Assets/Scripts/Systems/`(네트워크·플레이어·카메라·세팅·기록), 테스트 씬은 `Assets/Scenes/Tests/Systems/`에 둔다. 공간 Task는 읽기만 하고, 수정은 PM이 배정한 Task에서만 한다.
 - `Assets/Resources/`는 모든 공간 공용이다. 공간 Task가 Resources 하위 폴더를 고치려면 해당 통합의 공용 파일 소유 표로 배정받는다.
 - 2026-10-09 / PM: 맵 배치 씬에는 둘러보기용 `PlaySetup`(Player·임시 바닥)과 Main Camera의 1인칭 카메라(`Assets/Scripts/Systems/LevelPreview/`, 내 모델 숨김)를 둔다. 게임 기능이 아니며, 바닥을 만들면 `TempFloor`는 지워도 된다. 공간 Task는 별도 에셋 폴더 없이 `Assets/_ThirdParty/` 에셋을 맵 배치 씬에 바로 배치한다.
 - 외줄 묘기(기존 프로토타입)는 공연장 소속이다: `Assets/Scripts/MainStage/Tightrope/`, `Assets/Scenes/Tests/MainStage/Tightrope/`.
-- 2026-10-13 / PM(장소 기획 10454669·게임 흐름 기획 8장): 하위 구역 — 공연장 = 메인 무대·관중석, 대기실 = 단원 대기실·소품실·복도(2026-10-15 PM: 무대 입구 통로부터는 백스테이지, [대기실 결정](Waiting-room/index.md)), 백스테이지 = 대기실·공연장·탈출로를 잇는 탐색 공간, 탈출로 = 구 공연장·하역장. 공연장의 묘기는 한 씬에서 묘기별 프리팹을 바꿔 생성한다. 런 상태·장소 전환·공간 간 규칙은 시스템 담당(@MoHoDu, `Assets/Scripts/Systems/`).
-- 참고: 공간 분리 문서(Confluence `bYmkRlnpusng/pages/10454669`).
+- 2026-10-13 / PM(장소 기획 10454669·게임 흐름 기획 8장): 하위 구역 — 공연장 = 메인 무대·관중석, 대기실 = 랜덤 방들(탐색·탈출 단계, M2), 탈출로 = 구 공연장·하역장. M2 장소 연결: 공연장 ← 무대 입구 통로 ← 대기실 → 탈출로 입구 → 탈출로 → 하역장([대기실 결정](Waiting-room/index.md)). M2에서 바뀜: 이전 "대기실 = 단원 대기실·소품실·복도, 무대 입구 통로부터 백스테이지(탐색 공간)". 공연장의 묘기는 한 씬에서 묘기별 프리팹을 바꿔 생성한다. 런 상태·장소 전환·공간 간 규칙은 시스템 담당(@MoHoDu, `Assets/Scripts/Systems/`). 참고: 공간 분리 문서(Confluence `bYmkRlnpusng/pages/10454669`).
 
 ## 이유
 공간마다 담당자가 생겨 같은 씬·폴더를 동시에 고치는 충돌을 막고, 공간별로 따로 dev에 올릴 수 있게 한다.

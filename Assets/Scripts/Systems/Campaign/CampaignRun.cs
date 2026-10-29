@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using CurtainCall.Network.Session;
 using Unity.Collections;
 using Unity.Netcode;
@@ -20,6 +21,7 @@ namespace CurtainCall.Campaign
         const string RequestMessage = "CurtainCall.Campaign.Request";
         const string ReadyMessage = "CurtainCall.Campaign.Ready";
         const float TimerBroadcastInterval = 1f;
+        public const float DemoEndingSeconds = 10f;
 
         static readonly ulong[] OfflinePlayers = { NetworkManager.ServerClientId };
 
@@ -62,8 +64,12 @@ namespace CurtainCall.Campaign
 
         /// <summary>쉬는 시간 소집 경보(종료 1분 전, 공통 세팅).</summary>
         public event Action RecallAlarm;
+        /// <summary>판정 화면의 실제 시간 만료 직전 쉬는 시간. 표시 타이머 0과 구분한다.</summary>
+        public event Action<CampaignSnapshot> RestExpired;
+        /// <summary>내 준비 상태가 바뀌었을 때. 마지막 준비자의 즉시 시간대 전환보다 먼저 알린다.</summary>
+        public event Action<bool> LocalReadyChanged;
 
-        /// <summary>런이 끝났다. 실패(기한 초과·전원 리타이어)면 이어서 다음 세대 도입이 시작된다.</summary>
+        /// <summary>런이 끝났다. 실패(기한 초과·전원 리타이어)면 다음 세대의 1일차 첫 공연이 시작된다.</summary>
         public event Action<RunEndReason> RunEnded;
 
         void Awake()
@@ -74,6 +80,7 @@ namespace CurtainCall.Campaign
                 return;
             }
             Instance = this;
+            gameObject.AddComponent<CurtainCall.UI.SceneIntegration.DemoRunEnding>();
         }
 
         void Start()
@@ -102,8 +109,9 @@ namespace CurtainCall.Campaign
             if (host != null)
             {
                 if (!state.IsRunning) return;
-                bool changed = state.Phase == CampaignPhase.Night && host.RefreshNight(Players());
-                changed |= host.Tick(Time.deltaTime);
+                bool changed = (state.Phase == CampaignPhase.Night || state.Phase == CampaignPhase.Dawn
+                    || state.Phase == CampaignPhase.DemoEnding) && host.RefreshNight(Players());
+                changed |= host.Tick(Time.deltaTime, Expired);
                 if (changed) Apply(host.Snapshot);
             }
             else if (state.Timer == RestTimerState.Running && state.TimeRemaining > 0f)
@@ -125,7 +133,7 @@ namespace CurtainCall.Campaign
                 return false;
             }
             offlineRun = true;
-            host = new RunState();
+            host = new RunState(Application.version == "0.1.0", true);
             host.StartSession();
             Apply(host.Snapshot);
             return true;
@@ -146,9 +154,6 @@ namespace CurtainCall.Campaign
         /// <summary>공연이 끝났다(공연 결과 처리 뒤 부른다).</summary>
         public bool EndPerformance() => HostDo(r => r.EndPerformance(), nameof(EndPerformance));
 
-        /// <summary>누군가 대기실에서 백스테이지로 나왔다(B안 타이머 시작).</summary>
-        public bool NotifyLeftWaitingRoom() => HostDo(r => r.NotifyLeftWaitingRoom(), nameof(NotifyLeftWaitingRoom));
-
         /// <summary>전원이 무대 입구 통로에 들어갔다(쉬는 시간 조기 종료).</summary>
         public bool NotifyAllAtStageEntrance() => HostDo(r => r.NotifyAllAtStageEntrance(), nameof(NotifyAllAtStageEntrance));
 
@@ -161,6 +166,35 @@ namespace CurtainCall.Campaign
         /// <summary><paramref name="day"/>일차(2일차부터) 공연 순서를 정한다(밤 정비의 세트리스트).</summary>
         public bool SetSetlist(int day, string[] tricks) => HostDo(r => r.SetSetlist(day, tricks), nameof(SetSetlist));
 
+        /// <summary><paramref name="day"/>일차 공연 순서와 묘기별 난이도 단계(1~3)를 함께 정한다(M2 난이도 선택).</summary>
+        public bool SetSetlist(int day, string[] tricks, int[] tiers) => HostDo(r => r.SetSetlist(day, tricks, tiers), nameof(SetSetlist));
+
+        /// <summary>호스트: 공연 성공 단계를 기록한다. 그 단계의 다음 단계를 고를 수 있게 된다.</summary>
+        public bool RecordClear(string trickId, int tier) => HostDo(r => r.RecordClear(trickId, tier), nameof(RecordClear));
+
+        /// <summary>호스트: 그 묘기에 고를 수 있는 가장 높은 단계(깬 단계 + 1, 최대 3). 판정 화면이 아니면 1.</summary>
+        public int MaxSelectableTier(string trickId) => host != null ? host.MaxSelectableTier(trickId) : 1;
+
+        /// <summary>호스트: 이번 런에서 그 묘기를 성공한 가장 높은 단계(없으면 0).</summary>
+        public int ClearedTier(string trickId) => host != null ? host.ClearedTier(trickId) : 0;
+
+        /// <summary>호스트/오프라인이 대기실의 쉬는 시간·밤 정비에서만 런을 포기할 수 있다.</summary>
+        public bool CanAbandonRun => HasAuthority
+            && (state.Phase == CampaignPhase.RestTime || state.Phase == CampaignPhase.Night)
+            && CurtainCall.SpaceLink.SpaceLinkDirector.Instance != null
+            && CurtainCall.SpaceLink.SpaceLinkDirector.Instance.Current == CurtainCall.SpaceLink.SpaceId.WaitingRoom
+            && !CurtainCall.SpaceLink.SpaceLinkDirector.Instance.IsTransitioning
+            && !CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive
+            && !(CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation.Current != null
+                && CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation.Current.ResultVisible);
+
+        /// <summary>클라이언트 요청을 전달하지 않고 호스트 자신의 확인만 받는다.</summary>
+        public bool AbandonRun(CampaignSnapshot expected)
+        {
+            if (!CanAbandonRun) return false;
+            return HostDo(r => r.AbandonRun(expected), nameof(AbandonRun));
+        }
+
         /// <summary>디버그: 쉬는 시간 남은 시간을 바꾼다(0이면 바로 끝난다).</summary>
         public bool DebugSetRemaining(float seconds) => HostDo(r => r.DebugSetRemaining(seconds), nameof(DebugSetRemaining));
 
@@ -171,13 +205,28 @@ namespace CurtainCall.Campaign
             return HostDo(r => r.DebugRestartRun(), nameof(DebugRestartRun));
         }
 
+        /// <summary>Dev 모드의 호스트/오프라인 전용. 선택 지점에서 새 테스트 런을 시작한다.</summary>
+        public bool DebugStartAt(RunStartPoint point)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || !point.IsValid(out _)) return false;
+            if (!host.DebugStartAt(point)) return false;
+            localReady = false;
+            Apply(host.Snapshot);
+            return true;
+        }
+
         // ── 밤 정비 준비 완료 (누구나) ────────────────────────
 
-        /// <summary>내 밤 정비 준비 완료를 바꾼다. 전원이 준비되면 다음 날 아침 쉬는 시간이 된다.</summary>
+        /// <summary>밤 준비 / 전환 가림 완료 / 데모 확인을 보낸다. 현재 세대·일차·시간대에만 적용한다.</summary>
         public bool SetReady(bool value)
         {
-            if (state.Phase != CampaignPhase.Night) return false;
+            if (state.Phase != CampaignPhase.Night && state.Phase != CampaignPhase.Dawn && state.Phase != CampaignPhase.DemoEnding) return false;
+            if (state.Phase != CampaignPhase.Night && !value) return false;
+            bool changedReady = localReady != value;
             localReady = value;
+            if (changedReady && state.Phase == CampaignPhase.Night && LocalReadyChanged != null)
+                foreach (Action<bool> observer in LocalReadyChanged.GetInvocationList())
+                    try { observer(value); } catch (Exception error) { Debug.LogException(error, this); }
 
             if (host != null)
             {
@@ -191,14 +240,24 @@ namespace CurtainCall.Campaign
             }
 
             if (messaging == null) return false;
-            using var writer = new FastBufferWriter(1, Allocator.Temp);
+            using var writer = new FastBufferWriter(10, Allocator.Temp);
             writer.WriteValueSafe(value);
+            writer.WriteValueSafe(state.Generation);
+            writer.WriteValueSafe(state.Day);
+            writer.WriteValueSafe((byte)state.Phase);
             messaging.SendNamedMessage(ReadyMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
             Changed?.Invoke();
             return true;
         }
 
         // ── 판정·적용 ────────────────────────────────────────
+
+        void Expired(CampaignSnapshot snapshot)
+        {
+            if (RestExpired != null)
+                foreach (Action<CampaignSnapshot> observer in RestExpired.GetInvocationList())
+                    try { observer(snapshot); } catch (Exception error) { Debug.LogException(error, this); }
+        }
 
         bool HostDo(Func<RunState, bool> op, string name)
         {
@@ -287,6 +346,8 @@ namespace CurtainCall.Campaign
                 case CampaignPhase.Night: return "밤 정비";
                 case CampaignPhase.Escape: return "탈출로";
                 case CampaignPhase.Ending: return "엔딩";
+                case CampaignPhase.DemoEnding: return "데모 플레이 종료";
+                case CampaignPhase.Dawn: return "다음 날 아침으로 전환 중";
                 default: return s.Phase.ToString();
             }
         }
@@ -330,7 +391,7 @@ namespace CurtainCall.Campaign
 
             if (gameState == GameSessionState.Playing && host == null)
             {
-                host = new RunState();
+                host = new RunState(Application.version == "0.1.0", true);
                 host.StartSession();
                 Apply(host.Snapshot);
             }
@@ -367,6 +428,10 @@ namespace CurtainCall.Campaign
         {
             if (host == null) return;
             reader.ReadValueSafe(out bool value);
+            reader.ReadValueSafe(out int generation);
+            reader.ReadValueSafe(out int day);
+            reader.ReadValueSafe(out byte phase);
+            if (generation != state.Generation || day != state.Day || phase != (byte)state.Phase || !Players().Contains(sender)) return;
             if (!host.SetReady(sender, value)) return;
             host.RefreshNight(Players());
             Apply(host.Snapshot);

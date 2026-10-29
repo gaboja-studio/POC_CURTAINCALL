@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -25,6 +26,34 @@ namespace CurtainCall.HumanCannon
         uint revision;
         public static HumanCannonHazardCourse Current { get; private set; }
         public int Difficulty => difficulty;
+        /// <summary>판정 화면의 실제 절단 결과(플레이어·장애물·잘린 부위·검출 위치).</summary>
+        public event Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3> HitConfirmed;
+        /// <summary>절단 판정을 호출하기 직전의 실제 접촉. 피해 성공과는 구분한다.</summary>
+        public event Action<NetworkPlayer, HumanCannonHazard, Vector3> ContactDetected;
+        /// <summary>새 접촉의 최종 관측. 부상 없는 접촉과 같은 프레임의 판정 제한도 구분한다.</summary>
+        public event Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3, bool> ContactResolved;
+
+        public int SawIndex(HumanCannonHazard target)
+        {
+            int index = 0;
+            foreach (var hazard in hazards)
+            {
+                if (hazard == target) return index;
+                if (hazard != null && !hazard.IsPoleSaw && hazard.Kind == target.Kind) index++;
+            }
+            return index;
+        }
+
+        public bool IsHazardEnabled(int index)
+        {
+            if (index < 0 || index >= hazards.Length || hazards[index] == null) return false;
+            var hazard = hazards[index];
+            if (hazard.IsPoleSaw || hazard.Kind == CannonHazardKind.SpikeMace) return true;
+            int count = 0;
+            foreach (var other in hazards)
+                if (other != null && !other.IsPoleSaw && other.Kind == hazard.Kind) count++;
+            return TrickSettings.IncludesSaw(SawIndex(hazard), count, GameSettings.HumanCannon.SawDensity);
+        }
         public int HazardCount => hazards.Length;
         public HumanCannonHazard Hazard(int index) => hazards[index];
         public bool IsSynchronized => synchronized && !resetBarrier.Waiting;
@@ -91,7 +120,14 @@ namespace CurtainCall.HumanCannon
             if (!IsSynchronized) return;
             double elapsed = Elapsed;
             float speed = CannonDifficulty.HazardSpeed(difficulty);
-            foreach (var hazard in hazards) if (hazard != null) hazard.Present(elapsed, speed);
+            for (int i = 0; i < hazards.Length; i++)
+            {
+                var hazard = hazards[i];
+                if (hazard == null) continue;
+                bool enabled = IsHazardEnabled(i);
+                hazard.SetVisible(enabled, SawIndex(hazard));
+                if (enabled) hazard.Present(elapsed, hazard.IsPoleSaw ? 1f : speed);
+            }
             if (session != null && session.IsHost && !Resolved) HostContacts(elapsed, speed);
             previousElapsed = elapsed;
         }
@@ -122,16 +158,37 @@ namespace CurtainCall.HumanCannon
                 for (int h = 0; h < hazards.Length; h++)
                 {
                     var hazard = hazards[h];
-                    if (hazard == null || !hazard.isActiveAndEnabled) continue;
-                    int steps = hazard.SweepSteps(before, feet, elapsed - beforeTime, speed);
+                    if (hazard == null || !hazard.isActiveAndEnabled || !IsHazardEnabled(h)) continue;
+                    float hazardSpeed = hazard.IsPoleSaw ? 1f : speed;
+                    int steps = hazard.SweepSteps(before, feet, elapsed - beforeTime, hazardSpeed);
                     for (int i = 0; i <= steps; i++)
                     {
                         float t = i / (float)steps;
                         if (!hazard.Touches(Vector3.Lerp(before, feet, t), mover.BodyHeight, mover.BodyRadius,
-                            beforeTime + (elapsed - beforeTime) * t, speed)) continue;
+                            beforeTime + (elapsed - beforeTime) * t, hazardSpeed)) continue;
                         var key = (h, player.OwnerClientId);
                         touchingNow.Add(key);
-                        if (!touching.Contains(key) && cutThisFrame.Add(player.OwnerClientId)) player.ServerCut();
+                        if (!touching.Contains(key))
+                        {
+                            bool evaluated = cutThisFrame.Add(player.OwnerClientId);
+                            BodyPart cut = BodyPart.None;
+                            if (evaluated)
+                            {
+                              if (ContactDetected != null)
+                                foreach (Action<NetworkPlayer, HumanCannonHazard, Vector3> observer in ContactDetected.GetInvocationList())
+                                    try { observer(player, hazard, Vector3.Lerp(before, feet, t)); }
+                                    catch (Exception error) { Debug.LogException(error, this); }
+                              cut = player.ServerCut();
+                              if (cut != BodyPart.None && HitConfirmed != null)
+                                foreach (Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3> observer in HitConfirmed.GetInvocationList())
+                                    try { observer(player, hazard, cut, Vector3.Lerp(before, feet, t)); }
+                                    catch (Exception error) { Debug.LogException(error, this); }
+                            }
+                            if (ContactResolved != null)
+                                foreach (Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3, bool> observer in ContactResolved.GetInvocationList())
+                                    try { observer(player, hazard, cut, Vector3.Lerp(before, feet, t), evaluated); }
+                                    catch (Exception error) { Debug.LogException(error, this); }
+                        }
                         break;
                     }
                 }

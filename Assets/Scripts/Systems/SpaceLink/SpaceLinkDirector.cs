@@ -35,15 +35,17 @@ namespace CurtainCall.SpaceLink
         {
             public readonly SpaceId Space;
             public readonly string SceneName;
+            public readonly bool Reload;
             readonly int generation;
             readonly int day;
             readonly int performanceIndex;
             readonly string trickId;
 
-            public TransitionRequest(SpaceId space, string sceneName, in CampaignSnapshot state)
+            public TransitionRequest(SpaceId space, string sceneName, in CampaignSnapshot state, bool reload = false)
             {
                 Space = space;
                 SceneName = sceneName;
+                Reload = reload;
                 generation = state.Generation;
                 day = state.Day;
                 performanceIndex = state.PerformanceIndex;
@@ -59,7 +61,6 @@ namespace CurtainCall.SpaceLink
         CampaignRun campaign;
         TransitionRequest? pending;
         Coroutine running;
-        RestTimerState lastTimer;
         bool stepFailed;
 
         /// <summary>이 화면이 장소를 정하는지(호스트 또는 오프라인 런).</summary>
@@ -106,9 +107,7 @@ namespace CurtainCall.SpaceLink
         {
             campaign = CampaignRun.EnsureExists();
             campaign.StepChanged += HandleStep;
-            campaign.Changed += HandleChanged;
             SceneManager.sceneLoaded += HandleSceneLoaded;
-            lastTimer = campaign.State.Timer;
         }
 
         void OnDestroy()
@@ -118,7 +117,6 @@ namespace CurtainCall.SpaceLink
             if (campaign != null)
             {
                 campaign.StepChanged -= HandleStep;
-                campaign.Changed -= HandleChanged;
             }
             Instance = null;
         }
@@ -129,8 +127,8 @@ namespace CurtainCall.SpaceLink
         public bool LeaveWaitingRoom()
         {
             if (!HasAuthority || campaign.State.Phase != CampaignPhase.RestTime || Current != SpaceId.WaitingRoom) return false;
-            campaign.NotifyLeftWaitingRoom(); // A안은 이미 흐르는 중이라 무시돼도 이동은 한다.
-            return Request(SpaceId.Exploration);
+            // 쉬는 시간 타이머는 이미 흐르고 있다(M2). 나가는 것은 장소 이동만 한다.
+            return GameSettings.Base.SpaceTransition.KeepWaitingRoomOnExit || Request(SpaceId.Exploration);
         }
 
         /// <summary>장소로 바꾼다(호스트·오프라인 전용). 바꾸는 중이면 끝난 뒤 마지막 요청만 처리한다.</summary>
@@ -145,10 +143,22 @@ namespace CurtainCall.SpaceLink
             return true;
         }
 
+        /// <summary>새 Dev 시작 지점을 같은 씬에서도 초기화한다. 이 요청만 Single로 로드하며 저장 설정은 바꾸지 않는다.</summary>
+        public bool DebugReloadCurrentStep()
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || !campaign.State.IsRunning) return false;
+            var state = campaign.State;
+            var target = SpaceRoute.ForPhase(state.Phase);
+            string sceneName = SpaceRoute.SceneName(target, GameSettings.Base.SpaceTransition, state.TrickId);
+            pending = new TransitionRequest(target, sceneName, state, true);
+            if (running == null) running = StartCoroutine(Run());
+            return true;
+        }
+
         void Enqueue(SpaceId target, in CampaignSnapshot state)
         {
-            // 오프라인 합성런은 기존 더미를 유지한다. 실제 묘기/단독 연습의 참가자는 LAN 경로로 준비한다.
-            string trickId = campaign.IsOfflineRun ? null : state.TrickId;
+            // 오프라인에서도 런에 선택된 실제 묘기 씬으로 이동한다.
+            string trickId = state.TrickId;
             string sceneName = SpaceRoute.SceneName(target, GameSettings.Base.SpaceTransition, trickId);
             pending = new TransitionRequest(target, sceneName, state);
             if (running == null) running = StartCoroutine(Run());
@@ -157,16 +167,6 @@ namespace CurtainCall.SpaceLink
         void HandleStep(CampaignSnapshot s)
         {
             if (HasAuthority) Enqueue(SpaceRoute.ForPhase(s.Phase), s);
-        }
-
-        void HandleChanged()
-        {
-            var s = campaign.State;
-            // B안: 누군가 대기실에서 나와 타이머가 흐르기 시작하면 백스테이지로 간다(더미 대기실의 출구 버튼 포함).
-            if (HasAuthority && s.Phase == CampaignPhase.RestTime && lastTimer == RestTimerState.WaitingForExit
-                && s.Timer == RestTimerState.Running && Current == SpaceId.WaitingRoom && pending == null)
-                Request(SpaceId.Exploration);
-            lastTimer = s.Timer;
         }
 
         // ── 전환 실행 ────────────────────────────────────────
@@ -180,8 +180,17 @@ namespace CurtainCall.SpaceLink
                 var request = pending.Value;
                 pending = null;
                 if (!IsCurrent(request)) continue;
-                if (request.Space != Current || !IsLoaded(request.SceneName))
-                    yield return Transition(request);
+                if (request.Reload || request.Space != Current || !IsLoaded(request.SceneName))
+                {
+                    uint curtainVersion = 0;
+                    yield return CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CoverFor(version => curtainVersion = version);
+                    try
+                    {
+                        if (IsCurrent(request) && CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CanTransitionFor(curtainVersion))
+                            yield return Transition(request);
+                    }
+                    finally { CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CompleteFor(curtainVersion); }
+                }
             }
             running = null;
         }
@@ -191,7 +200,7 @@ namespace CurtainCall.SpaceLink
         IEnumerator Transition(TransitionRequest request)
         {
             var settings = GameSettings.Base.SpaceTransition;
-            var mode = settings.Mode;
+            var mode = request.Reload ? SpaceTransitionMode.Single : settings.Mode;
             var from = Current;
             var target = request.Space;
             string sceneName = request.SceneName;

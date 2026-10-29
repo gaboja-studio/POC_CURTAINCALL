@@ -33,6 +33,7 @@ Status 순서: preparing(Task 준비) → working(작업 중) → merging(순차
 |---|---|---|---|---|---|
 | Task-20261008-025 | feat | @RagSpirin | feat/main-stage-level-edit | - | assigned |
 | Task-20261020-067 | feat | @RagSpirin | feat/main-stage-background-submit | #196 | submitted |
+| Task-20261020-066 | fix | @MoHoDu | fix/stage-pr-conflicts | - | blocked |
 
 ## 공용 파일 소유 표
 

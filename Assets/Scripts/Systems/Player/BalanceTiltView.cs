@@ -28,6 +28,12 @@ namespace CurtainCall.Player
 
         void LateUpdate()
         {
+            if (balance.IsSuspended)
+            {
+                currentAngle = 0f;
+                modelSlot.Slot.localRotation = Quaternion.identity;
+                return;
+            }
             if (balance.HasFallen) return; // 무너진 자세 유지
 
             var presentation = GameSettings.Base.Presentation;

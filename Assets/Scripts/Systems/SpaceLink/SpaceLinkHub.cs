@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CurtainCall.Settings;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -29,14 +30,27 @@ namespace CurtainCall.SpaceLink
 
         void Update()
         {
-            // 시작 씬 + 공간 씬(DontDestroyOnLoad는 세지 않는다). 추가 로드는 이전 공간을 닫고 다음을 붙이므로 그 사이(전환 중)도 끈 채로 둔다.
-            bool shown = SceneManager.sceneCount > 1 || (director != null && director.IsTransitioning);
+            // 공통 UI/커튼/배경 additive 씬은 로비 화면을 대체하는 게임 공간이 아니다.
+            bool shown = HasLoadedSpace(gameObject.scene) || (director != null && director.IsTransitioning);
             if (shown == spaceShown) return;
             spaceShown = shown;
             foreach (var cam in hubCameras)
                 if (cam != null) cam.gameObject.SetActive(!shown);
             foreach (var ui in hubUi)
                 if (ui != null) ui.SetActive(!shown);
+        }
+
+        public static bool HasLoadedSpace(Scene hub)
+        {
+            var settings = GameSettings.Base.SpaceTransition;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                var scene = SceneManager.GetSceneAt(i);
+                if (scene != hub && scene.isLoaded
+                    && SpaceRoute.TryFind(scene.name, settings, out var space) && space != SpaceId.Hub)
+                    return true;
+            }
+            return false;
         }
     }
 }

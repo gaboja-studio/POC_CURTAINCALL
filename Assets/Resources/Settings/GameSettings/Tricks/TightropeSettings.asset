@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66f2a7882f2de49519005b9b55e031d5, type: 3}
   m_Name: TightropeSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.TightropeSettings
+  sawDensity: 0.6
+  sawDiagonalDegrees: 30
   reward: {fileID: 0}
   course:
     laneCount: 6
@@ -29,7 +31,7 @@ MonoBehaviour:
     swingGapLength: 8
     trapezeEnabled: 1
     trapezeStart: 100
-    trapezeLength: 16
+    trapezeLength: 12
     trapezeLane: 3
     startPlatformLength: 6
     finishPlatformLength: 6
@@ -39,7 +41,7 @@ MonoBehaviour:
     ropeWalkWidth: 0.4
     ropeHeightTolerance: 0.3
     spawnDistance: -1
-    safetyNetDepth: 6
+    safetyNetDepth: 0
     fallDepth: 1
     sections:
     - endFraction: 0.18181819
@@ -72,8 +74,11 @@ MonoBehaviour:
     landingShock: 10
     minAirTimeForShock: 0.15
     laneLandingShock: 35
+    laneLandingDangerRatio: 0.05
     laneSwayBoost: 1.5
     laneSwayBoostDuration: 1.5
+    trapezeEntryHeightTolerance: 1.2
+    trapezeEntryGrabDistance: 1.05
     landingWaveRange: 6
     landingWaveSpeed: 10
     landingWaveShock: 6
@@ -96,6 +101,7 @@ MonoBehaviour:
     upperTransfer: 0.2
     linkDistance: 1.5
     fallShock: 10
+    jumpHeightMultiplier: 1.5
     forwardJumpSpeed: 2.2
     backwardJumpSpeed: 0.7
   camera:
@@ -129,53 +135,38 @@ MonoBehaviour:
       delay: 0
       action: 0
       firstSaw: 1
-      lastSaw: 16
+      lastSaw: 14
       lane: -1
       repeat: 0
       repeatDelay: 0
-    - name: "\uC218\uC9C1"
-      trigger: 1
-      reference: 
-      leaderDistance: 0
-      delay: 10
-      action: 2
-      firstSaw: 1
-      lastSaw: 1
-      lane: -1
-      repeat: -1
-      repeatDelay: 20
     horizontalSaws:
     - distance: 12
       startSide: 0
-    - distance: 21
+    - distance: 21.8
       startSide: 1
-    - distance: 30
+    - distance: 31.6
       startSide: 0
-    - distance: 43.5
+    - distance: 43.4
       startSide: 1
-    - distance: 52.5
+    - distance: 56.3
       startSide: 0
-    - distance: 61.5
+    - distance: 61
       startSide: 1
-    - distance: 70.5
+    - distance: 70.8
       startSide: 0
-    - distance: 91.5
+    - distance: 80.6
       startSide: 1
-    - distance: 100.5
+    - distance: 90.4
       startSide: 0
-    - distance: 109.5
+    - distance: 119.8
       startSide: 1
-    - distance: 118.5
+    - distance: 129.6
       startSide: 0
-    - distance: 124.5
+    - distance: 139.40001
       startSide: 1
-    - distance: 133.5
+    - distance: 149.2
       startSide: 0
-    - distance: 142.5
-      startSide: 1
-    - distance: 151
-      startSide: 0
-    - distance: 162
+    - distance: 159
       startSide: 1
     horizontalFirstSpeed: 9.5
     horizontalLastSpeed: 12
@@ -191,12 +182,12 @@ MonoBehaviour:
     verticalVisualDiameter: 1.2
     verticalCenterHeight: 0.6
     verticalThickness: 0.1
-    cooperativeGates: 1
+    cooperativeGates: 0
     cooperativeGateDistances:
     - 158
-    cooperativeGateTriggerLead: 12
+    cooperativeGateTriggerLead: 24
     cooperativeGateApproachDistance: 6
-    cooperativeGateApproachSpeed: 3
+    cooperativeGateApproachSpeed: 2
     cooperativeGateHeight: 2.1
     cooperativeGateThickness: 0.2
     cooperativeGatePlateOffset: 2.2
@@ -213,7 +204,7 @@ MonoBehaviour:
     finaleSoloStartFraction: 0.9
     finaleGateClosedSeconds: 4
     finaleGateOpenSeconds: 4
-    cooperativeGateLaunchTolerance: 0.35
+    cooperativeGateLaunchTolerance: 0.6
     cooperativeGateJumpClearance: 0.6
     plateOffset: 1.5
     plateLength: 0.8
@@ -234,9 +225,9 @@ MonoBehaviour:
     chaseEnabled: 1
     chaseDelay: 10
     chaseStart: -6
-    chaseSpeed: 0.35
+    chaseSpeed: 1
     safeDistance: 165
-    warningSeconds: 1.5
+    warningSeconds: 2.5
     triggerMode: 1
     laneOrder: 2
     segments:

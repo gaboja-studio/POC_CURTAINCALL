@@ -43,6 +43,13 @@ namespace CurtainCall.HumanCannon
         readonly RouteResetBarrier resetBarrier = new();
         double nextSnapshot;
         public static HumanCannonRouteSystem Current { get; private set; }
+
+        /// <summary>코스 아래 낭떠러지(<c>fallHeight</c> 아래)인지. 경로 시스템이 없으면 false.</summary>
+        public static bool IsBelowCourse(Vector3 position) => Current != null && position.y < Current.fallHeight;
+
+        // 호스트: 이번 추락을 이미 부상 처리한 사람(다시 코스 위로 올라오면 지운다).
+        readonly System.Collections.Generic.HashSet<ulong> fallen = new();
+        bool localRelocating;
         public int AliveFlyers { get; private set; }
         public int ArrivedFlyers { get; private set; }
         public bool ShelterReady => AliveFlyers == ArrivedFlyers;
@@ -77,6 +84,32 @@ namespace CurtainCall.HumanCannon
             NetworkPlayer.Restarted += Restart;
         }
 
+        int localFallLost;
+        float localFallAt;
+
+        /// <summary>
+        /// 내 캐릭터가 코스 아래로 떨어졌으면, 호스트가 부상을 반영한 것을 본 뒤(또는 2초 뒤) 마지막으로 탄 대포 앞으로 옮긴다.
+        /// 아직 대포를 타지 않았으면 내 출발점. 바닥이 있는 곳에 떨어지면 그 자리에서 계속한다(2026-10-28 사용자 결정).
+        /// </summary>
+        void RelocateLocalFall()
+        {
+            var local = NetworkPlayer.Local;
+            if (local == null || !local.IsSpawned || local.transform.position.y >= fallHeight) { localRelocating = false; return; }
+            if (local.State != PlayerState.Normal || (cannon != null && cannon.IsFlying(local.OwnerClientId))) return;
+            int lost = PlayerCondition.CountLimbs(local.LostParts);
+            if (!localRelocating) { localRelocating = true; localFallLost = lost; localFallAt = Time.unscaledTime; return; }
+            if (lost <= localFallLost && Time.unscaledTime - localFallAt < 2f) return;
+            if (!local.TryGetComponent(out PlayerMover mover)) return;
+            int station = cannon != null ? cannon.LocalLastStation : -1;
+            if (cannon != null && station >= 0 && station < cannon.StationCount)
+            {
+                var point = cannon.Station(station).BoardingPoint;
+                mover.Relocate(point.position, point.rotation);
+            }
+            else mover.ResetToStart();
+            localRelocating = false;
+        }
+
         void Update()
         {
             if (cannon == null && HumanCannonSystem.Current != null)
@@ -90,10 +123,15 @@ namespace CurtainCall.HumanCannon
                 session.ConnectionStateChanged += Connection;
                 Connection(session.ConnectionState);
             }
+            RelocateLocalFall();
             if (session == null || !session.IsHost) return;
+            // M2: 코스 밖 낭떠러지 추락은 즉사가 아니라 2곳 절단(4곳이 되면 사망). 같은 추락은 한 번만 다친다.
             foreach (var player in NetworkPlayer.All)
-                if (player != null && player.IsSpawned && player.State == PlayerState.Normal && player.transform.position.y < fallHeight)
-                    player.ServerKill();
+            {
+                if (player == null || !player.IsSpawned) continue;
+                if (player.transform.position.y >= fallHeight) { fallen.Remove(player.OwnerClientId); continue; }
+                if (player.State == PlayerState.Normal && fallen.Add(player.OwnerClientId)) HumanCannonSystem.ServerFallInjury(player);
+            }
             bool changed = false;
             int alive = AliveFlyers, arrived = ArrivedFlyers;
             CountShelterFlyers();

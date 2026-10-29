@@ -10,6 +10,9 @@ namespace CurtainCall.Tightrope
         enum Operation : byte { Grab, Release, Sync }
         const string RequestMessage = "CurtainCall.Tightrope.RelayGate.Request";
         const string StateMessage = "CurtainCall.Tightrope.RelayGate.State";
+        // 회차·버전·봉 수 9바이트 + 봉마다(리비전4·점유자8·단계1·유지8·재가동8·연결 줄1) 30바이트 × 4.
+        const int StateBytes = 9 + 30 * 4;
+        const byte NoOpenedLane = byte.MaxValue;
         NetworkSessionManager session;
         CustomMessagingManager messaging;
         void Connect()
@@ -53,13 +56,14 @@ namespace CurtainCall.Tightrope
         void Publish(ulong? recipient = null)
         {
             if (session == null || !session.IsHost || messaging == null) return;
-            using var writer = new FastBufferWriter(125, Allocator.Temp);
+            using var writer = new FastBufferWriter(StateBytes, Allocator.Temp);
             writer.WriteValueSafe(round); writer.WriteValueSafe(version); writer.WriteValueSafe((byte)PoleCount);
             foreach (var station in stations)
             {
                 var state = station.State;
                 writer.WriteValueSafe(state.Revision); writer.WriteValueSafe(state.Occupant);
                 writer.WriteValueSafe((byte)state.Phase); writer.WriteValueSafe(state.HoldUntil); writer.WriteValueSafe(state.RearmAt);
+                writer.WriteValueSafe(station.Opened >= 0 ? (byte)station.Opened : NoOpenedLane);
             }
             if (recipient.HasValue) messaging.SendNamedMessage(StateMessage, recipient.Value, writer, NetworkDelivery.ReliableSequenced);
             else messaging.SendNamedMessageToAll(StateMessage, writer, NetworkDelivery.ReliableSequenced);
@@ -67,23 +71,27 @@ namespace CurtainCall.Tightrope
         void ReadState(ulong sender, FastBufferReader reader)
         {
             if (session == null || session.IsHost || sender != NetworkManager.ServerClientId
-                || reader.Length - reader.Position != 125 || !reader.TryBeginRead(125)) return;
+                || reader.Length - reader.Position != StateBytes || !reader.TryBeginRead(StateBytes)) return;
             reader.ReadValueSafe(out int generation); reader.ReadValueSafe(out int sequence); reader.ReadValueSafe(out byte count);
             run = TightropeRun.Current;
             if (run == null || generation != run.Round || sequence < 0 || count != PoleCount
                 || (generation == round && sequence < version)) return;
             var received = new PoleGateState[PoleCount];
+            var opened = new int[PoleCount];
             for (int i = 0; i < count; i++)
             {
                 reader.ReadValueSafe(out uint revision); reader.ReadValueSafe(out ulong owner); reader.ReadValueSafe(out byte phase);
                 reader.ReadValueSafe(out double until); reader.ReadValueSafe(out double rearm);
+                reader.ReadValueSafe(out byte lane);
+                if (lane != NoOpenedLane && (course == null || lane >= course.LaneCount)) return;
+                opened[i] = lane == NoOpenedLane ? NoLane : lane;
                 var state = new PoleGateState();
                 if (until > Clock + 125d || rearm > Clock + 10d || !state.Receive(revision, owner, (PoleSawPhase)phase, until, rearm)) return;
                 for (int j = 0; j < i; j++) if (owner != Nobody && received[j].Occupant == owner) return;
                 received[i] = state;
             }
             if (generation != round) { RestoreBinding(false); ResetState(); round = generation; }
-            for (int i = 0; i < count; i++) stations[i].State = received[i];
+            for (int i = 0; i < count; i++) { stations[i].State = received[i]; stations[i].Opened = opened[i]; }
             version = sequence; pendingUntil = 0d;
             ConfirmLocalAbort();
             ApplyConnections(); UpdateBinding();

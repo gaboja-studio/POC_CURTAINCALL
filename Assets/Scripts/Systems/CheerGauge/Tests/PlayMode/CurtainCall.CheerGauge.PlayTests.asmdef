@@ -1,0 +1,6 @@
+{
+  "name": "CurtainCall.CheerGauge.PlayTests",
+  "references": ["Unity.TextMeshPro", "Unity.ugui"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}

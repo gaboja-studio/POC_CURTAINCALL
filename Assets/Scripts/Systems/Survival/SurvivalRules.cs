@@ -54,21 +54,8 @@ namespace CurtainCall.Survival
             _ => CatchOutcome.None,
         };
 
-        /// <summary>
-        /// 지닐 수 있는 기물 개수. 팔 2개 = 기본 2, 팔 1개 = 기본 1, 배낭 +2(공통 세팅 · 기물 소지). 팔이 없으면 0.
-        /// 결정: injury-rules.md #8
-        /// </summary>
-        public static int ItemSlots(int armCount, bool hasBackpack)
-        {
-            if (armCount <= 0) return 0;
-            var carry = GameSettings.Base.ItemCarry;
-            int slots = armCount >= 2 ? carry.TwoArmSlots : carry.OneArmSlots;
-            return slots + (hasBackpack ? carry.BackpackBonus : 0);
-        }
-
-        /// <summary>이 몸 상태로 지닐 수 있는 기물 개수. 몸 상태가 없으면 팔 2개로 본다.</summary>
-        public static int ItemSlots(PlayerCondition condition, bool hasBackpack) =>
-            ItemSlots(condition != null ? condition.ArmCount : 2, hasBackpack);
+        /// <summary>신체 상태와 관계없는 기물 소지 개수(공통 세팅, 기본 2). 결정: injury-rules.md #8.</summary>
+        public static int ItemSlots() => GameSettings.Base.ItemCarry.BaseSlots;
 
         // 도메인 리로드 없이 플레이를 다시 시작해도 공연으로 돌아가게 한다
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

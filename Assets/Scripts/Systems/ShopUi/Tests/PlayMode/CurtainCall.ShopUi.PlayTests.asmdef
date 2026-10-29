@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.ShopUi.PlayTests",
+    "references": ["Unity.TextMeshPro", "Unity.ugui"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}

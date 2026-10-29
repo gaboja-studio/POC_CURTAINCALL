@@ -49,17 +49,17 @@ switch -Regex ($branch) {
     '^(feat|fix|refactor)/' {
         $task = Find-CurrentTask
         if ($task) {
-            $st = Get-MetaField -MetaPath (Join-Path $task.Path 'meta.md') -Field 'Status'
-            Add-Check OK 'workspace' "$($task.Id) 작업 브랜치 (Status $st)"
+            $st = 'Active'
+            Add-Check OK 'workspace' "$($task.Id) 작업 브랜치 ($st)"
         } elseif ($branch -like 'fix/*') {
-            Add-Check WARN 'workspace' "Task 없는 fix 브랜치 — 급한 수정일 때만 허용. PR 본문에 이유와 범위를 적기"
+            Add-Check WARN 'workspace' "Task 없는 fix 브랜치 — 수정 목적·결과를 PR에 기록"
         } else {
-            Add-Check FAIL 'workspace' "브랜치 $branch 에 대응하는 Tasks/Active 폴더가 없음 (PM에게 확인)"
+            Add-Check FAIL 'workspace' "브랜치 $branch 에 대응하는 Tasks/Active 폴더가 없음 (Task를 생성하거나 plan Branch 확인)"
         }
     }
     '^integration/(.+)$' {
         if (Test-Path -LiteralPath (Get-RepoPath "Integrations/Active/Integration-$($Matches[1])")) {
-            Add-Check OK 'workspace' "통합 브랜치 (PM 작업 공간)"
+            Add-Check OK 'workspace' "선택 통합 브랜치"
         } else {
             Add-Check WARN 'workspace' "통합 기록 폴더가 없음: Integrations/Active/Integration-$($Matches[1])"
         }

@@ -18,6 +18,8 @@ namespace CurtainCall.HumanCannon
         MaterialPropertyBlock tint;
         Renderer[] renderers;
         Renderer[] barrierRenderers;
+        Transform[] blades;
+        Quaternion[] bladeRotations;
         Vector3 visualPosition;
         public bool CarrierPassed { get; private set; }
         public PoleSawPhase Phase { get; private set; } = PoleSawPhase.Active;
@@ -29,6 +31,13 @@ namespace CurtainCall.HumanCannon
             {
                 visualPosition = sawVisual.localPosition;
                 renderers = sawVisual.GetComponentsInChildren<Renderer>();
+                blades = new Transform[sawVisual.childCount];
+                bladeRotations = new Quaternion[blades.Length];
+                for (int i = 0; i < blades.Length; i++)
+                {
+                    blades[i] = sawVisual.GetChild(i);
+                    bladeRotations[i] = blades[i].localRotation;
+                }
             }
         }
 
@@ -41,7 +50,8 @@ namespace CurtainCall.HumanCannon
             if (barrier != null)
             {
                 barrier.enabled = phase == PoleSawPhase.Active;
-                if (barrierRenderers != null) foreach (var visual in barrierRenderers) if (visual != null) visual.enabled = false;
+                if (barrierRenderers != null) foreach (var visual in barrierRenderers)
+                    if (visual != null) visual.enabled = phase == PoleSawPhase.Active && visual.transform != barrier.transform;
             }
             if (sawVisual == null) return;
             tint ??= new MaterialPropertyBlock();
@@ -53,9 +63,10 @@ namespace CurtainCall.HumanCannon
             tint.SetColor("_BaseColor", color);
             tint.SetColor("_Color", color);
             if (renderers != null) foreach (var item in renderers) if (item != null) item.SetPropertyBlock(tint);
-            if (phase == PoleSawPhase.Active)
-                foreach (Transform blade in sawVisual)
-                    blade.localRotation = Quaternion.Euler(0f, 0f, (float)(time * spinSpeed % 360.0));
+            if (phase == PoleSawPhase.Active && blades != null)
+                for (int i = 0; i < blades.Length; i++)
+                    if (blades[i] != null)
+                        blades[i].localRotation = bladeRotations[i] * Quaternion.Euler(0f, 0f, (float)(time * spinSpeed % 360.0));
         }
 
         internal bool HostTick(PoleSawPhase phase, ulong poleUser)
@@ -96,20 +107,20 @@ namespace CurtainCall.HumanCannon
             Bounds body = new Bounds(player.transform.position + Vector3.up * mover.BodyHeight * 0.5f,
                 new Vector3(mover.BodyRadius * 2f, mover.BodyHeight, mover.BodyRadius * 2f));
             body.Expand(contactPadding * 2f);
-            return barrier.bounds.Intersects(body);
+            // 철망까지 확장한 물리 벽과 톱날의 절단 범위를 구분한다.
+            Bounds sawBounds = barrier.bounds;
+            bool foundSaw = false;
+            if (renderers != null) foreach (var visual in renderers)
+            {
+                if (visual == null) continue;
+                if (!foundSaw) { sawBounds = visual.bounds; foundSaw = true; }
+                else sawBounds.Encapsulate(visual.bounds);
+            }
+            return sawBounds.Intersects(body);
         }
 
-        /// <summary>지상 담당 통과 전 비행자의 위/옆 경로 건너뛰기를 막는다.</summary>
-        internal Vector3 ConstrainFlight(Vector3 from, Vector3 displacement, float radius)
-        {
-            if (CarrierPassed) return displacement;
-            float before = Side(from);
-            float after = Side(from + displacement);
-            float boundary = Mathf.Max(before, -radius);
-            if (before <= 0f && after > boundary)
-                displacement -= transform.forward * (after - boundary);
-            return displacement;
-        }
+        /// <summary>공중 가상면을 사용하지 않는다. 기존 유한한 물리 벽만 충돌을 처리한다.</summary>
+        internal Vector3 ConstrainFlight(Vector3 from, Vector3 displacement, float radius) => displacement;
 
         internal void ResetGate()
         {

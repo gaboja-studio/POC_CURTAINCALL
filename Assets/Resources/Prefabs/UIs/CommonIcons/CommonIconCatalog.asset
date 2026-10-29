@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77b6b8e054c4ad143b3caca0c6cd2265, type: 3}
+  m_Name: CommonIconCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.CommonIcons.CommonIconCatalog
+  entries:
+  - key: currency
+    label: "\uD654\uD3D0"
+    sprite: {fileID: 21300000, guid: 9133ece818d9b1a4b80da83aaf737ce1, type: 3}
+  - key: clock
+    label: "\uC2DC\uACC4"
+    sprite: {fileID: 21300000, guid: 33e75956028c7a843a6d7864bb2da6a8, type: 3}
+  - key: fire
+    label: "\uBD88"
+    sprite: {fileID: 21300000, guid: 94f6ab4995811f147855967abb46eeae, type: 3}
+  - key: person
+    label: "\uC778\uC6D0"
+    sprite: {fileID: 21300000, guid: 9ad3462696240e046aa64d8770f0094f, type: 3}
+  - key: eye_open
+    label: "\uB208 \uC5F4\uB9BC"
+    sprite: {fileID: 21300000, guid: 68881315ce1d60f4884e9c247af8de03, type: 3}
+  - key: eye_closed
+    label: "\uB208 \uB2EB\uD798"
+    sprite: {fileID: 21300000, guid: 61a241dd4ffb123478934174a2c46599, type: 3}
+  - key: copy
+    label: "\uBCF5\uC0AC"
+    sprite: {fileID: 21300000, guid: cccba733e5e83d540b6e00a52b605437, type: 3}
+  - key: settings
+    label: "\uC124\uC815"
+    sprite: {fileID: 21300000, guid: 7dbf04fb439104246aef175c5bc85f1b, type: 3}
+  - key: close
+    label: "\uB2EB\uAE30"
+    sprite: {fileID: 21300000, guid: 08de40c3eb0acf84d92ec8b12ab84070, type: 3}
+  - key: warning
+    label: "\uACBD\uACE0"
+    sprite: {fileID: 21300000, guid: 4b84cb59edb295e4c9ad1663affabe63, type: 3}
+  - key: megaphone
+    label: "\uD655\uC131\uAE30"
+    sprite: {fileID: 21300000, guid: e59f83743f1dc1b45b309aaebd45803f, type: 3}
+  - key: delivery
+    label: "\uBC30\uC1A1 \uC0C1\uC790"
+    sprite: {fileID: 21300000, guid: d6154368dd10bb845bb2ce9b6b21403e, type: 3}
+  - key: lock
+    label: "\uC790\uBB3C\uC1E0"
+    sprite: {fileID: 21300000, guid: bb3c8b48c04086643b04e9f05f1ab0da, type: 3}
+  - key: skull
+    label: "\uD574\uACE8"
+    sprite: {fileID: 21300000, guid: fd31150afcbb20d4ab20580c8eaf6eea, type: 3}
+  - key: flag
+    label: "\uB3C4\uCC29 \uAE43\uBC1C"
+    sprite: {fileID: 21300000, guid: 85e3011a5f259f347a39dc97323a1535, type: 3}
+  - key: star
+    label: "\uD658\uD638 \uBCC4"
+    sprite: {fileID: 21300000, guid: b4ae292c9fdcefb4d8e9e321eb465923, type: 3}
+  - key: thumb_down
+    label: "\uC57C\uC720 \uC5C4\uC9C0"
+    sprite: {fileID: 21300000, guid: f65b69691a7ebfa4c8601938b3c4c22e, type: 3}
+  - key: phone
+    label: "\uC804\uD654 \uC218\uD654\uAE30"
+    sprite: {fileID: 21300000, guid: 85b90901926dacd4cb48411bbde8b8c2, type: 3}
+  - key: schedule
+    label: "\uC2A4\uCF00\uC904\uD45C"
+    sprite: {fileID: 21300000, guid: 7b853d20ddd158e44a216e0de5ca4ba8, type: 3}
+  - key: medical
+    label: "\uC758\uB8CC \uC2ED\uC790"
+    sprite: {fileID: 21300000, guid: ad87ab5039081694da348099503a10eb, type: 3}
+  - key: tools
+    label: "\uC2DC\uC124 \uACF5\uAD6C"
+    sprite: {fileID: 21300000, guid: d84f3a34e71b4354a9586542f58a5952, type: 3}
+  - key: bread
+    label: "\uBE75"
+    sprite: {fileID: 21300000, guid: 35e8c79a191e6c2419b5cc3e33a0cc10, type: 3}
+  - key: water
+    label: "\uBB3C\uBCD1"
+    sprite: {fileID: 21300000, guid: 53c3ceb726ddbb74682017faab3dbab8, type: 3}
+  - key: bandage
+    label: "\uBD95\uB300"
+    sprite: {fileID: 21300000, guid: 993652c2fc670624ba7b2e6ae3dc5778, type: 3}
+  - key: backpack
+    label: "\uBC30\uB0AD"
+    sprite: {fileID: 21300000, guid: 93b5632ccdea93440bd0d2dd0a1dfc68, type: 3}

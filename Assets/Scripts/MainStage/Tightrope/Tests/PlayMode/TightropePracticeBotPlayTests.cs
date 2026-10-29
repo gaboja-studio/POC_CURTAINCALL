@@ -197,12 +197,12 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             }
         }
 
-        Component CreatePracticeBotTestPartner(int lane, float distance)
+        Component CreatePracticeBotTestPartner(int lane, float distance, ulong owner = 779UL)
         {
             var prefab = (GameObject)Get(Get(network, "NetworkConfig"), "PlayerPrefab");
             var instance = Object.Instantiate(prefab);
             var networkObject = instance.GetComponent(GameType("Unity.Netcode.NetworkObject"));
-            Call(networkObject, "SpawnWithOwnership", 779UL, true);
+            Call(networkObject, "SpawnWithOwnership", owner, true);
             var other = instance.GetComponent(GameType("CurtainCall.Network.PlayerSync.NetworkPlayer"));
             var otherMover = instance.GetComponent(GameType("CurtainCall.Player.PlayerMover"));
             var position = (Vector3)Call(course, "GetLanePosition", lane, distance);

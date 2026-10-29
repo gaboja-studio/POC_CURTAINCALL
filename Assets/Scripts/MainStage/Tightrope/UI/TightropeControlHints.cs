@@ -35,29 +35,31 @@ namespace CurtainCall.Tightrope.UI
                 return "톱이 뛰었어요 · 1층은 앞으로 통과!\n정면 톱은 닿으면 즉사 · 위층은 앞쪽에서 기다려 주세요";
             if (!saws.IsCooperativeStackApproved)
                 return $"최후반 정면 톱 · 출발 표시에 {saws.CooperativeRequiredStackSize}명 목마로 모이세요\n"
-                    + "4층 → 3층 → 2층 순서로 W+Space · 뒤 버튼은 2층이 마지막에";
+                    + "2층이 W+Space로 넘어 뒤 버튼 · 3·4층이 있으면 맨 위부터";
             int floor = local != null ? saws.CooperativeAdmittedFloor(local) : 0;
             string action = floor switch
             {
                 >= 3 => $"이번 목마의 {floor}층 · 맨 위가 되면 W+Space, 건넌 뒤 버튼을 피해서 앞쪽에서 대기",
-                2 => "이번 목마의 2층 · 4·3층이 먼저 넘으면 W+Space로 뒤 버튼을 밟으세요",
+                2 => "이번 목마의 2층 · 맨 위라면 W+Space로 넘어 뒤 버튼을 밟으세요",
                 1 => "이번 목마의 1층 · 그대로 기다렸다가 2층이 버튼을 눌러 톱이 뛰면 전진",
-                _ => "맨 위부터 4 → 3 → 2층 순서 · 뒤 버튼은 원래 2층 담당"
+                _ => "2명부터 가능 · 맨 위부터 도약하고 뒤 버튼은 원래 2층 담당"
             };
-            return action + "\n톱은 2.25m만 뛰어요 · 3·4층이 먼저 버튼을 밟으면 남은 위층이 즉사할 수 있어요";
+            return action + "\n버튼을 밟으면 톱이 뛰어요 · 아래 동료는 그때 전진하세요";
         }
 
-        public static void Draw()
+        public static bool ExternalPresentation { get; set; }
+
+        public static string CurrentText()
         {
             var course = TightropeCourse.Current;
             var local = NetworkPlayer.Local;
             if (course == null || !course.IsTraversalActive || local == null || local.State != PlayerState.Normal
-                || InputGate.IsBlocked) return;
+                || InputGate.IsBlocked) return null;
             var mover = local.GetComponent<PlayerMover>();
             var relay = TightropeRelayGate.Current;
             var trapeze = TightropeTrapeze.Current;
             bool relayHeld = relay != null && relay.IsHeld(local);
-            if (mover == null || (!mover.ControlEnabled && !relayHeld)) return;
+            if (mover == null || (!mover.ControlEnabled && !relayHeld)) return null;
             var stack = PiggybackSystem.Current;
             bool passenger = stack != null && stack.GetBelow(local) != null;
             bool carrying = stack != null && stack.GetAbove(local) != null;
@@ -91,6 +93,14 @@ namespace CurtainCall.Tightrope.UI
             if (!string.IsNullOrEmpty(gateHint)) content += "\n" + gateHint;
             if (saws != null && saws.IsTeamPassageOpen)
                 content += $"\n{(saws.IsTeamPassageWarning ? "주변 가로 톱 재가동 주의" : "주변 가로 톱 정지")} {saws.TeamPassageRemaining:0.0}초 · {saws.TeamPassageStartDistance:0}~{saws.TeamPassageEndDistance:0}m";
+            return content;
+        }
+
+        public static void Draw()
+        {
+            if (ExternalPresentation) return;
+            string content = CurrentText();
+            if (string.IsNullOrEmpty(content)) return;
             style ??= new GUIStyle(GUI.skin.box)
             {
                 alignment = TextAnchor.MiddleCenter,

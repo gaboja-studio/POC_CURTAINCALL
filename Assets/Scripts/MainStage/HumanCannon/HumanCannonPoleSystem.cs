@@ -52,7 +52,7 @@ namespace CurtainCall.HumanCannon
             for (int i = 0; i < poles.Length; i++)
             {
                 if (!Valid(i) || states[i].State.IsOccupied || !poles[i].IsInReach(player)) continue;
-                float candidate = (poles[i].HangingPosition(0) - player.transform.position).sqrMagnitude;
+                float candidate = (poles[i].BarPosition(0) - PlayerInteraction.Center(player)).sqrMagnitude;
                 if (candidate < distance) { distance = candidate; closest = i; }
             }
             return closest;
@@ -123,7 +123,7 @@ namespace CurtainCall.HumanCannon
                     }
                     before = runtime.State.Occupant;
                     if (runtime.State.Tick(Clock, pole.WarningSeconds))
-                        Publish(i, before == CannonSeatState.Nobody ? PoleEvent.Sync : PoleEvent.Released, before);
+                        Publish(i, before != CannonSeatState.Nobody && !runtime.State.IsOccupied ? PoleEvent.Released : PoleEvent.Sync, before);
                 }
                 if (pole.LinkedGate != null)
                 {
@@ -169,12 +169,12 @@ namespace CurtainCall.HumanCannon
             var runtime = states[index];
             ulong expiredActor = runtime.State.Occupant;
             if (runtime.State.Tick(Clock, poles[index].WarningSeconds))
-                Publish(index, expiredActor == CannonSeatState.Nobody ? PoleEvent.Sync : PoleEvent.Released, expiredActor);
+                Publish(index, expiredActor != CannonSeatState.Nobody && !runtime.State.IsOccupied ? PoleEvent.Released : PoleEvent.Sync, expiredActor);
             if (player == null || player.State != PlayerState.Normal || cannon == null || revision != runtime.State.Revision) return;
             if (action == PoleAction.Grab)
             {
                 if (FindGrabbable(player) != index || !cannon.MatchesFlight(actor, station, launch, segment)
-                    || !runtime.State.TryGrab(actor, revision, Clock, poles[index].HoldSeconds)) return;
+                    || !runtime.State.TryGrab(actor, revision, Clock, poles[index].HoldSeconds, poles[index].LinkedGate != null)) return;
                 runtime.Angle = runtime.Speed = runtime.Input = 0f;
                 runtime.SwingInput = default;
                 runtime.InputSequence = 0;

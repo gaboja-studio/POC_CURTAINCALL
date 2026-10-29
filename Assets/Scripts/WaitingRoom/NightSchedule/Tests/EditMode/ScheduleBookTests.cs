@@ -79,14 +79,15 @@ namespace CurtainCall.WaitingRoom.Tests
         }
 
         [Test]
-        public void 셋째_날_밤에는_4일차를_쓰고_확정해야_한다()
+        public void 셋째_날_밤에는_편성과_확정이_필요없다()
         {
             var book = NewBook();
             book.BeginNight(3);
-            Assert.AreEqual(ScheduleRefusal.Incomplete, book.Confirm());
-            Fill(book, 4, Cannon, Cannon);
-            Assert.AreEqual(ScheduleRefusal.None, book.Confirm());
-            Assert.IsTrue(book.IsLocked(4));
+            Assert.IsTrue(book.IsConfirmedTonight);
+            Assert.IsEmpty(ScheduleBook.EditableDays(3));
+            Assert.AreEqual(ScheduleRefusal.AlreadyConfirmed, book.Set(4, 0, Cannon));
+            Assert.AreEqual("", book.Get(4, 0));
+            Assert.IsFalse(book.IsLocked(4));
         }
 
         [Test]
@@ -117,20 +118,24 @@ namespace CurtainCall.WaitingRoom.Tests
         }
 
         [Test]
-        public void 난도는_묘기_출연_순번이고_3에서_멈춘다()
+        public void 난도는_칸마다_고르고_깬_단계의_다음_단계까지만_고른다()
         {
             var book = NewBook();
             book.BeginNight(1);
             Fill(book, 2, Rope, Cannon);
-            Fill(book, 3, Rope, Rope);
-
-            Assert.AreEqual(1, book.Difficulty(1, 0)); // 줄타기 1번째
-            Assert.AreEqual(1, book.Difficulty(1, 1)); // 인간 대포 1번째
-            Assert.AreEqual(2, book.Difficulty(2, 0)); // 줄타기 2번째
-            Assert.AreEqual(2, book.Difficulty(2, 1)); // 인간 대포 2번째
-            Assert.AreEqual(3, book.Difficulty(3, 0)); // 줄타기 3번째
-            Assert.AreEqual(3, book.Difficulty(3, 1)); // 줄타기 4번째 → 상한 3
+            Assert.AreEqual(1, book.Difficulty(1, 0), "1일차는 1단계 고정");
+            Assert.AreEqual(1, book.Difficulty(2, 0), "고르지 않으면 1단계");
+            Assert.AreEqual(ScheduleRefusal.None, book.Set(2, 0, Rope, 2, 2), "1단계를 깼으면 2단계까지");
+            Assert.AreEqual(ScheduleRefusal.BadTier, book.Set(2, 1, Cannon, 2, 1), "못 깨면 다음 단계가 열리지 않는다");
+            Assert.AreEqual(ScheduleRefusal.BadTier, book.Set(2, 1, Cannon, 4, 9), "최대 3단계");
+            Assert.AreEqual(ScheduleRefusal.None, book.Set(3, 0, Rope, 3, 3));
+            Assert.AreEqual(2, book.Difficulty(2, 0));
+            Assert.AreEqual(1, book.Difficulty(2, 1));
+            Assert.AreEqual(3, book.Difficulty(3, 0));
+            CollectionAssert.AreEqual(new[] { 2, 1 }, book.Tiers(2));
             Assert.AreEqual(0, book.Difficulty(4, 0)); // 빈 칸
+            Assert.AreEqual(ScheduleRefusal.None, book.Set(2, 0, ""));
+            Assert.AreEqual(0, book.Difficulty(2, 0), "비우면 단계도 없다");
         }
 
         [Test]
@@ -157,10 +162,12 @@ namespace CurtainCall.WaitingRoom.Tests
             host.BeginNight(1);
             Fill(host, 2, Cannon, Rope);
             Fill(host, 3, Rope, Rope);
+            Assert.AreEqual(ScheduleRefusal.None, host.Set(3, 1, Rope, 2, 2));
             host.Confirm();
 
             var client = NewBook();
-            Assert.IsTrue(client.Load(host.Night, host.IsConfirmedTonight, host.ExportSlots(), host.ExportLocked()));
+            Assert.IsTrue(client.Load(host.Night, host.IsConfirmedTonight, host.ExportSlots(), host.ExportLocked(), host.ExportTiers()));
+            Assert.AreEqual(2, client.Difficulty(3, 1), "고른 단계도 그대로 받는다");
 
             Assert.AreEqual(1, client.Night);
             Assert.IsTrue(client.IsConfirmedTonight);

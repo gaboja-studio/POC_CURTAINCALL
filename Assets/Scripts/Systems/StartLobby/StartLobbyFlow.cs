@@ -31,6 +31,7 @@ namespace CurtainCall.StartLobby
         public string LastMessage { get; private set; }
 
         NetworkSessionManager session;
+        bool loading;
 
         void Awake()
         {
@@ -68,10 +69,9 @@ namespace CurtainCall.StartLobby
         {
             var network = session != null ? session.NetworkManager : null;
             if (network == null || !network.IsServer || network.SceneManager == null) return false;
-            var status = network.SceneManager.LoadScene(LobbyScene, LoadSceneMode.Single);
-            if (status == Unity.Netcode.SceneEventProgressStatus.Started) return true;
-            Debug.LogError($"[StartLobby] 로비 씬({LobbyScene})을 열지 못했습니다: {status}. 빌드 씬 목록을 확인하세요.");
-            return false;
+            if (loading) return false;
+            StartCoroutine(LoadWithCurtain(true));
+            return true;
         }
 
         /// <summary>방에서 나와 시작 씬으로 돌아간다.</summary>
@@ -87,9 +87,46 @@ namespace CurtainCall.StartLobby
             LoadStart();
         }
 
-        static void LoadStart()
+        void LoadStart()
         {
-            if (SceneManager.GetActiveScene().name != StartScene) SceneManager.LoadScene(StartScene, LoadSceneMode.Single);
+            if (!loading && SceneManager.GetActiveScene().name != StartScene) StartCoroutine(LoadWithCurtain(false));
+        }
+
+        System.Collections.IEnumerator LoadWithCurtain(bool lobby)
+        {
+            loading = true;
+            uint curtainVersion = 0;
+            yield return CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CoverFor(version => curtainVersion = version);
+            try
+            {
+                if (!CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CanTransitionFor(curtainVersion))
+                {
+                    LastMessage = "커튼 닫힘을 확인하지 못해 씬 전환을 취소했습니다.";
+                    yield break;
+                }
+                var network = session != null ? session.NetworkManager : null;
+                if (!lobby) yield return SceneManager.LoadSceneAsync(StartScene, LoadSceneMode.Single);
+                else if (network != null && network.IsServer)
+                {
+                    bool done = false;
+                    void Completed(string name, LoadSceneMode mode, System.Collections.Generic.List<ulong> clients, System.Collections.Generic.List<ulong> timedOut)
+                    { if (name == LobbyScene) done = true; }
+                    var scenes = network.SceneManager;
+                    scenes.OnLoadEventCompleted += Completed;
+                    try
+                    {
+                        var status = scenes.LoadScene(LobbyScene, LoadSceneMode.Single);
+                        if (status == Unity.Netcode.SceneEventProgressStatus.Started)
+                        {
+                            float deadline = Time.unscaledTime + 40;
+                            while (!done && network.IsListening && Time.unscaledTime < deadline) yield return null;
+                        }
+                        else LastMessage = $"로비를 열지 못했습니다: {status}";
+                    }
+                    finally { scenes.OnLoadEventCompleted -= Completed; }
+                }
+            }
+            finally { loading = false; CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CompleteFor(curtainVersion); }
         }
     }
 }

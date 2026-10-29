@@ -1,0 +1,13 @@
+# Urgent Exception
+- **Approved by:** PM @MoHoDu (사용자 채팅 직접 승인)
+- **Approved at:** 2026-10-21 16:20 KST
+- **Requested by:** @gyumin9048-ctrl
+- **Reason:** 대기실 상점 배치 복구와 투명 벽처럼 보이는 개인 재진입 차단을 긴급 수정하도록 현재 작업자에게 임시 허용한다.
+- **Paths:** `Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity`, `Assets/Scripts/WaitingRoom/ExplorationTimer/WaitingRoomExitWatch.cs`, `Assets/Scripts/Systems/SpaceLink/Tests/PlayMode/SpaceLinkPlayTests.cs`, `Tasks/Active/Task-20261020-065-waiting-room-physical-flow/`
+- **Branch:** fix/waiting-room-bugs-improvements
+- **Review:** PM이 PR에서 예외 범위와 재입장 정책 변경을 사후 확인한다. 다른 작업자의 기존 미커밋 변경은 보존한다.
+- **Extended approval (2026-10-21):** 사용자 후속 지시로 BUG-004 대기실 내 플레이어 간 막힘 제거와 BUG-005 집결 구역의 복도 폭·커튼 접촉면 맞춤을 추가한다. `Assets/Scripts/Systems/Player/PlayerMover.cs`의 환경 충돌과 공연 이동 규칙을 유지하는 공간별 이동 제한 API, 기존 출구 정책·SpaceLink 테스트·동일 대기실 씬에 한정한다.
+- **Extended approval (2026-10-21, 후속):** 침대 천·트렁크 지지 배치, 대기실 전용 카메라 복귀 보간, 양다리 손실 초기 포즈, 통로 의자 충돌체와 관련 검증을 승인한다. 추가 경로: `Assets/Scripts/Systems/Player/HumanoidPresentation/HumanoidModel.cs`, 같은 폴더 `Tests/PlayMode/HumanoidPlayerTests.cs`, `Assets/Scripts/Systems/Camera/Tests/PlayMode/CameraViewsPlayTests.cs`, 대기실 `Base/Prefabs/`의 전용 카메라 프리셋. 1인칭·3인칭 기본 설정과 외부 원본 에셋은 보류한다.
+- **Extended approval (2026-10-21, 천 재지시):** 사용자 지시로 천은 침구가 아닌 줄에 거는 장식으로 바로잡는다. `Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomDormitoryLayout.cs`, `WaitingRoomRoomStages.cs`, 대기실 씬 및 Materials/WR_Clothesline.mat를 변경해 줄·벽 고정과 천 지지/가구 간섭을 함께 수정한다.
+- **Extended approval (2026-10-21, 지지·출입 경계):** 사용자 지시로 줄/봉은 실제 벽·천장 지지면에 연결된 경우에만 생성하고, 좁은 곳에서 넓은 곳으로 완전히 진입한 뒤 시점을 전환한다. 추가 경로: `Assets/Scripts/Systems/Camera/CameraViewZone.cs`, `Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomLayoutFitter.cs`; 다른 공간의 기본 exitPadding=0은 유지한다.
+- **Extended approval (2026-10-21, 추가 천 제보):** 같은 지지 누락이 있는 상자 주변 천도 실제 벽에 연결한 줄과 함께 배치한다. `Assets/Scripts/WaitingRoom/Base/Editor/WaitingRoomInteriorArtPass.cs`의 생성·보정과 기존 RoomStages 보관실 재배치 경로까지 포함한다.

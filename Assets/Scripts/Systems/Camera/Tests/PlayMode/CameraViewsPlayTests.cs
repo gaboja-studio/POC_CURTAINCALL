@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using Unity.Cinemachine;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
@@ -14,39 +13,22 @@ using Object = UnityEngine.Object;
 namespace CurtainCall.Cameras.Tests
 {
     /// <summary>
-    /// 실제 씬 + LAN 호스트로 공용 카메라를 확인한다. 이동은 PlayerMover.SetStartPose 순간이동, 요청·상태는 공개 API 호출이며
-    /// 실제 키보드·마우스 입력 검증이 아니다. 게임 코드는 Assembly-CSharp라 asmdef가 참조할 수 없어 이름으로 부른다.
+    /// 실제 대기실 + LAN 호스트로 재진입 카메라 보간을 확인한다. 이동은 PlayerMover.SetStartPose 순간이동,
+    /// 시선은 director 값 주입이며 실제 키보드·마우스 입력 검증이 아니다.
+    /// 게임 코드는 Assembly-CSharp라 asmdef가 참조할 수 없어 이름으로 부른다.
     /// </summary>
     public sealed class CameraViewsPlayTests
     {
-        const string CameraViewsScene = "Assets/Scenes/Tests/Systems/CameraViews/CameraViews.unity";
-        const string ProtoScene = "Assets/Scenes/Prototypes/proto_0.0.2.unity";
         const string SessionType = "CurtainCall.Network.Session.NetworkSessionManager";
         const string PlayerType = "CurtainCall.Network.PlayerSync.NetworkPlayer";
-        const string StateType = "CurtainCall.Network.PlayerSync.PlayerState";
         const ushort Port = 7791;
         const BindingFlags Public = BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static;
-        static readonly Vector3 InsideZone = new(0f, 0.05f, 10f);
-        static readonly Vector3 OutsideZone = new(0f, 0.05f, 0f);
-        static readonly Vector3 DefaultFollow = new(0f, 3.75f, -4.5f);
 
         Component director;
         Component local;
         CursorLockMode cursorLock;
         bool cursorVisible;
-        ScriptableObject inputSettings;     // 테스트 키보드 동안 값을 바꿔 둔 Input System 설정(에셋이 아닌 임시 설정만)
-        object backgroundBehavior;          // 위 설정의 원래 값
-        object editorInputBehavior;
-        object keyboard;                    // 테스트가 추가한 Input System 키보드
-        GameObject rig;
-        float measuredSpeed;
 
-        bool FirstPerson => (bool)Get(director, "IsFirstPerson");
-        bool HideModel => (bool)Get(director, "HideLocalModel");
-        Vector3 ViewForward => (Vector3)Get(director, "ViewForward");
-        bool Spectating => (bool)Get(GameType("CurtainCall.Cameras.CameraSpectator"), "IsSpectating");
-        CinemachineFollow Follow => director.GetComponent<CinemachineFollow>();
-        CinemachineRotationComposer Composer => director.GetComponent<CinemachineRotationComposer>();
         Component Mover => local.GetComponent(GameType("CurtainCall.Player.PlayerMover"));
 
         [UnitySetUp]
@@ -60,8 +42,6 @@ namespace CurtainCall.Cameras.Tests
         [UnityTearDown]
         public IEnumerator TearDown()
         {
-            EndKeyboard();
-            if (rig != null) Object.Destroy(rig);
             if (!IsNull(director)) Call(director, "SetInputBlocked", false);
             if (Get(GameType(SessionType), "Instance") is Component session && session != null)
             {
@@ -82,394 +62,242 @@ namespace CurtainCall.Cameras.Tests
         }
 
         [UnityTest]
-        public IEnumerator Host_UsesDefaultThirdPersonFraming()
+        public IEnumerator WaitingRoom_ReentryBlendsFromCorridorWithoutChangingViewKind()
         {
-            yield return Host(CameraViewsScene);
-            Assert.AreSame(local, Get(director, "LocalPlayer"), "LocalPlayerCamera → director 로컬 플레이어");
-            Assert.IsFalse(FirstPerson);
-            AssertVector(DefaultFollow, Follow.FollowOffset, "기본 3인칭 따라가기");
-            AssertVector(new Vector3(0f, 1.2f, 1.75f), Composer.TargetOffset, "기본 3인칭 바라보기");
-            Assert.AreEqual(60f, Camera.main.fieldOfView, 0.01f, "기본 FOV");
-            yield return Seconds(1.5f);
-            AssertVector(local.transform.position + DefaultFollow, Camera.main.transform.position, "3인칭 카메라 위치", 0.3f);
-            Assert.AreEqual(0f, ViewForward.y, 0.0001f, "수평 시선");
-            Assert.AreEqual(1f, ViewForward.magnitude, 0.001f, "정규화 시선");
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            Call(director, "SetInputBlocked", true);
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            yield return Teleport(new Vector3(12, .08f, 70));
+            SetView(0, 0);
+            yield return Seconds(.6f);
+            var close = (ScriptableObject)Get(director, "CurrentView");
+            Assert.AreEqual("WaitingRoomCloseThirdPerson", close.name);
+            float duration = (float)Get(close, "TransitionDuration");
+            yield return Teleport(new Vector3(9.6f, .08f, 70));
+            yield return Seconds(.4f);
+            Assert.AreSame(close, Get(director, "CurrentView"), "문턱을 지나는 동안은 좁은 시점을 유지한다");
+            Call(Mover, "SetStartPose", new Vector3(8.5f, .08f, 70), Quaternion.identity);
+            yield return FixedSteps(1);
+            yield return Frames(1);
+            var lobby = (ScriptableObject)Get(director, "CurrentView");
+            Assert.AreEqual("WaitingRoomLobbyCamera", lobby.name);
+            Assert.AreEqual(Get(close, "Kind"), Get(lobby, "Kind"), "시점 종류는 유지한다");
+            Assert.AreEqual(duration, (float)Get(lobby, "TransitionDuration"), .001f);
+            Assert.Greater(duration, 0);
+            var target = local.transform.position + new Vector3(0, (float)Get(lobby, "Height"), -(float)Get(lobby, "Distance"));
+            Assert.Greater(Vector3.Distance(Camera.main.transform.position, target), .1f, "재진입 첫 화면은 목표 위치로 즉시 자르지 않는다");
+            yield return Seconds(duration + .3f);
+            AssertVector(target, Camera.main.transform.position, "복귀 보간 완료", .2f);
+            yield return Teleport(new Vector3(9.6f, .08f, 70));
+            Assert.AreSame(lobby, Get(director, "CurrentView"), "경계 여유 구간에만 돌아가도 좁은 시점에 재진입하지 않는다");
         }
 
         [UnityTest]
-        public IEnumerator CameraScene_DisablesBalanceAfterSpawnAndRestart()
+        public IEnumerator DeathView_FinalizeDropsOnlyThenHoldsDespiteTargetAndPresetChanges()
         {
-            yield return Host(CameraViewsScene);
-            var balance = local.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
-            Assert.IsNotNull(balance);
-            for (int pass = 0; pass < 2; pass++)
-            {
-                float end = Time.realtimeSinceStartup + 15f;
-                do
-                {
-                    Assert.IsFalse((bool)Get(balance, "IsActive"), "카메라 테스트 씬은 균형 비활성");
-                    Assert.IsFalse((bool)Get(balance, "HasFallen"), "균형으로 추락하지 않음");
-                    Assert.AreEqual("Normal", Get(local, "State").ToString(), "플레이어 정상 상태 유지");
-                    yield return null;
-                } while (Time.realtimeSinceStartup < end);
-                if (pass == 0)
-                {
-                    Call(GameType(PlayerType), "ServerRestartAll");
-                    yield return Frames(3);
-                }
-            }
-        }
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            Call(director, "SetInputBlocked", true);
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            yield return Teleport(local.transform.position + Vector3.up * 12f);
+            yield return Seconds(.6f);
+            var camera = director.GetComponent<CinemachineCamera>();
+            var before = camera.State;
+            SetDead();
+            camera.InternalUpdateCameraState(Vector3.up, -1f);
+            AssertVector(before.GetFinalPosition(), camera.State.GetFinalPosition(), "사망 직전 출력에서 시작", .05f);
+            Assert.That(SpectatorTarget, Is.Null, "낙하 관찰 중 관전 대상 없음");
 
-        [UnityTest]
-        public IEnumerator Zone_FirstPersonHidesLocalModelOnlyWhileRendering()
-        {
-            yield return Host(CameraViewsScene);
-            var slot = local.GetComponent(GameType("CurtainCall.Player.PlayerModelSlot"));
-            var model = Get(slot, "CurrentModel") as GameObject;
-            Assert.IsNotNull(model, "로컬 현재 모델");
-            var renderers = model.GetComponentsInChildren<Renderer>(true);
-            Assert.IsNotEmpty(renderers);
-            renderers[0].forceRenderingOff = true; // 원래 숨겨 둔 값은 복구 후에도 유지돼야 한다
-            var hiddenBefore = renderers.Select(r => r.forceRenderingOff).ToArray();
-            var enabledBefore = renderers.Select(r => r.enabled).ToArray();
+            var request = ScriptableObject.CreateInstance(GameType("CurtainCall.Cameras.CameraViewPreset"));
             try
             {
-                yield return Teleport(InsideZone);
-                Assert.IsTrue(FirstPerson, "구역 안 1인칭");
-                Assert.IsTrue(HideModel);
-                AssertVector(EyePosition(), Camera.main.transform.position, "1인칭 눈 위치", 0.05f);
-                Assert.AreEqual(0f, Mathf.DeltaAngle(0f, Camera.main.transform.eulerAngles.z), 0.01f, "Dutch 없음");
-                Assert.AreEqual(0f, ViewForward.y, 0.0001f);
+                request.GetType().GetField("Height").SetValue(request, 40f);
+                request.GetType().GetField("FieldOfView").SetValue(request, 100f);
+                Call(director, "RequestView", director, request, 1000, Vector3.right);
+                Call(Mover, "SetStartPose", local.transform.position + new Vector3(20f, -30f, 15f), Quaternion.Euler(0f, 120f, 0f));
+                SetPrivate(director, "deathStarted", Time.unscaledTime - .3f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                AssertVector(before.GetFinalPosition() + Vector3.down * .75f, camera.State.GetFinalPosition(), "절반 시간에는 아래로만 이동", .02f);
+                var halfway = camera.State;
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                AssertVector(halfway.GetFinalPosition(), camera.State.GetFinalPosition(), "같은 프레임 pipeline 재호출은 누적 이동하지 않음");
+                Assert.Less(Quaternion.Angle(before.GetFinalOrientation(), camera.State.GetFinalOrientation()), .01f);
+                Assert.AreEqual(before.Lens.FieldOfView, camera.State.Lens.FieldOfView, .001f, "시점 요청의 줌 변경도 차단");
 
-                bool hiddenWhileRendering = false;
-                yield return CaptureMainRender(() => hiddenWhileRendering = renderers.All(r => r.forceRenderingOff));
-                Assert.IsTrue(hiddenWhileRendering, "게임 카메라 렌더링 중 숨김");
-                CollectionAssert.AreEqual(hiddenBefore, renderers.Select(r => r.forceRenderingOff).ToArray(), "렌더링 밖 원래 값");
-                CollectionAssert.AreEqual(enabledBefore, renderers.Select(r => r.enabled).ToArray(), "Renderer.enabled 유지");
+                SetPrivate(director, "deathStarted", Time.unscaledTime - 2f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                var stopped = before.GetFinalPosition() + Vector3.down * 1.5f;
+                AssertVector(stopped, camera.State.GetFinalPosition(), "최대 1.5m에서 정지");
+                yield return Frames(4);
+                AssertVector(stopped, camera.State.GetFinalPosition(), "생존자 없으면 관전 대기 시간 뒤에도 고정");
+                AssertVector(stopped, Camera.main.transform.position, "Brain에도 최종 고정 포즈 적용", .02f);
+                Assert.Less(Quaternion.Angle(before.GetFinalOrientation(), camera.State.GetFinalOrientation()), .01f);
 
-                yield return Teleport(OutsideZone);
-                Assert.IsFalse(FirstPerson, "구역 밖 3인칭");
-                Assert.IsFalse(HideModel);
-                AssertVector(DefaultFollow, Follow.FollowOffset, "3인칭 복귀");
-                Assert.AreEqual(cursorLock, Cursor.lockState, "커서 복구");
-                Assert.AreEqual(cursorVisible, Cursor.visible, "커서 표시 복구");
+                Call(local, "ServerRestoreAll");
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.IsFalse((bool)GetPrivate(director, "deathView"), "부활 시 고정 해제");
+                Assert.IsFalse((bool)Get(GameType("CurtainCall.Cameras.CameraSpectator"), "IsSpectating"));
+                yield return Seconds(.8f);
+                Assert.Greater(Vector3.Distance(stopped, camera.State.GetFinalPosition()), 1f, "부활 뒤 다시 추적");
             }
             finally
             {
-                renderers[0].forceRenderingOff = false;
+                Call(director, "ReleaseView", director);
+                Object.Destroy(request);
             }
         }
 
         [UnityTest]
-        public IEnumerator Requests_PriorityRecentAndCleanupWithZone()
+        public IEnumerator DeathView_GroundDeathStaysAboveFloorAndLooksAtCorpseLocation()
         {
-            yield return Host(CameraViewsScene);
-            yield return Teleport(InsideZone);
-            Assert.IsTrue(FirstPerson, "구역(priority 10) 1인칭");
-            var third = Get(Get(director, "Settings"), "DefaultThirdPerson");
-            var source = new GameObject("Camera Request Probe");
-
-            Call(director, "RequestView", source, third, 20, Vector3.zero);
-            yield return Frames(2);
-            Assert.IsFalse(FirstPerson, "높은 priority 우선");
-            Call(director, "ReleaseView", source);
-            yield return Frames(2);
-            Assert.IsTrue(FirstPerson, "해제 후 남은 구역 요청");
-
-            Call(director, "RequestView", source, third, 10, Vector3.zero);
-            yield return FixedSteps(3);
-            Assert.IsFalse(FirstPerson, "동률은 최근 등록, 구역의 매 tick 갱신은 순서 유지");
-            Object.Destroy(source);
-            yield return Frames(2);
-            Assert.IsTrue(FirstPerson, "파괴된 출처 정리");
-
-            var zone = (Behaviour)Object.FindAnyObjectByType(GameType("CurtainCall.Cameras.CameraViewZone"));
-            zone.enabled = false;
-            yield return Frames(2);
-            Assert.IsFalse(FirstPerson, "구역 disable 해제");
-            zone.enabled = true;
-            yield return FixedSteps(2);
-            Assert.IsTrue(FirstPerson, "구역 enable 재요청");
-
-            var volume = zone.GetComponent<BoxCollider>();
-            volume.enabled = false;
-            yield return FixedSteps(2);
-            Assert.IsFalse(FirstPerson, "collider disable 정리");
-            volume.enabled = true;
-            yield return FixedSteps(2);
-            Assert.IsTrue(FirstPerson, "collider enable 재요청");
-        }
-
-        [UnityTest]
-        public IEnumerator Transition_BlendsOnWinnerChangeAndAppliesLiveEdits()
-        {
-            yield return Host(CameraViewsScene);
-            yield return Seconds(1f);
-            var preset = ScriptableObject.CreateInstance(GameType("CurtainCall.Cameras.CameraViewPreset"));
-            Set(preset, "Kind", Enum.Parse(GameType("CurtainCall.Cameras.CameraViewKind"), "FirstPerson"));
-            Set(preset, "TransitionDuration", 0.5f);
-            var source = new GameObject("Transition Probe");
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
             try
             {
-                Call(director, "RequestView", source, preset, 50, Vector3.zero);
-                yield return null;
-                Assert.IsTrue(FirstPerson);
-                Assert.Greater(Vector3.Distance(Camera.main.transform.position, EyePosition()), 0.5f, "전환 시작은 이전 화면에서");
-                yield return Seconds(0.7f);
-                AssertVector(EyePosition(), Camera.main.transform.position, "전환 완료 1인칭 위치", 0.05f);
-
-                Set(preset, "FieldOfView", 75f);
-                Set(preset, "EyeHeight", 1f);
-                yield return Frames(2);
-                Assert.AreEqual(75f, Camera.main.fieldOfView, 0.01f, "같은 승자 값 수정은 전환 재시작 없음");
-                AssertVector(local.transform.position + Vector3.up, Camera.main.transform.position, "눈높이 즉시 반영", 0.05f);
-
-                Call(director, "ReleaseView", source);
-                yield return Frames(2);
-                Assert.IsFalse(FirstPerson);
-                Assert.AreEqual(60f, Camera.main.fieldOfView, 0.01f, "기본 시점 즉시 전환");
-            }
-            finally
-            {
-                Object.Destroy(source);
-                Object.Destroy(preset);
-            }
-        }
-
-        [UnityTest]
-        public IEnumerator Fallen_SpectatesInThirdPersonAndRestartRestoresZoneView()
-        {
-            yield return Host(CameraViewsScene);
-            yield return Teleport(InsideZone);
-            Assert.IsTrue(FirstPerson);
-
-            Call(local, "ServerSetState", Enum.Parse(GameType(StateType), "Fallen"));
-            yield return Frames(3);
-            Assert.IsTrue(Spectating, "사망 후 관전");
-            Assert.IsFalse(FirstPerson, "관전 중 1인칭 제외");
-            Assert.IsFalse(HideModel, "관전 중 모델 숨김 중지");
-            Assert.AreEqual(Vector3.zero, ViewForward, "관전 중 조작 시선 없음");
-            Assert.AreEqual(cursorLock, Cursor.lockState, "관전 중 커서 복구");
-
-            Call(GameType(PlayerType), "ServerRestartAll");
-            yield return WaitFor(() => FirstPerson, 3f, "재시작 후 남아 있던 구역 요청 복구");
-            Assert.IsFalse(Spectating);
-        }
-
-        [UnityTest]
-        public IEnumerator Retired_SpectatesLikeFallenAndIsNotWatched()
-        {
-            yield return Host(CameraViewsScene);
-            yield return Teleport(InsideZone);
-            Assert.IsTrue(FirstPerson);
-
-            Call(local, "ServerSetState", Enum.Parse(GameType(StateType), "Retired"));
-            yield return Frames(3);
-            Assert.IsTrue(Spectating, "리타이어 후 관전");
-            Assert.IsFalse(FirstPerson, "관전 중 1인칭 제외");
-            Assert.IsFalse(HideModel);
-            Assert.IsNull(Get(GameType("CurtainCall.Cameras.CameraSpectator"), "Target"), "관전 대상은 Normal만(혼자면 없음)");
-
-            Call(GameType(PlayerType), "ServerRestartAll");
-            yield return WaitFor(() => FirstPerson, 3f, "재시작 후 구역 1인칭 복구");
-            Assert.IsFalse(Spectating);
-        }
-
-        [UnityTest]
-        public IEnumerator LocalDespawn_ClearsViewAndRestoresCursor()
-        {
-            yield return Host(CameraViewsScene);
-            yield return Teleport(InsideZone);
-            Assert.IsTrue(FirstPerson);
-            var leave = (Task)Call(Get(GameType(SessionType), "Instance"), "LeaveAsync");
-            yield return WaitFor(() => leave.IsCompleted && IsNull(Get(director, "LocalPlayer")), 10f, "로컬 소멸");
-            yield return Frames(2);
-            Assert.IsFalse(FirstPerson);
-            Assert.AreEqual(Vector3.zero, ViewForward);
-            Assert.IsNull(director.GetComponent<CinemachineCamera>().Target.TrackingTarget);
-            Assert.AreEqual(cursorLock, Cursor.lockState, "커서 복구");
-        }
-
-        [UnityTest]
-        public IEnumerator Proto_TightropeProviderKeepsFramingAndOcclusionRules()
-        {
-            yield return Host(ProtoScene);
-            var course = Get(GameType("CurtainCall.Tightrope.TightropeCourse"), "Current") as Component;
-            Assert.IsNotNull(course, "proto 외줄 코스");
-            var rules = Get(Get(GameType("CurtainCall.Settings.GameSettings"), "Tightrope"), "Camera");
-            var forward = (Vector3)Get(course, "Forward");
-            var follow = Vector3.up * (float)Get(rules, "Height") - forward * (float)Get(rules, "Distance");
-            Assert.IsFalse(FirstPerson);
-            AssertVector(follow, Follow.FollowOffset, "외줄 따라가기");
-            AssertVector(new Vector3(0f, (float)Get(rules, "LookHeight"), (float)Get(rules, "LookAhead")),
-                Composer.TargetOffset, "외줄 바라보기(캐릭터 로컬)");
-            Assert.AreEqual(60f, Camera.main.fieldOfView, 0.01f);
-
-            var framing = director.GetComponent(GameType("CurtainCall.Cameras.TightropeCameraFraming"));
-            var fade = director.GetComponent(GameType("CurtainCall.Cameras.CameraOcclusionFade"));
-            Assert.IsNotNull(framing, "외줄 구도 공급자");
-            var exclusions = (IDictionary)Private(fade, "exclusions");
-            Assert.IsTrue(exclusions.Contains(framing), "외줄 가림 예외 등록");
-            Assert.AreEqual(1, (int)Get(Private(fade, "ruleRequests"), "Count"), "외줄 가림 수치 요청");
-            var exclude = (Func<Transform, bool>)exclusions[framing];
-            Assert.IsTrue(exclude(course.transform), "코스 루트 제외");
-            var outside = new GameObject("Occluder Probe");
-            Assert.IsFalse(exclude(outside.transform), "코스 밖 물체는 가림 대상");
-            Object.Destroy(outside);
-
-            Call(local, "ServerSetState", Enum.Parse(GameType(StateType), "Fallen"));
-            yield return Frames(3);
-            Assert.IsTrue(Spectating, "사망 후 관전");
-            Assert.IsFalse(FirstPerson);
-            AssertVector(follow, Follow.FollowOffset, "관전 중 외줄 구도 유지");
-        }
-
-        // Task-045: 테스트 키보드(Input System 상태 이벤트) → PlayerInputReader → 기본 이동 규칙 → PlayerMover 실제 변위.
-        // 사람이 누른 키보드·마우스 확인이 아니다. 시선(yaw/pitch)은 마우스 대신 director 값을 직접 넣는다.
-
-        [UnityTest]
-        public IEnumerator FirstPerson_DefaultSchemeKeysMoveAlongHorizontalView()
-        {
-            yield return Host(CameraViewsScene);
-            var controller = local.GetComponent(GameType("CurtainCall.Player.PlayerController"));
-            Assert.IsFalse((bool)Get(controller, "HasAssignedScheme"), "끼운 규칙 없음");
-            Assert.AreSame(Get(GameType("CurtainCall.Player.ControlSettings"), "Default"), Get(controller, "Scheme"), "프로젝트 Default 규칙");
-            yield return Teleport(InsideZone);
-            Assert.IsTrue(FirstPerson);
-            yield return BeginKeyboard();
-
-            SetView(90f, 30f);
-            yield return Frames(2);
-            AssertVector(Vector3.right, ViewForward, "yaw 90 수평 시선");
-            yield return Hold(Vector3.right, "W 시선 전방", "W");
-            float straight = measuredSpeed;
-            yield return Hold(Vector3.left, "S 시선 반대", "S");
-            yield return Hold((Vector3.right + Vector3.back).normalized, "W+D 시선 기준 대각선", "W", "D");
-            Assert.AreEqual(straight, measuredSpeed, straight * 0.1f, "대각선·pitch에도 속도 같음");
-
-            SetView(180f, -20f);
-            yield return Frames(2);
-            yield return Hold(Vector3.back, "yaw 180 W", "W");
-            yield return Hold(Vector3.right, "yaw 180 A", "A");
-        }
-
-        [UnityTest]
-        public IEnumerator ViewChangeWhileHeld_KeepsDirectionUntilRelease()
-        {
-            yield return Host(CameraViewsScene);
-            yield return Teleport(InsideZone);
-            Assert.IsTrue(FirstPerson);
-            yield return BeginKeyboard();
-            SetView(90f, 0f);
-            yield return Frames(2);
-
-            Keys("W");
-            yield return Frames(3);
-            yield return Teleport(OutsideZone); // W를 누른 채 구역 밖 → 3인칭
-            Assert.IsFalse(FirstPerson, "구역 밖 3인칭");
-            Vector3 start = local.transform.position;
-            yield return Seconds(0.4f);
-            Vector3 delta = local.transform.position - start;
-            delta.y = 0f;
-            Keys();
-            yield return Frames(3);
-            Assert.Greater(delta.magnitude, 0.3f, $"누른 채 이동 {delta}");
-            Assert.Greater(Vector3.Dot(delta.normalized, Vector3.right), 0.995f, $"누른 채 시점 전환: 직전 1인칭 시선 유지 {delta}");
-
-            yield return Hold(Vector3.forward, "다시 누르면 3인칭 코스 기준", "W");
-        }
-
-        [UnityTest]
-        public IEnumerator FreeThirdPerson_OrbitsWithViewAndKeysFollowView()
-        {
-            yield return Host(CameraViewsScene);
-            var preset = ScriptableObject.CreateInstance(GameType("CurtainCall.Cameras.CameraViewPreset"));
-            Set(preset, "Kind", Enum.Parse(GameType("CurtainCall.Cameras.CameraViewKind"), "FreeThirdPerson"));
-            Set(preset, "PitchLimit", 35f);
-            var source = new GameObject("Free Third Person Probe");
-            try
-            {
-                Call(director, "RequestView", source, preset, 20, Vector3.zero);
-                yield return Frames(2);
-                Assert.IsTrue((bool)Get(director, "IsFreeThirdPerson"), "3인칭 비고정");
-                Assert.IsTrue((bool)Get(director, "UsesMouseLook"), "마우스 시선");
-                Assert.IsFalse(FirstPerson);
-                Assert.IsFalse(HideModel, "3인칭은 모델 표시");
-                yield return BeginKeyboard();
-
-                SetView(90f, 20f);
+                floor.transform.position = new Vector3(1000f, 29.5f, 1000f);
+                floor.transform.localScale = new Vector3(20f, 1f, 20f);
+                Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+                yield return Teleport(new Vector3(1000f, 30.05f, 1000f));
+                Physics.SyncTransforms();
+                var camera = director.GetComponent<CinemachineCamera>();
+                var low = camera.State;
+                low.RawPosition = new Vector3(1000f, 30.1f, 1000f);
+                low.PositionCorrection = Vector3.zero;
+                SetPrivate(director, "lastOutput", low);
+                SetDead();
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                var held = camera.State;
+                Assert.That(held.GetFinalPosition().y, Is.GreaterThanOrEqualTo(31.2f));
+                Vector3 target = new Vector3(1000f, 30.35f, 1000f);
+                Assert.That(Vector3.Angle(held.GetFinalOrientation() * Vector3.forward, target - held.GetFinalPosition()), Is.LessThan(.1f));
+                Assert.That((float)GetPrivate(director, "deathDropDistance"), Is.Zero);
+                Call(Mover, "SetStartPose", local.transform.position + Vector3.down * 20f, Quaternion.identity);
+                SetPrivate(director, "deathStarted", Time.unscaledTime - 2f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                AssertVector(held.GetFinalPosition(), camera.State.GetFinalPosition(), "땅 아래 캐릭터 루트나 하강 연출을 따라가지 않음");
                 yield return Frames(3);
-                AssertVector(Vector3.right, ViewForward, "비고정 수평 시선");
-                var args = new object[] { preset, local.transform.position, 90f, 20f, null };
-                var pose = (Vector3)GameType("CurtainCall.Cameras.CameraViewDirector").GetMethod("FreeThirdPersonPose").Invoke(null, args);
-                AssertVector(pose, Camera.main.transform.position, "시선 뒤 3인칭 위치", 0.05f);
-                Assert.Less(Vector3.Dot(Camera.main.transform.position - local.transform.position, Vector3.right), -1f, "카메라는 시선 뒤");
-                Vector3 cameraForward = Camera.main.transform.forward;
-                cameraForward.y = 0f;
-                Assert.Greater(Vector3.Dot(cameraForward.normalized, Vector3.right), 0.99f, "카메라는 시선 방향을 봄");
-                Assert.Less(Camera.main.transform.forward.y, 0f, "pitch 20: 위에서 내려다봄");
+                AssertVector(held.GetFinalPosition(), Camera.main.transform.position, "실제 화면도 바닥 위에 고정", .02f);
+                Vector3 viewport = Camera.main.WorldToViewportPoint(target);
+                Assert.That(viewport.z, Is.GreaterThan(0f));
+                Assert.That(viewport.x, Is.EqualTo(.5f).Within(.02f));
+                Assert.That(viewport.y, Is.EqualTo(.5f).Within(.02f), "사망 위치가 화면 중앙에 보여야 한다.");
+            }
+            finally { Object.Destroy(floor); }
+        }
 
-                yield return Hold(Vector3.right, "비고정 W 시선 전방", "W");
-                yield return Hold(Vector3.back, "비고정 D 시선 오른쪽", "D");
+        [UnityTest]
+        public IEnumerator DeathView_AirborneDropStopsBeforeCameraTouchesFloor()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try
+            {
+                floor.transform.position = new Vector3(1000f, 29.5f, 1000f);
+                floor.transform.localScale = new Vector3(20f, 1f, 20f);
+                Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+                yield return Teleport(new Vector3(1000f, 40f, 1000f));
+                Physics.SyncTransforms();
+                var camera = director.GetComponent<CinemachineCamera>();
+                var low = camera.State;
+                low.RawPosition = new Vector3(1000f, 31f, 1000f);
+                low.PositionCorrection = Vector3.zero;
+                SetPrivate(director, "lastOutput", low);
+                SetDead();
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                SetPrivate(director, "deathStarted", Time.unscaledTime - 1f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.That(camera.State.GetFinalPosition().y, Is.GreaterThanOrEqualTo(30.29f), "공중 사망도 카메라가 지면을 뚫고 하강하면 안 된다.");
+                Assert.That(camera.State.GetFinalPosition().y, Is.LessThan(31f), "가능한 만큼의 짧은 하강은 유지한다.");
+            }
+            finally { Object.Destroy(floor); }
+        }
 
-                Call(director, "ReleaseView", source);
-                yield return Frames(2);
-                Assert.IsFalse((bool)Get(director, "UsesMouseLook"), "해제 후 기본 3인칭 고정");
-                Assert.AreEqual(cursorLock, Cursor.lockState, "커서 복구");
+        [UnityTest]
+        public IEnumerator DeathView_SurvivorSelectionWaitsThenReturnsToExistingSpectating()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            // 다른 PC 연결 검증이 아니라 대상 선택 회귀다. 미생성 플레이어를 생존자 목록에만 넣는다.
+            var survivorObject = new GameObject("Camera test survivor");
+            var survivor = survivorObject.AddComponent(GameType(PlayerType));
+            var players = (IList)Get(GameType(PlayerType), "All");
+            players.Add(survivor);
+            try
+            {
+                survivor.transform.position = local.transform.position + Vector3.right * 10f;
+                var camera = director.GetComponent<CinemachineCamera>();
+                SetDead();
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.That(SpectatorTarget, Is.Null);
+                Assert.AreSame(local.transform, camera.Target.TrackingTarget);
+                SetPrivate(director, "deathStarted", Time.unscaledTime - 1.4f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.That(SpectatorTarget, Is.Null, "1.5초 전에는 생존자가 있어도 전환하지 않음");
+                SetPrivate(director, "deathStarted", Time.unscaledTime - 1.6f);
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.AreSame(survivor, SpectatorTarget);
+                Assert.AreSame(survivor.transform, camera.Target.TrackingTarget);
+                Assert.IsTrue(camera.FollowTargetChanged, "PrePipeline 관전 전환도 Body 전에 대상 캐시에 반영");
+                Assert.IsTrue(camera.LookAtTargetChanged, "Aim 캐시도 같은 pipeline에서 갱신");
+                Assert.IsFalse((bool)GetPrivate(director, "deathView"));
+                camera.InternalUpdateCameraState(Vector3.up, -1f);
+                Assert.IsFalse((bool)GetPrivate(director, "deathView"), "같은 사망을 pipeline마다 재시작하지 않음");
             }
             finally
             {
-                if (!IsNull(director)) Call(director, "ReleaseView", source);
-                Object.Destroy(source);
-                Object.Destroy(preset);
+                players.Remove(survivor);
+                Object.Destroy(survivorObject);
             }
         }
 
         [UnityTest]
-        public IEnumerator ThirdPerson_KeysKeepCourseAxes()
+        public IEnumerator DeathView_DisableAndActiveSceneChangeDiscardPreviousAnchor()
         {
-            yield return Host(CameraViewsScene);
-            yield return Teleport(OutsideZone);
-            Assert.IsFalse(FirstPerson, "구역 밖 3인칭");
-            yield return BeginKeyboard();
-            yield return Hold(Vector3.forward, "W 코스 앞", "W");
-            yield return Hold(Vector3.back, "S 코스 뒤", "S");
-            yield return Hold(Vector3.right, "D 코스 오른쪽", "D");
-        }
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            var camera = director.GetComponent<CinemachineCamera>();
+            SetDead();
+            camera.InternalUpdateCameraState(Vector3.up, -1f);
+            Assert.IsTrue((bool)GetPrivate(director, "deathView"));
+            var behaviour = (Behaviour)director;
+            behaviour.enabled = false;
+            Assert.IsFalse((bool)GetPrivate(director, "deathView"));
+            Assert.IsFalse((bool)GetPrivate(director, "hasDeathOutput"));
+            behaviour.enabled = true;
+            camera.InternalUpdateCameraState(Vector3.up, -1f);
+            Assert.IsTrue((bool)GetPrivate(director, "deathView"));
+            var spectator = (Behaviour)director.GetComponent(GameType("CurtainCall.Cameras.CameraSpectator"));
+            spectator.enabled = false;
+            Assert.IsFalse((bool)GetPrivate(director, "deathView"), "관전 비활성화도 화면 고정 정리");
+            spectator.enabled = true;
+            Call(local, "ServerRestoreAll");
+            camera.InternalUpdateCameraState(Vector3.up, -1f);
+            SetDead();
+            camera.InternalUpdateCameraState(Vector3.up, -1f);
 
-        [UnityTest]
-        public IEnumerator FirstPerson_OtherPlayerKeepsCourseAxes()
-        {
-            yield return Host(CameraViewsScene);
-            yield return Teleport(InsideZone);
-            Assert.IsTrue(FirstPerson);
-            SetView(90f, 0f);
-
-            // 로컬이 아닌 몸통: 공용 카메라 1인칭 시선을 쓰지 않고 자기 코스(+Z) 기준이어야 한다
-            rig = new GameObject("Other Player Rig");
-            rig.transform.position = new Vector3(-8f, 0.5f, 0f);
-            var mover = rig.AddComponent(GameType("CurtainCall.Player.PlayerMover"));
-            var context = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerControlContext"), new object[] { rig });
-            var scheme = Get(GameType("CurtainCall.Player.ControlSettings"), "Default");
-            var frame = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerInputFrame"));
-            frame.GetType().GetField("Move").SetValue(frame, 1f);
-            Call(scheme, "Enter", context);
-            yield return WaitFor(() => ((CharacterController)Get(mover, "Body")).isGrounded && !(bool)Get(mover, "IsAirborne"), 3f, "rig 착지");
-
-            Vector3 start = rig.transform.position;
-            float end = Time.time + 0.4f;
-            while (Time.time < end)
+            var previous = SceneManager.GetActiveScene();
+            var next = SceneManager.CreateScene("Camera death cleanup test");
+            try
             {
-                Call(scheme, "Tick", context, frame);
-                yield return null;
+                Assert.IsTrue(SceneManager.SetActiveScene(next));
+                Assert.IsFalse((bool)GetPrivate(director, "deathView"));
+                Assert.IsFalse((bool)GetPrivate(director, "hasOutput"), "다음 씬에서 이전 출력 기준점을 재사용하지 않음");
+                Assert.That(SpectatorTarget, Is.Null);
+                Assert.IsFalse((bool)Get(GameType("CurtainCall.Cameras.CameraSpectator"), "IsSpectating"));
             }
-            Call(scheme, "Exit", context);
-            Vector3 delta = rig.transform.position - start;
-            delta.y = 0f;
-            Assert.Greater(delta.magnitude, 0.3f, "rig 이동");
-            Assert.Greater(Vector3.Dot(delta.normalized, Vector3.forward), 0.995f, $"다른 플레이어는 코스 기준: {delta}");
-            Assert.IsTrue(FirstPerson, "로컬 1인칭 유지");
+            finally
+            {
+                SceneManager.SetActiveScene(previous);
+                SceneManager.UnloadSceneAsync(next);
+            }
         }
+
+        object SpectatorTarget => Get(GameType("CurtainCall.Cameras.CameraSpectator"), "Target");
+
+        void SetDead() => Call(local, "ServerSetState", Enum.Parse(GameType("CurtainCall.Network.PlayerSync.PlayerState"), "Fallen"));
+
+        static object GetPrivate(object target, string name) => target.GetType()
+            .GetField(name, BindingFlags.NonPublic | BindingFlags.Instance).GetValue(target);
+
+        static void SetPrivate(object target, string name, object value) => target.GetType()
+            .GetField(name, BindingFlags.NonPublic | BindingFlags.Instance).SetValue(target, value);
 
         IEnumerator Host(string scene)
         {
@@ -477,7 +305,7 @@ namespace CurtainCall.Cameras.Tests
             yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(scene,
                 new LoadSceneParameters(LoadSceneMode.Single));
 #else
-            Assert.Ignore("에디터에서만 씬 경로로 연다");
+            yield return SceneManager.LoadSceneAsync(scene, LoadSceneMode.Single);
 #endif
             var session = Call(GameType(SessionType), "EnsureExists");
             Assert.IsNotNull(session, "NetworkSessionManager");
@@ -497,110 +325,13 @@ namespace CurtainCall.Cameras.Tests
             yield return FixedSteps(3);
         }
 
-        Vector3 EyePosition() => local.transform.position + Vector3.up * ((float)Get(Mover, "BodyHeight") * 0.9f);
-
-        /// <summary>1인칭 시선을 직접 정하고 마우스 적분을 막는다(진입 시 시선 초기화 뒤에 부른다).</summary>
+        /// <summary>시선을 직접 정하고 마우스 적분을 막는다(진입 시 시선 초기화 뒤에 부른다).</summary>
         void SetView(float yaw, float pitch)
         {
             const BindingFlags field = BindingFlags.NonPublic | BindingFlags.Instance;
             Call(director, "SetInputBlocked", true);
             director.GetType().GetField("yaw", field).SetValue(director, yaw);
             director.GetType().GetField("pitch", field).SetValue(director, pitch);
-        }
-
-        /// <summary>
-        /// 테스트 키보드를 붙인다. 에디터 포커스와 무관하게 게임으로 들어가도록 Input System 임시 설정의 포커스 값 2개를 잠시 바꾼다.
-        /// 설정 객체는 교체하지 않는다(교체하면 Input System이 임시 설정을 파괴한다). 설정이 에셋이면 바꾸지 않고 건너뛴다.
-        /// 재시작·생성 직후 입력 막기가 풀리고 몸이 땅에 닿을 때까지 기다린다.
-        /// </summary>
-        IEnumerator BeginKeyboard()
-        {
-            var system = InputType("InputSystem");
-            var settings = (ScriptableObject)Get(system, "settings");
-#if UNITY_EDITOR
-            Assume.That(UnityEditor.AssetDatabase.GetAssetPath(settings), Is.Empty, "Input System 설정 에셋은 테스트가 바꾸지 않는다");
-#endif
-            inputSettings = settings;
-            backgroundBehavior = Get(settings, "backgroundBehavior");
-            editorInputBehavior = Get(settings, "editorInputBehaviorInPlayMode");
-            SetEnum(settings, "backgroundBehavior", "IgnoreFocus");
-            SetEnum(settings, "editorInputBehaviorInPlayMode", "AllDeviceInputAlwaysGoesToGameView");
-            keyboard = system.GetMethod("AddDevice", new[] { typeof(string), typeof(string), typeof(string) })
-                .Invoke(null, new object[] { "Keyboard", "CameraViews Test Keyboard", null });
-            Keys();
-            yield return WaitFor(() => !(bool)Get(GameType("CurtainCall.Player.InputGate"), "IsBlocked"), 3f, "입력 막기 해제");
-            yield return WaitFor(() => ((CharacterController)Get(Mover, "Body")).isGrounded && !(bool)Get(Mover, "IsAirborne"), 3f, "착지");
-        }
-
-        void EndKeyboard()
-        {
-            var system = InputType("InputSystem");
-            if (keyboard != null)
-            {
-                system.GetMethod("RemoveDevice", new[] { InputType("InputDevice") }).Invoke(null, new[] { keyboard });
-                keyboard = null;
-            }
-            if (inputSettings != null)
-            {
-                inputSettings.GetType().GetProperty("backgroundBehavior", Public).SetValue(inputSettings, backgroundBehavior);
-                inputSettings.GetType().GetProperty("editorInputBehaviorInPlayMode", Public).SetValue(inputSettings, editorInputBehavior);
-            }
-            inputSettings = null;
-        }
-
-        /// <summary>테스트 키보드 상태를 이 키들만 눌린 상태로 바꾼다. 비우면 모두 뗀다.</summary>
-        void Keys(params string[] names)
-        {
-            var system = InputType("InputSystem");
-            var keyType = InputType("Key");
-            var stateType = InputType("LowLevel.KeyboardState");
-            var keys = Array.CreateInstance(keyType, names.Length);
-            for (int i = 0; i < names.Length; i++) keys.SetValue(Enum.Parse(keyType, names[i]), i);
-            var state = Activator.CreateInstance(stateType, new object[] { keys });
-            system.GetMethods(Public)
-                .First(m => m.Name == "QueueStateEvent" && m.IsGenericMethodDefinition && m.GetParameters().Length == 3)
-                .MakeGenericMethod(stateType)
-                .Invoke(null, new[] { keyboard, state, -1d });
-        }
-
-        /// <summary>키를 0.4초 눌러 로컬 플레이어의 수평 변위 방향을 확인하고, 수평 속도를 <see cref="measuredSpeed"/>에 남긴다.</summary>
-        IEnumerator Hold(Vector3 expected, string what, params string[] names)
-        {
-            Keys(names);
-            yield return Frames(3);
-            Vector3 start = local.transform.position;
-            float started = Time.time;
-            yield return Seconds(0.4f);
-            Vector3 delta = local.transform.position - start;
-            float elapsed = Time.time - started;
-            Keys();
-            yield return Frames(3);
-            delta.y = 0f;
-            Assert.Greater(delta.magnitude, 0.3f, $"{what}: 이동하지 않음 {delta}");
-            Assert.Greater(Vector3.Dot(delta.normalized, expected), 0.995f, $"{what}: 기대 {expected}, 실제 {delta.normalized}");
-            measuredSpeed = delta.magnitude / elapsed;
-        }
-
-        static IEnumerator CaptureMainRender(Action onRender)
-        {
-            bool seen = false;
-            void Begin(ScriptableRenderContext context, Camera camera)
-            {
-                if (seen || camera != Camera.main) return;
-                seen = true;
-                onRender();
-            }
-            RenderPipelineManager.beginCameraRendering += Begin;
-            try
-            {
-                for (int i = 0; i < 30 && !seen; i++) yield return null;
-                if (!seen) Camera.main.Render();
-            }
-            finally
-            {
-                RenderPipelineManager.beginCameraRendering -= Begin;
-            }
-            Assert.IsTrue(seen, "게임 카메라 렌더링");
         }
 
         static IEnumerator Frames(int count)
@@ -637,14 +368,6 @@ namespace CurtainCall.Cameras.Tests
 
         static Type GameType(string name) => Type.GetType(name + ", Assembly-CSharp", true);
 
-        static Type InputType(string name) => Type.GetType("UnityEngine.InputSystem." + name + ", Unity.InputSystem", true);
-
-        static void SetEnum(object target, string property, string value)
-        {
-            var info = target.GetType().GetProperty(property, Public);
-            info.SetValue(target, Enum.Parse(info.PropertyType, value));
-        }
-
         static object Get(object target, string name)
         {
             var type = target as Type ?? target.GetType();
@@ -655,11 +378,6 @@ namespace CurtainCall.Cameras.Tests
             Assert.IsNotNull(field, $"{type.Name}.{name}");
             return field.GetValue(instance);
         }
-
-        static void Set(object target, string name, object value) => target.GetType().GetField(name, Public).SetValue(target, value);
-
-        static object Private(object target, string name) =>
-            target.GetType().GetField(name, BindingFlags.NonPublic | BindingFlags.Instance).GetValue(target);
 
         static object Call(object target, string name, params object[] args)
         {

@@ -71,16 +71,16 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
         [TestCase(4.5f)]
         [TestCase(3.6f)]
-        public void PoleAirControl_OppositeOrSideInputRemovesUnwantedMomentum(float controlSpeed)
+        public void PoleAirControl_OppositeOrSideInputTurnsMomentumWithoutLosingSpeed(float controlSpeed)
         {
             var launched = new Vector3(0, 12, 14);
             var reverse = CannonAirControl.SteerPoleMomentum(launched, Vector3.back * controlSpeed);
-            Assert.That(reverse, Is.EqualTo(Vector3.up * 12));
+            Assert.That(reverse, Is.EqualTo(new Vector3(0, 12, -14)));
             Assert.That((reverse + Vector3.back * controlSpeed).z, Is.LessThan(0));
             var sideways = CannonAirControl.SteerPoleMomentum(launched, Vector3.right * controlSpeed);
-            Assert.That(sideways, Is.EqualTo(Vector3.up * 12));
+            Assert.That(sideways, Is.EqualTo(new Vector3(14, 12, 0)));
             Assert.That(CannonAirControl.SteerPoleMomentum(reverse, Vector3.forward * controlSpeed),
-                Is.EqualTo(reverse), "입력 방향을 되돌려도 제동한 반동이 되살아나지 않는다.");
+                Is.EqualTo(launched), "방향 전환만으로 반동 속력이 줄거나 늘지 않는다.");
         }
 
         [Test]
@@ -93,10 +93,34 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var turned = CannonAirControl.SteerPoleMomentum(launched, diagonal * 4.5f);
             Assert.That(turned.y, Is.EqualTo(12));
             Assert.That(Vector3.Dot(Vector3.ProjectOnPlane(turned, Vector3.up).normalized, diagonal), Is.EqualTo(1).Within(0.001f));
-            Assert.That(Vector3.ProjectOnPlane(turned, Vector3.up).magnitude, Is.LessThan(14));
+            Assert.That(Vector3.ProjectOnPlane(turned, Vector3.up).magnitude, Is.EqualTo(14).Within(.001f));
+            Assert.That(CannonAirControl.SteerPoleMomentum(turned, Vector3.zero), Is.EqualTo(turned),
+                "키를 놓아도 마지막 방향으로 날아간다.");
             var rotation = Quaternion.Euler(0, 135, 0);
             Assert.That(Vector3.Distance(CannonAirControl.SteerPoleMomentum(rotation * launched, rotation * diagonal),
                 rotation * turned), Is.LessThan(0.001f), "카메라/코스가 돌아가도 같은 세계 방향으로 제동");
+        }
+
+        [TestCase(0f, 14f, 8f)]
+        [TestCase(0f, -14f, 8f)]
+        [TestCase(14f, 14f, 8f)]
+        [TestCase(0f, 4f, 4f)]
+        [TestCase(0f, 0f, 0f)]
+        public void PoleJumpSpeedLimitPreservesHeightDirectionAndWeakLaunches(float x, float z, float expectedSpeed)
+        {
+            var velocity = new Vector3(x, 12f, z);
+            var limited = CannonAirControl.LimitPoleHorizontalSpeed(velocity, 8f);
+            Assert.That(limited.y, Is.EqualTo(12f));
+            Assert.That(Vector3.ProjectOnPlane(limited, Vector3.up).magnitude, Is.EqualTo(expectedSpeed).Within(.0001f));
+            if (expectedSpeed > 0f)
+                Assert.That(Vector3.Dot(Vector3.ProjectOnPlane(limited, Vector3.up).normalized, new Vector3(x, 0f, z).normalized), Is.EqualTo(1f).Within(.0001f));
+        }
+
+        [TestCase(0f)]
+        [TestCase(-1f)]
+        public void ZeroPoleJumpLimitRemovesHorizontalMotionOnly(float limit)
+        {
+            Assert.That(CannonAirControl.LimitPoleHorizontalSpeed(new Vector3(4f, -6f, 12f), limit), Is.EqualTo(Vector3.down * 6f));
         }
 
         [Test]

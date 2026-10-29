@@ -1,6 +1,8 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using Unity.Services.Multiplayer;
@@ -8,87 +10,139 @@ using UnityEngine;
 
 namespace CurtainCall.Network.Session
 {
-    /// <summary>
-    /// Unity Multiplayer Services 세션(Relay)으로 방을 열고, 방 고유 코드로 참가한다.
-    /// 방 목록 검색(QuerySessionsAsync)은 나중에 별도 인터페이스로 추가한다.
-    /// </summary>
+    /// <summary>Unity Multiplayer Services 세션(Relay). 취소된 요청은 NGO를 시작하거나 새 연결을 종료할 수 없다.</summary>
     public sealed class ServicesSessionConnector : ISessionConnector
     {
         public const int DefaultMaxPlayers = 4;
-
-        readonly NetworkManager _networkManager;
-        readonly int _maxPlayers;
-        readonly bool _isPrivate;
-
-        /// <summary>현재 들어가 있는 세션. 플레이어 ID 등 세부 정보가 필요할 때 쓴다.</summary>
+        // SDK HTTP에는 취소 토큰이 없다. 오래된 SDK 작업/세션 정리와 다음 작업을 겹치지 않는다.
+        static readonly SemaphoreSlim Operations = new(1, 1);
+        readonly NetworkManager network;
+        readonly int maxPlayers;
+        readonly bool isPrivate;
+        readonly CancellationTokenSource cancellation = new();
+        readonly SessionNetworkHandler handler;
         public ISession CurrentSession { get; private set; }
-
         public string JoinKey => CurrentSession?.Code;
 
-        /// <param name="isPrivate">true면 방 코드로만 들어올 수 있다(목록 검색에 안 보임).</param>
         public ServicesSessionConnector(NetworkManager networkManager, int maxPlayers = DefaultMaxPlayers, bool isPrivate = true)
         {
-            _networkManager = networkManager;
-            _maxPlayers = maxPlayers;
-            _isPrivate = isPrivate;
+            network = networkManager;
+            this.maxPlayers = maxPlayers;
+            this.isPrivate = isPrivate;
+            handler = new SessionNetworkHandler(networkManager, cancellation.Token);
         }
 
-        public async Task<bool> HostAsync()
-        {
-            await EnsureSignedInAsync();
+        public Task<bool> HostAsync() => ConnectAsync(null, true);
 
-            var options = new SessionOptions
-            {
-                MaxPlayers = _maxPlayers,
-                IsPrivate = _isPrivate
-            }.WithRelayNetwork();
-
-            CurrentSession = await MultiplayerService.Instance.CreateSessionAsync(options);
-            Debug.Log($"[Session] 방 생성: 코드 {CurrentSession.Code}, 최대 {CurrentSession.MaxPlayers}명");
-            return true;
-        }
-
-        public async Task<bool> JoinAsync(string joinKey)
+        public Task<bool> JoinAsync(string joinKey)
         {
             string code = joinKey?.Trim().ToUpperInvariant();
-            if (string.IsNullOrEmpty(code))
-                throw new ArgumentException("방 코드를 입력하세요.");
+            if (string.IsNullOrEmpty(code)) throw new ArgumentException("방 코드를 입력하세요.");
+            return ConnectAsync(code, false);
+        }
 
-            await EnsureSignedInAsync();
-
-            CurrentSession = await MultiplayerService.Instance.JoinSessionByCodeAsync(code);
-            Debug.Log($"[Session] 방 참가: 코드 {CurrentSession.Code}");
-            return true;
+        async Task<bool> ConnectAsync(string code, bool host)
+        {
+            await Operations.WaitAsync(cancellation.Token);
+            try
+            {
+                await EnsureSignedInAsync();
+                cancellation.Token.ThrowIfCancellationRequested();
+                ISession session;
+                if (host)
+                {
+                    var options = new SessionOptions { MaxPlayers = maxPlayers, IsPrivate = isPrivate }
+                        .WithRelayNetwork().WithNetworkHandler(handler);
+                    session = await MultiplayerService.Instance.CreateSessionAsync(options);
+                }
+                else
+                {
+                    var options = new JoinSessionOptions().WithNetworkHandler(handler);
+                    session = await MultiplayerService.Instance.JoinSessionByCodeAsync(code, options);
+                }
+                if (cancellation.IsCancellationRequested)
+                {
+                    await LeaveSessionAsync(session);
+                    return false;
+                }
+                CurrentSession = session;
+                return true;
+            }
+            finally { Operations.Release(); }
         }
 
         public async Task LeaveAsync()
         {
+            cancellation.Cancel();
             var session = CurrentSession;
             CurrentSession = null;
+            // NGO만 먼저 확실하게 종료한다. 원격 나가기 응답을 기다리며 UI를 계속 잠그지 않는다.
+            await handler.StopAsync();
+            if (session != null) _ = CleanupSessionAsync(session);
+        }
 
-            try
+        static async Task CleanupSessionAsync(ISession session)
+        {
+            await Operations.WaitAsync();
+            try { await LeaveSessionAsync(session); }
+            finally { Operations.Release(); }
+        }
+
+        static async Task LeaveSessionAsync(ISession session)
+        {
+            try { await session.LeaveAsync(); }
+            catch (Exception e) { Debug.LogWarning($"[Session] 원격 세션 정리 실패: {e.Message}"); }
+        }
+
+        // 세션별 소유권으로 Stop을 제한한다. 늦은 SDK 정리가 새 시도의 NGO를 끄지 못한다.
+        sealed class SessionNetworkHandler : INetworkHandler
+        {
+            readonly NetworkManager network;
+            readonly CancellationToken cancellation;
+            bool ownsNetwork;
+            public SessionNetworkHandler(NetworkManager network, CancellationToken cancellation)
+            { this.network = network; this.cancellation = cancellation; }
+
+            public async Task StartAsync(NetworkConfiguration configuration)
             {
-                if (session != null)
-                    await session.LeaveAsync();
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning($"[Session] 세션 나가기 실패(네트워크는 종료합니다): {e.Message}");
+                cancellation.ThrowIfCancellationRequested();
+                if (network == null || network.IsListening || network.ShutdownInProgress)
+                    throw new InvalidOperationException("네트워크가 다른 연결을 처리 중입니다.");
+                if (configuration.Type != NetworkType.Relay)
+                    throw new InvalidOperationException("Relay 연결만 지원합니다.");
+                var transport = network.NetworkConfig.NetworkTransport as UnityTransport;
+                if (transport == null) throw new InvalidOperationException("UnityTransport가 없습니다.");
+                transport.SetRelayServerData(configuration.RelayServerData);
+                bool client = configuration.Role == NetworkRole.Client;
+                ownsNetwork = client ? network.StartClient() : network.StartHost();
+                if (!ownsNetwork) throw new InvalidOperationException("네트워크를 시작하지 못했습니다.");
+                while (client && !network.IsConnectedClient)
+                {
+                    cancellation.ThrowIfCancellationRequested();
+                    if (!ownsNetwork || !network.IsListening)
+                        throw new InvalidOperationException("연결이 종료되었습니다.");
+                    await Task.Delay(10);
+                }
+                cancellation.ThrowIfCancellationRequested();
             }
 
-            if (_networkManager.IsListening)
-                _networkManager.Shutdown();
+            public async Task StopAsync()
+            {
+                if (!ownsNetwork) return;
+                ownsNetwork = false;
+                if (network == null) return;
+                network.Shutdown();
+                while (network != null && network.ShutdownInProgress) await Task.Delay(10);
+            }
         }
 
         static async Task EnsureSignedInAsync()
         {
             if (UnityServices.State != ServicesInitializationState.Initialized)
             {
-                // 같은 PC에서 여러 플레이어(MPPM)를 띄워도 서로 다른 익명 계정이 되도록 실행마다 프로필을 나눈다.
                 var options = new InitializationOptions().SetProfile(CreateProfileName());
                 await UnityServices.InitializeAsync(options);
             }
-
             if (!AuthenticationService.Instance.IsSignedIn)
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }

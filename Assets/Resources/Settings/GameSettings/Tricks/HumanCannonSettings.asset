@@ -12,5 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f430b233790e994fb5a73ec6e9b4531, type: 3}
   m_Name: HumanCannonSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.HumanCannonSettings
+  sawDensity: 0.6
+  sawDiagonalDegrees: 30
   reward: {fileID: 0}
   jumpHeight: 1.2
+  poleJumpHorizontalSpeedLimit: 8

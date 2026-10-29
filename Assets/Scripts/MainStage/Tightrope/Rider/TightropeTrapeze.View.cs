@@ -12,11 +12,21 @@ namespace CurtainCall.Tightrope
             public LineRenderer Bar, LeftCable, RightCable, BodyLink;
             public TextMeshPro Label;
         }
+        [Tooltip("공중그네 봉 위에 봉 이름·잡기 안내·유지 시간 문구를 띄운다. 꺼도 봉 색과 HUD 안내는 유지한다.")]
+        [SerializeField] bool showPoleLabels;
         Transform trapezeViewRoot;
         readonly PoleView[] views = new PoleView[PoleTotal];
         Material trapezeMaterial;
         TMP_FontAsset trapezeRuntimeFont;
         MaterialPropertyBlock trapezeTint;
+
+        public Transform PoleVisual(int index) => index >= 0 && index < PoleTotal && views[index]?.Bar != null ? views[index].Bar.transform : null;
+        public Vector3 GripPoint(NetworkPlayer player)
+        {
+            if (!FindHeld(player, out int index, out bool lower)) return player != null ? player.transform.position : Vector3.zero;
+            return lower ? Feet(index, false) + Vector3.up * .15f
+                : Feet(index, false) + Vector3.up * poles[index].Physics.HangLength;
+        }
 
         public string LocalHint
         {
@@ -50,7 +60,7 @@ namespace CurtainCall.Tightrope
                     if (CanAttach(local, i)) return "F로 봉을 잡은 동료 몸에 매달리기 · 반동이 생기면 Space로 먼저 날아가기";
                 }
                 return distance < course.TrapezeGapFrom
-                    ? "공중그네 · 목마 위 사람이 W + Space로 뛰고 F로 높은 봉 잡기\n아래 사람은 봉을 잡은 동료 몸에 F로 매달리세요"
+                    ? "공중그네 · 봉 가까이에서 F로 잡기 · 점프 중에도 F 잡기\n동료 몸에도 가까이에서 F로 매달릴 수 있어요"
                     : "먼저 착지했다면 F로 동료 받기 준비 · 남은 동료는 마지막 낮은 봉으로 이동";
             }
         }
@@ -79,9 +89,11 @@ namespace CurtainCall.Tightrope
                 DrawLine(view.RightCable, pivot + side, grip + side, color);
                 view.BodyLink.gameObject.SetActive(state.Lower != Nobody);
                 if (state.Lower != Nobody) DrawLine(view.BodyLink, feet + Vector3.up * .15f, Feet(i, true) + Vector3.up * 1.6f, Color.yellow);
-                view.Label.text = i == 0 ? "1 · 높은 출발 봉" : i == 1 ? "2 · 동료와 교대하는 봉" : "3 · 혼자 내려오는 낮은 봉";
+                view.Label.gameObject.SetActive(showPoleLabels);
+                if (!showPoleLabels) continue;
+                view.Label.text = i == 0 ? "1 · 출발 봉" : i == 1 ? "2 · 동료와 교대하는 봉" : "3 · 혼자 내려오는 낮은 봉";
                 view.Label.text += occupied ? $"\n{(state.Lower == Nobody ? "1" : "2")}명 · {left:0.0}초"
-                    : i == 0 ? "\n목마 위에서 W + Space → F" : "\n공중에서 F 잡기";
+                    : "\n가까이에서 F 잡기 · 점프 중에도 가능";
                 view.Label.color = color; view.Label.transform.position = pivot + Vector3.up * .65f;
                 if (camera != null) view.Label.transform.rotation = camera.transform.rotation;
             }
@@ -118,6 +130,8 @@ namespace CurtainCall.Tightrope
         {
             line.SetPosition(0, from); line.SetPosition(1, to); line.startColor = line.endColor = color;
             trapezeTint.SetColor("_BaseColor", color); trapezeTint.SetColor("_Color", color); line.SetPropertyBlock(trapezeTint);
+            var profile = course != null ? course.ArtProfile : null;
+            if (profile != null) TightropeArtFit.Line(line, line.name.StartsWith("Pole ") ? profile.barY : profile.cableY, from, to, color);
         }
         void HideViews() { if (trapezeViewRoot != null) trapezeViewRoot.gameObject.SetActive(false); }
         void DestroyViews()

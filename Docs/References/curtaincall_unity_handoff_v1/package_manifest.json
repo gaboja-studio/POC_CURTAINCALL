@@ -1,0 +1,116 @@
+{
+  "version": "1.0.0",
+  "created_at": "2026-10-20T15:40:37.615845+09:00",
+  "project": "CURTAIN CALL",
+  "purpose": "Two-chat handoff; first performance HUD original archives included",
+  "contains_all_145_production_png": false,
+  "contains_project_files": false,
+  "art_status": {
+    "approved_unique_png": 137,
+    "pending_unique_png": 8,
+    "total_unique_png": 145
+  },
+  "unity_execution": "not_run",
+  "files": [
+    {
+      "path": "00_README.md",
+      "bytes": 2413,
+      "sha256": "54d69ef8e8c2a60dc8b5c421778525890ad8130d1c84a81050435f408dfe7008"
+    },
+    {
+      "path": "01_START_NEW_CHAT.md",
+      "bytes": 3194,
+      "sha256": "3efcd6f04613fe4c065a86b3fa9d27fffa91dd3746608e8b35f55318a477c68e"
+    },
+    {
+      "path": "02_PROJECT_HANDOFF.md",
+      "bytes": 16706,
+      "sha256": "5fcaf6a3a4a77e585c4afd28595a9ae54825530d62d17d7b509a9b3c9a589be6"
+    },
+    {
+      "path": "03_SCENE_APPLICATION_PLAN.md",
+      "bytes": 4764,
+      "sha256": "1fd281c6fb950b03a20586f374fb9cb651687fc62c9119c7e2d5b210057c4031"
+    },
+    {
+      "path": "04_PARALLEL_WORKFLOW.md",
+      "bytes": 2518,
+      "sha256": "0a1d13dac8cf6c61b3dbb1195313c6ad9ef8516f09447d7b1c55a3101e7973b0"
+    },
+    {
+      "path": "05_BUNDLE_CATALOG.md",
+      "bytes": 3204,
+      "sha256": "dc64cb711cbc149fc0071fc1aa2cb10b5762c8942977acbcc37bce6fb9059711"
+    },
+    {
+      "path": "Baseline/project_status.json",
+      "bytes": 176178,
+      "sha256": "08a44378f3723ca04e96278400e17d3ea4e207c2890a9bedc6b762f4573e3473"
+    },
+    {
+      "path": "Baseline/project_status.md",
+      "bytes": 5448,
+      "sha256": "c4a83cd43b5f825ef576adc10b3b44e4ba44b88469fc268df725e97986a9ff25"
+    },
+    {
+      "path": "Baseline/resource_manifest.csv",
+      "bytes": 159842,
+      "sha256": "6986977c68a5a9d255ace50ea41ea6822c9b9b9fa748cceadf8b48b71bfa50d6"
+    },
+    {
+      "path": "Baseline/resource_manifest.json",
+      "bytes": 483529,
+      "sha256": "0735dab1201443c9671d7c38abe6c79f87c0b4e58012b8c5502c678af6745224"
+    },
+    {
+      "path": "Baseline/style_contract_v1.json",
+      "bytes": 49022,
+      "sha256": "fe867c559b909ec1bb523649db1414fab3ea7c45b86d8cddc3227c41dbe1530c"
+    },
+    {
+      "path": "Baseline/title_assembly.json",
+      "bytes": 94988,
+      "sha256": "1dda3a6bcc1b7f40d22aa9a8aa06ff3621d2bb1d38555df1a8056f20855310a4"
+    },
+    {
+      "path": "Baseline/title_unity_setup.md",
+      "bytes": 14875,
+      "sha256": "5154e141228efb4f67e040c98b2639465e46337e5a2ed8b6cace428778e27181"
+    },
+    {
+      "path": "Packages/curtaincall_c1_v1.zip",
+      "bytes": 11570142,
+      "sha256": "af8352c8086a1e3853fa3769f41c970ae9d6d735479ce384a176eeedaf442ea3"
+    },
+    {
+      "path": "Packages/curtaincall_performance_hud_v1.zip",
+      "bytes": 29453871,
+      "sha256": "191bee8e624385ff7bc7fec37b411baf4facb0941e1d774d9bbad1058f063685"
+    },
+    {
+      "path": "References/bundle_catalog.json",
+      "bytes": 5192,
+      "sha256": "a149e7b0ac281b6641eb959469f174fda2c013e668f462a20c2b524881ba3832"
+    },
+    {
+      "path": "References/start_archives_checks.json",
+      "bytes": 2167,
+      "sha256": "5c7038bf8790e3e47b949e3bc6303775cd0905086c5b2acceac6c9b6bc9c0d0f"
+    },
+    {
+      "path": "Templates/ART_RELEASE_NOTE.md",
+      "bytes": 834,
+      "sha256": "70d2a0e405997e03f258e00313ad94876c7100950e6e47f0ecc6c09e149ea96a"
+    },
+    {
+      "path": "Templates/ASSET_CHANGE_REQUEST.md",
+      "bytes": 565,
+      "sha256": "66a3cec3d235c42ac88ae7ae6632ac20736233667cf4acdf947293311699883e"
+    },
+    {
+      "path": "Templates/SCENE_PROGRESS.md",
+      "bytes": 581,
+      "sha256": "5f3fd8a91eda50068b0e6f02023160137978023c70ccc0f4bbf1e25824f2f0bc"
+    }
+  ]
+}

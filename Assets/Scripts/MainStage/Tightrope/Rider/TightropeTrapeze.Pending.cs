@@ -19,13 +19,14 @@ namespace CurtainCall.Tightrope
             RequestObserved.Invoke($"{phase} actor={actor} command={action} pole={pole} active={Active} airborne={p?.IsAirborne} control={m?.ControlEnabled} pass={m?.PassThrough} eligible={(p != null && Eligible(p))} position={p?.transform.position} grab={(p != null && pole >= 0 && CanGrab(p,pole))}");
 #endif
         }
-        const double RequestPositionGrace = .35d;
+        const double RequestPositionGrace = .5d;
         sealed class PendingRequest
         {
             public Command Action;
             public int Round, Pole;
             public uint Revision, Token;
             public double Until;
+            public bool Armed;
         }
         readonly Dictionary<ulong, PendingRequest> pendingRequests = new();
         readonly List<ulong> pendingActors = new();
@@ -37,7 +38,10 @@ namespace CurtainCall.Tightrope
             double until = Clock + RequestPositionGrace;
             if (pendingRequests.TryGetValue(actor, out var previous) && previous.Round == round
                 && previous.Action == action && previous.Pole == pole && previous.Revision == revision && previous.Token == token)
-                until = previous.Until;
+            {
+                if (PendingRequestValid(actor, previous)) TryCompletePendingRequest(actor, previous);
+                return; // 중복 F는 이미 받은 입력과 원래 유효 시간을 덮어쓰지 않는다.
+            }
             pendingRequests.Remove(actor);
             var request = new PendingRequest { Action = action, Round = round, Pole = pole,
                 Revision = revision, Token = token, Until = until };
@@ -88,19 +92,32 @@ namespace CurtainCall.Tightrope
                 return true;
             }
             var state = poles[request.Pole];
-            if (request.Action == Command.Grab)
+            if (flights.TryGetValue(actor, out var flight))
             {
-                if (!CanGrab(player, request.Pole)) return false;
-                state.Upper = actor; state.Angle = state.Speed = state.Drive = 0f;
-                state.Until = Clock + HoldSeconds; state.LastInput = state.SampledAt = Clock;
+                if (!request.Armed)
+                {
+                    if (request.Action == Command.Grab ? !CanGrab(player, request.Pole) : !CanAttach(player, request.Pole)) return false;
+                    request.Armed = true;
+                    request.Until = flight.Until; // 범위 안에서 받은 F는 현재 비행의 같은 토큰으로만 확정한다.
+                }
+                if (!Eligible(player) || !InCatchRange(player, request.Pole, request.Action == Command.Attach)) return false;
             }
-            else
+            if (!request.Armed && (request.Action == Command.Grab ? !CanGrab(player, request.Pole) : !CanAttach(player, request.Pole))) return false;
+            var stack = PiggybackSystem.Current;
+            void CompleteCatch()
             {
-                if (!CanAttach(player, request.Pole)) return false;
-                state.Lower = actor;
+                if (request.Action == Command.Grab)
+                {
+                    state.Upper = actor; state.Angle = state.Speed = state.Drive = 0f;
+                    state.Until = Clock + HoldSeconds; state.LastInput = state.SampledAt = Clock;
+                }
+                else state.Lower = actor;
+                stack?.ConsumeTrapezeEntry(player);
+                ObserveRequest(actor, "accepted", request.Action, request.Pole);
+                state.Revision++; pendingRequests.Remove(actor); flights.Remove(actor); Publish();
             }
-            ObserveRequest(actor, "accepted", request.Action, request.Pole);
-            state.Revision++; pendingRequests.Remove(actor); flights.Remove(actor); Publish();
+            if (stack != null && stack.IsInStack(player)) return stack.TryReleaseTopForTrapeze(player, CompleteCatch);
+            CompleteCatch();
             return true;
         }
 

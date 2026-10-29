@@ -63,6 +63,13 @@ test('meta.md와 team.md를 읽는다', () => {
   expect(sameLogin(null, 'MoHoDu')).toBe(false)
 })
 
+test('새 plan은 Base를 읽고 빈 필드가 다음 줄을 삼키지 않는다', () => {
+  const meta = parseMeta('- **Title:** 새 작업\n- **Assignee:** @worker\n- **Branch:** feat/new\n- **Base:** dev\n- **Status:**\n\n## Context\n목적')
+  expect(meta.integration).toBe('dev')
+  expect(meta.status).toBe('')
+  expect(hasNextItem(classify('## 할 일\n- [ ] 새 기능', null, null))).toBe(true)
+})
+
 test('git status 출력에서 upstream·ahead·변경 여부를 읽는다', () => {
   const clean = parseBranchStatus('# branch.oid abc\n# branch.head feat/x\n# branch.upstream origin/feat/x\n# branch.ab +2 -0\n')
   expect(clean).toEqual({ upstream: 'origin/feat/x', ahead: 2, isDirty: false })

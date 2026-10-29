@@ -7,8 +7,6 @@ namespace CurtainCall.Dev
     /// </summary>
     public sealed class DevModeBadge : MonoBehaviour
     {
-        const string Label = "DEV MODE · 인원 규칙 예외";
-
         GUIStyle _style;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -18,6 +16,7 @@ namespace CurtainCall.Dev
             var go = new GameObject(nameof(DevModeBadge));
             DontDestroyOnLoad(go);
             go.AddComponent<DevModeBadge>();
+            DevStartLauncher.EnsureExists();
         }
 
         void OnGUI()
@@ -30,7 +29,8 @@ namespace CurtainCall.Dev
                 alignment = TextAnchor.MiddleCenter,
                 normal = { textColor = new Color(1f, 0.35f, 0.3f) },
             };
-            GUI.Box(new Rect(Screen.width * 0.5f - 120, 40, 240, 32), Label, _style);
+            if (GUI.Button(new Rect(Screen.width * 0.5f - 190, 6, 380, 30), $"DEV MODE · 시작 지점 [{DevStartLauncher.ShortcutLabel}]", _style))
+                DevStartLauncher.EnsureExists()?.Toggle();
         }
     }
 }

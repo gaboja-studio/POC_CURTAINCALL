@@ -40,6 +40,8 @@ namespace CurtainCall.Tightrope
         public bool IsOccupied => LocalPole.OwnOccupied;
         public float SwingAngle => LocalPole.OwnAngle;
         public bool CanLetGo => LocalPole.OwnCanLetGo;
+        public bool CanGrabPole(NetworkPlayer player) => mode == PoleMode.Idle && Clock >= pendingUntil
+            && flightMover == null && CanGrab(player, out _);
         public string LocalFeedback => LatestFeedback();
         bool Active => isActiveAndEnabled && course != null && course.HasSwingGapOnLane(assignedLane) && course.IsGameplayActive
             && run != null && run.State == TightropeRunState.Running;
@@ -105,6 +107,8 @@ namespace CurtainCall.Tightrope
             {
                 if (binding == null) Bind(local);
                 PlaceLocal();
+                // 봉에 매달린 동안 쌓인 추락 위험을 천천히 회복한다.
+                binding?.Balance?.RecoverWhileSupported(Time.deltaTime);
             }
             else if (binding != null) EndBinding(false);
         }
@@ -144,8 +148,8 @@ namespace CurtainCall.Tightrope
                 || !course.IsLaneUsable(supported, LandingDistance)) return false;
             if (PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
             if (IsCrossing(player)) return false;
-            return Mathf.Abs(course.GetDistance(player.transform.position) - (course.SwingGapFrom - SwingPoleMath.EntryOffset)) <= .9f
-                && Mathf.Abs(player.transform.position.y - course.transform.position.y) <= .3f;
+            float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
+            return PlayerInteraction.InRange(player, WorldFeet(0f, assignedLane) + Vector3.up * SwingPoleMath.GripHeight, 1.75f * reach);
         }
 
         void ServerHandle(ulong sender, Operation operation, float input)

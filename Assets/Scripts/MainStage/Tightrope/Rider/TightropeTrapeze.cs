@@ -26,7 +26,7 @@ namespace CurtainCall.Tightrope
         {
             public uint Token;
             public int From;
-            public Vector3 Position, Velocity;
+            public Vector3 Position, Velocity, Target;
             public double Started, Until;
         }
         readonly PoleState[] poles = new PoleState[PoleTotal];
@@ -39,6 +39,7 @@ namespace CurtainCall.Tightrope
         double nextSnapshot, nextDrive, pendingUntil, feedbackUntil;
         string feedback;
         bool localAborted, localAbortWaiting;
+        int controlledInputFrame = -1;
         public static TightropeTrapeze Current { get; private set; }
         public float AirControlSpeed => poles[0]?.Physics != null ? poles[0].Physics.AirControlSpeed : 3f;
         public string LocalFeedback => Clock < feedbackUntil ? feedback : null;
@@ -98,6 +99,13 @@ namespace CurtainCall.Tightrope
             if (!Active) { ResetLocal(); ClearState(); return; }
             if (session != null && session.IsHost) HostStep();
             ReconcileLocal();
+            // 봉에 매달린 동안 쌓인 추락 위험을 천천히 회복한다. 네트워크 동기화로 ReconcileLocal이 더 불려도 한 프레임 한 번만.
+            if (localControl != null && IsHeld(localControl.Player)) localControl.Balance?.RecoverWhileSupported(Time.deltaTime);
+            // 봉 점유 중에는 외줄/플랫폼 조작 규칙 전환과 무관하게 입력을 받는다.
+            var local = NetworkPlayer.Local;
+            if (local != null && (IsHeld(local) || IsInFlight(local))
+                && local.TryGetComponent(out PlayerInputReader reader) && reader.isActiveAndEnabled)
+                ReadControlledInput(local, reader.Current);
         }
         void HostStep()
         {
@@ -142,22 +150,29 @@ namespace CurtainCall.Tightrope
             if (held || IsInFlight(local))
             {
                 context.Mover.ClearPendingInput();
-                air.SetInput(new Vector2(input.Posture, input.Move), Time.frameCount);
-                if (!InputGate.IsBlocked)
-                {
-                    if (held && !lower && Clock >= nextDrive)
-                    { Send(Command.Swing, pole, input.Move); nextDrive = Clock + .05d; }
-                    if (held && input.ActionPressed)
-                    {
-                        if (!lower && poles[pole].Lower != Nobody) Tell("아래 동료가 먼저 Space로 날아가야 해요");
-                        else Send(Command.Release, pole);
-                    }
-                    if (!held && input.InteractTapped) TryRequestCatch(local);
-                }
+                ReadControlledInput(local, input);
                 return true;
             }
             if (Clock < pendingUntil) { context.Mover.ClearPendingInput(); return true; }
             return !InputGate.IsBlocked && input.InteractTapped && TryRequestCatch(local);
+        }
+
+        void ReadControlledInput(NetworkPlayer local, in PlayerInputFrame input)
+        {
+            if (controlledInputFrame == Time.frameCount) return;
+            controlledInputFrame = Time.frameCount; // 조작 규칙 경로와 이중으로 Space/F를 보내지 않는다.
+            if (!Active || localAborted || local.State != PlayerState.Normal || InputGate.IsBlocked) { air.Clear(); return; }
+            bool held = FindHeld(local, out int pole, out bool lower);
+            if (!held && !IsInFlight(local)) return;
+            air.SetInput(new Vector2(input.Posture, input.Move), Time.frameCount);
+            if (held && !lower && Clock >= nextDrive)
+            { Send(Command.Swing, pole, input.Move); nextDrive = Clock + .05d; }
+            if (held && input.ActionPressed)
+            {
+                if (!lower && poles[pole].Lower != Nobody) Tell("아래 동료가 먼저 Space로 날아가야 해요");
+                else Send(Command.Release, pole);
+            }
+            if (!held && input.InteractTapped) TryRequestCatch(local);
         }
         bool TryRequestCatch(NetworkPlayer local)
         {
@@ -175,32 +190,61 @@ namespace CurtainCall.Tightrope
                 || !player.TryGetComponent(out PlayerMover mover) || mover.PassThrough || !mover.ControlEnabled) return false;
             if (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen) return false;
             var stack = PiggybackSystem.Current;
-            return (stack == null || !stack.IsInStack(player))
+            return (stack == null || !stack.IsInStack(player) || stack.CanEnterTrapeze(player))
                 && (TightropeSwingPole.Current == null || !TightropeSwingPole.Current.IsCrossing(player));
         }
         bool CanGrab(NetworkPlayer player, int index)
         {
             if (!Active || index < 0 || index >= PoleTotal || !Eligible(player) || poles[index].Upper != Nobody) return false;
             bool flying = flights.TryGetValue(player.OwnerClientId, out var flight) && Clock <= flight.Until;
-            if (index == 0) { if (!flying && !player.IsAirborne) return false; }
-            else if (!flying || index > flight.From + 1) return false;
-            Vector3 delta = player.transform.position - Feet(index, false);
-            float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
-            // 발 위치를 좁게 검사하여 높이 1m의 혼자 점프로 첫 높은 봉을 잡지 못하게 한다.
-            return reach > 0f && Mathf.Abs(delta.y) <= .5f * reach
-                && Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude <= .85f * .85f * reach * reach;
+            if (flying && index != flight.From + 1) return false;
+            if (!flying && index == 0 && (PiggybackSystem.Current == null || !PiggybackSystem.Current.CanEnterTrapeze(player))) return false;
+            return InCatchRange(player, index, false);
         }
         bool CanAttach(NetworkPlayer player, int index)
         {
-            if (!Active || !Eligible(player) || poles[index].Upper == Nobody || poles[index].Lower != Nobody) return false;
+            if (!Active || index < 0 || index >= PoleTotal || !Eligible(player)
+                || poles[index].Upper == Nobody || poles[index].Lower != Nobody
+                || !Alive(poles[index].Upper) || Clock >= poles[index].Until) return false;
             bool flying = flights.TryGetValue(player.OwnerClientId, out var flight) && Clock <= flight.Until;
-            if (index != 0 && (!flying || index > flight.From + 1)) return false;
-            if (!flying && (!player.TryGetComponent(out PlayerMover mover) || !course.TryGetSupportingRope(mover, out int lane) || lane != Lane)) return false;
-            Vector3 delta = player.transform.position - Feet(index, true);
-            float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
-            return reach > 0f && Mathf.Abs(delta.y) <= (flying ? .7f : 1.2f) * reach
-                && Vector3.ProjectOnPlane(delta, Vector3.up).sqrMagnitude <= 1.1f * 1.1f * reach * reach;
+            if (flying && index != flight.From + 1) return false;
+            return InCatchRange(player, index, true);
         }
+
+        bool InCatchRange(NetworkPlayer player, int index, bool lower)
+        {
+            float reach = player.TryGetComponent(out PlayerInteraction interaction) ? Mathf.Clamp01(interaction.ReachMultiplier) : 1f;
+            // 팔 손실로 두 사람의 몸 간격보다 잡기 반경이 작아지지 않게 한다. 부상4 사망은 Eligible에서 제외된다.
+            if (reach > 0f) reach = Mathf.Max(.75f, reach);
+            Vector3 center = Feet(index, false);
+            if (lower)
+            {
+                var holder = Find(poles[index].Upper);
+                if (holder == null) return false;
+                center += PlayerInteraction.Center(holder) - holder.transform.position;
+            }
+            else center += Vector3.up * poles[index].Physics.HangLength;
+            return SwingPoleMath.InPoleReach(PlayerInteraction.Center(player), center, reach);
+        }
+
+        float FlightDistanceLimit(int from, Vector3 origin)
+        {
+            return Mathf.Max(.1f, Vector3.Dot(FlightTarget(from) - origin, course.Forward));
+        }
+
+        Vector3 FlightTarget(int from) => from + 1 < PoleTotal ? Feet(from + 1, poles[from + 1].Upper != Nobody)
+            : course.GetLanePosition(Lane, course.TrapezeGapTo + 1f);
+
+        Vector3 PlanFlightVelocity(int from, Vector3 origin, Vector3 target, Vector3 velocity, out float speedLimit)
+        {
+            float gravity = GameSettings.Base.Character.Gravity;
+            if (from + 1 < PoleTotal) return SwingPoleMath.PoleFlightVelocity(origin, target, velocity, course.Forward,
+                gravity, poles[from].Physics.HangLength, out speedLimit);
+            speedLimit = SwingPoleMath.FlightSpeedLimit(origin.y - target.y, velocity.y, gravity,
+                Mathf.Max(.1f, Vector3.Dot(target - origin, course.Forward)));
+            return SwingPoleMath.LimitFlightVelocity(velocity, speedLimit);
+        }
+
         void Sample(int index, out float angle, out float speed)
         {
             var state = poles[index]; angle = state.Angle; speed = state.Speed;

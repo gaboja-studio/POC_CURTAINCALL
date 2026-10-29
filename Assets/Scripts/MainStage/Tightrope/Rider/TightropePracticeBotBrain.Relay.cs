@@ -65,7 +65,9 @@ namespace CurtainCall.Tightrope
                 int sourcePole = relay.ReturnOpen ? -1 : RelayAssignment(course, relay, false);
                 if (sourcePole >= 0)
                 { MoveToRelayPole(course, relay, sourcePole, ref input); return true; }
-                if (!MoveToRelayLane(course, relay.TransitLane, ref input)) return true;
+                // 줄이 열리면 가장 가까운 열린 줄로, 열리기 전에는 가운데 줄에서 기다린다.
+                int here = course.Layout.GetLaneSlotAt(course.GetSide(player.transform.position));
+                if (!MoveToRelayLane(course, relay.CrossingLane(here), ref input)) return true;
                 if (!relay.OutboundOpen && !relay.ReturnOpen)
                 {
                     float stand = relay.EntryDistance - distance;

@@ -24,8 +24,8 @@ namespace CurtainCall.WaitingRoom
             public string id;
             public string name;
             [Min(1)] public long price = 1;
-            [Tooltip("받으면 메는 배낭(칸을 차지하지 않고 소지 한도 +). 한 사람 한 개.")]
-            public bool backpack;
+            // 기존 씬에 저장된 배낭 품목은 판매 목록에서 제외한다.
+            [HideInInspector] public bool backpack;
         }
 
         [Header("임시값 — 정식 품목·가격 아님(M1 범위 밖)")]
@@ -34,7 +34,6 @@ namespace CurtainCall.WaitingRoom
             new Entry { id = "tool-a", name = "임시 공연 도구 A", price = 10 },
             new Entry { id = "tool-b", name = "임시 공연 도구 B", price = 15 },
             new Entry { id = "escape", name = "임시 탈출 도구", price = 20 },
-            new Entry { id = "backpack", name = "임시 배낭", price = 25, backpack = true },
         };
 
         [Tooltip("배송구 바닥에 동시에 놓일 수 있는 최대 개수(메시지 크기 보호용 임시값).")]
@@ -43,7 +42,6 @@ namespace CurtainCall.WaitingRoom
         public static WaitingRoomShop Instance { get; private set; }
 
         readonly List<ShopItem> catalog = new();
-        readonly HashSet<string> backpackIds = new();
         readonly List<ShopDelivery> receivedWaiting = new();
         readonly List<ShopReceipt> receivedReceipts = new();
         ShopDeliveryBook book;
@@ -74,9 +72,18 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>내 요청이 판정됐다(성공 여부, 안내 문구).</summary>
         public event Action<bool, string> RequestAnswered;
+        public event Action<string, bool, string> TrackedRequestAnswered;
+        /// <summary>판정 화면의 거절 결과: 요청자, 작업, 품목 ID, 주문 번호(없으면 0), 실패 코드. UI 문구와 분리한다.</summary>
+        public event Action<ulong, string, string, int, string> OperationRejected;
 
-        /// <summary>받으면 메는 배낭 품목인지.</summary>
-        public bool IsBackpack(string itemId) => itemId != null && backpackIds.Contains(itemId);
+        (bool, string) Reject(ulong actor, string operation, string item, int order, string code, string text)
+        {
+            if (OperationRejected != null)
+                foreach (Action<ulong, string, string, int, string> observer in OperationRejected.GetInvocationList())
+                    try { observer(actor, operation, item, order, code); }
+                    catch (Exception error) { Debug.LogException(error, this); }
+            return (false, text);
+        }
 
         void Awake()
         {
@@ -92,9 +99,8 @@ namespace CurtainCall.WaitingRoom
             book = new ShopDeliveryBook(slotCapacity);
             foreach (var entry in items)
             {
-                if (entry == null || string.IsNullOrEmpty(entry.id) || entry.price <= 0) continue;
+                if (entry == null || entry.backpack || entry.id == "backpack" || string.IsNullOrEmpty(entry.id) || entry.price <= 0) continue;
                 catalog.Add(new ShopItem(entry.id, string.IsNullOrEmpty(entry.name) ? entry.id : entry.name, entry.price));
-                if (entry.backpack) backpackIds.Add(entry.id);
             }
             channel = new ShopChannel("CurtainCall.WaitingRoom.Shop", HandleRequest, HandleState, HandleResult, HandleReset,
                 () => channel.Request(JsonUtility.ToJson(new RequestData { kind = SyncRequest })));
@@ -134,11 +140,12 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>수화기로 품목을 주문한다. 결과는 <see cref="RequestAnswered"/>로 온다.</summary>
-        public void RequestPurchase(string itemId)
+        public void RequestPurchase(string itemId) => RequestPurchaseTracked(itemId, "");
+        public void RequestPurchaseTracked(string itemId, string requestId)
         {
-            if (HasAuthority) Answer(channel.LocalClientId, Buy(itemId, channel.LocalClientId));
-            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = BuyRequest, item = itemId })))
-                Answer(channel.LocalClientId, (false, "접속 중이 아니라 주문할 수 없습니다."));
+            if (HasAuthority) Answer(channel.LocalClientId, Buy(itemId, channel.LocalClientId), requestId);
+            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = BuyRequest, item = itemId, requestId = requestId })))
+                Answer(channel.LocalClientId, (false, "접속 중이 아니라 주문할 수 없습니다."), requestId);
         }
 
         /// <summary>배송구의 물건을 받는다. 같은 물건은 먼저 요청한 한 명만 받는다.</summary>
@@ -158,16 +165,20 @@ namespace CurtainCall.WaitingRoom
             return NetworkPlayer.All.Count == 0 ? "나" : $"플레이어 #{clientId}";
         }
 
-        /// <summary>공연 중에는 구매·보관을 하지 않는다(게임 흐름 기획 2-3: 쉬는 시간·밤 정비만).</summary>
+        /// <summary>공연 중에는 배송 수령·보관을 하지 않는다. 구매는 별도로 밤 정비에만 허용한다.</summary>
         public static bool InPerformance => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Performance;
+
+        /// <summary>기물 주문은 밤 정비에만 가능하다. 배송 수령·보관의 공연 중 제한과는 별개다.</summary>
+        public static bool CanPurchase => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Night;
+        public const string PurchaseTimeRefusal = "기물은 밤 정비에만 구매할 수 있습니다.";
 
         const string PerformanceRefusal = "공연 중에는 상점을 쓸 수 없습니다.";
 
         (bool, string) Buy(string itemId, ulong buyer)
         {
-            if (InPerformance) return (false, PerformanceRefusal);
+            if (!CanPurchase) return Reject(buyer, "PURCHASE", itemId, 0, "NOT_NIGHT", PurchaseTimeRefusal);
             var refusal = book.Order(catalog, itemId, buyer, rewards.TrySpend, out var delivery);
-            if (refusal != ShopRefusal.None) return (false, Explain(refusal));
+            if (refusal != ShopRefusal.None) return Reject(buyer, "PURCHASE", itemId, 0, "SHOP_" + refusal, Explain(refusal));
             Debug.Log($"[Shop] 구매 #{delivery.Order} {delivery.ItemName} ← {PlayerLabel(buyer)} / 잔액 {rewards.Balance}");
             Publish();
             return (true, $"{delivery.ItemName} 주문 완료 — 배송구를 확인하세요.");
@@ -175,24 +186,23 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) Claim(int order, ulong claimer)
         {
-            if (InPerformance) return (false, PerformanceRefusal);
+            if (InPerformance) return Reject(claimer, "COLLECT", null, order, "IN_PERFORMANCE", PerformanceRefusal);
             // 손에 들 수 있는지 먼저 본다. 못 들면 배송구에 그대로 남는다.
             int index = -1;
             for (int i = 0; i < book.Waiting.Count; i++) if (book.Waiting[i].Order == order) { index = i; break; }
             var carry = PropCarry.Instance;
             if (index >= 0 && carry != null)
             {
-                var carryRefusal = carry.CanReceive(claimer, IsBackpack(book.Waiting[index].ItemId));
-                if (carryRefusal != CarryRefusal.None) return (false, PropCarry.Explain(carryRefusal));
+                var carryRefusal = carry.CanReceive(claimer);
+                if (carryRefusal != CarryRefusal.None) return Reject(claimer, "COLLECT", book.Waiting[index].ItemId, order, "CARRY_" + carryRefusal, PropCarry.Explain(carryRefusal));
             }
 
             var refusal = book.Claim(order, claimer, out var delivery);
-            if (refusal != ShopRefusal.None) return (false, Explain(refusal));
-            bool backpack = IsBackpack(delivery.ItemId);
-            if (carry != null) carry.Receive(claimer, new PropItem(delivery.Order, delivery.ItemId, delivery.ItemName), backpack);
+            if (refusal != ShopRefusal.None) return Reject(claimer, "COLLECT", null, order, "SHOP_" + refusal, Explain(refusal));
+            if (carry != null) carry.Receive(claimer, new PropItem(delivery.Order, delivery.ItemId, delivery.ItemName));
             Debug.Log($"[Shop] 수령 #{delivery.Order} {delivery.ItemName} → {PlayerLabel(claimer)}");
             Publish();
-            return (true, backpack ? $"{delivery.ItemName}을 멨습니다." : $"{delivery.ItemName} 수령");
+            return (true, $"{delivery.ItemName} 수령");
         }
 
         static string Explain(ShopRefusal refusal) => refusal switch
@@ -204,15 +214,16 @@ namespace CurtainCall.WaitingRoom
             _ => "배송구에 없는 물건입니다.",
         };
 
-        void Answer(ulong target, (bool ok, string text) result)
+        void Answer(ulong target, (bool ok, string text) result, string requestId = "")
         {
             if (target == channel.LocalClientId || !channel.IsHost)
             {
                 LastMessage = result.text;
                 RequestAnswered?.Invoke(result.ok, result.text);
+                TrackedRequestAnswered?.Invoke(requestId, result.ok, result.text);
                 return;
             }
-            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text }));
+            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text, requestId = requestId }));
         }
 
         void Publish()
@@ -233,7 +244,7 @@ namespace CurtainCall.WaitingRoom
             switch (request.kind)
             {
                 case SyncRequest: channel.SendState(JsonUtility.ToJson(StateData.From(book)), sender); break;
-                case BuyRequest: Answer(sender, Buy(request.item, sender)); break;
+                case BuyRequest: Answer(sender, Buy(request.item, sender), request.requestId); break;
                 case ClaimRequest: Answer(sender, Claim(request.order, sender)); break;
             }
         }
@@ -255,6 +266,7 @@ namespace CurtainCall.WaitingRoom
             if (result == null) return;
             LastMessage = result.text;
             RequestAnswered?.Invoke(result.ok, result.text);
+            TrackedRequestAnswered?.Invoke(result.requestId, result.ok, result.text);
         }
 
         void HandleReset()
@@ -268,8 +280,8 @@ namespace CurtainCall.WaitingRoom
             NotifyChanged();
         }
 
-        [Serializable] sealed class RequestData { public int kind; public string item; public int order; }
-        [Serializable] sealed class ResultData { public bool ok; public string text; }
+        [Serializable] sealed class RequestData { public int kind; public string item; public int order; public string requestId; }
+        [Serializable] sealed class ResultData { public bool ok; public string text; public string requestId; }
 
         [Serializable]
         sealed class DeliveryData

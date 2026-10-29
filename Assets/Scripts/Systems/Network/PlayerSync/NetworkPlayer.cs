@@ -32,6 +32,11 @@ namespace CurtainCall.Network.PlayerSync
 
         readonly NetworkVariable<int> slot = new(NoSlot);
         readonly NetworkVariable<JumpKind> jump = new(JumpKind.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        // 실제 앉은 상태(요청이 아님). 받는 화면은 공간 검사 없이 겉모습·몸통 높이만 맞춘다
+        readonly NetworkVariable<bool> crouched = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        // 이동·달리기는 겉모습 표시용이며 판정에는 사용하지 않는다
+        readonly NetworkVariable<bool> moving = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        readonly NetworkVariable<bool> sprinting = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
 
         readonly NetworkVariable<bool> balanceActive = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         readonly NetworkVariable<float> balanceValue = new(0f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -41,8 +46,6 @@ namespace CurtainCall.Network.PlayerSync
         readonly NetworkVariable<PlayerState> state = new(PlayerState.Normal);
         readonly NetworkVariable<int> restartCount = new(0);
         readonly NetworkVariable<int> reviveCount = new(0);
-        // 판정은 호스트만 하므로 동기화하지 않는다(보상 정산도 호스트).
-        bool forfeitNextPerformance;
 
         PlayerMover mover;
         PlayerBalance balance;
@@ -91,6 +94,15 @@ namespace CurtainCall.Network.PlayerSync
 
         /// <summary>공중에 있는지(모든 화면에서 같음).</summary>
         public bool IsAirborne => CurrentJump != JumpKind.None;
+
+        /// <summary>표시용 이동 상태. 소유자·미생성 상태는 이동 부품, 생성된 남의 캐릭터는 소유자의 공유값을 읽는다.</summary>
+        public bool PresentationMoving => IsOwner || !IsSpawned ? mover.IsMoving : moving.Value;
+
+        /// <summary>표시용 달리기 상태. 소유자·미생성 상태는 이동 부품, 생성된 남의 캐릭터는 소유자의 공유값을 읽는다.</summary>
+        public bool PresentationSprinting => IsOwner || !IsSpawned ? mover.IsSprinting : sprinting.Value;
+
+        /// <summary>생성 시 현재 부상을 복원하는 동안에는 과거 절단 연출을 재생하지 않는다.</summary>
+        public bool IsApplyingInitialCondition { get; private set; }
 
         /// <summary>점프 상태가 바뀌었을 때(모든 화면). 인자는 새 상태.</summary>
         public event Action<JumpKind> JumpChanged;
@@ -198,8 +210,7 @@ namespace CurtainCall.Network.PlayerSync
                     break;
                 case CatchOutcome.Died:
                     state.Value = PlayerState.Fallen;
-                    // 다음 공연 시작 때 외팔로 부활해 출연하고 그 공연 본인 보상은 0(부상 기획 4-2, InjuryRevival·031).
-                    forfeitNextPerformance = true;
+                    // 다음 공연 시작 때 외팔로 부활해 출연한다(InjuryRevival). 보상 박탈은 2026-10-28 결정으로 없앴다.
                     break;
                 case CatchOutcome.Retired:
                     state.Value = PlayerState.Retired;
@@ -230,18 +241,6 @@ namespace CurtainCall.Network.PlayerSync
             return true;
         }
 
-        /// <summary>
-        /// 호스트 전용: 쉬는 시간에 외팔 상태로 잡혀 사망해 다음 공연에 부활 출연하는 사람인지(그 공연 본인 보상 박탈, 부상 기획 4-2).
-        /// 잡힐 때 켜지고 다음 쉬는 시간·밤 정비 시작(<see cref="ServerClearForfeits"/>)이나 세대 교체 때 꺼진다.
-        /// </summary>
-        public bool ForfeitsNextPerformance => forfeitNextPerformance;
-
-        /// <summary>호스트: 모든 플레이어의 보상 박탈 표시를 지운다(박탈한 공연이 끝난 뒤).</summary>
-        public static void ServerClearForfeits()
-        {
-            foreach (var player in all) player.forfeitNextPerformance = false;
-        }
-
         /// <summary>호스트: 모든 사망자를 외팔 상태로 되살린다. 되살린 인원을 돌려준다.</summary>
         public static int ServerReviveAllDead()
         {
@@ -268,7 +267,6 @@ namespace CurtainCall.Network.PlayerSync
         {
             if (!IsServer) return;
             lostParts.Value = BodyPart.None;
-            forfeitNextPerformance = false;
             if (state.Value == PlayerState.Normal) return;
             state.Value = PlayerState.Normal;
             reviveCount.Value++;
@@ -343,13 +341,22 @@ namespace CurtainCall.Network.PlayerSync
             restartCount.OnValueChanged += HandleRestart;
             reviveCount.OnValueChanged += HandleRevive;
             lostParts.OnValueChanged += HandleLostPartsChanged;
-            if (condition != null) condition.SetLostParts(lostParts.Value); // 늦게 생성된 화면도 현재 몸 상태를 맞춘다
+            IsApplyingInitialCondition = true;
+            try
+            {
+                if (condition != null) condition.SetLostParts(lostParts.Value); // 늦게 생성된 화면도 현재 몸 상태를 맞춘다
+            }
+            finally { IsApplyingInitialCondition = false; }
             if (IsOwner)
             {
                 mover.Teleported += SendTeleport;
                 if (balance != null) balance.Fell += RequestFall;
             }
-            else ShowRemoteBalance();
+            else
+            {
+                ShowRemoteBalance();
+                mover.SetRemoteCrouched(crouched.Value); // 늦게 생성된 화면도 지금 자세를 맞춘다
+            }
             if (State != PlayerState.Normal) ApplyState(State); // 늦게 생성된 화면도 현재 상태를 맞춘다
 
             if (IsServer)
@@ -390,12 +397,19 @@ namespace CurtainCall.Network.PlayerSync
             if (!IsOwner)
             {
                 ShowRemoteBalance();
+                mover.SetRemoteCrouched(crouched.Value);
                 return;
             }
 
             // 내 캐릭터: 바뀐 값만 보낸다(NetworkVariable은 변할 때만 전송된다)
             if (jump.Value != mover.CurrentJump)
                 jump.Value = mover.CurrentJump;
+            if (crouched.Value != mover.IsCrouched)
+                crouched.Value = mover.IsCrouched;
+            if (moving.Value != mover.IsMoving)
+                moving.Value = mover.IsMoving;
+            if (sprinting.Value != mover.IsSprinting)
+                sprinting.Value = mover.IsSprinting;
 
             if (balance != null)
             {
@@ -441,7 +455,8 @@ namespace CurtainCall.Network.PlayerSync
                 mover.SetControlEnabled(false);
                 // 균형 추락은 이미 래그돌이 됐다. 신체 손상 사망처럼 호스트가 정한 추락은 여기서 무너뜨린다(이미 추락했으면 무시됨)
                 if (balance != null) balance.ForceFall();
-                else if (ragdoll != null) ragdoll.GoLimp();
+                // HasFallen can already be true when the host confirms death; ensure visuals independently.
+                if (ragdoll != null) ragdoll.GoLimp();
             }
             else if (ragdoll != null) ragdoll.GoLimp(); // 남의 캐릭터: 래그돌 연출은 각자 화면에서(물리 결과는 맞추지 않음)
         }

@@ -1,0 +1,2329 @@
+{
+  "schema_version": "1.0",
+  "project": "CURTAIN CALL",
+  "date": "2026-10-19",
+  "style": "C — 무대감독 계기판",
+  "status": {
+    "style_choice": "approved_by_user",
+    "production_rules": "awaiting_step_2_confirmation",
+    "png_assets": "not_generated",
+    "unity_editor_validation": "not_run"
+  },
+  "units": {
+    "design_resolution": [
+      1920,
+      1080
+    ],
+    "asset_scale": 2,
+    "source_dimension_multiple": 4,
+    "table_border_order": [
+      "left",
+      "right",
+      "top",
+      "bottom"
+    ],
+    "unity_vector4_border_order": [
+      "left",
+      "bottom",
+      "right",
+      "top"
+    ],
+    "sprite_pivot_default": [
+      0.5,
+      0.5
+    ],
+    "rect_local_scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  "canvas": {
+    "render_mode": "ScreenSpaceOverlay",
+    "ui_scale_mode": "ScaleWithScreenSize",
+    "reference_resolution": [
+      1920,
+      1080
+    ],
+    "screen_match_mode": "MatchWidthOrHeight",
+    "match": 0.5,
+    "reference_pixels_per_unit": 100
+  },
+  "sprite_import": {
+    "texture_type": "Sprite",
+    "sprite_mode": "Single",
+    "mesh_type": "FullRect",
+    "pixels_per_unit": 200,
+    "alpha_source": "FromInput",
+    "alpha_is_transparency": true,
+    "sRGB": true,
+    "filter_mode": "Bilinear",
+    "wrap_mode": "Clamp",
+    "mipmaps": false,
+    "read_write": false,
+    "compression": "None",
+    "max_texture_size_policy": "at_least_source_long_edge",
+    "npot_scale": "None",
+    "automatic_trim": false
+  },
+  "export": {
+    "format": "PNG",
+    "color_mode": "RGBA",
+    "alpha": "straight",
+    "no_baked_text_except": "CURTAIN CALL logo",
+    "icon_rgb": [
+      255,
+      255,
+      255
+    ],
+    "transparent_border_and_holes": true,
+    "sheet_spacing_px": 16,
+    "base_opacity_owner": "Unity Image alpha; sprite body interior opaque except AA/effect gradients",
+    "file_pattern": "ui_<type>_<name>_<state>@2x.png"
+  },
+  "materials": {
+    "edge_ui_px": 1.5,
+    "corner_chamfer_ui_px": 4,
+    "corner_decoration_box_ui": [
+      16,
+      16
+    ],
+    "grain_max_luminance_variation": 0.04,
+    "shadow_offset_ui": [
+      0,
+      -1
+    ],
+    "shadow_blur_ui_px": 3,
+    "highlight_top_edge_ui_px": 1,
+    "icon_grid_ui": [
+      32,
+      32
+    ],
+    "icon_padding_ui_px": 4,
+    "icon_minimum_neck_ui_px": 3,
+    "icon_minimum_gap_ui_px": 3
+  },
+  "colors": {
+    "surface.deep": {
+      "hex": "#111B20",
+      "alpha": 1,
+      "use": "가장 어두운 바탕"
+    },
+    "surface.plate": {
+      "hex": "#1C2A2F",
+      "alpha": 0.92,
+      "use": "패널·HUD의 작은 받침"
+    },
+    "surface.number": {
+      "hex": "#1C2A2F",
+      "alpha": 0.96,
+      "use": "원형 숫자 받침"
+    },
+    "surface.track": {
+      "hex": "#34454A",
+      "alpha": 1,
+      "use": "비어 있는 게이지·진행 트랙"
+    },
+    "text.primary": {
+      "hex": "#F0EEDC",
+      "alpha": 1,
+      "use": "기본 글자·핵심 숫자"
+    },
+    "text.secondary": {
+      "hex": "#B6C1BF",
+      "alpha": 1,
+      "use": "보조 설명"
+    },
+    "text.disabled": {
+      "hex": "#AAB0AD",
+      "alpha": 1,
+      "use": "비활성 상태에서도 읽어야 하는 문구"
+    },
+    "edge.metal": {
+      "hex": "#C7D8D9",
+      "alpha": 1,
+      "use": "기본 테두리·포커스"
+    },
+    "accent.brass": {
+      "hex": "#BBA36B",
+      "alpha": 1,
+      "use": "작은 고정 장식·확인 강조"
+    },
+    "accent.canopy": {
+      "hex": "#A73546",
+      "alpha": 1,
+      "use": "천막 지붕·산화된 붉은 장식"
+    },
+    "brand.gold": {
+      "hex": "#F2CC66",
+      "alpha": 1,
+      "use": "타이틀 로고·대성공 장식 전용"
+    },
+    "semantic.positive": {
+      "hex": "#73C7A1",
+      "alpha": 1,
+      "use": "환호 효과·성공·균형 안전 구간"
+    },
+    "semantic.negative": {
+      "hex": "#E06C78",
+      "alpha": 1,
+      "use": "야유·실패·직접 위험·W1 경보·C3 불 접근"
+    },
+    "semantic.warning": {
+      "hex": "#F2B45B",
+      "alpha": 1,
+      "use": "임박 안내·C2 마지막 30초"
+    },
+    "semantic.disabled": {
+      "hex": "#7A6A5C",
+      "alpha": 1,
+      "use": "비활성 테두리·장식"
+    },
+    "semantic.paused": {
+      "hex": "#929CA0",
+      "alpha": 1,
+      "use": "멈춘 W1 링"
+    },
+    "player.1": {
+      "hex": "#4C8DDB",
+      "alpha": 1,
+      "use": "단원 1"
+    },
+    "player.2": {
+      "hex": "#DE9253",
+      "alpha": 1,
+      "use": "단원 2"
+    },
+    "player.3": {
+      "hex": "#CDA6D8",
+      "alpha": 1,
+      "use": "단원 3"
+    },
+    "player.4": {
+      "hex": "#BAE5DA",
+      "alpha": 1,
+      "use": "단원 4"
+    },
+    "shadow.local": {
+      "hex": "#05090B",
+      "alpha": 0.32,
+      "use": "작은 국소 그림자"
+    },
+    "overlay.title_lobby": {
+      "hex": "#000000",
+      "alpha": 0.6,
+      "use": "타이틀·로비에서만 허용하는 전면 딤"
+    },
+    "surface.hover": {
+      "hex": "#2B3C42",
+      "alpha": 0.92,
+      "use": "올림 상태 몸체"
+    },
+    "surface.pressed": {
+      "hex": "#142126",
+      "alpha": 0.92,
+      "use": "누름 상태 몸체"
+    }
+  },
+  "typography": [
+    {
+      "token": "text.helper",
+      "size": 18,
+      "weight": 500,
+      "use": "작은 라벨·보조 설명"
+    },
+    {
+      "token": "text.body",
+      "size": 24,
+      "weight": 500,
+      "use": "본문·거리·키 이름"
+    },
+    {
+      "token": "text.control",
+      "size": 28,
+      "weight": 600,
+      "use": "버튼·탭·소제목"
+    },
+    {
+      "token": "number.timer",
+      "size": 32,
+      "weight": 700,
+      "use": "C2·W1 시간"
+    },
+    {
+      "token": "number.primary",
+      "size": 44,
+      "weight": 700,
+      "use": "C1 합계"
+    },
+    {
+      "token": "text.banner",
+      "size": 32,
+      "weight": 700,
+      "use": "C8 제목"
+    },
+    {
+      "token": "text.result",
+      "size": 48,
+      "weight": 700,
+      "use": "C12 결과 제목"
+    }
+  ],
+  "font": "Pretendard TMP",
+  "spacing_ui": [
+    4,
+    8,
+    12,
+    16,
+    24,
+    32,
+    48
+  ],
+  "states": {
+    "interaction": [
+      "normal",
+      "hover",
+      "pressed",
+      "disabled"
+    ],
+    "selection": [
+      "off",
+      "on"
+    ],
+    "focus": "independent_focus_overlay",
+    "priority": [
+      "disabled",
+      "pressed",
+      "hover",
+      "normal"
+    ],
+    "disabled_text_alpha": 1
+  },
+  "motion_ms": {
+    "hud_enter": 120,
+    "hud_exit": 100,
+    "panel_enter": 160,
+    "panel_exit": 120,
+    "button_hover": 80,
+    "button_pressed": 50,
+    "toast_enter": 160,
+    "toast_exit": 140,
+    "banner_enter": 180,
+    "banner_exit": 160,
+    "cheer_fill": 200,
+    "fall_highlight_period": 400,
+    "fall_highlight_total": 800,
+    "curtain_close": 450,
+    "curtain_open": 450
+  },
+  "surface_family_specs": [
+    {
+      "id": "panel.base",
+      "source_px": [
+        256,
+        256
+      ],
+      "border_px": {
+        "left": 64,
+        "right": 64,
+        "top": 64,
+        "bottom": 64
+      },
+      "minimum_ui": [
+        160,
+        120
+      ],
+      "use": "메뉴·설정·확인·결과의 공용 받침/프레임",
+      "image_type": "Sliced"
+    },
+    {
+      "id": "button.standard",
+      "source_px": [
+        384,
+        112
+      ],
+      "border_px": {
+        "left": 32,
+        "right": 32,
+        "top": 24,
+        "bottom": 24
+      },
+      "minimum_ui": [
+        128,
+        56
+      ],
+      "use": "확인·취소·설정·일반 버튼 몸체",
+      "image_type": "Sliced"
+    },
+    {
+      "id": "button.icon",
+      "source_px": [
+        96,
+        96
+      ],
+      "border_px": {
+        "left": 20,
+        "right": 20,
+        "top": 20,
+        "bottom": 20
+      },
+      "minimum_ui": [
+        48,
+        48
+      ],
+      "use": "눈·복사·닫기 등 아이콘 버튼",
+      "image_type": "Sliced"
+    },
+    {
+      "id": "banner.strip",
+      "source_px": [
+        512,
+        128
+      ],
+      "border_px": {
+        "left": 48,
+        "right": 48,
+        "top": 24,
+        "bottom": 24
+      },
+      "minimum_ui": [
+        192,
+        64
+      ],
+      "use": "시스템 배너·자막 띠",
+      "image_type": "Sliced"
+    },
+    {
+      "id": "plate.small",
+      "source_px": [
+        256,
+        112
+      ],
+      "border_px": {
+        "left": 24,
+        "right": 24,
+        "top": 24,
+        "bottom": 24
+      },
+      "minimum_ui": [
+        96,
+        48
+      ],
+      "use": "시간·자금·안내·집결·토스트",
+      "image_type": "Sliced"
+    },
+    {
+      "id": "tooltip.body",
+      "source_px": [
+        256,
+        192
+      ],
+      "border_px": {
+        "left": 24,
+        "right": 24,
+        "top": 24,
+        "bottom": 24
+      },
+      "minimum_ui": [
+        128,
+        64
+      ],
+      "use": "근접·패널 내부 툴팁 몸체",
+      "image_type": "Sliced"
+    },
+    {
+      "id": "tooltip.tail",
+      "source_px": [
+        32,
+        24
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "minimum_ui": [
+        16,
+        12
+      ],
+      "use": "툴팁 아래 꼬리",
+      "image_type": "Simple"
+    },
+    {
+      "id": "input.field",
+      "source_px": [
+        512,
+        96
+      ],
+      "border_px": {
+        "left": 32,
+        "right": 32,
+        "top": 20,
+        "bottom": 20
+      },
+      "minimum_ui": [
+        160,
+        48
+      ],
+      "use": "방 코드·LAN 주소",
+      "image_type": "Sliced"
+    },
+    {
+      "id": "keycap.normal",
+      "source_px": [
+        80,
+        80
+      ],
+      "border_px": {
+        "left": 16,
+        "right": 16,
+        "top": 16,
+        "bottom": 16
+      },
+      "minimum_ui": [
+        40,
+        40
+      ],
+      "use": "일반 키",
+      "image_type": "Sliced"
+    },
+    {
+      "id": "keycap.wide",
+      "source_px": [
+        192,
+        80
+      ],
+      "border_px": {
+        "left": 16,
+        "right": 16,
+        "top": 16,
+        "bottom": 16
+      },
+      "minimum_ui": [
+        96,
+        40
+      ],
+      "use": "Space",
+      "image_type": "Sliced"
+    },
+    {
+      "id": "keycap.extra_wide",
+      "source_px": [
+        288,
+        80
+      ],
+      "border_px": {
+        "left": 16,
+        "right": 16,
+        "top": 16,
+        "bottom": 16
+      },
+      "minimum_ui": [
+        144,
+        40
+      ],
+      "use": "아주 넓은 키",
+      "image_type": "Sliced"
+    },
+    {
+      "id": "slot.single",
+      "source_px": [
+        128,
+        128
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "minimum_ui": [
+        64,
+        64
+      ],
+      "use": "소지 슬롯 한 칸",
+      "image_type": "Simple"
+    },
+    {
+      "id": "icon.common",
+      "source_px": [
+        64,
+        64
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "minimum_ui": [
+        32,
+        32
+      ],
+      "use": "흰색 단색 공용 아이콘",
+      "image_type": "Simple"
+    },
+    {
+      "id": "ring.c1",
+      "source_px": [
+        288,
+        288
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "minimum_ui": [
+        144,
+        144
+      ],
+      "use": "C1 정사각 링 계열",
+      "allowed_image_types": [
+        "Simple",
+        "Filled"
+      ]
+    }
+  ],
+  "hud_layouts": [
+    {
+      "id": "C1",
+      "size_ui": [
+        192,
+        208
+      ],
+      "anchor": [
+        0.5,
+        1
+      ],
+      "pivot": [
+        0.5,
+        1
+      ],
+      "position_ui": [
+        0,
+        -24
+      ],
+      "tier": "상시·공연"
+    },
+    {
+      "id": "C2",
+      "size_ui": [
+        160,
+        56
+      ],
+      "anchor": [
+        0,
+        1
+      ],
+      "pivot": [
+        0,
+        1
+      ],
+      "position_ui": [
+        48,
+        -40
+      ],
+      "tier": "상시·공연"
+    },
+    {
+      "id": "C3",
+      "size_ui": [
+        408,
+        76
+      ],
+      "anchor": [
+        1,
+        1
+      ],
+      "pivot": [
+        1,
+        1
+      ],
+      "position_ui": [
+        -48,
+        -40
+      ],
+      "tier": "상시·공연"
+    },
+    {
+      "id": "P1",
+      "size_ui": [
+        544,
+        80
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "pivot": [
+        0.5,
+        0
+      ],
+      "position_ui": [
+        0,
+        160
+      ],
+      "tier": "상황·외줄 위"
+    },
+    {
+      "id": "W1",
+      "size_ui": [
+        176,
+        184
+      ],
+      "anchor": [
+        0.5,
+        1
+      ],
+      "pivot": [
+        0.5,
+        1
+      ],
+      "position_ui": [
+        0,
+        -24
+      ],
+      "tier": "상시·쉬는 시간"
+    },
+    {
+      "id": "C4",
+      "size_ui": [
+        200,
+        56
+      ],
+      "anchor": [
+        1,
+        1
+      ],
+      "pivot": [
+        1,
+        1
+      ],
+      "position_ui": [
+        -48,
+        -40
+      ],
+      "tier": "상시·대기실"
+    },
+    {
+      "id": "C5_slot",
+      "size_ui": [
+        64,
+        64
+      ],
+      "anchor": [
+        0,
+        0
+      ],
+      "pivot": [
+        0,
+        0
+      ],
+      "position_ui": [
+        48,
+        72
+      ],
+      "tier": "일시·소지 변화"
+    },
+    {
+      "id": "W6",
+      "size_ui": [
+        280,
+        56
+      ],
+      "anchor": [
+        0.5,
+        0
+      ],
+      "pivot": [
+        0.5,
+        0
+      ],
+      "position_ui": [
+        0,
+        160
+      ],
+      "tier": "상황·집결 통로"
+    },
+    {
+      "id": "L1",
+      "size_ui": [
+        320,
+        104
+      ],
+      "anchor": [
+        0,
+        1
+      ],
+      "pivot": [
+        0,
+        1
+      ],
+      "position_ui": [
+        48,
+        -40
+      ],
+      "tier": "상시·로비 정보"
+    },
+    {
+      "id": "C8_banner",
+      "size_ui": [
+        640,
+        104
+      ],
+      "anchor": [
+        0.5,
+        1
+      ],
+      "pivot": [
+        0.5,
+        1
+      ],
+      "position_ui": [
+        0,
+        -244
+      ],
+      "tier": "일시"
+    }
+  ],
+  "c1": {
+    "root_size_ui": [
+      192,
+      208
+    ],
+    "ring_registration_px": [
+      288,
+      288
+    ],
+    "ring_center_in_root_top_left_ui": [
+      96,
+      132
+    ],
+    "visible_bezel_outer_radius_ui": 68,
+    "fill_outer_radius_ui": 62,
+    "fill_inner_radius_ui": 52,
+    "center_disc_radius_ui": 50,
+    "ring_center_source_px": [
+      144,
+      144
+    ],
+    "assets": [
+      {
+        "id": "c1.shadow",
+        "filename": "ui_hud_cheergauge_shadow_normal@2x.png",
+        "source_px": [
+          288,
+          288
+        ],
+        "size_ui": [
+          144,
+          144
+        ],
+        "tint": "shadow.local",
+        "image_type": "Simple",
+        "meaning": "금속 링 주변의 짧은 그림자",
+        "border_px": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0
+        },
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "status": "planned_not_generated"
+      },
+      {
+        "id": "c1.center",
+        "filename": "ui_hud_cheergauge_center_normal@2x.png",
+        "source_px": [
+          288,
+          288
+        ],
+        "size_ui": [
+          144,
+          144
+        ],
+        "tint": null,
+        "image_type": "Simple",
+        "meaning": "중앙 숫자 받침. 중앙 원 외 투명",
+        "border_px": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0
+        },
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "status": "planned_not_generated",
+        "image_alpha": 0.96,
+        "source_interior_alpha": 1
+      },
+      {
+        "id": "c1.track",
+        "filename": "ui_hud_cheergauge_track_normal@2x.png",
+        "source_px": [
+          288,
+          288
+        ],
+        "size_ui": [
+          144,
+          144
+        ],
+        "tint": null,
+        "image_type": "Simple",
+        "meaning": "빈 원형 트랙. 안쪽과 바깥쪽 투명",
+        "border_px": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0
+        },
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "status": "planned_not_generated"
+      },
+      {
+        "id": "c1.fill",
+        "filename": "ui_hud_cheergauge_fill_normal@2x.png",
+        "source_px": [
+          288,
+          288
+        ],
+        "size_ui": [
+          144,
+          144
+        ],
+        "tint": "player.*",
+        "image_type": "Filled",
+        "meaning": "흰색 전체 링 1장. 단원마다 Image를 복제",
+        "border_px": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0
+        },
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "status": "planned_not_generated",
+        "fill_method": "Radial360"
+      },
+      {
+        "id": "c1.highlight",
+        "filename": "ui_hud_cheergauge_highlight_normal@2x.png",
+        "source_px": [
+          288,
+          288
+        ],
+        "size_ui": [
+          144,
+          144
+        ],
+        "tint": "text.primary",
+        "image_type": "Filled",
+        "meaning": "사건 직전 해당 구간만 강조하는 흰색 링",
+        "border_px": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0
+        },
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "status": "planned_not_generated",
+        "fill_method": "Radial360"
+      },
+      {
+        "id": "c1.bezel",
+        "filename": "ui_hud_cheergauge_bezel_normal@2x.png",
+        "source_px": [
+          288,
+          288
+        ],
+        "size_ui": [
+          144,
+          144
+        ],
+        "tint": null,
+        "image_type": "Simple",
+        "meaning": "금속 안팎 테두리. 숫자와 채움 영역은 투명",
+        "border_px": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0
+        },
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "status": "planned_not_generated"
+      },
+      {
+        "id": "c1.roof",
+        "filename": "ui_hud_cheergauge_roof_normal@2x.png",
+        "source_px": [
+          320,
+          80
+        ],
+        "size_ui": [
+          160,
+          40
+        ],
+        "tint": null,
+        "image_type": "Simple",
+        "meaning": "천막 지붕. 깃발과 분리",
+        "border_px": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0
+        },
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "status": "planned_not_generated"
+      },
+      {
+        "id": "c1.flag",
+        "filename": "ui_hud_cheergauge_flag_normal@2x.png",
+        "source_px": [
+          64,
+          48
+        ],
+        "size_ui": [
+          32,
+          24
+        ],
+        "tint": null,
+        "image_type": "Simple",
+        "meaning": "작은 깃발과 깃대",
+        "border_px": {
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "bottom": 0
+        },
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "status": "planned_not_generated"
+      }
+    ],
+    "nodes": [
+      {
+        "path": "C1_CheerGauge",
+        "parent": null,
+        "type": "RectTransform",
+        "size_ui": [
+          192,
+          208
+        ],
+        "anchor": [
+          0.5,
+          1
+        ],
+        "pivot": [
+          0.5,
+          1
+        ],
+        "position_ui": [
+          0,
+          -24
+        ],
+        "sibling": 0
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot",
+        "parent": "C1_CheerGauge",
+        "type": "RectTransform",
+        "size_ui": [
+          144,
+          144
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          -28
+        ],
+        "sibling": 0
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/00_shadow",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "Image",
+        "asset_id": "c1.shadow",
+        "size_ui": [
+          144,
+          144
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          0
+        ],
+        "sibling": 0,
+        "raycast_target": false
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/10_center",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "Image",
+        "asset_id": "c1.center",
+        "size_ui": [
+          144,
+          144
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          0
+        ],
+        "sibling": 1,
+        "raycast_target": false,
+        "image_alpha": 0.96
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/20_track",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "Image",
+        "asset_id": "c1.track",
+        "size_ui": [
+          144,
+          144
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          0
+        ],
+        "sibling": 2,
+        "raycast_target": false
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/30_FillP1",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "Image",
+        "asset_id": "c1.fill",
+        "size_ui": [
+          144,
+          144
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          0
+        ],
+        "sibling": 3,
+        "raycast_target": false,
+        "color_token": "player.1",
+        "fill_method": "Radial360",
+        "fill_origin": "Top",
+        "fill_clockwise": true
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/30_FillP2",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "Image",
+        "asset_id": "c1.fill",
+        "size_ui": [
+          144,
+          144
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          0
+        ],
+        "sibling": 4,
+        "raycast_target": false,
+        "color_token": "player.2",
+        "fill_method": "Radial360",
+        "fill_origin": "Top",
+        "fill_clockwise": true
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/30_FillP3",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "Image",
+        "asset_id": "c1.fill",
+        "size_ui": [
+          144,
+          144
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          0
+        ],
+        "sibling": 5,
+        "raycast_target": false,
+        "color_token": "player.3",
+        "fill_method": "Radial360",
+        "fill_origin": "Top",
+        "fill_clockwise": true
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/30_FillP4",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "Image",
+        "asset_id": "c1.fill",
+        "size_ui": [
+          144,
+          144
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          0
+        ],
+        "sibling": 6,
+        "raycast_target": false,
+        "color_token": "player.4",
+        "fill_method": "Radial360",
+        "fill_origin": "Top",
+        "fill_clockwise": true
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/40_Highlights",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "RectTransform",
+        "size_ui": [
+          144,
+          144
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          0
+        ],
+        "sibling": 7,
+        "pool_asset_id": "c1.highlight",
+        "pool_capacity": 4
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/50_Bezel",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "Image",
+        "asset_id": "c1.bezel",
+        "size_ui": [
+          144,
+          144
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          0
+        ],
+        "sibling": 8,
+        "raycast_target": false
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/60_TotalTMP",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "TextMeshProUGUI",
+        "size_ui": [
+          100,
+          52
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          12
+        ],
+        "sibling": 9,
+        "raycast_target": false,
+        "typography_token": "number.primary",
+        "sample_text": "155"
+      },
+      {
+        "path": "C1_CheerGauge/RingRoot/61_LabelTMP",
+        "parent": "C1_CheerGauge/RingRoot",
+        "type": "TextMeshProUGUI",
+        "size_ui": [
+          80,
+          24
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          -28
+        ],
+        "sibling": 10,
+        "raycast_target": false,
+        "typography_token": "text.helper",
+        "sample_text": "호응"
+      },
+      {
+        "path": "C1_CheerGauge/70_Roof",
+        "parent": "C1_CheerGauge",
+        "type": "Image",
+        "asset_id": "c1.roof",
+        "size_ui": [
+          160,
+          40
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          0,
+          68
+        ],
+        "sibling": 1,
+        "raycast_target": false
+      },
+      {
+        "path": "C1_CheerGauge/80_Flag",
+        "parent": "C1_CheerGauge",
+        "type": "Image",
+        "asset_id": "c1.flag",
+        "size_ui": [
+          32,
+          24
+        ],
+        "anchor": [
+          0.5,
+          0.5
+        ],
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "position_ui": [
+          12,
+          92
+        ],
+        "sibling": 2,
+        "raycast_target": false
+      }
+    ],
+    "radial": {
+      "method": "Radial360",
+      "origin": "Top",
+      "clockwise": true,
+      "fill_formula": "clamp(g_i,0,100) / authoritative_capacity",
+      "rotation_z_formula": "-360 * prefix_sum_before_i / authoritative_capacity",
+      "capacity_policy": "At performance start N*100; ordinary fall does not recalculate from survivors; disconnect policy comes from game data Q6",
+      "zero_value_policy": "hide, no minimum visual wedge",
+      "fall_highlight_policy": "snapshot old fill/start, overlay only, score follows authoritative data",
+      "invalid_capacity_policy": "If capacity<=0 or data unavailable, hide fills and show a TMP placeholder; do not divide or invent score."
+    },
+    "sample": {
+      "values": [
+        60,
+        45,
+        30,
+        20
+      ],
+      "capacity": 400,
+      "total": 155,
+      "fill": [
+        0.15,
+        0.1125,
+        0.075,
+        0.05
+      ],
+      "z_rotation": [
+        0,
+        -54,
+        -94.5,
+        -121.5
+      ],
+      "filled_degrees": 139.5,
+      "empty_degrees": 220.5
+    }
+  },
+  "component_layer_plans": [
+    {
+      "id": "C2",
+      "back_to_front": "숫자 받침 → 시계 아이콘 → 시간 TMP → 경고 강조",
+      "rule": "C2는 마지막 30초 황색, 마지막 10초 붉은 강조. 경고 상태의 크기는 동일",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C3",
+      "back_to_front": "받침 → 트랙 → 눈금 → 최대 도달/추락/도착 마커 → 동료 → 불 → 내 마커 → TMP → 경고선",
+      "rule": "눈금·각 마커는 별도 위치. 불 접근 시 트랙/경고선 빨강",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "P1",
+      "back_to_front": "받침 → 좌 위험/안전/우 위험 구간 → 경계·빗금 → 바늘 → 체류 트랙/채움 → 키캡 → TMP",
+      "rule": "안전 구간 폭·바늘·체류 채움 독립. 튜닝 비율은 게임 데이터",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "W1",
+      "back_to_front": "숫자 받침 → 빈 링 → 흰 채움 링 → 벽시계 눈금 → 베젤 → 시간 TMP → 경보 링",
+      "rule": "평소 크림·멈춤 회색·소집 경보 빨강. 지붕과 깃발 없음",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C4",
+      "back_to_front": "작은 받침 → 화폐 아이콘 → 금액 TMP → 변화 강조",
+      "rule": "대기실에서만. C12 동전 연출과 아이콘 재사용",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C5",
+      "back_to_front": "슬롯 바탕 → 기본 테두리 → 기물 아이콘 → 선택 테두리 → 키/수량 TMP",
+      "rule": "한 칸 단위. 빈 상태는 아이콘 숨김, 칸 수 미정",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "W6",
+      "back_to_front": "작은 받침 → 인원 아이콘 → 현재/목표 TMP",
+      "rule": "집결 통로에 있을 때만",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "L1",
+      "back_to_front": "받침 → 눈 버튼 → 눈 열림/닫힘·복사 아이콘 → 코드·방장·인원 TMP",
+      "rule": "가린 코드는 TMP 점 반복. 실제 코드를 이미지에 넣지 않음",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C8 배너",
+      "back_to_front": "9-slice 띠 → 일반/위험 강조선 → 선택 아이콘 → 제목/부제 TMP",
+      "rule": "제목·부제 영역과 테두리 독립",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C8 토스트/타이틀 상태",
+      "back_to_front": "작은 판 → 상태선 → 공용 아이콘 → TMP",
+      "rule": "일반·성공·실패 같은 틀. 타이틀 연결 상태 포함",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C6",
+      "back_to_front": "판 → 키캡 → 누르기 링 트랙 → 흰 진행 링 → 행동/사유 TMP",
+      "rule": "사용 가능/불가, 길게 누르기 유무 독립",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C15/패널 툴팁",
+      "back_to_front": "9-slice 몸체 → 별도 꼬리 → 콘텐츠 TMP",
+      "rule": "아래 꼬리는 고정 크기. 패널 안에서는 꼬리 숨김",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C7",
+      "back_to_front": "작은 판 → 빈 키캡/마우스 → 조작 TMP",
+      "rule": "일반·Space·아주 넓은 키. 마우스 좌/우/이동 독립",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C9",
+      "back_to_front": "자막 띠 → 화자 칸 → 확성기 → 화자/본문 TMP",
+      "rule": "자막과 화자 칸 폭 독립, 최하단",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C10",
+      "back_to_front": "별빛/팡파레 또는 토마토/엄지 효과 → 변화량 TMP",
+      "rule": "변화량은 단원 색. 손 잡아줌 피드백도 같은 계열",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "L2/L3/H1/W4/W5",
+      "back_to_front": "나무·천·종이 바탕 → 고정 장식 → 선택 아이콘 → 월드 TMP",
+      "rule": "기물 이름표·선반 번호 포함. 3D 모델·부상 외형은 범위 밖",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C11",
+      "back_to_front": "좌/우 가장자리 비네트 + 별도 관전 받침/키캡/TMP",
+      "rule": "중앙 투명. P1과 관전 HUD는 동시 표시하지 않음",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C16",
+      "back_to_front": "좌 천/술 + 우 천/술 + 위 커튼 받이 + 로딩 표시",
+      "rule": "좌우 독립 이동. 주름·술은 9-slice 금지, 로딩 문구 TMP",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "T1/T2/T3",
+      "back_to_front": "로고/선택 표시 또는 공용 하위 패널 → 입력·버튼 → TMP",
+      "rule": "로고 CURTAIN CALL만 글자 PNG 허용",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C13/C14/확인",
+      "back_to_front": "공용 받침 → 투명 중앙 프레임 → 모서리 장식 → 콘텐츠 → 버튼/TMP",
+      "rule": "공연·대기실에서는 전면 딤 없이 상단 HUD 보호",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "W2",
+      "back_to_front": "공용 패널 → 수화기 장식 → 3개 탭 → 품목 줄 → 아이콘/가격 → 버튼/TMP → 툴팁",
+      "rule": "품목 줄 기본·선택·구매불가. 수화기 장식은 고정 크기",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "W3",
+      "back_to_front": "종이 → 일차/공연 칸 → 선택 표시 → 도장 외형 → TMP",
+      "rule": "확정 글자는 TMP. 도장 외형만 PNG",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "C12",
+      "back_to_front": "큰 패널 → 3종 제목 리본 → 큰 C3 트랙/마커 → 보상 줄 → 동전 → 버튼/TMP",
+      "rule": "실패·성공·대성공 틀 공유. 대성공만 장식 확대",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "버튼",
+      "back_to_front": "4상태 몸체 중 하나 → 공통 흰 아이콘 → TMP → 포커스 표시",
+      "rule": "몸체만 상태 교체. 다른 레이어의 크기·위치 유지",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "탭/토글",
+      "back_to_front": "4상태 몸체 → 독립 선택/ON 표시 → 아이콘/손잡이 → TMP",
+      "rule": "selected/on과 interaction state를 별도 축으로 관리",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "입력 필드",
+      "back_to_front": "상태 바탕 → 포커스 테두리 → 입력/placeholder TMP → 커서/선택",
+      "rule": "입력·커서·선택 영역을 PNG에 넣지 않음",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "슬라이더",
+      "back_to_front": "트랙 → 흰 채움 → 4상태 손잡이 → 값 TMP/포커스",
+      "rule": "길이·fill·손잡이 위치 독립",
+      "status": "planned_not_generated"
+    },
+    {
+      "id": "타이틀/로비 딤",
+      "back_to_front": "독립 단색 투명도 레이어",
+      "rule": "플레이 중 호출 패널 Prefab에 딤을 포함하지 않음",
+      "status": "planned_not_generated"
+    }
+  ],
+  "icon_asset_plan": [
+    {
+      "filename": "ui_icon_currency_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_clock_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_fire_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_person_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_eye_open_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_eye_closed_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_copy_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_settings_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_close_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_warning_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_megaphone_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_delivery_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_lock_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_skull_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_flag_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_star_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_thumb_down_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_phone_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_schedule_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_medical_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_tools_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_bread_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_water_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_bandage_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    },
+    {
+      "filename": "ui_icon_backpack_normal@2x.png",
+      "source_px": [
+        64,
+        64
+      ],
+      "size_ui": [
+        32,
+        32
+      ],
+      "border_px": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "pivot": [
+        0.5,
+        0.5
+      ],
+      "tint": true,
+      "status": "planned_not_generated"
+    }
+  ],
+  "manifest_columns": [
+    "UI 번호",
+    "유형",
+    "파일 이름",
+    "크기@2x",
+    "9-slice",
+    "피벗",
+    "상태",
+    "색 입힘 여부"
+  ],
+  "added_manifest_fields": [
+    "원본 크기",
+    "표시 크기@1x",
+    "부모",
+    "Sibling 순서",
+    "Anchor",
+    "anchoredPosition",
+    "Image Type",
+    "실제 알파",
+    "검수 상태"
+  ],
+  "open_game_policy": [
+    "Q1 메뉴 입력",
+    "Q2 방장 이탈",
+    "Q3 소지 슬롯 수",
+    "Q4 최초 가이드 범위",
+    "Q5 C6/C15 표시 방식",
+    "Q6 접속 이탈 후 호응 최대값"
+  ],
+  "delivery_plan": [
+    "C1 개별 PNG + 확인 시트 + 조각 표 + Unity 조립 설정",
+    "공용 버튼 4종 × 4상태 + 독립 아이콘/TMP",
+    "메뉴·확인 대화상자 공용 패널",
+    "25종 아이콘",
+    "유형별 나머지 리소스",
+    "생성 리소스로만 조립한 최종 목업"
+  ],
+  "sources": [
+    {
+      "title": "사용자 첨부 UI 화면 목록",
+      "library_file_id": "libfile_4119f7d3d00481918ed94df550dd5c9b"
+    },
+    {
+      "title": "Unity Canvas Scaler",
+      "url": "https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/script-CanvasScaler.html"
+    },
+    {
+      "title": "Unity Sprite border",
+      "url": "https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Sprite-border.html"
+    },
+    {
+      "title": "Unity UI Canvas",
+      "url": "https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/UICanvas.html"
+    },
+    {
+      "title": "Unity Sprite import",
+      "url": "https://docs.unity3d.com/6000.0/Documentation/Manual/texture-type-sprite.html"
+    },
+    {
+      "title": "Unity uGUI Image source",
+      "url": "https://github.com/Unity-Technologies/uGUI/blob/main/com.unity.ugui/Runtime/UGUI/UI/Core/Image.cs"
+    }
+  ],
+  "control_role_styles": {
+    "confirm": {
+      "body": "#26393C",
+      "accent": "accent.brass",
+      "shape": "4px clipped corners with a small right-side wedge inside the cap",
+      "icon": "optional"
+    },
+    "cancel": {
+      "body": "#302329",
+      "accent": "accent.canopy",
+      "shape": "flat end caps with symmetric clipped corners",
+      "icon": "close_or_back_separate"
+    },
+    "settings": {
+      "body": "surface.plate",
+      "accent": "edge.metal",
+      "shape": "standard clipped rectangle",
+      "icon": "ui_icon_settings_normal@2x.png"
+    },
+    "general": {
+      "body": "surface.plate",
+      "accent": "edge.metal",
+      "shape": "standard clipped rectangle",
+      "icon": "optional"
+    }
+  },
+  "state_visual_rules": {
+    "normal": "base material and subdued metal border",
+    "hover": "surface.hover, brighter edge.metal, 80ms",
+    "pressed": "surface.pressed, inner edge darkening; text/icon child offset y=-1ui, 50ms",
+    "disabled": "semantic.disabled on border, text.disabled at alpha1; stop hover/pressed; do not fade the whole hierarchy",
+    "selected": "independent 2ui underline or selection edge, retained with hover/pressed/disabled",
+    "focus": "independent 2ui outer marker; material tint lowered when disabled"
+  },
+  "canvas_sibling_groups": [
+    "00_EdgeEffects",
+    "10_CoreHUD",
+    "20_ContextHUD",
+    "30_Prompts",
+    "40_TransientFeedback",
+    "50_Captions",
+    "60_Panels",
+    "70_ConfirmDialogs",
+    "80_Tooltips",
+    "90_TransitionCurtain"
+  ],
+  "visibility_rules": {
+    "permanent_performance": [
+      "C1",
+      "C2",
+      "C3"
+    ],
+    "permanent_break": [
+      "W1",
+      "C4"
+    ],
+    "no_injury_hud": true,
+    "center_clear_during_gameplay": true,
+    "full_screen_dim_only": [
+      "title",
+      "lobby"
+    ],
+    "top_protected_ui_height": 240,
+    "call_panels_top_min_ui_y": 256,
+    "bottom_slot_priority": [
+      "C11_spectating",
+      "P1_on_tightrope",
+      "W6_in_gather_area",
+      "C7_context_guide"
+    ],
+    "subtitles_have_separate_bottom_slot": true,
+    "inventory_slots_count": "game_data_unresolved",
+    "model_state_changes_outside_ui": true
+  },
+  "image_defaults": {
+    "pixels_per_unit_multiplier": 1,
+    "raycast_target": false,
+    "preserve_aspect_for_fixed_sprites": true
+  }
+}

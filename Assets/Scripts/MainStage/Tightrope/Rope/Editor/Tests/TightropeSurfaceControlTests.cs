@@ -42,6 +42,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Invoke(mover, "Awake");
             Invoke(balance, "Awake");
             Invoke(controller, "Awake");
+            // EditMode에서는 런타임 생명주기 콜백이 자동 호출되지 않는다.
+            Invoke(player, "Awake");
         }
 
         [TearDown]

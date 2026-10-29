@@ -120,9 +120,11 @@ namespace CurtainCall.HumanCannon
 
         void HandleConnection(SessionConnectionState state)
         {
+            localGrabPending = false;
             Unregister();
             if (state == SessionConnectionState.Offline)
             {
+                carrierRecoveryPending = false;
                 ownership = new CannonSeatState();
                 groundHistory.Clear();
                 groundSequence = 0;

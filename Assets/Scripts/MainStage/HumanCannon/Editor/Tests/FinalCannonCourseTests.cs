@@ -150,29 +150,17 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void DoubledFinalSaws_RegisterFourSpacedHorizontalTracksAndTwoWarnedVerticalViews()
+        public void FinalCourse_RemovesAirSawTracksAndEntryTriggerWhileKeepingAllFourCannons()
         {
-            var saws = All<HumanCannonFinalSaws>().Single();
-            Assert.That(saws.HorizontalCount, Is.EqualTo(4));
-            Assert.That(saws.VerticalCount, Is.EqualTo(2));
-            var origins = Field<Transform[]>(saws, "horizontalOrigins");
-            var views = Field<Transform[]>(saws, "horizontalViews");
-            Assert.That(views, Has.Length.EqualTo(4));
-            CollectionAssert.AllItemsAreUnique(origins.Select(origin => origin.GetInstanceID()).ToArray());
-            CollectionAssert.AllItemsAreUnique(views.Select(view => view.GetInstanceID()).ToArray());
-            Assert.That(Field<Transform>(saws, "secondaryWarningView"), Is.Not.Null);
-            Assert.That(Field<float>(saws, "horizontalRadius"), Is.EqualTo(1));
-            Assert.That(Field<float>(saws, "verticalRadius"), Is.EqualTo(1.2f));
-            float[] distances = { 7, 13, 10, 16 };
-            var station = FinalStations()[0];
-            for (int i = 0; i < origins.Length; i++)
-            {
-                float time = distances[i] / station.LaunchVelocity.z;
-                float expectedY = station.Muzzle.position.y + station.LaunchVelocity.y * time
-                    - 0.5f * GameSettings.Base.Character.Gravity * time * time + 0.45f;
-                Assert.That(origins[i].position.z - station.Muzzle.position.z, Is.EqualTo(distances[i]).Within(0.001f));
-                Assert.That(origins[i].position.y, Is.EqualTo(expectedY).Within(0.001f));
-            }
+            // Task-044 2026-10-22 실플레이 피드백은 이전 빌더의 최종 공중 톱 배치보다 우선한다.
+            Assert.That(All<HumanCannonFinalSaws>(), Is.Empty, "공중 장애물 제거 후 공유 주기를 실행할 사본도 남기지 않는다.");
+            Assert.That(Find("FinalCannonCourse/FinalSaws"), Is.Null, "톱 외형·경로·예고와 EntryZone 트리거를 함께 제거한다.");
+            var stations = FinalStations();
+            Assert.That(stations, Has.Length.EqualTo(4));
+            Assert.That(stations, Has.All.Not.Null);
+            CollectionAssert.AllItemsAreUnique(stations);
+            SafeSurface("FinalCannonCourse/PreparationDeck");
+            SafeSurface("FinalCannonCourse/FlightLandingPad");
         }
 
         HumanCannonStation[] FinalStations()

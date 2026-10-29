@@ -13,7 +13,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         const BindingFlags Members = BindingFlags.Instance | BindingFlags.NonPublic;
         GameObject player, gauge;
         PlayerBalance balance;
-        string previousRules;
+        string previousRules, previousRope;
         Random.State previousRandom;
 
         [SetUp]
@@ -21,7 +21,9 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         {
             previousRandom = Random.state;
             previousRules = JsonUtility.ToJson(GameSettings.Base.Balance);
-            JsonUtility.FromJsonOverwrite("{\"greenLimit\":30,\"warningLimit\":50,\"fallTime\":2,\"warningFallRate\":0.33333334,\"idleSway\":0,\"movingSway\":0,\"tiltAcceleration\":0}", GameSettings.Base.Balance);
+            previousRope = JsonUtility.ToJson(GameSettings.Tightrope.RopeMovement);
+            JsonUtility.FromJsonOverwrite("{\"laneLandingDangerRatio\":0.05}", GameSettings.Tightrope.RopeMovement);
+            JsonUtility.FromJsonOverwrite("{\"greenLimit\":30,\"warningLimit\":50,\"fallTime\":2,\"warningFallRate\":0.33333334,\"greenRecoveryRate\":0.25,\"idleSway\":0,\"movingSway\":0,\"tiltAcceleration\":0}", GameSettings.Base.Balance);
             player = new GameObject("Balance feedback test");
             balance = player.AddComponent<PlayerBalance>();
             balance.SetBalanceActive(true);
@@ -33,6 +35,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             if (gauge != null) Object.DestroyImmediate(gauge);
             Object.DestroyImmediate(player);
             JsonUtility.FromJsonOverwrite(previousRules, GameSettings.Base.Balance);
+            JsonUtility.FromJsonOverwrite(previousRope, GameSettings.Tightrope.RopeMovement);
             Random.state = previousRandom;
         }
 
@@ -50,7 +53,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
 
         [TestCase(40f)]
         [TestCase(-40f)]
-        public void YellowAccumulatesSlowlyAndOnlyGreenClearsTheSharedDangerTimer(float value)
+        public void YellowAccumulatesSlowlyAndOnlyGreenRecoversTheSharedDangerTimer(float value)
         {
             balance.SetDisplayedState(true, value);
             Step(3f);
@@ -65,6 +68,8 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(balance.RedTime, Is.EqualTo(1.6f).Within(.0001f), "빨강에서 노랑으로 와도 누적 시간은 유지된다.");
             balance.SetDisplayedState(true, 30f);
             Step(.1f);
+            Assert.That(balance.RedTime, Is.EqualTo(1.55f).Within(.0001f));
+            Step(4f);
             Assert.That(balance.RedTime, Is.Zero);
             balance.SetDisplayedState(true, value);
             int falls = 0;
@@ -92,6 +97,180 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         }
 
         [Test]
+        public void RopeJumpKeepsSwayCounterInputAndDangerActive()
+        {
+            JsonUtility.FromJsonOverwrite("{\"idleSway\":15,\"correctionSpeed\":60}", GameSettings.Base.Balance);
+            balance.ContinueWhileAirborne = true;
+            balance.SetDisplayedState(true, 60f);
+            balance.SetAirborne(true);
+            Set(balance, "swayDirection", 1f);
+            Set(balance, "nextDirectionChange", float.MaxValue);
+            Step(.2f);
+            Assert.That(balance.Value, Is.GreaterThan(60f), "점프로 자연 흔들림을 멈출 수 없다.");
+            Assert.That(balance.RedTime, Is.EqualTo(.2f).Within(.0001f));
+            float beforeCorrection = balance.Value;
+            balance.SetCorrectionInput(-1f);
+            Step(.1f);
+            Assert.That(balance.Value, Is.LessThan(beforeCorrection), "공중에서도 기존 균형 보정 입력을 적용한다.");
+            int falls = 0;
+            balance.Fell += () => falls++;
+            Step(2f);
+            Step(2f);
+            Assert.That(balance.HasFallen, Is.True);
+            Assert.That(falls, Is.EqualTo(1), "공중에서도 위험이 가득 차면 한 번만 추락한다.");
+        }
+
+        [Test]
+        public void RopeJumpDoesNotRecoverDangerUntilGrounded()
+        {
+            balance.ContinueWhileAirborne = true;
+            balance.SetDisplayedState(true, 60f);
+            Step(.5f);
+            balance.SetDisplayedState(true, 0f);
+            balance.SetAirborne(true);
+            Step(.5f);
+            Assert.That(balance.RedTime, Is.EqualTo(.5f).Within(.0001f));
+            balance.SetAirborne(false);
+            Step(.5f);
+            Assert.That(balance.RedTime, Is.EqualTo(.25f).Within(.0001f));
+        }
+
+        [Test]
+        public void LaneJumpFreezesDangerInRedUntilLanding()
+        {
+            var mover = player.AddComponent<PlayerMover>();
+            Set(balance, "mover", mover);
+            balance.ContinueWhileAirborne = true;
+            balance.SetDisplayedState(true, 60f);
+            Step(.5f);
+            typeof(PlayerMover).GetProperty(nameof(PlayerMover.CurrentJump)).SetValue(mover, JumpKind.Lane);
+            balance.SetAirborne(true);
+            Step(3f);
+            Assert.That(balance.RedTime, Is.EqualTo(.5f).Within(.0001f), "옆줄 점프 중에는 빨강이어도 추락 위험이 쌓이지 않는다.");
+            Assert.That(balance.HasFallen, Is.False);
+            typeof(PlayerMover).GetProperty(nameof(PlayerMover.CurrentJump)).SetValue(mover, JumpKind.InPlace);
+            Step(.5f);
+            Assert.That(balance.RedTime, Is.EqualTo(1f).Within(.0001f), "일반 점프는 공중에서도 계속 쌓인다.");
+        }
+
+        [Test]
+        public void RepeatedLaneLandingsAddFivePercentagePointsEach()
+        {
+            balance.SetDisplayedState(true, 60f);
+            Step(.5f);
+            for (int i = 0; i < 10; i++) balance.ApplyLaneLanding(0f);
+            Assert.That(balance.LastShock, Is.Not.Zero, "착지의 바늘 충격은 유지한다.");
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.75f).Within(.0001f), "기존 25%에 착지 10회의 50%포인트를 더한다.");
+            Assert.That(balance.HasFallen, Is.False);
+        }
+
+        [TestCase(1f, 1, 0f)]
+        [TestCase(2f, 4, .9f)]
+        [TestCase(4f, 4, 1f)]
+        public void LaneLandingDangerIsFivePercentOfFullBarRegardlessOfShockModifiers(float fallTime, int stack, float reduction)
+        {
+            JsonUtility.FromJsonOverwrite("{\"fallTime\":" + fallTime.ToString(System.Globalization.CultureInfo.InvariantCulture) + "}", GameSettings.Base.Balance);
+            balance.SetStackSize(stack);
+            balance.LaneLandingShockMultiplier = 2f;
+            balance.ApplyLaneLanding(reduction);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.05f).Within(.0001f));
+        }
+
+        [Test]
+        public void LaneLandingCapsFullDangerAndFallsOnlyOnce()
+        {
+            balance.SetDisplayedState(true, 70f);
+            Step(1.96f);
+            int falls = 0;
+            balance.Fell += () => falls++;
+            balance.ApplyLaneLanding(0f);
+            balance.ApplyLaneLanding(0f);
+            Assert.That(balance.RedTime, Is.EqualTo(balance.FallTime));
+            Assert.That(balance.HasFallen, Is.True);
+            Assert.That(falls, Is.EqualTo(1));
+            balance.SetBalanceActive(false);
+            balance.ApplyLaneLanding(0f);
+            Assert.That(balance.RedTime, Is.Zero);
+        }
+
+        [Test]
+        public void ReturningToGreenStartsGradualRecoveryAfterLaneLanding()
+        {
+            balance.SetDisplayedState(true, 70f);
+            Step(.5f);
+            balance.ApplyLaneLanding(0f);
+            balance.SetDisplayedState(true, 0f);
+            Step(1f / 60f);
+            Assert.That(balance.RedTime, Is.EqualTo(.6f - .5f / 60f).Within(.0001f));
+            Step(2f);
+            Assert.That(balance.RedTime, Is.Zero);
+            Assert.That(balance.HasFallen, Is.False);
+        }
+
+        [Test]
+        public void HalfFullDangerBarTakesTwoGroundedGreenSecondsToRecover()
+        {
+            balance.SetDisplayedState(true, 70f);
+            Step(1f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.5f).Within(.0001f));
+            balance.SetDisplayedState(true, 0f);
+            Step(1f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.25f).Within(.0001f));
+            Step(1f);
+            Assert.That(balance.RedTime, Is.Zero);
+        }
+
+        [Test]
+        public void BriefGreenVisitAndAirborneGreenCannotEraseAccumulatedDanger()
+        {
+            balance.SetDisplayedState(true, 70f);
+            Step(1f);
+            balance.SetDisplayedState(true, 0f);
+            Step(.1f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.475f).Within(.0001f));
+            balance.SetAirborne(true);
+            Step(10f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.475f).Within(.0001f));
+            balance.SetAirborne(false);
+            balance.SetDisplayedState(true, 40f);
+            Step(.3f);
+            Assert.That(balance.RedTime, Is.EqualTo(1.05f).Within(.0001f));
+        }
+
+        [TestCase(30)]
+        [TestCase(60)]
+        [TestCase(144)]
+        public void GreenRecoveryRateIsIndependentOfFrameRate(int frameRate)
+        {
+            balance.SetDisplayedState(true, 70f);
+            Step(1f);
+            balance.SetDisplayedState(true, 0f);
+            for (int i = 0; i < frameRate; i++) Step(1f / frameRate);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.25f).Within(.0001f));
+        }
+
+        [TestCase(.6f, 10)]
+        [TestCase(.85f, 14)]
+        [TestCase(1f, 16)]
+        public void DensityKeepsSawCountsAcrossTheWholeCourse(float density, int expected)
+        {
+            int kept = 0;
+            for (int i = 0; i < 16; i++) if (TrickSettings.IncludesSaw(i, 16, density)) kept++;
+            Assert.That(kept, Is.EqualTo(expected));
+            Assert.That(TrickSettings.IncludesSaw(15, 16, density), Is.True, "도착 쪽을 통째로 비우지 않는다.");
+            Assert.That(TrickSettings.IncludesSaw(-1, 16, density), Is.False);
+            Assert.That(TrickSettings.IncludesSaw(0, 0, density), Is.False);
+        }
+
+        [TestCase(0, 30f)]
+        [TestCase(1, -30f)]
+        public void DiagonalPathsAlternateApprovedThirtyDegreeAngles(int index, float angle)
+        {
+            float slope = TrickSettings.DiagonalSlope(index, 30f);
+            Assert.That(Mathf.Atan(slope) * Mathf.Rad2Deg, Is.EqualTo(angle).Within(.001f));
+        }
+
+        [Test]
         public void HeldCounterInputCanRecoverFromDeepRedDespiteOutwardSway()
         {
             JsonUtility.FromJsonOverwrite("{\"idleSway\":22.5,\"tiltAcceleration\":0.5}", GameSettings.Base.Balance);
@@ -105,7 +284,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             }
             Assert.That(balance.HasFallen, Is.False);
             Assert.That(balance.Zone, Is.EqualTo(BalanceZone.Yellow), "정확한 반대 입력으로 2초 이내에 경고 구간까지 회복할 수 있어야 한다.");
-            Assert.That(balance.RedTime, Is.GreaterThan(0f), "초록까지 회복해야 위험 시간이 초기화된다.");
+            Assert.That(balance.RedTime, Is.GreaterThan(0f), "초록까지 돌아와야 위험 시간이 줄어들기 시작한다.");
         }
 
         [Test]
@@ -147,7 +326,66 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(bar.transform.childCount, Is.EqualTo(1), "생성한 경고 구간도 함께 정리한다.");
         }
 
+        [Test]
+        public void HangingOnAPoleSlowlyRecoversDangerAtTheGreenRate()
+        {
+            balance.SetDisplayedState(true, 60f);
+            Step(1.6f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.8f).Within(.0001f));
+
+            // 최신 봉 바인딩처럼 일반 공중 균형이 켜져 있어도 매달림은 계산을 멈춘다.
+            balance.SetAirborne(true);
+            balance.ContinueWhileAirborne = true;
+            balance.IsSuspended = true;
+            Step(1f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.8f).Within(.0001f), "공중 정지만으로는 위험이 줄지 않는다.");
+
+            // fallTime 2초, 초록 회복 0.25 → 초당 0.5초(비율 0.25)씩 줄어든다.
+            balance.RecoverWhileSupported(1f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.55f).Within(.0001f), "매달린 동안 위험이 점차 줄어든다.");
+            Assert.That(balance.Value, Is.EqualTo(60f), "균형 값은 그대로 둔다.");
+            balance.RecoverWhileSupported(10f);
+            Assert.That(balance.RedTime, Is.Zero, "0 아래로 내려가지 않는다.");
+
+            balance.SetBalanceActive(false);
+            balance.SetDisplayedState(false, 0f);
+            Set(balance, "<RedTime>k__BackingField", 1f);
+            balance.RecoverWhileSupported(1f);
+            Assert.That(balance.RedTime, Is.EqualTo(1f), "균형이 꺼져 있으면 건드리지 않는다.");
+        }
+
         void Step(float deltaTime) => Invoke(balance, "Step", deltaTime);
+
+        [Test]
+        public void RescueSupportFreezesBalanceDangerAndShocksWithoutOwningSuspension()
+        {
+            balance.SetDisplayedState(true, 80f); Step(.6f);
+            float value = balance.Value, danger = balance.RedTime;
+            balance.IsRescueSupported = true;
+            balance.SetCorrectionInput(-1f); balance.SetSurfaceSway(8f, 100f);
+            Step(5f); balance.ApplyShock(100f); balance.ApplyLaneLanding(0f);
+            balance.SetAirborne(true); balance.SetAirborne(false);
+            Assert.That(balance.Value, Is.EqualTo(value));
+            Assert.That(balance.RedTime, Is.EqualTo(danger));
+            Assert.That(balance.HasFallen, Is.False);
+            balance.IsSuspended = true;
+            balance.IsRescueSupported = false;
+            Step(3f);
+            Assert.That(balance.RedTime, Is.EqualTo(danger), "구조 종료가 다른 매달림 보호를 풀면 안 된다.");
+            balance.IsSuspended = false;
+            Step(.2f);
+            Assert.That(balance.RedTime, Is.EqualTo(danger + .2f).Within(.0001f));
+            balance.ApplyShock(5f);
+            Assert.That(balance.Value, Is.Not.EqualTo(value), "구조가 끝나면 충격도 다시 받는다.");
+        }
+
+        [Test]
+        public void RescueSupportDoesNotPreventExplicitHazardFalls()
+        {
+            balance.IsRescueSupported = true;
+            balance.ForceFall();
+            Assert.That(balance.HasFallen, Is.True, "구조 중에도 실제 위험물·코스 이탈에 의한 사망 규칙은 유지한다.");
+        }
         static void Set(object target, string name, object value) => target.GetType().GetField(name, Members).SetValue(target, value);
         static object Invoke(object target, string name, params object[] args) => target.GetType().GetMethod(name, Members).Invoke(target, args);
     }

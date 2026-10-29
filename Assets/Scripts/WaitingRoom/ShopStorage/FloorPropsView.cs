@@ -14,6 +14,13 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, Min(.3f)] float reach = 1f;
         [SerializeField, Min(.05f)] float itemSize = .25f;
         [SerializeField] Color color = new(.55f, .85f, 1f);
+        [SerializeField] bool showLegacyLabels = true;
+
+        public void CollectLabels(List<ShopWorldLabel> labels)
+        {
+            foreach (var item in shown.Values)
+                if (item.Shape != null) labels.Add(new ShopWorldLabel(item.Shape.transform, item.Prop.Item.Name, Vector3.up * (itemSize + .12f)));
+        }
 
         readonly Dictionary<int, Item> shown = new();
         readonly List<int> stale = new();
@@ -29,11 +36,15 @@ namespace CurtainCall.WaitingRoom
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() => activeCount = 0;
 
-        sealed class Item : IShopTarget
+        sealed class Item : IShopTarget, IShopPresentation
         {
             public FloorPropsView View;
             public FloorProp Prop;
             public GameObject Shape;
+            public Transform VisualRoot => Shape != null ? Shape.transform : null;
+            public Vector3 PresentationPoint => Shape != null ? Shape.transform.position : Vector3.zero;
+            public string ActionLabel => Prop.Item.Name + " 줍기";
+            public bool IsAvailable => Shape != null && View.carry != null;
 
             public float Reach(Vector3 feet)
             {
@@ -144,8 +155,10 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             if (carry == null) return;
-            foreach (var item in shown.Values)
-                PropLabels.Draw(item.Shape.transform.position + Vector3.up * itemSize, item.Prop.Item.Name);
+            if (showLegacyLabels)
+                foreach (var item in shown.Values)
+                    PropLabels.Draw(item.Shape.transform.position + Vector3.up * itemSize, item.Prop.Item.Name);
+            if (ShopReach.HasExternalPresentation) return;
             foreach (var item in shown.Values)
             {
                 if (!ReferenceEquals(ShopReach.Focused, item)) continue;

@@ -105,6 +105,7 @@ namespace CurtainCall.Tightrope
 
         void ReleaseControls()
         {
+            if (balance != null) balance.ContinueWhileAirborne = false;
             // 다른 콘텐츠가 이후에 조작을 지정했다면 그 조작·이동·균형 상태를 보존한다.
             if (StillOwnsControls)
             {
@@ -112,7 +113,10 @@ namespace CurtainCall.Tightrope
                 if (balance != null)
                 {
                     balance.SetCorrectionInput(0f);
-                    balance.SetBalanceActive(false);
+                    // Releasing a finished course is not a revive. ResetBalance also restores the model.
+                    if (balance.HasFallen || (player != null && player.State == PlayerState.Fallen))
+                        balance.SetDisplayedState(false, 0f);
+                    else balance.SetBalanceActive(false);
                 }
                 if (controller != null) controller.SetScheme(null);
                 else if (mover != null) mover.FreeMovement = true;
@@ -143,6 +147,11 @@ namespace CurtainCall.Tightrope
             else ReleaseInjuryPolicies();
             if (player != NetworkPlayer.Local) Bind(NetworkPlayer.Local);
             UpdateSurfaceMode();
+            if (balance != null)
+                balance.ContinueWhileAirborne = StillOwnsControls && IsCourseActive() && onRope == true
+                    && !(TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player))
+                    && !(TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player))
+                    && !(TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player));
         }
 
         void UpdateSurfaceMode()
@@ -162,6 +171,12 @@ namespace CurtainCall.Tightrope
             if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired
                 || (balance != null && balance.HasFallen)) return; // 도착 완료는 계속 바꾼다(세리머니 공간은 일반 이동)
 
+            if (IsCourseActive() && TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player))
+            {
+                // 봉/동료를 잡은 뒤에는 발의 줄 지지 여부나 동료 수와 무관하게 그네 입력을 유지한다.
+                if (onRope != true) Apply(true);
+                return;
+            }
             var stack = PiggybackSystem.Current;
             if (IsCourseActive() && stack != null && stack.isActiveAndEnabled && stack.GetBelow(player) != null)
             {

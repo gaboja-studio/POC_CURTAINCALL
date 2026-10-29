@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>커튼콜 · 에셋 도우미</title><link rel="icon" href="data:,"><link rel="stylesheet" href="/style.css"></head>
+<body><main>
+<header><span class="eyebrow">CURTAINCALL / TEAM TOOLS</span><span class="local">이 PC에서만 실행</span></header>
+<section class="intro"><p class="kicker">작업은 Unity에서, 마무리는 여기서.</p><h1>에셋 도우미<span class="dot">.</span></h1><p class="lead">에셋 변경을 공유하거나, 이동한 브랜치에 에셋을 맞춰 주세요.</p></section>
+<section class="workspace" aria-label="현재 작업"><div><span class="label">현재 게임 브랜치</span><strong id="branch">확인 중…</strong></div><span id="badge" class="badge">연결 확인</span><button id="refresh" class="text-button">다시 확인</button></section>
+<div id="notice" class="notice" role="status" aria-live="polite">프로젝트 상태를 확인하고 있습니다.</div>
+<section class="actions">
+<article><span class="number">01</span><h2>에셋 변경 저장·공유</h2><p>Unity에서 추가·수정·삭제와 기능 확인을 마친 뒤 사용하세요.</p><ul><li>비공개 에셋을 먼저 업로드합니다.</li><li>에셋 전용 dev 검토 요청까지 준비합니다.</li><li>dev 반영 확인 후에만 팀 공유 완료입니다.</li></ul><button id="publish" class="primary" disabled>변경 확인하고 공유</button></article>
+<article><span class="number">02</span><h2>현재 브랜치에 에셋 맞추기</h2><p>GitHub Desktop 또는 Fork에서 브랜치를 이동한 뒤 사용하세요.</p><ul><li>현재 브랜치가 사용하는 버전으로 맞춥니다.</li><li>최신 에셋으로 무조건 바꾸지 않습니다.</li><li>내 수정이 있으면 먼저 보관할 수 있습니다.</li></ul><button id="sync" class="secondary" disabled>에셋 버전 맞추기</button></article>
+</section>
+<section id="details" class="details" hidden><div class="details-head"><div><span class="label">저장·공유 미리보기</span><h2 id="change-title">변경된 에셋</h2></div><span id="other"></span></div><ul id="files" class="files"></ul><label class="field" for="message">무엇을 바꿨나요?<input id="message" maxlength="160" placeholder="예: 무대 소품 추가와 의자 재질 수정"></label><label class="check"><input id="verified" type="checkbox">Unity에서 저장을 마쳤고, 오류와 기능 사용을 확인했습니다.</label><div class="confirm-row"><button id="confirm-publish" class="primary">에셋 변경 저장·공유</button><button id="cancel" class="text-button">취소</button></div></section>
+<section id="sync-details" class="details" hidden><span class="label">에셋 버전 맞추기</span><h2>Unity를 닫은 뒤 진행해 주세요.</h2><p>현재 브랜치의 에셋 파일로 바꿉니다. 내 수정이 있으면 먼저 보관하며, 아래 보관 목록에서 다시 복구할 수 있습니다.</p><label class="check"><input id="closed" type="checkbox">Unity를 닫았습니다.</label><div class="confirm-row"><button id="confirm-sync" class="primary">현재 브랜치에 맞추기</button><button id="keep-sync" class="secondary" hidden>내 변경을 보관하고 맞추기</button><button id="cancel-sync" class="text-button">취소</button></div></section>
+<section id="backups" class="details" hidden><span class="label">이 PC에 보관한 내 에셋 작업</span><h2>이전 수정을 다시 이어갈 때</h2><p>Unity를 닫고 복구할 기록을 선택하세요. 보관 당시 에셋 버전과 내 수정을 복구합니다. 게임 브랜치는 바꾸지 않습니다.</p><div id="backup-list"></div></section>
+<section id="share-status" class="details" hidden aria-live="polite"><span class="label">팀원이 dev를 받아 쓸 수 있는지 확인</span><h2 id="share-title"></h2><ol id="share-steps"></ol><a id="share-link" target="_blank" rel="noreferrer" hidden>검토·병합 화면 열기 ↗</a><p class="muted">작업 브랜치 업로드만으로는 팀 공유 완료가 아닙니다. origin/dev 반영 확인이 필요합니다.</p></section>
+<section id="result" class="result" hidden aria-live="polite"><h2 id="result-title"></h2><p id="result-message"></p><a id="review-link" target="_blank" rel="noreferrer" hidden>검토·병합 화면 열기 ↗</a><p id="kept" class="muted"></p></section>
+<footer><span>에셋 임포트·이동·편집은 Unity에서 진행합니다.</span><button id="login" class="text-button">GitHub 연결</button></footer>
+</main><script src="/app.js"></script></body></html>

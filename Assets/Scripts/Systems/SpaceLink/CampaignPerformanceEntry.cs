@@ -94,12 +94,12 @@ namespace CurtainCall.SpaceLink
 
         /// <summary>
         /// 호스트: 원격 소유자의 출발점 순간이동은 씬 로드보다 늦게 온다. 그 전의 이전 공간 위치로 사망 판정하지 않도록
-        /// 출발점에서 한 번 확인된 플레이어만 사망을 받는다(2026-10-17 2인 FAIL). 다른 판정 규칙은 그대로 따른다.
+        /// 해당 공연 중 출발점에서 한 번 확인된 플레이어만 사망을 받는다. 종료 후 부활자가 옛 씬에서 다시 죽는 것도 막는다.
         /// </summary>
         void HoldDeathsUntilPlaced()
         {
             previousGuard = NetworkPlayer.ServerCanChangeState;
-            guard = (player, next) => (next != PlayerState.Fallen || seenAtStart.Contains(player))
+            guard = (player, next) => (next != PlayerState.Fallen || (IsCurrentPerformance && seenAtStart.Contains(player)))
                 && (previousGuard == null || previousGuard(player, next));
             NetworkPlayer.ServerCanChangeState = guard;
         }

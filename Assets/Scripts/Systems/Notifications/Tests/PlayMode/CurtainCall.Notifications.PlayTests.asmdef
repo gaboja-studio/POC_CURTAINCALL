@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.Notifications.PlayTests",
+    "references": ["Unity.TextMeshPro", "Unity.ugui", "Unity.InputSystem"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "autoReferenced": false
+}

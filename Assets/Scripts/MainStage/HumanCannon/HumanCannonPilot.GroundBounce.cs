@@ -8,13 +8,13 @@ namespace CurtainCall.HumanCannon
     {
         readonly GroundBounceRequest groundRequest = new();
         Vector3 groundFrameStart;
-        bool sampledGroundJump;
+        bool groundFrameAirborne, groundFrameJump;
 
         void SampleGroundJump()
         {
             groundFrameStart = transform.position;
-            sampledGroundJump = !IsDriving && mover != null && mover.Simulated
-                && mover.CurrentJump == JumpKind.InPlace;
+            groundFrameAirborne = mover != null && mover.IsAirborne;
+            groundFrameJump = mover != null && (mover.CurrentJump == JumpKind.InPlace || mover.CurrentJump == JumpKind.Lane);
         }
 
         void DetectGroundBounce()
@@ -23,11 +23,11 @@ namespace CurtainCall.HumanCannon
             if (IsDriving || mover == null || !mover.Simulated || !mover.Body.enabled
                 || player == null || player.State != PlayerState.Normal) return;
             var trampoline = HumanCannonTrampoline.Current;
-            if (trampoline == null || trampoline.Carrier == player.OwnerClientId) return;
-            // 일반 이동 Update 전후 발 위치를 비교한다. 착지 프레임에 JumpKind가 지워져도 검출한다.
-            if ((!sampledGroundJump && mover.CurrentJump != JumpKind.InPlace)
-                || transform.position.y >= groundFrameStart.y) return;
-            if (!trampoline.TryContact(groundFrameStart, transform.position, mover.BodyRadius, out var contact)) return;
+            if (trampoline == null || trampoline.Carrier == player.OwnerClientId || trampoline.GrabPending(player)) return;
+            bool jumped = groundFrameJump || mover.CurrentJump == JumpKind.InPlace || mover.CurrentJump == JumpKind.Lane;
+            // 지상 접근/작은 단차 이탈은 잡기용이다. 점프 또는 장치 위에서 내려온 낙하만 전체 외형 반동을 허용한다.
+            if (!jumped && !(groundFrameAirborne && groundFrameStart.y >= trampoline.Surface.y)) return;
+            if (!trampoline.TryContact(groundFrameStart, transform.position, mover.BodyRadius, mover.BodyHeight, out var contact)) return;
             TakeMovement();
             groundRequest.Begin(trampoline.NextGroundSequence(), trampoline.Revision);
             Teleport(contact + Vector3.up * 0.05f, transform.rotation);

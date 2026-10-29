@@ -121,6 +121,14 @@ namespace CurtainCall.Tightrope
         /// <summary>코스 오른쪽(수평, 정규화).</summary>
         public Vector3 Right => Vector3.Cross(Vector3.up, Forward);
 
+        /// <summary>사망한 몸이 줄의 보행용 지지면에 걸리지 않고 아래로 떨어지게 한다. 플랫폼 충돌은 유지한다.</summary>
+        public void IgnoreRopeCollision(Collider body)
+        {
+            if (body == null) return;
+            foreach (var surface in ropeSurfaces.Keys)
+                if (surface != null) Physics.IgnoreCollision(body, surface);
+        }
+
         // ── 조회 ────────────────────────────────────────────
 
         /// <summary>위치의 진행 거리(m). 출발선이 0, 전진 방향이 +.</summary>
@@ -382,6 +390,7 @@ namespace CurtainCall.Tightrope
             if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return;
             if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)) return;
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return;
+            if (TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(player)) return; // 줄 아래에 매달려 버티는 중
             if (player == null || player.State != PlayerState.Normal) return;
             if (player.transform.position.y >= transform.position.y - Shape.FallDepth) return;
 
@@ -534,12 +543,7 @@ namespace CurtainCall.Tightrope
                 }
             }
 
-            if (c.SafetyNetDepth > 0f)
-            {
-                float length = c.StartPlatformLength + l.FinishDistance + c.FinishPlatformLength + 10f;
-                CreateBox("SafetyNet", new Vector3(0f, -c.SafetyNetDepth - 0.05f, (l.FinishDistance + c.FinishPlatformLength - c.StartPlatformLength) * 0.5f),
-                    new Vector3(width + 10f, 0.1f, length), netColor, true);
-            }
+            // No safety net or hidden catch collider beneath this course.
         }
 
         GameObject CreateBox(string objectName, Vector3 localCenter, Vector3 size, Color color, bool withCollider)
@@ -556,6 +560,7 @@ namespace CurtainCall.Tightrope
             }
             var renderer = box.GetComponent<Renderer>();
             renderer.sharedMaterial = CourseMaterial(renderer.sharedMaterial, color);
+            ApplyPreparedArt(box, objectName, color);
             return box;
         }
 

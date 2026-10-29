@@ -6,7 +6,7 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 플레이어가 든 기물(<see cref="PropCarry.Held"/>)을 캐릭터 앞에 쌓아 보이고, 배낭을 메면 등 뒤에 상자로 보인다.
+    /// 플레이어가 든 기물(<see cref="PropCarry.Held"/>)을 선택한 한 개만 캐릭터 앞에 보인다.
     /// 모든 화면이 공유 상태를 그대로 그리므로 다른 사람이 무엇을 들고 있는지도 보인다. 도형은 표시용이다(충돌 없음).
     /// 접속하지 않은 씬 확인에서는 씬에 놓인 플레이어를 쓴다.
     /// </summary>
@@ -17,16 +17,13 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] Vector3 firstOffset = new(0f, .95f, .45f);
         [Tooltip("기물을 하나 더 들 때마다 위로 쌓는 간격(m).")]
         [SerializeField, Min(.05f)] float stack = .28f;
-        [SerializeField] Vector3 backpackOffset = new(0f, 1.15f, -.3f);
-        [SerializeField] Vector3 backpackSize = new(.42f, .46f, .2f);
         [SerializeField] Color itemColor = new(.55f, .85f, 1f);
-        [SerializeField] Color backpackColor = new(.55f, .38f, .2f);
 
         readonly Dictionary<(ulong client, int uid), GameObject> shapes = new();
         readonly List<(ulong, int)> stale = new();
         readonly List<(Transform body, ulong client)> bodies = new();
         PropCarry carry;
-        Material itemMaterial, backpackMaterial;
+        Material itemMaterial;
         float nextRefresh;
 
         void OnDisable()
@@ -40,7 +37,6 @@ namespace CurtainCall.WaitingRoom
         void OnDestroy()
         {
             if (itemMaterial != null) Destroy(itemMaterial);
-            if (backpackMaterial != null) Destroy(backpackMaterial);
         }
 
         void Update()
@@ -67,19 +63,12 @@ namespace CurtainCall.WaitingRoom
             stale.AddRange(shapes.Keys);
             foreach (var (body, client) in bodies)
             {
-                var held = carry.Held(client);
-                for (int i = 0; i < held.Count; i++)
+                var item = carry.Selected(client);
+                if (item.Uid != 0)
                 {
-                    var key = (client, held[i].Uid);
+                    var key = (client, item.Uid);
                     stale.Remove(key);
-                    var shape = Get(key, body, false);
-                    Place(shape, body, firstOffset + Vector3.up * (stack * i), Vector3.one * itemSize);
-                }
-                if (carry.HasBackpack(client))
-                {
-                    var key = (client, 0); // 배낭은 기물 번호 0 자리에 둔다
-                    stale.Remove(key);
-                    Place(Get(key, body, true), body, backpackOffset, backpackSize);
+                    Place(Get(key, body), body, firstOffset, Vector3.one * itemSize);
                 }
             }
             foreach (var key in stale)
@@ -102,16 +91,16 @@ namespace CurtainCall.WaitingRoom
             if (reader != null) bodies.Add((reader.transform, carry.LocalClientId));
         }
 
-        GameObject Get((ulong client, int uid) key, Transform body, bool backpack)
+        GameObject Get((ulong client, int uid) key, Transform body)
         {
             if (shapes.TryGetValue(key, out var shape) && shape != null && shape.transform.parent == body) return shape;
             if (shape != null) Destroy(shape);
             shape = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            shape.name = backpack ? $"HeldBackpack_{key.client}" : $"HeldProp_{key.client}_{key.uid}";
+            shape.name = $"HeldProp_{key.client}_{key.uid}";
             Destroy(shape.GetComponent<Collider>());
             shape.hideFlags = HideFlags.DontSave;
             shape.transform.SetParent(body, false);
-            shape.GetComponent<Renderer>().sharedMaterial = Material(shape.GetComponent<Renderer>(), backpack);
+            shape.GetComponent<Renderer>().sharedMaterial = Material(shape.GetComponent<Renderer>());
             shapes[key] = shape;
             return shape;
         }
@@ -124,25 +113,36 @@ namespace CurtainCall.WaitingRoom
             shape.transform.localScale = new Vector3(size.x / Mathf.Max(.001f, lossy.x), size.y / Mathf.Max(.001f, lossy.y), size.z / Mathf.Max(.001f, lossy.z));
         }
 
-        Material Material(Renderer renderer, bool backpack)
+        Material Material(Renderer renderer)
         {
-            ref Material target = ref backpack ? ref backpackMaterial : ref itemMaterial;
-            if (target != null) return target;
-            var color = backpack ? backpackColor : itemColor;
-            target = new Material(renderer.sharedMaterial) { color = color };
-            if (target.HasProperty("_BaseColor")) target.SetColor("_BaseColor", color); // URP Lit
-            return target;
+            if (itemMaterial != null) return itemMaterial;
+            itemMaterial = new Material(renderer.sharedMaterial) { color = itemColor };
+            if (itemMaterial.HasProperty("_BaseColor")) itemMaterial.SetColor("_BaseColor", itemColor); // URP Lit
+            return itemMaterial;
         }
 
         void OnGUI()
         {
-            if (carry == null) return;
+            if (carry == null || !showLegacyLabels) return;
             foreach (var (body, client) in bodies)
             {
                 if (body == null) continue;
                 var held = carry.Held(client);
                 if (held.Count == 0) continue;
                 PropLabels.Draw(body.TransformPoint(firstOffset + Vector3.up * (stack * held.Count)), held[held.Count - 1].Name);
+            }
+        }
+
+        [SerializeField] bool showLegacyLabels = false;
+        public void CollectLabels(List<ShopWorldLabel> labels)
+        {
+            if (carry == null) return;
+            foreach (var pair in shapes)
+            {
+                if (pair.Value == null) continue;
+                foreach (var item in carry.Held(pair.Key.client))
+                    if (item.Uid == pair.Key.uid)
+                        labels.Add(new ShopWorldLabel(pair.Value.transform, item.Name, Vector3.up * .3f));
             }
         }
     }

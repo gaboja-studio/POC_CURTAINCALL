@@ -223,8 +223,8 @@ namespace CurtainCall.Tightrope.UI
             if (state.Phase == CampaignPhase.None)
             {
                 GUILayout.Label("출발 플랫폼에서 원하는 줄을 골라 올라가세요.");
-                GUILayout.Label("완주는 4인 협동 · 마지막 정면 톱에서 4명 목마가 필요해요.");
-                GUILayout.Label("혼자 시작·연습 봇 1명: 앞쪽 구간 연습용");
+                GUILayout.Label("마지막 정면 톱은 2명 목마로 통과할 수 있어요.");
+                GUILayout.Label("혼자라면 연습 봇과 협동할 수 있어요.");
                 if (session == null || session.ConnectionState == SessionConnectionState.Offline)
                 {
                     actions?.Reserve(0, "혼자 시작", area, !connectingSolo && !startPending);
@@ -262,10 +262,7 @@ namespace CurtainCall.Tightrope.UI
                     if (section >= 0)
                     {
                         var info = course.Shape.Sections[section];
-                        var previous = GUI.color;
-                        GUI.color = info.color;
                         GUILayout.Label($"{section + 1}구간 · {info.label}   {distance:0} / {course.FinishDistance:0}m");
-                        GUI.color = previous;
                     }
                 }
                 GUILayout.Label("한 명이 도착하면 성공 · 전원 사망하거나 시간이 끝나면 실패");
@@ -274,7 +271,7 @@ namespace CurtainCall.Tightrope.UI
                 if (saws != null && saws.IsCooperativeGateActive)
                 {
                     GUILayout.Label($"최후반 {saws.CooperativeGateLane + 1}번 줄 · 정면 톱 한 번");
-                    GUILayout.Label("4층·3층: 먼저 넘어 버튼을 피하고 앞쪽 대기");
+                    GUILayout.Label("2명부터 가능 · 3·4층이 있으면 먼저 넘어 앞쪽 대기");
                     GUILayout.Label("2층: 마지막으로 뒤 버튼 · 1층: 톱이 뛰면 전진");
                     GUILayout.Label("정면 톱: 즉사·2.25m 홉 / 측면 톱: 절단");
                     if (!saws.IsCooperativeStackApproved)

@@ -9,41 +9,42 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
 {
     public sealed partial class TightropeCampaignPlayTests
     {
-        [UnityTest]
+        [UnityTest, Category("PerformanceBalance")]
         public IEnumerator TeamPassagePlateOpensOnlyLocalHazardsAndResumesTheirPhase()
         {
             yield return BeginPerformance();
             ((Behaviour)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current")).enabled = false;
             var saws = (Component)Static("CurtainCall.Tightrope.Saws.TightropeSaws", "Current");
             var settings = Get(saws, "Settings");
-            yield return StandOnRopeForSawTest(1, (float)Call(settings, "GetHorizontalDistance", 0) + 2f);
+            int sawIndex = ActiveHorizontalSaw(saws);
+            yield return StandOnRopeForSawTest(1, (float)Call(settings, "GetHorizontalDistance", sawIndex) + 2f);
             float originalDuration = (float)Get(settings, "teamPassageDuration");
             Set(settings, "teamPassageDuration", 1f);
             try
             {
                 PutFrontalSawBeforePlayer(saws, settings);
                 yield return Until(() => (bool)Get(saws, "IsTeamPassageOpen"), 2f, "실제 접지 후 협동 통로 개방");
-                Assert.IsTrue((bool)Call(saws, "IsHorizontalSafeForTeamPassage", 0));
+                Assert.IsTrue((bool)Call(saws, "IsHorizontalSafeForTeamPassage", sawIndex));
                 Assert.IsFalse((bool)Call(saws, "IsHorizontalSafeForTeamPassage", 5), "먼 구간은 계속 위험해야 한다.");
-                Assert.IsFalse((bool)Call(saws, "IsHorizontalMoving", 0));
-                Vector3 before = (Vector3)Call(saws, "GetHorizontalPosition", 0);
+                Assert.IsFalse((bool)Call(saws, "IsHorizontalMoving", sawIndex));
+                Vector3 before = (Vector3)Call(saws, "GetHorizontalPosition", sawIndex);
                 yield return new WaitForSeconds(0.25f);
-                Assert.That(Vector3.Distance(before, (Vector3)Call(saws, "GetHorizontalPosition", 0)), Is.LessThan(0.001f));
+                Assert.That(Vector3.Distance(before, (Vector3)Call(saws, "GetHorizontalPosition", sawIndex)), Is.LessThan(0.001f));
                 Assert.IsFalse((bool)Get(saws, "IsVerticalActive"));
                 Assert.IsTrue(saws.transform.Find("Generated/Plate").gameObject.activeSelf, "정면 톱이 사라져도 남은 시간 동안 발판 표시를 남긴다.");
-                Assert.That(saws.transform.Find("Generated/HorizontalSaw01").position.y, Is.LessThan(before.y - 0.1f));
+                Assert.That(saws.transform.Find($"Generated/HorizontalSaw{sawIndex + 1:00}").position.y, Is.LessThan(before.y - 0.1f));
                 yield return Until(() => !(bool)Get(saws, "IsTeamPassageOpen"), 2f, "협동 통로 만료");
-                Assert.IsTrue((bool)Call(saws, "IsHorizontalMoving", 0));
-                Assert.IsFalse((bool)Call(saws, "IsHorizontalSafeForTeamPassage", 0));
-                Assert.That(Vector3.Distance(before, (Vector3)Call(saws, "GetHorizontalPosition", 0)), Is.LessThan(0.4f), "멈춘 위치에서 이어져야 한다.");
+                Assert.IsTrue((bool)Call(saws, "IsHorizontalMoving", sawIndex));
+                Assert.IsFalse((bool)Call(saws, "IsHorizontalSafeForTeamPassage", sawIndex));
+                Assert.That(Vector3.Distance(before, (Vector3)Call(saws, "GetHorizontalPosition", sawIndex)), Is.LessThan(0.4f), "멈춘 위치에서 이어져야 한다.");
                 yield return new WaitForSeconds(0.1f);
-                Assert.That(Vector3.Distance(before, (Vector3)Call(saws, "GetHorizontalPosition", 0)), Is.GreaterThan(0.1f));
+                Assert.That(Vector3.Distance(before, (Vector3)Call(saws, "GetHorizontalPosition", sawIndex)), Is.GreaterThan(0.1f));
                 Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
             }
             finally { Set(settings, "teamPassageDuration", originalDuration); }
         }
 
-        [UnityTest]
+        [UnityTest, Category("PerformanceBalance")]
         public IEnumerator TeamPassageRejectsAirbornePressAndRestoresHostSnapshotThenResets()
         {
             yield return BeginPerformance();

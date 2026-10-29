@@ -48,12 +48,11 @@ namespace CurtainCall.Player
         float surfaceSwayMultiplier = 1f;
         float surfaceSway;
         float landingDirection = 1f;
-        float landingRecoveryRemaining;
 
         static BaseGameSettings.BalanceSettings Rules => GameSettings.Base.Balance;
         static TightropeSettings.RopeMovementSettings Rope => GameSettings.Tightrope.RopeMovement;
 
-        /// <summary>빨강 체류 시간이 추락 기준에 닿았을 때 한 번 보낸다.</summary>
+        /// <summary>누적 추락 위험이 추락 기준에 닿았을 때 한 번 보낸다.</summary>
         public event Action Fell;
 
         /// <summary>균형을 중앙으로 되돌렸을 때(재시작·켜기/끄기) 보낸다. 추락 연출을 되돌리는 데 쓴다.</summary>
@@ -77,16 +76,13 @@ namespace CurtainCall.Player
         /// <summary>이번 프레임의 자연 흔들림(초당, 방향 포함). 디버그 표시용.</summary>
         public float CurrentSway { get; private set; }
 
-        /// <summary>누적 추락 위험 시간(빨강 초 환산). 착지 위험도 더하며, 연속 착지 뒤에는 지상에서 안정시켜야 초기화한다.</summary>
+        /// <summary>노랑·빨강과 옆줄 착지로 누적한 추락 위험 시간(빨강 초 환산). 줄 위 초록 구간에서 설정한 비율로 서서히 회복한다.</summary>
         public float RedTime { get; private set; }
-
-        /// <summary>착지 위험을 해소하려면 줄 위 초록 구간에서 연속으로 유지해야 하는 남은 시간.</summary>
-        public float LandingRecoveryRemaining => landingRecoveryRemaining;
 
         /// <summary>추락 기준 시간(초).</summary>
         public float FallTime => Rules.FallTime;
 
-        /// <summary>누적 추락 위험 비율(0~1). 착지·노랑·빨강 위험을 합치며 1이면 추락한다.</summary>
+        /// <summary>누적 추락 위험 비율(0~1). 노랑·빨강·옆줄 착지 위험을 합치며 1이면 추락한다.</summary>
         public float RedTimeRatio => Mathf.Clamp01(RedTime / FallTime);
 
         /// <summary>추락했는지. 추락하면 다시 시작(<see cref="ResetBalance"/>)할 때까지 균형 계산을 멈춘다.</summary>
@@ -132,8 +128,18 @@ namespace CurtainCall.Player
         float landingShockMultiplier = 1f;
         float laneLandingShockMultiplier = 1f;
 
-        /// <summary>공중에 있는지. 공중에서는 균형 값이 멈춘다.</summary>
+        /// <summary>공중에 있는지. 착지 충격과 콘텐츠의 공중 균형 규칙에 사용한다.</summary>
         public bool IsAirborne { get; private set; }
+
+        /// <summary>일반 도약 중에도 균형·위험 누적을 계속한다. 봉 등 외부 이동에서는 콘텐츠가 해제한다.</summary>
+        public bool ContinueWhileAirborne { get; set; }
+
+        /// <summary>줄·봉에 매달린 동안 자연 흔들림·충격·일반 추락 위험 누적을 멈춘다. 제한 시간은 콘텐츠가 별도 표시한다.</summary>
+        public bool IsSuspended { get; set; }
+
+        /// <summary>동료 구조 중 균형·충격·추락 위험 누적을 멈춘다. 매달림 상태와 별도로 구조 기능이 관리한다.</summary>
+        public bool IsRescueSupported { get; set; }
+        bool BalancePaused => IsSuspended || IsRescueSupported;
 
         /// <summary>
         /// 공중에 뜸·착지를 알린다. 착지하면(<c>false</c>) 착지 충격을 준다.
@@ -148,7 +154,6 @@ namespace CurtainCall.Player
                 airborneSince = Time.time;
                 landingDirection = mover != null && mover.LaneJumpDirection != 0
                     ? mover.LaneJumpDirection : Mathf.Abs(Value) > .001f ? Mathf.Sign(Value) : swayDirection;
-                if (landingRecoveryRemaining > 0f) landingRecoveryRemaining = Rope.LandingRecoverySeconds;
                 return;
             }
 
@@ -170,14 +175,16 @@ namespace CurtainCall.Player
         /// <summary>다음 실제 착지 한 번의 충격 완충율(0~1). 일반 도약과 옆줄 도약 모두 착지 후 자동 초기화한다.</summary>
         public void SetLandingReduction(float reduction) => laneLandingReduction = Mathf.Clamp01(reduction);
 
-        /// <summary>옆줄 착지 충격과 일정 시간 흔들림 증가를 준다. 감소율은 충격과 흔들림 증가분에 같이 적용한다.</summary>
+        /// <summary>옆줄 착지 충격·흔들림 증가·고정 비율의 추락 위험을 준다. 감소율은 충격과 흔들림 증가분에 적용한다.</summary>
         public void ApplyLaneLanding(float reduction)
         {
-            if (!IsActive || HasFallen) return;
+            if (!IsActive || HasFallen || BalancePaused) return;
             float keep = 1f - Mathf.Clamp01(reduction);
             ApplyLandingShock(Rope.LaneLandingShock * laneLandingShockMultiplier * keep);
             laneBoostScale = 1f + (Rope.LaneSwayBoost - 1f) * keep;
             laneBoostUntil = Time.time + Rope.LaneSwayBoostDuration; // 쌓지 않고 시간만 갱신
+            RedTime = Mathf.Min(FallTime, RedTime + FallTime * Rope.LaneLandingDangerRatio);
+            if (RedTime >= FallTime) GaugeFall();
         }
 
         /// <summary>옆줄 착지 후 흔들림 증가가 남아 있는 시간(초). 디버그 표시용.</summary>
@@ -188,22 +195,18 @@ namespace CurtainCall.Player
 
         void ApplyLandingShock(float magnitude)
         {
-            if (!IsActive || HasFallen || !float.IsFinite(magnitude) || magnitude <= 0f) return;
+            if (!IsActive || HasFallen || BalancePaused || !float.IsFinite(magnitude) || magnitude <= 0f) return;
             // 착지가 우연한 중앙 복귀가 되지 않게 현재 기울기를 강화한다. 중앙이면 이륙 방향을 쓴다.
             float direction = Mathf.Abs(Value) > .001f ? Mathf.Sign(Value) : landingDirection;
             float impact = direction * magnitude * StackMultiplier;
             Value = Mathf.Clamp(Value + impact, -MaxValue, MaxValue);
             LastShock = impact;
-            // 기본 충격에서 위험을 한 번만 더한다. 목마의 무게는 위의 바늘 이동에 이미 반영했다.
-            RedTime = Mathf.Min(FallTime, RedTime + FallTime * Mathf.Clamp01(magnitude / MaxValue));
-            landingRecoveryRemaining = Rope.LandingRecoverySeconds;
-            if (RedTime >= FallTime) ForceFall();
         }
 
         /// <summary>균형에 순간 충격을 준다(±크기, 랜덤 방향, 목마 배율 적용).</summary>
         public void ApplyShock(float magnitude)
         {
-            if (!IsActive || HasFallen) return;
+            if (!IsActive || HasFallen || BalancePaused) return;
             float direction = Random.value < 0.5f ? -1f : 1f;
             Value = Mathf.Clamp(Value + direction * magnitude * StackMultiplier, -MaxValue, MaxValue);
             LastShock = direction * magnitude * StackMultiplier;
@@ -259,7 +262,6 @@ namespace CurtainCall.Player
             surfaceSwayMultiplier = 1f;
             surfaceSway = 0f;
             landingDirection = 1f;
-            landingRecoveryRemaining = 0f;
             PickSwayDirection();
         }
 
@@ -285,13 +287,14 @@ namespace CurtainCall.Player
             float surfaceForce = surfaceSway;
             surfaceSwayMultiplier = 1f;
             surfaceSway = 0f;
-            if (!IsActive || HasFallen || IsAirborne) return;
+            if (!IsActive || HasFallen || BalancePaused || IsAirborne && !ContinueWhileAirborne) return;
 
             if (Time.time >= nextDirectionChange)
                 PickSwayDirection();
 
             var rules = Rules;
-            bool moving = mover != null && mover.IsMoving;
+            bool moving = mover != null && (mover.IsMoving || IsAirborne && mover.Body != null
+                && Vector3.ProjectOnPlane(mover.Body.velocity, Vector3.up).sqrMagnitude > .0001f);
             CurrentSway = (swayDirection * (moving ? rules.MovingSway : rules.IdleSway) * surfaceMultiplier + surfaceForce)
                          * StackMultiplier * LaneBoostMultiplier * swayMultiplier;
 
@@ -309,24 +312,54 @@ namespace CurtainCall.Player
             UpdateRedTime(deltaTime);
         }
 
+        bool IsLaneJumping => IsAirborne && mover != null && mover.CurrentJump == JumpKind.Lane;
+
         void UpdateRedTime(float deltaTime)
         {
+            // 옆줄 점프 중에는 추락 위험을 쌓지도 줄이지도 않는다. 착지 위험은 ApplyLaneLanding이 한 번 준다.
+            if (IsLaneJumping) return;
             if (Zone == BalanceZone.Green)
             {
-                landingRecoveryRemaining = Mathf.Max(0f, landingRecoveryRemaining - Mathf.Max(0f, deltaTime));
-                if (landingRecoveryRemaining > 0f) return;
-                RedTime = 0f;
+                if (!IsAirborne)
+                    RedTime = Mathf.Max(0f, RedTime - FallTime * Rules.GreenRecoveryRate * Mathf.Max(0f, deltaTime));
                 return;
             }
-
-            if (landingRecoveryRemaining > 0f) landingRecoveryRemaining = Rope.LandingRecoverySeconds;
 
             RedTime += Mathf.Max(0f, deltaTime) * (Zone == BalanceZone.Yellow ? Rules.WarningFallRate : 1f);
             float fallTime = FallTime;
             if (RedTime < fallTime) return;
 
             RedTime = fallTime;
+            GaugeFall();
+        }
+
+        /// <summary>
+        /// 추락 게이지가 넘쳤을 때 먼저 묻는 곳(M2 외줄 매달림). true를 돌려주면 이 균형은 추락하지 않고 게이지만 비운다.
+        /// 줄 밖 착지·바닥선 같은 <see cref="ForceFall"/>은 거치지 않는다.
+        /// </summary>
+        public static Func<PlayerBalance, bool> GaugeFallCatcher;
+
+        void GaugeFall()
+        {
+            if (HasFallen) return;
+            if (GaugeFallCatcher != null && GaugeFallCatcher(this))
+            {
+                RedTime = 0f;
+                Value = 0f;
+                CurrentSway = 0f;
+                return;
+            }
             ForceFall();
+        }
+
+        /// <summary>
+        /// 봉에 매달려 몸이 지지되는 동안 쌓인 추락 위험을 초록 구간과 같은 속도로 천천히 줄인다.
+        /// 매달린 동안은 공중 상태라 균형 계산이 멈추므로, 봉 기능이 매 프레임 한 번 부른다. 균형 값·흔들림은 바꾸지 않는다.
+        /// </summary>
+        public void RecoverWhileSupported(float deltaTime)
+        {
+            if (!IsActive || HasFallen) return;
+            RedTime = Mathf.Max(0f, RedTime - FallTime * Rules.GreenRecoveryRate * Mathf.Max(0f, deltaTime));
         }
 
         /// <summary>균형과 상관없이 바로 추락시킨다(예: 줄이 아닌 곳에 착지). 이미 추락했으면 무시한다. <see cref="Fell"/>을 보낸다.</summary>

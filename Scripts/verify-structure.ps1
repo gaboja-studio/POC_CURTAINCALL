@@ -10,12 +10,12 @@ $failures = [System.Collections.Generic.List[string]]::new()
 $requiredFiles = @(
     'AGENTS.md', 'CLAUDE.md', '.env.example', '.mcp.json',
     'Harness/Core/Policies/context-budget.md', 'Harness/Core/Policies/knowledge-routing.md',
-    'Harness/Core/Templates/Task/meta.md', 'Harness/Core/Templates/Task/plan.md',
-    'Harness/Core/Templates/Task/todo.md', 'Harness/Core/Templates/Task/handoff.md',
+    'Harness/Core/Templates/Task/plan.md',
+    'Harness/Core/Templates/Task/todo.md',
     'Harness/Core/Templates/Task/log.md',
     'Harness/Engine/Unity/Decisions/version.md', 'Harness/Project/Facts/repository.md',
     'Docs/Domains/index.md', '.github/CODEOWNERS', '.github/PULL_REQUEST_TEMPLATE.md',
-    'Harness/Core/Templates/Task/setup.md', 'Harness/Project/Facts/team.md', '.githooks/commit-msg'
+    'Harness/Project/Facts/team.md', '.githooks/commit-msg'
 )
 foreach ($rel in $requiredFiles) {
     if (-not (Test-Path -LiteralPath (Get-RepoPath $rel) -PathType Leaf)) { $failures.Add("필수 파일 없음: $rel") }

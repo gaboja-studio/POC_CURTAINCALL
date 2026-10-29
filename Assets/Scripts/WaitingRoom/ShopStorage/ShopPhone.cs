@@ -6,19 +6,25 @@ using UnityEngine.InputSystem;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// ③ 상점 벽면 수화기. 가까이서 F를 누르면 임시 품목 목록 창이 열리고, 골라서 주문한다. ESC 또는 멀어지면 닫힌다.
+    /// ③ 상점 벽면 수화기. 가까이서 F를 누르면 상점을 열고, ESC 또는 멀어지면 닫는다.
     /// 창의 [장부 보기]로 공동 자금 사용 내역을 열어 본다(평소 화면에는 잔액만, 게임 흐름 5-2).
-    /// 창이 열린 동안 게임 입력을 막는다(커서도 풀린다). 테스트용 IMGUI 창이다.
+    /// 창이 열린 동안 게임 입력을 막는다(커서도 풀린다). 표시 어댑터가 없는 테스트 씬만 IMGUI를 사용한다.
     /// </summary>
-    public sealed class ShopPhone : MonoBehaviour, IShopTarget
+    public sealed class ShopPhone : MonoBehaviour, IShopTarget, IShopPresentation
     {
         [Tooltip("수화기에 닿는 수평 거리(m).")]
         [SerializeField, Min(.5f)] float reach = 1.8f;
+        [SerializeField] bool showLegacyUi = true;
+        public bool IsOpen => open;
 
         UIInputBlocker blocker;
         bool open;
         bool ledger;
         Vector2 scroll;
+        public Transform VisualRoot => transform;
+        public Vector3 PresentationPoint => transform.position;
+        public string ActionLabel => "수화기 들기 (상점)";
+        public bool IsAvailable => !open && WaitingRoomShop.Instance != null;
 
         void Awake()
         {
@@ -56,7 +62,7 @@ namespace CurtainCall.WaitingRoom
             if (WaitingRoomShop.Instance != null) SetOpen(true);
         }
 
-        void SetOpen(bool value)
+        public void SetOpen(bool value)
         {
             open = value;
             if (blocker != null) blocker.SetOpen(value);
@@ -66,11 +72,12 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
+            if (!showLegacyUi) return;
             var shop = WaitingRoomShop.Instance;
             if (shop == null) return;
             if (!open)
             {
-                if (ReferenceEquals(ShopReach.Focused, this))
+                if (!ShopReach.HasExternalPresentation && ReferenceEquals(ShopReach.Focused, this))
                     GUI.Label(new Rect(Screen.width / 2f - 80, Screen.height * .62f, 240, 24), "[F] 수화기 들기 (상점)");
                 return;
             }
@@ -92,9 +99,10 @@ namespace CurtainCall.WaitingRoom
             if (ledger) DrawLedger(shop);
             else
             {
+                if (!WaitingRoomShop.CanPurchase) GUILayout.Label(WaitingRoomShop.PurchaseTimeRefusal);
                 foreach (var item in shop.Catalog)
                 {
-                    GUI.enabled = item.Price <= shop.Balance;
+                    GUI.enabled = WaitingRoomShop.CanPurchase && item.Price <= shop.Balance;
                     if (GUILayout.Button($"{item.Name} — {item.Price}")) shop.RequestPurchase(item.Id);
                 }
                 GUI.enabled = true;

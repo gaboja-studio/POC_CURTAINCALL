@@ -1,0 +1,50 @@
+﻿path,category,bytes,width,height,sha256,guid,canonical,usage
+Assets/CurtainCallUI/Interaction/Editor/InteractionPromptBuilder.cs,조립 코드,26409,,,bea2ddcd3d3b80fdc261f0cad93c88295daefbbbbc08c5b168e3e1785a4191cc,8abf9e31e9ab6f7409e577096a2dae58,,제공 조립 재사용; namespace·안전 API 보정; SHA는 수정 전 원본
+Assets/CurtainCallUI/Interaction/Runtime/InteractionPromptMotion.cs,런타임 표시 코드,6596,,,7c1c3d3e7251af29a60524334b92ca67998abf77d19d96f06a97b68677bfebdc,948bb0714e505794d836ddb7f821ee7a,,제공 모션 재사용; namespace·선행 Awake 검사 보정; SHA는 수정 전 원본
+Assets/CurtainCallUI/Interaction/Runtime/InteractionPromptView.cs,런타임 표시 코드,9726,,,f1dab9cb3f77fbdbe05ab6199158278eac84a8ef009178a82b0b61682e132d56,a7b8d72edad81a944866b1ecd3420796,,제공 표시 API 재사용; namespace·선행 Awake 검사 보정; SHA는 수정 전 원본
+Assets/CurtainCallUI/Interaction/Sprites/ui_prompt_hold_fill_normal@2x.png,신규 표시,1887,128,128,07586dd0289b809c16b9f753d4d0b95f8e10bae8d3735bab21c15421445a00f5,eba7e92f71fd6354d9627a445bcd947e,Assets/_ThirdParty/curtaincall_interaction_v1/Assets/CurtainCallUI/Interaction/Sprites/ui_prompt_hold_fill_normal@2x.png,길게 누르기 흰 진행 링
+Assets/CurtainCallUI/Interaction/Sprites/ui_prompt_hold_track_normal@2x.png,신규 표시,3073,128,128,87f2018d90fbf1be1a8f2c9f03ce791a7a123558187d85d4af6485b077ebbfcf,0042e13da7ec89a43ae9431d4c4ab7b1,Assets/_ThirdParty/curtaincall_interaction_v1/Assets/CurtainCallUI/Interaction/Sprites/ui_prompt_hold_track_normal@2x.png,길게 누르기 빈 링
+Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png,재사용 표시,434,256,112,a2bee29fe410e483c2d258c34f672790a1b036a924cac0b52f50be5c8cd7f7a3,4eae5f6985762134aa12f83ed254640a,Assets/_ThirdParty/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_body_normal@2x.png,안내판 바탕
+Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_corners_normal@2x.png,재사용 표시,1485,256,112,ebb2806985c550733274b8b43fc692d8659c13cfc3891640f764f8c69e88fda9,aa0f86ce1cdbd9d439d4d5044e0f26fa,Assets/_ThirdParty/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_corners_normal@2x.png,승인 놋쇠 모서리 장식
+Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png,재사용 표시,875,256,112,916080df5d376cf6c0d07a9304c05b17c327f7a7e8fc82c8e99d2f60353520c5,4baf0fa81c70b5f4f88ddcfe8287031c,Assets/_ThirdParty/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_frame_normal@2x.png,상태별 테두리
+Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_shadow_normal@2x.png,재사용 표시,1236,256,112,28b3bdd6655ab176d3b96ead09074f46de1508c33ba3837bb5587b035951ef67,72096accfc07b3f418337b240edfeb35,Assets/_ThirdParty/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_hud_smallplate_shadow_normal@2x.png,안내판 국소 그림자
+Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png,재사용 표시,278,80,80,f826b4766885c8b595a1daedba4bbd1ff348b463d7c8a9378a7b5de30a1ecf5f,0fb994fbf1a03554c967715316880a2b,Assets/_ThirdParty/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_body_normal@2x.png,빈 일반 키캡 바탕
+Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_frame_normal@2x.png,재사용 표시,345,80,80,8472e4ebceac7919c63ef8e4fca5afb32ffac73c57ccdc4094f86ae3df3e5b42,0c38684e11bd07242aee11d8ca9aa484,Assets/_ThirdParty/curtaincall_performance_hud_v1/Assets/CurtainCallUI/PerformanceHUD/Sprites/ui_keycap_basic_frame_normal@2x.png,빈 일반 키캡 테두리
+Docs/CONTRACT_REVIEW.md,제작·검토·향후 후보,12428,,,8a16a3b5b26c459958a44102818988d665c90bb9dfc333b05ee6d7f27e3daec4,7322f705389ed2e4f95c09b227f3abec,,전체 보존; 현재 직접 표시 제외
+Docs/export_report.json,제작·검토·향후 후보,2237,,,9608602994752bcac85cb881eb9bef329aa66a963e658ff83a63034a0f2c60ef,51af1baeafd405a4cb53f93c56c5a777,,전체 보존; 현재 직접 표시 제외
+Docs/interaction_assembly.json,제작·검토·향후 후보,22124,,,6ab54200e74e437d3aa5b8ba13857731a39a11c9abd0bc8396d31abbb521e31a,81480a8b459c0864a8fb55c8a04cab62,,전체 보존; 현재 직접 표시 제외
+Docs/interaction_asset_plan.json,제작·검토·향후 후보,9226,,,8c7d87539f30875efe63776707f155110c53b96e1ab6fd4f4f8cd1182c20fefb,bb079c0e641d4424185036426faaca71,,전체 보존; 현재 직접 표시 제외
+Docs/preview_layout.json,제작·검토·향후 후보,2186,,,c35fcf702c5b7808451e7d73dd11497c9604c5af41bc323d6a8a6b983915a417,abadabd842d65974fb2e9373843cbf36,,전체 보존; 현재 직접 표시 제외
+Docs/resource_list.md,제작·검토·향후 후보,35334,,,80328c531be97af66d16ee1785df99c86d1939c688b89ca802f92ce797f683db,b95e8f9664e92f64b9af835245cd2998,,전체 보존; 현재 직접 표시 제외
+Docs/resource_manifest.csv,제작·검토·향후 후보,103114,,,83522ab8022851a4e385f2285efc239c04b197117ff44f2755d53755145dfb57,860fd0277e9cc3643a15e1e76760877b,,전체 보존; 현재 직접 표시 제외
+Docs/resource_manifest.json,제작·검토·향후 후보,222385,,,23562cf4dc48571c21378f3da4a99cc7ac9f4750c2d6a75cec5836c312583698,b8ed6dfeeb445304b875348fa5d25e05,,전체 보존; 현재 직접 표시 제외
+Docs/resource_validation.json,제작·검토·향후 후보,18863,,,61437d9091e075b199bfee5e736894c22dd6c887d007a97ac27bb25044ee2663,e94ca715b7eb3394d90d75dc2cbcc632,,전체 보존; 현재 직접 표시 제외
+Docs/sheet_layout.json,제작·검토·향후 후보,4967,,,6b136b71a85e1402d0bb032e06333f87b5cc33b32f320cc398bbde92817c5189,d8fdf5fd3959ad54d83255b0119fd08a,,전체 보존; 현재 직접 표시 제외
+Docs/UNITY_SETUP.md,제작·검토·향후 후보,18682,,,26a88e69af842f2ca2a4950b6f5373d3648bacb33e08c856cd2f820d8652138e,a87f25c2dcc4a8f4c89e0af88c5f3be7,,전체 보존; 현재 직접 표시 제외
+Previews/ui_mockup_interaction_ingame_normal@2x.png,제작·검토·향후 후보,16081757,3840,2160,cc988ffd9541a2ae679934df6f0d7e30a11851880eca956cb0beb548c90b326b,35e093a5ff3a2374fac2ca70a6c0b5b3,,전체 보존; 현재 직접 표시 제외
+Previews/ui_mockup_interaction_ingame_normal@2x.svg,제작·검토·향후 후보,3399754,,,e38acd13bcfad25d22324f0da601891f5f3f26b5d91ae5a603d35a7df130bcd1,e63413310a57d9d4d9dec370e35d3166,,전체 보존; 현재 직접 표시 제외
+Previews/ui_mockup_interaction_review_normal@2x.png,제작·검토·향후 후보,270340,3840,2160,fc6da9112937dd7aba4927be278cac7c12bfe13c73f3702fda1eed3abae61628,94384ad302ce6d64cb29a71dcca75971,,전체 보존; 현재 직접 표시 제외
+Previews/ui_mockup_interaction_review_normal@2x.svg,제작·검토·향후 후보,439579,,,791da5b429701ca876b3d81d41521b1be574bd3918949f205ee011a56d907968,fea912b1a95b1094281dcbd8d6f1ab4d,,전체 보존; 현재 직접 표시 제외
+Previews/ui_mockup_interaction_states_normal@2x.png,제작·검토·향후 후보,251202,3840,2160,405e7ca6401cb4e44c397b58617e72feeaa10e50a2a8233319be4085a7dcc8be,84192caae99ad2a449fd9bae70205068,,전체 보존; 현재 직접 표시 제외
+Previews/ui_mockup_interaction_states_normal@2x.svg,제작·검토·향후 후보,716211,,,db9bc3b25b0b8ac998d6dea4801ace29616bef9a5d70e9f4aeca56bcbc8bcf61,5e4a74c72c0ebfe418f77efea04790fd,,전체 보존; 현재 직접 표시 제외
+Previews/ui_sheet_interaction_layers_normal@2x.png,제작·검토·향후 후보,12011,768,416,41768358d9eebe5fcf05d34483e1440e9ecd3e3416a1a22b756b7cdb882db1de,6d20e6ef283fede4cb4c982bfb19ee71,,전체 보존; 현재 직접 표시 제외
+README.md,제작·검토·향후 후보,7171,,,73e0dc4bdf7d6c5f7707c84e40eaeb7bca337ca960a2e00048148b756d2e0321,1cb6d49d3a50f554fadae7b4437981e8,,전체 보존; 현재 직접 표시 제외
+Source/Fonts/LICENSE.txt,제작·검토·향후 후보,4418,,,d31ddd9f2bed32fd7e302a205cf2380ba0de6529152d239ef99cfb6f261bfc04,e3ce03d9d9adc7c48a2820babfc994f8,,전체 보존; 현재 직접 표시 제외
+Source/Fonts/Pretendard-Bold.ttf,제작·검토·향후 후보,2661020,,,6c80ee668dbd496ab839926f7b4d0cdeaeecc96ea48b90e388319944adecce52,587463453a236a941be8461cc44968ca,,전체 보존; 현재 직접 표시 제외
+Source/Fonts/Pretendard-Medium.ttf,폰트 제작 원본,2700464,,,b6a131373d42e5655e2ee339502f6e3b3d5fcdbdb7d9780f488911ce62086617,400e6408de263694eb2a91eb6ce91739,,전용 Static Medium 생성에 사용; 원본과 라이선스 전체 보존
+Source/Fonts/Pretendard-SemiBold.ttf,제작·검토·향후 후보,2670736,,,b8a862dce83e7411b6da8577a878a622e62fac402ee0bde52fe0bec9ff964322,56f17bbabf6e01842bb4ab4b6d3bd247,,전체 보존; 현재 직접 표시 제외
+Source/Generated/hold_track_imagegen_original.png,제작·검토·향후 후보,625979,1254,1254,65e5f61d06a05a12e11582035088217f78aa6adc66a130fd3860f8b73a285659,cf2d76baef3b7f745bb083af036ddb95,,전체 보존; 현재 직접 표시 제외
+Source/previous_resource_manifest.json,제작·검토·향후 후보,254381,,,0ae02f4807bb663bfab521cd965003a199bf3c8b2caa9fd6fd5e4bf353485409,c65e3a16549e3d74d931703531aaa39e,,전체 보존; 현재 직접 표시 제외
+Source/prompts.json,제작·검토·향후 후보,1924,,,98e7f1ccb15c8e9c421061c953faa53ef2673a7cd19c7bd0330b0de9dad8cf76,82f386e8c66ff0141b339e11c5a171f7,,전체 보존; 현재 직접 표시 제외
+Source/References/backstage_bezel_approved.png,제작·검토·향후 후보,22696,288,288,b15056e7fafa39de774f2b546858a9226548d64b215541d7cc16c2180b499ce1,9eeb550e2db8e074ea89d13ec2ab8b9d,,전체 보존; 현재 직접 표시 제외
+Source/References/backstage_hud_approved.svg,제작·검토·향후 후보,3410739,,,d7c68c83b539430742d1ff373a663961abf3af419f84a70189330a325c7d06f4,36a4da2142bddfa4e9df85ebb90b7e59,,전체 보존; 현재 직접 표시 제외
+Source/style_contract_v1.json,제작·검토·향후 후보,49022,,,fe867c559b909ec1bb523649db1414fab3ea7c45b86d8cddc3227c41dbe1530c,9a5459793055baf4ca80a2e28d242068,,전체 보존; 현재 직접 표시 제외
+Source/style_reference_C.png,제작·검토·향후 후보,2118077,1672,941,7f81317c961ea8b1b4ad79d24ccc16beab2588f77fc155bf33ea48419a6568bd,8a713b1534c9f4f48b58dfc1a73b33ee,,전체 보존; 현재 직접 표시 제외
+Tools/build_previews.py,제작·검토·향후 후보,8345,,,0d568f0fd992539726470fe855ec1b82622619898c9174727f1e0165f43999b5,ae1548104df5200429af175aad0d5769,,전체 보존; 현재 직접 표시 제외
+Tools/compose_helpers.py,제작·검토·향후 후보,4283,,,80a303c67d0eebd3ee91ea991a281956977aa24bbd9572b7af4d6a250d99ed01,31636bf9b87395a4f8f5201fa18de6fe,,전체 보존; 현재 직접 표시 제외
+Tools/export_interaction.cjs,제작·검토·향후 후보,4985,,,93cdeba06a26d5a896c63e68edac64f8e3a058686aea9d7052066f1bba533cf8,9965b771ff0819241a39d56bb2f1ec67,,전체 보존; 현재 직접 표시 제외
+Tools/package_bundle.py,제작·검토·향후 후보,19112,,,dec8a8e86233242e1c653ae66b556bd6e3e922c1d2565b4c1547762c65239037,fbadae7e166d3254a8548a6a4df1ea87,,전체 보존; 현재 직접 표시 제외
+Tools/README.md,제작·검토·향후 후보,6052,,,0dd07a2a12f98e8ecb3062a1cae7ec6e05f2bcf2798f12637a0962164b5c58b3,8c1ac2c61890aa34b91281f1d2a809c2,,전체 보존; 현재 직접 표시 제외
+Tools/validate_interaction.cjs,제작·검토·향후 후보,11393,,,00f68867ed3109fa997e2a1bf6d0c2f8c71eb0700de630cbe3fe5f26fcbd5b90,6f9688791b27c3d489400f9544592696,,전체 보존; 현재 직접 표시 제외
+Tools/write_assembly.py,제작·검토·향후 후보,5586,,,ea51c6fb1effab1fb195b7044259305625865344d987ffc5e64181c763c5d324,c06ad2374a7766b43b9daf9e93494876,,전체 보존; 현재 직접 표시 제외
+Tools/write_manifest.py,제작·검토·향후 후보,36062,,,f32896bf0fbdddee302ce8d03fc6ca65d0e0b6dfc7457dad7a16b0e3699c911c,a756ca196c874524e89dc40fc1387041,,전체 보존; 현재 직접 표시 제외

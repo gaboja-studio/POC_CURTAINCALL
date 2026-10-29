@@ -12,6 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f58d5f62778d945ba81f667dea44aee7, type: 3}
   m_Name: BaseGameSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.BaseGameSettings
+  frameRate:
+    limitEnabled: 1
+    maxFps: 60
   session:
     maxPlayers: 4
     minPlayers: 2
@@ -21,15 +24,25 @@ MonoBehaviour:
     firstDayTricks:
     - Tightrope
     - HumanCannon
-    restTimerMode: 1
     restDuration: 300
     guideRestDuration: 300
+    morningRest:
+      unlimited: 0
+      seconds: 300
+    noonRest:
+      unlimited: 0
+      seconds: 300
+    guideRest:
+      unlimited: 0
+      seconds: 300
+    nightMaintenance:
+      unlimited: 1
+      seconds: 300
+    timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2
   itemCarry:
-    twoArmSlots: 2
-    oneArmSlots: 1
-    backpackBonus: 2
+    baseSlots: 2
   character:
     freeMoveSpeed: 3
     courseMoveSpeed: 0.5
@@ -41,17 +54,28 @@ MonoBehaviour:
     modelHeight: 1.73
     pushSpeed: 2
     playerGap: 0.05
+    sprintSpeedMultiplier: 1.5
+    crouchSpeedMultiplier: 0.5
+    crouchHeightRatio: 0.6
+    playerColorRed: {r: 1, g: 0, b: 0, a: 1}
+    playerColorBlue: {r: 0, g: 0, b: 1, a: 1}
+    playerColorYellow: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+    playerColorGreen: {r: 0, g: 1, b: 0, a: 1}
   input:
     longPressTime: 0.5
   balance:
     greenLimit: 30
     warningLimit: 50
     fallTime: 2
+    warningFallRate: 0.33333334
+    greenRecoveryRate: 0.25
     correctionSpeed: 85
     movingSway: 15
     idleSway: 5
     swayDirectionInterval: {x: 1, y: 2}
     tiltAcceleration: 0.5
+  hudLayout:
+    balancePosition: 0
   presentation:
     maxTiltAngle: 25
     tiltFollowSharpness: 10
@@ -76,9 +100,25 @@ MonoBehaviour:
   spaceTransition:
     mode: 0
     hubScene: Lobby
-    performanceScene: DummyPerformance
-    tightropeScene: proto_0.0.2
+    performanceScene: Tightrope
+    tightropeScene: Tightrope
     humanCannonScene: HumanCannon
     waitingRoomScene: WaitingRoomBase
-    explorationScene: DummyExploration
+    keepWaitingRoomOnExit: 1
+    explorationScene: WaitingRoomBase
     escapeRouteScene: DummyEscapeRoute
+  voiceChat:
+    enabled: 1
+    useOnLan: 1
+    scenes:
+    - Start
+    - Lobby
+    - WaitingRoomBase
+    - Tightrope
+    - HumanCannon
+    conversationalDistance: 2
+    audibleDistance: 20
+    fadeModel: 2
+    fadeIntensity: 1
+    mouthHeight: 1.55
+    muteKey: 27

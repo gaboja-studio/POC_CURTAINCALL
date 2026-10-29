@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
@@ -17,7 +18,11 @@ namespace CurtainCall.Tightrope
             public HumanCannonPole Pole;
             public int Lane;
             public bool Far;
+            // 잡을 때 호스트가 고른 연결 줄(0부터). -1이면 아직 연 줄이 없다.
+            public int Opened = -1;
         }
+        const int NoLane = -1;
+        static readonly List<int> laneCandidates = new();
         readonly Station[] stations = new Station[4];
         TightropeCourse course;
         TightropeRun run;
@@ -42,10 +47,12 @@ namespace CurtainCall.Tightrope
         public Vector3 PoleFeet(int index) => course.RelayPoleGround(index);
         public ulong HolderAt(int index) => stations[index].State.Occupant;
         public float HoldRemaining(int index) => stations[index].State.IsOccupied ? Mathf.Max(0f, (float)(stations[index].State.HoldUntil - Clock)) : 0f;
-        public bool OutboundOpen => IsActive && (GroupOpen(false) || GroupOpen(true));
-        public bool ReturnOpen => IsActive && GroupOpen(true);
-        public bool OutboundWarning => OutboundOpen && !GroupHeld(false) && !GroupHeld(true);
-        public bool ReturnWarning => ReturnOpen && !GroupHeld(true);
+        // 줄은 봉을 실제로 잡고 있는 동안에만 이어진다. 놓으면 그 봉이 연 줄은 바로 끊긴다.
+        public bool OutboundOpen => IsActive && (GroupHeld(false) || GroupHeld(true));
+        public bool ReturnOpen => IsActive && GroupHeld(true);
+        // 경고: 줄을 이어 주는 봉들이 모두 유지 시간 마지막 예고 구간에 들어갔다.
+        public bool OutboundWarning => OutboundOpen && (!GroupHeld(false) || GroupInWarning(false)) && (!GroupHeld(true) || GroupInWarning(true));
+        public bool ReturnWarning => ReturnOpen && GroupInWarning(true);
         public float OutboundWarningRemaining => OutboundWarning ? Mathf.Max(GroupWarningRemaining(false), GroupWarningRemaining(true)) : 0f;
         public float ReturnWarningRemaining => ReturnWarning ? GroupWarningRemaining(true) : 0f;
         public float WarningRemaining => OutboundWarning && ReturnWarning
@@ -54,15 +61,15 @@ namespace CurtainCall.Tightrope
 
         float GroupWarningRemaining(bool far)
         {
-            if (!GroupOpen(far)) return 0f;
+            if (!GroupHeld(far)) return 0f;
             float first = float.PositiveInfinity, last = 0f;
             foreach (var station in stations)
-                if (station != null && station.Far == far && station.State.Phase == PoleSawPhase.Warning)
+                if (station != null && station.Far == far && station.State.IsOccupied && station.State.Phase == PoleSawPhase.Warning)
                 {
                     float time = Mathf.Max(0f, (float)(station.State.RearmAt - Clock));
                     first = Mathf.Min(first, time); last = Mathf.Max(last, time);
                 }
-            // 두 명 유지 설정에서는 먼저 놓은 봉의 예고가 끝나는 순간 연결 조건을 잃는다.
+            // 두 명 유지 설정에서는 먼저 끝나는 봉의 유지 시간이 다하는 순간 연결 조건을 잃는다.
             return RequiredHolders > 1 && float.IsFinite(first) ? first : last;
         }
         public string LocalFeedback => Clock < feedbackUntil ? feedback : null;
@@ -92,12 +99,11 @@ namespace CurtainCall.Tightrope
                     Quaternion.LookRotation(course.Forward));
             }
         }
-        bool GroupOpen(bool far)
+        bool GroupInWarning(bool far)
         {
-            int count = 0;
             foreach (var station in stations)
-                if (station != null && station.Far == far && station.State.Phase != PoleSawPhase.Active) count++;
-            return count >= RequiredHolders;
+                if (station != null && station.Far == far && station.State.IsOccupied && station.State.Phase == PoleSawPhase.Warning) return true;
+            return false;
         }
         bool GroupHeld(bool far)
         {
@@ -106,8 +112,50 @@ namespace CurtainCall.Tightrope
                 if (station != null && station.Far == far && station.State.IsOccupied) count++;
             return count >= RequiredHolders;
         }
-        public bool IsLaneConnected(int lane) => OutboundOpen && lane == TransitLane
-            || ReturnOpen && (lane == PoleLane(0) || lane == PoleLane(1));
+        /// <summary>
+        /// 봉마다 잡을 때 정한 줄 하나를 연다. 그 줄은 그 봉을 잡고 있는 동안에만 이어지고 놓으면 바로 끊긴다.
+        /// 열린 줄끼리는 겹치지 않는다.
+        /// </summary>
+        public bool IsLaneConnected(int lane) => LaneOwner(lane) >= 0;
+        /// <summary>이 줄을 지금 열고 있는 봉 번호. 없으면 -1.</summary>
+        public int LaneOwner(int lane)
+        {
+            if (lane < 0) return -1;
+            for (int i = 0; i < stations.Length; i++) if (stations[i].Opened == lane && StationConnected(i)) return i;
+            return -1;
+        }
+        /// <summary>봉이 마지막으로 연 줄(0부터). 없으면 -1.</summary>
+        public int OpenedLane(int index) => stations[index].Opened;
+        /// <summary>지금 이어진 줄 중 fromLane에서 가장 가까운 줄. 이어진 줄이 없으면 가운데 줄에서 기다린다.</summary>
+        public int CrossingLane(int fromLane)
+        {
+            int best = NoLane;
+            for (int lane = 0; course != null && lane < course.LaneCount; lane++)
+                if (IsLaneConnected(lane) && (best == NoLane || Mathf.Abs(lane - fromLane) < Mathf.Abs(best - fromLane))) best = lane;
+            return best != NoLane ? best : TransitLane;
+        }
+        bool StationConnected(int index)
+        {
+            var station = stations[index];
+            return IsActive && station.Opened >= 0 && station.State.IsOccupied && GroupHeld(station.Far);
+        }
+        /// <summary>
+        /// 출발 봉은 봉이 있는 줄을 빼고, 교대 봉은 전체 줄에서 고른다. 다른 봉이 지금 쓰는 줄과는 겹치지 않는다.
+        /// </summary>
+        int PickLane(int index)
+        {
+            var station = stations[index];
+            laneCandidates.Clear();
+            for (int lane = 0; lane < course.LaneCount; lane++)
+            {
+                if (!station.Far && (lane == PoleLane(0) || lane == PoleLane(1))) continue;
+                bool taken = false;
+                for (int j = 0; j < stations.Length && !taken; j++)
+                    taken = j != index && stations[j].Opened == lane && stations[j].State.IsOccupied;
+                if (!taken) laneCandidates.Add(lane);
+            }
+            return laneCandidates.Count > 0 ? laneCandidates[UnityEngine.Random.Range(0, laneCandidates.Count)] : TransitLane;
+        }
         public int HeldPole(NetworkPlayer player)
         {
             if (player == null || !IsActive) return -1;
@@ -127,8 +175,9 @@ namespace CurtainCall.Tightrope
             if (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen) return false;
             if (PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
             if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return false;
-            return Mathf.Abs(course.GetDistance(player.transform.position) - (IsFarPole(index) ? ExitDistance : EntryDistance)) <= .8f
-                && PhysicalPole(index).IsInReach(player);
+            var pole = PhysicalPole(index);
+            // 양팔 손실이어도 지상에서 2.2m 봉에 닿는 협동 역할은 유지한다.
+            return PlayerInteraction.InRange(player, pole.BarPosition(0), pole.GrabRadius(player, .75f));
         }
         public bool TryHandleInput(PlayerControlContext context, in PlayerInputFrame input)
         {
@@ -168,7 +217,7 @@ namespace CurtainCall.Tightrope
                 RestoreBinding(false);
                 bool dirty = false;
                 foreach (var station in stations)
-                    if (station.State.Phase != PoleSawPhase.Active) { station.State.Reset(); dirty = true; }
+                    if (station.State.Phase != PoleSawPhase.Active || station.Opened >= 0) { station.State.Reset(); station.Opened = NoLane; dirty = true; }
                 if (dirty && session != null && session.IsHost) { version++; Publish(); }
                 ApplyConnections(); return;
             }
@@ -188,6 +237,10 @@ namespace CurtainCall.Tightrope
                     }
                     changed |= station.State.Tick(Clock, station.Pole.WarningSeconds);
                 }
+                // 봉을 놓으면 그 봉이 연 줄을 비운다. 다음에 잡을 때 다시 고른다.
+                for (int i = 0; i < stations.Length; i++)
+                    if (stations[i].Opened >= 0 && !stations[i].State.IsOccupied)
+                    { stations[i].Opened = NoLane; changed = true; }
                 if (changed) version++;
                 if (changed || Clock >= nextSnapshot) { Publish(); nextSnapshot = Clock + .5d; }
             }
@@ -196,9 +249,10 @@ namespace CurtainCall.Tightrope
         }
         void ApplyConnections()
         {
-            int mask = (OutboundOpen ? 1 : 0) | (ReturnOpen ? 2 : 0);
+            int mask = ReturnOpen ? 1 : 0;
+            for (int lane = 0; course != null && lane < course.LaneCount; lane++) if (IsLaneConnected(lane)) mask |= 2 << lane;
             if (geometryMask == mask) return;
-            if ((mask & 2) != 0 && (geometryMask & 2) == 0)
+            if ((mask & 1) != 0 && (geometryMask < 0 || (geometryMask & 1) == 0))
             { feedback = "반대편에서 잡았어요! 출발 쪽은 봉을 놓고 건너오세요"; feedbackUntil = Clock + 4d; }
             geometryMask = mask;
             course.RefreshRelayGeometry();
@@ -222,7 +276,7 @@ namespace CurtainCall.Tightrope
         void ResetState()
         {
             ClearPendingGrabs();
-            foreach (var station in stations) station.State.Reset();
+            foreach (var station in stations) { station.State.Reset(); station.Opened = NoLane; }
             version = 0; geometryMask = -1; pendingUntil = feedbackUntil = nextSnapshot = 0d; feedback = null;
             localAborted = localAbortWaiting = false; nextAbortRetry = 0d;
         }
@@ -240,7 +294,12 @@ namespace CurtainCall.Tightrope
             RestoreBinding(false); ResetState(); PlacePoles(); version = nextVersion;
             if (session != null && session.IsHost) Publish();
         }
-        void LateUpdate() { PlaceHeldPlayers(); UpdateViews(); }
+        void LateUpdate()
+        {
+            PlaceHeldPlayers(); UpdateViews();
+            // 봉에 매달린 동안 쌓인 추락 위험을 천천히 회복한다.
+            if (binding != null) binding.Balance?.RecoverWhileSupported(Time.deltaTime);
+        }
         void OnDisable()
         {
             RestoreBinding(false); ResetState(); Disconnect();

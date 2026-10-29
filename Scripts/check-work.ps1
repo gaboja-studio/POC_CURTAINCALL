@@ -1,96 +1,50 @@
-# 작업자의 "검사해줘". 0 구역 → 1 문서 → 2 컴파일 → 3 테스트를 실행하고 결과를 Task handoff.md Verification에 적는다.
+# 묶음 완료/사용자 요청 시 필요한 검사만 실행한다. 자동 테스트는 선택한다.
 [CmdletBinding()]
-param(
-    [switch]$SkipUnity,
-    [ValidateSet('EditMode', 'PlayMode')][string]$Mode = 'EditMode'
-)
-
-$ErrorActionPreference = 'Stop'
+param([switch]$SkipUnity,[switch]$RunTests,[ValidateSet('EditMode','PlayMode')][string]$Mode='EditMode',[string]$Base,[switch]$NoRecord)
+$ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Lib/common.ps1')
-
-$task = Find-CurrentTask
-if (-not $task) {
-    $branch = (& git -C $RepoRoot branch --show-current).Trim()
-    if ($branch -match '^(fix|resource)/') { throw "Task 없는 $branch 는 handoff.md가 없습니다. 개별 검사(verify-scope·verify-fast·verify-unity -Compile)를 쓰거나 '저장해줘'로 검사와 저장을 함께 하세요." }
-    throw '현재 브랜치에 대응하는 Task가 없습니다. "Task-○○○ 시작해줘"를 먼저 하세요.'
+if (-not $Base) { $Base=Get-CheckBase }
+$paths=@(Get-ChangedPaths -Base $Base)
+$needsUnity=@($paths | Where-Object { $_ -match '^(Assets|Packages|ProjectSettings)/' }).Count -gt 0
+$before=Get-WorktreeFingerprint
+$results=[ordered]@{}
+$exitCode=0
+function Step([string]$name,[string[]]$options=@()) {
+    $out=@(& ([Environment]::ProcessPath) -NoProfile -File (Join-Path $PSScriptRoot $name) @options 2>&1)
+    $code=$LASTEXITCODE
+    $out | ForEach-Object { Write-Host "$_" }
+    return [pscustomobject]@{ Code=$code; Text=($out -join "`n") }
 }
-$today = Get-Date -Format 'MM-dd'
-$results = [ordered]@{}
-
-function Invoke-Step { param([string]$Script, [string[]]$Arguments = @())
-    # PATH에 pwsh가 없을 수 있으므로 지금 실행 중인 PowerShell을 그대로 쓴다.
-    $out = & ([System.Environment]::ProcessPath) -NoProfile -File (Join-Path $PSScriptRoot $Script) @Arguments 2>&1
-    return [pscustomobject]@{ Code = $LASTEXITCODE; Output = @($out | ForEach-Object { "$_" }) }
+$s=Step 'verify-scope.ps1' @('-Base',$Base)
+$results['안전성']=if ($s.Code) { 'FAIL' } else { 'PASS' }
+if ($s.Code) { $exitCode=1 }
+if (-not $exitCode) {
+    $s=Step 'verify-fast.ps1'
+    $results['문서/규칙']=if ($s.Code) { 'FAIL' } else { 'PASS' }
+    if ($s.Code) { $exitCode=1 }
+} else { $results['문서/규칙']='SKIPPED(선행 실패)' }
+if ($exitCode) { $results['컴파일']='SKIPPED(선행 실패)' }
+elseif (-not $needsUnity -and -not $RunTests) { $results['컴파일']='SKIPPED(Unity 변경 없음)' }
+elseif ($SkipUnity) { $results['컴파일']='SKIPPED(-SkipUnity)'; $exitCode=2 }
+else {
+    $s=Step 'verify-unity.ps1' @('-ProjectPath',$RepoRoot,'-Compile')
+    $results['컴파일']=if ($s.Code -eq 2) { 'ENV_BLOCKED(Unity 환경)' } elseif ($s.Code -ne 0 -or $s.Text -notmatch 'Compile: PASS') { 'FAIL' } else { 'PASS' }
+    if ($results['컴파일'] -ne 'PASS') { $exitCode=if ($s.Code -eq 2) { 2 } else { 1 } }
 }
-
-$steps = [System.Collections.Generic.List[object]]::new()
-$scope = Invoke-Step 'verify-scope.ps1'
-$steps.Add($scope)
-$results['구역 검사'] = if ($scope.Code -eq 0) { "PASS ($today)" } else { "FAIL — 구역 검사 실패 ($today)" }
-
-if ($scope.Code -ne 0) {
-    $results['1 문서/규칙'] = 'SKIPPED(구역 검사 실패)'
-    $results['2 컴파일'] = 'SKIPPED(구역 검사 실패)'
-    $results['3 테스트'] = 'SKIPPED(구역 검사 실패)'
-} else {
-    $fast = Invoke-Step 'verify-fast.ps1'
-    $steps.Add($fast)
-    $results['1 문서/규칙'] = if ($fast.Code -eq 0) { "PASS ($today)" } else { "FAIL — 문서/규칙 검사 실패 ($today)" }
-    if ($fast.Code -ne 0) {
-        $results['2 컴파일'] = 'SKIPPED(문서/규칙 검사 실패)'
-        $results['3 테스트'] = 'SKIPPED(문서/규칙 검사 실패)'
-    } elseif ($SkipUnity) {
-        $results['2 컴파일'] = 'SKIPPED(-SkipUnity)'
-        $results['3 테스트'] = 'SKIPPED(-SkipUnity)'
-    } else {
-        $compile = Invoke-Step 'verify-unity.ps1' @('-ProjectPath', $RepoRoot, '-Compile')
-        $steps.Add($compile)
-        if ($compile.Code -eq 2) {
-            $results['2 컴파일'] = 'ENV_BLOCKED(Unity 에디터 미연결)'
-            $results['3 테스트'] = 'SKIPPED(컴파일 단계 환경 차단)'
-        } elseif ($compile.Code -ne 0 -or ($compile.Output -join "`n") -notmatch 'Compile: PASS') {
-            $results['2 컴파일'] = "FAIL — 컴파일 단계 오류 ($today)"
-            $results['3 테스트'] = 'SKIPPED(컴파일 단계 실패)'
-        } else {
-            $results['2 컴파일'] = "PASS ($today)"
-            $unity = Invoke-Step 'verify-unity.ps1' @('-ProjectPath', $RepoRoot, '-RunTests', '-Mode', $Mode)
-            $steps.Add($unity)
-            $text = $unity.Output -join "`n"
-            if ($unity.Code -eq 2) {
-                $results['3 테스트'] = 'ENV_BLOCKED(Unity 에디터 미연결)'
-            } elseif ($text -match "Tests\($Mode\): NO_PROJECT_TESTS") {
-                $results['3 테스트'] = if ($unity.Code -eq 0) { "NO_PROJECT_TESTS ($Mode)" } else { "FAIL — 테스트 실행 오류 ($today)" }
-            } elseif ($text -match "Tests\($Mode\): total (\d+), passed (\d+), failed (\d+)") {
-                $results['3 테스트'] = if ($unity.Code -eq 0 -and [int]$Matches[1] -gt 0 -and [int]$Matches[2] -eq [int]$Matches[1] -and [int]$Matches[3] -eq 0) { "PASS ($Mode, $($Matches[2])/$($Matches[1]), $today)" } else { "FAIL — 테스트 오류 ($today)" }
-            } else {
-                $results['3 테스트'] = "FAIL — 테스트 결과 없음 ($today)"
-            }
-        }
+$results['테스트']='SKIPPED(자동 테스트 선택 안 함)'
+if ($RunTests) {
+    if ($exitCode) { $results['테스트']='SKIPPED(선행 실패·생략)' }
+    else {
+        $s=Step 'verify-unity.ps1' @('-ProjectPath',$RepoRoot,'-RunTests','-Mode',$Mode)
+        $results['테스트']=if ($s.Code -eq 2) { 'ENV_BLOCKED(Unity 환경)' } elseif ($s.Code) { 'FAIL' } elseif ($s.Text -match "Tests\($Mode\): NO_PROJECT_TESTS") { 'NO_PROJECT_TESTS' } elseif ($s.Text -match "Tests\($Mode\): total (\d+), passed (\d+), failed (\d+)" -and [int]$Matches[1] -gt 0 -and $Matches[1] -eq $Matches[2] -and [int]$Matches[3] -eq 0) { 'PASS' } else { 'FAIL(결과 없음)' }
+        if ($results['테스트'] -like 'FAIL*') { $exitCode=1 }
+        elseif ($s.Code -eq 2) { $exitCode=2 }
     }
 }
-
-$handoff = Join-Path $task.Path 'handoff.md'
-$content = Get-Content -LiteralPath $handoff -Raw
-foreach ($key in $results.Keys) {
-    $content = [regex]::Replace($content, "(?m)^- $([regex]::Escape($key)):.*$", "- ${key}: $($results[$key])")
-}
-Set-Content -LiteralPath $handoff -Value $content -Encoding utf8NoBOM -NoNewline
-
-Write-Output "검사 결과 ($($task.Id)) — handoff.md에 기록함"
-foreach ($key in $results.Keys) { Write-Output ("  {0,-10} {1}" -f $key, $results[$key]) }
-foreach ($step in $steps | Where-Object { $_.Code -ne 0 }) {
-    Write-Output '  --- 세부 ---'
-    $step.Output | Select-Object -Last 10 | ForEach-Object { Write-Output "  $_" }
-}
-if (@($results.Values | Where-Object { $_ -like 'ENV_BLOCKED*' }).Count) {
-    Write-Output "Unity 에디터에서 프로젝트 '$RepoRoot'를 열고 연결 상태를 확인한 뒤 pwsh -File Scripts/check-work.ps1 -Mode $Mode 로 다시 검사하세요."
-    exit 2
-}
-if (@($results.Values | Where-Object { $_ -like 'FAIL*' }).Count) { exit 1 }
-if ($SkipUnity) { Write-Output '필수 Unity 검증을 생략했습니다. 컴파일·테스트 통과로 처리하지 않습니다.'; exit 2 }
-if ($results['2 컴파일'] -like 'PASS*') {
-    # 검증 증거가 todo 변경까지 포함하도록 증거 저장 전에 체크한다.
-    if (Set-TodoChecked -TodoPath (Join-Path $task.Path 'todo.md') -Text '"검사해줘" 통과') { Write-Output 'todo.md "검사해줘" 통과를 체크했습니다.' }
-    Save-VerificationEvidence -Branch ((& git -C $RepoRoot branch --show-current).Trim())
-}
-exit 0
+$report='- '+(Get-Date -Format 'yyyy-MM-dd')+' 검사: '+(($results.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join '; ')
+if ((Get-WorktreeFingerprint) -ne $before) { throw '검사 중 파일이 바뀌었습니다. 현재 변경을 다시 확인하세요.' }
+Write-Output $report
+$task=Find-CurrentTask
+if ($task -and -not $NoRecord) { Add-TaskLog -TaskPath $task.Path -Text $report }
+if (-not $exitCode) { Save-VerificationEvidence -Branch ((& git -C $RepoRoot branch --show-current).Trim()) }
+exit $exitCode

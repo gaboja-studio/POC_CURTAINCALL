@@ -238,6 +238,8 @@ namespace CurtainCall.Tightrope
             course = GetComponent<TightropeCourse>();
             Results = GetComponent<TightropeResults>();
             if (Results == null) Results = gameObject.AddComponent<TightropeResults>();
+            // M2 추락 매달림은 씬을 바꾸지 않고 진행과 함께 붙인다(코스 같은 오브젝트).
+            if (course != null && !TryGetComponent(out TightropeHangSystem _)) gameObject.AddComponent<TightropeHangSystem>();
         }
 
         void OnEnable()
@@ -347,7 +349,6 @@ namespace CurtainCall.Tightrope
         /// <summary>호스트: 진행 중인 플레이어가 도착선을 넘으면 도착 완료로 바꾼다(위치는 NetworkTransform으로 호스트에 온다).</summary>
         void ServerMarkArrivals()
         {
-            if (!HasClearedRequiredGates) return;
             foreach (var player in NetworkPlayer.All)
                 if (player.State == PlayerState.Normal && IsParticipantReady(player) && course.HasReachedFinish(player.transform.position))
                     player.ServerSetState(PlayerState.Arrived);
@@ -382,7 +383,6 @@ namespace CurtainCall.Tightrope
         void RequestLocalArrival()
         {
             if (BridgeManagesPerformance || (externallyManaged && !externalStarted)) return;
-            if (!HasClearedRequiredGates) return;
             var player = NetworkPlayer.Local;
             if (State != TightropeRunState.Running || player == null || player.State != PlayerState.Normal) return;
             if (!course.HasReachedFinish(player.transform.position)) return;
@@ -454,7 +454,8 @@ namespace CurtainCall.Tightrope
             return next switch
             {
                 PlayerState.Fallen => player.State == PlayerState.Normal && (State == TightropeRunState.Waiting || State == TightropeRunState.Running),
-                PlayerState.Arrived => player.State == PlayerState.Normal && State == TightropeRunState.Running && HasClearedRequiredGates,
+                PlayerState.Arrived => player.State == PlayerState.Normal && State == TightropeRunState.Running
+                    && course.HasReachedFinish(player.transform.position),
                 _ => true,
             };
         }
@@ -735,7 +736,7 @@ namespace CurtainCall.Tightrope
         }
 
         internal bool HasCampaignArrival(NetworkPlayer player) => player != null && player.IsSpawned
-            && player.State == PlayerState.Normal && IsParticipantReady(player) && seenAtStart.Contains(player) && HasClearedRequiredGates
+            && player.State == PlayerState.Normal && IsParticipantReady(player) && seenAtStart.Contains(player)
             && course.HasReachedFinish(player.transform.position);
 
         /// <summary>공용 결과가 공개되면 고정한다. 시간대 변경·부활 전에 진단용 신체 상태도 저장한다.</summary>

@@ -14,8 +14,10 @@ namespace CurtainCall.WaitingRoom
     /// - 쇠붙이 소리: 커튼이 닫혀 이용이 시작될 때와 복구가 끝날 때.
     /// - 커튼 위 표지: 오늘 담당·이용 상태("담당자 부재중" 포함).
     /// </summary>
-    public sealed class ExpertRoomView : MonoBehaviour, IShopTarget
+    public sealed class ExpertRoomView : MonoBehaviour, IShopTarget, IShopPresentation
     {
+        /// <summary>내 캐릭터를 실제로 옮긴 뒤 알린다. bool은 복귀 여부.</summary>
+        public static event System.Action<ExpertRoomView, PlayerMover, bool> LocalMoved;
         [SerializeField] Transform curtainLeft;
         [SerializeField] Transform curtainRight;
         [SerializeField] Transform inside;
@@ -47,6 +49,10 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>커튼이 열린 정도(0 닫힘 ~ 1 다 열림). 테스트 확인용.</summary>
         public float CurtainOpen => open;
+        public Transform VisualRoot => curtainLeft != null ? curtainLeft : transform;
+        public Vector3 PresentationPoint => transform.TransformPoint(CurtainCenterLocal()) + Vector3.up;
+        public bool IsAvailable => ExpertService.Instance != null && ExpertService.Instance.Phase == ExpertRoomPhase.Booked && ExpertService.Instance.LocalIsBuyer;
+        public string ActionLabel => IsAvailable ? "전문가 대기실 들어가기" : ExpertService.Instance != null ? RefusalText(ExpertService.Instance) : "담당자 부재중";
 
         /// <summary>그 위치(발)가 커튼 앞 F 거리 안인지.</summary>
         public bool InReach(Vector3 feet) => FlatDistance(feet) <= reach;
@@ -130,8 +136,8 @@ namespace CurtainCall.WaitingRoom
         {
             if (after == ExpertRoomPhase.Working || (before == ExpertRoomPhase.Working && after == ExpertRoomPhase.Exiting)) PlayClank();
             if (!bound.LocalIsBuyer) return;
-            if (after == ExpertRoomPhase.Working) MoveLocal(inside);
-            else if (after == ExpertRoomPhase.Exiting) MoveLocal(outside);
+            if (after == ExpertRoomPhase.Working) MoveLocal(inside, false);
+            else if (after == ExpertRoomPhase.Exiting) MoveLocal(outside, true);
         }
 
         // 커튼 앞이면 누구나 F 대상이 된다(들어가는 건 구매자만, 나머지는 안내만).
@@ -154,8 +160,8 @@ namespace CurtainCall.WaitingRoom
         {
             ExpertRoomPhase.Booked => ExpertServiceBook.Explain(ExpertRefusal.NotBuyer),
             ExpertRoomPhase.Working or ExpertRoomPhase.Exiting => "다른 사람이 전문가 서비스를 받고 있습니다.",
-            _ => !ExpertService.IsNight ? ExpertServiceBook.Explain(ExpertRefusal.NotNight)
-                : "전문가 서비스는 ③ 상점 수화기에서 먼저 구매하세요.",
+            _ => !ExpertService.IsServiceTime ? ExpertServiceBook.Explain(ExpertRefusal.InPerformance)
+                : "신체 복구는 ③ 상점 수화기에서 먼저 구매하세요.",
         };
 
         float FlatDistance(Vector3 feet)
@@ -171,7 +177,7 @@ namespace CurtainCall.WaitingRoom
         }
 
         // 내 캐릭터만 옮긴다. 다른 화면은 공용 NetworkPlayer 위치 동기화로 같은 자리를 본다.
-        static void MoveLocal(Transform point)
+        void MoveLocal(Transform point, bool returned)
         {
             if (point == null) return;
             var mover = NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerMover>() : null;
@@ -179,29 +185,33 @@ namespace CurtainCall.WaitingRoom
             if (mover == null) return;
             // 공용 이동기는 출발점을 바꾸며 옮기는 방법만 연다. 마지막 순간이동이 커튼 앞(로비)이라 재시작 위치도 로비에 남는다.
             mover.SetStartPose(point.position, point.rotation);
+            if (LocalMoved != null)
+                foreach (System.Action<ExpertRoomView, PlayerMover, bool> observer in LocalMoved.GetInvocationList())
+                    try { observer(this, mover, returned); } catch (System.Exception error) { Debug.LogException(error, this); }
         }
 
         void UpdateSign(ExpertService service)
         {
             if (sign == null) return;
-            string text = service.Phase switch
-            {
-                ExpertRoomPhase.Booked => $"{WaitingRoomShop.PlayerLabel(service.Buyer)} 입장 대기",
-                ExpertRoomPhase.Working => "이용 중",
-                ExpertRoomPhase.Exiting => "복구 완료",
-                _ => !ExpertService.IsNight ? "밤 정비 때 영업"
-                    : ExpertService.Availability(ExpertKind.Medical) == ExpertRefusal.None ? "의료 전문가 대기 중"
-                    : ExpertService.Availability(ExpertKind.Facility) == ExpertRefusal.None ? "시설 담당자 근무 · 의료 부재중"
-                    : "담당자 부재중",
-            };
+            string text = StatusText;
             if (text == signText) return;
             signText = text;
             sign.text = text;
         }
 
+        public string StatusText => ExpertService.Instance == null ? "준비 중" : DescribeStatus(ExpertService.Instance);
+        static string DescribeStatus(ExpertService service) => service.Phase switch
+            {
+                ExpertRoomPhase.Booked => $"{WaitingRoomShop.PlayerLabel(service.Buyer)} 입장 대기",
+                ExpertRoomPhase.Working => "이용 중",
+                ExpertRoomPhase.Exiting => "복구 완료",
+                _ => ExpertService.IsServiceTime ? "신체 복구 영업 중" : "공연 중 휴업",
+            };
+
         void PlayClank()
         {
             if (sound == null || clank == null) return;
+            CurtainCall.Settings.LocalAudioController.Register(sound, CurtainCall.Settings.LocalAudioCategory.Sfx);
             sound.PlayOneShot(clank);
         }
 
@@ -230,7 +240,7 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             var service = ExpertService.Instance;
-            if (service == null || !ReferenceEquals(ShopReach.Focused, this)) return;
+            if (ShopReach.HasExternalPresentation || service == null || !ReferenceEquals(ShopReach.Focused, this)) return;
             var rect = new Rect(Screen.width / 2f - 230, Screen.height * .62f, 520, 24);
             GUI.Label(rect, service.Phase == ExpertRoomPhase.Booked && service.LocalIsBuyer
                 ? "[F] ⑧ 전문가 대기실 들어가기"

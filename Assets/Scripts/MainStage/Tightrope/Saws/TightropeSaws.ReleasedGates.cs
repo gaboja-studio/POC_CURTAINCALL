@@ -14,6 +14,7 @@ namespace CurtainCall.Tightrope.Saws
             public float InitialLift;
             public Transform View, Blade;
             public MeshCollider Collider;
+            public LineRenderer Path;
         }
 
         // 해결한 관문과 다음 관문은 독립적이다. 이전 톱이 이동 중이어도 다음 관문이 정상 등장한다.
@@ -42,11 +43,19 @@ namespace CurtainCall.Tightrope.Saws
             position = default;
             if (course == null || !isActiveAndEnabled || run == null || run.State != TightropeRunState.Running
                 || gate.Index < 0 || gate.Index >= (settings.cooperativeGateDistances?.Length ?? 0)) return false;
-            Vector2 motion = CooperativeGateHop.Sample((float)(CooperativeGateClock - gate.At),
+            float elapsed = (float)(CooperativeGateClock - gate.At);
+            Vector2 motion = CooperativeGateHop.Sample(elapsed,
                 settings.cooperativeGateHopDuration, settings.cooperativeGateHopDistance,
                 GameSettings.Base.Character.CapsuleHeight * settings.cooperativeGateHopHeightMultiplier,
                 settings.cooperativeGateApproachSpeed, gate.InitialLift);
-            float distance = settings.cooperativeGateDistances[gate.Index] + motion.x;
+            float origin = settings.cooperativeGateDistances[gate.Index];
+            if (ContinuesCooperativeApproach(gate.Index))
+            {
+                // 움직이는 것은 마지막 관문뿐이므로 공유된 시작 시각은 다음 관문에 덮이지 않는다.
+                origin = CooperativeGateDistanceAt(gate.Index, (float)(gate.At - cooperativeGateClockStartedAt));
+                motion.x -= settings.cooperativeGateApproachSpeed * Mathf.Clamp(elapsed, 0f, settings.cooperativeGateHopDuration);
+            }
+            float distance = origin + motion.x;
             if (distance < 0f || distance >= course.FinishDistance || !course.IsLaneUsable(gate.Lane, distance)) return false;
             position = course.GetLanePosition(gate.Lane, distance) + Vector3.up * motion.y;
             return true;
@@ -83,13 +92,14 @@ namespace CurtainCall.Tightrope.Saws
             var root = new GameObject(name).transform;
             root.SetParent(parent, false);
             float diameter = settings.cooperativeGateHeight, depth = settings.cooperativeGateThickness;
-            blade = CreateSaw(root, "IncomingSaw", null, diameter, depth, SawKind.Vertical);
+            blade = CreateSaw(root, "IncomingSaw", cooperativeGatePrefab, diameter, depth, SawKind.Vertical);
             var collision = new GameObject("DiscCollision").transform;
             collision.SetParent(root, false);
             collision.localRotation = Quaternion.Euler(0f, 0f, -90f);
             collision.localScale = new Vector3(diameter, depth * .5f, diameter);
             collider = collision.gameObject.AddComponent<MeshCollider>();
-            collider.sharedMesh = blade.Find("Blade").GetComponent<MeshFilter>().sharedMesh;
+            // Collision stays independent of the authored visual's hierarchy.
+            collider.sharedMesh = TightropeArtFit.UnitCylinder;
             collider.convex = true;
             return root;
         }
@@ -102,6 +112,7 @@ namespace CurtainCall.Tightrope.Saws
 
         static void RemoveReleasedView(ReleasedGate gate)
         {
+            if (gate.Path != null) Destroy(gate.Path.gameObject);
             if (gate.View == null) return;
             gate.View.gameObject.SetActive(false);
             Destroy(gate.View.gameObject);
