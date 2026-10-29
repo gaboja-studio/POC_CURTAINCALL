@@ -246,12 +246,14 @@ namespace CurtainCall.Tightrope
             }
             if (onRope == rope)
             {
+                if (rope && course.HasIndependentRopes) AlignToSupportingLane(lane);
                 // 공용 재시작·초기화 뒤에도 일반 바닥에서는 균형 계산을 시작하지 않는다.
                 if (!rope) SuppressUnassignedBalance();
                 return;
             }
             if (rope) SnapToLane(lane);
             Apply(rope);
+            if (rope && course.HasIndependentRopes) AlignToSupportingLane(lane);
         }
 
         void SuppressUnassignedBalance()
@@ -266,9 +268,21 @@ namespace CurtainCall.Tightrope
         void SnapToLane(int lane)
         {
             Vector3 position = player.transform.position;
-            Vector3 offset = course.GetLanePosition(lane, course.GetDistance(position)) - position;
+            Vector3 start = course.GetLanePosition(lane, 0f);
+            Vector3 forward = (course.GetLanePosition(lane, 1f) - start).normalized;
+            Vector3 offset = start + forward * Vector3.Dot(position - start, forward) - position;
             offset.y = 0f;
             if (offset.sqrMagnitude > 0.000001f) mover.Body.Move(offset);
+        }
+
+        void AlignToSupportingLane(int lane)
+        {
+            Vector3 forward = Vector3.ProjectOnPlane(course.GetLanePosition(lane, 1f)
+                - course.GetLanePosition(lane, 0f), Vector3.up).normalized;
+            if (forward.sqrMagnitude < .001f || Vector3.Dot(mover.CourseForward, forward) > .9999f) return;
+            // 이어진 꺾인 줄에서는 조작권·균형을 초기화하지 않고 실제 지지줄의 축만 갱신한다.
+            mover.CourseForwardOverride = forward;
+            SnapToLane(lane);
         }
 
         void Apply(bool rope)

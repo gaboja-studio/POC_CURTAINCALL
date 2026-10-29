@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CurtainCall.EscapeRoute
 {
@@ -11,6 +13,30 @@ namespace CurtainCall.EscapeRoute
     public sealed class EscapeDevelopmentSession : MonoBehaviour
     {
         public const float RecoverySeconds = 1f;
+        [Tooltip("이 개발 씬에서만 추락 부상·낙사·균형 붕괴를 임시 해제한다. 톱·화염 등 직접 피해는 유지한다.")]
+        [SerializeField] bool suppressFallConsequences;
+        static readonly HashSet<EscapeDevelopmentSession> activeSessions = new();
+
+        public bool SuppressFallConsequences
+        {
+            get => suppressFallConsequences;
+            set => suppressFallConsequences = value;
+        }
+
+        /// <summary>옵션을 켠 개발 씬의 추락 경로만 차단한다. 직접 위험물 피해의 상태 가드로 사용하지 않는다.</summary>
+        public static bool FallConsequencesSuppressed(Component source)
+        {
+            if (source == null) return false;
+            var scene = source.gameObject.scene;
+            // NGO 영속 플레이어도 현재 플레이 중인 개발 씬의 명시적 옵션을 따른다.
+            if (scene.name == "DontDestroyOnLoad") scene = SceneManager.GetActiveScene();
+            foreach (var candidate in activeSessions)
+                if (candidate != null && candidate.isActiveAndEnabled && candidate.suppressFallConsequences
+                    && candidate.gameObject.scene == scene) return true;
+            return false;
+        }
+
+        void OnEnable() => activeSessions.Add(this);
         NetworkSessionManager session;
         EscapeLocalPracticeConnector connector;
         IDisposable minimumPlayers;
@@ -75,6 +101,7 @@ namespace CurtainCall.EscapeRoute
 
         void OnDisable()
         {
+            activeSessions.Remove(this);
             StopAllCoroutines();
             Ready = false;
             recoverAt = -1;

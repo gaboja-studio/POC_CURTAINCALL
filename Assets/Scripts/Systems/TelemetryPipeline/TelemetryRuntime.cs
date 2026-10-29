@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using CurtainCall.Campaign;
 using CurtainCall.Network.Session;
 using CurtainCall.Network.PlayerSync;
@@ -49,9 +50,11 @@ namespace CurtainCall.Telemetry.Pipeline
         public string LastUploadError { get; private set; }
         public string LastUploadAt { get; private set; }
         public int PendingBatchCount => outbox?.PendingBatchCount ?? 0;
-        internal string PendingPath => outbox?.NextRelayPath();
+        internal Task<DurableOutbox.RelayPreparation> PrepareRelayAsync(CancellationToken cancellation)
+            => outbox != null ? outbox.PrepareRelayAsync(cancellation) : Task.FromResult(new DurableOutbox.RelayPreparation());
         internal bool AcceptRelay(string raw) => outbox != null && outbox.AcceptRelay(raw);
-        internal bool AcknowledgeRelay(string path, string id, string hash, int count) => outbox != null && outbox.Acknowledge(path, id, hash, count);
+        internal Task<bool> AcknowledgeRelayAsync(string path, string id, string hash, int count, CancellationToken cancellation)
+            => outbox != null ? outbox.AcknowledgeRelayAsync(path, id, hash, count, cancellation) : Task.FromResult(false);
         public bool RemoteConfigured => !string.IsNullOrEmpty(endpoint) && !string.IsNullOrEmpty(token);
         public string CurrentRunId => localRun;
         public string CurrentAttemptId { get; private set; }

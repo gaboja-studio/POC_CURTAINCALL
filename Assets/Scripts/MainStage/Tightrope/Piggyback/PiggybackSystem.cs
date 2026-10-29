@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -545,7 +546,7 @@ namespace CurtainCall.Tightrope
                     {
                         if (hangs != null && TightropeCourse.Current != null)
                             hangs.ServerTryHang(upper, TightropeCourse.Current.GetDistance(upper.transform.position));
-                        else upper.ServerSetState(PlayerState.Fallen);
+                        else if (!EscapeDevelopmentSession.FallConsequencesSuppressed(upper)) upper.ServerSetState(PlayerState.Fallen);
                     }
                     (dropped ??= new List<ulong>()).Add(up);
                 }

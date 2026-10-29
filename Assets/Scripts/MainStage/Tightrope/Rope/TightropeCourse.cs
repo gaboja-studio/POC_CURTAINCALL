@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.Campaign;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
@@ -189,12 +190,17 @@ namespace CurtainCall.Tightrope
         /// 공중 여부는 이동 부품이 판단하며, 목마 위층에는 사용하지 않는다.
         /// </summary>
         public bool TryGetSupportingRope(PlayerMover mover, out int lane)
+            => TryGetSupportingRopeAt(mover, mover != null ? mover.transform.position : Vector3.zero, out lane);
+
+        /// <summary>원격 착지 요청 좌표도 소유자의 표면 전환과 같은 몸통·지지면 기준으로 검사한다.</summary>
+        public bool TryGetSupportingRopeAt(PlayerMover mover, Vector3 feet, out int lane)
         {
             lane = NoLane;
             if (mover == null || mover.Body == null || !mover.Body.enabled || ropeSurfaces.Count == 0) return false;
-            Vector3 feet = mover.transform.position;
-            if (Mathf.Abs(feet.y - RopeHeightAt(feet)) > Shape.RopeHeightTolerance) return false;
-            float radius = Mathf.Max(0.01f, mover.BodyRadius * 0.9f);
+            if (!float.IsFinite(feet.x) || !float.IsFinite(feet.y) || !float.IsFinite(feet.z)) return false;
+            // 줄 모서리 착지는 실제 캡슐 반지름 전체가 닿는다. 축소한 탐색구나
+            // 최근접 중심선의 높이로 먼저 거르면 다른 높이의 인접 줄에서 오판한다.
+            float radius = Mathf.Max(0.01f, mover.BodyRadius);
             Vector3 origin = feet + Vector3.up * (radius + 0.1f);
             float distance = Shape.RopeHeightTolerance + 0.1f;
             int count = Physics.SphereCastNonAlloc(origin, radius, Vector3.down, supportHits,
@@ -210,10 +216,15 @@ namespace CurtainCall.Tightrope
             {
                 var hit = hits[i];
                 if (hit.collider == null || hit.collider.transform.IsChildOf(mover.transform)
-                    || hit.normal.y < minimumNormal || hit.distance <= .0001f) continue;
+                    || hit.distance <= .0001f) continue;
                 // 검사는 발보다 0.1m 위에서 시작한다. 처음부터 겹친 몸/절단 조각은
                 // 발 아래 지지면이 아니므로 거리 0의 가짜 바닥으로 선택하지 않는다.
                 int candidate = ropeSurfaces.TryGetValue(hit.collider, out int ropeLane) ? ropeLane : NoLane;
+                // 외줄은 얇은 지지면이라 캡슐이 모서리에 걸치면 법선이 가파르다.
+                // 실제 위쪽 접촉만 받아 중앙에 인계하며, 옆면/아랫면은 허용하지 않는다.
+                float requiredNormal = useSceneGeometry && candidate != NoLane ? .05f : minimumNormal;
+                if (hit.normal.y < requiredNormal) continue;
+                if (candidate != NoLane && Mathf.Abs(feet.y - hit.point.y) > Shape.RopeHeightTolerance) continue;
                 if (hit.distance > closest + 0.001f) continue;
                 // 겹친 바닥과 줄의 높이가 같다면 안전한 일반 바닥을 우선한다.
                 if (Mathf.Abs(hit.distance - closest) <= 0.001f && lane == NoLane) continue;
@@ -421,12 +432,22 @@ namespace CurtainCall.Tightrope
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return;
             if (TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(player)) return; // 줄 아래에 매달려 버티는 중
             if (player == null || player.State != PlayerState.Normal) return;
-            if (player.transform.position.y >= RopeHeightAt(player.transform.position) - Shape.FallDepth) return;
+            if (!player.TryGetComponent(out PlayerMover mover) || !IsBelowFallDepth(mover)) return;
 
             if (player.TryGetComponent(out PlayerBalance balance) && balance.enabled)
                 balance.ForceFall(); // 이미 추락했으면 무시된다. Fell → RequestState(Fallen)
             else
                 player.RequestState(PlayerState.Fallen);
+        }
+
+        bool IsBelowFallDepth(PlayerMover mover)
+        {
+            if (mover == null) return false;
+            if (EscapeDevelopmentSession.FallConsequencesSuppressed(this)) return false;
+            // 복합 코스의 낮은 줄 착지/그네·대포 인계는 옆의 높은 줄 바닥선으로
+            // 사망시키지 않는다. 실제 허공 추락은 기존 깊이 판정을 계속 사용한다.
+            if (useSceneGeometry && (!mover.Simulated || TryGetSupportingRope(mover, out _))) return false;
+            return mover.transform.position.y < RopeHeightAt(mover.transform.position) - Shape.FallDepth;
         }
 
         void OnValidate()

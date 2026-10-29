@@ -166,6 +166,53 @@ namespace CurtainCall.Telemetry.Pipeline
             { Path = path; Body = body; Error = error; }
         }
 
+        public sealed class RelayPreparation
+        {
+            public string Path { get; }
+            public string Raw { get; }
+            public string BatchId { get; }
+            public string Hash { get; }
+            public int EventCount { get; }
+            public Exception Error { get; }
+            internal RelayPreparation(string path = null, string raw = null, string batchId = null,
+                string hash = null, int eventCount = 0, Exception error = null)
+            { Path = path; Raw = raw; BatchId = batchId; Hash = hash; EventCount = eventCount; Error = error; }
+        }
+
+        // 참가자도 업로더와 마찬가지로 봉인 파일 탐색·검증·해시를 메인스레드에서 실행하지 않는다.
+        public Task<RelayPreparation> PrepareRelayAsync(CancellationToken cancellation = default)
+            => Task.Run(() =>
+            {
+                try
+                {
+                    cancellation.ThrowIfCancellationRequested();
+                    string path = NextRelayPath();
+                    if (path == null) return new RelayPreparation();
+                    string id = System.IO.Path.GetFileNameWithoutExtension(path);
+                    if (!fileMutations.TryAdd(id, 0)) return new RelayPreparation();
+                    try
+                    {
+                        string raw = File.ReadAllText(path);
+                        var batch = LogJson.Parse<LogBatch>(raw);
+                        if (!TransportPolicy.RelayBatch(batch)) return new RelayPreparation();
+                        string hash = Sha256(raw);
+                        cancellation.ThrowIfCancellationRequested();
+                        return new RelayPreparation(path, raw, batch.batchId, hash, batch.events.Count);
+                    }
+                    finally { fileMutations.TryRemove(id, out _); }
+                }
+                catch (OperationCanceledException) { return new RelayPreparation(); }
+                catch (FileNotFoundException) { return new RelayPreparation(); }
+                catch (Exception error) { return new RelayPreparation(error: error); }
+            });
+
+        public Task<bool> AcknowledgeRelayAsync(string path, string batchId, string hash, int eventCount,
+            CancellationToken cancellation = default) => Task.Run(() =>
+            {
+                try { cancellation.ThrowIfCancellationRequested(); return Acknowledge(path, batchId, hash, eventCount, cancellation); }
+                catch { return false; }
+            });
+
         // active와 Unity 객체는 작업 스레드에서 접근하지 않는다. 봉인 파일과 동시성 컬렉션만 사용한다.
         public Task<UploadPreparation> PrepareUploadAsync(string token, CancellationToken cancellation = default)
             => Task.Run(() =>
