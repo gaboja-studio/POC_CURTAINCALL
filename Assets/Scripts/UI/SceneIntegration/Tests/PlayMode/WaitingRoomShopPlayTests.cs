@@ -84,7 +84,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var slots = Member(inventory, "slots");
             Assert.AreEqual(1f, ((Component)Call(slots, "GetSlot", 0)).GetComponent<CanvasGroup>().alpha);
             Assert.AreEqual(1f, ((Component)Call(slots, "GetSlot", 1)).GetComponent<CanvasGroup>().alpha);
-            Assert.AreEqual(.35f, ((Component)Call(slots, "GetSlot", 2)).GetComponent<CanvasGroup>().alpha);
+            Assert.AreEqual(2, Get(slots, "SlotCount"));
+            Assert.IsNull(Call(slots, "GetSlot", 2), "HUD는 두 슬롯만 표시합니다.");
             Assert.AreEqual(2, ((IEnumerable)Call(carry, "Held", me)).Cast<object>().Count());
             Assert.AreEqual(0, ((IEnumerable)Get(carry, "Floor")).Cast<object>().Count());
             Call(shop, "RequestPurchase", (string)Member(catalog[0], "Id"));
@@ -176,7 +177,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W2_MedicalReservation_UsesActualLimbsCostAndRoomState()
+        public IEnumerator W2_BodyRestore_ChoosesPartsAndRaisesTeamPrice()
         {
             yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
             SeedShopFunds(1000);
@@ -185,43 +186,46 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");
             var view = Get(adapter, "View");
             var service = Find("CurtainCall.WaitingRoom.ExpertService");
-            long cost = (long)Get(service, "LocalMedicalCost");
-            Assert.Greater(cost, 0);
-            Assert.AreEqual(cost.ToString(), Get(Entry(adapter, "medical"), "PriceText"));
-            Assert.AreEqual(false, Get(Entry(adapter, "facility"), "Available"));
+            // 외팔(잃은 팔다리 3)이면 1~3개 항목이 있고, 처음 1개당 가격은 기본가다. 시설 서비스는 없다.
+            long unit = (long)Get(service, "MedicalPrice");
+            Assert.AreEqual(100L, unit);
+            for (int parts = 1; parts <= 3; parts++)
+                Assert.AreEqual((unit * parts).ToString(), Get(Entry(adapter, "medical:" + parts), "PriceText"));
+            Assert.IsFalse(Entries(adapter).Any(e => ((string)Get(e, "Id")) == "facility"));
             Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Services"));
-            Call(view, "SelectEntry", "medical");
+            Call(view, "SelectEntry", "medical:2");
             Call(Get(Private(view, "primaryButton"), "onClick"), "Invoke");
             yield return new WaitForSecondsRealtime(.35f);
             Assert.AreEqual("Booked", Get(service, "Phase").ToString());
-            Assert.AreEqual(1000 - cost, Get(service, "Balance"));
-            Assert.AreEqual(false, Get(Entry(adapter, "medical"), "Available"));
+            Assert.AreEqual(2, Get(service, "BookedLimbs"));
+            Assert.AreEqual(1000 - unit * 2, Get(service, "Balance"));
+            Assert.AreEqual(1, Get(service, "TeamUses"), "2개를 고쳐도 팀 이용은 1회");
+            Assert.AreEqual(unit + 25, Get(service, "MedicalPrice"), "다음 1개당 가격 +25");
+            Assert.AreEqual(unit * 2, Get(service, "BookedCost"));
+            Assert.AreEqual(false, Get(Entry(adapter, "medical:1"), "Available"));
             Assert.IsNull(Get(view, "PendingRequest"));
             Assert.IsTrue(Entries(adapter).Any(e => ((string)Get(e, "Id")).StartsWith("fund:")));
         }
 
         [UnityTest]
-        public IEnumerator W2_FacilityAdjustment_DisablesRepeatAndAbsentMedical()
+        public IEnumerator W2_BodyRestore_IsAvailableDuringRestTimeWithoutExpertSchedule()
         {
-            yield return Launch(2, "Night", 0, "", "WaitingRoomBase");
+            // M2: 전문가 일정 삭제. 2일차(옛 시설 담당자 날) 아침 쉬는 시간에도 신체 복구를 쓴다.
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
             SeedShopFunds(1000);
+            var local = Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            Call(local, "ServerCut", 1);
             yield return OpenShop();
             var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");
             var view = Get(adapter, "View");
             var service = Find("CurtainCall.WaitingRoom.ExpertService");
-            Assert.AreEqual(false, Get(Entry(adapter, "medical"), "Available"));
+            Assert.AreEqual(true, Get(Entry(adapter, "medical:1"), "Available"), (string)Get(Entry(adapter, "medical:1"), "UnavailableReason"));
+            Assert.IsFalse(Entries(adapter).Any(e => ((string)Get(e, "Id")) == "medical:2"), "잃은 수(1)보다 많이 고를 수 없다");
             Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Services"));
-            Call(view, "SelectEntry", "facility");
-            Call(Get(Private(view, "secondaryButton"), "onClick"), "Invoke");
+            Call(view, "SelectEntry", "medical:1");
+            Call(Get(Private(view, "primaryButton"), "onClick"), "Invoke");
             yield return new WaitForSecondsRealtime(.35f);
-            Assert.AreEqual("Weaken", Get(service, "Obstacle").ToString());
-            Assert.AreEqual(3, Get(service, "ObstacleDay"));
-            Assert.AreEqual(1000 - (long)Get(service, "FacilityPrice"), Get(service, "Balance"));
-            Assert.AreEqual(false, Get(Entry(adapter, "facility"), "Available"));
-            Assert.IsNull(Get(view, "PendingRequest"));
-            Call(view, "RequestAction", "strengthen");
-            Assert.AreEqual("Weaken", Get(service, "Obstacle").ToString());
-            Assert.AreEqual(1000 - (long)Get(service, "FacilityPrice"), Get(service, "Balance"));
-        }
-    }
+            Assert.AreEqual("Booked", Get(service, "Phase").ToString());
+            Assert.AreEqual(900L, Get(service, "Balance"));
+        }    }
 }

@@ -22,7 +22,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
         IEnumerator ReadyToMorning(int day, object ui)
         {
-            Call(Get(Private(ui, "readyButton"), "onClick"), "Invoke");
+            // M2: 준비 완료는 숙소 침대 F(Task-078). 스케줄표 화면에는 준비 버튼이 없다.
+            Assert.IsFalse(((Component)Private(ui, "readyButton")).gameObject.activeSelf);
+            Call(Find("CurtainCall.WaitingRoom.NightBed"), "Interact");
             Call(Get(ui, "View"), "Close");
             float until = Time.realtimeSinceStartup + 15;
             while ((Field(State, "Phase").ToString() == "Night" || Field(State, "Phase").ToString() == "Dawn")
@@ -40,7 +42,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var schedule = Find("CurtainCall.WaitingRoom.ScheduleBoard");
             var book = Get(schedule, "Book");
             Assert.AreEqual(3, ((IEnumerable)Get(Call(ui, "Build"), "Days")).Cast<object>().Count());
-            Assert.AreEqual(false, Get(Private(ui, "readyButton"), "interactable"));
             Call(ui, "Confirm");
             Assert.AreEqual(false, Get(book, "IsConfirmedTonight"));
             var edits = (Array)Private(ui, "editButtons");
@@ -94,7 +95,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(true, Get(book, "IsConfirmedTonight"));
             Assert.AreEqual("", Call(book, "Get", 4, 0));
             Assert.IsFalse(((Component)Private(ui, "confirmButton")).gameObject.activeSelf);
-            Assert.AreEqual(true, Get(Private(ui, "readyButton"), "interactable"));
             // Older wire data must not reintroduce day-four performances or a confirmation gate.
             var oldSlots = (string[])Call(book, "ExportSlots"); oldSlots[6] = "Tightrope"; oldSlots[7] = "HumanCannon";
             Assert.AreEqual(true, Call(book, "Load", 3, false, oldSlots, new bool[4]));

@@ -58,7 +58,6 @@ namespace CurtainCall.SpaceLink.Tests
         IEnumerator OpenPhysicalRoom()
         {
             SetMode("Single");
-            SetTimer("FromLeavingWaitingRoom");
             var spaces = Get(Settings("Base"), "SpaceTransition");
             Override(spaces, "waitingRoomScene", "WaitingRoomBase");
             Override(spaces, "explorationScene", "WaitingRoomBase");
@@ -82,7 +81,9 @@ namespace CurtainCall.SpaceLink.Tests
 
         static Type GameType(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
         static object Get(object target, string name) => target.GetType().GetProperty(name) is PropertyInfo p ? p.GetValue(target) : target.GetType().GetField(name).GetValue(target);
-        static object Call(object target, string name, params object[] args) => target.GetType().GetMethod(name).Invoke(target, args);
+        // 같은 이름의 오버로드(예: SetSetlist·Set)는 인수 개수로 고른다.
+        static object Call(object target, string name, params object[] args) => target.GetType().GetMethods()
+            .Single(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(target, args);
         static object Static(string type, string name) => GameType(type).GetProperty(name).GetValue(null);
         static object Settings(string name) => Static("CurtainCall.Settings.GameSettings", name);
         static string Active => SceneManager.GetActiveScene().name;
@@ -99,9 +100,6 @@ namespace CurtainCall.SpaceLink.Tests
 
         void SetMode(string mode) => Override(Get(Settings("Base"), "SpaceTransition"), "mode",
             Enum.Parse(GameType("CurtainCall.Settings.SpaceTransitionMode"), mode));
-
-        void SetTimer(string mode) => Override(Get(Settings("Base"), "Run"), "restTimerMode",
-            Enum.Parse(GameType("CurtainCall.Settings.RestTimerMode"), mode));
 
         IEnumerator Signal(string method, params object[] args)
         {
@@ -183,7 +181,7 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.IsFalse(scene.GetRootGameObjects().Any(g => g.name == "WaitingRoom" || g.name == "대기실"));
             Assert.IsTrue(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomGreybox").activeSelf);
             Assert.IsFalse(scene.GetRootGameObjects().Single(g => g.name == "WaitingRoomTestPanels").activeSelf);
-            Assert.AreEqual("WaitingForExit", Get(State, "Timer").ToString());
+            Assert.AreEqual("Running", Get(State, "Timer").ToString(), "M2: 쉬는 시간 시작부터 흐른다");
             var spawnType = GameType("CurtainCall.Network.PlayerSync.PlayerSpawnPoints");
             Assert.AreEqual(1, Object.FindObjectsByType(spawnType, FindObjectsSortMode.None).Length);
             for (int slot = 0; slot < 4; slot++)
@@ -390,7 +388,8 @@ namespace CurtainCall.SpaceLink.Tests
             }
             Assert.AreEqual("None", Call(board, "Confirm").ToString());
             var scene = SceneManager.GetActiveScene();
-            Assert.IsTrue((bool)Call(board, "RequestReady", true));
+            // M2: 준비 완료는 숙소 침대 F(Task-078).
+            Call(Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.NightBed")), "Interact");
             Assert.AreEqual("Dawn", Phase);
             Assert.IsTrue((bool)Get(view, "IsOpen"));
             yield return new WaitForSecondsRealtime(.2f);
@@ -400,7 +399,7 @@ namespace CurtainCall.SpaceLink.Tests
             while (Phase == "Dawn" && Time.realtimeSinceStartup < morningDeadline) yield return null;
             yield return WaitIdle();
             Assert.AreEqual("RestTime", Phase);
-            Assert.AreEqual("WaitingForExit", Get(State, "Timer").ToString());
+            Assert.AreEqual("Running", Get(State, "Timer").ToString());
             Assert.AreEqual(scene.handle, SceneManager.GetActiveScene().handle);
             Assert.IsFalse((bool)Get(door, "IsLocked"));
             var watch = Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.WaitingRoomExitWatch"));

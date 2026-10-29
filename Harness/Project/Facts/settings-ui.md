@@ -1,8 +1,8 @@
 ---
-summary: C14 설정 창·공용 탭/슬라이더/토글의 독립 조립과 staged 적용 토큰 계약
+summary: C14 원본과 실제 게임용 v2 프리팹·5탭 설정/입력/음성 어댑터 계약
 status: active
-updated: 2026-10-20
-source: Task-20261019-061
+updated: 2026-10-29
+source: Task-20261019-061, Task-20261027-076, Task-20261029-078
 ---
 
 # C14 설정 UI
@@ -19,7 +19,26 @@ source: Task-20261019-061
 - 기존 `Assets/Scripts/Systems/Settings/`는 게임 규칙 설정이며 UI 소유 구역이 아니다.
 - private `curtaincall_settings_v1` 제공 Runtime 원위치 사용. 복제 버튼만 `CurtainCall.UI.SettingsV1.CommonButtons`, 나머지 설정/공용 컨트롤은 `CurtainCall.UI`이다. 전체 원본/PNG/GUID/자료 보존, 재사용16 Sprite·기존 폰트 읽기 전용/신규20 importer만 보정한다.
 
-## 표시·입력 계약
+## 실제 게임 연결 (Task-076, 2026-10-28)
+- 아래 C14 v1 원본 계약은 보존한다. 실제 게임은 `CommonSettingsUI`가 `Prefabs/UIs/SettingsUiV2/C14_Settings_v2`를 Resources로 로드하며 기존3탭 인스턴스는 숨긴다. 이전 런타임 생성형 `SettingsTabsView`/`SettingsExtensionPanel`은 실행 경로에서 제외했다. 게임 탭은 런 진행 중만 활성, 기존 씬 참조/Configure 계약은 유지한다.
+- 그래픽은 화면3모드·지원 해상도·FPS30/60기본/90/120/144/165/240/무제한. `ClientSettings` PC별 저장/기존 bool 이관, VSync0·시작/변경 시 FPS 적용(공통 Base 매 프레임 강제 제거), 에디터 Screen 변경 없음. 모든 탭 draft는 적용 때 저장·취소 때 폐기.
+- 조작은 `InputBindingPreferences` Common 키10행·복합 축 part 재지정/기본값 복원/저장, 기존·새 Reader에 적용. 이동 표시만 전방→후방 순서다. 사용 중인 키는 조작 이름을 표시한 예/아니오 확인 후 기존 키를 비우고 옮긴다(아니오/ESC는 보존). 미할당 키가 하나라도 있으면 탭과 무관하게 적용 차단, 빈 행은 계속 재지정 가능하다. 입력 캡처는 View draft만 바꾸고 적용 시에만 검증·저장·Reader 반영한다. ESC·M·마우스 시점·게임패드는 고정.
+- 사운드는 전체/BGM/SFX·전체 음성/내 마이크/팀원별·마이크on/off·Vivox 입력/출력 목록/선택. `LocalAudioController.Register`로 BGM/SFX 분류, 현재 BGM 재생 코드 없음. 게임 출력 기기는 OS가 관리한다.
+- 사용자 결정: 런 포기는 온라인 호스트 전용(오프라인 허용). 대기실 쉬는 시간/밤 재확인 후 `CampaignRun.AbandonRun`→정식 실패→다음 세대1일차 첫 공연, 방 유지. 권한/상태/전환·오래된 확인 재검사. 기타는 확인된 개발자·에셋 출처/Pretendard OFL 원문, BM 등 미확인 라이선스는 확인 중 표시.
+- 탭별 초기화 후 컴파일·SettingsUpgrade4/4·CommonMenu3/3(실제 포인터 합성·시작/로비/대기실/공연장) 통과, 1920×1080 실행 캡처 확인. 이전 입력17/17·음량7/7·런 상태6/6·그래픽21/21은 앞 묶음 결과다. 실제2인·장치 전환·PC 빌드 화면/재실행·게임패드 실기와 전체 라이선스 검토는 미완료.
+- 화면/FPS·키·전체/BGM/SFX·마이크/전체 수신 음량·음소거·음성 기기 선택은 적용 시 PlayerPrefs에 PC별 저장한다. 개별 팀원 음량/음소거는 참가자 ID별 메모리에만 보관하며 앱 재실행 영구 저장은 아니다.
+- 각 탭 본문 끝의 중립 스타일 초기화는 해당 탭 draft만 복원한다. 게임/기타는 초기화할 값이 없어 비활성. 그래픽은 전체 화면 창·기본 지원 해상도·60FPS, 조작은 원본 키, 사운드는 전체80%·나머지100%·마이크 켜기·수신/개별 음소거 해제·음성 입출력 시스템 기본 기기. 적용 전 실제 설정/저장은 불변이며 취소/ESC로 폐기한다.
+- 음성 시스템 기본 기기는 SDK 안정 ID `Default System Device`로 지정한다. Vivox 미준비 상태에서는 적용 시 저장된 기기 key만 삭제하고 로그인하지 않으며, 준비 상태에서는 기존 SDK 장치 전환 경로를 사용한다. 물리 기기 전환 실기는 미확인.
+
+## v2 제품 조립·서비스 계약
+- 제품은 `Assets/Resources/Prefabs/UIs/SettingsUiV2/C14_Settings_v2.prefab`, 패키지는 private `curtaincall_settings_v2`. 공용5클래스를 `CurtainCall.UI.SettingsV2`로 격리해 v1과 공존한다. Editor의 `SettingsPanelBuilder.BuildProject`에 Medium/SemiBold/Bold 폰트와 출력 폴더를 공급한다.
+- 944×552·좌상단 기준(488,272), 5탭·840×240 본문 스크롤·고정 푸터, 전체 화면 딤 없음. 어댑터 Canvas는1920×1080/Match .5/PPU100/sorting315이며 게임 일시정지·별도 EventSystem은 만들지 않는다.
+- Sprite43개는 private 정본(기존36+신규7) 참조. Medium/SemiBold는 재사용, Bold는 `Fonts/SettingsUi/Pretendard-Bold SDF.asset` Static512·제목6문자(설정/런 포기). 기존 WorldLabels Bold에는 런·포가 없어 재사용하면 누락된다. 새 제목은 사용 전 glyph 검사가 필요하다.
+- `SettingsCatalog` 실제5페이지/안정된 choice ID/바인딩 GUID·경로를 제공한다. 탭별 draft는 유지하며 dirty일 때만 Apply, 성공 응답 때 닫힌다. Apply/Rebind/Action은 요청 토큰과 어댑터 세션으로 늦은 응답을 거절한다. 기본 키 복원·장치 조회는 확인창 없이 실행하되 복원값 저장은 Apply 때만 한다.
+- View의 `IsExternallyRoutedCancel`을 SettingsRelay가 확인하여 CommonMenuUI만 ESC를 한 번 전달한다. Closed에서 구독/입력 draft를 정리하고 기존 메뉴·커서·InputGate를 복원한다. 런 포기 확인 시점의 상태를 캡처하며 실행 때 기존 권한/상태 검사를 유지한다.
+- 생성 중 CanvasGroup 누락은 Unity Object에 대한 `??` 사용이 원인이었다. 명시적 Unity null 검사로 생성하고, 직렬화 참조/missing script0을 확인한다. 탭 선택은 대상 Toggle을 먼저 켠 뒤 전체 visual을 갱신해 무통지 ToggleGroup 전환의 잔상 강조를 방지한다.
+
+## v1 표시·입력 계약
 - 1920×1080/Match .5/PPU100 Canvas, Sprite PPU200. 패널784×552·stage 등비 축소, 전체 화면 딤/입력 차단판 없음. 외부 HUD 입력 차단·일시정지·커서 소유는 제공하지 않는다.
 - Native Toggle/ToggleGroup 탭, Slider, Toggle와 별도 visual/focus. 값 초기화는 WithoutNotify. Slider handle의 Y sizeDelta=0으로 실제32×32를 유지하며 좌우 Navigation은 비워 native 값 변경을 사용한다.
 - Play 초기 Hidden, `OpenDemo()`는 명시적 예시만. 실제 항목/기본값/범위/단위·저장/적용/취소 정책 결정이 아니다.

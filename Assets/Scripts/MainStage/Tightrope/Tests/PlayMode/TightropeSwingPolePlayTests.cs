@@ -19,12 +19,12 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var pole = Call(Static("CurtainCall.Tightrope.TightropeSwingPole", "Current"), "ForLane", 1);
             Assert.IsTrue((bool)Call(pole, "CanGrabPole", player));
             var visual = (Transform)Get(pole, "PoleVisual");
-            AssertExistingPoleInteraction(visual, visual.position, true);
+            yield return AssertExistingPoleInteraction(visual, visual.position, true);
             Call(mover, "SetStartPose", player.transform.position - (Vector3)Get(course, "Forward") * 6f, course.transform.rotation);
-            AssertExistingPoleInteraction(visual, visual.position, false);
+            yield return AssertExistingPoleInteraction(visual, visual.position, false);
         }
 
-        void AssertExistingPoleInteraction(Transform visual, Vector3 point, bool expected, string action = "봉 잡기")
+        IEnumerator AssertExistingPoleInteraction(Transform visual, Vector3 point, bool expected, string action = "봉 잡기")
         {
             var ui = (Component)UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.UI.SceneIntegration.CommonInteractionUI"));
             Assert.IsNotNull(ui, "저장된 공연 씬의 공통 상호작용 UI를 재사용한다.");
@@ -39,6 +39,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 camera.transform.position = point - (Vector3)Get(course, "Forward") * 2f + Vector3.up * .25f;
                 camera.transform.LookAt(point);
                 inputReader.enabled = true;
+                yield return Until(() => !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 2f, "상호작용 UI 입력 재개");
+                camera.transform.position = point - (Vector3)Get(course, "Forward") * 2f + Vector3.up * .25f;
+                camera.transform.LookAt(point);
                 Physics.SyncTransforms();
                 Call(ui, "LateUpdate");
                 bool highlighted = false;
@@ -47,7 +50,15 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 var prompt = Get(ui, "Prompt");
                 if (expected)
                 {
-                    Assert.AreEqual(true, Get(prompt, "IsVisible"));
+                    float deadline = Time.realtimeSinceStartup + 2f;
+                    while (!(bool)Get(prompt, "IsVisible") && Time.realtimeSinceStartup < deadline)
+                    {
+                        yield return null;
+                        camera.transform.position = point - (Vector3)Get(course, "Forward") * 2f + Vector3.up * .25f;
+                        camera.transform.LookAt(point);
+                        Call(ui, "LateUpdate");
+                    }
+                    Assert.AreEqual(true, Get(prompt, "IsVisible"), "기존 F 안내의 표시 연출 완료");
                     Assert.AreEqual("F", Get(Get(prompt, "keyLabel"), "text"));
                     Assert.AreEqual(action, Get(Get(prompt, "actionLabel"), "text"));
                     bool shell = false;
@@ -178,7 +189,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var context = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerControlContext"), new object[] { player.gameObject });
             try
             {
+                Assert.IsFalse((bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), "봉 입력 전 공용 입력 차단");
+                Assert.IsTrue((bool)Call(pole, "CanGrabPole", player), "봉 입력 전 잡기 자격");
                 Call(scheme, "Tick", context, CatchFrame(tap: true));
+                Assert.IsTrue((bool)Call(pole, "IsHeld", player), "호스트가 F 입력으로 봉 점유를 확정한다.");
                 yield return Until(() => (bool)Call(pole, "IsHeld", player) && !(bool)Get(mover, "Simulated"), 2f, "봉 소유권 확정");
                 var operation = pole.GetType().GetNestedType("Operation", BindingFlags.NonPublic);
                 Call(pole, "ServerHandle", 777UL, Enum.Parse(operation, "LetGo"), 0f);

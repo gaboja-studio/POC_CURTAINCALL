@@ -46,6 +46,8 @@ namespace CurtainCall.Tightrope
             {
                 if (player == null || !player.IsSpawned || player.State != PlayerState.Normal
                     || !player.TryGetComponent(out PlayerModelSlot slot) || slot.CurrentModel == null) continue;
+                // 매달림은 실제 클립과 손 뼈 정렬이 맡는다. 받기 포즈가 그 위에 덧씌워지지 않게 한다.
+                if (player.TryGetComponent(out HumanoidPlayerPresentation presentation) && presentation.IsHanging) continue;
                 bool success = catches.SuccessRemaining(player) > 0f
                     || (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player))
                     || (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsHeld(player))

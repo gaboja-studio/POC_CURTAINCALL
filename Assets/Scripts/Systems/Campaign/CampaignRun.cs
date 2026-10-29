@@ -154,9 +154,6 @@ namespace CurtainCall.Campaign
         /// <summary>공연이 끝났다(공연 결과 처리 뒤 부른다).</summary>
         public bool EndPerformance() => HostDo(r => r.EndPerformance(), nameof(EndPerformance));
 
-        /// <summary>누군가 대기실에서 백스테이지로 나왔다(B안 타이머 시작).</summary>
-        public bool NotifyLeftWaitingRoom() => HostDo(r => r.NotifyLeftWaitingRoom(), nameof(NotifyLeftWaitingRoom));
-
         /// <summary>전원이 무대 입구 통로에 들어갔다(쉬는 시간 조기 종료).</summary>
         public bool NotifyAllAtStageEntrance() => HostDo(r => r.NotifyAllAtStageEntrance(), nameof(NotifyAllAtStageEntrance));
 
@@ -168,6 +165,35 @@ namespace CurtainCall.Campaign
 
         /// <summary><paramref name="day"/>일차(2일차부터) 공연 순서를 정한다(밤 정비의 세트리스트).</summary>
         public bool SetSetlist(int day, string[] tricks) => HostDo(r => r.SetSetlist(day, tricks), nameof(SetSetlist));
+
+        /// <summary><paramref name="day"/>일차 공연 순서와 묘기별 난이도 단계(1~3)를 함께 정한다(M2 난이도 선택).</summary>
+        public bool SetSetlist(int day, string[] tricks, int[] tiers) => HostDo(r => r.SetSetlist(day, tricks, tiers), nameof(SetSetlist));
+
+        /// <summary>호스트: 공연 성공 단계를 기록한다. 그 단계의 다음 단계를 고를 수 있게 된다.</summary>
+        public bool RecordClear(string trickId, int tier) => HostDo(r => r.RecordClear(trickId, tier), nameof(RecordClear));
+
+        /// <summary>호스트: 그 묘기에 고를 수 있는 가장 높은 단계(깬 단계 + 1, 최대 3). 판정 화면이 아니면 1.</summary>
+        public int MaxSelectableTier(string trickId) => host != null ? host.MaxSelectableTier(trickId) : 1;
+
+        /// <summary>호스트: 이번 런에서 그 묘기를 성공한 가장 높은 단계(없으면 0).</summary>
+        public int ClearedTier(string trickId) => host != null ? host.ClearedTier(trickId) : 0;
+
+        /// <summary>호스트/오프라인이 대기실의 쉬는 시간·밤 정비에서만 런을 포기할 수 있다.</summary>
+        public bool CanAbandonRun => HasAuthority
+            && (state.Phase == CampaignPhase.RestTime || state.Phase == CampaignPhase.Night)
+            && CurtainCall.SpaceLink.SpaceLinkDirector.Instance != null
+            && CurtainCall.SpaceLink.SpaceLinkDirector.Instance.Current == CurtainCall.SpaceLink.SpaceId.WaitingRoom
+            && !CurtainCall.SpaceLink.SpaceLinkDirector.Instance.IsTransitioning
+            && !CurtainCall.UI.SceneIntegration.SceneCurtainTransition.IsActive
+            && !(CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation.Current != null
+                && CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation.Current.ResultVisible);
+
+        /// <summary>클라이언트 요청을 전달하지 않고 호스트 자신의 확인만 받는다.</summary>
+        public bool AbandonRun(CampaignSnapshot expected)
+        {
+            if (!CanAbandonRun) return false;
+            return HostDo(r => r.AbandonRun(expected), nameof(AbandonRun));
+        }
 
         /// <summary>디버그: 쉬는 시간 남은 시간을 바꾼다(0이면 바로 끝난다).</summary>
         public bool DebugSetRemaining(float seconds) => HostDo(r => r.DebugSetRemaining(seconds), nameof(DebugSetRemaining));

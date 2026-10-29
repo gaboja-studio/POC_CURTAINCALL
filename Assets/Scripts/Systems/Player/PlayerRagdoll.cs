@@ -34,6 +34,8 @@ namespace CurtainCall.Player
 
             limpPrefab = modelSlot.CurrentPrefab;
             limpModel = modelSlot.DetachModel();
+            if (limpModel.TryGetComponent(out HumanoidModel humanoid)) humanoid.EnableRagdoll();
+            foreach (var animator in limpModel.GetComponentsInChildren<Animator>()) animator.enabled = false;
 
             var bodies = limpModel.GetComponentsInChildren<Rigidbody>();
             if (bodies.Length == 0)
@@ -45,9 +47,12 @@ namespace CurtainCall.Player
 
             foreach (var c in limpModel.GetComponentsInChildren<Collider>())
             {
+                if (c.attachedRigidbody == null) continue;
                 c.enabled = true;
                 // 자기 몸통과는 부딪히지 않는다. 다른 플레이어 몸통과는 부딪혀서 밀린다(PlayerMover가 민다, 2026-10-02 #16)
                 if (body != null) Physics.IgnoreCollision(c, body);
+                // 줄의 넓은 보행용 충돌체는 래그돌을 붙잡는 지지면이 아니다.
+                CurtainCall.Tightrope.TightropeCourse.Current?.IgnoreRopeCollision(c);
             }
 
             // 기울어 있던 쪽(코스 기준 좌우)으로 살짝 밀어 그 방향으로 쓰러지게 한다
@@ -59,6 +64,7 @@ namespace CurtainCall.Player
                 rb.useGravity = true;
                 rb.constraints = RigidbodyConstraints.None;
                 rb.linearVelocity = carry + push;
+                if (humanoid != null) rb.angularVelocity = humanoid.ReleaseSpin(rb);
                 rb.WakeUp();
             }
         }

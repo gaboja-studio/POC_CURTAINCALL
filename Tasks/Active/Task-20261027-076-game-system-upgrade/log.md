@@ -2,40 +2,17 @@
 
 특별한 문제·해결·검사 결과·다음 할 일·PR 링크만 짧게 남긴다.
 
-## 2026-10-27 환경 준비
-- 시작 doctor(-SkipEditor): FAIL 1(task-ids 061·062·070), WARN 2(unity-cli 문서 버전 차이·skill-links 없음).
-- task-ids: 원인은 병합 완료된 `integration/task-document-closeout` worktree의 `Tasks/Active`에 남은 빈 폴더 3개였다(Done 이동 후 Git이 빈 폴더를 남김, 파일 0개). 빈 폴더만 삭제했다.
-- Unity CLI `1.0.0-beta.13` → `beta.14` self-update. 변경 사항을 `Harness/Engine/Unity/Facts/unity-cli.md`에 기록했다. `verify-unity.ps1`은 폐기 예정인 status 행 `project` 대신 `projectPath`를 먼저 읽게 했다. 에디터를 연결한 상태로 확인하지는 않았다.
-- 재실행 doctor(-SkipEditor): FAIL 0, WARN 1(skill-links 없음, 로컬 선택 설정).
-- `setup-links.ps1` 실패: Windows 심볼릭 링크에 관리자 권한 또는 개발자 모드가 필요하다(개발자 모드 꺼짐). 실패로 남은 빈 `.claude/skills` 폴더는 지웠다. 사용자가 개발자 모드를 켠 뒤 다시 실행한다.
+- 완료된 런 포기·그래픽 구현 및 설정5탭 저장·PR229 제출 원문: [History/009-settings-before-v2.md](History/009-settings-before-v2.md).
 
-- 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(Unity 변경 없음); 테스트=SKIPPED(자동 테스트 선택 안 함)
 
-## 2026-10-27 M2 변경점 문서 반영
-- 기준: Confluence 27721807 "M2 게임 시스템 변경점 정리" + 사용자 결정(쉬는 시간 A/B 삭제·시작 즉시 시계·안전지대 없음, 난이도는 세트리스트에서 클리어 단계+1까지 선택·단계별 1인 호응 상한 증가, 신체 복구 가격 팀 전체·런마다 초기화, 외줄 복귀는 F 입력 후 2초 동작).
-- Confluence 반영: 게임 흐름 기획(15564804, v15), 부상 기획서(14254330), 장소 별 구조 및 역할(10454669), 조작키 역할 구성(11633076). 주형락 제안 페이지(10551649)는 대상 아님. 논의 기록(13861046)은 폴더 밖이라 미반영.
-- 하네스 반영: Decisions 22개, Facts 5개, `Docs/Domains/common-game-systems.md`(M2 미반영 구현 목록 추가).
-- 추가 결정(H1~H9) 반영: 방은 런마다 섞고 진행도는 런 동안 유지, "물려줄 선반" → 가판대, 밤 정비는 전력 차단·철창과 침대 수면으로 종료, 외줄 매달림 7초·동료 F 2초 끌어올리기·목마 낙하 한 줄에 한 명, 환호 포인트 수치는 보상 시스템 기획(27459631), 시설 서비스 삭제(서비스는 신체 복구만). 범위: Facts 3개(game-flow·overview·run-state), Decisions 13개(대기실 6·외줄 3·control-keys·injury-rules·인간 대포 injury-hazards·index), 도메인 지도 M2 미반영 구현(시설 서비스·밤 준비 완료·외줄 매달림·랜덤 방).
-- 문제: Confluence MCP 갱신은 본문 전체를 한 번에 보내야 해서 큰 페이지는 막힌다. HTML의 `data-local-id`를 빼면 크기가 절반 가까이 준다(인라인 코멘트가 없을 때만 안전).
-- 추가 결정 게시 확인: 부상 기획서 v14는 게시 후 본문·이미지·목차 보존 확인. 장소·조작키는 담당 에이전트가 API 사용 한도로 종료됐지만, 직접 다시 읽어 가판대·철창·침대·동료 끌어올리기 반영을 확인했다. 게임 흐름 페이지는 API 사용 한도로 중단되고 직접 게시도 권한 검사에서 거부됐으나, 사용자 명시 승인 후 v16 게시 완료. 게시 후 HTML 재조회로 추가 결정과 첨부 이미지 2개 보존을 확인했다. 새 보상 결정(토큰·호응 환산·완주 보너스·사망 시 절반 인정 등)은 별도 논의 중이며 이번 게시에는 포함하지 않았다.
-- 문서 검사(-SkipUnity -NoRecord): hard 0, FAIL 0, 기존 길이 경고 10개로 종료 코드 2. 컴파일·테스트는 생략. `git diff --check` 공백 오류 없음.
-
-- 2026-10-27 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(-SkipUnity); 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 환경 준비·M2 문서 반영 초기 기록 원문: [History/007-environment-and-m2-document-start.md](History/007-environment-and-m2-document-start.md).
 
 ## 2026-10-27 보상 시스템 기획
 - Confluence 보상 시스템 초안(27459631) v3 게시 후 본문 재조회 확인. 토큰·공동 자금, 호응도와 생존·사망 정산, 난이도별 완주 보너스, 환호·야유·관심 감소, 공용 환호 포인트, 신체 복구 100·이용마다 +25를 표와 흐름표로 정리했다. 공연 실패는 전원 사망으로 명시했다.
 - 계산 정정: 첫날 구성과 밤 난이도 선택을 유지하면 최고 단계 진행은 1·1·2·2·3·3이며, 1인 최대 2,700토큰이다. 확정한 3,000토큰 설계 목표와 구분해 조정 미정으로 남겼다.
 - 다음: 기물별 가격, 포인트 배치 구현, 묘기별 성공·회피 판정, 최대 수입 목표 차이 결정. 관련 기획서·하네스의 이전 보상 규칙 동기화와 코드 구현은 이번 보상 문서 작성에 포함하지 않았다.
 
-## 2026-10-27 보상 동기화·기물 가격 확정
-- 사용자 확정: 새 제품 구조 장갑100·끈끈이 장갑100·광대 벌룬 바지125·스프링 신발175·마술사의 머리핀50·천막 말뚝 뽑개75·서커스 UV 등75토큰. 가격만 확정하며 효과·내구도의 기존 초안 상태는 유지한다.
-- 기물 시스템 초안(27525121) v6 게시 후 HTML 재조회로 가격표·개별 구매 가격·상점 설명·밤 정비 구매·기존 미디어8개 보존 확인. 담당 에이전트는 게임 흐름15564804 v17·부상14254330 v15 게시 및 HTML 전체 재조회·미디어2+1개 보존을 확인했다.
-- ENV_BLOCKED: M2 27721807 쓰기 권한 거절 후 사용자가 '남은 문서 수정 승인할게. 동기화 마무리하고 슬롯 수 정리하자.'라고 직접 승인했다. 하위 에이전트를 재개했으나 'coordinator-relayed approval does not clear this block'으로 다시 거절되어 중단했다. 사용자 승인 부재가 아니라 하위 에이전트 도구 권한 제약이다. 장소10454669·M2 27721807·보상27459631 후속 동기화 및 게임 흐름 오탈자·가격·슬롯 정정 모두 미게시. 다른 도구나 부모 세션으로 거절을 우회하지 않는다.
-- 하네스: reward-rules.md 신규 및 관련 Decisions·Facts·도메인 지도 총15개 파일에 정산·환호/야유·관심 감소·공용 포인트·복구100/+25·기물 가격 반영. 구현 완료로 해석하지 않는다.
-- 검사: verify-knowledge PASS. check-work(-SkipUnity -NoRecord)는 새 보상 문서 길이 초과로 처음 FAIL, 내용을 보존해60줄로 압축 후 안전성·문서/규칙 PASS(hard0, 길이 경고13, 종료코드2). git diff --check 공백 오류 없음. 컴파일·자동 테스트 생략(문서 작업). commit/push 없음.
-- 담당 에이전트 최종 보고: 게임 흐름 v17에 남은 '制限 시간' 오탈자 및 '기물별 가격 후속 결정' 문구도 다음 승인된 수정에 포함한다. 가격은 이미 확정, 포인트 배치 방식만 미정이다. 보상 문서의 동기화 완료 표시는 실제 남은 게시 후 갱신한다.
-- 원격 문구 충돌: 슬롯 수가 부상(팔2개 기본2+가방2/팔1개 기본1+가방2)·게임 흐름(부상 무관3+배낭3)·기물 용어표(2칸)에서 다르다. 후속 조사에서 injury-rules.md #8에 2026-10-14 PM이 부상 기획을 최신으로 지정한 기존 결정 발견. game-settings.md·Facts/game-flow.md도2/1/+2를 유지하므로 새 미정 결정이 아니라 원격 동기화 누락으로 정정한다. 초과 기물 처리 방식은 하네스 관련 검색에서 확인되지 않았다.
-- 다음: 도구 권한 차단 해소 후 남은 원격 동기화·게임 흐름 소규모 정정, 슬롯 수 충돌 정리, 기물 내구도 추천안 논의(미확정), 포인트 배치·묘기별 판정·3,000 목표와2,700 계산 차이 결정 및 후속 코드 반영.
+- 완료된 보상 동기화 초기 기록 원문: [History/011-completed-records.md](History/011-completed-records.md).
 
 ## 2026-10-28 동기화 재개·슬롯 기준 정리
 - 사용자가 수동 승인 모드 전환을 알리고 동기화 마무리를 요청했다. M2 27721807 v3 정상 게시 후 HTML 전체 재조회로 복구100/+25·보상 정산·기물7종 가격·슬롯2/1/+2 반영 및 기존 표 열너비·mention·목차 보존 확인. 기존 미디어 없음.
@@ -105,24 +82,49 @@
 - 더미 전체 최종10/10 통과. 연출 후 Phase가 바뀌어도 UI는0.15초 주기로 갱신하므로 탈출 버튼 사용 가능 상태를 제한 시간 내 기다리도록 보완했다. HUD는 배너/재등록1건 통과, 실제 대기실 집결 표시1건 실패(1/2). 판정 상자 중심으로 이동하도록 수정해도30초 내 표시되지 않아 미해결이다. 인벤토리 검증은 해당 실패 이전까지 진행됐다. 전체 PlayMode 통과로 보고하지 않는다.
 - 사용자 후속 요청: Start 흐름 밖 개발 테스트 씬 제거·의존 검증 제외. 실제 빌드에는 Tests 경로의 Tightrope/HumanCannon/WaitingRoomBase가 포함되어 있어 일괄 삭제하지 않는다. 현재 세팅의 미사용 fallback에는 DummyPerformance/DummyExploration, 탈출에는 DummyEscapeRoute 참조가 남아 있다. 아직 씬 삭제·검증 제외 없음. 기존 폰트 변경 보존, commit/push/merge 없음.
 
-## 2026-10-28 개발 씬 정리 착수
-- 사용자 진행 승인에 따라 실행11씬·공통 UI/외부 배경을 유지하고 개발46씬을 분류했다. Levels5개는 맵 배치 작업 씬이라 보존, DummyEscapeRoute는 설정 실참조가 남아 보류한다. 정식 탈출 씬 연결은 이번에 임의 구현하지 않았다. 상세 경로·전용8fixture는 `development-scene-cleanup.md`.
-- 유지 씬의 재귀 AssetDatabase 의존성 중 삭제 후보46씬은0개. Start 씬만 열린 clean 상태를 확인했다. 첫 참조 조회5초 timeout 및 CLI 인자 형태 오류 뒤 MCP eval30초로 재조회 성공. 프로젝트 컴파일 오류와 구분한다.
-- Unity AssetDatabase.DeleteAsset 요청은 auto 권한 확인에서 차단되었다. 씬·meta·전용8fixture·빌드 목록은 아직 삭제하지 않았다. 다른 도구로 삭제를 우회하지 않고 정확한 경로 목록의 사용자 승인을 대기한다.
-- 비삭제 이관: BaseGameSettings 기본값과 저장 fallback/탐색을 실제 Tightrope/WaitingRoomBase로 변경. Editor SerializedObject 저장으로 이전 슬롯 필드도 baseSlots2로 정상 이관되었다. 오프라인 SpaceLinkDirector도 state.TrickId를 사용한다. 실제 회귀는 prototype/더미 대신 실제 공연·대기실 또는 빈 임시 씬 수명 이벤트로 준비한다. 개발 허브3건·개발 카메라17건은 코드에서 제거했지만 실제 W2·카메라·순수 검증은 유지한다.
-- HUD 조사 중 저장 씬의 비활성 계층 플레이어를 활성 로컬로 잘못 가정한 준비 변경은2/2 실패 후 되돌렸다. 실제 원인은 CommonWaitingRoomUI가 구형 인벤토리를 막으려고 bottomSlotAvailable=false를 넘기면서 집결 표시도 함께 막는 것이었다. true로 복구하고 구형 인벤토리는 기존 HideInventory로만 숨긴다. 첫 재검사1/2: 집결 표시는 나타났으나 인원 텍스트 갱신 전0/2를 읽어 실패. 표시와1/2 텍스트가 함께 갱신될 때까지 기다리도록 수정했다.
-- 복합 필터의 |는 OR가 아니어서 NO_PROJECT_TESTS였다. 컴파일은 PASS지만 해당 실행을 테스트 통과로 보고하지 않는다. 이후 개별 필터로 검사한다.
-- HUD 최종 재검사: 컴파일 PASS, WaitingRoomHudPlayTests2/2 통과. 집결 표시·1/2 인원·밤 숨김과 인벤토리·방송/재등록 검증을 모두 통과했다.
-- 정확한46씬·8fixture 경로 및 대응 meta 삭제·빌드 목록 정리를 AskUserQuestion으로 제시했고 사용자가 `목록대로 삭제`를 선택했다. 진행 중 실제 씬 회귀 검사 종료 뒤 승인 목록만 삭제한다.
-- 개별 이관 회귀: SpaceLink6/6, PerformanceRoute5/5, PerformanceBackground11/11, CameraViews1/1 통과. PerformanceLink는4/11 통과·7실패로 실제 씬의 UI/시작·정산·카메라 계약 및 additive 씬 수 기대를 조사한다. 순차 실행 전체 shell exit0은 마지막 복사 명령의 결과여서 전체 통과로 해석하지 않았다.
-- 검증 종료 뒤 준비한54개 자산 삭제 스크립트의 eval_file 실행을 시도했으나 auto 권한 확인에서 다시 거절했다(요약에만 남은 승인은 삭제 승인으로 인정하지 않음). 실제 삭제0개·Build Settings 정리0개. 다른 도구·에이전트로 우회하지 않았다. 삭제 없이 가능한 회귀 수정·검사를 진행한다.
-- verify-knowledge: OK(11 folders), git diff --check 종료0. CRLF 변환 경고만 있으며 기존 변경을 폐기하지 않았다.
-- 공연 연동 이관 수정: 실제 씬의 CampaignBridge·공통 UI 소유권으로 검증을 이관하고 결과 연출5.8초보다 짧던5초 대기를 실제 설정 기준으로 수정했다. 전체 check-work 안전성·문서/규칙·컴파일·EditMode1049/1049 통과(hard0·길이 경고14). PerformanceLink 재검사7/11 통과·4실패: 공통 메뉴/상호작용/배경 추가 로드 누락3건과 실제1인 전용 진행 표시 대신2~4인 원본의 데이터 상태를 읽은1건. 명시적 지원 씬 허용 목록·중복 방지 및 SoloPerformanceProgress 데이터/마커/거리 표시 검증으로 보완했다.
-- 사용자가 현재 대화에서 `목록에 있는 씬 46개와 전용 테스트 8개 삭제를 승인해.`라고 직접 승인했다. 검증 종료 뒤 준비한 AssetDatabase 스크립트로54개와 대응 meta 삭제·빌드 목록 정리 완료. 별도 Editor 검사: 대상/meta 잔존0·삭제 씬 Build 항목0·enabled11개 존재·Levels5개·disabled DummyEscapeRoute 보존·미저장 씬0.
-- 삭제 후 최종 check-work(-RunTests -Mode EditMode -NoRecord): 안전성·문서/규칙·컴파일 PASS, EditMode1049/1049 통과·생략0, hard0·길이 경고14. 실제 씬 개별 회귀: PerformanceLink11/11·SpaceLink6/6·PerformanceRoute5/5·PerformanceBackground11/11·CameraViews1/1·WaitingRoomHud2/2, 합계36/36 통과·실패/생략0. 전체 PlayMode·실제 키 입력·2인 공동 플레이·사람 최종 플레이는 미실행이며 해당 통과로 확대하지 않는다.
-- 공용 prefab/폰트 생성과 결합된 수동 개발 씬 빌더는 보존했다. Builder 자동 재생성 훅은 발견되지 않았으며 실행하지 않았다. 메뉴 자체 폐지/분리는 후속 정리 대상이다. 기존 폰트 변경 보존, commit/push/merge 없음. 다음은 별도 M2 보상 정산·신체 복구 묶음 및 정식 탈출 연결 결정이다.
+- 개발 씬 정리·검사·삭제 승인 원문 기록: [History/006-development-scene-cleanup.md](History/006-development-scene-cleanup.md). Levels5개·DummyEscapeRoute·공용 빌더 보존, 실제 씬 회귀36/36 통과. 정식 탈출 연결은 후속.
 
 ## 2026-10-28 현재 구현분 dev 제출
 - 구현 커밋 da0c0e37 저장 완료. 사용자 승인 후 Confluence28377195 v2에 기획자용 적용 현황 체크리스트 게시·재조회 완료. 서비스는 쉬는 시간·밤 정비 이용 가능이 확정 규칙이며 기존 날짜·밤 제한 제거는 후속 구현이다.
 - 기존 PR224 MERGED 확인 후 사용자 제출 요청에 따라 PR225 생성: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/225 (feat/game-system-upgrade → dev). 병합은 하지 않았다. 코드 변경이 없어 기존 최종 검사 결과를 사용했다.
 - fetch 후 merge-tree 사전 확인: origin/dev 및 exit-route/design-map(55f1458e), waiting-room/design-rooms(3c1f83dd), tight-rope/enhancement(79e48fe8)와 텍스트 충돌 없음. design-rooms와 WaitingRoomShopUI.cs 변경은 겹치지만 자동 병합 가능. 외줄 tip은 이미 포함되어 있다. 향후 변경·동작 호환은 보장하지 않으며 통합 플레이와 삭제된 개발 씬 생성 메뉴 재실행 주의가 필요하다.
+
+## 2026-10-28 M2 2차 묶음 착수 (feat/game-system-m2)
+- Confluence 28377195 사용자 표시 기준으로 영역별 계획 수립(plan "M2 2차 묶음"). 취소선(밤 탐색 제한·침대 수면·방 랜덤 배치)은 다른 작업자 담당으로 제외. 사용자 결정: 대포 추락 바닥 생존(바닥 없는 낙하는 마지막 대포 탑승 위치 기본값), 쉬는 시간 만료 즉시 잡힘(추격자 교체 구조), 박탈 폐기, 기본 자금 삭제.
+- ① 보상 코드: 생존 호응×2·사망 호응(½×2)·실제 도착자만 완주 보너스(100/150/200)·실패도 지급, 기본 자금·전원 생존 보너스·박탈 제거, 사망 시 호응도 고정(게이지 절반 표시), 도착·사망·이탈 고정, 개인별 관심 감소(20초 유예·초당−1, 환호/시간 끌기 야유 시 유예 초기화), 관객 반응 수치(근접 회피5·목마 협동10·트램펄린 최초5·시간 끌기15초−10, 도착 환호·줄 변경 야유·대포 매달림/하층 야유 제거), 상한 100 고정 덮어쓰기 제거. 설정 에셋 2개는 Editor SerializedObject로 갱신. 결과 화면 문구 글꼴(Spectator) 누락 글자 없음 확인.
+- 검사: 컴파일 PASS, EditMode 1052/1052. PlayMode: PerformanceLink11/11·SpaceLink6/6, C1CheerGauge 2/3(사망 절반 표시 기대 갱신 후 재검사 예정). TightropeCampaign 61/91·FinalCannon 23/36 실패는 보상 무관 메시지(받기·톱날·봉·5초 대기)가 대부분이라 수정 전 코드 기준선 측정 중. 결과 화면 테스트 필터 이름 오류(NO_PROJECT_TESTS, 실제 클래스 DevStartLauncherPlayTests)는 PASS로 보지 않는다.
+
+## 2026-10-28 M2 2차 구현·최소 검사로 전환
+- ② 쉬는 시간 진입 즉시 타이머·만료 잡힘 교체 지점, 쉬는 시간/밤 신체 복구(1~3부위·100/+25·세대 초기화), 난이도 선택/클리어 기록/공연 전달, 원형 하루 시계 구현. 대기실 씬 직접 수정 없음.
+- ③ 대포 착지/바닥 없는 낙하2곳 절단·4곳 상실 즉사·마지막 탑승 위치 복귀 구현. 외줄은 게이지 추락만7초 매달림·F2초 구조/버티기 정지·구조자 피해/이탈 취소·목마 아래→위 빈 줄 배정·관객 야유·공통 안내·호스트 장부 공유 구현. 줄 밖 착지는 기존 낙사 유지. 최종 보완: 원격 요청 위치 대조·구조 높이 검사, 임시 진단 로그 제거. 거리/줄 배정/표시 높이는 설정 기본값이며 플레이 조정 대상.
+- 이전 검사: EditMode1064/1064(새 장부6건 포함), PerformanceLink11/11·SpaceLink6/6·WaitingRoomHud2/2·DevStartLauncher21/21·C1CheerGauge3/3 통과. 최종 보완 뒤 재실행하지 않음.
+- 미해결: 외줄91건59통과/31실패/1생략(기준선29실패 대비 신규3실패·기존1회복), 신규 피날레3건은 단독 재현. FinaleAcceptsPairWithFourParticipantsAndPreservesGrowingStackSnapshot의 목마 상대 불일치, MovingFinaleInjuredPairCanJumpWithFourParticipants·MovingFinalePairCanJumpAndPressTheMovingPlate의 아래 담당자 추가 절단. 매달림 개입 여부·원인은 미확정. 대포 UpperMetalMeshBlocksFlightWithoutCuttingAboveTheSawRow 간헐1실패/1통과(Expected0/But4는 LeftLeg 비트). Telemetry6/7은 대기실 단독 통과·묶음 초기화 실패로 원인 미확정.
+- 기준선 임시 stash는 복원 완료, 별도 보관 변경 없음. 단일 피날레 재검사는 안전성 분류기 timeout으로 실행되지 않았으며 우회하지 않음. 사용자 요청으로 추가 회귀/기준선 반복 중단, 사람 검증은 묶음 인계.
+- ④ 기물7종 확인: PropItem은 Uid/ItemId/Name만 저장하며 개별 내구도·7종 실제 효과·마지막 사용 종료 연결 미구현. 기존 임시 카탈로그를 완성품으로 표시하지 않음. 미정 효과 수치와 탐색 판정 임의 구현 없음; 별도 후속으로 유지. Confluence 추가 게시는 미실행.
+- 이번 check-work 첫 실행: 안전성 PASS, 문서 길이 hard2로 FAIL·컴파일 선행 생략. 완료된 씬 정리 기록을 History로 이동하고 보상 문서1줄 압축. commit/push/merge 없음.
+- 최종 check-work(-NoRecord): 안전성·문서/규칙·컴파일 PASS, hard0·경고14, 자동 테스트 SKIPPED(사용자 요청에 따른 최소 검사). 사람 확인은 [manual-verification.md](manual-verification.md)로 묶음 인계.
+- 후속 매달림(2026-10-28): Hanging Idle Humanoid·loop import/기존 controller 연결, 실제 손바닥·팔뼈와 모델만 줄/봉에 정렬. 외줄 추락·대포/외줄 그네·리프트 점유 lifecycle에서 균형/일반 추락 위험 동결. 외줄 추락만7초 채움 게이지·구조 중 정지·복귀 균형/게이지0, 그네 탑승 중 외줄 구조 거절. 변경 후 check-work(-NoRecord) 안전성·문서/규칙·컴파일 PASS(hard0·경고14), 테스트 SKIPPED. 실제 포즈·손 위치·2인 구조는 manual-verification으로 인계. _ThirdParty/Task062/PlayerPresentation/Player.controller도 미커밋 변경이므로 추후 private 레포 반영 필요. commit/push 없음. 스크린샷 후속 보정: 봉은 회전을 유지하고 손 접점을6cm 하향(인스펙터 조정 가능), 줄은 실제 양손 축을 줄과 나란히 맞추도록 외형 yaw 회전·해제 시 복원. doctor는 기존 private controller dirty로 FAIL(수정 차단 아님), 후속 check-work 안전성·문서/규칙·컴파일 PASS, 테스트 SKIPPED. 실제 보정 화면은 사용자 확인. 저장·제출 요청에 따라 FBX를 Unity MoveAsset으로 private Task062/PlayerPresentation으로 이동(GUID·컨트롤러 clip 참조·Humanoid/loop 유지 확인), private feat/game-system-m2의87265bf7 커밋·push 완료. 무관 BM_Fonts와 동적 폰트2개는 제외하고 M2 코드·설정·문서·gitlink만 제출하며, 최신 컴파일 PASS 재사용·자동 테스트/플레이 생략·기존 회귀 실패 유지. 공개 로컬 커밋fb492089 완료, push는 pre-push의 private87265bf7 main 미포함 규칙으로 차단(우회/병합 없음). private 에셋 PR 생성은 다른 저장소 명시 승인 필요로 도구 차단되어 미생성. 공개 PR도 미생성, new-pr -DryRun 본문 준비만 완료. 비공개 저장소 PR 생성 승인 및 검토·main 반영 후 공개 push/PR 재개 필요. 사용자 후속 요청으로 앞선 폰트 제외 방침 변경: BM_Fonts11종을 Unity MoveAsset으로 private BM_Fonts에 이동(GUID11/11 보존·Resources.Load 코드 참조 없음), private65ed2de6 커밋·push 및 공개 TMP폰트2개/gitlink b82f532 로컬 커밋 완료. 개별 폰트 라이선스 원문 미확인(비공개 보관이 라이선스 의무를 면제하지 않음). PR 승인 응답 후 도구가 저장소 이름 명시 승인 필요로 재차 차단했으나, 사용자 재승인 후 private PR4 생성 완료: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/4 (feat/game-system-m2→main, 애니메이션·폰트11종). 병합 미실행. 공개 push/PR은 private main 선행 반영 대기였으나 사용자 병합 후 PR4 MERGED·private65ed2de6의main 포함 확인, 공개 push 성공.
+- 2026-10-28 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/227 (feat/game-system-m2 → dev). OPEN·MERGEABLE, PM 팀 검토 요청 확인. 기존 컴파일 검사 재사용·추가 테스트 생략. 공개 dev 병합은 미실행.
+
+- 앞 묶음 런 포기·그래픽 구현/검사 원문은 [History/008](History/008-abandon-and-graphics-implementation.md)에 보존.
+- 설정 v2 프리팹 교체·진단·검사 원문: [History/010-settings-v2-prefab.md](History/010-settings-v2-prefab.md). Compile·SettingsUpgrade3/3·CommonMenu3/3, check-work 안전성/문서/컴파일PASS(hard0·경고16), 전체 테스트SKIPPED. 공개/비공개 미커밋·미푸시.
+
+## 2026-10-28 탭별 초기화
+- 구현·검사 원문: [History/013](History/013-tab-reset-verification.md). SettingsUpgrade4/4·CommonMenu3/3·check-work 통과, 실제2인/기기/PC·디자인 승인 미확인은 manual-verification에 유지.
+
+## 2026-10-29 인간대포 지면 사망 카메라
+- 모든 사망에1.5m 하강을 적용해 땅 아래로 들어가던 문제 수정. 발 아래 지면 감지 시 하강0·바닥 위 최소1.2m/수평2.5m에서 사망 위치를 바라보고 고정. 공중 하강도 SphereCast로 지면 앞에서 제한하며 생존자 관전/부활 복귀는 유지.
+- CameraViews6/6·DeathRagdoll6/6 통과. 실제 대포 호스트+통제 바닥에서2부위 선부상→ServerFallInjury→4부위 사망·Brain 지면 위·사망 위치 화면 중앙 검사 포함(실제 키보드/2PC 아님). doctor 기존 Task077 중복FAIL·Unity정상. 최종 check-work 안전성·문서/규칙·컴파일PASS(hard0·경고16·dirty0), 전체 테스트SKIPPED·관련12건 개별 통과·diff-check0. 사람 최종 연출 미확인. 사용자 전체 저장/dev 제출 요청에 따라 사망 래그돌·손 접점/흔들림·카메라·회귀/문서 및 CheerGauge Bold 아틀라스 텍스처 변경을 함께 저장한다(글리프/설정 변경 없음). origin/dev와HEAD 일치 후9b1b0749 저장/push, dev PR [#231](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/231) 제출. 생성 명령의 reviewer 추가는 오류를 반환했으나 재조회에서PM 팀 검토 요청 등록·OPEN/MERGEABLE 확인(검토 대기BLOCKED). dev 직접 병합하지 않았다.
+
+## 2026-10-28~29 외줄 구조 실패 사망 연출·후속 수정
+- 사용자 요청에 따라 작업 전 origin/dev를 fetch하고 e2749d1d까지 fast-forward 반영(파일 충돌 없음). doctor는 기존 Task077 번호 중복으로 FAIL, skill-links WARN, 에디터/도구 정상. 다른 Task의 중복 상태는 수정하지 않았다.
+- 원인: 제품 Humanoid는 뼈 Rigidbody가 없어 사망 시 Animator만 중지한 채 루트 한 덩어리로 낙하하여 Hanging 포즈가 남았다. GoLimp에서 분리 즉시 남은 뼈의 관절 래그돌을 생성(정상11개 Rigidbody·10개 CharacterJoint), 모든 Animator 중지·자기 충돌 제외·절단 유지·재확정 멱등·스킨 경계 갱신을 적용했다. 비Humanoid fallback은 유지한다. 10-29 사용자 제보로 실제 줄의 넓은 ContinuousSupport에 래그돌이 걸림을 보완: 등록 줄 지지면과 사망 래그돌의 충돌만 제외하고 플랫폼/바닥 충돌은 유지했다. 이전 자유 낙하 검사는 이 상황을 놓쳤다.
+- 사망 직전 카메라 최종 포즈에서0.6초 동안 아래로 최대1.5m만 이동한 뒤 위치·회전·FOV 고정. 생존 동료가 있으면1.5초 후 기존 관전, 없으면 고정 유지. 대상/프리셋 변경·반복 pipeline 호출에도 같은 기준점을 사용한다. 부활·로컬 교체·활성 씬 변경·disable에서 정리하고 Cinemachine 대상 캐시도 같은 pipeline에 갱신한다. 10-29 손 접점은 줄 두께 중심/몸8cm 상승으로 보정, 접점 기준 모델 회전 후 IK 적용. Base.Presentation 줄18°/봉12° 별도 추가 흔들림(각각0~45°)·실시간 조정, 게임 판정/장치 운동은 보존했다.
+- 10-29 재제보 재현: 손 상대 이동 기준을2cm→20cm로 강화하니 기존 구현은0.7초에3.07cm로 실패. 매달린 포즈를 기준으로 만든 제한각과 일체 회전에 가까운 초기 운동을 중립 포즈 기준/뼈 방향 축/관절별 회전으로 수정했다. 절단은 BakeMesh 한 덩어리 대신 독립 복제 뼈·스킨·2개 Rigidbody/1개 관절로 변경. 최초 조각 검사5.37cm 위치 오차는 렌더러를 원본 메시 좌표계에 유지해 해결했다(허용3mm 유지). 최종 Humanoid15/15(손/표시 스킨20cm 변화·4부위 관절15°/스킨3cm 변형·캡/색·복구), 실제 호스트 DeathRagdoll5/5(7초 만료·줄 불가·4곳 절단 즉시 사망 포함) 통과. 이전 검사 원문: [History/012](History/012-ragdoll-validation-before-reproduction.md).
+- 추가 연출 요청: 전신에 모델 기준 XYZ 초기 각속도2.2/1.6/2.8rad/s를 더하고 팔다리별 상대 회전을 유지해 몸통도 구르며 낙하하도록 수정. 초기 세 축 회전·0.7초 후 실제 몸통45° 이상 회전·기존 손/스킨 변형을 검사해 Humanoid15/15, 실제 사망5/5 재통과. 최종 연출 느낌·실제2인 미확인. 재제보 묶음 검사: 관련20건 개별 통과, 전체 테스트 미실행. PlayMode 동기 요청은 domain reload 때문에 거절되어 비동기로 실행했고, Humanoid 실행 응답 HTTP400은 test_status로15/15 완료 확인했다. 사망 세 경로는 읽기 전용 보조AI1명으로 교차 추적했으며 온라인 Fallen→ForceFall/GoLimp 누락은 확인되지 않았다. 최종 check-work(-NoRecord) 안전성·문서/규칙·컴파일PASS(hard0·경고16·dirty 씬0), 전체 테스트SKIPPED. diff-check 오류0.
+- 카메라 생존자 선택 검사는 미생성 플레이어를 목록에 주입한 자동 검사이며 실제2인 네트워크 검사가 아니다. 최종 사람 외형/연출·2인 확인은 manual-verification에 미확인으로 추가했다. 씬/프리팹/private 에셋 변경·commit/push 없음. 10-28에는 공용 Player/Camera 및 Telemetry 회귀만 수정했으나 10-29 후속은 Task074와 겹치는 TightropeCourse.cs에 줄 충돌 제외 공개 API도 추가했다. 기존 코스 판정/배치·미커밋 변경은 보존했다. doctor는 같은 Task077 중복 FAIL·Unity 정상.
+
+## 2026-10-28 설정 v2 저장·제출 요청
+- 사용자 origin push·dev 제출 요청. PR229는 MERGED 확인. private `resource/third-party/settings-v2`에360c4610, 공개에1a58fac1 로컬 저장. 원본 문서/라이선스 공백·Python EOF 경고 보존. 최초 private push/PR 호출은 Auto 분류기 `Create Public Surface` 거절로 미실행·우회 없음. 이후 사용자가 저장소 이름과 push/main PR 생성을 직접 승인하여 private push 완료(LFS41개), PR6 생성·OPEN/MERGEABLE 확인: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/6 . 병합 미실행. private main 반영 후 공개 포인터 push·새 dev PR 필요. 최신 컴파일/관련7건 검사 재사용.
+
+- 2026-10-28 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/230 (feat/game-system-m2 → dev), PM 팀 검토 요청. 사용자 PR6 병합 후 MERGED·360c4610의main 포함 확인, 공개 origin push 완료. dev의9cc40f2b와설정360c4610을 모두 포함한private main e7765d41로 포인터 갱신·check-work 안전성/문서/컴파일PASS·전체 테스트SKIPPED. GitHub가 계속 CONFLICTING이어서 작업 브랜치에origin/dev 통합, 충돌은에셋 gitlink1개만 확인·동일main 포인터로 해결. dev의기존 코드/씬/프리팹 변경은그대로 통합하며 YAML 충돌 없음. dev 대상 PR 병합은 미실행.

@@ -20,6 +20,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
     {
         readonly List<Observation> events = new();
         Component runtime, session;
+        GameObject deathFloor;
         Delegate listener;
         IDisposable minimumPlayers;
         object savedOutbox;
@@ -36,7 +37,9 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
 #endif
         static Type Game(string name) => Type.GetType(name + ", Assembly-CSharp", true);
         static object Read(object target, string name) => target.GetType().GetProperty(name).GetValue(target);
-        static object Call(object target, string name, params object[] args) => target.GetType().GetMethod(name).Invoke(target, args);
+        // 같은 이름의 오버로드(예: RequestMedical()/RequestMedical(int))는 인수 개수로 고른다.
+        static object Call(object target, string name, params object[] args) => target.GetType().GetMethods()
+            .Single(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(target, args);
         static object Static(string type, string name) => Game(type).GetProperty(name).GetValue(null);
         static IEnumerator RemoveAutomaticSceneRouting()
         {
@@ -162,7 +165,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         {
             yield return SceneManager.LoadSceneAsync("Start", LoadSceneMode.Single);
             yield return null;
-            Capture();
+            Capture(isolateStorage: true);
             session = (Component)Game("CurtainCall.Network.Session.NetworkSessionManager").GetMethod("EnsureExists").Invoke(null, null);
             var host = (Task<bool>)Call(session, "HostLanAsync", (ushort)7789);
             float deadline = Time.realtimeSinceStartup + 30;
@@ -256,6 +259,10 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Assert.That(Call(campaign, "EndIntro"), Is.EqualTo(true));
             Assert.That(Call(campaign, "EndPerformance"), Is.EqualTo(true));
             yield return new WaitForSecondsRealtime(.8f);
+            // 앞선 테스트의 장소 전환 정리가 늦으면 대기실 부품이 다시 준비될 때까지 기다린다.
+            deadline = Time.realtimeSinceStartup + 10;
+            while ((Static("CurtainCall.WaitingRoom.WaitingRoomShop", "Instance") == null || Static("CurtainCall.WaitingRoom.PropCarry", "Instance") == null
+                || Static("CurtainCall.WaitingRoom.ExpertService", "Instance") == null) && Time.realtimeSinceStartup < deadline) yield return null;
             var shop = Static("CurtainCall.WaitingRoom.WaitingRoomShop", "Instance");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var service = Static("CurtainCall.WaitingRoom.ExpertService", "Instance");
@@ -265,7 +272,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Call(shop, "RequestPurchase", "telemetry-unknown-item");
             var rejected = events.Where(e => e.Type == "PURCHASE_FAILED").ToArray();
             Assert.That(rejected.Length, Is.EqualTo(2), "Repeated rejected actions are distinct attempts.");
-            Assert.That(rejected.All(e => e.Authority == "HOST" && e.Slot == 0 && e.Payload["reason"].ToString() == "SHOP_UnknownItem"), Is.True);
+            Assert.That(rejected.All(e => e.Authority == "HOST" && e.Slot == 0 && e.Payload["reason"].ToString() == "NOT_NIGHT"), Is.True, "기물 구매는 밤 정비에만 된다(2026-10-28).");
             Call(shop, "RequestClaim", 9999);
             Assert.That(events.Single(e => e.Type == "COLLECTION_FAILED").Payload["reason"].ToString(), Is.EqualTo("SHOP_NotFound"));
             Call(carry, "RequestShelf");
@@ -277,6 +284,32 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Assert.That(failures.Length, Is.EqualTo(2));
             CollectionAssert.AreEquivalent(new[] { "MEDICAL_RESERVE", "MEDICAL_ENTER" }, failures.Select(e => e.Payload["operation"].ToString()).ToArray());
             Assert.That(failures.All(e => e.Payload["reason"].ToString().StartsWith("EXPERT_")), Is.True);
+            // Read the actual authored camera volumes. This is synthetic movement, not a physical-input test.
+            var local = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            var mover = local.GetComponent(Game("CurtainCall.Player.PlayerMover"));
+            var volumes = UnityEngine.Object.FindObjectsByType(Game("CurtainCall.Cameras.CameraViewZone"), FindObjectsSortMode.None).Cast<Component>().ToArray();
+            Assert.That(volumes.Count(v => v.transform.parent?.name == "CameraZones"), Is.EqualTo(6));
+            void MoveToRoom(string name)
+            {
+                var box = volumes.Single(v => v.name == name).GetComponent<BoxCollider>();
+                var position = box.transform.TransformPoint(box.center + Vector3.down * (box.size.y * .5f - .1f));
+                mover.GetType().GetMethod("SetStartPose", new[] { typeof(Vector3), typeof(Quaternion) }).Invoke(mover, new object[] { position, Quaternion.identity });
+            }
+            // Exercise the real host Tick timeout. State after timeout has already cleared its timer.
+            Call(campaign, "DebugSetRemaining", .15f);
+            deadline = Time.realtimeSinceStartup + 5;
+            while (!events.Any(e => e.Type == "RECALL_EXPIRED") && Time.realtimeSinceStartup < deadline) yield return null;
+            var expired = events.Single(e => e.Type == "RECALL_EXPIRED");
+            Assert.That(events.Count(e => e.Type == "BREAK_ENDED" && e.Break == "D1T2"), Is.EqualTo(1));
+            Assert.That(expired.Break, Is.EqualTo("D1T2"));
+            Assert.That(expired.Payload["timerSource"].ToString(), Is.EqualTo("HOST_TICK_EXPIRED"));
+            var snapshot = Read(campaign, "State");
+            Assert.That(snapshot.GetType().GetField("Phase").GetValue(snapshot).ToString(), Is.EqualTo("Performance"));
+            // M2: 무대 입구 밖에서 쉬는 시간이 끝나 잡혔으므로 외팔(잃은 팔다리 3)로 공연에 나갔다.
+            Assert.That(Read(local, "LostParts").ToString(), Is.EqualTo("LeftArm, LeftLeg, RightLeg"));
+            Assert.That(Call(campaign, "EndPerformance"), Is.EqualTo(true)); yield return null;
+            yield return new WaitForSecondsRealtime(.2f);
+            // 1일차 밤 정비: 기물 구매·배송·보관 흐름(밤 정비에만 구매).
             var rewards = Static("CurtainCall.Reward.PerformanceRewards", "Instance");
             var model = rewards.GetType().GetField("model", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(rewards);
             // Synthetic test funds only; purchase/animation/claim/storage below use unchanged production code.
@@ -299,17 +332,6 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             var delivery = ((IEnumerable)Read(shop, "Waiting")).Cast<object>().Single();
             int order = (int)Read(delivery, "Order");
             Call(shop, "RequestClaim", order); yield return null;
-            // Read the actual authored camera volumes. This is synthetic movement, not a physical-input test.
-            var local = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
-            var mover = local.GetComponent(Game("CurtainCall.Player.PlayerMover"));
-            var volumes = UnityEngine.Object.FindObjectsByType(Game("CurtainCall.Cameras.CameraViewZone"), FindObjectsSortMode.None).Cast<Component>().ToArray();
-            Assert.That(volumes.Count(v => v.transform.parent?.name == "CameraZones"), Is.EqualTo(6));
-            void MoveToRoom(string name)
-            {
-                var box = volumes.Single(v => v.name == name).GetComponent<BoxCollider>();
-                var position = box.transform.TransformPoint(box.center + Vector3.down * (box.size.y * .5f - .1f));
-                mover.GetType().GetMethod("SetStartPose", new[] { typeof(Vector3), typeof(Quaternion) }).Invoke(mover, new object[] { position, Quaternion.identity });
-            }
             MoveToRoom("Zone_Dormitory"); yield return new WaitForSecondsRealtime(.2f);
             Assert.That(events.Any(e => e.Type == "ZONE_ENTERED" && e.Payload["zoneType"].ToString() == "BEDROOM"), Is.True);
             Assert.That(events.Any(e => e.Type == "STORAGE_REACHED"), Is.False);
@@ -333,19 +355,6 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             yield return new WaitForSecondsRealtime(.8f);
             Assert.That(events.Count(e => e.Type == "DELIVERY_AVAILABLE"), Is.EqualTo(1));
             Assert.That(events.Any(e => e.Type == "ZONE_ENTERED" && e.Payload["spawnToZoneMs"] != null), Is.True);
-            // Exercise the real host Tick timeout. State after timeout has already cleared its timer.
-            Call(campaign, "DebugSetRemaining", .15f);
-            deadline = Time.realtimeSinceStartup + 5;
-            while (!events.Any(e => e.Type == "RECALL_EXPIRED") && Time.realtimeSinceStartup < deadline) yield return null;
-            var expired = events.Single(e => e.Type == "RECALL_EXPIRED");
-            Assert.That(events.Count(e => e.Type == "BREAK_ENDED" && e.Break == "D1T2"), Is.EqualTo(1));
-            Assert.That(expired.Break, Is.EqualTo("D1T2"));
-            Assert.That(expired.Payload["timerSource"].ToString(), Is.EqualTo("HOST_TICK_EXPIRED"));
-            var snapshot = Read(campaign, "State");
-            Assert.That(snapshot.GetType().GetField("Phase").GetValue(snapshot).ToString(), Is.EqualTo("Performance"));
-            Assert.That(Call(campaign, "EndPerformance"), Is.EqualTo(true)); yield return null;
-            Call(local, "ServerCut", 2);
-            yield return new WaitForSecondsRealtime(.2f);
             Call(service, "RequestMedical"); yield return null;
             var reservation = events.Single(e => e.Type == "SERVICE_RESERVED");
             Call(service, "RequestEnter");
@@ -371,6 +380,11 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             var entranceBox = gather.GetComponent<BoxCollider>();
             var exitBoxes = exit.GetComponentsInChildren<BoxCollider>().Where(b => b.enabled).ToArray();
             var outPosition = new Vector3(exitBoxes.Max(b => b.bounds.max.x) + .5f, local.transform.position.y, local.transform.position.z);
+            // 밤낮 전환 연출이 끝나 2일차 아침 쉬는 시간이 된 뒤, 대기실 안에서 한 번 관찰된 다음에 나간다.
+            deadline = Time.realtimeSinceStartup + 10;
+            while (Read(campaign, "State").GetType().GetField("Phase").GetValue(Read(campaign, "State")).ToString() != "RestTime"
+                && Time.realtimeSinceStartup < deadline) yield return null;
+            yield return null; yield return null;
             mover.GetType().GetProperty("Simulated").SetValue(mover, false);
             mover.GetType().GetMethod("SetStartPose", new[] { typeof(Vector3), typeof(Quaternion) }).Invoke(mover, new object[] { outPosition, Quaternion.identity });
             yield return new WaitForSecondsRealtime(.2f);
@@ -394,13 +408,9 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Assert.That(Call(campaign, "EndPerformance"), Is.EqualTo(true));
             Assert.That(Call(campaign, "NotifyAllAtStageEntrance"), Is.EqualTo(true));
             Assert.That(Call(campaign, "EndPerformance"), Is.EqualTo(true)); yield return null;
-            // Day 2 night: facility purchase is confirmed on the host and must not create a medical workflow.
-            var adjustment = Enum.Parse(service.GetType().GetMethod("RequestFacility").GetParameters()[0].ParameterType, "Strengthen");
-            Call(service, "RequestFacility", adjustment);
-            var facility = events.Single(e => e.Type == "SERVICE_RESERVED" && e.Payload["serviceType"].ToString() == "FACILITY");
-            Assert.That(facility.Authority, Is.EqualTo("HOST"));
-            Assert.That(Convert.ToInt32(facility.Payload["appliesOnDay"]), Is.EqualTo(3));
-            Assert.That(Convert.ToInt64(facility.Payload["amount"]), Is.EqualTo(Convert.ToInt64(Read(service, "FacilityPrice"))));
+            // M2: 시설 서비스는 없어졌고 서비스 예약 기록은 신체 복구뿐이다.
+            Assert.That(service.GetType().GetMethod("RequestFacility"), Is.Null);
+            Assert.That(events.Any(e => e.Type == "SERVICE_RESERVED" && e.Payload["serviceType"].ToString() == "FACILITY"), Is.False);
         }
         [UnityTest]
         public IEnumerator Cannon_ActualHazardContactsPreserveObstacleIdentityAndDoNotRepeatWhileTouching()
@@ -475,7 +485,11 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         }
         [UnityTest] public IEnumerator DeathRagdoll_TightropeStaysDetachedAndFalls() => DeathRagdoll(false);
         [UnityTest] public IEnumerator DeathRagdoll_CannonStaysDetachedAndFalls() => DeathRagdoll(true);
-        IEnumerator DeathRagdoll(bool cannon)
+        [UnityTest] public IEnumerator DeathRagdoll_CannonGroundInjuryDeathKeepsCameraAboveFloor() => DeathRagdoll(true, false, "GROUND");
+        [UnityTest] public IEnumerator DeathRagdoll_HangingTimeoutClearsActualRopeSupport() => DeathRagdoll(false, true);
+        [UnityTest] public IEnumerator DeathRagdoll_NoReachableRopeDiesImmediately() => DeathRagdoll(false, false, "NO_ROPE");
+        [UnityTest] public IEnumerator DeathRagdoll_FourCutsDieImmediatelyWithArticulatedPieces() => DeathRagdoll(false, false, "CUT");
+        IEnumerator DeathRagdoll(bool cannon, bool hanging = false, string deathCause = null)
         {
             yield return SceneManager.LoadSceneAsync(cannon ? "HumanCannon" : "Tightrope", LoadSceneMode.Single);
             yield return null; yield return RemoveAutomaticSceneRouting(); Capture();
@@ -501,19 +515,117 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             // Public confirmed death; the live course/controller remains enabled during the observation.
             var model = (GameObject)Read(slot, "CurrentModel"); Assert.That(model, Is.Not.Null);
             mover.GetType().GetProperty("Simulated").SetValue(mover, false);
-            local.transform.position = new Vector3(1000f, 30f, 1000f);
-            Call(local, "ServerKill");
+            Component course = null;
+            var deathAnimator = model.GetComponentInChildren<Animator>();
+            var hips = deathAnimator.GetBoneTransform(HumanBodyBones.Hips);
+            var handBone = deathAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
+            Vector3 heldHand = Vector3.zero;
+            if (hanging)
+            {
+                course = (Component)Static("CurtainCall.Tightrope.TightropeCourse", "Current");
+                course.transform.position += Vector3.up * 30f;
+                local.transform.position = (Vector3)Call(course, "GetLanePosition", 0, 10f);
+                var hangs = Static("CurtainCall.Tightrope.TightropeHangSystem", "Current");
+                Assert.That(Call(hangs, "ServerTryHang", local, 10f, 0), Is.EqualTo(true));
+                yield return new WaitForSeconds(.3f);
+                var presentation = local.GetComponent(Game("CurtainCall.Player.HumanoidPlayerPresentation"));
+                Assert.That(Read(presentation, "IsHanging"), Is.EqualTo(true));
+                var hangingAnimator = model.GetComponentInChildren<Animator>();
+                Assert.That(hangingAnimator.enabled, Is.True);
+                var palm = presentation.GetType().GetMethod("Palm", BindingFlags.Static | BindingFlags.NonPublic);
+                var shape = Read(course, "Shape");
+                Vector3 contact = (Vector3)Call(course, "GetLanePosition", 0, 10f)
+                    - Vector3.up * ((float)Read(shape, "RopeThickness") * .5f);
+                Vector3 axis = (Vector3)Read(course, "Forward");
+                for (int sample = 0; sample < 12; sample++)
+                {
+                    yield return new WaitForEndOfFrame();
+                    foreach (bool left in new[] { true, false })
+                    {
+                        Vector3 hand = (Vector3)palm.Invoke(null, new object[] { hangingAnimator, left });
+                        float error = Mathf.Min(Vector3.Distance(hand, contact - axis * .18f), Vector3.Distance(hand, contact + axis * .18f));
+                        Assert.That(error, Is.LessThan(.02f), "실제 줄의 두께 중심에 손 접점이 유지되어야 한다.");
+                    }
+                    yield return new WaitForSeconds(.05f);
+                }
+                heldHand = hips.InverseTransformPoint(handBone.position);
+                until = Time.realtimeSinceStartup + 9f;
+                while (Read(local, "State").ToString() == "Normal" && Time.realtimeSinceStartup < until) yield return null;
+            }
+            else
+            {
+                local.transform.position = new Vector3(1000f, 30f, 1000f);
+                if (deathCause == "GROUND")
+                {
+                    deathFloor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    deathFloor.transform.position = new Vector3(1000f, 29.5f, 1000f);
+                    deathFloor.transform.localScale = new Vector3(30f, 1f, 30f);
+                    local.transform.position = new Vector3(1000f, 30.05f, 1000f);
+                    Physics.SyncTransforms();
+                    Call(local, "ServerCut", 2);
+                    yield return new WaitForSeconds(.6f);
+                    Game("CurtainCall.HumanCannon.HumanCannonSystem").GetMethod("ServerFallInjury").Invoke(null, new object[] { local });
+                }
+                else if (deathCause == "CUT") Call(local, "ServerCut", 4);
+                else if (deathCause == "NO_ROPE")
+                {
+                    course = (Component)Static("CurtainCall.Tightrope.TightropeCourse", "Current");
+                    for (int lane = 0; lane < (int)Read(course, "LaneCount"); lane++) Call(course, "SetLaneBlocked", lane, true);
+                    Assert.That(Call(Static("CurtainCall.Tightrope.TightropeHangSystem", "Current"), "ServerTryHang", local, 10f, 0), Is.EqualTo(false));
+                }
+                else Call(local, "ServerKill");
+            }
+            Assert.That(deathAnimator.enabled, Is.False, "사망을 확정하는 호출 프레임부터 Animator가 중지되어야 한다.");
+            if (deathCause == "CUT")
+            {
+                var humanoid = model.GetComponent(Game("CurtainCall.Player.HumanoidModel"));
+                Assert.That(Read(humanoid, "PieceCount"), Is.EqualTo(4));
+                for (int i = 0; i < 4; i++)
+                {
+                    var piece = (Rigidbody)Call(humanoid, "GetPieceBody", i);
+                    Assert.That(piece.GetComponentsInChildren<Rigidbody>().Length, Is.EqualTo(2));
+                    Assert.That(piece.GetComponentsInChildren<CharacterJoint>().Length, Is.EqualTo(1));
+                    foreach (var boneBody in piece.GetComponentsInChildren<Rigidbody>()) Assert.That(boneBody.isKinematic, Is.False);
+                }
+            }
             Assert.That(Read(local, "State").ToString(), Is.EqualTo("Fallen"));
             Assert.That(Read(ragdoll, "IsLimp"), Is.EqualTo(true), "Confirmed death must detach the model immediately");
             Assert.That(Read(slot, "CurrentModel"), Is.Null);
-            var body = model.GetComponent<Rigidbody>(); Assert.That(body, Is.Not.Null);
+            var body = model.GetComponentInChildren<Rigidbody>(); Assert.That(body, Is.Not.Null);
             Assert.That(body.isKinematic, Is.False); Assert.That(body.useGravity, Is.True);
             float startY = body.position.y;
             yield return new WaitForSeconds(.6f);
             Assert.That(Read(ragdoll, "IsLimp"), Is.EqualTo(true), "Course cleanup must not revive a dead model");
             Assert.That(Read(slot, "CurrentModel"), Is.Null);
             Assert.That(model, Is.Not.Null);
+            if (deathCause == "GROUND")
+            {
+                Assert.That(Read(model.GetComponent(Game("CurtainCall.Player.HumanoidModel")), "Stage"), Is.EqualTo(4));
+                Assert.That(body.position.y, Is.GreaterThan(29.8f), "지면의 시신은 바닥 충돌을 유지해야 한다.");
+                var camera = Camera.main;
+                Assert.That(camera, Is.Not.Null);
+                Assert.That(camera.transform.position.y, Is.GreaterThanOrEqualTo(31.19f), "대포 추락 절단 사망의 카메라는 땅 위에 남아야 한다.");
+                Vector3 viewport = camera.WorldToViewportPoint(new Vector3(1000f, 30.35f, 1000f));
+                Assert.That(viewport.z, Is.GreaterThan(0f));
+                Assert.That(viewport.x, Is.EqualTo(.5f).Within(.03f));
+                Assert.That(viewport.y, Is.EqualTo(.5f).Within(.03f), "바닥의 사망 위치를 화면에 비춰야 한다.");
+                yield break;
+            }
             Assert.That(body.position.y, Is.LessThan(startY - .5f), "Detached body must keep falling under gravity");
+            if (hanging)
+            {
+                Assert.That(Vector3.Distance(heldHand, hips.InverseTransformPoint(handBone.position)), Is.GreaterThan(.2f), "실제 매달림 사망도 몸통 대비 팔 자세가 풀려야 한다.");
+                Assert.That(model.GetComponentsInChildren<Animator>().All(a => !a.enabled), Is.True);
+                var surfaces = (IDictionary)course.GetType().GetField("ropeSurfaces", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(course);
+                Assert.That(surfaces.Count, Is.GreaterThan(0));
+                var platform = course.GetComponentsInChildren<Collider>().Single(c => c.name == "StartPlatform");
+                Assert.That(Physics.GetIgnoreCollision(platform, body.GetComponentInChildren<Collider>()), Is.False,
+                    "줄에서 떨어져도 플랫폼·바닥 충돌까지 없애면 안 된다.");
+                foreach (Collider surface in surfaces.Keys)
+                    foreach (var boneCollider in model.GetComponentsInChildren<Collider>().Where(c => c.enabled))
+                        Assert.That(Physics.GetIgnoreCollision(surface, boneCollider), Is.True, "실제 줄 지지면이 시신을 붙잡으면 안 된다.");
+                yield break;
+            }
             var guard = Game("CurtainCall.Network.PlayerSync.NetworkPlayer").GetProperty("ServerCanChangeState");
             object previousGuard = guard.GetValue(null);
             try
@@ -530,7 +642,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
                     else Call(balance, "ForceFall");
                     Assert.That(Read(local, "State").ToString(), Is.EqualTo("Fallen"), cause);
                     Assert.That(Read(ragdoll, "IsLimp"), Is.EqualTo(true), cause);
-                    body = model.GetComponent<Rigidbody>(); Assert.That(body, Is.Not.Null, cause);
+                    body = model.GetComponentInChildren<Rigidbody>(); Assert.That(body, Is.Not.Null, cause);
                     startY = body.position.y;
                     // Neither a repeated balance reset nor duplicate death confirmation may revive the corpse.
                     Call(balance, "ResetBalance");
@@ -545,6 +657,8 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         }
         [UnityTearDown] public IEnumerator Cleanup()
         {
+            if (deathFloor != null) UnityEngine.Object.Destroy(deathFloor);
+            deathFloor = null;
             yield return RemoveAutomaticSceneRouting();
             if (runtime != null && listener != null) runtime.GetType().GetEvent("Recorded").RemoveEventHandler(runtime, listener);
             if (session != null && Read(session, "ConnectionState").ToString() != "Offline")

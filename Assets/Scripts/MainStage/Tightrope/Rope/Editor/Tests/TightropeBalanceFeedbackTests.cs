@@ -308,7 +308,66 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(bar.transform.childCount, Is.EqualTo(1), "생성한 경고 구간도 함께 정리한다.");
         }
 
+        [Test]
+        public void HangingOnAPoleSlowlyRecoversDangerAtTheGreenRate()
+        {
+            balance.SetDisplayedState(true, 60f);
+            Step(1.6f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.8f).Within(.0001f));
+
+            // 최신 봉 바인딩처럼 일반 공중 균형이 켜져 있어도 매달림은 계산을 멈춘다.
+            balance.SetAirborne(true);
+            balance.ContinueWhileAirborne = true;
+            balance.IsSuspended = true;
+            Step(1f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.8f).Within(.0001f), "공중 정지만으로는 위험이 줄지 않는다.");
+
+            // fallTime 2초, 초록 회복 0.25 → 초당 0.5초(비율 0.25)씩 줄어든다.
+            balance.RecoverWhileSupported(1f);
+            Assert.That(balance.RedTimeRatio, Is.EqualTo(.55f).Within(.0001f), "매달린 동안 위험이 점차 줄어든다.");
+            Assert.That(balance.Value, Is.EqualTo(60f), "균형 값은 그대로 둔다.");
+            balance.RecoverWhileSupported(10f);
+            Assert.That(balance.RedTime, Is.Zero, "0 아래로 내려가지 않는다.");
+
+            balance.SetBalanceActive(false);
+            balance.SetDisplayedState(false, 0f);
+            Set(balance, "<RedTime>k__BackingField", 1f);
+            balance.RecoverWhileSupported(1f);
+            Assert.That(balance.RedTime, Is.EqualTo(1f), "균형이 꺼져 있으면 건드리지 않는다.");
+        }
+
         void Step(float deltaTime) => Invoke(balance, "Step", deltaTime);
+
+        [Test]
+        public void RescueSupportFreezesBalanceDangerAndShocksWithoutOwningSuspension()
+        {
+            balance.SetDisplayedState(true, 80f); Step(.6f);
+            float value = balance.Value, danger = balance.RedTime;
+            balance.IsRescueSupported = true;
+            balance.SetCorrectionInput(-1f); balance.SetSurfaceSway(8f, 100f);
+            Step(5f); balance.ApplyShock(100f); balance.ApplyLaneLanding(0f);
+            balance.SetAirborne(true); balance.SetAirborne(false);
+            Assert.That(balance.Value, Is.EqualTo(value));
+            Assert.That(balance.RedTime, Is.EqualTo(danger));
+            Assert.That(balance.HasFallen, Is.False);
+            balance.IsSuspended = true;
+            balance.IsRescueSupported = false;
+            Step(3f);
+            Assert.That(balance.RedTime, Is.EqualTo(danger), "구조 종료가 다른 매달림 보호를 풀면 안 된다.");
+            balance.IsSuspended = false;
+            Step(.2f);
+            Assert.That(balance.RedTime, Is.EqualTo(danger + .2f).Within(.0001f));
+            balance.ApplyShock(5f);
+            Assert.That(balance.Value, Is.Not.EqualTo(value), "구조가 끝나면 충격도 다시 받는다.");
+        }
+
+        [Test]
+        public void RescueSupportDoesNotPreventExplicitHazardFalls()
+        {
+            balance.IsRescueSupported = true;
+            balance.ForceFall();
+            Assert.That(balance.HasFallen, Is.True, "구조 중에도 실제 위험물·코스 이탈에 의한 사망 규칙은 유지한다.");
+        }
         static void Set(object target, string name, object value) => target.GetType().GetField(name, Members).SetValue(target, value);
         static object Invoke(object target, string name, params object[] args) => target.GetType().GetMethod(name, Members).Invoke(target, args);
     }

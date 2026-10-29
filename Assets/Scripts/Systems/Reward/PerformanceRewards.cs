@@ -93,6 +93,8 @@ namespace CurtainCall.Reward
             {
                 long previous = model.Revision;
                 model.ApplyRules(ReadRules());
+                var audience = AudienceReactionSettings.Current;
+                if (audience != null) model.Tick(Time.timeAsDouble, audience.interestGrace, audience.interestDecay);
                 SamplePerformanceRecords();
                 ObserveNetwork();
                 if (model.Revision != previous) Publish();
@@ -191,7 +193,7 @@ namespace CurtainCall.Reward
                 var player = FindPlayer(id);
                 // 아직 spawn되지 않은 사람의 시작 부상을 0으로 추정하지 않는다.
                 if (player == null) return false;
-                people.Add(new RewardParticipantSeed(ParticipantId(id), id, player.Slot, (int)player.LostParts, IsDead(player.State), player.ForfeitsNextPerformance));
+                people.Add(new RewardParticipantSeed(ParticipantId(id), id, player.Slot, (int)player.LostParts, IsDead(player.State)));
             }
             return people.Count > 0 && Begin(people, difficultyLevel, rewardTable, false);
         }
@@ -235,23 +237,39 @@ namespace CurtainCall.Reward
             return changed;
         }
 
-        public bool AddAudienceReaction(string participantId, int delta)
+        public bool AddAudienceReaction(string participantId, int delta) => AddAudienceReaction(participantId, delta, false);
+
+        /// <summary>관객 환호·야유. 시간 끌기 야유처럼 감점에도 관심 감소 유예를 다시 셀 때는 <paramref name="resetInterest"/>.</summary>
+        public bool AddAudienceReaction(string participantId, int delta, bool resetInterest)
         {
             if (!CanMutate()) return false;
             long previous = model.Revision;
             ObserveNetwork();
-            bool changed = model.React(participantId, delta, ReadRules());
+            bool changed = model.React(participantId, delta, ReadRules(), resetInterest);
             if (model.Revision != previous) Publish();
+            return changed;
+        }
+
+        /// <summary>실제 도착. 호응도를 고정하고 정산에서 완주 보너스를 준다. 묘기가 도착을 확인한 즉시 부른다.</summary>
+        public bool MarkArrived(string participantId)
+        {
+            if (!CanMutate()) return false;
+            bool changed = model.MarkArrived(participantId);
+            if (changed) Publish();
             return changed;
         }
 
         /// <summary>호스트 테스트/묘기 관찰 입력. 신체 손실은 0~15 비트마스크이며 결과에는 개수로 고정한다.</summary>
         public bool ObserveParticipant(string participantId, int lostParts, bool dead, bool connected = true)
+            => ObserveParticipant(participantId, lostParts, dead, connected, false);
+
+        /// <summary><paramref name="arrived"/>는 실제 도착(호응도 고정·완주 보너스 대상)이다.</summary>
+        public bool ObserveParticipant(string participantId, int lostParts, bool dead, bool connected, bool arrived)
         {
             if (!CanMutate()) return false;
             long previous = model.Revision;
             SamplePerformanceRecords();
-            bool changed = model.Observe(participantId, lostParts, dead, connected, ReadRules());
+            bool changed = model.Observe(participantId, lostParts, dead, connected, ReadRules(), arrived);
             if (model.Revision != previous) Publish();
             if (changed) EndIfInsufficientSurvivors();
             return changed;
@@ -269,12 +287,8 @@ namespace CurtainCall.Reward
         RewardRules ReadRules()
         {
             if (rulesOverride.HasValue) return rulesOverride.Value;
-            var original = table != null ? table.ReadRules(difficulty) : RewardRules.Temporary(difficulty);
-            var audience = AudienceReactionSettings.Current;
-            string trick = campaign != null ? campaign.State.TrickId : null;
-            return audience != null && (trick == "Tightrope" || trick == "HumanCannon")
-                ? new RewardRules(original.Cheer, original.Jeer, Math.Max(1, audience.cap), original.AllSurvivedBonus, Math.Max(0, audience.cut))
-                : original;
+            // 단계별 상한·완주 보너스·절단 보너스는 보상 표 하나에서 읽는다(관객 설정이 상한을 100으로 덮어쓰던 문제 제거).
+            return table != null ? table.ReadRules(difficulty) : RewardRules.Temporary(difficulty);
         }
         bool CanMutate() => HasAuthority && model != null && model.IsOpen && !ending && !pendingTransition;
 
@@ -298,6 +312,8 @@ namespace CurtainCall.Reward
             {
                 ObserveNetwork();
                 if (!model.Confirm(trickSucceeded, endReason, judgements, OfficialMinSurvivors, ReadRules(), out result)) return false;
+                // 성공한 단계를 런에 기록해 다음 밤 정비에서 다음 단계를 고를 수 있게 한다(M2 난이도 선택).
+                if (result.Succeeded && !dummyRoster) campaign.RecordClear(result.Performance.TrickId, difficulty);
                 ClearObservers();
                 pendingTransition = true;
                 // 결과는 즉시 확정/송신하고, 두 공연의 사망·결과·검은 전환 화면을 본 뒤 시간대를 넘긴다.
@@ -352,11 +368,11 @@ namespace CurtainCall.Reward
                     if (!observers.ContainsKey(player))
                     {
                         string id = segment.ParticipantId;
-                        Action<PlayerState, PlayerState> handler = (_, next) => ObserveParticipant(id, (int)player.LostParts, IsDead(next));
+                        Action<PlayerState, PlayerState> handler = (_, next) => ObserveParticipant(id, (int)player.LostParts, IsDead(next), true, next == PlayerState.Arrived);
                         observers.Add(player, handler);
                         player.StateChanged += handler;
                     }
-                    model.Observe(segment.ParticipantId, (int)player.LostParts, IsDead(player.State), connected, currentRules);
+                    model.Observe(segment.ParticipantId, (int)player.LostParts, IsDead(player.State), connected, currentRules, player.State == PlayerState.Arrived);
                 }
                 else if (!connected)
                     model.Observe(segment.ParticipantId, PartsForCount(segment.LostCount), segment.Dead, false, currentRules);

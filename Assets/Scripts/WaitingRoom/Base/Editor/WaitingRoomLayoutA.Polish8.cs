@@ -199,6 +199,108 @@ namespace CurtainCall.WaitingRoom.Editor
             return cut;
         }
 
+        // Restroom mirrors: the single 4 m pane leaned 2.6° out through the iron band and ran across both basins. One framed
+        // mirror per sink now, flat on the wall (face x 11.65), between the basin top (1.08) and the band (2.08).
+        public static string FitRestroomMirrors() => RunPass("Restroom mirrors one per sink", target =>
+        {
+            var fixtures = target.Find("S02_Dormitory/Restroom/Fixtures") ?? throw new InvalidOperationException("Restroom fixtures missing");
+            var group = fixtures.Find("SinkMirrors"); var old = group.Find("Mirror");
+            var glass = old.GetComponent<Renderer>().sharedMaterial; Material frame = Mat("V4_Iron_Dark");
+            Undo.RecordObject(old.gameObject, "Retire long mirror"); old.gameObject.SetActive(false);
+            foreach (Transform t in group.Cast<Transform>().Where(t => t.name.StartsWith("SinkMirror_")).ToArray()) Undo.DestroyObjectImmediate(t.gameObject);
+            const float wallX = 11.65f, y0 = 1.27f, y1 = 1.98f, w = .8f, f = .04f;
+            int made = 0;
+            foreach (var sink in fixtures.Cast<Transform>().Where(t => t.name.StartsWith("Sink_")))
+            {
+                float z = sink.GetComponentsInChildren<Renderer>().Select(r => r.bounds.center.z).DefaultIfEmpty(sink.position.z).Average();
+                var m = Group(group, "SinkMirror_" + sink.name.Substring(5), new Vector3(wallX, (y0 + y1) * .5f, z)); m.rotation = Quaternion.identity;
+                Box(m, "Glass", new Vector3(wallX + .022f, (y0 + y1) * .5f, z), new Vector3(.012f, y1 - y0 - f, w - f), glass);
+                Box(m, "Backing", new Vector3(wallX + .008f, (y0 + y1) * .5f, z), new Vector3(.016f, y1 - y0, w), frame);
+                foreach (float s in new[] { -1f, 1f })
+                {
+                    Box(m, "FrameSide", new Vector3(wallX + .02f, (y0 + y1) * .5f, z + s * (w - f) * .5f), new Vector3(.04f, y1 - y0, f), frame);
+                    Box(m, "FrameEdge", new Vector3(wallX + .02f, (s > 0 ? y1 - f * .5f : y0 + f * .5f), z), new Vector3(.04f, f, w), frame);
+                }
+                made++;
+            }
+            return $"Restroom mirrors: {made} framed mirrors, long pane retired";
+        });
+
+        // Z-fighting: visible faces of two boxes lying in the same plane flicker (e.g. both rooms' door sills overlapping in a
+        // doorway, both rooms' door reveals at a shared wall). Exact duplicates keep one drawn (colliders stay); partial
+        // overlaps lift the smaller box 3 mm off the shared plane. Pairs of the same untextured material are left alone.
+        public static string FixCoplanarFaces() => RunPass("Coplanar face flicker", target =>
+        {
+            static bool AxisAligned(Transform t)
+            {
+                var e = t.rotation.eulerAngles;
+                foreach (float a in new[] { e.x, e.y, e.z }) { float m = Mathf.Repeat(a, 90f); if (m > .5f && m < 89.5f) return false; }
+                return true;
+            }
+            var list = new List<(Renderer r, Bounds b)>();
+            foreach (var r in target.GetComponentsInChildren<MeshRenderer>())
+            {
+                if (!r.enabled) continue; var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+                string n = mf.sharedMesh.name; if (!(n == "Cube" || n.StartsWith("MoodBox"))) continue;
+                if (!AxisAligned(r.transform) || r.sharedMaterial == null || r.sharedMaterial.renderQueue >= 3000) continue;
+                var bb = r.bounds; if (bb.size.magnitude > 200) continue; list.Add((r, bb));
+            }
+            bool Hidden(Vector3 p, Renderer a, Renderer b)
+            {
+                foreach (var c in Physics.OverlapSphere(p, .003f, ~0, QueryTriggerInteraction.Ignore))
+                    if (c.transform != a.transform && c.transform != b.transform) return true;
+                foreach (var o in list) if (o.r != a && o.r != b && o.r.enabled && o.b.Contains(p)) return true;
+                return false;
+            }
+            var touched = new HashSet<Renderer>(); int hiddenDup = 0, lifted = 0;
+            for (int axis = 0; axis < 3; axis++)
+            for (int side = 0; side < 2; side++)
+            {
+                var buckets = new Dictionary<long, List<int>>();
+                for (int i = 0; i < list.Count; i++)
+                {
+                    float v = side == 0 ? list[i].b.min[axis] : list[i].b.max[axis];
+                    long k = (long)Mathf.Round(v / .003f);
+                    if (!buckets.TryGetValue(k, out var l)) buckets[k] = l = new List<int>();
+                    l.Add(i);
+                }
+                foreach (var l in buckets.Values)
+                for (int a = 0; a < l.Count; a++)
+                for (int c = a + 1; c < l.Count; c++)
+                {
+                    var A = list[l[a]]; var B = list[l[c]];
+                    if (touched.Contains(A.r) || touched.Contains(B.r) || !A.r.enabled || !B.r.enabled) continue;
+                    float va = side == 0 ? A.b.min[axis] : A.b.max[axis], vb = side == 0 ? B.b.min[axis] : B.b.max[axis];
+                    if (Mathf.Abs(va - vb) > .0015f) continue;
+                    int u = (axis + 1) % 3, w = (axis + 2) % 3;
+                    float u0 = Mathf.Max(A.b.min[u], B.b.min[u]), u1 = Mathf.Min(A.b.max[u], B.b.max[u]), w0 = Mathf.Max(A.b.min[w], B.b.min[w]), w1 = Mathf.Min(A.b.max[w], B.b.max[w]);
+                    if (u1 - u0 < .03f || w1 - w0 < .03f) continue;
+                    if (A.r.sharedMaterial == B.r.sharedMaterial && A.r.sharedMaterial.mainTexture == null) continue; // same flat colour: no visible flicker
+                    int visible = 0;
+                    for (int s = 0; s < 5; s++)
+                    {
+                        var p = Vector3.zero; float fu = s == 0 ? .5f : s % 2 == 0 ? .2f : .8f, fw = s == 0 ? .5f : s < 3 ? .2f : .8f;
+                        p[u] = Mathf.Lerp(u0, u1, fu); p[w] = Mathf.Lerp(w0, w1, fw); p[axis] = va + (side == 0 ? -.01f : .01f);
+                        if (!Hidden(p, A.r, B.r)) visible++;
+                    }
+                    if (visible < 2) continue;
+                    bool duplicate = (A.b.min - B.b.min).magnitude < .006f && (A.b.max - B.b.max).magnitude < .006f;
+                    if (duplicate)
+                    {
+                        Undo.RecordObject(B.r, "Hide duplicate face"); B.r.enabled = false; touched.Add(B.r); hiddenDup++;
+                        continue;
+                    }
+                    // Lift the smaller face's box off the plane, outward along that face's normal.
+                    float areaA = A.b.size[u] * A.b.size[w], areaB = B.b.size[u] * B.b.size[w];
+                    var mover = areaA <= areaB ? A.r : B.r;
+                    var dir = Vector3.zero; dir[axis] = side == 0 ? -1 : 1;
+                    Undo.RecordObject(mover.transform, "Lift coplanar face"); mover.transform.position += dir * .003f;
+                    touched.Add(mover); lifted++;
+                }
+            }
+            return $"Coplanar faces: {hiddenDup} duplicate renderers hidden (colliders kept), {lifted} boxes lifted 3 mm";
+        });
+
         // World bounds of a slab from its mesh, valid while the slab is hidden (renderer bounds are empty then).
         static Bounds SlabBounds(Transform t)
         {

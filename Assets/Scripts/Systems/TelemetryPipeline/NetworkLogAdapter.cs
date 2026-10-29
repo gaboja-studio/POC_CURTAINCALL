@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.StartLobby;
@@ -10,6 +11,7 @@ using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using UnityEngine;
+using Unity.Profiling;
 
 namespace CurtainCall.Telemetry.Pipeline
 {
@@ -18,6 +20,8 @@ namespace CurtainCall.Telemetry.Pipeline
     {
         const string Request = "CurtainCall.Log.RoomRequest.v1", Snapshot = "CurtainCall.Log.RoomState.v1";
         const string Relay = "CurtainCall.Log.Batch.v1", Receipt = "CurtainCall.Log.Receipt.v1";
+        const float RelayRetrySeconds = 3f, RelaySpacingSeconds = 1f;
+        static readonly ProfilerMarker RelayTickMarker = new("Telemetry.Relay.Tick");
         readonly TelemetryRuntime log;
         readonly Dictionary<ulong, string> identities = new();
         NetworkSessionManager session;
@@ -27,8 +31,10 @@ namespace CurtainCall.Telemetry.Pipeline
         bool entered, signed;
         float nextRequest, nextFind;
         float nextRelay;
-        string relayPath, relayHash, relayId;
-        int relayCount;
+        DurableOutbox.RelayPreparation relay;
+        Task<DurableOutbox.RelayPreparation> preparingRelay;
+        Task<bool> acknowledgingRelay;
+        CancellationTokenSource relayLifetime;
         public NetworkLogAdapter(TelemetryRuntime runtime) => log = runtime;
         public string PlayerCode(ulong clientId) => identities.TryGetValue(clientId, out string id) ? id
             : session?.NetworkManager != null && session.NetworkManager.LocalClientId == clientId ? log.CurrentPlayerId
@@ -70,24 +76,32 @@ namespace CurtainCall.Telemetry.Pipeline
                 var found = UnityEngine.Object.FindAnyObjectByType<LobbyReadyBoard>();
                 if (board != found) { if (board != null) board.Changed -= Signature; board = found; signed = board != null && board.LocalReady; if (board != null) board.Changed += Signature; }
             }
-            if (room != null && messages != null && session != null && !session.IsHost && Time.unscaledTime >= nextRelay)
+            if (room != null && messages != null && session != null && !session.IsHost) TickRelay();
+        }
+
+        void TickRelay()
+        {
+            using var sample = RelayTickMarker.Auto();
+            if (acknowledgingRelay != null)
             {
-                nextRelay = Time.unscaledTime + 3;
-                try
-                {
-                    string path = log.PendingPath;
-                    if (path != null)
-                    {
-                        string raw = File.ReadAllText(path); var batch = LogJson.Parse<LogBatch>(raw);
-                        if (TransportPolicy.RelayBatch(batch))
-                        {
-                            relayPath = path; relayHash = DurableOutbox.Sha256(raw); relayId = batch.batchId; relayCount = batch.events.Count;
-                            Send(Relay, raw, NetworkManager.ServerClientId, true);
-                        }
-                    }
-                }
-                catch { /* Preserve the original until a host durability receipt arrives. */ }
+                if (!acknowledgingRelay.IsCompleted) return;
+                bool accepted = acknowledgingRelay.Result;
+                acknowledgingRelay = null; relay = null;
+                nextRelay = Time.unscaledTime + (accepted ? RelaySpacingSeconds : RelayRetrySeconds);
+                return;
             }
+            if (preparingRelay != null)
+            {
+                if (!preparingRelay.IsCompleted) return;
+                relay = preparingRelay.Result; preparingRelay = null;
+                if (relay.Path == null) { relay = null; nextRelay = Time.unscaledTime + RelayRetrySeconds; }
+            }
+            if (Time.unscaledTime < nextRelay) return;
+            if (relay == null)
+            { preparingRelay = log.PrepareRelayAsync(relayLifetime.Token); return; }
+            try { Send(Relay, relay.Raw, NetworkManager.ServerClientId, true); }
+            catch { /* Retry the same immutable batch; only a matching durable receipt deletes it. */ }
+            nextRelay = Time.unscaledTime + RelayRetrySeconds;
         }
         string RoomType => session?.ActiveConnector is ServicesSessionConnector ? "CODE" : "LAN";
         void Connection(SessionConnectionState state)
@@ -97,6 +111,7 @@ namespace CurtainCall.Telemetry.Pipeline
             { if (state == SessionConnectionState.Connecting) { room = null; entered = false; identities.Clear(); } return; }
             messages = session.NetworkManager.CustomMessagingManager;
             if (messages == null) return;
+            relayLifetime = new CancellationTokenSource(); nextRelay = 0;
             nextRequest = 0;
             connectionIdentity = log.CurrentPlayerId;
             if (session.IsHost)
@@ -125,12 +140,12 @@ namespace CurtainCall.Telemetry.Pipeline
         }
         void ReadReceipt(ulong sender, FastBufferReader reader)
         {
-            if (sender != NetworkManager.ServerClientId || reader.Length > 512 || relayPath == null) return;
+            if (sender != NetworkManager.ServerClientId || reader.Length > 512 || relay == null || acknowledgingRelay != null) return;
             try
             {
                 reader.ReadValueSafe(out string value);
-                if (value != relayId + ":" + relayHash + ":" + relayCount) return;
-                if (log.AcknowledgeRelay(relayPath, relayId, relayHash, relayCount)) { relayPath = null; nextRelay = 0; }
+                if (value != relay.BatchId + ":" + relay.Hash + ":" + relay.EventCount) return;
+                acknowledgingRelay = log.AcknowledgeRelayAsync(relay.Path, relay.BatchId, relay.Hash, relay.EventCount, relayLifetime.Token);
             }
             catch { }
         }
@@ -189,10 +204,12 @@ namespace CurtainCall.Telemetry.Pipeline
         }
         void Unregister()
         {
+            if (relayLifetime != null) { relayLifetime.Cancel(); relayLifetime.Dispose(); relayLifetime = null; }
+            preparingRelay = null; acknowledgingRelay = null; relay = null;
             if (messages == null) return;
             messages.UnregisterNamedMessageHandler(Request); messages.UnregisterNamedMessageHandler(Snapshot);
             messages.UnregisterNamedMessageHandler(Relay); messages.UnregisterNamedMessageHandler(Receipt);
-            messages = null; relayPath = null;
+            messages = null;
         }
         void Unbind()
         {

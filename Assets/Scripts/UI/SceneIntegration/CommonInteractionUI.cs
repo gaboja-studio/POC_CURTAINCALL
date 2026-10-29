@@ -150,6 +150,7 @@ namespace CurtainCall.UI.SceneIntegration
             var player = NetworkPlayer.Local;
             var course = TightropeCourse.Current;
             if (player == null || player.State != PlayerState.Normal || course == null || !course.IsGameplayActive) return;
+            if (AddHangGuide(player, feet)) return;
             var trapeze = TightropeTrapeze.Current;
             if (trapeze != null && trapeze.IsActive)
             {
@@ -199,6 +200,33 @@ namespace CurtainCall.UI.SceneIntegration
                 Add(swing.PoleVisual, swing.PoleVisual.position, "봉 잡기", true, true, feet);
                 candidates[candidates.Count - 1].Pole = true;
             }
+        }
+        /// <summary>M2 추락 매달림: 매달린 본인은 남은 시간, 끌어올리는 동료는 진행, 근처 동료에게는 F 안내.</summary>
+        bool AddHangGuide(NetworkPlayer player, Vector3 feet)
+        {
+            var hangs = TightropeHangSystem.Current;
+            if (hangs == null) return false;
+            foreach (var hang in hangs.Hangs)
+            {
+                if (hang.Id == player.OwnerClientId)
+                {
+                    DeviceGuide(player, feet, "-", hang.IsPulling ? "동료가 끌어올리는 중" : "줄에 매달려 버티는 중", false,
+                        hang.IsPulling ? $"끌어올리기 {hangs.PullProgress(hang) * 100f:0}%"
+                            : $"동료가 F로 끌어올려야 합니다 · 남은 {hangs.RemainingSeconds(hang):0.0}초");
+                    return true;
+                }
+                if (hang.Rescuer == player.OwnerClientId)
+                {
+                    DeviceGuide(player, feet, "F 홀드", "끌어올리기 취소", true, $"끌어올리는 중 {hangs.PullProgress(hang) * 100f:0}%", true);
+                    return true;
+                }
+            }
+            if (hangs.IsHanging(player))
+            { DeviceGuide(player, feet, "-", "줄을 잡는 중", false, ""); return true; }
+            var target = hangs.NearestRescueTarget(player);
+            if (target == null) return false;
+            DeviceGuide(player, feet, "F", "매달린 동료 끌어올리기", true, $"{CurtainCall.Settings.GameSettings.Tightrope.Hang.PullSeconds:0.#}초 동안 끌어올립니다 · 남은 {hangs.RemainingSeconds(target):0.0}초");
+            return true;
         }
         void DeviceGuide(NetworkPlayer player, Vector3 feet, string key, string action, bool available, string helper, bool hold = false)
         {

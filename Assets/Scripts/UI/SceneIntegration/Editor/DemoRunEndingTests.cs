@@ -21,7 +21,6 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.AreEqual(RestTimerState.None, run.Snapshot.Timer);
             Assert.AreEqual(0, run.Snapshot.TimeRemaining);
             Assert.IsFalse(run.Snapshot.AlarmRaised);
-            Assert.IsFalse(run.NotifyLeftWaitingRoom());
             Assert.IsFalse(run.DebugSetRemaining(0));
             Assert.IsFalse(run.NotifyAllAtStageEntrance());
             Assert.IsFalse(run.StartEscape());

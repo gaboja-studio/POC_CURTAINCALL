@@ -160,8 +160,8 @@ namespace CurtainCall.WaitingRoom
         {
             ExpertRoomPhase.Booked => ExpertServiceBook.Explain(ExpertRefusal.NotBuyer),
             ExpertRoomPhase.Working or ExpertRoomPhase.Exiting => "다른 사람이 전문가 서비스를 받고 있습니다.",
-            _ => !ExpertService.IsNight ? ExpertServiceBook.Explain(ExpertRefusal.NotNight)
-                : "전문가 서비스는 ③ 상점 수화기에서 먼저 구매하세요.",
+            _ => !ExpertService.IsServiceTime ? ExpertServiceBook.Explain(ExpertRefusal.InPerformance)
+                : "신체 복구는 ③ 상점 수화기에서 먼저 구매하세요.",
         };
 
         float FlatDistance(Vector3 feet)
@@ -199,21 +199,19 @@ namespace CurtainCall.WaitingRoom
             sign.text = text;
         }
 
-        public string StatusText => ExpertService.Instance == null ? "담당자 부재중" : DescribeStatus(ExpertService.Instance);
+        public string StatusText => ExpertService.Instance == null ? "준비 중" : DescribeStatus(ExpertService.Instance);
         static string DescribeStatus(ExpertService service) => service.Phase switch
             {
                 ExpertRoomPhase.Booked => $"{WaitingRoomShop.PlayerLabel(service.Buyer)} 입장 대기",
                 ExpertRoomPhase.Working => "이용 중",
                 ExpertRoomPhase.Exiting => "복구 완료",
-                _ => !ExpertService.IsNight ? "밤 정비 때 영업"
-                    : ExpertService.Availability(ExpertKind.Medical) == ExpertRefusal.None ? "의료 전문가 대기 중"
-                    : ExpertService.Availability(ExpertKind.Facility) == ExpertRefusal.None ? "시설 담당자 근무 · 의료 부재중"
-                    : "담당자 부재중",
+                _ => ExpertService.IsServiceTime ? "신체 복구 영업 중" : "공연 중 휴업",
             };
 
         void PlayClank()
         {
             if (sound == null || clank == null) return;
+            CurtainCall.Settings.LocalAudioController.Register(sound, CurtainCall.Settings.LocalAudioCategory.Sfx);
             sound.PlayOneShot(clank);
         }
 

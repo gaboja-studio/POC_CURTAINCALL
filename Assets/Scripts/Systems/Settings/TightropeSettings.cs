@@ -30,6 +30,8 @@ namespace CurtainCall.Settings
         [SerializeField] Tightrope.Saws.SawSettings saws = new();
         [Header("불 (회차 시작에 적용·플레이 중 변경은 다음 회차)")]
         [SerializeField] Tightrope.Fire.FireSettings fire = new();
+        [Header("추락 매달림·동료 끌어올리기 (M2)")]
+        [SerializeField] HangSettings hang = new();
 
         /// <summary>인스펙터에서 값을 바꿨을 때(에디터). 코스가 다시 만들지 판단하는 데 쓴다.</summary>
         public event Action Changed;
@@ -43,8 +45,40 @@ namespace CurtainCall.Settings
         public BodyPenaltySettings BodyPenalty => bodyPenalty;
         public Tightrope.Saws.SawSettings Saws => saws;
         public Tightrope.Fire.FireSettings Fire => fire;
+        public HangSettings Hang => hang ??= new HangSettings();
 
         void OnValidate() => Changed?.Invoke();
+
+        /// <summary>
+        /// M2(2026-10-27) 균형 추락 매달림: 추락 게이지가 넘치면 줄을 잡고 버티고, 근처 동료가 F로 끌어올린다.
+        /// 근거: Harness/Project/Decisions/tightrope-course-rules.md #1-1. 호스트 값으로 판정한다.
+        /// </summary>
+        [Serializable]
+        public sealed class HangSettings
+        {
+            [Tooltip("매달려 버티는 시간(초). 다 지나면 낙사. 기획 7.")]
+            [SerializeField, Min(.5f)] float holdSeconds = 7f;
+            [Tooltip("동료가 F를 누른 뒤 끌어올리는 시간(초). 그동안 버티는 시간이 멈춘다. 기획 2.")]
+            [SerializeField, Min(.1f)] float pullSeconds = 2f;
+            [Tooltip("끌어올릴 수 있는 수평 거리(m, 동료 발 ~ 매달린 줄 지점). 구조 판정 완화 기본 2.5.")]
+            [SerializeField, Min(.3f)] float rescueDistance = 2.5f;
+            [Tooltip("구조할 때 줄 윗면과 동료 발 사이에 허용하는 높이 차이(m). 기본 0.75. 공중에서는 구조 불가.")]
+            [SerializeField, Min(.1f)] float rescueHeightTolerance = .75f;
+            [Tooltip("목마 낙하 때 잡을 수 있는 옆줄 범위(줄 수). 0이면 같은 줄만. 기획 '근처 줄'(임시 1).")]
+            [SerializeField, Range(0, 3)] int laneReach = 1;
+            [Tooltip("같은 줄의 다른 매달린 사람과 이 거리(m) 안이면 그 줄은 이미 찬 것으로 본다(한 줄에 한 명). 임시 2.")]
+            [SerializeField, Min(.1f)] float laneOccupyDistance = 2f;
+            [Tooltip("매달린 몸의 발이 줄 윗면보다 내려가는 거리(m). 보이는 자세용.")]
+            [SerializeField, Min(.5f)] float hangDrop = 1.9f;
+
+            public float HoldSeconds => Mathf.Max(.5f, holdSeconds);
+            public float PullSeconds => Mathf.Max(.1f, pullSeconds);
+            public float RescueDistance => Mathf.Max(.3f, rescueDistance);
+            public float RescueHeightTolerance => Mathf.Max(.1f, rescueHeightTolerance);
+            public int LaneReach => Mathf.Clamp(laneReach, 0, 3);
+            public float LaneOccupyDistance => Mathf.Max(.1f, laneOccupyDistance);
+            public float HangDrop => Mathf.Max(.5f, hangDrop);
+        }
 
         /// <summary>
         /// 코스 모양. 온라인에서는 호스트 값을 그대로 복사해 쓰므로(코스 값 공유) JSON으로 주고받을 수 있게 칸만 둔다.

@@ -81,13 +81,26 @@ namespace CurtainCall.WaitingRoom
             if (HasAuthority) WatchRun();
         }
 
-        /// <summary>호스트: 칸 하나를 고른다. 빈 문자열이면 비운다.</summary>
-        public ScheduleRefusal Set(int day, int slot, string trickId)
+        /// <summary>호스트: 칸 하나를 고른다(1단계). 빈 문자열이면 비운다.</summary>
+        public ScheduleRefusal Set(int day, int slot, string trickId) => Set(day, slot, trickId, 1);
+
+        /// <summary>호스트: 칸 하나에 공연과 난이도 단계를 고른다. 깬 단계의 다음 단계까지만 고를 수 있다.</summary>
+        public ScheduleRefusal Set(int day, int slot, string trickId, int tier)
         {
             if (!HasAuthority) return Answer(ScheduleRefusal.NotEditable);
-            var refusal = book.Set(day, slot, trickId);
+            var refusal = book.Set(day, slot, trickId, tier, MaxTier(trickId));
             if (refusal == ScheduleRefusal.None) Publish();
             return Answer(refusal);
+        }
+
+        /// <summary>그 공연에 지금 고를 수 있는 가장 높은 단계(호스트 판정, 깬 단계 + 1, 최대 3).</summary>
+        public int MaxTier(string trickId) => CampaignRun.Instance != null ? CampaignRun.Instance.MaxSelectableTier(trickId) : 1;
+
+        /// <summary>단계별 보상 안내(1인 호응 상한 · 도착자 완주 보너스). 보상 확정 규칙 표와 같은 값이다.</summary>
+        public static string TierRewardText(int tier)
+        {
+            var rules = Reward.RewardRules.Temporary(Mathf.Clamp(tier, 1, ScheduleBook.MaxDifficulty));
+            return $"호응 상한 {rules.Cap} · 완주 보너스 {rules.CompletionBonus}";
         }
 
         /// <summary>호스트: 이번 밤 작성을 확정한다. 실행할 일차는 런 공연 순서로 넘긴다.</summary>
@@ -102,8 +115,9 @@ namespace CurtainCall.WaitingRoom
             foreach (int day in ScheduleBook.DaysToApply(night))
             {
                 var setlist = book.Setlist(day);
-                bool applied = run.SetSetlist(day, setlist);
-                Debug.Log($"[NightSchedule] {night}일차 밤 확정: {day}일차 {string.Join(" → ", setlist)}{(applied ? "" : " (런에 넘기지 못함)")}");
+                var tiers = book.Tiers(day);
+                bool applied = run.SetSetlist(day, setlist, tiers);
+                Debug.Log($"[NightSchedule] {night}일차 밤 확정: {day}일차 {string.Join(" → ", setlist)} (단계 {string.Join("/", tiers)}){(applied ? "" : " (런에 넘기지 못함)")}");
             }
             Publish();
             LastMessage = "스케줄표를 확정했습니다.";
@@ -111,27 +125,7 @@ namespace CurtainCall.WaitingRoom
             return ScheduleRefusal.None;
         }
 
-        /// <summary>
-        /// 내 밤 정비 준비 완료를 누를 수 있는가. 호스트는 그날 밤 스케줄표를 확정하기 전에는 못 누른다(2026-10-17 담당자 결정).
-        /// 호스트가 준비해야 밤이 끝나므로, 확정 없이 다음 날로 넘어가지 않는다. 참가자는 언제든 누를 수 있다.
-        /// </summary>
-        public bool CanReady(out string reason)
-        {
-            reason = "";
-            var run = CampaignRun.Instance;
-            if (run == null || run.State.Phase != CampaignPhase.Night) { reason = "밤 정비 때만 준비 완료할 수 있습니다."; return false; }
-            if (HasAuthority && ScheduleBook.EditableDays(run.State.Day).Length > 0 && !book.IsConfirmedTonight) { reason = "스케줄표를 먼저 확정하세요."; return false; }
-            return true;
-        }
-
-        /// <summary>내 밤 정비 준비 완료를 바꾼다. 준비하려는데 <see cref="CanReady"/>가 아니면 거절한다(취소는 언제든).</summary>
-        public bool RequestReady(bool ready)
-        {
-            var run = CampaignRun.Instance;
-            if (run == null) return false;
-            if (ready && !CanReady(out string reason)) { LastMessage = reason; return false; }
-            return run.SetReady(ready);
-        }
+        // 밤 정비 준비 완료는 M2에서 숙소 침대(NightBed)로 옮겼다. 스케줄표 확정은 밤 종료 조건이 아니다(Task-078).
 
         public static string Explain(ScheduleRefusal refusal) => refusal switch
         {
@@ -142,6 +136,7 @@ namespace CurtainCall.WaitingRoom
             ScheduleRefusal.UnknownTrick => "고를 수 없는 공연입니다.",
             ScheduleRefusal.BadSlot => "없는 칸입니다.",
             ScheduleRefusal.Incomplete => "빈 칸을 모두 채워야 확정할 수 있습니다.",
+            ScheduleRefusal.BadTier => "깬 단계의 다음 단계까지만 고를 수 있습니다.",
             _ => "할 수 없습니다.",
         };
 
@@ -195,7 +190,8 @@ namespace CurtainCall.WaitingRoom
         {
             if (HasAuthority) return;
             var state = JsonUtility.FromJson<StateData>(json);
-            if (state == null || !book.Load(state.night, state.confirmed, state.slots, state.locked)) return;
+            if (state == null || !book.Load(state.night, state.confirmed, state.slots, state.locked,
+                state.tiers != null && state.tiers.Length > 0 ? state.tiers : null)) return;
             Changed?.Invoke();
         }
 
@@ -216,6 +212,7 @@ namespace CurtainCall.WaitingRoom
             public bool confirmed;
             public string[] slots;
             public bool[] locked;
+            public int[] tiers;
 
             public static StateData From(ScheduleBook book) => new()
             {
@@ -223,6 +220,7 @@ namespace CurtainCall.WaitingRoom
                 confirmed = book.IsConfirmedTonight,
                 slots = book.ExportSlots(),
                 locked = book.ExportLocked(),
+                tiers = book.ExportTiers(),
             };
         }
     }

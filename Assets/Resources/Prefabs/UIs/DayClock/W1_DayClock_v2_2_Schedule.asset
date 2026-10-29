@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ca97e6db5537794385b313bb9eb5255, type: 3}
+  m_Name: W1_DayClock_v2_2_Schedule
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.DayClockV2.DayClockScheduleProfile
+  entries:
+  - enabled: 1
+    phase: 0
+    label: "\uC544\uCE68 \uD734\uC2DD"
+    start:
+      hour: 8
+      minute: 0
+    end:
+      hour: 10
+      minute: 0
+    showCountdown: 1
+    color: {r: 0, g: 0.6313726, b: 0.7372549, a: 1}
+  - enabled: 1
+    phase: 1
+    label: "\uC624\uC804 \uACF5\uC5F0"
+    start:
+      hour: 10
+      minute: 0
+    end:
+      hour: 12
+      minute: 0
+    showCountdown: 0
+    color: {r: 0.7882353, g: 0.49411765, b: 0.14509805, a: 1}
+  - enabled: 1
+    phase: 2
+    label: "\uB0AE \uD734\uC2DD"
+    start:
+      hour: 12
+      minute: 0
+    end:
+      hour: 14
+      minute: 0
+    showCountdown: 1
+    color: {r: 0, g: 0.6313726, b: 0.7372549, a: 1}
+  - enabled: 1
+    phase: 3
+    label: "\uC624\uD6C4 \uACF5\uC5F0"
+    start:
+      hour: 14
+      minute: 0
+    end:
+      hour: 16
+      minute: 0
+    showCountdown: 0
+    color: {r: 0.7882353, g: 0.49411765, b: 0.14509805, a: 1}
+  - enabled: 1
+    phase: 4
+    label: "\uBC24 \uC815\uBE44"
+    start:
+      hour: 16
+      minute: 0
+    end:
+      hour: 20
+      minute: 0
+    showCountdown: 0
+    color: {r: 0.53333336, g: 0.27450982, b: 0.73333335, a: 1}
+  sleepColor: {r: 0.2509804, g: 0.31764707, b: 0.34509805, a: 1}
+  warningSeconds: 30
+  criticalSeconds: 10
+  pulsePeriodSeconds: 1.2
+  reduceMotion: 0

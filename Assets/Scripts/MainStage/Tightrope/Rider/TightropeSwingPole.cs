@@ -107,6 +107,8 @@ namespace CurtainCall.Tightrope
             {
                 if (binding == null) Bind(local);
                 PlaceLocal();
+                // 봉에 매달린 동안 쌓인 추락 위험을 천천히 회복한다.
+                binding?.Balance?.RecoverWhileSupported(Time.deltaTime);
             }
             else if (binding != null) EndBinding(false);
         }

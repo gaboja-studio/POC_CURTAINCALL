@@ -114,12 +114,14 @@ namespace CurtainCall.Voice
             }
             Instance = this;
             LoadAudioPreferences();
+            ClientSettings.AudioChanged += ApplyDeviceLevels;
         }
 
         void OnDestroy()
         {
             if (Instance != this) return;
             Instance = null;
+            ClientSettings.AudioChanged -= ApplyDeviceLevels;
             _roomKey.Reset();
             Unsubscribe();
         }
@@ -203,7 +205,15 @@ namespace CurtainCall.Voice
             RoomChanged?.Invoke(room);
         }
 
-        async Task<bool> EnsureLoggedInAsync()
+        Task<bool> _loginTask;
+
+        Task<bool> EnsureLoggedInAsync()
+        {
+            if (_loginTask == null || _loginTask.IsCompleted) _loginTask = LoginCoreAsync();
+            return _loginTask;
+        }
+
+        async Task<bool> LoginCoreAsync()
         {
             if (UnityServices.State != ServicesInitializationState.Initialized)
             {
@@ -228,8 +238,10 @@ namespace CurtainCall.Voice
                 await vivox.LoginAsync(new LoginOptions { DisplayName = DisplayName() });
                 Debug.Log("[Voice] 음성 로그인 완료");
             }
+            await RestoreDevicePreferencesAsync();
             ApplyMicMute();
             ApplyDeviceLevels();
+            DevicesChanged?.Invoke();
             return vivox.IsLoggedIn;
         }
 
@@ -247,6 +259,10 @@ namespace CurtainCall.Voice
             vivox.LoggedOut += HandleLoggedOut;
             vivox.ConnectionFailedToRecover += HandleLoggedOut;
             vivox.ParticipantAddedToChannel += ApplyParticipantPreference;
+            vivox.AvailableInputDevicesChanged += HandleDevicesChanged;
+            vivox.AvailableOutputDevicesChanged += HandleDevicesChanged;
+            vivox.EffectiveInputDeviceChanged += HandleDevicesChanged;
+            vivox.EffectiveOutputDeviceChanged += HandleDevicesChanged;
         }
 
         void Unsubscribe()
@@ -259,6 +275,10 @@ namespace CurtainCall.Voice
             vivox.LoggedOut -= HandleLoggedOut;
             vivox.ConnectionFailedToRecover -= HandleLoggedOut;
             vivox.ParticipantAddedToChannel -= ApplyParticipantPreference;
+            vivox.AvailableInputDevicesChanged -= HandleDevicesChanged;
+            vivox.AvailableOutputDevicesChanged -= HandleDevicesChanged;
+            vivox.EffectiveInputDeviceChanged -= HandleDevicesChanged;
+            vivox.EffectiveOutputDeviceChanged -= HandleDevicesChanged;
         }
 
         // 내가 부르지 않았는데 채널에서 빠졌으면(연결 끊김 등) 다음 Update가 다시 들어간다.

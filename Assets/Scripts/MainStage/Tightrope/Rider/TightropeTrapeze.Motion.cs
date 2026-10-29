@@ -44,6 +44,7 @@ namespace CurtainCall.Tightrope
                 localControl.Mover.Body.enabled = false;
                 localControl.Mover.ClearPendingInput();
                 localControl.Mover.transform.SetPositionAndRotation(Feet(index, lower), Quaternion.LookRotation(course.Forward));
+                if (localControl.Balance != null) localControl.Balance.IsSuspended = true;
                 localControl.Balance?.SetAirborne(true); pendingUntil = 0d;
             }
             else if (flying && flight.Token > finishedFlightToken)
@@ -70,6 +71,7 @@ namespace CurtainCall.Tightrope
         {
             if (!TakeControl(player)) return;
             var mover = localControl.Mover;
+            if (localControl.Balance != null) localControl.Balance.IsSuspended = false;
             mover.Body.enabled = false;
             mover.transform.SetPositionAndRotation(flight.Position, Quaternion.LookRotation(course.Forward));
             mover.Body.enabled = localControl.BodyEnabled; RestoreCollisions(mover);
@@ -128,6 +130,7 @@ namespace CurtainCall.Tightrope
         void ReleaseControl(bool grounded)
         {
             var held = localControl; localControl = null;
+            if (held?.Balance != null) held.Balance.IsSuspended = false;
             localFlying = false; localFlightToken = 0; flightVelocity = Vector3.zero; air.Clear();
             if (held == null || held.Mover == null) return;
             var mover = held.Mover;

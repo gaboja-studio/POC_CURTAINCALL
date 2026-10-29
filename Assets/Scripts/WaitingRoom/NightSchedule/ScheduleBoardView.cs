@@ -10,7 +10,7 @@ namespace CurtainCall.WaitingRoom
     /// <summary>
     /// 로비 스케줄표 상호작용과 플래너 노트 창(임시 IMGUI — 낡은 플래너 아트는 후속). 기준: schedule-board.md.
     /// 스케줄표 앞에서 F → 내 화면만 스케줄표 클로즈업 카메라로 바뀌고 창이 열린다(이동 입력 막음). ESC·닫기·멀어지면 닫힌다.
-    /// 창: 1~4일차 공연·전문가·난도, 밤이면 호스트가 칸을 고르고 확정, 참가자는 실시간으로 보기만. 준비 완료 버튼도 둔다.
+    /// 창: 1~4일차 공연·난도, 밤이면 호스트가 칸을 고르고 확정, 참가자는 실시간으로 보기만. 준비 완료는 숙소 침대(<see cref="NightBed"/>)에서 한다.
     /// </summary>
     public sealed class ScheduleBoardView : MonoBehaviour, IShopTarget, IShopPresentation
     {
@@ -27,8 +27,6 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("클로즈업 카메라 우선순위(플레이어 카메라보다 높게).")]
         [SerializeField] int closeUpPriority = 100;
 
-        /// <summary>일차별 전문가(schedule-board.md 표). 0번은 쓰지 않는다.</summary>
-        static readonly string[] Experts = { "", "의료", "시설 담당자", "의료", "없음" };
 
         UIInputBlocker blocker;
         GUIStyle titleStyle;
@@ -159,7 +157,7 @@ namespace CurtainCall.WaitingRoom
                 }
                 else GUILayout.Label("호스트가 스케줄을 작성하고 확정합니다.");
 
-                DrawReady(schedule, run);
+                GUILayout.Label($"준비 완료 {run.State.ReadyCount}/{run.State.RequiredCount} — 숙소 침대에 누워 준비합니다.");
             }
             if (host && !string.IsNullOrEmpty(schedule.LastMessage)) GUILayout.Label(schedule.LastMessage);
             if (GUILayout.Button("닫기 (ESC)")) SetOpen(false);
@@ -175,14 +173,14 @@ namespace CurtainCall.WaitingRoom
             if (day == ScheduleBook.UnplayedDay) state = string.IsNullOrEmpty(state) ? "실행 안 함" : state + " · 실행 안 함";
 
             GUILayout.BeginVertical(GUI.skin.box);
-            GUILayout.Label($"{day}일차   전문가: {Experts[day]}   {(string.IsNullOrEmpty(state) ? "" : $"[{state}]")}");
+            GUILayout.Label($"{day}일차   {(string.IsNullOrEmpty(state) ? "" : $"[{state}]")}");
             GUILayout.BeginHorizontal();
             for (int slot = 0; slot < ScheduleBook.SlotsPerDay; slot++)
             {
                 GUILayout.BeginVertical(GUILayout.MinWidth(200));
                 string trick = book.Get(day, slot);
                 int level = book.Difficulty(day, slot);
-                GUILayout.Label($"공연 {slot + 1}: {(string.IsNullOrEmpty(trick) ? "—" : schedule.TrickName(trick))}{(level > 0 ? $"  (난도 {level})" : "")}");
+                GUILayout.Label($"공연 {slot + 1}: {(string.IsNullOrEmpty(trick) ? "—" : schedule.TrickName(trick))}{(level > 0 ? $"  ({level}단계 · {ScheduleBoard.TierRewardText(level)})" : "")}");
                 if (host && book.IsEditable(day))
                 {
                     GUILayout.BeginHorizontal();
@@ -193,27 +191,24 @@ namespace CurtainCall.WaitingRoom
                             schedule.Set(day, slot, chosen ? "" : choice);
                     }
                     GUILayout.EndHorizontal();
+                    // 깬 단계의 다음 단계까지만 고를 수 있다(M2).
+                    if (!string.IsNullOrEmpty(trick))
+                    {
+                        GUILayout.BeginHorizontal();
+                        int max = schedule.MaxTier(trick);
+                        for (int tier = 1; tier <= ScheduleBook.MaxDifficulty; tier++)
+                        {
+                            GUI.enabled = tier <= max;
+                            if (GUILayout.Toggle(level == tier, $"{tier}단계", GUI.skin.button) && level != tier) schedule.Set(day, slot, trick, tier);
+                        }
+                        GUI.enabled = true;
+                        GUILayout.EndHorizontal();
+                    }
                 }
                 GUILayout.EndVertical();
             }
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
-        }
-
-        static void DrawReady(ScheduleBoard schedule, CampaignRun run)
-        {
-            if (run == null) return;
-            var s = run.State;
-            GUILayout.Label($"준비 완료 {s.ReadyCount}/{s.RequiredCount}");
-            if (run.IsLocalReady)
-            {
-                if (GUILayout.Button("준비 취소")) schedule.RequestReady(false);
-                return;
-            }
-            bool can = schedule.CanReady(out string reason);
-            GUI.enabled = can;
-            if (GUILayout.Button(can ? "준비 완료" : $"준비 완료 — {reason}")) schedule.RequestReady(true);
-            GUI.enabled = true;
         }
     }
 }

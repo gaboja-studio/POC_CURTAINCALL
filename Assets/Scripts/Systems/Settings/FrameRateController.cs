@@ -1,14 +1,14 @@
+using CurtainCall.StartLobby;
 using UnityEngine;
 
 namespace CurtainCall.Settings
 {
-    /// <summary>공통 세팅의 FPS 제한을 모든 씬과 PC 빌드에 적용한다.</summary>
+    /// <summary>시작할 때 이 PC의 FPS 설정을 적용한다. 이후 변경은 ClientSettings가 직접 적용한다.</summary>
     public sealed class FrameRateController : MonoBehaviour
     {
         static FrameRateController instance;
         int previousTarget;
         int previousVSync;
-        int appliedTarget = int.MinValue;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetState() => instance = null;
@@ -33,20 +33,8 @@ namespace CurtainCall.Settings
             instance = this;
             previousTarget = Application.targetFrameRate;
             previousVSync = QualitySettings.vSyncCount;
-            Apply();
-        }
-
-        void Update() => Apply();
-
-        void Apply()
-        {
-            int target = GameSettings.Base.FrameRate.TargetFrameRate;
-            if (appliedTarget == target && Application.targetFrameRate == target
-                && QualitySettings.vSyncCount == 0) return;
-            // Desktop VSync overrides targetFrameRate, including when the limit is disabled.
-            QualitySettings.vSyncCount = 0;
-            Application.targetFrameRate = target;
-            appliedTarget = target;
+            // 공통 GameSettings의 개발용 FPS 값으로 로컬 선택을 덮어쓰지 않는다.
+            ClientSettings.ApplyFrameRate();
         }
 
         void OnDestroy()
