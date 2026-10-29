@@ -26,6 +26,8 @@ namespace CurtainCall.Tightrope
         [SerializeField] bool showPoleLabels;
         [Tooltip("봉 케이블 꼭대기에서 연결되는 통로 쪽으로 대각선 연결 케이블을 그린다. 표시 전용이며 판정과 무관하다.")]
         [SerializeField] bool showConnectionCables;
+        [Tooltip("봉 아래 줄 위에 서는 자리 판(출발 봉 청록·교대 봉 초록)을 표시한다. 꺼도 판정 위치는 그대로다.")]
+        [SerializeField] bool showStandPads;
         readonly List<RelayPoleView> relayPoleViews = new();
         readonly List<RelayPathView> relayPathViews = new();
         Transform relayViewRoot;
@@ -105,6 +107,7 @@ namespace CurtainCall.Tightrope
                 Vector3 feet = PoleFeet(i), grip = pole.Grip.position;
                 view.Bar.SetPositionAndRotation(grip, facing);
                 view.Bar.localScale = new Vector3(1.15f, .12f, .12f);
+                view.Pad.gameObject.SetActive(showStandPads);
                 view.Pad.SetPositionAndRotation(feet + Vector3.up * .055f, facing);
                 view.Pad.localScale = new Vector3(.65f, .025f, .85f);
                 Vector3 span = course.Right * .5f;
