@@ -13,3 +13,4 @@ Confluence 커튼 콜 대기실 2차 기획서 20348931(2026-10-15 최종 작성
 - [stage-entrance-reveal.md](stage-entrance-reveal.md) — 무대 입구 천 커튼: 한 명 도착 시 걷힘·황금빛·금가루, 모두 떠나면 닫힘. 무대 입구 연출 때
 - [practice-ring.md](practice-ring.md) — 연습실 링 40m(평면만 2.5배)·외줄 연장·옆 트램펄린/인간 대포·관중석. 연습실 링 배치 때
 - [lobby-tree-tent.md](lobby-tree-tent.md) — 로비 중앙: 크리스마스트리 같은 초라한 1인용 원뿔 천막과 그 아래 서커스 도구·상자. 로비 장식 때
+- [mezzanines-and-locked-door.md](mezzanines-and-locked-door.md) — 물류 홀·로비 철제 중층(무너진 철골), B1 계단실 잠긴 문 문틀, 휴게 공간 위치, 시멘트·녹 벽. 2층·출입·벽 재질 때

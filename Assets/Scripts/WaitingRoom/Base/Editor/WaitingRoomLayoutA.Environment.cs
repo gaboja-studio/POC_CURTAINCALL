@@ -392,7 +392,9 @@ namespace CurtainCall.WaitingRoom.Editor
 
         static Material CinderMaterial(bool painted)
         {
-            string name = painted ? "LA_CinderPainted" : "LA_CinderBare";
+            // 2026-10-29 user: no brick or block walls left — bare walls are cast cement with rust.
+            if (!painted) return WallCementRustMaterial();
+            string name = "LA_CinderPainted";
             if (Materials.TryGetValue(name, out var cached) && cached != null) return cached;
             var m = Lit(name, Color.white, .08f, CinderTexture(painted), FactoryTex("Concrete/T_Concrete_N.TGA"));
             Materials[name] = m; return m;
