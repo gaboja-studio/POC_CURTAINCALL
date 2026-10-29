@@ -97,11 +97,17 @@ namespace CurtainCall.WaitingRoom
             if (transform.parent == null) DontDestroyOnLoad(gameObject);
             else Debug.LogWarning("[Shop] 상점은 씬 최상위 오브젝트에 둬야 장소 전환 뒤에도 남습니다.", this);
             book = new ShopDeliveryBook(slotCapacity);
-            foreach (var entry in items)
-            {
-                if (entry == null || entry.backpack || entry.id == "backpack" || string.IsNullOrEmpty(entry.id) || entry.price <= 0) continue;
-                catalog.Add(new ShopItem(entry.id, string.IsNullOrEmpty(entry.name) ? entry.id : entry.name, entry.price));
-            }
+            // 판매 목록은 기물 목록(ItemCatalog, 기물 시스템 초안 7종·확정 가격)을 쓴다. 에셋이 없을 때만 씬의 임시 품목을 쓴다.
+            var itemCatalog = ItemCatalog.Current;
+            if (itemCatalog != null && itemCatalog.Items.Count > 0)
+                // 지금은 대기실 탐색용 기물만 판다(2026-10-29 사용자: 탐색용만 작업). 공연용은 효과가 연결되면 연다.
+                foreach (var e in itemCatalog.Items) { if (e != null && !string.IsNullOrEmpty(e.id) && e.price > 0 && e.kind != ItemKind.Object && e.use == ItemUse.Exploration) catalog.Add(new ShopItem(e.id, e.displayName, e.price)); }
+            else
+                foreach (var entry in items)
+                {
+                    if (entry == null || entry.backpack || entry.id == "backpack" || string.IsNullOrEmpty(entry.id) || entry.price <= 0) continue;
+                    catalog.Add(new ShopItem(entry.id, string.IsNullOrEmpty(entry.name) ? entry.id : entry.name, entry.price));
+                }
             channel = new ShopChannel("CurtainCall.WaitingRoom.Shop", HandleRequest, HandleState, HandleResult, HandleReset,
                 () => channel.Request(JsonUtility.ToJson(new RequestData { kind = SyncRequest })));
         }
@@ -199,7 +205,8 @@ namespace CurtainCall.WaitingRoom
 
             var refusal = book.Claim(order, claimer, out var delivery);
             if (refusal != ShopRefusal.None) return Reject(claimer, "COLLECT", null, order, "SHOP_" + refusal, Explain(refusal));
-            if (carry != null) carry.Receive(claimer, new PropItem(delivery.Order, delivery.ItemId, delivery.ItemName));
+            // 구매품은 내구도가 가득 찬 새 제품이다(기물 목록 ItemCatalog).
+            if (carry != null) carry.Receive(claimer, ItemCatalog.NewProduct(delivery.Order, delivery.ItemId, delivery.ItemName));
             Debug.Log($"[Shop] 수령 #{delivery.Order} {delivery.ItemName} → {PlayerLabel(claimer)}");
             Publish();
             return (true, $"{delivery.ItemName} 수령");

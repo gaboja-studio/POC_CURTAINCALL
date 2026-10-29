@@ -31,16 +31,19 @@ namespace CurtainCall.Reward
         public bool connected;
         public string judgement;
         public long segment;
+        public long reactionSequence;
+        public int reactionDelta, reactionAmount;
         public long settlement;
         public long completionBonus;
         public bool hasDistance;
         public double maximumDistance;
-        public RewardSegment ReadSegment() => new(id, client, slot, start, end, dead, connected, segment);
+        public RewardSegment ReadSegment() => new(id, client, slot, start, end, dead, connected, segment, reactionSequence, reactionDelta, reactionAmount);
         public PerformanceParticipantResult ReadResult() => new(id, client, slot, start, end, dead, connected, judgement, segment, settlement, hasDistance ? maximumDistance : null, completionBonus);
         public static RewardPersonData From(RewardSegment value) => new()
         {
             id = value.ParticipantId, client = value.ClientId, slot = value.Slot, start = value.StartingLostCount,
-            end = value.LostCount, dead = value.Dead, connected = value.Connected, segment = value.Amount
+            end = value.LostCount, dead = value.Dead, connected = value.Connected, segment = value.Amount,
+            reactionSequence = value.ReactionSequence, reactionDelta = value.ReactionDelta, reactionAmount = value.ReactionAmount
         };
         public static RewardPersonData From(PerformanceParticipantResult value) => new()
         {

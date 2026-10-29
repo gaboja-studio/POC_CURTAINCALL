@@ -151,5 +151,64 @@ namespace CurtainCall.Reward.Tests
             Assert.IsFalse(stall.Sample(true, 1.6f, 90, 15, 1));
             Assert.IsTrue(stall.Sample(true, 1.6f, 105, 15, 1));
         }
+        [Test]
+        public void ProximityDodgeResolvesWhenMovingThreatLeavesWithoutForwardMovement()
+        {
+            var encounter = new AudienceEncounter();
+            Assert.IsFalse(encounter.SampleProximity(3, 8, 0, false, false));
+            Assert.IsFalse(encounter.SampleProximity(0, 8, 0, false, true));
+            Assert.IsTrue(encounter.SampleProximity(1, 8, 0, false, false));
+            Assert.IsFalse(encounter.SampleProximity(0, 8, 0, false, true));
+            Assert.IsFalse(encounter.SampleProximity(1, 8, 0, false, false));
+        }
+        [TestCase(true, 0)]
+        [TestCase(false, 1)]
+        public void ProximityHitOrCutNeverRewards(bool hit, int parts)
+        {
+            var encounter = new AudienceEncounter();
+            encounter.SampleProximity(3, 8, 0, false, false);
+            encounter.SampleProximity(0, 8, parts, hit, true);
+            Assert.IsFalse(encounter.SampleProximity(1, 8, parts, false, false));
+        }
+        [Test]
+        public void SuccessResetsFullStallWait()
+        {
+            var stall = new AudienceStall();
+            stall.Sample(true, 0, 0, 15, 1);
+            stall.Reset();
+            Assert.IsFalse(stall.Sample(true, 0, 14, 15, 1));
+            Assert.IsFalse(stall.Sample(true, 0, 28.9, 15, 1));
+            Assert.IsTrue(stall.Sample(true, 0, 29, 15, 1));
+        }
+        [Test]
+        public void ExplicitReactionHistoryIgnoresDecayAndZeroBooAndIncludesCapSuccess()
+        {
+            var model = Begin();
+            long initial = model.Revision;
+            model.React("p", -15, rules, true);
+            Assert.AreEqual(initial, model.Revision);
+            Assert.AreEqual(0, model.Snapshot().Segments[0].ReactionSequence);
+            model.React("p", 100, rules);
+            model.Tick(0, 20, 1); model.Tick(10, 20, 1);
+            Assert.IsFalse(model.React("p", 5, rules));
+            var success = model.Snapshot().Segments[0];
+            Assert.AreEqual(2, success.ReactionSequence);
+            Assert.AreEqual(5, success.ReactionDelta);
+            Assert.AreEqual(0, success.ReactionAmount);
+            Assert.IsFalse(model.Tick(30, 20, 1));
+            Assert.IsTrue(model.Tick(31, 20, 1));
+            Assert.AreEqual(2, model.Snapshot().Segments[0].ReactionSequence);
+        }
+        [Test]
+        public void CutSuccessRestartsPersonalGrace()
+        {
+            var model = Begin();
+            model.React("p", 20, rules);
+            model.Tick(0, 20, 1); model.Tick(19, 20, 1);
+            model.Observe("p", 1, false, true, rules);
+            Assert.AreEqual(2, model.Snapshot().Segments[0].ReactionSequence);
+            Assert.IsFalse(model.Tick(39, 20, 1));
+            Assert.IsTrue(model.Tick(40, 20, 1));
+        }
     }
 }

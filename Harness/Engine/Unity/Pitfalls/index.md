@@ -1,6 +1,7 @@
 # Unity Pitfalls
 
 - [scene-view-eye-position.md](scene-view-eye-position.md) — 실제 눈높이 SceneView 캡처의 카메라 거리를 계산할 때
+- [svg-preview-vertex-limit.md](svg-preview-vertex-limit.md) — 복잡한 SVG 검토 시트를 임포트할 때 65535 정점 한도 예외가 나는 경우.
 
 Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 

@@ -20,6 +20,8 @@ namespace CurtainCall.Reward
             public bool Connected = true;
             public bool Arrived;
             public long Amount;
+            public long ReactionSequence;
+            public int ReactionDelta, ReactionAmount;
             public double? MaximumDistance;
             /// <summary>관심 감소가 시작되는 시각. NaN이면 다음 <see cref="Tick"/>에서 정한다.</summary>
             public double GraceUntil = double.NaN;
@@ -129,13 +131,21 @@ namespace CurtainCall.Reward
             var person = Find(participantId);
             if (person == null || person.Frozen) return false;
             ApplyRules(currentRules);
+            if (delta < 0 && person.Amount == 0) return false; // 0점의 야유는 사건·유예 갱신도 만들지 않는다.
             if (delta > 0 || resetInterest) RestartInterest(person);
             long amount = Math.Clamp(person.Amount + (long)delta, 0, rules.Cap);
+            if (delta != 0)
+            {
+                RecordReaction(person, delta, (int)(amount - person.Amount));
+                Revision++; // 상한에서도 실제 성공 사건을 공유하되 점수 변경 반환값은 유지한다.
+            }
             if (amount == person.Amount) return false;
             person.Amount = amount;
-            Revision++;
             return true;
         }
+
+        static void RecordReaction(Participant person, int delta, int amount)
+        { person.ReactionSequence++; person.ReactionDelta = delta; person.ReactionAmount = amount; }
 
         /// <summary>실제 도착. 이후 호응도는 고정되고 관심 감소도 멈춘다. 정산에서 완주 보너스를 받는다.</summary>
         public bool MarkArrived(string participantId)
@@ -197,6 +207,11 @@ namespace CurtainCall.Reward
             int newlyCut = RewardParticipantSeed.CountLimbs(lostParts & ~person.AwardedParts);
             long amount = person.Frozen ? person.Amount : Math.Min(rules.Cap, person.Amount + (long)newlyCut * rules.CutBonus);
             if (!nextConnected) amount = 0;
+            if (!person.Frozen && nextConnected && newlyCut > 0 && rules.CutBonus > 0)
+            {
+                RecordReaction(person, (int)Math.Min(int.MaxValue, (long)newlyCut * rules.CutBonus), (int)(amount - person.Amount));
+                RestartInterest(person);
+            }
             bool changed = person.Parts != lostParts || person.Dead != nextDead || person.Connected != nextConnected
                 || person.Arrived != nextArrived || person.Amount != amount;
             person.Parts = lostParts;
@@ -291,7 +306,7 @@ namespace CurtainCall.Reward
                 var person = roster[i];
                 segments[i] = new RewardSegment(person.Seed.Id, person.Seed.ClientId, person.Seed.Slot,
                     RewardParticipantSeed.CountLimbs(person.Seed.LostParts), RewardParticipantSeed.CountLimbs(person.Parts),
-                    person.Dead, person.Connected, person.Amount);
+                    person.Dead, person.Connected, person.Amount, person.ReactionSequence, person.ReactionDelta, person.ReactionAmount);
             }
             return new RewardSnapshot(SessionId, Generation, Revision, Balance, performance, IsOpen, rules, segments,
                 Latest, ledger.Count, start, entries);

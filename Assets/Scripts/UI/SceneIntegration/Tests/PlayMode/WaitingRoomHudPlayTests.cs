@@ -92,15 +92,16 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 }
                 Assert.AreEqual(selectedName == null ? "빈손 · 1–2 기물 선택" : $"{selectedName} · 손에 듦", ((TMP_Text)Get(inventoryUi, "selectedLabel")).text);
             }
-            // M2: 옛 남은 시간 시계 대신 같은 자리에 원형 하루 시계를 보인다.
+            // v2.8: 실제 남은 시간과 D-N/시간대만 표시하고 기존 W1은 숨긴다.
             Assert.IsFalse(clock.gameObject.activeSelf, "옛 W1 시계는 숨긴다");
-            var dayClock = Get(ui, "DayClockDisplay");
+            var dayClock = Get(ui, "RestTimerDisplay");
             Assert.IsNotNull(dayClock);
             Assert.AreEqual(true, Get(dayClock, "IsShown"));
-            StringAssert.Contains("일차", (string)Get(dayClock, "DayText"));
+            Assert.AreEqual("D-3", (string)Get(dayClock, "DayText"));
             StringAssert.Contains(":", (string)Get(dayClock, "RemainingText"));
-            Assert.AreEqual(true, Get(Get(dayClock, "Snapshot"), "hasRemaining"));
-            Assert.IsNotNull(((Component)dayClock).GetComponent(T("CurtainCall.UI.DayClockV2.DayClockView")), "제공 패키지 프리팹을 사용한다");
+            Assert.AreEqual("Limited", Get(Get(dayClock, "Snapshot"), "mode").ToString());
+            Assert.IsNotNull(((Component)dayClock).GetComponent(T("CurtainCall.UI.RestTimerV28.RestTimerView")), "제공 패키지 프리팹을 사용한다");
+            Assert.IsFalse(((Component)Get(ui, "DayClockDisplay")).gameObject.activeSelf);
             Assert.AreSame(clock.transform.parent, ((Component)dayClock).transform.parent, "같은 HUD 자리에 붙인다");
             Assert.AreEqual(true, Get(View(hud, "Funds"), "HasValidData"));
             var rewards = Find("CurtainCall.Reward.PerformanceRewards");
@@ -108,6 +109,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual("Running", Get(Get(campaign, "State"), "Timer").ToString(), "M2: 쉬는 시간 시작부터 흐른다");
             Assert.IsNull(GameObject.Find("ExplorationTimerCanvas"));
             Assert.IsNull(Find("CurtainCall.WaitingRoom.SharedFundsView"));
+            yield return new WaitForSecondsRealtime(.2f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/resttimer-day.png"));
+            yield return null;
             var carry = Find("CurtainCall.WaitingRoom.PropCarry");
             Assert.AreEqual(false, Get(carry, "ShowLegacyHud"));
             AssertInventory(0, null);
@@ -139,11 +143,22 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue((bool)Call(campaign, "EndPerformance"));
             yield return null;
             Assert.IsFalse(clock.gameObject.activeSelf, "Night must not show a countdown.");
-            var nightClock = Get(ui, "DayClockDisplay");
-            Assert.AreEqual(true, Get(nightClock, "IsShown"), "밤 정비에도 하루 시각은 보인다");
-            Assert.AreEqual("제한 없음", Get(nightClock, "RemainingText"), "기본 밤 정비는 무제한이다");
-            Assert.AreEqual("Maintenance", Get(Get(nightClock, "Snapshot"), "phase").ToString());
-            Assert.AreEqual(960d, Get(Get(nightClock, "Snapshot"), "minuteOfDay"));
+            var nightClock = Get(ui, "RestTimerDisplay");
+            Assert.AreEqual(true, Get(nightClock, "IsShown"), "밤 정비에도 타이머를 보인다");
+            Assert.AreEqual("", Get(nightClock, "RemainingText"), "무제한은 문자열 대신 중앙 무한대 아이콘이다");
+            Assert.AreEqual(true, Get(Get(nightClock, "View"), "InfinityVisible"));
+            Assert.AreEqual("Unlimited", Get(Get(nightClock, "Snapshot"), "mode").ToString());
+            Assert.AreEqual("Night", Get(Get(nightClock, "Snapshot"), "timeOfDay").ToString());
+            var nightBanner = (RectTransform)View(Private(ui, "notifications"), "Banner").transform;
+            var timerBounds = new Vector3[4]; var bannerBounds = new Vector3[4];
+            ((RectTransform)((Component)nightClock).transform).GetWorldCorners(timerBounds);
+            nightBanner.GetWorldCorners(bannerBounds);
+            Assert.IsTrue(bannerBounds[0].x > timerBounds[2].x || bannerBounds[2].x < timerBounds[0].x
+                || bannerBounds[1].y < timerBounds[0].y || bannerBounds[0].y > timerBounds[2].y,
+                "밤 정비 알림이 타이머를 가리지 않는다.");
+            yield return new WaitForSecondsRealtime(.2f);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/resttimer-night.png"));
+            yield return null;
             Assert.IsTrue(View(hud, "Funds").gameObject.activeSelf);
             Assert.AreEqual(0, gather.GetComponent<CanvasGroup>().alpha);
         }
@@ -173,7 +188,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return null;
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI"), FindObjectsSortMode.None).Length);
             var registeredUi = Find("CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI");
-            Assert.AreEqual(true, Get(Get(registeredUi, "DayClockDisplay"), "IsShown"), "다시 붙은 HUD도 하루 시계를 보인다");
+            Assert.AreEqual(true, Get(Get(registeredUi, "RestTimerDisplay"), "IsShown"), "다시 붙은 HUD도 타이머를 보인다");
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonInventoryUI"), FindObjectsSortMode.None).Length);
             announcer.GetType().GetMethod("Raise", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(announcer, new object[] {30, false});
             yield return new WaitForSecondsRealtime(.3f);

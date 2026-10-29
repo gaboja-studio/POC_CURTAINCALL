@@ -25,6 +25,30 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.AreEqual("Tightrope", run.Snapshot.TrickId, "Skipped nights must not leave the next test performance undefined.");
         }
 
+        [Test]
+        public void UnscheduledDays_DefaultToTightrope_AndNightEndsWithoutConfirmation()
+        {
+            // M2(Task-079): 스케줄표 편성 보류 동안 2일차부터 편성하지 않은 공연은 외줄타기, 밤은 침대 준비만으로 끝난다.
+            var run = new RunState();
+            run.StartSession();
+            Assert.IsTrue(run.EndIntro());
+            Assert.IsTrue(run.EndPerformance());
+            Assert.IsTrue(run.NotifyAllAtStageEntrance());
+            Assert.IsTrue(run.EndPerformance());
+            Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase);
+            Assert.IsTrue(run.SetReady(0, true));
+            run.RefreshNight(new ulong[] { 0 });
+            Assert.AreEqual(2, run.Snapshot.Day);
+            Assert.AreEqual(RestKind.Morning, run.Snapshot.Rest);
+            Assert.AreEqual("Tightrope", run.Snapshot.TrickId);
+            Assert.IsTrue(run.NotifyAllAtStageEntrance());
+            Assert.IsTrue(run.EndPerformance());
+            Assert.AreEqual("Tightrope", run.Snapshot.TrickId, "Second performance of an unscheduled day.");
+            // A confirmed setlist still wins over the default.
+            Assert.IsTrue(run.SetSetlist(2, new[] { "Tightrope", "HumanCannon" }));
+            Assert.AreEqual("HumanCannon", run.Snapshot.TrickId);
+        }
+
         [TestCase(1, RestKind.Guide)]
         [TestCase(2, RestKind.Between)]
         public void Between_StartsWithNormalTimerAndChosenNextPerformance(int day, RestKind kind)

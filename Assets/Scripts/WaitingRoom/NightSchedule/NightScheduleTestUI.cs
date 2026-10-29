@@ -91,23 +91,12 @@ namespace CurtainCall.WaitingRoom
 
         static string Name(ScheduleBoard schedule, string trick) => string.IsNullOrEmpty(trick) ? "미정" : schedule.TrickName(trick);
 
-        /// <summary>밤 정비 준비 완료. 스케줄표와 같은 검사(호스트는 확정 뒤에만)를 거친다.</summary>
+        /// <summary>밤 정비 준비 완료(테스트용 바로 전환). 실제 입력은 숙소 침대(<see cref="NightBed"/>)다.</summary>
         static void DrawReady(CampaignRun run)
         {
             var s = run.State;
-            GUILayout.Label($"밤 정비 — 준비 완료 {s.ReadyCount}/{s.RequiredCount}");
-            var schedule = ScheduleBoard.Instance;
-            if (schedule == null) return;
-            if (run.IsLocalReady)
-            {
-                if (GUILayout.Button("준비 취소")) schedule.RequestReady(false);
-                return;
-            }
-            bool can = schedule.CanReady(out string reason);
-            bool wasEnabled = GUI.enabled;
-            GUI.enabled = wasEnabled && can;
-            if (GUILayout.Button(can ? "준비 완료" : $"준비 완료 — {reason}")) schedule.RequestReady(true);
-            GUI.enabled = wasEnabled;
+            GUILayout.Label($"밤 정비 — 준비 완료 {s.ReadyCount}/{s.RequiredCount} (침대 대신)");
+            if (GUILayout.Button(run.IsLocalReady ? "준비 취소" : "준비 완료")) run.SetReady(!run.IsLocalReady);
         }
 
         void DrawHostButtons(CampaignRun run)
