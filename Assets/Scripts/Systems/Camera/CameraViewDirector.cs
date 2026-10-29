@@ -144,6 +144,15 @@ namespace CurtainCall.Cameras
         /// <summary>037 등 조작 통합에서 사용할 차단 진입점. 현재 공간 규칙에는 의존하지 않는다.</summary>
         public void SetInputBlocked(bool blocked) => inputBlocked = blocked;
 
+        /// <summary>외부 검토 카메라에서 돌아올 때 현재 시선 방향을 이어받는다.</summary>
+        public void SetLookRotation(Quaternion rotation)
+        {
+            PrepareView();
+            Vector3 angles = rotation.eulerAngles;
+            yaw = angles.y;
+            pitch = Mathf.Clamp(Mathf.DeltaAngle(0, angles.x), -89f, 89f);
+        }
+
         public void SetLocalPlayer(NetworkPlayer player)
         {
             if (local == player) return;

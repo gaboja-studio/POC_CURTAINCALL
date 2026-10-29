@@ -123,8 +123,11 @@ namespace CurtainCall.Settings
             [Tooltip("하루 공연 횟수(회). 공연 사이마다 쉬는 시간, 마지막 공연 뒤 밤 정비. 기획 2.")]
             [SerializeField, Min(1)] int performancesPerDay = 2;
 
-            [Tooltip("1일차 공연 순서(묘기 이름, 고정). 2일차부터는 밤 정비 때 정하는 세트리스트를 쓴다. 기획 줄타기 → 인간 대포.")]
-            [SerializeField] string[] firstDayTricks = { "Tightrope", "HumanCannon" };
+            [Tooltip("1일차 공연 순서(묘기 이름, 고정). 2일차부터는 밤 정비 때 정하는 세트리스트를 쓴다. M2: 외줄타기 → 외줄타기(2026-10-29 사용자, Task-079).")]
+            [SerializeField] string[] firstDayTricks = { "Tightrope", "Tightrope" };
+
+            [Tooltip("2일차부터 스케줄표로 정하지 않은 공연에 쓰는 묘기. M2: 스케줄표 편성 보류 동안 외줄타기 고정(Task-079).")]
+            [SerializeField] string defaultTrick = "Tightrope";
 
             [Tooltip("쉬는 시간 길이(초). 아침·공연 사이 공통. 시작하자마자 흐른다(M2, 안전한 곳 없음). 기획 5분 = 300.")]
             [SerializeField, HideInInspector, Min(1f)] float restDuration = 300f;
@@ -202,6 +205,9 @@ namespace CurtainCall.Settings
             /// <summary>1일차 <paramref name="index"/>번째(0부터) 공연 묘기. 없으면 빈 문자열.</summary>
             public string FirstDayTrick(int index) =>
                 firstDayTricks != null && index >= 0 && index < firstDayTricks.Length ? firstDayTricks[index] : "";
+
+            /// <summary>2일차부터 편성되지 않은 공연의 묘기.</summary>
+            public string DefaultTrick => string.IsNullOrEmpty(defaultTrick) ? "Tightrope" : defaultTrick;
         }
 
         /// <summary>팔 개수와 관계없는 기물 소지 개수. 결정: injury-rules.md #8 (2026-10-28)</summary>

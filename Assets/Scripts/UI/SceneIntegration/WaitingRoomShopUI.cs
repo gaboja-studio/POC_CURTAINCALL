@@ -46,7 +46,7 @@ namespace CurtainCall.UI.SceneIntegration
                 phone = null;
             }
             if (phone == null && room != null)
-                phone = room.gameObject.scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<ShopPhone>()).FirstOrDefault();
+                phone = room.gameObject.scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<ShopPhone>()).FirstOrDefault(p => p.isActiveAndEnabled);
             bool open = room != null && phone != null && phone.isActiveAndEnabled && phone.IsOpen && shop != null && !WaitingRoomShop.InPerformance;
             if (!open) { if (view != null && view.IsVisible) view.Hide(); return; }
             if (!view.IsVisible)

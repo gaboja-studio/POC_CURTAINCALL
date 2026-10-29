@@ -55,3 +55,23 @@
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+### 2026-10-29 개인 호응 및 콘솔 조사/구현
+- 사용자가 지정한 보상 기획서 28147730을 Atlassian으로 읽음(snapshot d1:813). 실제 효과 성공·협동/오브제 중복 배제·개인 감소 유예 20초·시간 끌기 15초 규칙을 확인.
+- 원인: UI가 모든 참가자의 인접 revision 점수 차이를 반응으로 추정해 팀원/자연 감소가 섞이고, revision 누락·상한 성공은 표시하지 못함. 시간 끌기 관찰 타이머는 환호 유예와 분리되어 초기화되지 않았고, 받기/구조 실제 성공의 보상 연결도 없었음. 횡이동 톱은 고정 행보다 앞으로 진행해야 회피 완료로 보아 제자리 점프가 빠졌음.
+- 개인 ReactionSequence/ReactionDelta/ReactionAmount를 스냅샷/DTO로 동기화. 본인 소유자만 실제 사건을 표시, 자연 감소는 사건 번호 유지. 0점 야유는 사건·관심 유예 갱신 모두 차단. 상한 성공은 점수 변화 없이도 사건 발행.
+- 호스트 받기/구조 완료 및 손잡기 성공에 협동 +10씩 연결, 운반 트램펄린 성공은 협동만 지급. 본인 성공 사건은 시간 끌기 관찰 타이머도 초기화.
+- 콘솔 컴파일 CS0103 3건은 이번 작업의 Reaction 속성 선언 위치 오류로 바로 수정. 기존 SVG 정점 예외 4건은 Editor.log로 경로를 특정하고 참조가 없는 검토 미리보기 4개 .meta만 Texture2D/512·Triangulation·기하 해상도 128 변경. private 원본과 GUID 보존.
+- EditMode: AudienceReactionTests 18/18, PerformanceRewardModelTests 38/38, PerformanceFeedbackTests 1/1 통과. `.harness/local/audience-*-results.json`에 로컬 결과 보관. 최초 OR 필터는 0건으로 실행돼 개별 클래스 필터로 다시 실행했고, 갱신 전 결과는 최종 집계에서 제외.
+- PlayMode: 실제 LAN 호스트 구조 완료 +10/시작 미지급 1/1, 합성 원격 캐릭터 받아주기 실제 착지 +10 1/1 통과. 두 PC 동기화 검증과 구분함. 첫 구조 실행은 리컴파일 뒤 미진입 상태라 취소 후 재실행하여 완료 결과 확인.
+- 다른 기능 변경인 TMP 폴백 폰트는 계속 보존. 이번 후속 변경은 사용자 저장 요청 전이므로 커밋하지 않음.
+
+- 2026-10-29 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 추가 PlayMode: C12_BothActualPerformances_RecordAndDisplay 1/1 통과(외줄/인간 대포에서 환호·야유 UI와 정산 회귀). 최종 합계 EditMode 57/57, PlayMode 3/3.
+- SVG 형식만 Texture2D로 바꿨을 때 내부 Sprite 메시 한도가 남아, 최종 설정을 Texture2D·출력 512·Triangulation·기하 해상도 128로 낮춤. UISVGImage 경로는 이번 환경에서 null 에셋 예외여서 채택하지 않음. 4개 모두 실제 Texture2D 생성과 재임포트 후 신규 에셋 오류 없음 확인(대형 시트 job 5ff91e356b8b4b6eaef2944e920b7073 완료).
+- 동기 재임포트는 Pipeline 메인 스레드 5초 제한을 넘어 타임아웃 로그를 만들었고, detached job으로 완료 확인. 과거 에러는 `.harness/local/audience-console-before-clear.json`에 보관 후 콘솔 정리. 최종 콘솔 오류/경고 0, compilationFailed=false.
+- 첫 check-work는 보상 규칙 문서 61줄 hard 한도로 실패, 기존 규칙과 신규 규칙을 한 줄에 합쳐 60줄로 보존 후 재검사: 안전성·문서/규칙·컴파일 PASS, 경고 20·hard 0. 자동 전체 테스트는 선택하지 않았으며 위 표적 검사와 구분한다.
+- 남은 확인: 실제 두 PC에서 본인 반응만 표시되는지·회피와 성공 후 대기 체감. 이번 변경은 미커밋이며 private SVG .meta 4건도 저장 요청 때 함께 처리해야 한다.
+- 사용자 저장 요청: private SVG 임포트 설정 4건을 7ec4f515로 커밋하고 작업 브랜치 push 완료. 공개 저장에서는 이번 호응/UI/성공 연결·검증·문서와 해당 gitlink만 포함하며 TMP 폴백 폰트는 제외한다. 기존 private main 선반영 요구 훅은 우회하지 않는다.

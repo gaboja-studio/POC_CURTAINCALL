@@ -23,7 +23,8 @@ MonoBehaviour:
     performancesPerDay: 2
     firstDayTricks:
     - Tightrope
-    - HumanCannon
+    - Tightrope
+    defaultTrick: Tightrope
     restDuration: 300
     guideRestDuration: 300
     morningRest:
@@ -80,6 +81,8 @@ MonoBehaviour:
     maxTiltAngle: 25
     tiltFollowSharpness: 10
     ragdollTiltPush: 1.5
+    ropeHangSwayAngle: 18
+    poleHangSwayAngle: 12
   sync:
     balanceSendThreshold: 0.5
   bodyDamage:

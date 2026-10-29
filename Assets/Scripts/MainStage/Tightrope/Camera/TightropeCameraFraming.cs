@@ -74,7 +74,8 @@ namespace CurtainCall.Cameras
         {
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || director == null) return;
             var course = TightropeCourse.Current;
-            if (course == null || !course.IsTraversalActive)
+            if (course == null || !course.IsTraversalActive
+                || (course.UsesSceneGeometry && !course.UsesRopeRules(director.LocalPlayer)))
             {
                 ReleaseViewScope();
                 return;

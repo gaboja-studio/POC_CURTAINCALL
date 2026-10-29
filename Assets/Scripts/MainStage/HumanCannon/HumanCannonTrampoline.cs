@@ -13,12 +13,14 @@ namespace CurtainCall.HumanCannon
     {
         [Tooltip("외곽 손잡이. 플레이어 발 위치 기준으로 잡기 거리를 검사한다.")]
         [SerializeField] Transform handle;
+        [Tooltip("운반 중 손잡이를 붙일 발 위 높이(월드 m). 0이면 기존 발 위치 기준을 유지한다."), Min(0f), SerializeField] float carryHandleHeight;
         [Tooltip("중앙 반동 면의 높이(m, 장치 원점 기준).")]
         [Min(0.1f), SerializeField] float surfaceHeight = 0.5f;
         [Tooltip("중앙 반동 면의 로컬 좌우/앞뒤 반폭(m). 운반 회전을 따라 판정한다.")]
         [SerializeField] Vector2 halfSize = new Vector2(2f, 2f);
         [Tooltip("원형 천의 반동 판정. 기존 씬은 기본값인 사각형을 유지한다.")]
         [SerializeField] bool circularSurface;
+        [Tooltip("협동 구간 전용: 다른 단원이 손잡이를 잡고 있을 때만 반동한다. 기본값은 바닥에 놓아도 반동."), SerializeField] bool requireCarrierForBounce;
         [Tooltip("운송 시 검사할 프레임의 좌우/앞뒤 반폭. 0이면 기존 반동 면 크기를 사용한다.")]
         [SerializeField] Vector2 loadHalfSize;
         [Tooltip("손잡이 잡기 거리(m). 공용 상호작용 거리 배율 적용.")]
@@ -50,9 +52,13 @@ namespace CurtainCall.HumanCannon
         public static HumanCannonTrampoline Current { get; private set; }
         public ulong Carrier => ownership.Occupant;
         public Transform Handle => handle != null ? handle : transform;
+        public float CarryHandleHeight => carryHandleHeight;
         public Vector3 Surface => transform.position + Vector3.up * surfaceHeight;
         public Vector2 HalfSize => halfSize;
         public bool CircularSurface => circularSurface;
+        public bool RequireCarrierForBounce => requireCarrierForBounce;
+        bool BounceReady => !requireCarrierForBounce || Carrier != CannonSeatState.Nobody
+            && FindPlayer(Carrier) is NetworkPlayer carrier && carrier.IsSpawned && carrier.State == PlayerState.Normal;
         public Vector2 LoadHalfSize => loadHalfSize.x > 0f && loadHalfSize.y > 0f ? loadHalfSize : halfSize;
         public float UpwardSpeed => upwardSpeed;
         public float CarryMoveSpeed => groundBounceAirControlSpeed;
@@ -123,7 +129,7 @@ namespace CurtainCall.HumanCannon
             Vector3 forward = Vector3.ProjectOnPlane(survivor.transform.forward, Vector3.up).normalized;
             if (forward.sqrMagnitude < .001f) forward = Vector3.forward;
             // 자동 소유권 이전 없이 손잡이를 생존자 옆 1m에 둔다. 공중 생존자도 다시 F로 잡을 수 있다.
-            Vector3 handlePosition = survivor.transform.position + Vector3.Cross(Vector3.up, forward);
+            Vector3 handlePosition = CarryHandlePoint(survivor.transform.position) + Vector3.Cross(Vector3.up, forward);
             Vector3 handleOffset = Vector3.Scale(transform.InverseTransformPoint(Handle.position), transform.lossyScale);
             if (!TrampolineCarryPose.TryCalculate(handlePosition, forward, handleOffset, out var position, out var rotation))
             {
@@ -200,13 +206,16 @@ namespace CurtainCall.HumanCannon
             if (carrier.IsLocal && !HumanCannonBotWorker.IsWorkerProcess && !InputGate.IsBlocked
                 && view != null && view.LocalPlayer == carrier && view.IsFreeThirdPerson)
                 facing = view.ViewForward;
-            if (TrampolineCarryPose.TryCalculate(carrier.transform.position, facing,
+            if (TrampolineCarryPose.TryCalculate(CarryHandlePoint(carrier.transform.position), facing,
                 handleOffset, out var position, out var rotation))
             {
                 transform.SetPositionAndRotation(position, rotation);
                 carrier.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(facing, Vector3.up));
             }
         }
+
+        // 호스트 최초 잡기/원격 추종/로컬 추종/사망 후 복구에서 같은 손 높이를 사용한다.
+        Vector3 CarryHandlePoint(Vector3 feet) => feet + Vector3.up * Mathf.Max(0f, carryHandleHeight);
 
         void ResetPreviousPose()
         {
@@ -251,10 +260,18 @@ namespace CurtainCall.HumanCannon
                 && HumanCannonSystem.Current.HasPendingTrampolineGrab(player, ownership.Revision);
         }
         internal void RequestDrop() => SendRequest(TrampolineAction.Drop, -1, 0, 0, transform.position);
+        public void ServerReleaseForInspection(ulong actor)
+        {
+            if (session == null || !session.IsHost || Carrier != actor) return;
+            HandleRequest(actor, TrampolineAction.Drop, ownership.Revision, -1, 0, 0, transform.position, transform.rotation);
+        }
 
-        internal bool TryContact(Vector3 from, Vector3 to, float radius, float height, out Vector3 contact) =>
-            TrampolineContact.TryTouch(from, to, previousSurface, Surface, previousRotation,
+        internal bool TryContact(Vector3 from, Vector3 to, float radius, float height, out Vector3 contact)
+        {
+            contact = default;
+            return BounceReady && TrampolineContact.TryTouch(from, to, previousSurface, Surface, previousRotation,
                 transform.rotation, ContactBounds(), radius, height, out contact) && !BounceBlocked(contact);
+        }
 
         Bounds ContactBounds()
         {
@@ -340,7 +357,7 @@ namespace CurtainCall.HumanCannon
             var cannon = HumanCannonSystem.Current;
             // 위치는 소유자가 계산한다. 지연 허용 폭 안의 접촉과 현재 비행 식별자를 함께 검사한다.
             bool nearSurface = NearSurface(player, contact);
-            bool accepted = !GrabPending(player) && !BounceBlocked(contact) && Carrier != player.OwnerClientId && nearSurface && cannon != null
+            bool accepted = BounceReady && !GrabPending(player) && !BounceBlocked(contact) && Carrier != player.OwnerClientId && nearSurface && cannon != null
                 && cannon.ApplyRebound(player.OwnerClientId, station, launch, segment, contact, upwardSpeed);
             if (accepted)
             {

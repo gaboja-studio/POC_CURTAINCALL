@@ -1,0 +1,74 @@
+# 3단계 숙소·화장실 복제 목록
+
+원본: WaitingRoomGreybox(비활성 보존). 생성 도구: WaitingRoomLayoutA.
+
+오브젝트: 380, 내부 참조 재연결: 1, 바깥 참조 재연결: 0
+
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_WaitingRoomBeds/Bed_A → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/Bed_A
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/BedsideLamp_0 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/BedsideLamp_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/BedsideGlow_0 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/BedsideGlow_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/FootTrunk_0 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/FootTrunk_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/PersonalClothes_0 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/PersonalClothes_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_WaitingRoomBeds/Bed_B → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/Bed_B
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/BedsideLamp_1 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/BedsideLamp_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/BedsideGlow_1 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/BedsideGlow_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/FootTrunk_1 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/FootTrunk_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/PersonalClothes_1 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/PersonalClothes_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/BedsideStool_B → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/BedsideStool_B
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_WaitingRoomBeds/Bed_C → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/Bed_C
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/BedsideLamp_2 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/BedsideLamp_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/BedsideGlow_2 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/BedsideGlow_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/FootTrunk_2 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/FootTrunk_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/PersonalClothes_2 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/PersonalClothes_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_WaitingRoomBeds/Bed_D → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/Bed_D
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/BedsideLamp_3 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/BedsideLamp_3
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/BedsideGlow_3 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/BedsideGlow_3
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/FootTrunk_3 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/FootTrunk_3
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/PersonalClothes_3 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/PersonalClothes_3
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/PersonalBear → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/PersonalBear
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/FadedTwoDoorLockers → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/FadedTwoDoorLockers
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/DarkWoodWardrobe → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Beds/DarkWoodWardrobe
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/WestPersonalDresser → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/WestPersonalDresser
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/StoredBedLinen → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/StoredBedLinen
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/PreviousGenerationWallMarks → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/PreviousGenerationWallMarks
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/OldWallStud_0 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/OldWallStud_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/OldWallStud_1 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/OldWallStud_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/OldWallStud_2 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/OldWallStud_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/OldWallStud_3 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/OldWallStud_3
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/OldWallStud_4 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/OldWallStud_4
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/OldWallStud_5 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/OldWallStud_5
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/CeilingRepairPanel_0 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/CeilingRepairPanel_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/CeilingRepairPanel_1 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/CeilingRepairPanel_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/CeilingRepairPanel_2 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/CeilingRepairPanel_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/CeilingRepairPanel_3 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/CeilingRepairPanel_3
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/PersonalClothesline → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/PersonalClothesline
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/WornEntryRug → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Living/WornEntryRug
+- WaitingRoomGreybox/Mood/Ceilingworks/Dormitory_Skylight → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Skylight/Dormitory_Skylight
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/SkylightGrille_0 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Skylight/SkylightGrille_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/SkylightGrille_1 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Skylight/SkylightGrille_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/SkylightGrille_2 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Skylight/SkylightGrille_2
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/SkylightGrille_3 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Skylight/SkylightGrille_3
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/SkylightGrille_4 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Skylight/SkylightGrille_4
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/SkylightCrossbar_0 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Skylight/SkylightCrossbar_0
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/SkylightCrossbar_1 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Skylight/SkylightCrossbar_1
+- WaitingRoomGreybox/Mood/InteriorArt/Stage01_Dormitory/SkylightCrossbar_2 → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Skylight/SkylightCrossbar_2
+- WaitingRoomGreybox/Mood/Lights/Dormitory_Lamp → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Dormitory_Lamp
+- WaitingRoomGreybox/CameraZones/Zone_Dormitory → WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Zone_Dormitory
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/Toilet_1 → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/Toilet_1
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/Toilet_2 → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/Toilet_2
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/Toilet_3 → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/Toilet_3
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/Sink_Left → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/Sink_Left
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/Sink_Right → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/Sink_Right
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/SinkMirrors → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/SinkMirrors
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/StallPartition → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/StallPartition
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/StallDoor_Open_0 → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/StallDoor_Open_0
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/StallDoor_Open_1 → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/StallDoor_Open_1
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/StallDoor_Open_2 → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/StallDoor_Open_2
+- WaitingRoomGreybox/Mood/Furnishings/Restroom/Drain_Stalls → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/Drain_Stalls
+- WaitingRoomGreybox/Mood/Dressing/Restroom_Wet/Drain → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/Drain
+- WaitingRoomGreybox/Mood/Dressing/Restroom_Dustbin/SM_CS1_Dustbin_c1_LOD0 → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/SM_CS1_Dustbin_c1_LOD0
+- WaitingRoomGreybox/Mood/Lights/Restroom_Lights/CagedLamp → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/CagedLamp
+- WaitingRoomGreybox/Mood/Lights/Restroom_Lights/LampLight → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Fixtures/LampLight
+- WaitingRoomGreybox/Mood/InteriorArt/Restroom_PatchedCeiling → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Restroom_PatchedCeiling
+- WaitingRoomGreybox/CameraZones/Zone_Restroom → WaitingRoom_LayoutA/S02_Dormitory/Restroom/Zone_Restroom
+- WaitingRoomGreybox/S01_Lobby/Sign_② 숙소 → WaitingRoom_LayoutA/S02_Dormitory/Restroom/BreachClosure/DestinationSign

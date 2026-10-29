@@ -31,6 +31,13 @@ namespace CurtainCall.Network.PlayerSync
         static readonly List<NetworkPlayer> all = new();
 
         readonly NetworkVariable<int> slot = new(NoSlot);
+        readonly NetworkVariable<int> restingBed = new(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        /// <summary>Presentation-only bed selection, replicated with the player for late joiners.</summary>
+        public int RestingBed => restingBed.Value;
+        public void SetRestingBed(int index)
+        {
+            if (IsSpawned && IsOwner) restingBed.Value = index;
+        }
         readonly NetworkVariable<JumpKind> jump = new(JumpKind.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         // 실제 앉은 상태(요청이 아님). 받는 화면은 공간 검사 없이 겉모습·몸통 높이만 맞춘다
         readonly NetworkVariable<bool> crouched = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
@@ -329,6 +336,7 @@ namespace CurtainCall.Network.PlayerSync
             ragdoll = GetComponent<PlayerRagdoll>();
             condition = GetComponent<PlayerCondition>();
             networkTransform = GetComponent<NetworkTransform>();
+            gameObject.AddComponent<CurtainCall.WaitingRoom.NetworkBedPose>();
         }
 
         public override void OnNetworkSpawn()

@@ -30,6 +30,11 @@ namespace CurtainCall.HumanCannon
                     return true;
                 }
             }
+            if (!IsDriving && input.InteractTapped && poles.CanEnterFromPlatform(player))
+            {
+                int nearest = poles.FindGrabbable(player);
+                if (nearest >= 0) { poles.RequestPlatformGrab(nearest); return true; }
+            }
             return false;
         }
 
@@ -37,6 +42,8 @@ namespace CurtainCall.HumanCannon
         {
             if (HeldPole == index) return;
             TakeMovement();
+            // 외줄 옆점프/일반 점프의 옛 목표가 다음 착지에 다시 적용되지 않게 한다.
+            mover.ResetExternalMotion(true);
             HeldPole = index;
             if (TryGetComponent(out PlayerBalance balance)) balance.IsSuspended = true;
             stationIndex = -1;
@@ -72,6 +79,7 @@ namespace CurtainCall.HumanCannon
             var poles = HumanCannonPoleSystem.Current;
             var pole = poles != null ? poles.Pole(HeldPole) : null;
             if (pole == null) return;
+            pole.RefreshMovingPose();
             Teleport(poles.HangingPosition(HeldPole), pole.Grip.rotation);
         }
     }

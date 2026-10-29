@@ -127,6 +127,7 @@ namespace CurtainCall.WaitingRoom
             reset?.Invoke();
         }
 
+        // 분할 전송: 바닥 기물·소지 상태가 커지면 조각 없는 전송 상한(약 1.3KB)을 넘는다(상한은 MaxPayloadBytes).
         bool Write(string message, string json, ulong? target)
         {
             if (messaging == null) return false;
@@ -136,8 +137,8 @@ namespace CurtainCall.WaitingRoom
             {
                 using var writer = new FastBufferWriter(size, Allocator.Temp);
                 writer.WriteValueSafe(json);
-                if (target.HasValue) messaging.SendNamedMessage(message, target.Value, writer, NetworkDelivery.ReliableSequenced);
-                else messaging.SendNamedMessageToAll(message, writer, NetworkDelivery.ReliableSequenced);
+                if (target.HasValue) messaging.SendNamedMessage(message, target.Value, writer, NetworkDelivery.ReliableFragmentedSequenced);
+                else messaging.SendNamedMessageToAll(message, writer, NetworkDelivery.ReliableFragmentedSequenced);
                 return true;
             }
             catch (Exception error)

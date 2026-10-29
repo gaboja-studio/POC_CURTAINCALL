@@ -25,6 +25,7 @@ namespace CurtainCall.UI.SceneIntegration
         ExplorationTimerAnnouncer announcer;
         PropCarry carry;
         [SerializeField] DayClockView dayClock;
+        [SerializeField] RestTimerView restTimer;
         bool oldLegacyHud, fundsReceived, wasActive;
         long lastFunds;
         float fundsUntil;
@@ -34,8 +35,11 @@ namespace CurtainCall.UI.SceneIntegration
         float clockTotal;
         bool clockInitialized;
         public BackstageHUDView Hud => hud;
-        /// <summary>M2 원형 하루 시계. 기존 남은 시간 시계(W1) 자리에 만들어 대신 보인다.</summary>
+        /// <summary>이전 하루 시계의 직렬화 참조. 호환용으로 보존하며 실제 표시에서는 비활성화한다.</summary>
         public DayClockView DayClockDisplay => dayClock;
+        public RestTimerView RestTimerDisplay => restTimer;
+        public float TimerBannerTop => restTimer != null && ((RectTransform)restTimer.transform).anchorMin.x == .5f
+            ? -((RectTransform)restTimer.transform).anchoredPosition.y + ((RectTransform)restTimer.transform).rect.height + 16f : 0f;
 
         public void Configure(BackstageHUDView view, CaptionView caption, SystemNotificationsView messages, CommonIconCatalog catalog)
         { hud = view; captions = caption; notifications = messages; icons = catalog; }
@@ -48,10 +52,12 @@ namespace CurtainCall.UI.SceneIntegration
             AttachAnnouncer(active ? space.Announcer : null);
             AttachCarry(active ? PropCarry.Instance : null);
             if (hud == null) return;
+            if (dayClock != null) dayClock.gameObject.SetActive(false);
             if (!active)
             {
                 hud.SetContext(false, false, false, false);
                 if (dayClock != null) dayClock.Hide();
+                if (restTimer != null) restTimer.Hide();
                 if (wasActive) { captions.HideImmediate(); notifications.HideAllImmediate(); }
                 wasActive = false; fundsReceived = false; clockInitialized = false;
                 return;
@@ -62,7 +68,7 @@ namespace CurtainCall.UI.SceneIntegration
                 notifications.Banner.Show("밤 정비", state.Timer == RestTimerState.Unlimited
                     ? "대기실 문이 잠겼습니다 · 제한 시간 없음" : "대기실 문이 잠겼습니다 · 정비 시간 시작", BannerState.Normal, announcementSeconds);
             wasActive = true; lastPhase = state.Phase;
-            // 옛 W1(남은 시간만) 시계는 끄고, 같은 자리에 원형 하루 시계를 보인다(M2, 밤 정비에도 시각 표시).
+            // 기존 두 W1은 숨기고 v2.8 남은 시간/무한대 타이머만 표시한다.
             hud.SetContext(true, false, rest && space.LocalInGatherArea, true);
             var rules = GameSettings.Base.Run;
             if (!clockInitialized || clockPhase != state.Phase || clockRest != state.Rest
@@ -72,8 +78,7 @@ namespace CurtainCall.UI.SceneIntegration
                 clockPhase = state.Phase; clockRest = state.Rest; clockDay = state.Day; clockPerformance = state.PerformanceIndex;
                 clockInitialized = true;
             }
-            if (EnsureDayClock()) dayClock.Show(state, clockTotal);
-            else if (dayClock != null) dayClock.Hide();
+            if (EnsureRestTimer()) { ArrangeTimerLayout(); restTimer.Show(state, clockTotal); }
             var rewards = PerformanceRewards.Instance;
             if (rewards == null || rewards.State == null) { hud.Funds.SetUnavailable(); fundsReceived = false; }
             else
@@ -90,16 +95,23 @@ namespace CurtainCall.UI.SceneIntegration
         }
 
         // 새 공통 씬은 직렬화된 인스턴스를 사용하고, 구형 구성만 같은 프리팹으로 보완한다.
-        bool EnsureDayClock()
+        bool EnsureRestTimer()
         {
-            if (dayClock != null) return true;
+            if (restTimer != null) return true;
             if (hud == null || hud.Clock == null) return false;
             var old = (RectTransform)hud.Clock.transform;
-            var prefab = Resources.Load<DayClockView>(DayClockView.PrefabPath);
+            var prefab = Resources.Load<RestTimerView>(RestTimerView.PrefabPath);
             if (prefab == null) return false;
-            dayClock = Instantiate(prefab, old.parent);
-            // 원 중심 정렬은 새 프리팹의 배치를 유지한다.
+            restTimer = Instantiate(prefab, old.parent);
             return true;
+        }
+
+        /// <summary>중앙 W1과 방송 배너가 겹치지 않도록 같은 Canvas 단위로 간격을 둔다.</summary>
+        public void ArrangeTimerLayout()
+        {
+            if (restTimer == null || notifications == null || notifications.Banner == null) return;
+            var banner = (RectTransform)notifications.Banner.transform;
+            HudLayout.PlaceBanner(banner, false, TimerBannerTop);
         }
 
         void AttachAnnouncer(ExplorationTimerAnnouncer next)
@@ -154,6 +166,7 @@ namespace CurtainCall.UI.SceneIntegration
             AttachAnnouncer(null); AttachCarry(null);
             if (hud != null) hud.ResetForRuntime();
             if (dayClock != null) dayClock.Hide();
+            if (restTimer != null) restTimer.Hide();
             if (captions != null) captions.HideImmediate();
             if (notifications != null) notifications.HideAllImmediate();
             wasActive = false; fundsReceived = false; clockInitialized = false;

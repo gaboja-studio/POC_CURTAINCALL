@@ -6,6 +6,7 @@ namespace CurtainCall.HumanCannon
     public sealed class HumanCannonWindZone : MonoBehaviour
     {
         [SerializeField] BoxCollider area;
+        [SerializeField] HumanCannonHazardCue cue;
         [SerializeField] Vector3 direction = Vector3.right;
         [SerializeField] bool affectsGround = true;
         [SerializeField] bool affectsAir = true;
@@ -13,6 +14,7 @@ namespace CurtainCall.HumanCannon
         public BoxCollider Area => area;
         public Vector3 Direction => Vector3.ProjectOnPlane(transform.TransformDirection(direction), Vector3.up).normalized;
         public bool Contains(Vector3 feet, float height, bool airborne) => isActiveAndEnabled && area != null
+            && (cue == null || HumanCannonHazardCourse.Current != null && cue.Live(HumanCannonHazardCourse.Current.Elapsed))
             && (airborne ? affectsAir : affectsGround) && area.bounds.Contains(feet + Vector3.up * height * 0.5f);
 
         void Update() => PresentFlow(HumanCannonHazardCourse.Current != null

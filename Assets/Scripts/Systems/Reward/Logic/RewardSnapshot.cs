@@ -47,13 +47,17 @@ namespace CurtainCall.Reward
         public bool Connected { get; }
         /// <summary>현재 호응도. 사망자는 사망 전 값으로 고정(정산은 절반 인정), 이탈자는 0.</summary>
         public long Amount { get; }
+        /// <summary>실제 환호/야유 사건만 증가한다. 관심 감소·접속/사망·규칙 변경은 사건이 아니다.</summary>
+        public long ReactionSequence { get; }
+        public int ReactionDelta { get; }
+        public int ReactionAmount { get; }
 
         public RewardSegment(string participantId, ulong clientId, int slot, int startingLostCount, int lostCount,
-            bool dead, bool connected, long amount)
+            bool dead, bool connected, long amount, long reactionSequence = 0, int reactionDelta = 0, int reactionAmount = 0)
         {
             if (string.IsNullOrWhiteSpace(participantId) || participantId.Length > 100 || slot < -1 || slot > 63
                 || startingLostCount < 0 || startingLostCount > 4 || lostCount < 0 || lostCount > 4 || amount < 0
-                || (!connected && amount != 0)) throw new ArgumentException("호응 구간이 올바르지 않습니다.");
+                || reactionSequence < 0 || (!connected && amount != 0)) throw new ArgumentException("호응 구간이 올바르지 않습니다.");
             ParticipantId = participantId;
             ClientId = clientId;
             Slot = slot;
@@ -62,6 +66,7 @@ namespace CurtainCall.Reward
             Dead = dead;
             Connected = connected;
             Amount = amount;
+            ReactionSequence = reactionSequence; ReactionDelta = reactionDelta; ReactionAmount = reactionAmount;
         }
     }
 

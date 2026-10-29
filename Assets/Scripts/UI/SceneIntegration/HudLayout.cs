@@ -21,10 +21,10 @@ namespace CurtainCall.UI.SceneIntegration
             if (rect != null) rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, y);
         }
 
-        public static void PlaceBanner(RectTransform rect, bool balanceAtTop)
+        public static void PlaceBanner(RectTransform rect, bool balanceAtTop, float reservedTop = 0)
         {
             rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, 1);
-            rect.anchoredPosition = new Vector2(0, balanceAtTop ? -140 : -40);
+            rect.anchoredPosition = new Vector2(0, -Mathf.Max(balanceAtTop ? 140 : 40, reservedTop));
         }
     }
 }

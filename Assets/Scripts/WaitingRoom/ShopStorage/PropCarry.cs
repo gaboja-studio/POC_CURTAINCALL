@@ -202,6 +202,7 @@ namespace CurtainCall.WaitingRoom
             CarryRefusal.FloorFull => "바닥에 더 놓을 수 없습니다.",
             CarryRefusal.ShelfFull => "선반 4칸이 모두 찼고 손에도 자리가 없습니다.",
             CarryRefusal.ShelfEmpty => "선반이 비어 있습니다. 기물을 들고 오세요.",
+            CarryRefusal.UsedUp => "다 써서 더 쓸 수 없는 기물입니다.",
             _ => "이미 없는 기물입니다.",
         };
 
@@ -217,6 +218,32 @@ namespace CurtainCall.WaitingRoom
             if (refusal == CarryRefusal.None) Publish();
             return refusal;
         }
+
+        // ---- 탐색이 쓰는 판정 화면 전용 진입점(Task-079) ----
+
+        /// <summary>
+        /// 판정 화면: 플레이어가 든 기물을 한 번 쓴다. 상호작용 대상이 파괴되거나 보상을 얻은 때에만 부른다(item-durability.md).
+        /// 마지막 사용이면 손에서 사라진다.
+        /// </summary>
+        public CarryRefusal UseItem(ulong player, int uid, out PropItem after, out bool destroyed)
+        {
+            var refusal = book.Use(player, uid, out after, out destroyed);
+            if (refusal != CarryRefusal.None) return refusal;
+            Debug.Log($"[Carry] 사용 #{uid} {after.Name} 남은 {(after.Uses == ItemUses.Unlimited ? "∞" : after.Uses.ToString())}{(destroyed ? " — 다 써서 사라짐" : "")} — {WaitingRoomShop.PlayerLabel(player)}");
+            Publish();
+            return CarryRefusal.None;
+        }
+
+        /// <summary>판정 화면: 탐색 발견품을 바닥에 놓는다. 이미 어딘가에 있으면 무시한다.</summary>
+        public CarryRefusal PlaceFound(PropItem item, Vector3 at)
+        {
+            var refusal = book.Place(item, at.x, at.y, at.z);
+            if (refusal == CarryRefusal.None) { Debug.Log($"[Carry] 발견품 배치 #{item.Uid} {item.Name}"); Publish(); }
+            return refusal;
+        }
+
+        /// <summary>판정 화면: 이 UID가 손·바닥·선반 어디든 남아 있는가.</summary>
+        public bool Exists(int uid) => book.Exists(uid);
 
         // ---- 판정 ----
 
@@ -387,9 +414,9 @@ namespace CurtainCall.WaitingRoom
         [Serializable]
         sealed class ItemData
         {
-            public int uid; public string id; public string name;
-            public PropItem Read() => new(uid, id, name);
-            public static ItemData From(PropItem i) => new() { uid = i.Uid, id = i.ItemId, name = i.Name };
+            public int uid; public string id; public string name; public int uses = ItemUses.Unlimited;
+            public PropItem Read() => new(uid, id, name, uses);
+            public static ItemData From(PropItem i) => new() { uid = i.Uid, id = i.ItemId, name = i.Name, uses = i.Uses };
         }
 
         [Serializable] sealed class PlayerData { public ulong client; public int selectedUid; public ItemData[] held; }

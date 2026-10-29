@@ -59,6 +59,8 @@ namespace CurtainCall.WaitingRoom
         ExpertService bound;
         AudioClip clank;
         string signText;
+        UIInputBlocker workInput;
+        bool localInside;
 
         void Awake()
         {
@@ -72,6 +74,8 @@ namespace CurtainCall.WaitingRoom
 
         void OnDisable()
         {
+            if (workInput != null) workInput.SetOpen(false);
+            localInside = false;
             ShopReach.Remove(this);
             Bind(null);
         }
@@ -81,7 +85,13 @@ namespace CurtainCall.WaitingRoom
             ShopReach.Pump();
             var service = ExpertService.Instance;
             if (service != bound) Bind(service);
-            if (service == null) return;
+            if (service == null)
+            {
+                if (localInside) MoveLocal(outside, true);
+                return;
+            }
+            // A cleared reservation (phase change/disconnect/reset) must not strand the owner in the cabin.
+            if (localInside && service.Phase != ExpertRoomPhase.Working) MoveLocal(outside, true);
 
             float target = ShouldOpen(service) ? 1f : 0f;
             open = Mathf.MoveTowards(open, target, curtainSpeed * Time.deltaTime);
@@ -135,6 +145,7 @@ namespace CurtainCall.WaitingRoom
         void HandlePhase(ExpertRoomPhase before, ExpertRoomPhase after)
         {
             if (after == ExpertRoomPhase.Working || (before == ExpertRoomPhase.Working && after == ExpertRoomPhase.Exiting)) PlayClank();
+            if (localInside && after != ExpertRoomPhase.Working) { MoveLocal(outside, true); return; }
             if (!bound.LocalIsBuyer) return;
             if (after == ExpertRoomPhase.Working) MoveLocal(inside, false);
             else if (after == ExpertRoomPhase.Exiting) MoveLocal(outside, true);
@@ -183,6 +194,13 @@ namespace CurtainCall.WaitingRoom
             var mover = NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerMover>() : null;
             if (mover == null && NetworkPlayer.All.Count == 0) mover = FindFirstObjectByType<PlayerMover>();
             if (mover == null) return;
+            localInside = !returned;
+            if (workInput == null)
+            {
+                workInput = gameObject.AddComponent<UIInputBlocker>();
+                workInput.BlockWhileActive = false;
+            }
+            workInput.SetOpen(localInside);
             // 공용 이동기는 출발점을 바꾸며 옮기는 방법만 연다. 마지막 순간이동이 커튼 앞(로비)이라 재시작 위치도 로비에 남는다.
             mover.SetStartPose(point.position, point.rotation);
             if (LocalMoved != null)
