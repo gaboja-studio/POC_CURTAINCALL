@@ -118,12 +118,14 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                     yield return null;
                 }
 
+                long beforeCatch = LocalAudienceAmount();
                 Call(mover, "SetMoveInput", 0f);
                 Call(mover, "RequestLaneJump", 1);
                 yield return Until(() => (bool)Get(mover, "IsAirborne"), 2f, "받기 준비 동료 쪽으로 실제 옆줄 점프");
                 Assert.That((float)Get(balance, "laneLandingReduction"), Is.EqualTo(.9f).Within(.0001f));
                 yield return Until(() => !(bool)Get(mover, "IsAirborne"), 3f, "받아주기 실제 착지");
                 yield return Until(() => !(bool)Call(catches, "IsReady", helper), 1f, "호스트가 한 번의 받기를 확정");
+                Assert.AreEqual(beforeCatch + 10, LocalAudienceAmount(), "동료 받기는 실제 착지 성공 때 협동 환호를 지급한다.");
                 Assert.That(Mathf.Abs((float)Get(balance, "LastShock")),
                     Is.EqualTo((float)Get(settings, "LaneLandingShock") * .1f).Within(.001f));
                 Assert.That((float)Get(balance, "LaneBoostMultiplier"),

@@ -26,6 +26,22 @@ namespace CurtainCall.Reward
         public bool WasClose => close;
         public bool WasStacked => stacked;
         public bool ChangedLane => changedLane;
+
+        /// <summary>횡이동/회전 장애물: 진행 방향 통과가 아니라 가까운 위험 영역에 들어왔다 벗어나는 순간 확정한다.</summary>
+        public bool SampleProximity(float distance, float approach, int parts, bool touching, bool near)
+        {
+            if (resolved) return false;
+            if (!approached)
+            {
+                if (distance > approach) return false;
+                approached = true; initialParts = parts;
+            }
+            damaged |= touching || parts != initialParts;
+            close |= near;
+            if (!close || near) return false;
+            resolved = true;
+            return !damaged;
+        }
     }
 
     /// <summary>
@@ -36,6 +52,7 @@ namespace CurtainCall.Reward
     {
         double since = double.NaN;
         float best;
+        public void Reset() => since = double.NaN;
         public bool Sample(bool active, float progress, double now, double seconds, float step)
         {
             if (!active || double.IsNaN(since) || now < since) { since = active ? now : double.NaN; best = progress; return false; }

@@ -1,11 +1,21 @@
 ---
-summary: W1 v2.7 디자인 프리팹·기존 하루 일정과 타입별 제한시간/무제한 설정. 대기실 시계·타이머를 수정할 때
+summary: 현행 W1 v2.8 남은 시간·무한대·D-N과 보존용 v2.7 하루 시계. 대기실 타이머를 수정할 때
 status: active
 updated: 2026-10-29
-source: Task-20261028-077, 사용자 하루 시계 패키지 조립·타입별 제한시간 지시
+source: Task-20261028-077, Task-20261029-079, 사용자 타이머 v2.8 교체·D-3→D-0 유지 확정
 ---
 
 # 하루 시계와 실제 제한시간
+
+## 현행 W1 v2.8 (Task-079)
+- 실게임은 `Resources/Prefabs/UIs/RestTimerV28/W1_RestTimer_v2_8.prefab`과 `CommonWaitingRoomUI.RestTimerDisplay`를 사용한다. private `curtaincall_resttimer_v2_8` 제공 Runtime·PNG 11개·조립기를 그대로 활용하며 공개 어댑터는 `RestTimer`/`RestTimerView`, 제작은 `RestTimerProjectBuilder`다.
+- 좌상단 (48,-64), 192×220. 가운데 남은 `m:ss` 또는 명시적 무제한 PNG만, 아래 D-3→D-0와 해돋이/해/달 하나. 실제 일차1~4를 전달하며 미수신 일차는 D-?다. 사용자 확인으로 N일차 대신 D-N을 유지했다.
+- `CampaignSnapshot`의 Running/Stopped/Unlimited/그 외를 Limited(정지 포함)/Unlimited/Unavailable로 구분한다. 0초는 0:00, 미수신은 --:--. 시간 비율은 실제 남은 초/현재 구간 제한 초, UI 자체 차감 없음. 쉬는 시간·밤 정비에서만 보인다.
+- 총 제한 초는 기존 Run.TimeLimit(Rest)/NightMaintenance를 구간 진입 때 보관한다. Morning은 해돋이, Guide/Between은 해, Night는 달이다. v2.7 ScheduleProfile의 시각·색·활동은 새 W1을 제어하지 않는다. 실제 제한 초 설정은 아래 절을 계속 사용한다.
+- 이전 W1/하루 시계 인스턴스는 비활성으로 보존한다. 타이머를 기존 좌상단으로 복원했으며 대기실 중앙 배너는 기본 (0,-40)이다. 다른 공간의 배너 위치는 유지한다.
+- 글리프를 확인한 기존 Static TMP(SemiBold=SettingsUi, Bold=DayClock/V24)를 읽기 전용 참조한다. 패키지 원본 자료·기존 ScheduleProfile·폰트·GUID는 보존한다.
+
+아래 v2.7 그림·시각 계약은 보존용이며 현행 W1 표시에는 사용하지 않는다.
 
 ## 정본과 연결
 - 디자인 원본: `Assets/_ThirdParty/curtaincall_dayclock_v2.7/`. 새 그림·224×248 레이아웃·활동 기호와 현재 구간 강조를 적용했다. 전용 Sprite 16개와 기존 정본 shadow/center/bezel/tools를 사용한다. 채움은 새 schedulefill이다.
