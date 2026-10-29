@@ -198,6 +198,8 @@ namespace CurtainCall.Player
                         if (binding.overridePath != null) return false;
                         continue;
                     }
+                    if (string.IsNullOrWhiteSpace(binding.effectivePath))
+                    { error = "할당되지 않은 조작의 키를 모두 설정해 주세요."; return false; }
                     if (!TryValidateKeyPath(binding.effectivePath, out var normalized, out error)) return false;
                     if (!used.Add(normalized))
                     {

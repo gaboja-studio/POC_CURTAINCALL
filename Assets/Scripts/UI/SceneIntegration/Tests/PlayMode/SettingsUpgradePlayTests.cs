@@ -71,6 +71,81 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             return content.Find("Reset_" + page + "_Row/10_Action").GetComponent<UnityEngine.UI.Button>();
         }
         [UnityTest]
+        public IEnumerator SettingsUpgrade_DuplicateKeysAreConfirmedStagedAndSavedOnlyOnApply()
+        {
+            var restore = CaptureSettingsExtras(); var graphics = CaptureGraphics();
+            int target = Application.targetFrameRate, vsync = QualitySettings.vSyncCount;
+            var preferences = T("CurtainCall.Player.InputBindingPreferences");
+            const string preferenceKey = "CurtainCall.Input.CommonBindings.v1";
+            try
+            {
+                preferences.GetMethod("ResetDefaults").Invoke(null, null);
+                yield return SceneManager.LoadSceneAsync("Start"); yield return MenuReady();
+                UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
+                var start = Find("CurtainCall.StartLobby.StartMenu");
+                var settings = Get(Find("CurtainCall.UI.SceneIntegration.CommonMenuUI"), "Settings");
+                void OpenSettings() => Call(start, "Show", Enum.Parse(T("CurtainCall.StartLobby.StartMenu+Page"), "Settings"));
+                OpenSettings(); yield return null;
+                var view = Get(settings, "Main"); Call(view, "ShowPage", 2); yield return null;
+                object[] Snapshot() => ((IEnumerable)Call(view, "GetDraftSnapshot")).Cast<object>().ToArray();
+                string RowFor(string path) => (string)Field(Snapshot().Single(v => (string)Field(v, "bindingId") == path), "rowId");
+                string PathFor(string row) => (string)Field(Snapshot().Single(v => (string)Field(v, "rowId") == row), "bindingId");
+                string forward = RowFor("<Keyboard>/w"), backward = RowFor("<Keyboard>/s"), jump = RowFor("<Keyboard>/space");
+                var order = SettingsContent(view).Cast<Transform>().Where(t => t.name.EndsWith("_Row")).Select(t => t.name).ToArray();
+                Assert.AreEqual(forward + "_Row", order[0]); Assert.AreEqual(backward + "_Row", order[1]);
+                UnityEngine.UI.Button Rebind(string row) => SettingsRow(view, 2, row).Find("10_Rebind").GetComponent<UnityEngine.UI.Button>();
+                IEnumerator Press(string row, string key)
+                {
+                    Rebind(row).onClick.Invoke(); yield return null;
+                    CursorTestKey(key); yield return null; yield return null; CursorTestKey(null); yield return null;
+                }
+                yield return Press(jump, "W");
+                Assert.IsTrue((bool)Get(view, "IsConfirmationOpen"));
+                var dialog = ((Component)view).transform.Find("00_Visuals/90_ActionConfirmation/00_Dialog/40_Content");
+                Assert.AreEqual("이미 앞으로 이동에 할당된 키입니다. 키 설정 시 할당된 조작을 다시 설정해야 합니다.", dialog.Find("10_BodyTMP").GetComponent<TMP_Text>().text);
+                Assert.AreEqual("예", SettingsConfirmationButton(view, "30_Confirm").GetComponentInChildren<TMP_Text>().text);
+                Assert.AreEqual("아니오", SettingsConfirmationButton(view, "20_Back").GetComponentInChildren<TMP_Text>().text);
+                SettingsConfirmationButton(view, "20_Back").onClick.Invoke(); yield return null;
+                Assert.AreEqual("<Keyboard>/w", PathFor(forward)); Assert.AreEqual("<Keyboard>/space", PathFor(jump));
+                yield return Press(jump, "W"); Call(view, "Cancel"); yield return null;
+                Assert.IsFalse((bool)Get(view, "IsConfirmationOpen")); Assert.IsTrue((bool)Get(view, "IsVisible"));
+                Assert.AreEqual("<Keyboard>/space", PathFor(jump));
+                yield return Press(jump, "W"); SettingsConfirmationButton(view, "30_Confirm").onClick.Invoke(); yield return null;
+                Assert.AreEqual("", PathFor(forward)); Assert.AreEqual("<Keyboard>/w", PathFor(jump));
+                StringAssert.Contains("미할당", Rebind(forward).GetComponentInChildren<TMP_Text>().text);
+                Assert.IsFalse(((UnityEngine.UI.Button)Get(view, "ApplyButton")).interactable);
+                Call(view, "RequestApply"); yield return null;
+                Assert.IsTrue((bool)Get(view, "IsVisible")); Assert.IsFalse(PlayerPrefs.HasKey(preferenceKey));
+                // 다른 탭 편집이나 초기화도 빈 키가 남으면 적용할 수 없다.
+                Call(view, "ShowPage", 3); yield return null; SettingsSlider(view, "bgmVolume").value = .39f;
+                TabReset(view, "audio").onClick.Invoke(); yield return null;
+                Assert.IsFalse(((UnityEngine.UI.Button)Get(view, "ApplyButton")).interactable);
+                Call(view, "ShowPage", 2); yield return null;
+                Assert.AreEqual("", PathFor(forward));
+                yield return Press(forward, "F10");
+                Assert.IsTrue(((UnityEngine.UI.Button)Get(view, "ApplyButton")).interactable);
+                Assert.IsFalse(PlayerPrefs.HasKey(preferenceKey));
+                var savedDraft = (UnityEngine.InputSystem.InputActionAsset)preferences.GetMethod("CreateDraft").Invoke(null, null);
+                try { Assert.AreEqual("<Keyboard>/space", savedDraft.FindAction("Common/Action").bindings[0].effectivePath); }
+                finally { UnityEngine.Object.Destroy(savedDraft); }
+                // 완성된 편집도 닫으면 폐기한다.
+                Call(view, "Cancel"); yield return null; OpenSettings(); yield return null;
+                Call(view, "ShowPage", 2); yield return null;
+                Assert.AreEqual("<Keyboard>/w", PathFor(forward)); Assert.AreEqual("<Keyboard>/space", PathFor(jump));
+                yield return Press(jump, "W"); SettingsConfirmationButton(view, "30_Confirm").onClick.Invoke(); yield return null;
+                yield return Press(forward, "F10");
+                Call(view, "RequestApply"); yield return null;
+                Assert.IsFalse((bool)Get(view, "IsVisible")); Assert.IsTrue(PlayerPrefs.HasKey(preferenceKey));
+                OpenSettings(); yield return null; Call(view, "ShowPage", 2); yield return null;
+                Assert.AreEqual("<Keyboard>/f10", PathFor(forward)); Assert.AreEqual("<Keyboard>/w", PathFor(jump));
+                TabReset(view, "controls").onClick.Invoke(); yield return null;
+                Assert.AreEqual("<Keyboard>/w", PathFor(forward)); Assert.AreEqual("<Keyboard>/space", PathFor(jump));
+                Call(view, "Cancel"); yield return null;
+            }
+            finally { CursorTestKey(null); restore(); RestoreGraphics(graphics); Application.targetFrameRate = target; QualitySettings.vSyncCount = vsync; }
+        }
+
+        [UnityTest]
         public IEnumerator SettingsUpgrade_TabResetsAreIsolatedStagedAndSaved()
         {
             var graphics = CaptureGraphics(); var restore = CaptureSettingsExtras();
