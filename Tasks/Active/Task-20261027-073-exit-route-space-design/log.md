@@ -124,3 +124,4 @@
 
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 제출 직전 dev704d748b와 외부에셋80ff0ad7 통합. 매달림 구조 성공 이벤트와 A 낙사해제 가드를 함께 보존해 코드 충돌 해결, 지식 index 두 항목 보존. 최소화된 Unity 창 복원 뒤 check-work 안전성/문서/컴파일 PASS, 통합 후 외줄/낙사29/29 PASS(기능 묶음56/56 기존 결과도 보존). new-pr.ps1은 명시된 중첩 브랜치를 거부하므로 같은 검사 후 gh로 직접 제출한다. 기존 개인 변경2개와 Unity가 private 에셋에 생성한 importer 메타 변경은 저장 대상에서 제외·보존.
+- 2026-10-29 PR 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/237 (feat/exit-route/design-map → dev). 작업 저장 및 최신 dev 통합을 push했고 지정 팀원 검토 대기. dev 병합은 실행하지 않았다.
