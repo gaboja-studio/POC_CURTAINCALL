@@ -234,7 +234,8 @@ namespace CurtainCall.Tightrope
             if (book.TryGet(local.OwnerClientId, out var hang))
             {
                 localHang.Confirmed = true;
-                Place(GripPoint(hang) - Vector3.up * Rules.HangDrop);
+                Vector3 grip = GripPoint(hang);
+                Place(grip - Vector3.up * Rules.HangDrop, grip);
             }
             else if (localHang.Confirmed || Now - localHang.RequestedAt > 2d)
             {
@@ -243,7 +244,7 @@ namespace CurtainCall.Tightrope
                 if (local.TryGetComponent(out PlayerBalance balance)) balance.ForceFall();
                 return;
             }
-            else Place(localHang.FallPosition);
+            else Place(localHang.FallPosition, localHang.FallPosition);
             // 목마 위층이던 사람은 목마 해제가 몸을 다시 켤 수 있으므로 매 프레임 고정을 유지한다.
             localHang.Mover.Simulated = false;
             if (localHang.Mover.Body != null) localHang.Mover.Body.enabled = false;
@@ -251,11 +252,14 @@ namespace CurtainCall.Tightrope
             if (localHang.Balance != null) { localHang.Balance.IsSuspended = true; localHang.Balance.SetAirborne(true); }
         }
 
-        void Place(Vector3 feet)
+        Quaternion RopeRotationAt(Vector3 ropePoint) => Quaternion.LookRotation(
+            course.HasIndependentRopes ? course.ForwardAt(ropePoint) : course.Forward);
+
+        void Place(Vector3 feet, Vector3 ropePoint)
         {
             if (localHang == null || course == null) return;
             placing = true;
-            try { localHang.Player.transform.SetPositionAndRotation(feet, Quaternion.LookRotation(course.Forward)); }
+            try { localHang.Player.transform.SetPositionAndRotation(feet, RopeRotationAt(ropePoint)); }
             finally { placing = false; }
         }
 
@@ -280,7 +284,7 @@ namespace CurtainCall.Tightrope
             mover.Simulated = true;
             if (!onRope) { mover.ResetExternalMotion(true); return; }
             held.Balance?.ResetBalance();
-            mover.Relocate(rope, Quaternion.LookRotation(course.Forward));
+            mover.Relocate(rope, RopeRotationAt(rope));
         }
 
         /// <summary>호스트가 끌어올리기 완료를 알렸다.</summary>

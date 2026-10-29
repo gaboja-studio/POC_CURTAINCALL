@@ -130,13 +130,21 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
             if (context.Balance != null)
                 context.Balance.SetCorrectionInput(input.Posture);
 
+            bool requestedCannonPole = input.InteractTapped && TryRequestCannonPoleExit(context);
             if (context.Interaction != null)
             {
-                if (input.InteractTapped && (input.Move != 0f || input.ActionPressed
+                if (input.InteractTapped && !requestedCannonPole && (input.Move != 0f || input.ActionPressed
                     || TightropeCatchSystem.Current == null || !TightropeCatchSystem.Current.TryHandleLocalInteract()))
                     context.Interaction.RequestInteract();
                 if (input.InteractLongPressed) context.Interaction.RequestRelease();
             }
+        }
+
+        static bool TryRequestCannonPoleExit(PlayerControlContext context)
+        {
+            var course = TightropeCourse.Current;
+            return course != null && course.TryGetComponent(out CourseControlSwitcher switcher)
+                && switcher.TryRequestCannonPoleExit(context.Mover);
         }
 
         static void CancelCatch(PlayerControlContext context)

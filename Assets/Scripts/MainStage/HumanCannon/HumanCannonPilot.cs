@@ -159,7 +159,10 @@ namespace CurtainCall.HumanCannon
 
         internal void CompleteLanding(int index, uint revision, uint segment)
         {
-            if (awaitingLanding && MatchesFlight(index, revision, segment)) ReleaseMovement();
+            if (!awaitingLanding || !MatchesFlight(index, revision, segment)) return;
+            ReleaseMovement();
+            // 호스트가 확정한 실제 착지다. 이전 점프/옆줄 목표 없이 지지면 조작으로 인계한다.
+            if (mover != null) mover.ResetExternalMotion(false);
         }
 
         internal void ResetAfterRestart()

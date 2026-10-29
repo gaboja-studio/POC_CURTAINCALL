@@ -16,7 +16,7 @@ namespace CurtainCall.Tightrope
     /// </summary>
     [RequireComponent(typeof(TightropeCourse))]
     [DefaultExecutionOrder(-60)] // 입력(-100) 다음, 조작 규칙(-50)·균형 계산(0) 전에 표면 전환
-    public sealed class CourseControlSwitcher : MonoBehaviour
+    public sealed partial class CourseControlSwitcher : MonoBehaviour
     {
         [Tooltip("줄 위 조작 규칙. 비우면 기본 외줄 규칙(TightropeControlScheme).")]
         [SerializeField] PlayerControlScheme ropeScheme;

@@ -269,6 +269,20 @@ namespace CurtainCall.UI.SceneIntegration
         {
             var player = NetworkPlayer.Local; var system = HumanCannonSystem.Current;
             if (player == null || system == null || player.State != PlayerState.Normal) return;
+            if (player.TryGetComponent(out PlayerController controller) && controller.Scheme is TightropeControlScheme)
+            {
+                // 줄 위 F는 목마/받기/기존 기물 우선순위를 지키는 끝 영역 후보 하나만 받는다.
+                var course = TightropeCourse.Current;
+                int exitPole = course != null && course.TryGetComponent(out CourseControlSwitcher switcher)
+                    ? switcher.FindCannonPoleExit(player) : -1;
+                var exitPoles = HumanCannonPoleSystem.Current;
+                if (exitPole >= 0 && exitPoles != null && exitPoles.Pole(exitPole) is { } pole)
+                {
+                    Add(pole.transform, pole.BarPosition(0), "봉 잡기", true, true, feet);
+                    candidates[candidates.Count - 1].Pole = true;
+                }
+                return;
+            }
             var trampoline = HumanCannonTrampoline.Current;
             if (system.IsSeated(player.OwnerClientId) || trampoline != null && trampoline.Carrier == player.OwnerClientId) return;
             bool canCarry = trampoline != null && trampoline.CanGrab(player);
