@@ -1,6 +1,9 @@
 # Project Pitfalls
 
 - [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
+- [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지 부상 오판과 꺾인 외줄 방향 인계를 고칠 때
+
+- [escape-depth-route.md](escape-depth-route.md) — 탈출로 묘기 도달·운반 트램폴린 묻힘·대포 목표 표식·교체 구조 잔여물 확인
 
 - [Telemetry/](Telemetry/index.md) — 로그·설문의 연결 종료와 최초 실행 시점을 확인할 때
 
@@ -9,6 +12,8 @@
 - [session-join-cancelled.md](session-join-cancelled.md) — 방 코드·LAN 참가의 취소 예외와 제한시간·취소 원인 로그를 확인할 때
 
 이 POC·이 개발 환경에서 겪은 함정. 상황에 맞는 파일 1개만 연다.
+
+- [imported-factory-lod.md](imported-factory-lod.md) — 공장 프리팹이 조감도에서는 보이고 근접 카메라에서는 사라질 때
 
 - [Ui/](Ui/index.md) — UI 키트 수신 뒤 공통 타입 중복 컴파일 오류가 발생할 때
 - [shell-rosetta-brew.md](shell-rosetta-brew.md) — brew install 실패 또는 pwsh를 찾지 못할 때
@@ -29,4 +34,7 @@
 - [remote-player-judged-before-placement.md](remote-player-judged-before-placement.md) — 공연 씬 로드 직후 호스트가 원격의 옛 위치로 사망 판정한다. 연결 공연에서 참가자만 시작부터 죽어 있을 때
 - [demo-ui-includes-hud.md](demo-ui-includes-hud.md) — Demo 이름의 줄타기 UI를 통째로 끄면 HUD·게이지도 사라진다. 연결 모드에서 시연 UI를 숨길 때
 - [changed-subscriber-advances-campaign.md](changed-subscriber-advances-campaign.md) — Changed 알림 안에서 구독자가 런을 진행시킬 수 있어 알림 뒤 공연 좌표를 재확인. 런·보상 이벤트를 보낸 뒤 이어서 종료·정산 처리할 때
+- [inactive-root-component-scan.md](inactive-root-component-scan.md) — 비활성 루트에서 GetComponentsInChildren()이 꺼진 원본까지 반환한다. 원본을 꺼서 보존하고 복제본을 찾는 코드를 쓸 때
+- [mesh-copyserialized-stale-render.md](mesh-copyserialized-stale-render.md) — 쓰이는 메시 에셋을 CopySerialized로 덮어쓰면 화면은 예전 메시를 그린다. 절차적 메시를 같은 경로에 다시 저장할 때
 - [revived-before-performance-unload.md](revived-before-performance-unload.md) — 공연 씬 해제 전 부활자가 옛 낙하·함정 판정으로 다시 사망. 부활 로그와 달리 대기실에서 관전이 지속될 때
+- [textmesh-default-shader-through-walls.md](textmesh-default-shader-through-walls.md) — 생성한 TextMesh 기본 재질은 깊이를 무시해 벽 너머로 보인다. 에디터 코드로 표지·번호 글자를 만들 때

@@ -36,7 +36,7 @@ namespace CurtainCall.Tightrope
             if (!IsActive) { Release(); return; }
             foreach (var player in NetworkPlayer.All)
             {
-                if (player == null || !player.IsSpawned || !player.isActiveAndEnabled) continue;
+                if (player == null || !player.IsSpawned || !player.isActiveAndEnabled || !course.UsesRopeRules(player)) continue;
                 if (!bindings.TryGetValue(player, out var binding))
                 {
                     if (!player.TryGetComponent(out PlayerBalance balance)
@@ -52,7 +52,7 @@ namespace CurtainCall.Tightrope
 
             removed.Clear();
             foreach (var pair in bindings)
-                if (pair.Key == null || !pair.Key.IsSpawned || !pair.Key.isActiveAndEnabled)
+                if (pair.Key == null || !pair.Key.IsSpawned || !pair.Key.isActiveAndEnabled || !course.UsesRopeRules(pair.Key))
                 {
                     Restore(pair.Value);
                     removed.Add(pair.Key);

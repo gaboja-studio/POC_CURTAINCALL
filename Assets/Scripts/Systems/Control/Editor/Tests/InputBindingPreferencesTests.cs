@@ -122,6 +122,21 @@ namespace CurtainCall.Control.Editor.Tests
         }
 
         [Test]
+        public void UnassignedKey_CannotBeSavedOrReplacePreviousPreferences()
+        {
+            var draft = Draft();
+            Assert.IsTrue(InputBindingPreferences.TryApply(draft, out _));
+            string saved = PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey);
+            draft.FindAction("Common/Move").ApplyBindingOverride(1, "");
+            draft.FindAction("Common/Action").ApplyBindingOverride(0, "<Keyboard>/s");
+            Assert.AreEqual(10, InputBindingPreferences.GetBindings(draft).Count, "빈 키도 편집 목록에서 유지합니다.");
+            Assert.IsFalse(InputBindingPreferences.TryApply(draft, out var error));
+            StringAssert.Contains("할당되지 않은", error);
+            Assert.AreEqual(saved, PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey));
+            Assert.AreEqual("<Keyboard>/space", Draft().FindAction("Common/Action").bindings[0].effectivePath);
+        }
+
+        [Test]
         public void CustomAsset_OnlyMatchingActionAndBindingGuidsAreTouched()
         {
             var draft = Draft();

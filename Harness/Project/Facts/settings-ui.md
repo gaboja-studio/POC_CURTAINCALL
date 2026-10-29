@@ -1,8 +1,8 @@
 ---
 summary: C14 원본과 실제 게임용 v2 프리팹·5탭 설정/입력/음성 어댑터 계약
 status: active
-updated: 2026-10-28
-source: Task-20261019-061, Task-20261027-076
+updated: 2026-10-29
+source: Task-20261019-061, Task-20261027-076, Task-20261029-078
 ---
 
 # C14 설정 UI
@@ -22,7 +22,8 @@ source: Task-20261019-061, Task-20261027-076
 ## 실제 게임 연결 (Task-076, 2026-10-28)
 - 아래 C14 v1 원본 계약은 보존한다. 실제 게임은 `CommonSettingsUI`가 `Prefabs/UIs/SettingsUiV2/C14_Settings_v2`를 Resources로 로드하며 기존3탭 인스턴스는 숨긴다. 이전 런타임 생성형 `SettingsTabsView`/`SettingsExtensionPanel`은 실행 경로에서 제외했다. 게임 탭은 런 진행 중만 활성, 기존 씬 참조/Configure 계약은 유지한다.
 - 그래픽은 화면3모드·지원 해상도·FPS30/60기본/90/120/144/165/240/무제한. `ClientSettings` PC별 저장/기존 bool 이관, VSync0·시작/변경 시 FPS 적용(공통 Base 매 프레임 강제 제거), 에디터 Screen 변경 없음. 모든 탭 draft는 적용 때 저장·취소 때 폐기.
-- 조작은 `InputBindingPreferences` Common 키10행·복합 축 part 재지정/중복 거절/기본값 복원/저장, 기존·새 Reader에 적용. ESC·M·마우스 시점·게임패드는 고정. 사운드는 전체/BGM/SFX·전체 음성/내 마이크/팀원별·마이크on/off·Vivox 입력/출력 목록/선택. `LocalAudioController.Register`로 BGM/SFX 분류, 현재 BGM 재생 코드 없음. 게임 출력 기기는 OS가 관리한다.
+- 조작은 `InputBindingPreferences` Common 키10행·복합 축 part 재지정/기본값 복원/저장, 기존·새 Reader에 적용. 이동 표시만 전방→후방 순서다. 사용 중인 키는 조작 이름을 표시한 예/아니오 확인 후 기존 키를 비우고 옮긴다(아니오/ESC는 보존). 미할당 키가 하나라도 있으면 탭과 무관하게 적용 차단, 빈 행은 계속 재지정 가능하다. 입력 캡처는 View draft만 바꾸고 적용 시에만 검증·저장·Reader 반영한다. ESC·M·마우스 시점·게임패드는 고정.
+- 사운드는 전체/BGM/SFX·전체 음성/내 마이크/팀원별·마이크on/off·Vivox 입력/출력 목록/선택. `LocalAudioController.Register`로 BGM/SFX 분류, 현재 BGM 재생 코드 없음. 게임 출력 기기는 OS가 관리한다.
 - 사용자 결정: 런 포기는 온라인 호스트 전용(오프라인 허용). 대기실 쉬는 시간/밤 재확인 후 `CampaignRun.AbandonRun`→정식 실패→다음 세대1일차 첫 공연, 방 유지. 권한/상태/전환·오래된 확인 재검사. 기타는 확인된 개발자·에셋 출처/Pretendard OFL 원문, BM 등 미확인 라이선스는 확인 중 표시.
 - 탭별 초기화 후 컴파일·SettingsUpgrade4/4·CommonMenu3/3(실제 포인터 합성·시작/로비/대기실/공연장) 통과, 1920×1080 실행 캡처 확인. 이전 입력17/17·음량7/7·런 상태6/6·그래픽21/21은 앞 묶음 결과다. 실제2인·장치 전환·PC 빌드 화면/재실행·게임패드 실기와 전체 라이선스 검토는 미완료.
 - 화면/FPS·키·전체/BGM/SFX·마이크/전체 수신 음량·음소거·음성 기기 선택은 적용 시 PlayerPrefs에 PC별 저장한다. 개별 팀원 음량/음소거는 참가자 ID별 메모리에만 보관하며 앱 재실행 영구 저장은 아니다.

@@ -54,6 +54,7 @@ namespace CurtainCall.HumanCannon
     /// <summary>현재 비행의 발사 식별자. 재시작 전이나 다른 비행의 늦은 착지 요청은 무시한다.</summary>
     public sealed class CannonFlightState
     {
+        public const int PoleEntrySource = -2;
         public readonly struct Flight
         {
             public readonly ulong Actor;
@@ -113,7 +114,7 @@ namespace CurtainCall.HumanCannon
             if (snapshot == null || stationCount < 0) return false;
             var actors = new HashSet<ulong>();
             foreach (var flight in snapshot)
-                if (flight.Actor == CannonSeatState.Nobody || flight.StationIndex < -1 || flight.StationIndex >= stationCount
+                if (flight.Actor == CannonSeatState.Nobody || flight.StationIndex < PoleEntrySource || flight.StationIndex >= stationCount
                     || !actors.Add(flight.Actor)) return false;
             flights.Clear();
             foreach (var flight in snapshot)

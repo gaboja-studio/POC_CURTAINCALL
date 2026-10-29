@@ -108,8 +108,10 @@ namespace CurtainCall.UI.SceneIntegration
             graphics.rows.Add(Choice("FrameRate", "FPS 제한", ClientSettings.FrameRateLimit.ToString(), ClientSettings.AvailableFrameRateLimits.Select(f => new SettingsChoice(f.ToString(), f < 0 ? "제한 없음" : f == 60 ? "60 FPS (기본)" : $"{f} FPS"))));
             graphics.rows.Add(Paragraph("GraphicsHint", "전체 화면 창은 데스크톱 해상도를 사용합니다.\n변경한 설정은 적용을 누르면 이 PC에 저장됩니다."));
             var controls = catalog.pages[2];
-            controls.notice = "변경 버튼을 누르고 새 키를 입력하세요. ESC로 입력 대기를 취소합니다.\n중복 키는 사용할 수 없습니다. ESC 메뉴·M 마이크·마우스 시점·게임패드는 고정 입력입니다.";
-            if (inputDraft != null) foreach (var entry in InputBindingPreferences.GetBindings(inputDraft))
+            controls.notice = "변경 버튼을 누르고 새 키를 입력하세요. ESC로 입력 대기를 취소합니다.\n사용 중인 키는 확인 후 옮깁니다. 모든 키를 설정하고 적용을 눌러야 저장됩니다.\nESC 메뉴·M 마이크·마우스 시점·게임패드는 고정 입력입니다.";
+            // Move의 에셋 part 순서는 negative/positive지만 표시만 전방/후방으로 정렬한다.
+            if (inputDraft != null) foreach (var entry in InputBindingPreferences.GetBindings(inputDraft)
+                .OrderBy(b => b.ActionName == "Move" ? (b.PartName == "positive" ? 0 : 1) : 2))
             {
                 string id = entry.BindingId.ToString(); bindings[id] = entry;
                 controls.rows.Add(new SettingsRow { id = id, label = ActionLabel(entry.ActionName, entry.PartName), kind = SettingsRowKind.Rebind,
@@ -211,12 +213,11 @@ namespace CurtainCall.UI.SceneIntegration
                 if (!key.wasPressedThisFrame) continue;
                 if (key.keyCode == Key.Escape) return; // CommonMenuUI가 캡처 취소를 한 번만 전달한다.
                 var request = capture; capture = null;
-                if (!SyncBindings(view.GetDraftSnapshot(), out string error)
-                    || !bindings.TryGetValue(request.rowId, out var entry)
-                    || !InputBindingPreferences.TryRebind(inputDraft, entry.BindingId, "<Keyboard>/" + key.name, out error))
+                if (!InputBindingPreferences.TryValidateKeyPath("<Keyboard>/" + key.name, out string path, out string error)
+                    || !bindings.ContainsKey(request.rowId))
                 { view.RejectRebind(request.token, string.IsNullOrEmpty(error) ? "키를 변경할 수 없습니다." : error); return; }
-                var updated = InputBindingPreferences.GetBindings(inputDraft).First(b => b.BindingId == entry.BindingId);
-                view.CompleteRebind(request.token, updated.Path, updated.DisplayName, out _); return;
+                view.CompleteRebind(request.token, path,
+                    InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice), out _); return;
             }
         }
         async void HandleAction(SettingsActionRequest request)

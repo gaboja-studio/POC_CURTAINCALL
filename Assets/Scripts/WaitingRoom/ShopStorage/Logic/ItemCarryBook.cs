@@ -2,19 +2,49 @@ using System.Collections.Generic;
 
 namespace CurtainCall.WaitingRoom
 {
-    /// <summary>기물 한 개. Uid는 런 동안 겹치지 않는 번호(상점 주문 번호).</summary>
+    /// <summary>
+    /// 기물 한 개. Uid는 런 동안 겹치지 않는 번호(상점 주문 번호, 탐색 발견품은 <see cref="ItemUses.FoundUidBase"/>부터).
+    /// <see cref="Uses"/>는 남은 사용 횟수, <see cref="ItemUses.Unlimited"/>(-1)이면 횟수를 세지 않는 기물(임시 품목).
+    /// </summary>
     public readonly struct PropItem
     {
         public int Uid { get; }
         public string ItemId { get; }
         public string Name { get; }
+        public int Uses { get; }
 
-        public PropItem(int uid, string itemId, string name)
+        public PropItem(int uid, string itemId, string name, int uses = ItemUses.Unlimited)
         {
             Uid = uid;
             ItemId = itemId;
             Name = name;
+            Uses = uses;
         }
+
+        public PropItem WithUses(int uses) => new(Uid, ItemId, Name, uses);
+    }
+
+    /// <summary>
+    /// 기물 사용 횟수 규칙(결정 item-durability.md, 2026-10-29 사용자 보충).
+    /// 상호작용한 대상이 파괴·비활성화되는 연출이 나오거나 보상을 얻었을 때만 1 줄인다. 실패·연타 중간·무효 입력은 줄이지 않는다.
+    /// 마지막 효과를 끝까지 준 뒤 0이 되면 손에서 사라진다. 0인 기물은 새 효과를 내지 못한다.
+    /// </summary>
+    public static class ItemUses
+    {
+        public const int Unlimited = -1;
+
+        /// <summary>탐색 발견품 UID 시작값(상점 주문 번호와 겹치지 않게).</summary>
+        public const int FoundUidBase = 1_000_000;
+
+        // 기물 7종 ID(기물 시스템 초안). 이름·내구도·가격·효과 수치는 ItemCatalog 에셋이 정본이다.
+        public const string RescueGloves = "rescue-gloves";
+        public const string StickyGloves = "sticky-gloves";
+        public const string BalloonPants = "balloon-pants";
+        public const string SpringShoes = "spring-shoes";
+        public const string MagicianHairpin = "magician-hairpin";
+        /// <summary>천막 말뚝 뽑개(빠루). 판자·덮개·서랍 개방과 숨은 길 벽 파괴에 쓴다.</summary>
+        public const string StakePuller = "stake-puller";
+        public const string UvLamp = "uv-lamp";
     }
 
     /// <summary>바닥에 놓인 기물과 위치(m).</summary>
@@ -43,6 +73,7 @@ namespace CurtainCall.WaitingRoom
         FloorFull,
         ShelfFull,
         ShelfEmpty,
+        UsedUp,
     }
 
     /// <summary>
@@ -172,6 +203,45 @@ namespace CurtainCall.WaitingRoom
             List(player).Add(item);
             Revision++;
             return CarryRefusal.None;
+        }
+
+        /// <summary>
+        /// 들고 있는 기물을 한 번 쓴다(효과가 실제로 났을 때만 부른다). 횟수를 세는 기물은 1 줄이고, 0이 되면 손에서 없앤다.
+        /// <paramref name="after"/>는 사용 뒤 상태(없어졌으면 Uses 0), <paramref name="destroyed"/>는 마지막 사용이었는지.
+        /// </summary>
+        public CarryRefusal Use(ulong player, int uid, out PropItem after, out bool destroyed)
+        {
+            after = default;
+            destroyed = false;
+            if (!held.TryGetValue(player, out var list)) return CarryRefusal.NothingHeld;
+            int index = list.FindIndex(p => p.Uid == uid);
+            if (index < 0) return CarryRefusal.NothingHeld;
+            var item = list[index];
+            if (item.Uses == ItemUses.Unlimited) { after = item; return CarryRefusal.None; }
+            if (item.Uses <= 0) return CarryRefusal.UsedUp;
+            after = item.WithUses(item.Uses - 1);
+            if (after.Uses == 0) { list.RemoveAt(index); destroyed = true; }
+            else list[index] = after;
+            Revision++;
+            return CarryRefusal.None;
+        }
+
+        /// <summary>판정 화면이 바닥에 기물을 놓는다(탐색 발견품 배치). 같은 UID가 이미 있으면 무시한다.</summary>
+        public CarryRefusal Place(PropItem item, float x, float y, float z)
+        {
+            if (IsEmpty(item) || Exists(item.Uid)) return CarryRefusal.NotFound;
+            if (floor.Count >= FloorCapacity) return CarryRefusal.FloorFull;
+            floor.Add(new FloorProp(item, x, y, z));
+            Revision++;
+            return CarryRefusal.None;
+        }
+
+        /// <summary>손·바닥·선반 어디든 이 UID가 남아 있는가.</summary>
+        public bool Exists(int uid)
+        {
+            if (uid == 0) return false;
+            foreach (var list in held.Values) if (list.Exists(p => p.Uid == uid)) return true;
+            return floor.Exists(f => f.Item.Uid == uid) || System.Array.Exists(shelf, s => s.Uid == uid);
         }
 
         /// <summary>마지막에 든 기물을 그 자리 바닥에 내려놓는다.</summary>

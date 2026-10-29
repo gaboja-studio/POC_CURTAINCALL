@@ -378,8 +378,9 @@ namespace CurtainCall.Campaign
 
         string TrickFor(int day, int index)
         {
-            if (setlists.TryGetValue(day, out var list) && list != null && index >= 0 && index < list.Length) return list[index] ?? "";
-            return day == 1 ? Rules.FirstDayTrick(index) : "";
+            if (setlists.TryGetValue(day, out var list) && list != null && index >= 0 && index < list.Length && !string.IsNullOrEmpty(list[index])) return list[index];
+            // 스케줄표로 편성하지 않은 공연은 기본 묘기(M2: 외줄타기)로 한다. 1일차는 공통 세팅의 고정 순서.
+            return day == 1 ? Rules.FirstDayTrick(index) : Rules.DefaultTrick;
         }
 
         static bool Contains(IReadOnlyCollection<ulong> players, ulong id)

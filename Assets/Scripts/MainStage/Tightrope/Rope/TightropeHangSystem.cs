@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
@@ -22,6 +23,7 @@ namespace CurtainCall.Tightrope
 
         /// <summary>호스트: 누군가 줄에 매달렸다(접속 번호). 관객 추락 야유는 이때 한 번(뒤 낙사에 중복 없음).</summary>
         public static event Action<ulong> ServerHangStarted;
+        public static event Action<ulong, ulong> ServerRescueSucceeded;
 
         readonly TightropeHangBook book = new();
         TightropeCourse course;
@@ -77,6 +79,7 @@ namespace CurtainCall.Tightrope
         void OnDisable()
         {
             if (PlayerBalance.GaugeFallCatcher == (Func<PlayerBalance, bool>)CatchLocalGaugeFall) PlayerBalance.GaugeFallCatcher = null;
+            ReleaseRescuerBalance();
             ReleaseLocal(false);
             Disconnect();
             book.Clear();
@@ -91,7 +94,7 @@ namespace CurtainCall.Tightrope
                 lastRound = Round;
                 if (book.Count > 0) { book.Clear(); if (IsHost) Publish(); }
                 if (localHang != null) ReleaseLocal(false);
-                if (!Active) return;
+                if (!Active) { ReleaseRescuerBalance(); return; }
             }
             if (IsHost) ServerTick(Time.deltaTime);
             UpdateLocal();
@@ -107,11 +110,13 @@ namespace CurtainCall.Tightrope
         public bool ServerTryHang(NetworkPlayer player, float distance, int preferredLane = -1)
         {
             if (!IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
+            if (EscapeDevelopmentSession.FallConsequencesSuppressed(player)) return false;
             if (book.IsHanging(player.OwnerClientId)) return true;
             if (!Active) { player.ServerKill(); return false; }
             if (preferredLane < 0 && !course.TryGetRopePoint(player.transform.position, out preferredLane, out _))
                 preferredLane = course.Layout.GetLaneSlotAt(course.GetSide(player.transform.position));
-            int lane = book.PickLane(preferredLane, distance, course.LaneCount, Rules.LaneReach, Rules.LaneOccupyDistance, course.IsLaneUsable);
+            int lane = book.PickLane(preferredLane, distance, course.LaneCount,
+                course.HasIndependentRopes ? 0 : Rules.LaneReach, Rules.LaneOccupyDistance, course.IsLaneUsable);
             if (lane < 0)
             {
                 player.ServerKill(); Publish(); return false;
@@ -137,14 +142,24 @@ namespace CurtainCall.Tightrope
             var rescuer = Find(rescuerId);
             if (rescuer == null || rescuer.State != PlayerState.Normal || !book.TryGet(target, out var hang)) return;
             if (!WithinRescueReach(rescuer, hang, Rules.RescueDistance)) return;
-            if (book.StartPull(target, rescuerId, (int)rescuer.LostParts, Rules.PullSeconds)) Publish();
+            if (book.StartPull(target, rescuerId, (int)rescuer.LostParts, Rules.PullSeconds))
+            { UpdateRescuerBalance(); Publish(); }
         }
 
         void ServerCancel(ulong rescuerId)
         {
             bool changed = false;
             foreach (var hang in book.All) if (hang.Rescuer == rescuerId) changed |= book.CancelPull(hang.Id);
-            if (changed) Publish();
+            if (changed) { UpdateRescuerBalance(); Publish(); }
+        }
+
+        public void ServerReleaseForInspection(ulong actor)
+        {
+            if (!IsHost) return;
+            book.Remove(actor);
+            ServerCancel(actor);
+            if (localHang != null && localHang.Player.OwnerClientId == actor) ReleaseLocal(false);
+            Publish();
         }
 
         void ServerTick(float deltaTime)
@@ -167,10 +182,20 @@ namespace CurtainCall.Tightrope
             foreach (var (id, outcome, hang) in book.Tick(deltaTime))
             {
                 changed = true;
-                if (outcome == TightropeHangBook.Outcome.Dropped) Find(id)?.ServerKill();
-                else SendRescued(hang);
+                if (outcome == TightropeHangBook.Outcome.Dropped)
+                {
+                    var dropped = Find(id);
+                    if (!EscapeDevelopmentSession.FallConsequencesSuppressed(dropped)) dropped?.ServerKill();
+                }
+                else
+                {
+                    SendRescued(hang);
+                    if (ServerRescueSucceeded != null)
+                        foreach (Action<ulong, ulong> observer in ServerRescueSucceeded.GetInvocationList())
+                            try { observer(hang.Rescuer, hang.Id); } catch (Exception error) { Debug.LogException(error); }
+                }
             }
-            if (changed) Publish();
+            if (changed) { UpdateRescuerBalance(); Publish(); }
         }
 
         // ── 내 캐릭터 ─────────────────────────────────────────
@@ -185,7 +210,24 @@ namespace CurtainCall.Tightrope
             public bool Confirmed;
         }
         LocalHang localHang;
+        PlayerBalance rescuerBalance;
         bool placing;
+
+        // 균형은 각 캐릭터의 소유자가 계산한다. 호스트가 승인한 구조 상태로 로컬 캐릭터만 보호한다.
+        void UpdateRescuerBalance()
+        {
+            var local = NetworkPlayer.Local;
+            var next = Active && local != null && local.State == PlayerState.Normal && book.IsRescuing(local.OwnerClientId)
+                ? local.GetComponent<PlayerBalance>() : null;
+            if (rescuerBalance != next) { ReleaseRescuerBalance(); rescuerBalance = next; }
+            if (rescuerBalance != null) rescuerBalance.IsRescueSupported = true;
+        }
+
+        void ReleaseRescuerBalance()
+        {
+            if (rescuerBalance != null) rescuerBalance.IsRescueSupported = false;
+            rescuerBalance = null;
+        }
 
         /// <summary>내 캐릭터의 추락 게이지가 넘쳤다. 외줄 진행 중이면 매달리기를 요청하고 추락을 막는다.</summary>
         bool CatchLocalGaugeFall(PlayerBalance balance)
@@ -214,6 +256,7 @@ namespace CurtainCall.Tightrope
 
         void UpdateLocal()
         {
+            UpdateRescuerBalance();
             var local = NetworkPlayer.Local;
             // 목마 낙하처럼 호스트가 먼저 매달리게 한 경우에도 내 몸을 붙잡는다.
             if (localHang == null && local != null && local.State == PlayerState.Normal && book.IsHanging(local.OwnerClientId)
@@ -224,7 +267,8 @@ namespace CurtainCall.Tightrope
             if (book.TryGet(local.OwnerClientId, out var hang))
             {
                 localHang.Confirmed = true;
-                Place(GripPoint(hang) - Vector3.up * Rules.HangDrop);
+                Vector3 grip = GripPoint(hang);
+                Place(grip - Vector3.up * Rules.HangDrop, grip);
             }
             else if (localHang.Confirmed || Now - localHang.RequestedAt > 2d)
             {
@@ -233,7 +277,7 @@ namespace CurtainCall.Tightrope
                 if (local.TryGetComponent(out PlayerBalance balance)) balance.ForceFall();
                 return;
             }
-            else Place(localHang.FallPosition);
+            else Place(localHang.FallPosition, localHang.FallPosition);
             // 목마 위층이던 사람은 목마 해제가 몸을 다시 켤 수 있으므로 매 프레임 고정을 유지한다.
             localHang.Mover.Simulated = false;
             if (localHang.Mover.Body != null) localHang.Mover.Body.enabled = false;
@@ -241,11 +285,14 @@ namespace CurtainCall.Tightrope
             if (localHang.Balance != null) { localHang.Balance.IsSuspended = true; localHang.Balance.SetAirborne(true); }
         }
 
-        void Place(Vector3 feet)
+        Quaternion RopeRotationAt(Vector3 ropePoint) => Quaternion.LookRotation(
+            course.HasIndependentRopes ? course.ForwardAt(ropePoint) : course.Forward);
+
+        void Place(Vector3 feet, Vector3 ropePoint)
         {
             if (localHang == null || course == null) return;
             placing = true;
-            try { localHang.Player.transform.SetPositionAndRotation(feet, Quaternion.LookRotation(course.Forward)); }
+            try { localHang.Player.transform.SetPositionAndRotation(feet, RopeRotationAt(ropePoint)); }
             finally { placing = false; }
         }
 
@@ -270,13 +317,14 @@ namespace CurtainCall.Tightrope
             mover.Simulated = true;
             if (!onRope) { mover.ResetExternalMotion(true); return; }
             held.Balance?.ResetBalance();
-            mover.Relocate(rope, Quaternion.LookRotation(course.Forward));
+            mover.Relocate(rope, RopeRotationAt(rope));
         }
 
         /// <summary>호스트가 끌어올리기 완료를 알렸다.</summary>
         void ApplyRescued(ulong id, int lane, float distance)
         {
             book.Remove(id);
+            UpdateRescuerBalance();
             var local = NetworkPlayer.Local;
             if (local == null || local.OwnerClientId != id || course == null) return;
             if (localHang == null && local.TryGetComponent(out PlayerMover mover) && mover.Body != null)
@@ -301,9 +349,10 @@ namespace CurtainCall.Tightrope
                 context.Mover.ClearPendingInput();
                 return true;
             }
-            if (!input.InteractTapped || input.Move != 0f || input.ActionPressed) return false;
+            if (!input.InteractTapped || input.ActionPressed) return false;
             var target = NearestRescueTarget(local);
             if (target == null) return false;
+            context.Mover.ClearPendingInput();
             Send(Request.Rescue, target.Id);
             return true;
         }
@@ -331,7 +380,8 @@ namespace CurtainCall.Tightrope
                 || TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(rescuer)) return false;
             Vector3 grip = GripPoint(hang);
             // 아래로 떨어지는 사람이나 매달린 높이에서는 동료를 끌어올릴 수 없다.
-            return Mathf.Abs(rescuer.transform.position.y - grip.y) <= course.Shape.RopeHeightTolerance
+            if (rescuer.TryGetComponent(out PlayerMover mover) && mover.IsAirborne) return false;
+            return Mathf.Abs(rescuer.transform.position.y - grip.y) <= Mathf.Max(course.Shape.RopeHeightTolerance, Rules.RescueHeightTolerance)
                 && Horizontal(rescuer.transform.position, grip) <= reach;
         }
 

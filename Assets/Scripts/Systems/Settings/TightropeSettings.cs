@@ -60,8 +60,10 @@ namespace CurtainCall.Settings
             [SerializeField, Min(.5f)] float holdSeconds = 7f;
             [Tooltip("동료가 F를 누른 뒤 끌어올리는 시간(초). 그동안 버티는 시간이 멈춘다. 기획 2.")]
             [SerializeField, Min(.1f)] float pullSeconds = 2f;
-            [Tooltip("끌어올릴 수 있는 수평 거리(m, 동료 발 ~ 매달린 줄 지점). 기획 미정(임시 1.5).")]
-            [SerializeField, Min(.3f)] float rescueDistance = 1.5f;
+            [Tooltip("끌어올릴 수 있는 수평 거리(m, 동료 발 ~ 매달린 줄 지점). 구조 판정 완화 기본 2.5.")]
+            [SerializeField, Min(.3f)] float rescueDistance = 2.5f;
+            [Tooltip("구조할 때 줄 윗면과 동료 발 사이에 허용하는 높이 차이(m). 기본 0.75. 공중에서는 구조 불가.")]
+            [SerializeField, Min(.1f)] float rescueHeightTolerance = .75f;
             [Tooltip("목마 낙하 때 잡을 수 있는 옆줄 범위(줄 수). 0이면 같은 줄만. 기획 '근처 줄'(임시 1).")]
             [SerializeField, Range(0, 3)] int laneReach = 1;
             [Tooltip("같은 줄의 다른 매달린 사람과 이 거리(m) 안이면 그 줄은 이미 찬 것으로 본다(한 줄에 한 명). 임시 2.")]
@@ -72,6 +74,7 @@ namespace CurtainCall.Settings
             public float HoldSeconds => Mathf.Max(.5f, holdSeconds);
             public float PullSeconds => Mathf.Max(.1f, pullSeconds);
             public float RescueDistance => Mathf.Max(.3f, rescueDistance);
+            public float RescueHeightTolerance => Mathf.Max(.1f, rescueHeightTolerance);
             public int LaneReach => Mathf.Clamp(laneReach, 0, 3);
             public float LaneOccupyDistance => Mathf.Max(.1f, laneOccupyDistance);
             public float HangDrop => Mathf.Max(.5f, hangDrop);

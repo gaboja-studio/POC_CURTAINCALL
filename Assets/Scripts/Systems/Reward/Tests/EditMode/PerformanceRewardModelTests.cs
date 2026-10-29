@@ -108,7 +108,7 @@ namespace CurtainCall.Reward.Tests
         }
 
         [Test]
-        public void CheerAndJeer_ClampToCapAndZero_WithoutRevisionAtBounds()
+        public void CheerAndJeer_ClampToCapAndZero_CheerAtCapStillPublishesSuccess()
         {
             var rules = new RewardRules(10, 7, 25, 0, 0);
             var model = BeginPair(rules);
@@ -119,7 +119,7 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(25, model.Snapshot().Segments[0].Amount);
             long atCap = model.Revision;
             Assert.IsFalse(model.Cheer("p1", true, rules));
-            Assert.AreEqual(atCap, model.Revision, "상한에서 그대로인 환호는 상태 변경이 아니다");
+            Assert.AreEqual(atCap + 1, model.Revision, "상한에서도 실제 환호 사건을 발행한다");
 
             for (int i = 0; i < 4; i++) Assert.IsTrue(model.Cheer("p1", false, rules));
             Assert.AreEqual(0, model.Snapshot().Segments[0].Amount);

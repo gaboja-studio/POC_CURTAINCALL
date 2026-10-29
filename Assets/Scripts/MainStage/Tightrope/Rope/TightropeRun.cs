@@ -74,6 +74,7 @@ namespace CurtainCall.Tightrope
         int lastRestartFrame = -1;
         bool externallyManaged;
         bool externalStarted;
+        bool TraversalOnly => course != null && course.UsesSceneGeometry;
 
         /// <summary>공용 진행 연결부가 시작·종료를 맡는다. 직접 실행의 기본값은 false.</summary>
         public bool ExternallyManaged => externallyManaged;
@@ -273,6 +274,8 @@ namespace CurtainCall.Tightrope
                 HandleConnectionState(session.ConnectionState);
             }
 
+            // 레벨 속 짧은 외줄은 세션·회차만 공유한다. 공연 시간/완주/전원 재시작을 소유하지 않는다.
+            if (TraversalOnly) { UpdatePassThrough(); return; }
             SynchronizeCampaignState();
             if (session != null && session.IsHost)
             {
@@ -440,6 +443,7 @@ namespace CurtainCall.Tightrope
         bool CanChangeState(NetworkPlayer player, PlayerState next)
         {
             if (previousStateRule != null && !previousStateRule(player, next)) return false;
+            if (TraversalOnly) return true;
             if ((next == PlayerState.Fallen || next == PlayerState.Arrived) && !IsParticipantReady(player)) return false;
             if (externallyManaged && !externalStarted
                 && (next == PlayerState.Fallen || next == PlayerState.Arrived)) return false;
@@ -475,6 +479,12 @@ namespace CurtainCall.Tightrope
 
         void HandleGameState(GameSessionState state)
         {
+            if (TraversalOnly)
+            {
+                if (session != null && session.IsHost)
+                    ServerSetState(state == GameSessionState.Playing ? TightropeRunState.Running : TightropeRunState.Waiting);
+                return;
+            }
             if (externallyManaged || UsesCampaign || session == null || !session.IsHost) return;
             if (state == GameSessionState.Playing && State == TightropeRunState.Waiting)
                 ServerRestart(); // 게임 시작: 모두 출발점에서 진행 시작
@@ -525,6 +535,14 @@ namespace CurtainCall.Tightrope
         /// <summary>007 모두 재시작은 플레이어마다 오므로 한 프레임에 한 번만 알린다.</summary>
         void HandlePlayerRestarted(NetworkPlayer player)
         {
+            if (TraversalOnly)
+            {
+                if (lastRestartFrame == Time.frameCount) return;
+                lastRestartFrame = Time.frameCount;
+                if (session != null && session.IsHost) { SetRound(Round + 1); Broadcast(); }
+                RunRestarted?.Invoke();
+                return;
+            }
             if (BridgeManagesPerformance)
             {
                 if (session?.GameState != GameSessionState.Waiting) return;
@@ -558,6 +576,7 @@ namespace CurtainCall.Tightrope
                         NetworkPlayer.ServerCanChangeState = CanChangeState;
                     }
                     ResetLocal();
+                    if (TraversalOnly) HandleGameState(session.GameState);
                     break;
                 case SessionConnectionState.Client:
                     Register(StateMessage, HandleStateMessage);

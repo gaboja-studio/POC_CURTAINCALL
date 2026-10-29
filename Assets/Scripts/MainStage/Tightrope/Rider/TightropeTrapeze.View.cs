@@ -12,6 +12,8 @@ namespace CurtainCall.Tightrope
             public LineRenderer Bar, LeftCable, RightCable, BodyLink;
             public TextMeshPro Label;
         }
+        [Tooltip("공중그네 봉 위에 봉 이름·잡기 안내·유지 시간 문구를 띄운다. 꺼도 봉 색과 HUD 안내는 유지한다.")]
+        [SerializeField] bool showPoleLabels;
         Transform trapezeViewRoot;
         readonly PoleView[] views = new PoleView[PoleTotal];
         Material trapezeMaterial;
@@ -87,6 +89,8 @@ namespace CurtainCall.Tightrope
                 DrawLine(view.RightCable, pivot + side, grip + side, color);
                 view.BodyLink.gameObject.SetActive(state.Lower != Nobody);
                 if (state.Lower != Nobody) DrawLine(view.BodyLink, feet + Vector3.up * .15f, Feet(i, true) + Vector3.up * 1.6f, Color.yellow);
+                view.Label.gameObject.SetActive(showPoleLabels);
+                if (!showPoleLabels) continue;
                 view.Label.text = i == 0 ? "1 · 출발 봉" : i == 1 ? "2 · 동료와 교대하는 봉" : "3 · 혼자 내려오는 낮은 봉";
                 view.Label.text += occupied ? $"\n{(state.Lower == Nobody ? "1" : "2")}명 · {left:0.0}초"
                     : "\n가까이에서 F 잡기 · 점프 중에도 가능";

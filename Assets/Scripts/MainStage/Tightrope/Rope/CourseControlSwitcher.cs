@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.Damage;
+using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace CurtainCall.Tightrope
     /// </summary>
     [RequireComponent(typeof(TightropeCourse))]
     [DefaultExecutionOrder(-60)] // 입력(-100) 다음, 조작 규칙(-50)·균형 계산(0) 전에 표면 전환
-    public sealed class CourseControlSwitcher : MonoBehaviour
+    public sealed partial class CourseControlSwitcher : MonoBehaviour
     {
         [Tooltip("줄 위 조작 규칙. 비우면 기본 외줄 규칙(TightropeControlScheme).")]
         [SerializeField] PlayerControlScheme ropeScheme;
@@ -32,12 +33,38 @@ namespace CurtainCall.Tightrope
         PlayerControlScheme generatedRopeScheme;
         PlayerControlScheme appliedScheme;
         bool ownsControls;
+        PlayerControlScheme returnScheme;
+        Vector3? previousForward;
+        float previousSpacing;
+        bool ownsAxes;
         TightropeBodyPenalty injuryPolicy;
         readonly Dictionary<BodyDamageEffects, BodyPenaltyPolicy> previousPolicies = new();
         readonly List<BodyDamageEffects> removedPolicies = new();
 
         /// <summary>내 캐릭터가 줄타기 조작 중인지.</summary>
         public bool IsLocalOnRope => onRope == true;
+        public bool ReviewSuspended { get; private set; }
+
+        public void SuspendForReview(bool value)
+        {
+            ReviewSuspended = value;
+            if (value) { ReleaseControls(); ReleaseInjuryPolicies(); }
+        }
+
+        /// <summary>작성된 줄이 사라지기 직전 정상 조작권을 돌려준다. 이동·부활·사망을 요청하지 않는다.</summary>
+        public bool ReleaseForAuthoredDrop()
+        {
+            if (ReviewSuspended || course == null || !course.UsesSceneGeometry || onRope != true
+                || player == null || !player.IsLocal || player.State != PlayerState.Normal
+                || balance != null && balance.HasFallen || !StillOwnsControls) return false;
+            ReleaseControls();
+            // 옆줄 점프 도중 소실돼도 옛 착지 목표/축 보정이 하부 착지에 재적용되지 않게 한다.
+            // 위치는 그대로 두고 공용 이동기의 낙하 상태로 인계한다.
+            if (mover != null) mover.ResetExternalMotion(true);
+            ReleaseInjuryPolicies();
+            LocalModeChanged?.Invoke(false);
+            return true;
+        }
 
         /// <summary>내 캐릭터의 조작이 바뀌었을 때. 인자는 줄 위인지.</summary>
         public event Action<bool> LocalModeChanged;
@@ -103,6 +130,11 @@ namespace CurtainCall.Tightrope
 
         bool HasExternalControls => controller != null && controller.HasAssignedScheme && !StillOwnsControls;
 
+        HumanCannonPilot CannonPilot => player != null ? player.GetComponent<HumanCannonPilot>() : null;
+        bool CanBorrowCannonControls => course != null && course.UsesSceneGeometry
+            && CannonPilot != null && !CannonPilot.IsDriving && controller != null
+            && controller.Scheme == CannonPilot.ControlScheme;
+
         void ReleaseControls()
         {
             if (balance != null) balance.ContinueWhileAirborne = false;
@@ -118,11 +150,18 @@ namespace CurtainCall.Tightrope
                         balance.SetDisplayedState(false, 0f);
                     else balance.SetBalanceActive(false);
                 }
-                if (controller != null) controller.SetScheme(null);
+                if (controller != null) controller.SetScheme(returnScheme);
                 else if (mover != null) mover.FreeMovement = true;
             }
             ownsControls = false;
             appliedScheme = null;
+            returnScheme = null;
+            if (ownsAxes && mover != null)
+            {
+                mover.CourseForwardOverride = previousForward;
+                mover.LaneSpacing = previousSpacing;
+            }
+            ownsAxes = false;
             onRope = null;
         }
 
@@ -143,10 +182,10 @@ namespace CurtainCall.Tightrope
                 ReleaseInjuryPolicies();
                 return;
             }
-            if (IsCourseActive()) UpdateInjuryPolicies();
-            else ReleaseInjuryPolicies();
             if (player != NetworkPlayer.Local) Bind(NetworkPlayer.Local);
             UpdateSurfaceMode();
+            if (IsCourseActive()) UpdateInjuryPolicies();
+            else ReleaseInjuryPolicies();
             if (balance != null)
                 balance.ContinueWhileAirborne = StillOwnsControls && IsCourseActive() && onRope == true
                     && !(TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player))
@@ -156,6 +195,7 @@ namespace CurtainCall.Tightrope
 
         void UpdateSurfaceMode()
         {
+            if (ReviewSuspended) return;
             if (player == null || mover == null) return;
             if (!course.IsTraversalActive)
             {
@@ -163,13 +203,20 @@ namespace CurtainCall.Tightrope
                 SuppressUnassignedBalance();
                 return;
             }
-            if (HasExternalControls)
+            if (HasExternalControls && !CanBorrowCannonControls)
             {
                 ReleaseControls();
                 return;
             }
             if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired
                 || (balance != null && balance.HasFallen)) return; // 도착 완료는 계속 바꾼다(세리머니 공간은 일반 이동)
+
+            if (course.UsesSceneGeometry && onRope == true && (CannonPilot != null && CannonPilot.IsDriving
+                || (mover.IsAirborne && course.PastSceneRopeEnd(player.transform.position, mover.BodyRadius))))
+            {
+                ReleaseControls(); LocalModeChanged?.Invoke(false);
+                return;
+            }
 
             if (IsCourseActive() && TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player))
             {
@@ -190,14 +237,23 @@ namespace CurtainCall.Tightrope
             if (!mover.Simulated) return; // 위치를 다른 곳에 맡긴 동안(목마 위층)은 조작을 바꾸지 않는다
 
             bool rope = course.TryGetSupportingRope(mover, out int lane);
+            if (course.UsesSceneGeometry && !rope)
+            {
+                bool leaving = onRope == true;
+                ReleaseControls();
+                if (leaving) LocalModeChanged?.Invoke(false);
+                return;
+            }
             if (onRope == rope)
             {
+                if (rope && course.HasIndependentRopes) AlignToSupportingLane(lane);
                 // 공용 재시작·초기화 뒤에도 일반 바닥에서는 균형 계산을 시작하지 않는다.
                 if (!rope) SuppressUnassignedBalance();
                 return;
             }
             if (rope) SnapToLane(lane);
             Apply(rope);
+            if (rope && course.HasIndependentRopes) AlignToSupportingLane(lane);
         }
 
         void SuppressUnassignedBalance()
@@ -212,13 +268,34 @@ namespace CurtainCall.Tightrope
         void SnapToLane(int lane)
         {
             Vector3 position = player.transform.position;
-            Vector3 offset = course.GetLanePosition(lane, course.GetDistance(position)) - position;
+            Vector3 start = course.GetLanePosition(lane, 0f);
+            Vector3 forward = (course.GetLanePosition(lane, 1f) - start).normalized;
+            Vector3 offset = start + forward * Vector3.Dot(position - start, forward) - position;
             offset.y = 0f;
             if (offset.sqrMagnitude > 0.000001f) mover.Body.Move(offset);
         }
 
+        void AlignToSupportingLane(int lane)
+        {
+            Vector3 forward = Vector3.ProjectOnPlane(course.GetLanePosition(lane, 1f)
+                - course.GetLanePosition(lane, 0f), Vector3.up).normalized;
+            if (forward.sqrMagnitude < .001f || Vector3.Dot(mover.CourseForward, forward) > .9999f) return;
+            // 이어진 꺾인 줄에서는 조작권·균형을 초기화하지 않고 실제 지지줄의 축만 갱신한다.
+            mover.CourseForwardOverride = forward;
+            SnapToLane(lane);
+        }
+
         void Apply(bool rope)
         {
+            if (course.UsesSceneGeometry && rope && !ownsAxes)
+            {
+                returnScheme = controller != null ? controller.Scheme : null;
+                previousForward = mover.CourseForwardOverride;
+                previousSpacing = mover.LaneSpacing;
+                mover.CourseForwardOverride = course.ForwardAt(player.transform.position);
+                mover.LaneSpacing = course.LaneSpacing;
+                ownsAxes = true;
+            }
             mover.ClearPendingInput();
             if (balance != null) balance.SetCorrectionInput(0f);
             if (InputGate.IsBlocked && player.TryGetComponent(out PlayerInputReader reader))
@@ -250,11 +327,11 @@ namespace CurtainCall.Tightrope
         {
             // 원격 플레이어도 적용해야 호스트의 목마 거리 판정에 같은 부상 배율이 쓰인다.
             foreach (var target in NetworkPlayer.All)
-                if (target != null && target.IsSpawned && target.TryGetComponent(out BodyDamageEffects effects))
+                if (target != null && target.IsSpawned && course.UsesRopeRules(target) && target.TryGetComponent(out BodyDamageEffects effects))
                     BindInjuryPolicy(effects);
             removedPolicies.Clear();
             foreach (var pair in previousPolicies)
-                if (pair.Key == null || !pair.Key.TryGetComponent(out NetworkPlayer target) || !target.IsSpawned)
+                if (pair.Key == null || !pair.Key.TryGetComponent(out NetworkPlayer target) || !target.IsSpawned || !course.UsesRopeRules(target))
                 {
                     RestoreInjuryPolicy(pair.Key, pair.Value);
                     removedPolicies.Add(pair.Key);

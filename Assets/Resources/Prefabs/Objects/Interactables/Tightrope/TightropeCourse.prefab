@@ -147,6 +147,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCourse
   artProfile: {fileID: 0}
+  showSectionSigns: 0
   spawnPoints:
   - {fileID: 5280814123298984889}
   - {fileID: 3804338068807545770}

@@ -62,5 +62,21 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             }
             finally { Object.DestroyImmediate(settings); }
         }
+        [Test]
+        public void TimerReservesBannerSpaceAndOtherScenesKeepTheirPosition()
+        {
+            var popup = new GameObject("Banner", typeof(RectTransform));
+            try
+            {
+                var banner = (RectTransform)popup.transform;
+                HudLayout.PlaceBanner(banner, false, 244);
+                Assert.AreEqual(new Vector2(0, -244), banner.anchoredPosition);
+                HudLayout.PlaceBanner(banner, true, 244);
+                Assert.AreEqual(new Vector2(0, -244), banner.anchoredPosition);
+                HudLayout.PlaceBanner(banner, true);
+                Assert.AreEqual(new Vector2(0, -140), banner.anchoredPosition);
+            }
+            finally { Object.DestroyImmediate(popup); }
+        }
     }
 }
