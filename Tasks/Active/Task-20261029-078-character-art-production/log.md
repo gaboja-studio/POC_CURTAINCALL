@@ -72,3 +72,12 @@
 - 수동표면스냅샷검사는자동표면루프를끄고직접Apply하는독립계약으로조정. 수정중지역함수잘못삽입컴파일오류를수정한최종Play17/17,Editor2/2. 0→1→2→3→4→0부상·재생성·사지없는Fallen/Retired사망/정상복귀 포함. 기존조작/물리/절단유지.
 
 - 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-10-30 제작 잔여 파일 정리
+- 사용자가 남은827changes 정리/보관·중간/자동meta정리·커밋푸시를 요청. 최종제작자료186개 약107.8MB(privateREADME/manifest별도)를 CharacterArt/Rabbit/Source~에보관. 현재dirtyBlender를새위치V15에먼저저장하여미저장편집보존. V12~15최종blend4/원화/atlas/최종컷JSON/스크립트/최종검사와이미지보관. Source~는Unity임포트제외.
+- 379개 약587.9MB중간파일영구삭제가자동승인검토에서거절되어안전한대안인복구보관으로전환. Task중간/백업은 C:/Users/imvag/AppData/Local/Temp/curtaincall-rabbit-cleanup-20261030, Unity구시험262개는 D:/github/.curtaincall-rabbit-cleanup-20261030. .blend1무시백업15개추가정리. Project변경목록에서제거,임시복구위치영구보존보장은없음.
+- Unity구시험폴더132GUID와보존Player/게임플레이/재질씬의실제AssetDatabase종속성을비교한후보관이동. 정리후9스킨/9922tri/Avatar valid&human/누락스크립트0. authoring-cleanup-check.json. 게임코드/현행리소스변경없어기존17PlayMode/2Editor회귀재실행불필요.
+- private12cf383c, resource/third-party/rabbit-authoring푸시,PR11. 사용자의병합담당방침유지. 타이머meta11개는Android자동import13줄추가만확인해원복,Editor.Refresh마다재생성되어최종검사후다시원복예정.
+
+- 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- PR11 사용자병합20b7565b 확인/fast-forward. check-work 안전성·문서/규칙·Unity컴파일PASS. 마지막검사후타이머자동meta11개원복하고상위포인터/정리기록만저장. 게임원본리소스변경없음.

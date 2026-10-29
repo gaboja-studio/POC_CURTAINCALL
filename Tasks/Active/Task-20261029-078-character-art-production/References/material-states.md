@@ -21,6 +21,6 @@ Light는 사용자 후속 요청에 따라 최초보다 강화했다. 셰이더 
 
 실제 Player에서는 HumanoidPlayerPresentation이 PlayerCondition.LostCount/NetworkPlayer.State를 읽어0부상Clean/1~2부상Light/3부상이상 또는사망(Fallen·Retired)Heavy를 자동적용한다. 복구·초기입장·모델재생성도 현재 상태로 맞춘다. 이미 분리된 조각은 당시 재질을 유지한다. 추가 네트워크변수 없이 기존 동기화된 부상/생존상태에서 표시를 계산한다. 수동3상태비교는 독립 비교씬에서 사용한다.
 
-Blender: `Source/V15/rabbit-material-states-v15.blend`, RabbitSkin_v14 슬롯0 Clean/1 Light/2 Heavy. 원본 packed atlas와 편집 가능한 절차적 노드를 사용한다. Unity 게임 외형은 Bloodied Paper 셰이더가 정본이며 두 엔진의 노이즈 무늬는 픽셀 단위로 동일하지 않다.
+Blender: `Assets/_ThirdParty/CharacterArt/Rabbit/Source~/Source/V15/rabbit-material-states-v15.blend`, RabbitSkin_v14 슬롯0 Clean/1 Light/2 Heavy. 원본 packed atlas와 편집 가능한 절차적 노드를 사용한다. Unity 게임 외형은 Bloodied Paper 셰이더가 정본이며 두 엔진의 노이즈 무늬는 픽셀 단위로 동일하지 않다.
 
 검증: Editor2/PlayMode16 통과,9스킨 교체·캡/팀색 보존·Light 조각 유지/새 Heavy 조각 생성·복구 확인. 근거 `Source/V15/*tests.json`, 비교 이미지 `Previews/rabbit-v15-material-states.png`.
