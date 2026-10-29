@@ -221,6 +221,7 @@ namespace CurtainCall.WaitingRoom.Editor
             ramp.localPosition = new Vector3(0, rise * .5f - .08f, run * .5f); ramp.localRotation = Quaternion.Euler(-Mathf.Atan2(rise, run) * Mathf.Rad2Deg, 0, 0);
             ramp.gameObject.AddComponent<BoxCollider>().size = new Vector3(width, .12f, Mathf.Sqrt(rise * rise + run * run));
             Undo.RegisterCreatedObjectUndo(ramp.gameObject, "Stair ramp");
+            AddRampGuards(ramp, width * .5f);
             return s;
         }
 
@@ -448,8 +449,9 @@ namespace CurtainCall.WaitingRoom.Editor
             for (int i = 0; i < 120; i++)
             {
                 var d = Quaternion.Euler(0, -i * 3, 0) * Vector3.right;
-                bool low = Physics.Raycast(hub + Vector3.up * 1.5f + d * 6, d, out var h1, wallR + 2, ~0, QueryTriggerInteraction.Ignore) && (h1.point - hub).magnitude > wallR - 1.2f;
-                bool high = Physics.Raycast(hub + Vector3.up * 5.5f + d * 6, d, out var h2, wallR + 2, ~0, QueryTriggerInteraction.Ignore) && (h2.point - hub).magnitude > wallR - 1.2f;
+                // A hit past the dome wall is a passage's own side wall, i.e. a doorway.
+                bool low = Physics.Raycast(hub + Vector3.up * 1.5f + d * 6, d, out var h1, wallR + 2, ~0, QueryTriggerInteraction.Ignore) && Mathf.Abs((h1.point - hub).magnitude - wallR) < 1.2f;
+                bool high = Physics.Raycast(hub + Vector3.up * 5.5f + d * 6, d, out var h2, wallR + 2, ~0, QueryTriggerInteraction.Ignore) && Mathf.Abs((h2.point - hub).magnitude - wallR) < 1.2f;
                 solid[i] = low && high;
             }
             // Existing deck, lounge and wall clutter claim their angles too.
