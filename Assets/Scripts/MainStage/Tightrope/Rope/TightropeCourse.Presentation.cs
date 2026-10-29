@@ -8,6 +8,8 @@ namespace CurtainCall.Tightrope
         readonly Dictionary<int, Transform> laneGeometry = new();
         readonly Dictionary<Color, Material> courseMaterials = new();
         readonly List<Transform> sectionSigns = new();
+        [Tooltip("코스 오른쪽에 'N구간 · 이름 / 시작 거리' 표지판을 띄운다. 꺼도 표지판은 만들어 두고 숨기기만 한다.")]
+        [SerializeField] bool showSectionSigns;
 
         Material CourseMaterial(Material source, Color color)
         {
@@ -135,6 +137,7 @@ namespace CurtainCall.Tightrope
                 text.characterSize = .035f;
                 text.anchor = TextAnchor.MiddleCenter;
                 text.color = new Color(.9f, .9f, .9f);
+                sign.SetActive(showSectionSigns);
                 sectionSigns.Add(sign.transform);
                 start = Mathf.Clamp(sections[i].endFraction * FinishDistance, start, FinishDistance);
             }
