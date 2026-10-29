@@ -9,6 +9,8 @@ namespace CurtainCall.Voice
 {
     public sealed partial class VoiceChat
     {
+        // Vivox SDK가 제공하는 시스템 기본 장치의 안정된 ID(물리 기기 이름이 아님).
+        public const string SystemDefaultDeviceId = "Default System Device";
         const string InputDeviceKey = "CurtainCall.Voice.InputDevice";
         const string OutputDeviceKey = "CurtainCall.Voice.OutputDevice";
         readonly SemaphoreSlim deviceSelection = new(1, 1);
@@ -35,6 +37,11 @@ namespace CurtainCall.Voice
         public async Task<bool> SelectInputDeviceAsync(string deviceId)
         {
             if (string.IsNullOrEmpty(deviceId)) return false;
+            if (deviceId == SystemDefaultDeviceId && !_vivoxReady)
+            {
+                PlayerPrefs.DeleteKey(InputDeviceKey); PlayerPrefs.Save();
+                return true;
+            }
             if (!await EnsureLoggedInAsync()) return false;
             await deviceSelection.WaitAsync();
             try
@@ -58,6 +65,11 @@ namespace CurtainCall.Voice
         public async Task<bool> SelectOutputDeviceAsync(string deviceId)
         {
             if (string.IsNullOrEmpty(deviceId)) return false;
+            if (deviceId == SystemDefaultDeviceId && !_vivoxReady)
+            {
+                PlayerPrefs.DeleteKey(OutputDeviceKey); PlayerPrefs.Save();
+                return true;
+            }
             if (!await EnsureLoggedInAsync()) return false;
             await deviceSelection.WaitAsync();
             try

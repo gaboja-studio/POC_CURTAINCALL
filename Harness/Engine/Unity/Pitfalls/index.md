@@ -8,7 +8,7 @@ Unity 프로젝트 공통 함정. 상황에 맞는 파일 1개만 연다.
 
 - [stale-values-after-recompile.md](stale-values-after-recompile.md) — 재컴파일 직후 값으로 수정 효과를 판단할 때
 - [scene-not-saved.md](scene-not-saved.md) — 씬/프리팹 수정 후 "배치 완료"를 판단할 때
-- [coroutine-test-completion.md](coroutine-test-completion.md) — 한 번 yield한 뒤 애니메이션 정지·지연 파괴·결과 연출 검사가 실패할 때
+- [coroutine-test-completion.md](coroutine-test-completion.md) — 한 번 yield한 뒤 애니메이션·지연 파괴·결과 연출 또는 리더 활성화 직후 입력/UI 검사가 실패할 때
 - [playmode-frame-freeze.md](playmode-frame-freeze.md) — AI가 Play Mode에서 코루틴·애니메이션을 검증하려 할 때
 - [linerenderer-local-space.md](linerenderer-local-space.md) — LineRenderer 위치 값을 다른 좌표와 비교할 때
 - [pipeline-command-drift.md](pipeline-command-drift.md) — Pipeline/CLI 업그레이드 후 또는 verify-unity가 명령 없음으로 실패할 때

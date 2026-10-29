@@ -73,7 +73,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var previousOverlay = campaign.transform.Find("DemoRunEnding");
             Assert.IsTrue(previousOverlay == null || !previousOverlay.gameObject.activeSelf, "Open schedule must block the fade.");
             Call(board, "SetOpen", false);
-            double began = Time.realtimeSinceStartupAsDouble;
+            var presentation = campaign.GetComponent(T("CurtainCall.UI.SceneIntegration.DemoRunEnding"));
+            var beganField = presentation.GetType().GetField("began", BindingFlags.Instance | BindingFlags.NonPublic);
+            double startDeadline = Time.realtimeSinceStartupAsDouble + 5;
+            // 최초 오버레이·동적 폰트 생성 시간은 실제 페이드 시간에 포함되지 않는다.
+            // Wait for Update to initialize the actual fade before measuring its midpoint.
+            while ((double)beganField.GetValue(presentation) < 0 && Time.realtimeSinceStartupAsDouble < startDeadline)
+                yield return null;
+            double began = (double)beganField.GetValue(presentation);
+            Assert.GreaterOrEqual(began, 0, "Dawn fade must start after the schedule closes.");
             yield return new WaitForSecondsRealtime(1f);
             Assert.AreEqual("Dawn", Field(Get(campaign, "State"), "Phase").ToString());
             var overlay = campaign.transform.Find("DemoRunEnding");

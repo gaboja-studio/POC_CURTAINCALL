@@ -19,6 +19,12 @@ namespace CurtainCall.StartLobby
         const string FrameRateKey = "CurtainCall.Settings.FrameRateLimit";
         static readonly IReadOnlyList<int> frameRateOptions = System.Array.AsReadOnly(new[] { 30, 60, 90, 120, 144, 165, 240, -1 });
 
+        public const float DefaultVolume = 0.8f;
+        public const float DefaultBgmVolume = 1f;
+        public const float DefaultSfxVolume = 1f;
+        public const int DefaultFrameRateLimit = 60;
+        public const FullScreenMode DefaultScreenMode = FullScreenMode.FullScreenWindow;
+        public static Resolution DefaultResolution => ResolveResolution(0, 0);
         public static IReadOnlyList<int> AvailableFrameRateLimits => frameRateOptions;
 
         /// <summary>주사율 중복과 잘못된 크기를 제외한 지원 해상도(가로·세로 오름차순).</summary>
@@ -42,7 +48,7 @@ namespace CurtainCall.StartLobby
         /// <summary>전체 음량(0~1).</summary>
         public static float Volume
         {
-            get => PlayerPrefs.GetFloat(VolumeKey, 0.8f);
+            get => PlayerPrefs.GetFloat(VolumeKey, DefaultVolume);
             set
             {
                 PlayerPrefs.SetFloat(VolumeKey, Mathf.Clamp01(value));
@@ -53,13 +59,13 @@ namespace CurtainCall.StartLobby
 
         public static float BgmVolume
         {
-            get => Mathf.Clamp01(PlayerPrefs.GetFloat(BgmVolumeKey, 1f));
+            get => Mathf.Clamp01(PlayerPrefs.GetFloat(BgmVolumeKey, DefaultBgmVolume));
             set { PlayerPrefs.SetFloat(BgmVolumeKey, Mathf.Clamp01(value)); AudioChanged?.Invoke(); }
         }
 
         public static float SfxVolume
         {
-            get => Mathf.Clamp01(PlayerPrefs.GetFloat(SfxVolumeKey, 1f));
+            get => Mathf.Clamp01(PlayerPrefs.GetFloat(SfxVolumeKey, DefaultSfxVolume));
             set { PlayerPrefs.SetFloat(SfxVolumeKey, Mathf.Clamp01(value)); AudioChanged?.Invoke(); }
         }
 
@@ -88,7 +94,7 @@ namespace CurtainCall.StartLobby
         /// <summary>기본 60. -1은 제한 없음이며 VSync는 사용하지 않는다.</summary>
         public static int FrameRateLimit
         {
-            get => NormalizeFrameRate(PlayerPrefs.GetInt(FrameRateKey, 60));
+            get => NormalizeFrameRate(PlayerPrefs.GetInt(FrameRateKey, DefaultFrameRateLimit));
             set
             {
                 PlayerPrefs.SetInt(FrameRateKey, NormalizeFrameRate(value));

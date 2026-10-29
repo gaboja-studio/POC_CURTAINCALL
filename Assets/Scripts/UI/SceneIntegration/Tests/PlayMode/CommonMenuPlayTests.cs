@@ -10,6 +10,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
+        IEnumerator IsolatedMenuHost()
+        {
+            var session = (Component)T("CurtainCall.Network.Session.NetworkSessionManager").GetMethod("EnsureExists").Invoke(null, null);
+            yield return null;
+            // 다른 worktree의 기본 LAN 포트와 충돌하지 않도록 OS가 빈 포트를 고르게 합니다.
+            var hosting = (System.Threading.Tasks.Task<bool>)Call(session, "HostLanAsync", (ushort)0);
+            while (!hosting.IsCompleted) yield return null;
+            Assert.IsTrue(hosting.Result);
+        }
         IEnumerator MenuReady()
         {
             float until = Time.realtimeSinceStartup + 15;
@@ -34,6 +43,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return null; yield return new WaitForSecondsRealtime(.25f);
             var settings = Get(owner, "Settings"); var view = Get(settings, "Main");
             Assert.IsTrue((bool)Get(view, "IsVisible"));
+            Assert.AreEqual("CurtainCall.UI.SettingsV2.SettingsPanelView", view.GetType().FullName);
+            Assert.IsFalse((bool)Call(view, "IsPageEnabled", 0));
+            Assert.IsFalse(((UnityEngine.UI.Button)Get(view, "ApplyButton")).interactable);
             var prefs = new[] { "CurtainCall.Settings.Volume", "CurtainCall.Settings.Fullscreen", "CurtainCall.Voice.MicVolume", "CurtainCall.Voice.TeamVolume", "CurtainCall.Voice.MicMuted", "CurtainCall.Voice.TeamMuted" };
             bool[] existed = prefs.Select(PlayerPrefs.HasKey).ToArray();
             float volume = (float)Static("CurtainCall.StartLobby.ClientSettings", "Volume");
@@ -45,7 +57,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             bool micMute = (bool)Get(voice, "IsMicMuted"), teamMute = (bool)Get(voice, "IsTeamMuted");
             try
             {
-                Call(view, "ShowPage", 3);
+                Call(view, "ShowPage", 3); yield return null;
                 var slider = SettingsSlider(view, "volume");
                 slider.value = .23f;
                 Assert.AreEqual(volume, Static("CurtainCall.StartLobby.ClientSettings", "Volume"), "Draft must not apply live.");
@@ -54,9 +66,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsFalse((bool)Get(owner, "IsOpen"));
                 Call(start, "Show", Enum.Parse(T("CurtainCall.StartLobby.StartMenu+Page"), "Settings"));
                 yield return new WaitForSecondsRealtime(.25f);
-                Call(view, "ShowPage", 3);
+                Call(view, "ShowPage", 3); yield return null;
                 slider = SettingsSlider(view, "micVolume"); slider.value = .47f;
                 SettingsToggle(view, "micEnabled").isOn = micMute;
+                Assert.IsNull(SettingsContent(view).Find("FrameRate_Row"));
+                Assert.IsTrue(((UnityEngine.UI.Button)Get(view, "ApplyButton")).interactable);
                 yield return new WaitForSecondsRealtime(.2f);
                 ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/c14-microphone.png")); yield return null;
                 Call(view, "RequestApply"); yield return new WaitForSecondsRealtime(.25f);
@@ -65,7 +79,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual("Main", Get(start, "Current").ToString());
                 Call(start, "Show", Enum.Parse(T("CurtainCall.StartLobby.StartMenu+Page"), "Settings"));
                 yield return new WaitForSecondsRealtime(.2f);
-                Call(view, "ShowPage", 3);
+                Call(view, "ShowPage", 3); yield return null;
                 SettingsSlider(view, "teamVolume").value = .36f;
                 SettingsToggle(view, "teamMuted").isOn = !teamMute;
                 yield return new WaitForSecondsRealtime(.2f);
@@ -78,7 +92,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(1f, Call(voice, "ParticipantVolume", "other-peer"), "Do not reuse settings by seat/display name.");
                 Call(start, "Show", Enum.Parse(T("CurtainCall.StartLobby.StartMenu+Page"), "Settings"));
                 yield return new WaitForSecondsRealtime(.2f);
-                Call(view, "ShowPage", 3);
+                Call(view, "ShowPage", 3); yield return null;
                 SettingsSlider(view, "volume").value = .23f;
                 Call(view, "RequestApply"); yield return new WaitForSecondsRealtime(.2f);
                 Assert.AreEqual(.23f, Static("CurtainCall.StartLobby.ClientSettings", "Volume"));
@@ -123,6 +137,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator CommonMenu_ActualSpaces_BlockInputWithoutPausing()
         {
             UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
+            yield return IsolatedMenuHost();
             foreach (var scene in new[] { "WaitingRoomBase", "Tightrope", "HumanCannon" })
             {
                 yield return Launch(2, scene == "WaitingRoomBase" ? "Morning" : "Performance", 0,

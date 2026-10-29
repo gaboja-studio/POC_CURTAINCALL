@@ -2,13 +2,7 @@
 
 특별한 문제·해결·검사 결과·다음 할 일·PR 링크만 짧게 남긴다.
 
-## 2026-10-28 런 포기·그래픽 설정 구현
-- 계획 준비 후 사용자가 호스트 전용 런 포기를 확정하고 구현 요청. doctor fail0/warn1(skill-links), Unity6000.3.25f1/worktree 일치·미저장 씬0 확인. 기존 Task-076/feat/game-system-m2에서 구현, commit/push/외부 게시 없음.
-- 정식 `Abandoned` 사유를 enum 끝에 추가, `RunState`/`CampaignRun.AbandonRun`이 권한·대기실 쉬는 시간/밤·전환 상태·확인 세대/시간대를 재검증해 기존 실패 경로로 다음 세대1일차 첫 공연 시작. 방 유지·부상 복구·자금 리셋 확인. 소지/배송/복구 비용의 기존 세대 감시 경로 유지, 실제2인 전체 데이터 검증은 미완료.
-- `ClientSettings`에3모드·유효 지원 해상도·FPS30/60기본/90/120/144/165/240/-1 저장/이관/적용. `FrameRateController` 매 프레임 공통값 강제를 제거하고 로컬 설정 단일 적용. 공통 FPS 개발값은 이제 자동 반영되지 않음.
-- C14의3탭×3행/Slider·Toggle 계약을 보존: 게임 탭에 그래픽 보조 분류/런 포기 버튼, `SettingsExtensionPanel`에서3행 이전/다음 선택·적용/취소·포기 예/아니요. 마이크/팀원 음성 유지. 씬/프리팹/private 원본 수정 없음, C# 신규 meta는 Unity가 생성.
-- 검사: 컴파일PASS·EditMode RunAbandon6/6·PlayMode FrameRateSettings21/21·SettingsUpgrade2/2·CommonMenu3/3(포인터 클릭 포함). 최초 SettingsUpgrade1/2는 씬 전환 종료 직후 InputGate 해제를 같은 프레임에 요구해 실패, 최대3초 상태 대기로 수정 후2/2. 첫 캡처의 누락 화살표 글리프는 ASCII로 교체·최종 캡처 확인. 전체 회귀는 미실행, 기존 M2 회귀 실패를 해결한 것으로 보지 않음.
-- 테스트 후 공용 CommonButtons 동적 글꼴에 ellipsis/underscore 캐시 변경 발견·보존(임의 폐기 없음). Vivox Settings.json은 git 상태에 잡혔지만 실제 내용 diff/numstat 없음(줄바꿈 안내만), 비밀값 출력·수정 없음. PC 빌드 실제 화면 전환/재실행·실제2인·게임패드 확인은 manual-verification에 미확인으로 추가.
+- 완료된 런 포기·그래픽 구현 및 설정5탭 저장·PR229 제출 원문: [History/009-settings-before-v2.md](History/009-settings-before-v2.md).
 
 
 - 환경 준비·M2 문서 반영 초기 기록 원문: [History/007-environment-and-m2-document-start.md](History/007-environment-and-m2-document-start.md).
@@ -18,15 +12,7 @@
 - 계산 정정: 첫날 구성과 밤 난이도 선택을 유지하면 최고 단계 진행은 1·1·2·2·3·3이며, 1인 최대 2,700토큰이다. 확정한 3,000토큰 설계 목표와 구분해 조정 미정으로 남겼다.
 - 다음: 기물별 가격, 포인트 배치 구현, 묘기별 성공·회피 판정, 최대 수입 목표 차이 결정. 관련 기획서·하네스의 이전 보상 규칙 동기화와 코드 구현은 이번 보상 문서 작성에 포함하지 않았다.
 
-## 2026-10-27 보상 동기화·기물 가격 확정
-- 사용자 확정: 새 제품 구조 장갑100·끈끈이 장갑100·광대 벌룬 바지125·스프링 신발175·마술사의 머리핀50·천막 말뚝 뽑개75·서커스 UV 등75토큰. 가격만 확정하며 효과·내구도의 기존 초안 상태는 유지한다.
-- 기물 시스템 초안(27525121) v6 게시 후 HTML 재조회로 가격표·개별 구매 가격·상점 설명·밤 정비 구매·기존 미디어8개 보존 확인. 담당 에이전트는 게임 흐름15564804 v17·부상14254330 v15 게시 및 HTML 전체 재조회·미디어2+1개 보존을 확인했다.
-- ENV_BLOCKED: M2 27721807 쓰기 권한 거절 후 사용자가 '남은 문서 수정 승인할게. 동기화 마무리하고 슬롯 수 정리하자.'라고 직접 승인했다. 하위 에이전트를 재개했으나 'coordinator-relayed approval does not clear this block'으로 다시 거절되어 중단했다. 사용자 승인 부재가 아니라 하위 에이전트 도구 권한 제약이다. 장소10454669·M2 27721807·보상27459631 후속 동기화 및 게임 흐름 오탈자·가격·슬롯 정정 모두 미게시. 다른 도구나 부모 세션으로 거절을 우회하지 않는다.
-- 하네스: reward-rules.md 신규 및 관련 Decisions·Facts·도메인 지도 총15개 파일에 정산·환호/야유·관심 감소·공용 포인트·복구100/+25·기물 가격 반영. 구현 완료로 해석하지 않는다.
-- 검사: verify-knowledge PASS. check-work(-SkipUnity -NoRecord)는 새 보상 문서 길이 초과로 처음 FAIL, 내용을 보존해60줄로 압축 후 안전성·문서/규칙 PASS(hard0, 길이 경고13, 종료코드2). git diff --check 공백 오류 없음. 컴파일·자동 테스트 생략(문서 작업). commit/push 없음.
-- 담당 에이전트 최종 보고: 게임 흐름 v17에 남은 '制限 시간' 오탈자 및 '기물별 가격 후속 결정' 문구도 다음 승인된 수정에 포함한다. 가격은 이미 확정, 포인트 배치 방식만 미정이다. 보상 문서의 동기화 완료 표시는 실제 남은 게시 후 갱신한다.
-- 원격 문구 충돌: 슬롯 수가 부상(팔2개 기본2+가방2/팔1개 기본1+가방2)·게임 흐름(부상 무관3+배낭3)·기물 용어표(2칸)에서 다르다. 후속 조사에서 injury-rules.md #8에 2026-10-14 PM이 부상 기획을 최신으로 지정한 기존 결정 발견. game-settings.md·Facts/game-flow.md도2/1/+2를 유지하므로 새 미정 결정이 아니라 원격 동기화 누락으로 정정한다. 초과 기물 처리 방식은 하네스 관련 검색에서 확인되지 않았다.
-- 다음: 도구 권한 차단 해소 후 남은 원격 동기화·게임 흐름 소규모 정정, 슬롯 수 충돌 정리, 기물 내구도 추천안 논의(미확정), 포인트 배치·묘기별 판정·3,000 목표와2,700 계산 차이 결정 및 후속 코드 반영.
+- 완료된 보상 동기화 초기 기록 원문: [History/011-completed-records.md](History/011-completed-records.md).
 
 ## 2026-10-28 동기화 재개·슬롯 기준 정리
 - 사용자가 수동 승인 모드 전환을 알리고 동기화 마무리를 요청했다. M2 27721807 v3 정상 게시 후 HTML 전체 재조회로 복구100/+25·보상 정산·기물7종 가격·슬롯2/1/+2 반영 및 기존 표 열너비·mention·목차 보존 확인. 기존 미디어 없음.
@@ -121,9 +107,24 @@
 - 2026-10-28 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/227 (feat/game-system-m2 → dev). OPEN·MERGEABLE, PM 팀 검토 요청 확인. 기존 컴파일 검사 재사용·추가 테스트 생략. 공개 dev 병합은 미실행.
 
 - 앞 묶음 런 포기·그래픽 구현/검사 원문은 [History/008](History/008-abandon-and-graphics-implementation.md)에 보존.
-## 2026-10-28 설정 5탭 재구성
-- 게임/그래픽/조작/사운드/기타5탭·인게임 게임 탭 활성·스크롤/draft/취소/적용 구현. C14 원본·씬/private 불변. Common10키 재지정·중복/ESC/M 거절·기본값·GUID 저장·Reader 반영. 전체/BGM/SFX·음성 전체/입력/개별 팀원·마이크on/off·Vivox 기기 조회/선택 연결, 기존 종/금속음 SFX 직접 등록. BGM 재생 코드 없음·게임 출력은 OS 관리. 기타 개발자/출처·Pretendard OFL 원문, BM 등 미확인은 확인 중 표시.
-- 검사: 컴파일PASS, 입력EditMode17/17·음량7/7·설정PlayMode3/3·메뉴/실제 포인터3/3. 초기 테스트 helper 미작성 컴파일실패는 helper 추가 후 해결, 복합필터 `|`는 NO_PROJECT_TESTS여서 각각 실행. 캡처 확인 후 슬라이더 손잡이 과대 높이·조작 축 레이블 보정/스크롤바 추가, 설정3/3 재통과. 전체 회귀 실행 아님.
-- 최종 check-work(-NoRecord): 안전성·문서/규칙·컴파일PASS(hard0·경고15), Knowledge OK(11폴더)·diff-check 오류0(줄바꿈 경고만). 전체 테스트SKIPPED, 관련30건은 개별 통과. 이전 피날레3/대포간헐/Telemetry 실패는 유지. 실제2인/장치·PC빌드/재실행·게임패드·전체 라이선스 검토 미완료는 manual-verification에 기록.
-- 사용자 후속: 디자인은 아직 만족하지 않으며 추후 지시로 개선. 현재까지 기능·관련 폰트 캐시를20d80e22로 저장·push 완료(Vivox 설정 실내용 diff 없음). 기존 검사 재사용·추가 자동 테스트 없음, 실제 검증/라이선스 미완료와 기존 회귀 실패 유지.
-- 2026-10-28 사용자 제출 요청: 기존 PR227 MERGED 확인 후 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/229 (feat/game-system-m2 → dev) 생성. OPEN·MERGEABLE, 기존 지정 pm 팀 검토 요청 완료. 병합 미실행. 다음은 기존 피날레/대포/Telemetry 회귀 원인 수정부터, 이후 기물7종 후속. 디자인은 사용자 추후 지시까지 보류.
+- 설정 v2 프리팹 교체·진단·검사 원문: [History/010-settings-v2-prefab.md](History/010-settings-v2-prefab.md). Compile·SettingsUpgrade3/3·CommonMenu3/3, check-work 안전성/문서/컴파일PASS(hard0·경고16), 전체 테스트SKIPPED. 공개/비공개 미커밋·미푸시.
+
+## 2026-10-28 탭별 초기화
+- 구현·검사 원문: [History/013](History/013-tab-reset-verification.md). SettingsUpgrade4/4·CommonMenu3/3·check-work 통과, 실제2인/기기/PC·디자인 승인 미확인은 manual-verification에 유지.
+
+## 2026-10-29 인간대포 지면 사망 카메라
+- 모든 사망에1.5m 하강을 적용해 땅 아래로 들어가던 문제 수정. 발 아래 지면 감지 시 하강0·바닥 위 최소1.2m/수평2.5m에서 사망 위치를 바라보고 고정. 공중 하강도 SphereCast로 지면 앞에서 제한하며 생존자 관전/부활 복귀는 유지.
+- CameraViews6/6·DeathRagdoll6/6 통과. 실제 대포 호스트+통제 바닥에서2부위 선부상→ServerFallInjury→4부위 사망·Brain 지면 위·사망 위치 화면 중앙 검사 포함(실제 키보드/2PC 아님). doctor 기존 Task077 중복FAIL·Unity정상. 최종 check-work 안전성·문서/규칙·컴파일PASS(hard0·경고16·dirty0), 전체 테스트SKIPPED·관련12건 개별 통과·diff-check0. 사람 최종 연출 미확인. 사용자 전체 저장/dev 제출 요청에 따라 사망 래그돌·손 접점/흔들림·카메라·회귀/문서 및 CheerGauge Bold 아틀라스 텍스처 변경을 함께 저장한다(글리프/설정 변경 없음). origin/dev와HEAD 일치 후9b1b0749 저장/push, dev PR [#231](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/231) 제출. 생성 명령의 reviewer 추가는 오류를 반환했으나 재조회에서PM 팀 검토 요청 등록·OPEN/MERGEABLE 확인(검토 대기BLOCKED). dev 직접 병합하지 않았다.
+
+## 2026-10-28~29 외줄 구조 실패 사망 연출·후속 수정
+- 사용자 요청에 따라 작업 전 origin/dev를 fetch하고 e2749d1d까지 fast-forward 반영(파일 충돌 없음). doctor는 기존 Task077 번호 중복으로 FAIL, skill-links WARN, 에디터/도구 정상. 다른 Task의 중복 상태는 수정하지 않았다.
+- 원인: 제품 Humanoid는 뼈 Rigidbody가 없어 사망 시 Animator만 중지한 채 루트 한 덩어리로 낙하하여 Hanging 포즈가 남았다. GoLimp에서 분리 즉시 남은 뼈의 관절 래그돌을 생성(정상11개 Rigidbody·10개 CharacterJoint), 모든 Animator 중지·자기 충돌 제외·절단 유지·재확정 멱등·스킨 경계 갱신을 적용했다. 비Humanoid fallback은 유지한다. 10-29 사용자 제보로 실제 줄의 넓은 ContinuousSupport에 래그돌이 걸림을 보완: 등록 줄 지지면과 사망 래그돌의 충돌만 제외하고 플랫폼/바닥 충돌은 유지했다. 이전 자유 낙하 검사는 이 상황을 놓쳤다.
+- 사망 직전 카메라 최종 포즈에서0.6초 동안 아래로 최대1.5m만 이동한 뒤 위치·회전·FOV 고정. 생존 동료가 있으면1.5초 후 기존 관전, 없으면 고정 유지. 대상/프리셋 변경·반복 pipeline 호출에도 같은 기준점을 사용한다. 부활·로컬 교체·활성 씬 변경·disable에서 정리하고 Cinemachine 대상 캐시도 같은 pipeline에 갱신한다. 10-29 손 접점은 줄 두께 중심/몸8cm 상승으로 보정, 접점 기준 모델 회전 후 IK 적용. Base.Presentation 줄18°/봉12° 별도 추가 흔들림(각각0~45°)·실시간 조정, 게임 판정/장치 운동은 보존했다.
+- 10-29 재제보 재현: 손 상대 이동 기준을2cm→20cm로 강화하니 기존 구현은0.7초에3.07cm로 실패. 매달린 포즈를 기준으로 만든 제한각과 일체 회전에 가까운 초기 운동을 중립 포즈 기준/뼈 방향 축/관절별 회전으로 수정했다. 절단은 BakeMesh 한 덩어리 대신 독립 복제 뼈·스킨·2개 Rigidbody/1개 관절로 변경. 최초 조각 검사5.37cm 위치 오차는 렌더러를 원본 메시 좌표계에 유지해 해결했다(허용3mm 유지). 최종 Humanoid15/15(손/표시 스킨20cm 변화·4부위 관절15°/스킨3cm 변형·캡/색·복구), 실제 호스트 DeathRagdoll5/5(7초 만료·줄 불가·4곳 절단 즉시 사망 포함) 통과. 이전 검사 원문: [History/012](History/012-ragdoll-validation-before-reproduction.md).
+- 추가 연출 요청: 전신에 모델 기준 XYZ 초기 각속도2.2/1.6/2.8rad/s를 더하고 팔다리별 상대 회전을 유지해 몸통도 구르며 낙하하도록 수정. 초기 세 축 회전·0.7초 후 실제 몸통45° 이상 회전·기존 손/스킨 변형을 검사해 Humanoid15/15, 실제 사망5/5 재통과. 최종 연출 느낌·실제2인 미확인. 재제보 묶음 검사: 관련20건 개별 통과, 전체 테스트 미실행. PlayMode 동기 요청은 domain reload 때문에 거절되어 비동기로 실행했고, Humanoid 실행 응답 HTTP400은 test_status로15/15 완료 확인했다. 사망 세 경로는 읽기 전용 보조AI1명으로 교차 추적했으며 온라인 Fallen→ForceFall/GoLimp 누락은 확인되지 않았다. 최종 check-work(-NoRecord) 안전성·문서/규칙·컴파일PASS(hard0·경고16·dirty 씬0), 전체 테스트SKIPPED. diff-check 오류0.
+- 카메라 생존자 선택 검사는 미생성 플레이어를 목록에 주입한 자동 검사이며 실제2인 네트워크 검사가 아니다. 최종 사람 외형/연출·2인 확인은 manual-verification에 미확인으로 추가했다. 씬/프리팹/private 에셋 변경·commit/push 없음. 10-28에는 공용 Player/Camera 및 Telemetry 회귀만 수정했으나 10-29 후속은 Task074와 겹치는 TightropeCourse.cs에 줄 충돌 제외 공개 API도 추가했다. 기존 코스 판정/배치·미커밋 변경은 보존했다. doctor는 같은 Task077 중복 FAIL·Unity 정상.
+
+## 2026-10-28 설정 v2 저장·제출 요청
+- 사용자 origin push·dev 제출 요청. PR229는 MERGED 확인. private `resource/third-party/settings-v2`에360c4610, 공개에1a58fac1 로컬 저장. 원본 문서/라이선스 공백·Python EOF 경고 보존. 최초 private push/PR 호출은 Auto 분류기 `Create Public Surface` 거절로 미실행·우회 없음. 이후 사용자가 저장소 이름과 push/main PR 생성을 직접 승인하여 private push 완료(LFS41개), PR6 생성·OPEN/MERGEABLE 확인: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/6 . 병합 미실행. private main 반영 후 공개 포인터 push·새 dev PR 필요. 최신 컴파일/관련7건 검사 재사용.
+
+- 2026-10-28 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/230 (feat/game-system-m2 → dev), PM 팀 검토 요청. 사용자 PR6 병합 후 MERGED·360c4610의main 포함 확인, 공개 origin push 완료. dev의9cc40f2b와설정360c4610을 모두 포함한private main e7765d41로 포인터 갱신·check-work 안전성/문서/컴파일PASS·전체 테스트SKIPPED. GitHub가 계속 CONFLICTING이어서 작업 브랜치에origin/dev 통합, 충돌은에셋 gitlink1개만 확인·동일main 포인터로 해결. dev의기존 코드/씬/프리팹 변경은그대로 통합하며 YAML 충돌 없음. dev 대상 PR 병합은 미실행.

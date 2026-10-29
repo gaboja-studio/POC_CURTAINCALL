@@ -39,6 +39,8 @@ namespace CurtainCall.Tightrope
         {
             if (!CanUsePole(request.Pole, Find(actor)) || !stations[request.Pole].State.TryGrab(
                 actor, request.Revision, Clock, course.Shape.RelayHoldSeconds)) return false;
+            // 잡을 때마다 이 봉이 열 줄을 새로 고른다(호스트만). 스냅샷으로 모두에게 같은 줄을 알린다.
+            stations[request.Pole].Opened = PickLane(request.Pole);
             pendingGrabs.Remove(actor); version++; ApplyConnections(); Publish();
             return true;
         }

@@ -3,6 +3,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using Unity.Cinemachine;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace CurtainCall.Cameras
 {
@@ -25,6 +26,7 @@ namespace CurtainCall.Cameras
         public bool ShowLegacyOverlay { get; set; } = true;
 
         CinemachineCamera virtualCamera;
+        CameraViewDirector director;
         int lastDirection; // 지난 프레임 A/D 입력(-1/0/+1). 누른 순간에만 바꾼다
         readonly List<NetworkPlayer> alive = new();
         GUIStyle labelStyle;
@@ -40,11 +42,38 @@ namespace CurtainCall.Cameras
         Texture2D dimTexture; // 가장자리(왼쪽 0)에서 안쪽으로 옅어지는 가로 그라데이션
         float spectateStartedAt;
 
-        void Awake() => virtualCamera = GetComponent<CinemachineCamera>();
+        void Awake()
+        {
+            virtualCamera = GetComponent<CinemachineCamera>();
+            director = GetComponent<CameraViewDirector>();
+        }
 
-        void OnDisable() => Stop(NetworkPlayer.Local);
+        void OnEnable()
+        {
+            if (director != null) director.PreparingView += UpdateSpectating;
+            SceneManager.activeSceneChanged += OnActiveSceneChanged;
+        }
+
+        void OnDisable()
+        {
+            if (director != null)
+            {
+                director.PreparingView -= UpdateSpectating;
+                director.ResumeFromDeathView();
+            }
+            SceneManager.activeSceneChanged -= OnActiveSceneChanged;
+            Stop(NetworkPlayer.Local);
+        }
+
+        void OnActiveSceneChanged(Scene previous, Scene next) => Stop(NetworkPlayer.Local);
 
         void LateUpdate()
+        {
+            // Director가 있으면 PrePipeline에서 대상까지 정한다. LateUpdate 순서로 한 프레임 늦게 바꾸지 않는다.
+            if (director == null || !director.isActiveAndEnabled) UpdateSpectating();
+        }
+
+        void UpdateSpectating()
         {
             var local = NetworkPlayer.Local;
             // 리타이어(탈출로 사망·잡힘)도 사망처럼 관전한다(2026-10-14 PM). 관전 대상은 Normal만
@@ -59,6 +88,13 @@ namespace CurtainCall.Cameras
             if (!IsSpectating) spectateStartedAt = Time.time;
             IsSpectating = true;
             CollectAlive(local);
+            if (director != null && director.isActiveAndEnabled && director.IsShowingDeathFall)
+            {
+                SetTarget(null);
+                lastDirection = 0;
+                return;
+            }
+            if (alive.Count > 0 && director != null) director.ResumeFromDeathView();
             if (Target == null || !alive.Contains(Target)) SetTarget(alive.Count > 0 ? alive[0] : null);
 
             int direction = ReadDirection(local);
@@ -74,7 +110,8 @@ namespace CurtainCall.Cameras
         {
             alive.Clear();
             foreach (var player in NetworkPlayer.All)
-                if (player != null && player != local && player.State == PlayerState.Normal) alive.Add(player);
+                if (player != null && player != local && player.State == PlayerState.Normal
+                    && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen)) alive.Add(player);
             alive.Sort((a, b) => a.Slot.CompareTo(b.Slot)); // 자리 번호 순으로 돈다
         }
 
@@ -88,7 +125,8 @@ namespace CurtainCall.Cameras
         void SetTarget(NetworkPlayer player)
         {
             Target = player;
-            if (player != null) virtualCamera.Target.TrackingTarget = player.transform;
+            var tracking = player != null ? player : NetworkPlayer.Local;
+            virtualCamera.Target.TrackingTarget = tracking != null ? tracking.transform : null;
         }
 
         /// <summary>관전을 끝내고 카메라를 내 캐릭터로 돌린다.</summary>

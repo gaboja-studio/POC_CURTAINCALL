@@ -179,6 +179,11 @@ namespace CurtainCall.Player
         void LateUpdate()
         {
             if (!IsHanging || model == null || !model.Animator.isHuman || !TryHangGrip(out var grip, out var axis)) return;
+            ApplyHangPose(grip, axis, TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(network));
+        }
+
+        void ApplyHangPose(Vector3 grip, Vector3 axis, bool onRope)
+        {
             var animator = model.Animator;
             var left = (condition.LostParts & BodyPart.LeftArm) == 0 ? animator.GetBoneTransform(HumanBodyBones.LeftHand) : null;
             var right = (condition.LostParts & BodyPart.RightArm) == 0 ? animator.GetBoneTransform(HumanBodyBones.RightHand) : null;
@@ -186,8 +191,8 @@ namespace CurtainCall.Player
             if (count == 0) return;
             var root = model.transform;
             axis = axis.sqrMagnitude > .0001f ? axis.normalized : transform.right;
-            var hangs = TightropeHangSystem.Current;
-            bool onRope = hangs != null && hangs.IsHanging(network);
+            alignmentRotation = root.localRotation;
+            rotationAligned = true;
             if (onRope)
             {
                 // 양손을 잇는 방향을 줄과 나란히 돌려, 팔만 줄을 가로지르지 않게 한다.
@@ -197,17 +202,20 @@ namespace CurtainCall.Player
                 if (handAxis.sqrMagnitude > .0001f && ropeAxis.sqrMagnitude > .0001f)
                 {
                     if (Vector3.Dot(handAxis, ropeAxis) < 0f) axis = -axis;
-                    alignmentRotation = root.localRotation;
-                    rotationAligned = true;
                     root.rotation = Quaternion.AngleAxis(Vector3.SignedAngle(handAxis, axis, Vector3.up), Vector3.up) * root.rotation;
                 }
             }
             else grip += Vector3.up * poleGripHeightOffset;
+            if (onRope && TightropeCourse.Current != null)
+                grip -= Vector3.up * (TightropeCourse.Current.Shape.RopeThickness * .5f);
+            float strength = onRope ? GameSettings.Base.Presentation.RopeHangSwayAngle : GameSettings.Base.Presentation.PoleHangSwayAngle;
+            root.rotation = Quaternion.AngleAxis(Mathf.Sin(Time.time * Mathf.PI * 1.6f) * strength, axis) * root.rotation;
             Vector3 leftPalm = Palm(animator, true), rightPalm = Palm(animator, false);
             Vector3 center = ((left != null ? leftPalm : Vector3.zero) + (right != null ? rightPalm : Vector3.zero)) / count;
             Vector3 before = root.localPosition;
             // 이동 루트·충돌체 대신 모델만 옮겨, 매 프레임 재생된 실제 손바닥을 봉/줄 높이에 맞춘다.
-            root.position += grip - center;
+            // 팔을 끝까지 편 채 접점을 바꾸면 IK 목표가 도달 범위 밖이 된다. 몸을 조금 올려 팔꿈치 여유를 둔다.
+            root.position += grip - center + Vector3.up * .08f;
             alignedModel = root;
             alignmentOffset = root.localPosition - before;
             axis = axis.sqrMagnitude > .0001f ? axis.normalized : transform.right;
