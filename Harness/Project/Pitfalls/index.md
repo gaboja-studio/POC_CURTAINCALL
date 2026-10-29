@@ -1,5 +1,7 @@
 # Project Pitfalls
 
+- [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
+
 - [Telemetry/](Telemetry/index.md) — 로그·설문의 연결 종료와 최초 실행 시점을 확인할 때
 
 - [death-ragdoll-reset.md](death-ragdoll-reset.md) — 공연 사망 뒤 조작 정리가 레그돌을 복구할 때

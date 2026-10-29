@@ -74,6 +74,7 @@ namespace CurtainCall.Player
             model.Animator.enabled = true;
             color = GameSettings.Base.Character.GetPlayerColor(network != null ? network.Slot : 0);
             model.SetColor(color);
+            ApplySurface(model);
             model.Apply(condition.LostParts, condition.LostParts, false, mover.Body);
         }
 
@@ -83,7 +84,22 @@ namespace CurtainCall.Player
             BindModel();
             // 사망 이벤트가 먼저 모델을 분리해도 마지막 사지는 현재 포즈에서 분리한다.
             var target = model != null ? model : detached;
-            if (target != null) target.Apply(previous, current, network == null || !network.IsApplyingInitialCondition, mover.Body);
+            if (target != null)
+            {
+                ApplySurface(target);
+                target.Apply(previous, current, network == null || !network.IsApplyingInitialCondition, mover.Body);
+            }
+        }
+
+        void ApplySurface(HumanoidModel target)
+        {
+            if (target == null || !target.TryGetComponent<CurtainCall.CharacterArt.RabbitSurfaceStates>(out var surface)) return;
+            bool dead = condition.AllLimbsLost || (network != null &&
+                (network.State == PlayerState.Fallen || network.State == PlayerState.Retired));
+            surface.SetState(dead || condition.LostCount >= 3
+                ? CurtainCall.CharacterArt.RabbitSurfaceStates.SurfaceState.Heavy
+                : condition.LostCount > 0 ? CurtainCall.CharacterArt.RabbitSurfaceStates.SurfaceState.Light
+                : CurtainCall.CharacterArt.RabbitSurfaceStates.SurfaceState.Clean);
         }
 
         void Restarted(NetworkPlayer player)
@@ -98,6 +114,7 @@ namespace CurtainCall.Player
             RestoreHangAlignment();
             IsHanging = false;
             BindModel();
+            ApplySurface(model != null ? model : detached);
             if (model == null) return;
             Color next = GameSettings.Base.Character.GetPlayerColor(network != null ? network.Slot : 0);
             if (color != next) { color = next; model.SetColor(color); }

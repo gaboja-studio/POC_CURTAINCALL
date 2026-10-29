@@ -14,6 +14,11 @@ namespace CurtainCall.Player
         public SkinnedMeshRenderer[] Limbs;
         [Tooltip("양다리 손실 시 외형 높이 보정(모델 로컬 좌표). 충돌/눈높이는 변경하지 않음.")]
         public float CrawlHeightOffset;
+        [Tooltip("비어 있으면 모든 표면을 기존 방식으로 착색한다. 지정하면 해당 재질 슬롯만 플레이어 색을 사용한다.")]
+        public int[] PlayerTintMaterialSlots;
+        [Min(.01f)] public float RagdollArmRadius = .055f;
+        [Min(.01f)] public float RagdollLegRadius = .075f;
+        [Min(.01f)] public float RagdollHeadRadius = .11f;
         public int Stage { get; private set; }
         public int PieceCount => pieces.Count;
         public Color SurfaceColor { get; private set; } = Color.white;
@@ -153,7 +158,7 @@ namespace CurtainCall.Player
                 renderer.bones = Array.ConvertAll(source.bones, bone => bones[bone]);
                 renderer.updateWhenOffscreen = true;
                 Tint(renderer, SurfaceColor, Original.sharedMesh.subMeshCount);
-                float radius = index < 2 ? .075f : .055f;
+                float radius = index < 2 ? RagdollLegRadius : RagdollArmRadius;
                 piece.Body = AddRagdollBone(upper, lower.position, null, PlayerCondition.CutOrder[index], 2f, radius, false);
                 AddRagdollBone(lower, end.position, piece.Body, PlayerCondition.CutOrder[index], 1f, radius * .8f, false);
                 piece.CutLocal = upper.InverseTransformPoint(cut);
@@ -212,8 +217,11 @@ namespace CurtainCall.Player
             for (int i = 0; i < surfaces; i++)
             {
                 renderer.GetPropertyBlock(block, i);
-                block.SetColor(BaseColor, color);
-                block.SetColor(ColorId, color);
+                bool tint = PlayerTintMaterialSlots == null || PlayerTintMaterialSlots.Length == 0 ||
+                    Array.IndexOf(PlayerTintMaterialSlots, i) >= 0;
+                var surface = tint ? color : new Color(1f, 1f, 1f, color.a);
+                block.SetColor(BaseColor, surface);
+                block.SetColor(ColorId, surface);
                 renderer.SetPropertyBlock(block, i);
                 block.Clear();
             }
@@ -264,11 +272,11 @@ namespace CurtainCall.Player
             var pelvis = AddRagdollBone(hips, chest.position, null, BodyPart.None, 8f, .14f);
             var torso = AddRagdollBone(chest, head.position, pelvis, BodyPart.None, 8f, .16f);
             AddRagdollBone(head, head.position + (head.position - chest.position).normalized * .2f,
-                torso, BodyPart.None, 3f, .11f);
-            AddRagdollLimb(HumanBodyBones.LeftUpperArm, HumanBodyBones.LeftLowerArm, HumanBodyBones.LeftHand, torso, BodyPart.LeftArm, .055f);
-            AddRagdollLimb(HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, HumanBodyBones.RightHand, torso, BodyPart.RightArm, .055f);
-            AddRagdollLimb(HumanBodyBones.LeftUpperLeg, HumanBodyBones.LeftLowerLeg, HumanBodyBones.LeftFoot, pelvis, BodyPart.LeftLeg, .075f);
-            AddRagdollLimb(HumanBodyBones.RightUpperLeg, HumanBodyBones.RightLowerLeg, HumanBodyBones.RightFoot, pelvis, BodyPart.RightLeg, .075f);
+                torso, BodyPart.None, 3f, RagdollHeadRadius);
+            AddRagdollLimb(HumanBodyBones.LeftUpperArm, HumanBodyBones.LeftLowerArm, HumanBodyBones.LeftHand, torso, BodyPart.LeftArm, RagdollArmRadius);
+            AddRagdollLimb(HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, HumanBodyBones.RightHand, torso, BodyPart.RightArm, RagdollArmRadius);
+            AddRagdollLimb(HumanBodyBones.LeftUpperLeg, HumanBodyBones.LeftLowerLeg, HumanBodyBones.LeftFoot, pelvis, BodyPart.LeftLeg, RagdollLegRadius);
+            AddRagdollLimb(HumanBodyBones.RightUpperLeg, HumanBodyBones.RightLowerLeg, HumanBodyBones.RightFoot, pelvis, BodyPart.RightLeg, RagdollLegRadius);
             foreach (var pair in pose) pair.Key.localRotation = pair.Value;
             // 연결되지 않은 부위끼리도 자기 충돌을 막아 물리 시작 직후 튀거나 떨리지 않게 한다.
             for (int i = 0; i < ragdollParts.Count; i++)
