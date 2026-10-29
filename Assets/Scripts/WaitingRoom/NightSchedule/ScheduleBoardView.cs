@@ -10,7 +10,7 @@ namespace CurtainCall.WaitingRoom
     /// <summary>
     /// 로비 스케줄표 상호작용과 플래너 노트 창(임시 IMGUI — 낡은 플래너 아트는 후속). 기준: schedule-board.md.
     /// 스케줄표 앞에서 F → 내 화면만 스케줄표 클로즈업 카메라로 바뀌고 창이 열린다(이동 입력 막음). ESC·닫기·멀어지면 닫힌다.
-    /// 창: 1~4일차 공연·난도, 밤이면 호스트가 칸을 고르고 확정, 참가자는 실시간으로 보기만. 준비 완료 버튼도 둔다.
+    /// 창: 1~4일차 공연·난도, 밤이면 호스트가 칸을 고르고 확정, 참가자는 실시간으로 보기만. 준비 완료는 숙소 침대(<see cref="NightBed"/>)에서 한다.
     /// </summary>
     public sealed class ScheduleBoardView : MonoBehaviour, IShopTarget, IShopPresentation
     {
@@ -157,7 +157,7 @@ namespace CurtainCall.WaitingRoom
                 }
                 else GUILayout.Label("호스트가 스케줄을 작성하고 확정합니다.");
 
-                DrawReady(schedule, run);
+                GUILayout.Label($"준비 완료 {run.State.ReadyCount}/{run.State.RequiredCount} — 숙소 침대에 누워 준비합니다.");
             }
             if (host && !string.IsNullOrEmpty(schedule.LastMessage)) GUILayout.Label(schedule.LastMessage);
             if (GUILayout.Button("닫기 (ESC)")) SetOpen(false);
@@ -209,22 +209,6 @@ namespace CurtainCall.WaitingRoom
             }
             GUILayout.EndHorizontal();
             GUILayout.EndVertical();
-        }
-
-        static void DrawReady(ScheduleBoard schedule, CampaignRun run)
-        {
-            if (run == null) return;
-            var s = run.State;
-            GUILayout.Label($"준비 완료 {s.ReadyCount}/{s.RequiredCount}");
-            if (run.IsLocalReady)
-            {
-                if (GUILayout.Button("준비 취소")) schedule.RequestReady(false);
-                return;
-            }
-            bool can = schedule.CanReady(out string reason);
-            GUI.enabled = can;
-            if (GUILayout.Button(can ? "준비 완료" : $"준비 완료 — {reason}")) schedule.RequestReady(true);
-            GUI.enabled = true;
         }
     }
 }

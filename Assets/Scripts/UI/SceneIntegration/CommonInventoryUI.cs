@@ -39,7 +39,7 @@ namespace CurtainCall.UI.SceneIntegration
             int capacity = carry != null ? carry.Slots(id) : SurvivalRules.ItemSlots();
             var selected = carry != null ? carry.Selected(id) : default;
             string next = $"{id}:{capacity}:{selected.Uid}";
-            if (held != null) foreach (var item in held) next += $":{item.Uid}:{item.ItemId}:{item.Name}";
+            if (held != null) foreach (var item in held) next += $":{item.Uid}:{item.ItemId}:{item.Name}:{item.Uses}";
             if (signature != next)
             {
                 signature = next; data.Clear();
@@ -47,7 +47,7 @@ namespace CurtainCall.UI.SceneIntegration
                 {
                     bool occupied = held != null && i < held.Count;
                     data.Add(new InventorySlotData { IsEmpty = !occupied, ItemSprite = occupied ? Icon(held[i].ItemId) : null,
-                        IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity ? (i + 1).ToString() : $"{i + 1} 잠금", QuantityLabel = occupied ? "1" : "" });
+                        IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity ? (i + 1).ToString() : $"{i + 1} 잠금", QuantityLabel = !occupied ? "" : held[i].Uses == ItemUses.Unlimited ? "1" : held[i].Uses.ToString() }); // 남은 사용 횟수(item-durability.md)
                 }
                 slots.SetSlots(data);
                 for (int i = 0; i < VisibleSlotCount; i++)
@@ -57,7 +57,7 @@ namespace CurtainCall.UI.SceneIntegration
                     if (opacity == null) opacity = view.gameObject.AddComponent<CanvasGroup>();
                     opacity.alpha = i < capacity ? 1f : .35f;
                 }
-                selectedLabel.text = selected.Uid != 0 ? $"{selected.Name} · 손에 듦" : "빈손 · 1–2 기물 선택";
+                selectedLabel.text = selected.Uid != 0 ? $"{ItemCatalog.DisplayName(selected)} · 손에 듦" : "빈손 · 1–2 기물 선택";
             }
             slots.SetContext(true); slots.ShowInventory();
         }

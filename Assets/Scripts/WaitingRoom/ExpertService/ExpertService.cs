@@ -196,11 +196,15 @@ namespace CurtainCall.WaitingRoom
             if (refusal != ExpertRefusal.None) return Reject(buyer, "MEDICAL_RESERVE", refusal);
             Debug.Log($"[Expert] 신체 복구 {parts}개 구매({cost}) ← {WaitingRoomShop.PlayerLabel(buyer)} / 잔액 {rewards.Balance} / 다음 단가 {MedicalPrice}");
             Publish(before);
-            return (true, $"구매 완료({parts}개, {cost}) — ⑧ 전문가 대기실 커튼 앞으로 가세요.");
+            return (true, $"구매 완료({parts}개, {cost}) — 신체 복구 승강기 앞으로 가세요.");
         }
 
         (bool, string) Enter(ulong who)
         {
+            var player = Find(who);
+            var entrance = FindFirstObjectByType<ExpertRoomView>();
+            if (player == null || entrance == null || !entrance.InReach(player.transform.position))
+                return (false, "신체 복구 승강기 앞에서 이용하세요.");
             var before = book.Phase;
             var refusal = book.Enter(who);
             if (refusal != ExpertRefusal.None) return Reject(who, "MEDICAL_ENTER", refusal);

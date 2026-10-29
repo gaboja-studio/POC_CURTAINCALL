@@ -5,6 +5,14 @@ Confluence 커튼 콜 대기실 2차 기획서 20348931(2026-10-15 최종 작성
 - [space-layout.md](space-layout.md) — 대기실 역할·백스테이지 통합·랜덤 방 구조·장소 연결·진입/퇴장·기획서 예시 배치 8곳·시간대 변화. 맵 배치·스폰·장소 전환을 만들 때
 - [exploration-time-limit.md](exploration-time-limit.md) — 탐색 제한 시간: 쉬는 시간 시작 즉시 시계, 안전지대 없음, 무대 입구 통로 복귀, 끝나면 대기실에 추격자, 60초 소집 경보·30·10초 방송, 기획서 4.1 미적용 목록. 제한 시간·경보·추격을 만들 때
 - [night-maintenance.md](night-maintenance.md) — 밤 정비(타이머·추격자 없음, 전력 차단·철창, 기물 구매, 침대 수면으로 종료)와 신체 복구 서비스 상시 이용·연출 A안(8번 방). 밤 정비·신체 복구를 만들 때
+- [clue-overview.md](clue-overview.md) — 단서 오버뷰(제자리 열람·이동 잠금·각자 동시 열람)와 M2 공연 기본값(1일차 포함 외줄타기). 단서·조사 대상을 만들 때
+- [exploration-breach.md](exploration-breach.md) — 탐색 조작 F, 빠루(말뚝 뽑개) 6타 벽 파괴·금 연출·팀 공유 진행, 화장실 첫 벽·작업실 빠루. 탐색 상호작용·도구 배치를 만들 때
 - [schedule-board.md](schedule-board.md) — 하루 시계·스케줄표·세트리스트(1일차 고정, 2·3일차 선택, 4일차 실행 불가)·난이도 단계 선택·플래너 노트 UI. 스케줄표·세트리스트를 만들 때
 - [shop-storage.md](shop-storage.md) — 수화기 구매(기물은 밤 정비만)·배송구 수령·소품실 가판대 보관. 상점·기물 보관을 만들 때
 - [open-items.md](open-items.md) — 플레이어 상태/조작 보류(M1 이후)·별도 기획서·미확정 규칙 목록. 대기실 Task 범위를 정하거나 미정 항목을 확인할 때
+
+- [retired-troupe-display.md](retired-troupe-display.md) — 보관소의 훼손 단원 4명을 캐비닛 옆 벽면에 일렬 진열하는 기준. 유해/코스튬 배치 때
+- [stage-entrance-reveal.md](stage-entrance-reveal.md) — 무대 입구 천 커튼: 한 명 도착 시 걷힘·황금빛·금가루, 모두 떠나면 닫힘. 무대 입구 연출 때
+- [practice-ring.md](practice-ring.md) — 연습실 링 40m(평면만 2.5배)·외줄 연장·옆 트램펄린/인간 대포·관중석. 연습실 링 배치 때
+- [lobby-tree-tent.md](lobby-tree-tent.md) — 로비 중앙: 크리스마스트리 같은 초라한 1인용 원뿔 천막과 그 아래 서커스 도구·상자. 로비 장식 때
+- [mezzanines-and-locked-door.md](mezzanines-and-locked-door.md) — 물류 홀·로비 철제 중층(무너진 철골), B1 계단실 잠긴 문 문틀, 휴게 공간 위치, 시멘트·녹 벽. 2층·출입·벽 재질 때

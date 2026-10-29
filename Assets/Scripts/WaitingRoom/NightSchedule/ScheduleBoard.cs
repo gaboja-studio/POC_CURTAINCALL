@@ -125,27 +125,7 @@ namespace CurtainCall.WaitingRoom
             return ScheduleRefusal.None;
         }
 
-        /// <summary>
-        /// 내 밤 정비 준비 완료를 누를 수 있는가. 호스트는 그날 밤 스케줄표를 확정하기 전에는 못 누른다(2026-10-17 담당자 결정).
-        /// 호스트가 준비해야 밤이 끝나므로, 확정 없이 다음 날로 넘어가지 않는다. 참가자는 언제든 누를 수 있다.
-        /// </summary>
-        public bool CanReady(out string reason)
-        {
-            reason = "";
-            var run = CampaignRun.Instance;
-            if (run == null || run.State.Phase != CampaignPhase.Night) { reason = "밤 정비 때만 준비 완료할 수 있습니다."; return false; }
-            if (HasAuthority && ScheduleBook.EditableDays(run.State.Day).Length > 0 && !book.IsConfirmedTonight) { reason = "스케줄표를 먼저 확정하세요."; return false; }
-            return true;
-        }
-
-        /// <summary>내 밤 정비 준비 완료를 바꾼다. 준비하려는데 <see cref="CanReady"/>가 아니면 거절한다(취소는 언제든).</summary>
-        public bool RequestReady(bool ready)
-        {
-            var run = CampaignRun.Instance;
-            if (run == null) return false;
-            if (ready && !CanReady(out string reason)) { LastMessage = reason; return false; }
-            return run.SetReady(ready);
-        }
+        // 밤 정비 준비 완료는 M2에서 숙소 침대(NightBed)로 옮겼다. 스케줄표 확정은 밤 종료 조건이 아니다(Task-079).
 
         public static string Explain(ScheduleRefusal refusal) => refusal switch
         {
