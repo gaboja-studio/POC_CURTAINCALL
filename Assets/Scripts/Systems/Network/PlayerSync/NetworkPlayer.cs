@@ -31,6 +31,26 @@ namespace CurtainCall.Network.PlayerSync
         static readonly List<NetworkPlayer> all = new();
 
         readonly NetworkVariable<int> slot = new(NoSlot);
+        readonly NetworkVariable<int> appearanceModel = new(-1);
+        readonly NetworkVariable<int> appearanceOutfit = new(-1);
+        public int AppearanceModel => appearanceModel.Value;
+        public int AppearanceOutfit => appearanceOutfit.Value;
+
+        public void RequestAppearance(int model, int outfit)
+        {
+            if (IsSpawned && IsOwner) RequestAppearanceRpc(model, outfit);
+        }
+
+        [Rpc(SendTo.Server, RequireOwnership = true)]
+        void RequestAppearanceRpc(int model, int outfit)
+        {
+            var session = CurtainCall.Network.Session.NetworkSessionManager.EnsureExists();
+            var catalog = CurtainCall.CharacterArt.PlayerAppearanceCatalog.Current;
+            if (session.GameState != CurtainCall.Network.Session.GameSessionState.Waiting || catalog == null || !catalog.Valid(model, outfit)) return;
+            if (all.Exists(p => p != this && p.AppearanceOutfit == outfit)) return;
+            appearanceModel.Value = model;
+            appearanceOutfit.Value = outfit;
+        }
         readonly NetworkVariable<int> restingBed = new(-1, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         /// <summary>Presentation-only bed selection, replicated with the player for late joiners.</summary>
         public int RestingBed => restingBed.Value;
@@ -368,7 +388,18 @@ namespace CurtainCall.Network.PlayerSync
             if (State != PlayerState.Normal) ApplyState(State); // 늦게 생성된 화면도 현재 상태를 맞춘다
 
             if (IsServer)
+            {
                 slot.Value = FindFreeSlot();
+                var catalog = CurtainCall.CharacterArt.PlayerAppearanceCatalog.Current;
+                if (catalog != null)
+                {
+                    var choice = catalog.DefaultFor(slot.Value);
+                    int candidate = CurtainCall.CharacterArt.PlayerAppearanceCatalog.FindAvailableOutfit(choice.outfit, catalog.outfits.Length,
+                        all.FindAll(p => p != this).ConvertAll(p => p.AppearanceOutfit));
+                    if (candidate >= 0 && catalog.Valid(choice.model, candidate))
+                    { appearanceModel.Value = choice.model; appearanceOutfit.Value = candidate; }
+                }
+            }
             else if (Slot != NoSlot)
                 PlaceAtStart();
 

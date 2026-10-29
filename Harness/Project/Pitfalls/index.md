@@ -1,5 +1,6 @@
 # Project Pitfalls
 
+- [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
 - [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지 부상 오판과 꺾인 외줄 방향 인계를 고칠 때
 
 - [escape-depth-route.md](escape-depth-route.md) — 탈출로 묘기 도달·운반 트램폴린 묻힘·대포 목표 표식·교체 구조 잔여물 확인

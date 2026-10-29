@@ -1,0 +1,132 @@
+{
+  "status": "completed",
+  "duration": 9.01,
+  "summary": {
+    "total": 17,
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.ActualMoverDrivesWalkRunCrouchAndJumpStates",
+      "Status": "Passed",
+      "Duration": 0.2856653,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.ActualPrefabCutsAllLimbsAndRestoresWithoutLegacyPieces",
+      "Status": "Passed",
+      "Duration": 0.264662,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.CrawlSamplesRecordGroundClearanceWithoutClaimingFootContact",
+      "Status": "Passed",
+      "Duration": 1.1399469,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.CrawlSlopeAndJumpRecordClearanceWithoutClaimingContactQuality",
+      "Status": "Passed",
+      "Duration": 0.7742154,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.DetachedLimbsKeepCutSurfaceAndBendTheirRenderedSkinImmediately",
+      "Status": "Passed",
+      "Duration": 2.0740057,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.FourColorsPreserveCapsSharedMaterialsAndFragmentSnapshot",
+      "Status": "Passed",
+      "Duration": 0.0921532,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.HangingDeathImmediatelyReleasesAnimatedArmsAndFalls",
+      "Status": "Passed",
+      "Duration": 0.7731005,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.HangPalmsStayOnContactAndRopePoleSwayAreIndependent",
+      "Status": "Passed",
+      "Duration": 0.2585208,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.InitialInjuryRebindBatchCutsAndDisableDoNotReplayHistory",
+      "Status": "Passed",
+      "Duration": 0.0913462,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.InitialLegLossStartsProneWithoutWaitingForMovement",
+      "Status": "Passed",
+      "Duration": 0.1091342,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.InitialNetworkConditionDoesNotSuppressNextSameFrameCut",
+      "Status": "Passed",
+      "Duration": 0.0737931,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.InjuryCountSelectsSurfaceAndRestoresAfterModelReplacement",
+      "Status": "Passed",
+      "Duration": 0.2088411,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.KeyboardEventsReachReaderControllerAndHumanoidAnimation",
+      "Status": "Passed",
+      "Duration": 0.4060467,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.LiveSettingsColorReachesBodyButNotOldFragment",
+      "Status": "Passed",
+      "Duration": 0.1093747,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.PropertyBlockColorSurvivesCameraFadeAndRestore",
+      "Status": "Passed",
+      "Duration": 0.0769337,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.RabbitSurfaceStatesPreserveCapsTintAndDetachedSnapshots",
+      "Status": "Passed",
+      "Duration": 0.0736161,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidPlayerTests.RagdollReplacementPreservesInjuryWithoutReplayingFragments",
+      "Status": "Passed",
+      "Duration": 2.0920974,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

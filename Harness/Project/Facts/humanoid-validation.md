@@ -1,8 +1,8 @@
 ---
 summary: Body Type 1 고정 절단·8개 Humanoid·실제 Player 표현과 미완성 동작 제약
 status: active
-updated: 2026-10-20
-source: Task-20261019-062
+updated: 2026-10-30
+source: Task-20261019-062, Task-20261029-078
 ---
 
 # 휴머노이드 절단·외형 연결
@@ -26,6 +26,10 @@ source: Task-20261019-062
 - 8개 GUID/localID/길이/60fps/바이너리 유지. army_crawl은 낮은 양팔 포복, crawling은 높이 변화가 크다. 둘 다 한팔 전용 아님. 이전 미리보기 표본 army 약 -0.087m/crawling 약 -0.052m 관통; 접지 완료 아님. 개별 출처·배포 권리는 미확인.
 
 ## 실제 Player
+
+- 2026-10-30: 토끼 게임용 리소스는 `Assets/_ThirdParty/CharacterArt/Rabbit/`(19개 GUID보존), 기능wrapper Rabbit.prefab은 Resources 유지. private PR10 사용자병합. NetworkManager의 PlayerPrefab·빌드씬11개 연결 조사 완료. HumanoidPlayerPresentation은0부상Clean/1~2Light/3이상또는Fallen·Retired사망Heavy를 적용하며 모델재생성/복구에도 재계산한다. 별도 표면동기화변수 없이 기존 상태를 사용한다.
+
+- 2026-10-29 Task078: 실제 Player 슬롯은 `Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Rabbit.prefab`으로 교체. 기존 private Humanoid와 Controller/클립은 보존하며 아래 부상·카메라·동기화 계약을 재사용한다. v14 토끼는 정상9922tri/55skin bones/52명시적Humanoid,정상+누적Body4+Limb4,표면2+단계별cap. `fitToHeight=false`, `squashWhenCrouched=false`, 트림슬롯1만 플레이어색. Clean/Light/Heavy 3표면(RabbitSurfaceStates), Editor2/PlayMode16검사 통과(v15,2026-10-30), 발목560조건·300포즈/16단면gap0(v14), 5신체상태 숨김/복원은 v12 검증, 온라인2인·최종 미술 검토는 별도.
 
 - HumanoidPresentation 코드 + private Task062/PlayerPresentation 외형/Controller/클립. 실제 PlayerModelSlot에 연결, root motion=false/squash=false. PlayerCondition이 부상 원천이며 HumanoidModel에는 legacy LimbDismemberment가 반응하지 않는다.
 - 기본 이동/점프와 외줄/대포/소품·트램폴린 운반 상태를 읽는다. 한발은 정상 모션, 양다리/한팔은 army_crawl 임시 재사용. CrawlHeightOffset=-.05의 평지121표본 최저점은 root 기준 .0013~.0522m. 전용 hop/한팔 끌기/팔점프·공연 접점·경사 접지 품질 완성 아님.

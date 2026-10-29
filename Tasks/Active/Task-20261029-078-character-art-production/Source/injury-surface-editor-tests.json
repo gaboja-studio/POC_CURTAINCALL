@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 1.13,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidAssetsTests.ActualPlayerReferencesRabbitWithProductionHumanoidContract",
+      "Status": "Passed",
+      "Duration": 0.8242852,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tests.HumanoidPresentation.HumanoidAssetsTests.ProductionControllerContainsMotionAndCarryLayerContracts",
+      "Status": "Passed",
+      "Duration": 0.0024713,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}
