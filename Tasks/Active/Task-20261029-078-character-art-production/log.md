@@ -1,5 +1,21 @@
 # Log
 
+## 2026-10-30 분홍 소녀 다면도 v01
+- check-work -SkipUnity 1회: 안전성/Structure/Knowledge/Fast OK, Context WARN. 마지막 fingerprint 비교에서 검사 중 다른 파일 변경을 감지해 전체 검사는 중단됐다. 전체 PASS로 기록하지 않는다. 이미지/프롬프트 파일 존재·크기 확인, Unity/자동 테스트 미실시.
+- 사용자 요청으로 내장 image_gen에 원화 #3(정체성/얼굴/의상)·#2(후면)와 파란 삐에로 시트(배치/재질 스타일)를 참조해 정면/좌측/후면/우측 A-pose 시트를 생성했다. 직접 시각 확인: 붉은 분홍 땋은 머리·큰 리본·아이보리 얼굴/불안한 표정·프릴 드레스·봉제 다리·스트랩 구두, 동일 발 기준선과 전신 프레이밍.
+- References/pink-girl-turnaround-v01.png 및 pink-girl-turnaround-v01-prompt.txt 저장, 기본 생성 원본 보존. 후면 재단·허리 리본·패치/봉제선 세부는 디자인 제안이며 뷰별 미세 차이는 단일 3D 메시 제작 시 보정한다. 모델/최적화/리깅/Unity 기능 검증은 이번에 수행하지 않았다.
+- 같은 Task의 기존 doctor 결과를 유지하고 재실행하지 않았다. 다른 코드/자산 변경은 보존했으며 이번 이미지/기록 외 변경이나 commit/push 없음.
+
+## 2026-10-30 파란 삐에로 다면도 v01
+- 사용자 요청에 따라 내장 image_gen으로 원화 #3(파란 삐에로 정체성/얼굴/의상)·#2(후면) 및 곰 다면도(배치/표면 스타일)를 참조했다. 동일 축척의 정면/좌측/후면/우측 A-pose, 파란 덩어리 머리·창백한 얼굴·붉은 코/볼·불안한 표정·크림 프릴·파란 패치 의상·장갑/구두를 직접 시각 점검했다.
+- References/blue-pierrot-turnaround-v01.png와 blue-pierrot-turnaround-v01-prompt.txt 저장, 기본 생성 원본 보존. 후면 재단·패치·봉제선은 디자인 제안, 뷰별 머리/장식의 미세 차이는 모델링 시 단일 메시로 보정할 사항이다. 이번 산출물은 2D 참고 시트이며 3D/리깅/Unity 검증 결과가 아니다.
+- 같은 Task에서 doctor 재실행 없이 앞선 점검 결과 유지. 기존 게임 코드/자산 및 다른 작업 변경은 보존하고, commit/push 없이 이번 이미지와 기록만 추가했다.
+
+## 2026-10-30 곰 다면도 v01
+- 사용자 요청: 원화 곰을 토끼와 같은 방식으로 그리기. 내장 image_gen으로 원화 #3(곰 정체성/색상)·#2(후면)와 기존 토끼 v02(배치/재질 스타일)를 참조해 4면도 생성. 정면/좌측/후면/우측, 동일 발 기준선·A-pose·녹색 모자/의상·갈색 봉제 머리·크림 주둥이·녹색 눈 패치·짧고 통통한 비율을 직접 시각 점검했다.
+- References/bear-turnaround-v01.png와 bear-turnaround-v01-prompt.txt 저장. 기본 생성 원본 보존. 후면 재단·꼬리·세부 패치 위치는 참고 기반 디자인 제안이며, 생성 시트의 뷰별 미세 차이는 후속 단일 3D 메시 직교 뷰로 정리해야 한다. 리깅/스키닝/게임 적용 성공을 뜻하지 않는다.
+- doctor -SkipEditor 1회: third-party 초기화 판정 및 Task077/078/079 중복으로 FAIL, gh 경고. private 토끼 참고 이미지 읽기 성공, 이번 Task 경로 PNG 저장에 영향 없음. 관련 없는 기존 Unity/코드 변경은 보존, commit/push 없음.
+
 ## 2026-10-30 V16 플레이어 바리에이션
 - origin/dev e58b207f를 병합51150752. 문서목차는 양측 항목을 유지하고 submodule은 양쪽 조상을 포함한 private main20b7565b를 선택했다. doctor의 Task077중복/서브모듈샌드박스 오판은 기존이슈.
 - 4슬롯 버건디/블루/머스터드/세이지 팔레트 및 패턴을 atlas 기반 셰이더와 MaterialPropertyBlock으로 적용. 기존9메시/55본/3단계부상 상태를 공유한다. NetworkPlayer.Slot으로 설정하고 분리 시 PropertyBlock도 복제해 조각의 색상 스냅샷을 보존한다. 네 외형 비교렌더는 private Source~/Previews/rabbit-v16-variants.png.
