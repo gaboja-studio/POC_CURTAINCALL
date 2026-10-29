@@ -64,15 +64,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return Settle();
         }
         [UnityTest]
-        public IEnumerator NearestTwo_ReevaluateMotionViewOcclusionAndDestruction()
+        public IEnumerator AllNearby_ReevaluateMotionViewOcclusionAndDestruction()
         {
             var a = Phone("Near", new Vector3(-.5f, 101, 1));
             var b = Phone("Middle", new Vector3(.5f, 101, 2));
             var c = Phone("Far", new Vector3(1, 101, 3));
             var originalMaterial = a.GetComponent<Renderer>().sharedMaterial;
             yield return Settle();
-            CollectionAssert.AreEquivalent(new[] { a.transform, b.transform }, Highlighted);
-            Assert.AreEqual(2, Get(ui, "HighlightCount"));
+            CollectionAssert.AreEquivalent(new[] { a.transform, b.transform, c.transform }, Highlighted);
+            Assert.AreEqual(3, Get(ui, "HighlightCount"));
             Assert.AreSame(originalMaterial, a.GetComponent<Renderer>().sharedMaterial);
             Assert.IsNotNull(a.transform.Find("__InteractionOutline"));
             a.transform.position += Vector3.right * 20;

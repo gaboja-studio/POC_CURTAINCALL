@@ -21,6 +21,12 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] string itemId = ItemUses.StakePuller;
         [SerializeField] string itemName = "천막 말뚝 뽑개";
 
+        [Tooltip("이 대상이 열린 뒤에만 바닥 기물 생성. 비우면 기존처럼 처음부터 생성.")]
+        [SerializeField] string availableAfter = "";
+        public bool CanSeed => string.IsNullOrEmpty(availableAfter)
+            || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(availableAfter));
+        public void UnlockAfter(string targetId) => availableAfter = targetId ?? "";
+
         public string SpotId => spotId;
         public Vector3 FloorPoint => transform.position;
 

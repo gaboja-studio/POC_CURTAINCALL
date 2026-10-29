@@ -17,6 +17,22 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] GameObject[] marks;
         [SerializeField] AudioSource sound;
 
+        /// <summary>기존 UV 발견·내구도 규칙을 보존하고 경로 ID만 연결한다.</summary>
+        public void ConfigureRoute(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) throw new System.ArgumentException(nameof(id));
+            targetId = id;
+        }
+        public void RevealWhenFound(GameObject content)
+        {
+            if (content == null || content == gameObject || transform.IsChildOf(content.transform))
+                throw new System.ArgumentException(nameof(content));
+            var contents = new System.Collections.Generic.List<GameObject>(marks ?? System.Array.Empty<GameObject>());
+            if (!contents.Contains(content)) contents.Add(content);
+            marks = contents.ToArray();
+            content.SetActive(Found);
+        }
+
         public string TargetId => targetId;
         public string ToolId => ItemUses.UvLamp;
         public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? "서커스 UV 등";

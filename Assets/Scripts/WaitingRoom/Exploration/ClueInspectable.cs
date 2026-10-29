@@ -12,10 +12,14 @@ namespace CurtainCall.WaitingRoom
     /// 결정(2026-10-29 사용자): 제자리 열람(소지·슬롯 없음, 닫으면 원위치), 보는 동안 이동·다른 입력 막고 시간은 흐름,
     /// 여러 명이 각자 동시에 본다(열람 자체는 동기화하지 않음). ESC·F·오른쪽 클릭으로 닫고, 밀려나면 자동으로 닫힌다.
     /// 원본은 그대로 두고 보이는 사본을 카메라 앞에 띄우므로 장면·충돌·다른 사람 화면은 바뀌지 않는다.
-    /// 팀 공유 발견 상태는 4단계(런 내 진행 유지·다인원)에서 붙인다. 지금은 내 화면의 <see cref="Discovered"/>만 남긴다.
+    /// 발견 상태는 기존 탐색 채널로 팀 공유하고, 오버뷰 조작은 각 화면에만 남긴다.
     /// </summary>
-    public sealed class ClueInspectable : MonoBehaviour, IShopTarget, IShopPresentation
+    public sealed class ClueInspectable : MonoBehaviour, IShopTarget, IShopPresentation, IExplorationTarget
     {
+        [SerializeField] string targetId = "";
+        [SerializeField] string availableAfter = "";
+        [SerializeField] bool revealPending;
+
         [Tooltip("보여 줄 단서 몸체(없으면 이 오브젝트).")]
         [SerializeField] Transform body;
 
@@ -44,15 +48,40 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>지금 내 화면에서 보고 있는 단서(없으면 null).</summary>
         public static ClueInspectable Current { get; private set; }
+        ExplorationPanel panelView;
 
-        /// <summary>내 화면에서 한 번이라도 열어 본 적이 있는가.</summary>
-        public bool Discovered { get; private set; }
+        /// <summary>팀이 이 런에서 발견했는가.</summary>
+        public bool Discovered => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(targetId);
+        public string UnlockTarget => availableAfter;
+        public bool RevealPending => revealPending;
+        public bool Revealed => !revealPending && (string.IsNullOrEmpty(availableAfter)
+            || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(availableAfter)));
+        public void ConfigureIdentity(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException(nameof(id));
+            targetId = id;
+        }
+        public void ConfigurePendingRoute(string id) { ConfigureIdentity(id); revealPending = true; }
+        public void ConfigureRoute(string id, string unlockedBy)
+        {
+            if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException(nameof(id));
+            targetId = id; availableAfter = unlockedBy ?? ""; revealPending = false;
+        }
+        public string TargetId => targetId;
+        public string ToolId => "";
+        public string ToolName => "";
+        public string Label => title;
+        public string RewardItemId => "";
+        public Vector3 RewardPoint => Body.position;
+        public int RewardUidOffset => 0;
+        public bool Resolve(int attemptNumber, System.Random rng) => true;
+        public string Describe(bool success, int attemptNumber) => title + " 발견";
         public bool IsOpen => Current == this;
         public string Title => title;
 
         public Transform VisualRoot => Body;
         public Vector3 PresentationPoint => Body.position + Vector3.up * .25f;
-        public bool IsAvailable => Current == null;
+        public bool IsAvailable => Revealed && Current == null;
         public string ActionLabel => $"{title} 살펴보기";
 
         Transform Body => body != null ? body : transform;
@@ -70,12 +99,30 @@ namespace CurtainCall.WaitingRoom
             blocker.BlockWhileActive = false;
         }
 
-        void OnEnable() => ShopReach.Add(this);
-        void OnDisable() { ShopReach.Remove(this); SetOpen(false); }
+        void OnEnable()
+        {
+            // 이전 배치도 씬/계층 경로로 식별. 정식 배치에는 명시적 ID 권장.
+            if (string.IsNullOrEmpty(targetId))
+            {
+                string path = name + "#" + transform.GetSiblingIndex();
+                for (var parent = transform.parent; parent != null; parent = parent.parent)
+                    path = parent.name + "#" + parent.GetSiblingIndex() + "/" + path;
+                targetId = "clue:" + gameObject.scene.path + ":" + path;
+            }
+            ShopReach.Add(this); ExplorationTargets.Add(this);
+        }
+        void OnDisable() { ShopReach.Remove(this); ExplorationTargets.Remove(this); SetOpen(false); }
 
         public float Reach(Vector3 feet)
         {
-            if (Current != null) return -1f;
+            if (!Revealed || Current != null) return -1f;
+            return ((IExplorationTarget)this).Reach(feet);
+        }
+
+        // 호스트 자신의 오버뷰 상태가 다른 참가자의 단서 발견 판정을 막지 않는다.
+        float IExplorationTarget.Reach(Vector3 feet)
+        {
+            if (!Revealed) return -1f;
             var p = Body.position; float d = new Vector2(feet.x - p.x, feet.z - p.z).magnitude;
             return d <= reach ? d : -1f;
         }
@@ -91,7 +138,7 @@ namespace CurtainCall.WaitingRoom
             var reader = LocalReader();
             bool pushedAway = reader == null || new Vector2(reader.transform.position.x - Body.position.x, reader.transform.position.z - Body.position.z).magnitude > reach + .6f;
             var keyboard = Keyboard.current; var mouse = Mouse.current;
-            bool close = pushedAway || (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
+            bool close = !Revealed || pushedAway || (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
                 || (Time.frameCount > openedFrame + 1 && keyboard != null && keyboard.fKey.wasPressedThisFrame)
                 || (mouse != null && mouse.rightButton.wasPressedThisFrame);
             if (close) { SetOpen(false); return; }
@@ -118,16 +165,20 @@ namespace CurtainCall.WaitingRoom
             if (value)
             {
                 var cam = Camera.main;
-                if (cam == null || Current != null) return;
-                Current = this; Discovered = true; openedFrame = Time.frameCount;
+                if (cam == null || Current != null || !Revealed) return;
+                if (!Discovered) ExplorationState.Instance?.RequestUse(targetId);
+                Current = this; openedFrame = Time.frameCount;
                 distance = Mathf.Lerp(viewDistance.x, viewDistance.y, .4f);
                 BuildView(cam.transform);
                 blocker.SetOpen(true);
                 Inspected?.Invoke(this);
+                if (panelView == null) panelView = gameObject.AddComponent<ExplorationPanel>();
+                panelView.Open(title, description + "\n왼쪽 끌기: 회전   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기", false, null, () => SetOpen(false), true);
             }
             else
             {
                 if (Current == this) Current = null;
+                if (panelView != null) panelView.Hide();
                 if (view != null) Destroy(view.gameObject);
                 view = pivot = null;
                 if (blocker != null) blocker.SetOpen(false);
@@ -209,6 +260,7 @@ namespace CurtainCall.WaitingRoom
             textStyle ??= new GUIStyle(GUI.skin.label) { fontSize = 15, alignment = TextAnchor.UpperCenter, wordWrap = true, normal = { textColor = new Color(.9f, .88f, .82f) } };
             if (IsOpen)
             {
+                if (panelView != null) return;
                 GUI.Label(new Rect(0, Screen.height * .08f, Screen.width, 36), title, titleStyle);
                 if (!string.IsNullOrEmpty(description)) GUI.Label(new Rect(Screen.width * .2f, Screen.height * .78f, Screen.width * .6f, 80), description, textStyle);
                 GUI.Label(new Rect(0, Screen.height - 40, Screen.width, 28), "왼쪽 끌기: 돌려 보기   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기", textStyle);

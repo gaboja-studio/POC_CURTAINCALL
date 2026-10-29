@@ -35,6 +35,24 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, Range(1, 99)] int rewardUidOffset = 50;
         [SerializeField] AudioSource sound;
 
+        /// <summary>기존 개방 방식·확률·보상·내구도는 그대로 두고 경로 ID만 연결한다.</summary>
+        public void ConfigureRoute(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id)) throw new System.ArgumentException(nameof(id));
+            targetId = id;
+        }
+
+        /// <summary>기존 개방 연출을 재사용해 내용물을 공개한다. 씬 에셋은 저장하지 않는다.</summary>
+        public void RevealWhenOpened(GameObject content)
+        {
+            if (content == null || content == gameObject || transform.IsChildOf(content.transform))
+                throw new System.ArgumentException(nameof(content));
+            var contents = new System.Collections.Generic.List<GameObject>(showOnOpen ?? System.Array.Empty<GameObject>());
+            if (!contents.Contains(content)) contents.Add(content);
+            showOnOpen = contents.ToArray();
+            content.SetActive(Opened);
+        }
+
         public string TargetId => targetId;
         public string ToolId => kind == ToolTargetKind.HairpinLock ? ItemUses.MagicianHairpin : ItemUses.StakePuller;
         public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? (kind == ToolTargetKind.HairpinLock ? "마술사의 머리핀" : "천막 말뚝 뽑개");
