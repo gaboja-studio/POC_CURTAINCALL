@@ -3,7 +3,7 @@
 - **Title:** 조감도 A 기반 대기실 단계별 구조·배치 및 디자인
 - **Type:** feat
 - **Assignee:** @gyumin9048-ctrl (mingyu)
-- **Branch:** feat/waiting-room/design-rooms
+- **Branch:** feat/waiting-room/design-rooms — Task-079와 공유(PM 승인, 검사 기록은 Task-079)
 - **Base:** dev
 - 기준 카드: CC-159, 초기 CC-163은 이관 참고. 계획·과거 결과 원문: [History/plan-before-detail-20261028.md](History/plan-before-detail-20261028.md).
 

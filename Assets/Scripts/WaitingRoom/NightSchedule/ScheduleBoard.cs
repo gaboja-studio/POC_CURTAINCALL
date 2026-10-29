@@ -125,7 +125,7 @@ namespace CurtainCall.WaitingRoom
             return ScheduleRefusal.None;
         }
 
-        // 밤 정비 준비 완료는 M2에서 숙소 침대(NightBed)로 옮겼다. 스케줄표 확정은 밤 종료 조건이 아니다(Task-078).
+        // 밤 정비 준비 완료는 M2에서 숙소 침대(NightBed)로 옮겼다. 스케줄표 확정은 밤 종료 조건이 아니다(Task-079).
 
         public static string Explain(ScheduleRefusal refusal) => refusal switch
         {

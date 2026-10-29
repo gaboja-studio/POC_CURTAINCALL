@@ -123,7 +123,7 @@ namespace CurtainCall.UI.SceneIntegration
             confirmButton.gameObject.SetActive(night && schedule.HasAuthority && ScheduleBook.EditableDays(run.State.Day).Length > 0);
             confirmButton.interactable = !schedule.Book.IsConfirmedTonight;
             Label(confirmButton, schedule.Book.IsConfirmedTonight ? "확정 완료" : "일정 확정");
-            // M2: 밤 정비 준비 완료는 숙소 침대에서 한다(Task-078). 스케줄표 화면의 준비 버튼은 쓰지 않는다.
+            // M2: 밤 정비 준비 완료는 숙소 침대에서 한다(Task-079). 스케줄표 화면의 준비 버튼은 쓰지 않는다.
             readyButton.gameObject.SetActive(false);
             GetComponentInParent<UiRuntimeFontFallback>()?.ApplyTo(transform);
         }

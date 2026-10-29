@@ -219,7 +219,7 @@ namespace CurtainCall.WaitingRoom
             return refusal;
         }
 
-        // ---- 탐색이 쓰는 판정 화면 전용 진입점(Task-078) ----
+        // ---- 탐색이 쓰는 판정 화면 전용 진입점(Task-079) ----
 
         /// <summary>
         /// 판정 화면: 플레이어가 든 기물을 한 번 쓴다. 상호작용 대상이 파괴되거나 보상을 얻은 때에만 부른다(item-durability.md).

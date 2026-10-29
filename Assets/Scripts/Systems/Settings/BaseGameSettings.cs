@@ -123,10 +123,10 @@ namespace CurtainCall.Settings
             [Tooltip("하루 공연 횟수(회). 공연 사이마다 쉬는 시간, 마지막 공연 뒤 밤 정비. 기획 2.")]
             [SerializeField, Min(1)] int performancesPerDay = 2;
 
-            [Tooltip("1일차 공연 순서(묘기 이름, 고정). 2일차부터는 밤 정비 때 정하는 세트리스트를 쓴다. M2: 외줄타기 → 외줄타기(2026-10-29 사용자, Task-078).")]
+            [Tooltip("1일차 공연 순서(묘기 이름, 고정). 2일차부터는 밤 정비 때 정하는 세트리스트를 쓴다. M2: 외줄타기 → 외줄타기(2026-10-29 사용자, Task-079).")]
             [SerializeField] string[] firstDayTricks = { "Tightrope", "Tightrope" };
 
-            [Tooltip("2일차부터 스케줄표로 정하지 않은 공연에 쓰는 묘기. M2: 스케줄표 편성 보류 동안 외줄타기 고정(Task-078).")]
+            [Tooltip("2일차부터 스케줄표로 정하지 않은 공연에 쓰는 묘기. M2: 스케줄표 편성 보류 동안 외줄타기 고정(Task-079).")]
             [SerializeField] string defaultTrick = "Tightrope";
 
             [Tooltip("쉬는 시간 길이(초). 아침·공연 사이 공통. 시작하자마자 흐른다(M2, 안전한 곳 없음). 기획 5분 = 300.")]

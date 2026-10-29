@@ -388,7 +388,7 @@ namespace CurtainCall.SpaceLink.Tests
             }
             Assert.AreEqual("None", Call(board, "Confirm").ToString());
             var scene = SceneManager.GetActiveScene();
-            // M2: 준비 완료는 숙소 침대 F(Task-078).
+            // M2: 준비 완료는 숙소 침대 F(Task-079).
             Call(Object.FindAnyObjectByType(GameType("CurtainCall.WaitingRoom.NightBed")), "Interact");
             Assert.AreEqual("Dawn", Phase);
             Assert.IsTrue((bool)Get(view, "IsOpen"));

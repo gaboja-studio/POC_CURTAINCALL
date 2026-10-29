@@ -28,7 +28,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         [Test]
         public void UnscheduledDays_DefaultToTightrope_AndNightEndsWithoutConfirmation()
         {
-            // M2(Task-078): 스케줄표 편성 보류 동안 2일차부터 편성하지 않은 공연은 외줄타기, 밤은 침대 준비만으로 끝난다.
+            // M2(Task-079): 스케줄표 편성 보류 동안 2일차부터 편성하지 않은 공연은 외줄타기, 밤은 침대 준비만으로 끝난다.
             var run = new RunState();
             run.StartSession();
             Assert.IsTrue(run.EndIntro());

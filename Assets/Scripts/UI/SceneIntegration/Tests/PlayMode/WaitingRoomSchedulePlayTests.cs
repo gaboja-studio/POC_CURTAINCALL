@@ -22,7 +22,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
         IEnumerator ReadyToMorning(int day, object ui)
         {
-            // M2: 준비 완료는 숙소 침대 F(Task-078). 스케줄표 화면에는 준비 버튼이 없다.
+            // M2: 준비 완료는 숙소 침대 F(Task-079). 스케줄표 화면에는 준비 버튼이 없다.
             Assert.IsFalse(((Component)Private(ui, "readyButton")).gameObject.activeSelf);
             Call(Find("CurtainCall.WaitingRoom.NightBed"), "Interact");
             Call(Get(ui, "View"), "Close");
