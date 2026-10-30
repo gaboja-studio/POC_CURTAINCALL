@@ -42,7 +42,7 @@ namespace CurtainCall.WaitingRoom
         public const string BalloonPants = "balloon-pants";
         public const string SpringShoes = "spring-shoes";
         public const string MagicianHairpin = "magician-hairpin";
-        /// <summary>천막 말뚝 뽑개(빠루). 판자·덮개·서랍 개방과 숨은 길 벽 파괴에 쓴다.</summary>
+        /// <summary>천막 말뚝 뽑개. 판자·덮개·서랍 개방과 숨은 길 벽 파괴에 쓴다.</summary>
         public const string StakePuller = "stake-puller";
         public const string UvLamp = "uv-lamp";
     }

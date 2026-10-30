@@ -31,6 +31,8 @@ namespace CurtainCall.WaitingRoom
     {
         static readonly List<IExplorationTarget> all = new();
 
+        public static IReadOnlyList<IExplorationTarget> All => all;
+
         public static void Add(IExplorationTarget t) { if (!all.Contains(t)) all.Add(t); }
         public static void Remove(IExplorationTarget t) => all.Remove(t);
 

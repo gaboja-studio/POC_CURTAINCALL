@@ -261,6 +261,15 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) PickUp(int uid, ulong player)
         {
+            // Use the same displayed position/range (including pile spreading) as the F selector.
+            foreach (var floor in book.Floor)
+                if (floor.Item.Uid == uid)
+                {
+                    var body = FindBody(player);
+                    if (body == null || !FloorPropsView.CanPickUp(uid, body.position))
+                        return Reject(player, "PICK_UP", uid, "TOO_FAR", "기물에 가까이 다가가세요.");
+                    break;
+                }
             var refusal = book.PickUp(uid, player, Slots(player), out var item);
             if (refusal != CarryRefusal.None) return Reject(player, "PICK_UP", uid, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 주움 #{item.Uid} {item.Name} → {WaitingRoomShop.PlayerLabel(player)}");
