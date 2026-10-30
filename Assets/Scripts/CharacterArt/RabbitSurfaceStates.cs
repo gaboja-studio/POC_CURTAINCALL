@@ -68,7 +68,7 @@ namespace CurtainCall.CharacterArt
                 var catalog = PlayerAppearanceCatalog.Current;
                 var color = catalog != null && catalog.outfitColors != null && variant < catalog.outfitColors.Length ? catalog.outfitColors[variant] : Palettes[variant];
                 block.SetColor("_VariantColor", color);
-                block.SetFloat("_VariantPattern", variant);
+                block.SetFloat("_VariantPattern", catalog != null ? catalog.PatternFor(variant) : variant);
                 skin.SetPropertyBlock(block, i);
                 block.Clear();
             }
