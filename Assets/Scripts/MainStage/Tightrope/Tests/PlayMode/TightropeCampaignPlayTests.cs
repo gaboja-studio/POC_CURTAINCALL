@@ -523,6 +523,26 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator SuccessPausesWorldAtLastPositionAndResumesAfterLeaving()
+        {
+            yield return BeginPerformance();
+            yield return StandOnRopeForSawTest(1, 4f);
+            var before = player.transform.position;
+            float scale = Time.timeScale;
+            try
+            {
+                Assert.IsTrue((bool)Call(rewards, "FinishPerformance", true, "Completed", null));
+                Assert.AreEqual(0f, Time.timeScale);
+                float stoppedTime = Time.time;
+                yield return new WaitForSecondsRealtime(.2f);
+                Assert.That(Time.time, Is.EqualTo(stoppedTime).Within(.001f));
+                Assert.That(Vector3.Distance(player.transform.position, before), Is.LessThan(.01f));
+                Call(rewards, "ResumeResultTime");
+                Assert.AreEqual(scale, Time.timeScale);
+            }
+            finally { Time.timeScale = scale; }
+        }
+        [UnityTest]
         public IEnumerator FirstArrivalSettlesOnceAndKeepsSessionPlaying()
         {
             // 별도 관문 검사와 분리하여 공용 정산 경계만 구성한다. TearDown에서 원래 규칙을 복구한다.
@@ -533,7 +553,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             yield return null;
             var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
             Call(mover, "SetStartPose", finish.position, finish.rotation, true);
-            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 5, "도착 공용 정산");
+            // 결과 노출과 검은 화면 유지가 실시간으로 약 5.8초 걸린다.
+            yield return Until(() => Get(bridge, "Result") != null && Phase == "RestTime", 10, "도착 공용 정산");
             var result = Get(bridge, "Result");
             Assert.IsTrue((bool)Get(result, "Succeeded"));
             Assert.AreEqual("Succeeded", Get(run, "State").ToString());

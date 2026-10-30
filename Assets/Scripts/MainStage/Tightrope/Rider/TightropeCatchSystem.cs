@@ -153,21 +153,8 @@ namespace CurtainCall.Tightrope
                 && Mathf.Abs(course.GetSide(player.transform.position) - course.GetSide(course.GetLanePosition(lane, distance))) <= .35f;
         }
 
-        /// <summary>가까운 동료에게 F 목마 타기는 유지하고, 빈 자리에서 F는 받기 준비/취소다.</summary>
-        public bool TryHandleLocalInteract()
-        {
-            var local = NetworkPlayer.Local;
-            if (!CanPrepare(local)) return false;
-            if (IsReady(local)) { CancelLocal(); return true; }
-            if (HasMountTarget(local)) return false;
-            Send(Request.Prepare);
-            return true;
-        }
-
-        bool HasMountTarget(NetworkPlayer local)
-        {
-            return PiggybackSystem.Current != null && PiggybackSystem.Current.FindMountTarget(local) != null;
-        }
+        /// <summary>수동 받기 준비는 기물 기반 자동 동작을 구현할 때까지 중지한다.</summary>
+        public bool TryHandleLocalInteract() => false; // 기물 기반 자동 받기 구현 전까지 비활성
 
         public void CancelLocal()
         {
@@ -225,16 +212,7 @@ namespace CurtainCall.Tightrope
             if (!Active) return;
             var player = Find(sender);
             if (request == Request.Cancel) { if (ready.Remove(sender)) Publish(); return; }
-            if (request == Request.Prepare)
-            {
-                if (!CanPrepare(player) || ready.ContainsKey(sender)) return;
-                ready[sender] = new ReadyWindow {
-                    Until = Now + GameSettings.Tightrope.Handhold.ReadySeconds, Position = player.transform.position
-                };
-                Publish();
-                TightropeRelaySupport.Current?.OnPrepared(player);
-                return;
-            }
+            if (request == Request.Prepare) return; // 이전 클라이언트의 수동 준비도 차단
             if (request == Request.Landed && player != null && player.State == PlayerState.Normal && IsReady(Find(target)))
             {
                 // Jump state and owner transform can arrive after the reliable landing request.

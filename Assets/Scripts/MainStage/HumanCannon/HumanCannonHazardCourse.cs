@@ -51,7 +51,7 @@ namespace CurtainCall.HumanCannon
             if (index < 0 || index >= hazards.Length || hazards[index] == null) return false;
             var hazard = hazards[index];
             if (useAuthoredHazardCount || hazard.KillsOnContact) return true;
-            if (hazard.IsPoleSaw || hazard.Kind == CannonHazardKind.SpikeMace) return true;
+            if (hazard.IsPoleSaw || hazard.Kind == CannonHazardKind.SpikeMace || hazard.UsesAuthoredPath) return true;
             int count = 0;
             foreach (var other in hazards)
                 if (other != null && !other.IsPoleSaw && other.Kind == hazard.Kind) count++;

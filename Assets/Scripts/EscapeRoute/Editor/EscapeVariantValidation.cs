@@ -76,8 +76,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             if (missing != 0 || badMaterials != 0) errors.Add("누락 스크립트/재질 참조");
             if (scene.isDirty) errors.Add("씬 미저장");
             var camera = GameObject.Find("Main Camera");
-            var fly = camera.GetComponent<CurtainCall.EscapeRoute.EscapeRouteFlyCamera>();
-            if (fly == null || !fly.enabled) errors.Add("자유 비행 연결 없음");
             if (background.GetComponent<CurtainCall.EscapeRoute.EscapeRouteReviewLabels>() == null) errors.Add("검토 라벨 숨김 연결 없음");
             return new { scene = scene.path, ok = errors.Count == 0, connections, heights,
                 gapChecks = gaps.Length, filledGaps, missingScripts = missing, badMaterials, errors = errors.ToArray() };

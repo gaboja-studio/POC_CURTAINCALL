@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.PerformanceBackground.EditTests",
+    "references": ["CurtainCall.PerformanceBackground"],
+    "includePlatforms": ["Editor"],
+    "optionalUnityReferences": ["TestAssemblies"]
+}

@@ -63,22 +63,24 @@ namespace CurtainCall.UI.SceneIntegration
             if (!available) { owned.HideHints(); shownGuide = shownTarget = null; return; }
             var pilot = player.GetComponent<HumanCannonPilot>();
             var trampoline = HumanCannonTrampoline.Current;
+            var carried = HumanCannonCarry.Held(player.OwnerClientId);
+            var carryTarget = HumanCannonCarry.FindGrabbable(player);
             var route = HumanCannonRouteSystem.Current;
             var poles = HumanCannonPoleSystem.Current;
             bool riding = route != null && route.IsRiding(player.OwnerClientId);
             bool seated = cannon.IsSeated(player.OwnerClientId);
-            bool carrying = trampoline != null && trampoline.isActiveAndEnabled && trampoline.Carrier == player.OwnerClientId;
+            bool carrying = carried != null;
             bool holding = pilot != null && pilot.IsHoldingPole;
             var reader = player.GetComponent<PlayerInputReader>();
             bool holdingF = reader != null && reader.Current.InteractHoldProgress > 0;
             bool hasInteractTarget = poles != null && poles.FindGrabbable(player) >= 0
-                || trampoline != null && trampoline.CanGrab(player) || cannon.FindBoardableStation(player) >= 0;
+                || carryTarget != null || cannon.FindBoardableStation(player) >= 0;
             if (!holding && !seated && !cannon.IsFlying(player.OwnerClientId)
-                && (carrying || riding || !hasInteractTarget) && ShowTransportHint(player, route, carrying))
+                && (carrying || riding || !hasInteractTarget) && ShowTransportHint(player, route, carried is HumanCannonTrampoline))
             { HideGuide(); return; }
             if (holding) ShowGuide("Space", "봉 놓기", GuideKeyWidth.Wide);
             else if (riding) HideGuide();
-            else if (carrying) ShowGuide("F 길게", "트램펄린 놓기", GuideKeyWidth.ExtraWide);
+            else if (carrying) ShowGuide("F 길게", carried.CarryName + " 놓기", GuideKeyWidth.ExtraWide);
             else if (seated) ShowGuide(holdingF ? "F 길게" : "F", holdingF ? "내리기" : "발사", holdingF ? GuideKeyWidth.ExtraWide : GuideKeyWidth.Normal);
             else HideGuide();
 
@@ -88,9 +90,12 @@ namespace CurtainCall.UI.SceneIntegration
             if (holding || riding || seated || carrying || hasInteractTarget && commonPrompt) HideTooltip();
             else if (pole >= 0)
             {
-                ShowTooltip("pole:" + pole, "봉", "[F] 잡기", poles.HangingPosition(pole));
+                var physical = poles.Pole(pole);
+                string title = physical != null && physical.RiderCapacity > 1
+                    ? $"협동 그네 {poles.OccupantCount(pole)}/{physical.RiderCapacity}" : "봉";
+                ShowTooltip("pole:" + pole + ":" + title, title, "[F] 잡기", poles.InteractionPoint(pole, player));
             }
-            else if (trampoline != null && trampoline.CanGrab(player)) ShowTooltip("trampoline", "트램펄린", "[F] 잡기", trampoline.Surface);
+            else if (carryTarget != null) ShowTooltip("carry:" + carryTarget.CarryRoot.GetInstanceID(), carryTarget.CarryName, "[F] 잡기", carryTarget.Handle.position);
             else
             {
                 int index = cannon.FindBoardableStation(player);

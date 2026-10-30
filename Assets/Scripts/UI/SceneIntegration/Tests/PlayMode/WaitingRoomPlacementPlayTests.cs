@@ -170,13 +170,17 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator M2_Placement_LobbyUvThreeMarksAndMachineMonitor()
         {
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
-            yield return PickPlaced("uv-lamp", "S01_Lobby", "Spot_uv-lamp");
+            yield return PickPlaced("uv-lamp", "S01_Lobby", "lobby-uv-lamp-1");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             yield return UsePlaced("uv-3"); Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:uv-3"));
-            // The existing found lamp has only one use; other marks must not reveal for free.
-            yield return UsePlaced("uv-1"); Assert.AreEqual(false, Call(state, "IsOpen", "structure-a:uv-1"));
+            // 2026-10-30: 장비형 UV 등은 내구도가 없어 다른 낙서도 이어서 발견한다.
+            yield return UsePlaced("uv-1"); Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:uv-1"));
             Assert.AreEqual(true, Get(Placed("hidden-graffiti-3"), "Revealed"));
-            var clue = Placed("hidden-graffiti-3"); NearPlaced(clue, 0); Call(clue, "SetOpen", true); yield return null;
+            // 숨겨진 낙서는 비추는 동안만 켜진다. 조사하려면 빛 안에 있어야 한다.
+            var mark3 = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.UvMark"), FindObjectsSortMode.None).Cast<Component>().Single(m => (string)Get(m, "TargetId") == "structure-a:uv-3");
+            Call(mark3, "Illuminate"); yield return null; Call(mark3, "Illuminate");
+            var clue = Placed("hidden-graffiti-3"); Assert.IsTrue(clue.gameObject.activeInHierarchy, "비추는 동안 보인다");
+            NearPlaced(clue, 0); Call(clue, "SetOpen", true); yield return null;
             Assert.AreEqual(true, Get(clue, "IsOpen"));
             Call(clue, "SetOpen", false);
             var monitor = Placed("monitor"); NearPlaced(monitor, 0); yield return new WaitForSecondsRealtime(.15f); Call(monitor, "Interact"); yield return null;

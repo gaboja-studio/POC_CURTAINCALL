@@ -18,7 +18,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var spots = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.FoundItemSpot"), FindObjectsSortMode.None).Cast<Component>().ToArray();
             var debug = spots.Where(s => ((string)Get(s, "SpotId")).StartsWith("debug-lobby-")).ToArray();
-            Assert.AreEqual(12, debug.Length);
+            // 2026-10-30: 더미 UV 4개는 빠지고 장비형 UV가 로비 정식 배치로 들어갔다.
+            Assert.AreEqual(8, debug.Length);
             int generation = (int)Field(State, "Generation");
             Assert.AreEqual(spots.Length, spots.Select(s => Get(Call(s, "MakeItem", generation), "Uid")).Distinct().Count());
             foreach (var group in debug.GroupBy(s => (string)Get(Call(s, "MakeItem", generation), "ItemId")))
@@ -35,7 +36,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
             mover.GetType().GetProperty("Simulated").SetValue(mover, false);
-            foreach (string kind in new[] { "stake-puller", "magician-hairpin", "uv-lamp" })
+            foreach (string kind in new[] { "stake-puller", "magician-hairpin" })
             {
                 var spot = debug.Single(s => (string)Get(s, "SpotId") == "debug-lobby-" + kind + "-1");
                 var item = Call(spot, "MakeItem", generation);

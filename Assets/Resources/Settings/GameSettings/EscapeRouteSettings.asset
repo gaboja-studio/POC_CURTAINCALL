@@ -13,3 +13,5 @@ MonoBehaviour:
   m_Name: EscapeRouteSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.EscapeRouteSettings
   dummyInputRows: 2
+  exitDoorOpenAngle: 105
+  exitDoorOpenSeconds: 4

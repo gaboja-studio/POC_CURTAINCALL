@@ -52,10 +52,10 @@ namespace CurtainCall.HumanCannon
                 carryingView.TransitionDuration = 0.18f;
             }
             // 원본/연습 모두 확정된 손잡이 소유권으로 전환한다. 운반 중 수평 시선은 몸/장치 방향에도 적용한다.
-            var trampoline = HumanCannonTrampoline.Current;
-            bool carrying = trampoline != null && trampoline.Carrier == player.OwnerClientId;
+            var carried = HumanCannonCarry.Held(player.OwnerClientId);
+            bool carrying = carried != null;
             bool carryCamera = stationIndex < 0 && !IsFlying && carrying;
-            if (carryCamera) UpdateCarryFraming(trampoline);
+            if (carryCamera) UpdateCarryFraming(carried);
             else hadCarryFraming = false;
             // 탑승/비행이 운반보다 우선하며, 사망자는 위에서 요청을 해제해 공용 관전을 사용한다.
             cannonView.RequestView(this, stationIndex >= 0 ? seatedView : carryCamera ? carryingView : flightView,
@@ -64,20 +64,20 @@ namespace CurtainCall.HumanCannon
             requestedCannonView = true;
         }
 
-        void UpdateCarryFraming(HumanCannonTrampoline trampoline)
+        void UpdateCarryFraming(IHumanCannonCarry carried)
         {
             // PreparingView는 한 프레임에 여러 번 불린다. 줌 보간은 한 번만 진행한다.
             bool advanceSmoothing = carryFrame != Time.frameCount;
             carryFrame = Time.frameCount;
             var feet = player.transform.position;
             var bounds = new Bounds(feet + Vector3.up, new Vector3(1.2f, 2.2f, 1.2f));
-            var half = trampoline.HalfSize;
-            bounds.Encapsulate(new Bounds(trampoline.Surface, new Vector3(half.x * 2f, 0.8f, half.y * 2f)));
-            bounds.Encapsulate(trampoline.Handle.position);
+            var half = carried.CarryHalfSize;
+            bounds.Encapsulate(new Bounds(carried.CarryFocus, new Vector3(half.x * 2f, 0.8f, half.y * 2f)));
+            bounds.Encapsulate(carried.Handle.position);
             foreach (var other in NetworkPlayer.All)
             {
                 if (other == null || other == player || !other.IsSpawned || other.State != PlayerState.Normal) continue;
-                var offset = other.transform.position - trampoline.Surface;
+                var offset = other.transform.position - carried.CarryFocus;
                 if ((!system.IsFlying(other.OwnerClientId) && !other.IsAirborne) || offset.y < -2f || offset.y > 30f
                     || Vector3.ProjectOnPlane(offset, Vector3.up).sqrMagnitude > 18f * 18f) continue;
                 float height = other.TryGetComponent(out PlayerMover body) ? body.BodyHeight : 2f;

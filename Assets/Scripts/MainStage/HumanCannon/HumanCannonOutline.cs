@@ -12,7 +12,13 @@ namespace CurtainCall.HumanCannon
         const string GeneratedName = "__CannonOutline";
         static readonly int SurfaceId = Shader.PropertyToID("_Surface");
         static readonly int ZWriteId = Shader.PropertyToID("_ZWrite");
+        static readonly int WidthId = Shader.PropertyToID("_OutlinePixels");
         [SerializeField] Material outlineMaterial;
+        [Tooltip("외줄타기 톱처럼 멀어질수록 외곽선을 줄인다. 작은 톱니가 고정 픽셀 외곽선에 덮여 검게 보이는 것을 막는다.")]
+        [SerializeField] bool fadeWithDistance;
+        [SerializeField, Min(0f)] float fadeFullDistance = 5f;
+        [SerializeField, Min(0f)] float fadeHiddenDistance = 14f;
+        MaterialPropertyBlock widthBlock;
         readonly List<OutlinePart> parts = new();
         readonly List<Material> sourceMaterials = new();
         static readonly Dictionary<Mesh, CachedMesh> meshes = new();
@@ -39,6 +45,21 @@ namespace CurtainCall.HumanCannon
             component.Configure(material);
             return component;
         }
+
+        public bool FadesWithDistance => fadeWithDistance;
+
+        public void SetDistanceFade(bool enabled, float fullDistance = 5f, float hiddenDistance = 14f)
+        {
+            if (!float.IsFinite(fullDistance) || !float.IsFinite(hiddenDistance) || fullDistance < 0 || hiddenDistance <= fullDistance)
+                throw new ArgumentOutOfRangeException(nameof(hiddenDistance), "0 이상이고 사라지는 거리가 더 먼 구간이 필요합니다.");
+            fadeWithDistance = enabled;
+            fadeFullDistance = fullDistance;
+            fadeHiddenDistance = hiddenDistance;
+        }
+
+        /// <summary>카메라 거리별 외곽선 폭(px). 외줄타기 톱의 거리 감쇠와 같은 선형 구간을 쓴다.</summary>
+        public static float FadedWidth(float width, float distance, float fullDistance, float hiddenDistance) =>
+            width * (1f - Mathf.InverseLerp(fullDistance, hiddenDistance, distance));
 
         public void Configure(Material material)
         {
@@ -90,11 +111,23 @@ namespace CurtainCall.HumanCannon
         {
             // 공용 가림 처리는 Cinemachine의 LateUpdate 뒤에 재질을 교체할 수 있다.
             // 렌더 직전에 확인해야 투명화가 시작/끝난 프레임에도 검은 뒷면이 남지 않는다.
+            float width = fadeWithDistance && outlineMaterial != null && outlineMaterial.HasProperty(WidthId)
+                ? outlineMaterial.GetFloat(WidthId) : 0f;
             foreach (var part in parts)
             {
                 if (part.Outline == null) continue;
                 part.Outline.enabled = part.Source != null && part.Source.enabled && HasOpaqueDepth(part.Source);
                 part.Outline.forceRenderingOff = part.Source == null || part.Source.forceRenderingOff;
+                if (!fadeWithDistance || part.Source == null) continue;
+                // 넓은 톱벽도 각 날이 카메라에서 떨어진 만큼만 줄어들도록 렌더러별로 잰다.
+                var bounds = part.Source.bounds;
+                float distance = Vector3.Distance(camera.transform.position, bounds.ClosestPoint(camera.transform.position));
+                float faded = FadedWidth(width, distance, fadeFullDistance, fadeHiddenDistance);
+                if (faded <= 0.01f) { part.Outline.forceRenderingOff = true; continue; }
+                widthBlock ??= new MaterialPropertyBlock();
+                part.Outline.GetPropertyBlock(widthBlock);
+                widthBlock.SetFloat(WidthId, faded);
+                part.Outline.SetPropertyBlock(widthBlock);
             }
         }
 

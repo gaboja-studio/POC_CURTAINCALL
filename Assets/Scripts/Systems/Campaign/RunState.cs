@@ -141,6 +141,19 @@ namespace CurtainCall.Campaign
             return true;
         }
 
+        /// <summary>
+        /// 탐색 구역 규칙(2026-10-30): 재생 구역에 아무도 없으면 쉬는 시간 타이머를 멈추고, 들어오면 남은 시간부터 다시 흐른다.
+        /// 유한 쉬는 시간에만 적용하며 바뀐 때만 true.
+        /// </summary>
+        public bool SetRestTimerPaused(bool paused)
+        {
+            if (s.Phase != CampaignPhase.RestTime || (s.Timer != RestTimerState.Running && s.Timer != RestTimerState.Stopped)) return false;
+            var wanted = paused ? RestTimerState.Stopped : RestTimerState.Running;
+            if (s.Timer == wanted) return false;
+            s.Timer = wanted;
+            return true;
+        }
+
         /// <summary>탈출로가 끝났다. 한 명 이상 도착이면 엔딩, 전원 리타이어면 런 실패 → 세대 교체.</summary>
         public bool EndEscape(bool anyoneArrived)
         {

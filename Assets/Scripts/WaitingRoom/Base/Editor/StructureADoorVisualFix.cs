@@ -187,13 +187,22 @@ namespace CurtainCall.WaitingRoom.Editor
             gate.ApplyModifiedProperties();
             Lid(root, wallX, z0, z1, floor, top, depth, iron);
         }
-        // 앞 뚜껑: 키패드·배관을 가린다. 부서질 때 배관과 함께 떨어지는 조각이다.
+        // 앞 철창(2026-10-30 확정): 키패드·배관을 가린다. 부서질 때 배관과 함께 떨어지는 조각이다. 이전 판 뚜껑은 철창으로 바꾼다.
         static void Lid(Transform root, float wallX, float z0, float z1, float floor, float top, float depth, Material iron)
         {
-            if (root.Find("BoxLid") != null) return;
-            var lid = Cube(root, "BoxLid", new Vector3(wallX + depth + .015f, (floor + .1f + top - .04f) * .5f, (z0 + z1) * .5f), new Vector3(.025f, top - .04f - floor - .1f, z1 - z0), iron);
             var so = new SerializedObject(root.GetComponent<BreakableWall>()); var list = so.FindProperty("pieces");
-            list.arraySize++; list.GetArrayElementAtIndex(list.arraySize - 1).objectReferenceValue = lid; so.ApplyModifiedProperties();
+            var pieces = Enumerable.Range(0, list.arraySize).Select(i => list.GetArrayElementAtIndex(i).objectReferenceValue as Transform).Where(t => t != null).ToList();
+            var lid = root.Find("BoxLid");
+            if (lid != null) { pieces.Remove(lid); Undo.DestroyObjectImmediate(lid.gameObject); }
+            if (root.Find("GratingBar") == null)
+            {
+                float x = wallX + depth + .015f, y0 = floor + .1f, y1 = top - .04f, yc = (y0 + y1) * .5f, zc = (z0 + z1) * .5f;
+                foreach (var (z, h) in new[] { (z0 + .02f, y1 - y0), (z1 - .02f, y1 - y0) }) pieces.Add(Cube(root, "GratingBar", new Vector3(x, yc, z), new Vector3(.03f, h, .04f), iron));
+                foreach (var y in new[] { y0 + .02f, yc, y1 - .02f }) pieces.Add(Cube(root, "GratingBar", new Vector3(x, y, zc), new Vector3(.03f, .04f, z1 - z0), iron));
+                for (int i = 1; i <= 5; i++) pieces.Add(Cube(root, "GratingBar", new Vector3(x, yc, Mathf.Lerp(z0, z1, i / 6f)), new Vector3(.025f, y1 - y0 - .08f, .022f), iron));
+            }
+            list.arraySize = pieces.Count; for (int i = 0; i < pieces.Count; i++) list.GetArrayElementAtIndex(i).objectReferenceValue = pieces[i];
+            so.ApplyModifiedProperties();
         }
         static Transform WallPanel(Transform parent, MeshRenderer wall, Vector3 at, float z0, float z1, float y0, float y1)
         {
