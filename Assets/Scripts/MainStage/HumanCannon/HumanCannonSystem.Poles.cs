@@ -12,7 +12,7 @@ namespace CurtainCall.HumanCannon
         {
             if (session == null || !session.IsHost) return;
             HumanCannonPoleSystem.Current?.ServerReleaseForInspection(actor);
-            HumanCannonTrampoline.Current?.ServerReleaseForInspection(actor);
+            HumanCannonCarry.Held(actor)?.ServerReleaseForInspection(actor);
             for (int i = 0; i < seats.Length; i++)
                 if (seats[i].State.Occupant == actor && seats[i].State.TryApply(CannonAction.Release, actor, seats[i].State.Revision))
                     Publish(i, CannonAction.Release, actor, Vector3.zero, Quaternion.identity, Vector3.zero);

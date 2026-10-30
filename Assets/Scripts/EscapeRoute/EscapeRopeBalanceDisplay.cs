@@ -2,6 +2,8 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Tightrope;
 using CurtainCall.UI.PerformanceHudV1;
+using CurtainCall.UI.SceneIntegration;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.EscapeRoute
@@ -11,9 +13,19 @@ namespace CurtainCall.EscapeRoute
     {
         [SerializeField] PerformanceHUDView view;
 
+        void OnEnable()
+        {
+            if (view == null || view.Balance == null) return;
+            if (!view.Balance.TryGetComponent<BalanceRiskBlink>(out _))
+                view.Balance.gameObject.AddComponent<BalanceRiskBlink>();
+            if (!view.Balance.TryGetComponent<BalanceZoneColors>(out _))
+                view.Balance.gameObject.AddComponent<BalanceZoneColors>();
+        }
+
         void LateUpdate()
         {
             if (view == null) return;
+            HudLayout.PlaceBalance((RectTransform)view.Balance.transform, GameSettings.Base.HudLayout.BalancePosition);
             view.Timer.gameObject.SetActive(false);
             view.Progress.gameObject.SetActive(false);
             var local = NetworkPlayer.Local;
