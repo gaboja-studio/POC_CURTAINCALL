@@ -48,11 +48,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var target = Placed(id); NearPlaced(target, floor); yield return new WaitForSecondsRealtime(.15f);
             Call(Static("CurtainCall.WaitingRoom.ExplorationState", "Instance"), "RequestUse", "structure-a:" + id); yield return null;
         }
-        IEnumerator PickPlaced(string item, string room)
+        IEnumerator PickPlaced(string item, string room, string objectName = null)
         {
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var spot = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.FoundItemSpot"), FindObjectsSortMode.None).Cast<Component>()
-                .First(s => s.transform.IsChildOf(GameObject.Find("WaitingRoom_LayoutA").transform.Find(room)) && (string)Get(Call(s, "MakeItem", (int)Field(State, "Generation")), "ItemId") == item);
+                .First(s => s.transform.IsChildOf(GameObject.Find("WaitingRoom_LayoutA").transform.Find(room))
+                    && (objectName == null || s.name == objectName)
+                    && (string)Get(Call(s, "MakeItem", (int)Field(State, "Generation")), "ItemId") == item);
             NearPlaced(spot, 0); yield return new WaitForSecondsRealtime(.2f);
             var value = Call(spot, "MakeItem", (int)Field(State, "Generation")); Call(carry, "RequestPickUp", Get(value, "Uid")); yield return null;
             Assert.AreEqual(item, Get(Call(carry, "Selected", (ulong)Get(carry, "LocalClientId")), "ItemId"));
@@ -124,7 +126,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator M2_Placement_LobbyUvThreeMarksAndMachineMonitor()
         {
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
-            yield return PickPlaced("uv-lamp", "S01_Lobby");
+            yield return PickPlaced("uv-lamp", "S01_Lobby", "Spot_uv-lamp");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             yield return UsePlaced("uv-3"); Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:uv-3"));
             // The existing found lamp has only one use; other marks must not reveal for free.

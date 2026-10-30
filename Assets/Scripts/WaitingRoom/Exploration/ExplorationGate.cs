@@ -85,7 +85,9 @@ namespace CurtainCall.WaitingRoom
         }
 
         public Transform VisualRoot => transform;
-        public Vector3 PresentationPoint => transform.position;
+        [Tooltip("지정하면 실제 자물쇠/조작면을 상호작용 위치로 사용한다.")]
+        [SerializeField] Transform interactionPoint;
+        public Vector3 PresentationPoint => interactionPoint != null ? interactionPoint.position : transform.position;
         public bool IsAvailable => Visible && (!Opened || kind == ExplorationGateKind.Monitor);
         public string ActionLabel => label + (!ConditionsMet ? " — 조건 미충족" : NeedsPartner ? " — 두 명이 함께 F" : "");
         UIInputBlocker inputBlocker;
