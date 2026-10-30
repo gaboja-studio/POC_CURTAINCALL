@@ -18,6 +18,9 @@ namespace CurtainCall.CharacterArt
         public ModelOption[] models = Array.Empty<ModelOption>();
         public string[] outfits = { "빨강", "파랑", "노랑", "초록" };
         public Color[] outfitColors = { new(.65f,.13f,.16f), new(.12f,.35f,.65f), new(.90f,.60f,.17f), new(.23f,.48f,.25f) };
+        [Tooltip("의상별 무늬: 0 마름모, 1 줄무늬, 2 점, 3 격자. 항목이 없으면 기존 의상 번호를 사용합니다.")]
+        public int[] outfitPatterns = Array.Empty<int>();
+        public int PatternFor(int outfit) => outfitPatterns != null && outfit >= 0 && outfit < outfitPatterns.Length ? Mathf.Clamp(outfitPatterns[outfit], 0, 3) : outfit;
         [Tooltip("플레이어 1~4 순서의 기본 모델과 의상")]
         public SlotDefault[] defaults = { new(){outfit=0}, new(){outfit=1}, new(){outfit=2}, new(){outfit=3} };
         static PlayerAppearanceCatalog cached;
