@@ -1,12 +1,17 @@
 # Task-20261029-078
 
-- **Title:** 파란 삐에로 플레이어 제작 및 기존 캐릭터 제작
+- **Title:** 분홍 소녀 플레이어 제작 및 기존 캐릭터 제작
 - **Type:** feat
 - **Assignee:** @MoHoDu
-- **Branch:** feat/blue-pierrot-player
+- **Branch:** feat/pink-girl-player
 - **Base:** dev
+- **삐에로 저장 후속:** private PR15 사용자 병합(949c92ed) 및 ac8199f9의 origin/main 포함 확인. 공개 feat/blue-pierrot-player의9ebb3171/48c140db 푸시 완료. 현재 분홍 소녀 작업은 미커밋 보존.
 
 ## 현재 목적 (2026-10-29 사용자 요청)
+2026-10-30 네 플레이어 기본 외형: 1토끼/노랑,2곰/초록,3삐에로/파랑,4소녀/분홍으로 설정하고 원본 재질의 색/무늬를 맞춘다. 카탈로그 Inspector에서 이름으로 모델/의상을 재설정할 수 있게 하고 로비 개인 변경·중복 회피는 유지한다. [설정 안내](References/player-appearance-settings.md).
+2026-10-30 절단 후 치마 보존: 사용자 요청에 따라 치마를 짧게 접는 처리만 제거하고 다리만 절단한다. 치마/프릴의 위치·길이·면 수와 기존 절단된 쪽 Hips 연결을 유지하며 네 절단 몸체/접지 데이터만 갱신한다.
+2026-10-30 분홍 소녀 사선 피드백: 정면 외 측면/정수리/후방에서 머리띠 관통, 모자·리본 부유, 후두부 피부 노출을 수정한다. 수정 전 Blender 세션/편집본과 실제 Unity 5시점은 Source~/History/before-oblique-fix에 보존하고 같은 시점으로 비교한다. 기능/본/9메시/기존 슬롯 기본값은 유지한다.
+2026-10-30 분홍 소녀 3D: 저장된 삐에로 v03에서 검증된 55본/52 Humanoid, 9스킨, 4의상/3부상 계약을 재사용한다. 새 형상으로 주황색 덩어리 앞머리·실제 교차 양갈래 땋은 머리·분홍 보닛·겹 프릴 치마를 제작하고 Computer Use로 Blender의 세부 형태를 직접 편집한다. private CharacterArt/PinkGirl에 원본과 런타임 리소스를 보관하며 별도 카탈로그 모델·시험 씬으로 추가한다. 삐에로 저장 커밋은 공개 9ebb3171/48c140db, private ac8199f9(PR15)이며 private main 병합은 사용자 담당이다.
 2026-10-30 삐에로 v03 재제작: 사용자가 기존 외형의 부분 수정 대신 처음부터 모델링을 요청했다. v02를 보관하고 얼굴/귀의 연속 형상, 닫힌 큰 머리 덩어리, 새 소매·손목·장갑과 의상 비율을 새 메시로 제작한다. 기존 아틀라스 스타일/55본 명명·Humanoid·절단·4의상/3부상 계약은 재사용하고 정면·측면·아래쪽/원화 비교를 미술 검증에 포함한다. 품질을 우선해 필요한 곡면 예산을 재배분한다.
 2026-10-30 삐에로 v02 피드백: 납작한 얼굴을 볼/이마/턱의 깊이가 연결되는 입체 곡면으로 보정하고, 옆·뒤·정수리의 종이 머리카락 볼륨을 늘린다. 머리 표면은 봉제 atlas와 분리한다. 기존 뼈/몸체·단추 접촉·의상/부상 계약과 GUID를 보존하며 정면뿐 아니라 측면/후면/정수리로 확인한다.
 2026-10-30 파란 삐에로 3D 후속: PR239 병합 dev cf8bcab4에서 시작한다. blue-pierrot-turnaround-v01의 얼굴·머리·코·프릴·짙은 파란 패치 의상을 토끼/곰과 같은 종이·봉제 표면으로 제작한다. 독립 Humanoid 리그, 정상/절단9메시와 4의상·3부상 표면을 Unity 플레이어 카탈로그에 추가한다. 리소스/원본은 private CharacterArt/BluePierrot에 보관하고, 기존 플레이어2 곰/녹색 설정 변경을 보존한다. 이번 새 제작은 별도 commit/push 요청 전까지 작업 변경으로 남긴다.
@@ -26,7 +31,7 @@ v14 후속 완료: 얼굴780→358tri/음영 완화, 팔·바지·신발180tri �
 - 원화·최종제작본·게임기능참조를 보존한다. 이후 명시적정리요청에 따라 오래된중간/실패파일·백업은 현제작폴더에서제외했다.
 - 토끼/곰의 기존 약10000tri 결과는 보존한다. 삐에로 v03은 전체 재제작·품질 우선 요청에 따라28,168tri/55본으로 제작했다. 수평 손목 T-pose와 본 이름 계약을 유지하며 동시4인 성능은 별도 검토한다.
 - 외부 유료3D 생성 없음. Blender MCP로 새 형상/관절을 만들고 computer-use로 실제 창을 확인한다.
-- 토끼 수정/곰 추가는 분리 커밋 후 dev PR239로 병합 완료. 현재 feat/blue-pierrot-player에서 후속 제작하며 Unity는 D:/github/POC_CURTAINCALL 명시, 씬 미저장 변경 보존.
+- 토끼 수정/곰 추가는 분리 커밋 후 dev PR239로 병합 완료. 삐에로 저장 후 현재 feat/pink-girl-player에서 후속 제작하며 Unity는 D:/github/POC_CURTAINCALL 명시, 씬 미저장 변경 보존.
 - 온라인2인, 최종 미술·플레이 감각 검토는 별도 남은 항목이다.
 
 ## 진행
@@ -39,6 +44,8 @@ v14 후속 완료: 얼굴780→358tri/음영 완화, 팔·바지·신발180tri �
 7. 실제 Player Editor2/PlayMode15·카메라 숨김/복원 통과. Blender/Unity 시각 확인, check-work 안전성·문서·규칙·컴파일 PASS. 테스트 재실행은 생략하고 별도 통과 보고서와 한계를 기록했다.
 
 ## 경로
+- 분홍 소녀 정본/편집본: `Assets/_ThirdParty/CharacterArt/PinkGirl/Source~/pinkgirl-rebuild-v01.blend`, `pinkgirl-construction-v01.blend`.46,374tri/55본/52 Humanoid,9메시. 같은 폴더 README와 직접 편집/단추/발목/절단/PlayMode 증거 보관.
+- 분홍 소녀 프리팹: `Assets/Resources/Prefabs/Characters/Players/Models/PinkGirl/PinkGirl.prefab`. 카탈로그 **분홍 소녀**, 시험 씬 `Assets/Scenes/Tests/CharacterArt/PinkGirlGameplay.unity`. 기존 슬롯 기본값 보존.
 - 삐에로 정본: `Assets/_ThirdParty/CharacterArt/BluePierrot/Source~/bluepierrot-rebuild-v03.blend`. 전체 새 메시28,168tri/55본/52 Humanoid, 정상+4몸체+4사지. 부품별 편집본은 `bluepierrot-construction-v03.blend`; 이전 v02 `bluepierrot-buttons-fixed.blend` 보존. 재현·검증은 같은 폴더 `README.md`.
 - 삐에로 게임 프리팹: `Assets/Resources/Prefabs/Characters/Players/Models/BluePierrot/BluePierrot.prefab`. 카탈로그 이름 `파란 삐에로`, 직접 시험은 `Assets/Scenes/Tests/CharacterArt/BluePierrotGameplay.unity`.
 - 현재 제작: `Source/V14/`, 재현순서 refine-rabbit-v14 → cut-export-rabbit-v14 → refine-rabbit-ankle-fit-v14 → import-rabbit-v14. 이전 v12/v13 보존.

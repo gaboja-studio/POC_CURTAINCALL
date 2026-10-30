@@ -1,9 +1,9 @@
-# Unity에서 토끼·곰·삐에로 절단 직접 확인
+# Unity에서 토끼·곰·삐에로·분홍 소녀 절단 직접 확인
 
 2026-10-30 v14, 실제 Player/기존 조작·애니메이션·절단 경로.
 
 1. Project에서 `Assets/Scenes/Tests/CharacterArt/RabbitGameplay.unity`를 열고 Play를 누른다.
-   곰은 같은 폴더의 `BearGameplay.unity`, 삐에로는 `BluePierrotGameplay.unity`에서 동일하게 확인한다.
+   곰은 같은 폴더의 `BearGameplay.unity`, 삐에로는 `BluePierrotGameplay.unity`, 분홍 소녀는 `PinkGirlGameplay.unity`에서 동일하게 확인한다.
 2. Hierarchy의 최상위 **Player**를 선택한다. 자식 Original/Body/Limb가 아니라 Player의 상태를 바꾼다.
 3. Inspector의 **Player Condition (Script) → Lost Parts**를 연다.
 4. **Left Leg → Right Leg → Left Arm → Right Arm** 순서로 하나씩 추가 체크한다. 이전 체크를 유지해야 누적 절단이다.
@@ -26,3 +26,5 @@ Unity Flags 메뉴의 **Everything**은 값이 -1이므로 사용하지 않는�
 검증: Inspector 실제 클릭으로 0→1→2→0 및 조각수0→1→2→0 확인. 4단계 전부·분리사지 물리/본 굴곡·복구·조작은 `Source/V14/playmode-tests.json`의15개 테스트 통과. 발목 접합은560조건, 절단면16조건의틈0.
 
 삐에로 추가 후 PlayMode 전체19개와 최종 보정 후 삐에로1개 재검사 통과. BluePierrot/Source~의 `playmode-report.json`, `playmode-final-report.json` 및 실제 플레이 0/1/3부상 캡처 참조. 분리 조각은 절단 당시 재질을 유지하므로 이후 몸체의 부상 단계와 달라질 수 있다. 게임 설정의 모델 목록에서 **파란 삐에로**, 의상에서 원하는 색을 고르면 된다. 연습 씬은 파란 기본 재질로 미리 보이며 실제 로비에서는 선택한 의상이 적용된다.
+
+분홍 소녀는 모델 목록에서 **분홍 소녀**를 선택한다. 기본 슬롯은 기존 설정을 유지하며 `PlayerAppearanceCatalog.asset`에서 슬롯별 Model/Outfit을 지정할 수 있다. 원화색 미리보기는 PinkGirlGameplay에 있고, 실제 로비에서는 선택한 4의상이 적용된다. 소녀 전용 회귀와 포즈/단면/단추/발목 검사는 `PinkGirl/Source~/README.md`와 보고서에 있다.
