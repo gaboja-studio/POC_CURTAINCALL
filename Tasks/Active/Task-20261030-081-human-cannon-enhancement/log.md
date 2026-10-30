@@ -52,3 +52,4 @@
 
 - 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 커밋 전 검사: `check-work.ps1` 컴파일 PASS, 형식/규칙 PASS, 연결 PASS, 테스트 SKIPPED(스크립트 기본값). 별도로 EditMode `HumanCannon` 500/500 PASS. `ProjectSettings/Packages/com.unity.services.vivox/Settings.json` 자동 변경은 커밋에서 제외.
+- dev 동기화(담당자 요청): origin/dev(24f004bd) 병합. `HumanCannon.unity` 충돌 3곳은 모두 우리 쪽 옛 톱 외형 삭제와 dev(Task-082, #241) 새 모델 프리팹 인스턴스 추가가 맞닿은 것 — 삭제한 옛 문서 6개는 버리고 dev 추가 문서 6개는 유지, 씬 내부 참조 누락 0. `Assets/_ThirdParty` 포인터는 dev 값(a1511645)으로 갱신. 병합 후 씬 확인: 새 대포·트램폴린 외형과 이번 변경 모두 유지, 누락 스크립트·프리팹 0. EditMode `HumanCannon` 501/501 PASS. 주의: dev의 새 규칙(동기화 전 Unity 종료 확인)을 지키지 못하고 에디터가 켜진 채 병합했다(씬 미저장 변경 없음 확인 후 재열기).

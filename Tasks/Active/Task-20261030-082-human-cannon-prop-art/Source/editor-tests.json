@@ -1,0 +1,118 @@
+{
+  "status": "completed",
+  "duration": 2.06,
+  "summary": {
+    "total": 15,
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AllMovingHazardsFitTheirDamageVolumesAtTheActualPose(0)",
+      "Status": "Passed",
+      "Duration": 0.255115,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AllMovingHazardsFitTheirDamageVolumesAtTheActualPose(0.371f)",
+      "Status": "Passed",
+      "Duration": 0.1314193,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AllMovingHazardsFitTheirDamageVolumesAtTheActualPose(2.3f)",
+      "Status": "Passed",
+      "Duration": 0.1669966,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AppliedFloorAndCushionBoundsMatchTheRetainedSolidColliders",
+      "Status": "Passed",
+      "Duration": 0.1086009,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AppliedSceneMeshesAndMaterialsResolveFromTheCheckedOutDependency",
+      "Status": "Passed",
+      "Duration": 0.1227796,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.CannonsRestOnTheirWheels_AndLinkedPolesKeepVisibleWarningBands",
+      "Status": "Passed",
+      "Duration": 0.1977312,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryCannonKeepsItsBoardingSeatAndLaunchAnchors",
+      "Status": "Passed",
+      "Duration": 0.0931615,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryPoleKeepsBarAndCableAlignedThroughoutSwing(-80.0f)",
+      "Status": "Passed",
+      "Duration": 0.0964557,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryPoleKeepsBarAndCableAlignedThroughoutSwing(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0998463,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryPoleKeepsBarAndCableAlignedThroughoutSwing(80.0f)",
+      "Status": "Passed",
+      "Duration": 0.0930983,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.MetalTransportPanelsKeepSafeLandingAndVisibleOccupiedIndicators",
+      "Status": "Passed",
+      "Duration": 0.1066109,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.OriginalPropAtlasKeepsIvoryUvAndNonMetallicRoughFabric",
+      "Status": "Passed",
+      "Duration": 0.1129566,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.RoundFabricMatchesRadialBounceAndKeepsVisibleInteractiveHandle",
+      "Status": "Passed",
+      "Duration": 0.1175206,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.SawDiscsTurnInPlaceWhileWallAndPassageStayAcrossTheCourse",
+      "Status": "Passed",
+      "Duration": 0.1512506,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.SawWallGapsStayVisibleButAreNarrowerThanThePlayerCapsule",
+      "Status": "Passed",
+      "Duration": 0.1096138,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

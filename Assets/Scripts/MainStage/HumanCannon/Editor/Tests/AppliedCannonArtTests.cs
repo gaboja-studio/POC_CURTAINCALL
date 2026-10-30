@@ -107,20 +107,29 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         {
             var trampoline = All<HumanCannonTrampoline>().Single();
             Assert.That(trampoline.CircularSurface, Is.True);
-            var fabric = trampoline.GetComponentsInChildren<MeshFilter>().Single(f => f.sharedMesh != null && f.sharedMesh.name == "trampoline_3_002");
+            var art = trampoline.transform.Find(HumanCannonPropArtBuilder.VisualName);
+            Assert.That(art, Is.Not.Null);
+            var fabric = art.GetComponentsInChildren<MeshFilter>().Single(f => f.name == "Fabric");
             var bounds = fabric.GetComponent<Renderer>().bounds;
             Assert.That(bounds.size.x, Is.EqualTo(trampoline.HalfSize.x * 2).Within(.001f));
             Assert.That(bounds.size.z, Is.EqualTo(trampoline.HalfSize.y * 2).Within(.001f));
-            Assert.That(bounds.max.y, Is.EqualTo(trampoline.Surface.y).Within(.001f));
+            // The cloth is at Surface; applique and seam thread protrude by at most 10 mm.
+            Assert.That(bounds.max.y, Is.InRange(trampoline.Surface.y, trampoline.Surface.y + .01f));
+            Assert.That(fabric.sharedMesh.vertices.Any(v => Mathf.Abs(fabric.transform.TransformPoint(v).y - trampoline.Surface.y) < .001f), Is.True);
             Assert.That(trampoline.Handle.GetComponentsInChildren<Renderer>().Any(r => r.enabled), Is.True);
             Near(new Vector3(-2.8f, 0, 0), trampoline.transform.InverseTransformPoint(trampoline.Handle.position), "Original handle offset");
             Assert.That(TrampolineContact.Contains(new Vector2(1.9f, 1.9f), trampoline.HalfSize, .25f, true), Is.False);
             Assert.That(TrampolineContact.Contains(new Vector2(1.59f, 1.59f), trampoline.HalfSize, .25f, true), Is.True);
-            float outer = Vertices(trampoline.transform.Find("AppliedRoundTrampoline/FrameAndFabric"))
+            var frame = art.GetComponentsInChildren<MeshFilter>().Single(f => f.name.StartsWith("Body")).transform;
+            float outer = Vertices(frame)
                 .Select(trampoline.transform.InverseTransformPoint).Max(p => new Vector2(p.x, p.z).magnitude);
             Assert.That(outer, Is.EqualTo(trampoline.LoadHalfSize.x).Within(.001f));
             Assert.That(trampoline.UpwardSpeed, Is.EqualTo(12));
             Assert.That(trampoline.CarryMoveSpeed, Is.EqualTo(4.5f));
+            var contact = (Bounds)typeof(HumanCannonTrampoline).GetMethod("ContactBounds",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(trampoline, null);
+            Near(new Vector3(-2.875f, -.5f, -2.4753408f), contact.min, "Legacy whole-device minimum");
+            Near(new Vector3(2.4753408f, .15f, 2.4753408f), contact.max, "Legacy whole-device maximum / bounce start");
         }
 
         [Test]
@@ -128,15 +137,15 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         {
             foreach (var station in All<HumanCannonStation>())
             {
-                var visual = station.transform.Find("AppliedCannon/CannonVisual");
-                var wheels = visual.Find("cannon_001").GetComponent<MeshFilter>();
-                float bottom = wheels.sharedMesh.vertices.Min(v => wheels.transform.TransformPoint(v).y);
+                var visual = station.transform.Find(HumanCannonPropArtBuilder.VisualName);
+                Assert.That(visual, Is.Not.Null, station.name);
+                var vertices = Vertices(visual);
+                float bottom = vertices.Min(v => v.y);
                 Assert.That(bottom, Is.EqualTo(station.transform.position.y).Within(.005f), station.name + " wheel contact");
                 foreach (var mesh in visual.GetComponentsInChildren<MeshFilter>())
                     Assert.That(mesh.sharedMesh.vertices.Min(v => mesh.transform.TransformPoint(v).y),
                         Is.GreaterThanOrEqualTo(station.transform.position.y - .005f), station.name + " buried art");
-                var localPoints = wheels.sharedMesh.vertices.Select(v =>
-                    station.transform.InverseTransformPoint(wheels.transform.TransformPoint(v))).ToArray();
+                var localPoints = vertices.Select(station.transform.InverseTransformPoint).ToArray();
                 Assert.That(localPoints.Max(v => v.x) - localPoints.Min(v => v.x),
                     Is.EqualTo(1.92f).Within(.01f), station.name + " reduced width along its axle");
             }
@@ -149,6 +158,33 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(bands.All(r => r.enabled && r.transform.IsChildOf(Ref(pole, "visualBar"))), Is.True,
                     "Warning bands must remain visible and move with the swinging bar");
             }
+        }
+
+        [Test]
+        public void OriginalPropAtlasKeepsIvoryUvAndNonMetallicRoughFabric()
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(HumanCannonPropArtBuilder.Art + "/Materials/CC_PropSurface.mat");
+            Assert.That(material.IsKeywordEnabled("_METALLICSPECGLOSSMAP"), Is.True);
+            var mask = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
+            try
+            {
+                ImageConversion.LoadImage(mask, System.IO.File.ReadAllBytes(HumanCannonPropArtBuilder.Art + "/Textures/CC_PropMetalSmooth.png"));
+                Color navy = mask.GetPixel(640, 128);
+                Assert.That(navy.r, Is.EqualTo(0).Within(.01f));
+                Assert.That(navy.a, Is.EqualTo(.09f).Within(.01f), "Smoothness must survive PNG alpha export");
+                Color brass = mask.GetPixel(896, 128);
+                Assert.That(brass.r, Is.EqualTo(.72f).Within(.01f));
+                foreach (string name in new[] { "CC_Cannon", "CC_Trampoline" })
+                {
+                    var model = AssetDatabase.LoadAssetAtPath<GameObject>(HumanCannonPropArtBuilder.Art + "/Models/" + name + ".fbx");
+                    var filters = model.GetComponentsInChildren<MeshFilter>();
+                    Assert.That(filters.SelectMany(f => f.sharedMesh.uv).Any(uv => uv.x > .25f && uv.x < .5f && uv.y < .5f), Is.True,
+                        name + " ivory UV must be in channel 0 after joining localized Blender primitives");
+                    Assert.That(model.GetComponentsInChildren<Animator>(), Is.Empty);
+                    Assert.That(model.GetComponentsInChildren<Collider>(), Is.Empty);
+                }
+            }
+            finally { UnityEngine.Object.DestroyImmediate(mask); }
         }
 
         [Test]

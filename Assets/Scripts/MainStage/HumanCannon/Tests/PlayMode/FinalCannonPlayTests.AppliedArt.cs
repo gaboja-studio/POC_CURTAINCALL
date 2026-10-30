@@ -14,8 +14,8 @@ namespace CurtainCall.HumanCannon.Tests
             ProbeAppliedGroundBounce(Vector2.zero, true);
 
         [UnityTest]
-        public IEnumerator AppliedRoundTrampoline_ActualJumpAtOldRectangleCornerDoesNotBounce() =>
-            ProbeAppliedGroundBounce(new Vector2(1.9f, 1.9f), false);
+        public IEnumerator AppliedRoundTrampoline_CurrentWholeDeviceContactIncludesOldFabricCorner() =>
+            ProbeAppliedGroundBounce(new Vector2(1.9f, 1.9f), true);
 
         IEnumerator ProbeAppliedGroundBounce(Vector2 offset, bool expectBounce)
         {
@@ -42,7 +42,11 @@ namespace CurtainCall.HumanCannon.Tests
                 float gravity = (float)Get(Get(StaticGet("CurtainCall.Settings.GameSettings", "Base"), "Character"), "Gravity");
                 float expected = (float)Get(trampoline, "UpwardSpeed");
                 expected = expected * expected / (2 * gravity);
-                Assert.That(peak - ((Vector3)Get(trampoline, "Surface")).y, Is.EqualTo(expected).Within(.2f), "unchanged bounce trajectory above the fabric");
+                // Current TryTouch launches at the top of the device (including the grip),
+                // rather than the old cloth-only crossing plane. The original art also did this.
+                var contactBounds = (Bounds)Call(trampoline, "ContactBounds");
+                float launchHeight = ((Vector3)Get(trampoline, "Surface")).y + contactBounds.max.y;
+                Assert.That(peak - launchHeight, Is.EqualTo(expected).Within(.2f), "unchanged bounce trajectory above the actual device contact");
             }
             else
             {
