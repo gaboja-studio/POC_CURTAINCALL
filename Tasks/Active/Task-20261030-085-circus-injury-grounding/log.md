@@ -15,3 +15,4 @@
 - 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 완료: 별도 실행한 최종 PlayMode 통과3개를 원본 출처와 함께 `Source/play-tests.json`으로 집계. check-work의 테스트 SKIPPED와 분리해 기록한다. 최종 씬 dirty 0, ProjectSettings/private 에셋 diff 없음. 작업 브랜치에 저장했으며 commit/push는 요청하지 않아 실행하지 않았다.
 - 후속 저장·제출 요청: Unity의 저장된 Start 씬/재생 종료 상태를 확인하고 에디터를 정상 종료한 뒤 origin/dev fetch. 최신 341be9eb와 동일해 충돌 없음. 구현 이후 코드 변경 없이 기존 컴파일·집중 테스트 결과를 재사용한다. 글꼴 캐시 3개와 Task083 PNG 22개는 보존하고 이번 커밋에서 제외한다.
+- 2026-10-31: da497c34 저장 및 LFS 포함 push 완료. dev PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/250 . new-pr DryRun의 미저장 경고는 보존한 타 작업 파일에 해당하므로 save-work의 선택 staging 절차로 제출했다. 지정 팀원 검토 후 병합하며 이 작업에서는 병합하지 않는다.
