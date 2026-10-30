@@ -52,6 +52,10 @@ namespace CurtainCall.Reward
         float nextRequest;
         float nextTransitionRetry;
         float transitionAt;
+        string finalPosePerformance, frozenPerformance;
+        RewardFinalPoseData[] finalPoses;
+        readonly Dictionary<ulong, Pose> remoteFinalPoses = new();
+        float timeScaleBeforeResult;
 
         public RewardSnapshot State => state;
         public RewardSnapshot LedgerPage => ledgerPage;
@@ -89,6 +93,7 @@ namespace CurtainCall.Reward
         {
             Bind();
             SyncCampaign();
+            UpdateResultFreeze();
             if (HasAuthority && model != null && model.IsOpen && !ending)
             {
                 long previous = model.Revision;
@@ -110,6 +115,58 @@ namespace CurtainCall.Reward
                 nextRequest = Time.unscaledTime + 5f;
                 RequestSnapshot();
             }
+        }
+
+        void LateUpdate()
+        {
+            if (frozenPerformance == null) return;
+            foreach (var player in NetworkPlayer.All)
+                if (remoteFinalPoses.TryGetValue(player.OwnerClientId, out var pose))
+                    player.transform.SetPositionAndRotation(pose.position, pose.rotation);
+        }
+
+        void CaptureFinalPoses(PerformanceResult result)
+        {
+            var poses = new List<RewardFinalPoseData>();
+            remoteFinalPoses.Clear();
+            foreach (var player in NetworkPlayer.All)
+                if (player.IsSpawned)
+                {
+                    var pose = new Pose(player.transform.position, player.transform.rotation);
+                    remoteFinalPoses[player.OwnerClientId] = pose;
+                    poses.Add(new RewardFinalPoseData { client = player.OwnerClientId, position = pose.position, rotation = pose.rotation });
+                }
+            finalPosePerformance = result.Performance.Id;
+            finalPoses = poses.ToArray();
+        }
+
+        void UpdateResultFreeze()
+        {
+            if (!Application.isPlaying || campaign == null) return;
+            var result = state?.Latest;
+            var current = campaign.State;
+            bool currentSuccess = result != null && result.Succeeded && state.Performance?.Id == result.Performance.Id
+                && current.Phase == CampaignPhase.Performance && current.Generation == result.Performance.Generation
+                && current.Day == result.Performance.Day && current.PerformanceIndex == result.Performance.Index
+                && current.TrickId == result.Performance.TrickId;
+            if (!currentSuccess)
+            {
+                ResumeResultTime();
+                return;
+            }
+            if (frozenPerformance == result.Performance.Id) return;
+            ResumeResultTime();
+            timeScaleBeforeResult = Time.timeScale;
+            frozenPerformance = result.Performance.Id;
+            Time.timeScale = 0f;
+        }
+
+        void ResumeResultTime()
+        {
+            if (frozenPerformance == null) return;
+            Time.timeScale = timeScaleBeforeResult;
+            frozenPerformance = null;
+            remoteFinalPoses.Clear();
         }
 
         void Bind()
@@ -312,6 +369,8 @@ namespace CurtainCall.Reward
             {
                 ObserveNetwork();
                 if (!model.Confirm(trickSucceeded, endReason, judgements, OfficialMinSurvivors, ReadRules(), out result)) return false;
+                if (result.Succeeded) CaptureFinalPoses(result);
+                else { finalPosePerformance = null; finalPoses = null; }
                 // 성공한 단계를 런에 기록해 다음 밤 정비에서 다음 단계를 고를 수 있게 한다(M2 난이도 선택).
                 if (result.Succeeded && !dummyRoster) campaign.RecordClear(result.Performance.TrickId, difficulty);
                 ClearObservers();
@@ -398,6 +457,7 @@ namespace CurtainCall.Reward
             if (model == null) return false;
             state = model.Snapshot();
             ledgerPage = state;
+            UpdateResultFreeze();
             bool sent = campaign.IsOfflineRun || SendState(StateMessage, state);
             NotifyChanged();
             return sent;
@@ -406,7 +466,10 @@ namespace CurtainCall.Reward
         bool SendState(string message, RewardSnapshot snapshot, ulong? target = null)
         {
             if (messaging == null || session == null || !session.IsHost) return false;
-            string json = JsonUtility.ToJson(RewardStateData.From(snapshot));
+            var data = RewardStateData.From(snapshot);
+            if (snapshot.Latest?.Performance.Id == finalPosePerformance)
+            { data.finalPosePerformance = finalPosePerformance; data.finalPoses = finalPoses; }
+            string json = JsonUtility.ToJson(data);
             int size = FastBufferWriter.GetWriteSize(json);
             if (size > MaxPayloadBytes) { Debug.LogError("[Reward] 공유 상태가 메시지 상한을 넘었습니다."); return false; }
             try
@@ -477,7 +540,8 @@ namespace CurtainCall.Reward
             try
             {
                 reader.ReadValueSafe(out string json);
-                var next = JsonUtility.FromJson<RewardStateData>(json)?.Read();
+                var data = JsonUtility.FromJson<RewardStateData>(json);
+                var next = data?.Read();
                 if (next == null || next.SessionId == retiredSession) return;
                 if (page)
                 {
@@ -491,6 +555,15 @@ namespace CurtainCall.Reward
                 string previousId = state?.Latest?.Performance.Id;
                 state = next;
                 ledgerPage = next;
+                remoteFinalPoses.Clear();
+                if (next.Latest?.Succeeded == true && data.finalPosePerformance == next.Latest.Performance.Id
+                    && data.finalPoses != null && data.finalPoses.Length <= 64)
+                    foreach (var entry in data.finalPoses)
+                        if (entry != null && float.IsFinite(entry.position.x) && float.IsFinite(entry.position.y)
+                            && float.IsFinite(entry.position.z) && float.IsFinite(entry.rotation.x)
+                            && float.IsFinite(entry.rotation.y) && float.IsFinite(entry.rotation.z) && float.IsFinite(entry.rotation.w))
+                            remoteFinalPoses[entry.client] = new Pose(entry.position, entry.rotation);
+                UpdateResultFreeze();
                 if (next.Latest != null && next.Latest.Performance.Id != previousId)
                 {
                     receivedHistory.Add(next.Latest);
@@ -523,6 +596,9 @@ namespace CurtainCall.Reward
         }
         void Clear()
         {
+            ResumeResultTime();
+            finalPosePerformance = null;
+            finalPoses = null;
             retiredSession = state?.SessionId ?? retiredSession;
             ClearObservers();
             model = null;
@@ -544,6 +620,7 @@ namespace CurtainCall.Reward
         void OnDestroy()
         {
             if (Instance != this) return;
+            ResumeResultTime();
             Unregister();
             ClearObservers();
             if (campaign != null) { campaign.StepChanged -= HandleStep; campaign.Changed -= SyncCampaign; }

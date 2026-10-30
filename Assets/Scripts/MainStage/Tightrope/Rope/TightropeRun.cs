@@ -29,8 +29,8 @@ namespace CurtainCall.Tightrope
     /// 판정은 호스트가 한다. 참가자 = 접속한 플레이어(<see cref="NetworkPlayer.All"/>, 나간 사람은 자동으로 빠짐).
     /// 플레이어 상태(007): 진행 중 = <see cref="PlayerState.Normal"/>, 도착 완료 = <see cref="PlayerState.Arrived"/>(도착선 통과 시 호스트가 정함, 이후 추락 거절),
     /// 사망 = <see cref="PlayerState.Fallen"/>.
-    /// 게임이 시작되면 모두 출발점에서 다시 시작하고 제한시간이 흐른다. **한 명이라도 도착하면 바로 클리어**(<see cref="NetworkSessionManager.EndGame"/>)하고
-    /// 살아 있는 플레이어는 모두 도착 완료가 되어 도착 지점으로 옮겨진다(2026-10-03 PM). 도착 없이 진행자가 없어지거나 시간이 끝나면
+    /// 게임이 시작되면 모두 출발점에서 다시 시작하고 제한시간이 흐른다. 한 명이라도 도착하면 즉시 클리어하고
+    /// 각 플레이어의 마지막 위치와 실제 도착 상태를 유지한 채 결과를 표시한다. 도착 없이 진행자가 없어지거나 시간이 끝나면
     /// 실패 → 세팅의 재시작 대기 시간 뒤 묘기 재시작(타이머 포함 처음부터). 도착은 소유자도 요청하고(내 위치 기준) 호스트도 위치로 확인한다.
     /// 묘기 시작 = 게임 시작 후 진행 중인 플레이어 중 **한 명이라도** 외줄 시작점을 넘은 순간(<see cref="PerformanceStarted"/>, 2026-10-03 PM — 한 명이 플랫폼에 남아 장애물을 늦추는 것을 막음). 장애물 출현 시간은 이때부터 잰다.
     /// 진행 상태·시간은 NGO 이름 붙은 메시지로 모든 화면에 공유한다(바뀔 때만 보내고 각 화면이 시간을 이어서 센다).
@@ -221,9 +221,6 @@ namespace CurtainCall.Tightrope
         /// <summary>호스트: 도착 확인 후 도착자가 없을 때만 호출한다. 위험 판정 후 전원 사망을 다시 검사한다.</summary>
         public event Action ServerHazardCheck;
 
-        /// <summary>각 화면의 성공 집결 직전. 기록은 이 시점의 위치를 수집한다.</summary>
-        public event Action BeforeSuccessMovement;
-
         static int Count(PlayerState state)
         {
             int count = 0;
@@ -251,6 +248,7 @@ namespace CurtainCall.Tightrope
 
         void OnDisable()
         {
+            ResumeAfterResult();
             if (current == this) current = null;
             NetworkPlayer.Restarted -= HandlePlayerRestarted;
             ResetPlacement();
@@ -273,6 +271,8 @@ namespace CurtainCall.Tightrope
                 session.GameStateChanged += HandleGameState;
                 HandleConnectionState(session.ConnectionState);
             }
+
+            if (resultPaused && UsesCampaign && !campaignBridge.IsTightropePerformance) ResumeAfterResult();
 
             // 레벨 속 짧은 외줄은 세션·회차만 공유한다. 공연 시간/완주/전원 재시작을 소유하지 않는다.
             if (TraversalOnly) { UpdatePassThrough(); return; }
@@ -402,9 +402,7 @@ namespace CurtainCall.Tightrope
         void ServerSucceed()
         {
             Results.Confirm(true, TightropeEndReason.Completed, (float)(Clock - runStartedAt), TimeRemaining, PerformanceElapsed);
-            // 살아 있는(진행 중) 플레이어도 모두 도착 완료. 위치는 각 소유자가 도착 지점으로 옮긴다(SetState → MoveLocalToFinish)
-            foreach (var player in NetworkPlayer.All)
-                if (player.State == PlayerState.Normal) player.ServerSetState(PlayerState.Arrived);
+            // 실제 도착자만 Arrived로 유지하고 다른 생존자는 마지막 위치·상태를 보존한다.
             stoppedRemaining = TimeRemaining;
             ServerSetState(TightropeRunState.Succeeded);
             if (!externallyManaged) session.EndGame();
@@ -498,29 +496,27 @@ namespace CurtainCall.Tightrope
             var previous = State;
             State = next;
             Debug.Log($"[Tightrope] 묘기 진행: {previous} → {next} (도착 {ArrivedCount}, 사망 {DeadCount}, 남은 시간 {TimeRemaining:0}s)");
-            if (next == TightropeRunState.Succeeded && !BridgeManagesPerformance) MoveLocalToFinish();
+            if (next == TightropeRunState.Succeeded) PauseForResult(); else ResumeAfterResult();
             StateChanged?.Invoke(previous, next);
         }
 
-        /// <summary>
-        /// 클리어: 내 캐릭터가 살아 있고 아직 도착선 전이면 도착 지점(세리머니 공간, 자기 줄 자리)으로 순간이동한다.
-        /// 위치는 소유자가 정하므로 각 화면이 자기 캐릭터만 옮긴다(다른 화면에는 NetworkTransform 순간이동으로 전해진다).
-        /// </summary>
-        void MoveLocalToFinish()
-        {
-            // 공용 정산/부활 뒤 도착한 지연 패킷은 다음 공간의 위치를 되돌리지 않는다.
-            if (externallyManaged && UsesCampaign && !campaignBridge.PerformanceOpen) return;
-            BeforeSuccessMovement?.Invoke();
-            PiggybackSystem.Current?.ReleaseForSuccess();
-            var player = NetworkPlayer.Local;
-            if (player == null || player.State == PlayerState.Fallen || !player.TryGetComponent(out PlayerMover mover)) return;
-            if (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen) return;
+        bool resultPaused;
+        float previousTimeScale;
 
-            // 출발 위치를 잠깐 도착 지점으로 바꿔 순간이동하고 원래 출발 위치로 되돌린다
-            Pose finish = course.GetFinishPose(player.Slot);
-            Pose start = course.GetStartPose(player.Slot);
-            mover.SetStartPose(finish.position, finish.rotation, true);
-            mover.SetStartPose(start.position, start.rotation, false);
+        // 결과 UI와 전환은 unscaled time으로 계속 진행한다. 다음 단계·이탈·비활성화 때 원래 배율을 되돌린다.
+        void PauseForResult()
+        {
+            if (!Application.isPlaying || resultPaused || TraversalOnly || UsesCampaign) return;
+            previousTimeScale = Time.timeScale;
+            resultPaused = true;
+            Time.timeScale = 0f;
+        }
+
+        void ResumeAfterResult()
+        {
+            if (!resultPaused) return;
+            Time.timeScale = previousTimeScale;
+            resultPaused = false;
         }
 
         void SetPerformanceStarted(double startedAt)
