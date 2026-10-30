@@ -6,7 +6,7 @@ namespace CurtainCall.WaitingRoom
 {
     /// <summary>
     /// UV 등으로만 보이는 숨겨진 낙서(2026-10-30 확정 규칙).
-    /// 평소에는 안 보이고, 로컬 플레이어의 UV 손전등 원뿔에 들어온 동안만 노란 형광으로 표시된다.
+    /// 평소에는 안 보이고, 로컬 플레이어의 UV 손전등에 닿으면 노란 형광으로 드러나 5초 동안 남아 조사할 수 있다. 다시 비추면 다시 드러난다.
     /// 처음 비춘 때 호스트가 발견을 기록(런 동안·팀 공유)하고, 발견 화면에서는 0.5초 전기음과 함께 카메라가 낙서 쪽으로 한 번 돈다.
     /// F 상호작용은 없다. 판정은 <see cref="ExplorationState"/>(장비는 어느 슬롯이든 인정, 소모 없음).
     /// </summary>
@@ -55,8 +55,10 @@ namespace CurtainCall.WaitingRoom
         public bool Found => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(targetId);
         /// <summary>이 화면의 UV 손전등이 지금 비추고 있는지(로컬 표시 전용).</summary>
         public bool Lit { get; private set; }
+        [Tooltip("빛이 떠난 뒤에도 낙서가 남아 조사할 수 있는 시간(초). 다시 비추면 연장된다.")]
+        [SerializeField, Min(0f)] float holdSeconds = 5f;
         bool shown, first = true;
-        int litFrame = -1;
+        float litUntil = -1f;
         AudioClip buzz;
 
         void Awake()
@@ -73,15 +75,15 @@ namespace CurtainCall.WaitingRoom
         /// <summary>호스트 판정: 손전등 거리 안이고 시야가 막히지 않으면 닿는다.</summary>
         public float Reach(Vector3 feet) => Found ? -1f : ExplorationReach.From(transform, Point, feet, reach, true);
 
-        /// <summary>UV 손전등이 이번 프레임에 비췄다. 한 프레임 안 오면 꺼진다.</summary>
-        public void Illuminate() { litFrame = Time.frameCount; }
+        /// <summary>UV 손전등이 이번 프레임에 비췄다. 빛이 떠나도 holdSeconds 동안 남아 조사할 수 있다.</summary>
+        public void Illuminate() { litUntil = Time.time + holdSeconds; }
 
         public bool Resolve(int attemptNumber, System.Random rng) => true;
         public string Describe(bool success, int attemptNumber) => "숨겨진 낙서가 형광으로 드러났습니다.";
 
         void Update()
         {
-            Lit = litFrame >= Time.frameCount - 1;
+            Lit = Time.time <= litUntil;
             bool found = Found;
             if (found && !shown && !first)
             {

@@ -115,11 +115,23 @@ namespace CurtainCall.Player
             return entries;
         }
 
-        /// <summary>실제 Keyboard Key 이름만 허용. wildcard/usage/chord/장치별 경로/ESC는 거절한다. 장치 연결 불필요.</summary>
+        /// <summary>왼쪽을 뺀 마우스 버튼(UV 등 조작용, 2026-10-30). 왼쪽 버튼은 UI 클릭용이라 재지정하지 않는다.</summary>
+        static readonly string[] MouseButtons = { "rightButton", "middleButton", "forwardButton", "backButton" };
+
+        /// <summary>실제 Keyboard Key 이름 또는 마우스 버튼(왼쪽 제외)만 허용. wildcard/usage/chord/장치별 경로/ESC는 거절한다. 장치 연결 불필요.</summary>
         public static bool TryValidateKeyPath(string path, out string normalizedPath, out string error)
         {
             normalizedPath = null;
-            error = "키보드의 단일 키를 선택해 주세요.";
+            error = "키보드의 단일 키나 마우스 버튼(왼쪽 제외)을 선택해 주세요.";
+            const string mousePrefix = "<Mouse>/";
+            if (!string.IsNullOrEmpty(path) && path.StartsWith(mousePrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var button = path.Substring(mousePrefix.Length);
+                foreach (var allowed in MouseButtons)
+                    if (string.Equals(allowed, button, StringComparison.OrdinalIgnoreCase)) { normalizedPath = mousePrefix + allowed; error = null; return true; }
+                error = "마우스 왼쪽 버튼은 UI 클릭용으로 예약되어 있습니다.";
+                return false;
+            }
             const string prefix = "<Keyboard>/";
             if (string.IsNullOrEmpty(path) || !path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return false;
             var name = path.Substring(prefix.Length);

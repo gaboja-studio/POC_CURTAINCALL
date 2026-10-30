@@ -53,7 +53,7 @@ namespace CurtainCall.Control.Editor.Tests
             var draft = Draft();
             Assert.IsFalse(draft.enabled);
             var entries = InputBindingPreferences.GetBindings(draft);
-            Assert.AreEqual(10, entries.Count);
+            Assert.AreEqual(11, entries.Count); // 2026-10-30: UV 등(마우스 우클릭) 포함
             int parts = 0;
             foreach (var entry in entries) if (entry.IsPartOfComposite) parts++;
             Assert.AreEqual(4, parts);
@@ -129,7 +129,7 @@ namespace CurtainCall.Control.Editor.Tests
             string saved = PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey);
             draft.FindAction("Common/Move").ApplyBindingOverride(1, "");
             draft.FindAction("Common/Action").ApplyBindingOverride(0, "<Keyboard>/s");
-            Assert.AreEqual(10, InputBindingPreferences.GetBindings(draft).Count, "빈 키도 편집 목록에서 유지합니다.");
+            Assert.AreEqual(11, InputBindingPreferences.GetBindings(draft).Count, "빈 키도 편집 목록에서 유지합니다.");
             Assert.IsFalse(InputBindingPreferences.TryApply(draft, out var error));
             StringAssert.Contains("할당되지 않은", error);
             Assert.AreEqual(saved, PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey));
