@@ -31,5 +31,6 @@
 - HumanCannon 10개에 더해 탈출로 A 4/B 5/C 3개 모든 Station에 실제 포신 프리팹 연결, 구형 Renderer 숨김·앵커 보존. 해당 세 씬은 다른 탈출로 작업과 겹칠 수 있음.
 - 씬 포함 검사 실행기에서 완료 신호가 오지 않아 취소. `unity close` 30초 제한 초과 후 정상 종료 확인, 에디터 재시작 후 재검증. 별도 Unity 버그 리포트는 보내지 않음.
 - 집중 EditMode 12/12, LAN 호스트 PlayMode 4/4 통과. 저장된 탈출로 12개 Station을 에디터에서 직접 읽어 새 포신·기존 Renderer 비활성을 확인. 다중 클라이언트 실기기 및 전체 탈출로 플레이는 미실시.
+- dev PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/249. PR 작성 스크립트 미리보기는 보존 중인 이전 글꼴 캐시·스크린샷 변경 때문에 dirty 경고; 요청한 범위만 별도 커밋·push한 뒤 gh로 동일 템플릿의 PR을 생성했다.
 
 - 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
