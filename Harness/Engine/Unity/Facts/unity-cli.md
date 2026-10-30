@@ -1,19 +1,17 @@
 ---
 summary: Unity CLI 버전, 주요 명령, 버전업으로 바뀐 동작, 로그 경로
 status: active
-updated: 2026-10-27
-source: 2026-10-02 unity --help·unity changelog --target beta.9~12 확인, Task-20260930-007; 2026-10-27 unity changelog --target beta.13·14 확인, Task-20261027-076
+updated: 2026-10-30
+source: Task-20260930-007 beta.9~12; Task-20261027-076 beta.13·14; Task-20261029-078 beta.15 설치·명령 실행 확인
 ---
 
 # Unity CLI
-
-## 언제 읽나
 
 CLI로 에디터 상태 확인, 명령 실행, 테스트, 프로젝트 열기를 할 때. CLI 버전이 바뀌었을 때.
 
 ## 사실
 
-- CLI 버전: `1.0.0-beta.14` (`unity --version`), Pipeline `com.unity.pipeline` 0.8.0-exp.1
+- CLI 버전: `1.0.0-beta.15` (`unity --version`), Pipeline `com.unity.pipeline` 0.8.0-exp.1
 - 주요 명령 (모든 에디터 조작에 `--project-path` 필수):
   - `unity status [--project-path p] --json` — 연결된 에디터 목록. 없으면 `STATUS_NO_INSTANCES`. `--until-ready`로 준비될 때까지 대기(기본 300초)
   - `unity command [name] [args] --project-path p` — 에디터 명령 실행. `--timeout` 기본 30초, `--result-only`로 결과만 JSON
@@ -36,5 +34,7 @@ CLI로 에디터 상태 확인, 명령 실행, 테스트, 프로젝트 열기를
 - 명령 뒤 `--version`은 CLI 버전이 아니다(beta.14). `unity mcp`는 `--project-path`가 없으면 `UNITY_PROJECT_PATH`를 읽는다(beta.13). 이름 변경·추가: `install --list-modules`·`test --affected --since`(beta.9), `recompile`(beta.11), `status --until-ready`·`commands --grep`(beta.12).
 
 ## 확인 방법
+
+beta.15의 공통 `--timeout`과 Pipeline eval 인수를 함께 쓸 때는 [명령 인수 경계](../Pitfalls/pipeline-command-drift.md)를 확인한다. CLI 업데이트는 프로젝트 Editor/패키지 버전 고정값을 변경하지 않았다.
 
 `unity --version`, `unity <명령> --help`, `unity changelog --target <버전>`(릴리스 노트, 네트워크 필요). 버전이 바뀌면 이 파일과 `Pitfalls/pipeline-command-drift.md`를 확인한다. `doctor.ps1`은 이 파일에 현재 버전 문자열이 있는지로 WARN을 낸다.
