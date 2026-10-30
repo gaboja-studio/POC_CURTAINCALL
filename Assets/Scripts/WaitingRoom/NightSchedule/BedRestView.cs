@@ -11,7 +11,10 @@ namespace CurtainCall.WaitingRoom
     {
         CinemachineCamera view;
         UIInputBlocker blocker;
-        Quaternion standing, lying;
+        // 눕기·일어나기는 지금 시선의 좌우 방향을 그대로 두고 위아래만 움직인다.
+        // 침대 방향으로 Slerp하면 시선과 침대 방향이 다를 때 화면이 옆으로 기울며 크게 돈다(Task-082 조사).
+        const float LyingPitch = -75f;
+        float standingPitch, yaw;
         float blend;
         int day;
         bool morning;
@@ -26,9 +29,10 @@ namespace CurtainCall.WaitingRoom
             var go = new GameObject("BedRestCamera"); go.transform.SetParent(transform, false);
             view = go.AddComponent<CinemachineCamera>(); view.Priority = 220;
             view.transform.position = bed.center + Vector3.up * .6f;
-            standing = Camera.main != null ? Camera.main.transform.rotation : rotation;
-            lying = Quaternion.Euler(-75, rotation.eulerAngles.y, 0);
-            view.transform.rotation = standing;
+            var standing = (Camera.main != null ? Camera.main.transform.rotation : rotation).eulerAngles;
+            standingPitch = Mathf.DeltaAngle(0, standing.x);
+            yaw = standing.y;
+            view.transform.rotation = Quaternion.Euler(standingPitch, yaw, 0);
         }
         void Update()
         {
@@ -45,7 +49,7 @@ namespace CurtainCall.WaitingRoom
             if (s.Day > day && s.Phase == CampaignPhase.RestTime) morning = true;
             if (!asleep && !morning) { End(); return; }
             blend = Mathf.MoveTowards(blend, morning ? 0 : 1, Time.unscaledDeltaTime / .8f);
-            view.transform.rotation = Quaternion.Slerp(standing, lying, Mathf.SmoothStep(0, 1, blend));
+            view.transform.rotation = Quaternion.Euler(Mathf.Lerp(standingPitch, LyingPitch, Mathf.SmoothStep(0, 1, blend)), yaw, 0);
             if (morning && blend <= 0) End();
         }
         void End()
