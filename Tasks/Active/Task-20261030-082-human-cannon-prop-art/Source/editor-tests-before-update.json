@@ -1,0 +1,111 @@
+{
+  "status": "completed",
+  "duration": 1.74,
+  "summary": {
+    "total": 14,
+    "passed": 13,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AllMovingHazardsFitTheirDamageVolumesAtTheActualPose(0)",
+      "Status": "Passed",
+      "Duration": 0.2180504,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AllMovingHazardsFitTheirDamageVolumesAtTheActualPose(0.371f)",
+      "Status": "Passed",
+      "Duration": 0.1106128,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AllMovingHazardsFitTheirDamageVolumesAtTheActualPose(2.3f)",
+      "Status": "Passed",
+      "Duration": 0.107358,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AppliedFloorAndCushionBoundsMatchTheRetainedSolidColliders",
+      "Status": "Passed",
+      "Duration": 0.1120652,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AppliedSceneMeshesAndMaterialsResolveFromTheCheckedOutDependency",
+      "Status": "Passed",
+      "Duration": 0.1533966,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.CannonsRestOnTheirWheels_AndLinkedPolesKeepVisibleWarningBands",
+      "Status": "Passed",
+      "Duration": 0.1221188,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryCannonKeepsItsBoardingSeatAndLaunchAnchors",
+      "Status": "Passed",
+      "Duration": 0.1048812,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryPoleKeepsBarAndCableAlignedThroughoutSwing(-80.0f)",
+      "Status": "Passed",
+      "Duration": 0.1007974,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryPoleKeepsBarAndCableAlignedThroughoutSwing(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.094978,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryPoleKeepsBarAndCableAlignedThroughoutSwing(80.0f)",
+      "Status": "Passed",
+      "Duration": 0.0975738,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.MetalTransportPanelsKeepSafeLandingAndVisibleOccupiedIndicators",
+      "Status": "Passed",
+      "Duration": 0.1053862,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.RoundFabricMatchesRadialBounceAndKeepsVisibleInteractiveHandle",
+      "Status": "Failed",
+      "Duration": 0.1097739,
+      "Message": "System.InvalidOperationException : Sequence contains no elements",
+      "StackTrace": "  at System.Linq.Enumerable.Max[TSource] (System.Collections.Generic.IEnumerable`1[T] source, System.Func`2[T,TResult] selector) [0x00030] in <e1f614c5eede4689988594bcb9796955>:0 \r\n  at CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.RoundFabricMatchesRadialBounceAndKeepsVisibleInteractiveHandle () [0x001c8] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\MainStage\\HumanCannon\\Editor\\Tests\\AppliedCannonArtTests.cs:119 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.SawDiscsTurnInPlaceWhileWallAndPassageStayAcrossTheCourse",
+      "Status": "Passed",
+      "Duration": 0.1071972,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.SawWallGapsStayVisibleButAreNarrowerThanThePlayerCapsule",
+      "Status": "Passed",
+      "Duration": 0.100162,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

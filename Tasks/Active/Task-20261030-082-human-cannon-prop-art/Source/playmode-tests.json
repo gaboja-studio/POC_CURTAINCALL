@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 11.18,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedRoundTrampoline_ActualCenterJumpBouncesWithOriginalSpeedAndHeight",
+      "Status": "Passed",
+      "Duration": 6.659997,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedRoundTrampoline_CurrentWholeDeviceContactIncludesOldFabricCorner",
+      "Status": "Passed",
+      "Duration": 4.40948,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}
