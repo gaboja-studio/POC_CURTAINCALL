@@ -114,3 +114,5 @@
 
 - 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 후속 사용자 제출 요청으로 dev 88cbb574 병합을 저장하고 feat/main-stage-background-submit → dev PR을 준비한다. 현재 에셋·코드와 일치하는 직전 안전성/문서/컴파일 PASS 및 대상 EditMode8개·기존 PlayMode1개 통과 결과를 재사용한다. ProjectSettings 자동 변경2개는 임시 보관 후 제출 뒤 복원한다.
+
+- 2026-10-30 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/242 (feat/main-stage-background-submit → dev)
