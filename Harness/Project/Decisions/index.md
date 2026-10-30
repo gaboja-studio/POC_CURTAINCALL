@@ -2,6 +2,8 @@
 
 이 POC에서 사람이 확정한 결정. 상황에 맞는 파일 1개만 연다. AI 추천안은 여기가 아니라 Task의 Open Decisions에 둔다.
 
+- [performance-background-density.md](performance-background-density.md) — 최초 공연장의 밀도·분위기·압도감 유지, 플랫폼별 기둥 반복과 접합 불량 정리. 공연장 철골 배치를 조정할 때
+
 - [escape-background-direction.md](escape-background-direction.md) — 탈출로의 중성 콘크리트·흐린 내부/햇빛 강한 갈대밭 대비·기존 캐릭터 사용. 공통 맵과 B/C 배경을 제작할 때
 - [escape-control-baseline.md](escape-control-baseline.md) — A 우선 완성·B/C M2 이후 일정, 공통 1인 개발환경·인간대포 기본 조작·외줄 전환·그네 기준
 

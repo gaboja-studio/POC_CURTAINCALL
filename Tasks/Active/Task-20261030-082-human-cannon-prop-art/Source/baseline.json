@@ -1,0 +1,494 @@
+[
+  {
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/CannonStationVisual.prefab",
+    "parts": [
+      {
+        "name": "CannonStationVisual",
+        "pos": "(0.000, 0.000, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "CannonVisual",
+        "pos": "(0.000, 1.201, 0.002)",
+        "scale": "(0.320, 0.289, 0.365)",
+        "rot": "(335.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "cannon_001",
+        "pos": "(0.000, 0.000, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform",
+          "MeshFilter",
+          "MeshRenderer"
+        ]
+      },
+      {
+        "name": "cannon_002",
+        "pos": "(0.000, 0.000, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform",
+          "MeshFilter",
+          "MeshRenderer"
+        ]
+      },
+      {
+        "name": "BoardingPoint",
+        "pos": "(0.000, 0.000, -1.500)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "Seat",
+        "pos": "(0.000, 1.200, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "Muzzle",
+        "pos": "(0.000, 2.000, 1.500)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      }
+    ]
+  },
+  {
+    "path": "Assets/Resources/Prefabs/Objects/ETCs/HumanCannonArtKit/RoundCarryTrampolineVisual.prefab",
+    "parts": [
+      {
+        "name": "RoundCarryTrampolineVisual",
+        "pos": "(0.000, 0.000, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "FrameAndFabric",
+        "pos": "(0.000, 0.000, 0.000)",
+        "scale": "(0.828, 0.468, 0.828)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "trampoline_3_001",
+        "pos": "(0.000, 0.000, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform",
+          "MeshFilter",
+          "MeshRenderer"
+        ]
+      },
+      {
+        "name": "trampoline_3_002",
+        "pos": "(0.000, 0.900, 0.000)",
+        "scale": "(1.244, 1.000, 1.244)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform",
+          "MeshFilter",
+          "MeshRenderer"
+        ]
+      },
+      {
+        "name": "BounceSurface",
+        "pos": "(0.000, 0.500, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "Handle",
+        "pos": "(-2.800, 0.000, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "Grip",
+        "pos": "(0.049, 0.600, 0.000)",
+        "scale": "(0.040, 0.264, 3.430)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "SM_Gen_Bld_Pipe_Straight_01",
+        "pos": "(0.000, 0.000, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform",
+          "MeshFilter",
+          "MeshRenderer"
+        ]
+      },
+      {
+        "name": "HandleLink-1",
+        "pos": "(-2.232, 0.530, -0.550)",
+        "scale": "(0.257, 0.237, 0.237)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "SM_Gen_Bld_Pipe_Straight_01",
+        "pos": "(0.000, 0.000, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform",
+          "MeshFilter",
+          "MeshRenderer"
+        ]
+      },
+      {
+        "name": "HandleLink1",
+        "pos": "(-2.232, 0.530, 0.550)",
+        "scale": "(0.257, 0.237, 0.237)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform"
+        ]
+      },
+      {
+        "name": "SM_Gen_Bld_Pipe_Straight_01",
+        "pos": "(0.000, 0.000, 0.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "rot": "(0.00, 0.00, 0.00)",
+        "components": [
+          "Transform",
+          "MeshFilter",
+          "MeshRenderer"
+        ]
+      }
+    ]
+  },
+  {
+    "scene": "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity",
+    "props": [
+      {
+        "name": "Cannon",
+        "pos": "(0.000, 4.000, 3.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BoardingPoint",
+          "Seat",
+          "Muzzle",
+          "Barrel",
+          "AppliedCannon"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonStation\",\"boardingPoint\":{\"instanceID\":0},\"seat\":{\"instanceID\":0},\"muzzle\":{\"instanceID\":0},\"boardingDistance\":2.0,\"forwardSpeed\":7.2243332862854,\"upwardSpeed\":12.0,\"airControlSpeed\":4.5}}"
+        ]
+      },
+      {
+        "name": "AppliedCannon",
+        "pos": "(0.000, 4.000, 3.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "CannonVisual",
+          "BoardingPoint",
+          "Seat",
+          "Muzzle"
+        ],
+        "data": []
+      },
+      {
+        "name": "Trampoline",
+        "pos": "(-9.000, 4.000, 2.800)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BounceSurface",
+          "Leg",
+          "Leg",
+          "Leg",
+          "Leg",
+          "Handle",
+          "AppliedRoundTrampoline"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonTrampoline\",\"handle\":{\"instanceID\":0},\"carryHandleHeight\":0.0,\"surfaceHeight\":0.5,\"halfSize\":{\"x\":2.0,\"y\":2.0},\"circularSurface\":true,\"requireCarrierForBounce\":false,\"loadHalfSize\":{\"x\":2.4753408432006838,\"y\":2.4753408432006838},\"grabDistance\":4.0,\"upwardSpeed\":12.0,\"groundBounceAirControlSpeed\":4.5,\"resetPoseOnRestart\":true}}",
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline\",\"outlineMaterial\":{\"fileID\":2100000,\"guid\":\"eca9ded79a8b9fc45b9801bc7ab724cc\",\"type\":2}}}"
+        ]
+      },
+      {
+        "name": "DepartureCannon2",
+        "pos": "(-3.000, 4.000, 3.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BoardingPoint",
+          "Seat",
+          "Muzzle",
+          "Barrel",
+          "AppliedCannon"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonStation\",\"boardingPoint\":{\"instanceID\":0},\"seat\":{\"instanceID\":0},\"muzzle\":{\"instanceID\":0},\"boardingDistance\":2.0,\"forwardSpeed\":7.2959136962890629,\"upwardSpeed\":12.0,\"airControlSpeed\":4.5}}"
+        ]
+      },
+      {
+        "name": "AppliedCannon",
+        "pos": "(-3.000, 4.000, 3.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "CannonVisual",
+          "BoardingPoint",
+          "Seat",
+          "Muzzle"
+        ],
+        "data": []
+      },
+      {
+        "name": "DepartureCannon3",
+        "pos": "(3.000, 4.000, 3.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BoardingPoint",
+          "Seat",
+          "Muzzle",
+          "Barrel",
+          "AppliedCannon"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonStation\",\"boardingPoint\":{\"instanceID\":0},\"seat\":{\"instanceID\":0},\"muzzle\":{\"instanceID\":0},\"boardingDistance\":2.0,\"forwardSpeed\":7.2959136962890629,\"upwardSpeed\":12.0,\"airControlSpeed\":4.5}}"
+        ]
+      },
+      {
+        "name": "AppliedCannon",
+        "pos": "(3.000, 4.000, 3.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "CannonVisual",
+          "BoardingPoint",
+          "Seat",
+          "Muzzle"
+        ],
+        "data": []
+      },
+      {
+        "name": "ShelterCannon1",
+        "pos": "(0.000, 6.000, 79.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BoardingPoint",
+          "Seat",
+          "Muzzle",
+          "Barrel",
+          "AppliedCannon"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonStation\",\"boardingPoint\":{\"instanceID\":0},\"seat\":{\"instanceID\":0},\"muzzle\":{\"instanceID\":0},\"boardingDistance\":2.0,\"forwardSpeed\":7.999999046325684,\"upwardSpeed\":12.0,\"airControlSpeed\":4.5}}"
+        ]
+      },
+      {
+        "name": "AppliedCannon",
+        "pos": "(0.000, 6.000, 79.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "CannonVisual",
+          "BoardingPoint",
+          "Seat",
+          "Muzzle"
+        ],
+        "data": []
+      },
+      {
+        "name": "ShelterCannon2",
+        "pos": "(-3.000, 6.000, 79.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BoardingPoint",
+          "Seat",
+          "Muzzle",
+          "Barrel",
+          "AppliedCannon"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonStation\",\"boardingPoint\":{\"instanceID\":0},\"seat\":{\"instanceID\":0},\"muzzle\":{\"instanceID\":0},\"boardingDistance\":2.0,\"forwardSpeed\":8.079265594482422,\"upwardSpeed\":12.0,\"airControlSpeed\":4.5}}"
+        ]
+      },
+      {
+        "name": "AppliedCannon",
+        "pos": "(-3.000, 6.000, 79.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "CannonVisual",
+          "BoardingPoint",
+          "Seat",
+          "Muzzle"
+        ],
+        "data": []
+      },
+      {
+        "name": "ShelterCannon3",
+        "pos": "(3.000, 6.000, 79.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BoardingPoint",
+          "Seat",
+          "Muzzle",
+          "Barrel",
+          "AppliedCannon"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonStation\",\"boardingPoint\":{\"instanceID\":0},\"seat\":{\"instanceID\":0},\"muzzle\":{\"instanceID\":0},\"boardingDistance\":2.0,\"forwardSpeed\":8.079265594482422,\"upwardSpeed\":12.0,\"airControlSpeed\":4.5}}"
+        ]
+      },
+      {
+        "name": "AppliedCannon",
+        "pos": "(3.000, 6.000, 79.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "CannonVisual",
+          "BoardingPoint",
+          "Seat",
+          "Muzzle"
+        ],
+        "data": []
+      },
+      {
+        "name": "FinalCannon1",
+        "pos": "(-6.000, 6.200, 152.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BoardingPoint",
+          "Seat",
+          "Muzzle",
+          "Barrel",
+          "AppliedCannon"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonStation\",\"boardingPoint\":{\"instanceID\":0},\"seat\":{\"instanceID\":0},\"muzzle\":{\"instanceID\":0},\"boardingDistance\":2.0,\"forwardSpeed\":8.0,\"upwardSpeed\":12.0,\"airControlSpeed\":4.5}}"
+        ]
+      },
+      {
+        "name": "AppliedCannon",
+        "pos": "(-6.000, 6.200, 152.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "CannonVisual",
+          "BoardingPoint",
+          "Seat",
+          "Muzzle"
+        ],
+        "data": []
+      },
+      {
+        "name": "FinalCannon2",
+        "pos": "(-2.000, 6.200, 152.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BoardingPoint",
+          "Seat",
+          "Muzzle",
+          "Barrel",
+          "AppliedCannon"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonStation\",\"boardingPoint\":{\"instanceID\":0},\"seat\":{\"instanceID\":0},\"muzzle\":{\"instanceID\":0},\"boardingDistance\":2.0,\"forwardSpeed\":8.0,\"upwardSpeed\":12.0,\"airControlSpeed\":4.5}}"
+        ]
+      },
+      {
+        "name": "AppliedCannon",
+        "pos": "(-2.000, 6.200, 152.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "CannonVisual",
+          "BoardingPoint",
+          "Seat",
+          "Muzzle"
+        ],
+        "data": []
+      },
+      {
+        "name": "FinalCannon3",
+        "pos": "(2.000, 6.200, 152.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BoardingPoint",
+          "Seat",
+          "Muzzle",
+          "Barrel",
+          "AppliedCannon"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonStation\",\"boardingPoint\":{\"instanceID\":0},\"seat\":{\"instanceID\":0},\"muzzle\":{\"instanceID\":0},\"boardingDistance\":2.0,\"forwardSpeed\":8.0,\"upwardSpeed\":12.0,\"airControlSpeed\":4.5}}"
+        ]
+      },
+      {
+        "name": "AppliedCannon",
+        "pos": "(2.000, 6.200, 152.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "CannonVisual",
+          "BoardingPoint",
+          "Seat",
+          "Muzzle"
+        ],
+        "data": []
+      },
+      {
+        "name": "FinalCannon4",
+        "pos": "(6.000, 6.200, 152.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "BoardingPoint",
+          "Seat",
+          "Muzzle",
+          "Barrel",
+          "AppliedCannon"
+        ],
+        "data": [
+          "{\"MonoBehaviour\":{\"m_Enabled\":true,\"m_EditorHideFlags\":0,\"m_Name\":\"\",\"m_EditorClassIdentifier\":\"Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonStation\",\"boardingPoint\":{\"instanceID\":0},\"seat\":{\"instanceID\":0},\"muzzle\":{\"instanceID\":0},\"boardingDistance\":2.0,\"forwardSpeed\":8.0,\"upwardSpeed\":12.0,\"airControlSpeed\":4.5}}"
+        ]
+      },
+      {
+        "name": "AppliedCannon",
+        "pos": "(6.000, 6.200, 152.000)",
+        "scale": "(1.000, 1.000, 1.000)",
+        "children": [
+          "CannonVisual",
+          "BoardingPoint",
+          "Seat",
+          "Muzzle"
+        ],
+        "data": []
+      }
+    ]
+  },
+  {
+    "scene": "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity",
+    "props": []
+  }
+]
