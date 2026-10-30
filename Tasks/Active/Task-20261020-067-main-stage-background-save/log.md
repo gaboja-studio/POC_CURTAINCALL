@@ -105,3 +105,4 @@
 - 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 최종 check-work 안전성·문서/규칙·컴파일 PASS. 문서 길이 WARN 및 private 미커밋 안내만 있었으며 전체 테스트는 선택하지 않았다. 비교 캡처는 Temp/ShowExpansionReview/에 보존하고 임시 PNG 에셋을 정리했다. private 에셋은 resource/performance-background-show-expansion의 df7890fd에 저장했다. 공연장과 무관한 ProjectSettings 자동 변경2개는 저장 범위에서 제외한다.
 - private df7890fd를 origin/resource/performance-background-show-expansion에 push 완료. 공개 저장은 feat/main-stage-background-submit에서 공연장 코드·참조 포인터·Task/지식 문서15개로 한정한다. 기존 밀도/접합/깃발 수정도 포함하며 dev 직접 반영/PR 생성은 하지 않는다.
+- 공개 pre-push가 private main 미포함 포인터를 거부했다. private main의 README 변경만 병합해 a1511645를 main에 정상 fast-forward push했다. 에셋 기하는 df7890fd와 동일하며 이 최신 포인터로 공개 저장을 마무리한다. 검사 우회/force push 없음.
