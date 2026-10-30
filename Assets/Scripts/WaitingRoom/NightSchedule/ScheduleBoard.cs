@@ -11,6 +11,7 @@ namespace CurtainCall.WaitingRoom
     /// - 참가자는 호스트가 보내는 상태를 그대로 받아 같은 규칙(<see cref="ScheduleBook"/>)으로 난도를 계산해 보여 준다.
     /// - 호스트는 런 상태를 지켜 밤 시작·끝을 장부에 알리고, 세대 교체·런 종료·런 재시작 때 장부를 비운다.
     /// - 확정하면 실행할 일차(2·3일차) 공연 순서를 <see cref="CampaignRun.SetSetlist"/>로 넘긴다(4일차는 넘기지 않음).
+    /// - 쉬는 시간에는 바로 다음 공연의 단계만 호스트가 다시 고를 수 있다(<see cref="AdjustTier"/>, Task-082).
     /// </summary>
     public sealed class ScheduleBoard : MonoBehaviour
     {
@@ -93,6 +94,35 @@ namespace CurtainCall.WaitingRoom
             return Answer(refusal);
         }
 
+        /// <summary>
+        /// 그 칸이 쉬는 시간에 단계를 다시 고를 수 있는 바로 다음 공연인가(2일차부터, 스케줄표로 편성한 칸).
+        /// 참가자도 같은 판단으로 표시만 한다. 실제 변경은 <see cref="AdjustTier"/>에서 호스트만.
+        /// </summary>
+        public bool IsNextPerformance(int day, int slot)
+        {
+            var run = CampaignRun.Instance;
+            if (run == null || day <= 1 || day > ScheduleBook.PerformanceDays) return false;
+            var s = run.State;
+            return s.Phase == CampaignPhase.RestTime && !s.IsFinalMorning && s.Day == day && s.PerformanceIndex == slot
+                && !string.IsNullOrEmpty(book.Get(day, slot)) && book.Get(day, slot) == s.TrickId;
+        }
+
+        /// <summary>호스트: 쉬는 시간에 바로 다음 공연의 단계만 바꾼다. 런 진행 단계와 스케줄표를 함께 고친다.</summary>
+        public ScheduleRefusal AdjustTier(int day, int slot, int tier)
+        {
+            if (!HasAuthority) return Answer(ScheduleRefusal.NotEditable);
+            if (!IsNextPerformance(day, slot)) return Answer(ScheduleRefusal.NotNextPerformance);
+            if (book.Difficulty(day, slot) == tier) return ScheduleRefusal.None;
+            if (tier < 1 || tier > MaxTier(book.Get(day, slot)) || !CampaignRun.Instance.AdjustNextTier(tier)) return Answer(ScheduleRefusal.BadTier);
+            var refusal = book.AdjustTier(day, slot, tier, MaxTier(book.Get(day, slot)));
+            if (refusal == ScheduleRefusal.None)
+            {
+                Debug.Log($"[NightSchedule] {day}일차 공연 {slot + 1} 단계 조정: {tier}단계");
+                Publish();
+            }
+            return Answer(refusal);
+        }
+
         /// <summary>그 공연에 지금 고를 수 있는 가장 높은 단계(호스트 판정, 깬 단계 + 1, 최대 3).</summary>
         public int MaxTier(string trickId) => CampaignRun.Instance != null ? CampaignRun.Instance.MaxSelectableTier(trickId) : 1;
 
@@ -137,6 +167,7 @@ namespace CurtainCall.WaitingRoom
             ScheduleRefusal.BadSlot => "없는 칸입니다.",
             ScheduleRefusal.Incomplete => "빈 칸을 모두 채워야 확정할 수 있습니다.",
             ScheduleRefusal.BadTier => "깬 단계의 다음 단계까지만 고를 수 있습니다.",
+            ScheduleRefusal.NotNextPerformance => "쉬는 시간에는 바로 다음 공연의 단계만 바꿀 수 있습니다.",
             _ => "할 수 없습니다.",
         };
 

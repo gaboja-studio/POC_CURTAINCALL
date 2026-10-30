@@ -14,6 +14,8 @@ namespace CurtainCall.WaitingRoom
         Incomplete,
         /// <summary>고를 수 없는 난이도 단계(깬 단계의 다음 단계까지만, 최대 3).</summary>
         BadTier,
+        /// <summary>쉬는 시간 단계 조정은 바로 다음 공연 칸만 할 수 있다.</summary>
+        NotNextPerformance,
     }
 
     /// <summary>
@@ -24,6 +26,7 @@ namespace CurtainCall.WaitingRoom
     /// - 같은 공연을 하루 2번 골라도 된다.
     /// - 난이도(M2): 칸마다 단계 1~3을 고른다. 그 묘기를 깬 단계의 다음 단계까지만 고를 수 있다(부르는 쪽이 최대 단계를 알려 준다).
     ///   1일차는 1단계 고정. 실제 공연 단계는 런 진행이 시작할 때 다시 허용 범위로 줄인다.
+    ///   쉬는 시간에는 잠긴 칸이라도 바로 다음 공연의 단계만 다시 고칠 수 있다(<see cref="AdjustTier"/>).
     /// 세대 교체·런 재시작 때 <see cref="Clear"/>로 처음 상태로 돌린다.
     /// </summary>
     public sealed class ScheduleBook
@@ -149,6 +152,20 @@ namespace CurtainCall.WaitingRoom
             if (slots[day - 1, slot] == value && tiers[day - 1, slot] == level) return ScheduleRefusal.None;
             slots[day - 1, slot] = value;
             tiers[day - 1, slot] = level;
+            Revision++;
+            return ScheduleRefusal.None;
+        }
+
+        /// <summary>
+        /// 쉬는 시간: 잠긴 칸이라도 단계만 바꾼다(묘기는 그대로). 바로 다음 공연인지는 부르는 쪽이 확인한다.
+        /// </summary>
+        public ScheduleRefusal AdjustTier(int day, int slot, int tier, int maxTier)
+        {
+            if (!InRange(day, slot) || day <= 1 || day > PerformanceDays) return ScheduleRefusal.BadSlot;
+            if (string.IsNullOrEmpty(slots[day - 1, slot])) return ScheduleRefusal.NotEditable;
+            if (tier < 1 || tier > Math.Min(MaxDifficulty, Math.Max(1, maxTier))) return ScheduleRefusal.BadTier;
+            if (tiers[day - 1, slot] == tier) return ScheduleRefusal.None;
+            tiers[day - 1, slot] = tier;
             Revision++;
             return ScheduleRefusal.None;
         }
