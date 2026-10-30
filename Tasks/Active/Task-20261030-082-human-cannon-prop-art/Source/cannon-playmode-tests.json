@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 13.04,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.EveryCannon_BoardsAndCancelsIndependentlyWhileShelterLiftWaits",
+      "Status": "Passed",
+      "Duration": 12.9209043,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}
