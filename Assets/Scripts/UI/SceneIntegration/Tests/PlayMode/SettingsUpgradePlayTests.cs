@@ -12,7 +12,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
-        static readonly string[] GraphicsKeys = { "Fullscreen", "ScreenMode", "ResolutionWidth", "ResolutionHeight", "FrameRateLimit" };
+        static readonly string[] GraphicsKeys = { "Fullscreen", "ScreenMode", "ResolutionWidth", "ResolutionHeight", "FrameRateLimit", "HideNearbyCharacter" };
         static int?[] CaptureGraphics() => GraphicsKeys.Select(k => PlayerPrefs.HasKey("CurtainCall.Settings." + k) ? (int?)PlayerPrefs.GetInt("CurtainCall.Settings." + k) : null).ToArray();
         static void RestoreGraphics(int?[] values)
         {
@@ -245,27 +245,33 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsFalse(((UnityEngine.UI.Button)Get(view, "ApplyButton")).interactable, "변경 전에는 적용할 수 없습니다.");
                 Call(settings, "OpenGraphics"); yield return null;
                 Assert.AreEqual(1, Get(view, "CurrentPage"));
+                bool originalHide = (bool)Static("CurtainCall.StartLobby.ClientSettings", "HideNearbyCharacter");
+                SettingsToggle(view, "HideNearbyCharacter").isOn = !originalHide;
                 var fpsNext = SettingsRow(view, 1, "FrameRate").Find("30_Next").GetComponent<UnityEngine.UI.Button>();
                 int original = (int)Static("CurtainCall.StartLobby.ClientSettings", "FrameRateLimit");
                 fpsNext.onClick.Invoke();
                 Assert.IsTrue(((UnityEngine.UI.Button)Get(view, "ApplyButton")).interactable);
                 Assert.AreEqual(original, Static("CurtainCall.StartLobby.ClientSettings", "FrameRateLimit"));
+                Assert.AreEqual(originalHide, Static("CurtainCall.StartLobby.ClientSettings", "HideNearbyCharacter"));
                 yield return MenuEscape();
                 Assert.IsFalse((bool)Get(owner, "IsOpen"));
                 Assert.AreEqual(original, Static("CurtainCall.StartLobby.ClientSettings", "FrameRateLimit"));
                 Call(start, "Show", Enum.Parse(T("CurtainCall.StartLobby.StartMenu+Page"), "Settings")); yield return null;
                 Call(view, "ShowPage", 1); yield return null;
                 fpsNext = SettingsRow(view, 1, "FrameRate").Find("30_Next").GetComponent<UnityEngine.UI.Button>();
+                SettingsToggle(view, "HideNearbyCharacter").isOn = !originalHide;
                 fpsNext.onClick.Invoke();
                 string shown = SettingsRow(view, 1, "FrameRate").Find("20_ValueTMP").GetComponent<TMP_Text>().text;
                 int expected = shown == "제한 없음" ? -1 : int.Parse(shown.Split(' ')[0]);
                 Call(view, "RequestApply"); yield return null;
                 Assert.AreEqual(expected, Static("CurtainCall.StartLobby.ClientSettings", "FrameRateLimit"));
+                Assert.AreEqual(!originalHide, Static("CurtainCall.StartLobby.ClientSettings", "HideNearbyCharacter"));
                 Assert.AreEqual(expected, Application.targetFrameRate);
                 Assert.AreEqual(0, QualitySettings.vSyncCount);
                 Assert.IsFalse((bool)Get(settings, "IsExtensionOpen"));
                 Call(start, "Show", Enum.Parse(T("CurtainCall.StartLobby.StartMenu+Page"), "Settings")); yield return null;
                 Call(view, "ShowPage", 1); yield return null;
+                Assert.AreEqual(!originalHide, SettingsToggle(view, "HideNearbyCharacter").isOn);
                 Assert.AreEqual(shown, SettingsRow(view, 1, "FrameRate").Find("20_ValueTMP").GetComponent<TMP_Text>().text);
                 for (int i = 0; i < 3; i++)
                 {

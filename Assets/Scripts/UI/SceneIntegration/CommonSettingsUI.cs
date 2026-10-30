@@ -106,6 +106,7 @@ namespace CurtainCall.UI.SceneIntegration
             graphics.rows.Add(Choice("Resolution", "해상도", resolution, resolutions.Select(r => new SettingsChoice(r.width + "x" + r.height, $"{r.width} × {r.height}"))));
             graphics.rows.Last().disabledValueLabel = "데스크톱 해상도 사용";
             graphics.rows.Add(Choice("FrameRate", "FPS 제한", ClientSettings.FrameRateLimit.ToString(), ClientSettings.AvailableFrameRateLimits.Select(f => new SettingsChoice(f.ToString(), f < 0 ? "제한 없음" : f == 60 ? "60 FPS (기본)" : $"{f} FPS"))));
+            graphics.rows.Add(Toggle("HideNearbyCharacter", "카메라가 가까울 때 내 캐릭터 숨기기", ClientSettings.HideNearbyCharacter));
             graphics.rows.Add(Paragraph("GraphicsHint", "전체 화면 창은 데스크톱 해상도를 사용합니다.\n변경한 설정은 적용을 누르면 이 PC에 저장됩니다."));
             var controls = catalog.pages[2];
             controls.notice = "변경 버튼을 누르고 새 키를 입력하세요. ESC로 입력 대기를 취소합니다.\n사용 중인 키는 확인 후 옮깁니다. 모든 키를 설정하고 적용을 눌러야 저장됩니다.\nESC 메뉴·M 마이크·마우스 시점·게임패드는 고정 입력입니다.";
@@ -266,6 +267,7 @@ namespace CurtainCall.UI.SceneIntegration
                     values.Add(new V2Value { rowId = "ScreenMode", choiceId = ((int)ClientSettings.DefaultScreenMode).ToString() });
                     values.Add(new V2Value { rowId = "Resolution", choiceId = resolution.width + "x" + resolution.height });
                     values.Add(new V2Value { rowId = "FrameRate", choiceId = ClientSettings.DefaultFrameRateLimit.ToString() });
+                    values.Add(new V2Value { rowId = "HideNearbyCharacter", toggle = true });
                     break;
                 case "controls":
                     if (inputDraft == null) return;
@@ -314,6 +316,7 @@ namespace CurtainCall.UI.SceneIntegration
                 var resolution = resolutions.First(r => r.width + "x" + r.height == values["Resolution"].choiceId);
                 var mode = (FullScreenMode)int.Parse(values["ScreenMode"].choiceId);
                 ClientSettings.SetGraphics(mode, resolution.width, resolution.height, int.Parse(values["FrameRate"].choiceId));
+                ClientSettings.HideNearbyCharacter = values["HideNearbyCharacter"].toggle;
                 ClientSettings.Volume = values["volume"].number; ClientSettings.BgmVolume = values["bgmVolume"].number; ClientSettings.SfxVolume = values["sfxVolume"].number; ClientSettings.Save();
                 var voice = VoiceChat.Instance;
                 voice?.ApplyAudioPreferences(values["micVolume"].number, !values["micEnabled"].toggle, values["teamVolume"].number, values["teamMuted"].toggle);

@@ -5,6 +5,7 @@ using CurtainCall.Network.PlayerSync;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace CurtainCall.Cameras
 {
@@ -123,7 +124,13 @@ namespace CurtainCall.Cameras
                 int count = Physics.SphereCastNonAlloc(origin, radius, to.normalized, hits, distance, ~0, QueryTriggerInteraction.Collide);
                 for (int i = 0; i < count; i++)
                 {
-                    var hit = hits[i].collider.transform;
+                    var collider = hits[i].collider;
+                    // 대기실의 공간 구조물은 절대 반투명하게 만들지 않는다. 다른 플레이어와
+                    // 물리적으로 움직이는 기물만 가림 처리한다.
+                    if (SceneManager.GetActiveScene().name == "WaitingRoomBase" &&
+                        collider.GetComponentInParent<NetworkPlayer>() == null &&
+                        (collider.attachedRigidbody == null || collider.attachedRigidbody.isKinematic)) continue;
+                    var hit = collider.transform;
                     if (hit.IsChildOf(target) || IsExcluded(hit)) continue;
                     hit.GetComponentsInChildren(renderers);
                     foreach (var renderer in renderers) Mark(renderer);
