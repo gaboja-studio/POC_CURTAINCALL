@@ -389,6 +389,11 @@ function Get-AssetMetaPaths {
     $parts = $clean.Split('/')
     # Unity가 무시하는 점 파일(.gitkeep 등)은 자기 .meta 없이 상위 폴더만 검사한다.
     $count = if ($parts[-1].StartsWith('.')) { $parts.Count - 1 } else { $parts.Count }
+    # Unity는 ~로 끝나는 제작 원본 폴더와 그 안의 파일을 임포트하지 않는다.
+    # 무시된 경로보다 위에 있는 일반 Assets 폴더의 .meta 검사는 유지한다.
+    for ($i = 1; $i -lt $parts.Count; $i++) {
+        if ($parts[$i].EndsWith('~')) { $count = [Math]::Min($count, $i); break }
+    }
     $result = for ($i = 2; $i -le $count; $i++) { ($parts[0..($i - 1)] -join '/') + '.meta' }
     return @($result)
 }

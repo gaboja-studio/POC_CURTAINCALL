@@ -1,6 +1,7 @@
 # Project Pitfalls
 
 - [flag-double-sided-flicker.md](flag-double-sided-flicker.md) — 공연장 깃발의 양면 중복 렌더링·깜빡임을 확인할 때
+- [Human-cannon/](Human-cannon/index.md) — 트램펄린 모델 교체와 실제 접촉 경계를 확인할 때
 
 - [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
 - [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지 부상 오판과 꺾인 외줄 방향 인계를 고칠 때

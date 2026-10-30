@@ -106,3 +106,11 @@
 - 최종 check-work 안전성·문서/규칙·컴파일 PASS. 문서 길이 WARN 및 private 미커밋 안내만 있었으며 전체 테스트는 선택하지 않았다. 비교 캡처는 Temp/ShowExpansionReview/에 보존하고 임시 PNG 에셋을 정리했다. private 에셋은 resource/performance-background-show-expansion의 df7890fd에 저장했다. 공연장과 무관한 ProjectSettings 자동 변경2개는 저장 범위에서 제외한다.
 - private df7890fd를 origin/resource/performance-background-show-expansion에 push 완료. 공개 저장은 feat/main-stage-background-submit에서 공연장 코드·참조 포인터·Task/지식 문서15개로 한정한다. 기존 밀도/접합/깃발 수정도 포함하며 dev 직접 반영/PR 생성은 하지 않는다.
 - 공개 pre-push가 private main 미포함 포인터를 거부했다. private main의 README 변경만 병합해 a1511645를 main에 정상 fast-forward push했다. 에셋 기하는 df7890fd와 동일하며 이 최신 포인터로 공개 저장을 마무리한다. 검사 우회/force push 없음.
+
+## 2026-10-30 dev 추가 최신화
+
+- 사용자 요청으로 origin/dev 88cbb574(인간 대포·트램펄린 모델/씬 교체)를 현재 공연장 브랜치에 --no-commit으로 반영했다. Pitfalls/index.md의 링크 추가 충돌1건은 공연장 깃발·Human-cannon 양쪽 항목을 보존해 해결했다. 씬/프리팹 충돌 없음.
+- 공연장 에셋 a1511645는 dev의26d5009e보다 앞선 검증·게시된 커밋이므로 유지했다. 기존 ProjectSettings 자동 변경2개를 보존했다. 별도 저장 요청 없는 동기화이므로 이번 dev 병합은 커밋 대기로 두고 push하지 않는다.
+
+- 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 후속 사용자 제출 요청으로 dev 88cbb574 병합을 저장하고 feat/main-stage-background-submit → dev PR을 준비한다. 현재 에셋·코드와 일치하는 직전 안전성/문서/컴파일 PASS 및 대상 EditMode8개·기존 PlayMode1개 통과 결과를 재사용한다. ProjectSettings 자동 변경2개는 임시 보관 후 제출 뒤 복원한다.
