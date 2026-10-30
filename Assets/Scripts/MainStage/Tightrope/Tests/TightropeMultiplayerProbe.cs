@@ -30,7 +30,7 @@ namespace CurtainCall.Tightrope.Tests
         InputSettings.EditorInputBehaviorInPlayMode previousEditorInput;
         object previousDev;
         int previousTargetFrameRate;
-        bool previousRunInBackground, overridesApplied, walking, autoBalance;
+        bool previousRunInBackground, overridesApplied, walking, autoBalance, holdInteract;
         int walkDirection, resetFrames, emptyFrames, interactFrames;
         float targetDistance, walkDeadline;
         bool performanceRequested;
@@ -134,6 +134,13 @@ namespace CurtainCall.Tightrope.Tests
             return true;
         }
 
+        public static bool SetInteractHeld(bool held)
+        {
+            if (current == null || current.keyboard == null) return false;
+            current.walking = false; current.holdInteract = held; current.emptyFrames = 0;
+            return true;
+        }
+
         public static bool StartPerformance()
         {
             if (current == null || current.session == null || !current.session.IsHost) return false;
@@ -185,6 +192,7 @@ namespace CurtainCall.Tightrope.Tests
             { keys.Add(Key.R); resetFrames--; }
             else if (interactFrames > 0 && (interactFrames < 2 || !blocked))
             { keys.Add(Key.F); interactFrames--; }
+            else if (holdInteract && !blocked) keys.Add(Key.F);
             else if (!blocked && !JourneyKeys(keys))
             {
                 if (walking) keys.Add(walkDirection > 0 ? Key.W : Key.S);

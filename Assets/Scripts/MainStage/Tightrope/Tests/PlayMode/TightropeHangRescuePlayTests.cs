@@ -60,14 +60,19 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Set(balance, "<RedTime>k__BackingField", .5f);
                 balance.enabled = true;
                 Call(mover, "SetMoveInput", 1f);
-                Assert.IsTrue((bool)Call(hangs, "TryHandleInput", context, CatchFrame(tap: true, move: 1f)));
+                var held = CatchFrame(move: 1f); Set(held, "InteractHeld", true);
+                Assert.IsTrue((bool)Call(hangs, "TryHandleInput", context, held));
                 Assert.IsTrue((bool)Call(hangs, "IsRescuing", player));
                 Assert.IsTrue((bool)Get(balance, "IsRescueSupported"), "구조를 승인하는 프레임부터 보호한다.");
+
                 yield return new WaitForSeconds(.25f);
                 Assert.That((float)Get(balance, "Value"), Is.EqualTo(80f));
                 Assert.That((float)Get(balance, "RedTime"), Is.EqualTo(.5f));
                 Assert.That(Vector3.Distance(player.transform.position, origin), Is.LessThan(.05f), "구조 시작 프레임의 이동 입력도 지운다.");
-                var cancel = CatchFrame(); Set(cancel, "InteractLongPressed", true);
+                var cancel = CatchFrame();
+                Assert.IsTrue((bool)Call(hangs, "TryHandleInput", context, cancel));
+                Assert.IsTrue((bool)Call(hangs, "IsRescuing", player), "순간적인 입력 흔들림은 구조를 끊지 않는다.");
+                yield return new WaitForSecondsRealtime(.23f);
                 Assert.IsTrue((bool)Call(hangs, "TryHandleInput", context, cancel));
                 Assert.IsFalse((bool)Call(hangs, "IsRescuing", player));
                 Assert.IsFalse((bool)Get(balance, "IsRescueSupported"));
@@ -81,6 +86,30 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             }
         }
 
+        [UnityTest]
+        public IEnumerator HangRescue_FireKillsOnlyContactedRescuerAndImmediatelyReleasesPull()
+        {
+            yield return PrepareHangRescue();
+            var helper = SpawnHandholdHelper(1, 6.2f);
+            var target = helper.GetComponent(GameType("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+            var hangs = (Component)Static("CurtainCall.Tightrope.TightropeHangSystem", "Current");
+            var balance = player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
+            var fire = (Component)Static("CurtainCall.Tightrope.Fire.TightropeFire", "Current");
+            try
+            {
+                yield return null;
+                Assert.IsTrue((bool)Call(hangs, "ServerTryHang", target, 6.2f, 1));
+                Call(hangs, "ServerRescue", Get(player, "OwnerClientId"), Get(target, "OwnerClientId"));
+                Assert.IsTrue((bool)Get(balance, "IsRescueSupported"));
+                var kind = Enum.ToObject(GameType("CurtainCall.Tightrope.Fire.FireKind"), 0);
+                Call(fire, "Kill", player, kind, -1, 4f);
+                Assert.AreNotEqual("Normal", Get(player, "State").ToString());
+                Assert.AreEqual("Normal", Get(target, "State").ToString());
+                Assert.IsFalse((bool)Call(hangs, "IsRescuing", player));
+                Assert.IsFalse((bool)Get(balance, "IsRescueSupported"));
+            }
+            finally { if (helper != null) Call(helper, "Despawn", true); }
+        }
         [UnityTest]
         public IEnumerator HangRescue_ProtectsThroughFullPullAndReleasesOnCompletion()
         {

@@ -16,6 +16,8 @@ namespace CurtainCall.Player
         [Tooltip("이 플레이어만 쓸 시작 조작 규칙(테스트용). 비워 두면 씬 규칙 → 기본 이동 규칙(조작 설정)을 쓴다.")]
         [SerializeField] PlayerControlScheme startScheme;
 
+        public static System.Func<PlayerControlContext, PlayerInputFrame, bool> InputInterceptor;
+
         PlayerInputReader input;
         PlayerControlContext context;
         PlayerControlScheme assigned; // 콘텐츠가 SetScheme으로 끼운 규칙
@@ -64,7 +66,7 @@ namespace CurtainCall.Player
         void Update()
         {
             if (assigned == null) SetScheme(null); // 씬 규칙·기본 이동 규칙이 바뀌면 바로 반영
-            if (Scheme != null)
+            if (Scheme != null && (InputGate.IsBlocked || InputInterceptor == null || !InputInterceptor(context, input.Current)))
                 Scheme.Tick(context, input.Current);
         }
     }
