@@ -131,3 +131,8 @@
 - 정리: 플레이 종료, Player 2 Deactivate, EditorPrefs 키 삭제, 씬 dirty 0.
 - 2026-10-31 origin/dev 3커밋(인간대포 포신 애니메이션 #249) 병합 e59d59af: 충돌·겹침 없음. 에디터 재시작 후 컴파일 PASS, PlayMode W3_ 4/4·M2_NightPowerGatesAndBedWake 1/1·M2_Confirmed_UvFlashlight 1/1·M2_ExitRoute 3/3·W2_BodyRestore 2/2. 병합 커밋 미푸시.
 - 2026-10-31 최적화 2~4단계(점조명 그림자5 끔·작은 물체 거리 컬링 12,505·거울/UV/상호작용 표시 코드). 굽기는 정전 회로 때문에 제외. PlayMode 10/10 PASS. 미커밋.
+
+## 선반·바닥 기물 버그 (2026-10-31, 미커밋)
+- 관리실 문 F → 위층 선반 보관: 소품실 선반(-6.3, y0~2.5, z102.4)이 지하 관리실 문(-7.2, y-5, z101.8) 바로 위인데 선반 Reach가 수평 거리만 봄 → 발 높이가 선반 범위(-0.6m 여유) 밖이면 닿지 않게.
+- 선반 밑 물건 못 주움: 버린 자리가 선반 몸체 충돌체 안·밑이면 손 닿는 선이 몸체에 막힘. ① 버릴 때 허리 높이 앞쪽이 가구에 막히면 막힌 곳 앞(10cm)까지만 내려놓고 바닥은 허리 높이에서 찾음(PropCarry.TryDropPoint). ② 바닥 기물 줍기 판정은 기물이 들어 있는 가구 충돌체를 가림에서 제외(ExplorationReach.From insideFurniture, FloorPropsView만 사용, 호스트 판정 CanPickUp도 같은 경로).
+- 검사: 새 PlayMode W4_ShelfIgnoresOtherFloorAndItemsUnderShelfArePickable 1/1. W2_ 7/9 — 실패2는 기존(W2_CarrySlots: 10-28 테스트가 선택 인자 생성자를 리플렉션으로 호출, PropCollision 전문가실 의자) 이번 변경 무관.

@@ -55,7 +55,7 @@ namespace CurtainCall.WaitingRoom
 
             public float Reach(Vector3 feet)
             {
-                return Shape != null ? ExplorationReach.From(Shape.transform, Shape.transform.position, feet, View.reach) : -1f;
+                return Shape != null ? ExplorationReach.From(Shape.transform, Shape.transform.position, feet, View.reach, insideFurniture: true) : -1f;
             }
 
             public void Interact()

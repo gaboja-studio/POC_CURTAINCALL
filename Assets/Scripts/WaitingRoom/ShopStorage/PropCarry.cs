@@ -351,8 +351,15 @@ namespace CurtainCall.WaitingRoom
             point = default;
             if (body == null) return false;
             Vector3 ahead = Vector3.ProjectOnPlane(body.forward, Vector3.up).normalized * dropAhead;
-            point = body.position + ahead;
-            if (Physics.Raycast(point + Vector3.up, Vector3.down, out var hit, 3f, ~0, QueryTriggerInteraction.Ignore))
+            // 앞에 가구(선반 등)가 있으면 가구 밑·안으로 들어가지 않게 캐릭터 쪽으로 당긴다(2026-10-31: 선반 밑에 버리면 못 줍던 문제).
+            // 허리 높이에서 앞으로 쏜 선이 막히면 막힌 곳 앞까지만, 떨어질 바닥은 캐릭터 허리 높이에서 아래로 찾는다.
+            var waist = body.position + Vector3.up * .5f;
+            float length = dropAhead;
+            if (ahead.sqrMagnitude > 1e-4f && Physics.SphereCast(waist, .12f, ahead.normalized, out var block, dropAhead, ~0, QueryTriggerInteraction.Ignore)
+                && block.collider.GetComponentInParent<CurtainCall.Player.PlayerMover>() == null)
+                length = Mathf.Max(0f, block.distance - .1f);
+            point = body.position + (ahead.sqrMagnitude > 1e-4f ? ahead.normalized * length : Vector3.zero);
+            if (Physics.Raycast(new Vector3(point.x, waist.y, point.z), Vector3.down, out var hit, 3f, ~0, QueryTriggerInteraction.Ignore))
                 point.y = hit.point.y;
             return true;
         }

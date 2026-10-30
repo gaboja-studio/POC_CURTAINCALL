@@ -128,6 +128,8 @@ namespace CurtainCall.WaitingRoom
 
         public float Reach(Vector3 feet)
         {
+            // 다른 층(바로 아래 지하 관리실 등)에서는 닿지 않는다(2026-10-31: 관리실 문 F가 위층 선반에 보관되던 문제).
+            if (feet.y < area.min.y - .6f || feet.y > area.max.y) return -1f;
             Vector3 closest = area.ClosestPoint(new Vector3(feet.x, area.center.y, feet.z));
             Vector3 offset = feet - closest;
             float distance = new Vector2(offset.x, offset.z).magnitude;
