@@ -56,3 +56,5 @@ Task-078 `Source/configure-rabbit-import.cs`, `test-rabbit-animation.cs`, `test-
 - v14에서 바지/부츠 사이18mm 발목 누락은 기존300포즈·절단면 검사로 발견하지 못했다. 접합부의 실제 메시 존재와 의상 안쪽 겹침을 별도 검사한다. ART_태그를 컷JSON에 남기고 정상/분리 스킨의 양끝이 바지/부츠 내부에 있는지 실제BakeMesh에서 확인한다. 첫 숨은 상단은 일부 굴곡에서 튀어나왔고 더 좁은 종아리 구간에 배치해560조건 실패0으로 수정했다. 확대Idle/Walk/Crouch도 함께 본다.
 - v15 새 셰이더 직후 Camera.Render는 shaderErrors0이어도 비동기 variant 준비 중 모델이 빠질 수 있다. 증거 렌더에서만 ShaderUtil.allowAsyncCompilation=false로 기다리고 finally에서 복원한다. 에셋 생성 성공과 실제 렌더 성공을 구분한다.
 - 표면 상태는 정상/Body4/Limb4의0/1슬롯을 함께 바꾸고 이후cap와PropertyBlock을 보존한다. 이미 분리된 객체에는 상태를 재전파하지 않아 절단 당시 sharedMaterials 스냅샷을 유지한다. UV 마스크는 포즈/분리 후에도 표면에 붙지만 월드좌표 노이즈는 움직이며 미끄러진다.
+- 단추 위치를 고정 깊이에 두면 곡면 의상에서 16~32mm 뜰 수 있다. 옷에 투영하고 가중치를 보간해도 큰 삼각형에서는 스키닝된 삼각형의 보간과 보간 가중치의 스키닝이 달라 숙인 자세에서 묻힌다. 단추 바로 아래 옷 정점을 추가해 같은 가중치를 부여하고, 실제 BakeMesh에서 접촉 정점 간 거리를 검사한다. 토끼·곰의 최종 최대 거리는 단추 두께를 포함해 1.4/1.83mm였다.
+- 좌우 봉제선을 복제할 때 이름 기반 가중치뿐 아니라 REGION_절단 소유 그룹도 바꾼다. 오른팔 봉제선18정점이 LeftLowerArm/REGION_LeftArmCut에 묶여 Idle에서 머리 위로 떠 있었다. T-pose·Avatar.isValid·절단 캡 검사로는 발견되지 않았다. 좌우 본의 휴지 위치·정점 위치와 분리 메시 소유 부위를 대조한다.

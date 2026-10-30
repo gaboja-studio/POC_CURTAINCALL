@@ -1,12 +1,13 @@
 # Task-20261029-078
 
-- **Title:** 원화 기반 토끼 제작 및 실제 Player 교체
+- **Title:** 토끼 모델 교정 및 곰 플레이어 추가
 - **Type:** feat
 - **Assignee:** @MoHoDu
-- **Branch:** feat/modeling/characters
+- **Branch:** feat/bear-player
 - **Base:** dev
 
 ## 현재 목적 (2026-10-29 사용자 요청)
+2026-10-30 곰 3D 후속: bear-turnaround-v01을 기준으로 토끼와 같은 종이·봉제 재질, 55본 Humanoid 및 정상/절단9메시 제작 흐름을 사용해 곰을 제작하고 플레이어 모델 카탈로그에 추가한다. 짧고 넓은 체형·둥근 귀·주둥이·녹색 모자와 의상을 새 형상으로 맞춘다. 제작 및 게임 리소스는 private CharacterArt/Bear에 보관한다.
 2026-10-30 분홍 소녀 추가 요청: 원화 #3·#2의 얼굴/땋은 머리/리본/드레스와 후면을 참조해 이전 시트와 같은 정면/좌측/후면/우측 A-pose 다면도를 제작한다. References/pink-girl-turnaround-v01.png와 프롬프트 보존. 후면 세부는 제안이며 이번 산출물은 2D 참고 시트다.
 2026-10-30 파란 삐에로 추가 요청: 원화 #3·#2에서 얼굴/머리/의상과 후면을 참조하고 곰 다면도의 배치·재질 스타일을 맞춘 정면/좌측/후면/우측 A-pose 2D 시트를 제작한다. References/blue-pierrot-turnaround-v01.png와 프롬프트를 보존하고 3D 제작·Unity 적용은 별도 단계로 둔다.
 2026-10-30 추가 요청: 원화의 곰 캐릭터도 토끼와 같은 형식으로 2D 다면도만 제작한다. 원화 #3·#2는 곰의 외형/후면 참고, 기존 rabbit-turnaround-v02는 시트 배치/표면 스타일 참고다. 정면·좌측·후면·우측 동일 축척 A-pose를 생성·시각 점검하고 References/bear-turnaround-v01.png와 프롬프트를 보존한다. 곰의 3D 제작·Unity 연결은 이번 산출물에 포함하지 않는다.
@@ -22,7 +23,7 @@ v14 후속 완료: 얼굴780→358tri/음영 완화, 팔·바지·신발180tri �
 - 원화·최종제작본·게임기능참조를 보존한다. 이후 명시적정리요청에 따라 오래된중간/실패파일·백업은 현제작폴더에서제외했다.
 - 전체 정상 모델 10000tri 이하, 수평 손목 T-pose, 정수리1.73m(귀 별도).
 - 외부 유료3D 생성 없음. Blender MCP로 새 형상/관절을 만들고 computer-use로 실제 창을 확인한다.
-- 현재 feat/modeling/characters 브랜치에 commit/push 요청됨. Unity는 D:/github/POC_CURTAINCALL 명시, 씬 미저장 변경 보존.
+- 현재 feat/bear-player 브랜치에 토끼 수정/곰 추가 분리 commit 및 push/dev PR 요청됨. Unity는 D:/github/POC_CURTAINCALL 명시, 씬 미저장 변경 보존.
 - 온라인2인, 최종 미술·플레이 감각 검토는 별도 남은 항목이다.
 
 ## 진행
@@ -41,6 +42,8 @@ v14 후속 완료: 얼굴780→358tri/음영 완화, 팔·바지·신발180tri �
 - 이전 계획·미완료 세부항목: [History/006-before-v12-plan.md](History/006-before-v12-plan.md), [History/006-before-v12-todo.md](History/006-before-v12-todo.md).
 
 ## 검증 경계
+
+곰 후속 제작 정본은 `Assets/_ThirdParty/CharacterArt/Bear/Source~/bear-buttons-fixed.blend`, 토끼 단추 교정 정본은 `Assets/_ThirdParty/CharacterArt/Rabbit/Source~/rabbit-buttons-fixed.blend`. 곰 허리 v02와 두 캐릭터의 단추·오른팔 봉제선 교정을 포함한다. Unity Bear.prefab/카탈로그에 추가하며 기존 슬롯 기본값은 유지한다. 후속 저장 요청에 따라 토끼 수정과 곰 추가를 각 저장소에서 분리 커밋하고 dev PR 1개로 제출한다. 이전 PR238 병합 결과와 기존 작업 기준의 트리가 같음을 확인하고 최신 origin/dev에서 새 브랜치를 만들었다. 비공개 리소스 PR 병합은 사용자가 진행한다.
 수학/자동 검사 통과와 원화 재현 완성도·사람의 최종 플레이를 구분한다. 원본의 촘촘한 봉제/패치 마감, 귀 보조 물리, 경사/계단·연속 접점/옷 자기겹침, 동시4인 성능 및 온라인 실기기 확인은 별도 기록한다.
 
 ## 플레이어 외형 설정

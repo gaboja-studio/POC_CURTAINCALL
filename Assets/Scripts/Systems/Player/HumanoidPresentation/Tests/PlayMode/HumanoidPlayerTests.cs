@@ -682,6 +682,98 @@ namespace CurtainCall.Tests.HumanoidPresentation
         }
 
         [UnityTest]
+        public IEnumerator BearCatalogModelKeepsMovementCutsSurfacesAndOutfits()
+        {
+            var catalog = Resources.Load("Settings/PlayerAppearanceCatalog");
+            var options = (Array)catalog.GetType().GetField("models").GetValue(catalog);
+            int bearIndex = Enumerable.Range(0, options.Length).Single(i =>
+                ((GameObject)options.GetValue(i).GetType().GetField("prefab").GetValue(options.GetValue(i))).name == "Bear");
+            var bear = (GameObject)Call(catalog, "PrefabFor", bearIndex, 0);
+            for (int outfit = 0; outfit < 4; outfit++) Assert.That(Call(catalog, "PrefabFor", bearIndex, outfit), Is.SameAs(bear));
+            var player = Player();
+            yield return null;
+            var slot = Part(player, "PlayerModelSlot");
+            Call(slot, "SetModel", bear);
+            yield return null;
+            var view = Model(player);
+            var animator = (Animator)view.GetType().GetField("Animator").GetValue(view);
+            Assert.That(animator.avatar.isValid && animator.avatar.isHuman, Is.True);
+            Assert.That(animator.applyRootMotion, Is.False);
+            var mover = Part(player, "PlayerMover");
+            mover.GetType().GetProperty("FreeMovement").SetValue(mover, true);
+            var input = player.AddComponent<HumanoidMovementTestInput>();
+            input.Mover = mover;
+            yield return null;
+            yield return null;
+            Assert.That((string)Get(view, "Motion"), Is.EqualTo("Walk"));
+            input.Sprint = true;
+            yield return null;
+            yield return null;
+            Assert.That((string)Get(view, "Motion"), Is.EqualTo("Run"));
+            input.Sprint = false; input.Crouch = true;
+            yield return null;
+            yield return null;
+            Assert.That((string)Get(view, "Motion"), Is.EqualTo("CrouchWalk"));
+            input.Crouch = false;
+            yield return null;
+            Call(mover, "RequestJump");
+            yield return null;
+            yield return null;
+            Assert.That(new[] { "JumpStart", "JumpLoop" }, Does.Contain((string)Get(view, "Motion")));
+            Object.Destroy(input);
+            var surface = view.GetComponent(TypeFor("CurtainCall.CharacterArt.RabbitSurfaceStates"));
+            var original = (SkinnedMeshRenderer)view.GetType().GetField("Original").GetValue(view);
+            var colors = (Color[])catalog.GetType().GetField("outfitColors").GetValue(catalog);
+            var block = new MaterialPropertyBlock();
+            var network = player.GetComponent(TypeFor("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+            var outfitVariable = network.GetType().GetField("appearanceOutfit", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(network);
+            for (int outfit = 0; outfit < 4; outfit++)
+            {
+                outfitVariable.GetType().GetProperty("Value").SetValue(outfitVariable, outfit);
+                yield return null;
+                original.GetPropertyBlock(block, 0);
+                Assert.That(((Vector4)block.GetColor("_VariantColor") - (Vector4)colors[outfit]).sqrMagnitude, Is.LessThan(1e-6f));
+            }
+            Assert.That(Get(surface, "State").ToString(), Is.EqualTo("Clean"));
+            for (int stage = 1; stage <= 4; stage++)
+            {
+                Mask(player, new[] { 0, 4, 12, 13, 15 }[stage]);
+                Assert.That((int)Get(view, "Stage"), Is.EqualTo(stage));
+                Assert.That((int)Get(view, "PieceCount"), Is.EqualTo(stage));
+                Assert.That(Get(surface, "State").ToString(), Is.EqualTo(stage <= 2 ? "Light" : "Heavy"));
+                var rb = (Rigidbody)Call(view, "GetPieceBody", stage - 1);
+                var detached = rb.GetComponentInChildren<SkinnedMeshRenderer>();
+                Assert.That(rb.GetComponentsInChildren<Rigidbody>().Length, Is.EqualTo(2));
+                Assert.That(rb.GetComponentsInChildren<CharacterJoint>().Length, Is.EqualTo(1));
+                Assert.That(detached.bones.All(b => b.IsChildOf(rb.transform) || b == rb.transform), Is.True);
+                detached.GetPropertyBlock(block, 0);
+                Assert.That(((Vector4)block.GetColor("_VariantColor") - (Vector4)colors[3]).sqrMagnitude, Is.LessThan(1e-6f));
+                Vector3 start = rb.position;
+                yield return new WaitForFixedUpdate();
+                yield return new WaitForFixedUpdate();
+                Assert.That(Vector3.Distance(start, rb.position), Is.GreaterThan(.001f));
+            }
+            Call(Part(player, "PlayerRagdoll"), "Restore");
+            Mask(player, 0);
+            yield return null;
+            Assert.That((int)Get(Model(player), "Stage"), Is.Zero);
+            Assert.That((int)Get(Model(player), "PieceCount"), Is.Zero);
+            Assert.That(Get(Model(player).GetComponent(surface.GetType()), "State").ToString(), Is.EqualTo("Clean"));
+            Mask(player, 13);
+            Call(slot, "SetModel", bear);
+            Assert.That(Get(Model(player).GetComponent(surface.GetType()), "State").ToString(), Is.EqualTo("Heavy"));
+            Mask(player, 0);
+            var variable = network.GetType().GetField("state", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(network);
+            var valueProperty = variable.GetType().GetProperty("Value");
+            valueProperty.SetValue(variable, Enum.ToObject(valueProperty.PropertyType, 1));
+            yield return null;
+            Assert.That(Get(Model(player).GetComponent(surface.GetType()), "State").ToString(), Is.EqualTo("Heavy"));
+            valueProperty.SetValue(variable, Enum.ToObject(valueProperty.PropertyType, 0));
+            yield return null;
+            Assert.That(Get(Model(player).GetComponent(surface.GetType()), "State").ToString(), Is.EqualTo("Clean"));
+        }
+
+        [UnityTest]
         public IEnumerator ActualMoverDrivesWalkRunCrouchAndJumpStates()
         {
             var player = Player();
