@@ -8,3 +8,7 @@
 - Task 생성.
 
 - 2026-10-27 하네스 3문서로 이관. [이전 현재 상태·검사·미검증](History/Harness-v1/handoff.md), [결정](History/Harness-v1/meta.md), [참조 경로](History/Harness-v1/setup.md). 예전 구역·인계·세부 상태는 현재 제한이 아님.
+
+## 2026-10-30
+
+- 사용자 확인으로 Done 이동. PR #191·#203 dev 병합. 원격 2인 공동 검증은 미실행 상태로 종료.

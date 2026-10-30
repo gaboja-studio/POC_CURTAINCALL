@@ -25,3 +25,4 @@
 - 최신 origin/dev를 b47035ab로 충돌 없이 작업 브랜치에 병합. dev에 이미 반영된 설정/구조/Relay 수정은 중복 PR 대상에서 빠지고 개인 호응·타이머 및 에셋 포인터가 남는다.
 - private 에셋 PR https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/8 생성·Update Asset List 검사 SUCCESS. 사용자 명시 승인 후 Merge commit으로 main 반영하여 gitlink 80ff0ad7의 ancestry를 보존했고 공개 push 훅 선행조건 통과 확인. GitHub 연결 도구는 private 404여서 gh CLI 사용.
 - 최신 dev 병합 후 가벼운 PlayMode 재확인: WaitingRoomHudPlayTests 2/2(타이머·자금/인벤토리·집결·재등록), C12_BothActualPerformances_RecordAndDisplay 1/1(외줄/인간 대포 실제 UI·정산) 통과. 결과는 .harness/local/pre-pr-*-play-results.json. 현재 dev PR에는 정리 Task-080·별도 폰트 2개를 포함하지 않는다.
+- 2026-10-30 사용자 확인으로 Done 이동. PR #236 dev 병합(10-29). 사람 최종 외형·두 PC 동기화 확인은 미실행 상태로 종료.
