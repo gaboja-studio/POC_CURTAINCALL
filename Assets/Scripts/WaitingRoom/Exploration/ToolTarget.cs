@@ -97,8 +97,7 @@ namespace CurtainCall.WaitingRoom
         public float Reach(Vector3 feet)
         {
             if (Opened) return -1f;
-            float d = new Vector2(feet.x - transform.position.x, feet.z - transform.position.z).magnitude;
-            return d <= reach ? d : -1f;
+            return ExplorationReach.From(transform, PresentationPoint, feet, reach);
         }
 
         public void Interact() { if (!Opened && ExplorationState.Instance != null) ExplorationState.Instance.RequestUse(targetId); }

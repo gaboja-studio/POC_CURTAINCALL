@@ -20,8 +20,28 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
             mover.GetType().GetProperty("Simulated").SetValue(mover, false);
-            var point = target.transform.position + Vector3.forward * .65f; point.y = floor + .05f;
-            Call(mover, "SetStartPose", point, Quaternion.identity);
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var configured = target.GetType().GetField("reach", flags);
+            float range = configured != null ? (float)configured.GetValue(target) : 1f;
+            var visual = target.GetType().GetProperty("VisualRoot")?.GetValue(target) as Transform ?? target.transform;
+            var presentation = target.GetType().GetProperty("PresentationPoint");
+            var point = presentation != null ? (Vector3)presentation.GetValue(target) : target.transform.position + Vector3.up * .125f;
+            var capsule = player.GetComponent<CharacterController>(); float radius = capsule.radius, height = capsule.height;
+            foreach (var distance in new[] { .65f, .85f, 1.05f, 1.3f, 1.5f })
+            {
+                if (distance > range) continue;
+                for (int i = 0; i < 24; i++)
+                {
+                    float angle = i * Mathf.PI / 12;
+                    var at = target.transform.position + new Vector3(Mathf.Sin(angle), 0, Mathf.Cos(angle)) * distance; at.y = floor + .05f;
+                    var overlaps = Physics.OverlapCapsule(at + Vector3.up * (radius + .03f), at + Vector3.up * (height - radius + .03f), radius * .95f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                    if (overlaps.Any(c => c.GetComponentInParent(T("CurtainCall.Player.PlayerMover")) == null)) continue;
+                    float reach = (float)T("CurtainCall.WaitingRoom.ExplorationReach").GetMethod("From").Invoke(null, new object[] { visual, point, at, range, target.GetType() == T("CurtainCall.WaitingRoom.ExplorationGate") });
+                    if (reach < 0) continue;
+                    Call(mover, "SetStartPose", at, Quaternion.identity); return;
+                }
+            }
+            Assert.Fail("No collision-free interaction approach for " + target.name + " at " + target.transform.position);
         }
         IEnumerator UsePlaced(string id, float floor = 0)
         {
@@ -40,7 +60,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Placement_KeysPasswordPanelAndSoloExit()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             Assert.AreEqual(false, Get(Placed("escape-door"), "Visible"));
             yield return UsePlaced("steel-box"); Assert.AreEqual(false, Get(Placed("steel-box"), "Opened"));
@@ -61,12 +81,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(true, Get(pad, "Opened")); Assert.AreEqual(false, Get(panel, "IsVisible"));
             var exit = Placed("escape-door"); Assert.AreEqual(true, Get(exit, "Visible")); Assert.AreEqual(false, Get(exit, "ConditionsMet"));
             yield return UsePlaced("escape-door", -10); Assert.AreEqual(false, Get(exit, "Opened"));
-            Assert.AreEqual("Night", Field(State, "Phase").ToString());
+            Assert.AreEqual("RestTime", Field(State, "Phase").ToString());
         }
         [UnityTest]
         public IEnumerator M2_Placement_RealToolsUvContainersAndKey2()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             ulong me = (ulong)Get(carry, "LocalClientId");
@@ -80,7 +100,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             foreach (var id in new[] { "cabinet-1", "cabinet-2", "cabinet-3", "locked-box-1", "locked-box-2" })
             {
                 for (int attempt = 0; attempt < 3 && !(bool)Call(state, "IsOpen", "structure-a:" + id); attempt++) yield return UsePlaced(id);
-                Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:" + id));
+                Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:" + id), id);
             }
             Assert.AreEqual(true, Get(Placed("map"), "Revealed"));
             yield return UsePlaced("stairs-key"); yield return UsePlaced("stairs-door");
@@ -91,7 +111,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Placement_DrawerEscapeKeyAndSuccessOnlyDurability()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
             yield return PickPlaced("stake-puller", "S10_Workshop");
             yield return UsePlaced("management-drawer", -5);
             Assert.AreEqual(true, Call(Static("CurtainCall.WaitingRoom.ExplorationState", "Instance"), "IsOpen", "structure-a:management-drawer"));
@@ -103,7 +123,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator M2_Placement_LobbyUvThreeMarksAndMachineMonitor()
         {
-            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
             yield return PickPlaced("uv-lamp", "S01_Lobby");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             yield return UsePlaced("uv-3"); Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:uv-3"));

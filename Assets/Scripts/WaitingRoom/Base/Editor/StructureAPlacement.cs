@@ -52,14 +52,14 @@ namespace CurtainCall.WaitingRoom.Editor
                 // Reuse original discoveries and UIDs. UV stays in the lobby as explicitly requested.
                 MoveSpot(crowbar, "S10_Workshop", new Vector3(-13.7f, .04f, 110.1f));
                 MoveSpot(hairpin, "S10_Workshop", new Vector3(-14.5f, .04f, 110.1f));
-                Spot("S10_Workshop", "workshop-hairpin-2", ItemUses.MagicianHairpin, 31, new Vector3(-15.3f, .04f, 110.1f));
+                Spot("S10_Workshop", "workshop-hairpin-2", ItemUses.MagicianHairpin, 31, new Vector3(-13.7f, .04f, 111f));
                 Spot("S02_Dormitory", "bed-hairpin", ItemUses.MagicianHairpin, 32, new Vector3(18.8f, .04f, 80.58f));
                 Clue("S10_Workshop", "graffiti-3", "벽의 낙서 3", new Vector3(-18.9f, 1.25f, 109.6f), true);
                 BoxGate("S02_Dormitory", "dormitoryBox1", new Vector3(13, 0, 78));
                 BoxGate("S02_Dormitory", "dormitoryBox2", new Vector3(13, 0, 76));
-                Tool("S02_Dormitory", "emptyCabinet", "캐비넷 1", new Vector3(20.9f, 0, 72.8f), true);
-                Tool("S02_Dormitory", "mapCabinet", "캐비넷 2", new Vector3(20.9f, 0, 70.8f), true);
-                var map = Clue("S02_Dormitory", "mapClue", "대기실 낡은 지도", new Vector3(20.2f, .12f, 70.8f));
+                Tool("S02_Dormitory", "emptyCabinet", "캐비넷 1", new Vector3(18f, 0, 72.8f), true);
+                Tool("S02_Dormitory", "mapCabinet", "캐비넷 2", new Vector3(18f, 0, 70.8f), true);
+                var map = Clue("S02_Dormitory", "mapClue", "대기실 낡은 지도", new Vector3(17.3f, .12f, 70.8f));
                 Gate("S02_Dormitory", "steelBox", "잠긴 강철 상자", new Vector3(16.2f, 0, 78.1f), ExplorationGateKind.Open, new Vector3(.9f, .65f, .65f));
                 Key("S02_Dormitory", "managementKey", "관리실 열쇠", new Vector3(16.2f, .08f, 77.2f));
                 Clue("S02_Dormitory/Restroom", "graffiti1", "벽의 낙서 1", new Vector3(12.1f, 1.25f, 66.8f), true);
@@ -68,7 +68,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 Shape(oldUv.transform, "InteractableSurface", Vector3.zero, new Vector3(.6f, .45f, .02f), metal);
                 Set(oldUv, "label", "숨겨진 낙서 1 — UV"); refs["restroomUv"] = oldUv;
                 refs["restroomUvClue"] = Clue("S02_Dormitory/Restroom", "uv-1-detail", "숨겨진 낙서 1", new Vector3(14.3f, 1.3f, 62.59f), true);
-                Key("S02_Dormitory/Restroom", "key1", "열쇠 1", new Vector3(17.8f, .07f, 64.37f));
+                Key("S02_Dormitory/Restroom", "key1", "열쇠 1", new Vector3(17.55f, .07f, 64.37f));
                 refs["oldNotebook"] = oldNote; Set(oldNote, "title", "낡은 노트");
                 Clue("S05_JunkStorage", "performanceRecord", "공연 기록", new Vector3(26.7f, 1.03f, 44.15f));
                 Uv("S05_JunkStorage", "passwordPrefixUv", new Vector3(31.3f, 1.25f, 44.8f));
@@ -100,7 +100,9 @@ namespace CurtainCall.WaitingRoom.Editor
                 BoxGate("LG_Lounge", "loungeBox2", new Vector3(3.7f, 0, 83.2f));
                 // Unmarked panel at the measured lower-plant exit. No additional puzzle condition is invented.
                 var machine = Gate("B1_MachineRoom", "machineDoor", "숨겨진 문", new Vector3(-4.05f, -9.8f, 91.15f), ExplorationGateKind.Open, new Vector3(.18f, 3.6f, 2.1f));
+                machine.transform.rotation = Quaternion.identity;
                 var officeDoor = Gate("B1_Office", "management-door", "관리실 문", new Vector3(-7.2f, -4.8f, 101.8f), ExplorationGateKind.Open, new Vector3(2.1f, 3.6f, .18f));
+                officeDoor.transform.rotation = Quaternion.identity;
                 officeDoor.ConfigureRoute("structure-a:management-door", new[] { StructureAKeyRoute.ManagementKey });
                 var note = Clue("B1_Office", "confiscatedNotebook", "압수한 노트", new Vector3(-6.4f, -3.95f, 106.5f)); Set(note, "description", "34");
                 Tool("B1_Office", "managementDrawer", "관리실 서랍", new Vector3(-8.9f, -5, 107.6f), false, ToolTargetKind.Pry);
@@ -170,7 +172,8 @@ namespace CurtainCall.WaitingRoom.Editor
         {
             var root = New(Group(room), field, at); var size = tall ? new Vector3(.85f, 1.9f, .6f) : new Vector3(.85f, .65f, .6f);
             Shape(root, "Body", Vector3.up * size.y * .5f, size, metal);
-            var hinge = New(root, "Hinge", at + new Vector3(-size.x * .5f, 0, -.33f));
+            // Front (-z) hinge in the cabinet's own axes; a world offset twisted the door sideways in rotated rooms.
+            var hinge = New(root, "Hinge", at); hinge.localPosition = new Vector3(-size.x * .5f, 0, -size.z * .5f - .03f);
             Shape(hinge, "Door", new Vector3(size.x * .5f, size.y * .5f, 0), new Vector3(size.x, size.y, .06f), wood);
             var target = Undo.AddComponent<ToolTarget>(root.gameObject); Set(target, "label", label); Set(target, "kind", (int)kind); Set(target, "hinge", hinge); Set(target, "openEuler", new Vector3(0, -105, 0));
             var block = Undo.AddComponent<BoxCollider>(root.gameObject); block.center = Vector3.up * size.y * .5f; block.size = size; Set(target, "blocker", block);
@@ -189,6 +192,7 @@ namespace CurtainCall.WaitingRoom.Editor
         static ExplorationGate Door(string room, string field, string label, Transform existing, Vector3 at, Vector3 size, ExplorationGateKind kind = ExplorationGateKind.Open)
         {
             var gate = Gate(room, field, label, at, kind, size);
+            gate.transform.rotation = Quaternion.identity; // Sizes are measured in world doorway axes, not the rotated room axes.
             // Existing door leaves must also release their collision; frames stay in place.
             var leaves = existing.GetComponentsInChildren<Renderer>(true).Where(r => r.name.Contains("Door") && !r.name.Contains("Frame") && !r.name.Contains("Label") && !r.name.Contains("Latch")).Select(r => r.gameObject).Distinct().ToArray();
             var visuals = existing.GetComponentsInChildren<Renderer>(true).Where(r => !r.name.Contains("Frame")).Select(r => r.gameObject).Distinct().Cast<Object>().Concat(new Object[] { gate.transform.Find("Visual").gameObject }).ToArray();

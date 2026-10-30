@@ -123,8 +123,7 @@ namespace CurtainCall.WaitingRoom
         float IExplorationTarget.Reach(Vector3 feet)
         {
             if (!Revealed) return -1f;
-            var p = Body.position; float d = new Vector2(feet.x - p.x, feet.z - p.z).magnitude;
-            return d <= reach ? d : -1f;
+            return ExplorationReach.From(Body, PresentationPoint, feet, reach);
         }
 
         public void Interact() { if (Current == null) SetOpen(true); }

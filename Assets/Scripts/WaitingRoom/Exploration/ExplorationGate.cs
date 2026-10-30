@@ -101,8 +101,7 @@ namespace CurtainCall.WaitingRoom
         public float Reach(Vector3 feet)
         {
             if (!IsAvailable) return -1;
-            float d = Vector3.Distance(feet, transform.position);
-            return d <= reach ? d : -1;
+            return ExplorationReach.From(transform, PresentationPoint, feet, reach, true);
         }
         public bool MatchesPassword(string value) => !passwordPending && ExplorationPuzzleRules.IsFourDigits(password) && value == password;
         public bool Resolve(int attemptNumber, System.Random rng) => attemptNumber >= (kind == ExplorationGateKind.Breakable ? requiredHits : 1);

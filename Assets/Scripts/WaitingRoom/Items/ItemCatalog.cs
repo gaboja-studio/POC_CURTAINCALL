@@ -105,7 +105,7 @@ namespace CurtainCall.WaitingRoom
                         summary = "좌물쇠: 시도마다 50% 개방, 같은 좌물쇠 세 번째 시도는 반드시 개방(시도 수 팀 공유·런 유지). 개방 성공 시 1 소모." },
                 new() { id = ItemUses.StakePuller, displayName = "천막 말뚝 뽑개", wornName = "낡은 천막 말뚝 뽑개", wornAtOrBelow = 1, use = ItemUse.Exploration, kind = ItemKind.Tool,
                         newUses = 4, foundUses = 1, price = 75, cooldown = 0f,
-                        summary = "판자·덮개·걸린 서랍 개방, 숨은 길 벽 파괴(빠루). 개방·파괴 성공 시 1 소모." },
+                        summary = "판자·덮개·걸린 서랍 개방, 숨은 길 벽 파괴. 개방·파괴 성공 시 1 소모." },
                 new() { id = ItemUses.UvLamp, displayName = "서커스 UV 등", wornName = "낡은 서커스 UV 등", wornAtOrBelow = 1, use = ItemUse.Exploration, kind = ItemKind.Tool,
                         newUses = 3, foundUses = 1, price = 75, cooldown = 0f,
                         summary = "의심스러운 표면을 비추면 숨은 표식·지워진 글씨가 드러남(런 동안 유지). 새 단서 발견 시 1 소모." },

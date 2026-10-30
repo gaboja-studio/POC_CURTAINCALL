@@ -30,7 +30,7 @@ namespace CurtainCall.WaitingRoom
             if (!string.IsNullOrEmpty(escapePassword) && !ExplorationPuzzleRules.IsFourDigits(escapePassword))
             { error = "정답은 숫자4자리여야 합니다."; return false; }
             if (restroomBreach != null && (restroomBreach.RequiredHits != 6 || restroomBreach.ToolId != ItemUses.StakePuller))
-            { error = "기존 화장실 벽의 빠루6타 규칙과 다른 참조입니다."; return false; }
+            { error = "기존 화장실 벽의 천막 말뚝 뽑개 6타 규칙과 다른 참조입니다."; return false; }
 
             // 화장실 벽은 기존 ID/진행/균열/충돌/내구도 처리를 그대로 사용한다.
             key2?.ConfigureRoute(Key2);
