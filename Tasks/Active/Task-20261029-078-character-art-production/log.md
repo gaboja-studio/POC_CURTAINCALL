@@ -26,4 +26,7 @@
 - 상위 토끼 커밋 82965d44에는 Rabbit.prefab과 토끼 리소스 포인터만 포함한다. 곰 프리팹·카탈로그·시험 씬·회귀 검사·제작 기록과 곰 리소스 포인터는 별도 곰 커밋에 포함한다.
 - 사용자가 비공개 PR을 병합하는 기존 방침을 유지한다. 상위 pre-push가 private main 포함을 요구하므로 PR14 병합 확인 후 상위 작업 브랜치를 푸시하고 dev PR 1개로 제출한다. 검사 결과는 위의 최종 check-work 및 별도 PlayMode 결과를 재사용한다.
 - 제출 스크립트의 단일 슬래시 브랜치 규칙에 맞춰 feat/bear-player로 이름을 정리했고 PR 미리보기가 통과했다. 곰 상위 커밋은 67c4ede8.
-- PR14 최초 CI는 Unity 비임포트 Source~ 보관 파일에 meta를 요구해 실패했다. private 94c98cb9에서 검사기의 tilde 경로 제외를 바로잡고 일반 게임 에셋 meta 누락은 계속 검출하는 회귀 2개를 연결했다. 로컬 회귀 2/2 및 실제 전체 리소스 규칙 검사 통과; 같은 PR에 푸시했고 CI update도 PASS(실행40955254259). 양 저장소의 미커밋 변경0, 사용자 병합 대기.
+- PR14 최초 CI는 Unity 비임포트 Source~ 보관 파일에 meta를 요구해 실패했다. private 94c98cb9에서 검사기의 tilde 경로 제외를 바로잡고 일반 게임 에셋 meta 누락은 계속 검출하는 회귀 2개를 연결했다. 로컬 회귀 2/2 및 실제 전체 리소스 규칙 검사 통과; 같은 PR에 푸시했고 CI update도 PASS(실행40955254259).
+- 사용자가 PR14를 Merge commit 8135a714로 병합했다. 최종 리소스94c98cb9가 origin/main에 포함됨을 확인했고 상위 pre-push ThirdParty OK 후 feat/bear-player를 푸시했다. 토끼82965d44/곰67c4ede8/검사기 포인터428476cb로 구분하며, 아래 dev PR에 함께 제출했다. 검토·병합은 사람에게 남긴다.
+
+- 2026-10-30 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/239 (feat/bear-player → dev)
