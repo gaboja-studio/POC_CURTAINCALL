@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "duration": 31.21,
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.BarrelMotion_ActualLaunchCyclesOnceKeepsAnchorsAndBecomesBoardable",
+      "Status": "Passed",
+      "Duration": 10.8394182,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.BarrelMotion_DisabledStationRecoversWhenEnabledAgain",
+      "Status": "Passed",
+      "Duration": 6.3423178,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.BarrelMotion_ExternalLockWaitsForRecoveryAndRepeatedUpdatesDoNotRestart",
+      "Status": "Passed",
+      "Duration": 5.947456,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.BarrelMotion_ExternalOnSkipsRestAfterLaunch",
+      "Status": "Passed",
+      "Duration": 7.9774911,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

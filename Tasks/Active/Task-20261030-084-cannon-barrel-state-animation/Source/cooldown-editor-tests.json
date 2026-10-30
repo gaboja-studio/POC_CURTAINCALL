@@ -1,0 +1,97 @@
+{
+  "status": "completed",
+  "duration": 0.38,
+  "summary": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.AuthoredClipsOnlyMoveBarrelAndJoinAtMatchingEndpoints",
+      "Status": "Passed",
+      "Duration": 0.0227704,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.ConfiguredCooldownControlsOnlyInactiveWait(4.0f)",
+      "Status": "Passed",
+      "Duration": 0.0009645,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.ConfiguredCooldownControlsOnlyInactiveWait(5.0f)",
+      "Status": "Passed",
+      "Duration": 8.52E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.ConfiguredCooldownControlsOnlyInactiveWait(20.0f)",
+      "Status": "Passed",
+      "Duration": 5E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.ExternalInterlockCannotBeOverwrittenByCooldownCompletion",
+      "Status": "Passed",
+      "Duration": 0.000298,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.InitiallyDisabledStationHasInactivePoseWithoutAnEnableDisableRoundTrip",
+      "Status": "Passed",
+      "Duration": 0.0004465,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.LateJoinSeeksCurrentPhaseAndResetNeverReplaysPreviousShot",
+      "Status": "Passed",
+      "Duration": 0.0002551,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.ReenableSkipsLongRestAndLaterShotsStillUseFullCooldown",
+      "Status": "Passed",
+      "Duration": 0.000267,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.SavedCourseEnablesMotionWithoutMovingSeatMuzzleOrLaunchVelocity",
+      "Status": "Passed",
+      "Duration": 0.2911783,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.SharedSettingsDefaultToFiveAndClampFourThroughTwenty",
+      "Status": "Passed",
+      "Duration": 0.0025528,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.ShotFinishesLowerAndRestBeforeFourStepRecoveryAllowsBoarding",
+      "Status": "Passed",
+      "Duration": 0.0003747,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.UnlockDuringShotSkipsRestButWaitsForLoweringToFinish",
+      "Status": "Passed",
+      "Duration": 0.0004336,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

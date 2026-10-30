@@ -397,11 +397,13 @@ namespace CurtainCall.UI.SceneIntegration
                 for (int i = 0; i < system.StationCount; i++)
                 {
                     var station = system.Station(i);
-                    if (station == null || !station.isActiveAndEnabled || station.InteractionAvailable
+                    if (station == null || !station.isActiveAndEnabled || station.ReadyToUse
                         || !PlayerInteraction.InRange(player, station.BoardingPoint.position, station.BoardingDistance)) continue;
-                    Add(station.transform, station.Seat.position, "대포 안전 잠금", false, true, feet);
+                    bool recovering = station.InteractionAvailable;
+                    Add(station.transform, station.Seat.position, "대포가 활성화 되지 않았습니다", false, true, feet);
                     var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
-                    candidates[candidates.Count - 1].Helper = locks != null ? locks.StationInstruction(station) : "동료 장치 해제를 기다립니다";
+                    candidates[candidates.Count - 1].Helper = recovering ? "포신이 완전히 올라오면 탑승할 수 있습니다"
+                        : locks != null ? locks.StationInstruction(station) : "동료 장치 해제를 기다립니다";
                     candidates[candidates.Count - 1].Pole = true;
                 }
             // FindGrabbable은 대포 비행뿐 아니라 허용된 지상/일반 점프/낙하 진입도 판정한다.
