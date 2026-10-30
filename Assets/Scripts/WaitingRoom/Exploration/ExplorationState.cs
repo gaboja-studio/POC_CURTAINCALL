@@ -109,6 +109,9 @@ namespace CurtainCall.WaitingRoom
             var carry = PropCarry.Instance;
             var tool = carry != null ? carry.Selected(player) : default;
             bool needsTool = !string.IsNullOrEmpty(target.ToolId);
+            // 장비(UV 등)는 어느 슬롯에 있든 자동 적용된다. 도구는 손에 든(선택한) 것만.
+            if (needsTool && ItemCatalog.Get(target.ToolId)?.kind == ItemKind.Equipment && carry != null)
+                foreach (var held in carry.Held(player)) if (held.ItemId == target.ToolId) { tool = held; break; }
             if (needsTool && (tool.Uid == 0 || tool.ItemId != target.ToolId)) return (false, $"{target.ToolName}을(를) 손에 들어야 합니다.");
             if (needsTool && tool.Uses == 0) return (false, PropCarry.Explain(CarryRefusal.UsedUp));
             float now = Time.unscaledTime;

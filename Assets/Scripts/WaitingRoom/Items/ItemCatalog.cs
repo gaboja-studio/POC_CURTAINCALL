@@ -106,9 +106,10 @@ namespace CurtainCall.WaitingRoom
                 new() { id = ItemUses.StakePuller, displayName = "천막 말뚝 뽑개", wornName = "낡은 천막 말뚝 뽑개", wornAtOrBelow = 1, use = ItemUse.Exploration, kind = ItemKind.Tool,
                         newUses = 4, foundUses = 1, price = 75, cooldown = 0f,
                         summary = "판자·덮개·걸린 서랍 개방, 숨은 길 벽 파괴. 개방·파괴 성공 시 1 소모." },
-                new() { id = ItemUses.UvLamp, displayName = "서커스 UV 등", wornName = "낡은 서커스 UV 등", wornAtOrBelow = 1, use = ItemUse.Exploration, kind = ItemKind.Tool,
-                        newUses = 3, foundUses = 1, price = 75, cooldown = 0f,
-                        summary = "의심스러운 표면을 비추면 숨은 표식·지워진 글씨가 드러남(런 동안 유지). 새 단서 발견 시 1 소모." },
+                // 2026-10-30 확정: 장비형, 내구도 없음. 슬롯에 있으면 우클릭을 누르는 동안 보라색 손전등이 켜진다.
+                new() { id = ItemUses.UvLamp, displayName = "서커스 UV 등", wornName = "", wornAtOrBelow = -1, use = ItemUse.Exploration, kind = ItemKind.Equipment,
+                        newUses = 0, foundUses = 0, price = 75, cooldown = 0f,
+                        summary = "장비. 슬롯에 넣으면 자동 적용. 우클릭을 누르는 동안 보라색 손전등으로 앞을 비추고, 빛에 닿은 숨겨진 낙서가 노란 형광으로 드러남. 내구도 없음." },
             };
         }
 #endif

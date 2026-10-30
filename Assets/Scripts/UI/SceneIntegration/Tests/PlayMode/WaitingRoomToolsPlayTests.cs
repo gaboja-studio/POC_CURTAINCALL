@@ -71,20 +71,21 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:locked-box-1"), "세 번째 시도 안에 반드시 열린다");
             Assert.AreEqual(tries, Call(state, "Hits", "structure-a:locked-box-1"));
 
-            // 3) UV 등 → 숨은 표식. 처음 발견 때만 1 소모, 표식이 켜진다.
+            // 3) UV 등(장비·내구도 없음) → 숨은 낙서. 비추는 동안만 보이고, 처음 비춘 때 발견이 기록된다. 소모 없음.
             yield return PickUp("uv-lamp");
-            int uvUses = (int)Get(Call(carry, "Selected", me), "Uses");
+            Assert.AreEqual(-1, Get(Call(carry, "Selected", me), "Uses"), "장비형 UV 등은 횟수를 세지 않는다");
             var revealedObjects = (GameObject[])mark.GetType().GetField("marks", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(mark);
             var marks = revealedObjects.SelectMany(g => g.GetComponentsInChildren<Renderer>(true)).ToArray();
-            Assert.IsTrue(mark.GetComponentsInChildren<Renderer>(true).Any(r => r.gameObject.activeInHierarchy), "UV를 쓰기 전에도 표면 외곽선으로 식별 가능");
-            Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "발견 전에는 보이지 않는다");
+            Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "비추기 전에는 보이지 않는다");
             Stand(mover, mark.transform.position + Vector3.forward * 1.2f, Vector3.back);
             yield return new WaitForSecondsRealtime(.3f);
-            Call(mark, "Interact"); yield return new WaitForSecondsRealtime(.3f);
+            Call(mark, "Illuminate"); Call(state, "RequestUse", "structure-a:uv-1"); yield return null; yield return null;
             Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:uv-1"));
-            Assert.IsTrue(marks.All(r => r.gameObject.activeInHierarchy), "발견하면 표식이 드러난다");
+            Assert.IsTrue(marks.All(r => r.gameObject.activeInHierarchy), "비추는 동안 낙서가 드러난다");
+            yield return new WaitForSecondsRealtime(.1f);
+            Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "빛이 떠나면 다시 숨는다");
             bool uvLeft = ((IEnumerable)Call(carry, "Held", me)).Cast<object>().Any(o => (string)Get(o, "ItemId") == "uv-lamp");
-            Assert.AreEqual(uvUses > 1, uvLeft);
+            Assert.IsTrue(uvLeft, "장비는 발견해도 사라지지 않는다");
         }
     }
 }
