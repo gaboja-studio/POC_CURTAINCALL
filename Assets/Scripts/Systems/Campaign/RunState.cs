@@ -141,6 +141,19 @@ namespace CurtainCall.Campaign
             return true;
         }
 
+        /// <summary>
+        /// 탐색 구역 규칙(2026-10-30): 재생 구역에 아무도 없으면 쉬는 시간 타이머를 멈추고, 들어오면 남은 시간부터 다시 흐른다.
+        /// 유한 쉬는 시간에만 적용하며 바뀐 때만 true.
+        /// </summary>
+        public bool SetRestTimerPaused(bool paused)
+        {
+            if (s.Phase != CampaignPhase.RestTime || (s.Timer != RestTimerState.Running && s.Timer != RestTimerState.Stopped)) return false;
+            var wanted = paused ? RestTimerState.Stopped : RestTimerState.Running;
+            if (s.Timer == wanted) return false;
+            s.Timer = wanted;
+            return true;
+        }
+
         /// <summary>탈출로가 끝났다. 한 명 이상 도착이면 엔딩, 전원 리타이어면 런 실패 → 세대 교체.</summary>
         public bool EndEscape(bool anyoneArrived)
         {
@@ -182,6 +195,27 @@ namespace CurtainCall.Campaign
 
         /// <summary>그 묘기에 고를 수 있는 가장 높은 단계 = 깬 단계의 다음 단계(최대 3). 못 깨면 1단계만.</summary>
         public int MaxSelectableTier(string trickId) => System.Math.Min(MaxDifficulty, ClearedTier(trickId) + 1);
+
+        /// <summary>
+        /// 쉬는 시간에 바로 다음 공연의 단계만 다시 고른다(묘기는 그대로). 같은 날 앞 공연에서 연 단계를 바로 쓰기 위함.
+        /// 1일차·마지막 아침·허용 범위 밖이면 무시한다.
+        /// </summary>
+        public bool AdjustNextTier(int tier)
+        {
+            if (s.Phase != CampaignPhase.RestTime || s.IsFinalMorning || s.Day <= 1 || string.IsNullOrEmpty(s.TrickId)
+                || tier < 1 || tier > MaxSelectableTier(s.TrickId)) return false;
+            if (!levels.TryGetValue(s.Day, out var list) || list == null || list.Length != Rules.PerformancesPerDay)
+            {
+                var old = list;
+                list = new int[Rules.PerformancesPerDay];
+                for (int i = 0; i < list.Length; i++) list[i] = old != null && i < old.Length ? old[i] : 1;
+                levels[s.Day] = list;
+            }
+            if (s.PerformanceIndex < 0 || s.PerformanceIndex >= list.Length) return false;
+            list[s.PerformanceIndex] = tier;
+            RefreshCurrent();
+            return true;
+        }
 
         /// <summary>공연 성공을 기록한다. 그 단계가 지금까지보다 높으면 다음 단계가 열린다.</summary>
         public bool RecordClear(string trickId, int tier)

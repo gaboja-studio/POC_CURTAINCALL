@@ -80,7 +80,7 @@ namespace CurtainCall.Player
 
         bool CarryingTrampoline(out HumanCannonTrampoline trampoline)
         {
-            trampoline = HumanCannonTrampoline.Current;
+            trampoline = network != null ? HumanCannonCarry.Held(network.OwnerClientId) as HumanCannonTrampoline : null;
             return trampoline != null && network != null && network.IsSpawned && network.State == PlayerState.Normal
                 && trampoline.Carrier == network.OwnerClientId;
         }

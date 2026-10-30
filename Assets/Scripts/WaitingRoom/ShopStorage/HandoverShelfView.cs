@@ -26,8 +26,8 @@ namespace CurtainCall.WaitingRoom
             for (int i = 0; i < shapes.Length && i < carry.Shelf.Count; i++)
                 if (shapes[i] != null)
                 {
-                    var offset = Vector3.up * (itemSize + .12f);
-                    if (VisualRoot.TryGetComponent<Collider>(out var frame)) offset.z = frame.bounds.max.z + .07f - shapes[i].transform.position.z;
+                    var at = shapes[i].transform.position;
+                    var offset = FrontOf(at, .07f) - at + Vector3.up * (itemSize + .12f);
                     labels.Add(new ShopWorldLabel(shapes[i].transform, carry.Shelf[i].Name, offset, VisualRoot));
                 }
         }
@@ -37,6 +37,27 @@ namespace CurtainCall.WaitingRoom
         Material material;
         Bounds area;
         public Transform VisualRoot => visualRoot != null ? visualRoot : transform;
+
+        /// <summary>점을 선반 앞면(VisualRoot 앞쪽) 바로 바깥으로 옮긴다. 선반을 돌려 옮겨도 이름표가 앞면에 붙는다.</summary>
+        public Vector3 FrontOf(Vector3 point, float margin)
+        {
+            var front = VisualRoot.forward;
+            if (!VisualRoot.TryGetComponent<Collider>(out var frame)) return point + front * margin;
+            var b = frame.bounds;
+            float face = Vector3.Dot(b.center, front) + Vector3.Dot(b.extents, new Vector3(Mathf.Abs(front.x), Mathf.Abs(front.y), Mathf.Abs(front.z)));
+            return point + front * (face + margin - Vector3.Dot(point, front));
+        }
+
+        /// <summary>i번째 칸 이름표 자리: 판자 왼쪽 끝에서 30cm 안쪽, 선반 앞면 5cm 바깥.</summary>
+        public bool TrySlotLabelPoint(int i, out Vector3 point)
+        {
+            point = default;
+            if (boards == null || i < 0 || i >= boards.Length || boards[i] == null || !boards[i].TryGetComponent<Renderer>(out var surface)) return false;
+            var b = surface.bounds; var right = VisualRoot.right;
+            float half = Vector3.Dot(b.extents, new Vector3(Mathf.Abs(right.x), Mathf.Abs(right.y), Mathf.Abs(right.z)));
+            point = FrontOf(b.center - right * (half - .3f), .05f);
+            return true;
+        }
         public Vector3 PresentationPoint => area.center;
         public bool IsAvailable => ActionLabel != "선반이 비어 있습니다";
         public string ActionLabel

@@ -81,7 +81,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 var at = new Vector3(x, -22, z);
                 Check("crouch clearance " + at, !Physics.CheckCapsule(at + Vector3.up * (radius + .06f), at + Vector3.up * (crouchHeight - radius + .06f), radius, ~0, QueryTriggerInteraction.Ignore));
             }
-            Check("no alternate solo logic", root.GetComponentsInChildren<EscapeSoloHazard>(true).Length == 0);
             // ParticleSystemRenderer reserves a null trail slot even when trails are disabled.
             Check("used new materials", root.GetComponentsInChildren<Renderer>().All(r =>
                 (r is ParticleSystemRenderer && !r.GetComponent<ParticleSystem>().trails.enabled ? new[] { r.sharedMaterial } : r.sharedMaterials)

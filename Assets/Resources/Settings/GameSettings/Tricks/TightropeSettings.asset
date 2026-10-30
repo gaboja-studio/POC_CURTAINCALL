@@ -256,3 +256,11 @@ MonoBehaviour:
       to: 165
       igniteAt: 170
       triggerDistance: 120
+  hang:
+    holdSeconds: 7
+    pullSeconds: 2
+    rescueDistance: 2.5
+    rescueHeightTolerance: 0.75
+    laneReach: 1
+    laneOccupyDistance: 2
+    hangDrop: 1.9

@@ -34,6 +34,55 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return new WaitForSecondsRealtime(2.2f);
         }
         [UnityTest]
+        public IEnumerator W3_TierButtons_NightChoiceAndRestTimeAdjust()
+        {
+            // Task-082: 카드는 묘기, 단계 버튼은 난이도. 쉬는 시간에는 바로 다음 공연의 단계만 다시 고른다.
+            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
+            Assert.AreEqual(true, Call(run, "RecordClear", "Tightrope", 1));
+            yield return OpenSchedule();
+            var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
+            var schedule = Find("CurtainCall.WaitingRoom.ScheduleBoard");
+            var book = Get(schedule, "Book");
+            var edits = (Array)Private(ui, "editButtons");
+            for (int i = 2; i < 6; i++) Call(Get(edits.GetValue(i), "onClick"), "Invoke");
+            yield return new WaitForSecondsRealtime(.3f);
+            var tiers = (UnityEngine.UI.Button[,])Private(ui, "tierButtons");
+            Assert.IsNotNull(tiers, "단계 버튼을 만들어야 한다");
+            Assert.IsFalse(tiers[0, 0].gameObject.activeSelf, "1일차는 단계 고정");
+            Assert.IsTrue(tiers[2, 0].gameObject.activeInHierarchy);
+            Assert.IsTrue(tiers[2, 1].interactable, "1단계를 깼으면 2단계까지");
+            Assert.IsFalse(tiers[2, 2].interactable, "3단계는 아직 잠김");
+            tiers[2, 1].onClick.Invoke();
+            Assert.AreEqual(2, Call(book, "Difficulty", 2, 0));
+            Assert.AreEqual("Tightrope", Call(book, "Get", 2, 0), "단계 버튼은 묘기를 바꾸지 않는다");
+            Call(Get(edits.GetValue(2), "onClick"), "Invoke");
+            Assert.AreEqual("HumanCannon", Call(book, "Get", 2, 0), "카드는 묘기만 바꾼다");
+            Assert.AreEqual(1, Call(book, "Difficulty", 2, 0), "못 고르는 단계는 낮춘다");
+            Call(Get(edits.GetValue(2), "onClick"), "Invoke"); Call(Get(edits.GetValue(2), "onClick"), "Invoke");
+            Assert.AreEqual("Tightrope", Call(book, "Get", 2, 0));
+            tiers[2, 1].onClick.Invoke();
+            Call(ui, "Confirm");
+            Assert.AreEqual(true, Get(book, "IsConfirmedTonight"));
+            yield return ReadyToMorning(2, ui);
+            Assert.AreEqual(2, Field(State, "Difficulty"));
+
+            // 같은 날 앞 공연에서 2단계를 깬 것처럼 기록하고, 아침 쉬는 시간에 3단계로 올린다.
+            Assert.AreEqual(true, Call(run, "RecordClear", "Tightrope", 2));
+            yield return OpenSchedule();
+            yield return new WaitForSecondsRealtime(.3f);
+            ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
+            tiers = (UnityEngine.UI.Button[,])Private(ui, "tierButtons");
+            StringAssert.Contains("3단계가 열렸습니다", (string)Get(Call(ui, "Build"), "Footer"));
+            Assert.IsTrue(tiers[2, 2].interactable, "다음 공연은 쉬는 시간에 단계를 올릴 수 있다");
+            Assert.IsFalse(tiers[3, 0].interactable, "다음 공연이 아니면 바꿀 수 없다");
+            Assert.IsFalse(((UnityEngine.UI.Button)edits.GetValue(2)).interactable, "쉬는 시간에는 묘기를 바꾸지 않는다");
+            tiers[2, 2].onClick.Invoke();
+            Assert.AreEqual(3, Call(book, "Difficulty", 2, 0));
+            Assert.AreEqual(3, Field(State, "Difficulty"), "런 진행 단계도 함께 바뀐다");
+            Assert.AreEqual("Tightrope", Field(State, "TrickId"));
+        }
+        [UnityTest]
         public IEnumerator W3_EditConfirmReady_ThreeNightsAndFinalMorning()
         {
             yield return Launch(1, "Night", 0, "", "WaitingRoomBase");

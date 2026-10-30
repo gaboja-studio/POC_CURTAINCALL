@@ -41,6 +41,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/UI/CommonMenuUI.unity
     guid: 9f797e3444b91a2459fdfbeb50e5039f
+  - enabled: 1
+    path: Assets/Scenes/Levels/escape_route.unity
+    guid: c9bc27ef66a57414e8bd36141ad746b2
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

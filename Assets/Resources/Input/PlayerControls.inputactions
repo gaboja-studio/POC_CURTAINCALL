@@ -1,4 +1,5 @@
 {
+    "version": 1,
     "name": "PlayerControls",
     "maps": [
         {
@@ -12,9 +13,9 @@
                     "expectedControlType": "Axis",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": true
-                }
-,
+                    "initialStateCheck": true,
+                    "priority": 0
+                },
                 {
                     "name": "Posture",
                     "type": "Value",
@@ -22,9 +23,9 @@
                     "expectedControlType": "Axis",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": true
-                }
-,
+                    "initialStateCheck": true,
+                    "priority": 0
+                },
                 {
                     "name": "Action",
                     "type": "Button",
@@ -32,9 +33,9 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
-                }
-,
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
                 {
                     "name": "DirectionLeft",
                     "type": "Button",
@@ -42,9 +43,9 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
-                }
-,
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
                 {
                     "name": "DirectionRight",
                     "type": "Button",
@@ -52,9 +53,9 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
-                }
-,
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
                 {
                     "name": "Interact",
                     "type": "Button",
@@ -62,7 +63,8 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": false
+                    "initialStateCheck": false,
+                    "priority": 0
                 },
                 {
                     "name": "Sprint",
@@ -71,7 +73,8 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": true
+                    "initialStateCheck": true,
+                    "priority": 0
                 },
                 {
                     "name": "Crouch",
@@ -80,7 +83,18 @@
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
-                    "initialStateCheck": true
+                    "initialStateCheck": true,
+                    "priority": 0
+                },
+                {
+                    "name": "UvLight",
+                    "type": "Button",
+                    "id": "87c628c7-73d9-43a5-be6c-022673c99cc3",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -116,8 +130,7 @@
                     "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": true
-                }
-,
+                },
                 {
                     "name": "1D Axis",
                     "id": "d5a9c61d-d8f7-46d2-98ce-78b855e7f9b2",
@@ -150,8 +163,7 @@
                     "action": "Posture",
                     "isComposite": false,
                     "isPartOfComposite": true
-                }
-,
+                },
                 {
                     "name": "",
                     "id": "cf4ca9e3-4fa5-48d0-b9d9-768523e9e56b",
@@ -162,8 +174,7 @@
                     "action": "Action",
                     "isComposite": false,
                     "isPartOfComposite": false
-                }
-,
+                },
                 {
                     "name": "",
                     "id": "667a89ee-377c-4c14-8cf2-fbd90377d113",
@@ -174,8 +185,7 @@
                     "action": "DirectionLeft",
                     "isComposite": false,
                     "isPartOfComposite": false
-                }
-,
+                },
                 {
                     "name": "",
                     "id": "fa1ce018-68de-4120-af29-c07e31f53267",
@@ -186,8 +196,7 @@
                     "action": "DirectionRight",
                     "isComposite": false,
                     "isPartOfComposite": false
-                }
-,
+                },
                 {
                     "name": "",
                     "id": "f3a04d62-6310-499d-b88d-0ae6bc8a7273",
@@ -218,6 +227,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Crouch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "eea582ea-2e36-4a66-9659-42327322ee38",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "UvLight",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

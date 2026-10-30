@@ -169,15 +169,22 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var course = All<HumanCannonHazardCourse>().Single();
             Assert.That(course.HazardCount, Is.EqualTo(12));
             Assert.That(All<HumanCannonPoleSaw>(), Is.Empty);
-            int ground = 0;
+            int ground = 0, authored = 0;
             for (int i = 0; i < course.HazardCount; i++)
             {
                 var hazard = course.Hazard(i);
                 Assert.That(hazard.IsPoleSaw, Is.False, hazard.name);
                 Assert.That(hazard.Kind, Is.EqualTo(CannonHazardKind.GroundSaw), hazard.name);
-                if (course.IsHazardEnabled(i)) ground++;
+                if (hazard.UsesAuthoredPath)
+                {
+                    // 1구간 첫 톱벽 앞 3개는 직접 그린 레일로 항상 켜져 있다.
+                    Assert.That(course.IsHazardEnabled(i), Is.True, hazard.name);
+                    authored++;
+                }
+                else if (course.IsHazardEnabled(i)) ground++;
             }
-            Assert.That(ground, Is.EqualTo(8));
+            Assert.That(authored, Is.EqualTo(3));
+            Assert.That(ground, Is.EqualTo(6));
         }
 
         T[] All<T>() where T : Component => roots.SelectMany(root => root.GetComponentsInChildren<T>(true)).ToArray();

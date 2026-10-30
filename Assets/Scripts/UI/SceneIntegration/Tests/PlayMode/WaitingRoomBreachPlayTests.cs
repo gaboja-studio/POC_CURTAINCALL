@@ -17,7 +17,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             const string target = "restroom-breach";
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             Assert.IsNotNull(state, "탐색 진행 상태가 있어야 한다");
-            var wall = Find("CurtainCall.WaitingRoom.BreakableWall");
+            var wall = RestroomBreach();
             var blocker = (Collider)wall.GetComponent<BoxCollider>();
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
@@ -29,8 +29,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             float until = Time.realtimeSinceStartup + 5;
             while (crowbar == null && Time.realtimeSinceStartup < until)
             {
+                // 로비 디버그 보급품(z≈75, 새 제품 내구도)은 빼고 작업실(z>100)의 정식 발견품만 고른다.
                 foreach (var prop in (IEnumerable)Get(carry, "Floor"))
-                    if ((string)Get(Get(prop, "Item"), "ItemId") == "stake-puller") crowbar = prop;
+                    if ((string)Get(Get(prop, "Item"), "ItemId") == "stake-puller" && (float)Get(prop, "Z") > 100f) crowbar = prop;
                 yield return null;
             }
             Assert.IsNotNull(crowbar, "작업실 바닥에 빠루가 놓여 있어야 한다");

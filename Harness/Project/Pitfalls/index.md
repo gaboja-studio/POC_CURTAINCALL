@@ -1,8 +1,11 @@
 # Project Pitfalls
 
+- [flag-double-sided-flicker.md](flag-double-sided-flicker.md) — 공연장 깃발의 양면 중복 렌더링·깜빡임을 확인할 때
 - [Human-cannon/](Human-cannon/index.md) — 트램펄린 모델 교체와 실제 접촉 경계를 확인할 때
 
 - [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
+- [escape-flame-scaling.md](escape-flame-scaling.md) — 거대 화염의 실제 도달 방향/속도와 휴대 톱의 원본 운반 조작을 연결할 때
+
 - [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지 부상 오판과 꺾인 외줄 방향 인계를 고칠 때
 
 - [escape-depth-route.md](escape-depth-route.md) — 탈출로 묘기 도달·운반 트램폴린 묻힘·대포 목표 표식·교체 구조 잔여물 확인
@@ -40,3 +43,4 @@
 - [mesh-copyserialized-stale-render.md](mesh-copyserialized-stale-render.md) — 쓰이는 메시 에셋을 CopySerialized로 덮어쓰면 화면은 예전 메시를 그린다. 절차적 메시를 같은 경로에 다시 저장할 때
 - [revived-before-performance-unload.md](revived-before-performance-unload.md) — 공연 씬 해제 전 부활자가 옛 낙하·함정 판정으로 다시 사망. 부활 로그와 달리 대기실에서 관전이 지속될 때
 - [textmesh-default-shader-through-walls.md](textmesh-default-shader-through-walls.md) — 생성한 TextMesh 기본 재질은 깊이를 무시해 벽 너머로 보인다. 에디터 코드로 표지·번호 글자를 만들 때
+- [exploration-route-validation.md](exploration-route-validation.md) — 탐색 경로의 낮/밤 철창·트리거와 층/벽 너머 F·바닥 기물 표시/호스트 검사를 확인할 때

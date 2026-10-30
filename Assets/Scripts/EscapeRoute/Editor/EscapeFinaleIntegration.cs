@@ -12,85 +12,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
 {
     public static partial class EscapeBackgroundBuilder
     {
-        [MenuItem("Tools/CurtainCall/탈출로/마지막 질주 원본 기믹 복구")]
-        public static void ConnectFinaleHazards()
-        {
-            var scene = SceneManager.GetActiveScene();
-            if (scene.path != ScenePath || EditorApplication.isPlayingOrWillChangePlaymode) throw new InvalidOperationException("현재 A 편집 씬이 필요합니다.");
-            var root = GameObject.Find(RootName).transform.Find("25_FinaleHazards_A");
-            var drafts = root.GetComponentsInChildren<EscapeSoloHazard>(true);
-            if (drafts.Length != 14) throw new InvalidOperationException("이전 종합 배치 14개가 필요합니다.");
-            Undo.IncrementCurrentGroup(); int undo = Undo.GetCurrentGroup();
-            Undo.SetCurrentGroupName("Restore finale with original host hazards");
-            var course = Ensure<HumanCannonHazardCourse>(root.gameObject);
-            var hazards = new List<HumanCannonHazard>(); var winds = new List<HumanCannonWindZone>();
-            foreach (var draft in drafts)
-            {
-                Undo.RecordObject(draft,"Disable offline replacement"); draft.enabled = false;
-                var logic = draft.transform.Find("OriginalMechanism");
-                if (logic == null) logic = ChildAt(draft.transform,"OriginalMechanism",draft.origin,draft.visual.rotation);
-                var cue = Ensure<HumanCannonHazardCue>(logic.gameObject);
-                Undo.RecordObject(cue,"Shared cue timing");
-                cue.origin = draft.origin; cue.destination = draft.destination;
-                cue.warning = draft.warning; cue.visual = draft.visual;
-                cue.warningSeconds = draft.warningSeconds; cue.activeSeconds = draft.travelSeconds;
-                cue.restSeconds = draft.restSeconds; cue.phase = draft.phase;
-                cue.falling = draft.kind == EscapeSoloHazard.Kind.Drop; cue.showWhileWarning = cue.falling;
-                if (draft.kind == EscapeSoloHazard.Kind.CrossBlades || draft.kind == EscapeSoloHazard.Kind.Fire || draft.kind == EscapeSoloHazard.Kind.Wind)
-                    cue.destination = cue.origin;
-                cue.controlsVisual = draft.kind == EscapeSoloHazard.Kind.Wind;
-                draft.visual.position = draft.origin; draft.visual.gameObject.SetActive(true);
-                if (draft.warning != null) draft.warning.gameObject.SetActive(true);
-                if (draft.kind == EscapeSoloHazard.Kind.Wind)
-                {
-                    var wind = Ensure<HumanCannonWindZone>(logic.gameObject);
-                    var box = Ensure<BoxCollider>(logic.gameObject); box.isTrigger = true; box.size = draft.size;
-                    var data = new SerializedObject(wind);
-                    data.FindProperty("area").objectReferenceValue = box;
-                    data.FindProperty("cue").objectReferenceValue = cue;
-                    data.FindProperty("direction").vector3Value = logic.InverseTransformDirection(draft.destination.normalized);
-                    data.FindProperty("affectsGround").boolValue = true; data.FindProperty("affectsAir").boolValue = true;
-                    data.ApplyModifiedProperties(); winds.Add(wind);
-                }
-                else
-                {
-                    var hazard = Ensure<HumanCannonHazard>(logic.gameObject);
-                    var kind = draft.kind == EscapeSoloHazard.Kind.Mace ? CannonHazardKind.SpikeMace
-                        : draft.kind == EscapeSoloHazard.Kind.CrossBlades ? CannonHazardKind.RotatingBlades
-                        : draft.kind == EscapeSoloHazard.Kind.Drop ? CannonHazardKind.FallingLoad
-                        : draft.kind == EscapeSoloHazard.Kind.Fire ? CannonHazardKind.FireJet : CannonHazardKind.GroundSaw;
-                    var data = new SerializedObject(hazard);
-                    data.FindProperty("kind").enumValueIndex = (int)kind;
-                    data.FindProperty("visual").objectReferenceValue = draft.visual;
-                    data.FindProperty("cue").objectReferenceValue = cue;
-                    data.FindProperty("boxSize").vector3Value = draft.size;
-                    data.FindProperty("radius").floatValue = draft.radius;
-                    data.FindProperty("bladeHalfLength").floatValue = draft.radius;
-                    data.FindProperty("bladeHalfThickness").floatValue = .14f;
-                    data.FindProperty("travel").vector3Value = Vector3.zero;
-                    data.FindProperty("horizontalBlade").boolValue = false;
-                    data.FindProperty("rotationSpeed").floatValue = draft.kind == EscapeSoloHazard.Kind.CrossBlades ? 130 : 480;
-                    data.ApplyModifiedProperties(); hazards.Add(hazard);
-                }
-            }
-            var courseData = new SerializedObject(course);
-            SetFinaleArray(courseData,"hazards",hazards.Cast<UnityEngine.Object>().ToArray());
-            SetFinaleArray(courseData,"windZones",winds.Cast<UnityEngine.Object>().ToArray());
-            courseData.FindProperty("useAuthoredHazardCount").boolValue = true;
-            courseData.FindProperty("difficulty").intValue = 1;
-            courseData.ApplyModifiedProperties();
-            Undo.RecordObject(root.gameObject,"Enable finale"); root.gameObject.SetActive(true);
-            var roster = UnityEngine.Object.FindAnyObjectByType<CurtainCall.Network.PlayerSync.PlayerSpawnPoints>();
-            var points = new SerializedObject(roster).FindProperty("points");
-            for (int i = 0; i < points.arraySize; i++)
-            {
-                var point = points.GetArrayElementAtIndex(i).objectReferenceValue as Transform;
-                if (point == null) throw new InvalidOperationException("출발점 누락");
-                Undo.RecordObject(point,"Start from full route entrance");
-                point.SetPositionAndRotation(new Vector3(13.5f+i,.05f,6),Quaternion.identity);
-            }
-            EditorSceneManager.MarkSceneDirty(scene); Undo.CollapseUndoOperations(undo);
-        }
         static void SetFinaleArray(SerializedObject data,string name,UnityEngine.Object[] values)
         {
             var array = data.FindProperty(name); array.arraySize = values.Length;
@@ -108,7 +29,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var cues=root.GetComponentsInChildren<HumanCannonHazardCue>();
             Check("13 damage hazards and one wind",hazards.Length==13&&root.GetComponentsInChildren<HumanCannonWindZone>().Length==1);
             Check("14 shared-time cues",cues.Length==14);
-            Check("old offline logic disabled",root.GetComponentsInChildren<EscapeSoloHazard>(true).All(h=>!h.enabled));
             if(course!=null)
             {
                 Check("all finale hazards registered", hazards.All(h => Enumerable.Range(0,course.HazardCount).Any(i => course.Hazard(i)==h)));
@@ -131,11 +51,13 @@ namespace CurtainCall.EscapeRoute.EditorTools
             Check("cutting devices 8",hazards.Count(h=>!h.KillsOnContact)==8);
             var roster=UnityEngine.Object.FindAnyObjectByType<CurtainCall.Network.PlayerSync.PlayerSpawnPoints>();
             var points=new SerializedObject(roster).FindProperty("points");
+            var startFloor=GameObject.Find("시작홀 연속 마감 바닥").GetComponent<Renderer>().bounds;
             Physics.SyncTransforms();
             for(int i=0;i<points.arraySize;i++)
             {
                 var p=points.GetArrayElementAtIndex(i).objectReferenceValue as Transform;
-                Check("entrance spawn "+i,p!=null&&p.position.z<10&&Physics.Raycast(p.position,Vector3.down,.2f));
+                Check("entrance spawn "+i,p!=null&&p.position.x>startFloor.min.x+.3f&&p.position.x<startFloor.max.x-.3f
+                    &&p.position.z>startFloor.min.z+.3f&&p.position.z<startFloor.max.z-.3f&&Physics.Raycast(p.position,Vector3.down,.2f));
                 Check("entrance headroom "+i,p!=null&&!Physics.CheckCapsule(p.position+Vector3.up*.35f,p.position+Vector3.up*1.45f,.3f,~0,QueryTriggerInteraction.Ignore));
             }
             report.AppendLine($"Passed={passed}; Failed={failed}. Shared original host damage / static contact only.");

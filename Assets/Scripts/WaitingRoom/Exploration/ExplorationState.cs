@@ -30,6 +30,7 @@ namespace CurtainCall.WaitingRoom
         public event Action<string> RequestAnswered;
 
         public string LastMessage { get; private set; } = "";
+        public const string WrongCode = "비밀번호가 다릅니다.";
 
         public bool HasAuthority
         {
@@ -40,12 +41,18 @@ namespace CurtainCall.WaitingRoom
             }
         }
 
+        public bool CanReachLocal(IShopTarget target)
+        { var body = FindBody(channel.LocalClientId); return body != null && target.Reach(body.position) >= 0f; }
+        public Vector3? LocalFeet { get { var body = FindBody(channel.LocalClientId); return body != null ? body.position : null; } }
+
         public int Hits(string target) => book.Hits(target);
         public bool IsOpen(string target) => book.IsOpen(target);
 
         readonly ExplorationBook book = new();
+        readonly ExplorationCooperation cooperation = new();
         readonly Dictionary<ulong, float> lastHit = new();
         readonly HashSet<string> seeded = new();
+        readonly HashSet<string> warnedDrops = new();
         readonly System.Random rng = new();
         ShopChannel channel;
         int seenGeneration;
@@ -76,20 +83,23 @@ namespace CurtainCall.WaitingRoom
             if (!HasAuthority) return;
             WatchGeneration();
             SeedFoundItems();
+            DeliverRewards();
         }
 
         /// <summary>F: 이 탐색 대상에 손에 든 도구를 한 번 쓴다.</summary>
-        public void RequestUse(string target)
+        public void RequestUse(string target) => RequestCode(target, null);
+
+        public void RequestCode(string target, string password)
         {
-            if (HasAuthority) Answer(channel.LocalClientId, Use(channel.LocalClientId, target));
-            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = HitRequest, target = target })))
+            if (HasAuthority) Answer(channel.LocalClientId, Use(channel.LocalClientId, target, password));
+            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = HitRequest, target = target, password = password })))
                 Answer(channel.LocalClientId, (false, "접속 중이 아니라 내려칠 수 없습니다."));
         }
 
         // ---- 판정 ----
 
         // 판정 화면: 탐색 대상에 손에 든 도구를 한 번 쓴다(벽 내려치기·자물쇠 따기·판자 뜯기·UV 비추기 공통).
-        (bool, string) Use(ulong player, string targetId)
+        (bool, string) Use(ulong player, string targetId, string password = null)
         {
             var target = ExplorationTargets.Find(targetId);
             if (target == null) return (false, "대상을 찾지 못했습니다.");
@@ -98,11 +108,32 @@ namespace CurtainCall.WaitingRoom
             if (body == null || target.Reach(body.position) < 0f) return (false, "너무 멉니다.");
             var carry = PropCarry.Instance;
             var tool = carry != null ? carry.Selected(player) : default;
-            if (tool.Uid == 0 || tool.ItemId != target.ToolId) return (false, $"{target.ToolName}을(를) 손에 들어야 합니다.");
-            if (tool.Uses == 0) return (false, PropCarry.Explain(CarryRefusal.UsedUp));
+            bool needsTool = !string.IsNullOrEmpty(target.ToolId);
+            // 장비(UV 등)는 어느 슬롯에 있든 자동 적용된다. 도구는 손에 든(선택한) 것만.
+            if (needsTool && ItemCatalog.Get(target.ToolId)?.kind == ItemKind.Equipment && carry != null)
+                foreach (var held in carry.Held(player)) if (held.ItemId == target.ToolId) { tool = held; break; }
+            if (needsTool && (tool.Uid == 0 || tool.ItemId != target.ToolId)) return (false, $"{target.ToolName}을(를) 손에 들어야 합니다.");
+            if (needsTool && tool.Uses == 0) return (false, PropCarry.Explain(CarryRefusal.UsedUp));
             float now = Time.unscaledTime;
             if (lastHit.TryGetValue(player, out float last) && now - last < MinHitGap) return (false, "");
             lastHit[player] = now;
+            if (target is ExplorationGate gate)
+            {
+                if (!gate.ConditionsMet) return (false, "선행 조건을 충족해야 합니다.");
+                if (gate.NeedsPassword && !gate.MatchesPassword(password)) return (false, WrongCode);
+                // 열쇠 구멍이 있는 문은 두 사람이 서로 다른 구멍에서 눌러야 한다.
+                int slot = gate.HasKeySlots ? gate.SlotAt(body.position) : -1;
+                if (gate.NeedsPartner && !cooperation.Press(targetId, player, Time.unscaledTimeAsDouble, gate.CooperationWindow,
+                    id => {
+                        var other = FindBody(id);
+                        if (other == null || gate.Reach(other.position) < 0f) return false;
+                        if (gate.HasKeySlots && id != player && gate.SlotAt(other.position) == slot) return false;
+                        var held = carry != null ? carry.Selected(id) : default;
+                        return !needsTool || (held.Uid != 0 && held.ItemId == target.ToolId && held.Uses != 0);
+                    }))
+                    return (false, gate.HasKeySlots ? "다른 한 명이 반대쪽 열쇠 구멍에서 함께 F를 눌러야 합니다." : "다른 한 명도 가까이에서 F를 눌러야 합니다.");
+            }
+
 
             int attempt = book.Hits(targetId) + 1;
             bool success = target.Resolve(attempt, rng);
@@ -112,17 +143,14 @@ namespace CurtainCall.WaitingRoom
             if (openedNow)
             {
                 // 대상이 열리거나 파괴되거나 새로 발견된 때에만 도구를 한 번 쓴다.
-                carry.UseItem(player, tool.Uid, out var after, out bool gone);
-                text += gone ? $" {ItemCatalog.DisplayName(after)}을(를) 다 썼습니다." : $" {ItemCatalog.DisplayName(after)} 남은 {after.Uses}회";
-                // 열린 자리에 나오는 발견품(보상).
-                if (!string.IsNullOrEmpty(target.RewardItemId) && seenGeneration > 0)
+                if (needsTool)
                 {
-                    var reward = new PropItem(ItemUses.FoundUidBase + seenGeneration * 100 + target.RewardUidOffset, target.RewardItemId,
-                        ItemCatalog.Get(target.RewardItemId)?.displayName ?? target.RewardItemId, ItemCatalog.FoundUses(target.RewardItemId));
-                    if (carry.PlaceFound(reward, target.RewardPoint) == CarryRefusal.None) text += $" {reward.Name}을(를) 찾았습니다.";
+                    carry.UseItem(player, tool.Uid, out var after, out bool gone);
+                    text += gone ? $" {ItemCatalog.DisplayName(after)}을(를) 다 썼습니다." : $" {ItemCatalog.DisplayName(after)} 남은 {after.Uses}회";
                 }
                 Debug.Log($"[Exploration] {targetId} 열림({count}번째) — {WaitingRoomShop.PlayerLabel(player)}");
             }
+            DeliverRewards();
             Publish();
             return (true, text);
         }
@@ -137,10 +165,12 @@ namespace CurtainCall.WaitingRoom
                 if (seenGeneration > 0)
                 {
                     book.Clear();
+                    cooperation.Clear();
                     Debug.Log($"[Exploration] 세대 교체 {seenGeneration} → {generation}: 탐색 진행을 비웠습니다.");
                     Publish();
                 }
                 seeded.Clear();
+                warnedDrops.Clear();
                 seenGeneration = generation;
                 generationSince = Time.unscaledTime;
             }
@@ -153,11 +183,87 @@ namespace CurtainCall.WaitingRoom
             if (carry == null || seenGeneration <= 0 || !FloorPropsView.Active || Time.unscaledTime - generationSince < .5f) return;
             foreach (var spot in FoundItemSpot.All)
             {
-                if (spot == null || seeded.Contains(spot.SpotId)) continue;
+                if (spot == null || !spot.CanSeed || seeded.Contains(spot.SpotId)) continue;
                 var item = spot.MakeItem(seenGeneration);
                 var refusal = carry.Exists(item.Uid) ? CarryRefusal.None : carry.PlaceFound(item, spot.FloorPoint);
                 if (refusal == CarryRefusal.None) seeded.Add(spot.SpotId);
             }
+        }
+
+        // 열린 보상은 기물 시스템이 준비될 때까지 재시도. 지급 완료 표식도 같은 스냅샷에 저장한다.
+        // 기물이 나중에 소모되어 Exists가 false가 되어도 재지급하지 않는다.
+        void DeliverRewards()
+        {
+            var carry = PropCarry.Instance;
+            if (!HasAuthority || carry == null || seenGeneration <= 0 || !FloorPropsView.Active
+                || Time.unscaledTime - generationSince < .5f) return;
+            bool changed = false;
+            foreach (var target in ExplorationTargets.All)
+            {
+                if (!book.IsOpen(target.TargetId)) continue;
+                var component = target as Component;
+                var drops = component != null ? component.GetComponent<ExplorationDrops>() : null;
+                if (drops != null)
+                {
+                    if (drops.Pending) continue;
+                    if (!drops.TryValidate(out var error))
+                    {
+                        if (warnedDrops.Add(target.TargetId)) Debug.LogWarning("[Exploration] " + target.TargetId + ": " + error);
+                        continue;
+                    }
+                    if (drops.entries != null) for (int i = 0; i < drops.entries.Length; i++)
+                    {
+                        var entry = drops.entries[i];
+                        if (entry != null) Deliver(target, i, entry.itemId, entry.uidOffset,
+                            entry.point != null ? entry.point.position : target.RewardPoint);
+                    }
+                }
+                else Deliver(target, 0, target.RewardItemId, target.RewardUidOffset, target.RewardPoint);
+            }
+            if (changed) Publish();
+
+            void Deliver(IExplorationTarget owner, int index, string itemId, int offset, Vector3 at)
+            {
+                string receipt = "reward:" + owner.TargetId + ":" + index;
+                if (book.IsOpen(receipt) || string.IsNullOrEmpty(itemId) || offset < 1 || offset > 99) return;
+                if (!UniqueOffset(owner, index, offset))
+                {
+                    if (warnedDrops.Add(owner.TargetId + ":uid:" + offset))
+                        Debug.LogWarning("[Exploration] " + owner.TargetId + ": 다른 발견품/보상과 드랍 UID가 겹칩니다. 지급을 보류합니다.");
+                    return;
+                }
+                var item = new PropItem(ItemUses.FoundUidBase + seenGeneration * 100 + offset, itemId,
+                    ItemCatalog.Get(itemId)?.displayName ?? itemId, ItemCatalog.FoundUses(itemId));
+                if (!carry.Exists(item.Uid) && carry.PlaceFound(item, at) != CarryRefusal.None) return;
+                book.Attempt(receipt, true, out _, out _);
+                changed = true;
+            }
+        }
+
+        // 현재 등록된 대상 전체(아직 열리지 않은 대상 포함)의 UID를 예약한다.
+        // 충돌을 이미 지급한 것으로 처리하지 않으므로 설정 수정 뒤 재시도할 수 있다.
+        bool UniqueOffset(IExplorationTarget owner, int index, int offset)
+        {
+            int uid = ItemUses.FoundUidBase + seenGeneration * 100 + offset;
+            foreach (var spot in FoundItemSpot.All) if (spot != null && spot.MakeItem(seenGeneration).Uid == uid) return false;
+            foreach (var target in ExplorationTargets.All)
+            {
+                var component = target as Component;
+                var drops = component != null ? component.GetComponent<ExplorationDrops>() : null;
+                if (drops != null)
+                {
+                    if (drops.Pending || drops.entries == null) continue;
+                    for (int i = 0; i < drops.entries.Length; i++)
+                    {
+                        var entry = drops.entries[i];
+                        if (entry != null && !string.IsNullOrEmpty(entry.itemId) && entry.uidOffset == offset
+                            && !(ReferenceEquals(target, owner) && i == index)) return false;
+                    }
+                }
+                else if (!string.IsNullOrEmpty(target.RewardItemId) && target.RewardUidOffset == offset
+                    && !(ReferenceEquals(target, owner) && index == 0)) return false;
+            }
+            return true;
         }
 
         static Transform FindBody(ulong clientId)
@@ -195,7 +301,7 @@ namespace CurtainCall.WaitingRoom
             var request = JsonUtility.FromJson<RequestData>(json);
             if (request == null) return;
             if (request.kind == SyncRequest) channel.SendState(JsonUtility.ToJson(StateData.From(book)), sender);
-            else if (request.kind == HitRequest) Answer(sender, Use(sender, request.target));
+            else if (request.kind == HitRequest) Answer(sender, Use(sender, request.target, request.password));
         }
 
         void HandleState(string json)
@@ -218,14 +324,16 @@ namespace CurtainCall.WaitingRoom
         void HandleReset()
         {
             book.Clear();
+            cooperation.Clear();
             seeded.Clear();
+            warnedDrops.Clear();
             lastHit.Clear();
             seenGeneration = 0;
             LastMessage = "";
             Changed?.Invoke();
         }
 
-        [Serializable] sealed class RequestData { public int kind; public string target; }
+        [Serializable] sealed class RequestData { public int kind; public string target; public string password; }
         [Serializable] sealed class ResultData { public bool ok; public string text; }
 
         [Serializable]

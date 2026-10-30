@@ -478,6 +478,21 @@ namespace CurtainCall.Tightrope
 
         string ServerTryUnlink(ulong riderId) => UnlinkTop(riderId, null);
 
+        internal bool CanReleaseForPole(NetworkPlayer rider) => session != null && session.IsHost
+            && rider != null && rider.IsSpawned && rider.State == PlayerState.Normal && IsInStack(rider);
+
+        // 탈출로 봉은 목마의 어느 역할에서도 잡을 수 있다. 내 아래 연결과 내 위 사슬을 해제한다.
+        internal bool TryReleaseForPole(NetworkPlayer rider, Action transferred)
+        {
+            if (!CanReleaseForPole(rider)) return false;
+            ulong actor = rider.OwnerClientId;
+            if (belowOf.Remove(actor, out ulong below)) aboveOf.Remove(below);
+            for (ulong current = actor; aboveOf.Remove(current, out ulong upper); current = upper) belowOf.Remove(upper);
+            transferred?.Invoke(); // 봉 조작권을 먼저 공유한 뒤 원격 목마 Follow를 해제한다.
+            ServerBroadcast();
+            return true;
+        }
+
         public void ServerReleaseForInspection(ulong actor)
         {
             if (session == null || !session.IsHost) return;

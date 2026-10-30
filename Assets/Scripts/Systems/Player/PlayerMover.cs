@@ -55,7 +55,7 @@ namespace CurtainCall.Player
         Quaternion startRotation;
         float verticalSpeed;
         Vector3 groundVelocity; // 땅에서의 수평 속도
-        Vector3 airVelocity;    // 공중에서 고정해 쓰는 수평 속도
+        Vector3 airVelocity;    // 이륙 수평 속력을 보존하며 공중 입력은 방향을 바꾼다.
         float laneTargetSide;   // 옆줄 점프 도착 줄의 옆 좌표(CourseRight 방향 월드 좌표)
         bool laneAlongLimited;  // 옆줄 점프 착지 지점을 앞뒤로 보정했으면 그 거리에서 멈춘다
         float laneTargetAlong;  // 보정한 착지 지점의 앞뒤 좌표(CourseForward 방향 월드 좌표)
@@ -197,9 +197,6 @@ namespace CurtainCall.Player
 
         /// <summary>콘텐츠의 줄 위 기본 이동 속도(m/s). 0 이하면 공통 세팅. 부상 배율과 별도로 적용한다.</summary>
         public float CourseSpeedOverride { get; set; }
-
-        /// <summary>공간별 일반 보행/달리기 배율. 외줄 속도와 부상 배율은 변경하지 않는다.</summary>
-        public float FreeMovementSpeedScale { get; set; } = 1f;
 
         /// <summary>줄 위 점프 중력 배율. 점프 높이는 보존한다. 기본 1, 플랫폼에는 적용하지 않는다.</summary>
         public float CourseJumpGravityMultiplier { get; set; } = 1f;
@@ -540,7 +537,7 @@ namespace CurtainCall.Player
                 {
                     float side = ControlEnabled ? sideInput : 0f;
                     Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * side, 1f);
-                    groundVelocity = input * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier * FreeMovementSpeedScale);
+                    groundVelocity = input * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
                     IsMoving = input.sqrMagnitude > 0.0001f;
                     if (IsMoving)
                         transform.rotation = Quaternion.RotateTowards(transform.rotation,
@@ -569,7 +566,16 @@ namespace CurtainCall.Player
                 if (FreeMovement && FreeAirControl && ControlEnabled && CurrentJump != JumpKind.Lane)
                 {
                     Vector3 input = Vector3.ClampMagnitude(forward * move + CourseRight * sideInput, 1f);
-                    airVelocity = input * (Character.FreeMoveSpeed * speedMultiplier * FreeMovementSpeedScale);
+                    if (CurrentJump == JumpKind.None) airVelocity = groundVelocity;
+                    if (input.sqrMagnitude > .0001f)
+                    {
+                        // Keep takeoff speed while steering; releasing movement stops horizontal travel.
+                        // A stationary jump can still begin moving using the existing common settings.
+                        float speed = airVelocity.magnitude;
+                        airVelocity = speed > .0001f ? input.normalized * speed
+                            : input * (Character.FreeMoveSpeed * speedMultiplier * PostureSpeedMultiplier);
+                    }
+                    else airVelocity = Vector3.zero;
                     // 걸어서 낭떠러지를 벗어난 첫 프레임도 같은 입력으로 이동한다.
                     if (CurrentJump == JumpKind.None) groundVelocity = airVelocity;
                     if (input.sqrMagnitude > .0001f)

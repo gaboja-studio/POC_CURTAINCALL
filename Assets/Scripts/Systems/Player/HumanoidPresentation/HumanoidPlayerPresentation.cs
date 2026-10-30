@@ -149,7 +149,7 @@ namespace CurtainCall.Player
             bool inAir = jump != JumpKind.None || mover.IsAirborne;
             bool carrying = network != null && network.IsSpawned
                 && ((PropCarry.Instance != null && PropCarry.Instance.Held(network.OwnerClientId).Count > 0)
-                    || (HumanCannonTrampoline.Current != null && HumanCannonTrampoline.Current.Carrier == network.OwnerClientId));
+                    || HumanCannonCarry.Held(network.OwnerClientId) != null);
             // Jump/landing/legless returns still need the grip layer. Hands are solved after animation.
             model.Animator.SetLayerWeight(1, carrying ? 1f : 0f);
             PresentCarryLayer(carrying);
@@ -204,7 +204,7 @@ namespace CurtainCall.Player
             if (index < 0) return false;
             var pole = poles.Pole(index);
             if (pole == null) return false;
-            grip = poles.HangingPosition(index) + Vector3.up * pole.HangLength;
+            grip = poles.HangingPosition(index, network.OwnerClientId) + Vector3.up * pole.HangLength;
             axis = pole.Grip.right;
             return true;
         }

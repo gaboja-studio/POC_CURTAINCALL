@@ -150,8 +150,22 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(transports[2].name, Is.EqualTo("ShelterDeparture"));
             var shelter = Field<HumanCannonLandingZone>(route, "shelter");
             Assert.That(shelter, Is.SameAs(Find("SplitRouteCourse/ShelterDeck").GetComponent<HumanCannonLandingZone>()));
-            Assert.That(Vector3.Distance(transports[1].StartPosition, new Vector3(-32, 0, 70)), Is.LessThan(0.001f));
-            Assert.That(Vector3.Distance(transports[1].Position(1), new Vector3(-25, 6, 78)), Is.LessThan(0.001f));
+            // 2026-10-30 리프트 5.5×4: 접근로 끝·쉼터 갑판 가장자리에 붙인 위치.
+            Assert.That(Vector3.Distance(transports[1].StartPosition, new Vector3(-31.75f, 0, 68)), Is.LessThan(0.001f));
+            Assert.That(Vector3.Distance(transports[1].Position(1), new Vector3(-24.75f, 6, 78)), Is.LessThan(0.001f));
+            // 정면 대각선으로 갑판 높이까지 오른 뒤 오른쪽으로 이동한다(한 번에 대각선으로 가로지르지 않는다).
+            var lift = transports[1];
+            Assert.That(lift.Via, Is.Not.Null);
+            Assert.That(Vector3.Distance(lift.Via.position, new Vector3(-31.75f, 6, 78)), Is.LessThan(0.001f));
+            float first = Vector3.Distance(lift.StartPosition, lift.Via.position);
+            float total = first + Vector3.Distance(lift.Via.position, lift.Position(1));
+            for (int i = 0; i <= 10; i++)
+            {
+                float progress = i / 10f;
+                var point = lift.Position(progress);
+                if (progress * total <= first) Assert.That(point.x, Is.EqualTo(lift.StartPosition.x).Within(0.001f), "올라가는 동안 옆으로 움직이지 않는다");
+                else Assert.That(point.y, Is.EqualTo(6).Within(0.001f), "갑판 높이에서 오른쪽으로 이동한다");
+            }
             Assert.That(transports[2].StartPosition.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(transports[2].Position(1).y, Is.EqualTo(6).Within(0.001f));
         }
@@ -265,49 +279,38 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         public void FirstLiftOverloadDuringTravel_HasClearDropUnderWholePlatform(float progress)
         {
             var lift = All<HumanCannonTransport>().Single(t => t.name == "DepartureTransport");
-            var recovery = Find("SplitRouteCourse/LiftSafetyLesson/RecoveryFloor").GetComponent<BoxCollider>();
+            float fallHeight = Field<float>(All<HumanCannonRouteSystem>().Single(), "fallHeight");
             Vector3 position = lift.Position(progress);
             var footprint = new Bounds(position, Vector3.zero);
             foreach (float x in new[] { -lift.HalfSize.x, lift.HalfSize.x })
                 foreach (float z in new[] { -lift.HalfSize.y, lift.HalfSize.y })
                     footprint.Encapsulate(position + lift.Rotation * new Vector3(x, 0, z));
-            // 경계에 맞닿은 옆 바닥은 제외하고, 발판 내부에서 안전 바닥 직전까지의 낙하 공간을 검사한다.
+            // 경계에 맞닿은 옆 바닥은 제외하고, 발판 내부에서 코스 아래 낙하 높이까지의 낙하 공간을 검사한다.
             const float inset = 0.001f;
             var drop = new Bounds();
-            drop.SetMinMax(new Vector3(footprint.min.x + inset, recovery.bounds.max.y + inset, footprint.min.z + inset),
+            drop.SetMinMax(new Vector3(footprint.min.x + inset, fallHeight + inset, footprint.min.z + inset),
                 new Vector3(footprint.max.x - inset, position.y - inset, footprint.max.z - inset));
             Assert.That(drop.size.y, Is.GreaterThan(0));
             var blockers = All<Collider>()
-                .Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger && c != recovery)
+                .Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger)
                 .Where(c => c.GetComponentInParent<HumanCannonTransport>() == null && c.bounds.Intersects(drop))
                 .Select(c => c.transform.parent != null ? c.transform.parent.name + "/" + c.name : c.name).ToArray();
-            Assert.That(blockers, Is.Empty, "첫 리프트 이동 중 과승자는 고정 바닥을 거치지 않고 하부 안전 바닥까지 떨어져야 합니다.");
+            Assert.That(blockers, Is.Empty, "첫 리프트 이동 중 과승자는 고정 바닥을 거치지 않고 코스 아래로 떨어져 복귀 처리되어야 합니다.");
         }
 
         [Test]
-        public void FirstDepartureHasSafeLowerFloorAndConnectedSmallStepReturn()
+        public void FirstDepartureHasNoLowerRecoveryCourse()
         {
+            // 2026-10-30 담당자 결정: 시작 지점 아래 안전 바닥과 복귀 계단을 삭제하고 낙하는 코스 아래 복귀 처리에 맡긴다.
             var lift = All<HumanCannonTransport>().Single(t => t.name == "DepartureTransport");
-            var recovery = Find("SplitRouteCourse/LiftSafetyLesson/RecoveryFloor").GetComponent<BoxCollider>();
             Assert.That(lift.StartPosition.y, Is.EqualTo(4));
-            Assert.That(recovery.bounds.max.y, Is.EqualTo(-4));
-            foreach (float progress in new[] { 0f, 0.5f, 1f })
-            {
-                var point = lift.Position(progress); point.y = recovery.bounds.center.y;
-                Assert.That(recovery.bounds.Contains(point), Is.True, "첫 이동 경로 전체 아래 안전 바닥");
-            }
-            var stairs = Find("SplitRouteCourse/LiftSafetyLesson/ReturnStairs").GetComponentsInChildren<BoxCollider>()
-                .OrderBy(c => c.bounds.max.y).ToArray();
-            Assert.That(stairs, Has.Length.EqualTo(40));
-            float previousHeight = -4;
-            foreach (var stair in stairs)
-            {
-                Assert.That(stair.bounds.max.y - previousHeight, Is.EqualTo(0.2f).Within(0.001f));
-                previousHeight = stair.bounds.max.y;
-                Assert.That(stair.GetComponent<HumanCannonLandingZone>(), Is.Not.Null);
-            }
-            Assert.That(previousHeight, Is.EqualTo(FloorBounds(Find("Ground")).max.y).Within(0.001f));
-            Assert.That(recovery.GetComponent<HumanCannonLandingZone>().SupportsLanding(new Vector3(-9, -3.95f, 3)), Is.True);
+            Assert.That(Find("SplitRouteCourse/LiftSafetyLesson"), Is.Null);
+            float fallHeight = Field<float>(All<HumanCannonRouteSystem>().Single(), "fallHeight");
+            var start = FloorBounds(Find("Ground"));
+            var below = All<Collider>().Where(c => c.enabled && !c.isTrigger && c.bounds.size.sqrMagnitude > 0
+                && c.bounds.max.y < start.min.y && c.bounds.min.y > fallHeight
+                && c.bounds.max.z <= start.max.z && c.bounds.min.z >= start.min.z - 2f).Select(c => c.name).ToArray();
+            Assert.That(below, Is.Empty, "시작 바닥 아래에 남은 바닥이나 계단이 없어야 합니다.");
         }
 
         [Test]

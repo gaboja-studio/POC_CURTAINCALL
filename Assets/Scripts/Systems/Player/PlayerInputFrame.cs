@@ -21,6 +21,9 @@ namespace CurtainCall.Player
         /// <summary>상호작용(기본 F)을 짧게 눌렀다 뗐는지. 뗀 프레임에 한 번.</summary>
         public bool InteractTapped;
 
+        /// <summary>상호작용 키를 누르고 있는지.</summary>
+        public bool InteractHeld;
+
         /// <summary>상호작용을 길게 눌렀는지. 기준 시간에 닿은 프레임에 한 번(떼기 전에 나간다).</summary>
         public bool InteractLongPressed;
 
@@ -32,5 +35,8 @@ namespace CurtainCall.Player
 
         /// <summary>앉기(기본 LCtrl)를 누르고 있는지. 다른 키와 조합 없이 누르는 동안만 켜진다(2026-10-19 PM).</summary>
         public bool CrouchHeld;
+
+        /// <summary>UV 등(기본 마우스 우클릭)을 누르고 있는지. 장비를 든 동안만 손전등이 켜진다(2026-10-30 확정).</summary>
+        public bool UvLightHeld;
     }
 }

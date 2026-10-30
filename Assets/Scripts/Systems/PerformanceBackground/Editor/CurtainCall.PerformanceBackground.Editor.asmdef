@@ -1,0 +1,5 @@
+{
+    "name": "CurtainCall.PerformanceBackground.Editor",
+    "references": ["CurtainCall.PerformanceBackground"],
+    "includePlatforms": ["Editor"]
+}

@@ -122,6 +122,14 @@ namespace CurtainCall.Campaign
             }
         }
 
+        /// <summary>호스트: 탐색 구역 규칙에 따라 쉬는 시간 타이머를 멈추거나 다시 흘린다(<see cref="RunState.SetRestTimerPaused"/>).</summary>
+        public bool SetRestTimerPaused(bool paused)
+        {
+            if (host == null || !host.SetRestTimerPaused(paused)) return false;
+            Apply(host.Snapshot);
+            return true;
+        }
+
         // ── 런 시작·종료 ──────────────────────────────────────
 
         /// <summary>접속하지 않은 상태에서 혼자 런을 시작한다(테스트용). 접속 중이면 false.</summary>
@@ -168,6 +176,9 @@ namespace CurtainCall.Campaign
 
         /// <summary><paramref name="day"/>일차 공연 순서와 묘기별 난이도 단계(1~3)를 함께 정한다(M2 난이도 선택).</summary>
         public bool SetSetlist(int day, string[] tricks, int[] tiers) => HostDo(r => r.SetSetlist(day, tricks, tiers), nameof(SetSetlist));
+
+        /// <summary>호스트: 쉬는 시간에 다음 공연의 난이도 단계만 다시 고른다(깬 단계의 다음 단계까지).</summary>
+        public bool AdjustNextTier(int tier) => HostDo(r => r.AdjustNextTier(tier), nameof(AdjustNextTier));
 
         /// <summary>호스트: 공연 성공 단계를 기록한다. 그 단계의 다음 단계를 고를 수 있게 된다.</summary>
         public bool RecordClear(string trickId, int tier) => HostDo(r => r.RecordClear(trickId, tier), nameof(RecordClear));

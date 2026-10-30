@@ -361,10 +361,12 @@ namespace CurtainCall.Telemetry.Pipeline
             var poles = HumanCannonPoleSystem.Current;
             if (poles != null)
                 for (int i = 0; i < poles.PoleCount; i++)
+                for (int seat = 0; seat < PoleGateState.MaxRiders; seat++)
                 {
-                    ulong occupant = poles.State(i).Occupant;
-                    if (poleOccupants.TryGetValue(i, out ulong before) && before == occupant) continue;
-                    poleOccupants[i] = occupant;
+                    int key = i * PoleGateState.MaxRiders + seat;
+                    ulong occupant = poles.Occupant(i, seat);
+                    if (poleOccupants.TryGetValue(key, out ulong before) && before == occupant) continue;
+                    poleOccupants[key] = occupant;
                     if (occupant != CannonSeatState.Nobody) Cooperation(occupant, "POLE", poles.Pole(i));
                 }
             var routes = HumanCannonRouteSystem.Current;

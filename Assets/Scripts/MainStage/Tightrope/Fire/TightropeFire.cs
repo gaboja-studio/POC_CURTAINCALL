@@ -283,6 +283,8 @@ namespace CurtainCall.Tightrope.Fire
         void Kill(NetworkPlayer player, FireKind kind, int segment, float distance)
         {
             if (!player.ServerKill()) return;
+            // 화염에 맞은 사람만 사망시키고 구조 상태는 같은 호스트 판정에서 즉시 정리한다.
+            TightropeHangSystem.Current?.ServerReleaseForInspection(player.OwnerClientId);
             Hit?.Invoke(new FireHit(player, kind, segment, round, elapsed, distance));
             Debug.Log($"[Fire] 회차 {round} · 슬롯 {player.Slot} · {kind}({segment}) · {elapsed:0.00}s · {distance:0.00}m", this);
         }

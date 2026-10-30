@@ -9,7 +9,7 @@ namespace CurtainCall.HumanCannon
 {
     /// <summary>1단계의 운반 트램폴린. 소유/반동은 호스트, 운반 이동은 기존 플레이어 위치 공유를 사용한다.</summary>
     [DefaultExecutionOrder(-30)]
-    public sealed partial class HumanCannonTrampoline : MonoBehaviour
+    public sealed partial class HumanCannonTrampoline : MonoBehaviour, IHumanCannonCarry
     {
         [Tooltip("외곽 손잡이. 플레이어 발 위치 기준으로 잡기 거리를 검사한다.")]
         [SerializeField] Transform handle;
@@ -64,6 +64,10 @@ namespace CurtainCall.HumanCannon
         public Vector2 LoadHalfSize => loadHalfSize.x > 0f && loadHalfSize.y > 0f ? loadHalfSize : halfSize;
         public float UpwardSpeed => upwardSpeed;
         public float CarryMoveSpeed => groundBounceAirControlSpeed;
+        public Transform CarryRoot => transform;
+        public Vector3 CarryFocus => Surface;
+        public Vector2 CarryHalfSize => halfSize;
+        public string CarryName => "트램펄린";
         public int LocalBounceCount { get; private set; }
         public static event System.Action<ulong> ServerBounced;
 
@@ -76,6 +80,7 @@ namespace CurtainCall.HumanCannon
                 return;
             }
             Current = this;
+            HumanCannonCarry.Register(this);
             initialPosition = transform.position;
             initialRotation = transform.rotation;
             contactBoundsReady = false;
@@ -200,19 +205,11 @@ namespace CurtainCall.HumanCannon
         {
             // 운반자는 3인칭 카메라의 수평 시선을 바라보며 옆걸음/뒷걸음한다.
             // 다른 화면에서는 그 운반자가 공유한 몸 방향을 사용한다. 관찰자의 카메라는 사용하지 않는다.
-            Vector3 handleOffset = Vector3.Scale(transform.InverseTransformPoint(Handle.position), transform.lossyScale);
-            Vector3 facing = alignToCarrier || !carrier.IsLocal ? carrier.transform.forward
-                : Vector3.ProjectOnPlane(transform.position - Handle.position, Vector3.up);
-            var view = CameraViewDirector.Current;
-            // 봇은 마우스 시선 없이 직접 이동 입력을 만들므로 기존 운반 방향을 유지한다.
-            if (carrier.IsLocal && !HumanCannonBotWorker.IsWorkerProcess && !InputGate.IsBlocked
-                && view != null && view.LocalPlayer == carrier && view.IsFreeThirdPerson)
-                facing = view.ViewForward;
-            if (TrampolineCarryPose.TryCalculate(CarryHandlePoint(carrier.transform.position), facing,
-                handleOffset, out var position, out var rotation))
+            if (HumanCannonCarry.TryFollowPose(carrier, transform, Handle, carryHandleHeight, alignToCarrier,
+                out var position, out var rotation, out var carrierRotation))
             {
                 transform.SetPositionAndRotation(position, rotation);
-                carrier.transform.rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(facing, Vector3.up));
+                carrier.transform.rotation = carrierRotation;
             }
         }
 
@@ -227,7 +224,8 @@ namespace CurtainCall.HumanCannon
 
         public bool CanGrab(NetworkPlayer player)
         {
-            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied) return false;
+            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || ownership.IsOccupied
+                || HumanCannonCarry.Held(player.OwnerClientId) != null) return false;
             var cannon = HumanCannonSystem.Current;
             if (cannon == null || cannon.IsSeated(player.OwnerClientId)) return false;
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return false;
@@ -236,7 +234,7 @@ namespace CurtainCall.HumanCannon
             return PlayerInteraction.InRange(player, usePropOutline ? Handle.position + transform.up * (.6f * transform.lossyScale.y) : Surface, radius);
         }
 
-        internal void RequestGrab()
+        public void RequestGrab()
         {
             var player = NetworkPlayer.Local;
             if (!CanGrab(player) || GrabPending(player)) return;
@@ -261,7 +259,7 @@ namespace CurtainCall.HumanCannon
             return session != null && session.IsHost && HumanCannonSystem.Current != null
                 && HumanCannonSystem.Current.HasPendingTrampolineGrab(player, ownership.Revision);
         }
-        internal void RequestDrop() => SendRequest(TrampolineAction.Drop, -1, 0, 0, transform.position);
+        public void RequestDrop() => SendRequest(TrampolineAction.Drop, -1, 0, 0, transform.position);
         public void ServerReleaseForInspection(ulong actor)
         {
             if (session == null || !session.IsHost || Carrier != actor) return;
@@ -404,6 +402,7 @@ namespace CurtainCall.HumanCannon
 
         void OnDisable()
         {
+            HumanCannonCarry.Unregister(this);
             localGrabPending = false;
             RestoreHandleAppearance();
             NetworkPlayer.Restarted -= HandleRestart;

@@ -30,7 +30,8 @@ namespace CurtainCall.UI.SceneIntegration
                     && label.GetComponentInParent<WaitingRoomShopUI>() == null
                     && label.GetComponentInParent<WaitingRoomScheduleUI>() == null
                     && label.GetComponentInParent<CommonInteractionUI>() == null
-                    && label.GetComponentInParent<FeedbackView>() == null) continue;
+                    && label.GetComponentInParent<FeedbackView>() == null
+                    && label.GetComponentInParent<CurtainCall.WaitingRoom.ExplorationPanel>() == null) continue;
                 var original = label.font;
                 if (original == null || original == fallback || copies.ContainsValue(original)) continue;
                 if (!copies.TryGetValue(original, out var copy))

@@ -72,8 +72,10 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 var label = shelfLabels[i];
                 if (label == null) continue;
-                bool available = shelf != null && shelf.isActiveAndEnabled && i < shelf.Boards.Count && shelf.Boards[i] != null;
-                if (available) Present(label, shelf.VisualRoot, observer, camera);
+                // 선반을 옮기거나 돌려도 칸 이름표가 옛 자리에 남지 않도록 매 프레임 실제 판자 앞면에 맞춘다.
+                Vector3 point = default;
+                bool available = shelf != null && shelf.isActiveAndEnabled && shelf.TrySlotLabelPoint(i, out point);
+                if (available) { label.transform.position = point; Present(label, shelf.VisualRoot, observer, camera); }
                 else label.SetVisible(false);
             }
         }

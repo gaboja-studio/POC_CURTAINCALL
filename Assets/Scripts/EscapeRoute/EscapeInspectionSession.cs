@@ -24,6 +24,8 @@ namespace CurtainCall.EscapeRoute
         uint sequence;
         public bool LocalActive { get; private set; }
         public bool Pending { get; private set; }
+        public bool IsInspecting(ulong actor) => inspecting.Contains(actor)
+            || NetworkPlayer.Local != null && NetworkPlayer.Local.OwnerClientId == actor && (LocalActive || Pending);
         public event Action<bool> LocalChanged;
 
         void OnEnable() => NetworkPlayer.Restarted += Restarted;

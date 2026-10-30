@@ -94,7 +94,7 @@ namespace CurtainCall.SpaceLink
             if (submitted || !SamePerformance() || run.Round != round || run.Results.AttemptId != attemptId
                 || rewards.State?.IsOpen != true) return;
             if (run.State != TightropeRunState.Succeeded && run.State != TightropeRunState.Failed) return;
-            // ResultConfirmed 이후 Arrived·집결 처리가 끝난 다음 정산한다.
+            // 실제 도착자와 각 플레이어의 마지막 위치를 보존한 상태로 정산한다.
             var judgements = new Dictionary<string, string>();
             foreach (var participant in rewards.State.Segments)
                 foreach (var person in result.Participants)

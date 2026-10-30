@@ -139,6 +139,29 @@ namespace CurtainCall.WaitingRoom.Tests
         }
 
         [Test]
+        public void 쉬는_시간에는_잠긴_칸도_단계만_바꾼다()
+        {
+            var book = NewBook();
+            book.BeginNight(1);
+            Fill(book, 2, Rope, Cannon);
+            Fill(book, 3, Rope, Rope);
+            Assert.AreEqual(ScheduleRefusal.None, book.Confirm());
+            book.EndNight();
+            Assert.IsTrue(book.IsLocked(2));
+            long before = book.Revision;
+            Assert.AreEqual(ScheduleRefusal.None, book.AdjustTier(2, 0, 2, 2));
+            Assert.AreEqual(2, book.Difficulty(2, 0));
+            Assert.AreEqual(Rope, book.Get(2, 0), "묘기는 그대로");
+            Assert.Greater(book.Revision, before);
+            Assert.AreEqual(ScheduleRefusal.BadTier, book.AdjustTier(2, 1, 2, 1), "못 깬 단계는 고를 수 없다");
+            Assert.AreEqual(ScheduleRefusal.BadSlot, book.AdjustTier(1, 0, 1, 1), "1일차는 고정");
+            Assert.AreEqual(ScheduleRefusal.BadSlot, book.AdjustTier(4, 0, 1, 1), "4일차는 공연 없음");
+            before = book.Revision;
+            Assert.AreEqual(ScheduleRefusal.None, book.AdjustTier(2, 0, 2, 2));
+            Assert.AreEqual(before, book.Revision, "같은 단계면 리비전이 오르지 않는다");
+        }
+
+        [Test]
         public void 초기화하면_처음_상태로_돌아간다()
         {
             var book = NewBook();
