@@ -129,3 +129,5 @@
 - PASS 신체 복구: 참가자 예약 → Booked, 카메라가 승강기 방향(45°)으로 회전, 안내 패널 "신체 복구 예약 완료" 문구.
 - 미실행: 탈출로 열쇠 두 개 동시 돌리기·경고음 청취, 화물 철문 실제 걷기 통과, 늦은 접속·이탈. 사람 플레이 확인은 별도.
 - 정리: 플레이 종료, Player 2 Deactivate, EditorPrefs 키 삭제, 씬 dirty 0.
+- 2026-10-31 origin/dev 3커밋(인간대포 포신 애니메이션 #249) 병합 e59d59af: 충돌·겹침 없음. 에디터 재시작 후 컴파일 PASS, PlayMode W3_ 4/4·M2_NightPowerGatesAndBedWake 1/1·M2_Confirmed_UvFlashlight 1/1·M2_ExitRoute 3/3·W2_BodyRestore 2/2. 병합 커밋 미푸시.
+- 2026-10-31 최적화 2~4단계(점조명 그림자5 끔·작은 물체 거리 컬링 12,505·거울/UV/상호작용 표시 코드). 굽기는 정전 회로 때문에 제외. PlayMode 10/10 PASS. 미커밋.

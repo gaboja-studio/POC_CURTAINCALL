@@ -24,6 +24,9 @@ namespace CurtainCall.WaitingRoom
         [SerializeField, Min(.1f)] float ringReach = 1f;
         [Tooltip("같은 낙서에 발견 요청을 다시 보내기까지의 간격(초).")]
         [SerializeField, Min(.1f)] float requestInterval = .6f;
+        [Tooltip("낙서 판정 간격(초).")]
+        [SerializeField, Min(0f)] float checkInterval = .1f;
+        float nextCheck;
 
         Light spot;
         readonly Dictionary<UvMark, float> requested = new();
@@ -57,8 +60,10 @@ namespace CurtainCall.WaitingRoom
             var body = reader != null ? reader.transform : null;
             bool on = body != null && reader.isActiveAndEnabled && reader.Current.UvLightHeld && !InputGate.IsBlocked && Equipped(player, reader);
             IsOn = on;
-            litNow.Clear();
-            UpdateRemote();
+            // 최적화(2026-10-31): 빛의 위치는 매 프레임, 낙서 판정(레이캐스트)은 0.1초마다. 낙서는 비춘 뒤 5초 남으므로 차이가 없다.
+            bool check = Time.unscaledTime >= nextCheck;
+            if (check) { nextCheck = Time.unscaledTime + checkInterval; litNow.Clear(); }
+            UpdateRemote(check);
             if (!on) { spot.enabled = false; if (player != null) player.SetUvLight(false, default, default); return; }
 
             // 마우스가 가리키는 자리: 카메라 시선이 닿는 점(없으면 12m 앞). 가슴에서 그 점을 향해 비춘다(3인칭에서 카메라 기울기를 그대로 쓰면 바닥을 비춘다).
@@ -83,6 +88,7 @@ namespace CurtainCall.WaitingRoom
             spot.enabled = true;
             if (player != null) player.SetUvLight(true, origin, forward);
 
+            if (!check) return;
             float half = spotAngle * .5f;
             foreach (var mark in UvMark.All)
             {
@@ -100,7 +106,7 @@ namespace CurtainCall.WaitingRoom
         }
 
         // 다른 플레이어의 UV 빛: 공유된 시작점·방향으로 같은 빛을 그리고 닿은 낙서를 드러낸다. 발견 요청은 하지 않는다.
-        void UpdateRemote()
+        void UpdateRemote(bool check)
         {
             foreach (var p in NetworkPlayer.All)
             {
@@ -115,6 +121,7 @@ namespace CurtainCall.WaitingRoom
                 if (!on) continue;
                 var origin = p.UvOrigin; var forward = p.UvForward.sqrMagnitude > .01f ? p.UvForward.normalized : Vector3.forward;
                 light.transform.SetPositionAndRotation(origin, Quaternion.LookRotation(forward));
+                if (!check) continue;
                 float half = spotAngle * .5f;
                 foreach (var mark in UvMark.All)
                 {

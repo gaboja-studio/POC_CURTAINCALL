@@ -14,6 +14,8 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] Vector2Int resolution = new(640, 360);
         [Tooltip("이보다 멀면 그리지 않는다(m).")]
         [SerializeField, Min(1f)] float activeDistance = 14f;
+        [Tooltip("반사 상을 몇 프레임마다 다시 그릴지(1이면 매 프레임). 사이 프레임은 직전 상을 쓴다.")]
+        [SerializeField, Range(1, 4)] int refreshEvery = 2;
         [SerializeField] Color tint = new(.82f, .86f, .9f, 1f);
         [SerializeField] float clipOffset = .02f;
 
@@ -37,7 +39,11 @@ namespace CurtainCall.WaitingRoom
             mirrorCamera = go.AddComponent<Camera>();
             mirrorCamera.enabled = false; mirrorCamera.targetTexture = texture;
             mirrorCamera.clearFlags = CameraClearFlags.SolidColor; mirrorCamera.backgroundColor = Color.black;
-            mirrorCamera.nearClipPlane = .05f; mirrorCamera.farClipPlane = 60f;
+            mirrorCamera.nearClipPlane = .05f; mirrorCamera.farClipPlane = 25f;
+            // 최적화(2026-10-31): 거울 카메라는 그림자·후처리·깊이·불투명 텍스처를 그리지 않는다. 반사 상은 작아 차이가 보이지 않는다.
+            var data = go.AddComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+            data.renderShadows = false; data.renderPostProcessing = false; data.antialiasing = UnityEngine.Rendering.Universal.AntialiasingMode.None;
+            data.requiresDepthOption = UnityEngine.Rendering.Universal.CameraOverrideOption.Off; data.requiresColorOption = UnityEngine.Rendering.Universal.CameraOverrideOption.Off;
         }
 
         void OnEnable() { RenderPipelineManager.beginCameraRendering += Begin; RenderPipelineManager.endCameraRendering += End; }
@@ -48,6 +54,8 @@ namespace CurtainCall.WaitingRoom
             if (rendering) { mirrorCamera.enabled = false; rendering = false; }
             var main = Camera.main;
             if (main == null || !glass.isVisible) return;
+            // 거울마다 다른 프레임에 그리도록 인스턴스 번호로 나눈다.
+            if (refreshEvery > 1 && Mathf.Abs(Time.frameCount + GetInstanceID()) % refreshEvery != 0) return;
             var position = glass.bounds.center;
             if (Vector3.Distance(main.transform.position, position) > activeDistance) return;
             var normal = Normal(main.transform.position, position);

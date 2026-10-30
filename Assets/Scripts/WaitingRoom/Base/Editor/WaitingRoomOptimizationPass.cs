@@ -60,6 +60,47 @@ namespace CurtainCall.WaitingRoom.Editor
 
         public static bool IsBaking => StaticOcclusionCulling.isRunning;
 
+        [MenuItem("Tools/CurtainCall/대기실/최적화 2·3단계 적용")]
+        public static void ApplyStage23Menu() => Debug.Log(ApplyLighting() + " / " + ApplyDistanceCulling());
+
+        /// <summary>
+        /// 2단계(2026-10-31): 조명 145개 중 126개가 밤 정비 정전 회로(NightPower)라 굽기를 하면 정전 때 빛이 남는다 → 굽지 않는다.
+        /// 대신 가장 비싼 점조명 그림자(그림자 한 번에 6면)를 끈다. 스포트 그림자는 공연장·연습실 연출용이라 남긴다.
+        /// </summary>
+        public static string ApplyLighting()
+        {
+            var scene = EditorSceneManager.GetActiveScene(); int changed = 0;
+            foreach (var l in scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<Light>(true)))
+            {
+                if (l.type != LightType.Point || l.shadows == LightShadows.None) continue;
+                Undo.RecordObject(l, "Point light shadows off"); l.shadows = LightShadows.None; changed++;
+            }
+            EditorSceneManager.MarkSceneDirty(scene);
+            return $"point light shadows off {changed}";
+        }
+
+        const float CullProp = 1.2f, CullScreen = .012f;
+
+        /// <summary>
+        /// 3단계(2026-10-31): 작은 물체(가장 긴 변 1.2m 미만)는 화면 높이의 1.2%보다 작아지면 그리지 않는다(LOD Group 한 단계).
+        /// 0.3m 물체는 약 20m, 1m 물체는 약 70m 밖에서 사라진다. 이미 LOD Group에 든 물체·투명 물체는 건드리지 않는다.
+        /// </summary>
+        public static string ApplyDistanceCulling()
+        {
+            var scene = EditorSceneManager.GetActiveScene(); int added = 0;
+            foreach (var r in scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<MeshRenderer>(true)).ToArray())
+            {
+                if (r == null || r.GetComponentInParent<LODGroup>(true) != null) continue;
+                var b = r.bounds; if (Mathf.Max(b.size.x, b.size.y, b.size.z) >= CullProp) continue;
+                if (r.sharedMaterials.Any(m => m != null && m.renderQueue >= (int)RenderQueue.Transparent)) continue;
+                var group = Undo.AddComponent<LODGroup>(r.gameObject);
+                group.SetLODs(new[] { new LOD(CullScreen, new Renderer[] { r }) });
+                group.RecalculateBounds(); added++;
+            }
+            EditorSceneManager.MarkSceneDirty(scene);
+            return $"small-object cull LODGroups {added}";
+        }
+
         static bool IsDynamic(Transform t, HashSet<Transform> roots)
         {
             for (var p = t; p != null; p = p.parent) if (roots.Contains(p)) return true;
