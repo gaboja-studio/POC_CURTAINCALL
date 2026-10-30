@@ -27,14 +27,21 @@ namespace CurtainCall.WaitingRoom
         PropCarry carry;
         Material material;
         static int activeCount;
+        static readonly List<FloorPropsView> views = new();
+        public static bool CanPickUp(int uid, Vector3 feet)
+        {
+            foreach (var view in views)
+                if (view != null && view.shown.TryGetValue(uid, out var item) && item.Reach(feet) >= 0f) return true;
+            return false;
+        }
 
         /// <summary>대기실 씬의 기물 표시가 켜져 있다(소지 HUD·한도 초과 떨어뜨리기를 대기실에서만 하게 한다).</summary>
         public static bool Active => activeCount > 0;
 
-        void OnEnable() => activeCount++;
+        void OnEnable() { activeCount++; if (!views.Contains(this)) views.Add(this); }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() => activeCount = 0;
+        static void ResetStatics() { activeCount = 0; views.Clear(); }
 
         sealed class Item : IShopTarget, IShopPresentation
         {
@@ -48,9 +55,7 @@ namespace CurtainCall.WaitingRoom
 
             public float Reach(Vector3 feet)
             {
-                Vector3 offset = feet - Shape.transform.position;
-                float distance = new Vector2(offset.x, offset.z).magnitude;
-                return distance <= View.reach ? distance : -1f;
+                return Shape != null ? ExplorationReach.From(Shape.transform, Shape.transform.position, feet, View.reach) : -1f;
             }
 
             public void Interact()
@@ -61,7 +66,7 @@ namespace CurtainCall.WaitingRoom
 
         void OnDisable()
         {
-            activeCount--;
+            activeCount--; views.Remove(this);
             if (carry != null) carry.Changed -= Rebuild;
             carry = null;
             foreach (var item in shown.Values) Remove(item);

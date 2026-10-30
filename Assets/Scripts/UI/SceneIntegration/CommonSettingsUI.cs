@@ -207,18 +207,26 @@ namespace CurtainCall.UI.SceneIntegration
         }
         void Update()
         {
-            if (!IsOpen || capture == null || Keyboard.current == null || Time.frameCount <= captureFrame) return;
-            foreach (var key in Keyboard.current.allKeys)
-            {
-                if (!key.wasPressedThisFrame) continue;
-                if (key.keyCode == Key.Escape) return; // CommonMenuUI가 캡처 취소를 한 번만 전달한다.
-                var request = capture; capture = null;
-                if (!InputBindingPreferences.TryValidateKeyPath("<Keyboard>/" + key.name, out string path, out string error)
-                    || !bindings.ContainsKey(request.rowId))
-                { view.RejectRebind(request.token, string.IsNullOrEmpty(error) ? "키를 변경할 수 없습니다." : error); return; }
-                view.CompleteRebind(request.token, path,
-                    InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice), out _); return;
-            }
+            if (!IsOpen || capture == null || Time.frameCount <= captureFrame) return;
+            if (Keyboard.current != null)
+                foreach (var key in Keyboard.current.allKeys)
+                {
+                    if (!key.wasPressedThisFrame) continue;
+                    if (key.keyCode == Key.Escape) return; // CommonMenuUI가 캡처 취소를 한 번만 전달한다.
+                    Capture("<Keyboard>/" + key.name); return;
+                }
+            // 마우스 버튼(왼쪽 제외)도 받는다. UV 등 같은 마우스 조작용.
+            var mouse = Mouse.current;
+            if (mouse == null) return;
+            foreach (var button in new[] { mouse.rightButton, mouse.middleButton, mouse.forwardButton, mouse.backButton })
+                if (button != null && button.wasPressedThisFrame) { Capture("<Mouse>/" + button.name); return; }
+        }
+        void Capture(string candidate)
+        {
+            var request = capture; capture = null;
+            if (!InputBindingPreferences.TryValidateKeyPath(candidate, out string path, out string error) || !bindings.ContainsKey(request.rowId))
+            { view.RejectRebind(request.token, string.IsNullOrEmpty(error) ? "키를 변경할 수 없습니다." : error); return; }
+            view.CompleteRebind(request.token, path, InputControlPath.ToHumanReadableString(path, InputControlPath.HumanReadableStringOptions.OmitDevice), out _);
         }
         async void HandleAction(SettingsActionRequest request)
         {

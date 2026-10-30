@@ -122,6 +122,14 @@ namespace CurtainCall.Campaign
             }
         }
 
+        /// <summary>호스트: 탐색 구역 규칙에 따라 쉬는 시간 타이머를 멈추거나 다시 흘린다(<see cref="RunState.SetRestTimerPaused"/>).</summary>
+        public bool SetRestTimerPaused(bool paused)
+        {
+            if (host == null || !host.SetRestTimerPaused(paused)) return false;
+            Apply(host.Snapshot);
+            return true;
+        }
+
         // ── 런 시작·종료 ──────────────────────────────────────
 
         /// <summary>접속하지 않은 상태에서 혼자 런을 시작한다(테스트용). 접속 중이면 false.</summary>

@@ -112,7 +112,7 @@ namespace CurtainCall.UI.SceneIntegration
                 while (index < selected.Count && (selected[index].Distance < candidate.Distance ||
                     (Mathf.Approximately(selected[index].Distance, candidate.Distance) && selected[index].Root.GetInstanceID() < candidate.Root.GetInstanceID()))) index++;
                 selected.Insert(index, candidate);
-                if (selected.Count > 2) selected.RemoveAt(2);
+                // Every nearby visible interactive object is identifiable, even in a cluster.
             }
             for (int i = outlines.Count - 1; i >= 0; i--)
             {

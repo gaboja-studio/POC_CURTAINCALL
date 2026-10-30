@@ -5,7 +5,7 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 숨은 길의 부술 수 있는 벽(Task-079 3단계). 빠루(천막 말뚝 뽑개)를 손에 들고 F를 연타하면 한 번에 한 번 내려친다.
+    /// 숨은 길의 부술 수 있는 벽(Task-079 3단계). 천막 말뚝 뽑개를 손에 들고 F를 연타하면 한 번에 한 번 내려친다.
     /// 결정(2026-10-29 사용자): 모든 탐색은 F, 6번이면 무너지고 칠 때마다 금이 늘고 낡아 보인다, 손을 떼도 진행은 남는다.
     /// 판정·공유는 <see cref="ExplorationState"/>, 이 컴포넌트는 받은 진행을 모든 화면에 똑같이 그린다(늦게 들어와도 같은 모습).
     /// </summary>
@@ -14,7 +14,7 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] string targetId = "restroom-breach";
         [SerializeField] string label = "금 간 벽";
         [SerializeField] string toolId = ItemUses.StakePuller;
-        [SerializeField] string toolName = "빠루";
+        [SerializeField] string toolName = "천막 말뚝 뽑개";
         [SerializeField, Min(1)] int requiredHits = 6;
 
         [Tooltip("닿는 수평 거리(m, 벽 중심에서).")]
@@ -37,18 +37,29 @@ namespace CurtainCall.WaitingRoom
 
         [SerializeField] AudioSource sound;
 
+        [Tooltip("외곽선 기준(깊이 전용 판). 비우면 벽 조각마다 외곽선이 그려져 격자처럼 보인다. 무너지면 숨긴다.")]
+        [SerializeField] Transform outlineRoot;
+
         public string TargetId => targetId;
         public string ToolId => toolId;
-        public string ToolName => toolName;
+        // 표시 이름은 기물 목록을 따른다(옛 씬 값 "빠루" 대신 "천막 말뚝 뽑개").
+        public string ToolName => ItemCatalog.Get(toolId)?.displayName ?? toolName;
         public string Label => label;
         public int RequiredHits => requiredHits;
 
-        public Transform VisualRoot => transform;
+        public Transform VisualRoot => outlineRoot != null ? outlineRoot : transform;
         public Vector3 PresentationPoint => transform.position + Vector3.up * 1.6f;
         public bool IsAvailable => !Opened;
         public string ActionLabel => Opened ? "무너진 벽"
-            : HoldsTool() ? $"{toolName}로 내려치기 ({Hits}/{requiredHits})"
-            : $"{label} — {toolName}이(가) 필요하다 ({Hits}/{requiredHits})";
+            : HoldsTool() ? $"{ToolName}로 내려치기 ({Hits}/{requiredHits})"
+            : $"{label} — {ToolName}{Subject(ToolName)} 필요하다 ({Hits}/{requiredHits})";
+
+        // 받침 있는 글자 뒤 "이", 없으면 "가".
+        static string Subject(string word)
+        {
+            char last = string.IsNullOrEmpty(word) ? ' ' : word[word.Length - 1];
+            return last >= '가' && last <= '힣' && (last - '가') % 28 != 0 ? "이" : "가";
+        }
 
         int Hits => ExplorationState.Instance != null ? ExplorationState.Instance.Hits(targetId) : 0;
         bool Opened => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(targetId);
@@ -89,8 +100,7 @@ namespace CurtainCall.WaitingRoom
         public float Reach(Vector3 feet)
         {
             if (Opened) return -1f;
-            float d = new Vector2(feet.x - transform.position.x, feet.z - transform.position.z).magnitude;
-            return d <= reach ? d : -1f;
+            return ExplorationReach.From(transform, PresentationPoint, feet, reach);
         }
 
         public void Interact()
@@ -112,6 +122,7 @@ namespace CurtainCall.WaitingRoom
         void Apply(int hits, bool open, bool initial)
         {
             if (revealOnOpen != null) foreach (var g in revealOnOpen) if (g != null && g.activeSelf != open) g.SetActive(open);
+            if (outlineRoot != null && outlineRoot != transform && outlineRoot.gameObject.activeSelf == open) outlineRoot.gameObject.SetActive(!open);
             if (!initial && hits > shownHits && !open) { shake = .18f; Play(thud); }
             // 금은 서 있는 벽 위에만 있다. 무너지면 조각과 함께 사라진다.
             if (cracks != null) for (int i = 0; i < cracks.Length; i++) if (cracks[i] != null) cracks[i].SetActive(i < hits && !open);

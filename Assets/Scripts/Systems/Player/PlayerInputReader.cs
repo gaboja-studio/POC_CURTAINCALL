@@ -27,6 +27,7 @@ namespace CurtainCall.Player
         InputAction interact;
         InputAction sprint;
         InputAction crouch;
+        InputAction uvLight; // 옛 입력 에셋에는 없을 수 있다
         float interactPressedAt = -1f; // 누르고 있지 않으면 음수
         bool interactLongSent;
 
@@ -55,6 +56,7 @@ namespace CurtainCall.Player
             interact = commonMap.FindAction("Interact", true);
             sprint = commonMap.FindAction("Sprint", true);
             crouch = commonMap.FindAction("Crouch", true);
+            uvLight = commonMap.FindAction("UvLight", false);
         }
 
         public bool ControlsReleased
@@ -128,6 +130,7 @@ namespace CurtainCall.Player
                 InteractHoldProgress = holdProgress,
                 SprintHeld = sprint.IsPressed(),
                 CrouchHeld = crouch.IsPressed(),
+                UvLightHeld = uvLight != null && uvLight.IsPressed(),
             };
         }
 

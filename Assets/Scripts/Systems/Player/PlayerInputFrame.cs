@@ -35,5 +35,8 @@ namespace CurtainCall.Player
 
         /// <summary>앉기(기본 LCtrl)를 누르고 있는지. 다른 키와 조합 없이 누르는 동안만 켜진다(2026-10-19 PM).</summary>
         public bool CrouchHeld;
+
+        /// <summary>UV 등(기본 마우스 우클릭)을 누르고 있는지. 장비를 든 동안만 손전등이 켜진다(2026-10-30 확정).</summary>
+        public bool UvLightHeld;
     }
 }

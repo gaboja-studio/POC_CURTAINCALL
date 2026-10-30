@@ -21,12 +21,23 @@ namespace CurtainCall.WaitingRoom
         [SerializeField] string itemId = ItemUses.StakePuller;
         [SerializeField] string itemName = "천막 말뚝 뽑개";
 
+        [Tooltip("이 대상이 열린 뒤에만 바닥 기물 생성. 비우면 기존처럼 처음부터 생성.")]
+        [SerializeField] string availableAfter = "";
+        [Tooltip("디버그 보급품: Editor 또는 Development Build에서만 생성.")]
+        [SerializeField] bool debugOnly;
+        public bool CanSeed => (!debugOnly || Application.isEditor || Debug.isDebugBuild)
+            && (string.IsNullOrEmpty(availableAfter)
+            || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(availableAfter)));
+        public void UnlockAfter(string targetId) => availableAfter = targetId ?? "";
+
         public string SpotId => spotId;
         public Vector3 FloorPoint => transform.position;
 
         // 탐색 발견품은 기물 목록의 발견품 내구도(초안: 새 제품보다 적다)로 시작한다.
+        // 디버그 보급품은 내구도 차감을 여러 번 시험할 수 있게 새 제품 내구도(2026-10-30 사용자 결정).
         public PropItem MakeItem(int generation) =>
-            new(ItemUses.FoundUidBase + generation * 100 + uidOffset, itemId, ItemCatalog.Get(itemId)?.displayName ?? itemName, ItemCatalog.FoundUses(itemId));
+            new(ItemUses.FoundUidBase + generation * 100 + uidOffset, itemId, ItemCatalog.Get(itemId)?.displayName ?? itemName,
+                debugOnly ? ItemCatalog.NewUses(itemId) : ItemCatalog.FoundUses(itemId));
 
         void OnEnable() { if (!all.Contains(this)) all.Add(this); }
         void OnDisable() => all.Remove(this);
