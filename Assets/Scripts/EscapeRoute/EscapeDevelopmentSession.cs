@@ -38,7 +38,8 @@ namespace CurtainCall.EscapeRoute
 
         void OnEnable() => activeSessions.Add(this);
         NetworkSessionManager session;
-        EscapeLocalPracticeConnector connector;
+        ISessionConnector connector;
+        bool multiplayer;
         IDisposable minimumPlayers;
         double recoverAt = -1;
         public bool Ready { get; private set; }
@@ -55,6 +56,33 @@ namespace CurtainCall.EscapeRoute
                 // 나중에 다인 개발 연결에서 들어오면 기존 원본 세션을 그대로 사용한다.
                 Ready = session.ConnectionState == SessionConnectionState.Host || session.ConnectionState == SessionConnectionState.Client;
                 Status = Ready ? "개발 테스트" : "접속 준비 중";
+                yield break;
+            }
+            var args = Environment.GetCommandLineArgs();
+            bool client = Array.IndexOf(args, "-escapeClient") >= 0;
+            multiplayer = client || Array.IndexOf(args, "-escapeHost") >= 0;
+#if UNITY_EDITOR
+            if (EscapeMppmReviewConfig.TryGet(out _, out int reviewSlot))
+            { multiplayer = true; client = reviewSlot != 0; }
+#endif
+            if (multiplayer)
+            {
+                Application.runInBackground = true;
+                Application.targetFrameRate = 40;
+                QualitySettings.vSyncCount = 0;
+                int portIndex = Array.IndexOf(args, "-escapePort");
+                ushort port = portIndex >= 0 && portIndex + 1 < args.Length && ushort.TryParse(args[portIndex + 1], out var parsed) ? parsed : (ushort)7783;
+                connector = new LanSessionConnector(session.NetworkManager, port);
+                minimumPlayers = session.RequestMinimumStartPlayers(4);
+                var connect = client ? session.JoinAsync(connector, "127.0.0.1:" + port) : session.HostAsync(connector);
+                while (!connect.IsCompleted) yield return null;
+                if (connect.IsFaulted || connect.IsCanceled || !connect.Result)
+                { Status = "4인 개발 접속 실패 · 로그를 확인하세요"; yield break; }
+                Status = "4인 개발 세션 · 참가자 대기";
+                while (NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned || (!client && session.PlayerCount < 4)) yield return null;
+                if (!client && !session.StartGame()) { Status = "4인 시작 실패"; yield break; }
+                while (session.GameState != GameSessionState.Playing) yield return null;
+                Ready = true; Status = "4인 개발 플레이 · 원본 호스트 판정";
                 yield break;
             }
             minimumPlayers = session.RequestMinimumStartPlayers(1);
@@ -82,6 +110,8 @@ namespace CurtainCall.EscapeRoute
             var player = NetworkPlayer.Local;
             bool failed = player != null && player.IsSpawned
                 && (player.State == PlayerState.Fallen || player.State == PlayerState.Retired);
+            if (multiplayer) foreach (var participant in NetworkPlayer.All)
+                if (participant != null && participant.IsSpawned && participant.State == PlayerState.Normal) failed = false;
             if (!failed) { recoverAt = -1; return; }
             if (recoverAt < 0) recoverAt = Time.unscaledTimeAsDouble + RecoverySeconds;
             if (Time.unscaledTimeAsDouble >= recoverAt) Restart();

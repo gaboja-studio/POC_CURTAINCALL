@@ -153,8 +153,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.PlayerModelSlot
   slot: {fileID: 0}
-  modelPrefab: {fileID: 2084555777547998897, guid: 74a838ed07e947f408fe81514c332e88, type: 3}
-  fitToHeight: 1
+  modelPrefab: {fileID: 2908563419136654939, guid: 2785f1c4450616b449849296d575196d, type: 3}
+  fitToHeight: 0
   squashWhenCrouched: 0
 --- !u!114 &5648411644042141170
 MonoBehaviour:
@@ -317,3 +317,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2730044e2ae7c14db7677c73810a8a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Player.HumanoidPlayerPresentation
+  poleGripHeightOffset: -0.06

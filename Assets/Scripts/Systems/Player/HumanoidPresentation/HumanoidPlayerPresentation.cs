@@ -72,8 +72,9 @@ namespace CurtainCall.Player
             landUntil = 0;
             if (model == null) return;
             model.Animator.enabled = true;
-            color = GameSettings.Base.Character.GetPlayerColor(network != null ? network.Slot : 0);
+            color = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
             model.SetColor(color);
+            ApplySurface(model);
             model.Apply(condition.LostParts, condition.LostParts, false, mover.Body);
         }
 
@@ -83,7 +84,23 @@ namespace CurtainCall.Player
             BindModel();
             // 사망 이벤트가 먼저 모델을 분리해도 마지막 사지는 현재 포즈에서 분리한다.
             var target = model != null ? model : detached;
-            if (target != null) target.Apply(previous, current, network == null || !network.IsApplyingInitialCondition, mover.Body);
+            if (target != null)
+            {
+                ApplySurface(target);
+                target.Apply(previous, current, network == null || !network.IsApplyingInitialCondition, mover.Body);
+            }
+        }
+
+        void ApplySurface(HumanoidModel target)
+        {
+            if (target == null || !target.TryGetComponent<CurtainCall.CharacterArt.RabbitSurfaceStates>(out var surface)) return;
+            surface.SetVariant(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
+            bool dead = condition.AllLimbsLost || (network != null &&
+                (network.State == PlayerState.Fallen || network.State == PlayerState.Retired));
+            surface.SetState(dead || condition.LostCount >= 3
+                ? CurtainCall.CharacterArt.RabbitSurfaceStates.SurfaceState.Heavy
+                : condition.LostCount > 0 ? CurtainCall.CharacterArt.RabbitSurfaceStates.SurfaceState.Light
+                : CurtainCall.CharacterArt.RabbitSurfaceStates.SurfaceState.Clean);
         }
 
         void Restarted(NetworkPlayer player)
@@ -97,9 +114,16 @@ namespace CurtainCall.Player
         {
             RestoreHangAlignment();
             IsHanging = false;
+            var catalog = CurtainCall.CharacterArt.PlayerAppearanceCatalog.Current;
+            if (network != null && network.IsSpawned && catalog != null && catalog.Valid(network.AppearanceModel, network.AppearanceOutfit))
+            {
+                var desired = catalog.PrefabFor(network.AppearanceModel, network.AppearanceOutfit);
+                if (slot.CurrentModel != null && slot.CurrentPrefab != desired) slot.SetModel(desired);
+            }
             BindModel();
+            ApplySurface(model != null ? model : detached);
             if (model == null) return;
-            Color next = GameSettings.Base.Character.GetPlayerColor(network != null ? network.Slot : 0);
+            Color next = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
             if (color != next) { color = next; model.SetColor(color); }
             model.Animator.SetLayerWeight(1, 0f);
             if (condition.AllLimbsLost) { model.Play("Death"); return; }
@@ -138,7 +162,7 @@ namespace CurtainCall.Player
             if (mover.IsCrouched) { model.Play(moving ? "CrouchWalk" : "Crouch"); return; }
             bool carrying = network != null && network.IsSpawned
                 && ((PropCarry.Instance != null && PropCarry.Instance.Held(network.OwnerClientId).Count > 0)
-                    || (HumanCannonTrampoline.Current != null && HumanCannonTrampoline.Current.Carrier == network.OwnerClientId));
+                    || HumanCannonCarry.Held(network.OwnerClientId) != null);
             // 상체 전용 레이어로 지지 하체와 운반 동작을 분리한다.
             model.Animator.SetLayerWeight(1, carrying ? 1f : 0f);
             model.Play(moving ? balance != null && balance.IsActive ? "Tightrope" : sprinting ? "Run" : "Walk" : "Idle");
@@ -171,7 +195,7 @@ namespace CurtainCall.Player
             if (index < 0) return false;
             var pole = poles.Pole(index);
             if (pole == null) return false;
-            grip = poles.HangingPosition(index) + Vector3.up * pole.HangLength;
+            grip = poles.HangingPosition(index, network.OwnerClientId) + Vector3.up * pole.HangLength;
             axis = pole.Grip.right;
             return true;
         }

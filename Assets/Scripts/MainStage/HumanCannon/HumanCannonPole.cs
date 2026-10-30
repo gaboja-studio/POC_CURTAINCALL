@@ -9,6 +9,8 @@ namespace CurtainCall.HumanCannon
     {
         [SerializeField] Transform grip;
         [SerializeField] HumanCannonSawGate linkedGate;
+        [Tooltip("함께 매달릴 수 있는 인원. 기존 톱 관문 봉은 1명을 유지한다."), Range(1, 4), SerializeField] int riderCapacity = 1;
+        [Tooltip("봉 위 고정 손잡이 자리 간격(m)."), Min(0.65f), SerializeField] float riderSpacing = 0.8f;
         [Header("반동 — Grip은 중립점, 천장 앵커는 회전 중심")]
         [SerializeField] Transform visualBar, leftCable, rightCable, leftAnchor, rightAnchor;
         [Tooltip("봉에서 발까지 거리(m)."), Min(0.2f), SerializeField] float hangLength = 1.5f;
@@ -44,9 +46,13 @@ namespace CurtainCall.HumanCannon
         public float AirControlSpeed => airControlSpeed;
         public float MaxReleaseUpwardSpeed => maxReleaseUpwardSpeed;
         public float HangLength => hangLength;
+        public int RiderCapacity => linkedGate != null ? 1 : Mathf.Clamp(riderCapacity, 1, PoleGateState.MaxRiders);
+        public float RiderSpacing => Mathf.Max(0.65f, riderSpacing);
         public Vector3 Forward => Vector3.ProjectOnPlane(Grip.forward, Vector3.up).normalized;
         public float SwingLength => TryCeilingPivot(out var pivot) ? Vector3.Distance(pivot, Grip.position) : hangLength;
         public Vector3 HangingPosition(float angle) => BarPosition(angle) - Vector3.up * hangLength;
+        public Vector3 SeatOffset(int seat) => Grip.right * ((Mathf.Clamp(seat, 0, RiderCapacity - 1) - (RiderCapacity - 1) * .5f) * RiderSpacing);
+        public Vector3 HangingPosition(float angle, int seat) => HangingPosition(angle) + SeatOffset(seat);
 
         /// <summary>실제 줄 길이로 천장 중간점 주위를 돈다. 앵커가 없으면 기존 짧은 진자 형상을 유지한다.</summary>
         public Vector3 BarPosition(float angle)
@@ -56,14 +62,15 @@ namespace CurtainCall.HumanCannon
             return Grip.position + PoleSwingMotion.Offset(angle, hangLength, Forward) + Vector3.up * hangLength;
         }
 
-        public Vector3 ReleaseVelocity(float angle, float speed)
+        public Vector3 ReleaseVelocity(float angle, float speed) => ReleaseVelocity(angle, speed, -1);
+        public Vector3 ReleaseVelocity(float angle, float speed, int seat)
         {
             Vector3 tangent = TryCeilingPivot(out var pivot)
                 ? Vector3.Cross(Vector3.Cross(Forward, Vector3.up), BarPosition(angle) - pivot) * (speed * Mathf.Deg2Rad)
                 : PoleSwingMotion.Velocity(angle, speed, hangLength, Forward);
             Vector3 velocity = tangent + Vector3.up * releaseUpwardSpeed;
             // 레일 병진·회전 관성을 진자 접선에 더한 뒤 기존 상승/수평 제한을 적용한다.
-            if (Loop != null) velocity += Loop.PointVelocity(HangingPosition(angle));
+            if (Loop != null) velocity += Loop.PointVelocity(seat < 0 ? HangingPosition(angle) : HangingPosition(angle, seat));
             // 수평 반동과 하강은 보존한다. 원본 씬은 기본값 0으로 기존 도약을 유지한다.
             if (maxReleaseUpwardSpeed > 0f) velocity.y = Mathf.Min(velocity.y, maxReleaseUpwardSpeed);
             return velocity;
@@ -114,6 +121,22 @@ namespace CurtainCall.HumanCannon
             if (Loop != null && !Loop.IsSynchronized) return false;
             RefreshMovingPose();
             return PlayerInteraction.InRange(player, BarPosition(0), GrabRadius(player, 0f));
+        }
+
+        internal bool IsSeatInReach(NetworkPlayer player, float angle, int seat, double observedElapsed = -1d)
+        {
+            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || seat < 0 || seat >= RiderCapacity) return false;
+            var route = Loop;
+            if (route != null && !route.IsSynchronized) return false;
+            RefreshMovingPose();
+            Vector3 target = BarPosition(angle) + SeatOffset(seat);
+            if (observedElapsed >= 0d)
+            {
+                if (route == null || !double.IsFinite(observedElapsed) || observedElapsed > route.Elapsed + .05d
+                    || route.Elapsed - observedElapsed > .35d) return false;
+                target = route.PointAt(target, System.Math.Min(observedElapsed, route.Elapsed));
+            }
+            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f));
         }
 
         /// <summary>빠르게 지나간 순환 봉만 짧은 수신 지연을 허용한다. 거리·부상·점유 검사는 원본을 유지한다.</summary>

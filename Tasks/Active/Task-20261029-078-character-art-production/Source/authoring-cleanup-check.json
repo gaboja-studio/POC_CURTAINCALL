@@ -1,0 +1,8 @@
+{
+  "skins": 9,
+  "triangles": 9922,
+  "avatarValid": true,
+  "missingScripts": 0,
+  "dependencies": 40,
+  "scene": "Assets/Scenes/Tests/CharacterArt/RabbitMaterialStates.unity"
+}

@@ -271,21 +271,33 @@ namespace CurtainCall.UI.SceneIntegration
             if (player == null || system == null || player.State != PlayerState.Normal) return;
             if (player.TryGetComponent(out PlayerController controller) && controller.Scheme is TightropeControlScheme)
             {
-                // 줄 위 F는 목마/받기/기존 기물 우선순위를 지키는 끝 영역 후보 하나만 받는다.
+                // A는 줄 끝/목마 후보와 무관한 가까운 봉, 기존 무대는 원래 끝 영역 후보를 표시한다.
                 var course = TightropeCourse.Current;
-                int exitPole = course != null && course.TryGetComponent(out CourseControlSwitcher switcher)
-                    ? switcher.FindCannonPoleExit(player) : -1;
                 var exitPoles = HumanCannonPoleSystem.Current;
+                int exitPole = exitPoles != null && exitPoles.IndependentInteraction ? exitPoles.FindGrabbable(player)
+                    : course != null && course.TryGetComponent(out CourseControlSwitcher switcher) ? switcher.FindCannonPoleExit(player) : -1;
                 if (exitPole >= 0 && exitPoles != null && exitPoles.Pole(exitPole) is { } pole)
                 {
-                    Add(pole.transform, pole.BarPosition(0), "봉 잡기", true, true, feet);
+                    Add(pole.transform, exitPoles.InteractionPoint(exitPole, player), "봉 잡기", true, true, feet);
                     candidates[candidates.Count - 1].Pole = true;
+                    var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
+                    if (locks != null && locks.IsHelperPole(pole))
+                        candidates[candidates.Count - 1].Helper = locks.HelperInstruction(pole);
                 }
                 return;
             }
-            var trampoline = HumanCannonTrampoline.Current;
-            if (system.IsSeated(player.OwnerClientId) || trampoline != null && trampoline.Carrier == player.OwnerClientId) return;
-            bool canCarry = trampoline != null && trampoline.CanGrab(player);
+            var carried = HumanCannonCarry.Held(player.OwnerClientId);
+            if (carried != null)
+            {
+                Add(carried.CarryRoot, carried.Handle.position, carried.CarryName + " 내려놓기", true, true, feet);
+                var carryHint = candidates[candidates.Count - 1];
+                carryHint.Pole = true; carryHint.Hold = true; carryHint.ScreenGuide = true;
+                carryHint.Helper = carried is CurtainCall.EscapeRoute.EscapeExitSaw saw ? saw.Guidance : "F를 길게 눌러 장치를 내려놓습니다";
+                return;
+            }
+            if (system.IsSeated(player.OwnerClientId)) return;
+            var carryTarget = HumanCannonCarry.FindGrabbable(player);
+            bool canCarry = carryTarget != null;
             var poles = HumanCannonPoleSystem.Current;
             int focused = poles != null ? poles.FindGrabbable(player) : -1;
             if (focused >= 0) canCarry = false;
@@ -296,12 +308,34 @@ namespace CurtainCall.UI.SceneIntegration
                 var station = system.Station(boardable);
                 Add(station.transform, station.Seat.position, "대포 타기", true, true, feet);
                 candidates[candidates.Count - 1].Pole = true;
+                var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
+                if (locks != null) candidates[candidates.Count - 1].Helper = locks.StationInstruction(station);
             }
             if (canCarry)
             {
-                Add(trampoline.transform, trampoline.Surface, "트램펄린 잡기", true, true, feet);
+                Add(carryTarget.CarryRoot, carryTarget.Handle.position, carryTarget.CarryName + " 잡기", true, true, feet);
                 candidates[candidates.Count - 1].Pole = true;
+                if (carryTarget is CurtainCall.EscapeRoute.EscapeExitSaw saw) candidates[candidates.Count - 1].Helper = saw.Guidance;
             }
+            var exitSaw = CurtainCall.EscapeRoute.EscapeExitSaw.Current;
+            if (!canCarry && focused < 0 && exitSaw != null && exitSaw.CableSocket != null
+                && Vector3.Distance(player.transform.position, exitSaw.CableSocket.position) < 4)
+            {
+                Add(exitSaw.CableSocket, exitSaw.CableSocket.position, exitSaw.DoorOpen ? "출구 잠금 해제" : "출구 잠금 배선", false, true, feet);
+                candidates[candidates.Count - 1].Pole = true;
+                candidates[candidates.Count - 1].Helper = exitSaw.DoorOpen || exitSaw.ProjectileMode ? exitSaw.Guidance : "휴대 절단기를 가져와 회전 날로 배선을 자르세요";
+            }
+            if (boardable < 0 && focused < 0 && !canCarry)
+                for (int i = 0; i < system.StationCount; i++)
+                {
+                    var station = system.Station(i);
+                    if (station == null || !station.isActiveAndEnabled || station.InteractionAvailable
+                        || !PlayerInteraction.InRange(player, station.BoardingPoint.position, station.BoardingDistance)) continue;
+                    Add(station.transform, station.Seat.position, "대포 안전 잠금", false, true, feet);
+                    var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
+                    candidates[candidates.Count - 1].Helper = locks != null ? locks.StationInstruction(station) : "동료 장치 해제를 기다립니다";
+                    candidates[candidates.Count - 1].Pole = true;
+                }
             // FindGrabbable은 대포 비행뿐 아니라 허용된 지상/일반 점프/낙하 진입도 판정한다.
             // 표시만 IsFlying으로 제한하면 F로 잡을 수 있는 봉의 안내/강조가 사라진다.
             if (poles != null && focused >= 0)
@@ -309,10 +343,16 @@ namespace CurtainCall.UI.SceneIntegration
                 for (int i = 0; i < poles.PoleCount; i++)
                 {
                     var pole = poles.Pole(i);
-                    if (pole != null && pole.isActiveAndEnabled && !poles.State(i).IsOccupied && pole.IsInReach(player))
+                    if (pole != null && pole.isActiveAndEnabled && poles.CanGrab(i, player))
                     {
-                        Add(pole.transform, pole.BarPosition(0), "봉 잡기", true, i == focused, feet);
+                        bool relay = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current != null
+                            && CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.IsHelperPole(pole);
+                        string label = relay ? "연결 장치 봉 잡기" : pole.RiderCapacity > 1
+                            ? $"함께 그네 잡기 ({poles.OccupantCount(i)}/{pole.RiderCapacity})" : "봉 잡기";
+                        Add(pole.transform, poles.InteractionPoint(i, player), label, true, i == focused, feet);
                         candidates[candidates.Count - 1].Pole = true;
+                        if (relay) candidates[candidates.Count - 1].Helper = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.HelperInstruction(pole);
+                        else if (pole.RiderCapacity > 1) candidates[candidates.Count - 1].Helper = "W/S 박자를 맞춰 흔들고 Space로 각자 도약합니다";
                     }
                 }
             }
@@ -320,11 +360,26 @@ namespace CurtainCall.UI.SceneIntegration
 
         void AddEscapeCooperativeButton(Vector3 feet)
         {
+            var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
+            if (locks != null) for (int i = 0; i < locks.Count; i++)
+                if (locks.Control(i) != null && locks.Control(i).gameObject.activeInHierarchy
+                    && Vector3.Distance(feet, locks.ControlPoint(i)) < 7)
+                {
+                    var control = locks.Control(i);
+                    bool usable = locks.CanUseControl(NetworkPlayer.Local, i);
+                    Add(control, locks.ControlPoint(i), locks.IsArmed(i) ? locks.Status(i) : locks.Prompt(i), usable, usable, feet);
+                    candidates[candidates.Count - 1].Pole = true;
+                    candidates[candidates.Count - 1].Helper = locks.IsArmed(i) ? locks.Status(i)
+                        : usable ? locks.Instruction(i) : "버튼 가까이에서 F를 누르세요";
+                }
             var course = CurtainCall.EscapeRoute.EscapeCooperativeRopes.Current;
-            if (course == null || !course.CanUseButton(NetworkPlayer.Local)) return;
-            Add(course.Button, course.Button.position, "복귀 계단 열기", true, true, feet);
+            if (course == null || course.Button == null || !course.Button.gameObject.activeInHierarchy
+                || Vector3.Distance(feet, course.ButtonPoint) >= 7) return;
+            bool canUse = course.CanUseButton(NetworkPlayer.Local);
+            Add(course.Button, course.ButtonPoint, course.ReturnOpen ? "복귀 계단 · 열림" : "복귀 계단 열기", canUse, canUse, feet);
             candidates[candidates.Count - 1].Pole = true;
-            candidates[candidates.Count - 1].Helper = "아래 단원이 올라올 수 있게 문을 엽니다";
+            candidates[candidates.Count - 1].Helper = course.ReturnOpen ? "아래 단원도 계단으로 합류할 수 있습니다"
+                : "가까이에서 F → 복귀 계단 문 열림";
         }
         static Vector3 Center(Transform root)
         {
