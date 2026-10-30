@@ -49,6 +49,15 @@ namespace CurtainCall.HumanCannon
         public HumanCannonStation Station(int index) => stations[index];
         public ulong Occupant(int index) => seats[index].State.Occupant;
         public bool IsFlying(ulong playerId) => flying.Contains(playerId);
+        public bool TryGetFlight(ulong playerId, out CannonFlightState.Flight flight) => flying.TryGet(playerId, out flight);
+
+        public HumanCannonStation SeatedStation(ulong playerId)
+        {
+            if (seats == null) return null;
+            for (int i = 0; i < seats.Length; i++)
+                if (seats[i].State.Occupant == playerId) return stations[i];
+            return null;
+        }
 
         public bool IsSeated(ulong playerId)
         {

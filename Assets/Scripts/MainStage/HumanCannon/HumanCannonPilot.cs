@@ -36,7 +36,7 @@ namespace CurtainCall.HumanCannon
         Quaternion returnRotation;
         bool hasReturnPose;
         public bool IsFlying { get; private set; }
-        internal Vector3 FlightVelocity => velocity;
+        public Vector3 FlightVelocity => velocity;
         public bool IsDriving => stationIndex >= 0 || IsFlying || groundRequest.Pending || onTransport;
 
         /// <summary>이 플레이어에 연결된 원본 조작 인스턴스. 다른 구간 조작을 마친 뒤 같은 Pilot으로 복귀할 때 쓴다.</summary>

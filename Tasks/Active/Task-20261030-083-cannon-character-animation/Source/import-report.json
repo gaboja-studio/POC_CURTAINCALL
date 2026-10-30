@@ -1,0 +1,315 @@
+{
+  "output": null,
+  "diagnostics": [],
+  "success": true,
+  "result": [
+    {
+      "name": "CannonLoaded",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "CannonLoaded_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "CannonLoaded_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "CannonLoaded_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "CannonRise",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "CannonRise_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "CannonRise_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "CannonRise_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "CarryJump",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "CarryJump_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "CarryJump_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "CarryJump_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "FlightApex",
+      "valid": true,
+      "human": true,
+      "length": 0.6,
+      "curves": 130
+    },
+    {
+      "name": "FlightApex_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 0.6,
+      "curves": 130
+    },
+    {
+      "name": "FlightApex_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 0.6,
+      "curves": 130
+    },
+    {
+      "name": "FlightApex_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 0.6,
+      "curves": 130
+    },
+    {
+      "name": "FlightLand",
+      "valid": true,
+      "human": true,
+      "length": 0.8000001,
+      "curves": 130
+    },
+    {
+      "name": "FlightLand_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 0.8000001,
+      "curves": 130
+    },
+    {
+      "name": "FlightLand_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 0.8000001,
+      "curves": 130
+    },
+    {
+      "name": "FlightLand_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 0.8000001,
+      "curves": 130
+    },
+    {
+      "name": "PanicFall",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "PanicFall_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "PanicFall_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "PanicFall_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "RopeHang",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopeHang_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopeHang_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopeHang_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopeLift",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopeLift_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopeLift_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopeLift_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopePull",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopePull_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopePull_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "RopePull_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "TrampolineCarry",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "TrampolineCarry_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "TrampolineCarry_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "TrampolineCarry_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 2,
+      "curves": 130
+    },
+    {
+      "name": "TrampolineRise",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "TrampolineRise_Cut1",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "TrampolineRise_Cut2",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    },
+    {
+      "name": "TrampolineRise_Cut3",
+      "valid": true,
+      "human": true,
+      "length": 1.2,
+      "curves": 130
+    }
+  ]
+}

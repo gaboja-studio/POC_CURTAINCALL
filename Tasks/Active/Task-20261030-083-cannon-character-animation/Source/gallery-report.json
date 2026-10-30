@@ -1,0 +1,13 @@
+{
+  "output": null,
+  "diagnostics": [],
+  "success": true,
+  "result": {
+    "samples": 176,
+    "uniqueClips": 44,
+    "actors": 16,
+    "buttons": 18,
+    "focusAndSeek": true,
+    "time": 1.32096493
+  }
+}

@@ -249,7 +249,9 @@ namespace CurtainCall.Player
                 Animator.Play(hash, 0, 0f);
                 Animator.Update(0f);
             }
-            else Animator.CrossFadeInFixedTime(hash, .12f);
+            else Animator.CrossFadeInFixedTime(hash,
+                motion.StartsWith("TrampolineRise") ? .24f :
+                motion.StartsWith("FlightApex") || motion.StartsWith("PanicFall") || motion.StartsWith("CannonLoaded") ? .20f : .12f);
         }
 
         /// <summary>현재 포즈의 Humanoid 뼈에 물리를 연결한다. 절단된 사지는 만들지 않는다.</summary>

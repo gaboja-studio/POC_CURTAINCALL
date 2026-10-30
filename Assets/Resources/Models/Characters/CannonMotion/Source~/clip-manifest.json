@@ -1,0 +1,310 @@
+[
+  {
+    "name": "CannonLoaded",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 0
+  },
+  {
+    "name": "CannonLoaded_Cut1",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 1
+  },
+  {
+    "name": "CannonLoaded_Cut2",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 2
+  },
+  {
+    "name": "CannonLoaded_Cut3",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 3
+  },
+  {
+    "name": "CannonRise",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 0
+  },
+  {
+    "name": "CannonRise_Cut1",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 1
+  },
+  {
+    "name": "CannonRise_Cut2",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 2
+  },
+  {
+    "name": "CannonRise_Cut3",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 3
+  },
+  {
+    "name": "FlightApex",
+    "frames": 19,
+    "fps": 30,
+    "loop": false,
+    "stage": 0
+  },
+  {
+    "name": "FlightApex_Cut1",
+    "frames": 19,
+    "fps": 30,
+    "loop": false,
+    "stage": 1
+  },
+  {
+    "name": "FlightApex_Cut2",
+    "frames": 19,
+    "fps": 30,
+    "loop": false,
+    "stage": 2
+  },
+  {
+    "name": "FlightApex_Cut3",
+    "frames": 19,
+    "fps": 30,
+    "loop": false,
+    "stage": 3
+  },
+  {
+    "name": "PanicFall",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 0
+  },
+  {
+    "name": "PanicFall_Cut1",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 1
+  },
+  {
+    "name": "PanicFall_Cut2",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 2
+  },
+  {
+    "name": "PanicFall_Cut3",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 3
+  },
+  {
+    "name": "TrampolineRise",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 0
+  },
+  {
+    "name": "TrampolineRise_Cut1",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 1
+  },
+  {
+    "name": "TrampolineRise_Cut2",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 2
+  },
+  {
+    "name": "TrampolineRise_Cut3",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 3
+  },
+  {
+    "name": "FlightLand",
+    "frames": 25,
+    "fps": 30,
+    "loop": false,
+    "stage": 0
+  },
+  {
+    "name": "FlightLand_Cut1",
+    "frames": 25,
+    "fps": 30,
+    "loop": false,
+    "stage": 1
+  },
+  {
+    "name": "FlightLand_Cut2",
+    "frames": 25,
+    "fps": 30,
+    "loop": false,
+    "stage": 2
+  },
+  {
+    "name": "FlightLand_Cut3",
+    "frames": 25,
+    "fps": 30,
+    "loop": false,
+    "stage": 3
+  },
+  {
+    "name": "TrampolineCarry",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 0
+  },
+  {
+    "name": "TrampolineCarry_Cut1",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 1
+  },
+  {
+    "name": "TrampolineCarry_Cut2",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 2
+  },
+  {
+    "name": "TrampolineCarry_Cut3",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 3
+  },
+  {
+    "name": "RopePull",
+    "frames": 61,
+    "fps": 30,
+    "loop": false,
+    "stage": 0
+  },
+  {
+    "name": "RopePull_Cut1",
+    "frames": 61,
+    "fps": 30,
+    "loop": false,
+    "stage": 1
+  },
+  {
+    "name": "RopePull_Cut2",
+    "frames": 61,
+    "fps": 30,
+    "loop": false,
+    "stage": 2
+  },
+  {
+    "name": "RopePull_Cut3",
+    "frames": 61,
+    "fps": 30,
+    "loop": false,
+    "stage": 3
+  },
+  {
+    "name": "RopeLift",
+    "frames": 61,
+    "fps": 30,
+    "loop": false,
+    "stage": 0
+  },
+  {
+    "name": "RopeLift_Cut1",
+    "frames": 61,
+    "fps": 30,
+    "loop": false,
+    "stage": 1
+  },
+  {
+    "name": "RopeLift_Cut2",
+    "frames": 61,
+    "fps": 30,
+    "loop": false,
+    "stage": 2
+  },
+  {
+    "name": "RopeLift_Cut3",
+    "frames": 61,
+    "fps": 30,
+    "loop": false,
+    "stage": 3
+  },
+  {
+    "name": "RopeHang",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 0
+  },
+  {
+    "name": "RopeHang_Cut1",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 1
+  },
+  {
+    "name": "RopeHang_Cut2",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 2
+  },
+  {
+    "name": "RopeHang_Cut3",
+    "frames": 61,
+    "fps": 30,
+    "loop": true,
+    "stage": 3
+  },
+  {
+    "name": "CarryJump",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 0
+  },
+  {
+    "name": "CarryJump_Cut1",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 1
+  },
+  {
+    "name": "CarryJump_Cut2",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 2
+  },
+  {
+    "name": "CarryJump_Cut3",
+    "frames": 37,
+    "fps": 30,
+    "loop": true,
+    "stage": 3
+  }
+]

@@ -14,14 +14,23 @@ namespace CurtainCall.HumanCannon.Tests
             ProbeAppliedGroundBounce(Vector2.zero, true);
 
         [UnityTest]
-        public IEnumerator AppliedRoundTrampoline_CurrentWholeDeviceContactIncludesOldFabricCorner() =>
+        public IEnumerator AppliedRoundTrampoline_PlayerRadiusStillOverlapsRimAtOldFabricCorner() =>
             ProbeAppliedGroundBounce(new Vector2(1.9f, 1.9f), true);
+
+        [UnityTest]
+        public IEnumerator AppliedRoundTrampoline_EmptySquareCornerDoesNotBounce() =>
+            ProbeAppliedGroundBounce(new Vector2(2.2f,2.2f), false);
+
+        [UnityTest]
+        public IEnumerator AppliedRoundTrampoline_ActualHandleStillBounces() =>
+            ProbeAppliedGroundBounce(new Vector2(-2.8f,.5f), true);
 
         IEnumerator ProbeAppliedGroundBounce(Vector2 offset, bool expectBounce)
         {
             DisableEnhancementThreats();
             var trampoline = (Component)StaticGet("CurtainCall.HumanCannon.HumanCannonTrampoline", "Current");
             Assert.IsTrue((bool)Get(trampoline, "CircularSurface"));
+            Assert.IsTrue((bool)Get(trampoline, "UsePropOutline"));
             trampoline.transform.SetPositionAndRotation(new Vector3(0, 0, 57), Quaternion.identity);
             Call(trampoline, "ResetPreviousPose");
             Call(mover, "SetStartPose", new Vector3(offset.x, .01f, 57 + offset.y), Quaternion.identity, true);

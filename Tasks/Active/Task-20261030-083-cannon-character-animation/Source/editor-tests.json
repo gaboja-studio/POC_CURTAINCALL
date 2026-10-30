@@ -1,0 +1,48 @@
+{
+  "status": "completed",
+  "duration": 0.46,
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.ApexPanicReboundAndLandingDoNotLatchOldFlight",
+      "Status": "Passed",
+      "Duration": 0.0021077,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"Rabbit/Rabbit\")",
+      "Status": "Passed",
+      "Duration": 0.0148363,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"Bear/Bear\")",
+      "Status": "Passed",
+      "Duration": 0.0105919,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"PinkGirl/PinkGirl\")",
+      "Status": "Passed",
+      "Duration": 0.0120362,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"BluePierrot/BluePierrot\")",
+      "Status": "Passed",
+      "Duration": 0.006841,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

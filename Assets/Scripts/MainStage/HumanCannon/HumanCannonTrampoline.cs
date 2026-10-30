@@ -20,6 +20,7 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Vector2 halfSize = new Vector2(2f, 2f);
         [Tooltip("원형 천의 반동 판정. 기존 씬은 기본값인 사각형을 유지한다.")]
         [SerializeField] bool circularSurface;
+        [Tooltip("CC 원형 본체와 손잡이 외곽으로 접촉을 검사한다. 구형 더미는 기존 bounds를 사용한다."), SerializeField] bool usePropOutline;
         [Tooltip("협동 구간 전용: 다른 단원이 손잡이를 잡고 있을 때만 반동한다. 기본값은 바닥에 놓아도 반동."), SerializeField] bool requireCarrierForBounce;
         [Tooltip("운송 시 검사할 프레임의 좌우/앞뒤 반폭. 0이면 기존 반동 면 크기를 사용한다.")]
         [SerializeField] Vector2 loadHalfSize;
@@ -56,6 +57,7 @@ namespace CurtainCall.HumanCannon
         public Vector3 Surface => transform.position + Vector3.up * surfaceHeight;
         public Vector2 HalfSize => halfSize;
         public bool CircularSurface => circularSurface;
+        public bool UsePropOutline => usePropOutline;
         public bool RequireCarrierForBounce => requireCarrierForBounce;
         bool BounceReady => !requireCarrierForBounce || Carrier != CannonSeatState.Nobody
             && FindPlayer(Carrier) is NetworkPlayer carrier && carrier.IsSpawned && carrier.State == PlayerState.Normal;
@@ -229,7 +231,7 @@ namespace CurtainCall.HumanCannon
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
             float radius = grabDistance * reach;
-            return PlayerInteraction.InRange(player, Surface, radius);
+            return PlayerInteraction.InRange(player, usePropOutline ? Handle.position + transform.up * (.6f * transform.lossyScale.y) : Surface, radius);
         }
 
         public void RequestGrab()
@@ -267,8 +269,11 @@ namespace CurtainCall.HumanCannon
         internal bool TryContact(Vector3 from, Vector3 to, float radius, float height, out Vector3 contact)
         {
             contact = default;
-            return BounceReady && TrampolineContact.TryTouch(from, to, previousSurface, Surface, previousRotation,
-                transform.rotation, ContactBounds(), radius, height, out contact) && !BounceBlocked(contact);
+            if (!BounceReady) return false;
+            bool hit = usePropOutline
+                ? TrampolineOutline.TryTouch(from, to, previousSurface, Surface, previousRotation, transform.rotation, ContactBounds(), radius, height, out contact)
+                : TrampolineContact.TryTouch(from, to, previousSurface, Surface, previousRotation, transform.rotation, ContactBounds(), radius, height, out contact);
+            return hit && !BounceBlocked(contact);
         }
 
         Bounds ContactBounds()
@@ -297,6 +302,8 @@ namespace CurtainCall.HumanCannon
         {
             Vector3 relative = Quaternion.Inverse(transform.rotation) * (contact - Surface);
             var bounds = ContactBounds();
+            if (usePropOutline)
+                return TrampolineOutline.Contains(relative, bounds, 1f) && (player.transform.position - contact).sqrMagnitude <= 25f;
             bounds.Expand(new Vector3(2f, 4f, 2f));
             return bounds.Contains(relative) && (player.transform.position - contact).sqrMagnitude <= 25f;
         }
