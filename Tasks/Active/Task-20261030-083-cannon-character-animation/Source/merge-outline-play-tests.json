@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "duration": 19.88,
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedRoundTrampoline_ActualCenterJumpBouncesWithOriginalSpeedAndHeight",
+      "Status": "Passed",
+      "Duration": 6.927429,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedRoundTrampoline_ActualHandleStillBounces",
+      "Status": "Passed",
+      "Duration": 4.2926893,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedRoundTrampoline_EmptySquareCornerDoesNotBounce",
+      "Status": "Passed",
+      "Duration": 4.1594376,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedRoundTrampoline_PlayerRadiusStillOverlapsRimAtOldFabricCorner",
+      "Status": "Passed",
+      "Duration": 4.3409441,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

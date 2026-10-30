@@ -1,0 +1,455 @@
+{
+  "output": null,
+  "diagnostics": [],
+  "success": true,
+  "result": [
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 0,
+      "t": 0,
+      "min": 0.002000004,
+      "hip": 0.909556746
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 0,
+      "t": 0.21,
+      "min": 0.00199997425,
+      "hip": 0.727893651
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 0,
+      "t": 0.5,
+      "min": 0.002000004,
+      "hip": 0.8688757
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 0,
+      "t": 0.99,
+      "min": 0.002000006,
+      "hip": 0.912240446
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 1,
+      "t": 0,
+      "min": 0.00199998915,
+      "hip": 0.9091529
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 1,
+      "t": 0.21,
+      "min": 0.002000019,
+      "hip": 0.6850891
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 1,
+      "t": 0.5,
+      "min": 0.002000004,
+      "hip": 0.838626266
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 1,
+      "t": 0.99,
+      "min": 0.002000004,
+      "hip": 0.912364841
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 2,
+      "t": 0,
+      "min": 0.00200019777,
+      "hip": 0.406896323
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 2,
+      "t": 0.21,
+      "min": 0.00199987,
+      "hip": 0.4223711
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 2,
+      "t": 0.5,
+      "min": 0.002000004,
+      "hip": 0.3573154
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 2,
+      "t": 0.99,
+      "min": 0.007831246,
+      "hip": 0.3788228
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 3,
+      "t": 0,
+      "min": 0.00200006366,
+      "hip": 0.382857
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 3,
+      "t": 0.21,
+      "min": 0.00199997332,
+      "hip": 0.361091256
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 3,
+      "t": 0.5,
+      "min": 0.00199998915,
+      "hip": 0.371449858
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "stage": 3,
+      "t": 0.99,
+      "min": 0.00199998915,
+      "hip": 0.4213639
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 0,
+      "t": 0,
+      "min": 0.002000004,
+      "hip": 0.7833885
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 0,
+      "t": 0.21,
+      "min": 0.002000004,
+      "hip": 0.6335034
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 0,
+      "t": 0.5,
+      "min": 0.00199998915,
+      "hip": 0.751306057
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 0,
+      "t": 0.99,
+      "min": 0.0019999817,
+      "hip": 0.7865895
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 1,
+      "t": 0,
+      "min": 0.002000004,
+      "hip": 0.782858431
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 1,
+      "t": 0.21,
+      "min": 0.002000004,
+      "hip": 0.5993184
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 1,
+      "t": 0.5,
+      "min": 0.002000004,
+      "hip": 0.730958343
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 1,
+      "t": 0.99,
+      "min": 0.0020000115,
+      "hip": 0.7861357
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 2,
+      "t": 0,
+      "min": 0.007150408,
+      "hip": 0.3262897
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 2,
+      "t": 0.21,
+      "min": 0.00199986249,
+      "hip": 0.328504652
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 2,
+      "t": 0.5,
+      "min": 0.00229302049,
+      "hip": 0.273844868
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 2,
+      "t": 0.99,
+      "min": 0.04213561,
+      "hip": 0.324792534
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 3,
+      "t": 0,
+      "min": 0.0338836759,
+      "hip": 0.326820672
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 3,
+      "t": 0.21,
+      "min": 0.0293524228,
+      "hip": 0.2947874
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 3,
+      "t": 0.5,
+      "min": 0.0019999817,
+      "hip": 0.292378664
+    },
+    {
+      "path": "Bear/Bear",
+      "stage": 3,
+      "t": 0.99,
+      "min": 0.00199985877,
+      "hip": 0.341153651
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 0,
+      "t": 0,
+      "min": 0.0174704045,
+      "hip": 0.8605757
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 0,
+      "t": 0.21,
+      "min": 0.00407288969,
+      "hip": 0.6780336
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 0,
+      "t": 0.5,
+      "min": 0.0118578374,
+      "hip": 0.8178748
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 0,
+      "t": 0.99,
+      "min": 0.01946082,
+      "hip": 0.864537537
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 1,
+      "t": 0,
+      "min": 0.0175438076,
+      "hip": 0.8601129
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 1,
+      "t": 0.21,
+      "min": 0.00199997425,
+      "hip": 0.637034655
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 1,
+      "t": 0.5,
+      "min": 0.00253681839,
+      "hip": 0.782696962
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 1,
+      "t": 0.99,
+      "min": 0.0198162645,
+      "hip": 0.864715755
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 2,
+      "t": 0,
+      "min": 0.00199984014,
+      "hip": 0.3891856
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 2,
+      "t": 0.21,
+      "min": 0.00199987,
+      "hip": 0.402951717
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 2,
+      "t": 0.5,
+      "min": 0.002000004,
+      "hip": 0.3398839
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 2,
+      "t": 0.99,
+      "min": 0.00718584657,
+      "hip": 0.35992828
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 3,
+      "t": 0,
+      "min": 0.00200018287,
+      "hip": 0.364227861
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 3,
+      "t": 0.21,
+      "min": 0.00199997332,
+      "hip": 0.341645867
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 3,
+      "t": 0.5,
+      "min": 0.00199998915,
+      "hip": 0.35531652
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "stage": 3,
+      "t": 0.99,
+      "min": 0.00199998915,
+      "hip": 0.4053108
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 0,
+      "t": 0,
+      "min": 0.0158287734,
+      "hip": 0.8605757
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 0,
+      "t": 0.21,
+      "min": 0.00446127355,
+      "hip": 0.6780336
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 0,
+      "t": 0.5,
+      "min": 0.0110397488,
+      "hip": 0.8178748
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 0,
+      "t": 0.99,
+      "min": 0.0175021887,
+      "hip": 0.864537537
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 1,
+      "t": 0,
+      "min": 0.0158999264,
+      "hip": 0.8601129
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 1,
+      "t": 0.21,
+      "min": 0.002000004,
+      "hip": 0.6357352
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 1,
+      "t": 0.5,
+      "min": 0.00309075415,
+      "hip": 0.782696962
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 1,
+      "t": 0.99,
+      "min": 0.0178280044,
+      "hip": 0.864715755
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 2,
+      "t": 0,
+      "min": 0.0019999817,
+      "hip": 0.476540327
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 2,
+      "t": 0.21,
+      "min": 0.00200004876,
+      "hip": 0.468775451
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 2,
+      "t": 0.5,
+      "min": 0.00199998915,
+      "hip": 0.454628468
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 2,
+      "t": 0.99,
+      "min": 0.002000032,
+      "hip": 0.4224985
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 3,
+      "t": 0,
+      "min": 0.0019999817,
+      "hip": 0.476985961
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 3,
+      "t": 0.21,
+      "min": 0.00200007856,
+      "hip": 0.469338417
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 3,
+      "t": 0.5,
+      "min": 0.002000019,
+      "hip": 0.4553617
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "stage": 3,
+      "t": 0.99,
+      "min": 0.00199994445,
+      "hip": 0.423048556
+    }
+  ]
+}

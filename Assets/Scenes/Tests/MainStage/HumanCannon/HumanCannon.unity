@@ -31277,6 +31277,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1325123808}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1307302898}
   leftCable: {fileID: 737035054}
   rightCable: {fileID: 1499158811}
@@ -31284,6 +31286,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1118429367}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -59945,6 +59948,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 656683570}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1289407534}
   leftCable: {fileID: 1339226493}
   rightCable: {fileID: 1535517942}
@@ -59952,6 +59957,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1149801284}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -60485,6 +60491,7 @@ MonoBehaviour:
   - {fileID: 391449863}
   - {fileID: 1307641681}
   allowPlatformJumpGrab: 0
+  independentInteraction: 0
 --- !u!4 &739255938
 Transform:
   m_ObjectHideFlags: 0
@@ -72426,6 +72433,7 @@ MonoBehaviour:
   surfaceHeight: 0.5
   halfSize: {x: 2, y: 2}
   circularSurface: 1
+  usePropOutline: 1
   requireCarrierForBounce: 0
   loadHalfSize: {x: 2.4753408, y: 2.4753408}
   grabDistance: 4
@@ -105431,6 +105439,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 2139064813}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 614488890}
   leftCable: {fileID: 684940799}
   rightCable: {fileID: 2035571204}
@@ -105438,6 +105448,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 249330140}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -125500,6 +125511,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 179024705}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 624584645}
   leftCable: {fileID: 1812562629}
   rightCable: {fileID: 809080845}
@@ -125507,6 +125520,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 2092374690}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -142309,6 +142323,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1313896094}
   linkedGate: {fileID: 180301946}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1494150582}
   leftCable: {fileID: 1475445117}
   rightCable: {fileID: 1689111498}
@@ -142316,6 +142332,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1013767202}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 40
   warningSeconds: 2
   swingAcceleration: 180
@@ -144318,6 +144335,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1936734464}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 796701976}
   leftCable: {fileID: 1802797531}
   rightCable: {fileID: 717451733}
@@ -144325,6 +144344,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1902310630}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -145767,6 +145787,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 823159483}
   linkedGate: {fileID: 1195873121}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1303567701}
   leftCable: {fileID: 883259034}
   rightCable: {fileID: 1855661855}
@@ -145774,6 +145796,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 237571951}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 40
   warningSeconds: 2
   swingAcceleration: 180

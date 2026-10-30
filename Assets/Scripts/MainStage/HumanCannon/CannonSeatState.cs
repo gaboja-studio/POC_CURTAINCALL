@@ -75,6 +75,14 @@ namespace CurtainCall.HumanCannon
 
         public bool Contains(ulong actor) => flights.ContainsKey(actor);
 
+        public bool TryGet(ulong actor, out Flight result)
+        {
+            if (flights.TryGetValue(actor, out var f))
+            { result = new Flight(actor, f.StationIndex, f.LaunchRevision, f.Segment); return true; }
+            result = default;
+            return false;
+        }
+
         public void Begin(ulong actor, int stationIndex, uint launchRevision) =>
             flights[actor] = (stationIndex, launchRevision, 0);
 

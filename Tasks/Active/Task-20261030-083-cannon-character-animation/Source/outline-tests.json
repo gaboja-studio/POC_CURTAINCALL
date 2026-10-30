@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "duration": 0.08,
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SideUndersideAndMovingRotatedDeviceKeepContinuousContact",
+      "Status": "Passed",
+      "Duration": 0.0030139,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SweptBodyFollowsCircleAndGripInsteadOfOldSquare(0.0f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0025957,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SweptBodyFollowsCircleAndGripInsteadOfOldSquare(2.5f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0001357,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SweptBodyFollowsCircleAndGripInsteadOfOldSquare(2.2f,2.2f,False)",
+      "Status": "Passed",
+      "Duration": 0.0000806,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SweptBodyFollowsCircleAndGripInsteadOfOldSquare(-2.8f,0.5f,True)",
+      "Status": "Passed",
+      "Duration": 0.0000679,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SweptBodyFollowsCircleAndGripInsteadOfOldSquare(-3.2f,0.8f,False)",
+      "Status": "Passed",
+      "Duration": 0.0000597,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}
