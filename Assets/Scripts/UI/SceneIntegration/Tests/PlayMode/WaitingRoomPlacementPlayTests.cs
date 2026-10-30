@@ -13,6 +13,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     {
         static void CapturePlacement(string name)
         { var dir = Environment.GetEnvironmentVariable("CURTAINCALL_CAPTURE_DIR"); if (!string.IsNullOrEmpty(dir)) ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(dir, name)); }
+        // 배관함도 BreakableWall이라 화장실 벽은 ID로 고른다.
+        static Component RestroomBreach() => Object.FindObjectsByType(T("CurtainCall.WaitingRoom.BreakableWall"), FindObjectsInactive.Include, FindObjectsSortMode.None)
+            .Cast<Component>().Single(w => (string)Get(w, "TargetId") == "restroom-breach");
         Component Placed(string id) => Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None)
             .First(c => c != null && T("CurtainCall.WaitingRoom.IExplorationTarget").IsInstanceOfType(c) && (string)Get(c, "TargetId") == "structure-a:" + id);
         void NearPlaced(Component target, float floor)
@@ -64,18 +67,37 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
-            Assert.AreEqual(false, Get(Placed("escape-door"), "Visible"));
-            var sealedDoor = GameObject.Find("WaitingRoom_LayoutA").transform.Find("B1_EscapeEntrance/SealedDoor");
+            var layout = GameObject.Find("WaitingRoom_LayoutA").transform;
+            var sealedDoor = layout.Find("B1_EscapeEntrance/SealedDoor");
             yield return null;
-            Assert.IsTrue(sealedDoor.GetComponentsInChildren<Renderer>(true).Where(r => r.name.StartsWith("Keypad")).All(r => r.gameObject.activeInHierarchy), "Keypad is visible before the code");
-            Assert.IsFalse(sealedDoor.Find("EscapeDoor").gameObject.activeInHierarchy);
-            Assert.IsFalse(sealedDoor.Find("DoorFrame").gameObject.activeInHierarchy, "Hidden door looks like wall: frame hidden");
-            var hiddenPanel = sealedDoor.parent.Find("Exploration_A/HiddenPanel"); var panelClosed = hiddenPanel.position;
-            Assert.Less(Mathf.Abs(panelClosed.z - sealedDoor.Find("DoorFrame").GetComponent<Renderer>().bounds.center.z), .1f, "Panel covers the doorway");
+            // 탈출로 문은 숨은 문 너머라 처음부터 보인다.
+            Assert.AreEqual(true, Get(Placed("escape-door"), "Visible")); Assert.IsTrue(sealedDoor.Find("EscapeDoor").gameObject.activeInHierarchy);
+            // 기계실 숨겨진 문: 벽과 같은 판이 문 자리를 덮고, 직접 F할 수 없다.
+            var machine = Placed("machine-hidden-door"); var machineBlock = machine.GetComponent<BoxCollider>();
+            Assert.AreEqual(false, Get(machine, "Opened")); Assert.IsTrue(machineBlock.enabled); Assert.AreEqual(false, Get(machine, "IsAvailable"), "No F on the hidden door itself");
+            var hiddenPanel = layout.Find("B1_MachineRoom/Exploration_A/HiddenPanel"); var panelClosed = hiddenPanel.position;
+            var panelBounds = hiddenPanel.GetComponent<Renderer>().bounds;
+            Assert.Less(Mathf.Abs(panelBounds.center.z - machineBlock.bounds.center.z), .05f, "Panel covers the doorway");
+            Assert.Less(panelBounds.size.x, .03f, "Flush with the wall, not a protruding door");
+            Assert.Greater(panelBounds.size.z, machineBlock.bounds.size.z, "Panel also covers the jambs");
+
+            // 배관함: 말뚝 뽑개 3타 전에는 키패드를 쓸 수 없다.
+            var pad = Placed("escape-pad"); var pipeBox = Placed("machine-pipe-box");
+            var keypad = pipeBox.transform.Find("Keypad").GetComponent<Renderer>().bounds;
+            Assert.IsTrue(pipeBox.GetComponentsInChildren<Collider>().Select(c => c.bounds).Any(b => b.max.y > keypad.max.y && b.min.y < keypad.max.y + .9f), "Keypad sits inside the pipe box");
+            Assert.Less(Mathf.Abs(keypad.center.x - machineBlock.bounds.max.x), .4f, "Pipe box stands on the machine-room side of the hidden door");
+            Assert.AreEqual(false, Get(pad, "Visible"));
+            yield return PickPlaced("stake-puller", "S10_Workshop");
+            for (int hit = 1; hit <= 3; hit++)
+            {
+                yield return UsePlaced("machine-pipe-box", -10); yield return new WaitForSecondsRealtime(.2f);
+                Assert.AreEqual(hit, Call(state, "Hits", "structure-a:machine-pipe-box"));
+            }
+            Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:machine-pipe-box")); Assert.AreEqual(true, Get(pad, "Visible"));
             yield return UsePlaced("steel-box"); Assert.AreEqual(false, Get(Placed("steel-box"), "Opened"));
             yield return UsePlaced("key-1"); yield return UsePlaced("steel-box"); yield return UsePlaced("management-key");
             yield return UsePlaced("management-door", -5); Assert.AreEqual(true, Get(Placed("management-door"), "Opened"));
-            var pad = Placed("escape-pad"); NearPlaced(pad, -10); yield return new WaitForSecondsRealtime(.15f);
+            NearPlaced(pad, -10); yield return new WaitForSecondsRealtime(.15f);
             Call(pad, "Interact"); yield return null;
             var panel = pad.GetComponent(T("CurtainCall.WaitingRoom.ExplorationPanel")); Assert.IsNotNull(panel);
             Assert.AreEqual(true, Get(panel, "IsVisible"));
@@ -84,16 +106,19 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue(panel.GetComponentsInChildren<Transform>(true).Any(t => t.name == "10_Body"), "기존 패널 몸체 재사용");
             foreach (var digit in new[] { "9", "9", "9", "9", "9" }) Call(panel, "PressDigit", digit);
             Assert.AreEqual("9999", Get(panel, "Entered")); Call(panel, "SubmitCode"); yield return new WaitForSecondsRealtime(.15f);
-            Assert.AreEqual(false, Get(pad, "Opened")); Call(panel, "ClearCode");
+            Assert.AreEqual(false, Get(pad, "Opened")); Assert.AreEqual(true, Get(panel, "IsVisible"), "Wrong code keeps the keypad open for retry");
+            Assert.AreEqual("", Get(panel, "Entered"), "Wrong code clears the entry"); Assert.IsNotNull(pad.GetComponent<AudioSource>(), "Wrong code plays the warning tone");
             foreach (var digit in new[] { "1", "2", "3", "4" }) Call(panel, "PressDigit", digit);
             Call(panel, "SubmitCode"); yield return null; yield return null;
             Assert.AreEqual(true, Get(pad, "Opened")); Assert.AreEqual(false, Get(panel, "IsVisible"));
+            yield return null;
+            Assert.AreEqual(true, Get(machine, "Opened"), "Code opens the hidden door"); Assert.IsFalse(machineBlock.enabled);
             var exit = Placed("escape-door"); Assert.AreEqual(true, Get(exit, "Visible")); Assert.AreEqual(false, Get(exit, "ConditionsMet"));
-            Assert.IsTrue(new[] { "EscapeDoor", "Keypad", "EscapeSign" }.All(n => sealedDoor.Find(n).gameObject.activeInHierarchy));
+            Assert.IsTrue(new[] { "EscapeDoor", "EscapeSign" }.All(n => sealedDoor.Find(n).gameObject.activeInHierarchy));
             var hideOnOpen = (GameObject[])exit.GetType().GetField("hideOnOpen", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(exit);
             Assert.IsFalse(hideOnOpen.Any(g => g.name.StartsWith("Keypad") || g.name == "EscapeSign" || g.name == "HazardStripe" || g.name == "BeaconGlass" || g.name == "RustStain"), "Opening removes only the door and its locks");
             yield return new WaitForSecondsRealtime(1.5f);
-            Assert.Greater(hiddenPanel.position.z - panelClosed.z, 3f, "Hidden door slid aside after the code");
+            Assert.Greater(panelClosed.z - hiddenPanel.position.z, 2.3f, "Hidden door slid aside after the code");
             var slotIndex = exit.GetType().GetMethod("SlotAt", new[] { typeof(Vector3) });
             foreach (var (slotName, index) in new[] { ("KeySlot_L", 0), ("KeySlot_R", 1) })
             {
@@ -125,8 +150,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(true, Get(Placed("map"), "Revealed"));
             yield return UsePlaced("stairs-key"); yield return UsePlaced("stairs-door");
             yield return UsePlaced("escape-key-1"); Assert.AreEqual(true, Get(Placed("stairs-door"), "Opened"));
-            yield return UsePlaced("key-2"); yield return UsePlaced("machine-hidden-door", -10);
-            Assert.AreEqual(true, Get(Placed("machine-hidden-door"), "Opened"));
+            // 열쇠2는 획득만 유지. 기계실 숨겨진 문은 배관함 속 키패드로만 열린다(2026-10-30 결정).
+            yield return UsePlaced("key-2"); Assert.AreEqual(true, Get(Placed("key-2"), "Opened"));
+            Assert.AreEqual(false, Get(Placed("machine-hidden-door"), "Opened"));
         }
         [UnityTest]
         public IEnumerator M2_Placement_DrawerEscapeKeyAndSuccessOnlyDurability()

@@ -30,6 +30,7 @@ namespace CurtainCall.WaitingRoom
         public event Action<string> RequestAnswered;
 
         public string LastMessage { get; private set; } = "";
+        public const string WrongCode = "비밀번호가 다릅니다.";
 
         public bool HasAuthority
         {
@@ -116,7 +117,7 @@ namespace CurtainCall.WaitingRoom
             if (target is ExplorationGate gate)
             {
                 if (!gate.ConditionsMet) return (false, "선행 조건을 충족해야 합니다.");
-                if (gate.NeedsPassword && !gate.MatchesPassword(password)) return (false, "비밀번호가 다릅니다.");
+                if (gate.NeedsPassword && !gate.MatchesPassword(password)) return (false, WrongCode);
                 // 열쇠 구멍이 있는 문은 두 사람이 서로 다른 구멍에서 눌러야 한다.
                 int slot = gate.HasKeySlots ? gate.SlotAt(body.position) : -1;
                 if (gate.NeedsPartner && !cooperation.Press(targetId, player, Time.unscaledTimeAsDouble, gate.CooperationWindow,

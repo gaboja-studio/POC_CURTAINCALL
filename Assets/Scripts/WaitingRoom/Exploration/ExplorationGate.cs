@@ -61,7 +61,12 @@ namespace CurtainCall.WaitingRoom
         public bool NeedsPartner => kind == ExplorationGateKind.Cooperative;
         public float CooperationWindow => cooperationWindow;
         public bool NeedsPassword => kind == ExplorationGateKind.Keypad;
-        public bool Opened => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(targetId);
+        [Tooltip("지정하면 그 대상이 열릴 때 함께 열리고 직접 F하지 않는다. 예: 키패드 정답 → 숨겨진 문.")]
+        [SerializeField] string openedBy = "";
+        public string OpenedBy => openedBy;
+        public void ConfigureOpenedBy(string id) => openedBy = id ?? "";
+        public bool Opened => ExplorationState.Instance != null && (ExplorationState.Instance.IsOpen(targetId)
+            || (!string.IsNullOrEmpty(openedBy) && ExplorationState.Instance.IsOpen(openedBy)));
         public bool Visible => !revealPending && (string.IsNullOrEmpty(revealTarget) || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(revealTarget)));
         public bool ConditionsMet
         {
@@ -112,7 +117,7 @@ namespace CurtainCall.WaitingRoom
             }
             return best;
         }
-        public bool IsAvailable => Visible && (!Opened || kind == ExplorationGateKind.Monitor);
+        public bool IsAvailable => Visible && string.IsNullOrEmpty(openedBy) && (!Opened || kind == ExplorationGateKind.Monitor);
         public string ActionLabel => label + (!ConditionsMet ? " — 조건 미충족" : NeedsPartner ? (HasKeySlots ? " — 두 명이 각자 열쇠 구멍에서 함께 F" : " — 두 명이 함께 F") : "");
         UIInputBlocker inputBlocker;
         bool panel;
@@ -148,11 +153,41 @@ namespace CurtainCall.WaitingRoom
                     monitorCamera.targetTexture = monitorFeed; monitorCamera.enabled = true;
                 }
                 lastPanelMessage = ExplorationState.Instance.LastMessage;
+                if (NeedsPassword) { ExplorationState.Instance.RequestAnswered -= Answered; ExplorationState.Instance.RequestAnswered += Answered; }
                 panelView.Open(label, NeedsPassword ? "숫자 네 자리를 입력하세요." : monitorText, NeedsPassword, value => ExplorationState.Instance?.RequestCode(targetId, value), ClosePanel, false, monitorFeed);
             }
             else ExplorationState.Instance.RequestUse(targetId);
         }
-        void ClosePanel() { panel = false; if (monitorCamera != null) monitorCamera.enabled = false; if (panelView != null) panelView.Hide(); if (inputBlocker != null) inputBlocker.SetOpen(false); }
+        void ClosePanel()
+        {
+            panel = false; if (monitorCamera != null) monitorCamera.enabled = false; if (panelView != null) panelView.Hide(); if (inputBlocker != null) inputBlocker.SetOpen(false);
+            if (ExplorationState.Instance != null) ExplorationState.Instance.RequestAnswered -= Answered;
+        }
+        // 오답: 경고음 + 입력 비움, 다시 입력 가능. 정답: 짧은 확인음 뒤 패널이 닫힌다.
+        void Answered(string text)
+        {
+            if (!panel || panelView == null) return;
+            panelView.SetMessage(text); lastPanelMessage = text;
+            if (text == ExplorationState.WrongCode) { Play(ref buzz, "KeypadWrong", .45f, 180f, true); panelView.ClearCode(); }
+        }
+        AudioSource sound;
+        AudioClip buzz, chime;
+        void Play(ref AudioClip clip, string name, float seconds, float pitch, bool square)
+        {
+            if (sound == null) { sound = gameObject.AddComponent<AudioSource>(); sound.spatialBlend = .6f; sound.maxDistance = 15f; }
+            if (clip == null)
+            {
+                // 임시 합성음. 실제 효과음이 정해지면 바꾼다.
+                int rate = 22050, n = Mathf.CeilToInt(rate * seconds); var data = new float[n];
+                for (int i = 0; i < n; i++)
+                {
+                    float t = (float)i / rate, wave = Mathf.Sin(2 * Mathf.PI * pitch * t);
+                    data[i] = (square ? Mathf.Sign(wave) * (t % .15f < .1f ? 1f : 0f) : wave) * Mathf.Exp(-t * 2f / seconds) * .25f;
+                }
+                clip = AudioClip.Create(name, n, 1, rate, false); clip.SetData(data, 0);
+            }
+            sound.PlayOneShot(clip);
+        }
         void OnDestroy()
         {
             if (monitorCamera != null) monitorCamera.targetTexture = null;
@@ -166,6 +201,7 @@ namespace CurtainCall.WaitingRoom
             if (hideOnOpen != null) foreach (var visual in hideOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && !Opened);
             if (showOnOpen != null) foreach (var visual in showOnOpen) if (visual != null && visual != gameObject) visual.SetActive(Visible && Opened);
             if (!panel) return;
+            if (NeedsPassword && Opened) Play(ref chime, "KeypadRight", .3f, 880f, false);
             if (panelView != null && NeedsPassword && ExplorationState.Instance != null && lastPanelMessage != ExplorationState.Instance.LastMessage)
             { lastPanelMessage = ExplorationState.Instance.LastMessage; panelView.SetMessage(lastPanelMessage); }
             if (ExplorationState.Instance == null || !ExplorationState.Instance.CanReachLocal(this) || !ConditionsMet

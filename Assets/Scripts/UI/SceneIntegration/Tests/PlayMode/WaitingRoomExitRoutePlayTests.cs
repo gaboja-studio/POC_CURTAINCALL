@@ -40,7 +40,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var all = new[] { key2, machine, pad, exit, escapeKey1, escapeKey2, reveal, extra };
             ExplorationSet(route, "key2", key2); ExplorationSet(route, "machineDoor", machine);
             ExplorationSet(route, "passwordPad", pad); ExplorationSet(route, "escapeDoor", exit);
-            var wall = Find("CurtainCall.WaitingRoom.BreakableWall"); Assert.IsNotNull(wall);
+            var wall = RestroomBreach(); Assert.IsNotNull(wall);
             ExplorationSet(route, "restroomBreach", wall);
             string oldWallId = (string)Get(wall, "TargetId");
             ExplorationSet(exit, "requiredTargets", new[] { "fixture-extra-exit-lock" });
@@ -54,23 +54,22 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(.2f);
                 Assert.AreEqual(true, Get(pad, "PasswordPending")); Assert.AreEqual(false, Call(pad, "MatchesPassword", "0000"));
                 Call(state, "RequestCode", Id("PasswordPad"), "0000"); Assert.AreEqual(false, Get(pad, "Opened"));
-                Assert.AreEqual(false, Get(machine, "Visible")); Assert.IsFalse(visuals.activeSelf); Assert.IsTrue(machineBlock.enabled);
+                // 2026-10-30: 기계실 숨겨진 문은 키패드 정답으로 함께 열리고, 열쇠2·직접 F로는 열리지 않는다.
+                Assert.AreEqual(true, Get(machine, "Visible")); Assert.AreEqual(false, Get(machine, "IsAvailable")); Assert.IsTrue(machineBlock.enabled);
                 yield return Use(Id("Key2")); yield return Use(Id("MachineDoor"));
-                Assert.AreEqual(false, Get(machine, "Opened"), "열쇠2가 있어도 미정 공개 조건을 임의 해제하지 않음");
-                ExplorationSet(route, "escapePassword", "0123"); ExplorationSet(route, "machineDoorRevealCondition", "fixture-machine-reveal");
-                Assert.IsTrue(ApplyExitRoute(route));
-                yield return Use("fixture-machine-reveal"); yield return Use(Id("MachineDoor")); yield return null;
-                Assert.AreEqual(true, Get(machine, "Opened")); Assert.IsTrue(visuals.activeSelf); Assert.IsFalse(machineBlock.enabled);
+                Assert.AreEqual(false, Get(machine, "Opened"), "열쇠2·직접 F로는 열리지 않음"); Assert.AreEqual(0, Call(state, "Hits", Id("MachineDoor")));
+                ExplorationSet(route, "escapePassword", "0123"); Assert.IsTrue(ApplyExitRoute(route));
                 yield return new WaitForSecondsRealtime(.12f); Call(state, "RequestCode", Id("PasswordPad"), "9999");
                 Assert.AreEqual(false, Get(pad, "Opened")); Assert.AreEqual(0, Call(state, "Hits", Id("PasswordPad")));
-                yield return new WaitForSecondsRealtime(.12f); Call(state, "RequestCode", Id("PasswordPad"), "0123");
+                Assert.AreEqual(false, Get(machine, "Opened")); Assert.IsTrue(machineBlock.enabled);
+                yield return new WaitForSecondsRealtime(.12f); Call(state, "RequestCode", Id("PasswordPad"), "0123"); yield return null;
                 Assert.AreEqual(true, Get(pad, "Opened")); Assert.AreEqual(false, Get(exit, "ConditionsMet"));
+                Assert.AreEqual(true, Get(machine, "Opened"), "정답이면 숨겨진 문도 열림"); Assert.IsFalse(machineBlock.enabled);
                 yield return Use(Key("EscapeKey1")); Assert.AreEqual(false, Get(exit, "ConditionsMet"));
                 yield return Use(Key("EscapeKey2")); Assert.AreEqual(false, Get(exit, "ConditionsMet"), "기존 추가 조건 보존");
                 yield return Use("fixture-extra-exit-lock"); Assert.AreEqual(true, Get(exit, "ConditionsMet"));
                 for (int i = 0; i < 3; i++) yield return Use(Key("EscapeDoor"));
                 Assert.AreEqual(false, Get(exit, "Opened")); Assert.IsTrue(exitBlock.enabled);
-                yield return Use(Id("MachineDoor")); Assert.AreEqual(1, Call(state, "Hits", Id("MachineDoor")));
                 Assert.AreEqual(oldWallId, Get(wall, "TargetId")); Assert.AreEqual(6, Get(wall, "RequiredHits"));
                 Assert.AreEqual("stake-puller", Get(wall, "ToolId")); Assert.AreEqual("Night", Field(State, "Phase").ToString());
             }

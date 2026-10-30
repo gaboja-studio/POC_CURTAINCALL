@@ -3,7 +3,10 @@ using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
 {
-    /// <summary>숨은 경로·패드·탈출로 문 연결. 미정 암호/공개 조건·열쇠2 획득처·엔딩은 만들지 않는다.</summary>
+    /// <summary>
+    /// 숨은 경로·패드·탈출로 문 연결. 엔딩은 만들지 않는다.
+    /// 2026-10-30 사용자 결정: 기계실 숨겨진 문은 앞 배관함 속 키패드 정답으로 열린다(열쇠2 조건 제외).
+    /// </summary>
     public sealed class StructureAExitRoute : MonoBehaviour
     {
         public const string Key2 = "structure-a:key-2";
@@ -11,9 +14,6 @@ namespace CurtainCall.WaitingRoom
         public const string PasswordPad = "structure-a:escape-pad";
         [SerializeField] BreakableWall restroomBreach;
         [SerializeField] ExplorationGate key2, machineDoor, passwordPad, escapeDoor;
-        [Tooltip("기계실 문의 실제 공개 조건. 미지정이면 기존 명시 조건을 존중하고, 없으면 미정으로 숨김/차단 유지.")]
-        [SerializeField] string machineDoorRevealCondition = "";
-        [SerializeField] bool machineDoorHasNoRevealPrerequisite;
         [Tooltip("명시적으로 정한4자리 정답. 비우면 기본0000을 승인하지 않고 미정으로 둔다. ConfigurePassword API로 지정한 값은 존중.")]
         [SerializeField] string escapePassword = "";
 
@@ -33,16 +33,11 @@ namespace CurtainCall.WaitingRoom
             { error = "기존 화장실 벽의 천막 말뚝 뽑개 6타 규칙과 다른 참조입니다."; return false; }
 
             // 화장실 벽은 기존 ID/진행/균열/충돌/내구도 처리를 그대로 사용한다.
-            key2?.ConfigureRoute(Key2);
+            key2?.ConfigureRoute(Key2); // 획득은 유지. 사용처는 후속 기획.
             if (machineDoor != null)
             {
-                machineDoor.ConfigureRoute(MachineDoor, new[] { Key2 });
-                if (machineDoorHasNoRevealPrerequisite)
-                    machineDoor.ConfigureRoute(MachineDoor, null, "");
-                else if (!string.IsNullOrWhiteSpace(machineDoorRevealCondition))
-                    machineDoor.ConfigureRoute(MachineDoor, null, machineDoorRevealCondition);
-                else if (string.IsNullOrWhiteSpace(machineDoor.RevealTarget) || machineDoor.RevealPending)
-                    machineDoor.ConfigureVisibilityPending();
+                machineDoor.ConfigureRoute(MachineDoor, null, "");
+                machineDoor.ConfigureOpenedBy(PasswordPad);
             }
             if (passwordPad != null)
             {

@@ -17,7 +17,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             const string target = "restroom-breach";
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             Assert.IsNotNull(state, "탐색 진행 상태가 있어야 한다");
-            var wall = Find("CurtainCall.WaitingRoom.BreakableWall");
+            var wall = RestroomBreach();
             var blocker = (Collider)wall.GetComponent<BoxCollider>();
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
