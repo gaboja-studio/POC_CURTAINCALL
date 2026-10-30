@@ -29,3 +29,5 @@
 ## 2026-10-30 — 저장·dev 제출 요청
 - 사용자 명시 요청에 따라 관련 변경을 저장·푸시하고 dev PR을 제출한다. gh 로그인/커밋 작성자 @MoHoDu 일치, private 에셋 저장소 clean. 최신 origin/dev와 작업 시작 HEAD는 b19189eb로 일치. 관련 없는 변경 없음.
 - Editor15·PlayMode3 통과 증거를 재사용하며, 최종 미술·4인 온라인/성능 확인은 PR의 남은 항목으로 공개한다. 병합은 요청되지 않았다.
+- 저장·푸시 완료: `76e43aae` (`feat: 인간 대포와 트램펄린 Blender 모델 적용`). 저장 시 check-work 안전성·문서/규칙·컴파일 PASS, 집중 테스트 기존 증거 사용. LFS 업로드 완료.
+- dev 제출: [PR #241](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/241). 검토 대기이며 병합하지 않았다. new-pr.ps1의 중첩 브랜치 이름 검증 제한으로 공통 PR 템플릿을 생성해 gh로 제출했다. 리뷰어 계정은 임의 지정하지 않았다.
