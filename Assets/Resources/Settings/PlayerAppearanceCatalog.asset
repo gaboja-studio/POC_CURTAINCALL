@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c734c4d28e8829a478744e956a710e01, type: 3}
+  m_Name: PlayerAppearanceCatalog
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.CharacterArt.PlayerAppearanceCatalog
+  models:
+  - name: "\uD1A0\uB07C"
+    prefab: {fileID: 2908563419136654939, guid: 2785f1c4450616b449849296d575196d, type: 3}
+    outfitPrefabs: []
+  - name: "\uACF0"
+    prefab: {fileID: 1160928663633974094, guid: b80a7925185a00e44bc4dcafd8ca4d99, type: 3}
+    outfitPrefabs: []
+  - name: "\uD30C\uB780 \uC090\uC5D0\uB85C"
+    prefab: {fileID: 7054938104832325565, guid: 08d469f26b3075f4592143f7287f983a, type: 3}
+    outfitPrefabs: []
+  - name: "\uBD84\uD64D \uC18C\uB140"
+    prefab: {fileID: 5430299153786256959, guid: 228a95dad8157b744bde9b88c381ecf8, type: 3}
+    outfitPrefabs: []
+  outfits:
+  - "\uBD84\uD64D"
+  - "\uD30C\uB791"
+  - "\uB178\uB791"
+  - "\uCD08\uB85D"
+  outfitColors:
+  - {r: 0.78, g: 0.3, b: 0.36, a: 1}
+  - {r: 0.13, g: 0.18, b: 0.44, a: 1}
+  - {r: 0.9, g: 0.6, b: 0.17, a: 1}
+  - {r: 0.28, g: 0.43, b: 0.105, a: 1}
+  outfitPatterns: 00000000000000000000000000000000
+  defaults:
+  - model: 0
+    outfit: 2
+  - model: 1
+    outfit: 3
+  - model: 2
+    outfit: 1
+  - model: 3
+    outfit: 0

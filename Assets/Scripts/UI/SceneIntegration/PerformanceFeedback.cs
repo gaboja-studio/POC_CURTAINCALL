@@ -14,7 +14,8 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField] FeedbackView view;
         [SerializeField] TMP_Text amount;
         readonly Dictionary<string, RewardSegment> previous = new();
-        readonly Queue<(int slot, int delta, float expires)> pending = new();
+        readonly Queue<(int slot, int intended, int actual, float expires)> pending = new();
+        ulong? observingClient;
         string identity;
         long revision;
         RewardRules rules;
@@ -29,21 +30,27 @@ namespace CurtainCall.UI.SceneIntegration
         public void Configure(FeedbackView target, TMP_Text amountLabel) { view = target; amount = amountLabel; }
 
         public void Observe(RewardSnapshot snapshot)
+            => Observe(snapshot, NetworkPlayer.Local != null ? NetworkPlayer.Local.OwnerClientId : (ulong?)null);
+
+        public void Observe(RewardSnapshot snapshot, ulong? localClient)
         {
+            if (observingClient != localClient) { Clear(); observingClient = localClient; }
             if (snapshot?.Performance == null || !snapshot.IsOpen) { Clear(); return; }
-            bool continuous = identity == snapshot.Performance.Id && snapshot.Revision == revision + 1 && rules.Equals(snapshot.Rules);
+            bool continuous = identity == snapshot.Performance.Id && rules.Equals(snapshot.Rules);
             if (identity == snapshot.Performance.Id && snapshot.Revision <= revision) return;
             if (!continuous) { pending.Clear(); if (view != null) view.ResetForRuntime(); }
             foreach (var person in snapshot.Segments)
             {
-                if (continuous && context && previous.TryGetValue(person.ParticipantId, out var before)
+                if (continuous && context && localClient.HasValue && person.ClientId == localClient.Value
+                    && previous.TryGetValue(person.ParticipantId, out var before)
                     && before.Connected && person.Connected && !before.Dead && !person.Dead && before.Slot == person.Slot)
                 {
-                    long delta = person.Amount - before.Amount;
-                    if (delta != 0 && person.Slot >= 0 && person.Slot < 4)
+                    if (person.ReactionSequence > before.ReactionSequence && person.ReactionDelta != 0
+                        && (person.ReactionDelta > 0 || person.ReactionAmount < 0)
+                        && person.Slot >= 0 && person.Slot < 4)
                     {
                         if (pending.Count >= 4) pending.Dequeue();
-                        pending.Enqueue((person.Slot, (int)System.Math.Clamp(delta, -int.MaxValue, int.MaxValue), Time.unscaledTime + 3f));
+                        pending.Enqueue((person.Slot, person.ReactionDelta, person.ReactionAmount, Time.unscaledTime + 3f));
                     }
                 }
             }
@@ -87,8 +94,9 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 var next = pending.Dequeue();
                 if (next.expires < Time.unscaledTime) continue;
-                if (next.delta > 0) view.TryShowCheer(next.slot, next.delta);
-                else view.TryShowBoo(next.slot, -next.delta);
+                bool displayed = next.intended > 0 ? view.TryShowCheer(next.slot, System.Math.Max(1, next.actual))
+                    : view.TryShowBoo(next.slot, -next.actual);
+                if (displayed && next.actual == 0 && amount != null) amount.text = string.Empty;
                 break;
             }
         }

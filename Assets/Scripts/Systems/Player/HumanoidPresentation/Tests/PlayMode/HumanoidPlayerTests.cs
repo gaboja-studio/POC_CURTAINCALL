@@ -36,6 +36,11 @@ namespace CurtainCall.Tests.HumanoidPresentation
         static object Get(object target, string name) => target.GetType().GetProperty(name).GetValue(target);
         static object Call(object target, string name, params object[] args) => target.GetType().GetMethod(name).Invoke(target, args);
         static Component Model(GameObject player) => (Component)Get(Part(player, "HumanoidPlayerPresentation"), "Model");
+        static int TintSlot(Component model)
+        {
+            var slots = (int[])model.GetType().GetField("PlayerTintMaterialSlots").GetValue(model);
+            return slots != null && slots.Length > 0 ? slots[0] : 0;
+        }
         static void Mask(GameObject player, int mask)
         {
             Call(Part(player, "PlayerCondition"), "SetLostParts", Enum.ToObject(TypeFor("CurtainCall.Player.BodyPart"), mask));
@@ -218,15 +223,17 @@ namespace CurtainCall.Tests.HumanoidPresentation
             {
                 Call(view, "SetColor", colors[i]);
                 var block = new MaterialPropertyBlock();
-                original.GetPropertyBlock(block, 0);
+                original.GetPropertyBlock(block, TintSlot(view));
                 Assert.That(block.GetColor("_BaseColor"), Is.EqualTo(colors[i]));
+                original.GetPropertyBlock(block, 0);
+                Assert.That(block.GetColor("_BaseColor"), Is.EqualTo(Color.white), "원화 고유색은 플레이어 색으로 덮지 않는다.");
             }
             Color snapshot = (Color)Get(view, "SurfaceColor");
             Mask(player, 4);
             var piece = (Rigidbody)Call(view, "GetPieceBody", 0);
             Call(view, "SetColor", Color.magenta);
             var pieceBlock = new MaterialPropertyBlock();
-            piece.GetComponentInChildren<Renderer>().GetPropertyBlock(pieceBlock, 0);
+            piece.GetComponentInChildren<Renderer>().GetPropertyBlock(pieceBlock, TintSlot(view));
             Assert.That(pieceBlock.GetColor("_BaseColor"), Is.EqualTo(snapshot));
             Assert.That(cap.color, Is.EqualTo(capBefore));
             for (int i = 0; i < materials.Length; i++) Assert.That(materials[i].color, Is.EqualTo(shared[i]));
@@ -247,7 +254,8 @@ namespace CurtainCall.Tests.HumanoidPresentation
             Assert.That((bool)Get(ragdoll, "IsLimp"), Is.True);
             Assert.That(Model(player), Is.Null);
             Assert.That(((Animator)previous.GetType().GetField("Animator").GetValue(previous)).enabled, Is.False);
-            Assert.That(previous.GetComponent<BoxCollider>().enabled, Is.False);
+            Assert.That(previous.GetComponents<Collider>().All(c => !c.enabled), Is.True,
+                "관절 래그돌에서는 루트 충돌체가 없거나 비활성화되어야 한다.");
             var animator = (Animator)previous.GetType().GetField("Animator").GetValue(previous);
             var collider = animator.GetBoneTransform(HumanBodyBones.Hips).GetComponentInChildren<CapsuleCollider>();
             Assert.That(collider, Is.Not.Null);
@@ -388,7 +396,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
             entry.GetType().GetField("Alpha").SetValue(entry, .25f);
             type.GetMethod("ApplyAlpha", flags).Invoke(null, new[] { entry });
             var block = new MaterialPropertyBlock();
-            renderer.GetPropertyBlock(block, 0);
+            renderer.GetPropertyBlock(block, TintSlot(view));
             var faded = block.GetColor("_BaseColor");
             Assert.That(faded.r, Is.EqualTo(color.r).Within(.00001f));
             Assert.That(faded.a, Is.EqualTo(.2f).Within(.001f));
@@ -397,7 +405,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
             var entries = (IDictionary)type.GetField("faded", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(fade);
             entries.Add(renderer, entry);
             type.GetMethod("Restore", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(fade, new object[] { renderer });
-            renderer.GetPropertyBlock(block, 0);
+            renderer.GetPropertyBlock(block, TintSlot(view));
             Assert.That(Vector4.Distance(block.GetColor("_BaseColor"), color), Is.LessThan(.00001f));
             Assert.That(renderer.sharedMaterials, Is.EqualTo(originals));
         }
@@ -491,7 +499,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
             Mask(player, 4);
             var piece = (Rigidbody)Call(view, "GetPieceBody", 0);
             var block = new MaterialPropertyBlock();
-            piece.GetComponentInChildren<Renderer>().GetPropertyBlock(block, 0);
+            piece.GetComponentInChildren<Renderer>().GetPropertyBlock(block, TintSlot(view));
             Color snapshot = block.GetColor("_BaseColor");
             var settings = TypeFor("CurtainCall.Settings.GameSettings").GetProperty("Base", BindingFlags.Public | BindingFlags.Static).GetValue(null);
             var character = Get(settings, "Character");
@@ -503,7 +511,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 yield return null;
                 yield return null;
                 Assert.That((Color)Get(view, "SurfaceColor"), Is.EqualTo(Color.cyan));
-                piece.GetComponentInChildren<Renderer>().GetPropertyBlock(block, 0);
+                piece.GetComponentInChildren<Renderer>().GetPropertyBlock(block, TintSlot(view));
                 Assert.That(block.GetColor("_BaseColor"), Is.EqualTo(snapshot));
             }
             finally { field.SetValue(character, original); }
@@ -582,6 +590,198 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 originalSettings.backgroundBehavior = previousBackground;
                 originalSettings.editorInputBehaviorInPlayMode = previousEditorInput;
             }
+        }
+
+        [UnityTest]
+        public IEnumerator RabbitSurfaceStatesPreserveCapsTintAndDetachedSnapshots()
+        {
+            var player = Player();
+            yield return null;
+            var view = Model(player);
+            ((Behaviour)Part(player, "HumanoidPlayerPresentation")).enabled = false;
+            var partType = TypeFor("CurtainCall.Player.BodyPart");
+            int lastMask = 0;
+            void Cut(int mask)
+            {
+                Call(view, "Apply", Enum.ToObject(partType, lastMask), Enum.ToObject(partType, mask), true, null);
+                lastMask = mask;
+            }
+            var state = view.GetComponent(TypeFor("CurtainCall.CharacterArt.RabbitSurfaceStates"));
+            Assert.That(state, Is.Not.Null);
+            var stateType = state.GetType().GetNestedType("SurfaceState");
+            void SetSurface(int value) => Call(state, "SetState", Enum.ToObject(stateType, value));
+            var original = (SkinnedMeshRenderer)view.GetType().GetField("Original").GetValue(view);
+            var bodies = (SkinnedMeshRenderer[])view.GetType().GetField("Bodies").GetValue(view);
+            var limbs = (SkinnedMeshRenderer[])view.GetType().GetField("Limbs").GetValue(view);
+            var skins = new[] { original }.Concat(bodies).Concat(limbs).ToArray();
+            var meshes = skins.Select(s => s.sharedMesh).ToArray();
+            var caps = skins.Select(s => s.sharedMaterials.Skip(2).ToArray()).ToArray();
+            var clean = original.sharedMaterials;
+            Color tint = new Color(.12f, .45f, .8f, .65f);
+            Call(view, "SetColor", tint);
+            foreach (int value in new[] { 1, 2, 0 })
+            {
+                SetSurface(value);
+                for (int i = 0; i < skins.Length; i++)
+                {
+                    var mats = skins[i].sharedMaterials;
+                    Assert.That(skins[i].sharedMesh, Is.SameAs(meshes[i]));
+                    Assert.That(mats.Skip(2), Is.EqualTo(caps[i]), "단면 재질은 상태 교체 대상이 아니다.");
+                    if (value == 0) Assert.That(mats.Take(2), Is.EqualTo(clean));
+                    else
+                    {
+                        Assert.That(mats[0].name, Is.EqualTo(value == 1 ? "RabbitCostume_Light" : "RabbitCostume_Heavy"));
+                        Assert.That(mats[1], Is.SameAs(mats[0]));
+                    }
+                    var block = new MaterialPropertyBlock();skins[i].GetPropertyBlock(block, TintSlot(view));
+                    Assert.That(Vector4.Distance(block.GetColor("_BaseColor"), tint), Is.LessThan(1e-6f));
+                }
+            }
+            SetSurface(1);Cut(4);
+            var first = ((Rigidbody)Call(view, "GetPieceBody", 0)).GetComponentInChildren<SkinnedMeshRenderer>();
+            Assert.That(first.sharedMaterials[0].name, Is.EqualTo("RabbitCostume_Light"));
+            SetSurface(2);Cut(12);
+            var second = ((Rigidbody)Call(view, "GetPieceBody", 1)).GetComponentInChildren<SkinnedMeshRenderer>();
+            Assert.That(first.sharedMaterials[0].name, Is.EqualTo("RabbitCostume_Light"), "기존 조각은 절단 당시 상태를 유지한다.");
+            Assert.That(second.sharedMaterials[0].name, Is.EqualTo("RabbitCostume_Heavy"));
+            Cut(0);
+            Assert.That((int)Get(view, "PieceCount"), Is.Zero);
+            Assert.That(original.sharedMaterials[0].name, Is.EqualTo("RabbitCostume_Heavy"), "부위 복구는 표면을 자동 세척하지 않는다.");
+            SetSurface(0);
+        }
+
+        [UnityTest]
+        public IEnumerator InjuryCountSelectsSurfaceAndRestoresAfterModelReplacement()
+        {
+            var player = Player();
+            yield return null;
+            string Surface(Component view) => Get(view.GetComponent(TypeFor("CurtainCall.CharacterArt.RabbitSurfaceStates")), "State").ToString();
+            Assert.That(Surface(Model(player)), Is.EqualTo("Clean"));
+            foreach (var entry in new[] { (4, "Light"), (12, "Light"), (13, "Heavy"), (15, "Heavy"), (0, "Clean") })
+            {
+                Mask(player, entry.Item1);
+                Assert.That(Surface(Model(player)), Is.EqualTo(entry.Item2));
+                yield return null;
+                Assert.That(Surface(Model(player)), Is.EqualTo(entry.Item2));
+            }
+            Mask(player, 13);
+            var slot = Part(player, "PlayerModelSlot");
+            Call(slot, "SetModel", Get(slot, "CurrentPrefab"));
+            Assert.That(Surface(Model(player)), Is.EqualTo("Heavy"));
+            Mask(player, 0);
+            Assert.That(Surface(Model(player)), Is.EqualTo("Clean"));
+            var network = player.GetComponent(TypeFor("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+            var variable = network.GetType().GetField("state", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(network);
+            var valueProperty = variable.GetType().GetProperty("Value");
+            foreach (int value in new[] { 1, 3, 0 })
+            {
+                valueProperty.SetValue(variable, Enum.ToObject(valueProperty.PropertyType, value));
+                yield return null;
+                Assert.That(Surface(Model(player)), Is.EqualTo(value == 0 ? "Clean" : "Heavy"), "Fallen/Retired death without missing limbs");
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator BearCatalogModelKeepsMovementCutsSurfacesAndOutfits()
+            => CatalogModelKeepsMovementCutsSurfacesAndOutfits("Bear");
+
+        [UnityTest]
+        public IEnumerator BluePierrotCatalogModelKeepsMovementCutsSurfacesAndOutfits()
+            => CatalogModelKeepsMovementCutsSurfacesAndOutfits("BluePierrot");
+
+        [UnityTest]
+        public IEnumerator PinkGirlCatalogModelKeepsMovementCutsSurfacesAndOutfits()
+            => CatalogModelKeepsMovementCutsSurfacesAndOutfits("PinkGirl");
+
+        IEnumerator CatalogModelKeepsMovementCutsSurfacesAndOutfits(string modelName)
+        {
+            var catalog = Resources.Load("Settings/PlayerAppearanceCatalog");
+            var options = (Array)catalog.GetType().GetField("models").GetValue(catalog);
+            int bearIndex = Enumerable.Range(0, options.Length).Single(i =>
+                ((GameObject)options.GetValue(i).GetType().GetField("prefab").GetValue(options.GetValue(i))).name == modelName);
+            var bear = (GameObject)Call(catalog, "PrefabFor", bearIndex, 0);
+            for (int outfit = 0; outfit < 4; outfit++) Assert.That(Call(catalog, "PrefabFor", bearIndex, outfit), Is.SameAs(bear));
+            var player = Player();
+            yield return null;
+            var slot = Part(player, "PlayerModelSlot");
+            Call(slot, "SetModel", bear);
+            yield return null;
+            var view = Model(player);
+            var animator = (Animator)view.GetType().GetField("Animator").GetValue(view);
+            Assert.That(animator.avatar.isValid && animator.avatar.isHuman, Is.True);
+            Assert.That(animator.applyRootMotion, Is.False);
+            var mover = Part(player, "PlayerMover");
+            mover.GetType().GetProperty("FreeMovement").SetValue(mover, true);
+            var input = player.AddComponent<HumanoidMovementTestInput>();
+            input.Mover = mover;
+            yield return null;
+            yield return null;
+            Assert.That((string)Get(view, "Motion"), Is.EqualTo("Walk"));
+            input.Sprint = true;
+            yield return null;
+            yield return null;
+            Assert.That((string)Get(view, "Motion"), Is.EqualTo("Run"));
+            input.Sprint = false; input.Crouch = true;
+            yield return null;
+            yield return null;
+            Assert.That((string)Get(view, "Motion"), Is.EqualTo("CrouchWalk"));
+            input.Crouch = false;
+            yield return null;
+            Call(mover, "RequestJump");
+            yield return null;
+            yield return null;
+            Assert.That(new[] { "JumpStart", "JumpLoop" }, Does.Contain((string)Get(view, "Motion")));
+            Object.Destroy(input);
+            var surface = view.GetComponent(TypeFor("CurtainCall.CharacterArt.RabbitSurfaceStates"));
+            var original = (SkinnedMeshRenderer)view.GetType().GetField("Original").GetValue(view);
+            var colors = (Color[])catalog.GetType().GetField("outfitColors").GetValue(catalog);
+            var block = new MaterialPropertyBlock();
+            var network = player.GetComponent(TypeFor("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+            var outfitVariable = network.GetType().GetField("appearanceOutfit", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(network);
+            for (int outfit = 0; outfit < 4; outfit++)
+            {
+                outfitVariable.GetType().GetProperty("Value").SetValue(outfitVariable, outfit);
+                yield return null;
+                original.GetPropertyBlock(block, 0);
+                Assert.That(((Vector4)block.GetColor("_VariantColor") - (Vector4)colors[outfit]).sqrMagnitude, Is.LessThan(1e-6f));
+            }
+            Assert.That(Get(surface, "State").ToString(), Is.EqualTo("Clean"));
+            for (int stage = 1; stage <= 4; stage++)
+            {
+                Mask(player, new[] { 0, 4, 12, 13, 15 }[stage]);
+                Assert.That((int)Get(view, "Stage"), Is.EqualTo(stage));
+                Assert.That((int)Get(view, "PieceCount"), Is.EqualTo(stage));
+                Assert.That(Get(surface, "State").ToString(), Is.EqualTo(stage <= 2 ? "Light" : "Heavy"));
+                var rb = (Rigidbody)Call(view, "GetPieceBody", stage - 1);
+                var detached = rb.GetComponentInChildren<SkinnedMeshRenderer>();
+                Assert.That(rb.GetComponentsInChildren<Rigidbody>().Length, Is.EqualTo(2));
+                Assert.That(rb.GetComponentsInChildren<CharacterJoint>().Length, Is.EqualTo(1));
+                Assert.That(detached.bones.All(b => b.IsChildOf(rb.transform) || b == rb.transform), Is.True);
+                detached.GetPropertyBlock(block, 0);
+                Assert.That(((Vector4)block.GetColor("_VariantColor") - (Vector4)colors[3]).sqrMagnitude, Is.LessThan(1e-6f));
+                Vector3 start = rb.position;
+                yield return new WaitForFixedUpdate();
+                yield return new WaitForFixedUpdate();
+                Assert.That(Vector3.Distance(start, rb.position), Is.GreaterThan(.001f));
+            }
+            Call(Part(player, "PlayerRagdoll"), "Restore");
+            Mask(player, 0);
+            yield return null;
+            Assert.That((int)Get(Model(player), "Stage"), Is.Zero);
+            Assert.That((int)Get(Model(player), "PieceCount"), Is.Zero);
+            Assert.That(Get(Model(player).GetComponent(surface.GetType()), "State").ToString(), Is.EqualTo("Clean"));
+            Mask(player, 13);
+            Call(slot, "SetModel", bear);
+            Assert.That(Get(Model(player).GetComponent(surface.GetType()), "State").ToString(), Is.EqualTo("Heavy"));
+            Mask(player, 0);
+            var variable = network.GetType().GetField("state", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(network);
+            var valueProperty = variable.GetType().GetProperty("Value");
+            valueProperty.SetValue(variable, Enum.ToObject(valueProperty.PropertyType, 1));
+            yield return null;
+            Assert.That(Get(Model(player).GetComponent(surface.GetType()), "State").ToString(), Is.EqualTo("Heavy"));
+            valueProperty.SetValue(variable, Enum.ToObject(valueProperty.PropertyType, 0));
+            yield return null;
+            Assert.That(Get(Model(player).GetComponent(surface.GetType()), "State").ToString(), Is.EqualTo("Clean"));
         }
 
         [UnityTest]

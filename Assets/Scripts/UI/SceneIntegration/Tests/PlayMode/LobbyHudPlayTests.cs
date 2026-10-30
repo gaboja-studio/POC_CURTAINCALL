@@ -33,6 +33,17 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var room=Field(binding,"room");room.GetType().GetField("introSeconds").SetValue(room,30f);
             var player=(Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer","Local");
             Assert.IsNotNull(player);
+            var catalog=T("CurtainCall.CharacterArt.PlayerAppearanceCatalog");
+            var choice=catalog.GetMethod("DefaultFor").Invoke(Resources.Load("Settings/PlayerAppearanceCatalog"),new object[]{0});
+            int defaultOutfit=(int)choice.GetType().GetField("outfit").GetValue(choice);
+            Assert.AreEqual(defaultOutfit,Get(player,"AppearanceOutfit"));
+            Assert.AreEqual(choice.GetType().GetField("model").GetValue(choice),Get(player,"AppearanceModel"));
+            var select=GameObject.Find("Outfit");Assert.IsNotNull(select);
+            select.GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+            yield return null;
+            Assert.AreEqual((defaultOutfit+1)%4,Get(player,"AppearanceOutfit"),"로비에서 선택한 의상은 호스트가 확정한다.");
+            var free=(int)catalog.GetMethod("FindAvailableOutfit").Invoke(null,new object[]{1,4,new[]{1}});
+            Assert.AreEqual(2,free,"다음 참가자의 기본 의상이 이미 사용 중이면 남은 의상을 배정한다.");
             var lever=(Component)Field(binding,"lever");
             var target=lever.transform.position+Vector3.right*.5f;target.y=player.transform.position.y;
             Call(player.GetComponent(T("CurtainCall.Player.PlayerMover")),"SetStartPose",target,Quaternion.identity);

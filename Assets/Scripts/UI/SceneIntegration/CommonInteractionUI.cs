@@ -96,6 +96,7 @@ namespace CurtainCall.UI.SceneIntegration
                 Add(item.transform, Center(item.transform), action, usable, lobbyRoom != null && lobbyRoom.FocusedInteraction == item, feet);
                 candidates[candidates.Count - 1].Lobby = true;
             }
+            AddEscapeCooperativeButton(feet);
             AddCannon(feet);
             AddTightropeDevices(feet);
             AddPiggyback(feet);
@@ -268,13 +269,28 @@ namespace CurtainCall.UI.SceneIntegration
         {
             var player = NetworkPlayer.Local; var system = HumanCannonSystem.Current;
             if (player == null || system == null || player.State != PlayerState.Normal) return;
+            if (player.TryGetComponent(out PlayerController controller) && controller.Scheme is TightropeControlScheme)
+            {
+                // 줄 위 F는 목마/받기/기존 기물 우선순위를 지키는 끝 영역 후보 하나만 받는다.
+                var course = TightropeCourse.Current;
+                int exitPole = course != null && course.TryGetComponent(out CourseControlSwitcher switcher)
+                    ? switcher.FindCannonPoleExit(player) : -1;
+                var exitPoles = HumanCannonPoleSystem.Current;
+                if (exitPole >= 0 && exitPoles != null && exitPoles.Pole(exitPole) is { } pole)
+                {
+                    Add(pole.transform, pole.BarPosition(0), "봉 잡기", true, true, feet);
+                    candidates[candidates.Count - 1].Pole = true;
+                }
+                return;
+            }
             var trampoline = HumanCannonTrampoline.Current;
             if (system.IsSeated(player.OwnerClientId) || trampoline != null && trampoline.Carrier == player.OwnerClientId) return;
             bool canCarry = trampoline != null && trampoline.CanGrab(player);
             var poles = HumanCannonPoleSystem.Current;
             int focused = poles != null ? poles.FindGrabbable(player) : -1;
             if (focused >= 0) canCarry = false;
-            int boardable = canCarry ? -1 : system.FindBoardableStation(player);
+            // 원본 입력은 봉 → 트램폴린 → 대포 순서다. 지상 봉을 잡을 때 대포 안내가 앞서지 않게 한다.
+            int boardable = canCarry || focused >= 0 ? -1 : system.FindBoardableStation(player);
             if (boardable >= 0)
             {
                 var station = system.Station(boardable);
@@ -286,18 +302,29 @@ namespace CurtainCall.UI.SceneIntegration
                 Add(trampoline.transform, trampoline.Surface, "트램펄린 잡기", true, true, feet);
                 candidates[candidates.Count - 1].Pole = true;
             }
-            if (poles != null && system.IsFlying(player.OwnerClientId) && poles.HeldBy(player.OwnerClientId) < 0)
+            // FindGrabbable은 대포 비행뿐 아니라 허용된 지상/일반 점프/낙하 진입도 판정한다.
+            // 표시만 IsFlying으로 제한하면 F로 잡을 수 있는 봉의 안내/강조가 사라진다.
+            if (poles != null && focused >= 0)
             {
                 for (int i = 0; i < poles.PoleCount; i++)
                 {
                     var pole = poles.Pole(i);
                     if (pole != null && pole.isActiveAndEnabled && !poles.State(i).IsOccupied && pole.IsInReach(player))
                     {
-                        Add(pole.transform, Center(pole.transform), "봉 잡기", true, i == focused, feet);
+                        Add(pole.transform, pole.BarPosition(0), "봉 잡기", true, i == focused, feet);
                         candidates[candidates.Count - 1].Pole = true;
                     }
                 }
             }
+        }
+
+        void AddEscapeCooperativeButton(Vector3 feet)
+        {
+            var course = CurtainCall.EscapeRoute.EscapeCooperativeRopes.Current;
+            if (course == null || !course.CanUseButton(NetworkPlayer.Local)) return;
+            Add(course.Button, course.Button.position, "복귀 계단 열기", true, true, feet);
+            candidates[candidates.Count - 1].Pole = true;
+            candidates[candidates.Count - 1].Helper = "아래 단원이 올라올 수 있게 문을 엽니다";
         }
         static Vector3 Center(Transform root)
         {

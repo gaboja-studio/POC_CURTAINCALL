@@ -128,7 +128,7 @@ namespace CurtainCall.Tightrope
             if (!course.IsLaneChangeAllowed(from) || !course.IsLaneChangeAllowed(to)) return false;
 
             // 옆 위치는 지금 그대로, 앞뒤만 착지 예상 거리로 옮겨 그 거리의 옆 줄을 찾는다
-            Vector3 along = position + course.Forward * (to - from);
+            Vector3 along = position + ForwardFor(course, position) * (to - from);
             return course.FindLandingLane(along, direction) != TightropeCourse.NoLane;
         }
 
@@ -149,12 +149,14 @@ namespace CurtainCall.Tightrope
             landing.y = LandingHeight();
             distance = course.GetDistance(landing);
             float side = course.GetSide(landing);
+            float originalDistance = distance;
+            Vector3 forward = ForwardFor(course, mover.transform.position);
 
             // 합체 가능한 동료와 겹치면 원래 도착점을 유지한다. 실제 합체 요청은 착지 순간 보낸다.
             var target = FindLaneLinkTarget(direction);
             if (target != null)
             {
-                Vector3 originalAlong = mover.transform.position + course.Forward * (distance - course.GetDistance(mover.transform.position));
+                Vector3 originalAlong = mover.transform.position + forward * (distance - course.GetDistance(mover.transform.position));
                 lane = course.FindLandingLane(originalAlong, direction);
                 return lane != TightropeCourse.NoLane && course.IsLaneChangeAllowed(distance);
             }
@@ -163,36 +165,43 @@ namespace CurtainCall.Tightrope
             int count = PlayerMover.All.Count;
             for (int i = 0; i <= count; i++)
             {
-                if (!TryFindBehindBlockers(course, landing.y, side, distance, out float behind)) break;
+                Vector3 point = landing + forward * (distance - originalDistance);
+                if (!TryFindBehindBlockers(course, point, side, distance, out float behind)) break;
                 distance = behind;
             }
 
-            Vector3 along = mover.transform.position + course.Forward * (distance - course.GetDistance(mover.transform.position));
+            Vector3 along = mover.transform.position + forward * (distance - course.GetDistance(mover.transform.position));
             lane = course.FindLandingLane(along, direction);
             return lane != TightropeCourse.NoLane && course.IsLaneChangeAllowed(distance);
         }
+
+        static Vector3 ForwardFor(TightropeCourse course, Vector3 position) => course.HasIndependentRopes
+            ? course.ForwardAt(position) : course.Forward;
 
         /// <summary>
         /// 도착 줄의 그 거리에서 내 몸과 겹치는 다른 플레이어가 있으면, 그 사람들 모두의 바로 뒤(닿기 직전 + 몸 간격) 거리.
         /// 위아래로 떨어진 사람(목마 위층 등)과 통과 상태(사망 래그돌 등)는 보지 않는다.
         /// </summary>
-        bool TryFindBehindBlockers(TightropeCourse course, float height, float side, float distance, out float behind)
+        bool TryFindBehindBlockers(TightropeCourse course, Vector3 landing, float side, float distance, out float behind)
         {
             behind = distance;
             bool found = false;
             float gap = GameSettings.Base.Character.PlayerGap;
+            Vector3 forward = ForwardFor(course, mover.transform.position);
+            Vector3 right = Vector3.Cross(Vector3.up, forward);
 
             foreach (var other in PlayerMover.All)
             {
                 if (other == mover || other.PassThrough) continue;
                 Vector3 position = other.transform.position;
-                if (Mathf.Abs(position.y - height) >= Mathf.Max(mover.BodyHeight, other.BodyHeight)) continue;
+                if (Mathf.Abs(position.y - landing.y) >= Mathf.Max(mover.BodyHeight, other.BodyHeight)) continue;
 
                 float reach = mover.BodyRadius + other.BodyRadius;
-                float dSide = course.GetSide(position) - side;
+                // 독립줄 배열 번호는 좌우 순서/공간을 뜻하지 않는다. 실제 도착점과 몸통 간격을 쓴다.
+                float dSide = course.HasIndependentRopes ? Vector3.Dot(position - landing, right) : course.GetSide(position) - side;
                 if (Mathf.Abs(dSide) >= reach) continue; // 다른 줄
 
-                float dAlong = course.GetDistance(position) - distance;
+                float dAlong = course.HasIndependentRopes ? Vector3.Dot(position - landing, forward) : course.GetDistance(position) - distance;
                 float contact = Mathf.Sqrt(reach * reach - dSide * dSide);
                 if (Mathf.Abs(dAlong) >= contact) continue; // 겹치지 않음
 

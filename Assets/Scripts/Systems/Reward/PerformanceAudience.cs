@@ -23,6 +23,8 @@ namespace CurtainCall.Reward
         readonly Dictionary<ulong, AudienceStall> stalls = new();
         readonly HashSet<ulong> bounced = new();
         readonly Dictionary<int, int> gateLanes = new();
+        readonly Dictionary<ulong, long> reactionsSeen = new();
+        PiggybackSystem piggyback;
         PerformanceRewards rewards;
         string identity;
         AudienceReactionSettings Settings => AudienceReactionSettings.Current;
@@ -34,6 +36,8 @@ namespace CurtainCall.Reward
             HumanCannonTrampoline.ServerBounced += Bounce;
             HumanCannonSystem.ServerFell += CannonFell;
             TightropeHangSystem.ServerHangStarted += RopeFell;
+            TightropeHangSystem.ServerRescueSucceeded += Cooperation;
+            TightropeCatchSystem.ServerCatchSucceeded += Cooperation;
         }
         // 외줄 추락은 매달림 시작에 한 번 −15(뒤 낙사에 중복 차감 없음).
         void RopeFell(ulong client)
@@ -47,16 +51,30 @@ namespace CurtainCall.Reward
             Bind();
             if (humanCannon && Active && Settings != null) React(client, -Settings.fallJeer);
         }
-        void Bind() => rewards = PerformanceRewards.Instance;
+        void Bind()
+        {
+            rewards = PerformanceRewards.Instance;
+            if (piggyback == PiggybackSystem.Current) return;
+            if (piggyback != null) piggyback.HandholdConfirmed -= Handhold;
+            piggyback = PiggybackSystem.Current;
+            if (piggyback != null) piggyback.HandholdConfirmed += Handhold;
+        }
         void ResetAttempt()
         {
-            encounters.Clear(); stalls.Clear(); bounced.Clear(); gateLanes.Clear();
+            encounters.Clear(); stalls.Clear(); bounced.Clear(); gateLanes.Clear(); reactionsSeen.Clear();
         }
         void Update() => Bind();
         void LateUpdate()
         {
             if (!Active || Settings == null) { identity = null; ResetAttempt(); return; }
             if (identity != rewards.State.Performance.Id) { identity = rewards.State.Performance.Id; ResetAttempt(); }
+            foreach (var person in rewards.State.Segments)
+            {
+                reactionsSeen.TryGetValue(person.ClientId, out long previous);
+                if (person.ReactionSequence > previous && person.ReactionDelta > 0
+                    && stalls.TryGetValue(person.ClientId, out var stall)) stall.Reset();
+                reactionsSeen[person.ClientId] = person.ReactionSequence;
+            }
             foreach (var player in NetworkPlayer.All)
             {
                 if (!Eligible(player)) continue;
@@ -81,13 +99,29 @@ namespace CurtainCall.Reward
         {
             if (!Active || (delta == 0 && !resetInterest)) return;
             string id = Participant(client);
-            if (id != null) rewards.AddAudienceReaction(id, delta, resetInterest);
+            if (id != null)
+            {
+                if (delta > 0 && stalls.TryGetValue(client, out var stall)) stall.Reset();
+                rewards.AddAudienceReaction(id, delta, resetInterest);
+            }
+        }
+        void Handhold(NetworkPlayer first, NetworkPlayer second)
+        { if (first != null && second != null) Cooperation(first.OwnerClientId, second.OwnerClientId); }
+        void Cooperation(ulong first, ulong second)
+        {
+            Bind();
+            if (humanCannon || !Active || Settings == null || first == second) return;
+            React(first, Settings.cooperation); React(second, Settings.cooperation);
         }
         void Bounce(ulong client)
         {
             Bind();
             // 같은 오브제의 의도 행동 성공은 공연당 최초 1회. 트램펄린은 한 사람당 처음 튀어 오른 한 번만 센다.
-            if (humanCannon && Active && Settings != null && bounced.Add(client)) React(client, Settings.objectFirst);
+            if (!humanCannon || !Active || Settings == null || !bounced.Add(client)) return;
+            var trampoline = HumanCannonTrampoline.Current;
+            if (trampoline != null && trampoline.Carrier != CannonSeatState.Nobody && trampoline.Carrier != client)
+            { React(client, Settings.cooperation); React(trampoline.Carrier, Settings.cooperation); }
+            else React(client, Settings.objectFirst);
         }
         /// <summary>진행이 없을 때 시간 끌기 야유. 야유도 관심 감소 유예를 다시 센다.</summary>
         void Stall(NetworkPlayer player, bool active, float progress)
@@ -109,6 +143,13 @@ namespace CurtainCall.Reward
                 : encounter.WasClose ? Settings.closeDodge : 0;
             React(player.OwnerClientId, delta);
         }
+        void SampleProximity(NetworkPlayer player, string key, float distance, bool touches, bool near)
+        {
+            var id = (player.OwnerClientId, key);
+            if (!encounters.TryGetValue(id, out var encounter)) encounters[id] = encounter = new AudienceEncounter();
+            if (encounter.SampleProximity(distance, Settings.approachDistance, (int)player.LostParts, touches, near))
+                React(player.OwnerClientId, Settings.closeDodge);
+        }
         void ObserveRope(NetworkPlayer player)
         {
             var course = TightropeCourse.Current;
@@ -119,13 +160,17 @@ namespace CurtainCall.Reward
             if (saws == null) return;
             var body = new BodyCapsule(player.transform.position, mover.BodyHeight, mover.BodyRadius);
             var nearBody = new BodyCapsule(player.transform.position, mover.BodyHeight, mover.BodyRadius + Settings.closeDodgeMargin);
+            var ground = player.transform.position; ground.y = course.transform.position.y;
+            var projectedBody = new BodyCapsule(ground, mover.BodyHeight, mover.BodyRadius + Settings.closeDodgeMargin);
             var s = saws.Settings;
             for (int i = 0; i < saws.HorizontalCount; i++)
             {
                 if (!saws.TryGetHorizontalPosition(i, out var center)) continue;
                 var disc = new SawDisc(center, Vector3.up, s.horizontalColliderDiameter * .5f, s.horizontalThickness * .5f);
-                Sample(player, "horizontal:" + i, distance - s.GetHorizontalDistance(i),
-                    SawMath.TryGetContact(disc, body, out _), SawMath.TryGetContact(disc, nearBody, out _));
+                // 횡으로 지나가는 톱은 W/S 진행 거리와 무관하다. 점프 중에도 발밑 위험 영역의 통과를 추적한다.
+                SampleProximity(player, "horizontal:" + i, Vector3.ProjectOnPlane(player.transform.position - center, Vector3.up).magnitude,
+                    SawMath.TryGetContact(disc, body, out _), SawMath.TryGetContact(disc, nearBody, out _)
+                        || player.IsAirborne && SawMath.TryGetContact(disc, projectedBody, out _));
             }
             int lane = NearestLane(course, player.transform.position, distance);
             if (saws.IsCooperativeGateActive) gateLanes[saws.CooperativeGateIndex] = saws.CooperativeGateLane;
@@ -211,6 +256,10 @@ namespace CurtainCall.Reward
             HumanCannonTrampoline.ServerBounced -= Bounce;
             HumanCannonSystem.ServerFell -= CannonFell;
             TightropeHangSystem.ServerHangStarted -= RopeFell;
+            TightropeHangSystem.ServerRescueSucceeded -= Cooperation;
+            TightropeCatchSystem.ServerCatchSucceeded -= Cooperation;
+            if (piggyback != null) piggyback.HandholdConfirmed -= Handhold;
+            piggyback = null;
             rewards = null; identity = null; ResetAttempt();
         }
     }

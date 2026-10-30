@@ -15,6 +15,7 @@ namespace CurtainCall.UI.SceneIntegration
         string previousTitle, previousSubtitle, previousMessage;
         float previousWidth;
         bool initialized, interaction, banner;
+        CommonWaitingRoomUI waitingRoom;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Bootstrap()
@@ -48,6 +49,12 @@ namespace CurtainCall.UI.SceneIntegration
             if (initialized) return;
             panel = (RectTransform)transform;
             banner = GetComponent<SystemBannerView>() != null;
+            if (banner && gameObject.scene.path == CommonWaitingRoomUI.ScenePath)
+                foreach (var root in gameObject.scene.GetRootGameObjects())
+                {
+                    waitingRoom = root.GetComponentInChildren<CommonWaitingRoomUI>(true);
+                    if (waitingRoom != null) break;
+                }
             title = transform.Find("Motion/60_TitleTMP")?.GetComponent<TMP_Text>();
             subtitle = transform.Find("Motion/70_SubtitleTMP")?.GetComponent<TMP_Text>();
             message = transform.Find("Motion/60_MessageTMP")?.GetComponent<TMP_Text>();
@@ -76,7 +83,7 @@ namespace CurtainCall.UI.SceneIntegration
                 var space = CommonUiSceneLoader.CurrentSpace;
                 bool balanceAtTop = space != null && space.LocalBalance != null
                     && CurtainCall.Settings.GameSettings.Base.HudLayout.BalancePosition == CurtainCall.Settings.BaseGameSettings.BalanceHudPosition.TopCenter;
-                HudLayout.PlaceBanner(panel, balanceAtTop);
+                HudLayout.PlaceBanner(panel, balanceAtTop, waitingRoom != null ? waitingRoom.TimerBannerTop : 0);
             }
             if (previousTitle != title?.text || previousSubtitle != subtitle?.text
                 || previousMessage != message?.text || !Mathf.Approximately(previousWidth, panel.rect.width))

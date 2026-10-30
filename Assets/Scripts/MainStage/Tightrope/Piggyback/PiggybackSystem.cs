@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -91,6 +92,7 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return false;
             if (climber == null || target == null || climber == target) return false;
+            if (!TightropeCourse.Current.UsesRopeRules(climber) || !TightropeCourse.Current.UsesRopeRules(target)) return false;
             var pole = TightropeSwingPole.Current;
             if (pole != null && (pole.IsCrossing(climber) || pole.IsCrossing(target))) return false;
             if (TightropeRelayGate.Current != null && (TightropeRelayGate.Current.IsHeld(climber) || TightropeRelayGate.Current.IsHeld(target))) return false;
@@ -414,12 +416,14 @@ namespace CurtainCall.Tightrope
         public NetworkPlayer FindMountTarget(NetworkPlayer climber)
         {
             if (!IsGameplayActive || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
-                || climber.IsAirborne || IsInStack(climber) || UsingDevice(climber)) return null;
+                || climber.IsAirborne || IsInStack(climber) || UsingDevice(climber)
+                || !TightropeCourse.Current.UsesRopeRules(climber)) return null;
             float reach = LinkReach(climber), best = float.PositiveInfinity;
             NetworkPlayer target = null;
             foreach (var other in NetworkPlayer.All)
             {
                 if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)) continue;
+                if (!TightropeCourse.Current.UsesRopeRules(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
                 Vector3 center = PlayerInteraction.Center(other);
@@ -473,6 +477,14 @@ namespace CurtainCall.Tightrope
         }
 
         string ServerTryUnlink(ulong riderId) => UnlinkTop(riderId, null);
+
+        public void ServerReleaseForInspection(ulong actor)
+        {
+            if (session == null || !session.IsHost) return;
+            if (belowOf.Remove(actor, out ulong below)) aboveOf.Remove(below);
+            for (ulong current = actor; aboveOf.Remove(current, out ulong upper); current = upper) belowOf.Remove(upper);
+            ServerBroadcast();
+        }
 
         string UnlinkTop(ulong riderId, Action transferred)
         {
@@ -534,7 +546,7 @@ namespace CurtainCall.Tightrope
                     {
                         if (hangs != null && TightropeCourse.Current != null)
                             hangs.ServerTryHang(upper, TightropeCourse.Current.GetDistance(upper.transform.position));
-                        else upper.ServerSetState(PlayerState.Fallen);
+                        else if (!EscapeDevelopmentSession.FallConsequencesSuppressed(upper)) upper.ServerSetState(PlayerState.Fallen);
                     }
                     (dropped ??= new List<ulong>()).Add(up);
                 }

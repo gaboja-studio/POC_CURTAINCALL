@@ -30,6 +30,8 @@
 
 ## 기획자용 에셋 도우미
 
+탈출로 배경은 `Assets/Scenes/Levels/escape_route{,_b,_c}.unity`, 제작 도구는 `Assets/Scripts/EscapeRoute/Editor/`, 비행/라벨 미리보기는 `Assets/Scripts/EscapeRoute/`에 있다. [A/B/C 검토 사실](../../Harness/Project/Facts/escape-route-layouts.md)을 기준으로 확인한다.
+
 - Windows `asset-helper.vbs`, Mac `asset-helper-mac.zip`의 Finder 앱 → `Scripts/Asset-helper/launch.ps1` → `start.ps1` 로컬 UI.
 - `core.ps1`: 상태 스냅샷·비공개 에셋 저장·게임 gitlink만 저장·맞추기·보관 복구. `worker.ps1`이 별도 프로세스에서 실행한다.
 - [사용 안내](../Guides/asset-helper.md), [LFS 복구 함정](../../Harness/Project/Pitfalls/asset-helper-lfs-restore.md).

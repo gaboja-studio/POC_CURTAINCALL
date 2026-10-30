@@ -69,3 +69,8 @@
 - 사용자 지적: 숨은 문은 기계실 문이며 탈출로 문 자리 배치는 열 문 너머에 키패드가 있는 오류. 벽 판·배관함(뚜껑)·키패드를 기계실 문 앞으로 옮기고, 기계실 문은 키패드 정답으로 함께 열림(openedBy, 열쇠2 제외). 테두리 기둥·인방 숨김, 강철 띠 이음, 문턱 돌출 정리. 탈출로 문은 처음부터 표시.
 - 최종 M2_ 전체 23/30(기존2+키보드 입력5), 입력5는 단독 재실행 PASS. Reach1/1·EditMode WaitingRoom 88/88. 실제2인 미검증. 미커밋. 상세 escape-door-keyslots.md.
 - 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## dev 병합 (b19189eb까지 6커밋, 미커밋)
+- 충돌 17개 중 실제 양쪽 변경은 CommonInteractionUI.cs 1개(dev: 탈출로 협동 버튼·봉 우선순위, 우리: 외곽선 2개 제한 해제) → 둘 다 유지. 나머지 16개는 dev가 #235로 우리 작업을 스쿼시 반영하며 생긴 가짜 add/add → 실제 분기점 c4e6ea1d 기준 3-way로 다시 합쳐 우리 버전 확정. 전체 1,738파일 대조 불일치 0.
+- _ThirdParty 서브모듈 98904299→26d5009e(삐에로·곰·소녀 캐릭터 등). 컴파일 PASS, 씬 missing script 0, 숨은 문·배관함 유지.
+- 사용자 지시로 충돌 확인까지만. 실행한 것: EditMode 1226/1228(실패2 StartConnection은 단독 5/5), DevelopmentSession 1/1, HumanoidPlayer 20/20. LobbyHud·M2 PlayMode는 미실행.
