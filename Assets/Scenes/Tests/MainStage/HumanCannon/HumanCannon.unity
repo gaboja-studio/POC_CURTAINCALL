@@ -697,6 +697,10 @@ MonoBehaviour:
   forwardSpeed: 7.2243333
   upwardSpeed: 12
   airControlSpeed: 4.5
+  animateBarrel: 1
+  barrelLowerSeconds: 1.2
+  barrelRestSeconds: 0.35
+  barrelRecoverySeconds: 2.8
 --- !u!4 &6958373
 Transform:
   m_ObjectHideFlags: 0
@@ -24384,6 +24388,10 @@ MonoBehaviour:
   forwardSpeed: 8
   upwardSpeed: 12
   airControlSpeed: 4.5
+  animateBarrel: 1
+  barrelLowerSeconds: 1.2
+  barrelRestSeconds: 0.35
+  barrelRecoverySeconds: 2.8
 --- !u!1 &309496921
 GameObject:
   m_ObjectHideFlags: 0
@@ -66000,6 +66008,10 @@ MonoBehaviour:
   forwardSpeed: 7.2959137
   upwardSpeed: 12
   airControlSpeed: 4.5
+  animateBarrel: 1
+  barrelLowerSeconds: 1.2
+  barrelRestSeconds: 0.35
+  barrelRecoverySeconds: 2.8
 --- !u!1 &810490189
 GameObject:
   m_ObjectHideFlags: 0
@@ -67460,6 +67472,10 @@ MonoBehaviour:
   forwardSpeed: 7.999999
   upwardSpeed: 12
   airControlSpeed: 4.5
+  animateBarrel: 1
+  barrelLowerSeconds: 1.2
+  barrelRestSeconds: 0.35
+  barrelRecoverySeconds: 2.8
 --- !u!1 &822138172
 GameObject:
   m_ObjectHideFlags: 0
@@ -71067,6 +71083,10 @@ MonoBehaviour:
   forwardSpeed: 8
   upwardSpeed: 12
   airControlSpeed: 4.5
+  animateBarrel: 1
+  barrelLowerSeconds: 1.2
+  barrelRestSeconds: 0.35
+  barrelRecoverySeconds: 2.8
 --- !u!1 &871091490
 GameObject:
   m_ObjectHideFlags: 0
@@ -74248,6 +74268,10 @@ MonoBehaviour:
   forwardSpeed: 7.2959137
   upwardSpeed: 12
   airControlSpeed: 4.5
+  animateBarrel: 1
+  barrelLowerSeconds: 1.2
+  barrelRestSeconds: 0.35
+  barrelRecoverySeconds: 2.8
 --- !u!1 &909359354
 GameObject:
   m_ObjectHideFlags: 0
@@ -84770,6 +84794,10 @@ MonoBehaviour:
   forwardSpeed: 8.079266
   upwardSpeed: 12
   airControlSpeed: 4.5
+  animateBarrel: 1
+  barrelLowerSeconds: 1.2
+  barrelRestSeconds: 0.35
+  barrelRecoverySeconds: 2.8
 --- !u!1 &1031387887
 GameObject:
   m_ObjectHideFlags: 0
@@ -127676,6 +127704,10 @@ MonoBehaviour:
   forwardSpeed: 8
   upwardSpeed: 12
   airControlSpeed: 4.5
+  animateBarrel: 1
+  barrelLowerSeconds: 1.2
+  barrelRestSeconds: 0.35
+  barrelRecoverySeconds: 2.8
 --- !u!1 &1589304942
 GameObject:
   m_ObjectHideFlags: 0
@@ -137364,6 +137396,10 @@ MonoBehaviour:
   forwardSpeed: 8
   upwardSpeed: 12
   airControlSpeed: 4.5
+  animateBarrel: 1
+  barrelLowerSeconds: 1.2
+  barrelRestSeconds: 0.35
+  barrelRecoverySeconds: 2.8
 --- !u!1 &1706566940
 GameObject:
   m_ObjectHideFlags: 0
@@ -156833,6 +156869,10 @@ MonoBehaviour:
   forwardSpeed: 8.079266
   upwardSpeed: 12
   airControlSpeed: 4.5
+  animateBarrel: 1
+  barrelLowerSeconds: 1.2
+  barrelRestSeconds: 0.35
+  barrelRecoverySeconds: 2.8
 --- !u!1 &1957524715
 GameObject:
   m_ObjectHideFlags: 0

@@ -5170,6 +5170,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1673472892}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -6809,6 +6810,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3014348704772953330, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3467713593522519652, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: upwardSpeed
       value: 22.247107
@@ -6816,6 +6825,10 @@ PrefabInstance:
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: forwardSpeed
       value: 8.030303
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: animateBarrel
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: airControlSpeed
@@ -6827,7 +6840,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1957997641}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
 --- !u!4 &17377621 stripped
@@ -15299,6 +15315,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &25049004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32830,6 +32847,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &58400566
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32853,6 +32873,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 2068336747}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -49116,6 +49137,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &89915592
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -49139,6 +49163,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1230100593}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -57149,6 +57174,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3014348704772953330, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3467713593522519652, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: upwardSpeed
       value: 5.908909
@@ -57156,6 +57189,10 @@ PrefabInstance:
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: forwardSpeed
       value: 10.044255
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: animateBarrel
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: airControlSpeed
@@ -57171,6 +57208,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1365675607}
+    - targetCorrespondingSourceObject: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1680697694}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
 --- !u!4 &109485223 stripped
@@ -58776,6 +58816,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &115289897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66153,6 +66194,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &121722158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66176,6 +66220,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 2033225086}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -122271,6 +122316,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &249979464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125628,6 +125674,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &257408498
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -129278,6 +129325,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &270149678
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -129301,6 +129351,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1923711990}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -205791,6 +205842,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1387825724}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -237681,6 +237733,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3014348704772953330, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3467713593522519652, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: upwardSpeed
       value: 11.925139
@@ -237688,6 +237748,10 @@ PrefabInstance:
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: forwardSpeed
       value: 13.289172
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: animateBarrel
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: airControlSpeed
@@ -237703,6 +237767,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 470265028}
+    - targetCorrespondingSourceObject: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1181505973}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
 --- !u!114 &426086034 stripped
@@ -239224,6 +239291,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &429727352
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -240335,6 +240403,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &431397061
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -240358,6 +240429,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1882261376}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -250937,6 +251009,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &444575727
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -282428,6 +282501,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &516708150
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -285650,6 +285724,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &524263726
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -289729,6 +289804,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &534050304
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -343251,6 +343327,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 810041618}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -355194,6 +355271,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &672336908
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -355217,6 +355297,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1591147537}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -356231,6 +356312,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &674973012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -356254,6 +356338,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 642701394}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -393973,6 +394058,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &725882913
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399943,6 +400029,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &740247751
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399966,6 +400055,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1304865871}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -415388,6 +415478,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &757118318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -415411,6 +415504,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 63485329}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -417993,6 +418087,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &762882712
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -418016,6 +418113,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1640748068}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -449060,6 +449158,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &821451528
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -449083,6 +449184,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1166229347}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -465624,6 +465726,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &861612828
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -465647,6 +465752,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1732162244}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -490142,6 +490248,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &904795896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -491748,6 +491855,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &907757102
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -520125,6 +520233,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &974558723
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -523967,6 +524076,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &982601077
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -546496,6 +546606,7 @@ MonoBehaviour:
   bladeHalfLength: 1.4
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1025702107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -559698,6 +559809,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1058463336
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -589810,6 +589922,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1135561537
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -610122,6 +610235,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3014348704772953330, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3467713593522519652, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: upwardSpeed
       value: 9.107587
@@ -610129,6 +610250,10 @@ PrefabInstance:
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: forwardSpeed
       value: 12.864602
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: animateBarrel
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: airControlSpeed
@@ -610144,6 +610269,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1139616371}
+    - targetCorrespondingSourceObject: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1225045577}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
 --- !u!114 &1178590033 stripped
@@ -611249,6 +611377,68 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 1030981811, guid: abc00000000005779401086394493462, type: 3}
   m_PrefabInstance: {fileID: 1181347623}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1181505972
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 426086035}
+    m_Modifications:
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7299969795152445626, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_Name
+      value: CC_PropArt
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+--- !u!4 &1181505973 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+  m_PrefabInstance: {fileID: 1181505972}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1181681989
 GameObject:
@@ -634536,6 +634726,68 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1224962386}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1225045576
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1178590034}
+    m_Modifications:
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7299969795152445626, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_Name
+      value: CC_PropArt
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+--- !u!4 &1225045577 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+  m_PrefabInstance: {fileID: 1225045576}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1225095304
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -655571,6 +655823,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1279170284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -661429,6 +661682,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1294317640
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -689079,6 +689333,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &1362158424
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -689102,6 +689359,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1697572325}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -715612,6 +715870,68 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1030977167, guid: abc00000000001892867072709019202, type: 3}
   m_PrefabInstance: {fileID: 1427269626}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1427361317
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1794225210}
+    m_Modifications:
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7299969795152445626, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_Name
+      value: CC_PropArt
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+--- !u!4 &1427361318 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+  m_PrefabInstance: {fileID: 1427361317}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1427363528
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -717648,6 +717968,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1433800522
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -779550,6 +779871,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1573000792
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -811609,6 +811931,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &1625827003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -811632,6 +811957,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1089939917}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -848862,6 +849188,68 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1680326510}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1001 &1680697693
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 109485223}
+    m_Modifications:
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7299969795152445626, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_Name
+      value: CC_PropArt
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+--- !u!4 &1680697694 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+  m_PrefabInstance: {fileID: 1680697693}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1680755610
 GameObject:
   m_ObjectHideFlags: 0
@@ -886070,6 +886458,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &1759497901
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -886093,6 +886484,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1280769179}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -894273,6 +894665,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &1770589008
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -894296,6 +894691,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 157747323}
   hangLength: 1.5
   grabDistance: 2.6
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 150
@@ -897493,6 +897889,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1777904474
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -903902,6 +904299,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3014348704772953330, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3467713593522519652, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: upwardSpeed
       value: 6.1312504
@@ -903909,6 +904314,10 @@ PrefabInstance:
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: forwardSpeed
       value: 7.238017
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: animateBarrel
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: airControlSpeed
@@ -903927,6 +904336,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1350944969}
+    - targetCorrespondingSourceObject: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1427361318}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
 --- !u!114 &1794225209 stripped
@@ -918895,6 +919307,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1818198180
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -919358,6 +919771,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1819407117
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -934942,6 +935356,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &1861826363
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -934965,6 +935382,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 1161007984}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -937131,6 +937549,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1866713273
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -954968,6 +955387,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1900010147
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -962505,6 +962925,7 @@ MonoBehaviour:
   surfaceHeight: 0.5
   halfSize: {x: 2, y: 2}
   circularSurface: 1
+  usePropOutline: 0
   requireCarrierForBounce: 0
   loadHalfSize: {x: 2.4753408, y: 2.4753408}
   grabDistance: 4
@@ -983744,6 +984165,68 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1957556822}
   m_Mesh: {fileID: 4300000, guid: f681628b809fe9747a8581940cfa44f0, type: 2}
+--- !u!1001 &1957997640
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 17377621}
+    m_Modifications:
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7299969795152445626, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+      propertyPath: m_Name
+      value: CC_PropArt
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+--- !u!4 &1957997641 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4561106918249521317, guid: 23063395ab6735f418f033ba2d3dcc19, type: 3}
+  m_PrefabInstance: {fileID: 1957997640}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1959086635
 GameObject:
   m_ObjectHideFlags: 0
@@ -995315,6 +995798,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 614297462}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -1011274,6 +1011758,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 235660971}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -1013812,6 +1014297,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &2018756375
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1039316,6 +1039802,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &2071664523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1043658,6 +1044145,7 @@ MonoBehaviour:
   rightAnchor: {fileID: 902094782}
   hangLength: 1.5
   grabDistance: 3
+  requireClearGrabPath: 0
   holdSeconds: 0
   warningSeconds: 2
   swingAcceleration: 180
@@ -1080081,6 +1080569,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &2142820620
 MonoBehaviour:
   m_ObjectHideFlags: 0

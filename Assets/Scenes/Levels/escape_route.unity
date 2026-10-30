@@ -8443,6 +8443,10 @@ PrefabInstance:
       value: 23.457375
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: animateBarrel
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: airControlSpeed
       value: 6
       objectReference: {fileID: 0}
@@ -21732,6 +21736,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &56653228
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25553,6 +25558,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &72710574
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35350,6 +35356,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &115289897
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -48555,6 +48562,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &161107864
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -66738,6 +66748,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &204498727
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -79480,6 +79493,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &249979464
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -97952,6 +97966,10 @@ PrefabInstance:
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: forwardSpeed
       value: 12.045454
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: animateBarrel
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: airControlSpeed
@@ -160358,6 +160376,10 @@ PrefabInstance:
       value: 9.697294
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: animateBarrel
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: airControlSpeed
       value: 6
       objectReference: {fileID: 0}
@@ -161201,6 +161223,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &431397061
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164766,6 +164791,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &444575727
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -171104,6 +171130,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &478318946
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -188476,6 +188505,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &516708150
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192448,6 +192478,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &534050304
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -192955,6 +192986,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &535939736
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -217138,6 +217170,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &556497491
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -256662,6 +256697,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &687813317
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -280714,6 +280752,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &727491550
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -306341,6 +306380,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &821451528
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -307073,6 +307115,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &823062549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -320976,6 +321021,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &864223773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -323287,6 +323335,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &873564405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -323876,6 +323927,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &877004069
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -340575,6 +340629,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &891952163
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -343077,6 +343134,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &904795896
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -343675,6 +343733,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &906564186
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -377337,6 +377396,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &974558723
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -383874,6 +383934,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &981493041
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -384347,6 +384410,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &982601077
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -392050,6 +392114,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &995532183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -409072,6 +409139,7 @@ MonoBehaviour:
   bladeHalfLength: 1.4
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1025702107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -417312,6 +417380,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1058463336
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -429804,6 +429873,10 @@ PrefabInstance:
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: forwardSpeed
       value: 5.519967
+      objectReference: {fileID: 0}
+    - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
+      propertyPath: animateBarrel
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8619374794945487727, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
       propertyPath: airControlSpeed
@@ -498702,6 +498775,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1279170284
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -501145,6 +501219,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1294317640
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -513762,6 +513837,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1330078451
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -514256,6 +514332,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1333376286
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -551499,6 +551576,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1427195009
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -558027,6 +558105,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1433800522
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -603667,6 +603746,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1573000792
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -633848,6 +633928,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &1643712037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -647804,6 +647887,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &1666190306
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -677753,6 +677839,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &1728832735
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -679452,6 +679541,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1735293480
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -704187,6 +704277,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1819407117
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -731506,6 +731597,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &1900010147
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -749484,6 +749576,7 @@ MonoBehaviour:
   surfaceHeight: 0.5
   halfSize: {x: 2, y: 2}
   circularSurface: 1
+  usePropOutline: 0
   requireCarrierForBounce: 0
   loadHalfSize: {x: 2.4753408, y: 2.4753408}
   grabDistance: 4
@@ -752829,6 +752922,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &1932800611
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -759052,6 +759148,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!1 &1961920984
 GameObject:
   m_ObjectHideFlags: 0
@@ -762804,6 +762903,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &1976795199
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -777487,6 +777589,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &2018756375
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -778897,6 +779000,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonOutline
   outlineMaterial: {fileID: 2100000, guid: eca9ded79a8b9fc45b9801bc7ab724cc, type: 2}
+  fadeWithDistance: 0
+  fadeFullDistance: 5
+  fadeHiddenDistance: 14
 --- !u!114 &2022952107
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -794342,6 +794448,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &2071664523
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -802711,6 +802818,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &2089054335
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -833391,6 +833499,7 @@ MonoBehaviour:
   bladeHalfLength: 1.1
   bladeHalfThickness: 0.14
   rotationSpeed: 105
+  authoredPath: 0
 --- !u!114 &2142820620
 MonoBehaviour:
   m_ObjectHideFlags: 0

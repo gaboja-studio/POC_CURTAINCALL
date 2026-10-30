@@ -1,0 +1,3772 @@
+{
+  "status": "completed",
+  "duration": 9.63,
+  "summary": {
+    "total": 537,
+    "passed": 536,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AllMovingHazardsFitTheirDamageVolumesAtTheActualPose(0)",
+      "Status": "Passed",
+      "Duration": 0.3068303,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AllMovingHazardsFitTheirDamageVolumesAtTheActualPose(0.371f)",
+      "Status": "Passed",
+      "Duration": 0.1347621,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AllMovingHazardsFitTheirDamageVolumesAtTheActualPose(2.3f)",
+      "Status": "Passed",
+      "Duration": 0.1354428,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AppliedFloorAndCushionBoundsMatchTheRetainedSolidColliders",
+      "Status": "Passed",
+      "Duration": 0.1582826,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.AppliedSceneMeshesAndMaterialsResolveFromTheCheckedOutDependency",
+      "Status": "Passed",
+      "Duration": 0.2163076,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.CannonsRestOnTheirWheels_AndLinkedPolesKeepVisibleWarningBands",
+      "Status": "Passed",
+      "Duration": 0.2283682,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryCannonKeepsItsBoardingSeatAndLaunchAnchors",
+      "Status": "Passed",
+      "Duration": 0.1259511,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryPoleKeepsBarAndCableAlignedThroughoutSwing(-80.0f)",
+      "Status": "Passed",
+      "Duration": 0.1316879,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryPoleKeepsBarAndCableAlignedThroughoutSwing(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.1247395,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.EveryPoleKeepsBarAndCableAlignedThroughoutSwing(80.0f)",
+      "Status": "Passed",
+      "Duration": 0.1258621,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.MetalTransportPanelsKeepSafeLandingAndVisibleOccupiedIndicators",
+      "Status": "Passed",
+      "Duration": 0.1312566,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.OriginalPropAtlasKeepsIvoryUvAndNonMetallicRoughFabric",
+      "Status": "Passed",
+      "Duration": 0.1304702,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.RoundFabricMatchesRadialBounceAndKeepsVisibleInteractiveHandle",
+      "Status": "Passed",
+      "Duration": 0.1343583,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.SawDiscsTurnInPlaceWhileWallAndPassageStayAcrossTheCourse",
+      "Status": "Passed",
+      "Duration": 0.1307043,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.AppliedCannonArtTests.SawWallGapsStayVisibleButAreNarrowerThanThePlayerCapsule",
+      "Status": "Passed",
+      "Duration": 0.1359223,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.AuthoredClipsOnlyMoveBarrelAndJoinAtMatchingEndpoints",
+      "Status": "Failed",
+      "Duration": 0.008677,
+      "Message": "  Muzzle must clear the floor\r\n  Expected: greater than 0.200000003f\r\n  But was:  -0.395699024f\r\n",
+      "StackTrace": "at CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.AuthoredClipsOnlyMoveBarrelAndJoinAtMatchingEndpoints () [0x00239] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\MainStage\\HumanCannon\\Editor\\Tests\\CannonBarrelTests.cs:89\r\n"
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.ExternalInterlockCannotBeOverwrittenByCooldownCompletion",
+      "Status": "Passed",
+      "Duration": 0.0010784,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.LateJoinSeeksCurrentPhaseAndResetNeverReplaysPreviousShot",
+      "Status": "Passed",
+      "Duration": 0.0005173,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.SavedCourseEnablesMotionWithoutMovingSeatMuzzleOrLaunchVelocity",
+      "Status": "Passed",
+      "Duration": 0.127219,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.ShotFinishesLowerAndRestBeforeFourStepRecoveryAllowsBoarding",
+      "Status": "Passed",
+      "Duration": 0.0003412,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.UnlockDuringShotWaitsForLoweringToFinish",
+      "Status": "Passed",
+      "Duration": 0.0001791,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonFlightSyncTests.Disconnect_InvalidatesPendingReplyAndResetsRegistry",
+      "Status": "Passed",
+      "Duration": 0.0043108,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonFlightSyncTests.HostRemoval_AppliesOnlyToMatchingFlight_AndCannotRemoveNewLaunch",
+      "Status": "Passed",
+      "Duration": 0.0015644,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonFlightSyncTests.InvalidCount_DoesNotConsumeSnapshotOrChangeExistingFlights(-1)",
+      "Status": "Passed",
+      "Duration": 0.0006102,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonFlightSyncTests.InvalidCount_DoesNotConsumeSnapshotOrChangeExistingFlights(1)",
+      "Status": "Passed",
+      "Duration": 0.0001665,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonFlightSyncTests.InvalidCount_DoesNotConsumeSnapshotOrChangeExistingFlights(int.MaxValue)",
+      "Status": "Passed",
+      "Duration": 0.0002125,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonFlightSyncTests.InvalidEntries_DoNotPartiallyReplaceRegistry",
+      "Status": "Passed",
+      "Duration": 0.0004969,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonFlightSyncTests.Pruning_PublishesRemovedIdentity_WithoutRemovingOtherFlights",
+      "Status": "Passed",
+      "Duration": 0.0018498,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonFlightSyncTests.Restart_InvalidatesPendingSnapshotAndClearsExistingFlights",
+      "Status": "Passed",
+      "Duration": 0.0005805,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonFlightSyncTests.Snapshot_OnlyServerReplyIsAccepted_AndDuplicateCannotRestoreEndedFlight",
+      "Status": "Passed",
+      "Duration": 0.0002889,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonFlightSyncTests.Snapshot_RestoresCannonAndGroundFlightsWithCurrentPoleSegments_BeforePlayerSpawn",
+      "Status": "Passed",
+      "Duration": 0.0005262,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonGroundMarkerTests.Projection_IgnoresTriggerAndNonLandingObstacle_AndDoesNotInventGroundInVoid",
+      "Status": "Passed",
+      "Duration": 0.0127604,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonGroundMarkerTests.Projection_IncludesCourseFloorWithoutTurningItIntoSafeLandingZone",
+      "Status": "Passed",
+      "Duration": 0.0019251,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonGroundMarkerTests.Projection_UsesNearestFloorDirectlyBelowAndFollowsItsHeight",
+      "Status": "Passed",
+      "Duration": 0.0024538,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardCourseTests.AllSevenPoles_HaveTheirOwnUpperCablesAndAnchorsWithoutFloorSupports",
+      "Status": "Passed",
+      "Duration": 0.0042761,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardCourseTests.CurrentBuildUsesSixtyPercentGroundSawDensityWithoutRestoringRemovedAirHazards",
+      "Status": "Passed",
+      "Duration": 0.0017575,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardCourseTests.Difficulty_UsesApprovedSpeedAndWindPresets(1,1.0f,0.6f)",
+      "Status": "Passed",
+      "Duration": 0.0003338,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardCourseTests.Difficulty_UsesApprovedSpeedAndWindPresets(2,1.25f,0.8f)",
+      "Status": "Passed",
+      "Duration": 6.58E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardCourseTests.Difficulty_UsesApprovedSpeedAndWindPresets(3,1.5f,1.0f)",
+      "Status": "Passed",
+      "Duration": 4.31E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardCourseTests.FiveRestPoles_AreDistributedAwayFromCannonsWhileBothGatePolesStayInPlace",
+      "Status": "Passed",
+      "Duration": 0.0028051,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardCourseTests.SavedCourse_DefaultsToLevelOneAndTenMinuteTarget_WithEveryHazardRegistered",
+      "Status": "Passed",
+      "Duration": 0.0023223,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardCourseTests.SavedCourse_HasNoRegisteredOrSceneWindZones",
+      "Status": "Passed",
+      "Duration": 0.0006381,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.CrawlingCapsule_DoesNotRetainStandingHeight",
+      "Status": "Passed",
+      "Duration": 0.000916,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.InvalidDimensionsAreRejected_AndLargeFiniteDistancesDoNotOverflow",
+      "Status": "Passed",
+      "Duration": 0.000247,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.NonFiniteInputs_NeverDamagePlayer(float.NaN)",
+      "Status": "Passed",
+      "Duration": 0.0003145,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.NonFiniteInputs_NeverDamagePlayer(float.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 5.95E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.NonFiniteInputs_NeverDamagePlayer(float.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 3.91E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.ParallelSegments_IncludeEdgeContact(0.75f,True)",
+      "Status": "Passed",
+      "Duration": 0.0005716,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.ParallelSegments_IncludeEdgeContact(0.751f,False)",
+      "Status": "Passed",
+      "Duration": 0.0001231,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.Segment_ClampsToEndpoint_AndHandlesBothDegenerateSegments",
+      "Status": "Passed",
+      "Duration": 0.0002616,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.Segment_CrossesCapsuleBetweenEndpoints_AndIsOrderIndependent",
+      "Status": "Passed",
+      "Duration": 0.0001424,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.Sphere_IncludesSideAndCapContact(0.75f,1.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.000244,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.Sphere_IncludesSideAndCapContact(0.751f,1.0f,False)",
+      "Status": "Passed",
+      "Duration": 5.59E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.Sphere_IncludesSideAndCapContact(0.0f,2.25f,True)",
+      "Status": "Passed",
+      "Duration": 4.79E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.Sphere_IncludesSideAndCapContact(0.0f,2.251f,False)",
+      "Status": "Passed",
+      "Duration": 5.21E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.Sphere_IncludesSideAndCapContact(0.0f,-0.25f,True)",
+      "Status": "Passed",
+      "Duration": 3.91E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonHazardGeometryTests.Sphere_IncludesSideAndCapContact(0.0f,-0.251f,False)",
+      "Status": "Passed",
+      "Duration": 3.73E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonInjuryTests.ChangedCommonCrawl_KeepsFloorWithoutMakingTwoLegLossFasterThanOneLeg",
+      "Status": "Passed",
+      "Duration": 0.0004025,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonInjuryTests.ChangedDeviceOrReset_InvalidatesOldCompletion",
+      "Status": "Passed",
+      "Duration": 0.0022777,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonInjuryTests.CompetingActors_OnlyFirstValidCompletionWins",
+      "Status": "Passed",
+      "Duration": 0.0003158,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonInjuryTests.DelayedRequest_DuplicateCannotAdvanceOrPostponeDeadline",
+      "Status": "Passed",
+      "Duration": 0.0002336,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonInjuryTests.DelayedRequest_LeavingRangeCancelsEvenIfBackBeforeDeadline",
+      "Status": "Passed",
+      "Duration": 0.0002831,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonInjuryTests.ExistingFasterSettings_ArePreservedAndCommonZeroDoesNotDivide",
+      "Status": "Passed",
+      "Duration": 0.0003592,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonInjuryTests.Legs_KeepAtLeastEightyPercentAfterCommonCrawl(0,1.0f,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0002739,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonInjuryTests.Legs_KeepAtLeastEightyPercentAfterCommonCrawl(1,0.8f,0.8f)",
+      "Status": "Passed",
+      "Duration": 7.07E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonInjuryTests.Legs_KeepAtLeastEightyPercentAfterCommonCrawl(2,0.8f,0.8f)",
+      "Status": "Passed",
+      "Duration": 5.25E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonInjuryTests.OldSerializedLowMultipliers_AlsoUseTheEightyPercentFloor",
+      "Status": "Passed",
+      "Duration": 0.0002134,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonJumpSettingsTests.JumpOverride_FollowsActiveSceneAndOwnerLifetime_WithoutStaleRestoration",
+      "Status": "Passed",
+      "Duration": 0.1266553,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonJumpSettingsTests.JumpSettings_AreLinked_AndKeepCommonAssetAtPointEight",
+      "Status": "Passed",
+      "Duration": 0.0012289,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonLandingTests.Boundary_SeparatesCushionFromOrdinaryFloor(2.0f,2.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0003259,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonLandingTests.Boundary_SeparatesCushionFromOrdinaryFloor(2.01f,0.0f,False)",
+      "Status": "Passed",
+      "Duration": 7.6E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonLandingTests.Boundary_SeparatesCushionFromOrdinaryFloor(0.0f,-2.01f,False)",
+      "Status": "Passed",
+      "Duration": 5.25E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonLandingTests.InvalidGeometry_IsRejected",
+      "Status": "Passed",
+      "Duration": 0.0001665,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonLandingTests.SafeLanding_CompletesOnlyCurrentFlightOnce",
+      "Status": "Passed",
+      "Duration": 0.0001952,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonLandingTests.ScaledRotatedZone_UsesItsActualColliderTop",
+      "Status": "Passed",
+      "Duration": 0.0005543,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonLandingTests.TopAndSkinOffset_AreSafe",
+      "Status": "Passed",
+      "Duration": 0.0001622,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonLandingTests.UnderOrAboveCushion_IsNotSafe(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0002924,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonLandingTests.UnderOrAboveCushion_IsNotSafe(-1.0f)",
+      "Status": "Passed",
+      "Duration": 6.14E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonLandingTests.UnderOrAboveCushion_IsNotSafe(2.0f)",
+      "Status": "Passed",
+      "Duration": 9.54E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.ApexPanicReboundAndLandingDoNotLatchOldFlight",
+      "Status": "Passed",
+      "Duration": 0.0005471,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"Rabbit/Rabbit\")",
+      "Status": "Passed",
+      "Duration": 0.2590232,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"Bear/Bear\")",
+      "Status": "Passed",
+      "Duration": 0.2637688,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"PinkGirl/PinkGirl\")",
+      "Status": "Passed",
+      "Duration": 0.8572175,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"BluePierrot/BluePierrot\")",
+      "Status": "Passed",
+      "Duration": 0.5052791,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.AirControl_BlockOrRestart_DiscardsPendingCorrection",
+      "Status": "Passed",
+      "Duration": 0.0006776,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.AirControl_ReleasedOrStaleInput_DoesNotCarryIntoNextFrame",
+      "Status": "Passed",
+      "Duration": 0.0002502,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.AirControl_RotatedCourseAndDiagonal_KeepHorizontalSpeedLimit",
+      "Status": "Passed",
+      "Duration": 0.0002948,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.AirControl_UsesGroundDirections_AndCannotAddHeight(1.0f,0.0f,3.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0002746,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.AirControl_UsesGroundDirections_AndCannotAddHeight(-1.0f,0.0f,-3.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 5.49E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.AirControl_UsesGroundDirections_AndCannotAddHeight(0.0f,1.0f,0.0f,3.0f)",
+      "Status": "Passed",
+      "Duration": 3.78E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.AirControl_UsesGroundDirections_AndCannotAddHeight(0.0f,-1.0f,0.0f,-3.0f)",
+      "Status": "Passed",
+      "Duration": 3.25E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.AnotherPlayerUsingSameCannon_DoesNotInvalidateFirstPlayersLanding",
+      "Status": "Passed",
+      "Duration": 0.0001313,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.Board_OnlyClaimsSeat_WithoutLaunching",
+      "Status": "Passed",
+      "Duration": 0.0003284,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.DeathRelease_AllowsAnotherPlayerToBoard",
+      "Status": "Passed",
+      "Duration": 0.0001069,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.HoldStartedOnAcknowledgementFrame_DoesNotArmInput",
+      "Status": "Passed",
+      "Duration": 0.0002092,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.InputBeforeBoardingAcknowledgement_IsNotReused",
+      "Status": "Passed",
+      "Duration": 0.0001553,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.InvalidActorAndSyncRequest_DoNotChangeSeat",
+      "Status": "Passed",
+      "Duration": 0.0001022,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.Landing_RequiresMatchingPlayerStationAndLaunch_AndIsAcceptedOnce",
+      "Status": "Passed",
+      "Duration": 0.0001002,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.LongPress_CancelsWithoutLaunch_AndNextBoardNeedsNewInput",
+      "Status": "Passed",
+      "Duration": 0.0001321,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.OldCancel_CannotCancelLaterBoardingBySamePlayer",
+      "Status": "Passed",
+      "Duration": 0.0001068,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.OldSnapshot_DoesNotRestoreReleasedSeat",
+      "Status": "Passed",
+      "Duration": 0.0001454,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.OnlyOccupantCanRelease_AndDuplicateRequestIsIgnored(Launch)",
+      "Status": "Passed",
+      "Duration": 0.0005421,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.OnlyOccupantCanRelease_AndDuplicateRequestIsIgnored(Cancel)",
+      "Status": "Passed",
+      "Duration": 0.0001381,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.OnlyOccupantCanRelease_AndDuplicateRequestIsIgnored(Release)",
+      "Status": "Passed",
+      "Duration": 9.31E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.PoleAirControl_NoInputOrForwardInputPreservesLongJump_AndTurningCannotAddEnergy",
+      "Status": "Passed",
+      "Duration": 0.0008395,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.PoleAirControl_OppositeOrSideInputTurnsMomentumWithoutLosingSpeed(4.5f)",
+      "Status": "Passed",
+      "Duration": 0.0003027,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.PoleAirControl_OppositeOrSideInputTurnsMomentumWithoutLosingSpeed(3.6f)",
+      "Status": "Passed",
+      "Duration": 6.89E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.PoleJumpSpeedLimitPreservesHeightDirectionAndWeakLaunches(0.0f,14.0f,8.0f)",
+      "Status": "Passed",
+      "Duration": 0.000932,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.PoleJumpSpeedLimitPreservesHeightDirectionAndWeakLaunches(0.0f,-14.0f,8.0f)",
+      "Status": "Passed",
+      "Duration": 9.36E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.PoleJumpSpeedLimitPreservesHeightDirectionAndWeakLaunches(14.0f,14.0f,8.0f)",
+      "Status": "Passed",
+      "Duration": 9.77E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.PoleJumpSpeedLimitPreservesHeightDirectionAndWeakLaunches(0.0f,4.0f,4.0f)",
+      "Status": "Passed",
+      "Duration": 9.87E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.PoleJumpSpeedLimitPreservesHeightDirectionAndWeakLaunches(0.0f,0.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 9.07E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.Rebound_IndependentForEachPlayer_AndRejectsDuplicateOrOldLanding",
+      "Status": "Passed",
+      "Duration": 0.0002648,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.Restart_RejectsOldLandingEvenAfterSamePlayerLaunchesAgain",
+      "Status": "Passed",
+      "Duration": 0.0001656,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.RestartAfterLaunch_OldSnapshotCannotReplaceReset",
+      "Status": "Passed",
+      "Duration": 0.0002234,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.RestartEmptySeat_RejectsDelayedBoardRequest",
+      "Status": "Passed",
+      "Duration": 0.0001188,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.RestartOccupiedSeat_RejectsDelayedLaunchAndCancel",
+      "Status": "Passed",
+      "Duration": 0.0001155,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.RestartOrRoleHandoff_InvalidatesPendingRebound",
+      "Status": "Passed",
+      "Duration": 0.0001171,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.SimultaneousBoard_OnlyOnePlayerClaimsSeat",
+      "Status": "Passed",
+      "Duration": 0.0001068,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.ZeroPoleJumpLimitRemovesHorizontalMotionOnly(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.000189,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonSeatTests.ZeroPoleJumpLimitRemovesHorizontalMotionOnly(-1.0f)",
+      "Status": "Passed",
+      "Duration": 5.23E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CarryFramingTests.CarrierTrampolineAndHighFlyer_FitDuringFreeOrbit(1.777778f)",
+      "Status": "Passed",
+      "Duration": 0.0019812,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CarryFramingTests.CarrierTrampolineAndHighFlyer_FitDuringFreeOrbit(1.333333f)",
+      "Status": "Passed",
+      "Duration": 0.0010229,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CarryFramingTests.CarrierTrampolineAndHighFlyer_FitDuringFreeOrbit(0.5625f)",
+      "Status": "Passed",
+      "Duration": 0.0010063,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CarryFramingTests.FlyerEnteringGroup_WidensCamera_AndInvalidScreenSizeStaysFinite",
+      "Status": "Passed",
+      "Duration": 0.0002231,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CarryFramingTests.LookingBack_ReversesForwardCorrection_ButCannotAlterVerticalFlight",
+      "Status": "Passed",
+      "Duration": 0.0002828,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CarryFramingTests.LowestCarryOrbit_StaysAboveCarrierFeet(7.5f)",
+      "Status": "Passed",
+      "Duration": 0.0013211,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CarryFramingTests.LowestCarryOrbit_StaysAboveCarrierFeet(20.0f)",
+      "Status": "Passed",
+      "Duration": 0.0001611,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CarryFramingTests.LowestCarryOrbit_StaysAboveCarrierFeet(50.0f)",
+      "Status": "Passed",
+      "Duration": 9.16E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.DelayedTick_ArrivesWithoutExtendingTravel",
+      "Status": "Passed",
+      "Duration": 0.0007231,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Departure_ReachesDestinationAtDeadlineAndCannotStartAgain",
+      "Status": "Passed",
+      "Duration": 0.0005581,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidRiderOrStaleStart_DoesNotConsumeRevision",
+      "Status": "Passed",
+      "Duration": 0.000405,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTickAndProgress_DoNotFinishTravel(-1.0d)",
+      "Status": "Passed",
+      "Duration": 0.0006261,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTickAndProgress_DoNotFinishTravel(double.NaN)",
+      "Status": "Passed",
+      "Duration": 9.22E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTickAndProgress_DoNotFinishTravel(double.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 5.81E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTickAndProgress_DoNotFinishTravel(double.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 4.77E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTimeOrDuration_RejectsStartAndActiveSnapshots(-1.0d,8.0f)",
+      "Status": "Passed",
+      "Duration": 0.0005588,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTimeOrDuration_RejectsStartAndActiveSnapshots(double.NaN,8.0f)",
+      "Status": "Passed",
+      "Duration": 6.65E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTimeOrDuration_RejectsStartAndActiveSnapshots(double.PositiveInfinity,8.0f)",
+      "Status": "Passed",
+      "Duration": 7.18E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTimeOrDuration_RejectsStartAndActiveSnapshots(double.NegativeInfinity,8.0f)",
+      "Status": "Passed",
+      "Duration": 8.18E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTimeOrDuration_RejectsStartAndActiveSnapshots(double.MaxValue,8.0f)",
+      "Status": "Passed",
+      "Duration": 4.77E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTimeOrDuration_RejectsStartAndActiveSnapshots(10.0d,0.0f)",
+      "Status": "Passed",
+      "Duration": 4.71E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTimeOrDuration_RejectsStartAndActiveSnapshots(10.0d,-1.0f)",
+      "Status": "Passed",
+      "Duration": 4.66E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTimeOrDuration_RejectsStartAndActiveSnapshots(10.0d,float.NaN)",
+      "Status": "Passed",
+      "Duration": 4.23E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTimeOrDuration_RejectsStartAndActiveSnapshots(10.0d,float.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 3.94E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.InvalidTimeOrDuration_RejectsStartAndActiveSnapshots(10.0d,float.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 3.82E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Receive_AcceptsSnapshotsAndDuplicateButRejectsOlderRevision",
+      "Status": "Passed",
+      "Duration": 0.0002045,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Receive_InvalidCombinationPreservesCurrentTravel(Waiting,7UL,0.0d,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0005687,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Receive_InvalidCombinationPreservesCurrentTravel(Waiting,ulong.MaxValue,10.0d,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0001074,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Receive_InvalidCombinationPreservesCurrentTravel(Waiting,ulong.MaxValue,0.0d,8.0f)",
+      "Status": "Passed",
+      "Duration": 6.95E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Receive_InvalidCombinationPreservesCurrentTravel(Waiting,ulong.MaxValue,double.NaN,0.0f)",
+      "Status": "Passed",
+      "Duration": 5.76E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Receive_InvalidCombinationPreservesCurrentTravel(Waiting,ulong.MaxValue,0.0d,float.NaN)",
+      "Status": "Passed",
+      "Duration": 8.46E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Receive_InvalidCombinationPreservesCurrentTravel(Moving,ulong.MaxValue,10.0d,8.0f)",
+      "Status": "Passed",
+      "Duration": 5.81E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Receive_InvalidCombinationPreservesCurrentTravel(Arrived,ulong.MaxValue,10.0d,8.0f)",
+      "Status": "Passed",
+      "Duration": 5.39E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Receive_InvalidCombinationPreservesCurrentTravel(99,ulong.MaxValue,0.0d,0.0f)",
+      "Status": "Passed",
+      "Duration": 5.74E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.DepartureTravelStateTests.Reset_InvalidatesDelayedStartAndPreviousRoundSnapshot",
+      "Status": "Passed",
+      "Duration": 0.0002908,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalCannonCourseTests.CushionAndPreparationDeck_JoinAtSameSafeHeightAndSupportEveryBoardingPoint",
+      "Status": "Passed",
+      "Duration": 0.0023112,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalCannonCourseTests.FinalCannons_HaveEqualHeightDirectionVelocityAndAirControl",
+      "Status": "Passed",
+      "Duration": 0.0008357,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalCannonCourseTests.FinalCourse_RemovesAirSawTracksAndEntryTriggerWhileKeepingAllFourCannons",
+      "Status": "Passed",
+      "Duration": 0.0010378,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalCannonCourseTests.FinalLaunches_DoNotBelongToEitherRouteFireSection",
+      "Status": "Passed",
+      "Duration": 0.000722,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalCannonCourseTests.FourUnsteeredFinalFlights_DescendInsideSafeLandingPad",
+      "Status": "Passed",
+      "Duration": 0.0007365,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalCannonCourseTests.TenUniqueStations_RegisterFourFinalCannonsAfterExistingSix",
+      "Status": "Passed",
+      "Duration": 0.000868,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.BothViews_UseTheSameWarningAndActiveVisibility(Dormant,False,False)",
+      "Status": "Passed",
+      "Duration": 0.0019426,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.BothViews_UseTheSameWarningAndActiveVisibility(Warning,False,True)",
+      "Status": "Passed",
+      "Duration": 0.00028,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.BothViews_UseTheSameWarningAndActiveVisibility(Active,True,False)",
+      "Status": "Passed",
+      "Duration": 0.0002535,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.LateralPasses_KeepHeightAndUseDiagonalDepth_ReverseAtBothEdges_WithFlatContact(0)",
+      "Status": "Passed",
+      "Duration": 0.0012661,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.LateralPasses_KeepHeightAndUseDiagonalDepth_ReverseAtBothEdges_WithFlatContact(1)",
+      "Status": "Passed",
+      "Duration": 0.0002436,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.SharedPass_UsesOpposingDiagonalLanesWithoutChangingHeightOrForwardTravel(0)",
+      "Status": "Passed",
+      "Duration": 0.0005871,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.SharedPass_UsesOpposingDiagonalLanesWithoutChangingHeightOrForwardTravel(1)",
+      "Status": "Passed",
+      "Duration": 0.0002903,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.SharedPass_UsesOpposingDiagonalLanesWithoutChangingHeightOrForwardTravel(2)",
+      "Status": "Passed",
+      "Duration": 0.0002028,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.SharedPass_UsesOpposingDiagonalLanesWithoutChangingHeightOrForwardTravel(3)",
+      "Status": "Passed",
+      "Duration": 0.0001892,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.SharedPass_UsesOpposingDiagonalLanesWithoutChangingHeightOrForwardTravel(4)",
+      "Status": "Passed",
+      "Duration": 0.0002111,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawPairTests.SharedPass_UsesOpposingDiagonalLanesWithoutChangingHeightOrForwardTravel(7)",
+      "Status": "Passed",
+      "Duration": 0.0001828,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.DelayedSnapshotOrSkippedFrames_UsesOriginalEpochWithoutExtendingCycle",
+      "Status": "Passed",
+      "Duration": 0.0009815,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.EachCycle_HasOneForwardConstantSpeedTravelAndAnEmptyWarningGap",
+      "Status": "Passed",
+      "Duration": 0.0006729,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.ExactBoundaries_RemoveOldSawBeforeNextFullWarning",
+      "Status": "Passed",
+      "Duration": 0.0001969,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.FirstEntry_OnlyStartsOnce_AndLateEntryOrLaunchCannotRestartWarning",
+      "Status": "Passed",
+      "Duration": 0.0002281,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(0.0f,4.0f)",
+      "Status": "Passed",
+      "Duration": 0.0004542,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(-1.0f,4.0f)",
+      "Status": "Passed",
+      "Duration": 8.71E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(float.NaN,4.0f)",
+      "Status": "Passed",
+      "Duration": 5.44E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(float.PositiveInfinity,4.0f)",
+      "Status": "Passed",
+      "Duration": 9.85E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(float.NegativeInfinity,4.0f)",
+      "Status": "Passed",
+      "Duration": 5.26E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(2.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 5.4E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(2.0f,-1.0f)",
+      "Status": "Passed",
+      "Duration": 4.18E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(2.0f,float.NaN)",
+      "Status": "Passed",
+      "Duration": 4.07E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(2.0f,float.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 4.08E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(2.0f,float.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 3.8E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(float.MaxValue,1.401298E-45f)",
+      "Status": "Passed",
+      "Duration": 3.91E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrCollapsedDurations_NeverRemoveTheWarningGap(1.401298E-45f,float.MaxValue)",
+      "Status": "Passed",
+      "Duration": 4.12E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrUnrepresentableTime_NeverProducesAHazard(double.NaN,12.0d)",
+      "Status": "Passed",
+      "Duration": 0.0002412,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrUnrepresentableTime_NeverProducesAHazard(double.PositiveInfinity,12.0d)",
+      "Status": "Passed",
+      "Duration": 5.71E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrUnrepresentableTime_NeverProducesAHazard(double.NegativeInfinity,12.0d)",
+      "Status": "Passed",
+      "Duration": 4.32E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrUnrepresentableTime_NeverProducesAHazard(-1.0d,12.0d)",
+      "Status": "Passed",
+      "Duration": 3.84E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrUnrepresentableTime_NeverProducesAHazard(12.0d,double.NaN)",
+      "Status": "Passed",
+      "Duration": 3.79E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrUnrepresentableTime_NeverProducesAHazard(12.0d,double.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 3.87E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrUnrepresentableTime_NeverProducesAHazard(12.0d,double.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 3.5E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrUnrepresentableTime_NeverProducesAHazard(12.0d,-1.0d)",
+      "Status": "Passed",
+      "Duration": 3.56E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidOrUnrepresentableTime_NeverProducesAHazard(0.0d,double.MaxValue)",
+      "Status": "Passed",
+      "Duration": 3.74E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidStart_DoesNotConsumeFirstEntry(double.NaN)",
+      "Status": "Passed",
+      "Duration": 0.0004295,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidStart_DoesNotConsumeFirstEntry(double.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 8.37E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidStart_DoesNotConsumeFirstEntry(double.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 4.69E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.InvalidStart_DoesNotConsumeFirstEntry(-1.0d)",
+      "Status": "Passed",
+      "Duration": 3.93E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.Reset_OnlyExplicitResetAllowsANewStart",
+      "Status": "Passed",
+      "Duration": 0.0002942,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.FinalSawTimelineTests.ZeroEpoch_IsValid_AndAFutureEpochHasNoHazard",
+      "Status": "Passed",
+      "Duration": 0.0001587,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.GroundBounceTests.DifferentPlayersAndNewSession_HaveIndependentSequences",
+      "Status": "Passed",
+      "Duration": 0.0012312,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.GroundBounceTests.GroundFlight_ReboundsAgainAndRejectsStaleLanding",
+      "Status": "Passed",
+      "Duration": 0.0001962,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.GroundBounceTests.GroundJump_CrossesLoweredSurfaceOnlyOnDescent",
+      "Status": "Passed",
+      "Duration": 0.001056,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.GroundBounceTests.Host_RejectsDuplicateAndOutOfOrderGroundContacts",
+      "Status": "Passed",
+      "Duration": 0.000134,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.GroundBounceTests.NewAttempt_RejectsOldResponseAndWrongEpoch",
+      "Status": "Passed",
+      "Duration": 0.0003658,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.GroundBounceTests.Restart_RejectsOldEpochWithoutConsumingNewSequence",
+      "Status": "Passed",
+      "Duration": 0.0001572,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.GroundBounceTests.RestartOrDeath_CancelsPendingResponse",
+      "Status": "Passed",
+      "Duration": 0.0001436,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.GroundBounceTests.WalkingUnderSurfaceOrJumpingOutside_DoesNotBounce",
+      "Status": "Passed",
+      "Duration": 0.0002531,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.CarrierFeet_InvalidFacingOrDistanceDoesNotInventAnOffset",
+      "Status": "Passed",
+      "Duration": 0.0007815,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.CarrierFeet_PreservesHeightAndPlacesSurfaceAheadAtHandleDistance",
+      "Status": "Passed",
+      "Duration": 0.0005039,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.CatchAndCarrier_MalformedOrOverflowingCoordinatesStayFinite",
+      "Status": "Passed",
+      "Duration": 0.0004166,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PlanarInput_LargeFiniteCoordinatesStillProduceBoundedDirection",
+      "Status": "Passed",
+      "Duration": 0.0003691,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PlanarInput_ProducesSideAndForwardInput(1.0f,0.0f,1.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.000254,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PlanarInput_ProducesSideAndForwardInput(-1.0f,0.0f,-1.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 6.3E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PlanarInput_ProducesSideAndForwardInput(0.0f,1.0f,0.0f,1.0f)",
+      "Status": "Passed",
+      "Duration": 3.96E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PlanarInput_ProducesSideAndForwardInput(0.0f,-1.0f,0.0f,-1.0f)",
+      "Status": "Passed",
+      "Duration": 3.52E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PlanarInput_RejectsInvalidPositionsOrMissingHorizontalFacing",
+      "Status": "Passed",
+      "Duration": 0.0004731,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PlanarInput_RotatesWithFacingAndIgnoresPitch",
+      "Status": "Passed",
+      "Duration": 0.0001753,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PlanarInput_StopsAtBoundaryAndDoesNotChaseHeight",
+      "Status": "Passed",
+      "Duration": 0.0002139,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PredictCatch_FastDescentDoesNotLoseSmallPositiveTime",
+      "Status": "Passed",
+      "Duration": 0.0001235,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PredictCatch_InvalidPhysicsOrHorizonDoesNotExtrapolate",
+      "Status": "Passed",
+      "Duration": 0.0001897,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PredictCatch_LimitsHorizontalLeadToPredictionHorizon",
+      "Status": "Passed",
+      "Duration": 0.0001248,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PredictCatch_NoFutureIntersectionKeepsCurrentHorizontalPosition",
+      "Status": "Passed",
+      "Duration": 0.0001491,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PredictCatch_RisingFromBelowSurfaceChoosesLaterDescendingRoot",
+      "Status": "Passed",
+      "Duration": 0.0001116,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PredictCatch_RisingFromSurfaceUsesReturnInsteadOfImmediateIntersection",
+      "Status": "Passed",
+      "Duration": 0.0001119,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonBotSteeringTests.PredictCatch_UsesFallingIntersectionInWorldCoordinates",
+      "Status": "Passed",
+      "Duration": 9.82E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPoleSawTests.DiagonalSweepOnlyAppliesAfterThePoleSawExceptionIsRemoved",
+      "Status": "Passed",
+      "Duration": 0.0022961,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPoleSawTests.ExplicitTorsoHeightAndRelocatedPole_KeepTheRailAtRestPose",
+      "Status": "Passed",
+      "Duration": 0.0004409,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPoleSawTests.FasterFullWidthSaw_SweptSamplesStillDetectCrossingBetweenFrames",
+      "Status": "Passed",
+      "Duration": 0.0013272,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPoleSawTests.IndependentSaw_KeepsCrossingWhileLinkedGateIsHeldIndefinitely",
+      "Status": "Passed",
+      "Duration": 0.0013305,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPoleSawTests.MapWideSweep_UsesBothMapEdgesRegardlessOfPoleOffset_AndUpdatesRail",
+      "Status": "Passed",
+      "Duration": 0.0011172,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPoleSawTests.MissingReferenceOrAncestorTarget_DoesNotMoveThePole",
+      "Status": "Passed",
+      "Duration": 0.0003685,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPoleSawTests.NeutralTorsoIsHit_ButForwardAndBackwardSwingClearTheSaw(-50.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003564,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPoleSawTests.NeutralTorsoIsHit_ButForwardAndBackwardSwingClearTheSaw(50.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003253,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPoleSawTests.SwingingBar_DoesNotDragSawAwayFromFixedTorsoPlane(-65.0f)",
+      "Status": "Passed",
+      "Duration": 0.0014739,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPoleSawTests.SwingingBar_DoesNotDragSawAwayFromFixedTorsoPlane(65.0f)",
+      "Status": "Passed",
+      "Duration": 0.0004704,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.BacktrackingAndRestart_ReturnToEarlierSectionWithoutStickyProgress",
+      "Status": "Passed",
+      "Duration": 0.0005089,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.GroundCarrierAndAirborneFlyer_UseTheirActualLevel(3.0f,0.0f,Departure)",
+      "Status": "Passed",
+      "Duration": 0.0004755,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.GroundCarrierAndAirborneFlyer_UseTheirActualLevel(30.0f,12.0f,First)",
+      "Status": "Passed",
+      "Duration": 0.0001022,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.GroundCarrierAndAirborneFlyer_UseTheirActualLevel(73.0f,0.0f,First)",
+      "Status": "Passed",
+      "Duration": 6.67E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.GroundCarrierAndAirborneFlyer_UseTheirActualLevel(73.0f,6.0f,Shelter)",
+      "Status": "Passed",
+      "Duration": 5.49E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.GroundCarrierAndAirborneFlyer_UseTheirActualLevel(105.0f,6.0f,Second)",
+      "Status": "Passed",
+      "Duration": 4.88E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.GroundCarrierAndAirborneFlyer_UseTheirActualLevel(150.0f,6.0f,Final)",
+      "Status": "Passed",
+      "Duration": 4.95E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.LiftBoundary_ChangesOnlyWhenFeetReachTheUpperLevel",
+      "Status": "Passed",
+      "Duration": 0.0001945,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.OpposingNormals_DoNotCollapseAThinDoubleSidedSurface",
+      "Status": "Passed",
+      "Duration": 0.0015374,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.SawOutline_FadesLikeTheTightropeSawWithDistance(2.0f,2.0f)",
+      "Status": "Passed",
+      "Duration": 0.0002294,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.SawOutline_FadesLikeTheTightropeSawWithDistance(5.0f,2.0f)",
+      "Status": "Passed",
+      "Duration": 5.24E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.SawOutline_FadesLikeTheTightropeSawWithDistance(9.5f,1.0f)",
+      "Status": "Passed",
+      "Duration": 3.55E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.SawOutline_FadesLikeTheTightropeSawWithDistance(14.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 3.44E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.SawOutline_FadesLikeTheTightropeSawWithDistance(30.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 3.39E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonPresentationTests.SplitCubeCorner_ExtrudesAllFacesInTheSameDirectionWithoutChangingTheSourceNormals",
+      "Status": "Passed",
+      "Duration": 0.0002857,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonWideCourseTests.FlatMovingBlade_VisualAndDamageFollowTheSameMovingCenter(GroundSaw)",
+      "Status": "Passed",
+      "Duration": 0.0011321,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonWideCourseTests.FlatMovingBlade_VisualAndDamageFollowTheSameMovingCenter(RotatingBlades)",
+      "Status": "Passed",
+      "Duration": 0.0002776,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonWideCourseTests.GateCrossing_KeepsBothCooperationGatesWithoutRemovedFanBladesOrPoleSaws",
+      "Status": "Passed",
+      "Duration": 0.0022762,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonWideCourseTests.GroundSaws_HaveDistinctRailsAndSpacedRoutesAtFourSecondCycles",
+      "Status": "Passed",
+      "Duration": 0.0050712,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonWideCourseTests.MovingBlades_AreFlatAndDiagonalExceptForPoleSaws",
+      "Status": "Passed",
+      "Duration": 0.0008211,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.HumanCannonWideCourseTests.WideFloor_HasNoSideWallInsideOrAtTheEdge",
+      "Status": "Passed",
+      "Duration": 0.005866,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.ConfiguredDelayAndEarlierClock_UseCurrentRidersBoardingTime",
+      "Status": "Passed",
+      "Duration": 0.0007884,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.InvalidClock_CannotStartReplaceCancelOrMakeReady(-1.0d)",
+      "Status": "Passed",
+      "Duration": 0.0002712,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.InvalidClock_CannotStartReplaceCancelOrMakeReady(double.NaN)",
+      "Status": "Passed",
+      "Duration": 7.09E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.InvalidClock_CannotStartReplaceCancelOrMakeReady(double.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 4.65E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.InvalidClock_CannotStartReplaceCancelOrMakeReady(double.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 3.9E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.InvalidDelay_CannotStartReplaceCancelOrMakeReady(-0.01f)",
+      "Status": "Passed",
+      "Duration": 0.0004541,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.InvalidDelay_CannotStartReplaceCancelOrMakeReady(float.NaN)",
+      "Status": "Passed",
+      "Duration": 7.93E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.InvalidDelay_CannotStartReplaceCancelOrMakeReady(float.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 4.8E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.InvalidDelay_CannotStartReplaceCancelOrMakeReady(float.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 4.04E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.NoSoleRiderOrLostEligibility_CancelsAndRequiresFullNewDelay(ulong.MaxValue,True)",
+      "Status": "Passed",
+      "Duration": 0.0003198,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.NoSoleRiderOrLostEligibility_CancelsAndRequiresFullNewDelay(ulong.MaxValue,False)",
+      "Status": "Passed",
+      "Duration": 5.33E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.NoSoleRiderOrLostEligibility_CancelsAndRequiresFullNewDelay(7UL,False)",
+      "Status": "Passed",
+      "Duration": 7.63E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.OneEligibleRider_BecomesReadyAfterUninterruptedDefaultDelay",
+      "Status": "Passed",
+      "Duration": 0.0003576,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.Receive_InvalidSnapshotPreservesCountdown(ulong.MaxValue,10.0d)",
+      "Status": "Passed",
+      "Duration": 0.0005914,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.Receive_InvalidSnapshotPreservesCountdown(ulong.MaxValue,-1.0d)",
+      "Status": "Passed",
+      "Duration": 8.61E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.Receive_InvalidSnapshotPreservesCountdown(ulong.MaxValue,double.NaN)",
+      "Status": "Passed",
+      "Duration": 5.28E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.Receive_InvalidSnapshotPreservesCountdown(8UL,-1.0d)",
+      "Status": "Passed",
+      "Duration": 4.36E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.Receive_InvalidSnapshotPreservesCountdown(8UL,double.NaN)",
+      "Status": "Passed",
+      "Duration": 8.8E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.Receive_InvalidSnapshotPreservesCountdown(8UL,double.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 4.53E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.Receive_InvalidSnapshotPreservesCountdown(8UL,double.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 3.96E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.Receive_ReconstructsCountdownAndEmptyState",
+      "Status": "Passed",
+      "Duration": 0.0001985,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.Reset_ClearsReadyStateAndSupportsNewRoundAtTimeZero",
+      "Status": "Passed",
+      "Duration": 0.0001616,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftBoardingStateTests.RiderReplacement_StartsNewCountdownWithoutInheritingElapsedTime",
+      "Status": "Passed",
+      "Duration": 0.000131,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.EarlierClock_DoesNotCloseTrapEvenWithZeroResetDelay",
+      "Status": "Passed",
+      "Duration": 0.0003675,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.EmptyTrap_WaitsForExactResetDeadlineAndReturnsToStart",
+      "Status": "Passed",
+      "Duration": 0.00023,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidEmptyTick_DoesNotResetOpenTrap(double.NaN,0.5f,1.2f)",
+      "Status": "Passed",
+      "Duration": 0.0004196,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidEmptyTick_DoesNotResetOpenTrap(double.PositiveInfinity,0.5f,1.2f)",
+      "Status": "Passed",
+      "Duration": 0.000102,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidEmptyTick_DoesNotResetOpenTrap(10.0d,float.NaN,1.2f)",
+      "Status": "Passed",
+      "Duration": 5.79E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidEmptyTick_DoesNotResetOpenTrap(10.0d,1.01f,1.2f)",
+      "Status": "Passed",
+      "Duration": 3.98E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidEmptyTick_DoesNotResetOpenTrap(10.0d,0.5f,-1.0f)",
+      "Status": "Passed",
+      "Duration": 3.94E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidEmptyTick_DoesNotResetOpenTrap(10.0d,0.5f,float.NaN)",
+      "Status": "Passed",
+      "Duration": 0.0001079,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidEmptyTick_DoesNotResetOpenTrap(10.0d,0.5f,float.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 5.42E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(-1,10.0d,0.4f,1.2f)",
+      "Status": "Passed",
+      "Duration": 0.0003545,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,-1.0d,0.4f,1.2f)",
+      "Status": "Passed",
+      "Duration": 7.31E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,double.NaN,0.4f,1.2f)",
+      "Status": "Passed",
+      "Duration": 5.07E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,double.PositiveInfinity,0.4f,1.2f)",
+      "Status": "Passed",
+      "Duration": 4.78E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,double.NegativeInfinity,0.4f,1.2f)",
+      "Status": "Passed",
+      "Duration": 0.0002664,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,10.0d,-0.01f,1.2f)",
+      "Status": "Passed",
+      "Duration": 0.0001467,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,10.0d,1.01f,1.2f)",
+      "Status": "Passed",
+      "Duration": 6.96E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,10.0d,float.NaN,1.2f)",
+      "Status": "Passed",
+      "Duration": 6.76E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,10.0d,float.PositiveInfinity,1.2f)",
+      "Status": "Passed",
+      "Duration": 6.87E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,10.0d,float.NegativeInfinity,1.2f)",
+      "Status": "Passed",
+      "Duration": 7.21E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,10.0d,0.4f,-0.01f)",
+      "Status": "Passed",
+      "Duration": 6.98E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,10.0d,0.4f,float.NaN)",
+      "Status": "Passed",
+      "Duration": 6.62E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,10.0d,0.4f,float.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 7.55E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.InvalidTick_DoesNotOpenOrChangeTrap(2,10.0d,0.4f,float.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 6.69E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.NormalOccupancy_KeepsTrapClosed(0)",
+      "Status": "Passed",
+      "Duration": 0.0003872,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.NormalOccupancy_KeepsTrapClosed(1)",
+      "Status": "Passed",
+      "Duration": 8.11E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.OverloadedTrap_OpensAndFreezesCurrentTravel(2,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003171,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.OverloadedTrap_OpensAndFreezesCurrentTravel(3,0.45f)",
+      "Status": "Passed",
+      "Duration": 6.09E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.OverloadedTrap_OpensAndFreezesCurrentTravel(4,1.0f)",
+      "Status": "Passed",
+      "Duration": 4.28E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_AcceptsOpenAtZeroAndClosedSnapshots",
+      "Status": "Passed",
+      "Duration": 0.0003894,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(False,10.0d,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.000631,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(False,0.0d,0.3f)",
+      "Status": "Passed",
+      "Duration": 0.0001384,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(True,-1.0d,0.3f)",
+      "Status": "Passed",
+      "Duration": 0.0001013,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(True,double.NaN,0.3f)",
+      "Status": "Passed",
+      "Duration": 8.65E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(True,double.PositiveInfinity,0.3f)",
+      "Status": "Passed",
+      "Duration": 7.75E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(True,double.NegativeInfinity,0.3f)",
+      "Status": "Passed",
+      "Duration": 6.82E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(True,10.0d,-0.01f)",
+      "Status": "Passed",
+      "Duration": 6.6E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(True,10.0d,1.01f)",
+      "Status": "Passed",
+      "Duration": 6.28E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(True,10.0d,float.NaN)",
+      "Status": "Passed",
+      "Duration": 6.42E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(True,10.0d,float.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 6.34E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Receive_InvalidSnapshotPreservesOpenTrap(True,10.0d,float.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 6.52E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.RemainingOrReturningRiders_KeepTrapOpenUntilEverybodyLeaves",
+      "Status": "Passed",
+      "Duration": 0.0003033,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.LiftTrapStateTests.Reset_ClearsOpenStateAndAllowsANewOverload",
+      "Status": "Passed",
+      "Duration": 0.0002055,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewSnapshotTests.DuplicateActorOrMalformedGrabDoesNotConsumeRevision",
+      "Status": "Passed",
+      "Duration": 0.0040393,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewSnapshotTests.LateJoinRestoresSeparateFlightTokensAndStableSeats",
+      "Status": "Passed",
+      "Duration": 0.0011953,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewSnapshotTests.NonServerAndOldCrewSnapshotsCannotReplaceCurrentRiders",
+      "Status": "Passed",
+      "Duration": 0.0004239,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewSnapshotTests.ResetRejectsDelayedOccupancyForAllSeats",
+      "Status": "Passed",
+      "Duration": 0.0003617,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.DuplicateActorAndOccupiedSeatCannotDisplaceAnotherRider",
+      "Status": "Passed",
+      "Duration": 0.0004532,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.EachRiderExpiresFromTheirOwnGrabTime_WithoutExtendingAnotherRider",
+      "Status": "Passed",
+      "Duration": 0.0006234,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.FourRiders_KeepTheirSeatsWhenTheFirstRiderLeaves",
+      "Status": "Passed",
+      "Duration": 0.0003447,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.InvalidCrewSnapshotsAreAtomicAndDoNotConsumeRevision",
+      "Status": "Passed",
+      "Duration": 0.0002146,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.ResetClearsAllRidersAndRejectsOldOccupancySnapshot",
+      "Status": "Passed",
+      "Duration": 0.0002437,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.SeatSpacingUsesBarRightAxisAndDoesNotChangeSwingHeight",
+      "Status": "Passed",
+      "Duration": 0.0007934,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.SharedDriveRewardsCoordinationWithoutMultiplyingOriginalForce(4.0f,4,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003302,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.SharedDriveRewardsCoordinationWithoutMultiplyingOriginalForce(0.0f,2,0.0f)",
+      "Status": "Passed",
+      "Duration": 7.96E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.SharedDriveRewardsCoordinationWithoutMultiplyingOriginalForce(1.0f,4,0.25f)",
+      "Status": "Passed",
+      "Duration": 5.23E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.SharedDriveRewardsCoordinationWithoutMultiplyingOriginalForce(-3.0f,3,-1.0f)",
+      "Status": "Passed",
+      "Duration": 4.6E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.SimultaneousExpiry_ProducesOneDistinctRevisionPerRider",
+      "Status": "Passed",
+      "Duration": 0.0001658,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleCrewTests.SingleSeatAndTimedSawGateKeepExistingCapacity",
+      "Status": "Passed",
+      "Duration": 0.0001508,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGatePassageTests.CarrierPassUnlocksForwardFlightEvenAfterSawReactivates",
+      "Status": "Passed",
+      "Duration": 0.0012183,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGatePassageTests.DiagonalFlightKeepsItsEntireRequestedMovement",
+      "Status": "Passed",
+      "Duration": 0.0003903,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGatePassageTests.FlightBackTowardTrampolineMayCrossBeforeCarrierPasses",
+      "Status": "Passed",
+      "Duration": 0.000335,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGatePassageTests.FlyingAboveRetractedSawDoesNotWaitForGroundCarrier",
+      "Status": "Passed",
+      "Duration": 0.0003606,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGatePassageTests.FlyingBeyondSideFenceHasNoInfiniteGatePlane",
+      "Status": "Passed",
+      "Duration": 0.0004089,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGatePassageTests.ReleasedAndWarningSaw_StopInPlaceAndAllowPassageBeforeActiveRotationReturns(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0013346,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGatePassageTests.ReleasedAndWarningSaw_StopInPlaceAndAllowPassageBeforeActiveRotationReturns(6.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003083,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGatePassageTests.ResetPreservesGateStateWithoutRestoringAnAirPlane",
+      "Status": "Passed",
+      "Duration": 0.0004813,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGatePassageTests.StartingInsideFormerMarginKeepsForwardFlight",
+      "Status": "Passed",
+      "Duration": 0.0002981,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGatePassageTests.TranslatedQuarterTurnGateHasNoVirtualForwardPlane",
+      "Status": "Passed",
+      "Duration": 0.0003031,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.DelayedTick_UsesOriginalDeadlineAndCanFinishBothTransitions",
+      "Status": "Passed",
+      "Duration": 0.0005713,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.EmptyReset_InvalidatesDelayedGrabAndSnapshot",
+      "Status": "Passed",
+      "Duration": 0.0004382,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.FixedGateWindow_AbandonSnapshotAndRegrabUseExistingDeadlines",
+      "Status": "Passed",
+      "Duration": 0.0002362,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.FixedGateWindow_HeldWarningDoesNotReleaseBeforeExpiryAndSnapshotsRoundTrip",
+      "Status": "Passed",
+      "Duration": 0.0002013,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.FixedGateWindow_RejectsMissingDurationWithoutTakingOccupancy",
+      "Status": "Passed",
+      "Duration": 0.000163,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.FixedGateWindow_ReleaseKeepsTheOriginalFortySecondDeadline",
+      "Status": "Passed",
+      "Duration": 0.0002574,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.HoldAndWarning_TransitionAtExactDeadlines",
+      "Status": "Passed",
+      "Duration": 0.0002938,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.InvalidActorOrTick_DoesNotChangeState",
+      "Status": "Passed",
+      "Duration": 0.0002204,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.InvalidTimeOrDuration_DoesNotChangeGrabOrRelease(-1.0d,8.0f)",
+      "Status": "Passed",
+      "Duration": 0.0002006,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.InvalidTimeOrDuration_DoesNotChangeGrabOrRelease(double.NaN,8.0f)",
+      "Status": "Passed",
+      "Duration": 8.93E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.InvalidTimeOrDuration_DoesNotChangeGrabOrRelease(double.PositiveInfinity,8.0f)",
+      "Status": "Passed",
+      "Duration": 5.32E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.InvalidTimeOrDuration_DoesNotChangeGrabOrRelease(double.MaxValue,8.0f)",
+      "Status": "Passed",
+      "Duration": 4.25E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.InvalidTimeOrDuration_DoesNotChangeGrabOrRelease(10.0d,-1.0f)",
+      "Status": "Passed",
+      "Duration": 3.96E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.InvalidTimeOrDuration_DoesNotChangeGrabOrRelease(10.0d,float.NaN)",
+      "Status": "Passed",
+      "Duration": 4.44E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.InvalidTimeOrDuration_DoesNotChangeGrabOrRelease(10.0d,float.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 4.14E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.ManualOrDeathRelease_StartsWarningOnlyForCurrentOccupant",
+      "Status": "Passed",
+      "Duration": 0.0001786,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_AcceptsValidSnapshotsAndRejectsOlderRevision",
+      "Status": "Passed",
+      "Duration": 0.0001457,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Active,7UL,0.0d,0.0d)",
+      "Status": "Passed",
+      "Duration": 0.0007216,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Active,ulong.MaxValue,18.0d,0.0d)",
+      "Status": "Passed",
+      "Duration": 0.0002244,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Active,ulong.MaxValue,0.0d,20.0d)",
+      "Status": "Passed",
+      "Duration": 0.0001056,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Retracted,ulong.MaxValue,18.0d,0.0d)",
+      "Status": "Passed",
+      "Duration": 7.85E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Retracted,7UL,18.0d,20.0d)",
+      "Status": "Passed",
+      "Duration": 7.2E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Warning,7UL,0.0d,20.0d)",
+      "Status": "Passed",
+      "Duration": 6.97E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Warning,ulong.MaxValue,18.0d,20.0d)",
+      "Status": "Passed",
+      "Duration": 6.59E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Warning,ulong.MaxValue,0.0d,0.0d)",
+      "Status": "Passed",
+      "Duration": 0.0001072,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(99,ulong.MaxValue,0.0d,0.0d)",
+      "Status": "Passed",
+      "Duration": 7.37E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Retracted,7UL,double.NaN,0.0d)",
+      "Status": "Passed",
+      "Duration": 6.72E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Retracted,7UL,double.PositiveInfinity,0.0d)",
+      "Status": "Passed",
+      "Duration": 6.83E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Warning,ulong.MaxValue,0.0d,double.NaN)",
+      "Status": "Passed",
+      "Duration": 6.88E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Warning,ulong.MaxValue,0.0d,double.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 6.89E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Retracted,7UL,-1.0d,0.0d)",
+      "Status": "Passed",
+      "Duration": 6.47E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Receive_InvalidSnapshotDoesNotConsumeRevision(Warning,ulong.MaxValue,0.0d,-1.0d)",
+      "Status": "Passed",
+      "Duration": 6.63E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.UnlimitedHold_KeepsGateStoppedUntilReleaseThenUsesNormalWarning",
+      "Status": "Passed",
+      "Duration": 0.0004287,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.UnlimitedSnapshot_KeepsOccupantAndResetRejectsDelayedState",
+      "Status": "Passed",
+      "Duration": 0.0001829,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.Warning_AllowsRegrabAndRejectsOldRelease",
+      "Status": "Passed",
+      "Duration": 0.0001621,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleGateStateTests.ZeroWarningDuration_DoesNotReleaseUnlimitedOccupant",
+      "Status": "Passed",
+      "Duration": 0.0001285,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleLoopDirectionTests.Reverse_PreservesInitialRailPositionAndReversesFacingAndMomentum(0.1f)",
+      "Status": "Passed",
+      "Duration": 0.0019125,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleLoopDirectionTests.Reverse_PreservesInitialRailPositionAndReversesFacingAndMomentum(0.3f)",
+      "Status": "Passed",
+      "Duration": 0.0002783,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleLoopDirectionTests.Reverse_PreservesInitialRailPositionAndReversesFacingAndMomentum(0.6f)",
+      "Status": "Passed",
+      "Duration": 0.0001884,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleLoopDirectionTests.Reverse_PreservesInitialRailPositionAndReversesFacingAndMomentum(0.9f)",
+      "Status": "Passed",
+      "Duration": 0.0002167,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleLoopDirectionTests.Reverse_ReleaseVelocityMatchesActualRailMotionAndClosesSeam(3.0d)",
+      "Status": "Passed",
+      "Duration": 0.0006407,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleLoopDirectionTests.Reverse_ReleaseVelocityMatchesActualRailMotionAndClosesSeam(9.0d)",
+      "Status": "Passed",
+      "Duration": 0.0001869,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleLoopDirectionTests.Reverse_ReleaseVelocityMatchesActualRailMotionAndClosesSeam(19.0d)",
+      "Status": "Passed",
+      "Duration": 0.0001614,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleLoopDirectionTests.Reverse_ReleaseVelocityMatchesActualRailMotionAndClosesSeam(31.0d)",
+      "Status": "Passed",
+      "Duration": 0.0001568,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.DefaultReset_AllowsSameDirectionForNextHold",
+      "Status": "Passed",
+      "Duration": 0.0005592,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.FinalPartialFrame_ReturnsAverageForceWithoutExtraPushTime",
+      "Status": "Passed",
+      "Duration": 0.0003353,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.HeldDirection_ReachesWideSwingThenReturnsAcrossNeutralWithoutReleasingKey(30,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0030285,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.HeldDirection_ReachesWideSwingThenReturnsAcrossNeutralWithoutReleasingKey(60,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0036136,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.HeldDirection_ReachesWideSwingThenReturnsAcrossNeutralWithoutReleasingKey(120,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0066007,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.HeldDirection_ReachesWideSwingThenReturnsAcrossNeutralWithoutReleasingKey(30,-1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0029533,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.HeldDirection_ReachesWideSwingThenReturnsAcrossNeutralWithoutReleasingKey(60,-1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0039253,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.HeldDirection_ReachesWideSwingThenReturnsAcrossNeutralWithoutReleasingKey(120,-1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0066554,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.InvalidDeltaTime_DoesNotConsumeOrRearmPendingPush",
+      "Status": "Passed",
+      "Duration": 0.0003295,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.LongFrame_ConsumesOnlyTheQuarterSecondSimulatedBySwingMotion",
+      "Status": "Passed",
+      "Duration": 0.0001525,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.NeutralInput_RearmsSameDirectionAfterExpiredPush(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003632,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.NeutralInput_RearmsSameDirectionAfterExpiredPush(0.009f)",
+      "Status": "Passed",
+      "Duration": 9.07E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.NeutralInput_RearmsSameDirectionAfterExpiredPush(-0.009f)",
+      "Status": "Passed",
+      "Duration": 5.88E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.NeutralThenPressBetweenSimulationSteps_RearmsObservedInput",
+      "Status": "Passed",
+      "Duration": 0.0002071,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.NonFiniteInput_ActsAsNeutralAndAllowsNextValidPush(float.NaN)",
+      "Status": "Passed",
+      "Duration": 0.00021,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.NonFiniteInput_ActsAsNeutralAndAllowsNextValidPush(float.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 5.6E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.NonFiniteInput_ActsAsNeutralAndAllowsNextValidPush(float.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 3.97E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.OppositeDirection_StartsFullPushWithoutWaitingForNeutral",
+      "Status": "Passed",
+      "Duration": 0.0002587,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingInputTests.SameDirectionPacketsAndAnalogChanges_DoNotRechargePush",
+      "Status": "Passed",
+      "Duration": 0.0002731,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.DefaultPole_FirstForwardFortyFiveDegreeReleaseProvidesCrossingVelocity(30)",
+      "Status": "Passed",
+      "Duration": 0.0012253,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.DefaultPole_FirstForwardFortyFiveDegreeReleaseProvidesCrossingVelocity(60)",
+      "Status": "Passed",
+      "Duration": 0.0002131,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.DefaultPole_FirstForwardFortyFiveDegreeReleaseProvidesCrossingVelocity(120)",
+      "Status": "Passed",
+      "Duration": 0.0001741,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.DefaultPole_ForwardAndBackwardInputReachWideSymmetricSwingWithinOnePointTwoSeconds(30)",
+      "Status": "Passed",
+      "Duration": 0.0013956,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.DefaultPole_ForwardAndBackwardInputReachWideSymmetricSwingWithinOnePointTwoSeconds(60)",
+      "Status": "Passed",
+      "Duration": 0.0009254,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.DefaultPole_ForwardAndBackwardInputReachWideSymmetricSwingWithinOnePointTwoSeconds(120)",
+      "Status": "Passed",
+      "Duration": 0.001516,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.Input_AppliesOppositeForcesAndClampsToOne",
+      "Status": "Passed",
+      "Duration": 0.0019214,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.InvalidGeometry_ReturnsFiniteZero",
+      "Status": "Passed",
+      "Duration": 0.0007206,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.LargeDeltaTime_IsBoundedAndFinite",
+      "Status": "Passed",
+      "Duration": 0.000389,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.Limits_StopOutwardVelocityAndAllowReturn(1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0009849,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.Limits_StopOutwardVelocityAndAllowReturn(-1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0002387,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.NoInput_KeepsMomentumAndGravityRestoresDisplacement",
+      "Status": "Passed",
+      "Duration": 0.0004361,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.Offset_PositiveAndNegativeAnglesFollowPlanarForward",
+      "Status": "Passed",
+      "Duration": 0.000688,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.RotatedAndPitchedForward_RotatesOnlyTheHorizontalPlane",
+      "Status": "Passed",
+      "Duration": 0.0010432,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.Velocity_IsTangentInMetersPerSecond",
+      "Status": "Passed",
+      "Duration": 0.0003854,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingMotionTests.ZeroDeltaAndInvalidParameters_DoNotMoveValidState",
+      "Status": "Passed",
+      "Duration": 0.0003319,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingVisualTests.CeilingGeometry_ControlsGravityAndVelocityWithoutChangingGrip",
+      "Status": "Passed",
+      "Duration": 0.0013144,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingVisualTests.ForwardAndBackwardSwing_MovesBarWithPlayerWhileGripAndCeilingStayFixed",
+      "Status": "Passed",
+      "Duration": 0.0007368,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingVisualTests.MissingCeilingAnchor_PreservesLegacyShortPendulum",
+      "Status": "Passed",
+      "Duration": 0.0004335,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingVisualTests.ReleaseVelocity_IsDerivativeOfActualBodyArcPlusUpwardBoost(-35.0f,-70.0f)",
+      "Status": "Passed",
+      "Duration": 0.0009505,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingVisualTests.ReleaseVelocity_IsDerivativeOfActualBodyArcPlusUpwardBoost(35.0f,70.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003344,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.PoleSwingVisualTests.RepeatedPresentation_DoesNotFeedBackIntoPhysics_AndZeroReturnsBarAndCables",
+      "Status": "Passed",
+      "Duration": 0.0007796,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.DepartureGroundAndFirstCourse_HaveNoWalkableColliderAcrossTheirGap",
+      "Status": "Passed",
+      "Duration": 0.0034771,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.EveryLiftHasOpposingDoorsAndNoSolidFloorImmediatelyUnderneath",
+      "Status": "Passed",
+      "Duration": 0.0030415,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.FirstDepartureHasNoLowerRecoveryCourse",
+      "Status": "Passed",
+      "Duration": 0.0010973,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.FirstLiftOverloadDuringTravel_HasClearDropUnderWholePlatform(0.75f)",
+      "Status": "Passed",
+      "Duration": 0.001259,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.FirstLiftOverloadDuringTravel_HasClearDropUnderWholePlatform(0.8f)",
+      "Status": "Passed",
+      "Duration": 0.0004683,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.FirstLiftOverloadDuringTravel_HasClearDropUnderWholePlatform(0.9f)",
+      "Status": "Passed",
+      "Duration": 0.0004581,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.GroundMarkers_IncludeBothUnsafeCourseFloorsWithoutChangingLandingRules",
+      "Status": "Passed",
+      "Duration": 0.0011581,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.OriginalSixCannons_RemainThreeDepartureAndThreeShelterStations",
+      "Status": "Passed",
+      "Duration": 0.0009167,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.Route_ConnectsThreeTransportsAndShelterWithGroundToDeckLift",
+      "Status": "Passed",
+      "Duration": 0.0010404,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.SevenPoles_KeepOriginalIndicesAndBothCooperationGates",
+      "Status": "Passed",
+      "Duration": 0.0029468,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.ShelterAccess_ConnectsFirstCourseToLowerLiftAndUpperLiftToDeck",
+      "Status": "Passed",
+      "Duration": 0.000753,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.ShelterAccess_HasBodyClearanceWithSideFencesRemoved",
+      "Status": "Passed",
+      "Duration": 0.001083,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.ShelterDeck_RequiresLiftOrFlightToReachItsSixMeterTop",
+      "Status": "Passed",
+      "Duration": 0.0002644,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.ShelterDirectJump_CannotReachLowerLiftOrAccessEvenWithCapsuleAndSkinAllowance",
+      "Status": "Passed",
+      "Duration": 0.0007195,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.ShelterSideGap_HasNoFixedSupportBetweenDeckAndLowerLift",
+      "Status": "Passed",
+      "Duration": 0.000469,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.SplitShelterLandingFillsOldLiftHoleButKeepsDepartureHole",
+      "Status": "Passed",
+      "Duration": 0.000436,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.ThreeUnsteeredTrajectories_DescendInsideTheirReceivingArea(0,\"FirstCatch\")",
+      "Status": "Passed",
+      "Duration": 0.0008053,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.ThreeUnsteeredTrajectories_DescendInsideTheirReceivingArea(3,\"SecondCatch\")",
+      "Status": "Passed",
+      "Duration": 0.0004461,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteCourseTests.TwoFireSections_AreEnabledWithThirtySecondWarningAndOriginalSpeed",
+      "Status": "Passed",
+      "Duration": 0.0016738,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.FallColumn_CoversDescendingTrampolineButNotAdjacentGroundOrHighFlyers",
+      "Status": "Passed",
+      "Duration": 0.0018636,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_FollowTranslatedRotatedMovingPlatform",
+      "Status": "Passed",
+      "Duration": 0.0006079,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(1.85f,0.0f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0005464,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(-1.85f,0.0f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0002864,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(1.851f,0.0f,0.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.0002671,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(-1.851f,0.0f,0.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.0002492,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(0.0f,0.0f,2.85f,True)",
+      "Status": "Passed",
+      "Duration": 0.0003531,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(0.0f,0.0f,-2.85f,True)",
+      "Status": "Passed",
+      "Duration": 0.0003013,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(0.0f,0.0f,2.851f,False)",
+      "Status": "Passed",
+      "Duration": 0.0002447,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(0.0f,0.0f,-2.851f,False)",
+      "Status": "Passed",
+      "Duration": 0.0002386,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(0.0f,-0.15f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0003693,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(0.0f,0.3f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0002732,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(0.0f,-0.151f,0.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.0002408,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Feet_RequireInsetRectangleAndPlatformHeight(0.0f,0.301f,0.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.0002398,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Fire_FinishesOnceAtBoundaryAndResetRequiresNewDeparture",
+      "Status": "Passed",
+      "Duration": 0.0011403,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Fire_FirstDepartureArmsOnceAndLaterDeparturesDoNotDelayWarning",
+      "Status": "Passed",
+      "Duration": 0.0004959,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Fire_InvalidClockCannotArmAdvanceOrFinish(double.NaN)",
+      "Status": "Passed",
+      "Duration": 0.0005218,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Fire_InvalidClockCannotArmAdvanceOrFinish(double.PositiveInfinity)",
+      "Status": "Passed",
+      "Duration": 0.0002943,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Fire_InvalidClockCannotArmAdvanceOrFinish(double.NegativeInfinity)",
+      "Status": "Passed",
+      "Duration": 0.0002502,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Fire_InvalidClockCannotArmAdvanceOrFinish(-1.0d)",
+      "Status": "Passed",
+      "Duration": 0.0002319,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Fire_PressuresGroundAndAirButLeavesUnreachedAreaAndBoundarySafe",
+      "Status": "Passed",
+      "Duration": 0.0004194,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Fire_TranslatedQuarterTurnUsesItsRouteDirectionAndWidth",
+      "Status": "Passed",
+      "Duration": 0.0004036,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Fire_UnavailableCannotArmDamageOrShowEvenWithReceivedState_AndCanBeRestored",
+      "Status": "Passed",
+      "Duration": 0.0011007,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Load_RejectsAnyCornerOutsideEvenWhenHandleIsInside(1.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.000967,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Load_RejectsAnyCornerOutsideEvenWhenHandleIsInside(-1.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003729,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Load_RejectsAnyCornerOutsideEvenWhenHandleIsInside(0.0f,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003192,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Load_RejectsAnyCornerOutsideEvenWhenHandleIsInside(0.0f,-1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0002371,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Load_RejectsCornerHeightOutsidePlatformEvenWithHandleAtFeet",
+      "Status": "Passed",
+      "Duration": 0.000385,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Load_UsesAllRotatedCornersAndRequiresHandleOnPlatform",
+      "Status": "Passed",
+      "Duration": 0.0004127,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.LoadCheck_UsesOuterFrameRatherThanOnlyTheBounceFabric",
+      "Status": "Passed",
+      "Duration": 0.0003818,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.OccupiedIndicator_TintsOnlyFloorRenderersAndRestoresIdleWithoutChangingSharedMaterial",
+      "Status": "Passed",
+      "Duration": 0.0014792,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Passenger_ExactlyOnOrBeyondAnyPlatformEdgeDoesNotCount",
+      "Status": "Passed",
+      "Duration": 0.0007033,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Passenger_InsideEdgeCountsEvenOutsideTheBoardingInset",
+      "Status": "Passed",
+      "Duration": 0.0003734,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Passenger_JumpAndTrampolineRiderCountButFallenOrHighFlyerDoesNot",
+      "Status": "Passed",
+      "Duration": 0.0004113,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.Passenger_UsesRotatedMovingPlatformPositionAndLocalWidth",
+      "Status": "Passed",
+      "Duration": 0.0004944,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.RoundLoad_FitsIndependentlyOfYaw(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0004994,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.RoundLoad_FitsIndependentlyOfYaw(45.0f)",
+      "Status": "Passed",
+      "Duration": 0.000327,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.RoundLoad_FitsIndependentlyOfYaw(90.0f)",
+      "Status": "Passed",
+      "Duration": 0.0005895,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.TrapClosing_RestoresLevelPanelsAndBothColliders",
+      "Status": "Passed",
+      "Duration": 0.0008528,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.TrapOpening_HalfwayTiltsBothInnerEdgesDownSymmetrically",
+      "Status": "Passed",
+      "Duration": 0.000484,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.TrapOpening_ReachesVerticalAtDurationAndStaysThereOnRotatedPlatform",
+      "Status": "Passed",
+      "Duration": 0.0005438,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteGeometryTests.TrapOpening_RemovesBothSupportsImmediatelyBeforePanelsRotate",
+      "Status": "Passed",
+      "Duration": 0.0004324,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteResetBarrierTests.Disconnect_ClearsWaitAndAllowsNewHostSnapshot",
+      "Status": "Passed",
+      "Duration": 0.0004585,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteResetBarrierTests.ResetAndNewDepartureBeforeLocalRestart_StillAcceptsFreshReply",
+      "Status": "Passed",
+      "Duration": 0.0002379,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteResetBarrierTests.RestartBeforeSnapshot_RejectsQueuedStateUntilItsRequestedReply",
+      "Status": "Passed",
+      "Duration": 0.0001869,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.RouteResetBarrierTests.SecondRestart_DoesNotAcceptFirstRestartsReply",
+      "Status": "Passed",
+      "Duration": 0.0001444,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineCarryPoseTests.CardinalFacing_PutsCenterInFrontAndHandleAtCarrier(0.0f,1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0004953,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineCarryPoseTests.CardinalFacing_PutsCenterInFrontAndHandleAtCarrier(0.0f,-1.0f)",
+      "Status": "Passed",
+      "Duration": 0.0001039,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineCarryPoseTests.CardinalFacing_PutsCenterInFrontAndHandleAtCarrier(1.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 6.23E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineCarryPoseTests.CardinalFacing_PutsCenterInFrontAndHandleAtCarrier(-1.0f,0.0f)",
+      "Status": "Passed",
+      "Duration": 5.11E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineCarryPoseTests.DifferentApproachPositions_KeepTheHandleDefinedDistance",
+      "Status": "Passed",
+      "Duration": 0.0002412,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineCarryPoseTests.JumpHeight_MovesDeviceBySameHeightWithoutChangingRotation",
+      "Status": "Passed",
+      "Duration": 0.0004612,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineCarryPoseTests.MissingHorizontalDirectionOrNonFiniteVectors_AreRejected",
+      "Status": "Passed",
+      "Duration": 0.0003062,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineCarryPoseTests.OffsetHandleAndPitchedForward_KeepAnchorExactAndDeviceLevel",
+      "Status": "Passed",
+      "Duration": 0.0001857,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.CircularEdge_UsesRadialDistanceAndPlayerRadius(2.25f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0003603,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.CircularEdge_UsesRadialDistanceAndPlayerRadius(2.251f,0.0f,False)",
+      "Status": "Passed",
+      "Duration": 0.0001044,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.CircularEdge_UsesRadialDistanceAndPlayerRadius(1.59f,1.59f,True)",
+      "Status": "Passed",
+      "Duration": 5.91E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.CircularEdge_UsesRadialDistanceAndPlayerRadius(1.6f,1.6f,False)",
+      "Status": "Passed",
+      "Duration": 4.81E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.CircularMovingSurface_UsesPositionAtCrossingAndDoesNotCatchUpwardPasses",
+      "Status": "Passed",
+      "Duration": 0.0002565,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.CircularSurface_DoesNotBounceOutsideTheFabricAtRectangleCorners",
+      "Status": "Passed",
+      "Duration": 0.0002097,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.Edge_IncludesBodyRadiusButRejectsOutside(1.25f,True)",
+      "Status": "Passed",
+      "Duration": 0.0005574,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.Edge_IncludesBodyRadiusButRejectsOutside(1.26f,False)",
+      "Status": "Passed",
+      "Duration": 0.0001117,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.EmptySurfaceOrNonFiniteInput_IsRejected",
+      "Status": "Passed",
+      "Duration": 0.000326,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.FastDescent_CatchesCrossingBetweenFrames",
+      "Status": "Passed",
+      "Duration": 0.0002253,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.HorizontalExitBeforeCrossing_DoesNotCatch",
+      "Status": "Passed",
+      "Duration": 0.0001499,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.HostContactMargin_StillRejectsCircularCornerOutsideTheRadius",
+      "Status": "Passed",
+      "Duration": 0.0003363,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.InvalidRotation_IsRejected",
+      "Status": "Passed",
+      "Duration": 0.000197,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.MovingSurface_UsesBothPositionsAtTimeOfCrossing",
+      "Status": "Passed",
+      "Duration": 0.0001644,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.RisingSurface_CatchesDescendingPlayerAboveItsPreviousHeight",
+      "Status": "Passed",
+      "Duration": 0.0001456,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.RotatedRectangle_UsesDeviceAxesInsteadOfWorldAxes",
+      "Status": "Passed",
+      "Duration": 0.0002363,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.TurningSurface_UsesRotationAtCrossingTime",
+      "Status": "Passed",
+      "Duration": 0.0002186,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.UpwardPassOrRemainingBelow_DoesNotCatchAgain",
+      "Status": "Passed",
+      "Duration": 0.0001623,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.WholeDevice_CatchesAscendingSideContactWithBodyInsteadOfFeet",
+      "Status": "Passed",
+      "Duration": 0.0008042,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.WholeDevice_CatchesFrameCornerBeyondCircularFabric",
+      "Status": "Passed",
+      "Duration": 0.0001734,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineContactTests.WholeDevice_OutgoingBounceDoesNotImmediatelyBounceAgain",
+      "Status": "Passed",
+      "Duration": 0.000167,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SideUndersideAndMovingRotatedDeviceKeepContinuousContact",
+      "Status": "Passed",
+      "Duration": 0.0013278,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SweptBodyFollowsCircleAndGripInsteadOfOldSquare(0.0f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 0.0004857,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SweptBodyFollowsCircleAndGripInsteadOfOldSquare(2.5f,0.0f,True)",
+      "Status": "Passed",
+      "Duration": 9.58E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SweptBodyFollowsCircleAndGripInsteadOfOldSquare(2.2f,2.2f,False)",
+      "Status": "Passed",
+      "Duration": 5.74E-05,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SweptBodyFollowsCircleAndGripInsteadOfOldSquare(-2.8f,0.5f,True)",
+      "Status": "Passed",
+      "Duration": 0.0001174,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.TrampolineOutlineTests.SweptBodyFollowsCircleAndGripInsteadOfOldSquare(-3.2f,0.8f,False)",
+      "Status": "Passed",
+      "Duration": 0.0001086,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

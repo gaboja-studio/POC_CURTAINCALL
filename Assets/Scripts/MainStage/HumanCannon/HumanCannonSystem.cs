@@ -20,7 +20,7 @@ namespace CurtainCall.HumanCannon
         const string RequestMessage = "CurtainCall.HumanCannon.Request";
         const string StateMessage = "CurtainCall.HumanCannon.State";
         const int RequestSize = 25;
-        const int StateSize = 65;
+        const int StateSize = 81; // Shot and external activation timestamps allow late-join seeking.
 
         [Tooltip("대포 목록. 네 화면에서 같은 씬·같은 순서여야 한다.")]
         [SerializeField] HumanCannonStation[] stations = Array.Empty<HumanCannonStation>();
@@ -127,7 +127,11 @@ namespace CurtainCall.HumanCannon
             injuryInteractions.Clear();
             LocalSafeLandingCount = 0;
             seats = new SeatRuntime[stations.Length];
-            for (int i = 0; i < seats.Length; i++) seats[i] = new SeatRuntime();
+            for (int i = 0; i < seats.Length; i++)
+            {
+                seats[i] = new SeatRuntime();
+                if (stations[i] != null) stations[i].ResetBarrel();
+            }
             flying.Clear();
             if (pilot != null) pilot.ReleaseMovement();
         }
@@ -183,7 +187,7 @@ namespace CurtainCall.HumanCannon
             for (int i = 0; i < stations.Length; i++)
             {
                 var station = stations[i];
-                if (station == null || !station.isActiveAndEnabled || !station.InteractionAvailable || seats[i].State.IsOccupied) continue;
+                if (station == null || !station.isActiveAndEnabled || !station.ReadyToUse || seats[i].State.IsOccupied) continue;
                 float distance = (station.Seat.position - PlayerInteraction.Center(player)).sqrMagnitude;
                 float radius = station.BoardingDistance * reach;
                 if (!PlayerInteraction.InRange(player, station.Seat.position, radius) || distance >= best) continue;
@@ -255,7 +259,7 @@ namespace CurtainCall.HumanCannon
             if (!ValidIndex(index) || (action != CannonAction.Board && action != CannonAction.Launch && action != CannonAction.Cancel)) return;
             var runtime = seats[index];
             var station = stations[index];
-            if (action == CannonAction.Launch && !station.InteractionAvailable) return;
+            if (action == CannonAction.Launch && !station.ReadyToUse) return;
             if (action == CannonAction.Board && FindBoardableStation(player) != index) return;
             if (action == CannonAction.Board && !interactionReady)
             {
@@ -291,6 +295,7 @@ namespace CurtainCall.HumanCannon
 
         void Publish(int index, CannonAction action, ulong actor, Vector3 position, Quaternion rotation, Vector3 velocity)
         {
+            if (action == CannonAction.Launch) stations[index].FireBarrel();
             Apply(index, action, actor, position, rotation, velocity);
             foreach (ulong id in session.NetworkManager.ConnectedClientsIds)
                 if (id != NetworkManager.ServerClientId) SendState(id, index, action, actor, position, rotation, velocity);
@@ -307,6 +312,8 @@ namespace CurtainCall.HumanCannon
             writer.WriteValueSafe(position);
             writer.WriteValueSafe(rotation);
             writer.WriteValueSafe(velocity);
+            writer.WriteValueSafe(stations[index] != null ? stations[index].LastFiredAt : -1d);
+            writer.WriteValueSafe(stations[index] != null ? stations[index].LastActivatedAt : -1d);
             messaging.SendNamedMessage(StateMessage, client, writer, NetworkDelivery.ReliableSequenced);
         }
 
@@ -321,11 +328,16 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out Vector3 position);
             reader.ReadValueSafe(out Quaternion rotation);
             reader.ReadValueSafe(out Vector3 velocity);
+            reader.ReadValueSafe(out double firedAt);
+            reader.ReadValueSafe(out double activatedAt);
             // 대포가 꺼지거나 제거된 뒤에도 호스트의 점유 해제는 받아야 한다.
             if (index < 0 || index >= seats.Length) return;
             var action = (CannonAction)rawAction;
             if (action != CannonAction.Sync && revision <= seats[index].State.Revision) return;
             if (!seats[index].State.Receive(revision, occupant)) return;
+            if (stations[index] != null && !double.IsNaN(firedAt) && !double.IsInfinity(firedAt)
+                && !double.IsNaN(activatedAt) && !double.IsInfinity(activatedAt))
+                stations[index].RestoreBarrel(firedAt, activatedAt);
             Apply(index, action, actor, position, rotation, velocity);
         }
 
@@ -333,6 +345,7 @@ namespace CurtainCall.HumanCannon
         {
             if (action == CannonAction.Reset)
             {
+                if (stations[index] != null) stations[index].ResetBarrel();
                 // Restart 알림과 이전 발사 응답의 도착 순서가 달라도 최종 상태는 초기화다.
                 flying.Clear();
                 awaitingFlightSnapshot = false;
