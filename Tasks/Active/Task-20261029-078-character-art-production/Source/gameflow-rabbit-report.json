@@ -1,0 +1,63 @@
+{
+  "networkPlayer": "Assets/Resources/Prefabs/Characters/Players/Player.prefab",
+  "model": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Rabbit.prefab",
+  "scenes": [
+    {
+      "scene": "Assets/Scenes/Start_Lobby/Start.unity",
+      "playerSlots": 0,
+      "networkSpawns": []
+    },
+    {
+      "scene": "Assets/Scenes/Start_Lobby/Lobby.unity",
+      "playerSlots": 0,
+      "networkSpawns": []
+    },
+    {
+      "scene": "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity",
+      "playerSlots": 0,
+      "networkSpawns": []
+    },
+    {
+      "scene": "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity",
+      "playerSlots": 0,
+      "networkSpawns": []
+    },
+    {
+      "scene": "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity",
+      "playerSlots": 1,
+      "networkSpawns": []
+    },
+    {
+      "scene": "Assets/Scenes/UI/CommonPerformanceUI.unity",
+      "playerSlots": 0,
+      "networkSpawns": []
+    },
+    {
+      "scene": "Assets/Scenes/UI/PerformanceTransitionUI.unity",
+      "playerSlots": 0,
+      "networkSpawns": []
+    },
+    {
+      "scene": "Assets/Scenes/UI/CommonWaitingRoomUI.unity",
+      "playerSlots": 0,
+      "networkSpawns": []
+    },
+    {
+      "scene": "Assets/Scenes/UI/CommonInteractionUI.unity",
+      "playerSlots": 0,
+      "networkSpawns": []
+    },
+    {
+      "scene": "Assets/_ThirdParty/curtaincall/PerformanceBackground/Scenes/performance_background.unity",
+      "playerSlots": 0,
+      "networkSpawns": []
+    },
+    {
+      "scene": "Assets/Scenes/UI/CommonMenuUI.unity",
+      "playerSlots": 0,
+      "networkSpawns": []
+    }
+  ],
+  "privateSkins": 9,
+  "missingScripts": 0
+}

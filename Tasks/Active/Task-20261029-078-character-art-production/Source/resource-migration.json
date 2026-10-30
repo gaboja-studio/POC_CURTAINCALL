@@ -1,0 +1,116 @@
+[
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Body1.asset",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/Body1.asset",
+    "guid": "bafc188589d99ff4ca40d8e96da60025",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Body2.asset",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/Body2.asset",
+    "guid": "bf98a47864e36fd46ae989f57f099b04",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Body3.asset",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/Body3.asset",
+    "guid": "9404612ff5298194f931eb1dfb3ce8f2",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Body4.asset",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/Body4.asset",
+    "guid": "fe41af83e3b51a3449f2b3a8fe3a263b",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Limb1.asset",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/Limb1.asset",
+    "guid": "8a7160d3a683b6d4bbe3fb26420a0afd",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Limb2.asset",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/Limb2.asset",
+    "guid": "44c59a6eccd77f3419782fa14427d0e9",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Limb3.asset",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/Limb3.asset",
+    "guid": "c1138132725f61a4b83bd38f70216255",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Limb4.asset",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/Limb4.asset",
+    "guid": "1c63fe80ea20491438313eb512e6488f",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/Original.asset",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/Original.asset",
+    "guid": "772d643c8beff7e499cf63daf14863dc",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/RabbitBloodPaper.shader",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/RabbitBloodPaper.shader",
+    "guid": "9b3b42168625ae8438505267800eb485",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/RabbitCostume.mat",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/RabbitCostume.mat",
+    "guid": "6c757fd3b31cc6248a9c29146e6d4914",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/RabbitCostume.png",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/RabbitCostume.png",
+    "guid": "a97ccf6645419df43bbabb88ca8772d5",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/RabbitCostume_Heavy.mat",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/RabbitCostume_Heavy.mat",
+    "guid": "62d9207ec78691642a55ca83490913ea",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/RabbitCostume_Light.mat",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/RabbitCostume_Light.mat",
+    "guid": "720a58b25274b4949863131b91e7658d",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/RabbitCutCap.mat",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/RabbitCutCap.mat",
+    "guid": "caa882318aa29284fb63a9d86661e78a",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/RabbitPlayerTrim.mat",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/RabbitPlayerTrim.mat",
+    "guid": "e23995a041aa18e46bf01ae14e2287c5",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/RabbitV12.fbx",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/RabbitV12.fbx",
+    "guid": "936e0f2e796691c46948da7f7c53de82",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/RabbitV13.fbx",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/RabbitV13.fbx",
+    "guid": "365520177bcd49143933f4042dc1ccf6",
+    "preserved": true
+  },
+  {
+    "from": "Assets/Resources/Prefabs/Characters/Players/Models/Rabbit/RabbitV14.fbx",
+    "to": "Assets/_ThirdParty/CharacterArt/Rabbit/RabbitV14.fbx",
+    "guid": "d2a6bce8a0b724d40813f1dca3f17ff8",
+    "preserved": true
+  }
+]
