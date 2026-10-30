@@ -31,7 +31,7 @@ namespace CurtainCall.HumanCannon.EditorTools
                 gallery.CharacterPrefabs[c]=AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources/Prefabs/Characters/Players/Models/{name}/{name}.prefab");
             }
             var floor=GameObject.CreatePrimitive(PrimitiveType.Cube);floor.name="Gallery Floor";
-            floor.transform.position=new Vector3(4.5f,-.12f,5.1f);floor.transform.localScale=new Vector3(14,.2f,16);
+            floor.transform.position=new Vector3(4.5f,-.10f,5.1f);floor.transform.localScale=new Vector3(14,.2f,16);
             var camera=new GameObject("Main Camera",typeof(Camera),typeof(AudioListener)).GetComponent<Camera>();
             camera.tag="MainCamera";camera.orthographic=true;camera.orthographicSize=10;
             camera.transform.SetPositionAndRotation(new Vector3(4.5f,19,-13),Quaternion.Euler(48,0,0));

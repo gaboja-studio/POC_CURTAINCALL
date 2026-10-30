@@ -50,6 +50,84 @@ namespace CurtainCall.HumanCannon.Tests
 
     public sealed partial class FinalCannonPlayTests
     {
+        [UnityTest]
+        public IEnumerator CircusGrounding_CannonLandingUsesInjuredSupport()
+        {
+            DisableEnhancementThreats();var probe=MotionProbe();
+            for(int stage=1;stage<4;stage++)
+            {
+                Call(player,"ServerRestoreAll");Call(player,"ServerCut",stage);yield return new WaitForSeconds(.2f);
+                int before=SafeLandings;
+                yield return WaitUntil(()=>(bool)Get(Call(system,"Station",6),"ReadyToUse"),22,"cannon cooldown before next injury case");
+                yield return Board(6);yield return ReleaseThenArm();Input(tapped:true);
+                yield return WaitUntil(()=>Flying,2,"launch");
+                yield return WaitUntil(()=>SafeLandings>before,8,"injured safe landing");
+                yield return new WaitForSeconds(.18f);
+                var model=(Component)Get(probe.View,"Model");
+                for(int sample=0;sample<4;sample++)
+                {
+                    Assert.AreEqual("FlightLand_Cut"+stage,Get(probe.View,"CircusMotion"));
+                    AssertGroundSupport(model,probe.Animator,stage,$"cannon landing {stage}/{sample}");
+                    yield return new WaitForSeconds(.1f);
+                }
+                yield return new WaitForSeconds(.5f);
+                Assert.IsNull(Get(probe.View,"CircusMotion"));
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CircusGrounding_InjuryCarryPlantsSupportWithoutLosingGrip()
+        {
+            DisableEnhancementThreats();var probe=MotionProbe();
+            var t=(Component)StaticGet("CurtainCall.HumanCannon.HumanCannonTrampoline","Current");
+            for(int character=0;character<4;character++)
+            for(int stage=1;stage<4;stage++)
+            {
+                Call(player,"RequestAppearance",character,2);
+                Call(player,"ServerRestoreAll");Call(player,"ServerCut",stage);yield return new WaitForSeconds(.2f);
+                var handle=(Transform)Get(t,"Handle");
+                Call(mover,"SetStartPose",handle.position,Quaternion.identity,true);yield return new WaitForSeconds(.15f);
+                Call(t,"RequestGrab");yield return WaitUntil(()=>(ulong)Get(t,"Carrier")==Actor,3,"injured carry ownership");
+                yield return new WaitForSeconds(.5f);
+                var model=(Component)Get(probe.View,"Model");
+                Assert.AreEqual("TrampolineCarry_Cut"+stage,Get(model,"Motion"));
+                if(stage<3)Assert.Less(probe.LeftError,.06f,$"left grip {character}/{stage}");
+                Assert.Less(probe.RightError,.06f,$"right grip {character}/{stage}");
+                AssertGroundSupport(model,probe.Animator,stage,$"carry {character}/{stage}");
+                Call(mover,"RequestJump");yield return WaitUntil(()=>(bool)Get(mover,"IsAirborne"),2,"injured jump");
+                yield return new WaitForSeconds(.12f);
+                Assert.AreEqual("CarryJump_Cut"+stage,Get(model,"Motion"));
+                Assert.Less(probe.RightError,.06f,"jump retains handle");
+                yield return WaitUntil(()=>!(bool)Get(mover,"IsAirborne"),3,"land from carry jump");
+                yield return new WaitForSeconds(.5f);
+                AssertGroundSupport(model,probe.Animator,stage,$"after jump {character}/{stage}");
+                Call(t,"RequestDrop");yield return WaitUntil(()=>(ulong)Get(t,"Carrier")==ulong.MaxValue,2,"drop");
+                t.transform.position=new Vector3(0,0,57);Call(t,"ResetPreviousPose");yield return null;
+            }
+        }
+
+        static void AssertGroundSupport(Component model,Animator animator,int stage,string label)
+        {
+            var bodies=(SkinnedMeshRenderer[])model.GetType().GetField("Bodies").GetValue(model);
+            var skin=bodies[stage-1];var bones=skin.bones;var weights=skin.sharedMesh.boneWeights;
+            var ids=stage==1?new[]{HumanBodyBones.RightFoot,HumanBodyBones.RightToes}:
+                new[]{HumanBodyBones.Hips,HumanBodyBones.LeftUpperLeg,HumanBodyBones.RightUpperLeg};
+            bool Selected(int index){foreach(var id in ids)if(bones[index]==animator.GetBoneTransform(id))return true;return false;}
+            float W(int index,float weight)=>Selected(index)?weight:0;
+            var mesh=new Mesh();
+            try
+            {
+                skin.BakeMesh(mesh,false);var vertices=mesh.vertices;float lowest=float.PositiveInfinity;
+                for(int i=0;i<vertices.Length;i++)
+                {
+                    var w=weights[i];if(W(w.boneIndex0,w.weight0)+W(w.boneIndex1,w.weight1)+W(w.boneIndex2,w.weight2)+W(w.boneIndex3,w.weight3)<=.5f)continue;
+                    lowest=Mathf.Min(lowest,skin.transform.TransformPoint(vertices[i]).y);
+                }
+                Assert.That(lowest-model.transform.position.y,Is.InRange(-.012f,.02f),label+" actual load-bearing surface");
+            }
+            finally{UnityEngine.Object.Destroy(mesh);}
+        }
+
         CannonMotionProbe MotionProbe()
         {
             var probe=player.gameObject.AddComponent<CannonMotionProbe>();

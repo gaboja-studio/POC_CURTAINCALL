@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 42.84,
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusGrounding_CannonLandingUsesInjuredSupport",
+      "Status": "Failed",
+      "Duration": 9.6314127,
+      "Message": "  Expected: 6\r\n  But was:  -1\r\n",
+      "StackTrace": "at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<Board>d__105.MoveNext () [0x00136] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.cs:204\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusGrounding_InjuryCarryPlantsSupportWithoutLosingGrip",
+      "Status": "Passed",
+      "Duration": 33.1071131,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

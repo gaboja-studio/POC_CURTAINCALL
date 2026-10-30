@@ -8,6 +8,56 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
     public sealed class CannonMotionTests
     {
+        [TestCase("Rabbit")]
+        [TestCase("Bear")]
+        [TestCase("BluePierrot")]
+        [TestCase("PinkGirl")]
+        public void InjuredGroundActionsPlantTheActualPelvisOrSurvivingSole(string character)
+        {
+            var scene=UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+            var mesh=new Mesh();
+            try
+            {
+                var go=Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources/Prefabs/Characters/Players/Models/{character}/{character}.prefab"));
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(go,scene);
+                // Nonzero elevation and yaw catch accidental world-zero or local/world mixing.
+                go.transform.SetPositionAndRotation(new Vector3(2,3,4),Quaternion.Euler(0,137,0));
+                var model=go.GetComponent<HumanoidModel>();var a=model.Animator;
+                var ground=go.GetComponent<CurtainCall.CharacterArt.RabbitTrialGrounding>();
+                a.cullingMode=AnimatorCullingMode.AlwaysAnimate;a.Rebind();a.Update(0);a.SetLayerWeight(1,0);
+                for(int stage=1;stage<4;stage++)
+                {
+                    var mask=PlayerCondition.PartsForLostCount(stage);model.Apply(mask,mask,false,null);
+                    var skin=model.Bodies[stage-1];var bones=skin.bones;var weights=skin.sharedMesh.boneWeights;
+                    var supportBones=(stage==1?new[]{HumanBodyBones.RightFoot,HumanBodyBones.RightToes}:
+                        new[]{HumanBodyBones.Hips,HumanBodyBones.LeftUpperLeg,HumanBodyBones.RightUpperLeg}).Select(a.GetBoneTransform).ToArray();
+                    float W(int index,float weight)=>supportBones.Contains(bones[index])?weight:0;
+                    var support=Enumerable.Range(0,weights.Length).Where(i=>{
+                        var w=weights[i];return W(w.boneIndex0,w.weight0)+W(w.boneIndex1,w.weight1)+W(w.boneIndex2,w.weight2)+W(w.boneIndex3,w.weight3)>.5f;
+                    }).ToArray();
+                    Assert.IsNotEmpty(support);
+                    foreach(var motion in new[]{"FlightLand","TrampolineCarry","RopePull"})
+                    for(int frame=0;frame<=30;frame++)
+                    {
+                        a.Play(motion+"_Cut"+stage,0,Mathf.Min(.9999f,frame/30f));a.Update(0);ground.CorrectPose();
+                        skin.BakeMesh(mesh,false);var vertices=mesh.vertices;
+                        float floor=go.transform.position.y;
+                        float contact=support.Min(i=>skin.transform.TransformPoint(vertices[i]).y)-floor;
+                        string label=$"{character} {motion}_Cut{stage} frame {frame}";
+                        Assert.That(contact,Is.InRange(-.006f,.012f),label+" load-bearing support; a fingertip alone is insufficient");
+                        float bottom=vertices.Min(v=>skin.transform.TransformPoint(v).y)-floor;
+                        Assert.GreaterOrEqual(bottom,-.018f,label+" remaining surface must not penetrate the floor");
+                    }
+                    foreach(var air in new[]{"CarryJump","PanicFall","RopeHang","RopeLift","CannonLoaded"})
+                    {
+                        a.Play(air+"_Cut"+stage,0,.4f);a.Update(0);ground.CorrectPose();
+                        Assert.AreEqual(0,ground.Lift,air+" must not be pinned to the floor");
+                    }
+                }
+            }
+            finally{Object.DestroyImmediate(mesh);UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);}
+        }
+
         [Test]
         public void ApexPanicReboundAndLandingDoNotLatchOldFlight()
         {
