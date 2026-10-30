@@ -10,6 +10,7 @@ using CurtainCall.WaitingRoom;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace CurtainCall.UI.SceneIntegration
 {
@@ -30,6 +31,8 @@ namespace CurtainCall.UI.SceneIntegration
         LobbyRoom lobbyRoom;
         PlayerInputReader offlineReader;
         Material material;
+        readonly List<RectTransform> rescueRings = new();
+        Sprite rescueTrack;
         public int HighlightCount => outlines.Count;
         public IReadOnlyList<Transform> Highlighted => outlines.ConvertAll(o => o.Target);
         public InteractionPromptView Prompt => prompt;
@@ -37,7 +40,7 @@ namespace CurtainCall.UI.SceneIntegration
         sealed class Candidate
         {
             public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom, Lobby, Pole;
-            public float Distance;
+            public float Distance; public float? Progress;
             public string Helper, Key = "F";
             public bool Hold, ScreenGuide;
         }
@@ -77,6 +80,7 @@ namespace CurtainCall.UI.SceneIntegration
             ShopReach.HasExternalPresentation = prompt != null;
             var reader = Reader(); var camera = Camera.main;
             if (reader == null || !reader.isActiveAndEnabled || camera == null || InputGate.IsBlocked || SceneCurtainTransition.IsActive) { Hide(); return; }
+            UpdateRescueRings(camera);
             candidates.Clear(); selected.Clear();
             Vector3 feet = reader.transform.position;
             foreach (var target in ShopReach.Targets)
@@ -96,9 +100,9 @@ namespace CurtainCall.UI.SceneIntegration
                 Add(item.transform, Center(item.transform), action, usable, lobbyRoom != null && lobbyRoom.FocusedInteraction == item, feet);
                 candidates[candidates.Count - 1].Lobby = true;
             }
+            AddTightropeDevices(feet);
             AddEscapeCooperativeButton(feet);
             AddCannon(feet);
-            AddTightropeDevices(feet);
             AddPiggyback(feet);
             foreach (var candidate in candidates)
             {
@@ -131,7 +135,7 @@ namespace CurtainCall.UI.SceneIntegration
                 foreach (var candidate in selected) if (candidate.WaitingRoom || candidate.Lobby) { focused = candidate; break; }
             if (focused == null || prompt == null) { if (prompt != null) prompt.HideImmediate(); return; }
             prompt.Show(focused.Key, focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
-                focused.Hold, focused.Hold && focused.Available ? reader.Current.InteractHoldProgress : 0,
+                focused.Hold, focused.Hold && focused.Available ? focused.Progress ?? reader.Current.InteractHoldProgress : 0,
                 focused.Focused ? focused.Helper ?? "" : "가까이 다가가세요");
             var layout = prompt.GetComponent<NotificationTextLayout>();
             if (layout == null) layout = prompt.gameObject.AddComponent<NotificationTextLayout>();
@@ -218,7 +222,8 @@ namespace CurtainCall.UI.SceneIntegration
                 }
                 if (hang.Rescuer == player.OwnerClientId)
                 {
-                    DeviceGuide(player, feet, "F 홀드", "끌어올리기 취소", true, $"끌어올리는 중 {hangs.PullProgress(hang) * 100f:0}%", true);
+                    DeviceGuide(player, feet, "F 홀드", "끌어올리는 중", true, "손을 떼면 취소됩니다", true);
+                    candidates[candidates.Count - 1].Progress = hangs.PullProgress(hang);
                     return true;
                 }
             }
@@ -226,8 +231,71 @@ namespace CurtainCall.UI.SceneIntegration
             { DeviceGuide(player, feet, "-", "줄을 잡는 중", false, ""); return true; }
             var target = hangs.NearestRescueTarget(player);
             if (target == null) return false;
-            DeviceGuide(player, feet, "F", "매달린 동료 끌어올리기", true, $"{CurtainCall.Settings.GameSettings.Tightrope.Hang.PullSeconds:0.#}초 동안 끌어올립니다 · 남은 {hangs.RemainingSeconds(target):0.0}초");
+            NetworkPlayer targetPlayer = null;
+            foreach (var other in NetworkPlayer.All) if (other != null && other.OwnerClientId == target.Id) { targetPlayer = other; break; }
+            string label = targetPlayer != null && targetPlayer.Slot >= 0 ? $"플레이어 {targetPlayer.Slot + 1} 올리기" : "동료 올리기";
+            DeviceGuide(player, feet, "F", label, true, $"계속 누르기 · 남은 {hangs.RemainingSeconds(target):0.0}초", true);
             return true;
+        }
+        // 구조자의 머리 위에 진행 표시를 둔다.
+        void UpdateRescueRings(Camera camera)
+        {
+            foreach (var ring in rescueRings) if (ring != null) ring.gameObject.SetActive(false);
+            var hangs = TightropeHangSystem.Current;
+            var canvas = prompt != null ? prompt.GetComponentInParent<Canvas>() : null;
+            if (hangs == null || canvas == null) return;
+            if (rescueTrack == null)
+            {
+                var prefab = Resources.Load<GameObject>("Prefabs/UIs/Interaction/InteractionPrompt");
+                if (prefab == null) return;
+                foreach (var image in prefab.GetComponentsInChildren<Image>(true))
+                {
+                    if (image.name == "50_HoldTrack") rescueTrack = image.sprite;
+                }
+                if (rescueTrack == null) return;
+            }
+            var parent = canvas.transform as RectTransform;
+            if (parent == null) return;
+            int index = 0;
+            foreach (var hang in hangs.Hangs)
+            {
+                if (!hang.IsPulling) continue;
+                foreach (var player in NetworkPlayer.All)
+                {
+                    if (player == null || !player.IsSpawned || player.OwnerClientId != hang.Rescuer) continue;
+                    Vector3 screen = camera.WorldToScreenPoint(player.transform.position + Vector3.up * 2.15f);
+                    if (screen.z <= 0f) continue;
+                    Camera uiCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+                    if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, screen, uiCamera, out var pos)) continue;
+                    if (index == rescueRings.Count) rescueRings.Add(CreateRescueRing(parent));
+                    var ring = rescueRings[index++];
+                    ring.anchoredPosition = pos;
+                    ring.GetComponentInChildren<RescueProgressRing>(true).Progress = hangs.PullProgress(hang);
+                    ring.gameObject.SetActive(true);
+                }
+            }
+        }
+
+        RectTransform CreateRescueRing(RectTransform parent)
+        {
+            var template = Resources.Load<GameObject>("Prefabs/UIs/Interaction/RescueProgress");
+            if (template != null)
+            {
+                var instance = Instantiate(template, parent, false);
+                return (RectTransform)instance.transform;
+            }
+            // 프리팹을 아직 생성하지 않은 프로젝트에서도 구조 안내를 유지한다.
+            var root = new GameObject("RescueProgress", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            var rect = (RectTransform)root.transform;
+            rect.SetParent(parent, false); rect.anchorMin = rect.anchorMax = new Vector2(.5f, .5f);
+            rect.sizeDelta = new Vector2(64f, 64f);
+            var track = root.GetComponent<Image>(); track.sprite = rescueTrack; track.color = new Color(.25f, .08f, .08f, .9f); track.raycastTarget = false;
+            var outline = root.AddComponent<Outline>(); outline.effectColor = Color.black; outline.effectDistance = new Vector2(2f, -2f);
+            var child = new GameObject("Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(RescueProgressRing));
+            var fillRect = (RectTransform)child.transform; fillRect.SetParent(rect, false);
+            fillRect.anchorMin = Vector2.zero; fillRect.anchorMax = Vector2.one; fillRect.offsetMin = fillRect.offsetMax = Vector2.zero;
+            var fill = child.GetComponent<RescueProgressRing>(); fill.Sprite = rescueTrack; fill.type = Image.Type.Filled; fill.fillMethod = Image.FillMethod.Radial360; fill.fillOrigin = (int)Image.Origin360.Top; fill.fillClockwise = true; fill.color = new Color(1f, .12f, .12f, 1f); fill.raycastTarget = false;
+            return rect;
         }
         void DeviceGuide(NetworkPlayer player, Vector3 feet, string key, string action, bool available, string helper, bool hold = false)
         {
@@ -424,6 +492,7 @@ namespace CurtainCall.UI.SceneIntegration
         }
         void Hide()
         {
+            foreach (var ring in rescueRings) if (ring != null) ring.gameObject.SetActive(false);
             foreach (var outline in outlines) outline.Dispose(); outlines.Clear();
             if (prompt != null) prompt.HideImmediate();
         }
@@ -433,6 +502,6 @@ namespace CurtainCall.UI.SceneIntegration
             if (lobbyRoom != null) lobbyRoom.ExternalInteractionPresentation = false;
             Hide();
         }
-        void OnDestroy() { if (material != null) Destroy(material); }
+        void OnDestroy() { foreach (var ring in rescueRings) if (ring != null) Destroy(ring.gameObject); if (material != null) Destroy(material); }
     }
 }

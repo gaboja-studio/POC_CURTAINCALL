@@ -1,16 +1,6 @@
 # Log
 
-## 2026-10-29 참가자 끊김 수정 저장
-- 사용자 저장 요청으로 중계 준비/ACK 비동기화·전송 간격·관련 회귀와 기록을 커밋한다. 이전 컴파일·28개 테스트 통과 결과를 재사용하고 verify-fast·diff 공백 검사·gh 작성자를 확인했다.
-- private origin/main을 fetch해 확인했으나 98904299가 아직 main에 없어 공개 push의 기존 차단 조건이 유지된다. 우회·private main 병합 없이 로컬 커밋을 보존한다. TMP 폴백 폰트의 별도 변경은 stage하지 않는다.
-
-## 2026-10-29 브랜치 준비
-- `fix/controls-and-rope-rescue` 생성·전환. 기준 dev/origin/dev `935f5bd6`, 담당 @MoHoDu. 코드 수정·commit/push 없음.
-- 요청한 키 매핑/저장 정책과 구조 판정/균형 보호 요구사항을 plan·todo에 기록했다. 다음 작업은 조작 탭 목표 순서 확인과 현재 구현 조사다.
-- doctor 1회 실행: FAIL(private submodule 미초기화·기존 Task-077 중복), WARN(Unity CLI 버전 차이·에디터 미연결·skill 링크 없음·gh 미로그인). 브랜치 준비는 가능하며 Unity 실플레이는 미검증이다.
-- 샌드박스에서 Git LFS가 실패해 변경으로 표시된 5개 에셋은 권한 확장 후 정상 Git status로 clean임을 확인했다. 기존 에셋·Git 설정은 변경하지 않았다.
-
-- 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(Unity 변경 없음); 테스트=SKIPPED(자동 테스트 선택 안 함)
+이전 브랜치 준비·중계 저장 기록: [History/001-branch-and-relay-save.md](History/001-branch-and-relay-save.md)
 
 ## 2026-10-29 설정창 수정
 - 사용자 후속 지시: 설정창 먼저, Unity는 CLI만 조작. 이동 표시만 전방→후방으로 확정해 다른 순서와 입력 에셋/GUID는 보존했다. 구조 코드는 수정하지 않았다.
@@ -75,3 +65,57 @@
 - 첫 check-work는 보상 규칙 문서 61줄 hard 한도로 실패, 기존 규칙과 신규 규칙을 한 줄에 합쳐 60줄로 보존 후 재검사: 안전성·문서/규칙·컴파일 PASS, 경고 20·hard 0. 자동 전체 테스트는 선택하지 않았으며 위 표적 검사와 구분한다.
 - 남은 확인: 실제 두 PC에서 본인 반응만 표시되는지·회피와 성공 후 대기 체감. 이번 변경은 미커밋이며 private SVG .meta 4건도 저장 요청 때 함께 처리해야 한다.
 - 사용자 저장 요청: private SVG 임포트 설정 4건을 7ec4f515로 커밋하고 작업 브랜치 push 완료. 공개 저장에서는 이번 호응/UI/성공 연결·검증·문서와 해당 gitlink만 포함하며 TMP 폴백 폰트는 제외한다. 기존 private main 선반영 요구 훅은 우회하지 않는다.
+
+## 2026-10-30 구조 후속
+- 구조 입력은 줄 전용 조작에서만 처리되어 플랫폼 조작 중에는 도달하지 못했다. 공통 입력에 콘텐츠 우선 처리 통로를 연결하고 수동 받기 준비 및 호스트 요청을 막았다. 구조는 거리 계산이며 물리 콜라이더가 아니다. Play 중 Scene Gizmos에 잡는 점과 수평/높이 범위를 표시하며 Assets/Resources/Settings/GameSettings/Tricks/TightropeSettings.asset의 Hang 값으로 조정한다. 플랫폼·공용 입력 변경은 관련 작업과 통합 시 확인 필요.
+- doctor FAIL: private submodule 미초기화, 기존 Task ID 중복. 실제 두 클라이언트 테스트 미실행.
+- check-work: 안전성·문서/규칙 PASS(기존 길이 경고 33), 컴파일 ENV_BLOCKED(연결된 에디터 없음), 자동 테스트 SKIPPED. 첫 검사는 실행 중 기록 변경으로 무효였으며 최종 상태로 재실행했다.
+
+## 2026-10-30 구조 홀드·UI
+- F 유지로 구조 요청, 키 해제·입력 차단 시 취소한다. 기존 호스트 장부의 매달림 타이머 정지와 구조자 균형·위험 정지 사용. 구조 대상 번호 안내와 두 사람 위 진행 링을 공통 상호작용 프리팹의 링 스프라이트로 표시한다. 기존 F 탭 구조 테스트를 홀드/해제에 맞췄다. 공용 입력·UI 파일은 관련 작업 통합 시 확인 필요.
+- doctor: private submodule 미초기화 및 Task ID 중복 FAIL, 연결된 에디터 없음. 실플레이 및 두 클라이언트 확인 필요.
+- check-work: 안전성·문서/규칙 통과, 컴파일 ENV_BLOCKED(연결 에디터 없음), 테스트 SKIPPED. 검사 중 작업 파일 변경 감지로 최종 기록 단계가 중단됐다. PlayerAppearanceCatalog.asset의 별도 변경은 보존했다.
+
+## 2026-10-30 구조 화면 후속
+- 진행 링은 구조자 위 하나만 표시한다. 구조자/매달린 사람의 카메라는 구조자 기준으로 두 사람의 경계만 계산하며 장부에서 구조가 끝나거나 취소·사망하면 기존 구도로 돌아간다. 구조 진행 링은 두께를 직렬화한 RescueProgressRing으로 표시하고 기존 상호작용 링 트랙 스프라이트를 재사용한다.
+- Unity 에디터 연결이 보이지 않아 프리팹 자산은 생성하지 못했다. Editor 메뉴 Tools/Curtain Call UI/Create rescue progress prefab으로 Assets/Resources/Prefabs/UIs/Interaction/RescueProgress.prefab을 생성하도록 준비했다. 프리팹이 없으면 임시 런타임 기본값을 쓴다. 실제 링 외형·프레이밍·전환·2인 네트워크는 미검증. 카메라/공통 UI 수정은 관련 작업 통합 시 확인 필요.
+- check-work: 안전성 FAIL(새 RescueProgressRing.cs의 Unity 생성 .meta 없음), 문서/규칙·컴파일·테스트 SKIPPED(선행 실패). 연결된 에디터가 없어 Unity import와 meta 생성을 실행하지 못했다.
+
+## 2026-10-30 열린 에디터 연결 확인
+- Unity 6000.3.25f1 프로세스의 프로젝트 경로는 현재 작업 폴더다. Pipeline 서버 포트 7802가 해당 프로세스에서 LISTEN 중이지만 일반·권한 확장 CLI 모두 STATUS_NO_INSTANCES, Library/Pipeline/.unity-pipeline-port 부재. CLI beta.8과 기록된 beta.14 차이는 원인 후보이며 확정하지 않았다. 스크립트 meta는 Unity가 생성했으나 RescueProgress.prefab은 아직 없다. 프리팹 생성·컴파일·UI/카메라 검증 미실행. Unity 창 제어는 자동 승인에서 거부(사유 미제공).
+
+- Pipeline 재시작 뒤에도 STATUS_NO_INSTANCES. 권한 확장 unity pipeline list는 원본 프로젝트 PID 8768과 MPPM 가상 프로젝트 PID 12900을 확인했지만 reachable servers 0. 원본 서버는 포트 7802 listen, 원본 Library/Pipeline/.unity-pipeline-port가 없어 발견 불가; 가상 프로젝트의 연결 파일만 존재. 정확한 삭제 원인은 미확정. 프리팹 생성·컴파일·구조 UI/카메라 확인은 ENV_BLOCKED.
+
+## 2026-10-30 dev 동기화 확인
+- origin/dev fetch 완료: b19189eb, 현 HEAD보다 1커밋 앞. PlayerAppearanceCatalog.asset에 사용자 미저장 변경이 있고 dev에서도 같은 파일을 수정한다. 외부 에셋 gitlink 94c98cb9→26d5009e, 목표 커밋은 로컬에 존재하며 private status clean. 안전 전환 정책은 dirty 작업 폴더에서 중단하므로 merge/에셋 checkout 미실행. 권한 확장 unity status는 현재 프로젝트 6000.3.25f1 ready, PID 23404 확인.
+
+## 2026-10-30 dev 동기화와 Unity 검사
+- origin/dev b19189eb fast-forward, 외부 에셋 26d5009e 적용·상태 clean. 임시 stash 보존 후 복원; PlayerAppearanceCatalog 충돌은 사용자의 두 번째 슬롯 변경이 dev에 동일하게 포함됨을 확인해 dev 결과 채택. stash 백업 유지.
+- Unity 6000.3.25f1 재컴파일 오류·경고 0. RescueProgress.prefab 생성·64×64, Fill 두께 6 확인. HangRescue PlayMode 3/3, TightropeOrbitFramingTests EditMode 16/16 통과. 구조 링 실제 표시 및 구조 시작/취소/완료/사망 시 두 클라이언트 카메라 전환 실플레이는 미실행.
+
+## 2026-10-30 2인 화면 검증 시도
+- Unity CLI 원본 에디터 ready·Start 씬 dirty false 확인. Play 시작 후에도 CLI 인스턴스 1개, Unity 창은 원본만 감지되어 실제 두 번째 클라이언트를 구성하지 못했다. 테스트용 Play는 종료했다. 구조 UI·구조 시작/취소/완료/사망 시 양쪽 카메라 실화면은 미검증. MPPM 두 번째 플레이어 활성화 후 재시도 필요.
+
+## 2026-10-30 구조 게이지 스프라이트
+- RescueProgress.prefab의 트랙 Image와 Fill RescueProgressRing 모두 ui_hud_dayclock_schedulefill_normal@2x Sprite 참조로 변경. Fill은 스프라이트 UV를 둘레와 두께에 매핑하며 기존 두께 6 유지, 생성 메뉴도 동일 참조 사용. Unity recompile 오류·경고 0, 에디터에서 두 참조와 두께 확인. 실제 2인 UI/카메라 화면 검증은 별도 대기.
+
+## 2026-10-30 구조 게이지 편집성 수정
+- 잘못된 스프라이트 둘레 매핑과 별도 두께 메시를 제거하고 Fill을 Unity Image의 Filled/Radial360으로 변경했다. prefab의 바탕과 Fill은 같은 schedulefill sprite와 64×64 크기, Fill 미리보기 100%로 설정한다. 색상·이미지·크기·채움 값은 프리팹 인스펙터에서 조정한다. 두께는 별도 숫자가 아닌 사용할 스프라이트의 형태로 결정된다. 생성 메뉴 및 런타임 대체 경로도 동일 Image 방식을 쓴다. Unity 재컴파일 오류 0, 저장된 프리팹 참조·설정 확인. 2인 실화면 미검증.
+
+## 2026-10-30 MPPM 구조 화면 검증
+- 원본 호스트+MPPM Player 2 LAN 2인 접속, 외줄 공연 재현. 안정적 관찰을 위해 런타임 장애물·균형 정지, 위치 배치, 구조 시간 600초 설정; 구조 시작/취소는 호스트 API 호출, 완료는 PullRemaining 0.05로 가속. 실제 F 입력 경로 검증 아님.
+- 구조 시작 시 양쪽 active ring 1, rescueFraming true, framedPlayer 0(구조자). 캡처한 게임 카메라에서 같은 줄의 매달린 대상이 구조자/줄 뒤에 일부 가려짐: 두 사람 가시성 미흡. Pipeline 게임 캡처가 Overlay Canvas를 포함하지 않아 링의 실제 외형·정확한 위치는 미검증.
+- 취소 후 양쪽 링 0, rescueFraming false, FreeThirdPerson. 완료 후 양쪽 hangs 0·링 0·rescueFraming false·FreeThirdPerson. 매달린 대상 ServerKill 후 구조자 FreeThirdPerson/구조 종료, 대상 Fallen·rescueFraming false·ThirdPerson 관전 확인. 구조자 사망 미검증. Play 종료 후 Start 씬 복원.
+
+## 2026-10-30 구조 홀드 끊김 조사
+- 사용자 33초 영상 확인을 시도했으나 프레임 추출기가 시간 이동마다 같은 정지 화면만 출력하여 반복 구간의 시각 관찰 실패. Editor.log에 구조 취소 사유 기록은 없다. 실제 홀드 입력·호스트 취소 원인을 확정하지 못함.
+- 구조 취소 조건: F 해제/입력 차단, 호스트의 거리·높이·공중·부상·사망/매달림 판정. 호스트 취소 뒤 localPullHeld는 F를 뗄 때까지 유지되어 재요청하지 않는 코드 경로 확인. 호스트의 원격 구조자 공중 판정이 소유자 동기화 NetworkPlayer.IsAirborne 대신 비시뮬레이션 PlayerMover.IsAirborne을 사용함을 확인(이번 증상의 원인 여부 미확정). 이전 2인 카메라 검사는 호스트 API로 시작해 실제 F 유지 입력을 검증하지 않았다.
+- 링 바탕과 채움은 동일 스프라이트로 색조만 다르고 별도 외곽선 없음. 어두운 배경 대비는 실제 화면에서 확인 필요.
+
+## 2026-10-30 실제 입력 재현 및 후속
+- MPPM 2인 LAN 자동 F 테스트는 입력 경로로 구조 시작 후 취소 없이 장부가 비워졌으나 영상의 증상은 재현되지 않았다. 사용자가 실제 플레이로 재현한 로그는 구조자 F held true→false 반복, 호스트 cancel reason=request 반복이며 거리/부상 취소가 아니다. 입력이 false로 보이는 원인(시점/포커스 변경과 입력 동기화 연관)은 아직 확정 아님.
+- 입력의 0.2초 미만 해제 흔들림을 무시하고 연속 해제 시 한 번 취소하도록 변경. InputGate 차단은 즉시 취소. 사용자의 실제 재확인 대기. 프리팹에 조절 가능한 Outline 추가. 외줄 화염 사망 즉시 구조 정리, 구조 카메라 높이 1.7배·줄 기준 40도 대각 구도 적용. Unity 컴파일 PASS. 화염·카메라·실제 F 수정 후 검증 필요.
+- 화염 회귀 첫 실행 3/4: 가짜 네트워크 보조자는 공연 참가 명부에 없어 사망 판정이 거부되어 테스트 실패. 실제 명부의 호스트 구조자에게 화염을 적용하도록 검사를 수정한다. F 회귀 3개는 통과.
+
+- 사용자 실제 2인 재현: 0.2초 지연만 적용한 버전에서 한 차례 끊김·구조 12초 보고. 앞선 자동 검증에서 런타임 설정 변경이 에디터에 남은 것이 12초의 원인임을 확인했고 기존 7초/2초로 복구하여 TightropeSettings.asset에 명시 저장했다. 사용자에게 혼란을 준 테스트 값 누출을 기록한다.
+- 커서 보존 개선 후 사용자가 2인 LAN 재시험해 잘 동작한다고 확인; 호스트 로그에 실제 id0→id1 구조 시작·완료가 기록됐다. 구조자의 화염 접촉 Kill 경로 PlayMode 1/1 통과(첫 회귀 시도는 가짜 미등록 참가자로 0/1 실패). 실제 화염 지오메트리 접촉·양쪽 고각 카메라 체감은 추가 확인 여지 있음. 구조 완충 0.2초·입력 전환 로그 유지.

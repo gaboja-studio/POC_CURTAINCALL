@@ -54,6 +54,7 @@ namespace CurtainCall.Cameras
             {
                 if (ownsInput && (director.CurrentView == firstView || director.CurrentView == preset))
                     director.SetInputBlocked(false);
+                director.SetPreserveCursorInFixedView(false);
                 director.ReleaseView(this);
             }
             ownsInput = false;

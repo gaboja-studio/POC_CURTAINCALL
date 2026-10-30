@@ -23,6 +23,7 @@ namespace CurtainCall.Reward
             public long ReactionSequence;
             public int ReactionDelta, ReactionAmount;
             public double? MaximumDistance;
+            public double? FinalDistance;
             /// <summary>관심 감소가 시작되는 시각. NaN이면 다음 <see cref="Tick"/>에서 정한다.</summary>
             public double GraceUntil = double.NaN;
             public double NextDecay = double.NaN;
@@ -105,7 +106,10 @@ namespace CurtainCall.Reward
             courseLength = length;
             if (elapsed.HasValue) elapsedSeconds = Math.Max(elapsedSeconds ?? 0, elapsed.Value);
             if (!person.Dead && person.Connected)
+            {
+                person.FinalDistance = Math.Clamp(distance, 0, length);
                 person.MaximumDistance = Math.Max(person.MaximumDistance ?? 0, Math.Clamp(distance, 0, length));
+            }
             return true;
         }
 
@@ -252,7 +256,7 @@ namespace CurtainCall.Reward
                     : person.Dead ? "Dead" : !person.Connected ? "Disconnected" : arrived ? "Arrived" : "Survived";
                 people[i] = new PerformanceParticipantResult(person.Seed.Id, person.Seed.ClientId, person.Seed.Slot,
                     RewardParticipantSeed.CountLimbs(person.Seed.LostParts), RewardParticipantSeed.CountLimbs(person.Parts),
-                    person.Dead, person.Connected, judgement, segment, settlement, person.MaximumDistance, bonus);
+                    person.Dead, person.Connected, judgement, segment, settlement, person.MaximumDistance, bonus, person.FinalDistance);
             }
             var next = new PerformanceResult(performance, failure, endReason, people, elapsedSeconds, courseLength);
             if (next.Income > long.MaxValue - Balance) return false;
