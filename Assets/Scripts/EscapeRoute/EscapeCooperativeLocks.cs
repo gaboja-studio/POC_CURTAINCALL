@@ -20,6 +20,7 @@ namespace CurtainCall.EscapeRoute
         {
             public Transform shoulderControl;
             public HumanCannonPole helperPole;
+            public HumanCannonPole returnHelperPole;
             public BoxCollider arrival;
             public GameObject[] shutters = Array.Empty<GameObject>();
             public Renderer indicator;
@@ -70,10 +71,11 @@ namespace CurtainCall.EscapeRoute
         public string HelperInstruction(HumanCannonPole pole)
         {
             for (int i = 0; i < checkpoints.Length; i++)
-                if (checkpoints[i] != null && checkpoints[i].helperPole == pole) return Status(i) + "\n" + checkpoints[i].instruction;
+                if (checkpoints[i] != null && (checkpoints[i].helperPole == pole || checkpoints[i].returnHelperPole == pole)) return Status(i) + "\n" + checkpoints[i].instruction;
             return "동료가 건널 때까지 잡고 있습니다";
         }
-        public bool IsHelperPole(HumanCannonPole pole) => pole != null && Array.Exists(checkpoints, c => c != null && c.helperPole == pole);
+        public bool IsHelperPole(HumanCannonPole pole) => pole != null && Array.Exists(checkpoints, c => c != null
+            && (c.helperPole == pole || c.returnHelperPole == pole));
         bool Valid(int index) => index >= 0 && index < checkpoints.Length && index < 32 && checkpoints[index] != null;
         bool Ready => isActiveAndEnabled && synchronized && !resetBarrier.Waiting
             && session != null && session.GameState == GameSessionState.Playing;
@@ -124,12 +126,14 @@ namespace CurtainCall.EscapeRoute
         }
 
         static bool Alive(NetworkPlayer player) => player != null && player.IsSpawned && player.State == PlayerState.Normal;
-        int HelperIndex(int index)
+        int HelperIndex(int index, bool returning = false)
         {
             var poles = HumanCannonPoleSystem.Current;
-            if (!Valid(index) || checkpoints[index].helperPole == null || poles == null) return -1;
+            if (!Valid(index) || poles == null) return -1;
+            var helper = returning ? checkpoints[index].returnHelperPole : checkpoints[index].helperPole;
+            if (helper == null) return -1;
             for (int i = 0; i < poles.PoleCount; i++)
-                if (poles.Pole(i) == checkpoints[index].helperPole) return i;
+                if (poles.Pole(i) == helper) return i;
             return -1;
         }
 
@@ -166,7 +170,9 @@ namespace CurtainCall.EscapeRoute
                 if (!Valid(i)) continue;
                 uint bit = 1u << i;
                 int poleIndex = HelperIndex(i);
-                bool crewReady = HelperCount(poleIndex) >= Mathf.Max(1, checkpoints[i].minimumHelpers);
+                int returning = HelperIndex(i, true);
+                int helpers = HelperCount(poleIndex) + (returning != poleIndex ? HelperCount(returning) : 0);
+                bool crewReady = helpers >= Mathf.Max(1, checkpoints[i].minimumHelpers);
                 if (crewReady) held |= bit;
                 if (crewReady && checkpoints[i].latchWhenCrewReady) latched |= bit;
                 if ((latched & bit) != 0 || checkpoints[i].helperPole == null && (armed & bit) == 0

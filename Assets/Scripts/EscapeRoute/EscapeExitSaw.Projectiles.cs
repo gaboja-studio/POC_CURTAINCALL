@@ -204,6 +204,7 @@ namespace CurtainCall.EscapeRoute
                 if (show && projectilePool[i] == null && projectileVisual != null && Application.isPlaying)
                 {
                     var visual = Instantiate(projectileVisual);
+                    visual.transform.localScale = Vector3.one;
                     visual.name = "__ExitSawProjectile_" + i; visual.hideFlags = HideFlags.DontSave;
                     foreach (var collider in visual.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
                     projectilePool[i] = visual;

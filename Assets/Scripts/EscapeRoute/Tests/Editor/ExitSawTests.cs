@@ -76,6 +76,31 @@ namespace CurtainCall.EscapeRoute.Tests
             var ownership = Get(saw, "ownership");
             Assert.That(Call(ownership, "TryApply", Enum.Parse(T("CurtainCall.HumanCannon.CannonAction"), "Board"), actor, (uint)Get(ownership, "Revision")), Is.True);
         }
+        [Test]
+        public void HingedExitOpensBothLeavesOutwardAndClosesOnResetWithoutLiftingTheDoor()
+        {
+            Fixture();
+            var left = Root("Left exit hinge", true).transform; left.SetParent(door, false);
+            var right = Root("Right exit hinge", true).transform; right.SetParent(door, false);
+            Set(saw, "leftDoorHinge", left); Set(saw, "rightDoorHinge", right);
+            Set(saw, "initialized", false); Call(saw, "InitializePose");
+            var original = door.position;
+            var settings = T("CurtainCall.Settings.GameSettings").GetProperty("EscapeRoute", Static).GetValue(null);
+            float angle = (float)Get(settings, "ExitDoorOpenAngle"), seconds = (float)Get(settings, "ExitDoorOpenSeconds");
+            Set(saw, "cutProgress", Get(saw, "cutSeconds"));
+            Call(saw, "Present", seconds * .5f, false);
+            Assert.That(Quaternion.Angle(left.localRotation, Quaternion.Euler(0, -angle * .5f, 0)), Is.LessThan(.01f));
+            Assert.That(Quaternion.Angle(right.localRotation, Quaternion.Euler(0, angle * .5f, 0)), Is.LessThan(.01f));
+            Call(saw, "Present", seconds, false);
+            Assert.That(Quaternion.Angle(left.localRotation, Quaternion.Euler(0, -angle, 0)), Is.LessThan(.01f));
+            Assert.That(door.position, Is.EqualTo(original));
+            Set(saw, "cutProgress", 0f); Call(saw, "Present", 0f, true);
+            Assert.That(Quaternion.Angle(left.localRotation, Quaternion.identity), Is.LessThan(.01f));
+            Assert.That(Quaternion.Angle(right.localRotation, Quaternion.identity), Is.LessThan(.01f));
+            Set(saw, "cutProgress", Get(saw, "cutSeconds")); Call(saw, "Present", 0f, true);
+            Assert.That(Quaternion.Angle(right.localRotation, Quaternion.Euler(0, angle, 0)), Is.LessThan(.01f));
+        }
+
         bool Snapshot(uint version, uint own, ulong actor, float progress, byte active = 0, int token = 0)
             => (bool)Call(saw, "ApplyState", version, own, actor, Origin + Vector3.forward * 1.1f, Quaternion.identity, progress, active, token);
         void CutFor(float seconds) { for (int i = 0; i < Mathf.CeilToInt(seconds / .05f); i++) Call(saw, "TickCut", .05f, true); }

@@ -1,8 +1,8 @@
 ---
 summary: Pipeline 패키지/Unity CLI 버전이 바뀌면 검증 스크립트가 쓰던 명령이 사라지거나 결과 형식이 바뀜
 status: active
-updated: 2026-10-02
-source: Octoplug 회고 (verify-unity.ps1이 새 Pipeline과 불일치, 2회)
+updated: 2026-10-30
+source: Octoplug 회고; Task-20261029-078 파란 삐에로 제작
 ---
 
 # Pipeline 명령 이름·형식 변경
@@ -24,6 +24,10 @@ Pipeline은 실험(exp) 버전이라 명령 이름과 결과 형식이 버전마
 1. 명령 이름을 가정하지 않는다. `unity command --project-path <p> --query <키워드>`로 현재 목록을 확인한다. CLI beta.12부터 이름 없는 `unity command`는 태그 목록만 보여 주므로 전체 목록이 필요하면 `--detail full`을 붙인다.
 2. `Scripts/verify-unity.ps1` 상단의 명령 이름 변수를 현재 버전에 맞게 고친다.
 3. 버전을 바꿨다면 `Harness/Engine/Unity/Facts/unity-cli.md`와 `Decisions/version.md`를 갱신한다.
+
+## eval 시간 제한 인수 충돌
+
+CLI beta.15의 공통 `--timeout`은 초 단위이며 Pipeline `eval_file`의 동명 인수는 밀리초 단위다. 명령 인수 앞에 `--` 경계를 넣어 둘을 구분한다. 예: `unity command eval_file --project-path <p> --timeout 150 --format json -- --file <script.cs> --timeout 120000`. 경계 없이 전달한 긴 임포트는 dispatcher 기본5초에 timeout을 반환했지만 실제 작업은 뒤에서 완료됐다. 재시도 전에 저장 보고서와 AssetDatabase 결과를 확인해 중복 생성하지 않는다.
 
 ## 확인 방법
 

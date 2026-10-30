@@ -15,6 +15,9 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Transform visualBar, leftCable, rightCable, leftAnchor, rightAnchor;
         [Tooltip("봉에서 발까지 거리(m)."), Min(0.2f), SerializeField] float hangLength = 1.5f;
         [Tooltip("봉 중심의 구형 잡기 거리(m)."), Min(0.1f), SerializeField] float grabDistance = 2f;
+        [Tooltip("벽/전망 프레임 너머로 잡아 몸이 통과하는 것을 막는다. 기존 씬 기본값은 꺼짐."), SerializeField] bool requireClearGrabPath;
+        readonly RaycastHit[] grabObstacles = new RaycastHit[32];
+        readonly Collider[] grabOverlaps = new Collider[32];
         [Tooltip("잡은 뒤 최대 유지 시간(초). 0이면 스스로 놓거나 사망할 때까지 유지한다."), Min(0f), SerializeField] float holdSeconds;
         [Tooltip("놓기/제한 시간 만료/사망 뒤 지상 관문 톱 재동작 예고(초)."), Min(0.1f), SerializeField] float warningSeconds = 2f;
         [Tooltip("W/S 반동 가속(도/초²)."), Min(0f), SerializeField] float swingAcceleration = 300f;
@@ -120,7 +123,8 @@ namespace CurtainCall.HumanCannon
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
             if (Loop != null && !Loop.IsSynchronized) return false;
             RefreshMovingPose();
-            return PlayerInteraction.InRange(player, BarPosition(0), GrabRadius(player, 0f));
+            var target = BarPosition(0);
+            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f)) && HasClearGrabPath(player, target);
         }
 
         internal bool IsSeatInReach(NetworkPlayer player, float angle, int seat, double observedElapsed = -1d)
@@ -136,7 +140,7 @@ namespace CurtainCall.HumanCannon
                     || route.Elapsed - observedElapsed > .35d) return false;
                 target = route.PointAt(target, System.Math.Min(observedElapsed, route.Elapsed));
             }
-            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f));
+            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f)) && HasClearGrabPath(player, target);
         }
 
         /// <summary>빠르게 지나간 순환 봉만 짧은 수신 지연을 허용한다. 거리·부상·점유 검사는 원본을 유지한다.</summary>
@@ -149,8 +153,37 @@ namespace CurtainCall.HumanCannon
             if (observedElapsed > now + .05d || now - observedElapsed > .35d) return false;
             route.RefreshPose();
             Vector3 target = route.PointAt(BarPosition(0), System.Math.Min(observedElapsed, now));
-            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f));
+            return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f)) && HasClearGrabPath(player, target);
         }
+
+        bool HasClearGrabPath(NetworkPlayer player, Vector3 target)
+        {
+            if (!requireClearGrabPath) return true;
+            Vector3 origin = PlayerInteraction.Center(player), span = target - origin;
+            float distance = span.magnitude;
+            if (distance < .001f) return true;
+            float radius = player.TryGetComponent(out PlayerMover mover) ? mover.BodyRadius : .3f;
+            int overlaps = Physics.OverlapSphereNonAlloc(origin, Mathf.Max(.01f, radius - .01f), grabOverlaps,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            if (overlaps == grabOverlaps.Length) return false;
+            for (int i = 0; i < overlaps; i++)
+                if (BlocksGrab(grabOverlaps[i], player)
+                    && Vector3.Dot(grabOverlaps[i].bounds.ClosestPoint(origin) - origin, span) >= -.001f) return false;
+            int count = Physics.SphereCastNonAlloc(origin, Mathf.Max(.01f, radius), span / distance,
+                grabObstacles, Mathf.Max(0, distance - .03f), Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            if (count == grabObstacles.Length) return false;
+            for (int i = 0; i < count; i++)
+            {
+                var hit = grabObstacles[i].collider;
+                if (BlocksGrab(hit, player)) return false;
+            }
+            return true;
+        }
+
+        bool BlocksGrab(Collider hit, NetworkPlayer player) => hit != null && !hit.transform.IsChildOf(transform)
+            && !hit.transform.IsChildOf(Grip) && (visualBar == null || !hit.transform.IsChildOf(visualBar))
+            && hit.GetComponentInParent<NetworkPlayer>() == null
+            && !Physics.GetIgnoreLayerCollision(player.gameObject.layer, hit.gameObject.layer);
 
         public float GrabRadius(NetworkPlayer player, float minimumReach)
         {

@@ -30,6 +30,9 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, Min(.1f)] float cutSeconds = 3f;
         [SerializeField, Min(.1f)] float doorLift = 8.5f;
         [SerializeField, Min(.1f)] float doorSpeed = 5f;
+        [SerializeField] Transform leftDoorHinge, rightDoorHinge;
+        Quaternion closedLeftDoorRotation, closedRightDoorRotation;
+        float doorAngle;
         CannonSeatState ownership = new();
         readonly Collider[] overlaps = new Collider[48];
         readonly RaycastHit[] floorHits = new RaycastHit[24];
@@ -81,6 +84,8 @@ namespace CurtainCall.EscapeRoute
             if (initialized) return;
             initialPosition = CarryRoot.position; initialRotation = CarryRoot.rotation;
             if (doorPanel != null) closedDoorPosition = doorPanel.position;
+            if (leftDoorHinge != null) closedLeftDoorRotation = leftDoorHinge.localRotation;
+            if (rightDoorHinge != null) closedRightDoorRotation = rightDoorHinge.localRotation;
             if (blade != null) initialBladeRotation = blade.localRotation;
             InitializeProjectilePresentation();
             initialized = true;
@@ -226,7 +231,16 @@ namespace CurtainCall.EscapeRoute
         }
         void Present(float deltaTime, bool snapDoor = false)
         {
-            if (doorPanel != null)
+            if (leftDoorHinge != null && rightDoorHinge != null)
+            {
+                var settings = CurtainCall.Settings.GameSettings.EscapeRoute;
+                float target = DoorOpen ? settings.ExitDoorOpenAngle : 0f;
+                doorAngle = snapDoor ? target : Mathf.MoveTowards(doorAngle, target,
+                    settings.ExitDoorOpenAngle / settings.ExitDoorOpenSeconds * Mathf.Max(0, deltaTime));
+                leftDoorHinge.localRotation = closedLeftDoorRotation * Quaternion.Euler(0, -doorAngle, 0);
+                rightDoorHinge.localRotation = closedRightDoorRotation * Quaternion.Euler(0, doorAngle, 0);
+            }
+            else if (doorPanel != null)
             {
                 Vector3 target = closedDoorPosition + (DoorOpen ? Vector3.up * doorLift : Vector3.zero);
                 if (snapDoor) doorPanel.position = target;

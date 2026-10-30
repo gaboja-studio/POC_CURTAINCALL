@@ -1,5 +1,7 @@
 # Project Pitfalls
 
+- [Human-cannon/](Human-cannon/index.md) — 트램펄린 모델 교체와 실제 접촉 경계를 확인할 때
+
 - [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
 - [escape-flame-scaling.md](escape-flame-scaling.md) — 거대 화염의 실제 도달 방향/속도와 휴대 톱의 원본 운반 조작을 연결할 때
 

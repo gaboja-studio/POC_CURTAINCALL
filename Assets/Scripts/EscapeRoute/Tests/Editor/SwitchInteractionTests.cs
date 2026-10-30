@@ -54,16 +54,37 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
-        public void ButtonSphere_RejectsBoxCornersAndPreservesInjuryAndInactiveRules()
+        public void ButtonSphere_IgnoresArmReachPenaltyButRejectsCornersAndInactiveButtons()
         {
             Place(new Vector3(2,0,2)); Assert.That(InRange, Is.False);
             interaction.GetType().GetProperty("ReachMultiplier").SetValue(interaction, .5f);
             Place(Vector3.right * 1.24f); Assert.That(InRange, Is.True);
-            Place(Vector3.right * 1.26f); Assert.That(InRange, Is.False);
+            Place(Vector3.right * 2.49f); Assert.That(InRange, Is.True);
+            Place(Vector3.right * 2.51f); Assert.That(InRange, Is.False);
             interaction.GetType().GetProperty("ReachMultiplier").SetValue(interaction, 0f);
-            Place(Vector3.zero); Assert.That(InRange, Is.False);
+            Place(Vector3.right * 2f); Assert.That(InRange, Is.True);
             interaction.GetType().GetProperty("ReachMultiplier").SetValue(interaction, 1f);
             button.SetActive(false); Assert.That(InRange, Is.False);
+        }
+
+        [TestCase(1)] [TestCase(2)] [TestCase(3)]
+        public void RaisedSwitch_RemainsReachableWithShortenedLegsAndCutArms(int lostCount)
+        {
+            var conditionType = T("CurtainCall.Player.PlayerCondition");
+            var condition = actor.AddComponent(conditionType);
+            conditionType.GetMethod("SetLostParts").Invoke(condition, new[] { Call(conditionType, "PartsForLostCount", lostCount) });
+            var moverType = T("CurtainCall.Player.PlayerMover");
+            var mover = actor.AddComponent(moverType);
+            var body = actor.GetComponent<CharacterController>();
+            moverType.GetField("controller", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(mover, body);
+            body.height = .6f; body.center = Vector3.up * .3f;
+            interaction.GetType().GetProperty("ReachMultiplier").SetValue(interaction, .5f);
+            // The lower player is also shortened: upper feet are only .6m above the floor.
+            actor.transform.position = ButtonCenter - Vector3.up * 3f + Vector3.right;
+            Assert.That(Vector3.Distance(ActorCenter, ButtonCenter), Is.GreaterThan(2.5f));
+            Assert.That(InRange, Is.True);
+            actor.transform.position += Vector3.right * 3f;
+            Assert.That(InRange, Is.False);
         }
     }
 }

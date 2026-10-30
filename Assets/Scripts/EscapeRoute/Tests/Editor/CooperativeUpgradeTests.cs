@@ -68,6 +68,31 @@ namespace CurtainCall.EscapeRoute.Tests
             Set(session, "GameState", Enum.Parse(T("CurtainCall.Network.Session.GameSessionState"), "Playing"));
             return session;
         }
+
+        [TestCase(false)] [TestCase(true)]
+        public void ObservationFrameBlocksGrabForDisplayAndHostButTriggersAndOpenApproachRemainValid(bool trigger)
+        {
+            var actor = Player(82);
+            var poleObject = Root("Observation pole", true);
+            poleObject.transform.position = Origin + new Vector3(3, 1, 0);
+            var pole = poleObject.AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole"));
+            Set(pole, "grabDistance", 3f);
+            var frame = Root("Solid observation frame", true).AddComponent<BoxCollider>();
+            frame.transform.position = Origin + new Vector3(1.5f, 1, 0);
+            frame.size = new Vector3(.12f, 4, 4); frame.isTrigger = trigger;
+            Physics.SyncTransforms();
+            Assert.That(Call(pole, "IsInReach", actor), Is.True, "Existing scenes retain the old default.");
+            Set(pole, "requireClearGrabPath", true);
+            Assert.That(Call(pole, "IsInReach", actor), Is.EqualTo(trigger));
+            Assert.That(Call(pole, "IsSeatInReach", actor, 0f, 0, -1d), Is.EqualTo(trigger));
+            actor.transform.position = Origin + new Vector3(1.22f, 0, 0);
+            Physics.SyncTransforms();
+            Assert.That(Call(pole, "IsInReach", actor), Is.EqualTo(trigger), "Pressing into a frame must not skip an initial sphere overlap.");
+            actor.transform.position = Origin + new Vector3(2.3f, 0, 0);
+            Physics.SyncTransforms();
+            Assert.That(Call(pole, "IsInReach", actor), Is.True);
+            Assert.That(Call(pole, "IsSeatInReach", actor, 0f, 0, -1d), Is.True);
+        }
         Component Locks(out object checkpoint, bool ready = false)
         {
             var locks = Root("Upgrade locks").AddComponent(T(LocksType));
@@ -369,6 +394,70 @@ namespace CurtainCall.EscapeRoute.Tests
             Set(first, "IsSpawned", false); Set(second, "IsSpawned", false); Call(locks, "HostStep");
             Assert.That(Get(locks, "held"), Is.EqualTo(0U)); Assert.That(Call(locks, "IsLatched", 0), Is.True);
             Call(locks, "Detach"); Assert.That(Call(locks, "IsLatched", 0), Is.False);
+        }
+
+        [TestCase(false, false)] [TestCase(true, false)] [TestCase(false, true)] [TestCase(true, true)]
+        public void HigherSwitchRejectsSoloJumpButAcceptsInjuredTwoPersonStack(bool lowerInjured, bool upperInjured)
+        {
+            var stack = Root("Switch injured stack").AddComponent(T("CurtainCall.Tightrope.PiggybackSystem"));
+            SetStatic(stack.GetType(), "Current", stack);
+            var lower = Player(91); var upper = Player(92);
+            ((IDictionary)Get(stack, "belowOf")).Add(92UL, 91UL);
+            ((IDictionary)Get(stack, "aboveOf")).Add(91UL, 92UL);
+            foreach (var entry in new[] { (player: lower, injured: lowerInjured), (player: upper, injured: upperInjured) })
+            {
+                var body = entry.player.GetComponent<CharacterController>();
+                body.height = entry.injured ? .9f : 1.5f; body.center = Vector3.up * body.height * .5f;
+                if (!entry.injured) continue;
+                var condition = entry.player.GetComponent(T("CurtainCall.Player.PlayerCondition"))
+                    ?? entry.player.gameObject.AddComponent(T("CurtainCall.Player.PlayerCondition"));
+                Call(condition, "SetLostParts", Enum.Parse(T("CurtainCall.Player.BodyPart"), "LeftLeg, RightLeg, LeftArm"));
+            }
+            upper.transform.position = Origin + Vector3.up * (lowerInjured ? .9f : 1.5f);
+            var button = Root("Higher piggyback switch", true).transform;
+            button.position = Origin + new Vector3(1, 4.4f, 0);
+            var rule = T("CurtainCall.EscapeRoute.EscapeSwitchInteraction");
+            Assert.That(rule.GetMethod("InRange").Invoke(null, new object[] { upper, button, 2.5f }), Is.True);
+            lower.transform.position = Origin + Vector3.up * .8f;
+            Assert.That(rule.GetMethod("InRange").Invoke(null, new object[] { lower, button, 2.5f }), Is.False);
+        }
+
+        [Test]
+        public void UpperCannonButtonKeepsPowerAfterTheHelperLeaves()
+        {
+            var locks = Locks(out var checkpoint, true);
+            var player = Player(94);
+            var button = Root("Upper rope power latch", true).transform;
+            button.position = player.transform.position + Vector3.up * .75f;
+            Set(checkpoint, "shoulderControl", button);
+            Set(checkpoint, "helperPole", Root("Lower cannon clutch", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole")));
+            var station = Root("Latched ascent cannon", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonStation"));
+            Set(checkpoint, "lockedStation", station);
+            Call(locks, "Arm", 94UL, 0, 0U, 1U);
+            Call(locks, "HostStep"); Call(locks, "Present");
+            Assert.That(Get(locks, "held"), Is.EqualTo(0U));
+            Assert.That(Call(locks, "IsLatched", 0), Is.True);
+            Assert.That(Get(station, "InteractionAvailable"), Is.True);
+        }
+
+        [TestCase(0)] [TestCase(1)]
+        public void EitherSideHelperControlsTheSameBridge(int side)
+        {
+            var locks = Locks(out var checkpoint);
+            var first = Root("Near side bridge clutch", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole"));
+            var second = Root("Far side bridge clutch", true).AddComponent(first.GetType());
+            Set(checkpoint, "helperPole", first); Set(checkpoint, "returnHelperPole", second);
+            poleSystem = Root("Bidirectional pole registry").AddComponent(T(PoleType));
+            var poles = Array.CreateInstance(first.GetType(), 2); poles.SetValue(first, 0); poles.SetValue(second, 1);
+            Set(poleSystem, "poles", poles); Call(poleSystem, "OnEnable");
+            var player = Player(95);
+            Call(Call(poleSystem, "State", side), "TryGrab", 95UL, 0U, 0d, 0f, false, 0);
+            Call(locks, "HostStep");
+            Assert.That(Get(locks, "held"), Is.EqualTo(1U));
+            Assert.That(Call(locks, "IsHelperPole", first), Is.True);
+            Assert.That(Call(locks, "IsHelperPole", second), Is.True);
+            Set(player, "IsSpawned", false); Call(locks, "HostStep");
+            Assert.That(Get(locks, "held"), Is.EqualTo(0U));
         }
     }
 }
