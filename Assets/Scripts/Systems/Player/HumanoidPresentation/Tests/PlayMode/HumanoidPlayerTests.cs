@@ -683,11 +683,18 @@ namespace CurtainCall.Tests.HumanoidPresentation
 
         [UnityTest]
         public IEnumerator BearCatalogModelKeepsMovementCutsSurfacesAndOutfits()
+            => CatalogModelKeepsMovementCutsSurfacesAndOutfits("Bear");
+
+        [UnityTest]
+        public IEnumerator BluePierrotCatalogModelKeepsMovementCutsSurfacesAndOutfits()
+            => CatalogModelKeepsMovementCutsSurfacesAndOutfits("BluePierrot");
+
+        IEnumerator CatalogModelKeepsMovementCutsSurfacesAndOutfits(string modelName)
         {
             var catalog = Resources.Load("Settings/PlayerAppearanceCatalog");
             var options = (Array)catalog.GetType().GetField("models").GetValue(catalog);
             int bearIndex = Enumerable.Range(0, options.Length).Single(i =>
-                ((GameObject)options.GetValue(i).GetType().GetField("prefab").GetValue(options.GetValue(i))).name == "Bear");
+                ((GameObject)options.GetValue(i).GetType().GetField("prefab").GetValue(options.GetValue(i))).name == modelName);
             var bear = (GameObject)Call(catalog, "PrefabFor", bearIndex, 0);
             for (int outfit = 0; outfit < 4; outfit++) Assert.That(Call(catalog, "PrefabFor", bearIndex, outfit), Is.SameAs(bear));
             var player = Player();
