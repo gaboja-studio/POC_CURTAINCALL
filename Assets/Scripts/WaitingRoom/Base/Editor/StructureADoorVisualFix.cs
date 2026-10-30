@@ -139,6 +139,9 @@ namespace CurtainCall.WaitingRoom.Editor
                     Cube(group, "HiddenDoorLedger", new Vector3(sb.center.x, sb.center.y, (a + b) * .5f), new Vector3(sb.size.x, sb.size.y, b - a), sample.sharedMaterial);
                 }
             }
+            // 문이 열리면 이어 둔 강철 띠도 사라진다(2026-10-30: 문 자리를 가로지르는 파편으로 남던 문제).
+            var bridge = group.Find("HiddenDoorLedger");
+            if (bridge != null) { var gso = new SerializedObject(door.GetComponent<ExplorationGate>()); Add(gso.FindProperty("hideOnOpen"), new Object[] { bridge.gameObject }); gso.ApplyModifiedProperties(); }
             // 문 오른쪽 빈 벽 앞 배관함.
             PipeBox(group, face, z1 + .2f, z1 + 1.35f, floor, iron, rusty, keypadOwner, layout.GetComponentsInChildren<ExplorationGate>(true).Single(g => g.name == "passwordPad").transform);
         }

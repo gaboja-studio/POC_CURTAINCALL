@@ -20,6 +20,7 @@ namespace CurtainCall.Campaign
         const string StateMessage = "CurtainCall.Campaign.State";
         const string RequestMessage = "CurtainCall.Campaign.Request";
         const string ReadyMessage = "CurtainCall.Campaign.Ready";
+        const string UnlockMessage = "CurtainCall.Campaign.Unlock";
         const float TimerBroadcastInterval = 1f;
         public const float DemoEndingSeconds = 10f;
 
@@ -206,6 +207,24 @@ namespace CurtainCall.Campaign
             return HostDo(r => r.AbandonRun(expected), nameof(AbandonRun));
         }
 
+        /// <summary>그 공연이 이번 런에서 열려 있는지(모든 화면).</summary>
+        public bool IsTrickUnlocked(string trickId) => state.IsTrickUnlocked(trickId);
+
+        /// <summary>
+        /// 배치 기물을 이 화면에서 발견했다 → 호스트가 공연을 연다(런 동안·팀 공유). 손님은 호스트에 요청만 보낸다. 이미 열렸으면 아무것도 하지 않는다.
+        /// </summary>
+        public bool DiscoverTrick(string trickId)
+        {
+            if (!state.IsRunning || state.IsTrickUnlocked(trickId)) return false;
+            if (host != null) return HostDo(r => r.UnlockTrick(trickId), nameof(DiscoverTrick));
+            if (messaging == null) return false;
+            using var writer = new FastBufferWriter(64, Allocator.Temp);
+            writer.WriteValueSafe(trickId ?? "");
+            writer.WriteValueSafe(state.Generation);
+            messaging.SendNamedMessage(UnlockMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
+            return true;
+        }
+
         /// <summary>디버그: 쉬는 시간 남은 시간을 바꾼다(0이면 바로 끝난다).</summary>
         public bool DebugSetRemaining(float seconds) => HostDo(r => r.DebugSetRemaining(seconds), nameof(DebugSetRemaining));
 
@@ -386,6 +405,7 @@ namespace CurtainCall.Campaign
             {
                 messaging.RegisterNamedMessageHandler(RequestMessage, HandleRequest);
                 messaging.RegisterNamedMessageHandler(ReadyMessage, HandleReady);
+                messaging.RegisterNamedMessageHandler(UnlockMessage, HandleUnlock);
                 HandleGameState(session.GameState);
             }
             else
@@ -448,6 +468,15 @@ namespace CurtainCall.Campaign
             Apply(host.Snapshot);
         }
 
+        void HandleUnlock(ulong sender, FastBufferReader reader)
+        {
+            if (host == null) return;
+            reader.ReadValueSafe(out string trickId);
+            reader.ReadValueSafe(out int generation);
+            if (generation != state.Generation || !Players().Contains(sender)) return;
+            if (host.UnlockTrick(trickId)) Apply(host.Snapshot);
+        }
+
         void HandleState(ulong sender, FastBufferReader reader)
         {
             if (sender != NetworkManager.ServerClientId || session == null || session.IsHost) return;
@@ -460,6 +489,7 @@ namespace CurtainCall.Campaign
             messaging.UnregisterNamedMessageHandler(StateMessage);
             messaging.UnregisterNamedMessageHandler(RequestMessage);
             messaging.UnregisterNamedMessageHandler(ReadyMessage);
+            messaging.UnregisterNamedMessageHandler(UnlockMessage);
             messaging = null;
         }
     }

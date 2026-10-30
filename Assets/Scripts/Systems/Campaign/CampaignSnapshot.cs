@@ -99,6 +99,15 @@ namespace CurtainCall.Campaign
         public RunEndReason LastEnd;
         /// <summary>지금 또는 다음 공연의 난이도 단계(1~3). 공연이 정해지지 않았으면 0. 1일차는 1단계 고정(M2).</summary>
         public int Difficulty;
+        /// <summary>
+        /// 이번 런에서 인간 대포·트램펄린 배치 기물을 발견해 '인간 대포' 공연이 열렸는지(기물 기획: 시야에 들어오면 즉시 해금, 런 초기화 시 다시 필요).
+        /// </summary>
+        public bool CannonUnlocked;
+
+        public const string TightropeId = "Tightrope", HumanCannonId = "HumanCannon";
+
+        /// <summary>그 공연을 지금 고를 수 있는지. 인간 대포만 발견이 필요하다.</summary>
+        public bool IsTrickUnlocked(string trickId) => trickId != HumanCannonId || CannonUnlocked;
 
         public bool IsRunning => Phase != CampaignPhase.None;
 
@@ -110,7 +119,7 @@ namespace CurtainCall.Campaign
             Generation == other.Generation && Day == other.Day && Phase == other.Phase && Rest == other.Rest
             && PerformanceIndex == other.PerformanceIndex && Timer == other.Timer && AlarmRaised == other.AlarmRaised
             && ReadyCount == other.ReadyCount && RequiredCount == other.RequiredCount && LastEnd == other.LastEnd
-            && TrickId == other.TrickId && Difficulty == other.Difficulty;
+            && TrickId == other.TrickId && Difficulty == other.Difficulty && CannonUnlocked == other.CannonUnlocked;
 
         internal void Write(FastBufferWriter writer)
         {
@@ -128,6 +137,7 @@ namespace CurtainCall.Campaign
             writer.WriteValueSafe(RequiredCount);
             writer.WriteValueSafe((byte)LastEnd);
             writer.WriteValueSafe((byte)Difficulty);
+            writer.WriteValueSafe(CannonUnlocked);
         }
 
         internal static CampaignSnapshot Read(FastBufferReader reader)
@@ -147,6 +157,7 @@ namespace CurtainCall.Campaign
             reader.ReadValueSafe(out s.RequiredCount);
             reader.ReadValueSafe(out byte lastEnd);
             reader.ReadValueSafe(out byte difficulty);
+            reader.ReadValueSafe(out s.CannonUnlocked);
             s.Phase = (CampaignPhase)phase;
             s.Rest = (RestKind)rest;
             s.Timer = (RestTimerState)timer;

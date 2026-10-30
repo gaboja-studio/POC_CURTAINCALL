@@ -72,7 +72,7 @@ namespace CurtainCall.UI.SceneIntegration
                 Show(true);
                 titleBegan = Time.realtimeSinceStartupAsDouble;
                 titlePending = false; titleRunning = true;
-                label.text = $"{state.Day}일차";
+                label.text = DayTitle(state.Day);
             }
             if (titleRunning)
             {
@@ -199,5 +199,7 @@ namespace CurtainCall.UI.SceneIntegration
             InputGate.SetBlocking(this, false);
             if (font != null) Destroy(font);
         }
+        /// <summary>날짜 전환 제목(2026-10-30 사용자): Day 1·Day 2·Day 3, 마지막 탈출 아침(공연하는 날 수 다음 날)은 D-Day.</summary>
+        public static string DayTitle(int day) => day > CurtainCall.Settings.GameSettings.Base.Run.DayCount ? "D-Day" : $"Day {day}";
     }
 }

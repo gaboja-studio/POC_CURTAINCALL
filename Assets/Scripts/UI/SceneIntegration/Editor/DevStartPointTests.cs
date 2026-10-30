@@ -44,8 +44,10 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.IsTrue(run.NotifyAllAtStageEntrance());
             Assert.IsTrue(run.EndPerformance());
             Assert.AreEqual("Tightrope", run.Snapshot.TrickId, "Second performance of an unscheduled day.");
-            // A confirmed setlist still wins over the default.
+            // A confirmed setlist wins over the default only after the cannon is discovered.
             Assert.IsTrue(run.SetSetlist(2, new[] { "Tightrope", "HumanCannon" }));
+            Assert.AreEqual("Tightrope", run.Snapshot.TrickId, "미발견 인간 대포는 외줄타기로 대신한다");
+            Assert.IsTrue(run.UnlockTrick("HumanCannon"));
             Assert.AreEqual("HumanCannon", run.Snapshot.TrickId);
         }
 

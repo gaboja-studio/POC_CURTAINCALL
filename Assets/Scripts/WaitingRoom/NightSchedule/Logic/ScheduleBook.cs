@@ -16,6 +16,8 @@ namespace CurtainCall.WaitingRoom
         BadTier,
         /// <summary>쉬는 시간 단계 조정은 바로 다음 공연 칸만 할 수 있다.</summary>
         NotNextPerformance,
+        /// <summary>아직 발견하지 않은 공연(배치 기물 발견 전).</summary>
+        Locked,
     }
 
     /// <summary>

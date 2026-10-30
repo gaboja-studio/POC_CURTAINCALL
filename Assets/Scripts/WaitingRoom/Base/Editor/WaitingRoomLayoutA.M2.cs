@@ -378,9 +378,11 @@ namespace CurtainCall.WaitingRoom.Editor
             var glow = UvGlowMaterial();
             var mark = Group(restroom, "TrialUvMark", new Vector3(14.3f, 1.3f, BreachZ1 + .006f)); mark.rotation = Quaternion.identity;
             var arrow = Prim(mark, PrimitiveType.Quad, "UvArrow", mark.position, Vector3.one, glow);
-            arrow.localRotation = Quaternion.Euler(0, 180, 180); arrow.localScale = new Vector3(.7f, .35f, 1); // faces the restroom, points +x towards the breach
-            var cross = Prim(mark, PrimitiveType.Quad, "UvCross", new Vector3((BreachX0 + BreachX1) * .5f, 1.35f, BreachZ1 + .009f), Vector3.one, UvGlowMaterial("LA_UvCross", cross: true));
-            cross.rotation = Quaternion.Euler(0, 180, 0); cross.localScale = new Vector3(.6f, .6f, 1);
+            arrow.localRotation = Quaternion.Euler(0, 180, 180); // faces the restroom, points +x towards the breach
+            // 2026-10-30: 그림은 모두 낙서 자리(얼룩 판 안)에 둔다. X를 부서지는 벽에 두면 벽 안에 묻혀 엉뚱한 곳에서 보였다.
+            arrow.localPosition = new Vector3(-.12f, 0, 0); arrow.localScale = new Vector3(.36f, .2f, 1);
+            var cross = Prim(mark, PrimitiveType.Quad, "UvCross", mark.TransformPoint(new Vector3(.2f, 0, 0)), Vector3.one, UvGlowMaterial("LA_UvCross", cross: true));
+            cross.rotation = Quaternion.Euler(0, 180, 0); cross.localScale = new Vector3(.2f, .2f, 1);
             foreach (var r in new[] { arrow, cross }) r.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             var uv = Undo.AddComponent<UvMark>(mark.gameObject); so = new SerializedObject(uv);
             so.FindProperty("targetId").stringValue = "trial-uv-restroom"; so.FindProperty("label").stringValue = "벽의 희미한 얼룩";

@@ -95,12 +95,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(true, Get(door, "IsFullyClosed"));
             var label = overlay.Find("Message").GetComponent<TMP_Text>();
             var button = overlay.Find("Confirm").GetComponent<UnityEngine.UI.Button>();
-            Assert.AreEqual("4일차", label.text);
+            Assert.AreEqual("D-Day", label.text);
             Assert.IsFalse(button.gameObject.activeSelf);
             Assert.Greater(black.color.a, .9f);
             yield return new WaitForSecondsRealtime(2.5f);
             Assert.Less(black.color.a, .05f);
-            Assert.AreEqual("4일차", label.text);
+            Assert.AreEqual("D-Day", label.text);
             Assert.Greater(label.color.a, .9f, "Day text must remain fully visible for 3 seconds.");
             yield return new WaitForSecondsRealtime(1.5f);
             Assert.That(label.color.a, Is.InRange(.35f, .65f));

@@ -122,32 +122,40 @@ namespace CurtainCall.UI.SceneIntegration
                 $"공동 자금 {shop?.Balance ?? 0} · 배송구 대기 {shop?.Waiting.Count ?? 0}개 · {(WaitingRoomShop.CanPurchase ? "밤 정비 · 구매 가능" : "기물 구매는 밤 정비에만 가능")}",
                 $"공동 자금 {shop?.Balance ?? 0} · {ExpertService.Day}일차 · {(ExpertService.IsServiceTime ? "신체 복구 이용 가능" : "공연 중 이용 불가")}", "최근 공동 자금 장부 · 배송 및 수령 기록", entries.ToArray());
         }
-        // M2: 서비스는 신체 복구 하나(시설 서비스 삭제). 1~3개 중 골라 예약하며, 비용은 지금 1개당 가격 × 개수.
-        // 상점 템플릿은 항목당 버튼 2개까지라 개수마다 항목을 하나씩 둔다.
+        // M2: 서비스는 신체 복구 하나(시설 서비스 삭제). 한 항목에서 1~최대(잃은 부위, 3개) 수량을 고르고 예약한다. 비용은 지금 1개당 가격 × 개수.
+        // 상점 템플릿은 항목당 버튼 2개까지라 [예약]·[수량 변경] 두 버튼을 쓴다. 수량은 이 화면에만 있는 선택값이다.
+        int medicalParts = 1;
         void AddServices(List<ShopEntryPresentation> entries)
         {
             string status = service == null ? "" : service.Phase != ExpertRoomPhase.Idle ? $"{WaitingRoomShop.PlayerLabel(service.Buyer)} · {ExpertServicePhonePanel.PhaseLabel(service.Phase)}" : "";
             int max = Mathf.Max(1, ExpertService.LocalMaxParts);
-            for (int parts = 1; parts <= max; parts++)
-            {
-                var refusal = service != null ? service.LocalMedicalRefusal(parts) : ExpertRefusal.InPerformance;
-                long cost = service?.MedicalCost(parts) ?? 0;
-                string reason = service == null ? "서비스 정보를 불러오는 중입니다." : refusal != ExpertRefusal.None ? ExpertServiceBook.Explain(refusal) : service.Balance < cost ? "공동 자금 부족" : "";
-                entries.Add(new ShopEntryPresentation("medical:" + parts, ShopTab.Services, "medical", $"신체 복구 {parts}개", $"잃은 팔다리 {ExpertService.LocalLostLimbs}개",
-                    service == null ? "—" : cost.ToString(), "예약 후 전문가실에서\n최근 잃은 부위부터 복구합니다.",
-                    service == null ? "" : $"1개당 {service.MedicalPrice} · 팀 이용 {service.TeamUses}회", reason.Length == 0, reason, status, "medical",
-                    new ShopActionPresentation("medical", "예약")));
-            }
+            medicalParts = Mathf.Clamp(medicalParts, 1, max);
+            int parts = medicalParts;
+            var refusal = service != null ? service.LocalMedicalRefusal(parts) : ExpertRefusal.InPerformance;
+            long cost = service?.MedicalCost(parts) ?? 0;
+            string reason = service == null ? "서비스 정보를 불러오는 중입니다." : refusal != ExpertRefusal.None ? ExpertServiceBook.Explain(refusal) : service.Balance < cost ? "공동 자금 부족" : "";
+            entries.Add(new ShopEntryPresentation("medical", ShopTab.Services, "medical", $"신체 복구 {parts}개", $"잃은 팔다리 {ExpertService.LocalLostLimbs}개 · 최대 {max}개",
+                service == null ? "—" : cost.ToString(), "수량을 고르고 예약하세요.\n예약 뒤 로비 신체 복구 승강기에서 F로 이용하며,\n최근 잃은 부위부터 복구합니다.",
+                service == null ? "" : $"1개당 {service.MedicalPrice} · 팀 이용 {service.TeamUses}회", reason.Length == 0, reason, status, "medical",
+                new ShopActionPresentation("medical", $"{parts}개 예약"),
+                new ShopActionPresentation("count", $"수량 {parts}/{max}", max > 1)));
         }
         void Request(ShopActionRequest request)
         {
             if (phone == null || !phone.IsOpen || pending != null) { view.RejectAction(request, "창을 다시 열어 주세요."); return; }
+            if (request.EntryId == "medical" && request.ActionId == "count")
+            {
+                // 수량 변경은 서버 요청 없이 이 화면에서 1 → 최대 → 1 순서로 돈다.
+                int max = Mathf.Max(1, ExpertService.LocalMaxParts);
+                medicalParts = medicalParts % max + 1;
+                view.AcceptAction(request, $"{medicalParts}개 선택", Build()); fingerprint = null; nextRefresh = 0; ApplyFonts();
+                return;
+            }
             pending = request; requestId = Guid.NewGuid().ToString("N"); sentAt = Time.unscaledTime;
             if (request.EntryId.StartsWith("item:") && request.ActionId == "buy" && shop != null)
                 shop.RequestPurchaseTracked(request.EntryId.Substring(5), requestId);
-            else if (request.EntryId.StartsWith("medical:") && request.ActionId == "medical" && service != null
-                && int.TryParse(request.EntryId.Substring(8), out int parts))
-                service.RequestMedicalTracked(parts, requestId);
+            else if (request.EntryId == "medical" && request.ActionId == "medical" && service != null)
+                service.RequestMedicalTracked(Mathf.Clamp(medicalParts, 1, Mathf.Max(1, ExpertService.LocalMaxParts)), requestId);
             else Answer(requestId, false, "사용할 수 없는 요청입니다.");
         }
         void Answer(string id, bool ok, string text)

@@ -186,14 +186,17 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");
             var view = Get(adapter, "View");
             var service = Find("CurtainCall.WaitingRoom.ExpertService");
-            // 외팔(잃은 팔다리 3)이면 1~3개 항목이 있고, 처음 1개당 가격은 기본가다. 시설 서비스는 없다.
+            // 외팔(잃은 팔다리 3)이면 한 항목에서 1~3개를 고르고, 처음 1개당 가격은 기본가다. 시설 서비스는 없다.
             long unit = (long)Get(service, "MedicalPrice");
             Assert.AreEqual(100L, unit);
-            for (int parts = 1; parts <= 3; parts++)
-                Assert.AreEqual((unit * parts).ToString(), Get(Entry(adapter, "medical:" + parts), "PriceText"));
+            Assert.AreEqual(1, Entries(adapter).Count(e => ((string)Get(e, "Id")).StartsWith("medical")), "신체 복구는 한 항목");
+            Assert.AreEqual(unit.ToString(), Get(Entry(adapter, "medical"), "PriceText"));
             Assert.IsFalse(Entries(adapter).Any(e => ((string)Get(e, "Id")) == "facility"));
             Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Services"));
-            Call(view, "SelectEntry", "medical:2");
+            Call(view, "SelectEntry", "medical");
+            Call(Get(Private(view, "secondaryButton"), "onClick"), "Invoke");
+            yield return null;
+            Assert.AreEqual((unit * 2).ToString(), Get(Entry(adapter, "medical"), "PriceText"), "수량 2개 선택 시 합계");
             Call(Get(Private(view, "primaryButton"), "onClick"), "Invoke");
             yield return new WaitForSecondsRealtime(.35f);
             Assert.AreEqual("Booked", Get(service, "Phase").ToString());
@@ -202,7 +205,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(1, Get(service, "TeamUses"), "2개를 고쳐도 팀 이용은 1회");
             Assert.AreEqual(unit + 25, Get(service, "MedicalPrice"), "다음 1개당 가격 +25");
             Assert.AreEqual(unit * 2, Get(service, "BookedCost"));
-            Assert.AreEqual(false, Get(Entry(adapter, "medical:1"), "Available"));
+            Assert.AreEqual(false, Get(Entry(adapter, "medical"), "Available"));
             Assert.IsNull(Get(view, "PendingRequest"));
             Assert.IsTrue(Entries(adapter).Any(e => ((string)Get(e, "Id")).StartsWith("fund:")));
         }
@@ -219,10 +222,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");
             var view = Get(adapter, "View");
             var service = Find("CurtainCall.WaitingRoom.ExpertService");
-            Assert.AreEqual(true, Get(Entry(adapter, "medical:1"), "Available"), (string)Get(Entry(adapter, "medical:1"), "UnavailableReason"));
-            Assert.IsFalse(Entries(adapter).Any(e => ((string)Get(e, "Id")) == "medical:2"), "잃은 수(1)보다 많이 고를 수 없다");
+            Assert.AreEqual(true, Get(Entry(adapter, "medical"), "Available"), (string)Get(Entry(adapter, "medical"), "UnavailableReason"));
             Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Services"));
-            Call(view, "SelectEntry", "medical:1");
+            Call(view, "SelectEntry", "medical");
+            Call(Get(Private(view, "secondaryButton"), "onClick"), "Invoke");
+            yield return null;
+            Assert.AreEqual("100", Get(Entry(adapter, "medical"), "PriceText"), "잃은 수(1)보다 많이 고를 수 없다");
             Call(Get(Private(view, "primaryButton"), "onClick"), "Invoke");
             yield return new WaitForSecondsRealtime(.35f);
             Assert.AreEqual("Booked", Get(service, "Phase").ToString());

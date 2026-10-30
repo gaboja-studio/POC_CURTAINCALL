@@ -36,6 +36,10 @@ namespace CurtainCall.WaitingRoom
 
         public string[] SelectableTricks => (string[])selectableTricks.Clone();
 
+        /// <summary>이번 런에서 고를 수 있는 공연인지(빈 칸은 항상 가능). 인간 대포는 배치 기물을 발견해야 열린다.</summary>
+        public static bool IsUnlocked(string trickId) =>
+            string.IsNullOrEmpty(trickId) || CurtainCall.Campaign.CampaignRun.Instance == null || CurtainCall.Campaign.CampaignRun.Instance.IsTrickUnlocked(trickId);
+
         /// <summary>마지막 편집·확정 결과 문구(호스트 화면용).</summary>
         public string LastMessage { get; private set; } = "";
 
@@ -68,12 +72,21 @@ namespace CurtainCall.WaitingRoom
             var run = GameSettings.Base.Run;
             book = new ScheduleBook(new[] { run.FirstDayTrick(0), run.FirstDayTrick(1) }, selectableTricks);
             channel = new ScheduleChannel("CurtainCall.WaitingRoom.NightSchedule", HandleState, SendTo, HandleReset);
+            RunState.NightEndGate = NightCanEnd;
+        }
+
+        /// <summary>오늘 밤 고칠 일차가 있으면 호스트가 확정해야 밤이 끝난다(전원 침대와 함께).</summary>
+        public bool NightCanEnd()
+        {
+            var run = CampaignRun.Instance;
+            int day = run != null ? run.State.Day : 0;
+            return ScheduleBook.EditableDays(day).Length == 0 || book.IsConfirmedTonight;
         }
 
         void OnDestroy()
         {
             channel?.Dispose();
-            if (Instance == this) Instance = null;
+            if (Instance == this) { Instance = null; RunState.NightEndGate = null; }
         }
 
         void Update()
@@ -89,6 +102,7 @@ namespace CurtainCall.WaitingRoom
         public ScheduleRefusal Set(int day, int slot, string trickId, int tier)
         {
             if (!HasAuthority) return Answer(ScheduleRefusal.NotEditable);
+            if (!IsUnlocked(trickId)) return Answer(ScheduleRefusal.Locked);
             var refusal = book.Set(day, slot, trickId, tier, MaxTier(trickId));
             if (refusal == ScheduleRefusal.None) Publish();
             return Answer(refusal);
@@ -168,6 +182,7 @@ namespace CurtainCall.WaitingRoom
             ScheduleRefusal.Incomplete => "빈 칸을 모두 채워야 확정할 수 있습니다.",
             ScheduleRefusal.BadTier => "깬 단계의 다음 단계까지만 고를 수 있습니다.",
             ScheduleRefusal.NotNextPerformance => "쉬는 시간에는 바로 다음 공연의 단계만 바꿀 수 있습니다.",
+            ScheduleRefusal.Locked => "아직 발견하지 않은 공연입니다. 대기실에서 공연 기물을 찾아야 열립니다.",
             _ => "할 수 없습니다.",
         };
 

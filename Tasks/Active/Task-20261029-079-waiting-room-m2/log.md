@@ -86,3 +86,46 @@
 - 키맵: InputBindingPreferences가 마우스 버튼(왼쪽 제외)을 허용하고 설정 화면이 우/중/앞/뒤 버튼 입력을 받아 UV 등 조작키를 재설정할 수 있게 함. 왼쪽 버튼은 UI 클릭용으로 예약.
 
 - 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-30 사용자 후속 4건(상점 기물·의료 서비스·인간대포/트램펄린 발견 해금·UV 동기화)을 코드와 교차 확인해 followup-plan-20261030.md에 8단계로 정리. Confluence는 커넥터 미연결·브라우저 로그인 대기로 원문 대조 전.
+
+## M2 후속 4건 구현 (2026-10-30, 미커밋)
+- 원문 대조 후 사용자 추천안 결정: 의료=승강기+안내, 공연용 4종은 효과 연결 후 판매, 미발견 인간대포는 1일차 포함 외줄타기로 대체, 다른 사람 UV 빛도 낙서 드러냄(발견 요청은 비춘 본인).
+- origin/dev 6커밋 병합(--no-commit, 충돌 없음).
+- UV: NetworkPlayer Owner 쓰기 uvOn/Origin/Forward(10cm·2도 임계) → UvFlashlight가 원격 빛 그림·낙서 Illuminate.
+- 의료: 상점 서비스 한 항목 [N개 예약]·[수량 N/최대], 예약자 화면 위 승강기 거리 안내, "전문가 대기실" 문구 → "신체 복구 승강기".
+- 해금: CampaignSnapshot.CannonUnlocked(런 범위, 전송 끝에 추가), RunState.UnlockTrick, 미발견 공연은 TrickFor에서 외줄타기 대체, CampaignRun.DiscoverTrick(손님→Unlock 메시지). 개발 시작 지점이 인간대포면 해금 상태로 시작.
+- 스케줄표: ScheduleRefusal.Locked, 카드 순환에서 미발견 공연 건너뜀.
+- 발견: PerformancePropDiscovery(StructureAExploration/HumanCannonDiscovery). S11 무대 장치 보관실 HumanCannon+CarryTrampoline×2를 보면(14m·화면 안·가림 없음) 해금, 해금 시 보관실 기물 숨김·연습실 PracticeLanes/HumanCannon·PracticeTrampoline 표시. 씬 저장.
+- 검사: 컴파일 PASS. EditMode DifficultySelection 5/5(신규 1 포함), DevStartPoint 15/15. 같은 어셈블리 전체 105 중 실패 2(이름 미확인, 이전 StartConnection 기존 실패 추정). PlayMode W3_ 3/3, W2_BodyRestore 2/2. UV 원격 빛·실제 2인·발견 PlayMode는 미실행.
+- 사용자 결정: 인간 대포 해금은 보기가 아니라 F 획득. PerformancePropDiscovery에서 시야 판정 제거, 세트 기물 3개(HumanCannon·CarryTrampoline×2)에 PerformancePropPickup(IShopTarget·IShopPresentation, 공통 외곽선·[F] 안내, 거리 3m) → DiscoverTrick. 씬 저장. 호스트는 손님 요청의 거리는 다시 확인하지 않음(POC 한계).
+- 검사: 컴파일 PASS, PlayMode W3_HumanCannonSet_FAcquireUnlocksAndMovesToPractice 1/1(획득 전 보관실/연습실 숨김 → F → 해금·보관실 숨김·연습실 표시).
+- 사용자 결정: 세트 나란히. S11 CarryTrampoline×2를 (-31.25,34.0) → (-55.4,38.5)로 이동(대포 북쪽 0.7m, 다른 렌더러·충돌체와 겹침 없음 확인). 씬 저장. 주의: WaitingRoomLayoutA 생성기를 다시 돌리면 원래 자리로 돌아갈 수 있다(생성기 미수정).
+- 검사: W3_HumanCannonSet 재실행 1/1 PASS. 배치 PlayMode 묶음은 미실행.
+
+## 밤 정비·연습실·안내 UI 수정 (2026-10-30, 미커밋)
+- 화물 적재 철문(CargoGate): 통로 북쪽 벽 끝(x -18.5)보다 1m 앞(x -17.4)에 있어 틈으로 통과 → x -18.75·폭 3.8로 이동(씬·생성기 WaitingRoomLayoutA.Night 동시 수정). 0.3m 캡슐로 틈 없음 확인.
+- 밤 종료: RunState.NightEndGate(호스트) = ScheduleBoard.NightCanEnd(오늘 밤 고칠 일차가 있으면 호스트 확정 필요). 전원 침대 + 확정 시 다음 날. 침대 안내에 "호스트의 스케줄표 확정 대기" 표시.
+- 연습실: 통로(링 기준 -40°) 쪽에 남쪽 계단을 복제한 RingAccessStep_Entry·충돌체 추가, 난간 기둥1·상단 레일2·깃발2 숨김(약 4m 틈). 생성기 Ring40StairAngles에 입구 각도 추가(생성기 재실행 시 입구 계단 복제 필요).
+- 안내 패널: WaitingRoomGuidePanel(BasicPanels Menu_C13 판, 입력 막지 않는 상단 알림). 인간 대포 획득(모든 화면, 8초)·신체 복구 예약(예약자, 상점 창 닫힌 뒤 승강기 쪽으로 카메라/캐릭터 회전 + 8초).
+- 날짜 제목: DemoRunEnding.DayTitle → Day 1~3, 공연하는 날 수 다음 날 D-Day.
+- 최적화: waiting-room-optimization.md(렌더러 14,334·그림자 11,276·실시간 조명 146·오클루전 없음 등 측정과 단계별 방안). PerformancePropPickup 안내 위치 캐시.
+- 검사: 컴파일 PASS. PlayMode M2_NightPowerGatesAndBedWake 1/1(미확정이면 밤 유지 → 확정 후 Day 2), W3_ 4/4, ScheduleClose_DawnTitle 1/1(D-Day), W2_BodyRestore 2/2. 안내 패널 화면 모양·카메라 회전·연습실 계단 실제 걷기는 사람 확인 필요. 연습실 인간 대포 "연습" 기능은 아직 없음(아트만).
+- 최적화 1단계(씬 전용): 작은 소품 그림자 끔(그림자 렌더러 11,276→8,634), 오클루전 정적 표시·굽기, Main Camera far 5000→150. URP 공용 설정은 미적용(확인 대기). PlayMode W3_ 4/4 PASS. 실제 프레임 개선 수치와 잘못 가려지는 곳은 사람 확인 필요. 테스트 실행 중 HumanCannon 재질 2개(pole-gate-black, section-sign) 직렬화 변화 발생(직접 수정 아님).
+- 사용자 결정(2026-10-30): 최적화는 대기실 씬만. 공용 URP 에셋(PC_RPAsset) 설정은 변경하지 않는다.
+
+## 숨겨진 낙서·숨은 문 띠 수정 (2026-10-30, 미커밋)
+- 화장실 UV 낙서: X 표시가 낙서 자리에서 1.75m 떨어진 부서지는 벽 앞면 안쪽(z62.56 < 벽 앞 62.71)에 묻혀 있었음 → 화살표·X를 얼룩 판(0.6×0.45) 안으로(씬·생성기 M2.cs). 비출 때 그림 있는 재질(화살표·X)을 노란 사각형 재질로 덮어쓰던 것 → 그림을 지키는 노란 형광 사본(UvGlow_*).
+- 손전등 판정 기준을 낙서 위 30cm(Point)에서 그림 자리(Center)로, 함께 드러나는 단서판 충돌체를 가림에서 제외(UvMark.Owns). 이게 M2_Confirmed_UvFlashlight 장기 실패 원인. 테스트를 발견 직후 입력 막힘·5초 유지 규칙에 맞춤 → 1/1 PASS.
+- 기계실 숨은 문: 열려도 문 자리를 가로지르던 강철 띠(HiddenDoorLedger)를 hideOnOpen에 추가(씬·StructureADoorVisualFix).
+- 검사: M2_ExitRoute 3/3, M2_Confirmed_UvFlashlight 1/1. M2_ClueRoute_NotesUvMonitorAndPendingHint는 UvMark.Interact(10-30 F 제거) 호출하는 옛 테스트라 실패(기존 문제, 이번 변경 무관).
+- 2인 테스트: MPPM Player 2 비활성(Library/VP/SystemData.json). 활성화는 Window > Multiplayer Play Mode에서 사람 조작 필요(내부 API 직접 실행 금지 함정).
+
+## 실제 2인 확인 (2026-10-30, MPPM Player 2)
+- 방법: `MultiplayerPlaymode.PlayerTwo.Activate`(MPPM 창과 같은 공식 경로)로 복제 에디터 실행 → 메인 HostLan, 복제본 JoinLan(127.0.0.1) → 호스트 2명 확인 → DevStartLauncher 1일차 밤. 복제본 조작은 `unity command --project-path Library/VP/mppm1b0aebbd eval`(느림·재시도)과 `WaitingRoomMppmReview`(에디터 전용, EditorPrefs 키 켤 때만 복제본에서 동작, 명령 파일로 입력·상태 기록).
+- PASS 밤 종료: 두 명 모두 침대 → 준비 2/2여도 Night 유지(복제본 침대 안내 "호스트의 스케줄표 확정 대기"). 호스트가 인간 대포 편성 시도 → Locked. 외줄타기로 확정 → 즉시 2일차 아침.
+- PASS UV 동기화: 복제본(참가자)에게 UV 등 지급·화장실 낙서 앞에서 우클릭 유지 → 호스트 화면 원격 빛 1개, 호스트에서도 낙서 드러남·발견 기록. 참가자 화면도 드러남.
+- PASS 인간 대포: 참가자가 무대 장치 보관실에서 F → 양쪽 해금, 보관실 기물 숨김·연습실 표시, 양쪽 "인간 대포 획득!" 안내 패널, 스케줄 해금.
+- PASS 신체 복구: 참가자 예약 → Booked, 카메라가 승강기 방향(45°)으로 회전, 안내 패널 "신체 복구 예약 완료" 문구.
+- 미실행: 탈출로 열쇠 두 개 동시 돌리기·경고음 청취, 화물 철문 실제 걷기 통과, 늦은 접속·이탈. 사람 플레이 확인은 별도.
+- 정리: 플레이 종료, Player 2 Deactivate, EditorPrefs 키 삭제, 씬 dirty 0.

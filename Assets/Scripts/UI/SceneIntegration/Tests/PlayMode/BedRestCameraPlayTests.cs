@@ -7,12 +7,23 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
+        /// <summary>호스트가 오늘 밤 고칠 일차를 외줄타기로 채워 확정한다(밤 종료 조건).</summary>
+        void ConfirmTonight()
+        {
+            var board = Find("CurtainCall.WaitingRoom.ScheduleBoard");
+            int day = (int)Field(State, "Day");
+            var days = (int[])T("CurtainCall.WaitingRoom.ScheduleBook").GetMethod("EditableDays").Invoke(null, new object[] { day });
+            foreach (int d in days) for (int slot = 0; slot < 2; slot++) Call(board, "Set", d, slot, "Tightrope", 1);
+            Assert.AreEqual("None", Call(board, "Confirm").ToString());
+        }
+
         [UnityTest]
         public IEnumerator W3_BedRestCamera_KeepsYawWithoutRollThroughMorning()
         {
             // 시선과 침대 방향이 달라도 눕기·일어나기 카메라는 위아래로만 움직인다(밤 → 아침 전환 때 화면이 돌던 문제).
             yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
             yield return new WaitForSecondsRealtime(.5f);
+            ConfirmTonight();
             var bed = Find("CurtainCall.WaitingRoom.NightBed");
             Camera.main.transform.rotation = Quaternion.Euler(17f, bed.transform.eulerAngles.y + 150f, 0f);
             float yaw = Camera.main.transform.eulerAngles.y;

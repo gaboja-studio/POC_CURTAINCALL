@@ -19,6 +19,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests {
    Assert.Greater(lamps.Length,0);Assert.IsTrue(lamps.All(l=>!l.enabled));
    var bed=Find("CurtainCall.WaitingRoom.NightBed");Call(bed,"Interact");yield return null;
    var rest=bed.GetComponent(T("CurtainCall.WaitingRoom.BedRestView"));Assert.AreEqual(true,Get(rest,"IsResting"));
+   // 2026-10-30: 전원이 누워도 호스트가 스케줄표를 확정하기 전에는 밤이 끝나지 않는다.
+   yield return new WaitForSecondsRealtime(1.5f);
+   Assert.AreEqual("Night",Field(State,"Phase").ToString(),"스케줄표 미확정이면 다음 날로 넘어가지 않는다");
+   ConfirmTonight();
    float until=Time.realtimeSinceStartup+16;
    while((Field(State,"Phase").ToString()=="Dawn" || Field(State,"Phase").ToString()=="Night") && Time.realtimeSinceStartup<until)yield return null;
    Assert.AreEqual(2,Field(State,"Day"));yield return new WaitForSecondsRealtime(3);

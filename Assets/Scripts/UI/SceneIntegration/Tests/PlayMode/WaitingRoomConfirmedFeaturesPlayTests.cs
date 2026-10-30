@@ -84,20 +84,28 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "비추기 전에는 안 보인다");
             MouseRight(true);
             float until = Time.realtimeSinceStartup + 3f;
-            while (Time.realtimeSinceStartup < until && !(bool)Call(state, "IsOpen", "structure-a:uv-1")) yield return null;
+            // 비추는 동안의 켜짐·표시를 기록한다(발견 직후 안내가 입력을 잠깐 막을 수 있다).
+            bool sawOn = false, sawLit = false;
+            while (Time.realtimeSinceStartup < until && !(sawLit && (bool)Call(state, "IsOpen", "structure-a:uv-1")))
+            {
+                sawOn |= (bool)Get(flashlight, "IsOn"); sawLit |= (bool)Get(mark, "Lit");
+                if (sawLit) Assert.IsTrue(marks.All(r => r.gameObject.activeInHierarchy), "비추는 동안 노란 형광 낙서가 보인다");
+                yield return null;
+            }
             var reader = player.GetComponent(T("CurtainCall.Player.PlayerInputReader"));
             string inputWhy = $"uvHeld {Field(Get(reader, "Current"), "UvLightHeld")} blocked {Static("CurtainCall.Player.InputGate", "IsBlocked")} held {string.Join(",", ((IEnumerable)Call(carry, "Held", (ulong)Get(carry, "LocalClientId"))).Cast<object>().Select(o => Get(o, "ItemId")))} open {Call(state, "IsOpen", "structure-a:uv-1")} lit {Get(mark, "Lit")} readerEnabled {((Behaviour)reader).isActiveAndEnabled}";
-            Assert.IsTrue((bool)Get(flashlight, "IsOn"), "장비를 들고 우클릭을 누르면 켜진다 — " + inputWhy);
+            Assert.IsTrue(sawOn, "장비를 들고 우클릭을 누르면 켜진다 — " + inputWhy);
             var origin = (Vector3)Get(flashlight, "LastOrigin"); var forward = (Vector3)Get(flashlight, "LastForward"); var point = (Vector3)Get(mark, "Point");
             string why = $"origin {origin} forward {forward} aim {Get(flashlight, "LastAim")} mark {point} angle {Vector3.Angle(forward, point - origin):F1} dist {Vector3.Distance(origin, point):F2}"
-                + $" cam {(Camera.main != null ? Camera.main.transform.position.ToString() + " fwd " + Camera.main.transform.forward.ToString() : "none")} player {player.transform.position}";
-            Assert.IsTrue((bool)Get(mark, "Lit"), "원뿔 안의 낙서를 비춘다 — " + why);
+                + $" cam {(Camera.main != null ? Camera.main.transform.position.ToString() + " fwd " + Camera.main.transform.forward.ToString() : "none")} player {player.transform.position} blocker {Static("CurtainCall.WaitingRoom.UvFlashlight", "LastBlocker")} open {Call(state, "IsOpen", "structure-a:uv-1")}";
+            Assert.IsTrue(sawLit, "원뿔 안의 낙서를 비춘다 — " + why);
             Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:uv-1"), "처음 비춘 낙서는 발견으로 기록된다");
-            Assert.IsTrue(marks.All(r => r.gameObject.activeInHierarchy), "비추는 동안 노란 형광 낙서가 보인다");
             Assert.IsTrue(marks.All(r => r.sharedMaterial != null && r.sharedMaterial.name.StartsWith("UvGlow")), "형광 재질");
             MouseRight(false); yield return null; yield return null; yield return null;
             Assert.IsFalse((bool)Get(flashlight, "IsOn"), "입력을 놓으면 꺼진다");
-            Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "빛이 꺼지면 다시 숨는다");
+            Assert.IsTrue(marks.All(r => r.gameObject.activeInHierarchy), "빛이 떠나도 5초 동안 남는다");
+            yield return new WaitForSeconds(5.3f);
+            Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "5초가 지나면 다시 숨는다");
             Assert.IsTrue(((IEnumerable)Call(carry, "Held", (ulong)Get(carry, "LocalClientId"))).Cast<object>().Any(o => (string)Get(o, "ItemId") == "uv-lamp"), "발견해도 장비는 남는다");
         }
 

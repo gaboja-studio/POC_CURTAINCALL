@@ -7,7 +7,7 @@ namespace CurtainCall.WaitingRoom
 {
     /// <summary>
     /// 숙소 침대 F: 밤 정비 준비 완료/취소. M2에서 스케줄표의 준비 입력을 침대로 옮겼다(Task-079, 기준 M2 변경점 3-3).
-    /// 전원이 준비하면 기존 밤 종료 흐름(<see cref="CampaignRun.SetReady"/>)으로 다음 날 아침이 된다. 스케줄표 확정은 조건이 아니다.
+    /// 전원이 준비하고 호스트가 스케줄표를 확정하면(<see cref="ScheduleBoard.NightCanEnd"/>) 기존 밤 종료 흐름(<see cref="CampaignRun.SetReady"/>)으로 다음 날 아침이 된다.
     /// 밤 정비 때만 닿는다. 침대 배정(누가 어느 침대)·눕는 연출은 기획 미정이라 어느 침대에서든 내 준비를 바꾼다.
     /// </summary>
     public sealed class NightBed : MonoBehaviour, IShopTarget, IShopPresentation
@@ -25,8 +25,11 @@ namespace CurtainCall.WaitingRoom
         public Vector3 PresentationPoint => footprint.center + Vector3.up * (footprint.extents.y + .3f);
         public bool IsAvailable => IsNight(out _);
         public string ActionLabel => !IsNight(out var run) ? "밤 정비 때 쓸 수 있습니다"
-            : run.IsLocalReady ? $"일어나기 (준비 취소 · {run.State.ReadyCount}/{run.State.RequiredCount})"
+            : run.IsLocalReady ? $"일어나기 (준비 취소 · {run.State.ReadyCount}/{run.State.RequiredCount}){ScheduleWait}"
             : $"침대에 눕기 (준비 완료 · {run.State.ReadyCount}/{run.State.RequiredCount})";
+
+        // 스케줄표가 아직 확정되지 않았으면 누워도 넘어가지 않는다는 안내.
+        static string ScheduleWait => ScheduleBoard.Instance != null && !ScheduleBoard.Instance.NightCanEnd() ? " · 호스트의 스케줄표 확정 대기" : "";
 
         Transform Body => body != null ? body : transform;
         public Bounds Footprint => footprint;

@@ -58,6 +58,22 @@ namespace CurtainCall.Network.PlayerSync
         {
             if (IsSpawned && IsOwner) restingBed.Value = index;
         }
+        // UV 등 빛(표시 전용). 소유자가 켜짐·시작점·방향을 바뀔 때만 쓰고, 다른 화면은 같은 빛을 그린다. 발견 판정에는 쓰지 않는다
+        readonly NetworkVariable<bool> uvOn = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        readonly NetworkVariable<Vector3> uvOrigin = new(Vector3.zero, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        readonly NetworkVariable<Vector3> uvForward = new(Vector3.forward, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+        public bool UvOn => uvOn.Value;
+        public Vector3 UvOrigin => uvOrigin.Value;
+        public Vector3 UvForward => uvForward.Value;
+        /// <summary>내 UV 빛 상태를 공유한다. 시작점 10cm·방향 2도 미만의 변화는 보내지 않는다.</summary>
+        public void SetUvLight(bool on, Vector3 origin, Vector3 forward)
+        {
+            if (!IsSpawned || !IsOwner) return;
+            if (uvOn.Value != on) uvOn.Value = on;
+            if (!on) return;
+            if ((uvOrigin.Value - origin).sqrMagnitude > .01f) uvOrigin.Value = origin;
+            if (Vector3.Angle(uvForward.Value, forward) > 2f) uvForward.Value = forward;
+        }
         readonly NetworkVariable<JumpKind> jump = new(JumpKind.None, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
         // 실제 앉은 상태(요청이 아님). 받는 화면은 공간 검사 없이 겉모습·몸통 높이만 맞춘다
         readonly NetworkVariable<bool> crouched = new(false, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);

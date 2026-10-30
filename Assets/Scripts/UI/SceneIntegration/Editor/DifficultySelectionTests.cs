@@ -34,6 +34,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             var run = NightOfDayOne(clearRope: true);
             Assert.AreEqual(2, run.MaxSelectableTier("Tightrope"));
             Assert.AreEqual(1, run.MaxSelectableTier("HumanCannon"));
+            Assert.IsTrue(run.UnlockTrick("HumanCannon"));
             Assert.IsTrue(run.SetSetlist(2, new[] { "Tightrope", "HumanCannon" }, new[] { 3, 2 }));
             Morning(run);
             Assert.AreEqual("Tightrope", run.Snapshot.TrickId);
@@ -46,6 +47,22 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.IsTrue(run.EndPerformance());
             Assert.AreEqual("HumanCannon", run.Snapshot.TrickId);
             Assert.AreEqual(1, run.Snapshot.Difficulty, "못 깬 묘기는 1단계");
+        }
+
+        [Test]
+        public void HumanCannonNeedsDiscoveryAndResetsWithRun()
+        {
+            var run = NightOfDayOne(clearRope: false);
+            Assert.IsFalse(run.Snapshot.IsTrickUnlocked("HumanCannon"));
+            Assert.IsTrue(run.Snapshot.IsTrickUnlocked("Tightrope"));
+            Assert.IsTrue(run.SetSetlist(2, new[] { "HumanCannon", "HumanCannon" }));
+            Morning(run);
+            Assert.AreEqual("Tightrope", run.Snapshot.TrickId, "미발견이면 외줄타기");
+            Assert.IsTrue(run.UnlockTrick("HumanCannon"));
+            Assert.IsFalse(run.UnlockTrick("HumanCannon"), "한 번만 열린다");
+            Assert.AreEqual("HumanCannon", run.Snapshot.TrickId, "발견하면 편성한 공연으로 돌아온다");
+            Assert.IsTrue(run.DebugRestartRun());
+            Assert.IsFalse(run.Snapshot.CannonUnlocked, "런 초기화 때 다시 닫힌다");
         }
 
         [Test]

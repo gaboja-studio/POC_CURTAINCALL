@@ -234,6 +234,8 @@ namespace CurtainCall.UI.SceneIntegration
             var choices = schedule.SelectableTricks;
             string trick = schedule.Book.Get(day, slot);
             int next = Array.IndexOf(choices, trick) + 1;
+            // 아직 발견하지 않은 공연은 건너뛴다.
+            while (next < choices.Length && !ScheduleBoard.IsUnlocked(choices[next])) next++;
             string nextTrick = next < choices.Length ? choices[next] : "";
             int tier = Math.Clamp(schedule.Book.Difficulty(day, slot), 1, schedule.MaxTier(nextTrick));
             var result = schedule.Set(day, slot, nextTrick, tier);
