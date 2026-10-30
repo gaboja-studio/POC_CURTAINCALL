@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 19.4,
+  "summary": {
+    "total": 2,
+    "passed": 1,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusMotion_AllFourCharactersGripAndSeatAtActualMuzzle",
+      "Status": "Failed",
+      "Duration": 13.017697,
+      "Message": "  left palm on actual bar model 0\r\n  Expected: less than 0.0350000001f\r\n  But was:  0.0509811752f\r\n",
+      "StackTrace": "at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<CircusMotion_AllFourCharactersGripAndSeatAtActualMuzzle>d__11.MoveNext () [0x0026e] in D:\\github\\POC_CURTAINCALL\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.CircusMotion.cs:74\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusMotion_RealLaunchApexFallAndTrampolineRebound",
+      "Status": "Passed",
+      "Duration": 6.2688784,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

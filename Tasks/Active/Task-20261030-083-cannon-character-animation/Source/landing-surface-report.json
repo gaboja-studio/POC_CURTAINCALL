@@ -1,0 +1,103 @@
+{
+  "output": null,
+  "diagnostics": [],
+  "success": true,
+  "result": [
+    {
+      "path": "Rabbit/Rabbit",
+      "t": 0,
+      "min": 0.002000004,
+      "hip": 0.909556746
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "t": 0.21,
+      "min": 0.00199997425,
+      "hip": 0.727893651
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "t": 0.5,
+      "min": 0.002000004,
+      "hip": 0.8688757
+    },
+    {
+      "path": "Rabbit/Rabbit",
+      "t": 0.99,
+      "min": 0.002000006,
+      "hip": 0.912240446
+    },
+    {
+      "path": "Bear/Bear",
+      "t": 0,
+      "min": 0.002000004,
+      "hip": 0.7833885
+    },
+    {
+      "path": "Bear/Bear",
+      "t": 0.21,
+      "min": 0.002000004,
+      "hip": 0.6335034
+    },
+    {
+      "path": "Bear/Bear",
+      "t": 0.5,
+      "min": 0.00199998915,
+      "hip": 0.751306057
+    },
+    {
+      "path": "Bear/Bear",
+      "t": 0.99,
+      "min": 0.0019999817,
+      "hip": 0.7865895
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "t": 0,
+      "min": 0.0174704045,
+      "hip": 0.8605757
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "t": 0.21,
+      "min": 0.00407288969,
+      "hip": 0.6780336
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "t": 0.5,
+      "min": 0.0118578374,
+      "hip": 0.8178748
+    },
+    {
+      "path": "BluePierrot/BluePierrot",
+      "t": 0.99,
+      "min": 0.01946082,
+      "hip": 0.864537537
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "t": 0,
+      "min": 0.0158287734,
+      "hip": 0.8605757
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "t": 0.21,
+      "min": 0.00446127355,
+      "hip": 0.6780336
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "t": 0.5,
+      "min": 0.0110397488,
+      "hip": 0.8178748
+    },
+    {
+      "path": "PinkGirl/PinkGirl",
+      "t": 0.99,
+      "min": 0.0175021887,
+      "hip": 0.864537537
+    }
+  ]
+}

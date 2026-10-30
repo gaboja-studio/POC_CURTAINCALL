@@ -106,6 +106,9 @@ namespace CurtainCall.HumanCannon.EditorTools
                     foreach (var t in all.Select(t => t.GetComponent<HumanCannonTrampoline>()).Where(c => c != null))
                     {
                         var visual = Replace(t.transform, trampoline);
+                        var config = new SerializedObject(t);
+                        config.FindProperty("usePropOutline").boolValue = true;
+                        config.ApplyModifiedProperties();
                         // Route the visible grip through the original Handle, so held tint remains functional.
                         var old = t.Handle.Find(GripName);
                         if (old != null) Undo.DestroyObjectImmediate(old.gameObject);

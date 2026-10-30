@@ -9,7 +9,7 @@ namespace CurtainCall.Player
 {
     /// <summary>실제 Player 상태를 외형에 전달한다. 부상/이동/공연 판정은 소유하지 않는다.</summary>
     [DefaultExecutionOrder(650)]
-    public sealed class HumanoidPlayerPresentation : MonoBehaviour
+    public sealed partial class HumanoidPlayerPresentation : MonoBehaviour
     {
         PlayerModelSlot slot;
         PlayerCondition condition;
@@ -68,6 +68,8 @@ namespace CurtainCall.Player
                 detached = model;
             }
             model = next;
+            carryMotion = null;
+            ResetRescueMotion();
             airborne = false;
             landUntil = 0;
             if (model == null) return;
@@ -114,6 +116,7 @@ namespace CurtainCall.Player
         {
             RestoreHangAlignment();
             IsHanging = false;
+            SampleFlightVelocity();
             var catalog = CurtainCall.CharacterArt.PlayerAppearanceCatalog.Current;
             if (network != null && network.IsSpawned && catalog != null && catalog.Valid(network.AppearanceModel, network.AppearanceOutfit))
             {
@@ -126,27 +129,38 @@ namespace CurtainCall.Player
             Color next = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
             if (color != next) { color = next; model.SetColor(color); }
             model.Animator.SetLayerWeight(1, 0f);
-            if (condition.AllLimbsLost) { model.Play("Death"); return; }
+            if (condition.AllLimbsLost) { ResetCircusMotion(); model.Play("Death"); return; }
+            if (PresentRopeRescue()) return;
             if (TryHangGrip(out _, out _))
             {
                 IsHanging = true;
+                ResetCircusMotion();
                 airborne = false;
                 landUntil = 0f;
-                model.Play("Hanging");
+                model.Play(TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(network)
+                    ? CircusVariant("RopeHang") : "Hanging");
                 return;
             }
-            if (balance != null && balance.HasFallen) return;
+            if (balance != null && balance.HasFallen) { ResetCircusMotion(); return; }
+            if (PresentCircusMotion()) return;
             bool moving = network != null ? network.PresentationMoving : mover.IsMoving;
             bool sprinting = network != null ? network.PresentationSprinting : mover.IsSprinting;
             JumpKind jump = network != null && network.IsSpawned && !network.IsOwner ? network.CurrentJump : mover.CurrentJump;
             bool inAir = jump != JumpKind.None || mover.IsAirborne;
+            bool carrying = network != null && network.IsSpawned
+                && ((PropCarry.Instance != null && PropCarry.Instance.Held(network.OwnerClientId).Count > 0)
+                    || (HumanCannonTrampoline.Current != null && HumanCannonTrampoline.Current.Carrier == network.OwnerClientId));
+            // Jump/landing/legless returns still need the grip layer. Hands are solved after animation.
+            model.Animator.SetLayerWeight(1, carrying ? 1f : 0f);
+            PresentCarryLayer(carrying);
             if (inAir && !airborne) jumpSince = Time.time;
             if (!inAir && airborne) landUntil = Time.time + .15f;
             airborne = inAir;
-            if (network != null && network.IsSpawned && HumanCannonSystem.Current != null)
+            if (CarryingTrampoline(out _))
             {
-                if (HumanCannonSystem.Current.IsFlying(network.OwnerClientId)) { model.Play("Flying"); return; }
-                if (HumanCannonSystem.Current.IsSeated(network.OwnerClientId)) { model.Play("Crouch"); return; }
+                if (inAir) { model.Play(CircusVariant("CarryJump")); return; }
+                if (Time.time < landUntil) { model.Play(CircusVariant("FlightLand")); return; }
+                if (condition.LostLegCount == 2) { model.Play(CircusVariant("TrampolineCarry")); return; }
             }
             if (condition.LostLegCount == 2)
             {
@@ -160,11 +174,6 @@ namespace CurtainCall.Player
             }
             if (Time.time < landUntil) { model.Play("JumpLand"); return; }
             if (mover.IsCrouched) { model.Play(moving ? "CrouchWalk" : "Crouch"); return; }
-            bool carrying = network != null && network.IsSpawned
-                && ((PropCarry.Instance != null && PropCarry.Instance.Held(network.OwnerClientId).Count > 0)
-                    || (HumanCannonTrampoline.Current != null && HumanCannonTrampoline.Current.Carrier == network.OwnerClientId));
-            // 상체 전용 레이어로 지지 하체와 운반 동작을 분리한다.
-            model.Animator.SetLayerWeight(1, carrying ? 1f : 0f);
             model.Play(moving ? balance != null && balance.IsActive ? "Tightrope" : sprinting ? "Run" : "Walk" : "Idle");
         }
 
@@ -202,6 +211,8 @@ namespace CurtainCall.Player
 
         void LateUpdate()
         {
+            if (ApplyRescueAlignment()) return;
+            ApplyCircusAlignment();
             if (!IsHanging || model == null || !model.Animator.isHuman || !TryHangGrip(out var grip, out var axis)) return;
             ApplyHangPose(grip, axis, TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(network));
         }
@@ -289,6 +300,8 @@ namespace CurtainCall.Player
         {
             RestoreHangAlignment();
             IsHanging = false;
+            ResetCircusMotion();
+            ResetRescueMotion();
             if (slot != null) slot.ModelChanged -= BindModel;
             if (condition != null) condition.Changed -= Changed;
             NetworkPlayer.Restarted -= Restarted;

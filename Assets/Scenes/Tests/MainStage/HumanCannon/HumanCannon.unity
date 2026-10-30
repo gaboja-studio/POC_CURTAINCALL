@@ -81178,6 +81178,7 @@ MonoBehaviour:
   surfaceHeight: 0.5
   halfSize: {x: 2, y: 2}
   circularSurface: 1
+  usePropOutline: 1
   requireCarrierForBounce: 0
   loadHalfSize: {x: 2.4753408, y: 2.4753408}
   grabDistance: 4

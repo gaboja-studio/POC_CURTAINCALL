@@ -75,12 +75,21 @@ namespace CurtainCall.CharacterArt
             }
             SampleCount = Stages[stage].Points.Length;
             if (!float.IsFinite(lowest)) return;
-            Lift = Mathf.Clamp(transform.position.y + Clearance - lowest, 0, MaxLift);
+            // Authored legless recoveries have no foot chain to establish their floor height.
+            // Settle their remaining support down as well as up; ordinary locomotion keeps its old lift-only rule.
+            bool settle = CircusGrounded(animator.GetCurrentAnimatorStateInfo(0), "FlightLand")
+                || CircusGrounded(animator.GetCurrentAnimatorStateInfo(0), "RopePull")
+                || CircusGrounded(animator.GetCurrentAnimatorStateInfo(0), "TrampolineCarry");
+            Lift = Mathf.Clamp(transform.position.y + Clearance - lowest, settle ? -MaxLift : 0, MaxLift);
             VisualRoot.position += Vector3.up * Lift;
         }
 
         static bool GroundedMotion(AnimatorStateInfo state) =>
             state.IsName("Idle") || state.IsName("Walk") || state.IsName("Run") ||
-            state.IsName("Crouch") || state.IsName("CrouchWalk") || state.IsName("Crawl");
+            state.IsName("Crouch") || state.IsName("CrouchWalk") || state.IsName("Crawl") ||
+            CircusGrounded(state, "FlightLand") || CircusGrounded(state, "RopePull") || CircusGrounded(state, "TrampolineCarry");
+
+        static bool CircusGrounded(AnimatorStateInfo state, string name) => state.IsName(name)
+            || state.IsName(name + "_Cut1") || state.IsName(name + "_Cut2") || state.IsName(name + "_Cut3");
     }
 }

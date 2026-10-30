@@ -1,0 +1,48 @@
+{
+  "status": "completed",
+  "duration": 66.76,
+  "summary": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusMotion_AllFourCharactersGripAndSeatAtActualMuzzle",
+      "Status": "Passed",
+      "Duration": 11.6151164,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusMotion_CarryJumpKeepsSurvivingHandsAndCutSeatUsesMatchingClip",
+      "Status": "Passed",
+      "Duration": 22.3904436,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusMotion_RealLaunchApexFallAndTrampolineRebound",
+      "Status": "Passed",
+      "Duration": 6.900906,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusMotion_SafeLandingAbsorbsThenReturnsToLocomotion",
+      "Status": "Passed",
+      "Duration": 7.0274434,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.CircusMotion_RopeRescueUsesBothRolesAndAllSurvivingLimbVariants",
+      "Status": "Passed",
+      "Duration": 18.5805315,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}
