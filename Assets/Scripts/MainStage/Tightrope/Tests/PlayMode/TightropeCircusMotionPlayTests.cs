@@ -47,7 +47,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             {
                 camera.Render();RenderTexture.active=rt;var tex=new Texture2D(1100,850,TextureFormat.RGB24,false);
                 tex.ReadPixels(new Rect(0,0,1100,850),0,0);tex.Apply();
-                System.IO.File.WriteAllBytes("Tasks/Active/Task-20261030-083-cannon-character-animation/Previews/"+name+".png",tex.EncodeToPNG());Object.Destroy(tex);
+                string directory=Environment.GetEnvironmentVariable("CURTAINCALL_MOTION_EVIDENCE_DIR")
+                    ?? "Tasks/Active/Task-20261030-083-cannon-character-animation/Previews";
+                System.IO.Directory.CreateDirectory(directory);
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(directory,name+".png"),tex.EncodeToPNG());Object.Destroy(tex);
             }
             finally{camera.targetTexture=null;RenderTexture.active=previous;rt.Release();Object.Destroy(rt);Object.Destroy(go);}
         }

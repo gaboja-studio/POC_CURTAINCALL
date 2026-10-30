@@ -35,6 +35,7 @@ namespace CurtainCall.CharacterArt
         Mesh sourceMesh;
         SkinnedMeshRenderer sourceSkin;
         Transform[] bones;
+        bool[] pelvisBones, footBones, leftArmBones, rightArmBones;
 
         void LateUpdate() => CorrectPose();
 
@@ -46,8 +47,11 @@ namespace CurtainCall.CharacterArt
             Lift = 0;
             SampleCount = 0;
             var animator = Model.Animator;
-            if (!GroundedMotion(animator.GetCurrentAnimatorStateInfo(0))) return;
-            if (animator.IsInTransition(0) && !GroundedMotion(animator.GetNextAnimatorStateInfo(0))) return;
+            var current = animator.GetCurrentAnimatorStateInfo(0);
+            var next = animator.IsInTransition(0) ? animator.GetNextAnimatorStateInfo(0) : current;
+            float blend = animator.IsInTransition(0) ? Mathf.Clamp01(animator.GetAnimatorTransitionInfo(0).normalizedTime) : 0;
+            float grounded = Mathf.Lerp(GroundedMotion(current) ? 1 : 0, GroundedMotion(next) ? 1 : 0, blend);
+            if (grounded <= 0) return;
             int stage = Model.Stage;
             if (Stages == null || stage >= Stages.Length || Stages[stage]?.Points == null) return;
             var skin = Model.Original;
@@ -59,30 +63,90 @@ namespace CurtainCall.CharacterArt
                 bones = skin.bones;
                 bindposes = sourceMesh.bindposes;
                 matrices = new Matrix4x4[bones.Length];
+                pelvisBones = new bool[bones.Length]; footBones = new bool[bones.Length];
+                leftArmBones = new bool[bones.Length]; rightArmBones = new bool[bones.Length];
+                var hips = animator.GetBoneTransform(HumanBodyBones.Hips);
+                var leftThigh = animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg);
+                var rightThigh = animator.GetBoneTransform(HumanBodyBones.RightUpperLeg);
+                var foot = animator.GetBoneTransform(HumanBodyBones.RightFoot);
+                var toes = animator.GetBoneTransform(HumanBodyBones.RightToes);
+                var leftArm = animator.GetBoneTransform(HumanBodyBones.LeftUpperArm);
+                var rightArm = animator.GetBoneTransform(HumanBodyBones.RightUpperArm);
+                for (int i = 0; i < bones.Length; i++)
+                {
+                    pelvisBones[i] = bones[i] == hips || bones[i] == leftThigh || bones[i] == rightThigh;
+                    footBones[i] = bones[i] == foot || bones[i] == toes;
+                    leftArmBones[i] = leftArm != null && bones[i].IsChildOf(leftArm);
+                    rightArmBones[i] = rightArm != null && bones[i].IsChildOf(rightArm);
+                }
             }
             if (bindposes.Length != matrices.Length) return;
             for (int i = 0; i < matrices.Length; i++)
                 matrices[i] = bones[i].localToWorldMatrix * bindposes[i];
             float lowest = float.PositiveInfinity;
+            float support = float.PositiveInfinity;
             foreach (var point in Stages[stage].Points)
             {
                 var w = point.Weight;
-                var p = matrices[w.boneIndex0].MultiplyPoint3x4(point.Position) * w.weight0;
-                if (w.weight1 > 0) p += matrices[w.boneIndex1].MultiplyPoint3x4(point.Position) * w.weight1;
-                if (w.weight2 > 0) p += matrices[w.boneIndex2].MultiplyPoint3x4(point.Position) * w.weight2;
-                if (w.weight3 > 0) p += matrices[w.boneIndex3].MultiplyPoint3x4(point.Position) * w.weight3;
+                var p = SkinPoint(point);
                 lowest = Mathf.Min(lowest, p.y);
+                if (stage > 0 && SupportWeight(w, stage >= 2 ? pelvisBones : footBones) > .5f)
+                    support = Mathf.Min(support, p.y);
             }
             SampleCount = Stages[stage].Points.Length;
             if (!float.IsFinite(lowest)) return;
-            // Authored legless recoveries have no foot chain to establish their floor height.
-            // Settle their remaining support down as well as up; ordinary locomotion keeps its old lift-only rule.
-            bool settle = CircusGrounded(animator.GetCurrentAnimatorStateInfo(0), "FlightLand")
-                || CircusGrounded(animator.GetCurrentAnimatorStateInfo(0), "RopePull")
-                || CircusGrounded(animator.GetCurrentAnimatorStateInfo(0), "TrampolineCarry");
-            Lift = Mathf.Clamp(transform.position.y + Clearance - lowest, settle ? -MaxLift : 0, MaxLift);
+            float floor = transform.position.y + Clearance;
+            float circus = Mathf.Lerp(CircusSupport(current) ? 1 : 0, CircusSupport(next) ? 1 : 0, blend);
+            // A touching fingertip is not proof that a legless torso is supported.
+            // Settle the pelvis (or surviving sole), then keep the arms above the floor.
+            // humanScale bounds the correction for avatars with a deep skirt; the old
+            // .25m lift limit was too small for their seated pose.
+            float limit = Mathf.Max(MaxLift, animator.humanScale);
+            float ordinary = Mathf.Clamp(floor - lowest, 0, MaxLift) * grounded;
+            float seated = Mathf.Clamp(floor - (float.IsFinite(support) ? support : lowest), -limit, limit);
+            Lift = Mathf.Lerp(ordinary, seated * grounded, circus);
             VisualRoot.position += Vector3.up * Lift;
+            if (stage >= 2 && circus > 0)
+            {
+                KeepHandAboveFloor(false, floor, circus);
+                if (stage == 2) KeepHandAboveFloor(true, floor, circus);
+            }
         }
+
+        static float SupportWeight(BoneWeight w, bool[] selected) =>
+            (selected[w.boneIndex0] ? w.weight0 : 0) + (selected[w.boneIndex1] ? w.weight1 : 0)
+            + (selected[w.boneIndex2] ? w.weight2 : 0) + (selected[w.boneIndex3] ? w.weight3 : 0);
+
+        Vector3 SkinPoint(SupportPoint point)
+        {
+            var w = point.Weight;
+            var p = matrices[w.boneIndex0].MultiplyPoint3x4(point.Position) * w.weight0;
+            if (w.weight1 > 0) p += matrices[w.boneIndex1].MultiplyPoint3x4(point.Position) * w.weight1;
+            if (w.weight2 > 0) p += matrices[w.boneIndex2].MultiplyPoint3x4(point.Position) * w.weight2;
+            if (w.weight3 > 0) p += matrices[w.boneIndex3].MultiplyPoint3x4(point.Position) * w.weight3;
+            return p;
+        }
+
+        void KeepHandAboveFloor(bool left, float floor, float weight)
+        {
+            var animator = Model.Animator;
+            var selected = left ? leftArmBones : rightArmBones;
+            // Use actual remaining skin, including thick gloves/fingertips, rather
+            // than a wrist-height guess. Never lift the entire torso for a hand.
+            for (int iteration = 0; iteration < 3; iteration++)
+            {
+                for (int i = 0; i < matrices.Length; i++) matrices[i] = bones[i].localToWorldMatrix * bindposes[i];
+                float bottom = float.PositiveInfinity;
+                foreach (var point in Stages[Model.Stage].Points)
+                    if (SupportWeight(point.Weight, selected) > .5f) bottom = Mathf.Min(bottom, SkinPoint(point).y);
+                if (!float.IsFinite(bottom) || bottom >= floor - .001f) return;
+                Vector3 target = HumanoidPlayerPresentation.Palm(animator, left) + Vector3.up * ((floor - bottom) * weight);
+                HumanoidPlayerPresentation.AlignArm(animator, left, target);
+            }
+        }
+
+        static bool CircusSupport(AnimatorStateInfo state) => CircusGrounded(state, "FlightLand")
+            || CircusGrounded(state, "RopePull") || CircusGrounded(state, "TrampolineCarry");
 
         static bool GroundedMotion(AnimatorStateInfo state) =>
             state.IsName("Idle") || state.IsName("Walk") || state.IsName("Run") ||

@@ -160,7 +160,8 @@ namespace CurtainCall.Player
             {
                 if (inAir) { model.Play(CircusVariant("CarryJump")); return; }
                 if (Time.time < landUntil) { model.Play(CircusVariant("FlightLand")); return; }
-                if (condition.LostLegCount == 2) { model.Play(CircusVariant("TrampolineCarry")); return; }
+                if (condition.LostLegCount == 2 || (condition.LostLegCount == 1 && !moving))
+                { model.Play(CircusVariant("TrampolineCarry")); return; }
             }
             if (condition.LostLegCount == 2)
             {
@@ -258,7 +259,7 @@ namespace CurtainCall.Player
             if (right != null) AlignArm(animator, false, grip + axis * (count == 2 ? .18f : 0f));
         }
 
-        static Vector3 Palm(Animator animator, bool left)
+        internal static Vector3 Palm(Animator animator, bool left)
         {
             var hand = animator.GetBoneTransform(left ? HumanBodyBones.LeftHand : HumanBodyBones.RightHand);
             if (hand == null) return Vector3.zero;
@@ -266,7 +267,7 @@ namespace CurtainCall.Player
             return finger != null ? Vector3.Lerp(hand.position, finger.position, .7f) : hand.position;
         }
 
-        static void AlignArm(Animator animator, bool left, Vector3 contact)
+        internal static void AlignArm(Animator animator, bool left, Vector3 contact)
         {
             var upper = animator.GetBoneTransform(left ? HumanBodyBones.LeftUpperArm : HumanBodyBones.RightUpperArm);
             var lower = animator.GetBoneTransform(left ? HumanBodyBones.LeftLowerArm : HumanBodyBones.RightLowerArm);
