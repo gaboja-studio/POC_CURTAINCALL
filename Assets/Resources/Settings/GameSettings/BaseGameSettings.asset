@@ -55,7 +55,7 @@ MonoBehaviour:
     modelHeight: 1.73
     pushSpeed: 2
     playerGap: 0.05
-    sprintSpeedMultiplier: 1.5
+    sprintSpeedMultiplier: 2
     crouchSpeedMultiplier: 0.5
     crouchHeightRatio: 0.6
     playerColorRed: {r: 1, g: 0, b: 0, a: 1}

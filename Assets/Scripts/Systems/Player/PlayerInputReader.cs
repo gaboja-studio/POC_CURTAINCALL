@@ -125,6 +125,7 @@ namespace CurtainCall.Player
                 ActionPressed = action.WasPressedThisFrame(),
                 AuxDirection = (auxRight.IsPressed() ? 1 : 0) - (auxLeft.IsPressed() ? 1 : 0),
                 InteractTapped = tapped,
+                InteractHeld = interact.IsPressed(),
                 InteractLongPressed = longPressed,
                 InteractHoldProgress = holdProgress,
                 SprintHeld = sprint.IsPressed(),

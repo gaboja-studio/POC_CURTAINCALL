@@ -13,6 +13,30 @@ namespace CurtainCall.UI.SceneIntegration.Editor
 {
     public static class InteractionSceneInstaller
     {
+        [MenuItem("Tools/Curtain Call UI/Create rescue progress prefab")]
+        public static void CreateRescueProgressPrefab()
+        {
+            const string path = "Assets/Resources/Prefabs/UIs/Interaction/RescueProgress.prefab";
+            if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling) throw new InvalidOperationException("Editor must be idle.");
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(path) != null) throw new InvalidOperationException("Rescue progress prefab already exists; edit it directly.");
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_ThirdParty/curtaincall_dayclock_v2.7/Assets/CurtainCallUI/DayClock/Sprites/ui_hud_dayclock_schedulefill_normal@2x.png");
+            if (sprite == null) throw new InvalidOperationException("Day clock schedule fill sprite is missing.");
+            var root = new GameObject("RescueProgress", typeof(RectTransform), typeof(CanvasRenderer), typeof(UnityEngine.UI.Image));
+            try
+            {
+                var rect = (RectTransform)root.transform; rect.sizeDelta = new Vector2(64f, 64f);
+                var track = root.GetComponent<UnityEngine.UI.Image>(); track.sprite = sprite;
+                track.color = new Color(.25f, .08f, .08f, .9f); track.raycastTarget = false;
+                var outline = root.AddComponent<UnityEngine.UI.Outline>(); outline.effectColor = new Color(0f, 0f, 0f, 1f); outline.effectDistance = new Vector2(2f, -2f);
+                var child = new GameObject("Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(RescueProgressRing));
+                var fillRect = (RectTransform)child.transform; fillRect.SetParent(rect, false);
+                fillRect.anchorMin = Vector2.zero; fillRect.anchorMax = Vector2.one;
+                fillRect.offsetMin = fillRect.offsetMax = Vector2.zero;
+                var fill = child.GetComponent<RescueProgressRing>(); fill.Sprite = sprite; fill.type = UnityEngine.UI.Image.Type.Filled; fill.fillMethod = UnityEngine.UI.Image.FillMethod.Radial360; fill.fillOrigin = (int)UnityEngine.UI.Image.Origin360.Top; fill.fillClockwise = true; fill.fillAmount = 1f; fill.color = new Color(1f, .12f, .12f, 1f); fill.raycastTarget = false;
+                if (PrefabUtility.SaveAsPrefabAsset(root, path) == null) throw new InvalidOperationException("Prefab save failed.");
+            }
+            finally { UnityEngine.Object.DestroyImmediate(root); }
+        }
         [MenuItem("Tools/Curtain Call UI/Install common interaction highlights")]
         public static void Apply()
         {

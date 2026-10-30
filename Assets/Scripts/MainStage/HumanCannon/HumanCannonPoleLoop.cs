@@ -14,8 +14,10 @@ namespace CurtainCall.HumanCannon
         [Min(0f), SerializeField] float metersPerSecond = 4f;
         [Range(0f, 1f), SerializeField] float phase01;
         [SerializeField] float yawOffsetDegrees;
+        [Tooltip("레일 진행을 반대로 한다. 위치뿐 아니라 바라보는 방향과 이탈 관성도 함께 뒤집는다."), SerializeField] bool reverseDirection;
 
         public Transform Carriage => carriage;
+        public bool ReverseDirection => reverseDirection;
         public float Length => 2f * straightLength + 2f * Mathf.PI * radius;
         public bool IsConfigured => carriage != null && carriage != transform && carriage.IsChildOf(transform)
             && Finite(localCenter) && float.IsFinite(straightLength) && straightLength >= 0f
@@ -24,9 +26,9 @@ namespace CurtainCall.HumanCannon
         public bool IsSynchronized => HumanCannonHazardCourse.Current != null && HumanCannonHazardCourse.Current.IsSynchronized;
         public double Elapsed => IsSynchronized ? HumanCannonHazardCourse.Current.Elapsed : 0d;
 
-        /// <summary>XZ 레일의 phase 0은 (+radius, +straight/2), 진행은 -Z다. 서측은 +Z로 돌아온다.</summary>
+        /// <summary>XZ 레일의 phase 0은 (+radius, +straight/2)다. 기본 진행은 -Z, 역방향은 +Z다.</summary>
         public void Configure(Transform carriage, Vector3 localCenter, float straightLength, float radius,
-            float metersPerSecond, float phase01 = 0f, float yawOffsetDegrees = 0f)
+            float metersPerSecond, float phase01 = 0f, float yawOffsetDegrees = 0f, bool reverseDirection = false)
         {
             if (carriage == null || carriage == transform || !carriage.IsChildOf(transform)
                 || !Finite(localCenter) || !float.IsFinite(straightLength) || straightLength < 0f
@@ -35,6 +37,7 @@ namespace CurtainCall.HumanCannon
                 throw new ArgumentException("순환 레일에는 자식 carriage와 유효한 경로 치수가 필요합니다.");
             this.carriage = carriage; this.localCenter = localCenter; this.straightLength = straightLength; this.radius = radius;
             this.metersPerSecond = metersPerSecond; this.phase01 = Mathf.Repeat(phase01, 1f); this.yawOffsetDegrees = yawOffsetDegrees;
+            this.reverseDirection = reverseDirection;
             RefreshPose();
         }
 
@@ -45,7 +48,8 @@ namespace CurtainCall.HumanCannon
             if (!IsConfigured)
             { position = transform.position; rotation = transform.rotation; linearVelocity = angularVelocity = Vector3.zero; return; }
             double length = Length;
-            double distance = ((Math.Max(0d, double.IsFinite(elapsed) ? elapsed : 0d) * metersPerSecond
+            float direction = reverseDirection ? -1f : 1f;
+            double distance = ((Math.Max(0d, double.IsFinite(elapsed) ? elapsed : 0d) * metersPerSecond * direction
                 + Mathf.Repeat(phase01, 1f) * length) % length + length) % length;
             float s = (float)distance, arc = Mathf.PI * radius, half = straightLength * .5f;
             Vector3 point, tangent;
@@ -67,9 +71,10 @@ namespace CurtainCall.HumanCannon
                 tangent = new Vector3(Mathf.Sin(angle), 0, Mathf.Cos(angle)); turning = true;
             }
             position = transform.TransformPoint(localCenter + point);
+            tangent *= direction;
             rotation = transform.rotation * Quaternion.LookRotation(tangent, Vector3.up) * Quaternion.Euler(0, yawOffsetDegrees, 0);
             linearVelocity = transform.TransformVector(tangent * metersPerSecond);
-            angularVelocity = turning ? transform.up * (metersPerSecond / radius) : Vector3.zero;
+            angularVelocity = turning ? transform.up * (direction * metersPerSecond / radius) : Vector3.zero;
         }
 
         public bool Contains(Transform target) => isActiveAndEnabled && IsConfigured

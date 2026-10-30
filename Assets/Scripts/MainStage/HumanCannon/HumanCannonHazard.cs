@@ -23,18 +23,21 @@ namespace CurtainCall.HumanCannon
         [SerializeField, Min(0.1f)] float bladeHalfLength = 1.3f;
         [SerializeField, Min(0.01f)] float bladeHalfThickness = 0.12f;
         [SerializeField, Min(1f)] float rotationSpeed = 60f;
+        [Tooltip("공용 대각선 각도와 톱 밀도를 적용하지 않고 작성한 레일(travel)과 항상 켜진 상태를 그대로 쓴다.")]
+        [SerializeField] bool authoredPath;
         int diagonalIndex;
         public CannonHazardKind Kind => kind;
         public float Radius => radius;
         public float PeriodSeconds => periodSeconds;
         public bool IsPoleSaw => GetComponent<HumanCannonPoleSaw>() != null;
+        public bool UsesAuthoredPath => authoredPath;
         public bool KillsOnContact => kind == CannonHazardKind.FallingLoad || kind == CannonHazardKind.FireJet;
         public Vector3 Travel
         {
             get
             {
                 Vector3 authored = transform.TransformVector(travel);
-                if (kind == CannonHazardKind.SpikeMace || IsPoleSaw) return authored;
+                if (kind == CannonHazardKind.SpikeMace || IsPoleSaw || authoredPath) return authored;
                 Vector3 planar = Vector3.ProjectOnPlane(authored, Vector3.up);
                 return authored + Vector3.Cross(Vector3.up, planar)
                     * TrickSettings.DiagonalSlope(diagonalIndex, GameSettings.HumanCannon.SawDiagonalDegrees);
@@ -56,6 +59,13 @@ namespace CurtainCall.HumanCannon
                 throw new System.ArgumentOutOfRangeException(nameof(seconds), "유한한 이동량과 0.1초 이상의 주기가 필요합니다.");
             travel = displacement;
             periodSeconds = seconds;
+        }
+
+        /// <summary>레일 중심에서 끝까지 로컬 이동량을 정한 그대로 쓴다. 대각선·밀도 설정에서 제외된다.</summary>
+        public void ConfigureAuthoredPath(Vector3 displacement, float seconds)
+        {
+            ConfigureSweep(displacement, seconds);
+            authoredPath = true;
         }
         public Vector3 Position(double elapsed, float speed) => cue != null ? cue.Position(elapsed) : transform.position + Travel
             * Mathf.Sin((float)(elapsed * speed * Mathf.PI * 2 / periodSeconds + phase));

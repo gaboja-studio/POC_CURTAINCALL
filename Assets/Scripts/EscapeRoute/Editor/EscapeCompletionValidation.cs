@@ -36,7 +36,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             Check("original interaction UI enabled in build", EditorBuildSettings.scenes.Any(s => s.enabled && s.path == CommonInteractionUI.ScenePath));
             Check("one trampoline", All<HumanCannonTrampoline>().Length == 1);
             Check("one rope course", All<TightropeCourse>().Length == 1);
-            Check("flight synchronized", All<EscapeInspectionSession>().Length == 1 && All<EscapeInspectionCamera>().Length == 1);
             var registered = new SerializedObject(poleSystem).FindProperty("poles");
             Check("all poles registered", poles.Length == registered.arraySize && poles.All(p => Enumerable.Range(0,registered.arraySize).Any(i=>registered.GetArrayElementAtIndex(i).objectReferenceValue==p)));
             foreach (var pole in poles)

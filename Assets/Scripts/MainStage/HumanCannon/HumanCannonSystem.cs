@@ -72,7 +72,7 @@ namespace CurtainCall.HumanCannon
 
         internal bool BeginGroundBounce(ulong actor, uint sequence, uint epoch, Vector3 contact, float speed, float controlSpeed)
         {
-            if (IsFlying(actor) || IsSeated(actor)) return false;
+            if (IsFlying(actor) || IsSeated(actor) || HumanCannonCarry.Held(actor) != null) return false;
             if (boundPlayer != null && actor == boundPlayer.OwnerClientId)
             {
                 if (pilot == null || !pilot.BeginGroundBounce(sequence, epoch, contact, speed, controlSpeed)) return false;
@@ -165,7 +165,7 @@ namespace CurtainCall.HumanCannon
         public int FindBoardableStation(NetworkPlayer player)
         {
             if (player == null || player.State != PlayerState.Normal || player.IsAirborne || IsFlying(player.OwnerClientId)) return -1;
-            if (HumanCannonTrampoline.Current != null && HumanCannonTrampoline.Current.Carrier == player.OwnerClientId) return -1;
+            if (HumanCannonCarry.Held(player.OwnerClientId) != null) return -1;
             for (int i = 0; i < seats.Length; i++)
                 if (seats[i].State.Occupant == player.OwnerClientId) return -1;
             int nearest = -1;
@@ -174,7 +174,7 @@ namespace CurtainCall.HumanCannon
             for (int i = 0; i < stations.Length; i++)
             {
                 var station = stations[i];
-                if (station == null || !station.isActiveAndEnabled || seats[i].State.IsOccupied) continue;
+                if (station == null || !station.isActiveAndEnabled || !station.InteractionAvailable || seats[i].State.IsOccupied) continue;
                 float distance = (station.Seat.position - PlayerInteraction.Center(player)).sqrMagnitude;
                 float radius = station.BoardingDistance * reach;
                 if (!PlayerInteraction.InRange(player, station.Seat.position, radius) || distance >= best) continue;
@@ -246,6 +246,7 @@ namespace CurtainCall.HumanCannon
             if (!ValidIndex(index) || (action != CannonAction.Board && action != CannonAction.Launch && action != CannonAction.Cancel)) return;
             var runtime = seats[index];
             var station = stations[index];
+            if (action == CannonAction.Launch && !station.InteractionAvailable) return;
             if (action == CannonAction.Board && FindBoardableStation(player) != index) return;
             if (action == CannonAction.Board && !interactionReady)
             {

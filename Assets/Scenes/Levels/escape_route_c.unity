@@ -5123,6 +5123,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 987580504}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 547576780}
   leftCable: {fileID: 433747189}
   rightCable: {fileID: 1479412613}
@@ -28685,6 +28687,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 2099054840}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1852146730}
   leftCable: {fileID: 2110066423}
   rightCable: {fileID: 605128885}
@@ -40763,6 +40767,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1981778282}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1137622417}
   leftCable: {fileID: 1925083895}
   rightCable: {fileID: 140652746}
@@ -57983,6 +57989,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 87307926}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 493763531}
   leftCable: {fileID: 1953304615}
   rightCable: {fileID: 1927014308}
@@ -77467,7 +77475,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 165421525}
-  - component: {fileID: 165421526}
   m_Layer: 0
   m_Name: 14_CrossBlades
   m_TagString: Untagged
@@ -77493,32 +77500,6 @@ Transform:
   - {fileID: 1025702105}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &165421526
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 165421524}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 5
-  player: {fileID: 1438998970}
-  visual: {fileID: 1724781189}
-  warning: {fileID: 705163309}
-  origin: {x: 362, y: 1.5, z: 78}
-  destination: {x: 0, y: 0, z: 0}
-  size: {x: 1, y: 1, z: 1}
-  warningSeconds: 1.4
-  travelSeconds: 2.6
-  restSeconds: 2
-  phase: 0
-  activateMinX: 348
-  activateMaxX: 368
-  radius: 1.4
 --- !u!1 &165877787
 GameObject:
   m_ObjectHideFlags: 0
@@ -121511,6 +121492,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1429524329}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 538931528}
   leftCable: {fileID: 1828402650}
   rightCable: {fileID: 1590851916}
@@ -193716,6 +193699,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 520214115}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 167668789}
   leftCable: {fileID: 173651505}
   rightCable: {fileID: 811928776}
@@ -216138,11 +216123,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1980791803546825988, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
   m_PrefabInstance: {fileID: 426086033}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &426086036 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 914834467578385755, guid: 2d6a395ea7fb39c419cc672ae324458f, type: 3}
-  m_PrefabInstance: {fileID: 426086033}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &426277164
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -218421,6 +218401,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 860098813}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 483072054}
   leftCable: {fileID: 1105966233}
   rightCable: {fileID: 770864187}
@@ -219486,6 +219468,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 738117818}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1438541044}
   leftCable: {fileID: 1096694819}
   rightCable: {fileID: 1312783364}
@@ -239554,7 +239538,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 466375321}
-  - component: {fileID: 466375322}
   m_Layer: 0
   m_Name: 04_GroundSweep
   m_TagString: Untagged
@@ -239580,32 +239563,6 @@ Transform:
   - {fileID: 249979462}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &466375322
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 466375320}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 2
-  player: {fileID: 1438998970}
-  visual: {fileID: 48427574}
-  warning: {fileID: 533329909}
-  origin: {x: 216, y: 0.55, z: 72}
-  destination: {x: 219, y: 0.55, z: 83}
-  size: {x: 1, y: 1, z: 1}
-  warningSeconds: 1.4
-  travelSeconds: 2.6
-  restSeconds: 2
-  phase: 0.4
-  activateMinX: 202
-  activateMaxX: 226
-  radius: 1.1
 --- !u!1 &466518131
 GameObject:
   m_ObjectHideFlags: 0
@@ -251250,6 +251207,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae64d3661355a4bf08f74f746d551ca3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.CourseControlSwitcher
+  allowCannonPoleExit: 0
+  cannonPoleExitDistance: 2
   ropeScheme: {fileID: 0}
   platformScheme: {fileID: 0}
 --- !u!114 &493136864
@@ -251265,6 +251224,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Tightrope.TightropeCourse
   artProfile: {fileID: 0}
+  showSectionSigns: 0
   independentSceneRopes: 1
   spawnPoints: []
   useSceneGeometry: 1
@@ -273002,7 +272962,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 546866410}
-  - component: {fileID: 546866411}
   m_Layer: 0
   m_Name: 06_DropRight
   m_TagString: Untagged
@@ -273028,32 +272987,6 @@ Transform:
   - {fileID: 1058463334}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &546866411
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 546866409}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 3
-  player: {fileID: 1438998970}
-  visual: {fileID: 983145011}
-  warning: {fileID: 481017672}
-  origin: {x: 253, y: 8, z: 82}
-  destination: {x: 253, y: 1.5, z: 82}
-  size: {x: 4.5, y: 3, z: 4}
-  warningSeconds: 1.4
-  travelSeconds: 1.05
-  restSeconds: 2
-  phase: 0.35
-  activateMinX: 240
-  activateMaxX: 263
-  radius: 1.1
 --- !u!1001 &547236558
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -277735,11 +277668,8 @@ GameObject:
   - component: {fileID: 562218164}
   - component: {fileID: 562218163}
   - component: {fileID: 562218166}
-  - component: {fileID: 562218167}
   - component: {fileID: 562218168}
   - component: {fileID: 562218170}
-  - component: {fileID: 562218169}
-  - component: {fileID: 562218171}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -277838,24 +277768,6 @@ MonoBehaviour:
   sensitivity: 0.1
   pitchLimit: 85
   hideOwnModel: 1
---- !u!114 &562218167
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 562218162}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a970170d26812f84ab313ed241ba3ef3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeRouteFlyCamera
-  groundCamera: {fileID: 562218166}
-  previewPlayer: {fileID: 468415424}
-  eyeHeight: 1.5916001
-  moveSpeed: 12
-  fastMultiplier: 4
-  sensitivity: 0.1
 --- !u!114 &562218168
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277900,20 +277812,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!114 &562218169
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 562218162}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f5405ae139584d346984934b4d9eaa1c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeInspectionCamera
-  speed: 12
-  sensitivity: 0.1
 --- !u!114 &562218170
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -277946,18 +277844,6 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
---- !u!114 &562218171
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 562218162}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed8f224341ddacd4aa31b3a20c28824b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeInspectionSession
 --- !u!1001 &562791782
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -293100,6 +292986,10 @@ MonoBehaviour:
   - {fileID: 1616317243}
   - {fileID: 1327461571}
   CrawlHeightOffset: -0.05
+  PlayerTintMaterialSlots: 
+  RagdollArmRadius: 0.055
+  RagdollLegRadius: 0.075
+  RagdollHeadRadius: 0.11
 --- !u!1 &590308467
 GameObject:
   m_ObjectHideFlags: 0
@@ -317421,6 +317311,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 260966316}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 2101117397}
   leftCable: {fileID: 168765905}
   rightCable: {fileID: 1894446637}
@@ -327910,6 +327802,10 @@ MonoBehaviour:
   - {fileID: 1351378739}
   - {fileID: 704154393}
   CrawlHeightOffset: -0.05
+  PlayerTintMaterialSlots: 
+  RagdollArmRadius: 0.055
+  RagdollLegRadius: 0.075
+  RagdollHeadRadius: 0.11
 --- !u!1 &658774267
 GameObject:
   m_ObjectHideFlags: 0
@@ -334052,6 +333948,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1690236222}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 902591314}
   leftCable: {fileID: 952668448}
   rightCable: {fileID: 1036036765}
@@ -337905,6 +337803,10 @@ MonoBehaviour:
   - {fileID: 2114558712}
   - {fileID: 633257297}
   CrawlHeightOffset: -0.05
+  PlayerTintMaterialSlots: 
+  RagdollArmRadius: 0.055
+  RagdollLegRadius: 0.075
+  RagdollHeadRadius: 0.11
 --- !u!1 &679690718
 GameObject:
   m_ObjectHideFlags: 0
@@ -366390,6 +366292,10 @@ MonoBehaviour:
   - {fileID: 1413314507}
   - {fileID: 1785614504}
   CrawlHeightOffset: -0.05
+  PlayerTintMaterialSlots: 
+  RagdollArmRadius: 0.055
+  RagdollLegRadius: 0.075
+  RagdollHeadRadius: 0.11
 --- !u!1001 &734768772
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -404596,6 +404502,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1703668039}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1280417883}
   leftCable: {fileID: 2077578803}
   rightCable: {fileID: 1849874661}
@@ -426069,6 +425977,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1245146279}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1325091042}
   leftCable: {fileID: 931305795}
   rightCable: {fileID: 151510149}
@@ -499949,7 +499859,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1020481491}
-  - component: {fileID: 1020481492}
   m_Layer: 0
   m_Name: 05_DropLeft
   m_TagString: Untagged
@@ -499975,32 +499884,6 @@ Transform:
   - {fileID: 1573000790}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1020481492
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1020481490}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 3
-  player: {fileID: 1438998970}
-  visual: {fileID: 1485318119}
-  warning: {fileID: 1636324923}
-  origin: {x: 237, y: 8, z: 74}
-  destination: {x: 237, y: 1.5, z: 74}
-  size: {x: 4.5, y: 3, z: 4}
-  warningSeconds: 1.4
-  travelSeconds: 1.05
-  restSeconds: 2
-  phase: 0
-  activateMinX: 223
-  activateMaxX: 246
-  radius: 1.1
 --- !u!1 &1020985653
 GameObject:
   m_ObjectHideFlags: 0
@@ -540195,7 +540078,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1082868251}
-  - component: {fileID: 1082868252}
   m_Layer: 0
   m_Name: 07_FireLeft
   m_TagString: Untagged
@@ -540222,32 +540104,6 @@ Transform:
   - {fileID: 1772693936}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1082868252
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1082868250}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 6
-  player: {fileID: 1438998970}
-  visual: {fileID: 1545221156}
-  warning: {fileID: 200395344}
-  origin: {x: 262, y: 1.3, z: 74}
-  destination: {x: 0, y: 0, z: 0}
-  size: {x: 3, y: 2.6, z: 5}
-  warningSeconds: 1.4
-  travelSeconds: 2.2
-  restSeconds: 2
-  phase: 0
-  activateMinX: 247
-  activateMaxX: 272
-  radius: 1.1
 --- !u!1 &1083591208
 GameObject:
   m_ObjectHideFlags: 0
@@ -545976,6 +545832,10 @@ MonoBehaviour:
   - {fileID: 544352871}
   - {fileID: 444078487}
   CrawlHeightOffset: -0.05
+  PlayerTintMaterialSlots: 
+  RagdollArmRadius: 0.055
+  RagdollLegRadius: 0.075
+  RagdollHeadRadius: 0.11
 --- !u!1 &1098449234
 GameObject:
   m_ObjectHideFlags: 0
@@ -554190,7 +554050,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1117822348}
-  - component: {fileID: 1117822349}
   m_Layer: 0
   m_Name: 08_WindRight
   m_TagString: Untagged
@@ -554216,32 +554075,6 @@ Transform:
   - {fileID: 1664489521}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1117822349
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1117822347}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 7
-  player: {fileID: 1438998970}
-  visual: {fileID: 1025927499}
-  warning: {fileID: 898133716}
-  origin: {x: 265, y: 1.5, z: 79}
-  destination: {x: 0, y: 0, z: -2.2}
-  size: {x: 6, y: 3, z: 10}
-  warningSeconds: 1.4
-  travelSeconds: 2.2
-  restSeconds: 2
-  phase: 0
-  activateMinX: 255
-  activateMaxX: 272
-  radius: 1.1
 --- !u!1001 &1117874168
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -558643,7 +558476,6 @@ GameObject:
   - component: {fileID: 1129570220}
   - component: {fileID: 1129570222}
   - component: {fileID: 1129570223}
-  - component: {fileID: 1129570224}
   m_Layer: 0
   m_Name: EscapeGameplay_A
   m_TagString: Untagged
@@ -558715,6 +558547,7 @@ MonoBehaviour:
   - {fileID: 672336908}
   - {fileID: 821451528}
   allowPlatformJumpGrab: 1
+  independentInteraction: 0
 --- !u!114 &1129570223
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -558727,19 +558560,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e545321fea6829544927cced3c30a2c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.SceneIntegration.InteractionSceneBinding
---- !u!114 &1129570224
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1129570219}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e33fe0a8ae8ee1749b7667816f91f238, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeTraversalPace
-  movementScale: 1.35
 --- !u!1001 &1129678503
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -576919,7 +576739,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1165642482}
-  - component: {fileID: 1165642483}
   m_Layer: 0
   m_Name: 01_LeftSaw
   m_TagString: Untagged
@@ -576945,32 +576764,6 @@ Transform:
   - {fileID: 904795894}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1165642483
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1165642481}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 0
-  player: {fileID: 1438998970}
-  visual: {fileID: 388991095}
-  warning: {fileID: 555622256}
-  origin: {x: 176, y: 1, z: 68}
-  destination: {x: 176, y: 1, z: 88}
-  size: {x: 1, y: 1, z: 1}
-  warningSeconds: 1.4
-  travelSeconds: 2.1
-  restSeconds: 2
-  phase: 0
-  activateMinX: 155
-  activateMaxX: 186
-  radius: 1.1
 --- !u!1 &1165958252
 GameObject:
   m_ObjectHideFlags: 0
@@ -580906,6 +580699,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1939785805}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1918378656}
   leftCable: {fileID: 1191096742}
   rightCable: {fileID: 387608138}
@@ -619641,6 +619436,10 @@ MonoBehaviour:
   - {fileID: 404310239}
   - {fileID: 1146842200}
   CrawlHeightOffset: -0.05
+  PlayerTintMaterialSlots: 
+  RagdollArmRadius: 0.055
+  RagdollLegRadius: 0.075
+  RagdollHeadRadius: 0.11
 --- !u!1001 &1247834057
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -689353,7 +689152,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1387411168}
-  - component: {fileID: 1387411169}
   m_Layer: 0
   m_Name: 09_Mace
   m_TagString: Untagged
@@ -689379,32 +689177,6 @@ Transform:
   - {fileID: 524263724}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1387411169
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1387411167}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 4
-  player: {fileID: 1438998970}
-  visual: {fileID: 905294929}
-  warning: {fileID: 487290110}
-  origin: {x: 321, y: 1.8, z: 72}
-  destination: {x: 321, y: 1.8, z: 84}
-  size: {x: 1, y: 1, z: 1}
-  warningSeconds: 1.4
-  travelSeconds: 2.8
-  restSeconds: 2
-  phase: 0
-  activateMinX: 310
-  activateMaxX: 330
-  radius: 1.1
 --- !u!1001 &1387423565
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -721008,7 +720780,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1438998972}
   - component: {fileID: 1438998971}
-  - component: {fileID: 1438998970}
   m_Layer: 0
   m_Name: EscapeSoloReview_A
   m_TagString: Untagged
@@ -721016,74 +720787,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
---- !u!114 &1438998970
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1438998969}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2d205cc8ce67e441b42e1cf841ef59a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloReview
-  view: {fileID: 562218164}
-  suspendBehaviours:
-  - {fileID: 562218167}
-  - {fileID: 562218166}
-  - {fileID: 1129570220}
-  suspendObjects:
-  - {fileID: 1118517331}
-  hazards:
-  - {fileID: 1165642483}
-  - {fileID: 1615928402}
-  - {fileID: 2022125862}
-  - {fileID: 466375322}
-  - {fileID: 1020481492}
-  - {fileID: 546866411}
-  - {fileID: 1082868252}
-  - {fileID: 1117822349}
-  - {fileID: 1387411169}
-  - {fileID: 2128816087}
-  - {fileID: 1442242485}
-  - {fileID: 1878528897}
-  - {fileID: 1664614547}
-  - {fileID: 165421526}
-  cannonMuzzle: {fileID: 426086036}
-  cannonBoarding: {fileID: 1805101173}
-  bounceSurface: {fileID: 1217014061}
-  ropeStarts:
-  - {fileID: 1812399671}
-  - {fileID: 534218685}
-  ropeEnds:
-  - {fileID: 710271788}
-  - {fileID: 101522713}
-  grips:
-  - {fileID: 1964370077}
-  - {fileID: 492283941}
-  - {fileID: 273165762}
-  - {fileID: 1267514517}
-  - {fileID: 656791191}
-  - {fileID: 692694687}
-  pivots:
-  - {fileID: 618856421}
-  - {fileID: 1218234046}
-  - {fileID: 1464715315}
-  - {fileID: 1491725880}
-  - {fileID: 140280856}
-  - {fileID: 893392835}
-  swingVisuals:
-  - {fileID: 2009826509}
-  - {fileID: 1976874550}
-  - {fileID: 641956938}
-  - {fileID: 11033652}
-  - {fileID: 387101155}
-  - {fileID: 2081810991}
-  startFeet: {x: 15, y: 0, z: 10}
-  walkSpeed: 4.5
-  runSpeed: 7.5
-  gravity: 9.81
 --- !u!143 &1438998971
 CharacterController:
   m_ObjectHideFlags: 0
@@ -721894,7 +721597,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1442242484}
-  - component: {fileID: 1442242485}
   m_Layer: 0
   m_Name: 11_FrontSawFinal
   m_TagString: Untagged
@@ -721920,32 +721622,6 @@ Transform:
   - {fileID: 1433800520}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1442242485
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1442242483}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 1
-  player: {fileID: 1438998970}
-  visual: {fileID: 605533606}
-  warning: {fileID: 1554528739}
-  origin: {x: 361, y: 1.2, z: 79}
-  destination: {x: 337, y: 1.2, z: 79}
-  size: {x: 1, y: 1, z: 1}
-  warningSeconds: 1.4
-  travelSeconds: 2.4
-  restSeconds: 2
-  phase: 0
-  activateMinX: 330
-  activateMaxX: 365
-  radius: 1.1
 --- !u!1001 &1442255377
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -809531,7 +809207,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1615928401}
-  - component: {fileID: 1615928402}
   m_Layer: 0
   m_Name: 02_RightSaw
   m_TagString: Untagged
@@ -809557,32 +809232,6 @@ Transform:
   - {fileID: 2018756373}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1615928402
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1615928400}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 0
-  player: {fileID: 1438998970}
-  visual: {fileID: 91942822}
-  warning: {fileID: 19330111}
-  origin: {x: 196, y: 1, z: 88}
-  destination: {x: 196, y: 1, z: 68}
-  size: {x: 1, y: 1, z: 1}
-  warningSeconds: 1.4
-  travelSeconds: 2.1
-  restSeconds: 2
-  phase: 0
-  activateMinX: 179
-  activateMaxX: 207
-  radius: 1.1
 --- !u!1 &1615949260
 GameObject:
   m_ObjectHideFlags: 0
@@ -814600,6 +814249,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1610101049}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 946936269}
   leftCable: {fileID: 1276168475}
   rightCable: {fileID: 140608207}
@@ -835021,7 +834672,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1664614546}
-  - component: {fileID: 1664614547}
   m_Layer: 0
   m_Name: 13_FireRight
   m_TagString: Untagged
@@ -835048,32 +834698,6 @@ Transform:
   - {fileID: 1937118255}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1664614547
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1664614545}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 6
-  player: {fileID: 1438998970}
-  visual: {fileID: 1799927897}
-  warning: {fileID: 2011841024}
-  origin: {x: 355, y: 1.3, z: 82}
-  destination: {x: 0, y: 0, z: 0}
-  size: {x: 3, y: 2.6, z: 5}
-  warningSeconds: 1.4
-  travelSeconds: 2.2
-  restSeconds: 2
-  phase: 0.2
-  activateMinX: 340
-  activateMaxX: 366
-  radius: 1.1
 --- !u!1001 &1664799347
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -899263,6 +898887,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1301573093}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1349520327}
   leftCable: {fileID: 1629812661}
   rightCable: {fileID: 1487542317}
@@ -907861,6 +907487,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1518003068}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1289094469}
   leftCable: {fileID: 1132720667}
   rightCable: {fileID: 2009762090}
@@ -943970,6 +943598,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 189db2de469331046afaf51a996a0150, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeDevelopmentSession
+  suppressFallConsequences: 0
 --- !u!1001 &1840359191
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -952337,6 +951966,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 523612947}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 809542692}
   leftCable: {fileID: 1580944015}
   rightCable: {fileID: 1530249360}
@@ -958790,7 +958421,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1878528896}
-  - component: {fileID: 1878528897}
   m_Layer: 0
   m_Name: 12_DropFinal
   m_TagString: Untagged
@@ -958816,32 +958446,6 @@ Transform:
   - {fileID: 516708148}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1878528897
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1878528895}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 3
-  player: {fileID: 1438998970}
-  visual: {fileID: 1290256123}
-  warning: {fileID: 608363575}
-  origin: {x: 349, y: 8, z: 74}
-  destination: {x: 349, y: 1.5, z: 74}
-  size: {x: 4.5, y: 3, z: 4}
-  warningSeconds: 1.4
-  travelSeconds: 1.05
-  restSeconds: 2
-  phase: 0.5
-  activateMinX: 336
-  activateMaxX: 360
-  radius: 1.1
 --- !u!1 &1878707341
 GameObject:
   m_ObjectHideFlags: 0
@@ -976712,6 +976316,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 539215572}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 625098314}
   leftCable: {fileID: 882374379}
   rightCable: {fileID: 1876093176}
@@ -980088,6 +979694,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1095273607}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 318141797}
   leftCable: {fileID: 1976672589}
   rightCable: {fileID: 102571786}
@@ -1012990,6 +1012598,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 377854557}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1496101068}
   leftCable: {fileID: 1026975764}
   rightCable: {fileID: 2084372004}
@@ -1029820,6 +1029430,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 702668856}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 2014213931}
   leftCable: {fileID: 849196361}
   rightCable: {fileID: 410852976}
@@ -1033418,7 +1033030,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2022125861}
-  - component: {fileID: 2022125862}
   m_Layer: 0
   m_Name: 03_FrontSaw
   m_TagString: Untagged
@@ -1033444,32 +1033055,6 @@ Transform:
   - {fileID: 1900010145}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2022125862
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2022125860}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 1
-  player: {fileID: 1438998970}
-  visual: {fileID: 1843467768}
-  warning: {fileID: 1036465133}
-  origin: {x: 222, y: 1.2, z: 78}
-  destination: {x: 201, y: 1.2, z: 78}
-  size: {x: 1, y: 1, z: 1}
-  warningSeconds: 1.4
-  travelSeconds: 2
-  restSeconds: 2
-  phase: 0
-  activateMinX: 199
-  activateMaxX: 225
-  radius: 1.1
 --- !u!1 &2022238899
 GameObject:
   m_ObjectHideFlags: 0
@@ -1058434,6 +1058019,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.HumanCannon.HumanCannonPole
   grip: {fileID: 1395200458}
   linkedGate: {fileID: 0}
+  riderCapacity: 1
+  riderSpacing: 0.8
   visualBar: {fileID: 1073940292}
   leftCable: {fileID: 179122244}
   rightCable: {fileID: 83168112}
@@ -1084513,7 +1084100,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2128816086}
-  - component: {fileID: 2128816087}
   m_Layer: 0
   m_Name: 10_RightSawFinal
   m_TagString: Untagged
@@ -1084539,32 +1084125,6 @@ Transform:
   - {fileID: 2142820618}
   m_Father: {fileID: 765554067}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2128816087
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2128816085}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1cb3e754245d1d1438e9539833ad5429, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.EscapeRoute.EscapeSoloHazard
-  kind: 0
-  player: {fileID: 1438998970}
-  visual: {fileID: 1732254726}
-  warning: {fileID: 2059034010}
-  origin: {x: 330, y: 1, z: 88}
-  destination: {x: 330, y: 1, z: 68}
-  size: {x: 1, y: 1, z: 1}
-  warningSeconds: 1.4
-  travelSeconds: 2.1
-  restSeconds: 2
-  phase: 0.5
-  activateMinX: 316
-  activateMaxX: 340
-  radius: 1.1
 --- !u!1 &2128979930
 GameObject:
   m_ObjectHideFlags: 0

@@ -41,6 +41,7 @@ namespace CurtainCall.Cameras
         bool firstPerson;
         bool freeThirdPerson;
         bool inputBlocked;
+        bool preserveCursorInFixedView;
         bool cursorOwned;
         bool cursorReleased;
         bool cursorLocked;
@@ -120,6 +121,7 @@ namespace CurtainCall.Cameras
             ReleaseCursor();
             requests.Clear();
             firstPerson = freeThirdPerson = false;
+            preserveCursorInFixedView = false;
             hasOutput = false;
             selected = null;
             winner = null;
@@ -144,6 +146,9 @@ namespace CurtainCall.Cameras
         /// <summary>037 등 조작 통합에서 사용할 차단 진입점. 현재 공간 규칙에는 의존하지 않는다.</summary>
         public void SetInputBlocked(bool blocked) => inputBlocked = blocked;
 
+        /// <summary>구조 중 고정 카메라에서도 기존 커서 잠금을 유지한다.</summary>
+        public void SetPreserveCursorInFixedView(bool value) => preserveCursorInFixedView = value;
+
         /// <summary>외부 검토 카메라에서 돌아올 때 현재 시선 방향을 이어받는다.</summary>
         public void SetLookRotation(Quaternion rotation)
         {
@@ -164,6 +169,7 @@ namespace CurtainCall.Cameras
             selected = null;
             winner = null;
             firstPerson = freeThirdPerson = false;
+            preserveCursorInFixedView = false;
             hasOutput = false;
         }
 
@@ -180,7 +186,7 @@ namespace CurtainCall.Cameras
             if (uiRequested || uiClosing) cursorReleased = false;
             if (!UsesMouseLook)
             {
-                ReleaseCursor();
+                if (!preserveCursorInFixedView || uiBlocked || uiRequested) ReleaseCursor();
                 if (uiRequested) UnlockCursor();
                 return;
             }
@@ -253,7 +259,7 @@ namespace CurtainCall.Cameras
                     pitch = 0f;
                     AcquireCursor();
                 }
-                if (!MouseLook) ReleaseCursor();
+                if (!MouseLook && !preserveCursorInFixedView) ReleaseCursor();
             }
             selectedForward = found && request.Forward != Vector3.zero ? request.Forward : Vector3.forward;
             var framing = useFirst ? DefaultView : preset;

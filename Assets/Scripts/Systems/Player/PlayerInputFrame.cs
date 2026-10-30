@@ -21,6 +21,9 @@ namespace CurtainCall.Player
         /// <summary>상호작용(기본 F)을 짧게 눌렀다 뗐는지. 뗀 프레임에 한 번.</summary>
         public bool InteractTapped;
 
+        /// <summary>상호작용 키를 누르고 있는지.</summary>
+        public bool InteractHeld;
+
         /// <summary>상호작용을 길게 눌렀는지. 기준 시간에 닿은 프레임에 한 번(떼기 전에 나간다).</summary>
         public bool InteractLongPressed;
 

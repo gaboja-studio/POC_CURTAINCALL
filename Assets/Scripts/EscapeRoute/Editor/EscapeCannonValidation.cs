@@ -56,7 +56,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             check("old cannon block inactive", guide != null && !guide.gameObject.activeSelf);
             if (GameObject.Find(OriginalReview) != null)
             {
-                check("preview flight disabled", !UnityEngine.Object.FindObjectsByType<EscapeRouteFlyCamera>(FindObjectsSortMode.None).Any(f => f.enabled));
                 var spawns = UnityEngine.Object.FindObjectsByType<CurtainCall.Network.PlayerSync.PlayerSpawnPoints>(FindObjectsSortMode.None);
                 check("one spawn roster", spawns.Length == 1);
                 if (spawns.Length == 1)

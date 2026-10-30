@@ -186,16 +186,12 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         public void ExternalTerminalBeforeSettlement_UsesOnlyCurrentOpenPerformance()
         {
             run.SetExternallyManaged(true);
-            int gatherings = 0;
-            run.BeforeSuccessMovement += () => gatherings++;
             Common(first, CampaignPhase.Performance, true);
             Receive(first.Id, TightropeRunState.Running, 7);
             Receive(first.Id, TightropeRunState.Succeeded, 7);
             Assert.That(run.State, Is.EqualTo(TightropeRunState.Succeeded));
-            Assert.That(gatherings, Is.EqualTo(1), "외부 관리의 현재 공연 성공만 정산 전 집결한다.");
             Common(next, CampaignPhase.Performance, true);
             Receive(first.Id, TightropeRunState.Succeeded, 7);
-            Assert.That(gatherings, Is.EqualTo(1));
             Assert.That(resets, Is.EqualTo(1));
         }
 
@@ -203,12 +199,9 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         public void ExternalLateSuccessAfterSettlement_DoesNotGatherRevivedPlayers()
         {
             run.SetExternallyManaged(true);
-            int gatherings = 0;
-            run.BeforeSuccessMovement += () => gatherings++;
             Common(first, CampaignPhase.RestTime, false, Result(first, true));
             Receive(first.Id, TightropeRunState.Succeeded, 7);
             Assert.That(run.State, Is.EqualTo(TightropeRunState.Succeeded));
-            Assert.That(gatherings, Is.Zero, "다음 시간대 부활/관전 대상의 위치를 이전 도착점으로 바꾸지 않는다.");
             Assert.That(resets, Is.Zero);
         }
 

@@ -51,5 +51,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(result[0], Is.EqualTo(Vector3.up));
             Assert.That(result[1], Is.EqualTo(Vector3.down));
         }
+
+        [TestCase(2f, 2f)]
+        [TestCase(5f, 2f)]
+        [TestCase(9.5f, 1f)]
+        [TestCase(14f, 0f)]
+        [TestCase(30f, 0f)]
+        public void SawOutline_FadesLikeTheTightropeSawWithDistance(float distance, float expected)
+            => Assert.That(HumanCannonOutline.FadedWidth(2f, distance, 5f, 14f), Is.EqualTo(expected).Within(0.0001f));
     }
 }

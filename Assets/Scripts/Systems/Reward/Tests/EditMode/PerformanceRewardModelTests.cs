@@ -88,6 +88,7 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(8, result.ElapsedSeconds);
             Assert.AreEqual(100, result.CourseLength);
             Assert.AreEqual(60, result.Participants[0].MaximumDistance);
+            Assert.AreEqual(20, result.Participants[0].FinalDistance);
             Assert.AreEqual(100, result.Participants[1].MaximumDistance);
             Assert.IsFalse(model.Record(id, "p2", 20, 100, 0));
             Assert.AreEqual(8, model.History[0].ElapsedSeconds);

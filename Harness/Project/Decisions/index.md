@@ -2,6 +2,8 @@
 
 이 POC에서 사람이 확정한 결정. 상황에 맞는 파일 1개만 연다. AI 추천안은 여기가 아니라 Task의 Open Decisions에 둔다.
 
+- [performance-background-density.md](performance-background-density.md) — 최초 공연장의 밀도·분위기·압도감 유지, 플랫폼별 기둥 반복과 접합 불량 정리. 공연장 철골 배치를 조정할 때
+
 - [escape-background-direction.md](escape-background-direction.md) — 탈출로의 중성 콘크리트·흐린 내부/햇빛 강한 갈대밭 대비·기존 캐릭터 사용. 공통 맵과 B/C 배경을 제작할 때
 - [escape-control-baseline.md](escape-control-baseline.md) — A 우선 완성·B/C M2 이후 일정, 공통 1인 개발환경·인간대포 기본 조작·외줄 전환·그네 기준
 
@@ -24,7 +26,7 @@
 - [run-rules.md](run-rules.md) — 런 공통 규칙: 쉬는 시간 시작 즉시 시계·A/B 삭제(M2, 구현은 아직 A/B)·생존 1명까지 계속·전원 사망 실패(2026-10-16 공통화)·재접속·최소 인원·더미 우선. 공용 종료/런 계약을 정할 때
 - [control-keys.md](control-keys.md) — 공통 조작키(2026-10-15 확인): 단독 hold/조합 pressed toggle·F(매달린 동료 2초 끌어올리기 포함)·카메라/UI, 위기/QTE 예시 구분. 입력·조작 규칙을 추가할 때
 - [body-damage.md](body-damage.md) — (사망·재시작·수리·복구·추락은 injury-rules.md로 대체) 팔·다리 손실은 게임 전체 상태(완전히 죽기 전까지 묘기·재시작을 넘어 유지), 팔=상호작용·다리=이동 계열 패널티(크기는 묘기마다), 네 팔다리 모두 손실 = 사망, 잘린 팔다리 날아감, 두 다리 없으면 기어가기, 패널티는 콘텐츠별 교체 정책, 이후 돈으로 부품 수리. 부위 손실·패널티·수리를 다룰 때
-- [game-settings.md](game-settings.md) — 기획 조정값은 `Assets/Resources/Settings/GameSettings/` 한 폴더(공통·묘기별·대기실·탐색·탈출로 5묶음 + 교체형 보상, 2026-10-14; 탐색 제한 시간 A/B는 M2에서 삭제, 구현 칸은 남음), 칸마다 한글 설명·단위, 플레이 중 반영. 수치를 만들거나 옮길 때
+- [game-settings.md](game-settings.md) — 기획 조정값은 `Assets/Resources/Settings/GameSettings/`의 기존 해당 설정에서 관리. 이동·달리기·점프·외줄 속도 조정용 새 스크립트/씬별 우회 배율 금지(2026-10-30). 수치를 만들거나 옮길 때
 - [third-party-assets.md](third-party-assets.md) — 외부 에셋은 무료·유료 구분 없이 private 레포를 `Assets/_ThirdParty` submodule로, 공개 레포엔 직접 만든 것만. 외부 에셋을 넣거나 옮길 때
 - [claude-mods.md](claude-mods.md) — 팀 공용 Claude Code 모드는 저장소 마켓플레이스(curtaincall)로 배포·version 올려 업데이트, 진행 패널의 todo 색·버튼·권한 규칙. 모드를 고치거나 배포·끄는 법을 안내할 때
 - [space-workspaces.md](space-workspaces.md) — 공간별 경로·현재 담당(공연장·탈출로 @RagSpirin)·인간 대포 자식 통합과 순차 구역, M2 기획은 백스테이지를 대기실로 통합(구현 구조는 분리 유지). 공간 Task·통합을 준비할 때
