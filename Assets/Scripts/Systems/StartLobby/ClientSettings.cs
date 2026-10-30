@@ -9,6 +9,14 @@ namespace CurtainCall.StartLobby
         const string VolumeKey = "CurtainCall.Settings.Volume";
         const string BgmVolumeKey = "CurtainCall.Settings.BgmVolume";
         const string SfxVolumeKey = "CurtainCall.Settings.SfxVolume";
+        const string HideNearbyCharacterKey = "CurtainCall.Settings.HideNearbyCharacter";
+
+        /// <summary>카메라가 몸에 가까워지면 이 화면에서만 내 캐릭터를 숨긴다.</summary>
+        public static bool HideNearbyCharacter
+        {
+            get => PlayerPrefs.GetInt(HideNearbyCharacterKey, 1) != 0;
+            set => PlayerPrefs.SetInt(HideNearbyCharacterKey, value ? 1 : 0);
+        }
 
         /// <summary>로컬 음량 변경. 디스크 저장은 기존처럼 Save로 한다.</summary>
         public static event System.Action AudioChanged;

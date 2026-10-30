@@ -35,6 +35,17 @@ namespace CurtainCall.WaitingRoom.Editor
             if(route==null||stage==null)return;
             foreach(var n in new[]{"Shell","TunnelArt","FloorCollider","Zone_Corridor"})MuteFacility(route.Find(n));
             foreach(var n in new[]{"Shell","StageArt","Zone_StageEntrance"})MuteFacility(stage.Find(n));
+            // 새 통로가 이전 통로 구역을 대체하므로 카메라 시점 구역도 실제 통로에 맞춘다.
+            var approachView = Copy(Required("CameraZones/Zone_Corridor"), g, "Zone_StageApproach", false);
+            approachView.SetPositionAndRotation(W((14.7f + ShowStart) * .5f, .5f, 4.6f), Quaternion.identity);
+            approachView.localScale = Vector3.one;
+            approachView.GetComponent<BoxCollider>().size = new Vector3(ShowStart - 14.7f, 9.2f, 9f);
+            approachView.gameObject.SetActive(true);
+            var stageView = Copy(Required("CameraZones/Zone_Corridor"), g, "Zone_StagePassage", false);
+            stageView.SetPositionAndRotation(W((ShowStart + ShowCurtain) * .5f, .5f, 6.5f), Quaternion.identity);
+            stageView.localScale = Vector3.one;
+            stageView.GetComponent<BoxCollider>().size = new Vector3(ShowCurtain - ShowStart, 13f, ShowWidth);
+            stageView.gameObject.SetActive(true);
             // Every source transform shares one affine frame. Relative spacing, pipe joints, curtain geometry,
             // surface materials and the original lighting rhythm remain intact instead of being redesigned.
             const float sx=(ShowCurtain-ShowStart)/42f,sy=13f/7.6f,sz=14f/8f;
