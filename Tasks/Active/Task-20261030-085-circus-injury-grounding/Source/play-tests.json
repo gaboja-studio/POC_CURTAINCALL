@@ -1,0 +1,36 @@
+{
+  "description": "최종 클립에 대한 세 독립 PlayMode 실행의 통과 결과 집계",
+  "sources": [
+    "play-before-cooldown-wait.json (InjuryCarry only)",
+    "landing-play-tests.json",
+    "rescue-play-tests.json"
+  ],
+  "summary": {
+    "failed": 0,
+    "total": 3,
+    "passed": 3
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusGrounding_InjuryCarryPlantsSupportWithoutLosingGrip",
+      "Status": "Passed",
+      "Duration": 33.1071131,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusGrounding_CannonLandingUsesInjuredSupport",
+      "Status": "Passed",
+      "Duration": 19.9603213,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.CircusMotion_RopeRescueUsesBothRolesAndAllSurvivingLimbVariants",
+      "Status": "Passed",
+      "Duration": 20.4822953,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

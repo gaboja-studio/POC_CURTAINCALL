@@ -1,0 +1,338 @@
+[
+  {
+    "character": "Rabbit",
+    "stage": 1,
+    "from": "PanicFall_Cut1",
+    "to": "FlightLand_Cut1",
+    "maxHipStep": 0.04194919
+  },
+  {
+    "character": "Rabbit",
+    "stage": 1,
+    "from": "FlightLand_Cut1",
+    "to": "Idle",
+    "maxHipStep": 0.004673998
+  },
+  {
+    "character": "Rabbit",
+    "stage": 1,
+    "from": "TrampolineCarry_Cut1",
+    "to": "CarryJump_Cut1",
+    "maxHipStep": 0.0033183184
+  },
+  {
+    "character": "Rabbit",
+    "stage": 1,
+    "from": "RopePull_Cut1",
+    "to": "Idle",
+    "maxHipStep": 0.00365637126
+  },
+  {
+    "character": "Rabbit",
+    "stage": 2,
+    "from": "PanicFall_Cut2",
+    "to": "FlightLand_Cut2",
+    "maxHipStep": 0.0248355046
+  },
+  {
+    "character": "Rabbit",
+    "stage": 2,
+    "from": "FlightLand_Cut2",
+    "to": "Crawl",
+    "maxHipStep": 0.009851266
+  },
+  {
+    "character": "Rabbit",
+    "stage": 2,
+    "from": "TrampolineCarry_Cut2",
+    "to": "CarryJump_Cut2",
+    "maxHipStep": 0.0251142681
+  },
+  {
+    "character": "Rabbit",
+    "stage": 2,
+    "from": "RopePull_Cut2",
+    "to": "Crawl",
+    "maxHipStep": 0.0128324265
+  },
+  {
+    "character": "Rabbit",
+    "stage": 3,
+    "from": "PanicFall_Cut3",
+    "to": "FlightLand_Cut3",
+    "maxHipStep": 0.0252639335
+  },
+  {
+    "character": "Rabbit",
+    "stage": 3,
+    "from": "FlightLand_Cut3",
+    "to": "Crawl",
+    "maxHipStep": 0.009762676
+  },
+  {
+    "character": "Rabbit",
+    "stage": 3,
+    "from": "TrampolineCarry_Cut3",
+    "to": "CarryJump_Cut3",
+    "maxHipStep": 0.02481396
+  },
+  {
+    "character": "Rabbit",
+    "stage": 3,
+    "from": "RopePull_Cut3",
+    "to": "Crawl",
+    "maxHipStep": 0.0116244275
+  },
+  {
+    "character": "Bear",
+    "stage": 1,
+    "from": "PanicFall_Cut1",
+    "to": "FlightLand_Cut1",
+    "maxHipStep": 0.0370053425
+  },
+  {
+    "character": "Bear",
+    "stage": 1,
+    "from": "FlightLand_Cut1",
+    "to": "Idle",
+    "maxHipStep": 0.00437707268
+  },
+  {
+    "character": "Bear",
+    "stage": 1,
+    "from": "TrampolineCarry_Cut1",
+    "to": "CarryJump_Cut1",
+    "maxHipStep": 0.00397451874
+  },
+  {
+    "character": "Bear",
+    "stage": 1,
+    "from": "RopePull_Cut1",
+    "to": "Idle",
+    "maxHipStep": 0.00300941779
+  },
+  {
+    "character": "Bear",
+    "stage": 2,
+    "from": "PanicFall_Cut2",
+    "to": "FlightLand_Cut2",
+    "maxHipStep": 0.01994921
+  },
+  {
+    "character": "Bear",
+    "stage": 2,
+    "from": "FlightLand_Cut2",
+    "to": "Crawl",
+    "maxHipStep": 0.009976468
+  },
+  {
+    "character": "Bear",
+    "stage": 2,
+    "from": "TrampolineCarry_Cut2",
+    "to": "CarryJump_Cut2",
+    "maxHipStep": 0.0203685574
+  },
+  {
+    "character": "Bear",
+    "stage": 2,
+    "from": "RopePull_Cut2",
+    "to": "Crawl",
+    "maxHipStep": 0.0121408245
+  },
+  {
+    "character": "Bear",
+    "stage": 3,
+    "from": "PanicFall_Cut3",
+    "to": "FlightLand_Cut3",
+    "maxHipStep": 0.0203468464
+  },
+  {
+    "character": "Bear",
+    "stage": 3,
+    "from": "FlightLand_Cut3",
+    "to": "Crawl",
+    "maxHipStep": 0.01100821
+  },
+  {
+    "character": "Bear",
+    "stage": 3,
+    "from": "TrampolineCarry_Cut3",
+    "to": "CarryJump_Cut3",
+    "maxHipStep": 0.0202350784
+  },
+  {
+    "character": "Bear",
+    "stage": 3,
+    "from": "RopePull_Cut3",
+    "to": "Crawl",
+    "maxHipStep": 0.0140124271
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 1,
+    "from": "PanicFall_Cut1",
+    "to": "FlightLand_Cut1",
+    "maxHipStep": 0.04220992
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 1,
+    "from": "FlightLand_Cut1",
+    "to": "Idle",
+    "maxHipStep": 0.003251226
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 1,
+    "from": "TrampolineCarry_Cut1",
+    "to": "CarryJump_Cut1",
+    "maxHipStep": 0.00165743229
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 1,
+    "from": "RopePull_Cut1",
+    "to": "Idle",
+    "maxHipStep": 0.00441942
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 2,
+    "from": "PanicFall_Cut2",
+    "to": "FlightLand_Cut2",
+    "maxHipStep": 0.0220424421
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 2,
+    "from": "FlightLand_Cut2",
+    "to": "Crawl",
+    "maxHipStep": 0.01078691
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 2,
+    "from": "TrampolineCarry_Cut2",
+    "to": "CarryJump_Cut2",
+    "maxHipStep": 0.0220824331
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 2,
+    "from": "RopePull_Cut2",
+    "to": "Crawl",
+    "maxHipStep": 0.0103007564
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 3,
+    "from": "PanicFall_Cut3",
+    "to": "FlightLand_Cut3",
+    "maxHipStep": 0.021347262
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 3,
+    "from": "FlightLand_Cut3",
+    "to": "Crawl",
+    "maxHipStep": 0.009744099
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 3,
+    "from": "TrampolineCarry_Cut3",
+    "to": "CarryJump_Cut3",
+    "maxHipStep": 0.0212310627
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 3,
+    "from": "RopePull_Cut3",
+    "to": "Crawl",
+    "maxHipStep": 0.0122480989
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 1,
+    "from": "PanicFall_Cut1",
+    "to": "FlightLand_Cut1",
+    "maxHipStep": 0.0420944281
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 1,
+    "from": "FlightLand_Cut1",
+    "to": "Idle",
+    "maxHipStep": 0.003342171
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 1,
+    "from": "TrampolineCarry_Cut1",
+    "to": "CarryJump_Cut1",
+    "maxHipStep": 0.00165371806
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 1,
+    "from": "RopePull_Cut1",
+    "to": "Idle",
+    "maxHipStep": 0.004386205
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 2,
+    "from": "PanicFall_Cut2",
+    "to": "FlightLand_Cut2",
+    "maxHipStep": 0.023678733
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 2,
+    "from": "FlightLand_Cut2",
+    "to": "Crawl",
+    "maxHipStep": 0.0170077085
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 2,
+    "from": "TrampolineCarry_Cut2",
+    "to": "CarryJump_Cut2",
+    "maxHipStep": 0.0178301577
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 2,
+    "from": "RopePull_Cut2",
+    "to": "Crawl",
+    "maxHipStep": 0.0235470422
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 3,
+    "from": "PanicFall_Cut3",
+    "to": "FlightLand_Cut3",
+    "maxHipStep": 0.0237761252
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 3,
+    "from": "FlightLand_Cut3",
+    "to": "Crawl",
+    "maxHipStep": 0.0175443739
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 3,
+    "from": "TrampolineCarry_Cut3",
+    "to": "CarryJump_Cut3",
+    "maxHipStep": 0.0208079033
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 3,
+    "from": "RopePull_Cut3",
+    "to": "Crawl",
+    "maxHipStep": 0.01842386
+  }
+]

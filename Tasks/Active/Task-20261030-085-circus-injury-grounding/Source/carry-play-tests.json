@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 36.52,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusGrounding_InjuryCarryPlantsSupportWithoutLosingGrip",
+      "Status": "Passed",
+      "Duration": 36.4157444,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

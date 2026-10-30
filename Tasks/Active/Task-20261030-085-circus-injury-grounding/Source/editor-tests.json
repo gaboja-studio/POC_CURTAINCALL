@@ -1,0 +1,76 @@
+{
+  "status": "completed",
+  "duration": 12.65,
+  "summary": {
+    "total": 9,
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.ApexPanicReboundAndLandingDoNotLatchOldFlight",
+      "Status": "Passed",
+      "Duration": 0.0013227,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"Rabbit/Rabbit\")",
+      "Status": "Passed",
+      "Duration": 0.2976471,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"Bear/Bear\")",
+      "Status": "Passed",
+      "Duration": 0.3038781,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"PinkGirl/PinkGirl\")",
+      "Status": "Passed",
+      "Duration": 0.7718169,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.FourAvatarsRetargetActualPosesAndPanicMotion(\"BluePierrot/BluePierrot\")",
+      "Status": "Passed",
+      "Duration": 0.4067617,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.InjuredGroundActionsPlantTheActualPelvisOrSurvivingSole(\"Rabbit\")",
+      "Status": "Passed",
+      "Duration": 1.9672535,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.InjuredGroundActionsPlantTheActualPelvisOrSurvivingSole(\"Bear\")",
+      "Status": "Passed",
+      "Duration": 1.9149729,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.InjuredGroundActionsPlantTheActualPelvisOrSurvivingSole(\"BluePierrot\")",
+      "Status": "Passed",
+      "Duration": 2.2789279,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonMotionTests.InjuredGroundActionsPlantTheActualPelvisOrSurvivingSole(\"PinkGirl\")",
+      "Status": "Passed",
+      "Duration": 4.6648053,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

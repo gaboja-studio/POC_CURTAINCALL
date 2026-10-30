@@ -43,7 +43,7 @@ namespace CurtainCall.HumanCannon
                 m.Animator.applyRootMotion=false;m.Animator.Rebind();m.Animator.Update(0);
                 m.Apply(mask,mask,false,null);m.Animator.speed=0;m.Animator.SetLayerWeight(1,0);
             }
-            SelectMotion(0);
+            SelectMotion(5);
         }
         void SpawnActors()
         {
@@ -107,7 +107,8 @@ namespace CurtainCall.HumanCannon
             }
             UpdateCamera();
             if(status==null)return;
-            status.text=$"{MotionIndex+1:00} / 11   {Motions[MotionIndex]}\n{NormalizedTime*Duration():0.00} / {Duration():0.00} s   |   44 clips";
+            string support=MotionIndex==5||MotionIndex==6||MotionIndex==9?"Ground contact":MotionIndex==0?"Seated in cannon":MotionIndex==8||MotionIndex==10?"Rope-supported":"Airborne";
+            status.text=$"{MotionIndex+1:00} / 11   {Motions[MotionIndex]}\n{NormalizedTime*Duration():0.00} / {Duration():0.00} s   |   {support}";
             pauseLabel.text=Paused?"Play":"Pause";autoLabel.text="Auto cycle: "+(AutoCycle?"ON":"OFF");
             repeatLabel.text="Repeat: "+(Repeat?"ON":"OFF");compareLabel.text=CompareAll?"Focus selected actor":"Show all 16 actors";
             selection.text=Characters[SelectedCharacter]+" / "+Stages[SelectedStage]+"\n"+StateName(SelectedStage);
