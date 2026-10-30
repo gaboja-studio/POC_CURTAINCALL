@@ -359,6 +359,7 @@ namespace CurtainCall.EscapeRoute.Tests
         [Test]
         public void FirstWorkerKeepsReservationAndSimultaneousEntrantsUseLowestId()
         {
+            LowerFloor();
             var first = Player(9); Call(coop, "RefreshWorker");
             Assert.That(Get(coop, "WorkerOwner"), Is.EqualTo(9UL));
             var other = Player(2); Call(coop, "RefreshWorker");
@@ -391,6 +392,7 @@ namespace CurtainCall.EscapeRoute.Tests
         [Test]
         public void OverflowRequiresSynchronizationAndReturnsOnlyLocalNonOwnerWithoutDamage()
         {
+            LowerFloor();
             var player = Player(2); Set(player, "IsOwner", true); Call(coop, "SetWorker", 1UL);
             Assert.That(Call(coop, "CanReturnOverflow", player), Is.False);
             Set(coop, "synchronized", true); Assert.That(Call(coop, "CanReturnOverflow", player), Is.True);
@@ -400,6 +402,8 @@ namespace CurtainCall.EscapeRoute.Tests
             Call(coop, "SetWorker", 1UL);
             var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
             Call(mover, "ResetExternalMotion", true);
+            Assert.That(Call(coop, "CanReturnOverflow", player), Is.False, "A trampoline flight is not an extra grounded worker.");
+            Call(mover, "ResetExternalMotion", false);
             int teleports = 0;
             mover.GetType().GetEvent("Teleported").AddEventHandler(mover, (Action)(() => teleports++));
             Call(coop, "ReturnLocalOverflow", player);
@@ -407,6 +411,22 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Get(mover, "CurrentJump").ToString(), Is.EqualTo("None"));
             Assert.That(Get(player, "State").ToString(), Is.EqualTo("Normal"));
             Assert.That(teleports, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void FallingTeammateCanReachTrampolineBeforeLowerWorkerLimitApplies()
+        {
+            LowerFloor();
+            var player = Player(2); Set(player, "IsOwner", true);
+            Set(coop, "synchronized", true); Call(coop, "SetWorker", 1UL);
+            player.transform.position += Vector3.up * 1.5f; Physics.SyncTransforms();
+            Assert.That(Call(coop, "CanReturnOverflow", player), Is.False,
+                "A teammate falling toward the trampoline must not be returned before contact.");
+            Call(coop, "ReturnLocalOverflow", player);
+            Assert.That(player.transform.position, Is.Not.EqualTo(overflow.position));
+            player.transform.position -= Vector3.up * 1.5f; Physics.SyncTransforms();
+            Assert.That(Call(coop, "CanReturnOverflow", player), Is.True,
+                "A second player actually standing on the lower work floor still returns.");
         }
 
         [Test]
@@ -432,6 +452,84 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Get(coop, "pendingOverflow"), Is.EqualTo(0U)); Assert.That(lowerGate.activeSelf, Is.False);
         }
 
+        Component LocksFixture()
+        {
+            var value = Root("Cooperative locks fixture", false).AddComponent(T("CurtainCall.EscapeRoute.EscapeCooperativeLocks"));
+            var checkpointType = value.GetType().GetNestedType("Checkpoint");
+            var entries = Array.CreateInstance(checkpointType, 2);
+            for (int i = 0; i < 2; i++) entries.SetValue(Activator.CreateInstance(checkpointType), i);
+            Set(value, "checkpoints", entries);
+            return value;
+        }
+
+        [Test]
+        public void CooperativeLocksLateJoinKeepsBothCheckpointsAndRejectsOlderOpenState()
+        {
+            var locks = LocksFixture();
+            Assert.That(Call(locks, "ApplyState", 8U, 1U, 2U, 0U, 0), Is.True);
+            Assert.That(Call(locks, "IsLatched", 0), Is.False);
+            Assert.That(Call(locks, "IsLatched", 1), Is.True);
+            Assert.That(Call(locks, "ApplyState", 7U, 3U, 3U, 3U, 0), Is.False);
+            Assert.That(Get(locks, "armed"), Is.EqualTo(1U));
+            Assert.That(Get(locks, "latched"), Is.EqualTo(2U));
+        }
+
+        [Test]
+        public void CooperativeLocksRestartRejectsDelayedSnapshotUntilMatchingReply()
+        {
+            var locks = LocksFixture();
+            Call(locks, "ApplyState", 4U, 3U, 3U, 0U, 0);
+            int token = (int)Call(Get(locks, "resetBarrier"), "Begin");
+            Assert.That(Call(locks, "ApplyState", 5U, 3U, 3U, 3U, 0), Is.False);
+            Assert.That(Call(locks, "ApplyState", 5U, 0U, 0U, 0U, token), Is.True);
+            Assert.That(Get(locks, "latched"), Is.EqualTo(0U));
+        }
+
+        [Test]
+        public void CooperativeLocksInvalidCheckpointBitsCannotReleaseRestartBarrier()
+        {
+            var locks = LocksFixture();
+            int token = (int)Call(Get(locks, "resetBarrier"), "Begin");
+            Assert.That(Call(locks, "ApplyState", 6U, 4U, 0U, 0U, token), Is.False);
+            Assert.That(Get(Get(locks, "resetBarrier"), "Waiting"), Is.True);
+            Assert.That(Call(locks, "ApplyState", 6U, 0U, 0U, 2U, token), Is.True);
+        }
+
+        [Test]
+        public void CooperativeLocksLosingHelperDoesNotClearCompletedOtherSection()
+        {
+            var locks = LocksFixture();
+            Call(locks, "ApplyState", 1U, 1U, 1U, 2U, 0);
+            Call(locks, "ApplyState", 2U, 1U, 1U, 0U, 0);
+            Assert.That(Call(locks, "IsLatched", 0), Is.True);
+            Assert.That(Call(locks, "IsLatched", 1), Is.False);
+            Call(locks, "Detach");
+            Assert.That(Get(locks, "armed"), Is.EqualTo(0U));
+            Assert.That(Get(locks, "latched"), Is.EqualTo(0U));
+            Assert.That(Get(locks, "synchronized"), Is.False);
+        }
+
+        [Test]
+        public void CooperativeLocksArrivalRequiresActualSupportNotOnlyTriggerOverlap()
+        {
+            var locks = LocksFixture(); var player = Player(27);
+            var entries = (Array)Get(locks, "checkpoints");
+            var zone = Root("Arrival volume").AddComponent<BoxCollider>(); zone.isTrigger = true;
+            zone.transform.position = player.transform.position + Vector3.up * .5f; zone.size = Vector3.one * 2;
+            Set(entries.GetValue(0), "arrival", zone);
+            var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover")); Set(mover, "Simulated", true);
+            Physics.SyncTransforms();
+            Assert.That(Call(locks, "AtArrival", player, 0), Is.False, "A flying/unsupported player cannot complete by touching a trigger");
+            var pad = Root("Real arrival slab").AddComponent<BoxCollider>();
+            pad.transform.position = player.transform.position - Vector3.up * .15f; pad.size = new Vector3(3, .3f, 3);
+            Physics.SyncTransforms();
+            Assert.That(Call(locks, "AtArrival", player, 0), Is.True);
+            Set(mover, "Simulated", false);
+            Assert.That(Call(locks, "AtArrival", player, 0), Is.True, "The host does not simulate a remote owner's grounded mover.");
+            pad.enabled = false; Physics.SyncTransforms();
+            Assert.That(Call(locks, "AtArrival", player, 0), Is.False, "A remote actor still needs real support, not just trigger overlap.");
+        }
+
         Component SurfaceFixture()
         {
             var courseObject = Root("Authored support course", false);
@@ -447,12 +545,20 @@ namespace CurtainCall.EscapeRoute.Tests
             actor.SetActive(true); Physics.SyncTransforms(); return mover;
         }
 
+        void LowerFloor()
+        {
+            var floor = Root("Lower work floor").AddComponent<BoxCollider>();
+            floor.center = origin + new Vector3(3, -3.1f, 14); floor.size = new Vector3(10, .2f, 32);
+            Physics.SyncTransforms();
+        }
+
         Component Player(ulong id)
         {
             var actor = Root("Worker " + id, false);
             actor.transform.position = origin + new Vector3(3, -3, 14);
             var player = actor.AddComponent(T(PlayerType));
             var mover = actor.GetComponent(T("CurtainCall.Player.PlayerMover")); Call(mover, "Awake");
+            Set(player, "mover", mover);
             Set(player, "IsSpawned", true); Set(player, "OwnerClientId", id);
             actor.SetActive(true); allPlayers.Add(player); Physics.SyncTransforms(); return player;
         }

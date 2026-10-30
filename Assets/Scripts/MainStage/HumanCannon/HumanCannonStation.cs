@@ -25,6 +25,8 @@ namespace CurtainCall.HumanCannon
         public Transform Muzzle => muzzle != null ? muzzle : Seat;
         public float BoardingDistance => boardingDistance;
         public float AirControlSpeed => airControlSpeed;
+        // Scene machinery may interlock boarding/launch without disabling an in-flight station or Cancel.
+        public bool InteractionAvailable { get; set; } = true;
         public Vector3 LaunchVelocity
         {
             get

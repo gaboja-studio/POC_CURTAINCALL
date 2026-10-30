@@ -64,16 +64,17 @@ namespace CurtainCall.HumanCannon
             if (groundRequest.Pending || awaitingLanding) return;
             if (ReadPoleInput(input)) return;
             if (HumanCannonRouteSystem.Current != null && HumanCannonRouteSystem.Current.ReadInput(player, input)) return;
-            var trampoline = HumanCannonTrampoline.Current;
-            if (trampoline != null && trampoline.Carrier == player.OwnerClientId)
+            var carried = HumanCannonCarry.Held(player.OwnerClientId);
+            if (carried != null)
             {
                 if (latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) == CannonAction.Cancel)
-                    trampoline.RequestDrop();
+                    carried.RequestDrop();
                 return;
             }
-            if (input.InteractTapped && trampoline != null && trampoline.CanGrab(player))
+            var carryTarget = HumanCannonCarry.FindGrabbable(player);
+            if (input.InteractTapped && carryTarget != null)
             {
-                trampoline.RequestGrab();
+                carryTarget.RequestGrab();
                 return;
             }
             if (IsFlying)

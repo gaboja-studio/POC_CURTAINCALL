@@ -133,8 +133,7 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
             bool requestedCannonPole = input.InteractTapped && TryRequestCannonPoleExit(context);
             if (context.Interaction != null)
             {
-                if (input.InteractTapped && !requestedCannonPole && (input.Move != 0f || input.ActionPressed
-                    || TightropeCatchSystem.Current == null || !TightropeCatchSystem.Current.TryHandleLocalInteract()))
+                if (input.InteractTapped && !requestedCannonPole)
                     context.Interaction.RequestInteract();
                 if (input.InteractLongPressed) context.Interaction.RequestRelease();
             }

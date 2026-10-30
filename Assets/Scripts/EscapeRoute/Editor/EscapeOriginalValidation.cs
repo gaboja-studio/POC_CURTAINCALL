@@ -25,7 +25,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             Check("original review root active", review != null && review.activeSelf);
             Check("temporary Solo inactive", roots.Single(r => r.name == "EscapeSoloReview_A").activeSelf == false);
             Check("preview player inactive", roots.Single(r => r.name == "PlaySetup").activeSelf == false);
-            Check("temporary hazards inactive", !UnityEngine.Object.FindObjectsByType<EscapeSoloHazard>(FindObjectsSortMode.None).Any(h => h.isActiveAndEnabled));
             var cannon = UnityEngine.Object.FindObjectsByType<HumanCannonSystem>(FindObjectsSortMode.None);
             Check("one enabled original cannon", cannon.Length == 1 && cannon[0].enabled);
             var courses = UnityEngine.Object.FindObjectsByType<TightropeCourse>(FindObjectsSortMode.None);
@@ -53,8 +52,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             }
             Check("one spawn roster", UnityEngine.Object.FindObjectsByType<PlayerSpawnPoints>(FindObjectsSortMode.None).Length == 1);
             Check("one player follow camera", UnityEngine.Object.FindObjectsByType<LocalPlayerCamera>(FindObjectsSortMode.None).Length == 1);
-            Check("main brain and key1 inspection", Camera.main != null && Camera.main.GetComponent<CinemachineBrain>() != null
-                && Camera.main.GetComponent<EscapeInspectionCamera>() != null);
+            Check("main camera brain", Camera.main != null && Camera.main.GetComponent<CinemachineBrain>() != null);
             Check("automatic solo development", UnityEngine.Object.FindObjectsByType<EscapeDevelopmentSession>(FindObjectsSortMode.None).Length == 1
                 && UnityEngine.Object.FindObjectsByType<NetworkSessionTestUI>(FindObjectsSortMode.None).Length == 0);
             Check("original balance display", UnityEngine.Object.FindObjectsByType<EscapeRopeBalanceDisplay>(FindObjectsSortMode.None).Length == 1);

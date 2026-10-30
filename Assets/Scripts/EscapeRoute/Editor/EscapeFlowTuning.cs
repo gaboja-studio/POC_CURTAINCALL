@@ -21,8 +21,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             group = VerticalChild(background, "31_FlowRefinement");
             group.localScale = new Vector3(1/background.lossyScale.x,1/background.lossyScale.y,1/background.lossyScale.z);
             EscapeDevelopmentSetup.ConfigureCurrent();
-            var runtime = UnityEngine.Object.FindAnyObjectByType<HumanCannonSystem>().gameObject;
-            Ensure<EscapeTraversalPace>(runtime);
             var poles = UnityEngine.Object.FindObjectsByType<HumanCannonPole>(FindObjectsSortMode.None);
             foreach (var pole in poles)
             {

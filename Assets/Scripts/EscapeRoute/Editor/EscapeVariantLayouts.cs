@@ -214,8 +214,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             PrefabUtility.RecordPrefabInstancePropertyModifications(player);
             var camera = GameObject.Find("Main Camera");
             camera.transform.SetPositionAndRotation(player.position + Vector3.up * 1.5916f, player.rotation);
-            if (camera.GetComponent<CurtainCall.EscapeRoute.EscapeRouteFlyCamera>() == null)
-                throw new InvalidOperationException("A의 자유 비행 연결이 필요합니다.");
         }
     }
 }

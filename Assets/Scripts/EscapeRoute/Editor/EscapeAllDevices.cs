@@ -76,7 +76,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             ends.GetArrayElementAtIndex(1).floatValue = 7.2f;
             shape.FindPropertyRelative("laneChangeZones").arraySize = 0;
             courseData.ApplyModifiedProperties(); course.Rebuild();
-            Ensure<EscapeInspectionSession>(Camera.main.gameObject);
             Physics.SyncTransforms();
             foreach (var feet in new[] { new Vector3(119,-8,28), new Vector3(300,0,78), new Vector3(98,-4.6f,25) })
             {
@@ -203,7 +202,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
             }
             foreach (var feet in new[] { new Vector3(119,-8,28), new Vector3(300,0,78) })
                 Check("safe landing " + feet, UnityEngine.Object.FindObjectsByType<HumanCannonLandingZone>(FindObjectsSortMode.None).Any(z => z.SupportsLanding(feet)));
-            Check("player synchronized inspection", Camera.main != null && Camera.main.GetComponent<EscapeInspectionSession>() != null);
             output.AppendLine($"Passed={passed}; Failed={failed}. Static references/geometry only; manual traversal not automated.");
             return output.ToString();
         }

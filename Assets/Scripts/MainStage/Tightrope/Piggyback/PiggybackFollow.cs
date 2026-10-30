@@ -36,12 +36,19 @@ namespace CurtainCall.Tightrope
         PlayerMover controlRestore; // 내려놓은 뒤 한 프레임 조작을 껐다가 켤 이동 부품(위에서 누른 SB가 내려놓는 순간 점프로 나가지 않게)
         PlayerBalance carriedBalance; // 위층의 전체 점프·제자리 점프 공중 상태를 함께 관리한다
 
+        static bool IsCrossing(NetworkPlayer player) => player != null &&
+            (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)
+            || CurtainCall.HumanCannon.HumanCannonPoleSystem.Current != null
+                && CurtainCall.HumanCannon.HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
+            || CurtainCall.HumanCannon.HumanCannonSystem.Current != null
+                && CurtainCall.HumanCannon.HumanCannonSystem.Current.IsFlying(player.OwnerClientId));
+
         void Update() => UpdateCarriedAirborne(NetworkPlayer.Local);
 
         /// <summary>맨 아래의 공유된 공중 상태와 내 제자리 점프를 합친다. 둘 다 끝나야 착지 충격을 한 번 받는다.</summary>
         void UpdateCarriedAirborne(NetworkPlayer local)
         {
-            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(local))
+            if (IsCrossing(local))
             { carriedBalance = null; return; }
             var below = local != null ? system.GetBelow(local) : null;
             bool carried = below != null && launchedAt < 0f && local.State == PlayerState.Normal
@@ -62,7 +69,7 @@ namespace CurtainCall.Tightrope
             var local = NetworkPlayer.Local;
             bool airborne = local != null && local.State == PlayerState.Normal && !carriedBalance.HasFallen
                             && carriedBalance.TryGetComponent(out PlayerMover mover) && mover.IsAirborne;
-            if (TightropeTrapeze.Current == null || !TightropeTrapeze.Current.IsCrossing(local))
+            if (!IsCrossing(local))
                 carriedBalance.SetAirborne(airborne);
             carriedBalance = null;
         }
@@ -107,7 +114,7 @@ namespace CurtainCall.Tightrope
             }
             // A mount snapshot and Space can arrive in the same frame. Establish
             // the carried pose before consuming that frame's jump input.
-            bool trapeze = TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(local);
+            bool trapeze = IsCrossing(local);
             var newBelow = local != null && !trapeze ? system.GetBelow(local) : null;
             if (localMover == null && newBelow != null && launchedAt < 0f)
             {
@@ -124,7 +131,7 @@ namespace CurtainCall.Tightrope
                 {
                     var above = system.GetAbove(below);
                     if (above == null) break;
-                    if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(above))
+                    if (IsCrossing(above))
                     { below = above; continue; }
                     if (above != local) PlaceOnTop(above, below, RemoteHop(above, below));
                     else if (launchedAt < 0f) PlaceOnTop(above, below, hopping ? hopHeight : 0f);
@@ -171,7 +178,7 @@ namespace CurtainCall.Tightrope
             }
 
             if (TightropeInputGate.IsBlocked || local == null || localMover == null || launchedAt >= 0f) return;
-            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(local)) return;
+            if (IsCrossing(local)) return;
             if (system.GetBelow(local) == null || system.GetAbove(local) != null) return; // 맨 위만(중간층은 점프 불가)
             if (local.State != PlayerState.Normal || !local.TryGetComponent(out PlayerInputReader reader) || !reader.enabled) return;
 
@@ -279,7 +286,7 @@ namespace CurtainCall.Tightrope
         /// <summary>내 캐릭터가 위에 있으면 이동 계산을 끄고, 내려오면 켜고 내려놓는다.</summary>
         void UpdateLocal(NetworkPlayer local)
         {
-            if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(local))
+            if (IsCrossing(local))
             { ReleaseForTrapeze(local); return; }
             var below = local != null ? system.GetBelow(local) : null;
 
@@ -316,7 +323,7 @@ namespace CurtainCall.Tightrope
             bool fell = local == null || local.State != PlayerState.Normal || system.WasDropped(local)
                         || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
             bool putDown = !fell && Time.time - restartedAt > RestartGrace
-                && (TightropeTrapeze.Current == null || !TightropeTrapeze.Current.IsCrossing(local));
+                && !IsCrossing(local);
             var bottom = localBottom;
             var released = localMover;
             Release();
@@ -385,7 +392,7 @@ namespace CurtainCall.Tightrope
             if (localMover != null)
             {
                 localMover.ClearPendingInput();
-                if (TightropeTrapeze.Current == null || !TightropeTrapeze.Current.IsCrossing(NetworkPlayer.Local))
+                if (!IsCrossing(NetworkPlayer.Local))
                     localMover.Simulated = true;
             }
             localMover = null;

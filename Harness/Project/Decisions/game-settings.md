@@ -1,7 +1,7 @@
 ---
 summary: 기획 조정값은 Assets/Resources/Settings/GameSettings/ 한 폴더 — GameSettings(시작점) + 공통·묘기별·대기실·탐색·탈출로 5묶음(2026-10-14) + Tricks/<묘기>Settings + 교체형 보상(RewardTable). 칸마다 한글 설명·단위, 플레이 중 수정 반영, 판정 값은 호스트 기준. 값 변경은 모든 작업자, 연결 기능 확장은 현재 Task 관련만(2026-10-16)
 status: active
-updated: 2026-10-28
+updated: 2026-10-30
 source: human (2026-10-03·2026-10-14·2026-10-16 PM @MoHoDu; Confluence 27721807 M2 변경점(2026-10-27), Task-20261027-076); 2026-10-28 사용자 배낭·외팔 슬롯 감소 삭제 결정
 ---
 
@@ -12,6 +12,8 @@ source: human (2026-10-03·2026-10-14·2026-10-16 PM @MoHoDu; Confluence 2772180
 기획자가 바꿀 수 있는 수치(속도·크기·시간·확률·보상 등)를 새로 만들거나 옮길 때. 지금 어떤 값이 어디 있는지는 `Docs/Domains/tightrope-course.md` "조정값" 표.
 
 ## 결정
+
+- 2026-10-30 사용자 확정: 이동·달리기 속도, 점프 높이, 외줄 이동 속도 등 기존 공통 조정값은 `GameSettings/`의 기존 해당 설정에서 변경한다. 수치 조정만을 위한 새 스크립트·씬별 우회 배율·중복 설정은 만들지 않는다. 이동·점프는 기존 공통 캐릭터 설정, 외줄 동작은 기존 묘기 설정을 사용한다. 후속 명시 요청으로 탈출로 전용 배율·Solo 이동·자유비행 코드를 제거하고 기존 공통 이동 속도에 이관한다.
 
 - 2026-10-03 / PM(@MoHoDu): 조정값은 코드·프리팹 칸이 아니라 세팅 파일(ScriptableObject) 한 폴더에서 관리한다.
   1. 위치: 에셋 `Assets/Resources/Settings/GameSettings/`, 클래스 `Assets/Scripts/Systems/Settings/`. (`Assets/Settings/`는 URP 설정이라 쓰지 않는다)

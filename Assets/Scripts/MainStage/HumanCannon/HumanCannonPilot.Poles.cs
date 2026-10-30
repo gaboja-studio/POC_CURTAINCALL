@@ -21,7 +21,14 @@ namespace CurtainCall.HumanCannon
                     poles.RequestRelease(HeldPole);
                 return true;
             }
-            if (IsFlying && !awaitingBounce && !awaitingLanding && input.InteractTapped)
+            return input.InteractTapped && TryRequestNearbyPole();
+        }
+
+        public bool TryRequestNearbyPole()
+        {
+            var poles = HumanCannonPoleSystem.Current;
+            if (poles == null || IsHoldingPole) return false;
+            if (IsFlying && !awaitingBounce && !awaitingLanding)
             {
                 int nearest = poles.FindGrabbable(player);
                 if (nearest >= 0)
@@ -30,7 +37,7 @@ namespace CurtainCall.HumanCannon
                     return true;
                 }
             }
-            if (!IsDriving && input.InteractTapped && poles.CanEnterFromPlatform(player))
+            if (!IsDriving && poles.CanEnterFromPlatform(player))
             {
                 int nearest = poles.FindGrabbable(player);
                 if (nearest >= 0) { poles.RequestPlatformGrab(nearest); return true; }
@@ -41,6 +48,7 @@ namespace CurtainCall.HumanCannon
         internal void HoldPole(int index, int station, uint launch, uint segment)
         {
             if (HeldPole == index) return;
+            CurtainCall.Tightrope.PiggybackSystem.Current?.GetComponent<CurtainCall.Tightrope.PiggybackFollow>()?.ReleaseForTrapeze(player);
             TakeMovement();
             // 외줄 옆점프/일반 점프의 옛 목표가 다음 착지에 다시 적용되지 않게 한다.
             mover.ResetExternalMotion(true);
@@ -80,7 +88,7 @@ namespace CurtainCall.HumanCannon
             var pole = poles != null ? poles.Pole(HeldPole) : null;
             if (pole == null) return;
             pole.RefreshMovingPose();
-            Teleport(poles.HangingPosition(HeldPole), pole.Grip.rotation);
+            Teleport(poles.HangingPosition(HeldPole, player.OwnerClientId), pole.Grip.rotation);
         }
     }
 }

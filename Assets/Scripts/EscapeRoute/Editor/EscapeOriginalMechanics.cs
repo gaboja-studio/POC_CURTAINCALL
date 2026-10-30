@@ -37,11 +37,10 @@ namespace CurtainCall.EscapeRoute.EditorTools
             { Undo.RecordObject(root, "Disable superseded preview"); root.SetActive(false); }
             var hazards = GameObject.Find(RootName)?.transform.Find("25_FinaleHazards_A");
             if (hazards != null) { Undo.RecordObject(hazards.gameObject, "Disable temporary hazard logic"); hazards.gameObject.SetActive(false); }
-            foreach (var old in camera.GetComponents<Behaviour>().Where(b => b is EscapeRouteFlyCamera || b is LevelPreviewCamera))
+            foreach (var old in camera.GetComponents<Behaviour>().Where(b => b is LevelPreviewCamera))
             { Undo.RecordObject(old, "Disable old preview camera"); old.enabled = false; }
             Undo.RecordObject(system, "Restore original cannon"); system.enabled = true;
             if (camera.GetComponent<CinemachineBrain>() == null) Undo.AddComponent<CinemachineBrain>(camera.gameObject);
-            Undo.AddComponent<EscapeInspectionCamera>(camera.gameObject);
 
             var rootObject = new GameObject(OriginalReview);
             Undo.RegisterCreatedObjectUndo(rootObject, "A03 original session");
@@ -116,6 +115,10 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var hud = instance.GetComponent<PerformanceHUDView>();
             hud.Timer.gameObject.SetActive(false); hud.Progress.gameObject.SetActive(false);
             hud.Balance.SetContext(false, false);
+            hud.Balance.gameObject.AddComponent<CurtainCall.UI.SceneIntegration.BalanceRiskBlink>();
+            hud.Balance.gameObject.AddComponent<CurtainCall.UI.SceneIntegration.BalanceZoneColors>();
+            CurtainCall.UI.SceneIntegration.HudLayout.PlaceBalance((RectTransform)hud.Balance.transform,
+                GameSettings.Base.HudLayout.BalancePosition);
             var display = instance.AddComponent<EscapeRopeBalanceDisplay>();
             var data = new SerializedObject(display);
             data.FindProperty("view").objectReferenceValue = hud;

@@ -27,7 +27,8 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] Transform overflowReturnPoint;
         [Min(.1f), SerializeField] float visibleSeconds = 4f;
         [Min(.1f), SerializeField] float hiddenSeconds = 3f;
-        [Min(.1f), SerializeField] float buttonDistance = 2.5f;
+        [Tooltip("버튼 중심의 구형 상호작용 반경(m). 모든 방향에 같은 거리를 사용한다."), Min(.1f), SerializeField]
+        float buttonDistance = EscapeSwitchInteraction.DefaultRadius;
         const string RequestName = "CurtainCall.Escape.CooperativeRopes.Request";
         const string StateName = "CurtainCall.Escape.CooperativeRopes.State";
         const int RequestSize = 13, StateSize = 21;
@@ -48,8 +49,11 @@ namespace CurtainCall.EscapeRoute
         double nextSnapshot, nextOverflowRequest;
         public static EscapeCooperativeRopes Current { get; private set; }
         public Transform Button => button;
+        public Vector3 ButtonPoint => EscapeSwitchInteraction.Center(button);
         public HumanCannonTrampoline Trampoline => trampoline;
         public bool ReturnOpen { get; private set; }
+        public bool IsReady => isActiveAndEnabled && synchronized && !resetBarrier.Waiting
+            && session != null && session.GameState == GameSessionState.Playing;
         public bool RopesPresent => hiddenRope < 0;
         public int HiddenRopeIndex => hiddenRope;
         public ulong WorkerOwner => workerOwner;
@@ -96,12 +100,9 @@ namespace CurtainCall.EscapeRoute
         {
             if (!isActiveAndEnabled || !synchronized || resetBarrier.Waiting || ReturnOpen || button == null
                 || !button.gameObject.activeInHierarchy || player == null || !player.IsSpawned
-                || player.State != PlayerState.Normal || player.IsAirborne || session == null
+                || player.State != PlayerState.Normal || session == null
                 || session.GameState != GameSessionState.Playing) return false;
-            var cannon = HumanCannonSystem.Current;
-            if (cannon != null && (cannon.IsSeated(player.OwnerClientId) || cannon.IsFlying(player.OwnerClientId))) return false;
-            float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
-            return PlayerInteraction.InRange(player, button.position, buttonDistance * reach);
+            return EscapeSwitchInteraction.InRange(player, button, buttonDistance);
         }
 
         int HiddenRopeAt(double elapsed)
@@ -228,6 +229,19 @@ namespace CurtainCall.EscapeRoute
             && lowerWorkerBounds.gameObject.activeInHierarchy && player != null && player.IsSpawned
             && player.State == PlayerState.Normal && lowerWorkerBounds.bounds.Contains(player.transform.position);
 
+        readonly RaycastHit[] lowerFloorHits = new RaycastHit[16];
+        bool IsStandingInLower(NetworkPlayer player)
+        {
+            if (!IsInsideLower(player) || player.IsAirborne
+                || HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsFlying(player.OwnerClientId)) return false;
+            int count = Physics.RaycastNonAlloc(player.transform.position + Vector3.up * .12f,
+                Vector3.down, lowerFloorHits, .3f, ~0, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < count; i++)
+                if (lowerFloorHits[i].normal.y > .5f
+                    && lowerFloorHits[i].collider.GetComponentInParent<NetworkPlayer>() == null) return true;
+            return false;
+        }
+
         void RefreshWorker()
         {
             ulong next = CannonSeatState.Nobody;
@@ -237,6 +251,7 @@ namespace CurtainCall.EscapeRoute
                 {
                     if (!IsInsideLower(player)) continue;
                     if (player.OwnerClientId == workerOwner) { next = workerOwner; break; }
+                    if (!IsStandingInLower(player)) continue;
                     if (next == CannonSeatState.Nobody || player.OwnerClientId < next) next = player.OwnerClientId;
                 }
             }
@@ -246,7 +261,7 @@ namespace CurtainCall.EscapeRoute
 
         bool CanReturnOverflow(NetworkPlayer player) => synchronized && !resetBarrier.Waiting && !ReturnOpen
             && overflowReturnPoint != null && workerOwner != CannonSeatState.Nobody
-            && player != null && player.IsLocal && player.OwnerClientId != workerOwner && IsInsideLower(player);
+            && player != null && player.IsLocal && player.OwnerClientId != workerOwner && IsStandingInLower(player);
 
         void ReturnOverflow()
         {
@@ -271,7 +286,7 @@ namespace CurtainCall.EscapeRoute
                 || requests.TryGetValue(actor, out uint previous) && request <= previous) return false;
             NetworkPlayer player = null;
             foreach (var candidate in NetworkPlayer.All) if (candidate.OwnerClientId == actor) { player = candidate; break; }
-            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
+            if (!IsStandingInLower(player)) return false;
             requests[actor] = request;
             // A local-only pilot reset leaves the authoritative flight occupied. Reuse the
             // original host release message before acknowledging this player's safe return.

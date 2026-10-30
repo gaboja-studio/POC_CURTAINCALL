@@ -61,7 +61,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(Mathf.Abs(hazard.Travel.x), Is.EqualTo(24f).Within(.001f), hazard.name);
                 Assert.That(Mathf.Abs(hazard.Travel.y), Is.LessThan(.001f), hazard.name);
                 float angle = Mathf.Atan2(Mathf.Abs(hazard.Travel.z), Mathf.Abs(hazard.Travel.x)) * Mathf.Rad2Deg;
-                Assert.That(angle, Is.EqualTo(hazard.IsPoleSaw ? 0f : 30f).Within(.001f), hazard.name);
+                // 직접 그린 레일(1구간 첫 톱벽 앞)은 공용 30° 대각선 대신 작성한 각도를 쓴다.
+                if (!hazard.UsesAuthoredPath)
+                    Assert.That(angle, Is.EqualTo(hazard.IsPoleSaw ? 0f : 30f).Within(.001f), hazard.name);
                 var visual = (Transform)typeof(HumanCannonHazard).GetField("visual", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(hazard);
                 Assert.That(Mathf.Abs(Vector3.Dot(visual.forward, hazard.BladeNormal)), Is.GreaterThan(.999f), "외형/판정 일치: " + hazard.name);
             }

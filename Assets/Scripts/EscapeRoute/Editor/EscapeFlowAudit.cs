@@ -28,7 +28,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 Check(p.name+" bounded launch",p.MaxReleaseUpwardSpeed>0&&p.MaxReleaseUpwardSpeed<=7.2f&&p.SwingLength<=5.05f);
                 Check(p.name+" art/interaction",p.GetComponentInChildren<Renderer>()!=null&&p.Grip!=null);
             }
-            Check("same pace",UnityEngine.Object.FindObjectsByType<EscapeTraversalPace>(FindObjectsSortMode.None).Length==1);
+            Check("common movement settings",CurtainCall.Settings.GameSettings.Base.Character.FreeMoveSpeed > 0f);
             Check("original interaction UI binding",system.GetComponent<CurtainCall.UI.SceneIntegration.InteractionSceneBinding>()!=null);
             Check("no persistent control HUD",typeof(EscapeCannonReviewHud).GetMethod("OnGUI",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)==null);
             var fire=UnityEngine.Object.FindObjectsByType<HumanCannonHazard>(FindObjectsSortMode.None).Where(h=>h.Kind==CannonHazardKind.FireJet).Select(h=>h.GetComponent<HumanCannonHazardCue>()).ToArray();
