@@ -20,13 +20,45 @@ namespace CurtainCall.HumanCannon
         [Tooltip("비행 중 시선 기준 WASD 수평 보정 속도(m/s). 키를 놓으면 보정은 사라진다.")]
         [Min(0f), SerializeField] float airControlSpeed = 3f;
 
+        // Retained for existing scene serialization; all stations now use the same cooldown.
+        [HideInInspector, SerializeField] bool animateBarrel;
+        public const float BarrelLowerSeconds = 1.2f;
+        public const float BarrelRecoverySeconds = 2.8f;
+        readonly CannonBarrelCycle barrel = new();
+        bool interactionAvailable = true;
+
         public Transform BoardingPoint => boardingPoint != null ? boardingPoint : transform;
         public Transform Seat => seat != null ? seat : transform;
         public Transform Muzzle => muzzle != null ? muzzle : Seat;
         public float BoardingDistance => boardingDistance;
         public float AirControlSpeed => airControlSpeed;
         // Scene machinery may interlock boarding/launch without disabling an in-flight station or Cancel.
-        public bool InteractionAvailable { get; set; } = true;
+        public bool InteractionAvailable
+        {
+            get => interactionAvailable;
+            set { interactionAvailable = value; barrel.SetAvailable(value && isActiveAndEnabled, MotionTime); }
+        }
+        public bool BarrelMotionEnabled => GetComponentInChildren<CannonBarrelPresentation>(true) != null;
+        public bool ReadyToUse => isActiveAndEnabled && InteractionAvailable && BarrelPhase == CannonBarrelPhase.Active;
+        public double LastFiredAt => barrel.FiredAt;
+        public double LastActivatedAt => barrel.UnlockedAt;
+        public CannonBarrelPhase BarrelPhase => SampleBarrel(out _);
+        public static double MotionTime => Unity.Netcode.NetworkManager.Singleton != null
+            && Unity.Netcode.NetworkManager.Singleton.IsListening
+            ? Unity.Netcode.NetworkManager.Singleton.ServerTime.Time : Time.timeAsDouble;
+        public CannonBarrelPhase SampleBarrel(out float progress)
+        {
+            double now = MotionTime;
+            // A scene may begin with this component disabled, without ever receiving OnDisable.
+            barrel.SetAvailable(InteractionAvailable && isActiveAndEnabled, now);
+            float rest = Mathf.Max(0, CurtainCall.Settings.GameSettings.HumanCannon.CannonCooldown - BarrelLowerSeconds - BarrelRecoverySeconds);
+            return barrel.Sample(now, BarrelLowerSeconds, rest, BarrelRecoverySeconds, out progress);
+        }
+        internal void FireBarrel() => barrel.Fire(MotionTime);
+        internal void RestoreBarrel(double firedAt, double activatedAt) => barrel.Restore(firedAt, activatedAt);
+        internal void ResetBarrel() => barrel.Reset();
+        void OnEnable() => barrel.SetAvailable(InteractionAvailable, MotionTime);
+        void OnDisable() => barrel.SetAvailable(false, MotionTime);
         public Vector3 LaunchVelocity
         {
             get

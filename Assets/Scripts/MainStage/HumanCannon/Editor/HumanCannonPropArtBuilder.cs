@@ -54,6 +54,11 @@ namespace CurtainCall.HumanCannon.EditorTools
             AssetDatabase.SaveAssetIfDirty(material);
             foreach (string name in new[] { "CC_Cannon", "CC_Trampoline" })
             {
+                if (name == "CC_Cannon" && AssetDatabase.LoadAssetAtPath<GameObject>(CannonBarrelArtBuilder.ModelPath) != null)
+                {
+                    CannonBarrelArtBuilder.BuildPrefab();
+                    continue;
+                }
                 string modelPath = Art + "/Models/" + name + ".fbx";
                 var importer = (ModelImporter)AssetImporter.GetAtPath(modelPath);
                 importer.importAnimation = false;
@@ -134,6 +139,7 @@ namespace CurtainCall.HumanCannon.EditorTools
                     foreach (var t in all.Where(t => t.gameObject.activeInHierarchy && (t.name == "CarryTrampoline" || t.name == "PracticeTrampoline")))
                     { Replace(t, trampoline); trampolines++; }
                 }
+                CannonBarrelArtBuilder.ConfigureStations(scene);
                 EditorSceneManager.MarkSceneDirty(scene);
                 if (!EditorSceneManager.SaveScene(scene)) throw new InvalidOperationException("Scene save failed.");
                 Undo.CollapseUndoOperations(undo);

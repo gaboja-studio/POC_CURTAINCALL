@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 20.12,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.CircusMotion_RopeRescueUsesBothRolesAndAllSurvivingLimbVariants",
+      "Status": "Passed",
+      "Duration": 19.9981705,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

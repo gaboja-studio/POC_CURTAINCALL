@@ -1,0 +1,62 @@
+{
+  "status": "completed",
+  "duration": 0.33,
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.AuthoredClipsOnlyMoveBarrelAndJoinAtMatchingEndpoints",
+      "Status": "Passed",
+      "Duration": 0.0261768,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.ExternalInterlockCannotBeOverwrittenByCooldownCompletion",
+      "Status": "Passed",
+      "Duration": 0.0004519,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.InitiallyDisabledStationHasInactivePoseWithoutAnEnableDisableRoundTrip",
+      "Status": "Passed",
+      "Duration": 0.0008481,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.LateJoinSeeksCurrentPhaseAndResetNeverReplaysPreviousShot",
+      "Status": "Passed",
+      "Duration": 0.0003712,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.SavedCourseEnablesMotionWithoutMovingSeatMuzzleOrLaunchVelocity",
+      "Status": "Passed",
+      "Duration": 0.2626037,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.ShotFinishesLowerAndRestBeforeFourStepRecoveryAllowsBoarding",
+      "Status": "Passed",
+      "Duration": 0.0002426,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.EditorTools.Tests.CannonBarrelTests.UnlockDuringShotWaitsForLoweringToFinish",
+      "Status": "Passed",
+      "Duration": 0.0001252,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

@@ -1,5 +1,15 @@
 # 인간 대포 소품 v01
 
+## 포신 상태 애니메이션 추가 (Task-084)
+
+- `cannon-barrel-motion.blend`: 차체와 포신을 분리한 자체 제작 원본. 기본 선택은 `CC_Cannon_Recover`, 1~169프레임(60fps). 네 Action/NLA take는 Active / Inactive / FireDisable / Recover이다. Action을 선택해서 단독 재생하며 중복 재생을 막기 위해 NLA track은 mute 상태다.
+- `build-barrel-motion.py`: 원래 construction blend를 배경으로 열고 실행하면 `../Models/CC_CannonMotion.fbx`와 4 take 원본을 만든다. 이어 새 motion blend를 열어 `prepare-blender-preview.py`를 실행하면 카메라·조명과 기본 회복 재생을 설정한다.
+- `barrel-clips.json`: 시간/회전/반동 키 명세. 비활성 -32도, 발사후내림 1.2초, 회복 2.8초에 네 번 들어 올림.
+- Unity `CannonBarrelArtBuilder.BuildPrefab`은 BarrelPivot 곡선만 `../Animations/`의 4클립으로 가져온다. 차체/바퀴 고정, Renderer 2개·각 1재질, 원래 활성 포구와 모든 게임 앵커 유지.
+- `CC_Cannon.prefab` GUID를 유지해 공연장·대기실 기존 인스턴스에 적용한다. 공연장 Station 10개와 탈출로 A/B/C Station 12개에 포신 동작을 적용했고 장식 대포는 활성 자세를 유지한다. 원래 정적 FBX와 construction/game blend는 보존한다.
+- 전체 쿨타임은 `HumanCannonSettings.asset`에서 4~20초(기본 5초)로 설정한다. 포신 하강 1.2초·회복 2.8초는 고정하고 비활성 대기만 늘린다.
+- 테스트 씬: `Assets/Scenes/Tests/MainStage/HumanCannon/CannonBarrelGallery.unity`.
+
 Task-20261030-082. 사용자 제공 2장 컨셉, 봉제인형 캐릭터와 붉은/아이보리 서커스 대기실·공연장 톤을 기준으로 Blender에서 직접 제작한 정적 모델. 외부 생성 서비스/구매 에셋 없음.
 
 - `human-cannon-props-construction.blend`: 부품별 편집 정본. 캐릭터 작업 파일과 분리.
