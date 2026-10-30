@@ -689,6 +689,10 @@ namespace CurtainCall.Tests.HumanoidPresentation
         public IEnumerator BluePierrotCatalogModelKeepsMovementCutsSurfacesAndOutfits()
             => CatalogModelKeepsMovementCutsSurfacesAndOutfits("BluePierrot");
 
+        [UnityTest]
+        public IEnumerator PinkGirlCatalogModelKeepsMovementCutsSurfacesAndOutfits()
+            => CatalogModelKeepsMovementCutsSurfacesAndOutfits("PinkGirl");
+
         IEnumerator CatalogModelKeepsMovementCutsSurfacesAndOutfits(string modelName)
         {
             var catalog = Resources.Load("Settings/PlayerAppearanceCatalog");
