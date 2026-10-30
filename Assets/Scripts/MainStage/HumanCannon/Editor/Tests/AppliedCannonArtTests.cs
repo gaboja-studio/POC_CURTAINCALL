@@ -229,8 +229,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Near(box.center, bounds.center, box.name + " collider center");
                 Near(box.size, bounds.size, box.name + " collider size"); found++;
             }
-            Assert.That(found, Is.EqualTo(81), "74 concrete surfaces + 6 transport panels + cushion");
-            Assert.That(All<Collider>().Length, Is.EqualTo(90), "공중 장애물 제거로 최종 톱 EntryZone 트리거1개만 줄고 지상 충돌체는 유지한다.");
+            // 2026-10-30 시작 지점 아래 안전 바닥·복귀 계단(43면) 삭제, 리프트 빈틈 메움(10면) 추가.
+            Assert.That(found, Is.EqualTo(48), "41 concrete surfaces + 6 transport panels + cushion");
+            Assert.That(All<Collider>().Length, Is.EqualTo(57), "공중 장애물 제거로 최종 톱 EntryZone 트리거1개만 줄고, 시작 지점 아래 43개를 빼고 리프트 빈틈 10개를 더한 지상 충돌체를 유지한다.");
         }
 
         [Test]

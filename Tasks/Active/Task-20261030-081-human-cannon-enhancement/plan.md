@@ -12,7 +12,7 @@
 조사 진입점: `Assets/Scripts/MainStage/HumanCannon/`, `Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity`. 기존 Task-040~044의 기록과 [인간 대포 결정](../../../Harness/Project/Decisions/Human-cannon/index.md)을 현재 코드와 대조한다. 관련 구조 지도는 [Unity Assets 구조](../../../Docs/Domains/assets-structure.md)다.
 
 ## 계획
-담당자가 [start-work](../../../Harness/Core/Skills/start-work.md)를 따라 조사하고 상세 계획과 todo를 갱신한다. Unity 변경 전 코드 위치·에셋 협업 지침을 확인한다.
+2026-10-30 @lakuase2가 고도화 항목 8개와 우선순위 (1)~(3)을 정했다. 항목·진입점은 [todo](todo.md)에 있다. 우선순위는 작업 순서가 아니며 담당자가 지정한 항목부터 구현한다. 구체 내용이 미정인 항목(1구간·공중 그네 배치·이동 장치 방식·피날레)은 착수 시 담당자에게 방향을 확인한다. Unity 변경 전 코드 위치·에셋 협업 지침을 확인한다.
 
 ## 미정·주의
 기능·밸런스·연출의 구체적 방향은 아직 지정되지 않았다. 미정 게임 의도는 human-decision을 따른다. 기존 작업과 겹치는 수정은 관련 담당자에게 알리고 씬·프리팹 충돌을 조율한다. 4인 검증과 최종 플레이 경험은 사람이 확인한다.
