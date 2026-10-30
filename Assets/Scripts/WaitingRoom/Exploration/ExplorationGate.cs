@@ -1,3 +1,4 @@
+using System.Linq;
 using CurtainCall.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -87,9 +88,32 @@ namespace CurtainCall.WaitingRoom
         public Transform VisualRoot => transform;
         [Tooltip("지정하면 실제 자물쇠/조작면을 상호작용 위치로 사용한다.")]
         [SerializeField] Transform interactionPoint;
-        public Vector3 PresentationPoint => interactionPoint != null ? interactionPoint.position : transform.position;
+        [Tooltip("협력 문의 열쇠 구멍. 두 사람이 서로 다른 구멍에서 동시에 F.")]
+        [SerializeField] Transform[] keySlots;
+        public bool HasKeySlots => keySlots != null && keySlots.Length > 1;
+        public Vector3 PresentationPoint
+        {
+            get
+            {
+                if (HasKeySlots && ExplorationState.Instance != null && ExplorationState.Instance.LocalFeet is Vector3 feet)
+                    return keySlots.Where(s => s != null).OrderBy(s => Vector3.Distance(s.position, feet)).First().position;
+                return interactionPoint != null ? interactionPoint.position : transform.position;
+            }
+        }
+        /// <summary>손이 닿는 가장 가까운 열쇠 구멍 번호. 없으면 -1.</summary>
+        public int SlotAt(Vector3 feet) => SlotAt(feet, out _);
+        int SlotAt(Vector3 feet, out float distance)
+        {
+            int best = -1; distance = -1f;
+            for (int i = 0; i < keySlots.Length; i++)
+            {
+                float d = keySlots[i] != null ? ExplorationReach.From(transform, keySlots[i].position, feet, reach, true) : -1f;
+                if (d >= 0f && (best < 0 || d < distance)) { best = i; distance = d; }
+            }
+            return best;
+        }
         public bool IsAvailable => Visible && (!Opened || kind == ExplorationGateKind.Monitor);
-        public string ActionLabel => label + (!ConditionsMet ? " — 조건 미충족" : NeedsPartner ? " — 두 명이 함께 F" : "");
+        public string ActionLabel => label + (!ConditionsMet ? " — 조건 미충족" : NeedsPartner ? (HasKeySlots ? " — 두 명이 각자 열쇠 구멍에서 함께 F" : " — 두 명이 함께 F") : "");
         UIInputBlocker inputBlocker;
         bool panel;
         ExplorationPanel panelView;
@@ -103,6 +127,7 @@ namespace CurtainCall.WaitingRoom
         public float Reach(Vector3 feet)
         {
             if (!IsAvailable) return -1;
+            if (HasKeySlots) { SlotAt(feet, out float distance); return distance; }
             return ExplorationReach.From(transform, PresentationPoint, feet, reach, true);
         }
         public bool MatchesPassword(string value) => !passwordPending && ExplorationPuzzleRules.IsFourDigits(password) && value == password;

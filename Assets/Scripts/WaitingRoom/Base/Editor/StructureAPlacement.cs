@@ -195,9 +195,21 @@ namespace CurtainCall.WaitingRoom.Editor
             gate.transform.rotation = Quaternion.identity; // Sizes are measured in world doorway axes, not the rotated room axes.
             // Existing door leaves must also release their collision; frames stay in place.
             var leaves = existing.GetComponentsInChildren<Renderer>(true).Where(r => r.name.Contains("Door") && !r.name.Contains("Frame") && !r.name.Contains("Label") && !r.name.Contains("Latch")).Select(r => r.gameObject).Distinct().ToArray();
-            var visuals = existing.GetComponentsInChildren<Renderer>(true).Where(r => !r.name.Contains("Frame")).Select(r => r.gameObject).Distinct().Cast<Object>().Concat(new Object[] { gate.transform.Find("Visual").gameObject }).ToArray();
-            Set(gate, "hideOnOpen", visuals); Set(gate, "hiddenVisuals", visuals);
+            var proxy = new Object[] { gate.transform.Find("Visual").gameObject };
+            // 공개 전에는 문틀·키패드 외 묶음 전체를 숨기고, 열린 뒤에는 문짝·자물쇠만 치운다.
+            var hidden = existing.GetComponentsInChildren<Renderer>(true).Where(r => !r.name.Contains("Frame") && !r.name.StartsWith("Keypad")).Select(r => r.gameObject).Distinct().Cast<Object>().Concat(proxy).ToArray();
+            var opened = existing.GetComponentsInChildren<Renderer>(true).Where(r => OpensAway(r.transform, existing)).Select(r => r.gameObject).Distinct().Cast<Object>().Concat(proxy).ToArray();
+            Set(gate, "hideOnOpen", opened); Set(gate, "hiddenVisuals", hidden);
             return gate;
+        }
+        static readonly string[] LeafParts = { "EscapeDoor", "DoorRib", "LockWheel", "Rope" };
+        /// <summary>열리면 사라질 문짝·자물쇠. 문틀·채광판·문턱·표지·경고선·키패드는 남는다.</summary>
+        public static bool OpensAway(Transform part, Transform assembly)
+        {
+            if (LeafParts.Contains(part.name)) return true;
+            for (var t = part; t != null && t != assembly; t = t.parent)
+                if (t.name.StartsWith("LeafHinge") || t.name == "DoorLockPoint") return true;
+            return false;
         }
         static void MoveSpot(FoundItemSpot spot, string room, Vector3 at)
         { Undo.RecordObject(spot.transform, "Move discovery to authored room"); spot.transform.position = at; Undo.SetTransformParent(spot.transform, Group(room), "Move discovery"); Record(spot.SpotId, at); }

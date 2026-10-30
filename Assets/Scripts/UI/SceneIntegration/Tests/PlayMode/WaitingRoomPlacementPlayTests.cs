@@ -65,6 +65,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             Assert.AreEqual(false, Get(Placed("escape-door"), "Visible"));
+            var sealedDoor = GameObject.Find("WaitingRoom_LayoutA").transform.Find("B1_EscapeEntrance/SealedDoor");
+            yield return null;
+            Assert.IsTrue(sealedDoor.GetComponentsInChildren<Renderer>(true).Where(r => r.name.StartsWith("Keypad")).All(r => r.gameObject.activeInHierarchy), "Keypad is visible before the code");
+            Assert.IsFalse(sealedDoor.Find("EscapeDoor").gameObject.activeInHierarchy);
+            Assert.IsFalse(sealedDoor.Find("DoorFrame").gameObject.activeInHierarchy, "Hidden door looks like wall: frame hidden");
+            var hiddenPanel = sealedDoor.parent.Find("Exploration_A/HiddenPanel"); var panelClosed = hiddenPanel.position;
+            Assert.Less(Mathf.Abs(panelClosed.z - sealedDoor.Find("DoorFrame").GetComponent<Renderer>().bounds.center.z), .1f, "Panel covers the doorway");
             yield return UsePlaced("steel-box"); Assert.AreEqual(false, Get(Placed("steel-box"), "Opened"));
             yield return UsePlaced("key-1"); yield return UsePlaced("steel-box"); yield return UsePlaced("management-key");
             yield return UsePlaced("management-door", -5); Assert.AreEqual(true, Get(Placed("management-door"), "Opened"));
@@ -82,6 +89,17 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(panel, "SubmitCode"); yield return null; yield return null;
             Assert.AreEqual(true, Get(pad, "Opened")); Assert.AreEqual(false, Get(panel, "IsVisible"));
             var exit = Placed("escape-door"); Assert.AreEqual(true, Get(exit, "Visible")); Assert.AreEqual(false, Get(exit, "ConditionsMet"));
+            Assert.IsTrue(new[] { "EscapeDoor", "Keypad", "EscapeSign" }.All(n => sealedDoor.Find(n).gameObject.activeInHierarchy));
+            var hideOnOpen = (GameObject[])exit.GetType().GetField("hideOnOpen", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(exit);
+            Assert.IsFalse(hideOnOpen.Any(g => g.name.StartsWith("Keypad") || g.name == "EscapeSign" || g.name == "HazardStripe" || g.name == "BeaconGlass" || g.name == "RustStain"), "Opening removes only the door and its locks");
+            yield return new WaitForSecondsRealtime(1.5f);
+            Assert.Greater(hiddenPanel.position.z - panelClosed.z, 3f, "Hidden door slid aside after the code");
+            var slotIndex = exit.GetType().GetMethod("SlotAt", new[] { typeof(Vector3) });
+            foreach (var (slotName, index) in new[] { ("KeySlot_L", 0), ("KeySlot_R", 1) })
+            {
+                var slot = exit.transform.Find(slotName); Assert.IsTrue(slot.gameObject.activeInHierarchy);
+                Assert.AreEqual(index, slotIndex.Invoke(exit, new object[] { new Vector3(slot.position.x + .7f, -10f, slot.position.z) }), slotName + " reachable in front of it");
+            }
             yield return UsePlaced("escape-door", -10); Assert.AreEqual(false, Get(exit, "Opened"));
             Assert.AreEqual("RestTime", Field(State, "Phase").ToString());
         }

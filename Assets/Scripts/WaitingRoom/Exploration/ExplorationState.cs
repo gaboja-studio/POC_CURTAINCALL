@@ -42,6 +42,7 @@ namespace CurtainCall.WaitingRoom
 
         public bool CanReachLocal(IShopTarget target)
         { var body = FindBody(channel.LocalClientId); return body != null && target.Reach(body.position) >= 0f; }
+        public Vector3? LocalFeet { get { var body = FindBody(channel.LocalClientId); return body != null ? body.position : null; } }
 
         public int Hits(string target) => book.Hits(target);
         public bool IsOpen(string target) => book.IsOpen(target);
@@ -116,14 +117,17 @@ namespace CurtainCall.WaitingRoom
             {
                 if (!gate.ConditionsMet) return (false, "선행 조건을 충족해야 합니다.");
                 if (gate.NeedsPassword && !gate.MatchesPassword(password)) return (false, "비밀번호가 다릅니다.");
+                // 열쇠 구멍이 있는 문은 두 사람이 서로 다른 구멍에서 눌러야 한다.
+                int slot = gate.HasKeySlots ? gate.SlotAt(body.position) : -1;
                 if (gate.NeedsPartner && !cooperation.Press(targetId, player, Time.unscaledTimeAsDouble, gate.CooperationWindow,
                     id => {
                         var other = FindBody(id);
                         if (other == null || gate.Reach(other.position) < 0f) return false;
+                        if (gate.HasKeySlots && id != player && gate.SlotAt(other.position) == slot) return false;
                         var held = carry != null ? carry.Selected(id) : default;
                         return !needsTool || (held.Uid != 0 && held.ItemId == target.ToolId && held.Uses != 0);
                     }))
-                    return (false, "다른 한 명도 가까이에서 F를 눌러야 합니다.");
+                    return (false, gate.HasKeySlots ? "다른 한 명이 반대쪽 열쇠 구멍에서 함께 F를 눌러야 합니다." : "다른 한 명도 가까이에서 F를 눌러야 합니다.");
             }
 
 

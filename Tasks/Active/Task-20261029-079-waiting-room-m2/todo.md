@@ -45,3 +45,10 @@
 - [x] 침대 밑 머리핀 가장자리 노출·계단 철골 통로 부분 제거
 - [x] 계단 닫힌 문짝·충돌체·외곽선·자물쇠 상호작용 정렬
 - [ ] 신규2+기존배치4 검사 결과 정리(bed-stair-access.md)
+
+## 탈출로 숨겨진 문·열쇠 구멍 (escape-door-keyslots.md)
+- [x] CC-182 키패드 노출, 열림 시 문짝·자물쇠만 숨김, CC-183 계단 지붕 보 절단
+- [x] 숨은 벽 판 밀림·양옆 열쇠 구멍 동시 F, Placement/Access/ExitRoute PASS
+- [x] M2_ 실패3건 확인: 2건 기존 실패, InputWalk 불안정(재실행 PASS)
+- [ ] 실제2인 열쇠 동시 돌리기
+- [ ] 기존 실패: ToolsChain(로비 디버그 말뚝뽑개4회가 남아 손 2칸이 차 UV 줍기 거절 추정)·ContainerRoute 미정 보상 재지급

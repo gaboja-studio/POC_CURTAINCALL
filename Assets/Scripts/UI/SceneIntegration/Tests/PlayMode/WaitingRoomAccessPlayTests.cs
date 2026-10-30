@@ -44,6 +44,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.Less(Mathf.Abs(point.z - b.min.z), .1f);
             foreach (var r in layout.GetComponentsInChildren<Renderer>(true).Where(r => r.enabled && r.gameObject.activeInHierarchy && r.name == "SteelLedger" && Mathf.Abs(r.bounds.center.y + 2.8f) < .02f && Mathf.Abs(r.bounds.center.z - 101.85f) < .2f))
                 Assert.IsTrue(r.bounds.max.x <= 3.5f || r.bounds.min.x >= 12.499f, "No active wall ledger across the stair entrance: " + r.transform.parent.name + " " + r.bounds);
+            // 위층 계단 디딤판 위 1.9m 안에 지붕 보가 지나가지 않는다.
+            var stairwell = layout.Find("ST_Stairwell");
+            foreach (var tread in stairwell.GetComponentsInChildren<Renderer>().Where(r => r.name == "Tread"))
+            {
+                var head = new Bounds(tread.bounds.center + Vector3.up * 1f, new Vector3(tread.bounds.size.x - .05f, 1.8f, tread.bounds.size.z - .3f));
+                Assert.IsFalse(stairwell.GetComponentsInChildren<Renderer>().Any(r => r.name.StartsWith("RoofGirder") && r.bounds.Intersects(head)), "Roof girder over stair tread " + tread.bounds.center);
+            }
             NearPlaced(door, 0); yield return new WaitForSecondsRealtime(.2f); yield return FlowTap();
             Assert.IsFalse((bool)Get(door, "Opened")); Assert.IsTrue(blocker.enabled);
             yield return PickPlaced("magician-hairpin", "S10_Workshop");
@@ -55,6 +62,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return new WaitForSecondsRealtime(.2f); yield return FlowTap(); yield return null;
             Assert.IsTrue((bool)Get(door, "Opened")); Assert.IsFalse(blocker.enabled);
             Assert.IsTrue(leaves.All(r => !r.gameObject.activeInHierarchy), "Opening removes the actual visible closed leaves");
+            Assert.IsTrue(new[] { "TransomPanel", "Threshold" }.All(n => assembly.Find(n).gameObject.activeInHierarchy), "Transom and threshold stay after opening");
+            Assert.IsFalse(assembly.Find("DoorLockPoint/OpenPadlock").gameObject.activeInHierarchy);
             yield return FlowWalk(player, mover, new Vector3(b.center.x, 0, b.max.z + .55f));
         }
     }
