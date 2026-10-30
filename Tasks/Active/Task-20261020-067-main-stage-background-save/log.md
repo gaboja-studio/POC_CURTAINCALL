@@ -61,3 +61,47 @@
 - 사용자 저장/브랜치 전환 요청. Editor가 이미 종료되어 Pipeline 미연결인 것을 프로세스 조회로 확인했다. 직전 저장/복구 검사와 컴파일·대상 8개 테스트 결과를 재사용하고 verify-fast PASS를 확인했다.
 - 공연장 원본 씬·Dynamic 파생 에셋을 private resource/performance-background-motion의 aead6c7e로 커밋·push 완료. 무관한 resttimer .meta 임포트 변경은 제외했다.
 - 공개 코드·Task 문서·지식 및 private gitlink를 현재 공연장 브랜치에 저장한 뒤 feat/exit-route/design-map으로 이동해 origin/dev e58b207f를 반영한다. 기존 폰트·프로젝트 설정 변경과 탈출로 stash는 보존한다.
+
+## 2026-10-30 공연장 작업 복귀
+
+- 사용자 요청으로 feat/exit-route/design-map에서 feat/main-stage-background-submit(6bbd91d9)으로 전환. 탈출로 미커밋 7개는 exit-route-preserved-before-background-resume-20261030 stash로 보존했다.
+- 열린 escape_route 씬 dirty=false를 확인하고 Unity 정상 종료 후 전환했다. 최신 origin/dev cf8bcab4를 --no-commit으로 충돌 없이 반영했다. 별도 저장 지시가 없어 병합 커밋·push는 하지 않았다.
+- private 실제 HEAD와 병합 gitlink 모두 94c98cb9 일치. 사전 doctor는 기존 Task ID 077/078/079 중복으로 FAIL, CLI/skill-links WARN. 브랜치 전환 영향 없음.
+- 검사: 브랜치·충돌 없음·private 포인터·공연장 씬 존재 확인. 게임 구현 변경이 없는 브랜치 복귀이며 Unity/테스트를 다시 실행하지 않았다. 다음은 원본 공연장 배경 작업.
+
+- 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-10-30 깃발 깜빡임
+
+- 실제 메시 확인: HangingVelvet의 앞뒤 정점 좌표가 같고 법선은 반대(8정점/4삼각형). 삼각형 대각선이 달라 완전 일치 중복 검사에서는 0으로 나왔으나 면은 같은 평면을 덮는다. Cull Off 재질이 두 면을 중복 렌더링해 깊이/명암 경쟁이 발생했다. Editor.log의 Vivox 403은 깃발 렌더와 무관했다.
+- Editor API로 Velvet_FadedCrimson.mat, OldCircusVelvet.mat의 _Cull만 0→2(Back) 변경·저장. 두 재질을 쓰는 Renderer 24개에서 값 일치 확인. 메시·흔들림·조명 변경 없음. private diff는 두 재질 각 1줄 변경이다.
+- 수정 전후 근접 렌더 및 앞/뒤·3초 흔들림 자세 확인. 뒷면도 계속 보이며 겹친 면 렌더를 제거했다. 비교 캡처는 Temp/FlagReview/에 보관하고 임시 에셋은 정리했다. 씬 dirty=false.
+- check-work: 안전성/문서/컴파일 PASS, 기존 문서 길이 WARN. 재질 값 수정이므로 자동 테스트는 추가/재실행하지 않았다. 커밋·push 및 기존 dev 병합 상태 변경 없음.
+## 2026-10-30 접합 재배치·기둥 밀도 조정
+
+- origin/dev cf8bcab4를 재조회해 기존 MERGE_HEAD와 같음을 확인했다. dev 병합 대기·탈출로 stash·재질 Cull 수정과 원본 씬 GUID를 보존했다. commit/push 없음.
+- ConnectionRefit 편집 도구를 추가했다. 천장을 289.7 내려 외벽 상단 y245와 맞추고, 통로/난간 181개를 발판 경계·벽 연결점으로 정렬했다. 관람대 받침·좌석 9세트, 톱 15개 축받이, 천장 조명 6개·장식 빛기둥 12개 지지대, 현수물 22개의 상단 힌지를 연결했다.
+- 크레인의 원래 회전 메시에서 고정 부재 282개를 분리하고 고정부와 회전 베어링을 맞췄다. 기존 원본 메시 에셋은 유지하고 Connections/와 Dynamic/의 파생 에셋을 사용했다. 저장 시 원래 자세로 복구한다.
+- 겹친 보조 플랫폼 1개와 부속 118개, 완전히 묻힌 거의 동일 평면 바닥 조각 3개를 제거했다. 최종 층 높이 차 8 이내·평면 면적 25% 초과 플랫폼 중첩 감사 결과 0쌍이다. 이는 플랫폼 외곽 검사이며 모든 임의 메시 교차를 없앴다는 뜻은 아니다.
+- 초안은 모든 기둥을 땅까지 연장해 과밀해졌고, 후속 사용자 요청에 따라 자체 초안을 Editor에서 원본 씬 스냅샷으로 교체했다. 그 뒤 플랫폼별 장기둥/격자를 제거하고 8개 벽 거더·376개 짧은 캔틸레버·512개 벽 연결 새들을 설치했다. 기존 장기초는 비활성으로 보존했다.
+- 사용자는 이 간소화안도 너무 허전해 최초의 분위기·압도감이 사라졌다고 지적했다. 최종안은 원본 외곽 샤프트의 철골/발광 4개 메시를 복원하고, 개별 발판 기둥 대신 12개 공용 대형 타워·8층 깊은 벨트 트러스·368개 발판 전달보로 겹겹의 실루엣을 되살렸다. 전달보 끝을 벨트 하현재에, 벨트는 타워 횡보에 실제 접하도록 보강했다. 공용 구조의 신규 부재 9664개는 메시 2개로 합쳤으며 광원·충돌체는 추가하지 않았다.
+- 사용자 미감 기준은 Decisions/performance-background-density.md에 기록했다. 최초 분위기가 기준이고 구체적인 타워 수는 구현안이다. 미감 최종 승인·성능 측정은 별도다.
+- 시각 확인: 최초/간소화/밀도 복원 전경 비교, 좌우·후면·심부. 동작 검증: EditMode 8/8, PlayMode 1/1 PASS. 22개 힌지 양 끝의 0/5/20/45/90초 최대 오차0, 천장/벽 틈0, Missing Script0, 신규 Collider0, 중립 저장 dirty=false. 전체 프로젝트 테스트는 재실행하지 않았다.
+- 도구 제약: 대형 초안 Build의 CLI 5초 타임아웃은 작업 중단이 아니었다. 상태 파일과 씬 저장을 확인한 뒤 진행했고 중복 설치하지 않았다. 비교 스크린샷은 추적하지 않는 Temp/ConnectionReview/로 옮긴다.
+
+- 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 최종 check-work 안전성·문서/규칙·컴파일 PASS. 기존 문서 길이와 미커밋 private 에셋 WARN, 전체 테스트 선택 안 함. 별도 대상 테스트 9개 통과. 최종 target 누락0·Surface116·중립 저장 dirty=false 확인, 공연장 씬을 열린 상태로 두었다.
+
+## 2026-10-30 프레임·톱 스파크·상하 쇼 조명 확장 및 저장
+
+- 사용자 요청: 크레인처럼 움직이는 프레임 추가, 회전 톱 스파크, 위아래 조명 추가 후 저장. save-work에 따라 작업 브랜치 commit/push까지 진행한다. 이전 접합·깃발 수정도 공연장 변경으로 함께 보존한다.
+- 작업 전 doctor: 기존 Task 077/078/079 중복 FAIL, CLI beta13과 문서 beta15 차이·skill-links WARN. private 포인터 FAIL은 최신 origin/dev가 26d5009e로 앞선 상태였다. 기존 병합을 e112c80b로 저장한 뒤 최신 dev b19189eb를 fd15846c로 반영하고 private 26d5009e 위에 공연장 수정/새 에셋을 보존했다. 충돌 없음.
+- PerformanceBackgroundShowExpansion 편집 도구와 ShowExpansion 파생 에셋을 추가했다. 공용 대형 타워 6곳에 고정 횡보·마스트·회전 베어링·카운터웨이트·보강 케이블을 두고 상부 프레임만 느리게 회전/상하 운동한다. 지상 기둥을 추가하지 않았다. 주기76~131초, yaw10~14도·pitch4.5~6도. 기존3개 포함 Crane9개.
+- 프레임 끝단의 상향6개/하향6개 Spot과 보이는 빛기둥12개를 추가했다. 따뜻한 주황/차가운 푸른색, 제한된 느린 스윕과 약한 맥동. 추가12개는 그림자 없음·거리155로 제한. 기존 포함 ShowLights31개. 실제 타깃 PC 성능은 미측정이다.
+- 기존 희박한 GrindingSparks6개는 비활성으로 보존하고 톱15곳의 실제 반경을 측정해 접촉 슈와 새 파티클을 연결했다. 회전 날이 아닌 고정 프레임에 방출기를 붙이고 World simulation으로 이미 튄 스파크가 프레임 회전으로 휘말리지 않게 했다. 연속14개/초+확률 burst18~32, 중력·감쇠·늘어진 불티. 먼지/불티12개 포함 Particle27개.
+- Build CLI는5초 타임아웃을 반환했으나 뒤이은 씬/배열 검사로 완료·중립 저장 dirty=false를 확인했다. 중복 실행하지 않았다.
+- 확인: EditMode8/8 PASS. 0/20/40/90초 샘플에서 새 프레임6개 pivot 오차0, 최대 회전14.535도, 잘못된 상향/하향 방향0. 스파크15개 모두 방출,1초 샘플236개. Missing Script0·추가Collider0. 중립 복구·저장 dirty=false. PlayMode 동작 구현은 이전 통과 결과를 재사용하고 이번에는 전체 테스트를 반복하지 않았다.
+
+- 2026-10-30 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 최종 check-work 안전성·문서/규칙·컴파일 PASS. 문서 길이 WARN 및 private 미커밋 안내만 있었으며 전체 테스트는 선택하지 않았다. 비교 캡처는 Temp/ShowExpansionReview/에 보존하고 임시 PNG 에셋을 정리했다. private 에셋은 resource/performance-background-show-expansion의 df7890fd에 저장했다. 공연장과 무관한 ProjectSettings 자동 변경2개는 저장 범위에서 제외한다.
+- private df7890fd를 origin/resource/performance-background-show-expansion에 push 완료. 공개 저장은 feat/main-stage-background-submit에서 공연장 코드·참조 포인터·Task/지식 문서15개로 한정한다. 기존 밀도/접합/깃발 수정도 포함하며 dev 직접 반영/PR 생성은 하지 않는다.

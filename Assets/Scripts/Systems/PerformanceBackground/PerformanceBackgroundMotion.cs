@@ -16,6 +16,9 @@ namespace CurtainCall.PerformanceBackground
             public Vector3 restScale = Vector3.one;
             [Tooltip("각 축의 최대 회전각(도). 원래 자세를 중심으로 왕복합니다.")]
             public Vector3 rotationDegrees;
+            [Tooltip("고정된 위쪽 모서리로 흔드는 현수물의 로컬 힌지 축")]
+            public Vector3 hingeAxis;
+            public float hingeDegrees;
             public Vector3 travel;
             [Tooltip("톱날처럼 계속 회전하는 축별 속도(도/초)")]
             public Vector3 spinDegreesPerSecond;
@@ -39,6 +42,8 @@ namespace CurtainCall.PerformanceBackground
                 target.localPosition = restPosition + travel * wave;
                 var spin = new Vector3((float)(spinDegreesPerSecond.x * seconds % 360.0), (float)(spinDegreesPerSecond.y * seconds % 360.0), (float)(spinDegreesPerSecond.z * seconds % 360.0));
                 target.localRotation = restRotation * Quaternion.Euler(rotationDegrees * wave) * Quaternion.Euler(spin);
+                if (hingeAxis.sqrMagnitude > .0001f)
+                    target.localRotation *= Quaternion.AngleAxis(hingeDegrees * wave, hingeAxis.normalized);
                 target.localScale = Vector3.Scale(restScale, Vector3.one + scaleBreathing * wave);
             }
 

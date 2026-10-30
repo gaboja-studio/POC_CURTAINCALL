@@ -1,7 +1,7 @@
 ---
 summary: 공연장 톱날·철골·쇼 조명·안개·현수물·먼지/불티의 동작과 전체 Scene 미리보기
 status: active
-updated: 2026-10-29
+updated: 2026-10-30
 source: Task-20261020-067; performance_background 씬 연결 및 메시 삼각형 보존 확인
 ---
 
@@ -26,6 +26,16 @@ source: Task-20261020-067; performance_background 씬 연결 및 메시 삼각�
 - 고정 가로보·베어링을 추가했고, 실시간 광원 수는 늘리지 않았다. 실제 Spot Light와 장식 DustBeam의 움직임 track은 독립적이다.
 - 코드: `Assets/Scripts/Systems/PerformanceBackground/PerformanceBackgroundMotion.cs`, 편집 도구는 `Editor/`.
 - Setup.Build 및 AmbientSetup.Build는 이미 연결된 씬에서 재실행을 거부한다. 재생성 대신 기존 track을 조정한다.
+
+## 접합·철골 재배치
+
+- `30_ConnectedStructure`와 `Connections/`는 2026-10-30 접합 보강의 파생 기하다. 원본 메시 에셋은 유지한다. 천장 하단과 외벽 상단은 y=245에서 접한다.
+- 플랫폼별 장기둥은 공용 벽 거더와 캔틸레버로 대체했다. 최초의 밀도를 되살리기 위해 원래 외곽 샤프트 4개 메시를 복원하고, `SharedIndustrialFrames`에 공용 타워 12개·깊은 벨트 트러스 8층·발판 전달보 368개를 두 재질 배치로 추가했다. 실시간 광원·충돌체는 추가하지 않았다.
+- 통로/난간 끝, 하부 좌석, 크레인 고정부, 톱 축받이, 천장 조명·장식 빛기둥과 깃발 고정점을 실제 부재에 연결했다. 렌즈 18개의 SurfaceMotion이 추가되어 총 116개다.
+- 깃발·천 22개는 위쪽 고정 모서리에 `hingeAxis`를 맞춰 움직인다. 일반 Euler 흔들림과 위치 이동은 이들 track에서 제거했다. 두 고정점의 0~90초 샘플 오차는 0이었다.
+- `PerformanceBackgroundConnectionRefit.Build()`는 최초 접합용이며 이미 설치한 씬에 재실행하지 않는다. `RestoreIndustrialDensity()`는 그 뒤의 밀도 복원 단계로 중복 실행을 거부한다. 기존 씬에서는 재설치 대신 개별 부재를 조정한다.
+- 미감 기준: [공연장 철골 밀도](../Decisions/performance-background-density.md).
+- `31_ShowExpansion`/`ShowExpansion/`: 공용 타워에 붙인 독립 회전·상하 프레임 6개를 추가해 Crane track 총9개다. 끝단 상향/하향 스폿·가시 빛기둥은 각각12개 추가(ShowLights 총31), 그림자는 끈다. 기존 희박한 GrindingSparks 6개를 비활성으로 보존하고 톱15개에 고정 접촉 슈·World 공간 스파크를 연결했다. Particles 총27개(먼지/불티12+톱15). 생성 도구 `PerformanceBackgroundShowExpansion.Build()`는 중복 실행을 거부한다.
 
 ## 남은 확인
 

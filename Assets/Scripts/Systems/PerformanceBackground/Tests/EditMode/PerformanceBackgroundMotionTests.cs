@@ -66,6 +66,23 @@ namespace CurtainCall.PerformanceBackground.Tests
         }
 
         [Test]
+        public void HangingHingeKeepsBothAttachmentPointsFixed()
+        {
+            track.rotationDegrees = Vector3.zero;
+            track.travel = Vector3.zero;
+            track.hingeAxis = new Vector3(.8f, 0f, .6f).normalized;
+            track.hingeDegrees = 4f;
+            var a = arm.TransformPoint(track.hingeAxis * -7f);
+            var b = arm.TransformPoint(track.hingeAxis * 7f);
+            foreach (double time in new[] { 0.0, 9.0, 20.0, 43.0, 69.0 })
+            {
+                track.Sample(time);
+                Assert.That(Vector3.Distance(a, arm.TransformPoint(track.hingeAxis * -7f)), Is.LessThan(.0001f));
+                Assert.That(Vector3.Distance(b, arm.TransformPoint(track.hingeAxis * 7f)), Is.LessThan(.0001f));
+            }
+        }
+
+        [Test]
         public void SawSpinKeepsDirectionAcrossMultipleRevolutions()
         {
             track.rotationDegrees = Vector3.zero;
