@@ -6,5 +6,8 @@
 - 카메라 PlayMode 9/9, 설정 PlayMode 1/1은 PR 작업의 검사 결과다. 전체 PlayMode는 중단되어 결과가 없고 실제 키보드로 전 구역을 이동하는 최종 체감은 남았다.
 - 검사: 기본 샌드박스에서는 LFS 프로세스 권한 오류로 변경 조회 실패. 재실행 시 안전성·문서/규칙 PASS, 보존 중인 에셋 변경이 함께 감지되어 컴파일은 `-SkipUnity`로 생략. 이번 공유 대상은 문서뿐이며 새 Unity 검사는 실행하지 않았다.
 - 제출: [PR #252](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/252), refactor/camera-followup-record → dev. 검토 대기.
+- 2026-10-31 사용자 지시: 폰트·라벨 3개만 마지막 저장본으로 복원하고, 보존 중이던 Task-083 미리보기 14개를 이 브랜치에서 저장·공유한다. 이미지 14개 모두 PNG로 읽히며 1100×850이다. 이는 파일 무결성 검사이며 동작·외형의 최종 승인이나 전체 PlayMode 통과를 뜻하지 않는다.
 
 - 2026-10-31 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(-SkipUnity); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-10-31 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(Unity 변경 없음); 테스트=SKIPPED(자동 테스트 선택 안 함)
