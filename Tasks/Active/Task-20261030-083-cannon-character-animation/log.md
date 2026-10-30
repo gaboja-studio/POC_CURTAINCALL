@@ -50,6 +50,8 @@
 - 최신 dev의 다인 봉 매달림 플레이어별 HangingPosition(index, actor) 경로도 유지한다. 병합 후 인간 대포 Editor531/531(10.14초), CircusMotion 실제 Play5/5(73.92초) 통과. 원형 외곽 접촉 Play 회귀 검사를 추가 진행한다.
 - 원형 반동 Play4/4(19.88초) 통과: 빈 코너 비반동, 손잡이·테두리·중앙 반동 속도/높이 유지. 공통 운반 조작 회귀도 확인한다. 원격 다중 클라이언트 지연/최종 재미 확인은 이번 검사의 범위 밖이다.
 - 공통 운반 이동/속도·놓기·재시작·나가기 복구 Play1/1(7.48초) 통과. 최종 합계 Editor531 + Play10 통과. 테스트가 만든 CheerGauge 동적 폰트 캐시만 최신 dev/index 내용으로 복원·재임포트하고 테스트용 background 설정을 원래 false로 복구했다.
+- 병합 커밋32dda84b(부모8a9526e4 + origin/dev 0b28e57d) 저장·푸시. check-work 안전성/문서/컴파일 PASS, dev 원격 최신 커밋 재확인.
+- dev PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/248 . 기능·충돌 해결·검사·플레이 제약과 갤러리 사용법을 본문에 기록했다. 지정 팀원 검토 후 Squash 대상이며 dev 병합은 실행하지 않았다.
 
 - 2026-10-30 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
 
