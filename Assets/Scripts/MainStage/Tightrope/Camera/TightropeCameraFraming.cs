@@ -25,6 +25,7 @@ namespace CurtainCall.Cameras
         bool hasFrame;
         bool firstPersonFraming;
         bool hasSharedGroup;
+        bool rescueFraming;
         Vector3 sharedOffset, sharedCenter;
         readonly List<TightropeFramingMath.LayerSubject> layerSubjects = new();
         readonly List<ulong> sharedMembers = new();
@@ -74,22 +75,26 @@ namespace CurtainCall.Cameras
         {
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || director == null) return;
             var course = TightropeCourse.Current;
+            bool rescuing = TryGetLocalRescue(out var rescuer, out var rescued);
             if (course == null || !course.IsTraversalActive
-                || (course.UsesSceneGeometry && !course.UsesRopeRules(director.LocalPlayer)))
+                || (course.UsesSceneGeometry && !course.UsesRopeRules(director.LocalPlayer) && !rescuing))
             {
                 ReleaseViewScope();
                 return;
             }
             EnsurePresets();
             bool useLocal = CanUseLocalView;
-            bool useFirstPerson = useLocal && !IsLocalOnRope;
+            bool useFirstPerson = useLocal && !IsLocalOnRope && !rescuing;
+            if (rescueFraming != rescuing) ResetFrame();
+            rescueFraming = rescuing;
+            director.SetPreserveCursorInFixedView(rescuing);
             // 공용 자유 시점은 로컬 캐릭터를 중심으로 돈다. 관전 요청은 고정형으로 남겨
             // 사망한 로컬 플레이어 대신 관전 대상을 계속 따라갈 수 있게 한다.
-            preset.Kind = useLocal ? CameraViewKind.FreeThirdPerson : CameraViewKind.ThirdPerson;
+            preset.Kind = useLocal && !rescuing ? CameraViewKind.FreeThirdPerson : CameraViewKind.ThirdPerson;
             var rules = GameSettings.Tightrope.Camera;
             float fieldOfView = preset.FieldOfView;
             var baseline = new TightropeFramingMath.Frame(rules.Height, rules.Distance, rules.LookHeight, rules.LookAhead);
-            var focus = useLocal ? director.LocalPlayer.transform : FocusTarget();
+            var focus = rescuing ? rescuer.transform : useLocal ? director.LocalPlayer.transform : FocusTarget();
             var subject = focus != null ? focus.GetComponentInParent<NetworkPlayer>() : null;
             if (!IsActivePlayer(subject)) { ReleaseViewScope(); return; }
             if (framedPlayer != subject || firstPersonFraming != useFirstPerson) ResetFrame();
@@ -107,19 +112,28 @@ namespace CurtainCall.Cameras
                 groupPlayers.Clear();
                 if (focus != null && IsActivePlayer(framedPlayer))
                 {
-                    hasSharedGroup = CollectSharedLayer(framedPlayer, rules.NearbyRadius, out sharedCenter);
+                    hasSharedGroup = !rescuing && CollectSharedLayer(framedPlayer, rules.NearbyRadius, out sharedCenter);
                     // 공전은 내 캐릭터 중심을 유지하고, 관전만 동료들의 중심으로 이동한다.
                     Vector3 anchor = !useLocal && hasSharedGroup ? sharedCenter : focus.position;
-                    Vector3 framingForward = useLocal && director.ViewForward.sqrMagnitude > .0001f
-                        ? director.ViewForward : course.Forward;
-                    Quaternion rotation = useLocal || hasSharedGroup
+                    Vector3 framingForward = useLocal && !rescuing && director.ViewForward.sqrMagnitude > .0001f
+                        ? director.ViewForward : rescuing ? RescueForward(course.Forward) : course.Forward;
+                    Quaternion rotation = useLocal || hasSharedGroup || rescuing
                         ? Quaternion.LookRotation(framingForward, Vector3.up) : focus.rotation;
                     if (!useLocal && hasSharedGroup) targetOffset = anchor - focus.position;
-                    bool hasContext = CollectSubjects(anchor, framedPlayer, rules, out var subjects);
+                    Bounds subjects;
+                    bool hasContext;
+                    if (rescuing)
+                    {
+                        subjects = PlayerBounds(rescuer);
+                        subjects.Encapsulate(PlayerBounds(rescued));
+                        hasContext = true;
+                    }
+                    else hasContext = CollectSubjects(anchor, framedPlayer, rules, out subjects);
                     if (hasContext)
                     {
                         float aspect = Camera.main != null ? Camera.main.aspect
                             : Screen.width / (float)Mathf.Max(1, Screen.height);
+                        if (rescuing) baseline = new TightropeFramingMath.Frame(rules.Height * 1.7f, rules.Distance, rules.LookHeight, 0f);
                         targetFrame = TightropeFramingMath.Fit(subjects, anchor, rotation, framingForward,
                             baseline, fieldOfView, aspect, rules.MaximumDistance, rules.FramingPadding, rules.ContextLookAhead);
                     }
@@ -150,6 +164,25 @@ namespace CurtainCall.Cameras
             return virtualCamera != null ? virtualCamera.Target.TrackingTarget : null;
         }
 
+        bool TryGetLocalRescue(out NetworkPlayer rescuer, out NetworkPlayer rescued)
+        {
+            rescuer = rescued = null;
+            var local = director != null ? director.LocalPlayer : null;
+            var hangs = TightropeHangSystem.Current;
+            if (local == null || local.State != PlayerState.Normal || CameraSpectator.IsSpectating || hangs == null) return false;
+            foreach (var hang in hangs.Hangs)
+            {
+                if (!hang.IsPulling || (local.OwnerClientId != hang.Id && local.OwnerClientId != hang.Rescuer)) continue;
+                foreach (var player in NetworkPlayer.All)
+                {
+                    if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) continue;
+                    if (player.OwnerClientId == hang.Rescuer) rescuer = player;
+                    if (player.OwnerClientId == hang.Id) rescued = player;
+                }
+                return rescuer != null && rescued != null;
+            }
+            return false;
+        }
         static bool IsActivePlayer(NetworkPlayer player) => player != null && player.isActiveAndEnabled
             && player.State == PlayerState.Normal && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen);
 
@@ -207,10 +240,11 @@ namespace CurtainCall.Cameras
                 || !isActiveAndEnabled || director == null || director.CurrentView != preset || director.UsesMouseLook
                 || !IsActivePlayer(framedPlayer)) return;
             var course = TightropeCourse.Current;
-            var focus = FocusTarget();
+            var focus = rescueFraming && framedPlayer != null ? framedPlayer.transform : FocusTarget();
             if (course == null || !course.IsTraversalActive || focus == null) return;
-            Quaternion rotation = hasSharedGroup ? Quaternion.LookRotation(course.Forward, Vector3.up) : focus.rotation;
-            var pose = TightropeFramingMath.CameraPose(focus.position + sharedOffset, rotation, course.Forward,
+            Vector3 framingForward = rescueFraming ? RescueForward(course.Forward) : course.Forward;
+            Quaternion rotation = hasSharedGroup || rescueFraming ? Quaternion.LookRotation(framingForward, Vector3.up) : focus.rotation;
+            var pose = TightropeFramingMath.CameraPose(focus.position + sharedOffset, rotation, framingForward,
                 currentFrame, out var look);
             state.RawPosition = pose.position;
             state.RawOrientation = pose.rotation;
@@ -219,6 +253,8 @@ namespace CurtainCall.Cameras
             state.ReferenceLookAt = look;
             state.Lens.Dutch = 0f;
         }
+
+        static Vector3 RescueForward(Vector3 courseForward) => Quaternion.AngleAxis(40f, Vector3.up) * courseForward;
 
         static Bounds PlayerBounds(NetworkPlayer player)
         {

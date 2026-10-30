@@ -47,13 +47,15 @@ namespace CurtainCall.Results
         public long CompletionBonus { get; }
         public bool Arrived => CompletionBonus > 0;
         public double? MaximumDistance { get; }
+        /// <summary>정산 직전의 마지막 위치. 사망자는 사망 직전 마지막으로 관찰한 위치다.</summary>
+        public double? FinalDistance { get; }
 
         /// <summary>호응 보상 지급액. 완주 보너스를 뺀 값이다.</summary>
         public static long CheerPayout(long segment, bool dead, bool connected) => !connected ? 0 : dead ? segment : checked(segment * 2);
 
         public PerformanceParticipantResult(string participantId, ulong clientId, int slot, int startingLostCount,
             int endingLostCount, bool dead, bool connected, string judgement, long segment, long settlement,
-            double? maximumDistance = null, long completionBonus = 0)
+            double? maximumDistance = null, long completionBonus = 0, double? finalDistance = null)
         {
             if (string.IsNullOrWhiteSpace(participantId) || participantId.Length > 100 || slot < -1 || slot > 63
                 || startingLostCount < 0 || startingLostCount > 4 || endingLostCount < 0 || endingLostCount > 4
@@ -63,7 +65,10 @@ namespace CurtainCall.Results
                 throw new ArgumentException("참가자 결과가 올바르지 않습니다.");
             if (maximumDistance.HasValue && (!double.IsFinite(maximumDistance.Value) || maximumDistance.Value < 0))
                 throw new ArgumentException("Invalid maximum distance.");
+            if (finalDistance.HasValue && (!double.IsFinite(finalDistance.Value) || finalDistance.Value < 0))
+                throw new ArgumentException("Invalid final distance.");
             MaximumDistance = maximumDistance;
+            FinalDistance = finalDistance;
             ParticipantId = participantId;
             ClientId = clientId;
             Slot = slot;

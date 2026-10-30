@@ -1,5 +1,6 @@
 using System;
 using CurtainCall.Results;
+using UnityEngine;
 
 namespace CurtainCall.Reward
 {
@@ -37,8 +38,10 @@ namespace CurtainCall.Reward
         public long completionBonus;
         public bool hasDistance;
         public double maximumDistance;
+        public bool hasFinalDistance;
+        public double finalDistance;
         public RewardSegment ReadSegment() => new(id, client, slot, start, end, dead, connected, segment, reactionSequence, reactionDelta, reactionAmount);
-        public PerformanceParticipantResult ReadResult() => new(id, client, slot, start, end, dead, connected, judgement, segment, settlement, hasDistance ? maximumDistance : null, completionBonus);
+        public PerformanceParticipantResult ReadResult() => new(id, client, slot, start, end, dead, connected, judgement, segment, settlement, hasDistance ? maximumDistance : null, completionBonus, hasFinalDistance ? finalDistance : null);
         public static RewardPersonData From(RewardSegment value) => new()
         {
             id = value.ParticipantId, client = value.ClientId, slot = value.Slot, start = value.StartingLostCount,
@@ -50,7 +53,8 @@ namespace CurtainCall.Reward
             id = value.ParticipantId, client = value.ClientId, slot = value.Slot, start = value.StartingLostCount,
             end = value.EndingLostCount, dead = value.Dead, connected = value.Connected, segment = value.Segment,
             judgement = value.Judgement, settlement = value.Settlement, completionBonus = value.CompletionBonus,
-            hasDistance = value.MaximumDistance.HasValue, maximumDistance = value.MaximumDistance ?? 0
+            hasDistance = value.MaximumDistance.HasValue, maximumDistance = value.MaximumDistance ?? 0,
+            hasFinalDistance = value.FinalDistance.HasValue, finalDistance = value.FinalDistance ?? 0
         };
     }
 
@@ -105,6 +109,14 @@ namespace CurtainCall.Reward
     }
 
     [Serializable]
+    internal sealed class RewardFinalPoseData
+    {
+        public ulong client;
+        public Vector3 position;
+        public Quaternion rotation;
+    }
+
+    [Serializable]
     internal sealed class RewardStateData
     {
         public string session;
@@ -126,6 +138,8 @@ namespace CurtainCall.Reward
         public int ledgerCount;
         public int ledgerStart;
         public RewardLedgerData[] ledger;
+        public string finalPosePerformance;
+        public RewardFinalPoseData[] finalPoses;
 
         public RewardSnapshot Read()
         {

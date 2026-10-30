@@ -75,16 +75,15 @@ namespace CurtainCall.HumanCannon
             if (!session.IsHost || IsResolved) return;
             if (humanCannon && PerformanceOpen)
             {
+                var arrivals = new Dictionary<string, string>();
                 foreach (var player in NetworkPlayer.All)
                 {
                     if (!HasArrived(player)) continue;
                     foreach (var participant in rewards.State.Segments)
                         if (participant.ClientId == player.OwnerClientId && participant.Connected && !participant.Dead)
-                        {
-                            rewards.FinishPerformance(true, "Completed", new Dictionary<string, string> { [participant.ParticipantId] = "Arrived" });
-                            return;
-                        }
+                            arrivals[participant.ParticipantId] = "Arrived";
                 }
+                if (arrivals.Count > 0) { rewards.FinishPerformance(true, "Completed", arrivals); return; }
                 // 전멸·이탈 실패는 공용 명부 관찰이 처리한다. 자체 정산/시간대 전환을 중복 호출하지 않는다.
             }
             else if (Application.isEditor && session.GameState == GameSessionState.Waiting
