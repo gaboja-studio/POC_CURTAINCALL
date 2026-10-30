@@ -8,6 +8,8 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Transform platform;
         [SerializeField] Transform start;
         [SerializeField] Transform destination;
+        [Tooltip("선택 경유점. 있으면 시작→경유점→도착을 같은 속도로 꺾어 이동한다.")]
+        [SerializeField] Transform via;
         [Tooltip("발판의 좌우·앞뒤 반폭(m). 플레이어와 트램폴린 전체가 올라와야 출발한다.")]
         [SerializeField] Vector2 halfSize = new(3f, 4f);
         [Tooltip("시험용 이동 시간(초). 최종 밸런스가 아니다.")]
@@ -26,7 +28,17 @@ namespace CurtainCall.HumanCannon
         public Transform Platform => platform;
         public Vector3 StartPosition => start.position;
         public Quaternion Rotation => start.rotation;
-        public Vector3 Position(float progress) => Vector3.Lerp(start.position, destination.position, progress);
+        public Transform Via => via;
+        public Vector3 Position(float progress)
+        {
+            if (via == null) return Vector3.Lerp(start.position, destination.position, progress);
+            // 두 구간 길이에 비례해 나눠 꺾이는 지점에서도 속도가 같다.
+            float first = Vector3.Distance(start.position, via.position), second = Vector3.Distance(via.position, destination.position);
+            float travelled = Mathf.Clamp01(progress) * (first + second);
+            return travelled <= first
+                ? Vector3.Lerp(start.position, via.position, first > 0f ? travelled / first : 1f)
+                : Vector3.Lerp(via.position, destination.position, second > 0f ? (travelled - first) / second : 1f);
+        }
         public bool IsConfigured => platform != null && start != null && destination != null && travelSeconds > 0;
         public bool HasTrapDoors => leftHinge != null && rightHinge != null && trapColliders.Length == 2;
         public float EmptyResetSeconds => emptyResetSeconds;
