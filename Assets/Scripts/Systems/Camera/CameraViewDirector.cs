@@ -321,15 +321,22 @@ namespace CurtainCall.Cameras
                     deathOutput.GetFinalOrientation());
                 state.ReferenceLookAt = CameraState.kNoPoint;
             }
-            else if (SceneManager.GetActiveScene().name == "WaitingRoomBase" && CanUseLocalView && !IsFirstPerson)
-                ApplyWaitingRoomCollision(ref state);
+            else if (UsesWallCollision(SceneManager.GetActiveScene()) && CanUseLocalView && !IsFirstPerson)
+                ApplyWallCollision(ref state);
             else
                 collisionDistance = -1f;
             lastOutput = state;
             hasOutput = true;
         }
 
-        void ApplyWaitingRoomCollision(ref CameraState state)
+        /// <summary>
+        /// 벽 충돌(스프링 암)을 쓰는 공간: 대기실(Task-086)·탈출로(Task-089). 이 공간에서는 카메라가 벽 앞으로 당겨지므로
+        /// <see cref="CameraOcclusionFade"/>도 고정 구조물을 반투명하게 만들지 않는다. 탈출로는 씬 활성화 후 활성 씬이 된다.
+        /// </summary>
+        public static bool UsesWallCollision(Scene scene) => scene.IsValid()
+            && (scene.name == "WaitingRoomBase" || scene.name.StartsWith("escape_route", StringComparison.Ordinal));
+
+        void ApplyWallCollision(ref CameraState state)
         {
             Vector3 pivot = local.transform.position + Vector3.up * Mathf.Max(.1f, selected.LookHeight);
             Vector3 offset = state.GetFinalPosition() - pivot;

@@ -19,6 +19,8 @@ namespace CurtainCall.HumanCannon
         string performanceId;
         string appliedTierStep;
         public static HumanCannonDestination Current { get; private set; }
+        /// <summary>목적지 착지판(읽기 전용, Dev 순간이동 등). 판정은 이 컴포넌트가 한다.</summary>
+        public HumanCannonLandingZone Zone => destination;
         public bool PracticeCompleted { get; private set; }
         public bool PracticeFailed { get; private set; }
         public PerformanceResult Result { get; private set; }

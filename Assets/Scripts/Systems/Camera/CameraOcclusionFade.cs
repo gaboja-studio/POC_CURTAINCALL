@@ -125,9 +125,9 @@ namespace CurtainCall.Cameras
                 for (int i = 0; i < count; i++)
                 {
                     var collider = hits[i].collider;
-                    // 대기실의 공간 구조물은 절대 반투명하게 만들지 않는다. 다른 플레이어와
+                    // 벽 충돌 공간(대기실·탈출로)의 공간 구조물은 절대 반투명하게 만들지 않는다. 다른 플레이어와
                     // 물리적으로 움직이는 기물만 가림 처리한다.
-                    if (SceneManager.GetActiveScene().name == "WaitingRoomBase" &&
+                    if (CameraViewDirector.UsesWallCollision(SceneManager.GetActiveScene()) &&
                         collider.GetComponentInParent<NetworkPlayer>() == null &&
                         (collider.attachedRigidbody == null || collider.attachedRigidbody.isKinematic)) continue;
                     var hit = collider.transform;

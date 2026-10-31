@@ -11,7 +11,7 @@ namespace CurtainCall.Cameras
 {
     /// <summary>
     /// 외줄 전용 구도·가림 예외 공급자. 실제 코스가 있을 때만 공용 카메라에 요청한다.
-    /// 플랫폼은 1인칭, 줄 탑승·점프·목마는 마우스 공전 3인칭이다. 관전은 고정 구도를 사용한다.
+    /// 플랫폼은 공용 자유 3인칭(Task-089), 줄 탑승·점프·목마는 구도 맞춤 마우스 공전 3인칭이다. 관전은 고정 구도를 사용한다.
     /// </summary>
     [RequireComponent(typeof(CameraViewDirector))]
     public sealed partial class TightropeCameraFraming : CinemachineExtension
@@ -23,7 +23,7 @@ namespace CurtainCall.Cameras
         NetworkPlayer framedPlayer;
         TightropeFramingMath.Frame currentFrame;
         bool hasFrame;
-        bool firstPersonFraming;
+        bool platformFraming;
         bool hasSharedGroup;
         bool rescueFraming;
         Vector3 sharedOffset, sharedCenter;
@@ -84,7 +84,8 @@ namespace CurtainCall.Cameras
             }
             EnsurePresets();
             bool useLocal = CanUseLocalView;
-            bool useFirstPerson = useLocal && !IsLocalOnRope && !rescuing;
+            // 플랫폼은 다른 공간과 같은 공용 자유 3인칭을 쓴다(Task-089). 줄 위만 구도 맞춤 공전 3인칭이다.
+            bool usePlatformView = useLocal && !IsLocalOnRope && !rescuing;
             if (rescueFraming != rescuing) ResetFrame();
             rescueFraming = rescuing;
             director.SetPreserveCursorInFixedView(rescuing);
@@ -97,9 +98,9 @@ namespace CurtainCall.Cameras
             var focus = rescuing ? rescuer.transform : useLocal ? director.LocalPlayer.transform : FocusTarget();
             var subject = focus != null ? focus.GetComponentInParent<NetworkPlayer>() : null;
             if (!IsActivePlayer(subject)) { ReleaseViewScope(); return; }
-            if (framedPlayer != subject || firstPersonFraming != useFirstPerson) ResetFrame();
+            if (framedPlayer != subject || platformFraming != usePlatformView) ResetFrame();
             framedPlayer = subject;
-            firstPersonFraming = useFirstPerson;
+            platformFraming = usePlatformView;
             if (!hasFrame) { currentFrame = baseline; hasFrame = true; }
             // PreparingView는 한 프레임에 Update와 Cinemachine에서 여러 번 호출될 수 있다.
             if (updatedFrame != Time.frameCount)
@@ -147,7 +148,7 @@ namespace CurtainCall.Cameras
             preset.Distance = currentFrame.Distance;
             preset.LookHeight = currentFrame.LookHeight;
             preset.LookAhead = currentFrame.LookAhead;
-            director.RequestView(this, useFirstPerson ? firstView : preset, 0, course.Forward);
+            director.RequestView(this, usePlatformView ? platformView : preset, 0, course.Forward);
             director.SetInputBlocked(InputGate.IsBlocked || TightropeCampaignHud.RequiresStartCursor);
             ownsInput = true;
             if (fade == null) return;

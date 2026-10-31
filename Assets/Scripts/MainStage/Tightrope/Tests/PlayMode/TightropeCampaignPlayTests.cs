@@ -287,9 +287,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var director = (Component)Static("CurtainCall.Cameras.CameraViewDirector", "Current");
             Assert.IsNotNull(framing);
             yield return Until(() => (bool)Get(framing, "IsLocalViewActive")
-                && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 3, "출발 플랫폼 기본 1인칭");
-            Assert.IsTrue((bool)Get(director, "IsFirstPerson"));
-            Assert.AreEqual("FirstPerson", Get(framing, "CurrentMode").ToString());
+                && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 3, "출발 플랫폼 기본 자유 3인칭");
+            Assert.IsTrue((bool)Get(director, "IsFreeThirdPerson"), "플랫폼은 다른 공간과 같은 자유 3인칭(Task-089)");
+            Assert.AreEqual("FreeThirdPerson", Get(framing, "CurrentMode").ToString());
             Assert.IsTrue((bool)Get(mover, "FreeMovement"));
             Set(director, "yaw", 75f); // 마우스 장치 조작 없이 시선 상태를 합성한다.
             Vector3 forward = (Vector3)Get(director, "ViewForward");
@@ -300,14 +300,16 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 block.Invoke(null, new[] { blocker, (object)true });
                 yield return null;
                 Assert.IsTrue((bool)Get(director, "inputBlocked"));
-                Assert.IsTrue((bool)Get(director, "IsFirstPerson"));
+                Assert.IsTrue((bool)Get(director, "IsFreeThirdPerson"));
                 Assert.That(Vector3.Dot(forward, (Vector3)Get(director, "ViewForward")), Is.GreaterThan(0.999f));
             }
             finally { block.Invoke(null, new[] { blocker, (object)false }); }
             yield return Until(() => !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 3, "메뉴 닫은 뒤 입력 재개");
 
             yield return StandOnRopeForSawTest(1, 4f);
+            var platformView = Get(director, "CurrentView");
             yield return Until(() => (bool)Get(framing, "IsLocalViewActive")
+                && Get(director, "CurrentView") != platformView
                 && Get(Get(director, "CurrentView"), "Kind").ToString() == "FreeThirdPerson", 3, "줄 탑승 자동 공전 3인칭");
             Assert.AreEqual("FreeThirdPerson", Get(framing, "CurrentMode").ToString());
             Assert.IsTrue((bool)Get(director, "UsesMouseLook"));
@@ -358,9 +360,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var start = (Pose)Call(course, "GetStartPose", (int)Get(player, "Slot"));
             Call(mover, "SetStartPose", start.position, start.rotation, true);
             yield return Until(() => (bool)Get(mover, "FreeMovement") && !(bool)Get(mover, "IsAirborne")
-                && (bool)Get(director, "IsFirstPerson"), 3, "플랫폼 복귀 자동 1인칭");
-            Assert.AreEqual("FirstPerson", Get(framing, "CurrentMode").ToString());
-            Assert.IsTrue((bool)Get(director, "IsFirstPerson"));
+                && Get(director, "CurrentView") == platformView, 3, "플랫폼 복귀 공용 자유 3인칭");
+            Assert.AreEqual("FreeThirdPerson", Get(framing, "CurrentMode").ToString());
+            Assert.IsTrue((bool)Get(director, "IsFreeThirdPerson"));
             Assert.IsTrue((bool)Get(director, "UsesMouseLook"));
         }
 

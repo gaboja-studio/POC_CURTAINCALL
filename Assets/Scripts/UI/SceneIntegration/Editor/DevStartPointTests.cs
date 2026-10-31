@@ -80,6 +80,22 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.AreEqual(RunEndReason.Deadline, run.Snapshot.LastEnd);
         }
 
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(4)]
+        public void Escape_StartsEscapePhaseWithStoppedTimerOnAnyDay(int day)
+        {
+            // Task-089: Dev 시작 지점 "탈출로"는 쉬는 시간에서 정상 탈출 개시 경로를 거친다. 공연 선택은 쓰지 않는다.
+            var run = new RunState(demoVersion: true);
+            Assert.IsTrue(run.DebugStartAt(new RunStartPoint(day, RunStartPhase.Escape, 0, "")));
+            Assert.AreEqual(CampaignPhase.Escape, run.Snapshot.Phase);
+            Assert.AreEqual(day, run.Snapshot.Day);
+            Assert.AreEqual(RestTimerState.Stopped, run.Snapshot.Timer);
+            Assert.AreEqual(CampaignPhase.Escape, new RunStartPoint(day, RunStartPhase.Escape, 0, "").TargetPhase);
+            Assert.IsTrue(run.EndEscape(true));
+            Assert.AreEqual(CampaignPhase.Ending, run.Snapshot.Phase);
+        }
+
         [TestCase(0, RunStartPhase.Performance, 0, "Tightrope")]
         [TestCase(1, RunStartPhase.Morning, 0, "Tightrope")]
         [TestCase(1, RunStartPhase.Performance, -1, "Tightrope")]
@@ -89,6 +105,8 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         [TestCase(4, RunStartPhase.Night, 0, "")]
         [TestCase(5, RunStartPhase.Morning, 0, "")]
         [TestCase(1, (RunStartPhase)99, 0, "Tightrope")]
+        [TestCase(0, RunStartPhase.Escape, 0, "")]
+        [TestCase(6, RunStartPhase.Escape, 0, "")]
         public void InvalidPoint_DoesNotChangeRun(int day, RunStartPhase phase, int slot, string trick)
         {
             var run = new RunState(); run.StartSession(); run.EndIntro();

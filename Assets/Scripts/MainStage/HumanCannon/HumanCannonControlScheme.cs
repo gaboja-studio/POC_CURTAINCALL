@@ -9,8 +9,7 @@ namespace CurtainCall.HumanCannon
 
         public override void Enter(PlayerControlContext context)
         {
-            base.Enter(context);
-            if (context.Mover != null) context.Mover.FreeAirControl = true;
+            base.Enter(context); // 공중 조작은 공용 플랫폼 규칙이 켜고 끈다.
             // 공용 플레이어의 테스트용 시작값을 덮어쓴다. 대포에서는 외줄 균형을 사용하지 않는다.
             // 매 프레임 초기화하면 대포 착지 사망의 래그돌까지 복구되므로 전환할 때만 끈다.
             if (context.Balance != null && context.Balance.IsActive)
@@ -19,12 +18,6 @@ namespace CurtainCall.HumanCannon
                 if (context.Balance.HasFallen) context.Balance.SetDisplayedState(false, 0f);
                 else context.Balance.SetBalanceActive(false);
             }
-        }
-
-        public override void Exit(PlayerControlContext context)
-        {
-            if (context.Mover != null) context.Mover.FreeAirControl = false;
-            base.Exit(context);
         }
 
         public override void Tick(PlayerControlContext context, in PlayerInputFrame input)

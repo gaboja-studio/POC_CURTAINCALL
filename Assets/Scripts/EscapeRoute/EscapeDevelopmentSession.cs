@@ -1,8 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using CurtainCall.Cameras;
+using CurtainCall.Campaign;
+using CurtainCall.Dev;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
+using CurtainCall.Player;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -23,10 +27,15 @@ namespace CurtainCall.EscapeRoute
             set => suppressFallConsequences = value;
         }
 
-        /// <summary>옵션을 켠 개발 씬의 추락 경로만 차단한다. 직접 위험물 피해의 상태 가드로 사용하지 않는다.</summary>
+        /// <summary>
+        /// 옵션을 켠 개발 씬의 추락 경로만 차단한다. Dev 치트 "추락 무시"(F9)가 켜져 있으면 어느 공간에서든 차단한다.
+        /// 직접 위험물 피해의 상태 가드로 사용하지 않는다.
+        /// </summary>
         public static bool FallConsequencesSuppressed(Component source)
         {
             if (source == null) return false;
+            // Dev 치트(F9 "추락 무시")는 어느 공간에서든 같은 경로를 쓴다.
+            if (DevCheats.SuppressFalls) return true;
             var scene = source.gameObject.scene;
             // NGO 영속 플레이어도 현재 플레이 중인 개발 씬의 명시적 옵션을 따른다.
             if (scene.name == "DontDestroyOnLoad") scene = SceneManager.GetActiveScene();
@@ -40,6 +49,7 @@ namespace CurtainCall.EscapeRoute
         NetworkSessionManager session;
         ISessionConnector connector;
         bool multiplayer;
+        bool devLaunch;
         IDisposable minimumPlayers;
         double recoverAt = -1;
         public bool Ready { get; private set; }
@@ -56,6 +66,12 @@ namespace CurtainCall.EscapeRoute
                 // 나중에 다인 개발 연결에서 들어오면 기존 원본 세션을 그대로 사용한다.
                 Ready = session.ConnectionState == SessionConnectionState.Host || session.ConnectionState == SessionConnectionState.Client;
                 Status = Ready ? "개발 테스트" : "접속 준비 중";
+                // Dev 시작 지점(F8) "탈출로"는 대기실 합류 없이 이 씬을 연다. 각 화면이 자기 캐릭터를 출발점에 세운다.
+                while (Ready && !devLaunch && IsDevLaunch())
+                {
+                    if (PlaceLocalAtStart()) { devLaunch = true; Status = "Dev 시작 · 탈출로 직접 진입"; }
+                    else yield return null;
+                }
                 yield break;
             }
             var args = Environment.GetCommandLineArgs();
@@ -102,15 +118,37 @@ namespace CurtainCall.EscapeRoute
             Status = "혼자 테스트 · 시간제한/게임 오버 없음";
         }
 
+        /// <summary>Dev 시작 지점으로 들어온 탈출 단계인지. 대기실에서 실제 출발한 캠페인 이동(출발 정보 있음)은 제외한다.</summary>
+        static bool IsDevLaunch()
+        {
+            var run = CampaignRun.Instance;
+            var transfer = EscapeSceneTransfer.Current;
+            return DevMode.Enabled && run != null && run.State.Phase == CampaignPhase.Escape
+                && (transfer == null || !transfer.HasDeparture);
+        }
+
+        /// <summary>자리 번호의 탈출로 출발점을 재시작 위치로 정하고 그 자리로 옮긴다. 캐릭터 준비 전이면 false.</summary>
+        static bool PlaceLocalAtStart()
+        {
+            var local = NetworkPlayer.Local;
+            if (local == null || !local.IsSpawned || local.Slot == NetworkPlayer.NoSlot || !local.TryGetComponent(out PlayerMover mover)) return false;
+            PlayerSpawnPoints.GetPose(local.Slot, mover.LaneSpacing, out var position, out var rotation);
+            mover.SetStartPose(position, rotation);
+            if (CameraViewDirector.Current != null) CameraViewDirector.Current.SetLookRotation(rotation);
+            return true;
+        }
+
+        bool OwnsRecovery => session != null && session.IsHost && (session.ActiveConnector == connector || devLaunch);
+
         void Update()
         {
-            if (!Ready || session == null || !session.IsHost || session.ActiveConnector != connector) return;
+            if (!Ready || !OwnsRecovery) return;
             // 원본 기물이 종료를 요청하더라도 개발씬에서는 같은 플레이어로 계속 검토한다.
-            if (session.GameState == GameSessionState.Ended && session.RestartEndedGame()) Restart();
+            if (!devLaunch && session.GameState == GameSessionState.Ended && session.RestartEndedGame()) Restart();
             var player = NetworkPlayer.Local;
             bool failed = player != null && player.IsSpawned
                 && (player.State == PlayerState.Fallen || player.State == PlayerState.Retired);
-            if (multiplayer) foreach (var participant in NetworkPlayer.All)
+            if (multiplayer || devLaunch) foreach (var participant in NetworkPlayer.All)
                 if (participant != null && participant.IsSpawned && participant.State == PlayerState.Normal) failed = false;
             if (!failed) { recoverAt = -1; return; }
             if (recoverAt < 0) recoverAt = Time.unscaledTimeAsDouble + RecoverySeconds;
@@ -120,8 +158,7 @@ namespace CurtainCall.EscapeRoute
         /// <summary>묘기의 점유/신체/균형/카메라 복구는 공용 Restarted 경계를 그대로 쓴다.</summary>
         public bool Restart()
         {
-            if (!Ready || session == null || !session.IsHost || session.ActiveConnector != connector
-                || NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned) return false;
+            if (!Ready || !OwnsRecovery || NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned) return false;
             NetworkPlayer.ServerRestoreEveryone();
             NetworkPlayer.ServerRestartAll();
             recoverAt = -1;

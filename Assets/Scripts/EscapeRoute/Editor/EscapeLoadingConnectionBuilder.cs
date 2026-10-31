@@ -43,7 +43,6 @@ namespace CurtainCall.EscapeRoute.Editor
                 Set(destination, "forwardBarrier", copy.transform.Find("AssemblyDepartureDoor").gameObject);
                 Set(destination, "returnBarrier", copy.transform.Find("DepartureReturnSeal").gameObject);
                 Set(destination, "approachView", AssetDatabase.LoadAssetAtPath<CameraViewPreset>("Assets/Scenes/Tests/WaitingRoom/Base/Prefabs/WaitingRoomCloseThirdPerson.asset"));
-                Set(destination, "firstPersonView", AssetDatabase.LoadAssetAtPath<CameraViewPreset>("Assets/Resources/Settings/Camera/EscapeEntryFirstPerson.asset"));
                 foreach (var label in copy.GetComponentsInChildren<TMP_Text>(true)) label.text = "탈출로\n계단을 내려가세요";
                 copy.transform.Find("AssemblyDepartureDoor").gameObject.SetActive(false);
             }

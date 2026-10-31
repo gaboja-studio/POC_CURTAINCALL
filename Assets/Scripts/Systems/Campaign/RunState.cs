@@ -293,14 +293,22 @@ namespace CurtainCall.Campaign
             }
             // 개발 시작 지점이 고른 공연은 발견 없이 바로 할 수 있게 연다(다른 팀 공연 테스트용).
             if (point.TrickId == CampaignSnapshot.HumanCannonId) s.CannonUnlocked = true;
-            int next = point.Phase == RunStartPhase.Morning ? 0 : point.PerformanceIndex;
-            if (point.Day <= Rules.DayCount && point.Phase != RunStartPhase.Night) setlists[point.Day][next] = point.TrickId;
+            int next = point.Phase == RunStartPhase.Morning || point.Phase == RunStartPhase.Escape ? 0 : point.PerformanceIndex;
+            if (point.Day <= Rules.DayCount && point.Phase != RunStartPhase.Night && point.Phase != RunStartPhase.Escape)
+                setlists[point.Day][next] = point.TrickId;
             switch (point.Phase)
             {
                 case RunStartPhase.Performance: EnterPerformance(next); break;
                 case RunStartPhase.Morning: EnterRest(RestKind.Morning, 0); break;
                 case RunStartPhase.Between: EnterRest(point.Day == 1 && next == 1 ? RestKind.Guide : RestKind.Between, next); break;
                 case RunStartPhase.Night: s.PerformanceIndex = Rules.PerformancesPerDay - 1; EnterNight(); break;
+                case RunStartPhase.Escape:
+                    // 정상 흐름과 같이 쉬는 시간에서 탈출을 개시한다(타이머 정지). 대기실 합류·로딩 이동은 건너뛴다.
+                    // 데모 4일차 아침은 데모 종료로 바뀌므로 공연 사이 쉬는 시간을 거친다.
+                    var rest = point.Day == 1 ? RestKind.Guide : demoVersion && point.Day == 4 ? RestKind.Between : RestKind.Morning;
+                    EnterRest(rest, rest == RestKind.Morning ? 0 : 1);
+                    StartEscape();
+                    break;
             }
             return true;
         }
