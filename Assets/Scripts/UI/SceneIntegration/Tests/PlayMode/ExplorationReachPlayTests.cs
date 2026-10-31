@@ -11,6 +11,43 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed class ExplorationReachPlayTests
     {
+        [UnityTest]
+        public IEnumerator Shelf_RejectsOtherFloorsAndPartitionsForSelectionAndAuthority()
+        {
+            var root = new GameObject("shelf-reach-fixture"); root.SetActive(false);
+            var at = new Vector3(1000, 1000, 1000); root.transform.position = at;
+            for (int i = 0; i < 4; i++)
+            {
+                var board = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                board.name = "Board_" + i; board.transform.SetParent(root.transform, false);
+                board.transform.localPosition = Vector3.up * (.4f + i * .4f);
+                board.transform.localScale = new Vector3(2, .1f, .5f);
+            }
+            var shelf = root.AddComponent(T("HandoverShelfView"));
+            var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            wall.transform.position = at + new Vector3(0, 1, .6f);
+            wall.transform.localScale = new Vector3(4, 4, .1f);
+            try
+            {
+                root.SetActive(true); Physics.SyncTransforms();
+                var type = shelf.GetType();
+                float Local(Vector3 feet) => (float)type.GetMethod("Reach").Invoke(shelf, new object[] { feet });
+                bool Host(Vector3 feet) => (bool)type.GetMethod("CanUse").Invoke(null, new object[] { feet });
+                var front = at + Vector3.forward;
+                foreach (var feet in new[] { front, front + Vector3.down * 5, front + Vector3.up * 5 })
+                { Assert.Less(Local(feet), 0); Assert.IsFalse(Host(feet)); }
+                wall.SetActive(false); Physics.SyncTransforms();
+                Assert.GreaterOrEqual(Local(front), 0, "The shelf's own boards must not block use");
+                Assert.IsTrue(Host(front));
+                foreach (var feet in new[] { front + Vector3.down * 5, front + Vector3.up * 5, at + Vector3.forward * 4 })
+                { Assert.Less(Local(feet), 0); Assert.IsFalse(Host(feet)); }
+                root.SetActive(false);
+                Assert.IsFalse(Host(front), "Inactive shelves cannot accept network requests");
+            }
+            finally { Object.Destroy(root); Object.Destroy(wall); }
+            yield return null;
+        }
+
         static Type T(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("CurtainCall.WaitingRoom." + name)).First(t => t != null);
         static float Reach(Component c, Vector3 feet) => (float)T("IExplorationTarget").GetMethod("Reach").Invoke(c, new object[] { feet });
         [UnityTest]

@@ -22,11 +22,18 @@ namespace CurtainCall.UI.SceneIntegration
             "Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity",
             "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity",
             "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity",
+            "Assets/Scenes/Levels/escape_route.unity",
             "Assets/Scenes/Start_Lobby/Lobby.unity", "Assets/Scenes/Start_Lobby/Start.unity" };
         public static CommonMenuUI Current { get; private set; }
         public static Scene CurrentScene
         {
-            get { foreach (var path in SpacePaths) { var scene = SceneManager.GetSceneByPath(path); if (scene.isLoaded) return scene; } return default; }
+            get
+            {
+                var active = SceneManager.GetActiveScene();
+                foreach (var path in SpacePaths) if (active.path == path && active.isLoaded) return active;
+                foreach (var path in SpacePaths) { var scene = SceneManager.GetSceneByPath(path); if (scene.isLoaded) return scene; }
+                return default;
+            }
         }
         public static bool HasSupportedSpace => CurrentScene.IsValid();
         public static bool IsStart => CurrentScene.name == "Start";

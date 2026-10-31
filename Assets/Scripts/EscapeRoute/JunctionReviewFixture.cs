@@ -1,0 +1,13 @@
+#if UNITY_EDITOR
+using System;using System.Collections;using System.IO;using System.Reflection;using UnityEngine;using UnityEngine.SceneManagement;using CurtainCall.Campaign;using CurtainCall.EscapeRoute;using CurtainCall.Network.PlayerSync;using CurtainCall.Player;using CurtainCall.SpaceLink;using CurtainCall.WaitingRoom;
+// Temporary opt-in setup only. No checkpoint or progress mutation after the recorded start.
+public sealed class JunctionReviewFixture:MonoBehaviour {
+ [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)] static void Boot(){if(!EscapeMppmReviewConfig.TryGet(out var folder,out _)||!File.Exists(folder+"/junction-fixture.flag"))return;var go=new GameObject("Temporary junction initial fixture");DontDestroyOnLoad(go);go.AddComponent<JunctionReviewFixture>();}
+ IEnumerator Start(){EscapeMppmReviewConfig.TryGet(out var folder,out var slot);while(CampaignRun.Instance==null||CampaignRun.Instance.State.Phase!=CampaignPhase.RestTime||SpaceLinkDirector.Instance==null||(slot==0&&!SpaceLinkDirector.Instance.EscapePrepared)||!SceneManager.GetSceneByName("escape_route").isLoaded||NetworkPlayer.Local==null)yield return null;
+  if(slot==0){var state=ExplorationState.Instance;while(state==null){yield return null;state=ExplorationState.Instance;}var book=(ExplorationBook)typeof(ExplorationState).GetField("book",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(state);foreach(var id in new[]{StructureAKeyRoute.StairsKey,StructureAKeyRoute.StairsDoor,StructureAKeyRoute.EscapeKey1,StructureAKeyRoute.EscapeKey2,StructureAExitRoute.PasswordPad})book.Attempt(id,true,out _,out _);typeof(ExplorationState).GetMethod("Publish",BindingFlags.Instance|BindingFlags.NonPublic).Invoke(state,null);File.WriteAllText(folder+"/fixture-conditions.flag","Initial junction setup only: predecessor keys/pad prepared. Exit door still requires normal two-player F. No saved waiting-room edits.");}
+  while(!File.Exists(folder+"/fixture-conditions.flag")||NetworkPlayer.Local.State!=PlayerState.Normal)yield return null;
+  yield return new WaitForSeconds(2);var target=new Vector3(slot<2?-12.99f:-11.4f,-9.92f,slot==0?92.5f:slot==1?94f:slot==2?91.9f:94.8f);NetworkPlayer.Local.GetComponent<PlayerMover>().Relocate(target,Quaternion.Euler(0,270,0));File.WriteAllText(folder+"/fixture-ready-"+slot+".json",JsonUtility.ToJson(new Initial{slot=slot,position=target,time=Time.realtimeSinceStartup,note="Initial placement before traversal. From here, normal input/physics/network only."},true));Destroy(this);
+ }
+ [Serializable]class Initial{public int slot;public Vector3 position;public double time;public string note;}
+}
+#endif

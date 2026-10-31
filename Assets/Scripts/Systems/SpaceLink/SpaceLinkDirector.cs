@@ -16,7 +16,7 @@ namespace CurtainCall.SpaceLink
     /// 방식은 공통 세팅 "장소 전환"(통째 교체/추가 로드)을 전환할 때마다 읽는다.
     /// 런·자금·부상 관리자는 이미 씬이 바뀌어도 남으므로(DontDestroyOnLoad) 여기서는 씬만 바꾼다.
     /// </summary>
-    public sealed class SpaceLinkDirector : MonoBehaviour
+    public sealed partial class SpaceLinkDirector : MonoBehaviour
     {
         const int MaxLogLines = 8;
 
@@ -40,6 +40,7 @@ namespace CurtainCall.SpaceLink
             readonly int day;
             readonly int performanceIndex;
             readonly string trickId;
+            readonly CampaignPhase phase;
 
             public TransitionRequest(SpaceId space, string sceneName, in CampaignSnapshot state, bool reload = false)
             {
@@ -50,11 +51,12 @@ namespace CurtainCall.SpaceLink
                 day = state.Day;
                 performanceIndex = state.PerformanceIndex;
                 trickId = state.TrickId;
+                phase = state.Phase;
             }
 
-            public bool Matches(in CampaignSnapshot state) => Space != SpaceId.Performance
-                || (state.Phase == CampaignPhase.Performance && state.Generation == generation && state.Day == day
-                    && state.PerformanceIndex == performanceIndex && state.TrickId == trickId);
+            public bool Matches(in CampaignSnapshot state) => state.Phase == phase && state.Generation == generation
+                && state.Day == day && state.PerformanceIndex == performanceIndex
+                && (Space != SpaceId.Performance || state.TrickId == trickId);
         }
 
         readonly List<string> log = new();
@@ -180,6 +182,13 @@ namespace CurtainCall.SpaceLink
                 var request = pending.Value;
                 pending = null;
                 if (!IsCurrent(request)) continue;
+                if (!request.Reload && request.Space == SpaceId.EscapeRoute
+                    && CurtainCall.EscapeRoute.EscapeSceneTransfer.Current != null
+                    && CurtainCall.EscapeRoute.EscapeSceneTransfer.Current.Pending)
+                {
+                    yield return TransitionEscape(request);
+                    continue;
+                }
                 if (request.Reload || request.Space != Current || !IsLoaded(request.SceneName))
                 {
                     uint curtainVersion = 0;

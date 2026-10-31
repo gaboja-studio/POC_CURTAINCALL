@@ -160,6 +160,9 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         [UnityTest]
         public IEnumerator PendingJoinSurvivesThreeSecondsAndUserCancellationIsLogged()
         {
+            Assert.That(session.NetworkManager.NetworkConfig.ClientConnectionBufferTimeout,
+                Is.GreaterThanOrEqualTo(NetworkSessionManager.JoinTimeoutMilliseconds / 1000),
+                "NGO approval must not expire before the public join deadline during a cold load.");
             var pending = new DelayedConnector();
             var join = session.JoinAsync(pending, "unused");
             yield return new WaitForSecondsRealtime(3.2f);

@@ -24,7 +24,7 @@ namespace CurtainCall.UI.SceneIntegration
         void LateUpdate()
         {
             var scene = CommonMenuUI.CurrentScene;
-            bool active = scene.IsValid() && (scene.name == "WaitingRoomBase" || scene.name == "Tightrope" || scene.name == "HumanCannon")
+            bool active = scene.IsValid() && (scene.name == "WaitingRoomBase" || scene.name == "Tightrope" || scene.name == "HumanCannon" || scene.name == "escape_route")
                 && !SceneCurtainTransition.IsActive
                 && !(PerformanceEndingPresentation.Current != null && PerformanceEndingPresentation.Current.ResultVisible);
             group.alpha = active ? 1 : 0;

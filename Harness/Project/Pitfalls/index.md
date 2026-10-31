@@ -1,6 +1,7 @@
 # Project Pitfalls
 
 - [waiting-room-moved-camera-zones.md](waiting-room-moved-camera-zones.md) — 대기실 통로 재배치 뒤 시점이 너무 일찍 바뀌거나 기존 좌표 검사가 실패할 때
+- [escape-additive-footprint.md](escape-additive-footprint.md) — 대기실/A 동시 로드 시 전체 외벽 침범과 편집/런타임 위치 불일치를 검사할 때
 
 - [flag-double-sided-flicker.md](flag-double-sided-flicker.md) — 공연장 깃발의 양면 중복 렌더링·깜빡임을 확인할 때
 - [Human-cannon/](Human-cannon/index.md) — 트램펄린 모델 교체와 실제 접촉 경계를 확인할 때

@@ -141,6 +141,10 @@ namespace CurtainCall.Network.Session
             EnsureTransportAssigned();
             RegisterStateSyncPrefab();
 
+            // The UI allows 30 seconds, but NGO's default handshake deadline is 10.
+            // A cold scene/shader load must not abort the same join attempt earlier underneath it.
+            _networkManager.NetworkConfig.ClientConnectionBufferTimeout = Mathf.Max(
+                _networkManager.NetworkConfig.ClientConnectionBufferTimeout, JoinTimeoutMilliseconds / 1000);
             _networkManager.NetworkConfig.ConnectionApproval = true;
             _networkManager.ConnectionApprovalCallback = ApproveConnection;
             _networkManager.OnConnectionEvent += HandleConnectionEvent;

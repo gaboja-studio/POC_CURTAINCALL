@@ -9,9 +9,14 @@ namespace CurtainCall.EscapeRoute
     {
         [Tooltip("월드 X/Z 범위"), SerializeField] Rect footprint = new(20, -82, 126, 100);
         [Tooltip("이 월드 높이 아래로 떨어지면 낙사"), SerializeField] float fallHeight = -30;
-        public bool Contains(Vector3 feet) => float.IsFinite(feet.x) && float.IsFinite(feet.y) && float.IsFinite(feet.z)
+        [Tooltip("시설을 통째 배치했을 때 원본 좌표계. 비어 있으면 기존 월드 좌표."), SerializeField] Transform coordinateSpace;
+        public bool Contains(Vector3 feet)
+        {
+            if (coordinateSpace != null) feet = coordinateSpace.InverseTransformPoint(feet);
+            return float.IsFinite(feet.x) && float.IsFinite(feet.y) && float.IsFinite(feet.z)
             && feet.y <= fallHeight && feet.x >= footprint.xMin && feet.x <= footprint.xMax
             && feet.z >= footprint.yMin && feet.z <= footprint.yMax;
+        }
 
         void Update()
         {
@@ -25,6 +30,7 @@ namespace CurtainCall.EscapeRoute
         void OnDrawGizmosSelected()
         {
             Gizmos.color = new Color(1, .15f, .1f, .7f);
+            Gizmos.matrix = coordinateSpace != null ? coordinateSpace.localToWorldMatrix : Matrix4x4.identity;
             Gizmos.DrawWireCube(new Vector3(footprint.center.x, fallHeight - 3, footprint.center.y),
                 new Vector3(footprint.width, 6, footprint.height));
         }
