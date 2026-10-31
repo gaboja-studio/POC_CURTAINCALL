@@ -15,7 +15,9 @@ namespace CurtainCall.WaitingRoom.Editor
         // three tiers of seating fill the band between the ring and the 26 m hall wall.
         const float Ring40Scale = 2.5f, Ring40R = 20f, OldRingR = 8f;
         const float Ring40TowerR = 23.6f, Ring40EntryAngle = -40f;
-        static readonly float[] Ring40StairAngles = { -90f, 180f };
+        // 2026-10-30: 통로(홀 입구 -40°) 쪽에도 계단과 난간 틈을 둔다. 씬에는 남쪽 계단을 돌려 복제한 RingAccessStep_Entry로 적용했다
+        // (이 생성기는 원래 두 계단만 옮기므로 다시 돌리면 입구 계단은 따로 복제해야 한다).
+        static readonly float[] Ring40StairAngles = { -90f, 180f, Ring40EntryAngle };
 
         public static string EnlargePracticeRing()
         {

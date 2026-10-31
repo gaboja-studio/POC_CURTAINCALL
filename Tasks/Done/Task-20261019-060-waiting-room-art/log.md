@@ -33,3 +33,7 @@
 - 실패·충돌 안내 후 사용자가 "PR 전송해" 재요청. 해당 사항을 본문에 공개하고 PR #194(feat/waiting-room-art→dev) 등록, GitHub CONFLICTING 확인. 실제 충돌 해결·병합 미실행, submitted 상태·검사 재시도 필요 기록.
 
 - 2026-10-27 하네스 3문서로 이관. [이전 현재 상태·검사·미검증](History/Harness-v1/handoff.md), [결정](History/Harness-v1/meta.md), [참조 경로](History/Harness-v1/setup.md). 예전 구역·인계·세부 상태는 현재 제한이 아님.
+
+## 2026-10-30
+
+- 사용자 확인으로 Done 이동. PR #194 dev 병합(10-20). 남은 SpaceLink PlayMode 3건 재검사·공동 테스트 확인은 미실행 상태로 종료.

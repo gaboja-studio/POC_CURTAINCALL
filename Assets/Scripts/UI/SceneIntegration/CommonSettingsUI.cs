@@ -100,6 +100,12 @@ namespace CurtainCall.UI.SceneIntegration
             abandon.confirmationTitle = "런 포기";
             abandon.confirmationBody = "정말 현재 런을 포기하고 새로 시작하겠습니까?\n모든 단원이 다음 런 1일차부터 다시 시작합니다.";
             game.rows.Add(abandon);
+            // 대기실 안내(Task-086): 이 PC에 저장. 끄기·처음부터 다시·본 안내 다시 읽기.
+            game.rows.Add(Toggle("WaitingRoomGuide", "대기실 안내 표시", CurtainCall.WaitingRoom.WaitingRoomTutorial.Enabled));
+            var guideReset = ActionRow("GuideReset", "본 대기실 안내를 모두 지우고 처음부터 다시 띄웁니다.", "안내 처음부터");
+            guideReset.requiresConfirmation = false;
+            game.rows.Add(guideReset);
+            game.rows.Add(Paragraph("GuideSeen", "본 안내 다시 보기\n\n" + CurtainCall.WaitingRoom.WaitingRoomTutorial.SeenSummary()));
             var graphics = catalog.pages[1];
             graphics.rows.Add(Choice("ScreenMode", "화면 모드", ((int)ClientSettings.ScreenMode).ToString(), ScreenModes.Select((m, i) => new SettingsChoice(((int)m).ToString(), ScreenLabels[i]))));
             string resolution = ClientSettings.ResolutionWidth + "x" + ClientSettings.ResolutionHeight;
@@ -239,6 +245,12 @@ namespace CurtainCall.UI.SceneIntegration
                 if (success) CommonMenuUI.Current?.CloseAll();
                 return;
             }
+            if (request.actionId == "GuideReset")
+            {
+                CurtainCall.WaitingRoom.WaitingRoomTutorial.ResetProgress();
+                if (view.CompleteAction(request.token, true, null, false)) view.ShowMessage("대기실 안내를 처음부터 다시 띄웁니다.");
+                return;
+            }
             if (request.actionId.StartsWith("Reset_", StringComparison.Ordinal))
             {
                 if (view.CompleteAction(request.token, true, null, false)) ResetPage(request.actionId.Substring(6));
@@ -317,6 +329,7 @@ namespace CurtainCall.UI.SceneIntegration
                 var mode = (FullScreenMode)int.Parse(values["ScreenMode"].choiceId);
                 ClientSettings.SetGraphics(mode, resolution.width, resolution.height, int.Parse(values["FrameRate"].choiceId));
                 ClientSettings.HideNearbyCharacter = values["HideNearbyCharacter"].toggle;
+                if (values.TryGetValue("WaitingRoomGuide", out var guide)) CurtainCall.WaitingRoom.WaitingRoomTutorial.Enabled = guide.toggle;
                 ClientSettings.Volume = values["volume"].number; ClientSettings.BgmVolume = values["bgmVolume"].number; ClientSettings.SfxVolume = values["sfxVolume"].number; ClientSettings.Save();
                 var voice = VoiceChat.Instance;
                 voice?.ApplyAudioPreferences(values["micVolume"].number, !values["micEnabled"].toggle, values["teamVolume"].number, values["teamMuted"].toggle);

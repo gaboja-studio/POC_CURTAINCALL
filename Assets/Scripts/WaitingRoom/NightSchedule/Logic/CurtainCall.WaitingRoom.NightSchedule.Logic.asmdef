@@ -1,6 +1,8 @@
 {
     "name": "CurtainCall.WaitingRoom.NightSchedule.Logic",
     "rootNamespace": "CurtainCall.WaitingRoom",
-    "references": [],
+    "references": [
+        "CurtainCall.WaitingRoom.Texts"
+    ],
     "noEngineReferences": true
 }

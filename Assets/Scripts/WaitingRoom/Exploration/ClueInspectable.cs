@@ -75,14 +75,14 @@ namespace CurtainCall.WaitingRoom
         public Vector3 RewardPoint => Body.position;
         public int RewardUidOffset => 0;
         public bool Resolve(int attemptNumber, System.Random rng) => true;
-        public string Describe(bool success, int attemptNumber) => title + " 발견";
+        public string Describe(bool success, int attemptNumber) => WaitingRoomText.Format("clue.found", "{title} 발견", ("title", title));
         public bool IsOpen => Current == this;
         public string Title => title;
 
         public Transform VisualRoot => Body;
         public Vector3 PresentationPoint => Body.position + Vector3.up * .25f;
         public bool IsAvailable => Revealed && Current == null;
-        public string ActionLabel => $"{title} 살펴보기";
+        public string ActionLabel => WaitingRoomText.Format("prompt.inspect-clue", "{title} 살펴보기", ("title", title));
 
         Transform Body => body != null ? body : transform;
 
@@ -172,7 +172,7 @@ namespace CurtainCall.WaitingRoom
                 blocker.SetOpen(true);
                 Inspected?.Invoke(this);
                 if (panelView == null) panelView = gameObject.AddComponent<ExplorationPanel>();
-                panelView.Open(title, description + "\n왼쪽 끌기: 회전   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기", false, null, () => SetOpen(false), true);
+                panelView.Open(title, description + "\n" + WaitingRoomText.Get("clue.inspect-help", "왼쪽 끌기: 회전   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기"), false, null, () => SetOpen(false), true);
             }
             else
             {

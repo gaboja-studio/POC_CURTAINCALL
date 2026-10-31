@@ -45,12 +45,23 @@ namespace CurtainCall.WaitingRoom
 
         public string TargetId => targetId;
         public string ToolId => ItemUses.UvLamp;
-        public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? "서커스 UV 등";
+        public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? WaitingRoomText.Get("uv.name-lamp", "서커스 UV 등");
         public string Label => label;
         public string RewardItemId => "";
         public Vector3 RewardPoint => transform.position;
         public int RewardUidOffset => 0;
         public Vector3 Point => transform.position + Vector3.up * .3f;
+        /// <summary>낙서 그림이 실제로 그려진 자리(손전등 판정 기준, 2026-10-30).</summary>
+        public Vector3 Center => transform.position;
+
+        /// <summary>이 낙서의 일부(그림·함께 드러나는 단서)인지. 손전등 가림 판정에서 뺀다.</summary>
+        public bool Owns(Transform t)
+        {
+            if (t == null) return false;
+            if (t.IsChildOf(transform)) return true;
+            if (marks != null) foreach (var m in marks) if (m != null && t.IsChildOf(m.transform)) return true;
+            return false;
+        }
 
         public bool Found => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(targetId);
         /// <summary>이 화면의 UV 손전등이 지금 비추고 있는지(로컬 표시 전용).</summary>
@@ -79,7 +90,7 @@ namespace CurtainCall.WaitingRoom
         public void Illuminate() { litUntil = Time.time + holdSeconds; }
 
         public bool Resolve(int attemptNumber, System.Random rng) => true;
-        public string Describe(bool success, int attemptNumber) => "숨겨진 낙서가 형광으로 드러났습니다.";
+        public string Describe(bool success, int attemptNumber) => WaitingRoomText.Get("uv.revealed", "숨겨진 낙서가 형광으로 드러났습니다.");
 
         void Update()
         {
@@ -97,6 +108,8 @@ namespace CurtainCall.WaitingRoom
         void SetMarks(bool on) { if (marks != null) foreach (var m in marks) if (m != null && m.activeSelf != on) m.SetActive(on); }
 
         // 낙서는 노란 형광(자체 발광) 재질로 보인다. 원본 재질은 건드리지 않는다.
+        // 그림이 있는 재질(화살표·X 같은 투명 그림)은 그림을 지키고 색만 노란 형광으로 바꾼 사본을 쓴다(2026-10-30: 사각형으로 덮이던 문제).
+        static readonly Dictionary<Material, Material> tinted = new();
         void ApplyGlow()
         {
             if (marks == null) return;
@@ -112,7 +125,17 @@ namespace CurtainCall.WaitingRoom
             }
             foreach (var m in marks)
                 if (m != null) foreach (var r in m.GetComponentsInChildren<Renderer>(true))
-                    if (r.GetComponent<TextMesh>() == null) r.sharedMaterial = glowMaterial;
+                    if (r.GetComponent<TextMesh>() == null) r.sharedMaterial = Glow(r.sharedMaterial);
+        }
+
+        Material Glow(Material source)
+        {
+            if (source == null || source.mainTexture == null || source.renderQueue < (int)UnityEngine.Rendering.RenderQueue.AlphaTest) return glowMaterial;
+            if (tinted.TryGetValue(source, out var copy) && copy != null) return copy;
+            copy = new Material(source) { name = "UvGlow_" + source.name, hideFlags = HideFlags.DontSave };
+            if (copy.HasProperty("_BaseColor")) copy.SetColor("_BaseColor", glow);
+            if (copy.HasProperty("_EmissionColor")) { copy.EnableKeyword("_EMISSION"); copy.SetColor("_EmissionColor", glow * 2.2f); }
+            return tinted[source] = copy;
         }
 
         // 0.5초 전기음(임시 합성음). 실제 효과음이 정해지면 바꾼다.

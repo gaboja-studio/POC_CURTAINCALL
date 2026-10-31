@@ -55,7 +55,7 @@ namespace CurtainCall.WaitingRoom
 
         public string TargetId => targetId;
         public string ToolId => kind == ToolTargetKind.HairpinLock ? ItemUses.MagicianHairpin : ItemUses.StakePuller;
-        public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? (kind == ToolTargetKind.HairpinLock ? "마술사의 머리핀" : "천막 말뚝 뽑개");
+        public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? (kind == ToolTargetKind.HairpinLock ? WaitingRoomText.Get("tool.name-hairpin", "마술사의 머리핀") : WaitingRoomText.Get("tool.name-stake-puller", "천막 말뚝 뽑개"));
         public string Label => label;
         public string RewardItemId => rewardItemId;
         public Vector3 RewardPoint => rewardPoint != null ? rewardPoint.position : transform.position;
@@ -65,8 +65,11 @@ namespace CurtainCall.WaitingRoom
         public Vector3 PresentationPoint => transform.position + Vector3.up * .6f;
         public bool IsAvailable => !Opened;
         public string ActionLabel => Opened ? label
-            : !ExplorationTargets.LocalHolds(ToolId) ? $"{label} — {ToolName}이(가) 필요하다"
-            : kind == ToolTargetKind.HairpinLock ? $"{ToolName}로 자물쇠 따기{(Attempts > 0 ? $" (시도 {Attempts})" : "")}" : $"{ToolName}로 뜯기";
+            : !ExplorationTargets.LocalHolds(ToolId) ? WaitingRoomText.Format("tool.needs-tool", "{label} — {tool:이} 필요하다", ("label", label), ("tool", ToolName))
+            : kind == ToolTargetKind.HairpinLock
+                ? (Attempts > 0 ? WaitingRoomText.Format("tool.pick-lock-attempt", "{tool:으로} 자물쇠 따기 (시도 {n})", ("tool", ToolName), ("n", Attempts))
+                    : WaitingRoomText.Format("tool.pick-lock", "{tool:으로} 자물쇠 따기", ("tool", ToolName)))
+                : WaitingRoomText.Format("tool.pry", "{tool:으로} 뜯기", ("tool", ToolName));
 
         int Attempts => ExplorationState.Instance != null ? ExplorationState.Instance.Hits(targetId) : 0;
         bool Opened => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(targetId);
@@ -112,8 +115,9 @@ namespace CurtainCall.WaitingRoom
         }
 
         public string Describe(bool success, int attemptNumber) => kind == ToolTargetKind.Pry
-            ? $"{label}을(를) 뜯어 열었습니다."
-            : success ? $"딸깍 — {label}의 자물쇠가 열렸습니다." : $"자물쇠가 헛돌았습니다. (시도 {attemptNumber})";
+            ? WaitingRoomText.Format("tool.pried-open", "{label:을} 뜯어 열었습니다.", ("label", label))
+            : success ? WaitingRoomText.Format("tool.lock-opened", "딸깍 — {label}의 자물쇠가 열렸습니다.", ("label", label))
+            : WaitingRoomText.Format("tool.lock-failed", "자물쇠가 헛돌았습니다. (시도 {n})", ("n", attemptNumber));
 
         void Update()
         {

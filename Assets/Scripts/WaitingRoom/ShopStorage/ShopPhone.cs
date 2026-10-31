@@ -23,7 +23,7 @@ namespace CurtainCall.WaitingRoom
         Vector2 scroll;
         public Transform VisualRoot => transform;
         public Vector3 PresentationPoint => transform.position;
-        public string ActionLabel => "수화기 들기 (상점)";
+        public string ActionLabel => WaitingRoomText.Get("prompt.shop-phone", "수화기 들기 (상점)");
         public bool IsAvailable => !open && WaitingRoomShop.Instance != null;
 
         void Awake()

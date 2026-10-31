@@ -56,10 +56,10 @@ namespace CurtainCall.WaitingRoom
                     var digit = i.ToString(); int row = i == 0 ? 3 : (i - 1) / 3, col = i == 0 ? 1 : (i - 1) % 3;
                     Button(content, "Digit" + i, digit, font, 115 + col * 140, -245 - row * 72, 130, 60, () => PressDigit(digit));
                 }
-                Button(content, "Clear", "지우기", font, 115, -461, 130, 60, ClearCode);
-                Button(content, "Submit", "확인", font, 395, -461, 130, 60, SubmitCode);
+                Button(content, "Clear", WaitingRoomText.Get("gate.panel-clear", "지우기"), font, 115, -461, 130, 60, ClearCode);
+                Button(content, "Submit", WaitingRoomText.Get("gate.panel-submit", "확인"), font, 395, -461, 130, 60, SubmitCode);
             }
-            Button(content, "Close", "닫기", font, (rect.sizeDelta.x - 200) * .5f, -(rect.sizeDelta.y - 76), 200, 56, () => close?.Invoke());
+            Button(content, "Close", WaitingRoomText.Get("gate.panel-close", "닫기"), font, (rect.sizeDelta.x - 200) * .5f, -(rect.sizeDelta.y - 76), 200, 56, () => close?.Invoke());
             panel = surface.GetComponent<CurtainCallPanelView>(); panel.Configure(rect, surface.GetComponent<CanvasGroup>(), true);
             var ui = FindFirstObjectByType<CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI>();
             if (ui != null) ui.GetComponent<CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback>()?.ApplyTo(canvasRoot.transform);

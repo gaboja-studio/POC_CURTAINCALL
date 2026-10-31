@@ -86,8 +86,10 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var target in ShopReach.Targets)
             {
                 if (target is not IShopPresentation p || p.VisualRoot == null || !p.VisualRoot.gameObject.activeInHierarchy) continue;
+                // 최적화(2026-10-31): 외곽선 거리보다 한참 먼 대상은 안내 문구·위치 계산 전에 건너뛴다(대기실 대상 수백 개).
+                if ((p.VisualRoot.position - feet).sqrMagnitude > FarSkip * FarSkip && !ReferenceEquals(target, ShopReach.Focused)) continue;
                 string action = target is ExpertRoomView && !p.IsAvailable
-                    ? "서비스를 구매한 고객만 이용 가능합니다" : p.ActionLabel;
+                    ? WaitingRoomText.Get("prompt.expert-room-not-bought", "서비스를 구매한 고객만 이용 가능합니다") : p.ActionLabel;
                 Add(p.VisualRoot, p.PresentationPoint, action, p.IsAvailable, ReferenceEquals(target, ShopReach.Focused), feet);
                 candidates[candidates.Count - 1].WaitingRoom = true;
                 candidates[candidates.Count - 1].Helper = (target as IShopPresentationDetails)?.HelperLabel;
@@ -136,7 +138,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (focused == null || prompt == null) { if (prompt != null) prompt.HideImmediate(); return; }
             prompt.Show(focused.Key, focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
                 focused.Hold, focused.Hold && focused.Available ? focused.Progress ?? reader.Current.InteractHoldProgress : 0,
-                focused.Focused ? focused.Helper ?? "" : "가까이 다가가세요");
+                focused.Focused ? focused.Helper ?? "" : WaitingRoomText.Get("prompt.come-closer", "가까이 다가가세요"));
             var layout = prompt.GetComponent<NotificationTextLayout>();
             if (layout == null) layout = prompt.gameObject.AddComponent<NotificationTextLayout>();
             layout.RefreshLayout();
@@ -145,6 +147,7 @@ namespace CurtainCall.UI.SceneIntegration
                     parent.rect.yMin + promptAnchor.rect.height + 144);
             else PositionPrompt(focused.Point, camera);
         }
+        float FarSkip => highlightDistance + 10f;
         void Add(Transform root, Vector3 point, string action, bool available, bool focused, Vector3 feet)
         {
             candidates.Add(new Candidate { Root = root, Point = point, Action = action, Available = available, Focused = focused,

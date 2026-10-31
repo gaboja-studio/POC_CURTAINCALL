@@ -33,7 +33,7 @@ namespace CurtainCall.UI.SceneIntegration
                 if(row!=null && row.transform.IsChildOf(shop.View.transform))
                 {
                     var entry=shop.Build().Entries.FirstOrDefault(e=>e.Id==row.EntryId);
-                    if(entry!=null){title=entry.Title;description=entry.Description+"\n가격: "+entry.PriceText+"\n"+entry.UnavailableReason;hit=row.gameObject;}
+                    if(entry!=null){title=entry.Title;description=CurtainCall.WaitingRoom.WaitingRoomText.Format("tooltip.shop-row", "{description}\n가격: {price}\n{reason}",("description",entry.Description),("price",entry.PriceText),("reason",entry.UnavailableReason));hit=row.gameObject;}
                 }
             }
             if(hit!=null && title==null && schedule!=null && schedule.View.IsVisible)

@@ -106,6 +106,12 @@ namespace CurtainCall.Campaign
         }
 
         /// <summary>
+        /// 호스트: 전원이 누웠어도 밤을 끝내도 되는지(2026-10-30 사용자: 호스트가 스케줄표를 작성해야 다음 날로 넘어간다). 비어 있으면 항상 허용.
+        /// 대기실 스케줄표가 채운다. 조건이 늦게 풀려도 다음 Tick의 <see cref="RefreshNight"/>에서 넘어간다.
+        /// </summary>
+        public static System.Func<bool> NightEndGate { get; set; }
+
+        /// <summary>
         /// 밤 정비 인원을 다시 센다. 나간 사람은 준비 목록에서 빼고, 남은 전원이 준비됐으면 다음 날 아침 쉬는 시간으로 넘어간다.
         /// </summary>
         public bool RefreshNight(IReadOnlyCollection<ulong> players)
@@ -116,7 +122,8 @@ namespace CurtainCall.Campaign
             s.ReadyCount = ready.Count;
             s.RequiredCount = players.Count;
 
-            if (s.RequiredCount > 0 && s.ReadyCount >= s.RequiredCount)
+            bool gateOpen = s.Phase != CampaignPhase.Night || NightEndGate == null || NightEndGate();
+            if (s.RequiredCount > 0 && s.ReadyCount >= s.RequiredCount && gateOpen)
             {
                 if (s.Phase == CampaignPhase.DemoEnding)
                     FailRun(RunEndReason.Deadline);
@@ -144,10 +151,12 @@ namespace CurtainCall.Campaign
         /// <summary>
         /// 탐색 구역 규칙(2026-10-30): 재생 구역에 아무도 없으면 쉬는 시간 타이머를 멈추고, 들어오면 남은 시간부터 다시 흐른다.
         /// 유한 쉬는 시간에만 적용하며 바뀐 때만 true.
+        /// 마지막 아침(탈출 기한)은 멈추지 않는다: 통로 집결로도 끝나지 않으므로 생활 구역에 머물면 런이 끝나지 않았다(2026-10-31 버그).
         /// </summary>
         public bool SetRestTimerPaused(bool paused)
         {
             if (s.Phase != CampaignPhase.RestTime || (s.Timer != RestTimerState.Running && s.Timer != RestTimerState.Stopped)) return false;
+            if (s.IsFinalMorning) paused = false;
             var wanted = paused ? RestTimerState.Stopped : RestTimerState.Running;
             if (s.Timer == wanted) return false;
             s.Timer = wanted;
@@ -187,6 +196,18 @@ namespace CurtainCall.Campaign
             setlists[day] = tricks != null ? (string[])tricks.Clone() : null;
             levels[day] = tiers != null ? (int[])tiers.Clone() : null;
             RefreshCurrent();
+            return true;
+        }
+
+        /// <summary>
+        /// 배치 기물을 발견해 공연을 연다(런 동안 유지, 런 초기화 때 닫힘). 이미 열렸거나 런 밖이면 false.
+        /// 열리면 편성에서 기본 묘기로 대신했던 공연이 원래 고른 묘기로 돌아올 수 있게 현재 공연을 다시 계산한다.
+        /// </summary>
+        public bool UnlockTrick(string trickId)
+        {
+            if (!s.IsRunning || trickId != CampaignSnapshot.HumanCannonId || s.CannonUnlocked) return false;
+            s.CannonUnlocked = true;
+            if (s.Phase != CampaignPhase.Performance) RefreshCurrent();
             return true;
         }
 
@@ -270,6 +291,8 @@ namespace CurtainCall.Campaign
                 for (int index = 0; index < list.Length; index++) list[index] = Rules.FirstDayTrick(index);
                 setlists[day] = list;
             }
+            // 개발 시작 지점이 고른 공연은 발견 없이 바로 할 수 있게 연다(다른 팀 공연 테스트용).
+            if (point.TrickId == CampaignSnapshot.HumanCannonId) s.CannonUnlocked = true;
             int next = point.Phase == RunStartPhase.Morning ? 0 : point.PerformanceIndex;
             if (point.Day <= Rules.DayCount && point.Phase != RunStartPhase.Night) setlists[point.Day][next] = point.TrickId;
             switch (point.Phase)
@@ -412,9 +435,13 @@ namespace CurtainCall.Campaign
 
         string TrickFor(int day, int index)
         {
-            if (setlists.TryGetValue(day, out var list) && list != null && index >= 0 && index < list.Length && !string.IsNullOrEmpty(list[index])) return list[index];
-            // 스케줄표로 편성하지 않은 공연은 기본 묘기(M2: 외줄타기)로 한다. 1일차는 공통 세팅의 고정 순서.
-            return day == 1 ? Rules.FirstDayTrick(index) : Rules.DefaultTrick;
+            string trick = setlists.TryGetValue(day, out var list) && list != null && index >= 0 && index < list.Length && !string.IsNullOrEmpty(list[index])
+                ? list[index]
+                // 스케줄표로 편성하지 않은 공연은 기본 묘기(M2: 외줄타기)로 한다. 1일차는 공통 세팅의 고정 순서.
+                : day == 1 ? Rules.FirstDayTrick(index) : Rules.DefaultTrick;
+            // 아직 발견하지 않은 공연은 할 수 없다 → 외줄타기로 대신한다(2026-10-30 사용자: 1일차도 미발견이면 줄타기).
+            if (!s.IsTrickUnlocked(trick)) trick = s.IsTrickUnlocked(Rules.DefaultTrick) ? Rules.DefaultTrick : CampaignSnapshot.TightropeId;
+            return trick;
         }
 
         static bool Contains(IReadOnlyCollection<ulong> players, ulong id)

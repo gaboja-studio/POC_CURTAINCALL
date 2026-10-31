@@ -18,7 +18,7 @@ namespace CurtainCall.WaitingRoom
     /// </summary>
     public sealed class ExplorationState : MonoBehaviour
     {
-        const int SyncRequest = 0, HitRequest = 1;
+        const int SyncRequest = 0, HitRequest = 1, DebugOpenRequest = 2;
         const float MinHitGap = .08f;
 
         public static ExplorationState Instance { get; private set; }
@@ -30,7 +30,13 @@ namespace CurtainCall.WaitingRoom
         public event Action<string> RequestAnswered;
 
         public string LastMessage { get; private set; } = "";
-        public const string WrongCode = "비밀번호가 다릅니다.";
+        /// <summary>마지막 결과에서 도구를 다 썼는지. 문구는 사용자가 고칠 수 있어 문구 대신 이 값으로 판정한다.</summary>
+        public bool LastUsedUp { get; private set; }
+        /// <summary>마지막 결과에서 다 써서 파괴된 기물 이름(없으면 "").</summary>
+        public string LastUsedUpItem { get; private set; } = "";
+        public static string WrongCode => WaitingRoomText.Get("explore.wrong-code", "비밀번호가 다릅니다.");
+        bool answerUsedUp;
+        string answerUsedUpItem = "";
 
         public bool HasAuthority
         {
@@ -86,6 +92,24 @@ namespace CurtainCall.WaitingRoom
             DeliverRewards();
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>디버그 전용: 조건 없이 탐색 대상을 연 것으로 만든다(예: 로비 디버그 탈출로 열쇠). 판정 화면(호스트)이 처리한다.</summary>
+        public void RequestDebugOpen(string target)
+        {
+            if (HasAuthority) DebugOpen(target);
+            else channel.Request(JsonUtility.ToJson(new RequestData { kind = DebugOpenRequest, target = target }));
+        }
+
+        void DebugOpen(string target)
+        {
+            if (string.IsNullOrEmpty(target) || book.IsOpen(target)) return;
+            book.Attempt(target, true, out _, out _);
+            Debug.Log($"[Exploration] 디버그로 {target} 열림");
+            DeliverRewards();
+            Publish();
+        }
+#endif
+
         /// <summary>F: 이 탐색 대상에 손에 든 도구를 한 번 쓴다.</summary>
         public void RequestUse(string target) => RequestCode(target, null);
 
@@ -93,7 +117,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (HasAuthority) Answer(channel.LocalClientId, Use(channel.LocalClientId, target, password));
             else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = HitRequest, target = target, password = password })))
-                Answer(channel.LocalClientId, (false, "접속 중이 아니라 내려칠 수 없습니다."));
+                Answer(channel.LocalClientId, (false, WaitingRoomText.Get("explore.offline", "접속 중이 아니라 내려칠 수 없습니다.")));
         }
 
         // ---- 판정 ----
@@ -102,24 +126,24 @@ namespace CurtainCall.WaitingRoom
         (bool, string) Use(ulong player, string targetId, string password = null)
         {
             var target = ExplorationTargets.Find(targetId);
-            if (target == null) return (false, "대상을 찾지 못했습니다.");
-            if (book.IsOpen(targetId)) return (false, "이미 열렸습니다.");
+            if (target == null) return (false, WaitingRoomText.Get("explore.no-target", "대상을 찾지 못했습니다."));
+            if (book.IsOpen(targetId)) return (false, WaitingRoomText.Get("explore.already-open", "이미 열렸습니다."));
             var body = FindBody(player);
-            if (body == null || target.Reach(body.position) < 0f) return (false, "너무 멉니다.");
+            if (body == null || target.Reach(body.position) < 0f) return (false, WaitingRoomText.Get("explore.too-far", "너무 멉니다."));
             var carry = PropCarry.Instance;
             var tool = carry != null ? carry.Selected(player) : default;
             bool needsTool = !string.IsNullOrEmpty(target.ToolId);
             // 장비(UV 등)는 어느 슬롯에 있든 자동 적용된다. 도구는 손에 든(선택한) 것만.
             if (needsTool && ItemCatalog.Get(target.ToolId)?.kind == ItemKind.Equipment && carry != null)
                 foreach (var held in carry.Held(player)) if (held.ItemId == target.ToolId) { tool = held; break; }
-            if (needsTool && (tool.Uid == 0 || tool.ItemId != target.ToolId)) return (false, $"{target.ToolName}을(를) 손에 들어야 합니다.");
+            if (needsTool && (tool.Uid == 0 || tool.ItemId != target.ToolId)) return (false, WaitingRoomText.Format("explore.need-tool", "{tool:을} 손에 들어야 합니다.", ("tool", target.ToolName)));
             if (needsTool && tool.Uses == 0) return (false, PropCarry.Explain(CarryRefusal.UsedUp));
             float now = Time.unscaledTime;
             if (lastHit.TryGetValue(player, out float last) && now - last < MinHitGap) return (false, "");
             lastHit[player] = now;
             if (target is ExplorationGate gate)
             {
-                if (!gate.ConditionsMet) return (false, "선행 조건을 충족해야 합니다.");
+                if (!gate.ConditionsMet) return (false, WaitingRoomText.Get("explore.conditions", "선행 조건을 충족해야 합니다."));
                 if (gate.NeedsPassword && !gate.MatchesPassword(password)) return (false, WrongCode);
                 // 열쇠 구멍이 있는 문은 두 사람이 서로 다른 구멍에서 눌러야 한다.
                 int slot = gate.HasKeySlots ? gate.SlotAt(body.position) : -1;
@@ -131,14 +155,15 @@ namespace CurtainCall.WaitingRoom
                         var held = carry != null ? carry.Selected(id) : default;
                         return !needsTool || (held.Uid != 0 && held.ItemId == target.ToolId && held.Uses != 0);
                     }))
-                    return (false, gate.HasKeySlots ? "다른 한 명이 반대쪽 열쇠 구멍에서 함께 F를 눌러야 합니다." : "다른 한 명도 가까이에서 F를 눌러야 합니다.");
+                    return (false, gate.HasKeySlots ? WaitingRoomText.Get("explore.partner-slot", "다른 한 명이 반대쪽 열쇠 구멍에서 함께 F를 눌러야 합니다.")
+                        : WaitingRoomText.Get("explore.partner", "다른 한 명도 가까이에서 F를 눌러야 합니다."));
             }
 
 
             int attempt = book.Hits(targetId) + 1;
             bool success = target.Resolve(attempt, rng);
             var refusal = book.Attempt(targetId, success, out int count, out bool openedNow);
-            if (refusal != ExplorationRefusal.None) return (false, "더 쓸 수 없습니다.");
+            if (refusal != ExplorationRefusal.None) return (false, WaitingRoomText.Get("explore.no-more", "더 쓸 수 없습니다."));
             string text = target.Describe(openedNow, count);
             if (openedNow)
             {
@@ -146,7 +171,10 @@ namespace CurtainCall.WaitingRoom
                 if (needsTool)
                 {
                     carry.UseItem(player, tool.Uid, out var after, out bool gone);
-                    text += gone ? $" {ItemCatalog.DisplayName(after)}을(를) 다 썼습니다." : $" {ItemCatalog.DisplayName(after)} 남은 {after.Uses}회";
+                    string item = ItemCatalog.DisplayName(after);
+                    text += " " + (gone ? WaitingRoomText.Format("explore.used-up", "{item:을} 다 썼습니다.", ("item", item))
+                        : WaitingRoomText.Format("explore.uses-left", "{item} 남은 {n}회", ("item", item), ("n", after.Uses)));
+                    answerUsedUp = gone; answerUsedUpItem = gone ? item : "";
                 }
                 Debug.Log($"[Exploration] {targetId} 열림({count}번째) — {WaitingRoomShop.PlayerLabel(player)}");
             }
@@ -277,14 +305,15 @@ namespace CurtainCall.WaitingRoom
 
         void Answer(ulong target, (bool ok, string text) result)
         {
+            bool usedUp = answerUsedUp; string usedUpItem = answerUsedUpItem; answerUsedUp = false; answerUsedUpItem = "";
             if (string.IsNullOrEmpty(result.text)) return;
             if (target == channel.LocalClientId || !channel.IsHost)
             {
-                LastMessage = result.text;
+                LastMessage = result.text; LastUsedUp = usedUp; LastUsedUpItem = usedUpItem;
                 RequestAnswered?.Invoke(LastMessage);
                 return;
             }
-            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text }));
+            channel.SendResult(target, JsonUtility.ToJson(new ResultData { ok = result.ok, text = result.text, usedUp = usedUp, usedUpItem = usedUpItem }));
         }
 
         void Publish()
@@ -302,6 +331,9 @@ namespace CurtainCall.WaitingRoom
             if (request == null) return;
             if (request.kind == SyncRequest) channel.SendState(JsonUtility.ToJson(StateData.From(book)), sender);
             else if (request.kind == HitRequest) Answer(sender, Use(sender, request.target, request.password));
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            else if (request.kind == DebugOpenRequest) DebugOpen(request.target);
+#endif
         }
 
         void HandleState(string json)
@@ -317,7 +349,7 @@ namespace CurtainCall.WaitingRoom
         {
             var result = JsonUtility.FromJson<ResultData>(json);
             if (result == null) return;
-            LastMessage = result.text;
+            LastMessage = result.text; LastUsedUp = result.usedUp; LastUsedUpItem = result.usedUpItem ?? "";
             RequestAnswered?.Invoke(LastMessage);
         }
 
@@ -334,7 +366,7 @@ namespace CurtainCall.WaitingRoom
         }
 
         [Serializable] sealed class RequestData { public int kind; public string target; public string password; }
-        [Serializable] sealed class ResultData { public bool ok; public string text; }
+        [Serializable] sealed class ResultData { public bool ok; public string text; public bool usedUp; public string usedUpItem; }
 
         [Serializable]
         sealed class StateData

@@ -40,6 +40,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             Assert.AreEqual(true, Call(run, "RecordClear", "Tightrope", 1));
+            Assert.AreEqual(true, Call(run, "DiscoverTrick", "HumanCannon"), "인간 대포 발견(배치 기물)");
             yield return OpenSchedule();
             var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
             var schedule = Find("CurtainCall.WaitingRoom.ScheduleBoard");
@@ -111,7 +112,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 UnityEngine.EventSystems.ExecuteEvents.Execute(clicked, pointer, UnityEngine.EventSystems.ExecuteEvents.pointerClickHandler);
             }
             Assert.AreEqual("Tightrope", Call(book, "Get", 2, 0));
+            // 발견하지 않은 인간 대포는 카드를 넘겨도 건너뛰고, 발견한 뒤부터 고를 수 있다.
             Call(Get(edits.GetValue(3), "onClick"), "Invoke");
+            Assert.AreEqual("", Call(book, "Get", 2, 1), "미발견 공연은 건너뛴다");
+            Assert.AreEqual(false, Call(Find("CurtainCall.WaitingRoom.ScheduleBoard"), "Set", 2, 1, "HumanCannon", 1).ToString() == "None", "호스트도 미발견 공연을 편성할 수 없다");
+            Assert.AreEqual(true, Call(Static("CurtainCall.Campaign.CampaignRun", "Instance"), "DiscoverTrick", "HumanCannon"));
+            Call(Get(edits.GetValue(3), "onClick"), "Invoke"); Call(Get(edits.GetValue(3), "onClick"), "Invoke");
             Assert.AreEqual("HumanCannon", Call(book, "Get", 2, 1));
             Call(Get(Private(ui, "confirmButton"), "onClick"), "Invoke");
             yield return new WaitForSecondsRealtime(.2f);
@@ -150,6 +156,32 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual("", Call(book, "Get", 4, 0)); Assert.AreEqual(true, Get(book, "IsConfirmedTonight"));
             yield return ReadyToMorning(4, ui);
             Assert.AreEqual(Application.version != "0.1.0", Field(State, "IsFinalMorning"));
+        }
+        [UnityTest]
+        public IEnumerator W3_HumanCannonSet_FAcquireUnlocksAndMovesToPractice()
+        {
+            // 2026-10-30: 무대 장치 보관실의 인간 대포·트램펄린 세트를 F로 획득하면 공연이 열리고 기물이 연습실로 옮겨진다.
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            yield return null;
+            var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
+            var set = Find("CurtainCall.WaitingRoom.PerformancePropDiscovery");
+            var map = (GameObject[])Private(set, "mapProps"); var practice = (GameObject[])Private(set, "practiceProps");
+            Assert.AreEqual(3, map.Length); Assert.AreEqual(2, practice.Length);
+            Assert.AreEqual(false, Call(run, "IsTrickUnlocked", "HumanCannon"));
+            Assert.IsTrue(map.All(m => m.activeInHierarchy), "획득 전 보관실에 있다");
+            Assert.IsTrue(practice.All(p => !p.activeSelf), "획득 전 연습실에는 없다");
+            var pickup = map[0].GetComponent(T("CurtainCall.WaitingRoom.PerformancePropPickup"));
+            Assert.AreEqual(true, Get(pickup, "IsAvailable"));
+            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            var point = (Vector3)Get(pickup, "PresentationPoint");
+            Call(player.GetComponent(T("CurtainCall.Player.PlayerMover")), "SetStartPose", new Vector3(point.x + 2f, map[0].transform.position.y + .1f, point.z), Quaternion.identity);
+            yield return new WaitForSecondsRealtime(.2f);
+            Assert.GreaterOrEqual((float)Call(pickup, "Reach", player.transform.position), 0f, "F가 닿는다");
+            Call(pickup, "Interact");
+            yield return new WaitForSecondsRealtime(.3f);
+            Assert.AreEqual(true, Call(run, "IsTrickUnlocked", "HumanCannon"));
+            Assert.IsTrue(map.All(m => !m.activeSelf), "획득하면 보관실에서 사라진다");
+            Assert.IsTrue(practice.All(p => p.activeInHierarchy), "연습실에 보인다");
         }
     }
 }

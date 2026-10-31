@@ -52,7 +52,7 @@ namespace CurtainCall.WaitingRoom
         public Transform VisualRoot => curtainLeft != null ? curtainLeft : transform;
         public Vector3 PresentationPoint => transform.TransformPoint(CurtainCenterLocal()) + Vector3.up;
         public bool IsAvailable => ExpertService.Instance != null && ExpertService.Instance.Phase == ExpertRoomPhase.Booked && ExpertService.Instance.LocalIsBuyer;
-        public string ActionLabel => IsAvailable ? "전문가 대기실 들어가기" : ExpertService.Instance != null ? RefusalText(ExpertService.Instance) : "담당자 부재중";
+        public string ActionLabel => IsAvailable ? WaitingRoomText.Get("expert-room.ride-lift", "신체 복구 승강기 타기") : ExpertService.Instance != null ? RefusalText(ExpertService.Instance) : WaitingRoomText.Get("expert-room.absent", "담당자 부재중");
 
         /// <summary>그 위치(발)가 커튼 앞 F 거리 안인지.</summary>
         public bool InReach(Vector3 feet) => FlatDistance(feet) <= reach;
@@ -93,6 +93,7 @@ namespace CurtainCall.WaitingRoom
             // A cleared reservation (phase change/disconnect/reset) must not strand the owner in the cabin.
             if (localInside && service.Phase != ExpertRoomPhase.Working) MoveLocal(outside, true);
 
+            GuideAfterBooking(service);
             float target = ShouldOpen(service) ? 1f : 0f;
             open = Mathf.MoveTowards(open, target, curtainSpeed * Time.deltaTime);
             ApplyCurtain(open);
@@ -170,9 +171,9 @@ namespace CurtainCall.WaitingRoom
         static string RefusalText(ExpertService service) => service.Phase switch
         {
             ExpertRoomPhase.Booked => ExpertServiceBook.Explain(ExpertRefusal.NotBuyer),
-            ExpertRoomPhase.Working or ExpertRoomPhase.Exiting => "다른 사람이 전문가 서비스를 받고 있습니다.",
+            ExpertRoomPhase.Working or ExpertRoomPhase.Exiting => WaitingRoomText.Get("expert-room.occupied", "다른 사람이 신체 복구를 받고 있습니다."),
             _ => !ExpertService.IsServiceTime ? ExpertServiceBook.Explain(ExpertRefusal.InPerformance)
-                : "신체 복구는 ③ 상점 수화기에서 먼저 구매하세요.",
+                : WaitingRoomText.Get("expert-room.buy-first", "신체 복구는 ③ 상점 수화기에서 먼저 구매하세요."),
         };
 
         float FlatDistance(Vector3 feet)
@@ -208,6 +209,32 @@ namespace CurtainCall.WaitingRoom
                     try { observer(this, mover, returned); } catch (System.Exception error) { Debug.LogException(error, this); }
         }
 
+        // 예약한 사람에게 한 번: 상점 창이 닫히면 화면을 승강기 쪽으로 돌리고 이용 안내 패널을 띄운다(2026-10-30 사용자).
+        bool guidedBooking;
+        void GuideAfterBooking(ExpertService service)
+        {
+            bool booked = service.Phase == ExpertRoomPhase.Booked && service.LocalIsBuyer;
+            if (!booked) { guidedBooking = false; return; }
+            if (guidedBooking || CurtainCall.Player.InputGate.IsBlocked) return;
+            guidedBooking = true;
+            TurnLocalToward(PresentationPoint);
+            WaitingRoomGuidePanel.Show(WaitingRoomText.Get("narration.expert-booked-title", "신체 복구 예약 완료"),
+                WaitingRoomText.Format("narration.expert-booked-body", "신체 복구 {n}개를 예약했습니다.\n의료 서비스를 이용하려면 로비의 ⑧ 신체 복구 승강기로 이동해 F를 누르세요.", ("n", service.BookedLimbs)), 8f);
+        }
+
+        static void TurnLocalToward(Vector3 point)
+        {
+            var player = NetworkPlayer.Local;
+            if (player == null) return;
+            var flat = Vector3.ProjectOnPlane(point - player.transform.position, Vector3.up);
+            if (flat.sqrMagnitude < .01f) return;
+            var look = Quaternion.LookRotation(flat.normalized);
+            var director = CurtainCall.Cameras.CameraViewDirector.Current;
+            // 마우스 시선 시점은 카메라를, 고정 시점은 캐릭터를 승강기 쪽으로 돌린다.
+            if (director != null && director.UsesMouseLook) director.SetLookRotation(look);
+            else player.transform.rotation = look;
+        }
+
         void UpdateSign(ExpertService service)
         {
             if (sign == null) return;
@@ -217,13 +244,13 @@ namespace CurtainCall.WaitingRoom
             sign.text = text;
         }
 
-        public string StatusText => ExpertService.Instance == null ? "준비 중" : DescribeStatus(ExpertService.Instance);
+        public string StatusText => ExpertService.Instance == null ? WaitingRoomText.Get("expert-room.status-preparing", "준비 중") : DescribeStatus(ExpertService.Instance);
         static string DescribeStatus(ExpertService service) => service.Phase switch
             {
-                ExpertRoomPhase.Booked => $"{WaitingRoomShop.PlayerLabel(service.Buyer)} 입장 대기",
-                ExpertRoomPhase.Working => "이용 중",
-                ExpertRoomPhase.Exiting => "복구 완료",
-                _ => ExpertService.IsServiceTime ? "신체 복구 영업 중" : "공연 중 휴업",
+                ExpertRoomPhase.Booked => WaitingRoomText.Format("expert-room.status-waiting-entry", "{player} 입장 대기", ("player", WaitingRoomShop.PlayerLabel(service.Buyer))),
+                ExpertRoomPhase.Working => WaitingRoomText.Get("expert-room.status-in-use", "이용 중"),
+                ExpertRoomPhase.Exiting => WaitingRoomText.Get("expert-room.status-done", "복구 완료"),
+                _ => ExpertService.IsServiceTime ? WaitingRoomText.Get("expert-room.status-open", "신체 복구 영업 중") : WaitingRoomText.Get("expert-room.status-closed-show", "공연 중 휴업"),
             };
 
         void PlayClank()
@@ -258,11 +285,20 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             var service = ExpertService.Instance;
+            // 안내: 예약한 사람에게 승강기까지 남은 거리를 화면 위에 계속 보여 준다(승강기 앞에 오면 아래 F 안내로 바뀐다).
+            if (service != null && service.Phase == ExpertRoomPhase.Booked && service.LocalIsBuyer && !ReferenceEquals(ShopReach.Focused, this))
+            {
+                var me = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
+                string hint = me != null
+                    ? WaitingRoomText.Format("expert-room.booked-hint-distance", "신체 복구 예약됨 — 로비 ⑧ 신체 복구 승강기 앞에서 F · {meters}m", ("meters", Vector3.Distance(me.transform.position, transform.position).ToString("0", System.Globalization.CultureInfo.InvariantCulture)))
+                    : WaitingRoomText.Get("expert-room.booked-hint", "신체 복구 예약됨 — 로비 ⑧ 신체 복구 승강기 앞에서 F");
+                GUI.Label(new Rect(Screen.width / 2f - 230, 64, 520, 24), hint);
+            }
             if (ShopReach.HasExternalPresentation || service == null || !ReferenceEquals(ShopReach.Focused, this)) return;
             var rect = new Rect(Screen.width / 2f - 230, Screen.height * .62f, 520, 24);
             GUI.Label(rect, service.Phase == ExpertRoomPhase.Booked && service.LocalIsBuyer
-                ? "[F] ⑧ 전문가 대기실 들어가기"
-                : $"[F] ⑧ 전문가 대기실 — {RefusalText(service)}");
+                ? "[F] ⑧ 신체 복구 승강기 타기"
+                : $"[F] ⑧ 신체 복구 승강기 — {RefusalText(service)}");
         }
     }
 }

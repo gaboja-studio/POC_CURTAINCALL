@@ -47,7 +47,7 @@ namespace CurtainCall.UI.SceneIntegration
                 {
                     bool occupied = held != null && i < held.Count;
                     data.Add(new InventorySlotData { IsEmpty = !occupied, ItemSprite = occupied ? Icon(held[i].ItemId) : null,
-                        IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity ? (i + 1).ToString() : $"{i + 1} 잠금", QuantityLabel = !occupied ? "" : held[i].Uses == ItemUses.Unlimited ? "1" : held[i].Uses.ToString() }); // 남은 사용 횟수(item-durability.md)
+                        IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity ? (i + 1).ToString() : WaitingRoomText.Format("inventory.slot-locked", "{n} 잠금", ("n", i + 1)), QuantityLabel = !occupied ? "" : held[i].Uses == ItemUses.Unlimited ? "1" : held[i].Uses.ToString() }); // 남은 사용 횟수(item-durability.md)
                 }
                 slots.SetSlots(data);
                 for (int i = 0; i < VisibleSlotCount; i++)
@@ -57,7 +57,7 @@ namespace CurtainCall.UI.SceneIntegration
                     if (opacity == null) opacity = view.gameObject.AddComponent<CanvasGroup>();
                     opacity.alpha = i < capacity ? 1f : .35f;
                 }
-                selectedLabel.text = selected.Uid != 0 ? $"{ItemCatalog.DisplayName(selected)} · 손에 듦" : "빈손 · 1–2 기물 선택";
+                selectedLabel.text = selected.Uid != 0 ? WaitingRoomText.Format("inventory.holding", "{item} · 손에 듦", ("item", ItemCatalog.DisplayName(selected))) : WaitingRoomText.Get("inventory.empty-hand", "빈손 · 1–2 기물 선택");
             }
             slots.SetContext(true); slots.ShowInventory();
         }

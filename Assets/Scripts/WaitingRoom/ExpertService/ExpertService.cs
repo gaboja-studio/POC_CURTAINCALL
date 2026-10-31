@@ -158,7 +158,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (HasAuthority) Answer(channel.LocalClientId, BuyMedical(channel.LocalClientId, parts), requestId);
             else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = MedicalRequest, parts = parts, requestId = requestId })))
-                Answer(channel.LocalClientId, (false, "접속 중이 아니라 구매할 수 없습니다."), requestId);
+                Answer(channel.LocalClientId, (false, WaitingRoomText.Get("expert.offline-buy", "접속 중이 아니라 구매할 수 없습니다.")), requestId);
         }
 
         /// <summary>⑧ 커튼 앞에서 F: 구매자만 들어간다.</summary>
@@ -166,7 +166,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (HasAuthority) Answer(channel.LocalClientId, Enter(channel.LocalClientId));
             else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = EnterRequest })))
-                LastMessage = "접속 중이 아니라 들어갈 수 없습니다.";
+                LastMessage = WaitingRoomText.Get("expert.offline-enter", "접속 중이 아니라 들어갈 수 없습니다.");
         }
 
         /// <summary>화면 안내 문구를 바꾼다(⑧ 커튼 앞 F 안내 등, 판정 없음).</summary>
@@ -192,11 +192,11 @@ namespace CurtainCall.WaitingRoom
             long cost = MedicalCost(parts);
             var before = book.Phase;
             var refusal = book.BookMedical(buyer, IsServiceTime, alive, lost, parts, MaxPartsPerUse,
-                () => rewards.TrySpend(cost, $"신체 복구 {parts}개 — {WaitingRoomShop.PlayerLabel(buyer)}"));
+                () => rewards.TrySpend(cost, WaitingRoomText.Format("ledger.medical", "신체 복구 {n}개 — {player}", ("n", parts), ("player", WaitingRoomShop.PlayerLabel(buyer)))));
             if (refusal != ExpertRefusal.None) return Reject(buyer, "MEDICAL_RESERVE", refusal);
             Debug.Log($"[Expert] 신체 복구 {parts}개 구매({cost}) ← {WaitingRoomShop.PlayerLabel(buyer)} / 잔액 {rewards.Balance} / 다음 단가 {MedicalPrice}");
             Publish(before);
-            return (true, $"구매 완료({parts}개, {cost}) — 신체 복구 승강기 앞으로 가세요.");
+            return (true, WaitingRoomText.Format("expert.bought", "구매 완료({n}개, {price}) — 신체 복구 승강기 앞으로 가세요.", ("n", parts), ("price", cost)));
         }
 
         (bool, string) Enter(ulong who)
@@ -204,7 +204,7 @@ namespace CurtainCall.WaitingRoom
             var player = Find(who);
             var entrance = FindFirstObjectByType<ExpertRoomView>();
             if (player == null || entrance == null || !entrance.InReach(player.transform.position))
-                return (false, "신체 복구 승강기 앞에서 이용하세요.");
+                return (false, WaitingRoomText.Get("expert.go-to-lift", "신체 복구 승강기 앞에서 이용하세요."));
             var before = book.Phase;
             var refusal = book.Enter(who);
             if (refusal != ExpertRefusal.None) return Reject(who, "MEDICAL_ENTER", refusal);

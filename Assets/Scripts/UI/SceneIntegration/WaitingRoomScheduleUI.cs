@@ -27,25 +27,28 @@ namespace CurtainCall.UI.SceneIntegration
         public string HoverDescription(UnityEngine.UI.Button button)
         {
             var schedule = ScheduleBoard.Instance;
-            if (schedule == null) return "일정 정보를 기다리는 중입니다.";
+            if (schedule == null) return WaitingRoomText.Get("schedule.ui-waiting", "일정 정보를 기다리는 중입니다.");
             if (button == confirmButton)
-                return schedule.Book.IsConfirmedTonight ? "이번 밤 일정이 확정되었습니다." : "호스트가 편성을 확정합니다. 확정한 일정은 다시 편집할 수 없습니다.";
+                return schedule.Book.IsConfirmedTonight ? WaitingRoomText.Get("schedule.hover-confirmed", "이번 밤 일정이 확정되었습니다.") : WaitingRoomText.Get("schedule.hover-confirm", "호스트가 편성을 확정합니다. 확정한 일정은 다시 편집할 수 없습니다.");
             int tierIndex = TierIndex(button, out int tier);
             if (tierIndex >= 0) return TierDescription(schedule, tierIndex / 2 + 1, tierIndex % 2, tier);
             int index = Array.IndexOf(editButtons, button);
             if (index < 0) return null;
             int day = index / 2 + 1;
-            return day == 1 ? "1일차 공연은 고정입니다." : schedule.Book.IsLocked(day) ? "확정된 일정입니다." :
-                schedule.HasAuthority && schedule.Book.IsEditable(day) ? "클릭할 때마다 공연이 바뀝니다. 난이도는 카드 아래 단계 버튼으로 고릅니다." : "밤 정비 시간에 호스트가 편집합니다.";
+            return day == 1 ? WaitingRoomText.Get("schedule.hover-day1-fixed", "1일차 공연은 고정입니다.") : schedule.Book.IsLocked(day) ? WaitingRoomText.Get("schedule.hover-locked", "확정된 일정입니다.") :
+                schedule.HasAuthority && schedule.Book.IsEditable(day) ? WaitingRoomText.Get("schedule.hover-editable", "클릭할 때마다 공연이 바뀝니다. 난이도는 카드 아래 단계 버튼으로 고릅니다.") : WaitingRoomText.Get("schedule.hover-host-edits", "밤 정비 시간에 호스트가 편집합니다.");
         }
         string TierDescription(ScheduleBoard schedule, int day, int slot, int tier)
         {
             string trick = schedule.Book.Get(day, slot);
-            string reward = $"{tier}단계 · {ScheduleBoard.TierRewardText(tier)}";
-            if (!schedule.HasAuthority) return reward + "\n단계는 호스트가 정합니다.";
-            if (tier > schedule.MaxTier(trick)) return reward + $"\n{schedule.TrickName(trick)} {tier - 1}단계를 깨면 열립니다.";
-            return CanEditTier(schedule, day, slot) ? reward + (schedule.IsNextPerformance(day, slot) ? "\n다음 공연 입장 전까지 바꿀 수 있습니다." : "")
-                : reward + "\n밤 정비 또는 그 공연 직전 쉬는 시간에 바꿀 수 있습니다.";
+            string reward = ScheduleBoard.TierRewardText(tier);
+            if (!schedule.HasAuthority) return WaitingRoomText.Format("schedule.tier-host-only", "{tier}단계 · {reward}\n단계는 호스트가 정합니다.", ("tier", tier), ("reward", reward));
+            if (tier > schedule.MaxTier(trick)) return WaitingRoomText.Format("schedule.tier-locked", "{tier}단계 · {reward}\n{trick} {prev}단계를 깨면 열립니다.", ("tier", tier), ("reward", reward), ("trick", schedule.TrickName(trick)), ("prev", tier - 1));
+            return CanEditTier(schedule, day, slot)
+                ? schedule.IsNextPerformance(day, slot)
+                    ? WaitingRoomText.Format("schedule.tier-next-performance", "{tier}단계 · {reward}\n다음 공연 입장 전까지 바꿀 수 있습니다.", ("tier", tier), ("reward", reward))
+                    : WaitingRoomText.Format("schedule.tier-reward-line", "{tier}단계 · {reward}", ("tier", tier), ("reward", reward))
+                : WaitingRoomText.Format("schedule.tier-rest-only", "{tier}단계 · {reward}\n밤 정비 또는 그 공연 직전 쉬는 시간에 바꿀 수 있습니다.", ("tier", tier), ("reward", reward));
         }
         int TierIndex(UnityEngine.UI.Button button, out int tier)
         {
@@ -101,7 +104,7 @@ namespace CurtainCall.UI.SceneIntegration
                     rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0, 1);
                     rect.anchoredPosition = new Vector2(44 + t * 60, -78); rect.sizeDelta = new Vector2(56, 28);
                     var label = go.GetComponentInChildren<TMP_Text>(true);
-                    if (label != null) { label.fontSize = 16; label.text = $"{t + 1}단계"; }
+                    if (label != null) { label.fontSize = 16; label.text = WaitingRoomText.Format("schedule.tier-button", "{tier}단계", ("tier", t + 1)); }
                     buttons[i, t] = go.GetComponent<UnityEngine.UI.Button>();
                     go.SetActive(false);
                 }
@@ -152,36 +155,36 @@ namespace CurtainCall.UI.SceneIntegration
                 for (int slot = 0; slot < 2; slot++)
                 {
                     string trick = book.Get(day, slot);
-                    string title = string.IsNullOrEmpty(trick) ? "미편성" : schedule.TrickName(trick);
-                    entries[slot] = new ScheduleEntryPresentation($"{day}:{slot}", $"공연 {slot + 1} · {title}",
-                        string.IsNullOrEmpty(trick) ? "공연을 선택해 주세요" : $"{book.Difficulty(day, slot)}단계 · {ScheduleBoard.TierRewardText(book.Difficulty(day, slot))}",
+                    string title = string.IsNullOrEmpty(trick) ? WaitingRoomText.Get("schedule.card-empty-title", "미편성") : schedule.TrickName(trick);
+                    entries[slot] = new ScheduleEntryPresentation($"{day}:{slot}", WaitingRoomText.Format("schedule.card-title", "공연 {n} · {title}", ("n", slot + 1), ("title", title)),
+                        string.IsNullOrEmpty(trick) ? WaitingRoomText.Get("schedule.card-pick", "공연을 선택해 주세요") : WaitingRoomText.Format("schedule.tier-reward-line", "{tier}단계 · {reward}", ("tier", book.Difficulty(day, slot)), ("reward", ScheduleBoard.TierRewardText(book.Difficulty(day, slot)))),
                         // 단계 버튼이 진행 문구 자리를 쓴다(확정 여부는 도장으로 보인다).
                         tierButtons != null && day > 1 && !string.IsNullOrEmpty(trick) ? "" :
-                        day == 1 ? "고정" : book.IsLocked(day) ? "확정" : book.IsEditable(day) && schedule.HasAuthority ? "클릭하여 변경" : "미확정",
+                        day == 1 ? WaitingRoomText.Get("schedule.card-fixed", "고정") : book.IsLocked(day) ? WaitingRoomText.Get("schedule.card-locked", "확정") : book.IsEditable(day) && schedule.HasAuthority ? WaitingRoomText.Get("schedule.card-click", "클릭하여 변경") : WaitingRoomText.Get("schedule.card-unconfirmed", "미확정"),
                         false, book.IsLocked(day));
                 }
-                days[day - 1] = new ScheduleDayPresentation(day.ToString(), $"{day}일차", run != null && run.State.Day == day, "", entries);
+                days[day - 1] = new ScheduleDayPresentation(day.ToString(), WaitingRoomText.Format("schedule.day-label", "{day}일차", ("day", day)), run != null && run.State.Day == day, "", entries);
             }
             bool night = run != null && run.State.Phase == CampaignPhase.Night;
-            string context = night ? $"{run.State.Day}일차 밤 · 준비 {run.State.ReadyCount}/{run.State.RequiredCount}"
-                : run != null && run.State.Phase == CampaignPhase.Dawn ? $"{run.State.Day}일차 밤 · 스케줄표를 닫으면 다음 날 아침으로 넘어갑니다"
-                : run != null && run.State.Phase == CampaignPhase.DemoEnding ? "4일차 아침 · 스케줄표를 닫으면 데모 종료 연출이 시작됩니다"
-                : "공연 일정 1~3일 · 밤 정비 때 편집";
+            string context = night ? WaitingRoomText.Format("schedule.context-night", "{day}일차 밤 · 준비 {ready}/{total}", ("day", run.State.Day), ("ready", run.State.ReadyCount), ("total", run.State.RequiredCount))
+                : run != null && run.State.Phase == CampaignPhase.Dawn ? WaitingRoomText.Format("schedule.context-dawn", "{day}일차 밤 · 스케줄표를 닫으면 다음 날 아침으로 넘어갑니다", ("day", run.State.Day))
+                : run != null && run.State.Phase == CampaignPhase.DemoEnding ? WaitingRoomText.Get("schedule.context-demo-ending", "4일차 아침 · 스케줄표를 닫으면 데모 종료 연출이 시작됩니다")
+                : WaitingRoomText.Get("schedule.context-default", "공연 일정 1~3일 · 밤 정비 때 편집");
             string footer = !string.IsNullOrEmpty(message) ? message : run != null && (run.State.Phase == CampaignPhase.Dawn || run.State.Phase == CampaignPhase.DemoEnding)
-                ? "스케줄표를 닫아 연출을 진행하세요" : !night ? RestFooter(schedule, run) :
-                run.State.Day >= 3 ? "준비 완료는 숙소 침대에서" :!schedule.HasAuthority ? "호스트가 일정 편집·확정" : book.IsConfirmedTonight ? "이번 밤 일정 확정 완료" : "카드를 클릭해 묘기 변경 · 단계 버튼으로 난이도 선택";
-            return new SchedulePresentation(session ?? "unopened", (++revision).ToString(), "공연 스케줄", context, footer, days);
+                ? WaitingRoomText.Get("schedule.footer-close-to-continue", "스케줄표를 닫아 연출을 진행하세요") : !night ? RestFooter(schedule, run) :
+                run.State.Day >= 3 ? WaitingRoomText.Get("schedule.footer-ready-at-bed", "준비 완료는 숙소 침대에서") :!schedule.HasAuthority ? WaitingRoomText.Get("schedule.footer-host-edits", "호스트가 일정 편집·확정") : book.IsConfirmedTonight ? WaitingRoomText.Get("schedule.footer-confirmed", "이번 밤 일정 확정 완료") : WaitingRoomText.Get("schedule.footer-edit-help", "카드를 클릭해 묘기 변경 · 단계 버튼으로 난이도 선택");
+            return new SchedulePresentation(session ?? "unopened", (++revision).ToString(), WaitingRoomText.Get("schedule.title", "공연 스케줄"), context, footer, days);
         }
         // 쉬는 시간: 바로 다음 공연의 단계를 입장 전까지 바꿀 수 있고, 더 높은 단계가 열렸으면 알린다.
         static string RestFooter(ScheduleBoard schedule, CampaignRun run)
         {
-            if (run == null || run.State.Phase != CampaignPhase.RestTime || run.State.IsFinalMorning) return "공연 일정 보기";
+            if (run == null || run.State.Phase != CampaignPhase.RestTime || run.State.IsFinalMorning) return WaitingRoomText.Get("schedule.footer-view", "공연 일정 보기");
             int day = run.State.Day, slot = run.State.PerformanceIndex;
-            if (!schedule.IsNextPerformance(day, slot)) return "공연 일정 보기";
-            if (!schedule.HasAuthority) return $"다음 공연 {schedule.Book.Difficulty(day, slot)}단계 · 단계는 호스트가 입장 전까지 바꿀 수 있습니다";
+            if (!schedule.IsNextPerformance(day, slot)) return WaitingRoomText.Get("schedule.footer-view", "공연 일정 보기");
+            if (!schedule.HasAuthority) return WaitingRoomText.Format("schedule.footer-rest-guest", "다음 공연 {tier}단계 · 단계는 호스트가 입장 전까지 바꿀 수 있습니다", ("tier", schedule.Book.Difficulty(day, slot)));
             int current = schedule.Book.Difficulty(day, slot), max = schedule.MaxTier(schedule.Book.Get(day, slot));
-            return max > current ? $"{max}단계가 열렸습니다 · 다음 공연 입장 전까지 단계를 올릴 수 있습니다"
-                : "다음 공연 단계는 입장 전까지 바꿀 수 있습니다";
+            return max > current ? WaitingRoomText.Format("schedule.footer-rest-unlocked", "{tier}단계가 열렸습니다 · 다음 공연 입장 전까지 단계를 올릴 수 있습니다", ("tier", max))
+                : WaitingRoomText.Get("schedule.footer-rest-host", "다음 공연 단계는 입장 전까지 바꿀 수 있습니다");
         }
         void RefreshControls()
         {
@@ -197,7 +200,7 @@ namespace CurtainCall.UI.SceneIntegration
             RefreshTierButtons(schedule);
             confirmButton.gameObject.SetActive(night && schedule.HasAuthority && ScheduleBook.EditableDays(run.State.Day).Length > 0);
             confirmButton.interactable = !schedule.Book.IsConfirmedTonight;
-            Label(confirmButton, schedule.Book.IsConfirmedTonight ? "확정 완료" : "일정 확정");
+            Label(confirmButton, schedule.Book.IsConfirmedTonight ? WaitingRoomText.Get("schedule.button-confirmed", "확정 완료") : WaitingRoomText.Get("schedule.button-confirm", "일정 확정"));
             // M2: 밤 정비 준비 완료는 숙소 침대에서 한다(Task-079). 스케줄표 화면의 준비 버튼은 쓰지 않는다.
             readyButton.gameObject.SetActive(false);
             GetComponentInParent<UiRuntimeFontFallback>()?.ApplyTo(transform);
@@ -222,7 +225,8 @@ namespace CurtainCall.UI.SceneIntegration
                     // 고른 단계는 색으로, 아직 안 열린 단계는 비활성으로 보인다. 참가자는 보기만 한다.
                     button.interactable = edit && tier <= max;
                     if (button.targetGraphic != null) button.targetGraphic.color = tier == selected ? SelectedTier : Color.white;
-                    Label(button, tier == selected ? $"<b>{tier}단계</b>" : $"{tier}단계");
+                    string tierText = WaitingRoomText.Format("schedule.tier-button", "{tier}단계", ("tier", tier));
+                    Label(button, tier == selected ? "<b>" + tierText + "</b>" : tierText);
                 }
             }
         }
@@ -234,6 +238,8 @@ namespace CurtainCall.UI.SceneIntegration
             var choices = schedule.SelectableTricks;
             string trick = schedule.Book.Get(day, slot);
             int next = Array.IndexOf(choices, trick) + 1;
+            // 아직 발견하지 않은 공연은 건너뛴다.
+            while (next < choices.Length && !ScheduleBoard.IsUnlocked(choices[next])) next++;
             string nextTrick = next < choices.Length ? choices[next] : "";
             int tier = Math.Clamp(schedule.Book.Difficulty(day, slot), 1, schedule.MaxTier(nextTrick));
             var result = schedule.Set(day, slot, nextTrick, tier);
@@ -248,14 +254,14 @@ namespace CurtainCall.UI.SceneIntegration
             var result = night && schedule.Book.IsEditable(day)
                 ? schedule.Set(day, slot, schedule.Book.Get(day, slot), tier)
                 : schedule.AdjustTier(day, slot, tier);
-            message = result == ScheduleRefusal.None && !night ? $"다음 공연을 {tier}단계로 바꿨습니다" : ScheduleBoard.Explain(result);
+            message = result == ScheduleRefusal.None && !night ? WaitingRoomText.Format("schedule.tier-changed", "다음 공연을 {tier}단계로 바꿨습니다", ("tier", tier)) : ScheduleBoard.Explain(result);
             lastKey = null; nextRefresh = 0;
         }
         public void Confirm()
         {
             if (!view.IsVisible || ScheduleBoard.Instance == null) return;
             var result = ScheduleBoard.Instance.Confirm();
-            message = result == ScheduleRefusal.None ? "일정이 확정되었습니다" : ScheduleBoard.Explain(result);
+            message = result == ScheduleRefusal.None ? WaitingRoomText.Get("schedule.confirmed-message", "일정이 확정되었습니다") : ScheduleBoard.Explain(result);
             lastKey = null; nextRefresh = 0;
         }
         void Closed() { if (boardView != null) boardView.SetOpen(false); }

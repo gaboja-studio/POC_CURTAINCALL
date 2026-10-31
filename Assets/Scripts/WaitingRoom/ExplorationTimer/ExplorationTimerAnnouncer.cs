@@ -32,11 +32,7 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("방송(종소리 없음) 문턱(초). 공용 세팅에 칸이 생기면 옮긴다.")]
         [SerializeField] float[] broadcastSeconds = { 30f, 10f };
 
-        [Tooltip("소집 경보 문구. {0} = 남은 초.")]
-        [SerializeField] string recallMessage = "소집 경보! 무대 입구로 모이세요 — {0}초";
-
-        [Tooltip("방송 문구. {0} = 남은 초.")]
-        [SerializeField] string broadcastMessage = "공연 {0}초 전입니다";
+        // 경보·방송 문구는 문구 표(WaitingRoomTexts.txt)의 broadcast.recall / broadcast.notice에서 고친다({seconds} = 남은 초).
 
         CampaignRun run;
         ExplorationTimerCues cues;
@@ -74,7 +70,9 @@ namespace CurtainCall.WaitingRoom
 
         void Raise(int seconds, bool recall)
         {
-            var text = string.Format(recall ? recallMessage : broadcastMessage, seconds);
+            var text = recall
+                ? WaitingRoomText.Format("broadcast.recall", "소집 경보! 무대 입구로 모이세요 — {seconds}초", ("seconds", seconds))
+                : WaitingRoomText.Format("broadcast.notice", "공연 {seconds}초 전입니다", ("seconds", seconds));
             Debug.Log($"[WaitingRoom] {(recall ? "소집 경보" : "방송")}: {text}");
             Announced?.Invoke(new ExplorationAnnouncement(seconds, recall, text));
         }
