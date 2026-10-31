@@ -6,6 +6,8 @@
 
 - [escape-background-direction.md](escape-background-direction.md) — 탈출로의 중성 콘크리트·흐린 내부/햇빛 강한 갈대밭 대비·기존 캐릭터 사용. 공통 맵과 B/C 배경을 제작할 때
 - [escape-control-baseline.md](escape-control-baseline.md) — A 우선 완성·B/C M2 이후 일정, 공통 1인 개발환경·인간대포 기본 조작·외줄 전환·그네 기준
+- [escape-completion.md](escape-completion.md) — 전원 도착·리타이어까지 기다린 뒤 도착자가 한 명 이상이면 성공. 탈출 참가자 집계·종료 시점을 연결할 때
+- [escape-entry.md](escape-entry.md) — 합류 타이머 없이4인 집결·뒤 문 봉쇄·로딩 전환·계단 끝1인칭. 대기실에서 탈출로 입장을 연결할 때
 
 - [branch-strategy.md](branch-strategy.md) — 브랜치·PR 흐름, UI 제작→연결 직접 pull 예외, 병합 방식, PM 전용 영역. 브랜치를 만들거나 PR 대상을 정할 때
 - [pr-issue-format.md](pr-issue-format.md) — PR·이슈 제목과 본문 형식, JIRA·이슈 번호 규칙. PR·이슈를 만들거나 .github 템플릿을 고칠 때

@@ -1,8 +1,8 @@
 ---
 summary: MPPM 복제본의 CLI 표시는 버전마다 다름. 정확한 project-path로 구분하며 내부 API 직접 실행은 Unknown Player 오류를 만들 수 있음
 status: active
-updated: 2026-10-16
-source: Task-20260930-007, Task-20261016-052
+updated: 2026-10-31
+source: Task-20260930-007, Task-20261016-052, Task-20261027-073
 ---
 
 # MPPM 가상 플레이어가 에디터로 잡힘
@@ -37,3 +37,8 @@ unity-cli `1.0.0-beta.12`부터 `unity status`·`unity pipeline list`가 MPPM �
 - `VirtualProjectsApi.Create/Launch`만 리플렉션으로 호출하면 보조 Editor는 열려도 메인에 `Unknown Player with VP ID` Assert와 `MainPlayerSystems.Listen` NullReferenceException이 생겼다. 공식 Scenario 등록 없이 실행한 경로이므로 권장하지 않는다.
 - MPPM 2.x는 Window > Play Mode > Scenarios에서 Additional Editor Instance를 구성해 실행한다. 직접 실행 실패를 게임 오류로 오인하지 말고, 공식 경로로 재확인한다.
 - 도구가 만든 검증용 Editor만 정상 종료한다. Library/VP 캐시 삭제나 프로젝트 Scenario 에셋 추가는 별개 변경이며 자동으로 하지 않는다.
+
+## 2026-10-31 공식 Scenario 종료와 모달
+
+- Unity 6000.3.25f1의 실제 메뉴는 `Window/Multiplayer/Play Mode Scenarios`였다. 메인과 Additional Editor Instances 3개를 등록하고 선택한 Scenario의 Play 버튼으로 실행한다.
+- 보조 에디터만 먼저 종료하면 메인에 `Player N unexpectedly stopped` 재시작 모달이 뜬다. 이때 Pipeline `editor_status`와 `menu`가 시간 초과할 수 있다. 멈춤으로 단정하지 말고 화면에서 모달을 확인한다. 검증 종료 목적이라면 재시작하지 않고 메인의 Scenario를 중지한다.

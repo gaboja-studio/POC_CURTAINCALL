@@ -153,6 +153,11 @@ namespace CurtainCall.WaitingRoom
             channel.Update();
             if (!HasAuthority) return;
             WatchGeneration();
+            bool retired = false;
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && player.State == PlayerState.Retired && book.Retire(player.OwnerClientId))
+                { selected.Remove(player.OwnerClientId); retired = true; }
+            if (retired) Publish();
             if (InWaitingRoom) TrimOverLimit();
         }
 
@@ -280,6 +285,9 @@ namespace CurtainCall.WaitingRoom
         (bool, string) UseShelf(ulong player)
         {
             if (WaitingRoomShop.InPerformance) return Reject(player, "SHELF", Selected(player).Uid, "IN_PERFORMANCE", WaitingRoomText.Get("carry.shelf-in-performance", "공연 중에는 선반을 쓸 수 없습니다."));
+            var body = FindBody(player);
+            if (body == null || !HandoverShelfView.CanUse(body.position))
+                return Reject(player, "SHELF", Selected(player).Uid, "TOO_FAR", "선반 앞에 가까이 다가가세요.");
             var refusal = book.UseShelf(player, Slots(player), out int slot, out bool placed, out var item, Selected(player).Uid == 0 ? -1 : Selected(player).Uid);
             if (refusal != CarryRefusal.None) return Reject(player, "SHELF", Selected(player).Uid, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 선반 {slot + 1}칸 {(placed ? "올림" : "꺼냄")} #{item.Uid} {item.Name} — {WaitingRoomShop.PlayerLabel(player)}");

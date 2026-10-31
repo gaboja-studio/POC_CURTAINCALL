@@ -31,6 +31,7 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, Min(0)] float warnSeconds = 3;
         [SerializeField, Min(.1f)] float burstSeconds = 3;
         [SerializeField] float safeExitX = 400;
+        [SerializeField] Transform coordinateSpace;
         [SerializeField, Min(0)] float burstEmissionMultiplier = 2.5f;
         [SerializeField, Min(.01f)] float steadyEmissionMultiplier = .45f;
 
@@ -122,7 +123,8 @@ namespace CurtainCall.EscapeRoute
 
         bool CanArm(NetworkPlayer player)
         {
-            if (!Alive(player) || player.IsAirborne || player.transform.position.x >= safeExitX
+            if (!Alive(player) || player.IsAirborne || (coordinateSpace != null
+                    ? coordinateSpace.InverseTransformPoint(player.transform.position).x : player.transform.position.x) >= safeExitX
                 || !DamageAllowed(player) || !player.TryGetComponent(out PlayerMover mover)
                 || trigger == null || !trigger.enabled || !trigger.gameObject.activeInHierarchy
                 || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0

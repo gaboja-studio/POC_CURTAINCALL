@@ -109,7 +109,7 @@ MonoBehaviour:
     waitingRoomScene: WaitingRoomBase
     keepWaitingRoomOnExit: 1
     explorationScene: WaitingRoomBase
-    escapeRouteScene: DummyEscapeRoute
+    escapeRouteScene: escape_route
   voiceChat:
     enabled: 1
     useOnLan: 1
@@ -119,6 +119,7 @@ MonoBehaviour:
     - WaitingRoomBase
     - Tightrope
     - HumanCannon
+    - escape_route
     conversationalDistance: 2
     audibleDistance: 20
     fadeModel: 2

@@ -65,6 +65,8 @@ namespace CurtainCall.UI.SceneIntegration
 
         WaitingRoomUiBinding SelectWaitingRoom()
         {
+            if (CurtainCall.Campaign.CampaignRun.Instance != null
+                && CurtainCall.Campaign.CampaignRun.Instance.State.Phase == CurtainCall.Campaign.CampaignPhase.Escape) return null;
             // A hub may keep the waiting-room scene loaded during a performance.
             if (SelectSpace() != null) return null;
             for (int i = waitingRooms.Count - 1; i >= 0; i--)

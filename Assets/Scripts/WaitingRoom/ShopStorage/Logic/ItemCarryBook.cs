@@ -284,6 +284,14 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>방이 바뀔 때: 선반까지 모두 비운다(물려주기는 같은 게임 세션 안에서만, 게임 흐름 6-2).</summary>
+        /// <summary>Escape retirement destroys only this participant's held items; the inheritance shelf stays intact.</summary>
+        public bool Retire(ulong player)
+        {
+            if (!held.Remove(player)) return false;
+            Revision++;
+            return true;
+        }
+
         public void Clear()
         {
             System.Array.Clear(shelf, 0, ShelfSlots);
