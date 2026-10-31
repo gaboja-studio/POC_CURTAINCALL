@@ -17,3 +17,4 @@
   양쪽이 바꾼 파일은 `HumanoidPlayerPresentation.cs` 1개 — dev 아이템 레이어·정렬과 이 브랜치 매달림 손 방향이 모두 유지됨을 확인. dev에 혈흔 관련 코드 없음.
   병합 후 검사: 컴파일 PASS. BloodEffect 2/2, HangFacing 2/2 PASS. HumanoidPlayerTests 18/21 —
   실패 2개(`CrawlSlopeAndJump…`, `InitialInjuryRebind…`: 기대 "Crawl", 실제 "ItemCrawl_Cut2/3")는 dev(PR #256)가 기어가기 상태 이름을 바꾸고 테스트를 갱신하지 않은 기존 dev 문제, 1개는 이 PC 키 재설정 값(앞 기록).
+- 2026-11-01 제출: PR #257 → dev https://github.com/gaboja-studio/POC_CURTAINCALL/pull/257 . `new-pr.ps1`은 미커밋 테스트 부산물 때문에 등록을 막아 같은 제목·본문으로 gh 직접 생성. 남은 일: 지정 팀원 검토, 사람 플레이 확인.
