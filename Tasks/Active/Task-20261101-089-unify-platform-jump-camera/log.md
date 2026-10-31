@@ -25,3 +25,4 @@
     `DevStartLauncherPlayTests` 클래스 전체 70개 중 57 PASS·13 FAIL. Dev 시작 관련은 모두 PASS.
     FAIL 13개는 대기실 M2 테스트의 기존 dev 문제(예: `ExplorationReach.From` 인자 추가 2e906f11 뒤 테스트 미갱신, `PropItem` 생성자, 단계 안내 문구 변경). 이 브랜치는 해당 코드·테스트 미변경.
   - 주의: PlayMode 실행으로 `Assets/Scenes/Levels/EscapeRouteMaterials/escape-labels.asset`(TMP 동적 아틀라스)이 바뀜. 작업 결과물 아님 → 커밋 제외/복원 필요(사용자 결정 대기).
+- 2026-11-01 저장·제출: 22e43065(점프·카메라·벽 충돌), cd2a9f9b(Dev 탈출로 시작·치트) push. PR #255 → dev https://github.com/gaboja-studio/POC_CURTAINCALL/pull/255 . `new-pr.ps1`은 두 단계 브랜치명(`fix/movements/jump`)을 거부해 같은 템플릿으로 gh 직접 생성. check-work 문서/규칙 FAIL(Task-079 log 길이)로 저장 스크립트 대신 경로 지정 커밋. 테스트 부산물 4개(폰트 아틀라스 3, Vivox 줄바꿈)는 미커밋 상태로 남김. 남은 일: 지정 팀원 검토, 사람 플레이 확인.
