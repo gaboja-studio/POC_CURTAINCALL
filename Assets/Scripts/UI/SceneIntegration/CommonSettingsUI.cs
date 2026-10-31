@@ -113,6 +113,9 @@ namespace CurtainCall.UI.SceneIntegration
             graphics.rows.Last().disabledValueLabel = "데스크톱 해상도 사용";
             graphics.rows.Add(Choice("FrameRate", "FPS 제한", ClientSettings.FrameRateLimit.ToString(), ClientSettings.AvailableFrameRateLimits.Select(f => new SettingsChoice(f.ToString(), f < 0 ? "제한 없음" : f == 60 ? "60 FPS (기본)" : $"{f} FPS"))));
             graphics.rows.Add(Toggle("HideNearbyCharacter", "카메라가 가까울 때 내 캐릭터 숨기기", ClientSettings.HideNearbyCharacter));
+            // 혈흔 연출(Task-090): 게임 설정에서 꺼져 있으면 항목을 보이지 않고 모두 꺼진 상태다.
+            if (CurtainCall.Damage.InjuryBloodEffects.IsEnabledByGame)
+                graphics.rows.Add(Toggle("ShowBloodEffect", "혈흔 연출 표시", ClientSettings.ShowBloodEffect));
             graphics.rows.Add(Paragraph("GraphicsHint", "전체 화면 창은 데스크톱 해상도를 사용합니다.\n변경한 설정은 적용을 누르면 이 PC에 저장됩니다."));
             var controls = catalog.pages[2];
             controls.notice = "변경 버튼을 누르고 새 키를 입력하세요. ESC로 입력 대기를 취소합니다.\n사용 중인 키는 확인 후 옮깁니다. 모든 키를 설정하고 적용을 눌러야 저장됩니다.\nESC 메뉴·M 마이크·마우스 시점·게임패드는 고정 입력입니다.";
@@ -280,6 +283,7 @@ namespace CurtainCall.UI.SceneIntegration
                     values.Add(new V2Value { rowId = "Resolution", choiceId = resolution.width + "x" + resolution.height });
                     values.Add(new V2Value { rowId = "FrameRate", choiceId = ClientSettings.DefaultFrameRateLimit.ToString() });
                     values.Add(new V2Value { rowId = "HideNearbyCharacter", toggle = true });
+                    if (CurtainCall.Damage.InjuryBloodEffects.IsEnabledByGame) values.Add(new V2Value { rowId = "ShowBloodEffect", toggle = true });
                     break;
                 case "controls":
                     if (inputDraft == null) return;
@@ -329,6 +333,7 @@ namespace CurtainCall.UI.SceneIntegration
                 var mode = (FullScreenMode)int.Parse(values["ScreenMode"].choiceId);
                 ClientSettings.SetGraphics(mode, resolution.width, resolution.height, int.Parse(values["FrameRate"].choiceId));
                 ClientSettings.HideNearbyCharacter = values["HideNearbyCharacter"].toggle;
+                if (values.TryGetValue("ShowBloodEffect", out var blood)) ClientSettings.ShowBloodEffect = blood.toggle;
                 if (values.TryGetValue("WaitingRoomGuide", out var guide)) CurtainCall.WaitingRoom.WaitingRoomTutorial.Enabled = guide.toggle;
                 ClientSettings.Volume = values["volume"].number; ClientSettings.BgmVolume = values["bgmVolume"].number; ClientSettings.SfxVolume = values["sfxVolume"].number; ClientSettings.Save();
                 var voice = VoiceChat.Instance;

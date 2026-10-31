@@ -379,6 +379,41 @@ namespace CurtainCall.Tests.HumanoidPresentation
             }
         }
 
+        /// <summary>
+        /// 2026-11-01 버그: 줄 매달림 중 흔들림마다 모델이 줄 오른쪽 ↔ 왼쪽으로 뒤집혔다.
+        /// 애니메이션 시점·흔들림과 상관없이 같은 쪽(줄에 수직)을 보고, 손은 줄을 따라 잡아야 한다.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator RopeHangFacingStaysOnOneSideThroughSwayAndAnimation()
+        {
+            var player = Player();
+            yield return null;
+            var view = Model(player);
+            var animator = (Animator)view.GetType().GetField("Animator").GetValue(view);
+            var presentation = Part(player, "HumanoidPlayerPresentation");
+            var restore = presentation.GetType().GetMethod("RestoreHangAlignment", BindingFlags.Instance | BindingFlags.NonPublic);
+            var pose = presentation.GetType().GetMethod("ApplyHangPose", BindingFlags.Instance | BindingFlags.NonPublic);
+            Vector3 grip = player.transform.position + Vector3.up * 2f;
+            Vector3 rope = player.transform.forward;
+            Vector3? first = null;
+            try
+            {
+                for (int i = 0; i < 24; i++)
+                {
+                    restore.Invoke(presentation, null);
+                    animator.Play("Hanging", 0, (i * .137f) % 1f);
+                    animator.Update(0f);
+                    pose.Invoke(presentation, new object[] { grip, i % 2 == 0 ? rope : -rope, true });
+                    Vector3 facing = Vector3.ProjectOnPlane(view.transform.forward, Vector3.up).normalized;
+                    Assert.That(Mathf.Abs(Vector3.Dot(facing, rope)), Is.LessThan(.35f), "몸은 줄에 수직으로 매달린다");
+                    first ??= facing;
+                    Assert.That(Vector3.Dot(facing, first.Value), Is.GreaterThan(.8f), $"프레임 {i}: 바라보는 쪽이 뒤집히지 않는다");
+                    yield return null;
+                }
+            }
+            finally { restore.Invoke(presentation, null); }
+        }
+
         [UnityTest]
         public IEnumerator PropertyBlockColorSurvivesCameraFadeAndRestore()
         {

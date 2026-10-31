@@ -241,7 +241,9 @@ namespace CurtainCall.Player
                 Vector3 ropeAxis = Vector3.ProjectOnPlane(axis, Vector3.up);
                 if (handAxis.sqrMagnitude > .0001f && ropeAxis.sqrMagnitude > .0001f)
                 {
-                    if (Vector3.Dot(handAxis, ropeAxis) < 0f) axis = -axis;
+                    // 몸은 줄 방향을 보고 있어 손 방향이 줄과 거의 수직이다. 손 방향 부호로 돌 쪽을 고르면 흔들림마다
+                    // 좌우가 뒤집힌다(2026-11-01 버그). 바라볼 쪽을 고정 규칙으로 정한다: 코스 가운데를 본다.
+                    axis = RopeHangHandAxis(ropeAxis, transform.position, transform.forward);
                     root.rotation = Quaternion.AngleAxis(Vector3.SignedAngle(handAxis, axis, Vector3.up), Vector3.up) * root.rotation;
                 }
             }
@@ -261,6 +263,24 @@ namespace CurtainCall.Player
             axis = axis.sqrMagnitude > .0001f ? axis.normalized : transform.right;
             if (left != null) AlignArm(animator, true, grip - axis * (count == 2 ? .18f : 0f));
             if (right != null) AlignArm(animator, false, grip + axis * (count == 2 ? .18f : 0f));
+        }
+
+        /// <summary>
+        /// 줄 매달림의 손 방향(왼손 → 오른손). 몸은 줄에 수직으로, 코스 가운데 쪽을 바라본다
+        /// (왼쪽 줄은 오른쪽, 오른쪽 줄은 왼쪽. 가운데 줄·코스 없음은 줄 왼쪽 = 오른손이 줄 진행 방향).
+        /// 위치만으로 정하므로 모든 화면에서 같고 흔들림·애니메이션에 따라 바뀌지 않는다.
+        /// </summary>
+        internal static Vector3 RopeHangHandAxis(Vector3 ropeAxis, Vector3 position, Vector3 bodyForward)
+        {
+            ropeAxis = Vector3.ProjectOnPlane(ropeAxis, Vector3.up).normalized;
+            // 줄 축의 부호는 의미가 없다. 매달림 시스템이 줄 진행 방향으로 세운 몸 정면에 맞춘다.
+            if (Vector3.Dot(ropeAxis, bodyForward) < 0f) ropeAxis = -ropeAxis;
+            Vector3 right = Vector3.Cross(Vector3.up, ropeAxis); // 줄 진행 방향의 오른쪽
+            var course = TightropeCourse.Current;
+            // 줄 축의 부호와 상관없이 코스 오른쪽(GetSide +)과 같은 쪽을 오른쪽으로 쓴다.
+            if (course != null && Vector3.Dot(right, Vector3.Cross(Vector3.up, course.Forward)) < 0f) right = -right;
+            Vector3 facing = course != null && course.GetSide(position) < -.05f ? right : -right;
+            return Vector3.Cross(Vector3.up, facing); // 바라보는 방향의 오른쪽 = 오른손 쪽
         }
 
         internal static Vector3 Palm(Animator animator, bool left)
