@@ -96,13 +96,18 @@ namespace CurtainCall.WaitingRoom
         /// <summary>디버그 전용: 조건 없이 탐색 대상을 연 것으로 만든다(예: 로비 디버그 탈출로 열쇠). 판정 화면(호스트)이 처리한다.</summary>
         public void RequestDebugOpen(string target)
         {
-            if (HasAuthority) DebugOpen(target);
+            if (HasAuthority) DebugOpen(target, channel.LocalClientId);
             else channel.Request(JsonUtility.ToJson(new RequestData { kind = DebugOpenRequest, target = target }));
         }
 
-        void DebugOpen(string target)
+        void DebugOpen(string target, ulong player)
         {
             if (string.IsNullOrEmpty(target) || book.IsOpen(target)) return;
+            if (ExplorationGate.IsKeyTarget(target))
+            {
+                var result = ReceiveKey(player, target);
+                if (!result.ok) { Answer(player, result); return; }
+            }
             book.Attempt(target, true, out _, out _);
             Debug.Log($"[Exploration] 디버그로 {target} 열림");
             DeliverRewards();
@@ -121,6 +126,16 @@ namespace CurtainCall.WaitingRoom
         }
 
         // ---- 판정 ----
+
+        (bool ok, string text) ReceiveKey(ulong player, string target)
+        {
+            var carry = PropCarry.Instance;
+            if (carry == null) return (false, "기물 소지를 준비 중입니다.");
+            var item = ItemCatalog.NewProduct(ExplorationKeys.Uid(target, seenGeneration), ExplorationKeys.ItemId(target), ExplorationKeys.Name(target));
+            if (carry.Exists(item.Uid)) return (false, "이미 획득한 열쇠입니다.");
+            var refusal = carry.Receive(player, item);
+            return refusal == CarryRefusal.None ? (true, item.Name + " 획득") : (false, PropCarry.Explain(refusal));
+        }
 
         // 판정 화면: 탐색 대상에 손에 든 도구를 한 번 쓴다(벽 내려치기·자물쇠 따기·판자 뜯기·UV 비추기 공통).
         (bool, string) Use(ulong player, string targetId, string password = null)
@@ -144,6 +159,7 @@ namespace CurtainCall.WaitingRoom
             if (target is ExplorationGate gate)
             {
                 if (!gate.ConditionsMet) return (false, WaitingRoomText.Get("explore.conditions", "선행 조건을 충족해야 합니다."));
+                if (gate.UsesKey && !gate.AcceptsKey(tool)) return (false, "맞는 열쇠를 슬롯에서 선택해야 합니다.");
                 if (gate.NeedsPassword && !gate.MatchesPassword(password)) return (false, WrongCode);
                 // 열쇠 구멍이 있는 문은 두 사람이 서로 다른 구멍에서 눌러야 한다.
                 int slot = gate.HasKeySlots ? gate.SlotAt(body.position) : -1;
@@ -153,6 +169,7 @@ namespace CurtainCall.WaitingRoom
                         if (other == null || gate.Reach(other.position) < 0f) return false;
                         if (gate.HasKeySlots && id != player && gate.SlotAt(other.position) == slot) return false;
                         var held = carry != null ? carry.Selected(id) : default;
+                        if (gate.UsesKey && (!gate.AcceptsKey(held) || (id != player && held.ItemId == tool.ItemId))) return false;
                         return !needsTool || (held.Uid != 0 && held.ItemId == target.ToolId && held.Uses != 0);
                     }))
                     return (false, gate.HasKeySlots ? WaitingRoomText.Get("explore.partner-slot", "다른 한 명이 반대쪽 열쇠 구멍에서 함께 F를 눌러야 합니다.")
@@ -162,6 +179,11 @@ namespace CurtainCall.WaitingRoom
 
             int attempt = book.Hits(targetId) + 1;
             bool success = target.Resolve(attempt, rng);
+            if (success && target is ExplorationGate pickup && pickup.IsKeyPickup)
+            {
+                var result = ReceiveKey(player, targetId);
+                if (!result.ok) return result; // Full inventory must leave the key available in the world.
+            }
             var refusal = book.Attempt(targetId, success, out int count, out bool openedNow);
             if (refusal != ExplorationRefusal.None) return (false, WaitingRoomText.Get("explore.no-more", "더 쓸 수 없습니다."));
             string text = target.Describe(openedNow, count);
@@ -332,7 +354,7 @@ namespace CurtainCall.WaitingRoom
             if (request.kind == SyncRequest) channel.SendState(JsonUtility.ToJson(StateData.From(book)), sender);
             else if (request.kind == HitRequest) Answer(sender, Use(sender, request.target, request.password));
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            else if (request.kind == DebugOpenRequest) DebugOpen(request.target);
+            else if (request.kind == DebugOpenRequest) DebugOpen(request.target, sender);
 #endif
         }
 

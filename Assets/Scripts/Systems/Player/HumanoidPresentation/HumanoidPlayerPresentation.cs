@@ -69,6 +69,7 @@ namespace CurtainCall.Player
             }
             model = next;
             carryMotion = null;
+            itemLayerState = null;
             ResetRescueMotion();
             airborne = false;
             landUntil = 0;
@@ -129,6 +130,8 @@ namespace CurtainCall.Player
             Color next = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
             if (color != next) { color = next; model.SetColor(color); }
             model.Animator.SetLayerWeight(1, 0f);
+            int itemLayer = model.Animator.GetLayerIndex("ItemRightHand");
+            if (itemLayer >= 0) model.Animator.SetLayerWeight(itemLayer, 0);
             if (condition.AllLimbsLost) { ResetCircusMotion(); model.Play("Death"); return; }
             if (PresentRopeRescue()) return;
             if (TryHangGrip(out _, out _))
@@ -148,11 +151,11 @@ namespace CurtainCall.Player
             JumpKind jump = network != null && network.IsSpawned && !network.IsOwner ? network.CurrentJump : mover.CurrentJump;
             bool inAir = jump != JumpKind.None || mover.IsAirborne;
             bool carrying = network != null && network.IsSpawned
-                && ((PropCarry.Instance != null && PropCarry.Instance.Held(network.OwnerClientId).Count > 0)
-                    || HumanCannonCarry.Held(network.OwnerClientId) != null);
+                && HumanCannonCarry.Held(network.OwnerClientId) != null;
             // Jump/landing/legless returns still need the grip layer. Hands are solved after animation.
             model.Animator.SetLayerWeight(1, carrying ? 1f : 0f);
             PresentCarryLayer(carrying);
+            if (!carrying && PresentItemMotion(moving, inAir)) return;
             if (inAir && !airborne) jumpSince = Time.time;
             if (!inAir && airborne) landUntil = Time.time + .15f;
             airborne = inAir;
@@ -165,7 +168,7 @@ namespace CurtainCall.Player
             }
             if (condition.LostLegCount == 2)
             {
-                model.Play("Crawl", moving && !inAir ? 1f : .0001f);
+                model.Play(CurtainCall.ItemArt.ItemVisualAssets.State("ItemCrawl",model.Stage), moving && !inAir ? 1f : .0001f);
                 return;
             }
             if (inAir)
@@ -212,6 +215,7 @@ namespace CurtainCall.Player
 
         void LateUpdate()
         {
+            ApplyItemAlignment();
             if (ApplyRescueAlignment()) return;
             ApplyCircusAlignment();
             if (!IsHanging || model == null || !model.Animator.isHuman || !TryHangGrip(out var grip, out var axis)) return;
@@ -319,6 +323,7 @@ namespace CurtainCall.Player
 
         void OnDisable()
         {
+            ClearItemVisual();
             RestoreHangAlignment();
             IsHanging = false;
             ResetCircusMotion();

@@ -1,0 +1,322 @@
+[
+  {
+    "character": "Rabbit",
+    "stage": 0,
+    "motion": "ItemHold",
+    "clip": "ItemHold",
+    "frame": 1697,
+    "palmClearance": 0.008882301,
+    "fingerClearance": -2.21226364E-05,
+    "pass": true
+  },
+  {
+    "character": "Rabbit",
+    "stage": 0,
+    "motion": "ItemStrike",
+    "clip": "ItemStrike",
+    "frame": 1728,
+    "palmClearance": 0.008882178,
+    "fingerClearance": -2.20071524E-05,
+    "pass": true
+  },
+  {
+    "character": "Rabbit",
+    "stage": 1,
+    "motion": "ItemHold_Cut1",
+    "clip": "ItemHold_Cut1",
+    "frame": 1815,
+    "palmClearance": 0.008882266,
+    "fingerClearance": -2.230145E-05,
+    "pass": true
+  },
+  {
+    "character": "Rabbit",
+    "stage": 1,
+    "motion": "ItemStrike_Cut1",
+    "clip": "ItemStrike_Cut1",
+    "frame": 1846,
+    "palmClearance": 0.008882228,
+    "fingerClearance": -2.22120434E-05,
+    "pass": true
+  },
+  {
+    "character": "Rabbit",
+    "stage": 2,
+    "motion": "ItemHold_Cut2",
+    "clip": "ItemHold_Cut2",
+    "frame": 1933,
+    "palmClearance": 0.008882334,
+    "fingerClearance": -2.2219494E-05,
+    "pass": true
+  },
+  {
+    "character": "Rabbit",
+    "stage": 2,
+    "motion": "ItemStrike_Cut2",
+    "clip": "ItemStrike_Cut2",
+    "frame": 1963,
+    "palmClearance": 0.008882428,
+    "fingerClearance": -2.22530216E-05,
+    "pass": true
+  },
+  {
+    "character": "Rabbit",
+    "stage": 3,
+    "motion": "ItemHold_Cut3",
+    "clip": "ItemHold_Cut3",
+    "frame": 2050,
+    "palmClearance": 0.008882312,
+    "fingerClearance": -2.20499933E-05,
+    "pass": true
+  },
+  {
+    "character": "Rabbit",
+    "stage": 3,
+    "motion": "ItemStrike_Cut3",
+    "clip": "ItemStrike_Cut3",
+    "frame": 2081,
+    "palmClearance": 0.008882338,
+    "fingerClearance": -2.20872462E-05,
+    "pass": true
+  },
+  {
+    "character": "Bear",
+    "stage": 0,
+    "motion": "ItemHold",
+    "clip": "ItemHold",
+    "frame": 2168,
+    "palmClearance": 0.0109816641,
+    "fingerClearance": 0.007793423,
+    "pass": true
+  },
+  {
+    "character": "Bear",
+    "stage": 0,
+    "motion": "ItemStrike",
+    "clip": "ItemStrike",
+    "frame": 2199,
+    "palmClearance": 0.0109813157,
+    "fingerClearance": 0.00779363327,
+    "pass": true
+  },
+  {
+    "character": "Bear",
+    "stage": 1,
+    "motion": "ItemHold_Cut1",
+    "clip": "ItemHold_Cut1",
+    "frame": 2285,
+    "palmClearance": 0.010981489,
+    "fingerClearance": 0.00779352337,
+    "pass": true
+  },
+  {
+    "character": "Bear",
+    "stage": 1,
+    "motion": "ItemStrike_Cut1",
+    "clip": "ItemStrike_Cut1",
+    "frame": 2316,
+    "palmClearance": 0.0109815486,
+    "fingerClearance": 0.00779359229,
+    "pass": true
+  },
+  {
+    "character": "Bear",
+    "stage": 2,
+    "motion": "ItemHold_Cut2",
+    "clip": "ItemHold_Cut2",
+    "frame": 2402,
+    "palmClearance": 0.0109814461,
+    "fingerClearance": 0.00779337436,
+    "pass": true
+  },
+  {
+    "character": "Bear",
+    "stage": 2,
+    "motion": "ItemStrike_Cut2",
+    "clip": "ItemStrike_Cut2",
+    "frame": 2433,
+    "palmClearance": 0.0109816212,
+    "fingerClearance": 0.00779347867,
+    "pass": true
+  },
+  {
+    "character": "Bear",
+    "stage": 3,
+    "motion": "ItemHold_Cut3",
+    "clip": "ItemHold_Cut3",
+    "frame": 2519,
+    "palmClearance": 0.010981461,
+    "fingerClearance": 0.007793449,
+    "pass": true
+  },
+  {
+    "character": "Bear",
+    "stage": 3,
+    "motion": "ItemStrike_Cut3",
+    "clip": "ItemStrike_Cut3",
+    "frame": 2550,
+    "palmClearance": 0.0109814908,
+    "fingerClearance": 0.00779352151,
+    "pass": true
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 0,
+    "motion": "ItemHold",
+    "clip": "ItemHold",
+    "frame": 2637,
+    "palmClearance": 0.00238843076,
+    "fingerClearance": 0.000834804,
+    "pass": true
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 0,
+    "motion": "ItemStrike",
+    "clip": "ItemStrike",
+    "frame": 2668,
+    "palmClearance": 0.00238831341,
+    "fingerClearance": 0.000834753737,
+    "pass": true
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 1,
+    "motion": "ItemHold_Cut1",
+    "clip": "ItemHold_Cut1",
+    "frame": 2755,
+    "palmClearance": 0.00238844566,
+    "fingerClearance": 0.0008346904,
+    "pass": true
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 1,
+    "motion": "ItemStrike_Cut1",
+    "clip": "ItemStrike_Cut1",
+    "frame": 2786,
+    "palmClearance": 0.00238842145,
+    "fingerClearance": 0.0008348115,
+    "pass": true
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 2,
+    "motion": "ItemHold_Cut2",
+    "clip": "ItemHold_Cut2",
+    "frame": 2872,
+    "palmClearance": 0.002388291,
+    "fingerClearance": 0.0008347798,
+    "pass": true
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 2,
+    "motion": "ItemStrike_Cut2",
+    "clip": "ItemStrike_Cut2",
+    "frame": 2903,
+    "palmClearance": 0.00238849036,
+    "fingerClearance": 0.000834802166,
+    "pass": true
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 3,
+    "motion": "ItemHold_Cut3",
+    "clip": "ItemHold_Cut3",
+    "frame": 2990,
+    "palmClearance": 0.002388548,
+    "fingerClearance": 0.0008347444,
+    "pass": true
+  },
+  {
+    "character": "BluePierrot",
+    "stage": 3,
+    "motion": "ItemStrike_Cut3",
+    "clip": "ItemStrike_Cut3",
+    "frame": 3021,
+    "palmClearance": 0.00238846056,
+    "fingerClearance": 0.000834962353,
+    "pass": true
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 0,
+    "motion": "ItemHold",
+    "clip": "ItemHold",
+    "frame": 3108,
+    "palmClearance": 0.00238837674,
+    "fingerClearance": 0.000834772363,
+    "pass": true
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 0,
+    "motion": "ItemStrike",
+    "clip": "ItemStrike",
+    "frame": 3139,
+    "palmClearance": 0.00238824822,
+    "fingerClearance": 0.0008349549,
+    "pass": true
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 1,
+    "motion": "ItemHold_Cut1",
+    "clip": "ItemHold_Cut1",
+    "frame": 3226,
+    "palmClearance": 0.00238823518,
+    "fingerClearance": 0.0008347351,
+    "pass": true
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 1,
+    "motion": "ItemStrike_Cut1",
+    "clip": "ItemStrike_Cut1",
+    "frame": 3257,
+    "palmClearance": 0.00238843076,
+    "fingerClearance": 0.0008347649,
+    "pass": true
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 2,
+    "motion": "ItemHold_Cut2",
+    "clip": "ItemHold_Cut2",
+    "frame": 3344,
+    "palmClearance": 0.00238848478,
+    "fingerClearance": 0.000834723935,
+    "pass": true
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 2,
+    "motion": "ItemStrike_Cut2",
+    "clip": "ItemStrike_Cut2",
+    "frame": 3375,
+    "palmClearance": 0.00238856673,
+    "fingerClearance": 0.0008346122,
+    "pass": true
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 3,
+    "motion": "ItemHold_Cut3",
+    "clip": "ItemHold_Cut3",
+    "frame": 3462,
+    "palmClearance": 0.002388399,
+    "fingerClearance": 0.0008346569,
+    "pass": true
+  },
+  {
+    "character": "PinkGirl",
+    "stage": 3,
+    "motion": "ItemStrike_Cut3",
+    "clip": "ItemStrike_Cut3",
+    "frame": 3493,
+    "palmClearance": 0.00238840654,
+    "fingerClearance": 0.000834642,
+    "pass": true
+  }
+]

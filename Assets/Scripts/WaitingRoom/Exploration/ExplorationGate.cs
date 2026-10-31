@@ -45,6 +45,12 @@ namespace CurtainCall.WaitingRoom
         public Vector3 RewardPoint => rewardPoint != null ? rewardPoint.position : transform.position;
         public int RewardUidOffset => rewardUidOffset;
         public bool IsOpenGate => kind == ExplorationGateKind.Open;
+        public static bool IsKeyTarget(string id) => System.Array.IndexOf(ExplorationKeys.Targets, id) >= 0;
+        public bool IsKeyPickup => IsKeyTarget(targetId);
+        public bool UsesKey => HasKeySlots || (requiredTargets!=null && requiredTargets.Any(IsKeyTarget));
+        public bool AcceptsKey(PropItem item) => item.Uid != 0 && item.Uses != 0 && requiredTargets != null
+            && requiredTargets.Any(id => IsKeyTarget(id) && id == ExplorationKeys.TargetId(item.ItemId));
+        public bool LocalHasKey => PropCarry.Instance != null && AcceptsKey(PropCarry.Instance.Selected(PropCarry.Instance.LocalClientId));
         public string RevealTarget => revealTarget;
         public bool RevealPending => revealPending;
         public bool PasswordPending => passwordPending;
@@ -74,7 +80,10 @@ namespace CurtainCall.WaitingRoom
             {
                 if (!Visible || interactionPending || (NeedsPassword && passwordPending)) return false;
                 if (requiredTargets != null) foreach (var id in requiredTargets)
+                {
+                    if (IsKeyTarget(id)) continue; // Possession is checked for the interacting player, not the team's history.
                     if (string.IsNullOrEmpty(id) || ExplorationState.Instance == null || !ExplorationState.Instance.IsOpen(id)) return false;
+                }
                 return true;
             }
         }
@@ -119,6 +128,7 @@ namespace CurtainCall.WaitingRoom
         }
         public bool IsAvailable => Visible && string.IsNullOrEmpty(openedBy) && (!Opened || kind == ExplorationGateKind.Monitor);
         public string ActionLabel => !ConditionsMet ? WaitingRoomText.Format("gate.conditions-unmet", "{label} — 조건 미충족", ("label", label))
+            : UsesKey && !LocalHasKey ? label + " — 맞는 열쇠를 선택하세요"
             : NeedsPartner ? (HasKeySlots ? WaitingRoomText.Format("gate.needs-two-keys", "{label} — 두 명이 각자 열쇠 구멍에서 함께 F", ("label", label))
                 : WaitingRoomText.Format("gate.needs-two", "{label} — 두 명이 함께 F", ("label", label))) : label;
         UIInputBlocker inputBlocker;
@@ -129,6 +139,7 @@ namespace CurtainCall.WaitingRoom
         int openedFrame;
 
         void Awake() { inputBlocker = gameObject.AddComponent<UIInputBlocker>(); inputBlocker.BlockWhileActive = false; }
+        void Start(){if(IsKeyPickup && GetComponent<CurtainCall.ItemArt.ExplorationKeyVisual>()==null)gameObject.AddComponent<CurtainCall.ItemArt.ExplorationKeyVisual>();}
         void OnEnable() { ExplorationTargets.Add(this); ShopReach.Add(this); }
         void OnDisable() { ExplorationTargets.Remove(this); ShopReach.Remove(this); ClosePanel(); }
         public float Reach(Vector3 feet)

@@ -1,0 +1,40 @@
+{
+  "attempts": 3,
+  "required": 3,
+  "opened": true,
+  "before": 4,
+  "after": 3,
+  "records": [
+    {
+      "attempt": 1,
+      "frame": 13807,
+      "focused": true,
+      "contact": 0.683227539,
+      "peak": 2.140711,
+      "impactY": 1.10236621,
+      "hits": 1,
+      "pass": true
+    },
+    {
+      "attempt": 2,
+      "frame": 13909,
+      "focused": true,
+      "contact": 0.6833496,
+      "peak": 2.14085054,
+      "impactY": 1.1014185,
+      "hits": 2,
+      "pass": true
+    },
+    {
+      "attempt": 3,
+      "frame": 14009,
+      "focused": true,
+      "contact": 0.6828003,
+      "peak": 2.140186,
+      "impactY": 1.10191381,
+      "hits": 3,
+      "pass": true
+    }
+  ],
+  "failures": []
+}

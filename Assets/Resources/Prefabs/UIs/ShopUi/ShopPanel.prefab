@@ -9999,6 +9999,22 @@ MonoBehaviour:
     sprite: {fileID: 21300000, guid: 993652c2fc670624ba7b2e6ae3dc5778, type: 3}
   - key: backpack
     sprite: {fileID: 21300000, guid: 93b5632ccdea93440bd0d2dd0a1dfc68, type: 3}
+  - key: rescue-gloves
+    sprite: {fileID: 21300000, guid: 9e5418ae3a3431c46824e4a3f01cbd06, type: 3}
+  - key: sticky-gloves
+    sprite: {fileID: 21300000, guid: 0c3d68d1079a7ee4b83f00042e7d45d8, type: 3}
+  - key: balloon-pants
+    sprite: {fileID: 21300000, guid: 5444d7cd80590144baf26ba7128a7f69, type: 3}
+  - key: spring-shoes
+    sprite: {fileID: 21300000, guid: 0d9b9de47bd69004bb2cc50f0fcb12d7, type: 3}
+  - key: magician-hairpin
+    sprite: {fileID: 21300000, guid: 33b45f904742eb444a75cde862baa63d, type: 3}
+  - key: stake-puller
+    sprite: {fileID: 21300000, guid: ee8d22111b6f15343948cea9912a5839, type: 3}
+  - key: uv-lamp
+    sprite: {fileID: 21300000, guid: 3b591f45ff5137e498bf9168aa465b9a, type: 3}
+  - key: route-key
+    sprite: {fileID: 21300000, guid: 473ece111fbb58f46914d642606a8253, type: 3}
 --- !u!1 &8138498180004831942
 GameObject:
   m_ObjectHideFlags: 0

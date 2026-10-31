@@ -1,0 +1,198 @@
+[
+  {
+    "name": "ItemStrike",
+    "stage": 0,
+    "frames": 37,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemStrike_Cut1",
+    "stage": 1,
+    "frames": 37,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemStrike_Cut2",
+    "stage": 2,
+    "frames": 37,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemStrike_Cut3",
+    "stage": 3,
+    "frames": 37,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemManipulate",
+    "stage": 0,
+    "frames": 43,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemManipulate_Cut1",
+    "stage": 1,
+    "frames": 43,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemManipulate_Cut2",
+    "stage": 2,
+    "frames": 43,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemManipulate_Cut3",
+    "stage": 3,
+    "frames": 43,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemPull",
+    "stage": 0,
+    "frames": 49,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemPull_Cut1",
+    "stage": 1,
+    "frames": 49,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemPull_Cut2",
+    "stage": 2,
+    "frames": 49,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemPull_Cut3",
+    "stage": 3,
+    "frames": 49,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemAim",
+    "stage": 0,
+    "frames": 61,
+    "fps": 30,
+    "loop": true
+  },
+  {
+    "name": "ItemAim_Cut1",
+    "stage": 1,
+    "frames": 61,
+    "fps": 30,
+    "loop": true
+  },
+  {
+    "name": "ItemAim_Cut2",
+    "stage": 2,
+    "frames": 61,
+    "fps": 30,
+    "loop": true
+  },
+  {
+    "name": "ItemAim_Cut3",
+    "stage": 3,
+    "frames": 61,
+    "fps": 30,
+    "loop": true
+  },
+  {
+    "name": "ItemHold",
+    "stage": 0,
+    "frames": 61,
+    "fps": 30,
+    "loop": true
+  },
+  {
+    "name": "ItemHold_Cut1",
+    "stage": 1,
+    "frames": 61,
+    "fps": 30,
+    "loop": true
+  },
+  {
+    "name": "ItemHold_Cut2",
+    "stage": 2,
+    "frames": 61,
+    "fps": 30,
+    "loop": true
+  },
+  {
+    "name": "ItemHold_Cut3",
+    "stage": 3,
+    "frames": 61,
+    "fps": 30,
+    "loop": true
+  },
+  {
+    "name": "ItemEquip",
+    "stage": 0,
+    "frames": 19,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemEquip_Cut1",
+    "stage": 1,
+    "frames": 19,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemEquip_Cut2",
+    "stage": 2,
+    "frames": 19,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemEquip_Cut3",
+    "stage": 3,
+    "frames": 19,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemStow",
+    "stage": 0,
+    "frames": 19,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemStow_Cut1",
+    "stage": 1,
+    "frames": 19,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemStow_Cut2",
+    "stage": 2,
+    "frames": 19,
+    "fps": 30,
+    "loop": false
+  },
+  {
+    "name": "ItemStow_Cut3",
+    "stage": 3,
+    "frames": 19,
+    "fps": 30,
+    "loop": false
+  }
+]

@@ -64,7 +64,7 @@ namespace CurtainCall.WaitingRoom
             foreach (var (body, client) in bodies)
             {
                 var item = carry.Selected(client);
-                if (item.Uid != 0)
+                if (item.Uid != 0 && body.GetComponent<HumanoidPlayerPresentation>() == null && CurtainCall.ItemArt.ItemVisualAssets.IsTool(item.ItemId))
                 {
                     var key = (client, item.Uid);
                     stale.Remove(key);

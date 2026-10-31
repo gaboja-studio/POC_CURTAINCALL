@@ -1,0 +1,32 @@
+Rabbit
+mesh palm/finger axis clearance 0.0288 / 0.0194
+RightIndexProximal (0.0235, 0.0030, 0.0000)
+RightIndexIntermediate (0.0250, 0.0147, -0.0436)
+RightIndexDistal (0.0219, -0.0098, -0.0681)
+RightThumbProximal (0.0325, -0.0395, 0.0000)
+RightThumbIntermediate (0.0295, -0.0629, -0.0404)
+RightThumbDistal (0.0307, -0.0537, -0.0657)
+Bear
+mesh palm/finger axis clearance 0.0327 / 0.0214
+RightIndexProximal (0.0287, 0.0054, 0.0000)
+RightIndexIntermediate (0.0299, 0.0118, -0.0360)
+RightIndexDistal (0.0294, 0.0093, -0.0640)
+RightThumbProximal (0.0396, -0.0275, 0.0000)
+RightThumbIntermediate (0.0321, -0.0676, -0.0281)
+RightThumbDistal (0.0299, -0.0791, -0.0528)
+BluePierrot
+mesh palm/finger axis clearance 0.0223 / 0.0198
+RightIndexProximal (0.0259, 0.0038, 0.0000)
+RightIndexIntermediate (0.0264, 0.0075, -0.0427)
+RightIndexDistal (0.0240, -0.0090, -0.0713)
+RightThumbProximal (0.0357, -0.0361, 0.0000)
+RightThumbIntermediate (0.0317, -0.0638, -0.0395)
+RightThumbDistal (0.0331, -0.0544, -0.0653)
+PinkGirl
+mesh palm/finger axis clearance 0.0223 / 0.0198
+RightIndexProximal (0.0259, 0.0038, 0.0000)
+RightIndexIntermediate (0.0264, 0.0075, -0.0427)
+RightIndexDistal (0.0240, -0.0090, -0.0713)
+RightThumbProximal (0.0357, -0.0361, 0.0000)
+RightThumbIntermediate (0.0317, -0.0638, -0.0395)
+RightThumbDistal (0.0331, -0.0544, -0.0653)
