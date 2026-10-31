@@ -5,17 +5,23 @@ using UnityEngine;
 
 namespace CurtainCall.EscapeRoute
 {
-    /// <summary>The matching arrival room and staircase are owned exclusively by the escape scene.</summary>
+    /// <summary>
+    /// The matching arrival room and staircase are owned exclusively by the escape scene.
+    /// 계단 접근 중에는 근접 3인칭(approachView)을 요청하고, 계단 끝 구역(firstPersonArea)에 들어서면 요청을 해제해
+    /// 다른 공간 플랫폼과 같은 공용 자유 3인칭으로 진행한다(Task-089, 이전 계단 끝 1인칭 대체).
+    /// </summary>
     public sealed class EscapeSceneArrival : MonoBehaviour
     {
-        [SerializeField] BoxCollider assemblyArea, firstPersonArea;
+        [SerializeField] BoxCollider assemblyArea;
+        [Tooltip("계단 끝 구역. 들어서면 접근 시점을 해제한다(이름은 이전 1인칭 전환 구역에서 유지).")]
+        [SerializeField] BoxCollider firstPersonArea;
         [SerializeField] GameObject forwardBarrier, returnBarrier;
-        [SerializeField] CameraViewPreset approachView, firstPersonView;
+        [SerializeField] CameraViewPreset approachView;
         public static EscapeSceneArrival Current { get; private set; }
         public Transform AssemblyAnchor => assemblyArea.transform;
         public BoxCollider FirstPersonArea => firstPersonArea;
         CameraViewDirector cameraRequest;
-        bool firstPerson;
+        bool reachedStairEnd;
         void Awake() => Current = this;
         void Update()
         {
@@ -27,11 +33,12 @@ namespace CurtainCall.EscapeRoute
             if (forwardBarrier != null) forwardBarrier.SetActive(!transfer.Ready);
             transfer.PlaceLocal(this);
             var player = NetworkPlayer.Local;
-            if (!firstPerson && transfer.Ready && player != null && player.State == PlayerState.Normal
-                && EscapeEntrance.Contains(firstPersonArea, player.transform.position)) firstPerson = true;
+            if (!reachedStairEnd && transfer.Ready && player != null && player.State == PlayerState.Normal
+                && EscapeEntrance.Contains(firstPersonArea, player.transform.position)) reachedStairEnd = true;
+            if (reachedStairEnd) { ReleaseCamera(); return; }
             var director = CameraViewDirector.Current;
             if (cameraRequest != director) { ReleaseCamera(); cameraRequest = director; }
-            if (cameraRequest != null) cameraRequest.RequestView(this, firstPerson ? firstPersonView : approachView, 75);
+            if (cameraRequest != null) cameraRequest.RequestView(this, approachView, 75);
         }
         void ReleaseCamera()
         {

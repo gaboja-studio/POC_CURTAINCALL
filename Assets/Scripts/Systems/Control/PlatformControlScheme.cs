@@ -6,7 +6,7 @@ namespace CurtainCall.Player
 {
     /// <summary>
     /// 기본 이동 규칙(2026-10-14 PM, 외줄 플랫폼 이동에서 공용으로 옮김). 이동(W/S) → 앞뒤, 자세 제어(A/D) → 옆으로 8방향 일반 이동(이동 방향을 바라봄),
-    /// 기본 액션(Space) → 제자리 점프. 달리기(LShift)·앉기(LCtrl) → 누르는 동안 달리기·앉기(조합 없이 홀드, 앉기 우선, 2026-10-19 PM).
+    /// 기본 액션(Space) → 제자리 점프(체공 중에도 방향 입력으로 이동, Task-089). 달리기(LShift)·앉기(LCtrl) → 누르는 동안 달리기·앉기(조합 없이 홀드, 앉기 우선, 2026-10-19 PM).
     /// 좌우 보조 방향(Q/E)·상호작용은 동작 없음.
     /// 앞뒤·옆은 코스 기준이고, 자기 로컬 플레이어가 마우스 시선 시점(1인칭·3인칭 비고정)일 때만 카메라 수평 시선 기준이다(Task-045).
     /// 3인칭 고정·관전·다른 플레이어는 코스 기준 그대로.
@@ -24,13 +24,18 @@ namespace CurtainCall.Player
         {
             context.HeldDirection = 0;
             bases.Remove(context);
-            if (context.Mover != null) context.Mover.FreeMovement = true;
+            if (context.Mover == null) return;
+            context.Mover.FreeMovement = true;
+            // 모든 플랫폼에서 점프·낙하 중에도 방향을 바꿔 이동한다(탈출로 방식으로 통일, Task-089).
+            context.Mover.FreeAirControl = true;
         }
 
         public override void Exit(PlayerControlContext context)
         {
             bases.Remove(context);
-            if (context.Mover != null) context.Mover.FreeMovement = false;
+            if (context.Mover == null) return;
+            context.Mover.FreeMovement = false;
+            context.Mover.FreeAirControl = false;
         }
 
         public override void Tick(PlayerControlContext context, in PlayerInputFrame input)

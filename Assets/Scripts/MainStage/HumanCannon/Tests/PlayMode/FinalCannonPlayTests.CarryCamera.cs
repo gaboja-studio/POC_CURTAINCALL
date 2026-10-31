@@ -186,16 +186,18 @@ namespace CurtainCall.HumanCannon.Tests
             var trampoline = StaticGet("CurtainCall.HumanCannon.HumanCannonTrampoline", "Current") as Component;
             Assert.IsNotNull(director);
             Assert.IsNotNull(trampoline);
-            yield return WaitUntil(() => (bool)Get(director, "IsFirstPerson"), 2, "평상시 인간대포 1인칭");
-            var firstView = Get(director, "CurrentView");
+            yield return WaitUntil(() => (bool)Get(director, "IsFreeThirdPerson")
+                && Get(director, "CurrentView") == Get(pilot, "flightView"), 2, "평상시 인간대포 공용 자유 3인칭(Task-089)");
+            var platformView = Get(director, "CurrentView");
             var handle = (Transform)Get(trampoline, "Handle");
             Call(mover, "SetStartPose", handle.position, Quaternion.identity, true);
             yield return null;
             Assert.IsTrue((bool)Call(trampoline, "CanGrab", player));
             Input(tapped: true);
             yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == Actor, 2, "실제 운반 소유권 확정");
-            yield return WaitUntil(() => (bool)Get(director, "IsFreeThirdPerson"), 2, "운반 전용 3인칭 요청");
             var carryView = Get(pilot, "carryingView");
+            yield return WaitUntil(() => Get(director, "CurrentView") == carryView, 2, "운반 전용 3인칭 요청");
+            Assert.IsTrue((bool)Get(director, "IsFreeThirdPerson"));
             Assert.AreSame(carryView, Get(director, "CurrentView"));
             Assert.AreNotSame(Get(pilot, "seatedView"), carryView, "탑승 구도를 바꾸지 않는 독립 운반 프리셋");
             Assert.AreNotSame(Resources.Load("Settings/Camera/FreeThirdPerson"), carryView, "공유 에셋 대신 런타임 사본");
@@ -225,21 +227,21 @@ namespace CurtainCall.HumanCannon.Tests
             }
 
             Call(trampoline, "RequestDrop");
-            yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") != Actor && (bool)Get(director, "IsFirstPerson"),
-                2, "놓기 후 1인칭 복귀");
-            Assert.AreSame(firstView, Get(director, "CurrentView"));
-            Assert.IsTrue((bool)Get(director, "HideLocalModel"));
+            yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") != Actor && Get(director, "CurrentView") == platformView,
+                2, "놓기 후 플랫폼 자유 3인칭 복귀");
+            Assert.IsTrue((bool)Get(director, "IsFreeThirdPerson"));
+            Assert.IsFalse((bool)Get(director, "HideLocalModel"), "3인칭은 자기 몸을 보인다.");
 
             Call(mover, "SetStartPose", handle.position, Quaternion.identity, true);
             yield return null;
             Call(trampoline, "RequestGrab");
-            yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == Actor && (bool)Get(director, "IsFreeThirdPerson"),
+            yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") == Actor && Get(director, "CurrentView") == carryView,
                 2, "다시 운반");
             Call(player, "RequestRestartAll");
-            yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") != Actor && (bool)Get(director, "IsFirstPerson"),
-                3, "모두 재시작 후 소유권과 1인칭 복귀");
-            Assert.AreSame(firstView, Get(director, "CurrentView"));
-            Assert.IsTrue((bool)Get(director, "HideLocalModel"));
+            yield return WaitUntil(() => (ulong)Get(trampoline, "Carrier") != Actor && Get(director, "CurrentView") == platformView,
+                3, "모두 재시작 후 소유권과 플랫폼 자유 3인칭 복귀");
+            Assert.IsTrue((bool)Get(director, "IsFreeThirdPerson"));
+            Assert.IsFalse((bool)Get(director, "HideLocalModel"));
         }
 
         static void AssertCarryBoundsVisible(Camera view, Bounds bounds, string reason)

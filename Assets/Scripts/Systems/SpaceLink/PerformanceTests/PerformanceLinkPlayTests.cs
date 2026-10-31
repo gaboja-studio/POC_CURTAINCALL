@@ -646,8 +646,8 @@ namespace CurtainCall.SpaceLink.Tests
                 camera = PerformanceLinkReflection.StaticGet("CurtainCall.Cameras.CameraViewDirector", "Current") as Component;
                 pilot = player != null ? player.GetComponent(PerformanceLinkReflection.GameType("CurtainCall.HumanCannon.HumanCannonPilot")) : null;
                 return pilot != null && camera != null && Get(camera, "LocalPlayer") == player
-                    && (bool)Get(camera, "IsFirstPerson");
-            }, 10f, "대포 출발 플랫폼의 기존 1인칭");
+                    && (bool)Get(camera, "IsFreeThirdPerson");
+            }, 10f, "대포 출발 플랫폼의 자유 3인칭(Task-089)");
             Assert.AreEqual("Normal", Get(player, "State").ToString());
             Assert.That(Vector3.Distance(player.transform.position, new Vector3(-2.25f, 4.05f, 0f)), Is.LessThan(0.3f));
             Assert.AreEqual(1, Object.FindObjectsByType(PerformanceLinkReflection.GameType("CurtainCall.Cameras.CameraViewDirector"),
@@ -668,15 +668,17 @@ namespace CurtainCall.SpaceLink.Tests
             object frame = Activator.CreateInstance(PerformanceLinkReflection.GameType("CurtainCall.Player.PlayerInputFrame"));
             Set(frame, "InteractTapped", true);
             Call(pilot, "ReadInput", frame); // 입력 프레임 합성: 카메라·탑승 연결 검사이며 실제 F 키 검사가 아니다.
-            yield return WaitUntil(() => (bool)Get(camera, "IsFreeThirdPerson"), 3f, "탑승 후 기존 자유 3인칭");
+            yield return WaitUntil(() => Get(camera, "CurrentView") == Get(pilot, "seatedView")
+                && (bool)Get(camera, "IsFreeThirdPerson"), 3f, "탑승 후 기존 자유 3인칭");
             Assert.AreEqual(6, Get(pilot, "stationIndex"));
             object released = Activator.CreateInstance(frame.GetType());
             Call(pilot, "ReadInput", released); yield return null;
             Call(pilot, "ReadInput", released); yield return null;
             Call(pilot, "ReadInput", frame);
             Assert.IsTrue((bool)Get(pilot, "IsFlying"));
-            yield return WaitUntil(() => (bool)Get(camera, "IsFirstPerson"), 2f, "발사 후 기존 1인칭");
-            Assert.AreEqual("FirstPerson", Get(Get(camera, "CurrentView"), "Kind").ToString());
+            yield return WaitUntil(() => Get(camera, "CurrentView") == Get(pilot, "flightView"), 2f, "발사 후 비행 자유 3인칭(Task-089)");
+            Assert.IsTrue((bool)Get(camera, "IsFreeThirdPerson"));
+            Assert.AreEqual("FreeThirdPerson", Get(Get(camera, "CurrentView"), "Kind").ToString());
         }
 
         IEnumerator CreateSyntheticCampaign()

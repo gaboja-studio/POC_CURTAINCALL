@@ -14,9 +14,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         {
             var hud = (Behaviour)Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
             var director = (Component)Static("CurtainCall.Cameras.CameraViewDirector", "Current");
-            yield return Until(() => (bool)Get(director, "IsFirstPerson")
+            yield return Until(() => (bool)Get(director, "IsFreeThirdPerson")
                 && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 3, "방 대기 중 이동 연습 가능");
-            Assert.IsTrue((bool)Get(director, "inputBlocked"), "공연 시작 전 1인칭 카메라는 마우스를 빼앗지 않는다.");
+            Assert.IsTrue((bool)Get(director, "inputBlocked"), "공연 시작 전 플랫폼 카메라는 마우스를 빼앗지 않는다.");
             Assert.AreEqual(CursorLockMode.None, Cursor.lockState);
             Assert.IsTrue(Cursor.visible);
 

@@ -18,7 +18,7 @@ MonoBehaviour:
   LookHeight: 1.2
   LookAhead: 1.75
   FieldOfView: 60
-  TransitionDuration: 0
+  TransitionDuration: 0.35
   MouseSensitivity: 0.1
   PitchLimit: 35
   EyeHeight: 0

@@ -10,6 +10,7 @@ namespace CurtainCall.HumanCannon
     public sealed partial class HumanCannonPilot
     {
         CameraViewDirector cannonView;
+        // flightView: 평상시 플랫폼과 발사 비행에 함께 쓰는 공용 자유 3인칭 사본(Task-089, 이전 1인칭).
         CameraViewPreset seatedView, flightView, carryingView;
         bool requestedCannonView;
         bool hadCarryFraming;
@@ -38,15 +39,15 @@ namespace CurtainCall.HumanCannon
             }
             if (seatedView == null)
             {
-                var first = cannonView.Settings != null ? cannonView.Settings.FirstPerson : null;
                 var free = Resources.Load<CameraViewPreset>("Settings/Camera/FreeThirdPerson");
-                if (first == null || free == null) return;
+                if (free == null) return;
                 seatedView = Instantiate(free);
                 carryingView = Instantiate(free);
-                flightView = Instantiate(first);
+                flightView = Instantiate(free);
                 seatedView.hideFlags = flightView.hideFlags = carryingView.hideFlags = HideFlags.DontSave;
                 seatedView.TransitionDuration = 0.18f;
-                flightView.TransitionDuration = 0f; // 발사 시작 프레임부터 눈 위치에서 비행한다.
+                // 탑승 시점과 같은 공전 값이라 발사 프레임에 위치가 튀지 않는다. 비행 중에도 마우스 시선이 공중 조작 기준이다.
+                flightView.TransitionDuration = 0f;
                 carryingView.FieldOfView = 68f;
                 carryingView.LookAhead = 0f;
                 carryingView.TransitionDuration = 0.18f;

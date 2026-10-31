@@ -104,12 +104,11 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         public void RuntimePresets_KeepSharedAssetsIntactAndEditModeDoesNotActivateView()
         {
             var settings = Resources.Load<CameraViewSettings>("Settings/Camera/CameraViewSettings");
-            var first = Resources.Load<CameraViewPreset>("Settings/Camera/DefaultFirstPerson");
             Assert.That(settings, Is.Not.Null);
             var third = Resources.Load<CameraViewPreset>("Settings/Camera/FreeThirdPerson");
-            Assert.That(first, Is.Not.Null);
             Assert.That(third, Is.Not.Null);
-            float firstFov = first.FieldOfView, thirdFov = third.FieldOfView;
+            Assert.That(settings.DefaultThirdPerson, Is.SameAs(third), "플랫폼 기본 시점은 공용 자유 3인칭이다(Task-089).");
+            float thirdFov = third.FieldOfView, thirdDistance = third.Distance;
             var rig = new GameObject("Tightrope preset ownership");
             try
             {
@@ -121,25 +120,25 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 type.GetField("director", BindingFlags.Instance | BindingFlags.NonPublic)
                     .SetValue(framing, director);
                 type.GetMethod("EnsurePresets", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(framing, null);
-                var firstCopy = (CameraViewPreset)type.GetField("firstView", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(framing);
+                var platformCopy = (CameraViewPreset)type.GetField("platformView", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(framing);
                 var thirdCopy = (CameraViewPreset)type.GetField("preset", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(framing);
-                Assert.That(firstCopy, Is.Not.SameAs(first));
+                Assert.That(platformCopy, Is.Not.SameAs(third));
                 Assert.That(thirdCopy, Is.Not.SameAs(third));
-                Assert.That(firstCopy.Kind, Is.EqualTo(CameraViewKind.FirstPerson));
+                Assert.That(platformCopy.Kind, Is.EqualTo(CameraViewKind.FreeThirdPerson), "플랫폼도 자유 3인칭");
+                Assert.That(platformCopy.Distance, Is.EqualTo(third.Distance), "플랫폼은 공용 값 그대로");
                 Assert.That(thirdCopy.Kind, Is.EqualTo(CameraViewKind.FreeThirdPerson));
                 Assert.That(thirdCopy.FieldOfView, Is.EqualTo(third.FieldOfView));
                 Assert.That(thirdCopy.MouseSensitivity, Is.EqualTo(third.MouseSensitivity));
                 Assert.That(thirdCopy.PitchLimit, Is.EqualTo(third.PitchLimit));
                 Assert.That(thirdCopy.TransitionDuration, Is.EqualTo(.18f));
-                firstCopy.FieldOfView = 72f;
+                platformCopy.Distance = 9f;
                 thirdCopy.FieldOfView = 81f;
-                Assert.That(first.FieldOfView, Is.EqualTo(firstFov));
+                Assert.That(third.Distance, Is.EqualTo(thirdDistance));
                 Assert.That(third.FieldOfView, Is.EqualTo(thirdFov));
-                Assert.That(framing.CurrentMode, Is.EqualTo(CameraViewKind.FirstPerson));
+                Assert.That(framing.CurrentMode, Is.EqualTo(CameraViewKind.FreeThirdPerson));
                 Assert.That(framing.IsLocalViewActive, Is.False);
             }
             finally { Object.DestroyImmediate(rig); }
-            Assert.That(first, Is.Not.Null);
             Assert.That(third, Is.Not.Null);
         }
 
