@@ -38,7 +38,8 @@ namespace CurtainCall.Dev
         Vector2 scroll;
         static readonly string[] Contents = { "외줄타기", "인간대포" };
         static readonly string[] Tricks = { "Tightrope", "HumanCannon" };
-        static readonly string[] Phases = { "공연", "아침", "공연 사이", "밤 정비" };
+        // RunStartPhase 순서와 같다. 탈출로는 대기실 합류 없이 탈출로 출발점에서 바로 시작한다(Task-089).
+        static readonly string[] Phases = { "공연", "아침", "공연 사이", "밤 정비", "탈출로" };
 
         void Awake()
         {
@@ -175,15 +176,18 @@ namespace CurtainCall.Dev
             GUILayout.BeginHorizontal();
             for (int i = 0; i < Phases.Length; i++)
             {
-                GUI.enabled = enabled && !IsBusy && (day <= GameSettings.Base.Run.DayCount || i == 1) && (day > 1 || i != 1);
-                if (GUILayout.Toggle((int)phase == i, Phases[i], button)) phase = (RunStartPhase)i;
+                var candidate = (RunStartPhase)i;
+                GUI.enabled = enabled && !IsBusy && (day <= GameSettings.Base.Run.DayCount || candidate == RunStartPhase.Morning || candidate == RunStartPhase.Escape)
+                    && (day > 1 || candidate != RunStartPhase.Morning);
+                if (GUILayout.Toggle(phase == candidate, Phases[i], button)) phase = candidate;
             }
             GUILayout.EndHorizontal();
             GUI.enabled = enabled && !IsBusy;
-            if (day > GameSettings.Base.Run.DayCount) phase = RunStartPhase.Morning;
+            if (day > GameSettings.Base.Run.DayCount && phase != RunStartPhase.Escape) phase = RunStartPhase.Morning;
             else if (day == 1 && phase == RunStartPhase.Morning) phase = RunStartPhase.Performance;
             if (phase == RunStartPhase.Morning) slot = 0;
-            bool chooseContent = phase != RunStartPhase.Night && day <= GameSettings.Base.Run.DayCount;
+            if (phase == RunStartPhase.Escape) GUILayout.Label("탈출로 출발점에서 바로 시작합니다(대기실 합류·로딩 생략). 사망하면 1초 뒤 출발점에서 다시 시작합니다.", label);
+            bool chooseContent = phase != RunStartPhase.Night && phase != RunStartPhase.Escape && day <= GameSettings.Base.Run.DayCount;
             if (chooseContent)
             {
                 int minSlot = phase == RunStartPhase.Between ? 1 : 0;
@@ -203,7 +207,7 @@ namespace CurtainCall.Dev
             GUILayout.Label(Status, label);
             if (GUILayout.Button(IsBusy ? "준비 중…" : "선택 지점에서 새 테스트 시작", button))
                 TryLaunch(new RunStartPoint(day, phase, slot, Tricks[content]));
-            if (GUILayout.Button($"닫기 [{ShortcutLabel} / F8]", button)) Toggle();
+            if (GUILayout.Button($"닫기 [{ShortcutLabel} / F8] · 치트 창 [{DevCheatPanel.ShortcutLabel}]", button)) Toggle();
             GUI.enabled = enabled;
             GUILayout.EndScrollView();
             GUILayout.EndArea();

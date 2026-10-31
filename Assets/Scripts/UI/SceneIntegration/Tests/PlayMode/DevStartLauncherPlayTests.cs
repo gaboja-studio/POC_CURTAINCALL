@@ -201,7 +201,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 if (scene.isLoaded) yield return SceneManager.UnloadSceneAsync(scene);
             foreach (string type in new[] { "CurtainCall.WaitingRoom.ScheduleBoard", "CurtainCall.WaitingRoom.WaitingRoomShop", "CurtainCall.WaitingRoom.PropCarry",
                 "CurtainCall.Campaign.CampaignRun", "CurtainCall.Reward.PerformanceRewards", "CurtainCall.SpaceLink.SpaceLinkDirector", "CurtainCall.Network.Session.NetworkSessionManager",
-                "CurtainCall.UI.SceneIntegration.CommonUiSceneLoader", "CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation", "CurtainCall.Dev.DevStartLauncher", "CurtainCall.Dev.DevModeBadge" })
+                "CurtainCall.UI.SceneIntegration.CommonUiSceneLoader", "CurtainCall.UI.SceneIntegration.PerformanceEndingPresentation", "CurtainCall.Dev.DevStartLauncher", "CurtainCall.Dev.DevModeBadge", "CurtainCall.Dev.DevCheatPanel" })
             {
                 var target = Find(type); if (target != null) Object.Destroy(target.gameObject);
             }
