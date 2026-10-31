@@ -66,3 +66,5 @@
 - 2026-11-01 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-01 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-01 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/256 (feat/item-art-interaction → dev)
