@@ -12,7 +12,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
-        static readonly string[] GraphicsKeys = { "Fullscreen", "ScreenMode", "ResolutionWidth", "ResolutionHeight", "FrameRateLimit", "HideNearbyCharacter" };
+        static readonly string[] GraphicsKeys = { "Fullscreen", "ScreenMode", "ResolutionWidth", "ResolutionHeight", "FrameRateLimit", "HideNearbyCharacter", "ShowBloodEffect" };
         static int?[] CaptureGraphics() => GraphicsKeys.Select(k => PlayerPrefs.HasKey("CurtainCall.Settings." + k) ? (int?)PlayerPrefs.GetInt("CurtainCall.Settings." + k) : null).ToArray();
         static void RestoreGraphics(int?[] values)
         {

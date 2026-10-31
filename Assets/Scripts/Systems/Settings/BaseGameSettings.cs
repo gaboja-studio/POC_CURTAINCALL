@@ -465,6 +465,16 @@ namespace CurtainCall.Settings
             [Tooltip("잘린 부위가 사라지기까지 시간(초). 0이면 묘기 재시작까지 남는다.")]
             [SerializeField, Min(0f)] float limbLifetime = 0f;
 
+            [Header("혈흔 연출 (판정과 무관, Task-090)")]
+            [Tooltip("절단 순간 잘린 부위에서 혈흔이 튀는 연출을 게임 전체에서 쓸지. 끄면 모든 플레이어에게 보이지 않고 게임 설정 화면의 '혈흔 연출 표시' 항목도 사라진다.")]
+            [SerializeField] bool bloodEffectEnabled = true;
+
+            [Tooltip("혈흔 방울 양 배율(×). 파티클 프리팹(Resources/Effects/Blood/BloodSpurt)의 방출 수에 곱한다.")]
+            [SerializeField, Range(0.1f, 3f)] float bloodAmount = 1f;
+
+            [Tooltip("잘린 부위에서 피가 뿜어지는 시간(초). 처음 한 번 크게 튀고 이 시간 동안 약하게 이어진다.")]
+            [SerializeField, Range(0.1f, 3f)] float bloodSpurtDuration = 0.8f;
+
             public BodyRestartRecovery RestartRecovery => restartRecovery;
             public float OneLegJumpHeight => oneLegJumpHeight;
             public float TwoLegJumpHeight => twoLegJumpHeight;
@@ -479,6 +489,9 @@ namespace CurtainCall.Settings
             public bool CrawlCanLaneJump => crawlCanLaneJump;
             public float CrawlCapsuleHeight => crawlCapsuleHeight;
             public float LimbFlingSpeed => limbFlingSpeed;
+            public bool BloodEffectEnabled => bloodEffectEnabled;
+            public float BloodAmount => bloodAmount;
+            public float BloodSpurtDuration => bloodSpurtDuration;
             public float LimbFlingUpSpeed => limbFlingUpSpeed;
             public float LimbSpin => limbSpin;
             public float LimbMass => limbMass;

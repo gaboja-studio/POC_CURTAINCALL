@@ -28,6 +28,7 @@
 - [item-durability.md](item-durability.md) — 기물7종 새제품 내구도·성공 시 차감·마지막 효과 완료 후 파괴·슬롯 제거(2026-10-28 확정), 세부 타이머·판정 순서 미정. 기물 사용·인벤토리·탐색 판정을 만들 때
 - [run-rules.md](run-rules.md) — 런 공통 규칙: 쉬는 시간 시작 즉시 시계·A/B 삭제(M2, 구현은 아직 A/B)·생존 1명까지 계속·전원 사망 실패(2026-10-16 공통화)·재접속·최소 인원·더미 우선. 공용 종료/런 계약을 정할 때
 - [control-keys.md](control-keys.md) — 공통 조작키(2026-10-15 확인): 단독 hold/조합 pressed toggle·F(매달린 동료 2초 끌어올리기 포함)·카메라/UI, 위기/QTE 예시 구분. 입력·조작 규칙을 추가할 때
+- [blood-effect.md](blood-effect.md) — 절단 혈흔 파티클(3인칭·팀원은 부위, 1인칭은 화면 앞), Resources 게임 설정 전체 끄기(설정 화면 항목 숨김)·개인 그래픽 토글(2026-11-01). 부상 연출·혈흔 설정을 바꿀 때
 - [body-damage.md](body-damage.md) — (사망·재시작·수리·복구·추락은 injury-rules.md로 대체) 팔·다리 손실은 게임 전체 상태(완전히 죽기 전까지 묘기·재시작을 넘어 유지), 팔=상호작용·다리=이동 계열 패널티(크기는 묘기마다), 네 팔다리 모두 손실 = 사망, 잘린 팔다리 날아감, 두 다리 없으면 기어가기, 패널티는 콘텐츠별 교체 정책, 이후 돈으로 부품 수리. 부위 손실·패널티·수리를 다룰 때
 - [game-settings.md](game-settings.md) — 기획 조정값은 `Assets/Resources/Settings/GameSettings/`의 기존 해당 설정에서 관리. 이동·달리기·점프·외줄 속도 조정용 새 스크립트/씬별 우회 배율 금지(2026-10-30). 수치를 만들거나 옮길 때
 - [third-party-assets.md](third-party-assets.md) — 외부 에셋은 무료·유료 구분 없이 private 레포를 `Assets/_ThirdParty` submodule로, 공개 레포엔 직접 만든 것만. 외부 에셋을 넣거나 옮길 때
