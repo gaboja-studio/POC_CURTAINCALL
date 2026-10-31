@@ -12,3 +12,8 @@
   - 검사: 신규 `HangFacing_EveryLaneStaysOnOneSideFacingCourseCenter`(실제 외줄 씬, 모든 줄 45프레임) PASS. 수정 전 코드로 되돌리면 0번 줄 6프레임째 뒤집힘으로 FAIL(재현 확인 후 원복).
     신규 `RopeHangFacingStaysOnOneSideThroughSwayAndAnimation` PASS, 기존 `HangPalmsStayOnContact…` PASS, `HangRescue_` 4/4 PASS.
   - 참고: 한 번에 넓게 돌린 "Hang" 필터 실행에서 11개가 준비 단계 "기본 LAN 포트로 호스트 시작" 실패 → 개별 재실행은 모두 PASS(포트 환경 문제. 메인 폴더 에디터도 켜져 있어 같은 포트를 쓸 수 있음).
+- 2026-11-01 저장: 94873a73(혈흔 연출), e99dd689(매달림 좌우 뒤집힘 수정). 테스트 부산물(폰트 아틀라스 3, Vivox 줄바꿈)은 미커밋.
+- 2026-11-01 dev 동기화: 에디터 종료 확인 후 origin/dev(fe0cc441, PR #256 아이템 아트·부상 상호작용) 병합 5a7522d2. 충돌 없음.
+  양쪽이 바꾼 파일은 `HumanoidPlayerPresentation.cs` 1개 — dev 아이템 레이어·정렬과 이 브랜치 매달림 손 방향이 모두 유지됨을 확인. dev에 혈흔 관련 코드 없음.
+  병합 후 검사: 컴파일 PASS. BloodEffect 2/2, HangFacing 2/2 PASS. HumanoidPlayerTests 18/21 —
+  실패 2개(`CrawlSlopeAndJump…`, `InitialInjuryRebind…`: 기대 "Crawl", 실제 "ItemCrawl_Cut2/3")는 dev(PR #256)가 기어가기 상태 이름을 바꾸고 테스트를 갱신하지 않은 기존 dev 문제, 1개는 이 PC 키 재설정 값(앞 기록).
