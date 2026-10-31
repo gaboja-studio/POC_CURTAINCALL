@@ -57,6 +57,11 @@ namespace CurtainCall.Cameras
         float transitionFov;
         CameraState lastOutput;
         bool hasOutput;
+        float collisionDistance = -1f;
+        int collisionFrame = -1;
+        const float CollisionRadius = .25f;
+        const float CollisionPadding = .05f;
+        const float CollisionReturnSpeed = 5f;
         const float DeathDropDuration = 0.6f;
         const float DeathDropDistance = 1.5f;
         const float DeathWatchDuration = 1.5f;
@@ -87,6 +92,7 @@ namespace CurtainCall.Cameras
 
         bool MouseLook => firstPerson || freeThirdPerson;
         bool CanUseLocalView => local != null && local.isActiveAndEnabled && !IsDead(local);
+        internal bool CanHideNearbyModel => CanUseLocalView && !IsFirstPerson && !CameraSpectator.IsSpectating && !deathView;
 
         void Awake()
         {
@@ -109,6 +115,7 @@ namespace CurtainCall.Cameras
 
         void OnActiveSceneChanged(Scene previous, Scene next)
         {
+            collisionDistance = -1f;
             ResetDeathView();
             hasOutput = false;
             transitionDuration = 0f;
@@ -161,6 +168,7 @@ namespace CurtainCall.Cameras
         public void SetLocalPlayer(NetworkPlayer player)
         {
             if (local == player) return;
+            collisionDistance = -1f;
             ResetDeathView();
             ReleaseCursor();
             requests.Clear();
@@ -313,8 +321,46 @@ namespace CurtainCall.Cameras
                     deathOutput.GetFinalOrientation());
                 state.ReferenceLookAt = CameraState.kNoPoint;
             }
+            else if (SceneManager.GetActiveScene().name == "WaitingRoomBase" && CanUseLocalView && !IsFirstPerson)
+                ApplyWaitingRoomCollision(ref state);
+            else
+                collisionDistance = -1f;
             lastOutput = state;
             hasOutput = true;
+        }
+
+        void ApplyWaitingRoomCollision(ref CameraState state)
+        {
+            Vector3 pivot = local.transform.position + Vector3.up * Mathf.Max(.1f, selected.LookHeight);
+            Vector3 offset = state.GetFinalPosition() - pivot;
+            float desired = offset.magnitude;
+            if (desired < .001f) { collisionDistance = -1f; return; }
+            Vector3 direction = offset / desired;
+            float safe = desired;
+            // 벽·고정 지형만 막는다. 트리거, 플레이어와 이동 가능한 물체는 가림 처리에 맡긴다.
+            foreach (var hit in Physics.SphereCastAll(pivot, CollisionRadius, direction, desired,
+                         Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                var obstacle = hit.collider;
+                if (obstacle == null || obstacle is CharacterController || obstacle.GetComponentInParent<NetworkPlayer>() != null ||
+                    (obstacle.attachedRigidbody != null && !obstacle.attachedRigidbody.isKinematic)) continue;
+                safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - CollisionPadding));
+            }
+            // 구가 벽에 이미 겹친 상태에서 시작하면 SphereCast가 놓칠 수 있다.
+            foreach (var hit in Physics.RaycastAll(pivot, direction, desired, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            {
+                var obstacle = hit.collider;
+                if (obstacle == null || obstacle is CharacterController || obstacle.GetComponentInParent<NetworkPlayer>() != null ||
+                    (obstacle.attachedRigidbody != null && !obstacle.attachedRigidbody.isKinematic)) continue;
+                safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - CollisionRadius - CollisionPadding));
+            }
+            if (collisionDistance < 0f) collisionDistance = safe;
+            else if (collisionFrame != Time.frameCount)
+                collisionDistance = Mathf.MoveTowards(collisionDistance, safe, CollisionReturnSpeed * Time.deltaTime);
+            // 충돌 방향은 즉시 제한해 프레임 보간 중에도 벽 뒤로 나가지 않는다.
+            collisionDistance = Mathf.Min(collisionDistance, safe);
+            collisionFrame = Time.frameCount;
+            state.PositionCorrection += pivot + direction * collisionDistance - state.GetFinalPosition();
         }
 
         void RefreshDeathView()

@@ -31,6 +31,86 @@ namespace CurtainCall.Cameras.Tests
 
         Component Mover => local.GetComponent(GameType("CurtainCall.Player.PlayerMover"));
 
+        [UnityTest]
+        public IEnumerator NearbyModel_RespectsSettingAndRestoresWithDistance()
+        {
+            const string key = "CurtainCall.Settings.HideNearbyCharacter";
+            bool existed = PlayerPrefs.HasKey(key);
+            int saved = PlayerPrefs.GetInt(key, 1);
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            var visibility = director.GetComponent(GameType("CurtainCall.Cameras.CameraModelVisibility"));
+            var slot = local.GetComponent(GameType("CurtainCall.Player.PlayerModelSlot"));
+            var model = (GameObject)Get(slot, "CurrentModel");
+            Assert.IsNotNull(model);
+            var renderer = model.GetComponentsInChildren<Renderer>(true).First(r => r.enabled && !r.forceRenderingOff);
+            var hide = visibility.GetType().GetMethod("Hide", BindingFlags.Instance | BindingFlags.NonPublic);
+            var restore = visibility.GetType().GetMethod("Restore", BindingFlags.Instance | BindingFlags.NonPublic);
+            var camera = Camera.main;
+            Vector3 before = camera.transform.position;
+            try
+            {
+                var preset = Get(director, "CurrentView");
+                Vector3 center = local.transform.position + Vector3.up * (float)Get(preset, "LookHeight");
+                camera.transform.position = center + Vector3.back * .5f;
+                PlayerPrefs.SetInt(key, 1);
+                hide.Invoke(visibility, new object[] { camera });
+                Assert.IsTrue(renderer.forceRenderingOff, "가까우면 내 모델을 숨김");
+                restore.Invoke(visibility, null);
+                camera.transform.position = center + Vector3.back * 1.3f;
+                hide.Invoke(visibility, new object[] { camera });
+                Assert.IsTrue(renderer.forceRenderingOff, "경계에서는 숨김을 유지해 깜빡임 방지");
+                restore.Invoke(visibility, null);
+                camera.transform.position = center + Vector3.back * 1.6f;
+                hide.Invoke(visibility, new object[] { camera });
+                Assert.IsFalse(renderer.forceRenderingOff, "멀어지면 다시 표시");
+                camera.transform.position = center + Vector3.back * .5f;
+                PlayerPrefs.SetInt(key, 0);
+                hide.Invoke(visibility, new object[] { camera });
+                Assert.IsFalse(renderer.forceRenderingOff, "설정을 끄면 가까워도 표시");
+            }
+            finally
+            {
+                restore.Invoke(visibility, null);
+                camera.transform.position = before;
+                if (existed) PlayerPrefs.SetInt(key, saved); else PlayerPrefs.DeleteKey(key);
+                PlayerPrefs.Save();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator WaitingRoom_WallShortensCameraArmAndRemovalRestoresItGradually()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            Call(director, "SetInputBlocked", true);
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            yield return Teleport(new Vector3(1000f, 30f, 1000f));
+            yield return Seconds(.8f);
+            var preset = Get(director, "CurrentView");
+            Vector3 pivot = local.transform.position + Vector3.up * (float)Get(preset, "LookHeight");
+            Vector3 original = Camera.main.transform.position;
+            Vector3 direction = (original - pivot).normalized;
+            float originalDistance = Vector3.Distance(pivot, original);
+            Assert.Greater(originalDistance, 2f);
+            var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            try
+            {
+                wall.transform.SetPositionAndRotation(pivot + direction * 1.5f, Quaternion.LookRotation(direction));
+                wall.transform.localScale = new Vector3(5f, 5f, .2f);
+                Physics.SyncTransforms();
+                yield return Frames(2);
+                float blocked = Vector3.Distance(pivot, Camera.main.transform.position);
+                Assert.Less(blocked, 1.4f, "벽 앞에서 카메라를 당긴다");
+                wall.SetActive(false);
+                Physics.SyncTransforms();
+                yield return Frames(1);
+                float returning = Vector3.Distance(pivot, Camera.main.transform.position);
+                Assert.Less(returning, originalDistance - .1f, "벽이 사라져도 한 프레임에 원래 거리로 튀지 않는다");
+                yield return Seconds(1.5f);
+                Assert.That(Vector3.Distance(pivot, Camera.main.transform.position), Is.EqualTo(originalDistance).Within(.2f));
+            }
+            finally { Object.Destroy(wall); }
+        }
+
         [UnitySetUp]
         public IEnumerator SetUp()
         {
@@ -62,7 +142,7 @@ namespace CurtainCall.Cameras.Tests
         }
 
         [UnityTest]
-        public IEnumerator WaitingRoom_ReentryBlendsFromCorridorWithoutChangingViewKind()
+        public IEnumerator WaitingRoom_ReentryBlendsFromRoomWithoutChangingViewKind()
         {
             yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
             Call(director, "SetInputBlocked", true);
@@ -73,10 +153,10 @@ namespace CurtainCall.Cameras.Tests
             var close = (ScriptableObject)Get(director, "CurrentView");
             Assert.AreEqual("WaitingRoomCloseThirdPerson", close.name);
             float duration = (float)Get(close, "TransitionDuration");
-            yield return Teleport(new Vector3(9.6f, .08f, 70));
+            yield return Teleport(new Vector3(11f, .08f, 70));
             yield return Seconds(.4f);
             Assert.AreSame(close, Get(director, "CurrentView"), "문턱을 지나는 동안은 좁은 시점을 유지한다");
-            Call(Mover, "SetStartPose", new Vector3(8.5f, .08f, 70), Quaternion.identity);
+            Call(Mover, "SetStartPose", new Vector3(9.6f, .08f, 70), Quaternion.identity);
             yield return FixedSteps(1);
             yield return Frames(1);
             var lobby = (ScriptableObject)Get(director, "CurrentView");
@@ -86,10 +166,33 @@ namespace CurtainCall.Cameras.Tests
             Assert.Greater(duration, 0);
             var target = local.transform.position + new Vector3(0, (float)Get(lobby, "Height"), -(float)Get(lobby, "Distance"));
             Assert.Greater(Vector3.Distance(Camera.main.transform.position, target), .1f, "재진입 첫 화면은 목표 위치로 즉시 자르지 않는다");
-            yield return Seconds(duration + .3f);
-            AssertVector(target, Camera.main.transform.position, "복귀 보간 완료", .2f);
-            yield return Teleport(new Vector3(9.6f, .08f, 70));
+            // 시점 전환이 끝난 뒤에도 충돌 해소에 따른 거리 복구가 진행될 수 있다.
+            yield return Seconds(duration + 1.2f);
+            // 목표 뒤에 벽이 있으면 스프링 암이 원래 위치까지 복귀하지 않는다.
+            // 고정된 플레이어에 대해 보간이 끝난 뒤 출력이 안정됐는지 검사한다.
+            var settled = Camera.main.transform.position;
+            yield return Seconds(.3f);
+            AssertVector(settled, Camera.main.transform.position, "복귀 보간 완료 후 안정", .1f);
+            yield return Teleport(new Vector3(11f, .08f, 70));
             Assert.AreSame(lobby, Get(director, "CurrentView"), "경계 여유 구간에만 돌아가도 좁은 시점에 재진입하지 않는다");
+        }
+
+        [UnityTest]
+        public IEnumerator WaitingRoom_StagePassageRetainsViewUntilPastEntrance()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            var zone = GameObject.Find("Zone_StageApproach");
+            Assert.IsNotNull(zone, "현재 통로에 시점 구역이 있어야 한다");
+            var component = zone.GetComponent(GameType("CurtainCall.Cameras.CameraViewZone"));
+            yield return Teleport(new Vector3(-6f, .08f, 57f));
+            Assert.AreSame(director, GetPrivate(component, "registered"), "통로 진입 시 가까운 시점을 등록한다");
+            yield return Teleport(new Vector3(-6f, .08f, 63.8f));
+            Assert.AreSame(director, GetPrivate(component, "registered"), "문턱에서는 통로 시점을 유지한다");
+            yield return Teleport(new Vector3(-6f, .08f, 64.9f));
+            Assert.IsNull(GetPrivate(component, "registered"), "문턱을 완전히 벗어나면 통로 시점을 해제한다");
+            yield return Teleport(new Vector3(-6f, .08f, 63.8f));
+            Assert.IsNull(GetPrivate(component, "registered"), "여유 구간만 밟아서는 다시 진입하지 않는다");
         }
 
         [UnityTest]
