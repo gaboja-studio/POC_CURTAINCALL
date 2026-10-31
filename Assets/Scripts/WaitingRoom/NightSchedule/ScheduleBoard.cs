@@ -144,7 +144,7 @@ namespace CurtainCall.WaitingRoom
         public static string TierRewardText(int tier)
         {
             var rules = Reward.RewardRules.Temporary(Mathf.Clamp(tier, 1, ScheduleBook.MaxDifficulty));
-            return $"호응 상한 {rules.Cap} · 완주 보너스 {rules.CompletionBonus}";
+            return WaitingRoomText.Format("schedule.tier-reward", "호응 상한 {cap} · 완주 보너스 {bonus}", ("cap", rules.Cap), ("bonus", rules.CompletionBonus));
         }
 
         /// <summary>호스트: 이번 밤 작성을 확정한다. 실행할 일차는 런 공연 순서로 넘긴다.</summary>
@@ -164,7 +164,7 @@ namespace CurtainCall.WaitingRoom
                 Debug.Log($"[NightSchedule] {night}일차 밤 확정: {day}일차 {string.Join(" → ", setlist)} (단계 {string.Join("/", tiers)}){(applied ? "" : " (런에 넘기지 못함)")}");
             }
             Publish();
-            LastMessage = "스케줄표를 확정했습니다.";
+            LastMessage = WaitingRoomText.Get("schedule.confirmed", "스케줄표를 확정했습니다.");
             Confirmed?.Invoke(night);
             return ScheduleRefusal.None;
         }
@@ -174,16 +174,16 @@ namespace CurtainCall.WaitingRoom
         public static string Explain(ScheduleRefusal refusal) => refusal switch
         {
             ScheduleRefusal.None => "",
-            ScheduleRefusal.NotNight => "밤 정비 때만 쓸 수 있습니다.",
-            ScheduleRefusal.NotEditable => "지금은 고칠 수 없는 일차입니다.",
-            ScheduleRefusal.AlreadyConfirmed => "이번 밤에는 이미 확정했습니다.",
-            ScheduleRefusal.UnknownTrick => "고를 수 없는 공연입니다.",
-            ScheduleRefusal.BadSlot => "없는 칸입니다.",
-            ScheduleRefusal.Incomplete => "빈 칸을 모두 채워야 확정할 수 있습니다.",
-            ScheduleRefusal.BadTier => "깬 단계의 다음 단계까지만 고를 수 있습니다.",
-            ScheduleRefusal.NotNextPerformance => "쉬는 시간에는 바로 다음 공연의 단계만 바꿀 수 있습니다.",
-            ScheduleRefusal.Locked => "아직 발견하지 않은 공연입니다. 대기실에서 공연 기물을 찾아야 열립니다.",
-            _ => "할 수 없습니다.",
+            ScheduleRefusal.NotNight => WaitingRoomText.Get("schedule.refuse-not-night", "밤 정비 때만 쓸 수 있습니다."),
+            ScheduleRefusal.NotEditable => WaitingRoomText.Get("schedule.refuse-not-editable", "지금은 고칠 수 없는 일차입니다."),
+            ScheduleRefusal.AlreadyConfirmed => WaitingRoomText.Get("schedule.refuse-already-confirmed", "이번 밤에는 이미 확정했습니다."),
+            ScheduleRefusal.UnknownTrick => WaitingRoomText.Get("schedule.refuse-unknown-trick", "고를 수 없는 공연입니다."),
+            ScheduleRefusal.BadSlot => WaitingRoomText.Get("schedule.refuse-bad-slot", "없는 칸입니다."),
+            ScheduleRefusal.Incomplete => WaitingRoomText.Get("schedule.refuse-incomplete", "빈 칸을 모두 채워야 확정할 수 있습니다."),
+            ScheduleRefusal.BadTier => WaitingRoomText.Get("schedule.refuse-bad-tier", "깬 단계의 다음 단계까지만 고를 수 있습니다."),
+            ScheduleRefusal.NotNextPerformance => WaitingRoomText.Get("schedule.refuse-not-next", "쉬는 시간에는 바로 다음 공연의 단계만 바꿀 수 있습니다."),
+            ScheduleRefusal.Locked => WaitingRoomText.Get("schedule.refuse-locked", "아직 발견하지 않은 공연입니다. 대기실에서 공연 기물을 찾아야 열립니다."),
+            _ => WaitingRoomText.Get("schedule.refuse-other", "할 수 없습니다."),
         };
 
         ScheduleRefusal Answer(ScheduleRefusal refusal)

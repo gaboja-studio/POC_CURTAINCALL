@@ -310,7 +310,8 @@ namespace CurtainCall.WaitingRoom.Editor
             Vector3 P(float s, float t, float y) { var v = p.At(s, t); return new Vector3(v.x, y, v.y); }
             var fb = new MeshBuilder("LA_Passage_" + p.Name, 1);
             fb.Quad(0, P(-hw, t0l, .006f), P(hw, t0r, .006f), P(hw, t1r, .006f), P(-hw, t1l, .006f), Vector3.up, 3.5f);
-            fb.Quad(0, P(-hw, t0l, p.H), P(-hw, t1l, p.H), P(hw, t1r, p.H), P(hw, t0r, p.H), Vector3.down, 3.5f);
+            // 1cm under the roof slab's underside so the two never z-fight (WaitingRoomOverlapFix).
+            fb.Quad(0, P(-hw, t0l, p.H - .01f), P(-hw, t1l, p.H - .01f), P(hw, t1r, p.H - .01f), P(hw, t0r, p.H - .01f), Vector3.down, 3.5f);
             MeshObject(pg, "PassageFloorCeiling", Vector3.zero, SaveMesh(fb.Build()), Mat("LA_FloorConcrete"));
             var floorCol = new GameObject("FloorCollider"); floorCol.transform.SetParent(pg, false);
             var mid = p.At(0, (tMin + tMax) * .5f); floorCol.transform.SetPositionAndRotation(new Vector3(mid.x, -.1f, mid.y), Quaternion.LookRotation(u3));

@@ -173,15 +173,15 @@ namespace CurtainCall.WaitingRoom
 
         public static string Explain(ExpertRefusal refusal) => refusal switch
         {
-            ExpertRefusal.InPerformance => "쉬는 시간·밤 정비에만 이용할 수 있습니다.",
-            ExpertRefusal.WholeBody => "잃은 팔다리가 없습니다.",
-            ExpertRefusal.NotAlive => "살아 있는 사람만 이용할 수 있습니다.",
-            ExpertRefusal.Busy => "다른 사람이 신체 복구 승강기를 이용 중입니다.",
-            ExpertRefusal.AlreadyBooked => "이미 구매했습니다 — 로비 ⑧ 신체 복구 승강기 앞에서 F를 누르세요.",
-            ExpertRefusal.NotEnoughFunds => "공동 자금이 모자라거나 지금은 쓸 수 없습니다.",
-            ExpertRefusal.NotBuyer => "서비스를 구매한 사람만 들어갈 수 있습니다.",
-            ExpertRefusal.WrongPhase => "지금은 들어갈 수 없습니다.",
-            ExpertRefusal.BadChoice => "복구할 팔다리 수를 다시 고르세요.",
+            ExpertRefusal.InPerformance => WaitingRoomText.Get("expert.service-time-only", "쉬는 시간·밤 정비에만 이용할 수 있습니다."),
+            ExpertRefusal.WholeBody => WaitingRoomText.Get("expert.whole-body", "잃은 팔다리가 없습니다."),
+            ExpertRefusal.NotAlive => WaitingRoomText.Get("expert.not-alive", "살아 있는 사람만 이용할 수 있습니다."),
+            ExpertRefusal.Busy => WaitingRoomText.Get("expert.busy", "다른 사람이 신체 복구 승강기를 이용 중입니다."),
+            ExpertRefusal.AlreadyBooked => WaitingRoomText.Get("expert.already-booked", "이미 구매했습니다 — 로비 ⑧ 신체 복구 승강기 앞에서 F를 누르세요."),
+            ExpertRefusal.NotEnoughFunds => WaitingRoomText.Get("expert.not-enough-funds", "공동 자금이 모자라거나 지금은 쓸 수 없습니다."),
+            ExpertRefusal.NotBuyer => WaitingRoomText.Get("expert.not-buyer", "서비스를 구매한 사람만 들어갈 수 있습니다."),
+            ExpertRefusal.WrongPhase => WaitingRoomText.Get("expert.wrong-phase", "지금은 들어갈 수 없습니다."),
+            ExpertRefusal.BadChoice => WaitingRoomText.Get("expert.bad-choice", "복구할 팔다리 수를 다시 고르세요."),
             _ => "",
         };
     }

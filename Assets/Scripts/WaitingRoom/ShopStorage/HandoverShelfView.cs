@@ -59,18 +59,27 @@ namespace CurtainCall.WaitingRoom
             return true;
         }
         public Vector3 PresentationPoint => area.center;
-        public bool IsAvailable => ActionLabel != "선반이 비어 있습니다";
-        public string ActionLabel
+        // 문구는 사용자가 고칠 수 있으므로 쓸 수 있는지는 문구가 아니라 상태로 판단한다.
+        public bool IsAvailable => Action(out _, out _) != ShelfAction.None;
+        public string ActionLabel => Action(out string held, out int empty) switch
         {
-            get
-            {
-                if (carry == null) return "선반이 비어 있습니다";
-                bool filled = false; int empty = -1;
-                for (int i = 0; i < carry.Shelf.Count; i++)
-                    if (ItemCarryBook.IsEmpty(carry.Shelf[i])) { if (empty < 0) empty = i; } else filled = true;
-                var held = carry.Held(carry.LocalClientId);
-                return held.Count > 0 && empty >= 0 ? $"{held[held.Count - 1].Name} 선반 {empty + 1}칸에 올리기" : filled ? "선반 위 칸에서 꺼내기" : "선반이 비어 있습니다";
-            }
+            ShelfAction.Put => WaitingRoomText.Format("shelf.put", "{item} 선반 {n}칸에 올리기", ("item", held), ("n", empty + 1)),
+            ShelfAction.Take => WaitingRoomText.Get("shelf.take", "선반 위 칸에서 꺼내기"),
+            _ => WaitingRoomText.Get("shelf.empty", "선반이 비어 있습니다"),
+        };
+
+        enum ShelfAction { None, Put, Take }
+
+        ShelfAction Action(out string heldName, out int empty)
+        {
+            heldName = ""; empty = -1;
+            if (carry == null) return ShelfAction.None;
+            bool filled = false;
+            for (int i = 0; i < carry.Shelf.Count; i++)
+                if (ItemCarryBook.IsEmpty(carry.Shelf[i])) { if (empty < 0) empty = i; } else filled = true;
+            var held = carry.Held(carry.LocalClientId);
+            if (held.Count > 0 && empty >= 0) { heldName = held[held.Count - 1].Name; return ShelfAction.Put; }
+            return filled ? ShelfAction.Take : ShelfAction.None;
         }
 
         void Awake()

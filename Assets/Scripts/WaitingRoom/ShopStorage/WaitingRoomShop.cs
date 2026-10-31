@@ -16,7 +16,7 @@ namespace CurtainCall.WaitingRoom
     /// </summary>
     public sealed class WaitingRoomShop : MonoBehaviour
     {
-        const int SyncRequest = 0, BuyRequest = 1, ClaimRequest = 2;
+        const int SyncRequest = 0, BuyRequest = 1, ClaimRequest = 2, DebugGrantRequest = 3;
 
         [Serializable]
         sealed class Entry
@@ -151,7 +151,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (HasAuthority) Answer(channel.LocalClientId, Buy(itemId, channel.LocalClientId), requestId);
             else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = BuyRequest, item = itemId, requestId = requestId })))
-                Answer(channel.LocalClientId, (false, "접속 중이 아니라 주문할 수 없습니다."), requestId);
+                Answer(channel.LocalClientId, (false, WaitingRoomText.Get("shop.offline-order", "접속 중이 아니라 주문할 수 없습니다.")), requestId);
         }
 
         /// <summary>배송구의 물건을 받는다. 같은 물건은 먼저 요청한 한 명만 받는다.</summary>
@@ -159,16 +159,33 @@ namespace CurtainCall.WaitingRoom
         {
             if (HasAuthority) Answer(channel.LocalClientId, Claim(order, channel.LocalClientId));
             else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = ClaimRequest, order = order })))
+                Answer(channel.LocalClientId, (false, WaitingRoomText.Get("shop.offline-claim", "접속 중이 아니라 받을 수 없습니다.")));
+        }
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>디버그 전용: 공동 자금에 입금한다. 판정 화면이 요청 1건당 한 번만 넣는다(<see cref="DebugMoneyProp"/>).</summary>
+        public void RequestDebugGrant(long amount)
+        {
+            if (HasAuthority) Answer(channel.LocalClientId, DebugGrant(amount, channel.LocalClientId));
+            else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = DebugGrantRequest, amount = amount })))
                 Answer(channel.LocalClientId, (false, "접속 중이 아니라 받을 수 없습니다."));
         }
+
+        (bool, string) DebugGrant(long amount, ulong actor)
+        {
+            if (!rewards.TryDebugGrant(amount)) return (false, "지금은 디버그 지급을 할 수 없습니다.");
+            Debug.Log($"[Shop] 디버그 지급 +{amount} → {PlayerLabel(actor)} / 잔액 {rewards.Balance}");
+            return (true, $"디버그 지급 +{amount}");
+        }
+#endif
 
         /// <summary>화면 표시용 이름(접속 슬롯 기준).</summary>
         public static string PlayerLabel(ulong clientId)
         {
             foreach (var player in NetworkPlayer.All)
                 if (player.IsSpawned && player.OwnerClientId == clientId)
-                    return player.Slot >= 0 ? $"플레이어 {player.Slot + 1}" : $"플레이어 #{clientId}";
-            return NetworkPlayer.All.Count == 0 ? "나" : $"플레이어 #{clientId}";
+                    return player.Slot >= 0 ? WaitingRoomText.Format("shop.player-slot", "플레이어 {n}", ("n", player.Slot + 1)) : WaitingRoomText.Format("shop.player-id", "플레이어 #{id}", ("id", clientId));
+            return NetworkPlayer.All.Count == 0 ? WaitingRoomText.Get("shop.player-me", "나") : WaitingRoomText.Format("shop.player-id", "플레이어 #{id}", ("id", clientId));
         }
 
         /// <summary>공연 중에는 배송 수령·보관을 하지 않는다. 구매는 별도로 밤 정비에만 허용한다.</summary>
@@ -176,9 +193,9 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>기물 주문은 밤 정비에만 가능하다. 배송 수령·보관의 공연 중 제한과는 별개다.</summary>
         public static bool CanPurchase => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Night;
-        public const string PurchaseTimeRefusal = "기물은 밤 정비에만 구매할 수 있습니다.";
+        public static string PurchaseTimeRefusal => WaitingRoomText.Get("shop.purchase-night-only", "기물은 밤 정비에만 구매할 수 있습니다.");
 
-        const string PerformanceRefusal = "공연 중에는 상점을 쓸 수 없습니다.";
+        static string PerformanceRefusal => WaitingRoomText.Get("shop.in-performance", "공연 중에는 상점을 쓸 수 없습니다.");
 
         (bool, string) Buy(string itemId, ulong buyer)
         {
@@ -187,7 +204,7 @@ namespace CurtainCall.WaitingRoom
             if (refusal != ShopRefusal.None) return Reject(buyer, "PURCHASE", itemId, 0, "SHOP_" + refusal, Explain(refusal));
             Debug.Log($"[Shop] 구매 #{delivery.Order} {delivery.ItemName} ← {PlayerLabel(buyer)} / 잔액 {rewards.Balance}");
             Publish();
-            return (true, $"{delivery.ItemName} 주문 완료 — 배송구를 확인하세요.");
+            return (true, WaitingRoomText.Format("shop.ordered", "{item} 주문 완료 — 배송구를 확인하세요.", ("item", delivery.ItemName)));
         }
 
         (bool, string) Claim(int order, ulong claimer)
@@ -209,16 +226,16 @@ namespace CurtainCall.WaitingRoom
             if (carry != null) carry.Receive(claimer, ItemCatalog.NewProduct(delivery.Order, delivery.ItemId, delivery.ItemName));
             Debug.Log($"[Shop] 수령 #{delivery.Order} {delivery.ItemName} → {PlayerLabel(claimer)}");
             Publish();
-            return (true, $"{delivery.ItemName} 수령");
+            return (true, WaitingRoomText.Format("shop.claimed", "{item} 수령", ("item", delivery.ItemName)));
         }
 
         static string Explain(ShopRefusal refusal) => refusal switch
         {
-            ShopRefusal.UnknownItem => "없는 품목입니다.",
-            ShopRefusal.SlotFull => "배송구가 가득 찼습니다. 먼저 물건을 받아 주세요.",
-            ShopRefusal.NotEnoughFunds => "공동 자금이 모자라거나 지금은 쓸 수 없습니다.",
-            ShopRefusal.AlreadyClaimed => "이미 다른 사람이 받았습니다.",
-            _ => "배송구에 없는 물건입니다.",
+            ShopRefusal.UnknownItem => WaitingRoomText.Get("shop.unknown-item", "없는 품목입니다."),
+            ShopRefusal.SlotFull => WaitingRoomText.Get("shop.slot-full", "배송구가 가득 찼습니다. 먼저 물건을 받아 주세요."),
+            ShopRefusal.NotEnoughFunds => WaitingRoomText.Get("shop.not-enough-funds", "공동 자금이 모자라거나 지금은 쓸 수 없습니다."),
+            ShopRefusal.AlreadyClaimed => WaitingRoomText.Get("shop.already-claimed", "이미 다른 사람이 받았습니다."),
+            _ => WaitingRoomText.Get("shop.not-in-slot", "배송구에 없는 물건입니다."),
         };
 
         void Answer(ulong target, (bool ok, string text) result, string requestId = "")
@@ -253,6 +270,9 @@ namespace CurtainCall.WaitingRoom
                 case SyncRequest: channel.SendState(JsonUtility.ToJson(StateData.From(book)), sender); break;
                 case BuyRequest: Answer(sender, Buy(request.item, sender), request.requestId); break;
                 case ClaimRequest: Answer(sender, Claim(request.order, sender)); break;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                case DebugGrantRequest: Answer(sender, DebugGrant(request.amount, sender)); break;
+#endif
             }
         }
 
@@ -287,7 +307,7 @@ namespace CurtainCall.WaitingRoom
             NotifyChanged();
         }
 
-        [Serializable] sealed class RequestData { public int kind; public string item; public int order; public string requestId; }
+        [Serializable] sealed class RequestData { public int kind; public string item; public int order; public string requestId; public long amount; }
         [Serializable] sealed class ResultData { public bool ok; public string text; public string requestId; }
 
         [Serializable]

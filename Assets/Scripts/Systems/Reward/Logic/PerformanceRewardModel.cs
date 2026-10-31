@@ -262,7 +262,7 @@ namespace CurtainCall.Reward
             if (next.Income > long.MaxValue - Balance) return false;
             long balance = Balance + next.Income;
             var entry = new FundEntry(ledger.Count + 1, Generation, performance.Day, FundEntryKind.PerformanceIncome,
-                next.Income, balance, next.Succeeded ? "공연 성공 정산" : "공연 실패 정산", performance.Id);
+                next.Income, balance, next.Succeeded ? CurtainCall.WaitingRoom.WaitingRoomText.Get("ledger.performance-success", "공연 성공 정산") : CurtainCall.WaitingRoom.WaitingRoomText.Get("ledger.performance-failure", "공연 실패 정산"), performance.Id);
             for (int i = 0; i < roster.Count; i++) roster[i].Amount = people[i].Segment;
             rules = currentRules;
             IsOpen = false;
@@ -286,10 +286,23 @@ namespace CurtainCall.Reward
             return true;
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>디버그 전용 입금. 참가자 화면의 장부 검사를 통과하도록 수입 줄 하나("디버그 지급")를 남긴다.</summary>
+        public bool DebugGrant(long amount, int day)
+        {
+            if (amount <= 0 || day < 1 || Generation < 1 || amount > long.MaxValue - Balance) return false;
+            long next = Balance + amount;
+            ledger.Add(new FundEntry(ledger.Count + 1, Generation, day, FundEntryKind.PerformanceIncome, amount, next, "디버그 지급"));
+            Balance = next;
+            Revision++;
+            return true;
+        }
+#endif
+
         public bool AdvanceGeneration(int generation, int day)
         {
             if (generation <= Generation || day < 1) return false;
-            var entry = new FundEntry(ledger.Count + 1, generation, day, FundEntryKind.GenerationReset, -Balance, 0, "세대 교체 초기화");
+            var entry = new FundEntry(ledger.Count + 1, generation, day, FundEntryKind.GenerationReset, -Balance, 0, CurtainCall.WaitingRoom.WaitingRoomText.Get("ledger.generation-reset", "세대 교체 초기화"));
             Generation = generation;
             Balance = 0;
             IsOpen = false;

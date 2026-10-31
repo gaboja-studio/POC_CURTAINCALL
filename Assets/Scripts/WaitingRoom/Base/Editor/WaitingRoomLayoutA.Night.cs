@@ -21,7 +21,8 @@ namespace CurtainCall.WaitingRoom.Editor {
   }
   var u=(new Vector2(-48.5f,112)-DomeC).normalized;var p=DomeC+u*14.4f;
   Gate("PracticeGate",new Vector3(p.x,0,p.y),Mathf.Atan2(u.x,u.y)*Mathf.Rad2Deg,5.8f,5.3f);
-  Gate("PropsGate",new Vector3(-8.2f,0,91.6f),0,3.25f,4.1f);
+  // 2026-10-31 사용자: 밤 정비에도 소품실은 들어간다. 소품실·작업실 공용 복도(x -8.2) 대신 작업실 갈림길 입구만 막는다.
+  Gate("WorkshopGate",new Vector3(-10.6f,0,93.4f),90,3.25f,4.1f);
   // 통로 북쪽 벽 끝(x -18.5)과 맞춰 둔다. 앞(x -17.4)에 두면 벽 끝과 철창 사이 1m 틈으로 빠져나갔다(2026-10-30).
   Gate("CargoGate",new Vector3(-18.75f,0,68.7f),90,3.8f,4.1f);
   Gate("BasementGate",new Vector3(5.25f,0,101.5f),0,3.5f,4.1f);

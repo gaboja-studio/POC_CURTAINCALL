@@ -147,7 +147,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>공동 자금 장부에 남길 설명(공용 장부 100자 제한 안).</summary>
         public static string LedgerText(ShopItem item)
         {
-            string text = $"상점 구매: {item.Name}";
+            string text = WaitingRoomText.Format("ledger.shop-purchase", "상점 구매: {item}", ("item", item.Name));
             return text.Length > 100 ? text.Substring(0, 100) : text;
         }
     }

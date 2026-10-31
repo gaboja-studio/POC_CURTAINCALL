@@ -414,6 +414,16 @@ namespace CurtainCall.Reward
             return true;
         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        /// <summary>디버그 전용 공동 자금 입금(판정 화면만). 참가자는 대기실 상점 요청으로 판정 화면에 맡긴다.</summary>
+        public bool TryDebugGrant(long amount)
+        {
+            if (!HasAuthority || model == null || ending || pendingTransition || !model.DebugGrant(amount, campaign.State.Day)) return false;
+            Publish();
+            return true;
+        }
+#endif
+
         void ObserveNetwork()
         {
             if (dummyRoster || model == null || !model.IsOpen || session?.NetworkManager == null) return;

@@ -49,8 +49,28 @@ namespace CurtainCall.WaitingRoom
 
         static ItemCatalog current;
 
-        /// <summary>현재 기물 목록(Resources). 없으면 null.</summary>
-        public static ItemCatalog Current => current != null ? current : current = Resources.Load<ItemCatalog>(ResourcePath);
+        /// <summary>
+        /// 현재 기물 목록(Resources). 없으면 null. 플레이 중에는 복사본에 대기실 문구 파일의 이름
+        /// (`item.&lt;id&gt;.name`·`item.&lt;id&gt;.worn`)을 덮어쓴다. 에셋 자체는 바꾸지 않는다(2026-10-31 사용자: 문구 직접 수정).
+        /// </summary>
+        public static ItemCatalog Current
+        {
+            get
+            {
+                if (current != null) return current;
+                var asset = Resources.Load<ItemCatalog>(ResourcePath);
+                if (asset == null || !Application.isPlaying) return current = asset;
+                current = Instantiate(asset);
+                current.name = asset.name;
+                foreach (var e in current.items)
+                {
+                    if (e == null || string.IsNullOrEmpty(e.id)) continue;
+                    e.displayName = ItemTexts.Name(e.id, e.displayName);
+                    e.wornName = ItemTexts.WornName(e.id, e.wornName);
+                }
+                return current;
+            }
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() => current = null;

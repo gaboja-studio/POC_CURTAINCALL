@@ -15,6 +15,7 @@ namespace CurtainCall.WaitingRoom
         CanvasGroup group;
         TMP_Text title, body;
         float shownAt, hideAt;
+        CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback fontOwner;
 
         public static bool IsVisible => instance != null && instance.canvasRoot != null && instance.canvasRoot.activeSelf;
         public static string CurrentTitle => IsVisible ? instance.title.text : "";
@@ -36,6 +37,8 @@ namespace CurtainCall.WaitingRoom
 
         void Open(string heading, string text, float seconds)
         {
+            // 공용 UI 씬이 다시 올라오면 앞 폰트 보완본은 지워진다(공연 다녀옴). 새 보완본으로 다시 만든다(2026-10-31).
+            if (canvasRoot != null && FontOwner() != fontOwner) { Destroy(canvasRoot); canvasRoot = null; }
             if (canvasRoot == null) Build();
             title.text = heading; body.text = text;
             canvasRoot.SetActive(true);
@@ -66,8 +69,14 @@ namespace CurtainCall.WaitingRoom
             var font = Resources.Load<TMP_FontAsset>("Fonts/BasicPanels/Pretendard-Medium SDF");
             title = Text(content, "Title", font, 30, -26, 46, new Color32(242, 180, 91, 255));
             body = Text(content, "Body", font, 21, -82, 130, new Color32(238, 234, 215, 255));
+            fontOwner = FontOwner();
+            if (fontOwner != null) fontOwner.ApplyTo(canvasRoot.transform);
+        }
+
+        static CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback FontOwner()
+        {
             var ui = FindFirstObjectByType<CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI>();
-            if (ui != null) ui.GetComponent<CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback>()?.ApplyTo(canvasRoot.transform);
+            return ui != null ? ui.GetComponent<CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback>() : null;
         }
 
         static TMP_Text Text(Transform parent, string name, TMP_FontAsset font, float size, float y, float h, Color color)

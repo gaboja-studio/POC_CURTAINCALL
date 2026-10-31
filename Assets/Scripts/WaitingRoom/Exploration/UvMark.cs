@@ -45,7 +45,7 @@ namespace CurtainCall.WaitingRoom
 
         public string TargetId => targetId;
         public string ToolId => ItemUses.UvLamp;
-        public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? "서커스 UV 등";
+        public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? WaitingRoomText.Get("uv.name-lamp", "서커스 UV 등");
         public string Label => label;
         public string RewardItemId => "";
         public Vector3 RewardPoint => transform.position;
@@ -90,7 +90,7 @@ namespace CurtainCall.WaitingRoom
         public void Illuminate() { litUntil = Time.time + holdSeconds; }
 
         public bool Resolve(int attemptNumber, System.Random rng) => true;
-        public string Describe(bool success, int attemptNumber) => "숨겨진 낙서가 형광으로 드러났습니다.";
+        public string Describe(bool success, int attemptNumber) => WaitingRoomText.Get("uv.revealed", "숨겨진 낙서가 형광으로 드러났습니다.");
 
         void Update()
         {

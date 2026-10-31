@@ -58,8 +58,8 @@ namespace CurtainCall.WaitingRoom
             public float Started = -1f;
             public Transform VisualRoot => View != null ? View.transform : null;
             public Vector3 PresentationPoint => View != null ? View.transform.position : Vector3.zero;
-            public string ActionLabel => Delivery.ItemName + " 받기";
-            public string HelperLabel => $"#{Delivery.Order} · {WaitingRoomShop.PlayerLabel(Delivery.Buyer)} 주문";
+            public string ActionLabel => WaitingRoomText.Format("prompt.receive-delivery", "{item} 받기", ("item", Delivery.ItemName));
+            public string HelperLabel => WaitingRoomText.Format("prompt.receive-delivery-helper", "#{order} · {player} 주문", ("order", Delivery.Order), ("player", WaitingRoomShop.PlayerLabel(Delivery.Buyer)));
             public bool IsAvailable => View != null && Started < 0f && Slot.shop != null;
 
             public float Reach(Vector3 feet)

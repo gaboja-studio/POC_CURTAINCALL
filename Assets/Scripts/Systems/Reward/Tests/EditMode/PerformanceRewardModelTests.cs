@@ -46,6 +46,19 @@ namespace CurtainCall.Reward.Tests
             return model;
         }
 
+        [Test]
+        public void DebugGrant_AddsOneLedgerLineThatKeepsSnapshotValid()
+        {
+            var model = FundedPair();
+            Assert.IsTrue(model.DebugGrant(1000, 1));
+            Assert.AreEqual(1040, model.Balance);
+            Assert.AreEqual("디버그 지급", model.Ledger[^1].Description);
+            Assert.IsTrue(model.Spend(30, "기물 구매", 1));
+            Assert.AreEqual(1010, model.Snapshot().Balance, "장부 연쇄·마지막 줄 잔액 검사를 통과한다");
+            Assert.IsFalse(model.DebugGrant(0, 1));
+            Assert.AreEqual(1010, model.Balance);
+        }
+
         [TestCase(1, false)]
         [TestCase(2, false)]
         [TestCase(4, false)]

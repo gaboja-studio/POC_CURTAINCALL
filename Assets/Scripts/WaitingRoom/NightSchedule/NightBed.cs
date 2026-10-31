@@ -7,7 +7,8 @@ namespace CurtainCall.WaitingRoom
 {
     /// <summary>
     /// 숙소 침대 F: 밤 정비 준비 완료/취소. M2에서 스케줄표의 준비 입력을 침대로 옮겼다(Task-079, 기준 M2 변경점 3-3).
-    /// 전원이 준비하고 호스트가 스케줄표를 확정하면(<see cref="ScheduleBoard.NightCanEnd"/>) 기존 밤 종료 흐름(<see cref="CampaignRun.SetReady"/>)으로 다음 날 아침이 된다.
+    /// 호스트가 스케줄표를 확정한 뒤(<see cref="ScheduleBoard.NightCanEnd"/>)에만 누울 수 있다. 확정 전에는 상호작용이 막히고 가이드 패널로 스케줄표 정리를 안내한다
+    /// (2026-10-31 사용자: 확정 전에 누우면 진행이 멈추던 버그). 전원이 누우면 기존 밤 종료 흐름(<see cref="CampaignRun.SetReady"/>)으로 다음 날 아침이 된다.
     /// 밤 정비 때만 닿는다. 침대 배정(누가 어느 침대)·눕는 연출은 기획 미정이라 어느 침대에서든 내 준비를 바꾼다.
     /// </summary>
     public sealed class NightBed : MonoBehaviour, IShopTarget, IShopPresentation
@@ -23,13 +24,17 @@ namespace CurtainCall.WaitingRoom
 
         public Transform VisualRoot => Body;
         public Vector3 PresentationPoint => footprint.center + Vector3.up * (footprint.extents.y + .3f);
-        public bool IsAvailable => IsNight(out _);
-        public string ActionLabel => !IsNight(out var run) ? "밤 정비 때 쓸 수 있습니다"
-            : run.IsLocalReady ? $"일어나기 (준비 취소 · {run.State.ReadyCount}/{run.State.RequiredCount}){ScheduleWait}"
-            : $"침대에 눕기 (준비 완료 · {run.State.ReadyCount}/{run.State.RequiredCount})";
+        public static string UnscheduledTitle => WaitingRoomText.Get("night.bed-title", "잠자기");
+        public static string UnscheduledNotice => WaitingRoomText.Get("night.bed-unscheduled-notice", "하루 일정이 마무리되지 않았습니다. 스케줄표에서 다음날 일정을 정리해주세요.");
 
-        // 스케줄표가 아직 확정되지 않았으면 누워도 넘어가지 않는다는 안내.
-        static string ScheduleWait => ScheduleBoard.Instance != null && !ScheduleBoard.Instance.NightCanEnd() ? " · 호스트의 스케줄표 확정 대기" : "";
+        public bool IsAvailable => IsNight(out var run) && (run.IsLocalReady || ScheduleReady);
+        public string ActionLabel => !IsNight(out var run) ? WaitingRoomText.Get("night.bed-not-night", "밤 정비 때 쓸 수 있습니다")
+            : run.IsLocalReady ? WaitingRoomText.Format("night.bed-get-up", "일어나기 (준비 취소 · {ready}/{total})", ("ready", run.State.ReadyCount), ("total", run.State.RequiredCount))
+            : !ScheduleReady ? WaitingRoomText.Get("night.bed-need-schedule", "스케줄표 일정 확정 전에는 잘 수 없습니다")
+            : WaitingRoomText.Format("night.bed-lie-down", "침대에 눕기 (준비 완료 · {ready}/{total})", ("ready", run.State.ReadyCount), ("total", run.State.RequiredCount));
+
+        /// <summary>오늘 밤 스케줄표가 확정됐다(고칠 일차가 없으면 참). 스케줄표가 없는 씬 확인에서는 막지 않는다.</summary>
+        public static bool ScheduleReady => ScheduleBoard.Instance == null || ScheduleBoard.Instance.NightCanEnd();
 
         Transform Body => body != null ? body : transform;
         public Bounds Footprint => footprint;
@@ -45,7 +50,10 @@ namespace CurtainCall.WaitingRoom
         void Update()
         {
             ShopReach.Pump();
+            bool wasInReach = inReach;
             inReach = ShopReach.Focused == (IShopTarget)this;
+            // 침대에 다가갔을 때 아직 잘 수 없으면 바로 안내한다.
+            if (inReach && !wasInReach && !IsAvailable && IsNight(out _)) WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice);
         }
 
         /// <summary>밤 정비 때만 닿는다. 낮에는 다른 대상의 F를 가로채지 않는다.</summary>
@@ -61,6 +69,7 @@ namespace CurtainCall.WaitingRoom
         public void Interact()
         {
             if (!IsNight(out var run)) return;
+            if (!IsAvailable) { WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice); return; }
             if (!run.IsLocalReady)
             {
                 var player = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
@@ -90,7 +99,7 @@ namespace CurtainCall.WaitingRoom
         void OnGUI()
         {
             if (!inReach || ShopReach.HasExternalPresentation || InputGate.IsBlocked) return;
-            GUI.Box(new Rect((Screen.width - 320) / 2f, Screen.height * .62f, 320, 28), "[F] " + ActionLabel);
+            GUI.Box(new Rect((Screen.width - 320) / 2f, Screen.height * .62f, 320, 28), (IsAvailable ? "[F] " : "") + ActionLabel);
         }
     }
 }

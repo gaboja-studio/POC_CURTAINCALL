@@ -50,7 +50,7 @@ namespace CurtainCall.WaitingRoom
             public GameObject Shape;
             public Transform VisualRoot => Shape != null ? Shape.transform : null;
             public Vector3 PresentationPoint => Shape != null ? Shape.transform.position : Vector3.zero;
-            public string ActionLabel => Prop.Item.Name + " 줍기";
+            public string ActionLabel => WaitingRoomText.Format("prompt.pick-up-floor-item", "{item} 줍기", ("item", Prop.Item.Name));
             public bool IsAvailable => Shape != null && View.carry != null;
 
             public float Reach(Vector3 feet)

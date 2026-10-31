@@ -74,10 +74,10 @@ namespace CurtainCall.WaitingRoom
         }
         public static string PhaseLabel(ExpertRoomPhase phase) => phase switch
         {
-            ExpertRoomPhase.Booked => "입장 대기",
-            ExpertRoomPhase.Working => "복구 중",
-            ExpertRoomPhase.Exiting => "퇴실 중",
-            _ => "비어 있음",
+            ExpertRoomPhase.Booked => WaitingRoomText.Get("service.phase-booked", "입장 대기"),
+            ExpertRoomPhase.Working => WaitingRoomText.Get("service.phase-working", "복구 중"),
+            ExpertRoomPhase.Exiting => WaitingRoomText.Get("service.phase-exiting", "퇴실 중"),
+            _ => WaitingRoomText.Get("service.phase-idle", "비어 있음"),
         };
     }
 }

@@ -1,6 +1,8 @@
 {
     "name": "CurtainCall.WaitingRoom.ExpertService.Logic",
     "rootNamespace": "CurtainCall.WaitingRoom",
-    "references": [],
+    "references": [
+        "CurtainCall.WaitingRoom.Texts"
+    ],
     "noEngineReferences": true
 }

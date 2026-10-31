@@ -1,6 +1,9 @@
 {
     "name": "CurtainCall.PerformanceReward.Core",
     "rootNamespace": "CurtainCall.Reward",
-    "references": ["CurtainCall.PerformanceResults"],
+    "references": [
+        "CurtainCall.PerformanceResults",
+        "CurtainCall.WaitingRoom.Texts"
+    ],
     "noEngineReferences": true
 }

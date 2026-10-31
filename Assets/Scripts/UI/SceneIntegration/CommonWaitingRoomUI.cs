@@ -65,8 +65,8 @@ namespace CurtainCall.UI.SceneIntegration
             var state = run.State;
             bool rest = state.Phase == CampaignPhase.RestTime;
             if ((!wasActive || state.Phase != lastPhase) && state.Phase == CampaignPhase.Night)
-                notifications.Banner.Show("밤 정비", state.Timer == RestTimerState.Unlimited
-                    ? "대기실 문이 잠겼습니다 · 제한 시간 없음" : "대기실 문이 잠겼습니다 · 정비 시간 시작", BannerState.Normal, announcementSeconds);
+                notifications.Banner.Show(WaitingRoomText.Get("banner.night-title", "밤 정비"), state.Timer == RestTimerState.Unlimited
+                    ? WaitingRoomText.Get("banner.night-unlimited", "대기실 문이 잠겼습니다 · 제한 시간 없음") : WaitingRoomText.Get("banner.night-timed", "대기실 문이 잠겼습니다 · 정비 시간 시작"), BannerState.Normal, announcementSeconds);
             wasActive = true; lastPhase = state.Phase;
             // 기존 두 W1은 숨기고 v2.8 남은 시간/무한대 타이머만 표시한다.
             hud.SetContext(true, false, rest && space.LocalInGatherArea, true);
@@ -132,8 +132,8 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var layer in SortingLayer.layers)
                 if (SortingLayer.GetLayerValueFromID(layer.id) > SortingLayer.GetLayerValueFromID(canvas.sortingLayerID))
                     canvas.sortingLayerID = layer.id;
-            banner.Show(message.IsRecallAlarm ? "소집 경보!" : "방송",
-                message.IsRecallAlarm ? "무대 입구로 모이세요" : message.Message,
+            banner.Show(message.IsRecallAlarm ? WaitingRoomText.Get("banner.recall-title", "소집 경보!") : WaitingRoomText.Get("banner.broadcast-title", "방송"),
+                message.IsRecallAlarm ? WaitingRoomText.Get("banner.recall-body", "무대 입구로 모이세요") : message.Message,
                 message.IsRecallAlarm ? BannerState.Danger : BannerState.Normal,
                 announcementSeconds, BannerIcon.Megaphone);
         }

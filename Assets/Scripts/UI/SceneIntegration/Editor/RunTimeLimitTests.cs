@@ -105,6 +105,21 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         }
 
         [Test]
+        public void FinalMorningDeadlineIgnoresZonePauseAndEndsRun()
+        {
+            // 2026-10-31 버그: 생활 구역에 머물면 마지막 아침 타이머가 멈춰 4일차 아침에서 런이 끝나지 않았다.
+            Configure(rules.MorningRest, false, 300f);
+            var run = Start(rules.DayCount + 1, RunStartPhase.Morning);
+            Assert.IsTrue(run.Snapshot.IsFinalMorning);
+            int generation = run.Snapshot.Generation;
+            run.SetRestTimerPaused(true);
+            Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer, "마지막 아침은 구역과 상관없이 흐른다");
+            Assert.IsTrue(run.Tick(301f));
+            Assert.AreEqual(generation + 1, run.Snapshot.Generation, "기한이 끝나면 런 실패 → 세대 교체");
+            Assert.AreEqual(RunEndReason.Deadline, run.Snapshot.LastEnd);
+        }
+
+        [Test]
         public void FiniteRestStillRaisesAlarmAndExpiresBeforePerformance()
         {
             Configure(rules.GuideRest, false, 100f);

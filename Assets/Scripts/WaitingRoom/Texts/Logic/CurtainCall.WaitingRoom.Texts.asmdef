@@ -1,0 +1,6 @@
+{
+    "name": "CurtainCall.WaitingRoom.Texts",
+    "rootNamespace": "CurtainCall.WaitingRoom",
+    "references": [],
+    "noEngineReferences": true
+}

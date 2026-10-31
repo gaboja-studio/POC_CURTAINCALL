@@ -50,16 +50,9 @@ namespace CurtainCall.WaitingRoom
         public Transform VisualRoot => outlineRoot != null ? outlineRoot : transform;
         public Vector3 PresentationPoint => transform.position + Vector3.up * 1.6f;
         public bool IsAvailable => !Opened;
-        public string ActionLabel => Opened ? "무너진 벽"
-            : HoldsTool() ? $"{ToolName}로 내려치기 ({Hits}/{requiredHits})"
-            : $"{label} — {ToolName}{Subject(ToolName)} 필요하다 ({Hits}/{requiredHits})";
-
-        // 받침 있는 글자 뒤 "이", 없으면 "가".
-        static string Subject(string word)
-        {
-            char last = string.IsNullOrEmpty(word) ? ' ' : word[word.Length - 1];
-            return last >= '가' && last <= '힣' && (last - '가') % 28 != 0 ? "이" : "가";
-        }
+        public string ActionLabel => Opened ? WaitingRoomText.Get("wall.collapsed", "무너진 벽")
+            : HoldsTool() ? WaitingRoomText.Format("wall.strike", "{tool:으로} 내려치기 ({n}/{total})", ("tool", ToolName), ("n", Hits), ("total", requiredHits))
+            : WaitingRoomText.Format("wall.needs-tool", "{label} — {tool:이} 필요하다 ({n}/{total})", ("label", label), ("tool", ToolName), ("n", Hits), ("total", requiredHits));
 
         int Hits => ExplorationState.Instance != null ? ExplorationState.Instance.Hits(targetId) : 0;
         bool Opened => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(targetId);
@@ -190,7 +183,8 @@ namespace CurtainCall.WaitingRoom
 
         // ---- 탐색 대상 판정(판정 화면) ----
         public bool Resolve(int attemptNumber, System.Random rng) => attemptNumber >= requiredHits;
-        public string Describe(bool success, int attemptNumber) => success ? $"{label}이(가) 무너졌습니다." : $"{label} 내려침 {attemptNumber}/{requiredHits}";
+        public string Describe(bool success, int attemptNumber) => success ? WaitingRoomText.Format("wall.broken", "{label:이} 무너졌습니다.", ("label", label))
+            : WaitingRoomText.Format("wall.hit-progress", "{label} 내려침 {n}/{total}", ("label", label), ("n", attemptNumber), ("total", requiredHits));
         public string RewardItemId => "";
         public Vector3 RewardPoint => transform.position;
         public int RewardUidOffset => 0;

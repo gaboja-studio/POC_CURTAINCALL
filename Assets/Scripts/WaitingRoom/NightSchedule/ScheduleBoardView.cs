@@ -38,7 +38,9 @@ namespace CurtainCall.WaitingRoom
         public bool IsOpen => open;
         public Transform VisualRoot => Target;
         public Vector3 PresentationPoint => Target.position;
-        public string ActionLabel => "스케줄표 보기";
+        /// <summary>스케줄표 클로즈업 카메라 자리(튜토리얼 클로즈업도 같은 자리를 쓴다).</summary>
+        public Transform CloseUpPose => closeUp != null ? closeUp.transform : null;
+        public string ActionLabel => WaitingRoomText.Get("schedule.board-action", "스케줄표 보기");
         public bool IsAvailable => !open && ScheduleBoard.Instance != null;
         public float Reach(Vector3 feet) { float d = Flat(feet - Target.position); return d <= reach ? d : -1; }
         public void Interact() { if (IsAvailable) SetOpen(true); }

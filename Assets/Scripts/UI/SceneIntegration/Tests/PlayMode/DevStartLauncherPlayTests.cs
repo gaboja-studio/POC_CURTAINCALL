@@ -49,6 +49,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             previousDev = DevCache.GetValue(null);
             DevCache.SetValue(null, true);
+            // 대기실 튜토리얼(연계 중 조작 잠금·클로즈업)은 기본으로 끈다. 튜토리얼 테스트만 FreshTutorial로 켠다. PC 설정은 건드리지 않는다.
+            T("CurtainCall.WaitingRoom.WaitingRoomTutorial").GetProperty("MemoryOnly").SetValue(null, true);
+            T("CurtainCall.WaitingRoom.WaitingRoomTutorial").GetProperty("Enabled").SetValue(null, false);
             yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(
                 "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity", new LoadSceneParameters(LoadSceneMode.Single));
             launcher = (Component)T("CurtainCall.Dev.DevStartLauncher").GetMethod("EnsureExists").Invoke(null, null);
@@ -65,7 +68,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(day, Field(State, "Day"));
             yield return new WaitForSecondsRealtime(.25f);
             Assert.IsFalse((bool)Get(launcher, "IsOpen"));
-            Assert.IsFalse((bool)Static("CurtainCall.Player.InputGate", "IsBlocked"));
+            // 연계 튜토리얼은 의도적으로 조작을 막는다(Task-086).
+            if (!(bool)Static("CurtainCall.WaitingRoom.WaitingRoomTutorial", "IsSequenceActive"))
+                Assert.IsFalse((bool)Static("CurtainCall.Player.InputGate", "IsBlocked"));
             Assert.AreEqual(1, Object.FindObjectsByType(T(scene == "WaitingRoomBase" ? "CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI" : "CurtainCall.UI.SceneIntegration.CommonPerformanceUI"), FindObjectsSortMode.None).Length);
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonInteractionUI"), FindObjectsSortMode.None).Length);
         }

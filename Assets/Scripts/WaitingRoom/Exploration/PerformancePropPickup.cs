@@ -30,7 +30,7 @@ namespace CurtainCall.WaitingRoom
             return new Vector3(bounds.center.x, Mathf.Min(bounds.max.y, transform.position.y + 1.2f), bounds.center.z);
         }
         public bool IsAvailable => owner != null && owner.CanAcquire;
-        public string ActionLabel => owner == null ? "" : $"{owner.TrickName} 기물 획득 (공연 해금)";
+        public string ActionLabel => owner == null ? "" : WaitingRoomText.Format("prompt.performance-prop-pickup", "{trick} 기물 획득 (공연 해금)", ("trick", owner.TrickName));
 
         void OnEnable() => ShopReach.Add(this);
         void OnDisable() { ShopReach.Remove(this); inReach = false; }

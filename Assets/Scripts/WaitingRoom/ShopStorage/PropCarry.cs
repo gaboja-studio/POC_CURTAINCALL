@@ -176,7 +176,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (HasAuthority) Answer(LocalClientId, UseShelf(LocalClientId));
             else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = ShelfRequest })))
-                Answer(LocalClientId, (false, "접속 중이 아니라 선반을 쓸 수 없습니다."));
+                Answer(LocalClientId, (false, WaitingRoomText.Get("carry.offline-shelf", "접속 중이 아니라 선반을 쓸 수 없습니다.")));
         }
 
         /// <summary>선택한 기물을 발밑에 내려놓는다(F 길게).</summary>
@@ -184,7 +184,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (HasAuthority) Answer(LocalClientId, Drop(LocalClientId));
             else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = DropRequest })))
-                Answer(LocalClientId, (false, "접속 중이 아니라 내려놓을 수 없습니다."));
+                Answer(LocalClientId, (false, WaitingRoomText.Get("carry.offline-drop", "접속 중이 아니라 내려놓을 수 없습니다.")));
         }
 
         /// <summary>바닥 기물을 줍는다(F).</summary>
@@ -192,18 +192,18 @@ namespace CurtainCall.WaitingRoom
         {
             if (HasAuthority) Answer(LocalClientId, PickUp(uid, LocalClientId));
             else if (!channel.Request(JsonUtility.ToJson(new RequestData { kind = PickUpRequest, uid = uid })))
-                Answer(LocalClientId, (false, "접속 중이 아니라 주울 수 없습니다."));
+                Answer(LocalClientId, (false, WaitingRoomText.Get("carry.offline-pick", "접속 중이 아니라 주울 수 없습니다.")));
         }
 
         public static string Explain(CarryRefusal refusal) => refusal switch
         {
-            CarryRefusal.HandsFull => "손이 가득 찼습니다. F 길게로 내려놓은 뒤 받으세요.",
-            CarryRefusal.NothingHeld => "들고 있는 기물이 없습니다.",
-            CarryRefusal.FloorFull => "바닥에 더 놓을 수 없습니다.",
-            CarryRefusal.ShelfFull => "선반 4칸이 모두 찼고 손에도 자리가 없습니다.",
-            CarryRefusal.ShelfEmpty => "선반이 비어 있습니다. 기물을 들고 오세요.",
-            CarryRefusal.UsedUp => "다 써서 더 쓸 수 없는 기물입니다.",
-            _ => "이미 없는 기물입니다.",
+            CarryRefusal.HandsFull => WaitingRoomText.Get("carry.hands-full", "손이 가득 찼습니다. F 길게로 내려놓은 뒤 받으세요."),
+            CarryRefusal.NothingHeld => WaitingRoomText.Get("carry.nothing-held", "들고 있는 기물이 없습니다."),
+            CarryRefusal.FloorFull => WaitingRoomText.Get("carry.floor-full", "바닥에 더 놓을 수 없습니다."),
+            CarryRefusal.ShelfFull => WaitingRoomText.Get("carry.shelf-full", "선반 4칸이 모두 찼고 손에도 자리가 없습니다."),
+            CarryRefusal.ShelfEmpty => WaitingRoomText.Get("carry.shelf-empty", "선반이 비어 있습니다. 기물을 들고 오세요."),
+            CarryRefusal.UsedUp => WaitingRoomText.Get("carry.used-up", "다 써서 더 쓸 수 없는 기물입니다."),
+            _ => WaitingRoomText.Get("carry.gone", "이미 없는 기물입니다."),
         };
 
         // ---- 상점이 쓰는 판정 화면 전용 진입점 ----
@@ -249,14 +249,14 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) Drop(ulong player)
         {
-            if (!TryDropPoint(player, out var point)) return Reject(player, "DROP", 0, "PLAYER_NOT_FOUND", "캐릭터를 찾지 못했습니다.");
+            if (!TryDropPoint(player, out var point)) return Reject(player, "DROP", 0, "PLAYER_NOT_FOUND", WaitingRoomText.Get("carry.no-character", "캐릭터를 찾지 못했습니다."));
             int uid = Selected(player).Uid;
             if (uid == 0) return Reject(player, "DROP", 0, "CARRY_NothingHeld", Explain(CarryRefusal.NothingHeld));
             var refusal = book.Drop(player, point.x, point.y, point.z, out var dropped, uid);
             if (refusal != CarryRefusal.None) return Reject(player, "DROP", uid, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 내려놓음 #{dropped.Item.Uid} {dropped.Item.Name} ← {WaitingRoomShop.PlayerLabel(player)}");
             Publish();
-            return (true, $"{dropped.Item.Name}을 내려놓았습니다.");
+            return (true, WaitingRoomText.Format("carry.dropped", "{item:을} 내려놓았습니다.", ("item", dropped.Item.Name)));
         }
 
         (bool, string) PickUp(int uid, ulong player)
@@ -267,24 +267,26 @@ namespace CurtainCall.WaitingRoom
                 {
                     var body = FindBody(player);
                     if (body == null || !FloorPropsView.CanPickUp(uid, body.position))
-                        return Reject(player, "PICK_UP", uid, "TOO_FAR", "기물에 가까이 다가가세요.");
+                        return Reject(player, "PICK_UP", uid, "TOO_FAR", WaitingRoomText.Get("carry.too-far", "기물에 가까이 다가가세요."));
                     break;
                 }
             var refusal = book.PickUp(uid, player, Slots(player), out var item);
             if (refusal != CarryRefusal.None) return Reject(player, "PICK_UP", uid, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 주움 #{item.Uid} {item.Name} → {WaitingRoomShop.PlayerLabel(player)}");
             Publish();
-            return (true, $"{item.Name}을 주웠습니다.");
+            return (true, WaitingRoomText.Format("carry.picked", "{item:을} 주웠습니다.", ("item", item.Name)));
         }
 
         (bool, string) UseShelf(ulong player)
         {
-            if (WaitingRoomShop.InPerformance) return Reject(player, "SHELF", Selected(player).Uid, "IN_PERFORMANCE", "공연 중에는 선반을 쓸 수 없습니다.");
+            if (WaitingRoomShop.InPerformance) return Reject(player, "SHELF", Selected(player).Uid, "IN_PERFORMANCE", WaitingRoomText.Get("carry.shelf-in-performance", "공연 중에는 선반을 쓸 수 없습니다."));
             var refusal = book.UseShelf(player, Slots(player), out int slot, out bool placed, out var item, Selected(player).Uid == 0 ? -1 : Selected(player).Uid);
             if (refusal != CarryRefusal.None) return Reject(player, "SHELF", Selected(player).Uid, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 선반 {slot + 1}칸 {(placed ? "올림" : "꺼냄")} #{item.Uid} {item.Name} — {WaitingRoomShop.PlayerLabel(player)}");
             Publish();
-            return (true, placed ? $"{item.Name}을 선반 {slot + 1}칸에 올렸습니다." : $"선반 {slot + 1}칸에서 {item.Name}을 꺼냈습니다.");
+            return (true, placed
+                ? WaitingRoomText.Format("carry.shelf-placed", "{item:을} 선반 {n}칸에 올렸습니다.", ("item", item.Name), ("n", slot + 1))
+                : WaitingRoomText.Format("carry.shelf-taken", "선반 {n}칸에서 {item:을} 꺼냈습니다.", ("n", slot + 1), ("item", item.Name)));
         }
 
         void TrimOverLimit()
