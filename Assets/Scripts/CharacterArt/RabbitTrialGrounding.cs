@@ -146,12 +146,19 @@ namespace CurtainCall.CharacterArt
         }
 
         static bool CircusSupport(AnimatorStateInfo state) => CircusGrounded(state, "FlightLand")
-            || CircusGrounded(state, "RopePull") || CircusGrounded(state, "TrampolineCarry");
+            || CircusGrounded(state, "RopePull") || CircusGrounded(state, "TrampolineCarry") || ItemGrounded(state);
 
         static bool GroundedMotion(AnimatorStateInfo state) =>
             state.IsName("Idle") || state.IsName("Walk") || state.IsName("Run") ||
             state.IsName("Crouch") || state.IsName("CrouchWalk") || state.IsName("Crawl") ||
-            CircusGrounded(state, "FlightLand") || CircusGrounded(state, "RopePull") || CircusGrounded(state, "TrampolineCarry");
+            CircusGrounded(state, "FlightLand") || CircusGrounded(state, "RopePull") || CircusGrounded(state, "TrampolineCarry") || ItemGrounded(state);
+
+        static bool ItemGrounded(AnimatorStateInfo state)
+        {
+            foreach (string motion in CurtainCall.ItemArt.ItemVisualAssets.Motions)
+                if (CircusGrounded(state,motion)) return true;
+            return false;
+        }
 
         static bool CircusGrounded(AnimatorStateInfo state, string name) => state.IsName(name)
             || state.IsName(name + "_Cut1") || state.IsName(name + "_Cut2") || state.IsName(name + "_Cut3");

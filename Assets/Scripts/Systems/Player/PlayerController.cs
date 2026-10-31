@@ -19,6 +19,7 @@ namespace CurtainCall.Player
         public static System.Func<PlayerControlContext, PlayerInputFrame, bool> InputInterceptor;
 
         PlayerInputReader input;
+        HumanoidPlayerPresentation presentation;
         PlayerControlContext context;
         PlayerControlScheme assigned; // 콘텐츠가 SetScheme으로 끼운 규칙
 
@@ -59,6 +60,7 @@ namespace CurtainCall.Player
         void Awake()
         {
             input = GetComponent<PlayerInputReader>();
+            presentation = GetComponent<HumanoidPlayerPresentation>();
             context = new PlayerControlContext(gameObject);
             SetScheme(assigned);
         }
@@ -66,8 +68,14 @@ namespace CurtainCall.Player
         void Update()
         {
             if (assigned == null) SetScheme(null); // 씬 규칙·기본 이동 규칙이 바뀌면 바로 반영
-            if (Scheme != null && (InputGate.IsBlocked || InputInterceptor == null || !InputInterceptor(context, input.Current)))
-                Scheme.Tick(context, input.Current);
+            var frame = input.Current;
+            if (presentation != null && presentation.InteractionMovementLocked)
+            {
+                frame.Move = 0f; frame.Posture = 0f; frame.AuxDirection = 0;
+                frame.ActionPressed = false; frame.SprintHeld = false;
+            }
+            if (Scheme != null && (InputGate.IsBlocked || InputInterceptor == null || !InputInterceptor(context, frame)))
+                Scheme.Tick(context, frame);
         }
     }
 }

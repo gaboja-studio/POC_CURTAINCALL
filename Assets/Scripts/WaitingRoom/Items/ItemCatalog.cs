@@ -131,7 +131,34 @@ namespace CurtainCall.WaitingRoom
                         newUses = 0, foundUses = 0, price = 75, cooldown = 0f,
                         summary = "장비. 슬롯에 넣으면 자동 적용. 우클릭을 누르는 동안 보라색 손전등으로 앞을 비추고, 빛에 닿은 숨겨진 낙서가 노란 형광으로 드러남. 내구도 없음." },
             };
+            EnsureExplorationKeys();
+        }
+
+        public void EnsureExplorationKeys()
+        {
+            foreach (var target in ExplorationKeys.Targets)
+            {
+                string id = ExplorationKeys.ItemId(target);
+                if (items.Exists(e => e != null && e.id == id)) continue;
+                items.Add(new Entry { id = id, displayName = ExplorationKeys.Name(target),
+                    use = ItemUse.Exploration, kind = ItemKind.Tool, price = 0,
+                    summary = "탐색으로 획득하는 열쇠. 슬롯에 보관하고 선택해 해당 자물쇠를 연다. 구매 불가." });
+            }
         }
 #endif
+    }
+
+    public static class ExplorationKeys
+    {
+        public const string VisualId = "route-key";
+        public static readonly string[] Targets = { StructureAKeyRoute.Key1, StructureAExitRoute.Key2,
+            StructureAKeyRoute.ManagementKey, StructureAKeyRoute.StairsKey, StructureAKeyRoute.EscapeKey1, StructureAKeyRoute.EscapeKey2 };
+        static readonly string[] Names = { "열쇠 1", "열쇠 2", "관리실 열쇠", "계단 열쇠", "탈출로 열쇠 1", "탈출로 열쇠 2" };
+        public static bool IsKey(string id) => id == VisualId || Array.IndexOf(Targets, id) >= 0;
+        public static string ItemId(string target) => target == StructureAKeyRoute.Key1 ? VisualId : target;
+        public static string TargetId(string item) => item == VisualId ? StructureAKeyRoute.Key1 : item;
+        public static string Name(string target) => Array.IndexOf(Targets, target) is int i && i >= 0 ? Names[i] : "열쇠";
+        // Separate range from shop orders and the 100-offset exploration drops.
+        public static int Uid(string target, int generation) => 2_000_000 + generation * 10 + Array.IndexOf(Targets, target) + 1;
     }
 }

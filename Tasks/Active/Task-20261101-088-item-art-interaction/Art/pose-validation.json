@@ -1,0 +1,11 @@
+{
+    "poses": 560,
+    "avatars": 4,
+    "clips": 28,
+    "gripPoses": 480,
+    "minPalmClearance": 0.002345329150557518,
+    "minFingerClearance": -0.0006515607237815857,
+    "minSurfaceY": -0.0165240615606308,
+    "maxHeight": 2.171082019805908,
+    "failures": []
+}
