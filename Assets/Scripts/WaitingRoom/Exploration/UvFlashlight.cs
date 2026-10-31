@@ -12,6 +12,7 @@ namespace CurtainCall.WaitingRoom
     /// 처음 비춘 낙서는 호스트에 발견을 요청한다. 발견되면 카메라가 낙서 쪽으로 한 번 돈다(마우스 시선 시점에서만).
     /// 빛은 <see cref="NetworkPlayer.SetUvLight"/>로 공유되어 다른 화면에도 같은 빛이 보이고, 그 빛에 닿은 낙서도 드러난다(발견 요청은 비춘 본인 화면만).
     /// </summary>
+    [DefaultExecutionOrder(750)]
     public sealed class UvFlashlight : MonoBehaviour
     {
         [SerializeField] Color color = new(.6f, .25f, 1f);
@@ -53,7 +54,7 @@ namespace CurtainCall.WaitingRoom
             remote.Clear();
         }
 
-        void Update()
+        void LateUpdate()
         {
             var player = NetworkPlayer.Local;
             var reader = player != null ? player.GetComponent<PlayerInputReader>() : FindFirstObjectByType<PlayerInputReader>();
@@ -71,6 +72,12 @@ namespace CurtainCall.WaitingRoom
             var cam = Camera.main; var director = CameraViewDirector.Current;
             bool mouseLook = director != null && director.UsesMouseLook && cam != null;
             var chest = body.position + Vector3.up * 1.4f;
+            var presentation = body.GetComponent<HumanoidPlayerPresentation>();
+            if (presentation != null && presentation.Model != null && presentation.Model.Animator.isHuman)
+            {
+                var chestBone = presentation.Model.Animator.GetBoneTransform(HumanBodyBones.Chest);
+                if (chestBone != null) chest = chestBone.position;
+            }
             var look = mouseLook ? cam.transform.forward : Vector3.ProjectOnPlane(body.forward, Vector3.up).normalized;
             var eye = mouseLook ? cam.transform.position : chest;
             var aim = AimPoint(eye, look, mouseLook ? Vector3.Distance(eye, chest) : 0f);
@@ -83,6 +90,8 @@ namespace CurtainCall.WaitingRoom
                 forward = (flat * Mathf.Cos(Mathf.Asin(Mathf.Clamp(forward.y, -1f, 1f))) + Vector3.up * forward.y).normalized;
             }
             var origin = chest + Vector3.ProjectOnPlane(forward, Vector3.up).normalized * .35f;
+            if(presentation!=null && presentation.HeldItemVisual!=null && presentation.HeldItemVisual.name=="RightHand_uv-lamp")
+                origin=presentation.HeldItemVisual.transform.TransformPoint(new Vector3(0,.14f,0));
             LastOrigin = origin; LastForward = forward;
             spot.transform.SetPositionAndRotation(origin, Quaternion.LookRotation(forward));
             spot.enabled = true;

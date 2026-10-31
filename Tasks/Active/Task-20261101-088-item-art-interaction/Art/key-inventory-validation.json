@@ -1,0 +1,124 @@
+{
+  "records": [
+    {
+      "name": "two initial slots",
+      "pass": true,
+      "frame": 2480,
+      "message": "",
+      "carryMessage": ""
+    },
+    {
+      "name": "full inventory leaves world key",
+      "pass": true,
+      "frame": 2537,
+      "message": "손이 가득 찼습니다.",
+      "carryMessage": ""
+    },
+    {
+      "name": "pickup enters slot",
+      "pass": true,
+      "frame": 2607,
+      "message": "열쇠 줍기 완료",
+      "carryMessage": "천막 말뚝 뽑개를 내려놓았습니다."
+    },
+    {
+      "name": "key tool and icon",
+      "pass": true,
+      "frame": 2607,
+      "message": "열쇠 줍기 완료",
+      "carryMessage": "천막 말뚝 뽑개를 내려놓았습니다."
+    },
+    {
+      "name": "selected key held",
+      "pass": true,
+      "frame": 2621,
+      "message": "열쇠 줍기 완료",
+      "carryMessage": "천막 말뚝 뽑개를 내려놓았습니다."
+    },
+    {
+      "name": "stowed key cannot open door",
+      "pass": true,
+      "frame": 2708,
+      "message": "맞는 열쇠를 슬롯에서 선택해야 합니다.",
+      "carryMessage": "천막 말뚝 뽑개를 내려놓았습니다."
+    },
+    {
+      "name": "key dropped with identity",
+      "pass": true,
+      "frame": 2723,
+      "message": "맞는 열쇠를 슬롯에서 선택해야 합니다.",
+      "carryMessage": "열쇠 1을 내려놓았습니다."
+    },
+    {
+      "name": "acquisition history cannot unlock without key",
+      "pass": true,
+      "frame": 2781,
+      "message": "맞는 열쇠를 슬롯에서 선택해야 합니다.",
+      "carryMessage": "열쇠 1을 내려놓았습니다."
+    },
+    {
+      "name": "wrong key cannot unlock",
+      "pass": true,
+      "frame": 2839,
+      "message": "맞는 열쇠를 슬롯에서 선택해야 합니다.",
+      "carryMessage": "열쇠 1을 내려놓았습니다."
+    },
+    {
+      "name": "key variant icon and held visual",
+      "pass": true,
+      "frame": 2839,
+      "message": "맞는 열쇠를 슬롯에서 선택해야 합니다.",
+      "carryMessage": "열쇠 1을 내려놓았습니다."
+    },
+    {
+      "name": "floor pickup restores same key",
+      "pass": true,
+      "frame": 2911,
+      "message": "맞는 열쇠를 슬롯에서 선택해야 합니다.",
+      "carryMessage": "열쇠 1을 주웠습니다."
+    },
+    {
+      "name": "matching selected key unlocks",
+      "pass": true,
+      "frame": 2969,
+      "message": "열쇠로 문 열기 완료",
+      "carryMessage": "열쇠 1을 주웠습니다."
+    },
+    {
+      "name": "key persists after use",
+      "pass": true,
+      "frame": 2969,
+      "message": "열쇠로 문 열기 완료",
+      "carryMessage": "열쇠 1을 주웠습니다."
+    },
+    {
+      "name": "key use animation",
+      "pass": true,
+      "frame": 2969,
+      "message": "열쇠로 문 열기 완료",
+      "carryMessage": "열쇠 1을 주웠습니다."
+    },
+    {
+      "name": "keys excluded from shop",
+      "pass": true,
+      "frame": 2969,
+      "message": "열쇠로 문 열기 완료",
+      "carryMessage": "열쇠 1을 주웠습니다."
+    },
+    {
+      "name": "all key variants have tool entries",
+      "pass": true,
+      "frame": 2969,
+      "message": "열쇠로 문 열기 완료",
+      "carryMessage": "열쇠 1을 주웠습니다."
+    },
+    {
+      "name": "test button puts key in slot",
+      "pass": true,
+      "frame": 2984,
+      "message": "열쇠로 문 열기 완료",
+      "carryMessage": "열쇠 1을 주웠습니다."
+    }
+  ],
+  "failures": []
+}

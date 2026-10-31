@@ -63,6 +63,8 @@ namespace CurtainCall.UI.SceneIntegration
         }
         Sprite Icon(string id)
         {
+            var itemIcon = CurtainCall.ItemArt.ItemVisualAssets.Icon(id);
+            if (itemIcon != null) return itemIcon;
             Sprite fallback = null;
             if (icons == null) return null;
             for (int i = 0; i < icons.Count; i++)

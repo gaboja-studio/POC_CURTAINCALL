@@ -35,9 +35,9 @@ namespace CurtainCall.Player
             }
             ResetCircusMotion();airborne=false;landUntil=0;
             IsHanging=rescueReceiver;rescueExit=0;wasRescuer=!rescueReceiver;
-            string next=CircusVariant(rescueReceiver?"RopeLift":"RopePull");
+            string next=CircusVariant(rescueReceiver?"RopeLift":"ItemPull");
             float progress=hangs.PullProgress(rescueHang);
-            model.Play(next,2f/Mathf.Max(.1f,GameSettings.Tightrope.Hang.PullSeconds));
+            model.Play(next,(rescueReceiver?2f:1.6f)/Mathf.Max(.1f,GameSettings.Tightrope.Hang.PullSeconds));
             if(rescueMotion!=next)
             {
                 model.Animator.Play(next,0,Mathf.Min(.999f,progress));
@@ -73,6 +73,7 @@ namespace CurtainCall.Player
             alignmentRotation=rootModel.localRotation;rotationAligned=true;
             rootModel.rotation=Quaternion.LookRotation(rescueReceiver?-direction:direction,Vector3.up);
             bool left=(condition.LostParts&BodyPart.LeftArm)==0,right=(condition.LostParts&BodyPart.RightArm)==0;
+            if(!rescueReceiver)left=false;
             int count=(left?1:0)+(right?1:0);if(count==0)return false;
             if(rescueReceiver)
             {

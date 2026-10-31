@@ -136,6 +136,13 @@ namespace CurtainCall.WaitingRoom
 
         GameObject MakeShape(FloorProp prop)
         {
+            var artwork = CurtainCall.ItemArt.ItemVisualAssets.Create(prop.Item.ItemId);
+            if (artwork != null)
+            {
+                artwork.name = $"FloorProp_{prop.Item.Uid}_{prop.Item.ItemId}";
+                artwork.hideFlags = HideFlags.DontSave;
+                return artwork;
+            }
             var shape = GameObject.CreatePrimitive(PrimitiveType.Cube);
             shape.name = $"FloorProp_{prop.Item.Uid}_{prop.Item.ItemId}";
             Destroy(shape.GetComponent<Collider>());

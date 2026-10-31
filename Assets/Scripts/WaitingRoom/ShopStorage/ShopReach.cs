@@ -82,7 +82,26 @@ namespace CurtainCall.WaitingRoom
                 best = distance;
                 Focused = target;
             }
-            if (Focused != null && reader.Current.InteractTapped) Focused.Interact();
+            if (Focused != null && reader.Current.InteractTapped)
+            {
+                if (Focused is IShopPresentation presentation && presentation.IsAvailable)
+                {
+                    bool allowed = Focused is not IExplorationTarget tool || string.IsNullOrEmpty(tool.ToolId) || ExplorationTargets.LocalHolds(tool.ToolId);
+                    if (Focused is ExplorationGate gate && gate.UsesKey) allowed &= gate.ConditionsMet && gate.LocalHasKey;
+                    var actor = reader.GetComponent<HumanoidPlayerPresentation>();
+                    if (allowed && actor != null && Focused is IExplorationTarget usedTool &&
+                        (Focused is ToolTarget || Focused is BreakableWall))
+                    {
+                        actor.UseToolAtContact(Focused, presentation, usedTool);
+                        return;
+                    }
+                    if (allowed)
+                        reader.GetComponent<HumanoidPlayerPresentation>()?.RequestItemMotion(
+                            Focused is ExplorationGate keyGate && keyGate.UsesKey && keyGate.ConditionsMet ? 3 :
+                            Focused is IExplorationTarget pry && pry.ToolId == ItemUses.StakePuller ? 0 : 1, presentation.PresentationPoint);
+                }
+                Focused.Interact();
+            }
             if (reader.Current.InteractLongPressed) LongPressed?.Invoke();
         }
 

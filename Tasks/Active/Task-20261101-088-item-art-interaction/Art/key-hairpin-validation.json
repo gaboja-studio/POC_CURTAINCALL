@@ -1,0 +1,71 @@
+{
+  "records": [
+    {
+      "name": "key pickup focus",
+      "pass": true,
+      "frame": 8280,
+      "message": ""
+    },
+    {
+      "name": "shared key acquired",
+      "pass": true,
+      "frame": 8328,
+      "message": "열쇠 줍기 완료"
+    },
+    {
+      "name": "slots unchanged",
+      "pass": true,
+      "frame": 8328,
+      "message": "열쇠 줍기 완료"
+    },
+    {
+      "name": "world key hidden",
+      "pass": true,
+      "frame": 8328,
+      "message": "열쇠 줍기 완료"
+    },
+    {
+      "name": "key door focus",
+      "pass": true,
+      "frame": 8352,
+      "message": "열쇠 줍기 완료"
+    },
+    {
+      "name": "key door opened",
+      "pass": true,
+      "frame": 8400,
+      "message": "열쇠로 문 열기 완료"
+    },
+    {
+      "name": "key visible during use",
+      "pass": true,
+      "frame": 8400,
+      "message": "열쇠로 문 열기 완료"
+    },
+    {
+      "name": "key use keeps slots",
+      "pass": true,
+      "frame": 8400,
+      "message": "열쇠로 문 열기 완료"
+    },
+    {
+      "name": "hairpin chest opened",
+      "pass": true,
+      "frame": 8712,
+      "message": "딸깍 — 잠긴 상자의 자물쇠가 열렸습니다. 마술사의 머리핀 남은 4회"
+    },
+    {
+      "name": "hairpin consumed once",
+      "pass": true,
+      "frame": 8712,
+      "message": "딸깍 — 잠긴 상자의 자물쇠가 열렸습니다. 마술사의 머리핀 남은 4회"
+    },
+    {
+      "name": "hairpin held",
+      "pass": true,
+      "frame": 8712,
+      "message": "딸깍 — 잠긴 상자의 자물쇠가 열렸습니다. 마술사의 머리핀 남은 4회"
+    }
+  ],
+  "failures": []
+}

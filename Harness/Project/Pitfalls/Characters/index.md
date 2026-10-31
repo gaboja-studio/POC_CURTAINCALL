@@ -1,5 +1,9 @@
 # Character Pitfalls
 
+- [strike-anatomy-false-pass.md](strike-anatomy-false-pass.md) — 타격 궤적 검사는 통과했지만 팔꿈치·손목이 꺾여 보일 때
+
+- [item-grip-false-pass.md](item-grip-false-pass.md) — 기물이 손바닥을 뚫거나 기준점 거리만으로 쥠을 합격시킬 때
+
 - [trial-avatar-false-pass.md](trial-avatar-false-pass.md) — 새 캐릭터의 Humanoid 매핑·손 연결/굴곡·Editor/PlayMode 표본을 합격 판정하기 전에 읽기
 - [painted-mesh-culling.md](painted-mesh-culling.md) — Blender에서는 정상인 얼굴 페인트가 Unity에서 조각처럼 빠질 때
 - [blender-stale-window-capture.md](blender-stale-window-capture.md) — Blender MCP는 갱신되지만 Computer Use 창에 옛 모델/흰 화면이 보일 때

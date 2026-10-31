@@ -23,7 +23,7 @@ namespace CurtainCall.Network.PlayerSync
     /// 다른 기능은 <see cref="Local"/>(내 캐릭터)·<see cref="All"/>·<see cref="Slot"/>·<see cref="State"/>를 쓴다.
     /// </summary>
     [RequireComponent(typeof(PlayerMover))]
-    public sealed class NetworkPlayer : NetworkBehaviour
+    public sealed partial class NetworkPlayer : NetworkBehaviour
     {
         /// <summary>자리 번호가 아직 정해지지 않음.</summary>
         public const int NoSlot = -1;
