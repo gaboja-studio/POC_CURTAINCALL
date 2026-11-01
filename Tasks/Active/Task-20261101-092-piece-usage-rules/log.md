@@ -103,3 +103,6 @@
   - 소지 칸의 탈출로 전용 3·4 처리와 `ReservesNumberKeys`를 지움. 탈출로 사실·결정 문서의 키 표기를 고침.
 
 - 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-02 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/260 (feat/piece-usage-rules → dev)
+- 2026-11-02 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/260 (feat/piece-usage-rules → dev, Squash, 지정 팀원 검토 대기).
