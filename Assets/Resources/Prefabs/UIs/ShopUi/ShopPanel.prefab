@@ -4423,7 +4423,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uD50C\uB808\uC774\uB294 \uACC4\uC18D\uB429\uB2C8\uB2E4"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fd12ac11a72d5d54c9c92399f51af537, type: 2}
   m_sharedMaterial: {fileID: -697113810584707939, guid: f94def01cb48f5943a0370c79056749a, type: 2}
@@ -10849,11 +10849,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 4632858007682665968}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 800, y: -4}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -100, y: -30}
   m_SizeDelta: {x: 224, y: 80}
-  m_Pivot: {x: 0, y: 1}
+  m_Pivot: {x: 1, y: 1}
 --- !u!222 &1332981586425025629
 CanvasRenderer:
   m_ObjectHideFlags: 0
