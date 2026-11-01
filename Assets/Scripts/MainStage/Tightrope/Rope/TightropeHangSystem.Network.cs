@@ -13,7 +13,7 @@ namespace CurtainCall.Tightrope
         const string StateMessage = "CurtainCall.Tightrope.Hang.State";
         const string RescuedMessage = "CurtainCall.Tightrope.Hang.Rescued";
         const int RequestSize = 21; // operation + round + target + lane + distance
-        const int EntrySize = 32;   // id + lane + distance + remaining + rescuer + pull
+        const int EntrySize = 36;   // id + lane + distance + remaining + rescuer + pull + total
         NetworkSessionManager session;
         CustomMessagingManager messaging;
 
@@ -107,6 +107,7 @@ namespace CurtainCall.Tightrope
                 writer.WriteValueSafe((float)hang.Remaining);
                 writer.WriteValueSafe(hang.Rescuer);
                 writer.WriteValueSafe((float)hang.PullRemaining);
+                writer.WriteValueSafe((float)hang.Total);
             }
             if (recipient.HasValue)
             {
@@ -131,10 +132,11 @@ namespace CurtainCall.Tightrope
                 reader.ReadValueSafe(out float remaining);
                 reader.ReadValueSafe(out ulong rescuer);
                 reader.ReadValueSafe(out float pull);
-                if (!float.IsFinite(distance) || !float.IsFinite(remaining) || !float.IsFinite(pull)) return;
+                reader.ReadValueSafe(out float total);
+                if (!float.IsFinite(distance) || !float.IsFinite(remaining) || !float.IsFinite(pull) || !float.IsFinite(total)) return;
                 snapshot.Add(new TightropeHangBook.Hang
                 {
-                    Id = id, Lane = lane, Distance = distance, Remaining = remaining, Rescuer = rescuer, PullRemaining = pull
+                    Id = id, Lane = lane, Distance = distance, Remaining = remaining, Rescuer = rescuer, PullRemaining = pull, Total = total
                 });
             }
             book.Replace(snapshot);

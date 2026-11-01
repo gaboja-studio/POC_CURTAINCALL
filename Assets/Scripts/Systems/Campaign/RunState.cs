@@ -279,10 +279,12 @@ namespace CurtainCall.Campaign
         }
 
         /// <summary>유효한 개발 시작 지점으로 새 세대를 만든다. 건너뛴 공연의 종료/보상 이벤트는 만들지 않는다.</summary>
-        public bool DebugStartAt(RunStartPoint point)
+        public bool DebugStartAt(RunStartPoint point, bool preserveUnlock = false)
         {
             if (!point.IsValid(out _) || s.Generation == int.MaxValue) return false;
+            bool cannonUnlocked = preserveUnlock;
             StartRun(s.Generation > 0 ? s.Generation + 1 : 1, RunEndReason.None);
+            s.CannonUnlocked = cannonUnlocked;
             s.Day = point.Day;
             // 후속 공연도 미정으로 떨어지지 않도록 테스트 런에만 기본 편성을 둔다.
             for (int day = 1; day <= Rules.DayCount; day++)

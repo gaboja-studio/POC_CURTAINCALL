@@ -319,11 +319,13 @@ namespace CurtainCall.Tightrope
         {
             activeCatcher = null;
             var catches = TightropeCatchSystem.Current;
-            if (laneLinkTarget == null && catches != null)
-                catches.TryGetCatcher(NetworkPlayer.Local, landingLane, landingDistance, out activeCatcher);
             handholdLanding = laneLinkTarget != null || IsHandholdLanding(landingLane, landingDistance);
-            if (balance != null) balance.SetLaneLandingReduction(activeCatcher != null ? catches.CatchReduction
-                : handholdLanding ? GameSettings.Tightrope.Handhold.Reduction : 0f);
+            float handhold = handholdLanding ? GameSettings.Tightrope.Handhold.Reduction : 0f;
+            // 구조 장갑(받아주기)과 손잡이가 겹치면 큰 값 하나만 쓴다(2026-11-01 사용자). 장갑이 더 클 때만 받는 사람으로 보고 착지를 알린다.
+            if (laneLinkTarget == null && catches != null
+                && catches.TryGetCatcher(NetworkPlayer.Local, landingLane, landingDistance, out var catcher) && catches.CatchReduction > handhold)
+                activeCatcher = catcher;
+            if (balance != null) balance.SetLaneLandingReduction(activeCatcher != null ? catches.CatchReduction : handhold);
         }
 
         void HandleAirborne(bool airborne)

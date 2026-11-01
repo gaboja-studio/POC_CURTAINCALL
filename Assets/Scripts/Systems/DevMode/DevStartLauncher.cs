@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
@@ -6,6 +7,8 @@ using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.SpaceLink;
 using CurtainCall.UI.SceneIntegration;
+using CurtainCall.Reward;
+using CurtainCall.WaitingRoom;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
@@ -33,6 +36,9 @@ namespace CurtainCall.Dev
             ? "Cmd+Shift+U" : "Ctrl+Shift+U";
         UIInputBlocker input;
         int day = 1, slot, content;
+        public bool PreserveItemsAndCredits { get; set; }
+        public bool PreserveInjuries { get; set; }
+        public bool PreserveWaitingRoomUnlocks { get; set; }
         RunStartPhase phase;
         GUIStyle label, button, heading;
         Vector2 scroll;
@@ -87,6 +93,21 @@ namespace CurtainCall.Dev
         IEnumerator Launch(RunStartPoint point, string scene)
         {
             var uiTransition = CommonUiSceneLoader.DeferSceneChanges();
+            var items = PreserveItemsAndCredits ? PropCarry.Instance?.CaptureDevSnapshot() : null;
+            var credits = PreserveItemsAndCredits ? PerformanceRewards.Instance?.Balance ?? 0 : 0;
+            var exploration = PreserveWaitingRoomUnlocks ? ExplorationState.Instance?.CaptureDevSnapshot() : null;
+            bool cannonUnlocked = PreserveWaitingRoomUnlocks && CampaignRun.Instance != null && CampaignRun.Instance.State.CannonUnlocked;
+            var injuries = new Dictionary<ulong, BodyPart>();
+            if (PreserveInjuries)
+            {
+                foreach (var player in NetworkPlayer.All) if (player != null && player.IsSpawned) injuries[player.OwnerClientId] = player.LostParts;
+                if (injuries.Count == 0)
+                {
+                    var reader = Object.FindFirstObjectByType<PlayerInputReader>();
+                    var condition = reader != null ? reader.GetComponent<PlayerCondition>() : null;
+                    if (condition != null) injuries[0] = condition.LostParts;
+                }
+            }
             try
             {
                 Status = "테스트 세션 준비 중…";
@@ -119,9 +140,22 @@ namespace CurtainCall.Dev
                 if (session.GameState == GameSessionState.Waiting && !session.StartGame())
                 { Status = "게임을 시작하지 못했습니다."; yield break; }
                 NetworkPlayer.ServerRestoreEveryone();
+                if (PreserveInjuries)
+                    foreach (var player in NetworkPlayer.All)
+                        if (player != null && injuries.TryGetValue(player.OwnerClientId, out var parts)) player.ServerRestoreDevInjury(parts);
                 // 같은 프레임에 최종 요청을 넣어 도입/로비를 경유하지 않는다.
-                if (!campaign.DebugStartAt(point) || !director.DebugReloadCurrentStep())
+                if (!campaign.DebugStartAtPreservingUnlock(point, cannonUnlocked))
                 { Status = "개발 시작 상태를 적용하지 못했습니다."; yield break; }
+                int generation = campaign.State.Generation;
+                // 캠페인 단계 이벤트의 자동 부활이 부상을 바꾸지 않도록 마지막에 다시 적용한다.
+                if (PreserveInjuries)
+                    foreach (var player in NetworkPlayer.All)
+                        if (player != null && injuries.TryGetValue(player.OwnerClientId, out var parts)) player.ServerRestoreDevInjury(parts);
+                if (items != null) PropCarry.Instance?.RestoreDevSnapshot(items, generation);
+                if (exploration != null) ExplorationState.Instance?.RestoreDevSnapshot(exploration, generation);
+                if (PreserveItemsAndCredits && credits > 0 && (PerformanceRewards.Instance == null || !PerformanceRewards.Instance.RestoreDevBalance(credits)))
+                { Status = "기존 크레딧을 복원하지 못했습니다."; yield break; }
+                if (!director.DebugReloadCurrentStep()) { Status = "개발 시작 씬을 불러오지 못했습니다."; yield break; }
                 Status = $"{point.Day}일차 · {scene} 로딩 중…";
                 until = Time.realtimeSinceStartup + 60;
                 while (director.IsTransitioning && Time.realtimeSinceStartup < until) yield return null;
@@ -164,7 +198,7 @@ namespace CurtainCall.Dev
             GUILayout.BeginArea(bounds, GUI.skin.box);
             scroll = GUILayout.BeginScrollView(scroll);
             GUILayout.Label("DEV · 시작 지점", heading);
-            GUILayout.Label("새 테스트 런으로 시작합니다. 자금·소지품·부상·이전 결과가 초기화되며, 접속한 팀원도 함께 이동합니다.", label);
+            GUILayout.Label("새 테스트 런으로 이동합니다. 선택하지 않은 항목과 이전 결과는 초기화되며 접속한 팀원도 함께 이동합니다.", label);
             bool enabled = GUI.enabled;
             GUI.enabled = enabled && !IsBusy;
             GUILayout.Space(10);
@@ -183,6 +217,10 @@ namespace CurtainCall.Dev
             }
             GUILayout.EndHorizontal();
             GUI.enabled = enabled && !IsBusy;
+            GUILayout.Space(8);
+            PreserveItemsAndCredits = GUILayout.Toggle(PreserveItemsAndCredits, " 현재 기물 및 크레딧 내용 유지");
+            PreserveInjuries = GUILayout.Toggle(PreserveInjuries, " 현재 부상 유지");
+            PreserveWaitingRoomUnlocks = GUILayout.Toggle(PreserveWaitingRoomUnlocks, " 대기실 해금 유지");
             if (day > GameSettings.Base.Run.DayCount && phase != RunStartPhase.Escape) phase = RunStartPhase.Morning;
             else if (day == 1 && phase == RunStartPhase.Morning) phase = RunStartPhase.Performance;
             if (phase == RunStartPhase.Morning) slot = 0;

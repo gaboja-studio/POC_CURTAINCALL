@@ -424,6 +424,14 @@ namespace CurtainCall.Reward
         }
 #endif
 
+        public bool RestoreDevBalance(long amount)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || model == null || amount < 0) return false;
+            if (amount == 0) return true;
+            if (model.Balance != 0 || !model.DebugGrant(amount, campaign.State.Day)) return false;
+            return Publish();
+        }
+
         void ObserveNetwork()
         {
             if (dummyRoster || model == null || !model.IsOpen || session?.NetworkManager == null) return;

@@ -10,4 +10,5 @@
 - [game-settings-guide.md](game-settings-guide.md) — 기획자가 게임 수치(세팅 파일)를 바꿀 때, 컨플루언스 공유 원본
 - [reward-settings-guide.md](reward-settings-guide.md) — 공연 보상(환호·상한·보너스)·공동 자금 수치를 바꾸거나 정산을 확인할 때, 컨플루언스 공유 원본
 - [third-party-asset-guide.md](third-party-asset-guide.md) — 구매·다운로드한 외부 에셋을 private 서브모듈(`Assets/_ThirdParty`)에 넣을 때, 컨플루언스 공유 원본
+- [Ui-scene-integration/ui-editing.md](Ui-scene-integration/ui-editing.md) — 상점·소지 칸 UI의 위치·문구·아이콘을 에디터에서 고칠 때(그림 포함)
 - [asset-helper.md](asset-helper.md) — 에디터 작업 후 에셋 저장·공유, Desktop/Fork 브랜치 이동 후 버전 맞추기를 버튼으로 할 때

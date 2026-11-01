@@ -75,6 +75,43 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonInteractionUI"), FindObjectsSortMode.None).Length);
         }
         [UnityTest]
+        public IEnumerator DevLaunchPreservesSelectedStateAndCanResetItLater()
+        {
+            var session = T("CurtainCall.Network.Session.NetworkSessionManager").GetMethod("EnsureExists").Invoke(null, null);
+            var hosting = (System.Threading.Tasks.Task<bool>)Call(session, "HostLanAsync", (ushort)17931);
+            while (!hosting.IsCompleted) yield return null;
+            Assert.IsTrue(hosting.Result, "별도 LAN 테스트 포트로 호스트를 시작해야 합니다.");
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            var rewards = Find("CurtainCall.Reward.PerformanceRewards");
+            var carry = Find("CurtainCall.WaitingRoom.PropCarry");
+            var exploration = Find("CurtainCall.WaitingRoom.ExplorationState");
+            Assert.IsNotNull(exploration);
+            Assert.IsTrue((bool)Call(rewards, "TryDebugGrant", 1234L));
+            var item = Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"), 987654, "stake-puller", "test", 3);
+            Assert.AreEqual("None", Call(carry, "Receive", (ulong)Get(carry, "LocalClientId"), item).ToString());
+            Call(exploration, "RequestDebugOpen", "dev-preserve-test");
+            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            Call(player, "ServerSetOneArm");
+            launcher.GetType().GetProperty("PreserveItemsAndCredits").SetValue(launcher, true);
+            launcher.GetType().GetProperty("PreserveInjuries").SetValue(launcher, true);
+            launcher.GetType().GetProperty("PreserveWaitingRoomUnlocks").SetValue(launcher, true);
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            Assert.AreEqual(1234L, Get(rewards, "Balance"));
+            Assert.AreEqual(987654, Get(Call(carry, "Selected", (ulong)Get(carry, "LocalClientId")), "Uid"));
+            Assert.AreEqual(3, Get(Call(carry, "Selected", (ulong)Get(carry, "LocalClientId")), "Uses"));
+            Assert.IsTrue((bool)Call(exploration, "IsOpen", "dev-preserve-test"));
+            Assert.AreNotEqual(0, Convert.ToInt32(Get(Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local"), "LostParts")));
+            launcher.GetType().GetProperty("PreserveItemsAndCredits").SetValue(launcher, false);
+            launcher.GetType().GetProperty("PreserveInjuries").SetValue(launcher, false);
+            launcher.GetType().GetProperty("PreserveWaitingRoomUnlocks").SetValue(launcher, false);
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            Assert.AreEqual(0L, Get(rewards, "Balance"));
+            Assert.AreEqual(0, Get(Call(carry, "Selected", (ulong)Get(carry, "LocalClientId")), "Uid"));
+            Assert.IsFalse((bool)Call(exploration, "IsOpen", "dev-preserve-test"));
+            Assert.AreEqual(0, Convert.ToInt32(Get(Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local"), "LostParts")));
+        }
+
+        [UnityTest]
         public IEnumerator WaitingRoomPanels_AutomaticallyReleaseAndRestoreCursor()
         {
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");

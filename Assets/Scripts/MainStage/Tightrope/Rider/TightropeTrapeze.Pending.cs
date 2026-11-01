@@ -109,7 +109,8 @@ namespace CurtainCall.Tightrope
                 if (request.Action == Command.Grab)
                 {
                     state.Upper = actor; state.Angle = state.Speed = state.Drive = 0f;
-                    state.Until = Clock + HoldSeconds; state.LastInput = state.SampledAt = Clock;
+                    // 끈끈이 장갑이면 유지 시간을 늘린다(Task-092). 기본 시간을 넘겨 매달린 때만 놓은 뒤 1 소모.
+                    state.Until = Clock + HoldSeconds + stickyGloves.Begin(actor, Clock, HoldSeconds); state.LastInput = state.SampledAt = Clock;
                 }
                 else state.Lower = actor;
                 stack?.ConsumeTrapezeEntry(player);

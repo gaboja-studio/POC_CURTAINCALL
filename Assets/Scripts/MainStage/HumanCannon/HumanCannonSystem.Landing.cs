@@ -3,6 +3,7 @@ using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Tightrope;
+using CurtainCall.WaitingRoom;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -13,6 +14,8 @@ namespace CurtainCall.HumanCannon
     {
         const string LandingMessage = "CurtainCall.HumanCannon.Landing";
         const int LandingSize = 21; // actor + station + launch + segment + safe
+        const string SpringReboundMessage = "CurtainCall.HumanCannon.SpringRebound";
+        const int SpringReboundSize = 36; // actor + station + launch + segment + contact + speed
         /// <summary>M2: 비행 중 일반 바닥·코스 밖으로 떨어지면 잃는 팔다리 수. 잃은 팔다리가 4개가 되면 사망.</summary>
         public const int FallCuts = 2;
         public int LocalSafeLandingCount { get; private set; }
@@ -39,6 +42,64 @@ namespace CurtainCall.HumanCannon
             player.ServerCut(FallCuts);
         }
 
+        /// <summary>호스트: 스프링 신발이 추락 부상 대신 반동시켰다(접속 번호). 관찰·테스트용.</summary>
+        public static event Action<ulong> ServerSpringRebounded;
+
+        /// <summary>
+        /// 호스트: 스프링 신발(기물 시스템 31784961, Task-092). 추락 부상이 나는 바닥에 떨어지면 부상 대신 기본 트램펄린과 같은 반동으로 다시 뛴다.
+        /// 2026-11-01 사용자: 부상 대신 반동, 쿨타임 중·다 쓴 신발이면 기존 부상. 바닥 없는 낙하·안전 착지면에는 발동하지 않는다(부르는 쪽이 거른다).
+        /// 실제 반동이 난 때만 1 소모한다. 같은 접촉은 비행 구간(segment)이 바뀌므로 다시 소모하지 않는다.
+        /// </summary>
+        bool TrySpringRebound(NetworkPlayer player, int index, uint revision, uint segment, Vector3 contact)
+        {
+            var carry = PropCarry.Instance;
+            ulong actor = player.OwnerClientId;
+            if (carry == null || player.State != PlayerState.Normal || !carry.EquipmentReady(actor, ItemUses.SpringShoes)) return false;
+            float speed = SpringReboundSpeed;
+            if (!ApplyRebound(actor, index, revision, segment, contact, speed)) return false;
+            carry.UseEquipment(actor, ItemUses.SpringShoes);
+            foreach (ulong client in session.NetworkManager.ConnectedClientsIds)
+            {
+                if (client == NetworkManager.ServerClientId) continue;
+                using var writer = new FastBufferWriter(SpringReboundSize, Allocator.Temp);
+                writer.WriteValueSafe(actor);
+                writer.WriteValueSafe(index);
+                writer.WriteValueSafe(revision);
+                writer.WriteValueSafe(segment);
+                writer.WriteValueSafe(contact);
+                writer.WriteValueSafe(speed);
+                messaging.SendNamedMessage(SpringReboundMessage, client, writer, NetworkDelivery.ReliableSequenced);
+            }
+            if (ServerSpringRebounded != null)
+                foreach (Action<ulong> observer in ServerSpringRebounded.GetInvocationList())
+                    try { observer(actor); }
+                    catch (Exception error) { Debug.LogException(error, this); }
+            return true;
+        }
+
+        /// <summary>스프링 신발 반동 속도: 기본 트램펄린 반동 × 기물 효과 배율(초안 1).</summary>
+        static float SpringReboundSpeed
+        {
+            get
+            {
+                float trampoline = HumanCannonTrampoline.Current != null ? HumanCannonTrampoline.Current.UpwardSpeed : 12f;
+                float scale = ItemCatalog.Get(ItemUses.SpringShoes)?.effect ?? 1f;
+                return trampoline * (scale > 0f ? scale : 1f);
+            }
+        }
+
+        void HandleSpringReboundMessage(ulong sender, FastBufferReader reader)
+        {
+            if (sender != NetworkManager.ServerClientId || reader.Length - reader.Position != SpringReboundSize) return;
+            reader.ReadValueSafe(out ulong actor);
+            reader.ReadValueSafe(out int index);
+            reader.ReadValueSafe(out uint revision);
+            reader.ReadValueSafe(out uint segment);
+            reader.ReadValueSafe(out Vector3 contact);
+            reader.ReadValueSafe(out float speed);
+            ApplyRebound(actor, index, revision, segment, contact, speed);
+        }
+
         /// <summary>호스트가 현재 비행의 착지를 판정한 뒤 한 번 알린다. Position은 판정 시 호스트의 플레이어 좌표다.</summary>
         public event Action<ulong, int, uint, uint, Vector3, bool> LandingConfirmed;
 
@@ -57,10 +118,13 @@ namespace CurtainCall.HumanCannon
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return;
             bool safe = (player.transform.position - position).sqrMagnitude <= 25f
                 && IsSafeLandingSurface(player.GetComponent<PlayerMover>(), position);
+            bool injuring = !safe && !HumanCannonRouteSystem.IsBelowCourse(player.transform.position);
+            // 부상이 날 바닥이면 스프링 신발이 먼저 반동시킨다. 반동하면 이 비행은 끝나지 않는다.
+            if (injuring && TrySpringRebound(player, index, revision, segment, position)) return;
             ApplyLanding(player.OwnerClientId, index, revision, segment, safe);
             NotifyLanding(player.OwnerClientId, index, revision, segment, player.transform.position, safe);
             // 부딪힌 바닥에서 부상 상태로 계속한다(2026-10-28 사용자 결정). 코스 아래 낭떠러지는 경로 시스템이 같은 추락으로 한 번만 처리한다.
-            if (!safe && !HumanCannonRouteSystem.IsBelowCourse(player.transform.position)) ServerFallInjury(player);
+            if (injuring) ServerFallInjury(player);
             foreach (ulong client in session.NetworkManager.ConnectedClientsIds)
             {
                 if (client == NetworkManager.ServerClientId) continue;

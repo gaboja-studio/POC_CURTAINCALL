@@ -370,6 +370,28 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class PresentationSettings
         {
+            [Serializable]
+            public sealed class InteractionAnimationPolicy
+            {
+                [Tooltip("애니메이션 중 이동과 점프 허용")]
+                [SerializeField] bool allowMovement;
+                [Tooltip("재생 중 다음 상호작용을 즉시 허용")]
+                [SerializeField] bool allowInterrupt;
+                public bool AllowMovement => allowMovement;
+                public bool AllowInterrupt => allowInterrupt;
+            }
+
+            [Header("상호작용 애니메이션")]
+            [SerializeField] InteractionAnimationPolicy strike = new();
+            [SerializeField] InteractionAnimationPolicy manipulate = new();
+            [SerializeField] InteractionAnimationPolicy pull = new();
+            [SerializeField] InteractionAnimationPolicy key = new();
+            [Tooltip("바닥 또는 배송구의 기물 줍기")]
+            [SerializeField] InteractionAnimationPolicy pickup = new();
+            public InteractionAnimationPolicy InteractionPolicy(int kind) => kind switch
+            {
+                0 => strike, 1 => manipulate, 2 => pull, 3 => key, 4 => pickup, _ => manipulate
+            };
             [Tooltip("균형이 끝(±100)일 때 몸 기울기(도).")]
             [SerializeField, Range(0f, 90f)] float maxTiltAngle = 25f;
 

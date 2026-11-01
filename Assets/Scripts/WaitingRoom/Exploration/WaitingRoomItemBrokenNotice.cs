@@ -45,6 +45,14 @@ namespace CurtainCall.WaitingRoom
             if (instance.panel.Show(title, body)) instance.hideAt = Time.unscaledTime + Seconds;
         }
 
+        /// <summary>같은 자리에 기물 알림을 띄운다(공연용 장비 발동 문구 등, Task-092).</summary>
+        public static void ShowMessage(string title, string body)
+        {
+            if (instance == null) Boot();
+            instance.panel.Hide();
+            if (instance.panel.Show(title, body)) instance.hideAt = Time.unscaledTime + Seconds;
+        }
+
         void Update()
         {
             var state = ExplorationState.Instance;

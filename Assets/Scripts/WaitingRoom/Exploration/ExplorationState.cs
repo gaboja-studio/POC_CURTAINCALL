@@ -64,6 +64,29 @@ namespace CurtainCall.WaitingRoom
         int seenGeneration;
         float generationSince;
 
+        public sealed class DevSnapshot
+        {
+            internal string[] Targets, Opened, Seeded;
+            internal int[] Hits;
+        }
+
+        public DevSnapshot CaptureDevSnapshot()
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority) return null;
+            var state = StateData.From(book);
+            return new DevSnapshot { Targets = state.targets, Hits = state.hits, Opened = state.opened, Seeded = new List<string>(seeded).ToArray() };
+        }
+
+        public void RestoreDevSnapshot(DevSnapshot snapshot, int generation)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || snapshot == null) return;
+            book.Load(snapshot.Targets, snapshot.Hits, snapshot.Opened);
+            cooperation.Clear(); lastHit.Clear(); seeded.Clear();
+            foreach (var key in snapshot.Seeded) seeded.Add(key);
+            warnedDrops.Clear(); seenGeneration = generation; generationSince = Time.unscaledTime;
+            Publish();
+        }
+
         void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -146,7 +169,7 @@ namespace CurtainCall.WaitingRoom
             var body = FindBody(player);
             if (body == null || target.Reach(body.position) < 0f) return (false, WaitingRoomText.Get("explore.too-far", "너무 멉니다."));
             var carry = PropCarry.Instance;
-            var tool = carry != null ? carry.Selected(player) : default;
+            var tool = carry != null ? carry.InHand(player) : default;
             bool needsTool = !string.IsNullOrEmpty(target.ToolId);
             // 장비(UV 등)는 어느 슬롯에 있든 자동 적용된다. 도구는 손에 든(선택한) 것만.
             if (needsTool && ItemCatalog.Get(target.ToolId)?.kind == ItemKind.Equipment && carry != null)
@@ -168,7 +191,7 @@ namespace CurtainCall.WaitingRoom
                         var other = FindBody(id);
                         if (other == null || gate.Reach(other.position) < 0f) return false;
                         if (gate.HasKeySlots && id != player && gate.SlotAt(other.position) == slot) return false;
-                        var held = carry != null ? carry.Selected(id) : default;
+                        var held = carry != null ? carry.InHand(id) : default;
                         if (gate.UsesKey && (!gate.AcceptsKey(held) || (id != player && held.ItemId == tool.ItemId))) return false;
                         return !needsTool || (held.Uid != 0 && held.ItemId == target.ToolId && held.Uses != 0);
                     }))

@@ -14,6 +14,10 @@ namespace CurtainCall.Tightrope
         const ulong Nobody = ulong.MaxValue;
         const int PoleTotal = 3;
         const float HoldSeconds = 30f, BodySeparation = 1.45f;
+        /// <summary>끈끈이 장갑으로 늘어날 수 있는 최대 유지 시간(참가자 화면 검증용 여유, Task-092).</summary>
+        const float MaxHoldSeconds = HoldSeconds * 2f;
+        /// <summary>호스트: 위쪽 매달린 사람의 끈끈이 장갑(Task-092).</summary>
+        readonly CurtainCall.WaitingRoom.StickyGloveHolds stickyGloves = new();
         sealed class PoleState
         {
             public HumanCannonPole Physics;
@@ -120,6 +124,7 @@ namespace CurtainCall.Tightrope
                 state.Physics.Step(ref state.Angle, ref state.Speed, state.Drive, Time.deltaTime, GameSettings.Base.Character.Gravity);
                 state.SampledAt = Clock;
             }
+            stickyGloves.Tick(Clock, actor => { foreach (var pole in poles) if (pole != null && pole.Upper == actor) return true; return false; });
             staleFlights.Clear();
             foreach (var pair in flights) if (!Alive(pair.Key) || Clock > pair.Value.Until + 1d) staleFlights.Add(pair.Key);
             foreach (ulong actor in staleFlights) flights.Remove(actor);
@@ -264,6 +269,7 @@ namespace CurtainCall.Tightrope
             foreach (var state in poles)
             { if (state == null) continue; state.Upper = state.Lower = Nobody; state.Revision = 0; state.Angle = state.Speed = state.Drive = 0f; state.Until = state.LastInput = state.SampledAt = 0d; }
             flights.Clear(); version = nextFlightToken = 0; nextSnapshot = 0d;
+            stickyGloves.Clear();
         }
         void OnRestarted(NetworkPlayer player)
         {

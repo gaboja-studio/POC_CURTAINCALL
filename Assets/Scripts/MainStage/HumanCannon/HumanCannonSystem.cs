@@ -426,6 +426,7 @@ namespace CurtainCall.HumanCannon
             {
                 messaging.RegisterNamedMessageHandler(StateMessage, HandleStateMessage);
                 messaging.RegisterNamedMessageHandler(LandingMessage, HandleLandingMessage);
+                messaging.RegisterNamedMessageHandler(SpringReboundMessage, HandleSpringReboundMessage);
                 messaging.RegisterNamedMessageHandler(FlightSnapshotMessage, HandleFlightSnapshot);
                 messaging.RegisterNamedMessageHandler(FlightRemovedMessage, HandleFlightRemoved);
                 awaitingFlightSnapshot = true;
@@ -455,6 +456,7 @@ namespace CurtainCall.HumanCannon
             messaging.UnregisterNamedMessageHandler(RequestMessage);
             messaging.UnregisterNamedMessageHandler(StateMessage);
             messaging.UnregisterNamedMessageHandler(LandingMessage);
+            messaging.UnregisterNamedMessageHandler(SpringReboundMessage);
             messaging.UnregisterNamedMessageHandler(FlightSnapshotMessage);
             messaging.UnregisterNamedMessageHandler(FlightRemovedMessage);
             messaging = null;

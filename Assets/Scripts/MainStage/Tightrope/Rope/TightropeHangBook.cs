@@ -18,6 +18,14 @@ namespace CurtainCall.Tightrope
             public int Lane;
             public float Distance;
             public double Remaining;
+            /// <summary>이 매달림의 전체 버티는 시간(기본 + 끈끈이 장갑 추가). 표시 비율의 분모.</summary>
+            public double Total;
+            /// <summary>끈끈이 장갑으로 늘어난 시간(초). 0이면 장갑 없음.</summary>
+            public double Extra;
+            /// <summary>기본 시간을 다 써서 추가 시간에 들어섰다(끈끈이 장갑 1 소모 대상, 호스트 판정).</summary>
+            public bool ExtraEntered;
+            /// <summary>남은 시간이 추가 시간 안으로 들어왔다.</summary>
+            public bool InExtraTime => Extra > 0d && Remaining <= Extra;
             public ulong Rescuer = NoRescuer;
             public double PullRemaining;
             /// <summary>끌어올리기 시작 때 도와주는 동료의 잃은 부위. 바뀌면(다침) 끊긴다.</summary>
@@ -67,10 +75,12 @@ namespace CurtainCall.Tightrope
             return false;
         }
 
-        public Hang Begin(ulong id, int lane, float distance, double holdSeconds)
+        /// <param name="extraSeconds">끈끈이 장갑 추가 시간(Task-092). 기본 시간을 다 쓴 뒤 이어서 흐른다.</param>
+        public Hang Begin(ulong id, int lane, float distance, double holdSeconds, double extraSeconds = 0d)
         {
             if (hangs.ContainsKey(id) || lane < 0) return null;
-            var hang = new Hang { Id = id, Lane = lane, Distance = distance, Remaining = Math.Max(0d, holdSeconds) };
+            double extra = Math.Max(0d, extraSeconds), total = Math.Max(0d, holdSeconds) + extra;
+            var hang = new Hang { Id = id, Lane = lane, Distance = distance, Remaining = total, Total = total, Extra = extra };
             hangs.Add(id, hang);
             order.Add(id);
             return hang;
