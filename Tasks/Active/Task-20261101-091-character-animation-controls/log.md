@@ -1,0 +1,24 @@
+# Log
+
+- 2026-11-01: origin/dev fetch 완료, HEAD와 동일(0/0). 에디터 실행 중이므로 병합 불필요.
+- doctor FAIL: 서브모듈 미초기화·Task ID 중복·샌드박스에서 Unity 설치 확인 실패. 현재 작업 에디터 PID 86436은 CLI에서 starting. 다른 체크아웃 에디터는 사용하지 않음.
+- 코드 초안: 상호작용 4종 정책, 다음 상호작용 차단, 이동 허용 시 목표 IK 보정 억제 및 상체 레이어 재생. 에셋 마스크 자체는 아직 미변경. 장치·공연 동작 전체는 아직 정책 적용 전.
+- check-work는 sandbox Git LFS/submodule 메타데이터 권한 오류로 변경 목록 조회 실패. 컴파일·테스트 및 실제 관절 검증 미실시. 기존 Task-088 이미지 등 변경은 보존.
+- 2026-11-01 재개: origin/dev fetch, HEAD와 0/0. 워크트리 에디터 ready, 열린 무제 씬 dirty false. Unity CLI로 ItemRightHand.mask에 몸통·머리·양팔·손가락을 활성화하고 루트·다리는 비활성 유지. Rabbit/Bear/BluePierrot/PinkGirl 네 컨트롤러 모두 해당 마스크와 32개 상태를 참조.
+- BaseGameSettings 에셋 Presentation에 strike/manipulate/pull/key 각각 이동 허용·중단 허용 항목이 노출됨. 기본값은 모두 false. 로컬 즉시 재생과 원격 중복 재생 방지, 연속 전환 RPC 제한 제거.
+- 집중 PlayMode InteractionPoliciesControlMovementInterruptionsAndUpperBodyLayer: 1/1 PASS. 이동 잠금·중단 차단·즉시 전환·이동 중 상체 레이어 확인. check-work: 안전성 PASS, 문서/규칙 PASS, 컴파일 PASS, 테스트 선택 안 함. 별도 Unity recompile CLI 래퍼는 구버전 Pipeline 명령 불일치로 실패했으나 Pipeline recompile_status 및 check-work 컴파일은 PASS.
+- 한계: 위 정책은 아이템 상호작용 네 종류만 연결됨. 구조·운반·탑승·낙하 등 다른 상태는 물리/네트워크 규칙이 별도여서 아직 동작별 정책 미적용. 실제 플레이의 관절 모양과 온라인 다중 클라이언트는 미검증. 기존 SVG 가져오기 정점 제한 예외는 작업 전 콘솔에 존재.
+- 2026-11-01 사용자 범위 확정: 기물 줍기 추가, 공연 중 구조·운반·대포 탑승 등 제외. 바닥 기물과 배송 기물에 별도 pickup 정책 연결, 기존 ItemManipulate 클립 사용. 이동·중단 기본값 false를 에셋에서 확인.
+- 송신자가 실제 선택한 이동 허용 값을 RPC에 포함해 원격 클라이언트 설정 차이에 의한 상하체/IK 불일치를 방지. 자동 PlayMode: InteractionPoliciesControlMovementInterruptionsAndUpperBodyLayer PASS, MovingPickupDoesNotAimBonesAtWorldTarget PASS, ReceivedPickupUsesSendersMovementPolicy PASS. 마지막 검사는 최초 애니메이터 평가 전 상태 조회로 실패 후 한 프레임을 더 기다려 통과함.
+- check-work 안전성 PASS / 문서·규칙 PASS / 컴파일 PASS. 자동 테스트는 위의 별도 집중 실행. 자세 비교는 토끼 모델의 움직이는 두 인스턴스 관절 회전 수치 비교이며 모든 외형의 시각적 완성도 검사는 아님. 원격 수신은 함수 수준 검사이며 실제 두 클라이언트 간 RPC 전송 검증은 미완료. Play Mode Scenarios 창을 열었으나 별도 실제 참가자를 구성하거나 실행하지 않았다.
+- 2026-11-01 추가 버그 수정: 이동을 막는 일반 조작·당기기·줍기에서도 대상 월드 위치로 몸통과 팔을 직접 보정하던 코드를 제거. UV 보정은 상호작용 중 실행하지 않음. 갤러리의 대상 방향 보정도 제거. 디버그 돈 줍기를 pickup 설정에 연결. 공연 전용 접점 동작은 사용자 지정 범위 밖.
+- Unity PlayMode: StationaryInteractionsDoNotTurnBonesTowardWorldTarget PASS (조작·당기기·줍기 각각 좌우/상하 목표 비교), MovingPickupDoesNotAimBonesAtWorldTarget PASS. check-work 안전성·문서/규칙·컴파일 PASS, 선택 테스트 별도 수행. 실제 멀티 클라이언트와 시각 검증은 계속 미실시.
+- doctor: sandbox에서 제3자 서브모듈·에디터 설치 확인 실패, 기존 중복 Task ID; 실제 Unity CLI 에디터 연결과 check-work 컴파일은 정상. 기존 폰트/설정 등 미저장 변경 보존.
+- 2026-11-01 UV/인벤토리 추가: 랜턴 상체를 빛 방향으로 회전하고 팔 IK·손목 조준을 해당 경로에서 제거. Rabbit Humanoid 검사에서 상체 56.36도 회전 시 팔꿈치 로컬 회전 변화 0도.
+- 인벤토리 상단은 선택 이름만, 미선택은 빈 문자열. 선택 슬롯 금색 테두리 및 선택된 손 도구 이름 옆 손 아이콘 스프라이트 추가. UV 임시 소지 시 다른 도구의 손 표시 숨김. UI 프리팹 인스턴스에 두 스프라이트 로딩·레이어 생성 확인.
+- 기존 WaitingRoomHudPlayTests는 인벤토리 assertion 전에 기존 타이머 Running 기대/Stopped 실제 값으로 실패. Unity 콘솔 compilationFailed=false. check-work 안전성·문서 PASS, Unity 검사는 Start 씬 dirty로 중단(컴파일 FAIL로 기록됨); 씬은 보존. 실제 플레이 화면 시각 검증과 멀티플레이 확인 미완료.
+- 2026-11-01 개발 공간 이동 추가: DevStartLauncher 체크박스 3개(기물·크레딧 / 부상 / 대기실 해금) 및 호스트 상태 캡처·복원. 기물은 소지·사용 횟수·선택·바닥·선반, 해금은 탐색 진행과 공연 해금. 기본값 false로 기존 초기화 유지. 공간 이동 PlayMode 검사를 추가했으나 미저장 Start 씬 보호 때문에 미실행.
+- 컴파일 recompile_status PASS. 해금 순수 로직 직접 호출에서 보존·초기화 확인. DevStartPointTests EditMode 실행 후 editor_status 30초 timeout, 에디터 starting 지속으로 결과 확인 불가. check-work 안전성·문서 PASS, Unity 단계 editor_status timeout으로 FAIL. 기존 미저장 씬은 건드리지 않음. 실제 공간 전환·멀티플레이 전파 검증 미완료.
+- 별도 Task 생성 스크립트는 현재 브랜치가 Task-091에 연결돼 거부됨. 기존 미저장 작업 보존을 위해 이번 요청과 결과를 이 작업 기록에 임시 병기.
+- 2026-11-01 공간 로딩 최적화 계획을 Docs/space-loading-optimization-plan.md에 비개발자용으로 정리. 기존 끊김의 직접 원인은 로그 부재로 미확정이며 timeout 수정 없음.
+- 개발 시작 지점 회귀 EditMode 20/20 PASS. 별도 LAN 포트에서 DevLaunchPreservesSelectedStateAndCanResetItLater PlayMode PASS: 유지 후 초기화 확인. 멀티플레이 검증은 사용자가 컴퓨터 사용을 중단해 미완료.

@@ -1,6 +1,7 @@
 using CurtainCall.ItemArt;
 using CurtainCall.WaitingRoom;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.Player
@@ -11,15 +12,19 @@ namespace CurtainCall.Player
         Coroutine toolUse;
         float itemActionUntil, itemActionSince;
         float interactionMoveLockUntil;
+        float interactionActionUntil;
+        int activeInteractionKind = -1;
+        bool activeInteractionAllowsMovement;
+        public bool InteractionActionLocked => isActiveAndEnabled && Time.time < interactionActionUntil && activeInteractionKind >= 0 && !GameSettings.Base.Presentation.InteractionPolicy(activeInteractionKind).AllowInterrupt;
         public bool InteractionMovementLocked => isActiveAndEnabled && Time.time < interactionMoveLockUntil;
         static float InteractionDuration(int kind) => kind == 0 ? 1.2f : kind == 2 ? 1.6f : 1.4f;
-        Vector3 itemTarget;
         GameObject heldItemVisual;
         public GameObject HeldItemVisual => heldItemVisual;
         public string ItemMotion => itemAction;
         public void UseToolAtContact(IShopTarget target, IShopPresentation presentation, IExplorationTarget tool)
         {
-            if (toolUse != null || model == null || condition.AllLimbsLost) return;
+            if (InteractionActionLocked || model == null || condition.AllLimbsLost) return;
+            if (toolUse != null) { StopCoroutine(toolUse); toolUse = null; }
             int kind = tool.ToolId == ItemUses.StakePuller ? 0 : 1;
             RequestItemMotion(kind, presentation.PresentationPoint);
             toolUse = StartCoroutine(CompleteToolUse(target,presentation,tool,kind==0?.66f:.7f));
@@ -35,19 +40,25 @@ namespace CurtainCall.Player
         }
         public void RequestItemMotion(int kind, Vector3 point)
         {
-            if (kind < 0 || kind > 3 || model == null || condition.AllLimbsLost) return;
-            interactionMoveLockUntil = Time.time + InteractionDuration(kind);
-            if (network != null && network.IsSpawned) network.SendItemGesture(kind, point);
-            else ReceiveItemMotion(kind, point);
+            if (kind < 0 || kind > 4 || model == null || condition.AllLimbsLost || InteractionActionLocked) return;
+            if (toolUse != null) { StopCoroutine(toolUse); toolUse = null; }
+            activeInteractionKind = kind;
+            activeInteractionAllowsMovement = GameSettings.Base.Presentation.InteractionPolicy(kind).AllowMovement;
+            interactionMoveLockUntil = activeInteractionAllowsMovement ? 0f : Time.time + InteractionDuration(kind);
+            interactionActionUntil = itemActionUntil = Time.time + InteractionDuration(kind);
+            ReceiveItemMotion(kind, point, activeInteractionAllowsMovement);
+            if (network != null && network.IsSpawned) network.SendItemGesture(kind, point, activeInteractionAllowsMovement);
         }
-        public void ReceiveItemMotion(int kind, Vector3 point)
+        public void ReceiveItemMotion(int kind, Vector3 point, bool allowMovement)
         {
-            if (kind < 0 || kind > 3 || model == null || condition.AllLimbsLost) return;
+            if (kind < 0 || kind > 4 || model == null || condition.AllLimbsLost) return;
+            activeInteractionKind = kind;
+            activeInteractionAllowsMovement = allowMovement;
             gestureItem=kind==3?"route-key":null;
-            itemAction = ItemVisualAssets.Motions[kind==3?1:kind]; itemTarget = point;
+            itemAction = ItemVisualAssets.Motions[kind>=3?1:kind];
             itemActionSince = Time.time; itemActionUntil = Time.time + InteractionDuration(kind);
             itemLayerState = null;
-            model.Animator.Play(ItemVisualAssets.State(itemAction, model.Stage), 0, 0);
+            // Locomotion stays on the base layer; PresentItemMotion starts the action layer.
         }
         string SelectedHandItem()
         {
@@ -91,7 +102,7 @@ namespace CurtainCall.Player
             string motion = action ? itemAction : item == ItemUses.UvLamp ? "ItemAim" : item != null ? "ItemHold" : null;
             // The surviving right arm is the locomotion arm. Do not mask it out with
             // a standing hold pose; the crawl clip carries the item through its cycle.
-            if(model.Stage>=2&&moving&&!inAir)
+            if(model.Stage>=2&&moving&&!inAir && !action)
             {
                 a.SetLayerWeight(layer,0);itemLayerState=null;
                 model.Play(ItemVisualAssets.State("ItemCrawl",model.Stage));
@@ -99,7 +110,7 @@ namespace CurtainCall.Player
             }
             if (motion == null) { a.SetLayerWeight(layer, 0); itemLayerState = null; itemAction = null; return false; }
             string state = ItemVisualAssets.State(motion, model.Stage);
-            bool fullBody = !inAir && !moving && (action || model.Stage >= 2);
+            bool fullBody = !inAir && !moving && ((action && !activeInteractionAllowsMovement) || (!action && model.Stage >= 2));
             a.SetLayerWeight(layer, fullBody ? 0 : 1);
             string layerState=state+"/"+(fullBody?0:layer);
             if (fullBody)
@@ -107,7 +118,7 @@ namespace CurtainCall.Player
                 model.Play(state);
                 if (itemLayerState != layerState) a.Play(state, 0, action ? Mathf.Clamp01((Time.time-itemActionSince)/(itemActionUntil-itemActionSince)) : 0);
             }
-            else if (itemLayerState != layerState) a.CrossFadeInFixedTime(state, .12f, layer);
+            else if (itemLayerState != layerState) a.Play(state, layer, 0f);
             itemLayerState = layerState;
             return fullBody;
         }
@@ -115,29 +126,31 @@ namespace CurtainCall.Player
         {
             if (model == null || condition.AllLimbsLost || IsHanging || (network != null && network.IsSpawned && network.State != PlayerState.Normal))
             { if (heldItemVisual != null) heldItemVisual.SetActive(false); return; }
-            if (shownItem == ItemUses.UvLamp)
+            if (shownItem == ItemUses.UvLamp && !(itemAction != null && Time.time < itemActionUntil))
             {
-                Vector3 forward = network != null && network.IsSpawned ? network.UvForward : transform.forward;
+                var lamp = FindFirstObjectByType<UvFlashlight>();
+                Vector3 forward = network != null && network.IsSpawned && !network.IsOwner ? network.UvForward : lamp != null ? lamp.LastForward : transform.forward;
                 bool crawling=model.Stage>=2&&(network!=null?network.PresentationMoving:mover.IsMoving);
-                if(!crawling)ItemVisualAssets.Bend(model.Animator, model.Animator.GetBoneTransform(HumanBodyBones.Chest).position + forward * 3, .8f);
-                ItemVisualAssets.AimLamp(model.Animator,forward,crawling);
-            }
-            bool moving=network!=null?network.PresentationMoving:mover.IsMoving;
-            if (!(model.Stage>=2&&moving) && itemAction != null && Time.time < itemActionUntil && (itemAction == "ItemManipulate" || itemAction == "ItemPull"))
-            {
-                float weight = Mathf.Sin(Mathf.Clamp01((Time.time-itemActionSince)/(itemActionUntil-itemActionSince))*Mathf.PI);
-                ItemVisualAssets.Bend(model.Animator, itemTarget, weight);
-                var palm = Palm(model.Animator, false);
-                AlignArm(model.Animator, false, Vector3.Lerp(palm, itemTarget, weight * .65f));
+                if (!crawling && forward.sqrMagnitude > .01f)
+                {
+                    // Rotate the upper body as one unit. The authored shoulder, elbow and wrist pose remains intact.
+                    AimUpperBody(model.Animator, transform.forward, forward);
+                }
             }
             if (heldItemVisual != null)
             { heldItemVisual.SetActive(!IsHanging && seatedStation == null && rescueHang == null); ItemVisualAssets.Attach(heldItemVisual, model.Animator, visualItem); }
+        }
+        static void AimUpperBody(Animator animator, Vector3 facing, Vector3 direction)
+        {
+            var spine = animator.GetBoneTransform(HumanBodyBones.Spine);
+            if (spine != null && facing.sqrMagnitude > .01f && direction.sqrMagnitude > .01f)
+                spine.rotation = Quaternion.FromToRotation(facing.normalized, direction.normalized) * spine.rotation;
         }
         void ClearItemVisual()
         {
             if (toolUse != null) StopCoroutine(toolUse); toolUse = null;
             if (heldItemVisual != null) Destroy(heldItemVisual);
-            heldItemVisual = null; shownItem = itemAction = itemLayerState = gestureItem = null; itemActionUntil = 0; interactionMoveLockUntil = 0;
+            heldItemVisual = null; shownItem = itemAction = itemLayerState = gestureItem = null; itemActionUntil = 0; interactionActionUntil = 0; interactionMoveLockUntil = 0; activeInteractionKind = -1; activeInteractionAllowsMovement = false;
         }
     }
 }

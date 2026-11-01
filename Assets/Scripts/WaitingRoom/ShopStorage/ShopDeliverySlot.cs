@@ -49,7 +49,7 @@ namespace CurtainCall.WaitingRoom
         Material material;
         bool loaded;
 
-        sealed class Item : IShopTarget, IShopPresentation, IShopPresentationDetails
+        sealed class Item : IShopTarget, IShopPresentation, IShopPresentationDetails, IItemPickupTarget
         {
             public ShopDeliverySlot Slot;
             public ShopDelivery Delivery;

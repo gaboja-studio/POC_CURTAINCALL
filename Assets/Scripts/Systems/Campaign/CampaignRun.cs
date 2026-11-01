@@ -236,10 +236,12 @@ namespace CurtainCall.Campaign
         }
 
         /// <summary>Dev 모드의 호스트/오프라인 전용. 선택 지점에서 새 테스트 런을 시작한다.</summary>
-        public bool DebugStartAt(RunStartPoint point)
+        public bool DebugStartAt(RunStartPoint point) => DebugStartAtPreservingUnlock(point, false);
+
+        public bool DebugStartAtPreservingUnlock(RunStartPoint point, bool preserveUnlock)
         {
             if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || !point.IsValid(out _)) return false;
-            if (!host.DebugStartAt(point)) return false;
+            if (!host.DebugStartAt(point, preserveUnlock)) return false;
             localReady = false;
             Apply(host.Snapshot);
             return true;

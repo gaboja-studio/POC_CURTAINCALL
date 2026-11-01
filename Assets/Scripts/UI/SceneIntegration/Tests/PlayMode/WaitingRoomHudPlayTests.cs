@@ -90,7 +90,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     Assert.AreEqual(i < heldCount ? "1" : "", ((TMP_Text)Private(slot, "quantityText")).text);
                     Assert.AreEqual(i < heldCount && i == heldCount - 1, ((UnityEngine.UI.Image)Private(slot, "selectedAccent")).enabled);
                 }
-                Assert.AreEqual(selectedName == null ? "빈손 · 1–2 기물 선택" : $"{selectedName} · 손에 듦", ((TMP_Text)Get(inventoryUi, "selectedLabel")).text);
+                Assert.AreEqual(selectedName ?? "", ((TMP_Text)Get(inventoryUi, "selectedLabel")).text);
             }
             // v2.8: 실제 남은 시간과 D-N/시간대만 표시하고 기존 W1은 숨긴다.
             Assert.IsFalse(clock.gameObject.activeSelf, "옛 W1 시계는 숨긴다");

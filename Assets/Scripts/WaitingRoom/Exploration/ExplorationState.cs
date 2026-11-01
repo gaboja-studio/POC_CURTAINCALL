@@ -64,6 +64,29 @@ namespace CurtainCall.WaitingRoom
         int seenGeneration;
         float generationSince;
 
+        public sealed class DevSnapshot
+        {
+            internal string[] Targets, Opened, Seeded;
+            internal int[] Hits;
+        }
+
+        public DevSnapshot CaptureDevSnapshot()
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority) return null;
+            var state = StateData.From(book);
+            return new DevSnapshot { Targets = state.targets, Hits = state.hits, Opened = state.opened, Seeded = new List<string>(seeded).ToArray() };
+        }
+
+        public void RestoreDevSnapshot(DevSnapshot snapshot, int generation)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || snapshot == null) return;
+            book.Load(snapshot.Targets, snapshot.Hits, snapshot.Opened);
+            cooperation.Clear(); lastHit.Clear(); seeded.Clear();
+            foreach (var key in snapshot.Seeded) seeded.Add(key);
+            warnedDrops.Clear(); seenGeneration = generation; generationSince = Time.unscaledTime;
+            Publish();
+        }
+
         void Awake()
         {
             if (Instance != null && Instance != this) { Destroy(gameObject); return; }

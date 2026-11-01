@@ -43,7 +43,7 @@ namespace CurtainCall.WaitingRoom
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() { activeCount = 0; views.Clear(); }
 
-        sealed class Item : IShopTarget, IShopPresentation
+        sealed class Item : IShopTarget, IShopPresentation, IItemPickupTarget
         {
             public FloorPropsView View;
             public FloorProp Prop;

@@ -45,6 +45,37 @@ namespace CurtainCall.WaitingRoom
         ShopChannel channel;
         int seenGeneration;
 
+        public sealed class DevSnapshot
+        {
+            internal readonly Dictionary<ulong, List<PropItem>> Held = new();
+            internal readonly List<FloorProp> Floor = new();
+            internal readonly List<PropItem> Shelf = new();
+            internal readonly Dictionary<ulong, int> Selected = new();
+        }
+
+        public DevSnapshot CaptureDevSnapshot()
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority) return null;
+            var snapshot = new DevSnapshot();
+            foreach (var id in book.Players) snapshot.Held[id] = new List<PropItem>(book.Held(id));
+            snapshot.Floor.AddRange(book.Floor); snapshot.Shelf.AddRange(book.Shelf);
+            foreach (var entry in selected) snapshot.Selected[entry.Key] = entry.Value;
+            return snapshot;
+        }
+
+        public void RestoreDevSnapshot(DevSnapshot snapshot, int generation)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || snapshot == null) return;
+            book.Clear();
+            foreach (var entry in snapshot.Held)
+                foreach (var item in entry.Value) book.Take(entry.Key, int.MaxValue, item);
+            foreach (var item in snapshot.Floor) book.Place(item.Item, item.X, item.Y, item.Z);
+            book.LoadShelf(snapshot.Shelf);
+            selected.Clear(); foreach (var entry in snapshot.Selected) selected[entry.Key] = entry.Value;
+            seenGeneration = generation;
+            Publish();
+        }
+
         /// <summary>바닥에 놓인 기물(모든 화면).</summary>
         public IReadOnlyList<FloorProp> Floor => HasAuthority ? book.Floor : receivedFloor;
 
