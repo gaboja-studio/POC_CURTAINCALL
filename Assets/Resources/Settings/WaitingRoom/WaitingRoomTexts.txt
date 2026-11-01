@@ -141,6 +141,9 @@ item.stake-puller.desc | 판자·덮개·걸린 서랍 개방, 녹슨 벽 파괴
 # item.uv-lamp.hint | 희미한 얼룩이 보인다.
 item.uv-lamp.name | 서커스 UV 등
 item.uv-lamp.desc | 장비. 슬롯에 넣으면 자동 적용. 우클릭으로 사용 가능하며, 숨겨진 단서를 찾을 수 있다. 내구도 없음.
+# 탐색 열쇠(주운 뒤 슬롯에 보이는 이름)
+item.structure-a:escape-key-1.name | 은색 열쇠 1
+item.structure-a:escape-key-2.name | 은색 열쇠 2
 
 # 공연 장비 (지금은 상점에서 팔지 않음)
 item.rescue-gloves.name | 구조 장갑

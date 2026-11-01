@@ -186,7 +186,7 @@ MonoBehaviour:
       \uBCF4\uAD00\uD558\uACE0 \uC120\uD0DD\uD574 \uD574\uB2F9 \uC790\uBB3C\uC1E0\uB97C
       \uC5F0\uB2E4. \uAD6C\uB9E4 \uBD88\uAC00."
   - id: structure-a:escape-key-1
-    displayName: "\uD0C8\uCD9C\uB85C \uC5F4\uC1E0 1"
+    displayName: "\uC740\uC0C9 \uC5F4\uC1E0 1"
     wornName: 
     wornAtOrBelow: -1
     use: 1
@@ -201,7 +201,7 @@ MonoBehaviour:
       \uBCF4\uAD00\uD558\uACE0 \uC120\uD0DD\uD574 \uD574\uB2F9 \uC790\uBB3C\uC1E0\uB97C
       \uC5F0\uB2E4. \uAD6C\uB9E4 \uBD88\uAC00."
   - id: structure-a:escape-key-2
-    displayName: "\uD0C8\uCD9C\uB85C \uC5F4\uC1E0 2"
+    displayName: "\uC740\uC0C9 \uC5F4\uC1E0 2"
     wornName: 
     wornAtOrBelow: -1
     use: 1

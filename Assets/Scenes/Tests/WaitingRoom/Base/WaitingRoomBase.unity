@@ -1143566,7 +1143566,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ExplorationGate
   targetId: structure-a:escape-key-2
-  label: "\uD0C8\uCD9C\uB85C \uC5F4\uC1E0 2"
+  label: "\uC740\uC0C9 \uC5F4\uC1E0 2"
   kind: 0
   requiredTargets:
   - structure-a:management-drawer
@@ -1440337,7 +1440337,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.ExplorationGate
   targetId: structure-a:escape-key-1
-  label: "\uD0C8\uCD9C\uB85C \uC5F4\uC1E0 1"
+  label: "\uC740\uC0C9 \uC5F4\uC1E0 1"
   kind: 0
   requiredTargets:
   - structure-a:cabinet-3

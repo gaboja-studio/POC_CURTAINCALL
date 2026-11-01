@@ -97,3 +97,9 @@
 - 사람 확인 필요: 실제 마우스로 돌려 찾기 난이도(판정 각도·시간), 번쩍임 세기.
 
 - 2026-11-01 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-01 탈출로 열쇠 → 은색 열쇠 이름 통일
+
+- 문제: 바닥 대상 이름은 "은색 열쇠 1·2"인데 주운 기물(슬롯) 이름·설명은 "탈출로 열쇠"로 남음. 원인: 열쇠 아이템 이름이 `ExplorationKeys.Names`·`ItemCatalog.asset`·씬 label에 따로 고정돼 있었음.
+- 수정: ItemCatalog.cs 고정 이름, ItemCatalog.asset displayName, 씬 escapeKey1·2 label, StructureAPlacement 생성 이름, 디버그 열쇠 안내 문구를 "은색 열쇠"로. WaitingRoomTexts.txt에 `item.structure-a:escape-key-1/2.name` 추가(문구 파일에서 고칠 수 있게).
+- 검사: 컴파일 PASS, EditMode WaitingRoom 108/108. 플레이 화면 확인 안 함.

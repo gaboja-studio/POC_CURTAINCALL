@@ -94,7 +94,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 Set(hidden, "description", "무대 장치 보관실의 캐비넷 3");
                 hiddenUv.RevealWhenFound(hidden.gameObject);
                 Tool("S11_StageGear", "cabinet3", "캐비넷 3", new Vector3(-40, 0, 43), true);
-                Key("S11_StageGear", "escapeKey1", "탈출로 열쇠 1", new Vector3(-39, .08f, 43));
+                Key("S11_StageGear", "escapeKey1", "은색 열쇠 1", new Vector3(-39, .08f, 43));
                 Clue("LG_Lounge", "newspaper", "낡은 신문", new Vector3(3.4f, .58f, 80.8f));
                 BoxGate("LG_Lounge", "loungeBox1", new Vector3(1.7f, 0, 83.2f));
                 BoxGate("LG_Lounge", "loungeBox2", new Vector3(3.7f, 0, 83.2f));
@@ -106,7 +106,7 @@ namespace CurtainCall.WaitingRoom.Editor
                 officeDoor.ConfigureRoute("structure-a:management-door", new[] { StructureAKeyRoute.ManagementKey });
                 var note = Clue("B1_Office", "confiscatedNotebook", "압수한 노트", new Vector3(-6.4f, -3.95f, 106.5f)); Set(note, "description", "34");
                 Tool("B1_Office", "managementDrawer", "관리실 서랍", new Vector3(-8.9f, -5, 107.6f), false, ToolTargetKind.Pry);
-                Key("B1_Office", "escapeKey2", "탈출로 열쇠 2", new Vector3(-8.9f, -4.9f, 106.7f));
+                Key("B1_Office", "escapeKey2", "은색 열쇠 2", new Vector3(-8.9f, -4.9f, 106.7f));
                 Gate("B1_EscapeEntrance", "passwordPad", "비밀번호 패드", new Vector3(-12.5f, -9.5f, 91.8f), ExplorationGateKind.Keypad, new Vector3(.12f, .45f, .36f), false);
                 var exit = Door("B1_EscapeEntrance", "escapeDoor", "탈출로 문", sealedDoor, new Vector3(-13.5f, -9.8f, 93.35f), new Vector3(.25f, 3.6f, 2.6f), ExplorationGateKind.Cooperative);
                 exit.ConfigureRoute(StructureAKeyRoute.EscapeDoor, null, StructureAExitRoute.PasswordPad);
