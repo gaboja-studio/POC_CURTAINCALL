@@ -67,7 +67,7 @@ namespace CurtainCall.EscapeRoute
             Application.runInBackground = true;
             Application.targetFrameRate = settings.lowMemoryPreview ? 24 : 40;
             QualitySettings.vSyncCount = 0;
-            // Four full editors share one machine. This opt-in affects preview textures only.
+            // Multiple editors share one machine. This opt-in affects preview textures only.
             // Keep the authored quality settings and ordinary Play unchanged after the review.
             if (settings.lowMemoryPreview)
             {
@@ -75,19 +75,21 @@ namespace CurtainCall.EscapeRoute
                 QualitySettings.globalTextureMipmapLimit = Mathf.Max(2, originalMipmapLimit);
             }
         }
-        public static bool TryGet(out string folder, out int slot)
+        public static bool TryGet(out string folder, out int slot) => TryGet(out folder, out slot, out _);
+        public static bool TryGet(out string folder, out int slot, out int participantCount)
         {
-            folder = null; slot = 0;
+            folder = null; slot = 0; participantCount = 1;
             string json = EditorPrefs.GetString(Key, "");
             if (string.IsNullOrEmpty(json)) return false;
             var settings = JsonUtility.FromJson<Settings>(json);
             if (settings == null || string.IsNullOrEmpty(settings.folder)) return false;
+            participantCount = 1 + (settings.clones?.Length ?? 0);
             var type = Type.GetType("Unity.Multiplayer.PlayMode.Editor.VirtualProjectsEditor, UnityEditor.MultiplayerModule", true);
             bool clone = (bool)type.GetProperty("IsClone", BindingFlags.Public | BindingFlags.Static).GetValue(null);
             if (clone)
             {
                 string identifier = type.GetProperty("CloneIdentifier", BindingFlags.Public | BindingFlags.Static).GetValue(null).ToString();
-                slot = Array.IndexOf(settings.clones, identifier) + 1;
+                slot = Array.IndexOf(settings.clones ?? Array.Empty<string>(), identifier) + 1;
                 if (slot < 1 || slot > 3) throw new InvalidOperationException("Unconfigured MPPM review clone: " + identifier);
             }
             folder = Path.GetFullPath(settings.folder);

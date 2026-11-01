@@ -5,6 +5,7 @@
 - [performance-background-density.md](performance-background-density.md) — 최초 공연장의 밀도·분위기·압도감 유지, 플랫폼별 기둥 반복과 접합 불량 정리. 공연장 철골 배치를 조정할 때
 
 - [escape-background-direction.md](escape-background-direction.md) — 탈출로의 중성 콘크리트·흐린 내부/햇빛 강한 갈대밭 대비·기존 캐릭터 사용. 공통 맵과 B/C 배경을 제작할 때
+- [escape-placement-clearance.md](escape-placement-clearance.md) — 탈출로 에셋 겹침·관통 금지,외줄과 착지 받침 중첩 금지·그네 반동/화염 여유. 배치를 추가·이동할 때
 - [escape-control-baseline.md](escape-control-baseline.md) — A 우선 완성·B/C M2 이후 일정, 공통 1인 개발환경·인간대포 기본 조작·외줄 전환·그네 기준
 - [escape-completion.md](escape-completion.md) — 전원 도착·리타이어까지 기다린 뒤 도착자가 한 명 이상이면 성공. 탈출 참가자 집계·종료 시점을 연결할 때
 - [escape-entry.md](escape-entry.md) — 합류 타이머 없이4인 집결·뒤 문 봉쇄·로딩 전환·계단 끝부터 자유 3인칭(1인칭은 대체됨). 대기실에서 탈출로 입장을 연결할 때

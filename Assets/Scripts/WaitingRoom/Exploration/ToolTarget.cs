@@ -56,7 +56,7 @@ namespace CurtainCall.WaitingRoom
         public string TargetId => targetId;
         public string ToolId => kind == ToolTargetKind.HairpinLock ? ItemUses.MagicianHairpin : ItemUses.StakePuller;
         public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? (kind == ToolTargetKind.HairpinLock ? WaitingRoomText.Get("tool.name-hairpin", "마술사의 머리핀") : WaitingRoomText.Get("tool.name-stake-puller", "천막 말뚝 뽑개"));
-        public string Label => label;
+        public string Label => WaitingRoomText.Get("target." + targetId + ".name", label);
         public string RewardItemId => rewardItemId;
         public Vector3 RewardPoint => rewardPoint != null ? rewardPoint.position : transform.position;
         public int RewardUidOffset => rewardUidOffset;
@@ -64,8 +64,8 @@ namespace CurtainCall.WaitingRoom
         public Transform VisualRoot => transform;
         public Vector3 PresentationPoint => transform.position + Vector3.up * .6f;
         public bool IsAvailable => !Opened;
-        public string ActionLabel => Opened ? label
-            : !ExplorationTargets.LocalHolds(ToolId) ? WaitingRoomText.Format("tool.needs-tool", "{label} — {tool:이} 필요하다", ("label", label), ("tool", ToolName))
+        public string ActionLabel => Opened ? Label
+            : !ExplorationTargets.LocalHolds(ToolId) ? WaitingRoomText.Format("tool.needs-tool", "{label} — {hint}", ("label", Label), ("hint", ExplorationTargets.Hint(this)))
             : kind == ToolTargetKind.HairpinLock
                 ? (Attempts > 0 ? WaitingRoomText.Format("tool.pick-lock-attempt", "{tool:으로} 자물쇠 따기 (시도 {n})", ("tool", ToolName), ("n", Attempts))
                     : WaitingRoomText.Format("tool.pick-lock", "{tool:으로} 자물쇠 따기", ("tool", ToolName)))
@@ -115,8 +115,8 @@ namespace CurtainCall.WaitingRoom
         }
 
         public string Describe(bool success, int attemptNumber) => kind == ToolTargetKind.Pry
-            ? WaitingRoomText.Format("tool.pried-open", "{label:을} 뜯어 열었습니다.", ("label", label))
-            : success ? WaitingRoomText.Format("tool.lock-opened", "딸깍 — {label}의 자물쇠가 열렸습니다.", ("label", label))
+            ? WaitingRoomText.Format("tool.pried-open", "{label:을} 뜯어 열었습니다.", ("label", Label))
+            : success ? WaitingRoomText.Format("tool.lock-opened", "딸깍 — {label}의 자물쇠가 열렸습니다.", ("label", Label))
             : WaitingRoomText.Format("tool.lock-failed", "자물쇠가 헛돌았습니다. (시도 {n})", ("n", attemptNumber));
 
         void Update()

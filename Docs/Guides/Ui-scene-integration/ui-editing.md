@@ -82,7 +82,7 @@ Project 창에서 `ShopPanel.prefab`을 더블클릭하면 프리팹 화면이 �
 2. `SelectionBorder`: 고른 칸 테두리(그림·두께는 Image와 Rect Transform)
 3. `SelectedProp`: 고른 기물 이름. 아래의 `HeldIndicator`가 도구를 손에 들었을 때의 손 아이콘이다.
 4. 씬 뷰 예시(머리핀, 1번 칸, 5회)
-5. **Common Inventory UI**: 손 상태 문구(빈칸이면 표시 안 함, `{item}` = 기물 이름), 잠긴 칸 문구, 손 아이콘과 이름 사이 거리
+5. **Common Inventory UI**: 손 상태 문구(빈칸이면 표시 안 함, `{item}` = 기물 이름, 빈손 문구의 `{keys}` = 칸 선택 키 1–2, 탈출로에서는 3–4), 잠긴 칸 문구, 손 아이콘과 이름 사이 거리
 
 ## 7. 여러 UI가 한 화면에 겹쳐 보일 때
 

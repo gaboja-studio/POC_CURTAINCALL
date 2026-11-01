@@ -104,8 +104,16 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             MouseRight(false); yield return null; yield return null; yield return null;
             Assert.IsFalse((bool)Get(flashlight, "IsOn"), "입력을 놓으면 꺼진다");
             Assert.IsTrue(marks.All(r => r.gameObject.activeInHierarchy), "빛이 떠나도 5초 동안 남는다");
+            Assert.IsTrue(mark.GetComponentsInChildren<Renderer>(true).Where(r => !marks.Contains(r)).All(r => !r.enabled), "낙서 자리 겉판은 보이지 않는다(2026-11-01)");
+            // 오버뷰로 보고 있으면 빛이 꺼져도 닫을 때까지 남는다(2026-11-01).
+            var clue = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.ClueInspectable"), FindObjectsInactive.Include, FindObjectsSortMode.None).Cast<Component>()
+                .Single(c => (string)Get(c, "TargetId") == "structure-a:uv-1-clue");
+            Call(clue, "SetOpen", true); yield return null;
+            Assert.IsTrue((bool)Get(clue, "IsOpen"), "드러난 단서를 오버뷰로 연다");
             yield return new WaitForSeconds(5.3f);
-            Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "5초가 지나면 다시 숨는다");
+            Assert.IsTrue((bool)Get(clue, "IsOpen") && marks.All(r => r.gameObject.activeInHierarchy), "오버뷰를 보는 동안에는 남는다");
+            Call(clue, "SetOpen", false); yield return null; yield return null;
+            Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "오버뷰를 닫으면 다시 숨는다");
             Assert.IsTrue(((IEnumerable)Call(carry, "Held", (ulong)Get(carry, "LocalClientId"))).Cast<object>().Any(o => (string)Get(o, "ItemId") == "uv-lamp"), "발견해도 장비는 남는다");
         }
 
@@ -118,12 +126,52 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var monitor = layout.Find("S09_PracticeRoom/PracticeMonitor"); Assert.IsNotNull(monitor);
             Assert.IsNotNull(monitor.GetComponent(T("CurtainCall.WaitingRoom.WaitingRoomCctvMonitor")));
             var box = layout.Find("B1_MachineRoom/Exploration_A/PipeBox");
-            Assert.IsNull(box.Find("BoxLid")); Assert.GreaterOrEqual(box.Cast<Transform>().Count(t => t.name == "GratingBar"), 8, "키패드를 가리는 철창");
+            // 2026-11-01: 철창 대신 스테인리스 문 달린 배관함. 부서지기 전에는 문이 키패드를 가린다.
+            Assert.IsNull(box.Find("BoxLid")); Assert.AreEqual(0, box.Cast<Transform>().Count(t => t.name == "GratingBar"), "철창 없음");
+            var door = box.Find("Door"); Assert.IsNotNull(door, "배관함 문");
+            Bounds db = door.GetComponent<Renderer>().bounds, kb = box.Find("Keypad").GetComponent<Renderer>().bounds;
+            Assert.IsTrue(db.min.y < kb.min.y && db.max.y > kb.max.y && db.min.z < kb.min.z && db.max.z > kb.max.z && db.min.x > kb.max.x, "문이 키패드 앞을 가린다");
             var pieces = (Transform[])box.GetComponent(T("CurtainCall.WaitingRoom.BreakableWall")).GetType().GetField("pieces", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(box.GetComponent(T("CurtainCall.WaitingRoom.BreakableWall")));
-            Assert.IsTrue(box.Cast<Transform>().Where(t => t.name == "GratingBar").All(t => pieces.Contains(t)), "철창은 배관과 함께 무너지는 조각");
+            Assert.IsTrue(box.Cast<Transform>().Where(t => t.name.StartsWith("Door")).All(t => pieces.Contains(t)), "문은 배관과 함께 무너지는 조각");
             Assert.GreaterOrEqual(layout.GetComponentsInChildren<Transform>(true).Count(t => t.name == "PropShape"), 30, "탐색 배치물 외형");
             var lobbyUv = layout.Find("S01_Lobby").GetComponentsInChildren(T("CurtainCall.WaitingRoom.FoundItemSpot"), true).Cast<Component>().Where(s => ((string)Get(s, "SpotId")).Contains("uv-lamp")).ToArray();
             Assert.AreEqual(4, lobbyUv.Length); Assert.IsTrue(lobbyUv.All(s => ((string)Get(s, "SpotId")).StartsWith("lobby-uv-lamp")), "더미 UV 없음");
+        }
+
+        // 2026-11-01: 압수된 노트 뒷면의 새김 "34"를 오버뷰에서 뒤집어 마주 보면 강조되고 설명이 더해진다(찾은 사람 화면에만).
+        [UnityTest]
+        public IEnumerator M2_Confirmed_NotebookBackEngravingRevealsHintWhenFaced()
+        {
+            yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
+            var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
+            var clue = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.ClueInspectable"), FindObjectsInactive.Include, FindObjectsSortMode.None).Cast<Component>()
+                .Single(c => (string)Get(c, "TargetId") == "structure-a:confiscated-notebook");
+            Assert.IsTrue((bool)Get(clue, "HasSecret"), "뒷면 새김 글자");
+            Assert.IsFalse(((string)Get(clue, "Description")).Contains("34"), "설명에는 34가 없다");
+            var unlock = (string)Get(clue, "UnlockTarget");
+            if (!(bool)Get(clue, "Revealed") && !string.IsNullOrEmpty(unlock)) { Call(state, "RequestUse", unlock); yield return null; yield return null; }
+            var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+            Call(player.GetComponent(T("CurtainCall.Player.PlayerMover")), "SetStartPose", clue.transform.position + Vector3.forward * .9f + Vector3.down * .9f, Quaternion.LookRotation(Vector3.back));
+            yield return null; yield return null;
+            Call(clue, "SetOpen", true); yield return null;
+            Assert.IsTrue((bool)Get(clue, "IsOpen"), "오버뷰를 연다");
+            yield return new WaitForSeconds(.6f);
+            Assert.IsFalse((bool)Get(clue, "SecretSeen"), "처음 앞면에서는 보이지 않는다");
+            var pivot = Camera.main.transform.Find("ClueOverview/Pivot"); Assert.IsNotNull(pivot);
+            var face = pivot.GetComponentsInChildren<Transform>().Single(t => t.name == "SecretFace");
+            // 새김 면이 카메라를 향하도록 돌린다.
+            var cam = Camera.main.transform;
+            pivot.rotation = Quaternion.FromToRotation(face.up, -cam.forward) * pivot.rotation;
+            yield return new WaitForSeconds(.7f);
+            Assert.IsTrue((bool)Get(clue, "SecretSeen"), "새김 면을 마주 보면 찾는다 — facing " + Vector3.Dot(face.up, -cam.forward).ToString("F2"));
+            var message = clue.GetComponentsInChildren<TMPro.TMP_Text>(true).Concat(Object.FindObjectsByType<TMPro.TMP_Text>(FindObjectsSortMode.None)).FirstOrDefault(t => t.name == "Message");
+            Assert.IsNotNull(message); StringAssert.Contains("노트 구석에 \"34\"라는 숫자가 새겨져 있다.", message.text);
+            ScreenCapture.CaptureScreenshot(".harness/local/visual/10-notebook-secret.png");
+            yield return null; yield return null;
+            Call(clue, "SetOpen", false); yield return null;
+            Call(clue, "SetOpen", true); yield return null;
+            Assert.IsTrue((bool)Get(clue, "SecretSeen"), "다시 열어도 찾은 상태가 남는다");
+            Call(clue, "SetOpen", false); yield return null;
         }
     }
 }

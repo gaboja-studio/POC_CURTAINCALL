@@ -46,7 +46,7 @@ namespace CurtainCall.WaitingRoom
         public string TargetId => targetId;
         public string ToolId => ItemUses.UvLamp;
         public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? WaitingRoomText.Get("uv.name-lamp", "서커스 UV 등");
-        public string Label => label;
+        public string Label => WaitingRoomText.Get("target." + targetId + ".name", label);
         public string RewardItemId => "";
         public Vector3 RewardPoint => transform.position;
         public int RewardUidOffset => 0;
@@ -77,7 +77,19 @@ namespace CurtainCall.WaitingRoom
             buzz = Buzz();
             if (sound == null) { sound = gameObject.AddComponent<AudioSource>(); sound.spatialBlend = 1f; sound.maxDistance = 15f; }
             ApplyGlow();
+            HideSurface();
             SetMarks(false);
+        }
+
+        // 낙서 자리의 겉판(얼룩·철판)은 그리지 않는다. 비추기 전에는 벽만 보여야 한다(2026-11-01 사용자). 충돌체는 남긴다.
+        void HideSurface()
+        {
+            foreach (var r in GetComponentsInChildren<Renderer>(true))
+            {
+                bool mark = false;
+                if (marks != null) foreach (var m in marks) if (m != null && r.transform.IsChildOf(m.transform)) { mark = true; break; }
+                if (!mark) r.enabled = false;
+            }
         }
 
         void OnEnable() { ExplorationTargets.Add(this); All.Add(this); }
@@ -105,7 +117,18 @@ namespace CurtainCall.WaitingRoom
             SetMarks(Lit);
         }
 
-        void SetMarks(bool on) { if (marks != null) foreach (var m in marks) if (m != null && m.activeSelf != on) m.SetActive(on); }
+        // 오버뷰로 보고 있는 단서는 빛이 꺼져도 오버뷰를 닫을 때까지 남긴다(2026-11-01 사용자).
+        void SetMarks(bool on)
+        {
+            if (marks == null) return;
+            var open = ClueInspectable.Current;
+            foreach (var m in marks)
+            {
+                if (m == null) continue;
+                bool show = on || (open != null && open.transform.IsChildOf(m.transform));
+                if (m.activeSelf != show) m.SetActive(show);
+            }
+        }
 
         // 낙서는 노란 형광(자체 발광) 재질로 보인다. 원본 재질은 건드리지 않는다.
         // 그림이 있는 재질(화살표·X 같은 투명 그림)은 그림을 지키고 색만 노란 형광으로 바꾼 사본을 쓴다(2026-10-30: 사각형으로 덮이던 문제).

@@ -18,6 +18,8 @@ namespace CurtainCall.WaitingRoom
     public interface IShopPresentationDetails { string HelperLabel { get; } }
     /// <summary>바닥이나 배송구에서 기물을 소지품으로 가져오는 상호작용.</summary>
     public interface IItemPickupTarget { }
+    /// <summary>외곽선을 그리지 않을 수 있는 대상(숨겨진 벽 등). F 안내는 그대로 나온다.</summary>
+    public interface IShopOutlineOptional { bool HideOutline { get; } }
     /// <summary>표시 어댑터가 사용하는 실제 대상. 이동/생성/삭제에 따라 매 프레임 읽는다.</summary>
     public interface IShopPresentation
     {

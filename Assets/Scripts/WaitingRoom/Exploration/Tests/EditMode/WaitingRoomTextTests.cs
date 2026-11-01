@@ -65,9 +65,26 @@ namespace CurtainCall.WaitingRoom.Tests
                 .Where(p => !p.Contains("/Tests/") && !p.Contains("\\Tests\\"))
                 .SelectMany(p => Call.Matches(File.ReadAllText(p)).Cast<Match>().Select(m => m.Groups[1].Value))
                 .ToHashSet();
-            // 아이템 키는 아이템 id로 조립한다(item.<id>.name/worn/desc).
-            var unused = file.Keys.Where(k => !used.Contains(k) && !k.StartsWith("item.")).ToList();
+            // 아이템·탐색 대상 키는 id로 조립한다(item.<id>.name/worn/desc, target.<id>.name/desc/text/secret).
+            var unused = file.Keys.Where(k => !used.Contains(k) && !k.StartsWith("item.") && !k.StartsWith("target.")).ToList();
             Assert.IsEmpty(unused, "쓰지 않는 키(오타?): " + string.Join(", ", unused));
+        }
+
+        [Test] public void TargetKeysMatchSceneTargets()
+        {
+            const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
+            var file = WaitingRoomText.Parse(File.ReadAllText(FilePath));
+            var ids = Regex.Matches(File.ReadAllText(ScenePath), @"^  targetId: (.+)$", RegexOptions.Multiline)
+                .Cast<Match>().Select(m => m.Groups[1].Value.Trim()).ToHashSet();
+            var keys = file.Keys.Where(k => k.StartsWith("target.")).ToList();
+            Assert.Greater(keys.Count, 0, "탐색 대상 이름 구역이 비었음");
+            var wrong = keys.Where(k =>
+            {
+                int dot = k.LastIndexOf('.');
+                string id = k.Substring("target.".Length, dot - "target.".Length), part = k.Substring(dot + 1);
+                return !ids.Contains(id) || (part != "name" && part != "desc" && part != "text" && part != "hint" && part != "secret");
+            }).ToList();
+            Assert.IsEmpty(wrong, "씬에 없는 대상 id 또는 잘못된 끝말(name/desc/text/hint/secret): " + string.Join(", ", wrong));
         }
     }
 }

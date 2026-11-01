@@ -9,7 +9,7 @@ namespace CurtainCall.WaitingRoom
     /// 결정(2026-10-29 사용자): 모든 탐색은 F, 6번이면 무너지고 칠 때마다 금이 늘고 낡아 보인다, 손을 떼도 진행은 남는다.
     /// 판정·공유는 <see cref="ExplorationState"/>, 이 컴포넌트는 받은 진행을 모든 화면에 똑같이 그린다(늦게 들어와도 같은 모습).
     /// </summary>
-    public sealed class BreakableWall : MonoBehaviour, IShopTarget, IShopPresentation, IExplorationTarget
+    public sealed class BreakableWall : MonoBehaviour, IShopTarget, IShopPresentation, IExplorationTarget, IShopOutlineOptional
     {
         [SerializeField] string targetId = "restroom-breach";
         [SerializeField] string label = "금 간 벽";
@@ -40,19 +40,29 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("외곽선 기준(깊이 전용 판). 비우면 벽 조각마다 외곽선이 그려져 격자처럼 보인다. 무너지면 숨긴다.")]
         [SerializeField] Transform outlineRoot;
 
+        [Tooltip("끄면 가까이 가도 외곽선을 그리지 않는다(숨겨진 벽처럼 옆 벽과 이어져 보여야 할 때). F 안내는 그대로.")]
+        [SerializeField] bool showOutline = true;
+
+        [Tooltip("끄면 칠 때 조각이 들뜨거나 빠지지 않고 금만 늘어난다(조각 격자가 드러나지 않게). 무너질 때는 그대로 쏟아진다.")]
+        [SerializeField] bool loosenPieces = true;
+
+        [Tooltip("서 있는 동안 늘 보이는 금·녹(무너지면 숨긴다).")]
+        [SerializeField] GameObject standingDetail;
+
         public string TargetId => targetId;
         public string ToolId => toolId;
         // 표시 이름은 기물 목록을 따른다(옛 씬 값 "빠루" 대신 "천막 말뚝 뽑개").
         public string ToolName => ItemCatalog.Get(toolId)?.displayName ?? toolName;
-        public string Label => label;
+        public string Label => WaitingRoomText.Get("target." + targetId + ".name", label);
         public int RequiredHits => requiredHits;
 
         public Transform VisualRoot => outlineRoot != null ? outlineRoot : transform;
+        public bool HideOutline => !showOutline;
         public Vector3 PresentationPoint => transform.position + Vector3.up * 1.6f;
         public bool IsAvailable => !Opened;
         public string ActionLabel => Opened ? WaitingRoomText.Get("wall.collapsed", "무너진 벽")
             : HoldsTool() ? WaitingRoomText.Format("wall.strike", "{tool:으로} 내려치기 ({n}/{total})", ("tool", ToolName), ("n", Hits), ("total", requiredHits))
-            : WaitingRoomText.Format("wall.needs-tool", "{label} — {tool:이} 필요하다 ({n}/{total})", ("label", label), ("tool", ToolName), ("n", Hits), ("total", requiredHits));
+            : WaitingRoomText.Format("wall.needs-tool", "{label} — {hint} ({n}/{total})", ("label", Label), ("hint", ExplorationTargets.Hint(this)), ("n", Hits), ("total", requiredHits));
 
         int Hits => ExplorationState.Instance != null ? ExplorationState.Instance.Hits(targetId) : 0;
         bool Opened => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(targetId);
@@ -116,6 +126,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (revealOnOpen != null) foreach (var g in revealOnOpen) if (g != null && g.activeSelf != open) g.SetActive(open);
             if (outlineRoot != null && outlineRoot != transform && outlineRoot.gameObject.activeSelf == open) outlineRoot.gameObject.SetActive(!open);
+            if (standingDetail != null && standingDetail.activeSelf == open) standingDetail.SetActive(!open);
             if (!initial && hits > shownHits && !open) { shake = .18f; Play(thud); }
             // 금은 서 있는 벽 위에만 있다. 무너지면 조각과 함께 사라진다.
             if (cracks != null) for (int i = 0; i < cracks.Length; i++) if (cracks[i] != null) cracks[i].SetActive(i < hits && !open);
@@ -124,7 +135,7 @@ namespace CurtainCall.WaitingRoom
                 {
                     var p = pieces[i]; if (p == null) continue;
                     int loosenAt = 1 + i % Mathf.Max(1, requiredHits - 1);
-                    bool loose = hits >= loosenAt, chipped = hits >= loosenAt + 2 && i % 4 == 0;
+                    bool loose = loosenPieces && hits >= loosenAt, chipped = loosenPieces && hits >= loosenAt + 2 && i % 4 == 0;
                     if (collapse < 0f) Pose(i, loose ? 1f : 0f, 0f);
                     p.gameObject.SetActive(!chipped || open);
                 }
@@ -183,8 +194,8 @@ namespace CurtainCall.WaitingRoom
 
         // ---- 탐색 대상 판정(판정 화면) ----
         public bool Resolve(int attemptNumber, System.Random rng) => attemptNumber >= requiredHits;
-        public string Describe(bool success, int attemptNumber) => success ? WaitingRoomText.Format("wall.broken", "{label:이} 무너졌습니다.", ("label", label))
-            : WaitingRoomText.Format("wall.hit-progress", "{label} 내려침 {n}/{total}", ("label", label), ("n", attemptNumber), ("total", requiredHits));
+        public string Describe(bool success, int attemptNumber) => success ? WaitingRoomText.Format("wall.broken", "{label:이} 무너졌습니다.", ("label", Label))
+            : WaitingRoomText.Format("wall.hit-progress", "{label} 내려침 {n}/{total}", ("label", Label), ("n", attemptNumber), ("total", requiredHits));
         public string RewardItemId => "";
         public Vector3 RewardPoint => transform.position;
         public int RewardUidOffset => 0;

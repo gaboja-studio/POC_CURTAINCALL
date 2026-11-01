@@ -136,8 +136,8 @@ MonoBehaviour:
       \uC228\uC740 \uAE38 \uBCBD \uD30C\uAD34(\uBE60\uB8E8). \uAC1C\uBC29\xB7\uD30C\uAD34
       \uC131\uACF5 \uC2DC 1 \uC18C\uBAA8."
     shopDescription: "\uD310\uC790\xB7\uB36E\uAC1C\xB7\uAC78\uB9B0 \uC11C\uB78D \uAC1C\uBC29,
-      \uC228\uC740 \uAE38 \uBCBD \uD30C\uAD34(\uBE60\uB8E8). \uAC1C\uBC29\xB7\uD30C\uAD34
-      \uC131\uACF5 \uC2DC 1 \uC18C\uBAA8."
+      \uB179\uC2A8 \uBCBD \uD30C\uAD34. \uAC1C\uBC29\xB7\uD30C\uAD34 \uC131\uACF5
+      \uC2DC 1 \uC18C\uBAA8."
     useCue: 
   - id: uv-lamp
     displayName: "\uC11C\uCEE4\uC2A4 UV \uB4F1"
@@ -230,7 +230,7 @@ MonoBehaviour:
     shopDescription: 
     useCue: 
   - id: structure-a:escape-key-1
-    displayName: "\uD0C8\uCD9C\uB85C \uC5F4\uC1E0 1"
+    displayName: "\uC740\uC0C9 \uC5F4\uC1E0 1"
     wornName: 
     wornAtOrBelow: -1
     use: 1
@@ -247,7 +247,7 @@ MonoBehaviour:
     shopDescription: 
     useCue: 
   - id: structure-a:escape-key-2
-    displayName: "\uD0C8\uCD9C\uB85C \uC5F4\uC1E0 2"
+    displayName: "\uC740\uC0C9 \uC5F4\uC1E0 2"
     wornName: 
     wornAtOrBelow: -1
     use: 1

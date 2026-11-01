@@ -27,6 +27,9 @@ namespace CurtainCall.HumanCannon
         [Tooltip("비행이 코스 밖으로 종료되는 높이. 깊은 시설 씬만 별도로 지정한다.")]
         [SerializeField] float flightFloorHeight = -10f;
         [SerializeField] Transform flightCoordinateSpace;
+        [Tooltip("이 공간의 일반 이동과 비행에 마우스 회전 3인칭을 사용한다.")]
+        [SerializeField] bool useThirdPersonView;
+        public bool UseThirdPersonView => useThirdPersonView;
 
         sealed class SeatRuntime
         {

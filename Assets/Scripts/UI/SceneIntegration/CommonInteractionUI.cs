@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.StartLobby;
 using CurtainCall.Settings;
@@ -42,7 +43,7 @@ namespace CurtainCall.UI.SceneIntegration
             public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom, Lobby, Pole;
             public float Distance; public float? Progress;
             public string Helper, Key = "F";
-            public bool Hold, ScreenGuide;
+            public bool Hold, ScreenGuide, NoOutline;
         }
         public void Configure(InteractionPromptView view, RectTransform anchor) { prompt = view; promptAnchor = anchor; }
         void Awake()
@@ -93,6 +94,7 @@ namespace CurtainCall.UI.SceneIntegration
                 Add(p.VisualRoot, p.PresentationPoint, action, p.IsAvailable, ReferenceEquals(target, ShopReach.Focused), feet);
                 candidates[candidates.Count - 1].WaitingRoom = true;
                 candidates[candidates.Count - 1].Helper = (target as IShopPresentationDetails)?.HelperLabel;
+                candidates[candidates.Count - 1].NoOutline = target is IShopOutlineOptional { HideOutline: true };
             }
             foreach (var item in lobby)
             {
@@ -125,6 +127,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (material != null)
                 foreach (var candidate in selected)
                 {
+                    if (candidate.NoOutline) continue;
                     bool exists = false;
                     foreach (var outline in outlines) if (outline.Target == candidate.Root) exists = true;
                     if (!exists) outlines.Add(new InteractionOutline(candidate.Root, material));
@@ -420,8 +423,10 @@ namespace CurtainCall.UI.SceneIntegration
                     {
                         bool relay = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current != null
                             && CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.IsHelperPole(pole);
+                        int crewCapacity = Mathf.Min(pole != null ? pole.RiderCapacity : 1,
+                            Mathf.Max(1, NetworkSessionManager.Instance?.PlayerCount ?? 1));
                         string label = relay ? "연결 장치 봉 잡기" : pole.RiderCapacity > 1
-                            ? $"함께 그네 잡기 ({poles.OccupantCount(i)}/{pole.RiderCapacity})" : "봉 잡기";
+                            ? $"함께 그네 잡기 ({poles.OccupantCount(i)}/{crewCapacity})" : "봉 잡기";
                         Add(pole.transform, poles.InteractionPoint(i, player), label, true, i == focused, feet);
                         candidates[candidates.Count - 1].Pole = true;
                         if (relay) candidates[candidates.Count - 1].Helper = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.HelperInstruction(pole);

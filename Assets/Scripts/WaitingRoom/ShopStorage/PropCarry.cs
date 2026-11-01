@@ -267,6 +267,15 @@ namespace CurtainCall.WaitingRoom
                 Answer(LocalClientId, (false, WaitingRoomText.Get("carry.offline-pick", "접속 중이 아니라 주울 수 없습니다.")));
         }
 
+        /// <summary>기물 거절 문구인지(상점 수령·열쇠 줍기처럼 다른 채널로 온 거절도 같은 알림으로 띄우기 위해).</summary>
+        public static bool IsRefusalText(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return false;
+            foreach (CarryRefusal refusal in Enum.GetValues(typeof(CarryRefusal)))
+                if (refusal != CarryRefusal.None && text == Explain(refusal)) return true;
+            return false;
+        }
+
         public static string Explain(CarryRefusal refusal) => refusal switch
         {
             CarryRefusal.HandsFull => WaitingRoomText.Get("carry.hands-full", "손이 가득 찼습니다. F 길게로 내려놓은 뒤 받으세요."),

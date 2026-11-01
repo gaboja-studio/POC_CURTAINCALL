@@ -89,3 +89,12 @@
 - 2026-11-01 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-01 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-01 dev 병합(사용자 요청, PR 전): origin/dev 586a3d19(#258 대기실 튜토리얼·숨은 단서, #259 탈출로 A 동선·혼합 시점 HUD)을 받음.
+  - 충돌 3건:
+    - `ShopReach.cs`: 양쪽이 새 인터페이스를 추가해 둘 다 유지(IItemPickupTarget, IShopOutlineOptional).
+    - `CommonInventoryUI.cs`: dev의 탈출로 칸 선택 키 3·4(번호 표시 포함)와 이번 작업의 설정 필드·UV·선택 테두리·손 아이콘을 함께 유지. dev가 코드에 적은 "빈손 · 3–4 기물 선택"은 빈손 문구 설정의 `{keys}` 이름표로 바꿈(현재 값은 빈칸).
+    - `WaitingRoomTexts.txt`: dev의 도구 힌트(.hint)·은색 열쇠 이름은 유지. 상점 설명(.desc)은 기물 목록으로 옮긴 구조를 유지하고, dev가 고친 천막 말뚝 뽑개 설명("녹슨 벽 파괴")을 ItemCatalog.shopDescription에 반영함.
+  - 검사: 컴파일 PASS(병합 코드 로드 확인). EditMode PASS: WaitingRoomTextTests 5/5, EscapeBodyHudTests 16/16. PlayMode PASS: ShopUiPlayTests 35/35, 상점 문구·설명 스크롤, 손 규칙, 개발 시작 상태 보존, dev의 M2_Confirmed 4건.
+  - `M2_Confirmed_NotebookBackEngravingRevealsHintWhenFaced` 첫 실행은 캡처 폴더(.harness/local/visual)가 없어 실패, 폴더를 만든 뒤 PASS(환경 문제).
+
+- 2026-11-01 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

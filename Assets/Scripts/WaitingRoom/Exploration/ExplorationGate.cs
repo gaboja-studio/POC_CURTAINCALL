@@ -40,7 +40,8 @@ namespace CurtainCall.WaitingRoom
         public string TargetId => targetId;
         public string ToolId => toolId;
         public string ToolName => ItemCatalog.Get(toolId)?.displayName ?? toolId;
-        public string Label => label;
+        public string Label => WaitingRoomText.Get("target." + targetId + ".name", label);
+        string MonitorText => WaitingRoomText.Get("target." + targetId + ".text", monitorText);
         public string RewardItemId => rewardItemId;
         public Vector3 RewardPoint => rewardPoint != null ? rewardPoint.position : transform.position;
         public int RewardUidOffset => rewardUidOffset;
@@ -127,10 +128,10 @@ namespace CurtainCall.WaitingRoom
             return best;
         }
         public bool IsAvailable => Visible && string.IsNullOrEmpty(openedBy) && (!Opened || kind == ExplorationGateKind.Monitor);
-        public string ActionLabel => !ConditionsMet ? WaitingRoomText.Format("gate.conditions-unmet", "{label} — 조건 미충족", ("label", label))
-            : UsesKey && !LocalHasKey ? label + " — 맞는 열쇠를 선택하세요"
-            : NeedsPartner ? (HasKeySlots ? WaitingRoomText.Format("gate.needs-two-keys", "{label} — 두 명이 각자 열쇠 구멍에서 함께 F", ("label", label))
-                : WaitingRoomText.Format("gate.needs-two", "{label} — 두 명이 함께 F", ("label", label))) : label;
+        public string ActionLabel => !ConditionsMet ? WaitingRoomText.Format("gate.conditions-unmet", "{label} — 조건 미충족", ("label", Label))
+            : UsesKey && !LocalHasKey ? Label + " — 맞는 열쇠를 선택하세요"
+            : NeedsPartner ? (HasKeySlots ? WaitingRoomText.Format("gate.needs-two-keys", "{label} — 두 명이 각자 열쇠 구멍에서 함께 F", ("label", Label))
+                : WaitingRoomText.Format("gate.needs-two", "{label} — 두 명이 함께 F", ("label", Label))) : Label;
         UIInputBlocker inputBlocker;
         bool panel;
         ExplorationPanel panelView;
@@ -150,8 +151,8 @@ namespace CurtainCall.WaitingRoom
         }
         public bool MatchesPassword(string value) => !passwordPending && ExplorationPuzzleRules.IsFourDigits(password) && value == password;
         public bool Resolve(int attemptNumber, System.Random rng) => attemptNumber >= (kind == ExplorationGateKind.Breakable ? requiredHits : 1);
-        public string Describe(bool success, int attemptNumber) => success ? WaitingRoomText.Format("gate.done", "{label} 완료", ("label", label))
-            : WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", label), ("n", attemptNumber), ("total", requiredHits));
+        public string Describe(bool success, int attemptNumber) => success ? WaitingRoomText.Format("gate.done", "{label} 완료", ("label", Label))
+            : WaitingRoomText.Format("gate.progress", "{label} {n}/{total}", ("label", Label), ("n", attemptNumber), ("total", requiredHits));
         public void Interact()
         {
             if (!ConditionsMet || ExplorationState.Instance == null) return;
@@ -168,7 +169,7 @@ namespace CurtainCall.WaitingRoom
                 }
                 lastPanelMessage = ExplorationState.Instance.LastMessage;
                 if (NeedsPassword) { ExplorationState.Instance.RequestAnswered -= Answered; ExplorationState.Instance.RequestAnswered += Answered; }
-                panelView.Open(label, NeedsPassword ? WaitingRoomText.Get("gate.enter-code", "숫자 네 자리를 입력하세요.") : monitorText, NeedsPassword, value => ExplorationState.Instance?.RequestCode(targetId, value), ClosePanel, false, monitorFeed);
+                panelView.Open(Label, NeedsPassword ? WaitingRoomText.Get("gate.enter-code", "숫자 네 자리를 입력하세요.") : MonitorText, NeedsPassword, value => ExplorationState.Instance?.RequestCode(targetId, value), ClosePanel, false, monitorFeed);
             }
             else ExplorationState.Instance.RequestUse(targetId);
         }

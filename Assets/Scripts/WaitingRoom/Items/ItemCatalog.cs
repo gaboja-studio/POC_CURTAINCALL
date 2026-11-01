@@ -163,7 +163,7 @@ namespace CurtainCall.WaitingRoom
         public const string VisualId = "route-key";
         public static readonly string[] Targets = { StructureAKeyRoute.Key1, StructureAExitRoute.Key2,
             StructureAKeyRoute.ManagementKey, StructureAKeyRoute.StairsKey, StructureAKeyRoute.EscapeKey1, StructureAKeyRoute.EscapeKey2 };
-        static readonly string[] Names = { "열쇠 1", "열쇠 2", "관리실 열쇠", "계단 열쇠", "탈출로 열쇠 1", "탈출로 열쇠 2" };
+        static readonly string[] Names = { "열쇠 1", "열쇠 2", "관리실 열쇠", "계단 열쇠", "은색 열쇠 1", "은색 열쇠 2" };
         public static bool IsKey(string id) => id == VisualId || Array.IndexOf(Targets, id) >= 0;
         public static string ItemId(string target) => target == StructureAKeyRoute.Key1 ? VisualId : target;
         public static string TargetId(string item) => item == VisualId ? StructureAKeyRoute.Key1 : item;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using CurtainCall.Cameras;
 using CurtainCall.Damage;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
@@ -279,6 +280,7 @@ namespace CurtainCall.Tightrope
         {
             Vector3 forward = Vector3.ProjectOnPlane(course.GetLanePosition(lane, 1f)
                 - course.GetLanePosition(lane, 0f), Vector3.up).normalized;
+            forward = course.OrientTraversalForward(forward, mover.CourseForward);
             if (forward.sqrMagnitude < .001f || Vector3.Dot(mover.CourseForward, forward) > .9999f) return;
             // 이어진 꺾인 줄에서는 조작권·균형을 초기화하지 않고 실제 지지줄의 축만 갱신한다.
             mover.CourseForwardOverride = forward;
@@ -292,7 +294,11 @@ namespace CurtainCall.Tightrope
                 returnScheme = controller != null ? controller.Scheme : null;
                 previousForward = mover.CourseForwardOverride;
                 previousSpacing = mover.LaneSpacing;
-                mover.CourseForwardOverride = course.ForwardAt(player.transform.position);
+                Vector3 enteringForward = player.transform.forward;
+                var view = CameraViewDirector.Current;
+                if (view != null && view.LocalPlayer == player && view.UsesMouseLook
+                    && view.ViewForward.sqrMagnitude > .001f) enteringForward = view.ViewForward;
+                mover.CourseForwardOverride = course.TraversalForwardAt(player.transform.position, enteringForward);
                 mover.LaneSpacing = course.LaneSpacing;
                 ownsAxes = true;
             }

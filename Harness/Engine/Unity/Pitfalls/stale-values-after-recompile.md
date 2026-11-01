@@ -1,8 +1,8 @@
 ---
 summary: 재컴파일·도메인 리로드 직후 에디터/씬의 값이 옛 값으로 남아 잘못된 결론을 냄
 status: active
-updated: 2026-09-29
-source: Octoplug 회고 (stale 13회 언급)
+updated: 2026-11-01
+source: Octoplug 회고; Task073 A 구조 계단 편집 builder 재생성
 ---
 
 # 재컴파일 후 옛 값이 남음
@@ -18,6 +18,7 @@ source: Octoplug 회고 (stale 13회 언급)
 ## 원인
 
 - 컴파일/도메인 리로드가 끝나기 전에 조회했다.
+- 외부에서 C# builder를 수정한 뒤 Pipeline run_script로 호출하면, 임시 스크립트만 컴파일되고 기존 builder는 이전 어셈블리로 실행될 수 있다. 명시적 recompile 완료 후 다시 적용해야 한다.
 - 직렬화된 필드는 코드의 기본값을 바꿔도 이미 저장된 씬/프리팹 값이 유지된다.
 - Play Mode를 재진입하지 않아 이전 세션 상태를 봤다.
 

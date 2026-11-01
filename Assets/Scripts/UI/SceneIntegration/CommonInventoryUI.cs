@@ -17,7 +17,7 @@ namespace CurtainCall.UI.SceneIntegration
         public TMP_Text selectedLabel;
         public CommonIconCatalog icons;
         [Header("손 상태 문구 (빈 칸이면 표시 안 함)")]
-        [Tooltip("아무 칸도 고르지 않았을 때")]
+        [Tooltip("아무 칸도 고르지 않았을 때. {keys} = 칸 선택 키(보통 1–2, 탈출로 3–4)")]
         public string emptyHandText;
         [Tooltip("도구를 손에 들었을 때. {item} = 기물 이름")]
         public string holdingFormat;
@@ -35,8 +35,9 @@ namespace CurtainCall.UI.SceneIntegration
         public const int VisibleSlotCount = 2;
         readonly List<InventorySlotData> data = new(VisibleSlotCount);
         static readonly Key[] Keys = { Key.Digit1, Key.Digit2 };
+        static readonly Key[] EscapeKeys = { Key.Digit3, Key.Digit4 };
         string signature;
-        void Awake() => InputGate.AddReleaseKeys(Keys);
+        void Awake() { InputGate.AddReleaseKeys(Keys); InputGate.AddReleaseKeys(EscapeKeys); }
         void LateUpdate()
         {
             var scene = CommonMenuUI.CurrentScene;
@@ -48,8 +49,11 @@ namespace CurtainCall.UI.SceneIntegration
             if (!active) { slots.SetContext(false); signature = null; return; }
             var carry = PropCarry.Instance;
             var local = NetworkPlayer.Local;
+            bool escapeKeys = CurtainCall.EscapeRoute.EscapePerspectiveToggle.ReservesNumberKeys;
+            var selectionKeys = escapeKeys ? EscapeKeys : Keys;
+            int firstKey = escapeKeys ? 3 : 1;
             if (carry != null && !InputGate.IsBlocked && local != null && local.State == PlayerState.Normal && Keyboard.current != null)
-                for (int i = 0; i < Keys.Length; i++) if (Keyboard.current[Keys[i]].wasPressedThisFrame) carry.RequestSelectSlot(i);
+                for (int i = 0; i < selectionKeys.Length; i++) if (Keyboard.current[selectionKeys[i]].wasPressedThisFrame) carry.RequestSelectSlot(i);
             ulong id = carry != null ? carry.LocalClientId : 0;
             var held = carry != null ? carry.Held(id) : null;
             int capacity = carry != null ? carry.Slots(id) : SurvivalRules.ItemSlots();
@@ -58,7 +62,7 @@ namespace CurtainCall.UI.SceneIntegration
             bool ownsUv = false;
             if (held != null) foreach (var item in held) if (item.ItemId == ItemUses.UvLamp) ownsUv = true;
             bool uvHeld = reader != null && reader.Current.UvLightHeld && !InputGate.IsBlocked && ownsUv;
-            string next = $"{id}:{capacity}:{selected.Uid}:{uvHeld}";
+            string next = $"{id}:{capacity}:{selected.Uid}:{uvHeld}:{escapeKeys}";
             if (held != null) foreach (var item in held) next += $":{item.Uid}:{item.ItemId}:{item.Name}:{item.Uses}";
             if (signature != next)
             {
@@ -67,7 +71,7 @@ namespace CurtainCall.UI.SceneIntegration
                 {
                     bool occupied = held != null && i < held.Count;
                     data.Add(new InventorySlotData { IsEmpty = !occupied, ItemSprite = occupied ? Icon(held[i].ItemId) : null,
-                        IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity ? (i + 1).ToString() : Fill(lockedSlotFormat, ("n", i + 1)), QuantityLabel = !occupied ? "" : held[i].Uses == ItemUses.Unlimited ? "1" : held[i].Uses.ToString() }); // 남은 사용 횟수(item-durability.md)
+                        IsHeld = occupied && held[i].Uid == selected.Uid, KeyLabel = i < capacity ? (i + firstKey).ToString() : Fill(lockedSlotFormat, ("n", i + firstKey)), QuantityLabel = !occupied ? "" : held[i].Uses == ItemUses.Unlimited ? "1" : held[i].Uses.ToString() }); // 남은 사용 횟수(item-durability.md)
                 }
                 slots.SetSlots(data);
                 for (int i = 0; i < VisibleSlotCount; i++)
@@ -81,7 +85,8 @@ namespace CurtainCall.UI.SceneIntegration
                     if (border != null) border.Show(data[i].IsHeld);
                 }
                 // 도구는 손에 들고(손 아이콘 표시), 장비는 칸만 고른다(손에 들지 않고 슬롯에서 자동 적용). 2026-11-01 사용자.
-                selectedLabel.text = selected.Uid == 0 ? Fill(emptyHandText)
+                // 탈출로에서 1·2를 다른 조작이 쓰면 칸 선택 키가 3·4다({keys}).
+                selectedLabel.text = selected.Uid == 0 ? Fill(emptyHandText, ("keys", $"{firstKey}–{firstKey + 1}"))
                     : Fill(PropCarry.IsHoldable(selected.ItemId) ? holdingFormat : equipmentSelectedFormat, ("item", ItemCatalog.DisplayName(selected)));
                 if (heldIndicator != null) heldIndicator.enabled = selected.Uid != 0 && CurtainCall.ItemArt.ItemVisualAssets.IsTool(selected.ItemId) && (!uvHeld || selected.ItemId == ItemUses.UvLamp);
             }

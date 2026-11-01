@@ -394,6 +394,43 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(fire.ArmedAt, Is.EqualTo(10));
         }
 
+        [TestCase(CannonHazardKind.FireJet, false, true)]
+        [TestCase(CannonHazardKind.FireJet, true, false)]
+        [TestCase(CannonHazardKind.FallingLoad, true, true)]
+        public void LimbCutFireKeepsItsBoxContactAndUnrotatedVisual(CannonHazardKind kind, bool sever, bool lethal)
+        {
+            var hazardRoot = Child("Contact hazard");
+            var hazard = hazardRoot.gameObject.AddComponent<HumanCannonHazard>();
+            var model = Child("Contact hazard visual");
+            Set(hazard, "kind", kind);
+            Set(hazard, "fireSeversLimbs", sever);
+            Set(hazard, "visual", model);
+            Set(hazard, "boxSize", new Vector3(4, 3, 1));
+            Set(hazard, "travel", Vector3.zero);
+            Assert.That(hazard.KillsOnContact, Is.EqualTo(lethal));
+            Assert.That(hazard.Touches(hazardRoot.position + Vector3.right * 1.8f, 1.5f, .29f, 3, 1), Is.True,
+                "A nonlethal flame must retain the same full box footprint.");
+            Assert.That(hazard.Touches(hazardRoot.position + Vector3.right * 3, 1.5f, .29f, 3, 1), Is.False);
+            hazard.Present(3, 1);
+            Assert.That(Quaternion.Angle(model.rotation, hazardRoot.rotation), Is.LessThan(.001f));
+        }
+
+        [Test]
+        public void NonlethalFlamesAreNeverRemovedByTheSawDensitySetting()
+        {
+            var course = Child("Flame course").gameObject.AddComponent<HumanCannonHazardCourse>();
+            var hazards = new HumanCannonHazard[10];
+            for (int i = 0; i < hazards.Length; i++)
+            {
+                hazards[i] = Child("Flame " + i).gameObject.AddComponent<HumanCannonHazard>();
+                Set(hazards[i], "kind", CannonHazardKind.FireJet);
+                Set(hazards[i], "fireSeversLimbs", true);
+            }
+            Set(course, "hazards", hazards);
+            Set(course, "useAuthoredHazardCount", false);
+            for (int i = 0; i < hazards.Length; i++) Assert.That(course.IsHazardEnabled(i), Is.True);
+        }
+
         void CreateTrapDoors(out Transform left, out Transform right, out Collider[] floors)
         {
             left = Child("LeftHinge");
