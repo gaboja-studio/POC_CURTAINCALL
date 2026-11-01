@@ -3,6 +3,7 @@ using UnityEngine;
 namespace CurtainCall.EscapeRoute
 {
     /// <summary>A two-leaf service bridge. The lock owns progress; this component only presents that state.</summary>
+    [DefaultExecutionOrder(-80)]
     public sealed class EscapeCooperativeSpan : MonoBehaviour
     {
         [SerializeField] Transform leftLeaf, rightLeaf;
@@ -22,9 +23,26 @@ namespace CurtainCall.EscapeRoute
         }
         void Present()
         {
-            if (leftLeaf != null) leftLeaf.localRotation = Quaternion.Euler(0, 0, raisedAngle * (1 - amount));
-            if (rightLeaf != null) rightLeaf.localRotation = Quaternion.Euler(0, 0, -raisedAngle * (1 - amount));
-            foreach (var collider in deckColliders) if (collider != null) collider.enabled = Traversable;
+            bool changed = Rotate(leftLeaf, raisedAngle * (1 - amount));
+            changed |= Rotate(rightLeaf, -raisedAngle * (1 - amount));
+            // 전개 여부는 통행 준비 상태다. 눈에 보이는 철판의 물리를 끄지 않는다.
+            foreach (var collider in deckColliders)
+                if (collider != null && (!collider.enabled || collider.isTrigger))
+                {
+                    collider.enabled = true;
+                    collider.isTrigger = false;
+                    changed = true;
+                }
+            if (changed) Physics.SyncTransforms();
+        }
+
+        static bool Rotate(Transform leaf, float angle)
+        {
+            if (leaf == null) return false;
+            Quaternion rotation = Quaternion.Euler(0, 0, angle);
+            if (Quaternion.Angle(leaf.localRotation, rotation) < .0001f) return false;
+            leaf.localRotation = rotation;
+            return true;
         }
     }
 }

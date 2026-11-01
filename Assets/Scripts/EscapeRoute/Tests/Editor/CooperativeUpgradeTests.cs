@@ -134,23 +134,23 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
-        public void DrawbridgeSupportsOnlyFullyDeployedDeckAndRevokesSupportWhenRetracting()
+        public void DrawbridgeAlwaysHasSolidLeavesWhileDeployingAndRetracting()
         {
             var span = Root("Two-leaf span").AddComponent(T("CurtainCall.EscapeRoute.EscapeCooperativeSpan"));
             var left = Root("Left leaf", true); var right = Root("Right leaf", true);
             var colliders = new Collider[] { left.AddComponent<BoxCollider>(), right.AddComponent<BoxCollider>() };
             Set(span, "leftLeaf", left.transform); Set(span, "rightLeaf", right.transform); Set(span, "deckColliders", colliders);
             Call(span, "SetDeployed", false);
-            Assert.That(colliders.All(c => !c.enabled), Is.True);
+            Assert.That(colliders.All(c => c.enabled && !c.isTrigger), Is.True);
             Assert.That(Quaternion.Angle(left.transform.localRotation, Quaternion.identity), Is.GreaterThan(60));
             Call(span, "SetDeployed", true); Set(span, "amount", .95f); Call(span, "Present");
-            Assert.That(colliders.All(c => !c.enabled), Is.True, "An almost-flat visual is not a safe landing yet.");
+            Assert.That(colliders.All(c => c.enabled), Is.True, "Moving leaves must never become pass-through visuals.");
             Set(span, "amount", 1f); Call(span, "Present");
             Assert.That(colliders.All(c => c.enabled), Is.True);
             Assert.That(Quaternion.Angle(left.transform.localRotation, Quaternion.identity), Is.LessThan(.001f));
             Assert.That(Quaternion.Angle(right.transform.localRotation, Quaternion.identity), Is.LessThan(.001f));
             Call(span, "SetDeployed", false);
-            Assert.That(colliders.All(c => !c.enabled), Is.True, "Support closes before the leaves rotate through actors.");
+            Assert.That(colliders.All(c => c.enabled), Is.True);
         }
 
         [Test]
@@ -162,7 +162,7 @@ namespace CurtainCall.EscapeRoute.Tests
             Call(span, "SetDeployed", true); Set(span, "amount", 1f); Call(span, "Present");
             Assert.That(collider.enabled, Is.True);
             Call(span, "OnEnable");
-            Assert.That(collider.enabled, Is.False);
+            Assert.That(collider.enabled, Is.True);
             Assert.That(Get(span, "Traversable"), Is.False);
             Assert.That(Get(span, "deployed"), Is.True, "OnEnable restarts presentation; the lock still owns the target state.");
             Set(span, "amount", 1f); Call(span, "Present");
@@ -367,12 +367,15 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Call(locks, "AtArrival", player, 0), Is.True);
         }
 
-        [TestCase(1)]
-        [TestCase(2)]
-        public void CrewLatchRequiresConfiguredAliveHoldersAndSurvivesTheirDeparture(int required)
+        [TestCase(1, 0)]
+        [TestCase(2, 0)]
+        [TestCase(4, 2)]
+        public void CrewLatchRequiresConfiguredAliveHoldersAndSurvivesTheirDeparture(int required, int connected)
         {
             var locks = Locks(out object checkpoint);
             Set(checkpoint, "minimumHelpers", required); Set(checkpoint, "latchWhenCrewReady", true);
+            int needed = connected > 0 ? Math.Min(required, connected) : required;
+            if (connected > 0) { var session = HostSession(); Set(session, "PlayerCount", connected); Set(locks, "session", session); }
             var pole = Root("Shared original bar", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole"));
             Set(pole, "riderCapacity", 4); Set(checkpoint, "helperPole", pole);
             poleSystem = Root("Original pole registry").AddComponent(T(PoleType));
@@ -381,13 +384,13 @@ namespace CurtainCall.EscapeRoute.Tests
             var state = Call(poleSystem, "State", 0);
             var first = Player(51); var second = Player(52); Player(53);
             Assert.That(Call(state, "TryGrab", 51UL, 0U, 0d, 0f, false, 0), Is.True);
-            Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.EqualTo(required == 1));
+            Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.EqualTo(needed == 1));
             Assert.That(Call(state, "TryGrab", 52UL, 1U, 0d, 0f, false, 1), Is.True);
             Set(second, "IsSpawned", false); Call(locks, "HostStep");
-            Assert.That(Call(locks, "IsLatched", 0), Is.EqualTo(required == 1), "A stale occupied seat is not a living helper.");
+            Assert.That(Call(locks, "IsLatched", 0), Is.EqualTo(needed == 1), "A stale occupied seat is not a living helper.");
             Set(second, "IsSpawned", true);
             Set(Get(second, "state"), "m_InternalValue", Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), "Fallen"));
-            Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.EqualTo(required == 1));
+            Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.EqualTo(needed == 1));
             Set(Get(second, "state"), "m_InternalValue", Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), "Normal"));
             Call(locks, "HostStep"); Assert.That(Call(locks, "IsLatched", 0), Is.True);
             Assert.That(Get(locks, "held"), Is.EqualTo(1U));

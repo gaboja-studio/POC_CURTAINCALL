@@ -1,5 +1,6 @@
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
 using CurtainCall.UI.GuidesV1;
@@ -91,8 +92,10 @@ namespace CurtainCall.UI.SceneIntegration
             else if (pole >= 0)
             {
                 var physical = poles.Pole(pole);
+                int crewCapacity = Mathf.Min(physical != null ? physical.RiderCapacity : 1,
+                    Mathf.Max(1, NetworkSessionManager.Instance?.PlayerCount ?? 1));
                 string title = physical != null && physical.RiderCapacity > 1
-                    ? $"협동 그네 {poles.OccupantCount(pole)}/{physical.RiderCapacity}" : "봉";
+                    ? $"협동 그네 {poles.OccupantCount(pole)}/{crewCapacity}" : "봉";
                 ShowTooltip("pole:" + pole + ":" + title, title, "[F] 잡기", poles.InteractionPoint(pole, player));
             }
             else if (carryTarget != null) ShowTooltip("carry:" + carryTarget.CarryRoot.GetInstanceID(), carryTarget.CarryName, "[F] 잡기", carryTarget.Handle.position);

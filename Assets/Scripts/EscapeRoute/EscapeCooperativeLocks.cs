@@ -172,7 +172,9 @@ namespace CurtainCall.EscapeRoute
                 int poleIndex = HelperIndex(i);
                 int returning = HelperIndex(i, true);
                 int helpers = HelperCount(poleIndex) + (returning != poleIndex ? HelperCount(returning) : 0);
-                bool crewReady = helpers >= Mathf.Max(1, checkpoints[i].minimumHelpers);
+                int required = Mathf.Max(1, checkpoints[i].minimumHelpers);
+                if (session != null && session.PlayerCount > 0) required = Mathf.Min(required, session.PlayerCount);
+                bool crewReady = helpers >= required;
                 if (crewReady) held |= bit;
                 if (crewReady && checkpoints[i].latchWhenCrewReady) latched |= bit;
                 if ((latched & bit) != 0 || checkpoints[i].helperPole == null && (armed & bit) == 0

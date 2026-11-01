@@ -77,8 +77,9 @@ namespace CurtainCall.EscapeRoute
             var args = Environment.GetCommandLineArgs();
             bool client = Array.IndexOf(args, "-escapeClient") >= 0;
             multiplayer = client || Array.IndexOf(args, "-escapeHost") >= 0;
+            int configuredParticipants = 0;
 #if UNITY_EDITOR
-            if (EscapeMppmReviewConfig.TryGet(out _, out int reviewSlot))
+            if (EscapeMppmReviewConfig.TryGet(out _, out int reviewSlot, out configuredParticipants))
             { multiplayer = true; client = reviewSlot != 0; }
 #endif
             if (multiplayer)
@@ -89,16 +90,17 @@ namespace CurtainCall.EscapeRoute
                 int portIndex = Array.IndexOf(args, "-escapePort");
                 ushort port = portIndex >= 0 && portIndex + 1 < args.Length && ushort.TryParse(args[portIndex + 1], out var parsed) ? parsed : (ushort)7783;
                 connector = new LanSessionConnector(session.NetworkManager, port);
-                minimumPlayers = session.RequestMinimumStartPlayers(4);
+                int expectedPlayers = ExpectedParticipants(args, configuredParticipants, session.RequiredPlayers);
+                minimumPlayers = session.RequestMinimumStartPlayers(expectedPlayers);
                 var connect = client ? session.JoinAsync(connector, "127.0.0.1:" + port) : session.HostAsync(connector);
                 while (!connect.IsCompleted) yield return null;
                 if (connect.IsFaulted || connect.IsCanceled || !connect.Result)
-                { Status = "4인 개발 접속 실패 · 로그를 확인하세요"; yield break; }
-                Status = "4인 개발 세션 · 참가자 대기";
-                while (NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned || (!client && session.PlayerCount < 4)) yield return null;
-                if (!client && !session.StartGame()) { Status = "4인 시작 실패"; yield break; }
+                { Status = "다인 개발 접속 실패 · 로그를 확인하세요"; yield break; }
+                while (NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned || (!client && session.PlayerCount < expectedPlayers))
+                { Status = $"개발 세션 {session.PlayerCount}/{expectedPlayers}명 · 참가자 대기"; yield return null; }
+                if (!client && !session.StartGame()) { Status = "개발 세션 시작 실패"; yield break; }
                 while (session.GameState != GameSessionState.Playing) yield return null;
-                Ready = true; Status = "4인 개발 플레이 · 원본 호스트 판정";
+                Ready = true; Status = $"{session.PlayerCount}인 개발 플레이 · 원본 호스트 판정";
                 yield break;
             }
             minimumPlayers = session.RequestMinimumStartPlayers(1);
@@ -118,6 +120,13 @@ namespace CurtainCall.EscapeRoute
             Status = "혼자 테스트 · 시간제한/게임 오버 없음";
         }
 
+        internal static int ExpectedParticipants(string[] args, int configuredParticipants, int maximum)
+        {
+            int index = Array.IndexOf(args, "-escapePlayers");
+            int requested = configuredParticipants > 0 ? configuredParticipants
+                : index >= 0 && index + 1 < args.Length && int.TryParse(args[index + 1], out int parsed) ? parsed : 2;
+            return Mathf.Clamp(requested, 1, Mathf.Max(1, maximum));
+        }
         /// <summary>Dev 시작 지점으로 들어온 탈출 단계인지. 대기실에서 실제 출발한 캠페인 이동(출발 정보 있음)은 제외한다.</summary>
         static bool IsDevLaunch()
         {
@@ -142,6 +151,7 @@ namespace CurtainCall.EscapeRoute
 
         void Update()
         {
+            if (Ready && multiplayer && session != null) Status = $"{session.PlayerCount}인 개발 플레이 · 원본 호스트 판정";
             if (!Ready || !OwnsRecovery) return;
             // 원본 기물이 종료를 요청하더라도 개발씬에서는 같은 플레이어로 계속 검토한다.
             if (!devLaunch && session.GameState == GameSessionState.Ended && session.RestartEndedGame()) Restart();

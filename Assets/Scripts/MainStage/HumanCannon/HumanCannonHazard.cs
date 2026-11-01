@@ -25,13 +25,17 @@ namespace CurtainCall.HumanCannon
         [SerializeField, Min(1f)] float rotationSpeed = 60f;
         [Tooltip("공용 대각선 각도와 톱 밀도를 적용하지 않고 작성한 레일(travel)과 항상 켜진 상태를 그대로 쓴다.")]
         [SerializeField] bool authoredPath;
+        [Tooltip("이 씬의 일반 화염 접촉은 즉사 대신 기존 사지 절단을 적용한다. 추격 화염벽은 별도 시스템이다.")]
+        [SerializeField] bool fireSeversLimbs;
         int diagonalIndex;
         public CannonHazardKind Kind => kind;
         public float Radius => radius;
         public float PeriodSeconds => periodSeconds;
         public bool IsPoleSaw => GetComponent<HumanCannonPoleSaw>() != null;
         public bool UsesAuthoredPath => authoredPath;
-        public bool KillsOnContact => kind == CannonHazardKind.FallingLoad || kind == CannonHazardKind.FireJet;
+        public bool KillsOnContact => kind == CannonHazardKind.FallingLoad
+            || kind == CannonHazardKind.FireJet && !fireSeversLimbs;
+        bool UsesBoxGeometry => kind == CannonHazardKind.FallingLoad || kind == CannonHazardKind.FireJet;
         public Vector3 Travel
         {
             get
@@ -74,7 +78,7 @@ namespace CurtainCall.HumanCannon
         public bool Touches(Vector3 feet, float height, float bodyRadius, double elapsed, float speed)
         {
             if (cue != null && !cue.Live(elapsed)) return false;
-            if (KillsOnContact)
+            if (UsesBoxGeometry)
                 return CannonHazardGeometry.BoxTouches(Position(elapsed, speed), boxSize, feet, height, bodyRadius);
             if (kind == CannonHazardKind.SpikeMace)
                 return CannonHazardGeometry.SphereTouches(Position(elapsed, speed), radius, feet, height, bodyRadius);
@@ -102,7 +106,7 @@ namespace CurtainCall.HumanCannon
         public void Present(double elapsed, float speed)
         {
             if (visual == null) return;
-            visual.SetPositionAndRotation(Position(elapsed, speed), KillsOnContact ? transform.rotation
+            visual.SetPositionAndRotation(Position(elapsed, speed), UsesBoxGeometry ? transform.rotation
                 : BladeRotation * Quaternion.Euler(0, 0, Angle(elapsed, speed)));
         }
 

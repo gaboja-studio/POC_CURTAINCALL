@@ -32,13 +32,13 @@ namespace CurtainCall.EscapeRoute
 #if UNITY_EDITOR
             if(EscapeMppmReviewConfig.TryGet(out string editorFolder,out int editorSlot))
             {
-                var editorReview=new GameObject("Explicit four-editor MPPM review").AddComponent<EscapeMultiplayerReview>();
+                var editorReview=new GameObject("Explicit multiplayer editor review").AddComponent<EscapeMultiplayerReview>();
                 editorReview.folder=editorFolder;editorReview.slot=editorSlot;editorReview.continuous=true;
                 Directory.CreateDirectory(editorFolder);return;
             }
 #endif
             if(index<0||index+1>=args.Length)return;
-            var go=new GameObject("Explicit four-client review");var review=go.AddComponent<EscapeMultiplayerReview>();
+            var go=new GameObject("Explicit multiplayer client review");var review=go.AddComponent<EscapeMultiplayerReview>();
             review.folder=Path.GetFullPath(args[index+1]);Directory.CreateDirectory(review.folder);
             review.continuous=Array.IndexOf(args,"-escapeContinuous")>=0;
             index=Array.IndexOf(args,"-escapeSlot");if(index>=0&&index+1<args.Length)int.TryParse(args[index+1],out review.slot);
