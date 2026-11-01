@@ -5,7 +5,7 @@
 - 원본: `Assets/Resources/Prefabs/UIs/ShopUi/ShopPanel.prefab`. 원본 prefab·PNG·폰트·GUID·9-slice 변경 없음. 외부 handoff package 미사용.
 - 인스턴스: `Assets/Scenes/UI/CommonWaitingRoomUI.unity`의 `UI/ShopPanelCanvas`. 정본 연결을 유지하고 Canvas 정렬 순서100과 WaitingRoomShopUI만 씬에 추가했다.
 - 공간: `Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity`의 기존 Phone이 열기/닫기와 입력 점유를 담당한다. 공통 대기실 UI 씬은 기존 로더가 자동 로드/해제한다.
-- 편집: 공통 씬을 Additive로 열고 ShopPanelCanvas 내부 패널을 선택한다. 숨겨진 레이어는 `Tools/Curtain Call UI/Preview selected UI in Scene View`로 보며 조절한다. Apply로 원본을 덮어쓰지 않는다.
+- 편집(2026-11-01 바뀜): 프리팹이 보이는 상태로 저장되어 바로 보며 고친다. 문구·위치·아이콘 위치는 [ui-editing.md](ui-editing.md).
 - 신규 `WaitingRoomShopInstaller`는 최초 적용용이다. 이미 배치된 씬에서 다시 실행하면 중복 생성을 거절한다.
 
 ## 실제 데이터
