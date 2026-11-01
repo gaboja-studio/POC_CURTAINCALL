@@ -1,5 +1,7 @@
 # Project Facts
 
+- [escape-route-timer.md](escape-route-timer.md) — 쇠창살 시작홀8분·기존 대기실 타이머 UI 재사용·만료/성공 집계를 확인할 때
+
 - [escape-waiting-transition.md](escape-waiting-transition.md) — 현재 인원 전원 합류 후 로딩·위치 인계·W 해제·A 계단 카메라와 미검증 범위를 확인할 때
 - [escape-route-layouts.md](escape-route-layouts.md) — 탈출로 A/B/C 지상 그네·장거리 대포·연속 그네·교대 화염·개발 실행을 확인할 때
 

@@ -95,6 +95,7 @@ namespace CurtainCall.EscapeRoute
         void Update()
         {
             Attach();
+            RefreshCarrierCollision(Ready ? FindPlayer(Carrier) : null);
             if (!Ready && messaging != null && session != null && !session.IsHost && Time.unscaledTimeAsDouble >= nextSync)
             { nextSync = Time.unscaledTimeAsDouble + .5; SendRequest(0, resetBarrier.Waiting ? resetBarrier.Token : 0); }
         }
@@ -149,6 +150,7 @@ namespace CurtainCall.EscapeRoute
         }
         bool FollowCarrier(NetworkPlayer carrier, bool align)
         {
+            RefreshCarrierCollision(carrier);
             if (!HumanCannonCarry.TryFollowPose(carrier, CarryRoot, Handle, carryHandleHeight, align,
                 out var position, out var rotation, out var carrierRotation)) return false;
             carryBlocked = !PoseFits(position, rotation, carrier);
@@ -231,6 +233,7 @@ namespace CurtainCall.EscapeRoute
         }
         void Present(float deltaTime, bool snapDoor = false)
         {
+            RefreshCarrierCollision(Ready ? FindPlayer(Carrier) : null);
             if (leftDoorHinge != null && rightDoorHinge != null)
             {
                 var settings = CurtainCall.Settings.GameSettings.EscapeRoute;
@@ -273,6 +276,7 @@ namespace CurtainCall.EscapeRoute
             && float.IsFinite(value.w) && Quaternion.Dot(value, value) > .001f;
         void OnDisable()
         {
+            RestoreCarrierCollision();
             DisposeProjectiles();
             NetworkPlayer.Restarted -= Restart; HumanCannonCarry.Unregister(this); Detach();
             devices.Remove(this);

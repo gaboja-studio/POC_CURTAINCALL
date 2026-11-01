@@ -7,6 +7,7 @@ source: Task-20261027-073 순차 완성 및 A/B/C 공통 1인 개발환경 사�
 # 탈출로 A/B/C 검토 씬
 탈출로를 열거나 수정할 때 읽는다. 좌표·기물 수·편집 위치는 [현재 variants.md](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/variants.md)가 정본이다. 과거 B/C 공간 전용 상태와 옛 도면은 현행 기준이 아니다. 최신 우선순위는 **A만 먼저 완성, B·C 작업은 M2 이후**다. B·C 설명은 보존된 현황이다.
 ## 현재 구성
+- A 쇠창살 전망 시작홀 첫 진입부터8분 공용 타이머. 대기실 RestTimer UI 인스턴스를 재사용하며 미도착자만 만료 리타이어,기존 도착1명 이상 성공/전원 집계 유지. [타이머 사실·검사 범위](escape-route-timer.md).
 - 2026-11-01 최신 접촉 보수: A 외줄11곳 양쪽 끝 W 진입/진행축 유지·역방향 옆줄 대응. 다리3곳 전개 중 실체 충돌 유지/선행 물리 갱신,배치650곳 메시 충돌 보완. 일반 화염14곳 예고1.15초/사지 절단·5초 주기(좌우2.5초 위상),마지막 추격 즉사/5.2초 유지. [변경·검사](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/route-contact-fixes.md).
 - 2026-11-01 최신 난이도 수정: 착지 수신면5개/지지 철회·접근면2곳 원복,외줄11 지지 폭0.55m/밝은 황금색 줄 적용. A05 불필요 그네·주변4조명/3지지선·대포 옆 무기능 제어반 제거. 추격4→5.2초,수평 발사 톱 지름2.2m/2초,화염 출구 그네 대포 쪽1.25m 이동/잡기3.3m. [변경·정적 검사](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/rope-and-hazard-tuning.md),[겹침·관통 금지](../Decisions/escape-placement-clearance.md).
 - 2026-11-01 A 배치 폴리싱: 미참조 비활성 구형340·바닥선14·공중흉벽1·고립 배관/플랜지15·옛 중복 케이블30,합계400개 씬 객체 제거. 원본 에셋 파일/사용 중 기믹·외부 차폐·착지 수신면 보존. [제거 목록·검사](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/polish-cleanup.md),[전체 CSV](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/polish-removals.csv).

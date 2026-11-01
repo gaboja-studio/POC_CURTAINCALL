@@ -1,5 +1,17 @@
 # Log
 
+## 2026-11-02 중지·저장·dev 전환
+- 사용자 요청으로 전기톱 수정 중지. dev586a3d19/기존15경로 백업,두 발사기 이동2.4→1.16m/전선21·24 도달 재현. 운반 충돌/발사 불꽃 코드는 중간 저장,배선 배치·씬 VFX 정리/회귀 미완료. [재개 메모](exit-saw-wip.md).
+
+## 2026-11-01 쇠창살 시작홀8분
+- 최신 dev85df4d05(PR259) 반영·기존 labels1파일 백업. 같은 Task doctor 재사용. A 최초 전망 홀 X0~30/Z0~22.5 진입부터480초,계단/로딩 제외,원격 부상자 포함/전원 집결 조건 없음.
+- A 전용 EscapeRouteTimer/호스트 절대 시각·재시작 ACK·UI 인스턴스 추가. 기존 대기실 RestTimer v2.8 원본/W/공용 시간/최종 추격 무변경. 만료는 미도착 Normal만 Retired,기존 성공 집계 코드 무변경. [구현·검사](escape-countdown.md).
+- 컴파일/새 EditMode12/12·시작홀5표본/계단 제외·원본 보존·참조/누락스크립트0·A dirty0 저장. 실제 Play/MPPM/commit/push 미실행. 증거 .harness/local/escape-timer-20261101.
+- 직전 마감 check-work는 안전성/문서·규칙 PASS 뒤 Editor가Play로 전환되어 verify-unity 사전 상태 검사에서 중단(보고상 Compile FAIL,새 컴파일 오류 아님). 직접 Play 명령 없음. 구현 컴파일/12개 EditMode와 구분하며 당시 사용자 확인을 요청했다.
+- 2026-11-02 사용자 중지/편집 검사 마무리 승인. 재개 때 이미 Play stopped였고,15경로 백업/씬 저장·정상 종료 후 dev586a3d19(PR258 대기실 튜토리얼) fast-forward/충돌0. 기존 타이머 변경 보존,동일 Task doctor/코드 무변경 EditMode12개 결과 재사용.
+- 최신 dev의 대기실 거절 알림/상호작용 설명 변경은 그대로 보존. 재사용 타이머 원본/성공 코드 변동0. 편집 재확인480초·진입5표본/계단 제외·UI/출구 참조 정상/누락스크립트0·A dirty0/Play stopped. 증거 .harness/local/escape-timer-final-20261102.
+- 2026-11-02 최종 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS(up_to_date); 테스트=SKIPPED(이번 재실행 없음,코드·의존성 동일한 기존 EditMode12/12 재사용). Play stopped 유지·추가 commit/push 없음.
+
 ## 2026-11-01 저장·제출 요청
 - 기존65파일 SHA256 백업/A 저장·정상종료 후 origin/dev b723ca79 최신 포함 확인. 누적 A 레벨/유동 인원/시점·HUD 변경을 함께 제출하며 대기실 씬 변경0,private 변경0. doctor 동일 Task 결과/기존 HUD16·물리115·집결26 검사 재사용,실제 MPPM 재검증은 남겨둔다.
 - 안전성/문서·규칙/컴파일 PASS·기존 선별 테스트 재사용. f4e7ac9a 커밋/push 완료. 제출 스크립트의 기존 다중 슬래시 브랜치 거부와 GitHub connector403은 우회 없이 gh 로그인 계정 직접 PR 등록으로 처리,도구/브랜치명 변경 없음.
@@ -113,3 +125,5 @@
 - 2026-11-01 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-01 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-01 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=FAIL; 테스트=SKIPPED(자동 테스트 선택 안 함)

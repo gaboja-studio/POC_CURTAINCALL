@@ -193,7 +193,7 @@ namespace CurtainCall.EscapeRoute
         void EmitLaunch()
         {
             if (launchAudio != null && launchAudio.clip != null) launchAudio.PlayOneShot(launchAudio.clip);
-            if (launchFlash != null) { launchFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear); launchFlash.Play(); }
+            if (launchFlash != null) launchFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             recoilTime = .15f;
         }
         void PresentProjectiles(float deltaTime)
