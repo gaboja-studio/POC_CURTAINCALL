@@ -98,3 +98,8 @@
   - `M2_Confirmed_NotebookBackEngravingRevealsHintWhenFaced` 첫 실행은 캡처 폴더(.harness/local/visual)가 없어 실패, 폴더를 만든 뒤 PASS(환경 문제).
 
 - 2026-11-01 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-02 소지 칸 키(사용자): 탈출로도 칸 선택 1·2와 번호 1·2로 되돌림. 원래 1·2였던 탈출로 키는 3·4로 옮김.
+  - 검토 비행 1→3(`EscapeInspectionCamera.reviewKey`), 1·3인칭 전환 2→4(`EscapePerspectiveToggle.toggleKey`). 둘 다 인스펙터 설정이고, 검토 비행 안내 문구도 설정 키를 표시함.
+  - 소지 칸의 탈출로 전용 3·4 처리와 `ReservesNumberKeys`를 지움. 탈출로 사실·결정 문서의 키 표기를 고침.
+
+- 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
