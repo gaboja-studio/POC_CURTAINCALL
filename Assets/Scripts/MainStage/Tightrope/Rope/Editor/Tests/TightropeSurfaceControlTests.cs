@@ -408,6 +408,46 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(mover.CourseForward, Is.EqualTo(Vector3.left));
         }
 
+        [TestCase(1)]
+        [TestCase(-1)]
+        public void AuthoredRopeEntryPreservesFacingAndDoesNotFlipOnTheFollowingFrame(int direction)
+        {
+            AuthoredRopes();
+            var data = new UnityEditor.SerializedObject(course);
+            data.FindProperty("bidirectionalSceneTraversal").boolValue = true;
+            data.ApplyModifiedPropertiesWithoutUndo();
+            Invoke(switcher, "Bind", player);
+            MovePlayer(new Vector3(0, 0, 4));
+            player.transform.rotation = Quaternion.LookRotation(Vector3.forward * direction);
+            Invoke(switcher, "UpdateSurfaceMode");
+            Assert.That(Vector3.Dot(mover.CourseForward, Vector3.forward * direction), Is.GreaterThan(.999f));
+            Invoke(switcher, "UpdateSurfaceMode");
+            Assert.That(Vector3.Dot(mover.CourseForward, Vector3.forward * direction), Is.GreaterThan(.999f));
+            Assert.That(course.AuthoredLaneDirection(player.transform.position, mover.CourseForward, 1), Is.EqualTo(direction));
+            Assert.That(course.AuthoredLaneDirection(player.transform.position, mover.CourseForward, -1), Is.EqualTo(-direction));
+        }
+
+        [Test]
+        public void ReverseTraversalSideJumpUsesThePlayersRightRatherThanTheAuthoredRight()
+        {
+            AuthoredRopes();
+            var left = AddBox("Reverse right landing", new Vector3(-2, -.1f, 4), new Vector3(.4f, .2f, 8));
+            var data = new UnityEditor.SerializedObject(course);
+            data.FindProperty("bidirectionalSceneTraversal").boolValue = true;
+            data.FindProperty("sceneShape.laneCount").intValue = 3;
+            data.FindProperty("sceneShape.laneSpacing").floatValue = 2;
+            var ropes = data.FindProperty("sceneRopes"); ropes.arraySize = 3;
+            ropes.GetArrayElementAtIndex(2).objectReferenceValue = left;
+            data.ApplyModifiedPropertiesWithoutUndo(); course.Rebuild();
+            MovePlayer(new Vector3(0, 0, 4));
+            mover.CourseForwardOverride = Vector3.back;
+            mover.LaneSpacing = 2;
+            var rules = player.gameObject.AddComponent<RopeLaneJumpRules>();
+            typeof(RopeLaneJumpRules).GetField("mover", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(rules, mover);
+            Assert.That(rules.CanLaneJump(1), Is.True, "Player right is world left while facing the opposite rope end.");
+            Assert.That(rules.CanLaneJump(-1), Is.False, "No parallel rope exists on the player's left.");
+        }
+
         BoxCollider AddBox(string name, Vector3 center, Vector3 size)
         {
             var go = MakeObject(name);

@@ -129,7 +129,8 @@ namespace CurtainCall.Tightrope
 
             // 옆 위치는 지금 그대로, 앞뒤만 착지 예상 거리로 옮겨 그 거리의 옆 줄을 찾는다
             Vector3 along = position + ForwardFor(course, position) * (to - from);
-            return course.FindLandingLane(along, direction) != TightropeCourse.NoLane;
+            return course.FindLandingLane(along,
+                course.AuthoredLaneDirection(position, mover.CourseForward, direction)) != TightropeCourse.NoLane;
         }
 
         /// <summary>
@@ -157,7 +158,8 @@ namespace CurtainCall.Tightrope
             if (target != null)
             {
                 Vector3 originalAlong = mover.transform.position + forward * (distance - course.GetDistance(mover.transform.position));
-                lane = course.FindLandingLane(originalAlong, direction);
+                lane = course.FindLandingLane(originalAlong,
+                    course.AuthoredLaneDirection(mover.transform.position, mover.CourseForward, direction));
                 return lane != TightropeCourse.NoLane && course.IsLaneChangeAllowed(distance);
             }
 
@@ -171,7 +173,8 @@ namespace CurtainCall.Tightrope
             }
 
             Vector3 along = mover.transform.position + forward * (distance - course.GetDistance(mover.transform.position));
-            lane = course.FindLandingLane(along, direction);
+            lane = course.FindLandingLane(along,
+                course.AuthoredLaneDirection(mover.transform.position, mover.CourseForward, direction));
             return lane != TightropeCourse.NoLane && course.IsLaneChangeAllowed(distance);
         }
 
@@ -189,6 +192,7 @@ namespace CurtainCall.Tightrope
             float gap = GameSettings.Base.Character.PlayerGap;
             Vector3 forward = ForwardFor(course, mover.transform.position);
             Vector3 right = Vector3.Cross(Vector3.up, forward);
+            bool reversing = course.HasIndependentRopes && Vector3.Dot(mover.CourseForward, forward) < 0;
 
             foreach (var other in PlayerMover.All)
             {
@@ -205,7 +209,8 @@ namespace CurtainCall.Tightrope
                 float contact = Mathf.Sqrt(reach * reach - dSide * dSide);
                 if (Mathf.Abs(dAlong) >= contact) continue; // 겹치지 않음
 
-                behind = Mathf.Min(behind, distance + dAlong - contact - gap);
+                behind = reversing ? Mathf.Max(behind, distance + dAlong + contact + gap)
+                    : Mathf.Min(behind, distance + dAlong - contact - gap);
                 found = true;
             }
             return found;

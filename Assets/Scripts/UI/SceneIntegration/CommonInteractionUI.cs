@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.StartLobby;
 using CurtainCall.Settings;
@@ -420,8 +421,10 @@ namespace CurtainCall.UI.SceneIntegration
                     {
                         bool relay = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current != null
                             && CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.IsHelperPole(pole);
+                        int crewCapacity = Mathf.Min(pole != null ? pole.RiderCapacity : 1,
+                            Mathf.Max(1, NetworkSessionManager.Instance?.PlayerCount ?? 1));
                         string label = relay ? "연결 장치 봉 잡기" : pole.RiderCapacity > 1
-                            ? $"함께 그네 잡기 ({poles.OccupantCount(i)}/{pole.RiderCapacity})" : "봉 잡기";
+                            ? $"함께 그네 잡기 ({poles.OccupantCount(i)}/{crewCapacity})" : "봉 잡기";
                         Add(pole.transform, poles.InteractionPoint(i, player), label, true, i == focused, feet);
                         candidates[candidates.Count - 1].Pole = true;
                         if (relay) candidates[candidates.Count - 1].Helper = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.HelperInstruction(pole);

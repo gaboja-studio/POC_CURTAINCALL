@@ -11,7 +11,7 @@ using Unity.Profiling;
 
 namespace CurtainCall.EscapeRoute
 {
-    /// <summary>A activates behind the loading curtain after four-person departure. Direct A development remains supported.</summary>
+    /// <summary>A activates behind the loading curtain after all current participants depart. Direct A development remains supported.</summary>
     [DefaultExecutionOrder(-32000)]
     public sealed class EscapeCampaignContent : MonoBehaviour
     {

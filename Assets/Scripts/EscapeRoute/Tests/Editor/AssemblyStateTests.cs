@@ -18,6 +18,20 @@ namespace CurtainCall.EscapeRoute.Tests
         bool Depart()=>(bool)type.GetMethod("Depart").Invoke(state,null);
         string Status=>Get("Status").ToString();
 
+        [TestCase(1)] [TestCase(2)] [TestCase(3)] [TestCase(4)]
+        public void DevelopmentUsesTheConfiguredPartyInsteadOfFour(int count)
+        {
+            var method=Find("EscapeDevelopmentSession").GetMethod("ExpectedParticipants",BindingFlags.Static|BindingFlags.NonPublic);
+            Assert.That(method.Invoke(null,new object[]{new[]{"-escapePlayers","4"},count,4}),Is.EqualTo(count));
+            Assert.That(method.Invoke(null,new object[]{new[]{"-escapePlayers",count.ToString()},0,4}),Is.EqualTo(count));
+        }
+        [TestCase("invalid",2)] [TestCase("0",1)] [TestCase("99",4)]
+        public void DevelopmentParticipantArgumentsStayWithinSessionCapacity(string argument,int expected)
+        {
+            var method=Find("EscapeDevelopmentSession").GetMethod("ExpectedParticipants",BindingFlags.Static|BindingFlags.NonPublic);
+            Assert.That(method.Invoke(null,new object[]{new[]{"-escapePlayers",argument},0,4}),Is.EqualTo(expected));
+        }
+
         [Test] public void PartialDeparturesKeepGatheringWithoutADeadline()
         {
             Tick(1,1); Tick(3,3); Tick(1,1);
