@@ -24,6 +24,8 @@ namespace CurtainCall.Tightrope
         const int NoLane = -1;
         static readonly List<int> laneCandidates = new();
         readonly Station[] stations = new Station[4];
+        /// <summary>호스트: 봉을 잡은 사람의 끈끈이 장갑(Task-092).</summary>
+        readonly CurtainCall.WaitingRoom.StickyGloveHolds stickyGloves = new();
         TightropeCourse course;
         TightropeRun run;
         int round = -1, version, geometryMask = -1;
@@ -237,6 +239,7 @@ namespace CurtainCall.Tightrope
                     }
                     changed |= station.State.Tick(Clock, station.Pole.WarningSeconds);
                 }
+                stickyGloves.Tick(Clock, actor => { foreach (var s in stations) if (s != null && s.State.SeatOf(actor) >= 0) return true; return false; });
                 // 봉을 놓으면 그 봉이 연 줄을 비운다. 다음에 잡을 때 다시 고른다.
                 for (int i = 0; i < stations.Length; i++)
                     if (stations[i].Opened >= 0 && !stations[i].State.IsOccupied)
@@ -277,6 +280,7 @@ namespace CurtainCall.Tightrope
         {
             ClearPendingGrabs();
             foreach (var station in stations) { station.State.Reset(); station.Opened = NoLane; }
+            stickyGloves.Clear();
             version = 0; geometryMask = -1; pendingUntil = feedbackUntil = nextSnapshot = 0d; feedback = null;
             localAborted = localAbortWaiting = false; nextAbortRetry = 0d;
         }

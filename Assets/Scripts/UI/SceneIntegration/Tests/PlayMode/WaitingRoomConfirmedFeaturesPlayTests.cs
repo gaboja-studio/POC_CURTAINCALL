@@ -79,7 +79,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             MouseRight(false); yield return null;
 
             yield return PickPlaced("uv-lamp", "S01_Lobby");
-            Assert.AreEqual(-1, Get(Call(carry, "Selected", (ulong)Get(carry, "LocalClientId")), "Uses"), "장비형: 내구도 없음");
+            Assert.AreEqual(-1, Get(((IEnumerable)Call(carry, "Held", (ulong)Get(carry, "LocalClientId"))).Cast<object>().Single(o => (string)Get(o, "ItemId") == "uv-lamp"), "Uses"), "장비형: 내구도 없음");
             yield return FaceWall();
             Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "비추기 전에는 안 보인다");
             MouseRight(true);

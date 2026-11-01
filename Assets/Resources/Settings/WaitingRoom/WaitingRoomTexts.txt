@@ -117,26 +117,21 @@ broadcast.recall | 소집 경보! 무대 입구로 모이세요 — {seconds}초
 broadcast.notice | 공연 {seconds}초 전입니다
 
 # ── 소지품(인벤토리) ──
-# 아래 소지 칸 ({n} = 칸 번호, {item} = 손에 든 기물 이름)
-inventory.slot-locked | {n} 잠금
-inventory.holding | {item} · 손에 듦
-inventory.empty-hand | 빈손 · 1–2 기물 선택
+# 아래 소지 칸의 손 상태 문구는 Unity에서 고칩니다: CommonMenuUI 씬 → CommonInventoryUI 컴포넌트(2026-11-01).
 
 # ── 아이템 ──
-# 키: item.<아이템 id>.name = 이름, .worn = 많이 닳았을 때 이름, .desc = 상점 기물 목록에 보이는 설명
+# 키: item.<아이템 id>.name = 이름, .worn = 많이 닳았을 때 이름
 # 이름을 바꾸면 줍기·받기 안내, 머리 위 이름표, 소지 칸, 상점 목록에 모두 반영됩니다.
-# 설명(.desc)은 상점 기물 목록의 설명 칸에 표시됩니다. 줄 앞에 #를 붙이면 표시하지 않습니다.
+# 상점 설명과 공연 장비 발동 문구는 Unity에서 고칩니다: 기물 목록 에셋(Settings/GameSettings/Items/ItemCatalog)의
+#   Shop Description·Use Cue 칸(2026-11-01).
 
 # 탐색 도구 (상점 판매)
 item.magician-hairpin.name | 마술사의 머리핀
-item.magician-hairpin.desc | 자물쇠: 시도마다 50% 개방, 같은 자물쇠 세 번째 시도는 반드시 개방(시도 수 팀 공유·런 유지). 개방 성공 시 1 소모.
 item.stake-puller.name | 천막 말뚝 뽑개
 item.stake-puller.worn | 낡은 천막 말뚝 뽑개
-item.stake-puller.desc | 판자·덮개·걸린 서랍 개방, 숨은 길 벽 파괴(빠루). 개방·파괴 성공 시 1 소모.
 item.uv-lamp.name | 서커스 UV 등
-item.uv-lamp.desc | 장비. 슬롯에 넣으면 자동 적용. 우클릭으로 사용 가능하며, 숨겨진 단서를 찾을 수 있다. 내구도 없음.
 
-# 공연 장비 (지금은 상점에서 팔지 않음)
+# 공연 장비 (상점 판매, 슬롯에 있으면 자동 적용)
 item.rescue-gloves.name | 구조 장갑
 item.rescue-gloves.worn | 낡은 구조 장갑
 item.sticky-gloves.name | 끈끈이 장갑
@@ -169,6 +164,8 @@ explore.uses-left | {item} 남은 {n}회
 shelf.put | {item} 선반 {n}칸에 올리기
 shelf.take | 선반 위 칸에서 꺼내기
 shelf.empty | 선반이 비어 있습니다
+# 기물을 지녔지만 1·2로 칸을 고르지 않았을 때
+shelf.choose | 1·2로 올릴 기물을 고르세요
 
 # ── 기물 들기·내려놓기·선반 (알림 문구) ──
 # 접속이 끊긴 참가자가 기물을 다루려 할 때
@@ -177,7 +174,8 @@ carry.offline-drop | 접속 중이 아니라 내려놓을 수 없습니다.
 carry.offline-pick | 접속 중이 아니라 주울 수 없습니다.
 # 기물 줍기·받기·선반 사용이 거절될 때
 carry.hands-full | 손이 가득 찼습니다.
-carry.nothing-held | 들고 있는 기물이 없습니다.
+carry.nothing-held | 고른 기물이 없습니다. 1·2로 칸을 고르세요.
+carry.not-carryable | 오브제는 슬롯에 넣을 수 없습니다.
 carry.floor-full | 바닥에 더 놓을 수 없습니다.
 carry.shelf-full | 선반 4칸이 모두 찼고 손에도 자리가 없습니다.
 carry.shelf-empty | 선반이 비어 있습니다.
@@ -241,77 +239,17 @@ expert.not-buyer | 서비스를 구매한 공연 준비자만 들어갈 수 있�
 expert.wrong-phase | 지금은 이용할 수 없습니다.
 expert.bad-choice | 복구할 신체의 수를 다시 고르세요.
 
-# ── 상점 화면(공통) ──
-# 상점 창 맨 위 제목
-shopui.title | 상점
-# 기물 탭 위 안내줄. {balance} = 공동 자금, {n} = 배송구 대기 개수, {state} = 아래 구매 가능/불가 문구
-shopui.items-context | 공동 자금 {balance} · 배송구 대기 {n}개 · {state}
-shopui.items-state-open | 밤 정비 · 구매 가능
-shopui.items-state-closed | 기물 구매는 밤 정비에만 가능
-# 서비스 탭 위 안내줄. {balance} = 공동 자금, {day} = 일차, {state} = 아래 이용 가능/불가 문구
-shopui.services-context | 공동 자금 {balance} · {day}일차 · {state}
-shopui.services-state-open | 의료용 서비스 이용 가능
-shopui.services-state-closed | 공연 중 이용 불가
-# 장부 탭 위 안내줄
-shopui.ledger-context | 최근 공동 자금 장부 · 배송 및 수령 기록
-# 창 아래 메시지(요청 결과)
-shopui.response-timeout | 응답 미확인 · 재구매 전 장부와 배송구를 확인하세요.
-shopui.reopen-window | 창을 다시 열어 주세요.
-shopui.invalid-request | 사용할 수 없는 요청입니다.
+# ── 상점 화면 ──
+# 상점 창 문구는 Unity에서 고칩니다(2026-11-01).
+# - 창 제목: CommonWaitingRoomUI 씬 → ShopPanelCanvas → 01_TitleTMP의 Text
+# - 가격 줄·버튼·설명·장부·마우스 올림 설명 등: Settings/WaitingRoom/ShopUiTexts 에셋
+# - 기물 이름: 이 파일의 item.<id>.name, 기물 설명: 기물 목록 에셋의 Shop Description
 
-# ── 상점 · 기물 탭 ──
-# 기물 한 줄. 이름은 기물 목록에서 따로 정함
-shopui.item-subtitle | 구매 후 배송구에서 수령
-# 기물 설명(기물마다 설명이 있으면 그 설명 다음 줄에 붙음)
-shopui.item-description | 공동 자금으로 주문합니다. 배송구에서 수령하세요.
-# {price} = 가격
-shopui.item-price-detail | 구매 {price}
-# {n} = 배송구에 수령 대기 중인 개수
-shopui.item-waiting | 배송구 대기 {n}개
-shopui.button-buy | 구매
-# 구매 불가 사유(기물·서비스 공통)
-shopui.reason-no-funds | 공동 자금 부족
-
-# ── 상점 · 서비스 탭(의료용 서비스) ──
-# {n} = 고른 수량
-service.medical-title | 의료용 서비스 {n}개
-# {lost} = 잃은 신체 수, {max} = 고를 수 있는 최대 수량
-service.medical-subtitle | 잃은 신체 {lost}개 · 최대 {max}개
-service.medical-description | 수량을 고르고 예약하세요.\n예약 뒤 로비 의료용 승강기에서 F로 이용하며,\n최근 잃은 부위부터 복구합니다.
-# {price} = 1개당 가격, {uses} = 팀이 이용한 횟수
-service.medical-price-detail | 1개당 {price} · 팀 이용 {uses}회
-# 버튼. {n} = 고른 수량, {max} = 최대 수량
-service.button-book | {n}개 예약
-service.button-count | 수량 {n}/{max}
-# 수량 버튼을 누른 뒤 창 아래 메시지. {n} = 고른 수량
-service.count-selected | {n}개 선택
-shopui.service-loading | 서비스 정보를 불러오는 중입니다.
-# 서비스 상태줄. {player} = 이용 중인 공연 준비자, {phase} = 아래 진행 단계
-shopui.service-status | {player} · {phase}
-# 의료실 진행 단계
+# 의료실 진행 단계(상점 신체 복구 상태줄의 {phase})
 service.phase-booked | 입장 대기중...
 service.phase-working | 복구 중...
 service.phase-exiting | 퇴실 중...
 service.phase-idle | 비어 있음
-
-# ── 상점 · 장부 탭 ──
-# 공동 자금 기록. {number} = 기록 번호, {day} = 일차
-shopui.ledger-subtitle | #{number} · {day}일차
-# {before} = 이전 잔액, {after} = 이후 잔액
-shopui.ledger-balance | 잔액 {before} → {after}
-shopui.ledger-settled | 정산 완료
-# 배송구 도착(수령 전). {order} = 주문 번호, {player} = 주문한 공연 준비자
-shopui.delivery-subtitle | 주문 #{order} · {player}
-shopui.delivery-waiting | 수령 대기
-shopui.delivery-description | 배송구에 도착했습니다. 가까이서 상호작용하여 수령하세요.
-# 수령 완료. {order} = 주문 번호, {buyer} = 주문한 공연 준비자, {claimer} = 받아 간 공연 준비자
-shopui.receipt-subtitle | 수령 #{order}
-shopui.receipt-done | 수령 완료
-shopui.receipt-description | {buyer} 주문 → {claimer} 수령
-
-# ── 마우스 올림 설명(상점 줄) ──
-# {description} = 항목 설명, {price} = 가격, {reason} = 이용 불가 사유(없으면 빈 줄)
-tooltip.shop-row | {description}\n가격: {price}\n{reason}
 
 # ── 공연 스케줄표 ──
 # 스케줄표 앞에서 F 안내

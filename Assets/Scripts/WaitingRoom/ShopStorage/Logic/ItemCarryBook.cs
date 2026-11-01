@@ -74,6 +74,8 @@ namespace CurtainCall.WaitingRoom
         ShelfFull,
         ShelfEmpty,
         UsedUp,
+        /// <summary>오브제는 슬롯에 넣지 않는다(기물 시스템 31784961: 상호작용으로 직접 옮기는 기물).</summary>
+        NotCarryable,
     }
 
     /// <summary>
@@ -97,6 +99,14 @@ namespace CurtainCall.WaitingRoom
         public IReadOnlyList<PropItem> Shelf => shelf;
 
         public static bool IsEmpty(PropItem item) => item.Uid == 0;
+
+        /// <summary>
+        /// 슬롯·바닥 기물로 다룰 수 있는지 판정(부르는 쪽이 기물 목록으로 채운다). 오브제는 슬롯에 넣지 않는다(기물 시스템 31784961).
+        /// 비우면 모두 허용한다.
+        /// </summary>
+        public System.Func<PropItem, bool> Carryable { get; set; }
+
+        bool IsCarryable(PropItem item) => Carryable == null || Carryable(item);
 
         /// <summary>
         /// 선반 상호작용(F 한 번). 들고 있고 빈 칸이 있으면 마지막에 든 기물을 아래 칸부터 올린다.
@@ -184,6 +194,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>받은 기물을 손에 든다.</summary>
         public CarryRefusal Take(ulong player, int slots, PropItem item)
         {
+            if (!IsCarryable(item)) return CarryRefusal.NotCarryable;
             var refusal = CanTake(player, slots);
             if (refusal != CarryRefusal.None) return refusal;
             List(player).Add(item);
@@ -230,6 +241,7 @@ namespace CurtainCall.WaitingRoom
         public CarryRefusal Place(PropItem item, float x, float y, float z)
         {
             if (IsEmpty(item) || Exists(item.Uid)) return CarryRefusal.NotFound;
+            if (!IsCarryable(item)) return CarryRefusal.NotCarryable;
             if (floor.Count >= FloorCapacity) return CarryRefusal.FloorFull;
             floor.Add(new FloorProp(item, x, y, z));
             Revision++;

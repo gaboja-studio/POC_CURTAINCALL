@@ -50,7 +50,7 @@ namespace CurtainCall.WaitingRoom
         public bool UsesKey => HasKeySlots || (requiredTargets!=null && requiredTargets.Any(IsKeyTarget));
         public bool AcceptsKey(PropItem item) => item.Uid != 0 && item.Uses != 0 && requiredTargets != null
             && requiredTargets.Any(id => IsKeyTarget(id) && id == ExplorationKeys.TargetId(item.ItemId));
-        public bool LocalHasKey => PropCarry.Instance != null && AcceptsKey(PropCarry.Instance.Selected(PropCarry.Instance.LocalClientId));
+        public bool LocalHasKey => PropCarry.Instance != null && AcceptsKey(PropCarry.Instance.InHand(PropCarry.Instance.LocalClientId));
         public string RevealTarget => revealTarget;
         public bool RevealPending => revealPending;
         public bool PasswordPending => passwordPending;

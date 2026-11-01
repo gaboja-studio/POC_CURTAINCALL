@@ -228,5 +228,19 @@ namespace CurtainCall.WaitingRoom.Tests
             Assert.AreEqual(0, book.Floor.Count);
             Assert.IsTrue(ItemCarryBook.IsEmpty(book.Shelf[0]), "방이 바뀌면 선반도 비운다");
         }
+
+        [Test]
+        public void 오브제는_손에도_바닥에도_넣지_않는다()
+        {
+            var book = new ItemCarryBook(16) { Carryable = item => item.ItemId != "trampoline" };
+            var prop = new PropItem(50, "trampoline", "트램펄린");
+
+            Assert.AreEqual(CarryRefusal.NotCarryable, book.Take(1, 2, prop));
+            Assert.AreEqual(CarryRefusal.NotCarryable, book.Place(prop, 0, 0, 0));
+            Assert.AreEqual(0, book.Count(1));
+            Assert.AreEqual(0, book.Floor.Count);
+            Assert.IsFalse(book.Exists(50));
+            Assert.AreEqual(CarryRefusal.None, book.Take(1, 2, Item(1)), "다른 기물은 그대로 든다");
+        }
     }
 }

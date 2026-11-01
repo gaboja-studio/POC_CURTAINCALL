@@ -4,6 +4,7 @@ using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.WaitingRoom;
 using UnityEngine;
 
 namespace CurtainCall.Tightrope
@@ -44,11 +45,14 @@ namespace CurtainCall.Tightrope
         public float RemainingSeconds(TightropeHangBook.Hang hang) => hang == null ? 0f
             : (float)Math.Max(0d, hang.IsPulling || IsHost ? hang.Remaining : hang.Remaining - (Now - snapshotAt));
 
-        /// <summary>외줄 추락 매달림 전용 추락 게이지. 7초 동안 0→1, 구조 중에는 버티기 시간과 함께 정지한다.</summary>
+        /// <summary>
+        /// 외줄 추락 매달림 전용 추락 게이지. 버티는 시간(기본 7초, 끈끈이 장갑이면 1.5배) 동안 0→1, 구조 중에는 버티기 시간과 함께 정지한다.
+        /// </summary>
         public float HangDangerRatio(NetworkPlayer player)
         {
             if (player == null || !book.TryGet(player.OwnerClientId, out var hang)) return 0f;
-            return Mathf.Clamp01(1f - RemainingSeconds(hang) / Rules.HoldSeconds);
+            float total = hang.Total > 0d ? (float)hang.Total : Rules.HoldSeconds;
+            return Mathf.Clamp01(1f - RemainingSeconds(hang) / total);
         }
 
         /// <summary>표시용 끌어올리기 진행(0~1).</summary>
@@ -128,7 +132,7 @@ namespace CurtainCall.Tightrope
             }
             // 받는 사람이 끊어진 상태(끌어올리는 중)였다면 정리한다.
             foreach (var other in book.All) if (other.Rescuer == player.OwnerClientId) book.CancelPull(other.Id);
-            book.Begin(player.OwnerClientId, lane, distance, Rules.HoldSeconds);
+            book.Begin(player.OwnerClientId, lane, distance, Rules.HoldSeconds, StickyGloves.ExtraSeconds(player.OwnerClientId, Rules.HoldSeconds));
             NotifyHang(player.OwnerClientId);
             Publish();
             return true;
@@ -184,10 +188,20 @@ namespace CurtainCall.Tightrope
                     || !WithinRescueReach(rescuer, hang, Rules.RescueDistance * 1.5f))
                 { Debug.Log($"[RescueDiag] cancel rescuer={hang.Rescuer} target={hang.Id} reason=" + (rescuer == null ? "missing" : rescuer.State != PlayerState.Normal ? "state" : (int)rescuer.LostParts != hang.RescuerParts ? "injury" : book.IsHanging(rescuer.OwnerClientId) ? "hanging" : ReachFailure(rescuer, hang, Rules.RescueDistance * 1.5f))); changed |= book.CancelPull(hang.Id); }
             }
-            if (gone != null) { foreach (ulong id in gone) book.Remove(id); changed = true; }
+            if (gone != null)
+            {
+                foreach (ulong id in gone)
+                {
+                    if (book.TryGet(id, out var left)) StickyGloves.Finish(id, left.ExtraEntered || left.InExtraTime);
+                    book.Remove(id);
+                }
+                changed = true;
+            }
             foreach (var (id, outcome, hang) in book.Tick(deltaTime))
             {
                 changed = true;
+                // 끈끈이 장갑: 추가 시간에 들어섰던 매달림이 끝나면 1 소모·쿨타임 시작(마지막 회차도 매달림이 끝난 뒤 파괴).
+                StickyGloves.Finish(id, hang.ExtraEntered || hang.InExtraTime);
                 if (outcome == TightropeHangBook.Outcome.Dropped)
                 {
                     var dropped = Find(id);
@@ -202,6 +216,8 @@ namespace CurtainCall.Tightrope
                             try { observer(hang.Rescuer, hang.Id); } catch (Exception error) { Debug.LogException(error); }
                 }
             }
+            foreach (var hang in book.All)
+                if (!hang.ExtraEntered && hang.InExtraTime) { hang.ExtraEntered = true; StickyGloves.Cue(hang.Id); }
             if (changed) { UpdateRescuerBalance(); Publish(); }
         }
 

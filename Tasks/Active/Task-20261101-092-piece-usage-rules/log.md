@@ -1,0 +1,91 @@
+# Log
+
+특별한 문제·해결·검사 결과·다음 할 일·PR 링크만 짧게 남긴다.
+
+- 2026-11-01 환경: 메인 폴더는 다른 작업 중이라 손대지 않음. origin/dev(b723ca79)에서 `feat/piece-usage-rules` 워크트리를 만들고 전용 Unity 에디터를 띄움. doctor는 FAIL 3건: Task 폴더 없음(생성으로 해결), 다른 Task 번호 중복(077~086, 이번 작업과 무관), Unity 설치 경로 검사 실패(실제 Hub 설치본으로 실행됨).
+- 2026-11-01 조사 결과(기획 31784961과 코드 대조):
+  - 1·2키가 장비도 "손에 듦"으로 고름. 고른 칸이 없으면 마지막 기물을 손에 든 것으로 봄.
+  - 오브제를 슬롯에서 거절하는 규칙이 없음. 현재 카탈로그에 오브제는 없음.
+  - 공연용 장비 4종은 효과 코드가 전혀 없음. 상점도 공연용 판매를 막아 둠.
+  - UV 등(장비·무제한)과 배치 기물 F 획득은 기획서와 다르지만 사용자 결정으로 유지.
+- 2026-11-01 구현:
+  - 손 규칙: `PropCarry.InHand`·`Selected`로 나눔. 오브제 거절은 `ItemCarryBook.Carryable`.
+  - 공통: 장비 소모·쿨타임 공유·알림은 `PropCarry.Equipment.cs`.
+  - 스프링 신발: `HumanCannonSystem.HandleLanding`에서 처리. 반동 메시지를 보내고 착지 대기를 해제함.
+  - 벌룬 바지: `HumanCannonPilot.Items.cs`. 소유자 화면이 계산하고, 하강이 끝나면 호스트에 소모를 보고함.
+  - 끈끈이 장갑: `StickyGloves`·`StickyGloveHolds`로 외줄 매달림·트라페즈·해제봉·대포 봉에 적용.
+  - 구조 장갑: `TightropeCatchSystem` 자동 받기로 구현. 카탈로그에 effect2=2m를 넣음(에디터 명령으로 수정).
+  - 상점: 공연용 판매를 엶. 문구 파일에 설명과 발동 문구를 추가.
+- 2026-11-01 검사:
+  - 컴파일 PASS.
+  - EditMode: ItemCarryBookTests 19/19, TightropeHangBookTests 8/8(새 테스트 포함).
+  - PlayMode 새 테스트 `W2_HandRules_ToolsHoldEquipmentSelectsAndEquipmentUseCools` PASS.
+  - 기존 테스트 수정:
+    - `W2_CarrySlots…`: 리플렉션 생성자 인자 누락, 바닥 기물 0 가정을 고친 뒤 PASS.
+    - `M2_ExplorationToolsChain…`: 새 손 규칙에 맞춰 도구를 1·2로 드는 단계를 추가.
+  - 기존 실패(dev 원본에서도 같음, stash로 확인): `RealRoom_ClockFundsInventoryAndGatherReadGameState`가 109행 쉬는 시간 타이머 `Stopped`에서 실패함. 그래서 이 테스트의 소지 UI 검사 부분은 실행되지 않음.
+  - 환경: PlayMode 일부가 UDP 7777 사용 중 오류와 외부 도구의 옛 명령(`editor status`) 로그 오류로 실패했고, 다시 실행해 구분함.
+  - 대기실 회귀 20건 1차: 9건 통과, 11건 실패.
+    - 기존 테스트 도우미 `NearPlaced` 오류 7건: `ExplorationReach.From`이 6개 인자로 바뀐 뒤(2e906f11) 테스트가 5개로 호출함. 인자를 보충함.
+    - 새 손 규칙 영향 2건: `M2_StructureAKeyRoute`의 PickTool, UV 확인 테스트 82행. 1·2로 꺼내 들기와 소지 목록 조회로 고침.
+    - 기존 실패 1: `M2_ContainerRoute_EightBoxes` 100행. UV 등이 무제한(-1)이라 소모 반복이 0회임. 옛 코드에서도 같음.
+    - 기존 실패 2: `M2_Flow_InputWalkWorkshopToRestroomBreach` 84행. F 간격 0.24초가 Task-088의 빠루 동작 잠금(1.7초)보다 짧아 6타가 들어가지 않음.
+    - 원본 비교 2차 stash 실행은 재컴파일이 반영되지 않은 정황(고친 테스트 문구로 실패)이 있어 결과로 쓰지 않음.
+  - PlayMode 2차 실행(14건)은 12건을 마친 뒤 시스템 메모리 부족으로 중단됨. 남은 여유 메모리 0.7GB/31GB, Unity 에디터 3개 실행 중.
+    - 통과: 벌룬 바지(하강 감속·비행당 1 소모·쿨타임), 손 규칙, `M2_Flow_SceneReload`.
+    - 새 손 규칙에 맞춰 고친 테스트 도우미: `PickPlaced`, `UsePlaced`의 `HoldFor`, 계단 문, Flow 114행, Framework `Use`. 맞는 도구·열쇠를 1·2로 꺼내 듦.
+    - 위치를 고친 새 테스트: 스프링 신발(안전 착지면이 아닌 바닥 찾기), 끈끈이 장갑(줄 위로 이동).
+    - 위 수정은 컴파일만 PASS. 다시 실행하지 않음.
+    - `M2_ExplorationToolsChain`: UV를 줍기 전에 손이 가득 참(빠루 3회·머리핀 4회 남음). 바닥의 첫 빠루가 새 제품이라 상자를 열어도 사라지지 않음. 옛 동작에서도 같을 것으로 보이나 원본 비교는 못 함.
+  - 2026-11-01 정리(사용자 허락): task092 stash 4개를 지우고, 폰트 아틀라스 2개와 escape-labels 부산물 수정을 되돌림. 에디터 2개는 유지하라는 지시로 메모리 확보용 종료는 하지 않음.
+  - (지난 기록) stash 보관:
+    - 작업 백업: `task092-wip`, `task092-wip-2`. 둘 다 이미 다시 적용함.
+    - 원본 테스트가 만든 폰트·라벨·Vivox 부산물: `task092-baseline-test-byproducts`, `task092-baseline-byproducts-2`.
+    - 부산물 사본은 scratchpad `restore-backup`에 있음.
+    - 폰트 SDF·escape-labels 수정은 테스트 부산물이라 커밋에서 뺀다.
+- 2026-11-01 상점 후속(사용자 요청):
+  - 설명 영역: `UI/SceneIntegration/ShopDescriptionScroll.cs` 추가. 상점을 열 때 설명 TMP를 마스크 뷰포트와 ScrollRect(스크롤 바 없음) 안으로 옮김. 상점 패키지(_ThirdParty)는 수정하지 않음.
+    - 설명 영역을 64~190px 안으로 늘리고, 높이를 "줄 높이 × (n + 0.5)"로 잡아 넘친 줄이 반만 보이게 함.
+    - 가격·사유·상태 줄은 아래로 붙임. 다른 항목을 고르면 맨 위로 돌아감.
+  - 구매한 기물이 노란 상자로 보이던 문제: 배송구(`ShopDeliverySlot`)와 가판대(`HandoverShelfView`)가 큐브 대신 Task-088 기물 모델을 씀(바닥 기물과 같은 방식). 모델이 없을 때만 상자.
+  - 검사: 컴파일 PASS. PlayMode `W2_ShopDescriptionScrollsWithPeekAndDeliveryShowsItemModel` PASS.
+    - 확인 항목: …으로 자르지 않음, 스크롤 바 없음, 넘침·반 줄 노출, 끝까지 스크롤, 항목 변경 시 맨 위, 배송 물건이 큐브가 아닌 모델.
+    - 설명 캡처는 `.harness/local/shop-description-scroll.png`. 배송구 화면 캡처는 카메라 제어 때문에 실패해 판정으로만 확인함.
+- 2026-11-01 상점 문구(사용자 요청):
+  - 가격 줄은 가격만 표시함. 기물은 "개당 n 토큰", 신체 복구는 "잘린 팔·다리 한 개당 n 토큰"이고 팀 이용 횟수는 뺌.
+  - 신체 복구 설명 첫 줄에 "주의: 서비스 이용 시마다 이용 가격이 인상됩니다."를 넣음. 수량 버튼은 "팔·다리 n/m", 누른 뒤 메시지는 "팔·다리 n개 선택".
+  - 탭 위 안내줄 3개(공동 자금·배송구 대기·이용 상태·장부 안내)를 빈 값으로 바꾸고 문구 키를 지움.
+  - 창 아래 고정 안내 2개("설명과 이용 불가 사유를 확인하세요.", "기록의 상세 내용을 확인할 수 있습니다.")는 상점 패키지가 직접 씀. 패키지는 그대로 두고 `ShopFooterHints`가 화면에 나온 뒤 지움. 요청 결과 메시지와 "플레이는 계속됩니다"는 유지.
+  - 검사: 컴파일 PASS. 에디터에서 문구 키 로드 확인(줄바꿈 포함). 새 PlayMode 테스트 `W2_ShopWordingShowsPriceOnlyAndLimbTerms`는 다른 워크트리(fix-character-animation) 에디터의 2인 플레이가 UDP 7777을 쓰고 있어 실행 실패(환경 문제).
+- 2026-11-01 UI 편집 구조 정리(사용자 요청: 코드 문구·런타임 배치 금지, 범위는 상점+이번 작업 UI, 상점 문구는 SO):
+  - 상점 프리팹에 설명 스크롤 영역·아래 꺾쇠를 직접 배치함(런타임 생성 제거). 창 제목은 씬 인스턴스 TMP의 Text를 씀.
+  - 바뀌는 상점 문구·아이콘 키는 `ShopUiTexts.asset`으로 옮김. 키트가 하드코딩한 아래 줄 문구는 `ShopFooterTexts`가 설정값으로 바꿈(`ShopFooterHints` 삭제).
+  - 기물 상점 설명·장비 발동 문구는 `ItemCatalog.shopDescription`·`useCue`로 옮김. 이름은 10-31 결정대로 문구 파일에 둠.
+  - 소지 칸 손 상태 문구·대체 아이콘 키는 `CommonInventoryUI` 직렬화 필드(CommonMenuUI 씬)로 옮김.
+  - 문구 파일에서 옮긴 키를 지우고 새 위치를 주석으로 남김. 값은 기존 문구를 에디터 스크립트로 그대로 복사함.
+  - 스크롤 피드백: 반 줄 노출에 더해 더 읽을 쪽 가장자리 흐림, 아래 꺾쇠 까딱임, 처음 고를 때 살짝 내려갔다 돌아오기.
+  - 검사: 컴파일 PASS. EditMode `WaitingRoomTextTests` 4/4. PlayMode PASS: 상점 문구, 설명 스크롤·배송 모델, 상점 흐름 5건, 손 규칙, 공연 장비 3건(스프링·끈끈이 재실행 포함), 키트 `ShopUiPlayTests` 35/35(설명 TMP Ellipsis 예외 반영).
+  - 아직 코드로 만든 UI: 기물 알림 패널(`WaitingRoomRightPanel`), 툴팁 위치·지연 수치. 다른 UI는 사용자가 결과 확인 뒤 지시.
+- 2026-11-01 integration/piece-system 동기화(사용자 요청):
+  - origin/integration/piece-system(864a2877 캐릭터 상호작용·개발 이동)은 이 브랜치의 앞선 커밋이라 작업을 stash로 보관 → fast-forward → 다시 적용함.
+  - 충돌 2건: `CommonInventoryUI.cs`, `WaitingRoomHudPlayTests.cs`.
+    - 소지 칸 이름은 864a2877의 새 방식을 따름: 빈손이면 비우고, 고른 기물은 이름만, 도구는 손 아이콘으로 구분. 이번 작업의 설정 필드(빈손/도구/장비 형식)는 남기고 값을 그 방식(""·{item})으로 둠.
+    - 자동 병합: PropCarry·ExplorationState 개발 스냅샷, ShopDeliverySlot 줍기 대상. 864a2877의 손 모델 표시도 고른 칸의 도구만 보여 이번 손 규칙과 맞음.
+  - 보관 stash `task092-before-integration-sync`는 아직 지우지 않음. 같은 내용의 패치 사본은 %TEMP%의 task092-before-sync.patch.
+- 2026-11-01 UI를 보이는 상태로 저장(사용자 요청: 씬 뷰로 보며 수정 가능해야 함):
+  - 원인: `W2_Shop/00_Visuals`가 꺼져 있고 CanvasGroup alpha 0으로 저장되어 켜도 안 보였음. 소지 칸도 슬롯 묶음 alpha 0·템플릿 꺼짐.
+  - 상점 프리팹: 00_Visuals 켬·alpha 1, 기물 탭 예시 내용 저장, 씬 인스턴스의 켜짐·alpha·제목 덮어쓰기 제거. 제목 '상점'은 프리팹 한 곳, 폰트는 한글 전체 정적 SemiBold로 바꿈(전용 Bold는 □ 표시).
+  - 소지 칸(CommonMenuUI): 864a2877이 런타임에 만들던 선택 테두리·손 아이콘을 씬 오브젝트로 배치함. 테두리는 슬롯 템플릿 아래 `InventorySlotSelectionBorder`, 손 아이콘은 `SelectedProp/HeldIndicator`. 템플릿에 예시 기물을 넣고 슬롯 묶음 alpha 1로 저장.
+  - 게임 중 숨김은 키트가 맡음: ShopPanelView.Awake ForceHidden, InventorySlotsView.Awake ResetForRuntime.
+  - 편집 화면 렌더 확인: `.harness/local/edit-shop-prefab.png`, `edit-inventory.png`.
+  - 검사: 컴파일 PASS. PlayMode PASS: 키트 ShopUiPlayTests 35/35, 상점 문구·설명 스크롤, 손 규칙(게임 시작 때 편집 예시가 사라지는지 추가), 구매·배송·장부, 864a2877의 `DevLaunchPreservesSelectedStateAndCanResetItLater`.
+  - 기존 실패 유지: `RealRoom_ClockFundsInventoryAndGatherReadGameState` 쉬는 시간 타이머 `Stopped`(dev 원본과 같음). 소지 칸 검사 전에 멈춤.
+  - 결정 기록: `Harness/Project/Decisions/ui-authoring.md`.
+- 2026-11-01 UI 편집 안내서(사용자 요청): `Docs/Guides/Ui-scene-integration/ui-editing.md`와 `images/` 7장(에디터 실제 캡처에 번호 표시). 가이드 목록·옛 상점 안내의 편집 줄을 새 안내서로 연결함.
+  - 캡처 때 에디터 창을 잠시 최대화했다가 원래 위치·크기(1273,0 1294×703)로 되돌림. 프리팹 화면·추가로 연 씬도 닫음.
+
+- 2026-11-01 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-01 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-01 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

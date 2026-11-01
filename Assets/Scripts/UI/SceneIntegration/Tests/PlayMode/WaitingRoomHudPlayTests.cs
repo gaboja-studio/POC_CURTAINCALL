@@ -66,7 +66,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return WaitFor(() => Find("CurtainCall.UI.SceneIntegration.CommonInventoryUI") != null);
             var inventoryUi = Find("CurtainCall.UI.SceneIntegration.CommonInventoryUI");
             var inventory = View(inventoryUi, "slots");
-            void AssertInventory(int heldCount, string selectedName)
+            void AssertInventory(int heldCount, int selectedIndex, string label)
             {
                 Assert.AreEqual(0, legacyInventory.GetComponent<CanvasGroup>().alpha, "구형 HUD와 실제 소지 UI가 중복 표시되면 안 된다.");
                 Assert.AreEqual(1, ((CanvasGroup)Get(inventoryUi, "group")).alpha);
@@ -88,9 +88,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     Assert.AreEqual(i < heldCount, icon.enabled);
                     if (i < heldCount) Assert.IsNotNull(icon.sprite);
                     Assert.AreEqual(i < heldCount ? "1" : "", ((TMP_Text)Private(slot, "quantityText")).text);
-                    Assert.AreEqual(i < heldCount && i == heldCount - 1, ((UnityEngine.UI.Image)Private(slot, "selectedAccent")).enabled);
+                    Assert.AreEqual(i < heldCount && i == selectedIndex, ((UnityEngine.UI.Image)Private(slot, "selectedAccent")).enabled);
                 }
-                Assert.AreEqual(selectedName ?? "", ((TMP_Text)Get(inventoryUi, "selectedLabel")).text);
+                Assert.AreEqual(label, ((TMP_Text)Get(inventoryUi, "selectedLabel")).text);
             }
             // v2.8: 실제 남은 시간과 D-N/시간대만 표시하고 기존 W1은 숨긴다.
             Assert.IsFalse(clock.gameObject.activeSelf, "옛 W1 시계는 숨긴다");
@@ -114,21 +114,30 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return null;
             var carry = Find("CurtainCall.WaitingRoom.PropCarry");
             Assert.AreEqual(false, Get(carry, "ShowLegacyHud"));
-            AssertInventory(0, null);
+            const string emptyHand = ""; // 864a2877: 빈손이면 이름 칸을 비우고, 손에 든 도구는 손 아이콘으로 표시한다
+            AssertInventory(0, -1, emptyHand);
             ulong me = (ulong)Get(carry, "LocalClientId");
             var itemType = T("CurtainCall.WaitingRoom.PropItem");
-            object Item(int uid, string id) => Activator.CreateInstance(itemType, uid, id, id);
-            Assert.AreEqual("None", Call(carry, "Receive", me, Item(7001, "tool-a")).ToString());
+            object Item(int uid, string id) => Activator.CreateInstance(itemType, uid, id, id, -1); // 선택 인자는 리플렉션이 채우지 않는다.
+            // 2026-11-01: 빈손일 때 받은 도구만 자동으로 손에 든다. 이미 손에 든 도구가 있으면 슬롯에만 넣는다.
+            Assert.AreEqual("None", Call(carry, "Receive", me, Item(7001, "magician-hairpin")).ToString());
             yield return null;
-            AssertInventory(1, "tool-a");
-            Assert.AreEqual("None", Call(carry, "Receive", me, Item(7002, "tool-b")).ToString());
+            AssertInventory(1, 0, "마술사의 머리핀");
+            Assert.AreEqual("None", Call(carry, "Receive", me, Item(7002, "stake-puller")).ToString());
             yield return null;
-            AssertInventory(2, "tool-b");
+            AssertInventory(2, 0, "마술사의 머리핀");
             // 실제 소지 UI는 구형 HUD의 4초 자동 숨김 대신 계속 표시된다.
             yield return new WaitForSecondsRealtime(4.1f);
-            AssertInventory(2, "tool-b");
+            AssertInventory(2, 0, "마술사의 머리핀");
+            Call(carry, "RequestSelectSlot", 1); yield return null;
+            AssertInventory(2, 1, "천막 말뚝 뽑개");
+            Call(carry, "RequestSelectSlot", 1); yield return null;
+            AssertInventory(2, -1, emptyHand); // 같은 칸을 다시 누르면 집어넣는다.
             Call(carry, "RequestDrop"); yield return null;
-            AssertInventory(1, "tool-a");
+            AssertInventory(2, -1, emptyHand); // 고른 칸이 없으면 버리지 않는다.
+            Call(carry, "RequestSelectSlot", 1); yield return null;
+            Call(carry, "RequestDrop"); yield return null;
+            AssertInventory(1, -1, emptyHand);
 
             var gather = View(hud, "Gather");
             Assert.AreEqual(0, gather.GetComponent<CanvasGroup>().alpha);

@@ -39,7 +39,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     var at = target.transform.position + new Vector3(Mathf.Sin(angle), 0, Mathf.Cos(angle)) * distance; at.y = floor + .05f;
                     var overlaps = Physics.OverlapCapsule(at + Vector3.up * (radius + .03f), at + Vector3.up * (height - radius + .03f), radius * .95f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
                     if (overlaps.Any(c => c.GetComponentInParent(T("CurtainCall.Player.PlayerMover")) == null)) continue;
-                    float reach = (float)T("CurtainCall.WaitingRoom.ExplorationReach").GetMethod("From").Invoke(null, new object[] { visual, point, at, range, target.GetType() == T("CurtainCall.WaitingRoom.ExplorationGate") });
+                    float reach = (float)T("CurtainCall.WaitingRoom.ExplorationReach").GetMethod("From").Invoke(null, new object[] { visual, point, at, range, target.GetType() == T("CurtainCall.WaitingRoom.ExplorationGate"), false });
                     if (reach < 0) continue;
                     Call(mover, "SetStartPose", at, Quaternion.identity); return;
                 }
@@ -49,7 +49,27 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         IEnumerator UsePlaced(string id, float floor = 0)
         {
             var target = Placed(id); NearPlaced(target, floor); yield return new WaitForSecondsRealtime(.15f);
+            if (HoldFor(target)) yield return null;
             Call(Static("CurtainCall.WaitingRoom.ExplorationState", "Instance"), "RequestUse", "structure-a:" + id); yield return null;
+        }
+        /// <summary>
+        /// Task-092: 도구·열쇠는 1·2로 꺼내 손에 들어야 쓴다(빈손일 때만 획득 즉시 자동으로 든다).
+        /// 대상에 맞는 도구·열쇠가 슬롯에 있는데 손에 없으면 그 칸을 고른다. 골랐으면 true.
+        /// </summary>
+        bool HoldFor(Component target)
+        {
+            var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
+            ulong me = (ulong)Get(carry, "LocalClientId");
+            var held = ((IEnumerable)Call(carry, "Held", me)).Cast<object>().ToList();
+            var type = target.GetType();
+            string tool = type.GetProperty("ToolId")?.GetValue(target) as string;
+            bool usesKey = type.GetProperty("UsesKey") is { } keyProperty && (bool)keyProperty.GetValue(target);
+            var holdable = T("CurtainCall.WaitingRoom.PropCarry").GetMethod("IsHoldable");
+            int index = held.FindIndex(o => usesKey ? (bool)type.GetMethod("AcceptsKey").Invoke(target, new[] { o })
+                : !string.IsNullOrEmpty(tool) && (string)Get(o, "ItemId") == tool && (bool)holdable.Invoke(null, new object[] { tool }));
+            if (index < 0 || (int)Get(Call(carry, "InHand", me), "Uid") == (int)Get(held[index], "Uid")) return false;
+            Call(carry, "RequestSelectSlot", index);
+            return true;
         }
         IEnumerator PickPlaced(string item, string room, string objectName = null)
         {
@@ -60,7 +80,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     && (string)Get(Call(s, "MakeItem", (int)Field(State, "Generation")), "ItemId") == item);
             NearPlaced(spot, 0); yield return new WaitForSecondsRealtime(.2f);
             var value = Call(spot, "MakeItem", (int)Field(State, "Generation")); Call(carry, "RequestPickUp", Get(value, "Uid")); yield return null;
-            Assert.AreEqual(item, Get(Call(carry, "Selected", (ulong)Get(carry, "LocalClientId")), "ItemId"));
+            ulong me = (ulong)Get(carry, "LocalClientId");
+            var held = ((IEnumerable)Call(carry, "Held", me)).Cast<object>().ToList();
+            int slot = held.FindIndex(o => (int)Get(o, "Uid") == (int)Get(value, "Uid"));
+            Assert.GreaterOrEqual(slot, 0, item + " 을(를) 슬롯에 넣는다");
+            // Task-092: 도구는 손에 든다(빈손이 아니면 1·2로 꺼냄). 장비(UV 등)는 슬롯에서 자동 적용.
+            if (!(bool)T("CurtainCall.WaitingRoom.PropCarry").GetMethod("IsHoldable").Invoke(null, new object[] { item })) yield break;
+            if ((string)Get(Call(carry, "InHand", me), "ItemId") != item) { Call(carry, "RequestSelectSlot", slot); yield return null; }
+            Assert.AreEqual(item, Get(Call(carry, "InHand", me), "ItemId"));
         }
         [UnityTest]
         public IEnumerator M2_Placement_KeysPasswordPanelAndSoloExit()

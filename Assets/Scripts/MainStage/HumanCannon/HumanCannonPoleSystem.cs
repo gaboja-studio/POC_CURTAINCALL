@@ -29,6 +29,9 @@ namespace CurtainCall.HumanCannon
             public int Station;
             public uint Launch, Segment;
         }
+        /// <summary>호스트: 제한 시간이 있는 봉(톱날 연동 봉 등)을 잡은 사람의 끈끈이 장갑(Task-092).</summary>
+        readonly CurtainCall.WaitingRoom.StickyGloveHolds stickyGloves = new();
+
         sealed class Runtime
         {
             public readonly PoleGateState State;
@@ -199,6 +202,8 @@ namespace CurtainCall.HumanCannon
                         Publish(i, PoleEvent.Sync, CannonSeatState.Nobody);
                 }
             }
+            if (session != null && session.IsHost)
+                stickyGloves.Tick(Clock, actor => { foreach (var s in states) if (s != null && s.State.SeatOf(actor) >= 0) return true; return false; });
             if (session != null && session.IsHost && Clock >= nextSnapshot)
             {
                 nextSnapshot = Clock + .05;
@@ -270,7 +275,10 @@ namespace CurtainCall.HumanCannon
                 var stack = PiggybackSystem.Current;
                 bool transferring = stack != null && stack.IsInStack(player);
                 if (transferring && !(independentInteraction ? stack.CanReleaseForPole(player) : stack.CanEnterTrapeze(player))) return;
-                if (!runtime.State.TryGrab(actor, runtime.State.Revision, Clock, poles[index].HoldSeconds, poles[index].LinkedGate != null, seat)) return;
+                // 제한 시간이 있는 봉이면 끈끈이 장갑으로 늘린다(Task-092). 무제한(0) 봉은 그대로.
+                float hold = poles[index].HoldSeconds;
+                if (hold > 0f) hold += (float)stickyGloves.Begin(actor, Clock, hold);
+                if (!runtime.State.TryGrab(actor, runtime.State.Revision, Clock, hold, poles[index].LinkedGate != null, seat)) return;
                 if (fromPlatform) { station = CannonFlightState.PoleEntrySource; launch = ++platformLaunch; segment = 0; }
                 if (runtime.State.Count == 1) runtime.Angle = runtime.Speed = 0f;
                 runtime.Riders[seat] = new Rider { LastInput = Clock, Station = station, Launch = launch, Segment = segment, JoinedRevision = runtime.State.Revision };
@@ -333,6 +341,7 @@ namespace CurtainCall.HumanCannon
             {
                 var runtime = states[i];
                 runtime.State.Reset(); runtime.Angle = runtime.Speed = 0f;
+                stickyGloves.Clear();
                 runtime.ResetRevision = runtime.State.Revision; runtime.LastDeparture.Clear();
                 for (int seat = 0; seat < runtime.Riders.Length; seat++) runtime.Riders[seat] = new Rider();
                 if (poles[i] != null) Publish(i, PoleEvent.Reset, CannonSeatState.Nobody);

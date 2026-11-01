@@ -179,6 +179,14 @@ namespace CurtainCall.WaitingRoom
 
         GameObject MakeView(ShopDelivery delivery)
         {
+            // 기물 모델이 있으면 바닥 기물과 같은 모델을 보인다(Task-092: 구매한 기물이 노란 상자로 보이던 문제). 없을 때만 임시 상자.
+            var artwork = CurtainCall.ItemArt.ItemVisualAssets.Create(delivery.ItemId);
+            if (artwork != null)
+            {
+                artwork.name = $"Delivery_{delivery.Order}_{delivery.ItemId}";
+                artwork.hideFlags = HideFlags.DontSave;
+                return artwork;
+            }
             var view = GameObject.CreatePrimitive(PrimitiveType.Cube);
             view.name = $"Delivery_{delivery.Order}_{delivery.ItemId}";
             Destroy(view.GetComponent<Collider>());
