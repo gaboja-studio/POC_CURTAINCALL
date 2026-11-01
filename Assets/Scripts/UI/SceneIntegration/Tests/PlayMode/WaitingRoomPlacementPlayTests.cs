@@ -39,7 +39,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     var at = target.transform.position + new Vector3(Mathf.Sin(angle), 0, Mathf.Cos(angle)) * distance; at.y = floor + .05f;
                     var overlaps = Physics.OverlapCapsule(at + Vector3.up * (radius + .03f), at + Vector3.up * (height - radius + .03f), radius * .95f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
                     if (overlaps.Any(c => c.GetComponentInParent(T("CurtainCall.Player.PlayerMover")) == null)) continue;
-                    float reach = (float)T("CurtainCall.WaitingRoom.ExplorationReach").GetMethod("From").Invoke(null, new object[] { visual, point, at, range, target.GetType() == T("CurtainCall.WaitingRoom.ExplorationGate") });
+                    float reach = (float)T("CurtainCall.WaitingRoom.ExplorationReach").GetMethod("From").Invoke(null, new object[] { visual, point, at, range, target.GetType() == T("CurtainCall.WaitingRoom.ExplorationGate"), false });
                     if (reach < 0) continue;
                     Call(mover, "SetStartPose", at, Quaternion.identity); return;
                 }

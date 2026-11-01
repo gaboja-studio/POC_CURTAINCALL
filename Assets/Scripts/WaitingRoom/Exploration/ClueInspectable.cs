@@ -41,10 +41,19 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("마우스 끌기 회전 속도(도/픽셀).")]
         [SerializeField, Min(.01f)] float rotateSpeed = .35f;
 
+        [Tooltip("오버뷰에서 돌려 봐야 보이는 새김 글자(위쪽 축이 새긴 면의 바깥 방향). 없으면 이 연출을 쓰지 않는다.")]
+        [SerializeField] Transform secretMark;
+
+        [Tooltip("새김 글자를 찾았을 때 설명에 더할 문구. 문구 파일의 target.<ID>.secret이 우선한다.")]
+        [SerializeField, TextArea] string secretText = "";
+
         public static event Action<ClueInspectable> Inspected;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() { Current = null; Inspected = null; }
+        static void ResetStatics() { Current = null; Inspected = null; SecretsSeen.Clear(); }
+
+        // 새김 글자는 찾은 플레이어 화면에만 남는다(2026-11-01 사용자: 공유하지 않음).
+        static readonly System.Collections.Generic.HashSet<string> SecretsSeen = new();
 
         /// <summary>지금 내 화면에서 보고 있는 단서(없으면 null).</summary>
         public static ClueInspectable Current { get; private set; }
@@ -70,19 +79,24 @@ namespace CurtainCall.WaitingRoom
         public string TargetId => targetId;
         public string ToolId => "";
         public string ToolName => "";
-        public string Label => title;
+        public string Label => Title;
         public string RewardItemId => "";
         public Vector3 RewardPoint => Body.position;
         public int RewardUidOffset => 0;
         public bool Resolve(int attemptNumber, System.Random rng) => true;
-        public string Describe(bool success, int attemptNumber) => WaitingRoomText.Format("clue.found", "{title} 발견", ("title", title));
+        public string Describe(bool success, int attemptNumber) => WaitingRoomText.Format("clue.found", "{title} 발견", ("title", Title));
         public bool IsOpen => Current == this;
-        public string Title => title;
+        public string Title => WaitingRoomText.Get("target." + targetId + ".name", title);
+        public string Description => WaitingRoomText.Get("target." + targetId + ".desc", description);
+        public bool HasSecret => secretMark != null;
+        /// <summary>내 화면에서 새김 글자를 찾았는가.</summary>
+        public bool SecretSeen => HasSecret && SecretsSeen.Contains(targetId);
+        public string SecretText => WaitingRoomText.Get("target." + targetId + ".secret", secretText);
 
         public Transform VisualRoot => Body;
         public Vector3 PresentationPoint => Body.position + Vector3.up * .25f;
         public bool IsAvailable => Revealed && Current == null;
-        public string ActionLabel => WaitingRoomText.Format("prompt.inspect-clue", "{title} 살펴보기", ("title", title));
+        public string ActionLabel => WaitingRoomText.Format("prompt.inspect-clue", "{title} 살펴보기", ("title", Title));
 
         Transform Body => body != null ? body : transform;
 
@@ -92,6 +106,10 @@ namespace CurtainCall.WaitingRoom
         bool inReach;
         int openedFrame;
         GUIStyle titleStyle, textStyle;
+        Transform secretCopy;
+        readonly System.Collections.Generic.List<Renderer> secretParts = new();
+        float secretHeld, secretFoundAt = -10f;
+        MaterialPropertyBlock secretBlock;
 
         void Awake()
         {
@@ -155,6 +173,43 @@ namespace CurtainCall.WaitingRoom
                 if (Mathf.Abs(scroll) > .01f) distance = Mathf.Clamp(distance - Mathf.Sign(scroll) * .06f, viewDistance.x, viewDistance.y);
             }
             view.localPosition = Vector3.Lerp(view.localPosition, new Vector3(0, 0, distance), 1 - Mathf.Exp(-Time.unscaledDeltaTime * 14f));
+            WatchSecret();
+        }
+
+        // 새김 글자 면을 화면 가운데에서 정면으로 잠깐 마주 보면 찾은 것으로 본다.
+        void WatchSecret()
+        {
+            if (secretCopy == null) return;
+            if (!SecretSeen)
+            {
+                var cam = view.parent; var point = secretCopy.position;
+                var vp = cam.GetComponent<Camera>() is { } c ? c.WorldToViewportPoint(point) : new Vector3(.5f, .5f, 1f);
+                bool facing = Vector3.Dot(secretCopy.up, (cam.position - point).normalized) > .8f;
+                bool centered = vp.z > 0 && vp.x > .2f && vp.x < .8f && vp.y > .2f && vp.y < .8f;
+                secretHeld = facing && centered ? secretHeld + Time.unscaledDeltaTime : 0f;
+                if (secretHeld >= .4f)
+                {
+                    SecretsSeen.Add(targetId); secretFoundAt = Time.unscaledTime;
+                    if (panelView != null) panelView.SetMessage(Message());
+                }
+            }
+            // 찾은 순간 밝게 번쩍인 뒤 은은하게 빛난다.
+            if (SecretSeen && secretParts.Count > 0)
+            {
+                float t = Time.unscaledTime - secretFoundAt;
+                float k = t < 1.2f ? Mathf.Lerp(3f, .6f, t / 1.2f) * (.75f + .25f * Mathf.Cos(t * 18f)) : .6f;
+                secretBlock ??= new MaterialPropertyBlock();
+                foreach (var r in secretParts) { if (r == null) continue; r.GetPropertyBlock(secretBlock); secretBlock.SetColor("_EmissionColor", SecretGlow * k); r.SetPropertyBlock(secretBlock); }
+            }
+        }
+
+        static readonly Color SecretGlow = new(1f, .82f, .35f);
+
+        string Message()
+        {
+            string text = Description;
+            if (SecretSeen && !string.IsNullOrEmpty(SecretText)) text = (string.IsNullOrEmpty(text) ? "" : text + "\n") + "<color=#FFD45A>" + SecretText + "</color>";
+            return (string.IsNullOrEmpty(text) ? "" : text + "\n") + WaitingRoomText.Get("clue.inspect-help", "왼쪽 끌기: 회전   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기");
         }
 
         /// <summary>내 화면에서만 오버뷰를 연다/닫는다.</summary>
@@ -172,14 +227,14 @@ namespace CurtainCall.WaitingRoom
                 blocker.SetOpen(true);
                 Inspected?.Invoke(this);
                 if (panelView == null) panelView = gameObject.AddComponent<ExplorationPanel>();
-                panelView.Open(title, description + "\n" + WaitingRoomText.Get("clue.inspect-help", "왼쪽 끌기: 회전   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기"), false, null, () => SetOpen(false), true);
+                panelView.Open(Title, Message(), false, null, () => SetOpen(false), true);
             }
             else
             {
                 if (Current == this) Current = null;
                 if (panelView != null) panelView.Hide();
                 if (view != null) Destroy(view.gameObject);
-                view = pivot = null;
+                view = pivot = secretCopy = null; secretParts.Clear(); secretHeld = 0f;
                 if (blocker != null) blocker.SetOpen(false);
             }
         }
@@ -197,7 +252,8 @@ namespace CurtainCall.WaitingRoom
             var copy = new GameObject("ClueCopy"); copy.transform.SetParent(pivot, false);
             foreach (var r in source.GetComponentsInChildren<MeshRenderer>())
             {
-                var mf = r.GetComponent<MeshFilter>(); if (mf == null || mf.sharedMesh == null) continue;
+                // 꺼 둔 받침판(벽 낙서 자리 등)은 빼고 그려진 그림만 보인다.
+                var mf = r.GetComponent<MeshFilter>(); if (!r.enabled || mf == null || mf.sharedMesh == null) continue;
                 var part = new GameObject(r.name).transform; part.SetParent(copy.transform, false);
                 part.localPosition = source.InverseTransformPoint(r.transform.position);
                 part.localRotation = Quaternion.Inverse(source.rotation) * r.transform.rotation;
@@ -206,6 +262,14 @@ namespace CurtainCall.WaitingRoom
                 part.gameObject.AddComponent<MeshFilter>().sharedMesh = mf.sharedMesh;
                 var pr = part.gameObject.AddComponent<MeshRenderer>(); pr.sharedMaterials = r.sharedMaterials;
                 pr.shadowCastingMode = ShadowCastingMode.Off; pr.receiveShadows = false;
+                if (secretMark != null && r.transform.IsChildOf(secretMark)) { pr.sharedMaterial = SecretMaterial(r.sharedMaterial); secretParts.Add(pr); }
+            }
+            if (secretMark != null)
+            {
+                // 새김 면의 중심·바깥 방향을 사본에 옮겨 둔다(시선 판정용).
+                secretCopy = new GameObject("SecretFace").transform; secretCopy.SetParent(copy.transform, false);
+                secretCopy.localPosition = source.InverseTransformPoint(secretMark.position);
+                secretCopy.localRotation = Quaternion.Inverse(source.rotation) * secretMark.rotation;
             }
             copy.transform.localRotation = Quaternion.Inverse(cam.rotation) * source.rotation;
             float scale = viewSize / Mathf.Max(.001f, Mathf.Max(bounds.size.x, Mathf.Max(bounds.size.y, bounds.size.z)));
@@ -225,6 +289,17 @@ namespace CurtainCall.WaitingRoom
         }
 
         static Material shade;
+        static readonly System.Collections.Generic.Dictionary<Material, Material> secretMaterials = new();
+
+        // 새김 글자 사본 재질: 원래 색 그대로, 찾았을 때만 발광색을 올린다.
+        static Material SecretMaterial(Material source)
+        {
+            if (source == null) return null;
+            if (secretMaterials.TryGetValue(source, out var m) && m != null) return m;
+            m = new Material(source) { name = "ClueSecret_" + source.name, hideFlags = HideFlags.DontSave };
+            m.EnableKeyword("_EMISSION"); m.SetColor("_EmissionColor", Color.black); m.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            return secretMaterials[source] = m;
+        }
 
         // 장면을 어둡게 가리는 반투명 막 재질(한 번만 만든다).
         static Material Shade()
@@ -242,9 +317,31 @@ namespace CurtainCall.WaitingRoom
 
         static Bounds Measure(Transform t)
         {
-            var rs = t.GetComponentsInChildren<Renderer>();
-            if (rs.Length == 0) return new Bounds(t.position, Vector3.one * .1f);
-            var b = rs[0].bounds; foreach (var r in rs) b.Encapsulate(r.bounds); return b;
+            Bounds? b = null;
+            foreach (var r in t.GetComponentsInChildren<Renderer>())
+                if (r.enabled) { if (b is { } x) { x.Encapsulate(r.bounds); b = x; } else b = r.bounds; }
+            return b ?? new Bounds(t.position, Vector3.one * .1f);
+        }
+
+        static Texture2D flashTexture;
+
+        // 가장자리가 진하고 가운데가 빈 금빛 테두리.
+        static void DrawFlash(float alpha)
+        {
+            if (flashTexture == null)
+            {
+                const int n = 64; flashTexture = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.DontSave };
+                for (int y = 0; y < n; y++) for (int x = 0; x < n; x++)
+                {
+                    float dx = Mathf.Abs(x / (n - 1f) - .5f) * 2f, dy = Mathf.Abs(y / (n - 1f) - .5f) * 2f;
+                    float edge = Mathf.Clamp01((Mathf.Max(dx, dy) - .55f) / .45f);
+                    flashTexture.SetPixel(x, y, new Color(SecretGlow.r, SecretGlow.g, SecretGlow.b, edge * edge));
+                }
+                flashTexture.Apply();
+            }
+            var old = GUI.color; GUI.color = new Color(1, 1, 1, Mathf.Clamp01(alpha) * .85f); GUI.depth = -100;
+            GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), flashTexture, ScaleMode.StretchToFill, true);
+            GUI.color = old;
         }
 
         static PlayerInputReader LocalReader()
@@ -259,9 +356,12 @@ namespace CurtainCall.WaitingRoom
             textStyle ??= new GUIStyle(GUI.skin.label) { fontSize = 15, alignment = TextAnchor.UpperCenter, wordWrap = true, normal = { textColor = new Color(.9f, .88f, .82f) } };
             if (IsOpen)
             {
+                // 새김 글자를 찾은 순간 화면 가장자리가 금빛으로 번쩍인다.
+                float flash = 1f - (Time.unscaledTime - secretFoundAt) / .8f;
+                if (flash > 0f) DrawFlash(flash);
                 if (panelView != null) return;
-                GUI.Label(new Rect(0, Screen.height * .08f, Screen.width, 36), title, titleStyle);
-                if (!string.IsNullOrEmpty(description)) GUI.Label(new Rect(Screen.width * .2f, Screen.height * .78f, Screen.width * .6f, 80), description, textStyle);
+                GUI.Label(new Rect(0, Screen.height * .08f, Screen.width, 36), Title, titleStyle);
+                if (!string.IsNullOrEmpty(Description)) GUI.Label(new Rect(Screen.width * .2f, Screen.height * .78f, Screen.width * .6f, 80), Description, textStyle);
                 GUI.Label(new Rect(0, Screen.height - 40, Screen.width, 28), "왼쪽 끌기: 돌려 보기   휠: 확대/축소   ESC·F·오른쪽 클릭: 내려놓기", textStyle);
                 return;
             }

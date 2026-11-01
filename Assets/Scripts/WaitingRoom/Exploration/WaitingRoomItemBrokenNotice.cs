@@ -39,7 +39,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (instance == null) Boot();
             var title = WaitingRoomText.Format("notice.item-broken-title", "{item}", ("item", item));
-            var body = WaitingRoomText.Format("notice.item-broken", "기물이 파괴되었습니다.", ("item", item));
+            var body = WaitingRoomText.Format("notice.item-broken", "{item:이} 파괴되었습니다.", ("item", item));
             // 같은 문구로 연달아 와도 시간은 새로 센다.
             instance.panel.Hide();
             if (instance.panel.Show(title, body)) instance.hideAt = Time.unscaledTime + Seconds;

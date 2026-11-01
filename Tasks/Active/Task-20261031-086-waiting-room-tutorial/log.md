@@ -59,3 +59,41 @@
   검사: 컴파일 PASS, EditMode WaitingRoom 103/103, PlayMode W5_ 5/5(W5_DebugEscapeKeysOpenEscapeRoute 신규). 스케줄표 숨김 테스트 첫 실패 원인은 테스트 캐릭터가 멀어 표가 자동으로 닫힌 것(진단 후 테스트 수정). 사람 플레이 미확인.
 
 - 2026-10-31 동료 세션 튜토리얼 흐름 변경(연계 G01·G11 / N02·N04·N03, N01 오른쪽 패널, 연계 우선) 뒤 재검사: PlayMode M2_NightPowerGatesAndBedWake 1/1, W3_BedRestCamera 1/1 PASS.
+- 2026-11-01 사용자: 상자·문·벽 등 씬에 저장된 탐색 대상 이름도 문구 파일에서 고치게 해 달라 → WaitingRoomTexts.txt 맨 아래 "탐색 대상 이름" 구역(target.<targetId>.name 44줄, 단서 .desc, 모니터 .text). ExplorationGate·ToolTarget·BreakableWall·ClueInspectable·UvMark의 Label/Title이 파일 값을 먼저 쓰고 없으면 씬 값. 키는 씬 targetId(모두 고유, dev 씬과 목록 동일). 벽 표지판·CCTV·공연 이름은 여전히 인스펙터. 새 테스트 TargetKeysMatchSceneTargets(씬에 없는 id·잘못된 끝말 검출). 검사: 컴파일 PASS, EditMode Exploration 31/31. origin/dev 병합은 Unity 에디터가 켜져 있어 미진행. 사람 플레이 미확인.
+- 2026-11-01 사용자 문구 수정(대상 이름 등) 반영 확인, WaitingRoomTextTests 5/5. 사용자: 도구 없을 때 도구 이름 대신 힌트 → ExplorationTargets.Hint(target.<id>.hint → item.<도구 id>.hint → "알맞은 도구가 필요할 것 같다", 힌트 안 {tool} 사용 가능). tool.needs-tool·wall.needs-tool·explore.need-tool이 {hint}를 씀. 힌트 초안 3줄(머리핀·말뚝 뽑개·UV 등). 사용자: notice.item-broken 본문에 {item} 허용 → 기본 "{item:이} 파괴되었습니다.". 검사: 컴파일 PASS, EditMode Exploration 31/31. 사람 플레이 미확인.
+- 2026-11-01 사용자 요청 수정 문구 캡처(임시 PlayMode TempCapture_EditedTexts, 캡처 후 삭제, .harness/local/text-capture). 확인: 트렁크 [F] 힌트(말줄임으로 잘림), 맞지 않는 도구 힌트 토스트, 파괴 알림 "천막 말뚝 뽑개가 파괴되었습니다"(본문 2줄 줄바꿈), 압수된 노트 안내·설명. 못 찍음: 녹슨 벽·캐비넷 2·찢겨진 노트 낱장(자동 자리 찾기 실패, 벽은 Focused여도 안내 가림 판정 통과 자리 없음 → 플레이 확인 필요).
+- 2026-11-01 사용자: [F] 안내 박스에서 긴 힌트가 말줄임으로 잘림 → "박스에 다 보이게". NotificationTextLayout(상호작용 안내만)이 문구 한 줄 폭에 맞춰 박스를 넓히고(기본 384~최대 640), 그래도 넘치면 3줄까지 줄바꿈(기존 2줄). 알림·배너는 그대로 2줄. 외부 패키지(_ThirdParty InteractionPromptView)는 수정 안 함. 테스트 InteractionReappliesTwoLines… → InteractionWidensForLongTextWrapsToThreeLinesAndRestoresShortSize로 교체. 검사: 컴파일 PASS, EditMode NotificationTextLayoutTests 3/3, 임시 PlayMode 캡처로 트렁크 안내 2줄 전체 표시 확인(임시 테스트 삭제). 다른 화면(로비·공연)의 [F] 안내도 같은 규칙이 적용됨, 사람 확인 필요.
+- 2026-11-01 사용자 지적: UV 등 힌트는 나올 상황이 없음 → 확인(UvMark는 [F] 대상이 아니고 UV 빛이 비출 때만 발견 요청, uv-lamp를 요구하는 관문 없음). 사용자 문구 "희미한 얼룩이 보인다."는 지우지 않고 주석(#)으로 보존.
+- 2026-11-01 origin/dev 병합(빠른 진행, 0fafe124 #255까지) + _ThirdParty 하위 저장소 149108fa로 갱신. 병합을 막던 에디터 자동 저장분(CommonButtons·CheerGauge Pretendard 폰트 글자표, escape-labels 텍스처 1×1로 비워짐)은 지우지 않고 stash 2개로 보관. 검사: check-work 문서/규칙 FAIL(Task-079 log.md 138줄 hard 한도, 이번 변경과 무관) → 컴파일·테스트 SKIPPED. verify-unity 단독 실행은 ENV_BLOCKED(에디터 닫힘). Unity 다시 열고 컴파일 확인 필요.
+- 2026-11-01 dev 병합 후 검증: 컴파일 오류 0(up_to_date), EditMode WaitingRoom.Exploration 31/31 PASS, NotificationTextLayoutTests 3/3 PASS. 벽 [F] 표시·파괴 알림 줄바꿈은 사람 플레이 확인 남음.
+- 2026-11-01 origin/dev 2차 병합(빠른 진행, b723ca79 #257까지: #256 아이템 아트·상호작용, #257 혈흔 연출). 작업 변경은 stash로 보관 후 다시 적용. ExplorationGate.ActionLabel 충돌: dev의 "맞는 열쇠를 선택하세요" 줄 유지 + 이름은 Label(텍스트 파일)로 통일. 보관 stash는 남겨 둠. 컴파일·테스트는 Unity 재실행 후 확인 필요.
+- 2026-11-01 2차 병합 후 검증: 컴파일 오류 0(up_to_date), EditMode WaitingRoom.Exploration 31/31 PASS, NotificationTextLayoutTests 3/3 PASS. 열쇠 안내(Label 통일) 화면 확인은 플레이로 남음.
+- 2026-11-01 숨은 단서·녹슨 벽·배관함 피드백 반영(미커밋).
+  - UV 단서: UvMark 겉판(얼룩·철판) 렌더러 숨김, 오버뷰로 보는 단서는 빛이 꺼져도 닫을 때까지 유지(UvMark.SetMarks). ClueInspectable 오버뷰·크기는 꺼진 렌더러 제외.
+  - 낙서: 받침판 없이 벽에 직접 그림(StructureAPropShapes.Document). 낙서1 세모·2 네모·3 동그라미·4 X, UV1 화살표(녹슨 벽 쪽)+X, 앞자리 "12", 숨은 낙서3 캐비넷+"3". 화장실 UvArrow/UvCross 판은 marks에서 뺌.
+  - 화장실 녹슨 벽(StructureAHiddenDetailPass): 옆 벽 UV 규칙으로 타일 무늬 이음+같은 평면, 튀어나온 문틀 철판(DoorReveal) 숨김, 외곽선 끔(IShopOutlineOptional), 조각 들뜸 끔(loosenPieces), 바닥 문턱 내림, 벽 전체 진한 녹, 서 있는 동안 실금+타격마다 거미줄 금 5단계(LA_RestroomBreachCracks.asset).
+  - 배관함: 철창 제거, 스테인리스 문(테두리·검은 세로 손잡이·경첩)이 키패드를 가림, 문 조각은 무너질 때 같이 쏟아짐.
+  - 탐색 배치물 다듬기: 상자 뚜껑 이음새, 캐비넷 문 테두리, 강철 상자 모서리 철판.
+  - 버그 "손이 가득 찼습니다" 미출력: 원인 = 배송구 수령(WaitingRoomShop)·열쇠 줍기(ExplorationState)의 기물 거절이 토스트로 안 이어짐. CommonWaitingRoomUI가 두 채널의 기물 거절 문구(PropCarry.IsRefusalText)도 토스트로 띄움, 튜토리얼 S03도 열쇠 경로 감지. 실제 플레이 확인은 안 함.
+  - 버그 선반 근처 애니메이션 반복: 재현 실패. 말뚝 뽑개를 든 채 선반 3.2m→0.7m 접근·9초 정지(튜토리얼 켬/끔, N04 클로즈업 포함) 동안 Idle·ItemHold 재시작 없음. 실제 걷기 입력·부상 단계·기물 종류 등 재현 조건 필요.
+  - 검사: 컴파일 PASS, EditMode WaitingRoom 31/31 PASS, PlayMode M2_Confirmed 3/3·M2_CrowbarBreaks 1/1·M2_Placement_LobbyUv 1/1 PASS. M2_Placement 3개 FAIL(탈출문 ConditionsMet·열쇠2 획득·서랍 내구도 — 이번 변경과 무관해 보임, 그동안 ExplorationReach.From 인자 수 불일치로 실행 자체가 안 되던 테스트. 도우미 인자만 맞춤. 변경 전 상태로 돌려 비교하지는 않음).
+
+## 2026-11-01 폐기물 보관소 숨은 단서 이름
+
+- 문제: 폐기물 보관소 UV 단서(passwordPrefixClue)가 벽 그림 "12"인데 이름이 "찢겨진 노트 낱장"으로 나왔다.
+- 원인: 텍스트 외부화 때 기획서 폐기물 보관소 목록의 "탈출 힌트가 적힌 찢겨진 노트 낱장"을 이 단서에 붙였다. 숨은 단서를 낙서 그림으로 바꾼 뒤 문구가 남았다.
+- 수정: WaitingRoomTexts.txt 이름 "숨겨진 단서 2", 설명 `벽에 "12"라는 숫자가 그려져 있다.` (숨겨진 단서 1·3과 이름 규칙 맞춤).
+- 확인: 에디터 재임포트 후 문구 반영 확인. 플레이 확인 안 함.
+
+## 2026-11-01 단서 새김 글자 연출 (압수된 노트 "34")
+
+- 사용자 결정: 압수된 노트 설명에서 34를 지우고 뒷면에 "34"를 새긴다. 오버뷰에서 그 면을 보면 화면이 강조되고 `노트 구석에 "34"라는 숫자가 새겨져 있다.` 출력. 찾은 플레이어 화면에만(공유 안 함). 다른 단서의 새김 내용은 나중에 정한다. 공연 기록은 텍스트 노트 오버뷰, 지도는 탑다운 지도 오브젝트 제작 뒤 교체 예정.
+- 구현:
+  - `ClueInspectable`: 선택 필드 `secretMark`(위쪽 축 = 새긴 면 바깥), `secretText`. 문구 키 `target.<id>.secret`이 우선. 오버뷰에서 새김 면이 카메라를 정면(내적 > .8)으로, 화면 가운데 60% 안에서 0.4초 유지되면 찾음. 금빛 화면 테두리 번쩍임(0.8초) + 새김 글자 발광(번쩍인 뒤 은은하게 유지) + 설명란에 금색 문구 추가. 찾은 상태는 이 화면에서 정적 집합으로 기억(다시 열어도 유지, 게임 재시작 시 초기화).
+  - `StructureAPropShapes.Secret`: 압수된 노트 아래면 구석에 "34" 획을 만들고 secretMark·secretText를 연결, 씬 description을 비움. 생성기 재실행·씬 저장.
+  - WaitingRoomTexts.txt: `confiscated-notebook.desc` 제거, `.secret` 추가. 문구 테스트가 `secret` 끝말을 허용.
+- 검사: 컴파일 PASS. EditMode WaitingRoom 108/108. PlayMode M2_Confirmed 4/4(새 테스트 `M2_Confirmed_NotebookBackEngravingRevealsHintWhenFaced` 포함). 첫 묶음 실행에서 UV 테스트가 우클릭 입력을 못 받아 1회 실패, 단독·재실행 모두 통과(입력 타이밍 흔들림으로 판단).
+- 캡처: `.harness/local/visual/10-notebook-secret.png`.
+- 사람 확인 필요: 실제 마우스로 돌려 찾기 난이도(판정 각도·시간), 번쩍임 세기.
+
+- 2026-11-01 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
