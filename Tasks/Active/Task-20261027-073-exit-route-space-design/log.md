@@ -2,6 +2,8 @@
 
 ## 2026-11-01 저장·제출 요청
 - 기존65파일 SHA256 백업/A 저장·정상종료 후 origin/dev b723ca79 최신 포함 확인. 누적 A 레벨/유동 인원/시점·HUD 변경을 함께 제출하며 대기실 씬 변경0,private 변경0. doctor 동일 Task 결과/기존 HUD16·물리115·집결26 검사 재사용,실제 MPPM 재검증은 남겨둔다.
+- 안전성/문서·규칙/컴파일 PASS·기존 선별 테스트 재사용. f4e7ac9a 커밋/push 완료. 제출 스크립트의 기존 다중 슬래시 브랜치 거부와 GitHub connector403은 우회 없이 gh 로그인 계정 직접 PR 등록으로 처리,도구/브랜치명 변경 없음.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/259 (feat/exit-route/design-map → dev). 팀원 검토 대기,병합/실제 Play/MPPM 미실행. 이 제출 기록은 별도 문서 커밋으로 저장한다.
 
 ## 2026-11-01 중앙 조준점·절단 좌우
 - 기존65파일 SHA256 백업·저장/Unity 종료 후 origin/dev b723ca79 최신 포함 확인,같은 Task doctor 재사용.
