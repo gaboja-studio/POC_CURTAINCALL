@@ -19,9 +19,9 @@ namespace CurtainCall.WaitingRoom
     /// 런 동안 남도록 씬이 바뀌어도 유지된다(DontDestroyOnLoad, 씬 최상위에 둔다). 표시·HUD·한도 초과 떨어뜨리기는 대기실 씬이 열려 있을 때만 한다.
     /// 탈출로 리타이어 때 소실은 이 범위 밖이다.
     /// </summary>
-    public sealed class PropCarry : MonoBehaviour
+    public sealed partial class PropCarry : MonoBehaviour
     {
-        const int SyncRequest = 0, DropRequest = 1, PickUpRequest = 2, ShelfRequest = 3, SelectRequest = 4;
+        const int SyncRequest = 0, DropRequest = 1, PickUpRequest = 2, ShelfRequest = 3, SelectRequest = 4, EquipmentRequest = 5;
 
         [Tooltip("바닥에 동시에 둘 수 있는 기물 수(메시지 크기 보호용 임시값).")]
         [SerializeField, Min(1)] int floorCapacity = 32;
@@ -44,6 +44,37 @@ namespace CurtainCall.WaitingRoom
         ItemCarryBook book;
         ShopChannel channel;
         int seenGeneration;
+
+        public sealed class DevSnapshot
+        {
+            internal readonly Dictionary<ulong, List<PropItem>> Held = new();
+            internal readonly List<FloorProp> Floor = new();
+            internal readonly List<PropItem> Shelf = new();
+            internal readonly Dictionary<ulong, int> Selected = new();
+        }
+
+        public DevSnapshot CaptureDevSnapshot()
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority) return null;
+            var snapshot = new DevSnapshot();
+            foreach (var id in book.Players) snapshot.Held[id] = new List<PropItem>(book.Held(id));
+            snapshot.Floor.AddRange(book.Floor); snapshot.Shelf.AddRange(book.Shelf);
+            foreach (var entry in selected) snapshot.Selected[entry.Key] = entry.Value;
+            return snapshot;
+        }
+
+        public void RestoreDevSnapshot(DevSnapshot snapshot, int generation)
+        {
+            if (!CurtainCall.Dev.DevMode.Enabled || !HasAuthority || snapshot == null) return;
+            book.Clear();
+            foreach (var entry in snapshot.Held)
+                foreach (var item in entry.Value) book.Take(entry.Key, int.MaxValue, item);
+            foreach (var item in snapshot.Floor) book.Place(item.Item, item.X, item.Y, item.Z);
+            book.LoadShelf(snapshot.Shelf);
+            selected.Clear(); foreach (var entry in snapshot.Selected) selected[entry.Key] = entry.Value;
+            seenGeneration = generation;
+            Publish();
+        }
 
         /// <summary>바닥에 놓인 기물(모든 화면).</summary>
         public IReadOnlyList<FloorProp> Floor => HasAuthority ? book.Floor : receivedFloor;
@@ -92,15 +123,51 @@ namespace CurtainCall.WaitingRoom
         /// <summary>신체 상태와 관계없이 지닐 수 있는 개수.</summary>
         public int Slots(ulong player) => SurvivalRules.ItemSlots();
 
-        // UID selection survives list shifts and is replicated with the carry snapshot.
+        /// <summary>
+        /// 1·2로 고른 칸(도구 또는 장비). 고르지 않았거나 집어넣었으면 빈 값. F 길게(버리기)·가판대 대상이다.
+        /// 선택은 UID로 저장해 목록이 밀려도 유지되고 소지 상태와 함께 공유된다.
+        /// 2026-11-01 사용자: 아무것도 고르지 않았을 때 마지막 기물을 고른 것으로 보던 처리는 없앤다.
+        /// </summary>
         public PropItem Selected(ulong player)
+        {
+            if (!selected.TryGetValue(player, out int uid) || uid <= 0) return default;
+            var items = Held(player);
+            int limit = Mathf.Min(items.Count, Slots(player));
+            for (int i = 0; i < limit; i++) if (items[i].Uid == uid) return items[i];
+            return default;
+        }
+
+        /// <summary>
+        /// 손에 든 기물. 고른 칸이 도구일 때만 손에 든다(기물 시스템 31784961: 도구는 손에 들어 사용, 장비는 슬롯에서 자동 적용).
+        /// 탐색 대상 사용·열쇠·손 외형은 이 값을 쓴다.
+        /// </summary>
+        public PropItem InHand(ulong player)
+        {
+            var item = Selected(player);
+            return item.Uid != 0 && IsHoldable(item.ItemId) ? item : default;
+        }
+
+        /// <summary>손에 들 수 있는 기물(도구)인가. 장비·오브제는 손에 들지 않는다.</summary>
+        public static bool IsHoldable(string itemId) => ItemCatalog.Get(itemId)?.kind == ItemKind.Tool;
+
+        /// <summary>
+        /// 이 플레이어가 지닌 장비 중 이 ID의 첫 번째(남은 횟수가 있는 것). 장비는 고르지 않아도 슬롯에 있으면 자동 적용한다.
+        /// 없으면 빈 값. 모든 화면에서 읽을 수 있다(참가자 화면은 공유받은 소지 상태).
+        /// </summary>
+        public PropItem Equipped(ulong player, string itemId)
         {
             var items = Held(player);
             int limit = Mathf.Min(items.Count, Slots(player));
-            if (selected.TryGetValue(player, out int uid) && uid < 0) return default; // Explicitly stowed.
-            if (selected.TryGetValue(player, out uid))
-                for (int i = 0; i < limit; i++) if (items[i].Uid == uid) return items[i];
-            return limit > 0 ? items[limit - 1] : default;
+            for (int i = 0; i < limit; i++)
+                if (items[i].ItemId == itemId && items[i].Uses != 0) return items[i];
+            return default;
+        }
+
+        /// <summary>빈손일 때 새로 받은 도구를 바로 손에 든다(2026-11-01 사용자). 장비는 슬롯에만 넣는다.</summary>
+        void AutoHold(ulong player, PropItem item)
+        {
+            if (item.Uid == 0 || !IsHoldable(item.ItemId) || InHand(player).Uid != 0 || IsDead(player)) return;
+            selected[player] = item.Uid;
         }
 
         public void RequestSelectSlot(int index)
@@ -133,7 +200,7 @@ namespace CurtainCall.WaitingRoom
             Instance = this;
             if (transform.parent == null) DontDestroyOnLoad(gameObject);
             else Debug.LogWarning("[Carry] 기물 소지는 씬 최상위 오브젝트에 둬야 장소 전환 뒤에도 남습니다.", this);
-            book = new ItemCarryBook(floorCapacity);
+            book = new ItemCarryBook(floorCapacity) { Carryable = item => ItemCatalog.Get(item.ItemId)?.kind != ItemKind.Object };
             channel = new ShopChannel("CurtainCall.WaitingRoom.Carry", HandleRequest, HandleState, HandleResult, HandleReset,
                 () => channel.Request(JsonUtility.ToJson(new RequestData { kind = SyncRequest })));
         }
@@ -212,7 +279,8 @@ namespace CurtainCall.WaitingRoom
         public static string Explain(CarryRefusal refusal) => refusal switch
         {
             CarryRefusal.HandsFull => WaitingRoomText.Get("carry.hands-full", "손이 가득 찼습니다. F 길게로 내려놓은 뒤 받으세요."),
-            CarryRefusal.NothingHeld => WaitingRoomText.Get("carry.nothing-held", "들고 있는 기물이 없습니다."),
+            CarryRefusal.NothingHeld => WaitingRoomText.Get("carry.nothing-held", "고른 기물이 없습니다. 1·2로 칸을 고르세요."),
+            CarryRefusal.NotCarryable => WaitingRoomText.Get("carry.not-carryable", "오브제는 슬롯에 넣을 수 없습니다."),
             CarryRefusal.FloorFull => WaitingRoomText.Get("carry.floor-full", "바닥에 더 놓을 수 없습니다."),
             CarryRefusal.ShelfFull => WaitingRoomText.Get("carry.shelf-full", "선반 4칸이 모두 찼고 손에도 자리가 없습니다."),
             CarryRefusal.ShelfEmpty => WaitingRoomText.Get("carry.shelf-empty", "선반이 비어 있습니다. 기물을 들고 오세요."),
@@ -229,7 +297,7 @@ namespace CurtainCall.WaitingRoom
         public CarryRefusal Receive(ulong player, PropItem item)
         {
             var refusal = book.Take(player, Slots(player), item);
-            if (refusal == CarryRefusal.None) Publish();
+            if (refusal == CarryRefusal.None) { AutoHold(player, item); Publish(); }
             return refusal;
         }
 
@@ -287,6 +355,7 @@ namespace CurtainCall.WaitingRoom
             var refusal = book.PickUp(uid, player, Slots(player), out var item);
             if (refusal != CarryRefusal.None) return Reject(player, "PICK_UP", uid, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 주움 #{item.Uid} {item.Name} → {WaitingRoomShop.PlayerLabel(player)}");
+            AutoHold(player, item);
             Publish();
             return (true, WaitingRoomText.Format("carry.picked", "{item:을} 주웠습니다.", ("item", item.Name)));
         }
@@ -297,9 +366,14 @@ namespace CurtainCall.WaitingRoom
             var body = FindBody(player);
             if (body == null || !HandoverShelfView.CanUse(body.position))
                 return Reject(player, "SHELF", Selected(player).Uid, "TOO_FAR", "선반 앞에 가까이 다가가세요.");
-            var refusal = book.UseShelf(player, Slots(player), out int slot, out bool placed, out var item, Selected(player).Uid == 0 ? -1 : Selected(player).Uid);
-            if (refusal != CarryRefusal.None) return Reject(player, "SHELF", Selected(player).Uid, "CARRY_" + refusal, Explain(refusal));
+            // 고른 칸이 있으면 올리고, 없으면 꺼낸다. 고르지 않은 채 빈 가판대 앞이면 고르라고 안내한다.
+            int chosen = Selected(player).Uid;
+            if (chosen == 0 && book.Count(player) > 0 && !System.Linq.Enumerable.Any(book.Shelf, s => !ItemCarryBook.IsEmpty(s)))
+                return Reject(player, "SHELF", 0, "CARRY_NothingHeld", Explain(CarryRefusal.NothingHeld));
+            var refusal = book.UseShelf(player, Slots(player), out int slot, out bool placed, out var item, chosen == 0 ? -1 : chosen);
+            if (refusal != CarryRefusal.None) return Reject(player, "SHELF", chosen, "CARRY_" + refusal, Explain(refusal));
             Debug.Log($"[Carry] 선반 {slot + 1}칸 {(placed ? "올림" : "꺼냄")} #{item.Uid} {item.Name} — {WaitingRoomShop.PlayerLabel(player)}");
+            if (!placed) AutoHold(player, item);
             Publish();
             return (true, placed
                 ? WaitingRoomText.Format("carry.shelf-placed", "{item:을} 선반 {n}칸에 올렸습니다.", ("item", item.Name), ("n", slot + 1))
@@ -336,7 +410,7 @@ namespace CurtainCall.WaitingRoom
 
         void Publish()
         {
-            channel.SendState(JsonUtility.ToJson(StateData.From(book, selected)));
+            channel.SendState(JsonUtility.ToJson(StateData.From(book, selected, CooldownsOf)));
             Changed?.Invoke();
         }
 
@@ -392,11 +466,12 @@ namespace CurtainCall.WaitingRoom
             if (request == null) return;
             switch (request.kind)
             {
-                case SyncRequest: channel.SendState(JsonUtility.ToJson(StateData.From(book, selected)), sender); break;
+                case SyncRequest: channel.SendState(JsonUtility.ToJson(StateData.From(book, selected, CooldownsOf)), sender); break;
                 case DropRequest: Answer(sender, Drop(sender)); break;
                 case PickUpRequest: Answer(sender, PickUp(request.uid, sender)); break;
                 case SelectRequest: Select(sender, request.uid); break;
                 case ShelfRequest: Answer(sender, UseShelf(sender)); break;
+                case EquipmentRequest: HandleEquipmentReport(sender, request.item); break;
             }
         }
 
@@ -413,6 +488,7 @@ namespace CurtainCall.WaitingRoom
                 receivedHeld[p.client] = list;
                 selected[p.client] = p.selectedUid;
             }
+            ReadCooldowns(state.players);
             receivedFloor.Clear();
             foreach (var f in state.floor ?? Array.Empty<FloorData>()) receivedFloor.Add(new FloorProp(f.item.Read(), f.x, f.y, f.z));
             Array.Clear(receivedShelf, 0, receivedShelf.Length);
@@ -424,17 +500,17 @@ namespace CurtainCall.WaitingRoom
         void HandleResult(string json)
         {
             var result = JsonUtility.FromJson<ResultData>(json);
-            if (result != null)
-            {
-                LastMessage = result.text;
-                RequestAnswered?.Invoke(LastMessage);
-            }
+            if (result == null) return;
+            if (!string.IsNullOrEmpty(result.noticeItem)) { ShowItemNotice(result.noticeItem, result.noticeCue, result.noticeBroken); return; }
+            LastMessage = result.text;
+            RequestAnswered?.Invoke(LastMessage);
         }
 
         void HandleReset()
         {
             book.Clear();
             selected.Clear();
+            cooldownUntil.Clear();
             receivedHeld.Clear();
             receivedFloor.Clear();
             Array.Clear(receivedShelf, 0, receivedShelf.Length);
@@ -443,8 +519,9 @@ namespace CurtainCall.WaitingRoom
             Changed?.Invoke();
         }
 
-        [Serializable] sealed class RequestData { public int kind; public int uid; }
-        [Serializable] sealed class ResultData { public bool ok; public string text; }
+        [Serializable] sealed class RequestData { public int kind; public int uid; public string item; }
+        // notice*: 공연용 장비 발동·파괴 알림(요청 결과가 아니다). noticeItem이 비어 있으면 일반 결과.
+        [Serializable] sealed class ResultData { public bool ok; public string text; public string noticeItem; public string noticeCue; public bool noticeBroken; }
 
         [Serializable]
         sealed class ItemData
@@ -454,7 +531,9 @@ namespace CurtainCall.WaitingRoom
             public static ItemData From(PropItem i) => new() { uid = i.Uid, id = i.ItemId, name = i.Name, uses = i.Uses };
         }
 
-        [Serializable] sealed class PlayerData { public ulong client; public int selectedUid; public ItemData[] held; }
+        [Serializable] sealed class PlayerData { public ulong client; public int selectedUid; public ItemData[] held; public CooldownData[] cooldowns; }
+        /// <summary>장비 쿨타임 남은 초(보낸 순간 기준).</summary>
+        [Serializable] sealed class CooldownData { public string id; public float left; }
         [Serializable] sealed class FloorData { public ItemData item; public float x, y, z; }
 
         [Serializable]
@@ -465,7 +544,7 @@ namespace CurtainCall.WaitingRoom
             public FloorData[] floor;
             public ItemData[] shelf;
 
-            public static StateData From(ItemCarryBook book, Dictionary<ulong, int> selected)
+            public static StateData From(ItemCarryBook book, Dictionary<ulong, int> selected, Func<ulong, CooldownData[]> cooldowns = null)
             {
                 var players = new List<PlayerData>();
                 foreach (ulong client in book.Players)
@@ -473,7 +552,8 @@ namespace CurtainCall.WaitingRoom
                     var held = book.Held(client);
                     var items = new ItemData[held.Count];
                     for (int i = 0; i < items.Length; i++) items[i] = ItemData.From(held[i]);
-                    players.Add(new PlayerData { client = client, selectedUid = selected.TryGetValue(client, out int uid) ? uid : 0, held = items });
+                    players.Add(new PlayerData { client = client, selectedUid = selected.TryGetValue(client, out int uid) ? uid : 0, held = items,
+                        cooldowns = cooldowns?.Invoke(client) ?? Array.Empty<CooldownData>() });
                 }
                 var floor = new FloorData[book.Floor.Count];
                 for (int i = 0; i < floor.Length; i++)

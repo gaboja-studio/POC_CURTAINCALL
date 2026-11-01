@@ -110,6 +110,7 @@ namespace CurtainCall.HumanCannon
 
         internal void Launch(int index, uint revision, Vector3 position, Quaternion rotation, Vector3 launchVelocity)
         {
+            FinishBalloonPants();
             airControl.Clear();
             steerPoleMomentum = false;
             TakeMovement();
@@ -143,7 +144,8 @@ namespace CurtainCall.HumanCannon
         {
             if (!MatchesFlight(index, revision, segment)) return;
             flightSegment++;
-            awaitingBounce = rejectedSurface = false;
+            // 스프링 신발은 바닥 착지 요청 뒤에 반동한다(Task-092). 착지 대기도 풀어야 비행이 이어진다.
+            awaitingBounce = awaitingLanding = rejectedSurface = false;
             // 반동은 자동 전진 관성만 없앤다. WASD 보정은 누르는 동안 계속 적용한다.
             velocity = Vector3.up * upwardSpeed;
             steerPoleMomentum = false;
@@ -189,6 +191,7 @@ namespace CurtainCall.HumanCannon
 
         internal void ReleaseMovement()
         {
+            FinishBalloonPants();
             airControl.Clear();
             if (mover != null && IsDriving)
             {
@@ -225,6 +228,7 @@ namespace CurtainCall.HumanCannon
 
         void SimulateFlight()
         {
+            WatchBalloonPantsEnd();
             if (IsHoldingPole) return;
             if (awaitingBounce && HumanCannonTrampoline.Current == null)
             {
@@ -249,6 +253,7 @@ namespace CurtainCall.HumanCannon
             Vector3 wind = HumanCannonHazardCourse.Current != null
                 ? HumanCannonHazardCourse.Current.WindVelocity(transform.position, mover.BodyHeight, true) : Vector3.zero;
             Vector3 displacement = BallisticMotion.Step(ref velocity, correction + wind, gravity, dt);
+            displacement = ApplyBalloonPants(displacement);
             if (HumanCannonPoleSystem.Current != null)
                 displacement = HumanCannonPoleSystem.Current.ConstrainFlight(transform.position, displacement, mover.BodyRadius);
             var trampoline = HumanCannonTrampoline.Current;

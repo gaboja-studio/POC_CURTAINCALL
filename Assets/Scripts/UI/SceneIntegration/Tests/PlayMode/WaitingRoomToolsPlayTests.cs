@@ -38,7 +38,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(.25f);
                 Call(carry, "RequestPickUp", (int)Get(Get(prop, "Item"), "Uid"));
                 yield return null;
-                Assert.AreEqual(id, Get(Call(carry, "Selected", me), "ItemId"), id + " 을(를) 손에 든다");
+                var held = ((IEnumerable)Call(carry, "Held", me)).Cast<object>().ToList();
+                int slot = held.FindIndex(o => (string)Get(o, "ItemId") == id);
+                Assert.GreaterOrEqual(slot, 0, id + " 을(를) 슬롯에 넣는다. 소지: " + string.Join(", ", held.Select(o => Get(o, "ItemId") + "#" + Get(o, "Uid") + "x" + Get(o, "Uses"))) + " / " + Get(carry, "LastMessage"));
+                // Task-092: 도구는 1·2로 꺼내 손에 든다(빈손이면 자동). 장비(UV 등)는 손에 들지 않고 슬롯에서 자동 적용.
+                bool tool = (bool)T("CurtainCall.WaitingRoom.PropCarry").GetMethod("IsHoldable").Invoke(null, new object[] { id });
+                if (!tool) yield break;
+                if ((string)Get(Call(carry, "InHand", me), "ItemId") != id) { Call(carry, "RequestSelectSlot", slot); yield return null; }
+                Assert.AreEqual(id, Get(Call(carry, "InHand", me), "ItemId"), id + " 을(를) 손에 든다");
             }
             IEnumerator Approach(Component target)
             {
@@ -49,7 +56,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 
             // 1) 빠루 → 판자 상자. 한 번에 열리고 그때 1 소모, 머리핀이 나온다.
             yield return PickUp("stake-puller");
-            int crowbarUses = (int)Get(Call(carry, "Selected", me), "Uses");
+            int crowbarUses = (int)Get(Call(carry, "InHand", me), "Uses");
             yield return Approach(crate);
             Call(crate, "Interact"); yield return new WaitForSecondsRealtime(.3f);
             Assert.AreEqual(true, Call(state, "IsOpen", "trial-boarded-crate"));
@@ -58,7 +65,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 
             // 2) 머리핀 → 트렁크. 실패는 소모 없이 시도 수만 쌓이고, 세 번째 시도는 반드시 열린다.
             yield return PickUp("magician-hairpin");
-            int pinUses = (int)Get(Call(carry, "Selected", me), "Uses");
+            int pinUses = (int)Get(Call(carry, "InHand", me), "Uses");
             yield return Approach(trunk);
             int tries = 0;
             while (!(bool)Call(state, "IsOpen", "structure-a:locked-box-1") && tries < 3)
@@ -66,14 +73,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Call(trunk, "Interact"); tries++;
                 yield return new WaitForSecondsRealtime(.15f);
                 if (!(bool)Call(state, "IsOpen", "structure-a:locked-box-1"))
-                    Assert.AreEqual(pinUses, Get(Call(carry, "Selected", me), "Uses"), "실패한 시도는 소모하지 않는다");
+                    Assert.AreEqual(pinUses, Get(Call(carry, "InHand", me), "Uses"), "실패한 시도는 소모하지 않는다");
             }
             Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:locked-box-1"), "세 번째 시도 안에 반드시 열린다");
             Assert.AreEqual(tries, Call(state, "Hits", "structure-a:locked-box-1"));
 
             // 3) UV 등(장비·내구도 없음) → 숨은 낙서. 비추는 동안만 보이고, 처음 비춘 때 발견이 기록된다. 소모 없음.
             yield return PickUp("uv-lamp");
-            Assert.AreEqual(-1, Get(Call(carry, "Selected", me), "Uses"), "장비형 UV 등은 횟수를 세지 않는다");
+            Assert.AreEqual(-1, Get(((IEnumerable)Call(carry, "Held", me)).Cast<object>().Single(o => (string)Get(o, "ItemId") == "uv-lamp"), "Uses"), "장비형 UV 등은 횟수를 세지 않는다");
+            Assert.AreNotEqual("uv-lamp", Get(Call(carry, "InHand", me), "ItemId"), "장비는 손에 들지 않는다");
             var revealedObjects = (GameObject[])mark.GetType().GetField("marks", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(mark);
             var marks = revealedObjects.SelectMany(g => g.GetComponentsInChildren<Renderer>(true)).ToArray();
             Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "비추기 전에는 보이지 않는다");

@@ -56,6 +56,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return PickPlaced("magician-hairpin", "S10_Workshop");
             for (int i = 0; i < 3 && !(bool)Call(Static("CurtainCall.WaitingRoom.ExplorationState", "Instance"), "IsOpen", "structure-a:locked-box-1"); i++) yield return UsePlaced("locked-box-1");
             yield return UsePlaced("stairs-key");
+            if (HoldFor(door)) yield return null; // Task-092: 머리핀을 든 채 얻은 열쇠는 1·2로 꺼내 든다.
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover")); mover.GetType().GetProperty("Simulated").SetValue(mover, true);
             Call(mover, "SetStartPose", new Vector3(b.center.x, .05f, b.min.z - .8f), Quaternion.identity);

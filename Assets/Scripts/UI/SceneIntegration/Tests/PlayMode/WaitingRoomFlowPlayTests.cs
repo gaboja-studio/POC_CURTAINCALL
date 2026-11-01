@@ -111,8 +111,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Call(state, "RequestUse", "stage8-partition-target");
                 Assert.AreEqual(0, Call(state, "Hits", "stage8-partition-target")); Assert.AreEqual(uid, Get(Call(carry, "Selected", me), "Uid"));
                 wall.SetActive(false); Physics.SyncTransforms(); yield return new WaitForSecondsRealtime(.2f);
-                Call(carry, "RequestPickUp", basis + 91); Assert.AreEqual("magician-hairpin", Get(Call(carry, "Selected", me), "ItemId"));
-                Call(carry, "RequestSelectSlot", 0); yield return FlowTap();
+                // Task-092: 빠루를 든 채 주운 머리핀은 슬롯에만 들어간다. 빠루가 계속 손에 있다.
+                Call(carry, "RequestPickUp", basis + 91); Assert.AreEqual(true, ((IEnumerable)Call(carry, "Held", me)).Cast<object>().Any(o => (string)Get(o, "ItemId") == "magician-hairpin"));
+                if ((int)Get(Call(carry, "InHand", me), "Uid") != uid) Call(carry, "RequestSelectSlot", 0);
+                yield return FlowTap();
                 Assert.AreEqual(true, Get(target, "Opened")); Assert.AreEqual(false, Call(carry, "Exists", uid));
             }
             finally { FlowKeys(); Object.Destroy(target.gameObject); Object.Destroy(wall); }

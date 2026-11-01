@@ -65,10 +65,11 @@ namespace CurtainCall.WaitingRoom
         {
             ShelfAction.Put => WaitingRoomText.Format("shelf.put", "{item} 선반 {n}칸에 올리기", ("item", held), ("n", empty + 1)),
             ShelfAction.Take => WaitingRoomText.Get("shelf.take", "선반 위 칸에서 꺼내기"),
+            ShelfAction.Choose => WaitingRoomText.Get("shelf.choose", "1·2로 올릴 기물을 고르세요"),
             _ => WaitingRoomText.Get("shelf.empty", "선반이 비어 있습니다"),
         };
 
-        enum ShelfAction { None, Put, Take }
+        enum ShelfAction { None, Put, Take, Choose }
 
         ShelfAction Action(out string heldName, out int empty)
         {
@@ -77,9 +78,11 @@ namespace CurtainCall.WaitingRoom
             bool filled = false;
             for (int i = 0; i < carry.Shelf.Count; i++)
                 if (ItemCarryBook.IsEmpty(carry.Shelf[i])) { if (empty < 0) empty = i; } else filled = true;
-            var held = carry.Held(carry.LocalClientId);
-            if (held.Count > 0 && empty >= 0) { heldName = held[held.Count - 1].Name; return ShelfAction.Put; }
-            return filled ? ShelfAction.Take : ShelfAction.None;
+            // 1·2로 고른 칸만 올린다(2026-11-01: 고르지 않으면 마지막 기물을 올리던 처리 삭제). 고르지 않았으면 꺼낸다.
+            var chosen = carry.Selected(carry.LocalClientId);
+            if (chosen.Uid != 0 && empty >= 0) { heldName = chosen.Name; return ShelfAction.Put; }
+            if (filled) return ShelfAction.Take;
+            return carry.Held(carry.LocalClientId).Count > 0 && empty >= 0 ? ShelfAction.Choose : ShelfAction.None;
         }
 
         void Awake()
@@ -181,6 +184,14 @@ namespace CurtainCall.WaitingRoom
 
         GameObject MakeShape(int slot, PropItem item)
         {
+            // 가판대에도 기물 모델을 올린다(Task-092). 모델이 없을 때만 임시 상자.
+            var artwork = CurtainCall.ItemArt.ItemVisualAssets.Create(item.ItemId);
+            if (artwork != null)
+            {
+                artwork.name = $"ShelfProp_{slot + 1}_{item.Uid}";
+                artwork.hideFlags = HideFlags.DontSave;
+                return artwork;
+            }
             var shape = GameObject.CreatePrimitive(PrimitiveType.Cube);
             shape.name = $"ShelfProp_{slot + 1}_{item.Uid}";
             Destroy(shape.GetComponent<Collider>());
@@ -211,9 +222,9 @@ namespace CurtainCall.WaitingRoom
                 else filled++;
             }
             ulong me = carry.LocalClientId;
-            var held = carry.Held(me);
-            string action = held.Count > 0 && empty >= 0 ? $"[F] {held[held.Count - 1].Name} 선반 {empty + 1}칸에 올리기"
-                : filled > 0 ? "[F] 선반 위 칸에서 꺼내기" : "선반이 비어 있습니다";
+            var chosen = carry.Selected(me);
+            string action = chosen.Uid != 0 && empty >= 0 ? $"[F] {chosen.Name} 선반 {empty + 1}칸에 올리기"
+                : filled > 0 ? "[F] 선반 위 칸에서 꺼내기" : carry.Held(me).Count > 0 ? "1·2로 올릴 기물을 고르세요" : "선반이 비어 있습니다";
             GUI.Label(new Rect(Screen.width / 2f - 80, Screen.height * .62f, 360, 24), $"{action} (물려줄 선반 {filled}/{shelf.Count})");
         }
     }

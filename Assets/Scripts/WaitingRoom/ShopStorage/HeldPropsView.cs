@@ -63,7 +63,7 @@ namespace CurtainCall.WaitingRoom
             stale.AddRange(shapes.Keys);
             foreach (var (body, client) in bodies)
             {
-                var item = carry.Selected(client);
+                var item = carry.InHand(client);
                 if (item.Uid != 0 && body.GetComponent<HumanoidPlayerPresentation>() == null && CurtainCall.ItemArt.ItemVisualAssets.IsTool(item.ItemId))
                 {
                     var key = (client, item.Uid);

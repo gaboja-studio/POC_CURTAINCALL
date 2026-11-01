@@ -131,7 +131,7 @@ namespace CurtainCall.ItemArt
                 m.Animator.Play(state,0,Mathf.Min(time,.9999f));m.Animator.Update(0);
                 targets[i].localPosition=new Vector3(-.2f,TargetHeight,-.8f);
                 targets[i].gameObject.SetActive(MotionIndex<3||MotionIndex==3||uv);
-                if(MotionIndex==1||MotionIndex==2||uv)ItemVisualAssets.Bend(m.Animator,targets[i].position,uv?1:Mathf.Sin(time*Mathf.PI));
+                if(uv)ItemVisualAssets.Bend(m.Animator,targets[i].position,1);
                 m.GetComponent<RabbitTrialGrounding>()?.CorrectPose();
                 if(display=="uv-lamp")ItemVisualAssets.AimLamp(m.Animator,m.transform.forward,MotionIndex==7);
                 ItemVisualAssets.Attach(HandProps[i],m.Animator,display);

@@ -6,21 +6,23 @@ namespace CurtainCall.Network.PlayerSync
 {
     public sealed partial class NetworkPlayer
     {
-        float nextItemGesture;
-        public void SendItemGesture(int kind, Vector3 target)
+        public void SendItemGesture(int kind, Vector3 target, bool allowMovement)
         {
-            if (IsSpawned && IsOwner && kind >= 0 && kind <= 3) ItemGestureRequestRpc(kind, target);
+            if (IsSpawned && IsOwner && kind >= 0 && kind <= 4) ItemGestureRequestRpc(kind, target, allowMovement);
         }
         [Rpc(SendTo.Server, RequireOwnership = true)]
-        void ItemGestureRequestRpc(int kind, Vector3 target)
+        void ItemGestureRequestRpc(int kind, Vector3 target, bool allowMovement)
         {
-            if (kind < 0 || kind > 3 || State != PlayerState.Normal || Time.time < nextItemGesture ||
+            if (kind < 0 || kind > 4 || State != PlayerState.Normal ||
                 !float.IsFinite(target.x) || !float.IsFinite(target.y) || !float.IsFinite(target.z) ||
                 (target-transform.position).sqrMagnitude > 25) return;
-            nextItemGesture = Time.time + .2f;
-            ItemGestureShowRpc(kind,target);
+            ItemGestureShowRpc(kind,target,allowMovement);
         }
         [Rpc(SendTo.Everyone)]
-        void ItemGestureShowRpc(int kind, Vector3 target) => GetComponent<HumanoidPlayerPresentation>()?.ReceiveItemMotion(kind,target);
+        void ItemGestureShowRpc(int kind, Vector3 target, bool allowMovement)
+        {
+            // The owner starts immediately instead of restarting when its RPC returns.
+            if (!IsOwner) GetComponent<HumanoidPlayerPresentation>()?.ReceiveItemMotion(kind,target,allowMovement);
+        }
     }
 }

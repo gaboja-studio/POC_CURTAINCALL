@@ -78,6 +78,21 @@ MonoBehaviour:
   hudLayout:
     balancePosition: 0
   presentation:
+    strike:
+      allowMovement: 0
+      allowInterrupt: 1
+    manipulate:
+      allowMovement: 0
+      allowInterrupt: 0
+    pull:
+      allowMovement: 0
+      allowInterrupt: 0
+    key:
+      allowMovement: 0
+      allowInterrupt: 0
+    pickup:
+      allowMovement: 1
+      allowInterrupt: 1
     maxTiltAngle: 25
     tiltFollowSharpness: 10
     ragdollTiltPush: 1.5

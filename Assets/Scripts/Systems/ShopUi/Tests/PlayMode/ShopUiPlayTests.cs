@@ -116,7 +116,10 @@ namespace CurtainCall.ShopUi.Tests
             {
                 Assert.NotNull(label.font); Assert.AreEqual(AtlasPopulationMode.Static, label.font.atlasPopulationMode);
                 Assert.IsFalse(label.richText); Assert.IsFalse(label.parseCtrlCharacters); Assert.IsFalse(label.enableAutoSizing); Assert.IsFalse(label.raycastTarget);
-                Assert.AreEqual(TextOverflowModes.Ellipsis, label.overflowMode); Assert.IsTrue(label.font.HasCharacters(label.text));
+                // Task-092(2026-11-01 사용자): 상세 설명은 "…"으로 자르지 않고 스크롤 영역 안에서 넘친다.
+                var scroll = label.GetComponentInParent<UnityEngine.UI.ScrollRect>(true);
+                bool scrolled = scroll != null && scroll.content == label.rectTransform;
+                Assert.AreEqual(scrolled ? TextOverflowModes.Overflow : TextOverflowModes.Ellipsis, label.overflowMode, label.name); Assert.IsTrue(label.font.HasCharacters(label.text));
             }
             yield return null;
         }

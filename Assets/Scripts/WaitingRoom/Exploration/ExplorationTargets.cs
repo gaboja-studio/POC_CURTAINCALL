@@ -61,7 +61,7 @@ namespace CurtainCall.WaitingRoom
         {
             var carry = PropCarry.Instance;
             if (carry == null) return false;
-            var item = carry.Selected(carry.LocalClientId);
+            var item = carry.InHand(carry.LocalClientId);
             return item.Uid != 0 && item.ItemId == toolId && item.Uses != 0;
         }
     }

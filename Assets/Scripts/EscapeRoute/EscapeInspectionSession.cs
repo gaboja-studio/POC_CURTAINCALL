@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace CurtainCall.EscapeRoute
 {
-    /// <summary>이 검토 씬에서만 1키 비행을 허용한다. 장치 점유 해제는 호스트, 위치 공유는 기존 소유자 NetworkTransform이 맡는다.</summary>
+    /// <summary>이 검토 씬에서만 검토 비행(기본 3키, EscapeInspectionCamera.reviewKey)을 허용한다. 장치 점유 해제는 호스트, 위치 공유는 기존 소유자 NetworkTransform이 맡는다.</summary>
     [DefaultExecutionOrder(500)]
     public sealed class EscapeInspectionSession : MonoBehaviour
     {

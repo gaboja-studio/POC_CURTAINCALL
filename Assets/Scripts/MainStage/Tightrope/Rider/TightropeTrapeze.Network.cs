@@ -151,7 +151,7 @@ namespace CurtainCall.Tightrope
                 reader.ReadValueSafe(out state.Until); reader.ReadValueSafe(out state.SampledAt);
                 if (!float.IsFinite(state.Angle) || Mathf.Abs(state.Angle) > 85f || !float.IsFinite(state.Speed) || Mathf.Abs(state.Speed) > 181f
                     || !float.IsFinite(state.Drive) || Mathf.Abs(state.Drive) > 1f || !double.IsFinite(state.Until) || !double.IsFinite(state.SampledAt)
-                    || state.Until < 0d || state.Until > timestamp + HoldSeconds + 1d || state.SampledAt > timestamp + 1d
+                    || state.Until < 0d || state.Until > timestamp + MaxHoldSeconds + 1d || state.SampledAt > timestamp + 1d
                     || (state.Upper == Nobody && state.Lower != Nobody)) return;
                 if (state.Upper != Nobody && !owners.Add(state.Upper)) return;
                 if (state.Lower != Nobody && !owners.Add(state.Lower)) return;

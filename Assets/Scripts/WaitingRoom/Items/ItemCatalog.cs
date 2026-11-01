@@ -41,6 +41,10 @@ namespace CurtainCall.WaitingRoom
             [Tooltip("보조 수치(초안): 구조 장갑 적용 거리(m), 머리핀 보장 시도 번째 등. 0이면 미정.")]
             public float effect2;
             [TextArea] public string summary;
+            [Tooltip("상점 설명 칸·마우스 올림 설명에 보이는 설명. 비우면 설명 없음.")]
+            [TextArea(2, 6)] public string shopDescription;
+            [Tooltip("장비가 실제로 발동했을 때 주인 화면 알림 문구(예: 잡았다!). 비우면 알리지 않음.")]
+            public string useCue;
         }
 
         [SerializeField] List<Entry> items = new();
@@ -89,6 +93,12 @@ namespace CurtainCall.WaitingRoom
         /// <summary>탐색 발견품 사용 횟수(초안). 없으면 새 제품 값.</summary>
         public static int FoundUses(string id) => Get(id) is { } e ? (e.foundUses > 0 ? e.foundUses : NewUses(id)) : ItemUses.Unlimited;
 
+        /// <summary>상점에 보이는 기물 설명. 없으면 "".</summary>
+        public static string Description(string id) => Get(id)?.shopDescription ?? "";
+
+        /// <summary>장비 발동 알림 문구. 없으면 "".</summary>
+        public static string UseCue(string id) => Get(id)?.useCue ?? "";
+
         /// <summary>남은 내구도에 따른 표시 이름(낡은 접두사).</summary>
         public static string DisplayName(PropItem item)
         {
@@ -109,8 +119,8 @@ namespace CurtainCall.WaitingRoom
             items = new List<Entry>
             {
                 new() { id = ItemUses.RescueGloves, displayName = "구조 장갑", wornName = "낡은 구조 장갑", wornAtOrBelow = 2, use = ItemUse.Performance, kind = ItemKind.Equipment,
-                        newUses = 5, foundUses = 2, price = 100, cooldown = 1f, effect = .3f, effect2 = 0f,
-                        summary = "외줄: 가까운 팀원이 내 줄로 이동해 착지하면 착지 균형 손실 30% 감소. 실제 완화 시 1 소모. 적용 거리 미정." },
+                        newUses = 5, foundUses = 2, price = 100, cooldown = 1f, effect = .3f, effect2 = 2f, // 2026-11-01 사용자: 적용 거리 2m
+                        summary = "외줄: 착용자 2m 안에서 내 줄로 이동해 착지하는 팀원의 착지 균형 손실 30% 감소(손잡이·버팀과 겹치면 큰 값 하나). 실제 완화 시 1 소모." },
                 new() { id = ItemUses.StickyGloves, displayName = "끈끈이 장갑", wornName = "낡은 끈끈이 장갑", wornAtOrBelow = 1, use = ItemUse.Performance, kind = ItemKind.Equipment,
                         newUses = 3, foundUses = 1, price = 100, cooldown = 3f, effect = 1.5f,
                         summary = "외줄 매달리기·리프트 버티기 시간 1.5배. 기본 시간을 넘겨 매달린 때 매달리기당 1 소모. 마지막 추가 시간은 유지 후 파괴." },

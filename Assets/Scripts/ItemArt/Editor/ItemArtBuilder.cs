@@ -104,7 +104,8 @@ namespace CurtainCall.ItemArt.EditorTools
                 AssetDatabase.CreateAsset(mask,Root+"/ItemRightHand.mask");
             }
             for(int i=0;i<(int)AvatarMaskBodyPart.LastBodyPart;i++)mask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)i,false);
-            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.RightArm,true);mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.RightFingers,true);EditorUtility.SetDirty(mask);
+            foreach(var part in new[]{AvatarMaskBodyPart.Body, AvatarMaskBodyPart.Head, AvatarMaskBodyPart.LeftArm, AvatarMaskBodyPart.RightArm, AvatarMaskBodyPart.LeftFingers, AvatarMaskBodyPart.RightFingers}) mask.SetHumanoidBodyPartActive(part,true);
+            EditorUtility.SetDirty(mask);
             foreach(var controller in controllers)
             {
                 int index=Array.FindIndex(controller.layers,l=>l.name=="ItemRightHand");

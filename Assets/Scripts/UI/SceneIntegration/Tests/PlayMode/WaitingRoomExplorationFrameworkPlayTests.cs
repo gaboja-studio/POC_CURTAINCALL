@@ -232,12 +232,24 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             int basis = (int)T("CurtainCall.WaitingRoom.ItemUses").GetField("FoundUidBase").GetRawConstantValue() + (int)Field(State, "Generation") * 100;
             ulong me = (ulong)Get(carry, "LocalClientId");
             IEnumerator Use(string id)
-            { yield return new WaitForSecondsRealtime(.12f); Call(state, "RequestUse", id); }
+            {
+                yield return new WaitForSecondsRealtime(.12f);
+                var found = T("CurtainCall.WaitingRoom.ExplorationTargets").GetMethod("Find").Invoke(null, new object[] { id }) as Component;
+                if (found != null && HoldFor(found)) yield return null; // Task-092: 맞는 도구·열쇠를 1·2로 꺼내 든다.
+                Call(state, "RequestUse", id);
+            }
             IEnumerator PickTool(string item, int offset, int uses)
             {
                 var value = Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"), basis + offset, item, item, uses);
                 Call(carry, "PlaceFound", value, player.transform.position); Call(carry, "RequestPickUp", basis + offset);
-                yield return null; Assert.AreEqual(basis + offset, Get(Call(carry, "Selected", me), "Uid"));
+                yield return null;
+                // Task-092: 빈손이 아니면 주운 도구는 슬롯에만 들어간다. 1·2로 꺼내 든다.
+                if ((int)Get(Call(carry, "InHand", me), "Uid") != basis + offset)
+                {
+                    int slot = ((IEnumerable)Call(carry, "Held", me)).Cast<object>().ToList().FindIndex(o => (int)Get(o, "Uid") == basis + offset);
+                    Call(carry, "RequestSelectSlot", slot); yield return null;
+                }
+                Assert.AreEqual(basis + offset, Get(Call(carry, "Selected", me), "Uid"));
             }
             try
             {

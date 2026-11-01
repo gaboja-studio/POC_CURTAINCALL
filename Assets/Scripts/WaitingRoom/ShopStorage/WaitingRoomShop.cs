@@ -100,8 +100,8 @@ namespace CurtainCall.WaitingRoom
             // 판매 목록은 기물 목록(ItemCatalog, 기물 시스템 초안 7종·확정 가격)을 쓴다. 에셋이 없을 때만 씬의 임시 품목을 쓴다.
             var itemCatalog = ItemCatalog.Current;
             if (itemCatalog != null && itemCatalog.Items.Count > 0)
-                // 지금은 대기실 탐색용 기물만 판다(2026-10-29 사용자: 탐색용만 작업). 공연용은 효과가 연결되면 연다.
-                foreach (var e in itemCatalog.Items) { if (e != null && !string.IsNullOrEmpty(e.id) && e.price > 0 && e.kind != ItemKind.Object && e.use == ItemUse.Exploration) catalog.Add(new ShopItem(e.id, e.displayName, e.price)); }
+                // 공연용 장비 효과를 연결해(Task-092) 공연용·탐색용을 모두 판다. 가격 없는 기물(열쇠)과 오브제는 팔지 않는다.
+                foreach (var e in itemCatalog.Items) { if (e != null && !string.IsNullOrEmpty(e.id) && e.price > 0 && e.kind != ItemKind.Object) catalog.Add(new ShopItem(e.id, e.displayName, e.price)); }
             else
                 foreach (var entry in items)
                 {

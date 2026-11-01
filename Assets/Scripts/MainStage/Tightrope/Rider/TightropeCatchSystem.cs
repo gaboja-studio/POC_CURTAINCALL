@@ -4,11 +4,17 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
 using CurtainCall.Settings;
+using CurtainCall.WaitingRoom;
 using UnityEngine;
 
 namespace CurtainCall.Tightrope
 {
-    /// <summary>F로 안전한 줄에서 받기 준비. 호스트가 준비 상태를 공유하고 한 번의 착지를 확인한다.</summary>
+    /// <summary>
+    /// 동료 착지 받아주기. 호스트가 한 번의 착지를 확인한다.
+    /// 수동(F) 받기 준비는 중지했고, 구조 장갑(기물 시스템 31784961, Task-092)이 자동으로 받는다:
+    /// 장갑을 지닌 사람(남은 횟수, 쿨타임 아님)이 줄 위에 서 있으면, 그 줄로 건너와 착용자 근처(초안 2m)에 착지하는 동료의 착지 균형 손실을 줄인다(초안 30%).
+    /// 손잡이·버팀 완화와 겹치면 큰 값 하나만 적용하고(2026-11-01 사용자), 장갑이 실제로 적용된 착지에서만 착용자의 장갑을 1 소모한다(쿨타임 초안 1초).
+    /// </summary>
     [DefaultExecutionOrder(-45)]
     public sealed partial class TightropeCatchSystem : MonoBehaviour
     {
@@ -31,7 +37,16 @@ namespace CurtainCall.Tightrope
         public static event Action<ulong, ulong> ServerCatchSucceeded;
         public float LocalReadyRemaining => Remaining(NetworkPlayer.Local);
         public string LocalFeedback => Now < feedbackUntil ? feedback : null;
-        public float CatchReduction => GameSettings.Tightrope.Handhold.ActiveReduction;
+        /// <summary>구조 장갑의 착지 균형 손실 감소율(기물 목록 effect, 초안 0.3).</summary>
+        public float CatchReduction => Mathf.Clamp01(ItemCatalog.Get(ItemUses.RescueGloves)?.effect ?? .3f);
+        /// <summary>구조 장갑이 받아주는 거리(m, 기물 목록 effect2, 2026-11-01 사용자 2m).</summary>
+        public static float GloveRange => ItemCatalog.Get(ItemUses.RescueGloves) is { effect2: > 0f } e ? e.effect2 : 2f;
+
+        /// <summary>구조 장갑으로 지금 받아줄 수 있는 사람인가(모든 화면, 소지 상태는 공유값).</summary>
+        public bool IsGloveCatcher(NetworkPlayer player) => player != null && PropCarry.Instance != null
+            && PropCarry.Instance.EquipmentReady(player.OwnerClientId, ItemUses.RescueGloves) && CanPrepare(player);
+
+        bool CanCatch(NetworkPlayer player) => IsReady(player) || IsGloveCatcher(player);
         bool Active => isActiveAndEnabled && TightropeCourse.Current != null
             && TightropeCourse.Current.IsGameplayActive && TightropeRun.Current != null
             && TightropeRun.Current.State == TightropeRunState.Running;
@@ -170,10 +185,10 @@ namespace CurtainCall.Tightrope
             var course = TightropeCourse.Current;
             if (!Active || jumper == null || course == null || lane == TightropeCourse.NoLane
                 || !course.IsLaneUsable(lane, distance)) return false;
-            float best = GameSettings.Tightrope.Handhold.ActiveDistance;
+            float best = GloveRange;
             foreach (var other in NetworkPlayer.All)
             {
-                if (other == jumper || !IsReady(other)
+                if (other == jumper || !CanCatch(other)
                     || !course.TryGetRopePoint(other.transform.position, out int otherLane, out _)
                     || otherLane != lane) continue;
                 float delta = Vector3.Distance(other.transform.position, course.GetLanePosition(lane, distance));
@@ -192,10 +207,13 @@ namespace CurtainCall.Tightrope
         public bool TryGetSwingLandingHelper(NetworkPlayer jumper, int lane, float distance, out NetworkPlayer helper, out float reduction)
         {
             reduction = 0f;
-            if (TryGetCatcher(jumper, lane, distance, out helper)) { reduction = CatchReduction; return true; }
+            // 버팀(50%)과 구조 장갑(30%)이 겹치면 큰 값 하나만 쓴다(2026-11-01 사용자).
             var relay = TightropeRelaySupport.Current;
-            if (Active && relay != null && relay.TryGetLandingSupport(jumper, lane, distance, out helper))
-            { reduction = GameSettings.Tightrope.Handhold.Reduction; return true; }
+            NetworkPlayer support = null;
+            float supportReduction = Active && relay != null && relay.TryGetLandingSupport(jumper, lane, distance, out support)
+                ? GameSettings.Tightrope.Handhold.Reduction : 0f;
+            if (TryGetCatcher(jumper, lane, distance, out helper) && CatchReduction > supportReduction) { reduction = CatchReduction; return true; }
+            if (support != null) { helper = support; reduction = supportReduction; return true; }
             helper = null; return false;
         }
 
@@ -213,7 +231,7 @@ namespace CurtainCall.Tightrope
             var player = Find(sender);
             if (request == Request.Cancel) { if (ready.Remove(sender)) Publish(); return; }
             if (request == Request.Prepare) return; // 이전 클라이언트의 수동 준비도 차단
-            if (request == Request.Landed && player != null && player.State == PlayerState.Normal && IsReady(Find(target)))
+            if (request == Request.Landed && player != null && player.State == PlayerState.Normal && CanCatch(Find(target)))
             {
                 // Jump state and owner transform can arrive after the reliable landing request.
                 // The short host-side window retries validation, never trusting a claimed location.
@@ -228,7 +246,7 @@ namespace CurtainCall.Tightrope
             var helper = Find(target);
             var course = TightropeCourse.Current;
             if (player == null || player == helper || player.State != PlayerState.Normal
-                || !IsReady(helper) || !HasRecentApproach(sender)
+                || !CanCatch(helper) || !HasRecentApproach(sender)
                 || !player.TryGetComponent(out PlayerMover mover) || (player.IsLocal ? mover.IsAirborne : player.IsAirborne)
                 || !course.TryGetSupportingRope(mover, out int supportingLane)
                 || !course.TryGetRopePoint(player.transform.position, out int lane, out float distance)
@@ -241,14 +259,17 @@ namespace CurtainCall.Tightrope
                             : !course.HasSwingGap || distance < course.SwingGapTo || distance > course.SwingGapTo + 30f)))
                 || Mathf.Abs(player.transform.position.y - course.GetLanePosition(lane, distance).y) > .15f
                 || Mathf.Abs(course.GetSide(player.transform.position) - course.GetSide(course.GetLanePosition(lane, distance))) > .35f) return false;
-            bool relayLanding = Vector3.Distance(helper.transform.position, course.GetLanePosition(lane, distance))
-                > GameSettings.Tightrope.Handhold.ActiveDistance;
+            float helperDistance = Vector3.Distance(helper.transform.position, course.GetLanePosition(lane, distance));
+            bool gloveCatch = !IsReady(helper) && IsGloveCatcher(helper) && helperDistance <= GloveRange;
+            bool relayLanding = !gloveCatch && helperDistance > GameSettings.Tightrope.Handhold.ActiveDistance;
             if (relayLanding && (!swingReleases.TryGetValue(sender, out var swing) || Now > swing.Until
                 || TightropeRelaySupport.Current == null
                 || !TightropeRelaySupport.Current.CanSupportLanding(player, helper, lane, distance))) return false;
             ready.Remove(target);
             recentLaneJumps.Remove(sender);
             swingReleases.Remove(sender);
+            // 구조 장갑이 실제로 완화한 착지: 착용자 장갑 1 소모·쿨타임·"잡았다!"(마지막 회차는 이 완화 뒤 파괴).
+            if (gloveCatch) PropCarry.Instance?.UseEquipment(target, ItemUses.RescueGloves);
             Publish();
             PublishSuccess(sender, target, relayLanding);
             if (ServerCatchSucceeded != null)

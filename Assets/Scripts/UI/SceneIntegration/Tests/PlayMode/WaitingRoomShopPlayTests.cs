@@ -73,9 +73,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(2, Call(carry, "Slots", me));
             for (int i = 0; i < 2; i++)
             {
-                var prop = Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"), 9001 + i, "tool-a", "테스트 기물");
+                var prop = Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"), 9001 + i, "tool-a", "테스트 기물", -1);
                 Assert.AreEqual("None", Call(carry, "Receive", me, prop).ToString());
             }
+            // 대기실 씬에는 탐색 발견품이 처음부터 바닥에 있다. 부상으로 떨어진 기물이 없는지만 본다.
+            int floorBefore = ((IEnumerable)Get(carry, "Floor")).Cast<object>().Count();
             Call(player, "ServerSetOneArm");
             yield return new WaitForSecondsRealtime(.3f);
             Assert.AreEqual(2, Call(carry, "Slots", me));
@@ -87,7 +89,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(2, Get(slots, "SlotCount"));
             Assert.IsNull(Call(slots, "GetSlot", 2), "HUD는 두 슬롯만 표시합니다.");
             Assert.AreEqual(2, ((IEnumerable)Call(carry, "Held", me)).Cast<object>().Count());
-            Assert.AreEqual(0, ((IEnumerable)Get(carry, "Floor")).Cast<object>().Count());
+            Assert.AreEqual(floorBefore, ((IEnumerable)Get(carry, "Floor")).Cast<object>().Count(), "부상으로 기물을 떨어뜨리지 않는다");
             Call(shop, "RequestPurchase", (string)Member(catalog[0], "Id"));
             yield return new WaitForSecondsRealtime(.3f);
             var delivery = ((IEnumerable)Get(shop, "Waiting")).Cast<object>().Single();

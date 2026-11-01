@@ -7,7 +7,7 @@ namespace CurtainCall.WaitingRoom
     /// 판정 화면(호스트)이 요청 1건당 한 번만 넣고, 잔액·장부("디버그 지급")는 공용 보상 시스템이 모두에게 보낸다.
     /// 에디터·개발 빌드에서만 동작하고, 정식 빌드에서는 스스로 사라진다.
     /// </summary>
-    public sealed class DebugMoneyProp : MonoBehaviour, IShopTarget, IShopPresentation
+    public sealed class DebugMoneyProp : MonoBehaviour, IShopTarget, IShopPresentation, IItemPickupTarget
     {
         [SerializeField, Min(1)] long amount = 1000;
 

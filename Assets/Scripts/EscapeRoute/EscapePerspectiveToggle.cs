@@ -15,12 +15,13 @@ namespace CurtainCall.EscapeRoute
     public sealed class EscapePerspectiveToggle : MonoBehaviour
     {
         [SerializeField] CameraViewPreset firstPersonView;
+        [Tooltip("1인칭/3인칭 전환 키. 1·2는 소지 칸 선택이라 4를 쓴다(2026-11-02 사용자).")]
+        [SerializeField] Key toggleKey = Key.Digit4;
         CameraViewDirector director;
         EscapeCampaignContent content;
         CameraViewPreset ownedPreset;
         public static EscapePerspectiveToggle Current { get; private set; }
         public bool FirstPersonSelected { get; private set; }
-        public static bool ReservesNumberKeys => Current != null && Current.InEscapeScene;
         public bool InEscapeScene => isActiveAndEnabled && gameObject.scene == SceneManager.GetActiveScene()
             && content != null && content.IsActive;
 
@@ -28,13 +29,13 @@ namespace CurtainCall.EscapeRoute
         void OnEnable()
         {
             Current = this;
-            InputGate.AddReleaseKeys(Key.Digit2);
+            InputGate.AddReleaseKeys(toggleKey);
         }
         void Update()
         {
             BindDirector();
             var keys = Keyboard.current;
-            if (Application.isFocused && keys != null && keys.digit2Key.wasPressedThisFrame) TryToggleView();
+            if (Application.isFocused && keys != null && keys[toggleKey].wasPressedThisFrame) TryToggleView();
             RefreshRequest();
         }
         public bool TryToggleView()

@@ -80,5 +80,35 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.AreEqual(2, book.PickLane(1, 5f, 4, 1, 2f, (lane, _) => lane != 1 && lane != 0));
             Assert.AreEqual(-1, book.PickLane(0, 5f, 4, 1, 2f, (lane, _) => lane >= 2), "근처(1줄) 밖은 잡지 못한다.");
         }
+
+        [Test]
+        public void StickyGloves_ExtendHold_AndMarkExtraTimeOnlyAfterBaseRunsOut()
+        {
+            // Task-092 끈끈이 장갑: 7초 × 1.5 = 10.5초. 기본 7초를 넘겨야 추가 시간(소모 대상)이다.
+            var book = new TightropeHangBook();
+            var hang = book.Begin(1, 0, 10f, 7d, 3.5d);
+            Assert.AreEqual(10.5d, hang.Total, 1e-6);
+            Assert.AreEqual(3.5d, hang.Extra, 1e-6);
+            Assert.IsEmpty(book.Tick(6.9d));
+            Assert.IsFalse(hang.InExtraTime, "기본 시간 안에서는 장갑을 쓰지 않았다.");
+            Assert.IsTrue(book.StartPull(1, 2, 0, 2d));
+            Assert.IsEmpty(book.Tick(1d), "구조 중에는 추가 시간도 흐르지 않는다.");
+            Assert.IsFalse(hang.InExtraTime);
+            Assert.IsTrue(book.CancelPull(1));
+            Assert.IsEmpty(book.Tick(.2d));
+            Assert.IsTrue(hang.InExtraTime, "기본 7초를 넘기면 추가 시간이다.");
+            Assert.IsEmpty(book.Tick(3.3d), "장갑이 없으면 이미 떨어졌을 시간도 버틴다.");
+            var finished = book.Tick(.2d);
+            Assert.AreEqual(TightropeHangBook.Outcome.Dropped, finished[0].outcome);
+        }
+
+        [Test]
+        public void WithoutGloves_TotalIsBaseHold()
+        {
+            var hang = new TightropeHangBook().Begin(1, 0, 10f, 7d);
+            Assert.AreEqual(7d, hang.Total, 1e-6);
+            Assert.AreEqual(0d, hang.Extra, 1e-6);
+            Assert.IsFalse(hang.InExtraTime);
+        }
     }
 }

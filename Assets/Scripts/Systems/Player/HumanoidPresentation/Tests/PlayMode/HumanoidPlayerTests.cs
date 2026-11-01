@@ -76,6 +76,140 @@ namespace CurtainCall.Tests.HumanoidPresentation
         }
 
         [UnityTest]
+        public IEnumerator InteractionPoliciesControlMovementInterruptionsAndUpperBodyLayer()
+        {
+            var settings = TypeFor("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null);
+            var presentationSettings = Get(settings, "Presentation");
+            var policy = presentationSettings.GetType().GetMethod("InteractionPolicy").Invoke(presentationSettings, new object[] { 4 });
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var movement = policy.GetType().GetField("allowMovement", flags);
+            var interrupt = policy.GetType().GetField("allowInterrupt", flags);
+            bool oldMovement = (bool)movement.GetValue(policy), oldInterrupt = (bool)interrupt.GetValue(policy);
+            try
+            {
+                movement.SetValue(policy, false); interrupt.SetValue(policy, false);
+                var player = Player();
+                yield return null;
+                var view = Part(player, "HumanoidPlayerPresentation");
+                Call(view, "RequestItemMotion", 4, player.transform.position + player.transform.forward);
+                Assert.That((bool)Get(view, "InteractionMovementLocked"), Is.True);
+                Assert.That((bool)Get(view, "InteractionActionLocked"), Is.True);
+                Call(view, "RequestItemMotion", 0, player.transform.position + player.transform.forward);
+                Assert.That((string)Get(view, "ItemMotion"), Is.EqualTo("ItemManipulate"));
+
+                interrupt.SetValue(policy, true);
+                movement.SetValue(policy, true);
+                Call(view, "RequestItemMotion", 4, player.transform.position + player.transform.forward * 3f);
+                Assert.That((bool)Get(view, "InteractionMovementLocked"), Is.False);
+                Assert.That((bool)Get(view, "InteractionActionLocked"), Is.False);
+                var driver = player.AddComponent<HumanoidMovementTestInput>();
+                driver.Mover = Part(player, "PlayerMover");
+                yield return null;
+                yield return null;
+                var animator = (Animator)Model(player).GetType().GetField("Animator").GetValue(Model(player));
+                int layer = animator.GetLayerIndex("ItemRightHand");
+                Assert.That(layer, Is.GreaterThanOrEqualTo(0));
+                Assert.That(animator.GetLayerWeight(layer), Is.EqualTo(1f));
+                Assert.That(animator.GetCurrentAnimatorStateInfo(layer).IsName("ItemManipulate"), Is.True);
+                Assert.That((bool)Get(Part(player, "PlayerMover"), "IsMoving"), Is.True);
+            }
+            finally { movement.SetValue(policy, oldMovement); interrupt.SetValue(policy, oldInterrupt); }
+        }
+
+        [UnityTest]
+        public IEnumerator MovingPickupDoesNotAimBonesAtWorldTarget()
+        {
+            var settings = TypeFor("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null);
+            var presentationSettings = Get(settings, "Presentation");
+            var policy = presentationSettings.GetType().GetMethod("InteractionPolicy").Invoke(presentationSettings, new object[] { 4 });
+            var movement = policy.GetType().GetField("allowMovement", BindingFlags.Instance | BindingFlags.NonPublic);
+            bool previous = (bool)movement.GetValue(policy);
+            try
+            {
+                movement.SetValue(policy, true);
+                var a = Player(); var b = Player();
+                yield return null;
+                foreach (var player in new[] { a, b })
+                {
+                    var driver = player.AddComponent<HumanoidMovementTestInput>();
+                    driver.Mover = Part(player, "PlayerMover");
+                }
+                Call(Part(a, "HumanoidPlayerPresentation"), "RequestItemMotion", 4, a.transform.position + Vector3.up * 3f + Vector3.left * 3f);
+                Call(Part(b, "HumanoidPlayerPresentation"), "RequestItemMotion", 4, b.transform.position + Vector3.down * 2f + Vector3.right * 3f);
+                yield return null;
+                yield return new WaitForSeconds(.25f);
+                var aa = (Animator)Model(a).GetType().GetField("Animator").GetValue(Model(a));
+                var ba = (Animator)Model(b).GetType().GetField("Animator").GetValue(Model(b));
+                foreach (var bone in new[] { HumanBodyBones.Spine, HumanBodyBones.Chest, HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, HumanBodyBones.RightHand })
+                    Assert.That(Quaternion.Angle(aa.GetBoneTransform(bone).localRotation, ba.GetBoneTransform(bone).localRotation), Is.LessThan(.1f), bone.ToString());
+            }
+            finally { movement.SetValue(policy, previous); }
+        }
+
+        [UnityTest]
+        public IEnumerator StationaryInteractionsDoNotTurnBonesTowardWorldTarget()
+        {
+            var settings = TypeFor("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null);
+            var policies = Get(settings, "Presentation");
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var changed = new List<(object policy, FieldInfo movement, bool oldMovement, FieldInfo interrupt, bool oldInterrupt)>();
+            try
+            {
+                foreach (int kind in new[] { 1, 2, 4 })
+                {
+                    var policy = policies.GetType().GetMethod("InteractionPolicy").Invoke(policies, new object[] { kind });
+                    var movement = policy.GetType().GetField("allowMovement", flags);
+                    var interrupt = policy.GetType().GetField("allowInterrupt", flags);
+                    changed.Add((policy, movement, (bool)movement.GetValue(policy), interrupt, (bool)interrupt.GetValue(policy)));
+                    movement.SetValue(policy, false); interrupt.SetValue(policy, true);
+                }
+                var a = Player(); var b = Player();
+                yield return null;
+                foreach (int kind in new[] { 1, 2, 4 })
+                {
+                    Call(Part(a, "HumanoidPlayerPresentation"), "RequestItemMotion", kind, a.transform.position + Vector3.up * 3f + Vector3.left * 3f);
+                    Call(Part(b, "HumanoidPlayerPresentation"), "RequestItemMotion", kind, b.transform.position + Vector3.down * 2f + Vector3.right * 3f);
+                    yield return null;
+                    yield return new WaitForSeconds(.25f);
+                    var aa = (Animator)Model(a).GetType().GetField("Animator").GetValue(Model(a));
+                    var ba = (Animator)Model(b).GetType().GetField("Animator").GetValue(Model(b));
+                    foreach (var bone in new[] { HumanBodyBones.Spine, HumanBodyBones.Chest, HumanBodyBones.RightUpperArm, HumanBodyBones.RightLowerArm, HumanBodyBones.RightHand })
+                        Assert.That(Quaternion.Angle(aa.GetBoneTransform(bone).localRotation, ba.GetBoneTransform(bone).localRotation), Is.LessThan(.1f), $"kind={kind}, bone={bone}");
+                }
+            }
+            finally
+            {
+                foreach (var entry in changed)
+                { entry.movement.SetValue(entry.policy, entry.oldMovement); entry.interrupt.SetValue(entry.policy, entry.oldInterrupt); }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator ReceivedPickupUsesSendersMovementPolicy()
+        {
+            var settings = TypeFor("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null);
+            var policies = Get(settings, "Presentation");
+            var policy = policies.GetType().GetMethod("InteractionPolicy").Invoke(policies, new object[] { 4 });
+            var movement = policy.GetType().GetField("allowMovement", BindingFlags.Instance | BindingFlags.NonPublic);
+            bool previous = (bool)movement.GetValue(policy);
+            try
+            {
+                movement.SetValue(policy, false);
+                var player = Player();
+                yield return null;
+                var view = Part(player, "HumanoidPlayerPresentation");
+                Call(view, "ReceiveItemMotion", 4, player.transform.position + player.transform.forward, true);
+                yield return null;
+                yield return null;
+                var animator = (Animator)Model(player).GetType().GetField("Animator").GetValue(Model(player));
+                int layer = animator.GetLayerIndex("ItemRightHand");
+                Assert.That(animator.GetLayerWeight(layer), Is.EqualTo(1f), "remote pose follows the sender even when local policy differs");
+                Assert.That(animator.GetCurrentAnimatorStateInfo(layer).IsName("ItemManipulate"), Is.True);
+            }
+            finally { movement.SetValue(policy, previous); }
+        }
+
+        [UnityTest]
         public IEnumerator ActualPrefabCutsAllLimbsAndRestoresWithoutLegacyPieces()
         {
             var player = Player();

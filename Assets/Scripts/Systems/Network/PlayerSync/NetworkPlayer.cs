@@ -321,6 +321,14 @@ namespace CurtainCall.Network.PlayerSync
             foreach (var player in all) player.ServerRestoreAll();
         }
 
+        public void ServerRestoreDevInjury(BodyPart parts)
+        {
+            if (!IsServer || !CurtainCall.Dev.DevMode.Enabled) return;
+            lostParts.Value = parts;
+            if (parts == PlayerCondition.PartsForLostCount(4)) state.Value = PlayerState.Fallen;
+            else if (state.Value != PlayerState.Normal) { state.Value = PlayerState.Normal; reviveCount.Value++; }
+        }
+
         /// <summary>디버그·테스트용: 내 캐릭터의 부위 절단을 호스트에 요청한다. None이면 공통 순서로 1곳.</summary>
         public void RequestCutPart(BodyPart part)
         {
