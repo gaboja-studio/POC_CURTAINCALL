@@ -7,7 +7,7 @@
 # - 조사 자동: {item:을} → 받침에 맞춰 을/를. {x:이}(이/가), {x:은}(은/는), {x:과}(과/와), {x:으로}(으로/로), {x:이다}(이다/다)
 # - 고친 뒤 플레이를 다시 시작하면 반영됩니다.
 # - 튜토리얼 안내 문구는 WaitingRoomTutorialTexts.txt, 안내 패널 수치는 WaitingRoomTutorialPanel.txt에 있습니다.
-# - 씬에 저장된 이름(단서·문·상자 이름, 벽 표지판, CCTV, 공연 이름)은 Unity 인스펙터에서 고칩니다.
+# - 단서·문·상자·벽 이름은 맨 아래 "탐색 대상 이름" 구역에서 고칩니다. 벽 표지판·CCTV·공연 이름은 Unity 인스펙터에서 고칩니다.
 
 # ── 상호작용 안내 ([F] 키 옆 문구) ──
 # 상호작용 대상에 가까이 갔을 때 [F] 옆에 나오는 문구와 그 아래 보조 줄
@@ -77,7 +77,8 @@ gate.panel-close | 닫기
 tool.name-hairpin | 마술사의 머리핀
 tool.name-stake-puller | 천막 말뚝 뽑개
 # [F] 문구 ({label} = 대상 이름, {tool} = 도구 이름, {n} = 시도 횟수)
-tool.needs-tool | {label} — {tool:이} 필요하다
+# 도구가 없을 때는 도구 이름 대신 {hint}(힌트)가 들어갑니다. 힌트는 아이템 구역의 item.<도구 id>.hint, 대상마다 다르게 하려면 맨 아래 target.<대상 id>.hint
+tool.needs-tool | {label} — {hint}
 tool.pick-lock | {tool:으로} 자물쇠 따기
 tool.pick-lock-attempt | {tool:으로} 자물쇠 따기 (시도 {n})
 tool.pry | {tool:으로} 뜯기
@@ -87,10 +88,10 @@ tool.lock-opened | 딸깍 — {label}의 자물쇠가 열렸습니다.
 tool.lock-failed | 자물쇠가 헛돌았습니다. (시도 {n})
 
 # ── 부술 수 있는 벽 ──
-# [F] 문구 ({label} = 벽 이름, {tool} = 도구 이름, {n} = 지금까지 친 횟수, {total} = 필요한 횟수)
+# [F] 문구 ({label} = 벽 이름, {tool} = 도구 이름, {hint} = 도구 힌트, {n} = 지금까지 친 횟수, {total} = 필요한 횟수)
 wall.collapsed | 무너진 벽
 wall.strike | {tool:으로} 내려치기 ({n}/{total})
-wall.needs-tool | {label} — {tool:이} 필요하다 ({n}/{total})
+wall.needs-tool | {label} — {hint} ({n}/{total})
 # 결과 알림
 wall.broken | {label:이} 무너졌습니다.
 wall.hit-progress | {label} 내려침 {n}/{total}
@@ -126,15 +127,23 @@ inventory.empty-hand | 빈손 · 1–2 기물 선택
 # 키: item.<아이템 id>.name = 이름, .worn = 많이 닳았을 때 이름, .desc = 상점 기물 목록에 보이는 설명
 # 이름을 바꾸면 줍기·받기 안내, 머리 위 이름표, 소지 칸, 상점 목록에 모두 반영됩니다.
 # 설명(.desc)은 상점 기물 목록의 설명 칸에 표시됩니다. 줄 앞에 #를 붙이면 표시하지 않습니다.
+# 힌트(.hint)는 그 도구가 없을 때 상자·자물쇠·벽 안내에 도구 이름 대신 나옵니다. 없으면 "알맞은 도구가 필요할 것 같다". {tool}(도구 이름)을 넣을 수도 있습니다.
 
 # 탐색 도구 (상점 판매)
 item.magician-hairpin.name | 마술사의 머리핀
+item.magician-hairpin.hint | 가늘고 뾰족한 도구로 열 수 있을 것 같다.
 item.magician-hairpin.desc | 자물쇠: 시도마다 50% 개방, 같은 자물쇠 세 번째 시도는 반드시 개방(시도 수 팀 공유·런 유지). 개방 성공 시 1 소모.
 item.stake-puller.name | 천막 말뚝 뽑개
 item.stake-puller.worn | 낡은 천막 말뚝 뽑개
-item.stake-puller.desc | 판자·덮개·걸린 서랍 개방, 숨은 길 벽 파괴(빠루). 개방·파괴 성공 시 1 소모.
+item.stake-puller.hint | 부수거나 비틀 수 있는 도구가 필요할 것 같다.
+item.stake-puller.desc | 판자·덮개·걸린 서랍 개방, 녹슨 벽 파괴. 개방·파괴 성공 시 1 소모.
+# UV 등은 [F]로 쓰는 도구가 아니라 비출 때만 낙서가 드러나므로 힌트가 나올 상황이 없습니다(아래 줄은 쓰이지 않음).
+# item.uv-lamp.hint | 희미한 얼룩이 보인다.
 item.uv-lamp.name | 서커스 UV 등
 item.uv-lamp.desc | 장비. 슬롯에 넣으면 자동 적용. 우클릭으로 사용 가능하며, 숨겨진 단서를 찾을 수 있다. 내구도 없음.
+# 탐색 열쇠(주운 뒤 슬롯에 보이는 이름)
+item.structure-a:escape-key-1.name | 은색 열쇠 1
+item.structure-a:escape-key-2.name | 은색 열쇠 2
 
 # 공연 장비 (지금은 상점에서 팔지 않음)
 item.rescue-gloves.name | 구조 장갑
@@ -152,8 +161,8 @@ explore.offline | 접속 중이 아니라 내려칠 수 없습니다.
 explore.no-target | 대상을 찾지 못했습니다.
 explore.already-open | 이미 열렸습니다.
 explore.too-far | 거리가 너무 멉니다.
-# {tool} = 필요한 도구 이름
-explore.need-tool | {tool:을} 손에 들어야 합니다.
+# 맞지 않는 기물을 들고 썼을 때. {hint} = 도구 힌트(도구 이름은 쓰지 않음)
+explore.need-tool | {hint}
 explore.conditions | 선행 조건을 충족해야 합니다.
 explore.partner-slot | 다른 공연 준비자가 반대쪽 열쇠 구멍에서 함께 상호작용 해야 합니다.
 explore.partner | 다른 공연 준비자가 가까이에서 상호작용 해야 합니다.
@@ -172,9 +181,9 @@ shelf.empty | 선반이 비어 있습니다
 
 # ── 기물 들기·내려놓기·선반 (알림 문구) ──
 # 접속이 끊긴 참가자가 기물을 다루려 할 때
-carry.offline-shelf | 접속 중이 아니라 선반을 쓸 수 없습니다.
+carry.offline-shelf | 접속 중이 아니라 선반을 이용할 수 없습니다.
 carry.offline-drop | 접속 중이 아니라 내려놓을 수 없습니다.
-carry.offline-pick | 접속 중이 아니라 주울 수 없습니다.
+carry.offline-pick | 접속 중이 아니라 수령할 수 없습니다.
 # 기물 줍기·받기·선반 사용이 거절될 때
 carry.hands-full | 손이 가득 찼습니다.
 carry.nothing-held | 들고 있는 기물이 없습니다.
@@ -396,6 +405,74 @@ night.bed-lie-down | 침대에 눕기 (준비 완료 · {ready}/{total})
 
 
 # ── 기물 파괴 알림 (화면 오른쪽 패널) ──
-# 탐색 도구의 내구도가 다 닳아 기물이 파괴될 때마다 오른쪽에 4초 동안 뜬다. 제목의 {item} = 파괴된 기물 이름(본문에는 쓸 수 없음)
+# 탐색 도구의 내구도가 다 닳아 기물이 파괴될 때마다 오른쪽에 4초 동안 뜬다. {item} = 파괴된 기물 이름(제목·본문 모두)
 notice.item-broken-title | {item}
-notice.item-broken | 기물이 파괴되었습니다.
+notice.item-broken | {item:이} 파괴되었습니다.
+
+# ── 탐색 대상 이름 (단서·문·열쇠·상자·벽) ──
+# 키: target.<대상 id>.name = 이름. [F] 안내, 결과 알림, 패널 제목의 {label}·{title} 자리에 들어갑니다.
+#   예) 캐비넷 1 이름을 바꾸면 "캐비넷 1 — 마술사의 머리핀이 필요하다"의 앞부분이 바뀝니다.
+# - 대상 id(target. 과 .name 사이)는 바꾸지 마세요. 줄을 지우거나 앞에 #를 붙이면 씬에 저장된 이름을 씁니다.
+# - target.<대상 id>.hint 줄을 넣으면 그 대상만 도구 힌트가 바뀝니다(도구 이름 대신 나오는 문구). 예) target.restroom-breach.hint | 벽이 녹슬어 약해 보입니다. 무언가로 뜯어낼 수 있을 것 같습니다.
+# - 같은 이름(예: 낡은 상자)이 여러 줄이어도 각각 다른 대상입니다. 하나만 바꾸면 그 대상만 바뀝니다.
+
+# 문·열쇠·비밀번호 패드·모니터·낡은 상자
+# 모니터 패널 본문은 target.<id>.text 줄을 새로 넣으면 바뀝니다. 예) target.structure-a:monitor.text | 화면에 뜨는 글
+target.structure-a:cargo-box-1.name | 낡은 상자
+target.structure-a:cargo-box-2.name | 낡은 상자
+target.structure-a:cargo-box-3.name | 낡은 상자
+target.structure-a:dormitory-box-1.name | 낡은 상자
+target.structure-a:dormitory-box-2.name | 낡은 상자
+target.structure-a:escape-door.name | 탈출로 문
+target.structure-a:escape-key-1.name | 은색 열쇠 1
+target.structure-a:escape-key-2.name | 은색 열쇠 2
+target.structure-a:escape-pad.name | 비밀번호 패드
+target.structure-a:key-1.name | 작은 열쇠 1호
+target.structure-a:key-2.name | 작은 열쇠 2호
+target.structure-a:lounge-box-1.name | 낡은 상자
+target.structure-a:lounge-box-2.name | 낡은 상자
+target.structure-a:machine-hidden-door.name | 숨겨진 문
+target.structure-a:management-door.name | 관리실 문
+target.structure-a:management-key.name | 관리실 열쇠
+target.structure-a:monitor.name | 기계실 모니터
+target.structure-a:pipe-box-1.name | 낡은 상자
+target.structure-a:stairs-door.name | 자물쇠가 걸린 문
+target.structure-a:stairs-key.name | 계단 열쇠
+target.structure-a:steel-box.name | 잠긴 강철 상자
+
+# 도구로 여는 캐비넷·트렁크·서랍·상자
+target.structure-a:cabinet-1.name | 캐비넷 1
+target.structure-a:cabinet-2.name | 캐비넷 2
+target.structure-a:cabinet-3.name | 캐비넷 3
+target.structure-a:locked-box-1.name | 자물쇠가 걸린 트렁크
+target.structure-a:locked-box-2.name | 잠긴 상자 2
+target.structure-a:management-drawer.name | 관리실 서랍
+target.trial-boarded-crate.name | 판자가 뜯어진 상자
+
+# 부술 수 있는 벽
+target.restroom-breach.name | 녹슨 벽
+target.structure-a:machine-pipe-box.name | 배관함
+
+# 단서 (집어 들고 보는 노트·낙서·지도)
+# target.<id>.desc = 단서를 들고 볼 때 아래에 나오는 설명. 설명 줄이 없는 단서도 같은 형식으로 줄을 넣으면 표시됩니다.
+target.structure-a:confiscated-notebook.name | 압수된 노트
+# 압수된 노트: 설명은 비워 둔다. 오버뷰에서 뒷면 구석의 새김 글자를 마주 보면 아래 문구가 설명에 더해진다.
+target.structure-a:confiscated-notebook.secret | 노트 구석에 "34"라는 숫자가 새겨져 있다.
+target.structure-a:graffiti-1.name | 벽의 낙서 1
+target.structure-a:graffiti-2.name | 벽의 낙서 2
+target.structure-a:graffiti-3.name | 벽의 낙서 3
+target.structure-a:graffiti-4.name | 벽의 낙서 4
+target.structure-a:hidden-graffiti-3.name | 숨겨진 단서 3
+target.structure-a:hidden-graffiti-3.desc | 무대 장치 보관실의 캐비넷 3
+target.structure-a:map.name | 서커스장 지도
+target.structure-a:newspaper.name | 낡은 신문
+target.structure-a:old-notebook.name | 낡은 노트
+target.structure-a:password-prefix-clue.name | 숨겨진 단서 2
+target.structure-a:password-prefix-clue.desc | 벽에 "12"라는 숫자가 그려져 있다.
+target.structure-a:performance-record.name | 공연 기록
+target.structure-a:uv-1-clue.name | 숨겨진 단서 1
+
+# UV 등으로 비추는 숨겨진 낙서
+target.structure-a:uv-1.name | 숨겨진 단서 1 — UV
+target.structure-a:uv-3.name | 숨겨진 단서 — UV
+target.structure-a:uv-password-prefix.name | 숨겨진 단서 — UV

@@ -74,6 +74,8 @@ namespace CurtainCall.WaitingRoom.Editor
                 Box(shape, "Gap", new Vector3(b.max.x + .002f, y, c.z), new Vector3(.006f, .012f, d - .14f), dark);
             }
             Box(shape, "LidSeam", new Vector3(c.x, b.max.y + .003f, c.z), new Vector3(w * .6f, .006f, .012f), dark);
+            // 다듬기(2026-11-01): 뚜껑 판자 이음새.
+            foreach (float k in new[] { -1f, 1f }) Box(shape, "TopSeam", new Vector3(c.x, b.max.y + .003f, c.z + k * d / 6f), new Vector3(w - .1f, .006f, .008f), dark);
             for (int i = 0; i < 6; i++) Box(shape, "Nail", new Vector3(b.min.x + .08f + (i % 3) * (w - .16f) * .5f, b.max.y - .06f, i < 3 ? b.min.z - .004f : b.max.z + .004f), new Vector3(.02f, .02f, .006f), iron);
             Register(gate, shape);
         }
@@ -93,6 +95,9 @@ namespace CurtainCall.WaitingRoom.Editor
             var handle = Cyl(on, "Handle", new Vector3(db.max.x - .12f * root.right.x - .0f, handleY, 0f), .018f, .14f, brass, root.right);
             handle.position = db.center + root.right * (db.size.x * .5f - .12f) + outward * .04f + Vector3.up * (handleY - db.center.y);
             var plate = Box(on, "LockPlate", db.center + root.right * (db.size.x * .5f - .12f) + outward * .036f + Vector3.up * (handleY - db.center.y - .11f), new Vector3(.06f, .07f, .01f), iron, root.rotation);
+            // 다듬기(2026-11-01): 문 둘레를 한 단 눌린 판처럼 보이게 테두리를 두른다.
+            foreach (float sy in new[] { -1f, 1f }) Box(on, "PanelEdge", db.center + outward * .032f + Vector3.up * sy * (db.size.y * .5f - .03f), new Vector3(db.size.x * .9f, .012f, .006f), iron, root.rotation);
+            foreach (float sx in new[] { -1f, 1f }) Box(on, "PanelEdge", db.center + outward * .032f + root.right * sx * (db.size.x * .45f), new Vector3(.012f, db.size.y - .06f, .006f), iron, root.rotation);
             if (tall) for (int i = 0; i < 3; i++) Box(on, "Vent", db.center + outward * .034f + Vector3.up * (db.size.y * .32f - i * .045f), new Vector3(db.size.x * .5f, .012f, .006f), Mat("V4_Black"), root.rotation);
             else for (int i = 0; i < 2; i++) Box(on, "Rail", db.center + outward * .034f + Vector3.up * ((i == 0 ? 1 : -1) * db.size.y * .3f), new Vector3(db.size.x * .8f, .02f, .006f), iron, root.rotation);
             foreach (float sx in new[] { -1f, 1f }) foreach (float sz in new[] { -1f, 1f })
@@ -122,6 +127,9 @@ namespace CurtainCall.WaitingRoom.Editor
             Box(shape, "Hasp", new Vector3(b.center.x, lidY - .02f, b.min.z - .012f), new Vector3(.08f, .1f, .02f), iron);
             Box(shape, "Padlock", new Vector3(b.center.x, lidY - .09f, b.min.z - .025f), new Vector3(.06f, .07f, .03f), brass);
             foreach (float sx in new[] { -1f, 1f }) Box(shape, "Strap", new Vector3(b.center.x + sx * b.size.x * .3f, b.center.y, b.center.z), new Vector3(.05f, b.size.y + .006f, b.size.z + .006f), Mat("V4_RustyMetal"));
+            // 다듬기(2026-11-01): 여덟 모서리에 덧댄 철 모서리.
+            foreach (float sx in new[] { -1f, 1f }) foreach (float sy in new[] { -1f, 1f }) foreach (float sz in new[] { -1f, 1f })
+                Box(shape, "Corner", b.center + Vector3.Scale(b.extents, new Vector3(sx, sy, sz)) - new Vector3(sx, sy, sz) * .02f, new Vector3(.055f, .055f, .055f), iron);
             Register(gate, shape);
         }
 
@@ -149,17 +157,19 @@ namespace CurtainCall.WaitingRoom.Editor
             string n = root.name;
             if (wall)
             {
-                // 벽면 앞 3mm에 스프레이 획. 낙서 번호별로 다른 모양.
-                var outward = Outward(doc); var right = Vector3.Cross(Vector3.up, outward).normalized; var face = b.center + outward * (Mathf.Min(b.size.x, b.size.z) * .5f + .003f);
+                // 벽 낙서는 받침판 없이 벽에 직접 그린 그림이다. 오버뷰에도 그림만 보인다(2026-11-01 사용자: 도형 그림, 숨은 단서는 내용 그림).
+                doc.GetComponent<Renderer>().enabled = false;
+                var outward = Outward(doc); var right = Vector3.Cross(outward, Vector3.up).normalized; // 정면에서 볼 때 오른쪽
+                var face = WallFace(root, doc, outward) + outward * .004f;
                 var color = n.Contains("hidden") || n.Contains("uv") || n.Contains("Prefix") ? ink : paint;
-                int strokes = 7 + rng.Next(4);
-                for (int i = 0; i < strokes; i++)
+                var strokes = Drawing(root, n, right);
+                foreach (var (a, c, width) in strokes) Stroke(shape, face, right, outward, a, c, width, color);
+                // 스프레이가 흘러내린 자국 두 줄
+                for (int i = 0; i < 2; i++)
                 {
-                    float u = ((float)rng.NextDouble() - .5f) * .38f, v = ((float)rng.NextDouble() - .5f) * .22f, len = .06f + (float)rng.NextDouble() * .14f, ang = (float)rng.NextDouble() * 180f;
-                    var stroke = Box(shape, "Stroke", face + right * u + Vector3.up * v, new Vector3(len, .018f, .004f), color, Quaternion.LookRotation(-outward, Vector3.up) * Quaternion.Euler(0, 0, ang));
-                    _ = stroke;
+                    var (a, c, _) = strokes[rng.Next(strokes.Count)]; var low = a.y < c.y ? a : c; float len = .04f + (float)rng.NextDouble() * .05f;
+                    Stroke(shape, face, right, outward, low, low + Vector2.down * len, .01f, color);
                 }
-                Box(shape, "Drip", face + right * .1f + Vector3.down * .13f, new Vector3(.012f, .07f, .004f), color, Quaternion.LookRotation(-outward, Vector3.up));
             }
             else
             {
@@ -179,6 +189,8 @@ namespace CurtainCall.WaitingRoom.Editor
                     doc.GetComponent<Renderer>().sharedMaterial = Mat("LA_TentRed", "V4_RustyMetal");
                     for (int i = 0; i < 7; i++) Cyl(shape, "Ring", c + lineStep * (h * .5f - .005f) + lineAxis * (w * (i / 6f - .5f) * .8f), .008f, .025f, Mat("V4_Iron_Dark"), lineStep);
                     Box(shape, "Label", c + Vector3.up * .001f, alongX ? new Vector3(w * .5f, .004f, h * .3f) : new Vector3(h * .3f, .004f, w * .5f), paper);
+                    if (n.Contains("confiscated")) Secret(shape, clue, new Vector3(c.x, b.min.y - .002f, c.z) + lineAxis * (w * .5f - .075f) - lineStep * (h * .5f - .055f), ink,
+                        "노트 구석에 \"34\"라는 숫자가 새겨져 있다.", "34");
                 }
                 else
                 {
@@ -193,6 +205,98 @@ namespace CurtainCall.WaitingRoom.Editor
                 }
             }
             _ = clue;
+        }
+
+        // 낙서 그림(정면 기준 오른쪽·위 좌표, m). 손으로 그린 듯 끝점을 조금 흔든다.
+        static List<(Vector2 a, Vector2 b, float w)> Drawing(Transform root, string n, Vector3 right)
+        {
+            var lines = new List<(Vector2, Vector2, float)>();
+            void Poly(float w, params Vector2[] p) { for (int i = 1; i < p.Length; i++) lines.Add((Jitter(p[i - 1]), Jitter(p[i]), w)); }
+            const float W = .026f;
+            if (n == "graffiti1") Poly(W, new(0, .16f), new(-.17f, -.13f), new(.17f, -.13f), new(0, .16f));                       // 세모
+            else if (n == "graffiti2") Poly(W, new(-.15f, -.15f), new(-.15f, .15f), new(.15f, .15f), new(.15f, -.15f), new(-.15f, -.15f)); // 네모
+            else if (n == "graffiti-3") Poly(W, Enumerable.Range(0, 19).Select(i => new Vector2(Mathf.Cos(i * Mathf.PI / 9f), Mathf.Sin(i * Mathf.PI / 9f)) * .15f).ToArray()); // 동그라미
+            else if (n == "graffiti4") { Poly(W, new(-.15f, -.15f), new(.15f, .15f)); Poly(W, new(-.15f, .15f), new(.15f, -.15f)); } // 엑스
+            else if (n == "uv-1-detail")
+            {
+                // 무너뜨릴 녹슨 벽 쪽을 가리키는 화살표와 X
+                var breach = root.parent != null && root.parent.parent != null ? root.parent.parent.Find("BreachWall") : null;
+                float dir = breach != null && Vector3.Dot(breach.position - root.position, right) < 0 ? -1f : 1f;
+                Poly(W, new(-.17f * dir, .04f), new(.12f * dir, .04f)); Poly(W, new(.03f * dir, .12f), new(.13f * dir, .04f), new(.03f * dir, -.04f));
+                Poly(.022f, new(-.06f, -.06f), new(.04f, -.15f)); Poly(.022f, new(-.06f, -.15f), new(.04f, -.06f));
+            }
+            else if (n == "passwordPrefixClue")
+            {
+                // 숫자 "12". 왼쪽 기둥에 "1"이 가리지 않게 오른쪽으로 비켜 그린다.
+                Poly(W, new(-.04f, .07f), new(.01f, .12f), new(.01f, -.12f));
+                Poly(W, new(.1f, .12f), new(.23f, .12f), new(.23f, .0f), new(.1f, .0f), new(.1f, -.12f), new(.24f, -.12f));
+            }
+            else if (n == "hiddenGraffiti3")
+            {
+                // 캐비넷 그림 + 숫자 "3"
+                Poly(.02f, new(-.18f, -.12f), new(-.18f, .13f), new(-.02f, .13f), new(-.02f, -.12f), new(-.18f, -.12f));
+                Poly(.016f, new(-.1f, -.12f), new(-.1f, .13f));
+                Poly(.016f, new(-.125f, -.01f), new(-.125f, .04f)); Poly(.016f, new(-.075f, -.01f), new(-.075f, .04f));
+                Poly(.016f, new(-.17f, -.12f), new(-.17f, -.15f)); Poly(.016f, new(-.03f, -.12f), new(-.03f, -.15f));
+                Poly(W, new(.04f, .12f), new(.17f, .12f), new(.17f, -.12f), new(.04f, -.12f)); Poly(W, new(.07f, .0f), new(.17f, .0f));
+            }
+            else
+            {
+                // 알 수 없는 낙서는 예전처럼 스프레이 획
+                for (int i = 0; i < 8; i++)
+                {
+                    var c = new Vector2(((float)rng.NextDouble() - .5f) * .3f, ((float)rng.NextDouble() - .5f) * .2f); float ang = (float)rng.NextDouble() * Mathf.PI, len = .06f + (float)rng.NextDouble() * .12f;
+                    var d = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * len * .5f; lines.Add((c - d, c + d, .018f));
+                }
+            }
+            return lines;
+        }
+
+        // 뒷면(아래쪽) 구석에 새긴 숫자. 오버뷰에서 뒤집어 마주 보면 찾는다(2026-11-01 사용자). 정면에서 볼 때 로컬 x가 오른쪽, z가 위쪽.
+        static void Secret(Transform shape, ClueInspectable clue, Vector3 at, Material ink, string hint, string digits)
+        {
+            var mark = new GameObject("SecretMark").transform; Undo.RegisterCreatedObjectUndo(mark.gameObject, "Secret mark");
+            mark.SetParent(shape, false); mark.SetPositionAndRotation(at, Quaternion.Euler(180f, 0f, 0f));
+            const float H = .04f, Gap = .032f;
+            var glyphs = new Dictionary<char, Vector2[][]>
+            {
+                ['3'] = new[] { new Vector2[] { new(0, 1), new(.6f, 1), new(.6f, .5f), new(.1f, .5f) }, new Vector2[] { new(.6f, .5f), new(.6f, 0), new(0, 0) } },
+                ['4'] = new[] { new Vector2[] { new(0, 1), new(0, .42f), new(.68f, .42f) }, new Vector2[] { new(.5f, 1), new(.5f, 0) } },
+            };
+            float x0 = -(digits.Length * Gap) * .5f;
+            for (int i = 0; i < digits.Length; i++)
+                foreach (var line in glyphs[digits[i]])
+                    for (int k = 1; k < line.Length; k++)
+                    {
+                        Vector2 a = new Vector2(x0 + i * Gap, -H * .5f) + line[k - 1] * H, e = new Vector2(x0 + i * Gap, -H * .5f) + line[k] * H, d = e - a, mid = (a + e) * .5f;
+                        Box(mark, "Engrave", mark.TransformPoint(new Vector3(mid.x, 0, mid.y)), new Vector3(d.magnitude + .006f, .002f, .006f), ink,
+                            mark.rotation * Quaternion.Euler(0, -Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg, 0));
+                    }
+            var so = new SerializedObject(clue);
+            so.FindProperty("secretMark").objectReferenceValue = mark;
+            so.FindProperty("secretText").stringValue = hint;
+            so.FindProperty("description").stringValue = "";
+            so.ApplyModifiedProperties();
+        }
+
+        static Vector2 Jitter(Vector2 p) => p + new Vector2(((float)rng.NextDouble() - .5f) * .012f, ((float)rng.NextDouble() - .5f) * .012f);
+
+        // 그림 한 획: 벽면(face)에 붙은 납작한 막대. 끝을 조금 겹쳐 꺾인 자리가 비지 않는다.
+        static void Stroke(Transform shape, Vector3 face, Vector3 right, Vector3 outward, Vector2 a, Vector2 b, float width, Material color)
+        {
+            var d = b - a; float angle = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg; var mid = (a + b) * .5f;
+            Box(shape, "Stroke", face + right * mid.x + Vector3.up * mid.y, new Vector3(d.magnitude + width, width, .004f), color,
+                Quaternion.LookRotation(-outward, Vector3.up) * Quaternion.Euler(0, 0, angle));
+        }
+
+        // 낙서 자리 뒤의 실제 벽면(받침판 등 이 단서 자신의 충돌체는 뺀다). 없으면 받침판 뒷면.
+        static Vector3 WallFace(Transform root, Transform doc, Vector3 outward)
+        {
+            var b = Bounds(doc); var from = b.center + outward * .3f;
+            var hits = Physics.RaycastAll(from, -outward, .6f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)
+                .Where(h => !h.collider.transform.IsChildOf(root)).OrderBy(h => h.distance).ToArray();
+            if (hits.Length > 0) return b.center + outward * Vector3.Dot(hits[0].point - b.center, outward);
+            return b.center - outward * (Mathf.Min(b.size.x, b.size.z) * .5f);
         }
 
         // ---- 공통 ----

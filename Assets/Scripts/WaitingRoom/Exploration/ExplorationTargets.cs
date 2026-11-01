@@ -45,6 +45,17 @@ namespace CurtainCall.WaitingRoom
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() => all.Clear();
 
+        /// <summary>
+        /// 도구 이름 대신 보여 줄 힌트(2026-11-01 사용자). 문구 파일 target.&lt;대상 id&gt;.hint → item.&lt;도구 id&gt;.hint 순서로 찾고,
+        /// 둘 다 없으면 기본 힌트. 힌트 안에서 {tool}(도구 이름)을 쓸 수 있다.
+        /// </summary>
+        public static string Hint(IExplorationTarget t)
+        {
+            string key = "target." + t.TargetId + ".hint";
+            if (!WaitingRoomText.Has(key)) key = "item." + t.ToolId + ".hint";
+            return WaitingRoomText.Format(key, "알맞은 도구가 필요할 것 같다", ("tool", t.ToolName));
+        }
+
         /// <summary>지금 내 손에 든 기물이 이 도구인가(F 안내용, 모든 화면).</summary>
         public static bool LocalHolds(string toolId)
         {

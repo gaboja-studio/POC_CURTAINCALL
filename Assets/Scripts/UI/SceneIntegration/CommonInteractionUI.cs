@@ -43,7 +43,7 @@ namespace CurtainCall.UI.SceneIntegration
             public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom, Lobby, Pole;
             public float Distance; public float? Progress;
             public string Helper, Key = "F";
-            public bool Hold, ScreenGuide;
+            public bool Hold, ScreenGuide, NoOutline;
         }
         public void Configure(InteractionPromptView view, RectTransform anchor) { prompt = view; promptAnchor = anchor; }
         void Awake()
@@ -94,6 +94,7 @@ namespace CurtainCall.UI.SceneIntegration
                 Add(p.VisualRoot, p.PresentationPoint, action, p.IsAvailable, ReferenceEquals(target, ShopReach.Focused), feet);
                 candidates[candidates.Count - 1].WaitingRoom = true;
                 candidates[candidates.Count - 1].Helper = (target as IShopPresentationDetails)?.HelperLabel;
+                candidates[candidates.Count - 1].NoOutline = target is IShopOutlineOptional { HideOutline: true };
             }
             foreach (var item in lobby)
             {
@@ -126,6 +127,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (material != null)
                 foreach (var candidate in selected)
                 {
+                    if (candidate.NoOutline) continue;
                     bool exists = false;
                     foreach (var outline in outlines) if (outline.Target == candidate.Root) exists = true;
                     if (!exists) outlines.Add(new InteractionOutline(candidate.Root, material));

@@ -20,7 +20,7 @@ namespace CurtainCall.WaitingRoom
         bool Opened => ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(TargetId);
         public Transform VisualRoot => transform;
         public Vector3 PresentationPoint => transform.position;
-        public string ActionLabel => Opened ? $"탈출로 열쇠 {keyNumber} 얻음 (디버그)" : $"탈출로 열쇠 {keyNumber} 얻기 (디버그)";
+        public string ActionLabel => Opened ? $"은색 열쇠 {keyNumber} 얻음 (디버그)" : $"은색 열쇠 {keyNumber} 얻기 (디버그)";
         public bool IsAvailable => ExplorationState.Instance != null && !Opened;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

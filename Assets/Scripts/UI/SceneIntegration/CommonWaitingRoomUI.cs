@@ -24,6 +24,8 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField, Min(.1f)] float fundsAccentSeconds = 1f;
         ExplorationTimerAnnouncer announcer;
         PropCarry carry;
+        WaitingRoomShop shop;
+        ExplorationState exploration;
         [SerializeField] DayClockView dayClock;
         [SerializeField] RestTimerView restTimer;
         bool oldLegacyHud, fundsReceived, wasActive;
@@ -51,6 +53,7 @@ namespace CurtainCall.UI.SceneIntegration
             bool active = space != null && run != null && (run.State.Phase == CampaignPhase.RestTime || run.State.Phase == CampaignPhase.Night);
             AttachAnnouncer(active ? space.Announcer : null);
             AttachCarry(active ? PropCarry.Instance : null);
+            AttachOthers(active ? WaitingRoomShop.Instance : null, active ? ExplorationState.Instance : null);
             if (hud == null) return;
             if (dayClock != null) dayClock.gameObject.SetActive(false);
             if (!active)
@@ -156,6 +159,26 @@ namespace CurtainCall.UI.SceneIntegration
             if (hud != null) hud.Inventory.HideInventory();
         }
 
+        // 배송구 수령·열쇠 줍기는 상점·탐색 채널로 답이 온다. 손이 가득 찬 것 같은 기물 거절만 같은 알림으로 띄운다(2026-11-01).
+        void AttachOthers(WaitingRoomShop nextShop, ExplorationState nextExploration)
+        {
+            if (!ReferenceEquals(shop, nextShop))
+            {
+                if (shop != null) shop.RequestAnswered -= PresentShopRefusal;
+                shop = nextShop;
+                if (shop != null) shop.RequestAnswered += PresentShopRefusal;
+            }
+            if (!ReferenceEquals(exploration, nextExploration))
+            {
+                if (exploration != null) exploration.RequestAnswered -= PresentCarryRefusal;
+                exploration = nextExploration;
+                if (exploration != null) exploration.RequestAnswered += PresentCarryRefusal;
+            }
+        }
+
+        void PresentShopRefusal(bool ok, string message) { if (!ok) PresentCarryRefusal(message); }
+        void PresentCarryRefusal(string message) { if (PropCarry.IsRefusalText(message)) PresentCarryMessage(message); }
+
         void PresentCarryMessage(string message)
         {
             if (!string.IsNullOrWhiteSpace(message)) notifications.Toast.Show(message, ToastState.Normal, announcementSeconds);
@@ -163,7 +186,7 @@ namespace CurtainCall.UI.SceneIntegration
 
         void OnDisable()
         {
-            AttachAnnouncer(null); AttachCarry(null);
+            AttachAnnouncer(null); AttachCarry(null); AttachOthers(null, null);
             if (hud != null) hud.ResetForRuntime();
             if (dayClock != null) dayClock.Hide();
             if (restTimer != null) restTimer.Hide();

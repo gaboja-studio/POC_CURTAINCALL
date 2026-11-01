@@ -11,7 +11,10 @@ namespace CurtainCall.UI.SceneIntegration
     {
         RectTransform panel;
         TMP_Text title, subtitle, message;
-        float baseHeight, titleHeight, subtitleHeight, messageHeight;
+        float baseHeight, baseWidth, titleHeight, subtitleHeight, messageHeight;
+        // [F] 안내 박스: 글자 칸은 왼쪽 92(키 칸) + 오른쪽 여백 20. 긴 문구(도구 힌트 등)는 박스를 넓히고 3줄까지 보인다(2026-11-01 사용자).
+        const float PromptTextLeft = 92, PromptTextRight = 20, PromptMaxWidth = 640;
+        const int PromptMaxLines = 3;
         string previousTitle, previousSubtitle, previousMessage;
         float previousWidth;
         bool initialized, interaction, banner;
@@ -65,6 +68,7 @@ namespace CurtainCall.UI.SceneIntegration
                 subtitle = transform.Find("Motion/80_HelperTMP")?.GetComponent<TMP_Text>();
             }
             baseHeight = panel.rect.height;
+            baseWidth = panel.rect.width;
             titleHeight = title != null ? title.rectTransform.rect.height : 0;
             subtitleHeight = subtitle != null ? subtitle.rectTransform.rect.height : 0;
             messageHeight = message != null ? message.rectTransform.rect.height : 0;
@@ -98,9 +102,11 @@ namespace CurtainCall.UI.SceneIntegration
                 extra = Resize(message, messageHeight) - messageHeight;
             else if (title != null && subtitle != null)
             {
-                float titleExtra = Resize(title, titleHeight) - titleHeight;
+                int lines = interaction ? PromptMaxLines : 2;
+                if (interaction) FitPromptWidth();
+                float titleExtra = Resize(title, titleHeight, lines) - titleHeight;
                 bool hasSubtitle = subtitle.gameObject.activeSelf && !string.IsNullOrWhiteSpace(subtitle.text);
-                float subtitleExtra = Resize(subtitle, subtitleHeight) - subtitleHeight;
+                float subtitleExtra = Resize(subtitle, subtitleHeight, lines) - subtitleHeight;
                 title.rectTransform.anchoredPosition = interaction
                     ? new Vector2(92, hasSubtitle ? -12 : -24)
                     : new Vector2(72, hasSubtitle ? -18 : -32);
@@ -116,16 +122,30 @@ namespace CurtainCall.UI.SceneIntegration
             previousWidth = panel.rect.width;
         }
 
-        static float Resize(TMP_Text label, float minimum)
+        /// <summary>안내·보조 줄 중 긴 쪽이 한 줄에 들어가도록 박스를 넓힌다(기본 폭 이상, 최대 폭 이하). 넘치면 줄바꿈한다.</summary>
+        void FitPromptWidth()
+        {
+            float needed = Mathf.Max(OneLineWidth(title), subtitle.gameObject.activeSelf ? OneLineWidth(subtitle) : 0);
+            float width = Mathf.Clamp(Mathf.Ceil(needed) + PromptTextLeft + PromptTextRight, baseWidth, PromptMaxWidth);
+            panel.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
+            float text = width - PromptTextLeft - PromptTextRight;
+            title.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, text);
+            subtitle.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, text);
+        }
+
+        static float OneLineWidth(TMP_Text label) =>
+            string.IsNullOrEmpty(label.text) ? 0 : label.GetPreferredValues(label.text, Mathf.Infinity, Mathf.Infinity).x;
+
+        static float Resize(TMP_Text label, float minimum, int maxLines = 2)
         {
             label.textWrappingMode = TextWrappingModes.Normal;
             label.enableAutoSizing = false;
-            label.maxVisibleLines = 2;
+            label.maxVisibleLines = maxLines;
             label.overflowMode = TextOverflowModes.Ellipsis;
             float width = Mathf.Max(1, label.rectTransform.rect.width);
-            float twoLines = label.GetPreferredValues("가\n가", width, Mathf.Infinity).y;
+            float most = label.GetPreferredValues(maxLines == 2 ? "가\n가" : "가\n가\n가", width, Mathf.Infinity).y;
             float preferred = label.GetPreferredValues(label.text, width, Mathf.Infinity).y;
-            float height = Mathf.Clamp(Mathf.Ceil(preferred), minimum, Mathf.Max(minimum, Mathf.Ceil(twoLines)));
+            float height = Mathf.Clamp(Mathf.Ceil(preferred), minimum, Mathf.Max(minimum, Mathf.Ceil(most)));
             label.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             return height;
         }

@@ -413,7 +413,11 @@ namespace CurtainCall.WaitingRoom
 
         void OnCarryAnswered(string text) { if (text == PropCarry.Explain(CarryRefusal.HandsFull)) Book.Enqueue("S03"); }
         // 도구 소진은 결과 문구가 아니라 결과 표시로 안다(문구는 사용자가 고칠 수 있다).
-        void OnExplorationAnswered(string text) { if (exploration != null && exploration.LastUsedUp) Book.Enqueue("S04"); }
+        void OnExplorationAnswered(string text)
+        {
+            if (exploration != null && exploration.LastUsedUp) Book.Enqueue("S04");
+            OnCarryAnswered(text); // 열쇠 줍기에서 손이 가득 찬 경우
+        }
         void OnInspected(ClueInspectable clue) { Book.Enqueue("G04"); Book.Enqueue("G07"); }
         void OnUvFound(UvMark mark) => Book.Enqueue("G07");
         void OnRevived(NetworkPlayer player) { if (player != null && player.IsLocal) pendingRevived = true; }
