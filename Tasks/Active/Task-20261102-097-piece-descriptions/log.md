@@ -14,3 +14,4 @@
 
 - 2026-11-02 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/270 (fix/shop/piece-descriptions → dev)
 - PR #270 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/270 · Jira CC-202 설명 갱신(남은 일: 실제 화면에서 글자 깨짐 확인, 탐색 도구 '적용' 줄 결정).
+- origin/dev(169225f4, #269 소지 칸 손 아이콘) 병합: 겹치는 파일 없어 충돌 없음. 에디터 종료 상태라 병합 후 컴파일은 미확인.
