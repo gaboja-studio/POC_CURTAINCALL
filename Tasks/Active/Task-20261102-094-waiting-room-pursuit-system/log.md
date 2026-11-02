@@ -70,6 +70,8 @@
 - 병합 후 Play5/5 PASS: 씬 선택1/1(18.23초), Start 인벤토리/ESC 재로딩1/1(19.20초), Base/Pursuit 카메라/숨김 패널3/3(21.73초). dev-merge-*-tests.json 보관. 테스트/에디터가 갱신한 공용/탈출로 TMP 글리프 캐시도 모든 변경 저장 요청에 포함. Start clean·Pursuit 선택 복원.
 - 최종 저장0fb9d56e까지 로컬 커밋 완료. 메인 push는 pre-push의 private main 포함 검사에서 중단(051db4ab는 private 작업 브랜치에만 업로드됨). private main으로의 fast-forward push 요청은 자동 승인 검토가 기본 브랜치에 해당 payload를 게시한다는 명시 승인이 없다는 이유로 거부했다. 검사를 우회하지 않음.
 - 검토 가능한 에셋 초안 PR18 생성/채팅 첨부: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/18 (resource/waiting-room-pursuit-system → main, MERGEABLE). 이 PR의 main 반영 승인 후 게임 feature push·dev 초안 PR 생성 가능. dev PR 본문은 pr-description.md에 완성; 현재 게임 원격 feature 브랜치는 아직 없음.
+- 후속 사용자 명시 승인으로051db4ab를 private main에 fast-forward push 완료. 에셋 PR18은 MERGED, main 후속 README 커밋5144ef87에서도051db4ab 포함 확인. 게임 feature push의 ThirdParty 검사 통과; GitHub의 약75MB 씬 권장 크기 경고는 있었으나 업로드 성공.
+- 2026-11-03 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/271 (feat/waiting-room/pursuit-system → dev, DRAFT). 채팅 첨부 완료, 생성 시 MERGEABLE. 게임 dev는 병합하지 않았으며 실제 다인 실기 항목은 남겨뒀다. PR 생성 후 변경은 제출 기록·에셋 main 반영 안내뿐이라 통과한 컴파일/Play 결과를 재사용한다.
 
 - 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
