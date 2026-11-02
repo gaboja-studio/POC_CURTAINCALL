@@ -63,6 +63,14 @@
 - Play frame1→1164 진행. 전체430면 5지점×500회 예열 후 평균.399~.567ms/조회, 관리힙 할당0byte(all-rooms-profile.json). 에디터 국소 측정이며 전체 게임 FPS 수치가 아님. CLI 5초 응답 제한이 걸린 긴 조사/저장은 완료 파일·후속 검증으로 확인했다.
 - 작업 재개 시 clean/Play 정지 확인·정상 종료, origin/dev fetch 성공/ff-only 이력 분기로 불가·기존 변경 유지, PID2380 재개방. 동일Task doctor 반복 없음. 이전 완료 기록을 History005에 원문 보존. Play 종료·Start clean 복원, Pursuit 선택 유지.
 
+## 2026-11-03 전체 저장·dev PR 준비
+- 사용자 명시: 모든 작업/폴더 경로·이름 변경/추격 설정값 포함 commit·push·dev PR 준비. 추격 에셋275파일을 private resource/waiting-room-pursuit-system의 e08cdbac로 커밋하고 최신 main을 병합한051db4ab를 push 완료(LFS39개54MB). 기존 shader2개 표시는 줄바꿈 정규화 차이뿐이며 실제 변경 없이 clean.
+- 메인 b07e6d66: 폴더/파일 이동1611건·현재 배치/동선·설정·씬선택·에디터/카메라 수정 포함. 이동 meta808개의 GUID808/808 보존 확인. dev861fb672를9aa1ffa5로 병합; 씬/프리팹 충돌 없음. Characters/index 두 지식 링크를 모두 보존했고 submodule은 dev의 d5de413f를 포함하는051db4ab로 해결. Base/Pursuit 씬과 WaitingRoomSettings는 병합 전후 동일.
+- gh 계정 MoHoDu의 noreply 작성자 사용, force/reset/discard 없음. 비공개 branch와 원격051db4ab 일치 확인. 새 dev 자산 반영 후 Unity 재개방(PID48648); 다인 실기 미확인으로 초안 PR 준비.
+- 병합 후 Play5/5 PASS: 씬 선택1/1(18.23초), Start 인벤토리/ESC 재로딩1/1(19.20초), Base/Pursuit 카메라/숨김 패널3/3(21.73초). dev-merge-*-tests.json 보관. 테스트/에디터가 갱신한 공용/탈출로 TMP 글리프 캐시도 모든 변경 저장 요청에 포함. Start clean·Pursuit 선택 복원.
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
 - 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
