@@ -1,0 +1,125 @@
+{
+  "status": "completed",
+  "duration": 0.63,
+  "summary": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.EachRestUsesItsOwnLimitOnlyOnEntry(2,Morning,Morning,111.0f)",
+      "Status": "Passed",
+      "Duration": 0.0029953,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.EachRestUsesItsOwnLimitOnlyOnEntry(2,Between,Between,222.0f)",
+      "Status": "Passed",
+      "Duration": 0.0002801,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.EachRestUsesItsOwnLimitOnlyOnEntry(1,Between,Guide,333.0f)",
+      "Status": "Passed",
+      "Duration": 0.0001485,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.FinalMorningDeadlineIgnoresZonePauseAndEndsRun",
+      "Status": "Passed",
+      "Duration": 0.0003613,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.FinalMorningUnlimitedStillAllowsEscapeButNotStageGathering",
+      "Status": "Passed",
+      "Duration": 0.0003218,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.FiniteRestStillRaisesAlarmAndExpiresBeforePerformance",
+      "Status": "Passed",
+      "Duration": 0.0004489,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.LegacyDurationsMigrateWithoutLosingTuning",
+      "Status": "Passed",
+      "Duration": 0.0007017,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.NightCanFinishEarlyWithOrWithoutLimit(False)",
+      "Status": "Passed",
+      "Duration": 0.0020557,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.NightCanFinishEarlyWithOrWithoutLimit(True)",
+      "Status": "Passed",
+      "Duration": 0.0002083,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.NightTimeoutUsesReadyCompletionWithoutRestExpired(False)",
+      "Status": "Passed",
+      "Duration": 0.0012257,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.NightTimeoutUsesReadyCompletionWithoutRestExpired(True)",
+      "Status": "Passed",
+      "Duration": 0.0005215,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.UnlimitedRestCanEscapeAndDebugRequiresFiniteValue",
+      "Status": "Passed",
+      "Duration": 0.0007465,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.UnlimitedRestNeverExpiresOrAlarmsButCanGather(2,Morning,Morning)",
+      "Status": "Passed",
+      "Duration": 0.0006466,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.UnlimitedRestNeverExpiresOrAlarmsButCanGather(2,Between,Between)",
+      "Status": "Passed",
+      "Duration": 0.0002036,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.UnlimitedRestNeverExpiresOrAlarmsButCanGather(1,Between,Guide)",
+      "Status": "Passed",
+      "Duration": 0.0005766,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RunTimeLimitTests.UnlimitedWireValueAppendsWithoutChangingSnapshotLayout",
+      "Status": "Passed",
+      "Duration": 0.0044368,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

@@ -77,7 +77,7 @@ namespace CurtainCall.Telemetry.Pipeline
             if (Instance != null || !PlaytestBuildTags.Current().AllowsLogs) return;
             string name = SceneManager.GetActiveScene().name;
             if (name != "Start" && name != "Lobby" && name != "Tightrope" && name != "HummanCannon"
-                && name != "HumanCannon" && name != "WaitingRoomBase") return;
+                && name != "HumanCannon" && !CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(name)) return;
             var go = new GameObject(nameof(TelemetryRuntime));
             DontDestroyOnLoad(go);
             go.AddComponent<TelemetryRuntime>();
@@ -386,7 +386,7 @@ namespace CurtainCall.Telemetry.Pipeline
         }
         public static string SceneType(string name) => name switch
         {
-            "Start" => "TITLE", "Lobby" => "LOBBY", "WaitingRoomBase" => "WAITINGROOM",
+            "Start" => "TITLE", "Lobby" => "LOBBY", "WaitingRoomBase" or "WaitingRoomPursuit" => "WAITINGROOM",
             "Tightrope" or "HummanCannon" or "HumanCannon" => "MAINSTAGE", _ => "UNKNOWN"
         };
     }

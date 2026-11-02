@@ -1,0 +1,34 @@
+{
+  "status": "completed",
+  "duration": 23.74,
+  "summary": {
+    "total": 3,
+    "passed": 1,
+    "failed": 2,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_DecorativeCeilingBlocksOnlyCamera",
+      "Status": "Failed",
+      "Duration": 9.902478,
+      "Message": "  The real decorative ceiling must shorten the arm independently of physics colliders.\r\n  Expected: greater than 4.67654419f\r\n  But was:  4.47654438f\r\n",
+      "StackTrace": "at CurtainCall.Cameras.Tests.CameraViewsPlayTests+<WaitingRoomPursuit_DecorativeCeilingBlocksOnlyCamera>d__14.MoveNext () [0x00269] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\Systems\\Camera\\Tests\\PlayMode\\CameraViewsPlayTests.cs:152\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_RoundLobbyCeilingRetractsArm",
+      "Status": "Failed",
+      "Duration": 6.7781138,
+      "Message": "  연습실 돔도 표면 아래로 당긴다.\r\n  Expected: in range (15.3,17.7)\r\n  But was:  15.1999998f\r\n",
+      "StackTrace": "at CurtainCall.Cameras.Tests.CameraViewsPlayTests+<WaitingRoomPursuit_RoundLobbyCeilingRetractsArm>d__15.MoveNext () [0x0029d] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\Systems\\Camera\\Tests\\PlayMode\\CameraViewsPlayTests.cs:174\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_WallShortensCameraArmAndRemovalRestoresItGradually",
+      "Status": "Passed",
+      "Duration": 6.9602914,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

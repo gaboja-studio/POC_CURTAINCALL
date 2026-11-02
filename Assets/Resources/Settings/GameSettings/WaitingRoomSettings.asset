@@ -16,3 +16,104 @@ MonoBehaviour:
   bodyRestoreBasePrice: 100
   bodyRestorePriceStep: 25
   bodyRestoreMaxParts: 3
+  pursuit:
+    Enabled: 1
+    WarningSeconds: 15
+    AwakeningSeconds: 2
+    KnockdownSeconds: 1.2
+    CutInterval: 1.3
+    CaptureRadius: 1.15
+    LoseTargetSeconds: 3
+    CullDistantRenderers: 1
+    EncounterSeconds: 5
+    RenderSafetyMargin: 8
+    CaptureBloodInterval: 0.22
+    CaptureBloodAmount: 1.8
+    CaptureScreenBlood: 0.8
+    OutlineDistance: 5
+    OutlinePixels: 3
+    OutlineColor: {r: 1, g: 0.045, b: 0.025, a: 1}
+    ScreenEffect: 1
+    EdgeIntensity: 0.65
+    EdgeWidth: 0.19
+    PulseAmount: 0.35
+    Stages:
+    - StartsAt: 0
+      SightRadius: 5
+      FieldOfView: 100
+      PatrolSpeed: 1.5
+      ChaseSpeedMultiplier: 1.2
+      ChaseSpeed: 6.5
+      SeeThroughWalls: 0
+      AlwaysNearest: 0
+      WalkHearingRadius: 6
+      RunHearingRadius: 14
+      InvestigateFraction: 0.65
+      OccludedHearingMultiplier: 0.6
+      AlertSeconds: 0.7
+      ListenSeconds: 1.6
+      InvestigateSeconds: 7
+      SearchSeconds: 3
+      TrackingRadius: 26
+      PatrolLeashDistance: 30
+      Announcement: "\uCD94\uACA9\uC790\uAC00 \uC6C0\uC9C1\uC774\uAE30 \uC2DC\uC791\uD588\uC2B5\uB2C8\uB2E4."
+    - StartsAt: 60
+      SightRadius: 8
+      FieldOfView: 140
+      PatrolSpeed: 2
+      ChaseSpeedMultiplier: 1.2
+      ChaseSpeed: 6.5
+      SeeThroughWalls: 0
+      AlwaysNearest: 0
+      WalkHearingRadius: 6
+      RunHearingRadius: 14
+      InvestigateFraction: 0.65
+      OccludedHearingMultiplier: 0.6
+      AlertSeconds: 0.7
+      ListenSeconds: 1.6
+      InvestigateSeconds: 7
+      SearchSeconds: 3
+      TrackingRadius: 26
+      PatrolLeashDistance: 30
+      Announcement: "\uCD94\uACA9\uC790\uC758 \uC2DC\uC57C \uBC18\uACBD\uC774 \uD06C\uAC8C
+        \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
+    - StartsAt: 120
+      SightRadius: 10
+      FieldOfView: 180
+      PatrolSpeed: 2
+      ChaseSpeedMultiplier: 1.2
+      ChaseSpeed: 0
+      SeeThroughWalls: 1
+      AlwaysNearest: 0
+      WalkHearingRadius: 6
+      RunHearingRadius: 14
+      InvestigateFraction: 0.65
+      OccludedHearingMultiplier: 0.6
+      AlertSeconds: 0.7
+      ListenSeconds: 1.6
+      InvestigateSeconds: 7
+      SearchSeconds: 3
+      TrackingRadius: 26
+      PatrolLeashDistance: 50
+      Announcement: "\uCD94\uACA9\uC790\uAC00 \uBCBD \uB4A4\uAE4C\uC9C0 \uD22C\uC2DC\uD558\uC5EC
+        \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+    - StartsAt: 180
+      SightRadius: 20
+      FieldOfView: 180
+      PatrolSpeed: 3
+      ChaseSpeedMultiplier: 1.2
+      ChaseSpeed: 7.5
+      SeeThroughWalls: 1
+      AlwaysNearest: 1
+      WalkHearingRadius: 6
+      RunHearingRadius: 14
+      InvestigateFraction: 0.65
+      OccludedHearingMultiplier: 0.6
+      AlertSeconds: 0.7
+      ListenSeconds: 1.6
+      InvestigateSeconds: 7
+      SearchSeconds: 3
+      TrackingRadius: 26
+      PatrolLeashDistance: 0
+      Announcement: "\uCD94\uACA9\uC790\uAC00 \uBAA8\uB4E0 \uC704\uCE58\uB97C \uC54C\uACE0
+        \uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uB2E8\uC6D0\uC744 \uCD94\uACA9\uD569\uB2C8\uB2E4."

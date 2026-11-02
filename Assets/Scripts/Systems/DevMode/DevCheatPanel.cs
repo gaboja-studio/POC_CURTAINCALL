@@ -12,7 +12,7 @@ namespace CurtainCall.Dev
     /// Dev 모드 테스트 치트 창(F9, Task-089). 공연·탈출로에서 특정 지점으로 바로 이동하고, 추락 무시·되살리기·재시작을 쓴다.
     /// 씬 배치 불필요(<see cref="DevModeBadge"/>가 만든다). 창이 열려 있는 동안은 게임 입력을 막고 커서를 푼다.
     /// </summary>
-    public sealed class DevCheatPanel : MonoBehaviour
+    public sealed partial class DevCheatPanel : MonoBehaviour
     {
         public const string ShortcutLabel = "F9";
         const float RefreshInterval = .5f;
@@ -77,8 +77,8 @@ namespace CurtainCall.Dev
             if (!DevMode.Enabled || !IsOpen) return;
             if (Event.current.type == EventType.Layout) Refresh();
             label ??= new GUIStyle(GUI.skin.label) { fontSize = 15, wordWrap = true };
-            button ??= new GUIStyle(GUI.skin.button) { fontSize = 15, fixedHeight = 32 };
-            toggle ??= new GUIStyle(GUI.skin.toggle) { fontSize = 15 };
+            button ??= new GUIStyle(GUI.skin.button) { fontSize = 15, fixedHeight = 32, wordWrap = true };
+            toggle ??= new GUIStyle(GUI.skin.toggle) { fontSize = 15, wordWrap = true };
             heading ??= new GUIStyle(label) { fontSize = 19, fontStyle = FontStyle.Bold };
             float width = Mathf.Min(380, Screen.width - 20), height = Mathf.Min(620, Screen.height - 60);
             var bounds = new Rect(10, 44, width, height);
@@ -88,14 +88,16 @@ namespace CurtainCall.Dev
             GUI.color = color;
             GUILayout.BeginArea(bounds, GUI.skin.box);
             scroll = GUILayout.BeginScrollView(scroll);
+            GUILayout.BeginVertical(GUILayout.Width(width - 28));
             GUILayout.Label($"DEV · 테스트 치트 [{ShortcutLabel}]", heading);
 
             var local = NetworkPlayer.Local;
             var session = NetworkSessionManager.Instance;
             bool host = session != null && session.IsHost;
-            if (local == null || !local.IsSpawned) GUILayout.Label("내 캐릭터가 아직 없습니다. 공연·탈출로에 들어간 뒤 사용하세요.", label);
+            if (local == null || !local.IsSpawned) GUILayout.Label("내 캐릭터가 아직 없습니다. 대기실·공연·탈출로에 들어간 뒤 사용하세요.", label);
             else GUILayout.Label($"상태: {local.State} · 자리 {local.Slot + 1} · {(host ? "호스트" : "클라이언트")}", label);
 
+            DrawPursuitCheats();
             GUILayout.Space(6);
             GUILayout.Label("생존", heading);
             bool suppress = GUILayout.Toggle(DevCheats.SuppressFalls, " 추락 무시 (균형·줄 밖 착지·대포 추락·목마·매달림 낙하)", toggle);
@@ -151,6 +153,7 @@ namespace CurtainCall.Dev
             GUILayout.Space(8);
             if (Status.Length > 0) GUILayout.Label(Status, label);
             if (GUILayout.Button($"닫기 [{ShortcutLabel}] · 시작 지점 [{DevStartLauncher.ShortcutLabel} / F8]", button)) Toggle();
+            GUILayout.EndVertical();
             GUILayout.EndScrollView();
             GUILayout.EndArea();
         }

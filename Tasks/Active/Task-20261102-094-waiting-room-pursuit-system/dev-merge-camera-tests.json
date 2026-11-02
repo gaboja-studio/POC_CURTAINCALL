@@ -1,0 +1,34 @@
+{
+  "status": "completed",
+  "duration": 21.73,
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRooms_Architecture_BaseRoomCeilings",
+      "Status": "Passed",
+      "Duration": 11.5135115,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRooms_Architecture_HiddenPanelDoesNotLeaveBlocker",
+      "Status": "Passed",
+      "Duration": 0.0650119,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRooms_Architecture_PursuitRoomCeilings",
+      "Status": "Passed",
+      "Duration": 10.0607187,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

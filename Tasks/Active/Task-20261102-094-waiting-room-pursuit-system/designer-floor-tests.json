@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 0.14,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDesignerFloorTests.FloorSwitchFiltersRoomsMarkersAndHitTargetsTogether",
+      "Status": "Passed",
+      "Duration": 0.0677912,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDesignerFloorTests.RoomSelectionChangesFloorAndCameraExcludesLowerStorey",
+      "Status": "Passed",
+      "Duration": 0.0429415,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

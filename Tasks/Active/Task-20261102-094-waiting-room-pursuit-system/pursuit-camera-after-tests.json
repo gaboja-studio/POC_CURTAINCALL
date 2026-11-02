@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 16.93,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoom_WallShortensCameraArmAndRemovalRestoresItGradually",
+      "Status": "Passed",
+      "Duration": 9.1670708,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_WallShortensCameraArmAndRemovalRestoresItGradually",
+      "Status": "Passed",
+      "Duration": 7.6744634,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

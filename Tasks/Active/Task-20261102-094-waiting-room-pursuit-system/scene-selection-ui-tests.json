@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 20.38,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitRoom_FromStart_InventoryAndEscapeMenuSurviveReload",
+      "Status": "Passed",
+      "Duration": 20.2714918,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

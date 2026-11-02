@@ -334,7 +334,8 @@ namespace CurtainCall.Cameras
         /// <see cref="CameraOcclusionFade"/>도 고정 구조물을 반투명하게 만들지 않는다. 탈출로는 씬 활성화 후 활성 씬이 된다.
         /// </summary>
         public static bool UsesWallCollision(Scene scene) => scene.IsValid()
-            && (scene.name == "WaitingRoomBase" || scene.name.StartsWith("escape_route", StringComparison.Ordinal));
+            && (CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(scene)
+                || scene.name.StartsWith("escape_route", StringComparison.Ordinal));
 
         /// <summary>줄 소실 등으로 우선 요청이 해제돼도 탈출로는 3인칭을 유지한다.
         /// 제외된 요청은 지우지 않으므로 다른 공간으로 돌아가면 원래 우선순위를 다시 쓸 수 있다.</summary>
@@ -370,6 +371,8 @@ namespace CurtainCall.Cameras
                     (obstacle.attachedRigidbody != null && !obstacle.attachedRigidbody.isKinematic)) continue;
                 safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - CollisionRadius - CollisionPadding));
             }
+            safe = CameraCollisionSurface.LimitDistance(SceneManager.GetActiveScene(), pivot, direction,
+                CollisionRadius + CollisionPadding, safe);
             if (collisionDistance < 0f) collisionDistance = safe;
             else if (collisionFrame != Time.frameCount)
                 collisionDistance = Mathf.MoveTowards(collisionDistance, safe, CollisionReturnSpeed * Time.deltaTime);
