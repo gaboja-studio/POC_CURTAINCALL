@@ -11,3 +11,6 @@
 - 검사: 컴파일 오류 0. PlayMode `ShopItemTooltipPlayTests`(2), `W2_ShopDescription...`(긴 설명으로 스크롤 확인, 긴 툴팁 전체 표시 확인 추가), `W2_ShopWording...` PASS. 스크린샷 `.harness/local/shop-description-scroll.png`로 배치 확인. 테스트가 바꾼 TMP 아틀라스 2개 되돌림.
 - 문구 형식 변경(사용자): 설명은 습니다체 문장 1~2개 + 빈 줄 + • 적용(공연만, 쉼표 구분)/• 사용/• 내구도/• '~할 때 내구도 소모'. 툴팁 첫 줄도 습니다체. 탐색 도구 3종의 적용은 공연이 아니라 '대기실 탐색'으로 적음(확인 필요). 끈끈이 장갑 적용은 코드 확인 결과 외줄타기·인간 대포(봉). 신체 복구 설명(medicalDescription)도 같은 형식으로 교체(가격은 아래 가격 줄이 보여 주므로 인상 안내만).
 - 검사: `ShopItemTooltipPlayTests`(형식 검사 갱신) 2/2, `W2_ShopWording...`(신체 복구 설명은 설정값과 같은지로 변경) PASS.
+
+- 2026-11-02 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/270 (fix/shop/piece-descriptions → dev)
+- PR #270 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/270 · Jira CC-202 설명 갱신(남은 일: 실제 화면에서 글자 깨짐 확인, 탐색 도구 '적용' 줄 결정).
