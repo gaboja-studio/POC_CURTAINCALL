@@ -43,6 +43,7 @@ namespace CurtainCall.Player
 
         static readonly List<PlayerMover> active = new();
         static readonly Collider[] headroomHits = new Collider[16];
+        static readonly RaycastHit[] groundHits = new RaycastHit[16];
 
         CharacterController controller;
         float moveInput;
@@ -596,6 +597,8 @@ namespace CurtainCall.Player
                 : LimitAlongCourse(horizontalStep, forward);
             if (CurrentJump == JumpKind.Lane) step = LimitToLaneTarget(step);
             controller.Move(step + Vector3.up * displacement.y);
+            // 땅에서 걷다가 내리막·계단 때문에 발이 뜨면 같은 프레임에 발밑 땅으로 붙인다(전진 후 낙하 반복 방지).
+            if (grounded && CurrentJump == JumpKind.None && !controller.isGrounded) SnapToGround(step.magnitude);
 
             // 입력은 한 프레임만 유효하다. 조작 규칙이 매 프레임 다시 넣는다.
             moveInput = 0f;
@@ -605,6 +608,53 @@ namespace CurtainCall.Player
             laneJumpRequested = 0;
 
             UpdateAirborne();
+        }
+
+        /// <summary>
+        /// 걷던 중 발밑이 살짝 꺼졌을 때(내리막 경사·계단 한 칸) 몸통을 아래 땅에 붙여 접지를 유지한다.
+        /// 내려갈 수 있는 거리는 계단 높이(stepOffset)와 이번 수평 이동 × 최대 경사 중 큰 값. 그보다 깊거나
+        /// 오를 수 없는 급경사·벽이면 붙이지 않고 기존처럼 떨어진다. 자기 몸·모델·트리거·다른 플레이어 몸통은 무시한다.
+        /// </summary>
+        void SnapToGround(float horizontalDistance)
+        {
+            float scaleY = transform.lossyScale.y;
+            float skin = controller.skinWidth;
+            float maxDrop = Mathf.Max(controller.stepOffset * scaleY,
+                horizontalDistance * Mathf.Tan(Mathf.Clamp(controller.slopeLimit, 0f, 89f) * Mathf.Deg2Rad)) + skin;
+            if (maxDrop <= skin) return;
+
+            float radius = BodyRadius;
+            Vector3 center = transform.TransformPoint(controller.center) + Vector3.up * skin; // 살짝 위에서 쏴 시작 겹침을 피한다
+            float half = Mathf.Max(0f, BodyHeight * 0.5f - radius);
+            Vector3 top = center + Vector3.up * half;
+            Vector3 bottom = center - Vector3.up * half;
+            int count = Physics.CapsuleCastNonAlloc(top, bottom, radius, Vector3.down, groundHits, maxDrop + skin,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+
+            float minNormalY = Mathf.Cos(controller.slopeLimit * Mathf.Deg2Rad) - 0.01f;
+            float nearest = float.MaxValue;
+            for (int i = 0; i < count; i++)
+            {
+                var hit = groundHits[i];
+                var col = hit.collider;
+                if (col == null || hit.distance <= 0f || hit.distance >= nearest) continue; // 0은 시작부터 겹친 물체
+                if (col == controller || col.transform.IsChildOf(transform)) continue;
+                if (col is CharacterController && col.TryGetComponent(out PlayerMover _)) continue;
+                if (!IsWalkable(hit, minNormalY)) continue;
+                nearest = hit.distance;
+            }
+            if (nearest == float.MaxValue) return;
+
+            // 위로 skin만큼 올려 쐈으므로 hit 거리만큼 내리면 땅을 살짝 누른다. CharacterController가 파고들지 않게 막고 접지 판정을 켠다.
+            controller.Move(Vector3.down * nearest);
+        }
+
+        /// <summary>캡슐이 닿은 면이 걸을 수 있는 경사인지. 계단 모서리처럼 기울어진 접촉 법선이면 그 자리 면의 법선을 다시 확인한다.</summary>
+        static bool IsWalkable(RaycastHit hit, float minNormalY)
+        {
+            if (hit.normal.y >= minNormalY) return true;
+            return hit.collider.Raycast(new Ray(hit.point + Vector3.up * 0.05f, Vector3.down), out var face, 0.1f)
+                && face.normal.y >= minNormalY;
         }
 
         bool CanLaneJump(int direction)
