@@ -43,11 +43,13 @@ namespace CurtainCall.WaitingRoom
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() { activeCount = 0; views.Clear(); }
 
-        sealed class Item : IShopTarget, IShopPresentation, IItemPickupTarget
+        internal sealed class Item : IShopTarget, IShopPresentation, IItemPickupTarget
         {
             public FloorPropsView View;
             public FloorProp Prop;
             public GameObject Shape;
+            /// <summary>떨어진 열쇠. 줍기 동작을 재생하되 이동·스킵 허용은 열쇠 설정을 따른다.</summary>
+            public bool IsKey => ExplorationKeys.IsKey(Prop.Item.ItemId);
             public Transform VisualRoot => Shape != null ? Shape.transform : null;
             public Vector3 PresentationPoint => Shape != null ? Shape.transform.position : Vector3.zero;
             public string ActionLabel => WaitingRoomText.Format("prompt.pick-up-floor-item", "{item} 줍기", ("item", Prop.Item.Name));

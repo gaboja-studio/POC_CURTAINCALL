@@ -30,6 +30,8 @@ namespace CurtainCall.Player
         InputAction uvLight; // 옛 입력 에셋에는 없을 수 있다
         float interactPressedAt = -1f; // 누르고 있지 않으면 음수
         bool interactLongSent;
+        // 반대 키 동시 입력은 마지막에 누른 방향(이전 키는 뗀 것으로 취급).
+        readonly OppositeKeyAxis moveKeys = new(), postureKeys = new(), auxKeys = new();
 
         /// <summary>이번 프레임의 입력(공통 역할 값).</summary>
         public PlayerInputFrame Current { get; private set; }
@@ -76,6 +78,7 @@ namespace CurtainCall.Player
             Current = default;
             interactPressedAt = -1f;
             interactLongSent = false;
+            moveKeys.Reset(); postureKeys.Reset(); auxKeys.Reset();
             if (TryGetComponent(out PlayerMover mover)) mover.ClearPendingInput();
             if (TryGetComponent(out PlayerBalance balance)) balance.SetCorrectionInput(0f);
         }
@@ -120,10 +123,10 @@ namespace CurtainCall.Player
 
             Current = new PlayerInputFrame
             {
-                Move = move.ReadValue<float>(),
-                Posture = posture.ReadValue<float>(),
+                Move = moveKeys.Read(move),
+                Posture = postureKeys.Read(posture),
                 ActionPressed = action.WasPressedThisFrame(),
-                AuxDirection = (auxRight.IsPressed() ? 1 : 0) - (auxLeft.IsPressed() ? 1 : 0),
+                AuxDirection = auxKeys.Update(auxLeft.IsPressed(), auxRight.IsPressed()),
                 InteractTapped = tapped,
                 InteractHeld = interact.IsPressed(),
                 InteractLongPressed = longPressed,

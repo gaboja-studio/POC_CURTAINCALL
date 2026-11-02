@@ -91,31 +91,34 @@ namespace CurtainCall.ItemArt.EditorTools
                 var clip=AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>().Single(x=>!x.name.StartsWith("__preview"));
                 if(!clip.humanMotion)throw new InvalidOperationException("Non-humanoid clip "+name);
             }
+            int controllers=InstallItemLayers();
+            InstallShopIcons();AssetDatabase.SaveAssets();return ItemVisualAssets.Motions.Length*4+" humanoid clips, "+controllers+" controllers";
+        }
+        // Batch entry: unity -batchmode -executeMethod CurtainCall.ItemArt.EditorTools.ItemArtBuilder.InstallItemLayersBatch
+        public static void InstallItemLayersBatch(){Debug.Log("[ItemArt] item layers: "+InstallItemLayers()+" controllers");AssetDatabase.SaveAssets();}
+        // Two override layers. Interactions use the upper-body layer so the torso can
+        // reach while the legs walk. The steady hold/aim/equip/stow pose uses the
+        // right-arm layer only: freezing torso and the empty left arm in the hold clip
+        // made both arms ride the walk's hip drop rigidly (2026-11-02 key-hold bug).
+        public static int InstallItemLayers()
+        {
             var controllers=new HashSet<AnimatorController>();
             foreach(string character in CurtainCall.HumanCannon.CircusMotionGallery.Characters)
             {
                 var p=AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Resources/Prefabs/Characters/Players/Models/{character}/{character}.prefab");
                 controllers.Add((AnimatorController)p.GetComponent<HumanoidModel>().Animator.runtimeAnimatorController);
             }
-            var mask=AssetDatabase.LoadAssetAtPath<AvatarMask>(Root+"/ItemRightHand.mask");
-            if(mask==null)
-            {
-                mask=new AvatarMask();
-                AssetDatabase.CreateAsset(mask,Root+"/ItemRightHand.mask");
-            }
-            for(int i=0;i<(int)AvatarMaskBodyPart.LastBodyPart;i++)mask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)i,false);
-            foreach(var part in new[]{AvatarMaskBodyPart.Body, AvatarMaskBodyPart.Head, AvatarMaskBodyPart.LeftArm, AvatarMaskBodyPart.RightArm, AvatarMaskBodyPart.LeftFingers, AvatarMaskBodyPart.RightFingers}) mask.SetHumanoidBodyPartActive(part,true);
-            EditorUtility.SetDirty(mask);
+            var upperBody=Mask(HumanoidPlayerPresentation.ItemUpperBodyLayer,AvatarMaskBodyPart.Body,AvatarMaskBodyPart.Head,AvatarMaskBodyPart.LeftArm,AvatarMaskBodyPart.RightArm,AvatarMaskBodyPart.LeftFingers,AvatarMaskBodyPart.RightFingers);
+            var rightArm=Mask(HumanoidPlayerPresentation.ItemRightArmLayer,AvatarMaskBodyPart.RightArm,AvatarMaskBodyPart.RightFingers);
             foreach(var controller in controllers)
             {
-                int index=Array.FindIndex(controller.layers,l=>l.name=="ItemRightHand");
-                if(index<0){controller.AddLayer("ItemRightHand");index=controller.layers.Length-1;}
-                var layers=controller.layers;layers[index].avatarMask=mask;layers[index].defaultWeight=0;controller.layers=layers;
+                int upper=Layer(controller,HumanoidPlayerPresentation.ItemUpperBodyLayer,upperBody);
+                int arm=Layer(controller,HumanoidPlayerPresentation.ItemRightArmLayer,rightArm);
                 foreach(string motion in ItemVisualAssets.Motions)for(int stage=0;stage<4;stage++)
                 {
                     string name=ItemVisualAssets.State(motion,stage);
                     var clip=AssetDatabase.LoadAllAssetsAtPath(Root+"/Motions/"+name+".fbx").OfType<AnimationClip>().Single(x=>!x.name.StartsWith("__preview"));
-                    foreach(int layer in new[]{0,index})
+                    foreach(int layer in new[]{0,upper,arm})
                     {
                         var machine=controller.layers[layer].stateMachine;var state=machine.states.FirstOrDefault(x=>x.state.name==name).state;
                         if(state==null)state=machine.AddState(name);state.motion=clip;state.writeDefaultValues=true;
@@ -123,7 +126,22 @@ namespace CurtainCall.ItemArt.EditorTools
                 }
                 EditorUtility.SetDirty(controller);
             }
-            InstallShopIcons();AssetDatabase.SaveAssets();return ItemVisualAssets.Motions.Length*4+" humanoid clips, "+controllers.Count+" controllers";
+            return controllers.Count;
+        }
+        static AvatarMask Mask(string name,params AvatarMaskBodyPart[] parts)
+        {
+            string path=Root+"/"+name+".mask";
+            var mask=AssetDatabase.LoadAssetAtPath<AvatarMask>(path);
+            if(mask==null){mask=new AvatarMask();AssetDatabase.CreateAsset(mask,path);}
+            for(int i=0;i<(int)AvatarMaskBodyPart.LastBodyPart;i++)mask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)i,Array.IndexOf(parts,(AvatarMaskBodyPart)i)>=0);
+            EditorUtility.SetDirty(mask);return mask;
+        }
+        static int Layer(AnimatorController controller,string name,AvatarMask mask)
+        {
+            int index=Array.FindIndex(controller.layers,l=>l.name==name);
+            if(index<0){controller.AddLayer(name);index=controller.layers.Length-1;}
+            var layers=controller.layers;layers[index].avatarMask=mask;layers[index].defaultWeight=0;controller.layers=layers;
+            return index;
         }
         static void InstallShopIcons()
         {

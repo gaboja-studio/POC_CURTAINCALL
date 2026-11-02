@@ -136,8 +136,7 @@ namespace CurtainCall.Player
             Color next = GameSettings.Base.Character.GetPlayerColor(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
             if (color != next) { color = next; model.SetColor(color); }
             model.Animator.SetLayerWeight(1, 0f);
-            int itemLayer = model.Animator.GetLayerIndex("ItemRightHand");
-            if (itemLayer >= 0) model.Animator.SetLayerWeight(itemLayer, 0);
+            ClearItemLayers(model.Animator);
             if (condition.AllLimbsLost) { ResetCircusMotion(); model.Play("Death"); return; }
             if (PresentRopeRescue()) return;
             if (TryHangGrip(out _, out _))
