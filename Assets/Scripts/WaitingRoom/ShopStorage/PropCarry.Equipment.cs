@@ -8,7 +8,8 @@ namespace CurtainCall.WaitingRoom
     /// 공연용 장비(구조 장갑·끈끈이 장갑·광대 벌룬 바지·스프링 신발, Task-092) 공통 판정.
     /// - 장비는 1·2로 고르지 않아도 슬롯에 있으면 자동 적용한다(<see cref="Equipped"/>).
     /// - 실제 효과가 났을 때만 판정 화면이 <see cref="UseEquipment"/>로 1 소모한다. 0회인 장비는 새 효과를 내지 못한다.
-    /// - 쿨타임은 기물 목록(ItemCatalog.cooldown, 초안값)을 쓰고, 소지 상태와 함께 모든 화면에 공유한다.
+    /// - 쿨타임은 기물 목록(ItemCatalog.cooldown)을 쓰고, 소지 상태와 함께 모든 화면에 공유한다.
+    ///   2026-11-02 사용자: 공연 기물 쿨타임은 모두 0(없음). 값을 다시 넣으면 같은 경로로 되살아난다.
     ///   효과를 소유자 화면이 계산하는 장비(벌룬 바지·구조 장갑의 착지 완화)도 같은 값으로 미리 판단한다.
     /// - 발동 문구·파괴 알림은 장비 주인 화면에만 띄운다.
     /// </summary>
@@ -38,6 +39,7 @@ namespace CurtainCall.WaitingRoom
             if (!HasAuthority || !EquipmentReady(player, itemId)) return false;
             var item = Equipped(player, itemId);
             if (book.Use(player, item.Uid, out var after, out bool destroyed) != CarryRefusal.None) return false;
+            MarkUsed(player, item.Uid, destroyed);
             if (startCooldown) SetCooldown(player, itemId);
             string name = ItemCatalog.DisplayName(destroyed ? item : after);
             Debug.Log($"[Carry] 장비 발동 {name} 남은 {(destroyed ? 0 : after.Uses)}{(destroyed ? " — 다 써서 사라짐" : "")} — {WaitingRoomShop.PlayerLabel(player)}");
