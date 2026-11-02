@@ -79,8 +79,15 @@ namespace CurtainCall.Cameras.Tests
 
         [UnityTest]
         public IEnumerator WaitingRoom_WallShortensCameraArmAndRemovalRestoresItGradually()
+            => WallShortensCameraArm("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+
+        [UnityTest]
+        public IEnumerator WaitingRoomPursuit_WallShortensCameraArmAndRemovalRestoresItGradually()
+            => WallShortensCameraArm("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
+
+        IEnumerator WallShortensCameraArm(string scene)
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host(scene);
             Call(director, "SetInputBlocked", true);
             Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
             yield return Teleport(new Vector3(1000f, 30f, 1000f));
@@ -107,8 +114,140 @@ namespace CurtainCall.Cameras.Tests
                 Assert.Less(returning, originalDistance - .1f, "벽이 사라져도 한 프레임에 원래 거리로 튀지 않는다");
                 yield return Seconds(1.5f);
                 Assert.That(Vector3.Distance(pivot, Camera.main.transform.position), Is.EqualTo(originalDistance).Within(.2f));
+                // A horizontal ceiling must retract the arm just like a vertical wall.
+                Assert.Greater(direction.y, .05f);
+                wall.transform.SetPositionAndRotation(pivot + direction * 1.5f, Quaternion.identity);
+                wall.transform.localScale = new Vector3(20f, .2f, 20f);
+                wall.SetActive(true);
+                Physics.SyncTransforms();
+                yield return Frames(2);
+                Assert.Less(Camera.main.transform.position.y, wall.GetComponent<Collider>().bounds.min.y,
+                    "The camera must stay below the ceiling.");
+                Assert.Less(Vector3.Distance(pivot, Camera.main.transform.position), 1.4f);
             }
             finally { Object.Destroy(wall); }
+        }
+
+        [UnityTest]
+        public IEnumerator WaitingRoomPursuit_DecorativeCeilingBlocksOnlyCamera()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
+            var roof = GameObject.Find("WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Shell/Ceiling");
+            Assert.IsNotNull(roof);
+            Assert.IsNotNull(roof.GetComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface")));
+            Assert.IsNull(roof.GetComponent<Collider>(), "Camera-only bounds must not add player/NavMesh obstacles.");
+            Call(director, "SetInputBlocked", true);
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            var bounds = roof.GetComponent<Renderer>().bounds;
+            // Put the pivot safely inside the room with the desired arm above its ceiling.
+            yield return Teleport(new Vector3(bounds.center.x, bounds.min.y - 2.5f, bounds.center.z));
+            yield return Seconds(.8f);
+            Assert.Less(Camera.main.transform.position.y, bounds.min.y - .1f);
+            var surface = (Behaviour)roof.GetComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface"));
+            // The room now also has collision on repair panels and ceiling girders. Isolate the
+            // main ceiling only for this contrast, after checking the fully authored room above.
+            var others = Object.FindObjectsByType(surface.GetType(), FindObjectsSortMode.None)
+                .Cast<Behaviour>().Where(s => s != surface && s.enabled).ToArray();
+            try {
+                foreach (var other in others) other.enabled = false;
+                surface.enabled = false;
+                yield return Seconds(1.5f);
+                float withoutSurface = Camera.main.transform.position.y;
+                surface.enabled = true;
+                yield return Frames(2);
+                Assert.Greater(withoutSurface, Camera.main.transform.position.y + .2f,
+                    "The real decorative ceiling must shorten the arm independently of physics colliders.");
+            }
+            finally { surface.enabled = true; foreach (var other in others) if (other != null) other.enabled = true; }
+        }
+
+        [UnityTest]
+        public IEnumerator WaitingRoomPursuit_RoundLobbyCeilingRetractsArm()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
+            Call(director, "SetInputBlocked", true);
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            yield return Teleport(new Vector3(-6, 9, 77.4f));
+            var preset = ScriptableObject.CreateInstance(GameType("CurtainCall.Cameras.CameraViewPreset"));
+            try {
+                preset.GetType().GetField("Height").SetValue(preset, 6f);
+                preset.GetType().GetField("Distance").SetValue(preset, 4.5f);
+                Call(director, "RequestView", local, preset, 10000, Vector3.forward);
+                yield return Seconds(1f);
+                Assert.Less(Camera.main.transform.position.y, 11.8f, "로비 돔 아래에서 카메라 암이 줄어들어야 한다.");
+                Assert.Greater(Camera.main.transform.position.y, 10.3f, "돔 전체 bounds를 막아서 실내 카메라를 눈높이에 고정하면 안 된다.");
+                // A second, larger curved roof must use its triangles rather than a filled box.
+                // Keep the pivot above the inner torn canopy (top=15m), not intersecting it.
+                yield return Teleport(new Vector3(-48.5f, 15, 112));
+                yield return Seconds(1f);
+                Assert.That(Camera.main.transform.position.y, Is.InRange(16.3f, 17.7f), "연습실 돔도 표면 아래로 당긴다.");
+            }
+            finally { Call(director, "ReleaseView", local); Object.Destroy(preset); }
+        }
+
+        [UnityTest]
+        public IEnumerator WaitingRooms_Architecture_BaseRoomCeilings()
+            => InspectRoomCeilings("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+
+        [UnityTest]
+        public IEnumerator WaitingRooms_Architecture_PursuitRoomCeilings()
+            => InspectRoomCeilings("Assets/Scenes/InGame/WaitingRoom/WaitingRoomPursuit.unity");
+
+        IEnumerator InspectRoomCeilings(string scene)
+        {
+            yield return Host(scene);
+            Call(director, "SetInputBlocked", true);
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            var preset = ScriptableObject.CreateInstance(GameType("CurtainCall.Cameras.CameraViewPreset"));
+            try {
+                preset.GetType().GetField("Height").SetValue(preset, 6f);
+                preset.GetType().GetField("Distance").SetValue(preset, 2f);
+                Call(director, "RequestView", local, preset, 10000, Vector3.forward);
+                foreach (string room in new[] {
+                    "S02_Dormitory/Dormitory/Shell/Ceiling", "S02_Dormitory/Restroom/Shell/Ceiling",
+                    "S10_Workshop/Shell/Ceiling", "P05_PipeZone/Shell/Ceiling",
+                    "S05_JunkStorage/Shell/Ceiling", "B1_Office/Shell/Ceiling",
+                    "B1_ChangingRoom/Shell/Ceiling", "S08_ElevatorHall/FreightLift/CarRoof",
+                    "S01_Lobby/Frame8Lobby/PipeJunkLink/Shell/Ceiling"
+                }) {
+                    var roof = GameObject.Find("WaitingRoom_LayoutA/" + room);
+                    Assert.IsNotNull(roof, room);
+                    Bounds bounds = roof.GetComponent<Renderer>().bounds;
+                    yield return Teleport(new Vector3(bounds.center.x, bounds.min.y - 2.5f, bounds.center.z));
+                    yield return Seconds(.45f);
+                    Assert.Less(Camera.main.transform.position.y, bounds.min.y - .1f, scene + ": " + room);
+                }
+                // All six main passages must have usable interior space, even with floor and roof in one mesh.
+                foreach (var roof in Object.FindObjectsByType<MeshFilter>(FindObjectsSortMode.None).Where(f => f.name == "PassageFloorCeiling")) {
+                    var surface = roof.GetComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface"));
+                    object[] args = { roof.GetComponent<Renderer>().bounds.center, Vector3.up, .3f, 0f };
+                    Assert.IsTrue((bool)surface.GetType().GetMethod("Intersect").Invoke(surface, args), roof.transform.parent.name);
+                    Assert.Greater((float)args[3], .5f, "Passage interior must not be a solid blocker.");
+                }
+            }
+            finally { Call(director, "ReleaseView", local); Object.Destroy(preset); }
+        }
+
+        [UnityTest]
+        public IEnumerator WaitingRooms_Architecture_HiddenPanelDoesNotLeaveBlocker()
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.transform.position = Vector3.one * 10000;
+            try {
+                var type = GameType("CurtainCall.Cameras.CameraCollisionSurface");
+                var surface = (Behaviour)go.AddComponent(type);
+                var method = type.GetMethod("LimitDistance");
+                object[] args = { go.scene, go.transform.position + Vector3.back * 3, Vector3.forward, .25f, 5f };
+                Assert.That((float)method.Invoke(null, args), Is.EqualTo(2.25f).Within(.001f));
+                go.GetComponent<Renderer>().enabled = false;
+                Assert.AreEqual(5f, method.Invoke(null, args));
+                go.GetComponent<Renderer>().enabled = true; surface.enabled = false;
+                Assert.AreEqual(5f, method.Invoke(null, args));
+                surface.enabled = true;
+                Assert.That((float)method.Invoke(null, args), Is.EqualTo(2.25f).Within(.001f));
+                yield return null;
+            }
+            finally { Object.Destroy(go); }
         }
 
         [UnitySetUp]
@@ -405,6 +544,8 @@ namespace CurtainCall.Cameras.Tests
         IEnumerator Host(string scene)
         {
 #if UNITY_EDITOR
+            if (scene.EndsWith("/WaitingRoomPursuit.unity", StringComparison.Ordinal))
+                scene = UnityEditor.AssetDatabase.GUIDToAssetPath("9d8832c4cb77f9343a74c3dc35c1d3a3");
             yield return UnityEditor.SceneManagement.EditorSceneManager.LoadSceneAsyncInPlayMode(scene,
                 new LoadSceneParameters(LoadSceneMode.Single));
 #else

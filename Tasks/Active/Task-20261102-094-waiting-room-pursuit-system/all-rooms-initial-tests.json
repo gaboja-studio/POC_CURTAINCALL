@@ -1,0 +1,34 @@
+{
+  "status": "completed",
+  "duration": 3.36,
+  "summary": {
+    "total": 3,
+    "passed": 2,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.WaitingRoomCameraCoverageTests.HiddenOrDisabledArchitecturalPanel_DoesNotLeaveCameraBlocker",
+      "Status": "Failed",
+      "Duration": 0.0107747,
+      "Message": "  Expected: 2.25f +/- 0.00100000005f\r\n  But was:  5.0f\r\n",
+      "StackTrace": "at CurtainCall.Cameras.Tests.WaitingRoomCameraCoverageTests.HiddenOrDisabledArchitecturalPanel_DoesNotLeaveCameraBlocker () [0x00082] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\Systems\\Camera\\Tests\\EditMode\\WaitingRoomCameraCoverageTests.cs:83\r\n"
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.WaitingRoomCameraCoverageTests.SavedMap_StructuralFacesBlockBothSidesAndPassagesRemainHollow(\"0ce9037bd7c44c8b9d57785c26620388\")",
+      "Status": "Passed",
+      "Duration": 1.5703997,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.WaitingRoomCameraCoverageTests.SavedMap_StructuralFacesBlockBothSidesAndPassagesRemainHollow(\"9d8832c4cb77f9343a74c3dc35c1d3a3\")",
+      "Status": "Passed",
+      "Duration": 1.7520513,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

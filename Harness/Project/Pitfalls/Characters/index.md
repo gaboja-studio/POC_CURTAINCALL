@@ -1,5 +1,6 @@
 # Character Pitfalls
 
+- [capture-visibility-restores-old-limbs.md](capture-visibility-restores-old-limbs.md) — 포획 후 공연에서 외팔 판정인데 온전한 팔다리로 보일 때
 - [pole-floor-clearance.md](pole-floor-clearance.md) — 낮은 봉에서 논리 발 위치는 정상인데 실제 다리가 바닥을 뚫을 때
 
 - [strike-anatomy-false-pass.md](strike-anatomy-false-pass.md) — 타격 궤적 검사는 통과했지만 팔꿈치·손목이 꺾여 보일 때

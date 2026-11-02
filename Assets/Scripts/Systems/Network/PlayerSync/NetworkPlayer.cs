@@ -271,6 +271,23 @@ namespace CurtainCall.Network.PlayerSync
             if (IsServer) lostParts.Value = PlayerCondition.OneArmParts;
         }
 
+        /// <summary>호스트: 추격 포획 완료. 외팔 상태로 다음 장소까지 관전.</summary>
+        public void ServerRetireFromPursuit()
+        {
+            if (!IsServer) return;
+            lostParts.Value = PlayerCondition.OneArmParts;
+            state.Value = PlayerState.Retired;
+        }
+
+        /// <summary>호스트: 포획된 인원이 공연/탈출로에 외팔로 복귀.</summary>
+        public void ServerReleaseFromPursuit()
+        {
+            if (!IsServer) return;
+            lostParts.Value = PlayerCondition.OneArmParts;
+            state.Value = PlayerState.Normal;
+            reviveCount.Value++;
+        }
+
         /// <summary>
         /// 호스트: 사망자(<see cref="PlayerState.Fallen"/>)를 외팔 상태로 되살린다(비용 없음, 사망 전 몸과 무관). 조작 잠금·래그돌이 풀린다.
         /// 다음 시간대(쉬는 시간·밤 정비) 시작 때 부른다(<see cref="InjuryRevival"/>). 사망자가 아니면 false.

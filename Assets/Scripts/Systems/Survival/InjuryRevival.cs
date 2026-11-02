@@ -88,7 +88,7 @@ namespace CurtainCall.Survival
         // 공연으로 넘어가기 전(아직 탐색 장소)에 잡힘을 정한다.
         void HandleRestExpired(CampaignSnapshot step)
         {
-            if (hooked != null && hooked.HasAuthority) RestTimeoutCatch.ServerHandleExpired(step);
+            if (hooked != null && hooked.HasAuthority && step.Timer != RestTimerState.Pursuit) RestTimeoutCatch.ServerHandleExpired(step);
         }
     }
 }

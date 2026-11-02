@@ -1,0 +1,14 @@
+[
+  {
+    "result": "WaitingRoomBase: reviewed=430, added=430, updated=0, mesh=76",
+    "transforms": 29918,
+    "colliders": 3764,
+    "preserved": true
+  },
+  {
+    "result": "WaitingRoomPursuit: reviewed=430, added=386, updated=6, mesh=76",
+    "transforms": 30259,
+    "colliders": 3764,
+    "preserved": true
+  }
+]

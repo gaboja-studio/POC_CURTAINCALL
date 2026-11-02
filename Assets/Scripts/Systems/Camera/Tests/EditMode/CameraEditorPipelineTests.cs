@@ -18,6 +18,71 @@ namespace CurtainCall.Cameras.Tests
 
         [TestCase(false)]
         [TestCase(true)]
+        public void CameraMeshSurface_PreservesEmptySpaceAndSweepsFacesEdgesAndCorners(bool transformed)
+        {
+            var go = new GameObject("CameraMeshFixture");
+            var mesh = new Mesh { vertices = new[] { Vector3.zero, Vector3.right * 4, Vector3.up * 4 }, triangles = new[] { 0, 1, 2 } };
+            try {
+                if (transformed) {
+                    go.transform.SetPositionAndRotation(new Vector3(10, 7, -2), Quaternion.Euler(20, 37, -15));
+                    go.transform.localScale = new Vector3(-2, 3, .2f);
+                }
+                go.AddComponent<MeshFilter>().sharedMesh = mesh;
+                var surface = go.AddComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface"));
+                surface.GetType().GetField("UseMeshGeometry").SetValue(surface, true);
+                var method = surface.GetType().GetMethod("Intersect");
+                Vector3 direction = go.transform.forward;
+                Vector3 center = go.transform.TransformPoint(new Vector3(1, 1, 0));
+                object[] args = { center - direction * 5, direction, .25f, 0f };
+                Assert.IsTrue((bool)method.Invoke(surface, args));
+                Assert.That((float)args[3], Is.EqualTo(4.75f).Within(.001f), "front face");
+                args[0] = center + direction * 5; args[1] = -direction;
+                Assert.IsTrue((bool)method.Invoke(surface, args));
+                Assert.That((float)args[3], Is.EqualTo(4.75f).Within(.001f), "back face");
+                args[0] = go.transform.TransformPoint(new Vector3(3, 3, 0)) - direction * 5; args[1] = direction;
+                Assert.IsFalse((bool)method.Invoke(surface, args), "empty area inside mesh bounds stays open");
+                args[0] = center + direction * .1f;
+                Assert.IsTrue((bool)method.Invoke(surface, args)); Assert.AreEqual(0f, args[3]);
+                // Moving the surface invalidates the cached world geometry.
+                go.transform.position += direction * 10;
+                args[0] = center - direction * 5;
+                Assert.IsTrue((bool)method.Invoke(surface, args));
+                Assert.That((float)args[3], Is.EqualTo(14.75f).Within(.001f));
+                go.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity); go.transform.localScale = Vector3.one;
+                args[0] = new Vector3(-.15f, 1, -5); args[1] = Vector3.forward;
+                Assert.IsTrue((bool)method.Invoke(surface, args));
+                Assert.That((float)args[3], Is.EqualTo(4.8f).Within(.001f), "edge grazed only by sphere radius");
+                args[0] = new Vector3(-.15f, -.15f, -5);
+                Assert.IsTrue((bool)method.Invoke(surface, args));
+                Assert.That((float)args[3], Is.EqualTo(5 - Mathf.Sqrt(.25f * .25f - 2 * .15f * .15f)).Within(.001f), "corner");
+                Assert.IsNull(go.GetComponent<Collider>());
+            } finally { Object.DestroyImmediate(go); Object.DestroyImmediate(mesh); }
+        }
+
+        [TestCase(0f)]
+        [TestCase(37f)]
+        public void CameraOnlySurface_HandlesScaleRotationRadiusAndStartingInside(float angle)
+        {
+            var go = new GameObject("CameraOnlySurfaceFixture");
+            try {
+                go.transform.SetPositionAndRotation(new Vector3(10, 7, -2), Quaternion.Euler(0, angle, 0));
+                go.transform.localScale = new Vector3(2, 3, .2f);
+                var surface = go.AddComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface"));
+                var method = surface.GetType().GetMethod("Intersect");
+                Vector3 origin = go.transform.position - go.transform.forward * 5;
+                object[] args = { origin, go.transform.forward, .25f, 0f };
+                Assert.IsTrue((bool)method.Invoke(surface, args));
+                Assert.That((float)args[3], Is.EqualTo(4.65f).Within(.001f));
+                args[0] = go.transform.position;
+                Assert.IsTrue((bool)method.Invoke(surface, args)); Assert.AreEqual(0f, args[3]);
+                args[0] = origin + go.transform.right * 5;
+                Assert.IsFalse((bool)method.Invoke(surface, args));
+                Assert.IsNull(go.GetComponent<Collider>());
+            } finally { Object.DestroyImmediate(go); }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
         public void EditModePipeline_DoesNotApplyRuntimeViewsBeforeAwake(bool hasRequest)
         {
             Assert.That(Application.isPlaying, Is.False);

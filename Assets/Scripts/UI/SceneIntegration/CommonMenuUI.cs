@@ -23,14 +23,19 @@ namespace CurtainCall.UI.SceneIntegration
             "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity",
             "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity",
             "Assets/Scenes/Levels/escape_route.unity",
-            "Assets/Scenes/Start_Lobby/Lobby.unity", "Assets/Scenes/Start_Lobby/Start.unity" };
+            "Assets/Scenes/InGame/Lobby.unity", "Assets/Scenes/InGame/Start.unity" };
         public static CommonMenuUI Current { get; private set; }
         public static Scene CurrentScene
         {
             get
             {
                 var active = SceneManager.GetActiveScene();
+                var waiting = CommonUiSceneLoader.CurrentWaitingRoom;
+                var waitingScene = waiting != null ? waiting.gameObject.scene : default;
+                if (CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(active) && active.isLoaded) return active;
+                if (waitingScene.isLoaded && waitingScene == active) return waitingScene;
                 foreach (var path in SpacePaths) if (active.path == path && active.isLoaded) return active;
+                if (waitingScene.isLoaded) return waitingScene;
                 foreach (var path in SpacePaths) { var scene = SceneManager.GetSceneByPath(path); if (scene.isLoaded) return scene; }
                 return default;
             }

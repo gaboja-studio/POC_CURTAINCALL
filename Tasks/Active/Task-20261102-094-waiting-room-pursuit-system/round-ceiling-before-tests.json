@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 9.14,
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_RoundLobbyCeilingRetractsArm",
+      "Status": "Failed",
+      "Duration": 9.0483098,
+      "Message": "  로비 돔 아래에서 카메라 암이 줄어들어야 한다.\r\n  Expected: less than 11.8000002f\r\n  But was:  15.0f\r\n",
+      "StackTrace": "at CurtainCall.Cameras.Tests.CameraViewsPlayTests+<WaitingRoomPursuit_RoundLobbyCeilingRetractsArm>d__15.MoveNext () [0x001db] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\Systems\\Camera\\Tests\\PlayMode\\CameraViewsPlayTests.cs:169\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    }
+  ]
+}

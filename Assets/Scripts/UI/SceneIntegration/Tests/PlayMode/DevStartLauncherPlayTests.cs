@@ -20,6 +20,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         static object Static(string type, string prop) => T(type).GetProperty(prop).GetValue(null);
         static FieldInfo DevCache => T("CurtainCall.Dev.DevMode").GetField("_enabled", BindingFlags.NonPublic | BindingFlags.Static);
         object previousDev;
+        object previousWaitingVariant;
+        static object WaitingSpaces => Get(Static("CurtainCall.Settings.GameSettings", "Base"), "SpaceTransition");
+        static FieldInfo WaitingVariantField => WaitingSpaces.GetType().GetField("waitingRoomVariant", BindingFlags.NonPublic | BindingFlags.Instance);
         Component launcher;
         object cursorTestKeyboard;
         Component cursorTestExtraPanel;
@@ -48,6 +51,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator Open()
         {
             previousDev = DevCache.GetValue(null);
+            previousWaitingVariant = WaitingVariantField.GetValue(WaitingSpaces);
+            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, TestContext.CurrentContext.Test.Name.StartsWith("Pursuit", StringComparison.Ordinal) ? "Pursuit" : "Base"));
             DevCache.SetValue(null, true);
             // 대기실 튜토리얼(연계 중 조작 잠금·클로즈업)은 기본으로 끈다. 튜토리얼 테스트만 FreshTutorial로 켠다. PC 설정은 건드리지 않는다.
             T("CurtainCall.WaitingRoom.WaitingRoomTutorial").GetProperty("MemoryOnly").SetValue(null, true);
@@ -71,7 +76,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             // 연계 튜토리얼은 의도적으로 조작을 막는다(Task-086).
             if (!(bool)Static("CurtainCall.WaitingRoom.WaitingRoomTutorial", "IsSequenceActive"))
                 Assert.IsFalse((bool)Static("CurtainCall.Player.InputGate", "IsBlocked"));
-            Assert.AreEqual(1, Object.FindObjectsByType(T(scene == "WaitingRoomBase" ? "CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI" : "CurtainCall.UI.SceneIntegration.CommonPerformanceUI"), FindObjectsSortMode.None).Length);
+            Assert.AreEqual(1, Object.FindObjectsByType(T((scene == "WaitingRoomBase" || scene == "WaitingRoomPursuit") ? "CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI" : "CurtainCall.UI.SceneIntegration.CommonPerformanceUI"), FindObjectsSortMode.None).Length);
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonInteractionUI"), FindObjectsSortMode.None).Length);
         }
         [UnityTest]
@@ -217,6 +222,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTearDown]
         public IEnumerator Cleanup()
         {
+            WaitingVariantField.SetValue(WaitingSpaces, previousWaitingVariant);
             if (cursorTestKeyboard != null) T("UnityEngine.InputSystem.InputSystem").GetMethod("RemoveDevice").Invoke(null, new[] { cursorTestKeyboard });
             cursorTestKeyboard = null;
             if (cursorTestExtraPanel != null) Object.Destroy(cursorTestExtraPanel.gameObject);

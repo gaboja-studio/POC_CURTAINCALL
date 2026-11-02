@@ -1,0 +1,12 @@
+{
+  "scene": "WaitingRoomPursuit",
+  "devReentry": true,
+  "menuClosed": true,
+  "inputReleased": true,
+  "inventory": 1.0,
+  "slots": [
+    true,
+    true
+  ],
+  "menuInstances": 1
+}
