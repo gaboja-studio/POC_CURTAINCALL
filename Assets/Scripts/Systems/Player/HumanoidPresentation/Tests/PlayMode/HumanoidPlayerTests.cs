@@ -34,7 +34,9 @@ namespace CurtainCall.Tests.HumanoidPresentation
         static Type TypeFor(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
         static Component Part(GameObject player, string name) => player.GetComponent(TypeFor("CurtainCall.Player." + name));
         static object Get(object target, string name) => target.GetType().GetProperty(name).GetValue(target);
-        static object Call(object target, string name, params object[] args) => target.GetType().GetMethod(name).Invoke(target, args);
+        // 오버로드(예: RequestItemMotion 2/3인자)는 인자 수로 고른다.
+        static object Call(object target, string name, params object[] args) => target.GetType().GetMethods()
+            .First(m => m.Name == name && m.GetParameters().Length == args.Length).Invoke(target, args);
         static Component Model(GameObject player) => (Component)Get(Part(player, "HumanoidPlayerPresentation"), "Model");
         static int TintSlot(Component model)
         {
@@ -222,6 +224,65 @@ namespace CurtainCall.Tests.HumanoidPresentation
             {
                 foreach (var entry in changed)
                 { entry.movement.SetValue(entry.policy, entry.oldMovement); entry.interrupt.SetValue(entry.policy, entry.oldInterrupt); }
+            }
+        }
+
+        /// <summary>열쇠 줍기는 줍기(4) 동작을 재생하고 이동·스킵 허용은 열쇠(3) 설정을 따른다. 이전에는 조작(1) 설정이었다.</summary>
+        [Test]
+        public void KeyPickupPlaysPickupAndFollowsKeyPolicy()
+        {
+            var reach = TypeFor("CurtainCall.WaitingRoom.ShopReach");
+            var gateType = TypeFor("CurtainCall.WaitingRoom.ExplorationGate");
+            var go = new GameObject("Key pickup motion test");
+            go.SetActive(false);
+            try
+            {
+                var key = go.AddComponent(gateType);
+                gateType.GetMethod("ConfigureRoute").Invoke(key, new object[] { "structure-a:key-1", null, null });
+                Assert.That(reach.GetMethod("MotionKind").Invoke(null, new object[] { key }), Is.EqualTo(4));
+                Assert.That(reach.GetMethod("PolicyKind").Invoke(null, new object[] { key }), Is.EqualTo(3));
+                var child = new GameObject("Open gate motion test");
+                child.transform.SetParent(go.transform);
+                var other = child.AddComponent(gateType);
+                gateType.GetMethod("ConfigureRoute").Invoke(other, new object[] { "structure-a:motion-test-door", null, null });
+                Assert.That(reach.GetMethod("MotionKind").Invoke(null, new object[] { other }), Is.EqualTo(1));
+                Assert.That(reach.GetMethod("PolicyKind").Invoke(null, new object[] { other }), Is.EqualTo(1));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(go); }
+        }
+
+        [UnityTest]
+        public IEnumerator PolicyKindDecidesMovementLockSeparatelyFromMotion()
+        {
+            var settings = TypeFor("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null);
+            var policies = Get(settings, "Presentation");
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var key = policies.GetType().GetMethod("InteractionPolicy").Invoke(policies, new object[] { 3 });
+            var pickup = policies.GetType().GetMethod("InteractionPolicy").Invoke(policies, new object[] { 4 });
+            var movement = key.GetType().GetField("allowMovement", flags);
+            var interrupt = key.GetType().GetField("allowInterrupt", flags);
+            bool keyMove = (bool)movement.GetValue(key), pickupMove = (bool)movement.GetValue(pickup);
+            bool keySkip = (bool)interrupt.GetValue(key), pickupSkip = (bool)interrupt.GetValue(pickup);
+            try
+            {
+                interrupt.SetValue(key, true); interrupt.SetValue(pickup, true);
+                var player = Player();
+                yield return null;
+                var view = Part(player, "HumanoidPlayerPresentation");
+                var request = view.GetType().GetMethod("RequestItemMotion", new[] { typeof(int), typeof(Vector3), typeof(int) });
+                movement.SetValue(key, true); movement.SetValue(pickup, false);
+                request.Invoke(view, new object[] { 4, player.transform.position + player.transform.forward, 3 });
+                Assert.That(Get(view, "InteractionMovementLocked"), Is.False, "key policy allows movement");
+                Assert.That(Get(view, "ItemMotion"), Is.EqualTo("ItemManipulate"), "pickup motion still plays");
+                yield return null;
+                movement.SetValue(key, false); movement.SetValue(pickup, true);
+                request.Invoke(view, new object[] { 4, player.transform.position + player.transform.forward, 3 });
+                Assert.That(Get(view, "InteractionMovementLocked"), Is.True, "key policy blocks movement");
+            }
+            finally
+            {
+                movement.SetValue(key, keyMove); movement.SetValue(pickup, pickupMove);
+                interrupt.SetValue(key, keySkip); interrupt.SetValue(pickup, pickupSkip);
             }
         }
 
@@ -792,6 +853,127 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 yield return null;
                 Assert.That(Get(mover, "CurrentJump").ToString(), Is.EqualTo("InPlace"));
                 Assert.That(new[] { "JumpStart", "JumpLoop" }, Does.Contain((string)Get(view, "Motion")));
+            }
+            finally
+            {
+                if (keyboard != null) InputSystem.RemoveDevice(keyboard);
+                if (previousKeyboard != null && previousKeyboard.added) previousKeyboard.MakeCurrent();
+                originalSettings.backgroundBehavior = previousBackground;
+                originalSettings.editorInputBehaviorInPlayMode = previousEditorInput;
+            }
+        }
+
+        /// <summary>실제 경로(F로 열쇠 줍기 → W 이동)에서 key 설정이 이동을 허용하면 줍기 중에도 걷는다.</summary>
+        [UnityTest]
+        public IEnumerator KeyPickupThroughShopReachAllowsWalkingWhenKeyPolicyAllows()
+        {
+            var settings = TypeFor("CurtainCall.Settings.GameSettings").GetProperty("Base").GetValue(null);
+            var policies = Get(settings, "Presentation");
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var key = policies.GetType().GetMethod("InteractionPolicy").Invoke(policies, new object[] { 3 });
+            var pickup = policies.GetType().GetMethod("InteractionPolicy").Invoke(policies, new object[] { 4 });
+            var movement = key.GetType().GetField("allowMovement", flags);
+            bool keyMove = (bool)movement.GetValue(key), pickupMove = (bool)movement.GetValue(pickup);
+            var originalSettings = InputSystem.settings;
+            var previousBackground = originalSettings.backgroundBehavior;
+            var previousEditorInput = originalSettings.editorInputBehaviorInPlayMode;
+            var previousKeyboard = Keyboard.current;
+            Keyboard keyboard = null;
+            GameObject gate = null;
+            try
+            {
+                movement.SetValue(key, true); movement.SetValue(pickup, false);
+                originalSettings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+                originalSettings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+                keyboard = InputSystem.AddDevice<Keyboard>("Key Pickup Walk Test");
+                keyboard.MakeCurrent();
+                var player = Player();
+                var controller = (Behaviour)Part(player, "PlayerController");
+                Call(controller, "SetScheme", Resources.Load<ScriptableObject>("Settings/Control/PlatformControlScheme"));
+                controller.enabled = true;
+                gate = new GameObject("Key pickup walk test");
+                gate.SetActive(false);
+                gate.transform.position = player.transform.position + player.transform.forward * .5f + Vector3.up * .6f;
+                var gateType = TypeFor("CurtainCall.WaitingRoom.ExplorationGate");
+                var component = gate.AddComponent(gateType);
+                gateType.GetMethod("ConfigureRoute").Invoke(component, new object[] { "structure-a:key-1", null, null });
+                gate.SetActive(true);
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                for (int i = 0; i < 4; i++) yield return null;
+                Assert.That(TypeFor("CurtainCall.WaitingRoom.ShopReach").GetProperty("Focused").GetValue(null), Is.SameAs(component), "key in reach");
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.F));
+                yield return null; yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                yield return null; yield return null;
+                var view = Part(player, "HumanoidPlayerPresentation");
+                Assert.That(Get(view, "ItemMotion"), Is.EqualTo("ItemManipulate"), "pickup motion started");
+                Assert.That(Get(view, "InteractionMovementLocked"), Is.False, "key policy allows movement");
+                Vector3 start = player.transform.position;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.W));
+                for (int i = 0; i < 15; i++) yield return null;
+                Assert.That(Vector3.Distance(start, player.transform.position), Is.GreaterThan(.05f), "walks during key pickup");
+            }
+            finally
+            {
+                movement.SetValue(key, keyMove); movement.SetValue(pickup, pickupMove);
+                if (gate != null) Object.Destroy(gate);
+                if (keyboard != null) InputSystem.RemoveDevice(keyboard);
+                if (previousKeyboard != null && previousKeyboard.added) previousKeyboard.MakeCurrent();
+                originalSettings.backgroundBehavior = previousBackground;
+                originalSettings.editorInputBehaviorInPlayMode = previousEditorInput;
+            }
+        }
+
+        /// <summary>반대 키 동시 입력은 정지가 아니라 마지막에 누른 방향이다. 먼저 누른 키는 다시 누르기 전까지 뗀 것으로 본다.</summary>
+        [UnityTest]
+        public IEnumerator OppositeKeysFollowLastPressedDirection()
+        {
+            var originalSettings = InputSystem.settings;
+            var previousBackground = originalSettings.backgroundBehavior;
+            var previousEditorInput = originalSettings.editorInputBehaviorInPlayMode;
+            var previousKeyboard = Keyboard.current;
+            Keyboard keyboard = null;
+            try
+            {
+                originalSettings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+                originalSettings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+                keyboard = InputSystem.AddDevice<Keyboard>("Opposite Key Test");
+                keyboard.MakeCurrent();
+                var player = Player();
+                var reader = Part(player, "PlayerInputReader");
+                object Frame() => Get(reader, "Current");
+                float Read(string name)
+                {
+                    var frame = Frame(); var type = frame.GetType();
+                    return Convert.ToSingle(type.GetField(name)?.GetValue(frame) ?? type.GetProperty(name).GetValue(frame));
+                }
+                IEnumerator Press(params Key[] keys) { InputSystem.QueueStateEvent(keyboard, new KeyboardState(keys)); yield return null; yield return null; }
+
+                yield return Press();
+                yield return Press(Key.W);
+                Assert.That(Read("Move"), Is.EqualTo(1f), "W");
+                yield return Press(Key.W, Key.S);
+                Assert.That(Read("Move"), Is.EqualTo(-1f), "W then S: S wins");
+                yield return Press(Key.W);
+                Assert.That(Read("Move"), Is.EqualTo(0f), "S released: W was treated as released");
+                yield return Press(Key.W, Key.S);
+                Assert.That(Read("Move"), Is.EqualTo(-1f), "S pressed again");
+                yield return Press(Key.S);
+                yield return Press(Key.S, Key.W);
+                Assert.That(Read("Move"), Is.EqualTo(1f), "S then W: W wins");
+
+                yield return Press(Key.A);
+                yield return Press(Key.A, Key.D);
+                Assert.That(Read("Posture"), Is.EqualTo(1f), "A then D: D wins");
+                yield return Press(Key.D);
+                yield return Press(Key.D, Key.A);
+                Assert.That(Read("Posture"), Is.EqualTo(-1f), "D then A: A wins");
+
+                yield return Press(Key.Q);
+                yield return Press(Key.Q, Key.E);
+                Assert.That(Read("AuxDirection"), Is.EqualTo(1f), "Q then E: E wins");
+                yield return Press();
+                Assert.That(Read("Move"), Is.EqualTo(0f));
             }
             finally
             {

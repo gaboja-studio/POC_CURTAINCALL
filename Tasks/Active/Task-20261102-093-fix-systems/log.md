@@ -16,3 +16,11 @@
 - 수정: NetworkSessionManager OnTransportFailure 처리(종료 문구 TransportFailureMessage, [TransportFailure] 로그), 접속 중 3초 이상 프레임 정지 경고 로그. 회귀 테스트 StartConnectionTests.TransportFailureReportsStallReasonInsteadOfTransportShutdown.
 
 - 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-02 열쇠 줍기 정책: 처음 놓인 열쇠는 ExplorationGate(IsKeyPickup)라 ShopReach가 조작(1) 정책을 적용하고 있었다. 떨어진 열쇠(FloorPropsView)는 이미 줍기(4). ShopReach.MotionKind로 분리하고 IsKeyPickup도 줍기(4)로 매핑. 애니메이션(Motions[1])과 시간(1.4초)은 그대로이며 바뀐 것은 정책뿐.
+- 테스트(열린 에디터): HumanoidPlayerTests 24/27, 새 FirstKeyPickupUsesPickupPolicyLikeOtherPieces PASS. 실패 3개는 앞서 기록한 기존 실패와 동일.
+
+- 2026-11-02 사용자 확인: 열쇠 줍기 중 key 설정의 이동 허용을 켜도 막힘. 열쇠 줍기가 pickup 설정을 읽고 있었음. RequestItemMotion(kind, point, policyKind)로 동작과 설정 항목을 분리하고 ShopReach.PolicyKind: 처음 놓인 열쇠·떨어진 열쇠(FloorPropsView.Item.IsKey) = 열쇠(3) 설정, 동작은 줍기(4).
+- 반대 방향 키: 1D Axis 합성은 동시 입력 시 0(정지). PlayerInputReader가 OppositeKeyAxis로 Move(W/S)·Posture(A/D)·AuxDirection(Q/E)을 마지막에 누른 방향으로 읽고 먼저 누른 키는 다시 누를 때까지 무시. 키 재설정은 합성 부분 이름으로 찾아 유지, 합성이 아닌 바인딩은 기존 값.
+- 테스트(열린 에디터): HumanoidPlayerTests 26/29. 새 KeyPickupPlaysPickupAndFollowsKeyPolicy·PolicyKindDecidesMovementLockSeparatelyFromMotion·OppositeKeysFollowLastPressedDirection PASS. 오버로드 추가로 테스트 Call 도우미를 인자 수로 고르게 수정. 실패 3개는 기존과 동일(Crawl 기대값 2, 웅크리기 입력 1).
+- 2026-11-02 열쇠 줍기 이동 재확인(실제 WaitingRoomBase, Dev 시작 2일차 아침, LAN 호스트, key-1): key 설정 move=True에서 줍기 중 S 이동 1.27m(줍기 전과 동일), InputGate 막힘·이동 잠금 없음, 열쇠 획득 정상. 정면 W 0m는 칸막이 문 충돌(줍기 없이도 0m). 사용자가 본 막힘은 Play 중 수정이라 재컴파일 전 코드였을 가능성. 회귀 테스트 KeyPickupThroughShopReachAllowsWalkingWhenKeyPolicyAllows 추가.

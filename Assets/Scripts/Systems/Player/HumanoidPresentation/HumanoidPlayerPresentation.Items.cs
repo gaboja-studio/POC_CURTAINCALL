@@ -42,15 +42,17 @@ namespace CurtainCall.Player
             yield return new WaitForSeconds(.5f);
             toolUse = null;
         }
-        public void RequestItemMotion(int kind, Vector3 point)
+        public void RequestItemMotion(int kind, Vector3 point) => RequestItemMotion(kind, point, kind);
+        /// <summary>kind는 재생할 동작, policyKind는 이동·스킵 허용을 읽을 설정 항목(예: 열쇠 줍기 = 줍기 동작 + 열쇠 설정).</summary>
+        public void RequestItemMotion(int kind, Vector3 point, int policyKind)
         {
-            if (kind < 0 || kind > 4 || model == null || condition.AllLimbsLost || InteractionActionLocked) return;
+            if (kind < 0 || kind > 4 || policyKind < 0 || policyKind > 4 || model == null || condition.AllLimbsLost || InteractionActionLocked) return;
             if (toolUse != null) { StopCoroutine(toolUse); toolUse = null; }
-            activeInteractionKind = kind;
-            activeInteractionAllowsMovement = GameSettings.Base.Presentation.InteractionPolicy(kind).AllowMovement;
+            activeInteractionAllowsMovement = GameSettings.Base.Presentation.InteractionPolicy(policyKind).AllowMovement;
             interactionMoveLockUntil = activeInteractionAllowsMovement ? 0f : Time.time + InteractionDuration(kind);
             interactionActionUntil = itemActionUntil = Time.time + InteractionDuration(kind);
             ReceiveItemMotion(kind, point, activeInteractionAllowsMovement);
+            activeInteractionKind = policyKind;
             if (network != null && network.IsSpawned) network.SendItemGesture(kind, point, activeInteractionAllowsMovement);
         }
         public void ReceiveItemMotion(int kind, Vector3 point, bool allowMovement)

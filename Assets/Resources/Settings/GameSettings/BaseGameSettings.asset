@@ -88,8 +88,8 @@ MonoBehaviour:
       allowMovement: 0
       allowInterrupt: 0
     key:
-      allowMovement: 0
-      allowInterrupt: 0
+      allowMovement: 1
+      allowInterrupt: 1
     pickup:
       allowMovement: 1
       allowInterrupt: 1
