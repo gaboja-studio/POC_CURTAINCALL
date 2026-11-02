@@ -10,7 +10,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     /// <summary>
     /// Task-092 공연용 장비 효과(실제 캠페인 호스트로 공연 씬 진입, 대기실 소지 장부 유지).
-    /// 스프링 신발: 다칠 바닥 착지 → 부상 대신 반동·1 소모, 쿨타임 중 다시 떨어지면 기존 부상.
+    /// 스프링 신발: 다칠 바닥 착지 → 부상 대신 반동·1 소모, 쿨타임 없이 다시 반동하고 다 쓰면 기존 부상(2026-11-02 내구도 2).
     /// 광대 벌룬 바지: 하강 변위 30% 감소, 하강이 끝나면 1 소모.
     /// 끈끈이 장갑: 외줄 추락 매달림 7초 → 10.5초, 추가 시간에 들어선 매달림이 끝나면 1 소모.
     /// </summary>
@@ -27,13 +27,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual("None", Call(carry, "Receive", me, Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"), uid, id, id, uses)).ToString());
 
         [UnityTest]
-        public IEnumerator Performance_SpringShoesReboundInsteadOfFallInjuryThenCooldownInjures()
+        public IEnumerator Performance_SpringShoesReboundInsteadOfFallInjuryWithoutCooldown()
         {
             yield return Launch(2, "Performance", 1, "HumanCannon", "HumanCannon");
             var carry = Find("CurtainCall.WaitingRoom.PropCarry");
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             ulong me = (ulong)Get(player, "OwnerClientId");
-            Give(carry, me, 9201, "spring-shoes", 3);
+            Give(carry, me, 9201, "spring-shoes", 2);
             var system = Find("CurtainCall.HumanCannon.HumanCannonSystem");
             var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
             // 대포 탑승 자리는 안전 착지면일 수 있다. 추락 부상이 나는 바닥(안전 착지면 아님·코스 아래 아님)을 찾는다.
@@ -71,14 +71,20 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return null;
                 Assert.AreEqual(1, rebounds, "다칠 바닥이면 스프링 신발이 반동한다");
                 Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")), "반동하면 추락 부상이 없다");
-                Assert.AreEqual(2, UsesOf(carry, me, "spring-shoes"), "실제 반동 때 1 소모");
+                Assert.AreEqual(1, UsesOf(carry, me, "spring-shoes"), "실제 반동 때 1 소모");
                 Assert.IsTrue((bool)Call(flying, "Matches", me, 1, 900u, 1u), "반동하면 같은 비행이 다음 구간으로 이어진다");
 
+                // 2026-11-02 사용자: 공연 기물 쿨타임 없음. 바로 다음 착지도 반동하고, 마지막 회차 뒤 신발이 사라진다.
                 land.Invoke(system, new object[] { player, 1, 900u, 1u, floor });
                 yield return null;
-                Assert.AreEqual(1, rebounds, "쿨타임(3초) 중에는 반동하지 않는다");
-                Assert.AreEqual(2, UsesOf(carry, me, "spring-shoes"));
-                Assert.AreNotEqual(0, Convert.ToInt32(Get(player, "LostParts")), "쿨타임 중이면 기존 추락 부상");
+                Assert.AreEqual(2, rebounds, "쿨타임 없이 바로 다음 착지도 반동한다");
+                Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")));
+                Assert.AreEqual(0, UsesOf(carry, me, "spring-shoes"), "새 제품 내구도 2를 다 쓰면 사라진다");
+
+                land.Invoke(system, new object[] { player, 1, 900u, 2u, floor });
+                yield return null;
+                Assert.AreEqual(2, rebounds, "다 쓴 뒤에는 반동하지 않는다");
+                Assert.AreNotEqual(0, Convert.ToInt32(Get(player, "LostParts")), "신발이 없으면 기존 추락 부상");
             }
             finally { evt.RemoveEventHandler(null, onRebound); }
         }
@@ -119,7 +125,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             float wait = Time.realtimeSinceStartup + 2f;
             while (UsesOf(carry, me, "balloon-pants") != 3 && Time.realtimeSinceStartup < wait) yield return null;
             Assert.AreEqual(3, UsesOf(carry, me, "balloon-pants"), "하강이 끝나면 비행당 1 소모");
-            Assert.Greater((float)Call(carry, "CooldownLeft", me, "balloon-pants"), 0f, "감속 종료부터 쿨타임");
+            Assert.AreEqual(0f, (float)Call(carry, "CooldownLeft", me, "balloon-pants"), "공연 기물 쿨타임 없음(2026-11-02)");
         }
 
         [UnityTest]

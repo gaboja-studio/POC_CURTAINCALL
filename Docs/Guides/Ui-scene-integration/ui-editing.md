@@ -84,6 +84,13 @@ Project 창에서 `ShopPanel.prefab`을 더블클릭하면 프리팹 화면이 �
 4. 씬 뷰 예시(머리핀, 1번 칸, 5회)
 5. **Common Inventory UI**: 손 상태 문구(빈칸이면 표시 안 함, `{item}` = 기물 이름), 잠긴 칸 문구, 손 아이콘과 이름 사이 거리
 
+2026-11-02 추가(Task-094, 위 그림 뒤에 바뀜):
+
+- 칸 크기: `C5_InventorySlots`의 Scale(현재 1.5 = 96px). 키트가 칸을 64 단위로 배치하므로 칸 안 배치는 64 기준으로 고치고, 화면 크기는 Scale로 바꾼다. Scale을 바꾸면 `SelectedProp` 높이도 맞춘다.
+- `70_Durability`: 칸 아래 내구도 바. 칸 하나 = 내구도 1, 칸 수 = 새 제품 내구도. 모양은 자식 `Segment`(복제 원본), 간격은 Horizontal Layout Group, 색(채움·낡음·빈 칸·사용 번쩍임)은 **Inventory Slot Durability Bar**. 숫자(`60_QuantityTMP`)는 비워 둔다.
+- `80_UseFlash`·`85_BreakGhost`와 슬롯 템플릿의 **Inventory Slot Use Effect**: 내구도를 쓰면 칸 번쩍임·아이콘 흰빛, 다 써서 사라지면 붉은 번쩍임·아이콘이 타 없어지는 연출. 세기·시간·색은 컴포넌트에서 고친다.
+- 셰이더 효과 머티리얼: `Assets/_ThirdParty/curtaincall/InventorySlotFx/InventorySlotFx.mat`(All In 1 Sprite Shader UI, Hit Effect·Fade). 외부 에셋으로 만든 것이라 private 저장소에 있다.
+
 ## 7. 여러 UI가 한 화면에 겹쳐 보일 때
 
 대기실 공용 UI(`CommonWaitingRoomUI`)와 메뉴(`CommonMenuUI`)를 같이 열면 상점·메뉴·HUD가 한꺼번에 보여 겹친다.

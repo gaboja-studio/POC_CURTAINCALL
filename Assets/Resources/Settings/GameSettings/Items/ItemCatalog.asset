@@ -22,7 +22,7 @@ MonoBehaviour:
     newUses: 5
     foundUses: 2
     price: 100
-    cooldown: 1
+    cooldown: 0
     effect: 0.3
     effect2: 2
     summary: "\uC678\uC904: \uCC29\uC6A9\uC790 2m \uC548\uC5D0\uC11C \uB0B4 \uC904\uB85C
@@ -44,7 +44,7 @@ MonoBehaviour:
     newUses: 3
     foundUses: 1
     price: 100
-    cooldown: 3
+    cooldown: 0
     effect: 1.5
     effect2: 0
     summary: "\uC678\uC904 \uB9E4\uB2EC\uB9AC\uAE30\xB7\uB9AC\uD504\uD2B8 \uBC84\uD2F0\uAE30
@@ -66,7 +66,7 @@ MonoBehaviour:
     newUses: 4
     foundUses: 2
     price: 125
-    cooldown: 3
+    cooldown: 0
     effect: 0.3
     effect2: 0
     summary: "\uC778\uAC04 \uB300\uD3EC: \uD558\uAC15\uD560 \uB54C\uB9CC \uC218\uC9C1
@@ -84,10 +84,10 @@ MonoBehaviour:
     wornAtOrBelow: 1
     use: 0
     kind: 0
-    newUses: 3
+    newUses: 2
     foundUses: 1
     price: 175
-    cooldown: 3
+    cooldown: 0
     effect: 1
     effect2: 0
     summary: "\uC778\uAC04 \uB300\uD3EC: \uD2B8\uB7A8\uD384\uB9B0 \uC5C6\uB294 \uBC14\uB2E5\uC5D0
