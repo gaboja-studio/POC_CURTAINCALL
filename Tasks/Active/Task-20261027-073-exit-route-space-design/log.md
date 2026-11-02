@@ -1,6 +1,7 @@
 # Log
 
 ## 2026-11-02 누적 변경 저장·제출
+- 완료: 본 변경 e6fe50e3 커밋/push, [PR #261](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/261) 등록(feat/exit-route/design-map → dev),검토 대기/미병합. GitHub 연결 도구의 PR 생성403은 로그인된 RagSpirin gh로 제출해 해결했다. 최종 check-work 안전성/문서·규칙/컴파일 PASS,자동 테스트 재실행 없음/Play 미실행. 대기실 씬과 private gitlink 변경0.
 - 사용자 요청으로 8분 타이머/3인칭 전환·그네/대포 착지·전기톱·공간 폴리싱과 사용자 수동 정리/외벽2개 보수를 함께 제출한다. 기존74항목 백업·씬 저장/정상 종료 후 origin/dev8c64b454 최신 포함 확인,병합 충돌0. private HEAD는 origin/main에 포함되어 있다. 작성자 RagSpirin.
 - new-pr.ps1 DryRun은 기존 feat/exit-route/design-map의 두 슬래시를 거절했다. 사용자 지정 브랜치를 유지하고 동일 dev PR 흐름을 GitHub 도구로 진행한다. 종료 시 갱신된 escape-labels 폰트 캐시를 보존하며 최종 저장 상태를 검사한다. Play/MPPM·dev 병합은 하지 않는다.
 
