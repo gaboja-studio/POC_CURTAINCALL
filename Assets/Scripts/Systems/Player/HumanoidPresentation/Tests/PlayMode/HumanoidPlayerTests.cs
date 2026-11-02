@@ -58,11 +58,16 @@ namespace CurtainCall.Tests.HumanoidPresentation
             Call(Part(player, "PlayerBalance"), "SetBalanceActive", false);
             return player;
         }
+        // 의상 상태 검사가 이 PC의 혈흔 표시 설정에 흔들리지 않게 켠 상태로 고정하고 끝나면 되돌린다.
+        static PropertyInfo ShowBloodSetting => TypeFor("CurtainCall.StartLobby.ClientSettings").GetProperty("ShowBloodEffect");
+        bool previousShowBlood;
         [SetUp]
         public void Setup()
         {
             previousBackground = Application.runInBackground;
             Application.runInBackground = true;
+            previousShowBlood = (bool)ShowBloodSetting.GetValue(null);
+            ShowBloodSetting.SetValue(null, true);
             var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
             floor.transform.position = new Vector3(0, -.05f, 0);
             floor.transform.localScale = new Vector3(100, .1f, 100);
@@ -75,6 +80,7 @@ namespace CurtainCall.Tests.HumanoidPresentation
             objects.Clear();
             yield return null;
             Application.runInBackground = previousBackground;
+            ShowBloodSetting.SetValue(null, previousShowBlood);
         }
 
         [UnityTest]
@@ -1071,6 +1077,30 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 yield return null;
                 Assert.That(Surface(Model(player)), Is.EqualTo(value == 0 ? "Clean" : "Heavy"), "Fallen/Retired death without missing limbs");
             }
+        }
+
+        [UnityTest]
+        public IEnumerator BloodSettingOffKeepsCleanSurfaceRegardlessOfInjury()
+        {
+            Assume.That((bool)TypeFor("CurtainCall.Damage.InjuryBloodEffects").GetProperty("IsEnabledByGame").GetValue(null),"게임 설정에서 혈흔 연출이 꺼져 있다.");
+            var player = Player();
+            yield return null;
+            string Surface() => Get(Model(player).GetComponent(TypeFor("CurtainCall.CharacterArt.RabbitSurfaceStates")), "State").ToString();
+            ShowBloodSetting.SetValue(null, false);
+            foreach (int mask in new[] { 4, 13, 15 })
+            {
+                Mask(player, mask);
+                Assert.That(Surface(), Is.EqualTo("Clean"), $"혈흔 표시를 끄면 부상({mask})과 상관없이 처음 의상을 유지한다.");
+                yield return null;
+                Assert.That(Surface(), Is.EqualTo("Clean"));
+            }
+            Mask(player, 13);
+            ShowBloodSetting.SetValue(null, true);
+            yield return null;
+            Assert.That(Surface(), Is.EqualTo("Heavy"), "다시 켜면 현재 부상에 맞는 의상으로 바로 돌아간다.");
+            ShowBloodSetting.SetValue(null, false);
+            yield return null;
+            Assert.That(Surface(), Is.EqualTo("Clean"), "끄면 바로 처음 의상으로 돌아간다.");
         }
 
         [UnityTest]
