@@ -24,3 +24,6 @@
 - 반대 방향 키: 1D Axis 합성은 동시 입력 시 0(정지). PlayerInputReader가 OppositeKeyAxis로 Move(W/S)·Posture(A/D)·AuxDirection(Q/E)을 마지막에 누른 방향으로 읽고 먼저 누른 키는 다시 누를 때까지 무시. 키 재설정은 합성 부분 이름으로 찾아 유지, 합성이 아닌 바인딩은 기존 값.
 - 테스트(열린 에디터): HumanoidPlayerTests 26/29. 새 KeyPickupPlaysPickupAndFollowsKeyPolicy·PolicyKindDecidesMovementLockSeparatelyFromMotion·OppositeKeysFollowLastPressedDirection PASS. 오버로드 추가로 테스트 Call 도우미를 인자 수로 고르게 수정. 실패 3개는 기존과 동일(Crawl 기대값 2, 웅크리기 입력 1).
 - 2026-11-02 열쇠 줍기 이동 재확인(실제 WaitingRoomBase, Dev 시작 2일차 아침, LAN 호스트, key-1): key 설정 move=True에서 줍기 중 S 이동 1.27m(줍기 전과 동일), InputGate 막힘·이동 잠금 없음, 열쇠 획득 정상. 정면 W 0m는 칸막이 문 충돌(줍기 없이도 0m). 사용자가 본 막힘은 Play 중 수정이라 재컴파일 전 코드였을 가능성. 회귀 테스트 KeyPickupThroughShopReachAllowsWalkingWhenKeyPolicyAllows 추가.
+
+- 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
+- dev 반영(origin/dev 37fa8fc4, 충돌 없음, _ThirdParty 0a8e9883로 갱신) 후 배치 HumanoidPlayerTests 27/30, 실패 3개는 기존과 동일. check-work 컴파일은 에디터 종료로 ENV_BLOCKED, 배치에서 컴파일·실행 확인.
