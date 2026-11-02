@@ -442,10 +442,14 @@ rehearsal.quest.lane-jump | Q, E + Space를 이용해 건너편 줄로 넘어가
 rehearsal.quest.finish | 줄을 따라 도착대까지 가세요.
 rehearsal.quest.swing-approach | 인간 그네에 탑승하세요. (줄 끝에서 F)
 rehearsal.quest.swing-release | Space를 누르면 줄을 놓습니다. W, S로 그네를 조작해 건너편 줄로 넘어가세요.
-rehearsal.quest.relay-grab | 바깥 줄 끝의 트리거 그네를 F로 잡으면 동료의 줄이 이어집니다. 한 명은 잡고, 나머지는 건너세요.
-rehearsal.quest.relay-hold | 잡고 있는 동안 동료의 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.
-rehearsal.quest.relay-move | 이어진 줄(실선)로 Q/E + Space로 옮겨 건너세요.
-rehearsal.quest.relay-cross | 줄이 이어졌습니다. 끊긴 구간을 지나 건너편으로 가세요.
-rehearsal.quest.relay-far | 도착대로 가거나, 건너편 트리거 그네를 F로 잡아 남은 동료의 줄을 이어 주세요.
+rehearsal.quest.swing-chain | W, S로 반동을 키워 Space로 놓으세요. 날아가는 동안 다음 그네 가까이에서 F를 눌러 잡으세요.
+rehearsal.quest.trigger-grab | 트리거 그네를 F로 잡으면 {lane}번 줄이 이어집니다. 동료가 건널 때까지 잡고 있으세요.
+rehearsal.quest.trigger-hold | 잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.
+rehearsal.quest.trigger-release | 내 줄이 이어졌습니다. F나 Space로 트리거 그네를 놓고 건너세요.
+rehearsal.quest.trigger-wait | 앞의 줄이 끊겨 있습니다. 짝 줄의 동료가 트리거 그네를 잡으면 이어집니다.
+rehearsal.quest.trigger-cross | 줄이 이어졌습니다. 끊긴 구간을 건너세요.
 rehearsal.quest.gather | 점선을 따라 무대 입구 통로로 가세요. 전원 {inside}/{alive}이 모이면 공연이 시작됩니다.
 rehearsal.quest.gathered | 무대 입구 통로에 모였습니다 {inside}/{alive}. 동료를 기다리세요.
+# ── 첫 쉬는 시간 전원 대기 (2026-11-02) ──
+tutorial.team-wait-title | 동료 기다리는 중
+tutorial.team-wait | 모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다. ({ready}/{total})

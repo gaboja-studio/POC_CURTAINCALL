@@ -16,7 +16,7 @@ namespace CurtainCall.ItemArt
             gate=GetComponent<ExplorationGate>();
             originals=GetComponentsInChildren<MeshRenderer>(true);enabledBefore=new bool[originals.Length];
             for(int i=0;i<originals.Length;i++){enabledBefore[i]=originals[i].enabled;originals[i].enabled=false;}
-            visual=ItemVisualAssets.Create("route-key");
+            visual=ItemVisualAssets.CreateWorld("route-key");
             if(visual!=null)visual.name="Key artwork / "+gate.TargetId;
         }
         void LateUpdate()

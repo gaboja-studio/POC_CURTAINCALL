@@ -20,6 +20,15 @@ namespace CurtainCall.ItemArt
             if (!icons.TryGetValue(key, out var icon)) icons[key] = icon = Resources.Load<Sprite>("ItemArt/Icons/" + key);
             return icon;
         }
+        /// <summary>바닥·배송구·선반·첫 열쇠처럼 세상에 놓인 기물의 표시 배율(2026-11-02 사용자: 위화감 없는 선에서 키우기). 손에 든 기물은 1배.</summary>
+        public const float WorldDisplayScale = 1.35f;
+        /// <summary>세상에 놓는 기물 모델(<see cref="WorldDisplayScale"/>배).</summary>
+        public static GameObject CreateWorld(string id, Transform parent = null)
+        {
+            var visual = Create(id, parent);
+            if (visual != null) visual.transform.localScale *= WorldDisplayScale;
+            return visual;
+        }
         public static GameObject Create(string id, Transform parent = null)
         {
             if (string.IsNullOrEmpty(id)) return null;

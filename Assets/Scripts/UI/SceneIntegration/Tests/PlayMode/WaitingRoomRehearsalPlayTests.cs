@@ -58,7 +58,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var next = Find("CurtainCall.Tightrope.TightropeCourse");
                 Assert.IsNotNull(next);
                 Assert.AreEqual(1, Get(next, "LaneCount"), "2-1 그네 코스는 1줄");
-                Assert.IsTrue((bool)Get(next, "HasSwingGap"), "2-1은 끊긴 줄(그네)");
+                yield return null;
+                Assert.IsTrue((bool)Call(next, "IsSegmentBlocked", 0, 13f), "2-1은 그네 자리(10~16m)가 끊긴 줄");
                 Assert.IsNotNull(Find("CurtainCall.Tightrope.TightropeSwingPole"), "인간 그네가 붙어야 한다");
                 yield return new WaitForSecondsRealtime(.5f);
                 Assert.Less((float)Call(next, "GetDistance", player.transform.position), 0f, "새 소구간 출발대로 옮겨진다");

@@ -23,7 +23,7 @@ namespace CurtainCall.Tightrope
         }
         const int NoLane = -1;
         static readonly List<int> laneCandidates = new();
-        readonly Station[] stations = new Station[4];
+        Station[] stations = new Station[4];
         /// <summary>호스트: 봉을 잡은 사람의 끈끈이 장갑(Task-092).</summary>
         readonly CurtainCall.WaitingRoom.StickyGloveHolds stickyGloves = new();
         TightropeCourse course;
@@ -32,7 +32,7 @@ namespace CurtainCall.Tightrope
         double nextSnapshot, nextSync, pendingUntil, feedbackUntil;
         string feedback;
         public static TightropeRelayGate Current { get; private set; }
-        public bool IsActive => isActiveAndEnabled && course != null && course.HasRelayGap && course.IsGameplayActive
+        public bool IsActive => isActiveAndEnabled && HasGate && course.IsGameplayActive
             && run != null && round == run.Round && run.State == TightropeRunState.Running;
         double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
             ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
@@ -46,7 +46,7 @@ namespace CurtainCall.Tightrope
         public int PoleLane(int index) => stations[index].Lane;
         public bool IsFarPole(int index) => stations[index].Far;
         public HumanCannonPole PhysicalPole(int index) => stations[index].Pole;
-        public Vector3 PoleFeet(int index) => course.RelayPoleGround(index);
+        public Vector3 PoleFeet(int index) => UsesSpots ? course.GetLanePosition(spotList[index].Lane, spotList[index].Distance) : course.RelayPoleGround(index);
         public ulong HolderAt(int index) => stations[index].State.Occupant;
         public float HoldRemaining(int index) => stations[index].State.IsOccupied ? Mathf.Max(0f, (float)(stations[index].State.HoldUntil - Clock)) : 0f;
         // 줄은 봉을 실제로 잡고 있는 동안에만 이어진다. 놓으면 그 봉이 연 줄은 바로 끊긴다.
@@ -79,12 +79,7 @@ namespace CurtainCall.Tightrope
         void Awake()
         {
             course = GetComponent<TightropeCourse>();
-            for (int i = 0; i < stations.Length; i++)
-            {
-                var root = new GameObject($"RelayPolePhysics{i}");
-                root.transform.SetParent(transform, false);
-                stations[i] = new Station { Far = i >= 2, Pole = root.AddComponent<HumanCannonPole>() };
-            }
+            CreateStations();
             PlacePoles();
             course.Rebuilt += OnRebuilt;
         }
@@ -96,7 +91,7 @@ namespace CurtainCall.Tightrope
             {
                 var station = stations[i];
                 // 6줄에서는 2·5번, 5줄에서는 2·4번. 가운데 통로와 겹치지 않는다.
-                station.Lane = course.RelayPoleLane(i);
+                station.Lane = UsesSpots ? spotList[i].Lane : course.RelayPoleLane(i);
                 station.Pole.transform.SetPositionAndRotation(PoleFeet(i) + Vector3.up * (station.Pole.HangLength + .7f),
                     Quaternion.LookRotation(course.Forward));
             }
@@ -139,7 +134,8 @@ namespace CurtainCall.Tightrope
         bool StationConnected(int index)
         {
             var station = stations[index];
-            return IsActive && station.Opened >= 0 && station.State.IsOccupied && GroupHeld(station.Far);
+            // 지정 자리 봉은 봉마다 혼자 잡아도 자기 줄을 잇는다.
+            return IsActive && station.Opened >= 0 && station.State.IsOccupied && (UsesSpots || GroupHeld(station.Far));
         }
         /// <summary>
         /// 출발 봉은 봉이 있는 줄을 빼고, 교대 봉은 전체 줄에서 고른다. 다른 봉이 지금 쓰는 줄과는 겹치지 않는다.
@@ -147,6 +143,7 @@ namespace CurtainCall.Tightrope
         int PickLane(int index)
         {
             var station = stations[index];
+            if (UsesSpots) return spotList[index].TargetLane;
             laneCandidates.Clear();
             for (int lane = 0; lane < course.LaneCount; lane++)
             {
@@ -166,7 +163,7 @@ namespace CurtainCall.Tightrope
         }
         public bool IsHeld(NetworkPlayer player) => HeldPole(player) >= 0;
         public bool IsPoleAvailable(int index) => IsActive && index >= 0 && index < PoleCount
-            && !stations[index].State.IsOccupied && course.IsLaneUsable(PoleLane(index), IsFarPole(index) ? ExitDistance : EntryDistance);
+            && !stations[index].State.IsOccupied && course.IsLaneUsable(PoleLane(index), StationDistance(index));
         public bool CanUsePole(int index, NetworkPlayer player)
         {
             if (!IsPoleAvailable(index) || player == null || !player.IsSpawned || player.State != PlayerState.Normal || !run.IsParticipantReady(player)
@@ -227,13 +224,14 @@ namespace CurtainCall.Tightrope
             {
                 ProcessPendingGrabs();
                 bool changed = false;
-                foreach (var station in stations)
+                for (int i = 0; i < stations.Length; i++)
                 {
+                    var station = stations[i];
                     if (station.State.IsOccupied)
                     {
                         var player = Find(station.State.Occupant);
                         bool lost = player == null || !player.IsSpawned || player.State != PlayerState.Normal
-                            || !course.IsLaneUsable(station.Lane, station.Far ? ExitDistance : EntryDistance)
+                            || !course.IsLaneUsable(station.Lane, StationDistance(i))
                             || (player.TryGetComponent(out PlayerBalance balance) && balance.HasFallen);
                         if (lost) changed |= station.State.TryRelease(station.State.Occupant, station.State.Revision, Clock, station.Pole.WarningSeconds);
                     }

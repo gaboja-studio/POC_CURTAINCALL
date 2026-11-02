@@ -47,6 +47,8 @@ namespace CurtainCall.WaitingRoom
         static readonly List<IShopTarget> targets = new();
         public static IReadOnlyList<IShopTarget> Targets => targets;
         public static bool HasExternalPresentation { get; set; }
+        /// <summary>대기실 상호작용을 모두 막는다(첫 공연 전 리허설 단계, 대기실 튜토리얼 때 해금 — Task-097).</summary>
+        public static bool Locked { get; set; }
         static PlayerInputReader offlineReader;
         static int pumpedFrame = -1;
 
@@ -73,6 +75,7 @@ namespace CurtainCall.WaitingRoom
             if (pumpedFrame == Time.frameCount) return;
             pumpedFrame = Time.frameCount;
             Focused = null;
+            if (Locked) return;
 
             var reader = LocalReader();
             if (reader == null || !reader.isActiveAndEnabled || InputGate.IsBlocked) return;
@@ -87,7 +90,8 @@ namespace CurtainCall.WaitingRoom
                 Focused = target;
             }
             var actorForGate = reader.GetComponent<HumanoidPlayerPresentation>();
-            if (actorForGate != null && actorForGate.InteractionActionLocked) return;
+            // 벽 부수기는 연타로 진행한다(내려치는 중에도 다시 누르면 동작을 초기화해 친다).
+            if (actorForGate != null && actorForGate.InteractionActionLocked && Focused is not BreakableWall) return;
             if (Focused != null && reader.Current.InteractTapped)
             {
                 if (Focused is IShopPresentation presentation && presentation.IsAvailable)

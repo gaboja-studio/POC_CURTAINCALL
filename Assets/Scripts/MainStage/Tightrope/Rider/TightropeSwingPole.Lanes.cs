@@ -14,6 +14,7 @@ namespace CurtainCall.Tightrope
         void EnsureLanePoles()
         {
             if (coordinator != null || course == null) return;
+            if (spotList != null) { EnsureSpotPoles(); return; }
             if (poles.Count == 0) poles.Add(this);
             while (poles.Count < course.LaneCount)
             {
@@ -35,7 +36,11 @@ namespace CurtainCall.Tightrope
                 foreach (var pole in Root.poles)
                     if (pole.OwnHeld(player) || pole.OwnFlight(player)) return pole;
                 if (course != null)
-                    return ForLane(course.Layout.GetLaneSlotAt(course.GetSide(player.transform.position))) ?? this;
+                {
+                    int slot = course.Layout.GetLaneSlotAt(course.GetSide(player.transform.position));
+                    if (Root.spotList != null) return SpotFor(slot, course.GetDistance(player.transform.position)) ?? this;
+                    return ForLane(slot) ?? this;
+                }
             }
             return this;
         }

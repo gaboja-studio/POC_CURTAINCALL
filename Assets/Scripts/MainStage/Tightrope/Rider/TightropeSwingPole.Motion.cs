@@ -37,7 +37,7 @@ namespace CurtainCall.Tightrope
         {
             if (binding == null || binding.Mover == null) return;
             binding.Mover.ClearPendingInput();
-            binding.Mover.transform.SetPositionAndRotation(WorldFeet(OwnAngle, lane), Quaternion.LookRotation(course.Forward));
+            binding.Mover.transform.SetPositionAndRotation(WorldFeet(OwnAngle, lane >= 0 ? lane : assignedLane), Quaternion.LookRotation(course.Forward));
             binding.Balance?.SetAirborne(true);
         }
         void EndBinding(bool launch)
@@ -91,6 +91,7 @@ namespace CurtainCall.Tightrope
             correction = SwingPoleMath.LimitFlightVelocity(flightVelocity + correction, flightSpeedLimit) - flightVelocity;
             Vector3 displacement = BallisticMotion.Step(ref flightVelocity, correction, GameSettings.Base.Character.Gravity, Time.deltaTime);
             var collision = flightMover.Body.Move(displacement);
+            if (Clock < airGrabRequestedUntil && TryAirCatch()) { airGrabRequestedUntil = 0d; return; }
             if ((collision & CollisionFlags.Above) != 0 && flightVelocity.y > 0f) flightVelocity.y = 0f;
             if ((collision & CollisionFlags.Below) != 0 && flightVelocity.y <= 0f)
             {
@@ -105,7 +106,7 @@ namespace CurtainCall.Tightrope
                     flightBalance?.SetAirborne(false);
                     Send(Operation.Landed);
                     if (helper != null) catches.ReportLanding(helper);
-                    Tell(distance >= course.SwingGapTo ? "회전봉으로 건넜어요 · 이제 F로 동료 받기" : "반동을 더 키워 건너세요 · W/S 반동, 공중 W 전진");
+                    Tell(distance >= GapTo ? "회전봉으로 건넜어요 · 이제 F로 동료 받기" : "반동을 더 키워 건너세요 · W/S 반동, 공중 W 전진");
                 }
                 else flightBalance?.ForceFall();
                 ResetFlight();

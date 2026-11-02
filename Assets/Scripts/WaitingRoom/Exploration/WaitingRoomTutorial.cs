@@ -183,6 +183,7 @@ namespace CurtainCall.WaitingRoom
             InputBindingPreferences.Changed -= RefreshKeys;
             Watch(null, null);
             EndSequence();
+            SetTeamLock(false);
         }
 
         void OnDestroy() { if (instance == this) instance = null; }
@@ -216,8 +217,8 @@ namespace CurtainCall.WaitingRoom
             ReportTutorialDone(run, s);
             if (s.Phase == CampaignPhase.Performance) WatchTeammates();
             // 리허설(Task-097) 동안은 리허설 진행이 가이드 패널을 쓴다. 여기서 닫지 않는다.
-            if (s.Phase == CampaignPhase.Rehearsal) { todo.Hide(); lastHeldCount = -1; return; }
-            if (!Enabled) { HidePanel(); todo.Hide(); return; }
+            if (s.Phase == CampaignPhase.Rehearsal) { SetTeamLock(false); todo.Hide(); lastHeldCount = -1; return; }
+            if (!Enabled) { SetTeamLock(TeamWaiting(s)); HidePanel(); todo.Hide(); return; }
             if (sceneDirty)
             {
                 sceneDirty = false;
@@ -230,7 +231,7 @@ namespace CurtainCall.WaitingRoom
             bool rest = s.Phase == CampaignPhase.RestTime, night = s.Phase == CampaignPhase.Night;
             // 대기실 씬의 쉬는 시간·밤에, 살아 있는 내 캐릭터가 화면 전환 중이 아닐 때만 안내한다.
             if (gather == null || local == null || local.State != PlayerState.Normal || (!rest && !night) || SceneCurtainTransition.IsActive)
-            { lastHeldCount = -1; HidePanel(); todo.Hide(); return; }
+            { SetTeamLock(false); lastHeldCount = -1; HidePanel(); todo.Hide(); return; }
 
             string key = s.Generation + "/" + s.Day + "/" + s.Phase + "/" + s.Rest + "/" + s.PerformanceIndex;
             // 시간대가 바뀌면 지난 시간대의 가이드는 닫고, 못 띄운 안내는 버린다(조건이 맞으면 다시 줄 선다).
@@ -249,6 +250,7 @@ namespace CurtainCall.WaitingRoom
                 if (NightBed.ScheduleReady) b.Enqueue("N05");
             }
             UpdateTodo(night && key == todoStep);
+            TickTeamWait(s, rest);
             CheckNearby();
             CheckHeld();
             Pump();
@@ -339,6 +341,41 @@ namespace CurtainCall.WaitingRoom
             if (!sequence) { sequence = true; InputGate.SetBlocking(this, true); }
             stepEndsAt = Time.unscaledTime + seconds;
             b.MarkDone(entry.id);
+        }
+
+        // ── 첫 쉬는 시간 전원 대기(2026-11-02 사용자 버그: 튜토리얼 중 일부 플레이어가 이동 가능) ──
+        readonly object teamLock = new();
+        bool teamLocked;
+
+        /// <summary>
+        /// 가이드 쉬는 시간이 전원 tutorial 완료를 기다리는 중이고, 내 연계 안내는 끝났다(이미 봤거나 안내를 끈 경우 포함).
+        /// 이때는 동료가 다 볼 때까지 움직이지 않는다. 120초 안전장치(<see cref="TutorialDoneFallbackSeconds"/>)로 타이머가 결국 흐른다.
+        /// </summary>
+        bool TeamWaiting(in CampaignSnapshot s)
+        {
+            if (s.Phase != CampaignPhase.RestTime || s.Rest != RestKind.Guide || s.Timer != RestTimerState.WaitingForExit) return false;
+            var local = NetworkPlayer.Local;
+            if (local == null || local.State != PlayerState.Normal || SceneCurtainTransition.IsActive) return false;
+            if (gather == null) gather = FindFirstObjectByType<StageEntranceGather>();
+            if (gather == null) return false;
+            return !sequence && (!Enabled || (Book.IsDone(RestChain[0]) && Book.IsDone(RestChain[^1])));
+        }
+
+        void TickTeamWait(in CampaignSnapshot s, bool rest)
+        {
+            bool wait = rest && TeamWaiting(s);
+            SetTeamLock(wait);
+            if (!wait) return;
+            todo.Show(WaitingRoomText.Get("tutorial.team-wait-title", "동료 기다리는 중"),
+                WaitingRoomText.Format("tutorial.team-wait", "모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다. ({ready}/{total})",
+                    ("ready", s.ReadyCount), ("total", Mathf.Max(s.RequiredCount, s.ReadyCount))));
+        }
+
+        void SetTeamLock(bool on)
+        {
+            if (teamLocked == on) return;
+            teamLocked = on;
+            InputGate.SetBlocking(teamLock, on);
         }
 
         /// <summary>연계 튜토리얼을 끝낸다(다 봤거나 시간대 전환·대기실 이탈·끄기). 시점과 조작을 돌려준다.</summary>

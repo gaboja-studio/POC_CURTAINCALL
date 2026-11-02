@@ -34,6 +34,12 @@ namespace CurtainCall.WaitingRoom
             guide = gameObject.AddComponent<RehearsalPathGuide>();
         }
 
+        void DestroyLocal()
+        {
+            foreach (var material in propMaterials) if (material != null) Destroy(material);
+            propMaterials.Clear();
+        }
+
         void ActivateLocal()
         {
             placedRound = -1; placedAbandoned = false; localVoted = false; promptedGiveUp = false; lastQuest = "";
@@ -159,36 +165,83 @@ namespace CurtainCall.WaitingRoom
                 return s.Rule == RehearsalClearRule.Everyone
                     ? WaitingRoomText.Get("rehearsal.quest.wait-team", "도착! 동료가 모두 도착할 때까지 기다리세요.")
                     : WaitingRoomText.Get("rehearsal.quest.arrived", "도착! 곧 다음 단계로 넘어갑니다.");
-            bool onRope = course.TryGetSupportingRope(mover, out int lane);
-            switch (s.Kind)
+            int myLane = course.Layout.GetLaneSlotAt(course.GetSide(p));
+
+            // 트리거 그네를 잡고 있다.
+            int held = HeldTriggerIndex(local);
+            if (held >= 0 && held < s.Triggers.Length)
             {
-                case RehearsalStageKind.LaneChange:
-                    if (onRope && lane == 0 && distance >= s.CheckpointDistance)
-                        return WaitingRoomText.Get("rehearsal.quest.lane-jump", "Q, E + Space를 이용해 건너편 줄로 넘어가세요.");
-                    if (onRope && lane >= 1 || distance >= course.Layout.GetLaneEnd(0))
-                        return WaitingRoomText.Get("rehearsal.quest.finish", "줄을 따라 도착대까지 가세요.");
-                    return WaitingRoomText.Get("rehearsal.quest.balance", "W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.");
-                case RehearsalStageKind.Swing:
-                    var pole = TightropeSwingPole.Current;
-                    if (pole != null && pole.IsOccupied)
-                        return WaitingRoomText.Get("rehearsal.quest.swing-release", "Space를 누르면 줄을 놓습니다. W, S로 그네를 조작해 건너편 줄로 넘어가세요.");
-                    if (distance >= course.SwingGapTo) return WaitingRoomText.Get("rehearsal.quest.finish", "줄을 따라 도착대까지 가세요.");
-                    if (distance >= course.SwingGapFrom - 5f) return WaitingRoomText.Get("rehearsal.quest.swing-approach", "인간 그네에 탑승하세요. (줄 끝에서 F)");
-                    return WaitingRoomText.Get("rehearsal.quest.balance", "W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.");
-                case RehearsalStageKind.Relay:
-                    var gate = TightropeRelayGate.Current;
-                    if (gate != null && gate.IsHeld(local))
-                        return WaitingRoomText.Get("rehearsal.quest.relay-hold", "잡고 있는 동안 동료의 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.");
-                    if (distance >= course.SwingGapTo) return WaitingRoomText.Get("rehearsal.quest.relay-far", "도착대로 가거나, 건너편 트리거 그네를 F로 잡아 남은 동료의 줄을 이어 주세요.");
-                    if (gate != null && gate.OutboundOpen && onRope && gate.IsLaneConnected(lane))
-                        return WaitingRoomText.Get("rehearsal.quest.relay-cross", "줄이 이어졌습니다. 끊긴 구간을 지나 건너편으로 가세요.");
-                    if (gate != null && gate.OutboundOpen)
-                        return WaitingRoomText.Get("rehearsal.quest.relay-move", "이어진 줄(실선)로 Q/E + Space로 옮겨 건너세요.");
-                    if (distance >= course.SwingGapFrom - 6f)
-                        return WaitingRoomText.Get("rehearsal.quest.relay-grab", "바깥 줄 끝의 트리거 그네를 F로 잡으면 동료의 줄이 이어집니다. 한 명은 잡고, 나머지는 건너세요.");
-                    return WaitingRoomText.Get("rehearsal.quest.balance", "W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.");
+                if (OwnGapAhead(s, myLane, distance, out int ownGap) && IsGapConnected(ownGap))
+                    return WaitingRoomText.Get("rehearsal.quest.trigger-release", "내 줄이 이어졌습니다. F나 Space로 트리거 그네를 놓고 건너세요.");
+                return WaitingRoomText.Format("rehearsal.quest.trigger-hold", "잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.",
+                    ("lane", s.Gaps[s.Triggers[held].Gap].Lane + 1));
             }
-            return "";
+
+            // 인간 그네를 잡고 있거나 날아가는 중.
+            var pole = TightropeSwingPole.Current;
+            if (pole != null && (pole.IsHeld(local) || pole.IsInFlight(local)))
+                return NextSwingChains(s, myLane, distance)
+                    ? WaitingRoomText.Get("rehearsal.quest.swing-chain", "W, S로 반동을 키워 Space로 놓으세요. 날아가는 동안 다음 그네 가까이에서 F를 눌러 잡으세요.")
+                    : WaitingRoomText.Get("rehearsal.quest.swing-release", "Space를 누르면 줄을 놓습니다. W, S로 그네를 조작해 건너편 줄로 넘어가세요.");
+
+            if (s.Kind == RehearsalStageKind.LaneChange)
+            {
+                if (myLane == 0 && distance >= s.CheckpointDistance)
+                    return WaitingRoomText.Get("rehearsal.quest.lane-jump", "Q, E + Space를 이용해 건너편 줄로 넘어가세요.");
+                if (myLane >= 1) return WaitingRoomText.Get("rehearsal.quest.finish", "줄을 따라 도착대까지 가세요.");
+                return WaitingRoomText.Get("rehearsal.quest.balance", "W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.");
+            }
+
+            // 앞의 끊긴 구간이 이어졌으면 건너기, 트리거 그네 근처면 잡기, 끊겨 있으면 기다리기, 그네 앞이면 탑승.
+            bool gapAhead = OwnGapAhead(s, myLane, distance, out int gapIndex) && s.Gaps[gapIndex].From - distance <= 6f;
+            if (gapAhead && IsGapConnected(gapIndex))
+                return WaitingRoomText.Get("rehearsal.quest.trigger-cross", "줄이 이어졌습니다. 끊긴 구간을 건너세요.");
+            for (int i = 0; i < s.Triggers.Length; i++)
+            {
+                var trigger = s.Triggers[i];
+                if (trigger.Lane != myLane || distance > trigger.Distance + 1.6f || trigger.Distance - distance > 6f) continue;
+                if (IsTriggerHeld(i)) break;
+                return WaitingRoomText.Format("rehearsal.quest.trigger-grab", "트리거 그네를 F로 잡으면 {lane}번 줄이 이어집니다. 동료가 건널 때까지 잡고 있으세요.",
+                    ("lane", s.Gaps[trigger.Gap].Lane + 1));
+            }
+            if (gapAhead)
+                return WaitingRoomText.Get("rehearsal.quest.trigger-wait", "앞의 줄이 끊겨 있습니다. 짝 줄의 동료가 트리거 그네를 잡으면 이어집니다.");
+            foreach (var spot in s.Swings)
+                if (spot.Lane == myLane && distance < spot.From && spot.From - distance <= 5f)
+                    return WaitingRoomText.Get("rehearsal.quest.swing-approach", "인간 그네에 탑승하세요. (줄 끝에서 F)");
+            if (!AnythingAhead(s, myLane, distance)) return WaitingRoomText.Get("rehearsal.quest.finish", "줄을 따라 도착대까지 가세요.");
+            return WaitingRoomText.Get("rehearsal.quest.balance", "W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.");
+        }
+
+        /// <summary>내 줄에서 아직 지나지 않은 가장 가까운 끊긴 구간.</summary>
+        static bool OwnGapAhead(RehearsalStage s, int lane, float distance, out int index)
+        {
+            index = -1;
+            float best = float.MaxValue;
+            for (int i = 0; i < s.Gaps.Length; i++)
+            {
+                var gap = s.Gaps[i];
+                if (gap.Lane == lane && distance < gap.To && gap.From < best) { best = gap.From; index = i; }
+            }
+            return index >= 0;
+        }
+
+        static bool NextSwingChains(RehearsalStage s, int lane, float distance)
+        {
+            for (int i = 0; i < s.Swings.Length; i++)
+            {
+                var spot = s.Swings[i];
+                if (spot.Lane == lane && distance < spot.To) return spot.ChainNext;
+            }
+            return false;
+        }
+
+        static bool AnythingAhead(RehearsalStage s, int lane, float distance)
+        {
+            foreach (var spot in s.Swings) if (spot.Lane == lane && distance < spot.To) return true;
+            foreach (var gap in s.Gaps) if (gap.Lane == lane && distance < gap.To) return true;
+            foreach (var trigger in s.Triggers) if (trigger.Lane == lane && distance < trigger.Distance) return true;
+            return false;
         }
 
         // ── 완료 뒤 집결 길안내(기획서 15.3) ──

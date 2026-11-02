@@ -18,7 +18,8 @@ namespace CurtainCall.Tightrope
 
         sealed class RelayPathView
         {
-            public int Lane;
+            public int Lane, Station = -1;
+            public float From, To;
             public Transform Strip;
         }
 
@@ -48,6 +49,7 @@ namespace CurtainCall.Tightrope
             {
                 var local = NetworkPlayer.Local;
                 if (!IsActive || course == null || local == null || local.State != PlayerState.Normal) return null;
+                if (UsesSpots) return SpotHint(local);
                 int held = HeldPole(local);
                 string warning = OutboundWarning || ReturnWarning
                     ? $"\n줄이 {WarningRemaining:0.0}초 뒤 끊어져요! 동료가 봉을 다시 잡아 주세요" : "";
@@ -87,7 +89,7 @@ namespace CurtainCall.Tightrope
         void UpdateViews()
         {
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null) return;
-            if (!isActiveAndEnabled || course == null || !course.HasRelayGap) { HideViews(); return; }
+            if (!isActiveAndEnabled || !HasGate) { HideViews(); return; }
             if (relayViewRoot == null || relayPoleViews.Count != PoleCount) BuildRelayViews();
             if (relayViewRoot == null) return;
             relayViewRoot.gameObject.SetActive(true);
@@ -113,12 +115,20 @@ namespace CurtainCall.Tightrope
                 Vector3 span = course.Right * .5f;
                 SetRelayRod(view.LeftCable, grip - span, grip - span + Vector3.up * RelayCableHeight, .045f);
                 SetRelayRod(view.RightCable, grip + span, grip + span + Vector3.up * RelayCableHeight, .045f);
-                Vector3 endpoint = course.GetLanePosition(OpenedLane(i) >= 0 ? OpenedLane(i) : TransitLane, far ? GapTo : GapFrom);
+                Vector3 endpoint = TryGetSpotGap(i, out int spotLane, out float spotFrom, out _)
+                    ? course.GetLanePosition(spotLane, spotFrom)
+                    : course.GetLanePosition(OpenedLane(i) >= 0 ? OpenedLane(i) : TransitLane, far ? GapTo : GapFrom);
                 view.Link.gameObject.SetActive(showConnectionCables);
                 SetRelayRod(view.Link, grip + Vector3.up * RelayCableHeight, endpoint + Vector3.up * 2.5f, .025f);
                 TintRelay(view.Bar, poleColor); TintRelay(view.Pad, poleColor);
                 TintRelay(view.LeftCable, poleColor); TintRelay(view.RightCable, poleColor);
                 TintRelay(view.Link, occupied ? color : RelayIdle);
+                if (UsesSpots)
+                {
+                    // 지정 자리 봉은 시간 제한이 없어 유지 시간 전광판을 띄우지 않는다.
+                    view.Label.gameObject.SetActive(false); view.Clock.Root.gameObject.SetActive(false);
+                    continue;
+                }
                 if (!showPoleLabels)
                 {
                     // 상태 문구 대신 케이블 꼭대기에 유지 시간 전광판을 상시 둔다. 잡기 전에는 전체 시간, 잡으면 줄어든다.
@@ -140,19 +150,20 @@ namespace CurtainCall.Tightrope
             foreach (var path in relayPathViews)
             {
                 // 각 봉이 연 줄을 그 봉 색으로 칠한다(출발 봉 청록, 교대 봉 초록).
-                int owner = LaneOwner(path.Lane);
+                int owner = path.Station >= 0 ? (StationConnected(path.Station) ? path.Station : -1) : LaneOwner(path.Lane);
                 bool farOwner = owner >= 0 && IsFarPole(owner);
                 bool open = owner >= 0;
                 bool warning = farOwner ? ReturnWarning : OutboundWarning;
                 // 실제로 연결된 줄만 덧칠한다. 소각된 구간에 가짜 발판을 표시하지 않는다.
-                open &= LandingWaveMath.SharesSupport(course.GetUsableSpans(path.Lane), GapFrom + .02f, GapTo - .02f);
+                float from = path.Station >= 0 ? path.From : GapFrom, to = path.Station >= 0 ? path.To : GapTo;
+                open &= LandingWaveMath.SharesSupport(course.GetUsableSpans(path.Lane), from + .02f, to - .02f);
                 // Prepared relay rope carries its own round, striped appearance.
                 // Keep the old strip only for scenes without the prepared asset.
                 open &= course.ArtProfile == null || course.ArtProfile.relayRope == null;
                 path.Strip.gameObject.SetActive(open);
                 if (!open) continue;
-                path.Strip.SetPositionAndRotation(course.GetLanePosition(path.Lane, (GapFrom + GapTo) * .5f) + Vector3.up * .075f, facing);
-                path.Strip.localScale = new Vector3(.1f, .02f, Mathf.Max(.01f, GapTo - GapFrom));
+                path.Strip.SetPositionAndRotation(course.GetLanePosition(path.Lane, (from + to) * .5f) + Vector3.up * .075f, facing);
+                path.Strip.localScale = new Vector3(.1f, .02f, Mathf.Max(.01f, to - from));
                 TintRelay(path.Strip, warning ? RelayOrange : farOwner ? RelayGreen : RelayCyan);
             }
         }
@@ -191,6 +202,14 @@ namespace CurtainCall.Tightrope
                 view.Label.textWrappingMode = TextWrappingModes.NoWrap; view.Label.rectTransform.sizeDelta = new Vector2(4f, 1f);
                 view.Clock = BuildRelayClock(root);
                 relayPoleViews.Add(view); lanes.Add(PoleLane(i));
+            }
+            if (UsesSpots)
+            {
+                // 지정 자리 봉은 봉마다 자기 끊김 하나만 잇는다.
+                for (int i = 0; i < PoleCount; i++)
+                    if (TryGetSpotGap(i, out int lane, out float from, out float to))
+                        relayPathViews.Add(new RelayPathView { Lane = lane, Station = i, From = from, To = to, Strip = RelayBox(relayViewRoot, $"Open lane {lane + 1} by pole {i + 1}") });
+                return;
             }
             foreach (int lane in lanes) relayPathViews.Add(new RelayPathView { Lane = lane, Strip = RelayBox(relayViewRoot, $"Open lane {lane + 1}") });
         }

@@ -33,17 +33,17 @@ namespace CurtainCall.Tightrope
         }
         public static TightropeSwingPole Current { get; private set; }
         public float AirControlSpeed => physicalPole != null ? physicalPole.AirControlSpeed : 0f;
-        public float LandingDistance => course.SwingGapTo + SwingPoleMath.ExitOffset;
+        public float LandingDistance => next != null ? next.EntryDistance : GapTo + SwingPoleMath.ExitOffset;
         bool OwnOccupied => Active && mode == PoleMode.Holding;
         float OwnAngle { get { Sample(out float value, out _); return value; } }
-        bool OwnCanLetGo => OwnOccupied && course.GetDistance(PredictLanding(true)) >= course.SwingGapTo + .35f;
+        bool OwnCanLetGo => OwnOccupied && course.GetDistance(PredictLanding(true)) >= (next != null ? next.EntryDistance - .5f : GapTo + .35f);
         public bool IsOccupied => LocalPole.OwnOccupied;
         public float SwingAngle => LocalPole.OwnAngle;
         public bool CanLetGo => LocalPole.OwnCanLetGo;
         public bool CanGrabPole(NetworkPlayer player) => mode == PoleMode.Idle && Clock >= pendingUntil
             && flightMover == null && CanGrab(player, out _);
         public string LocalFeedback => LatestFeedback();
-        bool Active => isActiveAndEnabled && course != null && course.HasSwingGapOnLane(assignedLane) && course.IsGameplayActive
+        bool Active => isActiveAndEnabled && course != null && HasGap && course.IsGameplayActive
             && run != null && run.State == TightropeRunState.Running;
         double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
             ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
@@ -67,7 +67,7 @@ namespace CurtainCall.Tightrope
         {
             if (course == null || physicalPole == null) return;
             physicalPole.transform.SetPositionAndRotation(course.transform.position
-                + course.Forward * (course.SwingGapFrom - SwingPoleMath.EntryOffset) + Vector3.up * physicalPole.HangLength,
+                + course.Forward * EntryDistance + Vector3.up * physicalPole.HangLength,
                 Quaternion.LookRotation(course.Forward));
         }
         void Update()
@@ -86,8 +86,7 @@ namespace CurtainCall.Tightrope
                 {
                     var rider = Find(holder);
                     if (rider == null || !rider.IsSpawned || rider.State != PlayerState.Normal
-                        || !course.IsLaneUsable(lane, course.SwingGapFrom - SwingPoleMath.EntryOffset)
-                        || !course.IsLaneUsable(lane, LandingDistance)) BeginReturn(false);
+                        || !EntryUsable || !LandingUsable) BeginReturn(false);
                     else
                     {
                         if (Clock - lastDriveAt > .3d) drive = 0f; // 인간대포와 같은 입력 만료 시간.
@@ -103,7 +102,7 @@ namespace CurtainCall.Tightrope
                 RetryPendingLandings();
             }
             var local = NetworkPlayer.Local;
-            if (OwnHeld(local) && local.State == PlayerState.Normal && !localAbort)
+            if ((OwnHeld(local) || (AirCatchPending && binding != null)) && local != null && local.State == PlayerState.Normal && !localAbort)
             {
                 if (binding == null) Bind(local);
                 PlaceLocal();
@@ -119,7 +118,12 @@ namespace CurtainCall.Tightrope
             if (coordinator == null && ForPlayer(local) != this)
                 return ForPlayer(local).TryHandleInput(context, input);
             if (!Active || local == null || context.Mover == null || context.Mover.gameObject != local.gameObject) return false;
-            if (flightMover != null) { context.Mover.ClearPendingInput(); return true; }
+            if (flightMover != null)
+            {
+                // 공연 공중그네처럼 날아가는 동안 다음 그네 가까이에서 F를 눌러 잡는다(자동으로 잡지 않는다).
+                if (next != null && input.InteractTapped && !InputGate.IsBlocked) airGrabRequestedUntil = Clock + AirGrabBuffer;
+                context.Mover.ClearPendingInput(); return true;
+            }
             if (OwnHeld(local))
             {
                 context.Mover.ClearPendingInput();
@@ -144,8 +148,7 @@ namespace CurtainCall.Tightrope
             if (!Active || player == null || !player.IsSpawned || player.State != PlayerState.Normal
                 || !player.TryGetComponent(out PlayerMover mover) || !mover.ControlEnabled || (player.IsLocal && !mover.Simulated) || mover.PassThrough
                 || (player.IsLocal ? mover.IsAirborne : player.IsAirborne) || !course.TryGetSupportingRope(mover, out supported)
-                || supported != assignedLane || !course.HasSwingGapOnLane(supported)
-                || !course.IsLaneUsable(supported, LandingDistance)) return false;
+                || supported != assignedLane || !HasGap || !EntryUsable || !LandingUsable) return false;
             if (PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player)) return false;
             if (IsCrossing(player)) return false;
             float reach = player.TryGetComponent(out PlayerInteraction interaction) ? interaction.ReachMultiplier : 1f;
@@ -165,6 +168,7 @@ namespace CurtainCall.Tightrope
                     pendingLandings.Add(sender, new PendingLanding { Round = round, FlightUntil = until, Expires = Clock + .35d });
                 return;
             }
+            if (operation == Operation.AirGrab) { ServerAirGrab(sender); return; }
             if (operation == Operation.Abort) { pendingLandings.Remove(sender); flights.Remove(sender); }
             if (operation == Operation.Grab && mode == PoleMode.Idle && CanGrab(Find(sender), out int targetLane))
             {
@@ -232,7 +236,7 @@ namespace CurtainCall.Tightrope
         {
             mode = PoleMode.Idle; holder = Nobody; lane = -1; version = 0;
             startedAt = changedAt = nextSnapshotAt = 0d; angle = angularSpeed = drive = returnAngle = 0f; released = false; flights.Clear();
-            pendingLandings.Clear(); pendingLandingActors.Clear();
+            pendingLandings.Clear(); pendingLandingActors.Clear(); airCatchUntil = 0d;
         }
         static NetworkPlayer Find(ulong id)
         { foreach (var player in NetworkPlayer.All) if (player != null && player.OwnerClientId == id) return player; return null; }

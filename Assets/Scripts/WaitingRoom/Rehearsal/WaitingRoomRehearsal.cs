@@ -32,6 +32,8 @@ namespace CurtainCall.WaitingRoom
         /// <summary>링 가운데에서 이 거리(m) 안에 살아 있는 사람이 들어오면 포기한 리허설에 다시 들어온 것으로 본다.</summary>
         const float RingRadius = 18f;
         const string RingDeckPath = "LegacyRing/PracticeRing/DeckCollider";
+        /// <summary>연습실 링에 원래 있던 연습 소품(탑·사다리·트램펄린·대포·그물·옛 줄). 리허설 동안 숨긴다(사용자 요청 2026-11-02).</summary>
+        static readonly string[] RingPropPaths = { "LegacyRing/PracticeLanes" };
         static readonly Vector3 FallbackRingCenter = new(-20f, .6f, 128.5f);
 
         enum Operation : byte { Sync, GiveUp }
@@ -62,6 +64,8 @@ namespace CurtainCall.WaitingRoom
         bool registered;
         Vector3 ringCenter;
         bool ringFound;
+        Transform ringRoom;
+        readonly List<GameObject> hiddenRingProps = new();
         GameObject courseRoot;
         TightropeCourse course;
         TightropeRun courseRun;
@@ -98,6 +102,7 @@ namespace CurtainCall.WaitingRoom
         void OnDestroy()
         {
             Unregister();
+            DestroyLocal();
             if (instance == this) instance = null;
         }
 
@@ -106,15 +111,20 @@ namespace CurtainCall.WaitingRoom
             run = CampaignRun.Instance;
             session = NetworkSessionManager.Instance;
             Connect();
+            TickRestriction();
             bool wanted = run != null && run.State.Phase == CampaignPhase.Rehearsal && !SceneCurtainTransition.IsActive
                 && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
                 && !SpaceLinkDirector.Instance.IsTransitioning && FindRing();
             if (!wanted) { if (active) Deactivate(); return; }
             if (!active) Activate();
+            EnsureLockdownProps();
             if (HasAuthority) HostTick();
             else if (stage < 0 && Clock >= nextSync) { Send(Operation.Sync); nextSync = Clock + 2d; }
             EnsureCourse();
+            ApplyGaps();
+            TickStageProps();
             LocalTick();
+            TickMonitors();
         }
 
         void Activate()
@@ -126,19 +136,23 @@ namespace CurtainCall.WaitingRoom
                 stage = Mathf.Clamp(savedStage, 0, RehearsalStage.All.Length - 1);
                 completed = savedStage >= RehearsalStage.All.Length;
                 abandoned = false;
+                practiceSealed = false;
                 votes.Clear(); giveUpVotes = 0; giveUpDeadline = -1d;
                 round++; version++;
                 Publish();
             }
             else { stage = -1; nextSync = 0d; }
             fallenAt.Clear();
+            HideRingProps(true);
             ActivateLocal();
         }
 
         void Deactivate()
         {
             active = false;
+            foreach (var monitor in monitors) if (monitor != null) monitor.TurnOff();
             DestroyCourse();
+            HideRingProps(false);
             DeactivateLocal();
             if (HasAuthority) votes.Clear();
         }
@@ -150,6 +164,7 @@ namespace CurtainCall.WaitingRoom
             if (ringFound) return true;
             var room = GameObject.Find("S09_PracticeRoom");
             if (room == null) return false;
+            ringRoom = room.transform;
             var deck = room.transform.Find(RingDeckPath);
             var collider = deck != null ? deck.GetComponent<Collider>() : null;
             if (collider != null)
@@ -164,6 +179,25 @@ namespace CurtainCall.WaitingRoom
             }
             ringFound = true;
             return true;
+        }
+
+        /// <summary>링의 옛 연습 소품을 숨기거나(리허설 시작) 숨긴 것만 되돌린다(리허설 끝).</summary>
+        void HideRingProps(bool hide)
+        {
+            if (!hide)
+            {
+                foreach (var go in hiddenRingProps) if (go != null) go.SetActive(true);
+                hiddenRingProps.Clear();
+                return;
+            }
+            if (ringRoom == null) return;
+            foreach (string path in RingPropPaths)
+            {
+                var prop = ringRoom.Find(path);
+                if (prop == null || !prop.gameObject.activeSelf) continue;
+                prop.gameObject.SetActive(false);
+                hiddenRingProps.Add(prop.gameObject);
+            }
         }
 
         // ── 코스 만들기(모든 화면, 같은 값이라 같은 모양) ─────
@@ -193,12 +227,18 @@ namespace CurtainCall.WaitingRoom
             courseRun.SetPracticeMode(true);
             courseRoot.AddComponent<RopeLaneJumpRules>();
             courseRoot.SetActive(true);
+            // 코스 값의 끊김 대신 구조도 자리에 그네를 놓는다(줄 끊김은 ApplyGaps가 뺀다).
+            courseRoot.GetComponent<TightropeSwingPole>()?.UseSpots(s.Swings);
+            // 트리거 그네는 공연 해제봉을 구조도 자리에 놓는다(조작·매달리기는 공연 그대로).
+            courseRoot.GetComponent<TightropeRelayGate>()?.UseSpots(RelaySpots(s));
+            BuildStageProps(s);
             courseStarted = false;
             Debug.Log($"[Rehearsal] 소구간 {s.Id} 코스 생성(회차 {round})");
         }
 
         void DestroyCourse()
         {
+            DestroyStageProps();
             if (courseRoot != null) { courseRoot.SetActive(false); Destroy(courseRoot); }
             courseRoot = null; course = null; courseRun = null; courseStarted = false;
         }
@@ -208,7 +248,7 @@ namespace CurtainCall.WaitingRoom
         void HostTick()
         {
             if (abandoned) { HostCheckReentry(); return; }
-            if (completed) return;
+            if (completed) { HostTickPracticeSeal(); return; }
             if (courseRun != null && !courseStarted && session != null && session.GameState == GameSessionState.Playing)
                 courseStarted = courseRun.StartExternalPerformance();
             HostRecoverFallen();
@@ -342,6 +382,7 @@ namespace CurtainCall.WaitingRoom
             writer.WriteValueSafe(giveUpVotes);
             writer.WriteValueSafe(giveUpRequired);
             writer.WriteValueSafe(giveUpDeadline);
+            writer.WriteValueSafe(practiceSealed);
             if (only.HasValue) messaging.SendNamedMessage(StateMessage, only.Value, writer, NetworkDelivery.ReliableSequenced);
             else messaging.SendNamedMessageToAll(StateMessage, writer, NetworkDelivery.ReliableSequenced);
         }
@@ -381,6 +422,7 @@ namespace CurtainCall.WaitingRoom
             reader.ReadValueSafe(out giveUpVotes);
             reader.ReadValueSafe(out giveUpRequired);
             reader.ReadValueSafe(out giveUpDeadline);
+            reader.ReadValueSafe(out practiceSealed);
         }
     }
 }

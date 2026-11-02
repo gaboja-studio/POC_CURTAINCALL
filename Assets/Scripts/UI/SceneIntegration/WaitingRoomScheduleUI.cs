@@ -10,7 +10,7 @@ using UnityEngine.InputSystem.UI;
 
 namespace CurtainCall.UI.SceneIntegration
 {
-    public sealed class WaitingRoomScheduleUI : MonoBehaviour
+    public sealed partial class WaitingRoomScheduleUI : MonoBehaviour
     {
         [SerializeField] SchedulePanelView view;
         [SerializeField] UnityEngine.UI.Button[] editButtons;
@@ -120,6 +120,7 @@ namespace CurtainCall.UI.SceneIntegration
                 boardView = room.gameObject.scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<ScheduleBoardView>()).FirstOrDefault(b => b.isActiveAndEnabled);
             if (ownedEvents != null && FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Any(e => e != ownedEvents && e.isActiveAndEnabled))
             { Destroy(ownedEvents.gameObject); ownedEvents = null; }
+            TickBoardDisplay();
             bool open = boardView != null && boardView.isActiveAndEnabled && boardView.IsOpen && ScheduleBoard.Instance != null;
             if (!open) { if (view.IsVisible) view.Hide(); return; }
             if (!view.IsVisible)

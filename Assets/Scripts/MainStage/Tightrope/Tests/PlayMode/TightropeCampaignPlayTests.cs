@@ -978,6 +978,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Assert.AreEqual("Waiting", Get(run, "State").ToString());
             Assert.IsFalse((bool)Get(bridge, "PerformanceOpen"));
             Assert.IsTrue((bool)Call(campaign, "EndIntro"));
+            // 실제 게임 시작은 도입 뒤 연습실 리허설을 거친다(Task-097). 외줄 테스트는 리허설을 건너뛰고 첫 공연으로 간다.
+            if (Phase == "Rehearsal") Assert.IsTrue((bool)Call(campaign, "EndRehearsal"));
             yield return Until(() => (bool)Get(bridge, "PerformanceOpen") && Get(run, "State").ToString() == "Running", 5, "공용 외줄 공연 시작");
             yield return null;
             yield return Until(() => (bool)Call(run, "IsParticipantReady", player)
