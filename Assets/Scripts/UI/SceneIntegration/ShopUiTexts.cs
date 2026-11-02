@@ -8,7 +8,7 @@ namespace CurtainCall.UI.SceneIntegration
     /// - {price}, {n} 같은 이름표는 게임이 실제 값으로 바꾼다. 각 칸의 설명(마우스를 올리면 보임)에 쓸 수 있는 이름표를 적었다.
     ///   조사 자동: {item:을} → 받침에 맞춰 을/를 (대기실 문구 파일과 같은 규칙).
     /// - 빈 칸이면 그 줄을 표시하지 않는다.
-    /// - 기물 이름·설명·가격은 기물 목록(ItemCatalog)에서 고친다.
+    /// - 기물 이름·설명·툴팁 전용 설명·가격은 기물 목록(ItemCatalog)에서 고친다.
     /// </summary>
     [CreateAssetMenu(menuName = "Curtain Call/UI/Shop UI Texts", fileName = "ShopUiTexts")]
     public sealed class ShopUiTexts : ScriptableObject
@@ -88,7 +88,7 @@ namespace CurtainCall.UI.SceneIntegration
         public string receiptDescription;
 
         [Header("목록에 마우스를 올렸을 때 설명")]
-        [Tooltip("{description} = 항목 설명, {price} = 가격, {reason} = 이용 불가 사유(없으면 빈 줄)")]
+        [Tooltip("{description} = 항목 설명(기물은 기물 목록의 Shop Tooltip, 비어 있으면 Shop Description), {price} = 가격, {reason} = 이용 불가 사유(없으면 빈 줄)")]
         [TextArea(2, 6)] public string rowTooltip;
 
         [Header("아이콘 키 (상점 프리팹 ShopPanelView의 Icon Bindings에서 키별 그림을 고침)")]
