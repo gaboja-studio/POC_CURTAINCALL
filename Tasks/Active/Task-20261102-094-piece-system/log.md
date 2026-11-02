@@ -10,3 +10,5 @@
 - 테스트 실행 뒤 Pretendard SDF 폰트 에셋 2개가 동적 아틀라스로 바뀜(작업 무관, 되돌리지 않음).
 
 - 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-02 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/262 (fix/piece-system → dev)
