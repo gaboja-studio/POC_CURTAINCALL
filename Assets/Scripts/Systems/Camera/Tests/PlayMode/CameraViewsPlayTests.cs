@@ -79,8 +79,15 @@ namespace CurtainCall.Cameras.Tests
 
         [UnityTest]
         public IEnumerator WaitingRoom_WallShortensCameraArmAndRemovalRestoresItGradually()
+            => WallShortensCameraArm("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+
+        [UnityTest]
+        public IEnumerator WaitingRoomPursuit_WallShortensCameraArmAndRemovalRestoresItGradually()
+            => WallShortensCameraArm("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
+
+        IEnumerator WallShortensCameraArm(string scene)
         {
-            yield return Host("Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity");
+            yield return Host(scene);
             Call(director, "SetInputBlocked", true);
             Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
             yield return Teleport(new Vector3(1000f, 30f, 1000f));
@@ -107,8 +114,43 @@ namespace CurtainCall.Cameras.Tests
                 Assert.Less(returning, originalDistance - .1f, "벽이 사라져도 한 프레임에 원래 거리로 튀지 않는다");
                 yield return Seconds(1.5f);
                 Assert.That(Vector3.Distance(pivot, Camera.main.transform.position), Is.EqualTo(originalDistance).Within(.2f));
+                // A horizontal ceiling must retract the arm just like a vertical wall.
+                Assert.Greater(direction.y, .05f);
+                wall.transform.SetPositionAndRotation(pivot + direction * 1.5f, Quaternion.identity);
+                wall.transform.localScale = new Vector3(20f, .2f, 20f);
+                wall.SetActive(true);
+                Physics.SyncTransforms();
+                yield return Frames(2);
+                Assert.Less(Camera.main.transform.position.y, wall.GetComponent<Collider>().bounds.min.y,
+                    "The camera must stay below the ceiling.");
+                Assert.Less(Vector3.Distance(pivot, Camera.main.transform.position), 1.4f);
             }
             finally { Object.Destroy(wall); }
+        }
+
+        [UnityTest]
+        public IEnumerator WaitingRoomPursuit_DecorativeCeilingBlocksOnlyCamera()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
+            var roof = GameObject.Find("WaitingRoom_LayoutA/S02_Dormitory/Dormitory/Shell/Ceiling");
+            Assert.IsNotNull(roof);
+            Assert.IsNotNull(roof.GetComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface")));
+            Assert.IsNull(roof.GetComponent<Collider>(), "Camera-only bounds must not add player/NavMesh obstacles.");
+            Call(director, "SetInputBlocked", true);
+            Mover.GetType().GetProperty("Simulated").SetValue(Mover, false);
+            var bounds = roof.GetComponent<Renderer>().bounds;
+            // Put the pivot safely inside the room with the desired arm above its ceiling.
+            yield return Teleport(new Vector3(bounds.center.x, bounds.min.y - 2.5f, bounds.center.z));
+            yield return Seconds(.8f);
+            Assert.Less(Camera.main.transform.position.y, bounds.min.y - .1f);
+            var surface = (Behaviour)roof.GetComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface"));
+            surface.enabled = false;
+            yield return Seconds(1.5f);
+            float withoutSurface = Camera.main.transform.position.y;
+            surface.enabled = true;
+            yield return Frames(2);
+            Assert.Greater(withoutSurface, Camera.main.transform.position.y + .2f,
+                "The real decorative ceiling must shorten the arm independently of physics colliders.");
         }
 
         [UnitySetUp]

@@ -16,6 +16,28 @@ namespace CurtainCall.Cameras.Tests
     {
         const string RigPath = "Assets/Resources/Prefabs/Controllers/Camera/PlayerFollowCamera.prefab";
 
+        [TestCase(0f)]
+        [TestCase(37f)]
+        public void CameraOnlySurface_HandlesScaleRotationRadiusAndStartingInside(float angle)
+        {
+            var go = new GameObject("CameraOnlySurfaceFixture");
+            try {
+                go.transform.SetPositionAndRotation(new Vector3(10, 7, -2), Quaternion.Euler(0, angle, 0));
+                go.transform.localScale = new Vector3(2, 3, .2f);
+                var surface = go.AddComponent(GameType("CurtainCall.Cameras.CameraCollisionSurface"));
+                var method = surface.GetType().GetMethod("Intersect");
+                Vector3 origin = go.transform.position - go.transform.forward * 5;
+                object[] args = { origin, go.transform.forward, .25f, 0f };
+                Assert.IsTrue((bool)method.Invoke(surface, args));
+                Assert.That((float)args[3], Is.EqualTo(4.65f).Within(.001f));
+                args[0] = go.transform.position;
+                Assert.IsTrue((bool)method.Invoke(surface, args)); Assert.AreEqual(0f, args[3]);
+                args[0] = origin + go.transform.right * 5;
+                Assert.IsFalse((bool)method.Invoke(surface, args));
+                Assert.IsNull(go.GetComponent<Collider>());
+            } finally { Object.DestroyImmediate(go); }
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void EditModePipeline_DoesNotApplyRuntimeViewsBeforeAwake(bool hasRequest)

@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 23.82,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitCheats_ReceivedCancellationRemovesCapturePresentation",
+      "Status": "Passed",
+      "Duration": 13.9031992,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitCheats_TimerStageCaptureCancelAndRepeat",
+      "Status": "Passed",
+      "Duration": 9.7956782,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

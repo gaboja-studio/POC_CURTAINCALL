@@ -53,6 +53,8 @@ namespace CurtainCall.Campaign
         Stopped,
         /// <summary>제한시간 없음. 남은 시간은 유한한 0으로 전송하고 소집 경보를 울리지 않는다.</summary>
         Unlimited = 4,
+        /// <summary>시간 만료 후 추격 중.</summary>
+        Pursuit = 5,
     }
 
     /// <summary>런이 끝난 이유. 숫자로 전송하므로 값은 끝에만 추가한다.</summary>

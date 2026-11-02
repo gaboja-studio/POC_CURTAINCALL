@@ -30,7 +30,11 @@ namespace CurtainCall.UI.SceneIntegration
             get
             {
                 var active = SceneManager.GetActiveScene();
+                var waiting = CommonUiSceneLoader.CurrentWaitingRoom;
+                var waitingScene = waiting != null ? waiting.gameObject.scene : default;
+                if (waitingScene.isLoaded && waitingScene == active) return waitingScene;
                 foreach (var path in SpacePaths) if (active.path == path && active.isLoaded) return active;
+                if (waitingScene.isLoaded) return waitingScene;
                 foreach (var path in SpacePaths) { var scene = SceneManager.GetSceneByPath(path); if (scene.isLoaded) return scene; }
                 return default;
             }

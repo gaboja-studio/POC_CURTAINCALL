@@ -334,7 +334,8 @@ namespace CurtainCall.Cameras
         /// <see cref="CameraOcclusionFade"/>도 고정 구조물을 반투명하게 만들지 않는다. 탈출로는 씬 활성화 후 활성 씬이 된다.
         /// </summary>
         public static bool UsesWallCollision(Scene scene) => scene.IsValid()
-            && (scene.name == "WaitingRoomBase" || scene.name.StartsWith("escape_route", StringComparison.Ordinal));
+            && (scene.name == "WaitingRoomBase" || scene.name == "WaitingRoomPursuit"
+                || scene.name.StartsWith("escape_route", StringComparison.Ordinal));
 
         void ApplyWallCollision(ref CameraState state)
         {
@@ -361,6 +362,8 @@ namespace CurtainCall.Cameras
                     (obstacle.attachedRigidbody != null && !obstacle.attachedRigidbody.isKinematic)) continue;
                 safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - CollisionRadius - CollisionPadding));
             }
+            safe = CameraCollisionSurface.LimitDistance(SceneManager.GetActiveScene(), pivot, direction,
+                CollisionRadius + CollisionPadding, safe);
             if (collisionDistance < 0f) collisionDistance = safe;
             else if (collisionFrame != Time.frameCount)
                 collisionDistance = Mathf.MoveTowards(collisionDistance, safe, CollisionReturnSpeed * Time.deltaTime);

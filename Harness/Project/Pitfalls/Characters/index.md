@@ -1,5 +1,7 @@
 # Character Pitfalls
 
+- [capture-visibility-restores-old-limbs.md](capture-visibility-restores-old-limbs.md) — 포획 후 공연에서 외팔 판정인데 온전한 팔다리로 보일 때
+
 - [strike-anatomy-false-pass.md](strike-anatomy-false-pass.md) — 타격 궤적 검사는 통과했지만 팔꿈치·손목이 꺾여 보일 때
 
 - [item-grip-false-pass.md](item-grip-false-pass.md) — 기물이 손바닥을 뚫거나 기준점 거리만으로 쥠을 합격시킬 때

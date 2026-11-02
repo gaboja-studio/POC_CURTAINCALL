@@ -1,0 +1,122 @@
+[
+  {
+    "path": "PursuitSystem/B1_ChangingRoom/Mannequin_Male_01",
+    "position": "(-14.875000, -4.920000, 103.050000)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/B1_EscapeCorridor/Mannequin_Male_02",
+    "position": "(-6.549998, -10.000000, 91.150000)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/B1_EscapeEntrance/Mannequin_Male_03",
+    "position": "(-11.275000, -10.000000, 93.350000)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/B1_MachineRoom/Mannequin_Male_04",
+    "position": "(9.958256, -9.985000, 88.305810)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/F8_Cargo/Mannequin_Male_02",
+    "position": "(-13.744400, 1.072709, 76.297150)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/Lobby/Mannequin_Female_02",
+    "position": "(-8.151603, 0.015000, 83.673320)",
+    "rotation": "(0.000000, 0.382684, 0.000000, -0.923880)"
+  },
+  {
+    "path": "PursuitSystem/Lobby/Mannequin_Male_02",
+    "position": "(5.529792, 0.015000, 78.197100)",
+    "rotation": "(0.000000, 0.965926, 0.000000, -0.258819)"
+  },
+  {
+    "path": "PursuitSystem/Lobby/Mannequin_Male_04",
+    "position": "(2.766909, 0.015000, 83.417540)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/Lobby/Mannequin_Male_04",
+    "position": "(-6.684601, 0.015000, 78.768830)",
+    "rotation": "(0.000000, 0.991445, 0.000000, -0.130526)"
+  },
+  {
+    "path": "PursuitSystem/P05_PipeZone/Mannequin_Female_03",
+    "position": "(21.000000, 0.040000, 55.500000)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/S02_Dormitory/Mannequin_Female_01",
+    "position": "(18.053400, 0.015000, 84.035090)",
+    "rotation": "(0.000000, 0.866025, 0.000000, -0.500000)"
+  },
+  {
+    "path": "PursuitSystem/S04_PropRoom/Mannequin_Female_02",
+    "position": "(-4.092605, 0.015000, 91.178860)",
+    "rotation": "(0.000000, 1.000000, 0.000000, 0.000000)"
+  },
+  {
+    "path": "PursuitSystem/S04_PropRoom/Mannequin_Male_04",
+    "position": "(-7.690264, 0.015000, 105.972700)",
+    "rotation": "(0.000000, 0.991445, 0.000000, -0.130526)"
+  },
+  {
+    "path": "PursuitSystem/S05_JunkStorage/Mannequin_Female_04",
+    "position": "(28.000000, 0.040000, 38.425000)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/S11_StageGear/Mannequin_Female_01",
+    "position": "(-29.998160, 0.015000, 48.512600)",
+    "rotation": "(0.000000, 0.382684, 0.000000, -0.923880)"
+  },
+  {
+    "path": "PursuitSystem/S11_StageGear/Mannequin_Female_04",
+    "position": "(-52.420990, 0.015000, 40.984630)",
+    "rotation": "(0.000000, 0.382684, 0.000000, 0.923880)"
+  },
+  {
+    "path": "PursuitSystem/S11_StageGear/Mannequin_Female_05",
+    "position": "(-44.500000, 0.040000, 54.250000)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/S11_StageGear/Mannequin_Male_01",
+    "position": "(-29.775270, 0.015000, 35.943630)",
+    "rotation": "(0.000000, 0.382684, 0.000000, -0.923880)"
+  },
+  {
+    "path": "PursuitSystem/S11_StageGear/Mannequin_Male_03",
+    "position": "(-50.866500, 0.015000, 50.101910)",
+    "rotation": "(0.000000, 0.866025, 0.000000, 0.500000)"
+  },
+  {
+    "path": "PursuitSystem/S12_CargoBay/Mannequin_Female_06",
+    "position": "(-43.300000, 0.040000, 66.893320)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/S12_CargoBay/Mannequin_Female_06",
+    "position": "(-30.758260, 0.015000, 66.824220)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/S12_CargoBay/Mannequin_Male_01",
+    "position": "(-54.805230, 0.015000, 66.824220)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  },
+  {
+    "path": "PursuitSystem/ServiceGallery/Mannequin_Female_06",
+    "position": "(0.949455, 0.015000, 101.413900)",
+    "rotation": "(0.000000, 0.939693, 0.000000, 0.342020)"
+  },
+  {
+    "path": "PursuitSystem/ST_Stairwell/Mannequin_Male_01",
+    "position": "(0.000000, -10.000000, 88.400000)",
+    "rotation": "(0.000000, 0.000000, 0.000000, 1.000000)"
+  }
+]

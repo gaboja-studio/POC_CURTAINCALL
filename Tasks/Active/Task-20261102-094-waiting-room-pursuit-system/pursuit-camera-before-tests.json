@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 8.23,
+  "summary": {
+    "total": 1,
+    "passed": 0,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_WallShortensCameraArmAndRemovalRestoresItGradually",
+      "Status": "Failed",
+      "Duration": 8.1362915,
+      "Message": "  벽 앞에서 카메라를 당긴다\r\n  Expected: less than 1.39999998f\r\n  But was:  5.17228174f\r\n",
+      "StackTrace": "at CurtainCall.Cameras.Tests.CameraViewsPlayTests+<WallShortensCameraArm>d__13.MoveNext () [0x002b0] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\Systems\\Camera\\Tests\\PlayMode\\CameraViewsPlayTests.cs:109\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    }
+  ]
+}
