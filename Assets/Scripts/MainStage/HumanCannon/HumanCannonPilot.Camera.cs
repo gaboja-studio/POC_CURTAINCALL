@@ -11,7 +11,7 @@ namespace CurtainCall.HumanCannon
     {
         CameraViewDirector cannonView;
         // flightView: 평상시 플랫폼과 발사 비행에 함께 쓰는 공용 자유 3인칭 사본(Task-089, 이전 1인칭).
-        CameraViewPreset seatedView, flightView, carryingView;
+        CameraViewPreset seatedView, flightView, carryingView, airborneView;
         bool requestedCannonView;
         bool hadCarryFraming;
         int carryFrame = -1;
@@ -51,6 +51,13 @@ namespace CurtainCall.HumanCannon
                 carryingView.FieldOfView = 68f;
                 carryingView.LookAhead = 0f;
                 carryingView.TransitionDuration = 0.18f;
+                if (system.AirborneView != null && system.AirborneView.Kind == CameraViewKind.FreeThirdPerson)
+                {
+                    airborneView = Instantiate(system.AirborneView);
+                    airborneView.hideFlags = HideFlags.DontSave;
+                    // 착지 후에도 공중 구도에서 원래 플랫폼 구도로 부드럽게 돌아온다.
+                    flightView.TransitionDuration = airborneView.TransitionDuration;
+                }
             }
             // 원본/연습 모두 확정된 손잡이 소유권으로 전환한다. 운반 중 수평 시선은 몸/장치 방향에도 적용한다.
             var carried = HumanCannonCarry.Held(player.OwnerClientId);
@@ -59,7 +66,8 @@ namespace CurtainCall.HumanCannon
             if (carryCamera) UpdateCarryFraming(carried);
             else hadCarryFraming = false;
             // 탑승/비행이 운반보다 우선하며, 사망자는 위에서 요청을 해제해 공용 관전을 사용한다.
-            cannonView.RequestView(this, stationIndex >= 0 ? seatedView : carryCamera ? carryingView : flightView,
+            cannonView.RequestView(this, stationIndex >= 0 ? seatedView : carryCamera ? carryingView
+                : IsFlying && airborneView != null ? airborneView : flightView,
                 stationIndex >= 0 || IsFlying ? 200 : carrying ? 100 : 50);
             HumanCannonViewInput.SetRequested(cannonView, this, true);
             requestedCannonView = true;
@@ -127,7 +135,8 @@ namespace CurtainCall.HumanCannon
             if (seatedView != null) Destroy(seatedView);
             if (flightView != null) Destroy(flightView);
             if (carryingView != null) Destroy(carryingView);
-            seatedView = flightView = carryingView = null;
+            if (airborneView != null) Destroy(airborneView);
+            seatedView = flightView = carryingView = airborneView = null;
         }
     }
 

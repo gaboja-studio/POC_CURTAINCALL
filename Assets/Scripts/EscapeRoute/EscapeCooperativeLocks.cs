@@ -66,7 +66,7 @@ namespace CurtainCall.EscapeRoute
         {
             for (int i = 0; i < checkpoints.Length; i++)
                 if (checkpoints[i] != null && checkpoints[i].lockedStation == station) return Status(i) + "\n" + checkpoints[i].instruction;
-            return "F로 탑승 · Space로 발사합니다";
+            return "F로 탑승 · 다시 F로 발사 · F 길게 눌러 내리기";
         }
         public string HelperInstruction(HumanCannonPole pole)
         {

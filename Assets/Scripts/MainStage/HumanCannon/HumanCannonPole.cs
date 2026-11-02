@@ -24,7 +24,9 @@ namespace CurtainCall.HumanCannon
         [Tooltip("최대 반동 각도(도)."), Range(1f, 85f), SerializeField] float maxSwingAngle = 80f;
         [Tooltip("최대 각속도(도/초)."), Min(1f), SerializeField] float maxSwingSpeed = 180f;
         [Tooltip("반동 감쇠(1/초)."), Min(0f), SerializeField] float swingDamping = 0.4f;
+        [Tooltip("누르는 동안 계속 반동을 준다. 비우면 원본의 방향당 0.65초 밀기를 사용한다."), SerializeField] bool continuousSwingInput;
         [Tooltip("손을 놓을 때 접선 속도에 더하는 상승 속도(m/s)."), Min(0f), SerializeField] float releaseUpwardSpeed = 6f;
+        [Tooltip("봉 도약 수평 반동 배율. 1은 원본이며 공용 수평 속도 상한은 유지한다."), Range(1f, 1.5f), SerializeField] float horizontalReleaseMultiplier = 1f;
         [Tooltip("이 봉의 도약 상승 속도 상한(m/s). 0이면 원본 반동을 그대로 사용한다. 긴 케이블의 레벨별 높이 조정용."), Min(0f), SerializeField] float maxReleaseUpwardSpeed;
         [Tooltip("봉 도약 뒤 WASD 수평 조절(m/s)."), Min(0f), SerializeField] float airControlSpeed = 3f;
         HumanCannonPoleLoop loop;
@@ -43,6 +45,7 @@ namespace CurtainCall.HumanCannon
         public void RefreshMovingPose() => Loop?.RefreshPose();
 
         public Transform Grip => grip != null ? grip : transform;
+        public Transform VisualBar => visualBar;
         public HumanCannonSawGate LinkedGate => linkedGate;
         public float HoldSeconds => holdSeconds;
         public float WarningSeconds => warningSeconds;
@@ -74,6 +77,7 @@ namespace CurtainCall.HumanCannon
             Vector3 velocity = tangent + Vector3.up * releaseUpwardSpeed;
             // 레일 병진·회전 관성을 진자 접선에 더한 뒤 기존 상승/수평 제한을 적용한다.
             if (Loop != null) velocity += Loop.PointVelocity(seat < 0 ? HangingPosition(angle) : HangingPosition(angle, seat));
+            velocity = Vector3.up * velocity.y + Vector3.ProjectOnPlane(velocity, Vector3.up) * horizontalReleaseMultiplier;
             // 수평 반동과 하강은 보존한다. 원본 씬은 기본값 0으로 기존 도약을 유지한다.
             if (maxReleaseUpwardSpeed > 0f) velocity.y = Mathf.Min(velocity.y, maxReleaseUpwardSpeed);
             return velocity;
@@ -117,6 +121,11 @@ namespace CurtainCall.HumanCannon
         public void Step(ref float angle, ref float speed, float input, float dt, float gravity) =>
             PoleSwingMotion.Step(ref angle, ref speed, input, dt, gravity, SwingLength,
                 swingAcceleration, maxSwingAngle, maxSwingSpeed, swingDamping);
+
+        public float SwingDrive(ref PoleSwingInput impulse, float input, float dt)
+            => continuousSwingInput
+                ? float.IsFinite(input) && float.IsFinite(dt) && dt > 0 ? Mathf.Clamp(input, -1f, 1f) : 0
+                : impulse.Step(input, dt);
 
         public bool IsInReach(NetworkPlayer player)
         {

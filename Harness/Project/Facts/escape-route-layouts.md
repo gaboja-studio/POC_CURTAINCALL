@@ -1,18 +1,24 @@
 ---
 summary: 탈출로 A/B/C 구조별 원본 묘기·공통 심부 시설·검토 방법
 status: active
-updated: 2026-11-01
+updated: 2026-11-02
 source: Task-20261027-073 순차 완성 및 A/B/C 공통 1인 개발환경 사용자 지시와 저장 씬
 ---
 # 탈출로 A/B/C 검토 씬
 탈출로를 열거나 수정할 때 읽는다. 좌표·기물 수·편집 위치는 [현재 variants.md](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/variants.md)가 정본이다. 과거 B/C 공간 전용 상태와 옛 도면은 현행 기준이 아니다. 최신 우선순위는 **A만 먼저 완성, B·C 작업은 M2 이후**다. B·C 설명은 보존된 현황이다.
 ## 현재 구성
+- 2026-11-02 A3인칭 공간 폴리싱: 시작/대포/하강 상부 시야 개방·경로 밖 수직 설비3기/심부 외피·층 기준 추가,가림/중복/옛 조명14개 제거·벽20개/메시112접합 보수. 기믹81묶음·기존 스크립트363문서 불변. [변경·정적 검사 한계](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/third-person-atmosphere.md).
+- 2026-11-02 최신6항목: 공중 상하±89/12이동 그네 연속 입력·범위50도·속도140,첫 대포 하강 그네 위 콘크리트3개 제거/슬림 고정봉. 톱36m/s·충돌 소멸/무제한·투사체 PS0,배선6뱅크 분리/모든쌍 겹침0/24도달. [변경·검사 한계](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/route-six-fixes.md).
+- 2026-11-02 자유 이동은0키 토글(EscapeInspectionCamera.reviewKey). 기존 비행을 재사용하며 WASD 이동/Space 상승/LCtrl 하강/Shift4배속·해제 위치에서 일반3인칭 복귀. 벽 안에서는 빠져나온 뒤 해제한다. 소지1/2 유지.
+- 2026-11-02 A 공중 전용 높은 자유3인칭/전환0.35초·기존 발밑 안전 정렬 초록/외줄11곳 로컬 강조. 지형/착지 허용 폭·탄도 불변,실제 Play 미검증. [변경·편집 검사](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/cannon-landing-readability.md).
+- 2026-11-02 A 컨베이어6봉 잡기 가능 초록/15봉 잡기 거리+0.5m·이동 그네12개 반동 소폭 강화·원본 발밑 표시 재사용/초반3외줄 지지 보완. 휴대 톱 자기 충돌/24가닥 도달/배선 교차 보수·발사 불꽃 제거. [변경·편집 검사](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/swing-saw-upgrade.md).
+- A 쇠창살 전망 시작홀 첫 진입부터8분 공용 타이머. 대기실 RestTimer UI 인스턴스를 재사용하며 미도착자만 만료 리타이어,기존 도착1명 이상 성공/전원 집계 유지. [타이머 사실·검사 범위](escape-route-timer.md).
 - 2026-11-01 최신 접촉 보수: A 외줄11곳 양쪽 끝 W 진입/진행축 유지·역방향 옆줄 대응. 다리3곳 전개 중 실체 충돌 유지/선행 물리 갱신,배치650곳 메시 충돌 보완. 일반 화염14곳 예고1.15초/사지 절단·5초 주기(좌우2.5초 위상),마지막 추격 즉사/5.2초 유지. [변경·검사](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/route-contact-fixes.md).
 - 2026-11-01 최신 난이도 수정: 착지 수신면5개/지지 철회·접근면2곳 원복,외줄11 지지 폭0.55m/밝은 황금색 줄 적용. A05 불필요 그네·주변4조명/3지지선·대포 옆 무기능 제어반 제거. 추격4→5.2초,수평 발사 톱 지름2.2m/2초,화염 출구 그네 대포 쪽1.25m 이동/잡기3.3m. [변경·정적 검사](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/rope-and-hazard-tuning.md),[겹침·관통 금지](../Decisions/escape-placement-clearance.md).
 - 2026-11-01 A 배치 폴리싱: 미참조 비활성 구형340·바닥선14·공중흉벽1·고립 배관/플랜지15·옛 중복 케이블30,합계400개 씬 객체 제거. 원본 에셋 파일/사용 중 기믹·외부 차폐·착지 수신면 보존. [제거 목록·검사](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/polish-cleanup.md),[전체 CSV](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/polish-removals.csv).
 - 2026-11-01 이전 낙사 보완 중 첫 대포6m 측면 탄도 정렬·소실 외줄 표시6초는 유지한다. 추가 수신면/접근면 확대는 위 최신 지시로 철회했다. [이전 보완 기록](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/fair-landings.md).
-- 2026-11-02 사용자: 소지 칸 선택은 탈출로도 1·2키. A의 1·3인칭 전환은 4키(`EscapePerspectiveToggle.toggleKey`), 검토 비행은 3키(`EscapeInspectionCamera.reviewKey`)로 옮김. 키는 인스펙터에서 바꾼다.
-- 2026-11-01 A 기본3인칭/2키1·3인칭 전환,1키검토비행·인벤토리3/4키(11-02에 위 키로 바뀜).선택1인칭은 외줄/구조/탑승·운반에서 원래3인칭·해제 후 복귀. 글자/패널 없는 사람 실루엣은 상시 표시,넓힌 달리기 손은 한 손씩 박자 교대한다. [구현·검사](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/first-person-body-hud.md).
+- 2026-11-02 최신 사용자: A는3인칭 전용. 1인칭 전환/4키·달리기 손/Overlay·조준점 제거. 소지1/2·자유 이동0 유지.
+- 절단 실루엣은 좌하단 상시 표시(정상회색/절단붉은빗금·플레이어 좌우 기준). 일반/기믹별3인칭 유지. [구현·검사](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/third-person-only.md).
 - 2026-11-01 최신 원복: 동료 구조2곳/52_ABuddyRecovery·전용 builder를 제거하고 확대 발판12곳은 추가 전 크기/위치로 복원했다. 현재 인원 기반 개발 대기/그네 안내·3인칭·컨베이어 낭떠러지·마지막 화염은 유지. [폐기 배치 기록](../../../Tasks/Active/Task-20261027-073-exit-route-space-design/History/20261101-removed-fall-recovery.md).
 - 2026-10-30 시작 전망 숏컷 보수:51_ObservationSafetyFrames는 유리 없이 금속6cm 세로대·최대약58cm 빈 틈을 사용한다. 현재 직경60cm 몸통은 통과하지 못하며 실제 경로 시야는 유지한다. A의15봉은 requireClearGrabPath로 몸통 폭이 통과하지 못하는 벽/프레임 너머 잡기도 거절한다. 정상 접근/원본 기물/1키 검토 비행은 유지한다.
 - 2026-10-30 A 시작 전망:4스폰 X23/24.5·Y0.05·Z9.25/10.75, 시선70도. 방에서 실제 협동 발판/트램폴린, 복도 X20/Z34·56에서 실제 하강 그네, 첫 대포(29,0,75)에서 착지 외줄/다음 하강이 보인다.50_ActualRouteReveal의 벽 개구/17직부 조명·6천장 하중봉을 사용하며 원본 기물은 보존했다. 시야14/14·입구6구간 정적 검사, 실제 Play는 미실행.

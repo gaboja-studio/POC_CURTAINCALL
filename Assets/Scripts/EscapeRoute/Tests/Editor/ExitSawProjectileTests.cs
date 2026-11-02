@@ -43,6 +43,64 @@ namespace CurtainCall.EscapeRoute.Tests
         Vector3 ShotStart => Origin + Vector3.up * 1.45f;
 
         [Test]
+        public void HeldMachineDoesNotLimitLargeMovementStepsAndRestoresPairsOnDrop()
+        {
+            Fixture(true);var player=Player(41);var mover=player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            var body=(CharacterController)Get(mover,"Body");
+            var load=device.gameObject.AddComponent<BoxCollider>();load.center=new Vector3(0,.78f,0);load.size=new Vector3(1.05f,1.5f,1.15f);
+            Set(saw,"loadCollider",load);
+            float Walk(bool carried)
+            {
+                Call(saw,"RefreshCarrierCollision",(object)null);
+                body.enabled=false;player.transform.position=Origin;body.enabled=true;device.position=Origin+Vector3.forward*1.1f;
+                if(carried)Call(saw,"RefreshCarrierCollision",player);
+                Physics.SyncTransforms();
+                for(int i=0;i<8;i++)
+                {
+                    body.Move(Vector3.forward*.3f+Vector3.down*.01f);
+                    device.position=player.transform.position+Vector3.forward*1.1f;Physics.SyncTransforms();
+                }
+                return player.transform.position.z-Origin.z;
+            }
+            float oldDistance=Walk(false),heldDistance=Walk(true);
+            Assert.That(oldDistance,Is.LessThan(1.8f),"The previous own-load collision must reproduce before the fix.");
+            Assert.That(heldDistance,Is.EqualTo(2.4f).Within(.03f));
+            Assert.That(Physics.GetIgnoreCollision(body,load),Is.True);
+            var other=Player(42);other.transform.position=Origin+Vector3.right*4;
+            var otherBody=(CharacterController)Get(other.GetComponent(T("CurtainCall.Player.PlayerMover")),"Body");
+            Assert.That(Physics.GetIgnoreCollision(otherBody,load),Is.False,"Other players still collide with the carried machine.");
+            var wall=Root("Blocking world wall",true).AddComponent<BoxCollider>();wall.transform.position=Origin+new Vector3(0,1,3.5f);wall.size=new Vector3(4,2,.2f);
+            Physics.SyncTransforms();float before=player.transform.position.z;body.Move(Vector3.forward*2);
+            Assert.That(player.transform.position.z-before,Is.LessThan(1),"World walls must still block the carrier.");
+            body.enabled=false;body.enabled=true;Call(saw,"RefreshCarrierCollision",player);
+            Assert.That(Physics.GetIgnoreCollision(body,load),Is.True,"Re-enabling the controller must renew the pair.");
+            Call(saw,"RefreshCarrierCollision",(object)null);Assert.That(Physics.GetIgnoreCollision(body,load),Is.False);
+        }
+
+        [Test]
+        public void CarrierChangeAndDisablePreservePreviouslyIgnoredPairs()
+        {
+            Fixture(true);var first=Player(41);var second=Player(42);second.transform.position=Origin+Vector3.right*4;
+            var one=(CharacterController)Get(first.GetComponent(T("CurtainCall.Player.PlayerMover")),"Body");
+            var two=(CharacterController)Get(second.GetComponent(T("CurtainCall.Player.PlayerMover")),"Body");
+            var load=device.gameObject.AddComponent<BoxCollider>();Physics.IgnoreCollision(one,load,true);
+            Call(saw,"RefreshCarrierCollision",first);Call(saw,"RefreshCarrierCollision",second);
+            Assert.That(Physics.GetIgnoreCollision(one,load),Is.True,"An earlier owner's pre-existing rule is preserved.");
+            Assert.That(Physics.GetIgnoreCollision(two,load),Is.True);
+            Call(saw,"OnDisable");Assert.That(Physics.GetIgnoreCollision(two,load),Is.False);
+            Assert.That(Physics.GetIgnoreCollision(one,load),Is.True);
+        }
+
+        [Test]
+        public void LaunchClearsLegacyFireFlashAndKeepsMechanicalRecoil()
+        {
+            Fixture();var flash=Root("Legacy launch fire",true).AddComponent<ParticleSystem>();
+            var main=flash.main;main.playOnAwake=false;flash.Play();Set(saw,"launchFlash",flash);
+            Call(saw,"EmitLaunch");Assert.That(flash.isPlaying,Is.False);Assert.That(flash.particleCount,Is.Zero);
+            Assert.That((float)Get(saw,"recoilTime"),Is.EqualTo(.15f));
+        }
+
+        [Test]
         public void AutomaticShotWaitsTwoSecondsAndNeverCatchesUpWithABurst()
         {
             Fixture();
@@ -170,7 +228,7 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(ProjectileSnapshot(99, 1, 41, 0, points, ShotArray(Shot(1, 0, ShotStart, Vector3.forward))), Is.False);
             Assert.That(ProjectileSnapshot(99, 1, 41, 0, points, ShotArray(Shot(1, 1, ShotStart, Vector3.forward), Shot(1, 1, ShotStart, Vector3.forward))), Is.False);
             Assert.That(ProjectileSnapshot(99, 1, 41, 2, points, ShotArray()), Is.False);
-            var tooMany = new object[9]; for (int i = 0; i < tooMany.Length; i++) tooMany[i] = Shot((uint)i + 1, 1, ShotStart, Vector3.forward);
+            var tooMany = new object[17]; for (int i = 0; i < tooMany.Length; i++) tooMany[i] = Shot((uint)i + 1, 1, ShotStart, Vector3.forward);
             Assert.That(ProjectileSnapshot(99, 1, 41, 0, points, ShotArray(tooMany)), Is.False);
             Assert.That(Get(saw, "stateRevision"), Is.EqualTo(5U)); Assert.That(Get(strand, "IsCut"), Is.False);
         }

@@ -33,6 +33,19 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         public void TearDown() => Object.DestroyImmediate(root);
 
         [Test]
+        public void OptionalHorizontalBoostPreservesUpwardCapAndSwingGeometry()
+        {
+            typeof(HumanCannonPole).GetField("maxReleaseUpwardSpeed",BindingFlags.Instance|BindingFlags.NonPublic).SetValue(pole,5.2f);
+            var original=pole.ReleaseVelocity(30,100);var point=pole.HangingPosition(30);
+            typeof(HumanCannonPole).GetField("horizontalReleaseMultiplier",BindingFlags.Instance|BindingFlags.NonPublic).SetValue(pole,1.08f);
+            var boosted=pole.ReleaseVelocity(30,100);
+            Assert.That(Vector3.ProjectOnPlane(boosted,Vector3.up).magnitude,
+                Is.EqualTo(Vector3.ProjectOnPlane(original,Vector3.up).magnitude*1.08f).Within(.001f));
+            Assert.That(boosted.y,Is.EqualTo(original.y).Within(.001f));
+            Assert.That(pole.HangingPosition(30),Is.EqualTo(point));
+        }
+
+        [Test]
         public void ForwardAndBackwardSwing_MovesBarWithPlayerWhileGripAndCeilingStayFixed()
         {
             Vector3 fixedGrip = grip.position, fixedLeft = leftAnchor.position, fixedRight = rightAnchor.position;

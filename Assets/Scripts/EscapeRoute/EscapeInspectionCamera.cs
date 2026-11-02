@@ -16,8 +16,8 @@ namespace CurtainCall.EscapeRoute
     {
         [SerializeField] float speed = 12f;
         [SerializeField] float sensitivity = .1f;
-        [Tooltip("검토 비행을 켜고 끄는 키. 1·2는 소지 칸 선택이라 3을 쓴다(2026-11-02 사용자).")]
-        [SerializeField] Key reviewKey = Key.Digit3;
+        [Tooltip("자유 이동을 켜고 끄는 키. 0키 사용(2026-11-02 사용자).")]
+        [SerializeField] Key reviewKey = Key.Digit0;
         [Tooltip("벽·천장에 너무 가까워 끌 수 없을 때 안내. {key} = 검토 비행 키")]
         [SerializeField] string farFromWallNotice = "벽·천장에서 조금 떨어진 뒤 {key} 키를 눌러 주세요.";
         string KeyLabel => reviewKey >= Key.Digit1 && reviewKey <= Key.Digit0 ? (reviewKey == Key.Digit0 ? "0" : ((int)(reviewKey - Key.Digit1) + 1).ToString()) : reviewKey.ToString();
