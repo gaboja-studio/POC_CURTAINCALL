@@ -102,15 +102,25 @@ namespace CurtainCall.WaitingRoom
                         return;
                     }
                     if (allowed)
-                        reader.GetComponent<HumanoidPlayerPresentation>()?.RequestItemMotion(
-                            Focused is IItemPickupTarget ? 4 :
-                            Focused is ExplorationGate keyGate && keyGate.UsesKey && keyGate.ConditionsMet ? 3 :
-                            Focused is IExplorationTarget pry && pry.ToolId == ItemUses.StakePuller ? 0 : 1, presentation.PresentationPoint);
+                        reader.GetComponent<HumanoidPlayerPresentation>()?.RequestItemMotion(MotionKind(Focused), presentation.PresentationPoint, PolicyKind(Focused));
                 }
                 Focused.Interact();
             }
             if (reader.Current.InteractLongPressed) LongPressed?.Invoke();
         }
+
+        /// <summary>
+        /// 재생할 상호작용 동작(설정 InteractionPolicy 순서): 0 타격, 1 조작, 2 당기기, 3 열쇠 사용, 4 줍기.
+        /// 바닥·배송구 기물과 처음 놓인 열쇠는 줍기 동작을 재생한다.
+        /// </summary>
+        public static int MotionKind(IShopTarget target) =>
+            target is IItemPickupTarget || target is ExplorationGate { IsKeyPickup: true } ? 4 :
+            target is ExplorationGate keyGate && keyGate.UsesKey && keyGate.ConditionsMet ? 3 :
+            target is IExplorationTarget pry && pry.ToolId == ItemUses.StakePuller ? 0 : 1;
+
+        /// <summary>이동·스킵 허용을 읽을 설정 항목. 열쇠는 줍기도 사용도 "열쇠(key)" 설정을 따르고, 나머지는 동작과 같다.</summary>
+        public static int PolicyKind(IShopTarget target) =>
+            target is ExplorationGate { IsKeyPickup: true } || target is FloorPropsView.Item { IsKey: true } ? 3 : MotionKind(target);
 
         /// <summary>내 캐릭터 발 위치.</summary>
         public static bool TryLocalFeet(out Vector3 feet)

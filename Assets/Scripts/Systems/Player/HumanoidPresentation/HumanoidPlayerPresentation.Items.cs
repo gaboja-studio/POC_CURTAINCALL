@@ -8,6 +8,10 @@ namespace CurtainCall.Player
 {
     public sealed partial class HumanoidPlayerPresentation
     {
+        /// <summary>상호작용 동작 레이어(몸통·머리·양팔). 이동 중에도 상체 전체로 손을 뻗는다.</summary>
+        public const string ItemUpperBodyLayer = "ItemRightHand";
+        /// <summary>계속 든 자세(들기·조준·꺼내기·넣기) 레이어(오른팔만). 몸통·왼팔은 이동 동작을 따른다.</summary>
+        public const string ItemRightArmLayer = "ItemRightArm";
         string itemAction, itemLayerState, shownItem, visualItem, gestureItem;
         Coroutine toolUse;
         float itemActionUntil, itemActionSince;
@@ -38,15 +42,17 @@ namespace CurtainCall.Player
             yield return new WaitForSeconds(.5f);
             toolUse = null;
         }
-        public void RequestItemMotion(int kind, Vector3 point)
+        public void RequestItemMotion(int kind, Vector3 point) => RequestItemMotion(kind, point, kind);
+        /// <summary>kind는 재생할 동작, policyKind는 이동·스킵 허용을 읽을 설정 항목(예: 열쇠 줍기 = 줍기 동작 + 열쇠 설정).</summary>
+        public void RequestItemMotion(int kind, Vector3 point, int policyKind)
         {
-            if (kind < 0 || kind > 4 || model == null || condition.AllLimbsLost || InteractionActionLocked) return;
+            if (kind < 0 || kind > 4 || policyKind < 0 || policyKind > 4 || model == null || condition.AllLimbsLost || InteractionActionLocked) return;
             if (toolUse != null) { StopCoroutine(toolUse); toolUse = null; }
-            activeInteractionKind = kind;
-            activeInteractionAllowsMovement = GameSettings.Base.Presentation.InteractionPolicy(kind).AllowMovement;
+            activeInteractionAllowsMovement = GameSettings.Base.Presentation.InteractionPolicy(policyKind).AllowMovement;
             interactionMoveLockUntil = activeInteractionAllowsMovement ? 0f : Time.time + InteractionDuration(kind);
             interactionActionUntil = itemActionUntil = Time.time + InteractionDuration(kind);
             ReceiveItemMotion(kind, point, activeInteractionAllowsMovement);
+            activeInteractionKind = policyKind;
             if (network != null && network.IsSpawned) network.SendItemGesture(kind, point, activeInteractionAllowsMovement);
         }
         public void ReceiveItemMotion(int kind, Vector3 point, bool allowMovement)
@@ -79,8 +85,9 @@ namespace CurtainCall.Player
         }
         bool PresentItemMotion(bool moving, bool inAir)
         {
-            var a = model.Animator; int layer = a.GetLayerIndex("ItemRightHand");
-            if (layer < 0) return false;
+            var a = model.Animator; int upper = a.GetLayerIndex(ItemUpperBodyLayer);
+            if (upper < 0) return false;
+            int arm = a.GetLayerIndex(ItemRightArmLayer);
             string item = SelectedHandItem();
             if (item != shownItem)
             {
@@ -102,16 +109,20 @@ namespace CurtainCall.Player
             string motion = action ? itemAction : item == ItemUses.UvLamp ? "ItemAim" : item != null ? "ItemHold" : null;
             // The surviving right arm is the locomotion arm. Do not mask it out with
             // a standing hold pose; the crawl clip carries the item through its cycle.
+            ClearItemLayers(a);
             if(model.Stage>=2&&moving&&!inAir && !action)
             {
-                a.SetLayerWeight(layer,0);itemLayerState=null;
+                itemLayerState=null;
                 model.Play(ItemVisualAssets.State("ItemCrawl",model.Stage));
                 return true;
             }
-            if (motion == null) { a.SetLayerWeight(layer, 0); itemLayerState = null; itemAction = null; return false; }
+            if (motion == null) { itemLayerState = null; itemAction = null; return false; }
             string state = ItemVisualAssets.State(motion, model.Stage);
             bool fullBody = !inAir && !moving && ((action && !activeInteractionAllowsMovement) || (!action && model.Stage >= 2));
-            a.SetLayerWeight(layer, fullBody ? 0 : 1);
+            // Only interactions reach with the torso. Holding keeps the locomotion torso and left arm.
+            bool interaction = action && itemAction != "ItemEquip" && itemAction != "ItemStow";
+            int layer = interaction || arm < 0 ? upper : arm;
+            if (!fullBody) a.SetLayerWeight(layer, 1);
             string layerState=state+"/"+(fullBody?0:layer);
             if (fullBody)
             {
@@ -121,6 +132,12 @@ namespace CurtainCall.Player
             else if (itemLayerState != layerState) a.Play(state, layer, 0f);
             itemLayerState = layerState;
             return fullBody;
+        }
+        static void ClearItemLayers(Animator a)
+        {
+            int upper = a.GetLayerIndex(ItemUpperBodyLayer), arm = a.GetLayerIndex(ItemRightArmLayer);
+            if (upper >= 0) a.SetLayerWeight(upper, 0);
+            if (arm >= 0) a.SetLayerWeight(arm, 0);
         }
         void ApplyItemAlignment()
         {

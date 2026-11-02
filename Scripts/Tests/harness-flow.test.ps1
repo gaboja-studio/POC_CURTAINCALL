@@ -51,13 +51,13 @@ FixtureGit commit -m baseline | Out-Null
 FixtureGit push -u origin dev | Out-Null
 $script:RepoRoot=$repo
 Check '공유 순서 제한 없이 직접 dev·작업·다른 통합으로 공유' {
-    foreach ($pair in @(@('feat/feature','dev'),@('refactor/tools','dev'),@('fix/bug','dev'),@('integration/a','integration/b'),@('dev','feat/feature'),@('feat/a','fix/b'))) {
+    foreach ($pair in @(@('feat/feature','dev'),@('refactor/tools','dev'),@('fix/bug','dev'),@('integration/a','integration/b'),@('dev','feat/feature'),@('feat/a','fix/b'),@('fix/character/movements','dev'),@('feat/a','feat/area/b'))) {
         Assert ((Get-PrFlow -Head $pair[0] -Base $pair[1]) -in 'squash','merge') ($pair -join ' → ')
     }
     Assert ((Get-PrFlow -Head dev -Base builds/v1) -eq 'merge') 'dev build flow'
 }
 Check '자기 자신·tests 제출·build 직행은 거부' {
-    foreach ($pair in @(@('feat/a','feat/a'),@('tests/a','dev'),@('feat/a','builds/v1'))) {
+    foreach ($pair in @(@('feat/a','feat/a'),@('tests/a','dev'),@('feat/a','builds/v1'),@('fix/a//b','dev'),@('fix/a/','dev'))) {
         $rejected=$false
         try { Get-PrFlow -Head $pair[0] -Base $pair[1] | Out-Null } catch { $rejected=$true }
         Assert $rejected 'invalid flow accepted'
