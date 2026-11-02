@@ -19,10 +19,13 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Collider[] trapColliders = System.Array.Empty<Collider>();
         [Min(0.05f), SerializeField] float doorOpenSeconds = 0.35f;
         [Min(0.1f), SerializeField] float emptyResetSeconds = 1.2f;
+        [Tooltip("켜면 2명 이상 탑승 시 바닥이 열린다. 끄면 바닥은 닫힌 채 출발만 막고, 과승·트램폴린 없음은 발판을 빨간색으로 표시한다.")]
+        [SerializeField] bool overloadTrap = true;
         [SerializeField] Renderer[] boardingIndicators = System.Array.Empty<Renderer>();
         MaterialPropertyBlock indicatorBlock;
         static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         public static readonly Color OccupiedColor = new(0.15f, 0.95f, 0.3f, 1f);
+        public static readonly Color RejectedColor = new(0.95f, 0.15f, 0.12f, 1f);
 
         public float TravelSeconds => travelSeconds;
         public Transform Platform => platform;
@@ -42,6 +45,7 @@ namespace CurtainCall.HumanCannon
         public bool IsConfigured => platform != null && start != null && destination != null && travelSeconds > 0;
         public bool HasTrapDoors => leftHinge != null && rightHinge != null && trapColliders.Length == 2;
         public float EmptyResetSeconds => emptyResetSeconds;
+        public bool OverloadTrap => overloadTrap;
         public Vector2 HalfSize => halfSize;
 
         public void Present(float progress)
@@ -58,7 +62,8 @@ namespace CurtainCall.HumanCannon
             foreach (var floor in trapColliders) if (floor != null) floor.enabled = !open;
         }
 
-        public void PresentOccupied(bool occupied)
+        /// <summary>출발 대기·이동 중은 초록, 탑승 거부(과승·트램폴린 없음)는 빨강, 그 외는 재질 색.</summary>
+        public void PresentOccupied(bool occupied, bool rejected = false)
         {
             indicatorBlock ??= new MaterialPropertyBlock();
             foreach (var indicator in boardingIndicators)
@@ -67,7 +72,7 @@ namespace CurtainCall.HumanCannon
                 indicator.GetPropertyBlock(indicatorBlock);
                 var material = indicator.sharedMaterial;
                 var idle = material != null && material.HasProperty(BaseColor) ? material.GetColor(BaseColor) : Color.white;
-                indicatorBlock.SetColor(BaseColor, occupied ? OccupiedColor : idle);
+                indicatorBlock.SetColor(BaseColor, occupied ? OccupiedColor : rejected ? RejectedColor : idle);
                 indicator.SetPropertyBlock(indicatorBlock);
             }
         }

@@ -74,7 +74,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.SpikeMace), Is.Zero);
             Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.RotatingBlades), Is.Zero);
             Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.GroundSaw), Is.EqualTo(12));
-            Assert.That(poles, Has.Length.EqualTo(7));
+            Assert.That(poles, Has.Length.EqualTo(4));
             foreach (var pole in poles)
                 Assert.That(pole.HoldSeconds, Is.EqualTo(pole.LinkedGate != null ? 40f : 0f), pole.name);
             foreach (var hazard in hazards)
@@ -94,18 +94,16 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void FiveRestPoles_AreDistributedAwayFromCannonsWhileBothGatePolesStayInPlace()
+        public void TwoRestPoles_AreDistributedAwayFromCannonsWhileBothGatePolesStayInPlace()
         {
             var trampoline = All<HumanCannonTrampoline>().Single();
             float apex = Field<float>(trampoline, "surfaceHeight") +
                 trampoline.UpwardSpeed * trampoline.UpwardSpeed / (2f * GameSettings.Base.Character.Gravity);
             var all = All<HumanCannonPole>();
-            Assert.That(all, Has.Length.EqualTo(7));
+            Assert.That(all, Has.Length.EqualTo(4));
             var ordinary = all.Where(p => p.LinkedGate == null).OrderBy(p => p.Grip.position.z).ToArray();
-            // Task-044 2026-10-22 후속 분산 결정(History/Harness-v1/plan.md).
-            var expected = new[] { new Vector3(-14, apex - .5f, 34), new Vector3(17, apex - .5f, 65),
-                new Vector3(-16, 6 + apex - .5f, 107), new Vector3(12, 6 + apex - .5f, 136),
-                new Vector3(-4, 6.2f + apex - .5f, 174) };
+            // Task-044 2026-10-22 후속 분산 결정(History/Harness-v1/plan.md). 2026-11-02 z34·z136·z174 그네 삭제.
+            var expected = new[] { new Vector3(17, apex - .5f, 65), new Vector3(-16, 6 + apex - .5f, 107) };
             Assert.That(ordinary, Has.Length.EqualTo(expected.Length));
             for (int i = 0; i < ordinary.Length; i++)
             {
@@ -124,13 +122,15 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void AllSevenPoles_HaveTheirOwnUpperCablesAndAnchorsWithoutFloorSupports()
+        public void AllPoles_HaveTheirOwnUpperCablesAndAnchorsWithoutFloorSupports()
         {
             var extension = roots.Single(root => root.name == "ExtendedCourse044").transform;
             Assert.That(extension.Find("FirstCeiling"), Is.Null);
             Assert.That(extension.Find("SecondCeiling"), Is.Null);
+            Assert.That(extension.Find("ExistingCeiling0"), Is.Null, "삭제한 코스 첫 그네의 줄·천장을 남기지 않는다.");
+            Assert.That(extension.Find("CeilingPole1_4Ceiling"), Is.Null, "삭제한 도착지점 그네의 줄·천장을 남기지 않는다.");
             var poles = Field<HumanCannonPole[]>(All<HumanCannonPoleSystem>().Single(), "poles");
-            Assert.That(poles, Has.Length.EqualTo(7));
+            Assert.That(poles, Has.Length.EqualTo(4));
             foreach (string field in new[] { "visualBar", "leftCable", "rightCable", "leftAnchor", "rightAnchor" })
             {
                 var references = poles.Select(p => Field<Transform>(p, field)).ToArray();
