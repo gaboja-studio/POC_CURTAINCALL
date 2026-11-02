@@ -253,13 +253,14 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 foreach (var renderer in new[] { leftFloor, rightFloor, decoration }) renderer.sharedMaterial = material;
                 Set(transport, "boardingIndicators", new Renderer[] { leftFloor, rightFloor });
                 var block = new MaterialPropertyBlock();
-                foreach (bool occupied in new[] { true, false })
+                foreach (var (occupied, rejected, expected) in new[] { (true, false, HumanCannonTransport.OccupiedColor),
+                    (false, true, HumanCannonTransport.RejectedColor), (false, false, idle) })
                 {
-                    transport.PresentOccupied(occupied);
+                    transport.PresentOccupied(occupied, rejected);
                     foreach (var floor in new[] { leftFloor, rightFloor })
                     {
                         floor.GetPropertyBlock(block);
-                        Assert.That(Vector4.Distance(block.GetColor(baseColor), occupied ? HumanCannonTransport.OccupiedColor : idle), Is.LessThan(0.00001f));
+                        Assert.That(Vector4.Distance(block.GetColor(baseColor), expected), Is.LessThan(0.00001f));
                         Assert.That(floor.sharedMaterial, Is.SameAs(material));
                     }
                     decoration.GetPropertyBlock(block);

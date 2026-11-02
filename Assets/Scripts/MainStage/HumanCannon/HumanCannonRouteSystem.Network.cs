@@ -57,6 +57,7 @@ namespace CurtainCall.HumanCannon
                 writer.WriteValueSafe(transit.State.Rider);
                 writer.WriteValueSafe(transit.State.StartedAt);
                 writer.WriteValueSafe(transit.State.Duration);
+                writer.WriteValueSafe((byte)(transit.State.Delivered ? 1 : 0));
                 writer.WriteValueSafe(transit.Offset);
                 writer.WriteValueSafe(transit.Rotation);
                 writer.WriteValueSafe((byte)(transit.Trap.IsOpen ? 1 : 0));
@@ -65,6 +66,7 @@ namespace CurtainCall.HumanCannon
                 writer.WriteValueSafe(transit.Boarding.Rider);
                 writer.WriteValueSafe(transit.Boarding.BoardedAt);
                 writer.WriteValueSafe((byte)(transit.Occupied ? 1 : 0));
+                writer.WriteValueSafe((byte)(transit.Rejected ? 1 : 0));
             }
             writer.WriteValueSafe(fires.Length);
             foreach (var fire in fires)
@@ -77,7 +79,7 @@ namespace CurtainCall.HumanCannon
 
         void ReceiveState(ulong sender, FastBufferReader reader)
         {
-            int expectedBytes = 24 + runtime.Length * 83 + fires.Length * 9;
+            int expectedBytes = 24 + runtime.Length * 85 +fires.Length * 9;
             if (sender != NetworkManager.ServerClientId || reader.Length - reader.Position != expectedBytes) return;
             reader.ReadValueSafe(out uint incoming);
             reader.ReadValueSafe(out int resetAcknowledgment);
@@ -93,6 +95,7 @@ namespace CurtainCall.HumanCannon
                 reader.ReadValueSafe(out ulong rider);
                 reader.ReadValueSafe(out double startedAt);
                 reader.ReadValueSafe(out float duration);
+                reader.ReadValueSafe(out byte delivered);
                 reader.ReadValueSafe(out Vector3 offset);
                 reader.ReadValueSafe(out Quaternion rotation);
                 reader.ReadValueSafe(out byte trapOpen);
@@ -101,8 +104,10 @@ namespace CurtainCall.HumanCannon
                 reader.ReadValueSafe(out ulong boardingRider);
                 reader.ReadValueSafe(out double boardedAt);
                 reader.ReadValueSafe(out byte occupied);
-                var transit = new Transit { Offset = offset, Rotation = rotation, Occupied = occupied == 1 };
-                if (!Finite(offset) || !Finite(rotation) || !transit.State.Receive(stateRevision, (DeparturePhase)phase, rider, startedAt, duration)) return;
+                reader.ReadValueSafe(out byte rejected);
+                if (rejected > 1 || delivered > 1) return;
+                var transit = new Transit { Offset = offset, Rotation = rotation, Occupied = occupied == 1, Rejected = rejected == 1 };
+                if (!Finite(offset) || !Finite(rotation) || !transit.State.Receive(stateRevision, (DeparturePhase)phase, rider, startedAt, duration, delivered == 1)) return;
                 if (trapOpen > 1 || !transit.Trap.Receive(trapOpen == 1, openedAt, frozenProgress)) return;
                 if (occupied > 1 || !transit.Boarding.Receive(boardingRider, boardedAt)) return;
                 if (transit.Boarding.IsCounting && (transit.Trap.IsOpen || transit.State.Phase != DeparturePhase.Waiting || !transit.Occupied)) return;

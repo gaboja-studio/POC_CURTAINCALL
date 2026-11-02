@@ -135,6 +135,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (route.TrapOpen(nearest)) text = "발판이 열려 있습니다. 접근에 주의하세요";
             else if (phase == DeparturePhase.Moving) text = "이동 중 · 도착할 때까지 대기하세요";
             else if (phase == DeparturePhase.Arrived) text = "도착 · 걸어서 내리세요";
+            else if (phase == DeparturePhase.Returning) text = "출발점으로 돌아가는 중";
             else if (!carrying) text = "트램펄린 운반자가 이용할 수 있습니다";
             else if (nearest == 1 && !route.ShelterReady) text = "단원들이 쉼터에 도착할 때까지 대기하세요";
             else if (route.CanStart(player, nearest)) text = route.IsBoarding(nearest)

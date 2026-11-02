@@ -15,6 +15,8 @@ namespace CurtainCall.HumanCannon
         [SerializeField] HumanCannonLandingZone shelter;
         [Tooltip("한 사람이 탑승 조건을 유지한 뒤 자동 출발하기까지 대기(초).")]
         [Min(0.1f), SerializeField] float boardingSeconds = 1.5f;
+        [Tooltip("도착한 발판이 빈 뒤 출발점으로 돌아가기까지 대기(초).")]
+        [Min(0f), SerializeField] float returnDelaySeconds = 2f;
         [Tooltip("구간별 불꽃 2개. 쿠션/최종 구간의 불꽃은 없다.")]
         [SerializeField] HumanCannonFireWall[] fires = Array.Empty<HumanCannonFireWall>();
         [Tooltip("첫 쉼터 대포의 stations 인덱스. 시작 3대 다음은 쉼터 3대.")]
@@ -30,6 +32,8 @@ namespace CurtainCall.HumanCannon
             public LiftTrapState Trap = new();
             public LiftBoardingState Boarding = new();
             public bool Occupied;
+            public bool Rejected;
+            public double EmptySince = -1;
             public Vector3 Offset;
             public Quaternion Rotation = Quaternion.identity;
         }
@@ -145,19 +149,39 @@ namespace CurtainCall.HumanCannon
                 bool occupied = passengers == 1;
                 changed |= transit.Occupied != occupied;
                 transit.Occupied = occupied;
-                if (transit.Trap.Tick(passengers, Clock, transit.State.Progress(Clock), transports[i].EmptyResetSeconds))
+                if (transports[i].OverloadTrap
+                    && transit.Trap.Tick(passengers, Clock, transit.State.Progress(Clock), transports[i].EmptyResetSeconds))
                 {
                     changed = true;
                     if (wasOpen)
                     {
-                        transit.State.Reset();
+                        // 이미 도착한 적 있는 발판은 도착 기록을 남겨 봇이 다시 타러 가지 않게 한다.
+                        if (transit.State.Delivered) transit.State.Home(); else transit.State.Reset();
                         Debug.Log($"[HumanCannonRoute] transport {i} empty; returned to start");
                     }
                     else Debug.Log($"[HumanCannonRoute] transport {i} overloaded; floor opened");
                 }
                 if (!transit.Trap.IsOpen && transit.State.Tick(Clock))
-                { changed = true; Debug.Log($"[HumanCannonRoute] transport {i} arrived"); }
+                {
+                    changed = true;
+                    Debug.Log(transit.State.Phase == DeparturePhase.Arrived
+                        ? $"[HumanCannonRoute] transport {i} arrived" : $"[HumanCannonRoute] transport {i} returned to start");
+                }
+                // 도착 뒤 발판이 비어 있는 시간이 이어지면 출발점으로 되돌아간다(2026-11-02 사용자 결정).
+                if (transit.Trap.IsOpen || transit.State.Phase != DeparturePhase.Arrived || passengers > 0) transit.EmptySince = -1;
+                else if (transit.EmptySince < 0) transit.EmptySince = Clock;
+                else if (Clock - transit.EmptySince >= returnDelaySeconds && transit.State.TryReturn(Clock))
+                {
+                    transit.EmptySince = -1;
+                    changed = true;
+                    Debug.Log($"[HumanCannonRoute] transport {i} empty for {returnDelaySeconds:F1}s; returning");
+                }
                 bool eligible = occupied && CanStart(soleRider, i);
+                // 함정 없는 장치는 과승·트램폴린 없음을 바닥 개방 대신 빨간 발판으로 알린다(2026-11-02 사용자 결정).
+                bool rejected = !transports[i].OverloadTrap && transit.State.Phase == DeparturePhase.Waiting
+                    && (passengers >= 2 || occupied && !Carries(soleRider));
+                changed |= transit.Rejected != rejected;
+                transit.Rejected = rejected;
                 changed |= transit.Boarding.Tick(occupied ? soleRider.OwnerClientId : CannonSeatState.Nobody,
                     eligible, Clock, boardingSeconds);
                 if (transit.Boarding.Ready(Clock, boardingSeconds))
@@ -198,7 +222,8 @@ namespace CurtainCall.HumanCannon
                     transports[i].Present(resetBarrier.Waiting ? 0 : transit.Trap.IsOpen ? transit.Trap.FrozenProgress : transit.State.Progress(Clock));
                     transports[i].PresentTrap(!resetBarrier.Waiting && transit.Trap.IsOpen, transit.Trap.OpenedAt, Clock);
                     bool departing = transit.Boarding.IsCounting || transit.State.Phase == DeparturePhase.Moving;
-                    transports[i].PresentOccupied(!resetBarrier.Waiting && !transit.Trap.IsOpen && departing);
+                    transports[i].PresentOccupied(!resetBarrier.Waiting && !transit.Trap.IsOpen && departing,
+                        !resetBarrier.Waiting && transit.Rejected);
                 }
             UpdatePassenger();
             foreach (var fire in fires) if (fire != null) fire.Present(Clock);
@@ -230,13 +255,15 @@ namespace CurtainCall.HumanCannon
                 || player == null || !player.IsSpawned || player.State != PlayerState.Normal || player.IsAirborne
                 || cannon == null || cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId)
                 || IsRiding(player.OwnerClientId)) return false;
-            var trampoline = HumanCannonTrampoline.Current;
-            if (trampoline == null || trampoline.Carrier != player.OwnerClientId) return false;
+            if (!Carries(player)) return false;
             if (!transports[index].ContainsFeet(player.transform.position, 0)
                 || CountPassengers(index, out _) != 1) return false;
             if (index == 1 && !ShelterReady) return false;
             return true;
         }
+
+        static bool Carries(NetworkPlayer player) => player != null && HumanCannonTrampoline.Current != null
+            && HumanCannonTrampoline.Current.Carrier == player.OwnerClientId;
 
         int CountPassengers(int index, out NetworkPlayer soleRider)
         {
@@ -365,7 +392,7 @@ namespace CurtainCall.HumanCannon
         void ResetRoute()
         {
             AliveFlyers = ArrivedFlyers = 0;
-            foreach (var transit in runtime) { transit.State.Reset(); transit.Trap.Reset(); transit.Boarding.Reset(); transit.Occupied = false; }
+            foreach (var transit in runtime) { transit.State.Reset(); transit.Trap.Reset(); transit.Boarding.Reset(); transit.Occupied = transit.Rejected = false; transit.EmptySince = -1; }
             foreach (var fire in fires) if (fire != null) fire.ResetWall();
             for (int i = 0; i < runtime.Length; i++) if (transports[i] != null) transports[i].Present(0);
         }

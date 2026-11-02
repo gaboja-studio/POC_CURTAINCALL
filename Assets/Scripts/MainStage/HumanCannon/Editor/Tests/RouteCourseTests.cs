@@ -213,23 +213,28 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void SevenPoles_KeepOriginalIndicesAndBothCooperationGates()
+        public void FourPoles_KeepOrderAndBothCooperationGates()
         {
             var systems = All<HumanCannonPoleSystem>();
             Assert.That(systems, Has.Length.EqualTo(1));
-            // Task-044 2026-10-22: 휴식 봉5 + 관문 연결 봉2, 기존 인덱스0–3 보존.
-            Assert.That(systems[0].PoleCount, Is.EqualTo(7));
+            // Task-044 2026-10-22: 휴식 봉5 + 관문 연결 봉2. 2026-11-02 담당자 결정으로 코스 첫 그네(PoleGateCourse/NormalPole),
+            // 도착지점 그네(ExtendedCourse044/CeilingPole1_4), 도착지점에 가장 가까운 그네(HumanCannonEnhancement/AddedPole2) 삭제.
+            Assert.That(systems[0].PoleCount, Is.EqualTo(4));
             var poles = Field<HumanCannonPole[]>(systems[0], "poles");
-            Assert.That(poles, Has.Length.EqualTo(7));
+            Assert.That(poles, Has.Length.EqualTo(4));
             Assert.That(poles, Has.All.Not.Null);
-            Assert.That(poles.Count(p => p.LinkedGate == null), Is.EqualTo(5));
+            Assert.That(poles.Count(p => p.LinkedGate == null), Is.EqualTo(2));
+            Assert.That(Find("HumanCannonEnhancement/AddedPole2"), Is.Null);
+            Assert.That(Find("HumanCannonEnhancement/AddedPole2Ceiling"), Is.Null);
             CollectionAssert.AllItemsAreUnique(poles);
             CollectionAssert.AreEquivalent(All<HumanCannonPole>(), poles);
-            Assert.That(poles[0].transform, Is.SameAs(Find("PoleGateCourse/NormalPole")));
-            Assert.That(poles[1].transform, Is.SameAs(Find("PoleGateCourse/LinkedPole")));
-            Assert.That(poles[2].transform, Is.SameAs(Find("SplitRouteCourse/SecondSectionPoleGate/NormalPole")));
-            Assert.That(poles[3].transform, Is.SameAs(Find("SplitRouteCourse/SecondSectionPoleGate/LinkedPole")));
-            Assert.That(poles.Skip(4).All(p => p.LinkedGate == null), Is.True);
+            Assert.That(Find("PoleGateCourse/NormalPole"), Is.Null);
+            Assert.That(Find("ExtendedCourse044/CeilingPole1_4"), Is.Null);
+            Assert.That(Find("ExtendedCourse044/CeilingPole1_4Ceiling"), Is.Null);
+            Assert.That(poles[0].transform, Is.SameAs(Find("PoleGateCourse/LinkedPole")));
+            Assert.That(poles[1].transform, Is.SameAs(Find("SplitRouteCourse/SecondSectionPoleGate/NormalPole")));
+            Assert.That(poles[2].transform, Is.SameAs(Find("SplitRouteCourse/SecondSectionPoleGate/LinkedPole")));
+            Assert.That(poles.Skip(3).All(p => p.LinkedGate == null), Is.True);
             var gates = poles.Where(p => p.LinkedGate != null).Select(p => p.LinkedGate).Distinct()
                 .OrderBy(g => g.transform.position.z).ToArray();
             Assert.That(gates, Has.Length.EqualTo(2));
@@ -273,29 +278,12 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             }
         }
 
-        [TestCase(0.75f)]
-        [TestCase(0.8f)]
-        [TestCase(0.9f)]
-        public void FirstLiftOverloadDuringTravel_HasClearDropUnderWholePlatform(float progress)
+        [Test]
+        public void FirstLift_RefusesOverloadWithoutOpeningFloor()
         {
+            // 2026-11-02 사용자 결정: 왼쪽 리프트는 2명 이상이면 바닥을 열지 않고 출발만 막는다(빨간 발판).
             var lift = All<HumanCannonTransport>().Single(t => t.name == "DepartureTransport");
-            float fallHeight = Field<float>(All<HumanCannonRouteSystem>().Single(), "fallHeight");
-            Vector3 position = lift.Position(progress);
-            var footprint = new Bounds(position, Vector3.zero);
-            foreach (float x in new[] { -lift.HalfSize.x, lift.HalfSize.x })
-                foreach (float z in new[] { -lift.HalfSize.y, lift.HalfSize.y })
-                    footprint.Encapsulate(position + lift.Rotation * new Vector3(x, 0, z));
-            // 경계에 맞닿은 옆 바닥은 제외하고, 발판 내부에서 코스 아래 낙하 높이까지의 낙하 공간을 검사한다.
-            const float inset = 0.001f;
-            var drop = new Bounds();
-            drop.SetMinMax(new Vector3(footprint.min.x + inset, fallHeight + inset, footprint.min.z + inset),
-                new Vector3(footprint.max.x - inset, position.y - inset, footprint.max.z - inset));
-            Assert.That(drop.size.y, Is.GreaterThan(0));
-            var blockers = All<Collider>()
-                .Where(c => c.enabled && c.gameObject.activeInHierarchy && !c.isTrigger)
-                .Where(c => c.GetComponentInParent<HumanCannonTransport>() == null && c.bounds.Intersects(drop))
-                .Select(c => c.transform.parent != null ? c.transform.parent.name + "/" + c.name : c.name).ToArray();
-            Assert.That(blockers, Is.Empty, "첫 리프트 이동 중 과승자는 고정 바닥을 거치지 않고 코스 아래로 떨어져 복귀 처리되어야 합니다.");
+            Assert.IsFalse(lift.OverloadTrap);
         }
 
         [Test]
