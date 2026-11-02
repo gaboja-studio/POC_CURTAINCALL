@@ -132,7 +132,7 @@ namespace CurtainCall.Tightrope
         bool HasExternalControls => controller != null && controller.HasAssignedScheme && !StillOwnsControls;
 
         HumanCannonPilot CannonPilot => player != null ? player.GetComponent<HumanCannonPilot>() : null;
-        bool CanBorrowCannonControls => course != null && course.UsesSceneGeometry
+        bool CanBorrowCannonControls => course != null
             && CannonPilot != null && !CannonPilot.IsDriving && controller != null
             && controller.Scheme == CannonPilot.ControlScheme;
 
@@ -212,7 +212,7 @@ namespace CurtainCall.Tightrope
             if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired
                 || (balance != null && balance.HasFallen)) return; // 도착 완료는 계속 바꾼다(세리머니 공간은 일반 이동)
 
-            if (course.UsesSceneGeometry && onRope == true && (CannonPilot != null && CannonPilot.IsDriving
+            if (onRope == true && (CannonPilot != null && CannonPilot.IsDriving
                 || (mover.IsAirborne && course.PastSceneRopeEnd(player.transform.position, mover.BodyRadius))))
             {
                 ReleaseControls(); LocalModeChanged?.Invoke(false);
@@ -238,14 +238,21 @@ namespace CurtainCall.Tightrope
             if (!mover.Simulated) return; // 위치를 다른 곳에 맡긴 동안(목마 위층)은 조작을 바꾸지 않는다
 
             bool rope = course.TryGetSupportingRope(mover, out int lane);
-            if (course.UsesSceneGeometry && !rope)
+            if (!rope)
             {
                 bool leaving = onRope == true;
+                if (platformScheme != null)
+                {
+                    if (onRope != false) { ReleaseControls(); Apply(false); }
+                    SuppressUnassignedBalance();
+                    return;
+                }
                 ReleaseControls();
+                SuppressUnassignedBalance();
                 if (leaving) LocalModeChanged?.Invoke(false);
                 return;
             }
-            if (onRope == rope)
+            if (onRope == rope && StillOwnsControls)
             {
                 if (rope && course.HasIndependentRopes) AlignToSupportingLane(lane);
                 // 공용 재시작·초기화 뒤에도 일반 바닥에서는 균형 계산을 시작하지 않는다.
@@ -289,9 +296,10 @@ namespace CurtainCall.Tightrope
 
         void Apply(bool rope)
         {
-            if (course.UsesSceneGeometry && rope && !ownsAxes)
+            if (rope && !StillOwnsControls)
+                returnScheme = controller != null && controller.HasAssignedScheme ? controller.Scheme : null;
+            if (rope && !ownsAxes)
             {
-                returnScheme = controller != null ? controller.Scheme : null;
                 previousForward = mover.CourseForwardOverride;
                 previousSpacing = mover.LaneSpacing;
                 Vector3 enteringForward = player.transform.forward;

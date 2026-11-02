@@ -408,13 +408,13 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(mover.CourseForward, Is.EqualTo(Vector3.left));
         }
 
-        [TestCase(1)]
-        [TestCase(-1)]
-        public void AuthoredRopeEntryPreservesFacingAndDoesNotFlipOnTheFollowingFrame(int direction)
+        [TestCase(1, false)] [TestCase(-1, false)]
+        [TestCase(1, true)] [TestCase(-1, true)]
+        public void AuthoredRopeEntryPreservesFacingAndDoesNotFlipOnTheFollowingFrame(int direction, bool legacyOption)
         {
             AuthoredRopes();
             var data = new UnityEditor.SerializedObject(course);
-            data.FindProperty("bidirectionalSceneTraversal").boolValue = true;
+            data.FindProperty("bidirectionalSceneTraversal").boolValue = legacyOption;
             data.ApplyModifiedPropertiesWithoutUndo();
             Invoke(switcher, "Bind", player);
             MovePlayer(new Vector3(0, 0, 4));
@@ -446,6 +446,47 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             typeof(RopeLaneJumpRules).GetField("mover", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(rules, mover);
             Assert.That(rules.CanLaneJump(1), Is.True, "Player right is world left while facing the opposite rope end.");
             Assert.That(rules.CanLaneJump(-1), Is.False, "No parallel rope exists on the player's left.");
+        }
+
+        [TestCase(1)] [TestCase(-1)]
+        public void GeneratedStuntRopePreservesEntryDirectionAndRestoresPlatformAxis(int direction)
+        {
+            int lane = Mathf.Min(1, course.LaneCount - 1);
+            float side = course.Layout.GetLaneSide(lane);
+            AddRope(lane, side);
+            mover.CourseForwardOverride = Vector3.right;
+            MovePlayer(new Vector3(side, 0, 4));
+            player.transform.rotation = Quaternion.LookRotation(Vector3.forward * direction);
+            Invoke(switcher, "Bind", player); Invoke(switcher, "UpdateSurfaceMode");
+            Assert.That(mover.CourseForward, Is.EqualTo(Vector3.forward * direction));
+            Invoke(switcher, "UpdateSurfaceMode");
+            Assert.That(mover.CourseForward, Is.EqualTo(Vector3.forward * direction));
+            Assert.That(course.AuthoredLaneDirection(player.transform.position, mover.CourseForward, 1), Is.EqualTo(direction));
+            Invoke(switcher, "ReleaseControls");
+            Assert.That(mover.CourseForward, Is.EqualTo(Vector3.right));
+        }
+
+        [Test]
+        public void GeneratedReverseLaneJumpLandsBehindBlockerInThePlayersTraversalAxis()
+        {
+            typeof(TightropeCourse).GetField("current", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, course);
+            int lane = 1; float side = course.Layout.GetLaneSide(lane);
+            AddRope(lane, side); AddRope(0, course.Layout.GetLaneSide(0));
+            MovePlayer(new Vector3(side, 0, 4)); mover.CourseForwardOverride = Vector3.back;
+            var other = MakeObject("Reverse landing blocker").AddComponent<PlayerMover>();
+            other.transform.position = origin + new Vector3(course.Layout.GetLaneSide(0), 0, 4);
+            Invoke(other, "Awake"); Invoke(other, "OnEnable");
+            try
+            {
+                var rules = player.gameObject.AddComponent<RopeLaneJumpRules>();
+                typeof(RopeLaneJumpRules).GetField("mover", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(rules, mover);
+                Assert.That(rules.CanLaneJump(1), Is.True);
+                float original = course.GetDistance(mover.GetLaneLandingPosition(1));
+                Assert.That(rules.TryGetLandingDistance(1, out float behind), Is.True);
+                Assert.That(behind, Is.GreaterThan(original), "Behind a reverse-facing player is a greater authored distance.");
+                Assert.That(Invoke(rules, "GetLandingShift", 1), Is.EqualTo(original - behind).Within(.001));
+            }
+            finally { Invoke(other, "OnDisable"); }
         }
 
         BoxCollider AddBox(string name, Vector3 center, Vector3 size)

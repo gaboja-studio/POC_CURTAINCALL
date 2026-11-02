@@ -1,6 +1,8 @@
 using CurtainCall.Campaign;
 using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.HumanCannon;
+using CurtainCall.Tightrope;
 using UnityEngine;
 
 namespace CurtainCall.EscapeRoute
@@ -33,13 +35,26 @@ namespace CurtainCall.EscapeRoute
             if (forwardBarrier != null) forwardBarrier.SetActive(!transfer.Ready);
             transfer.PlaceLocal(this);
             var player = NetworkPlayer.Local;
-            if (!reachedStairEnd && transfer.Ready && player != null && player.State == PlayerState.Normal
-                && EscapeEntrance.Contains(firstPersonArea, player.transform.position)) reachedStairEnd = true;
+            if (transfer.Ready) ObserveApproachExit(player);
             if (reachedStairEnd) { ReleaseCamera(); return; }
             var director = CameraViewDirector.Current;
             if (cameraRequest != director) { ReleaseCamera(); cameraRequest = director; }
             if (cameraRequest != null) cameraRequest.RequestView(this, approachView, 75);
         }
+        void ObserveApproachExit(NetworkPlayer player)
+        {
+            if (reachedStairEnd || player == null || player.State != PlayerState.Normal) return;
+            var pilot = player.GetComponent<HumanCannonPilot>();
+            var course = TightropeCourse.Current;
+            bool onRope = course != null && course.UsesSceneGeometry
+                && course.TryGetComponent<CourseControlSwitcher>(out var controls) && controls.IsLocalOnRope;
+            // 순간 이동/검토 이동으로 계단 끝 영역을 건너뛰어도 입구 요청이
+            // 대포 비행 종료·외줄 소실 때 다시 나타나지 않게 완료를 고정한다.
+            reachedStairEnd = EscapeEntrance.Contains(firstPersonArea, player.transform.position)
+                || (pilot != null && pilot.IsDriving) || onRope;
+            if (reachedStairEnd) ReleaseCamera();
+        }
+
         void ReleaseCamera()
         {
             if (cameraRequest != null) cameraRequest.ReleaseView(this);

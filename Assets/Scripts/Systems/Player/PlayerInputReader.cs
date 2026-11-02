@@ -36,6 +36,32 @@ namespace CurtainCall.Player
         /// <summary>이번 프레임의 입력(공통 역할 값).</summary>
         public PlayerInputFrame Current { get; private set; }
 
+        public string BindingLabel(string actionName, string fallback)
+        {
+            var binding = commonMap?.FindAction(actionName, false);
+            if (binding != null)
+                for (int i = 0; i < binding.bindings.Count; i++)
+                {
+                    var entry = binding.bindings[i];
+                    if (!entry.isComposite && !entry.isPartOfComposite && !string.IsNullOrEmpty(entry.effectivePath)
+                        && (entry.effectivePath.StartsWith("<Keyboard>/") || entry.effectivePath.StartsWith("<Mouse>/")))
+                        return binding.GetBindingDisplayString(i);
+                }
+            return fallback;
+        }
+        public string BindingPartLabel(string actionName, string partName, string fallback)
+        {
+            var binding = commonMap?.FindAction(actionName, false);
+            if (binding != null)
+                for (int i = 0; i < binding.bindings.Count; i++)
+                {
+                    var entry = binding.bindings[i];
+                    if (entry.isPartOfComposite && entry.name == partName && !string.IsNullOrEmpty(entry.effectivePath)
+                        && entry.effectivePath.StartsWith("<Keyboard>/")) return binding.GetBindingDisplayString(i);
+                }
+            return fallback;
+        }
+
         void Awake()
         {
             var source = inputAsset != null ? inputAsset : Resources.Load<InputActionAsset>(DefaultAssetPath);

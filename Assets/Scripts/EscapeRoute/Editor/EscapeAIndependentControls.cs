@@ -123,7 +123,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
         static TMP_FontAsset MechanismFont()
         {
             const string path = Materials + "a-mechanism-notifications.asset";
-            const string text = "전원 버튼 복귀 대포 상승 유지봉 반출교 레버 권상교 그네 통로 합류 다리 해제 가동 정지 고정 중 맞은편 도착 계단 열림 → ·";
+            const string text = "전원 버튼 복귀 대포 상부 상승 유지봉 반출교 레버 권상교 그네 양쪽 통로 합류 다리 해제 가동 정지 고정 중 맞은편 도착 계단 열림 → ·";
             var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
             if (font != null) return font;
             var source = AssetDatabase.LoadAssetAtPath<Font>("Assets/_ThirdParty/curtaincall_c1_v1/Source/Fonts/Pretendard-Medium.ttf");

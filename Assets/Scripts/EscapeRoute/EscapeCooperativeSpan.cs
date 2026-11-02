@@ -1,4 +1,5 @@
 using UnityEngine;
+using CurtainCall.Network.Session;
 
 namespace CurtainCall.EscapeRoute
 {
@@ -12,13 +13,33 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, Range(10, 85)] float raisedAngle = 68;
         bool deployed;
         float amount;
+        float transitionAmount;
+        double transitionAt;
+        double Clock => NetworkSessionManager.Instance != null && NetworkSessionManager.Instance.NetworkManager != null
+            && NetworkSessionManager.Instance.NetworkManager.IsListening
+            ? NetworkSessionManager.Instance.NetworkManager.ServerTime.Time : Time.unscaledTimeAsDouble;
         public bool Traversable => deployed && amount >= 1;
+        public float AmountAt(double now) => Mathf.MoveTowards(transitionAmount, deployed ? 1 : 0,
+            (float)System.Math.Max(0, now - transitionAt) / Mathf.Max(.1f, deploySeconds));
 
-        public void SetDeployed(bool value) { deployed = value; Present(); }
-        void OnEnable() { amount = 0; Present(); }
+        public void SetDeployed(bool value)
+        {
+            if (deployed != value)
+            {
+                transitionAmount = AmountAt(Clock); transitionAt = Clock; deployed = value;
+            }
+            amount = AmountAt(Clock); Present();
+        }
+        // Snapshot time is server time, so delayed arrival catches up instead of restarting the bridge.
+        public void SynchronizeDeployment(bool value, float atSnapshot, double snapshotTime)
+        {
+            deployed = value; transitionAmount = atSnapshot; transitionAt = snapshotTime;
+            amount = AmountAt(Clock); Present();
+        }
+        void OnEnable() { amount = transitionAmount = 0; transitionAt = Clock; Present(); }
         void Update()
         {
-            amount = Mathf.MoveTowards(amount, deployed ? 1 : 0, Time.deltaTime / Mathf.Max(.1f, deploySeconds));
+            amount = AmountAt(Clock);
             Present();
         }
         void Present()

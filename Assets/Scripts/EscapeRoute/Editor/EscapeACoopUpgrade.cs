@@ -97,8 +97,9 @@ namespace CurtainCall.EscapeRoute.EditorTools
 
             var sixth = VerticalChild(p, "06_OpenCannonRelay");
             var second = entries.GetArrayElementAtIndex(1);
-            AFloor(sixth, "유지봉 측면 정비턱", 125, 128.5f, 103, 108, -8);
-            var helper = AFusedPole(sixth, source, "A06_HelperAscentClutch", new Vector3(126.5f, -6.5f, 106), Vector3.forward, 1.5f);
+            // 실제 손 정렬 후 발 메시가 논리 발 위치보다 약 .46m 낮다. 총 .65m 여유를 둔다.
+            AFloor(sixth, "유지봉 측면 정비턱", 125, 128.5f, 103, 108, -8.2f);
+            var helper = AFusedPole(sixth, source, "A06_HelperAscentClutch", new Vector3(126.5f, -6.05f, 106), Vector3.forward, 1.5f, 3.75f);
             SetPoleFloat(helper, "maxSwingAngle", 8);
             second.FindPropertyRelative("helperPole").objectReferenceValue = helper;
             second.FindPropertyRelative("arrival").objectReferenceValue = CoopArrival(sixth, "상부 외줄 도착 감지", new Vector3(135, .5f, 104.5f), new Vector3(1.2f, 1.5f, 4));

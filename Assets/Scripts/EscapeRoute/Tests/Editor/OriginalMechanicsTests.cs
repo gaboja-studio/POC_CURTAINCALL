@@ -433,6 +433,8 @@ namespace CurtainCall.EscapeRoute.Tests
         public void LateJoinStateRejectsOlderRevisionAndRequiresRestartBarrierToken()
         {
             Assert.That(Call(coop, "ApplyState", 5U, false, 7UL, 0, 0U), Is.True);
+            Assert.That(Call(coop, "ApplyState", 5U, true, ulong.MaxValue, 0, 0U), Is.False);
+            Assert.That(Get(coop, "workerOwner"), Is.EqualTo(7UL));
             Assert.That(Get(coop, "WorkerOwner"), Is.EqualTo(7UL)); Assert.That(lowerGate.activeSelf, Is.True);
             Assert.That(Call(coop, "ApplyState", 4U, true, ulong.MaxValue, 0, 0U), Is.False);
             int token = (int)Call(Get(coop, "resetBarrier"), "Begin");
@@ -577,6 +579,187 @@ namespace CurtainCall.EscapeRoute.Tests
         {
             var value = new GameObject(name) { hideFlags = HideFlags.DontSave };
             value.SetActive(active); SceneManager.MoveGameObjectToScene(value, testScene); roots.Add(value); return value;
+        }
+    }
+}
+
+namespace CurtainCall.EscapeRoute.Tests
+{
+    public sealed class EscapeCampaignFallPolicyTests
+    {
+        [NUnit.Framework.Test]
+        public void CampaignEscapeProtectsTransferredPlayerWithoutDevelopmentLauncher()
+        {
+            var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.Public|System.Reflection.BindingFlags.NonPublic;
+            var assemblies=System.AppDomain.CurrentDomain.GetAssemblies();
+            var type=assemblies.Select(a=>a.GetType("CurtainCall.EscapeRoute.EscapeCampaignContent")).First(t=>t!=null);
+            var policy=assemblies.Select(a=>a.GetType("CurtainCall.EscapeRoute.EscapeDevelopmentSession")).First(t=>t!=null);
+            var previous=type.GetProperty("Current").GetValue(null);
+            var root=new UnityEngine.GameObject("Campaign fall regression");root.SetActive(false);
+            var actor=new UnityEngine.GameObject("Player belonging to another loaded scene");
+            var preview=UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+            try
+            {
+                var component=root.AddComponent(type);
+                var body=new UnityEngine.GameObject("Escape content");body.transform.SetParent(root.transform,false);
+                type.GetField("content",flags).SetValue(component,body);
+                root.SetActive(true);
+                type.GetProperty("Current").SetValue(null,component);
+                type.GetProperty("IsCampaign").SetValue(component,true);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(actor,preview);
+                var method=policy.GetMethod("FallInjuriesSuppressed");
+                NUnit.Framework.Assert.That(method.Invoke(null,new object[]{actor.transform}),Is.True,"Campaign protection must not depend on a disabled development launcher or the player's original scene.");
+                NUnit.Framework.Assert.That(policy.GetMethod("FallConsequencesSuppressed").Invoke(null,new object[]{actor.transform}),Is.False,"Do not disable campaign balance or authored death zones to fix cannon injuries.");
+                body.SetActive(false);
+                NUnit.Framework.Assert.That(method.Invoke(null,new object[]{actor.transform}),Is.False,"Dormant additive content must not change another performance's fall rules.");
+                body.SetActive(true);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(root,preview);
+                NUnit.Framework.Assert.That(method.Invoke(null,new object[]{actor.transform}),Is.False,"Only the active escape space may suppress falls.");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);UnityEngine.Object.DestroyImmediate(actor);
+                type.GetProperty("Current").SetValue(null,previous);
+                UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(preview);
+            }
+        }
+    }
+}
+
+namespace CurtainCall.EscapeRoute.Tests
+{
+    public sealed class EscapeArrivalCameraHandoffTests
+    {
+        [Test]
+        public void TraversalPermanentlyReleasesArrivalViewEvenWhenStairExitWasSkipped()
+        {
+            var flags=BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
+            Type T(string name)=>AppDomain.CurrentDomain.GetAssemblies().Select(a=>a.GetType(name)).First(t=>t!=null);
+            var root=new GameObject("Arrival handoff fixture");root.SetActive(false);
+            try
+            {
+                var arrival=root.AddComponent(T("CurtainCall.EscapeRoute.EscapeSceneArrival"));
+                var camera=new GameObject("Shared camera");camera.transform.SetParent(root.transform,false);
+                var director=camera.AddComponent(T("CurtainCall.Cameras.CameraViewDirector"));
+                var view=AssetDatabase.LoadAssetAtPath<ScriptableObject>("Assets/Resources/Settings/Camera/FreeThirdPerson.asset");
+                director.GetType().GetMethod("RequestView").Invoke(director,new object[]{arrival,view,75,Vector3.zero});
+                arrival.GetType().GetField("cameraRequest",flags).SetValue(arrival,director);
+                var actor=new GameObject("Local pilot");actor.transform.SetParent(root.transform,false);
+                var player=actor.AddComponent(T("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+                var pilot=actor.AddComponent(T("CurtainCall.HumanCannon.HumanCannonPilot"));
+                pilot.GetType().GetProperty("IsFlying").SetValue(pilot,true);
+                var observe=arrival.GetType().GetMethod("ObserveApproachExit",flags);
+                observe.Invoke(arrival,new object[]{player});
+                Assert.That(arrival.GetType().GetField("reachedStairEnd",flags).GetValue(arrival),Is.True);
+                Assert.That(arrival.GetType().GetField("cameraRequest",flags).GetValue(arrival),Is.Null);
+                var requests=director.GetType().GetField("requests",flags).GetValue(director);
+                Assert.That(requests.GetType().GetProperty("Count").GetValue(requests),Is.EqualTo(0));
+                pilot.GetType().GetProperty("IsFlying").SetValue(pilot,false);
+                observe.Invoke(arrival,new object[]{player});
+                Assert.That(arrival.GetType().GetField("reachedStairEnd",flags).GetValue(arrival),Is.True,"Landing or a vanished rope cannot re-enable arrival framing.");
+            }
+            finally{Object.DestroyImmediate(root);}
+        }
+    }
+
+    public sealed class EscapeSharedSystemsTests
+    {
+        const BindingFlags Flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        static Type T(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
+        static object Call(object target, string name, params object[] args) => target.GetType().GetMethod(name, Flags).Invoke(target, args);
+
+        [Test]
+        public void ReboundHoldAndJumpGuidesReplaceEachOriginalTokenOnce()
+        {
+            var format = T("CurtainCall.UI.SceneIntegration.CommonInteractionUI").GetMethod("FormatControlLabels");
+            Assert.That(format.Invoke(null, new object[] { "F / F 홀드 · SPACE · Space로 도약 · W/S · A/D · FPS", "Space", "F", "F/G", "H/J" }),
+                Is.EqualTo("Space / Space 홀드 · F · F로 도약 · F/G · H/J · FPS"));
+        }
+
+        [TestCase(1)] [TestCase(2)] [TestCase(3)] [TestCase(4)]
+        public void ReleasedRosterCannotRegressToPendingOrChangeDuringTheSameDeparture(int count)
+        {
+            var root = new GameObject("Offline transfer protocol"); root.SetActive(false);
+            try
+            {
+                var transfer = root.AddComponent(T("CurtainCall.EscapeRoute.EscapeSceneTransfer"));
+                var snapshotType = transfer.GetType().GetNestedType("Snapshot", BindingFlags.NonPublic);
+                object Snapshot(int phase)
+                {
+                    var value = Activator.CreateInstance(snapshotType, true);
+                    snapshotType.GetField("generation").SetValue(value, 2);
+                    snapshotType.GetField("phase").SetValue(value, phase);
+                    snapshotType.GetField("participants").SetValue(value, Enumerable.Range(0, count).Select(i => (ulong)i).ToArray());
+                    snapshotType.GetField("positions").SetValue(value, new Vector3[count]);
+                    snapshotType.GetField("rotations").SetValue(value, Enumerable.Repeat(Quaternion.identity, count).ToArray());
+                    return value;
+                }
+                Assert.That(Call(transfer, "ApplySnapshot", Snapshot(1)), Is.True);
+                Assert.That(Call(transfer, "ApplySnapshot", Snapshot(2)), Is.True);
+                Assert.That(Call(transfer, "ApplySnapshot", Snapshot(1)), Is.False);
+                var changed = Snapshot(2);
+                snapshotType.GetField("participants").SetValue(changed, Enumerable.Range(10, count).Select(i => (ulong)i).ToArray());
+                Assert.That(Call(transfer, "ApplySnapshot", changed), Is.False);
+                Assert.That(transfer.GetType().GetProperty("Ready").GetValue(transfer), Is.True);
+                Assert.That(Call(transfer, "ApplySnapshot", Snapshot(2)), Is.True);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void RepeatedEquipmentSnapshotKeepsItsOriginalDeadlineAndRemainingUses()
+        {
+            var root = new GameObject("Offline carry snapshot"); root.SetActive(false);
+            try
+            {
+                var carry = root.AddComponent(T("CurtainCall.WaitingRoom.PropCarry"));
+                double now = (double)carry.GetType().GetProperty("EquipmentClock", Flags).GetValue(carry);
+                double until = now + 15;
+                string json = "{\"players\":[{\"client\":7,\"selectedUid\":19,\"held\":[{\"uid\":19,\"id\":\"rescue-gloves\",\"name\":\"gloves\",\"uses\":2}],\"cooldowns\":[{\"id\":\"rescue-gloves\",\"until\":"
+                    + until.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + "}]}]}";
+                Call(carry, "HandleState", json);
+                double Deadline() => (double)((IDictionary)carry.GetType().GetField("cooldownUntil", Flags).GetValue(carry))[(7UL, "rescue-gloves")];
+                Assert.That(Deadline(), Is.EqualTo(until));
+                Call(carry, "HandleState", json);
+                Assert.That(Deadline(), Is.EqualTo(until), "Receiving the same snapshot cannot restart its cooldown.");
+                object selected = Call(carry, "Selected", 7UL);
+                Assert.That(selected.GetType().GetProperty("Uid").GetValue(selected), Is.EqualTo(19));
+                Assert.That(selected.GetType().GetProperty("Uses").GetValue(selected), Is.EqualTo(2));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
+        [Test]
+        public void LostEquipmentReportRetriesUntilItsOwnAckAndHostProcessesItOnce()
+        {
+            var root = new GameObject("Offline equipment delivery"); root.SetActive(false);
+            try
+            {
+                var carry = root.AddComponent(T("CurtainCall.WaitingRoom.PropCarry"));
+                Call(carry, "HandleState", "{\"players\":[{\"client\":0,\"held\":[{\"uid\":21,\"id\":\"balloon-pants\",\"name\":\"pants\",\"uses\":4}]}]}");
+                Assert.That(Call(carry, "EquipmentReady", 0UL, "balloon-pants"), Is.True);
+                Call(carry, "ReportEquipmentUsed", "balloon-pants");
+                Assert.That(Call(carry, "EquipmentReportPending", "balloon-pants"), Is.True);
+                Assert.That(Call(carry, "EquipmentReady", 0UL, "balloon-pants"), Is.False, "An unacknowledged effect must not activate again while its report is being retried.");
+                var first = Call(carry, "NextEquipmentReport", 10d);
+                Assert.NotNull(first);
+                uint sequence = (uint)first.GetType().GetField("sequence").GetValue(first);
+                int generation = (int)first.GetType().GetField("generation").GetValue(first);
+                Assert.IsNull(Call(carry, "NextEquipmentReport", 10.1d));
+                Assert.That(Call(carry, "NextEquipmentReport", 10.3d), Is.SameAs(first));
+                Assert.That(Call(carry, "AcceptEquipmentReport", 7UL, sequence, generation), Is.True);
+                Assert.That(Call(carry, "AcceptEquipmentReport", 7UL, sequence, generation), Is.False);
+                Assert.That(Call(carry, "AcceptEquipmentReport", 8UL, sequence, generation), Is.True);
+                Call(carry, "AcknowledgeEquipmentReport", sequence + 1, generation);
+                Call(carry, "AcknowledgeEquipmentReport", sequence, generation + 1);
+                Assert.That(Call(carry, "NextEquipmentReport", 11d), Is.SameAs(first));
+                Call(carry, "AcknowledgeEquipmentReport", sequence, generation);
+                Assert.IsNull(Call(carry, "NextEquipmentReport", 12d));
+                Assert.That(Call(carry, "EquipmentReportPending", "balloon-pants"), Is.False);
+                Assert.That(Call(carry, "AcceptEquipmentReport", 7UL, sequence, generation), Is.False, "An old retry cannot consume after a cooldown has elapsed.");
+                Assert.That(Call(carry, "AcceptEquipmentReport", 7UL, sequence + 1, generation + 1), Is.False);
+            }
+            finally { Object.DestroyImmediate(root); }
         }
     }
 }

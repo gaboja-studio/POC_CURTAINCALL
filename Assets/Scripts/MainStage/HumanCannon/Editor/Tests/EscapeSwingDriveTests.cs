@@ -21,7 +21,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 for(int i=0;i<fps*2;i++)p.Step(ref angle,ref speed,p.SwingDrive(ref input,-1f,1f/fps),1f/fps,GameSettings.Base.Character.Gravity);
                 Assert.That(angle,Is.LessThan(-35));Assert.That(Mathf.Abs(angle),Is.LessThanOrEqualTo(50));Assert.That(Mathf.Abs(speed),Is.LessThanOrEqualTo(140));
                 Assert.That(p.SwingDrive(ref input,float.NaN,1f/fps),Is.Zero);
-                typeof(HumanCannonPole).GetField("continuousSwingInput",f).SetValue(p,false);input=default;for(int i=0;i<fps;i++)p.SwingDrive(ref input,1f,1f/fps);Assert.That(p.SwingDrive(ref input,1f,1f/fps),Is.Zero,"Other scenes keep the original impulse.");
+                typeof(HumanCannonPole).GetField("continuousSwingInput",f).SetValue(p,false);input=default;for(int i=0;i<fps;i++)p.SwingDrive(ref input,1f,1f/fps);Assert.That(p.SwingDrive(ref input,1f,1f/fps),Is.EqualTo(1),"Generated stunt poles use the same held input as escape poles.");
+                Assert.That(p.SwingDrive(ref input, 1, 0), Is.Zero);
             }finally{Object.DestroyImmediate(go);}
         }
     }
