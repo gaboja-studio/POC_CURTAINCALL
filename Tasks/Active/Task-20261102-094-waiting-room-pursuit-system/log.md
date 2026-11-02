@@ -68,6 +68,8 @@
 - 메인 b07e6d66: 폴더/파일 이동1611건·현재 배치/동선·설정·씬선택·에디터/카메라 수정 포함. 이동 meta808개의 GUID808/808 보존 확인. dev861fb672를9aa1ffa5로 병합; 씬/프리팹 충돌 없음. Characters/index 두 지식 링크를 모두 보존했고 submodule은 dev의 d5de413f를 포함하는051db4ab로 해결. Base/Pursuit 씬과 WaitingRoomSettings는 병합 전후 동일.
 - gh 계정 MoHoDu의 noreply 작성자 사용, force/reset/discard 없음. 비공개 branch와 원격051db4ab 일치 확인. 새 dev 자산 반영 후 Unity 재개방(PID48648); 다인 실기 미확인으로 초안 PR 준비.
 - 병합 후 Play5/5 PASS: 씬 선택1/1(18.23초), Start 인벤토리/ESC 재로딩1/1(19.20초), Base/Pursuit 카메라/숨김 패널3/3(21.73초). dev-merge-*-tests.json 보관. 테스트/에디터가 갱신한 공용/탈출로 TMP 글리프 캐시도 모든 변경 저장 요청에 포함. Start clean·Pursuit 선택 복원.
+- 최종 저장0fb9d56e까지 로컬 커밋 완료. 메인 push는 pre-push의 private main 포함 검사에서 중단(051db4ab는 private 작업 브랜치에만 업로드됨). private main으로의 fast-forward push 요청은 자동 승인 검토가 기본 브랜치에 해당 payload를 게시한다는 명시 승인이 없다는 이유로 거부했다. 검사를 우회하지 않음.
+- 검토 가능한 에셋 초안 PR18 생성/채팅 첨부: https://github.com/gaboja-studio/CURTAINCALL_PaidAssets/pull/18 (resource/waiting-room-pursuit-system → main, MERGEABLE). 이 PR의 main 반영 승인 후 게임 feature push·dev 초안 PR 생성 가능. dev PR 본문은 pr-description.md에 완성; 현재 게임 원격 feature 브랜치는 아직 없음.
 
 - 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
