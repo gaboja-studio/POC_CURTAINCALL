@@ -29,6 +29,7 @@ namespace CurtainCall.SpaceLink
                 case CampaignPhase.RestTime:
                 case CampaignPhase.DemoEnding:
                 case CampaignPhase.Dawn:
+                case CampaignPhase.Rehearsal: // 연습실은 대기실 씬 안에 있다(Task-097).
                 case CampaignPhase.Night: return SpaceId.WaitingRoom;
                 case CampaignPhase.Escape: return SpaceId.EscapeRoute;
                 default: return SpaceId.Hub; // 런 전·도입·엔딩

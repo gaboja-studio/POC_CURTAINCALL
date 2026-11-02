@@ -415,3 +415,37 @@ target.structure-a:uv-1-clue.name | 숨겨진 단서 1
 target.structure-a:uv-1.name | 숨겨진 단서 1 — UV
 target.structure-a:uv-3.name | 숨겨진 단서 — UV
 target.structure-a:uv-password-prefix.name | 숨겨진 단서 — UV
+
+# ── 최초 리허설 (연습실, Task-097) ──
+# {votes} 포기 표 수, {total} 투표 인원, {seconds} 남은 초, {inside} 통로에 모인 인원, {alive} 살아 있는 인원
+rehearsal.intro-title | 최초 리허설
+rehearsal.intro | 공연 전에 연습실에서 외줄 조작과 협동을 익힙니다. 추락해도 대가 없이 그 구간 출발대에서 다시 시작합니다. 리허설 동안 탐색 시계는 흐르지 않습니다.
+rehearsal.fall-title | 추락
+rehearsal.fall | 대가는 없습니다. 이 구간 출발대에서 다시 시작합니다.
+rehearsal.complete-title | 리허설 완료
+rehearsal.complete | 바닥의 점선을 따라 무대 입구 통로로 가세요. 모든 공연 준비자가 모이면 첫 공연이 시작됩니다.
+rehearsal.abandoned-title | 리허설 포기
+rehearsal.abandoned | 연습실 밖으로 나왔습니다. 공연에 가려면 리허설을 마쳐야 합니다. 연습실 링으로 다시 들어가면 마친 구간 다음부터 이어서 합니다.
+rehearsal.gather-title | 리허설 완료 · 무대로
+rehearsal.giveup-title | 리허설 포기
+rehearsal.giveup | 통로에서 F를 길게 누르면 포기에 표를 던집니다(다시 누르면 철회). 전원이 포기하면 바로, 과반수가 포기하면 30초 뒤 연습실 밖으로 나갑니다.
+rehearsal.giveup-voted | 포기에 표를 던졌습니다. 다시 F를 길게 누르면 철회합니다.
+rehearsal.giveup-withdrawn | 포기 표를 철회했습니다.
+rehearsal.giveup-votes | 포기 투표 {votes}/{total}
+rehearsal.giveup-countdown | 포기 투표 {votes}/{total} · {seconds}초 뒤 종료
+# 우측 퀘스트 패널
+rehearsal.quest.fallen | 추락했습니다. 잠시 뒤 출발대에서 다시 시작합니다.
+rehearsal.quest.wait-team | 도착! 동료가 모두 도착할 때까지 기다리세요.
+rehearsal.quest.arrived | 도착! 곧 다음 단계로 넘어갑니다.
+rehearsal.quest.balance | W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.
+rehearsal.quest.lane-jump | Q, E + Space를 이용해 건너편 줄로 넘어가세요.
+rehearsal.quest.finish | 줄을 따라 도착대까지 가세요.
+rehearsal.quest.swing-approach | 인간 그네에 탑승하세요. (줄 끝에서 F)
+rehearsal.quest.swing-release | Space를 누르면 줄을 놓습니다. W, S로 그네를 조작해 건너편 줄로 넘어가세요.
+rehearsal.quest.relay-grab | 바깥 줄 끝의 트리거 그네를 F로 잡으면 동료의 줄이 이어집니다. 한 명은 잡고, 나머지는 건너세요.
+rehearsal.quest.relay-hold | 잡고 있는 동안 동료의 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.
+rehearsal.quest.relay-move | 이어진 줄(실선)로 Q/E + Space로 옮겨 건너세요.
+rehearsal.quest.relay-cross | 줄이 이어졌습니다. 끊긴 구간을 지나 건너편으로 가세요.
+rehearsal.quest.relay-far | 도착대로 가거나, 건너편 트리거 그네를 F로 잡아 남은 동료의 줄을 이어 주세요.
+rehearsal.quest.gather | 점선을 따라 무대 입구 통로로 가세요. 전원 {inside}/{alive}이 모이면 공연이 시작됩니다.
+rehearsal.quest.gathered | 무대 입구 통로에 모였습니다 {inside}/{alive}. 동료를 기다리세요.

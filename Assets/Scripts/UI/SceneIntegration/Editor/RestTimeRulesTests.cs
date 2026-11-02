@@ -15,6 +15,11 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.IsTrue(run.EndIntro());
             Assert.IsTrue(run.EndPerformance());
             Assert.AreEqual(CampaignPhase.RestTime, run.Snapshot.Phase);
+            // Task-097: 1일차 가이드 쉬는 시간만 전원 tutorial 완료를 기다린다.
+            Assert.AreEqual(RestTimerState.WaitingForExit, run.Snapshot.Timer);
+            Assert.IsFalse(run.Tick(1f), "tutorial 전에는 흐르지 않는다");
+            Assert.IsTrue(run.SetTutorialDone(0));
+            Assert.IsTrue(run.RefreshGuideRest(new ulong[] { 0 }));
             Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer);
             float before = run.Snapshot.TimeRemaining;
             Assert.IsTrue(run.Tick(1f));
@@ -34,6 +39,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                 run.StartSession();
                 run.EndIntro();
                 run.EndPerformance();
+                run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 }); // 가이드 쉬는 시간은 tutorial 뒤에 흐른다(Task-097)
                 Assert.IsTrue(run.Tick(10000f, step => RestTimeoutCatch.ServerHandleExpired(step)));
                 Assert.AreEqual(1, calls);
                 Assert.AreEqual(CampaignPhase.RestTime, seen.Phase, "공연으로 넘어가기 전 쉬는 시간 상태로 처리한다");

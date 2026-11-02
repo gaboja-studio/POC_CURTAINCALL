@@ -108,7 +108,10 @@ namespace CurtainCall.WaitingRoom
             Count();
 
             var run = CampaignRun.Instance;
-            if (run == null || !run.HasAuthority || run.State.Phase != CampaignPhase.RestTime)
+            // 최초 리허설(Task-097): 리허설을 다 마친 뒤 전원이 모이면 첫 공연으로 간다.
+            bool rehearsal = run != null && run.State.Phase == CampaignPhase.Rehearsal;
+            if (run == null || !run.HasAuthority || (run.State.Phase != CampaignPhase.RestTime && !rehearsal)
+                || (rehearsal && !WaitingRoomRehearsal.IsCompleted))
             {
                 notified = false;
                 return;

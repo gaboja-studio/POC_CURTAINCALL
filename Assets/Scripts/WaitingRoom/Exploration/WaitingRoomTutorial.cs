@@ -189,12 +189,34 @@ namespace CurtainCall.WaitingRoom
         void OnSceneChanged(Scene scene, LoadSceneMode mode) => sceneDirty = true;
         void OnSceneUnloaded(Scene scene) => sceneDirty = true;
 
+        /// <summary>가이드 연계 안내가 끝나지 않아도 쉬는 시간 시작 뒤 이 시간(초)이 지나면 tutorial 완료로 알린다(타이머가 영영 멈추지 않게).</summary>
+        const float TutorialDoneFallbackSeconds = 120f;
+        string tutorialDoneKey = "";
+
+        /// <summary>
+        /// 가이드 쉬는 시간의 대기실 tutorial(연계 G01·G11)을 마쳤으면 호스트에 알린다(Task-097: 전원이 마쳐야 탐색 타이머가 흐른다).
+        /// 안내를 껐거나 이미 본 런이면 바로 알린다. 시간대마다 한 번.
+        /// </summary>
+        void ReportTutorialDone(CampaignRun run, in CampaignSnapshot s)
+        {
+            if (s.Phase != CampaignPhase.RestTime || s.Rest != RestKind.Guide || s.Timer != RestTimerState.WaitingForExit) return;
+            string key = s.Generation + "/" + s.Day;
+            if (key == tutorialDoneKey) return;
+            bool done = !Enabled || (Book.IsDone(RestChain[0]) && Book.IsDone(RestChain[^1]) && !sequence)
+                || Time.time - restStartedAt >= TutorialDoneFallbackSeconds;
+            if (!done) return;
+            if (run.NotifyTutorialDone()) tutorialDoneKey = key;
+        }
+
         void Update()
         {
             var run = CampaignRun.Instance;
             if (run == null) return;
             var s = run.State;
+            ReportTutorialDone(run, s);
             if (s.Phase == CampaignPhase.Performance) WatchTeammates();
+            // 리허설(Task-097) 동안은 리허설 진행이 가이드 패널을 쓴다. 여기서 닫지 않는다.
+            if (s.Phase == CampaignPhase.Rehearsal) { todo.Hide(); lastHeldCount = -1; return; }
             if (!Enabled) { HidePanel(); todo.Hide(); return; }
             if (sceneDirty)
             {
@@ -420,7 +442,14 @@ namespace CurtainCall.WaitingRoom
         }
         void OnInspected(ClueInspectable clue) { Book.Enqueue("G04"); Book.Enqueue("G07"); }
         void OnUvFound(UvMark mark) => Book.Enqueue("G07");
-        void OnRevived(NetworkPlayer player) { if (player != null && player.IsLocal) pendingRevived = true; }
+        // 리허설 추락 복구(Task-097)는 부활이 아니다.
+        void OnRevived(NetworkPlayer player)
+        {
+            if (player == null || !player.IsLocal) return;
+            var run = CampaignRun.Instance;
+            if (run != null && run.State.Phase == CampaignPhase.Rehearsal) return;
+            pendingRevived = true;
+        }
 
         void RefreshKeys()
         {
