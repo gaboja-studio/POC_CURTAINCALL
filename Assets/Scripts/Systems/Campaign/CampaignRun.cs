@@ -142,7 +142,7 @@ namespace CurtainCall.Campaign
                 return false;
             }
             offlineRun = true;
-            host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.GameSettings.WaitingRoom.Pursuit.Enabled);
+            host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled);
             host.StartSession();
             Apply(host.Snapshot);
             return true;
@@ -429,7 +429,7 @@ namespace CurtainCall.Campaign
 
             if (gameState == GameSessionState.Playing && host == null)
             {
-                host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.GameSettings.WaitingRoom.Pursuit.Enabled);
+                host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled);
                 host.StartSession();
                 Apply(host.Snapshot);
             }

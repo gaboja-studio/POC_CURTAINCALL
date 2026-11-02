@@ -146,7 +146,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 using (new EditorGUILayout.VerticalScope()) {
                     var area = GUILayoutUtility.GetRect(300, 300, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                     DrawLiveMap(area);
-                    GUILayout.Label("드래그: 자유 모드로 화면 이동 · 휠: 확대 · 마네킹 클릭: 상세 · F: 방 맞춤", EditorStyles.helpBox);
+                    GUILayout.Label("드래그: 자유 모드로 화면 이동 · 휠: 확대 · 마네킹 클릭: 상세 · 더블클릭: Scene 보기 · F: 방 맞춤", EditorStyles.helpBox);
                 }
                 using (new EditorGUILayout.VerticalScope(GUILayout.Width(230))) DrawLiveActorDetails();
             }

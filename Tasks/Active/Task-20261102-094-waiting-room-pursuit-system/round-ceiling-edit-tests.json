@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "duration": 0.05,
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraEditorPipelineTests.CameraMeshSurface_PreservesEmptySpaceAndSweepsFacesEdgesAndCorners(False)",
+      "Status": "Passed",
+      "Duration": 0.010398,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraEditorPipelineTests.CameraMeshSurface_PreservesEmptySpaceAndSweepsFacesEdgesAndCorners(True)",
+      "Status": "Passed",
+      "Duration": 0.0006154,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraEditorPipelineTests.CameraOnlySurface_HandlesScaleRotationRadiusAndStartingInside(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0010896,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraEditorPipelineTests.CameraOnlySurface_HandlesScaleRotationRadiusAndStartingInside(37.0f)",
+      "Status": "Passed",
+      "Duration": 0.0002754,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraEditorPipelineTests.EditModePipeline_DoesNotApplyRuntimeViewsBeforeAwake(False)",
+      "Status": "Passed",
+      "Duration": 0.0078746,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraEditorPipelineTests.EditModePipeline_DoesNotApplyRuntimeViewsBeforeAwake(True)",
+      "Status": "Passed",
+      "Duration": 0.0020423,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

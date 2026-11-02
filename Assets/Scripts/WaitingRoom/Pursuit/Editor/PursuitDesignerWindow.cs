@@ -32,13 +32,23 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             var window = GetWindow<PursuitDesignerWindow>("추격자 배치");
             window.minSize = new Vector2(1060, 700); window.Show(); return window;
         }
+        public static void NotifyRouteRemoved(PursuitPlacement item)
+        {
+            foreach (var window in Resources.FindObjectsOfTypeAll<PursuitDesignerWindow>()) {
+                if (window.selected == item) { window.pointIndex = -1; window.addPoint = false; }
+                window.ShowNotification(new GUIContent($"{item.name}: 순찰 경로에서 {item.RouteDetachDistance:0.#}m를 초과하여 동선이 제거되었습니다."), 3);
+                window.Repaint();
+            }
+        }
         void OnEnable()
         {
+            SubscribePreviewLifetime();
             EditorApplication.update += Tick; Undo.undoRedoPerformed += Changed;
             EditorApplication.playModeStateChanged += PlayChanged; Refresh();
         }
         void OnDisable()
         {
+            UnsubscribePreviewLifetime();
             EndPan();
             EditorApplication.update -= Tick; Undo.undoRedoPerformed -= Changed;
             EditorApplication.playModeStateChanged -= PlayChanged; Cleanup();
@@ -57,7 +67,15 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         }
         void Refresh()
         {
-            if (director == null) director = FindFirstObjectByType<PursuitDirector>();
+            var active = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            if (!EditorApplication.isPlaying && director != null && director.gameObject.scene != active) {
+                Cleanup(); director = null;
+            }
+            if (director == null) {
+                if (previews.Count > 0 || previewCamera != null || texture != null) Cleanup();
+                director = FindObjectsByType<PursuitDirector>(FindObjectsSortMode.None)
+                    .FirstOrDefault(d => EditorApplication.isPlaying || d.gameObject.scene == active);
+            }
             rooms = director != null && director.Rooms != null ? director.Rooms.Where(r => r != null).ToArray() : Array.Empty<PursuitRoom>();
             roomIndex = Mathf.Clamp(roomIndex, 0, Mathf.Max(0, rooms.Length - 1));
         }
@@ -129,7 +147,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                     }
                     Rect viewport = GUILayoutUtility.GetRect(300, 300, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                     DrawTopView(viewport);
-                    GUILayout.Label(addPoint ? "감시 지점: 바닥 클릭 · 중클릭 드래그로 화면 이동 · Esc 종료" : "빈 곳 좌클릭 / 중클릭 드래그: 화면 이동 · 마커 드래그: 편집 · 휠: 확대 · F: 방 맞춤", EditorStyles.helpBox);
+                    GUILayout.Label(addPoint ? "감시 지점: 바닥 클릭 · 중클릭 드래그로 화면 이동 · Esc 종료" : "빈 곳 좌클릭 / 중클릭 드래그: 화면 이동 · 마커 드래그: 편집 · 더블클릭: Scene 보기 · 휠: 확대 · F: 방 맞춤", EditorStyles.helpBox);
                 }
                 using (new EditorGUILayout.VerticalScope(GUILayout.Width(305))) {
                     inspectorTab = GUILayout.Toolbar(inspectorTab, new[] { "선택 / 순찰", "단계 / 연출" });
@@ -187,6 +205,9 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 if (GUILayout.Button("마네킹 제거")) { pointIndex = -1; RemoveSelection(); GUIUtility.ExitGUI(); }
             }
             GUILayout.Space(12); GUILayout.Label("감시 지점 · 순서대로 반복 순찰", EditorStyles.boldLabel);
+            var placementSO = new SerializedObject(selected);
+            EditorGUILayout.PropertyField(placementSO.FindProperty("RouteDetachDistance"), new GUIContent("동선 자동 해제 거리 (m)", "가장 가까운 순찰 선분까지의 거리. 0은 자동 해제 안 함."));
+            placementSO.ApplyModifiedProperties();
             addPoint = GUILayout.Toggle(addPoint, "＋ 바닥 클릭으로 감시 지점 추가", "Button");
             var points = selected.PatrolPoints;
             if (points == null || points.Length == 0) EditorGUILayout.HelpBox("감시 지점이 없으면 시작 위치에서 대기합니다. 1개면 해당 위치를 지키고, 2개 이상이면 순서대로 순환합니다.", MessageType.None);

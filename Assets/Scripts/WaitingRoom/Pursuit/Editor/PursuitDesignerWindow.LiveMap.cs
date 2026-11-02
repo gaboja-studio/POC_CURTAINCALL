@@ -74,7 +74,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                     float d = Vector2.Distance(e.mousePosition, Project(actor.transform.position, viewBounds, canvas));
                     if (d < distance) { closest = actor; distance = d; }
                 }
-                if (closest != null) { liveSelectedActor = closest; e.Use(); picked = true; }
+                if (closest != null) { liveSelectedActor = closest; if (e.clickCount == 2) FrameInScene(closest.gameObject, closest.gameObject); e.Use(); picked = true; }
             }
             if (!picked) HandleMapInput(canvas);
             GUI.EndClip();

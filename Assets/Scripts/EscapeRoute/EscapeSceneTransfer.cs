@@ -76,8 +76,11 @@ namespace CurtainCall.EscapeRoute
                     if (player != null && player.IsSpawned && player.OwnerClientId == ids[i]) { member = player; break; }
                 if (member == null || !channel.IsConnected(ids[i])) return false;
                 next.participants[i] = ids[i];
-                next.positions[i] = source.InverseTransformPoint(member.transform.position);
-                next.rotations[i] = Quaternion.Inverse(source.rotation) * member.transform.rotation;
+                bool caught = CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(member);
+                next.positions[i] = caught
+                    ? CurtainCall.WaitingRoom.Pursuit.PursuitDirector.ArrivalLocal(source.GetComponent<BoxCollider>(), i, ids.Count)
+                    : source.InverseTransformPoint(member.transform.position);
+                next.rotations[i] = caught ? Quaternion.identity : Quaternion.Inverse(source.rotation) * member.transform.rotation;
             }
             snapshot = next;
             retryAt = Time.unscaledTime + 10;

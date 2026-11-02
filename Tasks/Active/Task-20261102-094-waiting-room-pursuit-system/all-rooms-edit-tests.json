@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 3.38,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.WaitingRoomCameraCoverageTests.SavedMap_StructuralFacesBlockBothSidesAndPassagesRemainHollow(\"0ce9037bd7c44c8b9d57785c26620388\")",
+      "Status": "Passed",
+      "Duration": 1.6366436,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.WaitingRoomCameraCoverageTests.SavedMap_StructuralFacesBlockBothSidesAndPassagesRemainHollow(\"9d8832c4cb77f9343a74c3dc35c1d3a3\")",
+      "Status": "Passed",
+      "Duration": 1.720182,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

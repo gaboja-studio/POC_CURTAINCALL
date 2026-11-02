@@ -180,6 +180,17 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                     } else ShowNotification(new GUIContent("바닥 위에 감시 지점을 추가해 주세요."));
                     e.Use(); return;
                 }
+                if (e.clickCount == 2) {
+                    var hit = VisiblePlacements()
+                        .OrderBy(p => Vector2.Distance(e.mousePosition, Project(p.transform.position, viewBounds, rect)))
+                        .FirstOrDefault(p => Vector2.Distance(e.mousePosition, Project(p.transform.position, viewBounds, rect)) < 18);
+                    if (hit != null) {
+                        SelectPlacement(hit); pointIndex = -1; dragging = false; dragUndo = -1;
+                        if (!previews.ContainsKey(hit)) PreparePreview(rect);
+                        FrameInScene(hit.gameObject, previews.TryGetValue(hit, out var model) ? model : null);
+                        e.Use(); return;
+                    }
+                }
                 pointIndex = -1;
                 if (selected != null) for (int i = 0; i < selected.PatrolPoints.Length; i++)
                     if (selected.PatrolPoints[i] != null && OnActiveFloor(selected.PatrolPoints[i].position) && Vector2.Distance(e.mousePosition, Project(selected.PatrolPoints[i].position, viewBounds, rect)) < 14) { pointIndex = i; break; }

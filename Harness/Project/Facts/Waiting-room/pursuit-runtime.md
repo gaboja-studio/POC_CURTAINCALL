@@ -10,8 +10,8 @@ source: Task-20261102-094, Unity CLI 및 Blender MCP 제작/플레이 확인
 ## 언제 읽나
 추격 배치/설정/모션을 조절하거나, 문을 연 뒤에도 추격자가 통과하지 못하는 문제를 조사할 때.
 
-- 씬은 `Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity`. 원본 WaitingRoomBase는 보존했다. 현재 BaseGameSettings의 대기실/탐색 진입점과 음성 허용 목록·Build Settings는 복제 씬을 가리킨다.
-- `WaitingRoomSettings.asset`의 Pursuit/Stages: 단계 시작 초·시야·순찰 속도·추격 배율·벽 투시·최인접 상시 추격·문구. Enabled가 런 생성 시 새 만료 흐름을 선택하며, 나머지 값은 실행 중 읽는다.
+- 추격 씬은 `Assets/Scenes/InGame/WaitingRoom/WaitingRoomPursuit.unity`. `Tools/Dev Mode/대기실 씬 설정` 또는 BaseGameSettings/SpaceTransition/Waiting Room Variant로 Base/Pursuit 선택(기본 Base). 런 재시작 후 호스트가 실제 로드, Dev 시작·탐색도 동일 설정을 사용. 두 씬 모두 빌드 유지, 로그/카메라/공통 UI/음성은 두 씬을 대기실로 인식한다.
+- `WaitingRoomSettings.asset`의 Pursuit/Stages: 단계 시작 초·시야·순찰 속도·추격 배율·벽 투시·최인접 상시 추격·문구. Pursuit 씬 선택과 Enabled가 런 생성 시 새 만료 흐름을 선택하며, 나머지 값은 실행 중 읽는다.
 - Hierarchy `PursuitSystem`: 26개 영역 중 탐색 영역 11곳 기본 1체. 현재 씬은 PursuitRoom.UsePlacements/Placements → PursuitPlacement의 타입/Transform/개별 PatrolPoints를 사용한다. 이전 Count/SpawnPoints/PatrolPoints는 이전 씬 호환용으로 보존한다.
 - 코드: `Assets/Scripts/WaitingRoom/Pursuit/`. Director는 호스트 AI/포획·NGO 주기 스냅샷, Actor는 내비게이션/모션/상체 방향, VictimPose는 피해자 연출/입력 잠금/가림.
 - 정적 FBX 10종(원본은 뼈대 없음)을 Blender에서 15-bone 파생 리그로 만들었다. FBX10·모션70·프리팹10·NavMesh·제작 원본은 모두 `Assets/_ThirdParty/curtaincall/Pursuit/`.
@@ -38,3 +38,9 @@ source: Task-20261102-094, Unity CLI 및 Blender MCP 제작/플레이 확인
 - 탑뷰는 빈 곳 좌클릭/중클릭 드래그로 이동하며, 선택 층에서 중심 X/Z를 포함하는 가장 작은 방을 자동 타겟한다. 타겟 변경과 카메라 맞춤을 분리하여 이동/확대가 튀지 않게 한다. 방 밖은 타겟 없음, F는 마지막 방 맞춤. 전체 배치 수는 개별 Placement 중복을 제거한 합계와 이전 Count 방식 방의 합계를 더하며 Play 실행 개수와 구분한다.
 - Play 배치 창은 Live/LiveMap partial의2D 관찰 전용 UI로 전환한다. PreparePreview는 Play/진입 중 즉시 반환하고 전환 때 카메라/RenderTexture/복제 모델을 정리한다. 보이는 탭만10Hz Tick, 방/플레이어 목록·고정 층 기준은1초 캐시. 팔레트 AssetPreview·SerializedObject 설정 UI를 그리지 않는다.
 - 플레이어 추적은 NetworkPlayer.Local 기본, 전체 플레이어/오프라인 목록 선택을 지원한다. 위치·층·중심 방을 함께 추적하고 드래그/방·층 선택 시 자유 모드. 대상 소멸 시 자동 로컬 선택, 씬 전환 중 대기 후 복귀. 선택 Actor만 경로/시야/추격선을 표시하며 전체 행동 이름은 선택 옵션이다.
+
+- 대기실 설정/추격 저작 도구는 WaitingRoomScenes의 GUID 경로를 읽는다. Unity에서 .meta를 유지한 폴더 이동 시 자동 추적. 배치 탑뷰 마네킹 더블클릭은 Hierarchy 선택 후 Scene 뷰에서 모델을 근접 표시(순찰 지점 범위 제외); Scene 뷰 확인 조명을 사용한다.
+
+- Scene/Inspector/탑뷰에서 Placement 이동 시 순찰 월드 위치 유지. RouteDetachDistance 기본10m(0=자동 해제 안 함), 닫힌 순찰 선분까지3D 거리 초과 시 해당 경로 제거·3초 알림. 공용 경로는 해당 Placement 연결만 해제. Scene Transform 후처리의 자식 삭제는 부모 Undo flush에 주의하며 CompleteUndo로 이전 자세를 보존한다.
+
+- HideAndDontSave 미리보기는 씬 언로드만으로 사라지지 않는다. PreviewLifetime이 편집 씬 전환/닫힘·어셈블리 리로드·에디터 종료에 Cleanup하며 숨긴 탭도 적용. 편집 Director는 활성 씬에서만 조회한다. 같은 씬에서는 Scene 뷰 배치 확인용 미리보기를 유지한다.

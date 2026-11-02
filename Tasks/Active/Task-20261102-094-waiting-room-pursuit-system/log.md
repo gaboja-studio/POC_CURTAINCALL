@@ -1,42 +1,68 @@
 # Log
 
-## 2026-11-03 Play 배치 창 경량화·플레이어 추적
-- 기존 PreparePreview가 Play의 Repaint마다 전체 씬 Camera.Render를 호출했고 RenderTexture/팔레트 AssetPreview/SerializedObject UI도 유지했다. Play 전용2D Live/LiveMap으로 분리, Play 진입 중에도 PreparePreview 즉시 반환. 카메라·RT·복제 모델 해제, 숨긴 탭 Tick 중단, 보이는 창10Hz·방/층/플레이어 검색1초 캐시.
-- 고정 벽/기둥 BoxCollider 윤곽은 씬마다1회 읽어2D 사각형으로 표시한다. 동적 문·가구는 추가하지 않음. 플레이어는 초록 마커, 선택 Actor에만 시야·경로·추격 연결선 표시. 오른쪽 행동/대상/렌더 관찰 목록과 전체 이름 옵션 제공.
-- 기본 내 플레이어 추적, 목록으로 대상 선택. 위치/층/중심 방 자동 추적, 드래그·방/층 선택·F는 자유 모드로 전환하며 중심 유지. 대상 소멸 시 자동 로컬 복귀, 대기실 없음은 대기 표시. 편집 모드3D 기능 보존.
-- Play 회귀1/1 PASS(12.42초): 실제 호스트·로비/기계실 층 이동·미리보기 Camera/RT/복제0·고정 벽 캐시·중클릭 팬 후 자유 모드 유지·관찰 대상 교체/소멸·숨김 Tick 중단. 다른 플레이어 선택은 Transform fixture이며 실제 다인 수신 실기는 미검증. warm TickLive100회 평균 .152ms/회(리플렉션 포함), 전체게임FPS/OnGUI draw GPU 비교 수치는 아님. designer-live-play-tests.json.
-- 편집 층 회귀3/3 PASS(.23초, designer-live-floor-tests.json): 이동/삭제 후 층 안정, 층/마커 필터, 방 전환/카메라 위아래 절단. 새 Runtime 게임 코드·씬 데이터 수정 없음.
-- 재개 당시 Play 정지/씬 clean 확인 후 정상 종료·fetch 성공. 기존 카메라 수정 포함6파일로 ff-only 중단·변경 보존, PID5764 재개방. 동일Task doctor는 반복하지 않음. 길어진 완료 계획/todo/log는 History002~004에 원문 비교 후 보존, 현재 결정·다인 미검증 유지.
+- 이전 Play 관찰·카메라·부상·배치 기록: [History005](History/005-camera-and-live-followup-log.md).
 
-- 실제 창 검토: 프레임2498→7673 진행, 고정 윤곽489개 캐시. 추적 위치 일치·Actor 선택 후 행동/시야/3점 경로 확인. 빈 지도 드래그 후 follow=false·중심과 플레이어 분리, 전용 Camera/RT 각각0(designer-live-ui-review.json). 실제 FPS/전체 메모리 전후 비교는 미측정. Play 종료·창 최대화 해제·추적 기본 복원, Pursuit 씬 재개방 clean/24체 보존.
+## 2026-11-03 대기실 씬 선택
+- 사용자 이동 상태(InGame Start/Lobby/Pursuit 및 대량 에셋 이동)를 보존. 에디터 clean/정지 후 정상 종료, origin/dev fetch 성공. 현재 커밋과 dev가 갈라져 ff-only 중단; 이후 dev 병합은 사용자 의도대로 별도 진행. 동일 Task doctor 반복 없음, PID10344 재개방.
+- BaseGameSettings/SpaceTransition.waitingRoomVariant(Base 기본/Pursuit)로 대기실·통합 탐색 경로 선택, 기존 커스텀 더미 씬 문자열 호환 유지. Tools/Dev Mode/대기실 씬 설정 창·Dev 시작 패널 대상 표시. 호스트 SpaceRoute로 로드하므로 클라이언트 개인 설정이 로드를 바꾸지 않음.
+- 공통 대기실 판정을 카메라/인벤토리/ESC/로그/설문/음성 및 진입 성능 관찰에 연결. PursuitAuthoring은 이동된 InGame 경로. Base는 기존 타이머 흐름, Pursuit만 Enabled와 함께 추격 런 규칙을 사용. Base 전용 저작 도구·튜토리얼 씬 원문은 변경 없음.
+- Edit3/3 PASS(.07초): 양쪽 라우팅·에셋/빌드·음성·커스텀 경로. 실제 호스트 Dev 시작 Base→Pursuit Play1/1 PASS(19.54초): UI 단일 인스턴스·카메라·로그 분류·설정 전환. 원격 클라이언트 씬 선택 실기는 미검증.
+- Start→Pursuit 2회 재로드 ESC/인벤토리 Play1/1 PASS(20.38초). 회귀는 테스트별 씬 선택을 메모리에서 설정·복원하여 공유 설정에 의존하지 않도록 보완. 설정 창 열림/SerializedObject 속성 확인, 현재 Base 선택 저장·대기실/탐색 Base·추격 false·Start 씬 clean/Play 정지. 자동 회귀 고유5개 통과, 실제 다인 원격 수신은 미검증.
 
-## 2026-11-03 카메라 긴급 수정·추격 조정
-- 시작 Play 정지/추격 씬 clean, 정상 종료 후 origin/dev fetch 성공·기존5파일 때문에 ff-only 중단(변경 보존). 같은 워크트리 PID23168 재개방. 동일 Task doctor 재실행 없음.
-- 원인1: UsesWallCollision이 WaitingRoomBase만 인정해 복제 씬 스프링 암/고정 구조물 fade 제외가 꺼짐. Pursuit 씬 추가. 수정 전 실제 씬+호스트 회귀에서 벽 앞 카메라 거리5.172m로 실패(pursuit-camera-before-tests.json). 수정 후 원본/추격 씬 벽·천장·장애물 제거 후 점진 복귀2/2 PASS(16.93초).
-- 원인2: 실제 숙소·기계실·복도 천장의 렌더 메시만 있고 Collider 없음. 추격 씬 평면 천장/지붕40곳에 Mesh.bounds 기반 CameraCollisionSurface OBB 추가, 스프링 암 반경/패딩 확장 후 거리 제한. 물리/NavMesh Collider 추가0, 원본 씬 수정 없음. 실제 숙소 천장+벽/천장 회귀2/2 PASS(17.13초, pursuit-ceiling-play-tests.json). 사용자24체 위치/회전 before JSON과 동일, 씬 clean.
-- 단계 설정에 현재 온전한 플레이어 걷기3/달리기6m/s 표시, 공통 시야 상실 유예 노출. 단계별 PatrolLeashDistance(0=기존 무제한) 추가: 닫힌 순찰 경로의 선분까지3D 최단 거리, 경로 없으면 최초 배치점. 추격자/타겟 이탈 시 Return, 복귀 중 소리/재탐지 금지, 도착 후 재개. AlwaysNearest도 제한 준수. 사용자 단계값은 변경하지 않음.
-- Behavior PlayMode3/3 PASS(43.79초): 기존 청각/수색/가림/포획 유혈 및 신규 경계 이탈·최인접 예외·복귀·재추격·0해제(patrol-leash-play-tests.json). 경로 중간/층 높이/빈 경로 fallback/단계 독립 Edit1/1 PASS(.02초). 실제 설정 창에서 두 속도와 이탈 설정 가독성 확인. 다인 원격 실기 및 전체 맵 수동 카메라 주행은 미검증.
-- 카메라 전용 OBB는 직육면체 구조물에만 적용하며 구멍/곡면 메시 전체를 박스로 대체하지 않는다. Characters/기존 부상 수정은 보존. commit/push 없음.
-- OBB 회전0°/37°·비균일 크기·반경·시작점 겹침·빗나감 Edit2/2 PASS(.4초, camera-surface-edit-tests.json). 이번 묶음 고유 회귀9개 통과, verify-knowledge OK.
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+- check-work 첫 실행은 새 설정 필드 앞 빈 줄 공백으로 diff-check 실패, 컴파일 검사는 선행 실패로 생략됨. 공백 제거 후 최종 검사 재실행.
 
-## 2026-11-03 부상 후 공연에서 부유
-- 접수 당시 Play 정지/추격 씬 clean. 정상 종료 후 origin/dev fetch 성공, 기존5파일 변경 보호로 ff-only 중단. 동일 워크트리 PID46776 재개방. doctor는 같은 Task에서 이미 실행하여 반복하지 않음.
-- 회귀로 재현: 포획 후 Tightrope에서 rootY=.08/hipsY=.96, ItemCrawl_Cut3 요청이나 transition=true·Animator.speed=.0001. 기존 메시 검사는 통과했지만 새 정지 자세 검사가 실패(수정 전1/2, capture-grounding-before-tests.json).
-- 원인: 정지용 애니메이터 속도가 CrossFade 진행도 늦춰 서 있던 자세가 남음. HumanoidModel.Play에서 .001 이하 속도의 새 모션은 즉시 Play+Update(0)로 샘플링. 포획 해제는 Animator 복원 후 현재 부상 Apply(spawn=false)로 높이 복원. 토끼 offset0이라 직접 원인은 전환이며 -.05 모델 높이도 추가 회귀로 보호.
-- PlayMode 최종2/2 PASS(37.81초, capture-grounding-after-tests.json). 각 시나리오2회 반복: 높이·메시/가림 유지, 호스트 포획→공연에서 부상13/Normal·Pose 제거·기어가기 전환 종료·접지·허리 높이 검사. 수정 후 동일rootY=.08/hipsY=.28/transition=false. 다인 원격 수신 실기는 이번 범위 미검증.
-- 기존 에셋/씬 배치 수정·commit/push 없음. Characters 기존 포획 함정 문서에 정지 전환/높이 복원 원인 추가, verify-knowledge OK.
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
-## 2026-11-03 드래그 층 이탈·추격 전 아웃라인
-- 사용자 상태 재현: 숙소 마네킹 Y1.915를 층으로 사용해 숙소가2m 층으로 변하며0m 필터에서 방/프리뷰/마커가 사라짐. F8_Cargo도Y1.073으로1m 층이 됨. 고정 방 순찰 중앙값→스폰→볼륨 하단으로 층/지면 기준 통일, 가변 배치 높이/가구 ray 결과로 층을 추정하지 않도록 수정.
-- 단일 스폰도 연습실의 .666m 가구 위일 수 있어 여러 공용 순찰 지점 중앙값을 우선한다. 마네킹을 움직이거나 전부 지워도 방의 층은 유지. 사용자22체를 시작 스냅샷(drag-floor-before.json)으로 기록했으며 작업 중 사용자가 추가/이동한 현재24체도 되돌리지 않고 보존한다.
-- 시작 시 scene clean/Play 정지 확인 후 에디터 정상 종료, origin/dev fetch 성공·기존5파일 변경으로 ff-only 중단. 동일 워크트리 재개방 중 Pipeline 로딩 대기를 확인한 뒤 ready PID31916에서 작업. 강제 종료/commit/push 없음.
-- 배치 회귀3/3 PASS(.23초): 높은 배치 이동/삭제/프리뷰 재준비 후 층·표시 유지, 층 전환/선택/아래층 렌더 제외. 실제 숙소 UI에서0m/방 선택/마커/Inspector 복구, previewExists=true 확인.
-- 후속 사용자 지시: 추격 전에는 장식으로 보여야 함. PursuitFeedback의 공통 표시 조건에 Elapsed>=0 추가하여 근접 아웃라인도 추격 활성 중에만 표시, 철회 시 제거. 실제 LAN호스트 PlayMode1/1 PASS(14.08초): 가까이 있어도 시작 전0→시작 후1→철회 후0, 로컬/다른 플레이어 테두리·거리 이탈·효과 정리( outline-pursuit-only-tests.json ).
-- 공용 순찰 중앙값 우선 변경 후 Authoring4/4 PASS(.41초): 단일 높은 스폰에도 층 유지·로비 지면·아래층 거부·기존 배치/순찰 Undo. 최종 check-work1회 PASS(144파일/문서/컴파일 up_to_date, 경고45/hard0). 별도 회귀 합계8개 통과. 최종 scene clean/Play 정지/사용자24체·층0,-5,-10 확인, 검토용 창 최대화 해제.
+## 2026-11-03 GUID 이동 대응·더블클릭 Scene 포커스
+- 기존 Path 상수는 이동 시 깨지는 한계가 있어 Base/Pursuit GUID로 AssetDatabase 조회, 빌드에서는 SceneUtility 경로 조회. PursuitAuthoring도 동적 경로로 변경. Unity .meta/GUID 유지하는 폴더 이동 지원, 런타임 씬 이름은 기존 두 이름 유지.
+- 두 실제 씬을 AssetDatabase.MoveAsset으로 각각 임시 폴더 이동·경로 일치 확인 후 finally로 원위치/BuildSettings 복원 성공. 에디터 종료 후 fetch 성공, ff-only는 갈라진 브랜치로 불가(기존 변경 보존); PID10736 재개방, 동일Task doctor 반복 없음.
+- Edit 탑뷰 마네킹 더블클릭은 순찰 지점보다 우선 선택하고 드래그 중단·Hierarchy 선택/Ping·Scene 뷰 근접 표시. Live 마커도 동일 포커스. 실제 모델 bounds만 사용하여 먼 순찰 경로로 줌 아웃하지 않음. 주변8방향 물리 장애물을 비교하고 Scene 뷰 확인 조명 사용, 씬 조명 데이터/배치 수정 없음.
+- 실제 B1 ChangingRoom 마커를 마우스로 더블클릭하여 Scene 뷰 모델·주변 벤치·Hierarchy 선택 확인. 최초 단순 프레이밍은 벽 가림이 있어 크기/각도/조명을 개선하고 재확인. 선택=Mannequin_Male_01, 미리보기 존재, 씬 clean.
+- 이동/복원 후 경로·라우팅·빌드 등록 회귀 Edit3/3 PASS(.05초, scene-guid-path-tests.json).
 
-- [초기 구현·모션/UI 검증 원문](History/001-initial-implementation-and-motion.md)
-- 남은 검증: 다인 수신·동시 포획·늦은 접속 및 최종 모션/공포감 실기. 기존 사용자 변경 보존, commit/push 없음.
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
-- [완료한 포획·배치/층·치트 검증 원문](History/004-capture-authoring-followup-log.md)
+## 2026-11-03 마네킹 이동과 순찰 동선 분리
+- 원인: 순찰 지점은 Placement 자식이라 Scene Transform 기본 도구는 함께 움직이며, 기존 탑뷰 Move에만 월드 위치 보정이 있었음. Undo.postprocessModifications로 Scene/Inspector 이동·회전·크기 변경도 기존 월드 동선을 보존. 런타임/Play 중에는 동작하지 않으며 폴링 추가 없음.
+- 사용자 확정: 가장 가까운 순찰 선분까지3D 거리10m 초과 시 해당 마네킹만 경로 해제. 배치 창 선택/순찰의 동선 자동 해제 거리로 개별 조정,0=해제 안 함. 공유 방 경로는 연결만 끊고 다른 마네킹/포인트 보존. 소유한 감시 지점은 Undo 가능한 제거, 창 알림3초.
+- 첫 회귀에서 Undo 도중 포인트 위치·경로 연결 복원 누락 확인. Transform 후처리에서 자식 Destroy가 대기 중인 부모 Undo 기록을 flush하는 원인 분리, 삭제 전 부모 이전 자세 CompleteUndo 및 삭제할 포인트의 불필요한 자세 기록 제외로 해결.
+- 최종 이동 회귀4/4 PASS(.55초): Scene 이동/회전/scale·Undo/Redo,10m 경계/0해제,먼 동선 삭제/복구,공용 경로 독립성. 기존 Authoring4/4 PASS(.61초). 별도 임시 씬에서 탑뷰 Move의 먼 경로 제거 Undo도 부모(0,0,0)/포인트(-2,0,0) 복구 확인. 총 고유8개 회귀.
+- 실제 창에서 제거 알림 표시/자동 사라짐 확인. 사용자 씬 배치24체 보존, 씬 clean 확인. 정상 종료/fetch 성공, ff-only는 분기 이력으로 불가·변경 보존, PID3224 재개방. 같은Task doctor 반복 없음.
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-03 Start 씬의 미리보기 잔류
+- 현장 확인: Start clean/Play 정지인데 __Preview_Pursuit_*21개와 __PursuitDesignerCamera1개가 scene=null/HideAndDontSave로 생존. 창 Cleanup 호출 후22개 모두0, Start dirty=false. 저장된 마네킹이 아니라 편집기 미리보기 수명 결함.
+- 숨김 탭 Tick 정지 + 씬 변경 콜백 부재 + HideAndDontSave의 씬 언로드 생존이 원인. Scene closing/opened/active changed, assembly reload, quit에 정리. 창 Disable에서 구독 해제. Refresh는 편집 모드 활성 씬 Director만 선택, Director 소멸 시 잔여 자원도 정리.
+- 실제 씬 Edit 회귀2/2 PASS(6.92초): Pursuit→Start 단일 전환, 창 숨긴 채 추가 로드/활성 전환, 모델·카메라·RT 파괴/Start에서 재생성 없음, Pursuit 재진입 재생성, 배치 데이터 불변. preview-lifetime-tests.json. 최종 Start만1씬·clean·미리보기0.
+- 정상 종료/fetch 성공, ff-only는 분기 이력으로 불가·현재 변경 보존, PID32536 재개방. 동일Task doctor 반복 없음.
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-03 CLI 상태 확인의 Console 오류
+- CLI1.0.0-beta.15 + Pipeline0.8.0-exp.1 명령 이름 호환 문제. Editor.log 동일 문구 횟수 측정: unity status 호출1회로1→2 증가, 명시적 editor_status 추가 호출은2→2 유지. 게임/추격 코드 예외가 아니며 check-work의 verify-unity 선행 unity status가 반복 발생원 중 하나였음.
+- verify-unity는 --project-path 지정 editor_status를 직접 호출하고 응답 projectPath 필수/경로 일치 확인으로 대상 검증 유지. CLI 자체/doctor/worktree 등 외부 unity status 호출은 여전히 구형 패키지에서 같은 메시지를 낼 수 있음.
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 변경 후 verify-unity 직접 실행 및 check-work 전체 실행 모두PASS, 각각 Editor.log 해당 오류 횟수2→2로 증가 없음. 기존 Console 로그는 지우지 않았으며 다른 호출자의 unity status는 여전히 같은 호환 오류를 만들 수 있음.
+
+## 2026-11-03 로비 곡면 천장 재투과
+- 원인: 평면40개 충돌 면은 유지됐지만 로비/연습실 DomeCap·DrumWall4개는 Collider/카메라 면 모두 없음. 실제 로비 카메라 회귀에서 천장 최고12m에 카메라15m로 실패 재현(round-ceiling-before-tests.json). 씬 선택/폴더 이동 문제가 아님.
+- CameraCollisionSurface.UseMeshGeometry + CameraMeshCollision 양면 구체 스윕(면·모서리·꼭짓점·시작 겹침), 월드 삼각형 캐시/경계 선별. 해당4개만 Unity로 연결·씬 저장, 기존 배치/설정·Base 씬/물리/NavMesh 보존. 테스트 씬 조회는 GUID로 이동 대응.
+- Edit6/6 PASS(.05초): 앞/뒷면·빈 공간·모서리/끝점·겹침·음수/비균일scale·변환 캐시 갱신·기존OBB/편집pipeline. Play3/3 PASS(23.86초): 로비/연습실 실제 돔, 숙소 천장, 물리벽·수평천장·점진 복귀. round-ceiling-edit-tests.json / round-ceiling-play-tests.json.
+- 실제벽5도 간격72방향 조회: 로비42차단/30개방, 연습실69차단/3개방; 출입구를 전체bounds로 막지 않음, Collider0. 수동LAN 호스트 frame166→803→1517 진행, 카메라Y11.68/실내 화면 정상(Temp/round-ceiling-camera-after.png). 예열 후1000회44면 조회 평균0.282ms, 측정 관리힙 할당0byte(에디터 단일 지점 측정).
+- 에디터 비포커스 때 검사 완료 콜백/CLI가 지연돼 포커스로 재개했으며 최종 결과 파일 확인. Play 종료 후 Start 복원. origin/dev fetch 성공, ff-only 분기 이력으로 불가·기존 변경 유지. 같은Task doctor 반복 없음.
+
+## 2026-11-03 Base/Pursuit 전체 카메라 충돌
+- 사용자 요청으로 Base도 수정. 씬별MeshFilter23118개(활성14571개) 조사, 활성 경로/메시/중심/크기 차이0. 공통 구조물430개(OBB354/메시76): 모든 방 Shell·원통 벽/돔·통로·위층 바닥·보강판/보·엘리베이터/외벽·칸막이·출입문을 검토. 간판/조명/효과/가구는 분리. all-rooms-map-comparison.json.
+- Base430개 추가, Pursuit386개 추가·기존6개 복합 통로를 OBB→실제면 검사로 변경. 기존 PassageFloorCeiling의 Mesh.bounds가 통로 내부를 채우던 결함 해소. Renderer.enabled=false이면 카메라 차단도 제외; forceRenderingOff는 무시. Tools/CurtainCall/Camera/현재 대기실 벽·천장 충돌 보완은 명시적 공통 대상 규칙으로 현재 씬만 멱등 보완·Undo 지원.
+- Unity에서 양쪽 씬 저장. Transform Base29918/Pursuit30259개의 경로·위치/회전/크기/활성 상태와 Collider3764개씩의 직렬화 원문 전후 일치. 사용자 배치/동선·튜토리얼·물리/NavMesh 데이터 보존(all-rooms-apply.json, 상세 before는 Temp/camera-structure-before-*.json).
+- 최종 Edit2/2 PASS(3.38초): 저장된 두 씬 각430구조물의 양면 샘플3000회 이상·복합 통로7개 내부·멱등 적용. Play 신규3/3 PASS(22.78초): Base/Pursuit 방9곳씩 실제 카메라 천장 검사·통로6곳씩 여유·패널 숨김/비활성/복원. 기존3/3 PASS(23.41초): 숙소 천장/돔2곳/벽·수평천장/점진 복귀. all-rooms-edit-tests.json, all-rooms-play-tests.json, all-rooms-existing-regression-tests.json.
+- 첫 Edit 숨김 검사는 편집 모드에서 런타임 OnEnable이 호출되지 않아 실패해 Play로 옮겨 검증. 기존 천장 비교는 새 보강판이 계속 차단해 대비가 없어 이웃 면을 테스트 중에만 해제/복원; 연습실 pivot의 새 천막 겹침도 제거. 실제 씬 보호를 완화하지 않고 테스트 환경을 보정, 초기 실패 보고서 보존.
+- Play frame1→1164 진행. 전체430면 5지점×500회 예열 후 평균.399~.567ms/조회, 관리힙 할당0byte(all-rooms-profile.json). 에디터 국소 측정이며 전체 게임 FPS 수치가 아님. CLI 5초 응답 제한이 걸린 긴 조사/저장은 완료 파일·후속 검증으로 확인했다.
+- 작업 재개 시 clean/Play 정지 확인·정상 종료, origin/dev fetch 성공/ff-only 이력 분기로 불가·기존 변경 유지, PID2380 재개방. 동일Task doctor 반복 없음. 이전 완료 기록을 History005에 원문 보존. Play 종료·Start clean 복원, Pursuit 선택 유지.
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

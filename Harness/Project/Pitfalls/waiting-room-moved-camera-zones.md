@@ -24,5 +24,7 @@ source: Task-20261031-086 / Task-20261102-094
 ## 복제 씬·충돌체 없는 천장
 
 - `CameraViewDirector.UsesWallCollision`은 씬 이름으로 범위를 제한한다. WaitingRoomPursuit가 빠져 스프링 암과 고정 구조물 가림 제외 모두 꺼져 있었다. 원본/추격 씬·탈출로를 포함하며 새 테스트 씬을 복제할 때 이 조건도 확인한다.
-- 천장/지붕의 장식 MeshRenderer에는 Collider가 없을 수 있다. 씬 적용 조건만 고치거나 임시 Cube 벽 검사만 통과하면 실제 천장 투과가 남는다. 추격 씬의 해당40개 평면 구조물에 `CameraCollisionSurface`를 연결했다. LocalBounds=Mesh.bounds인 OBB를 반경+패딩만큼 확장하여 카메라 거리만 제한하며 물리/NavMesh에는 관여하지 않는다.
-- 실제 숙소 Ceiling을 사용하는 PlayMode 검사와 물리 벽/천장·거리 복귀 검사를 함께 실행한다. 임의 모양이나 구멍 있는 메시 전체를 OBB 하나로 막지 않는다. 원본 대기실에는 카메라 전용 면 컴포넌트를 추가하지 않았다.
+- 장식 MeshRenderer에는 Collider가 없을 수 있다. 최초40개 천장만 보완했을 때 돔/외벽/엘리베이터 등에 누락이 남았다. 현재 Base/Pursuit 모두 검토한430개 구조물에 CameraCollisionSurface를 적용한다. Tools/CurtainCall/Camera/현재 대기실 벽·천장 충돌 보완은 활성 씬만 Undo 가능하게 보완하며 별도로 저장한다. 새 구조물은 Editor/WaitingRoomCameraCollisionAuthoring의 명시적 대상 규칙에도 반영한다.
+- Cube만 OBB 사용, 나머지76개는 UseMeshGeometry로 실제 면·모서리·꼭짓점 양면 구체 스윕. 특히 PassageFloorCeiling6개를 Mesh.bounds로 막으면 빈 통로까지 채워져 카메라가 눈높이에 고정된다. 복합 통로7개의 내부 여유와 모든 구조물 면 샘플을 WaitingRoomCameraCoverageTests로 검사한다. 물리/NavMesh는 변경하지 않는다.
+- MeshFilter 메시가 읽기 가능해야 하며 월드 삼각형은 메시 참조/Transform이 바뀌면 다시 만든다. 같은 메시를 런타임에서 직접 변형하는 용도는 아니다. Renderer.enabled=false인 패널과 비활성 오브젝트는 차단하지 않는다. 카메라가 일시적으로 숨기는 forceRenderingOff는 충돌에서 무시한다.
+- 실제 방9곳씩의 천장·돔·물리 벽·거리 복귀 Play 검사를 함께 실행한다. 한 천장의 효과를 비교하려면 보강판·보 같은 이웃 차단 면을 테스트 중에만 잠깐 제외하고 복원한다. 카메라 pivot을 내부 천막에 겹쳐 놓으면 거리0은 정상 접촉이므로 돔 단독 검사는 천막 위의 빈 공간에서 한다.

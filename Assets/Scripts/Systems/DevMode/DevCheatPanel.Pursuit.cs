@@ -22,7 +22,7 @@ namespace CurtainCall.Dev
                 : "추격 대기";
             GUILayout.Label($"{time} ({state.Timer}) · {pursuit}", label);
             bool allowed = director != null && director.CanDebug;
-            if (!allowed) GUILayout.Label(run.HasAuthority ? "추격 시스템을 준비 중입니다." : "호스트만 타이머·단계를 변경할 수 있습니다.", label);
+            if (!allowed) GUILayout.Label(run.HasAuthority ? (WaitingRoomScenes.PursuitEnabled ? "추격 시스템을 준비 중입니다." : "현재 대기실 설정에서는 추격을 사용하지 않습니다.") : "호스트만 타이머·단계를 변경할 수 있습니다.", label);
             bool wasEnabled = GUI.enabled;
             GUI.enabled = wasEnabled && allowed;
             if (GUILayout.Button("타이머 초기화 및 추격 철회", button))

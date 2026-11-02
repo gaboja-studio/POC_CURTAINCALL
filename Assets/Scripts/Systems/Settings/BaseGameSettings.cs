@@ -539,8 +539,10 @@ namespace CurtainCall.Settings
             [Tooltip("인간 대포 공연 씬. 비어 있으면 기본 공연 씬을 쓴다.")]
             [SerializeField] string humanCannonScene = "HumanCannon";
 
-            [Tooltip("쉬는 시간 시작·밤 정비의 공간 씬(대기실 로비).")]
-            [SerializeField] string waitingRoomScene = "WaitingRoomBase";
+
+            [Tooltip("실제 플레이·Dev 시작·탐색 대기실. 변경 후 런을 다시 시작하세요.")]
+            [SerializeField] WaitingRoomSceneVariant waitingRoomVariant = WaitingRoomSceneVariant.Base;
+            [HideInInspector, SerializeField] string waitingRoomScene = "WaitingRoomBase";
 
             [Tooltip("퇴장 시 같은 씬에서 탐색한다. 실제 대기실은 켜고, 별도 탐색 씬을 쓰는 더미 검증은 끈다.")]
             [SerializeField] bool keepWaitingRoomOnExit = true;
@@ -556,9 +558,10 @@ namespace CurtainCall.Settings
             public string PerformanceScene => performanceScene;
             public string TightropeScene => tightropeScene;
             public string HumanCannonScene => humanCannonScene;
-            public string WaitingRoomScene => waitingRoomScene;
+            public WaitingRoomSceneVariant WaitingRoomVariant => waitingRoomVariant;
+            public string WaitingRoomScene => WaitingRoomScenes.Resolve(waitingRoomScene, waitingRoomVariant);
             public bool KeepWaitingRoomOnExit => keepWaitingRoomOnExit;
-            public string ExplorationScene => explorationScene;
+            public string ExplorationScene => WaitingRoomScenes.Resolve(explorationScene, waitingRoomVariant);
             public string EscapeRouteScene => escapeRouteScene;
         }
 

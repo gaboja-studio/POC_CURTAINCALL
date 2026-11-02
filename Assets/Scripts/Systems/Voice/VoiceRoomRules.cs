@@ -25,7 +25,9 @@ namespace CurtainCall.Voice
         {
             if (!startFlow || string.IsNullOrEmpty(sceneName) || scenes == null) return false;
             foreach (var name in scenes)
-                if (string.Equals(name?.Trim(), sceneName, StringComparison.Ordinal)) return true;
+                if (string.Equals(name?.Trim(), sceneName, StringComparison.Ordinal)
+                    || (CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(name?.Trim())
+                        && CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(sceneName))) return true;
             return false;
         }
 

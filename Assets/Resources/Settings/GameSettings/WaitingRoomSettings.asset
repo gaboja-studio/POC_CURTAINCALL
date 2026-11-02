@@ -43,7 +43,7 @@ MonoBehaviour:
       FieldOfView: 100
       PatrolSpeed: 1.5
       ChaseSpeedMultiplier: 1.2
-      ChaseSpeed: 0
+      ChaseSpeed: 6.5
       SeeThroughWalls: 0
       AlwaysNearest: 0
       WalkHearingRadius: 6
@@ -60,9 +60,9 @@ MonoBehaviour:
     - StartsAt: 60
       SightRadius: 8
       FieldOfView: 140
-      PatrolSpeed: 1.5
+      PatrolSpeed: 2
       ChaseSpeedMultiplier: 1.2
-      ChaseSpeed: 0
+      ChaseSpeed: 6.5
       SeeThroughWalls: 0
       AlwaysNearest: 0
       WalkHearingRadius: 6
@@ -80,7 +80,7 @@ MonoBehaviour:
     - StartsAt: 120
       SightRadius: 10
       FieldOfView: 180
-      PatrolSpeed: 1.5
+      PatrolSpeed: 2
       ChaseSpeedMultiplier: 1.2
       ChaseSpeed: 0
       SeeThroughWalls: 1
@@ -100,9 +100,9 @@ MonoBehaviour:
     - StartsAt: 180
       SightRadius: 20
       FieldOfView: 180
-      PatrolSpeed: 1.5
+      PatrolSpeed: 3
       ChaseSpeedMultiplier: 1.2
-      ChaseSpeed: 0
+      ChaseSpeed: 7.5
       SeeThroughWalls: 1
       AlwaysNearest: 1
       WalkHearingRadius: 6

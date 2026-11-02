@@ -334,7 +334,7 @@ namespace CurtainCall.Cameras
         /// <see cref="CameraOcclusionFade"/>도 고정 구조물을 반투명하게 만들지 않는다. 탈출로는 씬 활성화 후 활성 씬이 된다.
         /// </summary>
         public static bool UsesWallCollision(Scene scene) => scene.IsValid()
-            && (scene.name == "WaitingRoomBase" || scene.name == "WaitingRoomPursuit"
+            && (CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(scene)
                 || scene.name.StartsWith("escape_route", StringComparison.Ordinal));
 
         void ApplyWallCollision(ref CameraState state)

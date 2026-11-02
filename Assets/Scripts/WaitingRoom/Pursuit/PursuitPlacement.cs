@@ -8,6 +8,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public GameObject Prefab;
         public Transform[] PatrolPoints = System.Array.Empty<Transform>();
         public bool UseRoomPatrol;
+        [Tooltip("배치 이동 후 순찰 경로까지 이 거리(m)를 초과하면 경로를 해제합니다. 0은 자동 해제 안 함.")]
+        [Min(0)] public float RouteDetachDistance = 10;
         public Transform[] Route(PursuitRoom room) => UseRoomPatrol && room != null ? room.PatrolPoints : PatrolPoints;
         void OnDrawGizmosSelected()
         {

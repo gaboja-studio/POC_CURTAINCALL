@@ -6,10 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Start_Lobby/Start.unity
+    path: Assets/Scenes/InGame/Start.unity
     guid: 03e8b1ca40335d64aaebe162e31c4582
   - enabled: 1
-    path: Assets/Scenes/Start_Lobby/Lobby.unity
+    path: Assets/Scenes/InGame/Lobby.unity
     guid: aafc77516ce35cf45b486f4f824d4d63
   - enabled: 0
     path: Assets/Scenes/Tests/Systems/DummySpaces/DummyEscapeRoute.unity
@@ -45,7 +45,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Levels/escape_route.unity
     guid: c9bc27ef66a57414e8bd36141ad746b2
   - enabled: 1
-    path: Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity
+    path: Assets/Scenes/InGame/WaitingRoom/WaitingRoomPursuit.unity
     guid: 9d8832c4cb77f9343a74c3dc35c1d3a3
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 99f9c9493070a9d4c979a8fec7c5a8d3, type: 2}

@@ -9,7 +9,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
 {
     public static class PursuitAuthoring
     {
-        public const string ScenePath = "Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity";
+        public static string ScenePath => CurtainCall.Settings.WaitingRoomScenes.PursuitPath;
         public static Bounds Bounds(PursuitRoom room) => room.Area != null ? room.Area.bounds : new Bounds(room.transform.position, new Vector3(12, 4, 12));
         public static float FloorReference(PursuitRoom room)
         {
@@ -89,16 +89,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Dirty(item); return go.transform;
         }
         public static void Move(PursuitPlacement item, Vector3 position, Quaternion rotation)
-        {
-            // Start marker movement must not move its patrol route with it.
-            var points = item.PatrolPoints ?? Array.Empty<Transform>();
-            var valid = points.Where(p => p != null && p.IsChildOf(item.transform)).ToArray();
-            var positions = valid.Select(p => p.position).ToArray();
-            Undo.RecordObjects(valid.Cast<UnityEngine.Object>().Append(item.transform).ToArray(), "마네킹 이동/회전");
-            item.transform.SetPositionAndRotation(position, rotation);
-            for (int i = 0; i < valid.Length; i++) valid[i].position = positions[i];
-            Dirty(item);
-        }
+            => PursuitPlacementEditing.Move(item, position, rotation);
         public static void Remove(PursuitRoom room, PursuitPlacement item)
         {
             Undo.RecordObject(room, "마네킹 제거"); room.Placements = room.Placements.Where(p => p != item).ToArray();

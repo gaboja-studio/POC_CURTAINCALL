@@ -220,6 +220,7 @@ namespace CurtainCall.Dev
             GUILayout.Space(8);
             PreserveItemsAndCredits = GUILayout.Toggle(PreserveItemsAndCredits, " 현재 기물 및 크레딧 내용 유지");
             PreserveInjuries = GUILayout.Toggle(PreserveInjuries, " 현재 부상 유지");
+            GUILayout.Label($"대기실 대상: {GameSettings.Base.SpaceTransition.WaitingRoomScene}", label);
             PreserveWaitingRoomUnlocks = GUILayout.Toggle(PreserveWaitingRoomUnlocks, " 대기실 해금 유지");
             if (day > GameSettings.Base.Run.DayCount && phase != RunStartPhase.Escape) phase = RunStartPhase.Morning;
             else if (day == 1 && phase == RunStartPhase.Morning) phase = RunStartPhase.Performance;
