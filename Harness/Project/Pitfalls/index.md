@@ -50,3 +50,4 @@
 - [revived-before-performance-unload.md](revived-before-performance-unload.md) — 공연 씬 해제 전 부활자가 옛 낙하·함정 판정으로 다시 사망. 부활 로그와 달리 대기실에서 관전이 지속될 때
 - [textmesh-default-shader-through-walls.md](textmesh-default-shader-through-walls.md) — 생성한 TextMesh 기본 재질은 깊이를 무시해 벽 너머로 보인다. 에디터 코드로 표지·번호 글자를 만들 때
 - [exploration-route-validation.md](exploration-route-validation.md) — 탐색 경로의 낮/밤 철창·트리거와 층/벽 너머 F·바닥 기물 표시/호스트 검사를 확인할 때
+- [factory-art-urp.md](factory-art-urp.md) — 공장 에셋 선별 재사용·URP17 조명·정적 장식 정리 기준
