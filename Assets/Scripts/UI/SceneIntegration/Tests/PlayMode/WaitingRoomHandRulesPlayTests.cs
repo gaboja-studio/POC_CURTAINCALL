@@ -64,14 +64,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(carry, "RequestSelectSlot", 0); yield return null;
             Assert.AreEqual(0, InHand(), "도구도 같은 칸을 다시 누르면 집어넣는다");
 
-            // 공연용 장비 공통 소모: 실제 효과 때 1 소모, 쿨타임 동안 새 효과 없음, 마지막 회차 뒤 슬롯에서 사라짐.
+            // 공연용 장비 공통 소모: 실제 효과 때 1 소모, 쿨타임 없음, 마지막 회차 뒤 슬롯에서 사라짐.
             Assert.AreEqual(true, Call(carry, "EquipmentReady", me, "rescue-gloves"));
             Assert.AreEqual(true, Call(carry, "UseEquipment", me, "rescue-gloves", true, true));
-            Assert.Greater((float)Call(carry, "CooldownLeft", me, "rescue-gloves"), 0f, "구조 장갑 쿨타임 1초(초안)");
-            Assert.AreEqual(false, Call(carry, "UseEquipment", me, "rescue-gloves", true, true), "쿨타임 중에는 새 효과 없음");
+            Assert.AreEqual(0f, (float)Call(carry, "CooldownLeft", me, "rescue-gloves"), "공연 기물 쿨타임 없음(2026-11-02)");
             var gloves = ((IEnumerable)Call(carry, "Held", me)).Cast<object>().Single(i => (string)Get(i, "ItemId") == "rescue-gloves");
             Assert.AreEqual(1, Get(gloves, "Uses"));
-            yield return new WaitForSecondsRealtime(1.1f);
             Assert.AreEqual(true, Call(carry, "UseEquipment", me, "rescue-gloves", true, true));
             yield return null;
             Assert.AreEqual(1, Held(), "마지막 회차를 쓰면 파괴·슬롯 제거");
