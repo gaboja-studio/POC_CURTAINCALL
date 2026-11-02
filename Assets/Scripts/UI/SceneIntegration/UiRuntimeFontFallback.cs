@@ -16,12 +16,22 @@ namespace CurtainCall.UI.SceneIntegration
         public void Configure(TMP_FontAsset font) { fallback = font; }
         public void ConfigureSources(Font medium, Font semiBold) { mediumSource = medium; semiBoldSource = semiBold; }
         void Awake() => ApplyTo(transform);
-        public void ApplyTo(Transform root)
+        public void WarmUpLocalText(Transform root, string text)
+        {
+            ApplyTo(root, true);
+            foreach (var font in generated.Values)
+            {
+                font.isMultiAtlasTexturesEnabled = true;
+                font.TryAddCharacters(text ?? "");
+            }
+        }
+        public void ApplyTo(Transform root) => ApplyTo(root, false);
+        void ApplyTo(Transform root, bool includeFallback)
         {
             if (fallback == null) return;
             foreach (var label in root.GetComponentsInChildren<TMP_Text>(true))
             {
-                if (label.GetComponentInParent<CurtainCall.UI.GuidesV1.GuideView>() == null
+                if (!includeFallback && label.GetComponentInParent<CurtainCall.UI.GuidesV1.GuideView>() == null
                     && label.GetComponentInParent<CurtainCall.UI.TooltipsV1.TooltipView>() == null
                     && label.GetComponentInParent<CurtainCall.UI.SpectatorV1.SpectatorView>() == null
                     && label.GetComponentInParent<CurtainCall.UI.WorldLabelsV2.WorldLabelView>() == null
@@ -33,8 +43,8 @@ namespace CurtainCall.UI.SceneIntegration
                     && label.GetComponentInParent<FeedbackView>() == null
                     && label.GetComponentInParent<CurtainCall.WaitingRoom.ExplorationPanel>() == null
                     && label.GetComponentInParent<CurtainCall.WaitingRoom.WaitingRoomGuidePanel>() == null) continue;
-                var original = label.font;
-                if (original == null || original == fallback || copies.ContainsValue(original)) continue;
+                var original = label.font != null ? label.font : includeFallback ? fallback : null;
+                if (original == null || !includeFallback && original == fallback || copies.ContainsValue(original)) continue;
                 if (!copies.TryGetValue(original, out var copy))
                 {
                     copy = Instantiate(original);

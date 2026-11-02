@@ -83,10 +83,10 @@ namespace CurtainCall.EscapeRoute.EditorTools
         }
 
         static HumanCannonPole AFusedPole(Transform root, HumanCannonPole source, string name,
-            Vector3 grip, Vector3 forward, float cap = 5.2f)
+            Vector3 grip, Vector3 forward, float cap = 5.2f, float suspensionLength = 4.2f)
         {
-            var pole = OriginalPole(root, source, name, grip, forward.normalized, grip.y + 4.2f);
-            TuneFlowPole(root, pole, grip, 4.2f, 38, cap);
+            var pole = OriginalPole(root, source, name, grip, forward.normalized, grip.y + suspensionLength);
+            TuneFlowPole(root, pole, grip, suspensionLength, 38, cap);
             var data = new SerializedObject(pole); data.FindProperty("holdSeconds").floatValue = 0;
             data.ApplyModifiedProperties(); return pole;
         }

@@ -141,9 +141,8 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
 
         static bool TryRequestCannonPoleExit(PlayerControlContext context)
         {
-            var course = TightropeCourse.Current;
-            return course != null && course.TryGetComponent(out CourseControlSwitcher switcher)
-                && switcher.TryRequestCannonPoleExit(context.Mover);
+            return context.Mover != null && context.Mover.TryGetComponent(out CurtainCall.HumanCannon.HumanCannonPilot pilot)
+                && pilot.TryRequestNearbyPole();
         }
 
         static void CancelCatch(PlayerControlContext context)

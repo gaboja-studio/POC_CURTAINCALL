@@ -15,7 +15,7 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Transform visualBar, leftCable, rightCable, leftAnchor, rightAnchor;
         [Tooltip("봉에서 발까지 거리(m)."), Min(0.2f), SerializeField] float hangLength = 1.5f;
         [Tooltip("봉 중심의 구형 잡기 거리(m)."), Min(0.1f), SerializeField] float grabDistance = 2f;
-        [Tooltip("벽/전망 프레임 너머로 잡아 몸이 통과하는 것을 막는다. 기존 씬 기본값은 꺼짐."), SerializeField] bool requireClearGrabPath;
+        [SerializeField, HideInInspector] bool requireClearGrabPath; // Legacy data; solid obstructions always block grabs.
         readonly RaycastHit[] grabObstacles = new RaycastHit[32];
         readonly Collider[] grabOverlaps = new Collider[32];
         [Tooltip("잡은 뒤 최대 유지 시간(초). 0이면 스스로 놓거나 사망할 때까지 유지한다."), Min(0f), SerializeField] float holdSeconds;
@@ -24,7 +24,8 @@ namespace CurtainCall.HumanCannon
         [Tooltip("최대 반동 각도(도)."), Range(1f, 85f), SerializeField] float maxSwingAngle = 80f;
         [Tooltip("최대 각속도(도/초)."), Min(1f), SerializeField] float maxSwingSpeed = 180f;
         [Tooltip("반동 감쇠(1/초)."), Min(0f), SerializeField] float swingDamping = 0.4f;
-        [Tooltip("누르는 동안 계속 반동을 준다. 비우면 원본의 방향당 0.65초 밀기를 사용한다."), SerializeField] bool continuousSwingInput;
+        // Retain old serialized data; all poles now use held input consistently.
+        [SerializeField, HideInInspector] bool continuousSwingInput;
         [Tooltip("손을 놓을 때 접선 속도에 더하는 상승 속도(m/s)."), Min(0f), SerializeField] float releaseUpwardSpeed = 6f;
         [Tooltip("봉 도약 수평 반동 배율. 1은 원본이며 공용 수평 속도 상한은 유지한다."), Range(1f, 1.5f), SerializeField] float horizontalReleaseMultiplier = 1f;
         [Tooltip("이 봉의 도약 상승 속도 상한(m/s). 0이면 원본 반동을 그대로 사용한다. 긴 케이블의 레벨별 높이 조정용."), Min(0f), SerializeField] float maxReleaseUpwardSpeed;
@@ -123,9 +124,7 @@ namespace CurtainCall.HumanCannon
                 swingAcceleration, maxSwingAngle, maxSwingSpeed, swingDamping);
 
         public float SwingDrive(ref PoleSwingInput impulse, float input, float dt)
-            => continuousSwingInput
-                ? float.IsFinite(input) && float.IsFinite(dt) && dt > 0 ? Mathf.Clamp(input, -1f, 1f) : 0
-                : impulse.Step(input, dt);
+            => float.IsFinite(input) && float.IsFinite(dt) && dt > 0 ? Mathf.Clamp(input, -1f, 1f) : 0;
 
         public bool IsInReach(NetworkPlayer player)
         {
@@ -167,7 +166,6 @@ namespace CurtainCall.HumanCannon
 
         bool HasClearGrabPath(NetworkPlayer player, Vector3 target)
         {
-            if (!requireClearGrabPath) return true;
             Vector3 origin = PlayerInteraction.Center(player), span = target - origin;
             float distance = span.magnitude;
             if (distance < .001f) return true;

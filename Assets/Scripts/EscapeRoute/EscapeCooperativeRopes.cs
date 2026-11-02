@@ -391,7 +391,9 @@ namespace CurtainCall.EscapeRoute
 
         bool ApplyState(uint incoming, bool open, ulong owner, int token, uint overflowAck)
         {
-            if (incoming < revision || !resetBarrier.Accept(token)) return false;
+            if (incoming < revision || token < 0
+                || synchronized && incoming == revision && (open != ReturnOpen || owner != workerOwner)
+                || !resetBarrier.Accept(token)) return false;
             revision = incoming; synchronized = true; SetGate(open); SetWorker(owner);
             if (firstOverflowRequest != 0 && overflowAck >= firstOverflowRequest && overflowAck <= pendingOverflow)
                 ReturnLocalOverflow(NetworkPlayer.Local);

@@ -236,7 +236,7 @@ namespace CurtainCall.Cameras
             // 1인칭·3인칭 비고정은 로컬 캐릭터 기준이라 관전·소멸 중에는 후보에서 뺀다
             bool allowLocal = CanUseLocalView;
             bool found = requests.TryResolve(out var source, out var request,
-                value => allowLocal || value.Preset.Kind == CameraViewKind.ThirdPerson);
+                value => IsViewAllowed(SceneManager.GetActiveScene(), value.Preset.Kind, allowLocal));
             var preset = found ? request.Preset : DefaultView;
             if (preset == null) return;
             bool useFirst = allowLocal && preset.Kind == CameraViewKind.FirstPerson;
@@ -335,6 +335,15 @@ namespace CurtainCall.Cameras
         /// </summary>
         public static bool UsesWallCollision(Scene scene) => scene.IsValid()
             && (scene.name == "WaitingRoomBase" || scene.name.StartsWith("escape_route", StringComparison.Ordinal));
+
+        /// <summary>줄 소실 등으로 우선 요청이 해제돼도 탈출로는 3인칭을 유지한다.
+        /// 제외된 요청은 지우지 않으므로 다른 공간으로 돌아가면 원래 우선순위를 다시 쓸 수 있다.</summary>
+        public static bool IsViewAllowed(Scene scene, CameraViewKind kind, bool allowLocal)
+        {
+            if (!allowLocal) return kind == CameraViewKind.ThirdPerson;
+            return kind != CameraViewKind.FirstPerson || !scene.IsValid()
+                || !scene.name.StartsWith("escape_route", StringComparison.Ordinal);
+        }
 
         void ApplyWallCollision(ref CameraState state)
         {

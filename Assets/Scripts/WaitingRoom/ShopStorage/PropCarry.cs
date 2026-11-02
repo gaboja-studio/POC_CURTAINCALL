@@ -218,6 +218,7 @@ namespace CurtainCall.WaitingRoom
         void Update()
         {
             channel.Update();
+            UpdateEquipmentReports();
             if (!HasAuthority) return;
             WatchGeneration();
             bool retired = false;
@@ -472,7 +473,7 @@ namespace CurtainCall.WaitingRoom
                 case PickUpRequest: Answer(sender, PickUp(request.uid, sender)); break;
                 case SelectRequest: Select(sender, request.uid); break;
                 case ShelfRequest: Answer(sender, UseShelf(sender)); break;
-                case EquipmentRequest: HandleEquipmentReport(sender, request.item); break;
+                case EquipmentRequest: HandleEquipmentReportRequest(sender, request); break;
             }
         }
 
@@ -503,6 +504,7 @@ namespace CurtainCall.WaitingRoom
         {
             var result = JsonUtility.FromJson<ResultData>(json);
             if (result == null) return;
+            if (result.equipmentAck != 0) { AcknowledgeEquipmentReport(result.equipmentAck, result.equipmentGeneration); return; }
             if (!string.IsNullOrEmpty(result.noticeItem)) { ShowItemNotice(result.noticeItem, result.noticeCue, result.noticeBroken); return; }
             LastMessage = result.text;
             RequestAnswered?.Invoke(LastMessage);
@@ -514,6 +516,7 @@ namespace CurtainCall.WaitingRoom
             selected.Clear();
             cooldownUntil.Clear();
             useMarks.Clear();
+            equipmentReports.Clear(); equipmentReceipts.Clear(); equipmentSequence = 0; equipmentRetryAt = 0;
             receivedHeld.Clear();
             receivedFloor.Clear();
             Array.Clear(receivedShelf, 0, receivedShelf.Length);
@@ -522,9 +525,9 @@ namespace CurtainCall.WaitingRoom
             Changed?.Invoke();
         }
 
-        [Serializable] sealed class RequestData { public int kind; public int uid; public string item; }
+        [Serializable] sealed class RequestData { public int kind; public int uid; public string item; public int generation; public uint sequence; }
         // notice*: 공연용 장비 발동·파괴 알림(요청 결과가 아니다). noticeItem이 비어 있으면 일반 결과.
-        [Serializable] sealed class ResultData { public bool ok; public string text; public string noticeItem; public string noticeCue; public bool noticeBroken; }
+        [Serializable] sealed class ResultData { public bool ok; public string text; public string noticeItem; public string noticeCue; public bool noticeBroken; public uint equipmentAck; public int equipmentGeneration; }
 
         [Serializable]
         sealed class ItemData
@@ -535,8 +538,8 @@ namespace CurtainCall.WaitingRoom
         }
 
         [Serializable] sealed class PlayerData { public ulong client; public int selectedUid; public ItemData[] held; public CooldownData[] cooldowns; public int usedSerial; public int usedUid; public bool usedBroken; }
-        /// <summary>장비 쿨타임 남은 초(보낸 순간 기준).</summary>
-        [Serializable] sealed class CooldownData { public string id; public float left; }
+        /// <summary>서버 시각 기준 장비 쿨타임 종료 시각.</summary>
+        [Serializable] sealed class CooldownData { public string id; public double until; }
         [Serializable] sealed class FloorData { public ItemData item; public float x, y, z; }
 
         [Serializable]

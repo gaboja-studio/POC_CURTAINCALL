@@ -81,7 +81,7 @@ namespace CurtainCall.EscapeRoute.Tests
             frame.transform.position = Origin + new Vector3(1.5f, 1, 0);
             frame.size = new Vector3(.12f, 4, 4); frame.isTrigger = trigger;
             Physics.SyncTransforms();
-            Assert.That(Call(pole, "IsInReach", actor), Is.True, "Existing scenes retain the old default.");
+            Assert.That(Call(pole, "IsInReach", actor), Is.EqualTo(trigger), "Solid walls block the same grab in every scene.");
             Set(pole, "requireClearGrabPath", true);
             Assert.That(Call(pole, "IsInReach", actor), Is.EqualTo(trigger));
             Assert.That(Call(pole, "IsSeatInReach", actor, 0f, 0, -1d), Is.EqualTo(trigger));
@@ -151,6 +151,51 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Quaternion.Angle(right.transform.localRotation, Quaternion.identity), Is.LessThan(.001f));
             Call(span, "SetDeployed", false);
             Assert.That(colliders.All(c => c.enabled), Is.True);
+        }
+
+        [TestCase(true, .2f, 100d, 100.7d, .7f)]
+        [TestCase(false, .8f, 100d, 100.7d, .3f)]
+        [TestCase(true, .2f, 100d, 105d, 1f)]
+        [TestCase(false, .8f, 100d, 105d, 0f)]
+        public void DelayedBridgeSnapshotUsesServerTimeForDeploymentAndRetraction(bool open, float amount, double epoch, double now, float expected)
+        {
+            var span = Root("Late client span").AddComponent(T("CurtainCall.EscapeRoute.EscapeCooperativeSpan"));
+            Set(span, "deploySeconds", 1.4f);
+            Call(span, "SynchronizeDeployment", open, amount, epoch);
+            Assert.That(Call(span, "AmountAt", now), Is.EqualTo(expected).Within(.0001f));
+            // Another client receiving the same state later reaches the same physical pose.
+            Call(span, "SynchronizeDeployment", open, amount, epoch);
+            Assert.That(Call(span, "AmountAt", now), Is.EqualTo(expected).Within(.0001f));
+        }
+
+        [Test]
+        public void EqualRevisionCannotChangeBridgePowerOrReleaseResetBarrier()
+        {
+            var locks = Locks(out _);
+            Assert.That(Call(locks, "ApplyState", 8U, 1U, 1U, 0U, 0), Is.True);
+            int token = (int)Call(Get(locks, "resetBarrier"), "Begin");
+            Assert.That(Call(locks, "ApplyState", 8U, 0U, 0U, 1U, token), Is.False);
+            Assert.That(Get(Get(locks, "resetBarrier"), "Waiting"), Is.True);
+            Assert.That(Get(locks, "latched"), Is.EqualTo(1U));
+            Assert.That(Call(locks, "ApplyState", 9U, 0U, 0U, 0U, token), Is.True);
+        }
+
+        [Test]
+        public void BridgeSnapshotRestoresPoseAndRejectsInvalidOrOutOfOrderPresentationAtomically()
+        {
+            var locks = Locks(out var checkpoint, true);
+            var span = Root("Replicated bridge").AddComponent(T("CurtainCall.EscapeRoute.EscapeCooperativeSpan"));
+            Set(checkpoint, "span", span);
+            Assert.That(Call(locks, "ApplySnapshot", 3U, 0U, 1U, 0U, 0, 100d, new[] { .2f }), Is.True);
+            Assert.That(Call(span, "AmountAt", 100.7d), Is.EqualTo(.7f).Within(.0001f));
+            // An older heartbeat with the same revision cannot rewind the physical leaves.
+            Assert.That(Call(locks, "ApplySnapshot", 3U, 0U, 1U, 0U, 0, 99d, new[] { 0f }), Is.False);
+            int token = (int)Call(Get(locks, "resetBarrier"), "Begin");
+            Assert.That(Call(locks, "ApplySnapshot", 4U, 0U, 0U, 0U, token, 101d, new[] { float.NaN }), Is.False);
+            Assert.That(Get(Get(locks, "resetBarrier"), "Waiting"), Is.True);
+            Assert.That(Get(locks, "revision"), Is.EqualTo(3U));
+            Assert.That(Call(locks, "ApplySnapshot", 4U, 0U, 0U, 0U, token, 101d, new[] { .8f }), Is.True);
+            Assert.That(Call(span, "AmountAt", 101.7d), Is.EqualTo(.3f).Within(.0001f));
         }
 
         [Test]
@@ -253,7 +298,7 @@ namespace CurtainCall.EscapeRoute.Tests
             pole.transform.position += Vector3.up * 1.5f;
             poleSystem = Root("Independent pole registry").AddComponent(T(PoleType));
             var poles = Array.CreateInstance(pole.GetType(), 1); poles.SetValue(pole, 0); Set(poleSystem, "poles", poles);
-            Set(poleSystem, "allowPlatformJumpGrab", true); Set(poleSystem, "independentInteraction", true);
+            Set(poleSystem, "allowPlatformJumpGrab", false); Set(poleSystem, "independentInteraction", false);
             Call(poleSystem, "OnEnable"); Set(poleSystem, "session", session); Physics.SyncTransforms();
             Assert.That(Call(poleSystem, "FindGrabbable", crew[role]), Is.EqualTo(0));
             var action = Enum.Parse(poleSystem.GetType().GetNestedType("PoleAction", BindingFlags.NonPublic), "PlatformGrab");
@@ -441,6 +486,44 @@ namespace CurtainCall.EscapeRoute.Tests
             Assert.That(Get(locks, "held"), Is.EqualTo(0U));
             Assert.That(Call(locks, "IsLatched", 0), Is.True);
             Assert.That(Get(station, "InteractionAvailable"), Is.True);
+        }
+
+        [Test]
+        public void SharedPromptContinuesToGuideSeatedCannonAndOccupiedSwing()
+        {
+            var player = Player(96);
+            var playerType = T(PlayerType); object oldLocal = playerType.GetProperty("Local", StaticFlags).GetValue(null);
+            SetStatic(playerType, "Local", player);
+            try
+            {
+                var cannon = Root("Shared prompt cannon").AddComponent(T(CannonType));
+                var station = Root("Seated station", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonStation"));
+                var stations = Array.CreateInstance(station.GetType(), 1); stations.SetValue(station, 0);
+                Set(cannon, "stations", stations); Call(cannon, "ResetSeats"); SetStatic(cannon.GetType(), "Current", cannon);
+                var seat = Get(((Array)Get(cannon, "seats")).GetValue(0), "State");
+                var action = T("CurtainCall.HumanCannon.CannonAction");
+                Assert.That(Call(seat, "TryApply", Enum.Parse(action, "Board"), 96UL, 0U), Is.True);
+                var ui = Root("Shared prompt fixture").AddComponent(T("CurtainCall.UI.SceneIntegration.CommonInteractionUI"));
+                Call(ui, "AddCannon", player.transform.position);
+                var candidates = (IList)Get(ui, "candidates");
+                Assert.That(candidates.Count, Is.EqualTo(1));
+                Assert.That(Get(candidates[0], "Action"), Is.EqualTo("대포 발사"));
+                Assert.That(Get(candidates[0], "ScreenGuide"), Is.True);
+                Set(station, "InteractionAvailable", false); candidates.Clear(); Call(ui, "AddCannon", player.transform.position);
+                Assert.That(Get(candidates[0], "Action"), Is.EqualTo("대포 가동 대기"));
+                Assert.That(Get(candidates[0], "Available"), Is.False);
+                Assert.That(Call(seat, "TryApply", Enum.Parse(action, "Release"), 96UL, (uint)Get(seat, "Revision")), Is.True);
+                var pole = Root("Occupied shared swing", true).AddComponent(T("CurtainCall.HumanCannon.HumanCannonPole"));
+                poleSystem = Root("Shared swing registry").AddComponent(T(PoleType));
+                var poles = Array.CreateInstance(pole.GetType(), 1); poles.SetValue(pole, 0);
+                Set(poleSystem, "poles", poles); Call(poleSystem, "OnEnable");
+                Assert.That(Call(Call(poleSystem, "State", 0), "TryGrab", 96UL, 0U, 0d, 0f, false, 0), Is.True);
+                candidates.Clear(); Call(ui, "AddCannon", player.transform.position);
+                Assert.That(candidates.Count, Is.EqualTo(1));
+                Assert.That(Get(candidates[0], "Action"), Is.EqualTo("그네에서 도약"));
+                Assert.That(Get(candidates[0], "Key"), Is.EqualTo("Space"));
+            }
+            finally { SetStatic(playerType, "Local", oldLocal); }
         }
 
         [TestCase(0)] [TestCase(1)]

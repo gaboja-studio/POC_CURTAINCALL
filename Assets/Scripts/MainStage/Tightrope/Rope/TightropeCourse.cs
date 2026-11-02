@@ -64,10 +64,9 @@ namespace CurtainCall.Tightrope
         [SerializeField] Collider[] sceneRopes = Array.Empty<Collider>();
         public bool UsesSceneGeometry => useSceneGeometry;
 
-        /// <summary>기존 레벨에서는 이 구간의 외줄 조작 중인 사람에게만 균형·부상 규칙을 적용한다.</summary>
+        /// <summary>모든 맵에서 실제 외줄 조작 중인 사람에게만 균형·부상 규칙을 적용한다.</summary>
         public bool UsesRopeRules(NetworkPlayer player)
         {
-            if (!useSceneGeometry) return true;
             if (player == null) return false;
             if (player.IsLocal)
                 return player.TryGetComponent(out PlayerController controller) && controller.Scheme is TightropeControlScheme;

@@ -13,11 +13,10 @@ namespace CurtainCall.HumanCannon
     public sealed partial class HumanCannonPoleSystem : MonoBehaviour
     {
         [SerializeField] HumanCannonPole[] poles = Array.Empty<HumanCannonPole>();
-        [Tooltip("이 레벨에서는 지상·일반 점프·낙하 중 가까운 원본 봉을 F로 잡는다.")]
-        [SerializeField] bool allowPlatformJumpGrab;
-        [Tooltip("탈출로: 외줄 끝/점프/목마 역할과 무관하게 가까운 봉으로 전환한다.")]
-        [SerializeField] bool independentInteraction;
-        public bool IndependentInteraction => independentInteraction;
+        // Legacy authoring fields. Grab/transfer rules are shared across all scenes.
+        [SerializeField, HideInInspector] bool allowPlatformJumpGrab;
+        [SerializeField, HideInInspector] bool independentInteraction;
+        public bool IndependentInteraction => true;
         uint platformLaunch;
         sealed class Rider
         {
@@ -82,7 +81,7 @@ namespace CurtainCall.HumanCannon
             var stack = PiggybackSystem.Current;
             return player != null && cannon != null && (cannon.IsFlying(player.OwnerClientId) || CanEnterFromPlatform(player))
                 && HeldBy(player.OwnerClientId) < 0 && !cannon.IsSeated(player.OwnerClientId)
-                && (independentInteraction || stack == null || !stack.IsInStack(player) || stack.CanEnterTrapeze(player))
+                && (stack == null || !stack.IsInStack(player) || stack.CanReleaseForPole(player))
                 && HumanCannonCarry.Held(player.OwnerClientId) == null;
         }
 
@@ -121,7 +120,7 @@ namespace CurtainCall.HumanCannon
 
         internal void RequestGrab(int index, int station, uint launch, uint segment) =>
             SendRequest(PoleAction.Grab, index, station, launch, segment, 0f, 0);
-        internal bool CanEnterFromPlatform(NetworkPlayer player) => allowPlatformJumpGrab && player != null
+        internal bool CanEnterFromPlatform(NetworkPlayer player) => player != null
             && player.IsSpawned && player.State == PlayerState.Normal;
         internal void RequestPlatformGrab(int index) => SendRequest(PoleAction.PlatformGrab, index, 0, 0, 0, 0, 0);
         internal void RequestRelease(int index) => SendRequest(PoleAction.Release, index, 0, 0, 0, 0f, 0);
@@ -274,7 +273,7 @@ namespace CurtainCall.HumanCannon
                 if (seat < 0) return;
                 var stack = PiggybackSystem.Current;
                 bool transferring = stack != null && stack.IsInStack(player);
-                if (transferring && !(independentInteraction ? stack.CanReleaseForPole(player) : stack.CanEnterTrapeze(player))) return;
+                if (transferring && !stack.CanReleaseForPole(player)) return;
                 // 제한 시간이 있는 봉이면 끈끈이 장갑으로 늘린다(Task-092). 무제한(0) 봉은 그대로.
                 float hold = poles[index].HoldSeconds;
                 if (hold > 0f) hold += (float)stickyGloves.Begin(actor, Clock, hold);
@@ -287,8 +286,7 @@ namespace CurtainCall.HumanCannon
                     stack?.ConsumeTrapezeEntry(player);
                     Publish(index, fromPlatform ? PoleEvent.PlatformGrabbed : PoleEvent.Grabbed, actor, seat);
                 }
-                if (transferring && independentInteraction) stack.TryReleaseForPole(player, CompleteCatch);
-                else if (transferring) stack.TryReleaseTopForTrapeze(player, CompleteCatch);
+                if (transferring) stack.TryReleaseForPole(player, CompleteCatch);
                 else CompleteCatch();
             }
             else if (action == PoleAction.Release && seat >= 0)

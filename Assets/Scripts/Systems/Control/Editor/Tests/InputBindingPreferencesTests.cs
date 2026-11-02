@@ -177,6 +177,23 @@ namespace CurtainCall.Control.Editor.Tests
             AssertReaderPath(second, "<Keyboard>/space");
         }
 
+        [Test]
+        public void PromptLabelsFollowTheSameRebindingAsExistingGameplayReaders()
+        {
+            var reader = CreateReader();
+            var draft = Draft();
+            draft.FindAction("Common/Interact").ApplyBindingOverride(0, "<Keyboard>/g");
+            draft.FindAction("Common/Action").ApplyBindingOverride(0, "<Keyboard>/h");
+            draft.FindAction("Common/Move").ApplyBindingOverride(2, "<Keyboard>/j");
+            Assert.That(InputBindingPreferences.TryApply(draft, out string error), Is.True, error);
+            Assert.That(reader.BindingLabel("Interact", "F"), Is.EqualTo("G"));
+            Assert.That(reader.BindingLabel("Action", "Space"), Is.EqualTo("H"));
+            Assert.That(reader.BindingPartLabel("Move", "positive", "W"), Is.EqualTo("J"));
+            InputBindingPreferences.ResetDefaults();
+            Assert.That(reader.BindingLabel("Interact", "F"), Is.EqualTo("F"));
+            Assert.That(reader.BindingLabel("missing", "fallback"), Is.EqualTo("fallback"));
+        }
+
         PlayerInputReader CreateReader()
         {
             var go = new GameObject("Binding preferences test reader");

@@ -249,6 +249,40 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(Invoke(system, "ServerTryLink", 0UL), Is.EqualTo("거부: 외줄 공연이 진행 중이 아님"));
         }
 
+        [Test]
+        public void InitialCannonBindingDoesNotOverwriteAnAlreadyActiveRopeInjuryPolicy()
+        {
+            Invoke(switcher, "Apply", true);
+            Invoke(switcher, "BindInjuryPolicy", effects);
+            var ropePolicy = effects.Policy;
+            var spawned = player.GetType().GetProperty("IsSpawned"); spawned.SetValue(player, true);
+            var owner = player.GetType().GetProperty("IsOwner"); owner.SetValue(player, true);
+            try
+            {
+                var cannon = Track(new GameObject("Concurrent cannon policy")).AddComponent<CurtainCall.HumanCannon.HumanCannonSystem>();
+                Invoke(cannon, "BindInjuryPolicy", player);
+                Assert.That(effects.Policy, Is.SameAs(ropePolicy));
+                Assert.That(((System.Collections.IDictionary)GetField(cannon, "previousPolicies")).Count, Is.Zero);
+            }
+            finally { spawned.SetValue(player, false); owner.SetValue(player, false); }
+        }
+
+        [TestCase(false)] [TestCase(true)]
+        public void RopeRulesFollowTheCurrentControlModeInBothMapGeometries(bool authored)
+        {
+            SetField(course, "useSceneGeometry", authored);
+            var owner = player.GetType().GetProperty("IsOwner"); owner.SetValue(player, true);
+            try
+            {
+                Invoke(switcher, "Apply", true);
+                Assert.That(course.UsesRopeRules(player), Is.True);
+                Invoke(switcher, "Apply", false);
+                Assert.That(course.UsesRopeRules(player), Is.False);
+                Assert.That(course.UsesRopeRules(null), Is.False);
+            }
+            finally { owner.SetValue(player, false); }
+        }
+
         T Make<T>() where T : ScriptableObject => Track(ScriptableObject.CreateInstance<T>());
 
         T Track<T>(T value) where T : Object
