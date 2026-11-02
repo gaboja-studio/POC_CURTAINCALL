@@ -27,3 +27,6 @@
 
 - 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
 - dev 반영(origin/dev 37fa8fc4, 충돌 없음, _ThirdParty 0a8e9883로 갱신) 후 배치 HumanoidPlayerTests 27/30, 실패 3개는 기존과 동일. check-work 컴파일은 에디터 종료로 ENV_BLOCKED, 배치에서 컴파일·실행 확인.
+
+- 2026-11-02 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/265 (fix/fix-systems → dev)
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/265 (fix/fix-systems → dev, Squash, 지정 팀원 검토 대기)
