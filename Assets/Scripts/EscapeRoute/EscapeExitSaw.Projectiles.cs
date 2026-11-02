@@ -13,14 +13,16 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] GameObject projectileVisual;
         [SerializeField, Min(.1f)] float shotInterval = 2f;
         [SerializeField, Min(.1f)] float projectileSpeed = 18f;
-        [SerializeField, Min(.1f)] float projectileLifetime = 2.5f;
+        [Tooltip("0이면 시간/사거리 제한 없이 지형에 닿을 때 소멸한다.")]
+        [SerializeField, Min(0f)] float projectileLifetime = 2.5f;
         [SerializeField, Min(.01f)] float projectileRadius = .55f;
         [SerializeField, Min(.01f)] float projectileHalfThickness = .12f;
         [SerializeField] AudioSource launchAudio;
         [SerializeField] ParticleSystem launchFlash;
         [SerializeField] Transform recoilVisual;
         [SerializeField, Min(0)] float recoilDistance = .08f;
-        const int MaxProjectiles = 8;
+        const int MaxProjectiles = 16;
+        bool UnlimitedProjectiles => projectileLifetime <= 0;
         sealed class Shot
         {
             public uint Id, Epoch;
@@ -69,6 +71,12 @@ namespace CurtainCall.EscapeRoute
             if (recoilVisual != null) recoilVisual.localPosition = recoilRest;
             if (launchAudio != null) launchAudio.Stop();
             if (launchFlash != null) launchFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        }
+        void CarrierChanged()
+        {
+            // 발사된 무제한 톱날은 장치를 내려놓거나 다른 사람이 들어도 계속 이동한다.
+            if (!UnlimitedProjectiles) { ClearShots(); return; }
+            shotArmed = false; shotWait = Mathf.Max(.1f, shotInterval); recoilTime = 0;
         }
         void ResetProjectileCourse()
         {
@@ -135,16 +143,17 @@ namespace CurtainCall.EscapeRoute
             for (int i = shots.Count - 1; i >= 0; i--)
             {
                 var shot = shots[i];
-                if (shot.Epoch != ownership.Revision || Carrier == CannonSeatState.Nobody)
+                if (!UnlimitedProjectiles && (shot.Epoch != ownership.Revision || Carrier == CannonSeatState.Nobody))
                 { shots.RemoveAt(i); continue; }
-                float step = Mathf.Min(deltaTime, Mathf.Max(0, projectileLifetime - shot.Age));
+                float step = UnlimitedProjectiles ? deltaTime : Mathf.Min(deltaTime, Mathf.Max(0, projectileLifetime - shot.Age));
                 Vector3 from = shot.Position;
                 float distance = projectileSpeed * step;
-                bool blocked = host && ObstructionDistance(from, shot.Direction, distance, out distance);
+                // 클라이언트도 자기 화면의 벽에서 즉시 숨긴다. 절단 확정은 호스트만 한다.
+                bool blocked = ObstructionDistance(from, shot.Direction, distance, out distance);
                 Vector3 to = from + shot.Direction * distance;
                 if (host && (!blocked || distance > .0001f)) CutAlong(from, to, Vector3.up);
                 shot.Position = to; shot.Age += step;
-                if (blocked || shot.Age >= projectileLifetime) shots.RemoveAt(i);
+                if (blocked || !UnlimitedProjectiles && shot.Age >= projectileLifetime) shots.RemoveAt(i);
             }
         }
         bool ObstructionDistance(Vector3 from, Vector3 direction, float wanted, out float allowed)
@@ -207,6 +216,7 @@ namespace CurtainCall.EscapeRoute
                     visual.transform.localScale = Vector3.one;
                     visual.name = "__ExitSawProjectile_" + i; visual.hideFlags = HideFlags.DontSave;
                     foreach (var collider in visual.GetComponentsInChildren<Collider>(true)) collider.enabled = false;
+                    StripProjectileEffects(visual);
                     projectilePool[i] = visual;
                 }
                 var item = projectilePool[i];
@@ -238,19 +248,29 @@ namespace CurtainCall.EscapeRoute
             if (launchAudio != null) launchAudio.Stop();
             if (launchFlash != null) launchFlash.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         }
+        static void StripProjectileEffects(GameObject visual)
+        {
+            foreach (var particles in visual.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                var renderer = particles.GetComponent<ParticleSystemRenderer>();
+                if (renderer != null) { renderer.enabled = false; if (Application.isPlaying) Destroy(renderer); else DestroyImmediate(renderer); }
+                if (Application.isPlaying) Destroy(particles); else DestroyImmediate(particles);
+            }
+        }
         bool ValidProjectileSnapshot(uint epoch, ulong carrier, uint mask, Vector3[] points, Shot[] incoming, float wait)
         {
             if (points == null || points.Length != 32 || incoming == null || incoming.Length > MaxProjectiles
                 || (mask & ~ValidCableMask) != 0 || !float.IsFinite(wait) || wait < 0 || wait > Mathf.Max(.1f, shotInterval) + .001f
                 || !ProjectileMode && (mask != 0 || incoming.Length != 0)
-                || carrier == CannonSeatState.Nobody && incoming.Length != 0) return false;
+                || !UnlimitedProjectiles && carrier == CannonSeatState.Nobody && incoming.Length != 0) return false;
             for (int i = 0; i < 32; i++) if ((mask & (1u << i)) != 0 && !Finite(points[i])) return false;
             for (int i = 0; i < incoming.Length; i++)
             {
                 var shot = incoming[i];
-                if (shot == null || shot.Id == 0 || shot.Epoch != epoch || !Finite(shot.Position) || !Finite(shot.Direction)
+                if (shot == null || shot.Id == 0 || (UnlimitedProjectiles ? shot.Epoch > epoch : shot.Epoch != epoch) || !Finite(shot.Position) || !Finite(shot.Direction)
                     || Mathf.Abs(shot.Direction.y) > .001f || Mathf.Abs(shot.Direction.sqrMagnitude - 1) > .01f
-                    || !float.IsFinite(shot.Age) || shot.Age < 0 || shot.Age >= projectileLifetime) return false;
+                    || !float.IsFinite(shot.Age) || shot.Age < 0 || !UnlimitedProjectiles && shot.Age >= projectileLifetime) return false;
                 for (int j = 0; j < i; j++) if (incoming[j].Id == shot.Id) return false;
             }
             return true;

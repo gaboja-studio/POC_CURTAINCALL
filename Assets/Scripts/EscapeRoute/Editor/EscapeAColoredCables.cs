@@ -112,6 +112,12 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var art = UnityEngine.Object.Instantiate(blade.gameObject, template);
             Undo.RegisterCreatedObjectUndo(art, "Original saw projectile mesh"); art.name = "EdgeFirstBlade";
             art.transform.localPosition = Vector3.zero; art.transform.localRotation = Quaternion.Euler(0, 90, 0);
+            foreach (var particles in art.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                var renderer = particles.GetComponent<ParticleSystemRenderer>();
+                if (renderer != null) Undo.DestroyObjectImmediate(renderer);
+                Undo.DestroyObjectImmediate(particles);
+            }
             template.gameObject.SetActive(false);
             var source = Undo.AddComponent<AudioSource>(muzzle.gameObject);
             source.clip = CableSound(true); source.playOnAwake = false; source.spatialBlend = 1;
@@ -122,8 +128,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             data.FindProperty("launchAudio").objectReferenceValue = source;
             data.FindProperty("recoilVisual").objectReferenceValue = recoil;
             data.FindProperty("shotInterval").floatValue = 2;
-            data.FindProperty("projectileSpeed").floatValue = 18;
-            data.FindProperty("projectileLifetime").floatValue = 2.5f;
+            data.FindProperty("projectileSpeed").floatValue = 36;
+            data.FindProperty("projectileLifetime").floatValue = 0;
             data.FindProperty("projectileRadius").floatValue = .55f;
             data.FindProperty("projectileHalfThickness").floatValue = .12f;
         }

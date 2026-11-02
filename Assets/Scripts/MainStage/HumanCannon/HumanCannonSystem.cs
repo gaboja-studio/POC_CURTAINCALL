@@ -29,6 +29,9 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Transform flightCoordinateSpace;
         [Tooltip("이 공간의 일반 이동과 비행에 마우스 회전 3인칭을 사용한다.")]
         [SerializeField] bool useThirdPersonView;
+        [Tooltip("선택한 공간의 공중 3인칭 구도. 비우면 기존 시점을 사용하며 조작/탄도는 바꾸지 않는다.")]
+        [SerializeField] CurtainCall.Cameras.CameraViewPreset airborneView;
+        public CurtainCall.Cameras.CameraViewPreset AirborneView => airborneView;
         public bool UseThirdPersonView => useThirdPersonView;
 
         sealed class SeatRuntime

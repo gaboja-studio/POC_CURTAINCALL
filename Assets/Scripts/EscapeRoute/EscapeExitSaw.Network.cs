@@ -33,7 +33,7 @@ namespace CurtainCall.EscapeRoute
                     () => this != null && CanGrab(player) && ownership.Revision == expected,
                     () => HandleAction(actor, action, expected, true))) return;
                 if (!CanGrab(player) || !ownership.TryApply(CannonAction.Board, actor, expected)) return;
-                ClearShots();
+                CarrierChanged();
                 HumanCannonSystem.Current.StartCarrying(actor);
                 lastSafeFeet = player.transform.position;
                 FollowCarrier(player, true);
@@ -41,7 +41,7 @@ namespace CurtainCall.EscapeRoute
             else if (action == 2)
             {
                 if (!ownership.TryApply(CannonAction.Release, actor, expected)) return;
-                ClearShots();
+                CarrierChanged();
                 if (!Grounded(player)) Recover();
                 if (!DoorOpen) cutProgress = 0;
                 cutting = carryBlocked = false;

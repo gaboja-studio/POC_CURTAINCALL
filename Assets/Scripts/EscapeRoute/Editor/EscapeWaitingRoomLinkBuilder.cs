@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CurtainCall.Cameras;
 using CurtainCall.HumanCannon;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Settings;
@@ -19,7 +18,6 @@ namespace CurtainCall.EscapeRoute.Editor
     {
         public const string WaitingPath = "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity";
         public const string EscapePath = "Assets/Scenes/Levels/escape_route.unity";
-        const string ViewPath = "Assets/Resources/Settings/Camera/EscapeEntryFirstPerson.asset";
         static Material concrete, metal;
         static TMP_FontAsset font;
         static Transform parent;
@@ -107,10 +105,7 @@ namespace CurtainCall.EscapeRoute.Editor
             Landing(new Vector3(-28.7f, -13, 98.8f), false);
             Straight(new Vector3(-30.4f, -13, 98.8f), new Vector3(-36.4f, -16, 98.8f), 3.4f, true);
             Straight(new Vector3(-36.4f, -16, 98.8f), new Vector3(-100.1f, -16, 98.8f), 3.4f, false);
-            var firstPerson = Zone("FirstPersonAtStairEnd", new Vector3(-38, -14, 98.8f), new Vector3(3.2f, 4.3f, 3.3f));
-            var view = AssetDatabase.LoadAssetAtPath<CameraViewPreset>(ViewPath);
-            if (view == null) { view = ScriptableObject.CreateInstance<CameraViewPreset>(); AssetDatabase.CreateAsset(view, ViewPath); }
-            view.Kind = CameraViewKind.FirstPerson; view.FieldOfView = 70; view.TransitionDuration = .7f; EditorUtility.SetDirty(view);
+            Zone("FirstPersonAtStairEnd", new Vector3(-38, -14, 98.8f), new Vector3(3.2f, 4.3f, 3.3f));
             Box("Assembly sign backing",new Vector3(-20.72f,-5.8f,93.35f),new Vector3(.08f,1.3f,4.3f),metal);
             var label = Label("Assembly sign", new Vector3(-20.64f, -5.8f, 93.35f), Quaternion.Euler(0,-90,0), new Vector2(4.1f, 1.1f), 2.4f);
             label.text = "탈출 준비\n플레이 중인 전원이 모이면 출발";
@@ -135,7 +130,7 @@ namespace CurtainCall.EscapeRoute.Editor
             so.ApplyModifiedPropertiesWithoutUndo();
             EditorSceneManager.MarkSceneDirty(waiting); EditorSceneManager.MarkSceneDirty(escape);
             EditorSceneManager.SaveScene(waiting); EditorSceneManager.SaveScene(escape);
-            AssetDatabase.SaveAssetIfDirty(settings); AssetDatabase.SaveAssetIfDirty(view);
+            AssetDatabase.SaveAssetIfDirty(settings);
             SceneManager.SetActiveScene(waiting);
             EscapeLoadingConnectionBuilder.Build();
         }

@@ -1,5 +1,7 @@
 # Project Pitfalls
 
+- [escape-held-saw-collision.md](escape-held-saw-collision.md) — 휴대 톱 자기 충돌·벽 뒤 전선/뱅크 교차·도달 재현을 확인할 때
+
 - [waiting-room-moved-camera-zones.md](waiting-room-moved-camera-zones.md) — 대기실 통로 재배치 뒤 시점이 너무 일찍 바뀌거나 기존 좌표 검사가 실패할 때
 - [escape-additive-footprint.md](escape-additive-footprint.md) — 대기실/A 동시 로드 시 전체 외벽 침범과 편집/런타임 위치 불일치를 검사할 때
 

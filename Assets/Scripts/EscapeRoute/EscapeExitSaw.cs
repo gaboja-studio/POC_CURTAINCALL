@@ -225,7 +225,7 @@ namespace CurtainCall.EscapeRoute
         }
         void Recover()
         {
-            ClearShots();
+            CarrierChanged();
             CarryRoot.SetPositionAndRotation(recoveryAnchor != null ? recoveryAnchor.position : initialPosition,
                 recoveryAnchor != null ? recoveryAnchor.rotation : initialRotation);
             if (!DoorOpen) cutProgress = 0;

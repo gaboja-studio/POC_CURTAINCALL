@@ -188,7 +188,7 @@ namespace CurtainCall.HumanCannon
                         }
                         var rider = runtime.Riders[seat];
                         float input = Clock - rider.LastInput <= .3 ? rider.Input : 0f;
-                        drive += rider.SwingInput.Step(input, Time.deltaTime);
+                        drive += pole.SwingDrive(ref rider.SwingInput, input, Time.deltaTime);
                     }
                     // 같은 방향·같은 박자로 힘을 모아야 원래 반동이 난다. 반대 입력은 상쇄한다.
                     if (runtime.State.Count > 0)

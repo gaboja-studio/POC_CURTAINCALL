@@ -8,7 +8,7 @@ namespace CurtainCall.HumanCannon
 {
     /// <summary>각 화면에서 모든 공중 참가자의 바로 아래 착지면을 표시한다. 이동/네트워크 상태는 변경하지 않는다.</summary>
     [DefaultExecutionOrder(500), DisallowMultipleComponent]
-    public sealed class HumanCannonGroundMarkers : MonoBehaviour
+    public sealed partial class HumanCannonGroundMarkers : MonoBehaviour
     {
         [SerializeField] Material markerMaterial;
         [Tooltip("착지 성공 판정과 별개로 발밑 표시에 사용할 코스 바닥. 이 목록은 게임 규칙을 바꾸지 않는다.")]
@@ -24,6 +24,7 @@ namespace CurtainCall.HumanCannon
         {
             var cannon = HumanCannonSystem.Current;
             if (cannon == null || markerMaterial == null) { HideAll(); return; }
+            bool targetShown = false;
             foreach (var player in NetworkPlayer.All)
             {
                 if (player == null || !player.IsSpawned) continue;
@@ -31,7 +32,8 @@ namespace CurtainCall.HumanCannon
                     && (player.IsAirborne || cannon.IsFlying(player.OwnerClientId))
                     && (HumanCannonRouteSystem.Current == null || !HumanCannonRouteSystem.Current.IsRiding(player.OwnerClientId));
                 Vector3 point = default, normal = Vector3.up;
-                bool visible = airborne && TryProjectGround(player.transform.position, out point, out normal)
+                Collider surface = null;
+                bool visible = airborne && TryProjectGround(player.transform.position, out point, out normal, out surface)
                     && player.transform.position.y - point.y > 0.12f;
                 if (!markers.TryGetValue(player, out var marker))
                 {
@@ -44,8 +46,14 @@ namespace CurtainCall.HumanCannon
                 {
                     marker.SetPositionAndRotation(point + normal * 0.025f, Quaternion.FromToRotation(Vector3.up, normal));
                     marker.localScale = Vector3.one * radius;
+                    bool safe = showSafeLandingFeedback && player.TryGetComponent(out PlayerMover mover)
+                        && HasSafeLandingBelow(mover, player.transform.position, point, surface);
+                    if (showSafeLandingFeedback) Tint(marker, safe);
+                    if (player == NetworkPlayer.Local)
+                        targetShown = ShowLandingTarget(safe ? surface as BoxCollider : null, point);
                 }
             }
+            if (!targetShown && landingTarget != null) landingTarget.gameObject.SetActive(false);
             removed.Clear();
             foreach (var pair in markers)
                 if (pair.Key == null || !pair.Key.IsSpawned) removed.Add(pair.Key);
@@ -58,9 +66,13 @@ namespace CurtainCall.HumanCannon
 
         /// <summary>현재 발 위치를 수직 투영한다. 구멍이나 장외에는 가상의 바닥을 표시하지 않는다.</summary>
         public bool TryProjectGround(Vector3 feet, out Vector3 point, out Vector3 normal)
+            => TryProjectGround(feet, out point, out normal, out _);
+
+        bool TryProjectGround(Vector3 feet, out Vector3 point, out Vector3 normal, out Collider surface)
         {
             point = default;
             normal = Vector3.up;
+            surface = null;
             Vector3 origin = feet + Vector3.up * 0.05f;
             int count;
             do
@@ -76,18 +88,19 @@ namespace CurtainCall.HumanCannon
                 var hit = hits[i];
                 if (hit.distance >= nearest || hit.normal.y < 0.7f
                     || hit.collider.GetComponentInParent<NetworkPlayer>() != null) continue;
-                bool surface = System.Array.IndexOf(courseFloors, hit.collider) >= 0
+                bool supported = System.Array.IndexOf(courseFloors, hit.collider) >= 0
                     || HumanCannonLandingZone.ContainsLanding(hit.point);
-                if (!surface)
+                if (!supported)
                 {
                     var transport = hit.collider.GetComponentInParent<HumanCannonTransport>();
-                    surface = transport != null && transport.isActiveAndEnabled && transport.Platform != null
+                    supported = transport != null && transport.isActiveAndEnabled && transport.Platform != null
                         && hit.collider.transform.IsChildOf(transport.Platform) && transport.ContainsFeet(hit.point, 0);
                 }
-                if (!surface) continue;
+                if (!supported) continue;
                 nearest = hit.distance;
                 point = hit.point;
                 normal = hit.normal;
+                surface = hit.collider;
             }
             // 트램폴린은 물리 Collider 없이 별도 반동 면으로 동작한다. 천 아래로 표시가 가려지지 않게 그 면을 쓴다.
             var trampoline = HumanCannonTrampoline.Current;
@@ -99,7 +112,7 @@ namespace CurtainCall.HumanCannon
                 bool blocked = HumanCannonRouteSystem.Current != null && HumanCannonRouteSystem.Current.BlocksTrampolineBounce(candidate);
                 if (!blocked && distance >= 0 && distance < nearest && distance <= maxDistance
                     && Mathf.Abs(local.x) <= trampoline.HalfSize.x && Mathf.Abs(local.z) <= trampoline.HalfSize.y)
-                { nearest = distance; point = candidate; normal = Vector3.up; }
+                { nearest = distance; point = candidate; normal = Vector3.up; surface = null; }
             }
             return !float.IsPositiveInfinity(nearest);
         }
@@ -126,12 +139,17 @@ namespace CurtainCall.HumanCannon
             return marker.transform;
         }
 
-        void HideAll() { foreach (var marker in markers.Values) if (marker != null) marker.gameObject.SetActive(false); }
+        void HideAll()
+        {
+            foreach (var marker in markers.Values) if (marker != null) marker.gameObject.SetActive(false);
+            if (landingTarget != null) landingTarget.gameObject.SetActive(false);
+        }
         void OnDisable() => HideAll();
         void OnDestroy()
         {
             foreach (var marker in markers.Values) if (marker != null) Destroy(marker.gameObject);
             markers.Clear();
+            if (landingTarget != null) Destroy(landingTarget.gameObject);
             if (quad != null) Destroy(quad);
         }
     }
