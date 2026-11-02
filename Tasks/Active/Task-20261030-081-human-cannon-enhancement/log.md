@@ -195,3 +195,6 @@
 - 테스트: `DepartureTravelStateTests`에 복귀·도착 기록 2개 추가. EditMode `CurtainCall.HumanCannon` 569/569 PASS. Play 모드·멀티플레이 화면 미확인.
 
 - 2026-11-02 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-02 PR 제출
+- dev 대상 PR #264 등록: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/264 (지정 팀원 검토 대기). `new-pr.ps1`은 브랜치 이름 형식(슬래시 2개) 때문에 거부되어 템플릿대로 직접 작성.
