@@ -28,10 +28,8 @@ namespace CurtainCall.UI.SceneIntegration
         [Tooltip("기물 그림이 없을 때 쓰는 아이콘 키(Icons 카탈로그)")]
         public string fallbackIconKey;
         [Header("손 아이콘 (도구를 손에 들었을 때 이름 옆)")]
-        [Tooltip("이름 칸(SelectedProp) 아래에 배치한 손 아이콘. 그림·크기는 씬에서 고친다")]
+        [Tooltip("이름 칸(SelectedProp) 아래에 배치한 손 아이콘. 그림·크기·위치는 씬에서 고친다(코드는 켜고 끄기만)")]
         [SerializeField] UnityEngine.UI.Image heldIndicator;
-        [Tooltip("이름 글자 끝과 손 아이콘 중심 사이 거리(px)")]
-        [SerializeField] float heldIndicatorGap = 14f;
         public const int VisibleSlotCount = 2;
         readonly List<InventorySlotData> data = new(VisibleSlotCount);
         static readonly Key[] Keys = { Key.Digit1, Key.Digit2 };
@@ -96,11 +94,7 @@ namespace CurtainCall.UI.SceneIntegration
                     : Fill(PropCarry.IsHoldable(selected.ItemId) ? holdingFormat : equipmentSelectedFormat, ("item", ItemCatalog.DisplayName(selected)));
                 if (heldIndicator != null) heldIndicator.enabled = selected.Uid != 0 && CurtainCall.ItemArt.ItemVisualAssets.IsTool(selected.ItemId) && (!uvHeld || selected.ItemId == ItemUses.UvLamp);
             }
-            if (heldIndicator != null && heldIndicator.enabled)
-            {
-                selectedLabel.ForceMeshUpdate();
-                ((RectTransform)heldIndicator.transform).anchoredPosition = new Vector2(selectedLabel.preferredWidth * .5f + heldIndicatorGap, 0f);
-            }
+            // 손 아이콘 위치는 씬 레이아웃이 정한다(LabelArea 크기 맞춤 → 이름 칸 폭 = 글자 폭, 손 아이콘은 이름 칸 왼쪽에 고정). 2026-11-02 사용자.
             slots.SetContext(true); slots.ShowInventory();
         }
         // ---- 사용 연출(2026-11-02 사용자, Task-094) ----
