@@ -10,3 +10,9 @@
 
 - 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
 - check-work: 안전성 PASS, 문서/규칙 PASS, 컴파일 ENV_BLOCKED(열린 에디터 없음). 같은 코드로 배치 unity test가 컴파일·실행됨. 실제 멀티플레이·시각 확인은 미실시.
+
+- 2026-11-02 씬 전환 튕김(대기실→탈출로): 화면 문구는 클라이언트 NGO 자체 Shutdown(TransportClientId≠0, LeaveAsync 아님). 남는 경로는 UTP RelayConnectionStatus.AllocationInvalid → TransportFailure → NGO Shutdown(true). Relay는 약 10초 무요청 시 할당 만료 = 메인 스레드 ~10초 정지. 상세: Harness/Project/Pitfalls/relay-stall-disconnect.md.
+- 측정(에디터 배치, 렌더링 없음): W 위 escape 추가 로드 최대 프레임 0.4초, 활성화 1.0초, W 언로드 0.2초 → 이 PC에서는 10초 정지 재현 안 됨. 실제 정지 작업은 미확정(렌더링·GPU 업로드·메모리 후보).
+- 수정: NetworkSessionManager OnTransportFailure 처리(종료 문구 TransportFailureMessage, [TransportFailure] 로그), 접속 중 3초 이상 프레임 정지 경고 로그. 회귀 테스트 StartConnectionTests.TransportFailureReportsStallReasonInsteadOfTransportShutdown.
+
+- 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)

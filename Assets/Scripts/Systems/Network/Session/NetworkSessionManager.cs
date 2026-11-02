@@ -107,6 +107,10 @@ namespace CurtainCall.Network.Session
         GameSessionStateSync _stateSync;
         string _pendingDisconnectReason;
         bool _leaveRequested;
+        bool _transportFailed;
+        float _lastFrameRealtime, _longestStallMs;
+        public const float StallWarningMilliseconds = 3000f;
+        public const string TransportFailureMessage = "네트워크 응답이 오래 멈춰 연결이 끊겼습니다(로딩 중 정지).";
         readonly List<MinimumStartPlayerRequest> _minimumStartPlayerRequests = new();
 
         sealed class MinimumStartPlayerRequest : IDisposable
@@ -150,6 +154,33 @@ namespace CurtainCall.Network.Session
             _networkManager.OnConnectionEvent += HandleConnectionEvent;
             _networkManager.OnClientStopped += HandleStopped;
             _networkManager.OnServerStopped += HandleStopped;
+            _networkManager.OnTransportFailure += HandleTransportFailure;
+        }
+
+        /// <summary>
+        /// Relay는 메인 스레드가 약 10초 이상 멈춰 핑을 못 보낸 연결의 할당을 끊는다. 복구할 수 없어 NGO가 스스로 종료하며,
+        /// 원래 문구는 "[TransportShutdown] NetworkConnectionManager was shutdown"이라 원인을 알 수 없다(2026-11-02 씬 전환 튕김).
+        /// </summary>
+        void HandleTransportFailure()
+        {
+            if (_cancellingConnect || ConnectionState == SessionConnectionState.Offline) return;
+            _transportFailed = true;
+            _pendingDisconnectReason = TransportFailureMessage;
+            Debug.LogWarning($"[Session] 전송 계층 실패로 접속 종료 [TransportFailure] mode={ConnectionMode(_connector)} "
+                + $"longestStallMs={_longestStallMs:F0} scene={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}");
+        }
+
+        void Update()
+        {
+            // 접속 중 프레임 정지 기록. 진단용이며 동작은 바꾸지 않는다.
+            float now = Time.realtimeSinceStartup;
+            float stallMs = (now - _lastFrameRealtime) * 1000f;
+            _lastFrameRealtime = now;
+            if (ConnectionState != SessionConnectionState.Host && ConnectionState != SessionConnectionState.Client) return;
+            if (stallMs > _longestStallMs) _longestStallMs = stallMs;
+            if (stallMs >= StallWarningMilliseconds)
+                Debug.LogWarning($"[Session] 메인 스레드 정지 {stallMs:F0}ms (Relay는 약 10초 무응답이면 연결을 끊음) "
+                    + $"scene={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}");
         }
 
         void OnDestroy()
@@ -164,6 +195,7 @@ namespace CurtainCall.Network.Session
                 _networkManager.OnConnectionEvent -= HandleConnectionEvent;
                 _networkManager.OnClientStopped -= HandleStopped;
                 _networkManager.OnServerStopped -= HandleStopped;
+                _networkManager.OnTransportFailure -= HandleTransportFailure;
             }
 
             Instance = null;
@@ -335,6 +367,8 @@ namespace CurtainCall.Network.Session
             _connectStartedUtc = DateTime.UtcNow;
             _pendingDisconnectReason = null;
             _leaveRequested = false;
+            _transportFailed = false;
+            _longestStallMs = 0;
             LastDisconnectReason = null;
             SetPlayerCount(0);
             SetGameState(GameSessionState.Waiting);
@@ -515,7 +549,7 @@ namespace CurtainCall.Network.Session
                 case ConnectionEvent.ClientDisconnected:
                     if (networkManager.IsServer)
                         ServerRefresh();
-                    else if (isLocal)
+                    else if (isLocal && !_transportFailed)
                         _pendingDisconnectReason = networkManager.DisconnectReason;
                     break;
             }
