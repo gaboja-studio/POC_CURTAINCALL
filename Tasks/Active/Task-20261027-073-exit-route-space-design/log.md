@@ -71,3 +71,6 @@
 - 제출 최신화: dev c4b51736 통합(자동 병합 충돌0), 관련 EditMode37/37. dev에서 넘어온 Task081 길이 초과 로그는 원문 History001 보존 후 현재 기록을 유지해 압축했다.
 
 - 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-02 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/268 (feat/exit-route/design-map → dev)
+- 제출 완료: 게임 PR #268 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/268 (dev 검토 대기, 병합하지 않음). private 에셋 PR #17 및 main d5de413f 반영 후 포인터 검증/게임 브랜치 push 완료. 최종 안전성·문서·컴파일 PASS, EditMode37/37. 로컬의 무관한 자동 셰이더 변경2개는 보존/제외했다.
