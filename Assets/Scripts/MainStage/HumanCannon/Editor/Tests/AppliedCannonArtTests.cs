@@ -203,8 +203,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [TestCase(-80f)] [TestCase(0f)] [TestCase(80f)]
         public void EveryPoleKeepsBarAndCableAlignedThroughoutSwing(float angle)
         {
-            // Task-044 2026-10-22 실플레이 피드백: 휴식 봉5 + 연결 봉2 유지.
-            var poles = All<HumanCannonPole>(); Assert.That(poles.Length, Is.EqualTo(7));
+            // Task-044 2026-10-22 실플레이 피드백: 휴식 봉5 + 연결 봉2. 2026-11-02 그네 3개 삭제로 휴식 봉2.
+            var poles = All<HumanCannonPole>(); Assert.That(poles.Length, Is.EqualTo(4));
             foreach (var pole in poles)
             {
                 pole.PresentSwing(angle); var bar = Ref(pole, "visualBar");
@@ -266,8 +266,10 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Near(box.size, bounds.size, box.name + " collider size"); found++;
             }
             // 2026-10-30 시작 지점 아래 안전 바닥·복귀 계단(43면) 삭제, 리프트 빈틈 메움(10면) 추가.
-            Assert.That(found, Is.EqualTo(48), "41 concrete surfaces + 6 transport panels + cushion");
-            Assert.That(All<Collider>().Length, Is.EqualTo(57), "공중 장애물 제거로 최종 톱 EntryZone 트리거1개만 줄고, 시작 지점 아래 43개를 빼고 리프트 빈틈 10개를 더한 지상 충돌체를 유지한다.");
+            // 2026-11-02 최종 대포 바닥 좌·우를 감싸는 초록 쿠션 2면 추가. 쿠션 3면은 충돌·착지만 맡고
+            // 외형은 충돌체 없는 하나로 이어 붙여 이 대조에서 빠진다. 최종 대포 바닥 콘크리트도 같은 초록 면(FinalGreenGround)으로 대체.
+            Assert.That(found, Is.EqualTo(46), "40 concrete surfaces + 6 transport panels");
+            Assert.That(All<Collider>().Length, Is.EqualTo(59), "공중 장애물 제거로 최종 톱 EntryZone 트리거1개만 줄고, 시작 지점 아래 43개를 빼고 리프트 빈틈 10개와 좌·우 쿠션 2개를 더한 지상 충돌체를 유지한다.");
         }
 
         [Test]

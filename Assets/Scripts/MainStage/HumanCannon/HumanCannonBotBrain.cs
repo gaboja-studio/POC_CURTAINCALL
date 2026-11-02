@@ -73,15 +73,16 @@ namespace CurtainCall.HumanCannon
                 return grab;
             }
             if (route != null && route.IsRiding(player.OwnerClientId)) { Status = "리프트 이동 중"; return default; }
-            if (route != null && route.TransportState(0).Phase == DeparturePhase.Waiting)
+            // 빈 발판은 출발점으로 돌아오므로, 다시 탈지는 Phase가 아니라 도착 기록으로 판단한다.
+            if (route != null && !route.TransportState(0).Delivered && route.TransportState(0).Phase == DeparturePhase.Waiting)
             { Status = "출발 리프트 탑승 중"; return Walk(route.Transport(0).StartPosition); }
-            if (route != null && route.TransportState(1).Phase == DeparturePhase.Arrived
-                && route.TransportState(2).Phase == DeparturePhase.Waiting)
+            if (route != null && route.TransportState(1).Delivered
+                && !route.TransportState(2).Delivered && route.TransportState(2).Phase == DeparturePhase.Waiting)
             { Status = "두 번째 출발 리프트로 이동"; return Walk(route.Transport(2).StartPosition); }
 
             bool second = player.transform.position.y > 3f && player.transform.position.z > 85f;
             if (!second && other.transform.position.z >= 72f && !HumanCannonSystem.Current.IsFlying(other.OwnerClientId)
-                && route != null && route.TransportState(1).Phase == DeparturePhase.Waiting)
+                && route != null && !route.TransportState(1).Delivered && route.TransportState(1).Phase == DeparturePhase.Waiting)
             {
                 Status = "쉼터 승강기로 이동 중";
                 Vector3 lift = route.Transport(1).StartPosition;
@@ -144,7 +145,11 @@ namespace CurtainCall.HumanCannon
                 Vector3 target = trampoline.Surface;
                 if (other.transform.position.z >= 65 && other.transform.position.z < 80) target = new Vector3(0, 6, 75);
                 else if (other.transform.position.z >= 137) target = new Vector3(0, 6.2f, 144);
-                if (player.transform.position.z > 150) target = new Vector3(player.transform.position.x, 6.2f, 174);
+                if (player.transform.position.z > 150)
+                {
+                    var finish = HumanCannonDestination.Current != null ? HumanCannonDestination.Current.Zone : null;
+                    target = new Vector3(player.transform.position.x, 6.2f, finish != null ? finish.transform.position.z : 174);
+                }
                 if (poles != null)
                     for (int i = 0; i < poles.PoleCount; i++)
                     {
@@ -161,8 +166,8 @@ namespace CurtainCall.HumanCannon
             if (system.IsSeated(player.OwnerClientId))
             {
                 bool ready = trampoline.Carrier == other.OwnerClientId;
-                if (route != null && player.transform.position.z < 10) ready &= route.TransportState(0).Phase == DeparturePhase.Arrived;
-                else if (route != null && player.transform.position.z < 90) ready &= route.TransportState(2).Phase == DeparturePhase.Arrived;
+                if (route != null && player.transform.position.z < 10) ready &= route.TransportState(0).Delivered;
+                else if (route != null && player.transform.position.z < 90) ready &= route.TransportState(2).Delivered;
                 else ready = true;
                 Status = ready ? "대포 발사" : "대포 대기 · 트램폴린을 들고 출발해 주세요";
                 return new PlayerInputFrame { InteractTapped = ready && Tap() };

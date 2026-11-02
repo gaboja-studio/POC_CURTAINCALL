@@ -34,6 +34,46 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
+        public void ArrivedPlatform_ReturnsToStartAndKeepsDelivery()
+        {
+            var travel = new DepartureTravelState();
+            Assert.IsFalse(travel.TryReturn(0));
+            travel.TryStart(7, 0, 10, 4);
+            Assert.IsFalse(travel.TryReturn(12));
+            Assert.IsFalse(travel.Delivered);
+            travel.Tick(14);
+            Assert.IsTrue(travel.Delivered);
+            Assert.IsTrue(travel.TryReturn(16));
+            Assert.That(travel.Phase, Is.EqualTo(DeparturePhase.Returning));
+            Assert.That(travel.Revision, Is.EqualTo(3u));
+            Assert.That(travel.Progress(16), Is.EqualTo(1f));
+            Assert.That(travel.Progress(18), Is.EqualTo(0.5f));
+            Assert.IsFalse(travel.Tick(19.999));
+            Assert.IsTrue(travel.Tick(20));
+            Assert.That(travel.Phase, Is.EqualTo(DeparturePhase.Waiting));
+            Assert.That(travel.Rider, Is.EqualTo(CannonSeatState.Nobody));
+            Assert.That(travel.Progress(30), Is.Zero);
+            Assert.IsTrue(travel.Delivered);
+            Assert.IsTrue(travel.TryStart(7, 4, 30, 4));
+            travel.Reset();
+            Assert.IsFalse(travel.Delivered);
+        }
+
+        [Test]
+        public void Receive_CarriesReturningAndDeliveredWaiting()
+        {
+            var travel = new DepartureTravelState();
+            Assert.IsTrue(travel.Receive(3, DeparturePhase.Returning, 7, 16, 4));
+            Assert.IsTrue(travel.Delivered);
+            Assert.That(travel.Progress(18), Is.EqualTo(0.5f));
+            Assert.IsFalse(travel.Receive(4, DeparturePhase.Returning, CannonSeatState.Nobody, 16, 4));
+            Assert.IsTrue(travel.Receive(4, DeparturePhase.Waiting, CannonSeatState.Nobody, 0, 0, true));
+            Assert.IsTrue(travel.Delivered);
+            Assert.IsTrue(travel.Receive(5, DeparturePhase.Waiting, CannonSeatState.Nobody, 0, 0));
+            Assert.IsFalse(travel.Delivered);
+        }
+
+        [Test]
         public void DelayedTick_ArrivesWithoutExtendingTravel()
         {
             var travel = new DepartureTravelState();
