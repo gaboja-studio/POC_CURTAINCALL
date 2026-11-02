@@ -98,6 +98,12 @@ namespace CurtainCall.Player
         {
             if (target == null || !target.TryGetComponent<CurtainCall.CharacterArt.RabbitSurfaceStates>(out var surface)) return;
             surface.SetVariant(network != null && network.AppearanceOutfit >= 0 ? network.AppearanceOutfit : network != null ? network.Slot : 0);
+            // 혈흔 표시가 꺼져 있으면(게임 설정 또는 이 PC 설정) 부상과 상관없이 처음 의상을 유지한다. 매 프레임 다시 맞추므로 설정을 바꾸면 바로 반영된다.
+            if (!CurtainCall.Damage.InjuryBloodEffects.IsVisible)
+            {
+                surface.SetState(CurtainCall.CharacterArt.RabbitSurfaceStates.SurfaceState.Clean);
+                return;
+            }
             bool dead = condition.AllLimbsLost || (network != null &&
                 (network.State == PlayerState.Fallen || network.State == PlayerState.Retired));
             surface.SetState(dead || condition.LostCount >= 3

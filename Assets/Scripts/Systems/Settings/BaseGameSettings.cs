@@ -488,7 +488,7 @@ namespace CurtainCall.Settings
             [SerializeField, Min(0f)] float limbLifetime = 0f;
 
             [Header("혈흔 연출 (판정과 무관, Task-090)")]
-            [Tooltip("절단 순간 잘린 부위에서 혈흔이 튀는 연출을 게임 전체에서 쓸지. 끄면 모든 플레이어에게 보이지 않고 게임 설정 화면의 '혈흔 연출 표시' 항목도 사라진다.")]
+            [Tooltip("절단 순간 잘린 부위에서 혈흔이 튀는 연출과 부상에 따른 피 묻은 의상을 게임 전체에서 쓸지. 끄면 의상은 처음 상태를 유지하고, 모든 플레이어에게 보이지 않고 게임 설정 화면의 '혈흔 연출 표시' 항목도 사라진다.")]
             [SerializeField] bool bloodEffectEnabled = true;
 
             [Tooltip("혈흔 방울 양 배율(×). 파티클 프리팹(Resources/Effects/Blood/BloodSpurt)의 방출 수에 곱한다.")]
