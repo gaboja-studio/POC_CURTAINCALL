@@ -13,3 +13,4 @@
 - 2026-11-02 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/267 (fix/settings/injury-and-blood → dev)
 - origin/dev(c4b51736) 병합: 충돌 없음. 테스트·에디터 종료로 바뀐 TMP 폰트 아틀라스 에셋 2개(Pretendard-SemiBold SDF, escape-labels)는 의도하지 않은 변경이라 되돌림. 병합 후 컴파일은 에디터 종료로 미실행.
 - PR #267 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/267
+- 병합 후 재확인(에디터 재시작): 컴파일 오류 0. PlayMode HumanoidPlayerTests 29/31 PASS, 2 FAIL은 병합 전과 같은 기어가기 애니메이션 이름 검사(변경 전 코드 재현은 미확인). PR 본문 검사 결과 갱신.
