@@ -79,15 +79,16 @@ namespace CurtainCall.UI.SceneIntegration
             if (!holding && !seated && !cannon.IsFlying(player.OwnerClientId)
                 && (carrying || riding || !hasInteractTarget) && ShowTransportHint(player, route, carried is HumanCannonTrampoline))
             { HideGuide(); return; }
-            if (holding) ShowGuide("Space", "봉 놓기", GuideKeyWidth.Wide);
+            if (interaction == null) interaction = FindFirstObjectByType<CommonInteractionUI>();
+            bool commonPrompt = interaction != null && interaction.isActiveAndEnabled && interaction.Prompt != null;
+            if (commonPrompt && (holding || seated || carrying)) HideGuide();
+            else if (holding) ShowGuide(reader != null ? reader.BindingLabel("Action", "Space") : "Space", "봉 놓기", GuideKeyWidth.Wide);
             else if (riding) HideGuide();
             else if (carrying) ShowGuide("F 길게", carried.CarryName + " 놓기", GuideKeyWidth.ExtraWide);
             else if (seated) ShowGuide(holdingF ? "F 길게" : "F", holdingF ? "내리기" : "발사", holdingF ? GuideKeyWidth.ExtraWide : GuideKeyWidth.Normal);
             else HideGuide();
 
             int pole = poles != null ? poles.FindGrabbable(player) : -1;
-            if (interaction == null) interaction = FindFirstObjectByType<CommonInteractionUI>();
-            bool commonPrompt = interaction != null && interaction.isActiveAndEnabled && interaction.Prompt != null;
             if (holding || riding || seated || carrying || hasInteractTarget && commonPrompt) HideTooltip();
             else if (pole >= 0)
             {
@@ -135,6 +136,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (route.TrapOpen(nearest)) text = "발판이 열려 있습니다. 접근에 주의하세요";
             else if (phase == DeparturePhase.Moving) text = "이동 중 · 도착할 때까지 대기하세요";
             else if (phase == DeparturePhase.Arrived) text = "도착 · 걸어서 내리세요";
+            else if (phase == DeparturePhase.Returning) text = "출발점으로 돌아가는 중";
             else if (!carrying) text = "트램펄린 운반자가 이용할 수 있습니다";
             else if (nearest == 1 && !route.ShelterReady) text = "단원들이 쉼터에 도착할 때까지 대기하세요";
             else if (route.CanStart(player, nearest)) text = route.IsBoarding(nearest)

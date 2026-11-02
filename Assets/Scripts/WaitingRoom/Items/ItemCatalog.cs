@@ -43,6 +43,8 @@ namespace CurtainCall.WaitingRoom
             [TextArea] public string summary;
             [Tooltip("상점 설명 칸·마우스 올림 설명에 보이는 설명. 비우면 설명 없음.")]
             [TextArea(2, 6)] public string shopDescription;
+            [Tooltip("상점 목록에 마우스를 올렸을 때 툴팁에만 보이는 설명(상점 문구 Row Tooltip의 {description} 자리). 비우면 위 상점 설명을 쓴다.")]
+            [TextArea(2, 6)] public string shopTooltip;
             [Tooltip("장비가 실제로 발동했을 때 주인 화면 알림 문구(예: 잡았다!). 비우면 알리지 않음.")]
             public string useCue;
         }
@@ -95,6 +97,9 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>상점에 보이는 기물 설명. 없으면 "".</summary>
         public static string Description(string id) => Get(id)?.shopDescription ?? "";
+
+        /// <summary>상점 툴팁 전용 설명. 없으면 "" (호출하는 쪽이 상점 설명으로 대신한다).</summary>
+        public static string Tooltip(string id) => Get(id)?.shopTooltip ?? "";
 
         /// <summary>장비 발동 알림 문구. 없으면 "".</summary>
         public static string UseCue(string id) => Get(id)?.useCue ?? "";

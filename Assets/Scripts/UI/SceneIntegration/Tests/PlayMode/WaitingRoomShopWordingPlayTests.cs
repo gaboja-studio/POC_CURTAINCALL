@@ -46,7 +46,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             StringAssert.StartsWith("잘린 팔·다리 한 개당 ", (string)Get(medical, "PriceDetail"));
             StringAssert.EndsWith(" 토큰", (string)Get(medical, "PriceDetail"));
             StringAssert.DoesNotContain("팀 이용", (string)Get(medical, "PriceDetail"));
-            StringAssert.StartsWith("주의: 서비스 이용 시마다 이용 가격이 인상됩니다.\n", (string)Get(medical, "Description"));
+            var shopTexts = adapter.GetType().GetField("texts", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(adapter);
+            Assert.AreEqual(shopTexts.GetType().GetField("medicalDescription").GetValue(shopTexts), Get(medical, "Description"), "신체 복구 설명은 상점 문구 설정에서");
+            StringAssert.Contains("가격 인상", (string)Get(medical, "Description"), "이용할 때마다 가격이 오른다는 안내");
             var count = ((IEnumerable)Get(medical, "Actions")).Cast<object>().Single(a => (string)Get(a, "Id") == "count");
             StringAssert.StartsWith("팔·다리 ", (string)Get(count, "Label"));
 

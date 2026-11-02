@@ -202,13 +202,28 @@ namespace CurtainCall.EscapeRoute
         {
             var value = JsonUtility.FromJson<Snapshot>(json);
             var run = CampaignRun.Instance;
-            if (value == null || run == null || value.generation != run.State.Generation || value.phase < 0 || value.phase > 2
+            if (run == null || value == null || value.generation != run.State.Generation) return;
+            ApplySnapshot(value);
+        }
+        bool ApplySnapshot(Snapshot value)
+        {
+            if (value == null || value.generation < 0 || value.phase < 1 || value.phase > 2
                 || value.participants == null || value.participants.Length < 1
                 || value.positions == null || value.positions.Length != value.participants.Length
-                || value.rotations == null || value.rotations.Length != value.participants.Length) return;
+                || value.rotations == null || value.rotations.Length != value.participants.Length) return false;
+            // A delayed sync reply must not return a released player to the pending phase.
+            if (snapshot.generation == value.generation && value.phase < snapshot.phase) return false;
+            if (new HashSet<ulong>(value.participants).Count != value.participants.Length) return false;
+            if (snapshot.generation == value.generation && HasDeparture)
+            {
+                if (snapshot.participants.Length != value.participants.Length) return false;
+                for (int i = 0; i < snapshot.participants.Length; i++)
+                    if (snapshot.participants[i] != value.participants[i]) return false;
+            }
             if (snapshot.generation != value.generation) Cancel();
             snapshot = value;
             if (HasDeparture && !localCaptured) CaptureLocal();
+            return true;
         }
         public void Complete()
         {

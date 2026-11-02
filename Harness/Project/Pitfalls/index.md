@@ -11,7 +11,7 @@
 - [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
 - [escape-flame-scaling.md](escape-flame-scaling.md) — 거대 화염의 실제 도달 방향/속도와 휴대 톱의 원본 운반 조작을 연결할 때
 
-- [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지 부상 오판과 꺾인 외줄 방향 인계를 고칠 때
+- [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지·시점 인계와 다리/장비 공유 시각·재수신을 고칠 때
 
 - [escape-depth-route.md](escape-depth-route.md) — 탈출로 묘기 도달·운반 트램폴린 묻힘·대포 목표 표식·교체 구조 잔여물 확인
 
@@ -20,6 +20,7 @@
 - [death-ragdoll-reset.md](death-ragdoll-reset.md) — 공연 사망 뒤 조작 정리가 레그돌을 복구할 때
 
 - [session-join-cancelled.md](session-join-cancelled.md) — 방 코드·LAN 참가의 취소 예외와 제한시간·취소 원인 로그를 확인할 때
+- [relay-stall-disconnect.md](relay-stall-disconnect.md) — 씬 전환 중 "[TransportShutdown] NetworkConnectionManager was shutdown"으로 튕길 때(메인 스레드 10초 정지 → Relay 할당 만료)
 
 이 POC·이 개발 환경에서 겪은 함정. 상황에 맞는 파일 1개만 연다.
 
@@ -49,3 +50,4 @@
 - [revived-before-performance-unload.md](revived-before-performance-unload.md) — 공연 씬 해제 전 부활자가 옛 낙하·함정 판정으로 다시 사망. 부활 로그와 달리 대기실에서 관전이 지속될 때
 - [textmesh-default-shader-through-walls.md](textmesh-default-shader-through-walls.md) — 생성한 TextMesh 기본 재질은 깊이를 무시해 벽 너머로 보인다. 에디터 코드로 표지·번호 글자를 만들 때
 - [exploration-route-validation.md](exploration-route-validation.md) — 탐색 경로의 낮/밤 철창·트리거와 층/벽 너머 F·바닥 기물 표시/호스트 검사를 확인할 때
+- [factory-art-urp.md](factory-art-urp.md) — 공장 에셋 선별 재사용·URP17 조명·정적 장식 정리 기준

@@ -6,20 +6,19 @@ namespace CurtainCall.Tightrope
     {
         [Tooltip("각 줄을 독립된 위치/방향의 구간으로 사용한다. 네트워크 줄 번호는 sceneRopes 배열 순서다.")]
         [SerializeField] bool independentSceneRopes;
-        [Tooltip("독립 씬 외줄을 어느 끝에서 진입해도 바라보던 방향으로 진행한다.")]
-        [SerializeField] bool bidirectionalSceneTraversal;
+        // Legacy scene data is retained; entry direction is now a shared rule for every rope.
+        [SerializeField, HideInInspector] bool bidirectionalSceneTraversal;
         public bool HasIndependentRopes => useSceneGeometry && independentSceneRopes;
 
         public Vector3 TraversalForwardAt(Vector3 position, Vector3 enteringForward)
             => OrientTraversalForward(ForwardAt(position), enteringForward);
 
         public Vector3 OrientTraversalForward(Vector3 authoredForward, Vector3 enteringForward)
-            => HasIndependentRopes && bidirectionalSceneTraversal
-                && Vector3.Dot(authoredForward, Vector3.ProjectOnPlane(enteringForward, Vector3.up)) < 0
+            => Vector3.Dot(authoredForward, Vector3.ProjectOnPlane(enteringForward, Vector3.up)) < 0
                     ? -authoredForward : authoredForward;
 
         public int AuthoredLaneDirection(Vector3 position, Vector3 traversalForward, int direction)
-            => HasIndependentRopes && Vector3.Dot(ForwardAt(position), traversalForward) < 0 ? -direction : direction;
+            => Vector3.Dot(ForwardAt(position), traversalForward) < 0 ? -direction : direction;
 
         bool SceneLine(int lane, out Vector3 start, out Vector3 forward, out float length)
         {

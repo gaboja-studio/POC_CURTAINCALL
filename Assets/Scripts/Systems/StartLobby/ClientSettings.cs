@@ -21,7 +21,7 @@ namespace CurtainCall.StartLobby
         const string ShowBloodEffectKey = "CurtainCall.Settings.ShowBloodEffect";
 
         /// <summary>
-        /// 이 화면에서 혈흔 연출(절단 순간 피 튀김)을 볼지. 내 캐릭터·팀원 모두에 적용한다. 기본 켜짐(Task-090).
+        /// 이 화면에서 혈흔 연출(절단 순간 피 튀김, 부상에 따른 피 묻은 의상)을 볼지. 끄면 의상은 부상과 상관없이 처음 상태를 유지한다. 내 캐릭터·팀원 모두에 적용한다. 기본 켜짐(Task-090).
         /// 게임 설정(신체 손상 · 혈흔 연출)이 꺼져 있으면 이 값과 상관없이 보이지 않는다.
         /// </summary>
         public static bool ShowBloodEffect

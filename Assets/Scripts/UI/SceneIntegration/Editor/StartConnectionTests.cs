@@ -181,6 +181,25 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.AreEqual("접속을 취소했습니다.", session.LastDisconnectReason);
         }
 
+        /// <summary>2026-11-02: Relay 할당 만료(메인 스레드 10초 이상 정지)로 NGO가 스스로 종료하면 원인 문구와 로그를 남긴다.</summary>
+        [UnityTest]
+        public IEnumerator TransportFailureReportsStallReasonInsteadOfTransportShutdown()
+        {
+            var host = session.HostLanAsync(17997);
+            while (!host.IsCompleted) yield return null;
+            Assert.IsTrue(host.Result);
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex(
+                @"\[Session\] 전송 계층 실패로 접속 종료 \[TransportFailure\] mode=LAN longestStallMs=\d+"));
+            // NGO TransportFailureEventHandler와 같은 순서: 실패 콜백 뒤 즉시 종료.
+            typeof(NetworkSessionManager).GetMethod("HandleTransportFailure", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(session, null);
+            session.NetworkManager.Shutdown(true);
+            float until = Time.realtimeSinceStartup + 5;
+            while (session.ConnectionState != SessionConnectionState.Offline && Time.realtimeSinceStartup < until) yield return null;
+            Assert.AreEqual(SessionConnectionState.Offline, session.ConnectionState);
+            Assert.AreEqual(NetworkSessionManager.TransportFailureMessage, session.LastDisconnectReason);
+        }
+
         [UnityTest]
         public IEnumerator StoppedNetworkReportsRejectionReasonInsteadOfTimeout()
         {
