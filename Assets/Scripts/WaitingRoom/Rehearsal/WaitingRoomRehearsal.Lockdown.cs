@@ -41,14 +41,26 @@ namespace CurtainCall.WaitingRoom
         Bounds practiceArea;
         bool practiceAreaFound;
 
+        /// <summary>첫 공연을 마치고 대기실 튜토리얼에 들어가기 전까지 유지하는 출입·기능 제한.</summary>
+        public static bool IsPreTutorialRestricted
+        {
+            get
+            {
+                var run = CampaignRun.Instance;
+                if (run == null) return false;
+                var state = run.State;
+                return state.Phase == CampaignPhase.Rehearsal
+                    || (state.Phase == CampaignPhase.Performance && state.Day == 1 && state.PerformanceIndex == 0);
+            }
+        }
+
         /// <summary>리허설 단계에서 기존 철창이 닫혀야 하는가(<see cref="NightDoorLock"/>가 부른다).</summary>
         public static bool IsGateLocked(string gate)
         {
             var r = instance;
-            bool completed = r != null && r.active && r.completed;
-            bool abandoned = r != null && r.active && r.abandoned;
-            // 연습실: 리허설 중 닫힘. 포기하면 다시 들어올 수 있게 열고, 성공하면 열었다가 모두 나오면 다시 잠근다.
-            if (gate == NightDoorLock.RehearsalPassageName) return !(abandoned || (completed && !r.practiceSealed));
+            bool completed = r != null && r.completed;
+            // 연습실: 리허설 중 닫힘. 성공하면 열었다가 모두 나오면 다시 잠근다.
+            if (gate == NightDoorLock.RehearsalPassageName) return !(completed && !r.practiceSealed);
             // 무대 입구 통로: 리허설을 마치면 연다.
             if (gate == StageShutterName) return !completed;
             return true;
@@ -57,7 +69,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>매 프레임: 첫 공연 전이면 동선·상호작용 제한(대기실 튜토리얼 때 해제).</summary>
         void TickRestriction()
         {
-            bool restricted = run != null && run.State.Phase == CampaignPhase.Rehearsal;
+            bool restricted = IsPreTutorialRestricted;
             RehearsalLockdownGate.Restricted = restricted;
             ShopReach.Locked = restricted;
         }
@@ -80,13 +92,46 @@ namespace CurtainCall.WaitingRoom
             if (screenBezel != null && screenBezel.TryGetComponent(out Renderer bezelRenderer)) bezel = bezelRenderer.sharedMaterial;
             foreach (var (name, from, to) in LockdownOpenings)
                 lockdownGates.Add(RehearsalLockdownGate.Create(lockdownRoot, name, from, to, iron));
-            // 로비 동쪽 벽(가운데를 바라봄)과 무대 입구 통로 위(로비를 바라봄).
-            monitors.Add(RingmasterMonitor.Create(lockdownRoot, "RingmasterMonitor_Lobby", new Vector3(7.9f, 4.2f, 77.3f), Vector3.left, new Vector2(3.2f, 1.8f), bezel, false));
-            monitors.Add(RingmasterMonitor.Create(lockdownRoot, "RingmasterMonitor_StageCorridor", new Vector3(-6f, 4.4f, 63.2f), Vector3.forward, new Vector2(2.6f, 1.46f), bezel, true));
+            // 실제 벽·천장에 붙인다(허공에 띄우지 않는다). 붙일 면을 못 찾으면 만들지 않는다.
+            var lobby = PlaceLobbyMonitor(bezel);
+            if (lobby != null) monitors.Add(lobby);
+            var corridor = PlaceCorridorMonitor(bezel);
+            if (corridor != null) monitors.Add(corridor);
             var area = GameObject.Find(PracticeAreaName);
             var collider = area != null ? area.GetComponent<Collider>() : null;
             practiceAreaFound = collider != null;
             if (practiceAreaFound) practiceArea = collider.bounds;
+        }
+
+        static readonly Vector2 LobbyMonitorSize = new(3.2f, 1.8f), CorridorMonitorSize = new(2.6f, 1.46f);
+        /// <summary>로비 둥근 방 가운데(구조 A 실측)와 동쪽 벽걸이 높이.</summary>
+        static readonly Vector3 LobbyCenter = new(-5.6f, 4.2f, 77.3f);
+        /// <summary>무대 입구 통로 안, 로비 쪽 입구에서 조금 들어간 자리(구조 A 실측: 통로 입구 약 z 63, 셔터 z 51).</summary>
+        static readonly Vector3 CorridorHangPoint = new(-6f, 1.5f, 59f);
+        /// <summary>매단 모니터 아래로 사람이 지나가도 닿지 않는 높이(m).</summary>
+        const float HeadClearance = 2.6f;
+
+        /// <summary>로비 가운데에서 동쪽 벽을 재서, 모니터 뒷면이 벽면에 닿게 건다.</summary>
+        RingmasterMonitor PlaceLobbyMonitor(Material bezel)
+        {
+            if (!Physics.Raycast(LobbyCenter, Vector3.right, out var hit, 30f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            { Debug.LogWarning("[Rehearsal] 로비 동쪽 벽을 찾지 못해 로비 모니터를 걸지 않습니다."); return null; }
+            Vector3 normal = Vector3.ProjectOnPlane(hit.normal, Vector3.up).normalized;
+            return RingmasterMonitor.Create(lockdownRoot, "RingmasterMonitor_Lobby", hit.point + normal * RingmasterMonitor.BackDepth,
+                normal, LobbyMonitorSize, bezel, 0f);
+        }
+
+        /// <summary>무대 입구 통로 안 천장 높이를 재서, 막대가 천장까지 닿게 매단다. 로비 쪽을 바라본다.</summary>
+        RingmasterMonitor PlaceCorridorMonitor(Material bezel)
+        {
+            if (!Physics.Raycast(CorridorHangPoint, Vector3.up, out var ceiling, 20f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            { Debug.LogWarning("[Rehearsal] 무대 입구 통로 천장을 찾지 못해 통로 모니터를 달지 않습니다."); return null; }
+            float half = CorridorMonitorSize.y * .5f + .09f;
+            float center = Mathf.Max(CorridorHangPoint.y - 1.5f + HeadClearance + half, ceiling.point.y - .6f - half);
+            float hang = ceiling.point.y - (center + half);
+            if (hang < .05f) { Debug.LogWarning("[Rehearsal] 무대 입구 통로 천장이 낮아 통로 모니터를 달지 않습니다."); return null; }
+            return RingmasterMonitor.Create(lockdownRoot, "RingmasterMonitor_StageCorridor",
+                new Vector3(CorridorHangPoint.x, center, CorridorHangPoint.z), Vector3.forward, CorridorMonitorSize, bezel, hang);
         }
 
         bool InPracticeRoom(Vector3 position) => practiceAreaFound

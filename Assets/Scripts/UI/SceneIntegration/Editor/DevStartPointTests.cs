@@ -33,6 +33,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             run.StartSession();
             Assert.IsTrue(run.EndIntro());
             Assert.IsTrue(run.EndPerformance());
+            run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 });
             Assert.IsTrue(run.NotifyAllAtStageEntrance());
             Assert.IsTrue(run.EndPerformance());
             Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase);

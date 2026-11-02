@@ -22,18 +22,24 @@ namespace CurtainCall.WaitingRoom
 
         public bool IsOn => mode != Mode.Off;
 
-        /// <summary>벽에 거는 모니터를 만든다. <paramref name="facing"/>은 화면이 바라보는 방향.</summary>
-        public static RingmasterMonitor Create(Transform parent, string name, Vector3 center, Vector3 facing, Vector2 size, Material bezel, bool hangFromCeiling)
+        /// <summary>뒷면(본체 뒤) 두께(m). 벽걸이는 이 만큼 벽에서 띄워 뒷면이 벽에 닿게 둔다.</summary>
+        public const float BackDepth = .15f;
+
+        /// <summary>
+        /// 모니터를 만든다. <paramref name="facing"/>은 화면이 바라보는 방향. <paramref name="hangLength"/>가 0보다 크면
+        /// 화면 위쪽 끝에서 그 길이만큼 위로 매다는 막대를 단다(부르는 쪽이 실제 천장까지의 길이를 재서 넘긴다).
+        /// </summary>
+        public static RingmasterMonitor Create(Transform parent, string name, Vector3 center, Vector3 facing, Vector2 size, Material bezel, float hangLength)
         {
             var root = new GameObject(name);
             root.transform.SetParent(parent, true);
             root.transform.SetPositionAndRotation(center, Quaternion.LookRotation(facing.normalized));
             var monitor = root.AddComponent<RingmasterMonitor>();
-            monitor.Build(size, bezel, hangFromCeiling);
+            monitor.Build(size, bezel, hangLength);
             return monitor;
         }
 
-        void Build(Vector2 size, Material bezel, bool hang)
+        void Build(Vector2 size, Material bezel, float hang)
         {
             var frame = GameObject.CreatePrimitive(PrimitiveType.Cube);
             frame.name = "Bezel"; Destroy(frame.GetComponent<Collider>());
@@ -51,14 +57,16 @@ namespace CurtainCall.WaitingRoom
             var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Texture");
             screen = new Material(shader) { hideFlags = HideFlags.HideAndDontSave, color = Color.black };
             quad.GetComponent<Renderer>().sharedMaterial = screen;
-            if (hang)
+            if (hang > 0f)
                 foreach (float x in new[] { -size.x * .35f, size.x * .35f })
                 {
+                    // 화면 위 끝(본체 위 끝)에서 천장까지 이어지는 막대. 원기둥은 높이 2라 절반을 크기로 쓴다.
                     var rod = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                     rod.name = "HangingRod"; Destroy(rod.GetComponent<Collider>());
                     rod.transform.SetParent(transform, false);
-                    rod.transform.localPosition = new Vector3(x, size.y * .5f + .9f, -.08f);
-                    rod.transform.localScale = new Vector3(.04f, .9f, .04f);
+                    float top = size.y * .5f + .09f;
+                    rod.transform.localPosition = new Vector3(x, top + hang * .5f, -.08f);
+                    rod.transform.localScale = new Vector3(.04f, hang * .5f, .04f);
                     if (bezel != null) rod.GetComponent<Renderer>().sharedMaterial = bezel;
                 }
             noise = new Texture2D(96, 54, TextureFormat.RGB24, false) { filterMode = FilterMode.Point, hideFlags = HideFlags.HideAndDontSave };

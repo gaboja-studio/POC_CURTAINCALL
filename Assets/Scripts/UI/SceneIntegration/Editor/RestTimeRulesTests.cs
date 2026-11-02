@@ -27,6 +27,33 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         }
 
         [Test]
+        public void FirstDay_WaitsForEveryoneThenSecondPerformanceAndNight()
+        {
+            var run = new RunState();
+            run.StartSession(withRehearsal: true);
+            Assert.IsTrue(run.EndIntro());
+            Assert.AreEqual(CampaignPhase.Rehearsal, run.Snapshot.Phase);
+            Assert.IsTrue(run.EndRehearsal());
+            Assert.AreEqual(1, run.Snapshot.Day);
+            Assert.AreEqual(0, run.Snapshot.PerformanceIndex);
+            run.EndPerformance();
+            Assert.IsFalse(run.NotifyAllAtStageEntrance(), "안내 전 집결로 진행하지 않는다");
+            run.SetTutorialDone(0);
+            run.RefreshGuideRest(new ulong[] { 0, 1 });
+            Assert.IsFalse(run.Tick(10000f));
+            Assert.IsFalse(run.NotifyAllAtStageEntrance(), "한 명만 완료하면 진행하지 않는다");
+            run.SetTutorialDone(1);
+            run.RefreshGuideRest(new ulong[] { 0, 1 });
+            Assert.IsTrue(run.NotifyAllAtStageEntrance());
+            Assert.AreEqual(1, run.Snapshot.Day);
+            Assert.AreEqual(1, run.Snapshot.PerformanceIndex);
+            Assert.AreEqual(CampaignPhase.Performance, run.Snapshot.Phase);
+            run.EndPerformance();
+            Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase);
+            Assert.AreEqual(1, run.Snapshot.Day);
+        }
+
+        [Test]
         public void ExpiryCallsReplaceableHandlerBeforePerformanceOnly()
         {
             var original = RestTimeoutCatch.Handler;

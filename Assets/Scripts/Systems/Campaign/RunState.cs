@@ -6,7 +6,7 @@ namespace CurtainCall.Campaign
     /// <summary>
     /// 런 진행 판정(호스트 또는 오프라인에서만 돌린다). 네트워크·Unity 오브젝트와 분리한 순수 로직.
     /// 흐름(기획 게임 흐름 2-2, 9-1):
-    ///   1일차: 도입 → 공연 → 가이드 쉬는 시간 → 공연 → 밤 정비
+    ///   1일차: 도입 → 최초 리허설 → 공연 → 가이드 쉬는 시간 → 공연 → 밤 정비
     ///   2일차~: 아침 쉬는 시간 → 공연 → 쉬는 시간 → 공연 → 밤 정비
     ///   공연하는 날 수 다음 날: 아침 쉬는 시간만. 끝나면 런 실패 → 세대 교체 → 1일차 첫 공연.
     ///   0.1.0: 4일차 아침은 탐색 없이 데모 종료 연출로 전환한다.
@@ -22,6 +22,7 @@ namespace CurtainCall.Campaign
         // 가이드 쉬는 시간: 대기실 tutorial을 마친 플레이어(Task-097). 전원이 마치면 타이머가 흐른다.
         readonly HashSet<ulong> tutorialDone = new();
         bool rehearsalPending;
+        bool guideRestUnlimited;
         readonly Dictionary<int, string[]> setlists = new();
         readonly Dictionary<int, int[]> levels = new();
         // 묘기별로 이번 런에서 성공한 가장 높은 단계(M2 난이도 선택). 런 범위라 세대 교체 때 지운다.
@@ -89,7 +90,7 @@ namespace CurtainCall.Campaign
             s.RequiredCount = players.Count;
             if (s.RequiredCount > 0 && s.ReadyCount >= s.RequiredCount)
             {
-                s.Timer = RestTimerState.Running;
+                s.Timer = guideRestUnlimited ? RestTimerState.Unlimited : RestTimerState.Running;
                 CheckAlarm();
                 return true;
             }
@@ -113,6 +114,8 @@ namespace CurtainCall.Campaign
         {
             if (s.Phase == CampaignPhase.Rehearsal) return EndRehearsal();
             if (s.Phase != CampaignPhase.RestTime || s.IsFinalMorning) return false;
+            // 첫 공연 뒤에는 전원이 튜토리얼을 마치기 전까지 집결해도 다음 공연으로 넘어가지 않는다.
+            if (IsGuideRestWaiting) return false;
             EndRest();
             return true;
         }
@@ -446,8 +449,9 @@ namespace CurtainCall.Campaign
             // 제한시간은 진입할 때만 적용한다. 도중 설정 변경으로 남은 시간을 재시작하지 않는다.
             StartTimer(rules.TimeLimit(kind));
             // 가이드 쉬는 시간은 전원이 대기실 tutorial을 마친 뒤부터 흐른다(Task-097, 기획서 2장).
-            if (kind == RestKind.Guide && s.Timer == RestTimerState.Running)
+            if (kind == RestKind.Guide)
             {
+                guideRestUnlimited = s.Timer == RestTimerState.Unlimited;
                 s.Timer = RestTimerState.WaitingForExit;
                 s.AlarmRaised = false;
                 tutorialDone.Clear();

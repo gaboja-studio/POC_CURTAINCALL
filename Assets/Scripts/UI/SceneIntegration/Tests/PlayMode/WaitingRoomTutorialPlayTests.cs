@@ -93,23 +93,23 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             FreshTutorial();
             try
             {
-                string n01 = TutorialTitle("N01");
+                string n01 = (string)T("CurtainCall.WaitingRoom.WaitingRoomText").GetMethod("Get").Invoke(null, new object[] { "first-day.quest.night-schedule.title", "" });
                 T(TutorialType).GetProperty("Enabled").SetValue(null, false);
                 yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
                 yield return new WaitForSecondsRealtime(4f);
-                Assert.AreEqual(false, Static(TutorialType, "TodoVisible"), "끄면 안내하지 않는다");
+                Assert.AreEqual(true, Static(TutorialType, "FirstDayQuestVisible"), "임시 퀘스트는 튜토리얼 끄기와 독립적이다");
                 T(TutorialType).GetProperty("Enabled").SetValue(null, true);
                 // 2026-10-31 사용자: 오늘 밤 할 일(N01)은 오른쪽 [tutorial] 패널로 밤 내내 뜬다.
                 float until = Time.realtimeSinceStartup + 6f;
-                while (!(bool)Static(TutorialType, "TodoVisible") && Time.realtimeSinceStartup < until) yield return null;
-                Assert.AreEqual(n01, Static(TutorialType, "TodoTitle"), "오늘 밤 할 일 패널");
+                while (!(bool)Static(TutorialType, "FirstDayQuestVisible") && Time.realtimeSinceStartup < until) yield return null;
+                Assert.AreEqual(n01, Static(TutorialType, "FirstDayQuestTitle"), "오늘 밤 할 일 패널");
                 // 밤 연계 N02→N04→N03(스케줄표 클로즈업). 잠자기(N05)는 일정 확정 뒤에만 숙소를 비춘다.
                 yield return WaitGuide(TutorialTitle("N03"), 25f);
                 until = Time.realtimeSinceStartup + 8f;
                 while ((bool)Static(TutorialType, "IsSequenceActive") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.AreEqual(false, Static(TutorialType, "IsSequenceActive"));
                 StringAssert.DoesNotContain("N05", (string)Static(TutorialType, "SeenIds"), "확정 전에는 잠자기 안내 없음");
-                Assert.AreEqual(true, Static(TutorialType, "TodoVisible"), "연계가 끝나도 오늘 할 일은 남는다");
+                Assert.AreEqual(true, Static(TutorialType, "FirstDayQuestVisible"), "연계가 끝나도 오늘 할 일은 남는다");
                 // 스케줄표를 보는 동안에는 표를 가리지 않게 숨긴다.
                 var board = Find("CurtainCall.WaitingRoom.ScheduleBoardView");
                 // 스케줄표는 멀어지면 닫히므로 앞에 선다.
@@ -119,10 +119,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(.2f);
                 Call(board, "Interact"); yield return null; yield return null;
                 Assert.AreEqual(true, Get(board, "IsOpen"), "스케줄표가 열린다");
-                Assert.AreEqual(false, Static(TutorialType, "TodoVisible"), "스케줄표를 보는 동안 숨김");
+                Assert.AreEqual(false, Static(TutorialType, "FirstDayQuestVisible"), "스케줄표를 보는 동안 숨김");
                 board.GetType().GetMethod("SetOpen", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Invoke(board, new object[] { false });
                 yield return null; yield return null;
-                Assert.AreEqual(true, Static(TutorialType, "TodoVisible"), "스케줄표를 닫으면 다시 보인다");
+                Assert.AreEqual(true, Static(TutorialType, "FirstDayQuestVisible"), "스케줄표를 닫으면 다시 보인다");
                 ConfirmTonight();
                 // 앞 안내(예: 스케줄표 앞에서 뜬 상호작용 안내)가 표시 시간 동안 남아 있을 수 있다.
                 yield return WaitGuide(TutorialTitle("N05"), 12f);

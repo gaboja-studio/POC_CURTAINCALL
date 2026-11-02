@@ -53,6 +53,8 @@ namespace CurtainCall.WaitingRoom
         public RehearsalClearRule Rule;
         /// <summary>외줄 코스 모양(<c>TightropeSettings.CourseSettings</c> JSON). 빠진 값은 공통 세팅 기본값.</summary>
         public string CourseJson;
+        public string DisplayTitle => WaitingRoomText.Get("rehearsal.stage." + Id + ".title", Title);
+        public string DisplayIntro => WaitingRoomText.Get("rehearsal.stage." + Id + ".intro", Intro);
         /// <summary>도착 거리(m). 코스를 링 가운데에 놓을 때 쓴다.</summary>
         public float Finish;
         /// <summary>1단계: 이 거리부터 옆줄 건너가기 안내.</summary>
@@ -90,7 +92,7 @@ namespace CurtainCall.WaitingRoom
             {
                 Id = "2-2", Kind = RehearsalStageKind.Swing, Rule = RehearsalClearRule.Everyone, Finish = 27f,
                 Title = "2-2 · 연속 인간 그네",
-                Intro = "인간 그네가 두 개 이어져 있습니다. 첫 그네에서 Space로 놓고 날아가는 동안 두 번째 그네에 닿으면 바로 잡습니다. 다시 반동을 키워 건너편 줄로 넘어가세요.",
+                Intro = "인간 그네가 두 개 이어져 있습니다. 첫 그네에서 Space로 놓고 날아가는 동안 두 번째 그네 가까이에서 F를 눌러 잡습니다. 다시 반동을 키워 건너편 줄로 넘어가세요.",
                 CourseJson = Course(1, null, 27f, null),
                 Swings = new[] { new SwingSpot(0, 4f, 4f + SwingGap, true), new SwingSpot(0, 4f + SwingGap, 4f + SwingGap * 2f) },
             },

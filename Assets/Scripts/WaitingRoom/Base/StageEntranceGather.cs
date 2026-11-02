@@ -116,11 +116,11 @@ namespace CurtainCall.WaitingRoom
                 notified = false;
                 return;
             }
-            // 쉬는 시간마다 한 번만 알린다(마지막 아침처럼 거절돼도 매 프레임 다시 부르지 않는다).
+            // 성공적으로 전환했을 때만 알림을 확정한다. 튜토리얼 대기 중 거절됐다면 완료 뒤 다시 시도한다.
             if (notified || AliveCount == 0 || InsideCount < AliveCount) return;
 
-            notified = true;
             if (!run.NotifyAllAtStageEntrance()) return;
+            notified = true;
             Debug.Log($"[WaitingRoom] ⑥ 전원 집결 {InsideCount}/{AliveCount} → 공연 전환");
             Gathered?.Invoke();
         }

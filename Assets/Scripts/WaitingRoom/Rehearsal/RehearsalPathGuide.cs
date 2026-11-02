@@ -8,7 +8,7 @@ namespace CurtainCall.WaitingRoom
 {
     /// <summary>
     /// 바닥 점선 길안내(기획서 15.3). 내 발밑에서 목적지까지 점선을 그린다. 대기실 씬은 NavMesh를 굽지 않으므로 처음 목적지를 받을 때
-    /// 씬 충돌체로 임시 NavMesh를 한 번 굽고(비동기), 그 전에는 직선으로 그린다. 길이 끊기면 가장 가까운 지점까지만 그린다.
+    /// 씬 충돌체로 임시 NavMesh를 한 번 굽는다(비동기). 완전한 경로가 없으면 안내를 숨긴다.
     /// </summary>
     public sealed class RehearsalPathGuide : MonoBehaviour
     {
@@ -17,6 +17,9 @@ namespace CurtainCall.WaitingRoom
 
         Vector3? target;
         LineRenderer line;
+        readonly List<GameObject> arrows = new();
+        Mesh arrowMesh;
+        Material arrowMaterial;
         NavMeshData navData;
         NavMeshDataInstance navInstance;
         bool navReady, navBuilding;
@@ -31,7 +34,11 @@ namespace CurtainCall.WaitingRoom
             if (target == destination) return;
             target = destination;
             if (target.HasValue && !navReady && !navBuilding) StartCoroutine(BuildNavMesh());
-            if (!target.HasValue && line != null) line.enabled = false;
+            if (!target.HasValue)
+            {
+                if (line != null) line.enabled = false;
+                HideArrows();
+            }
         }
 
         void Update()
@@ -44,12 +51,19 @@ namespace CurtainCall.WaitingRoom
             Vector3 from = local.transform.position + Vector3.up * LineHeight, to = target.Value + Vector3.up * LineHeight;
             if (navReady && NavMesh.SamplePosition(local.transform.position, out var origin, 2f, NavMesh.AllAreas)
                 && NavMesh.SamplePosition(target.Value, out var goal, 3f, NavMesh.AllAreas)
-                && NavMesh.CalculatePath(origin.position, goal.position, NavMesh.AllAreas, path) && path.corners.Length > 1)
+                && NavMesh.CalculatePath(origin.position, goal.position, NavMesh.AllAreas, path)
+                && path.status == NavMeshPathStatus.PathComplete && path.corners.Length > 1)
             {
                 points.Add(from);
                 for (int i = 1; i < path.corners.Length; i++) points.Add(path.corners[i] + Vector3.up * LineHeight);
             }
-            else { points.Add(from); points.Add(to); }
+            else
+            {
+                // 벽·철창을 관통하는 직선 안내는 표시하지 않는다.
+                if (line != null) line.enabled = false;
+                HideArrows();
+                return;
+            }
             Draw();
         }
 
@@ -62,7 +76,52 @@ namespace CurtainCall.WaitingRoom
             float length = 0f;
             for (int i = 1; i < points.Count; i++) length += Vector3.Distance(points[i - 1], points[i]);
             line.material.mainTextureScale = new Vector2(Mathf.Max(1f, length / DashLength), 1f);
+            DrawArrows();
         }
+
+        /// <summary>점선 위에 진행 방향 화살표를 놓는다. 길을 따라 걷는 방향을 보이며 충돌체는 만들지 않는다.</summary>
+        void DrawArrows()
+        {
+            if (arrowMesh == null)
+            {
+                arrowMesh = new Mesh { name = "RehearsalPathArrow" };
+                arrowMesh.vertices = new[] { new Vector3(0f, 0f, .55f), new Vector3(-.38f, 0f, -.38f), new Vector3(.38f, 0f, -.38f) };
+                arrowMesh.triangles = new[] { 0, 2, 1 };
+                arrowMesh.RecalculateNormals();
+                var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Unlit/Color");
+                arrowMaterial = new Material(shader) { color = new Color(1f, .85f, .3f, 1f) };
+                if (arrowMaterial.HasProperty("_BaseColor")) arrowMaterial.SetColor("_BaseColor", arrowMaterial.color);
+            }
+            int used = 0;
+            float untilNext = 3f;
+            for (int i = 1; i < points.Count; i++)
+            {
+                var a = points[i - 1]; var b = points[i];
+                var flat = Vector3.ProjectOnPlane(b - a, Vector3.up);
+                float length = flat.magnitude;
+                if (length < .1f) continue;
+                while (untilNext <= length)
+                {
+                    if (used == arrows.Count)
+                    {
+                        var go = new GameObject("RehearsalPathArrow");
+                        go.transform.SetParent(transform, false);
+                        go.AddComponent<MeshFilter>().sharedMesh = arrowMesh;
+                        go.AddComponent<MeshRenderer>().sharedMaterial = arrowMaterial;
+                        arrows.Add(go);
+                    }
+                    var arrow = arrows[used++];
+                    arrow.SetActive(true);
+                    arrow.transform.SetPositionAndRotation(Vector3.Lerp(a, b, untilNext / length) + Vector3.up * .02f,
+                        Quaternion.LookRotation(flat.normalized, Vector3.up));
+                    untilNext += 3f;
+                }
+                untilNext -= length;
+            }
+            for (int i = used; i < arrows.Count; i++) arrows[i].SetActive(false);
+        }
+
+        void HideArrows() { foreach (var arrow in arrows) if (arrow != null) arrow.SetActive(false); }
 
         void Build()
         {
@@ -99,15 +158,24 @@ namespace CurtainCall.WaitingRoom
         IEnumerator BuildNavMesh()
         {
             navBuilding = true;
+            // 성공 직후 철창이 열리는 중의 충돌체를 길막으로 굽지 않는다.
+            yield return new WaitForSecondsRealtime(3f);
+            if (!target.HasValue) { navBuilding = false; yield break; }
+            // 이동된 무대 통로의 집결 지점은 기존 고정 범위(z >= 0) 밖에 있다.
+            // 출발·목적지와 여유 구간까지 포함해야 실제 통로 끝까지 구울 수 있다.
+            var bounds = WaitingRoomBounds;
+            bounds.Encapsulate(target.Value);
+            if (NetworkPlayer.Local != null) bounds.Encapsulate(NetworkPlayer.Local.transform.position);
+            bounds.Expand(12f);
             var sources = new List<NavMeshBuildSource>();
-            NavMeshBuilder.CollectSources(WaitingRoomBounds, ~0, NavMeshCollectGeometry.PhysicsColliders, 0, new List<NavMeshBuildMarkup>(), sources);
+            NavMeshBuilder.CollectSources(bounds, ~0, NavMeshCollectGeometry.PhysicsColliders, 0, new List<NavMeshBuildMarkup>(), sources);
             sources.RemoveAll(s => s.component is Collider c && (c.isTrigger || !c.enabled || !c.gameObject.activeInHierarchy
                 || c.GetComponentInParent<NetworkPlayer>() != null));
             var settings = NavMesh.GetSettingsByIndex(0);
             settings.agentRadius = .35f; settings.agentHeight = 1.8f; settings.agentClimb = .4f; settings.agentSlope = 45f;
             settings.overrideVoxelSize = true; settings.voxelSize = .15f; settings.overrideTileSize = true; settings.tileSize = 128;
             navData = new NavMeshData(settings.agentTypeID) { hideFlags = HideFlags.HideAndDontSave };
-            yield return NavMeshBuilder.UpdateNavMeshDataAsync(navData, settings, sources, WaitingRoomBounds);
+            yield return NavMeshBuilder.UpdateNavMeshDataAsync(navData, settings, sources, bounds);
             navInstance = NavMesh.AddNavMeshData(navData);
             navReady = true; navBuilding = false;
         }
@@ -115,12 +183,15 @@ namespace CurtainCall.WaitingRoom
         void OnDisable()
         {
             if (line != null) line.enabled = false;
+            HideArrows();
         }
 
         void OnDestroy()
         {
             if (navInstance.valid) NavMesh.RemoveNavMeshData(navInstance);
             if (navData != null) Destroy(navData);
+            if (arrowMesh != null) Destroy(arrowMesh);
+            if (arrowMaterial != null) Destroy(arrowMaterial);
         }
     }
 }

@@ -80,7 +80,7 @@ namespace CurtainCall.WaitingRoom
             var run = CampaignRun.Instance;
             if (run == null) return false;
             var phase = run.State.Phase;
-            if (phase == CampaignPhase.Rehearsal) return WaitingRoomRehearsal.IsGateLocked(name);
+            if (WaitingRoomRehearsal.IsPreTutorialRestricted) return WaitingRoomRehearsal.IsGateLocked(name);
             return phase == CampaignPhase.Night || phase == CampaignPhase.Dawn || phase == CampaignPhase.DemoEnding;
         }
 

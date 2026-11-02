@@ -7,30 +7,25 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 이 화면의 캐릭터 처리: 출발대 배치·추락 복귀·우측 퀘스트·좌측 설명·완료 뒤 무대 입구 길안내·포기 투표 입력(기획서 4·15·16장).
+    /// 이 화면의 캐릭터 처리: 출발대 배치·추락 복귀·우측 퀘스트·좌측 설명·완료 뒤 무대 입구 길안내(기획서 4·15장).
     /// 퀘스트 문구는 <c>WaitingRoomTexts.txt</c>의 <c>rehearsal.*</c> 키로 고친다.
     /// </summary>
     public sealed partial class WaitingRoomRehearsal
     {
         /// <summary>우측 퀘스트 패널 위치(1920×1080 UI 단위). 밤 할 일 패널과 같은 자리를 쓴다(리허설과 밤은 겹치지 않는다).</summary>
         const float QuestTop = 300f, QuestWidth = 400f;
-        /// <summary>연습실 통로 철창에서 이 거리(m) 안이면 포기 입력을 받는다.</summary>
-        const float GiveUpReach = 4f;
         const float IntroSeconds = 10f;
 
         WaitingRoomRightPanel quest;
         RehearsalPathGuide guide;
         NetworkPlayer local;
         int placedRound = -1;
-        bool placedAbandoned;
         string lastQuest = "";
-        bool localVoted, promptedGiveUp;
         StageEntranceGather gather;
-        Transform passage;
 
         void AwakeLocal()
         {
-            quest = new WaitingRoomRightPanel(transform, "RehearsalQuestCanvas", QuestTop, QuestWidth);
+            quest = new WaitingRoomRightPanel(transform, "RehearsalQuestCanvas", QuestTop, QuestWidth, "first-day.panel.");
             guide = gameObject.AddComponent<RehearsalPathGuide>();
         }
 
@@ -42,8 +37,8 @@ namespace CurtainCall.WaitingRoom
 
         void ActivateLocal()
         {
-            placedRound = -1; placedAbandoned = false; localVoted = false; promptedGiveUp = false; lastQuest = "";
-            gather = null; passage = null;
+            placedRound = -1; lastQuest = "";
+            gather = null;
             WaitingRoomTutorialPanel.Show(
                 WaitingRoomText.Get("rehearsal.intro-title", "최초 리허설"),
                 WaitingRoomText.Get("rehearsal.intro", "공연 전에 연습실에서 외줄 조작과 협동을 익힙니다. 추락해도 대가 없이 그 구간 출발대에서 다시 시작합니다. 리허설 동안 탐색 시계는 흐르지 않습니다."),
@@ -81,13 +76,10 @@ namespace CurtainCall.WaitingRoom
             placedRound = -1; lastQuest = "";
             var s = Stage;
             if (course != null && s != null)
-                WaitingRoomTutorialPanel.Show(s.Title, s.Intro, IntroSeconds);
+                WaitingRoomTutorialPanel.Show(s.DisplayTitle, s.DisplayIntro, IntroSeconds);
             else if (active && completed)
                 WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.complete-title", "리허설 완료"),
                     WaitingRoomText.Get("rehearsal.complete", "바닥의 점선을 따라 무대 입구 통로로 가세요. 모든 공연 준비자가 모이면 첫 공연이 시작됩니다."), IntroSeconds);
-            else if (active && abandoned)
-                WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.abandoned-title", "리허설 포기"),
-                    WaitingRoomText.Get("rehearsal.abandoned", "연습실 밖으로 나왔습니다. 공연에 가려면 리허설을 마쳐야 합니다. 연습실 링으로 다시 들어가면 마친 구간 다음부터 이어서 합니다."), IntroSeconds);
         }
 
         void LocalTick()
@@ -97,8 +89,6 @@ namespace CurtainCall.WaitingRoom
             PlaceLocal(mover);
             if (completed) { TickCompleted(); return; }
             guide.SetTarget(null);
-            if (abandoned) { quest.Hide(); return; }
-            TickGiveUpInput();
             UpdateQuest(mover);
         }
 
@@ -106,17 +96,11 @@ namespace CurtainCall.WaitingRoom
 
         void PlaceLocal(PlayerMover mover)
         {
-            if (placedRound == round && placedAbandoned == abandoned) return;
+            if (placedRound == round) return;
             if (local.State != PlayerState.Normal) return;
-            if (abandoned)
-            {
-                // 연습실 밖(로비 출발 위치)으로.
-                PlayerSpawnPoints.GetPose(Mathf.Max(0, local.Slot), mover.LaneSpacing, out var position, out var rotation);
-                Relocate(mover, position, rotation);
-            }
-            else if (course != null) PlaceLocalAtStart();
+            if (course != null) PlaceLocalAtStart();
             else if (!completed) return;
-            placedRound = round; placedAbandoned = abandoned;
+            placedRound = round;
         }
 
         void PlaceLocalAtStart()
@@ -148,12 +132,8 @@ namespace CurtainCall.WaitingRoom
             var s = Stage;
             if (s == null || course == null) { quest.Hide(); return; }
             string body = QuestFor(s, mover);
-            if (giveUpVotes > 0)
-                body += "\n\n" + (giveUpDeadline >= 0d
-                    ? WaitingRoomText.Format("rehearsal.giveup-countdown", "포기 투표 {votes}/{total} · {seconds}초 뒤 종료", ("votes", giveUpVotes), ("total", giveUpRequired), ("seconds", Mathf.CeilToInt(Mathf.Max(0f, (float)(giveUpDeadline - Clock)))))
-                    : WaitingRoomText.Format("rehearsal.giveup-votes", "포기 투표 {votes}/{total}", ("votes", giveUpVotes), ("total", giveUpRequired)));
             if (body == lastQuest && quest.Visible) return;
-            if (quest.Show(s.Title, body)) lastQuest = body;
+            if (quest.Show(s.DisplayTitle, body)) lastQuest = body;
         }
 
         string QuestFor(RehearsalStage s, PlayerMover mover)
@@ -257,32 +237,6 @@ namespace CurtainCall.WaitingRoom
                 : WaitingRoomText.Format("rehearsal.quest.gather", "점선을 따라 무대 입구 통로로 가세요. 전원 {inside}/{alive}이 모이면 공연이 시작됩니다.", ("inside", gather.InsideCount), ("alive", gather.AliveCount));
             if (body == lastQuest && quest.Visible) return;
             if (quest.Show(WaitingRoomText.Get("rehearsal.gather-title", "리허설 완료 · 무대로"), body)) lastQuest = body;
-        }
-
-        // ── 포기 투표 입력(기획서 16.1: 출구로 향하면 패널, 전원 즉시·과반수 30초) ──
-
-        void TickGiveUpInput()
-        {
-            if (passage == null)
-            {
-                foreach (var lockGate in FindObjectsByType<NightDoorLock>(FindObjectsSortMode.None))
-                    if (lockGate.name == NightDoorLock.RehearsalPassageName) { passage = lockGate.transform; break; }
-            }
-            if (passage == null) return;
-            bool near = (local.transform.position - passage.position).sqrMagnitude <= GiveUpReach * GiveUpReach;
-            if (!near) { promptedGiveUp = false; return; }
-            if (!promptedGiveUp)
-            {
-                promptedGiveUp = true;
-                WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.giveup-title", "리허설 포기"),
-                    WaitingRoomText.Get("rehearsal.giveup", "통로에서 F를 길게 누르면 포기에 표를 던집니다(다시 누르면 철회). 전원이 포기하면 바로, 과반수가 포기하면 30초 뒤 연습실 밖으로 나갑니다."), 8f);
-            }
-            if (InputGate.IsBlocked || !local.TryGetComponent(out PlayerInputReader reader) || !reader.Current.InteractLongPressed) return;
-            localVoted = !localVoted;
-            Send(Operation.GiveUp);
-            WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.giveup-title", "리허설 포기"),
-                localVoted ? WaitingRoomText.Get("rehearsal.giveup-voted", "포기에 표를 던졌습니다. 다시 F를 길게 누르면 철회합니다.")
-                    : WaitingRoomText.Get("rehearsal.giveup-withdrawn", "포기 표를 철회했습니다."), 4f);
         }
     }
 }

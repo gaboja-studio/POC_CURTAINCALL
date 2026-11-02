@@ -75,7 +75,7 @@ namespace CurtainCall.WaitingRoom
             if (pumpedFrame == Time.frameCount) return;
             pumpedFrame = Time.frameCount;
             Focused = null;
-            if (Locked) return;
+            if (Locked || WaitingRoomRehearsal.IsPreTutorialRestricted) return;
 
             var reader = LocalReader();
             if (reader == null || !reader.isActiveAndEnabled || InputGate.IsBlocked) return;

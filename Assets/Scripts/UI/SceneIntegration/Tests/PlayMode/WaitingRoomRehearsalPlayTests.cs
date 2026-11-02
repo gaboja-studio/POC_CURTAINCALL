@@ -19,7 +19,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W6_Rehearsal_BuildsCourseOnRingAndAdvancesWhenEveryoneArrives()
         {
-            // Task-097: 리허설 시작 지점 → 대기실 연습실에 1단계 코스, 연습실 철창만 열림, 내 캐릭터는 출발대. 도착대에 서면 다음 소구간.
+            // Task-097: 리허설 시작 지점 → 대기실 연습실에 1단계 코스, 연습실 철창도 닫힘, 내 캐릭터는 출발대. 도착대에 서면 다음 소구간.
             FreshTutorial();
             try
             {
@@ -39,7 +39,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 foreach (var gate in Object.FindObjectsByType(T("CurtainCall.WaitingRoom.NightDoorLock"), FindObjectsSortMode.None))
                 {
                     bool locked = (bool)Get(gate, "IsLocked");
-                    Assert.AreEqual(((Component)gate).name != "PracticeGate", locked, ((Component)gate).name + " 잠김 여부");
+                    Assert.IsTrue(locked, ((Component)gate).name + " 잠김 여부");
                 }
 
                 yield return new WaitForSecondsRealtime(1f);
@@ -64,6 +64,58 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(.5f);
                 Assert.Less((float)Call(next, "GetDistance", player.transform.position), 0f, "새 소구간 출발대로 옮겨진다");
                 Assert.IsFalse((bool)Static(RehearsalType, "IsCompleted"));
+            }
+            finally { EndTutorial(); }
+        }
+        [UnityTest]
+        public IEnumerator W6_FirstDay_GuideSecondPerformanceAndNightQuests()
+        {
+            FreshTutorial();
+            try
+            {
+                yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
+                Assert.AreEqual("WaitingForExit", Field(State, "Timer").ToString());
+                var campaign = Find("CurtainCall.Campaign.CampaignRun");
+                Assert.IsFalse((bool)Call(campaign, "NotifyAllAtStageEntrance"));
+                float until = Time.realtimeSinceStartup + 25f;
+                while (Field(State, "Timer").ToString() == "WaitingForExit" && Time.realtimeSinceStartup < until) yield return null;
+                Assert.AreNotEqual("WaitingForExit", Field(State, "Timer").ToString());
+                until = Time.realtimeSinceStartup + 8f;
+                while (!(bool)Static(TutorialType, "FirstDayQuestVisible") && Time.realtimeSinceStartup < until) yield return null;
+                Assert.IsTrue((bool)Static(TutorialType, "FirstDayQuestVisible"),
+                    "state=" + Field(State, "Phase") + ", player=" + Get(Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local"), "State")
+                    + ", todo=" + Static(TutorialType, "TodoVisible"));
+                Assert.IsFalse((bool)Static("CurtainCall.WaitingRoom.WaitingRoomRehearsal", "IsPreTutorialRestricted"));
+                var gather = Find("CurtainCall.WaitingRoom.StageEntranceGather");
+                var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+                var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+                var box = gather.GetComponent<BoxCollider>();
+                Call(mover, "Relocate", box.bounds.center - Vector3.up * .5f, Quaternion.identity);
+                until = Time.realtimeSinceStartup + 15f;
+                while (Field(State, "Phase").ToString() != "Performance" && Time.realtimeSinceStartup < until) yield return null;
+                Assert.AreEqual("Performance", Field(State, "Phase").ToString());
+                Assert.AreEqual(1, Field(State, "Day"));
+                Assert.AreEqual(1, Field(State, "PerformanceIndex"));
+                // 공연 결과의 기존 공개 신호로 첫날 밤까지 연결한다. 공연 조작 자체는 별도 회귀 테스트 대상이다.
+                until = Time.realtimeSinceStartup + 20f;
+                while ((bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive") && Time.realtimeSinceStartup < until) yield return null;
+                yield return new WaitForSecondsRealtime(1f);
+                Assert.IsTrue((bool)Call(campaign, "EndPerformance"));
+                until = Time.realtimeSinceStartup + 20f;
+                while ((!UnityEngine.SceneManagement.SceneManager.GetSceneByName("WaitingRoomBase").isLoaded
+                    || !(bool)Static(TutorialType, "FirstDayQuestVisible")) && Time.realtimeSinceStartup < until) yield return null;
+                Assert.AreEqual("Night", Field(State, "Phase").ToString());
+                Assert.AreEqual(1, Field(State, "Day"));
+                Assert.IsTrue((bool)Static(TutorialType, "FirstDayQuestVisible"));
+                Assert.IsFalse((bool)Static("CurtainCall.WaitingRoom.NightBed", "ScheduleReady"));
+                ConfirmTonight();
+                yield return null; yield return null;
+                Assert.IsTrue((bool)Static("CurtainCall.WaitingRoom.NightBed", "ScheduleReady"));
+                string expected = (string)T("CurtainCall.WaitingRoom.WaitingRoomText").GetMethod("Get").Invoke(null,
+                    new object[] { "first-day.quest.night-bed.title", "" });
+                Assert.AreEqual(expected, Static(TutorialType, "FirstDayQuestTitle"));
+                ScreenCapture.CaptureScreenshot(".harness/local/rehearsal/first-night-quest.png");
+                yield return null; yield return null;
             }
             finally { EndTutorial(); }
         }

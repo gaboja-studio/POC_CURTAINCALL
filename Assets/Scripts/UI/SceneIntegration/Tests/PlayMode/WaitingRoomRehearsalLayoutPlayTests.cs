@@ -64,6 +64,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             // Task-097: 기획서 5~7장 구조도대로 줄·발판·그네·트리거 그네·끊긴 구간을 놓고, 연습실 옛 소품은 숨긴다.
             FreshTutorial();
             T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
+            var gameView = UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView"));
+            bool wasMaximized = gameView.maximized;
+            gameView.maximized = true; gameView.Focus();
+            System.IO.Directory.CreateDirectory(AuditDirectory);
             try
             {
                 yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
@@ -71,6 +75,21 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(.6f);
                 var room = GameObject.Find("S09_PracticeRoom").transform;
                 Assert.IsFalse(room.Find("LegacyRing/PracticeLanes").gameObject.activeSelf, "리허설 중 연습실 옛 소품은 숨긴다");
+
+                yield return AuditCapture("01-stage1-start");
+                var initial = LocalPlayer.transform.position;
+                var initialRotation = LocalPlayer.transform.rotation;
+                yield return AuditClosedGates();
+                Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")), "Relocate", initial, initialRotation);
+                // 추락 상태 요청 → 호스트 복구 → 같은 구간 출발대.
+                Call(LocalPlayer, "RequestState", Enum.Parse(Get(LocalPlayer, "State").GetType(), "Fallen"));
+                yield return new WaitForSecondsRealtime(.3f);
+                yield return AuditCapture("02-fall");
+                float recoveryUntil = Time.realtimeSinceStartup + 6f;
+                while (Get(LocalPlayer, "State").ToString() != "Normal" && Time.realtimeSinceStartup < recoveryUntil) yield return null;
+                Assert.AreEqual("Normal", Get(LocalPlayer, "State").ToString());
+                Assert.AreEqual(0, Static(RehearsalType, "CurrentStage"));
+                yield return AuditCapture("03-recovered");
 
                 // 1단계: 위쪽 줄은 중간 지점 발판에서 끝나고, 아래쪽 줄만 도착 장소로 간다.
                 var course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
@@ -81,7 +100,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsNotNull(course.transform.Find("RehearsalPlatform"), "중간 지점 발판");
 
                 // 2-1: 그네 1개.
-                yield return JumpStage(1);
+                var firstFinish = (Pose)Call(course, "GetFinishPose", 1);
+                Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")), "Relocate", firstFinish.position, firstFinish.rotation);
+                yield return WaitStage(1, 5f);
+                yield return new WaitForSecondsRealtime(.6f);
+                yield return AuditCapture("04-stage2-1");
                 course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
                 Assert.IsTrue(Blocked(course, 0, 13f) && !Blocked(course, 0, 6f) && !Blocked(course, 0, 18f), "2-1 그네 자리(공연과 같은 8m)만 끊김");
 
@@ -94,7 +117,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsTrue(Blocked(course, 0, 11f) && Blocked(course, 0, 17f) && !Blocked(course, 0, 22f));
                 var first = poles[0]; var second = poles[1];
                 Assert.AreSame(second, Priv(first, "next"));
+                yield return AuditCapture("05-stage2-2-start");
                 yield return SwingAcross(course, first, second);
+                yield return AuditCapture("06-stage2-2-second-grab");
+                // 기능 확인을 마친 봉에서 이탈한 뒤 다음 구간을 배치한다(매달린 상태를 강제로 이월하지 않는다).
+                Invoke(second, "OnTeleported"); yield return null; yield return null;
 
                 // 2-3: 위쪽 줄 끝 트리거 그네 1을 잡는 동안만 아래쪽 줄이 이어진다.
                 yield return JumpStage(3);
@@ -103,9 +130,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsTrue(Blocked(course, 1, 15f), "아래쪽 줄 가운데가 끊김");
                 yield return HoldTrigger(course, 0, 0, 11.4f);
                 Assert.IsFalse(Blocked(course, 1, 15f), "트리거를 잡는 동안 이어짐");
+                yield return AuditCapture("07-stage2-3-trigger-held");
                 ReleaseTrigger(0);
                 yield return null; yield return null;
                 Assert.IsTrue(Blocked(course, 1, 15f), "놓으면 다시 끊김");
+                yield return AuditCapture("08-stage2-3-released");
 
                 // 3단계: 줄마다 그네, 1줄 트리거 → 2줄 앞쪽 끊김, 2줄 트리거 → 1줄 뒤쪽 끊김(3·4줄 같은 짝).
                 yield return JumpStage(4);
@@ -121,12 +150,171 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return HoldTrigger(course, 3, 3, 23.1f);
                 Assert.IsFalse(Blocked(course, 2, 20f), "4줄 트리거 → 3줄 연결");
                 Assert.IsTrue(Blocked(course, 1, 18f));
+                yield return AuditCapture("09-stage3-trigger-held");
+                ReleaseTrigger(3);
+                yield return null; yield return null;
+                var finalPose = (Pose)Call(course, "GetFinishPose", 0);
+                Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")), "Relocate", finalPose.position, finalPose.rotation);
+                float until = Time.realtimeSinceStartup + 5f;
+                while (!(bool)Static(RehearsalType, "IsCompleted") && Time.realtimeSinceStartup < until) yield return null;
+                Assert.IsTrue((bool)Static(RehearsalType, "IsCompleted"));
+                yield return new WaitForSecondsRealtime(4f);
+                yield return AuditCapture("10-complete-route");
+                yield return AuditWalkToStage();
             }
             finally
             {
                 T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
+                FlowKeys();
+                gameView.maximized = wasMaximized;
                 EndTutorial();
             }
+        }
+
+        [UnityTest]
+        public IEnumerator W6_Rehearsal_TriggerAndExitSmoke()
+        {
+            FreshTutorial();
+            T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
+            System.IO.Directory.CreateDirectory(AuditDirectory);
+            var gameView = UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView"));
+            bool maximized = gameView.maximized; gameView.maximized = true; gameView.Focus();
+            try
+            {
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return JumpStage(3);
+                var course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
+                yield return HoldTrigger(course, 0, 0, 11.4f);
+                Assert.IsFalse(Blocked(course, 1, 15f));
+                yield return AuditCapture("07-stage2-3-trigger-held");
+                ReleaseTrigger(0); yield return null; yield return null;
+                Assert.IsTrue(Blocked(course, 1, 15f));
+                yield return AuditCapture("08-stage2-3-released");
+                yield return JumpStage(4);
+                course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
+                yield return HoldTrigger(course, 3, 3, 23.1f);
+                Assert.IsFalse(Blocked(course, 2, 20f));
+                yield return AuditCapture("09-stage3-trigger-held");
+                ReleaseTrigger(3); yield return null; yield return null;
+                var finish = (Pose)Call(course, "GetFinishPose", 0);
+                Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")), "Relocate", finish.position, finish.rotation);
+                float until = Time.realtimeSinceStartup + 5f;
+                while (!(bool)Static(RehearsalType, "IsCompleted") && Time.realtimeSinceStartup < until) yield return null;
+                Assert.IsTrue((bool)Static(RehearsalType, "IsCompleted"));
+                yield return new WaitForSecondsRealtime(4f);
+                yield return AuditCapture("10-complete-route");
+                yield return AuditWalkToStage();
+            }
+            finally { FlowKeys(); gameView.maximized = maximized; EndTutorial(); }
+        }
+
+        [UnityTest]
+        public IEnumerator W6_Rehearsal_ExitRouteSmoke()
+        {
+            FreshTutorial();
+            T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
+            System.IO.Directory.CreateDirectory(AuditDirectory);
+            var gameView = UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView"));
+            bool maximized = gameView.maximized; gameView.maximized = true; gameView.Focus();
+            try
+            {
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return JumpStage(4);
+                var course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
+                var finish = (Pose)Call(course, "GetFinishPose", 0);
+                Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")), "Relocate", finish.position, finish.rotation);
+                float until = Time.realtimeSinceStartup + 5f;
+                while (!(bool)Static(RehearsalType, "IsCompleted") && Time.realtimeSinceStartup < until) yield return null;
+                Assert.IsTrue((bool)Static(RehearsalType, "IsCompleted"));
+                yield return new WaitForSecondsRealtime(4f);
+                yield return AuditCapture("10-complete-route");
+                yield return AuditWalkToStage();
+            }
+            finally { FlowKeys(); gameView.maximized = maximized; EndTutorial(); }
+        }
+
+        const string AuditDirectory = ".harness/local/rehearsal/verification";
+        static IEnumerator AuditCapture(string name)
+        {
+            yield return null; yield return new WaitForEndOfFrame();
+            ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(AuditDirectory + "/" + name + ".png"));
+            yield return null; yield return null;
+        }
+
+        // 각 시도의 시작 위치만 배치하고 닫힌 철창은 보통 이동 입력으로 밀어 본다.
+        IEnumerator AuditClosedGates()
+        {
+            var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            var report = new List<string>();
+            var failures = new List<string>();
+            var gates = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.RehearsalLockdownGate"), FindObjectsSortMode.None);
+            foreach (Component gate in gates)
+            {
+                var box = gate.GetComponent<BoxCollider>();
+                foreach (float offset in new[] { 0f, -box.size.x * .5f - .4f, box.size.x * .5f + .4f })
+                {
+                    var middle = gate.transform.position + gate.transform.right * offset;
+                    var direction = gate.transform.forward;
+                    var start = middle - direction * 1.5f + Vector3.up * .1f;
+                    var hits = Physics.OverlapCapsule(start + Vector3.up * .35f, start + Vector3.up * 1.4f, .3f,
+                        Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                    bool occupied = false;
+                    foreach (var hit in hits) if (hit.GetComponentInParent(T("CurtainCall.Player.PlayerMover")) == null) occupied = true;
+                    if (occupied) { report.Add(gate.name + " offset=" + offset + " start already blocked by wall"); continue; }
+                    if (!Physics.Raycast(start + Vector3.up, Vector3.down, 2f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                    { report.Add(gate.name + " offset=" + offset + " no floor at probe start"); continue; }
+                    Call(mover, "Relocate", start, Quaternion.LookRotation(direction));
+                    float end = Time.realtimeSinceStartup + 1.2f;
+                    while (Time.realtimeSinceStartup < end)
+                    {
+                        var director = Find("CurtainCall.Cameras.CameraViewDirector");
+                        var basis = director != null && (bool)Get(director, "UsesMouseLook") ? (Vector3)Get(director, "ViewForward") : (Vector3)Get(mover, "CourseForward");
+                        basis.y = 0; basis.Normalize();
+                        float f = Vector3.Dot(direction, basis), r = Vector3.Dot(direction, Vector3.Cross(Vector3.up, basis));
+                        var keys = new List<string>();
+                        if (f > .3f) keys.Add("W"); else if (f < -.3f) keys.Add("S");
+                        if (r > .3f) keys.Add("D"); else if (r < -.3f) keys.Add("A");
+                        FlowKeys(keys.ToArray()); yield return null;
+                    }
+                    FlowKeys(); yield return null;
+                    float side = Vector3.Dot(LocalPlayer.transform.position - middle, direction);
+                    string row = gate.name + " offset=" + offset.ToString("F2") + " end=" + LocalPlayer.transform.position.ToString("F2") + " crossed=" + (side > .4f);
+                    report.Add(row);
+                    if (side > .4f) failures.Add(row);
+                }
+                yield return AuditCapture("gate-" + gate.name);
+            }
+            System.IO.File.WriteAllLines(AuditDirectory + "/closed-gate-probes.txt", report);
+            Assert.IsEmpty(failures, string.Join("\n", failures));
+        }
+
+        IEnumerator AuditWalkToStage()
+        {
+            var guide = (Component)Priv(Rehearsal, "guide");
+            float until = Time.realtimeSinceStartup + 30f;
+            while (!(bool)Priv(guide, "navReady") && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsTrue((bool)Priv(guide, "navReady"), "완료 뒤 길안내 NavMesh 생성");
+            yield return new WaitForSecondsRealtime(.6f);
+            var path = (UnityEngine.AI.NavMeshPath)Priv(guide, "path");
+            Assert.AreEqual(UnityEngine.AI.NavMeshPathStatus.PathComplete, path.status, "연습실부터 무대 입구까지 완전한 경로");
+            var corners = path.corners;
+            System.IO.File.WriteAllLines(AuditDirectory + "/exit-route.txt", Array.ConvertAll(corners, v => v.ToString("F2")));
+            Assert.Greater(corners.Length, 1);
+            var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            for (int i = 1; i < corners.Length; i++)
+            {
+                var walking = FlowWalk(LocalPlayer, mover, corners[i]);
+                while (Field(State, "Phase").ToString() == "Rehearsal" && walking.MoveNext()) yield return walking.Current;
+                FlowKeys();
+                if (Field(State, "Phase").ToString() != "Rehearsal") break;
+                yield return AuditCapture("route-" + i.ToString("D2"));
+                if (Field(State, "Phase").ToString() != "Rehearsal") break;
+            }
+            until = Time.realtimeSinceStartup + 10f;
+            while (Field(State, "Phase").ToString() == "Rehearsal" && Time.realtimeSinceStartup < until) yield return null;
+            Assert.AreEqual("Performance", Field(State, "Phase").ToString(), "실제 이동 집결 뒤 첫 공연");
+            yield return new WaitForSecondsRealtime(3f);
+            yield return AuditCapture("11-first-performance");
         }
 
         static object RelayGate => Static("CurtainCall.Tightrope.TightropeRelayGate", "Current");
@@ -139,9 +327,16 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             PlaceOnRope(course, lane, distance);
             yield return new WaitForSecondsRealtime(.4f);
             var gate = RelayGate;
+            var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            string diagnostic = "active=" + Get(gate, "IsActive") + " available=" + Call(gate, "IsPoleAvailable", index)
+                + " canUse=" + Call(gate, "CanUsePole", index, LocalPlayer) + " state=" + Get(LocalPlayer, "State")
+                + " simulated=" + Get(mover, "Simulated") + " body=" + mover.GetComponent<CharacterController>().enabled
+                + " airborne=" + Get(mover, "IsAirborne") + " position=" + LocalPlayer.transform.position.ToString("F2");
+            System.IO.File.WriteAllText(AuditDirectory + "/trigger-diagnostic.txt", diagnostic);
+            yield return AuditCapture("trigger-before-grab");
             Invoke(gate, "SubmitGrab", LocalId, index, PoleRevision(gate, index));
             yield return null; yield return null;
-            Assert.AreEqual(LocalId, (ulong)Call(gate, "HolderAt", index), $"트리거 그네 {index + 1}을 잡아야 한다");
+            Assert.AreEqual(LocalId, (ulong)Call(gate, "HolderAt", index), $"트리거 그네 {index + 1}을 잡아야 한다: " + diagnostic);
             Assert.IsTrue((bool)Call(gate, "IsHeld", LocalPlayer), "공연 해제봉처럼 봉에 매달린다");
         }
 

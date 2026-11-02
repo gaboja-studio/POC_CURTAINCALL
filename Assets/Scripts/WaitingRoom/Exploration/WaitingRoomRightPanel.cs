@@ -14,22 +14,26 @@ namespace CurtainCall.WaitingRoom
 
         readonly Transform owner;
         readonly string name;
-        readonly float width;
+        float width;
+        readonly string settingsPrefix;
+        float margin = Margin, titleSize, bodySize;
+        bool configured;
         GameObject root;
         TooltipView view;
         UiRuntimeFontFallback fontOwner;
 
-        public float Top { get; }
+        public float Top { get; private set; }
         public bool Visible { get; private set; }
         public string Title { get; private set; } = "";
         public string Body { get; private set; } = "";
 
-        public WaitingRoomRightPanel(Transform owner, string name, float top, float width)
-        { this.owner = owner; this.name = name; Top = top; this.width = width; }
+        public WaitingRoomRightPanel(Transform owner, string name, float top, float width, string settingsPrefix = null)
+        { this.owner = owner; this.name = name; Top = top; this.width = width; this.settingsPrefix = settingsPrefix; }
 
         /// <summary>띄운다(같은 내용이면 다시 그리지 않는다). 아직 그릴 수 없으면 false.</summary>
         public bool Show(string title, string body)
         {
+            Configure();
             // 공용 UI 씬이 다시 올라오면 앞 폰트 보완본은 지워진다(공연 다녀옴). 새 보완본으로 다시 만든다.
             var current = FontOwner();
             if (root != null && current != fontOwner) { Object.Destroy(root); root = null; view = null; Visible = false; }
@@ -37,7 +41,7 @@ namespace CurtainCall.WaitingRoom
             if (view == null) Build();
             if (view == null) return false;
             float canvasWidth = root.transform is RectTransform rect && rect.rect.width > 0f ? rect.rect.width : 1920f;
-            if (!view.ShowPanel(title, body, new Vector2(canvasWidth - Margin - width, Top), width)) return false;
+            if (!view.ShowPanel(title, body, new Vector2(Mathf.Max(0f, canvasWidth - margin - width), Top), width)) return false;
             Title = title; Body = body; Visible = true;
             return true;
         }
@@ -47,6 +51,22 @@ namespace CurtainCall.WaitingRoom
             if (!Visible) return;
             Visible = false;
             if (view != null) view.Hide();
+        }
+
+        // 기존 패널은 기본값을 유지하고, 요청한 패널만 문구 표의 수치를 읽는다(플레이 재시작 시 반영).
+        void Configure()
+        {
+            if (configured) return;
+            configured = true;
+            if (string.IsNullOrEmpty(settingsPrefix)) return;
+            float Read(string key, float fallback, float min, float max) =>
+                WaitingRoomTutorialPanelSettings.TryNumber(WaitingRoomText.Get(settingsPrefix + key, ""), out float value)
+                    ? Mathf.Clamp(value, min, max) : fallback;
+            Top = Read("top", Top, 0f, 900f);
+            width = Read("width", width, 256f, 480f);
+            margin = Read("right", Margin, 0f, 1700f);
+            titleSize = Read("title-size", 0f, 0f, 32f);
+            bodySize = Read("body-size", 0f, 0f, 30f);
         }
 
         void Build()
@@ -62,6 +82,11 @@ namespace CurtainCall.WaitingRoom
             view.ResetForRuntime();
             fontOwner = FontOwner();
             if (fontOwner != null) fontOwner.ApplyTo(root.transform);
+            foreach (var label in root.GetComponentsInChildren<TMPro.TMP_Text>(true))
+            {
+                if (label.name == "60_TitleTMP" && titleSize > 0f) label.fontSize = Mathf.Max(18f, titleSize);
+                else if (label.name == "70_DescriptionTMP" && bodySize > 0f) label.fontSize = Mathf.Max(16f, bodySize);
+            }
         }
 
         static UiRuntimeFontFallback FontOwner()
