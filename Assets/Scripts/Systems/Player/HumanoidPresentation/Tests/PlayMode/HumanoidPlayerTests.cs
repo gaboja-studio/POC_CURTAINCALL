@@ -116,6 +116,47 @@ namespace CurtainCall.Tests.HumanoidPresentation
             finally { movement.SetValue(policy, oldMovement); interrupt.SetValue(policy, oldInterrupt); }
         }
 
+        // 2026-11-02: holding a key froze torso and both arms in ItemHold, so the rigid
+        // arms bobbed with each walk-cycle hip drop. Only the right arm may hold.
+        [UnityTest]
+        public IEnumerator HeldKeyKeepsLocomotionTorsoAndLeftArmSwing()
+        {
+            var player = Player();
+            var carryType = TypeFor("CurtainCall.WaitingRoom.PropCarry");
+            var carry = carryType.GetProperty("Instance").GetValue(null) as Component;
+            if (carry == null) { var go = new GameObject("Carry"); objects.Add(go); carry = go.AddComponent(carryType); }
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var held = (IDictionary)carryType.GetField("receivedHeld", flags).GetValue(carry);
+            var selected = (IDictionary<ulong, int>)carryType.GetField("selected", flags).GetValue(carry);
+            var itemType = TypeFor("CurtainCall.WaitingRoom.PropItem");
+            var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(itemType));
+            list.Add(Activator.CreateInstance(itemType, 777, "route-key", "열쇠 1", -1));
+            held[0UL] = list; selected[0UL] = 777;
+            try
+            {
+                var driver = player.AddComponent<HumanoidMovementTestInput>();
+                driver.Mover = Part(player, "PlayerMover");
+                for (int i = 0; i < 60; i++) yield return null;
+                var animator = (Animator)Model(player).GetType().GetField("Animator").GetValue(Model(player));
+                int upper = animator.GetLayerIndex("ItemRightHand"), arm = animator.GetLayerIndex("ItemRightArm");
+                Assert.That(arm, Is.GreaterThanOrEqualTo(0));
+                Assert.That(animator.GetLayerWeight(arm), Is.EqualTo(1f));
+                Assert.That(animator.GetLayerWeight(upper), Is.EqualTo(0f));
+                Assert.That(animator.GetCurrentAnimatorStateInfo(arm).IsName("ItemHold"), Is.True);
+                var left = animator.GetBoneTransform(HumanBodyBones.LeftHand);
+                float min = float.MaxValue, max = float.MinValue;
+                for (int i = 0; i < 90; i++)
+                {
+                    yield return null;
+                    float z = player.transform.InverseTransformPoint(left.position).z;
+                    min = Mathf.Min(min, z); max = Mathf.Max(max, z);
+                }
+                // Walk swing is ~0.48m; the frozen hold pose left it at ~0.02m.
+                Assert.That(max - min, Is.GreaterThan(.2f));
+            }
+            finally { held.Clear(); selected.Clear(); }
+        }
+
         [UnityTest]
         public IEnumerator MovingPickupDoesNotAimBonesAtWorldTarget()
         {
