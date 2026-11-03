@@ -13,10 +13,10 @@ namespace CurtainCall.HumanCannon.Tests
         // 기존 LAN 테스트와 같이 입력 프레임을 주입한다. 실제 키보드·마우스 검사는 아니다.
         // 잡기 직전 위치만 준비하고 점유, 반동, 시간 경과, 톱 접촉은 실제 호스트 업데이트로 확인한다.
         [UnityTest]
-        public IEnumerator TimedLinkedPole_ReleaseKeepsTheWallOpenUntilFortySeconds()
+        public IEnumerator TimedLinkedPole_GrabSplitsTheWallOpenForTheRestOfTheShow()
         {
             DisableEnhancementThreats();
-            const int index = 1; // 기존 첫 구간 관문 해제봉
+            const int index = 0; // 첫 구간 톱벽 그네(2026-11-02 NormalPole 삭제로 1 → 0)
             double grabRequestedAt = 0;
             yield return GrabEnhancementPole(index, time => grabRequestedAt = time);
             var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
@@ -24,18 +24,34 @@ namespace CurtainCall.HumanCannon.Tests
             var state = Call(poles, "State", index);
             var gate = Get(pole, "LinkedGate");
             Assert.IsNotNull(gate);
-            foreach (Transform blade in ((Component)gate).transform.Find("SawVisual"))
+            foreach (Transform blade in ((Component)gate).transform.Find("SawVisual").GetComponentsInChildren<Transform>()
+                .Where(t => t.name.StartsWith("GateSawDisc")))
                 Assert.That(Vector3.Dot(blade.forward, Vector3.right), Is.GreaterThan(.999f),
                     "실제 호스트의 관문 업데이트 후에도 개별 톱날90도 방향을 유지한다.");
             Assert.IsFalse((bool)Get(state, "IsUnlimitedHold"));
             double rearmAt = (double)Get(state, "RearmAt");
             // 잡기 확인 뒤 프레임 대기 시간이 남은 40초에 포함되지 않도록 요청 시각으로 비교한다.
             Assert.That(rearmAt, Is.InRange(grabRequestedAt + 40d, (double)Get(poles, "Clock") + 40d));
-            var barrier = ((Component)gate).transform.Find("Barrier").GetComponent<Collider>();
-            var fence = barrier.transform.Find("MetalMesh");
-            Assert.That(fence.childCount, Is.EqualTo(11));
-            Assert.IsFalse(barrier.enabled);
-            Assert.IsTrue(fence.GetComponentsInChildren<Renderer>().All(r => !r.enabled));
+            var gateTransform = ((Component)gate).transform;
+            var walls = new[] { "LeftBlades", "RightBlades" }.Select(n => gateTransform.Find("SawVisual/" + n).GetComponent<Collider>()).ToArray();
+            var fence = gateTransform.Find("Barrier/MetalMesh");
+            Assert.IsTrue((bool)Get(gate, "IsOpen"), "봉을 잡는 순간 톱벽이 갈라지기 시작한다.");
+            Assert.IsFalse((bool)Get(gate, "IsSpinning"), "잡으면 톱이 먼저 멈춘다.");
+            Assert.That((float)Get(gate, "OpenAmount"), Is.LessThan(.5f), "멈춘 뒤 갈라지기 시작한다.");
+            yield return WaitUntil(() => (float)Get(gate, "OpenAmount") >= 1f, 2.5f, "0.5초 멈춤 뒤 1초 동안 좌우로 갈라짐");
+            Assert.IsTrue((bool)Get(gate, "IsSpinning"), "다 열리면 양쪽 톱이 다시 돈다.");
+            Physics.SyncTransforms();
+            float gap = walls[1].bounds.min.x - walls[0].bounds.max.x;
+            Assert.That(gap, Is.EqualTo((float)Get(gate, "OpenGap")).Within(.02f), "트램펄린 폭 + 좌우 0.5m 틈");
+            Assert.IsTrue(walls.All(w => w.enabled), "갈라진 양쪽 벽은 계속 막는다.");
+            // 바닥(x ±22) 밖으로 밀려난 양쪽 바깥 톱 3장씩이 떨어져 낙하 부상 높이에서 사라진다.
+            yield return WaitUntil(() => (int)Get(gate, "GoneBladeCount") == 6, 3f, "바닥 밖 톱 낙하 후 소멸");
+            Assert.AreEqual(0, (int)Get(gate, "FallingBladeCount"));
+            // 바닥 밖으로 삐져나온 양쪽 끝 철망·위 파이프 조각 1개씩(4개)도 함께 떨어져 사라진다.
+            Assert.That((int)Get(gate, "FallingFenceCount") + (int)Get(gate, "GoneFenceCount"), Is.EqualTo(4));
+            yield return WaitUntil(() => (int)Get(gate, "GoneFenceCount") == 4, 2f, "바닥 밖 철망 낙하 후 소멸");
+            Assert.IsTrue(fence.GetComponentsInChildren<Renderer>().All(r => r.enabled));
+            Assert.IsNull(gateTransform.Find("AppliedGateFrame/TopBeam"), "열린 틈을 가로지르는 통파이프가 남지 않는다.");
             double started = (double)Get(poles, "Clock");
             while ((double)Get(poles, "Clock") - started < 8.5)
             {
@@ -51,29 +67,19 @@ namespace CurtainCall.HumanCannon.Tests
             Assert.AreEqual("Retracted", Get(state, "Phase").ToString());
             Assert.That((double)Get(state, "RearmAt"), Is.EqualTo(rearmAt), "놓아도 잡은 순간의 40초 시각을 보존한다.");
             AssertBody(0);
-            while ((double)Get(poles, "Clock") < rearmAt - 2d)
-            {
-                Assert.IsFalse(barrier.enabled);
-                Assert.IsTrue(fence.GetComponentsInChildren<Renderer>().All(r => !r.enabled));
-                yield return null;
-            }
-            yield return null;
-            Assert.AreEqual("Warning", Get(gate, "Phase").ToString());
-            Assert.IsFalse(barrier.enabled);
-            yield return WaitUntil(() => Get(gate, "Phase").ToString() == "Active", 3f, "40초 뒤 재가동");
+            yield return WaitUntil(() => Get(gate, "Phase").ToString() == "Active", 45f, "40초 뒤 봉 주기 종료");
             Assert.That((double)Get(poles, "Clock"), Is.GreaterThanOrEqualTo(rearmAt));
-            Assert.IsTrue(barrier.enabled);
-            Assert.IsTrue(fence.GetComponentsInChildren<Renderer>().All(r => r.enabled));
-            Assert.That(barrier.GetComponentsInChildren<Collider>().Count(c => c.enabled), Is.EqualTo(1), "기존 물리 충돌벽만 사용한다.");
+            Assert.IsTrue((bool)Get(gate, "IsOpen"), "한 번 열린 톱벽은 닫히지 않는다.");
+            Assert.That(walls[1].bounds.min.x - walls[0].bounds.max.x, Is.EqualTo(gap).Within(.001f));
         }
 
         [UnityTest]
         public IEnumerator AirbornePlayerCrossesTheGateBeforeTheTrampolineCarrier()
         {
             DisableEnhancementThreats();
-            yield return GrabEnhancementPole(1);
+            yield return GrabEnhancementPole(0);
             var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
-            var pole = (Component)Call(poles, "Pole", 1);
+            var pole = (Component)Call(poles, "Pole", 0);
             var gate = (Component)Get(pole, "LinkedGate");
             Assert.IsFalse((bool)Get(gate, "CarrierPassed"));
             PoleEnhancementInput(0, release: true);
@@ -94,7 +100,7 @@ namespace CurtainCall.HumanCannon.Tests
             Input(tapped: true);
             Assert.IsTrue(Flying);
             var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
-            var gate = (Component)Get(Call(poles, "Pole", 1), "LinkedGate");
+            var gate = (Component)Get(Call(poles, "Pole", 0), "LinkedGate");
             var row = gate.transform.Find("SawVisual").GetComponentsInChildren<Renderer>();
             float sawTop = row.Max(r => r.bounds.max.y);
             Call(pilot, "Launch", 0, Get(pilot, "launchRevision"),

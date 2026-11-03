@@ -18,6 +18,7 @@ namespace CurtainCall.HumanCannon
         const int RequestSize = 37;
         const int StateSize = 160; // 48 byte header + four fixed 28 byte rider records.
         const int ReleaseStateSize = StateSize + 40;
+        const byte GateOpenFlag = 1 << (PoleGateState.MaxRiders + 1);
         CustomMessagingManager messaging;
         struct ReceivedFlight
         {
@@ -104,11 +105,13 @@ namespace CurtainCall.HumanCannon
             writer.WriteValueSafe(runtime.Angle); writer.WriteValueSafe(runtime.Speed); writer.WriteValueSafe(actor);
             writer.WriteValueSafe((byte)(seat < 0 ? 255 : seat));
             writer.WriteValueSafe(station); writer.WriteValueSafe(launch); writer.WriteValueSafe(segment);
-            // Bit 0 is the original gate flag; bits 1–4 identify occupied seats facing backwards.
-            byte flags = (byte)(poles[index].LinkedGate != null && poles[index].LinkedGate.CarrierPassed ? 1 : 0);
+            // 비트 0: 지상 담당 통과, 비트 1~4: 뒤로 앉은 좌석, 비트 5: 톱벽이 좌우로 열림(재시작 전까지 유지).
+            var gate = poles[index].LinkedGate;
+            byte flags = (byte)(gate != null && gate.CarrierPassed ? 1 : 0);
             for (int slot = 0; slot < runtime.State.Capacity; slot++)
                 if (runtime.State.OccupantAt(slot) != CannonSeatState.Nobody && runtime.Riders[slot].ReverseFacing)
                     flags |= (byte)(2 << slot);
+            if (gate != null && gate.IsOpen) flags |= GateOpenFlag;
             writer.WriteValueSafe(flags);
             for (int slot = 0; slot < PoleGateState.MaxRiders; slot++)
             {
@@ -136,9 +139,10 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out float angle); reader.ReadValueSafe(out float speed); reader.ReadValueSafe(out ulong actor);
             reader.ReadValueSafe(out byte seat); reader.ReadValueSafe(out int station);
             reader.ReadValueSafe(out uint launch); reader.ReadValueSafe(out uint segment); reader.ReadValueSafe(out byte flags);
-            int reversedSeats = flags >> 1;
+            int reversedSeats = (flags >> 1) & ((1 << PoleGateState.MaxRiders) - 1);
             if (index < 0 || index >= states.Length || poles[index] == null
-                || reversedSeats >= (1 << PoleGateState.MaxRiders) || (!useGrabFacing && reversedSeats != 0)
+                || (flags & ~(1 | GateOpenFlag | (((1 << PoleGateState.MaxRiders) - 1) << 1))) != 0
+                || (!useGrabFacing && reversedSeats != 0)
                 || !float.IsFinite(angle) || !float.IsFinite(speed)) return;
             var runtime = states[index];
             bool riderEvent = action == (byte)PoleEvent.Grabbed || action == (byte)PoleEvent.PlatformGrabbed
@@ -183,7 +187,8 @@ namespace CurtainCall.HumanCannon
             {
                 runtime.ReleasePosition = releasePosition; runtime.ReleaseRotation = releaseRotation; runtime.ReleaseVelocity = releaseVelocity;
             }
-            if (poles[index].LinkedGate != null) poles[index].LinkedGate.Present((PoleSawPhase)phase, (flags & 1) != 0, Clock);
+            if (poles[index].LinkedGate != null)
+                poles[index].LinkedGate.Present((PoleSawPhase)phase, (flags & 1) != 0, (flags & GateOpenFlag) != 0, Clock);
             Apply(index, (PoleEvent)action, actor, station, launch, segment);
         }
 

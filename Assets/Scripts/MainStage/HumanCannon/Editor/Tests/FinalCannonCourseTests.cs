@@ -103,7 +103,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(cushion.bounds.max.y, Is.EqualTo(6.2f).Within(0.001f));
             Assert.That(deck.bounds.max.y, Is.EqualTo(cushion.bounds.max.y).Within(0.001f));
             // 2026-11-02 담당자 결정: 갑판을 쿠션 중간(z144)까지 당기고 덮인 쿠션 앞쪽 절반은 잘라 이어 붙인다.
-            Assert.That(cushion.bounds.min.z, Is.EqualTo(141.5f).Within(0.001f));
+            // 2026-11-02 담당자 결정: 초록 뒤 경사를 대포 쪽으로 1.5m 당기고 쿠션 뒤끝도 같이 줄인다(141.5 → 143).
+            Assert.That(cushion.bounds.min.z, Is.EqualTo(143f).Within(0.001f));
             Assert.That(cushion.bounds.max.z, Is.EqualTo(144f).Within(0.001f));
             Assert.That(deck.bounds.min.z, Is.EqualTo(cushion.bounds.max.z).Within(0.001f));
             float overlapMin = Mathf.Max(cushion.bounds.min.x, deck.bounds.min.x);

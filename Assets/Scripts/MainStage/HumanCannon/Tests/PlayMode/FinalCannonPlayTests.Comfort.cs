@@ -54,12 +54,14 @@ namespace CurtainCall.HumanCannon.Tests
         [UnityTest]
         public IEnumerator FireWalls_WaitThirtySecondsAfterDeparture_KeepSpeed_AndRestart()
         {
-            var fires = Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonFireWall"), FindObjectsSortMode.None);
+            var fires = Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonFireWall"), FindObjectsInactive.Include, FindObjectsSortMode.None);
             Assert.AreEqual(2, fires.Length);
             foreach (var item in fires)
             {
-                Assert.IsTrue((bool)Get(item, "Available"));
-                Assert.AreEqual(30f, Get(item, "warningSeconds"));
+                // 2구간 불은 숨김·사용 안 함(2026-11-03 담당자 결정). 1구간 불만 쫓아온다.
+                Assert.AreEqual(item.name == "FirstSectionFire", (bool)Get(item, "Available"), item.name);
+                // 1구간 불 예고 25초(2026-11-03 담당자 결정). 숨긴 2구간 불은 기존 30초 유지.
+                Assert.AreEqual(item.name == "FirstSectionFire" ? 25f : 30f, Get(item, "warningSeconds"), item.name);
                 Assert.AreEqual(0.7f, Get(item, "speed"));
             }
             yield return Board(0);
@@ -73,33 +75,36 @@ namespace CurtainCall.HumanCannon.Tests
             Assert.IsFalse((bool)Get(second, "Armed"));
             double armed = (double)Get(fire, "ArmedAt");
             Vector3 start = ((Transform)Get(fire, "start")).position;
-            // 서버 시계가 실제로 30초 흐르는 동안 예고만 표시하고 전진/접촉 피해는 시작하지 않는다.
-            while ((double)Get(route, "Clock") < armed + 30)
+            // 서버 시계가 실제로 25초 흐르는 동안 예고만 표시하고 전진/접촉 피해는 시작하지 않는다.
+            while ((double)Get(route, "Clock") < armed + 25)
             {
                 double clock = (double)Get(route, "Clock");
                 Assert.IsFalse((bool)Call(fire, "Advancing", clock));
                 Assert.IsFalse((bool)Call(fire, "Threatens", start, 0.3f, clock));
                 Assert.That(Vector3.Distance((Vector3)Call(fire, "Front", clock), start), Is.LessThan(0.001f));
                 Assert.IsTrue(((Transform)Get(fire, "visual")).gameObject.activeSelf);
+                Assert.IsTrue(((Transform)Get(fire, "effect")).gameObject.activeSelf, "예고부터 불꽃 파티클 표시");
                 yield return null;
             }
-            yield return WaitUntil(() => (double)Get(route, "Clock") >= armed + 30.3, 2, "30초 뒤 불꽃 전진");
+            yield return WaitUntil(() => (double)Get(route, "Clock") >= armed + 25.3, 2, "25초 뒤 불꽃 전진");
             double now = (double)Get(route, "Clock");
             Assert.IsTrue((bool)Call(fire, "Advancing", now));
             Assert.That(Vector3.Distance((Vector3)Call(fire, "Front", now), start),
-                Is.EqualTo((now - armed - 30) * 0.7).Within(0.002), "전진 속도는 기존 초당 0.7m");
+                Is.EqualTo((now - armed - 25) * 0.7).Within(0.002), "전진 속도는 기존 초당 0.7m");
             Assert.IsTrue((bool)Call(fire, "Threatens", start, 0.3f, now));
             Call(player, "RequestRestartAll");
             yield return null; yield return null;
             AssertFiresIdle();
             Assert.AreEqual("대기", Call(route, "FireStatus", 0));
             foreach (var item in fires) Assert.IsFalse(((Transform)Get(item, "visual")).gameObject.activeSelf);
+            Assert.IsFalse(((Transform)Get(fire, "effect")).gameObject.activeSelf, "재시작하면 불꽃 파티클도 숨김");
             yield return WaitUntil(() => !(bool)StaticGet("CurtainCall.Player.InputGate", "IsBlocked"), 3, "재시작 후 입력 해제");
             yield return Board(3);
             yield return ReleaseThenArm(); Input(tapped: true);
-            Assert.IsTrue((bool)Get(second, "Armed"), "두 번째 구간도 독립적인 출발 시점에 예고 시작");
+            Assert.IsFalse((bool)Get(second, "Armed"), "숨긴 2구간 불은 쉼터 대포 발사에도 예고하지 않는다");
             Assert.IsFalse((bool)Get(fire, "Armed"));
-            Assert.That((double)Call(second, "RemainingWarning", (double)Get(route, "Clock")), Is.GreaterThan(29.5));
+            Assert.IsFalse(((Component)second).gameObject.activeInHierarchy);
+            Assert.AreEqual("사용 안 함", Call(route, "FireStatus", 1));
         }
 
         Component GroundMarkers() => Object.FindAnyObjectByType(GameType("CurtainCall.HumanCannon.HumanCannonGroundMarkers")) as Component;

@@ -21,8 +21,11 @@
 - [ ] 플레이어 낙하 위치 UI 그림자 — 비행 중 예상 착지점 표시. 현재 해당 기능 없음(`HumanCannonGroundMarkers`는 지면 표식).
 - [ ] 공중 그네 배치 수정 — `PoleGateCourse`·`SecondSectionPoleGate`의 Normal/LinkedPole, `HumanCannonEnhancement/AddedPole0·2`. 목표 배치 미정.
   - [x] 코스 첫 그네(`PoleGateCourse/NormalPole`, z34)와 위 천장·줄 삭제(2026-11-02).
+  - [x] 톱벽 그네를 잡으면 톱벽이 좌우로 갈라져 트램펄린 폭 + 0.5m씩 틈이 열리고 유지(2026-11-03). 실제 플레이 확인 필요.
 - [ ] 이동 장치 방식 수정 — DepartureTransport·ShelterLift·ShelterDeparture.
   - [x] 발판 5.5×4m, 구멍 가장자리에 붙이고 남은 구멍 메움, ShelterLift는 경유점(`via`)으로 정면 대각선 상승 후 오른쪽 이동.
+  - [x] 이동·복귀 중 다른 플레이어 탑승 차단: 둘레 투명 벽 + 들어온 사람 밖으로 이동 + 운반자만 셈(2026-11-03). 실제 멀티 플레이 확인 필요.
+- [x] 2구간 추격 불 숨김, 1구간 불만 사용(2026-11-03).
 
 ## (3) 나중
 - [ ] 피날레 고도화 — `FinalCannonCourse`, `HumanCannonFinalSaws`, `FinalSawTimeline`. 구체 내용 미정.

@@ -192,24 +192,63 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             CollectionAssert.AllItemsAreUnique(fires);
             CollectionAssert.AreEquivalent(All<HumanCannonFireWall>(), fires);
             Assert.That(fires.All(f => f.IsConfigured), Is.True);
-            Assert.That(fires.All(f => f.Available), Is.True, "두 구간 불꽃벽을 활성화한다.");
-            Assert.That(fires.All(f => Mathf.Approximately(Field<float>(f, "warningSeconds"), 30f)), Is.True);
+            // 2구간 불은 숨김·사용 안 함(2026-11-03 담당자 결정). 배치·참조는 남겨 다시 켤 수 있다.
+            Assert.IsTrue(fires[0].Available && fires[0].gameObject.activeSelf, "1구간 불꽃벽은 사용한다.");
+            Assert.IsFalse(fires[1].Available || fires[1].gameObject.activeSelf, "2구간 불꽃벽은 숨긴다.");
+            // 1구간 불 예고 25초(2026-11-03 담당자 결정). 숨긴 2구간 불은 기존 30초 유지.
+            Assert.That(Field<float>(fires[0], "warningSeconds"), Is.EqualTo(25f));
+            Assert.That(Field<float>(fires[1], "warningSeconds"), Is.EqualTo(30f));
             Assert.That(fires.All(f => Mathf.Approximately(Field<float>(f, "speed"), 0.7f)), Is.True);
             Assert.That(fires.All(f => !Field<Transform>(f, "visual").gameObject.activeSelf), Is.True);
             var firstBoundary = Field<Transform>(fires[0], "boundary");
             var secondBoundary = Field<Transform>(fires[1], "boundary");
             var shelter = FloorBounds(Find("SplitRouteCourse/ShelterDeck"));
             var cushion = Find("LandingCushion").GetComponent<Collider>();
-            Assert.That(firstBoundary.position.z, Is.EqualTo(72).Within(0.001f));
-            Assert.That(firstBoundary.position.z, Is.EqualTo(shelter.min.z).Within(0.001f));
+            // 2026-11-03: 1구간 불은 멈추지 않고 쉼터·2구간을 지나 도착 코스 앞 최종 대포 4대 줄까지 온다.
+            var finals = Field<HumanCannonStation[]>(All<HumanCannonSystem>().Single(), "stations").Where(s => s.name.StartsWith("FinalCannon")).ToArray();
+            Assert.That(finals, Has.Length.EqualTo(4));
+            Assert.That(finals.All(s => Mathf.Abs(s.transform.position.z - firstBoundary.position.z) < 0.01f), Is.True);
+            Assert.That(firstBoundary.position.y, Is.EqualTo(0).Within(0.001f));
+            // 생존자 전원이 2구간(쉼터 앞 z72)·3구간(쿠션 앞 z143)에 도착하면 1.3배·1.6배(2026-11-03 담당자 결정).
+            Assert.That(fires[0].StageCount, Is.EqualTo(2));
+            CollectionAssert.AreEqual(new[] { 1.3f, 1.6f }, Field<float[]>(fires[0], "stageSpeedMultipliers"));
+            var lines = Field<Transform[]>(fires[0], "stageLines");
+            Assert.That(lines[0].position.z, Is.EqualTo(shelter.min.z).Within(0.001f));
+            Assert.That(lines[1].position.z, Is.EqualTo(cushion.bounds.min.z).Within(0.001f));
+            Assert.That(fires[1].StageCount, Is.EqualTo(0));
+            // 2026-11-03: 1구간 불은 빨간 상자 대신 폭 50m 불꽃 파티클 벽으로 보인다. 상자는 판정 크기만 따라간다.
+            var effect = Field<Transform>(fires[0], "effect");
+            Assert.IsNotNull(effect);
+            Assert.IsFalse(effect.gameObject.activeSelf, "켜지기 전에는 숨긴다");
+            Assert.That(effect.localScale.x, Is.EqualTo(Field<float>(fires[0], "halfWidth") * 2).Within(0.001f));
+            Assert.That(effect.GetComponentsInChildren<ParticleSystem>(true), Has.Length.EqualTo(3));
+            Assert.That(UnityEditor.PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(effect.gameObject),
+                Does.EndWith("HumanCannon/Prefabs/HumanCannonChaseFire.prefab"));
+            Assert.IsFalse(Field<Transform>(fires[0], "visual").GetComponent<Renderer>().enabled, "빨간 상자는 그리지 않는다");
+            Assert.That(finals.All(s => Mathf.Abs(s.transform.position.x) < Field<float>(fires[0], "halfWidth")
+                && s.transform.position.y - firstBoundary.position.y < Field<float>(fires[0], "height")), Is.True, "최종 대포 위까지 판정한다");
             Assert.That(secondBoundary.position.z, Is.EqualTo(141.5f).Within(0.001f));
-            Assert.That(secondBoundary.position.z, Is.EqualTo(cushion.bounds.min.z).Within(0.001f));
+            // 2026-11-02: 쿠션 뒤끝만 143으로 당겼다. 불꽃 경계는 그대로라 쿠션 앞 1.5m 일반 바닥까지만 온다.
+            Assert.That(cushion.bounds.min.z, Is.EqualTo(secondBoundary.position.z + 1.5f).Within(0.001f));
             Assert.That(secondBoundary.position.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(Field<Transform>(fires[1], "start").position.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(cushion.bounds.center.y, Is.EqualTo(6.1f).Within(0.001f));
             Assert.That(cushion.bounds.max.y, Is.EqualTo(6.2f).Within(0.001f));
-            Assert.That(Field<Transform>(fires[1], "start").position.z, Is.EqualTo(firstBoundary.position.z).Within(0.001f));
+            Assert.That(Field<Transform>(fires[1], "start").position.z, Is.EqualTo(shelter.min.z).Within(0.001f));
             Assert.That(fires.All(f => Field<Transform>(f, "start").position.z < cushion.bounds.min.z), Is.True);
+        }
+
+        [Test]
+        public void FirstFire_ArmsFromDepartureTransportOrAnyOfTheThreeDepartureCannons()
+        {
+            var route = All<HumanCannonRouteSystem>().Single();
+            var stations = Field<HumanCannonStation[]>(All<HumanCannonSystem>().Single(), "stations");
+            // 경로 시스템은 transports[0] 출발 시 ArmFire(0)을 호출한다(2026-11-03 담당자 확인).
+            Assert.That(Field<HumanCannonTransport[]>(route, "transports")[0].name, Is.EqualTo("DepartureTransport"));
+            CollectionAssert.AreEqual(new[] { "Cannon", "DepartureCannon2", "DepartureCannon3" },
+                stations.Take(3).Select(s => s.name).ToArray(), "출발 대포 1~3");
+            for (int i = 0; i < stations.Length; i++)
+                Assert.That(route.FireSectionForStation(i), i < 3 ? Is.EqualTo(0) : Is.Not.EqualTo(0), stations[i].name);
         }
 
         [Test]
@@ -246,10 +285,28 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(gates[0].transform.root.name, Is.EqualTo("PoleGateCourse"));
             foreach (var gate in gates)
             {
-                Assert.That(gate.transform.Find("SawVisual").childCount, Is.EqualTo(44));
-                Assert.That(gate.transform.Find("SawVisual/GateSawDisc0/Disc"), Is.Not.Null);
+                foreach (var half in new[] { "LeftBlades", "RightBlades" })
+                {
+                    var blades = gate.transform.Find("SawVisual/" + half);
+                    Assert.That(blades.Cast<Transform>().Count(t => t.name.StartsWith("GateSawDisc")), Is.EqualTo(22));
+                    // 갈라지는 동안 바닥에 끌리는 스파크(바닥 바로 위, 방출만 꺼진 상태로 대기).
+                    var sparks = blades.Find("DragSparks")?.GetComponent<ParticleSystem>();
+                    Assert.That(sparks, Is.Not.Null, half + " 끌림 스파크");
+                    Assert.That(sparks.main.playOnAwake, Is.False);
+                    Assert.That(sparks.transform.position.y, Is.EqualTo(gate.transform.position.y + 0.05f).Within(.01f));
+                }
+                Assert.That(new UnityEditor.SerializedObject(gate).FindProperty("dragSparks").arraySize, Is.EqualTo(2));
+                Assert.That(gate.transform.Find("SawVisual/LeftBlades/GateSawDisc0/Disc"), Is.Not.Null);
                 var barrier = gate.transform.Find("Barrier");
                 Assert.That(barrier.GetComponent<Renderer>().enabled, Is.False, "기존 판정 상자는 숨긴다.");
+                Assert.That(barrier.GetComponent<Collider>(), Is.Null, "충돌은 좌우 절반 벽이 나눠 맡는다.");
+                var config = new UnityEditor.SerializedObject(gate);
+                Assert.That(config.FindProperty("leftParts").arraySize, Is.EqualTo(2));
+                Assert.That(config.FindProperty("rightParts").arraySize, Is.EqualTo(2));
+                // 열린 틈 = 트램펄린 폭 + 좌우 1m.
+                float trampoline = All<HumanCannonTrampoline>().Single().GetComponentsInChildren<Renderer>(true)
+                    .Max(r => Mathf.Max(r.bounds.size.x, r.bounds.size.z));
+                Assert.That(gate.OpenGap, Is.EqualTo(trampoline + 2f).Within(.01f));
                 var fence = barrier.GetComponentsInChildren<Renderer>(true).Where(r => r.transform != barrier).ToArray();
                 Assert.That(fence, Is.Not.Empty, "적용된 철망 외형은 유지한다.");
                 Assert.That(fence.All(r => r.enabled), Is.True, "Active 관문은 철망 외형을 표시한다.");
@@ -289,7 +346,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         [Test]
         public void FirstDepartureHasNoLowerRecoveryCourse()
         {
-            // 2026-10-30 담당자 결정: 시작 지점 아래 안전 바닥과 복귀 계단을 삭제하고 낙하는 코스 아래 복귀 처리에 맡긴다.
+            // 2026-10-30 담당자 결정: 시작 지점 아래 안전 바닥과 복귀 계단을 삭제하고 낙하는 코스 아래 추락 처리에 맡긴다(2026-11-03부터 외줄타기와 같은 공용 사망).
             var lift = All<HumanCannonTransport>().Single(t => t.name == "DepartureTransport");
             Assert.That(lift.StartPosition.y, Is.EqualTo(4));
             Assert.That(Find("SplitRouteCourse/LiftSafetyLesson"), Is.Null);

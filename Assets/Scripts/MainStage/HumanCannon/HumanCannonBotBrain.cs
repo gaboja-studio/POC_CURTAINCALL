@@ -119,7 +119,7 @@ namespace CurtainCall.HumanCannon
                 for (int i = 0; i < poles.PoleCount; i++)
                 {
                     var gate = poles.Pole(i).LinkedGate;
-                    if (gate != null && gate.Phase == PoleSawPhase.Active && gate.Side(player.transform.position) < 0
+                    if (gate != null && !gate.IsOpen && gate.Side(player.transform.position) < 0
                         && gate.Side(target) > -2f) target.z = Mathf.Min(target.z, gate.transform.position.z - 2f);
                 }
             return Walk(target, .25f);
