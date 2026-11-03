@@ -31,6 +31,7 @@ namespace CurtainCall.EscapeRoute
         Vector3 cutLocal;
         double cutAt;
         public bool IsCut => cut;
+        public event Action CutStateChanged;
         public bool RequiredForExit => requiredForExit;
         public Vector3 CutPoint => transform.TransformPoint(cutLocal);
         public int SampleCount => path.Length;
@@ -107,7 +108,9 @@ namespace CurtainCall.EscapeRoute
             if (value == cut && (!value || (worldPoint - CutPoint).sqrMagnitude <= .000001f)) return;
             bool newlyCut = value && !cut;
             if (value) LocateCut(worldPoint);
+            bool changed = value != cut;
             cut = value;
+            if (changed) CutStateChanged?.Invoke();
             if (newlyCut)
             {
                 settled = !playFeedback || !Application.isPlaying; cutAt = Time.unscaledTimeAsDouble;

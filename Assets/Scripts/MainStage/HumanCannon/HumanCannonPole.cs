@@ -100,7 +100,9 @@ namespace CurtainCall.HumanCannon
         {
             if (visualBar == null) return;
             Vector3 position = BarPosition(angle);
-            visualBar.SetPositionAndRotation(position, Grip.rotation);
+            if ((visualBar.position - position).sqrMagnitude > .0000000001f
+                || Quaternion.Angle(visualBar.rotation, Grip.rotation) > .00001f)
+                visualBar.SetPositionAndRotation(position, Grip.rotation);
             PresentCable(leftCable, leftAnchor, position);
             PresentCable(rightCable, rightAnchor, position);
         }
@@ -114,11 +116,13 @@ namespace CurtainCall.HumanCannon
             Vector3 span = anchor.position - end;
             Vector3 localSpan = cable.parent != null ? cable.parent.InverseTransformVector(span) : span;
             if (localSpan.sqrMagnitude <= 0.000001f) return;
-            cable.position = (anchor.position + end) * 0.5f;
-            cable.localRotation = Quaternion.FromToRotation(Vector3.up, localSpan);
+            Vector3 position = (anchor.position + end) * 0.5f;
+            Quaternion rotation = Quaternion.FromToRotation(Vector3.up, localSpan);
+            if ((cable.position - position).sqrMagnitude > .0000000001f) cable.position = position;
+            if (Quaternion.Angle(cable.localRotation, rotation) > .00001f) cable.localRotation = rotation;
             Vector3 scale = cable.localScale;
             scale.y = localSpan.magnitude; // 케이블은 높이 1의 Cube, 굵기는 기존 값을 유지한다.
-            cable.localScale = scale;
+            if ((cable.localScale - scale).sqrMagnitude > .0000000001f) cable.localScale = scale;
         }
 
         public void Step(ref float angle, ref float speed, float input, float dt, float gravity) =>

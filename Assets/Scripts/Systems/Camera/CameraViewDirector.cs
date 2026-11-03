@@ -63,6 +63,9 @@ namespace CurtainCall.Cameras
         const float CollisionRadius = .25f;
         const float CollisionPadding = .05f;
         const float CollisionReturnSpeed = 5f;
+        RaycastHit[] wallHits = new RaycastHit[32];
+        static readonly float[] ClearanceAngles = { 30f, -30f, 60f, -60f, 90f, -90f, 120f, -120f };
+        double nextClearanceSearch;
         const float DeathDropDuration = 0.6f;
         const float DeathDropDistance = 1.5f;
         const float DeathWatchDuration = 1.5f;
@@ -375,33 +378,73 @@ namespace CurtainCall.Cameras
             float desired = offset.magnitude;
             if (desired < .001f) { collisionDistance = -1f; return; }
             Vector3 direction = offset / desired;
+            float safe = WallDistance(pivot, direction, desired);
+            // In escape corridors, try a clear shoulder before collapsing the third-person camera
+            // into the body. Every candidate is swept against the same solid geometry.
+            if (!spectatorOrbit && freeThirdPerson && safe < 1.6f
+                && Time.unscaledTimeAsDouble >= nextClearanceSearch
+                && SceneManager.GetActiveScene().name.StartsWith("escape_route", StringComparison.Ordinal))
+            {
+                nextClearanceSearch = Time.unscaledTimeAsDouble + .1;
+                foreach (float angle in ClearanceAngles)
+                {
+                    Vector3 alternative = Quaternion.AngleAxis(angle, Vector3.up) * direction;
+                    float clearance = WallDistance(pivot, alternative, desired);
+                    if (clearance < 1.6f) continue;
+                    direction = alternative; safe = clearance;
+                    yaw = Mathf.Repeat(yaw + angle, 360f);
+                    state.RawOrientation = Quaternion.LookRotation(-direction, Vector3.up);
+                    state.OrientationCorrection = Quaternion.identity;
+                    collisionDistance = -1f;
+                    break;
+                }
+            }
+            if (collisionDistance < 0f) collisionDistance = safe;
+            else if (collisionFrame != Time.frameCount)
+                collisionDistance = Mathf.MoveTowards(collisionDistance, safe, CollisionReturnSpeed * Time.deltaTime);
+            collisionDistance = Mathf.Min(collisionDistance, safe);
+            collisionFrame = Time.frameCount;
+            state.PositionCorrection += pivot + direction * collisionDistance - state.GetFinalPosition();
+        }
+
+        float WallDistance(Vector3 pivot, Vector3 direction, float desired)
+        {
             float safe = desired;
             // 벽·고정 지형만 막는다. 트리거, 플레이어와 이동 가능한 물체는 가림 처리에 맡긴다.
-            foreach (var hit in Physics.SphereCastAll(pivot, CollisionRadius, direction, desired,
-                         Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            int count;
+            do
             {
+                count = Physics.SphereCastNonAlloc(pivot, CollisionRadius, direction, wallHits, desired,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                if (count < wallHits.Length) break;
+                Array.Resize(ref wallHits, wallHits.Length * 2);
+            } while (true);
+            for (int i = 0; i < count; i++)
+            {
+                var hit = wallHits[i];
                 var obstacle = hit.collider;
                 if (obstacle == null || obstacle is CharacterController || obstacle.GetComponentInParent<NetworkPlayer>() != null ||
                     (obstacle.attachedRigidbody != null && !obstacle.attachedRigidbody.isKinematic)) continue;
                 safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - CollisionPadding));
             }
             // 구가 벽에 이미 겹친 상태에서 시작하면 SphereCast가 놓칠 수 있다.
-            foreach (var hit in Physics.RaycastAll(pivot, direction, desired, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+            do
             {
+                count = Physics.RaycastNonAlloc(pivot, direction, wallHits, desired,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                if (count < wallHits.Length) break;
+                Array.Resize(ref wallHits, wallHits.Length * 2);
+            } while (true);
+            for (int i = 0; i < count; i++)
+            {
+                var hit = wallHits[i];
                 var obstacle = hit.collider;
                 if (obstacle == null || obstacle is CharacterController || obstacle.GetComponentInParent<NetworkPlayer>() != null ||
                     (obstacle.attachedRigidbody != null && !obstacle.attachedRigidbody.isKinematic)) continue;
                 safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - CollisionRadius - CollisionPadding));
             }
-            safe = CameraCollisionSurface.LimitDistance(SceneManager.GetActiveScene(), pivot, direction,
+            return CameraCollisionSurface.LimitDistance(SceneManager.GetActiveScene(), pivot, direction,
                 CollisionRadius + CollisionPadding, safe);
-            if (collisionDistance < 0f) collisionDistance = safe;
-            else if (collisionFrame != Time.frameCount)
-                collisionDistance = Mathf.MoveTowards(collisionDistance, safe, CollisionReturnSpeed * Time.deltaTime);
-            // 충돌 방향은 즉시 제한해 프레임 보간 중에도 벽 뒤로 나가지 않는다.
-            collisionDistance = Mathf.Min(collisionDistance, safe);
-            collisionFrame = Time.frameCount;
-            state.PositionCorrection += pivot + direction * collisionDistance - state.GetFinalPosition();
         }
 
         void RefreshDeathView()

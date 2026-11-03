@@ -93,6 +93,10 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             var local = localRoot.AddComponent<NetworkPlayer>();
             var survivorRoot = new GameObject("Fire survivor"); survivorRoot.SetActive(false); survivorRoot.transform.SetParent(root.transform);
             var survivor = survivorRoot.AddComponent<NetworkPlayer>();
+            // Spectating now excludes inactive/pooled actors. Model a live survivor, rather
+            // than an inactive object inserted into the roster, without spawning a session.
+            root.SetActive(true);
+            survivorRoot.SetActive(true);
             var players = (IList<NetworkPlayer>)NetworkPlayer.All;
             var rig = new GameObject("Fire spectator rig");
             try

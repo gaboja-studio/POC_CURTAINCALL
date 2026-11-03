@@ -3,6 +3,7 @@ using CurtainCall.Settings;
 using CurtainCall.Tightrope.Control;
 using CurtainCall.Tightrope;
 using CurtainCall.Network.PlayerSync;
+using CurtainCall.Cameras;
 using UnityEngine;
 
 namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Input/TightropeControlScheme.asset)
@@ -19,6 +20,33 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
     public class TightropeControlScheme : PlayerControlScheme
     {
         readonly ConditionalWeakTable<PlayerControlContext, TightropeJumpBuffer> jumps = new();
+        sealed class ViewBasis { public int Sign = 1; }
+        static readonly ConditionalWeakTable<PlayerMover, ViewBasis> viewBases = new();
+
+        // Keep the rope's physical axis stable; only interpret controls relative to the current view.
+        // Hysteresis prevents W/S and Q/E flickering when the camera looks across the rope.
+        public static int ResolveViewSign(Vector3 view, Vector3 rope, int previous)
+        {
+            view.y = rope.y = 0;
+            if (view.sqrMagnitude < .0001f || rope.sqrMagnitude < .0001f) return previous < 0 ? -1 : 1;
+            float dot = Vector3.Dot(view.normalized, rope.normalized);
+            return Mathf.Abs(dot) < .15f ? (previous < 0 ? -1 : 1) : dot < 0 ? -1 : 1;
+        }
+
+        public static int LocalViewSign(PlayerMover mover)
+        {
+            var view = CameraViewDirector.Current;
+            var course = TightropeCourse.Current;
+            if (mover == null || course == null || !course.HasIndependentRopes || view == null
+                || !view.UsesMouseLook || view.LocalPlayer == null || view.LocalPlayer.gameObject != mover.gameObject) return 1;
+            var basis = viewBases.GetValue(mover, _ => new ViewBasis());
+            return basis.Sign = ResolveViewSign(view.ViewForward, mover.CourseForward, basis.Sign);
+        }
+
+        int ViewSign(PlayerControlContext context)
+        {
+            return LocalViewSign(context.Mover);
+        }
 
         public override void Enter(PlayerControlContext context)
         {
@@ -43,6 +71,7 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
 
         public override void Exit(PlayerControlContext context)
         {
+            if (context.Mover != null) viewBases.Remove(context.Mover);
             CancelCatch(context);
             ClearBuffer(context);
             context.HeldDirection = 0;
@@ -89,7 +118,8 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                 context.Balance?.SetCorrectionInput(0f);
                 return;
             }
-            context.HeldDirection = input.AuxDirection;
+            int viewSign = ViewSign(context);
+            context.HeldDirection = input.AuxDirection * viewSign;
             context.LogUndefinedLocomotion(input, "외줄 위"); // 줄 위 달리기·앉기는 미정(2026-10-19 PM): 로그만, 이동·균형·점프는 그대로
             ApplyMovementSettings(context);
             if (input.Move != 0f || input.ActionPressed || input.InteractLongPressed) CancelCatch(context);
@@ -117,8 +147,8 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
                         jumps.Add(context, buffer);
                         mover.Teleported += buffer.Clear;
                     }
-                    mover.SetMoveInput(input.Move);
-                    if (buffer.Resolve(input.ActionPressed, input.AuxDirection, !mover.IsAirborne,
+                    mover.SetMoveInput(input.Move * viewSign);
+                    if (buffer.Resolve(input.ActionPressed, input.AuxDirection * viewSign, !mover.IsAirborne,
                         Time.timeAsDouble, GameSettings.Tightrope.RopeMovement.JumpInputBuffer, out int direction))
                     {
                         if (direction != 0) mover.RequestLaneJump(direction);
@@ -128,7 +158,7 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
             }
 
             if (context.Balance != null)
-                context.Balance.SetCorrectionInput(input.Posture);
+                context.Balance.SetCorrectionInput(input.Posture * viewSign);
 
             bool requestedCannonPole = input.InteractTapped && TryRequestCannonPoleExit(context);
             if (context.Interaction != null)

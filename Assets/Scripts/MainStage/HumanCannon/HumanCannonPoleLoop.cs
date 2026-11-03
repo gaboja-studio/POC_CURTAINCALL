@@ -109,7 +109,11 @@ namespace CurtainCall.HumanCannon
         {
             if (!isActiveAndEnabled || !IsConfigured) return;
             EvaluatePose(Elapsed, out var position, out var rotation, out _, out _);
-            carriage.SetPositionAndRotation(position, rotation);
+            // Grab queries and rider poses can refresh the same carriage several times per frame.
+            // Rewriting an unchanged moving collider dirties the physics transform hierarchy again.
+            if ((carriage.position - position).sqrMagnitude > .0000000001f
+                || Quaternion.Angle(carriage.rotation, rotation) > .00001f)
+                carriage.SetPositionAndRotation(position, rotation);
         }
 
         /// <summary>현재 운반체에 붙은 점을 다른 공유 시각에 평가한다. Grip의 중립점/원본 줄 길이는 보존한다.</summary>
