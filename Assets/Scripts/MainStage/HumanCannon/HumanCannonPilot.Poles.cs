@@ -99,8 +99,9 @@ namespace CurtainCall.HumanCannon
             // A held rider follows a continuous path. Reserve controller resets and
             // network teleports for discrete grab/release transitions.
             Vector3 position = poles.HangingPosition(HeldPole, player.OwnerClientId);
-            if (teleport) Teleport(position, pole.Grip.rotation);
-            else transform.SetPositionAndRotation(position, pole.Grip.rotation);
+            Quaternion rotation = poles.RiderRotation(HeldPole, player.OwnerClientId);
+            if (teleport) Teleport(position, rotation);
+            else transform.SetPositionAndRotation(position, rotation);
         }
     }
 }

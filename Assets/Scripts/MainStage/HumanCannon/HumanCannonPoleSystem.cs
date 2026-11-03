@@ -13,11 +13,13 @@ namespace CurtainCall.HumanCannon
     public sealed partial class HumanCannonPoleSystem : MonoBehaviour
     {
         [SerializeField] HumanCannonPole[] poles = Array.Empty<HumanCannonPole>();
+        [Tooltip("봉을 잡을 때 바라본 쪽을 각 좌석의 앞쪽으로 사용한다."), SerializeField] bool useGrabFacing;
         // Legacy authoring fields. Grab/transfer rules are shared across all scenes.
         [SerializeField, HideInInspector] bool allowPlatformJumpGrab;
         [SerializeField, HideInInspector] bool independentInteraction;
         public bool IndependentInteraction => true;
         uint platformLaunch;
+        const double SnapshotInterval = .05d;
         sealed class Rider
         {
             public float Input;
@@ -25,6 +27,7 @@ namespace CurtainCall.HumanCannon
             public double LastInput;
             public uint InputSequence;
             public uint JoinedRevision;
+            public bool ReverseFacing;
             public int Station;
             public uint Launch, Segment;
         }
@@ -38,12 +41,39 @@ namespace CurtainCall.HumanCannon
             public readonly Dictionary<ulong, uint> LastDeparture = new();
             public uint ResetRevision;
             public float Angle, Speed;
+            double nextIdleSnapshot;
+            double receivedAngleAt = double.NegativeInfinity;
+            float displayedFrom;
             public Vector3 ReleasePosition, ReleaseVelocity;
             public Quaternion ReleaseRotation = Quaternion.identity;
             public Runtime(int capacity)
             {
                 State = new PoleGateState(capacity);
                 for (int i = 0; i < Riders.Length; i++) Riders[i] = new Rider();
+            }
+
+            public bool SnapshotDue(double now, double idlePhase)
+            {
+                if (State.Count != 0) return true;
+                if (now < nextIdleSnapshot) return false;
+                // Recover missed initial sync without sending every stationary pole in one burst.
+                nextIdleSnapshot = Math.Floor(now - idlePhase) + 1d + idlePhase;
+                return true;
+            }
+
+            public float DisplayAngle(double now)
+            {
+                if (now >= receivedAngleAt + SnapshotInterval) return Angle;
+                return Mathf.Lerp(displayedFrom, Angle, (float)((now - receivedAngleAt) / SnapshotInterval));
+            }
+
+            public void ReceiveAngle(float angle, double now, bool continuous)
+            {
+                // Snap when ownership changes or a stalled connection catches up.
+                displayedFrom = continuous && now - receivedAngleAt <= SnapshotInterval * 5
+                    ? DisplayAngle(now) : angle;
+                Angle = angle;
+                receivedAngleAt = now;
             }
         }
         Runtime[] states;
@@ -118,6 +148,27 @@ namespace CurtainCall.HumanCannon
         }
         float SwingAngle(int index) => states[index].State.IsOccupied ? states[index].Angle : 0f;
 
+        static bool ReversedAtGrab(Vector3 poleForward, Vector3 view, Vector3 body, Vector3 approach)
+        {
+            float Projection(Vector3 direction) => Vector3.Dot(Vector3.ProjectOnPlane(direction, Vector3.up).normalized, poleForward);
+            float facing = Projection(view);
+            if (Mathf.Abs(facing) < .05f) facing = Projection(body);
+            if (Mathf.Abs(facing) < .05f) facing = Projection(approach);
+            return facing < -.0001f;
+        }
+
+        public Quaternion RiderRotation(int index, ulong actor)
+        {
+            int seat = states[index].State.SeatOf(actor);
+            return SeatRotation(index, seat);
+        }
+
+        Quaternion SeatRotation(int index, int seat)
+        {
+            Quaternion grip = poles[index].Grip.rotation;
+            return seat >= 0 && states[index].Riders[seat].ReverseFacing ? grip * Quaternion.Euler(0, 180, 0) : grip;
+        }
+
         internal void RequestGrab(int index, int station, uint launch, uint segment) =>
             SendRequest(PoleAction.Grab, index, station, launch, segment, 0f, 0);
         internal bool CanEnterFromPlatform(NetworkPlayer player) => player != null
@@ -132,11 +183,11 @@ namespace CurtainCall.HumanCannon
             nextInput = Clock + 0.05;
             SendRequest(PoleAction.Swing, index, 0, 0, 0, input, ++inputSequence);
         }
-        public Vector3 HangingPosition(int index) => poles[index].HangingPosition(states[index].Angle);
+        public Vector3 HangingPosition(int index) => poles[index].HangingPosition(states[index].DisplayAngle(Time.unscaledTimeAsDouble));
         public Vector3 HangingPosition(int index, ulong actor)
         {
             int seat = states[index].State.SeatOf(actor);
-            return seat >= 0 ? poles[index].HangingPosition(states[index].Angle, seat) : HangingPosition(index);
+            return seat >= 0 ? poles[index].HangingPosition(states[index].DisplayAngle(Time.unscaledTimeAsDouble), seat) : HangingPosition(index);
         }
 
         internal Vector3 ConstrainFlight(Vector3 from, Vector3 displacement, float radius)
@@ -185,8 +236,16 @@ namespace CurtainCall.HumanCannon
                                 Publish(i, PoleEvent.Abandoned, actor, seat);
                             continue;
                         }
+                        var route = pole.Loop;
+                        if (route != null && route.AtUnloadingBay(route.Elapsed))
+                        {
+                            if (runtime.State.TryRelease(actor, runtime.State.Revision, Clock, pole.WarningSeconds))
+                                Publish(i, PoleEvent.Released, actor, seat);
+                            continue;
+                        }
                         var rider = runtime.Riders[seat];
                         float input = Clock - rider.LastInput <= .3 ? rider.Input : 0f;
+                        if (rider.ReverseFacing) input = -input;
                         drive += pole.SwingDrive(ref rider.SwingInput, input, Time.deltaTime);
                     }
                     // 같은 방향·같은 박자로 힘을 모아야 원래 반동이 난다. 반대 입력은 상쇄한다.
@@ -205,8 +264,11 @@ namespace CurtainCall.HumanCannon
                 stickyGloves.Tick(Clock, actor => { foreach (var s in states) if (s != null && s.State.SeatOf(actor) >= 0) return true; return false; });
             if (session != null && session.IsHost && Clock >= nextSnapshot)
             {
-                nextSnapshot = Clock + .05;
-                for (int i = 0; i < poles.Length; i++) if (poles[i] != null) Publish(i, PoleEvent.Sync, CannonSeatState.Nobody);
+                double now = Clock;
+                nextSnapshot = now + SnapshotInterval;
+                for (int i = 0; i < poles.Length; i++)
+                    if (poles[i] != null && states[i].SnapshotDue(now, (double)i / poles.Length))
+                        Publish(i, PoleEvent.Sync, CannonSeatState.Nobody);
             }
         }
 
@@ -237,12 +299,13 @@ namespace CurtainCall.HumanCannon
             {
                 if (poles[i] == null) continue;
                 var runtime = states[i];
-                poles[i].PresentSwing(runtime.State.IsOccupied ? runtime.Angle : 0f);
+                float angle = runtime.State.IsOccupied ? runtime.DisplayAngle(Time.unscaledTimeAsDouble) : 0f;
+                poles[i].PresentSwing(angle);
                 for (int seat = 0; seat < runtime.State.Capacity; seat++)
                 {
                     var player = FindPlayer(runtime.State.OccupantAt(seat));
                     if (player != null && player.State == PlayerState.Normal && !player.IsLocal)
-                        player.transform.SetPositionAndRotation(poles[i].HangingPosition(runtime.Angle, seat), poles[i].Grip.rotation);
+                        player.transform.SetPositionAndRotation(poles[i].HangingPosition(angle, seat), SeatRotation(i, seat));
                 }
             }
         }
@@ -265,6 +328,7 @@ namespace CurtainCall.HumanCannon
             if (action == PoleAction.Grab || action == PoleAction.PlatformGrab)
             {
                 bool fromPlatform = action == PoleAction.PlatformGrab;
+                if (useGrabFacing && input != 1f && input != -1f) return;
                 if (runtime.LastDeparture.TryGetValue(actor, out uint departure) && revision < departure) return;
                 if (!CanApproach(player) || (fromPlatform ? !CanEnterFromPlatform(player) || cannon.IsFlying(actor)
                     : !cannon.MatchesFlight(actor, station, launch, segment))) return;
@@ -280,7 +344,8 @@ namespace CurtainCall.HumanCannon
                 if (!runtime.State.TryGrab(actor, runtime.State.Revision, Clock, hold, poles[index].LinkedGate != null, seat)) return;
                 if (fromPlatform) { station = CannonFlightState.PoleEntrySource; launch = ++platformLaunch; segment = 0; }
                 if (runtime.State.Count == 1) runtime.Angle = runtime.Speed = 0f;
-                runtime.Riders[seat] = new Rider { LastInput = Clock, Station = station, Launch = launch, Segment = segment, JoinedRevision = runtime.State.Revision };
+                runtime.Riders[seat] = new Rider { LastInput = Clock, Station = station, Launch = launch, Segment = segment,
+                    JoinedRevision = runtime.State.Revision, ReverseFacing = useGrabFacing && input < 0f };
                 void CompleteCatch()
                 {
                     stack?.ConsumeTrapezeEntry(player);

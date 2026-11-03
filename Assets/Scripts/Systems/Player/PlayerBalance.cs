@@ -344,21 +344,14 @@ namespace CurtainCall.Player
         void GaugeFall()
         {
             if (HasFallen) return;
-            if (EscapeDevelopmentSession.FallConsequencesSuppressed(this))
+            if (EscapeDevelopmentSession.RopeBalanceFallsSuppressed(this) || GaugeFallCatcher?.Invoke(this) == true)
             {
                 RedTime = 0f;
                 Value = 0f;
                 CurrentSway = 0f;
                 return;
             }
-            if (GaugeFallCatcher != null && GaugeFallCatcher(this))
-            {
-                RedTime = 0f;
-                Value = 0f;
-                CurrentSway = 0f;
-                return;
-            }
-            ForceFall();
+            ApplyFall();
         }
 
         /// <summary>
@@ -379,6 +372,18 @@ namespace CurtainCall.Player
             // NetworkPlayer.ApplyState가 이 경로로 표시하므로 그대로 반영한다.
             if (EscapeDevelopmentSession.FallConsequencesSuppressed(this)
                 && (!TryGetComponent(out NetworkPlayer player) || player.State == PlayerState.Normal)) return;
+            ApplyFall();
+        }
+
+        // A rejected or expired grip still belongs to the original balance failure.
+        public void DropFromRopeGrip()
+        {
+            if (!EscapeDevelopmentSession.RopeBalanceFallsSuppressed(this)) ApplyFall();
+        }
+
+        void ApplyFall()
+        {
+            if (HasFallen) return;
             HasFallen = true;
             CurrentSway = 0f;
             Fell?.Invoke();
