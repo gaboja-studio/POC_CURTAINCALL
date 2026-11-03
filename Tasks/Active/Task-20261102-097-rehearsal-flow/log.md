@@ -80,3 +80,28 @@
 - 기획서 설명/퀘스트 문구, 최초 소개→단계 안내 순서, 10초/추락4초 유지·복구 안내 덮어쓰기 방지, 체크포인트·목마 근접 설명, 제목 느낌표/연한 주황 강조를 기존 UI/문구 파일로 연결했다. 패널 크기/위치/글자 크기는 기존 설정 유지.
 - 단장 연출은 기존 Base 통로 구역 BoxCollider 진입과 호스트 공유 시작 시각을 사용한다. 잡음 뒤 얼굴3초 후 종료, 재진입/늦은 합류 재생 방지·새 리허설 초기화. 기존 임시 얼굴/잡음 자원은 유지했다. stage3-and-guides.md 참조.
 - 최종 수정본 recompile_status=completed, failed=false, errors=[] 확인. 문서/안전성 PASS, git diff --check 통과. check-work -SkipUnity exit2는 별도 컴파일 PASS와 구분. 전체 테스트 러너 대신 런타임 연출 시간 전환 한 건만 요청했다.
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(-SkipUnity); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 반영분 검증·CC-215·CC-219 (2026-11-03 저녁)
+- push된 42b65aa9를 로컬 feat/rehearsal-flow에 merge. 컴파일 PASS. 폰트 아틀라스·머티리얼 churn은 에디터 자동 변경이라 커밋하지 않는다.
+- 최소 검증: EditMode RestTimeRulesTests 3·DevStartPointTests 20·ScheduleBookTests 16 PASS. PlayMode Vote/Checkpoint·CoursesFollowStageDiagrams·FirstDay·Practice 4건 PASS.
+- 테스트 수정 2건: VoteAndPersonalCheckpoint는 NetworkConfig/PlayerPrefab이 필드라 Get→Field. CoursesFollowStageDiagrams의 철창 밀기 검사는 리허설 완료 뒤로 옮김(연습 모드 추락 판정이 줄 아래 어디서든 출발대로 되돌려 밀기 결과를 덮어씀).
+- CC-215: ScheduleBook에 첫날 둘째 칸 선택/확정(FirstDayChoiceOpen/Confirmed, Load/Clear 동기화). ScheduleBoard가 가이드 쉬는 시간·안내 완료 뒤 열고 Confirm→RunState.SetFirstDaySecondTrick. RunState.SecondPerformanceGate로 확정 전 집결 차단(시간 만료는 그대로). 스케줄표 UI 1일차 둘째 카드 편집·확정 버튼, 첫날 퀘스트 second-pick/-wait 문구.
+- CC-219: WaitingRoomRehearsal.practice 공유 상태. 이수(HasMastered)·쉬는 시간/밤·연습실 안 호스트에게 소구간 버튼, 연습 종료 버튼. 재연습은 savedStage·캠페인 단계를 바꾸지 않고 종료 시 링 바닥으로 복귀. 마지막 소구간 완료 시 자동 종료.
+- 검사: git diff --check OK, check-work -SkipUnity exit2(문서 길이 WARN·ThirdParty 미커밋 주의, 기존과 동일). 실제 다인·UI 조작·체감은 사람 확인(CC-216). 커밋·push 없음.
+
+## 사용자 플레이 피드백 반영 (2026-11-03 밤)
+- 2-3 Q/E+Space 불가: 코스 값에 줄 전환 구간이 없었다. 2-3에 laneChangeZones 0~11.5m 추가(아래쪽 줄 끊김 12m 전까지). RehearsalStage.cs.
+- 줄 위 개인 체크포인트 복귀 시 외줄 UI가 켜지지 않음 → 체크포인트를 소구간 출발대로 되돌림(TrackPersonalProgress의 줄 위 저장 제거, 복귀는 PlaceLocalAtStart). VoteAndPersonalCheckpoint 테스트 기대값을 출발대 복귀로 수정, PASS.
+- 즉시 클리어 버튼: DevMode 켜진 호스트만, 화면 오른쪽 가운데(DevClearRect)로 이동. 커서 영역을 오른쪽 세로 띠로 확장.
+- 기획서 4장 반영: 설명 패널 제목에 [tutorial] 접두어, 퀘스트 본문은 접두어 제거. 도착 뒤 문구는 wait-team(기획서), gathered 문구 갱신. 기본 문구도 문서대로.
+- 컴파일 PASS. 실제 조작 체감은 사람 확인.
+- 기획서 4.4 첫날 퀘스트 제목에 [tutorial] 접두어 추가(대기실 튜토리얼·두 번째 공연 준비·첫날 밤 4종, 둘째 공연 선택 2종도 맞춤). '동료 기다리는 중'은 문서대로 접두어 없음. 문구 파일만 변경.
+- 3단계 Q/E+Space: 코스 값에 줄 전환 구간 0~34m 추가(RehearsalStage.cs).
+- 길안내 표시 재작성(RehearsalPathGuide.cs): 흰 눈금선(1m 긴 눈금·0.5m 짧은 눈금, 자 모양 텍스처), 끝에만 화살표 1개, 경로 0.1초 재계산 + 시작점은 매 프레임 내 위치, 발밑 0.9m 안 모서리 생략으로 튀는 느낌 완화. NavMesh 굽기·완전 경로 없으면 숨김은 그대로. 실제 보이는 모양은 사람 확인.
+- 낙사 패널티 보고: 재현 테스트 W6_Rehearsal_FirstPerformanceAfterRehearsalStillKillsOnFall(리허설 즉시 클리어→집결→첫 공연→줄 위 추락 요청)는 Fallen으로 PASS. 사용자가 확인 불필요라 해 추가 조사 중단. 테스트는 남겨 둠.
+- 길안내 캡처 확인: 발밑 화살촉은 LineRenderer 시작 캡이 눈금 텍스처를 입어 생긴 것. 캡 제거, 선을 발밑 0.7m 앞에서 시작, 눈금은 투명 대신 어두운 새김(흰 실선 유지, 알파 클립 제거, 밉맵)으로 변경.
+- 완료 뒤 링 가장자리 배치(RelocateToDeck)가 난간에 막혀 출구 이동 검사가 실패 → 링 가운데로 변경. ExitRouteSmoke PASS(완료 뒤 카메라 inputBlocked=false·UsesMouseLook 검사 포함). Vivox 에디터 403 로그로 1회 실패는 환경 문제.
+- 카메라가 안 돌던 현상은 자동 검사에서 재현되지 않음. 가장자리 배치 때문일 가능성이 있어 사람 재확인 필요.
+- 완료 뒤 마우스 시점 불가 원인: 플레이 중 상태를 읽으니 CameraViewDirector.inputBlocked=true가 남아 있었다(InputGate는 차단 없음). 리허설 코스가 파괴될 때 TightropeCameraFraming.ReleaseViewScope가 "현재 시점이 자기 프리셋일 때만" 차단을 풀어, 로비 시점이 먼저 선택되면 차단이 남았다. ownsInput이면 늘 푸는 것으로 수정(TightropeCameraFraming.Views.cs). 자동 검사에서는 순서 차이로 재현되지 않았다.

@@ -103,7 +103,8 @@ namespace CurtainCall.WaitingRoom
                 Id = "2-3", Kind = RehearsalStageKind.Trigger, Rule = RehearsalClearRule.EveryoneOrMajority, Finish = 32f,
                 Title = "2-3 · 트리거 그네",
                 Intro = "아래쪽 줄 가운데가 끊겨 있습니다. 한 명이 위쪽 줄 끝의 트리거 그네를 F로 잡고 있는 동안 아래쪽 줄이 이어집니다. 동료가 이어진 줄을 건너 도착하면 단계 넘기기 투표를 할 수 있습니다. 전원이 도착하거나 과반수가 동의하면 다음 구간으로 갑니다.",
-                CourseJson = Course(2, new[] { 12f, 32f }, 32f, null),
+                // 트리거 앞까지는 Q/E + Space로 옆줄을 오갈 수 있다(아래쪽 줄 끊김 12m 전까지).
+                CourseJson = Course(2, new[] { 12f, 32f }, 32f, "{\"x\":0,\"y\":11.5}"),
                 Gaps = new[] { new RehearsalGap(1, 12f, 18f) },
                 Triggers = new[] { new RehearsalTrigger(0, 11.4f, 0) },
             },
@@ -114,7 +115,8 @@ namespace CurtainCall.WaitingRoom
                 Id = "3", Kind = RehearsalStageKind.Trigger, Rule = RehearsalClearRule.EveryoneOrMajority, Finish = 34f,
                 Title = "3단계 · 종합 테스트",
                 Intro = "줄마다 인간 그네로 첫 끊김을 건넌 뒤, 짝 줄의 동료와 트리거 그네를 번갈아 잡아 서로의 줄을 이어 주세요(1·2번 줄, 3·4번 줄). 한 명이 도착한 뒤 전원이 도착하거나 과반수가 동의하면 리허설을 마칩니다.",
-                CourseJson = Course(4, null, 34f, null),
+                // 종합 테스트는 코스 전체에서 Q/E + Space로 옆줄을 오갈 수 있다(끊긴 구간으로 뛰면 추락·출발대 복귀).
+                CourseJson = Course(4, null, 34f, "{\"x\":0,\"y\":34}"),
                 Swings = new[]
                 {
                     new SwingSpot(0, 3f, 3f + SwingGap), new SwingSpot(1, 3f, 3f + SwingGap),

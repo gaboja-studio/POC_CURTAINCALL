@@ -204,6 +204,9 @@ namespace CurtainCall.Campaign
         /// <summary><paramref name="day"/>일차 공연 순서와 묘기별 난이도 단계(1~3)를 함께 정한다(M2 난이도 선택).</summary>
         public bool SetSetlist(int day, string[] tricks, int[] tiers) => HostDo(r => r.SetSetlist(day, tricks, tiers), nameof(SetSetlist));
 
+        /// <summary>호스트: 첫날 둘째 공연을 스케줄표에서 고른 묘기로 정한다(CC-215).</summary>
+        public bool SetFirstDaySecondTrick(string trickId) => HostDo(r => r.SetFirstDaySecondTrick(trickId), nameof(SetFirstDaySecondTrick));
+
         /// <summary>호스트: 쉬는 시간에 다음 공연의 난이도 단계만 다시 고른다(깬 단계의 다음 단계까지).</summary>
         public bool AdjustNextTier(int tier) => HostDo(r => r.AdjustNextTier(tier), nameof(AdjustNextTier));
 

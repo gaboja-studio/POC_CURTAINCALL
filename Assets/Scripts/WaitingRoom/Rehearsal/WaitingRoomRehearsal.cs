@@ -43,6 +43,30 @@ namespace CurtainCall.WaitingRoom
         public static bool IsActive => instance != null && instance.active;
         /// <summary>지금 소구간(0부터). 진행 전이면 -1.</summary>
         public static int CurrentStage => instance != null && instance.active ? instance.stage : -1;
+        /// <summary>이수 후 선택 재연습 중(CC-219). 최초 리허설과 달리 캠페인 단계·이수 기록을 바꾸지 않는다.</summary>
+        public static bool IsPracticing => instance != null && instance.active && instance.practice;
+        /// <summary>최초 리허설을 이수했다(앱을 켜 둔 동안 기억).</summary>
+        public static bool HasMastered => savedStage >= RehearsalStage.All.Length;
+
+        /// <summary>호스트: 이수 뒤 연습실에서 고른 소구간부터 다시 연습한다. 완료 단계는 건너뛸 수 있다.</summary>
+        public static bool StartPractice(int stageIndex)
+        {
+            var r = instance;
+            if (r == null || !r.CanOfferPractice || stageIndex < 0 || stageIndex >= RehearsalStage.All.Length) return false;
+            r.practice = true; r.practiceStage = stageIndex;
+            Debug.Log($"[Rehearsal] 선택 재연습 시작: 소구간 {RehearsalStage.All[stageIndex].Id}");
+            return true;
+        }
+
+        /// <summary>호스트: 재연습을 언제든 끝낸다. 이수 기록은 그대로다.</summary>
+        public static bool EndPractice()
+        {
+            var r = instance;
+            if (r == null || !r.practice || !r.HasAuthority) return false;
+            r.practice = false; r.version++; r.Publish();
+            Debug.Log("[Rehearsal] 선택 재연습 종료");
+            return true;
+        }
 
         /// <summary>Dev 선택으로 다시 시작할 때만 최초 교육 이수 기억을 초기화한다.</summary>
         public static void ResetForDevLaunch()
@@ -58,6 +82,9 @@ namespace CurtainCall.WaitingRoom
         // ── 공유 상태(호스트가 정하고 모두 같게 본다) ──
         int stage = -1, round, version;
         bool completed;
+        // 선택 재연습(CC-219). 호스트가 켜고 끄며 모두 같게 본다. 이수 기록(savedStage)은 건드리지 않는다.
+        bool practice;
+        int practiceStage;
 
         // ── 이 화면 ──
         bool active;
@@ -111,6 +138,12 @@ namespace CurtainCall.WaitingRoom
         }
 
         bool HasAuthority => run != null && run.HasAuthority;
+        static bool PracticePhase(CampaignPhase phase) => phase == CampaignPhase.RestTime || phase == CampaignPhase.Night;
+        /// <summary>호스트가 연습실 안에 있고 이수했으며 리허설·재연습 중이 아니면 재연습을 고를 수 있다.</summary>
+        bool CanOfferPractice => !active && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
+            && !SceneCurtainTransition.IsActive && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
+            && !SpaceLinkDirector.Instance.IsTransitioning && ringFound
+            && local != null && local.IsSpawned && local.State == PlayerState.Normal && InPracticeRoom(local.transform.position);
         double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
             ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
         RehearsalStage Stage => stage >= 0 && stage < RehearsalStage.All.Length ? RehearsalStage.All[stage] : null;
@@ -145,10 +178,19 @@ namespace CurtainCall.WaitingRoom
             session = NetworkSessionManager.Instance;
             Connect();
             TickRestriction();
-            bool wanted = run != null && run.State.Phase == CampaignPhase.Rehearsal && !SceneCurtainTransition.IsActive
-                && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
-                && !SpaceLinkDirector.Instance.IsTransitioning && FindRing();
-            if (!wanted) { if (active) Deactivate(); return; }
+            bool inWaitingRoom = !SceneCurtainTransition.IsActive && SpaceLinkDirector.Instance != null
+                && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning && FindRing();
+            // 재연습은 대기실 쉬는 시간·밤에만. 공연으로 넘어가면 호스트가 끝낸다.
+            if (practice && HasAuthority && (run == null || !PracticePhase(run.State.Phase))) { practice = false; version++; Publish(); }
+            bool wanted = run != null && (run.State.Phase == CampaignPhase.Rehearsal || practice) && inWaitingRoom;
+            if (!wanted)
+            {
+                if (active) Deactivate();
+                // 참가자는 호스트의 재연습 시작을 알기 위해 가끔 상태를 묻는다.
+                if (!HasAuthority && messaging != null && inWaitingRoom && Clock >= nextSync) { Send(Operation.Sync); nextSync = Clock + 3d; }
+                TickPracticeOffer();
+                return;
+            }
             if (!active) Activate();
             EnsureLockdownProps();
             if (HasAuthority) HostTick();
@@ -166,9 +208,9 @@ namespace CurtainCall.WaitingRoom
             fallenAt.Clear(); arrived.Clear(); votes.Clear(); participantCount = 0;
             if (HasAuthority)
             {
-                // 호스트: 기억해 둔 소구간부터. 완료했으면 바로 집결 안내.
-                stage = Mathf.Clamp(savedStage, 0, RehearsalStage.All.Length - 1);
-                completed = savedStage >= RehearsalStage.All.Length;
+                // 호스트: 기억해 둔 소구간부터. 완료했으면 바로 집결 안내. 재연습은 고른 소구간부터.
+                stage = practice ? practiceStage : Mathf.Clamp(savedStage, 0, RehearsalStage.All.Length - 1);
+                completed = !practice && savedStage >= RehearsalStage.All.Length;
                 practiceSealed = false; monitorStarted = -1d;
                 round++; version++;
                 Publish();
@@ -334,8 +376,15 @@ namespace CurtainCall.WaitingRoom
         {
             arrived.Clear(); votes.Clear(); participantCount = 0;
             stage++;
+            if (practice && stage >= RehearsalStage.All.Length)
+            {
+                // 재연습은 마지막 소구간을 마치면 그냥 끝난다. 이수 기록·집결 흐름은 건드리지 않는다.
+                stage = RehearsalStage.All.Length - 1;
+                EndPractice();
+                return;
+            }
             if (stage >= RehearsalStage.All.Length) { stage = RehearsalStage.All.Length - 1; completed = true; }
-            savedStage = completed ? RehearsalStage.All.Length : stage;
+            if (!practice) savedStage = completed ? RehearsalStage.All.Length : stage;
             if (completed)
                 foreach (var player in NetworkPlayer.All)
                     if (player != null && player.IsSpawned && player.State == PlayerState.Fallen) player.ServerRestoreAll();
@@ -399,6 +448,7 @@ namespace CurtainCall.WaitingRoom
             writer.WriteValueSafe(stage);
             writer.WriteValueSafe(round);
             writer.WriteValueSafe(completed);
+            writer.WriteValueSafe(practice);
             writer.WriteValueSafe(practiceSealed);
             writer.WriteValueSafe(monitorStarted);
             writer.WriteValueSafe(participantCount);
@@ -440,6 +490,7 @@ namespace CurtainCall.WaitingRoom
             reader.ReadValueSafe(out stage);
             reader.ReadValueSafe(out round);
             reader.ReadValueSafe(out completed);
+            reader.ReadValueSafe(out practice);
             reader.ReadValueSafe(out practiceSealed);
             reader.ReadValueSafe(out monitorStarted);
             reader.ReadValueSafe(out participantCount);

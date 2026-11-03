@@ -311,6 +311,12 @@ schedule.ui-waiting | 일정 정보를 기다리는 중입니다.
 schedule.hover-confirmed | 일정이 확정되었습니다.
 schedule.hover-confirm | 호스트가 편성을 확정합니다. 확정한 일정은 다시 변경할 수 없습니다.
 schedule.hover-day1-fixed | 변경할 수 없습니다.
+schedule.hover-day1-second | 클릭할 때마다 두 번째 공연이 바뀝니다. 고른 뒤 확정하세요.
+schedule.context-first-day | 1일차 · 두 번째 공연 선택
+schedule.footer-first-day-host | 두 번째 공연 카드를 클릭해 고른 뒤 확정하세요
+schedule.footer-first-day-guest | 호스트가 두 번째 공연을 고르는 중입니다
+schedule.button-confirm-first-day | 두 번째 공연 확정
+schedule.confirmed-first-day | 두 번째 공연을 확정했습니다.
 schedule.hover-locked | 확정된 일정입니다.
 schedule.hover-editable | 클릭할 때마다 공연이 변경됩니다. 카드 아래에서 난이도를 선택할 수 있습니다.
 schedule.hover-host-edits | 밤 정비 시간에 호스트만 이용 가능
@@ -425,9 +431,15 @@ rehearsal.fall | 리허설 진행 중에는 패널티가 없습니다. 마지막
 rehearsal.complete-title | 리허설 완료
 rehearsal.complete | 바닥의 점선을 따라 무대 입구 통로로 가세요. 모든 공연 준비자가 모이면 첫 공연이 시작됩니다.
 rehearsal.gather-title | 리허설 완료 · 무대로
+# 이수 후 선택 재연습(호스트 전용). {stage} = 소구간 제목
+rehearsal.practice-title | 자유 연습
+rehearsal.practice-intro | 고른 소구간부터 다시 연습합니다. 추락해도 대가가 없고, 호스트가 언제든 연습을 끝낼 수 있습니다.
+rehearsal.practice-button | {stage} 재연습
+rehearsal.practice-hint | 호스트 전용 · 연습실에서 소구간을 골라 다시 연습
+rehearsal.practice-end | 연습 종료
 # 우측 퀘스트 패널
 rehearsal.quest.fallen | 추락했습니다. 잠시 뒤 마지막 체크포인트에서 다시 시작합니다.
-rehearsal.quest.wait-team | 도착! 동료가 모두 도착할 때까지 기다리세요.
+rehearsal.quest.wait-team | 도착했습니다. 동료가 모두 도착할 때까지 기다리세요.
 rehearsal.quest.arrived | 도착! 곧 다음 단계로 넘어갑니다.
 rehearsal.quest.balance | W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.
 rehearsal.quest.lane-jump | Q, E + Space를 이용해 건너편 줄로 넘어가세요.
@@ -441,7 +453,7 @@ rehearsal.quest.trigger-release | 줄이 이어졌습니다. F나 Space로 트�
 rehearsal.quest.trigger-wait | 앞의 줄이 끊겨 있습니다. 짝 줄의 동료가 트리거 그네를 잡으면 이어집니다.
 rehearsal.quest.trigger-cross | 연결된 줄을 따라 건너세요.
 rehearsal.quest.gather | 점선을 따라 무대 입구 통로로 가세요. 전원 {inside}/{alive}이 모이면 공연이 시작됩니다.
-rehearsal.quest.gathered | 무대 입구 통로에 모였습니다 {inside}/{alive}. 동료를 기다리세요.
+rehearsal.quest.gathered | {inside}/{alive}. 다른 공연 준비자를 기다리세요.
 # ── 첫 쉬는 시간 전원 대기 (2026-11-02) ──
 tutorial.team-wait-title | 동료 기다리는 중
 tutorial.team-wait | 모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다. ({ready}/{total})
@@ -458,17 +470,21 @@ first-day.panel.right | 36
 first-day.panel.width | 400
 first-day.panel.title-size | 28
 first-day.panel.body-size | 24
-first-day.quest.tutorial.title | 대기실 튜토리얼
+first-day.quest.tutorial.title | [tutorial] 대기실 튜토리얼
 first-day.quest.tutorial.body | 대기실 안내를 확인하세요.\n전원이 안내를 마치면 탐색 시간이 시작됩니다. ({ready}/{total})
-first-day.quest.gather.title | 1일차 · 두 번째 공연 준비
+first-day.quest.gather.title | [tutorial] 1일차 · 두 번째 공연 준비
 first-day.quest.gather.body | 대기실을 둘러보고 공연을 준비하세요.\n무대 입구 통로에 전원이 모이면 두 번째 공연이 시작됩니다. ({inside}/{alive})
-first-day.quest.night-schedule.title | 첫날 밤 · 내일 일정 정하기
+first-day.quest.second-pick.title | [tutorial] 1일차 · 두 번째 공연 선택
+first-day.quest.second-pick.body | 로비 스케줄표에서 두 번째 공연을 고르고 확정하세요.\n확정해야 무대 입구 집결로 공연이 시작됩니다.
+first-day.quest.second-pick-wait.title | [tutorial] 1일차 · 두 번째 공연 선택 대기
+first-day.quest.second-pick-wait.body | 호스트가 스케줄표에서 두 번째 공연을 정하는 중입니다.\n확정되면 무대 입구 통로로 모이세요.
+first-day.quest.night-schedule.title | [tutorial] 첫날 밤 · 내일 일정 정하기
 first-day.quest.night-schedule.body | 상점과 물려줄 선반을 이용해 정비할 수 있습니다.\n스케줄표에서 다음 날 일정을 정하고 확정하세요.
-first-day.quest.night-schedule-wait.title | 첫날 밤 · 일정 확정 대기
+first-day.quest.night-schedule-wait.title | [tutorial] 첫날 밤 · 일정 확정 대기
 first-day.quest.night-schedule-wait.body | 상점과 물려줄 선반을 이용해 정비할 수 있습니다.\n호스트가 다음 날 일정을 확정하면 침대에 누울 수 있습니다.
-first-day.quest.night-bed.title | 첫날 밤 · 취침 준비
+first-day.quest.night-bed.title | [tutorial] 첫날 밤 · 취침 준비
 first-day.quest.night-bed.body | 다음 날 일정이 확정됐습니다.\n정비를 마치면 숙소 침대에 누우세요. ({ready}/{total})
-first-day.quest.night-wait.title | 첫날 밤 · 동료 기다리기
+first-day.quest.night-wait.title | [tutorial] 첫날 밤 · 동료 기다리기
 first-day.quest.night-wait.body | 취침 준비를 마쳤습니다. ({ready}/{total})\n전원이 준비하면 다음 날로 넘어갑니다.
 
 # ── 리허설 단계별 제목·좌측 설명 (우측 퀘스트 제목에도 같은 제목 사용) ──
@@ -485,7 +501,7 @@ rehearsal.stage.3.title | 3단계 · 종합 테스트
 rehearsal.stage.3.intro | 트리거 그네는 서로 연결되어 있습니다. 건너편 줄의 그네를 잡으면 끊어진 줄이 연결됩니다. 그네를 번갈아 잡아 서로의 줄을 이어주세요.
 
 rehearsal.clear-button | 현재 구간 즉시 클리어 · 다음
-rehearsal.clear-button-hint | 호스트 전용 · Esc로 커서 해제
+rehearsal.clear-button-hint | Dev · 호스트 전용 · Esc로 커서 해제
 
 rehearsal.vote | 다음 구간으로 ({votes}/{required})
 rehearsal.quest.arrived-vote | 도착했습니다. 동료의 연습을 기다리거나 다음 구간 진행에 동의하세요. ({arrived}/{total}, 동의 {votes}/{required})

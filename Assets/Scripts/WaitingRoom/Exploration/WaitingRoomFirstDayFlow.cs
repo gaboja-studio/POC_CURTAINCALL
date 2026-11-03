@@ -88,7 +88,10 @@ namespace CurtainCall.WaitingRoom
             var s = run.State;
             string quest;
             if (s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide)
-                quest = s.Timer == RestTimerState.WaitingForExit ? "tutorial" : "gather";
+                quest = s.Timer == RestTimerState.WaitingForExit ? "tutorial"
+                    // 둘째 공연은 호스트가 스케줄표에서 고르고 확정해야 집결로 시작한다(CC-215).
+                    : ScheduleBoard.Instance != null && !ScheduleBoard.Instance.Book.FirstDayConfirmed
+                        ? (run.HasAuthority ? "second-pick" : "second-pick-wait") : "gather";
             else if (s.Phase == CampaignPhase.Night)
             {
                 quest = run.IsLocalReady ? "night-wait" : NightBed.ScheduleReady ? "night-bed"

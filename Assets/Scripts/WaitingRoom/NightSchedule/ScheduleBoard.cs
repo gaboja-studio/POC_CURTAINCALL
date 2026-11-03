@@ -73,7 +73,12 @@ namespace CurtainCall.WaitingRoom
             book = new ScheduleBook(new[] { run.FirstDayTrick(0), run.FirstDayTrick(1) }, selectableTricks);
             channel = new ScheduleChannel("CurtainCall.WaitingRoom.NightSchedule", HandleState, SendTo, HandleReset);
             RunState.NightEndGate = NightCanEnd;
+            // 첫날 둘째 공연(CC-215): 호스트가 확정하기 전에는 집결해도 공연으로 넘어가지 않는다.
+            RunState.SecondPerformanceGate = () => book.FirstDayConfirmed;
         }
+
+        /// <summary>첫날 둘째 공연을 고를 수 있는 시간대(첫 공연 뒤 대기실 안내 완료 후, 확정 전).</summary>
+        public bool IsFirstDayChoiceOpen => book.IsFirstDaySecondEditable;
 
         /// <summary>오늘 밤 고칠 일차가 있으면 호스트가 확정해야 밤이 끝난다(전원 침대와 함께).</summary>
         public bool NightCanEnd()
@@ -86,7 +91,7 @@ namespace CurtainCall.WaitingRoom
         void OnDestroy()
         {
             channel?.Dispose();
-            if (Instance == this) { Instance = null; RunState.NightEndGate = null; }
+            if (Instance == this) { Instance = null; RunState.NightEndGate = null; RunState.SecondPerformanceGate = null; }
         }
 
         void Update()
@@ -151,6 +156,7 @@ namespace CurtainCall.WaitingRoom
         public ScheduleRefusal Confirm()
         {
             if (!HasAuthority) return Answer(ScheduleRefusal.NotEditable);
+            if (book.Night == 0 && book.IsFirstDaySecondEditable) return ConfirmFirstDay();
             int night = book.Night;
             var refusal = book.Confirm();
             if (refusal != ScheduleRefusal.None) return Answer(refusal);
@@ -166,6 +172,19 @@ namespace CurtainCall.WaitingRoom
             Publish();
             LastMessage = WaitingRoomText.Get("schedule.confirmed", "스케줄표를 확정했습니다.");
             Confirmed?.Invoke(night);
+            return ScheduleRefusal.None;
+        }
+
+        /// <summary>호스트: 첫날 둘째 공연을 확정하고 런 공연 순서에 넘긴다.</summary>
+        ScheduleRefusal ConfirmFirstDay()
+        {
+            var refusal = book.ConfirmFirstDay();
+            if (refusal != ScheduleRefusal.None) return Answer(refusal);
+            string trick = book.Get(1, 1);
+            bool applied = CampaignRun.Instance.SetFirstDaySecondTrick(trick);
+            Debug.Log($"[NightSchedule] 1일차 둘째 공연 확정: {trick}{(applied ? "" : " (런에 넘기지 못함)")}");
+            Publish();
+            LastMessage = WaitingRoomText.Get("schedule.confirmed-first-day", "두 번째 공연을 확정했습니다.");
             return ScheduleRefusal.None;
         }
 
@@ -221,6 +240,11 @@ namespace CurtainCall.WaitingRoom
                 changed = true;
             }
 
+            // 첫날 둘째 공연 선택: 첫 공연 뒤 가이드 쉬는 시간, 전원 대기실 안내를 마친 뒤부터.
+            bool choice = s.IsRunning && s.Day == 1 && s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide
+                && s.Timer != RestTimerState.WaitingForExit;
+            if (book.FirstDayChoiceOpen != choice) { book.SetFirstDayChoiceOpen(choice); changed = true; }
+
             if (changed) Publish();
         }
 
@@ -237,7 +261,7 @@ namespace CurtainCall.WaitingRoom
             if (HasAuthority) return;
             var state = JsonUtility.FromJson<StateData>(json);
             if (state == null || !book.Load(state.night, state.confirmed, state.slots, state.locked,
-                state.tiers != null && state.tiers.Length > 0 ? state.tiers : null)) return;
+                state.tiers != null && state.tiers.Length > 0 ? state.tiers : null, state.firstDayOpen, state.firstDayConfirmed)) return;
             Changed?.Invoke();
         }
 
@@ -259,6 +283,7 @@ namespace CurtainCall.WaitingRoom
             public string[] slots;
             public bool[] locked;
             public int[] tiers;
+            public bool firstDayOpen, firstDayConfirmed;
 
             public static StateData From(ScheduleBook book) => new()
             {
@@ -267,6 +292,8 @@ namespace CurtainCall.WaitingRoom
                 slots = book.ExportSlots(),
                 locked = book.ExportLocked(),
                 tiers = book.ExportTiers(),
+                firstDayOpen = book.FirstDayChoiceOpen,
+                firstDayConfirmed = book.FirstDayConfirmed,
             };
         }
     }

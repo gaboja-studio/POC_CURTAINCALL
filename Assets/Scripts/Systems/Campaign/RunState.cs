@@ -118,7 +118,31 @@ namespace CurtainCall.Campaign
             if (s.Phase != CampaignPhase.RestTime || s.IsFinalMorning) return false;
             // 첫 공연 뒤에는 전원이 튜토리얼을 마치기 전까지 집결해도 다음 공연으로 넘어가지 않는다.
             if (IsGuideRestWaiting) return false;
+            // 첫날 둘째 공연은 호스트가 스케줄표에서 확정해야 시작한다(CC-215). 시간 만료는 그대로 진행한다.
+            if (s.Day == 1 && s.Rest == RestKind.Guide && SecondPerformanceGate != null && !SecondPerformanceGate()) return false;
             EndRest();
+            return true;
+        }
+
+        /// <summary>첫날 둘째 공연 확정 전 집결 차단. 스케줄표가 걸고, 없으면 막지 않는다.</summary>
+        public static System.Func<bool> SecondPerformanceGate { get; set; }
+
+        /// <summary>
+        /// 첫날 둘째 공연을 호스트가 고른 묘기로 바꾼다(첫 공연 뒤 가이드 쉬는 시간, 안내 완료 후). 첫 공연 칸은 고정이다.
+        /// 발견하지 않은 공연은 받지 않는다.
+        /// </summary>
+        public bool SetFirstDaySecondTrick(string trickId)
+        {
+            if (!s.IsRunning || s.Day != 1 || s.Phase != CampaignPhase.RestTime || s.Rest != RestKind.Guide || IsGuideRestWaiting
+                || string.IsNullOrEmpty(trickId) || !s.IsTrickUnlocked(trickId) || Rules.PerformancesPerDay < 2) return false;
+            var list = new string[Rules.PerformancesPerDay];
+            setlists.TryGetValue(1, out var old);
+            for (int i = 0; i < list.Length; i++)
+                list[i] = old != null && i < old.Length && !string.IsNullOrEmpty(old[i]) ? old[i] : Rules.FirstDayTrick(i);
+            list[0] = Rules.FirstDayTrick(0);
+            list[1] = trickId;
+            setlists[1] = list;
+            RefreshCurrent();
             return true;
         }
 

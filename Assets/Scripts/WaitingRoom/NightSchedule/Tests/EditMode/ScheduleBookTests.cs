@@ -22,7 +22,35 @@ namespace CurtainCall.WaitingRoom.Tests
             CollectionAssert.AreEqual(new[] { Rope, Cannon }, book.Setlist(1));
             Assert.IsTrue(book.IsLocked(1));
             book.BeginNight(1);
-            Assert.AreEqual(ScheduleRefusal.NotEditable, book.Set(1, 0, Cannon));
+            // 첫 공연 칸은 언제나 고정(둘째 칸은 CC-215 선택 시간대에만 열린다).
+            Assert.AreEqual(ScheduleRefusal.BadSlot, book.Set(1, 0, Cannon));
+            Assert.AreEqual(ScheduleRefusal.NotEditable, book.Set(1, 1, Cannon));
+        }
+
+        [Test]
+        public void 첫날_둘째_공연은_열렸을_때만_고르고_확정하면_잠긴다()
+        {
+            var book = NewBook();
+            Assert.AreEqual(ScheduleRefusal.NotEditable, book.Set(1, 1, Rope), "선택 시간대 전");
+            book.SetFirstDayChoiceOpen(true);
+            Assert.IsTrue(book.IsEditable(1));
+            Assert.AreEqual(ScheduleRefusal.BadSlot, book.Set(1, 0, Rope), "첫 공연 칸은 고정");
+            Assert.AreEqual(ScheduleRefusal.UnknownTrick, book.Set(1, 1, ""), "빈 칸 불가");
+            Assert.AreEqual(ScheduleRefusal.None, book.Set(1, 1, Rope));
+            CollectionAssert.AreEqual(new[] { Rope, Rope }, book.Setlist(1));
+            Assert.AreEqual(1, book.Difficulty(1, 1), "1일차는 1단계");
+            Assert.AreEqual(ScheduleRefusal.None, book.ConfirmFirstDay());
+            Assert.IsTrue(book.FirstDayConfirmed);
+            Assert.IsFalse(book.IsEditable(1));
+            Assert.AreEqual(ScheduleRefusal.AlreadyConfirmed, book.Set(1, 1, Cannon));
+            // 참가자 사본은 호스트가 고른 둘째 칸을 받는다.
+            var copy = NewBook();
+            Assert.IsTrue(copy.Load(0, false, book.ExportSlots(), book.ExportLocked(), book.ExportTiers(), false, true));
+            CollectionAssert.AreEqual(new[] { Rope, Rope }, copy.Setlist(1));
+            Assert.IsTrue(copy.FirstDayConfirmed);
+            book.Clear();
+            Assert.IsFalse(book.FirstDayConfirmed);
+            CollectionAssert.AreEqual(new[] { Rope, Cannon }, book.Setlist(1));
         }
 
         [Test]

@@ -28,7 +28,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return WaitStage(0, 10f);
                 var session = Static("CurtainCall.Network.Session.NetworkSessionManager", "Instance");
                 var network = Get(session, "NetworkManager");
-                var prefab = (GameObject)Get(Get(network, "NetworkConfig"), "PlayerPrefab");
+                // NetworkConfig·PlayerPrefab은 Netcode의 공개 필드다(프로퍼티 아님).
+                var prefab = (GameObject)Field(Field(network, "NetworkConfig"), "PlayerPrefab");
                 for (int i = 0; i < 3; i++)
                 {
                     var helper = Object.Instantiate(prefab).GetComponent(T("Unity.Netcode.NetworkObject"));
@@ -49,11 +50,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var rotation = Quaternion.LookRotation((Vector3)Get(course, "Forward"));
                 Call(mover, "Relocate", checkpointPosition, rotation);
                 yield return new WaitForSecondsRealtime(.3f);
-                Assert.IsNotNull(Priv(rehearsal, "checkpoint"), "기물 끝3m 전 체크포인트 저장");
                 Call(localPlayer, "RequestState", System.Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), "Fallen"));
                 yield return new WaitForSecondsRealtime(2f);
                 Assert.AreEqual("Normal", Get(localPlayer, "State").ToString());
-                Assert.Less(Vector3.Distance(localPlayer.transform.position, checkpointPosition), .6f, "마지막 개인 체크포인트 복구");
+                // 사용자 2026-11-03: 복귀 지점은 줄 위가 아니라 소구간 출발대(출발대 위 = 코스 거리 0 이전).
+                Assert.Less((float)Call(course, "GetDistance", localPlayer.transform.position), 0f, "추락 뒤 소구간 출발대 복귀");
                 var finish = (Pose)Call(course, "GetFinishPose", 0);
                 Call(mover, "Relocate", finish.position, finish.rotation);
                 yield return null; yield return null;
@@ -72,7 +73,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 setVote.Invoke(rehearsal, new object[] { 701UL, true });
                 yield return WaitStage(1, 5f);
                 Assert.AreEqual(0, ((System.Collections.Generic.HashSet<ulong>)Priv(rehearsal, "votes")).Count);
-                Assert.IsNull(Priv(rehearsal, "checkpoint"), "새 구간에서 이전 복구점 초기화");
             }
             finally
             {
@@ -80,6 +80,87 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     if (helper != null && (bool)Get(helper, "IsSpawned")) Call(helper, "Despawn", true);
                 EndTutorial();
             }
+        }
+
+        [UnityTest]
+        public IEnumerator W6_Rehearsal_FirstPerformanceAfterRehearsalStillKillsOnFall()
+        {
+            // 사용자 2026-11-03: 리허설을 거친 첫 외줄 공연에서 낙사 패널티가 사라졌다는 보고. 리허설 → 집결 → 공연 뒤 줄 위 추락이 사망으로 받아들여져야 한다.
+            FreshTutorial();
+            T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
+            try
+            {
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return WaitStage(0, 10f);
+                for (int i = 0; i < 5 && !(bool)Static(RehearsalType, "IsCompleted"); i++)
+                {
+                    float until = Time.realtimeSinceStartup + 5f;
+                    while (!(bool)Get(Rehearsal, "CanClearCurrentStage") && Time.realtimeSinceStartup < until) yield return null;
+                    Assert.IsTrue((bool)Call(Rehearsal, "TryClearCurrentStage"));
+                    yield return null; yield return null;
+                }
+                Assert.IsTrue((bool)Static(RehearsalType, "IsCompleted"));
+                var gather = Find("CurtainCall.WaitingRoom.StageEntranceGather");
+                var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
+                Call(mover, "Relocate", gather.GetComponent<BoxCollider>().bounds.center - Vector3.up * .5f, Quaternion.identity);
+                float deadline = Time.realtimeSinceStartup + 15f;
+                while (Field(State, "Phase").ToString() != "Performance" && Time.realtimeSinceStartup < deadline) yield return null;
+                Assert.AreEqual("Performance", Field(State, "Phase").ToString());
+                deadline = Time.realtimeSinceStartup + 75f;
+                while (((bool)Get(Static("CurtainCall.SpaceLink.SpaceLinkDirector", "Instance"), "IsTransitioning")
+                    || (bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive")) && Time.realtimeSinceStartup < deadline) yield return null;
+                // 출발점 배치·공연 시작 확인까지 잠시 기다린 뒤 줄 위로 옮겨 추락을 요청한다.
+                yield return new WaitForSecondsRealtime(3f);
+                var course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
+                Assert.IsNotNull(course, "공연 코스");
+                var run = course.GetComponent(T("CurtainCall.Tightrope.TightropeRun"));
+                Assert.IsFalse((bool)Get(run, "PracticeMode"), "공연 코스는 연습 모드가 아니어야 한다");
+                deadline = Time.realtimeSinceStartup + 20f;
+                while (Get(run, "State").ToString() != "Running" && Time.realtimeSinceStartup < deadline) yield return null;
+                Assert.AreEqual("Running", Get(run, "State").ToString(), "공연 진행 중");
+                PlaceOnRope(course, 0, 6f);
+                yield return new WaitForSecondsRealtime(.5f);
+                Call(LocalPlayer, "RequestState", System.Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), "Fallen"));
+                deadline = Time.realtimeSinceStartup + 4f;
+                while (Get(LocalPlayer, "State").ToString() == "Normal" && Time.realtimeSinceStartup < deadline) yield return null;
+                Assert.AreEqual("Fallen", Get(LocalPlayer, "State").ToString(), "공연 중 추락은 사망으로 받아야 한다");
+            }
+            finally
+            {
+                T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
+                EndTutorial();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator W6_Rehearsal_PracticeAfterMasteryKeepsRecordAndEndsFreely()
+        {
+            // 이수 뒤 쉬는 시간: 호스트가 연습실에서 소구간을 골라 재연습하고 언제든 끝낸다. 이수 기록은 그대로다(CC-219).
+            var saved = T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            try
+            {
+                yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
+                saved.SetValue(null, 5);
+                Assert.IsTrue((bool)Static(RehearsalType, "HasMastered"));
+                Assert.IsFalse((bool)Static(RehearsalType, "IsActive"), "쉬는 시간에는 리허설이 저절로 켜지지 않는다");
+                var ring = GameObject.Find("S09_PracticeRoom").transform.Find("LegacyRing/PracticeRing/DeckCollider").GetComponent<Collider>();
+                var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
+                Call(mover, "Relocate", new Vector3(ring.bounds.center.x, ring.bounds.max.y, ring.bounds.center.z), Quaternion.identity);
+                yield return null; yield return null;
+                Assert.IsTrue((bool)T(RehearsalType).GetMethod("StartPractice").Invoke(null, new object[] { 3 }), "연습실 안에서 2-3 재연습 시작");
+                yield return WaitStage(3, 10f);
+                Assert.IsTrue((bool)Static(RehearsalType, "IsPracticing"));
+                Assert.IsNotNull(Priv(Rehearsal, "course"), "고른 소구간 코스 생성");
+                Assert.AreEqual("RestTime", Field(State, "Phase").ToString(), "재연습은 캠페인 단계를 바꾸지 않는다");
+                Assert.IsTrue((bool)T(RehearsalType).GetMethod("EndPractice").Invoke(null, null));
+                float until = Time.realtimeSinceStartup + 5f;
+                while ((bool)Static(RehearsalType, "IsActive") && Time.realtimeSinceStartup < until) yield return null;
+                Assert.IsFalse((bool)Static(RehearsalType, "IsActive"), "자유 종료");
+                Assert.AreEqual(5, saved.GetValue(null), "재연습이 이수 기록을 지우지 않는다");
+                yield return new WaitForSecondsRealtime(1f); // 바닥 배치 뒤 착지까지
+                Assert.Less(Mathf.Abs(LocalPlayer.transform.position.y - ring.bounds.max.y), 1.5f, "종료 뒤 연습실 바닥으로 복귀");
+            }
+            finally { saved.SetValue(null, 0); EndTutorial(); }
         }
 
         [UnityTest]
@@ -412,6 +493,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return WaitQuestReady("tutorial");
                 yield return QuestFlowCapture("01-tutorial");
                 Assert.IsFalse((bool)Call(campaign, "NotifyAllAtStageEntrance"));
+                // 둘째 공연(CC-215): 안내 완료 뒤 호스트가 스케줄표에서 고르고 확정해야 집결로 시작한다.
+                yield return WaitQuestReady("second-pick");
+                Assert.IsFalse((bool)Call(campaign, "NotifyAllAtStageEntrance"), "둘째 공연 확정 전 집결 차단");
+                var board = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
+                Assert.AreEqual("None", Call(board, "Set", 1, 1, "Tightrope", 1).ToString());
+                Assert.AreEqual("None", Call(board, "Confirm").ToString());
                 yield return WaitQuestReady("gather");
                 yield return QuestFlowCapture("02-second-performance-ready");
                 var gather = Find("CurtainCall.WaitingRoom.StageEntranceGather");

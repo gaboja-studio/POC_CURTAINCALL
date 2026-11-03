@@ -145,10 +145,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsFalse(room.Find("LegacyRing/PracticeLanes").gameObject.activeSelf, "리허설 중 연습실 옛 소품은 숨긴다");
 
                 yield return AuditCapture("01-stage1-start");
-                var initial = LocalPlayer.transform.position;
-                var initialRotation = LocalPlayer.transform.rotation;
-                yield return AuditClosedGates();
-                Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")), "Relocate", initial, initialRotation);
                 // 추락 상태 요청 → 호스트 복구 → 같은 구간 출발대.
                 Call(LocalPlayer, "RequestState", Enum.Parse(Get(LocalPlayer, "State").GetType(), "Fallen"));
                 yield return new WaitForSecondsRealtime(.3f);
@@ -227,6 +223,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 while (!(bool)Static(RehearsalType, "IsCompleted") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.IsTrue((bool)Static(RehearsalType, "IsCompleted"));
                 yield return new WaitForSecondsRealtime(4f);
+                // 철창 검사는 코스가 사라진 완료 뒤에 한다. 진행 중에는 연습 모드 추락 판정이 줄 아래 어디서든 출발대로 되돌려 밀기 결과를 덮어쓴다.
+                yield return AuditClosedGates();
                 yield return AuditCapture("10-complete-route");
                 yield return AuditWalkToStage();
             }
@@ -295,6 +293,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 while (!(bool)Static(RehearsalType, "IsCompleted") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.IsTrue((bool)Static(RehearsalType, "IsCompleted"));
                 yield return new WaitForSecondsRealtime(4f);
+                // 사용자 2026-11-03: 완료 뒤 길안내가 나올 때 카메라가 돌지 않았다. 코스가 사라진 뒤 카메라 입력 잠금이 남지 않아야 한다.
+                var director = Find("CurtainCall.Cameras.CameraViewDirector");
+                Assert.IsFalse((bool)Priv(director, "inputBlocked"), "완료 뒤 카메라 입력 잠금이 남아 있다");
+                Assert.IsTrue((bool)Get(director, "UsesMouseLook"), "완료 뒤 마우스 시점이어야 한다");
                 yield return AuditCapture("10-complete-route");
                 yield return AuditWalkToStage();
             }
