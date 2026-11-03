@@ -14,6 +14,8 @@ namespace CurtainCall.UI.SceneIntegration
         public SystemBannerView banner;
         [SerializeField] float holdSeconds = 4f;
         [SerializeField] float sawDistance = 8f;
+        [SerializeField] bool escapeTraversal;
+        public void ConfigureEscape(SystemBannerView view) { banner = view; escapeTraversal = true; }
         readonly TightropeGuideProgress progress = new();
         void OnEnable() => TightropeControlHints.ExternalPresentation = true;
         void LateUpdate()
@@ -23,14 +25,23 @@ namespace CurtainCall.UI.SceneIntegration
             var course = TightropeCourse.Current;
             var campaign = CampaignRun.Instance;
             var run = TightropeRun.Current;
-            if (local == null || course == null || campaign == null || !TightropeGuideProgress.IsFirstDay(campaign.State)
+            bool context = escapeTraversal ? CurtainCall.EscapeRoute.EscapeCampaignContent.IsTraversalActive
+                : campaign != null && TightropeGuideProgress.IsFirstDay(campaign.State);
+            if (local == null || course == null || !context
                 || !course.IsGameplayActive || run == null || run.State != TightropeRunState.Running
                 || local.State != PlayerState.Normal || InputGate.IsBlocked || SceneCurtainTransition.IsActive)
             { if (banner.IsVisible) banner.HideImmediate(); return; }
-            var state = campaign.State;
+            var state = campaign != null ? campaign.State : default;
             if (progress.Begin(state.Generation, state.PerformanceIndex, run.Round, local.GetInstanceID())) banner.HideImmediate();
             // View에 큐가 없으므로 현재 알림이 끝난 뒤 다음 상황을 평가한다.
             if (banner.IsVisible) return;
+            if (escapeTraversal)
+            {
+                if (!course.UsesRopeRules(local)) return;
+                if (ShowOnce("escape-balance", "W/S로 이동하고 A/D로 중심을 잡아요", "기울어지는 반대 방향으로 균형을 잡으세요")) return;
+                ShowOnce("escape-jump", "SPACE로 점프할 수 있어요", "동료 가까이에서 F로 목마 · 매달린 동료는 F를 누른 채로 구조");
+                return;
+            }
             if (DeviceGuide(local, course)) return;
             var mover = local.GetComponent<PlayerMover>();
             if (mover == null || !mover.ControlEnabled) return;
@@ -72,7 +83,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (trapeze.IsHeld(local))
                 return trapeze.IsLower(local)
                     ? ShowOnce("trapeze-lower", "타이밍에 맞춰 점프하여 다음 봉을 잡으세요")
-                    : ShowOnce("trapeze-upper", "WS키를 통해 반동을 줍니다");
+                    : ShowOnce("trapeze-upper", "W/S로 반동을 줍니다");
             if (trapeze.IsInFlight(local)) return false;
             if (Mathf.Abs(course.GetDistance(local.transform.position) - trapeze.EntryDistance) > sawDistance) return false;
             var stack = PiggybackSystem.Current;
@@ -89,9 +100,22 @@ namespace CurtainCall.UI.SceneIntegration
         }
         bool ShowOnce(string key, string title, string subtitle = "", BannerState state = BannerState.Normal)
         {
-            if (banner.IsVisible || progress.HasShown(key) || !banner.Show(title, subtitle, state, holdSeconds)) return false;
+            if (banner.IsVisible || progress.HasShown(key)) return false;
+            title = BoundText(title); subtitle = BoundText(subtitle);
+            if (escapeTraversal)
+                FindFirstObjectByType<CommonInteractionUI>()?.GetComponent<UiRuntimeFontFallback>()?.WarmUpLocalText(banner.transform, title + subtitle);
+            if (!banner.Show(title, subtitle, state, holdSeconds)) return false;
             progress.MarkShown(key);
             return true;
+        }
+        static string BoundText(string text)
+        {
+            var reader = NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerInputReader>() : null;
+            if (reader == null) return text;
+            return CommonInteractionUI.FormatControlLabels(text, reader.BindingLabel("Interact", "F"), reader.BindingLabel("Action", "Space"),
+                reader.BindingPartLabel("Move", "positive", "W") + "/" + reader.BindingPartLabel("Move", "negative", "S"),
+                reader.BindingPartLabel("Posture", "negative", "A") + "/" + reader.BindingPartLabel("Posture", "positive", "D"))
+                .Replace("Q/E", reader.BindingLabel("DirectionLeft", "Q") + "/" + reader.BindingLabel("DirectionRight", "E"));
         }
         void OnDisable()
         {

@@ -182,6 +182,12 @@ namespace CurtainCall.SpaceLink
                 var request = pending.Value;
                 pending = null;
                 if (!IsCurrent(request)) continue;
+                if (CurtainCall.EscapeRoute.EscapeEndingPresentation.Current != null
+                    && CurtainCall.EscapeRoute.EscapeEndingPresentation.IsSuccessfulEnding(campaign.State))
+                {
+                    yield return CurtainCall.EscapeRoute.EscapeEndingPresentation.Current.HoldBeforeTransition();
+                    if (!IsCurrent(request)) continue;
+                }
                 if (!request.Reload && request.Space == SpaceId.EscapeRoute
                     && CurtainCall.EscapeRoute.EscapeSceneTransfer.Current != null
                     && CurtainCall.EscapeRoute.EscapeSceneTransfer.Current.Pending)

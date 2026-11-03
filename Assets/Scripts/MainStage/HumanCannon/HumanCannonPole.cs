@@ -30,6 +30,7 @@ namespace CurtainCall.HumanCannon
         [Tooltip("봉 도약 수평 반동 배율. 1은 원본이며 공용 수평 속도 상한은 유지한다."), Range(1f, 1.5f), SerializeField] float horizontalReleaseMultiplier = 1f;
         [Tooltip("이 봉의 도약 상승 속도 상한(m/s). 0이면 원본 반동을 그대로 사용한다. 긴 케이블의 레벨별 높이 조정용."), Min(0f), SerializeField] float maxReleaseUpwardSpeed;
         [Tooltip("봉 도약 뒤 WASD 수평 조절(m/s)."), Min(0f), SerializeField] float airControlSpeed = 3f;
+        [Tooltip("이 봉의 도약 수평 속도 상한(m/s). 0이면 공용 설정을 사용한다."), Min(0f), SerializeField] float releaseHorizontalSpeedLimit;
         HumanCannonPoleLoop loop;
         bool loopSearched;
 
@@ -51,6 +52,7 @@ namespace CurtainCall.HumanCannon
         public float HoldSeconds => holdSeconds;
         public float WarningSeconds => warningSeconds;
         public float AirControlSpeed => airControlSpeed;
+        public float FlightSpeedLimit(float sharedLimit) => releaseHorizontalSpeedLimit > 0f ? releaseHorizontalSpeedLimit : sharedLimit;
         public float MaxReleaseUpwardSpeed => maxReleaseUpwardSpeed;
         public float HangLength => hangLength;
         public int RiderCapacity => linkedGate != null ? 1 : Mathf.Clamp(riderCapacity, 1, PoleGateState.MaxRiders);

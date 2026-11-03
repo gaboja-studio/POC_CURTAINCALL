@@ -66,7 +66,7 @@ namespace CurtainCall.HumanCannon
                 runtime.ReleasePosition = pole.HangingPosition(runtime.Angle, seat);
                 runtime.ReleaseRotation = pole.Grip.rotation;
                 runtime.ReleaseVelocity = CannonAirControl.LimitPoleHorizontalSpeed(
-                    pole.ReleaseVelocity(runtime.Angle, runtime.Speed, seat), GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit);
+                    pole.ReleaseVelocity(runtime.Angle, runtime.Speed, seat), pole.FlightSpeedLimit(GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit));
             }
             if (rider != null && (action == PoleEvent.Grabbed || action == PoleEvent.PlatformGrabbed || action == PoleEvent.Released))
                 rider.Segment++;

@@ -1,11 +1,24 @@
 using CurtainCall.Settings;
 using UnityEngine;
+using TMPro;
 
 namespace CurtainCall.UI.SceneIntegration
 {
     /// <summary>1920×1080 기준 실게임 HUD 배치. 정본 프리팹의 내부 그림은 바꾸지 않는다.</summary>
     public static class HudLayout
     {
+        public static void FitBalanceKeys(Transform balance)
+        {
+            foreach (string path in new[] { "72_KeyTexts/LeftTMP", "72_KeyTexts/RightTMP" })
+                if (balance.Find(path)?.GetComponent<TMP_Text>() is TMP_Text label)
+                {
+                    label.enableAutoSizing = true;
+                    label.fontSizeMax = 24;
+                    label.fontSizeMin = 10;
+                    label.textWrappingMode = TextWrappingModes.NoWrap;
+                    label.overflowMode = TextOverflowModes.Ellipsis;
+                }
+        }
         public static void PlaceBalance(RectTransform rect, BaseGameSettings.BalanceHudPosition position)
         {
             bool top = position == BaseGameSettings.BalanceHudPosition.TopCenter;

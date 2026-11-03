@@ -55,6 +55,8 @@ namespace CurtainCall.UI.SceneIntegration
         }
         void Update()
         {
+            if (CommonUiSceneLoader.CurrentSpace != null && CommonUiSceneLoader.CurrentSpace.PresentationOnly)
+            { ResetPresentation(); return; }
             if (rewards != PerformanceRewards.Instance)
             {
                 if (rewards != null) rewards.ResultConfirmed -= PresentResult;
@@ -67,7 +69,7 @@ namespace CurtainCall.UI.SceneIntegration
             ObserveDeath();
             ObserveTeammates(snapshot);
             // 공유 스냅샷이 구독보다 먼저 도착한 경우도 현재 공연 결과만 복원한다.
-            if (pending == null && CommonUiSceneLoader.CurrentSpace != null && snapshot.Latest != null
+            if (pending == null && CommonUiSceneLoader.HasPerformanceSpace && snapshot.Latest != null
                 && snapshot.Latest.Performance.Id == snapshot.Performance.Id) PresentResult(snapshot.Latest);
             if (pending == null) return;
             if (snapshot.Performance.Id != pending.Performance.Id) { ResetPresentation(); return; }
@@ -97,7 +99,7 @@ namespace CurtainCall.UI.SceneIntegration
         }
         void ObserveTeammates(RewardSnapshot snapshot)
         {
-            if (CommonUiSceneLoader.CurrentSpace == null) return;
+            if (!CommonUiSceneLoader.HasPerformanceSpace) return;
             if (observedPerformance != snapshot.Performance.Id)
             {
                 observedPerformance = snapshot.Performance.Id; observedDeaths.Clear();
@@ -124,7 +126,7 @@ namespace CurtainCall.UI.SceneIntegration
         {
             var local = NetworkPlayer.Local;
             var state = rewards.State;
-            if (local == null || state?.Performance == null || CommonUiSceneLoader.CurrentSpace == null) return;
+            if (local == null || state?.Performance == null || !CommonUiSceneLoader.HasPerformanceSpace) return;
             bool dead = local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                 || state.Segments.Any(p => p.ClientId == local.OwnerClientId && p.Dead);
             if (!dead || deathIdentity == state.Performance.Id) return;
@@ -135,7 +137,7 @@ namespace CurtainCall.UI.SceneIntegration
         }
         public void PresentResult(PerformanceResult result)
         {
-            if (!isActiveAndEnabled || result == null || shownIdentity == result.Performance.Id || CommonUiSceneLoader.CurrentSpace == null
+            if (!isActiveAndEnabled || result == null || shownIdentity == result.Performance.Id || !CommonUiSceneLoader.HasPerformanceSpace
                 || (result.Performance.TrickId != "Tightrope" && result.Performance.TrickId != "HumanCannon")) return;
             shownIdentity = result.Performance.Id;
             pending = result; started = Time.unscaledTimeAsDouble; loadedAt = -1;

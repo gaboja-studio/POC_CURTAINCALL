@@ -45,6 +45,7 @@ namespace CurtainCall.UI.SceneIntegration
         NetworkSceneManager.VerifySceneBeforeLoadingDelegateHandler previousLoad;
         NetworkSceneManager.VerifySceneBeforeUnloadingDelegateHandler previousUnload;
         public static PerformanceSceneBinding CurrentSpace => instance != null ? instance.SelectSpace() : null;
+        public static bool HasPerformanceSpace => CurrentSpace != null && !CurrentSpace.PresentationOnly;
         public static WaitingRoomUiBinding CurrentWaitingRoom => instance != null ? instance.SelectWaitingRoom() : null;
 
         public static void Register(WaitingRoomUiBinding space)
@@ -126,7 +127,7 @@ namespace CurtainCall.UI.SceneIntegration
             bool interactionChanged = interactionSpaces.Count > 0 ? !interaction.isLoaded : interaction.isLoaded && SceneManager.sceneCount > 1;
             var menu = SceneManager.GetSceneByPath(CommonMenuUI.ScenePath);
             bool menuChanged = CommonMenuUI.HasSupportedSpace ? !menu.isLoaded : menu.isLoaded && SceneManager.sceneCount > 1;
-            if (loading == null && (menuChanged || interactionChanged || waitingChanged || (CurrentSpace != null ? !scene.isLoaded || PerformanceEndingPresentation.Current == null : scene.isLoaded && SceneManager.sceneCount > 1)))
+            if (loading == null && (menuChanged || interactionChanged || waitingChanged || (CurrentSpace != null ? !scene.isLoaded || HasPerformanceSpace && PerformanceEndingPresentation.Current == null : scene.isLoaded && SceneManager.sceneCount > 1)))
                 loading = StartCoroutine(Reconcile());
         }
 
@@ -143,7 +144,7 @@ namespace CurtainCall.UI.SceneIntegration
             }
             else if (!CommonMenuUI.HasSupportedSpace && menu.isLoaded && SceneManager.sceneCount > 1)
                 yield return SceneManager.UnloadSceneAsync(menu);
-            if (CurrentSpace != null && PerformanceEndingPresentation.Current == null
+            if (HasPerformanceSpace && PerformanceEndingPresentation.Current == null
                 && !SceneManager.GetSceneByPath(PerformanceEndingPresentation.ScenePath).isLoaded)
             {
                 if (Application.CanStreamedLevelBeLoaded(PerformanceEndingPresentation.ScenePath))

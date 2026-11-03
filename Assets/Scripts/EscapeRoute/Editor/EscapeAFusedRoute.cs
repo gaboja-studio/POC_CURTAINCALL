@@ -123,8 +123,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
 
             ropes.Add(CompletionRope(group, "A03_CannonLandingWire", new Vector3(44, -6, 75), new Vector3(60, -6, 75)));
             FeedbackAim(GameObject.Find("03_Cannon").GetComponent<HumanCannonStation>(), new Vector3(46, -6, 75), 1.7f);
-            AFusedPole(group, source, "A04A_01_CavernExit", new Vector3(61, -4.5f, 75), new Vector3(6, 0, -10));
-            ropes.Add(CompletionRope(group, "A04A_UpperWire", new Vector3(67, -10, 65), new Vector3(67, -10, 53)));
+            AFusedPole(group, source, "A04A_01_CavernExit", new Vector3(61, -4.5f, 75), new Vector3(5, 0, -13));
+            ropes.Add(CompletionRope(group, "A04A_UpperWire", new Vector3(65.2f, -10, 68), new Vector3(67, -10, 53)));
             AFusedPole(group, source, "A04A_02_DeepTransfer", new Vector3(67, -8.5f, 52), Vector3.back);
             ropes.Add(CompletionRope(group, "A04A_LowerWire", new Vector3(67, -16, 42), new Vector3(67, -16, 27)));
             AFusedPole(group, source, "A04A_03_PumpEntry", new Vector3(67, -14.5f, 26), Vector3.back);

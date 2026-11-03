@@ -122,8 +122,8 @@ namespace CurtainCall.UI.SceneIntegration
             var network = NetworkManager.Singleton;
             bool host = network != null && network.IsServer;
             leaveMessage.text = host ? "방장이 나가면 방이 종료되고\n모든 단원이 시작 화면으로 돌아갑니다." :
-                CommonUiSceneLoader.CurrentSpace != null ? "진행 중인 공연에서 이탈하고\n시작 화면으로 돌아갑니다." : "방에서 나가고\n시작 화면으로 돌아갑니다.";
-            footer.text = CommonUiSceneLoader.CurrentSpace != null ? "공연은 계속 진행 중입니다" : "게임은 계속 진행 중입니다";
+                CommonUiSceneLoader.HasPerformanceSpace ? "진행 중인 공연에서 이탈하고\n시작 화면으로 돌아갑니다." : "방에서 나가고\n시작 화면으로 돌아갑니다.";
+            footer.text = CommonUiSceneLoader.HasPerformanceSpace ? "공연은 계속 진행 중입니다" : "게임은 계속 진행 중입니다";
             menu.Show(); SyncInput();
         }
         public void OpenStartSettings(Action closed)
