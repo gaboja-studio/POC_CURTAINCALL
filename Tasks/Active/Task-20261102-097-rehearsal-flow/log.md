@@ -1,93 +1,82 @@
-# Log
+# 작업 기록
 
-- 2026-11-02 Task 생성. 근거 Confluence 32702474·Jira CC-199. 브랜치 feat/rehearsal-flow를 feat/waiting-room/tutorial(origin/dev b0669a96 병합 후)에서 분기. 병합 때 Unity 에디터가 켜져 있었음(에디터에서 씬 저장 주의).
-- 조사 결과: 연습실(S09)은 아트 전용(런타임 스크립트 없음). 철창(NightDoorLock)은 시간대로만 여닫음. 외줄 그네·트리거 그네는 코스 생성 모드에서만 자동 부착(`TightropeSwingPole`·`TightropeRelayGate`), 씬 지오메트리 모드에서는 안 붙음 → 리허설 코스는 생성 모드로 만든다. 투표·바닥 길안내 기존 코드 없음, NavMesh 미굽기(테스트가 콜라이더로 런타임 굽는 방식 사용).
-- 2026-11-02 구현(1차): `CampaignPhase.Rehearsal`·`RunState.EndRehearsal`/`EnterRehearsal`(StartSession(withRehearsal)로만 진입, FailRun 세대 교체는 바로 공연), 가이드 쉬는 시간 `WaitingForExit` 대기 + `SetTutorialDone/RefreshGuideRest`(CampaignRun TutorialDone 메시지), SpaceRoute Rehearsal→대기실, Dev 시작 지점 "리허설", NightDoorLock 리허설 잠금(PracticeGate 제외), StageEntranceGather 리허설 완료 뒤 집결→첫 공연, WaitingRoomTutorial 연계 G01·G11 완료(또는 끔/120초) → NotifyTutorialDone, 리허설 중 Revived 무시, TightropeRun 연습 모드(PracticeMode: 도착·성공·실패 판정 없음).
-  리허설: `WaitingRoom/Rehearsal/` RehearsalStage(5 소구간 코스 JSON)·WaitingRoomRehearsal(코스 생성·호스트 완료/추락 복구/포기 투표/재진입·메시지 공유)·.Local(출발대 배치·퀘스트·설명·길안내·포기 입력)·RehearsalPathGuide(런타임 NavMesh 점선). 문구 30키 WaitingRoomTexts.txt 추가.
-  검사: 컴파일 PASS, EditMode RestTimeRulesTests 2/2(기대값 갱신)·DevStartPointTests 20/20·WaitingRoomTextTests 5/5.
-  PlayMode W6_Rehearsal_BuildsCourseOnRingAndAdvancesWhenEveryoneArrives 1/1: 리허설 시작 지점 → 타이머 None, 연습실 링 위 1단계 코스(2줄)·연습 모드, PracticeGate만 열림, 내 캐릭터 출발대, 도착대로 옮기면 2-1(1줄·그네 봉)로 전환·새 출발대 배치.
-  미확인(사람 플레이): 실제 줄 조작·그네·트리거 그네 소구간 통과, 추락 복구 체감, 포기 투표·재진입, 완료 뒤 점선 길안내와 집결→공연 전환, 공연 뒤 가이드 쉬는 시간 타이머가 tutorial 뒤 시작, MPPM 2인.
-  발견·수정: RehearsalPathGuide가 NavMeshPath를 필드 초기화에서 만들어 예외(Unity 제한) → Awake로 이동. 재컴파일 PASS.
-  재검사: PlayMode W6_Rehearsal 1/1 PASS(수정 후). 커밋·push는 미실행(요청 시).
-- 2026-11-02 캡처(임시 PlayMode TempCapture_Rehearsal, 사용 후 삭제): .harness/local/rehearsal/01~06.png — 1단계 출발·옆줄 퀘스트·2-1 그네·2-3 트리거·3단계·완료 길안내. 발견·수정: WaitingRoomTutorial이 리허설 중 가이드 패널을 매 프레임 닫아 좌측 설명이 안 보임 → 리허설 시간대는 건너뜀. 길안내 선은 점선 무늬가 각도에 따라 흐릿함(후속 다듬기).
+## 2026-11-03 사용자 일괄 승인·Jira 선등록
+- 모든 단계/소구간에 과반 체크 투표 또는 전원 도착 전환을 적용하고, 도착자 제한·기물 기준 안전 체크포인트·단일/연속 그네 입력·기존 중간 발판·선택 재연습·호스트 둘째 공연 선택을 확정했다. 가이드는 기획서대로, 인간대포는 후순위다. approved-rules.md가 현재 실행 기준이다.
+- 개발 전 Jira 요청에 따라 CC-199와 기존 CC-210~216을 갱신하고 CC-218(가이드/연출), CC-219(재연습), CC-220(후순위 대포/Low)를 추가했다. 개발 순서로 Rank 정렬 후 10개 모두 부모/순서/본문/할 일 상태를 읽어 확인했다. 기존 상위 담당·상태·M2·기한은 유지했다.
+- 체크포인트 배치 원칙은 확인했으나 실제 기물별 복구 좌표 안전성은 미검증이다. CC-211과 CC-216 완료 기준에 반영했다. 코드 개발 전에 Jira 등록부터 수행했으며 이 묶음에서 게임 코드·씬은 수정하지 않았다.
+- 체크리스트 크기 차단을 확인해 이전 원문을 History/001-before-final-approved-todo.md에 그대로 보존하고 현재 실행 목록으로 압축했다. 재검사: 안전성/문서·규칙 PASS, 컴파일 SKIPPED(-SkipUnity), 자동 테스트 SKIPPED, exit 2. 커밋·push 없음.
 
-## 2026-11-02 구조도대로 재구성
+## 2026-11-03 최종 작업노트 대조·개발 계획
+- Google Drive에서 최종 Google Docs 기획서(1ajABs87srd4A6vjaKxfzkIjxC7fr8t_6Hvw2KjJzhWQ, 수정 17:23:09 KST)를 찾아 전문을 읽음. 사용자가 기존 리허설 기획을 보류하고 이 문서를 최종 기준으로 지정함.
+- 현재 작업 트리의 RehearsalStage/WaitingRoomRehearsal/FirstDayFlow/RunState/설정/StageEntranceGather/RingmasterMonitor/PathGuide를 대조. 도착 고정·단계 넘기기 투표·기물 체크포인트·둘째 공연 선택·3초 연출 종료·재연습이 주요 추가/변경. 최종 문서 내부의 즉시 완료/투표, 포기 불가/재진입, 도착 퀘스트 삭제/대기 문구는 분리 기록.
+- final-spec-development-plan.md에 요구사항별 근거·판정, 0~5 개발 단계·완료 기준 작성. plan/todo/기존 결정 문서에 새 원문 우선순위 반영. 게임 코드·씬·원문 문서 수정 없음, 커밋·push 없음.
+- doctor -SkipEditor 1회 실패: 외부 저장소 dirty·Task ID 중복·Unity 설치 탐지 실패, gh 로그인 경고. 실제 지정 Unity 에디터 실행을 확인했으므로 미설치로 단정하지 않음. origin/dev fetch 후 6491a570이 HEAD에 포함됨 확인. 병합 불필요, 기존 변경 보존.
+- 새 Unity 플레이/컴파일 검사는 하지 않음. 기존 최신 원본 밤 안내 회귀의 running 결과는 완료 미확인 그대로 유지.
+- 이번 문서 묶음 검사: check-work -SkipUnity -NoRecord exit 2(안전성 PASS, 문서/규칙 PASS, 컴파일 SKIPPED, 자동 테스트 SKIPPED). verify-knowledge exit 0, git diff --check 통과. 기존 장문 문서 경고·외부 에셋 변경 주의는 남아 있음.
 
-- 계기: 구조도 이미지(Confluence 32702474) 대조 결과 2-2·2-3·3단계가 달랐다(코스 생성기의 끊김 1개·같은 위치·그네/해제봉 택일 제약). 사용자 결정: 2-2는 공중에서 그네2를 바로 잡기, 트리거 그네 시간 제한 없음, 연습실 옛 소품은 리허설 중 숨김.
-- 구현:
-  - `TightropeSwingPole.Spots.cs`(신규): 코스 값 대신 지정 자리(줄·구간)마다 그네(`UseSpots`). `ChainNext`이면 놓고 날아가는 중 다음 그네 매달림 위치 창(앞뒤 1.5m, 아래 1.2m~위 2.2m, 같은 줄)에 들어오면 공중에서 잡음(`AirGrab` 요청, 호스트 판정). 기존 공연 그네는 자리 미지정 시 동작 그대로(GapFrom/GapTo가 코스 값).
-  - `TightropeControlScheme.ExternalInput`: 줄 위 외부 장치 입력 가로채기(리허설 트리거 그네 F).
-  - 리허설: `RehearsalStage`에 그네 자리·끊긴 구간·트리거 그네·발판 데이터(구조도 줄 번호 = 위에서 0번). 끊김은 `BlockSegment`, 트리거 잡는 동안만 해당 구간 해제. 트리거 점유는 호스트가 정해 상태 메시지로 공유. `WaitingRoomRehearsal.Triggers.cs`(신규): 트리거 그네 모양·점선 끊김·중간 발판·입력·잡는 동안 균형 유지. `LegacyRing/PracticeLanes` 리허설 중 비활성, 끝나면 복구. 퀘스트 문구 trigger-* 6키로 교체(relay-* 삭제).
-- 검사: 컴파일 PASS. PlayMode `W6_Rehearsal_CoursesFollowStageDiagrams` 1/1(소품 숨김·1단계 발판·2-2 반동→놓기→공중에서 그네2 잡기·2-3/3단계 트리거 짝 연결), `W6_Rehearsal_BuildsCourse...` 1/1, EditMode TightropeSwingGapTests 17/17. 캡처 `.harness/local/rehearsal/v2/`.
-- 남은 것(사용자: 기능 먼저, 테스트·버그는 나중): 외줄 PlayMode `SwingPole*` 2건 FAIL — 원인은 이번 변경이 아니라 02611495의 게임 시작 흐름(도입→리허설) 때문에 공용 도우미 `BeginPerformance`가 공연 시작을 기다리다 시간 초과. 도우미에 리허설 건너뛰기를 넣었으나 재실행 안 함. 이 도우미를 쓰는 외줄 테스트 전체 재확인 필요.
+이전 구현·실패·철회 전 검증 기록: [History](History/2026-11-03-before-scope-correction.md).
 
-## 2026-11-02 조작을 공연 외줄과 같게 (사용자 지적)
+## 사용자 정정: 임의 구현 철회
+- 공연용 first-day 퀘스트 분기·문구·공연 폰트 연결을 제거. 기존 폰트 소유자 수명 수정은 대기실용으로 보존. 이전 공연 퀘스트 캡처는 승인된 기획 증거가 아님.
+- 리허설 그네는 공연에 회전봉(TightropeSwingPole)과 공중그네(TightropeTrapeze) 두 구현이 있어 선택을 임의로 하지 않고 사용자 확인 후 연결한다. 기존 잘못된 검사도 이 결정에 맞춰 수정 예정.
+- 사용자 역할 정정 반영: 직접 반동/놓기 이동은 공연 TightropeSwingPole, 동료 줄 연결은 공연 TightropeRelayGate의 기존 입력·물리를 사용. 2인 몸 교대 전용 공중그네를 임의로 바꿔 넣지 않음. 리허설 전용 중간 발판·받침·트리거 틀·점선 도형 생성 코드를 제거해 공연 장치 외형 위에 별도 구조물을 덧붙이지 않는다.
 
-- 지적: 리허설은 외줄 규칙 연습이라 조작이 공연과 같아야 한다. 2-2 자동 공중 잡기와 자체 트리거 장치(줄 위에 선 채 유지)가 공연과 달랐다.
-- 수정:
-  - 그네 끊김을 공연 회전봉과 같은 8m로(2-1 8~16, 2-2 4~12+12~20, 3단계 3~11). 3단계 끊김·트리거 위치 재배치.
-  - 2-2 공중 잡기: 날아가는 중 다음 그네 가까이에서 F를 눌러야 잡음(입력 0.3초 유예). 자동 잡기 제거.
-  - 트리거 그네: 자체 장치를 지우고 공연 해제봉(`TightropeRelayGate`)에 지정 자리 모드(`TightropeRelayGate.Spots.cs`, `RelaySpot`) 추가. F로 잡으면 봉에 매달리고 F/Space/F 길게로 놓기, 봉 모양·연결 줄 표시 공연 그대로. 지정 자리 봉은 봉마다 혼자 잡아도 자기 짝 줄을 잇고, 시간 제한 없음(전광판 숨김, 사용자 결정 유지). 기존 공연 해제봉 4개 동작은 그대로.
-  - `TightropeControlScheme.ExternalInput` 훅 되돌림(불필요).
-- 확인: 컴파일 PASS. 임시 캡처 테스트(실제 F·W·Space 입력을 외줄 조작 규칙에 넣음, 사용 후 삭제): 2-1 착지 16.6m, 2-2 공중에서 F로 두 번째 그네 잡기 → 착지 20.6m, 3단계 착지 11.6m, 트리거 2-3·3단계 F로 매달리면 짝 줄 연결·Space로 놓으면 다시 끊김. 캡처 `.harness/local/rehearsal/controls/`.
-- 테스트 정리는 기능 구현 뒤(사용자): `W6_Rehearsal_CoursesFollowStageDiagrams`를 해제봉·F 공중 잡기 기준으로 고쳤으나 재실행 안 함.
+- 정정 후 핵심 실제 입력 1/1 PASS(56.3초), 공연 퀘스트 부재·대기실 안내→둘째 공연→밤→Day 2 연결 1/1 PASS(87.9초). 공연용 퀘스트 분기와 문구가 없음을 확인. 기존 원본 장치 이외 리허설 소품 생성 제거.
+- 철회 후 최신 전체 배치 촬영 1/1 PASS(58.8초). 중간 발판·전용 받침/틀/점선이 없고 실제 공연 화면의 대기실 퀘스트가 없음을 육안 확인. Previews/Role-correction 및 role-correction.md에 최신 결과만 모음.
+- 최종 check-work -NoRecord exit 0: 안전성·문서/규칙·컴파일 PASS, 전체 자동 테스트는 선택하지 않아 SKIPPED. 별도 입력 1/1·대기실 범위 연결 1/1·현재 배치 촬영 1/1 결과와 구분. 커밋·push 없음.
 
-## 2026-11-02 첫 공연 전 동선 제한·단장 모니터 (사용자 순서)
+## 원본 공연 실물 비교에서 발견한 미완료 사항
+- 현재 실제 Tightrope 공연의 HasRelayGap=true 때문에 HasSwingGap=false, TightropeSwingPole 6개 모두 HasGap=false이고 viewRoot가 없음을 확인. 실제 직접 조작 그네는 활성 TightropeTrapeze다. 기존에 회전봉도 공연에 실제 쓰이는 것처럼 보고한 것은 잘못.
+- 실제 Tightrope 씬의 활성 Trapeze와 RelayPole 0을 검토 카메라로 촬영. Previews/Actual-comparison에 보관. 리허설 인간 그네의 실제 활성 원본 일치는 미완료이며 비교 화면에 차이를 명시한다. 트리거는 같은 RelayGate 구현이나 기존 승인된 연습 무제한 조건으로 시간 표시에 차이가 있다.
+- 이번 요청은 캡처·비교 조회이며 기능 코드는 변경하지 않음. 캡처 Play 종료. 추가 기능 테스트 없음.
 
-- 사용자 순서: 서명 → 연습실에서 시작(입구 철창 닫힘) → 리허설 성공 → 연습실 철창 열림·무대 입구 길안내 → 무대 입구 통로·로비·공연 스테이지 입구 외 모두 철창, 상점·소품실·숙소 등 상호작용 잠금, 연습실은 나오면 다시 잠김 → 무대 입구 통로 접근 시 치직 소리와 함께 로비·통로 위 모니터에 가면 쓴 단장 얼굴 → 외줄 공연 → 대기실 튜토리얼 때 해제 → 2일차 → 밤 정비 튜토리얼.
-- 실측(구조 A): 로비에서 철창 없이 열린 입구 3곳 — 북쪽 소품실·작업실 갈림길(약 4m), 북동쪽 상점·승강기·지하 홀(약 12m), 동쪽 숙소(약 4m). 기존 NightDoorLock 4곳(연습실·작업실·물류·지하)+무대 통로 셔터.
-- 구현:
-  - `RehearsalLockdownGate`(신규): 위 3곳에 런타임 철창(기존 철창 재질), 리허설 단계 동안 닫힘·이후 말려 올라가 사라짐.
-  - `NightDoorLock` 리허설 규칙 → `WaitingRoomRehearsal.IsGateLocked`: 연습실 철창은 리허설 중 닫힘, 포기 시 열림(재진입), 성공 시 열림 → 모두 연습실 밖이면 다시 잠금(`practiceSealed`, 호스트 판정·공유). 무대 통로 셔터는 성공 뒤 열림. 나머지는 닫힘.
-  - `ShopReach.Locked`: 리허설 단계 동안 상점·침대·스케줄표·선반 등 F 상호작용 전부 잠금.
-  - `RingmasterMonitor`(신규): 로비 동쪽 벽·무대 통로 입구 위 모니터. 리허설 성공 뒤 누구든 통로 입구 9m 안 → 잡음 1.3초+치직 소리 → 가면 쓴 단장 얼굴(브라운관 깜박임). 얼굴 그림·소리는 코드로 만든 임시 자원(아트·사운드 교체 필요).
-- 확인: 컴파일 PASS. 임시 캡처 테스트(삭제): 리허설 중 전부 닫힘 → 성공 직후 연습실·무대 통로 열림 → 연습실 밖이면 연습실 다시 닫힘, 신규 3곳·작업실·물류·지하 닫힘 유지, ShopReach.Locked = True, 통로 접근 시 두 모니터 단장 얼굴. 캡처 `.harness/local/rehearsal/lockdown/`.
-- 미확인: 실제 걸어서 새 철창 사이 틈 여부(사람 플레이), 2인 접속 시 연습실 재잠금, 외줄 공연 뒤 대기실 복귀 시 해제 화면.
+## 리허설 즉시 클리어 버튼
+- 현재 소구간만 정상 AdvanceStage 경로로 넘기는 호스트 전용 버튼 추가. 마지막 구간은 완료→기존 집결 흐름, 중복 클릭/이전 코스 도착 판정으로 다음 구간까지 건너뛰지 않게 회차 확인. Esc 커서 해제 뒤 클릭 가능하도록 기존 CameraCursorExclusion 사용.
+- 이번 버튼 작업에서 WaitingRoomTutorial.cs 추가 수정 없음. 다만 origin/dev 대비 과거 108줄 추가·5줄 삭제가 있어 사용자에게 명시, 원형 복구+별도 연결 분리를 질문함. 승인 전 광범위 복구하지 않는다.
+- 즉시 클리어 검사 1/1 PASS(59.2초): 소구간 5개, 동일 프레임 중복 클릭 거절, 도착 위치에서 이중 진행 방지, 최종 완료와 Rehearsal 집결 대기 확인. 실제 GUI 클릭 대신 버튼과 공통 TryClearCurrentStage 경로를 호출한 검사. 캡처 skip-button.png。
+- 버튼 최종 check-work -NoRecord exit 0: 안전성·문서/규칙·컴파일 PASS, 전체 자동 테스트 SKIPPED. 별도 버튼 전환 로직 1/1 PASS와 구분. 이번 버튼 작업에서 WaitingRoomTutorial.cs 변경 없음. 과거 dev 대비 수정의 복구·분리는 사용자 답변 대기. 커밋·push 없음.
 
-## 2026-11-03 임의 변경 되돌리기 (사용자 지시)
+## 사용자 승인: 튜토리얼 원형 복구·연결 분리
+- origin/dev 추가 커밋 없음. WaitingRoomTutorial.cs를 dev 바이트 원형으로 복구하고 새 WaitingRoomFirstDayFlow를 Unity create_script로 생성. 완료 판정은 원본 공개 SeenIds(G01/G11)·IsSequenceActive만 읽는다. 원본의 private Book/상태를 참조하지 않는다.
+- 원본 밤 할 일(N01)은 복구해 유지하며 별도 첫날 퀘스트는 아래 배치한다. 리허설 동안 원본 컴포넌트 실행을 중단/복원해 안내 충돌과 리허설 추락의 부활 안내 섞임을 막는다.
+- 분리 후 첫날 연결 검사 1/1 PASS(79.9초). 원형 안내의 완료 ID와 연계 상태만 읽어 집결→공연(대기실 퀘스트 없음)→밤 일정→취침→Day 2를 확인. 원본 N01 패널 유지(todo=True)와 첫날 퀘스트 동시 표시를 추적에서 확인.
 
-- 사용자: 임의로 바꾼 내용은 원래대로, 기획과 다른 내용은 먼저 제안. 과반수 카운트다운 포기는 인간 대포 리허설 규칙. 대기실 120초는 임의 추가. 허공에 뜬 물체 금지.
-- 되돌림:
-  - WaitingRoomTutorial 가이드 쉬는 시간 120초 자동 완료 제거(전원이 안내를 마쳐야 타이머 시작).
-  - 최초 리허설 포기 투표(F 길게·과반수 30초)·포기 상태·링 재진입 자동 이어하기·포기 시 연습실 철창 열림·로비 이동 제거, 관련 문구 키(rehearsal.giveup*, rehearsal.abandoned*) 삭제.
-  - 무대 입구 통로 입구 앞 허공에 띄운 모니터 제거 → 통로 안(z 59) 천장 높이를 레이캐스트로 재서 막대가 천장까지 닿게 매닮(천장 못 찾으면 만들지 않음). 로비 모니터는 동쪽 벽면을 재서 뒷면이 벽에 닿게 검(약 20cm 떠 있던 것 수정).
-- 미확인: Unity 연결 끊김으로 컴파일·화면 확인 못 함. W6_Rehearsal_BuildsCourse 테스트는 "리허설 중 연습실 철창 열림"을 기대해 현재 규칙과 맞지 않음(테스트는 사용자 요청 시).
-- 2026-11-03 권장안 진행(사용자): 출발대·도착대·중간 발판 아래 네 모서리 받침 기둥(실제 발판 윗면을 레이캐스트로 재서 링 바닥까지), 끊긴 구간 점선을 줄 바로 아래 링 바닥에 그림. 나머지 공란 항목은 사용자 결정 전까지 현재 값 유지. 남은 떠 있는 것: 공연 그네 틀(줄 높이에서 시작)·해제봉 매다는 줄 위 끝 — 공연 장치 그대로라 별도 제안 필요. Unity 연결 끊김으로 컴파일 미확인.
-- 2026-11-03 받침 추가(사용자): 리허설 코스에서만 그네 틀 기둥(줄 옆 ±1m, 매다는 자리)을 줄 높이에서 링 바닥까지, 트리거 그네(해제봉) 매다는 줄 위 끝(손잡이+1.6m)에 가로대와 양쪽 기둥(±1m). 충돌체 없음(줄 이동·그네 비행 방해 안 함). 공연 코스는 그대로. 컴파일·화면 미확인(Unity 연결 끊김).
+## 기획서 구현 반영 (2026-11-03)
+- Confluence 32702474를 v3으로 갱신. 원문은 유지하고 0장(리허설 성격·기획 대비 구현 요약), 2.1 첫날 상세 흐름(사용자 확정 11단계), 2.2 첫날 우측 퀘스트, 각 장 [구현] 노트, 4장 현재 문구 열, 10장 현재 임시값 열을 추가.
+- 리허설 성격 명시: 외줄타기 공연 학습용, 공연 에셋·HUD·조작 그대로 사용, 연습 모드로 패널티 없음.
+- 기획 대비 확인 필요로 표시: 1단계 중간 발판 없음, 2-1·2-2 전원 도착(기획 2단계 1명 이상), 인간 그네 TightropeSwingPole vs 실제 공연 TightropeTrapeze 미일치, 단장 모니터 얼굴·소리 임시 자원, 즉시 클리어 버튼 출시 처리.
+- Unity 에디터는 꺼져 있어 코드·문구 파일·git 상태로 구현을 확인. 씬 변경 없음. 코드 변경 없음, 커밋·push 없음.
 
-## 2026-11-03 첫 공연 전후 기능 연결 (진행 중)
+## dev 수신·상태 보고
+- Unity 종료 확인 후 git fetch --no-recurse-submodules origin dev 및 현재 브랜치 merge 실행. 최신 origin/dev=6491a570, HEAD=a86539cd가 이미 포함해 Already up to date. 기존 미커밋/서브모듈 변경 보존, 새 커밋·push 없음.
+- WaitingRoomTutorial.cs는 최신 origin/dev와 차이 없음 확인. 별도 FirstDayFlow 존재. 이전 원본 밤 회귀의 마지막 저장 결과는 running이며 에디터가 종료되어 완료 결과는 미확인으로 유지한다.
 
-- 사용자 확정: 첫 외줄 공연 → 대기실 tutorial → **1일차 두 번째 공연** → 밤 정비. 리허설 공연은 현재 제작본을 유지하고, 다른 기능을 먼저 연결한 뒤 기능 검증과 대기실 버그를 수정한다. 추락·실패 시 위쪽 구간 출발 위치로 순간이동하는 방식 유지.
-- `RunState.NotifyAllAtStageEntrance`: 가이드 쉬는 시간에 튜토리얼이 완료되지 않았다면 집결로 다음 공연에 넘어가지 못하도록 차단.
-- `StageEntranceGather`: 거절된 집결은 완료로 기록하지 않고, 튜토리얼을 마친 뒤 전원이 계속 입구에 있으면 전환을 다시 시도.
-- `WaitingRoomRehearsal`·`NightDoorLock`: 리허설부터 첫 공연 전환 중까지 철창과 상호작용 제한 유지, 첫 공연 후 가이드 쉬는 시간 진입 시 해제.
-- `WaitingRoomSpawn`: 최초 리허설 진입 시 연습실 바닥 충돌면을 확인해 그 위에 플레이어를 배치. 바닥이 없으면 임의 좌표로 놓지 않고 기존 리허설 배치를 기다림.
-- `ShopReach`·`ExplorationState`: 첫 공연 전 상호작용 잠금을 입력 선택과 호스트 탐색 판정에 함께 적용.
-- `RehearsalPathGuide`: 점선에 방향 화살표 추가. 철창 개방 뒤 길을 굽고, NavMesh가 완전한 경로를 찾지 못하면 벽·철창 관통 직선을 표시하지 않음.
-- 이번 묶음은 사용자 요청에 따라 Unity 기능 검증·대기실 버그 재현을 뒤로 미룸. 컴파일·실제 동선·다인 접속은 미확인.
+## 중단 지점·현재 상태 재감사
+- interruption-audit.md에 코드/결과를 대조. 11:37 연결 PASS→보완 후 11:38 컴파일 PASS→11:41 밤 회귀 결과 회수 차단(running만 보관)에서 검증 작업 중단. 분리 후 최종 검사는 없음. 최신 dev 병합 후 검증 완료로 보고하지 않는다.
+- 현재 Tutorial 원형 diff 0, 별도 Flow/버튼/공연 퀘스트 제거 구현 확인. 인간 그네는 SwingPole여서 활성 공연 Trapeze 원본 일치가 여전히 미구현. 새 플레이 테스트는 이번 감사에서 실행하지 않음.
 
+## 첫 두 단계 기능 수정 진행·대기실 Dev 기준
+- 전 구간 전원 도착/과반 체크 투표 전환, 도착 기록·접속 인원 공유·이전 회차 투표 거절·로컬 도착대 이탈 복귀를 코드에 반영했다. 개인 기물 체크포인트 저장/복구와 끊긴 줄 저장 방지를 추가했다. 아직 다인 실행 검증 전이므로 CC-210/211 완료 처리하지 않는다.
+- 사용자 정정: 대기실 Dev 선택이 개발 진입 기준, Start/전체 씬 연결은 마지막. 기존 DevStartLauncher 리허설 경로를 재사용하고 Dev 명시 재시작에만 이수 기억 초기화를 연결했다.
+- 검사: 수정 전 컴파일 PASS(up_to_date), 전체 EditMode 요청 뒤 Pipeline 시간 초과/연결 리셋으로 결과 미회수. 이후 에디터 playing 상태라 수정 후 컴파일 검사는 차단됐다. git diff --check 통과. 실제 체크포인트 배치·다인 투표·도착자 경계 동작은 미검증이다.
 
-## 2026-11-03 기능 연결·편집 가능한 임시 퀘스트
-- 사용자 승인 계획에 따라 리허설 코스 제작본은 유지하고, 첫날 두 공연·대기실 안내·밤 정비의 실제 상태에 임시 우측 퀘스트를 연결했다. 퀘스트는 안내 끄기 설정과 독립적으로 표시하며 기존 팀 대기 패널·스케줄표 창과 겹치면 숨긴다.
-- 문구는 WaitingRoomTexts.txt의 first-day.quest.*, 패널 위치·너비·제목/본문 크기는 first-day.panel.*. 리허설 우측 패널도 같은 수치를 사용한다. 좌측 안내 파일은 기존 그대로다.
-- 가이드 쉬는 시간 무제한 설정에서도 전원 안내 완료 전 집결 전환을 차단하고, 완료 후 원래 무제한 상태로 복구한다.
-- 동기화: origin fetch 완료, origin/dev는 현재 HEAD에 포함돼 병합 불필요. start-work는 기존 Task-097 중복 때문에 실패했으나 feat/rehearsal-flow와 정확한 Task 경로를 확인했다. doctor는 앞서 실행한 결과를 재사용했다.
-- 검사 중간 결과: 컴파일 오류 0. RestTimeRulesTests 3/3 PASS(2인 완료 대기→같은 날 두 번째 공연→밤 포함). 전체 check-work는 안전성·문서·컴파일 PASS 후 검사 도중 문서·테스트 수정으로 fingerprint 실패. 최종 변경 후 재검사 예정.
-- 첫 PlayMode 연결 테스트는 안내 완료 직후 퀘스트 Visible을 한 프레임만 기다려 FAIL. 패널이 그려질 때까지 유한 대기하도록 바꾸고 실제 캐릭터 상태를 실패 메시지에 포함해 원인을 구분한다. 결과 후속 기록.
+## CC-210·211 첫 묶음 구현 반영
+- Base 설정/대기실 씬 열림·dirty=false를 확인했다. 기존 DevStartLauncher의 리허설 선택 경로와 명시 재시작 초기화를 사용한다. Start/전체 씬 연결은 마지막으로 유지한다.
+- 전 구간 한 명 도착 후 연습 지속·전원 도착/과반 체크 투표 전환, 도착자 이탈 복귀, 회차별 투표 초기화·동의 취소·접속 참가자 정리·마지막 도착자 이탈 시 투표 제거를 반영했다. 문구는 WaitingRoomTexts에서 편집한다.
+- 실제 줄 접지에서 개인 복구점을 저장하고 추락 1.5초 후 해당 지점 복귀한다. 트리거 해제 시 사라질 줄·공중 후보는 제외한다. 기물 이용 전 위치·비상호작용 줄 끝3m 전 기준을 적용했으며 새 배치 수치 조정은 없다. checkpoint-placement.md 참조.
+- 수정본 compile PASS(completed). 합성 원격 소유자 3명으로 과반/체크 취소·도착대 이탈·개인 복귀/초기화를 함께 확인하는 최소 PlayMode 스모크 1건을 추가했다. 실행은 Unity SourceAssetDB 가져오기 시각 불일치 경고에서 진행하지 못했고 cancel_tests=cancelled로 취소했다. 실제 다인 성공으로 기록하지 않는다.
+- 에디터 리로드/가져오기 복구 호출도 main thread timeout으로 실행 확인이 막혔다. 두 티켓은 코드 반영/컴파일 통과와 실행 미검증을 구분하며 완료 체크하지 않는다. 검사 대기 프로세스를 정리했다.
+- 최종 문서/안전성 검사 PASS, git diff --check 통과. check-work는 -SkipUnity로 실행해 전체 exit 2이며 별도 수정본 컴파일 PASS와 구분한다. 자동 스모크는 취소/미검증이다.
 
-- 재검사: W6_FirstDay_GuideSecondPerformanceAndNightQuests 1/1 PASS(90.7초). 안내 완료→집결→1일차 두 번째 공연→EndPerformance 공개 신호→첫날 밤→스케줄 확정→취침 퀘스트 전환 확인. 실제 공연 조작·다인 접속을 대체하는 검사는 아니다. 화면 캡처 `.harness/local/rehearsal/first-night-quest.png`에서 좌측 안내와 우측 취침 퀘스트 표시 확인.
-- 추가 회귀: W5_Tutorial_NightShowsAndDisabledShowsNothing 1/1 PASS(155.3초). 퀘스트는 안내 끄기와 독립, 밤 연계 안내 순서·일정 확정 뒤 취침 안내·스케줄표 열 때 숨김/닫으면 복원 확인. 단독 호스트 자동 검사이며 실제 2인 접속·공연 입력·새 철창 틈은 미확인. 커밋·push 없음.
-- 최종 check-work -NoRecord: exit 0, 안전성 PASS·문서/규칙 PASS·컴파일 PASS. 해당 명령의 테스트는 SKIPPED(선택 안 함), 별도로 실행한 EditMode 3/3·PlayMode 2/2 PASS와 구분한다. 검사 중 파일 변경 없음.
+## CC-212·213 두 번째 묶음 구현
+- TightropeCourse.SetIntermediatePlatformLanes로 1단계 짧은 첫 줄 끝에 기존 공연 FinishPlatform 생성 경로·ArtProfile.floor·충돌체·윤곽을 재사용했다. 너비/두께/길이는 현재 코스 SideMargin·PlatformThickness·FinishPlatformLength에서 읽는다. 기존 22m 끝/38m 도착 및 모든 코스 치수는 변경하지 않았다.
+- 기존 TightropeSwingPole의 승인된 단독 F/W/S/Space·연속 공중F와 TightropeRelayGate를 유지했다. 지정 배치에서는 봉/케이블의 기존 공연 아트를 사용하고 옛 도형 틀·별도 월드 안내를 표시하지 않는다. 2인 몸 교대 Trapeze로 학습 동작을 바꾸지 않았다. 기물 위치·간격·물리 파라미터 변경 없음.
+- 구 기획의 전원/1인 즉시 완료 설명을 새 공통 투표 규칙에 맞춰 정리했다. 실제 입력 회귀의 추락 복귀 기대도 앞 묶음의 개인 체크포인트 기준으로 수정하고 중간 발판 아트/충돌체 검사를 추가했다.
+- 컴파일 PASS(completed). 기존 W6_Rehearsal_PerformanceInputHudAndFallRecovery 한 건만 실행 요청했으며 실행 결과는 회수 후 별도 기록한다.
+- 입력 스모크는 준비/리로드 상태 약4분 이상 지속하며 결과를 내지 못해 cancel_tests로 취소 요청했다. 반복 실행하지 않았다. 검사 대기 프로세스를 종료했다. 문서/안전성 PASS, git diff --check 통과, check-work -SkipUnity exit2(별도 컴파일 PASS와 구분). CC-212/213 Jira에 코드 반영 및 실행 미확인 상태를 기록했다.
 
-
-## 2026-11-03 5단계 최소 기능·실동선 검사
-- 사용자 지시: 필요한 기능 검사만 하고 체감·상세 조율은 사람이 확인. 반복 전면 회귀 대신 단일 리허설 스모크 뒤 실패 구간만 좁혀 확인한다.
-- 편집 누락 수정: 리허설 우측 제목·좌측 단계 설명도 WaitingRoomTexts.txt rehearsal.stage.<ID>.title/intro에 연결. 2-2 자동 잡기처럼 읽히던 설명을 공중 F 잡기로 정정. 코스·조작·완료 규칙은 유지.
-- 새 철창 3곳 입력 검사: 중앙·양끝 바깥 9지점 중 8곳을 일반 이동 입력으로 밀었으며 통과 0. 숙소 한쪽 끝은 시작점이 기존 벽으로 막혀 이동 불가. 보고서 .harness/local/rehearsal/verification/closed-gate-probes.txt. 각 시도 시작 위치만 배치했으며 길을 걸어서 우회하는 전수 검사는 아니다.
-- 리허설 기능 스모크: 추락 상태 요청→호스트 복구→같은 단계 출발대, 1단계 도착→2-1 전환, 2-2 반동·놓기·F 잡기 요청→두 번째 그네 매달림 확인. 트리거 직전 FAIL: 매달린 채 시험이 다음 코스로 강제 전환한 상태가 섞임. 다음 코스 배치 전 봉 이탈을 명시하도록 시험 정리.
-- 트리거·출구만 좁힌 검사: 새 상태에서 2-3 잡기→연결·놓기→끊김, 3단계 짝 줄 연결, 최종 도착→완료까지 정상. 이후 길안내 PathInvalid로 FAIL.
-- 실제 원인: StageEntranceGather 집결 위치(-6,0,-10.15)가 기존 NavMesh 생성 범위(z>=0) 밖이다. RehearsalPathGuide 생성 범위에 출발점·목적지와 여유 12m를 포함하도록 수정. 출구 이동만 재검사 예정.
-- 캡처: .harness/local/rehearsal/verification/01~10과 gate-*.png. 퀘스트 편집 방법은 quest-editing.md에 기록.
-- 출구만 재검사 W6_Rehearsal_ExitRouteSmoke 1/1 PASS(133.3초). NavMesh 경로 10개 점 생성, 8개 경유점에서 캡처, 마지막 구간을 실제 이동 입력으로 걸어 집결→Performance 상태 전환 확인. 최종 캡처는 공간 전환 커튼이며 공연 씬 로딩 완료 증거는 아니다. 캡처 사본은 Previews/Rehearsal/, 순서 설명은 verification.md.
-- 최종 check-work 1차: 안전성 PASS, 문서/규칙 FAIL(내가 복사한 철창 캡처 파일명 3개가 대문자·밑줄을 포함). 소문자 하이픈 파일명으로 바꾸고 문서 링크를 수정했다. 코드 컴파일은 앞선 별도 실행 오류 0이며 최종 필수 검사를 다시 확인한다.
-- 최종 check-work 재확인 exit 0: 안전성 PASS·문서/규칙 PASS·컴파일 PASS. 전체 자동 테스트는 선택하지 않음(SKIPPED), 필요한 기능 스모크의 부분 확인·실패·출구 수정 후 PASS 기록과 구분한다. 실제 다인 협동·전체 우회 동선·조작 체감은 사람 확인 후속. 커밋·push 없음.
+## CC-214·218 세 번째 묶음 구현
+- 기존 3단계 네 줄/1↔2·3↔4 배치를 유지하고 완료 시 추락자 복구·기존 DeckCollider 위 안전 복귀를 연결했다. 완료 직후 도착하는 늦은 추락 신호도 복구/재배치한다. 코스 길이·간격·기물 위치·높이는 변경하지 않았다.
+- 기획서 설명/퀘스트 문구, 최초 소개→단계 안내 순서, 10초/추락4초 유지·복구 안내 덮어쓰기 방지, 체크포인트·목마 근접 설명, 제목 느낌표/연한 주황 강조를 기존 UI/문구 파일로 연결했다. 패널 크기/위치/글자 크기는 기존 설정 유지.
+- 단장 연출은 기존 Base 통로 구역 BoxCollider 진입과 호스트 공유 시작 시각을 사용한다. 잡음 뒤 얼굴3초 후 종료, 재진입/늦은 합류 재생 방지·새 리허설 초기화. 기존 임시 얼굴/잡음 자원은 유지했다. stage3-and-guides.md 참조.
+- 최종 수정본 recompile_status=completed, failed=false, errors=[] 확인. 문서/안전성 PASS, git diff --check 통과. check-work -SkipUnity exit2는 별도 컴파일 PASS와 구분. 전체 테스트 러너 대신 런타임 연출 시간 전환 한 건만 요청했다.

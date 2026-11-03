@@ -59,6 +59,74 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         static bool Blocked(Component course, int lane, float distance) => (bool)Call(course, "IsSegmentBlocked", lane, distance);
 
         [UnityTest]
+        public IEnumerator W6_Rehearsal_WholeCourseCaptures()
+        {
+            FreshTutorial();
+            T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
+            System.IO.Directory.CreateDirectory(".harness/local/rehearsal/overview");
+            try
+            {
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                for (int stage = 0; stage < 5; stage++)
+                {
+                    if (stage > 0) yield return JumpStage(stage);
+                    var course = (Component)Priv(Rehearsal, "course");
+                    Assert.IsNotNull(course);
+                    yield return CaptureWholeCourse(course, stage);
+                }
+            }
+            finally { EndTutorial(); }
+        }
+
+        // 실제 생성된 코스만 검토 카메라로 촬영한다. 배치·메시·재질은 바꾸지 않는다.
+        static IEnumerator CaptureWholeCourse(Component course, int stage)
+        {
+            // 생성/아트 모듈의 다음 프레임 준비가 끝난 뒤 레이어를 분리한다.
+            yield return null;
+            var transforms = course.GetComponentsInChildren<Transform>(true);
+            var layers = new int[transforms.Length];
+            for (int i = 0; i < transforms.Length; i++) { layers[i] = transforms[i].gameObject.layer; transforms[i].gameObject.layer = 31; }
+            var renderers = course.GetComponentsInChildren<Renderer>(true);
+            var hidden = new bool[renderers.Length];
+            for (int i = 0; i < renderers.Length; i++) { hidden[i] = renderers[i].forceRenderingOff; renderers[i].forceRenderingOff = false; }
+            var go = new GameObject("Course overview capture camera");
+            var camera = go.AddComponent<Camera>();
+            var lamp = new GameObject("Course overview light");
+            var light = lamp.AddComponent<Light>(); light.type = LightType.Directional; light.intensity = 2.5f;
+            light.cullingMask = 1 << 31; light.shadows = LightShadows.None;
+            lamp.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
+            var texture = new RenderTexture(1600, 1200, 24);
+            var image = new Texture2D(1600, 1200, TextureFormat.RGB24, false);
+            var previous = RenderTexture.active;
+            try
+            {
+                float finish = (float)Get(course, "FinishDistance");
+                Vector3 centre = course.transform.position + Vector3.forward * (finish * .5f) + Vector3.up * .7f;
+                camera.transform.position = centre + new Vector3(10f, 36f, -15f);
+                camera.transform.LookAt(centre);
+                camera.orthographic = true;
+                camera.orthographicSize = 24f;
+                camera.nearClipPlane = .1f; camera.farClipPlane = 150f;
+                camera.cullingMask = 1 << 31;
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(.12f, .15f, .19f);
+                camera.targetTexture = texture;
+                camera.Render();
+                RenderTexture.active = texture;
+                image.ReadPixels(new Rect(0, 0, 1600, 1200), 0, 0); image.Apply();
+                System.IO.File.WriteAllBytes(".harness/local/rehearsal/overview/" + new[] { "01-stage1", "02-stage2-1", "03-stage2-2", "04-stage2-3", "05-stage3" }[stage] + ".png", image.EncodeToPNG());
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                for (int i = 0; i < transforms.Length; i++) if (transforms[i] != null) transforms[i].gameObject.layer = layers[i];
+                camera.targetTexture = null;
+                for (int i = 0; i < renderers.Length; i++) if (renderers[i] != null) renderers[i].forceRenderingOff = hidden[i];
+                Object.Destroy(lamp); Object.Destroy(go); Object.Destroy(texture); Object.Destroy(image);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator W6_Rehearsal_CoursesFollowStageDiagrams()
         {
             // Task-097: 기획서 5~7장 구조도대로 줄·발판·그네·트리거 그네·끊긴 구간을 놓고, 연습실 옛 소품은 숨긴다.
@@ -95,9 +163,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
                 var layout = Get(course, "Layout");
                 Assert.AreEqual(2, Get(course, "LaneCount"));
-                Assert.AreEqual(14f, (float)Call(layout, "GetLaneEnd", 0), .01f, "위쪽 줄은 중간 지점에서 끝");
-                Assert.AreEqual(26f, (float)Call(layout, "GetLaneEnd", 1), .01f);
-                Assert.IsNotNull(course.transform.Find("RehearsalPlatform"), "중간 지점 발판");
+                Assert.AreEqual(22f, (float)Call(layout, "GetLaneEnd", 0), .01f);
+                Assert.AreEqual(38f, (float)Call(layout, "GetLaneEnd", 1), .01f);
+                Assert.IsNull(course.transform.Find("RehearsalPlatform"), "줄 끝에 임의 발판을 추가하지 않는다");
 
                 // 2-1: 그네 1개.
                 var firstFinish = (Pose)Call(course, "GetFinishPose", 1);

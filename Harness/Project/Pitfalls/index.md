@@ -1,5 +1,7 @@
 # Project Pitfalls
 
+- [waiting-room-panel-font-owner.md](waiting-room-panel-font-owner.md) — 공연·밤 전환 뒤 퀘스트가 비거나 패널 폰트가 삭제될 때
+
 - [escape-inspection-state.md](escape-inspection-state.md) — 자유비행 중 리타이어되거나 메뉴에서 관전 대상이 바뀔 때
 
 - [escape-balance-ui-overrides.md](escape-balance-ui-overrides.md) — 같은 균형 HUD 프리팹인데 탈출로와 원본 외줄 UI의 두께/화면 스케일이 다를 때

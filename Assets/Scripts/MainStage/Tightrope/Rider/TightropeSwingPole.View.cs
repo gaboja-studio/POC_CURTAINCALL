@@ -71,8 +71,8 @@ namespace CurtainCall.Tightrope
                 aimLabel.transform.position = predicted + Vector3.up * .8f;
                 if (Camera.main != null) aimLabel.transform.rotation = Camera.main.transform.rotation;
             }
-            entry.gameObject.SetActive(course.IsLaneUsable(assignedLane, EntryDistance));
-            exit.gameObject.SetActive(next == null && course.IsLaneUsable(assignedLane, LandingDistance));
+            entry.gameObject.SetActive(!hasSpot && course.IsLaneUsable(assignedLane, EntryDistance));
+            exit.gameObject.SetActive(!hasSpot && next == null && course.IsLaneUsable(assignedLane, LandingDistance));
             if (Camera.main != null && sign != null) sign.transform.rotation = Camera.main.transform.rotation;
         }
 
@@ -88,9 +88,13 @@ namespace CurtainCall.Tightrope
             float laneSide = course.Layout.GetLaneSide(assignedLane);
             float center = EntryDistance;
             float height = physicalPole.HangLength + SwingPoleMath.GripHeight + .3f;
-            Box("Pivot", new Vector3(laneSide, height, center), new Vector3(width + .5f, .18f, .18f), frame);
-            foreach (float side in new[] { -1f, 1f })
-                Box("Frame", new Vector3(laneSide + side * (width * .5f + .3f), height * .5f, center), new Vector3(.22f, height, .22f), frame);
+            // 지정 배치 리허설은 공연 봉/케이블 아트만 사용한다. 옛 회전봉의 도형 틀은 붙이지 않는다.
+            if (!hasSpot)
+            {
+                Box("Pivot", new Vector3(laneSide, height, center), new Vector3(width + .5f, .18f, .18f), frame);
+                foreach (float side in new[] { -1f, 1f })
+                    Box("Frame", new Vector3(laneSide + side * (width * .5f + .3f), height * .5f, center), new Vector3(.22f, height, .22f), frame);
+            }
             crossbar = Box("RotatingBar", Vector3.zero, new Vector3(width, .14f, .14f), orange);
             leftRod = Box("LeftRod", Vector3.zero, Vector3.one, frame);
             rightRod = Box("RightRod", Vector3.zero, Vector3.one, frame);
@@ -103,6 +107,7 @@ namespace CurtainCall.Tightrope
             var label = new GameObject("SwingInstructions"); label.transform.SetParent(viewRoot, false);
             label.transform.localPosition = new Vector3(laneSide + 1.1f, 2f, GapFrom - 2f);
             sign = label.AddComponent<TextMesh>(); sign.text = $"{assignedLane + 1}번 줄 회전봉\nF 잡기 · W/S 반동 · Space 놓기\n공중 WASD 조절 · 동료 F 받기";
+            sign.gameObject.SetActive(!hasSpot);
             sign.fontSize = 64; sign.characterSize = .035f; sign.anchor = TextAnchor.MiddleCenter; sign.color = Color.cyan;
         }
 

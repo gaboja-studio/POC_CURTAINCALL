@@ -20,24 +20,49 @@ namespace CurtainCall.WaitingRoom
         RehearsalPathGuide guide;
         NetworkPlayer local;
         int placedRound = -1;
+        float introductionUntil, actionGuideAfter;
+        bool pendingStageIntro, laneHintShown;
+        readonly System.Collections.Generic.HashSet<ulong> mountHints = new();
+        Pose? checkpoint, arrivalPose;
+        float checkpointDistance = float.NegativeInfinity;
         string lastQuest = "";
         StageEntranceGather gather;
+        CameraCursorExclusion skipCursorRegion;
+        Rect SkipButtonRect => new Rect(Mathf.Max(12f, Screen.width - 292f), Screen.height - 106f, 280f, 38f);
 
         void AwakeLocal()
         {
-            quest = new WaitingRoomRightPanel(transform, "RehearsalQuestCanvas", QuestTop, QuestWidth, "first-day.panel.");
+            quest = new WaitingRoomRightPanel(transform, "RehearsalQuestCanvas", QuestTop, QuestWidth, "first-day.panel.") { GuideStyle = true };
             guide = gameObject.AddComponent<RehearsalPathGuide>();
+            skipCursorRegion = gameObject.AddComponent<CameraCursorExclusion>();
+            skipCursorRegion.enabled = false;
+        }
+
+        // 실제 공연과 동일한 HUD 프리팹·균형 표시 바인딩을 사용한다. 입력과 균형 판정을 새로 만들지 않는다.
+        void BuildPerformanceUi()
+        {
+            var hudPrefab = Resources.Load<GameObject>("Prefabs/UIs/PerformanceHud/PerformanceHud");
+            var cheerPrefab = Resources.Load<GameObject>("Prefabs/UIs/CheerGauge/C1CheerGauge");
+            if (hudPrefab == null || cheerPrefab == null)
+            { Debug.LogError("[Rehearsal] 기존 공연 HUD 프리팹이 없습니다."); return; }
+            var hudRoot = Instantiate(hudPrefab, courseRoot.transform, false);
+            hudRoot.name = "RehearsalPerformanceHud";
+            var cheerRoot = Instantiate(cheerPrefab, hudRoot.transform, false);
+            var stock = cheerRoot.GetComponent<CurtainCall.CheerGauge.C1CheerGaugeBinding>();
+            if (stock != null) stock.enabled = false;
+            var binding = hudRoot.AddComponent<CurtainCall.UI.SceneIntegration.PerformanceSceneBinding>();
+            binding.Configure(hudRoot.GetComponent<CurtainCall.UI.PerformanceHudV1.PerformanceHUDView>(),
+                cheerRoot.GetComponent<CurtainCall.CheerGauge.C1CheerGaugeView>(), null);
         }
 
         void DestroyLocal()
         {
-            foreach (var material in propMaterials) if (material != null) Destroy(material);
-            propMaterials.Clear();
         }
 
         void ActivateLocal()
         {
             placedRound = -1; lastQuest = "";
+            introductionUntil = Time.unscaledTime + IntroSeconds;
             gather = null;
             WaitingRoomTutorialPanel.Show(
                 WaitingRoomText.Get("rehearsal.intro-title", "최초 리허설"),
@@ -47,6 +72,7 @@ namespace CurtainCall.WaitingRoom
 
         void DeactivateLocal()
         {
+            skipCursorRegion.enabled = false;
             Bind(null);
             quest.Hide();
             guide.SetTarget(null);
@@ -64,8 +90,12 @@ namespace CurtainCall.WaitingRoom
         /// <summary>추락 복구(호스트가 보통 상태로 되돌림) → 그 소구간 출발대로. 재시도 퀘스트는 LocalTick이 다시 띄운다.</summary>
         void OnLocalStateChanged(PlayerState previous, PlayerState next)
         {
-            if (!active || previous != PlayerState.Fallen || next != PlayerState.Normal || course == null) return;
-            PlaceLocalAtStart();
+            if (!active || previous != PlayerState.Fallen || next != PlayerState.Normal) return;
+            if (completed) { placedRound = -1; return; }
+            if (course == null) return;
+            if (checkpoint.HasValue) Relocate(local.GetComponent<PlayerMover>(), checkpoint.Value.position, checkpoint.Value.rotation);
+            else PlaceLocalAtStart();
+            laneHintShown = false; mountHints.Clear(); actionGuideAfter = Time.unscaledTime + 4f;
             WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.fall-title", "추락"),
                 WaitingRoomText.Get("rehearsal.fall", "대가는 없습니다. 이 구간 출발대에서 다시 시작합니다."), 4f);
         }
@@ -74,22 +104,99 @@ namespace CurtainCall.WaitingRoom
         void OnCourseChanged()
         {
             placedRound = -1; lastQuest = "";
+            checkpoint = null; arrivalPose = null; checkpointDistance = float.NegativeInfinity;
+            laneHintShown = false; mountHints.Clear(); pendingStageIntro = false; actionGuideAfter = 0f;
             var s = Stage;
             if (course != null && s != null)
-                WaitingRoomTutorialPanel.Show(s.DisplayTitle, s.DisplayIntro, IntroSeconds);
+            {
+                if (Time.unscaledTime < introductionUntil) pendingStageIntro = true;
+                else WaitingRoomTutorialPanel.Show(s.DisplayTitle, s.DisplayIntro, IntroSeconds);
+            }
             else if (active && completed)
                 WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.complete-title", "리허설 완료"),
                     WaitingRoomText.Get("rehearsal.complete", "바닥의 점선을 따라 무대 입구 통로로 가세요. 모든 공연 준비자가 모이면 첫 공연이 시작됩니다."), IntroSeconds);
         }
 
+        void OnGUI()
+        {
+            if (CanVote)
+            {
+                bool selected = votes.Contains(local.OwnerClientId);
+                var rect = new Rect(SkipButtonRect.x, SkipButtonRect.y - 70f, 280f, 34f);
+                bool value = GUI.Toggle(rect, selected, WaitingRoomText.Format("rehearsal.vote", "다음 구간으로 ({votes}/{required})", ("votes", votes.Count), ("required", participantCount / 2 + 1)));
+                if (value != selected) RequestVote(value);
+            }
+            if (!CanClearCurrentStage) return;
+            if (GUI.Button(SkipButtonRect, WaitingRoomText.Get("rehearsal.clear-button", "현재 구간 즉시 클리어 · 다음")))
+                TryClearCurrentStage();
+            GUI.Label(new Rect(SkipButtonRect.x, SkipButtonRect.y - 22f, 280f, 22f),
+                WaitingRoomText.Get("rehearsal.clear-button-hint", "호스트 전용 · Esc로 커서 해제"));
+        }
+
         void LocalTick()
         {
+            skipCursorRegion.enabled = CanClearCurrentStage || CanVote;
+            skipCursorRegion.SetScreenRect(new Rect(SkipButtonRect.x, SkipButtonRect.y - 70f, SkipButtonRect.width, SkipButtonRect.height + 70f));
             Bind(NetworkPlayer.Local);
             if (local == null || !local.IsSpawned || !local.TryGetComponent(out PlayerMover mover)) { quest.Hide(); return; }
             PlaceLocal(mover);
             if (completed) { TickCompleted(); return; }
             guide.SetTarget(null);
+            UpdateActionGuides();
+            TrackPersonalProgress(mover);
             UpdateQuest(mover);
+        }
+
+        void UpdateActionGuides()
+        {
+            if (Stage == null || local.State != PlayerState.Normal || arrived.Contains(local.OwnerClientId)
+                || Time.unscaledTime < actionGuideAfter) return;
+            if (pendingStageIntro)
+            {
+                if (Time.unscaledTime < introductionUntil) return;
+                pendingStageIntro = false;
+                WaitingRoomTutorialPanel.Show(Stage.DisplayTitle, Stage.DisplayIntro, IntroSeconds);
+                return;
+            }
+            if (!laneHintShown && Stage.Kind == RehearsalStageKind.LaneChange
+                && course.GetDistance(local.transform.position) >= Stage.CheckpointDistance
+                && course.Layout.GetLaneSlotAt(course.GetSide(local.transform.position)) == 0)
+            {
+                laneHintShown = true;
+                WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.lane-guide-title", "1단계 · 외줄타기 체크포인트 도달"),
+                    WaitingRoomText.Get("rehearsal.lane-guide", "줄이 끊긴 지점에서는 Q/E + Space키로 옆줄로 건너갈 수 있습니다."), IntroSeconds);
+            }
+            var target = PiggybackSystem.Current != null ? PiggybackSystem.Current.FindMountTarget(local) : null;
+            if (target != null && mountHints.Add(target.OwnerClientId))
+                WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.mount-title", "목마 상호작용"),
+                    WaitingRoomText.Get("rehearsal.mount", "동료 가까이에서 F키를 눌러 목마에 올라탈 수 있습니다."), IntroSeconds);
+        }
+
+        void TrackPersonalProgress(PlayerMover mover)
+        {
+            if (course == null || Stage == null || local.State != PlayerState.Normal) return;
+            if (arrived.Contains(local.OwnerClientId))
+            {
+                if (!arrivalPose.HasValue)
+                    arrivalPose = new Pose(course.GetLanePosition(course.Layout.GetLaneSlotAt(course.GetSide(local.transform.position)), course.FinishDistance), Quaternion.LookRotation(course.Forward));
+                if (!IsFinished(local) || Mathf.Abs(course.GetSide(local.transform.position)) > (course.LaneCount - 1) * course.Shape.LaneSpacing * .5f + course.Shape.SideMargin) Relocate(mover, arrivalPose.Value.position, arrivalPose.Value.rotation);
+                return;
+            }
+            if (!local.TryGetComponent<CharacterController>(out var controller) || !controller.isGrounded) return;
+            float distance = course.GetDistance(local.transform.position);
+            if (!course.IsOnRope(local.transform.position, 0f, out int lane)) return;
+            void Capture(int targetLane, float at)
+            {
+                if (lane != targetLane || distance < at || at <= checkpointDistance || !course.IsLaneUsable(lane, at)) return;
+                // 트리거가 해제돼도 남는 줄만 복귀 지점으로 기록한다.
+                foreach (var gap in Stage.Gaps) if (gap.Lane == lane && at >= gap.From && at <= gap.To) return;
+                checkpointDistance = at;
+                checkpoint = new Pose(course.GetLanePosition(lane, at), Quaternion.LookRotation(course.Forward));
+            }
+            if (Stage.Kind == RehearsalStageKind.LaneChange) Capture(lane, course.Layout.GetLaneEnd(lane) - 3f);
+            foreach (var spot in Stage.Swings) Capture(spot.Lane, spot.From - course.Shape.RopeWalkWidth);
+            foreach (var trigger in Stage.Triggers) Capture(trigger.Lane, trigger.Distance);
+            foreach (var gap in Stage.Gaps) Capture(gap.Lane, gap.From - 3f);
         }
 
         // ── 배치 ──
@@ -100,6 +207,17 @@ namespace CurtainCall.WaitingRoom
             if (local.State != PlayerState.Normal) return;
             if (course != null) PlaceLocalAtStart();
             else if (!completed) return;
+            else
+            {
+                var deck = ringRoom != null ? ringRoom.Find(RingDeckPath)?.GetComponent<Collider>() : null;
+                if (deck == null) return;
+                var bounds = deck.bounds;
+                float margin = mover.BodyRadius;
+                var p = new Vector3(
+                    Mathf.Clamp(local.transform.position.x, bounds.min.x + margin, bounds.max.x - margin),
+                    bounds.max.y, bounds.center.z);
+                Relocate(mover, p, Quaternion.LookRotation(Vector3.forward));
+            }
             placedRound = round;
         }
 
@@ -132,8 +250,9 @@ namespace CurtainCall.WaitingRoom
             var s = Stage;
             if (s == null || course == null) { quest.Hide(); return; }
             string body = QuestFor(s, mover);
+            if (string.IsNullOrEmpty(body)) { quest.Hide(); lastQuest = ""; return; }
             if (body == lastQuest && quest.Visible) return;
-            if (quest.Show(s.DisplayTitle, body)) lastQuest = body;
+            if (quest.Show(s.DisplayTitle, "[tutorial] " + body)) lastQuest = body;
         }
 
         string QuestFor(RehearsalStage s, PlayerMover mover)
@@ -141,10 +260,8 @@ namespace CurtainCall.WaitingRoom
             if (local.State == PlayerState.Fallen) return WaitingRoomText.Get("rehearsal.quest.fallen", "추락했습니다. 잠시 뒤 출발대에서 다시 시작합니다.");
             var p = local.transform.position;
             float distance = course.GetDistance(p);
-            if (IsFinished(local))
-                return s.Rule == RehearsalClearRule.Everyone
-                    ? WaitingRoomText.Get("rehearsal.quest.wait-team", "도착! 동료가 모두 도착할 때까지 기다리세요.")
-                    : WaitingRoomText.Get("rehearsal.quest.arrived", "도착! 곧 다음 단계로 넘어갑니다.");
+            if (arrived.Contains(local.OwnerClientId))
+                return WaitingRoomText.Format("rehearsal.quest.arrived-vote", "도착했습니다. 동료의 연습을 기다리거나 다음 구간 진행에 동의하세요. ({arrived}/{total}, 동의 {votes}/{required})", ("arrived", arrived.Count), ("total", participantCount), ("votes", votes.Count), ("required", participantCount / 2 + 1));
             int myLane = course.Layout.GetLaneSlotAt(course.GetSide(p));
 
             // 트리거 그네를 잡고 있다.
@@ -168,7 +285,7 @@ namespace CurtainCall.WaitingRoom
             {
                 if (myLane == 0 && distance >= s.CheckpointDistance)
                     return WaitingRoomText.Get("rehearsal.quest.lane-jump", "Q, E + Space를 이용해 건너편 줄로 넘어가세요.");
-                if (myLane >= 1) return WaitingRoomText.Get("rehearsal.quest.finish", "줄을 따라 도착대까지 가세요.");
+                if (myLane >= 1) return "";
                 return WaitingRoomText.Get("rehearsal.quest.balance", "W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.");
             }
 
@@ -189,7 +306,7 @@ namespace CurtainCall.WaitingRoom
             foreach (var spot in s.Swings)
                 if (spot.Lane == myLane && distance < spot.From && spot.From - distance <= 5f)
                     return WaitingRoomText.Get("rehearsal.quest.swing-approach", "인간 그네에 탑승하세요. (줄 끝에서 F)");
-            if (!AnythingAhead(s, myLane, distance)) return WaitingRoomText.Get("rehearsal.quest.finish", "줄을 따라 도착대까지 가세요.");
+            if (!AnythingAhead(s, myLane, distance)) return "";
             return WaitingRoomText.Get("rehearsal.quest.balance", "W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.");
         }
 
@@ -236,7 +353,7 @@ namespace CurtainCall.WaitingRoom
                 ? WaitingRoomText.Format("rehearsal.quest.gathered", "무대 입구 통로에 모였습니다 {inside}/{alive}. 동료를 기다리세요.", ("inside", gather.InsideCount), ("alive", gather.AliveCount))
                 : WaitingRoomText.Format("rehearsal.quest.gather", "점선을 따라 무대 입구 통로로 가세요. 전원 {inside}/{alive}이 모이면 공연이 시작됩니다.", ("inside", gather.InsideCount), ("alive", gather.AliveCount));
             if (body == lastQuest && quest.Visible) return;
-            if (quest.Show(WaitingRoomText.Get("rehearsal.gather-title", "리허설 완료 · 무대로"), body)) lastQuest = body;
+            if (quest.Show(WaitingRoomText.Get("rehearsal.gather-title", "리허설 완료 · 무대로"), "[tutorial] " + body)) lastQuest = body;
         }
     }
 }

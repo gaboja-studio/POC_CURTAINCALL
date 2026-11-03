@@ -19,6 +19,7 @@ namespace CurtainCall.WaitingRoom
         AudioSource audioSource;
         Mode mode;
         float modeStarted, nextNoise;
+        bool externallyTimed;
 
         public bool IsOn => mode != Mode.Off;
 
@@ -79,11 +80,36 @@ namespace CurtainCall.WaitingRoom
         public void TurnOn()
         {
             if (mode != Mode.Off) return;
+            externallyTimed = false;
             mode = Mode.Static; modeStarted = Time.time; nextNoise = 0f;
             screen.color = Color.white;
             audioSource.clip = StaticClip();
             audioSource.Play();
         }
+
+        /// <summary>호스트가 공유한 시작 시각 기준. 얼굴은 기획의 3초 후 꺼지고 재진입해도 다시 재생하지 않는다.</summary>
+        public void PlayAt(float elapsed)
+        {
+            if (!externallyTimed) { if (elapsed < StaticSeconds) TurnOn(); externallyTimed = true; }
+            RenderAt(elapsed);
+        }
+
+        void RenderAt(float elapsed)
+        {
+            if (elapsed >= StaticSeconds + 3f) { TurnOff(); return; }
+            if (elapsed < StaticSeconds)
+            {
+                mode = Mode.Static;
+                screen.color = Color.white;
+                if (Time.unscaledTime >= nextNoise) { FillNoise(); nextNoise = Time.unscaledTime + NoiseStep; }
+                return;
+            }
+            mode = Mode.Face; screen.mainTexture = FaceTexture();
+            float flicker = .88f + .12f * Mathf.PerlinNoise(Time.time * 6f, 0f);
+            screen.color = new Color(flicker, flicker, flicker);
+        }
+
+        public void ResetPlayback() { TurnOff(); externallyTimed = false; }
 
         public void TurnOff()
         {
@@ -94,17 +120,7 @@ namespace CurtainCall.WaitingRoom
 
         void Update()
         {
-            if (mode == Mode.Static)
-            {
-                if (Time.time >= nextNoise) { FillNoise(); nextNoise = Time.time + NoiseStep; }
-                if (Time.time - modeStarted >= StaticSeconds) { mode = Mode.Face; screen.mainTexture = FaceTexture(); }
-            }
-            else if (mode == Mode.Face)
-            {
-                // 오래된 브라운관처럼 밝기가 살짝 떨린다.
-                float flicker = .88f + .12f * Mathf.PerlinNoise(Time.time * 6f, 0f);
-                screen.color = new Color(flicker, flicker, flicker);
-            }
+            if (!externallyTimed && mode != Mode.Off) RenderAt(Time.time - modeStarted);
         }
 
         void FillNoise()

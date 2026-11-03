@@ -1,0 +1,35 @@
+{
+  "success": true,
+  "command": "command",
+  "data": {
+    "command": "test_status",
+    "parameters": {},
+    "result": {
+      "status": "completed",
+      "duration": 80.06,
+      "summary": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0,
+        "skipped": 0,
+        "inconclusive": 0
+      },
+      "results": [
+        {
+          "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.W6_FirstDay_GuideSecondPerformanceAndNightQuests",
+          "Status": "Passed",
+          "Duration": 79.8818181,
+          "Message": null,
+          "StackTrace": null
+        }
+      ]
+    },
+    "target": {
+      "host": "127.0.0.1",
+      "port": 7800,
+      "projectPath": "/Users/seomingyu/Desktop/0. 부트캠프/02. 커튼 콜/POC_CURTAINCALL"
+    }
+  },
+  "errors": [],
+  "warnings": []
+}
