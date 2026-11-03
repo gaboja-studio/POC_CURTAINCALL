@@ -23,14 +23,19 @@ namespace CurtainCall.UI.SceneIntegration
             "Assets/Scenes/Tests/MainStage/HumanCannon/HumanCannon.unity",
             "Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity",
             "Assets/Scenes/Levels/escape_route.unity",
-            "Assets/Scenes/Start_Lobby/Lobby.unity", "Assets/Scenes/Start_Lobby/Start.unity" };
+            "Assets/Scenes/InGame/Lobby.unity", "Assets/Scenes/InGame/Start.unity" };
         public static CommonMenuUI Current { get; private set; }
         public static Scene CurrentScene
         {
             get
             {
                 var active = SceneManager.GetActiveScene();
+                var waiting = CommonUiSceneLoader.CurrentWaitingRoom;
+                var waitingScene = waiting != null ? waiting.gameObject.scene : default;
+                if (CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(active) && active.isLoaded) return active;
+                if (waitingScene.isLoaded && waitingScene == active) return waitingScene;
                 foreach (var path in SpacePaths) if (active.path == path && active.isLoaded) return active;
+                if (waitingScene.isLoaded) return waitingScene;
                 foreach (var path in SpacePaths) { var scene = SceneManager.GetSceneByPath(path); if (scene.isLoaded) return scene; }
                 return default;
             }
@@ -117,8 +122,8 @@ namespace CurtainCall.UI.SceneIntegration
             var network = NetworkManager.Singleton;
             bool host = network != null && network.IsServer;
             leaveMessage.text = host ? "방장이 나가면 방이 종료되고\n모든 단원이 시작 화면으로 돌아갑니다." :
-                CommonUiSceneLoader.CurrentSpace != null ? "진행 중인 공연에서 이탈하고\n시작 화면으로 돌아갑니다." : "방에서 나가고\n시작 화면으로 돌아갑니다.";
-            footer.text = CommonUiSceneLoader.CurrentSpace != null ? "공연은 계속 진행 중입니다" : "게임은 계속 진행 중입니다";
+                CommonUiSceneLoader.HasPerformanceSpace ? "진행 중인 공연에서 이탈하고\n시작 화면으로 돌아갑니다." : "방에서 나가고\n시작 화면으로 돌아갑니다.";
+            footer.text = CommonUiSceneLoader.HasPerformanceSpace ? "공연은 계속 진행 중입니다" : "게임은 계속 진행 중입니다";
             menu.Show(); SyncInput();
         }
         public void OpenStartSettings(Action closed)

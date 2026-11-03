@@ -244,7 +244,9 @@ namespace CurtainCall.Player
             if (!Animator.HasState(0, hash)) return;
             Motion = motion;
             stateHash = hash;
-            if (motion == "Crawl")
+            // Animator.speed also scales crossfade progress. A frozen locomotion
+            // pose must be sampled now, otherwise the previous standing pose lingers.
+            if (motion == "Crawl" || speed <= .001f)
             {
                 Animator.Play(hash, 0, 0f);
                 Animator.Update(0f);

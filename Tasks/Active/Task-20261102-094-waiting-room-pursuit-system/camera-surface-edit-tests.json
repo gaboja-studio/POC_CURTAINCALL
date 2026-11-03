@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 0.4,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraEditorPipelineTests.CameraOnlySurface_HandlesScaleRotationRadiusAndStartingInside(0.0f)",
+      "Status": "Passed",
+      "Duration": 0.0039233,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraEditorPipelineTests.CameraOnlySurface_HandlesScaleRotationRadiusAndStartingInside(37.0f)",
+      "Status": "Passed",
+      "Duration": 0.0003267,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

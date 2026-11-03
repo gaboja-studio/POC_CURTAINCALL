@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 17.13,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_DecorativeCeilingBlocksOnlyCamera",
+      "Status": "Passed",
+      "Duration": 9.6454008,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_WallShortensCameraArmAndRemovalRestoresItGradually",
+      "Status": "Passed",
+      "Duration": 7.3925916,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

@@ -33,7 +33,7 @@ namespace CurtainCall.HumanCannon
         public static void ServerFallInjury(NetworkPlayer player)
         {
             if (player == null || !player.IsServer || player.State != PlayerState.Normal
-                || EscapeDevelopmentSession.FallConsequencesSuppressed(player)) return;
+                || EscapeDevelopmentSession.FallInjuriesSuppressed(player)) return;
             // 추락 야유를 먼저 알리고 절단한다. 절단으로 사망하면 그 뒤 호응도는 고정된다.
             if (ServerFell != null)
                 foreach (Action<ulong> observer in ServerFell.GetInvocationList())
@@ -118,7 +118,8 @@ namespace CurtainCall.HumanCannon
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return;
             bool safe = (player.transform.position - position).sqrMagnitude <= 25f
                 && IsSafeLandingSurface(player.GetComponent<PlayerMover>(), position);
-            bool injuring = !safe && !HumanCannonRouteSystem.IsBelowCourse(player.transform.position);
+            bool injuring = !safe && !EscapeDevelopmentSession.FallInjuriesSuppressed(player)
+                && !HumanCannonRouteSystem.IsBelowCourse(player.transform.position);
             // 부상이 날 바닥이면 스프링 신발이 먼저 반동시킨다. 반동하면 이 비행은 끝나지 않는다.
             if (injuring && TrySpringRebound(player, index, revision, segment, position)) return;
             ApplyLanding(player.OwnerClientId, index, revision, segment, safe);

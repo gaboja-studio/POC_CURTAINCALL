@@ -19,6 +19,13 @@ namespace CurtainCall.UI.SceneIntegration
         float previousWidth;
         bool initialized, interaction, banner;
         CommonWaitingRoomUI waitingRoom;
+        bool deviceText;
+        TMP_Text key;
+        float keyFontSize, keyBaseWidth;
+        readonly System.Collections.Generic.Dictionary<RectTransform, float> keyWidths = new();
+        TextOverflowModes keyOverflow;
+        float TextLeft => PromptTextLeft + (deviceText && key != null ? key.rectTransform.rect.width - keyBaseWidth : 0);
+        public void SetDeviceText(bool value) => deviceText = value;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Bootstrap()
@@ -66,6 +73,10 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 title = transform.Find("Motion/70_ActionTMP")?.GetComponent<TMP_Text>();
                 subtitle = transform.Find("Motion/80_HelperTMP")?.GetComponent<TMP_Text>();
+                key = transform.Find("Motion/60_KeyTMP")?.GetComponent<TMP_Text>();
+                if (key != null) { keyFontSize = key.fontSize; keyOverflow = key.overflowMode; keyBaseWidth = key.rectTransform.rect.width; }
+                foreach (string path in new[] { "Motion/40_KeyBody", "Motion/41_KeyFrame", "Motion/50_HoldTrack", "Motion/51_HoldFill", "Motion/60_KeyTMP" })
+                    if (transform.Find(path) is RectTransform rect) keyWidths[rect] = rect.rect.width;
             }
             baseHeight = panel.rect.height;
             baseWidth = panel.rect.width;
@@ -99,19 +110,19 @@ namespace CurtainCall.UI.SceneIntegration
             Initialize();
             float extra = 0;
             if (message != null)
-                extra = Resize(message, messageHeight) - messageHeight;
+                extra = Resize(message, messageHeight, deviceText ? 0 : 2) - messageHeight;
             else if (title != null && subtitle != null)
             {
-                int lines = interaction ? PromptMaxLines : 2;
+                int lines = interaction ? deviceText ? 0 : PromptMaxLines : 2;
                 if (interaction) FitPromptWidth();
                 float titleExtra = Resize(title, titleHeight, lines) - titleHeight;
                 bool hasSubtitle = subtitle.gameObject.activeSelf && !string.IsNullOrWhiteSpace(subtitle.text);
                 float subtitleExtra = Resize(subtitle, subtitleHeight, lines) - subtitleHeight;
                 title.rectTransform.anchoredPosition = interaction
-                    ? new Vector2(92, hasSubtitle ? -12 : -24)
+                    ? new Vector2(TextLeft, hasSubtitle ? -12 : -24)
                     : new Vector2(72, hasSubtitle ? -18 : -32);
                 subtitle.rectTransform.anchoredPosition = interaction
-                    ? new Vector2(92, -44 - titleExtra)
+                    ? new Vector2(TextLeft, -44 - titleExtra)
                     : new Vector2(72, -62 - titleExtra);
                 extra = titleExtra + (hasSubtitle ? subtitleExtra : 0);
             }
@@ -125,10 +136,18 @@ namespace CurtainCall.UI.SceneIntegration
         /// <summary>안내·보조 줄 중 긴 쪽이 한 줄에 들어가도록 박스를 넓힌다(기본 폭 이상, 최대 폭 이하). 넘치면 줄바꿈한다.</summary>
         void FitPromptWidth()
         {
+            if (key != null)
+            {
+                key.enableAutoSizing = false; key.fontSize = keyFontSize;
+                float extra = deviceText ? Mathf.Clamp(Mathf.Ceil(OneLineWidth(key)) + 8, keyBaseWidth, 160) - keyBaseWidth : 0;
+                foreach (var rect in keyWidths) rect.Key.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, rect.Value + extra);
+                key.enableAutoSizing = deviceText; key.fontSizeMin = 14; key.fontSizeMax = keyFontSize;
+                key.overflowMode = deviceText ? TextOverflowModes.Truncate : keyOverflow;
+            }
             float needed = Mathf.Max(OneLineWidth(title), subtitle.gameObject.activeSelf ? OneLineWidth(subtitle) : 0);
-            float width = Mathf.Clamp(Mathf.Ceil(needed) + PromptTextLeft + PromptTextRight, baseWidth, PromptMaxWidth);
+            float width = Mathf.Clamp(Mathf.Ceil(needed) + TextLeft + PromptTextRight, baseWidth, PromptMaxWidth);
             panel.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, width);
-            float text = width - PromptTextLeft - PromptTextRight;
+            float text = width - TextLeft - PromptTextRight;
             title.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, text);
             subtitle.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, text);
         }
@@ -140,11 +159,11 @@ namespace CurtainCall.UI.SceneIntegration
         {
             label.textWrappingMode = TextWrappingModes.Normal;
             label.enableAutoSizing = false;
-            label.maxVisibleLines = maxLines;
-            label.overflowMode = TextOverflowModes.Ellipsis;
+            label.maxVisibleLines = maxLines > 0 ? maxLines : int.MaxValue;
+            label.overflowMode = maxLines > 0 ? TextOverflowModes.Ellipsis : TextOverflowModes.Overflow;
             float width = Mathf.Max(1, label.rectTransform.rect.width);
-            float most = label.GetPreferredValues(maxLines == 2 ? "가\n가" : "가\n가\n가", width, Mathf.Infinity).y;
             float preferred = label.GetPreferredValues(label.text, width, Mathf.Infinity).y;
+            float most = maxLines == 0 ? preferred : label.GetPreferredValues(maxLines == 2 ? "가\n가" : "가\n가\n가", width, Mathf.Infinity).y;
             float height = Mathf.Clamp(Mathf.Ceil(preferred), minimum, Mathf.Max(minimum, Mathf.Ceil(most)));
             label.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             return height;

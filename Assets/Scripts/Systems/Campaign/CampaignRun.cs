@@ -142,7 +142,7 @@ namespace CurtainCall.Campaign
                 return false;
             }
             offlineRun = true;
-            host = new RunState(Application.version == "0.1.0", true);
+            host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled);
             host.StartSession();
             Apply(host.Snapshot);
             return true;
@@ -228,6 +228,9 @@ namespace CurtainCall.Campaign
         /// <summary>디버그: 쉬는 시간 남은 시간을 바꾼다(0이면 바로 끝난다).</summary>
         public bool DebugSetRemaining(float seconds) => HostDo(r => r.DebugSetRemaining(seconds), nameof(DebugSetRemaining));
 
+        public bool DebugResetRestTimer() => CurtainCall.Dev.DevMode.Enabled && HostDo(r => r.DebugResetRestTimer(), nameof(DebugResetRestTimer));
+        public bool DebugBeginPursuit() => CurtainCall.Dev.DevMode.Enabled && HostDo(r => r.DebugBeginPursuit(), nameof(DebugBeginPursuit));
+
         /// <summary>에디터/개발 빌드의 코스 전체 재시험. 방은 유지하고 새 세대 도입부터 시작한다(호스트 전용).</summary>
         public bool DebugRestartRun()
         {
@@ -283,6 +286,8 @@ namespace CurtainCall.Campaign
         }
 
         // ── 판정·적용 ────────────────────────────────────────
+
+        public bool NotifyAllPursuitCaught() => HostDo(r => r.NotifyAllPursuitCaught(), nameof(NotifyAllPursuitCaught));
 
         void Expired(CampaignSnapshot snapshot)
         {
@@ -424,7 +429,7 @@ namespace CurtainCall.Campaign
 
             if (gameState == GameSessionState.Playing && host == null)
             {
-                host = new RunState(Application.version == "0.1.0", true);
+                host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled);
                 host.StartSession();
                 Apply(host.Snapshot);
             }

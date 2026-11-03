@@ -76,7 +76,7 @@ namespace CurtainCall.Telemetry.Pipeline
             currentIdentity ??= SurveyLaunchCache.LocalIdentity;
             var step = campaign.State;
             var night = configuration.Collection.night;
-            if (night.Matches(Application.version) && step.Day == night.nightDay && step.Phase == CampaignPhase.Night && SceneManager.GetSceneByName("WaitingRoomBase").isLoaded
+            if (night.Matches(Application.version) && step.Day == night.nightDay && step.Phase == CampaignPhase.Night && CurtainCall.Settings.WaitingRoomScenes.IsLoaded
                 && !cache.WasOpened(currentIdentity, SurveyLaunchPolicy.Night, night))
                 Open(currentIdentity, SurveyLaunchPolicy.Night, NewCode(SurveyLaunchPolicy.Night));
         }

@@ -1,5 +1,9 @@
 # Project Pitfalls
 
+- [escape-inspection-state.md](escape-inspection-state.md) — 자유비행 중 리타이어되거나 메뉴에서 관전 대상이 바뀔 때
+
+- [escape-balance-ui-overrides.md](escape-balance-ui-overrides.md) — 같은 균형 HUD 프리팹인데 탈출로와 원본 외줄 UI의 두께/화면 스케일이 다를 때
+
 - [escape-held-saw-collision.md](escape-held-saw-collision.md) — 휴대 톱 자기 충돌·벽 뒤 전선/뱅크 교차·도달 재현을 확인할 때
 
 - [waiting-room-moved-camera-zones.md](waiting-room-moved-camera-zones.md) — 대기실 통로 재배치 뒤 시점이 너무 일찍 바뀌거나 기존 좌표 검사가 실패할 때
@@ -11,7 +15,7 @@
 - [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
 - [escape-flame-scaling.md](escape-flame-scaling.md) — 거대 화염의 실제 도달 방향/속도와 휴대 톱의 원본 운반 조작을 연결할 때
 
-- [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지 부상 오판과 꺾인 외줄 방향 인계를 고칠 때
+- [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지·시점 인계와 다리/장비 공유 시각·재수신을 고칠 때
 
 - [escape-depth-route.md](escape-depth-route.md) — 탈출로 묘기 도달·운반 트램폴린 묻힘·대포 목표 표식·교체 구조 잔여물 확인
 
@@ -20,6 +24,7 @@
 - [death-ragdoll-reset.md](death-ragdoll-reset.md) — 공연 사망 뒤 조작 정리가 레그돌을 복구할 때
 
 - [session-join-cancelled.md](session-join-cancelled.md) — 방 코드·LAN 참가의 취소 예외와 제한시간·취소 원인 로그를 확인할 때
+- [relay-stall-disconnect.md](relay-stall-disconnect.md) — 씬 전환 중 "[TransportShutdown] NetworkConnectionManager was shutdown"으로 튕길 때(메인 스레드 10초 정지 → Relay 할당 만료)
 
 이 POC·이 개발 환경에서 겪은 함정. 상황에 맞는 파일 1개만 연다.
 
@@ -49,3 +54,4 @@
 - [revived-before-performance-unload.md](revived-before-performance-unload.md) — 공연 씬 해제 전 부활자가 옛 낙하·함정 판정으로 다시 사망. 부활 로그와 달리 대기실에서 관전이 지속될 때
 - [textmesh-default-shader-through-walls.md](textmesh-default-shader-through-walls.md) — 생성한 TextMesh 기본 재질은 깊이를 무시해 벽 너머로 보인다. 에디터 코드로 표지·번호 글자를 만들 때
 - [exploration-route-validation.md](exploration-route-validation.md) — 탐색 경로의 낮/밤 철창·트리거와 층/벽 너머 F·바닥 기물 표시/호스트 검사를 확인할 때
+- [factory-art-urp.md](factory-art-urp.md) — 공장 에셋 선별 재사용·URP17 조명·정적 장식 정리 기준

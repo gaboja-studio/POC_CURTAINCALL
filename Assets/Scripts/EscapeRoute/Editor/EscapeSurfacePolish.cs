@@ -106,7 +106,6 @@ namespace CurtainCall.EscapeRoute.EditorTools
         {
             var mesh = f.sharedMesh; var renderer = f.GetComponent<MeshRenderer>();
             if (mesh == null || renderer == null || !renderer.enabled || mesh.subMeshCount != 1 ||
-                !(mesh.name == "Cube" || mesh.name.StartsWith("block-") || mesh.name.StartsWith("ConcreteBlock_")) ||
                 renderer.sharedMaterial == null || renderer.sharedMaterial.renderQueue > 2500) return false;
             if (!mesh.isReadable || mesh.triangles.Length != 36 || mesh.uv.Length != mesh.vertexCount) return false;
             if (f.transform.localToWorldMatrix.determinant <= 0) return false;

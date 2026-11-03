@@ -34,6 +34,7 @@ namespace CurtainCall.UI.SceneIntegration
         Material material;
         readonly List<RectTransform> rescueRings = new();
         Sprite rescueTrack;
+        string warmedDeviceText;
         public int HighlightCount => outlines.Count;
         public IReadOnlyList<Transform> Highlighted => outlines.ConvertAll(o => o.Target);
         public InteractionPromptView Prompt => prompt;
@@ -139,11 +140,26 @@ namespace CurtainCall.UI.SceneIntegration
             if (focused == null)
                 foreach (var candidate in selected) if (candidate.WaitingRoom || candidate.Lobby) { focused = candidate; break; }
             if (focused == null || prompt == null) { if (prompt != null) prompt.HideImmediate(); return; }
-            prompt.Show(focused.Key, focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
+            string interactKey = reader.BindingLabel("Interact", "F"), jumpKey = reader.BindingLabel("Action", "Space");
+            string key = FormatControlLabels(focused.Key, interactKey, jumpKey);
+            string helper = focused.Focused ? focused.Helper ?? "" : WaitingRoomText.Get("prompt.come-closer", "가까이 다가가세요");
+            helper = FormatControlLabels(helper, interactKey, jumpKey,
+                reader.BindingPartLabel("Move", "positive", "W") + "/" + reader.BindingPartLabel("Move", "negative", "S"),
+                reader.BindingPartLabel("Posture", "negative", "A") + "/" + reader.BindingPartLabel("Posture", "positive", "D"));
+            prompt.Show(key, focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
                 focused.Hold, focused.Hold && focused.Available ? focused.Progress ?? reader.Current.InteractHoldProgress : 0,
-                focused.Focused ? focused.Helper ?? "" : WaitingRoomText.Get("prompt.come-closer", "가까이 다가가세요"));
+                helper);
             var layout = prompt.GetComponent<NotificationTextLayout>();
             if (layout == null) layout = prompt.gameObject.AddComponent<NotificationTextLayout>();
+            bool cannonOrPole = focused.Root != null && (focused.Root.GetComponent<HumanCannonStation>() != null
+                || focused.Root.GetComponent<HumanCannonPole>() != null);
+            string deviceText = key + focused.Action + helper;
+            if (cannonOrPole && deviceText != warmedDeviceText && TryGetComponent(out UiRuntimeFontFallback fonts))
+            {
+                fonts.WarmUpLocalText(prompt.transform, deviceText); warmedDeviceText = deviceText;
+            }
+            else if (!cannonOrPole) warmedDeviceText = null;
+            layout.SetDeviceText(cannonOrPole);
             layout.RefreshLayout();
             if (focused.ScreenGuide && promptAnchor != null && promptAnchor.parent is RectTransform parent)
                 promptAnchor.anchoredPosition = new Vector2(parent.rect.xMin + promptAnchor.rect.width * .5f + 24,
@@ -151,6 +167,9 @@ namespace CurtainCall.UI.SceneIntegration
             else PositionPrompt(focused.Point, camera);
         }
         float FarSkip => highlightDistance + 10f;
+        public static string FormatControlLabels(string text, string interactKey, string jumpKey, string move = "W/S", string posture = "A/D") =>
+            System.Text.RegularExpressions.Regex.Replace(text ?? "", @"(?<![A-Za-z])(?:F|Space|SPACE|W/S|A/D)(?![A-Za-z])",
+                match => match.Value == "F" ? interactKey : match.Value == "W/S" ? move : match.Value == "A/D" ? posture : jumpKey);
         void Add(Transform root, Vector3 point, string action, bool available, bool focused, Vector3 feet)
         {
             candidates.Add(new Candidate { Root = root, Point = point, Action = action, Available = available, Focused = focused,
@@ -343,9 +362,25 @@ namespace CurtainCall.UI.SceneIntegration
         {
             var player = NetworkPlayer.Local; var system = HumanCannonSystem.Current;
             if (player == null || system == null || player.State != PlayerState.Normal) return;
+            var heldPoles = HumanCannonPoleSystem.Current;
+            int heldPole = heldPoles != null ? heldPoles.HeldBy(player.OwnerClientId) : -1;
+            var seated = system.SeatedStation(player.OwnerClientId);
+            if (seated != null || heldPole >= 0)
+            {
+                var root = seated != null ? seated.transform : heldPoles.Pole(heldPole).transform;
+                bool holdingInput = player.TryGetComponent(out PlayerInputReader reader) && reader.Current.InteractHoldProgress > 0;
+                bool ready = seated == null || seated.ReadyToUse;
+                candidates.Insert(0, new Candidate { Root = root, Point = feet, Available = ready || holdingInput, Focused = true,
+                    ScreenGuide = true, NoOutline = true, Key = seated != null ? "F" : "Space",
+                    Action = seated != null ? holdingInput ? "대포에서 내리기" : ready ? "대포 발사" : "대포 가동 대기" : "그네에서 도약",
+                    Hold = seated != null && holdingInput,
+                    Helper = seated != null ? ready ? "F를 짧게 눌러 발사 · F를 길게 눌러 내리기" : "전원·포신 가동을 기다리세요 · F를 길게 눌러 내리기"
+                        : "W/S로 반동 · Space로 도약 · F를 길게 눌러 놓기" });
+                return;
+            }
             if (player.TryGetComponent(out PlayerController controller) && controller.Scheme is TightropeControlScheme)
             {
-                // A는 줄 끝/목마 후보와 무관한 가까운 봉, 기존 무대는 원래 끝 영역 후보를 표시한다.
+                // Every map uses the same reachable pole candidate as the shared rope input.
                 var course = TightropeCourse.Current;
                 var exitPoles = HumanCannonPoleSystem.Current;
                 int exitPole = exitPoles != null && exitPoles.IndependentInteraction ? exitPoles.FindGrabbable(player)

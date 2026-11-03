@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 0.4,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RestTimeRulesTests.EveryRestStartsRunningWithoutLeavingWaitingRoom",
+      "Status": "Passed",
+      "Duration": 0.000697,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RestTimeRulesTests.ExpiryCallsReplaceableHandlerBeforePerformanceOnly",
+      "Status": "Passed",
+      "Duration": 0.0021543,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

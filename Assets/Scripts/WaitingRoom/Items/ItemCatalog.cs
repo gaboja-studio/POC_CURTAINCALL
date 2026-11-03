@@ -43,6 +43,8 @@ namespace CurtainCall.WaitingRoom
             [TextArea] public string summary;
             [Tooltip("상점 설명 칸·마우스 올림 설명에 보이는 설명. 비우면 설명 없음.")]
             [TextArea(2, 6)] public string shopDescription;
+            [Tooltip("상점 목록에 마우스를 올렸을 때 툴팁에만 보이는 설명(상점 문구 Row Tooltip의 {description} 자리). 비우면 위 상점 설명을 쓴다.")]
+            [TextArea(2, 6)] public string shopTooltip;
             [Tooltip("장비가 실제로 발동했을 때 주인 화면 알림 문구(예: 잡았다!). 비우면 알리지 않음.")]
             public string useCue;
         }
@@ -96,6 +98,9 @@ namespace CurtainCall.WaitingRoom
         /// <summary>상점에 보이는 기물 설명. 없으면 "".</summary>
         public static string Description(string id) => Get(id)?.shopDescription ?? "";
 
+        /// <summary>상점 툴팁 전용 설명. 없으면 "" (호출하는 쪽이 상점 설명으로 대신한다).</summary>
+        public static string Tooltip(string id) => Get(id)?.shopTooltip ?? "";
+
         /// <summary>장비 발동 알림 문구. 없으면 "".</summary>
         public static string UseCue(string id) => Get(id)?.useCue ?? "";
 
@@ -119,16 +124,16 @@ namespace CurtainCall.WaitingRoom
             items = new List<Entry>
             {
                 new() { id = ItemUses.RescueGloves, displayName = "구조 장갑", wornName = "낡은 구조 장갑", wornAtOrBelow = 2, use = ItemUse.Performance, kind = ItemKind.Equipment,
-                        newUses = 5, foundUses = 2, price = 100, cooldown = 1f, effect = .3f, effect2 = 2f, // 2026-11-01 사용자: 적용 거리 2m
+                        newUses = 5, foundUses = 2, price = 100, cooldown = 0f, effect = .3f, effect2 = 2f, // 2026-11-01 사용자: 적용 거리 2m
                         summary = "외줄: 착용자 2m 안에서 내 줄로 이동해 착지하는 팀원의 착지 균형 손실 30% 감소(손잡이·버팀과 겹치면 큰 값 하나). 실제 완화 시 1 소모." },
                 new() { id = ItemUses.StickyGloves, displayName = "끈끈이 장갑", wornName = "낡은 끈끈이 장갑", wornAtOrBelow = 1, use = ItemUse.Performance, kind = ItemKind.Equipment,
-                        newUses = 3, foundUses = 1, price = 100, cooldown = 3f, effect = 1.5f,
+                        newUses = 3, foundUses = 1, price = 100, cooldown = 0f, effect = 1.5f,
                         summary = "외줄 매달리기·리프트 버티기 시간 1.5배. 기본 시간을 넘겨 매달린 때 매달리기당 1 소모. 마지막 추가 시간은 유지 후 파괴." },
                 new() { id = ItemUses.BalloonPants, displayName = "광대 벌룬 바지", wornName = "낡은 광대 벌룬 바지", wornAtOrBelow = 2, use = ItemUse.Performance, kind = ItemKind.Equipment,
-                        newUses = 4, foundUses = 2, price = 125, cooldown = 3f, effect = .3f,
+                        newUses = 4, foundUses = 2, price = 125, cooldown = 0f, effect = .3f,
                         summary = "인간 대포: 하강할 때만 수직 하강 속도 30% 감소, 상승·수평 유지. 대포·트램펄린 비행당 최대 1 소모." },
                 new() { id = ItemUses.SpringShoes, displayName = "스프링 신발", wornName = "낡은 스프링 신발", wornAtOrBelow = 1, use = ItemUse.Performance, kind = ItemKind.Equipment,
-                        newUses = 3, foundUses = 1, price = 175, cooldown = 3f, effect = 1f,
+                        newUses = 2, foundUses = 1, price = 175, cooldown = 0f, effect = 1f, // 2026-11-02 사용자: 공연 기물 쿨타임 없음, 스프링 신발 내구도 2
                         summary = "인간 대포: 트램펄린 없는 바닥에 낙하하면 기본 트램펄린과 같은 반동으로 다시 도약. 실제 반동 시 1 소모." },
                 new() { id = ItemUses.MagicianHairpin, displayName = "마술사의 머리핀", wornName = "", wornAtOrBelow = -1, use = ItemUse.Exploration, kind = ItemKind.Tool,
                         newUses = 5, foundUses = 0, price = 50, cooldown = 0f, effect = .5f, effect2 = 3f,

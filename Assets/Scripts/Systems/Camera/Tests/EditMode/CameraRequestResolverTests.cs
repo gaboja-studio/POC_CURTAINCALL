@@ -123,3 +123,35 @@ namespace CurtainCall.Cameras.Tests
         }
     }
 }
+
+namespace CurtainCall.Cameras.Tests
+{
+    public sealed class EscapeCameraDropTests
+    {
+        [NUnit.Framework.Test]
+        public void ReleasingRopeRequestCannotRevealFirstPersonInEscapeAndPreservesOtherScenes()
+        {
+            var type=System.Array.Find(System.AppDomain.CurrentDomain.GetAssemblies(),a=>a.GetType("CurtainCall.Cameras.CameraViewDirector")!=null).GetType("CurtainCall.Cameras.CameraViewDirector");
+            var method=type.GetMethod("IsViewAllowed");
+            var kind=method.GetParameters()[1].ParameterType;
+            var scene=UnityEditor.SceneManagement.EditorSceneManager.NewPreviewScene();
+            try
+            {
+                scene.name="escape_route";
+                var requests=new CurtainCall.Cameras.Requests.CameraRequestResolver<object,int>();
+                var rope=new object();var legacy=new object();
+                requests.Set(legacy,1,100);requests.Set(rope,2,200);
+                System.Func<int,bool> allowed=value=>(bool)method.Invoke(null,new object[]{scene,System.Enum.ToObject(kind,value),true});
+                NUnit.Framework.Assert.That(requests.TryResolve(out _,out var before,allowed),Is.True);
+                NUnit.Framework.Assert.That(before,Is.EqualTo(2));
+                requests.Remove(rope);
+                NUnit.Framework.Assert.That(requests.TryResolve(out _,out _,allowed),Is.False,"Drop must use the third-person fallback, not expose a retained first-person request.");
+                NUnit.Framework.Assert.That(requests.Count,Is.EqualTo(1));
+                scene.name="HumanCannonPractice";
+                NUnit.Framework.Assert.That(requests.TryResolve(out _,out var restored,allowed),Is.True);
+                NUnit.Framework.Assert.That(restored,Is.EqualTo(1),"Original requests remain usable outside escape.");
+            }
+            finally{UnityEditor.SceneManagement.EditorSceneManager.ClosePreviewScene(scene);}
+        }
+    }
+}

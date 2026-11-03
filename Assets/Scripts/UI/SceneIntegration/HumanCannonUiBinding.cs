@@ -76,18 +76,19 @@ namespace CurtainCall.UI.SceneIntegration
             bool holdingF = reader != null && reader.Current.InteractHoldProgress > 0;
             bool hasInteractTarget = poles != null && poles.FindGrabbable(player) >= 0
                 || carryTarget != null || cannon.FindBoardableStation(player) >= 0;
-            if (!holding && !seated && !cannon.IsFlying(player.OwnerClientId)
+            if (!space.PresentationOnly && !holding && !seated && !cannon.IsFlying(player.OwnerClientId)
                 && (carrying || riding || !hasInteractTarget) && ShowTransportHint(player, route, carried is HumanCannonTrampoline))
             { HideGuide(); return; }
-            if (holding) ShowGuide("Space", "봉 놓기", GuideKeyWidth.Wide);
+            if (interaction == null) interaction = FindFirstObjectByType<CommonInteractionUI>();
+            bool commonPrompt = interaction != null && interaction.isActiveAndEnabled && interaction.Prompt != null;
+            if (commonPrompt && (holding || seated || carrying)) HideGuide();
+            else if (holding) ShowGuide(reader != null ? reader.BindingLabel("Action", "Space") : "Space", "봉 놓기", GuideKeyWidth.Wide);
             else if (riding) HideGuide();
-            else if (carrying) ShowGuide("F 길게", carried.CarryName + " 놓기", GuideKeyWidth.ExtraWide);
-            else if (seated) ShowGuide(holdingF ? "F 길게" : "F", holdingF ? "내리기" : "발사", holdingF ? GuideKeyWidth.ExtraWide : GuideKeyWidth.Normal);
+            else if (carrying) ShowGuide((reader != null ? reader.BindingLabel("Interact", "F") : "F") + " 길게", carried.CarryName + " 놓기", GuideKeyWidth.ExtraWide);
+            else if (seated) ShowGuide((reader != null ? reader.BindingLabel("Interact", "F") : "F") + (holdingF ? " 길게" : ""), holdingF ? "내리기" : "발사", holdingF ? GuideKeyWidth.ExtraWide : GuideKeyWidth.Normal);
             else HideGuide();
 
             int pole = poles != null ? poles.FindGrabbable(player) : -1;
-            if (interaction == null) interaction = FindFirstObjectByType<CommonInteractionUI>();
-            bool commonPrompt = interaction != null && interaction.isActiveAndEnabled && interaction.Prompt != null;
             if (holding || riding || seated || carrying || hasInteractTarget && commonPrompt) HideTooltip();
             else if (pole >= 0)
             {
@@ -165,6 +166,10 @@ namespace CurtainCall.UI.SceneIntegration
 
         void ShowTooltip(string id, string title, string description, Vector3 position)
         {
+            var reader = NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerInputReader>() : null;
+            description = CommonInteractionUI.FormatControlLabels(description,
+                reader != null ? reader.BindingLabel("Interact", "F") : "F", reader != null ? reader.BindingLabel("Action", "Space") : "Space");
+            id += "|" + description;
             var view = owned.Tooltip;
             var camera = Camera.main;
             if (view == null || camera == null) { HideTooltip(); return; }

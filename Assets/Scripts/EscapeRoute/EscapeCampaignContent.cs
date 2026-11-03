@@ -32,6 +32,9 @@ namespace CurtainCall.EscapeRoute
         public static EscapeCampaignContent Current { get; private set; }
         public bool IsActive => content != null && content.activeSelf;
         public bool IsCampaign { get; private set; }
+        /// <summary>추가 로드된 탈출로가 실제 진행 공간일 때만 콘텐츠 규칙을 적용한다.</summary>
+        public static bool IsTraversalActive => Current != null && Current.isActiveAndEnabled
+            && Current.IsActive && Current.gameObject.scene == SceneManager.GetActiveScene();
         readonly HashSet<ulong> arrived = new();
         CampaignRun run;
         int generation;
@@ -122,7 +125,7 @@ namespace CurtainCall.EscapeRoute
         void Step(CampaignSnapshot state)
         {
             if (!IsCampaign) return;
-            bool active = state.Phase == CampaignPhase.Escape;
+            bool active = state.Phase == CampaignPhase.Escape || EscapeEndingPresentation.IsSuccessfulEnding(state);
             if (active && generation != state.Generation) { generation = state.Generation; arrived.Clear(); reported = false; }
             if (active && run.HasAuthority && !stateRuleInstalled)
             {

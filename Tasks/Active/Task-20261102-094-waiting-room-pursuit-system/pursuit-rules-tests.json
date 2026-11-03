@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "duration": 0.44,
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.AllCaughtOnOrdinaryDayStartsPerformance",
+      "Status": "Passed",
+      "Duration": 0.0277661,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.CapturedArrivalIsInsideAssemblyInsteadOfOriginalDistantRoom",
+      "Status": "Passed",
+      "Duration": 0.0033339,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.FinalMorningAllowsPursuitEscapeAndFailsOnlyWhenAllCaught",
+      "Status": "Passed",
+      "Duration": 0.0004261,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.StageThresholdsAndSpeedSettingsAreIndependent",
+      "Status": "Passed",
+      "Duration": 0.0003277,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.SurvivorsMayAssembleForPerformanceOrEscape",
+      "Status": "Passed",
+      "Duration": 0.000231,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.TimeoutStaysInRestAndEmitsOnce",
+      "Status": "Passed",
+      "Duration": 0.0004025,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

@@ -41,6 +41,7 @@ namespace CurtainCall.EscapeRoute
         const string RequestName = "CurtainCall.Escape.Locks.Request";
         const string StateName = "CurtainCall.Escape.Locks.State";
         const int RequestSize = 17, StateSize = 20;
+        double spanSnapshotTime = double.NegativeInfinity;
         readonly RouteResetBarrier resetBarrier = new();
         readonly Dictionary<ulong, uint> requests = new();
         NetworkSessionManager session;
@@ -259,22 +260,48 @@ namespace CurtainCall.EscapeRoute
         }
         void SendState(ulong client, int token)
         {
-            using var writer = new FastBufferWriter(StateSize, Allocator.Temp);
+            double now = session.NetworkManager.ServerTime.Time;
+            using var writer = new FastBufferWriter(StateSize + sizeof(double) + Count * sizeof(float), Allocator.Temp);
             writer.WriteValueSafe(revision); writer.WriteValueSafe(armed); writer.WriteValueSafe(latched);
             writer.WriteValueSafe(held); writer.WriteValueSafe(token);
+            writer.WriteValueSafe(now);
+            foreach (var checkpoint in checkpoints)
+            {
+                float amount = checkpoint?.span != null ? checkpoint.span.AmountAt(now) : 0;
+                writer.WriteValueSafe(amount);
+            }
             messaging.SendNamedMessage(StateName, client, writer, NetworkDelivery.ReliableSequenced);
         }
         void ReadState(ulong sender, FastBufferReader reader)
         {
-            if (session == null || session.IsHost || sender != NetworkManager.ServerClientId || reader.Length - reader.Position != StateSize) return;
+            if (session == null || session.IsHost || sender != NetworkManager.ServerClientId
+                || reader.Length - reader.Position != StateSize + sizeof(double) + Count * sizeof(float)) return;
             reader.ReadValueSafe(out uint incoming); reader.ReadValueSafe(out uint a); reader.ReadValueSafe(out uint l);
             reader.ReadValueSafe(out uint h); reader.ReadValueSafe(out int token);
-            ApplyState(incoming, a, l, h, token);
+            reader.ReadValueSafe(out double now);
+            var amounts = new float[Count];
+            for (int i = 0; i < Count; i++)
+                reader.ReadValueSafe(out amounts[i]);
+            ApplySnapshot(incoming, a, l, h, token, now, amounts);
+        }
+        bool ApplySnapshot(uint incoming, uint a, uint l, uint h, int token, double now, float[] amounts)
+        {
+            if (double.IsNaN(now) || double.IsInfinity(now) || now < 0 || now < spanSnapshotTime
+                || amounts == null || amounts.Length != Count) return false;
+            foreach (float amount in amounts)
+                if (float.IsNaN(amount) || amount < 0 || amount > 1) return false;
+            if (!ApplyState(incoming, a, l, h, token)) return false;
+            spanSnapshotTime = now;
+            for (int i = 0; i < Count; i++)
+                if (checkpoints[i]?.span != null) checkpoints[i].span.SynchronizeDeployment(IsOpen(i), amounts[i], now);
+            return true;
         }
         bool ApplyState(uint incoming, uint a, uint l, uint h, int token)
         {
             uint valid = checkpoints.Length >= 32 ? uint.MaxValue : (1u << checkpoints.Length) - 1u;
-            if (incoming < revision || ((a | l | h) & ~valid) != 0 || !resetBarrier.Accept(token)) return false;
+            if (incoming < revision || token < 0 || ((a | l | h) & ~valid) != 0
+                || synchronized && incoming == revision && (a != armed || l != latched || h != held)
+                || !resetBarrier.Accept(token)) return false;
             revision = incoming; armed = a; latched = l; held = h; synchronized = true; Present(); return true;
         }
         void Restart(NetworkPlayer player)
@@ -293,6 +320,7 @@ namespace CurtainCall.EscapeRoute
             if (messaging != null)
             { messaging.UnregisterNamedMessageHandler(RequestName); messaging.UnregisterNamedMessageHandler(StateName); }
             messaging = null; session = null; synchronized = false; armed = latched = held = revision = sequence = 0;
+            spanSnapshotTime = double.NegativeInfinity;
             requests.Clear(); resetBarrier.Clear(); Present();
         }
         void OnDisable()

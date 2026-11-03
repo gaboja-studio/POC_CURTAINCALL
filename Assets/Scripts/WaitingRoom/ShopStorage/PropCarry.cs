@@ -218,6 +218,7 @@ namespace CurtainCall.WaitingRoom
         void Update()
         {
             channel.Update();
+            UpdateEquipmentReports();
             if (!HasAuthority) return;
             WatchGeneration();
             bool retired = false;
@@ -311,6 +312,7 @@ namespace CurtainCall.WaitingRoom
         {
             var refusal = book.Use(player, uid, out after, out destroyed);
             if (refusal != CarryRefusal.None) return refusal;
+            if (after.Uses != ItemUses.Unlimited) MarkUsed(player, uid, destroyed);
             Debug.Log($"[Carry] 사용 #{uid} {after.Name} 남은 {(after.Uses == ItemUses.Unlimited ? "∞" : after.Uses.ToString())}{(destroyed ? " — 다 써서 사라짐" : "")} — {WaitingRoomShop.PlayerLabel(player)}");
             Publish();
             return CarryRefusal.None;
@@ -410,7 +412,7 @@ namespace CurtainCall.WaitingRoom
 
         void Publish()
         {
-            channel.SendState(JsonUtility.ToJson(StateData.From(book, selected, CooldownsOf)));
+            channel.SendState(JsonUtility.ToJson(StateData.From(book, selected, CooldownsOf, UseMarkOf, useMarks.Keys)));
             Changed?.Invoke();
         }
 
@@ -466,12 +468,12 @@ namespace CurtainCall.WaitingRoom
             if (request == null) return;
             switch (request.kind)
             {
-                case SyncRequest: channel.SendState(JsonUtility.ToJson(StateData.From(book, selected, CooldownsOf)), sender); break;
+                case SyncRequest: channel.SendState(JsonUtility.ToJson(StateData.From(book, selected, CooldownsOf, UseMarkOf, useMarks.Keys)), sender); break;
                 case DropRequest: Answer(sender, Drop(sender)); break;
                 case PickUpRequest: Answer(sender, PickUp(request.uid, sender)); break;
                 case SelectRequest: Select(sender, request.uid); break;
                 case ShelfRequest: Answer(sender, UseShelf(sender)); break;
-                case EquipmentRequest: HandleEquipmentReport(sender, request.item); break;
+                case EquipmentRequest: HandleEquipmentReportRequest(sender, request); break;
             }
         }
 
@@ -489,6 +491,7 @@ namespace CurtainCall.WaitingRoom
                 selected[p.client] = p.selectedUid;
             }
             ReadCooldowns(state.players);
+            ReadUseMarks(state.players);
             receivedFloor.Clear();
             foreach (var f in state.floor ?? Array.Empty<FloorData>()) receivedFloor.Add(new FloorProp(f.item.Read(), f.x, f.y, f.z));
             Array.Clear(receivedShelf, 0, receivedShelf.Length);
@@ -501,6 +504,7 @@ namespace CurtainCall.WaitingRoom
         {
             var result = JsonUtility.FromJson<ResultData>(json);
             if (result == null) return;
+            if (result.equipmentAck != 0) { AcknowledgeEquipmentReport(result.equipmentAck, result.equipmentGeneration); return; }
             if (!string.IsNullOrEmpty(result.noticeItem)) { ShowItemNotice(result.noticeItem, result.noticeCue, result.noticeBroken); return; }
             LastMessage = result.text;
             RequestAnswered?.Invoke(LastMessage);
@@ -511,6 +515,8 @@ namespace CurtainCall.WaitingRoom
             book.Clear();
             selected.Clear();
             cooldownUntil.Clear();
+            useMarks.Clear();
+            equipmentReports.Clear(); equipmentReceipts.Clear(); equipmentSequence = 0; equipmentRetryAt = 0;
             receivedHeld.Clear();
             receivedFloor.Clear();
             Array.Clear(receivedShelf, 0, receivedShelf.Length);
@@ -519,9 +525,9 @@ namespace CurtainCall.WaitingRoom
             Changed?.Invoke();
         }
 
-        [Serializable] sealed class RequestData { public int kind; public int uid; public string item; }
+        [Serializable] sealed class RequestData { public int kind; public int uid; public string item; public int generation; public uint sequence; }
         // notice*: 공연용 장비 발동·파괴 알림(요청 결과가 아니다). noticeItem이 비어 있으면 일반 결과.
-        [Serializable] sealed class ResultData { public bool ok; public string text; public string noticeItem; public string noticeCue; public bool noticeBroken; }
+        [Serializable] sealed class ResultData { public bool ok; public string text; public string noticeItem; public string noticeCue; public bool noticeBroken; public uint equipmentAck; public int equipmentGeneration; }
 
         [Serializable]
         sealed class ItemData
@@ -531,9 +537,9 @@ namespace CurtainCall.WaitingRoom
             public static ItemData From(PropItem i) => new() { uid = i.Uid, id = i.ItemId, name = i.Name, uses = i.Uses };
         }
 
-        [Serializable] sealed class PlayerData { public ulong client; public int selectedUid; public ItemData[] held; public CooldownData[] cooldowns; }
-        /// <summary>장비 쿨타임 남은 초(보낸 순간 기준).</summary>
-        [Serializable] sealed class CooldownData { public string id; public float left; }
+        [Serializable] sealed class PlayerData { public ulong client; public int selectedUid; public ItemData[] held; public CooldownData[] cooldowns; public int usedSerial; public int usedUid; public bool usedBroken; }
+        /// <summary>서버 시각 기준 장비 쿨타임 종료 시각.</summary>
+        [Serializable] sealed class CooldownData { public string id; public double until; }
         [Serializable] sealed class FloorData { public ItemData item; public float x, y, z; }
 
         [Serializable]
@@ -544,16 +550,22 @@ namespace CurtainCall.WaitingRoom
             public FloorData[] floor;
             public ItemData[] shelf;
 
-            public static StateData From(ItemCarryBook book, Dictionary<ulong, int> selected, Func<ulong, CooldownData[]> cooldowns = null)
+            public static StateData From(ItemCarryBook book, Dictionary<ulong, int> selected, Func<ulong, CooldownData[]> cooldowns = null,
+                Func<ulong, UseMark> uses = null, IEnumerable<ulong> usedPlayers = null)
             {
                 var players = new List<PlayerData>();
-                foreach (ulong client in book.Players)
+                // 마지막 기물을 다 써서 빈손이 된 사람도 사용 표시(소지 칸 연출)를 받도록 함께 보낸다.
+                var clients = new List<ulong>(book.Players);
+                if (usedPlayers != null) foreach (ulong client in usedPlayers) if (!clients.Contains(client)) clients.Add(client);
+                foreach (ulong client in clients)
                 {
                     var held = book.Held(client);
                     var items = new ItemData[held.Count];
                     for (int i = 0; i < items.Length; i++) items[i] = ItemData.From(held[i]);
+                    var mark = uses?.Invoke(client) ?? default;
                     players.Add(new PlayerData { client = client, selectedUid = selected.TryGetValue(client, out int uid) ? uid : 0, held = items,
-                        cooldowns = cooldowns?.Invoke(client) ?? Array.Empty<CooldownData>() });
+                        cooldowns = cooldowns?.Invoke(client) ?? Array.Empty<CooldownData>(),
+                        usedSerial = mark.Serial, usedUid = mark.Uid, usedBroken = mark.Destroyed });
                 }
                 var floor = new FloorData[book.Floor.Count];
                 for (int i = 0; i < floor.Length; i++)

@@ -55,7 +55,7 @@ namespace CurtainCall.Telemetry.Pipeline
             WaitingRoomSpawn.PlayerPlaced += Placed;
             ExpertRoomView.LocalMoved += MedicalMoved;
         }
-        bool InWaitingRoom => SceneManager.GetActiveScene().name == "WaitingRoomBase";
+        bool InWaitingRoom => CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene());
         public void Tick()
         {
             if (scope != log.CurrentRoomId) { scope = log.CurrentRoomId; orders.Clear(); receipts.Clear(); deliveryStages.Clear(); carryTracker.Reset(); storageArrivals.Reset(); medicalFlow = null; timing.Reset(); breakScope = closedBreakScope = null; }

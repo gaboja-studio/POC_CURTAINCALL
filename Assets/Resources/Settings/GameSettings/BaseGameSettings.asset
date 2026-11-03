@@ -88,8 +88,8 @@ MonoBehaviour:
       allowMovement: 0
       allowInterrupt: 0
     key:
-      allowMovement: 0
-      allowInterrupt: 0
+      allowMovement: 1
+      allowInterrupt: 1
     pickup:
       allowMovement: 1
       allowInterrupt: 1
@@ -124,9 +124,10 @@ MonoBehaviour:
     performanceScene: Tightrope
     tightropeScene: Tightrope
     humanCannonScene: HumanCannon
-    waitingRoomScene: WaitingRoomBase
+    waitingRoomVariant: 1
+    waitingRoomScene: WaitingRoomPursuit
     keepWaitingRoomOnExit: 1
-    explorationScene: WaitingRoomBase
+    explorationScene: WaitingRoomPursuit
     escapeRouteScene: escape_route
   voiceChat:
     enabled: 1
@@ -138,6 +139,7 @@ MonoBehaviour:
     - Tightrope
     - HumanCannon
     - escape_route
+    - WaitingRoomPursuit
     conversationalDistance: 2
     audibleDistance: 20
     fadeModel: 2

@@ -100,7 +100,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             {
                 WallWear(p, new Vector3(x, 14, 57.03f), new Vector2(11, 28), 180);
                 WallWear(p, new Vector3(x + 7, 4, 98.97f), new Vector2(9, 26), 0);
-                BMass(p, "기초 옆 재타설 패치", new Vector3(x + 2, -8, 98.9f), new Vector3(7, 12, .15f), patchConcrete, false);
+                BMass(p, "기초 옆 재타설 패치", new Vector3(x + 2, -8, 98.925f), new Vector3(7, 12, .15f), patchConcrete, false);
             }
             // A broken service branch hanging off the side gives a directed, non-symmetrical silhouette.
             ServicePipe(p, new Vector3(226, 12, 67), new Vector3(250, 12, 67), .8f);

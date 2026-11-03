@@ -20,6 +20,8 @@ namespace CurtainCall.UI.SceneIntegration
         C1CheerGaugeView cheer;
         [SerializeField] TightropeBalanceView localBalance;
         [SerializeField] bool sharedScene = true;
+        [SerializeField] bool presentationOnly;
+        public bool PresentationOnly => presentationOnly;
         [SerializeField] BalanceGaugeView legacyBalance;
         [SerializeField] bool humanCannon;
         [SerializeField] Transform cannonStart;
@@ -45,7 +47,13 @@ namespace CurtainCall.UI.SceneIntegration
 
         public void ConfigureSpace(TightropeBalanceView balance, BalanceGaugeView previous)
         {
-            sharedScene = true; localBalance = balance; legacyBalance = previous;
+            sharedScene = true; presentationOnly = false; localBalance = balance; legacyBalance = previous;
+        }
+
+        /// <summary>공연 채점 없이 공용 관전/장치 안내만 재사용하는 공간.</summary>
+        public void ConfigurePresentation(TightropeBalanceView balance)
+        {
+            sharedScene = true; presentationOnly = true; localBalance = balance;
         }
 
         public void ConfigureCannon(Transform start, Transform finish, HumanCannonFireWall[] fires)
@@ -65,7 +73,7 @@ namespace CurtainCall.UI.SceneIntegration
 
         public void Configure(PerformanceHUDView target, C1CheerGaugeView gauge, BalanceGaugeView previous)
         {
-            sharedScene = false; hud = target; cheer = gauge; legacyBalance = previous; localBalance = target.Balance;
+            sharedScene = false; presentationOnly = false; hud = target; cheer = gauge; legacyBalance = previous; localBalance = target.Balance;
         }
 
         void OnEnable()
@@ -83,6 +91,7 @@ namespace CurtainCall.UI.SceneIntegration
             // 위험 게이지 70% 이상 테두리 깜빡임, 균형바 구간 색 진하게. 외부 HUD 프리팹은 그대로 두고 실행 중에만 붙인다.
             if (localBalance != null)
             {
+                HudLayout.FitBalanceKeys(localBalance.transform);
                 if (!localBalance.TryGetComponent(out BalanceRiskBlink _)) localBalance.gameObject.AddComponent<BalanceRiskBlink>();
                 if (!localBalance.TryGetComponent(out BalanceZoneColors _)) localBalance.gameObject.AddComponent<BalanceZoneColors>();
             }
@@ -107,6 +116,7 @@ namespace CurtainCall.UI.SceneIntegration
 
         void BindRewards()
         {
+            if (presentationOnly) return;
             if (!ReferenceEquals(rewards, null)) { rewards.Changed -= RefreshRewards; rewards.SampleRecords -= SampleRecords; }
             rewards = PerformanceRewards.Instance;
             ClearHistory();
@@ -213,6 +223,13 @@ namespace CurtainCall.UI.SceneIntegration
                 }
             }
             if (hud == null || cheer == null) return;
+            if (presentationOnly)
+            {
+                hud.SetContext(false, false, false);
+                cheer.gameObject.SetActive(false);
+                CommonPerformanceUI.Current?.Feedback?.SetContext(false);
+                return;
+            }
             if (!ReferenceEquals(rewards, PerformanceRewards.Instance)) BindRewards();
             var run = TightropeRun.Current;
             var course = TightropeCourse.Current;
@@ -253,7 +270,9 @@ namespace CurtainCall.UI.SceneIntegration
                     -balance.GreenLimit / PlayerBalance.MaxValue, balance.GreenLimit / PlayerBalance.MaxValue,
                     -balance.WarningLimit / PlayerBalance.MaxValue, balance.WarningLimit / PlayerBalance.MaxValue,
                     hanging ? hangs.HangDangerRatio(local) : balance.RedTimeRatio,
-                    "A", "D", !hanging && posture < -0.5f, !hanging && posture > 0.5f);
+                    reader != null ? reader.BindingPartLabel("Posture", "negative", "A") : "A",
+                    reader != null ? reader.BindingPartLabel("Posture", "positive", "D") : "D",
+                    !hanging && posture < -0.5f, !hanging && posture > 0.5f);
             }
         }
 

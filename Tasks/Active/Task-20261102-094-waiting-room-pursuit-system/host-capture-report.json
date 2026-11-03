@@ -1,0 +1,9 @@
+{
+  "phase": "RestTime",
+  "timer": "Pursuit",
+  "state": "Normal",
+  "lost": 1,
+  "control": false,
+  "actor": "B1_Office",
+  "distanceTravelled": 2.71594644
+}

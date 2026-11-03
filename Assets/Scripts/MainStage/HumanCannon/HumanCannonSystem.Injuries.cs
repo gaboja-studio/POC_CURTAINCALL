@@ -28,6 +28,8 @@ namespace CurtainCall.HumanCannon
         {
             if (target == null || !target.IsSpawned || !target.TryGetComponent(out BodyDamageEffects effects)
                 || previousPolicies.ContainsKey(effects)) return;
+            var course = CurtainCall.Tightrope.TightropeCourse.Current;
+            if (course != null && course.IsGameplayActive && course.UsesRopeRules(target)) return;
             previousPolicies.Add(effects, effects.Policy);
             effects.SetPolicy(injuryPolicy);
         }

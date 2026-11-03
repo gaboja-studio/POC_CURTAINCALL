@@ -1,0 +1,34 @@
+{
+  "status": "completed",
+  "duration": 0.05,
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Settings.EditorTests.WaitingRoomSceneSelectionTests.CustomDummyRoutesArePreserved",
+      "Status": "Passed",
+      "Duration": 0.0068477,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Settings.EditorTests.WaitingRoomSceneSelectionTests.SelectionRoutesRestAndExplorationAndBothAssetsRemainAvailable(Base,\"WaitingRoomBase\")",
+      "Status": "Passed",
+      "Duration": 0.0021426,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Settings.EditorTests.WaitingRoomSceneSelectionTests.SelectionRoutesRestAndExplorationAndBothAssetsRemainAvailable(Pursuit,\"WaitingRoomPursuit\")",
+      "Status": "Passed",
+      "Duration": 0.0002322,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

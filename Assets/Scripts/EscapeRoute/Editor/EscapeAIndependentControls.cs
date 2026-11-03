@@ -83,6 +83,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 Undo.RegisterCreatedObjectUndo(instance, "Device notification UI"); instance.name = "장치 작동 알림"; ui = instance.transform;
             }
             var views = ui.GetComponent<SystemNotificationsView>(); views.ResetForRuntime();
+            ui.GetComponent<UnityEngine.UI.CanvasScaler>().screenMatchMode = UnityEngine.UI.CanvasScaler.ScreenMatchMode.Expand;
             var label = (TMP_Text)new SerializedObject(views.Toast).FindProperty("messageLabel").objectReferenceValue;
             Undo.RecordObject(label, "A notification glyphs");
             label.font = MechanismFont(); label.fontSharedMaterial = label.font.material;
@@ -122,22 +123,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
 
         static TMP_FontAsset MechanismFont()
         {
-            const string path = Materials + "a-mechanism-notifications.asset";
-            const string text = "전원 버튼 복귀 대포 상승 유지봉 반출교 레버 권상교 그네 통로 합류 다리 해제 가동 정지 고정 중 맞은편 도착 계단 열림 → ·";
-            var font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(path);
-            if (font != null) return font;
-            var source = AssetDatabase.LoadAssetAtPath<Font>("Assets/_ThirdParty/curtaincall_c1_v1/Source/Fonts/Pretendard-Medium.ttf");
-            if (source == null) throw new InvalidOperationException("Existing Pretendard source required");
-            font = TMP_FontAsset.CreateFontAsset(source, 90, 9, UnityEngine.TextCore.LowLevel.GlyphRenderMode.SDFAA,
-                1024, 1024, AtlasPopulationMode.Dynamic, true);
-            font.name = "A mechanism notifications";
-            if (!font.TryAddCharacters(new string(text.Distinct().ToArray()), out string missing))
-                throw new InvalidOperationException("Missing mechanism notification glyphs: " + missing);
-            font.atlasPopulationMode = AtlasPopulationMode.Static; AssetDatabase.CreateAsset(font, path);
-            AssetDatabase.AddObjectToAsset(font.material, font);
-            foreach (var atlas in font.atlasTextures.Where(t => t != null)) AssetDatabase.AddObjectToAsset(atlas, font);
-            EditorUtility.SetDirty(font); AssetDatabase.SaveAssetIfDirty(font);
-            return font;
+            return AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Resources/Fonts/Notifications/Pretendard-Medium SDF.asset")
+                ?? throw new InvalidOperationException("Shared notification font required");
         }
     }
 }

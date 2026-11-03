@@ -1,0 +1,27 @@
+{
+  "floor": 0.0,
+  "rooms": [
+    "P05_PipeZone",
+    "S02_Dormitory",
+    "S03_Shop",
+    "S04_PropRoom",
+    "S05_JunkStorage",
+    "S08_ElevatorHall",
+    "S09_PracticeRoom",
+    "S10_Workshop",
+    "S11_StageGear",
+    "S12_CargoBay",
+    "F8_Cargo",
+    "F8_Dorm",
+    "F8_PipeCrawl",
+    "F8_Practice",
+    "F8_PropRoom",
+    "Lobby",
+    "PipeLink",
+    "ServiceGallery",
+    "WorkshopBranch"
+  ],
+  "markers": 4,
+  "bottom": -0.349998474,
+  "dirty": false
+}

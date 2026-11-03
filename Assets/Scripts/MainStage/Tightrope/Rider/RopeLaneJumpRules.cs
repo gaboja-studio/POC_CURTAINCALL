@@ -192,7 +192,7 @@ namespace CurtainCall.Tightrope
             float gap = GameSettings.Base.Character.PlayerGap;
             Vector3 forward = ForwardFor(course, mover.transform.position);
             Vector3 right = Vector3.Cross(Vector3.up, forward);
-            bool reversing = course.HasIndependentRopes && Vector3.Dot(mover.CourseForward, forward) < 0;
+            bool reversing = Vector3.Dot(mover.CourseForward, forward) < 0;
 
             foreach (var other in PlayerMover.All)
             {
@@ -312,7 +312,8 @@ namespace CurtainCall.Tightrope
             landingLane = lane;
             landingDistance = distance;
             RefreshLandingHelp();
-            return distance - original;
+            float shift = distance - original;
+            return Vector3.Dot(mover.CourseForward, ForwardFor(course, mover.transform.position)) < 0 ? -shift : shift;
         }
 
         void RefreshLandingHelp()

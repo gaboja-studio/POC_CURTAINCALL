@@ -25,14 +25,16 @@ namespace CurtainCall.Campaign
         readonly Dictionary<string, int> cleared = new();
         readonly bool demoVersion;
         readonly bool dayPresentation;
+        readonly bool pursuitEnabled;
         CampaignSnapshot s;
 
         public RunState() : this(false) { }
         public RunState(bool demoVersion) : this(demoVersion, false) { }
-        public RunState(bool demoVersion, bool dayPresentation)
+        public RunState(bool demoVersion, bool dayPresentation, bool pursuitEnabled = false)
         {
             this.demoVersion = demoVersion;
             this.dayPresentation = dayPresentation;
+            this.pursuitEnabled = pursuitEnabled;
         }
 
         static BaseGameSettings.RunSettings Rules => GameSettings.Base.Run;
@@ -86,10 +88,11 @@ namespace CurtainCall.Campaign
                     return true;
                 }
                 // 쉬는 시간 상태가 지워지기 전에 실제 만료를 알린다.
+                if (pursuitEnabled) s.Timer = RestTimerState.Pursuit;
                 if (onExpired != null)
                     foreach (System.Action<CampaignSnapshot> observer in onExpired.GetInvocationList())
                         try { observer(s); } catch { /* Observers cannot change progression. */ }
-                EndRest();
+                if (!pursuitEnabled) EndRest();
                 return true;
             }
             CheckAlarm();
@@ -259,6 +262,21 @@ namespace CurtainCall.Campaign
             return true;
         }
 
+        public bool DebugResetRestTimer()
+        {
+            if (s.Phase != CampaignPhase.RestTime) return false;
+            StartTimer(Rules.TimeLimit(s.Rest));
+            return true;
+        }
+
+        public bool DebugBeginPursuit()
+        {
+            if (s.Phase != CampaignPhase.RestTime || !pursuitEnabled) return false;
+            s.TimeRemaining = 0;
+            s.Timer = RestTimerState.Pursuit;
+            return true;
+        }
+
         /// <summary>확인창을 연 시간대가 그대로일 때만 현재 런을 실패 처리한다.</summary>
         public bool AbandonRun(CampaignSnapshot expected)
         {
@@ -365,7 +383,7 @@ namespace CurtainCall.Campaign
 
         void EnterRest(RestKind kind, int nextPerformance)
         {
-            if (demoVersion && kind == RestKind.Morning && s.Day == 4)
+            if (demoVersion && !pursuitEnabled && kind == RestKind.Morning && s.Day == 4)
             {
                 ClearTimer();
                 s.Phase = CampaignPhase.DemoEnding;
@@ -426,6 +444,13 @@ namespace CurtainCall.Campaign
                 FailRun(RunEndReason.Deadline);
             else
                 EnterPerformance(s.PerformanceIndex);
+        }
+
+        public bool NotifyAllPursuitCaught()
+        {
+            if (s.Phase != CampaignPhase.RestTime || s.Timer != RestTimerState.Pursuit) return false;
+            EndRest();
+            return true;
         }
 
         void ClearTimer()

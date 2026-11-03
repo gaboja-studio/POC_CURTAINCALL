@@ -138,7 +138,8 @@ function Get-RefTask {
 function Get-PrFlow {
     param([Parameter(Mandatory)][string]$Head, [Parameter(Mandatory)][string]$Base)
     if ($Head -ceq $Base) { throw "같은 브랜치로 PR 불가: $Head" }
-    $named = '^(feat|fix|refactor|resource|integration)/[a-z0-9]+(?:-[a-z0-9]+)*$'
+    # new-task -UseCurrentBranch와 같이 feat/area/name 같은 다단계 이름도 받는다.
+    $named = '^(feat|fix|refactor|resource|integration)/(?:[a-z0-9]+(?:-[a-z0-9]+)*/)*[a-z0-9]+(?:-[a-z0-9]+)*$'
     $rootBranch = Get-BaseBranch
     if ($Head -cne $rootBranch -and $Head -cnotmatch $named) { throw "제출용 브랜치가 아닙니다: $Head" }
     if ($Base -like 'builds/*') {
