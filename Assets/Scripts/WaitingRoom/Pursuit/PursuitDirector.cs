@@ -14,7 +14,22 @@ namespace CurtainCall.WaitingRoom.Pursuit
     /// <summary>호스트만 AI/포획을 판정. 방·배치 순서는 씬에서 고정하며 상태를 늦은 입장자에게도 계속 전송한다.</summary>
     public sealed partial class PursuitDirector : MonoBehaviour
     {
-        const string Message = "CurtainCall.WaitingRoom.Pursuit.v2";
+        const string Message = "CurtainCall.WaitingRoom.Pursuit.v3";
+        const string ReadyMessage = "CurtainCall.WaitingRoom.Pursuit.v3.ready";
+        readonly HashSet<ulong> readyClients = new();
+        bool receivedSnapshot;
+        float readyAt;
+        /// <summary>마지막으로 보낸 스냅샷 크기(바이트). 측정 도구용.</summary>
+        public int LastSnapshotBytes { get; private set; }
+        /// <summary>측정용: 현재 상태를 이전 방식(JSON 문자열)과 새 방식(바이너리)으로 직렬화한 크기.</summary>
+        public (int legacyJson, int binary) MeasureSnapshot()
+        {
+            var s = BuildSnapshot();
+            int legacy = FastBufferWriter.GetWriteSize(JsonUtility.ToJson(s));
+            using var writer = new FastBufferWriter(PursuitSnapshotCodec.MaxSize(s), Allocator.Temp);
+            PursuitSnapshotCodec.Write(writer, s);
+            return (legacy, writer.Length);
+        }
         public PursuitRoom[] Rooms;
         public GameObject[] Mannequins;
         public Unity.Behavior.BehaviorGraph BehaviourGraph;
@@ -33,9 +48,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
         float sendAt;
         internal void ActorStateChanged() => sendAt = 0;
         bool active;
-        [Serializable] sealed class ActorState { public Vector3 position, look; public bool hasLook, hasTarget; public Quaternion rotation; public int motion, behaviour, captures; public ulong victim = ulong.MaxValue, target = ulong.MaxValue; public float capture; }
-        [Serializable] sealed class VictimState { public ulong id; public float elapsed; public bool retired; public int room; public Vector3 anchor; public Quaternion upright; }
-        [Serializable] sealed class Snapshot { public int generation, day, performance, stage, poseEpoch; public bool stageForced, debugInvulnerable, debugIgnorePlayers; public string announcement; public float elapsed; public ActorState[] actors; public VictimState[] victims; }
+        [Serializable] public sealed class ActorState { public Vector3 position, look; public bool hasLook, hasTarget; public Quaternion rotation; public int motion, behaviour, captures; public ulong victim = ulong.MaxValue, target = ulong.MaxValue; public float capture; }
+        [Serializable] public sealed class VictimState { public ulong id; public float elapsed; public bool retired; public int room; public Vector3 anchor; public Quaternion upright; }
+        [Serializable] public sealed class Snapshot { public int generation, day, performance, stage, poseEpoch, lightRoom = -1; public float lightAt = -1; public bool stageForced, debugInvulnerable, debugIgnorePlayers; public string announcement; public float elapsed; public ActorState[] actors; public VictimState[] victims; }
         sealed class Victim { public GameObject Object; public PursuitVictimPose Pose; public float Elapsed; public bool Retired; public PursuitRoom Room; public Vector3 Anchor; public Quaternion Upright; }
         public static bool IsCaptured(GameObject player) => Current != null && Current.victims.Values.Any(v => v.Object == player);
         public static bool IsCaptured(NetworkPlayer player) => player != null && IsCaptured(player.gameObject);
@@ -72,6 +87,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 }
             }
             if (GetComponent<PursuitFeedback>() == null) gameObject.AddComponent<PursuitFeedback>();
+            if (GetComponent<PursuitLighting>() == null) gameObject.AddComponent<PursuitLighting>();
         }
         void Spawn(GameObject prefab, Transform point, PursuitRoom room, PursuitPlacement placement)
         {
@@ -84,6 +100,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void Update()
         {
             Bind();
+            SendReady();
             var nextRun = CampaignRun.Instance;
             if (run != nextRun) {
                 if (run != null) run.StepChanged -= StepChanged;
@@ -111,6 +128,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     Present(victim);
                 }
                 Announce();
+                TickLighting();
                 int living = candidates.Count(IsAvailable);
                 bool pending = victims.Values.Any(v => !v.Retired && v.Object != null);
                 // Final morning fails as soon as everyone is secured. Earlier days wait for the sequence.
@@ -118,6 +136,22 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             TickPoseBroadcast();
             if (Time.unscaledTime >= sendAt) { sendAt = Time.unscaledTime + .25f; Broadcast(); }
+        }
+        /// <summary>클라이언트: 이 씬의 수신기가 준비되면 첫 스냅샷을 받을 때까지 1초마다 준비를 알린다.</summary>
+        void SendReady()
+        {
+            if (messaging == null || manager == null || manager.IsServer || receivedSnapshot || Time.unscaledTime < readyAt) return;
+            readyAt = Time.unscaledTime + 1;
+            using var writer = new FastBufferWriter(1, Allocator.Temp);
+            writer.WriteByteSafe(PursuitSnapshotCodec.Version);
+            messaging.SendNamedMessage(ReadyMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.Reliable);
+        }
+        void ReceiveReady(ulong sender, FastBufferReader reader)
+        {
+            if (sender == NetworkManager.ServerClientId) return;
+            if (!reader.TryBeginRead(1)) return;
+            reader.ReadByte(out byte version);
+            if (version == PursuitSnapshotCodec.Version) readyClients.Add(sender);
         }
         void ResetStep(CampaignSnapshot s)
         {
@@ -127,6 +161,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             foreach (var victim in victims.Values) if (victim.Pose != null) Destroy(victim.Pose);
             victims.Clear(); active = false; Elapsed = -1; stage = -1; forcedStage = -1;
             footsteps.Clear();
+            ResetLighting();
             generation = s.Generation; day = s.Day; performance = s.PerformanceIndex;
             poseEpoch++; sendAt = 0;
             foreach (var actor in actors) actor.ResetActor();
@@ -249,33 +284,52 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var nm = NetworkManager.Singleton;
             var next = nm != null && nm.IsListening ? nm.CustomMessagingManager : null;
             if (next == messaging) return;
-            if (messaging != null && manager != null && !manager.IsServer) { messaging.UnregisterNamedMessageHandler(Message); messaging.UnregisterNamedMessageHandler(PoseMessage); }
+            Unbind();
             manager = nm; messaging = next;
-            if (messaging != null && !manager.IsServer) { messaging.RegisterNamedMessageHandler(Message, Receive); messaging.RegisterNamedMessageHandler(PoseMessage, ReceivePoses); }
+            if (messaging == null) return;
+            if (manager.IsServer) messaging.RegisterNamedMessageHandler(ReadyMessage, ReceiveReady);
+            else { messaging.RegisterNamedMessageHandler(Message, Receive); messaging.RegisterNamedMessageHandler(PoseMessage, ReceivePoses); receivedSnapshot = false; readyAt = 0; }
         }
+        void Unbind()
+        {
+            if (messaging != null && manager != null) {
+                if (manager.IsServer) messaging.UnregisterNamedMessageHandler(ReadyMessage);
+                else { messaging.UnregisterNamedMessageHandler(Message); messaging.UnregisterNamedMessageHandler(PoseMessage); }
+            }
+            readyClients.Clear();
+        }
+        Snapshot BuildSnapshot() => new Snapshot { generation = generation, day = day, performance = performance, elapsed = Elapsed, stage = stage,
+            poseEpoch = poseEpoch, debugInvulnerable = debugInvulnerable, debugIgnorePlayers = debugIgnorePlayers,
+            stageForced = StageIsForced, lightRoom = RoomFlickerIndex, lightAt = RoomFlickerAt, announcement = active ? CurrentStageRules.Announcement : "",
+            actors = actors.Select(a => new ActorState { position = a.transform.position, rotation = a.transform.rotation, look = a.LookPoint, hasLook = a.HasLook,
+                motion = (int)a.State, behaviour = (int)a.Behaviour, victim = a.Victim != null ? Id(a.Victim) : ulong.MaxValue, capture = a.CaptureElapsed,
+                captures = a.GetComponent<PursuitAppearance>() != null ? a.GetComponent<PursuitAppearance>().CaptureCount : 0,
+                hasTarget = a.ChasedPlayer != null, target = a.ChasedPlayer != null ? Id(a.ChasedPlayer) : ulong.MaxValue }).ToArray(),
+            victims = victims.Where(v => v.Value.Object != null).Select(v => new VictimState { id = v.Key, elapsed = v.Value.Elapsed,
+                retired = v.Value.Retired, room = Array.IndexOf(Rooms, v.Value.Room), anchor = v.Value.Anchor, upright = v.Value.Upright }).ToArray() };
         void Broadcast()
         {
             if (messaging == null || manager == null || !manager.IsServer) return;
-            var s = new Snapshot { generation = generation, day = day, performance = performance, elapsed = Elapsed, stage = stage, poseEpoch = poseEpoch,
-                stageForced = StageIsForced, debugInvulnerable = debugInvulnerable, debugIgnorePlayers = debugIgnorePlayers,
-                announcement = active ? CurrentStageRules.Announcement : "",
-                actors = actors.Select(a => new ActorState { position = a.transform.position, rotation = a.transform.rotation, look = a.LookPoint, hasLook = a.HasLook,
-                    motion = (int)a.State, behaviour = (int)a.Behaviour, victim = a.Victim != null ? Id(a.Victim) : ulong.MaxValue, capture = a.CaptureElapsed,
-                    captures = a.GetComponent<PursuitAppearance>() != null ? a.GetComponent<PursuitAppearance>().CaptureCount : 0,
-                    hasTarget = a.ChasedPlayer != null, target = a.ChasedPlayer != null ? Id(a.ChasedPlayer) : ulong.MaxValue }).ToArray(),
-                victims = victims.Where(v => v.Value.Object != null).Select(v => new VictimState { id = v.Key, elapsed = v.Value.Elapsed,
-                    retired = v.Value.Retired, room = Array.IndexOf(Rooms, v.Value.Room), anchor = v.Value.Anchor, upright = v.Value.Upright }).ToArray() };
-            string json = JsonUtility.ToJson(s);
-            using var writer = new FastBufferWriter(FastBufferWriter.GetWriteSize(json), Allocator.Temp);
-            writer.WriteValueSafe(json);
-            foreach (var id in manager.ConnectedClientsIds) if (id != NetworkManager.ServerClientId)
-                messaging.SendNamedMessage(Message, id, writer, NetworkDelivery.ReliableFragmentedSequenced);
+            // 씬을 다 불러와 수신 준비를 알린 클라이언트에게만 보낸다. 로딩으로 멈춘 클라이언트에 쌓이지 않게 한다.
+            readyClients.RemoveWhere(id => !manager.ConnectedClients.ContainsKey(id));
+            if (readyClients.Count == 0) return;
+            var s = BuildSnapshot();
+            using var writer = new FastBufferWriter(PursuitSnapshotCodec.MaxSize(s), Allocator.Temp);
+            PursuitSnapshotCodec.Write(writer, s);
+            LastSnapshotBytes = writer.Length;
+            // 위치는 별도 비신뢰성 패킷으로 보간한다. 포획·단계·치트·리셋 상태는 신뢰성 경로로 유지한다.
+            var delivery = NetworkDelivery.ReliableFragmentedSequenced;
+            foreach (var id in readyClients) messaging.SendNamedMessage(Message, id, writer, delivery);
         }
         void Receive(ulong sender, FastBufferReader reader)
         {
             if (sender != NetworkManager.ServerClientId || run == null) return;
-            reader.ReadValueSafe(out string json);
-            var s = JsonUtility.FromJson<Snapshot>(json);
+            var s = PursuitSnapshotCodec.Read(reader);
+            if (s == null) return;
+            receivedSnapshot = true;
+            // 알림 문구는 같은 설정 에셋에서 읽어 전송량을 줄인다.
+            var stages = GameSettings.WaitingRoom.Pursuit.Stages;
+            s.announcement = s.elapsed >= 0 && stages != null && s.stage >= 0 && s.stage < stages.Length && stages[s.stage] != null ? stages[s.stage].Announcement : "";
             ApplySnapshot(s);
         }
         void ApplySnapshot(Snapshot s)
@@ -293,6 +347,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             Elapsed = s.elapsed; active = Elapsed >= 0;
             forcedStage = s.stageForced ? s.stage : -1;
             debugInvulnerable = s.debugInvulnerable; debugIgnorePlayers = s.debugIgnorePlayers;
+            ReceiveLighting(s.lightRoom, s.lightAt);
             generation = s.generation; day = s.day; performance = s.performance;
             for (int i = 0; i < actors.Count; i++) {
                 var a = s.actors[i];
@@ -328,7 +383,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void OnDestroy()
         {
             if (run != null) run.StepChanged -= StepChanged;
-            if (messaging != null && manager != null && !manager.IsServer) { messaging.UnregisterNamedMessageHandler(Message); messaging.UnregisterNamedMessageHandler(PoseMessage); }
+            Unbind();
             foreach (var v in victims.Values) if (v.Pose != null) Destroy(v.Pose);
             if (Current == this) Current = null;
         }

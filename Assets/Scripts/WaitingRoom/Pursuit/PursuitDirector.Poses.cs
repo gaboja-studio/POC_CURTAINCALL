@@ -13,7 +13,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         float poseSendAt;
         void TickPoseBroadcast()
         {
-            if (messaging == null || manager == null || !manager.IsServer || Time.unscaledTime < poseSendAt) return;
+            if (messaging == null || manager == null || !manager.IsServer || readyClients.Count == 0 || Time.unscaledTime < poseSendAt) return;
             poseSendAt = Time.unscaledTime + .05f;
             double stamp = Time.realtimeSinceStartupAsDouble;
             for (int start = 0; start < actors.Count; start += PosesPerPacket) {
@@ -24,7 +24,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 for (int i = start; i < start + count; i++) {
                     writer.WriteValueSafe(i); writer.WriteValueSafe(actors[i].transform.position); writer.WriteValueSafe(actors[i].transform.rotation);
                 }
-                foreach (var id in manager.ConnectedClientsIds) if (id != NetworkManager.ServerClientId)
+                foreach (var id in readyClients) if (manager.ConnectedClients.ContainsKey(id))
                     messaging.SendNamedMessage(PoseMessage, id, writer, NetworkDelivery.Unreliable);
             }
         }

@@ -61,6 +61,8 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                         if (GUILayout.Button("단계 제거")) { stages.DeleteArrayElementAtIndex(stageIndex); stageIndex = Mathf.Max(0, stageIndex - 1); }
                 }
             }
+            EditorGUILayout.Space(14); GUILayout.Label("단계별 전등 연출", EditorStyles.boldLabel);
+            if (GUILayout.Button("전등 연출 창 열기")) PursuitLightingWindow.Open();
             EditorGUILayout.Space(14); GUILayout.Label("전방 상태 신호 / 외형", EditorStyles.boldLabel);
             Field("DirectionCue", "전방 바닥 신호 사용"); Field("DirectionCueLength", "표시 길이 (m)"); Field("DirectionCueOpacity", "표시 밝기");
             Field("DirectionCueSoftness", "가장자리 흐림");

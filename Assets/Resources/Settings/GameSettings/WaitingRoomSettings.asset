@@ -47,6 +47,87 @@ MonoBehaviour:
     EdgeIntensity: 0.65
     EdgeWidth: 0.19
     PulseAmount: 0.35
+    Lighting:
+      Enabled: 1
+      IncludeUnassignedLights: 1
+      TransitionSeconds: 1.5
+      CaptureOffIntensity: 0
+      CaptureOffAmbient: 0.02
+      CaptureFlickerRate: 6
+      CaptureDarkRatio: 0.5
+      CaptureOnBrightness: 1
+      CaptureOnAmbient: 1
+      CaptureDarkenSpill: 1
+      CaptureScreenDarkness: 0.9
+      SparkMaterial: {fileID: 0}
+      SparkColor: {r: 1, g: 0.78, b: 0.42, a: 1}
+      SparkSize: 0.045
+      SparkSpeed: 2.4
+      Stages:
+      - Brightness: 0.5
+        AmbientBrightness: 0.6
+        Tint: {r: 1, g: 1, b: 1, a: 1}
+        TintAmount: 0
+        CracklePerMinute: 5
+        CrackleSeconds: 0.32
+        CrackleDip: 0.08
+        Sparks: 0
+        EntryFlickers: 0
+        EntryFlickerCycle: 0.42
+        RoomFlickerInterval: 0
+        RoomFlickerJitter: 5
+        RoomFlickerSeconds: 1.8
+        NeighborDistance: 4
+        RoomFlickerOffIntensity: 0.03
+        RoomFlickerOffAmbient: 0.35
+      - Brightness: 0.45
+        AmbientBrightness: 0.6
+        Tint: {r: 1, g: 1, b: 1, a: 1}
+        TintAmount: 0
+        CracklePerMinute: 5
+        CrackleSeconds: 0.32
+        CrackleDip: 0.08
+        Sparks: 10
+        EntryFlickers: 3
+        EntryFlickerCycle: 0.42
+        RoomFlickerInterval: 0
+        RoomFlickerJitter: 5
+        RoomFlickerSeconds: 1.8
+        NeighborDistance: 4
+        RoomFlickerOffIntensity: 0.03
+        RoomFlickerOffAmbient: 0.35
+      - Brightness: 0.4
+        AmbientBrightness: 0.5
+        Tint: {r: 1, g: 1, b: 1, a: 1}
+        TintAmount: 0
+        CracklePerMinute: 5
+        CrackleSeconds: 0.32
+        CrackleDip: 0.08
+        Sparks: 10
+        EntryFlickers: 3
+        EntryFlickerCycle: 0.42
+        RoomFlickerInterval: 14
+        RoomFlickerJitter: 5
+        RoomFlickerSeconds: 1.8
+        NeighborDistance: 4
+        RoomFlickerOffIntensity: 0.03
+        RoomFlickerOffAmbient: 0.35
+      - Brightness: 0.3
+        AmbientBrightness: 0.4
+        Tint: {r: 1, g: 1, b: 1, a: 1}
+        TintAmount: 0.35
+        CracklePerMinute: 5
+        CrackleSeconds: 0.32
+        CrackleDip: 0.08
+        Sparks: 10
+        EntryFlickers: 3
+        EntryFlickerCycle: 0.42
+        RoomFlickerInterval: 14
+        RoomFlickerJitter: 5
+        RoomFlickerSeconds: 1.8
+        NeighborDistance: 4
+        RoomFlickerOffIntensity: 0.03
+        RoomFlickerOffAmbient: 0.35
     Stages:
     - StartsAt: 0
       SightRadius: 5

@@ -91,14 +91,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(director, "BeginCapture", actors[0], player.gameObject);
             var state = Get(run, "State");
             var type = director.GetType();
-            var snapshotType = type.GetNestedType("Snapshot", BindingFlags.NonPublic);
+            var snapshotType = type.GetNestedType("Snapshot", BindingFlags.Public | BindingFlags.NonPublic);
             var snapshot = Activator.CreateInstance(snapshotType);
             Set(snapshot, "generation", Field(state, "Generation"));
             Set(snapshot, "day", Field(state, "Day"));
             Set(snapshot, "performance", Field(state, "PerformanceIndex"));
             Set(snapshot, "elapsed", -1f); Set(snapshot, "stage", -1);
             Set(snapshot, "debugInvulnerable", true); Set(snapshot, "debugIgnorePlayers", true);
-            var actorType = type.GetNestedType("ActorState", BindingFlags.NonPublic);
+            var actorType = type.GetNestedType("ActorState", BindingFlags.Public | BindingFlags.NonPublic);
             var states = Array.CreateInstance(actorType, actors.Length);
             for (int i = 0; i < actors.Length; i++) {
                 var item = Activator.CreateInstance(actorType);
@@ -107,7 +107,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 states.SetValue(item, i);
             }
             Set(snapshot, "actors", states);
-            Set(snapshot, "victims", Array.CreateInstance(type.GetNestedType("VictimState", BindingFlags.NonPublic), 0));
+            Set(snapshot, "victims", Array.CreateInstance(type.GetNestedType("VictimState", BindingFlags.Public | BindingFlags.NonPublic), 0));
             Call(run, "DebugSetRemaining", 60f);
             type.GetMethod("ApplySnapshot", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(director, new[] { snapshot });
             yield return null; yield return null;

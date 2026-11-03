@@ -1,0 +1,146 @@
+{
+  "measuredAt": "2026-11-03 17:23:58",
+  "unity": "6000.3.25f1",
+  "note": "에디터 플레이 측정(빌드보다 느림). 추세 비교용.",
+  "load": {
+    "totalMs": 3507.3836000001393,
+    "worstFrameMs": 1041.25366,
+    "framesOver1s": 1,
+    "stallsMs": [
+      1041.25366
+    ],
+    "topSelfInWorstFrame": [
+      {
+        "name": "GC.Collect",
+        "selfMs": 286.4448,
+        "totalMs": 286.4448
+      },
+      {
+        "name": "Mono.JIT",
+        "selfMs": 94.2932,
+        "totalMs": 10.3518
+      },
+      {
+        "name": "Application.LoadLevelAsync Integrate",
+        "selfMs": 50.37696,
+        "totalMs": 791.4051
+      },
+      {
+        "name": "ClothScene.Update",
+        "selfMs": 34.0615,
+        "totalMs": 34.4231
+      },
+      {
+        "name": "EditorLoop",
+        "selfMs": 24.6301,
+        "totalMs": 24.6301
+      },
+      {
+        "name": "Preload Single Step",
+        "selfMs": 19.1482239,
+        "totalMs": 820.2019
+      },
+      {
+        "name": "UnityEngine.CoreModule.dll!UnityEngine.SceneManagement::SceneManager.Internal_SceneLoaded() [Invoke]",
+        "selfMs": 7.9976,
+        "totalMs": 8.2079
+      },
+      {
+        "name": "UnityEditor.CoreModule.dll!UnityEditor::MaterialEditor.ApplyMaterialPropertyDrawersFromNative() [Invoke]",
+        "selfMs": 6.3269,
+        "totalMs": 4.7385
+      },
+      {
+        "name": "UnityEditor.CoreModule.dll!UnityEditor::ShaderGUIUtility.ValidateMaterial() [Invoke]",
+        "selfMs": 5.7876,
+        "totalMs": 8.942
+      },
+      {
+        "name": "TextureStreamingManager.RemoveRenderer",
+        "selfMs": 5.6206,
+        "totalMs": 4.9176
+      },
+      {
+        "name": "Idle",
+        "selfMs": 5.2589,
+        "totalMs": 2.6793
+      },
+      {
+        "name": "QueuePrepareIntegrateMainThreadObjects",
+        "selfMs": 5.2057,
+        "totalMs": 18.5001
+      },
+      {
+        "name": "SetInScenePlaced.OnProcessScene",
+        "selfMs": 4.6318,
+        "totalMs": 4.7014
+      },
+      {
+        "name": "Assembly-CSharp.dll!CurtainCall.WaitingRoom.Pursuit::PursuitLighting.LateUpdate() [Invoke]",
+        "selfMs": 3.0967,
+        "totalMs": 6.8754
+      },
+      {
+        "name": "StaticBatching.Combine",
+        "selfMs": 2.8064,
+        "totalMs": 11.1639
+      }
+    ]
+  },
+  "scene": {
+    "gameObjects": 30952,
+    "meshRenderers": 23299,
+    "activeRenderers": 14589,
+    "staticBatched": 180,
+    "lodGroups": 12579,
+    "colliders": 3764,
+    "monoBehaviours": 1601,
+    "lights": 268,
+    "realtimeLights": 268,
+    "shadowLights": 11,
+    "pursuers": 26
+  },
+  "snapshot": {
+    "actors": 26,
+    "legacyJsonBytes": 17288,
+    "binaryBytes": 419,
+    "legacyKBps": 168.828125,
+    "binaryKBps": 4.091797
+  },
+  "views": [
+    {
+      "room": "S02_Dormitory",
+      "missing": false,
+      "batches": 2527,
+      "setPassCalls": 126,
+      "triangles": 1376604,
+      "shadowCasters": 1236,
+      "renderMs": 13.5049,
+      "frameMs": 22.0341
+    },
+    {
+      "room": "Lobby",
+      "missing": false,
+      "batches": 6110,
+      "setPassCalls": 168,
+      "triangles": 2305347,
+      "shadowCasters": 4608,
+      "renderMs": 13.1304007,
+      "frameMs": 14.7141008
+    },
+    {
+      "room": "S09_PracticeRoom",
+      "missing": false,
+      "batches": 151,
+      "setPassCalls": 42,
+      "triangles": 37186,
+      "shadowCasters": 100,
+      "renderMs": 11.6956005,
+      "frameMs": 20.9117
+    }
+  ],
+  "budget": [
+    "WARN Lobby batches 6110 > 3000",
+    "WARN Lobby shadowCasters 4608 > 2000"
+  ]
+}

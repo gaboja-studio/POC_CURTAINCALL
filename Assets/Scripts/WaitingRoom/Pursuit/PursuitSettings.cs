@@ -38,6 +38,8 @@ namespace CurtainCall.Settings
         [Range(0, 1)] public float EdgeIntensity = .65f;
         [Range(.05f, .4f)] public float EdgeWidth = .19f;
         [Range(0, 1)] public float PulseAmount = .35f;
+        [Header("단계별 전등 연출")]
+        public PursuitLightSettings Lighting = new();
         [Tooltip("추격 시작부터의 누적 초. 단계별 탐지·순찰·추격 속도를 조절합니다.")]
         public PursuitStage[] Stages = {
             new(0, 10, false, false, "추격자가 움직이기 시작했습니다."),
