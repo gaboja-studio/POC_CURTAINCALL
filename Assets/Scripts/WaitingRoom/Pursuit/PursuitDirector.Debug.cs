@@ -9,6 +9,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
     public sealed partial class PursuitDirector
     {
         int forcedStage = -1;
+        bool debugInvulnerable, debugIgnorePlayers;
+        public bool DebugInvulnerable => debugInvulnerable;
+        public bool DebugRecognitionEnabled => !debugIgnorePlayers;
+        internal bool PlayerRecognitionEnabled => !DevMode.Enabled || !debugIgnorePlayers;
+        bool CaptureSuppressed => DevMode.Enabled && debugInvulnerable;
         public bool CanDebug => DevMode.Enabled && isActiveAndEnabled && run != null && run.HasAuthority
             && run.State.Phase == CampaignPhase.RestTime;
         public bool StageIsForced => forcedStage >= 0;
@@ -28,6 +33,28 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (!CanDebug || !run.DebugResetRestTimer()) return false;
             CancelDebugPursuit();
             return true;
+        }
+        public bool DebugSetInvulnerable(bool enabled)
+        {
+            if (!CanDebug) return false;
+            debugInvulnerable = enabled;
+            Broadcast();
+            return true;
+        }
+        public bool DebugSetRecognition(bool enabled)
+        {
+            if (!CanDebug) return false;
+            debugIgnorePlayers = !enabled;
+            footsteps.Clear();
+            if (!enabled) foreach (var actor in actors) actor.ForgetPlayers();
+            Broadcast();
+            return true;
+        }
+        void ResetDebugProtection()
+        {
+            debugInvulnerable = debugIgnorePlayers = false;
+            footsteps.Clear();
+            sendAt = 0;
         }
         public bool DebugSetTimer(float seconds)
         {

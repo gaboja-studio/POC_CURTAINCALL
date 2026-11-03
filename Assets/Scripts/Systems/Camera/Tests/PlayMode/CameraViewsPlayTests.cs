@@ -533,6 +533,44 @@ namespace CurtainCall.Cameras.Tests
 
         object SpectatorTarget => Get(GameType("CurtainCall.Cameras.CameraSpectator"), "Target");
 
+        [UnityTest]
+        public IEnumerator Spectator_RetiredAndFallenOrbitSurvivorAndRespectWalls()
+        {
+            yield return Host("Assets/Scenes/Tests/WaitingRoom/Pursuit/WaitingRoomPursuit.unity");
+            var other = new GameObject("Spectator surviving target fixture");
+            var survivor = other.AddComponent(GameType(PlayerType));
+            var players = (IList)Get(GameType(PlayerType), "All"); players.Add(survivor);
+            var wall = GameObject.CreatePrimitive(PrimitiveType.Cube); wall.SetActive(false);
+            try {
+                survivor.transform.position = new Vector3(1000,30,1000);
+                var camera = director.GetComponent<CinemachineCamera>();
+                foreach (string state in new[]{"Retired","Fallen"}) {
+                    Call(local,"ServerSetState",Enum.Parse(GameType("CurtainCall.Network.PlayerSync.PlayerState"),state));
+                    camera.InternalUpdateCameraState(Vector3.up,-1);
+                    SetPrivate(director,"deathStarted",Time.unscaledTime-2);
+                    camera.InternalUpdateCameraState(Vector3.up,-1);
+                    Assert.AreSame(survivor,SpectatorTarget);
+                    Assert.IsTrue((bool)Get(director,"IsSpectatorOrbit"));
+                    Assert.IsTrue((bool)Get(director,"UsesMouseLook"));
+                    SetPrivate(director,"transitionDuration",0f); // Exercise the orbit after its entry blend.
+                    SetView(0,0); camera.InternalUpdateCameraState(Vector3.up,-1);
+                    Vector3 first=camera.State.GetFinalPosition();
+                    SetView(90,0);camera.InternalUpdateCameraState(Vector3.up,-1);
+                    Vector3 second=camera.State.GetFinalPosition();
+                    Assert.Greater(Vector3.Distance(first,second),2,"Orbit around survivor, not hidden retired body.");
+                    Vector3 pivot=survivor.transform.position+Vector3.up*(float)Get(Get(director,"CurrentView"),"LookHeight");
+                    Vector3 direction=(second-pivot).normalized;
+                    wall.transform.SetPositionAndRotation(pivot+direction*1.5f,Quaternion.LookRotation(direction));
+                    wall.transform.localScale=new Vector3(5,5,.2f);wall.SetActive(true);Physics.SyncTransforms();
+                    camera.InternalUpdateCameraState(Vector3.up,-1);
+                    Assert.Less(Vector3.Distance(pivot,camera.State.GetFinalPosition()),1.4f,"Spectator spring arm uses survivor position.");
+                    wall.SetActive(false);Physics.SyncTransforms();Call(local,"ServerRestoreAll");
+                    camera.InternalUpdateCameraState(Vector3.up,-1);
+                    Assert.IsFalse((bool)Get(director,"IsSpectatorOrbit"));
+                }
+            } finally {players.Remove(survivor);Object.Destroy(other);Object.Destroy(wall);}
+        }
+
         void SetDead() => Call(local, "ServerSetState", Enum.Parse(GameType("CurtainCall.Network.PlayerSync.PlayerState"), "Fallen"));
 
         static object GetPrivate(object target, string name) => target.GetType()

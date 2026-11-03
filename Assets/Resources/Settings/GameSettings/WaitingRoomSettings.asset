@@ -30,6 +30,16 @@ MonoBehaviour:
     CaptureBloodInterval: 0.22
     CaptureBloodAmount: 1.8
     CaptureScreenBlood: 0.8
+    DirectionCue: 1
+    DirectionCueLength: 1.75
+    DirectionCueAngle: 70
+    DirectionCueOpacity: 0.32
+    DirectionCueSoftness: 0.65
+    PatrolCueColor: {r: 0.55, g: 0.57, b: 0.56, a: 1}
+    AlertCueColor: {r: 0.58, g: 0.44, b: 0.2, a: 1}
+    ChaseCueColor: {r: 0.52, g: 0.14, b: 0.12, a: 1}
+    AdvancedAppearanceStage: 3
+    BloodPerCapture: 0.28
     OutlineDistance: 5
     OutlinePixels: 3
     OutlineColor: {r: 1, g: 0.045, b: 0.025, a: 1}

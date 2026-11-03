@@ -29,7 +29,7 @@ source: Task-20261102-094, Unity CLI 및 Blender MCP 제작/플레이 확인
 
 ## 배치 창·추격 신호
 - `Tools/Curtain Call/Pursuit/Mannequin Designer`: 방별 탑뷰/천장 절단·10종 팔레트·지면 보정·독립 순찰·단계 설정·전체 구조도. Play 중에는 편집을 잠그고 실제 Actor 위치/상태를 표시한다. [조작 안내](../../../../Tasks/Active/Task-20261102-094-waiting-room-pursuit-system/designer-guide.md).
-- 근접 외곽선은 추격 활성(Director.Elapsed>=0)일 때만5m/빨강3px로 표시하며, 전시/만료 직전에는 숨기고 철회 시 제거한다. InteractionOutline 깊이 검사를 재사용한다. 화면 테두리는 로컬 플레이어가 Run 상태 Actor의 실제 추격 대상일 때만 맥동한다. NGO target/hasTarget으로 식별하며 관전/전환 때 정리한다.
+- 2026-11-03 4인 피드백 후 근접 외곽선 제거. 전방 바닥 신호·단계 외형·통신 v2·관전 수정은 [후속 사실](pursuit-feedback.md) 참고. 실제 로컬 추격 대상의 화면 테두리는 유지한다.
 - 전역 Stages.ChaseSpeed는 m/s. 0은 기존 ChaseSpeedMultiplier 호환값, 창은 환산한 실제 속도를 보여주고 수정 시 명시 m/s를 저장한다. 순찰 경로를 옮기지 않고 마네킹 시작점만 옮길 수 있다.
 - Director.Awake에서 Placement.isActiveAndEnabled를 검사하면 배치의 OnEnable 호출 순서에 따라 일부 생성이 누락된다. 직렬화된 enabled와 GameObject.activeInHierarchy를 사용한다.
 - 배치 창의 ActiveFloor/VisibleRooms는 평면 X/Z·측면 Z/Y/X/Y·탑뷰·히트 테스트에 공유한다. 층은 고정 방 순찰/스폰 높이(현재0/-5/-10m)로 나눈다. 마네킹 높이를 사용하면 침대 위로 이동할 때 숙소가2m 층으로 바뀌어 0m 화면에서 사라진다. 탑뷰 far plane은 바닥 아래 .35m, near plane은 위층 바닥 전에서 끊는다.

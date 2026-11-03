@@ -26,8 +26,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             float until = Time.time + seconds;
             do { Call(actor, "ServerTick", 4f, false); yield return null; }
-            while (Get(actor, "Behaviour").ToString() != state && Time.time < until);
+            while ((Get(actor, "Behaviour").ToString() != state || !actor.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled) && Time.time < until);
             Assert.AreEqual(state, Get(actor, "Behaviour").ToString());
+            Assert.IsTrue(actor.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled, "Wait for this mannequin's awakening before testing its behaviour.");
         }
         [UnityTest]
         public IEnumerator PursuitBehaviour_GraphHearingChaseSearchAndCulling()
@@ -47,6 +48,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Set(stage, "AlertSeconds", .35f); Set(stage, "ListenSeconds", .3f); Set(stage, "InvestigateSeconds", .5f); Set(stage, "SearchSeconds", .25f);
                 Set(stage, "SeeThroughWalls", true); Set(stage, "AlwaysNearest", false); Set(stage, "SightRadius", 10f); Set(stage, "TrackingRadius", 15f);
                 Set(stage, "ChaseSpeed", .5f); Set(stage, "WalkHearingRadius", 6f); Set(stage, "RunHearingRadius", 14f);
+                Set(stage, "PatrolLeashDistance", 0f); // Isolate sight-loss/search; the separate leash test covers returning home.
                 Assert.IsTrue((bool)Get(actor, "GraphReady"));
                 Call(actor, "ResetActor"); yield return TickPursuit(actor, "Patrol");
                 var point = actor.transform.position + Vector3.right * 10;

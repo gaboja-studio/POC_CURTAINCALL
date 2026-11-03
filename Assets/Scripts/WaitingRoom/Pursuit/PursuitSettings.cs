@@ -20,10 +20,20 @@ namespace CurtainCall.Settings
         [Min(.1f)] public float CaptureBloodInterval = .22f;
         [Range(0, 3)] public float CaptureBloodAmount = 1.8f;
         [Range(0, 1)] public float CaptureScreenBlood = .8f;
-        [Header("근접 강조 / 추격 화면")]
-        [Min(0)] public float OutlineDistance = 5;
-        [Range(0, 6)] public float OutlinePixels = 3;
-        public Color OutlineColor = new(1f, .045f, .025f, 1);
+        [Header("전방 상태 신호 / 강화 외형")]
+        public bool DirectionCue = true;
+        [Range(.25f, 8)] public float DirectionCueLength = 1.75f;
+        [HideInInspector] public float DirectionCueAngle = 70; // Legacy data only; the current stage's FieldOfView now owns the angle.
+        [Range(0, 1)] public float DirectionCueOpacity = .32f;
+        [Tooltip("높을수록 가장자리가 더 넓게 흐려집니다.")]
+        [Range(.25f, 3)] public float DirectionCueSoftness = .65f;
+        public Color PatrolCueColor = new(.55f, .57f, .56f, 1);
+        public Color AlertCueColor = new(.58f, .44f, .20f, 1);
+        public Color ChaseCueColor = new(.52f, .14f, .12f, 1);
+        [Min(1)] public int AdvancedAppearanceStage = 3;
+        [Range(0, 1)] public float BloodPerCapture = .28f;
+        [HideInInspector] public float OutlineDistance, OutlinePixels;
+        [HideInInspector] public Color OutlineColor;
         public bool ScreenEffect = true;
         [Range(0, 1)] public float EdgeIntensity = .65f;
         [Range(.05f, .4f)] public float EdgeWidth = .19f;

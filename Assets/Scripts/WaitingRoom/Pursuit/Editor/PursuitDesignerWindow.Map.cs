@@ -64,6 +64,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                         previews[item] = visual;
                     }
                     visual.transform.SetPositionAndRotation(item.transform.position, item.transform.rotation);
+                    visual.transform.localScale = item.Prefab.transform.localScale * item.SizeScale;
                 }
             }
             previewCamera.Render();
@@ -94,7 +95,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                     DrawActor(p, item.transform.eulerAngles.y, item == selected ? new Color(1, .32f, .16f)
                         : HasTargetRoom && Room.Placements.Contains(item) ? new Color(.2f, .85f, .92f) : Color.gray, item == selected);
                     string label = item.Prefab != null ? item.Prefab.name.Replace("Pursuit_", "") : "타입 없음";
-                    GUI.Label(new Rect(p.x + 12, p.y - 16, 130, 20), label, EditorStyles.whiteMiniLabel);
+                    GUI.Label(new Rect(p.x + 12, p.y - 16, 180, 20), $"{label} · {item.ResolvedActivationStage}단계 시작", EditorStyles.whiteMiniLabel);
                 }
             }
             Handles.color = HasTargetRoom ? CurrentRoomColor : Color.gray;

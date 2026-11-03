@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.WaitingRoom.Pursuit;
 using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -110,7 +111,8 @@ namespace CurtainCall.Cameras
         {
             alive.Clear();
             foreach (var player in NetworkPlayer.All)
-                if (player != null && player != local && player.State == PlayerState.Normal
+                if (player != null && player != local && player.isActiveAndEnabled
+                    && player.State == PlayerState.Normal && !PursuitDirector.IsCaptured(player)
                     && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen)) alive.Add(player);
             alive.Sort((a, b) => a.Slot.CompareTo(b.Slot)); // 자리 번호 순으로 돈다
         }
@@ -125,6 +127,7 @@ namespace CurtainCall.Cameras
 
         void SetTarget(NetworkPlayer player)
         {
+            if (Target != player && director != null) director.SpectatorTargetChanged();
             Target = player;
             var tracking = player != null ? player : NetworkPlayer.Local;
             virtualCamera.Target.TrackingTarget = tracking != null ? tracking.transform : null;
@@ -151,7 +154,7 @@ namespace CurtainCall.Cameras
             DrawDeathDim();
             labelStyle ??= new GUIStyle(GUI.skin.label) { alignment = TextAnchor.MiddleCenter, fontSize = 22, richText = true };
             string text = Target != null
-                ? $"<b>플레이어 {Target.Slot + 1}</b>를 관전 중입니다\n<size=15>A / D : 다른 플레이어 보기</size>"
+                ? $"<b>플레이어 {Target.Slot + 1}</b>를 관전 중입니다\n<size=15>A / D : 대상 변경 · 마우스 : 시점 회전</size>"
                 : "관전할 수 있는 플레이어가 없습니다";
             GUI.Label(new Rect(0f, 20f, Screen.width, 70f), text, labelStyle);
         }

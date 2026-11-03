@@ -11,22 +11,18 @@ namespace CurtainCall.WaitingRoom.Pursuit
     /// <summary>소유 플레이어의 근접 강조와 실제 추격 신호. 관전 대상/다른 단원의 추격은 표시하지 않는다.</summary>
     public sealed class PursuitFeedback : MonoBehaviour
     {
-        readonly Dictionary<PursuitActor, InteractionOutline> outlines = new();
-        readonly List<PursuitActor> removed = new();
-        Material material;
+
         PursuitDirector director;
         PlayerInputReader offlineReader;
         PursuitEdgeGraphic edge;
         GameObject canvasObject;
         float intensity, beat;
-        public int HighlightCount => outlines.Count;
+        public int HighlightCount => 0; // Retained for diagnostics; silhouette outlines have been removed.
         public float Intensity => intensity;
         public bool IsChased { get; private set; }
         void OnEnable()
         {
             director = GetComponent<PursuitDirector>();
-            var shader = Resources.Load<Shader>("TightropeOutline");
-            if (shader != null) material = new Material(shader) { name = "Pursuit proximity red", hideFlags = HideFlags.HideAndDontSave, renderQueue = 2003 };
             canvasObject = new GameObject("PursuitThreatEdges", typeof(RectTransform), typeof(Canvas));
             canvasObject.transform.SetParent(transform, false);
             var canvas = canvasObject.GetComponent<Canvas>();
@@ -47,7 +43,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             return offlineReader != null && offlineReader.isActiveAndEnabled ? offlineReader.gameObject : null;
         }
         public static bool Threatens(PursuitActor actor, GameObject observer) => actor != null && observer != null
-            && actor.State == PursuitMotion.Run && actor.ChasedPlayer == observer;
+            && actor.IsActivated && actor.State == PursuitMotion.Run && actor.ChasedPlayer == observer;
         void LateUpdate()
         {
             var rules = GameSettings.WaitingRoom.Pursuit;
@@ -56,19 +52,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 && !PursuitDirector.IsCaptured(observer) && !SceneCurtainTransition.IsActive;
             float nearest = float.PositiveInfinity;
             IsChased = false;
-            removed.Clear();
-            foreach (var pair in outlines) {
-                if (!available || pair.Key == null || rules.OutlineDistance <= 0 || rules.OutlinePixels <= 0 ||
-                    Vector3.Distance(observer.transform.position, pair.Key.transform.position) > rules.OutlineDistance) removed.Add(pair.Key);
-            }
-            foreach (var actor in removed) { outlines[actor].Dispose(); outlines.Remove(actor); }
-            if (material != null) { material.SetColor("_OutlineColor", rules.OutlineColor); material.SetFloat("_OutlinePixels", rules.OutlinePixels); }
             if (available) foreach (var actor in director.Actors) {
-                if (actor == null) continue;
-                float distance = Vector3.Distance(observer.transform.position, actor.transform.position);
-                if (distance <= rules.OutlineDistance && rules.OutlineDistance > 0 && rules.OutlinePixels > 0 && material != null && !outlines.ContainsKey(actor))
-                    outlines.Add(actor, new InteractionOutline(actor.transform, material));
-                if (director.Elapsed >= 0 && Threatens(actor, observer)) { IsChased = true; nearest = Mathf.Min(nearest, distance); }
+                if (actor != null && Threatens(actor, observer)) {
+                    IsChased = true; nearest = Mathf.Min(nearest, Vector3.Distance(observer.transform.position, actor.transform.position));
+                }
             }
             float danger = IsChased ? Mathf.Clamp01(1 - nearest / 20f) : 0;
             float escalation = director != null && director.Elapsed >= 0 ? Mathf.Clamp01(director.Elapsed / 180f) : 0;
@@ -81,9 +68,6 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         void OnDisable()
         {
-            foreach (var outline in outlines.Values) outline.Dispose();
-            outlines.Clear();
-            if (material != null) Destroy(material);
             if (canvasObject != null) Destroy(canvasObject);
             intensity = 0; IsChased = false;
         }

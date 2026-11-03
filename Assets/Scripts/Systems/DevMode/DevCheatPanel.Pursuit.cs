@@ -22,9 +22,20 @@ namespace CurtainCall.Dev
                 : "추격 대기";
             GUILayout.Label($"{time} ({state.Timer}) · {pursuit}", label);
             bool allowed = director != null && director.CanDebug;
-            if (!allowed) GUILayout.Label(run.HasAuthority ? (WaitingRoomScenes.PursuitEnabled ? "추격 시스템을 준비 중입니다." : "현재 대기실 설정에서는 추격을 사용하지 않습니다.") : "호스트만 타이머·단계를 변경할 수 있습니다.", label);
+            if (!allowed) GUILayout.Label(run.HasAuthority ? (WaitingRoomScenes.PursuitEnabled ? "추격 시스템을 준비 중입니다." : "현재 대기실 설정에서는 추격을 사용하지 않습니다.") : "호스트만 대기실 치트를 변경할 수 있습니다.", label);
             bool wasEnabled = GUI.enabled;
             GUI.enabled = wasEnabled && allowed;
+            bool invulnerable = director != null && director.DebugInvulnerable;
+            bool nextInvulnerable = GUILayout.Toggle(invulnerable, $" 무적 · 추격자 포획 방지 {(invulnerable ? "ON" : "OFF")}", toggle);
+            if (nextInvulnerable != invulnerable)
+                PursuitResult(director.DebugSetInvulnerable(nextInvulnerable), nextInvulnerable ? "전원 포획 방지 ON · 추격은 유지" : "전원 포획 방지 OFF");
+            bool recognition = director == null || director.DebugRecognitionEnabled;
+            bool nextRecognition = GUILayout.Toggle(recognition, $" 추격자 인식 {(recognition ? "ON" : "OFF")} · 시야 / 소리", toggle);
+            if (nextRecognition != recognition)
+                PursuitResult(director.DebugSetRecognition(nextRecognition), nextRecognition ? "전원 인식 ON" : "전원 인식 OFF · 추격/소리 조사 중단, 순찰 유지");
+            GUILayout.Label("호스트가 변경하면 전원에게 적용됩니다. 무적은 포획만 막고, 인식 OFF는 4단계 상시 추격도 막습니다.", label);
+            GUILayout.Label("이미 시작한 포획은 계속됩니다. 해제는 아래 ‘타이머 초기화 및 추격 철회’를 사용하세요. 두 옵션은 대기실을 떠나면 초기화됩니다.", label);
+            GUILayout.Space(6);
             if (GUILayout.Button("타이머 초기화 및 추격 철회", button))
                 PursuitResult(director.DebugResetTimer(), "기본 제한시간 복원 · 추격 철회");
             GUILayout.BeginHorizontal();
