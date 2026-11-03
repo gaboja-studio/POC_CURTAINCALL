@@ -27,6 +27,30 @@ namespace CurtainCall.HumanCannon.Tests
         bool Flying => (bool)Get(pilot, "IsFlying");
         int SafeLandings => (int)Get(system, "LocalSafeLandingCount");
 
+        [UnityTest]
+        public IEnumerator LandingReportWaitsForDelayedOwnerPositionWithoutFalseInjury()
+        {
+            var cushion = GameObject.Find("LandingCushion").GetComponent<BoxCollider>();
+            Vector3 contact = new Vector3(cushion.bounds.center.x, cushion.bounds.max.y, cushion.bounds.center.z);
+            var flights = Get(system, "flying");
+            Call(flights, "Begin", Actor, 0, 111u);
+            Call(mover, "SetStartPose", contact + Vector3.right * 10, Quaternion.identity, true);
+            int before = SafeLandings;
+            var initialParts = Get(player, "LostParts");
+            Call(system, "HandleLanding", player, 0, 111u, 0u, contact);
+            Assert.IsTrue((bool)Call(system, "IsFlying", Actor));
+            Assert.AreEqual(before, SafeLandings);
+            Assert.AreEqual(initialParts, Get(player, "LostParts"), "Delayed position must never be treated as an unsafe landing.");
+            Call(mover, "SetStartPose", contact, Quaternion.identity, true);
+            Call(system, "RetryLandingReports");
+            Assert.IsFalse((bool)Call(system, "IsFlying", Actor));
+            Assert.AreEqual(before + 1, SafeLandings);
+            Assert.AreEqual(initialParts, Get(player, "LostParts"));
+            Call(system, "RetryLandingReports");
+            Assert.AreEqual(before + 1, SafeLandings, "A report is finalized once.");
+            yield return null;
+        }
+
         [UnitySetUp]
         public IEnumerator SetUp()
         {

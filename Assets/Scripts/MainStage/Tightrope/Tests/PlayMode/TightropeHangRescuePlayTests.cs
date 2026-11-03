@@ -25,6 +25,32 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator HangRequestWaitsForDelayedPositionAndValidatesHostPosition()
+        {
+            yield return PrepareHangRescue();
+            var hangs = (Component)Static("CurtainCall.Tightrope.TightropeHangSystem", "Current");
+            var pending = (IDictionary)Get(hangs, "pendingHangs");
+            ulong actor = (ulong)Get(player, "OwnerClientId");
+            var ropePosition = player.transform.position;
+            var orientation = player.transform.rotation;
+            var operation = hangs.GetType().GetNestedType("Request", System.Reflection.BindingFlags.NonPublic);
+            var delayed = (Vector3)Call(course, "GetLanePosition", 1, 12f);
+            Call(mover, "SetStartPose", delayed, orientation, true);
+            Call(hangs, "ServerHandle", actor, Enum.Parse(operation, "Hang"), 0UL, 1, 4f);
+            Assert.IsTrue(pending.Contains(actor));
+            Assert.IsFalse((bool)Call(hangs, "IsHanging", player));
+            Call(hangs, "RemovePendingHangOnRestart", player);
+            Assert.IsFalse(pending.Contains(actor), "A restart must discard the old request.");
+            Call(hangs, "ServerHandle", actor, Enum.Parse(operation, "Hang"), 0UL, 1, 4f);
+            yield return new WaitForSeconds(.5f);
+            Assert.IsTrue(pending.Contains(actor));
+            Call(mover, "SetStartPose", ropePosition, orientation, true);
+            Call(hangs, "RetryPendingHangs");
+            Assert.IsFalse(pending.Contains(actor));
+            Assert.IsTrue((bool)Call(hangs, "IsHanging", player));
+        }
+
+        [UnityTest]
         public IEnumerator HangRescue_GenerousReachMatchesHostAndAcceptsMovingInteractThenCancel()
         {
             yield return PrepareHangRescue();

@@ -7,8 +7,8 @@ namespace CurtainCall.HumanCannon
 {
     public sealed partial class HumanCannonHazardCourse
     {
-        const string RequestName = "CurtainCall.HumanCannon.Hazards.Request";
-        const string StateName = "CurtainCall.HumanCannon.Hazards.State";
+        const string RequestName = "CurtainCall.HumanCannon.Hazards.Request.v2";
+        const string StateName = "CurtainCall.HumanCannon.Hazards.State.v2";
         const int StateBytes = 36;
         readonly RouteResetBarrier resetBarrier = new();
         CustomMessagingManager messaging;
@@ -23,6 +23,7 @@ namespace CurtainCall.HumanCannon
             {
                 epoch = Clock; runStart = runEnd = -1; synchronized = true;
                 messaging.RegisterNamedMessageHandler(RequestName, ReceiveRequest);
+                messaging.RegisterNamedMessageHandler(ContactName, ReceiveOwnerContact);
             }
             else
             {
@@ -75,6 +76,7 @@ namespace CurtainCall.HumanCannon
         void Restart(NetworkPlayer player)
         {
             if (player == null) return;
+            ForgetOwnerContacts(player.OwnerClientId);
             if (!player.IsLocal)
             {
                 if (session != null && session.IsHost && player.TryGetComponent(out CurtainCall.Player.PlayerMover mover))
@@ -95,6 +97,7 @@ namespace CurtainCall.HumanCannon
         {
             if (messaging == null) return;
             messaging.UnregisterNamedMessageHandler(RequestName); messaging.UnregisterNamedMessageHandler(StateName);
+            messaging.UnregisterNamedMessageHandler(ContactName);
             messaging = null;
         }
     }

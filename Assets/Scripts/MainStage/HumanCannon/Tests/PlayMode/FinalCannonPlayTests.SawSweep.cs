@@ -9,6 +9,62 @@ namespace CurtainCall.HumanCannon.Tests
 {
     public sealed partial class FinalCannonPlayTests
     {
+        [UnityTest]
+        public IEnumerator HazardHostCannotCutRemoteOwnerWithoutDisplayedContactReport()
+        {
+            DisableEnhancementThreats();
+            var course = (Component)StaticGet("CurtainCall.HumanCannon.HumanCannonHazardCourse", "Current");
+            var fixture = new GameObject("RemoteContactHazardFixture"); fixture.transform.SetParent(course.transform);
+            fixture.transform.position = player.transform.position + Vector3.up * ((float)Get(mover, "BodyHeight") * .5f);
+            var hazard = fixture.AddComponent(GameType("CurtainCall.HumanCannon.HumanCannonHazard"));
+            Call(hazard, "ConfigureSweep", Vector3.zero, 4f);
+            var hazards = System.Array.CreateInstance(hazard.GetType(), 1); hazards.SetValue(hazard, 0); HazardSet(course, "hazards", hazards);
+            var prefab = (GameObject)Get(Get(network, "NetworkConfig"), "PlayerPrefab");
+            var remote = Object.Instantiate(prefab);
+            var netObject = remote.GetComponent(GameType("Unity.Netcode.NetworkObject"));
+            try {
+                Call(netObject, "SpawnWithOwnership", 777UL, true);
+                var remotePlayer = remote.GetComponent(GameType("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+                var remoteMover = remote.GetComponent(GameType("CurtainCall.Player.PlayerMover"));
+                Call(remoteMover, "SetStartPose", player.transform.position, Quaternion.identity, true);
+                Call(mover, "SetStartPose", player.transform.position + Vector3.right * 10, Quaternion.identity, true);
+                Call(course, "HostContacts", (double)Get(course, "Elapsed"), 1f);
+                Assert.AreEqual(0, System.Convert.ToInt32(Get(remotePlayer, "LostParts")));
+            } finally { Call(netObject, "Despawn", true); }
+            yield return null;
+        }
+        [UnityTest]
+        public IEnumerator HazardOwnerReportUsesDisplayedTimeRejectsAvoidanceAndDoesNotCutTwice()
+        {
+            DisableEnhancementThreats();
+            var course = (Component)StaticGet("CurtainCall.HumanCannon.HumanCannonHazardCourse", "Current");
+            var fixture = new GameObject("OwnerContactHazardFixture"); fixture.transform.SetParent(course.transform);
+            fixture.transform.position = player.transform.position + Vector3.up * ((float)Get(mover, "BodyHeight") * .5f);
+            var saw = fixture.AddComponent(GameType("CurtainCall.HumanCannon.HumanCannonHazard"));
+            Call(saw, "ConfigureSweep", Vector3.right * 12f, 4f);
+            var hazards = System.Array.CreateInstance(saw.GetType(), 1); hazards.SetValue(saw, 0);
+            HazardSet(course, "hazards", hazards);
+            int index = 0;
+            double at = (double)Get(course, "Elapsed");
+            HazardSet(saw, "phase", (float)(-at * Mathf.PI * 2 / 4));
+            var center = (Vector3)Call(saw, "Position", at, 1f);
+            var contact = center - Vector3.up * ((float)Get(mover, "BodyHeight") * .5f);
+            Call(mover, "SetStartPose", contact, Quaternion.identity, true);
+            int restart = (int)Get(player, "RestartVersion"); double epoch = (double)Get(course, "epoch");
+            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 1u, restart, epoch, at, contact + Vector3.up * 100));
+            AssertBody(0);
+            Call(mover, "SetStartPose", contact + Vector3.forward * 5f, Quaternion.identity, true);
+            yield return new WaitForSeconds(.3f);
+            Assert.IsFalse((bool)Call(saw, "Touches", contact, (float)Get(mover, "BodyHeight"), (float)Get(mover, "BodyRadius"), (double)Get(course, "Elapsed"), 1f), "The moving hazard has already passed the contact point by receipt.");
+            Assert.IsTrue((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 2u, restart, epoch, at, contact));
+            AssertBody(4);
+            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 2u, restart, epoch, at, contact));
+            Assert.IsTrue((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 3u, restart, epoch, at, contact));
+            AssertBody(4);
+            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 4u, restart - 1, epoch, at, contact));
+            Assert.IsFalse((bool)Call(course, "ValidateOwnerContact", Actor, index, true, 4u, restart, epoch - 1, at, contact));
+            Assert.IsTrue((bool)Call(course, "ValidateOwnerContact", Actor, index, false, 4u, restart, epoch, at, contact));
+        }
         [UnityTest, Category("PerformanceBalance")]
         public IEnumerator FastSaw_FixedLevelOneHidesUnusedSawDamage_AndKeepsVisibleSawDamage()
         {

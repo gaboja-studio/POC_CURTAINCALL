@@ -133,6 +133,7 @@ namespace CurtainCall.HumanCannon
                 if (enabled) hazard.Present(elapsed, hazard.IsPoleSaw ? 1f : speed);
             }
             if (session != null && session.IsHost && !Resolved) HostContacts(elapsed, speed);
+            else if (session != null && !session.IsHost && !Resolved) OwnerContacts(elapsed, speed);
             previousElapsed = elapsed;
         }
 
@@ -147,6 +148,7 @@ namespace CurtainCall.HumanCannon
             {
                 if (player == null || !player.IsSpawned || player.State != PlayerState.Normal
                     || !player.TryGetComponent(out PlayerMover mover)) continue;
+                if (player.OwnerClientId != Unity.Netcode.NetworkManager.ServerClientId) continue;
                 // 검토 비행 등 공용 피해 가드가 닫힌 동안 접촉 기록도 쌓지 않는다.
                 if (NetworkPlayer.ServerCanChangeState != null && !NetworkPlayer.ServerCanChangeState(player, PlayerState.Fallen)) continue;
                 Vector3 feet = player.transform.position;
@@ -213,7 +215,7 @@ namespace CurtainCall.HumanCannon
             foreach (ulong actor in stale) previousFeet.Remove(actor);
         }
 
-        void ClearContacts() { previousElapsed = -1; touching.Clear(); touchingNow.Clear(); previousFeet.Clear(); }
+        void ClearContacts() { previousElapsed = -1; touching.Clear(); touchingNow.Clear(); previousFeet.Clear(); ClearOwnerContacts(); }
 
         void OnDisable()
         {

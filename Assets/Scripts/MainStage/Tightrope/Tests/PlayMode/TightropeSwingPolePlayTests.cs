@@ -10,6 +10,36 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
     public sealed partial class TightropeCampaignPlayTests
     {
         [UnityTest]
+        public IEnumerator SwingLandingWaitsForDelayedOwnerPositionAndRejectsOldFlight()
+        {
+            yield return BeginPerformance(); DisableSwingHazards();
+            yield return StandOnRopeForSawTest(1, 4f);
+            var pole = (Component)Call(Static("CurtainCall.Tightrope.TightropeSwingPole", "Current"), "ForLane", 1);
+            var flights = (IDictionary)Get(pole, "flights");
+            var pending = (IDictionary)Get(pole, "pendingLandings");
+            ulong actor = (ulong)Get(player, "OwnerClientId");
+            var ropePosition = player.transform.position;
+            flights[actor] = (double)Get(pole, "Clock") + 6d;
+            Call(mover, "SetStartPose", player.transform.position + Vector3.up * 5f, player.transform.rotation, true);
+            var operation = pole.GetType().GetNestedType("Operation", BindingFlags.NonPublic);
+            Call(pole, "ServerHandle", actor, Enum.Parse(operation, "Landed"), 0f);
+            Assert.IsTrue(pending.Contains(actor));
+            yield return new WaitForSeconds(.5f);
+            Assert.IsTrue(pending.Contains(actor), "A half-second position delay must not discard a valid landing report.");
+            Call(mover, "SetStartPose", ropePosition, player.transform.rotation, true);
+            Physics.SyncTransforms();
+            Call(pole, "RetryPendingLandings");
+            Assert.IsFalse(pending.Contains(actor), "The actual supported landing must be accepted once position arrives.");
+            Assert.IsFalse(flights.Contains(actor));
+            flights[actor] = (double)Get(pole, "Clock") + 6d;
+            Call(mover, "SetStartPose", ropePosition + Vector3.up * 5f, player.transform.rotation, true);
+            Call(pole, "ServerHandle", actor, Enum.Parse(operation, "Landed"), 0f);
+            Assert.IsTrue(pending.Contains(actor));
+            flights.Remove(actor);
+            Call(pole, "RetryPendingLandings");
+            Assert.IsFalse(pending.Contains(actor), "A report from a cancelled flight must not survive.");
+        }
+        [UnityTest]
         public IEnumerator PoleInteraction_SwingUsesExistingOutlineAndFPrompt()
         {
             yield return BeginPerformance(); DisableSwingHazards();

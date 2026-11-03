@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using Unity.Collections;
 using Unity.Netcode;
@@ -36,7 +37,31 @@ namespace CurtainCall.Tightrope
             if (!session.IsHost) Send(Request.Sync);
         }
 
-        void Disconnect() { Unregister(); session = null; }
+        struct PendingHang { public int Round, Lane; public float Distance; public double Expires; }
+        readonly Dictionary<ulong, PendingHang> pendingHangs = new();
+        readonly List<ulong> pendingHangActors = new();
+        void Disconnect() { pendingHangs.Clear(); Unregister(); session = null; }
+
+        bool AcceptHang(ulong sender, int lane, float distance)
+        {
+            var player = Find(sender);
+            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
+            if (!course.TryGetRopePoint(player.transform.position, out int observedLane, out float observedDistance)
+                || lane != observedLane || Mathf.Abs(distance - observedDistance) > Rules.LaneOccupyDistance) return false;
+            ServerTryHang(player, observedDistance, observedLane);
+            return true;
+        }
+        void RetryPendingHangs()
+        {
+            pendingHangActors.Clear(); pendingHangActors.AddRange(pendingHangs.Keys);
+            foreach (var sender in pendingHangActors)
+            {
+                var item = pendingHangs[sender]; var player = Find(sender);
+                if (!Active || item.Round != Round || Now > item.Expires || player == null || !player.IsSpawned
+                    || player.State != PlayerState.Normal || book.IsHanging(sender) || AcceptHang(sender, item.Lane, item.Distance))
+                    pendingHangs.Remove(sender);
+            }
+        }
 
         void Unregister()
         {
@@ -80,11 +105,9 @@ namespace CurtainCall.Tightrope
             switch (request)
             {
                 case Request.Hang:
-                    var player = Find(sender);
                     // 요청 좌표로 멀리 있는 줄을 잡지 않도록 호스트가 관측한 위치와 대조한다.
-                    if (player != null && course.TryGetRopePoint(player.transform.position, out int observedLane, out float observedDistance)
-                        && lane == observedLane && Mathf.Abs(distance - observedDistance) <= Rules.LaneOccupyDistance)
-                        ServerTryHang(player, observedDistance, observedLane);
+                    if (!AcceptHang(sender, lane, distance) && Find(sender) != null && !pendingHangs.ContainsKey(sender))
+                        pendingHangs.Add(sender, new PendingHang { Round = Round, Lane = lane, Distance = distance, Expires = Now + 1.25d });
                     break;
                 case Request.Rescue: ServerRescue(sender, target); break;
                 case Request.Cancel: ServerCancel(sender); break;

@@ -5,12 +5,43 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using Object = UnityEngine.Object;
 
 namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
+        [UnityTest]
+        public IEnumerator WaitingRoom_RunAndJumpThroughActualKeyboardInput()
+        {
+            yield return PursuitHost();
+            var settings = InputSystem.settings;
+            var background = settings.backgroundBehavior;
+            var editorInput = settings.editorInputBehaviorInPlayMode;
+            var previousKeyboard = Keyboard.current;
+            Keyboard keyboard = null;
+            try {
+                settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
+                settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+                keyboard = InputSystem.AddDevice<Keyboard>("Waiting room input test"); keyboard.MakeCurrent();
+                var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
+                var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                for (int i = 0; i < 10; i++) yield return null;
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.W, Key.LeftShift));
+                for (int i = 0; i < 10; i++) yield return null;
+                Assert.IsTrue((bool)Get(mover, "IsSprinting"), "Run input should reach the actual waiting-room player.");
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.W, Key.LeftShift, Key.Space));
+                yield return null; yield return null;
+                Assert.AreEqual("InPlace", Get(mover, "CurrentJump").ToString(), "Jump while running in the actual waiting room.");
+            } finally {
+                if (keyboard != null) InputSystem.RemoveDevice(keyboard);
+                if (previousKeyboard != null && previousKeyboard.added) previousKeyboard.MakeCurrent();
+                settings.backgroundBehavior = background; settings.editorInputBehaviorInPlayMode = editorInput;
+            }
+        }
         static object ContactCall(object target, string method, params object[] args)
             => target.GetType().GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target, args);
         static void ContactField(object target, string name, object value)

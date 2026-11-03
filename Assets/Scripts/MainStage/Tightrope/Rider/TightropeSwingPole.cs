@@ -165,7 +165,9 @@ namespace CurtainCall.Tightrope
                 if (!flights.TryGetValue(sender, out double until) || Clock > until || player == null
                     || !player.IsSpawned || player.State != PlayerState.Normal) return;
                 if (!CompleteLanding(player) && !pendingLandings.ContainsKey(sender))
-                    pendingLandings.Add(sender, new PendingLanding { Round = round, FlightUntil = until, Expires = Clock + .35d });
+                    // The reliable report may arrive before the owner-authoritative position.
+                    // Keep validating the same flight, round and actual rope support while it catches up.
+                    pendingLandings.Add(sender, new PendingLanding { Round = round, FlightUntil = until, Expires = Clock + 1.25d });
                 return;
             }
             if (operation == Operation.AirGrab) { ServerAirGrab(sender); return; }
