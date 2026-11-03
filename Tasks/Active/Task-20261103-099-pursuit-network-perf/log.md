@@ -38,3 +38,4 @@
 - 최종 전체Play15/17 + 실패2개 각각 단독1/1 PASS(전체PASS로 표기하지 않음). final-dev-*-tests.json 보존. 최종2ms/최대4체 측정: 26체7프레임, 생성작업13.65ms/단일최대1.03ms, 로드1806ms/준비2781ms/최장1250ms. 기준1273ms와 유사해 전체 로드 개선으로 확정하지 않음. 남은 주요 비용 GC441ms/Integrate1112ms, 로비6763 batches/그림자4699.
 - 최종 check-work 첫 시도는 최신dev에서 들어온 Task-081 log227줄 HARD로 중단(컴파일은 선행 규칙 때문에 SKIPPED). compact-docs로 완료된 과거 접두부 원문을 History/002-log-before-dev-integration.md에 내용 일치 확인 후 이동, 현재 로그66줄. 게임 코드/결정은 수정하지 않았다.
 - 최종 검사 재실행: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 자동 테스트는 별도 결과(최신dev Edit46/46, 전체Play15/17·개별2/2). 이번 묶음을 중간 PR로 제출하며 남은 로드/렌더/Relay 실기를 완료로 표시하지 않는다.
+- 중간 PR 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/276 (feat/waiting-room/pursuit-system → dev, 최신dev bf0b88a5 포함). 미병합. 다음 최적화는 별도 브랜치에서 진행한다.

@@ -96,3 +96,4 @@ P2의 메시 합치기·분할 로드와 P3의 조명 굽기·오클루전은 �
 - 이전 단일 측정의1273→1076ms는 GC 변동을 포함하므로 확정 개선율이 아니다. 최종 예산 방식 측정은 별도 JSON으로 보관한다.
 - 아직 해결 완료로 보지 않는 것: 저사양 빌드 첫 로드/5초 목표, 실제2~4인 Relay, 로비 batches/그림자·정적 배칭, 셰이더/GC/씬 분할. PR 뒤 별도 후속 브랜치에서 진행한다.
 - 최종 예산 방식 실측: baseline-local-final-budget.json.26체7프레임/실제 생성13.65ms/단일최대1.03ms, 최장1250ms(GC441ms/Integrate1112ms). 기준1273ms와 유사하며 전체 로드 개선 달성으로 표기하지 않는다. 준비2781ms; 로비6763 batches/그림자4699는 남아 있다.
+- 중간 제출 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/276 · 최신dev 포함/미병합. 이후 작업은 이 PR head에서 분기해 기존 PR 범위를 유지한다.
