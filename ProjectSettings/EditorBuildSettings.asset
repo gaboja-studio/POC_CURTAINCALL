@@ -47,6 +47,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/InGame/WaitingRoom/WaitingRoomPursuit.unity
     guid: 9d8832c4cb77f9343a74c3dc35c1d3a3
+  - enabled: 1
+    path: Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity
+    guid: 34921be9f5b47a844b7245a681db88e7
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 99f9c9493070a9d4c979a8fec7c5a8d3, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

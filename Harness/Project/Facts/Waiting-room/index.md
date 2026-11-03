@@ -1,5 +1,7 @@
 # 대기실 사실
 
+- [unified-scene.md](unified-scene.md) — 리허설·추격 통합 WaitingRoom, 씬 선택과 배치 편집 대상을 확인할 때
+
 - [pursuit-runtime.md](pursuit-runtime.md) — 추격 씬·단계별 설정·파생 리그·문 열림 후 NavMesh·현재 검증 범위를 확인할 때
 - [pursuit-perception.md](pursuit-perception.md) — Unity Behavior 그래프·청각 조사·원거리 렌더·포획 정렬/유혈·F9 타이머 치트를 수정할 때
 - [pursuit-feedback.md](pursuit-feedback.md) — 전방 신호·재조립 외형·위치 보간·관전·무적/인식 치트·마네킹별 활동 시작 단계를 수정할 때

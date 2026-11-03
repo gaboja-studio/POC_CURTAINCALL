@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 23.33,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.UnifiedWaitingRoom_CameraMenuInventoryAndPursuitCheats",
+      "Status": "Passed",
+      "Duration": 13.320746,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.UnifiedWaitingRoom_RehearsalStagesAndPursuitStaySeparate",
+      "Status": "Passed",
+      "Duration": 9.8985989,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}
