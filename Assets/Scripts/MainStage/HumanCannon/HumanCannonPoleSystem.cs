@@ -196,7 +196,7 @@ namespace CurtainCall.HumanCannon
                 }
                 if (pole.LinkedGate != null)
                 {
-                    pole.LinkedGate.Present(runtime.State.Phase, pole.LinkedGate.CarrierPassed, Clock);
+                    pole.LinkedGate.Present(runtime.State.Phase, pole.LinkedGate.CarrierPassed, pole.LinkedGate.IsOpen, Clock);
                     if (session != null && session.IsHost && pole.LinkedGate.HostTick(runtime.State.Phase, runtime.State.Occupant))
                         Publish(i, PoleEvent.Sync, CannonSeatState.Nobody);
                 }

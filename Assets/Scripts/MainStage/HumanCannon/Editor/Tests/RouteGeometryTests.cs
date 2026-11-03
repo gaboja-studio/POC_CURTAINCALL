@@ -135,6 +135,42 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
+        public void Barrier_SurroundsPlatformOnlyWhileSealedWithoutRoof()
+        {
+            transport.PresentBarrier(false);
+            Assert.IsFalse(transport.BarrierActive);
+            transport.PresentBarrier(true);
+            Assert.IsTrue(transport.BarrierActive);
+            var walls = platform.Find("BoardingBarrier").GetComponents<BoxCollider>();
+            Assert.That(walls.Length, Is.EqualTo(4));
+            foreach (var wall in walls)
+            {
+                // 벽은 발판 영역 바깥에만 있어 운반자·트램폴린과 겹치지 않는다(비활성 루트라 bounds 대신 직접 계산).
+                var center = wall.transform.TransformPoint(wall.center);
+                Assert.IsFalse(transport.ContainsPassenger(center), center.ToString());
+                Assert.That(center.y - wall.size.y / 2, Is.EqualTo(platform.position.y).Within(.0001f));
+            }
+            transport.PresentBarrier(false);
+            Assert.IsFalse(transport.BarrierActive);
+        }
+
+        [Test]
+        public void OutsideBarrier_MovesStowawayPastNearestSideWall()
+        {
+            origin.rotation = Quaternion.Euler(0, 90, 0);
+            transport.Present(0);
+            Vector3 Local(Vector3 world) => Quaternion.Inverse(origin.rotation) * (world - platform.position);
+            float clear = HumanCannonTransport.BarrierThickness + 0.5f;
+            var x = Local(transport.OutsideBarrier(platform.position + origin.rotation * new Vector3(1.5f, 1, 0.5f), 0.5f));
+            Assert.That(x.x, Is.GreaterThan(2 + clear));
+            Assert.That(x.z, Is.EqualTo(0.5f).Within(.0001f));
+            Assert.That(x.y, Is.EqualTo(1f).Within(.0001f));
+            var z = Local(transport.OutsideBarrier(platform.position + origin.rotation * new Vector3(0.2f, 0, -2.8f), 0.5f));
+            Assert.That(z.z, Is.LessThan(-(3 + clear)));
+            Assert.IsFalse(transport.ContainsPassenger(platform.position + origin.rotation * z));
+        }
+
+        [Test]
         public void Passenger_ExactlyOnOrBeyondAnyPlatformEdgeDoesNotCount()
         {
             foreach (float direction in new[] { -1f, 1f })
@@ -352,6 +388,95 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.IsTrue(fire.Threatens(fireStart.position + new Vector3(5, 8, 2), 0.3f, 20));
             Assert.IsFalse(fire.Threatens(fireStart.position + new Vector3(5, 0, 3.31f), 0.3f, 20));
             Assert.IsFalse(fire.Threatens(boundary.position, 0.3f, 25));
+        }
+
+        void UseStages()
+        {
+            var second = Child("Stage2"); second.position = Vector3.forward * 5;
+            var third = Child("Stage3"); third.position = Vector3.forward * 12;
+            Set(fire, "stageSpeedMultipliers", new[] { 1.5f, 2f });
+            Set(fire, "stageLines", new[] { second, third });
+        }
+
+        [Test]
+        public void FireStages_SpeedUpFromArrivalTimeWithoutJumpingForwardAndShortenTheEnd()
+        {
+            UseStages();
+            Assert.IsFalse(fire.Boost(0, 9), "켜지기 전에는 단계가 오르지 않는다");
+            fire.Arm(10);
+            Assert.IsTrue(fire.Boost(0, 20));
+            Assert.IsFalse(fire.Boost(0, 21), "같은 단계는 한 번만");
+            Near(fire.Front(20), Vector3.forward * 10);
+            Near(fire.Front(22), Vector3.forward * 16);
+            Assert.That(fire.EndTime, Is.EqualTo(20 + 10 / 3d).Within(1e-9));
+            Assert.IsTrue(fire.Boost(1, 21));
+            Near(fire.Front(22), Vector3.forward * 17);
+            Assert.That(fire.EndTime, Is.EqualTo(22.75).Within(1e-9));
+            Assert.That(fire.CurrentStage(22), Is.EqualTo(2));
+            Assert.That(fire.SpeedAt(22), Is.EqualTo(4).Within(1e-6));
+            Assert.IsFalse(fire.Tick(22.7));
+            Assert.IsTrue(fire.Tick(22.75));
+            fire.ResetWall();
+            Assert.That(fire.StageAt(0), Is.EqualTo(-1));
+            Assert.That(fire.StageAt(1), Is.EqualTo(-1));
+        }
+
+        [Test]
+        public void FireStages_SkippedStageRisesTogether_AndArrivalDuringWarningStartsTheChaseAtOnce()
+        {
+            UseStages();
+            fire.Arm(0);
+            Assert.IsTrue(fire.Boost(1, 7));
+            Assert.That(fire.StageAt(0), Is.EqualTo(7));
+            Assert.That(fire.AdvanceAt, Is.EqualTo(5), "예고가 끝난 뒤 도착은 출발 시각을 바꾸지 않는다");
+            Assert.That(fire.Travelled(8), Is.EqualTo(2 * 2 + 1 * 4).Within(1e-9));
+            fire.ResetWall();
+            fire.Arm(0);
+            Assert.IsFalse(fire.Advancing(1.9));
+            Assert.IsTrue(fire.Boost(0, 2));
+            // 예고 5초 중 2초에 전원 도착 → 남은 3초 예고를 건너뛰고 2구간 속도로 바로 전진.
+            Assert.That(fire.AdvanceAt, Is.EqualTo(2));
+            Assert.That(fire.RemainingWarning(2), Is.EqualTo(0));
+            Assert.IsTrue(fire.Advancing(2));
+            Assert.That(fire.Travelled(2), Is.EqualTo(0));
+            Assert.That(fire.Travelled(5), Is.EqualTo(9).Within(1e-9));
+            Assert.That(fire.EndTime, Is.EqualTo(2 + 20 / 3d).Within(1e-9));
+            fire.Receive(0, false, new[] { 2d, 4d });
+            Assert.That(fire.Travelled(6), Is.EqualTo(2 * 3 + 2 * 4).Within(1e-9));
+        }
+
+        [Test]
+        public void FireStages_ArrivalUsesTheFireDirectionLine()
+        {
+            UseStages();
+            Assert.IsFalse(fire.Reached(0, new Vector3(0, 0, 4.99f)));
+            Assert.IsTrue(fire.Reached(0, new Vector3(3, 6, 5)));
+            Assert.IsFalse(fire.Reached(1, new Vector3(0, 0, 11.9f)));
+            Assert.IsTrue(fire.Reached(1, new Vector3(0, 0, 30)));
+            Assert.IsFalse(fire.Reached(2, new Vector3(0, 0, 30)));
+        }
+
+        [Test]
+        public void FireEffect_ReplacesBoxAtTheFrontLine_WeakDuringWarningAndHiddenAfterward()
+        {
+            var effect = Child("Effect");
+            var flames = Child("Flames"); flames.SetParent(effect, false);
+            var system = flames.gameObject.AddComponent<ParticleSystem>();
+            var emission = system.emission; emission.rateOverTimeMultiplier = 100;
+            visual.gameObject.AddComponent<MeshRenderer>();
+            Set(fire, "effect", effect);
+            fire.Arm(10);
+            fire.Present(12);
+            Assert.IsTrue(effect.gameObject.activeSelf);
+            Assert.IsFalse(visual.GetComponent<MeshRenderer>().enabled);
+            Near(effect.position, fireStart.position);
+            Assert.That(effect.localScale.x, Is.EqualTo(6).Within(1e-5));
+            Assert.That(system.emission.rateOverTimeMultiplier, Is.EqualTo(35).Within(0.01), "예고 중 약하게");
+            fire.Present(20);
+            Near(effect.position, Vector3.forward * 10);
+            Assert.That(system.emission.rateOverTimeMultiplier, Is.EqualTo(100).Within(0.01));
+            fire.ResetWall();
+            Assert.IsFalse(effect.gameObject.activeSelf);
         }
 
         [Test]

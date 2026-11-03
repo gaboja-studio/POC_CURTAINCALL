@@ -86,7 +86,9 @@ namespace CurtainCall.HumanCannon
             writer.WriteValueSafe(runtime.Angle); writer.WriteValueSafe(runtime.Speed); writer.WriteValueSafe(actor);
             writer.WriteValueSafe((byte)(seat < 0 ? 255 : seat));
             writer.WriteValueSafe(station); writer.WriteValueSafe(launch); writer.WriteValueSafe(segment);
-            writer.WriteValueSafe((byte)(poles[index].LinkedGate != null && poles[index].LinkedGate.CarrierPassed ? 1 : 0));
+            // 1: 지상 담당 통과, 2: 톱벽이 좌우로 열림(재시작 전까지 유지).
+            var gate = poles[index].LinkedGate;
+            writer.WriteValueSafe((byte)((gate != null && gate.CarrierPassed ? 1 : 0) | (gate != null && gate.IsOpen ? 2 : 0)));
             for (int slot = 0; slot < PoleGateState.MaxRiders; slot++)
             {
                 bool occupied = runtime.State.OccupantAt(slot) != CannonSeatState.Nobody;
@@ -113,7 +115,7 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out float angle); reader.ReadValueSafe(out float speed); reader.ReadValueSafe(out ulong actor);
             reader.ReadValueSafe(out byte seat); reader.ReadValueSafe(out int station);
             reader.ReadValueSafe(out uint launch); reader.ReadValueSafe(out uint segment); reader.ReadValueSafe(out byte passed);
-            if (index < 0 || index >= states.Length || poles[index] == null || passed > 1
+            if (index < 0 || index >= states.Length || poles[index] == null || passed > 3
                 || !float.IsFinite(angle) || !float.IsFinite(speed)) return;
             var runtime = states[index];
             bool riderEvent = action == (byte)PoleEvent.Grabbed || action == (byte)PoleEvent.PlatformGrabbed
@@ -148,7 +150,7 @@ namespace CurtainCall.HumanCannon
             {
                 runtime.ReleasePosition = releasePosition; runtime.ReleaseRotation = releaseRotation; runtime.ReleaseVelocity = releaseVelocity;
             }
-            if (poles[index].LinkedGate != null) poles[index].LinkedGate.Present((PoleSawPhase)phase, passed == 1, Clock);
+            if (poles[index].LinkedGate != null) poles[index].LinkedGate.Present((PoleSawPhase)phase, (passed & 1) != 0, (passed & 2) != 0, Clock);
             Apply(index, (PoleEvent)action, actor, station, launch, segment);
         }
 

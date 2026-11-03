@@ -42,6 +42,21 @@ namespace CurtainCall.HumanCannon
             player.ServerCut(FallCuts);
         }
 
+        /// <summary>
+        /// 호스트: 코스 아래 낭떠러지 추락. 외줄타기 낙사와 같이 공용 사망으로 끝낸다(2026-11-03 담당자 결정).
+        /// Dev "추락 무시"·개발 씬 옵션이면 외줄타기와 같이 아무것도 하지 않는다.
+        /// </summary>
+        public static void ServerFallDeath(NetworkPlayer player)
+        {
+            if (player == null || !player.IsServer || player.State != PlayerState.Normal
+                || EscapeDevelopmentSession.FallConsequencesSuppressed(player)) return;
+            if (ServerFell != null)
+                foreach (Action<ulong> observer in ServerFell.GetInvocationList())
+                    try { observer(player.OwnerClientId); }
+                    catch (Exception error) { Debug.LogException(error); }
+            player.ServerKill();
+        }
+
         /// <summary>호스트: 스프링 신발이 추락 부상 대신 반동시켰다(접속 번호). 관찰·테스트용.</summary>
         public static event Action<ulong> ServerSpringRebounded;
 
