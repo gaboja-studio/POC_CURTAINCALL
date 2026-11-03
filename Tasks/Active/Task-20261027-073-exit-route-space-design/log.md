@@ -81,3 +81,6 @@
 - 사용자 저장/제출 승인. Unity 저장/종료 후 private main의 README 갱신을 포함한 resource/exit-route-polish-20261103에서 Task073의529파일 저장, c4fe7c5f를 branch/main에 게시(LFS30개/23MB 업로드 완료). 외부 원본/파생 에셋은 비공개에 보존하고 공개에는 gitlink만 반영한다.
 - 공개 제출은 아트/최적화·봉/공중 보정·공용 UI/관전·갈대밭 엔딩·화염 예고/인원별 발사기·심부 면 보수 누적분 전체다. 기존 선별 검사/편집 시각 검증 결과를 재사용하며 실제 Play/MPPM은 실행하지 않는다. dev56363116 포함/차이0, dev 병합은 하지 않는다.
 - Unity 저장/재진입에서 CommonButtons SemiBold 아틀라스가1024→1px로 비워진 자동 변경을 발견했다. 해당 파일만 별도 stash에 보존하고 dev 정상본을 유지해 이번 제출에서 제외했다. 다른 기존 변경은 보존한다.
+
+- 2026-11-03 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/272 (feat/exit-route/design-map → dev)
+- 공개 저장7d3607b2(RagSpirin) push 완료. 최종 저장 검사 안전성·문서 규칙·컴파일 PASS, 기존 선별 검사 재사용/실제 Play 미실행. PR#272 dev 제출 완료, 병합/검토자 자동 배정은 하지 않았다.
