@@ -12,6 +12,7 @@ namespace CurtainCall.Settings.EditorTests
     {
         [TestCase(WaitingRoomSceneVariant.Base, "WaitingRoomBase")]
         [TestCase(WaitingRoomSceneVariant.Pursuit, "WaitingRoomPursuit")]
+        [TestCase(WaitingRoomSceneVariant.Integrated, "WaitingRoom")]
         public void SelectionRoutesRestAndExplorationAndBothAssetsRemainAvailable(WaitingRoomSceneVariant variant, string expected)
         {
             var settings = new BaseGameSettings.SpaceTransitionSettings();
@@ -26,7 +27,7 @@ namespace CurtainCall.Settings.EditorTests
         [Test] public void CustomDummyRoutesArePreserved()
         {
             Assert.AreEqual("RouteWaitingRoom", WaitingRoomScenes.Resolve("RouteWaitingRoom", WaitingRoomSceneVariant.Pursuit));
-            Assert.AreEqual(WaitingRoomSceneVariant.Base, new BaseGameSettings.SpaceTransitionSettings().WaitingRoomVariant);
+            Assert.AreEqual(WaitingRoomSceneVariant.Integrated, new BaseGameSettings.SpaceTransitionSettings().WaitingRoomVariant);
             Assert.IsFalse(WaitingRoomScenes.IsWaitingRoom("CommonWaitingRoomUI"));
         }
     }

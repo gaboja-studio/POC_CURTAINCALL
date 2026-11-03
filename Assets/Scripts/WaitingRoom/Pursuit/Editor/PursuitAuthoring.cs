@@ -9,7 +9,15 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
 {
     public static class PursuitAuthoring
     {
-        public static string ScenePath => CurtainCall.Settings.WaitingRoomScenes.PursuitPath;
+        public static string ScenePath {
+            get {
+                var active = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+                if (CurtainCall.Settings.WaitingRoomScenes.HasPursuit(active.name)) return active.path;
+                var selected = CurtainCall.Settings.GameSettings.Base.SpaceTransition.WaitingRoomVariant;
+                return CurtainCall.Settings.WaitingRoomScenes.Path(selected == CurtainCall.Settings.WaitingRoomSceneVariant.Base
+                    ? CurtainCall.Settings.WaitingRoomSceneVariant.Integrated : selected);
+            }
+        }
         public static Bounds Bounds(PursuitRoom room) => room.Area != null ? room.Area.bounds : new Bounds(room.transform.position, new Vector3(12, 4, 12));
         public static float FloorReference(PursuitRoom room)
         {
