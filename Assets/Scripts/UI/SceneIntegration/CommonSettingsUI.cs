@@ -41,6 +41,8 @@ namespace CurtainCall.UI.SceneIntegration
         bool inputTouched, outputTouched;
         static readonly FullScreenMode[] ScreenModes = { FullScreenMode.ExclusiveFullScreen, FullScreenMode.FullScreenWindow, FullScreenMode.Windowed };
         static readonly string[] ScreenLabels = { "전체 화면", "전체 화면 창", "창 모드" };
+        /// <summary>'혈흔 연출 표시' 항목은 게임 설정이 켜져 있고 개발자 모드일 때만 보인다.</summary>
+        static bool BloodSettingVisible => CurtainCall.Damage.InjuryBloodEffects.IsEnabledByGame && CurtainCall.Dev.DevMode.Enabled;
         public bool IsExtensionOpen => view != null && view.IsConfirmationOpen;
         public bool IsCapturingBinding => view != null && view.IsRebinding;
         public V2View Main => view;
@@ -114,7 +116,8 @@ namespace CurtainCall.UI.SceneIntegration
             graphics.rows.Add(Choice("FrameRate", "FPS 제한", ClientSettings.FrameRateLimit.ToString(), ClientSettings.AvailableFrameRateLimits.Select(f => new SettingsChoice(f.ToString(), f < 0 ? "제한 없음" : f == 60 ? "60 FPS (기본)" : $"{f} FPS"))));
             graphics.rows.Add(Toggle("HideNearbyCharacter", "카메라가 가까울 때 내 캐릭터 숨기기", ClientSettings.HideNearbyCharacter));
             // 혈흔 연출(Task-090): 게임 설정에서 꺼져 있으면 항목을 보이지 않고 모두 꺼진 상태다.
-            if (CurtainCall.Damage.InjuryBloodEffects.IsEnabledByGame)
+            // 개발자 모드가 아니면 항목을 숨기고 항상 켜짐으로 둔다(0.2.0 핫픽스, ClientSettings.ShowBloodEffect).
+            if (BloodSettingVisible)
                 graphics.rows.Add(Toggle("ShowBloodEffect", "혈흔 연출 표시", ClientSettings.ShowBloodEffect));
             graphics.rows.Add(Paragraph("GraphicsHint", "전체 화면 창은 데스크톱 해상도를 사용합니다.\n변경한 설정은 적용을 누르면 이 PC에 저장됩니다."));
             var controls = catalog.pages[2];
@@ -283,7 +286,7 @@ namespace CurtainCall.UI.SceneIntegration
                     values.Add(new V2Value { rowId = "Resolution", choiceId = resolution.width + "x" + resolution.height });
                     values.Add(new V2Value { rowId = "FrameRate", choiceId = ClientSettings.DefaultFrameRateLimit.ToString() });
                     values.Add(new V2Value { rowId = "HideNearbyCharacter", toggle = true });
-                    if (CurtainCall.Damage.InjuryBloodEffects.IsEnabledByGame) values.Add(new V2Value { rowId = "ShowBloodEffect", toggle = true });
+                    if (BloodSettingVisible) values.Add(new V2Value { rowId = "ShowBloodEffect", toggle = true });
                     break;
                 case "controls":
                     if (inputDraft == null) return;

@@ -55,7 +55,8 @@ namespace CurtainCall.UI.SceneIntegration
             bool visible=connected && !SpaceLinkHub.HasLoadedSpace(gameObject.scene)
                 && (SpaceLinkDirector.Instance==null || !SpaceLinkDirector.Instance.IsTransitioning);
             info.SetContext(visible);
-            if (appearancePanel != null) appearancePanel.SetActive(visible && session.GameState == GameSessionState.Waiting && NetworkPlayer.Local != null);
+            // 모델·의상(색상) 변경은 개발자 모드에서만 노출한다(0.2.0 핫픽스).
+            if (appearancePanel != null) appearancePanel.SetActive(CurtainCall.Dev.DevMode.Enabled && visible && session.GameState == GameSessionState.Waiting && NetworkPlayer.Local != null);
             if(!visible) { if(wasVisible) OnDisable(); return; }
             wasVisible=true;
             var host=NetworkPlayer.All.FirstOrDefault(p=>p!=null && p.OwnerClientId==NetworkManager.ServerClientId);

@@ -16,13 +16,20 @@ namespace CurtainCall.HumanCannon
         [SerializeField] float yawOffsetDegrees;
         [Tooltip("레일 진행을 반대로 한다. 위치뿐 아니라 바라보는 방향과 이탈 관성도 함께 뒤집는다."), SerializeField] bool reverseDirection;
 
+        // A wall-fed line uses the same network clock and grip physics as a circulating rail.
+        [SerializeField] bool wallFed;
+        [SerializeField, Min(0)] float exitStraightLength;
+        [SerializeField, Min(0)] float unloadingDistance;
+
+        public bool AtUnloadingBay(double elapsed) => wallFed && DistanceAt(elapsed) >= Length - unloadingDistance;
         public Transform Carriage => carriage;
         public bool ReverseDirection => reverseDirection;
-        public float Length => 2f * straightLength + 2f * Mathf.PI * radius;
+        public float Length => wallFed ? straightLength + radius * Mathf.PI * .5f + exitStraightLength : 2f * straightLength + 2f * Mathf.PI * radius;
         public bool IsConfigured => carriage != null && carriage != transform && carriage.IsChildOf(transform)
             && Finite(localCenter) && float.IsFinite(straightLength) && straightLength >= 0f
             && float.IsFinite(radius) && radius >= .1f && float.IsFinite(metersPerSecond) && metersPerSecond >= 0f
-            && float.IsFinite(phase01) && float.IsFinite(yawOffsetDegrees) && float.IsFinite(Length);
+            && float.IsFinite(phase01) && float.IsFinite(yawOffsetDegrees) && float.IsFinite(Length)
+            && (!wallFed || exitStraightLength > 0 && unloadingDistance > 0 && unloadingDistance < exitStraightLength);
         public bool IsSynchronized => HumanCannonHazardCourse.Current != null && HumanCannonHazardCourse.Current.IsSynchronized;
         public double Elapsed => IsSynchronized ? HumanCannonHazardCourse.Current.Elapsed : 0d;
 
@@ -35,7 +42,7 @@ namespace CurtainCall.HumanCannon
                 || !float.IsFinite(radius) || radius < .1f || !float.IsFinite(metersPerSecond) || metersPerSecond < 0f
                 || !float.IsFinite(phase01) || !float.IsFinite(yawOffsetDegrees))
                 throw new ArgumentException("순환 레일에는 자식 carriage와 유효한 경로 치수가 필요합니다.");
-            this.carriage = carriage; this.localCenter = localCenter; this.straightLength = straightLength; this.radius = radius;
+            wallFed = false; this.carriage = carriage; this.localCenter = localCenter; this.straightLength = straightLength; this.radius = radius;
             this.metersPerSecond = metersPerSecond; this.phase01 = Mathf.Repeat(phase01, 1f); this.yawOffsetDegrees = yawOffsetDegrees;
             this.reverseDirection = reverseDirection;
             RefreshPose();
@@ -47,11 +54,20 @@ namespace CurtainCall.HumanCannon
         {
             if (!IsConfigured)
             { position = transform.position; rotation = transform.rotation; linearVelocity = angularVelocity = Vector3.zero; return; }
-            double length = Length;
-            float direction = reverseDirection ? -1f : 1f;
-            double distance = ((Math.Max(0d, double.IsFinite(elapsed) ? elapsed : 0d) * metersPerSecond * direction
-                + Mathf.Repeat(phase01, 1f) * length) % length + length) % length;
-            float s = (float)distance, arc = Mathf.PI * radius, half = straightLength * .5f;
+            float direction = !wallFed && reverseDirection ? -1f : 1f;
+            float s = DistanceAt(elapsed), arc = Mathf.PI * radius, half = straightLength * .5f;
+            if (wallFed)
+            {
+                float alongBend = Mathf.Clamp(s - straightLength, 0, arc * .5f);
+                float angle = alongBend / radius;
+                float x = -Mathf.Min(s, straightLength) - radius * Mathf.Sin(angle);
+                float z = radius * (Mathf.Cos(angle) - 1f) - Mathf.Max(0, s - straightLength - arc * .5f);
+                position = transform.TransformPoint(localCenter + new Vector3(x, 0, z));
+                rotation = transform.rotation * Quaternion.Euler(0, yawOffsetDegrees, 0);
+                linearVelocity = transform.TransformVector(new Vector3(-Mathf.Cos(angle), 0, -Mathf.Sin(angle)) * metersPerSecond);
+                angularVelocity = Vector3.zero;
+                return;
+            }
             Vector3 point, tangent;
             bool turning;
             if (s < straightLength)
@@ -75,6 +91,15 @@ namespace CurtainCall.HumanCannon
             rotation = transform.rotation * Quaternion.LookRotation(tangent, Vector3.up) * Quaternion.Euler(0, yawOffsetDegrees, 0);
             linearVelocity = transform.TransformVector(tangent * metersPerSecond);
             angularVelocity = turning ? transform.up * (direction * metersPerSecond / radius) : Vector3.zero;
+        }
+
+        float DistanceAt(double elapsed)
+        {
+            double length = Length;
+            double time = double.IsFinite(elapsed) ? Math.Max(0, elapsed) : 0;
+            double direction = !wallFed && reverseDirection ? -1 : 1;
+            double distance = time * metersPerSecond * direction + Mathf.Repeat(phase01, 1f) * length;
+            return (float)((distance % length + length) % length);
         }
 
         public bool Contains(Transform target) => isActiveAndEnabled && IsConfigured

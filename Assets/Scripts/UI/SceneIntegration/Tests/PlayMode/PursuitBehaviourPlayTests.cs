@@ -149,6 +149,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             var model = (Component)Get(player.GetComponent(T("CurtainCall.Player.HumanoidPlayerPresentation")), "Model");
             var bloodSetting = T("CurtainCall.StartLobby.ClientSettings").GetProperty("ShowBloodEffect");
+            // 개인 혈흔 설정 끄기는 개발자 모드에서만 적용된다(0.2.0 핫픽스). 저장값을 읽기 전에 켠다.
+            var devCache = T("CurtainCall.Dev.DevMode").GetField("_enabled", BindingFlags.Static | BindingFlags.NonPublic);
+            object devBefore = devCache.GetValue(null);
+            devCache.SetValue(null, true);
             bool previous = (bool)bloodSetting.GetValue(null);
             Component pose = null;
             try {
@@ -181,7 +185,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     Assert.IsNull(GameObject.Find("PursuitBloodOnLens"));
                     Assert.IsNull(player.GetComponent(T("CurtainCall.WaitingRoom.Pursuit.PursuitCaptureBlood")));
                 }
-            } finally { if (pose != null) Object.Destroy(pose); bloodSetting.SetValue(null, previous); }
+            } finally { if (pose != null) Object.Destroy(pose); bloodSetting.SetValue(null, previous); devCache.SetValue(null, devBefore); }
         }
     }
 }

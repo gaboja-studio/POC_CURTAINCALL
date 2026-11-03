@@ -73,13 +73,15 @@ namespace CurtainCall.HumanCannon
             {
                 writer.WriteValueSafe(fire != null ? fire.ArmedAt : -1d);
                 writer.WriteValueSafe((byte)(fire != null && fire.Finished ? 1 : 0));
+                if (fire != null) for (int stage = 0; stage < fire.StageCount; stage++) writer.WriteValueSafe(fire.StageAt(stage));
             }
             messaging.SendNamedMessage(StateName, client, writer, NetworkDelivery.ReliableSequenced);
         }
 
         void ReceiveState(ulong sender, FastBufferReader reader)
         {
-            int expectedBytes = 24 + runtime.Length * 85 +fires.Length * 9;
+            int expectedBytes = 24 + runtime.Length * 85 + fires.Length * 9;
+            foreach (var fire in fires) if (fire != null) expectedBytes += fire.StageCount * 8;
             if (sender != NetworkManager.ServerClientId || reader.Length - reader.Position != expectedBytes) return;
             reader.ReadValueSafe(out uint incoming);
             reader.ReadValueSafe(out int resetAcknowledgment);
@@ -117,16 +119,26 @@ namespace CurtainCall.HumanCannon
             if (fireCount != fires.Length) return;
             var armed = new double[fireCount];
             var ended = new byte[fireCount];
+            var stages = new double[fireCount][];
             for (int i = 0; i < fireCount; i++)
             {
                 reader.ReadValueSafe(out armed[i]);
                 reader.ReadValueSafe(out ended[i]);
                 if (!double.IsFinite(armed[i]) || armed[i] < -1 || ended[i] > 1 || armed[i] < 0 && ended[i] != 0) return;
+                stages[i] = new double[fires[i] != null ? fires[i].StageCount : 0];
+                for (int stage = 0; stage < stages[i].Length; stage++)
+                {
+                    reader.ReadValueSafe(out stages[i][stage]);
+                    // 단계 시각은 앞 단계보다 이르지 않고, 켜지기 전에는 없다.
+                    double previous = stage > 0 ? stages[i][stage - 1] : armed[i];
+                    if (!double.IsFinite(stages[i][stage]) || stages[i][stage] < -1
+                        || stages[i][stage] >= 0 && (armed[i] < 0 || previous < 0 || stages[i][stage] < previous)) return;
+                }
             }
             if (!resetBarrier.Accept(resetAcknowledgment)) return;
             revision = incoming;
             AliveFlyers = alive; ArrivedFlyers = arrived; runtime = snapshot;
-            for (int i = 0; i < fireCount; i++) if (fires[i] != null) fires[i].Receive(armed[i], ended[i] == 1);
+            for (int i = 0; i < fireCount; i++) if (fires[i] != null) fires[i].Receive(armed[i], ended[i] == 1, stages[i]);
         }
 
         void Connection(SessionConnectionState connection)
