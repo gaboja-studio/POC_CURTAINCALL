@@ -69,36 +69,92 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(diagonal.y, Is.Zero);
         }
 
+        [Test]
+        public void PoleReleaseInheritedPumpHasShortGraceButNewSideInputWorks()
+        {
+            var air = new CannonAirControl();
+            var velocity = new Vector3(0, 5, 8);
+            air.BeginPoleFlight(-1);
+            for (int i = 0; i < 8; i++)
+            {
+                air.SetInput(Vector2.down, i);
+                Assert.That(air.ConsumePoleVelocity(i, false, Vector3.forward, 3, velocity, 8, 1f / 60), Is.EqualTo(Vector3.zero));
+            }
+            air.SetInput(new Vector2(1, -1), 8);
+            var correction = air.ConsumePoleVelocity(8, false, Vector3.forward, 3, velocity, 8, 1f / 60);
+            Assert.That(correction.x, Is.GreaterThan(0));
+            for (int i = 9; i < 30; i++)
+            {
+                air.SetInput(Vector2.down, i);
+                correction = air.ConsumePoleVelocity(i, false, Vector3.forward, 3, velocity, 8, 1f / 60);
+            }
+            Assert.That(correction.z, Is.LessThan(-2), "Held reverse becomes braking after the grace.");
+            air.BeginPoleFlight(-1);
+            air.SetInput(Vector2.up, 30);
+            correction = air.ConsumePoleVelocity(30, false, Vector3.forward, 3, Vector3.zero, 8, 1f / 60);
+            Assert.That(correction.z, Is.GreaterThan(0), "New direction bypasses the grace, including a stationary launch.");
+        }
+
         [TestCase(4.5f)]
         [TestCase(3.6f)]
-        public void PoleAirControl_OppositeOrSideInputTurnsMomentumWithoutLosingSpeed(float controlSpeed)
+        public void PoleAirControl_SideAdjustsLandingAndReverseBrakesWithoutFlipping(float controlSpeed)
         {
-            var launched = new Vector3(0, 12, 14);
-            var reverse = CannonAirControl.SteerPoleMomentum(launched, Vector3.back * controlSpeed);
-            Assert.That(reverse, Is.EqualTo(new Vector3(0, 12, -14)));
-            Assert.That((reverse + Vector3.back * controlSpeed).z, Is.LessThan(0));
-            var sideways = CannonAirControl.SteerPoleMomentum(launched, Vector3.right * controlSpeed);
-            Assert.That(sideways, Is.EqualTo(new Vector3(14, 12, 0)));
-            Assert.That(CannonAirControl.SteerPoleMomentum(reverse, Vector3.forward * controlSpeed),
-                Is.EqualTo(launched), "방향 전환만으로 반동 속력이 줄거나 늘지 않는다.");
+            var launched = new Vector3(0, 12, 8);
+            foreach (var input in new[] { Vector2.right, Vector2.down })
+            {
+                var air = new CannonAirControl();
+                air.BeginPoleFlight(0);
+                Vector3 correction = Vector3.zero;
+                for (int i = 0; i < 60; i++)
+                {
+                    air.SetInput(input, i);
+                    correction = air.ConsumePoleVelocity(i, false, Vector3.forward, controlSpeed, launched, 8, 1f / 60);
+                }
+                var effective = launched + correction;
+                Assert.That(effective.y, Is.EqualTo(12));
+                Assert.That(effective.z, Is.GreaterThan(3));
+                Assert.That(Vector3.ProjectOnPlane(effective, Vector3.up).magnitude, Is.LessThanOrEqualTo(8.001f));
+                if (input.x > 0) Assert.That(effective.x, Is.GreaterThan(2.9f));
+                else Assert.That(effective.z, Is.LessThan(5));
+            }
+        }
+
+        [TestCase(30)]
+        [TestCase(60)]
+        [TestCase(144)]
+        public void PoleAirControl_FrameRateIndependentAndReleaseRemovesSideDrift(int fps)
+        {
+            var air = new CannonAirControl();
+            var launched = new Vector3(0, -4, 8);
+            air.BeginPoleFlight(0);
+            Vector3 correction = Vector3.zero;
+            for (int i = 0; i < fps; i++)
+            {
+                air.SetInput(Vector2.right, i);
+                correction = air.ConsumePoleVelocity(i, false, Vector3.forward, 3, launched, 8, 1f / fps);
+            }
+            Assert.That(correction.x, Is.EqualTo(2.809f).Within(.002f));
+            for (int i = fps; i < fps * 2; i++)
+                correction = air.ConsumePoleVelocity(i, false, Vector3.forward, 3, launched, 8, 1f / fps);
+            Assert.That(correction.magnitude, Is.LessThan(.001f));
+            air.SetInput(Vector2.right, fps * 2);
+            Assert.That(air.ConsumePoleVelocity(fps * 2, true, Vector3.forward, 3, launched, 8, .1f), Is.EqualTo(Vector3.zero));
+            Assert.That(launched, Is.EqualTo(new Vector3(0, -4, 8)));
         }
 
         [Test]
-        public void PoleAirControl_NoInputOrForwardInputPreservesLongJump_AndTurningCannotAddEnergy()
+        public void PoleAirControl_CameraRotationAndInjuryScaleAffectOnlyCorrection()
         {
-            var launched = new Vector3(0, 12, 14);
-            Assert.That(CannonAirControl.SteerPoleMomentum(launched, Vector3.zero), Is.EqualTo(launched));
-            Assert.That(CannonAirControl.SteerPoleMomentum(launched, Vector3.forward * 4.5f), Is.EqualTo(launched));
-            var diagonal = new Vector3(1, 0, 1).normalized;
-            var turned = CannonAirControl.SteerPoleMomentum(launched, diagonal * 4.5f);
-            Assert.That(turned.y, Is.EqualTo(12));
-            Assert.That(Vector3.Dot(Vector3.ProjectOnPlane(turned, Vector3.up).normalized, diagonal), Is.EqualTo(1).Within(0.001f));
-            Assert.That(Vector3.ProjectOnPlane(turned, Vector3.up).magnitude, Is.EqualTo(14).Within(.001f));
-            Assert.That(CannonAirControl.SteerPoleMomentum(turned, Vector3.zero), Is.EqualTo(turned),
-                "키를 놓아도 마지막 방향으로 날아간다.");
-            var rotation = Quaternion.Euler(0, 135, 0);
-            Assert.That(Vector3.Distance(CannonAirControl.SteerPoleMomentum(rotation * launched, rotation * diagonal),
-                rotation * turned), Is.LessThan(0.001f), "카메라/코스가 돌아가도 같은 세계 방향으로 제동");
+            var air = new CannonAirControl();
+            air.BeginPoleFlight(0);
+            var launched = Vector3.up * 5;
+            air.SetInput(Vector2.up, 1);
+            var correction = air.ConsumePoleVelocity(1, false, Vector3.right, 1.5f, launched, 8, 1);
+            Assert.That(correction.x, Is.EqualTo(1.5f).Within(.001f));
+            Assert.That(correction.y, Is.Zero);
+            Assert.That(correction.z, Is.Zero);
+            air.BeginPoleFlight(0);
+            Assert.That(air.ConsumePoleVelocity(2, false, Vector3.forward, 3, launched, 8, .1f), Is.EqualTo(Vector3.zero));
         }
 
         [TestCase(0f, 14f, 8f)]

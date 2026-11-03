@@ -1,5 +1,9 @@
 # Project Pitfalls
 
+- [escape-inspection-state.md](escape-inspection-state.md) — 자유비행 중 리타이어되거나 메뉴에서 관전 대상이 바뀔 때
+
+- [escape-balance-ui-overrides.md](escape-balance-ui-overrides.md) — 같은 균형 HUD 프리팹인데 탈출로와 원본 외줄 UI의 두께/화면 스케일이 다를 때
+
 - [escape-held-saw-collision.md](escape-held-saw-collision.md) — 휴대 톱 자기 충돌·벽 뒤 전선/뱅크 교차·도달 재현을 확인할 때
 
 - [waiting-room-moved-camera-zones.md](waiting-room-moved-camera-zones.md) — 대기실 통로 재배치 뒤 시점이 너무 일찍 바뀌거나 기존 좌표 검사가 실패할 때

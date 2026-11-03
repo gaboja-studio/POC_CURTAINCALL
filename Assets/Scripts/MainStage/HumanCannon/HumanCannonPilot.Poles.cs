@@ -8,6 +8,8 @@ namespace CurtainCall.HumanCannon
     {
         public int HeldPole { get; private set; } = -1;
         public bool IsHoldingPole => HeldPole >= 0;
+        float poleFlightSpeedLimit;
+        float polePumpInput;
 
         bool ReadPoleInput(in PlayerInputFrame input)
         {
@@ -15,6 +17,7 @@ namespace CurtainCall.HumanCannon
             if (poles == null) return false;
             if (IsHoldingPole)
             {
+                polePumpInput = input.Move;
                 poles.RequestSwing(HeldPole, input.Move);
                 if (input.ActionPressed ||
                     latch.Read(input.InteractTapped, input.InteractLongPressed, input.InteractHoldProgress) == CannonAction.Cancel)
@@ -53,6 +56,7 @@ namespace CurtainCall.HumanCannon
             // 외줄 옆점프/일반 점프의 옛 목표가 다음 착지에 다시 적용되지 않게 한다.
             mover.ResetExternalMotion(true);
             HeldPole = index;
+            polePumpInput = 0f;
             if (TryGetComponent(out PlayerBalance balance)) balance.IsSuspended = true;
             stationIndex = -1;
             flightStationIndex = station;
@@ -65,30 +69,38 @@ namespace CurtainCall.HumanCannon
             velocity = Vector3.zero;
             steerPoleMomentum = false;
             latch.Reset();
-            UpdatePolePose();
+            UpdatePolePose(true);
         }
 
         internal void LeavePole(int station, uint launch, uint segment, Vector3 position,
             Quaternion rotation, Vector3 launchVelocity, float controlSpeed)
         {
+            var pole = HumanCannonPoleSystem.Current != null ? HumanCannonPoleSystem.Current.Pole(HeldPole) : null;
+            poleFlightSpeedLimit = pole != null ? pole.FlightSpeedLimit(GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit)
+                : GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit;
             HeldPole = -1;
             if (TryGetComponent(out PlayerBalance balance)) balance.IsSuspended = false;
-            launchVelocity = CannonAirControl.LimitPoleHorizontalSpeed(launchVelocity, GameSettings.HumanCannon.PoleJumpHorizontalSpeedLimit);
+            launchVelocity = CannonAirControl.LimitPoleHorizontalSpeed(launchVelocity, poleFlightSpeedLimit);
             Launch(station, launch, position, rotation, launchVelocity);
             flightSegment = segment;
             airControlSpeed = controlSpeed;
             steerPoleMomentum = true;
+            airControl.BeginPoleFlight(polePumpInput);
             latch.Reset();
         }
 
-        void UpdatePolePose()
+        void UpdatePolePose(bool teleport = false)
         {
             if (!IsHoldingPole) return;
             var poles = HumanCannonPoleSystem.Current;
             var pole = poles != null ? poles.Pole(HeldPole) : null;
             if (pole == null) return;
             pole.RefreshMovingPose();
-            Teleport(poles.HangingPosition(HeldPole, player.OwnerClientId), pole.Grip.rotation);
+            // A held rider follows a continuous path. Reserve controller resets and
+            // network teleports for discrete grab/release transitions.
+            Vector3 position = poles.HangingPosition(HeldPole, player.OwnerClientId);
+            if (teleport) Teleport(position, pole.Grip.rotation);
+            else transform.SetPositionAndRotation(position, pole.Grip.rotation);
         }
     }
 }

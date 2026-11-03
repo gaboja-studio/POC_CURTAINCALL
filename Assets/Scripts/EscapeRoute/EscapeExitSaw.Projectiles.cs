@@ -209,7 +209,7 @@ namespace CurtainCall.EscapeRoute
         {
             for (int i = 0; i < projectilePool.Length; i++)
             {
-                bool show = Ready && ProjectileMode && i < shots.Count;
+                bool show = ProjectileSessionReady && ProjectileMode && i < shots.Count;
                 if (show && projectilePool[i] == null && projectileVisual != null && Application.isPlaying)
                 {
                     var visual = Instantiate(projectileVisual);

@@ -7,6 +7,16 @@ namespace CurtainCall.HumanCannon
     {
         Vector2 input;
         int inputFrame = -1;
+        Vector3 poleCorrection;
+        float inheritedPump;
+        float pumpGrace;
+
+        public void BeginPoleFlight(float pumpInput)
+        {
+            poleCorrection = Vector3.zero;
+            inheritedPump = Mathf.Abs(pumpInput) > .1f ? Mathf.Sign(pumpInput) : 0f;
+            pumpGrace = .15f;
+        }
 
         public void SetInput(Vector2 value, int frame)
         {
@@ -31,17 +41,24 @@ namespace CurtainCall.HumanCannon
         }
 
         /// <summary>
-        /// 봉 도약의 수평 속력을 유지하면서 입력 방향으로 반동을 돌린다.
-        /// 키를 놓으면 마지막 비행 방향으로 계속 날고, 반복 방향 전환으로 속력이 줄거나 늘지 않는다.
-        /// 수직 탄도는 바꾸지 않는다.
+        /// 봉에서 받은 관성은 보존하고 입력 중에만 부드러운 수평 보정을 더한다.
+        /// 반동을 주던 W/S는 놓기 직후 잠깐 유예하며 새 방향 입력은 즉시 받는다.
         /// </summary>
-        public static Vector3 SteerPoleMomentum(Vector3 velocity, Vector3 correction)
+        public Vector3 ConsumePoleVelocity(int frame, bool blocked, Vector3 viewForward, float speed,
+            Vector3 launchVelocity, float speedLimit, float dt)
         {
-            Vector3 direction = Vector3.ProjectOnPlane(correction, Vector3.up);
-            if (direction.sqrMagnitude < 0.000001f) return velocity;
-            direction.Normalize();
-            Vector3 horizontal = Vector3.ProjectOnPlane(velocity, Vector3.up);
-            return Vector3.up * velocity.y + direction * horizontal.magnitude;
+            dt = Mathf.Max(0f, dt);
+            if (pumpGrace > 0f && inputFrame == frame)
+            {
+                if (Mathf.Abs(input.y) > .1f && Mathf.Sign(input.y) == inheritedPump) input.y = 0f;
+                else pumpGrace = 0f;
+            }
+            pumpGrace = Mathf.Max(0f, pumpGrace - dt);
+            Vector3 target = ConsumeVelocity(frame, blocked, viewForward, speed);
+            poleCorrection = blocked ? Vector3.zero : Vector3.ClampMagnitude(
+                Vector3.Lerp(poleCorrection, target, 1f - Mathf.Exp(-dt / .1f)), Mathf.Max(0f, speed));
+            Vector3 horizontal = Vector3.ProjectOnPlane(launchVelocity, Vector3.up);
+            return Vector3.ClampMagnitude(horizontal + poleCorrection, Mathf.Max(0f, speedLimit)) - horizontal;
         }
 
         /// <summary>봉 도약의 수평 속도만 제한한다. 상승·하강 속도와 수평 진행 방향은 유지한다.</summary>

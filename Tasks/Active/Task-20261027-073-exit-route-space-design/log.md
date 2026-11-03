@@ -1,76 +1,83 @@
 # Log
 
-## 2026-11-02 A 활성화 한글·유지봉 아래 다리 관통
-- origin/dev/작업 브랜치 fetch 후 차이0, 기존 변경 보존. 사용자 최종 범위: 별도 지시 전 A만, B·C 작업 금지. 초기 다른 씬 점검은 읽기만 했다.
-- 실제 상태 알림은 C6가 아닌 EscapeMechanismFeedback 토스트였다. 정적 폰트의 부·양·쪽 누락을 확인해 A 토스트만 실행 시 폰트 복제/문구 추가·전체 줄 높이로 보완했다. A 소스157개와 체크포인트/기물 이름 합계529문자, C6·토스트4라벨 누락0. 문구 파일 replacement0.
-- 사용자 최종 지시대로 A06 유지봉 측면 정비턱-.2m, 그네+.45m, 천장 고정점 유지/케이블 재정렬. 다른 바닥·그네/타이머/기물 설정 변경 없음. 검토 중인 무릎 보정과 해당 테스트는 제거해 공통 캐릭터 코드 변경0이다.
-- 실제 Rabbit Hanging4위상 발 메시 여유.193~.203m/손 접점 오차.0014m 이하. 부상0~3단계×서기/낮은 자세8종의 점프 정점에서 잡기 거리·벽 가림 모두 통과, CrawlCanJump=true/다리 없는 점프.4m. 지상에서 더 낮게 앉은 표본2개는 바닥 가림으로 잡기를 막아 기존 규칙을 유지한다. 바닥 단차.2m<기존 stepOffset.3m. 오프라인 에디터 표본이며 실제 Play/다인 검증은 미실행.
-- 최종 회귀46/46(Notification7/상태2/협동30/그네시각7). 근거 .harness/local/escape-pole-font-floor/{a-dynamic-fonts,scene-change,reach-audit,final-pose}.txt. check-work 안전성/문서/컴파일 PASS, 별도 자동 회귀46건 통과. Start만 열림/dirty0/Play stopped, B·C/공통 캐릭터 diff0. commit/push 없음.
+이전 기록: [History/031](History/031-before-fire-spectator-log.md).
 
-이전 기록 원문: [History/029](History/029-before-shared-mechanics-log.md).
+## 2026-11-02 맵 렌더 비용 1차 최적화
+- 활성 Renderer2,989/그림자 조명111 확인. A Spot 그림자110→11, 주광 포함12로 축소. Collider/Mono2,142개 설정 동일·씬 dirty0 저장.
+- 편집1280x720 교차 반복 렌더 평균 입구5.98→3.98ms, 컨베이어2.57→1.64ms, 마지막구역2.39→1.95ms(변동 큼). 실제 플레이 FPS 미측정. 상세 map-performance.md.
+- 최종 check-work 안전성·문서 규칙·컴파일 PASS, A 저장 dirty0. 실제 게임 FPS/최저 프레임은 미측정이며 자동 테스트 SKIPPED.
 
-## 2026-11-02 캠페인 추락 절단·소실 외줄 시점 수정
-- 사용자 재현 경로: Start→대기실→탈출로. fetch 후 dev7259e8f4 포함/차이0 확인, 작업 브랜치 유지. 새 코드 동기화가 없어 에디터 종료/재시작은 하지 않았다. doctor는 기존 Task ID077/078/079/082/083/086 중복 FAIL·CLI버전WARN, 에디터 연결/컴파일 사용 가능.
-- 원인1: 캠페인은 개발용 EscapeDevelopmentSession을 비활성화한다. 기존 ServerFallInjury가 활성 개발 실행기의 추락 해제만 보므로 일반 바닥 착지에서 FallCuts2가 다시 적용되는 경로가 있었다. 실제 활성 탈출 캠페인도 검사하는 FallInjuriesSuppressed로 대포 추락 절단과 스프링 신발 반동/소모 분기를 함께 차단했다. 균형·작성된 낙사 구역·직접 함정 피해는 별도로 유지한다.
-- 원인2 후보/보완: 소실 시 줄 조작과 카메라 요청이 해제된다. 입구 접근 요청75는 줄 구도0보다 우선하며 계단 끝 영역을 건너뛰면 비행200 종료 뒤 다시 나타날 수 있었다. 실제 대포/외줄 사용 시 접근 완료를 고정하고 입구 카메라 요청을 영구 해제한다. 저장된 A의 입구 프리셋은 실제1인칭이 아니라 WaitingRoomCloseThirdPerson이다. 별도로 탈출로에서는 남은1인칭 요청을 선택하지 않으며 다른 공간에서 쓸 요청 자체는 보존한다.
-- 실제 Console에는 개별 추락/시점 선택 원인 로그가 없었다. A/대기실 저장 프리셋과 코드 상태 인계, 테스트 fixture로 경계를 검증했다. 정적 카메라 표본만으로 벽 충돌 원인을 확정하지 않았고 실제 Play/MPPM·플레이어 자동 입력은 실행하지 않았다. 실제 화면 체감의 최종 재현은 사용자 확인이 필요하다.
-- EditMode56/56 PASS: 캠페인 추락 정책1·입구 시점 인계1·줄 요청 해제/다른씬 복귀1·기존 대포착지10·표면/조작32·요청 우선순위11. 증거 .harness/local/escape-fall-camera-fix/. 원본 씬·프리팹·기물 에셋 변경 없이 코드/테스트만 수정했다.
-- 추가 원본 UI/시스템/기물/다인 상태 동기화는 follow-up-system-sync.md에 후보 목록으로 분리했으며, 불일치 확정이나 일괄 적용으로 기록하지 않는다. commit/push 없음. 묶음 check-work 결과는 이어 기록한다.
+## 맵 최적화 후속
+- 기계11곳 원거리 삼각형486,750→243,366, 정적617 Renderer→78묶음(16m), 활성 메시2700→2161. 복원→재생성 결과 동일, 원본/묶음 삼각형76,177개 동일, 충돌1648개 불변.
+- ParticleSystem266개 AlwaysSimulate→Automatic, 추격불 지속 .45→.35. 단일구간14효과의 같은 시드/3초 표본140→112입자. 분출 배율은 기존값. 편집8구도·ABBA렌더 비교, 실제 게임 FPS 미측정.
+- Rebuild 검증은 CLI30초 응답 제한을 넘겼지만 네이티브 작업이 완료돼 verified.json 결과와 저장 상태를 재확인했다. 맵 직접 편집 전 Optimization/Restore editable geometry 메뉴 사용. 자세한 절차 map-performance.md.
+- 최종 check-work 안전성·문서 규칙·컴파일 PASS, 열린 A dirty0. 자동 테스트 SKIPPED. 네이티브 복원/재생성 및 기하/충돌 검증 결과는 verified.json에 보관했다.
 
-- 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
-- 최종 check-work 안전성/문서·규칙/컴파일 PASS, 별도 회귀56/56 PASS(중복 테스트 실행은 SKIPPED). Start 씬1개/dirty0·Play 정지 유지, 씬/프리팹 저장 파일 변경0. 실제 Start→대기실→탈출로 조작 재현·다인 검증은 미실행으로 남기고 코드 수정/회귀 완료를 구분한다.
-- 2026-11-02 시스템 동기화 리스트업: 원본 연결 코드를 대조해 follow-up-system-sync.md에 P0플레이어인계·장비·신체·F·입력/카메라, P1묘기·UI/타이머·기믹/다인·관전/재접속·성공/실패, P2외형/효과/소리의11묶음 정리. 이미 있는 연결과 미검증 후보를 구분했고 추가 코드 변경/Play/commit/push 없음.
+## 2026-11-03 구조 이음새·면 겹침 폴리싱
+- 최적화 묶음 복원 후 원본803개를 검사. 겹친 면 후보113→0, 메시57개에3~15mm 깊이 보정. 닫힌 면 유지. 보수판4개/코어12개 접합 정렬, 작성 도구 반영.
+- Collider1648개 필드/Mono 설정 동일, 코어 높이는19.92→20으로 월드 범위4cm씩 보정. 편집9구도 확인, 원본617→78묶음 재생성·저장. 실플레이 이동 중 확인 미실시. surface-polish-followup.md 참조.
+- 최종 check-work 성공 증거의 현재 작업 지문 일치 확인: 안전성·문서 규칙·컴파일 PASS, 자동 테스트 SKIPPED. 열린 A isDirty=false 저장 확인. 실제 Play 미실행.
 
-## 2026-11-02 P0 전체·UI/타이머·다인 기믹 동기화
-- 사용자 승인 P0-1~5와 P1-2/3을 원본 공용 서비스와 대조했다. 기존 branch feat/exit-route/design-map/dev7259e8f4 포함 및 fetch 차이0 상태를 유지했다. 같은 Task doctor 기존 중복 ID FAIL/CLI버전 WARN을 재사용하며 새 코드 통합이 없어 Unity 종료/재시작은 필요하지 않았다.
-- 전환 완료→대기 상태 역행/같은 출발 명단 변경을 거부한다. 플레이어/NetworkPlayer.LostParts/PropCarry/입력·카메라 서비스는 재생성하지 않고 이어 쓰는 기존 연결을 보존했다. 신체 HUD/원격 부상 정책/기물 효과 진입점을 대조했다.
-- 장비 쿨타임은 수신한 남은 초를 다시 더하는 대신 ServerTime 종료 시각을 공유한다. 선택 장비에 재사용 남은 초를 표시하며 기존 슬롯 횟수/파괴 알림/1회 소모 경로를 유지한다. 상호작용·점프·W/S·A/D 안내는 실제 Reader 바인딩에 맞춘다.
-- 협동 다리는 로컬 deltaTime 전개 대신 공유 시각 기반으로 진행한다. 호스트 스냅샷의 전개량/시각을 보내 지연 수신·접힘을 복원하며 항상 물리 철판을 유지한다. 문/하부1인 예약은 같은 revision의 다른 값을 거부한다. 다리는 시각 역행/비정상 전개량을 검증한 뒤에만 재시작 응답을 수락한다.
-- UI 요청은 최종적으로 대포/그네 앞 C6 안내로 정정됐다. 중간 장비/일반 시스템 알림 폰트·레이아웃 변경은 철회했다(WaitingRoomRightPanel diff0). 대포/봉 대상만 전체 본문 높이·긴 키 폭·한글 런타임 글리프를 보완하고 다른 대상으로 바뀌면 기본 크기로 복귀한다. A에는 InteractionSceneBinding만 있고 HumanCannonUiBinding/C7은 없다.
-- 선별 EditMode 고유260/260 PASS(20필터): 공유시스템6/협동업그레이드29/소실외줄17/바인딩19/신체HUD11/탈출타이머12/스위치13/봉피드백2/대기실표시6/집결26/원본기물6/추격14/톱31/배선9/매달림8/소지장부19/대포부상10/공용타이머14/HUD배치3/대포·그네글자 및 기존알림5. 최종5건은 정정된 대상 테스트이며 중간 철회한 알림 테스트 결과로 집계하지 않았다.
-- A/공용 UI 프리뷰 참조 감사: 타이머480초·참조3개 유효, 다리3개/체크포인트5, 공용 인벤토리/설정 각1, 누락 스크립트0. 대포/그네 C6 프리팹3사례 편집 렌더: 한글 정상·키/제목/본문9개 overflow=False. 증거 .harness/local/escape-system-sync/cannon-pole-layout.png 및 metrics. 장비/일반 알림의 중간 notice-layout 산출물은 철회된 접근으로 최종 증거가 아니다.
-- 일시 컴파일 오류는 회귀의 TMP HasCharacters out 타입을 uint[]로 바로잡아 해결했다. 도메인 전환 중 CLI400은 재조회 정상. 최종 recompile 오류0·UI회귀5/5 확인. 씬/프리팹/폰트/ThirdParty 변경0, 실제 Play/MPPM·자동 입력·commit/push 미실행. 실제 지연/1~4인 전환·연속 완주는 검증하지 않았다. 통합 검사는 이어 기록한다.
+## 2026-11-03 그네 이탈 뒤 공중 조작
+- dev/작업 브랜치 fetch, HEAD와 origin/dev 차이0/0. 현재 Unity 편집 상태로 실제 통합 불필요. doctor는 기존 private 미커밋 에셋/중복 Task ID로 FAIL, CLI 버전/skill 링크 경고. 기존 변경을 보존하며 이번 코드 수정에는 직접 영향 없음.
+- 원인: 그네 이탈 뒤 A/D가 수평 관성 전체를180도/초로 회전시켜 짧은 입력도 착지 방향을 계속 바꾸었다. 실제 Play는 사용자 범위대로 실행하지 않았으며 코드 경로를 확인했다.
+- 공통 HumanCannonPilot/CannonAirControl 수정: 관성은 보존하고 카메라 기준 수평 보정만 추가(0.1초 지수 응답/키 해제 시 감쇠). 기존 수평 상한/상승 탄도/부상 배율 유지. 반동 W/S의 같은 입력만 최대0.15초 유예, A/D·새 방향은 즉시 적용. 일반 대포/트램폴린 경로 유지. A 배치/씬/대기실 미변경.
+- EditMode CannonSeatTests41/41 PASS: 횡보정/반대입력 제동·상한/높이·키 해제/잠금/재도약 초기화·30/60/144fps 응답·카메라 방향·부상 보정값 확인. .harness/local/pole-air-control-tests.json. A dirty=false 저장 확인, 실제 조작 체감/멀티플레이 미검증.
+- 최초 최종 컴파일은 비행 상태 필드명 변경의 기존 장비 코드 참조 누락(CS0103)으로 FAIL. 기존 필드명을 유지해 장비/PlayMode 회귀의 참조까지 보존하고 다시 검사한다.
+- 보완 후 최종 check-work 안전성·문서 규칙·컴파일 PASS, 최신 어셈블리로 EditMode41/41 재확인 PASS. A dirty0. 실제 Play/MPPM은 실행하지 않았다.
 
-- 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
-- 최종 check-work 안전성/문서·규칙/컴파일 PASS(up_to_date), 별도 선별 회귀260/260 PASS. 중복 자동 테스트는 SKIPPED. 문서 길이 WARN45/hard0는 기록하고 범위 밖 문서 정리는 하지 않았다. 에디터 ready/열린 씬1/dirty0, 실제 Play 미실행 유지. 장비/일반 알림 레이아웃·WaitingRoomRightPanel/씬·프리팹/ThirdParty diff0. 작업 브랜치 미커밋 상태로 유지한다.
+## 2026-11-03 원본 외줄 UI 대조
+- dev/작업 브랜치 fetch, origin/dev 차이0/0. 같은 Task doctor 결과 재사용. 사용자에게 다른 UI 종류를 비동기로 확인하면서 균형 UI를 먼저 대조했다.
+- 원본 Tightrope 씬을 읽기 전용 추가 로드/해제해 실제 그래픽/레이아웃 비교. 같은 PerformanceHud 프리팹이지만 A 위험 트랙12/채움4px 대 원본23/15px, 스케일 MatchWidthOrHeight 대 Expand 차이 발견. 균형 값·위험 비율·입력 표시·배치/색 연결은 같은 경로다.
+- A의 해당 크기/스케일·편집 샘플 플래그를 원본에 맞추고 저장. 실제 씬 diff는 기존 UI 프리팹 인스턴스1개 오버라이드만, 추가/삭제 문서0. 원본 씬/프리팹·대기실 미변경. 작성 도구에도 동일 치수 반영. 실제 Play 미실행, 세부 증거 .harness/local/rope-ui/.
+- 재비교에서 동적 TMP SubMesh를 제외한 균형 그래픽/배치32개 동일, 두 CanvasScaler Expand 확인. 최종 check-work 안전성·문서 규칙·컴파일 PASS, 자동 테스트 SKIPPED, 열린 A dirty0.
 
-## 2026-11-02 맵별 설정 보존·공통 묘기 동작 동기화
-- 사용자 승인: 외줄 양방향처럼 같은 묘기의 기본 동작이 맵에 따라 달라지지 않게 한다. Task-073/@RagSpirin/feat/exit-route/design-map에서 기존 미커밋 작업을 보존했다. origin/dev와 작업 브랜치 fetch, HEAD...origin/dev 0/0·원격 작업 브랜치 대비1/0. 새 소스 통합이 없어 에디터 종료/재시작 없이 계속했다. doctor는 같은 Task의 기존 실행 결과를 재사용했다.
-- 공통화: 생성 외줄도 양방향 진입·좌우 방향 변환·역방향 동료 뒤 착지와 진행 축 부호 보정. 기본/대포 조작 복귀의 HasAssignedScheme·현재 소유권 보존. 모든 봉에 연속 반동·지상/공중 잡기·벽 가림·목마 안전 인계, 공용 F 처리로 탈출로 선행 소비 제거. 실제 외줄 조작 중에만 부상 정책을 적용하고 초기 정책 덮어쓰기 방지.
-- 장비/안내: 벌룬 바지 보고는 순서·세대와 ACK를 포함해0.25초 재전송, 중복 소비/옛 세대 응답·응답 전 재발동 방지. C6에 탑승/점유 중 발사·내리기·도약·반동, 잠긴 포신 대기를 표시하며 원본 C7 중복 방지. 장비/일반 알림 폰트·레이아웃은 보존한다.
-- 회귀24필터281/281 PASS. 새 역방향 blocker fixture의 수동 등록 정리 누락이 다른 입력 버퍼 회귀에 MissingReference를 남겼고 OnDisable 정리 후 전부 통과했다. 테스트 약화나 기능 삭제로 우회하지 않았다. 기본 조작 복귀의 실제 불일치도 HasAssignedScheme 보존으로 수정했다.
-- 실제 씬 프리뷰: A/원본 Tightrope 모두 진입 반대 축 내적-1, 원본 소스 프리팹 역방향(0,0,-1). A15/15·원본 HumanCannon7/7 봉이2초 이상 연속 입력에 응답, 원본 legacyFlag=false에서도 공통 잡기 경로true. 세 씬 누락 스크립트0·탈출480초·dirty0/Play정지. C6 발사/도약/긴 키·본문3사례 렌더 정상/overflow0. 증거 .harness/local/common-mechanics-sync/.
-- 보존: 맵/프리팹/Resources·폰트/ThirdParty diff0. 장치별 좌석/궤적/물리 조정값·운반자 필요 조건·연결 잠금/필요 인원·맵 위험/추락 보호·시간/결과/보상 모드는 그대로다. 기존 별도 협동 장치를 인간대포 봉으로 교체하지 않았다. 자세한 항목은 common-mechanics-sync.md. 실제 Play/MPPM/자동 입력/commit/push 미실행, 실제 연속 완주·동시 네트워크 체감은 미검증. 최종 통합 검사 결과는 이어 기록한다.
+## 2026-11-03 원본 재사용·UI 전반 조사
+- dev/작업 브랜치 fetch, dev 차이0/0. 같은 Task doctor 결과 재사용. 게임 코드/씬/설정은 이번 조사에서 변경하지 않았다.
+- 실제8개 씬·프로젝트 Mono845개·UI Rect1451개 읽기. 누락 스크립트0/감지된 끊긴 참조0. A 타이머/장치 알림 CanvasScaler 차이2곳, 공통 균형 키 A/D 하드코딩, 관전C11/외줄 안내/C7·C15 연결 차이 확인. ui-reuse-audit.md에 확정 차이/설계 차이/의도된 설정 구분.
+- 같은 네 가지 타이머 스냅샷을 편집 복제본에 전달해 숫자·크기 상태 비교. 실제 Canvas 런타임 글자 크기는 미확정. HeldPropsView 부재는 Humanoid 도구 표시가 있어 결함에서 제외. 공용 메뉴/장비/음성/C6 및 맵별 반동/480초 유지 확인.
+- 증거 .harness/local/reuse-audit/; 원본은 저장 없이 닫았으며 A만 열림 dirty0. 실제 Play/MPPM/자동 테스트 미실행.
+- 최종 check-work 안전성·문서 규칙·컴파일 PASS, 자동 테스트 SKIPPED. 조사 문서 저장 완료.
 
-- 2026-11-02 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
-- 통합 검사 첫 회차는 todo87줄로 context hard80을 넘어 문서 FAIL/컴파일 선행 생략. compact-docs에 따라 완료 기록을 History027/028/029로 원문 보존하고 현재 plan/todo/log를 축약했다. verify-context hard0으로 해소했으며 소스는 바꾸지 않고 통합 검사를 재실행한다.
+## 2026-11-03 재사용 UI 보수·추가 조작 조사
+- dev/작업 브랜치 fetch, dev 차이0/0. doctor 같은 Task 결과 재사용. U01~U08 수정, 표시 전용 공용 관전/안내 연결·원본/A 균형/관전·보조 툴팁 키 재지정·탈출 외줄 C8 설명 추가. ui-reuse-fixes.md 참조.
+- 추가 결함2곳: 자유비행 상태 방어의 Retired 누락, 메뉴 입력 차단 중 관전 대상 변경. 공통/원본 이동/부상/장비 및 인원 조건도 대조, 맵별 튜닝 유지. 원본의 비착지 장식 투영 규칙·운반자 PlayerMover 경로는 결함으로 오판하지 않음.
+- A native 연결/개발 환경8항목 통과, Transform/Collider 불변, 원본/공용 UI/대기실 씬 미변경. 신규 표시 회귀3/3, 원본 연결/자유비행7/7. 묶음 문자열 필터0개는 제외하고 개별 선별 검사 진행.
+- 원본 회귀는 Undo가 늦게 반영된 A의 저장 확인 창에서 대기. Computer Use로 Unity 화면 확인·Save 후 완료, Undo flush 후 저장하도록 도구 보완. 실제 Play/MPPM 미실행.
+- 선별13필터177/177 PASS, 저장 A의 네이티브 연결/개발 환경8항목 재확인 PASS. 이동 Transform/Collider 동일, 현재 씬 dirty0. 결과 .harness/local/reuse-fix/test-summary.json 및 verified.json.
+- 최종 check-work 안전성·문서 규칙·컴파일 PASS. 묶음 스크립트 자동 테스트는 SKIPPED이며 별도 선별177/177 결과를 사용한다. 실제 Play 미실행, 저장 완료.
 
-- 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
-- 최종 check-work 안전성/문서·규칙/Unity 컴파일 PASS(up_to_date), 별도24필터281/281 PASS. 중복 테스트는 SKIPPED. context hard0/WARN42, 세 씬 누락 스크립트0·현재 열린 씬1/dirty0·Play정지·맵/프리팹/Resources/ThirdParty diff0. 커밋/푸시 없이 작업 브랜치에 보존했다.
+## 2026-11-03 화염 사망 관전 조사
+- dev/작업 브랜치 fetch, 차이0/0. doctor 재사용. 직전 수정 전 A의 비활성 관전이 유력 원인. 현재 저장 A는 관전 enabled/active=true·Director 연결/공용 C11 유효. 일반불14개 절단·추격불1개 즉사 유지.
+- 추격불 ServerKill→탈출 Retired, Director/Spectator 모두 Retired/Fallen 처리. 사망 관찰1.5초 뒤 생존자 선택 경로에 별도 누락은 발견하지 못함. 당시 실제 화면 재현 없이 원인을 단정하지 않는다.
+- 신규 사망/관전3가지·표시 연결3가지6/6, 추격불14/14·최종 함정4/4 총24/24 PASS. 결과 fire-spectator-investigation.md 및 .harness/local/reuse-fix/fire-*.json. 게임 동작 추가 수정/실제 Play 없음. 이전125줄 log는 History/031 보관.
+- 최초 최종 검사는 log 보관 후 남은 EOF 빈 줄로 문서 검사 FAIL. 끝 공백을 정리하고 다시 검사한다.
+- 보완 후 최종 check-work 안전성·문서 규칙·컴파일 PASS. 별도 선별24/24 PASS, 실제 Play/MPPM 미실행, A dirty0.
 
-## 2026-11-02 공통에 없는 전용 절단 표시 제거
-- 사용자가 원본 공통에 없는 UI임을 정정했다. 전용 표시를 남겨 둔 부분을 제거했다. origin/dev/작업 브랜치 fetch·dev 차이0/작업 브랜치 유지, 기존 변경 보존. 동일 Task doctor 결과 재사용.
-- Unity API로 A의 EscapeBodyStatusHud 인스턴스1개를 제거하고 전용 프리팹·표시2스크립트·생성기·해당 UI 회귀와 각 meta를 DeleteAsset으로 삭제했다. 다른 제품 코드/씬의 타입·GUID 참조가 없는 것을 확인했다. 절단 상태/판정·캐릭터 모델 코드는 수정하지 않았다.
-- 제거 중 자식으로 묶여 있던 타이머 참조도 끊겼다. 공용 W1 타이머를 독립 EscapeTimerCanvas(기존 정렬35/1920×1080/매칭0.5)에 분리하고 기존37개 프리팹 표시 오버라이드를 Unity SerializedObject로 복구했다. EscapeRouteTimer.display 재연결/480초/좌상단(48,-64) 유지. 원본 공용 타이머 프리팹은 수정하지 않았다.
-- 전용 HUD 외6408개 Transform의 이름/위치/회전/크기/활성 불변 확인. 재저장 프리뷰: 전용 표시0·타이머 연결 정상(공용 어댑터1/패키지뷰1)·누락 스크립트0. EscapeRouteTimerTests12/12 PASS·최종 컴파일 오류0, Play 미실행. 증거 .harness/local/remove-body-hud/. 통합 검사는 이어 기록한다.
+## 2026-11-03 갈대밭·The End? 엔딩
+- origin/dev/작업 브랜치 fetch·dev 차이0/0, 기존 미커밋 작업 보존. 같은 Task doctor 결과 재사용. 기존 풀255군락/바위3종과 새 갈대20묶음·연속 흙 표면 적용, 정적 렌더 묶음 재생성·A 저장. exit-meadow-ending.md 참조.
+- 도착1초 뒤1.8초 제목/레터박스 표시, 전원 정산 성공 후 갈대밭 고정 카메라6초 뒤 기존 Hub 전환. 기존 전원 도착/리타이어 집계·성공1명 이상·480초 불변. 대기실/B/C 미수정, 실제 Play/MPPM·commit/push 없음.
+- 편집4구도/제목 미리보기·참조/기본 비활성 상태 정상, 기존 Collider1647문서/도착 볼륨 동일·신규 식생 충돌/조명0·누락 스크립트/셰이더 오류0. 배경 부모 XZ1.25 배율을 보정해 시설 좌표·바닥 높이 정합 확인.
+- 신규4/4·타이머12/12·시설 배치2/2·런 시간16/16·공용 표시6/6 최종40/40 PASS. 최초 공용 표시5/6은 새 회귀의 InputGate 재무장 상태 누수였으며 테스트 격리 보수 후4/4·6/6 재실행 PASS. 실제 FPS·다인 연출은 미검증.
+- 최종 check-work 안전성·문서 규칙·컴파일 PASS, 스크립트 자동 테스트 SKIPPED/별도 선별40/40 PASS. A만 열림 dirty0, 실제 Play/MPPM 미실행. 갈대밭/엔딩 및 Task 기록 저장 완료.
 
-- 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
-- 최종 check-work 안전성/문서·규칙/Unity 컴파일 PASS, 별도 타이머12/12 PASS. 전용 HUD0·공용 타이머 참조 유효/480초·누락 스크립트0·열린 씬1/dirty0. Play·commit/push 미실행.
+## 2026-11-03 화염 예고·인원별 절단기
+- Unity 저장/종료 후 dev56363116/private051db4ab 최신화, 기존 작업 stash 백업/복원·CommonMenuUI 자동 통합/미해결 충돌0. 사전 doctor FAIL2는 기존 private dirty·중복 Task ID이며 보존, 이번 수정 진행에 영향 없음.
+- 공장 배칭의 상위 Transform 참조 누락으로 빨간 경고가 고정 메시로 추출된 원인 확인. 고정 빨간3묶음 비활성·경고14분기 복구·작성 도구 보호·초기 숨김 적용. 일반 화염/추격 피해와 시간표 유지. flame-warning-and-crew-saws.md 참조.
+- A 발사기4대/고유ID0~3을 접속 인원당1대로 제공. 운반 중 보존·여분 컨트롤러는 배선 공유 계속 수신·장치 겹침0/24배선 참조 유지. 기존2대 위치/발사·운반 수치 불변.
+- 최종 EditMode52/52 PASS, A의 경고26곳/130위상·1~4인 표시 개수·참조/배치 통과. 최초 경고1/2는 EditMode 수명주기 fixture 보수 후2/2 PASS. 기존 Collider1647·Cue 설정·도착 볼륨 불변, 새 장치 Collider6개 추가·A 저장. 실제 Play/MPPM·commit/push 없음.
+- 후속 코드 검토에서 여분 장치를 숨길 때 비행 중 톱날이 멈출 수 있는 경로를 보완했다. 장치 운반/표시와 투사체 업데이트/표시 준비를 분리해 이미 발사된 날은 충돌까지 계속 비행한다. 관련 신규1개 포함 ExitSaw39/39 재실행·최종합53/53 PASS.
+- 보완 후 최종 check-work 안전성·문서 규칙·컴파일 PASS, 자동 묶음 테스트 SKIPPED/별도53/53 PASS. 네이티브130위상/장치수·겹침·참조 재확인 PASS, A dirty0. 로컬 dev와 작업 HEAD 모두56363116, 원격 dev 차이0/0·private051db4ab. 저장 완료.
 
-- 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+## 2026-11-03 심부 외피·정적 면 재검사
+- dev fetch 차이0/0, 기존 dirty 보존/A 저장 백업. doctor FAIL2는 기존 private dirty와 중복 Task ID, 이번 기하 검사 진행에 영향 없음. 이전 이름 필터 검사가 파생 메시를 놓친 원인을 확인해 실제 기하 판정으로 보완했다.
+- 심부 콘크리트/암부 차폐 동일 면 중복과 편집 사선 자글거림 확인. 외피3개 중복 렌더 제외·시각 차폐2면 폭을 상부 이음에 맞춤. 기둥/코어/하강 외벽·점검대/레일과 모델 내부 면도 실제 삼각형으로 보수. shell-seam-review.md 참조.
+- 불투명 정적1678메시/LOD 상호배타 구분 후 구조 간 같은 방향 중복169쌍→0, 동일 메시 내부297평면 그룹→0. 총41필터를53단계 파생 메시로 보수, 원본 패키지 미수정. 별도 도색/습윤층·반대 방향 접합과 비축 정렬/투명/동적 면의 범위를 구분한다.
+- Collider1653/Mono370 씬 문서·도착 볼륨 불변. 수정 필터의 원래62193정점·UV0~7/법선/탄젠트/색·서브메시 보존 확인. 기하5/5 PASS, 심부4+전체9 편집 구도 확인·사선 패턴 해소. 실제 Play/MPPM·성능 체감 미검증.
+- 최적화617원본→78묶음 재생성, 원본/합성 삼각형76177 동일·원본 렌더 활성0·누락 스크립트/메시0·A dirty0 저장. 누적 기존 변경과 사용자 배치를 유지했으며 commit/push 없음.
+- 최종 check-work 안전성·문서 규칙·컴파일 PASS, 자동 묶음 테스트 SKIPPED/별도 기하5/5 PASS. A만 열림 dirty0, 충돌/게임 설정 보존·평면 중복0/0·렌더 묶음/시각 확인 완료. 저장했고 실제 Play/MPPM은 실행하지 않았다.
 
-- 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
-
-## 2026-11-02 공장 에셋 적용·제출
-- 후보 문서를 Task에 보존했다. 두 패키지는 기존 private 모델/텍스처를 재사용해 전체 패키지 재임포트0. 콘크리트/마모 철/탁한 황동으로 재질을 통일하고 벽 거푸집 이음·체결 흔적/바닥 마모를 월드 좌표로 표현한다. URP17 cluster 조명·SRP Batcher(code0)와 편집 렌더를 확인했다.
-- 정적 외형913→98묶음, 미사용/LODGroup 없는 비활성 LOD931 제거. 판재8곳은 형태 보존, 실질 기계·배관·컨베이어36곳 교체. 충돌1638/기믹·시스템498 설정 불변. 벽/바닥은 독립 편집 가능하다. 파생 메시290/경량 텍스처27은 private Task073에 저장했다.
-- 씬 의존 파일 용량 추정717.5→532.8MiB, 텍스처155→87. 실제 FPS/로딩 시간은 미측정. Play/MPPM/입력 주입 없음. 편집 첫 캡처는 준비 프레임을 추가해 벽/바닥 표시를 재확인했다.
-- private resource/exit-route-factory-art 26f81164 push 완료. Unity가 자동 갱신한 AllIn1SpriteShader2개 파일은 이번 저장에서 제외하고 로컬에 보존한다. 현재 제출에는 앞선 공통 묘기 동기화·한글/그네·전용 절단 HUD 제거도 포함한다.
-
-- 2026-11-02 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
-- 제출 최신화: dev c4b51736 통합(자동 병합 충돌0), 관련 EditMode37/37. dev에서 넘어온 Task081 길이 초과 로그는 원문 History001 보존 후 현재 기록을 유지해 압축했다.
-
-- 2026-11-02 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
-
-- 2026-11-02 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/268 (feat/exit-route/design-map → dev)
-- 제출 완료: 게임 PR #268 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/268 (dev 검토 대기, 병합하지 않음). private 에셋 PR #17 및 main d5de413f 반영 후 포인터 검증/게임 브랜치 push 완료. 최종 안전성·문서·컴파일 PASS, EditMode37/37. 로컬의 무관한 자동 셰이더 변경2개는 보존/제외했다.
+## 2026-11-03 누적 작업 저장·제출
+- 사용자 저장/제출 승인. Unity 저장/종료 후 private main의 README 갱신을 포함한 resource/exit-route-polish-20261103에서 Task073의529파일 저장, c4fe7c5f를 branch/main에 게시(LFS30개/23MB 업로드 완료). 외부 원본/파생 에셋은 비공개에 보존하고 공개에는 gitlink만 반영한다.
+- 공개 제출은 아트/최적화·봉/공중 보정·공용 UI/관전·갈대밭 엔딩·화염 예고/인원별 발사기·심부 면 보수 누적분 전체다. 기존 선별 검사/편집 시각 검증 결과를 재사용하며 실제 Play/MPPM은 실행하지 않는다. dev56363116 포함/차이0, dev 병합은 하지 않는다.
+- Unity 저장/재진입에서 CommonButtons SemiBold 아틀라스가1024→1px로 비워진 자동 변경을 발견했다. 해당 파일만 별도 stash에 보존하고 dev 정상본을 유지해 이번 제출에서 제외했다. 다른 기존 변경은 보존한다.
