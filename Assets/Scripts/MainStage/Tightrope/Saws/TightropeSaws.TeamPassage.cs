@@ -7,7 +7,7 @@ namespace CurtainCall.Tightrope.Saws
 {
     public sealed partial class TightropeSaws
     {
-        const string TeamPassageMessage = "CurtainCall.Tightrope.Saws.TeamPassage";
+        const string TeamPassageMessage = "CurtainCall.Tightrope.Saws.TeamPassage.v2";
         readonly List<TeamPassageWindow> teamPassages = new();
 
         readonly struct TeamPassageWindow

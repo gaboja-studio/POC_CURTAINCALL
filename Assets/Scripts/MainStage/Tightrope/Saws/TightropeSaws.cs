@@ -61,10 +61,10 @@ namespace CurtainCall.Tightrope.Saws
     /// </summary>
     public sealed partial class TightropeSaws : MonoBehaviour
     {
-        const string VerticalMessage = "CurtainCall.Tightrope.Saws.Vertical";
-        const string HorizontalMessage = "CurtainCall.Tightrope.Saws.Horizontal";
-        const string RequestMessage = "CurtainCall.Tightrope.Saws.Request";
-        const string HitMessage = "CurtainCall.Tightrope.Saws.Hit";
+        const string VerticalMessage = "CurtainCall.Tightrope.Saws.Vertical.v2";
+        const string HorizontalMessage = "CurtainCall.Tightrope.Saws.Horizontal.v2";
+        const string RequestMessage = "CurtainCall.Tightrope.Saws.Request.v2";
+        const string HitMessage = "CurtainCall.Tightrope.Saws.Hit.v2";
         const string GeneratedName = "Generated";
 
         [Header("겉모습(비우면 기본 도형)")]
@@ -280,6 +280,7 @@ namespace CurtainCall.Tightrope.Saws
                 ServerTickSequence();
                 ServerUpdateVertical();
                 ServerUpdateCooperativeGate();
+                RememberContactShapes();
                 ServerJudgeHits();
             }
             if (session != null && session.ConnectionState == SessionConnectionState.Client && Time.unscaledTime >= nextStateRequest)
@@ -297,6 +298,7 @@ namespace CurtainCall.Tightrope.Saws
         /// <summary>처음 상태로: 가로 톱날은 출발 쪽 끝 대기, 수직 톱날 없음, 순서 처음부터.</summary>
         void ResetObstacles()
         {
+            ClearOwnerContacts();
             teamPassages.Clear();
             ResetCooperativeGates();
             platePressedFor = 0f;
@@ -566,6 +568,7 @@ namespace CurtainCall.Tightrope.Saws
 
             foreach (var player in NetworkPlayer.All)
             {
+                if (player.OwnerClientId != NetworkManager.ServerClientId) continue;
                 if ((player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player))) || !player.TryGetComponent(out PlayerMover mover)) continue;
                 var body = new BodyCapsule(player.transform.position, mover.BodyHeight, mover.BodyRadius);
 
@@ -789,7 +792,7 @@ namespace CurtainCall.Tightrope.Saws
             switch (state)
             {
                 case SessionConnectionState.Host:
-                    Register((RequestMessage, HandleRequest));
+                    Register((RequestMessage, HandleRequest), (OwnerContactMessage, HandleOwnerContact));
                     break;
                 case SessionConnectionState.Client:
                     Register((VerticalMessage, HandleVerticalMessage), (HorizontalMessage, HandleHorizontalMessage), (HitMessage, HandleHitMessage),
@@ -959,6 +962,8 @@ namespace CurtainCall.Tightrope.Saws
             messaging.UnregisterNamedMessageHandler(HitMessage);
             messaging.UnregisterNamedMessageHandler(TeamPassageMessage);
             messaging.UnregisterNamedMessageHandler(CooperativeGateMessage);
+            messaging.UnregisterNamedMessageHandler(OwnerContactMessage);
+            ClearOwnerContacts();
             messaging = null;
         }
     }
