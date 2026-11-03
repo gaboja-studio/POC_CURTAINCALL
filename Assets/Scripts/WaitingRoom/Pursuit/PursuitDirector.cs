@@ -34,7 +34,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         bool active;
         [Serializable] sealed class ActorState { public Vector3 position, look; public bool hasLook, hasTarget; public Quaternion rotation; public int motion, behaviour; public ulong victim = ulong.MaxValue, target = ulong.MaxValue; public float capture; }
         [Serializable] sealed class VictimState { public ulong id; public float elapsed; public bool retired; public int room; public Vector3 anchor; public Quaternion upright; }
-        [Serializable] sealed class Snapshot { public int generation, day, performance, stage; public bool stageForced; public string announcement; public float elapsed; public ActorState[] actors; public VictimState[] victims; }
+        [Serializable] sealed class Snapshot { public int generation, day, performance, stage, lightRoom = -1; public float lightAt = -1; public bool stageForced; public string announcement; public float elapsed; public ActorState[] actors; public VictimState[] victims; }
         sealed class Victim { public GameObject Object; public PursuitVictimPose Pose; public float Elapsed; public bool Retired; public PursuitRoom Room; public Vector3 Anchor; public Quaternion Upright; }
         public static bool IsCaptured(GameObject player) => Current != null && Current.victims.Values.Any(v => v.Object == player);
         public static bool IsCaptured(NetworkPlayer player) => player != null && IsCaptured(player.gameObject);
@@ -71,6 +71,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 }
             }
             if (GetComponent<PursuitFeedback>() == null) gameObject.AddComponent<PursuitFeedback>();
+            if (GetComponent<PursuitLighting>() == null) gameObject.AddComponent<PursuitLighting>();
         }
         void Spawn(GameObject prefab, Transform point, PursuitRoom room, PursuitPlacement placement)
         {
@@ -105,6 +106,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     Present(victim);
                 }
                 Announce();
+                TickLighting();
                 int living = candidates.Count(IsAvailable);
                 bool pending = victims.Values.Any(v => !v.Retired && v.Object != null);
                 // Final morning fails as soon as everyone is secured. Earlier days wait for the sequence.
@@ -117,6 +119,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             foreach (var victim in victims.Values) if (victim.Pose != null) Destroy(victim.Pose);
             victims.Clear(); active = false; Elapsed = -1; stage = -1; forcedStage = -1;
             footsteps.Clear();
+            ResetLighting();
             generation = s.Generation; day = s.Day; performance = s.PerformanceIndex;
             foreach (var actor in actors) actor.ResetActor();
         }
@@ -245,7 +248,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             if (messaging == null || manager == null || !manager.IsServer) return;
             var s = new Snapshot { generation = generation, day = day, performance = performance, elapsed = Elapsed, stage = stage,
-                stageForced = StageIsForced, announcement = active ? CurrentStageRules.Announcement : "",
+                stageForced = StageIsForced, lightRoom = RoomFlickerIndex, lightAt = RoomFlickerAt, announcement = active ? CurrentStageRules.Announcement : "",
                 actors = actors.Select(a => new ActorState { position = a.transform.position, rotation = a.transform.rotation, look = a.LookPoint, hasLook = a.HasLook,
                     motion = (int)a.State, behaviour = (int)a.Behaviour, victim = a.Victim != null ? Id(a.Victim) : ulong.MaxValue, capture = a.CaptureElapsed,
                     hasTarget = a.ChasedPlayer != null, target = a.ChasedPlayer != null ? Id(a.ChasedPlayer) : ulong.MaxValue }).ToArray(),
@@ -276,6 +279,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             Elapsed = s.elapsed; active = Elapsed >= 0;
             forcedStage = s.stageForced ? s.stage : -1;
+            ReceiveLighting(s.lightRoom, s.lightAt);
             generation = s.generation; day = s.day; performance = s.performance;
             for (int i = 0; i < actors.Count; i++) {
                 var a = s.actors[i];

@@ -61,7 +61,9 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                         if (GUILayout.Button("단계 제거")) { stages.DeleteArrayElementAtIndex(stageIndex); stageIndex = Mathf.Max(0, stageIndex - 1); }
                 }
             }
-            EditorGUILayout.Space(14); GUILayout.Label("근접 빨간 아웃라인", EditorStyles.boldLabel);
+            EditorGUILayout.Space(14); GUILayout.Label("단계별 전등 연출", EditorStyles.boldLabel);
+            if (GUILayout.Button("전등 연출 창 열기")) PursuitLightingWindow.Open();
+            EditorGUILayout.Space(10); GUILayout.Label("근접 빨간 아웃라인", EditorStyles.boldLabel);
             Field("OutlineDistance", "강조 거리 (m)"); Field("OutlinePixels", "외곽선 두께 (px)"); Field("OutlineColor", "외곽선 색상");
             EditorGUILayout.Space(10); GUILayout.Label("추격 화면 테두리", EditorStyles.boldLabel);
             Field("ScreenEffect", "효과 사용"); Field("EdgeIntensity", "최대 강도"); Field("EdgeWidth", "테두리 폭"); Field("PulseAmount", "맥동 강도");
