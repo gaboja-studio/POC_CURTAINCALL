@@ -218,3 +218,10 @@
 - 담당자 요청: 생존자 전원이 2구간 대포 지면(쉼터)에 닿으면 남은 예고 시간과 상관없이 불이 바로 출발. 담당자 선택: 위치는 그대로, 남은 예고만 건너뜀.
 - `HumanCannonFireWall.AdvanceAt` = min(켜진 시각+예고, 2구간 도착 시각). `Advancing`·`RemainingWarning`·`Travelled`·`EndTime`이 이 시각을 쓴다. 도착 판정·네트워크는 기존 2구간 가속(`BoostFire`, z72 시작선·쉼터 갑판·쉼터 대포 착석, 비행 중 제외)을 그대로 사용 → 추가 동기화 값 없음. 이미 전진 중이면 기존처럼 1.3배 가속만.
 - 테스트: `RouteGeometryTests.FireStages_SkippedStageRisesTogether_AndArrivalDuringWarningStartsTheChaseAtOnce`로 갱신. EditMode `CurtainCall.HumanCannon` 581/581 PASS, PlayMode `FireWalls_*` PASS. 실제 플레이로 25초 안에 전원 쉼터 도착하는 경우 미확인.
+
+## 2026-11-03 dev 병합·PR 273 갱신 제출
+- 커밋 `1282641b`(이동 장치 탑승 차단·추격 불 고도화) push. PR #273이 dev와 충돌 → `origin/dev`(PR #274·#275) 병합.
+- 충돌: `HumanCannonPoleSystem.Network.cs` 그네 상태 플래그 바이트. dev는 비트 1~4를 뒤로 앉은 좌석에, Task-081은 비트 1을 톱벽 열림에 썼다 → 비트 0 지상 담당 통과, 비트 1~4 뒤로 앉은 좌석, 비트 5 톱벽 열림(`GateOpenFlag`)으로 나누고 알 수 없는 비트는 거부.
+- 병합 후 EditMode `CurtainCall.HumanCannon` 587/587 PASS, PlayMode `TimedLinkedPole_GrabSplitsTheWallOpenForTheRestOfTheShow` PASS. 병합 커밋 `46c97375` push.
+- PR #273 제목·본문을 이번 묶음 기준으로 갱신(MERGEABLE). 자동 변경 파일(글꼴·escape-labels·vivox·_ThirdParty·Task-083 미리보기)은 제외. `check-work.ps1` 미실행, 실제 플레이 미확인.
+- 함정: Unity 에디터가 백그라운드일 때 Play 테스트가 느려질 수 있어 `editor_focus`로 앞으로 가져왔다. Git Bash의 `ps | grep sleep` 대기 루프는 즉시 끝나므로 실제 시간 기준으로 기다려야 한다.
