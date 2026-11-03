@@ -425,7 +425,11 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return;
             var player = NetworkPlayer.Local;
-            if (!UsesRopeRules(player)) return;
+            // 연습 모드는 줄 아래 바닥에 닿으며 일반 이동으로 바뀌어도 추락을 놓치지 않는다.
+            // 그렇지 않으면 상태가 Normal인 채 바닥에 남아 리허설 재시작을 받을 수 없다.
+            var practice = GetComponent<TightropeRun>();
+            if (!UsesRopeRules(player) && !(practice != null && practice.PracticeMode
+                && practice.State == TightropeRunState.Running)) return;
             if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return;
             if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)) return;
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return;
@@ -599,7 +603,31 @@ namespace CurtainCall.Tightrope
                 }
             }
 
+            // 중간 지점도 공연 발판의 동일한 생성/아트/충돌 경로를 쓴다.
+            foreach (int lane in intermediatePlatformLanes)
+            {
+                if (lane < 0 || lane >= l.LaneCount || l.GetLaneEnd(lane) >= l.FinishDistance || c.FinishPlatformLength <= 0f) continue;
+                var platform = CreateBox("FinishPlatform",
+                    new Vector3(l.GetLaneSide(lane), -c.PlatformThickness * .5f, l.GetLaneEnd(lane) + c.FinishPlatformLength * .5f),
+                    new Vector3(c.SideMargin * 2f, c.PlatformThickness, c.FinishPlatformLength), platformColor, true);
+                platform.name = $"IntermediatePlatform_Lane{lane}";
+                TightropeOutline.AttachToHierarchy(platform);
+            }
+
             // No safety net or hidden catch collider beneath this course.
+        }
+
+        readonly HashSet<int> intermediatePlatformLanes = new();
+
+        /// <summary>지정한 짧은 줄 끝에 기존 공연 도착 발판을 재사용한다. 치수와 아트는 현재 코스 설정 그대로다.</summary>
+        public void SetIntermediatePlatformLanes(int[] lanes)
+        {
+            intermediatePlatformLanes.Clear();
+            if (lanes != null)
+                foreach (int lane in lanes)
+                    if (lane >= 0 && lane < LaneCount && Layout.GetLaneEnd(lane) < FinishDistance)
+                        intermediatePlatformLanes.Add(lane);
+            Rebuild();
         }
 
         GameObject CreateBox(string objectName, Vector3 localCenter, Vector3 size, Color color, bool withCollider)

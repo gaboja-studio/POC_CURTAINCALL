@@ -20,7 +20,8 @@ namespace CurtainCall.WaitingRoom
         const string PracticeAreaName = "Area_S09_PracticeRoom";
         /// <summary>로비 → 무대 입구 통로 입구. 이 거리(m) 안에 누가 들어오면 모니터가 켜진다.</summary>
         static readonly Vector3 CorridorMouth = new(-6f, 0f, 63.5f);
-        const float MonitorTriggerRadius = 9f;
+        double monitorStarted = -1d;
+        BoxCollider corridorApproach, corridorPassage;
 
         /// <summary>
         /// 로비에서 철창 없이 열려 있던 입구(구조 A 실측, 2026-11-02): 북쪽 소품실·작업실 갈림길, 북동쪽 상점·승강기·지하 홀, 동쪽 숙소.
@@ -158,15 +159,24 @@ namespace CurtainCall.WaitingRoom
         /// <summary>리허설을 마친 뒤 누구든 무대 입구 통로에 다가가면 모니터를 켠다(모든 화면이 같은 위치를 본다).</summary>
         void TickMonitors()
         {
-            if (!completed || monitors.Count == 0 || monitors[0] == null || monitors[0].IsOn) return;
-            foreach (var player in NetworkPlayer.All)
+            if (!completed || monitors.Count == 0) return;
+            if (HasAuthority && monitorStarted < 0d)
             {
-                if (player == null || !player.IsSpawned) continue;
-                var p = player.transform.position;
-                if (new Vector2(p.x - CorridorMouth.x, p.z - CorridorMouth.z).sqrMagnitude > MonitorTriggerRadius * MonitorTriggerRadius) continue;
-                foreach (var monitor in monitors) if (monitor != null) monitor.TurnOn();
-                return;
+                if (corridorApproach == null) corridorApproach = GameObject.Find("Zone_StageApproach")?.GetComponent<BoxCollider>();
+                if (corridorPassage == null) corridorPassage = GameObject.Find("Zone_StagePassage")?.GetComponent<BoxCollider>();
+                foreach (var player in NetworkPlayer.All)
+                {
+                    if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) continue;
+                    bool Inside(BoxCollider box) => box != null && box.enabled && box.gameObject.activeInHierarchy
+                        && player.TryGetComponent<PlayerMover>(out var mover)
+                        && new Bounds(box.center, box.size).Contains(box.transform.InverseTransformPoint(player.transform.position + Vector3.up * mover.BodyRadius));
+                    if (!Inside(corridorApproach) && !Inside(corridorPassage)) continue;
+                    monitorStarted = Clock; version++; Publish(); break;
+                }
             }
+            if (monitorStarted < 0d) return;
+            foreach (var monitor in monitors)
+                if (monitor != null) monitor.PlayAt((float)(Clock - monitorStarted));
         }
     }
 }

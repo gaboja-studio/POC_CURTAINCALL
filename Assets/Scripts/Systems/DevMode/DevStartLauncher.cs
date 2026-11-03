@@ -144,6 +144,7 @@ namespace CurtainCall.Dev
                     foreach (var player in NetworkPlayer.All)
                         if (player != null && injuries.TryGetValue(player.OwnerClientId, out var parts)) player.ServerRestoreDevInjury(parts);
                 // 같은 프레임에 최종 요청을 넣어 도입/로비를 경유하지 않는다.
+                if (point.Phase == RunStartPhase.Rehearsal) WaitingRoomRehearsal.ResetForDevLaunch();
                 if (!campaign.DebugStartAtPreservingUnlock(point, cannonUnlocked))
                 { Status = "개발 시작 상태를 적용하지 못했습니다."; yield break; }
                 int generation = campaign.State.Generation;

@@ -18,10 +18,14 @@ namespace CurtainCall.WaitingRoom
         readonly string settingsPrefix;
         float margin = Margin, titleSize, bodySize;
         bool configured;
+        float minimumTop;
+        public void SetMinimumTop(float value)
+        { if (Mathf.Approximately(minimumTop, value)) return; minimumTop = value; Visible = false; }
         GameObject root;
         TooltipView view;
         UiRuntimeFontFallback fontOwner;
 
+        public bool GuideStyle { get; set; }
         public float Top { get; private set; }
         public bool Visible { get; private set; }
         public string Title { get; private set; } = "";
@@ -36,12 +40,14 @@ namespace CurtainCall.WaitingRoom
             Configure();
             // 공용 UI 씬이 다시 올라오면 앞 폰트 보완본은 지워진다(공연 다녀옴). 새 보완본으로 다시 만든다.
             var current = FontOwner();
-            if (root != null && current != fontOwner) { Object.Destroy(root); root = null; view = null; Visible = false; }
+            // Unity의 파괴된 오브젝트 == null은 이전 소유자와 새 null을 같게 취급한다.
+            // 씬 해제 때 삭제된 임시 폰트를 재사용하지 않도록 관리 참조 자체를 비교한다.
+            if (root != null && !ReferenceEquals(current, fontOwner)) { Object.Destroy(root); root = null; view = null; Visible = false; }
             if (Visible && title == Title && body == Body) return true;
             if (view == null) Build();
             if (view == null) return false;
             float canvasWidth = root.transform is RectTransform rect && rect.rect.width > 0f ? rect.rect.width : 1920f;
-            if (!view.ShowPanel(title, body, new Vector2(Mathf.Max(0f, canvasWidth - margin - width), Top), width)) return false;
+            if (!view.ShowPanel(GuideStyle ? "! " + title : title, body, new Vector2(Mathf.Max(0f, canvasWidth - margin - width), Mathf.Max(Top, minimumTop)), width)) return false;
             Title = title; Body = body; Visible = true;
             return true;
         }
@@ -84,6 +90,8 @@ namespace CurtainCall.WaitingRoom
             if (fontOwner != null) fontOwner.ApplyTo(root.transform);
             foreach (var label in root.GetComponentsInChildren<TMPro.TMP_Text>(true))
             {
+                if (GuideStyle && label.name == "60_TitleTMP"
+                    && ColorUtility.TryParseHtmlString(WaitingRoomText.Get("guide.title-color", "#FFD5A0"), out var accent)) label.color = accent;
                 if (label.name == "60_TitleTMP" && titleSize > 0f) label.fontSize = Mathf.Max(18f, titleSize);
                 else if (label.name == "70_DescriptionTMP" && bodySize > 0f) label.fontSize = Mathf.Max(16f, bodySize);
             }

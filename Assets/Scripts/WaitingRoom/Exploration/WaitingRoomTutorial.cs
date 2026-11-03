@@ -58,16 +58,13 @@ namespace CurtainCall.WaitingRoom
         WaitingRoomTutorialCamera closeUp;
         bool sequence;
         float stepEndsAt;
-        WaitingRoomRightPanel todo, firstDayQuest;
+        WaitingRoomRightPanel todo;
         string todoStep = "";
         ScheduleBoardView board;
 
         /// <summary>오늘 밤 할 일 패널(오른쪽)이 보이는지·제목. 테스트 확인용.</summary>
         public static bool TodoVisible => instance != null && instance.todo != null && instance.todo.Visible;
         public static string TodoTitle => TodoVisible ? instance.todo.Title : "";
-        public static bool FirstDayQuestVisible => instance != null && instance.firstDayQuest != null && instance.firstDayQuest.Visible;
-        public static string FirstDayQuestTitle => FirstDayQuestVisible ? instance.firstDayQuest.Title : "";
-        public static string FirstDayQuestBody => FirstDayQuestVisible ? instance.firstDayQuest.Body : "";
 
         /// <summary>연계·클로즈업 튜토리얼이 진행 중이다(조작 막힘).</summary>
         public static bool IsSequenceActive => instance != null && instance.sequence;
@@ -163,7 +160,6 @@ namespace CurtainCall.WaitingRoom
         {
             closeUp = gameObject.AddComponent<WaitingRoomTutorialCamera>();
             todo = new WaitingRoomRightPanel(transform, "TonightTodoCanvas", TodoTop, TodoWidth);
-            firstDayQuest = new WaitingRoomRightPanel(transform, "FirstDayQuestCanvas", TodoTop, TodoWidth, "first-day.panel.");
         }
 
         void OnEnable()
@@ -187,41 +183,19 @@ namespace CurtainCall.WaitingRoom
             InputBindingPreferences.Changed -= RefreshKeys;
             Watch(null, null);
             EndSequence();
-            SetTeamLock(false);
-            firstDayQuest.Hide();
-            todo.Hide();
         }
 
         void OnDestroy() { if (instance == this) instance = null; }
         void OnSceneChanged(Scene scene, LoadSceneMode mode) => sceneDirty = true;
         void OnSceneUnloaded(Scene scene) => sceneDirty = true;
 
-        string tutorialDoneKey = "";
-
-        /// <summary>
-        /// 가이드 쉬는 시간의 대기실 tutorial(연계 G01·G11)을 마쳤으면 호스트에 알린다(Task-097: 전원이 마쳐야 탐색 타이머가 흐른다).
-        /// 안내를 껐거나 이미 본 런이면 바로 알린다. 시간대마다 한 번.
-        /// </summary>
-        void ReportTutorialDone(CampaignRun run, in CampaignSnapshot s)
-        {
-            if (s.Phase != CampaignPhase.RestTime || s.Rest != RestKind.Guide || s.Timer != RestTimerState.WaitingForExit) return;
-            string key = s.Generation + "/" + s.Day;
-            if (key == tutorialDoneKey) return;
-            bool done = !Enabled || (Book.IsDone(RestChain[0]) && Book.IsDone(RestChain[^1]) && !sequence);
-            if (!done) return;
-            if (run.NotifyTutorialDone()) tutorialDoneKey = key;
-        }
-
         void Update()
         {
             var run = CampaignRun.Instance;
             if (run == null) return;
             var s = run.State;
-            ReportTutorialDone(run, s);
             if (s.Phase == CampaignPhase.Performance) WatchTeammates();
-            // 리허설(Task-097) 동안은 리허설 진행이 가이드 패널을 쓴다. 여기서 닫지 않는다.
-            if (s.Phase == CampaignPhase.Rehearsal) { SetTeamLock(false); todo.Hide(); lastHeldCount = -1; return; }
-            if (!Enabled) { SetTeamLock(TeamWaiting(s)); HidePanel(); todo.Hide(); return; }
+            if (!Enabled) { HidePanel(); todo.Hide(); return; }
             if (sceneDirty)
             {
                 sceneDirty = false;
@@ -234,7 +208,7 @@ namespace CurtainCall.WaitingRoom
             bool rest = s.Phase == CampaignPhase.RestTime, night = s.Phase == CampaignPhase.Night;
             // 대기실 씬의 쉬는 시간·밤에, 살아 있는 내 캐릭터가 화면 전환 중이 아닐 때만 안내한다.
             if (gather == null || local == null || local.State != PlayerState.Normal || (!rest && !night) || SceneCurtainTransition.IsActive)
-            { SetTeamLock(false); lastHeldCount = -1; HidePanel(); todo.Hide(); return; }
+            { lastHeldCount = -1; HidePanel(); todo.Hide(); return; }
 
             string key = s.Generation + "/" + s.Day + "/" + s.Phase + "/" + s.Rest + "/" + s.PerformanceIndex;
             // 시간대가 바뀌면 지난 시간대의 가이드는 닫고, 못 띄운 안내는 버린다(조건이 맞으면 다시 줄 선다).
@@ -252,47 +226,10 @@ namespace CurtainCall.WaitingRoom
                 // 잠자기는 스케줄표 일정이 확정된 뒤에 숙소를 비추며 안내한다(확정 전에는 침대를 쓸 수 없다).
                 if (NightBed.ScheduleReady) b.Enqueue("N05");
             }
-            UpdateTodo(night && s.Day != 1 && key == todoStep);
-            TickTeamWait(s, rest);
+            UpdateTodo(night && key == todoStep);
             CheckNearby();
             CheckHeld();
             Pump();
-        }
-
-        // 첫날 기능 연결용 임시 퀘스트. 완료 버튼이나 별도 진행 상태 없이 실제 캠페인·일정·준비 상태를 따라간다.
-        // 리허설 패널과 기존 팀 대기 패널이 나올 때는 자리를 양보한다. 안내 끄기 설정과는 독립적이다.
-        void LateUpdate()
-        {
-            var run = CampaignRun.Instance;
-            var player = NetworkPlayer.Local;
-            if (run == null || run.State.Day != 1 || player == null || player.State != PlayerState.Normal
-                || SceneCurtainTransition.IsActive || todo.Visible)
-            { firstDayQuest.Hide(); return; }
-            var s = run.State;
-            string key;
-            if (s.Phase == CampaignPhase.Performance)
-                key = s.PerformanceIndex == 0 ? "performance-first" : "performance-second";
-            else if (s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide)
-            {
-                if (gather == null) gather = FindFirstObjectByType<StageEntranceGather>();
-                if (gather == null) { firstDayQuest.Hide(); return; }
-                key = s.Timer == RestTimerState.WaitingForExit ? "tutorial" : "gather";
-            }
-            else if (s.Phase == CampaignPhase.Night)
-            {
-                if (gather == null) gather = FindFirstObjectByType<StageEntranceGather>();
-                if (gather == null) { firstDayQuest.Hide(); return; }
-                key = run.IsLocalReady ? "night-wait" : NightBed.ScheduleReady ? "night-bed"
-                    : run.HasAuthority ? "night-schedule" : "night-schedule-wait";
-                if (board == null) board = FindFirstObjectByType<ScheduleBoardView>();
-                if (board != null && board.IsOpen) { firstDayQuest.Hide(); return; }
-            }
-            else { firstDayQuest.Hide(); return; }
-            firstDayQuest.Show(WaitingRoomText.Get("first-day.quest." + key + ".title", "오늘 할 일"),
-                WaitingRoomText.Format("first-day.quest." + key + ".body", "화면 안내에 따라 오늘 일정을 진행하세요.",
-                    ("ready", s.ReadyCount), ("total", s.RequiredCount),
-                    ("inside", gather != null ? gather.InsideCount : 0),
-                    ("alive", gather != null ? gather.AliveCount : 0)));
         }
 
         /// <summary>오늘 밤 할 일 패널. 스케줄표를 보는 동안에는 표를 가리지 않게 숨긴다.</summary>
@@ -380,41 +317,6 @@ namespace CurtainCall.WaitingRoom
             if (!sequence) { sequence = true; InputGate.SetBlocking(this, true); }
             stepEndsAt = Time.unscaledTime + seconds;
             b.MarkDone(entry.id);
-        }
-
-        // ── 첫 쉬는 시간 전원 대기(2026-11-02 사용자 버그: 튜토리얼 중 일부 플레이어가 이동 가능) ──
-        readonly object teamLock = new();
-        bool teamLocked;
-
-        /// <summary>
-        /// 가이드 쉬는 시간이 전원 tutorial 완료를 기다리는 중이고, 내 연계 안내는 끝났다(이미 봤거나 안내를 끈 경우 포함).
-        /// 이때는 동료가 다 볼 때까지 움직이지 않는다.
-        /// </summary>
-        bool TeamWaiting(in CampaignSnapshot s)
-        {
-            if (s.Phase != CampaignPhase.RestTime || s.Rest != RestKind.Guide || s.Timer != RestTimerState.WaitingForExit) return false;
-            var local = NetworkPlayer.Local;
-            if (local == null || local.State != PlayerState.Normal || SceneCurtainTransition.IsActive) return false;
-            if (gather == null) gather = FindFirstObjectByType<StageEntranceGather>();
-            if (gather == null) return false;
-            return !sequence && (!Enabled || (Book.IsDone(RestChain[0]) && Book.IsDone(RestChain[^1])));
-        }
-
-        void TickTeamWait(in CampaignSnapshot s, bool rest)
-        {
-            bool wait = rest && TeamWaiting(s);
-            SetTeamLock(wait);
-            if (!wait) return;
-            todo.Show(WaitingRoomText.Get("tutorial.team-wait-title", "동료 기다리는 중"),
-                WaitingRoomText.Format("tutorial.team-wait", "모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다. ({ready}/{total})",
-                    ("ready", s.ReadyCount), ("total", Mathf.Max(s.RequiredCount, s.ReadyCount))));
-        }
-
-        void SetTeamLock(bool on)
-        {
-            if (teamLocked == on) return;
-            teamLocked = on;
-            InputGate.SetBlocking(teamLock, on);
         }
 
         /// <summary>연계 튜토리얼을 끝낸다(다 봤거나 시간대 전환·대기실 이탈·끄기). 시점과 조작을 돌려준다.</summary>
@@ -518,14 +420,7 @@ namespace CurtainCall.WaitingRoom
         }
         void OnInspected(ClueInspectable clue) { Book.Enqueue("G04"); Book.Enqueue("G07"); }
         void OnUvFound(UvMark mark) => Book.Enqueue("G07");
-        // 리허설 추락 복구(Task-097)는 부활이 아니다.
-        void OnRevived(NetworkPlayer player)
-        {
-            if (player == null || !player.IsLocal) return;
-            var run = CampaignRun.Instance;
-            if (run != null && run.State.Phase == CampaignPhase.Rehearsal) return;
-            pendingRevived = true;
-        }
+        void OnRevived(NetworkPlayer player) { if (player != null && player.IsLocal) pendingRevived = true; }
 
         void RefreshKeys()
         {

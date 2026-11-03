@@ -1,0 +1,19 @@
+tutorial | phase=RestTime, day=1, space=WaitingRoom, moving=False, curtain=False, player=Normal, quest=대기실 튜토리얼, todo=False
+gather | phase=RestTime, day=1, space=WaitingRoom, moving=False, curtain=False, player=Normal, quest=대기실 튜토리얼, todo=False
+gather | phase=RestTime, day=1, space=WaitingRoom, moving=False, curtain=False, player=Normal, quest=대기실 튜토리얼, todo=True
+gather | phase=RestTime, day=1, space=WaitingRoom, moving=False, curtain=False, player=Normal, quest=, todo=False
+gather | phase=RestTime, day=1, space=WaitingRoom, moving=False, curtain=False, player=Normal, quest=1일차 · 두 번째 공연 준비, todo=False
+legacy-end-wait-entry | phase=Performance, day=1, space=WaitingRoom, moving=True, curtain=False, player=Normal, quest=1일차 · 두 번째 공연 준비, todo=False
+performance-second | phase=Performance, day=1, space=WaitingRoom, moving=True, curtain=False, player=Normal, quest=1일차 · 두 번째 공연 준비, todo=False
+performance-second | phase=Performance, day=1, space=WaitingRoom, moving=True, curtain=True, player=Normal, quest=두 번째 공연, todo=False
+performance-second | phase=Performance, day=1, space=WaitingRoom, moving=True, curtain=True, player=Normal, quest=, todo=False
+performance-second | phase=Performance, day=1, space=Performance, moving=False, curtain=True, player=Normal, quest=, todo=False
+performance-second | phase=Performance, day=1, space=Performance, moving=False, curtain=False, player=Normal, quest=, todo=False
+performance-second | phase=Performance, day=1, space=Performance, moving=False, curtain=False, player=Normal, quest=두 번째 공연, todo=False
+night-schedule | phase=Night, day=1, space=Performance, moving=True, curtain=False, player=Normal, quest=두 번째 공연, todo=False
+night-schedule | phase=Night, day=1, space=Performance, moving=True, curtain=True, player=Normal, quest=, todo=False
+night-schedule | phase=Night, day=1, space=WaitingRoom, moving=False, curtain=True, player=Normal, quest=, todo=False
+night-schedule | phase=Night, day=1, space=WaitingRoom, moving=False, curtain=False, player=Normal, quest=, todo=False
+night-schedule | phase=Night, day=1, space=WaitingRoom, moving=False, curtain=False, player=Normal, quest=첫날 밤 · 내일 일정 정하기, todo=False
+night-bed | phase=Night, day=1, space=WaitingRoom, moving=False, curtain=False, player=Normal, quest=첫날 밤 · 내일 일정 정하기, todo=False
+night-bed | phase=Night, day=1, space=WaitingRoom, moving=False, curtain=False, player=Normal, quest=첫날 밤 · 취침 준비, todo=False
