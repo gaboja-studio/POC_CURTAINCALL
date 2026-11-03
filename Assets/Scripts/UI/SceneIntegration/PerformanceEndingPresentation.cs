@@ -158,9 +158,10 @@ namespace CurtainCall.UI.SceneIntegration
                 if (progress.HasValue) maximum = Mathf.Max(maximum ?? 0, progress.Value);
                 int id = members.Count + 1;
                 bool local = NetworkPlayer.Local != null && NetworkPlayer.Local.OwnerClientId == person.ClientId;
-                string status = person.Dead ? "사망(호응 절반 인정)" : !person.Connected ? "연결 종료" : person.Arrived ? "완주" : "생존";
-                members.Add(new ResultsMemberPresentation(id, $"단원 {person.Slot + 1}{(local ? " (나)" : "")} · {status}",
-                    progress, (distance.HasValue ? $"최종 {distance:0.0}m" : "기록 없음") + $" · +{person.Settlement}",
+                // 결과 칸(이름 208px·거리 160px, 24pt)에서 말줄임 없이 들어가도록 핵심만 짧게 쓴다. 사망 규칙은 하단 안내에 둔다.
+                string status = person.Dead ? "사망" : !person.Connected ? "이탈" : person.Arrived ? "완주" : "생존";
+                members.Add(new ResultsMemberPresentation(id, $"단원 {person.Slot + 1}{(local ? "(나)" : "")} · {status}",
+                    progress, (distance.HasValue ? $"{distance:0}m" : "-") + $" · +{person.Settlement}",
                     Color.HSVToRGB((id - 1) * .23f, .5f, 1), local));
             }
             long score = result.Participants.Sum(p => p.Segment);
@@ -171,10 +172,10 @@ namespace CurtainCall.UI.SceneIntegration
             string time = result.ElapsedSeconds.HasValue ? $"완료 시간 {result.ElapsedSeconds:0.0}초" : "불 타이머 시작 전 종료";
             return new ResultsPresentation(result.Performance.Id, result.Performance.Id, outcome, heading,
                 $"{result.Performance.Day}일차 · {(result.Performance.TrickId == "Tightrope" ? "외줄타기" : "인간대포")}", time,
-                "개인 최종 위치", result.CourseLength.HasValue ? $"출발 0m → 도착 {result.CourseLength:0.0}m" : "코스 기록 없음",
-                maximum, "호응 보상 (생존 ×2 · 사망 ½×2)", $"+{result.CheerReward}", $"완주 보너스 ({result.Participants.Count(p => p.Arrived)}명)", $"+{result.CompletionReward}", "공동 자금",
-                $"이번 공연 +{result.Income}" + (entry != null ? $" · {entry.Balance - entry.Amount} → {entry.Balance}" : ""), (entry?.Balance ?? rewards?.Balance ?? 0).ToString(),
-                $"다음 공간으로 이동 {Mathf.Max(0, lastCountdown)}초", "", false, members.ToArray());
+                "개인 최종 위치", result.CourseLength.HasValue ? $"도착 지점 {result.CourseLength:0.0}m" : "코스 기록 없음",
+                maximum, "호응 보상", $"+{result.CheerReward}", $"완주 보너스 ({result.Participants.Count(p => p.Arrived)}명)", $"+{result.CompletionReward}", "공동 자금",
+                $"이번 공연 +{result.Income}", (entry?.Balance ?? rewards?.Balance ?? 0).ToString(),
+                $"호응 보상: 생존 2배 · 사망 1배   |   다음 공간으로 이동 {Mathf.Max(0, lastCountdown)}초", "", false, members.ToArray());
         }
         void Cover()
         {

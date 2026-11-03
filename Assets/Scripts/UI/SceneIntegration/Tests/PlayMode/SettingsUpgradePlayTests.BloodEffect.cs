@@ -25,8 +25,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var client = T("CurtainCall.StartLobby.ClientSettings").GetProperty("ShowBloodEffect");
             var effects = T("CurtainCall.Damage.InjuryBloodEffects");
             bool Visible() => (bool)effects.GetProperty("IsVisible").GetValue(null);
+            // 0.2.0 핫픽스: 개인 항목은 개발자 모드에서만 보인다. 이 PC의 에디터 설정과 상관없이 검사하도록 캐시를 직접 바꾼다.
+            var devCache = T("CurtainCall.Dev.DevMode").GetField("_enabled", BindingFlags.Static | BindingFlags.NonPublic);
+            object devBefore = devCache.GetValue(null);
             try
             {
+                devCache.SetValue(null, true);
                 gameSwitch.SetValue(bodyDamage, true);
                 client.SetValue(null, true);
                 yield return SceneManager.LoadSceneAsync("Start"); yield return MenuReady();
@@ -58,9 +62,23 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Call(view, "RequestApply"); yield return null;
                 Assert.IsTrue((bool)client.GetValue(null), "숨긴 항목은 개인 값을 바꾸지 않는다");
                 yield return MenuEscape();
+
+                // 개발자 모드가 아니면 항목이 없고, 저장값이 꺼져 있어도 항상 켜짐이다.
+                gameSwitch.SetValue(bodyDamage, true);
+                client.SetValue(null, false);
+                devCache.SetValue(null, false);
+                Assert.IsTrue((bool)client.GetValue(null), "개발자 모드가 아니면 혈흔 표시는 항상 켜짐");
+                Assert.IsTrue(Visible());
+                Call(start, "Show", Enum.Parse(T("CurtainCall.StartLobby.StartMenu+Page"), "Settings"));
+                yield return new WaitForSecondsRealtime(.25f);
+                Call(view, "ShowPage", 1); yield return null;
+                Assert.IsNull(SettingsContent(view).Find("ShowBloodEffect_Row"), "개발자 모드가 아니면 항목을 표시하지 않는다");
+                Assert.IsNotNull(SettingsContent(view).Find("HideNearbyCharacter_Row"));
+                yield return MenuEscape();
             }
             finally
             {
+                devCache.SetValue(null, devBefore);
                 gameSwitch.SetValue(bodyDamage, before);
                 restoreExtras(); RestoreGraphics(saved);
             }

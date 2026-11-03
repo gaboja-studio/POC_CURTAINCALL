@@ -23,10 +23,11 @@ namespace CurtainCall.StartLobby
         /// <summary>
         /// 이 화면에서 혈흔 연출(절단 순간 피 튀김, 부상에 따른 피 묻은 의상)을 볼지. 끄면 의상은 부상과 상관없이 처음 상태를 유지한다. 내 캐릭터·팀원 모두에 적용한다. 기본 켜짐(Task-090).
         /// 게임 설정(신체 손상 · 혈흔 연출)이 꺼져 있으면 이 값과 상관없이 보이지 않는다.
+        /// 개발자 모드가 아니면 설정 항목이 없고 저장값과 상관없이 항상 켜짐이다(0.2.0 핫픽스).
         /// </summary>
         public static bool ShowBloodEffect
         {
-            get => PlayerPrefs.GetInt(ShowBloodEffectKey, 1) != 0;
+            get => !CurtainCall.Dev.DevMode.Enabled || PlayerPrefs.GetInt(ShowBloodEffectKey, 1) != 0;
             set => PlayerPrefs.SetInt(ShowBloodEffectKey, value ? 1 : 0);
         }
 
