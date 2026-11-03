@@ -311,6 +311,12 @@ schedule.ui-waiting | 일정 정보를 기다리는 중입니다.
 schedule.hover-confirmed | 일정이 확정되었습니다.
 schedule.hover-confirm | 호스트가 편성을 확정합니다. 확정한 일정은 다시 변경할 수 없습니다.
 schedule.hover-day1-fixed | 변경할 수 없습니다.
+schedule.hover-day1-second | 클릭할 때마다 두 번째 공연이 바뀝니다. 고른 뒤 확정하세요.
+schedule.context-first-day | 1일차 · 두 번째 공연 선택
+schedule.footer-first-day-host | 두 번째 공연 카드를 클릭해 고른 뒤 확정하세요
+schedule.footer-first-day-guest | 호스트가 두 번째 공연을 고르는 중입니다
+schedule.button-confirm-first-day | 두 번째 공연 확정
+schedule.confirmed-first-day | 두 번째 공연을 확정했습니다.
 schedule.hover-locked | 확정된 일정입니다.
 schedule.hover-editable | 클릭할 때마다 공연이 변경됩니다. 카드 아래에서 난이도를 선택할 수 있습니다.
 schedule.hover-host-edits | 밤 정비 시간에 호스트만 이용 가능
@@ -415,3 +421,92 @@ target.structure-a:uv-1-clue.name | 숨겨진 단서 1
 target.structure-a:uv-1.name | 숨겨진 단서 1 — UV
 target.structure-a:uv-3.name | 숨겨진 단서 — UV
 target.structure-a:uv-password-prefix.name | 숨겨진 단서 — UV
+
+# ── 최초 리허설 (연습실, Task-097) ──
+# {votes} 포기 표 수, {total} 투표 인원, {seconds} 남은 초, {inside} 통로에 모인 인원, {alive} 살아 있는 인원
+rehearsal.intro-title | 공연 전 리허설
+rehearsal.intro | 공연 전 리허설이 시작됩니다. 안내에 따라 리허설을 진행하세요. 추락하면 마지막 체크포인트에서 재시작합니다.
+rehearsal.fall-title | 추락
+rehearsal.fall | 리허설 진행 중에는 패널티가 없습니다. 마지막 체크포인트에서 다시 시작합니다.
+rehearsal.complete-title | 리허설 완료
+rehearsal.complete | 바닥의 점선을 따라 무대 입구 통로로 가세요. 모든 공연 준비자가 모이면 첫 공연이 시작됩니다.
+rehearsal.gather-title | 리허설 완료 · 무대로
+# 이수 후 선택 재연습(호스트 전용). {stage} = 소구간 제목
+rehearsal.practice-title | 자유 연습
+rehearsal.practice-intro | 고른 소구간부터 다시 연습합니다. 추락해도 대가가 없고, 호스트가 언제든 연습을 끝낼 수 있습니다.
+rehearsal.practice-button | {stage} 재연습
+rehearsal.practice-hint | 호스트 전용 · 연습실에서 소구간을 골라 다시 연습
+rehearsal.practice-end | 연습 종료
+# 우측 퀘스트 패널
+rehearsal.quest.fallen | 추락했습니다. 잠시 뒤 마지막 체크포인트에서 다시 시작합니다.
+rehearsal.quest.wait-team | 도착했습니다. 동료가 모두 도착할 때까지 기다리세요.
+rehearsal.quest.arrived | 도착! 곧 다음 단계로 넘어갑니다.
+rehearsal.quest.balance | W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.
+rehearsal.quest.lane-jump | Q, E + Space를 이용해 건너편 줄로 넘어가세요.
+rehearsal.quest.finish | 줄을 따라 도착대까지 가세요.
+rehearsal.quest.swing-approach | 줄 끝에서 F를 눌러 인간 그네에 탑승하세요.
+rehearsal.quest.swing-release | W, S로 반동을 키우고 앞으로 나갈 때 Space로 놓으세요. 공연처럼 공중에서 W로 전진해 건너편 줄에 내리세요.
+rehearsal.quest.swing-chain | W, S로 반동을 키워 Space로 놓으세요. 날아가는 동안 다음 그네 가까이에서 F를 눌러 잡으세요.
+rehearsal.quest.trigger-grab | 트리거 그네를 F로 잡으면 {lane}번 줄이 이어집니다. 동료가 건널 때까지 잡고 있으세요.
+rehearsal.quest.trigger-hold | 잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.
+rehearsal.quest.trigger-release | 줄이 이어졌습니다. F나 Space로 트리거 그네를 놓고 건너세요.
+rehearsal.quest.trigger-wait | 앞의 줄이 끊겨 있습니다. 짝 줄의 동료가 트리거 그네를 잡으면 이어집니다.
+rehearsal.quest.trigger-cross | 연결된 줄을 따라 건너세요.
+rehearsal.quest.gather | 점선을 따라 무대 입구 통로로 가세요. 전원 {inside}/{alive}이 모이면 공연이 시작됩니다.
+rehearsal.quest.gathered | {inside}/{alive}. 다른 공연 준비자를 기다리세요.
+# ── 첫 쉬는 시간 전원 대기 (2026-11-02) ──
+tutorial.team-wait-title | 동료 기다리는 중
+tutorial.team-wait | 모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다. ({ready}/{total})
+
+
+# ── 첫날 기능 연결용 임시 퀘스트 (Task-097) ──
+# 리허설은 위 rehearsal.* 문구를 유지합니다. 아래는 첫 공연부터 첫날 밤 정비까지입니다.
+# 키 왼쪽은 유지하고 오른쪽 제목·본문을 자유롭게 편집하세요. 줄바꿈은 \n 입니다.
+# {ready}/{total}: 튜토리얼 완료 또는 취침 준비 인원. {inside}/{alive}: 무대 입구 집결/생존 인원.
+# 패널: 1920×1080 기준. top=위에서 거리, right=오른쪽 여백, width=너비(256~480).
+# 글자 크기 0=프리팹 기본값. 수정 후 플레이를 다시 시작하세요.
+first-day.panel.top | 300
+first-day.panel.right | 36
+first-day.panel.width | 400
+first-day.panel.title-size | 28
+first-day.panel.body-size | 24
+first-day.quest.tutorial.title | [tutorial] 대기실 튜토리얼
+first-day.quest.tutorial.body | 대기실 안내를 확인하세요.\n전원이 안내를 마치면 탐색 시간이 시작됩니다. ({ready}/{total})
+first-day.quest.gather.title | [tutorial] 1일차 · 두 번째 공연 준비
+first-day.quest.gather.body | 대기실을 둘러보고 공연을 준비하세요.\n무대 입구 통로에 전원이 모이면 두 번째 공연이 시작됩니다. ({inside}/{alive})
+first-day.quest.second-pick.title | [tutorial] 1일차 · 두 번째 공연 선택
+first-day.quest.second-pick.body | 로비 스케줄표에서 두 번째 공연을 고르고 확정하세요.\n확정해야 무대 입구 집결로 공연이 시작됩니다.
+first-day.quest.second-pick-wait.title | [tutorial] 1일차 · 두 번째 공연 선택 대기
+first-day.quest.second-pick-wait.body | 호스트가 스케줄표에서 두 번째 공연을 정하는 중입니다.\n확정되면 무대 입구 통로로 모이세요.
+first-day.quest.night-schedule.title | [tutorial] 첫날 밤 · 내일 일정 정하기
+first-day.quest.night-schedule.body | 상점과 물려줄 선반을 이용해 정비할 수 있습니다.\n스케줄표에서 다음 날 일정을 정하고 확정하세요.
+first-day.quest.night-schedule-wait.title | [tutorial] 첫날 밤 · 일정 확정 대기
+first-day.quest.night-schedule-wait.body | 상점과 물려줄 선반을 이용해 정비할 수 있습니다.\n호스트가 다음 날 일정을 확정하면 침대에 누울 수 있습니다.
+first-day.quest.night-bed.title | [tutorial] 첫날 밤 · 취침 준비
+first-day.quest.night-bed.body | 다음 날 일정이 확정됐습니다.\n정비를 마치면 숙소 침대에 누우세요. ({ready}/{total})
+first-day.quest.night-wait.title | [tutorial] 첫날 밤 · 동료 기다리기
+first-day.quest.night-wait.body | 취침 준비를 마쳤습니다. ({ready}/{total})\n전원이 준비하면 다음 날로 넘어갑니다.
+
+# ── 리허설 단계별 제목·좌측 설명 (우측 퀘스트 제목에도 같은 제목 사용) ──
+# 제목/설명만 편집합니다. 코스·완료 규칙은 바뀌지 않습니다. 플레이 재시작 시 반영됩니다.
+rehearsal.stage.1.title | 1단계 · 외줄타기
+rehearsal.stage.1.intro | 줄 위에서는 A/D로 균형을 잡고 W로 나아갑니다. S를 누르면 뒤로 이동합니다.
+rehearsal.stage.2-1.title | 2-1 · 기본 인간 그네
+rehearsal.stage.2-1.intro | 줄 끝에서 F를 이용하면 인간 그네를 잡습니다. W/S로 그네를 조작한 뒤 Space를 누르면 건너편 줄로 점프합니다.
+rehearsal.stage.2-2.title | 2-2 · 연속 인간 그네
+rehearsal.stage.2-2.intro | 체공 중 F키를 눌러 그네에서 다음 그네로 넘어갈 수 있습니다.
+rehearsal.stage.2-3.title | 2-3 · 트리거 그네
+rehearsal.stage.2-3.intro | 아래쪽 줄이 끊어져 있습니다. 한 명이 트리거 그네를 잡고 있는 동안 끊어진 줄이 연결됩니다.
+rehearsal.stage.3.title | 3단계 · 종합 테스트
+rehearsal.stage.3.intro | 트리거 그네는 서로 연결되어 있습니다. 건너편 줄의 그네를 잡으면 끊어진 줄이 연결됩니다. 그네를 번갈아 잡아 서로의 줄을 이어주세요.
+
+rehearsal.clear-button | 현재 구간 즉시 클리어 · 다음
+rehearsal.clear-button-hint | Dev · 호스트 전용 · Esc로 커서 해제
+
+rehearsal.vote | 다음 구간으로 ({votes}/{required})
+rehearsal.quest.arrived-vote | 도착했습니다. 동료의 연습을 기다리거나 다음 구간 진행에 동의하세요. ({arrived}/{total}, 동의 {votes}/{required})
+rehearsal.lane-guide-title | 1단계 · 외줄타기 체크포인트 도달
+rehearsal.lane-guide | 줄이 끊긴 지점에서는 Q/E + Space키로 옆줄로 건너갈 수 있습니다.
+rehearsal.mount-title | 목마 상호작용
+rehearsal.mount | 동료 가까이에서 F키를 눌러 목마에 올라탈 수 있습니다.
+guide.title-color | #FFD5A0

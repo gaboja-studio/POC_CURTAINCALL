@@ -103,3 +103,14 @@
 - 문제: 바닥 대상 이름은 "은색 열쇠 1·2"인데 주운 기물(슬롯) 이름·설명은 "탈출로 열쇠"로 남음. 원인: 열쇠 아이템 이름이 `ExplorationKeys.Names`·`ItemCatalog.asset`·씬 label에 따로 고정돼 있었음.
 - 수정: ItemCatalog.cs 고정 이름, ItemCatalog.asset displayName, 씬 escapeKey1·2 label, StructureAPlacement 생성 이름, 디버그 열쇠 안내 문구를 "은색 열쇠"로. WaitingRoomTexts.txt에 `item.structure-a:escape-key-1/2.name` 추가(문구 파일에서 고칠 수 있게).
 - 검사: 컴파일 PASS, EditMode WaitingRoom 108/108. 플레이 화면 확인 안 함.
+
+## 2026-11-02~03 대기실 버그 6건·모니터·스케줄표 판
+
+- 외곽선: CommonInteractionUI 대기실 대상만 두께 6→2.5px, 표시 거리 4→2.5m(다른 공간 그대로).
+- 기물 크기: ItemVisualAssets.CreateWorld(1.35배) — 바닥·배송구·선반·첫 열쇠. 손에 든 기물은 그대로.
+- 탐색 안내 거리: ExplorationReach 3m 이하 대상 0.7배(최소 0.9m). UV 표식 등 원거리 그대로.
+- 벽 연타: BreakableWall은 F마다 내려치기 동작을 초기화해 0.12초 뒤 타격(최소 간격 0.18초), ShopReach 동작 잠금 예외.
+- 튜토리얼: 사용자 결정 "앱 재시작 때만" 유지. 첫 쉬는 시간에 내 안내가 끝났거나(이미 봄·끔) 동료가 아직 보는 중이면 이동 잠금 + 오른쪽 "동료 기다리는 중 (n/전체)"(120초 안전장치). 안 나오는 원인은 다중 접속 재현 못 함.
+- 연습실 모니터(PracticeMonitor): 2배(화면 14.4×8.1), 벽 안쪽 25m·높이 3.9~12m로 리허설 코스 위. 씬 저장(4줄)·생성 에디터 코드 값 동기화.
+- 스케줄표 판: SchedulePanel 프리팹 최상위 캔버스를 월드 캔버스로 바꿔 판 앞면에 표시, 같은 일정 자료로 0.5초마다 갱신, 닫기 버튼 숨김, 글꼴 보완("스케줄" 글자).
+- 확인: 컴파일 PASS, 캡처(스케줄표 판·연습실 모니터). 사용자 지시로 이후 테스트는 돌리지 않는다(이전 실행: W5_Tutorial 3/3·벽 6회 1/1·거리 1/1·문구 5/5 PASS).

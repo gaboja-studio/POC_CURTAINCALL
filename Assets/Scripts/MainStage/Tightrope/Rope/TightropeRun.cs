@@ -79,6 +79,16 @@ namespace CurtainCall.Tightrope
         /// <summary>공용 진행 연결부가 시작·종료를 맡는다. 직접 실행의 기본값은 false.</summary>
         public bool ExternallyManaged => externallyManaged;
 
+        bool practiceMode;
+
+        /// <summary>
+        /// 연습 모드(Task-097 리허설): 진행 상태만 Running으로 두어 그네·봉·균형 규칙을 켠다. 도착·성공·실패·시간 초과를 판정하지 않고
+        /// 결과 화면도 띄우지 않는다. 추락은 허용하되 도착 완료 상태는 만들지 않는다(완료 판정은 부르는 쪽이 위치로 한다).
+        /// 외부 관리(<see cref="SetExternallyManaged"/>)와 함께 쓴다.
+        /// </summary>
+        public bool PracticeMode => practiceMode;
+        public void SetPracticeMode(bool value) => practiceMode = value;
+
         public void SetExternallyManaged(bool value)
         {
             externallyManaged = value;
@@ -330,6 +340,11 @@ namespace CurtainCall.Tightrope
                     break;
 
                 case TightropeRunState.Running:
+                    if (practiceMode)
+                    {
+                        if (InProgressCount > 0 && !IsPerformanceStarted && AnyInProgressOnRope()) ServerStartPerformance();
+                        break;
+                    }
                     ServerMarkArrivals();
                     if (ArrivedCount > 0) ServerSucceed(); // 도착이 이번 위험 판정보다 우선
                     else
@@ -385,7 +400,7 @@ namespace CurtainCall.Tightrope
         /// </summary>
         void RequestLocalArrival()
         {
-            if (BridgeManagesPerformance || (externallyManaged && !externalStarted)) return;
+            if (BridgeManagesPerformance || practiceMode || (externallyManaged && !externalStarted)) return;
             var player = NetworkPlayer.Local;
             if (State != TightropeRunState.Running || player == null || player.State != PlayerState.Normal) return;
             if (!course.HasReachedFinish(player.transform.position)) return;
@@ -445,6 +460,7 @@ namespace CurtainCall.Tightrope
             if ((next == PlayerState.Fallen || next == PlayerState.Arrived) && !IsParticipantReady(player)) return false;
             if (externallyManaged && !externalStarted
                 && (next == PlayerState.Fallen || next == PlayerState.Arrived)) return false;
+            if (practiceMode) return next != PlayerState.Arrived;
             if (BridgeManagesPerformance)
             {
                 if (!campaignBridge.IsTightropePerformance) return true;

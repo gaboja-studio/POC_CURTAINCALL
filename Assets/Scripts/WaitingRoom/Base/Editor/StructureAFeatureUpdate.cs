@@ -108,17 +108,18 @@ namespace CurtainCall.WaitingRoom.Editor
                 lights++;
             }
             // 벽면 대형 모니터: 서쪽 둥근 벽 안쪽, 연습실 내부를 비춘다.
+            // 2026-11-02 사용자: 2배 크기, 리허설 코스(줄 높이 약 3.1m)에 가리지 않게 화면 아래 3.9m~위 12m(벽 높이), 벽 안쪽 25m.
             var center = new Vector3(-48.5f, 0f, 112f); const float radius = 26.5f;
             var monitor = room.Find("PracticeMonitor");
             if (monitor == null)
             {
-                monitor = New(room, "PracticeMonitor", center + Vector3.left * (radius - .45f) + Vector3.up * 6.5f);
+                monitor = New(room, "PracticeMonitor", center + Vector3.left * (radius - 1.5f) + Vector3.up * 7.95f);
                 var frame = GameObject.CreatePrimitive(PrimitiveType.Cube); frame.name = "Frame"; Undo.RegisterCreatedObjectUndo(frame, "Monitor frame");
-                frame.transform.SetParent(monitor, false); frame.transform.localScale = new Vector3(.3f, 4.5f, 7.7f);
+                frame.transform.SetParent(monitor, false); frame.transform.localScale = new Vector3(.3f, 8.6f, 14.9f);
                 frame.GetComponent<Renderer>().sharedMaterial = layout.GetComponentsInChildren<Renderer>(true).First(r => r.sharedMaterial != null && r.sharedMaterial.name == "V4_Iron_Dark").sharedMaterial;
                 var screen = GameObject.CreatePrimitive(PrimitiveType.Quad); screen.name = "Screen"; Undo.RegisterCreatedObjectUndo(screen, "Monitor screen");
                 Object.DestroyImmediate(screen.GetComponent<Collider>()); screen.transform.SetParent(monitor, false);
-                screen.transform.localPosition = new Vector3(.17f, 0, 0); screen.transform.localRotation = Quaternion.LookRotation(Vector3.left); screen.transform.localScale = new Vector3(7.2f, 4.05f, 1f);
+                screen.transform.localPosition = new Vector3(.17f, 0, 0); screen.transform.localRotation = Quaternion.LookRotation(Vector3.left); screen.transform.localScale = new Vector3(14.4f, 8.1f, 1f);
                 var material = AssetDatabase.LoadAssetAtPath<Material>(MonitorMaterialPath);
                 if (material == null)
                 {

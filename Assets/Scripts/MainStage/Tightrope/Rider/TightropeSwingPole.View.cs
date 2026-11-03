@@ -30,13 +30,14 @@ namespace CurtainCall.Tightrope
             {
                 var local = NetworkPlayer.Local;
                 if (!Active || local == null) return null;
-                if (flightMover != null) return "공중 WASD 조절 · 초록색 착지 표시로 이동 · 동료는 F 받기 준비";
+                if (flightMover != null) return next != null ? "공중 WASD 조절 · 다음 그네 가까이에서 F로 잡기"
+                    : "공중 WASD 조절 · 초록색 착지 표시로 이동 · 동료는 F 받기 준비";
                 if (OwnHeld(local)) return OwnCanLetGo ? "지금 Space! · 공중 W로 전진 · A/D 옆 조절 · 동료는 F 받기 준비"
                     : $"W/S로 반동 키우기 · 초록색에서 Space 놓기 · 남은 잡기 {Mathf.Max(0f, physicalPole.HoldSeconds - (float)(Clock - startedAt)):0.0}초";
                 float distance = course.GetDistance(local.transform.position);
-                if (distance >= course.SwingGapFrom - 7f && distance < course.SwingGapFrom)
+                if (distance >= GapFrom - 7f && distance < GapFrom)
                     return "끊어진 줄 · 끝의 청록색 표시에서 F로 회전봉 잡기 · 목마는 먼저 해제";
-                if (distance >= course.SwingGapTo && distance <= LandingDistance + 3f)
+                if (distance >= GapTo && distance <= LandingDistance + 3f)
                     return "먼저 건넜다면 F로 동료 받기 · 줄 끝에서 한 걸음 안쪽에 서 주세요";
                 return null;
             }
@@ -45,14 +46,14 @@ namespace CurtainCall.Tightrope
         void UpdateViews()
         {
             if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null) return;
-            bool visible = course != null && course.HasSwingGapOnLane(assignedLane) && course.IsTraversalActive;
+            bool visible = course != null && HasGap && course.IsTraversalActive;
             if (!visible) { if (viewRoot != null) viewRoot.gameObject.SetActive(false); return; }
             if (viewRoot == null || shownShape != course.Shape) BuildViews();
             viewRoot.gameObject.SetActive(true);
             const float width = 1.4f;
             float side = course.Layout.GetLaneSide(assignedLane);
             Vector3 feet = transform.InverseTransformPoint(WorldFeet(OwnAngle, assignedLane));
-            float center = course.SwingGapFrom - SwingPoleMath.EntryOffset;
+            float center = EntryDistance;
             Vector3 pivot = new(side, physicalPole.HangLength + SwingPoleMath.GripHeight + .3f, center);
             Vector3 grip = feet + Vector3.up * SwingPoleMath.GripHeight;
             crossbar.localPosition = grip;
@@ -70,8 +71,8 @@ namespace CurtainCall.Tightrope
                 aimLabel.transform.position = predicted + Vector3.up * .8f;
                 if (Camera.main != null) aimLabel.transform.rotation = Camera.main.transform.rotation;
             }
-            entry.gameObject.SetActive(course.IsLaneUsable(assignedLane, course.SwingGapFrom - SwingPoleMath.EntryOffset));
-            exit.gameObject.SetActive(course.IsLaneUsable(assignedLane, LandingDistance));
+            entry.gameObject.SetActive(!hasSpot && course.IsLaneUsable(assignedLane, EntryDistance));
+            exit.gameObject.SetActive(!hasSpot && next == null && course.IsLaneUsable(assignedLane, LandingDistance));
             if (Camera.main != null && sign != null) sign.transform.rotation = Camera.main.transform.rotation;
         }
 
@@ -85,11 +86,15 @@ namespace CurtainCall.Tightrope
             var frame = NewMaterial(new Color(.28f, .3f, .32f));
             const float width = 1.4f;
             float laneSide = course.Layout.GetLaneSide(assignedLane);
-            float center = course.SwingGapFrom - SwingPoleMath.EntryOffset;
+            float center = EntryDistance;
             float height = physicalPole.HangLength + SwingPoleMath.GripHeight + .3f;
-            Box("Pivot", new Vector3(laneSide, height, center), new Vector3(width + .5f, .18f, .18f), frame);
-            foreach (float side in new[] { -1f, 1f })
-                Box("Frame", new Vector3(laneSide + side * (width * .5f + .3f), height * .5f, center), new Vector3(.22f, height, .22f), frame);
+            // 지정 배치 리허설은 공연 봉/케이블 아트만 사용한다. 옛 회전봉의 도형 틀은 붙이지 않는다.
+            if (!hasSpot)
+            {
+                Box("Pivot", new Vector3(laneSide, height, center), new Vector3(width + .5f, .18f, .18f), frame);
+                foreach (float side in new[] { -1f, 1f })
+                    Box("Frame", new Vector3(laneSide + side * (width * .5f + .3f), height * .5f, center), new Vector3(.22f, height, .22f), frame);
+            }
             crossbar = Box("RotatingBar", Vector3.zero, new Vector3(width, .14f, .14f), orange);
             leftRod = Box("LeftRod", Vector3.zero, Vector3.one, frame);
             rightRod = Box("RightRod", Vector3.zero, Vector3.one, frame);
@@ -97,11 +102,12 @@ namespace CurtainCall.Tightrope
             var aim = new GameObject("LandingHint"); aim.transform.SetParent(viewRoot, false);
             aimLabel = aim.AddComponent<TextMesh>(); aimLabel.text = "공중 W 유지 시 착지 예상";
             aimLabel.fontSize = 48; aimLabel.characterSize = .022f; aimLabel.anchor = TextAnchor.MiddleCenter; aimLabel.color = Color.green;
-            entry = Box("Grab", new Vector3(laneSide, .09f, course.SwingGapFrom - SwingPoleMath.EntryOffset), new Vector3(.65f, .035f, 1.4f), cyan);
+            entry = Box("Grab", new Vector3(laneSide, .09f, EntryDistance), new Vector3(.65f, .035f, 1.4f), cyan);
             exit = Box("Catch", new Vector3(laneSide, .09f, LandingDistance), new Vector3(.65f, .035f, 1.6f), green);
             var label = new GameObject("SwingInstructions"); label.transform.SetParent(viewRoot, false);
-            label.transform.localPosition = new Vector3(laneSide + 1.1f, 2f, course.SwingGapFrom - 2f);
+            label.transform.localPosition = new Vector3(laneSide + 1.1f, 2f, GapFrom - 2f);
             sign = label.AddComponent<TextMesh>(); sign.text = $"{assignedLane + 1}번 줄 회전봉\nF 잡기 · W/S 반동 · Space 놓기\n공중 WASD 조절 · 동료 F 받기";
+            sign.gameObject.SetActive(!hasSpot);
             sign.fontSize = 64; sign.characterSize = .035f; sign.anchor = TextAnchor.MiddleCenter; sign.color = Color.cyan;
         }
 

@@ -62,7 +62,7 @@ namespace CurtainCall.WaitingRoom
             if (root != null && owner != fontOwner) { Destroy(root); root = null; view = null; }
             if (view == null) Build();
             var s = Settings;
-            if (view == null || !view.ShowPanel(heading, text, new Vector2(s.X, s.Y), s.Width)) return false;
+            if (view == null || !view.ShowPanel("! " + heading, text, new Vector2(s.X, s.Y), s.Width)) return false;
             title = heading; body = text;
             hideAt = Time.unscaledTime + Mathf.Max(1f, seconds > 0f ? seconds : s.Seconds);
             return true;
@@ -85,6 +85,8 @@ namespace CurtainCall.WaitingRoom
             // 글자 크기(0이면 프리팹 기본). 패널 높이는 본문 크기로 다시 계산된다.
             foreach (var label in root.GetComponentsInChildren<TMPro.TMP_Text>(true))
             {
+                if (label.name == "60_TitleTMP"
+                    && ColorUtility.TryParseHtmlString(WaitingRoomText.Get("guide.title-color", "#FFD5A0"), out var accent)) label.color = accent;
                 if (label.name == "60_TitleTMP" && Settings.TitleSize > 0f) label.fontSize = Settings.TitleSize;
                 else if (label.name == "70_DescriptionTMP" && Settings.BodySize > 0f) label.fontSize = Settings.BodySize;
             }

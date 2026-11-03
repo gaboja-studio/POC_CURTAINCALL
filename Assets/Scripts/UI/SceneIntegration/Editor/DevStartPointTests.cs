@@ -33,6 +33,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             run.StartSession();
             Assert.IsTrue(run.EndIntro());
             Assert.IsTrue(run.EndPerformance());
+            run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 });
             Assert.IsTrue(run.NotifyAllAtStageEntrance());
             Assert.IsTrue(run.EndPerformance());
             Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase);
@@ -58,7 +59,14 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             var run = new RunState();
             run.DebugStartAt(new RunStartPoint(day, RunStartPhase.Between, 1, "Tightrope"));
             Assert.AreEqual(kind, run.Snapshot.Rest);
-            Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer, "M2: 쉬는 시간 시작부터 흐른다");
+            // Task-097: 가이드 쉬는 시간은 전원이 대기실 tutorial을 마친 뒤부터 흐른다.
+            Assert.AreEqual(kind == RestKind.Guide ? RestTimerState.WaitingForExit : RestTimerState.Running, run.Snapshot.Timer, "M2: 쉬는 시간 시작부터 흐른다(가이드는 tutorial 뒤)");
+            if (kind == RestKind.Guide)
+            {
+                Assert.IsTrue(run.SetTutorialDone(0));
+                Assert.IsTrue(run.RefreshGuideRest(new ulong[] { 0 }));
+                Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer);
+            }
             Assert.Greater(run.Snapshot.TimeRemaining, 0);
             run.NotifyAllAtStageEntrance();
             Assert.AreEqual(CampaignPhase.Performance, run.Snapshot.Phase);

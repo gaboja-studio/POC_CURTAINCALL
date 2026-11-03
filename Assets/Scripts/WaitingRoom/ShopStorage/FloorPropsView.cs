@@ -138,7 +138,7 @@ namespace CurtainCall.WaitingRoom
 
         GameObject MakeShape(FloorProp prop)
         {
-            var artwork = CurtainCall.ItemArt.ItemVisualAssets.Create(prop.Item.ItemId);
+            var artwork = CurtainCall.ItemArt.ItemVisualAssets.CreateWorld(prop.Item.ItemId);
             if (artwork != null)
             {
                 artwork.name = $"FloorProp_{prop.Item.Uid}_{prop.Item.ItemId}";

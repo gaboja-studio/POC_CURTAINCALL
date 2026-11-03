@@ -108,16 +108,19 @@ namespace CurtainCall.WaitingRoom
             Count();
 
             var run = CampaignRun.Instance;
-            if (run == null || !run.HasAuthority || run.State.Phase != CampaignPhase.RestTime)
+            // 최초 리허설(Task-097): 리허설을 다 마친 뒤 전원이 모이면 첫 공연으로 간다.
+            bool rehearsal = run != null && run.State.Phase == CampaignPhase.Rehearsal;
+            if (run == null || !run.HasAuthority || (run.State.Phase != CampaignPhase.RestTime && !rehearsal)
+                || (rehearsal && !WaitingRoomRehearsal.IsCompleted))
             {
                 notified = false;
                 return;
             }
-            // 쉬는 시간마다 한 번만 알린다(마지막 아침처럼 거절돼도 매 프레임 다시 부르지 않는다).
+            // 성공적으로 전환했을 때만 알림을 확정한다. 튜토리얼 대기 중 거절됐다면 완료 뒤 다시 시도한다.
             if (notified || AliveCount == 0 || InsideCount < AliveCount) return;
 
-            notified = true;
             if (!run.NotifyAllAtStageEntrance()) return;
+            notified = true;
             Debug.Log($"[WaitingRoom] ⑥ 전원 집결 {InsideCount}/{AliveCount} → 공연 전환");
             Gathered?.Invoke();
         }

@@ -8,9 +8,9 @@ namespace CurtainCall.Tightrope
 {
     public sealed partial class TightropeSwingPole
     {
-        enum Operation : byte { Grab, LetGo, Abort, Sync, Swing, Landed }
-        string RequestMessage => $"CurtainCall.Tightrope.Swing.Request.{assignedLane}";
-        string StateMessage => $"CurtainCall.Tightrope.Swing.State.{assignedLane}";
+        enum Operation : byte { Grab, LetGo, Abort, Sync, Swing, Landed, AirGrab }
+        string RequestMessage => $"CurtainCall.Tightrope.Swing.Request.{Channel}";
+        string StateMessage => $"CurtainCall.Tightrope.Swing.State.{Channel}";
         NetworkSessionManager session;
         CustomMessagingManager messaging;
         void Connect()
@@ -40,7 +40,7 @@ namespace CurtainCall.Tightrope
         {
             if (session == null || !session.IsHost || !reader.TryBeginRead(9)) return;
             reader.ReadValueSafe(out byte operation); reader.ReadValueSafe(out int generation); reader.ReadValueSafe(out float input);
-            if (operation > (byte)Operation.Landed || generation != round || !float.IsFinite(input) || input < -1f || input > 1f) return;
+            if (operation > (byte)Operation.AirGrab || generation != round || !float.IsFinite(input) || input < -1f || input > 1f) return;
             ServerHandle(sender, (Operation)operation, input);
         }
         FastBufferWriter WriteState()
@@ -75,7 +75,7 @@ namespace CurtainCall.Tightrope
             version = sequence; mode = (PoleMode)state; holder = owner; lane = slot; startedAt = start; changedAt = changed;
             angle = value; angularSpeed = speed; drive = input; returnAngle = returning; released = launch; pendingUntil = 0d;
             if (mode == PoleMode.Idle || holder != NetworkPlayer.Local?.OwnerClientId) localAbort = false;
-            if (binding != null && mode != PoleMode.Holding) EndBinding(released && binding.Player.OwnerClientId == holder);
+            if (binding != null && mode != PoleMode.Holding && !AirCatchPending) EndBinding(released && binding.Player.OwnerClientId == holder);
         }
     }
 }

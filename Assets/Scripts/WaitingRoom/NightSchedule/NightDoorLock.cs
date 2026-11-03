@@ -72,11 +72,16 @@ namespace CurtainCall.WaitingRoom
             }
         }
 
-        static bool ShouldLock()
+        /// <summary>연습실 통로 철창 이름. 최초 리허설 동안 이 철창만 열어 둔다(Task-097, 기획서 2장: 리허설·공연 입구 이동에 필요한 공간 외에는 철창).</summary>
+        public const string RehearsalPassageName = "PracticeGate";
+
+        bool ShouldLock()
         {
             var run = CampaignRun.Instance;
-            return run != null && (run.State.Phase == CampaignPhase.Night || run.State.Phase == CampaignPhase.Dawn
-                || run.State.Phase == CampaignPhase.DemoEnding);
+            if (run == null) return false;
+            var phase = run.State.Phase;
+            if (WaitingRoomRehearsal.IsPreTutorialRestricted) return WaitingRoomRehearsal.IsGateLocked(name);
+            return phase == CampaignPhase.Night || phase == CampaignPhase.Dawn || phase == CampaignPhase.DemoEnding;
         }
 
         void Apply(bool locked, bool initial)
@@ -100,7 +105,8 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            if (!showLegacyNotice || !IsLocked || CampaignRun.Instance?.State.Phase == CampaignPhase.DemoEnding) return;
+            if (!showLegacyNotice || !IsLocked || CampaignRun.Instance?.State.Phase == CampaignPhase.DemoEnding
+                || CampaignRun.Instance?.State.Phase == CampaignPhase.Rehearsal) return;
             style ??= new GUIStyle(GUI.skin.box) { fontSize = 16, alignment = TextAnchor.MiddleCenter };
             const float width = 420, height = 32;
             GUI.Box(new Rect((Screen.width - width) / 2f, 10, width, height), notice, style);

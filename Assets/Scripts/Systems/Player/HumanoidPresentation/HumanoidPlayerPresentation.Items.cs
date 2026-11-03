@@ -25,9 +25,23 @@ namespace CurtainCall.Player
         GameObject heldItemVisual;
         public GameObject HeldItemVisual => heldItemVisual;
         public string ItemMotion => itemAction;
+        /// <summary>벽 부수기 연타 간격(초). 누를 때마다 내려치기 동작을 처음부터 다시 재생하고 바로 한 번 친다(2026-11-02 사용자).</summary>
+        const float WallMashGap = .18f, WallMashImpact = .12f;
+        float lastWallMash = -1f;
         public void UseToolAtContact(IShopTarget target, IShopPresentation presentation, IExplorationTarget tool)
         {
-            if (InteractionActionLocked || model == null || condition.AllLimbsLost) return;
+            if (model == null || condition.AllLimbsLost) return;
+            if (target is BreakableWall)
+            {
+                // 연타: 앞 동작이 끝나기를 기다리지 않고 동작을 초기화해 다시 내려친다. 앞 타격 판정은 그대로 살린다.
+                if (Time.time - lastWallMash < WallMashGap) return;
+                lastWallMash = Time.time;
+                interactionActionUntil = 0f;
+                RequestItemMotion(0, presentation.PresentationPoint);
+                StartCoroutine(CompleteToolUse(target, presentation, tool, WallMashImpact));
+                return;
+            }
+            if (InteractionActionLocked) return;
             if (toolUse != null) { StopCoroutine(toolUse); toolUse = null; }
             int kind = tool.ToolId == ItemUses.StakePuller ? 0 : 1;
             RequestItemMotion(kind, presentation.PresentationPoint);

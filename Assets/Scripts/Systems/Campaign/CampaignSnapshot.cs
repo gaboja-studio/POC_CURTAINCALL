@@ -26,6 +26,8 @@ namespace CurtainCall.Campaign
         DemoEnding,
         /// <summary>밤 준비 완료 후 화면을 가리는 중. 전원 페이드아웃 완료 후 다음 날 아침.</summary>
         Dawn,
+        /// <summary>1일차 서명 뒤 대기실 연습실에서 하는 최초 리허설(Task-097). 타이머 없음. 전원이 무대 입구 통로에 모이면 첫 공연.</summary>
+        Rehearsal,
     }
 
     /// <summary>쉬는 시간 종류.</summary>
@@ -45,7 +47,10 @@ namespace CurtainCall.Campaign
     {
         /// <summary>쉬는 시간이 아니다.</summary>
         None,
-        /// <summary>옛 B안(대기실에서 나와야 시작) 값. M2에서 쓰지 않지만 전송 숫자를 지키려고 남긴다.</summary>
+        /// <summary>
+        /// 아직 흐르지 않는다. 옛 B안(대기실에서 나와야 시작) 값이었고, Task-097부터는 가이드 쉬는 시간이 전원 대기실 tutorial 완료를 기다리는 상태로 쓴다.
+        /// <see cref="RunState.Tick"/>·구역 규칙은 이 값을 건드리지 않는다.
+        /// </summary>
         WaitingForExit,
         /// <summary>흐르는 중.</summary>
         Running,

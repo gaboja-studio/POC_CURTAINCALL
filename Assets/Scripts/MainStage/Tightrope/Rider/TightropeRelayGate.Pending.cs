@@ -39,7 +39,7 @@ namespace CurtainCall.Tightrope
         {
             if (!CanUsePole(request.Pole, Find(actor))) return false;
             // 끈끈이 장갑이면 잡기 제한 시간을 늘린다(Task-092). 잡기에 실패하면 다음 확인에서 소모 없이 정리된다.
-            float hold = course.Shape.RelayHoldSeconds;
+            float hold = UsesSpots ? UnlimitedHoldSeconds : course.Shape.RelayHoldSeconds;
             if (!stations[request.Pole].State.TryGrab(actor, request.Revision, Clock, hold + (float)stickyGloves.Begin(actor, Clock, hold))) return false;
             // 잡을 때마다 이 봉이 열 줄을 새로 고른다(호스트만). 스냅샷으로 모두에게 같은 줄을 알린다.
             stations[request.Pole].Opened = PickLane(request.Pole);

@@ -1,8 +1,8 @@
 ---
 summary: 외줄이 아닌 씬에서 플레이어 균형이 시작부터 켜져 있어 가만히 서 있어도 흔들리다 추락(사망)함
 status: active
-updated: 2026-10-15
-source: Task-20261013-030, Task-20261014-038
+updated: 2026-11-03
+source: Task-20261013-030, Task-20261014-038, Task-20261102-097
 ---
 
 # 외줄 밖에서 서 있기만 해도 추락함
@@ -31,3 +31,7 @@ source: Task-20261013-030, Task-20261014-038
 ## 확인 방법
 
 Play → 호스트 접속 → 15초 대기 후 `NetworkPlayer.Local.State`가 `Normal`이고 `PlayerBalance.IsActive`가 false인지 본다.
+
+## 연습실 바닥에 떨어져 복귀하지 않는 경우
+- CourseControlSwitcher가 일반 이동으로 바꾸면 UsesRopeRules가 false가 되어 기존 CheckLocalFall의 조기 반환에 걸린다. 연습 모드 Running 중에는 기존 깊이 판정을 유지해야 한다. 그네·매달림 예외는 보존한다.
+- 실제 W 추락 → Fallen → 출발대 복귀 → W 재진입으로 검증한다. Fallen을 직접 설정하면 이 누락을 검출하지 못한다.

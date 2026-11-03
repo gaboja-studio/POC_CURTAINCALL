@@ -15,10 +15,42 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.IsTrue(run.EndIntro());
             Assert.IsTrue(run.EndPerformance());
             Assert.AreEqual(CampaignPhase.RestTime, run.Snapshot.Phase);
+            // Task-097: 1일차 가이드 쉬는 시간만 전원 tutorial 완료를 기다린다.
+            Assert.AreEqual(RestTimerState.WaitingForExit, run.Snapshot.Timer);
+            Assert.IsFalse(run.Tick(1f), "tutorial 전에는 흐르지 않는다");
+            Assert.IsTrue(run.SetTutorialDone(0));
+            Assert.IsTrue(run.RefreshGuideRest(new ulong[] { 0 }));
             Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer);
             float before = run.Snapshot.TimeRemaining;
             Assert.IsTrue(run.Tick(1f));
             Assert.AreEqual(before - 1f, run.Snapshot.TimeRemaining, .0001f, "아무도 대기실을 나가지 않아도 흐른다");
+        }
+
+        [Test]
+        public void FirstDay_WaitsForEveryoneThenSecondPerformanceAndNight()
+        {
+            var run = new RunState();
+            run.StartSession(withRehearsal: true);
+            Assert.IsTrue(run.EndIntro());
+            Assert.AreEqual(CampaignPhase.Rehearsal, run.Snapshot.Phase);
+            Assert.IsTrue(run.EndRehearsal());
+            Assert.AreEqual(1, run.Snapshot.Day);
+            Assert.AreEqual(0, run.Snapshot.PerformanceIndex);
+            run.EndPerformance();
+            Assert.IsFalse(run.NotifyAllAtStageEntrance(), "안내 전 집결로 진행하지 않는다");
+            run.SetTutorialDone(0);
+            run.RefreshGuideRest(new ulong[] { 0, 1 });
+            Assert.IsFalse(run.Tick(10000f));
+            Assert.IsFalse(run.NotifyAllAtStageEntrance(), "한 명만 완료하면 진행하지 않는다");
+            run.SetTutorialDone(1);
+            run.RefreshGuideRest(new ulong[] { 0, 1 });
+            Assert.IsTrue(run.NotifyAllAtStageEntrance());
+            Assert.AreEqual(1, run.Snapshot.Day);
+            Assert.AreEqual(1, run.Snapshot.PerformanceIndex);
+            Assert.AreEqual(CampaignPhase.Performance, run.Snapshot.Phase);
+            run.EndPerformance();
+            Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase);
+            Assert.AreEqual(1, run.Snapshot.Day);
         }
 
         [Test]
@@ -34,6 +66,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                 run.StartSession();
                 run.EndIntro();
                 run.EndPerformance();
+                run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 }); // 가이드 쉬는 시간은 tutorial 뒤에 흐른다(Task-097)
                 Assert.IsTrue(run.Tick(10000f, step => RestTimeoutCatch.ServerHandleExpired(step)));
                 Assert.AreEqual(1, calls);
                 Assert.AreEqual(CampaignPhase.RestTime, seen.Phase, "공연으로 넘어가기 전 쉬는 시간 상태로 처리한다");

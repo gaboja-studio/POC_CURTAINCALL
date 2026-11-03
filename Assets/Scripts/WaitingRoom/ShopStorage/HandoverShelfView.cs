@@ -185,7 +185,7 @@ namespace CurtainCall.WaitingRoom
         GameObject MakeShape(int slot, PropItem item)
         {
             // 가판대에도 기물 모델을 올린다(Task-092). 모델이 없을 때만 임시 상자.
-            var artwork = CurtainCall.ItemArt.ItemVisualAssets.Create(item.ItemId);
+            var artwork = CurtainCall.ItemArt.ItemVisualAssets.CreateWorld(item.ItemId);
             if (artwork != null)
             {
                 artwork.name = $"ShelfProp_{slot + 1}_{item.Uid}";

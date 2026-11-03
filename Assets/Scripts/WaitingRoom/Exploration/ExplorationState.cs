@@ -163,6 +163,9 @@ namespace CurtainCall.WaitingRoom
         // 판정 화면: 탐색 대상에 손에 든 도구를 한 번 쓴다(벽 내려치기·자물쇠 따기·판자 뜯기·UV 비추기 공통).
         (bool, string) Use(ulong player, string targetId, string password = null)
         {
+            // 첫 공연 전에는 클라이언트의 F 입력뿐 아니라 호스트의 탐색 판정도 잠근다.
+            if (WaitingRoomRehearsal.IsPreTutorialRestricted)
+                return (false, WaitingRoomText.Get("explore.locked-before-tutorial", "첫 공연을 마친 뒤 대기실 안내에서 이용할 수 있습니다."));
             var target = ExplorationTargets.Find(targetId);
             if (target == null) return (false, WaitingRoomText.Get("explore.no-target", "대상을 찾지 못했습니다."));
             if (book.IsOpen(targetId)) return (false, WaitingRoomText.Get("explore.already-open", "이미 열렸습니다."));

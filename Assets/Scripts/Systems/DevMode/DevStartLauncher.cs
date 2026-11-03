@@ -45,7 +45,7 @@ namespace CurtainCall.Dev
         static readonly string[] Contents = { "외줄타기", "인간대포" };
         static readonly string[] Tricks = { "Tightrope", "HumanCannon" };
         // RunStartPhase 순서와 같다. 탈출로는 대기실 합류 없이 탈출로 출발점에서 바로 시작한다(Task-089).
-        static readonly string[] Phases = { "공연", "아침", "공연 사이", "밤 정비", "탈출로" };
+        static readonly string[] Phases = { "공연", "아침", "공연 사이", "밤 정비", "탈출로", "리허설" };
 
         void Awake()
         {
@@ -144,6 +144,7 @@ namespace CurtainCall.Dev
                     foreach (var player in NetworkPlayer.All)
                         if (player != null && injuries.TryGetValue(player.OwnerClientId, out var parts)) player.ServerRestoreDevInjury(parts);
                 // 같은 프레임에 최종 요청을 넣어 도입/로비를 경유하지 않는다.
+                if (point.Phase == RunStartPhase.Rehearsal) WaitingRoomRehearsal.ResetForDevLaunch();
                 if (!campaign.DebugStartAtPreservingUnlock(point, cannonUnlocked))
                 { Status = "개발 시작 상태를 적용하지 못했습니다."; yield break; }
                 int generation = campaign.State.Generation;
@@ -212,7 +213,7 @@ namespace CurtainCall.Dev
             {
                 var candidate = (RunStartPhase)i;
                 GUI.enabled = enabled && !IsBusy && (day <= GameSettings.Base.Run.DayCount || candidate == RunStartPhase.Morning || candidate == RunStartPhase.Escape)
-                    && (day > 1 || candidate != RunStartPhase.Morning);
+                    && (day > 1 || candidate != RunStartPhase.Morning) && (day == 1 || candidate != RunStartPhase.Rehearsal);
                 if (GUILayout.Toggle(phase == candidate, Phases[i], button)) phase = candidate;
             }
             GUILayout.EndHorizontal();
@@ -224,9 +225,11 @@ namespace CurtainCall.Dev
             PreserveWaitingRoomUnlocks = GUILayout.Toggle(PreserveWaitingRoomUnlocks, " 대기실 해금 유지");
             if (day > GameSettings.Base.Run.DayCount && phase != RunStartPhase.Escape) phase = RunStartPhase.Morning;
             else if (day == 1 && phase == RunStartPhase.Morning) phase = RunStartPhase.Performance;
-            if (phase == RunStartPhase.Morning) slot = 0;
+            else if (day != 1 && phase == RunStartPhase.Rehearsal) phase = RunStartPhase.Performance;
+            if (phase == RunStartPhase.Morning || phase == RunStartPhase.Rehearsal) slot = 0;
             if (phase == RunStartPhase.Escape) GUILayout.Label("탈출로 출발점에서 바로 시작합니다(대기실 합류·로딩 생략). 사망하면 1초 뒤 출발점에서 다시 시작합니다.", label);
-            bool chooseContent = phase != RunStartPhase.Night && phase != RunStartPhase.Escape && day <= GameSettings.Base.Run.DayCount;
+            if (phase == RunStartPhase.Rehearsal) GUILayout.Label("대기실 연습실의 최초 리허설부터 시작합니다. 끝나면 무대 입구 통로에 모여 1일차 첫 공연으로 갑니다.", label);
+            bool chooseContent = phase != RunStartPhase.Night && phase != RunStartPhase.Escape && phase != RunStartPhase.Rehearsal && day <= GameSettings.Base.Run.DayCount;
             if (chooseContent)
             {
                 int minSlot = phase == RunStartPhase.Between ? 1 : 0;

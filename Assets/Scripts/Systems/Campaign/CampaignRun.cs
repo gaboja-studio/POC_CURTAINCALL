@@ -21,6 +21,7 @@ namespace CurtainCall.Campaign
         const string RequestMessage = "CurtainCall.Campaign.Request";
         const string ReadyMessage = "CurtainCall.Campaign.Ready";
         const string UnlockMessage = "CurtainCall.Campaign.Unlock";
+        const string TutorialDoneMessage = "CurtainCall.Campaign.TutorialDone";
         const float TimerBroadcastInterval = 1f;
         public const float DemoEndingSeconds = 10f;
 
@@ -112,6 +113,7 @@ namespace CurtainCall.Campaign
                 if (!state.IsRunning) return;
                 bool changed = (state.Phase == CampaignPhase.Night || state.Phase == CampaignPhase.Dawn
                     || state.Phase == CampaignPhase.DemoEnding) && host.RefreshNight(Players());
+                if (host.IsGuideRestWaiting) changed |= host.RefreshGuideRest(Players());
                 changed |= host.Tick(Time.deltaTime, Expired);
                 if (changed) Apply(host.Snapshot);
             }
@@ -143,7 +145,7 @@ namespace CurtainCall.Campaign
             }
             offlineRun = true;
             host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled);
-            host.StartSession();
+            host.StartSession(true);
             Apply(host.Snapshot);
             return true;
         }
@@ -160,8 +162,32 @@ namespace CurtainCall.Campaign
         /// <summary>도입 컷씬(세대 교체 연출)이 끝났다.</summary>
         public bool EndIntro() => HostDo(r => r.EndIntro(), nameof(EndIntro));
 
+        /// <summary>최초 리허설이 끝나고 전원이 무대 입구 통로에 모였다 → 1일차 첫 공연(Task-097).</summary>
+        public bool EndRehearsal() => HostDo(r => r.EndRehearsal(), nameof(EndRehearsal));
+
         /// <summary>공연이 끝났다(공연 결과 처리 뒤 부른다).</summary>
         public bool EndPerformance() => HostDo(r => r.EndPerformance(), nameof(EndPerformance));
+
+        /// <summary>
+        /// 가이드 쉬는 시간: 이 화면의 플레이어가 대기실 tutorial(연계 안내)을 마쳤다(누구나). 전원이 마치면 호스트가 탐색 타이머를 흘린다.
+        /// 타이머가 기다리는 중이 아니면 false.
+        /// </summary>
+        public bool NotifyTutorialDone()
+        {
+            if (!state.IsRunning || state.Phase != CampaignPhase.RestTime || state.Rest != RestKind.Guide
+                || state.Timer != RestTimerState.WaitingForExit) return false;
+            if (host != null)
+            {
+                ulong me = offlineRun ? NetworkManager.ServerClientId : session.NetworkManager.LocalClientId;
+                return HostDo(r => r.SetTutorialDone(me) | r.RefreshGuideRest(Players()), nameof(NotifyTutorialDone));
+            }
+            if (messaging == null) return false;
+            using var writer = new FastBufferWriter(8, Allocator.Temp);
+            writer.WriteValueSafe(state.Generation);
+            writer.WriteValueSafe(state.Day);
+            messaging.SendNamedMessage(TutorialDoneMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
+            return true;
+        }
 
         /// <summary>전원이 무대 입구 통로에 들어갔다(쉬는 시간 조기 종료).</summary>
         public bool NotifyAllAtStageEntrance() => HostDo(r => r.NotifyAllAtStageEntrance(), nameof(NotifyAllAtStageEntrance));
@@ -177,6 +203,9 @@ namespace CurtainCall.Campaign
 
         /// <summary><paramref name="day"/>일차 공연 순서와 묘기별 난이도 단계(1~3)를 함께 정한다(M2 난이도 선택).</summary>
         public bool SetSetlist(int day, string[] tricks, int[] tiers) => HostDo(r => r.SetSetlist(day, tricks, tiers), nameof(SetSetlist));
+
+        /// <summary>호스트: 첫날 둘째 공연을 스케줄표에서 고른 묘기로 정한다(CC-215).</summary>
+        public bool SetFirstDaySecondTrick(string trickId) => HostDo(r => r.SetFirstDaySecondTrick(trickId), nameof(SetFirstDaySecondTrick));
 
         /// <summary>호스트: 쉬는 시간에 다음 공연의 난이도 단계만 다시 고른다(깬 단계의 다음 단계까지).</summary>
         public bool AdjustNextTier(int tier) => HostDo(r => r.AdjustNextTier(tier), nameof(AdjustNextTier));
@@ -385,6 +414,7 @@ namespace CurtainCall.Campaign
                 case CampaignPhase.Ending: return "엔딩";
                 case CampaignPhase.DemoEnding: return "데모 플레이 종료";
                 case CampaignPhase.Dawn: return "다음 날 아침으로 전환 중";
+                case CampaignPhase.Rehearsal: return $"연습실 리허설 → 공연 1({Trick(s)})";
                 default: return s.Phase.ToString();
             }
         }
@@ -413,6 +443,7 @@ namespace CurtainCall.Campaign
                 messaging.RegisterNamedMessageHandler(RequestMessage, HandleRequest);
                 messaging.RegisterNamedMessageHandler(ReadyMessage, HandleReady);
                 messaging.RegisterNamedMessageHandler(UnlockMessage, HandleUnlock);
+                messaging.RegisterNamedMessageHandler(TutorialDoneMessage, HandleTutorialDone);
                 HandleGameState(session.GameState);
             }
             else
@@ -430,7 +461,7 @@ namespace CurtainCall.Campaign
             if (gameState == GameSessionState.Playing && host == null)
             {
                 host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled);
-                host.StartSession();
+                host.StartSession(true);
                 Apply(host.Snapshot);
             }
             else if (gameState == GameSessionState.Waiting && host != null)
@@ -484,6 +515,17 @@ namespace CurtainCall.Campaign
             if (host.UnlockTrick(trickId)) Apply(host.Snapshot);
         }
 
+        void HandleTutorialDone(ulong sender, FastBufferReader reader)
+        {
+            if (host == null) return;
+            reader.ReadValueSafe(out int generation);
+            reader.ReadValueSafe(out int day);
+            if (generation != state.Generation || day != state.Day || !Players().Contains(sender)) return;
+            bool changed = host.SetTutorialDone(sender);
+            changed |= host.RefreshGuideRest(Players());
+            if (changed) Apply(host.Snapshot);
+        }
+
         void HandleState(ulong sender, FastBufferReader reader)
         {
             if (sender != NetworkManager.ServerClientId || session == null || session.IsHost) return;
@@ -497,6 +539,7 @@ namespace CurtainCall.Campaign
             messaging.UnregisterNamedMessageHandler(RequestMessage);
             messaging.UnregisterNamedMessageHandler(ReadyMessage);
             messaging.UnregisterNamedMessageHandler(UnlockMessage);
+            messaging.UnregisterNamedMessageHandler(TutorialDoneMessage);
             messaging = null;
         }
     }

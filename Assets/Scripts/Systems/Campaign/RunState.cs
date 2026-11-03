@@ -6,7 +6,7 @@ namespace CurtainCall.Campaign
     /// <summary>
     /// 런 진행 판정(호스트 또는 오프라인에서만 돌린다). 네트워크·Unity 오브젝트와 분리한 순수 로직.
     /// 흐름(기획 게임 흐름 2-2, 9-1):
-    ///   1일차: 도입 → 공연 → 가이드 쉬는 시간 → 공연 → 밤 정비
+    ///   1일차: 도입 → 최초 리허설 → 공연 → 가이드 쉬는 시간 → 공연 → 밤 정비
     ///   2일차~: 아침 쉬는 시간 → 공연 → 쉬는 시간 → 공연 → 밤 정비
     ///   공연하는 날 수 다음 날: 아침 쉬는 시간만. 끝나면 런 실패 → 세대 교체 → 1일차 첫 공연.
     ///   0.1.0: 4일차 아침은 탐색 없이 데모 종료 연출로 전환한다.
@@ -19,6 +19,10 @@ namespace CurtainCall.Campaign
         public const int MaxDifficulty = 3;
 
         readonly HashSet<ulong> ready = new();
+        // 가이드 쉬는 시간: 대기실 tutorial을 마친 플레이어(Task-097). 전원이 마치면 타이머가 흐른다.
+        readonly HashSet<ulong> tutorialDone = new();
+        bool rehearsalPending;
+        bool guideRestUnlimited;
         readonly Dictionary<int, string[]> setlists = new();
         readonly Dictionary<int, int[]> levels = new();
         // 묘기별로 이번 런에서 성공한 가장 높은 단계(M2 난이도 선택). 런 범위라 세대 교체 때 지운다.
@@ -41,15 +45,58 @@ namespace CurtainCall.Campaign
 
         public CampaignSnapshot Snapshot => s;
 
-        /// <summary>세대 1부터 새로 시작한다(게임 시작).</summary>
-        public void StartSession() => StartRun(1, RunEndReason.None);
+        /// <summary>세대 1부터 새로 시작한다(게임 시작). <paramref name="withRehearsal"/>이면 도입 뒤 연습실 최초 리허설을 거친다(Task-097, 실제 게임 흐름).</summary>
+        public void StartSession(bool withRehearsal = false)
+        {
+            StartRun(1, RunEndReason.None);
+            rehearsalPending = withRehearsal;
+        }
 
-        /// <summary>도입 컷씬(세대 교체 연출)이 끝났다 → 1일차 첫 공연.</summary>
+        /// <summary>도입 컷씬(세대 교체 연출)이 끝났다 → 최초 리허설(세대 1·요청 시) 또는 1일차 첫 공연.</summary>
         public bool EndIntro()
         {
             if (s.Phase != CampaignPhase.Intro) return false;
+            if (rehearsalPending) EnterRehearsal();
+            else EnterPerformance(0);
+            return true;
+        }
+
+        /// <summary>최초 리허설이 끝나고 전원이 무대 입구 통로에 모였다 → 1일차 첫 공연.</summary>
+        public bool EndRehearsal()
+        {
+            if (s.Phase != CampaignPhase.Rehearsal) return false;
             EnterPerformance(0);
             return true;
+        }
+
+        /// <summary>
+        /// 가이드 쉬는 시간: 이 플레이어가 대기실 tutorial(연계 안내)을 마쳤다. 전원이 마치면 <see cref="RefreshGuideRest"/>가 타이머를 흘린다.
+        /// 다른 시간대·이미 흐르는 중이면 false.
+        /// </summary>
+        public bool SetTutorialDone(ulong clientId)
+        {
+            if (!IsGuideRestWaiting) return false;
+            return tutorialDone.Add(clientId);
+        }
+
+        /// <summary>가이드 쉬는 시간이 전원 tutorial 완료를 기다리는 중인지.</summary>
+        public bool IsGuideRestWaiting => s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide && s.Timer == RestTimerState.WaitingForExit;
+
+        /// <summary>가이드 쉬는 시간 인원을 다시 센다. 나간 사람을 빼고 남은 전원이 tutorial을 마쳤으면 타이머를 시작한다. 바뀌었으면 true.</summary>
+        public bool RefreshGuideRest(IReadOnlyCollection<ulong> players)
+        {
+            if (!IsGuideRestWaiting) return false;
+            tutorialDone.RemoveWhere(id => !Contains(players, id));
+            int before = s.ReadyCount, beforeRequired = s.RequiredCount;
+            s.ReadyCount = tutorialDone.Count;
+            s.RequiredCount = players.Count;
+            if (s.RequiredCount > 0 && s.ReadyCount >= s.RequiredCount)
+            {
+                s.Timer = guideRestUnlimited ? RestTimerState.Unlimited : RestTimerState.Running;
+                CheckAlarm();
+                return true;
+            }
+            return before != s.ReadyCount || beforeRequired != s.RequiredCount;
         }
 
         /// <summary>공연이 끝났다 → 다음 쉬는 시간, 또는 그날 마지막 공연이면 밤 정비.</summary>
@@ -67,8 +114,35 @@ namespace CurtainCall.Campaign
         /// <summary>전원이 무대 입구 통로에 들어갔다 → 쉬는 시간 조기 종료. 마지막 아침에는 공연이 없으므로 무시한다.</summary>
         public bool NotifyAllAtStageEntrance()
         {
+            if (s.Phase == CampaignPhase.Rehearsal) return EndRehearsal();
             if (s.Phase != CampaignPhase.RestTime || s.IsFinalMorning) return false;
+            // 첫 공연 뒤에는 전원이 튜토리얼을 마치기 전까지 집결해도 다음 공연으로 넘어가지 않는다.
+            if (IsGuideRestWaiting) return false;
+            // 첫날 둘째 공연은 호스트가 스케줄표에서 확정해야 시작한다(CC-215). 시간 만료는 그대로 진행한다.
+            if (s.Day == 1 && s.Rest == RestKind.Guide && SecondPerformanceGate != null && !SecondPerformanceGate()) return false;
             EndRest();
+            return true;
+        }
+
+        /// <summary>첫날 둘째 공연 확정 전 집결 차단. 스케줄표가 걸고, 없으면 막지 않는다.</summary>
+        public static System.Func<bool> SecondPerformanceGate { get; set; }
+
+        /// <summary>
+        /// 첫날 둘째 공연을 호스트가 고른 묘기로 바꾼다(첫 공연 뒤 가이드 쉬는 시간, 안내 완료 후). 첫 공연 칸은 고정이다.
+        /// 발견하지 않은 공연은 받지 않는다.
+        /// </summary>
+        public bool SetFirstDaySecondTrick(string trickId)
+        {
+            if (!s.IsRunning || s.Day != 1 || s.Phase != CampaignPhase.RestTime || s.Rest != RestKind.Guide || IsGuideRestWaiting
+                || string.IsNullOrEmpty(trickId) || !s.IsTrickUnlocked(trickId) || Rules.PerformancesPerDay < 2) return false;
+            var list = new string[Rules.PerformancesPerDay];
+            setlists.TryGetValue(1, out var old);
+            for (int i = 0; i < list.Length; i++)
+                list[i] = old != null && i < old.Length && !string.IsNullOrEmpty(old[i]) ? old[i] : Rules.FirstDayTrick(i);
+            list[0] = Rules.FirstDayTrick(0);
+            list[1] = trickId;
+            setlists[1] = list;
+            RefreshCurrent();
             return true;
         }
 
@@ -319,6 +393,7 @@ namespace CurtainCall.Campaign
             switch (point.Phase)
             {
                 case RunStartPhase.Performance: EnterPerformance(next); break;
+                case RunStartPhase.Rehearsal: EnterRehearsal(); break;
                 case RunStartPhase.Morning: EnterRest(RestKind.Morning, 0); break;
                 case RunStartPhase.Between: EnterRest(point.Day == 1 && next == 1 ? RestKind.Guide : RestKind.Between, next); break;
                 case RunStartPhase.Night: s.PerformanceIndex = Rules.PerformancesPerDay - 1; EnterNight(); break;
@@ -336,6 +411,8 @@ namespace CurtainCall.Campaign
         void StartRun(int generation, RunEndReason previousEnd)
         {
             ready.Clear();
+            tutorialDone.Clear();
+            rehearsalPending = false;
             setlists.Clear();
             levels.Clear();
             cleared.Clear();
@@ -372,6 +449,17 @@ namespace CurtainCall.Campaign
             EnterPerformance(0);
         }
 
+        // 연습실 최초 리허설. 첫 공연(1일차 0번)을 다음 공연으로 보여 주고 타이머는 없다.
+        void EnterRehearsal()
+        {
+            rehearsalPending = false;
+            s.Phase = CampaignPhase.Rehearsal;
+            s.Rest = RestKind.None;
+            s.PerformanceIndex = 0;
+            RefreshCurrent(s.Day, 0);
+            ClearTimer();
+        }
+
         void EnterPerformance(int index)
         {
             s.Phase = CampaignPhase.Performance;
@@ -402,6 +490,16 @@ namespace CurtainCall.Campaign
             if (s.IsFinalMorning) { s.TrickId = ""; s.Difficulty = 0; } else RefreshCurrent(s.Day, nextPerformance);
             // 제한시간은 진입할 때만 적용한다. 도중 설정 변경으로 남은 시간을 재시작하지 않는다.
             StartTimer(rules.TimeLimit(kind));
+            // 가이드 쉬는 시간은 전원이 대기실 tutorial을 마친 뒤부터 흐른다(Task-097, 기획서 2장).
+            if (kind == RestKind.Guide)
+            {
+                guideRestUnlimited = s.Timer == RestTimerState.Unlimited;
+                s.Timer = RestTimerState.WaitingForExit;
+                s.AlarmRaised = false;
+                tutorialDone.Clear();
+                s.ReadyCount = 0;
+                s.RequiredCount = 0;
+            }
         }
 
         void EnterNight()

@@ -24,6 +24,10 @@ namespace CurtainCall.UI.SceneIntegration
         [SerializeField] RectTransform promptAnchor;
         [SerializeField, Min(.1f)] float highlightDistance = 4f;
         [SerializeField, Range(0, 6)] float outlinePixels = 6f;
+        [Tooltip("대기실 상호작용 대상 외곽선 두께(픽셀). 2026-11-02 사용자: 대기실 외곽선이 너무 넓다.")]
+        [SerializeField, Range(0, 6)] float waitingRoomOutlinePixels = 2.5f;
+        [Tooltip("대기실 상호작용 대상에 외곽선을 띄우는 거리(m). 2026-11-02 사용자: 너무 먼 대상까지 표시된다.")]
+        [SerializeField, Min(.1f)] float waitingRoomHighlightDistance = 2.5f;
         [SerializeField, ColorUsage(false, true)] Color outlineColor = new Color(3f, 2.8f, 2.2f, 1f);
         readonly List<Candidate> candidates = new();
         readonly List<Candidate> selected = new();
@@ -32,7 +36,7 @@ namespace CurtainCall.UI.SceneIntegration
         LobbyInteractable[] lobby = System.Array.Empty<LobbyInteractable>();
         LobbyRoom lobbyRoom;
         PlayerInputReader offlineReader;
-        Material material;
+        Material material, waitingRoomMaterial;
         readonly List<RectTransform> rescueRings = new();
         Sprite rescueTrack;
         string warmedDeviceText;
@@ -59,6 +63,8 @@ namespace CurtainCall.UI.SceneIntegration
                 material.SetColor("_OutlineColor", outlineColor); material.SetFloat("_OutlinePixels", outlinePixels);
                 // 기존 검정 외곽선 다음에 그려 상호작용 강조가 덮이지 않게 한다.
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 2;
+                waitingRoomMaterial = new Material(material) { hideFlags = HideFlags.HideAndDontSave, name = "Waiting room interaction highlight (runtime)" };
+                waitingRoomMaterial.SetFloat("_OutlinePixels", waitingRoomOutlinePixels);
             }
         }
         void OnEnable()
@@ -129,7 +135,7 @@ namespace CurtainCall.UI.SceneIntegration
             foreach (var candidate in candidates)
             {
                 if (candidate.ScreenGuide || !candidate.Available || !IsVisible(candidate, camera, reader.transform)
-                    || !candidate.Pole && candidate.Distance > highlightDistance) continue;
+                    || !candidate.Pole && candidate.Distance > (candidate.WaitingRoom ? waitingRoomHighlightDistance : highlightDistance)) continue;
                 int index = 0;
                 while (index < selected.Count && (selected[index].Distance < candidate.Distance ||
                     (Mathf.Approximately(selected[index].Distance, candidate.Distance) && selected[index].Root.GetInstanceID() < candidate.Root.GetInstanceID()))) index++;
@@ -148,7 +154,7 @@ namespace CurtainCall.UI.SceneIntegration
                     if (candidate.NoOutline) continue;
                     bool exists = false;
                     foreach (var outline in outlines) if (outline.Target == candidate.Root) exists = true;
-                    if (!exists) outlines.Add(new InteractionOutline(candidate.Root, material));
+                    if (!exists) outlines.Add(new InteractionOutline(candidate.Root, candidate.WaitingRoom && waitingRoomMaterial != null ? waitingRoomMaterial : material));
                 }
             // F still goes to the game's focused target, never to a second highlighted object.
             Candidate focused = null;
@@ -581,6 +587,6 @@ namespace CurtainCall.UI.SceneIntegration
             if (lobbyRoom != null) lobbyRoom.ExternalInteractionPresentation = false;
             Hide();
         }
-        void OnDestroy() { foreach (var ring in rescueRings) if (ring != null) Destroy(ring.gameObject); if (material != null) Destroy(material); }
+        void OnDestroy() { foreach (var ring in rescueRings) if (ring != null) Destroy(ring.gameObject); if (material != null) Destroy(material); if (waitingRoomMaterial != null) Destroy(waitingRoomMaterial); }
     }
 }

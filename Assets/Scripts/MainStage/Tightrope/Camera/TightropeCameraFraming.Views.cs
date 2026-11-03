@@ -52,8 +52,9 @@ namespace CurtainCall.Cameras
         {
             if (director != null)
             {
-                if (ownsInput && (director.CurrentView == platformView || director.CurrentView == preset))
-                    director.SetInputBlocked(false);
+                // 이 구도가 마지막으로 건 입력 차단은 시점이 이미 다른 것으로 바뀐 뒤 해제돼도 풀어야 한다.
+                // 리허설 코스가 완료로 사라질 때 로비 시점이 먼저 선택되면 차단이 남아 마우스 시점이 멈췄다(2026-11-03).
+                if (ownsInput) director.SetInputBlocked(false);
                 director.SetPreserveCursorInFixedView(false);
                 director.ReleaseView(this);
             }
