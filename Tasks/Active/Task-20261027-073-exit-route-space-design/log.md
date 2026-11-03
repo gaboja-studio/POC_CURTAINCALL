@@ -120,3 +120,4 @@
 - 추가 EditMode 매달림·구조 규칙 8/8, 캠페인 대포 추락 부상 정책 1/1. 이번 선별 회귀 합계 50/50.
 
 - 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-03 제출. [PR #274](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/274) · feat/exit-route/design-map → dev. 게임 변경 02649c26.
