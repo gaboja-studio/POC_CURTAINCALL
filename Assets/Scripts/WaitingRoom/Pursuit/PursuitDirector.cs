@@ -11,11 +11,11 @@ using UnityEngine;
 
 namespace CurtainCall.WaitingRoom.Pursuit
 {
-    /// <summary>호스트만 AI/포획을 판정. 방·배치 순서는 씬에서 고정하며 상태를 늦은 입장자에게도 계속 전송한다.</summary>
+    /// <summary>호스트 AI/최종 포획 확정, 원격 피해자는 자신의 화면에서 접촉을 보고한다. 배치 순서는 씬에서 고정한다.</summary>
     public sealed partial class PursuitDirector : MonoBehaviour
     {
-        const string Message = "CurtainCall.WaitingRoom.Pursuit.v3";
-        const string ReadyMessage = "CurtainCall.WaitingRoom.Pursuit.v3.ready";
+        const string Message = "CurtainCall.WaitingRoom.Pursuit.v4";
+        const string ReadyMessage = "CurtainCall.WaitingRoom.Pursuit.v4.ready";
         readonly HashSet<ulong> readyClients = new();
         bool receivedSnapshot;
         float readyAt;
@@ -208,6 +208,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             victims.Clear(); active = false; Elapsed = -1; stage = -1; forcedStage = -1;
             footsteps.Clear();
             ResetLighting();
+            ResetContacts();
             generation = s.Generation; day = s.Day; performance = s.PerformanceIndex;
             poseEpoch++; sendAt = 0;
             foreach (var actor in actors) actor.ResetActor();
@@ -268,10 +269,19 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         public void BeginCapture(PursuitActor actor, GameObject player)
         {
-            if (run == null || !run.HasAuthority || !active || actor == null || !actor.IsActivated || CaptureSuppressed || !PlayerRecognitionEnabled || !IsAvailable(player)) return;
-            var room = Rooms.Where(r => r != null && r.Contains(player.transform.position)).OrderBy(r => r.Area.bounds.size.sqrMagnitude).FirstOrDefault() ?? actor.Room;
+            // Host/offline victims have no network presentation delay. A remote victim can only
+            // enter through a validated owner contact, even when the host's old position is close.
+            if (RequiresOwnerContact(player)) return;
+            CommitCapture(actor, player);
+        }
+        void CommitCapture(PursuitActor actor, GameObject player, Vector3? contactPosition = null)
+        {
+            if (run == null || !run.HasAuthority || !active || actor == null || actor.Victim != null || !actor.IsActivated || CaptureSuppressed || !PlayerRecognitionEnabled || !IsAvailable(player)) return;
+            var contactPoint = contactPosition ?? player.transform.position;
+            var room = Rooms.Where(r => r != null && r.Contains(contactPoint)).OrderBy(r => r.Area.bounds.size.sqrMagnitude).FirstOrDefault() ?? actor.Room;
             var visual = player.GetComponentInChildren<HumanoidModel>();
-            var v = new Victim { Object = player, Room = room, Anchor = visual != null ? visual.transform.position : player.transform.position,
+            var v = new Victim { Object = player, Room = room,
+                Anchor = contactPoint + (visual != null ? visual.transform.position - player.transform.position : Vector3.zero),
                 Upright = visual != null ? visual.transform.rotation : player.transform.rotation };
             victims[Id(player)] = v;
             actor.Capture(player, 0);
@@ -333,16 +343,17 @@ namespace CurtainCall.WaitingRoom.Pursuit
             Unbind();
             manager = nm; messaging = next;
             if (messaging == null) return;
-            if (manager.IsServer) messaging.RegisterNamedMessageHandler(ReadyMessage, ReceiveReady);
+            if (manager.IsServer) { messaging.RegisterNamedMessageHandler(ReadyMessage, ReceiveReady); messaging.RegisterNamedMessageHandler(ContactMessage, ReceiveContact); }
             else { messaging.RegisterNamedMessageHandler(Message, Receive); messaging.RegisterNamedMessageHandler(PoseMessage, ReceivePoses); receivedSnapshot = false; readyAt = 0; }
         }
         void Unbind()
         {
             if (messaging != null && manager != null) {
-                if (manager.IsServer) messaging.UnregisterNamedMessageHandler(ReadyMessage);
+                if (manager.IsServer) { messaging.UnregisterNamedMessageHandler(ReadyMessage); messaging.UnregisterNamedMessageHandler(ContactMessage); }
                 else { messaging.UnregisterNamedMessageHandler(Message); messaging.UnregisterNamedMessageHandler(PoseMessage); }
             }
             readyClients.Clear();
+            ResetContacts();
         }
         Snapshot BuildSnapshot() => new Snapshot { generation = generation, day = day, performance = performance, elapsed = Elapsed, stage = stage,
             poseEpoch = poseEpoch, debugInvulnerable = debugInvulnerable, debugIgnorePlayers = debugIgnorePlayers,
@@ -385,7 +396,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (c.Phase != CampaignPhase.RestTime || s.generation != c.Generation || s.day != c.Day || s.performance != c.PerformanceIndex
                 || s.actors == null || s.actors.Length != actors.Count || s.victims == null) return;
             if (s.elapsed < 0 && active) ResetStep(c);
-            if (poseEpoch != s.poseEpoch) foreach (var actor in actors) actor.ResetActor();
+            if (poseEpoch != s.poseEpoch) { ResetContacts(); foreach (var actor in actors) actor.ResetActor(); }
             poseEpoch = s.poseEpoch;
             foreach (var id in victims.Keys.Where(id => !s.victims.Any(v => v.id == id)).ToArray()) {
                 if (victims[id].Pose != null) Destroy(victims[id].Pose);

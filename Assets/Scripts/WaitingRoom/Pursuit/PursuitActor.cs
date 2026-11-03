@@ -40,6 +40,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
         Vector3 remotePosition, remoteLook;
         Quaternion remoteRotation;
         readonly PursuitPoseBuffer poseBuffer = new();
+        internal double ContactPoseTime { get; private set; } = -1;
+        double contactPoseReceivedAt = double.NegativeInfinity;
+        internal bool HasFreshContactPose => ContactPoseTime >= 0
+            && Time.realtimeSinceStartupAsDouble - contactPoseReceivedAt <= PursuitContactRules.MaxPoseSilence;
         PursuitAppearance appearance;
         bool advancedMotion;
         public bool HasLook => target != null || Victim != null || remoteLookValid || sensingLook;
@@ -70,6 +74,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             transform.SetPositionAndRotation(initialPosition, initialRotation);
             remote = false; remoteLookValid = false; remoteTarget = null; waypoint = 0;
             poseBuffer.Clear();
+            ContactPoseTime = -1; contactPoseReceivedAt = double.NegativeInfinity;
             appearance?.SetCaptureCount(0);
             Victim = null; target = null; CaptureElapsed = 0; CaptureFinished = false; unseen = 0;
             activatedAt = -1;
@@ -130,6 +135,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             Behaviour = PursuitBehaviour.Capture;
             target = victim != null ? victim.transform : null;
             CaptureFinished = false;
+            SetMotion(PursuitMotion.Grab);
         }
         public void FinishCapture()
         {
@@ -147,7 +153,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         public void ReceivePose(double timestamp, Vector3 position, Quaternion rotation)
         {
-            poseBuffer.Push(timestamp, position, rotation);
+            if (!poseBuffer.Push(timestamp, position, rotation)) return;
+            ContactPoseTime = timestamp; contactPoseReceivedAt = Time.realtimeSinceStartupAsDouble;
         }
         void Update()
         {
@@ -164,6 +171,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         void LateUpdate()
         {
+            if (remote && Victim == null) director?.ReportLocalContact(this);
             if (Victim != null) { AlignCapture(); return; }
             if (Chest == null || !HasLook) return;
             var p = LookPoint;

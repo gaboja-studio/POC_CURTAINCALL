@@ -68,3 +68,5 @@
 - 통합 PlayMode16개: 전체14/16, 순서/환경 실패2개(활성화 런처·Vivox 오류)는 각각 단독1/1 PASS. 전체 결과를 완전 PASS로 표현하지 않음. 실제 다인 수신/Relay·저사양 빌드 실측은 남아 있음.
 
 - 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-03 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/276 (feat/waiting-room/pursuit-system → dev)
