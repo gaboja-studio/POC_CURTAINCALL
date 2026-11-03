@@ -214,7 +214,7 @@ namespace CurtainCall.Player
             var pole = poles.Pole(index);
             if (pole == null) return false;
             grip = poles.HangingPosition(index, network.OwnerClientId) + Vector3.up * pole.HangLength;
-            axis = pole.Grip.right;
+            axis = poles.RiderRotation(index, network.OwnerClientId) * Vector3.right;
             return true;
         }
 

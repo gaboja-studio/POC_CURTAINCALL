@@ -97,6 +97,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             cd.ApplyModifiedProperties();
             var development=UnityEngine.Object.FindFirstObjectByType<EscapeDevelopmentSession>();
             Undo.RecordObject(development,"Temporarily suppress requested fall consequences");development.SuppressFallConsequences=true;
+            development.AllowRopeBalanceFalls = true;
             EditorUtility.SetDirty(development);
             RegisterAllPoles();course.Rebuild();Physics.SyncTransforms();EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             return "Four timed wires 12m -> 28m; lower work deck and exit extended; original unheld trampoline bounce restored; single-worker gate connected; fall consequences disabled for A";

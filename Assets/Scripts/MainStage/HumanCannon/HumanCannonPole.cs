@@ -131,7 +131,7 @@ namespace CurtainCall.HumanCannon
         public bool IsInReach(NetworkPlayer player)
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
-            if (Loop != null && !Loop.IsSynchronized) return false;
+            if (Loop != null && (!Loop.IsSynchronized || Loop.AtUnloadingBay(Loop.Elapsed))) return false;
             RefreshMovingPose();
             var target = BarPosition(0);
             return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f)) && HasClearGrabPath(player, target);
@@ -141,12 +141,12 @@ namespace CurtainCall.HumanCannon
         {
             if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || seat < 0 || seat >= RiderCapacity) return false;
             var route = Loop;
-            if (route != null && !route.IsSynchronized) return false;
+            if (route != null && (!route.IsSynchronized || route.AtUnloadingBay(route.Elapsed))) return false;
             RefreshMovingPose();
             Vector3 target = BarPosition(angle) + SeatOffset(seat);
             if (observedElapsed >= 0d)
             {
-                if (route == null || !double.IsFinite(observedElapsed) || observedElapsed > route.Elapsed + .05d
+                if (route == null || route.AtUnloadingBay(observedElapsed) || !double.IsFinite(observedElapsed) || observedElapsed > route.Elapsed + .05d
                     || route.Elapsed - observedElapsed > .35d) return false;
                 target = route.PointAt(target, System.Math.Min(observedElapsed, route.Elapsed));
             }
@@ -160,7 +160,7 @@ namespace CurtainCall.HumanCannon
             if (route == null || !route.IsSynchronized || player == null || !player.IsSpawned
                 || player.State != PlayerState.Normal || !double.IsFinite(observedElapsed) || observedElapsed < 0d) return false;
             double now = route.Elapsed;
-            if (observedElapsed > now + .05d || now - observedElapsed > .35d) return false;
+            if (route.AtUnloadingBay(now) || route.AtUnloadingBay(observedElapsed) || observedElapsed > now + .05d || now - observedElapsed > .35d) return false;
             route.RefreshPose();
             Vector3 target = route.PointAt(BarPosition(0), System.Math.Min(observedElapsed, now));
             return PlayerInteraction.InRange(player, target, GrabRadius(player, 0f)) && HasClearGrabPath(player, target);

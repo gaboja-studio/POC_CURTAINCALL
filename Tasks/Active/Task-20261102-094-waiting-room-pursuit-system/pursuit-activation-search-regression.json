@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 23.88,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitBehaviour_GraphHearingChaseSearchAndCulling",
+      "Status": "Passed",
+      "Duration": 23.774474,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

@@ -35,6 +35,29 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That((angular + reverseAngular).magnitude, Is.LessThan(.001f));
         }
 
+        [Test]
+        public void WallFedRailFacesCannonAcrossBendAndUnloadsBeforeRecycling()
+        {
+            loop.Configure(carriage, Vector3.zero, 10, 2, 1);
+            var settings = new UnityEditor.SerializedObject(loop);
+            settings.FindProperty("wallFed").boolValue = true;
+            settings.FindProperty("exitStraightLength").floatValue = 8;
+            settings.FindProperty("unloadingDistance").floatValue = 3;
+            settings.ApplyModifiedPropertiesWithoutUndo();
+
+            double lastStraight = 10d + Mathf.PI;
+            loop.EvaluatePose(lastStraight, out var corner, out var facing, out var velocity, out var angular);
+            Assert.That(Vector3.Distance(corner, root.transform.TransformPoint(new Vector3(-12, 0, -2))), Is.LessThan(.001f));
+            Assert.That(Quaternion.Angle(facing, root.transform.rotation), Is.LessThan(.01f));
+            Assert.That(Vector3.Distance(velocity, -root.transform.forward), Is.LessThan(.001f));
+            Assert.That(angular, Is.EqualTo(Vector3.zero));
+            Assert.That(loop.AtUnloadingBay(lastStraight + 4), Is.False);
+            Assert.That(loop.AtUnloadingBay(lastStraight + 6), Is.True);
+            loop.EvaluatePose(loop.Length, out var supply, out _, out _, out _);
+            Assert.That(Vector3.Distance(supply, root.transform.position), Is.LessThan(.001f));
+            Assert.That(loop.AtUnloadingBay(loop.Length), Is.False);
+        }
+
         [TestCase(3d)] [TestCase(9d)] [TestCase(19d)] [TestCase(31d)]
         public void Reverse_ReleaseVelocityMatchesActualRailMotionAndClosesSeam(double time)
         {

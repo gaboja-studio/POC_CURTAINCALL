@@ -19,6 +19,8 @@ namespace CurtainCall.EscapeRoute
         public const float RecoverySeconds = 1f;
         [Tooltip("이 개발 씬에서만 추락 부상·낙사·균형 붕괴를 임시 해제한다. 톱·화염 등 직접 피해는 유지한다.")]
         [SerializeField] bool suppressFallConsequences;
+        [Tooltip("낙사 방지 중에도 외줄 균형 붕괴와 구조 시간 만료를 적용한다.")]
+        [SerializeField] bool allowRopeBalanceFalls;
         static readonly HashSet<EscapeDevelopmentSession> activeSessions = new();
 
         public bool SuppressFallConsequences
@@ -27,11 +29,21 @@ namespace CurtainCall.EscapeRoute
             set => suppressFallConsequences = value;
         }
 
+        public bool AllowRopeBalanceFalls
+        {
+            get => allowRopeBalanceFalls;
+            set => allowRopeBalanceFalls = value;
+        }
+
         /// <summary>
         /// 옵션을 켠 개발 씬의 추락 경로만 차단한다. Dev 치트 "추락 무시"(F9)가 켜져 있으면 어느 공간에서든 차단한다.
         /// 직접 위험물 피해의 상태 가드로 사용하지 않는다.
         /// </summary>
-        public static bool FallConsequencesSuppressed(Component source)
+        public static bool FallConsequencesSuppressed(Component source) => SuppressesFall(source, false);
+
+        public static bool RopeBalanceFallsSuppressed(Component source) => SuppressesFall(source, true);
+
+        static bool SuppressesFall(Component source, bool fromRopeBalance)
         {
             if (source == null) return false;
             // Dev 치트(F9 "추락 무시")는 어느 공간에서든 같은 경로를 쓴다.
@@ -41,7 +53,8 @@ namespace CurtainCall.EscapeRoute
             if (scene.name == "DontDestroyOnLoad") scene = SceneManager.GetActiveScene();
             foreach (var candidate in activeSessions)
                 if (candidate != null && candidate.isActiveAndEnabled && candidate.suppressFallConsequences
-                    && candidate.gameObject.scene == scene) return true;
+                    && candidate.gameObject.scene == scene
+                    && (!fromRopeBalance || !candidate.allowRopeBalanceFalls)) return true;
             return false;
         }
 

@@ -17,6 +17,12 @@ namespace CurtainCall.UI.SceneIntegration
         const int PromptMaxLines = 3;
         string previousTitle, previousSubtitle, previousMessage;
         float previousWidth;
+        (string key, bool helperVisible, TMP_FontAsset keyFont, TMP_FontAsset actionFont, TMP_FontAsset helperFont,
+            Vector2 parentSize) fittedDevice;
+        (string, bool, TMP_FontAsset, TMP_FontAsset, TMP_FontAsset, Vector2) DeviceMetrics() =>
+            (key.text, subtitle.gameObject.activeSelf, key.font, title.font, subtitle.font,
+                panel.parent is RectTransform parent ? parent.rect.size : Vector2.zero);
+        bool DevicePrompt => interaction && deviceText && key != null && title != null && subtitle != null;
         bool initialized, interaction, banner;
         CommonWaitingRoomUI waitingRoom;
         bool deviceText;
@@ -101,7 +107,8 @@ namespace CurtainCall.UI.SceneIntegration
                 HudLayout.PlaceBanner(panel, balanceAtTop, waitingRoom != null ? waitingRoom.TimerBannerTop : 0);
             }
             if (previousTitle != title?.text || previousSubtitle != subtitle?.text
-                || previousMessage != message?.text || !Mathf.Approximately(previousWidth, panel.rect.width))
+                || previousMessage != message?.text || !Mathf.Approximately(previousWidth, panel.rect.width)
+                || DevicePrompt && fittedDevice != DeviceMetrics())
                 RefreshLayout();
         }
 
@@ -131,6 +138,7 @@ namespace CurtainCall.UI.SceneIntegration
             previousSubtitle = subtitle?.text;
             previousMessage = message?.text;
             previousWidth = panel.rect.width;
+            if (DevicePrompt) fittedDevice = DeviceMetrics();
         }
 
         /// <summary>안내·보조 줄 중 긴 쪽이 한 줄에 들어가도록 박스를 넓힌다(기본 폭 이상, 최대 폭 이하). 넘치면 줄바꿈한다.</summary>

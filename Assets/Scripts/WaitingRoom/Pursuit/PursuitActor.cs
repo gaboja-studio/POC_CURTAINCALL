@@ -19,6 +19,11 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public float CaptureElapsed { get; private set; }
         public bool CaptureFinished { get; private set; }
         public PursuitPlacement Placement { get; private set; }
+        public int ActivationStage => Placement != null ? Placement.ResolvedActivationStage : 1;
+        public bool IsActivated => director != null && director.Elapsed >= 0
+            && (director.CurrentStageIndex + 1 >= ActivationStage || Victim != null);
+        float activatedAt = -1;
+        bool IsAwakening => activatedAt < 0 || Time.time - activatedAt < GameSettings.WaitingRoom.Pursuit.AwakeningSeconds;
         public GameObject ChasedPlayer => remote ? remoteTarget : target != null ? target.gameObject : null;
         GameObject remoteTarget;
         NavMeshAgent agent;
@@ -34,11 +39,15 @@ namespace CurtainCall.WaitingRoom.Pursuit
         bool remote, remoteLookValid;
         Vector3 remotePosition, remoteLook;
         Quaternion remoteRotation;
+        readonly PursuitPoseBuffer poseBuffer = new();
+        PursuitAppearance appearance;
+        bool advancedMotion;
         public bool HasLook => target != null || Victim != null || remoteLookValid || sensingLook;
         public Vector3 LookPoint => Victim != null ? Victim.transform.position : remote ? remoteLook : target != null ? lastSeen : scanLook;
         public void Initialize(PursuitDirector owner, PursuitRoom room, PursuitPlacement placement = null)
         {
             director = owner; Room = room; Placement = placement;
+            appearance = GetComponent<PursuitAppearance>();
             initialPosition = transform.position; initialRotation = transform.rotation;
             agent = GetComponent<NavMeshAgent>();
             if (agent == null) agent = gameObject.AddComponent<NavMeshAgent>();
@@ -48,6 +57,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (Motion == null) Motion = GetComponentInChildren<Animation>();
             if (Motion != null && Clips != null)
                 for (int i = 0; i < Clips.Length; i++) if (Clips[i] != null) Motion.AddClip(Clips[i], ((PursuitMotion)i).ToString());
+            if (Motion != null && appearance != null) {
+                if (appearance.AdvancedWalk != null) Motion.AddClip(appearance.AdvancedWalk, "AdvancedWalk");
+                if (appearance.AdvancedRun != null) Motion.AddClip(appearance.AdvancedRun, "AdvancedRun");
+            }
             SetMotion(PursuitMotion.Display, true);
             InitializeBrain();
         }
@@ -56,19 +69,34 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (agent != null) agent.enabled = false;
             transform.SetPositionAndRotation(initialPosition, initialRotation);
             remote = false; remoteLookValid = false; remoteTarget = null; waypoint = 0;
+            poseBuffer.Clear();
+            appearance?.SetCaptureCount(0);
             Victim = null; target = null; CaptureElapsed = 0; CaptureFinished = false; unseen = 0;
+            activatedAt = -1;
             ResetBrain();
             SetMotion(PursuitMotion.Display, true);
         }
         public void SetMotion(PursuitMotion next, bool force = false)
         {
-            if (State == next && !force) return;
+            bool advanced = IsActivated && director.CurrentStageIndex + 1 >= GameSettings.WaitingRoom.Pursuit.AdvancedAppearanceStage;
+            if (State == next && !force && advancedMotion == advanced) return;
+            advancedMotion = advanced;
             State = next;
-            if (Motion != null && Motion.GetClip(next.ToString()) != null) Motion.CrossFade(next.ToString(), .12f);
+            if (!remote) director?.ActorStateChanged();
+            string clip = advanced && (next == PursuitMotion.Walk || next == PursuitMotion.Run) ? "Advanced" + next : next.ToString();
+            if (Motion != null) { if (Motion.GetClip(clip) == null) clip = next.ToString(); if (Motion.GetClip(clip) != null) Motion.CrossFade(clip, .12f); }
         }
         public void ServerTick(float elapsed, bool warning)
         {
-            if (elapsed < 0) { SetMotion(warning ? PursuitMotion.Twitch : PursuitMotion.Display); return; }
+            if (elapsed < 0 || !IsActivated) {
+                if (activatedAt >= 0) {
+                    ForgetPlayers();
+                    if (agent != null) agent.enabled = false;
+                    activatedAt = -1;
+                }
+                SetMotion(elapsed < 0 && warning && ActivationStage == 1 ? PursuitMotion.Twitch : PursuitMotion.Display);
+                return;
+            }
             var rules = GameSettings.WaitingRoom.Pursuit;
             if (Victim != null) {
                 CaptureElapsed += Time.deltaTime;
@@ -76,7 +104,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 director.AdvanceCapture(this);
                 return;
             }
-            if (elapsed < rules.AwakeningSeconds) { SetMotion(PursuitMotion.Awaken); return; }
+            if (activatedAt < 0) activatedAt = Time.time;
+            if (IsAwakening) { SetMotion(PursuitMotion.Awaken); return; }
             if (agent == null) return;
             if (!agent.enabled) {
                 if (!NavMesh.SamplePosition(transform.position, out var hit, 2f, NavMesh.AllAreas)) return;
@@ -104,21 +133,30 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         public void FinishCapture()
         {
+            if (Victim != null && appearance != null) appearance.SetCaptureCount(appearance.CaptureCount + 1);
             Victim = null; target = null; CaptureFinished = true; CaptureElapsed = 0;
         }
         public void Receive(Vector3 p, Quaternion r, PursuitMotion motion, GameObject victim, float capture, Vector3 look, bool hasLook, GameObject chasedPlayer = null)
         {
             if (agent != null) agent.enabled = false;
-            if (!remote || Vector3.Distance(transform.position, p) > 3) transform.SetPositionAndRotation(p, r);
+            if (!remote) transform.SetPositionAndRotation(p, r);
             remote = true; remotePosition = p; remoteRotation = r; remoteLook = look; remoteLookValid = hasLook;
             SetMotion(motion);
+            if (victim != null && Victim != victim) { captureStart = transform.position; captureRotation = transform.rotation; }
             Victim = victim; CaptureElapsed = capture; remoteTarget = chasedPlayer;
+        }
+        public void ReceivePose(double timestamp, Vector3 position, Quaternion rotation)
+        {
+            poseBuffer.Push(timestamp, position, rotation);
         }
         void Update()
         {
             if (remote) {
-                transform.position = Vector3.Lerp(transform.position, remotePosition, 1 - Mathf.Exp(-18 * Time.deltaTime));
-                transform.rotation = Quaternion.Slerp(transform.rotation, remoteRotation, 1 - Mathf.Exp(-18 * Time.deltaTime));
+                if (poseBuffer.Sample(Time.unscaledDeltaTime, out var p, out var q)) { remotePosition = p; remoteRotation = q; }
+                // A delayed burst can never trigger the old 3m teleport. ResetActor is the explicit warp path.
+                transform.position = Vector3.MoveTowards(transform.position, Vector3.Lerp(transform.position, remotePosition, 1 - Mathf.Exp(-22 * Time.unscaledDeltaTime)), 18 * Time.unscaledDeltaTime);
+                transform.rotation = Quaternion.Slerp(transform.rotation, remoteRotation, 1 - Mathf.Exp(-18 * Time.unscaledDeltaTime));
+                if (Victim != null) CaptureElapsed += Time.deltaTime;
             }
             // Undo only this script's look offset before the next animation evaluation.
             if (chestAdjusted && Chest != null) Chest.localRotation = chestBase;

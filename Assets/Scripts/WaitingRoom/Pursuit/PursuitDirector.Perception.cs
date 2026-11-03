@@ -14,6 +14,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         float nextFootstepSample, nextVisibilitySample;
         void SampleFootsteps()
         {
+            if (!PlayerRecognitionEnabled) return;
             if (Time.time < nextFootstepSample) return;
             nextFootstepSample = Time.time + .1f;
             foreach (var player in candidates) {
@@ -33,10 +34,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         public void EmitFootstep(Vector3 position, bool running, Transform source)
         {
-            if (!active || Elapsed < 0 || (run != null && !run.HasAuthority)) return;
+            if (!PlayerRecognitionEnabled || !active || Elapsed < 0 || (run != null && !run.HasAuthority)) return;
             var rules = CurrentStageRules;
             foreach (var actor in actors) {
-                if (actor == null) continue;
+                if (actor == null || !actor.IsActivated) continue;
                 float radius = running ? rules.RunHearingRadius : rules.WalkHearingRadius;
                 float distance = Vector3.Distance(actor.transform.position, position);
                 if (radius <= 0 || distance > radius) continue;

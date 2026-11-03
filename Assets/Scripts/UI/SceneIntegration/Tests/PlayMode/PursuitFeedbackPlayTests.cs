@@ -44,11 +44,43 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue((bool)Call(director, "DebugExpireTimer"));
             ((Behaviour)director).enabled = false;
             yield return null; yield return null;
-            Assert.AreEqual(1, Get(feedback, "HighlightCount"));
+            Assert.AreEqual(0, Get(feedback, "HighlightCount"), "Silhouette outlines were removed; direction cues replace them.");
             Assert.IsFalse((bool)Get(feedback, "IsChased"));
             var shells = actor.GetComponentsInChildren<Renderer>().Where(r => r.name == "__InteractionOutline").ToArray();
-            Assert.IsTrue(shells.Any(r => r.enabled));
-            Assert.Greater(shells[0].sharedMaterial.GetColor("_OutlineColor").r, shells[0].sharedMaterial.GetColor("_OutlineColor").g * 5);
+            Assert.IsEmpty(shells);
+            var appearance = actor.GetComponent(T("CurtainCall.WaitingRoom.Pursuit.PursuitAppearance"));
+            Assert.IsNotNull(appearance);
+            var behaviour = T("CurtainCall.WaitingRoom.Pursuit.PursuitBehaviour");
+            var rule = Get(Static("CurtainCall.Settings.GameSettings", "WaitingRoom"), "Pursuit");
+            var stages = ((IEnumerable)Field(rule, "Stages")).Cast<object>().ToArray();
+            for (int stageIndex = 0; stageIndex < stages.Length; stageIndex++) {
+                ((Behaviour)director).enabled = true; Assert.IsTrue((bool)Call(director, "DebugSetStage", stageIndex)); ((Behaviour)director).enabled = false;
+                yield return new WaitForSecondsRealtime(.16f);
+                float fov = (float)Field(stages[stageIndex], "FieldOfView");
+                Assert.AreEqual(fov, Get(appearance, "CueAngle"), "The cue must follow stage changes.");
+                var floorMesh = actor.transform.Find("Pursuit facing light").GetComponent<MeshFilter>().sharedMesh;
+                var uv = floorMesh.uv; var vertices = floorMesh.vertices;
+                foreach (float side in new[] { 0f, 1f }) {
+                    int edge = Array.FindIndex(uv, v => Mathf.Approximately(v.x, side) && v.y > 0);
+                    Vector3 ray = Vector3.ProjectOnPlane(vertices[edge], Vector3.up);
+                    Assert.AreEqual((side - .5f) * fov, Vector3.SignedAngle(Vector3.forward, ray, Vector3.up), .1f, "Rendered left/right boundaries must match the sight angle.");
+                }
+                float length = (float)Field(rule, "DirectionCueLength");
+                Assert.LessOrEqual(vertices.Max(v => Vector3.ProjectOnPlane(actor.transform.TransformPoint(v) - actor.transform.position, Vector3.up).magnitude), length + .01f, "Cue length must remain independent of sight distance.");
+            }
+            foreach (string name in new[]{"Patrol","Listen","Prepare","Chase"}) {
+                Call(actor,"ReceiveBehaviour",Enum.Parse(behaviour,name));
+                yield return new WaitForSecondsRealtime(.16f);
+                Assert.IsTrue((bool)Get(appearance,"CueVisible"),name+" should show a floor direction cue.");
+                Color color=(Color)Get(appearance,"CueColor");
+                string colorField = name == "Patrol" ? "PatrolCueColor" : name == "Listen" ? "AlertCueColor" : "ChaseCueColor";
+                Assert.AreEqual((Color)Field(rule, colorField), color, "The chosen state must use its designer-configured color.");
+            }
+            ((Behaviour)director).enabled=true;Assert.IsTrue((bool)Call(director,"DebugSetStage",2));((Behaviour)director).enabled=false;
+            Call(appearance,"SetCaptureCount",2);
+            yield return null;yield return null;
+            Assert.IsTrue((bool)Get(appearance,"IsAdvanced"));Assert.AreEqual(2,Get(appearance,"CaptureCount"));
+            Assert.IsTrue(((GameObject[])Field(appearance,"AdvancedDetails")).All(go=>go.activeSelf));
             var other = new GameObject("OtherPlayerFixture");
             try {
                 Call(actor, "Receive", p, Quaternion.identity, Enum.Parse(motion, "Run"), null, 0f, player.transform.position, true, other);
@@ -64,13 +96,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(0, Get(feedback, "HighlightCount")); Assert.Less((float)Get(feedback, "Intensity"), .01f);
                 Call(actor, "Receive", p, Quaternion.identity, Enum.Parse(motion, "Display"), null, 0f, Vector3.zero, false, null);
                 yield return null; yield return null;
-                Assert.AreEqual(1, Get(feedback, "HighlightCount"));
+                Assert.AreEqual(0, Get(feedback, "HighlightCount"), "Silhouette outlines were removed; direction cues replace them.");
                 ((Behaviour)director).enabled = true;
                 Assert.IsTrue((bool)Call(director, "DebugResetTimer"));
                 ((Behaviour)director).enabled = false;
                 Call(actor, "Receive", p, Quaternion.identity, Enum.Parse(motion, "Display"), null, 0f, Vector3.zero, false, null);
                 yield return null; yield return null;
                 Assert.AreEqual(0, Get(feedback, "HighlightCount"), "Cancelling pursuit must remove the outline even while still nearby.");
+                Assert.IsFalse((bool)Get(appearance,"CueVisible"));
+                Assert.IsFalse((bool)Get(appearance,"IsAdvanced"));Assert.AreEqual(0,Get(appearance,"CaptureCount"));
                 Assert.IsFalse(actor.GetComponentsInChildren<Renderer>().Any(r => r.name == "__InteractionOutline"));
                 ((Behaviour)feedback).enabled = false; yield return null;
                 Assert.IsNull(((Component)feedback).transform.Find("PursuitThreatEdges"));

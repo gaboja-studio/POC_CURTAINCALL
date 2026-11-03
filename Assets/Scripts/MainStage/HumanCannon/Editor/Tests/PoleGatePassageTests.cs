@@ -121,56 +121,116 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 
         [TestCase(0f)]
         [TestCase(6f)]
-        public void ReleasedAndWarningSaw_StopInPlaceAndAllowPassageBeforeActiveRotationReturns(float floorHeight)
+        public void GrabSplitsTheWallIntoOpenHalvesThatStayOpenAndKeepCutting(float floorHeight)
         {
             gateObject.transform.position = Vector3.up * floorHeight;
             var visual = new GameObject("SawVisual").transform;
             visual.SetParent(gateObject.transform, false);
-            visual.localPosition = new Vector3(0f, 1.2f, -0.4f);
-            var rotor = new GameObject("GateSawDisc0").transform;
-            rotor.SetParent(visual, false);
-            var barrier = new GameObject("Barrier").AddComponent<BoxCollider>();
-            var wallRenderer = barrier.gameObject.AddComponent<MeshRenderer>();
-            var fenceRenderer = new GameObject("VisibleFence").AddComponent<MeshRenderer>();
-            fenceRenderer.transform.SetParent(barrier.transform, false);
-            barrier.transform.SetParent(gateObject.transform, false);
-            barrier.center = Vector3.up * 1.2f;
-            barrier.size = new Vector3(30f, 2.4f, 0.6f);
-            typeof(HumanCannonSawGate).GetField("sawVisual", InternalInstance).SetValue(gate, visual);
-            typeof(HumanCannonSawGate).GetField("barrier", InternalInstance).SetValue(gate, barrier);
+            visual.localPosition = new Vector3(0f, 1.2f, 0f);
+            var left = Half(visual, "LeftBlades", -1f, out var leftRotor, out var leftOuter);
+            var right = Half(visual, "RightBlades", 1f, out _, out var rightOuter);
+            // 지상 바닥은 x -10~10. 열린 뒤 바깥 톱(±20)만 바닥 밖에 놓인다.
+            var floor = new GameObject("Floor").AddComponent<BoxCollider>();
+            floor.center = new Vector3(0f, floorHeight - 0.5f, 0f);
+            floor.size = new Vector3(20f, 1f, 4f);
+            Set("sawVisual", visual);
+            Set("leftParts", new[] { left });
+            Set("rightParts", new[] { right });
+            Set("openGap", 6f);
             typeof(HumanCannonSawGate).GetMethod("Awake", InternalInstance).Invoke(gate, null);
 
             Present(PoleSawPhase.Active, false, 0.25d);
-            Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
-            Assert.That(barrier.enabled, Is.True);
-            Assert.That(wallRenderer.enabled, Is.False);
-            Assert.That(fenceRenderer.enabled, Is.True);
-            var stoppedRotation = rotor.localRotation;
+            Animate(10f);
+            Assert.That(gate.IsOpen, Is.False);
+            Assert.That(Inner(right, -1f) - Inner(left, 1f), Is.LessThan(0.01f), "닫힌 벽은 가운데 틈이 없다.");
+            var spun = leftRotor.localRotation;
 
             Present(PoleSawPhase.Retracted, false, 1d);
-            Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
-            Assert.That(Quaternion.Angle(rotor.localRotation, stoppedRotation), Is.LessThan(0.001f));
-            Assert.That(barrier.enabled, Is.False);
-            Assert.That(fenceRenderer.enabled, Is.False);
+            Assert.That(gate.IsOpen, Is.True);
+            Assert.That(gate.IsSpinning, Is.False, "잡는 순간 톱이 멈춘다.");
+            Assert.That(Quaternion.Angle(leftRotor.localRotation, spun), Is.LessThan(.001f), "멈춘 각도를 유지한다.");
+            Animate(0.5f);
+            Assert.That(gate.OpenAmount, Is.Zero, "멈춘 뒤 0.5초 동안은 갈라지지 않는다.");
+            Animate(0.5f);
+            Assert.That(gate.OpenAmount, Is.EqualTo(0.5f).Within(0.001f), "그 다음 1초에 걸쳐 갈라진다.");
+            Assert.That((left.localPosition - new Vector3(-1.5f, 0f, 0f)).magnitude, Is.GreaterThan(0.001f), "갈라지는 동안 덜컹거린다.");
+            Present(PoleSawPhase.Retracted, false, 1.6d);
+            Assert.That(Quaternion.Angle(leftRotor.localRotation, spun), Is.LessThan(.001f), "갈라지는 동안에도 멈춰 있다.");
+            Animate(1f);
+            Assert.That(Inner(left, 1f), Is.EqualTo(-3f).Within(0.01f));
+            Assert.That(Inner(right, -1f), Is.EqualTo(3f).Within(0.01f));
+            Assert.That(gate.IsSpinning, Is.True, "다 열리면 다시 돈다.");
+            Present(PoleSawPhase.Retracted, false, 1.8d);
+            Assert.That(Quaternion.Angle(leftRotor.localRotation, spun), Is.LessThan(.001f), "멈췄던 각도에서 이어서 돈다.");
+            Present(PoleSawPhase.Retracted, false, 2.05d);
+            Assert.That(Quaternion.Angle(leftRotor.localRotation, spun), Is.GreaterThan(1f), "갈라진 톱은 다시 돈다.");
+            Assert.That(gate.FallingBladeCount, Is.EqualTo(2), "바닥 밖 바깥 톱만 떨어진다.");
+            Assert.That(leftOuter.position.y, Is.LessThan(floorHeight), "바깥 톱은 아래로 떨어진다.");
+            Assert.That(leftRotor.position.y, Is.EqualTo(floorHeight + 1.2f).Within(.001f), "바닥 위 톱은 제자리를 지킨다.");
+            Assert.That(left.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
 
-            Present(PoleSawPhase.Warning, true, 2d);
-            Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
-            Assert.That(Quaternion.Angle(rotor.localRotation, stoppedRotation), Is.LessThan(0.001f));
-            Assert.That(barrier.enabled, Is.False, "예고 중에는 지상 담당자에게 피해를 주지 않는다.");
-            Assert.That(fenceRenderer.enabled, Is.False);
+            Present(PoleSawPhase.Active, false, 2.5d);
+            Animate(10f);
+            Assert.That(gate.IsOpen, Is.True, "한 번 열리면 톱이 다시 돌아도 닫히지 않는다.");
+            Assert.That(Inner(right, -1f) - Inner(left, 1f), Is.EqualTo(6f).Within(0.01f));
+            Assert.That(gate.GoneBladeCount, Is.EqualTo(2), "낙하 부상 높이에 닿은 톱은 사라진다.");
+            Assert.That(leftOuter.gameObject.activeSelf || rightOuter.gameObject.activeSelf, Is.False);
+            Assert.That(leftRotor.gameObject.activeSelf, Is.True);
 
-            Present(PoleSawPhase.Active, true, 2.5d);
-            Assert.That(barrier.enabled, Is.True);
-            Assert.That(visual.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
-            Assert.That(Quaternion.Angle(rotor.localRotation, stoppedRotation), Is.GreaterThan(1f));
-            Assert.That(wallRenderer.enabled, Is.False);
-            Assert.That(fenceRenderer.enabled, Is.True);
+            typeof(HumanCannonSawGate).GetMethod("ResetGate", InternalInstance).Invoke(gate, null);
+            Assert.That(gate.IsOpen, Is.False, "재시작하면 닫힌 벽으로 돌아온다.");
+            Assert.That(left.localPosition.x, Is.EqualTo(0f).Within(0.001f));
+            Assert.That(right.localPosition.x, Is.EqualTo(0f).Within(0.001f));
+            Assert.That(leftOuter.gameObject.activeSelf, Is.True, "재시작하면 떨어진 톱도 제자리로 돌아온다.");
+            Assert.That(leftOuter.localPosition.x, Is.EqualTo(-20f).Within(0.001f));
+            Assert.That(leftOuter.position.y, Is.EqualTo(floorHeight + 1.2f).Within(0.001f));
+            Assert.That(gate.FallingBladeCount + gate.GoneBladeCount, Is.Zero);
+            Object.DestroyImmediate(floor.gameObject);
         }
+
+        [Test]
+        public void ClientOpenFlagOpensTheWallWhileThePhaseIsAlreadyActive()
+        {
+            Present(PoleSawPhase.Active, false, true);
+            Assert.That(gate.IsOpen, Is.True, "늦게 들어온 클라이언트도 열린 벽을 본다.");
+        }
+
+        Transform Half(Transform visual, string name, float sign, out Transform rotor, out Transform outer)
+        {
+            var half = new GameObject(name).transform;
+            half.SetParent(visual, false);
+            var wall = half.gameObject.AddComponent<BoxCollider>();
+            wall.center = new Vector3(sign * 11f, 1.2f, 0f);
+            wall.size = new Vector3(22f, 4.8f, 0.6f);
+            rotor = new GameObject("GateSawDisc" + (sign < 0 ? 0 : 1)).transform;
+            rotor.SetParent(half, false);
+            rotor.localPosition = new Vector3(sign * 0.5f, 0f, 0f);
+            outer = new GameObject("GateSawDisc" + (sign < 0 ? 2 : 3)).transform;
+            outer.SetParent(half, false);
+            outer.localPosition = new Vector3(sign * 20f, 0f, 0f);
+            return half;
+        }
+
+        float Inner(Transform half, float sign)
+        {
+            Physics.SyncTransforms();
+            var bounds = half.GetComponent<Collider>().bounds;
+            return sign > 0 ? bounds.max.x : bounds.min.x;
+        }
+
+        void Set(string field, object value) =>
+            typeof(HumanCannonSawGate).GetField(field, InternalInstance).SetValue(gate, value);
+
+        void Animate(float seconds) =>
+            typeof(HumanCannonSawGate).GetMethod("Animate", InternalInstance).Invoke(gate, new object[] { seconds });
+
+        void Present(PoleSawPhase phase, bool passed, bool open) =>
+            typeof(HumanCannonSawGate).GetMethod("Present", InternalInstance).Invoke(gate, new object[] { phase, passed, open, 0d });
 
         void Present(PoleSawPhase phase, bool passed, double time = 0d)
         {
             typeof(HumanCannonSawGate).GetMethod("Present", InternalInstance)
-                .Invoke(gate, new object[] { phase, passed, time });
+                .Invoke(gate, new object[] { phase, passed, false, time });
         }
 
         Vector3 Constrain(Vector3 from, Vector3 displacement)

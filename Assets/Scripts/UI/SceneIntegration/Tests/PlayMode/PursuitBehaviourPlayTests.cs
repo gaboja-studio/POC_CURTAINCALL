@@ -26,8 +26,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             float until = Time.time + seconds;
             do { Call(actor, "ServerTick", 4f, false); yield return null; }
-            while (Get(actor, "Behaviour").ToString() != state && Time.time < until);
+            while ((Get(actor, "Behaviour").ToString() != state || !actor.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled) && Time.time < until);
             Assert.AreEqual(state, Get(actor, "Behaviour").ToString());
+            Assert.IsTrue(actor.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled, "Wait for this mannequin's awakening before testing its behaviour.");
         }
         [UnityTest]
         public IEnumerator PursuitBehaviour_GraphHearingChaseSearchAndCulling()
@@ -47,6 +48,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Set(stage, "AlertSeconds", .35f); Set(stage, "ListenSeconds", .3f); Set(stage, "InvestigateSeconds", .5f); Set(stage, "SearchSeconds", .25f);
                 Set(stage, "SeeThroughWalls", true); Set(stage, "AlwaysNearest", false); Set(stage, "SightRadius", 10f); Set(stage, "TrackingRadius", 15f);
                 Set(stage, "ChaseSpeed", .5f); Set(stage, "WalkHearingRadius", 6f); Set(stage, "RunHearingRadius", 14f);
+                // 대상을 100m 밖으로 옮겨 수색을 확인하므로 설정 에셋의 순찰 이탈 제한(1단계 30m)은 끈다. 이탈 복귀는 PatrolLeash 테스트가 따로 본다.
+                Set(stage, "PatrolLeashDistance", 0f);
                 Assert.IsTrue((bool)Get(actor, "GraphReady"));
                 Call(actor, "ResetActor"); yield return TickPursuit(actor, "Patrol");
                 var point = actor.transform.position + Vector3.right * 10;
@@ -146,6 +149,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var player = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
             var model = (Component)Get(player.GetComponent(T("CurtainCall.Player.HumanoidPlayerPresentation")), "Model");
             var bloodSetting = T("CurtainCall.StartLobby.ClientSettings").GetProperty("ShowBloodEffect");
+            // 개인 혈흔 설정 끄기는 개발자 모드에서만 적용된다(0.2.0 핫픽스). 저장값을 읽기 전에 켠다.
+            var devCache = T("CurtainCall.Dev.DevMode").GetField("_enabled", BindingFlags.Static | BindingFlags.NonPublic);
+            object devBefore = devCache.GetValue(null);
+            devCache.SetValue(null, true);
             bool previous = (bool)bloodSetting.GetValue(null);
             Component pose = null;
             try {
@@ -178,7 +185,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     Assert.IsNull(GameObject.Find("PursuitBloodOnLens"));
                     Assert.IsNull(player.GetComponent(T("CurtainCall.WaitingRoom.Pursuit.PursuitCaptureBlood")));
                 }
-            } finally { if (pose != null) Object.Destroy(pose); bloodSetting.SetValue(null, previous); }
+            } finally { if (pose != null) Object.Destroy(pose); bloodSetting.SetValue(null, previous); devCache.SetValue(null, devBefore); }
         }
     }
 }

@@ -22,6 +22,10 @@ namespace CurtainCall.HumanCannon
         [Tooltip("켜면 2명 이상 탑승 시 바닥이 열린다. 끄면 바닥은 닫힌 채 출발만 막고, 과승·트램폴린 없음은 발판을 빨간색으로 표시한다.")]
         [SerializeField] bool overloadTrap = true;
         [SerializeField] Renderer[] boardingIndicators = System.Array.Empty<Renderer>();
+        [Tooltip("이동·복귀 중 다른 플레이어가 발판에 올라타지 못하게 둘레에 켜는 투명 벽 높이(m). 0이면 벽 없음.")]
+        [Min(0f), SerializeField] float barrierHeight = 3f;
+        public const float BarrierThickness = 0.3f;
+        GameObject barrier;
         MaterialPropertyBlock indicatorBlock;
         static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
         public static readonly Color OccupiedColor = new(0.15f, 0.95f, 0.3f, 1f);
@@ -75,6 +79,54 @@ namespace CurtainCall.HumanCannon
                 indicatorBlock.SetColor(BaseColor, occupied ? OccupiedColor : rejected ? RejectedColor : idle);
                 indicator.SetPropertyBlock(indicatorBlock);
             }
+        }
+
+        /// <summary>이동·복귀 중 둘레 투명 벽. 지붕은 두지 않는다(위에 서서 같이 이동하지 않도록).</summary>
+        public void PresentBarrier(bool blocked)
+        {
+            if (barrier == null)
+            {
+                if (!blocked || !IsConfigured || barrierHeight <= 0) return;
+                barrier = BuildBarrier();
+            }
+            if (barrier.activeSelf != blocked) barrier.SetActive(blocked);
+        }
+
+        public bool BarrierActive => barrier != null && barrier.activeSelf;
+
+        GameObject BuildBarrier()
+        {
+            var root = new GameObject("BoardingBarrier") { layer = platform.gameObject.layer };
+            root.transform.SetParent(platform, false);
+            // 발판 크기와 무관하게 벽 치수를 미터로 유지한다.
+            Vector3 scale = platform.lossyScale;
+            root.transform.localScale = new Vector3(1f / scale.x, 1f / scale.y, 1f / scale.z);
+            float h = barrierHeight, t = BarrierThickness, x = halfSize.x, z = halfSize.y;
+            foreach (int side in new[] { -1, 1 })
+            {
+                Wall(root, new Vector3(side * (x + t / 2), h / 2, 0), new Vector3(t, h, 2 * (z + t)));
+                Wall(root, new Vector3(0, h / 2, side * (z + t / 2)), new Vector3(2 * x, h, t));
+            }
+            root.SetActive(false);
+            return root;
+        }
+
+        static void Wall(GameObject root, Vector3 center, Vector3 size)
+        {
+            var box = root.AddComponent<BoxCollider>();
+            box.center = center;
+            box.size = size;
+        }
+
+        /// <summary>발판 위 영역의 발 위치를 가장 가까운 옆면 벽 바깥으로 옮긴 위치.</summary>
+        public Vector3 OutsideBarrier(Vector3 feet, float radius)
+        {
+            Vector3 point = Quaternion.Inverse(Rotation) * (feet - platform.position);
+            float clear = BarrierThickness + Mathf.Max(0, radius) + 0.05f;
+            if (halfSize.x - Mathf.Abs(point.x) <= halfSize.y - Mathf.Abs(point.z))
+                point.x = (point.x < 0 ? -1 : 1) * (halfSize.x + clear);
+            else point.z = (point.z < 0 ? -1 : 1) * (halfSize.y + clear);
+            return platform.position + Rotation * point;
         }
 
         public bool ContainsPassenger(Vector3 feet)

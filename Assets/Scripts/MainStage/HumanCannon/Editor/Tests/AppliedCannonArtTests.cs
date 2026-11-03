@@ -15,6 +15,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         T[] All<T>() where T : Component => preview.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<T>(true)).ToArray();
         static Transform Ref(UnityEngine.Object owner, string field) => (Transform)new SerializedObject(owner).FindProperty(field).objectReferenceValue;
         static float Number(UnityEngine.Object owner, string field) => new SerializedObject(owner).FindProperty(field).floatValue;
+        static Transform[] Discs(Transform visual) => visual.GetComponentsInChildren<Transform>(true)
+            .Where(t => t.name.StartsWith("GateSawDisc")).OrderBy(t => t.position.x).ToArray();
         static Vector3[] Vertices(Transform root) => root.GetComponentsInChildren<MeshFilter>(true)
             .Where(f => f.sharedMesh != null && f.GetComponent<Renderer>() != null && f.GetComponent<Renderer>().enabled)
             .SelectMany(f => f.sharedMesh.vertices.Select(v => f.transform.TransformPoint(v))).ToArray();
@@ -54,19 +56,22 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(gates.Length, Is.EqualTo(2));
             foreach (var gate in gates)
             {
-                var barrier = gate.transform.Find("Barrier").GetComponent<BoxCollider>();
                 var visual = gate.transform.Find("SawVisual");
-                var row = visual.GetChild(visual.childCount - 1).position - visual.GetChild(0).position;
+                var discs = Discs(visual);
+                var row = discs[discs.Length - 1].position - discs[0].position;
                 Assert.That(Mathf.Abs(Vector3.Dot(row.normalized, Vector3.right)), Is.GreaterThan(.999f));
                 Assert.That(Vector3.Dot(gate.transform.forward, Vector3.forward), Is.GreaterThan(.999f));
-                Assert.That(barrier.bounds.size.x, Is.EqualTo(44f).Within(.001f));
-                Assert.That(barrier.bounds.size.z, Is.EqualTo(.6f).Within(.001f));
+                // 닫힌 두 절반의 충돌 벽이 틈 없이 코스 폭 44m를 막는다.
+                var walls = new[] { "LeftBlades", "RightBlades" }.Select(n => visual.Find(n).GetComponent<BoxCollider>()).ToArray();
+                Assert.That(walls[0].bounds.max.x, Is.EqualTo(walls[1].bounds.min.x).Within(.001f));
+                Assert.That(walls[1].bounds.max.x - walls[0].bounds.min.x, Is.EqualTo(44f).Within(.001f));
+                Assert.That(walls.All(w => Mathf.Abs(w.bounds.size.z - .6f) < .001f), Is.True);
                 var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
                 typeof(HumanCannonSawGate).GetMethod("Awake", flags).Invoke(gate, null);
                 foreach (double time in new[] { 0d, .25d, .75d })
                 {
-                    typeof(HumanCannonSawGate).GetMethod("Present", flags).Invoke(gate, new object[] { PoleSawPhase.Active, false, time });
-                    foreach (Transform disc in visual)
+                    typeof(HumanCannonSawGate).GetMethod("Present", flags).Invoke(gate, new object[] { PoleSawPhase.Active, false, false, time });
+                    foreach (var disc in discs)
                     {
                         Assert.That(Vector3.Dot(disc.forward, Vector3.right), Is.GreaterThan(.999f), "Preserve the individual blade axis while spinning");
                         Assert.That(disc.position.z, Is.EqualTo(gate.transform.position.z).Within(.001f), "Keep the wall row in place");
@@ -85,8 +90,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             foreach (var gate in All<HumanCannonSawGate>())
             {
                 var visual = gate.transform.Find("SawVisual");
-                Assert.That(visual.childCount, Is.EqualTo(44));
-                var blades = visual.Cast<Transform>().OrderBy(t => t.position.x).Select(t =>
+                Assert.That(Discs(visual).Length, Is.EqualTo(44));
+                var blades = Discs(visual).OrderBy(t => t.position.x).Select(t =>
                 {
                     var renderers = t.GetComponentsInChildren<Renderer>().Where(r => r.enabled).ToArray();
                     var bounds = renderers[0].bounds;
@@ -269,7 +274,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             // 2026-11-02 최종 대포 바닥 좌·우를 감싸는 초록 쿠션 2면 추가. 쿠션 3면은 충돌·착지만 맡고
             // 외형은 충돌체 없는 하나로 이어 붙여 이 대조에서 빠진다. 최종 대포 바닥 콘크리트도 같은 초록 면(FinalGreenGround)으로 대체.
             Assert.That(found, Is.EqualTo(46), "40 concrete surfaces + 6 transport panels");
-            Assert.That(All<Collider>().Length, Is.EqualTo(59), "공중 장애물 제거로 최종 톱 EntryZone 트리거1개만 줄고, 시작 지점 아래 43개를 빼고 리프트 빈틈 10개와 좌·우 쿠션 2개를 더한 지상 충돌체를 유지한다.");
+            // 2026-11-03 톱벽 2개를 좌우 절반으로 나눠 관문마다 충돌 벽이 1개에서 2개로 늘었다(+2).
+            Assert.That(All<Collider>().Length, Is.EqualTo(61), "공중 장애물 제거로 최종 톱 EntryZone 트리거1개만 줄고, 시작 지점 아래 43개를 빼고 리프트 빈틈 10개와 좌·우 쿠션 2개, 톱벽 절반 벽 2개를 더한 지상 충돌체를 유지한다.");
         }
 
         [Test]

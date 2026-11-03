@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 26.36,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitActivation_StaggeredStagesDormantSensingAndReplicaAppearance",
+      "Status": "Passed",
+      "Duration": 26.2406104,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

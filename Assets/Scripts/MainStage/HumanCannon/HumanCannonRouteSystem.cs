@@ -1,4 +1,5 @@
 using System;
+using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -51,9 +52,8 @@ namespace CurtainCall.HumanCannon
         /// <summary>코스 아래 낭떠러지(<c>fallHeight</c> 아래)인지. 경로 시스템이 없으면 false.</summary>
         public static bool IsBelowCourse(Vector3 position) => Current != null && position.y < Current.fallHeight;
 
-        // 호스트: 이번 추락을 이미 부상 처리한 사람(다시 코스 위로 올라오면 지운다).
+        // 호스트: 이번 추락을 이미 처리한 사람(다시 코스 위로 올라오면 지운다).
         readonly System.Collections.Generic.HashSet<ulong> fallen = new();
-        bool localRelocating;
         public int AliveFlyers { get; private set; }
         public int ArrivedFlyers { get; private set; }
         public bool ShelterReady => AliveFlyers == ArrivedFlyers;
@@ -76,7 +76,8 @@ namespace CurtainCall.HumanCannon
         public string FireStatus(int index) => index < 0 || index >= fires.Length || fires[index] == null ? "없음"
             : !fires[index].Available ? "사용 안 함"
             : fires[index].Finished ? "경계 종료" : !fires[index].Armed ? "대기"
-            : fires[index].RemainingWarning(Clock) > 0 ? $"예고 {fires[index].RemainingWarning(Clock):F1}초" : "전진 중";
+            : fires[index].RemainingWarning(Clock) > 0 ? $"예고 {fires[index].RemainingWarning(Clock):F1}초"
+            : fires[index].CurrentStage(Clock) > 0 ? $"전진 중 {fires[index].SpeedAt(Clock):F2}m/s({fires[index].CurrentStage(Clock) + 1}구간)" : "전진 중";
 
         void OnEnable()
         {
@@ -88,21 +89,16 @@ namespace CurtainCall.HumanCannon
             NetworkPlayer.Restarted += Restart;
         }
 
-        int localFallLost;
-        float localFallAt;
-
         /// <summary>
-        /// 내 캐릭터가 코스 아래로 떨어졌으면, 호스트가 부상을 반영한 것을 본 뒤(또는 2초 뒤) 마지막으로 탄 대포 앞으로 옮긴다.
-        /// 아직 대포를 타지 않았으면 내 출발점. 바닥이 있는 곳에 떨어지면 그 자리에서 계속한다(2026-10-28 사용자 결정).
+        /// 코스 아래 추락은 외줄타기와 같이 공용 사망으로 끝나므로 되살려 올리지 않는다(2026-11-03 담당자 결정).
+        /// Dev "추락 무시"로 사망을 막은 경우에만 끝없이 떨어지지 않도록 마지막으로 탄 대포 앞(없으면 출발점)으로 옮긴다.
         /// </summary>
         void RelocateLocalFall()
         {
             var local = NetworkPlayer.Local;
-            if (local == null || !local.IsSpawned || local.transform.position.y >= fallHeight) { localRelocating = false; return; }
-            if (local.State != PlayerState.Normal || (cannon != null && cannon.IsFlying(local.OwnerClientId))) return;
-            int lost = PlayerCondition.CountLimbs(local.LostParts);
-            if (!localRelocating) { localRelocating = true; localFallLost = lost; localFallAt = Time.unscaledTime; return; }
-            if (lost <= localFallLost && Time.unscaledTime - localFallAt < 2f) return;
+            if (local == null || !local.IsSpawned || local.transform.position.y >= fallHeight
+                || local.State != PlayerState.Normal || (cannon != null && cannon.IsFlying(local.OwnerClientId))
+                || !EscapeDevelopmentSession.FallConsequencesSuppressed(local)) return;
             if (!local.TryGetComponent(out PlayerMover mover)) return;
             int station = cannon != null ? cannon.LocalLastStation : -1;
             if (cannon != null && station >= 0 && station < cannon.StationCount)
@@ -111,7 +107,6 @@ namespace CurtainCall.HumanCannon
                 mover.Relocate(point.position, point.rotation);
             }
             else mover.ResetToStart();
-            localRelocating = false;
         }
 
         void Update()
@@ -129,12 +124,12 @@ namespace CurtainCall.HumanCannon
             }
             RelocateLocalFall();
             if (session == null || !session.IsHost) return;
-            // M2: 코스 밖 낭떠러지 추락은 즉사가 아니라 2곳 절단(4곳이 되면 사망). 같은 추락은 한 번만 다친다.
+            // 코스 밖 낭떠러지 추락은 외줄타기 낙사와 같이 공용 사망(2026-11-03). 같은 추락은 한 번만 처리한다.
             foreach (var player in NetworkPlayer.All)
             {
                 if (player == null || !player.IsSpawned) continue;
                 if (player.transform.position.y >= fallHeight) { fallen.Remove(player.OwnerClientId); continue; }
-                if (player.State == PlayerState.Normal && fallen.Add(player.OwnerClientId)) HumanCannonSystem.ServerFallInjury(player);
+                if (player.State == PlayerState.Normal && fallen.Add(player.OwnerClientId)) HumanCannonSystem.ServerFallDeath(player);
             }
             bool changed = false;
             int alive = AliveFlyers, arrived = ArrivedFlyers;
@@ -202,6 +197,7 @@ namespace CurtainCall.HumanCannon
             foreach (var fire in fires)
             {
                 if (fire == null) continue;
+                changed |= BoostFire(fire);
                 if (fire.KillOnContact)
                     foreach (var player in NetworkPlayer.All)
                         if (player != null && player.IsSpawned && player.State == PlayerState.Normal
@@ -224,9 +220,44 @@ namespace CurtainCall.HumanCannon
                     bool departing = transit.Boarding.IsCounting || transit.State.Phase == DeparturePhase.Moving;
                     transports[i].PresentOccupied(!resetBarrier.Waiting && !transit.Trap.IsOpen && departing,
                         !resetBarrier.Waiting && transit.Rejected);
+                    transports[i].PresentBarrier(!resetBarrier.Waiting && Sealed(transit));
                 }
+            EjectStowaways();
             UpdatePassenger();
             foreach (var fire in fires) if (fire != null) fire.Present(Clock);
+        }
+
+        /// <summary>
+        /// 생존자 전원이 다음 구간 시작선을 넘어 내려서면(비행 중 제외) 불을 그 구간 속도로 올린다(2026-11-03 담당자 결정).
+        /// 첫 쉼터는 승강기 도착 갑판·쉼터 대포 착석도 도착으로 본다.
+        /// </summary>
+        bool BoostFire(HumanCannonFireWall fire)
+        {
+            if (!fire.Available || !fire.Armed || fire.Finished) return false;
+            bool changed = false;
+            for (int stage = 0; stage < fire.StageCount; stage++)
+            {
+                if (fire.StageAt(stage) >= 0) continue;
+                int alive = 0;
+                bool all = true;
+                foreach (var player in NetworkPlayer.All)
+                {
+                    if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) continue;
+                    alive++;
+                    ulong actor = player.OwnerClientId;
+                    Vector3 feet = player.transform.position;
+                    bool arrived = cannon == null || !cannon.IsFlying(actor);
+                    arrived &= fire.Reached(stage, feet) || stage == 0 && (IsSeatedAtShelter(actor)
+                        || shelter != null && shelter.SupportsLanding(feet) && !IsRiding(actor));
+                    if (!arrived) { all = false; break; }
+                }
+                if (alive > 0 && all && fire.Boost(stage, Clock))
+                {
+                    changed = true;
+                    Debug.Log($"[HumanCannonRoute] fire {fire.name} stage {stage + 2} speed={fire.SpeedAt(Clock):F2}");
+                }
+            }
+            return changed;
         }
 
         /// <summary>발사로 예고할 기존 구간 불꽃. 대포 탑승은 장치/다른 대포의 상태와 무관하다.</summary>
@@ -262,6 +293,36 @@ namespace CurtainCall.HumanCannon
             return true;
         }
 
+        /// <summary>출발한 뒤 도착 전, 또는 빈 채로 돌아가는 중. 이때는 운반자 외에 누구도 탈 수 없다.</summary>
+        static bool Sealed(Transit transit) => !transit.Trap.IsOpen
+            && transit.State.Phase is DeparturePhase.Moving or DeparturePhase.Returning;
+
+        /// <summary>
+        /// 옆 벽을 넘어(위에서 떨어지거나 뛰어들어) 이동 중 발판에 들어온 사람을 가장 가까운 벽 바깥으로 옮긴다.
+        /// 이동은 소유자 권한이므로 각 클라이언트가 자기 플레이어(호스트는 봇 포함)만 옮긴다.
+        /// </summary>
+        void EjectStowaways()
+        {
+            if (resetBarrier.Waiting) return;
+            for (int i = 0; i < runtime.Length; i++)
+            {
+                var transit = runtime[i];
+                if (transports[i] == null || !transports[i].IsConfigured || !Sealed(transit)) continue;
+                foreach (var player in NetworkPlayer.All)
+                {
+                    if (player == null || !player.IsSpawned || !player.IsOwner || player.State != PlayerState.Normal
+                        || transit.State.Phase == DeparturePhase.Moving && transit.State.Rider == player.OwnerClientId
+                        || IsRiding(player.OwnerClientId)
+                        || cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))
+                        || !transports[i].ContainsPassenger(player.transform.position)
+                        || !player.TryGetComponent(out PlayerMover mover) || !mover.Simulated) continue;
+                    float radius = mover.Body != null ? mover.Body.radius : 0.5f;
+                    mover.Relocate(transports[i].OutsideBarrier(player.transform.position, radius), player.transform.rotation);
+                    Debug.Log($"[HumanCannonRoute] transport {i} sealed; moved actor={player.OwnerClientId} off");
+                }
+            }
+        }
+
         static bool Carries(NetworkPlayer player) => player != null && HumanCannonTrampoline.Current != null
             && HumanCannonTrampoline.Current.Carrier == player.OwnerClientId;
 
@@ -270,13 +331,15 @@ namespace CurtainCall.HumanCannon
             int count = 0;
             soleRider = null;
             var transit = runtime[index];
+            // 이동·복귀 중에는 탑승할 수 없다. 밀려나기 전 늦은 위치가 과승 함정·복귀 대기를 건드리지 않게 운반자만 센다.
+            bool sealedOff = Sealed(transit);
             foreach (var player in NetworkPlayer.All)
             {
                 if (player == null || !player.IsSpawned || player.State != PlayerState.Normal) continue;
                 // 운송 중 소유자 위치 패킷이 한 프레임 늦어도 담당자를 누락하지 않는다.
                 bool carried = !transit.Trap.IsOpen && transit.State.Phase == DeparturePhase.Moving
                     && transit.State.Rider == player.OwnerClientId;
-                if (carried || transports[index].ContainsPassenger(player.transform.position)) { count++; soleRider = player; }
+                if (carried || !sealedOff && transports[index].ContainsPassenger(player.transform.position)) { count++; soleRider = player; }
             }
             return count;
         }
