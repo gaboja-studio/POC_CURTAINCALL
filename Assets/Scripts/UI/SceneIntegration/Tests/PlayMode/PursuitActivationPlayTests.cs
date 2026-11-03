@@ -10,6 +10,71 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     public sealed partial class DevStartLauncherPlayTests
     {
         [UnityTest]
+        public IEnumerator PursuitInitialization_SplitsStableOrderAndCancelsWithSceneObject()
+        {
+            yield return PursuitHost();
+            var source = Find("CurtainCall.WaitingRoom.Pursuit.PursuitDirector");
+            Assert.IsTrue((bool)Get(source, "IsInitialized"), "The transition curtain must wait for every actor.");
+            var first = ((IEnumerable)Get(source, "Actors")).Cast<Component>().First();
+            var prefab = (GameObject)Field(Get(first, "Placement"), "Prefab");
+            var root = new GameObject("PursuitInitializationFixture"); root.SetActive(false);
+            try {
+                var room = root.AddComponent(T("CurtainCall.WaitingRoom.Pursuit.PursuitRoom"));
+                Set(room, "UsePlacements", false); Set(room, "Count", 9);
+                var points = Enumerable.Range(0, 9).Select(i => {
+                    var point = new GameObject("Point" + i).transform; point.SetParent(root.transform);
+                    point.position = new Vector3(300 + i, 50, 300); return point;
+                }).ToArray();
+                Set(room, "SpawnPoints", points);
+                var director = (Component)root.AddComponent(source.GetType());
+                var rooms = System.Array.CreateInstance(room.GetType(), 1); rooms.SetValue(room, 0);
+                Set(director, "Rooms", rooms); Set(director, "Mannequins", new[] { prefab });
+                Set(director, "BehaviourGraph", Field(source, "BehaviourGraph"));
+                root.SetActive(true);
+                var actors = (IList)PursuitPrivate(director, "actors");
+                Assert.AreEqual(0, actors.Count, "Awake only queues work.");
+                var emptySnapshot = System.Activator.CreateInstance(director.GetType().GetNestedType("Snapshot"));
+                director.GetType().GetMethod("ApplySnapshot", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                    .Invoke(director, new[] { emptySnapshot });
+                Assert.IsFalse((bool)Get(director, "IsInitialized"), "An early snapshot cannot complete or reset initialization.");
+                int before = 0, frames = 0;
+                while (!(bool)Get(director, "IsInitialized") && frames++ < 12) {
+                    Assert.IsFalse((bool)Get(director, "CanDebug"));
+                    Assert.IsNull(PursuitPrivate(director, "messaging"), "No ready handshake or partial snapshot before all actors exist.");
+                    yield return null;
+                    Assert.That(actors.Count - before, Is.InRange(0, 4), "Each frame has a bounded batch of prefabs/graphs.");
+                    before = actors.Count;
+                }
+                Assert.IsTrue((bool)Get(director, "IsInitialized"));
+                ((Behaviour)director).enabled = false; // A fixture must never replace the live server's message handlers.
+                Assert.AreEqual(9, actors.Count); Assert.That((int)Get(director, "InitializationFrames"), Is.InRange(3, 9));
+                for (int i = 0; i < 9; i++) {
+                    var actor = (Component)actors[i];
+                    Assert.AreEqual(points[i].position, actor.transform.position);
+                    Assert.IsTrue((bool)Get(actor, "GraphReady"));
+                    Assert.IsNull(Get(actor, "Victim"));
+                }
+                // Start a second initialization and destroy it before its queue completes.
+                var second = new GameObject("CancelledPursuitInitialization"); second.SetActive(false);
+                second.transform.SetParent(root.transform);
+                var secondDirector = second.AddComponent(source.GetType());
+                Set(secondDirector, "Rooms", rooms); Set(secondDirector, "Mannequins", new[] { prefab });
+                Set(secondDirector, "BehaviourGraph", Field(source, "BehaviourGraph"));
+                second.SetActive(true);
+                var partial = (IList)PursuitPrivate(secondDirector, "actors");
+                for (int wait = 0; partial.Count == 0 && wait < 4; wait++) yield return null;
+                Assert.That(partial.Count, Is.InRange(1, 4));
+                var spawned = partial.Cast<Component>().ToArray();
+                Object.Destroy(second); yield return null; yield return null;
+                Assert.IsTrue(second == null && secondDirector == null);
+                Assert.IsTrue(spawned.All(actor => actor == null), "No delayed spawn survives scene-object destruction.");
+            } finally {
+                Object.DestroyImmediate(root);
+                source.GetType().GetProperty("Current").SetValue(null, source);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator PursuitActivation_StaggeredStagesDormantSensingAndReplicaAppearance()
         {
             yield return PursuitHost();

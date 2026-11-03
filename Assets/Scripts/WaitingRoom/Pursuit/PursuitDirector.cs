@@ -36,6 +36,24 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public GameObject CaptureBloodPrefab;
         public Sprite CaptureBloodSprite;
         public IReadOnlyList<PursuitActor> Actors => actors;
+        public bool IsInitialized { get; private set; }
+        public double InitializationMs { get; private set; }
+        public double InitializationWorkMs { get; private set; }
+        public double MaxSpawnMs { get; private set; }
+        public int InitializationFrames { get; private set; }
+        readonly struct SpawnRequest
+        {
+            public readonly GameObject Prefab;
+            public readonly Transform Point;
+            public readonly PursuitRoom Room;
+            public readonly PursuitPlacement Placement;
+            public SpawnRequest(GameObject prefab, Transform point, PursuitRoom room, PursuitPlacement placement)
+            { Prefab = prefab; Point = point; Room = room; Placement = placement; }
+        }
+        readonly List<SpawnRequest> pendingSpawns = new();
+        int nextSpawn;
+        double initializationStartedAt;
+        static readonly Unity.Profiling.ProfilerMarker SpawnMarker = new("Pursuit.SpawnAndInitialize");
         public float Elapsed { get; private set; } = -1;
         public static PursuitDirector Current { get; private set; }
         readonly List<PursuitActor> actors = new();
@@ -66,6 +84,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void Awake()
         {
             Current = this;
+            initializationStartedAt = Time.realtimeSinceStartupAsDouble;
             if (Rooms == null || Rooms.Length == 0) Rooms = GetComponentsInChildren<PursuitRoom>();
             int index = 0;
             foreach (var room in Rooms) {
@@ -73,7 +92,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     foreach (var placement in room.Placements ?? Array.Empty<PursuitPlacement>()) {
                         // Awake can run before a placement's OnEnable; isActiveAndEnabled is not stable yet.
                         if (placement == null || !placement.enabled || !placement.gameObject.activeInHierarchy || placement.Prefab == null) continue;
-                        Spawn(placement.Prefab, placement.transform, room, placement);
+                        pendingSpawns.Add(new SpawnRequest(placement.Prefab, placement.transform, room, placement));
                     }
                     continue;
                 }
@@ -83,11 +102,37 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     var prefab = Mannequins[index++ % Mannequins.Length];
                     var point = room.SpawnPoints[n % room.SpawnPoints.Length];
                     if (prefab == null || point == null) continue;
-                    Spawn(prefab, point, room, null);
+                    pendingSpawns.Add(new SpawnRequest(prefab, point, room, null));
                 }
             }
             if (GetComponent<PursuitFeedback>() == null) gameObject.AddComponent<PursuitFeedback>();
             if (GetComponent<PursuitLighting>() == null) gameObject.AddComponent<PursuitLighting>();
+            IsInitialized = pendingSpawns.Count == 0;
+        }
+        void InitializeNext()
+        {
+            // Keep serialized order identical on host and replicas. Bound work by a 2ms budget
+            // and four actors per frame, then let the final actor's Start settle.
+            if (nextSpawn < pendingSpawns.Count) {
+                double frameStarted = Time.realtimeSinceStartupAsDouble;
+                int count = 0;
+                do {
+                    var request = pendingSpawns[nextSpawn++];
+                    double started = Time.realtimeSinceStartupAsDouble;
+                    using (SpawnMarker.Auto()) {
+                        if (request.Prefab != null && request.Point != null && request.Room != null)
+                            Spawn(request.Prefab, request.Point, request.Room, request.Placement);
+                    }
+                    double ms = (Time.realtimeSinceStartupAsDouble - started) * 1000;
+                    InitializationWorkMs += ms; MaxSpawnMs = Math.Max(MaxSpawnMs, ms);
+                } while (++count < 4 && nextSpawn < pendingSpawns.Count
+                    && (Time.realtimeSinceStartupAsDouble - frameStarted) * 1000 < 2);
+                InitializationFrames++;
+                return;
+            }
+            pendingSpawns.Clear();
+            InitializationMs = (Time.realtimeSinceStartupAsDouble - initializationStartedAt) * 1000;
+            IsInitialized = true;
         }
         void Spawn(GameObject prefab, Transform point, PursuitRoom room, PursuitPlacement placement)
         {
@@ -99,6 +144,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         void Update()
         {
+            if (!IsInitialized) { InitializeNext(); return; }
             Bind();
             SendReady();
             var nextRun = CampaignRun.Instance;
@@ -309,7 +355,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 retired = v.Value.Retired, room = Array.IndexOf(Rooms, v.Value.Room), anchor = v.Value.Anchor, upright = v.Value.Upright }).ToArray() };
         void Broadcast()
         {
-            if (messaging == null || manager == null || !manager.IsServer) return;
+            if (!IsInitialized || messaging == null || manager == null || !manager.IsServer) return;
             // 씬을 다 불러와 수신 준비를 알린 클라이언트에게만 보낸다. 로딩으로 멈춘 클라이언트에 쌓이지 않게 한다.
             readyClients.RemoveWhere(id => !manager.ConnectedClients.ContainsKey(id));
             if (readyClients.Count == 0) return;
@@ -334,8 +380,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         void ApplySnapshot(Snapshot s)
         {
+            if (!IsInitialized || run == null || s == null) return;
             var c = run.State;
-            if (s == null || c.Phase != CampaignPhase.RestTime || s.generation != c.Generation || s.day != c.Day || s.performance != c.PerformanceIndex
+            if (c.Phase != CampaignPhase.RestTime || s.generation != c.Generation || s.day != c.Day || s.performance != c.PerformanceIndex
                 || s.actors == null || s.actors.Length != actors.Count || s.victims == null) return;
             if (s.elapsed < 0 && active) ResetStep(c);
             if (poseEpoch != s.poseEpoch) foreach (var actor in actors) actor.ResetActor();

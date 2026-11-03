@@ -1,0 +1,155 @@
+{
+  "measuredAt": "2026-11-03 18:09:59",
+  "unity": "6000.3.25f1",
+  "note": "에디터 플레이 측정. firstSceneLoadInEditorSession은 OS/GPU 캐시 초기화와 다름. binaryKBps는 상태4Hz+위치20Hz payload 추정(상태 변경 추가 전송/NGO·UTP 헤더 제외).",
+  "firstSceneLoadInEditorSession": false,
+  "load": {
+    "totalMs": 1621.2546000001566,
+    "readyMs": 3068.923199999972,
+    "worstFrameMs": 1076.285,
+    "framesOver1s": 1,
+    "stallsMs": [
+      1076.285
+    ],
+    "topSelfInWorstFrame": [
+      {
+        "name": "GC.Collect",
+        "selfMs": 362.564,
+        "totalMs": 362.564
+      },
+      {
+        "name": "Destroy",
+        "selfMs": 67.1976852,
+        "totalMs": 118.296585
+      },
+      {
+        "name": "Application.LoadLevelAsync Integrate",
+        "selfMs": 48.8572159,
+        "totalMs": 963.244263
+      },
+      {
+        "name": "ClothScene.Update",
+        "selfMs": 25.0933,
+        "totalMs": 25.4046
+      },
+      {
+        "name": "GameObject.ActivateAwakeRecursively",
+        "selfMs": 22.4898,
+        "totalMs": 43.8796
+      },
+      {
+        "name": "Mono.JIT",
+        "selfMs": 19.5161,
+        "totalMs": 1.6515
+      },
+      {
+        "name": "EditorLoop",
+        "selfMs": 19.1221,
+        "totalMs": 19.1221
+      },
+      {
+        "name": "Preload Single Step",
+        "selfMs": 17.809536,
+        "totalMs": 991.342957
+      },
+      {
+        "name": "UnityEngine.CoreModule.dll!UnityEngine.SceneManagement::SceneManager.Internal_SceneLoaded() [Invoke]",
+        "selfMs": 9.9107,
+        "totalMs": 9.9715
+      },
+      {
+        "name": "SetInScenePlaced.OnProcessScene",
+        "selfMs": 3.5968,
+        "totalMs": 3.6032
+      },
+      {
+        "name": "RenderPlayModeViewCameras",
+        "selfMs": 2.9853,
+        "totalMs": 12.6555
+      },
+      {
+        "name": "CollectGameObjects",
+        "selfMs": 2.9743,
+        "totalMs": 3.1798
+      },
+      {
+        "name": "URPProcessScene.OnProcessScene",
+        "selfMs": 2.8699,
+        "totalMs": 2.874
+      },
+      {
+        "name": "Assembly-CSharp.dll!CurtainCall.WaitingRoom.Pursuit::PursuitLighting.LateUpdate() [Invoke]",
+        "selfMs": 2.8508,
+        "totalMs": 2.8943
+      },
+      {
+        "name": "TextureStreamingManager.RemoveRenderer",
+        "selfMs": 2.6313,
+        "totalMs": 2.4519
+      }
+    ]
+  },
+  "scene": {
+    "gameObjects": 31160,
+    "meshRenderers": 23507,
+    "activeRenderers": 14746,
+    "staticBatched": 180,
+    "lodGroups": 12579,
+    "colliders": 3764,
+    "monoBehaviours": 1627,
+    "lights": 268,
+    "realtimeLights": 268,
+    "shadowLights": 11,
+    "pursuers": 26
+  },
+  "snapshot": {
+    "actors": 26,
+    "legacyJsonBytes": 18060,
+    "binaryBytes": 529,
+    "poseBytesPerTick": 888,
+    "legacyKBps": 176.367188,
+    "binaryKBps": 19.4101563,
+    "stateHz": 4.0,
+    "poseHz": 20.0,
+    "initializationMs": 1952.2282000000359,
+    "initializationWorkMs": 21.794799999497627,
+    "maxSpawnMs": 1.4668000001165638,
+    "initializationFrames": 26
+  },
+  "views": [
+    {
+      "room": "S02_Dormitory",
+      "missing": false,
+      "batches": 2631,
+      "setPassCalls": 140,
+      "triangles": 1420926,
+      "shadowCasters": 1322,
+      "renderMs": 18.1792984,
+      "frameMs": 20.6742
+    },
+    {
+      "room": "Lobby",
+      "missing": false,
+      "batches": 7085,
+      "setPassCalls": 189,
+      "triangles": 2444490,
+      "shadowCasters": 4728,
+      "renderMs": 14.05,
+      "frameMs": 23.4673
+    },
+    {
+      "room": "S09_PracticeRoom",
+      "missing": false,
+      "batches": 150,
+      "setPassCalls": 42,
+      "triangles": 37124,
+      "shadowCasters": 100,
+      "renderMs": 12.8450994,
+      "frameMs": 24.9389
+    }
+  ],
+  "budget": [
+    "WARN Lobby batches 7085 > 3000",
+    "WARN Lobby shadowCasters 4728 > 2000"
+  ]
+}

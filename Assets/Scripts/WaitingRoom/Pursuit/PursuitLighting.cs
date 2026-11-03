@@ -32,6 +32,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         float entryCycle = .42f;
         Color ambientSky, ambientEquator, ambientGround;
         float ambientIntensity, reflectionIntensity;
+        float appliedAmbient = float.NaN;
         // 런타임에는 Trilight 색을 바꿔도 프로브가 다시 계산되지 않으므로 실제 사용되는 프로브와 반사 강도를 직접 조절한다.
         UnityEngine.Rendering.SphericalHarmonicsL2 ambientProbe;
 
@@ -211,8 +212,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     if (PursuitLightSettings.Hash(e.Seed, Mathf.FloorToInt(local * 30), slot) < .6f) level *= rule.CrackleDip;
                     if (slot != e.SparkSlot) { e.SparkSlot = slot; if (rule.Sparks > 0) EmitSparks(e.Light.transform.position, rule.Sparks, view, settings); }
                 }
-                e.Light.intensity = e.Intensity * level;
-                e.Light.color = Color.Lerp(e.Color, target, tintAmount);
+                float intensity = e.Intensity * level;
+                var color = Color.Lerp(e.Color, target, tintAmount);
+                if (e.Light.intensity != intensity) e.Light.intensity = intensity;
+                if (e.Light.color != color) e.Light.color = color;
                 entries[i] = e;
             }
         }
@@ -245,9 +248,12 @@ namespace CurtainCall.WaitingRoom.Pursuit
             ambientSky = RenderSettings.ambientSkyColor; ambientEquator = RenderSettings.ambientEquatorColor;
             ambientGround = RenderSettings.ambientGroundColor; ambientIntensity = RenderSettings.ambientIntensity;
             ambientProbe = RenderSettings.ambientProbe; reflectionIntensity = RenderSettings.reflectionIntensity;
+            appliedAmbient = float.NaN;
         }
         void ApplyAmbient(float m)
         {
+            if (appliedAmbient == m) return;
+            appliedAmbient = m;
             RenderSettings.ambientSkyColor = ambientSky * m; RenderSettings.ambientEquatorColor = ambientEquator * m;
             RenderSettings.ambientGroundColor = ambientGround * m; RenderSettings.ambientIntensity = ambientIntensity * m;
             RenderSettings.ambientProbe = ambientProbe * m; RenderSettings.reflectionIntensity = reflectionIntensity * m;
