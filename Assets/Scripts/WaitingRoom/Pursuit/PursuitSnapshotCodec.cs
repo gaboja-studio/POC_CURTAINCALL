@@ -10,7 +10,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
     /// </summary>
     public static class PursuitSnapshotCodec
     {
-        public const byte Version = 3;
+        public const byte Version = 4;
         /// <summary>비신뢰성 순서 전송으로 보낼 최대 크기. 한 패킷(MTU)에 들어가도록 여유를 둔다.</summary>
         public const int UnreliableLimit = 1100;
         const float PositionScale = 100f, PositionLimit = 327f;

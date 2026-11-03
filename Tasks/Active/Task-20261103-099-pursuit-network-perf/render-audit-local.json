@@ -1,0 +1,537 @@
+{
+  "measuredAt": "2026-11-03 18:36:59",
+  "note": "Read-only runtime scene audit. Lobby selection uses renderer bounds center; counts are not visible draw calls. No flags, materials, lights or scene assets modified.",
+  "scene": {
+    "renderers": 14729,
+    "staticObjects": 13452,
+    "batchingStatic": 180,
+    "staticBatched": 180,
+    "shadowCasters": 8781,
+    "shaders": [
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 13665
+      },
+      {
+        "shader": "Synty/Generic_Basic",
+        "count": 510
+      },
+      {
+        "shader": "Shader Graphs/S_Standard",
+        "count": 200
+      },
+      {
+        "shader": "Shader Graphs/S_Base_Buildings_Props",
+        "count": 180
+      },
+      {
+        "shader": "Synty/Generic_Standard",
+        "count": 114
+      },
+      {
+        "shader": "CurtainCall/GreyboxText",
+        "count": 36
+      },
+      {
+        "shader": "Universal Render Pipeline/Unlit",
+        "count": 9
+      },
+      {
+        "shader": "CurtainCall/PlanarMirror",
+        "count": 6
+      },
+      {
+        "shader": "WaitingArea/WorldText",
+        "count": 4
+      },
+      {
+        "shader": "CurtainCall/WaitingRoom/OutlineProxyDepth",
+        "count": 3
+      }
+    ],
+    "materials": [
+      {
+        "path": "Assets/_ThirdParty/Materials/WaitingArea/V4_Iron_Dark.mat",
+        "material": "V4_Iron_Dark",
+        "count": 3801,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_SteelPlate.mat",
+        "material": "LA_SteelPlate",
+        "count": 1605,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/Materials/WaitingArea/V4_Black.mat",
+        "material": "V4_Black",
+        "count": 1318,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/Materials/WaitingArea/V4_RustyMetal.mat",
+        "material": "V4_RustyMetal",
+        "count": 1256,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/Materials/WaitingArea/V4_Wood_Old.mat",
+        "material": "V4_Wood_Old",
+        "count": 786,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/Synty/PolygonApocalypse/Materials/Alts/PolygonApocalypse_01_A.mat",
+        "material": "PolygonApocalypse_01_A",
+        "count": 510,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_TentRed.mat",
+        "material": "LA_TentRed",
+        "count": 369,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_Paper.mat",
+        "material": "LA_Paper",
+        "count": 338,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_Cardboard.mat",
+        "material": "LA_Cardboard",
+        "count": 289,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_AbandonedOxide.mat",
+        "material": "LA_AbandonedOxide",
+        "count": 234,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_WallConcrete.mat",
+        "material": "LA_WallConcrete",
+        "count": 222,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_Bulb.mat",
+        "material": "LA_Bulb",
+        "count": 212,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_RackBlue.mat",
+        "material": "LA_RackBlue",
+        "count": 205,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/Materials/WaitingArea/V4_Harlequin.mat",
+        "material": "V4_Harlequin",
+        "count": 202,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_Bronze.mat",
+        "material": "LA_Bronze",
+        "count": 195,
+        "instancing": false
+      }
+    ],
+    "meshes": [
+      {
+        "path": "Library/unity default resources",
+        "mesh": "Cube",
+        "count": 9047,
+        "vertices": 24
+      },
+      {
+        "path": "Library/unity default resources",
+        "mesh": "Cylinder",
+        "count": 3053,
+        "vertices": 88
+      },
+      {
+        "path": "Library/unity default resources",
+        "mesh": "Sphere",
+        "count": 804,
+        "vertices": 515
+      },
+      {
+        "path": "Assets/_ThirdParty/Synty/PolygonApocalypse/Models/SM_Prop_Pallet_01.fbx",
+        "mesh": "SM_Prop_Pallet_01",
+        "count": 221,
+        "vertices": 500
+      },
+      {
+        "path": "Library/unity default resources",
+        "mesh": "Quad",
+        "count": 213,
+        "vertices": 4
+      },
+      {
+        "path": "Assets/_ThirdParty/curtaincall/Pursuit/Reclaimed/Repair plate.asset",
+        "mesh": "Repair plate",
+        "count": 130,
+        "vertices": 24
+      },
+      {
+        "path": "",
+        "mesh": "Combined Mesh (root: scene) 2",
+        "count": 90,
+        "vertices": 54591
+      },
+      {
+        "path": "",
+        "mesh": "Combined Mesh (root: scene)",
+        "count": 90,
+        "vertices": 63048
+      },
+      {
+        "path": "Library/unity default resources",
+        "mesh": "Capsule",
+        "count": 43,
+        "vertices": 550
+      },
+      {
+        "path": "Assets/_ThirdParty/Synty/PolygonApocalypse/Models/SM_Prop_Crate_01.fbx",
+        "mesh": "SM_Prop_Crate_01",
+        "count": 28,
+        "vertices": 300
+      },
+      {
+        "path": "Assets/_ThirdParty/curtaincall/Pursuit/Reclaimed/Torn collar.asset",
+        "mesh": "Torn collar",
+        "count": 26,
+        "vertices": 48
+      },
+      {
+        "path": "Assets/_ThirdParty/Synty/PolygonGeneric/Models/SM_Gen_Prop_Chest_01.fbx",
+        "mesh": "SM_Gen_Prop_Chest_01",
+        "count": 21,
+        "vertices": 2067
+      },
+      {
+        "path": "Assets/_ThirdParty/Synty/PolygonGeneric/Models/SM_Gen_Prop_Chest_01.fbx",
+        "mesh": "SM_Gen_Prop_Chest_01_Lid_01",
+        "count": 21,
+        "vertices": 1758
+      },
+      {
+        "path": "Assets/_ThirdParty/Synty/PolygonGeneric/Models/SM_Gen_Prop_Chest_01.fbx",
+        "mesh": "SM_Gen_Prop_Chest_01_Latch_01",
+        "count": 21,
+        "vertices": 152
+      },
+      {
+        "path": "Assets/_ThirdParty/Synty/PolygonApocalypse/Models/SM_Prop_Crate_Large_02.fbx",
+        "mesh": "SM_Prop_Crate_Large_02",
+        "count": 19,
+        "vertices": 400
+      }
+    ]
+  },
+  "lobby": {
+    "renderers": 1793,
+    "staticObjects": 1637,
+    "batchingStatic": 44,
+    "staticBatched": 44,
+    "shadowCasters": 852,
+    "shaders": [
+      {
+        "shader": "Universal Render Pipeline/Lit",
+        "count": 1691
+      },
+      {
+        "shader": "Shader Graphs/S_Base_Buildings_Props",
+        "count": 44
+      },
+      {
+        "shader": "Shader Graphs/S_Standard",
+        "count": 36
+      },
+      {
+        "shader": "Synty/Generic_Basic",
+        "count": 12
+      },
+      {
+        "shader": "CurtainCall/GreyboxText",
+        "count": 7
+      },
+      {
+        "shader": "Synty/Generic_Standard",
+        "count": 2
+      },
+      {
+        "shader": "Universal Render Pipeline/Particles/Unlit",
+        "count": 1
+      }
+    ],
+    "materials": [
+      {
+        "path": "Assets/_ThirdParty/Materials/WaitingArea/V4_Black.mat",
+        "material": "V4_Black",
+        "count": 504,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/Materials/WaitingArea/V4_Iron_Dark.mat",
+        "material": "V4_Iron_Dark",
+        "count": 366,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_XmasBulbWarm.mat",
+        "material": "LA_XmasBulbWarm",
+        "count": 160,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_SteelPlate.mat",
+        "material": "LA_SteelPlate",
+        "count": 153,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/Materials/WaitingArea/V4_RustyMetal.mat",
+        "material": "V4_RustyMetal",
+        "count": 89,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/Materials/WaitingArea/V4_Wood_Old.mat",
+        "material": "V4_Wood_Old",
+        "count": 58,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_AbandonedOxide.mat",
+        "material": "LA_AbandonedOxide",
+        "count": 58,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/LeartesStudios/AbandonedFactory/HDRP/Art/Materials/Props/M_Barrel_2.mat",
+        "material": "M_Barrel_2",
+        "count": 30,
+        "instancing": true
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_XmasTentCream.mat",
+        "material": "LA_XmasTentCream",
+        "count": 28,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_TentRed.mat",
+        "material": "LA_TentRed",
+        "count": 27,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/LeartesStudios/HDRP/Art/Materials/M_Pipe_Big.mat",
+        "material": "M_Pipe_Big",
+        "count": 26,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_XmasBulbAmber.mat",
+        "material": "LA_XmasBulbAmber",
+        "count": 22,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_DiamondPlate.mat",
+        "material": "LA_DiamondPlate",
+        "count": 22,
+        "instancing": false
+      },
+      {
+        "path": "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_XmasTentRed.mat",
+        "material": "LA_XmasTentRed",
+        "count": 21,
+        "instancing": false
+      },
+      {
+        "path": "Assets/_ThirdParty/curtaincall/Pursuit/Reclaimed/Tarnished repairs.mat",
+        "material": "Tarnished repairs",
+        "count": 20,
+        "instancing": false
+      }
+    ],
+    "meshes": [
+      {
+        "path": "Library/unity default resources",
+        "mesh": "Cube",
+        "count": 799,
+        "vertices": 24
+      },
+      {
+        "path": "Library/unity default resources",
+        "mesh": "Cylinder",
+        "count": 614,
+        "vertices": 88
+      },
+      {
+        "path": "Library/unity default resources",
+        "mesh": "Sphere",
+        "count": 226,
+        "vertices": 515
+      },
+      {
+        "path": "",
+        "mesh": "Combined Mesh (root: scene) 2",
+        "count": 25,
+        "vertices": 54591
+      },
+      {
+        "path": "Assets/_ThirdParty/curtaincall/Pursuit/Reclaimed/Repair plate.asset",
+        "mesh": "Repair plate",
+        "count": 25,
+        "vertices": 24
+      },
+      {
+        "path": "",
+        "mesh": "Combined Mesh (root: scene)",
+        "count": 19,
+        "vertices": 63048
+      },
+      {
+        "path": "Assets/_ThirdParty/LeartesStudios/HDRP/Art/Meshes/Pipes/SM_Pipe_Big_Ring_01.fbx",
+        "mesh": "SM_Pipe_Big_Ring_01",
+        "count": 14,
+        "vertices": 900
+      },
+      {
+        "path": "Library/unity default resources",
+        "mesh": "Quad",
+        "count": 12,
+        "vertices": 4
+      },
+      {
+        "path": "Assets/_ThirdParty/LeartesStudios/HDRP/Art/Meshes/Pipes/SM_Pipe_Big_01.fbx",
+        "mesh": "SM_Pipe_Big_01",
+        "count": 12,
+        "vertices": 3724
+      },
+      {
+        "path": "Assets/_ThirdParty/curtaincall/Pursuit/Reclaimed/Torn collar.asset",
+        "mesh": "Torn collar",
+        "count": 5,
+        "vertices": 48
+      },
+      {
+        "path": "Library/unity default resources",
+        "mesh": "Capsule",
+        "count": 4,
+        "vertices": 550
+      },
+      {
+        "path": "Assets/_ThirdParty/LeartesStudios/HDRP/Art/Meshes/SM_MET_WoodenCrate01a_c1_LOD0_yeni.fbx",
+        "mesh": "SM_MET_WoodenCrate01a_c1_LOD0_LOD0",
+        "count": 3,
+        "vertices": 6747
+      },
+      {
+        "path": "Assets/_ThirdParty/LeartesStudios/HDRP/Art/Meshes/SM_MET_WoodenCrate01a_c1_LOD0_yeni.fbx",
+        "mesh": "SM_MET_WoodenCrate01a_c1_LOD0_LOD1",
+        "count": 3,
+        "vertices": 14780
+      },
+      {
+        "path": "Assets/_ThirdParty/Synty/PolygonApocalypse/Models/SM_Prop_Light_Flurecent_01.fbx",
+        "mesh": "SM_Prop_Light_Flurecent_01",
+        "count": 3,
+        "vertices": 300
+      },
+      {
+        "path": "Assets/_ThirdParty/Synty/PolygonApocalypse/Models/SM_Prop_Chair_Soft_01.fbx",
+        "mesh": "SM_Prop_Chair_Soft_01",
+        "count": 2,
+        "vertices": 608
+      }
+    ]
+  },
+  "lights": [
+    {
+      "name": "Directional Light",
+      "type": "Directional",
+      "range": 10.0,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    },
+    {
+      "name": "PhoneLamp",
+      "type": "Spot",
+      "range": 6.0,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    },
+    {
+      "name": "WallWash_West",
+      "type": "Spot",
+      "range": 14.0,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    },
+    {
+      "name": "RingSpot_Centre",
+      "type": "Spot",
+      "range": 22.0,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    },
+    {
+      "name": "RingSpot_Launch",
+      "type": "Spot",
+      "range": 18.0,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    },
+    {
+      "name": "RingSpot_Landing",
+      "type": "Spot",
+      "range": 18.0,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    },
+    {
+      "name": "StationSpot",
+      "type": "Spot",
+      "range": 22.0,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    },
+    {
+      "name": "StationSpot",
+      "type": "Spot",
+      "range": 22.0,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    },
+    {
+      "name": "StationSpot",
+      "type": "Spot",
+      "range": 22.0,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    },
+    {
+      "name": "StationSpot",
+      "type": "Spot",
+      "range": 22.0,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    },
+    {
+      "name": "LampLight",
+      "type": "Spot",
+      "range": 2.4,
+      "shadows": "Soft",
+      "shadowResolution": "FromQualitySettings"
+    }
+  ]
+}

@@ -6,3 +6,4 @@
 
 - [source-scene.md](source-scene.md) — 기존 대기실을 복제·재배치할 때 실제 그레이박스 씬과 분산 아트·기능 위치 확인
 - [pursuit-performance.md](pursuit-performance.md) — 초기화 분산·준비 시점·첫 씬 로드/반복 로드·통합 상태+위치 대역폭을 측정할 때
+- [pursuit-capture-contact.md](pursuit-capture-contact.md) — 피했는데 잡힘·피해자 접촉 보고·호스트 검증·지연/중복/초기화 회귀를 수정할 때

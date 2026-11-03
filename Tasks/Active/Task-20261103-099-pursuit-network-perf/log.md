@@ -39,3 +39,24 @@
 - 최종 check-work 첫 시도는 최신dev에서 들어온 Task-081 log227줄 HARD로 중단(컴파일은 선행 규칙 때문에 SKIPPED). compact-docs로 완료된 과거 접두부 원문을 History/002-log-before-dev-integration.md에 내용 일치 확인 후 이동, 현재 로그66줄. 게임 코드/결정은 수정하지 않았다.
 - 최종 검사 재실행: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 자동 테스트는 별도 결과(최신dev Edit46/46, 전체Play15/17·개별2/2). 이번 묶음을 중간 PR로 제출하며 남은 로드/렌더/Relay 실기를 완료로 표시하지 않는다.
 - 중간 PR 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/276 (feat/waiting-room/pursuit-system → dev, 최신dev bf0b88a5 포함). 미병합. 다음 최적화는 별도 브랜치에서 진행한다.
+- PR #276은 GitHub 조회에서 MoHoDu 계정으로2026-11-03 18:31:20 KST dev852e9f18에 병합됨 확인. 이 작업에서는 PR 병합 명령을 실행하지 않았다. PR 링크 기록 daf55cbc는 원래 작업 브랜치에 push. 후속 fix/pursuit/render-perf 생성 후 Unity 종료 확인·fetch·dev852e9f18을 d066feb5로 병합(충돌0/런타임 코드 차이0). 이후 변경은 기존 PR과 분리.
+- 후속 읽기 전용 렌더 조사(render-audit-local.json/eval.cs): 실제Play 프레임845/26체 초기화 완료 후 집계. 활성 MeshRenderer14729 중 일반 static13452, BatchingStatic180/실제staticBatched180. 로비(bounds center 기준)1793 중static1637/BatchingStatic44/실제배칭44. V4_Black504·V4_Iron_Dark366개, Cube799/Cylinder614/Sphere226개 반복, 주요 재질GPU instancing 꺼짐. 활성그림자조명11개(이번 조사에서는 directional1/spot10, point0). 초기화 이전 기준점/실제 visible draw call과 단순 개수는 구분한다.
+- 이 단계는 씬/재질/조명 값을 변경하지 않은 조사이며 후속 브랜치의 문서/조사 결과는 아직 커밋·푸시하지 않았다. 다음 후보: 동적/문/기물·애니메이션/네트워크 물체 제외 규칙 → 방별 build-time 자동 정적 배칭 비교. 전체 플래그 일괄 변경이나 런타임 대량 Combine은 로드 멈춤/메모리 위험을 함께 측정한 뒤 판단.
+
+## 2026-11-03 피해자 접촉 보고
+- 사용자 승인 설계대로 원격 피해자 자신의 표시 위치 접촉 → 호스트 검증/최종 확정으로 변경. 기존 render 감사 변경 보존, Unity dirty0/Play 중지 확인·정상 종료·fetch 후 dev852e9f18 이미 포함 확인. fix/pursuit/capture-contact에서 진행. 동일Task doctor는 기존 실행 결과를 재사용.
+- 57B 신뢰성 contact(sender=피해자), 캠페인/epoch/sequence/pose시각·좌표 검증,64개 고정20Hz 추격 경로 이력. Host 거리만으로 remote BeginCapture하는 경로 차단. client 확정 전 입력·부상·연출 변경 없음. 기존 CaptureRadius/벽/시야 조건 유지, age1.25초·fresh pose350ms 초과 및 오래된/역순/중복 요청 거부. v4 혼용 불가.
+- CommitCapture는 피해자가 보고한 위치+모델offset의 anchor/방을 사용하며 기존 victims/snapshot·절단/Retired/관전/조명 흐름 재사용. 같은 actor/피해자 중복 포획을 막고 ResetStep/Unbind에서 이력 정리.
+- 최초 core Edit13/13·Play2/2 PASS, remote owner777 실제스폰의 host-only 포획 차단 추가 후 core Play3/3 PASS. 확장 Edit60/60 PASS. 전체 Play20개 중17 PASS/3 FAIL: 이전 런처/Vivox 환경 문제와 배치 창 드래그(follow 전환) — 각각 따로 재확인 예정. 신규 접촉3개는 모두 통과.
+- 전체 검사 후 시야 내 추격 이력과 authoritative Timer/캠페인 교차 확인을 추가해 초기화 경계의 이전active 캐시도 차단. 최종 Edit60/60·핵심 Play3/3 PASS(capture-contact-edit-tests.json/core-play-tests.json). 실제 여러PC Relay 지연 실기는 수행하지 않았으며 자동 시간축/유실 시뮬레이션·NGO 소유자 fixture 검사와 구분한다.
+- 전체Play 실패3개 단독 재실행: Activation1/1·CaptureFourDirections1/1 PASS, Designer_LiveMap0/1 FAIL(중간버튼 SendEvent 뒤 liveFollowPlayer가 true). 해당 에디터/검사 코드는 이번 변경에서 수정하지 않았고 UI 이벤트 실패 원인은 미확정. 전체20/20 PASS로 표기하지 않는다. regression별 JSON 보존.
+- 지연 검증 범위: 보고 시각 age50/150/300/600/1000ms 허용, 피해자 화면에서 벗어난 접촉은 거부. 실제 pose buffer480프레임·20% 유실·최대200ms 도착 지터·350ms 단절에서 이전 호스트 방식은400프레임 이상 잡힘 조건이나 새 owner 접촉0건. frozen/역순 pose·중복·벽·모르는 소유자·옛 epoch·타이머 초기화도 거부.
+- 4인 후속 우선순위는 이동 최신좌표 우선 전송 A/B → 반복 소품 GPU Resident Drawer A/B → 도착간격 기반 보간/원거리 그림자/분산 탐지. 현재30Hz 유지, 프레임 급정지와 네트워크 지연을 따로 측정. rendering/전송 설정은 이번 묶음에서 변경하지 않았다.
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 위 실패는 새 regression 결과 JSON3개의 대문자 이름 때문. 원문 결과를 유지하고 소문자로 이름을 고친 뒤 재검사한다.
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 접촉 수정 최종 check-work 통과. 자동 테스트는 별도 저장한 Edit60/60·core Play3/3·기존 capture/activation 단독2/2이며 전체Play17/20 및 지도UI 단독 실패도 보존. 검증용 Unity 정상 종료 후 생성 폰트/라벨 캐시 변경은 자동으로 없어졌고 씬/프리팹 변경 없음. 이번 포획 수정/조사 문서는 아직 커밋·푸시하지 않았다.

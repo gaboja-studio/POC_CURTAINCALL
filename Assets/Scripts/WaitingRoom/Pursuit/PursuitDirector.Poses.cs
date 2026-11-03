@@ -7,7 +7,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
 {
     public sealed partial class PursuitDirector
     {
-        const string PoseMessage = "CurtainCall.WaitingRoom.Pursuit.Poses.v2";
+        const string PoseMessage = "CurtainCall.WaitingRoom.Pursuit.Poses.v4";
         const int PosesPerPacket = 16; // 5 header ints + timestamp + 16*(index+position+rotation) = 540 bytes.
         int poseEpoch;
         float poseSendAt;
@@ -16,6 +16,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (messaging == null || manager == null || !manager.IsServer || readyClients.Count == 0 || Time.unscaledTime < poseSendAt) return;
             poseSendAt = Time.unscaledTime + .05f;
             double stamp = Time.realtimeSinceStartupAsDouble;
+            RecordContactHistory(stamp);
             for (int start = 0; start < actors.Count; start += PosesPerPacket) {
                 using var writer = new FastBufferWriter(1024, Allocator.Temp);
                 writer.WriteValueSafe(generation); writer.WriteValueSafe(day); writer.WriteValueSafe(performance);

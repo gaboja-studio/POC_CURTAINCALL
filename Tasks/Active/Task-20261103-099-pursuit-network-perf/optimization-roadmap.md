@@ -58,7 +58,7 @@
 - [ ] 텍스처 압축·크기 점검, 비동기 업로드 버퍼(현재 16MB / 2ms) 조정
 
 ### P3. 렌더링
-- [ ] 정적 배칭이 23,299개 중 180개뿐인 원인 확인(Static 플래그·Player Settings·런타임 생성 여부)
+- [x] 정적 배칭이 적은 원인 1차 확인: 후속 Play 활성14729개 중 일반 static13452/BatchingStatic180/실제배칭180. 로비1793개 중배칭44. 범용 static 표시가 있어도 BatchingStatic이 빠진 소품이 많음(render-audit-local.json). 빌드/저장 자동 적용 후보는 추가 검증
 - [ ] GPU Resident Drawer 검토(Forward+ + SRP Batcher 전제, 현재 꺼짐)
 - [ ] 오클루전 컬링 재굽기: 추격 씬은 원본 복제라 연결된 데이터가 원본 것일 수 있음
 - [ ] 로비 그림자 캐스터 4,608 감소: 그림자 조명 수/거리/해상도, 작은 소품 그림자 끄기
@@ -96,4 +96,13 @@ P2의 메시 합치기·분할 로드와 P3의 조명 굽기·오클루전은 �
 - 이전 단일 측정의1273→1076ms는 GC 변동을 포함하므로 확정 개선율이 아니다. 최종 예산 방식 측정은 별도 JSON으로 보관한다.
 - 아직 해결 완료로 보지 않는 것: 저사양 빌드 첫 로드/5초 목표, 실제2~4인 Relay, 로비 batches/그림자·정적 배칭, 셰이더/GC/씬 분할. PR 뒤 별도 후속 브랜치에서 진행한다.
 - 최종 예산 방식 실측: baseline-local-final-budget.json.26체7프레임/실제 생성13.65ms/단일최대1.03ms, 최장1250ms(GC441ms/Integrate1112ms). 기준1273ms와 유사하며 전체 로드 개선 달성으로 표기하지 않는다. 준비2781ms; 로비6763 batches/그림자4699는 남아 있다.
-- 중간 제출 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/276 · 최신dev 포함/미병합. 이후 작업은 이 PR head에서 분기해 기존 PR 범위를 유지한다.
+- 중간 제출 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/276 · dev852e9f18에 병합됨. 이후 작업은 최신dev를 반영한 별도 브랜치로 진행한다.
+
+## 4인 최적화 조사 (포획 수정 후, 미적용 제안)
+- 위치 지연의 저비용 후보: Player.prefab의 NetworkTransform은30Hz·Owner·UseUnreliableDeltas=0·1mm threshold. 이동만 최신 좌표 우선 전송으로 바꾸는 A/B가 우선이며 절단/포획/아이템 등 확정 상태는 신뢰성 유지. 빈번한 위치 재전송 대기를 줄이는 목적이지 회선 ping 자체를 줄이는 것은 아님.
+- 프레임 후보: 로비6763 batches/그림자4699, 활성 MeshRenderer14729개 중BatchingStatic180. PC는 Forward+·SRP Batcher 이미ON·GPU Resident Drawer OFF. 반복 Cube/Cylinder/같은 재질이 많아 GRD A/B를 우선 비교하고, 비호환 셰이더/PropertyBlock 대상은 제외한다. 기존 메모리 사용과 빌드 셰이더 증가도 함께 측정. 전체 Static 플래그 일괄 변경보다 먼저 작은 설정 실험으로 효과 확인.
+- 보간은 추격자150ms 버퍼+추가평활화. 좌표 도착 간격을 재서75~100ms 후보를 비교하고, 불안정한 회선에서는 여유를 자동으로 늘린다. 보간을 전부 끄거나 전송 주기를 무작정60Hz로 올리는 것은 우선안이 아님.
+- 그림자는 PC에서50m/4 cascade/고품질 Soft. 멀리 있는 방·작은 소품의 그림자부터 줄이되 포획 방 암전/전등 깜빡임은 유지. 거울은 이미640x360/격프레임/그림자OFF/거리제한이 있으므로 무조건 끄기보다 별도 비용이 확인될 때 조정.
+- 호스트 CPU 추가 후보: 시야 RaycastAll의 할당과26체×플레이어 수의 매프레임 탐지를 재사용 버퍼/엇갈린10Hz 검사로 전환. NavMesh 재경로는 이미0.2초 간격, 발소리는10Hz이므로 중복 최적화하지 않는다.
+- 실측 기준은 최종 빌드/2~4PC Relay에서 frame p95/p99·최장정지·좌표 나이/도착간격·RTT/유실·GC. 현재 자료로 FPS 향상 비율이나4PC 문제가 해결됐다고 단정하지 않는다.
+- 근거: Unity6.3 GRD https://docs.unity3d.com/6000.3/Documentation/Manual/urp/gpu-resident-drawer.html · NGO NetworkTransform https://docs.unity3d.com/Packages/com.unity.netcode.gameobjects@2.7/manual/components/helper/networktransform.html · 로컬 baseline-local-final-budget.json/render-audit-local.json/플레이어 프리팹/PC_RPAsset.

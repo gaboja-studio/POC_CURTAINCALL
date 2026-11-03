@@ -14,6 +14,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         BehaviorGraphAgent brain;
         PursuitStage rule;
         bool visible, sensingLook, investigating, searching, restartBrain;
+        internal bool ContactTargetVisible => visible;
         Vector3 sensingPoint, scanLook;
         float prepareUntil, noiseUntil, searchUntil, nextNoiseAt, scanStarted;
         Vector3 captureStart;
@@ -94,6 +95,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             if (target == null) return false;
             EnterBehaviour(PursuitBehaviour.Chase); agent.speed = rule.ResolvedChaseSpeed; SetMotion(PursuitMotion.Run); Navigate(lastSeen);
+            if (director.RequiresOwnerContact(target.gameObject)) return true;
             if (visible && Vector3.Distance(transform.position, target.position) <= GameSettings.WaitingRoom.Pursuit.CaptureRadius
                 && director.ClearLine(transform.position + Vector3.up, target.position + Vector3.up, target)) director.BeginCapture(this, target.gameObject);
             return true;
