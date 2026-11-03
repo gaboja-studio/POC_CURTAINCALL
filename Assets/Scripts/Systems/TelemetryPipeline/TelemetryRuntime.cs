@@ -386,7 +386,7 @@ namespace CurtainCall.Telemetry.Pipeline
         }
         public static string SceneType(string name) => name switch
         {
-            "Start" => "TITLE", "Lobby" => "LOBBY", "WaitingRoomBase" or "WaitingRoomPursuit" => "WAITINGROOM",
+            "Start" => "TITLE", "Lobby" => "LOBBY", "WaitingRoomBase" or "WaitingRoomPursuit" or "WaitingRoom" => "WAITINGROOM",
             "Tightrope" or "HummanCannon" or "HumanCannon" => "MAINSTAGE", _ => "UNKNOWN"
         };
     }

@@ -541,7 +541,7 @@ namespace CurtainCall.Settings
 
 
             [Tooltip("실제 플레이·Dev 시작·탐색 대기실. 변경 후 런을 다시 시작하세요.")]
-            [SerializeField] WaitingRoomSceneVariant waitingRoomVariant = WaitingRoomSceneVariant.Base;
+            [SerializeField] WaitingRoomSceneVariant waitingRoomVariant = WaitingRoomSceneVariant.Integrated;
             [HideInInspector, SerializeField] string waitingRoomScene = "WaitingRoomBase";
 
             [Tooltip("퇴장 시 같은 씬에서 탐색한다. 실제 대기실은 켜고, 별도 탐색 씬을 쓰는 더미 검증은 끈다.")]

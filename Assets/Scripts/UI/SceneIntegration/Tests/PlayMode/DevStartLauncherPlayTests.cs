@@ -76,7 +76,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             // 연계 튜토리얼은 의도적으로 조작을 막는다(Task-086).
             if (!(bool)Static("CurtainCall.WaitingRoom.WaitingRoomTutorial", "IsSequenceActive"))
                 Assert.IsFalse((bool)Static("CurtainCall.Player.InputGate", "IsBlocked"));
-            Assert.AreEqual(1, Object.FindObjectsByType(T((scene == "WaitingRoomBase" || scene == "WaitingRoomPursuit") ? "CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI" : "CurtainCall.UI.SceneIntegration.CommonPerformanceUI"), FindObjectsSortMode.None).Length);
+            Assert.AreEqual(1, Object.FindObjectsByType(T((scene == "WaitingRoomBase" || scene == "WaitingRoomPursuit" || scene == "WaitingRoom") ? "CurtainCall.UI.SceneIntegration.CommonWaitingRoomUI" : "CurtainCall.UI.SceneIntegration.CommonPerformanceUI"), FindObjectsSortMode.None).Length);
             Assert.AreEqual(1, Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.CommonInteractionUI"), FindObjectsSortMode.None).Length);
         }
         [UnityTest]

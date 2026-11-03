@@ -1,0 +1,62 @@
+{
+  "status": "completed",
+  "duration": 5.35,
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Settings.EditorTests.WaitingRoomSceneSelectionTests.CustomDummyRoutesArePreserved",
+      "Status": "Passed",
+      "Duration": 0.008511,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Settings.EditorTests.WaitingRoomSceneSelectionTests.SelectionRoutesRestAndExplorationAndBothAssetsRemainAvailable(Base,\"WaitingRoomBase\")",
+      "Status": "Passed",
+      "Duration": 0.0040218,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Settings.EditorTests.WaitingRoomSceneSelectionTests.SelectionRoutesRestAndExplorationAndBothAssetsRemainAvailable(Pursuit,\"WaitingRoomPursuit\")",
+      "Status": "Passed",
+      "Duration": 0.0005426,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Settings.EditorTests.WaitingRoomSceneSelectionTests.SelectionRoutesRestAndExplorationAndBothAssetsRemainAvailable(Integrated,\"WaitingRoom\")",
+      "Status": "Passed",
+      "Duration": 0.0005621,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.DayClockTests.WaitingRoomSceneReferencesV27PrefabAndOriginalSchedule",
+      "Status": "Passed",
+      "Duration": 1.2290729,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.EditorTools.Tests.RestTimerTests.WaitingRoomSceneSerializesSingleNewPrefabAndDisablesOldClocks",
+      "Status": "Passed",
+      "Duration": 0.0202032,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.UnifiedWaitingRoomSceneTests.UnifiedWaitingRoom_PreservesPursuitAuthoringAndSceneReferences",
+      "Status": "Passed",
+      "Duration": 3.954604,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

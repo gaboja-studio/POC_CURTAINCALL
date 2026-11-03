@@ -102,7 +102,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             if (director == null || Room == null) {
                 EditorGUILayout.HelpBox("추격 시스템이 있는 대기실 씬을 열어 주세요. 플레이 중에는 이 창에서 실시간 구조도를 볼 수 있습니다.", MessageType.Info);
                 using (new EditorGUI.DisabledScope(EditorApplication.isPlaying))
-                    if (GUILayout.Button("추격 테스트 대기실 열기", GUILayout.Height(36)) && EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
+                    if (GUILayout.Button("추격 대기실 열기", GUILayout.Height(36)) && EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) {
                         EditorSceneManager.OpenScene(PursuitAuthoring.ScenePath); Refresh();
                     }
                 return;
