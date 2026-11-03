@@ -88,3 +88,4 @@
 
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 이번 저장 범위: 기존 대포 착지·그네/매달리기 지연 보완·입력 회귀·추격 시야 버퍼·일반 대포 장애물 접촉 보고. Unity 정상 종료 후 최신dev4be086c6 이미 포함 확인, 충돌 없음. 실제4인 전후 비교와 별도 외줄/장애물 시스템 검증이 남아 있어 완료 PR 대신 드래프트로 제출한다. 기존 GripYellow.mat/Task083 preview 변경은 포함하지 않는다.
+- 드래프트 PR #279 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/279 제출, 구현 커밋8c17574c push. 실제4인/Relay·성능 전후·별도 장애물 시스템은 PR 설명과 todo에 미완료로 명시했다.
