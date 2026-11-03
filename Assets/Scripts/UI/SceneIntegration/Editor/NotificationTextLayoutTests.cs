@@ -114,6 +114,34 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             finally { Object.DestroyImmediate(instance); }
         }
 
+        [Test]
+        public void VisibleDeviceGuideRefitsWhenOnlyItsKeyOrHelperVisibilityChanges()
+        {
+            var instance = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Interaction/InteractionPrompt.prefab"));
+            try
+            {
+                var view = instance.GetComponentInChildren<CurtainCall.UI.InteractionV1.InteractionPromptView>(true);
+                foreach (var text in view.GetComponentsInChildren<TMP_Text>(true)) text.isOrthographic = true;
+                var layout = view.gameObject.AddComponent<NotificationTextLayout>();
+                var key = view.transform.Find("Motion/60_KeyTMP").GetComponent<TMP_Text>();
+                var action = view.transform.Find("Motion/70_ActionTMP").GetComponent<TMP_Text>();
+                var helper = view.transform.Find("Motion/80_HelperTMP");
+                view.ShowEditImmediate("F", "도약", CurtainCall.UI.InteractionV1.InteractionAvailability.Available, false, 0, "그네");
+                layout.SetDeviceText(true);
+                layout.RefreshLayout();
+                var update = typeof(NotificationTextLayout).GetMethod("LateUpdate",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                float narrow = key.rectTransform.rect.width;
+                key.text = "Left Shift";
+                update.Invoke(layout, null);
+                Assert.Greater(key.rectTransform.rect.width, narrow);
+                helper.gameObject.SetActive(false);
+                update.Invoke(layout, null);
+                Assert.That(action.rectTransform.anchoredPosition.y, Is.EqualTo(-24));
+            }
+            finally { Object.DestroyImmediate(instance); }
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void CannonAndPoleKoreanGlyphsAreWarmedOnRuntimeCopiesOnly(bool separateToast)

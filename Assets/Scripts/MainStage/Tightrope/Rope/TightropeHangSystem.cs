@@ -119,7 +119,7 @@ namespace CurtainCall.Tightrope
         public bool ServerTryHang(NetworkPlayer player, float distance, int preferredLane = -1)
         {
             if (!IsHost || player == null || !player.IsSpawned || player.State != PlayerState.Normal) return false;
-            if (EscapeDevelopmentSession.FallConsequencesSuppressed(player)) return false;
+            if (EscapeDevelopmentSession.RopeBalanceFallsSuppressed(player)) return false;
             if (book.IsHanging(player.OwnerClientId)) return true;
             if (!Active) { player.ServerKill(); return false; }
             if (preferredLane < 0 && !course.TryGetRopePoint(player.transform.position, out preferredLane, out _))
@@ -205,7 +205,7 @@ namespace CurtainCall.Tightrope
                 if (outcome == TightropeHangBook.Outcome.Dropped)
                 {
                     var dropped = Find(id);
-                    if (!EscapeDevelopmentSession.FallConsequencesSuppressed(dropped)) dropped?.ServerKill();
+                    if (!EscapeDevelopmentSession.RopeBalanceFallsSuppressed(dropped)) dropped?.ServerKill();
                 }
                 else
                 {
@@ -302,7 +302,7 @@ namespace CurtainCall.Tightrope
             {
                 // 호스트 장부에서 빠졌는데 구조 신호가 없었다 = 거절·낙사. 상태 변경이 오기 전까지 떨어지는 대로 둔다.
                 ReleaseLocal(false);
-                if (local.TryGetComponent(out PlayerBalance balance)) balance.ForceFall();
+                if (local.TryGetComponent(out PlayerBalance balance)) balance.DropFromRopeGrip();
                 return;
             }
             else Place(localHang.FallPosition, localHang.FallPosition);

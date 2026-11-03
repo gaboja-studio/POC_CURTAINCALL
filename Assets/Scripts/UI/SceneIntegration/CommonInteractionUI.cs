@@ -11,6 +11,7 @@ using CurtainCall.WaitingRoom;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 namespace CurtainCall.UI.SceneIntegration
@@ -35,6 +36,8 @@ namespace CurtainCall.UI.SceneIntegration
         readonly List<RectTransform> rescueRings = new();
         Sprite rescueTrack;
         string warmedDeviceText;
+        (InteractionPromptView view, PlayerInputReader reader, string key, string action, string helper,
+            InteractionAvailability availability, bool hold) shownDevice;
         public int HighlightCount => outlines.Count;
         public IReadOnlyList<Transform> Highlighted => outlines.ConvertAll(o => o.Target);
         public InteractionPromptView Prompt => prompt;
@@ -58,7 +61,21 @@ namespace CurtainCall.UI.SceneIntegration
                 material.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Geometry + 2;
             }
         }
-        void OnEnable() { SceneManager.sceneLoaded += SceneLoaded; Refresh(); }
+        void OnEnable()
+        {
+            SceneManager.sceneLoaded += SceneLoaded;
+            InputSystem.onActionChange += BindingChanged;
+            InputSystem.onDeviceChange += DeviceChanged;
+            Refresh();
+        }
+        void BindingChanged(object _, InputActionChange change)
+        {
+            if (change == InputActionChange.BoundControlsChanged) shownDevice = default;
+        }
+        void DeviceChanged(InputDevice _, InputDeviceChange change)
+        {
+            if (change == InputDeviceChange.ConfigurationChanged) shownDevice = default;
+        }
         void SceneLoaded(Scene _, LoadSceneMode mode) => Refresh();
         void Refresh()
         {
@@ -140,19 +157,35 @@ namespace CurtainCall.UI.SceneIntegration
             if (focused == null)
                 foreach (var candidate in selected) if (candidate.WaitingRoom || candidate.Lobby) { focused = candidate; break; }
             if (focused == null || prompt == null) { if (prompt != null) prompt.HideImmediate(); return; }
+            ShowPrompt(reader, focused);
+            if (focused.ScreenGuide && promptAnchor != null && promptAnchor.parent is RectTransform parent)
+                promptAnchor.anchoredPosition = new Vector2(parent.rect.xMin + promptAnchor.rect.width * .5f + 24,
+                    parent.rect.yMin + promptAnchor.rect.height + 144);
+            else PositionPrompt(focused.Point, camera);
+        }
+        void ShowPrompt(PlayerInputReader reader, Candidate focused)
+        {
+            bool cannonOrPole = focused.Root != null && (focused.Root.GetComponent<HumanCannonStation>() != null
+                || focused.Root.GetComponent<HumanCannonPole>() != null);
+            string helper = focused.Focused ? focused.Helper ?? "" : WaitingRoomText.Get("prompt.come-closer", "가까이 다가가세요");
+            var availability = focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable;
+            float progress = focused.Hold && focused.Available ? focused.Progress ?? reader.Current.InteractHoldProgress : 0;
+            var state = (prompt, reader, focused.Key, focused.Action, helper, availability, focused.Hold);
+            // Show resets the action text rectangle. Keep the fitted device layout while only hold progress changes.
+            if (cannonOrPole && shownDevice == state && prompt.HasRuntimePresentation
+                && (warmedDeviceText != null || !TryGetComponent<UiRuntimeFontFallback>(out _)))
+            {
+                if (focused.Hold) prompt.SetProgress01(progress);
+                return;
+            }
             string interactKey = reader.BindingLabel("Interact", "F"), jumpKey = reader.BindingLabel("Action", "Space");
             string key = FormatControlLabels(focused.Key, interactKey, jumpKey);
-            string helper = focused.Focused ? focused.Helper ?? "" : WaitingRoomText.Get("prompt.come-closer", "가까이 다가가세요");
             helper = FormatControlLabels(helper, interactKey, jumpKey,
                 reader.BindingPartLabel("Move", "positive", "W") + "/" + reader.BindingPartLabel("Move", "negative", "S"),
                 reader.BindingPartLabel("Posture", "negative", "A") + "/" + reader.BindingPartLabel("Posture", "positive", "D"));
-            prompt.Show(key, focused.Action, focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable,
-                focused.Hold, focused.Hold && focused.Available ? focused.Progress ?? reader.Current.InteractHoldProgress : 0,
-                helper);
+            bool presented = prompt.Show(key, focused.Action, availability, focused.Hold, progress, helper);
             var layout = prompt.GetComponent<NotificationTextLayout>();
             if (layout == null) layout = prompt.gameObject.AddComponent<NotificationTextLayout>();
-            bool cannonOrPole = focused.Root != null && (focused.Root.GetComponent<HumanCannonStation>() != null
-                || focused.Root.GetComponent<HumanCannonPole>() != null);
             string deviceText = key + focused.Action + helper;
             if (cannonOrPole && deviceText != warmedDeviceText && TryGetComponent(out UiRuntimeFontFallback fonts))
             {
@@ -161,11 +194,9 @@ namespace CurtainCall.UI.SceneIntegration
             else if (!cannonOrPole) warmedDeviceText = null;
             layout.SetDeviceText(cannonOrPole);
             layout.RefreshLayout();
-            if (focused.ScreenGuide && promptAnchor != null && promptAnchor.parent is RectTransform parent)
-                promptAnchor.anchoredPosition = new Vector2(parent.rect.xMin + promptAnchor.rect.width * .5f + 24,
-                    parent.rect.yMin + promptAnchor.rect.height + 144);
-            else PositionPrompt(focused.Point, camera);
+            shownDevice = cannonOrPole && presented ? state : default;
         }
+
         float FarSkip => highlightDistance + 10f;
         public static string FormatControlLabels(string text, string interactKey, string jumpKey, string move = "W/S", string posture = "A/D") =>
             System.Text.RegularExpressions.Regex.Replace(text ?? "", @"(?<![A-Za-z])(?:F|Space|SPACE|W/S|A/D)(?![A-Za-z])",
@@ -543,6 +574,9 @@ namespace CurtainCall.UI.SceneIntegration
         }
         void OnDisable()
         {
+            InputSystem.onActionChange -= BindingChanged;
+            InputSystem.onDeviceChange -= DeviceChanged;
+            shownDevice = default;
             SceneManager.sceneLoaded -= SceneLoaded; ShopReach.HasExternalPresentation = false;
             if (lobbyRoom != null) lobbyRoom.ExternalInteractionPresentation = false;
             Hide();
