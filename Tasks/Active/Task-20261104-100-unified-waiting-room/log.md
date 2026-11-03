@@ -13,3 +13,4 @@
 - 최종 기본 설정 waitingRoomVariant=2/Resolved WaitingRoom, 추격 Enabled=true. 통합 씬과 추격 배치 창을 에디터에 열어 두었다. 이번 요청은 구현·연결 범위로 로컬 저장했으며 별도 커밋/푸시하지 않았다. 검증 중 생성된 글꼴 캐시와 두 재질의 미세 부동소수점 변화는 기능 변경에 포함하지 않는다.
 
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 제출: 최신 dev 4be086c6 기준 통합 변경만 분리, 커밋 9cd4422f push 완료. PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/280 (base dev). 기존 관련 없는 변경 보존. GitHub 커넥터 403으로 gh CLI 사용.
