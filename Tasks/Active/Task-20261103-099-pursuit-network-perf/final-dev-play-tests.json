@@ -1,0 +1,132 @@
+{
+  "status": "completed",
+  "duration": 219.27,
+  "summary": {
+    "total": 17,
+    "passed": 15,
+    "failed": 2,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_DecorativeCeilingBlocksOnlyCamera",
+      "Status": "Passed",
+      "Duration": 11.8937342,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_RoundLobbyCeilingRetractsArm",
+      "Status": "Passed",
+      "Duration": 6.7553103,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRoomPursuit_WallShortensCameraArmAndRemovalRestoresItGradually",
+      "Status": "Passed",
+      "Duration": 7.4621924,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Cameras.Tests.CameraViewsPlayTests.WaitingRooms_Architecture_PursuitRoomCeilings",
+      "Status": "Passed",
+      "Duration": 11.5600869,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitActivation_StaggeredStagesDormantSensingAndReplicaAppearance",
+      "Status": "Failed",
+      "Duration": 3.4501457,
+      "Message": "  Expected: True\r\n  But was:  False\r\n",
+      "StackTrace": "at CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests+<PursuitHost>d__51.MoveNext () [0x00118] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\UI\\SceneIntegration\\Tests\\PlayMode\\PursuitBehaviourPlayTests.cs:23\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitBehaviour_CaptureFourDirectionsBloodAndCleanup",
+      "Status": "Failed",
+      "Duration": 11.1718879,
+      "Message": "Unhandled log message: '[Error] [Vivox]: <AdjustVolume>b__0: vx_req_aux_set_speaker_level_t failed: Unity.Services.Vivox.VivoxApiException: Target Object Does Not Exist (1001) [RequestId: 4]\r\n  at Unity.Services.Vivox.VxClient.EndIssueRequest (System.IAsyncResult result) [0x0004c] in .\\Library\\PackageCache\\com.unity.services.vivox@c9029deeec82\\Runtime\\VivoxUnity\\VxClient.cs:317 \r\n  at Unity.Services.Vivox.AudioOutputDevices+<>c__DisplayClass48_0.<AdjustVolume>b__0 (System.IAsyncResult ar) [0x00002] in .\\Library\\PackageCache\\com.unity.services.vivox@c9029deeec82\\Runtime\\VivoxUnity\\Private\\AudioOutputDevices.cs:373 '. Use UnityEngine.TestTools.LogAssert.Expect",
+      "StackTrace": "Unity.Services.Vivox.VivoxLogger:LogError (object) (at ./Library/PackageCache/com.unity.services.vivox@c9029deeec82/Runtime/SDK/Utils/VivoxLogger.cs:15)\r\nUnity.Services.Vivox.VivoxLogger:LogVxException (object) (at ./Library/PackageCache/com.unity.services.vivox@c9029deeec82/Runtime/SDK/Utils/VivoxLogger.cs:33)\r\nUnity.Services.Vivox.AudioOutputDevices/<>c__DisplayClass48_0:<AdjustVolume>b__0 (System.IAsyncResult) (at ./Library/PackageCache/com.unity.services.vivox@c9029deeec82/Runtime/VivoxUnity/Private/AudioOutputDevices.cs:377)\r\nUnity.Services.Vivox.AsyncResult`1<Unity.Services.Vivox.vx_resp_base_t>:SetComplete (Unity.Services.Vivox.vx_resp_base_t) (at ./Library/PackageCache/com.unity.services.vivox@c9029deeec82/Runtime/VivoxUnity/AsyncResult.cs:124)\r\nUnity.Services.Vivox.VxClient:InstanceOnMainLoopRun (bool&) (at ./Library/PackageCache/com.unity.services.vivox@c9029deeec82/Runtime/VivoxUnity/VxClient.cs:200)\r\nUnity.Services.Vivox.MessagePump:RunOnce () (at ./Library/PackageCache/com.unity.services.vivox@c9029deeec82/Runtime/VivoxUnity/MessagePump.cs:61)\r\nUnity.Services.Vivox.MessagePump:RunUntil (System.Func`1<bool>) (at ./Library/PackageCache/com.unity.services.vivox@c9029deeec82/Runtime/VivoxUnity/MessagePump.cs:44)\r\nUnity.Services.Vivox.Client:RunOnce () (at ./Library/PackageCache/com.unity.services.vivox@c9029deeec82/Runtime/VivoxUnity/Client.cs:430)\r\nUnity.Services.Vivox.VxUnityInterop/<VivoxUnityRun>d__8:MoveNext () (at ./Library/PackageCache/com.unity.services.vivox@c9029deeec82/Runtime/VivoxUnity/VxUnityInterop.cs:110)\r\nUnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)\r\n\r\n"
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitBehaviour_GraphHearingChaseSearchAndCulling",
+      "Status": "Passed",
+      "Duration": 20.2966678,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitBehaviour_PatrolLeashReturnsWithoutReacquiringAndZeroDisablesIt",
+      "Status": "Passed",
+      "Duration": 15.5409066,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitCapture_HideAndReleasePreserveCurrentInjury",
+      "Status": "Passed",
+      "Duration": 3.1785364,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitCapture_OneArmMeshSurvivesPerformanceTransfer",
+      "Status": "Passed",
+      "Duration": 41.1304428,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitCheats_ProtectionRecognitionAndPatrolResume",
+      "Status": "Passed",
+      "Duration": 15.4067132,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitCheats_ReceivedCancellationRemovesCapturePresentation",
+      "Status": "Passed",
+      "Duration": 9.8739601,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitCheats_TimerStageCaptureCancelAndRepeat",
+      "Status": "Passed",
+      "Duration": 10.2095265,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitDesigner_LiveMapUsesNoPreviewCameraAndTracksPlayerAcrossFloors",
+      "Status": "Passed",
+      "Duration": 10.1241607,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitFeedback_ProximityLocalTargetAndCleanup",
+      "Status": "Passed",
+      "Duration": 13.3599811,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitInitialization_SplitsStableOrderAndCancelsWithSceneObject",
+      "Status": "Passed",
+      "Duration": 9.9779871,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitRoom_FromStart_InventoryAndEscapeMenuSurviveReload",
+      "Status": "Passed",
+      "Duration": 17.6622238,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

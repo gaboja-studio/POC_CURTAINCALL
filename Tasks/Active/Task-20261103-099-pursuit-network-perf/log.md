@@ -34,3 +34,7 @@
 - 중간 실측(1체/프레임, after-warm): 로드1621ms, 준비3069ms, 최장1076ms, 초기화1952ms/실제작업21.8ms/단일최대1.47ms. 단일 전후 측정이며 GC 변동이 있어 인과/개선율 확정 불가. 대기 비용을 줄이기 위해 최종 구현은2ms 예산+최대4체/프레임으로 조정(단일 Instantiate/Init 자체는 선점 불가). 전체Play14/17의 메뉴 실패도 있어 새 fixture의 live singleton/handler 간섭을 방지하고 dev 통합 뒤 재검증한다.
 - 최종2ms/최대4체 방식 컴파일 PASS·초기화 단독Play1/1 PASS. 중간 제출 전 check-work: 안전성/문서·규칙/컴파일 PASS, 테스트는 별도 기록. Task중복 매핑을 해소했고 로컬 동적 글꼴3개는 커밋 대상에서 제외한다.
 - PR 직전 Unity 정상 종료·origin fetch. 최신 dev bf0b88a5 수신 및 병합(사람 대포/탈출로/설정 최신 변경 포함), 충돌0. 로컬 글꼴 캐시는 에디터 종료 시 원래 상태로 돌아옴. 통합 후 컴파일/추격 회귀 및 최종 예산 방식 측정 후 제출한다.
+- dev bf0b88a5 통합 후 컴파일 PASS·Edit46/46 PASS. 최종 전체Play17개 중15 PASS/2 FAIL(초기화 신규·메뉴/재로드 포함15개 통과). 실패는 통합 전과 동일한 Activation 런처 순서 의존·CaptureFourDirections Vivox1001 로그. 전체결과 final-dev-play-tests.json 보존, 개별 재확인 및 최종 예산 방식 측정 진행.
+- 최종 전체Play15/17 + 실패2개 각각 단독1/1 PASS(전체PASS로 표기하지 않음). final-dev-*-tests.json 보존. 최종2ms/최대4체 측정: 26체7프레임, 생성작업13.65ms/단일최대1.03ms, 로드1806ms/준비2781ms/최장1250ms. 기준1273ms와 유사해 전체 로드 개선으로 확정하지 않음. 남은 주요 비용 GC441ms/Integrate1112ms, 로비6763 batches/그림자4699.
+- 최종 check-work 첫 시도는 최신dev에서 들어온 Task-081 log227줄 HARD로 중단(컴파일은 선행 규칙 때문에 SKIPPED). compact-docs로 완료된 과거 접두부 원문을 History/002-log-before-dev-integration.md에 내용 일치 확인 후 이동, 현재 로그66줄. 게임 코드/결정은 수정하지 않았다.
+- 최종 검사 재실행: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 자동 테스트는 별도 결과(최신dev Edit46/46, 전체Play15/17·개별2/2). 이번 묶음을 중간 PR로 제출하며 남은 로드/렌더/Relay 실기를 완료로 표시하지 않는다.
