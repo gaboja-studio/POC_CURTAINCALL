@@ -203,7 +203,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(firstBoundary.position.z, Is.EqualTo(72).Within(0.001f));
             Assert.That(firstBoundary.position.z, Is.EqualTo(shelter.min.z).Within(0.001f));
             Assert.That(secondBoundary.position.z, Is.EqualTo(141.5f).Within(0.001f));
-            Assert.That(secondBoundary.position.z, Is.EqualTo(cushion.bounds.min.z).Within(0.001f));
+            // 2026-11-02: 쿠션 뒤끝만 143으로 당겼다. 불꽃 경계는 그대로라 쿠션 앞 1.5m 일반 바닥까지만 온다.
+            Assert.That(cushion.bounds.min.z, Is.EqualTo(secondBoundary.position.z + 1.5f).Within(0.001f));
             Assert.That(secondBoundary.position.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(Field<Transform>(fires[1], "start").position.y, Is.EqualTo(6).Within(0.001f));
             Assert.That(cushion.bounds.center.y, Is.EqualTo(6.1f).Within(0.001f));
