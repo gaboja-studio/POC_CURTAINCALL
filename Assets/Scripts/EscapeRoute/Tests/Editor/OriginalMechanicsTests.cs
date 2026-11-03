@@ -44,6 +44,21 @@ namespace CurtainCall.EscapeRoute.Tests
             created.Clear();
         }
 
+        [Test]
+        public void InspectionRejectsRetirementAsWellAsFallsAndArrivalOnlyForInspectedActor()
+        {
+            var session = Add(Root("Inspection state fixture"), "CurtainCall.EscapeRoute.EscapeInspectionSession");
+            var actor = Add(Root("Inspected actor"), "CurtainCall.Network.PlayerSync.NetworkPlayer");
+            ulong id = (ulong)Get(actor, "OwnerClientId");
+            ((HashSet<ulong>)Get(session, "inspecting")).Add(id);
+            var state = TypeOf("CurtainCall.Network.PlayerSync.PlayerState");
+            foreach (string name in new[] { "Fallen", "Retired", "Arrived" })
+                Assert.IsFalse((bool)Call(session, "AllowState", actor, Enum.Parse(state, name)), name);
+            Assert.IsTrue((bool)Call(session, "AllowState", actor, Enum.Parse(state, "Normal")));
+            ((HashSet<ulong>)Get(session, "inspecting")).Clear();
+            Assert.IsTrue((bool)Call(session, "AllowState", actor, Enum.Parse(state, "Retired")));
+        }
+
         Component Course(bool authored)
         {
             var root = Root("Authored rope fixture");

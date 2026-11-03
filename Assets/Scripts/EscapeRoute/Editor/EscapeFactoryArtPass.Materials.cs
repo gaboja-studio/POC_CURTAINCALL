@@ -95,7 +95,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             {
                 string key = "source-" + AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(source)).Substring(0,8);
                 string baseMap = source.HasProperty("_BaseMap") ? AssetDatabase.GetAssetPath(source.GetTexture("_BaseMap")) : "";
-                string normal = new[] { "_BumpMap", "_NormalMap" }.Where(source.HasProperty).Select(p => AssetDatabase.GetAssetPath(source.GetTexture(p))).FirstOrDefault(p => !string.IsNullOrEmpty(p)) ?? "";
+                string normal = new[] { "_BumpMap", "_NormalMap", "_Normal" }.Where(source.HasProperty).Select(p => AssetDatabase.GetAssetPath(source.GetTexture(p))).FirstOrDefault(p => !string.IsNullOrEmpty(p)) ?? "";
                 bool masonry = source.name.Contains("Concrete") || source.name.Contains("Buildings");
                 target = Pbr(key, baseMap, normal, Color.white, masonry ? 0 : .55f, .25f);
             }

@@ -47,7 +47,8 @@ namespace CurtainCall.EscapeRoute
         }
 
         bool AllowState(NetworkPlayer player, PlayerState next) =>
-            (player == null || !inspecting.Contains(player.OwnerClientId) || next != PlayerState.Fallen && next != PlayerState.Arrived)
+            (player == null || !inspecting.Contains(player.OwnerClientId)
+                || next != PlayerState.Fallen && next != PlayerState.Arrived && next != PlayerState.Retired)
             && (previousRule == null || previousRule(player, next));
 
         public bool Request(bool active)

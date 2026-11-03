@@ -13,6 +13,8 @@ namespace CurtainCall.EscapeRoute
     {
         [SerializeField] Transform carryRoot, handle, blade, cableSocket, doorPanel, recoveryAnchor;
         [SerializeField, Min(0)] int deviceId;
+        [Tooltip("현재 접속 인원당 한 대만 제공한다. 들고 있는 장치는 인원 감소로 숨기지 않는다.")]
+        [SerializeField] bool scaleWithCrew;
         static readonly System.Collections.Generic.List<EscapeExitSaw> devices = new();
         public static System.Collections.Generic.IReadOnlyList<EscapeExitSaw> Devices => devices;
         [SerializeField] BoxCollider loadCollider;
@@ -66,8 +68,10 @@ namespace CurtainCall.EscapeRoute
             : ProjectileMode ? $"배선 {CutCableCount}/{RequiredCableCount} 절단 · 색 전선을 조준하면 {shotInterval:0.#}초마다 톱날 발사"
             : IsCutting ? $"배선 절단 중 {Mathf.CeilToInt(CutProgress01 * 100)}% · 날을 계속 맞대세요"
             : $"출구 옆 노란 배선에 회전 날을 {cutSeconds:0.#}초 동안 맞대세요";
-        bool Ready => isActiveAndEnabled && synchronized && !resetBarrier.Waiting && session != null
-            && session.GameState == GameSessionState.Playing && CarryRoot.gameObject.activeInHierarchy;
+        bool SessionReady => isActiveAndEnabled && synchronized && !resetBarrier.Waiting && session != null
+            && session.GameState == GameSessionState.Playing;
+        bool Ready => SessionReady && CarryRoot.gameObject.activeInHierarchy;
+        bool ProjectileSessionReady => SessionReady && (CarryRoot.gameObject.activeInHierarchy || scaleWithCrew);
 
         void OnEnable()
         {
@@ -95,8 +99,9 @@ namespace CurtainCall.EscapeRoute
         void Update()
         {
             Attach();
+            if (scaleWithCrew && session != null) RefreshCrewAvailability(session.PlayerCount);
             RefreshCarrierCollision(Ready ? FindPlayer(Carrier) : null);
-            if (!Ready && messaging != null && session != null && !session.IsHost && Time.unscaledTimeAsDouble >= nextSync)
+            if (!Ready && CrewAvailable && messaging != null && session != null && !session.IsHost && Time.unscaledTimeAsDouble >= nextSync)
             { nextSync = Time.unscaledTimeAsDouble + .5; SendRequest(0, resetBarrier.Waiting ? resetBarrier.Token : 0); }
         }
         void LateUpdate()
@@ -107,6 +112,12 @@ namespace CurtainCall.EscapeRoute
                 if (Alive(carrier)) FollowCarrier(carrier, false);
                 if (session.IsHost && resetFrame != Time.frameCount) HostStep(Time.deltaTime);
                 else if (!session.IsHost && ProjectileMode) StepProjectiles(Time.deltaTime, false);
+            }
+            else if (ProjectileSessionReady && ProjectileMode)
+            {
+                // Hiding an unoccupied spare must not freeze saws it has already fired.
+                if (session.IsHost && resetFrame != Time.frameCount) HostProjectileStep(Time.deltaTime, null);
+                else if (!session.IsHost) StepProjectiles(Time.deltaTime, false);
             }
             Present(Time.deltaTime);
             PresentProjectiles(Time.deltaTime);

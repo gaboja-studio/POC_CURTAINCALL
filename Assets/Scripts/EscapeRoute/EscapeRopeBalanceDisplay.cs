@@ -16,6 +16,7 @@ namespace CurtainCall.EscapeRoute
         void OnEnable()
         {
             if (view == null || view.Balance == null) return;
+            if (Application.isPlaying) HudLayout.FitBalanceKeys(view.Balance.transform);
             if (!view.Balance.TryGetComponent<BalanceRiskBlink>(out _))
                 view.Balance.gameObject.AddComponent<BalanceRiskBlink>();
             if (!view.Balance.TryGetComponent<BalanceZoneColors>(out _))
@@ -43,7 +44,9 @@ namespace CurtainCall.EscapeRoute
                 -balance.GreenLimit / PlayerBalance.MaxValue, balance.GreenLimit / PlayerBalance.MaxValue,
                 -balance.WarningLimit / PlayerBalance.MaxValue, balance.WarningLimit / PlayerBalance.MaxValue,
                 hanging ? hangs.HangDangerRatio(local) : balance.RedTimeRatio,
-                "A", "D", !hanging && posture < -.5f, !hanging && posture > .5f);
+                reader != null ? reader.BindingPartLabel("Posture", "negative", "A") : "A",
+                reader != null ? reader.BindingPartLabel("Posture", "positive", "D") : "D",
+                !hanging && posture < -.5f, !hanging && posture > .5f);
         }
     }
 }

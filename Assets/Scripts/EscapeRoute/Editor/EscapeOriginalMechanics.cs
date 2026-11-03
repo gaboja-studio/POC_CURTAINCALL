@@ -12,6 +12,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 namespace CurtainCall.EscapeRoute.EditorTools
 {
@@ -48,7 +49,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             Undo.RegisterCreatedObjectUndo(followInstance, "Shared player camera");
             rootObject.AddComponent<EscapeCannonReviewHud>();
             foreach (var spectator in followInstance.GetComponentsInChildren<CurtainCall.Cameras.CameraSpectator>(true))
-                spectator.enabled = false;
+                spectator.enabled = true;
             var roster = rootObject.AddComponent<PlayerSpawnPoints>();
             var rosterData = new SerializedObject(roster);
             var points = rosterData.FindProperty("points"); points.arraySize = 4;
@@ -112,7 +113,13 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent);
             Undo.RegisterCreatedObjectUndo(instance, "Original tightrope balance display");
             instance.name = "OriginalRopeBalance";
+            // Match the current TightropeBalanceCanvas scene overrides, not the older prefab defaults.
+            instance.GetComponent<CanvasScaler>().screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             var hud = instance.GetComponent<PerformanceHUDView>();
+            var track = (RectTransform)hud.Balance.transform.Find("60_DwellTrack");
+            var fill = (RectTransform)hud.Balance.transform.Find("61_DwellFill");
+            track.sizeDelta = new Vector2(track.sizeDelta.x, 23f);
+            fill.sizeDelta = new Vector2(fill.sizeDelta.x, 15f);
             hud.Timer.gameObject.SetActive(false); hud.Progress.gameObject.SetActive(false);
             hud.Balance.SetContext(false, false);
             hud.Balance.gameObject.AddComponent<CurtainCall.UI.SceneIntegration.BalanceRiskBlink>();

@@ -29,6 +29,7 @@ namespace CurtainCall.HumanCannon
             return Vector3.Lerp(origin, destination, falling ? t * t : t);
         }
         public float MaximumSpeed => Vector3.Distance(origin, destination) / Mathf.Max(.1f, activeSeconds) * (falling ? 2 : 1);
+        void OnEnable() { if (warning != null) warning.gameObject.SetActive(false); }
         public void Present(double elapsed, bool running)
         {
             double t = Cycle(elapsed);
