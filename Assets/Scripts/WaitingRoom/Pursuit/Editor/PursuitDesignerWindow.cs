@@ -204,8 +204,21 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 if (GUILayout.Button("15° ↷")) Rotate(15);
                 if (GUILayout.Button("마네킹 제거")) { pointIndex = -1; RemoveSelection(); GUIUtility.ExitGUI(); }
             }
-            GUILayout.Space(12); GUILayout.Label("감시 지점 · 순서대로 반복 순찰", EditorStyles.boldLabel);
+            GUILayout.Space(12); GUILayout.Label("마네킹 설정", EditorStyles.boldLabel);
             var placementSO = new SerializedObject(selected);
+            placementSO.Update();
+            var activation = placementSO.FindProperty("ActivationStage");
+            EditorGUI.BeginChangeCheck();
+            int activationIndex = EditorGUILayout.Popup("활동 시작 단계", Mathf.Clamp(activation.intValue - 1, 0, 3), ActivationStageLabels);
+            if (EditorGUI.EndChangeCheck()) activation.intValue = activationIndex + 1;
+            EditorGUILayout.HelpBox("지정 단계 전에는 장식처럼 대기합니다. 해당 단계부터 각성 후 순찰·탐지·추격하며, 이후 단계에도 계속 활동합니다.", MessageType.None);
+            var stages = GameSettings.WaitingRoom.Pursuit.Stages;
+            if (stages == null || activationIndex >= stages.Length || stages[activationIndex] == null)
+                EditorGUILayout.HelpBox("지정한 단계가 전역 설정에 없습니다. 단계/연출 설정을 확인하세요.", MessageType.Warning);
+            else EditorGUILayout.LabelField($"시작 시점: 추격 시작 후 {stages[activationIndex].StartsAt:0.#}초", EditorStyles.wordWrappedLabel);
+            EditorGUILayout.PropertyField(placementSO.FindProperty("Size"), new GUIContent("크기 (Small 소형 / Medium 중형)"));
+            EditorGUILayout.HelpBox("중형은 외형 1.16배입니다. 이동 속도와 탐지·포획 규칙은 단계 설정을 공유합니다.", MessageType.None);
+            GUILayout.Space(12); GUILayout.Label("감시 지점 · 순서대로 반복 순찰", EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(placementSO.FindProperty("RouteDetachDistance"), new GUIContent("동선 자동 해제 거리 (m)", "가장 가까운 순찰 선분까지의 거리. 0은 자동 해제 안 함."));
             placementSO.ApplyModifiedProperties();
             addPoint = GUILayout.Toggle(addPoint, "＋ 바닥 클릭으로 감시 지점 추가", "Button");
@@ -220,6 +233,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 }
             }
         }
+        static readonly string[] ActivationStageLabels = { "1단계부터", "2단계부터", "3단계부터", "4단계부터" };
         void Rotate(float degrees) { if (selected != null) PursuitAuthoring.Move(selected, selected.transform.position, Quaternion.Euler(0, selected.transform.eulerAngles.y + degrees, 0)); }
         void RemoveSelection()
         {

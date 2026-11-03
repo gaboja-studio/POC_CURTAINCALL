@@ -45,7 +45,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                     if (active) EditorGUI.DrawRect(new Rect(p.x - 7, p.y - 7, 14, 14), Color.white);
                     DrawLiveMarker(p, actor.transform.eulerAngles.y, color, 8);
                     if (active || liveActorLabels)
-                        GUI.Label(new Rect(p.x + 10, p.y - 19, 220, 20), $"{actor.name} · {actor.Behaviour}", EditorStyles.whiteMiniLabel);
+                        GUI.Label(new Rect(p.x + 10, p.y - 19, 280, 20), $"{actor.name} · {LiveBehaviourLabel(actor)} · {actor.ActivationStage}단계 시작", EditorStyles.whiteMiniLabel);
                     if (active && actor.ChasedPlayer != null)
                         LiveLine(p, Project(actor.ChasedPlayer.transform.position, viewBounds, canvas), Color.red, 2);
                 }
@@ -98,7 +98,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 GUI.Label(new Rect(p.x + 3, p.y, 30, 18), (i + 1).ToString(), EditorStyles.whiteMiniLabel);
             }
             var rule = director.CurrentStageRules;
-            if (rule == null || rule.AlwaysNearest) return;
+            if (!actor.IsActivated || rule == null || rule.AlwaysNearest) return;
             var center = actor.transform.position;
             liveSightFan[0] = Project(center, viewBounds, canvas);
             for (int i = 0; i <= 32; i++) {

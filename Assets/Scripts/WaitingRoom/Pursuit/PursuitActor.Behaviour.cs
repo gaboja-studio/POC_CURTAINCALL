@@ -63,7 +63,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         public void Hear(Vector3 position, float normalizedDistance)
         {
-            if (Victim != null || target != null || returningToPatrol || director.Elapsed < GameSettings.WaitingRoom.Pursuit.AwakeningSeconds || Time.time < nextNoiseAt) return;
+            if (!IsActivated || IsAwakening || !director.PlayerRecognitionEnabled || Victim != null || target != null || returningToPatrol || Time.time < nextNoiseAt) return;
             var stage = director.CurrentStageRules;
             if (!WithinPatrolLeash(position, stage)) return;
             if (!Room.RoamAcrossRooms && !Room.Contains(position)) return;
@@ -72,6 +72,18 @@ namespace CurtainCall.WaitingRoom.Pursuit
             noiseUntil = Time.time + Mathf.Max(.1f, investigating ? stage.InvestigateSeconds : stage.ListenSeconds);
             nextNoiseAt = Time.time + .8f; searching = false; scanStarted = Time.time;
             sensingLook = true; repathAt = 0;
+        }
+        internal void ForgetPlayers()
+        {
+            // Existing captures continue. Keep the actor's position and patrol waypoint.
+            if (Victim != null) return;
+            target = null;
+            visible = sensingLook = investigating = searching = false;
+            unseen = noiseUntil = searchUntil = prepareUntil = nextNoiseAt = repathAt = 0;
+            brain?.End(); restartBrain = true;
+            Stop();
+            EnterBehaviour(returningToPatrol ? PursuitBehaviour.Return : PursuitBehaviour.Patrol);
+            SetMotion(IsActivated ? PursuitMotion.Awaken : PursuitMotion.Display);
         }
         public bool ActPrepare()
         {
@@ -131,6 +143,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             if (Behaviour == next) return;
             Behaviour = next; repathAt = 0;
+            director.ActorStateChanged();
         }
         bool Reached(Vector3 p) => !agent.pathPending && Vector3.Distance(transform.position, p) < .7f;
         bool Unreachable() => !agent.pathPending && agent.hasPath && agent.pathStatus != NavMeshPathStatus.PathComplete && agent.remainingDistance < .7f;
@@ -155,7 +168,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var goal = pose.AttackerPosition;
             var rotation = Quaternion.LookRotation(pose.HeadDirection, Vector3.up);
             float t = Mathf.SmoothStep(0, 1, Mathf.Clamp01(CaptureElapsed / Mathf.Max(.1f, GameSettings.WaitingRoom.Pursuit.KnockdownSeconds)));
-            transform.SetPositionAndRotation(remote ? goal : Vector3.Lerp(captureStart, goal, t), remote ? rotation : Quaternion.Slerp(captureRotation, rotation, t));
+            transform.SetPositionAndRotation(Vector3.Lerp(captureStart, goal, t), Quaternion.Slerp(captureRotation, rotation, t));
         }
     }
 }

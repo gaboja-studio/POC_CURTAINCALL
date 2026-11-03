@@ -40,6 +40,7 @@ namespace CurtainCall.Cameras
         float pitch;
         bool firstPerson;
         bool freeThirdPerson;
+        bool spectatorOrbit;
         bool inputBlocked;
         bool preserveCursorInFixedView;
         bool cursorOwned;
@@ -84,13 +85,16 @@ namespace CurtainCall.Cameras
         /// <summary>3인칭 비고정: 마우스로 시선을 돌리고 카메라는 캐릭터 뒤에서 시선을 따라 돈다.</summary>
         public bool IsFreeThirdPerson => freeThirdPerson && CanUseLocalView;
         /// <summary>마우스 시선 시점(1인칭·3인칭 비고정). 기본 이동 규칙이 <see cref="ViewForward"/> 기준으로 움직인다.</summary>
-        public bool UsesMouseLook => MouseLook && CanUseLocalView;
+        public bool UsesMouseLook => (MouseLook && CanUseLocalView) || spectatorOrbit;
         public bool HideLocalModel => IsFirstPerson && selected != null && selected.HideLocalModel;
         public Vector3 ViewForward => CanUseLocalView ? Horizontal(MouseLook
             ? Quaternion.Euler(0f, yaw, 0f) * Vector3.forward
             : (Camera.main != null ? Camera.main.transform.forward : transform.forward)) : Vector3.zero;
 
-        bool MouseLook => firstPerson || freeThirdPerson;
+        bool MouseLook => firstPerson || freeThirdPerson || spectatorOrbit;
+        Transform SpectatorAnchor => CameraSpectator.Target != null ? CameraSpectator.Target.transform : local != null ? local.transform : null;
+        public bool IsSpectatorOrbit => spectatorOrbit;
+        internal void SpectatorTargetChanged() { collisionDistance = -1; transitionDuration = 0; }
         bool CanUseLocalView => local != null && local.isActiveAndEnabled && !IsDead(local);
         internal bool CanHideNearbyModel => CanUseLocalView && !IsFirstPerson && !CameraSpectator.IsSpectating && !deathView;
 
@@ -127,7 +131,7 @@ namespace CurtainCall.Cameras
             ResetDeathView();
             ReleaseCursor();
             requests.Clear();
-            firstPerson = freeThirdPerson = false;
+            firstPerson = freeThirdPerson = spectatorOrbit = false;
             preserveCursorInFixedView = false;
             hasOutput = false;
             selected = null;
@@ -176,7 +180,7 @@ namespace CurtainCall.Cameras
             mover = player != null ? player.GetComponent<PlayerMover>() : null;
             selected = null;
             winner = null;
-            firstPerson = freeThirdPerson = false;
+            firstPerson = freeThirdPerson = spectatorOrbit = false;
             preserveCursorInFixedView = false;
             hasOutput = false;
         }
@@ -237,21 +241,26 @@ namespace CurtainCall.Cameras
             bool allowLocal = CanUseLocalView;
             bool found = requests.TryResolve(out var source, out var request,
                 value => IsViewAllowed(SceneManager.GetActiveScene(), value.Preset.Kind, allowLocal));
+            bool useSpectator = CameraSpectator.IsSpectating && !IsShowingDeathFall && SpectatorAnchor != null;
+            // Corpse-local room/course requests must not frame a living spectator target.
+            if (useSpectator) { found = false; source = null; request = default; }
             var preset = found ? request.Preset : DefaultView;
             if (preset == null) return;
             bool useFirst = allowLocal && preset.Kind == CameraViewKind.FirstPerson;
             bool useFree = allowLocal && preset.Kind == CameraViewKind.FreeThirdPerson;
-            if (source != winner || preset != selected || preset.Kind != selectedKind || useFirst != firstPerson || useFree != freeThirdPerson)
+            if (source != winner || preset != selected || preset.Kind != selectedKind || useFirst != firstPerson || useFree != freeThirdPerson || useSpectator != spectatorOrbit)
             {
                 // 마우스 시선 시점에 새로 들어올 때만 시선을 현재 화면 방향으로 맞춘다(1인칭↔비고정은 시선 이어짐)
-                bool enterFirst = (useFirst || useFree) && !MouseLook;
+                bool enterFirst = (useFirst || useFree || useSpectator) && !MouseLook;
                 winner = source;
                 selected = preset;
                 selectedKind = preset.Kind;
                 firstPerson = useFirst;
                 freeThirdPerson = useFree;
+                spectatorOrbit = useSpectator;
                 transitionStarted = Time.unscaledTime;
                 transitionDuration = hasOutput ? Mathf.Max(0f, preset.TransitionDuration) : 0f;
+                if (useSpectator && CameraSpectator.Target == null) transitionDuration = 0;
                 if (hasOutput)
                 {
                     var view = Camera.main;
@@ -262,9 +271,12 @@ namespace CurtainCall.Cameras
                 if (enterFirst)
                 {
                     Vector3 forward = Camera.main != null ? Horizontal(Camera.main.transform.forward) : Vector3.zero;
+                    if (useSpectator && CameraSpectator.Target == null && hasDeathOutput)
+                        forward = Horizontal(deathOutput.GetFinalOrientation() * Vector3.forward);
                     if (forward == Vector3.zero) forward = Horizontal(local.transform.forward);
                     yaw = Mathf.Atan2(forward.x, forward.z) * Mathf.Rad2Deg;
-                    pitch = 0f;
+                    pitch = useSpectator && CameraSpectator.Target == null && hasDeathOutput
+                        ? Mathf.DeltaAngle(0, deathOutput.GetFinalOrientation().eulerAngles.x) : 0f;
                     AcquireCursor();
                 }
                 if (!MouseLook && !preserveCursorInFixedView) ReleaseCursor();
@@ -282,7 +294,14 @@ namespace CurtainCall.Cameras
         internal void ApplyPose(ref CameraState state)
         {
             if (!Application.IsPlaying(gameObject) || !isActiveAndEnabled || selected == null) return;
-            if (IsFirstPerson)
+            if (spectatorOrbit && SpectatorAnchor != null)
+            {
+                if (CameraSpectator.Target == null && hasDeathOutput)
+                    SetPose(ref state, deathOutput.GetFinalPosition() + Vector3.down * deathDropDistance, Quaternion.Euler(pitch,yaw,0));
+                else SetPose(ref state, FreeThirdPersonPose(selected, SpectatorAnchor.position, yaw, pitch, out var rotation), rotation);
+                state.ReferenceLookAt = CameraState.kNoPoint;
+            }
+            else if (IsFirstPerson)
             {
                 // 몸통 높이 기준은 앉으면 이미 낮아지므로, 프리셋 고정 눈높이만 자세 비율을 곱한다(두 번 줄이지 않는다)
                 float height = selected.EyeHeight > 0f ? selected.EyeHeight * (mover != null ? mover.PostureHeightScale : 1f)
@@ -296,6 +315,7 @@ namespace CurtainCall.Cameras
                 state.ReferenceLookAt = CameraState.kNoPoint;
             }
             state.Lens.FieldOfView = Mathf.Clamp(selected.FieldOfView, 1f, 179f);
+            if (spectatorOrbit && CameraSpectator.Target == null && hasDeathOutput) state.Lens = deathOutput.Lens;
             if (transitionDuration > 0f)
             {
                 float t = Mathf.Clamp01((Time.unscaledTime - transitionStarted) / transitionDuration);
@@ -306,7 +326,7 @@ namespace CurtainCall.Cameras
                     state.Lens.FieldOfView = Mathf.Lerp(transitionFov, state.Lens.FieldOfView, t);
                 }
             }
-            if (deathView)
+            if (deathView && !spectatorOrbit)
             {
                 // Follow/Aim/Noise 뒤 Finalize에서 덮어쓴다. 여러 pipeline 호출도 같은 절대 시간·고정 기준점을 쓴다.
                 if (!hasDeathOutput)
@@ -321,7 +341,7 @@ namespace CurtainCall.Cameras
                     deathOutput.GetFinalOrientation());
                 state.ReferenceLookAt = CameraState.kNoPoint;
             }
-            else if (UsesWallCollision(SceneManager.GetActiveScene()) && CanUseLocalView && !IsFirstPerson)
+            else if ((spectatorOrbit || UsesWallCollision(SceneManager.GetActiveScene())) && (CanUseLocalView || (spectatorOrbit && CameraSpectator.Target != null)) && !IsFirstPerson)
                 ApplyWallCollision(ref state);
             else
                 collisionDistance = -1f;
@@ -348,7 +368,9 @@ namespace CurtainCall.Cameras
 
         void ApplyWallCollision(ref CameraState state)
         {
-            Vector3 pivot = local.transform.position + Vector3.up * Mathf.Max(.1f, selected.LookHeight);
+            var anchor = spectatorOrbit ? SpectatorAnchor : local != null ? local.transform : null;
+            if (anchor == null) return;
+            Vector3 pivot = anchor.position + Vector3.up * Mathf.Max(.1f, selected.LookHeight);
             Vector3 offset = state.GetFinalPosition() - pivot;
             float desired = offset.magnitude;
             if (desired < .001f) { collisionDistance = -1f; return; }

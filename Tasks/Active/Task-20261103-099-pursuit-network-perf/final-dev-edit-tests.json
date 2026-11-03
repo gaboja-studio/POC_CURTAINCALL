@@ -1,0 +1,335 @@
+{
+  "status": "completed",
+  "duration": 10.6,
+  "summary": {
+    "total": 46,
+    "passed": 46,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Settings.EditorTests.WaitingRoomSceneSelectionTests.SelectionRoutesRestAndExplorationAndBothAssetsRemainAvailable(Pursuit,\"WaitingRoomPursuit\")",
+      "Status": "Passed",
+      "Duration": 0.0094663,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoringTests.ActivationStagePersistsWithSceneAndSupportsUndo",
+      "Status": "Passed",
+      "Duration": 1.0416084,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoringTests.GroundChoosesFloorNotRoofAndRejectsVoid",
+      "Status": "Passed",
+      "Duration": 0.0364813,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoringTests.LobbyVolumeBelowFloorUsesPatrolHeightAndRejectsLowerStorey",
+      "Status": "Passed",
+      "Duration": 0.037148,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoringTests.MigrationPreservesLayoutAndClonesRoutesOnlyOnce",
+      "Status": "Passed",
+      "Duration": 0.0389444,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoringTests.MovingRotatingAndReorderingDoNotMoveIndependentPatrolRoute",
+      "Status": "Passed",
+      "Duration": 0.0382474,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDesignerFloorTests.ElevatedPlacementNeverChangesFloorOrDisappearsAfterRefresh",
+      "Status": "Passed",
+      "Duration": 0.036798,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDesignerFloorTests.FloorSwitchFiltersRoomsMarkersAndHitTargetsTogether",
+      "Status": "Passed",
+      "Duration": 0.0336069,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitDesignerFloorTests.RoomSelectionChangesFloorAndCameraExcludesLowerStorey",
+      "Status": "Passed",
+      "Duration": 0.0356184,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitLightingTests.DefaultStagesAccumulateDimCrackleRoomFlickerAndRedTint",
+      "Status": "Passed",
+      "Duration": 0.0012032,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitLightingTests.FlickerPatternsAreDeterministicAndBounded",
+      "Status": "Passed",
+      "Duration": 0.0011455,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitLightingTests.LightingRestoresOriginalLightAndAmbientAfterCaptureBlackout",
+      "Status": "Passed",
+      "Duration": 0.0384605,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.DistantSceneMoveClearsOwnedRouteAndUndoRestoresIt",
+      "Status": "Passed",
+      "Duration": 0.0367027,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.PanelMovePreservesRouteAndHonoursThresholdAndDisable",
+      "Status": "Passed",
+      "Duration": 0.0610074,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.SceneTransformKeepsWorldRouteAndUndoRedoTogether",
+      "Status": "Passed",
+      "Duration": 0.0473655,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.SharedRouteDisconnectsOnlyMovedMannequin",
+      "Status": "Passed",
+      "Duration": 0.0489083,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPoseBufferTests.BurstLossAndReorderedPacketsNeverRewindOrTeleport",
+      "Status": "Passed",
+      "Duration": 0.0038136,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPoseBufferTests.InvalidSamplesAreRejectedAndCueColoursTrackBehaviour",
+      "Status": "Passed",
+      "Duration": 0.0004386,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPoseBufferTests.LongOutageStopsExtrapolationAndExplicitResetAcceptsNewClock",
+      "Status": "Passed",
+      "Duration": 0.000586,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPreviewLifetimeTests.LeavingPursuitReleasesModelsCameraAndTextureEvenWhenHidden(False)",
+      "Status": "Passed",
+      "Duration": 6.1819511,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPreviewLifetimeTests.LeavingPursuitReleasesModelsCameraAndTextureEvenWhenHidden(True)",
+      "Status": "Passed",
+      "Duration": 1.8576828,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.AllCaughtOnOrdinaryDayStartsPerformance",
+      "Status": "Passed",
+      "Duration": 0.004473,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.CapturedArrivalIsInsideAssemblyInsteadOfOriginalDistantRoom",
+      "Status": "Passed",
+      "Duration": 0.0010154,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.DebugTimerResetAndExpiryWorkWhilePausedAndRejectOtherPhases",
+      "Status": "Passed",
+      "Duration": 0.0004775,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.FinalMorningAllowsPursuitEscapeAndFailsOnlyWhenAllCaught",
+      "Status": "Passed",
+      "Duration": 0.0002758,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.PatrolBoundaryUsesSegmentsHeightAndFallbackInsteadOfWaypointRadius",
+      "Status": "Passed",
+      "Duration": 0.0005512,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.StageThresholdsAndSpeedSettingsAreIndependent",
+      "Status": "Passed",
+      "Duration": 0.0003377,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.SurvivorsMayAssembleForPerformanceOrEscape",
+      "Status": "Passed",
+      "Duration": 0.0002326,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitRulesTests.TimeoutStaysInRestAndEmitsOnce",
+      "Status": "Passed",
+      "Duration": 0.0002765,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitSnapshotCodecTests.FarPositionsUseFullPrecisionAndBadVersionIsRejected",
+      "Status": "Passed",
+      "Duration": 0.0040589,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitSnapshotCodecTests.RoundTripKeepsStateWithinPrecision",
+      "Status": "Passed",
+      "Duration": 0.0030597,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitSnapshotCodecTests.TwentySixActorsFitOneUnreliablePacketAndShrinkVersusJson",
+      "Status": "Passed",
+      "Duration": 0.0005676,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.ConsumedVolumeCoversBothSidesAndRemainsLethalButExitIsAbsolutelySafe",
+      "Status": "Passed",
+      "Duration": 0.0071543,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.EntryRequiresActualGroundSupportAndHonorsInspectionDamageGuardForRemoteOwner",
+      "Status": "Passed",
+      "Duration": 0.0070104,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.InvalidAndFutureClocksNeverConsumeBays",
+      "Status": "Passed",
+      "Duration": 0.0024795,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.LateJoinUsesOriginalEpochAndCannotRestartTheGracePeriod",
+      "Status": "Passed",
+      "Duration": 0.0016685,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.RestartBarrierRejectsDelayedFireAndInvalidAcknowledgmentBeforeNewEpoch",
+      "Status": "Passed",
+      "Duration": 0.0013358,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.ScheduleKeepsWarningBurstAndPermanentBurnSeparate(116.999d,0,\"Dormant\")",
+      "Status": "Passed",
+      "Duration": 0.0008068,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.ScheduleKeepsWarningBurstAndPermanentBurnSeparate(117,0,\"Warning\")",
+      "Status": "Passed",
+      "Duration": 0.00058,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.ScheduleKeepsWarningBurstAndPermanentBurnSeparate(119.999d,0,\"Warning\")",
+      "Status": "Passed",
+      "Duration": 0.0005769,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.ScheduleKeepsWarningBurstAndPermanentBurnSeparate(120,0,\"Burst\")",
+      "Status": "Passed",
+      "Duration": 0.0005374,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.ScheduleKeepsWarningBurstAndPermanentBurnSeparate(122.999d,0,\"Burst\")",
+      "Status": "Passed",
+      "Duration": 0.0006337,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.ScheduleKeepsWarningBurstAndPermanentBurnSeparate(123,0,\"Burning\")",
+      "Status": "Passed",
+      "Duration": 0.0005918,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.ScheduleKeepsWarningBurstAndPermanentBurnSeparate(129,1,\"Warning\")",
+      "Status": "Passed",
+      "Duration": 0.0005378,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.ScheduleKeepsWarningBurstAndPermanentBurnSeparate(132,1,\"Burst\")",
+      "Status": "Passed",
+      "Duration": 0.0005708,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.EscapeRoute.Tests.PursuitFireTests.ScheduleKeepsWarningBurstAndPermanentBurnSeparate(1000,0,\"Burning\")",
+      "Status": "Passed",
+      "Duration": 0.0005441,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

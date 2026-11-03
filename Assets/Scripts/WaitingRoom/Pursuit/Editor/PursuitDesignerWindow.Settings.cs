@@ -61,8 +61,14 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                         if (GUILayout.Button("단계 제거")) { stages.DeleteArrayElementAtIndex(stageIndex); stageIndex = Mathf.Max(0, stageIndex - 1); }
                 }
             }
-            EditorGUILayout.Space(14); GUILayout.Label("근접 빨간 아웃라인", EditorStyles.boldLabel);
-            Field("OutlineDistance", "강조 거리 (m)"); Field("OutlinePixels", "외곽선 두께 (px)"); Field("OutlineColor", "외곽선 색상");
+            EditorGUILayout.Space(14); GUILayout.Label("단계별 전등 연출", EditorStyles.boldLabel);
+            if (GUILayout.Button("전등 연출 창 열기")) PursuitLightingWindow.Open();
+            EditorGUILayout.Space(14); GUILayout.Label("전방 상태 신호 / 외형", EditorStyles.boldLabel);
+            Field("DirectionCue", "전방 바닥 신호 사용"); Field("DirectionCueLength", "표시 길이 (m)"); Field("DirectionCueOpacity", "표시 밝기");
+            Field("DirectionCueSoftness", "가장자리 흐림");
+            Field("PatrolCueColor", "미발견 / 복귀"); Field("AlertCueColor", "경계 / 조사 / 수색"); Field("ChaseCueColor", "발견 / 공격 준비 / 포획");
+            Field("AdvancedAppearanceStage", "강화 외형 시작 단계"); Field("BloodPerCapture", "포획 1회당 혈흔 증가");
+            EditorGUILayout.HelpBox("표시 각도는 현재 단계의 시야각을 자동으로 따릅니다. 길이는 탐지 거리와 별도로 설정합니다. 가장자리는 부드럽게 흐려지며 추격 시작 전에는 숨깁니다. '위치 무관 최인접 추격' 단계는 탐지 시 시야각을 무시하므로 빛 바깥에서도 추격합니다.", MessageType.None);
             EditorGUILayout.Space(10); GUILayout.Label("추격 화면 테두리", EditorStyles.boldLabel);
             Field("ScreenEffect", "효과 사용"); Field("EdgeIntensity", "최대 강도"); Field("EdgeWidth", "테두리 폭"); Field("PulseAmount", "맥동 강도");
             EditorGUILayout.HelpBox("내 캐릭터가 실제 추격 대상일 때만 표시합니다. 맥동 강도를 0으로 두면 깜빡임 없이 부드러운 테두리만 표시합니다.", MessageType.None);

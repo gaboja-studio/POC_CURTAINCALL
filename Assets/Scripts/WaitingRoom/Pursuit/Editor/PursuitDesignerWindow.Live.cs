@@ -156,7 +156,8 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             GUILayout.Label("추격자 관찰", EditorStyles.boldLabel);
             if (liveSelectedActor != null) {
                 GUILayout.Label(liveSelectedActor.name, EditorStyles.wordWrappedLabel);
-                GUILayout.Label($"행동: {liveSelectedActor.Behaviour}");
+                GUILayout.Label($"활동 시작: {liveSelectedActor.ActivationStage}단계");
+                GUILayout.Label($"행동: {LiveBehaviourLabel(liveSelectedActor)}");
                 GUILayout.Label($"위치: {liveSelectedActor.transform.position:F1}");
                 var target = liveSelectedActor.ChasedPlayer;
                 var player = target != null ? target.GetComponent<NetworkPlayer>() : null;
@@ -167,9 +168,11 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             liveListScroll = EditorGUILayout.BeginScrollView(liveListScroll);
             foreach (var actor in director.Actors) {
                 if (actor == null || !OnActiveFloor(actor.transform.position)) continue;
-                if (GUILayout.Toggle(liveSelectedActor == actor, $"{actor.name}\n{actor.Behaviour}", "Button")) liveSelectedActor = actor;
+                if (GUILayout.Toggle(liveSelectedActor == actor, $"{actor.name}\n{LiveBehaviourLabel(actor)} · {actor.ActivationStage}단계 시작", "Button")) liveSelectedActor = actor;
             }
             EditorGUILayout.EndScrollView();
         }
+        static string LiveBehaviourLabel(PursuitActor actor) => !actor.IsActivated ? "전시 대기"
+            : actor.State == PursuitMotion.Awaken && actor.Behaviour == PursuitBehaviour.Patrol ? "각성 / 대기" : actor.Behaviour.ToString();
     }
 }

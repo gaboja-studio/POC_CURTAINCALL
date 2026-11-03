@@ -1,0 +1,34 @@
+{
+  "status": "completed",
+  "duration": 47.52,
+  "summary": {
+    "total": 3,
+    "passed": 2,
+    "failed": 1,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitBehaviour_CaptureFourDirectionsBloodAndCleanup",
+      "Status": "Passed",
+      "Duration": 13.0890256,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitBehaviour_GraphHearingChaseSearchAndCulling",
+      "Status": "Failed",
+      "Duration": 19.0871369,
+      "Message": "  String lengths are both 6. Strings differ at index 0.\r\n  Expected: \"Search\"\r\n  But was:  \"Patrol\"\r\n  -----------^\r\n",
+      "StackTrace": "at CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests+<TickPursuit>d__51.MoveNext () [0x000c3] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\UI\\SceneIntegration\\Tests\\PlayMode\\PursuitBehaviourPlayTests.cs:30\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitBehaviour_PatrolLeashReturnsWithoutReacquiringAndZeroDisablesIt",
+      "Status": "Passed",
+      "Duration": 15.2295764,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

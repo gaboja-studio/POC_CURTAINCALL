@@ -88,5 +88,28 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             PursuitAuthoring.Remove(room, room.Placements[0]); Assert.AreEqual(1, room.Placements.Length);
             Assert.IsTrue(point != null, "Legacy route stays intact.");
         }
+        [Test] public void ActivationStagePersistsWithSceneAndSupportsUndo()
+        {
+            var item = PursuitAuthoring.Add(room, prefab, Vector3.zero);
+            Assert.AreEqual(1, item.ResolvedActivationStage, "Existing/new layouts default to the first stage.");
+            Undo.FlushUndoRecordObjects(); Undo.IncrementCurrentGroup();
+            var serialized = new SerializedObject(item);
+            serialized.FindProperty("ActivationStage").intValue = 4;
+            serialized.ApplyModifiedProperties();
+            Undo.FlushUndoRecordObjects(); Undo.PerformUndo();
+            Assert.AreEqual(1, item.ResolvedActivationStage);
+            Undo.PerformRedo(); Assert.AreEqual(4, item.ResolvedActivationStage);
+            string path = AssetDatabase.GenerateUniqueAssetPath("Assets/Scenes/Tests/PursuitActivationFixture.unity");
+            try {
+                Assert.IsTrue(EditorSceneManager.SaveScene(scene, path));
+                scene = EditorSceneManager.OpenScene(path, OpenSceneMode.Single);
+                var loaded = Object.FindFirstObjectByType<PursuitPlacement>();
+                Assert.IsNotNull(loaded); Assert.AreEqual(4, loaded.ResolvedActivationStage);
+                Assert.IsNotNull(loaded.Prefab, "Keep the model reference when saving the new setting.");
+            } finally {
+                scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+                AssetDatabase.DeleteAsset(path);
+            }
+        }
     }
 }

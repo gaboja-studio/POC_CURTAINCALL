@@ -135,7 +135,9 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 yield return null;
                 var background = Object.FindFirstObjectByType<CurtainCall.PerformanceBackground.PerformanceBackgroundLoader>();
+                var pursuit = CurtainCall.WaitingRoom.Pursuit.PursuitDirector.Current;
                 settled = loadingScenes.Count > 0 || CommonUiSceneLoader.IsLoading
+                    || (pursuit != null && pursuit.isActiveAndEnabled && !pursuit.IsInitialized)
                     || (background != null && background.IsTransitioning) ? 0 : settled + 1;
             }
             if (!requested || sequence != version) yield break;

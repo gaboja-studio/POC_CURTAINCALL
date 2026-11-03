@@ -31340,6 +31340,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 2905728589488997546, guid: 993528d0743c37542af9d052995145e4, type: 3}
+  Size: 0
+  ActivationStage: 3
   PatrolPoints:
   - {fileID: 1294433632}
   - {fileID: 200681471}
@@ -127851,6 +127853,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 6482812797235897502, guid: dbf8b4abd35fab646abeb9fc77494702, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 1424320624}
   - {fileID: 272068769}
@@ -234964,6 +234968,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 4015248700799797940, guid: b54287a7856a8e44a9aff9238026ca83, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 898362015}
   - {fileID: 1879586255}
@@ -298924,6 +298930,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 6482812797235897502, guid: dbf8b4abd35fab646abeb9fc77494702, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 683176776}
   - {fileID: 610018137}
@@ -343015,6 +343023,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 8063794328454795708, guid: e14f7073c4cdb2d4da7543408fd1f807, type: 3}
+  Size: 0
+  ActivationStage: 3
   PatrolPoints:
   - {fileID: 641956874}
   - {fileID: 1252808528}
@@ -557409,6 +557419,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 6145837445747250721, guid: b3a09963943d62242a56d9cc9f3a655a, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 100534024}
   - {fileID: 1029323972}
@@ -838473,6 +838485,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 4015248700799797940, guid: b54287a7856a8e44a9aff9238026ca83, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 385440897}
   - {fileID: 1128487038}
@@ -839723,6 +839737,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 1601495830266799282, guid: b133eed4ba5e2ad46abac5303cb9f1d2, type: 3}
+  Size: 0
+  ActivationStage: 4
   PatrolPoints:
   - {fileID: 718872301}
   - {fileID: 1171968831}
@@ -920061,6 +920077,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 963270003243879643, guid: 71a10005b95060046ba44e8a8a3ab058, type: 3}
+  Size: 0
+  ActivationStage: 3
   PatrolPoints:
   - {fileID: 1101163986}
   - {fileID: 1866491590}
@@ -959403,6 +959421,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 963270003243879643, guid: 71a10005b95060046ba44e8a8a3ab058, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 638761349}
   - {fileID: 2077433320}
@@ -1258107,6 +1258127,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 2595072262550357975, guid: 10e73f813a6447c4d8e2152c72a8a1c0, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 1877373705}
   - {fileID: 2029282025}
@@ -1294208,6 +1294230,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 3237286211341054669, guid: e83410f1ac350cf4b9862dac4e4ba916, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 174058497}
   - {fileID: 1623565908}
@@ -1349580,6 +1349604,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 4015248700799797940, guid: b54287a7856a8e44a9aff9238026ca83, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 507431110}
   - {fileID: 669128799}
@@ -1421949,6 +1421975,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 1601495830266799282, guid: b133eed4ba5e2ad46abac5303cb9f1d2, type: 3}
+  Size: 0
+  ActivationStage: 3
   PatrolPoints:
   - {fileID: 1050820924}
   - {fileID: 727262508}
@@ -1470595,6 +1470623,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 4015248700799797940, guid: b54287a7856a8e44a9aff9238026ca83, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 648017374}
   - {fileID: 1319813113}
@@ -1608907,6 +1608937,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 7405028283270772671, guid: e9f587bc65f16534c84394a9ab1ce873, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 867391805}
   - {fileID: 153033802}
@@ -1722293,6 +1722325,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 2905728589488997546, guid: 993528d0743c37542af9d052995145e4, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 1723815390}
   - {fileID: 314318558}
@@ -1728863,6 +1728897,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 7405028283270772671, guid: e9f587bc65f16534c84394a9ab1ce873, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 1959621635}
   - {fileID: 369178193}
@@ -1749808,6 +1749844,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 6145837445747250721, guid: b3a09963943d62242a56d9cc9f3a655a, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 1766053445}
   - {fileID: 117498604}
@@ -1915703,6 +1915741,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 3237286211341054669, guid: e83410f1ac350cf4b9862dac4e4ba916, type: 3}
+  Size: 0
+  ActivationStage: 2
   PatrolPoints:
   - {fileID: 240092948}
   - {fileID: 566530761}
@@ -1921742,6 +1921782,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 7405028283270772671, guid: e9f587bc65f16534c84394a9ab1ce873, type: 3}
+  Size: 0
+  ActivationStage: 2
   PatrolPoints:
   - {fileID: 1034689274}
   - {fileID: 1469695375}
@@ -2149595,6 +2149637,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 6482812797235897502, guid: dbf8b4abd35fab646abeb9fc77494702, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 2031591612}
   - {fileID: 440973873}
@@ -2182664,7 +2182708,7 @@ MonoBehaviour:
   - {fileID: 1194123807}
   - {fileID: 1939932770}
   Count: 1
-  RoamAcrossRooms: 1
+  RoamAcrossRooms: 0
   UsePlacements: 1
   Placements:
   - {fileID: 25783344}
@@ -2232470,6 +2232514,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 2905728589488997546, guid: 993528d0743c37542af9d052995145e4, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 1323260494}
   - {fileID: 2113874019}
@@ -2430362,6 +2430408,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 6145837445747250721, guid: b3a09963943d62242a56d9cc9f3a655a, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 266771988}
   - {fileID: 1735789273}
@@ -2610997,6 +2611045,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 7405028283270772671, guid: e9f587bc65f16534c84394a9ab1ce873, type: 3}
+  Size: 0
+  ActivationStage: 2
   PatrolPoints:
   - {fileID: 678153543}
   - {fileID: 1249568901}
@@ -2703193,6 +2703243,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Prefab: {fileID: 6482812797235897502, guid: dbf8b4abd35fab646abeb9fc77494702, type: 3}
+  Size: 0
+  ActivationStage: 1
   PatrolPoints:
   - {fileID: 1300524964}
   - {fileID: 1560607246}

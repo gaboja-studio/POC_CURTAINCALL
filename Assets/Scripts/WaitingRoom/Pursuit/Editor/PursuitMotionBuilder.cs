@@ -14,7 +14,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         public static float Duration(PursuitMotion m) => m == PursuitMotion.Run ? .58f : m == PursuitMotion.Walk || m == PursuitMotion.Grab ? 1.2f
             : m == PursuitMotion.Awaken || m == PursuitMotion.Display ? 2 : m == PursuitMotion.Tear ? 1.3f : 1;
 
-        public static AnimationClip Build(GameObject root, PursuitMotion motion)
+        public static AnimationClip Build(GameObject root, PursuitMotion motion, bool advanced = false)
         {
             var bones = root.GetComponentsInChildren<Transform>().Where(t => Names.Contains(t.name)).ToDictionary(t => t.name);
             var bindP = bones.ToDictionary(p => p.Key, p => p.Value.localPosition);
@@ -25,7 +25,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             var lower = new[] { Vector3.Distance(bones["Shin_L"].position,feet[0]), Vector3.Distance(bones["Shin_R"].position,feet[1]) };
             var clip = new AnimationClip { name = motion.ToString(), legacy = true, frameRate = 60,
                 wrapMode = motion == PursuitMotion.Awaken || motion == PursuitMotion.Grab ? WrapMode.ClampForever : WrapMode.Loop };
-            float duration = Duration(motion);
+            float duration = Duration(motion) * (advanced ? .86f : 1);
             int frames = Mathf.CeilToInt(duration * 60);
             var right = root.transform.right; var up = root.transform.up; var forward = root.transform.forward;
             Quaternion Basis(Vector3 direction) {
@@ -52,7 +52,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                     float awake = motion == PursuitMotion.Awaken ? Mathf.SmoothStep(0,1,t) : 1;
                     bones["Hips"].rotation = Basis(up);
                     bones["Hips"].position += up * (-.025f - .43f * crouch + .025f * pull);
-                    Flex("Chest", grab || tear ? 34 - 12 * pull : run ? 12 : 8, right, up);
+                    Flex("Chest", grab || tear ? 34 - 12 * pull : run ? (advanced ? 29 : 12) : advanced ? 20 : 8, right, up);
                     Flex("Head", grab || tear ? 20 - 10 * pull : 0, right, up);
                     bones["Head"].rotation = Quaternion.AngleAxis(walk ? 10 : run ? 6 : 3, forward) * bones["Head"].rotation;
                     for (int side = 0; side < 2; side++) {
@@ -61,7 +61,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                         float stride = Mathf.Cos(cycle * Mathf.PI * 2);
                         var foot = feet[side];
                         if (walk || run) {
-                            foot += forward * stride * (run ? .34f : .19f);
+                            foot += forward * stride * (run ? (advanced ? .41f : .34f) : advanced ? .23f : .19f);
                             // First half is stance travelling backward; second half is swing returning forward.
                             if (cycle > .5f) foot += up * Mathf.Sin((cycle-.5f)*Mathf.PI*2) * (run ? .22f : .10f);
                         }
@@ -69,6 +69,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                         bones["Foot"+suffix].rotation = Basis((forward*.13f-up*.04f).normalized);
                         float shoulder = grab ? Mathf.Lerp(72,12,crouch) : tear ? 12-12*pull : run ? 25-stride*32 : walk ? 8-stride*15 : 8;
                         float elbow = grab ? Mathf.Lerp(15,12,crouch) : tear ? 12+100*pull : run ? 70 : walk ? 15 : 12;
+                        if (advanced && (walk || run)) { shoulder += side == 0 ? 20 : -8; elbow += side == 0 ? -20 : 10; }
                         Flex("UpperArm"+suffix, -shoulder, right, -up);
                         Flex("Forearm"+suffix, -shoulder-elbow, right, -up);
                         bones["Hand"+suffix].rotation = bones["Forearm"+suffix].rotation;

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace CurtainCall.WaitingRoom.Pursuit
 {
-    /// <summary>방별 범위·조명·배치 지점. 순찰/스폰 Transform은 Scene 뷰에서 이동합니다.</summary>
+    /// <summary>방별 범위·조명·배치 지점. 순찰/스폰 Transform은 Scene 뷰에서 이동합니다. 조명 값은 <see cref="PursuitLighting"/>이 적용합니다.</summary>
     public sealed class PursuitRoom : MonoBehaviour
     {
         public BoxCollider Area;
@@ -15,35 +15,15 @@ namespace CurtainCall.WaitingRoom.Pursuit
         [Tooltip("전용 배치 창에서 편집한 마네킹을 사용. 기존 Count/SpawnPoints는 보존됩니다.")]
         public bool UsePlacements;
         public PursuitPlacement[] Placements = System.Array.Empty<PursuitPlacement>();
-        [System.NonSerialized] float[] intensities;
-        [System.NonSerialized] Light[] flickerLights;
-        float flickerUntil;
+
+        /// <summary>포획 암전이 유지되는 시각(Time.time). 포획 연출 중 매 갱신마다 연장된다.</summary>
+        public float CaptureFlickerUntil { get; private set; } = float.NegativeInfinity;
+        public bool CaptureFlickering => Time.time < CaptureFlickerUntil;
 
         public bool Contains(Vector3 p) => Area != null && Area.bounds.Contains(p + Vector3.up * .5f);
-        public void Flicker(float until)
-        {
-            if (Lights == null) return;
-            if (intensities == null) {
-                flickerLights = (Light[])Lights.Clone();
-                intensities = new float[flickerLights.Length];
-                for (int i = 0; i < flickerLights.Length; i++) if (flickerLights[i] != null) intensities[i] = flickerLights[i].intensity;
-            }
-            flickerUntil = Mathf.Max(flickerUntil, until);
-        }
-        void LateUpdate()
-        {
-            if (intensities == null || flickerLights == null) return;
-            bool flashing = Time.time < flickerUntil;
-            for (int i = 0; i < flickerLights.Length; i++)
-                if (flickerLights[i] != null) flickerLights[i].intensity = intensities[i] * (flashing && Mathf.Sin(Time.time * 37f) > -.2f ? .02f : 1f);
-            if (!flashing) { intensities = null; flickerLights = null; }
-        }
-        void OnDisable()
-        {
-            if (intensities == null || flickerLights == null) return;
-            for (int i = 0; i < flickerLights.Length; i++) if (flickerLights[i] != null) flickerLights[i].intensity = intensities[i];
-            intensities = null; flickerLights = null;
-        }
+        public bool ContainsView(Vector3 p) => Area != null && Area.bounds.Contains(p);
+        public void Flicker(float until) => CaptureFlickerUntil = Mathf.Max(CaptureFlickerUntil, until);
+        public void ClearFlicker() => CaptureFlickerUntil = float.NegativeInfinity;
         void OnDrawGizmosSelected()
         {
             Gizmos.color = Color.magenta;

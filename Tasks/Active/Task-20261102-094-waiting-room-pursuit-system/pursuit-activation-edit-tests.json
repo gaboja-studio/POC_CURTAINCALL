@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 0.88,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoringTests.ActivationStagePersistsWithSceneAndSupportsUndo",
+      "Status": "Passed",
+      "Duration": 0.8599565,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}
