@@ -185,6 +185,36 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
+        public void GrabUsesViewBeforeBodyAndApproachWhenChoosingASide()
+        {
+            var select = typeof(HumanCannonPoleSystem).GetMethod("ReversedAtGrab", BindingFlags.Static | BindingFlags.NonPublic);
+            bool Reversed(Vector3 view, Vector3 body, Vector3 approach) =>
+                (bool)select.Invoke(null, new object[] { Vector3.forward, view, body, approach });
+            Assert.IsTrue(Reversed(Vector3.back + Vector3.up, Vector3.forward, Vector3.forward));
+            Assert.IsFalse(Reversed(Vector3.forward, Vector3.back, Vector3.back));
+            Assert.IsTrue(Reversed(Vector3.right, Vector3.back, Vector3.forward));
+            Assert.IsTrue(Reversed(Vector3.up, Vector3.left, Vector3.back));
+            Assert.IsFalse(Reversed(Vector3.up, Vector3.right, Vector3.zero));
+        }
+
+        [Test]
+        public void ReverseFacingStaysWithItsOccupiedSeatOnLateJoinAndRelease()
+        {
+            typeof(HumanCannonPoleSystem).GetField("useGrabFacing", Instance).SetValue(receiver, true);
+            root.transform.rotation = Quaternion.Euler(0f, 37f, 0f);
+            Deliver(Two, 8, reversedSeats: 4);
+            Assert.That(Vector3.Dot(receiver.RiderRotation(0, 7) * Vector3.forward, root.transform.forward), Is.GreaterThan(.999f));
+            Assert.That(Vector3.Dot(receiver.RiderRotation(0, 8) * Vector3.forward, root.transform.forward), Is.LessThan(-.999f));
+            var after = Two; after[0] = Vacant;
+            Deliver(after, 9, action: 2, actor: 7, seat: 0, reversedSeats: 4);
+            Assert.IsTrue(Field<bool>(2, "ReverseFacing"));
+            Deliver(after, 10, reversedSeats: 1);
+            Assert.That(receiver.State(0).Revision, Is.EqualTo(9), "Empty seats cannot carry a facing bit.");
+            Deliver(new[] { Vacant, Vacant, Vacant, Vacant }, 10, action: 4, phase: PoleSawPhase.Active);
+            Assert.IsFalse(Field<bool>(2, "ReverseFacing"));
+        }
+
+        [Test]
         public void NonServerAndOldCrewSnapshotsCannotReplaceCurrentRiders()
         {
             Deliver(Two, 8, sender: 44);
@@ -208,6 +238,62 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
+        public void MovingSwingPresentationSamplesBetweenPacketsAndSnapsAtDiscontinuities()
+        {
+            var receive = runtime.GetType().GetMethod("ReceiveAngle");
+            var display = runtime.GetType().GetMethod("DisplayAngle");
+            void Push(float angle, double now, bool continuous) => receive.Invoke(runtime, new object[] { angle, now, continuous });
+            float Sample(double now) => (float)display.Invoke(runtime, new object[] { now });
+
+            Push(10, 1, true); // Late join: no previous angle.
+            Assert.That(Sample(1), Is.EqualTo(10));
+            Push(20, 1.05, true);
+            Assert.That(Sample(1.075), Is.EqualTo(15).Within(.001f));
+            Assert.That((float)runtime.GetType().GetField("Angle").GetValue(runtime), Is.EqualTo(20));
+            Push(24, 1.075, true); // Early packet must start at the position already on screen.
+            Assert.That(Sample(1.075), Is.EqualTo(15).Within(.001f));
+            Assert.That(Sample(1.15), Is.EqualTo(24));
+            Push(-15, 2, true);
+            Assert.That(Sample(2), Is.EqualTo(-15));
+            Push(0, 2.01, false);
+            Assert.That(Sample(2.01), Is.Zero);
+        }
+
+        [Test]
+        public void OccupiedPoleSendsEveryTickWhileIdleRecoveryUsesItsOwnPhase()
+        {
+            var check = runtime.GetType().GetMethod("SnapshotDue");
+            bool Due(double now) => (bool)check.Invoke(runtime, new object[] { now, .25d });
+            Assert.IsTrue(Due(10));
+            Assert.IsFalse(Due(10.10));
+            Assert.IsTrue(Due(10.25));
+            Assert.IsFalse(Due(10.30));
+            Deliver(Two, 8);
+            Assert.IsTrue(Due(10.35));
+            Assert.IsTrue(Due(10.40));
+            Deliver(new[] { Vacant, Vacant, Vacant, Vacant }, 9, action: 4, phase: PoleSawPhase.Active);
+            Assert.IsFalse(Due(10.45));
+            Assert.IsTrue(Due(11.25));
+        }
+
+        [Test]
+        public void RejectedPacketLeavesLiveSeatFlightUntouchedAndSubsequentSyncReusesSeat()
+        {
+            Deliver(Two, 8);
+            var riders = (Array)runtime.GetType().GetField("Riders").GetValue(runtime);
+            object firstSeat = riders.GetValue(0);
+            var invalid = Two;
+            invalid[0] = new Row(7, 3, 99, 5);
+            invalid[3] = new Row(Empty, 0, 1, 0);
+            Deliver(invalid, 9);
+            Assert.That(Field<uint>(0, "Launch"), Is.EqualTo(12));
+            invalid[3] = Vacant;
+            Deliver(invalid, 9);
+            Assert.That(Field<uint>(0, "Launch"), Is.EqualTo(99));
+            Assert.That(riders.GetValue(0), Is.SameAs(firstSeat));
+        }
+
+        [Test]
         public void ResetRejectsDelayedOccupancyForAllSeats()
         {
             Deliver(Two, 8);
@@ -225,13 +311,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
         void Deliver(Row[] rows, uint revision, byte action = 0, ulong actor = Empty, byte seat = 255,
             int station = 0, uint launch = 0, uint segment = 0, ulong sender = NetworkManager.ServerClientId,
-            PoleSawPhase phase = PoleSawPhase.Retracted)
+            PoleSawPhase phase = PoleSawPhase.Retracted, byte reversedSeats = 0)
         {
             using var writer = new FastBufferWriter(action == 2 ? 200 : 160, Allocator.Temp);
             writer.WriteValueSafe(action); writer.WriteValueSafe(0); writer.WriteValueSafe(revision);
             writer.WriteValueSafe((byte)phase); writer.WriteValueSafe(0d); writer.WriteValueSafe(20f); writer.WriteValueSafe(5f);
             writer.WriteValueSafe(actor); writer.WriteValueSafe(seat); writer.WriteValueSafe(station);
-            writer.WriteValueSafe(launch); writer.WriteValueSafe(segment); writer.WriteValueSafe((byte)0);
+            writer.WriteValueSafe(launch); writer.WriteValueSafe(segment); writer.WriteValueSafe((byte)(reversedSeats << 1));
             foreach (Row row in rows)
             {
                 writer.WriteValueSafe(row.Actor); writer.WriteValueSafe(0d); writer.WriteValueSafe(row.Station);

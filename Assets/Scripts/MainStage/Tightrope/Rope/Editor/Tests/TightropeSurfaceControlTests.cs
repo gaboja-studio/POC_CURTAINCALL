@@ -343,6 +343,40 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.That(balance.HasFallen, Is.True, "확정된 위험물 사망의 래그돌 전환은 유지한다.");
         }
 
+        [TestCase(1, true)]
+        [TestCase(-1, true)]
+        [TestCase(1, false)]
+        [TestCase(-1, false)]
+        public void EscapeRopeBalance_ResolvesFullGaugeInEitherDirection(int direction, bool hasGrip)
+        {
+            AuthoredRopes();
+            var session = AddDevelopmentSession();
+            session.SuppressFallConsequences = session.AllowRopeBalanceFalls = true;
+            MovePlayer(new Vector3(0, 0, 4));
+            player.transform.forward = Vector3.forward * direction;
+            Invoke(switcher, "Bind", player);
+            Invoke(switcher, "UpdateSurfaceMode");
+            Assert.That(switcher.IsLocalOnRope, Is.True);
+            Assert.That(Vector3.Dot(mover.CourseForward, player.transform.forward), Is.GreaterThan(.99f));
+
+            var previousCatcher = PlayerBalance.GaugeFallCatcher;
+            int catches = 0, falls = 0;
+            balance.Fell += () => falls++;
+            PlayerBalance.GaugeFallCatcher = _ => { catches++; return hasGrip; };
+            try
+            {
+                balance.ForceFall();
+                Assert.That(falls, Is.Zero, "The scene still protects ordinary falls and cannon landings.");
+                balance.SetDisplayedState(true, PlayerBalance.MaxValue * direction);
+                Invoke(balance, "UpdateRedTime", balance.FallTime);
+                Assert.That(catches, Is.EqualTo(1));
+                Assert.That(balance.HasFallen, Is.EqualTo(!hasGrip));
+                balance.DropFromRopeGrip();
+                Assert.That(falls, Is.EqualTo(1), "A missing or expired grip resolves one fall.");
+            }
+            finally { PlayerBalance.GaugeFallCatcher = previousCatcher; }
+        }
+
         [Test]
         public void FallSuppression_DisablesRopeDepthAndRestoresItWhenTurnedOff()
         {

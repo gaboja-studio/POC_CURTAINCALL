@@ -25,6 +25,7 @@ namespace CurtainCall.EscapeRoute
         }
 
         [SerializeField] BoxCollider trigger;
+        [SerializeField] EscapeCooperativeSpan ignitionBridge;
         [SerializeField] Bay[] bays = Array.Empty<Bay>();
         [SerializeField, Min(0)] float startDelay = 20;
         [SerializeField, Min(.1f)] float stepSeconds = 12;
@@ -51,7 +52,7 @@ namespace CurtainCall.EscapeRoute
         public double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
             ? session.NetworkManager.ServerTime.Time : Time.timeAsDouble;
         bool Ready => isActiveAndEnabled && IsSynchronized && session != null && session.GameState == GameSessionState.Playing;
-        bool Configured => trigger != null && bays.Length > 0 && ValidSchedule(startDelay, stepSeconds, warnSeconds, burstSeconds)
+        bool Configured => (trigger != null || ignitionBridge != null) && bays.Length > 0 && ValidSchedule(startDelay, stepSeconds, warnSeconds, burstSeconds)
             && float.IsFinite(safeExitX);
 
         public FirePhase PhaseAt(int index, double now) => SchedulePhase(now, armedAt, index, bays.Length,
@@ -85,7 +86,7 @@ namespace CurtainCall.EscapeRoute
         public bool Threatens(Vector3 feet, float radius, float height, double now)
         {
             // The exit is a hard safe boundary, including bodies whose trailing radius still overlaps the last bay.
-            if (!Finite(feet) || feet.x >= safeExitX || !float.IsFinite(radius) || radius < 0
+            if (!Finite(feet) || RouteX(feet) >= safeExitX || !float.IsFinite(radius) || radius < 0
                 || !float.IsFinite(height) || height <= 0) return false;
             int consumed = ConsumedCount(now, armedAt, bays.Length, startDelay, stepSeconds);
             for (int i = 0; i < consumed; i++)
@@ -121,10 +122,11 @@ namespace CurtainCall.EscapeRoute
             return true;
         }
 
+        float RouteX(Vector3 point) => coordinateSpace != null ? coordinateSpace.InverseTransformPoint(point).x : point.x;
+
         bool CanArm(NetworkPlayer player)
         {
-            if (!Alive(player) || player.IsAirborne || (coordinateSpace != null
-                    ? coordinateSpace.InverseTransformPoint(player.transform.position).x : player.transform.position.x) >= safeExitX
+            if (!Alive(player) || player.IsAirborne || RouteX(player.transform.position) >= safeExitX
                 || !DamageAllowed(player) || !player.TryGetComponent(out PlayerMover mover)
                 || trigger == null || !trigger.enabled || !trigger.gameObject.activeInHierarchy
                 || HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0
@@ -167,6 +169,7 @@ namespace CurtainCall.EscapeRoute
             double now = Clock;
             if (session.IsHost && resetFrame != Time.frameCount)
             {
+                if (!IsArmed && ignitionBridge != null && ignitionBridge.DeploymentRequested) Arm(now);
                 foreach (var player in NetworkPlayer.All)
                 {
                     if (!Alive(player)) continue;
@@ -175,13 +178,18 @@ namespace CurtainCall.EscapeRoute
                         if ((player.transform.position - spawn).sqrMagnitude > 9) continue;
                         awaitingSpawn.Remove(player.OwnerClientId);
                     }
-                    if (!IsArmed && CanArm(player)) { armedAt = now; revision++; Publish(); }
+                    if (!IsArmed && ignitionBridge == null && CanArm(player)) Arm(now);
                     if (IsArmed && DamageAllowed(player) && player.TryGetComponent(out PlayerMover mover)
                         && Threatens(player.transform.position, mover.BodyRadius, mover.BodyHeight, now)) player.ServerKill();
                 }
                 if (Time.unscaledTimeAsDouble >= nextSnapshot) { nextSnapshot = Time.unscaledTimeAsDouble + .5; Publish(); }
             }
             Present(now);
+        }
+
+        void Arm(double now)
+        {
+            armedAt = now; revision++; Publish();
         }
 
         void OnDisable()
