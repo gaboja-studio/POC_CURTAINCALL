@@ -108,4 +108,3 @@ Shader "CurtainCall/Escape/TreatmentWater"
         }
     }
 }
-
