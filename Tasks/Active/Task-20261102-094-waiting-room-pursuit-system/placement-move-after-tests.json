@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "duration": 0.55,
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.DistantSceneMoveClearsOwnedRouteAndUndoRestoresIt",
+      "Status": "Passed",
+      "Duration": 0.085034,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.PanelMovePreservesRouteAndHonoursThresholdAndDisable",
+      "Status": "Passed",
+      "Duration": 0.0470729,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.SceneTransformKeepsWorldRouteAndUndoRedoTogether",
+      "Status": "Passed",
+      "Duration": 0.0441733,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.SharedRouteDisconnectsOnlyMovedMannequin",
+      "Status": "Passed",
+      "Duration": 0.0466265,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

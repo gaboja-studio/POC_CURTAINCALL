@@ -16,9 +16,13 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var shader = Shader.Find("CurtainCall/Escape/FactoryConcrete");
             if (shader == null || !shader.isSupported) throw new InvalidOperationException("Factory concrete shader unavailable");
             var damage = floor.GetTexture("_BaseMap");
+            var leakSource = AssetDatabase.LoadAssetAtPath<Texture>(Clock + "Textures/Decals/Leak/T_Leak_02_Mask.png");
+            if (leakSource == null) throw new InvalidOperationException("Clock Factory runoff mask missing");
+            var leakMask = LightTexture(leakSource);
             foreach (var m in new[] { concrete, floor, recess })
             {
                 m.shader = shader; m.SetTexture("_DamageMap", damage); m.SetFloat("_TileScale", .4f);
+                m.SetTexture("_LeakMask", leakMask);
                 m.SetFloat("_Floor", m == floor ? 1 : 0); m.SetFloat("_BumpScale", .65f);
                 m.SetFloat("_Smoothness", m == floor ? .15f : .10f);
                 m.SetVector("_PanelSize", m == floor ? new Vector4(3,3,0,0) : new Vector4(4,2.8f,0,0));

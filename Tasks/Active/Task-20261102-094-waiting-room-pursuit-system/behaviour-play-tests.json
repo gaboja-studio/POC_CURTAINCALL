@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 35.8,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitBehaviour_CaptureFourDirectionsBloodAndCleanup",
+      "Status": "Passed",
+      "Duration": 19.163647,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitBehaviour_GraphHearingChaseSearchAndCulling",
+      "Status": "Passed",
+      "Duration": 16.5068164,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

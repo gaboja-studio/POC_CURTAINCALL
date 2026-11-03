@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 14.08,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.UI.SceneIntegration.Tests.DevStartLauncherPlayTests.PursuitFeedback_ProximityLocalTargetAndCleanup",
+      "Status": "Passed",
+      "Duration": 13.9740835,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

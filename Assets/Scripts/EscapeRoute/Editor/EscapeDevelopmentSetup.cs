@@ -34,7 +34,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             foreach (var item in behaviours.Where(b => b is CameraSpectator))
             {
                 Undo.RecordObject(item, "Use common development recovery");
-                item.enabled = false;
+                item.enabled = scene.path == "Assets/Scenes/Levels/escape_route.unity";
                 PrefabUtility.RecordPrefabInstancePropertyModifications(item);
             }
             EditorSceneManager.MarkSceneDirty(scene);
@@ -52,10 +52,11 @@ namespace CurtainCall.EscapeRoute.EditorTools
             Check("one restored inspection flight pair", active.OfType<EscapeInspectionCamera>().Count() == 1
                 && active.OfType<EscapeInspectionSession>().Count() == 1);
             Check("no room creation UI", !all.OfType<NetworkSessionTestUI>().Any());
-            Check("no spectator lock/overlay", !active.OfType<CameraSpectator>().Any());
+            Check("spectator follows scene presentation", scene.path == "Assets/Scenes/Levels/escape_route.unity"
+                ? active.OfType<CameraSpectator>().Any() : !active.OfType<CameraSpectator>().Any());
             Check("no campaign/progression/result owner", !active.Any(b => b is CurtainCall.Campaign.CampaignRun
                 || b is TightropeCampaignBridge || b is CurtainCall.HumanCannon.HumanCannonDestination
-                || b is CurtainCall.UI.SceneIntegration.PerformanceSceneBinding));
+                || b is CurtainCall.UI.SceneIntegration.PerformanceSceneBinding binding && !binding.PresentationOnly));
             Check("one traversal-only rope course", active.OfType<TightropeCourse>().Count() == 1
                 && active.OfType<TightropeCourse>().All(c => c.UsesSceneGeometry && c.HasIndependentRopes));
             Check("one original cannon system", active.OfType<CurtainCall.HumanCannon.HumanCannonSystem>().Count() == 1);

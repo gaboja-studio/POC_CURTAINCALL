@@ -157,7 +157,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             foreach (float x in new[] { 44.8f, 53.2f })
             {
                 for (int i = 0; i < 6; i++)
-                    BMass(p, "주 설비를 감싸는 타설 코어", new Vector3(x, -68 + i * 20, 94), new Vector3(6, 19.92f, 14));
+                    BMass(p, "주 설비를 감싸는 타설 코어", new Vector3(x, -68 + i * 20, 94), new Vector3(6, 20, 14));
             }
             for (int i = 0; i < 6; i++)
                 BMass(p, "코어 깊은 수평 인방", new Vector3(49, -58 + i * 20, 89), new Vector3(14.4f, 2.8f, 4));

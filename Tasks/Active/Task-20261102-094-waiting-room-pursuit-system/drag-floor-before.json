@@ -1,0 +1,273 @@
+[
+  {
+    "room": "B1_ChangingRoom",
+    "placements": [
+      {
+        "id": 464864,
+        "name": "Mannequin_Male_01",
+        "x": -14.875001,
+        "y": -4.92,
+        "z": 103.05
+      }
+    ]
+  },
+  {
+    "room": "B1_EscapeCorridor",
+    "placements": [
+      {
+        "id": 445270,
+        "name": "Mannequin_Male_02",
+        "x": -6.54999828,
+        "y": -10.0,
+        "z": 91.15
+      }
+    ]
+  },
+  {
+    "room": "B1_EscapeEntrance",
+    "placements": [
+      {
+        "id": 552410,
+        "name": "Mannequin_Male_03",
+        "x": -11.2749977,
+        "y": -10.0,
+        "z": 93.35
+      }
+    ]
+  },
+  {
+    "room": "B1_MachineRoom",
+    "placements": [
+      {
+        "id": 339762,
+        "name": "Mannequin_Male_04",
+        "x": 9.958256,
+        "y": -9.985,
+        "z": 88.30581
+      }
+    ]
+  },
+  {
+    "room": "B1_Office",
+    "placements": []
+  },
+  {
+    "room": "B1_OfficeLink",
+    "placements": []
+  },
+  {
+    "room": "P05_PipeZone",
+    "placements": [
+      {
+        "id": 365970,
+        "name": "Mannequin_Female_03",
+        "x": 20.9999962,
+        "y": 0.03999996,
+        "z": 55.5
+      }
+    ]
+  },
+  {
+    "room": "S02_Dormitory",
+    "placements": [
+      {
+        "id": -46190,
+        "name": "Mannequin_Female_01",
+        "x": 21.10793,
+        "y": 1.91500032,
+        "z": 78.5464859
+      }
+    ]
+  },
+  {
+    "room": "S03_Shop",
+    "placements": []
+  },
+  {
+    "room": "S04_PropRoom",
+    "placements": [
+      {
+        "id": 530958,
+        "name": "Mannequin_Male_04",
+        "x": -7.69026375,
+        "y": 0.015000022,
+        "z": 105.972664
+      },
+      {
+        "id": -28344,
+        "name": "Mannequin_Female_02",
+        "x": -4.09260464,
+        "y": 0.015,
+        "z": 91.17886
+      }
+    ]
+  },
+  {
+    "room": "S05_JunkStorage",
+    "placements": [
+      {
+        "id": 523396,
+        "name": "Mannequin_Female_04",
+        "x": 27.9999962,
+        "y": 0.03999996,
+        "z": 38.4249954
+      }
+    ]
+  },
+  {
+    "room": "S08_ElevatorHall",
+    "placements": []
+  },
+  {
+    "room": "S09_PracticeRoom",
+    "placements": []
+  },
+  {
+    "room": "S10_Workshop",
+    "placements": []
+  },
+  {
+    "room": "S11_StageGear",
+    "placements": [
+      {
+        "id": 469334,
+        "name": "Mannequin_Female_05",
+        "x": -44.5,
+        "y": 0.03999996,
+        "z": 54.25
+      },
+      {
+        "id": 487864,
+        "name": "Mannequin_Male_03",
+        "x": -50.8665,
+        "y": 0.015000022,
+        "z": 50.1019058
+      },
+      {
+        "id": 449052,
+        "name": "Mannequin_Female_01",
+        "x": -29.9981613,
+        "y": 0.015000022,
+        "z": 48.5125961
+      },
+      {
+        "id": 347974,
+        "name": "Mannequin_Female_04",
+        "x": -52.4209862,
+        "y": 0.015000022,
+        "z": 40.9846268
+      },
+      {
+        "id": 408872,
+        "name": "Mannequin_Male_01",
+        "x": -29.7752666,
+        "y": 0.015000022,
+        "z": 35.94363
+      }
+    ]
+  },
+  {
+    "room": "S12_CargoBay",
+    "placements": [
+      {
+        "id": 488886,
+        "name": "Mannequin_Female_06",
+        "x": -43.3,
+        "y": 0.03999996,
+        "z": 66.89332
+      },
+      {
+        "id": 454004,
+        "name": "Mannequin_Male_01",
+        "x": -54.8052254,
+        "y": 0.015000022,
+        "z": 66.82422
+      },
+      {
+        "id": 547778,
+        "name": "Mannequin_Female_06",
+        "x": -30.7582645,
+        "y": 0.015000022,
+        "z": 66.82422
+      }
+    ]
+  },
+  {
+    "room": "ST_Stairwell",
+    "placements": [
+      {
+        "id": 356648,
+        "name": "Mannequin_Male_01",
+        "x": 0.0,
+        "y": -10.0,
+        "z": 88.4
+      }
+    ]
+  },
+  {
+    "room": "F8_Cargo",
+    "placements": [
+      {
+        "id": -40398,
+        "name": "Mannequin_Male_02",
+        "x": -13.7444019,
+        "y": 1.07270944,
+        "z": 76.29715
+      }
+    ]
+  },
+  {
+    "room": "F8_Dorm",
+    "placements": []
+  },
+  {
+    "room": "F8_PipeCrawl",
+    "placements": []
+  },
+  {
+    "room": "F8_Practice",
+    "placements": []
+  },
+  {
+    "room": "F8_PropRoom",
+    "placements": []
+  },
+  {
+    "room": "Lobby",
+    "placements": [
+      {
+        "id": -28186,
+        "name": "Mannequin_Male_02",
+        "x": 5.52979231,
+        "y": 0.015,
+        "z": 78.1971
+      },
+      {
+        "id": -40520,
+        "name": "Mannequin_Male_04",
+        "x": -6.684601,
+        "y": 0.015,
+        "z": 78.76883
+      },
+      {
+        "id": -40722,
+        "name": "Mannequin_Female_02",
+        "x": -8.151603,
+        "y": 0.015,
+        "z": 83.6733246
+      }
+    ]
+  },
+  {
+    "room": "PipeLink",
+    "placements": []
+  },
+  {
+    "room": "ServiceGallery",
+    "placements": []
+  },
+  {
+    "room": "WorkshopBranch",
+    "placements": []
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "result": "capturing",
+  "elapsed": 1.53386092,
+  "moved": 2.76696277,
+  "motion": "Tear",
+  "lost": 1,
+  "control": false,
+  "phase": "RestTime",
+  "timer": "Pursuit"
+}

@@ -125,7 +125,7 @@ namespace CurtainCall.EscapeRoute
         void Step(CampaignSnapshot state)
         {
             if (!IsCampaign) return;
-            bool active = state.Phase == CampaignPhase.Escape;
+            bool active = state.Phase == CampaignPhase.Escape || EscapeEndingPresentation.IsSuccessfulEnding(state);
             if (active && generation != state.Generation) { generation = state.Generation; arrived.Clear(); reported = false; }
             if (active && run.HasAuthority && !stateRuleInstalled)
             {

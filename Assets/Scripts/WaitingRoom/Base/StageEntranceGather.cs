@@ -132,7 +132,7 @@ namespace CurtainCall.WaitingRoom
             {
                 foreach (var player in NetworkPlayer.All)
                 {
-                    if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired) continue;
+                    if (player.State == PlayerState.Fallen || player.State == PlayerState.Retired || Pursuit.PursuitDirector.IsCaptured(player)) continue;
                     alive++;
                     if (Contains(player.transform.position)) inside++;
                 }
@@ -141,7 +141,7 @@ namespace CurtainCall.WaitingRoom
             {
                 foreach (var mover in offlinePlayers)
                 {
-                    if (mover == null || !mover.isActiveAndEnabled) continue;
+                    if (mover == null || !mover.isActiveAndEnabled || Pursuit.PursuitDirector.IsCaptured(mover.gameObject)) continue;
                     alive++;
                     if (Contains(mover.transform.position)) inside++;
                 }

@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "duration": 0.61,
+  "summary": {
+    "total": 4,
+    "passed": 1,
+    "failed": 3,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.DistantSceneMoveClearsOwnedRouteAndUndoRestoresIt",
+      "Status": "Failed",
+      "Duration": 0.0826557,
+      "Message": "  Expected: 2\r\n  But was:  0\r\n",
+      "StackTrace": "at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.DistantSceneMoveClearsOwnedRouteAndUndoRestoresIt () [0x00064] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitPlacementMovementTests.cs:61\r\n"
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.PanelMovePreservesRouteAndHonoursThresholdAndDisable",
+      "Status": "Passed",
+      "Duration": 0.0833594,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.SceneTransformKeepsWorldRouteAndUndoRedoTogether",
+      "Status": "Failed",
+      "Duration": 0.0513945,
+      "Message": "  Expected: less than 0.00100000005f\r\n  But was:  23.7118149f\r\n",
+      "StackTrace": "at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.SceneTransformKeepsWorldRouteAndUndoRedoTogether () [0x000be] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitPlacementMovementTests.cs:50\r\n"
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.SharedRouteDisconnectsOnlyMovedMannequin",
+      "Status": "Failed",
+      "Duration": 0.0550459,
+      "Message": "  Expected: True\r\n  But was:  False\r\n",
+      "StackTrace": "at CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPlacementMovementTests.SharedRouteDisconnectsOnlyMovedMannequin () [0x00142] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\WaitingRoom\\Pursuit\\Editor\\PursuitPlacementMovementTests.cs:75\r\n"
+    }
+  ]
+}

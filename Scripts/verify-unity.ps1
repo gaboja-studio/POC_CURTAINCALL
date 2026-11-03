@@ -48,25 +48,18 @@ function Invoke-EditorCommand {
 
 Write-Output "Project: $project"
 
-# 1) 에디터 연결 (읽기 전용)
-$status = Invoke-NativeWithTimeout -FilePath $unity -TimeoutSeconds 15 -Arguments @(
-    'status', '--json', '--no-banner', '--project-path', $project)
-$statusJson = ConvertFrom-UnityJson $status.StdOut
-# 같은 경로로 시작하는 MPPM 가상 플레이어(<project>/Library/VP/...)도 함께 나오므로 경로가 정확히 같은 에디터만 센다
-# (Harness/Engine/Unity/Pitfalls/mppm-virtual-player-status.md)
-# CLI beta.14부터 행의 project 키는 폐기 예정이므로 projectPath를 먼저 읽는다.
-$instances = @($statusJson.data.instances | Where-Object {
-    $instancePath = $_.projectPath ?? $_.project
-    $instancePath -and ([System.IO.Path]::GetFullPath($instancePath).TrimEnd('/') -eq $project.TrimEnd('/'))
-})
-if ($status.TimedOut -or $instances.Count -eq 0) {
-    Write-Output 'ENV_BLOCKED: 연결된 에디터 없음. 수정은 시도하지 않았음 (Pitfalls/editor-not-visible.md).'
-    exit 2
+# 1) 경로를 지정한 에디터 상태 조회. CLI beta.15의 `unity status`는 구형 Pipeline에
+# `editor status`를 먼저 보내 Console 오류를 만든다. flat 명령은 바로 지원되므로 직접 조회한다.
+# CLI의 --project-path가 대상을 선택하며, 연결 실패/모호한 대상은 실패로 중단한다.
+try { $editor = Invoke-EditorCommand $Commands.EditorStatus }
+catch {
+    if ($_.Exception.Message -like 'COMMAND_FAILED: editor_status*' -or $_.Exception.Message -like 'TIMEOUT:*') {
+        Write-Output "ENV_BLOCKED: 에디터 상태 조회 불가. $($_.Exception.Message)"
+        exit 2
+    }
+    throw
 }
-if ($instances.Count -gt 1) { throw "이 경로에 연결된 에디터가 $($instances.Count)개. 대상이 모호하여 중단." }
-
-# 2) 에디터 상태 / 열린 씬 (읽기 전용)
-$editor = Invoke-EditorCommand $Commands.EditorStatus
+if (-not $editor.projectPath) { throw '에디터 응답에 projectPath가 없어 대상을 확인할 수 없습니다.' }
 if ($editor.projectPath -and ([System.IO.Path]::GetFullPath($editor.projectPath).TrimEnd('/') -ne $project.TrimEnd('/'))) {
     throw "연결된 에디터 경로 불일치: $($editor.projectPath)"
 }

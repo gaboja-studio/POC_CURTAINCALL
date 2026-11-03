@@ -24,7 +24,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             if (referenced.Contains(renderer) || referenced.Contains(renderer.gameObject) || referenced.Contains(renderer.transform)) return false;
             for (var t = renderer.transform; t != null && t != background; t = t.parent)
                 if (t.GetComponents<MonoBehaviour>().Length != 0 || t.GetComponent<Animator>() != null
-                    || t.GetComponent<Rigidbody>() != null || t != renderer.transform && referenced.Contains(t.gameObject)) return false;
+                    || t.GetComponent<Rigidbody>() != null || referenced.Contains(t) || referenced.Contains(t.gameObject)) return false;
             return true;
         }
         static void CollectReferences(Scene scene)

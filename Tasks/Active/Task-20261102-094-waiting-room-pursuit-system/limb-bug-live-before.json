@@ -1,0 +1,27 @@
+{
+  "scene": "Tightrope",
+  "lost": "LeftArm, LeftLeg, RightLeg",
+  "fields": [
+    {
+      "Name": "<Stage>k__BackingField",
+      "value": 3
+    },
+    {
+      "Name": "articulated",
+      "value": false
+    },
+    {
+      "Name": "initialized",
+      "value": true
+    },
+    {
+      "Name": "stateHash",
+      "value": 462662020
+    },
+    {
+      "Name": "positionCaptured",
+      "value": true
+    }
+  ],
+  "poses": 0
+}

@@ -117,6 +117,7 @@ namespace CurtainCall.Cameras
 
         static int ReadDirection(NetworkPlayer local)
         {
+            if (InputGate.IsBlocked || local == null) return 0;
             if (!local.TryGetComponent(out PlayerInputReader reader) || !reader.enabled) return 0;
             float posture = reader.Current.Posture; // A/D(균형 보정 키). 사망 중에는 균형에 쓰이지 않는다
             return posture > 0.5f ? 1 : posture < -0.5f ? -1 : 0;

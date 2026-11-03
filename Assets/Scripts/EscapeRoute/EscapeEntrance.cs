@@ -56,20 +56,24 @@ namespace CurtainCall.EscapeRoute
             if (run.HasAuthority && run.State.Phase == CampaignPhase.RestTime)
             {
                 bool doorOpen = ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(StructureAKeyRoute.EscapeDoor);
-                int occupants = 0;
+                int occupants = 0, living = 0;
+                var allParticipants = new List<ulong>();
                 candidates.Clear();
                 foreach (var player in NetworkPlayer.All)
                 {
-                    if (player == null || !player.IsSpawned || !channel.IsConnected(player.OwnerClientId)
-                        || !Contains(assemblyArea, player.transform.position)) continue;
+                    if (player == null || !player.IsSpawned || !channel.IsConnected(player.OwnerClientId)) continue;
+                    allParticipants.Add(player.OwnerClientId);
+                    if (player.State != PlayerState.Normal || CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player)) continue;
+                    living++;
+                    if (!Contains(assemblyArea, player.transform.position)) continue;
                     occupants++;
                     if (player.State == PlayerState.Normal) candidates.Add(player.OwnerClientId);
                 }
-                assembly.Tick(occupants, doorOpen ? candidates.Count : 0, channel.Session.PlayerCount);
-                if (doorOpen && assembly.CanDepart)
+                assembly.Tick(occupants, doorOpen ? candidates.Count : 0, living);
+                if (doorOpen && living > 0 && assembly.CanDepart)
                 {
                     var transfer = EscapeSceneTransfer.EnsureExists();
-                    if (transfer.Begin(candidates, run.State.Generation))
+                    if (transfer.Begin(allParticipants, run.State.Generation))
                     {
                         // Seal the rear exit before StartEscape notifies the scene-transition coordinator.
                         if (returnBarrier != null) returnBarrier.SetActive(true);
@@ -79,7 +83,7 @@ namespace CurtainCall.EscapeRoute
                 }
                 snapshot = new Snapshot { generation = run.State.Generation, day = run.State.Day,
                     performance = run.State.PerformanceIndex, stage = (int)assembly.Status,
-                    occupants = assembly.Occupants, eligible = assembly.Eligible, required = channel.Session.PlayerCount };
+                    occupants = assembly.Occupants, eligible = assembly.Eligible, required = living };
                 if (Time.unscaledTime >= nextSend || Departed) { Publish(); nextSend = Time.unscaledTime + .25f; }
             }
             RefreshPresentation();

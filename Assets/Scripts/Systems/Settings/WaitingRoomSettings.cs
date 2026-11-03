@@ -20,6 +20,10 @@ namespace CurtainCall.Settings
         [Tooltip("한 번에 복구할 수 있는 최대 팔다리 수.")]
         [SerializeField, Range(1, 4)] int bodyRestoreMaxParts = 3;
 
+        [Header("추격 시스템 (M2)")]
+        [SerializeField] PursuitSettings pursuit = new();
+        public PursuitSettings Pursuit => pursuit ??= new();
+
         public int DummySpendAmount => Mathf.Max(1, dummySpendAmount);
         public int BodyRestoreBasePrice => Mathf.Max(1, bodyRestoreBasePrice);
         public int BodyRestorePriceStep => Mathf.Max(0, bodyRestorePriceStep);

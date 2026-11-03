@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 6.92,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPreviewLifetimeTests.LeavingPursuitReleasesModelsCameraAndTextureEvenWhenHidden(False)",
+      "Status": "Passed",
+      "Duration": 5.0738044,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitPreviewLifetimeTests.LeavingPursuitReleasesModelsCameraAndTextureEvenWhenHidden(True)",
+      "Status": "Passed",
+      "Duration": 1.804803,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

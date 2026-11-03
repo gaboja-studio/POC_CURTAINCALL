@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "duration": 0.61,
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoringTests.GroundChoosesFloorNotRoofAndRejectsVoid",
+      "Status": "Passed",
+      "Duration": 0.0647693,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoringTests.LobbyVolumeBelowFloorUsesPatrolHeightAndRejectsLowerStorey",
+      "Status": "Passed",
+      "Duration": 0.0446894,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoringTests.MigrationPreservesLayoutAndClonesRoutesOnlyOnce",
+      "Status": "Passed",
+      "Duration": 0.0474782,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.WaitingRoom.Pursuit.Editor.PursuitAuthoringTests.MovingRotatingAndReorderingDoNotMoveIndependentPatrolRoute",
+      "Status": "Passed",
+      "Duration": 0.0535034,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

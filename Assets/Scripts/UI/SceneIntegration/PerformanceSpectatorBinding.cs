@@ -43,8 +43,11 @@ namespace CurtainCall.UI.SceneIntegration
                 int alive = NetworkPlayer.All.Count(p => p != null && p != local && p.State == PlayerState.Normal);
                 string detail = state == SpectatorState.Spectating ? $"플레이어 {CameraSpectator.Target.Slot + 1}" :
                     state == SpectatorState.NoTarget ? "관전 대상 없음" : "사망했습니다";
+                var reader = local != null ? local.GetComponent<PlayerInputReader>() : null;
                 view.Present(state, state == SpectatorState.Spectating ? "관전 중" : "사망", detail,
-                    "A", "D", alive > 1 && !InputGate.IsBlocked);
+                    reader != null ? reader.BindingPartLabel("Posture", "negative", "A") : "A",
+                    reader != null ? reader.BindingPartLabel("Posture", "positive", "D") : "D",
+                    alive > 1 && !InputGate.IsBlocked);
             }
             if (!view.OccupiesBottomSlot) return;
             if (space.LocalBalance != null) space.LocalBalance.SetContext(false, true);
