@@ -23,3 +23,4 @@
 - 코덱 왕복은 추가 상태값까지 검증. 컴파일 PASS, Pursuit EditMode46/46 PASS. 초기 check-work는 에디터 재시작 중 ENV_BLOCKED였으며 준비 완료 후 컴파일 통과.
 - PlayMode 전체16개 중14개 PASS. 실패2개: 카메라 테스트 직후 런처 시작 실패(Activation), Vivox Target Object Does Not Exist(CaptureFourDirections). 두 항목을 개별 재검증한다. 다중 이름 세미콜론 필터는 NO_PROJECT_TESTS여서 결과로 세지 않음.
 - 실패2개 각각 단독1/1 PASS. 전체14/16 + 개별2/2로 기록(전체 통과 아님). 이어서 사용자 요청대로 통합 커밋/푸시 후 P1을 진행한다.
+- 통합 e72ac5e0 푸시 완료. save-work의 add -A가 Play 검증에서 생성된 동적 글꼴 캐시3개를 포함해 별도 정정 커밋으로 원래 git blob을 index에 복원했다. 생성 파일은 worktree에 그대로 보존하며 이후 명시 경로만 stage한다. 기존 데이터/이력 폐기·force 없음.
