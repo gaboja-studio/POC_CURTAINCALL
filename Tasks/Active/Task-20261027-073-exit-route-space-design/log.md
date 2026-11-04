@@ -116,3 +116,9 @@
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-04 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/283 (feat/exit-route/design-map → dev)
+
+- 11월 3일의 상부 컨베이어·첫 대포 합의, 11월 4일에 추가된 설비와 남은 구도 확인 사항을 environmental-story-plan.md의 첫 절에 구분했다. 당시 동작 GIF 두 개를 작업 문서와 함께 추적하고 원본 해시와 문서 링크를 확인했다.
+
+- 2026-11-04 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(Unity 변경 없음); 테스트=SKIPPED(자동 테스트 선택 안 함)
