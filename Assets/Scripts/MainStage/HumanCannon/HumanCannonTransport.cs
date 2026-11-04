@@ -129,6 +129,16 @@ namespace CurtainCall.HumanCannon
             return platform.position + Rotation * point;
         }
 
+        /// <summary>출발점 발판의 진행 반대쪽 벽 바깥(탑승하던 갑판). 이동 중 발판 밖에서 버틴 사람을 되돌릴 자리.</summary>
+        public Vector3 BoardingSide(float radius)
+        {
+            Vector3 first = via != null ? via.position : destination.position;
+            Vector3 travel = Vector3.ProjectOnPlane(first - start.position, Vector3.up);
+            Vector3 local = travel.sqrMagnitude > 0.0001f ? Quaternion.Inverse(Rotation) * travel.normalized : Vector3.forward;
+            float extent = Mathf.Abs(local.x) * halfSize.x + Mathf.Abs(local.z) * halfSize.y;
+            return start.position - Rotation * local * (extent + BarrierThickness + Mathf.Max(0, radius) + 0.3f);
+        }
+
         public bool ContainsPassenger(Vector3 feet)
         {
             if (!IsConfigured) return false;
@@ -136,6 +146,14 @@ namespace CurtainCall.HumanCannon
             // 점프·트램폴린 위 동승도 포함하되 아래로 떨어진 사람은 세지 않는다.
             return Mathf.Abs(point.x) < halfSize.x && Mathf.Abs(point.z) < halfSize.y
                 && point.y >= -0.15f && point.y <= 2f;
+        }
+
+        /// <summary>발판 면적 위 높이 제한 없는 기둥. 트램폴린 반동으로 높이 뜬 사람도 발판 위로 본다.</summary>
+        public bool ContainsAirColumn(Vector3 point)
+        {
+            if (!IsConfigured) return false;
+            Vector3 local = Quaternion.Inverse(Rotation) * (point - platform.position);
+            return Mathf.Abs(local.x) < halfSize.x && Mathf.Abs(local.z) < halfSize.y && local.y >= -0.15f;
         }
 
         public bool ContainsFallColumn(Vector3 contact)

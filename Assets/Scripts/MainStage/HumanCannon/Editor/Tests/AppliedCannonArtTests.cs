@@ -275,7 +275,8 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             // 외형은 충돌체 없는 하나로 이어 붙여 이 대조에서 빠진다. 최종 대포 바닥 콘크리트도 같은 초록 면(FinalGreenGround)으로 대체.
             Assert.That(found, Is.EqualTo(46), "40 concrete surfaces + 6 transport panels");
             // 2026-11-03 톱벽 2개를 좌우 절반으로 나눠 관문마다 충돌 벽이 1개에서 2개로 늘었다(+2).
-            Assert.That(All<Collider>().Length, Is.EqualTo(61), "공중 장애물 제거로 최종 톱 EntryZone 트리거1개만 줄고, 시작 지점 아래 43개를 빼고 리프트 빈틈 10개와 좌·우 쿠션 2개, 톱벽 절반 벽 2개를 더한 지상 충돌체를 유지한다.");
+            // 2026-11-04 초록 면 전체 안전지대 판정(FinalGreenGroundLanding) 1개 추가(+1).
+            Assert.That(All<Collider>().Length, Is.EqualTo(62), "공중 장애물 제거로 최종 톱 EntryZone 트리거1개만 줄고, 시작 지점 아래 43개를 빼고 리프트 빈틈 10개와 좌·우 쿠션 2개, 톱벽 절반 벽 2개, 초록 면 안전지대 1개를 더한 지상 충돌체를 유지한다.");
         }
 
         [Test]

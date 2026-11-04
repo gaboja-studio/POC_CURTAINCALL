@@ -229,6 +229,29 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
+        public void AirColumn_CoversHighTrampolineBounceButNotOutsideOrBelow()
+        {
+            origin.SetPositionAndRotation(new Vector3(12, 2, -8), Quaternion.Euler(0, 90, 0));
+            transport.Present(0.5f);
+            foreach (float height in new[] { -0.1f, 2f, 6f, 30f })
+                Assert.IsTrue(transport.ContainsAirColumn(platform.position + origin.rotation * new Vector3(1.9f, height, 2.9f)), "높이 " + height);
+            foreach (var outside in new[] { new Vector3(2.01f, 6, 0), new Vector3(0, 6, 3.01f), new Vector3(0, -0.2f, 0) })
+                Assert.IsFalse(transport.ContainsAirColumn(platform.position + origin.rotation * outside));
+        }
+
+        [Test]
+        public void BoardingSide_IsBehindTheStartPlatformOppositeTheTravel()
+        {
+            origin.SetPositionAndRotation(new Vector3(12, 2, -8), Quaternion.Euler(0, 90, 0));
+            destination.position = new Vector3(30, 2, -8);
+            transport.Present(0);
+            Vector3 side = transport.BoardingSide(.5f);
+            Assert.IsFalse(transport.ContainsPassenger(side), "발판 밖이다.");
+            Assert.That(side.y, Is.EqualTo(origin.position.y).Within(.001f));
+            Assert.That(Vector3.Dot(side - origin.position, Vector3.right), Is.LessThan(-transport.HalfSize.y), "진행 반대쪽 갑판이다.");
+        }
+
+        [Test]
         public void TrapOpening_HalfwayTiltsBothInnerEdgesDownSymmetrically()
         {
             CreateTrapDoors(out var left, out var right, out var floors);

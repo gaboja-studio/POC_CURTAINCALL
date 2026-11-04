@@ -274,6 +274,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(poles[1].transform, Is.SameAs(Find("SplitRouteCourse/SecondSectionPoleGate/NormalPole")));
             Assert.That(poles[2].transform, Is.SameAs(Find("SplitRouteCourse/SecondSectionPoleGate/LinkedPole")));
             Assert.That(poles.Skip(3).All(p => p.LinkedGate == null), Is.True);
+            // 2026-11-04 사용자 결정: 톱벽을 작동시키는 연결 그네 2개만 남기고 일반 그네는 줄·천장과 함께 숨긴다(삭제 아님).
+            foreach (var pole in poles)
+                Assert.That(pole.gameObject.activeSelf, Is.EqualTo(pole.LinkedGate != null), pole.name);
+            foreach (var ceiling in new[] { "ExtendedCourse044/ExistingCeiling2", "HumanCannonEnhancement/AddedPole0Ceiling" })
+                Assert.That(Find(ceiling).gameObject.activeSelf, Is.False, ceiling);
+            foreach (var ceiling in new[] { "ExtendedCourse044/ExistingCeiling1", "ExtendedCourse044/ExistingCeiling3" })
+                Assert.That(Find(ceiling).gameObject.activeSelf, Is.True, ceiling);
             var gates = poles.Where(p => p.LinkedGate != null).Select(p => p.LinkedGate).Distinct()
                 .OrderBy(g => g.transform.position.z).ToArray();
             Assert.That(gates, Has.Length.EqualTo(2));
@@ -336,11 +343,12 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
-        public void FirstLift_RefusesOverloadWithoutOpeningFloor()
+        public void EveryLift_RefusesOverloadWithoutOpeningFloor()
         {
             // 2026-11-02 사용자 결정: 왼쪽 리프트는 2명 이상이면 바닥을 열지 않고 출발만 막는다(빨간 발판).
-            var lift = All<HumanCannonTransport>().Single(t => t.name == "DepartureTransport");
-            Assert.IsFalse(lift.OverloadTrap);
+            // 2026-11-04 사용자 결정: 쉼터 승강기·쉼터 출발 장치도 같다.
+            foreach (string name in new[] { "DepartureTransport", "ShelterLift", "ShelterDeparture" })
+                Assert.IsFalse(All<HumanCannonTransport>().Single(t => t.name == name).OverloadTrap, name);
         }
 
         [Test]

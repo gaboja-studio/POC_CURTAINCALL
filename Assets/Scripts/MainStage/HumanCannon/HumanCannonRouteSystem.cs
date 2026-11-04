@@ -67,8 +67,16 @@ namespace CurtainCall.HumanCannon
         public bool BlocksTrampolineBounce(Vector3 contact)
         {
             if (runtime == null) return false;
+            // 운반자가 실려 가는 동안 그 트램폴린은 반동하지 않는다. 발판 밖으로 튀어나온 부분도 같다.
+            var trampoline = HumanCannonTrampoline.Current;
+            if (trampoline != null && trampoline.Carrier != CannonSeatState.Nobody && IsRiding(trampoline.Carrier)) return true;
             for (int i = 0; i < runtime.Length; i++)
-                if (runtime[i].Trap.IsOpen && transports[i] != null && transports[i].ContainsFallColumn(contact)) return true;
+            {
+                if (transports[i] == null) continue;
+                if (runtime[i].Trap.IsOpen && transports[i].ContainsFallColumn(contact)) return true;
+                // 이동·복귀 중 발판 위 트램폴린에서 튀어 오르며 같이 올라가지 못하게 한다.
+                if (Sealed(runtime[i]) && transports[i].ContainsAirColumn(contact)) return true;
+            }
             return false;
         }
         public double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
@@ -316,10 +324,15 @@ namespace CurtainCall.HumanCannon
                         || transit.State.Phase == DeparturePhase.Moving && transit.State.Rider == player.OwnerClientId
                         || IsRiding(player.OwnerClientId)
                         || cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))
-                        || !transports[i].ContainsPassenger(player.transform.position)
                         || !player.TryGetComponent(out PlayerMover mover) || !mover.Simulated) continue;
                     float radius = mover.Body != null ? mover.Body.radius : 0.5f;
-                    mover.Relocate(transports[i].OutsideBarrier(player.transform.position, radius), player.transform.rotation);
+                    Vector3 feet = player.transform.position;
+                    if (transports[i].ContainsPassenger(feet))
+                        mover.Relocate(transports[i].OutsideBarrier(feet, radius), player.transform.rotation);
+                    // 발판 밖으로 튀어나온 운반 트램폴린 위에 서서 버티면 타던 쪽 갑판으로 되돌린다.
+                    else if (transit.State.Phase == DeparturePhase.Moving && OnCarriedTrampoline(transit.State.Rider, feet, radius))
+                        mover.Relocate(transports[i].BoardingSide(radius), player.transform.rotation);
+                    else continue;
                     Debug.Log($"[HumanCannonRoute] transport {i} sealed; moved actor={player.OwnerClientId} off");
                 }
             }
@@ -341,10 +354,50 @@ namespace CurtainCall.HumanCannon
                 // 운송 중 소유자 위치 패킷이 한 프레임 늦어도 담당자를 누락하지 않는다.
                 bool carried = !transit.Trap.IsOpen && transit.State.Phase == DeparturePhase.Moving
                     && transit.State.Rider == player.OwnerClientId;
-                if (carried || !sealedOff && transports[index].ContainsPassenger(player.transform.position)) { count++; soleRider = player; }
+                if (carried || !sealedOff && (transports[index].ContainsPassenger(player.transform.position)
+                    || BouncingAbove(player, index))) { count++; soleRider = player; }
             }
             return count;
         }
+
+        /// <summary>
+        /// 발판 위나 운반 중인 트램폴린 위에서 반동(좌석 없는 비행) 중인 사람. 출발 시 함께 가지 못하게 탑승자로 센다.
+        /// 트램폴린이 발판 밖으로 튀어나와 있어도 그 위의 반동자를 놓치지 않는다.
+        /// </summary>
+        bool BouncingAbove(NetworkPlayer player, int index)
+        {
+            if (cannon == null || !cannon.TryGetFlight(player.OwnerClientId, out var flight) || flight.StationIndex >= 0) return false;
+            Vector3 position = player.transform.position;
+            if (transports[index].ContainsAirColumn(position)) return true;
+            var trampoline = HumanCannonTrampoline.Current;
+            if (trampoline == null || trampoline.Carrier == CannonSeatState.Nobody) return false;
+            var carrier = FindPlayer(trampoline.Carrier);
+            if (carrier == null || !transports[index].ContainsPassenger(carrier.transform.position)
+                || position.y < trampoline.Surface.y - .5f) return false;
+            float reach = TrampolineRadius(trampoline) + TrampolineAirReach;
+            return Vector3.ProjectOnPlane(position - trampoline.Surface, Vector3.up).sqrMagnitude <= reach * reach;
+        }
+
+        /// <summary>실려 가는 운반자가 든 트램폴린 위(면 아래 0.5m~위 2m)에 서 있는지.</summary>
+        static bool OnCarriedTrampoline(ulong rider, Vector3 feet, float radius)
+        {
+            var trampoline = HumanCannonTrampoline.Current;
+            if (trampoline == null || trampoline.Carrier == CannonSeatState.Nobody || trampoline.Carrier != rider) return false;
+            float height = feet.y - trampoline.Surface.y, reach = TrampolineRadius(trampoline) + radius;
+            return height >= -.5f && height <= 2f
+                && Vector3.ProjectOnPlane(feet - trampoline.Surface, Vector3.up).sqrMagnitude <= reach * reach;
+        }
+
+        static float TrampolineRadius(HumanCannonTrampoline trampoline)
+        {
+            Vector2 size = trampoline.LoadHalfSize;
+            if (!trampoline.CircularSurface) return trampoline.transform.TransformVector(size.x, 0, size.y).magnitude;
+            return Mathf.Max(trampoline.transform.TransformVector(size.x, 0, 0).magnitude,
+                trampoline.transform.TransformVector(0, 0, size.y).magnitude);
+        }
+
+        /// <summary>반동 중 공중 조종으로 트램폴린 가장자리 밖까지 흘러갈 수 있는 여유(m).</summary>
+        const float TrampolineAirReach = 2f;
 
         void CountShelterFlyers()
         {

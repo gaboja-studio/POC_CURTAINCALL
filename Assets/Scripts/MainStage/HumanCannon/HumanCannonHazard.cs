@@ -27,6 +27,8 @@ namespace CurtainCall.HumanCannon
         [SerializeField] bool authoredPath;
         [Tooltip("이 씬의 일반 화염 접촉은 즉사 대신 기존 사지 절단을 적용한다. 추격 화염벽은 별도 시스템이다.")]
         [SerializeField] bool fireSeversLimbs;
+        [Tooltip("이동 경로(파란 레일)를 보여 준다. 끄면 플레이 중에도 레일을 숨기고 톱만 보인다.")]
+        [SerializeField] bool showRail = true;
         int diagonalIndex;
         public CannonHazardKind Kind => kind;
         public float Radius => radius;
@@ -117,8 +119,8 @@ namespace CurtainCall.HumanCannon
             if (visual != null) visual.gameObject.SetActive(visible && (cue == null || cue.Visible(elapsed)));
             if (TryGetComponent(out LineRenderer rail))
             {
-                rail.enabled = visible;
-                if (!visible || IsPoleSaw) return;
+                rail.enabled = visible && showRail;
+                if (!rail.enabled || IsPoleSaw) return;
                 Vector3 half = Travel;
                 rail.positionCount = 2;
                 rail.SetPosition(0, rail.useWorldSpace ? transform.position - half : transform.InverseTransformVector(-half));
