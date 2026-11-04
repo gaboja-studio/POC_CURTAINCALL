@@ -9,3 +9,5 @@
   - `WaitingRoomTextTests` 3/5: 실패 2개는 이번 작업과 무관한 기존 상태(리허설·첫날 키 미사용 판정, `explore.locked-before-tutorial` 파일 누락). `pursuit.*` 키는 걸리지 않음.
 - 2026-11-04 추격 설계 창에서 문구 표 직접 편집 추가(`PursuitTextTable`). 컴파일=PASS. 에디터 eval로 읽기·쓰기·원복·단계 다시 쓰기를 실행해 파일이 바이트 단위로 원래대로 돌아오는 것 확인(git diff 동일).
 - 다음: 사람 플레이 확인(todo 마지막 항목).
+
+- 2026-11-04 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/289 (feat/pursuit-quest-ui → dev)
