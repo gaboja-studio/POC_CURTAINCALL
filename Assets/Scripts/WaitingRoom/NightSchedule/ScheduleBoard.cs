@@ -178,11 +178,13 @@ namespace CurtainCall.WaitingRoom
         /// <summary>호스트: 첫날 둘째 공연을 확정하고 런 공연 순서에 넘긴다.</summary>
         ScheduleRefusal ConfirmFirstDay()
         {
-            var refusal = book.ConfirmFirstDay();
-            if (refusal != ScheduleRefusal.None) return Answer(refusal);
+            if (book.FirstDayConfirmed) return Answer(ScheduleRefusal.AlreadyConfirmed);
+            if (!book.IsFirstDaySecondEditable) return Answer(ScheduleRefusal.NotEditable);
             string trick = book.Get(1, 1);
-            bool applied = CampaignRun.Instance.SetFirstDaySecondTrick(trick);
-            Debug.Log($"[NightSchedule] 1일차 둘째 공연 확정: {trick}{(applied ? "" : " (런에 넘기지 못함)")}");
+            if (!IsUnlocked(trick) || !CampaignRun.Instance.SetFirstDaySecondTrick(trick))
+                return Answer(ScheduleRefusal.NotEditable);
+            book.ConfirmFirstDay();
+            Debug.Log($"[NightSchedule] 1일차 둘째 공연 확정: {trick}");
             Publish();
             LastMessage = WaitingRoomText.Get("schedule.confirmed-first-day", "두 번째 공연을 확정했습니다.");
             return ScheduleRefusal.None;

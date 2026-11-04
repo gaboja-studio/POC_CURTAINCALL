@@ -85,6 +85,9 @@ namespace CurtainCall.WaitingRoom
             if (run == null || run.State.Day != 1 || player == null || player.State != PlayerState.Normal
                 || SceneCurtainTransition.IsActive || teamLocked)
             { firstDayQuest.Hide(); return; }
+            // 스케줄표를 가까이서 편집할 때는 같은 목적의 화면 퀘스트가 판을 가리지 않는다.
+            if (board == null) board = FindFirstObjectByType<ScheduleBoardView>();
+            if (board != null && board.IsOpen) { firstDayQuest.Hide(); return; }
             var s = run.State;
             string quest;
             if (s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide)
@@ -96,14 +99,12 @@ namespace CurtainCall.WaitingRoom
             {
                 quest = run.IsLocalReady ? "night-wait" : NightBed.ScheduleReady ? "night-bed"
                     : run.HasAuthority ? "night-schedule" : "night-schedule-wait";
-                if (board == null) board = FindFirstObjectByType<ScheduleBoardView>();
-                if (board != null && board.IsOpen) { firstDayQuest.Hide(); return; }
             }
             else { firstDayQuest.Hide(); return; }
             if (gather == null) gather = FindFirstObjectByType<StageEntranceGather>();
             if (gather == null) { firstDayQuest.Hide(); return; }
             // 정본의 밤 할 일 패널을 가리지 않고 그 아래에 연결 퀘스트를 놓는다.
-            firstDayQuest.SetMinimumTop(WaitingRoomTutorial.TodoVisible ? 560f : 0f);
+            firstDayQuest.SetMinimumTop(0f);
             firstDayQuest.Show(WaitingRoomText.Get("first-day.quest." + quest + ".title", "오늘 할 일"),
                 WaitingRoomText.Format("first-day.quest." + quest + ".body", "화면 안내에 따라 오늘 일정을 진행하세요.",
                     ("ready", s.ReadyCount), ("total", s.RequiredCount),

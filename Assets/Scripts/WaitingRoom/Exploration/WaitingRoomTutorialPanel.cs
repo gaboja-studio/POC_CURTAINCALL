@@ -37,6 +37,12 @@ namespace CurtainCall.WaitingRoom
         public static bool IsVisible => instance != null && instance.view != null && instance.hideAt > Time.unscaledTime;
         public static string CurrentTitle => IsVisible ? instance.title : "";
         public static string CurrentBody => IsVisible ? instance.body : "";
+        public static void KeepVisible()
+        {
+            if (instance == null || instance.view == null || string.IsNullOrEmpty(instance.body)) return;
+            if (!instance.view.IsVisible) instance.Open(instance.title, instance.body, 1f);
+            else instance.hideAt = Mathf.Max(instance.hideAt, Time.unscaledTime + 1f);
+        }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void ResetStatics() { instance = null; settings = null; }
@@ -50,6 +56,8 @@ namespace CurtainCall.WaitingRoom
                 DontDestroyOnLoad(go);
                 instance = go.AddComponent<WaitingRoomTutorialPanel>();
             }
+            // 스케줄표를 보는 동안에는 새 안내를 띄우지 않는다. 튜토리얼은 자기 대기열 순서대로 닫은 뒤 다시 시도한다.
+            if (ScheduleScreenHold.IsHeld) return false;
             return instance.Open(heading, text, seconds);
         }
 
@@ -59,10 +67,10 @@ namespace CurtainCall.WaitingRoom
         {
             // 공용 UI 씬이 다시 올라오면 앞 폰트 보완본은 지워진다(공연 다녀옴). 새 보완본으로 다시 만든다.
             var owner = FontOwner();
-            if (root != null && owner != fontOwner) { Destroy(root); root = null; view = null; }
+            if (root != null && !ReferenceEquals(owner, fontOwner)) { Destroy(root); root = null; view = null; }
             if (view == null) Build();
             var s = Settings;
-            if (view == null || !view.ShowPanel("! " + heading, text, new Vector2(s.X, s.Y), s.Width)) return false;
+            if (view == null || !view.ShowPanel(heading, text, new Vector2(s.X, s.Y), s.Width)) return false;
             title = heading; body = text;
             hideAt = Time.unscaledTime + Mathf.Max(1f, seconds > 0f ? seconds : s.Seconds);
             return true;
@@ -77,6 +85,7 @@ namespace CurtainCall.WaitingRoom
             var canvas = root.GetComponent<Canvas>();
             // 나레이션 패널(350)보다 아래, 일반 HUD보다 위.
             if (canvas != null) canvas.sortingOrder = 340;
+            ScheduleScreenHold.Track(canvas);
             view = root.GetComponentInChildren<TooltipView>(true);
             if (view == null) { Debug.LogError("[Tutorial] Tooltips 프리팹에 TooltipView가 없습니다."); return; }
             view.ResetForRuntime();
@@ -89,6 +98,7 @@ namespace CurtainCall.WaitingRoom
                     && ColorUtility.TryParseHtmlString(WaitingRoomText.Get("guide.title-color", "#FFD5A0"), out var accent)) label.color = accent;
                 if (label.name == "60_TitleTMP" && Settings.TitleSize > 0f) label.fontSize = Settings.TitleSize;
                 else if (label.name == "70_DescriptionTMP" && Settings.BodySize > 0f) label.fontSize = Settings.BodySize;
+                if (label.name == "60_TitleTMP") { label.enableAutoSizing = true; label.fontSizeMin = 18f; label.fontSizeMax = label.fontSize; }
             }
         }
 
@@ -104,7 +114,12 @@ namespace CurtainCall.WaitingRoom
             if (view != null) view.Hide();
         }
 
-        void Update() { if (view != null && hideAt > 0f && Time.unscaledTime >= hideAt) Close(); }
+        void Update()
+        {
+            // 스케줄표를 보는 동안 가려진 안내는 남은 시간을 그대로 둔다.
+            if (ScheduleScreenHold.IsHeld && hideAt > 0f) { hideAt += Time.unscaledDeltaTime; return; }
+            if (view != null && hideAt > 0f && Time.unscaledTime >= hideAt) Close();
+        }
 
         void OnDestroy() { if (instance == this) instance = null; }
     }

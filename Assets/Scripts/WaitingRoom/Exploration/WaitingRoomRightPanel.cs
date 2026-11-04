@@ -11,6 +11,8 @@ namespace CurtainCall.WaitingRoom
     sealed class WaitingRoomRightPanel
     {
         const float Margin = 36f;
+        const float StackGap = 8f;
+        static readonly System.Collections.Generic.List<WaitingRoomRightPanel> shown = new();
 
         readonly Transform owner;
         readonly string name;
@@ -20,10 +22,12 @@ namespace CurtainCall.WaitingRoom
         bool configured;
         float minimumTop;
         public void SetMinimumTop(float value)
-        { if (Mathf.Approximately(minimumTop, value)) return; minimumTop = value; Visible = false; }
+        { if (Mathf.Approximately(minimumTop, value)) return; minimumTop = value; Layout(); }
         GameObject root;
         TooltipView view;
         UiRuntimeFontFallback fontOwner;
+        TMPro.TMP_Text titleLabel;
+        Color normalTitleColor;
 
         public bool GuideStyle { get; set; }
         public float Top { get; private set; }
@@ -43,12 +47,14 @@ namespace CurtainCall.WaitingRoom
             // Unity의 파괴된 오브젝트 == null은 이전 소유자와 새 null을 같게 취급한다.
             // 씬 해제 때 삭제된 임시 폰트를 재사용하지 않도록 관리 참조 자체를 비교한다.
             if (root != null && !ReferenceEquals(current, fontOwner)) { Object.Destroy(root); root = null; view = null; Visible = false; }
-            if (Visible && title == Title && body == Body) return true;
+            if (Visible && title == Title && body == Body) { Layout(); return true; }
             if (view == null) Build();
             if (view == null) return false;
             float canvasWidth = root.transform is RectTransform rect && rect.rect.width > 0f ? rect.rect.width : 1920f;
-            if (!view.ShowPanel(GuideStyle ? "! " + title : title, body, new Vector2(Mathf.Max(0f, canvasWidth - margin - width), Mathf.Max(Top, minimumTop)), width)) return false;
+            if (!view.ShowPanel(title, body, new Vector2(Mathf.Max(0f, canvasWidth - margin - width), Mathf.Max(Top, minimumTop)), width)) return false;
             Title = title; Body = body; Visible = true;
+            if (!shown.Contains(this)) shown.Add(this);
+            Layout();
             return true;
         }
 
@@ -57,6 +63,30 @@ namespace CurtainCall.WaitingRoom
             if (!Visible) return;
             Visible = false;
             if (view != null) view.Hide();
+            shown.Remove(this);
+            Layout();
+        }
+
+        // 신규로 쌓인 마지막 패널에만 느낌표. 내용/위치 갱신은 진입 애니메이션을 재시작하지 않는다.
+        static void Layout()
+        {
+            shown.RemoveAll(p => !p.Visible || p.root == null || p.view == null);
+            float start = float.PositiveInfinity;
+            foreach (var panel in shown) start = Mathf.Min(start, panel.Top);
+            float bottom = 0f;
+            for (int i = 0; i < shown.Count; i++)
+            {
+                var panel = shown[i];
+                float top = Mathf.Max(panel.minimumTop, i == 0 ? start : bottom + StackGap);
+                float canvasWidth = ((RectTransform)panel.root.transform).rect.width;
+                if (canvasWidth <= 0f) canvasWidth = 1920f;
+                panel.view.SetPosition(new Vector2(Mathf.Max(0f, canvasWidth - panel.margin - panel.width), top));
+                bottom = top + panel.view.PresentationSizeUi.y;
+                if (panel.titleLabel == null) continue;
+                panel.titleLabel.text = shown.Count > 1 && i == shown.Count - 1 ? "! " + panel.Title : panel.Title;
+                panel.titleLabel.color = i == 0 && ColorUtility.TryParseHtmlString(WaitingRoomText.Get("guide.title-color", "#FFD5A0"), out var accent)
+                    ? accent : panel.normalTitleColor;
+            }
         }
 
         // 기존 패널은 기본값을 유지하고, 요청한 패널만 문구 표의 수치를 읽는다(플레이 재시작 시 반영).
@@ -83,6 +113,7 @@ namespace CurtainCall.WaitingRoom
             root.name = name;
             var canvas = root.GetComponent<Canvas>();
             if (canvas != null) canvas.sortingOrder = 340;
+            ScheduleScreenHold.Track(canvas);
             view = root.GetComponentInChildren<TooltipView>(true);
             if (view == null) { Debug.LogError("[RightPanel] Tooltips 프리팹에 TooltipView가 없습니다."); return; }
             view.ResetForRuntime();
@@ -90,11 +121,12 @@ namespace CurtainCall.WaitingRoom
             if (fontOwner != null) fontOwner.ApplyTo(root.transform);
             foreach (var label in root.GetComponentsInChildren<TMPro.TMP_Text>(true))
             {
-                if (GuideStyle && label.name == "60_TitleTMP"
-                    && ColorUtility.TryParseHtmlString(WaitingRoomText.Get("guide.title-color", "#FFD5A0"), out var accent)) label.color = accent;
+                if (label.name == "60_TitleTMP") { titleLabel = label; normalTitleColor = label.color; }
                 if (label.name == "60_TitleTMP" && titleSize > 0f) label.fontSize = Mathf.Max(18f, titleSize);
                 else if (label.name == "70_DescriptionTMP" && bodySize > 0f) label.fontSize = Mathf.Max(16f, bodySize);
             }
+            if (titleLabel != null) { titleLabel.enableAutoSizing = true; titleLabel.fontSizeMin = 18f; titleLabel.fontSizeMax = titleLabel.fontSize; }
+            Canvas.ForceUpdateCanvases();
         }
 
         static UiRuntimeFontFallback FontOwner()

@@ -38,6 +38,18 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(title, Static(GuideType, "CurrentTitle"), title + " 안내가 떠야 한다");
         }
 
+        static IEnumerator CompleteCloseUp(string id, Component camera, int expectedCount, float seconds)
+        {
+            yield return WaitGuide(TutorialTitle(id), seconds);
+            float until = Time.realtimeSinceStartup + seconds;
+            while (!(bool)Priv(camera, "routeReady") && (bool)Get(camera, "IsActive") && Time.realtimeSinceStartup < until) yield return null;
+            Assert.IsTrue((bool)Priv(camera, "routeReady"), id + " 이동 경로: " + Get(camera, "RouteFailure"));
+            float moveIn = (float)Priv(camera, "moveIn"), moveOut = (float)Priv(camera, "moveOut");
+            Assert.That(moveOut, Is.EqualTo(moveIn / 3f).Within(.03f), id + " 복귀는 이동의 3배속");
+            while ((int)Get(camera, "CompletedRouteCount") < expectedCount && Time.realtimeSinceStartup < until) yield return null;
+            Assert.GreaterOrEqual((int)Get(camera, "CompletedRouteCount"), expectedCount, id + " 왕복 완료: " + Get(camera, "RouteFailure"));
+        }
+
         [UnityTest]
         public IEnumerator W5_Tutorial_GuideRestShowsInOrderAndRemembers()
         {
@@ -59,10 +71,23 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(true, Static("CurtainCall.Player.InputGate", "IsRequested"), "연계 중에는 조작을 막는다");
                 yield return WaitGuide(TutorialTitle("G11"), 8f);
                 Assert.IsNotNull(GameObject.Find("TutorialCloseUpCamera"), "G11은 클로즈업한다");
-                float until = Time.realtimeSinceStartup + 8f;
+                var tutorialCamera = Find("CurtainCall.WaitingRoom.WaitingRoomTutorialCamera");
+                float routeDeadline = Time.realtimeSinceStartup + 20f;
+                while (!(bool)Priv(tutorialCamera, "routeReady") && (bool)Get(tutorialCamera, "IsActive") && Time.realtimeSinceStartup < routeDeadline) yield return null;
+                Assert.IsTrue((bool)Priv(tutorialCamera, "routeReady"), "이동 경로 준비: " + Get(tutorialCamera, "RouteFailure"));
+                yield return new WaitForSecondsRealtime((float)Priv(tutorialCamera, "moveIn") + .1f);
+                System.IO.Directory.CreateDirectory(".harness/local/rehearsal/followup");
+                yield return new WaitForEndOfFrame();
+                ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/tutorial-camera.png"));
+                yield return null;
+
+                float until = Time.realtimeSinceStartup + 40f;
                 while ((bool)Static(TutorialType, "IsSequenceActive") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.AreEqual(false, Static(TutorialType, "IsSequenceActive"), "연계가 끝나면 조작을 돌려준다");
                 Assert.IsNull(GameObject.Find("TutorialCloseUpCamera"), "원래 시점으로 돌아온다");
+                Assert.IsTrue((bool)Get(tutorialCamera, "RouteCompleted"), "실제 통행 경로를 왕복해야 한다: " + Get(tutorialCamera, "RouteFailure"));
+                Assert.Greater(((Vector3[])Get(tutorialCamera, "RoutePoints")).Length, 2);
+
                 Assert.AreEqual(false, Static("CurtainCall.Player.InputGate", "IsRequested"));
 
                 // 상호작용 가능한 대상(상점)을 발견하면 상호작용 안내가 뜬다.
@@ -99,13 +124,22 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(4f);
                 Assert.AreEqual(true, Static(FirstDayFlowType, "FirstDayQuestVisible"), "임시 퀘스트는 튜토리얼 끄기와 독립적이다");
                 T(TutorialType).GetProperty("Enabled").SetValue(null, true);
-                // 2026-10-31 사용자: 오늘 밤 할 일(N01)은 오른쪽 [tutorial] 패널로 밤 내내 뜬다.
+                // 2026-11-04 사용자: N01(오늘 밤 할 일)은 [tutorial] 없는 왼쪽 설명 패널로 밤 연계 첫 안내로 뜬다.
+                // 오른쪽 [tutorial]은 첫날 진행 퀘스트 하나만 남는다.
+                yield return WaitGuide(TutorialTitle("N01"), 10f);
+                StringAssert.DoesNotContain("[tutorial]", (string)Static(GuideType, "CurrentTitle"), "설명 패널에는 [tutorial]이 없다");
+                yield return new WaitForSecondsRealtime(.6f);
+                ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/tutorial-n01.png"));
+                yield return null;
                 float until = Time.realtimeSinceStartup + 6f;
                 while (!(bool)Static(FirstDayFlowType, "FirstDayQuestVisible") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.AreEqual(n01, Static(FirstDayFlowType, "FirstDayQuestTitle"), "오늘 밤 할 일 패널");
                 // 밤 연계 N02→N04→N03(스케줄표 클로즈업). 잠자기(N05)는 일정 확정 뒤에만 숙소를 비춘다.
-                yield return WaitGuide(TutorialTitle("N03"), 25f);
-                until = Time.realtimeSinceStartup + 8f;
+                var tutorialCamera = Find("CurtainCall.WaitingRoom.WaitingRoomTutorialCamera");
+                yield return CompleteCloseUp("N02", tutorialCamera, 1, 25f);
+                yield return CompleteCloseUp("N04", tutorialCamera, 2, 25f);
+                yield return CompleteCloseUp("N03", tutorialCamera, 3, 25f);
+                until = Time.realtimeSinceStartup + 15f;
                 while ((bool)Static(TutorialType, "IsSequenceActive") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.AreEqual(false, Static(TutorialType, "IsSequenceActive"));
                 StringAssert.DoesNotContain("N05", (string)Static(TutorialType, "SeenIds"), "확정 전에는 잠자기 안내 없음");
@@ -127,7 +161,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 // 앞 안내(예: 스케줄표 앞에서 뜬 상호작용 안내)가 표시 시간 동안 남아 있을 수 있다.
                 yield return WaitGuide(TutorialTitle("N05"), 12f);
                 Assert.IsNotNull(GameObject.Find("TutorialCloseUpCamera"), "잠자기는 숙소를 클로즈업한다");
-                Assert.IsTrue((bool)Static(TutorialType, "TodoVisible"), "원본 밤 할 일 패널을 유지한다");
                 T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
                 yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
                 var tutorial = T(TutorialType).GetField("instance", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null) as Component;
@@ -158,7 +191,6 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 until = Time.realtimeSinceStartup + 10f;
                 while ((bool)Static(TutorialType, "IsSequenceActive") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.AreEqual(false, Static(TutorialType, "IsSequenceActive"), "잠자기 안내가 끝나야 눕는다");
-                Assert.AreEqual(true, Static(TutorialType, "TodoVisible"), "잠들기 전까지 오늘 할 일이 보인다");
                 string seenNight = (string)Static(TutorialType, "SeenIds");
                 foreach (var id in new[] { "N01", "N02", "N03", "N04", "N05" }) StringAssert.Contains(id, seenNight);
 
@@ -168,12 +200,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 while ((Field(State, "Phase").ToString() == "Dawn" || Field(State, "Phase").ToString() == "Night") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.AreEqual(2, Field(State, "Day"), "2일차로 넘어간다");
                 Assert.AreEqual(generation, Field(State, "Generation"), "같은 런");
-                Assert.AreEqual(false, Static(TutorialType, "TodoVisible"), "모두 잠들면 오늘 할 일이 사라진다");
 
                 // 2일차 아침 동안 밤·가이드 연계 안내가 다시 뜨지 않는다.
                 var chain = new System.Collections.Generic.HashSet<string>();
                 // G03 상호작용은 연계가 아니라 대상을 처음 발견할 때 뜨므로 다음 날 처음 뜰 수 있다(2026-10-31).
-                foreach (var id in new[] { "G01", "G11", "N02", "N03", "N04", "N05" }) chain.Add(TutorialTitle(id));
+                foreach (var id in new[] { "G01", "G11", "N01", "N02", "N03", "N04", "N05" }) chain.Add(TutorialTitle(id));
                 until = Time.realtimeSinceStartup + 12f;
                 while (Time.realtimeSinceStartup < until)
                 {

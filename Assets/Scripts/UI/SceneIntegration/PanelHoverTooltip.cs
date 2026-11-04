@@ -20,6 +20,8 @@ namespace CurtainCall.UI.SceneIntegration
         string shown;
         GameObject target;
         float since;
+        // 스케줄표 카드 설명 툴팁은 스케줄표를 보는 동안에도 보여야 한다.
+        void OnEnable() { if (tooltip != null) CurtainCall.WaitingRoom.ScheduleScreenHold.Keep(tooltip.GetComponentInParent<Canvas>(true)); }
         void LateUpdate()
         {
             if(tooltip==null) return;

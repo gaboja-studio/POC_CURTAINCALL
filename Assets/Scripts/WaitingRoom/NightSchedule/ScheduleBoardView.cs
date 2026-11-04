@@ -78,13 +78,34 @@ namespace CurtainCall.WaitingRoom
         {
             if (open == value) return;
             open = value;
+            ScheduleScreenHold.Set(value);
             if (blocker != null) blocker.SetOpen(value);
             if (closeUp != null)
             {
+                if (value) FrameCloseUp();
                 closeUp.Priority = closeUpPriority;
                 closeUp.gameObject.SetActive(value);
             }
             HideLocalModel(value);
+        }
+
+        // 월드 UI가 실제 판을 꽉 채워도 잘리지 않도록 현재 화면 비율과 렌즈에 맞춰 카메라 거리를 정한다.
+        void FrameCloseUp()
+        {
+            var renderer = VisualRoot.GetComponent<Renderer>();
+            var main = Camera.main;
+            if (renderer == null || main == null) return;
+            var local = renderer.localBounds;
+            float width = local.size.x * renderer.transform.TransformVector(Vector3.right).magnitude;
+            float height = local.size.y * renderer.transform.TransformVector(Vector3.up).magnitude;
+            float tan = Mathf.Tan(Mathf.Max(1f, closeUp.Lens.FieldOfView) * Mathf.Deg2Rad * .5f);
+            float distance = Mathf.Max(height * .5f / tan, width * .5f / (tan * Mathf.Max(.1f, main.aspect))) * 1.04f;
+            Vector3 center = renderer.bounds.center;
+            Vector3 away = closeUp.transform.position - center;
+            if (away.sqrMagnitude < .01f) away = -VisualRoot.forward;
+            away.Normalize();
+            closeUp.transform.position = center + away * distance;
+            closeUp.transform.rotation = Quaternion.LookRotation(center - closeUp.transform.position, Vector3.up);
         }
 
         // 클로즈업 카메라와 판 사이에 내 캐릭터가 서 있으면 판을 가리므로, 창이 열린 동안 내 화면에서만 내 캐릭터를 숨긴다.

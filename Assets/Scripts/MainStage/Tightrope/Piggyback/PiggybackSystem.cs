@@ -64,7 +64,9 @@ namespace CurtainCall.Tightrope
         GUIStyle handholdStyle;
         bool gameplayActive;
 
-        bool IsGameplayActive => isActiveAndEnabled && TightropeCourse.Current != null && TightropeCourse.Current.IsGameplayActive;
+        /// <summary>목마를 쓰지 않는 외줄(대기실 리허설, 사용자 2026-11-04). 켜져 있으면 목마 연결·안내가 동작하지 않는다.</summary>
+        public static bool Suppressed { get; set; }
+        bool IsGameplayActive => !Suppressed && isActiveAndEnabled && TightropeCourse.Current != null && TightropeCourse.Current.IsGameplayActive;
 
         /// <summary>손잡기 착지 표시(내 화면만). 새 착지·재시작·사망에는 이전 연출을 정리한다.</summary>
         public void ShowHandholdLanding()

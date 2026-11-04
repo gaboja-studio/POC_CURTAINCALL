@@ -4,7 +4,7 @@ namespace CurtainCall.WaitingRoom
 {
     /// <summary>
     /// 기물 파괴 알림(2026-10-31 사용자: 내구도가 다 닳아 기물이 파괴되면 화면 오른쪽 패널로 알린다).
-    /// 내 탐색 도구 사용 결과(<see cref="ExplorationState.LastUsedUp"/>)를 보고 매번 띄운다. 오른쪽 위에는 오늘 할 일([tutorial])이 있어 그 아래에 띄운다.
+    /// 내 탐색 도구 사용 결과(<see cref="ExplorationState.LastUsedUp"/>)를 보고 매번 띄운다. 오른쪽 위에는 첫날 진행 퀘스트([tutorial])가 있을 수 있어 그 아래에 띄운다.
     /// 문구: 대기실 문구 파일 `notice.item-broken-title`·`notice.item-broken`.
     /// </summary>
     public sealed class WaitingRoomItemBrokenNotice : MonoBehaviour
@@ -62,6 +62,8 @@ namespace CurtainCall.WaitingRoom
                 watched = state;
                 if (watched != null) watched.RequestAnswered += OnAnswered;
             }
+            // 스케줄표를 보는 동안 가려진 알림은 남은 시간을 그대로 둔다.
+            if (ScheduleScreenHold.IsHeld && hideAt > 0f) { hideAt += Time.unscaledDeltaTime; return; }
             if (hideAt > 0f && Time.unscaledTime >= hideAt) { hideAt = 0f; panel.Hide(); }
         }
 

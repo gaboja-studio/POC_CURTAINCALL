@@ -27,11 +27,11 @@ namespace CurtainCall.WaitingRoom
         /// <summary>추락 뒤 출발대로 되돌리기까지(초).</summary>
         const float RecoverSeconds = 1.5f;
         const string RingDeckPath = "LegacyRing/PracticeRing/DeckCollider";
-        /// <summary>연습실 링에 원래 있던 연습 소품(탑·사다리·트램펄린·대포·그물·옛 줄). 리허설 동안 숨긴다(사용자 요청 2026-11-02).</summary>
-        static readonly string[] RingPropPaths = { "LegacyRing/PracticeLanes" };
+        /// <summary>연습실 링에 원래 있던 연습 소품(탑·사다리·트램펄린·대포·그물·옛 줄)과 사다리 뒤 막이. 리허설 동안 숨긴다(사용자 요청 2026-11-02·04).</summary>
+        static readonly string[] RingPropPaths = { "LegacyRing/PracticeLanes", "LegacyRing/CollisionRepairs" };
         static readonly Vector3 FallbackRingCenter = new(-20f, .6f, 128.5f);
 
-        enum Operation : byte { Sync, Vote }
+        enum Operation : byte { Sync, Vote, Placed, SkipVote, PracticePropose, PracticeAnswer }
 
         static WaitingRoomRehearsal instance;
         // 앱을 켜 둔 동안 기억하는 진행(호스트 이어하기). 세대가 바뀌면 리허설이 없으므로 그대로 둔다.
@@ -107,6 +107,7 @@ namespace CurtainCall.WaitingRoom
         // ── 호스트 ──
         readonly Dictionary<ulong, double> fallenAt = new();
         readonly HashSet<ulong> arrived = new(), votes = new();
+        readonly HashSet<ulong> placed = new();
         int participantCount;
         int voteRequestRound;
 
@@ -149,7 +150,7 @@ namespace CurtainCall.WaitingRoom
         RehearsalStage Stage => stage >= 0 && stage < RehearsalStage.All.Length ? RehearsalStage.All[stage] : null;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() { instance = null; savedStage = 0; }
+        static void ResetStatics() { instance = null; savedStage = 0; PiggybackSystem.Suppressed = false; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Boot()
@@ -163,12 +164,14 @@ namespace CurtainCall.WaitingRoom
         void Awake()
         {
             AwakeLocal();
+            AwakeVotes();
         }
 
         void OnDestroy()
         {
             Unregister();
             DestroyLocal();
+            PiggybackSystem.Suppressed = false;
             if (instance == this) instance = null;
         }
 
@@ -183,6 +186,8 @@ namespace CurtainCall.WaitingRoom
             // 재연습은 대기실 쉬는 시간·밤에만. 공연으로 넘어가면 호스트가 끝낸다.
             if (practice && HasAuthority && (run == null || !PracticePhase(run.State.Phase))) { practice = false; version++; Publish(); }
             bool wanted = run != null && (run.State.Phase == CampaignPhase.Rehearsal || practice) && inWaitingRoom;
+            HostTickVotes();
+            TickVoteUi();
             if (!wanted)
             {
                 if (active) Deactivate();
@@ -192,6 +197,8 @@ namespace CurtainCall.WaitingRoom
                 return;
             }
             if (!active) Activate();
+            // 리허설에서는 목마를 쓰지 않는다(사용자 2026-11-04).
+            PiggybackSystem.Suppressed = true;
             EnsureLockdownProps();
             if (HasAuthority) HostTick();
             else if (stage < 0 && Clock >= nextSync) { Send(Operation.Sync); nextSync = Clock + 2d; }
@@ -205,7 +212,7 @@ namespace CurtainCall.WaitingRoom
         {
             active = true;
             foreach (var monitor in monitors) if (monitor != null) monitor.ResetPlayback();
-            fallenAt.Clear(); arrived.Clear(); votes.Clear(); participantCount = 0;
+            fallenAt.Clear(); arrived.Clear(); votes.Clear(); placed.Clear(); participantCount = 0;
             if (HasAuthority)
             {
                 // 호스트: 기억해 둔 소구간부터. 완료했으면 바로 집결 안내. 재연습은 고른 소구간부터.
@@ -223,6 +230,7 @@ namespace CurtainCall.WaitingRoom
         void Deactivate()
         {
             active = false;
+            PiggybackSystem.Suppressed = false;
             foreach (var monitor in monitors) if (monitor != null) monitor.TurnOff();
             DestroyCourse();
             HideRingProps(false);
@@ -233,10 +241,15 @@ namespace CurtainCall.WaitingRoom
 
         bool FindRing()
         {
-            if (ringFound) return true;
+            // 대기실 씬을 다시 불러오면 앞 씬의 연습실은 파괴된다. 그대로 쓰면 소품을 숨기지 못하므로 다시 찾는다(2026-11-04).
+            if (ringFound && ringRoom != null) return true;
+            ringFound = false;
             var room = GameObject.Find("S09_PracticeRoom");
             if (room == null) return false;
             ringRoom = room.transform;
+            // 이수 뒤 연습실 외줄 상호작용으로 리허설 다시 하기 투표를 연다.
+            var practiceRope = room.transform.Find("LegacyRing/PracticeLanes/Rope");
+            if (practiceRope != null && practiceRope.GetComponent<RehearsalPracticeStation>() == null) practiceRope.gameObject.AddComponent<RehearsalPracticeStation>();
             var deck = room.transform.Find(RingDeckPath);
             var collider = deck != null ? deck.GetComponent<Collider>() : null;
             if (collider != null)
@@ -360,9 +373,11 @@ namespace CurtainCall.WaitingRoom
             {
                 if (player == null || !player.IsSpawned || player.State == PlayerState.Retired) continue;
                 participants.Add(player.OwnerClientId);
-                if (IsFinished(player)) changed |= arrived.Add(player.OwnerClientId);
+                // 소유자 배치와 호스트 위치 수신을 확인하기 전에는 이전 소구간 좌표를 판정하지 않는다.
+                if (placed.Contains(player.OwnerClientId) && IsFinished(player)) changed |= arrived.Add(player.OwnerClientId);
             }
             changed |= arrived.RemoveWhere(id => !participants.Contains(id)) > 0;
+            changed |= placed.RemoveWhere(id => !participants.Contains(id)) > 0;
             changed |= votes.RemoveWhere(id => !participants.Contains(id)) > 0;
             if (arrived.Count == 0 && votes.Count > 0) { votes.Clear(); changed = true; }
             if (participantCount != participants.Count) { participantCount = participants.Count; changed = true; }
@@ -374,7 +389,7 @@ namespace CurtainCall.WaitingRoom
 
         void AdvanceStage()
         {
-            arrived.Clear(); votes.Clear(); participantCount = 0;
+            arrived.Clear(); votes.Clear(); placed.Clear(); participantCount = 0;
             stage++;
             if (practice && stage >= RehearsalStage.All.Length)
             {
@@ -452,10 +467,13 @@ namespace CurtainCall.WaitingRoom
             writer.WriteValueSafe(practiceSealed);
             writer.WriteValueSafe(monitorStarted);
             writer.WriteValueSafe(participantCount);
+            writer.WriteValueSafe(placed.Count);
+            foreach (ulong id in placed) writer.WriteValueSafe(id);
             writer.WriteValueSafe(arrived.Count);
             foreach (ulong id in arrived) writer.WriteValueSafe(id);
             writer.WriteValueSafe(votes.Count);
             foreach (ulong id in votes) writer.WriteValueSafe(id);
+            WriteVotes(writer);
             if (only.HasValue) messaging.SendNamedMessage(StateMessage, only.Value, writer, NetworkDelivery.ReliableSequenced);
             else messaging.SendNamedMessageToAll(StateMessage, writer, NetworkDelivery.ReliableSequenced);
         }
@@ -479,6 +497,14 @@ namespace CurtainCall.WaitingRoom
                 reader.ReadValueSafe(out bool value);
                 if (voteRequestRound == round) SetVote(sender, value);
             }
+            else if ((Operation)op == Operation.Placed)
+            {
+                reader.ReadValueSafe(out int placementRound);
+                reader.ReadValueSafe(out Vector3 position);
+                AcceptPlacement(sender, placementRound, position);
+            }
+            else if ((Operation)op is Operation.SkipVote or Operation.PracticePropose or Operation.PracticeAnswer)
+                HandleVoteRequest(sender, (Operation)op, reader);
         }
 
         void HandleState(ulong sender, FastBufferReader reader)
@@ -494,11 +520,15 @@ namespace CurtainCall.WaitingRoom
             reader.ReadValueSafe(out practiceSealed);
             reader.ReadValueSafe(out monitorStarted);
             reader.ReadValueSafe(out participantCount);
+            placed.Clear();
+            reader.ReadValueSafe(out int placements);
+            for (int i = 0; i < placements; i++) { reader.ReadValueSafe(out ulong id); placed.Add(id); }
             arrived.Clear(); votes.Clear();
             reader.ReadValueSafe(out int arrivals);
             for (int i = 0; i < arrivals; i++) { reader.ReadValueSafe(out ulong id); arrived.Add(id); }
             reader.ReadValueSafe(out int count);
             for (int i = 0; i < count; i++) { reader.ReadValueSafe(out ulong id); votes.Add(id); }
+            ReadVotes(reader);
         }
     }
 }

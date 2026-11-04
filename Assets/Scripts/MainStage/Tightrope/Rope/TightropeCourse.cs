@@ -609,7 +609,8 @@ namespace CurtainCall.Tightrope
                 if (lane < 0 || lane >= l.LaneCount || l.GetLaneEnd(lane) >= l.FinishDistance || c.FinishPlatformLength <= 0f) continue;
                 var platform = CreateBox("FinishPlatform",
                     new Vector3(l.GetLaneSide(lane), -c.PlatformThickness * .5f, l.GetLaneEnd(lane) + c.FinishPlatformLength * .5f),
-                    new Vector3(c.SideMargin * 2f, c.PlatformThickness, c.FinishPlatformLength), platformColor, true);
+                    // 중간 발판이 옆 줄을 덮지 않도록 폭은 줄 간격을 넘지 않는다(리허설 발판 폭 확대, 2026-11-04).
+                    new Vector3(Mathf.Min(c.SideMargin * 2f, l.LaneSpacing), c.PlatformThickness, c.FinishPlatformLength), platformColor, true);
                 platform.name = $"IntermediatePlatform_Lane{lane}";
                 TightropeOutline.AttachToHierarchy(platform);
             }
