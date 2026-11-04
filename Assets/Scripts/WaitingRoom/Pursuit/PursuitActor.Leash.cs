@@ -1,6 +1,5 @@
 using CurtainCall.Settings;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace CurtainCall.WaitingRoom.Pursuit
 {
@@ -41,27 +40,21 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void TickPatrolBoundary()
         {
             if (returningToPatrol) {
-                if (rule.PatrolLeashDistance <= 0 || Reached(patrolReturnPoint)) {
-                    returningToPatrol = false; repathAt = 0;
+                // 복귀 지점에 닿을 수 없거나 막혀도 순찰을 재개한다. 순찰은 다음 도달 가능한 순회지를 찾는다.
+                if (rule.PatrolLeashDistance <= 0 || Reached(patrolReturnPoint) || (SameGoal(patrolReturnPoint) && navFailed)) {
+                    returningToPatrol = false; repathAt = 0; hasNavGoal = false;
                 } else return;
             }
-            if (WithinPatrolLeash(transform.position, rule)
-                && (target == null || WithinPatrolLeash(target.position, rule))) return;
+            // 순찰 자체가 벽을 돌아가는 우회로로 제한을 넘는 것은 이탈이 아니다. 추격·조사·수색만 제한한다.
+            bool selfOut = Behaviour != PursuitBehaviour.Patrol && !WithinPatrolLeash(transform.position, rule);
+            if (!selfOut && (target == null || WithinPatrolLeash(target.position, rule))) return;
             returningToPatrol = true;
             target = null; visible = sensingLook = searching = investigating = false;
             unseen = 0; noiseUntil = searchUntil = prepareUntil = 0;
             Stop(); repathAt = 0;
-            // Return to an authored waypoint, not a chord that could cross a wall.
-            patrolReturnPoint = initialPosition;
-            float distance = float.PositiveInfinity;
-            var points = PatrolRoute;
-            if (points != null) for (int i = 0; i < points.Length; i++) {
-                if (points[i] == null) continue;
-                float d = (points[i].position - transform.position).sqrMagnitude;
-                if (d >= distance) continue;
-                distance = d; patrolReturnPoint = points[i].position; waypoint = i;
-            }
-            if (NavMesh.SamplePosition(patrolReturnPoint, out var hit, 2f, agent.areaMask)) patrolReturnPoint = hit.position;
+            // Return to the authored waypoint with the shortest NavMesh path, not a chord that could cross a wall.
+            patrolReturnPoint = NearestPatrolByPath(PatrolRoute, out waypoint);
+            hasNavGoal = false; patrolSkips = 0;
         }
     }
 }
