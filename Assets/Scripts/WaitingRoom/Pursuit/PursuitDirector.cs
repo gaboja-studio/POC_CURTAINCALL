@@ -107,6 +107,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             if (GetComponent<PursuitFeedback>() == null) gameObject.AddComponent<PursuitFeedback>();
             if (GetComponent<PursuitLighting>() == null) gameObject.AddComponent<PursuitLighting>();
+            if (Application.isPlaying && GetComponent<PursuitEyeFeedback>() == null) gameObject.AddComponent<PursuitEyeFeedback>();
             IsInitialized = pendingSpawns.Count == 0;
         }
         void InitializeNext()

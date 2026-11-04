@@ -198,7 +198,8 @@ namespace CurtainCall.SpaceLink
                 if (request.Reload || request.Space != Current || !IsLoaded(request.SceneName))
                 {
                     uint curtainVersion = 0;
-                    yield return CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CoverFor(version => curtainVersion = version);
+                    yield return CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CoverFor(version => curtainVersion = version,
+                        request.Space == SpaceId.EscapeRoute);
                     try
                     {
                         if (IsCurrent(request) && CurtainCall.UI.SceneIntegration.SceneCurtainTransition.CanTransitionFor(curtainVersion))
@@ -240,6 +241,10 @@ namespace CurtainCall.SpaceLink
                     yield return Load(sceneName, LoadSceneMode.Additive);
             }
 
+            // NGO can report a slow client before its local scene has finished loading.
+            while (target == SpaceId.EscapeRoute && IsCurrent(request)
+                && CurtainCall.EscapeRoute.EscapeDevelopmentSession.AwaitingEntrance)
+                yield return null;
             if (stepFailed)
             {
                 AddLog($"실패: {SpaceRoute.Describe(from)} → {SpaceRoute.Describe(target)} ({sceneName})");

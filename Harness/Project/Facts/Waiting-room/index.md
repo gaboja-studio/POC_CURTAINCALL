@@ -1,5 +1,7 @@
 # 대기실 사실
 
+- [pursuit-eyes.md](pursuit-eyes.md) — 추격자 머리 위 로컬 눈의 상태·범위·색/발광·리소스·검증 범위를 확인할 때
+
 - [unified-scene.md](unified-scene.md) — 리허설·추격 통합 WaitingRoom, 씬 선택과 배치 편집 대상을 확인할 때
 
 - [pursuit-runtime.md](pursuit-runtime.md) — 추격 씬·단계별 설정·파생 리그·문 열림 후 NavMesh·현재 검증 범위를 확인할 때

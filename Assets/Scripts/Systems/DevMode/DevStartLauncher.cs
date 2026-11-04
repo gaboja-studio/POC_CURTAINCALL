@@ -159,7 +159,8 @@ namespace CurtainCall.Dev
                 if (!director.DebugReloadCurrentStep()) { Status = "개발 시작 씬을 불러오지 못했습니다."; yield break; }
                 Status = $"{point.Day}일차 · {scene} 로딩 중…";
                 until = Time.realtimeSinceStartup + 60;
-                while (director.IsTransitioning && Time.realtimeSinceStartup < until) yield return null;
+                while (director.IsTransitioning && session.IsHost && campaign.State.Generation == generation
+                    && (point.TargetPhase == CampaignPhase.Escape || Time.realtimeSinceStartup < until)) yield return null;
                 var loaded = SceneManager.GetSceneByName(scene);
                 if (director.IsTransitioning || !session.IsHost || !loaded.isLoaded || campaign.State.Day != point.Day || campaign.State.Phase != point.TargetPhase)
                 { Status = "씬 전환을 완료하지 못했습니다. Console과 접속 상태를 확인하세요."; yield break; }

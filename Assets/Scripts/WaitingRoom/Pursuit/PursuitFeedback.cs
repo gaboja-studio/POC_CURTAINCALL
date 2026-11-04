@@ -33,7 +33,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var rect = (RectTransform)go.transform; rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
             rect.offsetMin = rect.offsetMax = Vector2.zero;
         }
-        GameObject Observer()
+        internal static GameObject LocalObserver(ref PlayerInputReader offlineReader)
         {
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening) {
                 var p = NetworkPlayer.Local;
@@ -47,7 +47,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void LateUpdate()
         {
             var rules = GameSettings.WaitingRoom.Pursuit;
-            var observer = Observer();
+            var observer = LocalObserver(ref offlineReader);
             bool available = director != null && director.Elapsed >= 0 && observer != null
                 && !PursuitDirector.IsCaptured(observer) && !SceneCurtainTransition.IsActive;
             float nearest = float.PositiveInfinity;

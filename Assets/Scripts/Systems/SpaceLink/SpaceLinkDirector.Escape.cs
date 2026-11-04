@@ -19,7 +19,7 @@ namespace CurtainCall.SpaceLink
             stepFailed = false;
             // Give the replicated rear seal a frame before the existing loading curtain covers it.
             yield return new WaitForSecondsRealtime(.25f);
-            yield return SceneCurtainTransition.CoverFor(version => curtainVersion = version);
+            yield return SceneCurtainTransition.CoverFor(version => curtainVersion = version, true);
             try
             {
                 if (!IsCurrent(request) || !SceneCurtainTransition.CanTransitionFor(curtainVersion))
@@ -27,10 +27,8 @@ namespace CurtainCall.SpaceLink
                     if (IsCurrent(request)) transfer.Failed("로딩 화면 준비 실패");
                     yield break;
                 }
-                float deadline = Time.unscaledTime + 20;
-                while (IsCurrent(request) && !transfer.AllCaptured && Time.unscaledTime < deadline) yield return null;
-                if (!IsCurrent(request)) yield break;
-                if (!transfer.AllCaptured) { transfer.Failed("참가자 위치 보관 시간 초과"); yield break; }
+                while (IsCurrent(request) && transfer.Coordinating && !transfer.AllCaptured) yield return null;
+                if (!IsCurrent(request) || !transfer.Coordinating) yield break;
 
                 using (CommonUiSceneLoader.DeferSceneChanges())
                 {
@@ -45,10 +43,8 @@ namespace CurtainCall.SpaceLink
                     }
                     var destination = SceneManager.GetSceneByName(request.SceneName);
                     SceneManager.SetActiveScene(destination);
-                    deadline = Time.unscaledTime + 60;
-                    while (IsCurrent(request) && !transfer.AllPlaced && Time.unscaledTime < deadline) yield return null;
-                    if (!IsCurrent(request)) yield break;
-                    if (!transfer.AllPlaced) { transfer.Failed("탈출로 입구 배치 준비 시간 초과"); yield break; }
+                    while (IsCurrent(request) && transfer.Coordinating && !transfer.AllPlaced) yield return null;
+                    if (!IsCurrent(request) || !transfer.Coordinating) yield break;
                     foreach (var old in LoadedSpaceScenes(GameSettings.Base.SpaceTransition))
                     {
                         if (old == destination) continue;
