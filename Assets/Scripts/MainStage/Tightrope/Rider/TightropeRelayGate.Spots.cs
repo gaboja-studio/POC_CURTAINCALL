@@ -21,7 +21,6 @@ namespace CurtainCall.Tightrope
     public sealed partial class TightropeRelayGate
     {
         /// <summary>지정 자리 봉은 시간 제한 없이 잡고 있는 동안 계속 잇는다(리허설, 사용자 결정 2026-11-02).</summary>
-        const float UnlimitedHoldSeconds = 1_000_000f;
         List<RelaySpot> spotList;
 
         bool UsesSpots => spotList != null;

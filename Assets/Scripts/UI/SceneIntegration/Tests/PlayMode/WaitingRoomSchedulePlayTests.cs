@@ -3,6 +3,8 @@ using System.Collections;
 using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.TestTools;
 
 namespace CurtainCall.UI.SceneIntegration.Tests
@@ -18,7 +20,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(board, "Interact");
             yield return new WaitForSecondsRealtime(.3f);
             Assert.AreEqual(false, Private(board, "showLegacyUi"));
-            Assert.AreEqual(true, Get(Get(Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI"), "View"), "IsVisible"));
+            var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
+            Assert.AreEqual(true, Get(Get(adapter, "View"), "IsVisible"));
+            var world = ((Component)Get(adapter, "View")).GetComponentInParent<Canvas>();
+            Assert.AreEqual(RenderMode.WorldSpace, world.renderMode, "별도 화면 팝업이 아니라 판 위 캔버스여야 한다");
+            Assert.IsTrue(world.transform.IsChildOf(board.transform));
+            Assert.IsTrue(world.GetComponent<UnityEngine.UI.GraphicRaycaster>().enabled);
+
         }
         IEnumerator ReadyToMorning(int day, object ui)
         {
@@ -33,6 +41,171 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(day == 4 && Application.version == "0.1.0" ? "DemoEnding" : "RestTime", Field(State, "Phase").ToString());
             yield return new WaitForSecondsRealtime(2.2f);
         }
+        static IEnumerator ClickScheduleButtonWithMouse(Mouse mouse, UnityEngine.UI.Button button)
+        {
+            var rect = (RectTransform)button.transform;
+            Assert.IsTrue(button.IsInteractable(), button.name + " 실제 포인터 입력 가능 상태");
+            var events = UnityEngine.EventSystems.EventSystem.current;
+            var camera = rect.GetComponentInParent<Canvas>().worldCamera;
+            Vector2 position = RectTransformUtility.WorldToScreenPoint(camera, rect.TransformPoint(rect.rect.center));
+            var hits = new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
+            events.RaycastAll(new UnityEngine.EventSystems.PointerEventData(events) { position = position }, hits);
+            if (hits.Count == 0)
+            {
+                System.IO.Directory.CreateDirectory(".harness/local/rehearsal/followup");
+                ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/world-schedule-pointer-failure.png"));
+                Debug.Log($"Schedule pointer miss: {button.name}, screen={position}, size={Screen.width}x{Screen.height}, world={rect.TransformPoint(rect.rect.center)}, canvas={rect.GetComponentInParent<Canvas>().transform.localScale}");
+            }
+            Assert.IsNotEmpty(hits, button.name + " 실제 포인터 클릭 대상");
+            Assert.AreEqual(button.gameObject,
+                UnityEngine.EventSystems.ExecuteEvents.GetEventHandler<UnityEngine.EventSystems.IPointerClickHandler>(hits[0].gameObject));
+            InputSystem.QueueStateEvent(mouse, new MouseState { position = position }); yield return null; yield return null;
+            position = RectTransformUtility.WorldToScreenPoint(camera, rect.TransformPoint(rect.rect.center));
+            InputSystem.QueueStateEvent(mouse, new MouseState { position = position, buttons = 1 }); yield return null; yield return null;
+            position = RectTransformUtility.WorldToScreenPoint(camera, rect.TransformPoint(rect.rect.center));
+            InputSystem.QueueStateEvent(mouse, new MouseState { position = position }); yield return new WaitForSecondsRealtime(.2f);
+        }
+
+        [UnityTest]
+        public IEnumerator W7_FirstDayWorldScheduleConfirmsAndWarnsAtEntrance()
+        {
+            System.IO.Directory.CreateDirectory(".harness/local/rehearsal/quest-flow");
+            yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
+            yield return WaitQuestReady("second-pick");
+            var campaign = Static("CurtainCall.Campaign.CampaignRun", "Instance");
+            var gather = Find("CurtainCall.WaitingRoom.StageEntranceGather");
+            var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
+            Call(mover, "Relocate", gather.GetComponent<BoxCollider>().bounds.center - Vector3.up * .5f, Quaternion.identity);
+            yield return new WaitForSecondsRealtime(.4f);
+            Assert.AreEqual("RestTime", Field(State, "Phase").ToString());
+            StringAssert.Contains("공연 일정 미확정", (string)Static("CurtainCall.WaitingRoom.WaitingRoomGuidePanel", "CurrentTitle"));
+            Assert.IsFalse((bool)Call(campaign, "NotifyAllAtStageEntrance"));
+            var guide = T("CurtainCall.WaitingRoom.WaitingRoomGuidePanel");
+            guide.GetMethod("Hide").Invoke(null, null);
+            // 2026-11-04 사용자: 스케줄표를 보는 동안 다른 화면 UI는 가리고, 닫은 뒤 출력된 순서대로 다시 띄운다.
+            guide.GetMethod("Show").Invoke(null, new object[] { "순서 확인 A", "스케줄표를 열기 전에 뜬 안내", 3f });
+            yield return null;
+            var hud = UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).FirstOrDefault(c => c.name == "BackstageHudCanvas" && c.enabled);
+            Assert.IsNotNull(hud, "열기 전에는 탐색 HUD가 보인다");
+            yield return OpenSchedule();
+            yield return new WaitForSecondsRealtime(1f);
+            Assert.IsFalse(hud.enabled, "스케줄표를 보는 동안 탐색 HUD를 가린다");
+            Assert.IsFalse(((Canvas)UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).First(c => c.name == "GuidePanelCanvas")).enabled, "보던 중앙 안내도 가린다");
+            var ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
+            var schedule = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
+            var book = Get(schedule, "Book");
+            Assert.IsTrue((bool)Call(campaign, "DiscoverTrick", "HumanCannon"));
+            // 획득 안내는 발견 처리 뒤 프레임에 출력된다. 그 뒤에 B를 출력해 순서를 고정한다.
+            float discoverUntil = Time.realtimeSinceStartup + 3f;
+            while ((int)guide.GetProperty("PendingCount").GetValue(null) < 1 && Time.realtimeSinceStartup < discoverUntil) yield return null;
+            Assert.IsFalse((bool)guide.GetProperty("IsVisible").GetValue(null) && ((Canvas)UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).First(c => c.name == "GuidePanelCanvas")).enabled, "보는 동안 획득 안내가 판을 가리지 않는다");
+            guide.GetMethod("Show").Invoke(null, new object[] { "순서 확인 B", "스케줄표를 보는 동안 온 안내", 3f });
+            yield return null;
+            Assert.AreEqual(2, guide.GetProperty("PendingCount").GetValue(null), "보는 동안 온 안내(획득·B)는 기다린다");
+            var edits = (UnityEngine.UI.Button[])Priv(ui, "editButtons");
+            var pointer = InputSystem.AddDevice<Mouse>();
+            var inputModule = UnityEngine.EventSystems.EventSystem.current.GetComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+            Assert.IsNotNull(inputModule.point?.action, "실제 마우스 위치 액션이 연결되어야 한다");
+            Assert.IsNotNull(inputModule.leftClick?.action, "실제 마우스 클릭 액션이 연결되어야 한다");
+            int actualClicks = 0;
+            edits[1].onClick.AddListener(() => actualClicks++);
+            yield return ClickScheduleButtonWithMouse(pointer, edits[1]);
+            Assert.AreEqual(1, actualClicks, "실제 포인터 클릭은 카드에 한 번 전달되어야 한다");
+            Assert.AreEqual("HumanCannon", Call(book, "Get", 1, 1));
+            yield return ClickScheduleButtonWithMouse(pointer, edits[1]);
+            Assert.AreEqual(2, actualClicks);
+            Assert.AreEqual("Tightrope", Call(book, "Get", 1, 1));
+            System.IO.Directory.CreateDirectory(".harness/local/rehearsal/followup");
+            yield return new WaitForEndOfFrame();
+            ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/world-schedule-before-confirm.png"));
+            yield return null;
+            yield return ClickScheduleButtonWithMouse(pointer, (UnityEngine.UI.Button)Priv(ui, "confirmButton"));
+            InputSystem.RemoveDevice(pointer);
+            Assert.IsTrue((bool)Get(book, "FirstDayConfirmed"));
+            Assert.AreEqual("RestTime", Field(State, "Phase").ToString());
+            yield return null;
+            Assert.IsFalse(((UnityEngine.UI.Button)Priv(ui, "confirmButton")).gameObject.activeSelf, "확정 뒤 조작 버튼도 즉시 사라져야 한다");
+            yield return new WaitForSecondsRealtime(.5f);
+            yield return new WaitForEndOfFrame();
+            ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/world-schedule.png"));
+            yield return null; yield return null;
+            var board = Find("CurtainCall.WaitingRoom.ScheduleBoardView");
+            Call(board, "SetOpen", false);
+            yield return new WaitForSecondsRealtime(.3f);
+            Assert.IsTrue(hud.enabled, "닫으면 탐색 HUD가 돌아온다");
+            Assert.AreEqual("순서 확인 A", guide.GetProperty("CurrentTitle").GetValue(null), "열기 전 안내가 남은 시간만큼 먼저 다시 뜬다");
+            yield return new WaitForEndOfFrame();
+            ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/world-schedule-after-close.png"));
+            yield return null;
+            guide.GetMethod("Hide").Invoke(null, null); yield return null; yield return null;
+            StringAssert.Contains("획득", (string)guide.GetProperty("CurrentTitle").GetValue(null), "다음은 보는 동안 먼저 온 획득 안내");
+            guide.GetMethod("Hide").Invoke(null, null); yield return null; yield return null;
+            Assert.AreEqual("순서 확인 B", guide.GetProperty("CurrentTitle").GetValue(null), "마지막은 나중에 온 안내");
+            guide.GetMethod("Hide").Invoke(null, null);
+            var canvas = ((Component)Get(ui, "View")).GetComponentInParent<Canvas>();
+            Assert.IsFalse(canvas.GetComponent<UnityEngine.UI.GraphicRaycaster>().enabled, "닫은 뒤 판은 표시하되 입력을 가로채지 않는다");
+            Assert.IsFalse((bool)Get(ui, "IsEditing"));
+            Assert.IsFalse((bool)T("CurtainCall.UI.SceneIntegration.DemoRunEnding").GetMethod("ScheduleIsOpen", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).Invoke(null, null), "판 표시가 다음 날/데모 전환을 막으면 안 됨");
+            Assert.AreEqual(1, UnityEngine.Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Count(c => c.name == "ScheduleBoardWorldUI"));
+        }
+
+        [UnityTest]
+        public IEnumerator W7_PanelsKeepSidesAndOnlyNewestStackItemHasMarker()
+        {
+            GameObject probe = null;
+            Behaviour tutorialToggle = null;
+            bool wasEnabled = false;
+            object panel = null;
+            try
+            {
+                yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+                yield return new WaitForSecondsRealtime(.5f);
+                tutorialToggle = Find(TutorialType) as Behaviour;
+                wasEnabled = tutorialToggle != null && tutorialToggle.enabled;
+                if (tutorialToggle != null) tutorialToggle.enabled = false;
+                var flow = Find("CurtainCall.WaitingRoom.WaitingRoomFirstDayFlow");
+                var quest = Priv(flow, "firstDayQuest");
+                var firstView = (Component)Priv(quest, "view");
+                Assert.IsNotNull(firstView);
+                probe = new GameObject("PanelStackProbe");
+                panel = Activator.CreateInstance(T("CurtainCall.WaitingRoom.WaitingRoomRightPanel"), probe.transform, "NewQuestProbe", 300f, 400f, null);
+                Assert.IsTrue((bool)Call(panel, "Show", "추가 퀘스트", "새로 쌓인 패널만 느낌표를 표시합니다."));
+                Assert.IsTrue((bool)T(GuideType).GetMethod("Show").Invoke(null, new object[] { "설명", "설명은 왼쪽, 퀘스트는 오른쪽에 표시합니다.", 5f }));
+                yield return new WaitForSecondsRealtime(.35f); Canvas.ForceUpdateCanvases();
+                var nextView = (Component)Priv(panel, "view");
+                var title0 = firstView.GetComponentsInChildren<TMPro.TMP_Text>(true).Single(t => t.name == "60_TitleTMP");
+                var title1 = nextView.GetComponentsInChildren<TMPro.TMP_Text>(true).Single(t => t.name == "60_TitleTMP");
+                Assert.IsFalse(title0.text.StartsWith("!"));
+                Assert.IsTrue(title1.text.StartsWith("! "));
+                var firstRect = (RectTransform)firstView.transform;
+                var nextRect = (RectTransform)nextView.transform;
+                float gap = -nextRect.anchoredPosition.y + firstRect.anchoredPosition.y - ((Vector2)Get(firstView, "PresentationSizeUi")).y;
+                Assert.That(gap, Is.InRange(4f, 12f));
+                var guide = GameObject.Find("TutorialGuideCanvas").GetComponentsInChildren<TMPro.TMP_Text>(true).Single(t => t.name == "60_TitleTMP");
+                Assert.IsFalse(guide.text.StartsWith("!"));
+                Assert.IsTrue((bool)Static(GuideType, "IsVisible"), "왼쪽 설명이 실제 표시 중이어야 한다");
+                Assert.IsTrue(guide.gameObject.activeInHierarchy);
+                Assert.IsTrue((bool)Get(guide.GetComponentInParent(T("CurtainCall.UI.TooltipsV1.TooltipView")), "IsVisible"));
+                Assert.IsFalse(title0.isTextTruncated, "최신 퀘스트 제목이 잘리면 안 됨");
+                Assert.Less(RectTransformUtility.WorldToScreenPoint(null, guide.rectTransform.position).x, Screen.width * .5f);
+                Assert.Greater(RectTransformUtility.WorldToScreenPoint(null, title0.rectTransform.position).x, Screen.width * .5f);
+                System.IO.Directory.CreateDirectory(".harness/local/rehearsal/followup");
+                yield return new WaitForEndOfFrame();
+                ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/panels.png"));
+                yield return null; yield return null;
+                Call(quest, "Hide");
+                Assert.IsFalse(title1.text.StartsWith("!"), "한 개만 남으면 신규 표시를 제거한다");
+                Call(panel, "Hide");
+            }
+            finally
+            {
+                if (panel != null) Call(panel, "Hide");
+                T(GuideType).GetMethod("Hide").Invoke(null, null);
+                if (probe != null) UnityEngine.Object.Destroy(probe);
+                if (tutorialToggle != null) tutorialToggle.enabled = wasEnabled;
+            }
+        }
+
         [UnityTest]
         public IEnumerator W3_TierButtons_NightChoiceAndRestTimeAdjust()
         {
@@ -74,7 +247,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return new WaitForSecondsRealtime(.3f);
             ui = Find("CurtainCall.UI.SceneIntegration.WaitingRoomScheduleUI");
             tiers = (UnityEngine.UI.Button[,])Private(ui, "tierButtons");
-            StringAssert.Contains("3단계가 열렸습니다", (string)Get(Call(ui, "Build"), "Footer"));
+            StringAssert.Contains("3단계가 개방되었습니다", (string)Get(Call(ui, "Build"), "Footer"));
             Assert.IsTrue(tiers[2, 2].interactable, "다음 공연은 쉬는 시간에 단계를 올릴 수 있다");
             Assert.IsFalse(tiers[3, 0].interactable, "다음 공연이 아니면 바꿀 수 없다");
             Assert.IsFalse(((UnityEngine.UI.Button)edits.GetValue(2)).interactable, "쉬는 시간에는 묘기를 바꾸지 않는다");
@@ -102,7 +275,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var events = UnityEngine.EventSystems.EventSystem.current;
                 var rect = (RectTransform)card.transform;
                 var pointer = new UnityEngine.EventSystems.PointerEventData(events) {
-                    position = RectTransformUtility.WorldToScreenPoint(null, rect.TransformPoint(rect.rect.center)),
+                    position = RectTransformUtility.WorldToScreenPoint(rect.GetComponentInParent<Canvas>().worldCamera, rect.TransformPoint(rect.rect.center)),
                     button = UnityEngine.EventSystems.PointerEventData.InputButton.Left };
                 var hits = new System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult>();
                 events.RaycastAll(pointer, hits);

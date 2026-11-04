@@ -48,6 +48,8 @@ namespace CurtainCall.Tightrope
         public HumanCannonPole PhysicalPole(int index) => stations[index].Pole;
         public Vector3 PoleFeet(int index) => UsesSpots ? course.GetLanePosition(spotList[index].Lane, spotList[index].Distance) : course.RelayPoleGround(index);
         public ulong HolderAt(int index) => stations[index].State.Occupant;
+        /// <summary>시간 제한 없이 잡고 있는 봉(리허설 지정 자리 봉).</summary>
+        public bool IsUnlimitedHold(int index) => index >= 0 && index < stations.Length && stations[index].State.IsUnlimitedHold;
         public float HoldRemaining(int index) => stations[index].State.IsOccupied ? Mathf.Max(0f, (float)(stations[index].State.HoldUntil - Clock)) : 0f;
         // 줄은 봉을 실제로 잡고 있는 동안에만 이어진다. 놓으면 그 봉이 연 줄은 바로 끊긴다.
         public bool OutboundOpen => IsActive && (GroupHeld(false) || GroupHeld(true));

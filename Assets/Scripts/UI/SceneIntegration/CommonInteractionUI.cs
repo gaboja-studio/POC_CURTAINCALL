@@ -250,7 +250,7 @@ namespace CurtainCall.UI.SceneIntegration
                 if (held >= 0)
                 {
                     DeviceGuide(player, feet, "F / F 홀드", "봉 놓기", true,
-                        $"SPACE로도 놓기 · 남은 {relay.HoldRemaining(held):0.0}초", true);
+                        relay.IsUnlimitedHold(held) ? "SPACE로도 놓기" : $"SPACE로도 놓기 · 남은 {relay.HoldRemaining(held):0.0}초", true);
                     return;
                 }
                 for (int i = 0; i < relay.PoleCount; i++)

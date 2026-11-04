@@ -8,6 +8,28 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
     public sealed class RestTimeRulesTests
     {
         [Test]
+        public void FirstDayUnconfirmedScheduleCannotEnterByGatherOrTimeout()
+        {
+            var original = RunState.SecondPerformanceGate;
+            try
+            {
+                bool confirmed = false;
+                RunState.SecondPerformanceGate = () => confirmed;
+                var run = new RunState(); run.StartSession(); run.EndIntro(); run.EndPerformance();
+                run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 });
+                float remaining = run.Snapshot.TimeRemaining;
+                Assert.IsFalse(run.NotifyAllAtStageEntrance());
+                Assert.IsFalse(run.Tick(10000f));
+                Assert.AreEqual(CampaignPhase.RestTime, run.Snapshot.Phase);
+                Assert.AreEqual(remaining, run.Snapshot.TimeRemaining);
+                confirmed = true;
+                Assert.IsTrue(run.NotifyAllAtStageEntrance());
+                Assert.AreEqual(CampaignPhase.Performance, run.Snapshot.Phase);
+            }
+            finally { RunState.SecondPerformanceGate = original; }
+        }
+
+        [Test]
         public void EveryRestStartsRunningWithoutLeavingWaitingRoom()
         {
             var run = new RunState();

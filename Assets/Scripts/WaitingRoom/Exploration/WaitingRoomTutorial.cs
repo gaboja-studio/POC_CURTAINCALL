@@ -35,12 +35,11 @@ namespace CurtainCall.WaitingRoom
         /// 클로즈업: G11 무대 입구 통로 · N02 상점 수화기·배송구 · N04 물려줄 선반 · N03 스케줄표. 단일 클로즈업: N05 숙소 침대(일정 확정 직후) · G10 신체 복구(상점 수화기).
         /// </summary>
         /// 2026-10-31 사용자: G03 상호작용은 연계에서 빼고 상호작용 가능한 대상을 처음 발견할 때 띄운다.
-        /// N01(오늘 밤 할 일)은 연계 패널이 아니라 오른쪽 [tutorial] 패널로 밤 내내 띄운다.
-        static readonly string[] RestChain = { "G01", "G11" }, NightChain = { "N02", "N04", "N03" };
+        /// 2026-11-04 사용자: N01(오늘 밤 할 일)은 [tutorial] 없이 왼쪽 설명 패널로, 밤 연계의 첫 안내(G01과 같은 텍스트 잠금)로 띄운다.
+        /// 오른쪽 [tutorial] 퀘스트는 첫날 진행 퀘스트(<see cref="WaitingRoomFirstDayFlow"/>) 하나만 쓴다.
+        static readonly string[] RestChain = { "G01", "G11" }, NightChain = { "N01", "N02", "N04", "N03" };
         static readonly HashSet<string> CloseUpIds = new() { "G11", "N02", "N04", "N03", "N05", "G10" };
-        static readonly HashSet<string> LockedIds = new(CloseUpIds) { "G01" };
-        /// <summary>오른쪽 오늘 할 일 패널 위치·너비(1920×1080 UI 단위).</summary>
-        const float TodoTop = 300f, TodoWidth = 400f;
+        static readonly HashSet<string> LockedIds = new(CloseUpIds) { "G01", "N01" };
 
         static WaitingRoomTutorial instance;
         static WaitingRoomTutorialBook book;
@@ -58,13 +57,6 @@ namespace CurtainCall.WaitingRoom
         WaitingRoomTutorialCamera closeUp;
         bool sequence;
         float stepEndsAt;
-        WaitingRoomRightPanel todo;
-        string todoStep = "";
-        ScheduleBoardView board;
-
-        /// <summary>오늘 밤 할 일 패널(오른쪽)이 보이는지·제목. 테스트 확인용.</summary>
-        public static bool TodoVisible => instance != null && instance.todo != null && instance.todo.Visible;
-        public static string TodoTitle => TodoVisible ? instance.todo.Title : "";
 
         /// <summary>연계·클로즈업 튜토리얼이 진행 중이다(조작 막힘).</summary>
         public static bool IsSequenceActive => instance != null && instance.sequence;
@@ -159,7 +151,6 @@ namespace CurtainCall.WaitingRoom
         void Awake()
         {
             closeUp = gameObject.AddComponent<WaitingRoomTutorialCamera>();
-            todo = new WaitingRoomRightPanel(transform, "TonightTodoCanvas", TodoTop, TodoWidth);
         }
 
         void OnEnable()
@@ -195,20 +186,19 @@ namespace CurtainCall.WaitingRoom
             if (run == null) return;
             var s = run.State;
             if (s.Phase == CampaignPhase.Performance) WatchTeammates();
-            if (!Enabled) { HidePanel(); todo.Hide(); return; }
+            if (!Enabled) { HidePanel(); return; }
             if (sceneDirty)
             {
                 sceneDirty = false;
                 gather = FindFirstObjectByType<StageEntranceGather>();
                 zones = FindFirstObjectByType<ExplorationTimerZones>();
-                board = FindFirstObjectByType<ScheduleBoardView>();
             }
             Watch(PropCarry.Instance, ExplorationState.Instance);
             var local = NetworkPlayer.Local;
             bool rest = s.Phase == CampaignPhase.RestTime, night = s.Phase == CampaignPhase.Night;
             // 대기실 씬의 쉬는 시간·밤에, 살아 있는 내 캐릭터가 화면 전환 중이 아닐 때만 안내한다.
             if (gather == null || local == null || local.State != PlayerState.Normal || (!rest && !night) || SceneCurtainTransition.IsActive)
-            { lastHeldCount = -1; HidePanel(); todo.Hide(); return; }
+            { lastHeldCount = -1; HidePanel(); return; }
 
             string key = s.Generation + "/" + s.Day + "/" + s.Phase + "/" + s.Rest + "/" + s.PerformanceIndex;
             // 시간대가 바뀌면 지난 시간대의 가이드는 닫고, 못 띄운 안내는 버린다(조건이 맞으면 다시 줄 선다).
@@ -220,26 +210,13 @@ namespace CurtainCall.WaitingRoom
             if (rest) CheckRest(s);
             if (night)
             {
-                // 처음 맞는 밤에 오늘 할 일(N01)을 오른쪽에 띄워 이 밤이 끝날 때(모두 잠듦)까지 둔다.
-                if (!b.IsDone("N01")) { b.MarkDone("N01"); todoStep = key; }
                 foreach (var id in NightChain) b.Enqueue(id);
                 // 잠자기는 스케줄표 일정이 확정된 뒤에 숙소를 비추며 안내한다(확정 전에는 침대를 쓸 수 없다).
                 if (NightBed.ScheduleReady) b.Enqueue("N05");
             }
-            UpdateTodo(night && key == todoStep);
             CheckNearby();
             CheckHeld();
             Pump();
-        }
-
-        /// <summary>오늘 밤 할 일 패널. 스케줄표를 보는 동안에는 표를 가리지 않게 숨긴다.</summary>
-        void UpdateTodo(bool tonight)
-        {
-            var entry = Book.Get("N01");
-            // 씬을 다시 불러오면 앞 스케줄표는 사라진다. 비면 다시 찾는다.
-            if (tonight && board == null) board = FindFirstObjectByType<ScheduleBoardView>();
-            if (!tonight || entry == null || (board != null && board.IsOpen)) { todo.Hide(); return; }
-            todo.Show(entry.title, WaitingRoomTutorialBook.Format(entry.body, interactKey, uvKey));
         }
 
         /// <summary>지금 런의 본 안내 ID 목록. 테스트 확인용.</summary>
@@ -289,12 +266,15 @@ namespace CurtainCall.WaitingRoom
             var b = Book;
             if (sequence)
             {
-                // 지금 안내(패널·클로즈업)가 끝날 때까지 조작을 막은 채 기다린다. 이어지는 연계 안내가 없으면 조작을 돌려준다.
-                if (Time.unscaledTime < stepEndsAt || closeUp.IsActive) return;
+                if (closeUp.IsActive) WaitingRoomTutorialPanel.KeepVisible();
+                // 역방향 3배속 복귀와 원래 카메라 블렌드 복원까지 끝난 다음에만 다음 장소로 출발한다.
+                if (Time.unscaledTime < stepEndsAt || closeUp.IsBusy) return;
                 if (!b.TryNext(false, IsLocked, out _)) { EndSequence(); return; }
             }
             else
             {
+                // 앞 클로즈업이 플레이어 시점으로 돌아오고 원래 카메라 전환까지 끝난 뒤에만 다음 안내를 띄운다.
+                if (closeUp.IsBusy) { hiddenAt = Time.unscaledTime; return; }
                 if (WaitingRoomTutorialPanel.IsVisible) { hiddenAt = Time.unscaledTime; return; }
                 // 앞 안내가 사라진 뒤 쉬는 시간은 패널 설정 파일의 "간격".
                 if (Time.unscaledTime - hiddenAt < WaitingRoomTutorialPanel.Settings.Gap) return;
@@ -311,7 +291,7 @@ namespace CurtainCall.WaitingRoom
                 b.MarkDone(entry.id);
                 return;
             }
-            bool framed = CloseUpIds.Contains(entry.id) && TryFocus(entry.id, out var pos, out var rot) && closeUp.Begin(pos, rot);
+            bool framed = CloseUpIds.Contains(entry.id) && TryFocus(entry.id, out var pos, out var rot, out var focus) && closeUp.Begin(pos, rot, focus);
             float seconds = framed ? WaitingRoomTutorialCamera.Total : TextLockSeconds;
             if (!WaitingRoomTutorialPanel.Show(entry.title, body, seconds)) { closeUp.Stop(); return; }
             if (!sequence) { sequence = true; InputGate.SetBlocking(this, true); }
@@ -330,9 +310,9 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>안내가 가리키는 곳을 비출 카메라 자리.</summary>
-        bool TryFocus(string id, out Vector3 pos, out Quaternion rot)
+        bool TryFocus(string id, out Vector3 pos, out Quaternion rot, out Vector3 point)
         {
-            pos = default; rot = Quaternion.identity;
+            pos = default; rot = Quaternion.identity; point = default;
             var main = Camera.main;
             if (main == null) return false;
             Bounds? focus = null;
@@ -358,7 +338,7 @@ namespace CurtainCall.WaitingRoom
                     var board = FindFirstObjectByType<ScheduleBoardView>();
                     if (board == null) break;
                     // 스케줄표 창이 쓰는 클로즈업 자리를 그대로 쓴다.
-                    if (board.CloseUpPose != null) { pos = board.CloseUpPose.position; rot = board.CloseUpPose.rotation; return true; }
+                    if (board.CloseUpPose != null) { pos = board.CloseUpPose.position; rot = board.CloseUpPose.rotation; point = RendererBounds(board.VisualRoot).center; return true; }
                     focus = RendererBounds(board.VisualRoot);
                     break;
                 case "N05":
@@ -373,6 +353,7 @@ namespace CurtainCall.WaitingRoom
                     break;
             }
             if (focus == null) return false;
+            point = focus.Value.center;
             WaitingRoomTutorialCamera.FramePose(focus.Value, main.transform.position, out pos, out rot);
             return true;
         }

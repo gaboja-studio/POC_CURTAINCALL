@@ -21,3 +21,9 @@ source: Task-20261102-097-rehearsal-flow
 - 같은 문구의 Visible만 믿지 않고 전환 뒤 실제 TooltipView.IsVisible과 TMP font를 확인한다.
 - 커튼이 아직 시작되기 전의 IsActive=false를 완료로 오인하지 않는다. SpaceLink.IsTransitioning 종료와 해당 퀘스트 표시까지 기다린다.
 - 수정 후 공연 패널 실제 폰트/표시 확인, 공연 사이→둘째 공연→밤→침대→Day 2 연결 1/1 PASS(87.2초). 이전 커튼 대기의 조기 false도 상태 추적으로 재현했다.
+
+## 월드 스케줄표 수명·패널 쌓임 (2026-11-04)
+- UI 원본을 씬 해제 중 다른 부모로 옮기면 Unity가 SetParent를 거절한다. 스케줄표는 구성된 뷰/버튼 사본만 판 아래에 만들고 원본 어댑터는 공용 UI 수명을 따른다.
+- 월드 판은 닫아도 보여야 하므로 View.IsVisible을 모달 열림 판정에 쓰면 다음 날/데모 전환을 영구 차단한다. 실제 ScheduleBoardView.IsOpen/IsEditing을 읽는다.
+- 퀘스트 패널은 실제 PresentationSizeUi와 8 UI 단위 간격으로 쌓는다. 항상 느낌표를 붙이지 않고 둘 이상일 때 마지막 추가 항목만 표시한다.
+- `[tutorial]` 제목은 조건 달성 전까지 유지되는 퀘스트 패널의 식별자다. 지정 시간 후 사라지는 설명 패널에는 붙이지 않는다.

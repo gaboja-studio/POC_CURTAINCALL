@@ -109,7 +109,7 @@ namespace CurtainCall.UI.SceneIntegration
         }
 
         internal static bool ScheduleIsOpen() => Object.FindObjectsByType<ScheduleBoardView>(FindObjectsSortMode.None).Any(v => v.IsOpen)
-            || Object.FindObjectsByType<WaitingRoomScheduleUI>(FindObjectsSortMode.None).Any(v => v.View != null && v.View.IsVisible);
+            || Object.FindObjectsByType<WaitingRoomScheduleUI>(FindObjectsSortMode.None).Any(v => v.IsEditing);
 
         static bool PerformanceLoaded()
         {

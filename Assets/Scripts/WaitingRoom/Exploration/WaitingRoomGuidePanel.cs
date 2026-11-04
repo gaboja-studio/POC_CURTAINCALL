@@ -16,6 +16,11 @@ namespace CurtainCall.WaitingRoom
         TMP_Text title, body;
         float shownAt, hideAt;
         CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback fontOwner;
+        /// <summary>스케줄표를 보는 동안 온 안내. 닫은 뒤 온 순서대로 하나씩 띄운다(2026-11-04 사용자).</summary>
+        static readonly System.Collections.Generic.Queue<(string heading, string text, float seconds)> pending = new();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetStatics() { instance = null; pending.Clear(); }
 
         public static bool IsVisible => instance != null && instance.canvasRoot != null && instance.canvasRoot.activeSelf;
         public static string CurrentTitle => IsVisible ? instance.title.text : "";
@@ -30,10 +35,14 @@ namespace CurtainCall.WaitingRoom
                 DontDestroyOnLoad(go);
                 instance = go.AddComponent<WaitingRoomGuidePanel>();
             }
+            if (ScheduleScreenHold.IsHeld || pending.Count > 0) { pending.Enqueue((heading, text, seconds)); return; }
             instance.Open(heading, text, seconds);
         }
 
         public static void Hide() { if (instance != null && instance.canvasRoot != null) instance.canvasRoot.SetActive(false); }
+
+        /// <summary>스케줄표를 닫은 뒤 띄울 안내가 남아 있다. 테스트 확인용.</summary>
+        public static int PendingCount => pending.Count;
 
         void Open(string heading, string text, float seconds)
         {
@@ -71,6 +80,7 @@ namespace CurtainCall.WaitingRoom
             body = Text(content, "Body", font, 21, -82, 130, new Color32(238, 234, 215, 255));
             fontOwner = FontOwner();
             if (fontOwner != null) fontOwner.ApplyTo(canvasRoot.transform);
+            ScheduleScreenHold.Track(canvas);
         }
 
         static CurtainCall.UI.SceneIntegration.UiRuntimeFontFallback FontOwner()
@@ -91,7 +101,14 @@ namespace CurtainCall.WaitingRoom
 
         void Update()
         {
-            if (canvasRoot == null || !canvasRoot.activeSelf) return;
+            bool showing = canvasRoot != null && canvasRoot.activeSelf;
+            // 스케줄표를 보는 동안에는 남은 표시 시간을 멈춘다(캔버스는 ScheduleScreenHold가 가린다).
+            if (ScheduleScreenHold.IsHeld) { if (showing) { shownAt += Time.unscaledDeltaTime; hideAt += Time.unscaledDeltaTime; } return; }
+            if (!showing)
+            {
+                if (pending.Count > 0) { var next = pending.Dequeue(); Open(next.heading, next.text, next.seconds); }
+                return;
+            }
             float now = Time.unscaledTime;
             // 0.16초 나타남, 마지막 0.4초 사라짐.
             group.alpha = Mathf.Min(Mathf.Clamp01((now - shownAt) / .16f), Mathf.Clamp01((hideAt - now) / .4f));
