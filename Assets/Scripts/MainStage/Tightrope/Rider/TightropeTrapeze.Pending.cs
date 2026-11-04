@@ -89,6 +89,9 @@ namespace CurtainCall.Tightrope
                     || Mathf.Abs(player.transform.position.y - course.transform.position.y) > .3f) return false;
                 pendingRequests.Remove(actor); flights.Remove(actor);
                 TightropeLandingWaves.Current?.RegisterExternalLanding(player, sharedAirborne: true); Publish();
+                if (course.GetDistance(player.transform.position) >= course.TrapezeGapTo && ServerCrossed != null)
+                    foreach (System.Action<ulong, TightropeTrapeze> observer in ServerCrossed.GetInvocationList())
+                        try { observer(actor, this); } catch (System.Exception error) { Debug.LogException(error); }
                 return true;
             }
             var state = poles[request.Pole];

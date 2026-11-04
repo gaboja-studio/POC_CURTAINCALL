@@ -110,12 +110,38 @@ namespace CurtainCall.Reward.Tests
         public void DodgeRequiresApproachAndIsAwardedOnlyOnce()
         {
             var encounter = new AudienceEncounter();
-            Assert.IsFalse(encounter.Sample(3, 8, 2, 0, false, false, false, false));
+            Assert.IsFalse(encounter.Sample(-10, 8, 2, 0, false, false, false, false));
             Assert.IsFalse(encounter.Sample(-3, 8, 2, 0, false, true, false, false));
             Assert.IsTrue(encounter.Sample(3, 8, 2, 0, false, false, false, false));
             Assert.IsTrue(encounter.WasClose);
             Assert.IsFalse(encounter.Sample(-3, 8, 2, 0, false, false, false, false));
             Assert.IsFalse(encounter.Sample(3, 8, 2, 0, false, false, false, false));
+        }
+        [Test]
+        public void WideDodgeDoesNotRequireNearMissAndCannotRepeat()
+        {
+            var encounter = new AudienceEncounter();
+            Assert.IsFalse(encounter.Sample(-7, 8, 2, 0, false, false, false, false));
+            Assert.IsTrue(encounter.Sample(2, 8, 2, 0, false, false, false, true));
+            Assert.IsFalse(encounter.WasClose);
+            Assert.IsFalse(encounter.Sample(-7, 8, 2, 0, false, false, false, false));
+            Assert.IsFalse(encounter.Sample(2, 8, 2, 0, false, false, false, false));
+        }
+        [Test]
+        public void RegionAlreadyBehindPlayerNeverRewardsOnReentry()
+        {
+            var encounter = new AudienceEncounter();
+            Assert.IsFalse(encounter.Sample(3, 8, 2, 0, false, false, false, false));
+            Assert.IsFalse(encounter.Sample(-3, 8, 2, 0, false, true, false, false));
+            Assert.IsFalse(encounter.Sample(3, 8, 2, 0, false, false, false, false));
+        }
+        [Test]
+        public void HorizontalNearMissStillRewardsBeforeForwardPassOnlyOnce()
+        {
+            var encounter = new AudienceEncounter();
+            Assert.IsFalse(encounter.Sample(-1, 8, 2, 0, false, true, false, false, true));
+            Assert.IsTrue(encounter.Sample(-1, 8, 2, 0, false, false, false, false, true));
+            Assert.IsFalse(encounter.Sample(3, 8, 2, 0, false, false, false, false, true));
         }
         [TestCase(true, 0)]
         [TestCase(false, 1)]

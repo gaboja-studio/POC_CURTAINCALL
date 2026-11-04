@@ -45,6 +45,7 @@ namespace CurtainCall.Tightrope
         bool localAborted, localAbortWaiting;
         int controlledInputFrame = -1;
         public static TightropeTrapeze Current { get; private set; }
+        public static event System.Action<ulong, TightropeTrapeze> ServerCrossed;
         public float AirControlSpeed => poles[0]?.Physics != null ? poles[0].Physics.AirControlSpeed : 3f;
         public string LocalFeedback => Clock < feedbackUntil ? feedback : null;
         bool Active => isActiveAndEnabled && course != null && course.HasTrapezeGap && course.IsGameplayActive

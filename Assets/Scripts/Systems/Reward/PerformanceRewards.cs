@@ -64,6 +64,8 @@ namespace CurtainCall.Reward
         public bool HasAuthority => campaign != null && campaign.HasAuthority && session != null
             && (session.IsHost || (campaign.IsOfflineRun && session.ConnectionState == SessionConnectionState.Offline));
         public bool HasRulesOverride => rulesOverride.HasValue;
+        /// <summary>공연 시작 시 호스트가 확정한 현재 공연 난이도.</summary>
+        public int Difficulty => difficulty;
         public bool TransitionPending => pendingTransition;
         public IReadOnlyList<PerformanceResult> History => model != null ? model.History : receivedHistory.AsReadOnly();
         public event Action Changed;
@@ -287,11 +289,8 @@ namespace CurtainCall.Reward
         public bool AddCheer(string participantId, bool positive = true)
         {
             if (!CanMutate()) return false;
-            long previous = model.Revision;
-            ObserveNetwork();
-            bool changed = model.Cheer(participantId, positive, ReadRules());
-            if (model.Revision != previous) Publish();
-            return changed;
+            var rules = ReadRules();
+            return AddAudienceReaction(participantId, positive ? rules.Cheer : -rules.Jeer);
         }
 
         public bool AddAudienceReaction(string participantId, int delta) => AddAudienceReaction(participantId, delta, false);
@@ -302,6 +301,8 @@ namespace CurtainCall.Reward
             if (!CanMutate()) return false;
             long previous = model.Revision;
             ObserveNetwork();
+            var audience = AudienceReactionSettings.Current;
+            if (audience != null) delta = audience.ScaleReaction(delta, difficulty);
             bool changed = model.React(participantId, delta, ReadRules(), resetInterest);
             if (model.Revision != previous) Publish();
             return changed;
