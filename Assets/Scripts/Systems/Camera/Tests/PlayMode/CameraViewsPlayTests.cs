@@ -32,6 +32,55 @@ namespace CurtainCall.Cameras.Tests
         Component Mover => local.GetComponent(GameType("CurtainCall.Player.PlayerMover"));
 
         [UnityTest]
+        public IEnumerator EscapeWallRetractsArmWithoutTurningTheViewOrMovementHeading()
+        {
+            var previous = SceneManager.GetActiveScene();
+            var scene = SceneManager.CreateScene("escape_route_camera_regression");
+            SceneManager.SetActiveScene(scene);
+            try
+            {
+                var probe = new GameObject("Inactive camera probe");
+                probe.SetActive(false);
+                var camera = probe.AddComponent(GameType("CurtainCall.Cameras.CameraViewDirector"));
+                var actor = new GameObject("Inactive player probe");
+                actor.SetActive(false);
+                actor.transform.position = new Vector3(20000, 20000, 20000);
+                var preset = Get(Resources.Load("Settings/Camera/CameraViewSettings"), "DefaultThirdPerson");
+                SetPrivate(camera, "local", actor.AddComponent(GameType(PlayerType)));
+                SetPrivate(camera, "selected", preset);
+                SetPrivate(camera, "freeThirdPerson", true);
+                SetPrivate(camera, "yaw", 210f);
+                SetPrivate(camera, "pitch", 12f);
+
+                var pivot = actor.transform.position + Vector3.up * (float)Get(preset, "LookHeight");
+                var rotation = Quaternion.Euler(12f, 210f, 0f);
+                var arm = rotation * Vector3.back;
+                var wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                wall.transform.SetPositionAndRotation(pivot + arm * 1.05f, rotation);
+                wall.transform.localScale = new Vector3(.8f, 4f, .15f);
+                Physics.SyncTransforms();
+                var state = CameraState.Default;
+                state.RawPosition = pivot + arm * 5f;
+                state.RawOrientation = rotation;
+                object[] args = { state };
+                camera.GetType().GetMethod("ApplyWallCollision", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(camera, args);
+                state = (CameraState)args[0];
+                var corrected = state.GetFinalPosition() - pivot;
+                Assert.That(corrected.magnitude, Is.InRange(.3f, 1f));
+                Assert.That((corrected - arm * corrected.magnitude).magnitude, Is.LessThan(.01f));
+                Assert.That(Quaternion.Angle(state.GetFinalOrientation(), rotation), Is.LessThan(.02f));
+                Assert.That(GetPrivate(camera, "yaw"), Is.EqualTo(210f));
+                Assert.That(GetPrivate(camera, "pitch"), Is.EqualTo(12f));
+            }
+            finally
+            {
+                SceneManager.SetActiveScene(previous);
+                SceneManager.UnloadSceneAsync(scene);
+            }
+            yield return null;
+        }
+
+        [UnityTest]
         public IEnumerator NearbyModel_RespectsSettingAndRestoresWithDistance()
         {
             const string key = "CurtainCall.Settings.HideNearbyCharacter";
