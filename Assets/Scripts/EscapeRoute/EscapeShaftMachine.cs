@@ -12,6 +12,7 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, Min(1f)] float dropDepth = 48f;
         [SerializeField] ParticleSystem receiverVent;
         [SerializeField] Transform freightPlatform, freightLoad, freightLines;
+        [SerializeField] Transform headSheave;
         [SerializeField, Min(.1f)] float freightRise = 6f;
         Vector3 platformHome, loadHome, linesHome, linesScale;
         float previousPhase = -1f;
@@ -81,6 +82,7 @@ namespace CurtainCall.EscapeRoute
                 ? RunFreight((float)(seconds % 12) / 12f)
                 : 6f * Mathf.Sin((float)(seconds % 24) * Mathf.PI / 12f);
             movingPart.localPosition = home + Vector3.up * lift;
+            if (headSheave) headSheave.localRotation = Quaternion.AngleAxis(lift * Mathf.Rad2Deg / 1.1f, Vector3.forward);
             // The cable mesh has unit height and a centered pivot. Its upper end stays on the crosshead.
             linkage.localPosition = linkageHome + Vector3.up * (lift * .5f);
             linkage.localScale = linkageScale - Vector3.up * lift;

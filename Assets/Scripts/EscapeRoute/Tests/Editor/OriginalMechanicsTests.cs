@@ -693,7 +693,8 @@ namespace CurtainCall.EscapeRoute.Tests
             {
                 var carry = root.AddComponent(T("CurtainCall.WaitingRoom.PropCarry"));
                 double now = (double)carry.GetType().GetProperty("EquipmentClock", Flags).GetValue(carry);
-                double until = now + 15;
+                // Keep a fractional deadline that round-trips exactly through Unity's JSON parser.
+                double until = System.Math.Ceiling(now) + 15.375;
                 string json = "{\"players\":[{\"client\":7,\"selectedUid\":19,\"held\":[{\"uid\":19,\"id\":\"rescue-gloves\",\"name\":\"gloves\",\"uses\":2}],\"cooldowns\":[{\"id\":\"rescue-gloves\",\"until\":"
                     + until.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + "}]}]}";
                 Call(carry, "HandleState", json);

@@ -97,9 +97,10 @@ namespace CurtainCall.EscapeRoute.EditorTools
 
             var sixth = VerticalChild(p, "06_OpenCannonRelay");
             var second = entries.GetArrayElementAtIndex(1);
-            // 실제 손 정렬 후 발 메시가 논리 발 위치보다 약 .46m 낮다. 총 .65m 여유를 둔다.
+            // 기본 매달림 자세의 손에서 발끝까지 최대 1.97m다. 천장 앵커는 같은 높이에 둔다.
             AFloor(sixth, "유지봉 측면 정비턱", 125, 128.5f, 103, 108, -8.2f);
-            var helper = AFusedPole(sixth, source, "A06_HelperAscentClutch", new Vector3(126.5f, -6.05f, 106), Vector3.forward, 1.5f, 3.75f);
+            var helper = AFusedPole(sixth, source, "A06_HelperAscentClutch", new Vector3(126.5f, -5.77f, 106), Vector3.forward, 1.5f, 3.47f);
+            SetPoleFloat(helper, "grabDistance", 3.35f);
             SetPoleFloat(helper, "maxSwingAngle", 8);
             second.FindPropertyRelative("helperPole").objectReferenceValue = helper;
             second.FindPropertyRelative("arrival").objectReferenceValue = CoopArrival(sixth, "상부 외줄 도착 감지", new Vector3(135, .5f, 104.5f), new Vector3(1.2f, 1.5f, 4));
@@ -151,6 +152,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             entry.FindPropertyRelative("instruction").stringValue = "F로 그네를 잡으면 권상교가 내려옵니다 · 현재 동료들과 함께 탈 수 있습니다";
             entry.FindPropertyRelative("indicator").objectReferenceValue = CoopLamp(p, "공동 탑승 하중 표시등", new Vector3(278, 2.2f, 80.8f));
             SetPoleFloat(first, "maxReleaseUpwardSpeed", 5.2f);
+            SetPoleFloat(first, "grabDistance", 4.05f);
             WorksMachinery(p, 286, 78, 4.5f);
             BLight(p, new Vector3(281, 7, 82), new Vector3(285, 0, 78), 500, 25);
         }
@@ -162,7 +164,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
             last.Find("출구를 향한 마지막 질주면").gameObject.SetActive(false);
             AFloor(p, "동료 역할 교대 정비대", 298, 308, 71, 85, 0);
             RunnerDeck(p, "복귀 고정 후 마지막 질주면", 322, 366);
-            var helper = AFusedPole(p, source, "A07C_HelperBridgeClutch", new Vector3(305.8f, 1.5f, 78), Vector3.right, 1.5f);
+            var helper = AFusedPole(p, source, "A07C_HelperBridgeClutch", new Vector3(305.8f, 2.43f, 78), Vector3.right, 1.5f, 3.27f);
+            SetPoleFloat(helper, "grabDistance", 3.35f);
             SetPoleFloat(helper, "maxSwingAngle", 8); SetPoleFloat(helper, "airControlSpeed", 3);
             entry.FindPropertyRelative("helperPole").objectReferenceValue = helper;
             entry.FindPropertyRelative("span").objectReferenceValue = WorksBridge(p, "동료 유지 반출교", 308, 322, 78, 3.5f);
