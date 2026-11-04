@@ -266,7 +266,9 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 var reader = local.GetComponent<PlayerInputReader>();
                 float posture = reader != null && reader.isActiveAndEnabled ? reader.Current.Posture : 0f;
-                localBalance.SetBalance(balance.Value / PlayerBalance.MaxValue,
+                var mover = local != null ? local.GetComponent<PlayerMover>() : null;
+                int balanceViewSign = TightropeControlScheme.LocalViewSign(mover);
+                localBalance.SetBalance(balance.Value * balanceViewSign / PlayerBalance.MaxValue,
                     -balance.GreenLimit / PlayerBalance.MaxValue, balance.GreenLimit / PlayerBalance.MaxValue,
                     -balance.WarningLimit / PlayerBalance.MaxValue, balance.WarningLimit / PlayerBalance.MaxValue,
                     hanging ? hangs.HangDangerRatio(local) : balance.RedTimeRatio,

@@ -19,6 +19,7 @@ namespace CurtainCall.EscapeRoute
             && NetworkSessionManager.Instance.NetworkManager.IsListening
             ? NetworkSessionManager.Instance.NetworkManager.ServerTime.Time : Time.unscaledTimeAsDouble;
         public bool DeploymentRequested => deployed;
+        public float DeploymentFraction => amount;
         public bool Traversable => deployed && amount >= 1;
         public float AmountAt(double now) => Mathf.MoveTowards(transitionAmount, deployed ? 1 : 0,
             (float)System.Math.Max(0, now - transitionAt) / Mathf.Max(.1f, deploySeconds));

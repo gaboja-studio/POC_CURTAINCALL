@@ -31,11 +31,9 @@ namespace CurtainCall.EscapeRoute
         const float ArcHeight = 1.45f;
         const float Recoil = .52f;
 
-        readonly Plane[] planes = new Plane[6];
         Vector3 trolleyHome, hookLow, barrelHome, recoilAxis;
         Quaternion drumRest;
         Bounds travelBounds;
-        Camera viewer;
         float lastPhase, lastTravel, lastLift, lastKick;
         bool wasDocked;
 
@@ -87,10 +85,7 @@ namespace CurtainCall.EscapeRoute
 
         void LateUpdate()
         {
-            if (!viewer || !viewer.isActiveAndEnabled) viewer = Camera.main;
-            if (!viewer || travelBounds.SqrDistance(viewer.transform.position) > 100f * 100f) return;
-            GeometryUtility.CalculateFrustumPlanes(viewer, planes);
-            if (!GeometryUtility.TestPlanesAABB(planes, travelBounds)) return;
+            if (!EscapeSceneryView.InRange(travelBounds, 100f)) return;
 
             var course = HumanCannonHazardCourse.Current;
             Sample(course != null ? course.Elapsed : Time.timeAsDouble);

@@ -183,16 +183,17 @@ namespace CurtainCall.Tightrope
             if (local.State != PlayerState.Normal || !local.TryGetComponent(out PlayerInputReader reader) || !reader.enabled) return;
 
             var input = reader.Current;
+            int viewSign = TightropeControlScheme.LocalViewSign(localMover);
             if (!input.ActionPressed) return;
             if (input.AuxDirection != 0)
             {
-                LaunchLane(input.AuxDirection);
+                LaunchLane(input.AuxDirection * viewSign);
                 return;
             }
 
             var rules = GameSettings.Tightrope.Piggyback;
-            if (input.Move > 0.5f) Launch(local, rules.ForwardJumpSpeed);
-            else if (input.Move < -0.5f) Launch(local, -rules.BackwardJumpSpeed);
+            if (input.Move * viewSign > 0.5f) Launch(local, rules.ForwardJumpSpeed);
+            else if (input.Move * viewSign < -0.5f) Launch(local, -rules.BackwardJumpSpeed);
             else StartHop(local);
         }
 

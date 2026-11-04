@@ -91,12 +91,13 @@ namespace CurtainCall.HumanCannon
                 rider.Segment++;
             if (action == PoleEvent.Released || action == PoleEvent.Abandoned) runtime.LastDeparture[actor] = runtime.State.Revision;
             Apply(index, action, actor, station, launch, segment);
-            if (messaging == null) return;
-            foreach (ulong client in session.NetworkManager.ConnectedClientsIds)
-                if (client != NetworkManager.ServerClientId) SendState(client, index, action, actor, seat, station, launch, segment);
+            if (messaging == null || session.NetworkManager.ConnectedClientsIds.Count <= 1) return;
+            // All recipients receive identical authoritative bytes. Serialize once, including
+            // four rider records, instead of rebuilding the same packet for each client.
+            SendState(NetworkManager.ServerClientId, index, action, actor, seat, station, launch, segment, true);
         }
 
-        void SendState(ulong client, int index, PoleEvent action, ulong actor, int seat = -1, int station = 0, uint launch = 0, uint segment = 0)
+        void SendState(ulong client, int index, PoleEvent action, ulong actor, int seat = -1, int station = 0, uint launch = 0, uint segment = 0, bool broadcast = false)
         {
             var runtime = states[index];
             using var writer = new FastBufferWriter(action == PoleEvent.Released ? ReleaseStateSize : StateSize, Allocator.Temp);
@@ -125,7 +126,13 @@ namespace CurtainCall.HumanCannon
             {
                 writer.WriteValueSafe(runtime.ReleasePosition); writer.WriteValueSafe(runtime.ReleaseRotation); writer.WriteValueSafe(runtime.ReleaseVelocity);
             }
-            messaging.SendNamedMessage(StateMessage, client, writer, NetworkDelivery.ReliableSequenced);
+            if (broadcast)
+            {
+                foreach (ulong recipient in session.NetworkManager.ConnectedClientsIds)
+                    if (recipient != NetworkManager.ServerClientId)
+                        messaging.SendNamedMessage(StateMessage, recipient, writer, NetworkDelivery.ReliableSequenced);
+            }
+            else messaging.SendNamedMessage(StateMessage, client, writer, NetworkDelivery.ReliableSequenced);
         }
 
         void ReceiveState(ulong sender, FastBufferReader reader)

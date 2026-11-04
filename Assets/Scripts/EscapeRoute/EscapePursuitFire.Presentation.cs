@@ -9,7 +9,7 @@ namespace CurtainCall.EscapeRoute
         {
             public ParticleSystem system;
             public float overTime, overDistance;
-            public bool loop, emissionEnabled;
+            public bool loop, emissionEnabled, playOnAwake;
         }
         sealed class Presentation
         {
@@ -19,10 +19,12 @@ namespace CurtainCall.EscapeRoute
             public FirePhase phase;
         }
         Presentation[] presentation;
+        bool presentationHidden;
 
         void CachePresentation()
         {
             if (presentation != null && presentation.Length == bays.Length) return;
+            presentationHidden = false;
             presentation = new Presentation[bays.Length];
             for (int i = 0; i < bays.Length; i++)
             {
@@ -36,8 +38,11 @@ namespace CurtainCall.EscapeRoute
                     var effect = bay.effects[e]; if (effect == null) continue;
                     effect.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
                     var emission = effect.emission;
+                    var main = effect.main;
                     view.effects[e] = new Effect { system = effect, overTime = emission.rateOverTimeMultiplier,
-                        overDistance = emission.rateOverDistanceMultiplier, loop = effect.main.loop, emissionEnabled = emission.enabled };
+                        overDistance = emission.rateOverDistanceMultiplier, loop = main.loop, emissionEnabled = emission.enabled,
+                        playOnAwake = main.playOnAwake };
+                    main.playOnAwake = false;
                 }
                 for (int l = 0; l < bay.lights.Length; l++) if (bay.lights[l] != null)
                 { view.intensities[l] = bay.lights[l].intensity; view.colors[l] = bay.lights[l].color; }
@@ -47,6 +52,7 @@ namespace CurtainCall.EscapeRoute
         void HidePresentation()
         {
             CachePresentation();
+            if (presentationHidden) return;
             for (int i = 0; i < bays.Length; i++)
             {
                 var bay = bays[i]; var view = presentation[i]; if (bay == null || view == null) continue;
@@ -60,52 +66,59 @@ namespace CurtainCall.EscapeRoute
                 if (bay.burstAudio != null && bay.burstAudio.isPlaying) bay.burstAudio.Stop();
                 view.phase = FirePhase.Dormant;
             }
+            presentationHidden = true;
         }
 
         void Present(double now)
         {
             CachePresentation();
+            if (!IsArmed) { HidePresentation(); return; }
+            presentationHidden = false;
             for (int i = 0; i < bays.Length; i++)
             {
                 var bay = bays[i]; var view = presentation[i]; if (bay == null || view == null) continue;
                 FirePhase phase = PhaseAt(i, now);
+                if (phase == FirePhase.Dormant && phase == view.phase) continue;
                 double age = now - armedAt - startDelay - i * (double)stepSeconds;
                 bool burning = phase == FirePhase.Burst || phase == FirePhase.Burning;
                 bool justIgnited = burning && view.phase != FirePhase.Burst && view.phase != FirePhase.Burning;
                 float rate = phase == FirePhase.Burst ? Mathf.Max(0, burstEmissionMultiplier) : Mathf.Max(.01f, steadyEmissionMultiplier);
-                foreach (var effect in view.effects)
+                if (phase != view.phase)
                 {
-                    if (effect == null || effect.system == null) continue;
-                    var system = effect.system;
-                    if (!burning)
+                    foreach (var effect in view.effects)
                     {
-                        if (system.isPlaying || system.particleCount > 0) system.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
-                        continue;
-                    }
-                    if (phase != view.phase)
-                    {
+                        if (effect == null || effect.system == null) continue;
+                        var system = effect.system;
+                        if (!burning)
+                        {
+                            if (system.isPlaying || system.particleCount > 0) system.Stop(false, ParticleSystemStopBehavior.StopEmittingAndClear);
+                            continue;
+                        }
                         var emission = system.emission;
                         emission.enabled = true;
                         emission.rateOverTimeMultiplier = effect.overTime * rate;
                         emission.rateOverDistanceMultiplier = effect.overDistance * rate;
-                    }
-                    if (justIgnited)
-                    {
-                        var main = system.main; main.loop = true;
-                        // The whole authored bay is lethal at ignition. Fill at least one particle lifetime
-                        // immediately so a 42m nozzle never damages the far wall before visible flame reaches it.
-                        float fill = Mathf.Clamp(main.startLifetime.constantMax, .05f, 6);
-                        system.Simulate(Mathf.Max(fill, (float)Math.Min(6, Math.Max(0, age))), false, true, false);
-                        system.Play(false);
+                        if (justIgnited)
+                        {
+                            var main = system.main; main.loop = true;
+                            // The whole authored bay is lethal at ignition. Fill at least one particle lifetime
+                            // immediately so a 42m nozzle never damages the far wall before visible flame reaches it.
+                            float fill = Mathf.Clamp(main.startLifetime.constantMax, .05f, 6);
+                            system.Simulate(Mathf.Max(fill, (float)Math.Min(6, Math.Max(0, age))), false, true, false);
+                            system.Play(false);
+                        }
                     }
                 }
+                float pulse = .82f + .18f * Mathf.Sin((float)(now % 1000) * (phase == FirePhase.Warning ? 11 : 23) + i);
                 for (int l = 0; l < bay.lights.Length; l++)
                 {
                     var lamp = bay.lights[l]; if (lamp == null) continue;
-                    lamp.enabled = phase != FirePhase.Dormant;
-                    float pulse = .82f + .18f * Mathf.Sin((float)(now % 1000) * (phase == FirePhase.Warning ? 11 : 23) + i);
+                    if (phase != view.phase)
+                    {
+                        lamp.enabled = phase != FirePhase.Dormant;
+                        lamp.color = phase == FirePhase.Warning ? new Color(1, .48f, .06f) : view.colors[l];
+                    }
                     lamp.intensity = view.intensities[l] * pulse * (phase == FirePhase.Burst ? 1 : phase == FirePhase.Burning ? .28f : .2f);
-                    lamp.color = phase == FirePhase.Warning ? new Color(1, .48f, .06f) : view.colors[l];
                 }
                 if (bay.burstAudio != null && bay.burstAudio.clip != null)
                 {
@@ -131,7 +144,7 @@ namespace CurtainCall.EscapeRoute
                     var emission = effect.system.emission;
                     emission.rateOverTimeMultiplier = effect.overTime; emission.rateOverDistanceMultiplier = effect.overDistance;
                     emission.enabled = effect.emissionEnabled;
-                    var main = effect.system.main; main.loop = effect.loop;
+                    var main = effect.system.main; main.loop = effect.loop; main.playOnAwake = effect.playOnAwake;
                 }
                 for (int l = 0; l < bay.lights.Length; l++) if (bay.lights[l] != null)
                 { bay.lights[l].intensity = view.intensities[l]; bay.lights[l].color = view.colors[l]; }

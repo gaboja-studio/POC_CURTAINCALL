@@ -9,6 +9,13 @@ namespace CurtainCall.EscapeRoute
     public sealed class EscapeConveyorProcession : MonoBehaviour
     {
         [Serializable]
+        struct CutPiece
+        {
+            public MeshRenderer renderer;
+            public Vector3 hangingCenter;
+        }
+
+        [Serializable]
         struct Carrier
         {
             public Transform hanger;
@@ -17,6 +24,9 @@ namespace CurtainCall.EscapeRoute
             public Renderer costume;
             public Color outfitColor;
             public int outfitPattern;
+            public float firstContact;
+            public Transform separated;
+            public CutPiece[] pieces;
         }
 
         [SerializeField] Carrier[] carriers = Array.Empty<Carrier>();
@@ -24,15 +34,16 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, Min(0.01f)] float trackLength = 36f;
         [SerializeField] float cutAt = 18f;
         [SerializeField, Min(0.01f)] float speed = 2.25f;
+        [SerializeField] Vector3 intake;
+        const float FeedSeconds = 1.35f;
+        const float PieceDelay = .085f;
         const float DropSeconds = 0.52f;
         const float DropAcceleration = 13f;
         static readonly int VariantColor = Shader.PropertyToID("_VariantColor");
         static readonly int VariantPattern = Shader.PropertyToID("_VariantPattern");
 
-        readonly Plane[] frustum = new Plane[6];
         Bounds motionBounds;
         double lastTime = double.NaN;
-        Camera viewer;
 
         void OnEnable()
         {
@@ -51,6 +62,8 @@ namespace CurtainCall.EscapeRoute
                 AddTravelBounds(carrier.hanger, trackLength, false);
                 if (carrier.opposite) AddTravelBounds(carrier.opposite, trackLength, false);
                 AddTravelBounds(carrier.load.transform, cutAt, true);
+                if (carrier.separated)
+                    motionBounds.Encapsulate(new Bounds(transform.TransformPoint(intake), Vector3.one * 5f));
             }
         }
 
@@ -61,14 +74,23 @@ namespace CurtainCall.EscapeRoute
             var properties = new MaterialPropertyBlock();
             foreach (var carrier in carriers)
             {
-                if (!carrier.costume) continue;
-                for (int slot = 0; slot < 2; slot++)
-                {
-                    carrier.costume.GetPropertyBlock(properties, slot);
-                    properties.SetColor(VariantColor, carrier.outfitColor);
-                    properties.SetFloat(VariantPattern, carrier.outfitPattern);
-                    carrier.costume.SetPropertyBlock(properties, slot);
-                }
+                ApplyOutfit(carrier.costume, carrier, properties);
+                if (carrier.pieces != null)
+                    foreach (var piece in carrier.pieces) ApplyOutfit(piece.renderer, carrier, properties);
+            }
+        }
+
+        static void ApplyOutfit(Renderer mesh, Carrier carrier, MaterialPropertyBlock properties)
+        {
+            if (!mesh) return;
+            var materials = mesh.sharedMaterials;
+            for (int slot = 0; slot < materials.Length; slot++)
+            {
+                if (!materials[slot] || !materials[slot].HasProperty(VariantColor)) continue;
+                mesh.GetPropertyBlock(properties, slot);
+                properties.SetColor(VariantColor, carrier.outfitColor);
+                properties.SetFloat(VariantPattern, carrier.outfitPattern);
+                mesh.SetPropertyBlock(properties, slot);
             }
         }
 
@@ -99,13 +121,10 @@ namespace CurtainCall.EscapeRoute
         void LateUpdate()
         {
             if (!Application.IsPlaying(gameObject)) return;
-            if (!viewer || !viewer.isActiveAndEnabled) viewer = Camera.main;
-            if (!viewer || motionBounds.SqrDistance(viewer.transform.position) > 100f * 100f) return;
-            GeometryUtility.CalculateFrustumPlanes(viewer, frustum);
-            if (!GeometryUtility.TestPlanesAABB(frustum, motionBounds)) return;
+            if (!EscapeSceneryView.InRange(motionBounds, 100f)) return;
 
             var course = HumanCannonHazardCourse.Current;
-            double time = course != null ? course.Elapsed : Time.timeAsDouble;
+            double time = course != null ? course.Clock : Time.timeAsDouble;
             if (time == lastTime) return;
             lastTime = time;
             Present(time);
@@ -131,6 +150,18 @@ namespace CurtainCall.EscapeRoute
 
                 // The cut and drop lie in the first half of the line. Only that hanger
                 // needs the pair's load. Its empty counterpart continues on the same rail.
+                if (carrier.separated)
+                {
+                    if (loadedX < carrier.firstContact)
+                    {
+                        float relativeX = carrier.load.transform.parent == carrier.hanger ? loadedX - x : loadedX;
+                        carrier.load.transform.localPosition = Vector3.right * relativeX;
+                    }
+                    Show(carrier.load, loadedX < carrier.firstContact);
+                    Feed(carrier, (loadedX - carrier.firstContact) / speed);
+                    continue;
+                }
+                // Older scenes have a single intact falling load.
                 float dropTime = Mathf.Max(0f, loadedX - cutAt) / speed;
                 bool visible = dropTime < DropSeconds;
                 if (visible)
@@ -142,6 +173,43 @@ namespace CurtainCall.EscapeRoute
                     if (load.localPosition != position) load.localPosition = position;
                 }
                 if (carrier.load.activeSelf != visible) carrier.load.SetActive(visible);
+            }
+        }
+
+        static void Show(GameObject visual, bool show)
+        {
+            if (visual.activeSelf != show) visual.SetActive(show);
+        }
+
+        void Feed(Carrier carrier, float sinceCut)
+        {
+            var pieces = carrier.pieces;
+            bool feeding = sinceCut >= 0 && sinceCut < FeedSeconds + (pieces.Length - 1) * PieceDelay;
+            Show(carrier.separated.gameObject, feeding);
+            if (!feeding) return;
+
+            for (int i = 0; i < pieces.Length; i++)
+            {
+                var piece = pieces[i];
+                var part = piece.renderer.transform;
+                float progress = Mathf.Clamp01((sinceCut - i * PieceDelay) / FeedSeconds);
+                bool inside = progress >= 1f;
+                if (piece.renderer.enabled == inside) piece.renderer.enabled = !inside;
+                if (inside) continue;
+
+                Vector3 start = piece.hangingCenter;
+                // Preserve each body's left/right ordering while it tumbles into the open throat.
+                Vector3 target = intake - Vector3.right * carrier.firstContact;
+                target.x += Mathf.Clamp(start.x * .4f, -.55f, .55f);
+                target.z += Mathf.Clamp(start.z * .7f, -.35f, .35f);
+                float drift = Mathf.Sin(progress * Mathf.PI);
+                Vector3 position = Vector3.Lerp(start, target, Mathf.SmoothStep(0, 1, progress));
+                position.x += Mathf.Clamp(start.x * .52f, -.68f, .68f) * drift;
+                position.z += (i % 2 == 0 ? .35f : -.35f) * drift;
+                position.y = Mathf.Lerp(start.y, target.y, progress * progress);
+                part.localPosition = position;
+                float turn = progress * (i % 2 == 0 ? 126f : -105f);
+                part.localRotation = Quaternion.Euler(turn * .36f, turn * .23f, turn);
             }
         }
     }
