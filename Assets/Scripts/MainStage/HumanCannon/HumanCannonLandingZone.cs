@@ -40,5 +40,28 @@ namespace CurtainCall.HumanCannon
                 if (zone != null && zone.SupportsLanding(feet)) return true;
             return false;
         }
+
+        /// <summary>대포 아래 착지판. 한 플랫폼에 대포가 여러 개 있어도 같은 Zone을 돌려준다.</summary>
+        public static HumanCannonLandingZone PlatformBelow(Vector3 point)
+        {
+            HumanCannonLandingZone best = null;
+            float nearest = float.PositiveInfinity;
+            foreach (var zone in zones)
+            {
+                if (zone == null || !zone.isActiveAndEnabled) continue;
+                Check(zone, zone.surface);
+                foreach (var tile in zone.additionalSurfaces) Check(zone, tile);
+            }
+            return best;
+
+            void Check(HumanCannonLandingZone zone, BoxCollider tile)
+            {
+                if (tile == null) return;
+                var feet = new Vector3(point.x, tile.bounds.max.y, point.z);
+                float gap = point.y - feet.y;
+                if (gap < -HeightTolerance || gap >= nearest || !Supports(tile, feet)) return;
+                best = zone; nearest = gap;
+            }
+        }
     }
 }

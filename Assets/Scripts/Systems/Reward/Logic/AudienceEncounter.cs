@@ -6,11 +6,13 @@ namespace CurtainCall.Reward
         bool approached, resolved, close, damaged, stacked, changedLane;
         int initialParts;
         public bool Sample(float signedDistance, float approach, float clearance, int parts,
-            bool touching, bool near, bool inStack, bool leftLane)
+            bool touching, bool near, bool inStack, bool leftLane, bool allowNearClear = false)
         {
             if (resolved) return false;
             if (!approached)
             {
+                // 처음 관찰할 때 이미 지나간 지역은 돌아와도 보상하지 않는다.
+                if (signedDistance >= clearance) { resolved = true; return false; }
                 if (signedDistance >= 0 || signedDistance < -approach) return false;
                 approached = true;
                 initialParts = parts;
@@ -19,7 +21,7 @@ namespace CurtainCall.Reward
             close |= near;
             if (signedDistance <= clearance) stacked |= inStack;
             changedLane |= leftLane;
-            if (signedDistance < clearance) return false;
+            if (signedDistance < clearance && !(allowNearClear && close && !near)) return false;
             resolved = true;
             return !damaged;
         }

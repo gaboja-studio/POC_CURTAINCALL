@@ -5,6 +5,90 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
 {
     public class CannonLandingTests
     {
+        [TestCase(1, 5, 10)]
+        [TestCase(2, 5, 8)]
+        [TestCase(3, 5, 5)]
+        [TestCase(1, 10, 20)]
+        [TestCase(2, 10, 15)]
+        [TestCase(3, 10, 10)]
+        [TestCase(2, 15, 23)]
+        [TestCase(1, -15, -15)]
+        [TestCase(2, -10, -10)]
+        [TestCase(3, 0, 0)]
+        [TestCase(0, 5, 5)]
+        public void TierCheerMultipliersRoundPositiveReactionsAndPreserveJeers(int tier, int amount, int expected)
+        {
+            var settings = ScriptableObject.CreateInstance<CurtainCall.Settings.AudienceReactionSettings>();
+            try { Assert.AreEqual(expected, settings.ScaleReaction(amount, tier)); }
+            finally { Object.DestroyImmediate(settings); }
+        }
+
+        [Test]
+        public void TierCheerMultipliersCanBeTunedAndCannotOverflow()
+        {
+            var settings = ScriptableObject.CreateInstance<CurtainCall.Settings.AudienceReactionSettings>();
+            try
+            {
+                settings.difficultyOneCheerMultiplier = 0f;
+                Assert.AreEqual(0, settings.ScaleReaction(10, 1));
+                settings.difficultyOneCheerMultiplier = 3f;
+                Assert.AreEqual(30, settings.ScaleReaction(10, 1));
+                Assert.AreEqual(int.MaxValue, settings.ScaleReaction(int.MaxValue, 1));
+                settings.difficultyOneCheerMultiplier = float.NaN;
+                Assert.AreEqual(10, settings.ScaleReaction(10, 1));
+            }
+            finally { Object.DestroyImmediate(settings); }
+        }
+
+        [TestCase(79.99f, false)]
+        [TestCase(80f, true)]
+        [TestCase(100f, true)]
+        [TestCase(110f, true)]
+        public void CompletionThresholdIncludesExactlyEightyPercent(float distance, bool expected)
+        {
+            var settings = CurtainCall.Settings.AudienceReactionSettings.Current;
+            Assert.IsNotNull(settings);
+            float previous = settings.completionProgress;
+            try
+            {
+                settings.completionProgress = .8f;
+                Assert.AreEqual(expected, CurtainCall.Settings.AudienceReactionSettings.HasCompletionProgress(distance, 100f));
+                Assert.IsFalse(CurtainCall.Settings.AudienceReactionSettings.HasCompletionProgress(distance, 0f));
+                Assert.IsFalse(CurtainCall.Settings.AudienceReactionSettings.HasCompletionProgress(float.NaN, 100f));
+                settings.completionProgress = .9f;
+                Assert.IsFalse(CurtainCall.Settings.AudienceReactionSettings.HasCompletionProgress(80f, 100f));
+            }
+            finally { settings.completionProgress = previous; }
+        }
+
+        [Test]
+        public void CannonsOnOnePlatformResolveTheSameSurfaceAndRespectUpperDeck()
+        {
+            var root = new GameObject("Platform fixture");
+            try
+            {
+                HumanCannonLandingZone Make(string name, float height)
+                {
+                    var tile = new GameObject(name); tile.transform.SetParent(root.transform);
+                    tile.transform.position = new Vector3(12000, height - .25f, 12000);
+                    tile.AddComponent<BoxCollider>().size = new Vector3(12, .5f, 12);
+                    var zone = tile.AddComponent<HumanCannonLandingZone>();
+                    typeof(HumanCannonLandingZone).GetMethod("OnEnable", System.Reflection.BindingFlags.Instance
+                        | System.Reflection.BindingFlags.NonPublic).Invoke(zone, null);
+                    return zone;
+                }
+                var lower = Make("Lower", 0f);
+                var upper = Make("Upper", 5f);
+                Physics.SyncTransforms();
+                Assert.AreSame(upper, HumanCannonLandingZone.PlatformBelow(new Vector3(11998, 5f, 12000)));
+                Assert.AreSame(upper, HumanCannonLandingZone.PlatformBelow(new Vector3(12002, 5f, 12000)));
+                Assert.AreSame(lower, HumanCannonLandingZone.PlatformBelow(new Vector3(12000, 1f, 12000)));
+                upper.GetComponent<BoxCollider>().isTrigger = true;
+                Assert.AreSame(lower, HumanCannonLandingZone.PlatformBelow(new Vector3(12000, 5f, 12000)));
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+
         [Test]
         public void TopAndSkinOffset_AreSafe()
         {

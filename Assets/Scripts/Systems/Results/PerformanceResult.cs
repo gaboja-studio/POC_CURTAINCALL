@@ -43,7 +43,7 @@ namespace CurtainCall.Results
         public long Segment { get; }
         /// <summary>지급 토큰. 생존 = 호응×2 + 완주 보너스, 사망 = 호응×½×2(= 호응), 이탈 = 0.</summary>
         public long Settlement { get; }
-        /// <summary>실제 도착자만 받는 완주 보너스. <see cref="Settlement"/>에 포함되어 있다.</summary>
+        /// <summary>완주 인정자(실제 도착 또는 종료 시 진행률 기준 충족)의 보너스. <see cref="Settlement"/>에 포함되어 있다.</summary>
         public long CompletionBonus { get; }
         public bool Arrived => CompletionBonus > 0;
         public double? MaximumDistance { get; }
@@ -96,7 +96,7 @@ namespace CurtainCall.Results
         public long Income { get; }
         /// <summary>호응 보상 합계(생존 호응×2 + 사망 호응).</summary>
         public long CheerReward { get; }
-        /// <summary>실제 도착자 완주 보너스 합계.</summary>
+        /// <summary>완주 인정자 보너스 합계.</summary>
         public long CompletionReward { get; }
         public double? ElapsedSeconds { get; }
         public double? CourseLength { get; }

@@ -32,6 +32,7 @@ namespace CurtainCall.Tightrope
             public double FlightUntil, Expires;
         }
         public static TightropeSwingPole Current { get; private set; }
+        public static event System.Action<ulong, TightropeSwingPole> ServerCrossed;
         public float AirControlSpeed => physicalPole != null ? physicalPole.AirControlSpeed : 0f;
         public float LandingDistance => next != null ? next.EntryDistance : GapTo + SwingPoleMath.ExitOffset;
         bool OwnOccupied => Active && mode == PoleMode.Holding;
@@ -191,6 +192,9 @@ namespace CurtainCall.Tightrope
             ulong actor = player.OwnerClientId;
             pendingLandings.Remove(actor); flights.Remove(actor);
             TightropeLandingWaves.Current?.RegisterExternalLanding(player);
+            if (course.GetDistance(player.transform.position) >= GapTo && ServerCrossed != null)
+                foreach (System.Action<ulong, TightropeSwingPole> observer in ServerCrossed.GetInvocationList())
+                    try { observer(actor, this); } catch (System.Exception error) { Debug.LogException(error); }
             return true;
         }
 

@@ -115,7 +115,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.That((float)Get(balance, "laneLandingReduction"), Is.EqualTo(reduction).Within(.0001f));
                 yield return Until(() => !(bool)Get(mover, "IsAirborne"), 3f, "받아주기 실제 착지");
                 yield return Until(() => (float)Call(catches, "SuccessRemaining", player) > 0, 1f, "호스트가 장갑 받기를 확정");
-                Assert.AreEqual(beforeCatch + 10, LocalAudienceAmount(), "동료 받기는 실제 착지 성공 때 협동 환호를 지급한다.");
+                var audienceSettings = Static("CurtainCall.Settings.AudienceReactionSettings", "Current");
+                int cheer = (int)Call(audienceSettings, "ScaleReaction", Get(audienceSettings, "cooperation"), Get(rewards, "Difficulty"));
+                Assert.AreEqual(beforeCatch + cheer, LocalAudienceAmount(), "동료 받기는 실제 착지 성공 때 현재 단계의 협동 환호를 지급한다.");
                 Assert.That(Mathf.Abs((float)Get(balance, "LastShock")),
                     Is.EqualTo((float)Get(settings, "LaneLandingShock") * (1f - reduction)).Within(.001f));
                 Assert.That((float)Get(balance, "LaneBoostMultiplier"),
