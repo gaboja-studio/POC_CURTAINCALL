@@ -10,7 +10,8 @@ using UnityEngine;
 
 namespace CurtainCall.HumanCannon
 {
-    public enum CannonBotRole : byte { Carrier, Flyer }
+    /// <summary>LiftJumper·LiftBouncer는 출발 승강기 동승 악용 회귀 검사 전용이며 HUD에 노출하지 않는다.</summary>
+    public enum CannonBotRole : byte { Carrier, Flyer, LiftJumper, LiftBouncer }
 
     /// <summary>인간대포 테스트 씬에서만 쓰는 로컬 LAN 봇 한 명의 실행·역할 제어.</summary>
     public sealed class HumanCannonPracticeBot : MonoBehaviour

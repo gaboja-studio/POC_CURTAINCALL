@@ -67,13 +67,14 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var poles = All<HumanCannonPole>();
             // Task-044 exception.md(2026-10-22): 지상 장애물/전기톱 벽 외 공중 장애물 제거.
             Assert.That(poleSaws, Is.Empty, "삭제한 봉 왕복 톱은 비활성 사본도 남기지 않는다.");
-            Assert.That(hazards, Has.Length.EqualTo(12));
+            // 2026-11-04 사용자 결정: X자 두 곳의 교차점을 지나는 수평 톱 2개 추가(12 → 14).
+            Assert.That(hazards, Has.Length.EqualTo(14));
             Assert.That(hazards, Has.All.Not.Null);
             CollectionAssert.AllItemsAreUnique(hazards);
             CollectionAssert.AreEquivalent(All<HumanCannonHazard>(), hazards);
             Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.SpikeMace), Is.Zero);
             Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.RotatingBlades), Is.Zero);
-            Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.GroundSaw), Is.EqualTo(12));
+            Assert.That(hazards.Count(h => h.Kind == CannonHazardKind.GroundSaw), Is.EqualTo(14));
             Assert.That(poles, Has.Length.EqualTo(4));
             foreach (var pole in poles)
                 Assert.That(pole.HoldSeconds, Is.EqualTo(pole.LinkedGate != null ? 40f : 0f), pole.name);
@@ -81,8 +82,11 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             {
                 Assert.That(Field<Transform>(hazard, "visual"), Is.Not.Null, hazard.name);
                 Assert.That(hazard.Radius, Is.GreaterThan(0), hazard.name);
-                Assert.That(hazard.enabled && hazard.gameObject.activeInHierarchy, Is.True, hazard.name);
+                // 2026-11-04 사용자 결정: 톱 밀도로 플레이 중 꺼지는 톱은 씬에서도 숨긴다(플레이와 같은 9개만 보인다).
+                Assert.That(hazard.enabled && hazard.gameObject.activeInHierarchy,
+                    Is.EqualTo(course.IsHazardEnabled(System.Array.IndexOf(hazards, hazard))), hazard.name);
             }
+            Assert.That(hazards.Count(h => h.gameObject.activeInHierarchy), Is.EqualTo(11));
         }
 
         [Test]
@@ -167,7 +171,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var settings = GameSettings.HumanCannon;
             Assert.That(settings.SawDensity, Is.EqualTo(.6f));
             var course = All<HumanCannonHazardCourse>().Single();
-            Assert.That(course.HazardCount, Is.EqualTo(12));
+            Assert.That(course.HazardCount, Is.EqualTo(14));
             Assert.That(All<HumanCannonPoleSaw>(), Is.Empty);
             int ground = 0, authored = 0;
             for (int i = 0; i < course.HazardCount; i++)
@@ -177,14 +181,16 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.That(hazard.Kind, Is.EqualTo(CannonHazardKind.GroundSaw), hazard.name);
                 if (hazard.UsesAuthoredPath)
                 {
-                    // 1구간 첫 톱벽 앞 3개는 직접 그린 레일로 항상 켜져 있다.
+                    // 직접 그린 경로(1구간 첫 톱벽 앞 3개 + 수평 4·5번)는 항상 켜져 있다.
                     Assert.That(course.IsHazardEnabled(i), Is.True, hazard.name);
                     authored++;
                 }
                 else if (course.IsHazardEnabled(i)) ground++;
             }
-            Assert.That(authored, Is.EqualTo(3));
-            Assert.That(ground, Is.EqualTo(6));
+            // 2026-11-04 사용자 결정: 4·5번(GroundSaw1B·1BExtra) 평행 경로, 6·7번(GroundSaw2C·2D)·8·9번(GroundSaw2A·2BExtra) X자 경로를
+            // 직접 작성한다(3 → 9), X자 교차점 수평 톱 2개 추가(→ 11). 켜진 톱 11개 모두 작성 경로이며 공용 대각선을 쓰는 켜진 톱은 없다.
+            Assert.That(authored, Is.EqualTo(11));
+            Assert.That(ground, Is.EqualTo(0));
         }
 
         T[] All<T>() where T : Component => roots.SelectMany(root => root.GetComponentsInChildren<T>(true)).ToArray();

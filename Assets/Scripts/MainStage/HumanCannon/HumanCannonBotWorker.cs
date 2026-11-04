@@ -75,7 +75,7 @@ namespace CurtainCall.HumanCannon
             if (sender != NetworkManager.ServerClientId || reader.Length - reader.Position != 1) return;
             reader.ReadValueSafe(out byte command);
             if (command == 255) { assigned = false; StartCoroutine(Leave()); return; }
-            if (command > 1) return;
+            if (command > (byte)CannonBotRole.LiftBouncer) return;
             role = (CannonBotRole)command;
             assigned = true;
             brain?.Reset();
