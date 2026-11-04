@@ -118,6 +118,7 @@
 - 전체 회귀가 Task083의 다른 미리보기 PNG도 재생성했다. 기존 play-land/재질 변경과 함께 다른 Task 출력·외부 에셋 변경을 이번 커밋에서 제외해 보존한다. 남은 성능 범위는 추격자 보간·첫 로드/GC·그림자·정적 배칭 후보와 실제4PC/Relay·저사양·사람 경계 회피다.
 - 첫 최종 check-work는 새 결과 파일7개의 대문자 이름 때문에 문서/규칙 FAIL, 컴파일은 선행 실패로 SKIPPED였다. 해당 파일을 소문자 kebab 이름으로 정리했다. 검토에서 같은 씬 서버 시각 되감김의 샘플 예약/수신 하한 문제도 좁게 보완:1000→1초 합성 시각에서 새 형상 즉시 기록/옛 형상 거절 Gate Play1/1 PASS, 이후 현재 소스 컴파일 PASS. 정상4인 경로는 앞선 실측, 시각 경계 추가는 개별 회귀로 구분한다.
 - 보완 후 최종 check-work 안전성/문서규칙/Unity컴파일 PASS, 테스트는 위 별도 결과 재사용. 미저장 씬0 확인·재개 때의 Start 씬으로 복원 후 작업 Editor만 정상 종료. 최종 fetch origin/dev8b8910da, Already up to date/충돌0. 폰트/라벨 자동 캐시 변경은 종료 후 사라졌고 TightropeCourse.prefab/GraphicsSettings diff0. 기존3재질·Task083 미리보기·private 에셋 변경은 보존하고 커밋 제외한다.
+- 구현·회귀·원본 기록 ef06f889 커밋/작업 브랜치 push 완료. dev 드래프트 PR279 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/279 설명/제목 갱신·원격 head ef06f889 확인. GitHub 연결 도구 수정은403(Resource not accessible by integration)으로 실패해 gh 로그인 MoHoDu로 정상 갱신했다. PR280은 이미 dev8b8910da에 병합됨. 기존 적재 치수 실패·출시/4PC/Relay·FPS/로딩 후속을 PR에 명시하고 draft 유지, 병합하지 않았다.
 
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
