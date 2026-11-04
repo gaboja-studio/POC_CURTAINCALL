@@ -78,3 +78,6 @@
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(선행 실패·생략)
 
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/293 (fix/pursuit/four-player-perf → dev)
+- 전체33파일을40d34849로 MoHoDu 작성자 커밋/작업 브랜치 push 완료, LFS14개7.6MB 업로드. 제출 직전 Fast OK/공백 검사 PASS(새 보관 문서 끝 빈 줄1개 정리), private HEAD6d3fd381/clean. 새 PR293을 일반 검토 상태로 생성했으며 Unity ENV_BLOCKED/실기 미검증을 본문에 명시. 링크·완료 기록도 후속 문서 커밋으로 저장한다.

@@ -71,4 +71,4 @@
 - [ ] Unity 컴파일·EditMode/PlayMode 및 실제 화면 확인 (에디터 환경 필요)
 - [x] 후속 수정 최종 check-work·결과 기록 (안전성/문서규칙 PASS, 컴파일 ENV_BLOCKED·Unity PlayMode SKIPPED)
 - [x] 설정 한글 안내 수정 최종 check-work·기록 (안전성/문서규칙 PASS, 컴파일 ENV_BLOCKED·실제 표시 미검증)
-- [ ] 사용자 요청한 전체 변경 commit/push·새 dev PR 및 링크 기록
+- [x] 사용자 요청한 전체 변경 commit/push·새 dev PR 및 링크 기록 (40d34849, PR293)
