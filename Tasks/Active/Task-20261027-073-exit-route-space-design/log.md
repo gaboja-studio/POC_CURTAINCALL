@@ -114,3 +114,5 @@
 - A 1인 Play에서 실제 4개 지지면, 56개 렌더러와 4개 전류를 관찰했다. 4.01·4.69·5.34초 동시 점등, 6.02초 렌더와 충돌 모두 0, 9.01초 4개 지지면과 56개 렌더 복원. 협동 외줄 EditMode 15/15. 편집기 미리보기 .harness/local/four-wire-warning/flash.jpg.
 
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-04 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/283 (feat/exit-route/design-map → dev)
