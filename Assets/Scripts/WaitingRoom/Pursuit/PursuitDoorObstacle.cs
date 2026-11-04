@@ -18,9 +18,17 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void LateUpdate()
         {
             if (obstacle == null || Source == null) return;
-            obstacle.enabled = Source.enabled && Source.gameObject.activeInHierarchy;
-            if (Source is BoxCollider box) { obstacle.center = box.center; obstacle.size = box.size; }
-            else { obstacle.center = transform.InverseTransformPoint(Source.bounds.center); obstacle.size = Source.bounds.size; }
+            bool blocking = Source.enabled && Source.gameObject.activeInHierarchy;
+            bool changed = false;
+            if (obstacle.enabled != blocking) { obstacle.enabled = blocking; changed = true; }
+            Vector3 center, size;
+            if (Source is BoxCollider box) { center = box.center; size = box.size; }
+            else { center = transform.InverseTransformPoint(Source.bounds.center); size = Source.bounds.size; }
+            // 같은 값을 매 프레임 다시 넣으면 NavMesh를 계속 다시 깎아 추격자 경로가 무효화된다. 바뀐 때만 반영한다.
+            if ((obstacle.center - center).sqrMagnitude > .0001f) { obstacle.center = center; changed = true; }
+            if ((obstacle.size - size).sqrMagnitude > .0001f) { obstacle.size = size; changed = true; }
+            // 문이 잠기거나 열린 때만 추격자들이 고정 목표 경로를 다시 계산한다.
+            if (changed) PursuitNavigation.Invalidate();
         }
     }
 }

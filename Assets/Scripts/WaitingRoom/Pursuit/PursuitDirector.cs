@@ -245,6 +245,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public GameObject NearestVisible(PursuitActor actor, PursuitStage rule)
         {
             if (!PlayerRecognitionEnabled || actor == null || !actor.IsActivated) return null;
+            if (rule.AlwaysNearest) return NearestByPath(actor, rule);
             GameObject closest = null; float distance = float.PositiveInfinity;
             foreach (var player in candidates) {
                 if (!IsAvailable(player) || (!actor.Room.RoamAcrossRooms && !actor.Room.Contains(player.transform.position))) continue;
@@ -252,8 +253,29 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 var delta = player.transform.position - actor.transform.position;
                 float d = delta.sqrMagnitude;
                 if (d >= distance) continue;
-                if (!rule.AlwaysNearest && (d > rule.SightRadius * rule.SightRadius || Vector3.Angle(actor.transform.forward, delta) > rule.FieldOfView * .5f)) continue;
-                if (!rule.SeeThroughWalls && !rule.AlwaysNearest && !ClearLine(actor.transform.position + Vector3.up * 1.5f, player.transform.position + Vector3.up, player.transform)) continue;
+                if (d > rule.SightRadius * rule.SightRadius || Vector3.Angle(actor.transform.forward, delta) > rule.FieldOfView * .5f) continue;
+                if (!rule.SeeThroughWalls && !ClearLine(actor.transform.position + Vector3.up * 1.5f, player.transform.position + Vector3.up, player.transform)) continue;
+                distance = d; closest = player;
+            }
+            return closest;
+        }
+        readonly List<(float straight, GameObject player)> nearestOrder = new();
+        // 최인접 추격은 벽 너머 직선 거리가 아니라 실제로 달려갈 NavMesh 경로 거리로 고른다.
+        // 직선 거리는 경로 길이의 하한이므로 가까운 순으로 보고, 이미 찾은 경로보다 직선이 먼 대상은 계산하지 않는다.
+        GameObject NearestByPath(PursuitActor actor, PursuitStage rule)
+        {
+            nearestOrder.Clear();
+            foreach (var player in candidates) {
+                if (!IsAvailable(player) || (!actor.Room.RoamAcrossRooms && !actor.Room.Contains(player.transform.position))) continue;
+                if (!actor.WithinPatrolLeash(player.transform.position, rule)) continue;
+                nearestOrder.Add((Vector3.Distance(player.transform.position, actor.transform.position), player));
+            }
+            nearestOrder.Sort((a, b) => a.straight.CompareTo(b.straight));
+            GameObject closest = null; float distance = float.PositiveInfinity;
+            foreach (var (straight, player) in nearestOrder) {
+                if (straight >= distance) break;
+                float d = actor.PathCost(player);
+                if (d >= distance) continue;
                 distance = d; closest = player;
             }
             return closest;

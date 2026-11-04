@@ -29,6 +29,7 @@
 
 - [session-join-cancelled.md](session-join-cancelled.md) — 방 코드·LAN 참가의 취소 예외와 제한시간·취소 원인 로그를 확인할 때
 - [relay-stall-disconnect.md](relay-stall-disconnect.md) — 씬 전환 중 "[TransportShutdown] NetworkConnectionManager was shutdown"으로 튕길 때(메인 스레드 10초 정지 → Relay 할당 만료)
+- [navmesh-agent-path-pending.md](navmesh-agent-path-pending.md) — 추격자 등 NavMeshAgent가 벽 앞·빈 곳에서 걷는 동작만 하며 멈춰 있을 때
 
 이 POC·이 개발 환경에서 겪은 함정. 상황에 맞는 파일 1개만 연다.
 
