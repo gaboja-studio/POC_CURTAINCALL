@@ -11,45 +11,33 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
     public sealed partial class TightropeCampaignPlayTests
     {
         [UnityTest]
-        public IEnumerator ActiveCatchFTogglesAndMoveJumpExpiryAndResetCancelReadiness()
+        public IEnumerator ManualCatchInputAndLegacyRequestsStayDisabledAcrossRestart()
         {
             yield return BeginPerformance();
             yield return StandOnRopeForSawTest(1, 4f);
             var catches = (Component)Static("CurtainCall.Tightrope.TightropeCatchSystem", "Current");
             Assert.IsNotNull(catches);
-            var settings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Handhold");
-            float originalSeconds = (float)Get(settings, "ReadySeconds");
             var scheme = ScriptableObject.CreateInstance(GameType("CurtainCall.Player.TightropeControlScheme"));
             var context = Activator.CreateInstance(GameType("CurtainCall.Player.PlayerControlContext"), new object[] { player.gameObject });
             try
             {
                 Call(scheme, "Tick", context, CatchFrame(tap: true));
-                Assert.That((float)Get(catches, "LocalReadyRemaining"), Is.GreaterThan(0f), "F는 빈 자리에서 받기 준비를 시작한다.");
+                Assert.That((float)Get(catches, "LocalReadyRemaining"), Is.Zero, "빈 자리 F는 폐기된 수동 준비를 켜지 않는다.");
                 Call(scheme, "Tick", context, CatchFrame(tap: true));
                 Assert.That((float)Get(catches, "LocalReadyRemaining"), Is.Zero, "F를 다시 누르면 취소한다.");
 
-                yield return new WaitForSeconds(.25f); // 재입력 제한 뒤 실제 F 경로를 다시 사용한다.
-                Call(scheme, "Tick", context, CatchFrame(tap: true));
-                Assert.That((float)Get(catches, "LocalReadyRemaining"), Is.GreaterThan(0f));
+                var request = catches.GetType().GetNestedType("Request", BindingFlags.NonPublic);
+                Call(catches, "ServerHandle", (ulong)Get(player, "OwnerClientId"), Enum.Parse(request, "Prepare"), 0UL);
+                Assert.That((float)Get(catches, "LocalReadyRemaining"), Is.Zero, "옛 클라이언트의 준비 요청도 거절한다.");
                 Call(scheme, "Tick", context, CatchFrame(move: 1f));
                 Assert.That((float)Get(catches, "LocalReadyRemaining"), Is.Zero, "W 입력이 준비를 취소한다.");
                 Call(scheme, "Tick", context, CatchFrame());
 
-                yield return new WaitForSeconds(.25f);
-                Call(scheme, "Tick", context, CatchFrame(tap: true));
-                Assert.That((float)Get(catches, "LocalReadyRemaining"), Is.GreaterThan(0f));
                 Call(scheme, "Tick", context, CatchFrame(jump: true));
                 Assert.That((float)Get(catches, "LocalReadyRemaining"), Is.Zero, "Space 입력이 준비를 취소한다.");
                 yield return Until(() => (bool)Get(mover, "IsAirborne"), 2f, "취소 후 실제 점프");
                 yield return Until(() => !(bool)Get(mover, "IsAirborne"), 3f, "준비 취소 검사 착지");
 
-                Set(settings, "readySeconds", .3f);
-                Call(scheme, "Tick", context, CatchFrame(tap: true));
-                Assert.That((float)Get(catches, "LocalReadyRemaining"), Is.GreaterThan(0f));
-                yield return Until(() => (float)Get(catches, "LocalReadyRemaining") == 0f, 2f, "준비 시간 만료");
-                Set(settings, "readySeconds", originalSeconds);
-                Call(scheme, "Tick", context, CatchFrame(tap: true));
-                Assert.That((float)Get(catches, "LocalReadyRemaining"), Is.GreaterThan(0f));
                 int oldRound = (int)Get(run, "Round");
                 var hud = Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
                 Assert.IsTrue((bool)Call(hud, "RestartCourseByHost"));
@@ -59,14 +47,13 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             }
             finally
             {
-                Set(settings, "readySeconds", originalSeconds);
                 Call(scheme, "Exit", context);
                 Object.Destroy(scheme);
             }
         }
 
         [UnityTest]
-        public IEnumerator ActiveCatchTwoSpawnedPlayersReduceLandingShockWithoutAutomaticMount()
+        public IEnumerator RescueGlovesTwoSpawnedPlayersReduceLandingShockWithoutAutomaticMount()
         {
             yield return BeginPerformance();
             yield return StandOnRopeForSawTest(1, 4f);
@@ -90,7 +77,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.IsTrue((bool)Get(helper, "IsSpawned"));
                 Assert.IsFalse((bool)Get(helper, "IsLocal"));
                 Assert.AreSame(player, Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local"));
-                var destination = (Vector3)Call(course, "GetLanePosition", 2, 4f);
+                // Outside passive handhold's 1m, inside the glove's 2m: exercise the item effect itself.
+                var destination = (Vector3)Call(course, "GetLanePosition", 2, 5.5f);
                 Call(helperMover, "SetStartPose", destination, Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
                 // Feed a stationary owner snapshot through NGO's receive path. A transform-only
                 // teleport would be overwritten next frame by the original spawn snapshot.
@@ -98,20 +86,22 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Call(replica, "SetStateInternal", destination, helper.transform.rotation, helper.transform.localScale, true);
                 Set(replica, "InboundState", Get(replica, "OutboundState"));
                 Call(replica, "TransformStateUpdate");
+                ((IDictionary)Get(run, "placedPlayers"))[helper] = (int)Get(helper, "RestartVersion");
+                Call(instance.GetComponent(GameType("CurtainCall.Player.PlayerBalance")), "SetDisplayedState", true, 0f);
                 Physics.SyncTransforms();
                 yield return null;
                 var request = catches.GetType().GetNestedType("Request", BindingFlags.NonPublic);
                 Assert.That(Vector3.Distance(helper.transform.position, destination), Is.LessThan(.01f), "합성 소유자 위치가 NGO 수신 경로에서도 유지되어야 한다.");
-                Call(catches, "ServerHandle", 777UL, Enum.Parse(request, "Prepare"), 0UL);
-                Assert.IsTrue((bool)Call(catches, "IsReady", helper), "실제 줄 위 동료가 받을 준비를 한다.");
-                Assert.That((float)Get(catches, "CatchReduction"), Is.EqualTo(.9f).Within(.0001f));
+                GiveCatchGloves(helper);
+                Assert.IsTrue((bool)Call(catches, "IsGloveCatcher", helper), "구조 장갑을 가진 줄 위 동료만 자동으로 받아준다.");
+                float reduction = (float)Get(catches, "CatchReduction");
+                Assert.That(reduction, Is.EqualTo(.3f).Within(.0001f));
                 object[] activeRange = { helper, 0, 0f, 0f };
-                Assert.IsTrue((bool)Call(catches, "TryGetCatchRange", activeRange));
-                Assert.That((float)activeRange[3] - (float)activeRange[2], Is.EqualTo(2.5f).Within(.01f), "준비 띠는 실제 능동 받기 범위를 표시한다.");
+                Assert.IsFalse((bool)Call(catches, "TryGetCatchRange", activeRange), "자동 장비가 수동 준비 띠를 만들지 않는다.");
                 yield return null;
                 yield return null;
                 var poseView = catches.GetComponent(GameType("CurtainCall.Tightrope.TightropeCatchPoseView"));
-                Assert.That((int)Get(poseView, "PosedPlayerCount"), Is.GreaterThan(0), "원격 동료의 남은 팔로 받기 자세를 표시한다.");
+                Assert.That((int)Get(poseView, "PosedPlayerCount"), Is.Zero, "성공 전에는 폐기된 수동 준비 자세를 표시하지 않는다.");
                 if (System.IO.File.Exists(".harness/local/tightrope-feedback-capture"))
                 {
                     ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/tightrope-ready.png"));
@@ -122,14 +112,14 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Call(mover, "SetMoveInput", 0f);
                 Call(mover, "RequestLaneJump", 1);
                 yield return Until(() => (bool)Get(mover, "IsAirborne"), 2f, "받기 준비 동료 쪽으로 실제 옆줄 점프");
-                Assert.That((float)Get(balance, "laneLandingReduction"), Is.EqualTo(.9f).Within(.0001f));
+                Assert.That((float)Get(balance, "laneLandingReduction"), Is.EqualTo(reduction).Within(.0001f));
                 yield return Until(() => !(bool)Get(mover, "IsAirborne"), 3f, "받아주기 실제 착지");
-                yield return Until(() => !(bool)Call(catches, "IsReady", helper), 1f, "호스트가 한 번의 받기를 확정");
+                yield return Until(() => (float)Call(catches, "SuccessRemaining", player) > 0, 1f, "호스트가 장갑 받기를 확정");
                 Assert.AreEqual(beforeCatch + 10, LocalAudienceAmount(), "동료 받기는 실제 착지 성공 때 협동 환호를 지급한다.");
                 Assert.That(Mathf.Abs((float)Get(balance, "LastShock")),
-                    Is.EqualTo((float)Get(settings, "LaneLandingShock") * .1f).Within(.001f));
+                    Is.EqualTo((float)Get(settings, "LaneLandingShock") * (1f - reduction)).Within(.001f));
                 Assert.That((float)Get(balance, "LaneBoostMultiplier"),
-                    Is.EqualTo(1f + ((float)Get(settings, "LaneSwayBoost") - 1f) * .1f).Within(.001f));
+                    Is.EqualTo(1f + ((float)Get(settings, "LaneSwayBoost") - 1f) * (1f - reduction)).Within(.001f));
                 Assert.IsFalse(InStack(player), "받아주기는 자동 목마 합체와 다르다.");
                 Assert.IsFalse(InStack(helper));
                 StringAssert.Contains("받아줬어요", (string)Get(catches, "LocalFeedback"));
@@ -142,8 +132,18 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 }
                 Assert.AreEqual("Normal", Get(player, "State").ToString());
 
-                Call(scheme, "Tick", context, CatchFrame(tap: true));
-                yield return Until(() => InStack(player), 2f, "가까운 동료에게 F를 누르면 기존 목마 연결");
+                Call(mover, "SetStartPose", helper.transform.position - (Vector3)Get(course, "Forward") * .5f,
+                    Quaternion.LookRotation((Vector3)Get(course, "Forward")), true);
+                yield return Until(() => !(bool)Get(player, "IsAirborne") && ((CharacterController)Get(mover, "Body")).isGrounded,
+                    2f, "목마 요청 전 접지 동기화");
+                // Cursor/interaction targeting is covered by its own tests. Exercise the explicit validated mount request here.
+                // The synthetic owner has no process to send balanceActive; apply its received display state at this boundary.
+                Call(instance.GetComponent(GameType("CurtainCall.Player.PlayerBalance")), "SetDisplayedState", true, 0f);
+                Assert.IsTrue((bool)Call(course, "UsesRopeRules", player));
+                Assert.IsTrue((bool)Call(course, "UsesRopeRules", helper));
+                Assert.IsNotNull(Call(stack, "FindMountTarget", player));
+                StringAssert.StartsWith("연결:", (string)Call(stack, "ServerTryLink", (ulong)Get(player, "OwnerClientId")));
+                Assert.IsTrue(InStack(player));
                 Assert.AreSame(helper, Call(stack, "GetBelow", player));
             }
             finally
@@ -165,6 +165,15 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             Set(frame, "Move", move);
             Set(frame, "ActionPressed", jump);
             return frame;
+        }
+
+        Component catchEquipmentFixture;
+        void GiveCatchGloves(Component owner)
+        {
+            var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance") as Component;
+            if (carry == null) carry = catchEquipmentFixture = new GameObject("Catch equipment fixture").AddComponent(GameType("CurtainCall.WaitingRoom.PropCarry"));
+            var item = Activator.CreateInstance(GameType("CurtainCall.WaitingRoom.PropItem"), 99001, "rescue-gloves", "rescue-gloves", 5);
+            Assert.AreEqual("None", Call(carry, "Receive", (ulong)Get(owner, "OwnerClientId"), item).ToString());
         }
     }
 }

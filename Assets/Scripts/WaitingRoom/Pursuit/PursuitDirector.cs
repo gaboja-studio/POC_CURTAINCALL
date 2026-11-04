@@ -258,10 +258,18 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             return closest;
         }
+        readonly RaycastHit[] sightHits = new RaycastHit[32];
         public bool ClearLine(Vector3 from, Vector3 to, Transform target)
         {
-            var hits = Physics.RaycastAll(from, to - from, Vector3.Distance(from, to), ~0, QueryTriggerInteraction.Ignore);
-            foreach (var hit in hits) {
+            var direction = to - from;
+            float distance = direction.magnitude;
+            int count = Physics.RaycastNonAlloc(from, direction, sightHits, distance, ~0, QueryTriggerInteraction.Ignore);
+            // A full buffer may omit an occluder: use the complete result in dense geometry.
+            var hits = count == sightHits.Length
+                ? Physics.RaycastAll(from, direction, distance, ~0, QueryTriggerInteraction.Ignore) : sightHits;
+            if (hits != sightHits) count = hits.Length;
+            for (int i = 0; i < count; i++) {
+                var hit = hits[i];
                 if (hit.transform == target || hit.transform.IsChildOf(target) || hit.transform.GetComponentInParent<PursuitActor>() != null) continue;
                 return false;
             }

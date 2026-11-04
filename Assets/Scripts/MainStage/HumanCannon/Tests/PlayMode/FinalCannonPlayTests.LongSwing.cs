@@ -87,7 +87,7 @@ namespace CurtainCall.HumanCannon.Tests
 
         [UnityTest]
 
-        public IEnumerator PoleHeldInput_ReturnsThroughCenterWithoutReleasingKey_AndRearmsAfterRestart()
+        public IEnumerator PoleHeldInput_ContinuousDriveReversesAndRearmsAfterRestart()
         {
             DisableEnhancementThreats();
             // 같은 W를 R 뒤 다시 눌러도 새 반동을 얻고, S도 대칭으로 돌아와야 한다.
@@ -98,7 +98,6 @@ namespace CurtainCall.HumanCannon.Tests
                 var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
                 var runtime = ((Array)Get(poles, "states")).GetValue(index);
                 float peak = 0f;
-                bool returnedThroughCenter = false;
                 double deadline = (double)Get(poles, "Clock") + 5;
                 while ((double)Get(poles, "Clock") < deadline)
                 {
@@ -107,11 +106,13 @@ namespace CurtainCall.HumanCannon.Tests
                     Assert.AreEqual(index, Get(pilot, "HeldPole"));
                     float angle = (float)Get(runtime, "Angle") * direction;
                     peak = Mathf.Max(peak, angle);
-                    if (peak >= 20f && angle < -2f) returnedThroughCenter = true;
                 }
-                TestContext.WriteLine($"Held {direction}: peak={peak}, returnedThroughCenter={returnedThroughCenter}");
                 Assert.That(peak, Is.GreaterThanOrEqualTo(40f), "처음 누른 반동의 넓이는 유지한다.");
-                Assert.IsTrue(returnedThroughCenter, "W/S를 계속 눌러도 끝각에 버티지 않고 중립을 지나 돌아와야 한다.");
+                float heldAngle = (float)Get(runtime, "Angle") * direction;
+                Assert.That(heldAngle, Is.GreaterThan(20f), "현행 연속 입력은 누르는 동안 반동을 유지한다.");
+                deadline = (double)Get(poles, "Clock") + 1.5;
+                while ((double)Get(poles, "Clock") < deadline) { PoleEnhancementInput(-direction); yield return null; }
+                Assert.That((float)Get(runtime, "Angle") * direction, Is.LessThan(heldAngle - 10f), "반대 입력이 실제 몸의 반동을 되돌린다.");
                 // 같은 프레임에 놓았다 다시 누르는 빠른 입력도 50ms 전송 제한에 삼켜지지 않는다.
                 PoleEnhancementInput(0);
                 PoleEnhancementInput(direction);
@@ -132,7 +133,7 @@ namespace CurtainCall.HumanCannon.Tests
         }
 
         [UnityTest, Category("PerformanceBalance")]
-        public IEnumerator LinkedPole_ForwardJumpAllowsImmediateReverseAndSideSteering_ThreeRestarts()
+        public IEnumerator LinkedPole_ForwardJumpPreservesMomentumWithSmoothCorrections_ThreeRestarts()
         {
             DisableEnhancementThreats();
             float limit = (float)Get(StaticGet("CurtainCall.Settings.GameSettings", "HumanCannon"), "PoleJumpHorizontalSpeedLimit");
@@ -140,6 +141,7 @@ namespace CurtainCall.HumanCannon.Tests
             var reverseSpeeds = new float[3];
             var forwardSpeeds = new float[3];
             var lateralDrift = new float[3];
+            var sideSpeeds = new float[3];
             for (int attempt = 0; attempt < 3; attempt++)
             {
                 for (int lost = 0; lost < attempt; lost++) Call(player, "ServerCut", 1);
@@ -174,23 +176,23 @@ namespace CurtainCall.HumanCannon.Tests
                 PoleFlightDirection(-forward);
                 yield return new WaitForEndOfFrame();
                 reverseSpeeds[attempt] = Vector3.Dot(player.transform.position - before, forward) / Time.deltaTime;
-                Assert.That(reverseSpeeds[attempt], Is.EqualTo(-limit).Within(.1f));
+                Assert.That(reverseSpeeds[attempt], Is.InRange(.1f, limit - .01f), "반대 입력은 관성을 순간 역전하지 않고 제동한다.");
                 yield return null;
                 before = player.transform.position;
                 PoleFlightDirection(Vector3.Cross(Vector3.up, forward));
                 yield return new WaitForEndOfFrame();
                 lateralDrift[attempt] = Mathf.Abs(Vector3.Dot(player.transform.position - before, forward)) / Time.deltaTime;
-                Assert.That(Vector3.Dot(player.transform.position - before, Vector3.Cross(Vector3.up, forward)) / Time.deltaTime,
-                    Is.EqualTo(limit).Within(.1f), "옆 방향도 같은 속도 상한 안에서 실제 이동한다.");
+                sideSpeeds[attempt] = Vector3.Dot(player.transform.position - before, Vector3.Cross(Vector3.up, forward)) / Time.deltaTime;
+                Assert.That(sideSpeeds[attempt], Is.InRange(.01f, limit), "옆 입력은 부드러운 착지 보정을 더한다.");
                 yield return null;
                 before = player.transform.position;
                 Input();
                 yield return new WaitForEndOfFrame();
                 var coast = Vector3.ProjectOnPlane(player.transform.position - before, Vector3.up) / Time.deltaTime;
                 Assert.That(Vector3.Dot(coast, Vector3.Cross(Vector3.up, forward)),
-                    Is.EqualTo(forwardSpeeds[attempt]).Within(.1f), "키를 놓아도 마지막 방향의 반동 속력을 유지한다.");
+                    Is.InRange(0f, sideSpeeds[attempt]), "키를 놓으면 횡보정이 감쇠한다.");
                 Assert.That(Vector3.ProjectOnPlane((Vector3)Get(pilot, "velocity"), Vector3.up).magnitude,
-                    Is.EqualTo(forwardSpeeds[attempt]).Within(.1f), "뒤/옆 방향 전환으로 반동이 걷기 속도로 줄지 않는다.");
+                    Is.EqualTo(forwardSpeeds[attempt]).Within(.1f), "입력 보정은 원래 발사 관성을 덮어쓰지 않는다.");
                 Call(player, "RequestRestartAll");
                 yield return WaitUntil(() => !Flying && !(bool)StaticGet("CurtainCall.Player.InputGate", "IsBlocked"),
                     3, "R 재시작으로 다음 재현 준비");
@@ -200,9 +202,9 @@ namespace CurtainCall.HumanCannon.Tests
             TestContext.WriteLine("back-input forward speeds: " + string.Join(", ", reverseSpeeds));
             TestContext.WriteLine("side-input forward drift: " + string.Join(", ", lateralDrift));
             foreach (float speed in reverseSpeeds)
-                Assert.That(speed, Is.LessThan(-0.1f), "봉 도약 후 뒤 입력을 주면 실제 몸도 바로 뒤로 이동해야 한다.");
+                Assert.That(speed, Is.GreaterThan(.1f), "반대 입력에도 전진 관성이 즉시 뒤집히지 않는다.");
             foreach (float drift in lateralDrift)
-                Assert.That(drift, Is.LessThan(0.1f), "옆 방향 입력에 원치 않는 전진 관성이 남으면 안 된다.");
+                Assert.That(drift, Is.GreaterThan(.1f), "옆 보정 중에도 전진 탄도를 유지한다.");
         }
 
         void PoleFlightDirection(Vector3 direction)

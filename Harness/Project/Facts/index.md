@@ -1,5 +1,7 @@
 # Project Facts
 
+- [owner-hazard-contact.md](owner-hazard-contact.md) — 일반 대포 장애물의 피해자 접촉 보고·호스트 검증·적용 범위와 미검증 항목
+
 - [escape-route-timer.md](escape-route-timer.md) — 쇠창살 시작홀8분·기존 대기실 타이머 UI 재사용·만료/성공 집계를 확인할 때
 
 - [escape-waiting-transition.md](escape-waiting-transition.md) — 현재 인원 전원 합류 후 로딩·위치 인계·W 해제·A 계단 카메라와 미검증 범위를 확인할 때

@@ -11,7 +11,7 @@ namespace CurtainCall.HumanCannon
     /// 다 열린 뒤 지상 바닥 밖에 놓인 톱·철망 조각은 아래로 떨어지고, 플레이어 낙하 높이에 닿으면 사라진다.
     /// 호스트가 지상 담당의 통과와 접촉 부상을 확정한다.
     /// </summary>
-    public sealed class HumanCannonSawGate : MonoBehaviour
+    public sealed partial class HumanCannonSawGate : MonoBehaviour
     {
         [SerializeField] Transform sawVisual;
         [Tooltip("왼쪽으로 함께 밀리는 톱 묶음·철망·충돌 벽.")]
@@ -220,6 +220,7 @@ namespace CurtainCall.HumanCannon
                     CarrierPassed = true;
                 if (carrying) carrierSides[actor] = side;
                 else carrierSides.Remove(actor);
+                if (player.OwnerClientId != Unity.Netcode.NetworkManager.ServerClientId) continue;
                 bool hit = Touches(player);
                 if (hit && touching.Add(actor)) player.ServerCut();
                 if (!hit) touching.Remove(actor);
@@ -239,28 +240,24 @@ namespace CurtainCall.HumanCannon
 
         bool Touches(NetworkPlayer player)
         {
-            // 멈춘 톱(봉을 잡은 뒤 다 열리기 전)은 닿아도 다치지 않는다.
-            if (blades == null || !IsSpinning || !player.TryGetComponent(out PlayerMover mover)) return false;
-            Bounds body = new Bounds(player.transform.position + Vector3.up * mover.BodyHeight * 0.5f,
-                new Vector3(mover.BodyRadius * 2f, mover.BodyHeight, mover.BodyRadius * 2f));
+            return player.TryGetComponent(out PlayerMover mover)
+                && TouchesDisplayedBlades(player.transform.position, mover.BodyHeight, mover.BodyRadius);
+        }
+
+        bool TouchesDisplayedBlades(Vector3 feet, float height, float radius)
+        {
+            // The owner tests this frame's visible blades; history is only for host validation.
+            if (blades == null || !IsSpinning) return false;
+            Bounds body = new Bounds(feet + Vector3.up * height * 0.5f,
+                new Vector3(radius * 2f, height, radius * 2f));
             body.Expand(contactPadding * 2f);
             // 철망까지 확장한 물리 벽과 톱날의 절단 범위를 구분한다. 열린 틈을 덮지 않게 좌우를 따로 재고,
             // 떨어지는 톱은 판정에서 뺀다.
-            for (int side = -1; side <= 1; side++)
-            {
-                bool found = false;
-                Bounds saw = default;
-                for (int i = 0; i < blades.Length; i++)
-                {
-                    if (bladeSides[i] != side || drops[i] != BladeDrop.Attached) continue;
-                    foreach (var visual in pieceRenderers[i])
-                    {
-                        if (visual == null) continue;
-                        if (!found) { saw = visual.bounds; found = true; }
-                        else saw.Encapsulate(visual.bounds);
-                    }
-                }
-                if (found && saw.Intersects(body)) return true;
+            for (int i = 0; i < blades.Length; i++) {
+                if (drops[i] != BladeDrop.Attached) continue;
+                foreach (var visual in pieceRenderers[i])
+                    if (visual != null && visual.enabled && visual.gameObject.activeInHierarchy
+                        && visual.bounds.Intersects(body)) return true;
             }
             return false;
         }
@@ -270,6 +267,10 @@ namespace CurtainCall.HumanCannon
 
         internal void ResetGate()
         {
+            ownerContacts?.Reset();
+            foreach (var frame in gateContactHistory) frame?.Bounds.Clear();
+            nextGateContactAt = 0;
+            lastGateContactAt = -1;
             CarrierPassed = false;
             IsOpen = false;
             openAmount = stoppedFor = 0f;

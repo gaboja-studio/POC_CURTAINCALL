@@ -1,0 +1,55 @@
+{
+  "status": "completed",
+  "duration": 25.3,
+  "summary": {
+    "total": 6,
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactFinalSawsHostCannotCutRemotePosition",
+      "Status": "Passed",
+      "Duration": 5.1415327,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactFinalSawsValidateHistoryAvoidanceAndDuplicateDamage",
+      "Status": "Passed",
+      "Duration": 3.3789804,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactGatePreservesVisibleGapsAndRejectsHostOnlyRemoteDamage",
+      "Status": "Passed",
+      "Duration": 3.1188281,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactRouteFireValidatesContactBeforeFinishedAndRejectsReset",
+      "Status": "Passed",
+      "Duration": 3.2244137,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.SawHostCannotCutRemoteWithoutOwnerContact",
+      "Status": "Passed",
+      "Duration": 4.9932552,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.SawOwnerContactUsesHistoryAndRejectsAvoidanceAndDuplicateCut",
+      "Status": "Passed",
+      "Duration": 5.2490254,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

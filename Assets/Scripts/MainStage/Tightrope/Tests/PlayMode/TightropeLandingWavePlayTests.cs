@@ -45,10 +45,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             var catches = (Component)Static("CurtainCall.Tightrope.TightropeCatchSystem", "Current");
             var request = catches.GetType().GetNestedType("Request", BindingFlags.NonPublic);
             Call(catches, "ServerHandle", (ulong)Get(player, "OwnerClientId"), Enum.Parse(request, "Prepare"), 0UL);
-            Assert.IsTrue((bool)Call(catches, "IsReady", player));
+            Assert.IsFalse((bool)Call(catches, "IsReady", player), "옛 준비 요청으로 장비 없는 완충을 얻지 못한다.");
             Call(waves, "Emit", 777UL, 1, 6f);
             yield return Until(() => (int)Get(waves, "LocalImpactCount") == 2, 2f, "받기 준비 중인 동료의 완충");
-            Assert.That((float)Get(waves, "LastImpact"), Is.EqualTo(.4f).Within(.05f));
+            Assert.That((float)Get(waves, "LastImpact"), Is.EqualTo(4f).Within(.05f));
             int generation = (int)Get(run, "Round");
             var hud = UnityEngine.Object.FindAnyObjectByType(GameType("CurtainCall.Tightrope.UI.TightropeCampaignHud"));
             Assert.IsTrue((bool)Call(hud, "RestartCourseByHost"));

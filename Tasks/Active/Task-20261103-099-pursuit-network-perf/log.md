@@ -60,3 +60,68 @@
 
 - 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 접촉 수정 최종 check-work 통과. 자동 테스트는 별도 저장한 Edit60/60·core Play3/3·기존 capture/activation 단독2/2이며 전체Play17/20 및 지도UI 단독 실패도 보존. 검증용 Unity 정상 종료 후 생성 폰트/라벨 캐시 변경은 자동으로 없어졌고 씬/프리팹 변경 없음. 이번 포획 수정/조사 문서는 아직 커밋·푸시하지 않았다.
+- 포획 수정 PR #277 제출 후 dev9949880a에 병합됨 확인. 후속 fix/pursuit/four-player-perf에 최신 dev fast-forward 반영. 사용자가 외줄 균형·대포 착지·그네·장애물 판정 일치 추가 요청. 착지/그네에는 각각 별도의 호스트 처리와 대기 로직이 있고 불꽃·톱날 등은 호스트가 피해를 확정하는 경로를 확인했다. 실제 화면/시각 기준을 각 경로에서 조사하고 지연·유실 회귀를 만들기 전에는 일괄 권한 변경하지 않는다. 최적화 변경/비교는 아직 미착수.
+- 추격 시야 RaycastAll의 상시 배열 할당을 32개 재사용 버퍼로 변경. 가득 차면 기존 전체 결과로 폴백해 벽 누락을 방지한다. 새 물리 회귀 포함 추격 EditMode61/61 통과. 에디터 8개 콜라이더 1만회 단일 샘플은 구81.71ms/신69.60ms이나 할당 측정이 양쪽 0으로 나와 신뢰 불가, 게임 프레임/4인 향상으로 해석하지 않는다. 나머지 최적화·판정 및 실제 4인 비교는 미완료.
+- 달리기 중 동작 실패 핫픽스 요청: 실제 Input System 키보드 W+Shift+Space 조합을 기존 플레이 회귀에 추가해 평지에서 이동 중 점프 상태 진입 PASS. 착지 연출 후 나머지 원래 검사도 PASS. 동일 증상은 이 조건으로 재현되지 않아 장소·조건 문의, 경사/코스 조작 전환 조사 중. 아직 핫픽스 완료로 보지 않는다.
+- 사용자는 탈출로를 제외한 대부분 장소에서 혼자 플레이할 때도 발생한다고 설명. 실제 대기실 단독 호스트 씬을 연 뒤 합성 W+LeftShift+Space 입력으로 달리기·점프 테스트도 1/1 PASS. 키 조합과 점프 외 증상 확인 요청. 통과 결과만으로 실기 버그가 없다고 판단하지 않는다.
+- 사용자가 달리기 중 점프가 다시 정상 동작한다고 확인. 관련 두 입력 회귀는 유지한다.
+- 대포 착지: 신뢰성 착지 요청이 소유자의 위치보다 먼저 도착해 5m 초과할 때 기존 코드가 즉시 위험 착지/부상으로 확정하던 경로를 동일 비행 위치 도착까지 보류한다. 비행 식별자/생존 여부 확인, 재시작 정리, 유한 좌표 검증, 안전 판정·낭떠러지·이벤트에 보고된 착지 좌표 사용. 위치가 계속 도착하지 않으면 확정도 대기한다. 시뮬레이션 Play1/1·착지 Edit20/20 PASS, 실제 Relay 미검증.
+- 착지 PlayMode 필터 13개 중9 PASS/4 FAIL. ActivePoleFlightSnapshot의 Fall/None, ActiveCatchTwoSpawnedPlayers의 옛 수동 준비, LandingWave 지원 판정, SwingPole의 옛 수동 준비 단계 실패. 이전 기준/단독 재현 및 원인 확인 필요. 아직 전체 회귀 통과 아님.
+- 최신 dev4be086c6을 Unity 정상 종료 후 충돌 없이 반영. 그네의 owner 착지 보고가 먼저 도착하면 위치 동기화를 기다리는 기한을350ms→1.25초로 늘림. 기존 라운드·동일 비행·실제 줄 지지면 검증 및 6초 비행 만료는 유지. 실제 씬 Play 검사는500ms 뒤 지지면 위치 도착 시 확정과 취소된 비행 보고 거부 1/1 PASS. SwingPole 기존 Play2개 중1 PASS/1 FAIL(폐지된 수동 Prepare 기대), 대포 착지 Edit20/20 PASS. 실제 Relay는 미검증.
+- 외줄 톱·불꽃과 대포 장애물은 호스트가 늦은 소유자 위치를 현재 장애물 시각에 대입한다. 각 시각/소유자/라운드를 검증하는 표시 접촉 보고가 필요하며 아직 적용하지 않았다. 외줄 균형·장애물 지연 개선 및 네트워크/렌더 최적화의 4인 전후 비교는 미완료.
+- 외줄 균형 매달리기: 소유자의 요청이 호스트 위치보다 먼저 오면 같은 줄·거리의 기존 호스트 검증을 최대1.25초 재시도. 라운드 변경·비활성·접속 해제·사망·재시작 시 보류를 지운다. 실제 공연 씬에서 위치500ms 지연 후 승인, 재시작 시 보류 제거 Play1/1 PASS. 아직 실제 Relay·장애물 검증은 하지 않았다.
+- 기존 HangRescue Play4개 중3 PASS/1 FAIL(구조 시작 프레임 이동량 0.08m, 기대 0.05m 미만). 실패 항목 단독 재실행은 Unity Pipeline main-thread timeout으로 시작되지 않아 ENV_BLOCKED. 그 이후 editor_status도 30초 timeout; 강제 종료하지 않음. 원인과 이전 기준 미확인.
+- 2026-11-04 Unity 응답 복구 확인. 일반 대포 HumanCannonHazardCourse의 원격 판정을 피해자의 표시 접촉 sweep→41B reliable 시작/해제 보고→호스트 epoch/RestartVersion/순서/시각/좌표·형상 검증으로 구현. 같은 접촉 중복절단과 동시다중접촉 제한, 기존 확정 이벤트 보존. v2 전원 동일 빌드 필요. 별도 외줄 톱/화염/FinalSaws/SawGate/Route는 아직 미변경.
+- 신규 Play: 움직이는 장애물300ms 지연·회피/중복/옛코스/재시작 거부1/1 PASS, 실제스폰 원격owner777에 대해 HostContacts만으로 절단 안 됨1/1 PASS. hazard-owner-report-tests.json/hazard-host-gate-tests.json 보존. 테스트용 예전 authored pole fixture가 최신씬에 없어 최초 실행 실패했고 독립 fixture로 교체했다. 이 검사는 실제네트워크/4PC가 아니다.
+- 실제4인 시도: computer-use로 공식 MPPM Default/EscapeEntryFourEditors 메뉴·Scenario 설정 창 확인. 설정 창 접근성에 실행 구성요소가 없고 화면 캡처와 설정 창이 일치하지 않아 4인 세션을 시작하지 못함. 외부 POC_CURTAINCALL 에디터는 조작하지 않았다. 실제 Relay·유실 지터·4인 FPS/위치 도착간격 비교는 미완료이며 현재 개선률을 주장하지 않는다.
+- 기존 대포 착지 EditMode20/20 PASS. SwingPole PlayMode2개 중1 PASS/1 FAIL(구조 도우미 IsReady, line126), 실패 항목 단독 재실행도 FAIL. 해당 검사는 차단된 옛 수동 Prepare 요청을 사용해 그네 동작 전에 실패한다. 잘못된 필터로 실행된 NO_PROJECT_TESTS는 PASS가 아니다. check-work 안전성/문서/컴파일 PASS.
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-03 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 이번 저장 범위: 기존 대포 착지·그네/매달리기 지연 보완·입력 회귀·추격 시야 버퍼·일반 대포 장애물 접촉 보고. Unity 정상 종료 후 최신dev4be086c6 이미 포함 확인, 충돌 없음. 실제4인 전후 비교와 별도 외줄/장애물 시스템 검증이 남아 있어 완료 PR 대신 드래프트로 제출한다. 기존 GripYellow.mat/Task083 preview 변경은 포함하지 않는다.
+- 드래프트 PR #279 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/279 제출, 구현 커밋8c17574c push. 실제4인/Relay·성능 전후·별도 장애물 시스템은 PR 설명과 todo에 미완료로 명시했다.
+
+## 2026-11-04 통합 대기실 제출 뒤 4인 LAN과 외줄 장애물
+- 통합 대기실은 Task100의 별도 PR280 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/280 제출 완료. 해당 씬 변경을 PR279에 섞지 않고 현재 브랜치로 복귀했다. 시작 당시 origin/dev4be086c6 이미 포함.
+- 공식 MPPM Player2/3/4 실행에 성공해 메인 포함4개 실제 LAN 프로세스 연결. 100ms 송신 지연/30ms 지터/3% 유실을 UTP 드라이버에 적용해 RTT238~240ms 확인. 기존 reliable와 unreliable 위치 델타를 A→B→B→A, 각15초 정상 외줄 왕복으로 측정. p95 위치 오차 반복 평균1.916→1.329m(약31%); 프레임p95 약23.2ms로 개선 근거 없음. Player.prefab의 UseUnreliableDeltas만 적용. 원본ZIP·분석기·보고서 보관.
+- 첫 측정은 추락 상태여서 폐기, 두 번째는 정지 구간이 섞여 제외. 정상4인/높이/이동거리 검사를 통과한 마지막4회만 최종통계. 서로 다른4PC/Relay/출시FPS/GC/대역폭 측정으로 주장하지 않는다.
+- 외줄 불꽃: 37B 피해자 접촉, 호스트 라운드/재시작/순번/시간/좌표·발화시각 검증. 원격 host-only 사망 차단, 기존 Kill·구조해제·이벤트 유지. 신규3+기존화재경고1 Play4/4 PASS. 테스트용 설정 배열 변경으로 FireView 캐시 예외가 난 최초회귀는 새 snapshot 인스턴스로 고쳐 재검증.
+- 실제 지연 불꽃: 피해자12m 안전/호스트복제6m 접촉은 무사, 실제 피해자6m 접촉은138ms 뒤1회사망확정, 양쪽일치. 설정 조작 초기 시도의 표시 캐시 예외와 판정검증을 구분해 보고서에 남김.
+- 외줄 톱(가로/수직/협동/해제관문): 42B 피해자 진입/해제·재전송, 호스트30Hz/48칸 형상이력·소유자/시간/회차/재시작 검증, 지속 접촉 중복절단 차단. 기존 ServerTouch/Hit/절단순서 재사용, 메시지v2. 신규2+경로표시1 Play3/3 PASS. 초기 실패는 시작선 통과 전 빈 이력을 읽던 fixture였고 실제 시작조건을 포함해 수정.
+- 실제 지연 가로톱: 안전한 owner2의 호스트복제만 톱에 놓아도 무부상. 호스트 StopHorizontal 동기화로 정지한 톱의 새 접촉은173ms 뒤1부위 절단,30초 지속접촉에서도 추가절단0, 다른3명무부상, 양쪽상태일치. 움직이는 톱의 최초 순간이동 접촉이 즉시 승인되지 않은 시도는 빠른회피/완전접촉검출 통과로 취급하지 않음.
+- 남은 범위: 수직/협동/해제관문의 실제다인 경계회피, 별도 FinalSaws/SawGate/Route,4대Relay·저사양·대기실렌더. PR279는 이 미완료 범위를 명시한 draft 유지.
+- 종료 전 check-work 안전성/규칙/컴파일 PASS. 가상 플레이어를 UI로 정상 종료하고 미저장 씬0 확인 후 작업 Editor 종료. 최종 fetch origin/dev4be086c6, Already up to date/충돌0. 종료 때만 생긴 TightropeCourse.prefab 자동 직렬화/출발점 변경은 .harness/local 백업 후 정확한 역패치로 복구, diff0 확인. 기존 GripYellow/Task083 preview 및 두 재질 소수점 변경은 보존·커밋 제외.
+
+## 2026-11-04 PR280 병합 후 후속
+- 재개 doctor1회 실행. sandbox의 외부 에셋/Editor/gh 경고는 실제 권한 환경의 verify-third-party와 명시 경로 Unity 연결로 구분했다. 중복 Task ID는 기존 문서 문제, start-work의 기존 slash 브랜치 정규식 거부는 수동으로 기존 Task/브랜치를 유지해 진행했다. 이번 재개에서 doctor 반복 안 함.
+- 작업 Editor 종료 상태에서 origin/dev8b8910da(PR280)를 받아 충돌 없이 병합(c6da5ee6). 통합 WaitingRoom 회귀2/2, HangRescue4/4 통과. 이전0.08m/0.05m 실패는 재현되지 않았다. 옛 수동 준비 F fixture를 현행 장갑/자동 지원으로 수정해 그네2/2·장갑 지원1/1·착지파1/1·부상4단계 최종 비행1/1 통과. 최종 비행은 현재 station의 발사 속도/조절 속도와 실제 지원 landing zone을 사용한다.
+- 별도 HumanCannonFinalSaws/Route 불꽃/SawGate에45B OwnerContactChannel 추가. reliable 진입/해제·150ms 재시도, 호스트 소유자/장치 epoch/RestartVersion/순번/유효 시각/좌표 envelope/형상 검증 뒤 기존 ServerCut/ServerKill 확정. 초기화/해제 정리, 짧은 sweep과 Teleported 경계 보호. 현재 씬에 없는 구형 FinalSaws는 독립 fixture로 검사했다. 수신/요청 프로토콜v2, 동일 빌드 필요.
+- SawGate는 합쳐진 외곽 사각형 대신 개별 렌더 형상으로 빈틈을 유지한다. 최종 후속은 피해자 현재 표시 형상과 호스트30Hz/48칸 검증 이력을 분리하고 원격 호스트 형상 중복 검사를 생략한다. 콜백이 최초 세션 객체를 캡처하지 않도록 현재 세션을 매번 조회한다. 원래 운반자 관문 통과/기존 절단·사망 경로 유지.
+- 실제 독립4프로세스 LAN: cannon-gate-v2/fire-v2 각각90초, 송신100ms/지터30ms/유실3%, 모든 샘플4인 연결. 피해자 안전/호스트복제만 접촉은 무사. 실제 접촉은 톱158ms 뒤1부위, 불꽃134ms 뒤 Fallen, 양쪽 상태 일치. 지속 접촉 중 추가 절단0. 이는 최종 현재형상 분리 직전 버전이며 후속 자동 회귀와 구분한다. 원본8개ZIP·요약·이벤트시각 보관. 다른4PC/Relay·사람 회피로 주장하지 않는다.
+- 소유자 접촉6/6, 빠른 톱4/4 통과. 삭제된 PoleSaw6 fixture를 독립 장치로 교체했다. 선택형 수직·협동·해제 관문300ms 지연/회피/중복 회귀1/1 통과: 현재 비활성 설정은 유지하고 검사 메모리 복사본만 사용한다. fixture의 static 설정 접근/1초 피해 간격/옛158m 배치/동일 프레임 중복 시각을 수정했다. 같은 시각의 활성화 전 이력과 섞지 않고 정상 Update 후 보고한다.
+- PursuitPerformanceProbe는 선택된 통합 WaitingRoom을 측정하고 씬별 최초 로드를 구분하도록 변경. 통합씬 세션 첫 로드3.42초/준비4.55초/최장947ms/GC328ms. 로비7,232 batches/4,741 shadow casters. 저사양/캐시 초기화/출시 빌드 결과 아님.
+- 임시 GRD 렌더 A/B: 첫4회는 필수 KeepAll 설정 누락으로 기능 비활성, 무효로 구분. 읽기 전용 EditorGraphicsSettings 대입 컴파일 실패는 SerializedObject로 수정. 보완 후 actual instance 확인, valid-b1은 셰이더 준비로 첫 방 누락/complete=false, valid-b2는3방 완전. 로비 요청 약6,322→1,455지만 프레임 중앙값14.21→15.80ms로 이득 미확인, 기본 에셋 적용 안 함. 긴 셰이더 준비 뒤 정상 렌더 프레임부터 표본 수집하도록 도구 보완, 모든 임시 설정 정상 복구/GraphicsSettings diff0 확인.
+- 대포 전체 최초58=41통과/15실패/2생략, 현재 씬 fixture 정리 후58=49통과/7실패/2생략. 단독 철망 위 비행도 통과. 나머지 검사는 현행 리허설·일정 난도/연속 반동·관성 보정/검사 객체 참조와 대조 중이다. 전체 통과로 기록하지 않는다. PracticeBot 실행파일을 요구하는2개는 생략이다.
+- 상세 근거: followup-verification-20261104.md와 Verification-20261104/. Knowledge remote-player-judged-before-placement 보완·verify-knowledge OK.
+- 최종 소유자 접촉7/7과 봉 UI 개별 회귀 통과. C6 실패는 InputGate.Register 직후 같은 프레임의 중립 대기와 alpha0 진입을 가시성 실패로 보던 검사 조건이었다. 실제 입력 리더를 중립화한 뒤 현재 봉 거리/중심·F→Space 안내 수락을 검증한다. 비행 수신 fixture에는 station placeholder 배열, 현재 봉에는 optional LinkedGate null 조건, 정식 공연에는 리허설/결과 전환/발견·일정 난도를 반영했다. 현행 연속 반동·0.1초 관성 보정과 재시작 입력은 실제 몸 이동으로 개별 통과했다.
+- 최종 코드 실제4인 재검사: gate-final-v2 90초, 별도 gate-final-hold-v2 60초 모두 송신100ms/지터30ms/유실3%·전체 프레임4인 연결 유지. owner1 host-only 접촉은 무부상, owner3 실제 접촉01:46:45.1659372Z→확정01:46:45.3526210Z=약187ms. 추가60초 모든 화면 owner3 LostParts min/max=4(LeftLeg1개), 마지막 contact=true/Normal. raw8개ZIP·프로세스별 상태/통계/시각 보관. 가상 Editor 시작/갱신의 기존 MPPM readonly AssetDatabase Assert2개를 게임 예외와 구분했고 Console 전체 오류0으로 주장하지 않는다. 이후 세 가상 플레이어 정상 종료.
+- 최종 대포 전체58=55통과/1실패/2생략. 철망 위 비행·지상 톱 점프·빠른 톱·접촉·부상별 비행·현행 봉 조작/UI·정식 공연 잠금 통과. 실패1개는 기존 원본 운송판 폭4m와 트램폴린 지름4.95m/손잡이2.8m 적재 치수 불일치. 씬과 HumanCannonTransport.cs는 dev8b8910da diff0, 제품 배치/기대값을 바꿔 숨기지 않는다. PracticeBot 실행 파일 없는2개 생략. cannon-full-final.json 보존, 전체 PASS 아님.
+- 전체 회귀가 Task083의 다른 미리보기 PNG도 재생성했다. 기존 play-land/재질 변경과 함께 다른 Task 출력·외부 에셋 변경을 이번 커밋에서 제외해 보존한다. 남은 성능 범위는 추격자 보간·첫 로드/GC·그림자·정적 배칭 후보와 실제4PC/Relay·저사양·사람 경계 회피다.
+- 첫 최종 check-work는 새 결과 파일7개의 대문자 이름 때문에 문서/규칙 FAIL, 컴파일은 선행 실패로 SKIPPED였다. 해당 파일을 소문자 kebab 이름으로 정리했다. 검토에서 같은 씬 서버 시각 되감김의 샘플 예약/수신 하한 문제도 좁게 보완:1000→1초 합성 시각에서 새 형상 즉시 기록/옛 형상 거절 Gate Play1/1 PASS, 이후 현재 소스 컴파일 PASS. 정상4인 경로는 앞선 실측, 시각 경계 추가는 개별 회귀로 구분한다.
+- 보완 후 최종 check-work 안전성/문서규칙/Unity컴파일 PASS, 테스트는 위 별도 결과 재사용. 미저장 씬0 확인·재개 때의 Start 씬으로 복원 후 작업 Editor만 정상 종료. 최종 fetch origin/dev8b8910da, Already up to date/충돌0. 폰트/라벨 자동 캐시 변경은 종료 후 사라졌고 TightropeCourse.prefab/GraphicsSettings diff0. 기존3재질·Task083 미리보기·private 에셋 변경은 보존하고 커밋 제외한다.
+- 구현·회귀·원본 기록 ef06f889 커밋/작업 브랜치 push 완료. dev 드래프트 PR279 https://github.com/gaboja-studio/POC_CURTAINCALL/pull/279 설명/제목 갱신·원격 head ef06f889 확인. GitHub 연결 도구 수정은403(Resource not accessible by integration)으로 실패해 gh 로그인 MoHoDu로 정상 갱신했다. PR280은 이미 dev8b8910da에 병합됨. 기존 적재 치수 실패·출시/4PC/Relay·FPS/로딩 후속을 PR에 명시하고 draft 유지, 병합하지 않았다.
+
+- 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-04 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

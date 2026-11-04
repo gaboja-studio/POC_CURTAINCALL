@@ -1,0 +1,74 @@
+{
+  "states": [
+    {
+      "peer": ".",
+      "state": "2026-11-04T01:47:23.2827683Z local=0 players=4 0:Normal/None | 1:Normal/None | 2:Normal/None | 3:Normal/LeftLeg"
+    },
+    {
+      "peer": "Library/VP/mppm18eae234",
+      "state": "2026-11-04T01:47:21.6284920Z local=3 players=4 0:Normal/None | 1:Normal/None | 2:Normal/None | 3:Normal/LeftLeg"
+    },
+    {
+      "peer": "Library/VP/mppm993c55c8",
+      "state": "2026-11-04T01:47:21.4734052Z local=2 players=4 0:Normal/None | 1:Normal/None | 2:Normal/None | 3:Normal/LeftLeg"
+    },
+    {
+      "peer": "Library/VP/mppmf9d47e82",
+      "state": "2026-11-04T01:47:21.5057158Z local=1 players=4 0:Normal/None | 1:Normal/None | 2:Normal/None | 3:Normal/LeftLeg"
+    }
+  ],
+  "consoleStates": [
+    {
+      "peer": ".",
+      "status": {
+        "sampledUtc": "2026-11-04T01:48:18.0910262Z",
+        "ageMs": 38,
+        "compilationFailed": false,
+        "compiling": false,
+        "consoleErrors": 0,
+        "consoleWarnings": 5,
+        "consoleLogs": 2,
+        "seeded": true
+      }
+    },
+    {
+      "peer": "Library/VP/mppm18eae234",
+      "status": {
+        "sampledUtc": "2026-11-04T01:48:17.4787214Z",
+        "ageMs": 130,
+        "compilationFailed": false,
+        "compiling": false,
+        "consoleErrors": 2,
+        "consoleWarnings": 1,
+        "consoleLogs": 2,
+        "seeded": true
+      }
+    },
+    {
+      "peer": "Library/VP/mppm993c55c8",
+      "status": {
+        "sampledUtc": "2026-11-04T01:48:17.6038581Z",
+        "ageMs": 41,
+        "compilationFailed": false,
+        "compiling": false,
+        "consoleErrors": 2,
+        "consoleWarnings": 1,
+        "consoleLogs": 2,
+        "seeded": true
+      }
+    },
+    {
+      "peer": "Library/VP/mppmf9d47e82",
+      "status": {
+        "sampledUtc": "2026-11-04T01:48:17.469966Z",
+        "ageMs": 167,
+        "compilationFailed": false,
+        "compiling": false,
+        "consoleErrors": 2,
+        "consoleWarnings": 1,
+        "consoleLogs": 2,
+        "seeded": true
+      }
+    }
+  ]
+}

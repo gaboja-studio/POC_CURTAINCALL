@@ -1,0 +1,62 @@
+[
+  {
+    "label": "saw-static-valid",
+    "pid": 1844,
+    "owner": 0,
+    "host": true,
+    "oneWayDelayMs": 100,
+    "jitterMs": 30,
+    "loss": 3,
+    "frames": 2361,
+    "beginUtcTicks": 639293216992241900,
+    "endUtcTicks": 639293217591784800,
+    "allFourConnected": true,
+    "rttP50": 0,
+    "rttP95": 0
+  },
+  {
+    "label": "saw-static-valid",
+    "pid": 5416,
+    "owner": 1,
+    "host": false,
+    "oneWayDelayMs": 100,
+    "jitterMs": 30,
+    "loss": 3,
+    "frames": 2495,
+    "beginUtcTicks": 639293216994139100,
+    "endUtcTicks": 639293217594027000,
+    "allFourConnected": true,
+    "rttP50": 262,
+    "rttP95": 302
+  },
+  {
+    "label": "saw-static-valid",
+    "pid": 37824,
+    "owner": 2,
+    "host": false,
+    "oneWayDelayMs": 100,
+    "jitterMs": 30,
+    "loss": 3,
+    "frames": 2457,
+    "beginUtcTicks": 639293217006195500,
+    "endUtcTicks": 639293217605896600,
+    "allFourConnected": true,
+    "rttP50": 270,
+    "rttP95": 296
+  },
+  {
+    "label": "saw-static-valid",
+    "pid": 27516,
+    "owner": 3,
+    "host": false,
+    "oneWayDelayMs": 100,
+    "jitterMs": 30,
+    "loss": 3,
+    "frames": 2462,
+    "beginUtcTicks": 639293216988682900,
+    "endUtcTicks": 639293217588512100,
+    "allFourConnected": true,
+    "rttP50": 264,
+    "rttP95": 293
+  }
+]

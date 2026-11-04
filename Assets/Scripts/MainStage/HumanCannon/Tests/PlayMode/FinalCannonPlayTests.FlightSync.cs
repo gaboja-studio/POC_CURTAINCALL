@@ -18,7 +18,8 @@ namespace CurtainCall.HumanCannon.Tests
             uint launch = (uint)Get(pilot, "launchRevision");
             uint heldSegment = (uint)Get(pilot, "flightSegment");
             Assert.That(heldSegment, Is.GreaterThan(0));
-            Assert.AreEqual("None", Get(player, "CurrentJump").ToString(), "일반 점프 상태로는 매달림을 찾을 수 없는 기존 조건");
+            Assert.IsTrue((bool)Get(pilot, "IsHoldingPole"));
+            Assert.IsFalse((bool)Get(mover, "Simulated"), "Held flight is controlled by the pole, independently of the ordinary jump enum.");
             var hostFlights = Get(system, "flying");
             var snapshot = Call(hostFlights, "Capture");
             var observer = new GameObject("Flight Registry Observer");
@@ -26,6 +27,8 @@ namespace CurtainCall.HumanCannon.Tests
             try
             {
                 var receiver = observer.AddComponent(system.GetType());
+                HazardSet(receiver, "stations", System.Array.CreateInstance(
+                    GameType("CurtainCall.HumanCannon.HumanCannonStation"), (int)Get(system, "StationCount")));
                 var flights = Get(receiver, "flying");
                 Assert.IsTrue((bool)Call(flights, "Restore", snapshot, Get(system, "StationCount")));
                 Assert.IsTrue((bool)Call(receiver, "IsFlying", Actor), "새 화면에서도 매달린 동료를 프레이밍 대상으로 찾는다.");

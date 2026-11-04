@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
@@ -16,6 +17,24 @@ namespace CurtainCall.HumanCannon
         const int LandingSize = 21; // actor + station + launch + segment + safe
         const string SpringReboundMessage = "CurtainCall.HumanCannon.SpringRebound";
         const int SpringReboundSize = 36; // actor + station + launch + segment + contact + speed
+        struct PendingLanding { public int Station; public uint Revision, Segment; public Vector3 Position; }
+        readonly Dictionary<ulong, PendingLanding> pendingLandingReports = new();
+        readonly List<ulong> pendingLandingActors = new();
+
+        void RetryLandingReports()
+        {
+            pendingLandingActors.Clear(); pendingLandingActors.AddRange(pendingLandingReports.Keys);
+            foreach (var actor in pendingLandingActors)
+            {
+                var report = pendingLandingReports[actor];
+                var player = FindPlayer(actor);
+                if (player == null || player.State != PlayerState.Normal || !flying.Matches(actor, report.Station, report.Revision, report.Segment))
+                { pendingLandingReports.Remove(actor); continue; }
+                if ((player.transform.position - report.Position).sqrMagnitude > 25f) continue;
+                pendingLandingReports.Remove(actor);
+                HandleLanding(player, report.Station, report.Revision, report.Segment, report.Position);
+            }
+        }
         /// <summary>M2: 비행 중 일반 바닥·코스 밖으로 떨어지면 잃는 팔다리 수. 잃은 팔다리가 4개가 되면 사망.</summary>
         public const int FallCuts = 2;
         public int LocalSafeLandingCount { get; private set; }
@@ -115,7 +134,7 @@ namespace CurtainCall.HumanCannon
             ApplyRebound(actor, index, revision, segment, contact, speed);
         }
 
-        /// <summary>호스트가 현재 비행의 착지를 판정한 뒤 한 번 알린다. Position은 판정 시 호스트의 플레이어 좌표다.</summary>
+        /// <summary>호스트가 현재 비행의 착지를 판정한 뒤 한 번 알린다. Position은 검증된 소유자의 착지 좌표다.</summary>
         public event Action<ulong, int, uint, uint, Vector3, bool> LandingConfirmed;
 
         void NotifyLanding(ulong actor, int station, uint revision, uint segment, Vector3 position, bool safe)
@@ -131,14 +150,22 @@ namespace CurtainCall.HumanCannon
             // 현재 좌석 소유권과 무관하게 해당 비행만 한 번 종료한다. R/이전 반동의 늦은 요청은 무시한다.
             if (!flying.Matches(player.OwnerClientId, index, revision, segment)) return;
             if (HumanCannonPoleSystem.Current != null && HumanCannonPoleSystem.Current.HeldBy(player.OwnerClientId) >= 0) return;
-            bool safe = (player.transform.position - position).sqrMagnitude <= 25f
-                && IsSafeLandingSurface(player.GetComponent<PlayerMover>(), position);
+            if (!float.IsFinite(position.x) || !float.IsFinite(position.y) || !float.IsFinite(position.z)) return;
+            // A reliable landing request can arrive ahead of the owner's transform. Do not
+            // convert that mismatch into an injury: wait for the same flight's position update.
+            if ((player.transform.position - position).sqrMagnitude > 25f)
+            {
+                pendingLandingReports[player.OwnerClientId] = new PendingLanding { Station = index, Revision = revision, Segment = segment, Position = position };
+                return;
+            }
+            pendingLandingReports.Remove(player.OwnerClientId);
+            bool safe = IsSafeLandingSurface(player.GetComponent<PlayerMover>(), position);
             bool injuring = !safe && !EscapeDevelopmentSession.FallInjuriesSuppressed(player)
-                && !HumanCannonRouteSystem.IsBelowCourse(player.transform.position);
+                && !HumanCannonRouteSystem.IsBelowCourse(position);
             // 부상이 날 바닥이면 스프링 신발이 먼저 반동시킨다. 반동하면 이 비행은 끝나지 않는다.
             if (injuring && TrySpringRebound(player, index, revision, segment, position)) return;
             ApplyLanding(player.OwnerClientId, index, revision, segment, safe);
-            NotifyLanding(player.OwnerClientId, index, revision, segment, player.transform.position, safe);
+            NotifyLanding(player.OwnerClientId, index, revision, segment, position, safe);
             // 부딪힌 바닥에서 부상 상태로 계속한다(2026-10-28 사용자 결정). 코스 아래 낭떠러지는 경로 시스템이 같은 추락으로 한 번만 처리한다.
             if (injuring) ServerFallInjury(player);
             foreach (ulong client in session.NetworkManager.ConnectedClientsIds)

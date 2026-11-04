@@ -32,10 +32,10 @@ namespace CurtainCall.Tightrope.Fire
     }
 
     /// <summary>화재 공개 진입점. 판정은 Run의 도착 확인 뒤 호스트만, 표시·차단은 호스트 스냅샷으로 모든 화면에서 적용.</summary>
-    public sealed class TightropeFire : MonoBehaviour
+    public sealed partial class TightropeFire : MonoBehaviour
     {
-        const string StateMessage = "CurtainCall.Tightrope.Fire.State";
-        const string RequestMessage = "CurtainCall.Tightrope.Fire.Request";
+        const string StateMessage = "CurtainCall.Tightrope.Fire.State.v2";
+        const string RequestMessage = "CurtainCall.Tightrope.Fire.Request.v2";
         const int MaxMessageBytes = 32768;
         static TightropeFire current;
         TightropeCourse course;
@@ -183,6 +183,7 @@ namespace CurtainCall.Tightrope.Fire
             int seed = settings.laneOrder != FireLaneOrder.Configured ? UnityEngine.Random.Range(0, int.MaxValue) : 0;
             snapshot = settings.Snapshot(course.FinishDistance, course.LaneCount, seed);
             round = run.Round;
+            ClearContactReports();
             activeMask = appliedMask = 0;
             pendingSegment = -1;
             pendingIgniteAt = -1f;
@@ -240,8 +241,11 @@ namespace CurtainCall.Tightrope.Fire
                 if (player.isActiveAndEnabled && player.State == PlayerState.Normal && (run == null || run.IsParticipantReady(player))
                     && (!player.TryGetComponent(out PlayerBalance balance) || !balance.HasFallen))
                     furthestDistance = Mathf.Max(furthestDistance, Mathf.Clamp(course.GetDistance(player.transform.position), 0f, course.FinishDistance));
+            ulong beforeMask = activeMask;
             bool changed = FireMath.AdvanceSequence(snapshot, elapsed, furthestDistance, course.LaneCount,
                 ref activeMask, ref pendingSegment, ref pendingIgniteAt);
+            for (int i = 0; i < 64; i++)
+                if ((activeMask & (1UL << i)) != 0 && (beforeMask & (1UL << i)) == 0) segmentActivatedAt[i] = elapsed;
             ApplyBlocks();
             if (changed || Time.unscaledTime >= nextBroadcast)
             {
@@ -252,31 +256,12 @@ namespace CurtainCall.Tightrope.Fire
             foreach (var player in NetworkPlayer.All)
             {
                 if (run.State != TightropeRunState.Running || !course.IsGameplayActive) break;
+                // Remote damage requires that owner's displayed contact report.
+                if (player.OwnerClientId != NetworkManager.ServerClientId) continue;
                 if ((player.State != PlayerState.Normal || (run != null && !run.IsParticipantReady(player)))) continue;
-                float distance = course.GetDistance(player.transform.position);
-                if (distance >= snapshot.safeDistance) continue;
-                if (IsChasing && distance <= ChaseDistance) { Kill(player, FireKind.Chase, -1, distance); continue; }
-                float side = course.GetSide(player.transform.position);
                 float radius = player.TryGetComponent(out PlayerMover mover) ? mover.BodyRadius : 0f;
-                for (int i = 0; i < snapshot.segments.Length; i++)
-                {
-                    var segment = snapshot.segments[i];
-                    int lane = segment.lane - 1;
-                    if (!IsSegmentActive(i) || lane < 0 || lane >= course.LaneCount) continue;
-                    GetSegmentSpans(i, segmentSpans);
-                    bool hit = false;
-                    foreach (var span in segmentSpans)
-                    {
-                        segment.from = span.x; segment.to = span.y;
-                        if (!FireMath.SegmentContains(segment, distance, side, course.Layout.GetLaneSide(lane),
-                            course.Shape.RopeWalkWidth * 0.5f + radius)) continue;
-                        hit = true;
-                        break;
-                    }
-                    if (!hit) continue;
-                    Kill(player, FireKind.Segment, i, distance);
-                    break;
-                }
+                if (TryContact(player.transform.position, radius, Elapsed, false, out var kind, out int index))
+                    Kill(player, kind, index, course.GetDistance(player.transform.position));
             }
         }
 
@@ -310,6 +295,7 @@ namespace CurtainCall.Tightrope.Fire
             if (state == SessionConnectionState.Host)
             {
                 messaging?.RegisterNamedMessageHandler(RequestMessage, HandleRequest);
+                messaging?.RegisterNamedMessageHandler(ContactMessage, HandleContact);
                 HandleRound();
             }
             else if (state == SessionConnectionState.Client)
@@ -409,6 +395,8 @@ namespace CurtainCall.Tightrope.Fire
             if (messaging == null) return;
             messaging.UnregisterNamedMessageHandler(StateMessage);
             messaging.UnregisterNamedMessageHandler(RequestMessage);
+            messaging.UnregisterNamedMessageHandler(ContactMessage);
+            ClearContactReports();
             messaging = null;
         }
     }

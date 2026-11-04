@@ -1,0 +1,134 @@
+[
+  {
+    "label": "a1",
+    "room": "Lobby",
+    "n": 209,
+    "median": 14.042304992675781,
+    "p95": 16.883398056030273,
+    "batches": 6326.722488038277,
+    "triangles": 2191519.449760766,
+    "memory": 2315658173,
+    "complete": true
+  },
+  {
+    "label": "a1",
+    "room": "S02_Dormitory",
+    "n": 223,
+    "median": 13.241305351257324,
+    "p95": 15.94949722290039,
+    "batches": 2155.0089686098654,
+    "triangles": 1184999.4260089686,
+    "memory": 2315658173,
+    "complete": true
+  },
+  {
+    "label": "a1",
+    "room": "S09_PracticeRoom",
+    "n": 198,
+    "median": 14.901205062866211,
+    "p95": 16.998003005981445,
+    "batches": 4614.949494949495,
+    "triangles": 420220.9090909091,
+    "memory": 2315658173,
+    "complete": true
+  },
+  {
+    "label": "a2",
+    "room": "Lobby",
+    "n": 210,
+    "median": 14.033198356628418,
+    "p95": 16.527097702026367,
+    "batches": 6298.9,
+    "triangles": 2196186.433333333,
+    "memory": 2322091506,
+    "complete": true
+  },
+  {
+    "label": "a2",
+    "room": "S02_Dormitory",
+    "n": 219,
+    "median": 13.34280014038086,
+    "p95": 16.846500396728516,
+    "batches": 2153.0913242009133,
+    "triangles": 1191241.5799086757,
+    "memory": 2322091506,
+    "complete": true
+  },
+  {
+    "label": "a2",
+    "room": "S09_PracticeRoom",
+    "n": 211,
+    "median": 13.968799591064453,
+    "p95": 16.715503692626953,
+    "batches": 4626.388625592417,
+    "triangles": 423121.7440758294,
+    "memory": 2322091506,
+    "complete": true
+  },
+  {
+    "label": "b1",
+    "room": "Lobby",
+    "n": 211,
+    "median": 13.882101058959961,
+    "p95": 16.211896896362305,
+    "batches": 6323.473933649289,
+    "triangles": 2219897.853080569,
+    "memory": 2321318186,
+    "complete": true
+  },
+  {
+    "label": "b1",
+    "room": "S02_Dormitory",
+    "n": 206,
+    "median": 14.321903228759766,
+    "p95": 16.280200958251953,
+    "batches": 2153.233009708738,
+    "triangles": 1172903.1796116505,
+    "memory": 2321318186,
+    "complete": true
+  },
+  {
+    "label": "b1",
+    "room": "S09_PracticeRoom",
+    "n": 223,
+    "median": 13.30620002746582,
+    "p95": 15.419501304626465,
+    "batches": 4586.856502242153,
+    "triangles": 416984.68161434977,
+    "memory": 2321318186,
+    "complete": true
+  },
+  {
+    "label": "b2",
+    "room": "Lobby",
+    "n": 209,
+    "median": 14.094295501708984,
+    "p95": 16.58930015563965,
+    "batches": 6357.722488038277,
+    "triangles": 2208933.200956938,
+    "memory": 2320016676,
+    "complete": true
+  },
+  {
+    "label": "b2",
+    "room": "S02_Dormitory",
+    "n": 227,
+    "median": 12.87239933013916,
+    "p95": 15.924602508544922,
+    "batches": 2152.8458149779735,
+    "triangles": 1192845.255506608,
+    "memory": 2320016676,
+    "complete": true
+  },
+  {
+    "label": "b2",
+    "room": "S09_PracticeRoom",
+    "n": 223,
+    "median": 13.31770133972168,
+    "p95": 15.512798309326172,
+    "batches": 4643.865470852018,
+    "triangles": 423540.03587443946,
+    "memory": 2320016676,
+    "complete": true
+  }
+]

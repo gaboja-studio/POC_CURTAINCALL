@@ -6,7 +6,7 @@ namespace CurtainCall.Tightrope.Saws
 {
     public sealed partial class TightropeSaws
     {
-        const string CooperativeGateMessage = "CurtainCall.Tightrope.Saws.CooperativeGate";
+        const string CooperativeGateMessage = "CurtainCall.Tightrope.Saws.CooperativeGate.v2";
         FastBufferWriter WriteCooperativeGate()
         {
             var writer = new FastBufferWriter(41 + cooperativeAdmittedCount * 8 + releasedGates.Count * 20, Allocator.Temp);

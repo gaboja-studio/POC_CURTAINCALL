@@ -1,0 +1,419 @@
+{
+  "status": "completed",
+  "duration": 388.15,
+  "summary": {
+    "total": 58,
+    "passed": 49,
+    "failed": 7,
+    "skipped": 2,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.ActivePoleFlightSnapshot_PreservesIdentity_AndReleaseLandingRestartStillWork",
+      "Status": "Failed",
+      "Duration": 5.5511319,
+      "Message": "System.Reflection.TargetInvocationException : Exception has been thrown by the target of an invocation.\r\n  ----> System.IndexOutOfRangeException : Index was outside the bounds of the array.",
+      "StackTrace": "  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x00083] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at System.Reflection.MethodBase.Invoke (System.Object obj, System.Object[] parameters) [0x00000] in <d49d4cb128564ee1b54a84338c98d353>:0 \r\n  at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.Call (System.Object target, System.String name, System.Object[] args) [0x00014] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.cs:322 \r\n  at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<ActivePoleFlightSnapshot_PreservesIdentity_AndReleaseLandingRestartStillWork>d__43.MoveNext () [0x00597] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.FlightSync.cs:48 \r\n  at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44 \r\n--IndexOutOfRangeException\r\n  at CurtainCall.HumanCannon.HumanCannonSystem.Apply (System.Int32 index, CurtainCall.HumanCannon.CannonAction action, System.UInt64 actor, UnityEngine.Vector3 position, UnityEngine.Quaternion rotation, UnityEngine.Vector3 velocity) [0x0000a] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\HumanCannonSystem.cs:358 \r\n  at (wrapper managed-to-native) System.Reflection.RuntimeMethodInfo.InternalInvoke(System.Reflection.RuntimeMethodInfo,object,object[],System.Exception&)\r\n  at System.Reflection.RuntimeMethodInfo.Invoke (System.Object obj, System.Reflection.BindingFlags invokeAttr, System.Reflection.Binder binder, System.Object[] parameters, System.Globalization.CultureInfo culture) [0x0006a] in <d49d4cb128564ee1b54a84338c98d353>:0 "
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AirbornePlayerCrossesTheGateBeforeTheTrampolineCarrier",
+      "Status": "Passed",
+      "Duration": 3.4052782,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedMetalTransports_FitRoundLoadAndOpenBothVisualAndPhysicalDoors",
+      "Status": "Failed",
+      "Duration": 2.8573547,
+      "Message": "  DepartureTransport actual round frame and handle fit\r\n  Expected: True\r\n  But was:  False\r\n",
+      "StackTrace": "at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<AppliedMetalTransports_FitRoundLoadAndOpenBothVisualAndPhysicalDoors>d__5.MoveNext () [0x000ff] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.AppliedArt.cs:80\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedRoundTrampoline_ActualCenterJumpBouncesWithOriginalSpeedAndHeight",
+      "Status": "Passed",
+      "Duration": 4.4904226,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedRoundTrampoline_ActualHandleStillBounces",
+      "Status": "Passed",
+      "Duration": 4.7107725,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedRoundTrampoline_EmptySquareCornerDoesNotBounce",
+      "Status": "Passed",
+      "Duration": 4.0180416,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AppliedRoundTrampoline_PlayerRadiusStillOverlapsRimAtOldFabricCorner",
+      "Status": "Passed",
+      "Duration": 4.692322,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.BarrelMotion_ActualLaunchCyclesOnceKeepsAnchorsAndBecomesBoardable",
+      "Status": "Passed",
+      "Duration": 8.0668036,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.BarrelMotion_DisabledStationRecoversWhenEnabledAgain",
+      "Status": "Passed",
+      "Duration": 5.8307065,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.BarrelMotion_ExternalLockWaitsForRecoveryAndRepeatedUpdatesDoNotRestart",
+      "Status": "Passed",
+      "Duration": 5.8875805,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.BarrelMotion_ExternalOnSkipsRestAfterLaunch",
+      "Status": "Passed",
+      "Duration": 7.1686587,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.BloodEffect_PlaysAtStump_OnScreenInFirstPerson_AndRespectsClientSetting",
+      "Status": "Passed",
+      "Duration": 3.0646701,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CannonLaunch_DirectionInputPreservesMomentum_ReleaseKeepsFlight_ThreeRestarts",
+      "Status": "Passed",
+      "Duration": 3.3027086,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CarryMovement_StrafeBackpedalMatchesAirSpeed_AndRestoresAfterDropRestartAndExit",
+      "Status": "Passed",
+      "Duration": 4.4101683,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CarryView_YawTurnsBodyAndDevice_WsadMovesRelativeToCamera_WithoutPitchingSurface",
+      "Status": "Passed",
+      "Duration": 3.4365744,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CeilingSwing_MovesBodyAndBarTogether_AndReleasesWithLimitedHorizontalMomentum",
+      "Status": "Passed",
+      "Duration": 3.5943319,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusGrounding_CannonLandingUsesInjuredSupport",
+      "Status": "Passed",
+      "Duration": 17.6592672,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusGrounding_InjuryCarryPlantsSupportWithoutLosingGrip",
+      "Status": "Passed",
+      "Duration": 33.1494536,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusMotion_AllFourCharactersGripAndSeatAtActualMuzzle",
+      "Status": "Passed",
+      "Duration": 8.5579392,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusMotion_CarryJumpKeepsSurvivingHandsAndCutSeatUsesMatchingClip",
+      "Status": "Passed",
+      "Duration": 22.3407131,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusMotion_RealLaunchApexFallAndTrampolineRebound",
+      "Status": "Passed",
+      "Duration": 6.3208575,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.CircusMotion_SafeLandingAbsorbsThenReturnsToLocomotion",
+      "Status": "Passed",
+      "Duration": 6.7638144,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.DevCheats_ListCannonPoints_AndTeleportToBoardingAndDestination",
+      "Status": "Passed",
+      "Duration": 3.647067,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.EveryCannon_BoardsAndCancelsIndependentlyWhileShelterLiftWaits",
+      "Status": "Passed",
+      "Duration": 10.048146,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FallBelowCourse_DiesLikeTightrope_WithoutRespawningAtStart",
+      "Status": "Passed",
+      "Duration": 4.9416165,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FastSaw_FixedLevelOneHidesUnusedSawDamage_AndKeepsVisibleSawDamage",
+      "Status": "Passed",
+      "Duration": 2.9012702,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FastSaw_HalfSecondGapStillCutsBetweenClearEndpoints_WithoutDuplicateCut",
+      "Status": "Passed",
+      "Duration": 2.9782719,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FastSaw_LongGapChecksRecentHalfSecond_AndCutsStationaryBody",
+      "Status": "Passed",
+      "Duration": 3.0078445,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FastSaw_LongGapClipsBodyPathToSameTimeWindow_WithoutInventingLateCrossing",
+      "Status": "Passed",
+      "Duration": 2.9645999,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FireWalls_WaitThirtySecondsAfterDeparture_KeepSpeed_AndRestart",
+      "Status": "Passed",
+      "Duration": 28.5196329,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FourFinalFlights_RequireNewFAndPreserveHealthyLeglessAndOneArmBodies",
+      "Status": "Passed",
+      "Duration": 14.5176421,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.GroundMarker_ShowsOnJumpAndFlight_HidesOnGroundDeathRestartAndVoid",
+      "Status": "Passed",
+      "Duration": 4.4430593,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.GroundSaw_FourSecondSweep_CanBeJumped_ButCutsStandingPlayer",
+      "Status": "Passed",
+      "Duration": 5.5768403,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.HazardHostCannotCutRemoteOwnerWithoutDisplayedContactReport",
+      "Status": "Passed",
+      "Duration": 3.0180342,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.HazardOwnerReportUsesDisplayedTimeRejectsAvoidanceAndDoesNotCutTwice",
+      "Status": "Passed",
+      "Duration": 3.2130979,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.LandingReportWaitsForDelayedOwnerPositionWithoutFalseInjury",
+      "Status": "Passed",
+      "Duration": 2.9995023,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.LinkedPole_ForwardJumpAllowsImmediateReverseAndSideSteering_ThreeRestarts",
+      "Status": "Failed",
+      "Duration": 3.7527743,
+      "Message": "  Expected: -8.0f +/- 0.100000001f\r\n  But was:  7.31135225f\r\n",
+      "StackTrace": "at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<LinkedPole_ForwardJumpAllowsImmediateReverseAndSideSteering_ThreeRestarts>d__58.MoveNext () [0x00587] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.LongSwing.cs:177\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OrdinaryJump_CanStartAndReverseMovementWhileAirborne_AndJumpAgain",
+      "Status": "Passed",
+      "Duration": 4.9859597,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OrdinaryJump_ReachesOnePointTwo_RespectsInjuryAndRestoresOnExit",
+      "Status": "Passed",
+      "Duration": 5.7801223,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OriginalCourse_AllDifficultiesHaveNoWindOrGroundDrift",
+      "Status": "Passed",
+      "Duration": 3.6326435,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OriginalCourse_CarryCameraFramesActualDevice_AndRestoresAfterDropAndRestart",
+      "Status": "Passed",
+      "Duration": 3.8457928,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OriginalCourse_DifficultyChangesBeforeLaunch_ThenLocks",
+      "Status": "Passed",
+      "Duration": 3.1416359,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OriginalCourse_FormalPerformanceUsesSelectedDifficulty_AndLocksBeforeLaunch",
+      "Status": "Failed",
+      "Duration": 3.0764437,
+      "Message": "  Expected: True\r\n  But was:  False\r\n",
+      "StackTrace": "at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<OriginalCourse_FormalPerformanceUsesSelectedDifficulty_AndLocksBeforeLaunch>d__45.MoveNext () [0x001d4] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.Hazards.cs:53\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OriginalCourse_GeneralHazardWaitsForRestartPose_CutsOncePerContact",
+      "Status": "Passed",
+      "Duration": 3.6167655,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OriginalCourse_InjuryPolicyAndFlightCorrection_RestoreOnExit",
+      "Status": "Passed",
+      "Duration": 3.236337,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OriginalCourse_OneArmGrabWaits_LeavingRangeCancels_DropIsImmediate",
+      "Status": "Passed",
+      "Duration": 4.4173985,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OriginalCushion_EndsActualFallWithoutHealingRevivingRestartingOrResult",
+      "Status": "Passed",
+      "Duration": 4.3562676,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactFinalSawsHostCannotCutRemotePosition",
+      "Status": "Passed",
+      "Duration": 3.2151354,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactFinalSawsValidateHistoryAvoidanceAndDuplicateDamage",
+      "Status": "Passed",
+      "Duration": 3.5132957,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactGatePreservesVisibleGapsAndRejectsHostOnlyRemoteDamage",
+      "Status": "Passed",
+      "Duration": 3.2627867,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactRouteFireValidatesContactBeforeFinishedAndRejectsReset",
+      "Status": "Passed",
+      "Duration": 3.2691808,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.PoleGrab_ExpandedReachAcceptsNearMiss_ButRejectsBeyondTolerance",
+      "Status": "Failed",
+      "Duration": 3.1915968,
+      "Message": "  잡기 범위·점유에 맞춰 기존 외곽선이 표시/해제되어야 한다.\r\n  Expected: True\r\n  But was:  False\r\n",
+      "StackTrace": "at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.AssertPoleInteractionUI (UnityEngine.Component pole, System.Boolean expected) [0x00106] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.Enhancement.cs:237\r\nat CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<PoleGrab_ExpandedReachAcceptsNearMiss_ButRejectsBeyondTolerance>d__37.MoveNext () [0x002e0] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.Enhancement.cs:212\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.PoleHeldInput_ReturnsThroughCenterWithoutReleasingKey_AndRearmsAfterRestart",
+      "Status": "Failed",
+      "Duration": 8.1598649,
+      "Message": "  W/S를 계속 눌러도 끝각에 버티지 않고 중립을 지나 돌아와야 한다.\r\n  Expected: True\r\n  But was:  False\r\n",
+      "StackTrace": "at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<PoleHeldInput_ReturnsThroughCenterWithoutReleasingKey_AndRearmsAfterRestart>d__57.MoveNext () [0x00241] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.LongSwing.cs:114\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.PoleSaw_ActualSwingAvoidsContact_ThenCrossingCutsWithoutForcingRelease",
+      "Status": "Failed",
+      "Duration": 4.6986302,
+      "Message": "System.NullReferenceException : Object reference not set to an instance of an object",
+      "StackTrace": "  at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.Get (System.Object target, System.String name) [0x00000] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.cs:320 \r\n  at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<PoleSaw_ActualSwingAvoidsContact_ThenCrossingCutsWithoutForcingRelease>d__36.MoveNext () [0x004cf] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.Enhancement.cs:181 \r\n  at UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44 "
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.PracticeBot_RealClient_CarriesSwapsLaunchesAndRestartsWithoutTakingLocalPlayer",
+      "Status": "Skipped",
+      "Duration": 2.9796499,
+      "Message": "Build Local Practice Bot 실행파일이 필요한 로컬 2인 검사입니다.",
+      "StackTrace": "at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<PracticeBot_RealClient_CarriesSwapsLaunchesAndRestartsWithoutTakingLocalPlayer>d__67.MoveNext () [0x00137] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.PracticeBot.cs:19\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.ShelterLift_SeatedRemoteFlyerDoesNotBlockCarrier_ThroughSecondDeparture",
+      "Status": "Skipped",
+      "Duration": 3.0715372,
+      "Message": "현재 씬을 포함한 로컬 봇 실행파일이 필요합니다.",
+      "StackTrace": "at CurtainCall.HumanCannon.Tests.FinalCannonPlayTests+<ShelterLift_SeatedRemoteFlyerDoesNotBlockCarrier_ThroughSecondDeparture>d__79.MoveNext () [0x000e3] in D:\\github\\github-worktrees\\POC_CURTAINCALL\\feat-waiting-room-pursuit-system\\Assets\\Scripts\\MainStage\\HumanCannon\\Tests\\PlayMode\\FinalCannonPlayTests.ShelterLift.cs:20\r\nat UnityEngine.TestTools.TestEnumerator+<Execute>d__7.MoveNext () [0x0004e] in .\\Library\\PackageCache\\com.unity.test-framework@bd7f943e9647\\UnityEngine.TestRunner\\NUnitExtensions\\Attributes\\TestEnumerator.cs:44\r\n"
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.TimedLinkedPole_GrabSplitsTheWallOpenForTheRestOfTheShow",
+      "Status": "Passed",
+      "Duration": 43.1071062,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.UpperMetalMeshBlocksFlightWithoutCuttingAboveTheSawRow",
+      "Status": "Passed",
+      "Duration": 3.6680112,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

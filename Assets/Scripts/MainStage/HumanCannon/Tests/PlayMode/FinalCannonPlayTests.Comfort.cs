@@ -32,6 +32,11 @@ namespace CurtainCall.HumanCannon.Tests
             yield return Board(6);
             AssertMarkerHidden(Actor);
             yield return ReleaseThenArm(); Input(tapped: true);
+            // The current final cannon points over a void. Isolate the marker's supported
+            // surface check using a real landing cushion, then test the void separately below.
+            var cushion = GameObject.Find("LandingCushion").GetComponent<BoxCollider>().bounds;
+            Call(pilot, "Launch", 6, Get(pilot, "launchRevision"),
+                new Vector3(cushion.center.x, cushion.max.y + 5, cushion.center.z), Quaternion.identity, Vector3.zero);
             yield return WaitUntil(() => MarkerVisible(Actor), 2, "대포 비행에도 발밑 원형 표시");
             AssertMarkerUnder(player);
             Assert.IsTrue(Flying);

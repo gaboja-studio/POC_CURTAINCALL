@@ -10,6 +10,36 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
     public sealed partial class TightropeCampaignPlayTests
     {
         [UnityTest]
+        public IEnumerator SwingLandingWaitsForDelayedOwnerPositionAndRejectsOldFlight()
+        {
+            yield return BeginPerformance(); DisableSwingHazards();
+            yield return StandOnRopeForSawTest(1, 4f);
+            var pole = (Component)Call(Static("CurtainCall.Tightrope.TightropeSwingPole", "Current"), "ForLane", 1);
+            var flights = (IDictionary)Get(pole, "flights");
+            var pending = (IDictionary)Get(pole, "pendingLandings");
+            ulong actor = (ulong)Get(player, "OwnerClientId");
+            var ropePosition = player.transform.position;
+            flights[actor] = (double)Get(pole, "Clock") + 6d;
+            Call(mover, "SetStartPose", player.transform.position + Vector3.up * 5f, player.transform.rotation, true);
+            var operation = pole.GetType().GetNestedType("Operation", BindingFlags.NonPublic);
+            Call(pole, "ServerHandle", actor, Enum.Parse(operation, "Landed"), 0f);
+            Assert.IsTrue(pending.Contains(actor));
+            yield return new WaitForSeconds(.5f);
+            Assert.IsTrue(pending.Contains(actor), "A half-second position delay must not discard a valid landing report.");
+            Call(mover, "SetStartPose", ropePosition, player.transform.rotation, true);
+            Physics.SyncTransforms();
+            Call(pole, "RetryPendingLandings");
+            Assert.IsFalse(pending.Contains(actor), "The actual supported landing must be accepted once position arrives.");
+            Assert.IsFalse(flights.Contains(actor));
+            flights[actor] = (double)Get(pole, "Clock") + 6d;
+            Call(mover, "SetStartPose", ropePosition + Vector3.up * 5f, player.transform.rotation, true);
+            Call(pole, "ServerHandle", actor, Enum.Parse(operation, "Landed"), 0f);
+            Assert.IsTrue(pending.Contains(actor));
+            flights.Remove(actor);
+            Call(pole, "RetryPendingLandings");
+            Assert.IsFalse(pending.Contains(actor), "A report from a cancelled flight must not survive.");
+        }
+        [UnityTest]
         public IEnumerator PoleInteraction_SwingUsesExistingOutlineAndFPrompt()
         {
             yield return BeginPerformance(); DisableSwingHazards();
@@ -122,8 +152,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 yield return null;
                 var catches = (Component)Static("CurtainCall.Tightrope.TightropeCatchSystem", "Current");
                 var request = catches.GetType().GetNestedType("Request", BindingFlags.NonPublic);
-                Call(catches, "ServerHandle", (ulong)Get(helper, "OwnerClientId"), Enum.Parse(request, "Prepare"), 0UL);
-                Assert.IsTrue((bool)Call(catches, "IsReady", helper));
+                GiveCatchGloves(helper);
+                Assert.IsTrue((bool)Call(catches, "IsGloveCatcher", helper));
                 Call(scheme, "Tick", context, CatchFrame(tap: true));
                 yield return Until(() => (bool)Call(pole, "IsHeld", player) && !(bool)Get(mover, "Simulated"), 2f, "F로 실제 봉 탑승");
                 Assert.IsFalse(((CharacterController)Get(mover, "Body")).enabled);
@@ -167,7 +197,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.That((float)Call(catches, "SuccessRemaining", player), Is.GreaterThan(0f), "봉 도약도 실제 받기 성공으로 확정한다.");
                 var balance = player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
                 float shock = (float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "RopeMovement"), "LandingShock");
-                Assert.That(Mathf.Abs((float)Get(balance, "LastShock")), Is.EqualTo(shock * .1f).Within(.01f));
+                Assert.That(Mathf.Abs((float)Get(balance, "LastShock")), Is.EqualTo(shock * (1f - (float)Get(catches, "CatchReduction"))).Within(.01f));
                 if (System.IO.File.Exists(".harness/local/tightrope-swing-capture"))
                 { ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/tightrope-swing-catch.png")); yield return null; }
             }

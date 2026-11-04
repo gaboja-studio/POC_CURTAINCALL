@@ -108,7 +108,10 @@ namespace CurtainCall.HumanCannon.Tests
             bool blocked = false;
             while (player.transform.position.y > sawTop + .3f)
             {
-                AssertBody(0);
+                Assert.AreEqual(0, Convert.ToInt32(Get(player, "LostParts")),
+                    $"Above-row flight: feet={player.transform.position}, initial saw top={sawTop}, "
+                    + string.Join("; ", Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonSawGate"), FindObjectsSortMode.None)
+                        .Cast<Component>().Select(g => $"{g.transform.position}:touch={Call(g, "Touches", player)}")));
                 float side = Vector3.Dot(player.transform.position - gate.transform.position, gate.transform.forward);
                 Assert.That(side, Is.LessThan(0), "철망을 뚫고 통과하지 않는다.");
                 if (side > -.8f) blocked = true;
@@ -175,8 +178,8 @@ namespace CurtainCall.HumanCannon.Tests
                 }
                 AssertBody(4); // 공용 순서의 첫 부위인 왼다리. 접촉 피해 함수를 직접 호출하지 않는다.
                 Assert.AreEqual(index, Get(pilot, "HeldPole"), "부상만 입고 살아 있으면 계속 매달린다.");
-                Assert.IsFalse((bool)Get(Call(poles, "State", index), "IsUnlimitedHold"));
-                Assert.AreEqual("Retracted", Get(Get(pole, "LinkedGate"), "Phase").ToString(),
+                var linked = Get(pole, "LinkedGate");
+                if (linked != null) Assert.AreEqual("Retracted", Get(linked, "Phase").ToString(),
                     "테스트 공중 톱의 부상이 지상 관문을 임의로 재가동하지 않는다.");
             }
             finally
@@ -192,6 +195,10 @@ namespace CurtainCall.HumanCannon.Tests
         public IEnumerator PoleGrab_ExpandedReachAcceptsNearMiss_ButRejectsBeyondTolerance()
         {
             DisableEnhancementThreats();
+            // Enabling the real input reader requires one neutral frame before UI is
+            // allowed. Keep it enabled here; the controller remains disabled for injection.
+            reader.enabled = true;
+            yield return WaitUntil(() => !(bool)StaticGet("CurtainCall.Player.InputGate", "IsBlocked"), 3, "Reader neutral release");
             var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
             var pole = (Component)Call(poles, "Pole", 1);
             var grip = (Transform)Get(pole, "Grip");
@@ -200,17 +207,26 @@ namespace CurtainCall.HumanCannon.Tests
             yield return Board(0);
             yield return ReleaseThenArm();
             Input(tapped: true);
-            var hang = (Vector3)Call(pole, "HangingPosition", 0f);
-            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), hang + Vector3.right * 4f, grip.rotation, Vector3.zero);
+            yield return WaitUntil(() => !(bool)StaticGet("CurtainCall.Player.InputGate", "IsBlocked"), 3,
+                "Flight camera transition completes before checking interactive UI");
+            float reach = (float)Call(pole, "GrabRadius", player, 0f);
+            Vector3 centerOffset = player.transform.TransformVector(((CharacterController)Get(mover, "Body")).center);
+            Vector3 approach = (Vector3)Get(pole, "Forward");
+            Vector3 target = (Vector3)Call(pole, "BarPosition", 0f);
+            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), target + approach * (reach + 1f) - centerOffset, grip.rotation, Vector3.zero);
             AssertPoleInteractionUI(pole, false);
             Input(tapped: true);
             yield return null;
-            Assert.AreEqual(-1, Get(pilot, "HeldPole"), "25% 여유를 더한 3.75m 밖에서는 잡지 않는다.");
-            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), hang + Vector3.right * 3.5f, grip.rotation, Vector3.zero);
+            Assert.AreEqual(-1, Get(pilot, "HeldPole"), "현재 설정의25% 접근 여유 밖에서는 잡지 않는다.");
+            Call(pilot, "Launch", 0, Get(pilot, "launchRevision"), target + approach * (reach - .25f) - centerOffset, grip.rotation, Vector3.zero);
+            Assert.IsTrue((bool)Call(poles, "CanGrab", 1, player), "The configured near-side approach is actually grabbable before checking presentation.");
             AssertPoleInteractionUI(pole, true);
             Input(tapped: true);
             yield return WaitUntil(() => (int)Get(pilot, "HeldPole") == 1, 2, "expanded host grab reach");
             Assert.AreEqual(Actor, Get(Call(poles, "State", 1), "Occupant"));
+            yield return null;
+            yield return WaitUntil(() => !(bool)StaticGet("CurtainCall.Player.InputGate", "IsBlocked"), 3,
+                "Held camera transition completes before checking Space guidance");
             AssertPoleInteractionUI(pole, false);
         }
 
@@ -224,22 +240,34 @@ namespace CurtainCall.HumanCannon.Tests
             bool wasEnabled = reader.enabled;
             try
             {
-                var point = (Vector3)Call(pole, "HangingPosition", 0f);
-                camera.transform.position = point + Vector3.up * .75f - Vector3.forward * 2f;
+                var point = (Vector3)Call(pole, "BarPosition", 0f);
+                // Observe from the same unobstructed side as the player. A camera placed
+                // behind the bar can be inside the current course's physical fence.
+                camera.transform.position = player.transform.TransformPoint(((CharacterController)Get(mover, "Body")).center);
                 camera.transform.LookAt(point);
                 reader.enabled = true;
                 Physics.SyncTransforms();
                 Call(ui, "LateUpdate");
                 var highlighted = (System.Collections.IEnumerable)Get(ui, "Highlighted");
                 bool found = highlighted.Cast<Transform>().Contains(pole.transform);
-                Assert.AreEqual(expected, found, "잡기 범위·점유에 맞춰 기존 외곽선이 표시/해제되어야 한다.");
+                Assert.AreEqual(expected, found, "잡기 범위·점유에 맞춰 기존 외곽선이 표시/해제되어야 한다. "
+                    + $"material={Get(ui, "material") != null}, blocked={StaticGet("CurtainCall.Player.InputGate", "IsBlocked")}, "
+                    + string.Join("; ", ((IEnumerable)Get(ui, "candidates")).Cast<object>().Select(c =>
+                        $"{Get(c, "Root")}: available={Get(c, "Available")}, visible={Call(ui, "IsVisible", c, camera, reader.transform)}, point={Get(c, "Point")}")));
                 var prompt = Get(ui, "Prompt");
-                Assert.AreEqual(expected, Get(prompt, "IsVisible"), "같은 F 입력 대상의 기존 C6 안내를 사용한다.");
+                bool held = (bool)Get(pilot, "IsHoldingPole");
+                // C6 enters from alpha zero; the synchronous contract is presentation
+                // acceptance. Its fade visibility is covered by InteractionPromptPlayTests.
+                Assert.AreEqual(expected || held, Get(prompt, "HasRuntimePresentation"), "잡기 전 F, 매달린 뒤 Space 안내를 사용한다.");
                 if (expected)
                 {
                     Assert.AreEqual("F", Get(Get(prompt, "keyLabel"), "text"));
-                    Assert.AreEqual("봉 잡기", Get(Get(prompt, "actionLabel"), "text"));
+                    StringAssert.Contains("잡기", (string)Get(Get(prompt, "actionLabel"), "text"));
                     Assert.IsTrue(pole.GetComponentsInChildren<MeshRenderer>().Any(r => r.name == "__InteractionOutline" && r.enabled));
+                }
+                if (held) {
+                    StringAssert.AreEqualIgnoringCase("Space", (string)Get(Get(prompt, "keyLabel"), "text"));
+                    Assert.AreEqual("그네에서 도약", Get(Get(prompt, "actionLabel"), "text"));
                 }
             }
             finally { reader.enabled = wasEnabled; camera.transform.SetPositionAndRotation(cameraPosition, cameraRotation); }

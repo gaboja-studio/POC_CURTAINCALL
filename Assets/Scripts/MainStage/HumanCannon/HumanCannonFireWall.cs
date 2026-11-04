@@ -146,8 +146,14 @@ namespace CurtainCall.HumanCannon
         }
 
         public bool Threatens(Vector3 feet, float radius, double now)
+            => IsConfigured && Advancing(now) && ThreatensGeometry(feet, radius, now);
+
+        internal bool HistoricalThreatens(Vector3 feet, float radius, double now)
+            => IsConfigured && available && Armed && double.IsFinite(now) && now >= AdvanceAt && now <= EndTime
+                && ThreatensGeometry(feet, radius, now);
+
+        bool ThreatensGeometry(Vector3 feet, float radius, double now)
         {
-            if (!IsConfigured || !Advancing(now)) return false;
             Vector3 forward = (boundary.position - start.position).normalized;
             Vector3 right = Vector3.Cross(Vector3.up, forward).normalized;
             Vector3 offset = feet - start.position;

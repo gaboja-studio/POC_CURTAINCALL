@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 6.25,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.UpperMetalMeshBlocksFlightWithoutCuttingAboveTheSawRow",
+      "Status": "Passed",
+      "Duration": 6.1471343,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

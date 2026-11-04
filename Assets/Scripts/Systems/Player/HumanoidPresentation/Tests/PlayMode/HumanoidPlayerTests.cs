@@ -847,6 +847,14 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 for (int i = 0; i < 3; i++) yield return null;
                 Assert.That((bool)Get(mover, "IsSprinting"), Is.True);
                 Assert.That((string)Get(view, "Motion"), Is.EqualTo("Run"));
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.W, Key.LeftShift, Key.Space));
+                yield return null;
+                yield return null;
+                Assert.That(Get(mover, "CurrentJump").ToString(), Is.EqualTo("InPlace"), "Sprint and movement must not suppress the jump action.");
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                for (int i = 0; i < 120 && Get(mover, "CurrentJump").ToString() != "None"; i++) yield return null;
+                Assert.That(Get(mover, "CurrentJump").ToString(), Is.EqualTo("None"));
+                yield return new WaitForSeconds(.4f); // Wait for the landing animation before checking crouch.
                 InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.W, Key.LeftCtrl));
                 for (int i = 0; i < 3; i++) yield return null;
                 Assert.That((bool)Get(mover, "IsCrouched"), Is.True);

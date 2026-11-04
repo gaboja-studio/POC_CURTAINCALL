@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 5.53,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.ActivePoleFlightSnapshot_PreservesIdentity_AndReleaseLandingRestartStillWork",
+      "Status": "Passed",
+      "Duration": 5.4310084,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

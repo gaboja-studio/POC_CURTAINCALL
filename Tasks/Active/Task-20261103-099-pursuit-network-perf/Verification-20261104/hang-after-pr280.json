@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "duration": 25.18,
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.HangRescue_FireKillsOnlyContactedRescuerAndImmediatelyReleasesPull",
+      "Status": "Passed",
+      "Duration": 8.2132591,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.HangRescue_GenerousReachMatchesHostAndAcceptsMovingInteractThenCancel",
+      "Status": "Passed",
+      "Duration": 5.2972416,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.HangRescue_ProtectsThroughFullPullAndReleasesOnCompletion",
+      "Status": "Passed",
+      "Duration": 6.8273893,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.HangRescue_ReleasesSupportOnRangeLossTargetRemovalAndDisable",
+      "Status": "Passed",
+      "Duration": 4.7247649,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

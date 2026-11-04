@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "duration": 14.75,
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactFinalSawsHostCannotCutRemotePosition",
+      "Status": "Passed",
+      "Duration": 4.9181477,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactFinalSawsValidateHistoryAvoidanceAndDuplicateDamage",
+      "Status": "Passed",
+      "Duration": 3.3726278,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactGatePreservesVisibleGapsAndRejectsHostOnlyRemoteDamage",
+      "Status": "Passed",
+      "Duration": 3.1080068,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactRouteFireValidatesContactBeforeFinishedAndRejectsReset",
+      "Status": "Passed",
+      "Duration": 3.2602843,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

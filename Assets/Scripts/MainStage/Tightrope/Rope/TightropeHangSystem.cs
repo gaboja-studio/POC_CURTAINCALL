@@ -77,12 +77,14 @@ namespace CurtainCall.Tightrope
         void OnEnable()
         {
             Current = this;
+            NetworkPlayer.Restarted += RemovePendingHangOnRestart;
             PlayerBalance.GaugeFallCatcher = CatchLocalGaugeFall;
             PlayerController.InputInterceptor = InterceptInput;
         }
 
         void OnDisable()
         {
+            NetworkPlayer.Restarted -= RemovePendingHangOnRestart;
             if (PlayerController.InputInterceptor == InterceptInput) PlayerController.InputInterceptor = null;
             if (PlayerBalance.GaugeFallCatcher == (Func<PlayerBalance, bool>)CatchLocalGaugeFall) PlayerBalance.GaugeFallCatcher = null;
             if (localPullHeld) Send(Request.Cancel);
@@ -100,15 +102,20 @@ namespace CurtainCall.Tightrope
             if (localPullHeld && InputGate.IsBlocked) { Debug.Log("[RescueDiag] local cancel reason=input-blocked"); Send(Request.Cancel); localPullHeld = false; }
             if (!Active || lastRound != Round)
             {
+                pendingHangs.Clear();
                 lastRound = Round;
                 if (book.Count > 0) { book.Clear(); if (IsHost) Publish(); }
                 if (localHang != null) ReleaseLocal(false);
                 if (!Active) { ReleaseRescuerBalance(); return; }
             }
-            if (IsHost) ServerTick(Time.deltaTime);
+            if (IsHost) { RetryPendingHangs(); ServerTick(Time.deltaTime); }
             UpdateLocal();
         }
         int lastRound;
+        void RemovePendingHangOnRestart(NetworkPlayer player)
+        {
+            if (player != null) pendingHangs.Remove(player.OwnerClientId);
+        }
 
         // ── 호스트 ────────────────────────────────────────────
 

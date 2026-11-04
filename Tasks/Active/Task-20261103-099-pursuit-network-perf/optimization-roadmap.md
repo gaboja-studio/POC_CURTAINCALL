@@ -59,7 +59,7 @@
 
 ### P3. 렌더링
 - [x] 정적 배칭이 적은 원인 1차 확인: 후속 Play 활성14729개 중 일반 static13452/BatchingStatic180/실제배칭180. 로비1793개 중배칭44. 범용 static 표시가 있어도 BatchingStatic이 빠진 소품이 많음(render-audit-local.json). 빌드/저장 자동 적용 후보는 추가 검증
-- [ ] GPU Resident Drawer 검토(Forward+ + SRP Batcher 전제, 현재 꺼짐)
+- [x] GPU Resident Drawer 후보 검토: 통합 WaitingRoom에서 실제 활성 확인 후 요청 수 감소/프레임 이득 미확인·첫 셰이더 준비 멈춤으로 미적용. [후속 수치·무효 표본 구분](followup-verification-20261104.md)
 - [ ] 오클루전 컬링 재굽기: 추격 씬은 원본 복제라 연결된 데이터가 원본 것일 수 있음
 - [ ] 로비 그림자 캐스터 4,608 감소: 그림자 조명 수/거리/해상도, 작은 소품 그림자 끄기
 - [ ] 조명: 정적 조명 라이트맵 굽기 또는 플레이어 근처 방 조명만 활성(`PursuitLighting`의 방-조명 매핑 재사용 가능)

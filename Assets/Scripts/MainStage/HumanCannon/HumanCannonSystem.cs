@@ -131,6 +131,7 @@ namespace CurtainCall.HumanCannon
 
         void ResetSeats()
         {
+            pendingLandingReports.Clear();
             awaitingFlightSnapshot = false;
             injuryInteractions.Clear();
             LocalSafeLandingCount = 0;
@@ -156,6 +157,7 @@ namespace CurtainCall.HumanCannon
             if (session == null) return;
             if (session.IsHost)
             {
+                RetryLandingReports();
                 injuryInteractions.Tick(Time.timeAsDouble);
                 for (int i = 0; i < seats.Length; i++)
                 {
@@ -398,6 +400,7 @@ namespace CurtainCall.HumanCannon
 
         void HandleRestart(NetworkPlayer player)
         {
+            pendingLandingReports.Remove(player.OwnerClientId);
             awaitingFlightSnapshot = false;
             injuryInteractions.Clear();
             flying.Remove(player.OwnerClientId);

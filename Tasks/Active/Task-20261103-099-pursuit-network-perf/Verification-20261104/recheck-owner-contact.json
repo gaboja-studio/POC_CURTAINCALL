@@ -1,0 +1,62 @@
+{
+  "status": "completed",
+  "duration": 33.76,
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactFinalSawsHostCannotCutRemotePosition",
+      "Status": "Passed",
+      "Duration": 5.1137178,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactFinalSawsValidateHistoryAvoidanceAndDuplicateDamage",
+      "Status": "Passed",
+      "Duration": 3.4771319,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactGatePreservesVisibleGapsAndRejectsHostOnlyRemoteDamage",
+      "Status": "Passed",
+      "Duration": 3.2022654,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.OwnerContactRouteFireValidatesContactBeforeFinishedAndRejectsReset",
+      "Status": "Passed",
+      "Duration": 3.164881,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.SawHostCannotCutRemoteWithoutOwnerContact",
+      "Status": "Passed",
+      "Duration": 5.1078274,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.SawOwnerContactUsesHistoryAndRejectsAvoidanceAndDuplicateCut",
+      "Status": "Passed",
+      "Duration": 5.4122755,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.SawOwnerContactVerticalAndBothGatePhasesValidateHistoricalBoundary",
+      "Status": "Passed",
+      "Duration": 8.088053,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

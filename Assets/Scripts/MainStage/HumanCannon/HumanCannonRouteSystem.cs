@@ -201,6 +201,7 @@ namespace CurtainCall.HumanCannon
                 if (fire.KillOnContact)
                     foreach (var player in NetworkPlayer.All)
                         if (player != null && player.IsSpawned && player.State == PlayerState.Normal
+                            && player.OwnerClientId == Unity.Netcode.NetworkManager.ServerClientId
                             && fire.Threatens(player.transform.position, 0.3f, Clock))
                         { player.ServerKill(); Debug.Log($"[HumanCannonRoute] fire contact actor={player.OwnerClientId}"); }
                 changed |= fire.Tick(Clock);
@@ -225,6 +226,7 @@ namespace CurtainCall.HumanCannon
             EjectStowaways();
             UpdatePassenger();
             foreach (var fire in fires) if (fire != null) fire.Present(Clock);
+            TickOwnerFireContacts();
         }
 
         /// <summary>
@@ -454,6 +456,7 @@ namespace CurtainCall.HumanCannon
 
         void ResetRoute()
         {
+            ownerFireContacts?.Reset();
             AliveFlyers = ArrivedFlyers = 0;
             foreach (var transit in runtime) { transit.State.Reset(); transit.Trap.Reset(); transit.Boarding.Reset(); transit.Occupied = transit.Rejected = false; transit.EmptySince = -1; }
             foreach (var fire in fires) if (fire != null) fire.ResetWall();
@@ -469,6 +472,7 @@ namespace CurtainCall.HumanCannon
 
         void OnDisable()
         {
+            ownerFireContacts?.Dispose();
             NetworkPlayer.Restarted -= Restart;
             if (cannon != null) cannon.StateChanged -= CannonChanged;
             if (session != null) session.ConnectionStateChanged -= Connection;
