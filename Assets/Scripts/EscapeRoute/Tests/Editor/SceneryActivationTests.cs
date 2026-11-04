@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using NUnit.Framework;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -18,6 +19,23 @@ namespace CurtainCall.EscapeRoute.Tests
             activation = Activator.CreateInstance(type);
         }
         [TearDown] public void TearDown() => Object.DestroyImmediate(background);
+        [Test] public void StartHallFloorRemainsSolidThroughoutSceneryLoading()
+        {
+            var scene = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Levels/escape_route.unity");
+            try
+            {
+                var frame = scene.GetRootGameObjects().Single(g => g.name == "EscapeCampaignFrame");
+                var floor = frame.GetComponentsInChildren<BoxCollider>(true).Single(c => c.name == "시작홀 연속 마감 바닥");
+                Call("Prepare", frame.transform.Find("EscapeBackground").gameObject);
+                Call("Suspend");
+                do
+                {
+                    Assert.That(floor.enabled && !floor.isTrigger && floor.gameObject.activeInHierarchy, Is.True,
+                        "An arriving owner can start simulating before the decorative chunks finish loading.");
+                } while (!(bool)Call("Advance", 256));
+            }
+            finally { EditorSceneManager.ClosePreviewScene(scene); }
+        }
         object Call(string method, params object[] args) => type.GetMethod(method).Invoke(activation, args);
         GameObject Prop(Transform parent, string name)
         {

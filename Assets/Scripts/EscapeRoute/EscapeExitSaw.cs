@@ -61,7 +61,16 @@ namespace CurtainCall.EscapeRoute
         public string CarryName => "휴대 절단기";
         public float CutProgress01 => ProjectileMode ? RequiredCableCount > 0 ? CutCableCount / (float)RequiredCableCount : 0
             : Mathf.Clamp01(cutProgress / Mathf.Max(.1f, cutSeconds));
-        public bool DoorOpen => ProjectileMode ? RequiredMask != 0 && (cutMask & RequiredMask) == RequiredMask : cutProgress >= cutSeconds;
+        public bool DoorOpen
+        {
+            get
+            {
+                if (!ProjectileMode) return cutProgress >= cutSeconds;
+                if (cutMask == 0) return false;
+                uint required = RequiredMask;
+                return required != 0 && (cutMask & required) == required;
+            }
+        }
         public bool IsCutting => cutting && !DoorOpen;
         public string Guidance => DoorOpen ? "배선 절단 완료 · 열린 출구로 이동하세요"
             : carryBlocked ? "장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요"

@@ -59,6 +59,20 @@ namespace CurtainCall.EscapeRoute.EditorTools
             var scene = RequireScene();
             Restore();
             var background = scene.GetRootGameObjects().Single().transform.Find("EscapeBackground");
+            Bake(scene, background, false);
+            BatchArrival();
+        }
+
+        [MenuItem("CurtainCall/Escape/Optimization/Batch arrival stair details")]
+        public static void BatchArrival()
+        {
+            var scene = RequireScene();
+            var stairs = scene.GetRootGameObjects().Single().transform.Find("EscapeArrivalStairs");
+            if (stairs != null) Bake(scene, stairs, true);
+        }
+
+        static void Bake(Scene scene, Transform background, bool arrival)
+        {
             var references = new HashSet<UnityEngine.Object>();
             foreach (var behaviour in scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<MonoBehaviour>(true)))
             {
@@ -82,20 +96,25 @@ namespace CurtainCall.EscapeRoute.EditorTools
             }
             Transform Module(Transform t)
             {
+                if (arrival) return background;
                 while (t.parent != background) t = t.parent;
                 return t;
             }
             var candidates = background.GetComponentsInChildren<MeshRenderer>(true).Where(r =>
+                (!arrival || (r.transform.parent == background &&
+                    (r.name == "Stair tread" || r.name == "Ceiling light housing" || r.name == "Ceiling light support"))) &&
                 r.enabled && r.gameObject.activeInHierarchy && r.sharedMaterials.Length == 1
                 && r.sharedMaterial != null && r.sharedMaterial.renderQueue < 2450
                 && r.GetComponent<MeshFilter>() is { sharedMesh: { isReadable: true, subMeshCount: 1 } }
                 && r.bounds.size.magnitude < 24 && Pure(r)).ToArray();
+            int cell = arrival ? 4 : 16;
             var groups = candidates.GroupBy(r => (
                 module: Module(r.transform), material: r.sharedMaterial, r.shadowCastingMode,
                 r.receiveShadows, r.gameObject.layer, r.renderingLayerMask,
-                x: Mathf.FloorToInt(r.bounds.center.x / 16),
-                y: Mathf.FloorToInt(r.bounds.center.y / 16),
-                z: Mathf.FloorToInt(r.bounds.center.z / 16))).Where(g => g.Count() >= 4).ToArray();
+                x: Mathf.FloorToInt(r.bounds.center.x / cell),
+                y: arrival ? 0 : Mathf.FloorToInt(r.bounds.center.y / cell),
+                z: Mathf.FloorToInt(r.bounds.center.z / cell))).Where(g => g.Count() >= (arrival ? 2 : 4)).ToArray();
+            if (groups.Length == 0) return;
             if (!AssetDatabase.IsValidFolder(MeshFolder))
                 AssetDatabase.CreateFolder("Assets/_ThirdParty/Task073", "StaticOptimized");
             var record = AssetDatabase.LoadAssetAtPath<EscapeStaticBatchRecord>(RecordPath);
@@ -106,13 +125,16 @@ namespace CurtainCall.EscapeRoute.EditorTools
             }
             var sourceIds = new List<string>();
             var meshPaths = new List<string>();
+            var previousSources = record.sources;
+            var previousMeshes = record.meshes;
             var changedSources = new List<MeshRenderer>();
             var createdNodes = new List<GameObject>();
             try
             {
                 foreach (var group in groups)
                 {
-                    var node = new GameObject(Prefix + meshPaths.Count);
+                    string id = (arrival ? "arrival-" : "") + (previousMeshes.Length + meshPaths.Count);
+                    var node = new GameObject(Prefix + id);
                     createdNodes.Add(node);
                     node.transform.SetParent(group.Key.module, false);
                     node.layer = group.Key.layer;
@@ -122,7 +144,9 @@ namespace CurtainCall.EscapeRoute.EditorTools
                         transform = node.transform.worldToLocalMatrix * r.transform.localToWorldMatrix
                     }).ToArray(), true, true, false);
                     combined.RecalculateBounds();
-                    string path = MeshFolder + "/chunk-" + meshPaths.Count + ".asset";
+                    string path = MeshFolder + "/chunk-" + id + ".asset";
+                    if (AssetDatabase.LoadMainAssetAtPath(path) != null)
+                        throw new InvalidOperationException("Batch mesh already exists: " + path);
                     AssetDatabase.CreateAsset(combined, path);
                     meshPaths.Add(path);
                     node.AddComponent<MeshFilter>().sharedMesh = combined;
@@ -140,10 +164,10 @@ namespace CurtainCall.EscapeRoute.EditorTools
                         PrefabUtility.RecordPrefabInstancePropertyModifications(original);
                     }
                 }
-                record.sources = sourceIds.ToArray();
-                record.meshes = meshPaths.ToArray();
+                record.sources = previousSources.Concat(sourceIds).ToArray();
+                record.meshes = previousMeshes.Concat(meshPaths).ToArray();
                 EditorUtility.SetDirty(record);
-                AssetDatabase.SaveAssets();
+                AssetDatabase.SaveAssetIfDirty(record);
                 EditorSceneManager.MarkSceneDirty(scene);
                 EditorSceneManager.SaveScene(scene);
                 Debug.Log($"A static rendering: {sourceIds.Count} sources → {meshPaths.Count} chunks. Use Restore editable geometry before editing their visuals.");
@@ -160,8 +184,8 @@ namespace CurtainCall.EscapeRoute.EditorTools
                 foreach (var node in createdNodes)
                     if (node != null) UnityEngine.Object.DestroyImmediate(node);
                 foreach (string mesh in meshPaths) AssetDatabase.DeleteAsset(mesh);
-                record.sources = Array.Empty<string>();
-                record.meshes = Array.Empty<string>();
+                record.sources = previousSources;
+                record.meshes = previousMeshes;
                 EditorUtility.SetDirty(record);
                 AssetDatabase.SaveAssetIfDirty(record);
                 EditorSceneManager.MarkSceneDirty(scene);
