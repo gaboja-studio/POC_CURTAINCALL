@@ -249,16 +249,23 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (rule.AlwaysNearest) return NearestByPath(actor, rule);
             GameObject closest = null; float distance = float.PositiveInfinity;
             foreach (var player in candidates) {
-                if (!IsAvailable(player) || (!actor.Room.RoamAcrossRooms && !actor.Room.Contains(player.transform.position))) continue;
-                if (!actor.WithinPatrolLeash(player.transform.position, rule)) continue;
-                var delta = player.transform.position - actor.transform.position;
-                float d = delta.sqrMagnitude;
+                if (player == null) continue;
+                float d = (player.transform.position - actor.transform.position).sqrMagnitude;
                 if (d >= distance) continue;
-                if (d > rule.SightRadius * rule.SightRadius || Vector3.Angle(actor.transform.forward, delta) > rule.FieldOfView * .5f) continue;
-                if (!rule.SeeThroughWalls && !ClearLine(actor.transform.position + Vector3.up * 1.5f, player.transform.position + Vector3.up, player.transform)) continue;
+                if (!HasVisualContact(actor, player, rule)) continue;
                 distance = d; closest = player;
             }
             return closest;
+        }
+        public bool HasVisualContact(PursuitActor actor, GameObject player, PursuitStage rule)
+        {
+            if (!PlayerRecognitionEnabled || actor == null || !actor.IsActivated || !IsAvailable(player)
+                || (!actor.Room.RoamAcrossRooms && !actor.Room.Contains(player.transform.position))) return false;
+            var delta = player.transform.position - actor.transform.position;
+            if (delta.sqrMagnitude > rule.SightRadius * rule.SightRadius
+                || Vector3.Angle(actor.transform.forward, delta) > rule.FieldOfView * .5f) return false;
+            return rule.SeeThroughWalls || ClearLine(actor.transform.position + Vector3.up * 1.5f,
+                player.transform.position + Vector3.up, player.transform);
         }
         readonly List<(float straight, GameObject player)> nearestOrder = new();
         // 최인접 추격은 벽 너머 직선 거리가 아니라 실제로 달려갈 NavMesh 경로 거리로 고른다.
@@ -268,7 +275,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             nearestOrder.Clear();
             foreach (var player in candidates) {
                 if (!IsAvailable(player) || (!actor.Room.RoamAcrossRooms && !actor.Room.Contains(player.transform.position))) continue;
-                if (!actor.WithinPatrolLeash(player.transform.position, rule)) continue;
+                if (!actor.WithinPatrolLeash(player.transform.position, rule) && !HasVisualContact(actor, player, rule)) continue;
                 nearestOrder.Add((Vector3.Distance(player.transform.position, actor.transform.position), player));
             }
             nearestOrder.Sort((a, b) => a.straight.CompareTo(b.straight));

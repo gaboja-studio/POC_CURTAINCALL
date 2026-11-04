@@ -77,9 +77,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 if (actor == null) continue;
                 bool active = actor.isActiveAndEnabled && actor.IsActivated && actor.IsRendered;
                 bool inRange = active && PursuitEyeTransition.InRange(actor.transform.position, observer.transform.position, stage);
-                // Match room/leash restrictions while keeping the full awareness radius visible behind the actor.
+                // Visual encounters can interrupt return outside the patrol leash.
+                // Keep the full local awareness radius visible behind the actor too.
                 inRange &= actor.Room == null || actor.Room.RoamAcrossRooms || actor.Room.Contains(observer.transform.position);
-                inRange &= actor.WithinPatrolLeash(observer.transform.position, stage);
                 if (!views.TryGetValue(actor, out var view)) { if (!inRange) continue; view = CreateView(actor); }
                 if (!active) { view.Transition.Reset(); view.Renderer.enabled = false; continue; }
                 var target = actor.Victim != null ? actor.Victim : actor.ChasedPlayer;

@@ -13,6 +13,9 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public bool WithinPatrolLeash(Vector3 position, PursuitStage stage) => stage.PatrolLeashDistance <= 0
             || Vector3.Distance(position, ClosestPatrolPosition(position, PatrolRoute, initialPosition)) <= stage.PatrolLeashDistance;
 
+        public bool WithinCaptureReach(Vector3 position) => Vector3.Distance(transform.position, position)
+            <= GameSettings.WaitingRoom.Pursuit.CaptureRadius;
+
         // Distance to the closed patrol polyline, including height. Sparse waypoints
         // must not make the middle of an otherwise valid patrol segment out of bounds.
         public static Vector3 ClosestPatrolPosition(Vector3 position, Transform[] points, Vector3 fallback)
@@ -37,8 +40,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
             return closest;
         }
 
-        void TickPatrolBoundary()
+        void TickPatrolBoundary(bool hasVisualContact)
         {
+            // The leash ends remembered pursuit, not a live encounter. Evaluate sight
+            // first so returning cannot clear/reacquire a visible target every tick.
+            if (hasVisualContact) {
+                if (returningToPatrol) { returningToPatrol = false; ClearNavigation(); }
+                return;
+            }
             if (returningToPatrol) {
                 // 복귀 지점에 닿을 수 없거나 막혀도 순찰을 재개한다. 순찰은 다음 도달 가능한 순회지를 찾는다.
                 if (rule.PatrolLeashDistance <= 0 || Reached(patrolReturnPoint) || (SameGoal(patrolReturnPoint) && navFailed)) {

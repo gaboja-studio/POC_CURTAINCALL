@@ -21,9 +21,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             // A replicated actor chasing a teammate is not a detection of this observer.
             if (targetsOther) return PursuitEyeState.Normal;
-            if (targetsObserver && (behaviour == PursuitBehaviour.Chase || behaviour == PursuitBehaviour.Capture)) return PursuitEyeState.Chase;
-            if (behaviour == PursuitBehaviour.Listen || behaviour == PursuitBehaviour.Investigate || behaviour == PursuitBehaviour.Search
-                || (targetsObserver && behaviour == PursuitBehaviour.Prepare)) return PursuitEyeState.Alert;
+            if (targetsObserver && (behaviour == PursuitBehaviour.Prepare || behaviour == PursuitBehaviour.Chase || behaviour == PursuitBehaviour.Capture)) return PursuitEyeState.Chase;
+            if (behaviour == PursuitBehaviour.Listen || behaviour == PursuitBehaviour.Investigate || behaviour == PursuitBehaviour.Search) return PursuitEyeState.Alert;
             return PursuitEyeState.Normal;
         }
 
@@ -42,6 +41,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (!initialized) {
                 Color = settings.NormalColor; startColor = Color; startEmission = Emission = settings.NormalEmission;
                 State = PursuitEyeState.Normal; blend = 1; initialized = true;
+            }
+            // Match the floor cue: prepare/chase/capture are red on this frame,
+            // including transitions from yellow or a partially hidden state.
+            if (visible && state == PursuitEyeState.Chase) {
+                State = state; Alpha = Openness = blend = 1;
+                startColor = Color = settings.ColorFor(state);
+                startEmission = Emission = settings.EmissionFor(state);
+                return;
             }
             if (state != State) {
                 State = state; startColor = Color; startEmission = Emission; blend = 0;
