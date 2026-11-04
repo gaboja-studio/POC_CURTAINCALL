@@ -20,12 +20,33 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W6_Rehearsal_VoteAndPersonalCheckpoint()
         {
+            // 패널 확인용 캡처(사용자 2026-11-04 요청). 판정에는 영향이 없다.
+            static IEnumerator CapturePanels(string name)
+            {
+                System.IO.Directory.CreateDirectory(".harness/local/rehearsal/panels");
+                yield return new WaitForEndOfFrame();
+                ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/panels/" + name + ".png"));
+                yield return null;
+            }
             // 합성 원격 소유자 3명으로 호스트 판정을 검사한다. 실제 다인 접속/조작 검사는 아니다.
             var helpers = new System.Collections.Generic.List<Component>();
             try
             {
                 yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
                 yield return WaitStage(0, 10f);
+                var questPanel = Priv(Rehearsal, "quest");
+                float panelDeadline = Time.realtimeSinceStartup + 3f;
+                while (!(bool)Get(questPanel, "Visible") && Time.realtimeSinceStartup < panelDeadline) yield return null;
+                StringAssert.StartsWith("[tutorial] ", (string)Get(questPanel, "Title"), "조건형 퀘스트에만 tutorial 표기");
+                string explanationTitle = (string)Static(GuideType, "CurrentTitle");
+                Assert.IsNotEmpty(explanationTitle, "시간형 설명 패널이 출력되어야 한다");
+                Assert.IsFalse(explanationTitle.StartsWith("[tutorial] "), "시간형 설명에는 tutorial 표기를 붙이지 않는다");
+                yield return CapturePanels("rehearsal-1-intro");
+                // 리허설 소개 10초 뒤 단계 소개 설명(기획서 4.3)이 왼쪽에 뜨는 장면.
+                float stageIntroUntil = Time.realtimeSinceStartup + 14f;
+                while (!((string)Static(GuideType, "CurrentTitle")).Contains("외줄타기") && Time.realtimeSinceStartup < stageIntroUntil) yield return null;
+                yield return new WaitForSecondsRealtime(.5f);
+                yield return CapturePanels("rehearsal-1b-stage-intro");
                 var session = Static("CurtainCall.Network.Session.NetworkSessionManager", "Instance");
                 var network = Get(session, "NetworkManager");
                 // NetworkConfig·PlayerPrefab은 Netcode의 공개 필드다(프로퍼티 아님).
@@ -51,7 +72,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Call(mover, "Relocate", checkpointPosition, rotation);
                 yield return new WaitForSecondsRealtime(.3f);
                 Call(localPlayer, "RequestState", System.Enum.Parse(T("CurtainCall.Network.PlayerSync.PlayerState"), "Fallen"));
-                yield return new WaitForSecondsRealtime(2f);
+                yield return new WaitForSecondsRealtime(.5f);
+                yield return CapturePanels("rehearsal-2-fallen");
+                yield return new WaitForSecondsRealtime(1.5f);
                 Assert.AreEqual("Normal", Get(localPlayer, "State").ToString());
                 // 사용자 2026-11-03: 복귀 지점은 줄 위가 아니라 소구간 출발대(출발대 위 = 코스 거리 0 이전).
                 Assert.Less((float)Call(course, "GetDistance", localPlayer.transform.position), 0f, "추락 뒤 소구간 출발대 복귀");
@@ -59,10 +82,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Call(mover, "Relocate", finish.position, finish.rotation);
                 yield return null; yield return null;
                 Assert.AreEqual(0, Static(RehearsalType, "CurrentStage"), "한 명 도착 즉시 전환 금지");
+                yield return new WaitForSecondsRealtime(.4f);
+                yield return CapturePanels("rehearsal-3-arrived");
                 Assert.AreEqual(4, Priv(rehearsal, "participantCount"));
-                Call(mover, "Relocate", checkpointPosition, rotation);
-                yield return null; yield return null;
-                Assert.IsTrue((bool)rehearsal.GetType().GetMethod("IsFinished", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(rehearsal, new object[] { localPlayer }), "도착대 이탈 복귀");
+                // 2026-11-04 사용자: 도착대 밖으로 되돌리는 대신 도착한 사람 화면에만 투명 벽을 세운다.
+                var walls = (GameObject)Priv(rehearsal, "finishWalls");
+                Assert.IsNotNull(walls, "도착하면 도착대 투명 벽을 만든다");
+                Assert.IsTrue(walls.activeSelf, "도착한 동안 투명 벽이 켜진다");
+                Assert.AreEqual(4, walls.GetComponentsInChildren<BoxCollider>().Length, "앞·뒤·양옆 벽");
+                Assert.IsTrue(walls.GetComponentsInChildren<Renderer>().Length == 0, "벽은 보이지 않는다");
                 setVote.Invoke(rehearsal, new object[] { localId, true });
                 setVote.Invoke(rehearsal, new object[] { 700UL, true });
                 yield return null;
@@ -73,11 +101,78 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 setVote.Invoke(rehearsal, new object[] { 701UL, true });
                 yield return WaitStage(1, 5f);
                 Assert.AreEqual(0, ((System.Collections.Generic.HashSet<ulong>)Priv(rehearsal, "votes")).Count);
+                yield return new WaitForSecondsRealtime(1.5f);
+                yield return CapturePanels("rehearsal-4-stage2-1");
             }
             finally
             {
                 foreach (var helper in helpers)
                     if (helper != null && (bool)Get(helper, "IsSpawned")) Call(helper, "Despawn", true);
+                EndTutorial();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator W6_Rehearsal_TriggerStageWaitsForRemotePlacement()
+        {
+            // 합성 원격 1명: NetworkTransform보다 배치 요청이 먼저 오는 순서를 재현한다.
+            Component helper = null;
+            FreshTutorial();
+            T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
+            try
+            {
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
+                yield return WaitStage(0, 10f);
+                var network = Get(Static("CurtainCall.Network.Session.NetworkSessionManager", "Instance"), "NetworkManager");
+                var prefab = (GameObject)Field(Field(network, "NetworkConfig"), "PlayerPrefab");
+                helper = Object.Instantiate(prefab).GetComponent(T("Unity.Netcode.NetworkObject"));
+                const ulong remoteId = 799UL;
+                Call(helper, "SpawnWithOwnership", remoteId, true);
+                var remote = helper.GetComponent(T("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+                // 실제 연결이 없는 합성 원격은 동기화 컴포넌트의 기본 좌표 보간을 끄고 수신 좌표를 직접 제어한다.
+                ((Behaviour)helper.GetComponent(T("Unity.Netcode.Components.NetworkTransform"))).enabled = false;
+                for (int i = 0; i < 2; i++)
+                {
+                    Assert.IsTrue((bool)Call(Rehearsal, "TryClearCurrentStage"));
+                    yield return WaitStage(i + 1, 5f);
+                    yield return null;
+                }
+                var oldCourse = (Component)Priv(Rehearsal, "course");
+                // 2-2 도착선: 2-3 도착대에 겹치는 이전 좌표를 호스트에 남긴다.
+                remote.transform.position = (Vector3)Call(oldCourse, "GetLanePosition", 0, 38f);
+                Assert.IsTrue((bool)Call(Rehearsal, "TryClearCurrentStage"));
+                yield return WaitStage(3, 5f);
+                yield return null; yield return null;
+                var rehearsal = Rehearsal;
+                var course = (Component)Priv(rehearsal, "course");
+                var arrivals = (System.Collections.Generic.HashSet<ulong>)Priv(rehearsal, "arrived");
+                var placements = (System.Collections.Generic.HashSet<ulong>)Priv(rehearsal, "placed");
+                Assert.IsTrue((bool)Invoke(rehearsal, "IsFinished", remote), $"이전 위치가 새 도착 범위에 겹치는 재현 조건: state={Get(remote, "State")}, position={remote.transform.position}, course={course.transform.position}, distance={Call(course, "GetDistance", remote.transform.position)}");
+                Assert.IsFalse(arrivals.Contains(remoteId), "새 출발 배치 전 원격을 도착자로 등록하면 안 됨");
+                int round = (int)Priv(rehearsal, "round");
+                var start = (Pose)Call(course, "GetStartPose", 1);
+                Invoke(rehearsal, "AcceptPlacement", remoteId, round, start.position);
+                Assert.IsFalse(placements.Contains(remoteId), "요청만 먼저 와도 호스트 좌표가 옛 위치면 거절");
+                remote.transform.position = start.position;
+                Invoke(rehearsal, "AcceptPlacement", remoteId, round - 1, start.position);
+                Assert.IsFalse(placements.Contains(remoteId), "이전 회차 확인 거절");
+                Invoke(rehearsal, "AcceptPlacement", remoteId, round, new Vector3(float.NaN, 0f, 0f));
+                Assert.IsFalse(placements.Contains(remoteId), "유효하지 않은 배치 좌표 거절");
+                Invoke(rehearsal, "AcceptPlacement", remoteId, round, start.position);
+                Assert.IsTrue(placements.Contains(remoteId), "현재 회차 출발점이 양쪽에서 확인되면 승인");
+                yield return null; yield return null;
+                Assert.IsFalse(arrivals.Contains(remoteId), "출발대는 도착대가 아님");
+                var finish = (Pose)Call(course, "GetFinishPose", 1);
+                remote.transform.position = finish.position;
+                yield return null; yield return null;
+                Assert.IsTrue(arrivals.Contains(remoteId), "배치 확인 후 실제 도착은 정상 등록");
+                Assert.AreEqual(3, Static(RehearsalType, "CurrentStage"), "한 명 도착으로 즉시 다음 구간 전환 금지");
+
+            }
+            finally
+            {
+                if (helper != null && (bool)Get(helper, "IsSpawned")) Call(helper, "Despawn", true);
+                T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
                 EndTutorial();
             }
         }
@@ -444,7 +539,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 + ", space=" + Get(link, "Current") + ", moving=" + Get(link, "IsTransitioning")
                 + ", curtain=" + Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive")
                 + ", player=" + (player == null ? "none" : Get(player, "State"))
-                + ", quest=" + Static(FirstDayFlowType, "FirstDayQuestTitle") + ", todo=" + Static(TutorialType, "TodoVisible");
+                + ", quest=" + Static(FirstDayFlowType, "FirstDayQuestTitle");
         }
 
         IEnumerator WaitQuestReady(string key)

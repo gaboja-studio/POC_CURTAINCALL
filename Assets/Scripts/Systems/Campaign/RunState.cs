@@ -118,14 +118,15 @@ namespace CurtainCall.Campaign
             if (s.Phase != CampaignPhase.RestTime || s.IsFinalMorning) return false;
             // 첫 공연 뒤에는 전원이 튜토리얼을 마치기 전까지 집결해도 다음 공연으로 넘어가지 않는다.
             if (IsGuideRestWaiting) return false;
-            // 첫날 둘째 공연은 호스트가 스케줄표에서 확정해야 시작한다(CC-215). 시간 만료는 그대로 진행한다.
-            if (s.Day == 1 && s.Rest == RestKind.Guide && SecondPerformanceGate != null && !SecondPerformanceGate()) return false;
+            if (IsSecondPerformanceSelectionPending) return false;
             EndRest();
             return true;
         }
 
         /// <summary>첫날 둘째 공연 확정 전 집결 차단. 스케줄표가 걸고, 없으면 막지 않는다.</summary>
         public static System.Func<bool> SecondPerformanceGate { get; set; }
+        public bool IsSecondPerformanceSelectionPending => s.Day == 1 && s.Rest == RestKind.Guide
+            && s.Phase == CampaignPhase.RestTime && SecondPerformanceGate != null && !SecondPerformanceGate();
 
         /// <summary>
         /// 첫날 둘째 공연을 호스트가 고른 묘기로 바꾼다(첫 공연 뒤 가이드 쉬는 시간, 안내 완료 후). 첫 공연 칸은 고정이다.
@@ -151,6 +152,8 @@ namespace CurtainCall.Campaign
         {
             if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night)
                 || s.Timer != RestTimerState.Running || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime) || deltaTime < 0f) return false;
+            // 확정 전 시간 만료로 기본 공연에 들어가는 우회도 막는다.
+            if (IsSecondPerformanceSelectionPending) return false;
             s.TimeRemaining -= deltaTime;
             if (s.TimeRemaining <= 0f)
             {
@@ -547,6 +550,7 @@ namespace CurtainCall.Campaign
         public bool NotifyAllPursuitCaught()
         {
             if (s.Phase != CampaignPhase.RestTime || s.Timer != RestTimerState.Pursuit) return false;
+            if (IsSecondPerformanceSelectionPending) return false;
             EndRest();
             return true;
         }

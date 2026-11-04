@@ -54,6 +54,8 @@ namespace CurtainCall.WaitingRoom
         /// <summary>외줄 코스 모양(<c>TightropeSettings.CourseSettings</c> JSON). 빠진 값은 공통 세팅 기본값.</summary>
         public string CourseJson;
         public string DisplayTitle => WaitingRoomText.Get("rehearsal.stage." + Id + ".title", Title);
+        /// <summary>설명 패널 제목(기획서 4.3). 재연습 버튼 등은 <see cref="DisplayTitle"/>을 그대로 쓴다.</summary>
+        public string DisplayGuideTitle => WaitingRoomText.Get("rehearsal.stage." + Id + ".guide-title", DisplayTitle);
         public string DisplayIntro => WaitingRoomText.Get("rehearsal.stage." + Id + ".intro", Intro);
         /// <summary>도착 거리(m). 코스를 링 가운데에 놓을 때 쓴다.</summary>
         public float Finish;
@@ -137,7 +139,8 @@ namespace CurtainCall.WaitingRoom
 
         static string F(float value) => value.ToString(CultureInfo.InvariantCulture);
 
-        // 짧은 코스 공통값: 출발대 4m·도착대 3m, 안전망 없음, 줄 아래 1m면 추락. 코스 값의 그네·해제봉·공중 봉 교대는 쓰지 않는다.
+        // 짧은 코스 공통값: 출발대·도착대 6m(공연과 같은 길이, 연습실 원형 벽 지름 53m 안), 옆 여백 4.5m(발판 폭 3배, 사용자 2026-11-04),
+        // 안전망 없음, 줄 아래 1m면 추락. 코스 값의 그네·해제봉·공중 봉 교대는 쓰지 않는다.
         static string Course(int lanes, float[] laneEnds, float finish, string changeZone)
         {
             string ends = laneEnds == null ? "[]" : "[" + string.Join(",", System.Array.ConvertAll(laneEnds, F)) + "]";
@@ -145,7 +148,7 @@ namespace CurtainCall.WaitingRoom
                 $"\"laneCount\":{lanes},\"laneSpacing\":3,\"laneEndDistances\":{ends},\"finishDistance\":{F(finish)}," +
                 $"\"laneChangeZones\":[{changeZone ?? ""}]," +
                 "\"swingGapEnabled\":false,\"relayGapEnabled\":false,\"trapezeEnabled\":false," +
-                "\"startPlatformLength\":4,\"finishPlatformLength\":3,\"sideMargin\":1.5,\"platformThickness\":0.5," +
+                "\"startPlatformLength\":6,\"finishPlatformLength\":6,\"sideMargin\":4.5,\"platformThickness\":0.5," +
                 "\"spawnDistance\":-1.5,\"safetyNetDepth\":0,\"fallDepth\":1" +
                 "}";
         }

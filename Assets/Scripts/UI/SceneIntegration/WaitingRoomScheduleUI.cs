@@ -24,6 +24,7 @@ namespace CurtainCall.UI.SceneIntegration
         float nextRefresh;
         int revision;
         public SchedulePanelView View => view;
+        public bool IsEditing => boardView != null && boardView.IsOpen;
         public string HoverDescription(UnityEngine.UI.Button button)
         {
             var schedule = ScheduleBoard.Instance;
@@ -113,39 +114,36 @@ namespace CurtainCall.UI.SceneIntegration
                 }
             tierButtons = buttons;
         }
+        bool wasOpen;
         void Update()
         {
+            if (view == null && templateView != null) ReleaseBoardDisplay();
             if (view == null) return;
             var room = CommonUiSceneLoader.CurrentWaitingRoom;
             if (boardView != null && (room == null || boardView.gameObject.scene != room.gameObject.scene))
-            { boardView.SetOpen(false); view.Hide(); boardView = null; }
+            { boardView.SetOpen(false); view.Hide(); ReleaseBoardDisplay(); boardView = null; }
             if (boardView == null && room != null)
                 boardView = room.gameObject.scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<ScheduleBoardView>()).FirstOrDefault(b => b.isActiveAndEnabled);
             if (ownedEvents != null && FindObjectsByType<EventSystem>(FindObjectsSortMode.None).Any(e => e != ownedEvents && e.isActiveAndEnabled))
             { Destroy(ownedEvents.gameObject); ownedEvents = null; }
-            TickBoardDisplay();
             bool open = boardView != null && boardView.isActiveAndEnabled && boardView.IsOpen && ScheduleBoard.Instance != null;
-            if (!open) { if (view.IsVisible) view.Hide(); return; }
-            if (!view.IsVisible)
+            if (open && !wasOpen)
             {
                 if (EventSystem.current == null)
                 {
                     var events = new GameObject("ScheduleEventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
                     events.transform.SetParent(transform, false); ownedEvents = events.GetComponent<EventSystem>();
                 }
+                // 런타임 AddComponent로 만든 InputSystemUIInputModule에는 기본 포인터 액션이 없을 수 있다.
+                // Raycaster만 존재하고 실제 마우스 클릭은 들어오지 않던 원인이다.
+                var module = EventSystem.current != null ? EventSystem.current.GetComponent<InputSystemUIInputModule>() : null;
+                if (module != null && (module.point == null || module.leftClick == null)) module.AssignDefaultActions();
                 var phone = room.gameObject.scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<ShopPhone>()).FirstOrDefault(p => p.isActiveAndEnabled);
                 if (phone != null) phone.SetOpen(false);
                 session = Guid.NewGuid().ToString("N"); message = ""; lastKey = null;
-                view.Open(Build());
-                RefreshControls();
             }
-            if (Time.unscaledTime < nextRefresh) return;
-            nextRefresh = Time.unscaledTime + .15f;
-            var schedule = ScheduleBoard.Instance;
-            var run = CampaignRun.Instance;
-            string key = $"{schedule.Book.Revision}|{schedule.HasAuthority}|{run?.State.Day}|{run?.State.Phase}|{run?.State.PerformanceIndex}|{run?.State.TrickId}|{run?.State.Difficulty}|{run?.State.ReadyCount}|{run?.State.RequiredCount}|{run?.IsLocalReady}|{message}";
-            if (lastKey == key) return;
-            lastKey = key; view.SetPresentation(Build()); RefreshControls();
+            wasOpen = open;
+            TickBoardDisplay();
         }
         public SchedulePresentation Build()
         {
@@ -167,7 +165,7 @@ namespace CurtainCall.UI.SceneIntegration
                         day == 1 ? (slot == 1 && book.FirstDayConfirmed ? WaitingRoomText.Get("schedule.card-locked", "확정")
                             : slot == 1 && schedule.IsFirstDayChoiceOpen ? (schedule.HasAuthority ? WaitingRoomText.Get("schedule.card-click", "클릭하여 변경") : WaitingRoomText.Get("schedule.card-unconfirmed", "미확정"))
                             : WaitingRoomText.Get("schedule.card-fixed", "고정")) : book.IsLocked(day) ? WaitingRoomText.Get("schedule.card-locked", "확정") : book.IsEditable(day) && schedule.HasAuthority ? WaitingRoomText.Get("schedule.card-click", "클릭하여 변경") : WaitingRoomText.Get("schedule.card-unconfirmed", "미확정"),
-                        false, book.IsLocked(day));
+                        false, day == 1 ? (slot == 0 || book.FirstDayConfirmed) : book.IsLocked(day));
                 }
                 days[day - 1] = new ScheduleDayPresentation(day.ToString(), WaitingRoomText.Format("schedule.day-label", "{day}일차", ("day", day)), run != null && run.State.Day == day, "", entries);
             }
@@ -205,19 +203,19 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 int day = i / 2 + 1;
                 // 1일차는 둘째 칸만, 둘째 공연 선택 시간대에만 호스트가 고친다(CC-215).
-                bool edit = day == 1 ? i % 2 == 1 && schedule.HasAuthority && schedule.IsFirstDayChoiceOpen
-                    : night && schedule.HasAuthority && schedule.Book.IsEditable(day);
+                bool edit = boardView != null && boardView.IsOpen && (day == 1 ? i % 2 == 1 && schedule.HasAuthority && schedule.IsFirstDayChoiceOpen
+                    : night && schedule.HasAuthority && schedule.Book.IsEditable(day));
                 editButtons[i].interactable = edit;
             }
             RefreshTierButtons(schedule);
             bool firstDay = schedule.HasAuthority && schedule.IsFirstDayChoiceOpen;
             confirmButton.gameObject.SetActive(firstDay || (night && schedule.HasAuthority && ScheduleBook.EditableDays(run.State.Day).Length > 0));
-            confirmButton.interactable = firstDay || !schedule.Book.IsConfirmedTonight;
+            confirmButton.interactable = boardView != null && boardView.IsOpen && (firstDay || !schedule.Book.IsConfirmedTonight);
             Label(confirmButton, firstDay ? WaitingRoomText.Get("schedule.button-confirm-first-day", "두 번째 공연 확정")
                 : schedule.Book.IsConfirmedTonight ? WaitingRoomText.Get("schedule.button-confirmed", "확정 완료") : WaitingRoomText.Get("schedule.button-confirm", "일정 확정"));
             // M2: 밤 정비 준비 완료는 숙소 침대에서 한다(Task-079). 스케줄표 화면의 준비 버튼은 쓰지 않는다.
             readyButton.gameObject.SetActive(false);
-            GetComponentInParent<UiRuntimeFontFallback>()?.ApplyTo(transform);
+            GetComponentInParent<UiRuntimeFontFallback>()?.ApplyTo(boardDisplay != null ? boardDisplay : transform);
         }
         static void Label(UnityEngine.UI.Button button, string text) => button.GetComponentInChildren<TMP_Text>(true).text = text;
         void RefreshTierButtons(ScheduleBoard schedule)
@@ -228,7 +226,7 @@ namespace CurtainCall.UI.SceneIntegration
                 int day = i / 2 + 1, slot = i % 2;
                 string trick = schedule.Book.Get(day, slot);
                 bool show = day > 1 && !string.IsNullOrEmpty(trick);
-                bool edit = show && CanEditTier(schedule, day, slot);
+                bool edit = show && boardView != null && boardView.IsOpen && CanEditTier(schedule, day, slot);
                 int selected = schedule.Book.Difficulty(day, slot), max = schedule.MaxTier(trick);
                 for (int t = 0; t < tierButtons.GetLength(1); t++)
                 {
@@ -247,7 +245,7 @@ namespace CurtainCall.UI.SceneIntegration
         public void Cycle(int day, int slot)
         {
             var schedule = ScheduleBoard.Instance;
-            if (schedule == null || !view.IsVisible || !schedule.HasAuthority || !schedule.Book.IsEditable(day)) return;
+            if (schedule == null || !view.IsVisible || boardView == null || !boardView.IsOpen || !schedule.HasAuthority || !schedule.Book.IsEditable(day)) return;
             // 카드는 묘기만 차례로 돈다: 묘기 A → 묘기 B → … → 빈 칸. 단계는 단계 버튼으로 고르고, 새 묘기에서 못 고르는 단계면 낮춘다.
             var choices = schedule.SelectableTricks;
             string trick = schedule.Book.Get(day, slot);
@@ -273,7 +271,7 @@ namespace CurtainCall.UI.SceneIntegration
         public void ChooseTier(int day, int slot, int tier)
         {
             var schedule = ScheduleBoard.Instance;
-            if (schedule == null || !view.IsVisible || !CanEditTier(schedule, day, slot)) return;
+            if (schedule == null || !view.IsVisible || boardView == null || !boardView.IsOpen || !CanEditTier(schedule, day, slot)) return;
             var run = CampaignRun.Instance;
             bool night = run != null && run.State.Phase == CampaignPhase.Night;
             var result = night && schedule.Book.IsEditable(day)
@@ -284,7 +282,7 @@ namespace CurtainCall.UI.SceneIntegration
         }
         public void Confirm()
         {
-            if (!view.IsVisible || ScheduleBoard.Instance == null) return;
+            if (!view.IsVisible || boardView == null || !boardView.IsOpen || ScheduleBoard.Instance == null) return;
             bool firstDay = ScheduleBoard.Instance.IsFirstDayChoiceOpen;
             var result = ScheduleBoard.Instance.Confirm();
             message = result != ScheduleRefusal.None ? ScheduleBoard.Explain(result)
@@ -295,11 +293,17 @@ namespace CurtainCall.UI.SceneIntegration
         void Closed() { if (boardView != null) boardView.SetOpen(false); }
         void OnDisable()
         {
-            if (view == null) return;
+            if (view == null)
+            {
+                ReleaseBoardDisplay();
+                if (ownedEvents != null) Destroy(ownedEvents.gameObject);
+                return;
+            }
             view.Hide(); view.Closed -= Closed; Closed();
             foreach (var button in editButtons) button.onClick.RemoveAllListeners();
             if (tierButtons != null) foreach (var button in tierButtons) button.onClick.RemoveAllListeners();
             confirmButton.onClick.RemoveListener(Confirm);
+            ReleaseBoardDisplay();
             if (ownedEvents != null) Destroy(ownedEvents.gameObject);
         }
     }

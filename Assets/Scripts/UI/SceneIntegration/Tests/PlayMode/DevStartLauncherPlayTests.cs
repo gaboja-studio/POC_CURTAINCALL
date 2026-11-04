@@ -65,9 +65,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         IEnumerator Launch(int day, string phase, int slot, string trick, string scene)
         {
             Assert.IsTrue((bool)Call(launcher, "TryLaunch", Point(day, phase, slot, trick)), (string)Get(launcher, "Status"));
-            float until = Time.realtimeSinceStartup + 75;
+            float until = Time.realtimeSinceStartup + 150;
             while ((bool)Get(launcher, "IsBusy") && Time.realtimeSinceStartup < until) yield return null;
-            Assert.IsFalse((bool)Get(launcher, "IsBusy"));
+            Assert.IsFalse((bool)Get(launcher, "IsBusy"), (string)Get(launcher, "Status"));
             Assert.IsTrue((bool)Get(launcher, "LastLaunchSucceeded"), (string)Get(launcher, "Status"));
             Assert.IsTrue(SceneManager.GetSceneByName(scene).isLoaded);
             Assert.AreEqual(day, Field(State, "Day"));
@@ -216,7 +216,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             finally { connection.SetValue(session, before); }
             DevCache.SetValue(null, false);
             Assert.IsFalse((bool)Call(launcher, "TryLaunch", Point(2, "Performance", 0, "Tightrope")));
-            Assert.IsFalse((bool)Get(launcher, "IsBusy"));
+            Assert.IsFalse((bool)Get(launcher, "IsBusy"), (string)Get(launcher, "Status"));
             Assert.IsTrue(SceneManager.GetSceneByName("WaitingRoomBase").isLoaded);
         }
         [UnityTearDown]

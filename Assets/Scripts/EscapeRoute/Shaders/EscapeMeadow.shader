@@ -28,8 +28,9 @@ Shader "CurtainCall/Escape/Meadow"
             Varyings Vert(Attributes v)
             {
                 Varyings o;float3 p=TransformObjectToWorld(v.positionOS.xyz);
-                float wave=sin(_Time.y*.85+p.x*.21+p.z*.17)*.7+sin(_Time.y*1.21+p.z*.4)*.3;
-                p.xz+=float2(wave,wave*.38)*_Wind*v.uv.y*v.uv.y;
+                float gust=sin(p.x*.085+p.z*.05-_Time.y*.67)*.5+.5;
+                float wave=sin(_Time.y*.85+p.x*.21+p.z*.17)*.55+sin(_Time.y*1.21+p.z*.4)*.2;
+                p.xz+=float2(1,.38)*(wave+gust*gust*1.2)*_Wind*v.uv.y*v.uv.y;
                 o.positionCS=TransformWorldToHClip(p);o.world=p;o.normal=TransformObjectToWorldNormal(v.normalOS);o.color=v.color;
                 o.fog=ComputeFogFactor(o.positionCS.z);return o;
             }

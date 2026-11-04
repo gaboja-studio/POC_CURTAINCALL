@@ -34,6 +34,10 @@ namespace CurtainCall.WaitingRoom
         readonly List<Vector3> corners = new();
         readonly List<Vector3> points = new();
         bool routeValid;
+        /// <summary>경로 계산이 잠깐 실패해도(벽 옆·점프·소품 위) 마지막 경로를 유지하는 시간(초). 4인 깜빡임 대응(2026-11-04).</summary>
+        const float FailureGraceSeconds = 1f;
+        float lastRouteAt = -999f;
+        bool failureLogged;
 
         void Awake() => path = new NavMeshPath();
 
@@ -41,6 +45,8 @@ namespace CurtainCall.WaitingRoom
         {
             if (target == destination) return;
             target = destination;
+            // 목적지가 바뀌면 이전 경로를 유예 대상으로 쓰지 않는다.
+            corners.Clear(); routeValid = false; lastRouteAt = -999f; failureLogged = false; nextRefresh = 0f;
             if (target.HasValue && !navReady && !navBuilding) StartCoroutine(BuildNavMesh());
             if (!target.HasValue) Hide();
         }
@@ -62,12 +68,25 @@ namespace CurtainCall.WaitingRoom
         /// <summary>NavMesh 경로를 다시 계산한다. 시작점은 그리는 쪽이 매 프레임 내 위치로 둔다.</summary>
         void Recalculate(Vector3 feet)
         {
-            routeValid = navReady && NavMesh.SamplePosition(feet, out var origin, 2f, NavMesh.AllAreas)
-                && NavMesh.SamplePosition(target.Value, out var goal, 3f, NavMesh.AllAreas)
-                && NavMesh.CalculatePath(origin.position, goal.position, NavMesh.AllAreas, path)
+            bool fromOk = false, toOk = false, pathOk = false;
+            NavMeshHit origin = default, goal = default;
+            bool found = navReady && (fromOk = NavMesh.SamplePosition(feet, out origin, 2f, NavMesh.AllAreas))
+                && (toOk = NavMesh.SamplePosition(target.Value, out goal, 3f, NavMesh.AllAreas))
+                && (pathOk = NavMesh.CalculatePath(origin.position, goal.position, NavMesh.AllAreas, path))
                 && path.status == NavMeshPathStatus.PathComplete && path.corners.Length > 1;
-            // 벽·철창을 관통하는 직선 안내는 표시하지 않는다.
-            if (!routeValid) return;
+            if (!found)
+            {
+                // 벽·철창을 관통하는 직선 안내는 표시하지 않는다. 직전에 찾은 경로는 잠깐 유지해 깜빡이지 않게 한다.
+                if (navReady && !failureLogged)
+                {
+                    failureLogged = true;
+                    Debug.Log($"[PathGuide] 경로 계산 실패(직전 경로 {FailureGraceSeconds}초 유지): 발밑 샘플={fromOk}, 목적지 샘플={toOk}, 계산={pathOk}, 상태={(pathOk ? path.status.ToString() : "-")}, 위치={feet}");
+                }
+                routeValid = corners.Count > 0 && Time.unscaledTime - lastRouteAt <= FailureGraceSeconds;
+                return;
+            }
+            failureLogged = false;
+            routeValid = true; lastRouteAt = Time.unscaledTime;
             corners.Clear();
             for (int i = 1; i < path.corners.Length; i++) corners.Add(path.corners[i]);
         }
