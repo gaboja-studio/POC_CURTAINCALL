@@ -121,3 +121,5 @@
 - 제출 직전 origin/dev 34bf6c9e까지 FF 반영했다. 대기실 추격 수정과 담당자가 올린 정식 GIF 메타를 수신했다.
 
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-04 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/286 (feat/exit-route/design-map → dev)
