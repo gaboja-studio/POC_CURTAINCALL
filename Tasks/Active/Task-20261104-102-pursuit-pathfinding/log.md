@@ -34,3 +34,6 @@
 - 2026-11-04 dev 병합: 같은 번호 Task-20261104-101(pursuit-eye-art)이 dev에 먼저 들어와 이 Task를 102로 변경.
 
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=ENV_BLOCKED(Unity 환경); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-04 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/285 (fix/pursuit/systems → dev)
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/285
