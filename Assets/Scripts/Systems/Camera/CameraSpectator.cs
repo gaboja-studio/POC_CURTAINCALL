@@ -80,7 +80,8 @@ namespace CurtainCall.Cameras
             // 리타이어(탈출로 사망·잡힘)도 사망처럼 관전한다(2026-10-14 PM). 관전 대상은 Normal만
             bool dead = local != null && (local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                                           || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen));
-            if (!dead)
+            // 리허설은 추락해도 바로 출발대로 돌아오므로 관전하지 않는다(사용자 2026-11-04).
+            if (!dead || CurtainCall.WaitingRoom.WaitingRoomRehearsal.IsActive)
             {
                 Stop(local);
                 return;

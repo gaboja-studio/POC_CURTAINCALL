@@ -61,6 +61,6 @@ namespace CurtainCall.WaitingRoom
 
         // 획득 안내(모든 화면). 기존 패널 이미지로 만든 안내 패널을 쓴다.
         void ShowGuide() => WaitingRoomGuidePanel.Show(WaitingRoomText.Format("narration.performance-unlocked-title", "{trick} 획득!", ("trick", trickName)),
-            WaitingRoomText.Format("narration.performance-unlocked-body", "'{trick}' 공연이 해금되었습니다. 이제 스케줄표에서 {trick} 공연을 편성할 수 있습니다.\n획득한 {trick}·트램펄린은 연습실로 옮겨졌습니다. 연습실에서 {trick} 공연을 연습할 수 있습니다.", ("trick", trickName)), noticeSeconds);
+            WaitingRoomText.Format("narration.performance-unlocked-body", "'{trick}' 공연이 해금되었습니다. 이제 스케줄표에서 {trick} 공연을 편성할 수 있습니다.\n획득한 {trick}·트램펄린은 연습실로 옮겨졌습니다.", ("trick", trickName)), noticeSeconds);
     }
 }

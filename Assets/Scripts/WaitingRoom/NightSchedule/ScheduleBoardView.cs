@@ -40,7 +40,9 @@ namespace CurtainCall.WaitingRoom
         public Vector3 PresentationPoint => Target.position;
         /// <summary>스케줄표 클로즈업 카메라 자리(튜토리얼 클로즈업도 같은 자리를 쓴다).</summary>
         public Transform CloseUpPose => closeUp != null ? closeUp.transform : null;
-        public string ActionLabel => WaitingRoomText.Get("schedule.board-action", "스케줄표 보기");
+        public string ActionLabel => ScheduleBoard.Instance != null && ScheduleBoard.Instance.TryGetNewTrick(out string newTrick)
+            ? WaitingRoomText.Format("schedule.board-action-new", "스케줄표 보기 · 새 공연 {trick} 편성 가능", ("trick", ScheduleBoard.Instance.TrickName(newTrick)))
+            : WaitingRoomText.Get("schedule.board-action", "스케줄표 보기");
         public bool IsAvailable => !open && ScheduleBoard.Instance != null;
         public float Reach(Vector3 feet) { float d = Flat(feet - Target.position); return d <= reach ? d : -1; }
         public void Interact() { if (IsAvailable) SetOpen(true); }

@@ -197,7 +197,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator M2_Placement_LobbyUvThreeMarksAndMachineMonitor()
         {
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
-            yield return PickPlaced("uv-lamp", "S01_Lobby", "lobby-uv-lamp-1");
+            yield return PickPlaced("uv-lamp", "S02_Dormitory", "dormitory-uv-lamp-1");
             var state = Static("CurtainCall.WaitingRoom.ExplorationState", "Instance");
             yield return UsePlaced("uv-3"); Assert.AreEqual(true, Call(state, "IsOpen", "structure-a:uv-3"));
             // 2026-10-30: 장비형 UV 등은 내구도가 없어 다른 낙서도 이어서 발견한다.

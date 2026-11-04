@@ -23,9 +23,9 @@ namespace CurtainCall.WaitingRoom
 
         [Tooltip("이 대상이 열린 뒤에만 바닥 기물 생성. 비우면 기존처럼 처음부터 생성.")]
         [SerializeField] string availableAfter = "";
-        [Tooltip("디버그 보급품: Editor 또는 Development Build에서만 생성.")]
+        [Tooltip("디버그 보급품: Dev 모드를 켠 Editor 또는 Development Build에서만 생성.")]
         [SerializeField] bool debugOnly;
-        public bool CanSeed => (!debugOnly || Application.isEditor || Debug.isDebugBuild)
+        public bool CanSeed => (!debugOnly || (CurtainCall.Dev.DevMode.Enabled && (Application.isEditor || Debug.isDebugBuild)))
             && (string.IsNullOrEmpty(availableAfter)
             || (ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(availableAfter)));
         public void UnlockAfter(string targetId) => availableAfter = targetId ?? "";

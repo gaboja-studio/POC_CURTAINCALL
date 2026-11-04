@@ -5,7 +5,7 @@ namespace CurtainCall.WaitingRoom
     /// <summary>
     /// 디버그 전용 돈 기물(대기실 로비). 가까이서 F를 누를 때마다 공동 자금에 <see cref="amount"/>를 넣는다. 기물은 사라지지 않는다.
     /// 판정 화면(호스트)이 요청 1건당 한 번만 넣고, 잔액·장부("디버그 지급")는 공용 보상 시스템이 모두에게 보낸다.
-    /// 에디터·개발 빌드에서만 동작하고, 정식 빌드에서는 스스로 사라진다.
+    /// 에디터·개발 빌드에서 Dev 모드를 켰을 때만 나타나고, 그 밖에는 스스로 사라진다.
     /// </summary>
     public sealed class DebugMoneyProp : MonoBehaviour, IShopTarget, IShopPresentation, IItemPickupTarget
     {
@@ -21,6 +21,7 @@ namespace CurtainCall.WaitingRoom
         public bool IsAvailable => WaitingRoomShop.Instance != null;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
+        void Awake() { if (!CurtainCall.Dev.DevMode.Enabled) gameObject.SetActive(false); }
         void OnEnable() => ShopReach.Add(this);
         void OnDisable() => ShopReach.Remove(this);
         void Update() => ShopReach.Pump();

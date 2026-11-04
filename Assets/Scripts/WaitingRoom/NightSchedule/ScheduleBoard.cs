@@ -40,6 +40,29 @@ namespace CurtainCall.WaitingRoom
         public static bool IsUnlocked(string trickId) =>
             string.IsNullOrEmpty(trickId) || CurtainCall.Campaign.CampaignRun.Instance == null || CurtainCall.Campaign.CampaignRun.Instance.IsTrickUnlocked(trickId);
 
+        /// <summary>
+        /// 이번 런에서 새로 열렸지만 아직 한 번도 편성하지 않은 공연(사용자 2026-11-04: 기물 해금 뒤 스케줄표에 새 공연 알림).
+        /// 기본 공연(외줄타기)은 처음부터 열려 있어 새 공연으로 치지 않는다.
+        /// </summary>
+        public bool TryGetNewTrick(out string trickId)
+        {
+            trickId = "";
+            var run = CampaignRun.Instance;
+            if (run == null || book == null) return false;
+            foreach (var trick in selectableTricks)
+            {
+                if (string.IsNullOrEmpty(trick) || trick == GameSettings.Base.Run.DefaultTrick || !run.IsTrickUnlocked(trick)) continue;
+                bool scheduled = false;
+                for (int day = 1; day <= ScheduleBook.PerformanceDays && !scheduled; day++)
+                    for (int slot = 0; slot < ScheduleBook.SlotsPerDay && !scheduled; slot++)
+                        scheduled = book.Get(day, slot) == trick;
+                if (scheduled) continue;
+                trickId = trick;
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>마지막 편집·확정 결과 문구(호스트 화면용).</summary>
         public string LastMessage { get; private set; } = "";
 
