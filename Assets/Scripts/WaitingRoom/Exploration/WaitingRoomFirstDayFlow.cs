@@ -90,6 +90,8 @@ namespace CurtainCall.WaitingRoom
             if (board != null && board.IsOpen) { firstDayQuest.Hide(); return; }
             var s = run.State;
             string quest;
+            // 추격 시간에는 추격 퀘스트(PursuitQuest)가 같은 자리를 쓴다.
+            if (s.Phase == CampaignPhase.RestTime && s.Timer == RestTimerState.Pursuit) { firstDayQuest.Hide(); return; }
             if (s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide)
                 quest = s.Timer == RestTimerState.WaitingForExit ? "tutorial"
                     // 둘째 공연은 호스트가 스케줄표에서 고르고 확정해야 집결로 시작한다(CC-215).

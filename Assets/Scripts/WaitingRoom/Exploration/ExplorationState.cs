@@ -54,6 +54,19 @@ namespace CurtainCall.WaitingRoom
         public int Hits(string target) => book.Hits(target);
         public bool IsOpen(string target) => book.IsOpen(target);
 
+        /// <summary>이번 런에서 누구든 탈출로 입구(B1_EscapeEntrance)에 들어갔다는 기록 키.</summary>
+        public const string EscapeEntranceVisit = "visit:B1_EscapeEntrance";
+        /// <summary>이번 런에서 누구든 그 장소에 들어갔는지(팀 공유, 세대 교체 때 비움).</summary>
+        public bool HasVisited(string place) => book.IsOpen(place);
+        /// <summary>판정 화면 전용: 장소 방문을 기록하고 모두에게 알린다. 이미 기록됐으면 아무것도 하지 않는다.</summary>
+        public void MarkVisited(string place)
+        {
+            if (!HasAuthority || string.IsNullOrEmpty(place) || book.IsOpen(place)) return;
+            book.Attempt(place, true, out _, out _);
+            Debug.Log($"[Exploration] 방문 기록: {place}");
+            Publish();
+        }
+
         readonly ExplorationBook book = new();
         readonly ExplorationCooperation cooperation = new();
         readonly Dictionary<ulong, float> lastHit = new();

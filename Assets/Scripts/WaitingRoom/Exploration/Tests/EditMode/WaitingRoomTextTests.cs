@@ -66,7 +66,9 @@ namespace CurtainCall.WaitingRoom.Tests
                 .SelectMany(p => Call.Matches(File.ReadAllText(p)).Cast<Match>().Select(m => m.Groups[1].Value))
                 .ToHashSet();
             // 아이템·탐색 대상 키는 id로 조립한다(item.<id>.name/worn/desc, target.<id>.name/desc/text/secret).
-            var unused = file.Keys.Where(k => !used.Contains(k) && !k.StartsWith("item.") && !k.StartsWith("target.")).ToList();
+            // 추격 단계 알림은 단계 번호로 조립한다(pursuit.stage.<번호>, PursuitTexts.StageKey).
+            var unused = file.Keys.Where(k => !used.Contains(k) && !k.StartsWith("item.") && !k.StartsWith("target.")
+                && !Regex.IsMatch(k, @"^pursuit\.stage\.\d+$")).ToList();
             Assert.IsEmpty(unused, "쓰지 않는 키(오타?): " + string.Join(", ", unused));
         }
 

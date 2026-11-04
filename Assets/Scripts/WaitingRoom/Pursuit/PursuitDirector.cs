@@ -363,8 +363,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             int next = CurrentStageIndex;
             if (next == stage) return;
             stage = next;
-            var text = CurrentStageRules.Announcement;
-            if (!string.IsNullOrEmpty(text)) WaitingRoomItemBrokenNotice.ShowMessage("추격 경보", text);
+            var text = PursuitTexts.StageAnnouncement(next);
+            if (!string.IsNullOrEmpty(text)) WaitingRoomItemBrokenNotice.ShowMessage(PursuitTexts.AlertTitle, text);
         }
         void Bind()
         {
@@ -388,7 +388,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         Snapshot BuildSnapshot() => new Snapshot { generation = generation, day = day, performance = performance, elapsed = Elapsed, stage = stage,
             poseEpoch = poseEpoch, debugInvulnerable = debugInvulnerable, debugIgnorePlayers = debugIgnorePlayers,
-            stageForced = StageIsForced, lightRoom = RoomFlickerIndex, lightAt = RoomFlickerAt, announcement = active ? CurrentStageRules.Announcement : "",
+            stageForced = StageIsForced, lightRoom = RoomFlickerIndex, lightAt = RoomFlickerAt, announcement = active ? PursuitTexts.StageAnnouncement(CurrentStageIndex) : "",
             actors = actors.Select(a => new ActorState { position = a.transform.position, rotation = a.transform.rotation, look = a.LookPoint, hasLook = a.HasLook,
                 motion = (int)a.State, behaviour = (int)a.Behaviour, victim = a.Victim != null ? Id(a.Victim) : ulong.MaxValue, capture = a.CaptureElapsed,
                 captures = a.GetComponent<PursuitAppearance>() != null ? a.GetComponent<PursuitAppearance>().CaptureCount : 0,
@@ -415,9 +415,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var s = PursuitSnapshotCodec.Read(reader);
             if (s == null) return;
             receivedSnapshot = true;
-            // 알림 문구는 같은 설정 에셋에서 읽어 전송량을 줄인다.
-            var stages = GameSettings.WaitingRoom.Pursuit.Stages;
-            s.announcement = s.elapsed >= 0 && stages != null && s.stage >= 0 && s.stage < stages.Length && stages[s.stage] != null ? stages[s.stage].Announcement : "";
+            // 알림 문구는 같은 문구 표·설정 에셋에서 읽어 전송량을 줄인다.
+            s.announcement = s.elapsed >= 0 ? PursuitTexts.StageAnnouncement(s.stage) : "";
             ApplySnapshot(s);
         }
         void ApplySnapshot(Snapshot s)
@@ -453,7 +452,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             if (active && stage != s.stage) {
                 stage = s.stage;
-                if (!string.IsNullOrEmpty(s.announcement)) WaitingRoomItemBrokenNotice.ShowMessage("추격 경보", s.announcement);
+                if (!string.IsNullOrEmpty(s.announcement)) WaitingRoomItemBrokenNotice.ShowMessage(PursuitTexts.AlertTitle, s.announcement);
             }
             if (!active) stage = -1;
         }
