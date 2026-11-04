@@ -45,8 +45,8 @@ Material:
     m_Floats:
     - _Pour: 0
     m_Colors:
-    - _Impact: {r: 3.0749967, g: 0.81500244, b: 0, a: 0}
-    - _UVPan: {r: 0, g: 0.145, b: 0, a: 0}
+    - _Impact: {r: -11.75, g: 5.52, b: 5.25, a: 4.6}
+    - _UVPan: {r: 0, g: -0.32, b: 0, a: 0}
     - _Weir: {r: -0.050002635, g: 2, b: -4.6399994, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

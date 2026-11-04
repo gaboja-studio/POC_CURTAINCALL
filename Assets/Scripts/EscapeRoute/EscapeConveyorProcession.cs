@@ -43,6 +43,7 @@ namespace CurtainCall.EscapeRoute
         static readonly int VariantPattern = Shader.PropertyToID("_VariantPattern");
 
         Bounds motionBounds;
+        Matrix4x4 boundsFrame;
         double lastTime = double.NaN;
 
         void OnEnable()
@@ -51,6 +52,11 @@ namespace CurtainCall.EscapeRoute
             if (!Application.IsPlaying(gameObject)) return;
             if (!saw) { enabled = false; return; }
             lastTime = double.NaN;
+        }
+
+        void UpdateMotionBounds(Matrix4x4 frame)
+        {
+            boundsFrame = frame;
             motionBounds = new Bounds(saw.position, Vector3.zero);
             foreach (var blade in saw.GetComponentsInChildren<Renderer>(true))
             {
@@ -98,22 +104,24 @@ namespace CurtainCall.EscapeRoute
         // Include hidden loads and the drop so an empty stretch in view still wakes the line.
         void AddTravelBounds(Transform part, float end, bool falls)
         {
+            var atStart = transform.position - part.position;
+            var travel = transform.TransformVector(Vector3.right * end);
+            var drop = transform.TransformVector(Vector3.down * (DropAcceleration * DropSeconds * DropSeconds));
             foreach (var renderer in part.GetComponentsInChildren<Renderer>(true))
             {
                 var local = renderer.localBounds;
                 var matrix = renderer.localToWorldMatrix;
-                var atStart = transform.position - part.position;
                 var extents = local.extents;
                 for (int i = 0; i < 8; i++)
                 {
                     var corner = local.center + new Vector3((i & 1) == 0 ? -extents.x : extents.x,
                         (i & 2) == 0 ? -extents.y : extents.y, (i & 4) == 0 ? -extents.z : extents.z);
                     var start = matrix.MultiplyPoint3x4(corner) + atStart;
-                    var finish = start + transform.TransformVector(Vector3.right * end);
+                    var finish = start + travel;
                     motionBounds.Encapsulate(start);
                     motionBounds.Encapsulate(finish);
                     if (falls)
-                        motionBounds.Encapsulate(finish + transform.TransformVector(Vector3.down * (DropAcceleration * DropSeconds * DropSeconds)));
+                        motionBounds.Encapsulate(finish + drop);
                 }
             }
         }
@@ -121,6 +129,8 @@ namespace CurtainCall.EscapeRoute
         void LateUpdate()
         {
             if (!Application.IsPlaying(gameObject)) return;
+            var frame = transform.localToWorldMatrix;
+            if (frame != boundsFrame) UpdateMotionBounds(frame);
             if (!EscapeSceneryView.InRange(motionBounds, 100f)) return;
 
             var course = HumanCannonHazardCourse.Current;
