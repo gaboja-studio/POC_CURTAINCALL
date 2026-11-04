@@ -11,3 +11,10 @@
 - 추가 보관: 비공개 CURTAINCALL_PaidAssets의 관절 봉제선 원화 3장과 .meta 4개를 resource/pursuit-joint-seams의 aadf0c66에 커밋·push(LFS 3개 업로드 완료). 개인 저장소의 기존 별도 작업 브랜치에서 미추적 상태였으므로 공개 저장만으로 보관되지 않았었다.
 - 비공개 main 직접 push는 자동 승인 검토가 요청 범위 밖으로 거부하여 실행되지 않았다. 작업 브랜치 보관으로 완료했고 게임 gitlink는 변경하지 않는다.
 
+
+## 2026-11-04 비공개 main 반영·게임 연결 갱신
+- 사용자가 비공개 main 반영과 feat/pursuit/enhancement의 gitlink 갱신·push를 명시 승인했다. 이전 직접 main push 거부로 남았던 상태를 해소한다.
+- 원화 3장과 메타를 담은 aadf0c66을 비공개 origin/main에 일반 fast-forward push 완료(a5747288 → aadf0c66).
+- 최신 origin/dev 295b5bec를 feat/pursuit/enhancement에 병합했고, Assets/_ThirdParty 연결 대상을 aadf0c66으로 갱신한다. 공개 dev는 변경하지 않는다.
+- 사용자 지시로 doctor/check-work/Unity 컴파일/자동 테스트를 실행하지 않았다. Git 저장·업로드 보호 훅은 유지한다.
+
