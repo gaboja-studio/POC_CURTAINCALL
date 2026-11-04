@@ -4,7 +4,9 @@
 - 사용자 요청: 현재 작업을 브랜치에 보관하고 나중에 재개. 추가 검증 없이 바로 저장하라는 후속 지시에 따라 doctor/check-work/Unity/자동 테스트를 다시 실행하지 않는다.
 - 최신 기준은 v5 원화와 실제 FBX 비교 렌더. v3 의상은 유지하며 v4의 큰 머리/손/체형은 제외한다. 원본 FBX10종/CharacterArt 실제 캡처가 형태와 재질 기준이다.
 - 재개 순서: plan → todo → design-brief, private Concepts/JointSeams/fbx-proportions-{male,female}-v5.png 확인. M02 추가 목 봉제·F06 상완 길이·가려진 관절을 먼저 교정하고 사용자 원화 검토 후 다방향 제작 도면/Blender 파생 모델로 진행한다.
-- private 원화·프롬프트·측정 자료는 resource/pursuit-joint-seams-v5 작업 브랜치에 저장하고 공개 feat/pursuit/enhancement에서 해당 gitlink를 보관한다. private main 또는 공개 dev 직접 반영은 하지 않는다.
+- private 원화·프롬프트·측정 자료는 resource/pursuit-joint-seams-v5의 0c34c960에 commit/push 완료(LFS6개/13MB). 공개 feat/pursuit/enhancement에는 문서와 재개 위치를 보관한다. private main 또는 공개 dev 직접 반영은 하지 않는다.
+- 공개 push 훅이 private main에 없는 0c34c960 gitlink를 거부했다. 정책을 우회하지 않고 공개 gitlink는 기존 main의 aadf0c66으로 유지한다. 실제 private 작업 폴더는 v5 작업 브랜치를 유지하므로 상위 git status에 submodule 차이가 표시될 수 있으나 원화 변경은 private 원격에 저장돼 있다.
+- 재개/다른 PC 복원: Assets/_ThirdParty에서 origin의 resource/pursuit-joint-seams-v5를 fetch/checkout해 0c34c960을 읽는다. 공개 저장소의 기본 submodule update만 실행하면 v5 대신 기존 연결로 돌아가므로 주의한다.
 
 ## 2026-11-04 원화 작업 및 체형 피드백
 - 최종 검사: verify-knowledge OK(16폴더), 원본 FBX10/10 해시 동일. check-work -SkipUnity 1회: 안전성/문서 PASS, Unity 컴파일 SKIPPED(-SkipUnity), 자동 테스트 SKIPPED. 전체 완료 PASS로 표기하지 않는다. 기존 문서 길이 경고51건, private 미커밋 변경 안내가 남았으며 요청 없는 commit/push는 하지 않았다.

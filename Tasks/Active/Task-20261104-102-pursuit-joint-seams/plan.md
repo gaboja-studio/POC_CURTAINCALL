@@ -18,6 +18,8 @@
 - 스타일 근거는 Assets/_ThirdParty/CharacterArt 실제 모델·캡처. 포스터의 과장은 체형 기준이 아니다.
 
 ## 진행
+재개용 원화 저장 위치: private branch resource/pursuit-joint-seams-v5, commit 0c34c960. 공개 gitlink는 push 정책에 따라 기존 main aadf0c66 유지. 다른 PC에서는 private 작업 브랜치를 별도로 받아야 v5 자료가 보인다.
+
 1. 기존 Unity 캡처·프리팹10종·셰이더·리그 조사 완료.
 2. 원화 v1~v4 탐색 후 피드백을 반영한 FBX 기준 v5 남4/여6 제작.
 3. Blender 설치를 확인해 별도 background 프로세스에서 FBX10종을 읽고 비교 렌더·치수·해시 기록만 생성. 모델/리그/프리팹 수정 없음.
