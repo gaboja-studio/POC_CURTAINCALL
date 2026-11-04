@@ -14,3 +14,12 @@
 
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 제출: 최신 dev 4be086c6 기준 통합 변경만 분리, 커밋 9cd4422f push 완료. PR https://github.com/gaboja-studio/POC_CURTAINCALL/pull/280 (base dev). 기존 관련 없는 변경 보존. GitHub 커넥터 403으로 gh CLI 사용.
+
+## 2026-11-04 최신 dev 통합 내용 대조
+- 사용자 요청: 기존 작업 보관 뒤 최신 origin/dev로 이동하고 WaitingRoom의 최신 추격자·리허설 누락이 있으면 반영. 모든 개발 검증 생략 지시.
+- origin/dev 295b5bec에는 추격자 길찾기 PR #285(34bf6c9e)와 최신 리허설 PR #287(295b5bec)이 포함된다. 관련 추격자 시스템·조명·눈·네트워크 브랜치와 리허설 브랜치에 dev 미포함 기능 커밋은 없다.
+- 파일/이력 대조상 통합 씬 생성 9cd4422f 뒤 원본 Base/Pursuit 및 통합 WaitingRoom 씬 변경은 없다. Integrated 선택값 2와 빌드 등록, PursuitSystem의 Director·배치 참조, S09_PracticeRoom과 PracticeMonitor 배치가 있다.
+- 최신 PursuitDirector는 공유 코드에서 눈 피드백/조명과 길찾기 수정을 사용한다. 최신 WaitingRoomRehearsal은 부트스트랩 후 연습실을 찾아 투표·재연습 등 최신 기능을 런타임에 구성한다. 별도 씬 복사나 추가 컴포넌트 저장이 필요하지 않아 씬/코드는 변경하지 않았다.
+- doctor/check-work/Unity 실행·컴파일·EditMode/PlayMode 테스트는 사용자 지시로 실행하지 않았다. 위 결과는 요청한 Git 이력·파일 연결 대조이며 플레이 검증 성공을 뜻하지 않는다.
+- 작업 보관 기록은 기존 feat/pursuit/enhancement에 저장하고 최종 작업 위치는 최신 dev로 복귀한다. 비공개 원화는 별도 resource/pursuit-joint-seams에 보관, dev 및 게임 gitlink 변경 없음.
+
