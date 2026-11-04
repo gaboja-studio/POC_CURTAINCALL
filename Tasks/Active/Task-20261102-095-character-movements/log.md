@@ -8,3 +8,8 @@
 
 - 2026-11-02 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/266 (fix/character/movements → dev)
 - 2026-11-02 PR #263은 병합 완료. 하네스 수정은 PR #266(dev)으로 별도 제출: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/266
+- 2026-11-04 반대 방향 키 수정: 기존엔 먼저 누른 키를 '뗀 것'으로 보고 다시 누를 때까지 무시해, 나중 키를 떼면 정지했다. `OppositeKeyAxis`를 마지막에 누른 방향 기억 방식으로 바꿔 둘 다 누르면 나중 키, 하나만 남으면 그 키 방향. 같은 프레임 동시 입력은 0 유지.
+
+- 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-04 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/282 (fix/character/movements → dev)
