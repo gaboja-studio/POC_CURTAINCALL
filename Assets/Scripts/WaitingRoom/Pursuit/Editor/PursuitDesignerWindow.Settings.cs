@@ -69,6 +69,9 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Field("PatrolCueColor", "미발견 / 복귀"); Field("AlertCueColor", "경계 / 조사 / 수색"); Field("ChaseCueColor", "발견 / 공격 준비 / 포획");
             Field("AdvancedAppearanceStage", "강화 외형 시작 단계"); Field("BloodPerCapture", "포획 1회당 혈흔 증가");
             EditorGUILayout.HelpBox("표시 각도는 현재 단계의 시야각을 자동으로 따릅니다. 길이는 탐지 거리와 별도로 설정합니다. 가장자리는 부드럽게 흐려지며 추격 시작 전에는 숨깁니다. '위치 무관 최인접 추격' 단계는 탐지 시 시야각을 무시하므로 빛 바깥에서도 추격합니다.", MessageType.None);
+            EditorGUILayout.Space(10); GUILayout.Label("머리 위 인식 상태", EditorStyles.boldLabel);
+            EditorGUILayout.PropertyField(root.FindPropertyRelative("Eyes"), new GUIContent("머리 위 눈 아이콘 (로컬 전용)"), true);
+            EditorGUILayout.HelpBox("눈은 내 조작 캐릭터의 인식 범위 안에서만 표시합니다(시야/걷기/달리기 청각 중 최대 거리). 흰색=일반, 노랑=경계, 빨강=나를 추격. 다른 단원을 추격할 때는 빨강으로 표시하지 않습니다. 원본은 순백색이며 색/HDR 발광을 여기서 조정합니다.", MessageType.None);
             EditorGUILayout.Space(10); GUILayout.Label("추격 화면 테두리", EditorStyles.boldLabel);
             Field("ScreenEffect", "효과 사용"); Field("EdgeIntensity", "최대 강도"); Field("EdgeWidth", "테두리 폭"); Field("PulseAmount", "맥동 강도");
             EditorGUILayout.HelpBox("내 캐릭터가 실제 추격 대상일 때만 표시합니다. 맥동 강도를 0으로 두면 깜빡임 없이 부드러운 테두리만 표시합니다.", MessageType.None);
