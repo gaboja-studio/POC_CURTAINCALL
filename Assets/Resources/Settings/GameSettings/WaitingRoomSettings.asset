@@ -44,9 +44,9 @@ MonoBehaviour:
     OutlinePixels: 3
     OutlineColor: {r: 1, g: 0.045, b: 0.025, a: 1}
     ScreenEffect: 1
-    EdgeIntensity: 0.65
-    EdgeWidth: 0.19
-    PulseAmount: 0.35
+    EdgeIntensity: 0.2
+    EdgeWidth: 0.1
+    PulseAmount: 0.15
     Lighting:
       Enabled: 1
       IncludeUnassignedLights: 1
@@ -58,14 +58,14 @@ MonoBehaviour:
       CaptureOnBrightness: 1
       CaptureOnAmbient: 1
       CaptureDarkenSpill: 1
-      CaptureScreenDarkness: 0.9
+      CaptureScreenDarkness: 0.5
       SparkMaterial: {fileID: 0}
       SparkColor: {r: 1, g: 0.78, b: 0.42, a: 1}
       SparkSize: 0.045
       SparkSpeed: 2.4
       Stages:
-      - Brightness: 0.5
-        AmbientBrightness: 0.6
+      - Brightness: 0.7
+        AmbientBrightness: 0.7
         Tint: {r: 1, g: 1, b: 1, a: 1}
         TintAmount: 0
         CracklePerMinute: 5
@@ -81,7 +81,7 @@ MonoBehaviour:
         RoomFlickerOffIntensity: 0.03
         RoomFlickerOffAmbient: 0.35
       - Brightness: 0.45
-        AmbientBrightness: 0.6
+        AmbientBrightness: 0.45
         Tint: {r: 1, g: 1, b: 1, a: 1}
         TintAmount: 0
         CracklePerMinute: 5
@@ -96,43 +96,56 @@ MonoBehaviour:
         NeighborDistance: 4
         RoomFlickerOffIntensity: 0.03
         RoomFlickerOffAmbient: 0.35
-      - Brightness: 0.4
-        AmbientBrightness: 0.5
-        Tint: {r: 1, g: 1, b: 1, a: 1}
-        TintAmount: 0
+      - Brightness: 0.25
+        AmbientBrightness: 0.25
+        Tint: {r: 1, g: 0.3820755, b: 0.3820755, a: 1}
+        TintAmount: 0.2
         CracklePerMinute: 5
         CrackleSeconds: 0.32
         CrackleDip: 0.08
         Sparks: 10
         EntryFlickers: 3
         EntryFlickerCycle: 0.42
-        RoomFlickerInterval: 14
-        RoomFlickerJitter: 5
+        RoomFlickerInterval: 10
+        RoomFlickerJitter: 3
         RoomFlickerSeconds: 1.8
         NeighborDistance: 4
         RoomFlickerOffIntensity: 0.03
         RoomFlickerOffAmbient: 0.35
-      - Brightness: 0.3
-        AmbientBrightness: 0.4
-        Tint: {r: 1, g: 1, b: 1, a: 1}
-        TintAmount: 0.35
+      - Brightness: 0.15
+        AmbientBrightness: 0.15
+        Tint: {r: 1, g: 0, b: 0, a: 1}
+        TintAmount: 0.2
         CracklePerMinute: 5
         CrackleSeconds: 0.32
         CrackleDip: 0.08
         Sparks: 10
         EntryFlickers: 3
         EntryFlickerCycle: 0.42
-        RoomFlickerInterval: 14
-        RoomFlickerJitter: 5
-        RoomFlickerSeconds: 1.8
+        RoomFlickerInterval: 5
+        RoomFlickerJitter: 2
+        RoomFlickerSeconds: 3.6
         NeighborDistance: 4
         RoomFlickerOffIntensity: 0.03
         RoomFlickerOffAmbient: 0.35
+    Eyes:
+      Enabled: 1
+      Width: 0.2
+      HeadOffset: 0.42
+      FadeSeconds: 0.5
+      TransitionSeconds: 0.5
+      NormalColor: {r: 1, g: 1, b: 1, a: 1}
+      AlertColor: {r: 2, g: 1.56, b: 0.24, a: 1}
+      ChaseColor: {r: 1.3023313, g: 0.030715358, b: 0.07962385, a: 1}
+      NormalEmission: 0
+      AlertEmission: 0
+      ChaseEmission: 0.35
+      GlowOpacity: 0.3
     Stages:
     - StartsAt: 0
       SightRadius: 5
       FieldOfView: 100
-      PatrolSpeed: 1.5
+      PatrolSpeed: 2
       ChaseSpeedMultiplier: 1.2
       ChaseSpeed: 6.5
       SeeThroughWalls: 0
@@ -148,12 +161,12 @@ MonoBehaviour:
       TrackingRadius: 26
       PatrolLeashDistance: 30
       Announcement: "\uCD94\uACA9\uC790\uAC00 \uC6C0\uC9C1\uC774\uAE30 \uC2DC\uC791\uD588\uC2B5\uB2C8\uB2E4."
-    - StartsAt: 60
+    - StartsAt: 30
       SightRadius: 8
       FieldOfView: 140
       PatrolSpeed: 2
       ChaseSpeedMultiplier: 1.2
-      ChaseSpeed: 6.5
+      ChaseSpeed: 7
       SeeThroughWalls: 0
       AlwaysNearest: 0
       WalkHearingRadius: 6
@@ -168,12 +181,12 @@ MonoBehaviour:
       PatrolLeashDistance: 30
       Announcement: "\uCD94\uACA9\uC790\uC758 \uC2DC\uC57C \uBC18\uACBD\uC774 \uD06C\uAC8C
         \uB298\uC5B4\uB0A9\uB2C8\uB2E4."
-    - StartsAt: 120
+    - StartsAt: 60
       SightRadius: 10
       FieldOfView: 180
-      PatrolSpeed: 2
+      PatrolSpeed: 3
       ChaseSpeedMultiplier: 1.2
-      ChaseSpeed: 0
+      ChaseSpeed: 7.5
       SeeThroughWalls: 1
       AlwaysNearest: 0
       WalkHearingRadius: 6
@@ -188,12 +201,12 @@ MonoBehaviour:
       PatrolLeashDistance: 50
       Announcement: "\uCD94\uACA9\uC790\uAC00 \uBCBD \uB4A4\uAE4C\uC9C0 \uD22C\uC2DC\uD558\uC5EC
         \uBCFC \uC218 \uC788\uC2B5\uB2C8\uB2E4."
-    - StartsAt: 180
+    - StartsAt: 90
       SightRadius: 20
       FieldOfView: 180
       PatrolSpeed: 3
       ChaseSpeedMultiplier: 1.2
-      ChaseSpeed: 7.5
+      ChaseSpeed: 8
       SeeThroughWalls: 1
       AlwaysNearest: 1
       WalkHearingRadius: 6
