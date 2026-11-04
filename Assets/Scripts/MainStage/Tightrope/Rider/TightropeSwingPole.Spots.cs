@@ -101,16 +101,29 @@ namespace CurtainCall.Tightrope
             return best;
         }
 
+        /// <summary>날아가는 중 공중에서 잡을 다음 그네가 있다.</summary>
+        public bool ChainsToNext => next != null;
+        /// <summary>지금 F를 누르면 잡을 수 있는 다음 그네의 봉. 범위 밖이면 null.</summary>
+        public Transform AirCatchVisual => InAirCatchRange ? next.PoleVisual : null;
+
+        bool InAirCatchRange
+        {
+            get
+            {
+                if (next == null || flightMover == null || flightPlayer == null || !flightPlayer.IsLocal || !next.Active
+                    || next.mode != PoleMode.Idle) return false;
+                var position = flightMover.transform.position;
+                float along = course.GetDistance(position) - next.EntryDistance;
+                float height = position.y - next.WorldFeet(0f, next.assignedLane).y;
+                return Mathf.Abs(along) <= AirCatchAlong && height >= -AirCatchBelow && height <= AirCatchAbove
+                    && course.Layout.GetLaneSlotAt(course.GetSide(position)) == next.assignedLane;
+            }
+        }
+
         /// <summary>날아가는 중 F를 눌렀고 다음 그네 잡기 범위면 공중에서 잡는다. 잡았으면 true(이 그네의 비행은 끝난다).</summary>
         bool TryAirCatch()
         {
-            if (next == null || flightMover == null || flightPlayer == null || !flightPlayer.IsLocal || !next.Active
-                || next.mode != PoleMode.Idle) return false;
-            var position = flightMover.transform.position;
-            float along = course.GetDistance(position) - next.EntryDistance;
-            float height = position.y - next.WorldFeet(0f, next.assignedLane).y;
-            if (Mathf.Abs(along) > AirCatchAlong || height < -AirCatchBelow || height > AirCatchAbove
-                || course.Layout.GetLaneSlotAt(course.GetSide(position)) != next.assignedLane) return false;
+            if (!InAirCatchRange) return false;
             var player = flightPlayer;
             ResetFlight();
             next.BeginAirCatch(player);

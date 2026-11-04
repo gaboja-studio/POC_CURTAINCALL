@@ -5,7 +5,7 @@ namespace CurtainCall.WaitingRoom
     /// <summary>
     /// 디버그 전용 탈출로 열쇠(대기실 로비, 디버그 돈 기물 옆, 2026-10-31 사용자 요청). F를 누르면 탈출로 열쇠 1 또는 2를 얻은 것으로
     /// (<see cref="StructureAKeyRoute.EscapeKey1"/>/<see cref="StructureAKeyRoute.EscapeKey2"/> 대상 열림) 처리해, 탈출로 문까지 바로 시험할 수 있다.
-    /// 판정 화면(호스트)이 처리해 모두에게 같은 상태가 간다. 에디터·개발 빌드에서만 동작하고, 정식 빌드에서는 스스로 사라진다.
+    /// 판정 화면(호스트)이 처리해 모두에게 같은 상태가 간다. 에디터·개발 빌드에서 Dev 모드를 켰을 때만 나타나고, 그 밖에는 스스로 사라진다.
     /// </summary>
     public sealed class DebugEscapeKeyProp : MonoBehaviour, IShopTarget, IShopPresentation
     {
@@ -24,6 +24,7 @@ namespace CurtainCall.WaitingRoom
         public bool IsAvailable => ExplorationState.Instance != null && !Opened;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
+        void Awake() { if (!CurtainCall.Dev.DevMode.Enabled) gameObject.SetActive(false); }
         void OnEnable() => ShopReach.Add(this);
         void OnDisable() => ShopReach.Remove(this);
         void Update() => ShopReach.Pump();

@@ -383,7 +383,7 @@ namespace CurtainCall.WaitingRoom
             if (participantCount != participants.Count) { participantCount = participants.Count; changed = true; }
             if (changed) { version++; Publish(); }
             if (participantCount == 0 || arrived.Count == 0) return;
-            if (arrived.Count < participantCount && votes.Count <= participantCount / 2) return;
+            if (s.Rule != RehearsalClearRule.Anyone && arrived.Count < participantCount && votes.Count <= participantCount / 2) return;
             AdvanceStage();
         }
 

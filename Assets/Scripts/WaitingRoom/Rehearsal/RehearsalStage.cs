@@ -14,7 +14,7 @@ namespace CurtainCall.WaitingRoom
         Trigger,
     }
 
-    /// <summary>사용자 최종 승인: 모든 소구간은 전원 도착 또는 최초 도착 후 과반 동의로 완료한다.</summary>
+    /// <summary>소구간 완료 조건. 기본은 전원 도착 또는 최초 도착 후 과반 동의, 2-3은 한 명만 도착해도 완료한다(사용자 2026-11-04).</summary>
     public enum RehearsalClearRule : byte { Everyone, Anyone, EveryoneOrMajority }
 
     /// <summary>줄의 끊긴 구간(m). 트리거 그네가 잡혀 있는 동안만 이어진다.</summary>
@@ -102,9 +102,9 @@ namespace CurtainCall.WaitingRoom
             // 2단계 구조도 3번: 위쪽 줄은 트리거 그네 1에서 끝나고, 아래쪽 줄 가운데가 끊겨 있다. 한 명이 트리거 그네 1을 잡는 동안 아래쪽 줄이 이어진다.
             new()
             {
-                Id = "2-3", Kind = RehearsalStageKind.Trigger, Rule = RehearsalClearRule.EveryoneOrMajority, Finish = 32f,
+                Id = "2-3", Kind = RehearsalStageKind.Trigger, Rule = RehearsalClearRule.Anyone, Finish = 32f,
                 Title = "2-3 · 트리거 그네",
-                Intro = "아래쪽 줄 가운데가 끊겨 있습니다. 한 명이 위쪽 줄 끝의 트리거 그네를 F로 잡고 있는 동안 아래쪽 줄이 이어집니다. 동료가 이어진 줄을 건너 도착하면 단계 넘기기 투표를 할 수 있습니다. 전원이 도착하거나 과반수가 동의하면 다음 구간으로 갑니다.",
+                Intro = "아래쪽 줄 가운데가 끊겨 있습니다. 한 명이 위쪽 줄 끝의 트리거 그네를 F로 잡고 있는 동안 아래쪽 줄이 이어집니다. 한 명이 이어진 줄을 건너 도착하면 다음 구간으로 갑니다.",
                 // 트리거 앞까지는 Q/E + Space로 옆줄을 오갈 수 있다(아래쪽 줄 끊김 12m 전까지).
                 CourseJson = Course(2, new[] { 12f, 32f }, 32f, "{\"x\":0,\"y\":11.5}"),
                 Gaps = new[] { new RehearsalGap(1, 12f, 18f) },
