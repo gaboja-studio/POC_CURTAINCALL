@@ -164,9 +164,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsFalse(arrivals.Contains(remoteId), "출발대는 도착대가 아님");
                 var finish = (Pose)Call(course, "GetFinishPose", 1);
                 remote.transform.position = finish.position;
-                yield return null; yield return null;
-                Assert.IsTrue(arrivals.Contains(remoteId), "배치 확인 후 실제 도착은 정상 등록");
-                Assert.AreEqual(3, Static(RehearsalType, "CurrentStage"), "한 명 도착으로 즉시 다음 구간 전환 금지");
+                yield return WaitStage(4, 5f); // 2-3은 배치 확인 후 한 명만 도착해도 다음 구간으로 간다.
 
             }
             finally

@@ -5,10 +5,14 @@ using UnityEngine.Rendering;
 
 namespace CurtainCall.WaitingRoom.Pursuit
 {
-    /// <summary>Concepts/Reclaimed: repaired troupe shell, stage collar, capture stains and ground direction.</summary>
-    public sealed class PursuitAppearance : MonoBehaviour
+    public enum PursuitSurfaceState { Clean = 0, Worn = 1, Bloodied = 2, LightBlood = 3, HeavyBlood = 4 }
+
+    /// <summary>Shared rig, authored costume surfaces, capture stains and ground direction.</summary>
+    public sealed partial class PursuitAppearance : MonoBehaviour
     {
         public Material GroundMaterial;
+        public PursuitSurfaceState SurfaceState = PursuitSurfaceState.Bloodied;
+        public int SurfaceSeed;
         public GameObject[] AdvancedDetails;
         public AnimationClip AdvancedWalk, AdvancedRun;
         public int CaptureCount { get; private set; }
@@ -33,7 +37,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             behaviour == PursuitBehaviour.Patrol || behaviour == PursuitBehaviour.Return ? 0 : 1;
         void Start()
         {
-            actor = GetComponent<PursuitActor>(); surfaces = GetComponentsInChildren<SkinnedMeshRenderer>(true); props = new MaterialPropertyBlock();
+            actor = GetComponent<PursuitActor>(); RefreshSurface(InjuryBloodEffects.IsVisible);
             if (GroundMaterial == null) return;
             ground = new GameObject("Pursuit facing light", typeof(MeshFilter), typeof(MeshRenderer));
             ground.transform.SetParent(transform, false);
@@ -58,11 +62,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var d = PursuitDirector.Current; var rule = GameSettings.WaitingRoom.Pursuit;
             IsAdvanced = actor.IsActivated && d != null && d.CurrentStageIndex + 1 >= rule.AdvancedAppearanceStage;
             if (AdvancedDetails != null) foreach (var detail in AdvancedDetails) if (detail != null && detail.activeSelf != IsAdvanced) detail.SetActive(IsAdvanced);
-            foreach (var surface in surfaces) if (surface != null) {
-                surface.GetPropertyBlock(props);
-                props.SetFloat("_BloodAmount", InjuryBloodEffects.IsVisible ? Mathf.Clamp01(CaptureCount * rule.BloodPerCapture) : 0);
-                props.SetFloat("_Threat", IsAdvanced ? 1 : 0); surface.SetPropertyBlock(props);
-            }
+            RefreshSurface(InjuryBloodEffects.IsVisible);
             if (groundRenderer == null) return;
             bool visible = actor.IsActivated && rule.DirectionCue && actor.IsRendered;
             var camera = Camera.main;

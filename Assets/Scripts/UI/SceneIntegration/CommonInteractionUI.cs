@@ -262,6 +262,14 @@ namespace CurtainCall.UI.SceneIntegration
                     }
             }
             var swing = TightropeSwingPole.Current?.ForPlayer(player);
+            if (swing != null && swing.IsInFlight(player) && swing.ChainsToNext)
+            {
+                var nextPole = swing.AirCatchVisual;
+                if (nextPole == null) { DeviceGuide(player, feet, "F", "봉 잡기", false, "다음 그네 가까이 이동하세요"); return; }
+                Add(nextPole, nextPole.position, "봉 잡기", true, true, feet);
+                candidates[candidates.Count - 1].Pole = true;
+                return;
+            }
             if (swing != null && swing.PoleVisual != null && swing.CanGrabPole(player))
             {
                 Add(swing.PoleVisual, swing.PoleVisual.position, "봉 잡기", true, true, feet);

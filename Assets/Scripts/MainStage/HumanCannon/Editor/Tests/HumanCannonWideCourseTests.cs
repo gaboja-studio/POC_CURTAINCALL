@@ -74,12 +74,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         {
             var ground = All<HumanCannonHazard>().Where(h => h.Kind == CannonHazardKind.GroundSaw
                 && h.GetComponent<HumanCannonPoleSaw>() == null).ToArray();
-            Assert.That(ground, Has.Length.EqualTo(12));
+            Assert.That(ground, Has.Length.EqualTo(14));
             foreach (var saw in ground)
             {
-                Assert.That(saw.PeriodSeconds, Is.EqualTo(4f), saw.name);
+                // 2026-11-04 사용자 결정: X자 교차점을 가로지르는 톱 2개만 왕복 3초.
+                Assert.That(saw.PeriodSeconds, Is.EqualTo(saw.name.StartsWith("GroundSaw2XCenter") ? 3f : 4f), saw.name);
                 Assert.That(Mathf.Abs(saw.Travel.x), Is.EqualTo(24f).Within(.001f), saw.name);
-                Assert.That(Vector3.Distance(saw.Position(1.3, 1), saw.Position(5.3, 1)), Is.LessThan(.001f));
+                Assert.That(Vector3.Distance(saw.Position(1.3, 1), saw.Position(1.3 + saw.PeriodSeconds, 1)), Is.LessThan(.001f));
                 var rail = saw.GetComponent<LineRenderer>();
                 Assert.That(rail, Is.Not.Null, saw.name);
                 Assert.That(rail.sharedMaterial, Is.Not.Null, saw.name);
@@ -93,7 +94,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             {
                 var saws = ground.Where(s => (s.transform.position.z < 90f) == (section == 0))
                     .OrderBy(s => s.transform.position.z).ToArray();
-                Assert.That(saws, Has.Length.EqualTo(6), "구간마다 지상 톱 여섯 개");
+                Assert.That(saws, Has.Length.EqualTo(section == 0 ? 6 : 8), "1구간 여섯 개, 2구간은 X자 교차점 톱 2개를 더해 여덟 개");
                 foreach (var saw in saws)
                 {
                     // 2026-10-22 부상별 회피 보완: 중심 .3m, 톱 상단 .42m < 최저 생존 점프 .6m.
@@ -103,9 +104,30 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                     Assert.That(top, Is.EqualTo(.42f).Within(.001f), saw.name);
                     Assert.That(top, Is.LessThan(GameSettings.HumanCannon.JumpHeight * GameSettings.Base.BodyDamage.JumpHeightForLostLegs(2)), saw.name);
                 }
-                for (int i = 1; i < saws.Length; i++)
-                    Assert.That(saws[i].transform.position.z - saws[i - 1].transform.position.z,
+                // 2026-11-04: 밀도로 꺼져 씬에서도 숨긴 톱은 플레이에 없으므로 간격은 보이는 톱끼리만 본다.
+                // 2026-11-04 사용자 결정: 2구간은 같은 중심의 X자 두 톱 + 교차점을 지나는 수평 톱 하나가 한 묶음이다.
+                // 묶음 안에서는 X자가 반대 기울기이고 서로 엇갈린 시간에 지나 늘 5.5m 넘게 떨어진다. 묶음 사이 간격은 기존 5.5m.
+                var groups = saws.Where(s => s.gameObject.activeInHierarchy)
+                    .GroupBy(s => Mathf.Round(s.transform.position.z * 100f)).Select(g => g.ToArray()).ToArray();
+                for (int i = 1; i < groups.Length; i++)
+                    Assert.That(groups[i][0].transform.position.z - groups[i - 1][0].transform.position.z,
                         Is.GreaterThanOrEqualTo(5.5f - .001f), "지상 톱 사이 이동·점프 여유");
+                foreach (var group in groups.Where(g => g.Length > 1))
+                {
+                    var tilted = group.Where(s => Mathf.Abs(s.Travel.z) > .001f).ToArray();
+                    Assert.That(tilted, Has.Length.EqualTo(2), "X자 " + group[0].name);
+                    Assert.That(Mathf.Sign(tilted[0].Travel.z), Is.EqualTo(-Mathf.Sign(tilted[1].Travel.z)), "X자 " + group[0].name);
+                    foreach (var a in group)
+                        foreach (var b in group.Where(b => b != a))
+                        {
+                            // X자 두 톱은 같은 4초라 늘 5.5m 넘게 떨어진다. 3초짜리 가로 톱은 주기가 달라 가까워지는 순간이 있어
+                            // 톱날 두 개(반지름 합)가 겹치지 않는 것만 12초(공배수) 동안 확인한다.
+                            bool same = Mathf.Approximately(a.PeriodSeconds, b.PeriodSeconds);
+                            float limit = same ? 5.5f : a.Radius + b.Radius + .3f;
+                            for (double t = 0; t < (same ? 4 : 12); t += .005)
+                                Assert.That(Vector3.Distance(a.Position(t, 1), b.Position(t, 1)), Is.GreaterThan(limit), $"{a.name}·{b.name} t={t:F2}");
+                        }
+                }
                 var transport = All<HumanCannonTransport>().Single(t => t.name ==
                     (section == 0 ? "DepartureTransport" : "ShelterDeparture"));
                 float front = transport.Position(1f).z
@@ -115,7 +137,9 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                     "운송 도착 발판 앞에서 첫 경로까지 2m 확보");
                 Assert.That(saws[0].transform.position.z - saws[0].Radius - front - .25f,
                     Is.GreaterThan(0f), "첫 톱의 판정이 도착 발판 위 플레이어에게 닿지 않아야 한다");
-                Assert.That(saws[^1].transform.position.z, Is.EqualTo(61f + section * 76f).Within(.001f));
+                // 2026-11-04 사용자 결정: 1구간 마지막 톱(5번 GroundSaw1BExtra)을 다음 구간 쪽으로 0.3m 옮겼다.
+                // 2구간 마지막 X자(8·9번)는 톱벽 뒷면(z123.3)과 초록 지면(z141.8) 사이 중앙에서 초록 지면 쪽으로 0.7m 옮긴 z133.25.
+                Assert.That(saws[^1].transform.position.z, Is.EqualTo(section == 0 ? 61.3f : 133.25f).Within(.001f));
             }
             Assert.That(All<HumanCannonPoleSaw>(), Is.Empty, "지상 톱 경로에 삭제한 공중 봉 톱을 다시 등록하지 않는다.");
         }

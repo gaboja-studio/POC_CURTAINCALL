@@ -118,7 +118,15 @@ namespace CurtainCall.Tightrope
                     if (player.OwnerClientId == participant.ClientId && run.HasCampaignArrival(player))
                     { arrivals[participant.ParticipantId] = "Arrived"; break; }
             }
-            return arrivals.Count > 0 && Rewards.FinishPerformance(true, "Completed", arrivals);
+            if (arrivals.Count == 0) return false;
+            foreach (var participant in Rewards.State.Segments)
+            {
+                if (!participant.Connected || participant.Dead) continue;
+                foreach (var player in NetworkPlayer.All)
+                    if (player.OwnerClientId == participant.ClientId && run.HasCompletionProgress(player))
+                    { arrivals[participant.ParticipantId] = "Arrived"; break; }
+            }
+            return Rewards.FinishPerformance(true, "Completed", arrivals);
         }
 
         internal bool FinishTimedOut() => !run.ExternallyManaged && PerformanceOpen && NetworkSessionManager.Instance?.IsHost == true

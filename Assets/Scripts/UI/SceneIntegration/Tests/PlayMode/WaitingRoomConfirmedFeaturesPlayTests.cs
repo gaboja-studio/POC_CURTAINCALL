@@ -78,7 +78,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsFalse((bool)Get(flashlight, "IsOn"), "UV 등이 없으면 켜지지 않는다");
             MouseRight(false); yield return null;
 
-            yield return PickPlaced("uv-lamp", "S01_Lobby");
+            yield return PickPlaced("uv-lamp", "S02_Dormitory");
             Assert.AreEqual(-1, Get(((IEnumerable)Call(carry, "Held", (ulong)Get(carry, "LocalClientId"))).Cast<object>().Single(o => (string)Get(o, "ItemId") == "uv-lamp"), "Uses"), "장비형: 내구도 없음");
             yield return FaceWall();
             Assert.IsTrue(marks.All(r => !r.gameObject.activeInHierarchy), "비추기 전에는 안 보인다");
@@ -134,8 +134,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var pieces = (Transform[])box.GetComponent(T("CurtainCall.WaitingRoom.BreakableWall")).GetType().GetField("pieces", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(box.GetComponent(T("CurtainCall.WaitingRoom.BreakableWall")));
             Assert.IsTrue(box.Cast<Transform>().Where(t => t.name.StartsWith("Door")).All(t => pieces.Contains(t)), "문은 배관과 함께 무너지는 조각");
             Assert.GreaterOrEqual(layout.GetComponentsInChildren<Transform>(true).Count(t => t.name == "PropShape"), 30, "탐색 배치물 외형");
-            var lobbyUv = layout.Find("S01_Lobby").GetComponentsInChildren(T("CurtainCall.WaitingRoom.FoundItemSpot"), true).Cast<Component>().Where(s => ((string)Get(s, "SpotId")).Contains("uv-lamp")).ToArray();
-            Assert.AreEqual(4, lobbyUv.Length); Assert.IsTrue(lobbyUv.All(s => ((string)Get(s, "SpotId")).StartsWith("lobby-uv-lamp")), "더미 UV 없음");
+            var dormitoryUv = layout.Find("S02_Dormitory").GetComponentsInChildren(T("CurtainCall.WaitingRoom.FoundItemSpot"), true).Cast<Component>().Where(s => ((string)Get(s, "SpotId")).Contains("uv-lamp")).ToArray();
+            Assert.AreEqual(4, dormitoryUv.Length); Assert.IsTrue(dormitoryUv.All(s => ((string)Get(s, "SpotId")).StartsWith("dormitory-uv-lamp")), "더미 UV 없음");
+            Assert.IsFalse(layout.Find("S01_Lobby").GetComponentsInChildren(T("CurtainCall.WaitingRoom.FoundItemSpot"), true).Cast<Component>().Any(s => ((string)Get(s, "SpotId")).Contains("uv-lamp")), "로비에 UV 없음");
         }
 
         // 2026-11-01: 압수된 노트 뒷면의 새김 "34"를 오버뷰에서 뒤집어 마주 보면 강조되고 설명이 더해진다(찾은 사람 화면에만).

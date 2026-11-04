@@ -50,6 +50,8 @@ namespace CurtainCall.HumanCannon
         {
             if (index < 0 || index >= hazards.Length || hazards[index] == null) return false;
             var hazard = hazards[index];
+            // 씬에서 숨긴 장애물은 밀도와 무관하게 꺼진 것으로 본다(2026-11-04 사용자 결정).
+            if (!hazard.gameObject.activeSelf) return false;
             if (useAuthoredHazardCount || hazard.Kind == CannonHazardKind.FireJet
                 || hazard.Kind == CannonHazardKind.FallingLoad) return true;
             if (hazard.IsPoleSaw || hazard.Kind == CannonHazardKind.SpikeMace || hazard.UsesAuthoredPath) return true;

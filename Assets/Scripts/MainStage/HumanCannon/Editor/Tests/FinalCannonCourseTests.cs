@@ -227,6 +227,14 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(visual.max.y, Is.EqualTo(deck.max.y).Within(0.005f), "윗면은 실제 착지면 높이");
             foreach (var zone in new[] { "FinalCannonCourse/PreparationDeck", "LandingCushion", "LandingCushion_Left", "LandingCushion_Right" })
                 Assert.That(Find(zone).GetComponentsInChildren<Renderer>().Any(r => r.enabled), Is.False, zone + " 옛 외형은 숨긴다");
+            // 2026-11-04 사용자 결정: 초록 면 전체가 안전지대다. 경사 테두리 아래 지상(6.0)에 떨어져도 부상당하지 않는다.
+            var greenLanding = Find("FinalCannonCourse/FinalGreenGroundLanding").GetComponent<HumanCannonLandingZone>();
+            Assert.That(greenLanding, Is.Not.Null);
+            foreach (var feet in new[] { new Vector3(visual.min.x + .1f, 6f, visual.min.z + .1f), new Vector3(visual.max.x - .1f, 6f, visual.max.z - .1f),
+                new Vector3(visual.center.x, 6f, visual.min.z + .1f) })
+                Assert.That(greenLanding.SupportsLanding(feet), Is.True, "초록 면 " + feet);
+            foreach (var feet in new[] { new Vector3(visual.center.x, 6f, visual.min.z - .3f), new Vector3(visual.max.x + .3f, 6f, visual.center.z) })
+                Assert.That(greenLanding.SupportsLanding(feet), Is.False, "초록 면 밖 " + feet);
             foreach (var side in new[] { left, right })
             {
                 Assert.That(side.min.z, Is.EqualTo(deck.min.z).Within(0.001f));

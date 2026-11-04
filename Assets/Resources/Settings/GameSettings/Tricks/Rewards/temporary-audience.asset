@@ -12,6 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a0ce5884b4eda749a6b82ab40a9701a, type: 3}
   m_Name: temporary-audience
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.AudienceReactionSettings
+  difficultyOneCheerMultiplier: 2
+  difficultyTwoCheerMultiplier: 1.5
+  difficultyThreeCheerMultiplier: 1
+  completionProgress: 0.8
+  obstacleDodge: 5
+  cannonPlatform: 10
+  swingLanding: 10
   cooperation: 10
   objectFirst: 5
   closeDodge: 5

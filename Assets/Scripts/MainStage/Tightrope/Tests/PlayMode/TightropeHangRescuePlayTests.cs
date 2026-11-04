@@ -161,7 +161,9 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.IsFalse((bool)Get(balance, "HasFallen"));
                 yield return Until(() => !(bool)Call(hangs, "IsRescuing", player), 4f, "동료 끌어올리기 완료");
                 Assert.IsFalse((bool)Call(hangs, "IsHanging", target));
-                Assert.AreEqual(beforeRescue + 10, LocalAudienceAmount(), "실제 구조 완료에 협동 환호를 한 번 지급한다.");
+                var audienceSettings = Static("CurtainCall.Settings.AudienceReactionSettings", "Current");
+                int cheer = (int)Call(audienceSettings, "ScaleReaction", Get(audienceSettings, "cooperation"), Get(rewards, "Difficulty"));
+                Assert.AreEqual(beforeRescue + cheer, LocalAudienceAmount(), "실제 구조 완료에 현재 단계의 협동 환호를 한 번 지급한다.");
                 Assert.IsFalse((bool)Get(balance, "IsRescueSupported"));
                 Assert.IsFalse((bool)Get(balance, "HasFallen"));
                 Call(balance, "Step", .1f);

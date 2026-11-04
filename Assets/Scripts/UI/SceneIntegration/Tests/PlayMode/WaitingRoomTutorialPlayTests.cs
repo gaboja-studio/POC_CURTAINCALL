@@ -45,7 +45,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             while (!(bool)Priv(camera, "routeReady") && (bool)Get(camera, "IsActive") && Time.realtimeSinceStartup < until) yield return null;
             Assert.IsTrue((bool)Priv(camera, "routeReady"), id + " 이동 경로: " + Get(camera, "RouteFailure"));
             float moveIn = (float)Priv(camera, "moveIn"), moveOut = (float)Priv(camera, "moveOut");
-            Assert.That(moveOut, Is.EqualTo(moveIn / 3f).Within(.03f), id + " 복귀는 이동의 3배속");
+            float expectedBack = Mathf.Max(1.8f, (float)Priv(camera, "backLength") / 14f) / 3f; // 이어 간 뒤에는 온 길이 아니라 플레이어까지 곧장 돌아간다.
+            Assert.That(moveOut, Is.EqualTo(expectedBack).Within(.03f), id + " 복귀는 이동의 3배속");
             while ((int)Get(camera, "CompletedRouteCount") < expectedCount && Time.realtimeSinceStartup < until) yield return null;
             Assert.GreaterOrEqual((int)Get(camera, "CompletedRouteCount"), expectedCount, id + " 왕복 완료: " + Get(camera, "RouteFailure"));
         }
@@ -86,7 +87,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(false, Static(TutorialType, "IsSequenceActive"), "연계가 끝나면 조작을 돌려준다");
                 Assert.IsNull(GameObject.Find("TutorialCloseUpCamera"), "원래 시점으로 돌아온다");
                 Assert.IsTrue((bool)Get(tutorialCamera, "RouteCompleted"), "실제 통행 경로를 왕복해야 한다: " + Get(tutorialCamera, "RouteFailure"));
-                Assert.Greater(((Vector3[])Get(tutorialCamera, "RoutePoints")).Length, 2);
+                Assert.GreaterOrEqual(((Vector3[])Get(tutorialCamera, "RoutePoints")).Length, 2); // 막힘이 없으면 곧게 이어 두 점이 될 수 있다.
 
                 Assert.AreEqual(false, Static("CurtainCall.Player.InputGate", "IsRequested"));
 

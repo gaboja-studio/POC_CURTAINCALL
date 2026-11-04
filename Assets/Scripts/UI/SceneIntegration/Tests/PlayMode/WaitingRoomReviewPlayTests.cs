@@ -18,7 +18,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var carry = Static("CurtainCall.WaitingRoom.PropCarry", "Instance");
             var spots = Object.FindObjectsByType(T("CurtainCall.WaitingRoom.FoundItemSpot"), FindObjectsSortMode.None).Cast<Component>().ToArray();
             var debug = spots.Where(s => ((string)Get(s, "SpotId")).StartsWith("debug-lobby-")).ToArray();
-            // 2026-10-30: 더미 UV 4개는 빠지고 장비형 UV가 로비 정식 배치로 들어갔다.
+            // 2026-10-30: 더미 UV 4개는 빠지고 장비형 UV가 정식 배치로 들어갔다(2026-11-04 숙소로 이동).
             Assert.AreEqual(8, debug.Length);
             int generation = (int)Field(State, "Generation");
             Assert.AreEqual(spots.Length, spots.Select(s => Get(Call(s, "MakeItem", generation), "Uid")).Distinct().Count());

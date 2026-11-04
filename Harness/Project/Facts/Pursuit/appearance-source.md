@@ -1,25 +1,31 @@
 ---
-summary: 추격자 체형·봉제·혈흔·원화 기준과 구현 상태를 확인할 때
+summary: 추격자 체형·결손·원화 및 독립 레이어 재질 구현 기준을 확인할 때
 status: active
 updated: 2026-11-04
-source: Task-20261104-102, 현재 FBX10종 직접 import 및 셰이더/프리팹 조사
+source: Task-20261104-102, Source~/V7/integration-verification.json, editmode-appearance-result.json, playmode-appearance-result.json
 ---
 
 # 추격자 외형 원본
 
 ## 언제 읽나
-추격자의 체형·관절 봉제·의상·혈흔을 제작하거나 원화를 모델에 반영하기 전에.
+추격자의 체형·관절 봉제·의상·혈흔을 제작하거나 다시 빌드하기 전에.
 
 ## 사실
-- private `Assets/_ThirdParty/curtaincall/Pursuit/Prefabs`는 남성01~04, 여성01~06의10종이다.
-- `Models/Pursuit_*.fbx`가 기존 비율·결손 기준이다. Male01 실제 import 높이1.7783m/정점560. 값은 전시 포즈 월드 경계이며 게임 배치 배율 전이다.
-- 원본 리그의 왼/오른쪽 이름을 따른다. Male01 왼발, Male03 왼손, Male04/Female04/Female06 머리, Female05 왼팔 전체, Female06 오른전완/손의 결손을 보존한다.
-- `Reclaimed/ReclaimedShell.shader`가 정규화 좌표의 p.x 중심에 세로 seam/stitches를 생성한다. FBX만 편집하면 이 선이 없어지지 않는다.
-- `PursuitAppearanceBuilder.cs`는 미변형 좌표를 UV 채널2에 넣고 목 장식·보수판을 만든다.
-- `PursuitAppearance.cs`는 CaptureCount×BloodPerCapture를 _BloodAmount에 넣고 InjuryBloodEffects.IsVisible을 따른다. 현재 기본 얼룩 바리에이션 제작과는 별개다.
-- Task102 최신 초안은 `Concepts/JointSeams/fbx-proportions-{male,female}-v5.png`. v3는 의상 참고, v4의 과장된 머리/손/몸 비율은 사용자 피드백으로 제외했다.
-- 사용자는 기존 FBX 체형 유지, CharacterArt 실제 모델과 같은 인형 재질, 다른 단원 정체성, 목 리본 제거, 관절별 봉제·혈흔 바리에이션을 요청했다. v5 최종 미술 승인은 아직 없다.
-- Task102 단계에서 Blender는 원본 import/render/측정에만 사용했다. 파생 모델 제작·Unity 셰이더/프리팹 적용은 아직 하지 않았다.
+- private Assets/_ThirdParty/curtaincall/Pursuit/Prefabs는 남01~04, 여01~06의10종이다. Models/Pursuit_*.fbx가 체형·결손 정본이다.
+- M01 왼발, M03 왼손, M04/F04/F06 머리, F05 왼팔 전체, F06 오른전완/손 결손을 유지한다.
+- 최신 사용자 방향은 원래 무표정 민머리 얼굴, 크림색 인형 바탕, 몸에 함께 꿰맨 옷 조각이다. v6 완성형 옷과 도색 얼굴은 대체되었다.
+- 최신 원화는 Concepts/JointSeams/V7/*-six-views-v7.png 10장. 원화/초기 제작은 Source~/V7, 최신 봉제 보강/레이어 제작·렌더·검증은 Source~/V8이다. 런타임 TroupeV7의 LayerTextures를 사용한다. private resource/pursuit-joint-seams-v5에 미커밋 보관한다.
+- PursuitTroupeV7Importer와 PursuitAppearanceBuilder 메뉴는 원본 Reclaimed 신체 메시에서 UV만 재배치한다. 위치/노멀/삼각형/본/가중치/클립을 보존하며 UV 경계 정점을 복제한다. 추가 의상 형상은 없다.
+- Blender 천/실밥 메시와 *-mesh.json은 베이크 원본이며 게임에 넣지 않는다. 알베도/노멀2048, 표면 마스크1024, 모델별 재질1개와 공유 셰이더를 쓴다.
+- SurfaceState Clean/Worn/LightBlood/Bloodied/HeavyBlood는 동일 메시/재질을 공유한다. SurfaceSeed는 분포 차이, CaptureCount×BloodPerCapture는 추가 혈흔이다. InjuryBloodEffects.IsVisible로 기본/누적 혈흔 모두 숨긴다.
+- 각 프리팹 기본값은 Bloodied(중간)다. 배치는 기본 Varied로 계층 이름/순서의 안정 해시를 사용해5상태로 다양화한다. Appearance/AppearancePattern(0~15)을 씬에 저장하며 같은 씬의 호스트/복제에 동일하게 적용한다. 새 패킷/실행 중 무작위 추첨은 없다.
+- 10개×9클립×9표본의 원래 표면 오차0m, 원본 삼각형 총10993개 보존. 최종 미술 승인·4인 성능은 별도다.
+
+- 배치 메뉴 Tools/Curtain Call/Pursuit/Mannequin Designer → 선택 / 순찰 → 외관 레이어. 선택 외관 가까이 보기/저장/Undo 지원. 에디터 미리보기는 혈흔을 표시하며 게임은 사용자 피 숨김 설정을 따른다.
+
+- 레이어 순서: 기본 피부·관절/천 봉제 → 때·마모 → 혈흔. CustomSurfaceLayers 기본false는 기존 선택을 보존하고, 직접 조절 시 DirtAmount/WearAmount/BloodAmount와 WearPattern/AppearancePattern을 독립 저장한다. 피 숨김은 아래 두 층을 유지한다.
+- v8는 새 UV/메시 없이 기존 UV에 관절 교차 실밥·바늘 자국을 더 베이크했다. 같은 재질1개에서 합성하며 다른 재질 슬롯/런타임 기하를 추가하지 않았다.
 
 ## 확인 방법
-`Concepts/JointSeams/Source~/fbx-proportion-audit.json`의 치수/본/해시와 `audit-models.py`를 참고한다. `Tasks/Active/Task-20261104-102-pursuit-joint-seams/design-brief.md`의 관절 배치표와 원화 오차 기록을 대조한다. CharacterArt 각 `Source~/README.md`에서 정본과 실제 Unity 캡처를 확인한다.
+Source~/fbx-proportion-audit.json의 원본 해시와 Source~/V8/README.md, V7/integration-verification.json, V8/*-layer-result.json을 확인한다.
+Task102 design-brief의 관절 배치표를 따른다. Source~/V6/unity-baseline.json은 적용 전 원본 증거이므로 덮어쓰지 않는다.

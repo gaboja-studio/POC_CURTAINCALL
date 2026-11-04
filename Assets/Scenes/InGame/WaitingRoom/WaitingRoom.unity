@@ -31339,6 +31339,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 2905728589488997546, guid: 993528d0743c37542af9d052995145e4, type: 3}
   Size: 0
   ActivationStage: 3
@@ -35419,7 +35426,7 @@ GameObject:
   - component: {fileID: 28479363}
   - component: {fileID: 28479364}
   m_Layer: 0
-  m_Name: lobby-uv-lamp-2
+  m_Name: dormitory-uv-lamp-2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35434,7 +35441,7 @@ Transform:
   m_GameObject: {fileID: 28479362}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.6, y: 0.02, z: 77.2}
+  m_LocalPosition: {x: 16.000004, y: 0.02, z: 82.00004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -35452,7 +35459,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da66ab21089b1fd43b9017b77649d68f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FoundItemSpot
-  spotId: lobby-uv-lamp-2
+  spotId: dormitory-uv-lamp-2
   uidOffset: 42
   itemId: uv-lamp
   itemName: "\uCC9C\uB9C9 \uB9D0\uB69D \uBF51\uAC1C"
@@ -127852,6 +127859,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 6482812797235897502, guid: dbf8b4abd35fab646abeb9fc77494702, type: 3}
   Size: 0
   ActivationStage: 1
@@ -234967,6 +234981,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 4015248700799797940, guid: b54287a7856a8e44a9aff9238026ca83, type: 3}
   Size: 0
   ActivationStage: 1
@@ -298929,6 +298950,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 6482812797235897502, guid: dbf8b4abd35fab646abeb9fc77494702, type: 3}
   Size: 0
   ActivationStage: 1
@@ -343022,6 +343050,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 8063794328454795708, guid: e14f7073c4cdb2d4da7543408fd1f807, type: 3}
   Size: 0
   ActivationStage: 3
@@ -415276,7 +415311,7 @@ GameObject:
   m_Component:
   - component: {fileID: 311666286}
   m_Layer: 0
-  m_Name: LobbyToolSpots
+  m_Name: DormitoryUvSpots
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -415290,16 +415325,16 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 311666285}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -70}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 69.65001, y: 0, z: -14.999992}
+  m_LocalScale: {x: 0.99999976, y: 1, z: 0.99999976}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 312898117}
   - {fileID: 28479363}
   - {fileID: 1542040958}
   - {fileID: 1918741953}
-  m_Father: {fileID: 1318016391}
+  m_Father: {fileID: 629493454}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &311678530
 GameObject:
@@ -416488,7 +416523,7 @@ GameObject:
   - component: {fileID: 312898117}
   - component: {fileID: 312898118}
   m_Layer: 0
-  m_Name: lobby-uv-lamp-1
+  m_Name: dormitory-uv-lamp-1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -416503,7 +416538,7 @@ Transform:
   m_GameObject: {fileID: 312898116}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.6, y: 0.02, z: 77.2}
+  m_LocalPosition: {x: 15.000004, y: 0.02, z: 82.00004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -416521,7 +416556,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da66ab21089b1fd43b9017b77649d68f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FoundItemSpot
-  spotId: lobby-uv-lamp-1
+  spotId: dormitory-uv-lamp-1
   uidOffset: 41
   itemId: uv-lamp
   itemName: "\uCC9C\uB9C9 \uB9D0\uB69D \uBF51\uAC1C"
@@ -557418,6 +557453,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 6145837445747250721, guid: b3a09963943d62242a56d9cc9f3a655a, type: 3}
   Size: 0
   ActivationStage: 1
@@ -804841,6 +804883,7 @@ Transform:
   - {fileID: 1926946498}
   - {fileID: 812749616}
   - {fileID: 2123476830}
+  - {fileID: 1793323569}
   m_Father: {fileID: 1017881436}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &621225885
@@ -816226,6 +816269,7 @@ Transform:
   - {fileID: 724315451}
   - {fileID: 454227741}
   - {fileID: 1862700365}
+  - {fileID: 311666286}
   m_Father: {fileID: 1947334013}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &629554399
@@ -838484,6 +838528,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 4015248700799797940, guid: b54287a7856a8e44a9aff9238026ca83, type: 3}
   Size: 0
   ActivationStage: 1
@@ -839736,6 +839787,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 1601495830266799282, guid: b133eed4ba5e2ad46abac5303cb9f1d2, type: 3}
   Size: 0
   ActivationStage: 4
@@ -920076,6 +920134,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 963270003243879643, guid: 71a10005b95060046ba44e8a8a3ab058, type: 3}
   Size: 0
   ActivationStage: 3
@@ -959420,6 +959485,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 963270003243879643, guid: 71a10005b95060046ba44e8a8a3ab058, type: 3}
   Size: 0
   ActivationStage: 1
@@ -1258126,6 +1258198,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 2595072262550357975, guid: 10e73f813a6447c4d8e2152c72a8a1c0, type: 3}
   Size: 0
   ActivationStage: 1
@@ -1294229,6 +1294308,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 3237286211341054669, guid: e83410f1ac350cf4b9862dac4e4ba916, type: 3}
   Size: 0
   ActivationStage: 1
@@ -1318548,7 +1318634,6 @@ Transform:
   - {fileID: 1581042837}
   - {fileID: 1593194126}
   - {fileID: 1813971093}
-  - {fileID: 1793323569}
   - {fileID: 337391783}
   - {fileID: 621022744}
   m_Father: {fileID: 0}
@@ -1349603,6 +1349688,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 4015248700799797940, guid: b54287a7856a8e44a9aff9238026ca83, type: 3}
   Size: 0
   ActivationStage: 1
@@ -1421974,6 +1422066,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 1601495830266799282, guid: b133eed4ba5e2ad46abac5303cb9f1d2, type: 3}
   Size: 0
   ActivationStage: 3
@@ -1470622,6 +1470721,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 6
+  AppearancePattern: 4
+  CustomSurfaceLayers: 1
+  DirtAmount: 0.36
+  WearAmount: 0.74
+  BloodAmount: 0
+  WearPattern: 13
   Prefab: {fileID: 4015248700799797940, guid: b54287a7856a8e44a9aff9238026ca83, type: 3}
   Size: 0
   ActivationStage: 1
@@ -1608936,6 +1609042,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 7405028283270772671, guid: e9f587bc65f16534c84394a9ab1ce873, type: 3}
   Size: 0
   ActivationStage: 1
@@ -1705981,7 +1706094,6 @@ Transform:
   - {fileID: 221114883}
   - {fileID: 1242402223}
   - {fileID: 1014065775}
-  - {fileID: 311666286}
   - {fileID: 1483269563}
   - {fileID: 1648495662}
   - {fileID: 799612700}
@@ -1722324,6 +1722436,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 2905728589488997546, guid: 993528d0743c37542af9d052995145e4, type: 3}
   Size: 0
   ActivationStage: 1
@@ -1728896,6 +1729015,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 5
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 7405028283270772671, guid: e9f587bc65f16534c84394a9ab1ce873, type: 3}
   Size: 0
   ActivationStage: 1
@@ -1749843,6 +1749969,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 6145837445747250721, guid: b3a09963943d62242a56d9cc9f3a655a, type: 3}
   Size: 0
   ActivationStage: 1
@@ -1915740,6 +1915873,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 3237286211341054669, guid: e83410f1ac350cf4b9862dac4e4ba916, type: 3}
   Size: 0
   ActivationStage: 2
@@ -1921781,6 +1921921,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 6
+  AppearancePattern: 9
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 7405028283270772671, guid: e9f587bc65f16534c84394a9ab1ce873, type: 3}
   Size: 0
   ActivationStage: 2
@@ -1993534,7 +1993681,7 @@ GameObject:
   - component: {fileID: 1542040958}
   - component: {fileID: 1542040959}
   m_Layer: 0
-  m_Name: lobby-uv-lamp-3
+  m_Name: dormitory-uv-lamp-3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1993549,7 +1993696,7 @@ Transform:
   m_GameObject: {fileID: 1542040957}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.5999999, y: 0.02, z: 77.2}
+  m_LocalPosition: {x: 17.000004, y: 0.02, z: 82.00004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1993567,7 +1993714,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da66ab21089b1fd43b9017b77649d68f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FoundItemSpot
-  spotId: lobby-uv-lamp-3
+  spotId: dormitory-uv-lamp-3
   uidOffset: 43
   itemId: uv-lamp
   itemName: "\uCC9C\uB9C9 \uB9D0\uB69D \uBF51\uAC1C"
@@ -2149636,6 +2149783,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 6482812797235897502, guid: dbf8b4abd35fab646abeb9fc77494702, type: 3}
   Size: 0
   ActivationStage: 1
@@ -2232513,8 +2232667,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 5
+  AppearancePattern: 11
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 2905728589488997546, guid: 993528d0743c37542af9d052995145e4, type: 3}
-  Size: 0
+  Size: 1
   ActivationStage: 1
   PatrolPoints:
   - {fileID: 1323260494}
@@ -2313731,7 +2313892,7 @@ Transform:
   - {fileID: 1803019188}
   - {fileID: 1436101407}
   - {fileID: 421986025}
-  m_Father: {fileID: 1017881436}
+  m_Father: {fileID: 621022744}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1793406571
 GameObject:
@@ -2430407,6 +2430568,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 6145837445747250721, guid: b3a09963943d62242a56d9cc9f3a655a, type: 3}
   Size: 0
   ActivationStage: 1
@@ -2486012,7 +2486180,7 @@ GameObject:
   - component: {fileID: 1918741953}
   - component: {fileID: 1918741954}
   m_Layer: 0
-  m_Name: lobby-uv-lamp-4
+  m_Name: dormitory-uv-lamp-4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2486027,7 +2486195,7 @@ Transform:
   m_GameObject: {fileID: 1918741952}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.5999999, y: 0.02, z: 77.2}
+  m_LocalPosition: {x: 18.000004, y: 0.02, z: 82.00004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2486045,7 +2486213,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da66ab21089b1fd43b9017b77649d68f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FoundItemSpot
-  spotId: lobby-uv-lamp-4
+  spotId: dormitory-uv-lamp-4
   uidOffset: 44
   itemId: uv-lamp
   itemName: "\uCC9C\uB9C9 \uB9D0\uB69D \uBF51\uAC1C"
@@ -2611044,6 +2611212,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 7405028283270772671, guid: e9f587bc65f16534c84394a9ab1ce873, type: 3}
   Size: 0
   ActivationStage: 2
@@ -2703242,6 +2703417,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 043a42b27c99008428247bf3a1739b9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
+  Appearance: 0
+  AppearancePattern: 0
+  CustomSurfaceLayers: 0
+  DirtAmount: 0
+  WearAmount: 0
+  BloodAmount: 0
+  WearPattern: 0
   Prefab: {fileID: 6482812797235897502, guid: dbf8b4abd35fab646abeb9fc77494702, type: 3}
   Size: 0
   ActivationStage: 1

@@ -138,7 +138,7 @@ namespace CurtainCall.WaitingRoom
 
         void DebugOpen(string target, ulong player)
         {
-            if (string.IsNullOrEmpty(target) || book.IsOpen(target)) return;
+            if (!CurtainCall.Dev.DevMode.Enabled || string.IsNullOrEmpty(target) || book.IsOpen(target)) return;
             if (ExplorationGate.IsKeyTarget(target))
             {
                 var result = ReceiveKey(player, target);

@@ -10,8 +10,8 @@ namespace CurtainCall.Tightrope
         enum Operation : byte { Grab, Release, Sync }
         const string RequestMessage = "CurtainCall.Tightrope.RelayGate.Request";
         const string StateMessage = "CurtainCall.Tightrope.RelayGate.State";
-        // 회차·버전·봉 수 9바이트 + 봉마다(리비전4·점유자8·단계1·유지8·재가동8·연결 줄1) 30바이트 × 4.
-        const int StateBytes = 9 + 30 * 4;
+        // 회차·버전·봉 수 9바이트 + 봉마다(리비전4·점유자8·단계1·유지8·재가동8·연결 줄1) 30바이트. 지정 자리 봉은 개수가 4개가 아닐 수 있다.
+        int StateBytes => 9 + 30 * PoleCount;
         const byte NoOpenedLane = byte.MaxValue;
         NetworkSessionManager session;
         CustomMessagingManager messaging;

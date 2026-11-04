@@ -574,6 +574,83 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator CompletionAudience_EightyPercentWaitsForActualArrival()
+        {
+            Set(sawSettingsSnapshotTarget, "finaleFourStackRequired", false);
+            yield return BeginPerformance();
+            float length = (float)Get(course, "FinishDistance");
+            var rotation = Quaternion.LookRotation((Vector3)Get(course, "Forward"));
+            Call(mover, "SetStartPose", (Vector3)Call(course, "GetLanePosition", 0, length * .799f), rotation, true);
+            Assert.IsFalse((bool)Call(run, "HasCompletionProgress", player));
+            Call(mover, "SetStartPose", (Vector3)Call(course, "GetLanePosition", 0, length * .8f), rotation, true);
+            Assert.IsTrue((bool)Call(run, "HasCompletionProgress", player));
+            Assert.IsFalse((bool)Call(bridge, "TryFinishAtDestination"), "80%만으로 공연을 조기 종료하지 않는다.");
+            Assert.IsNull(Get(bridge, "Result"));
+            var finish = (Pose)Call(course, "GetFinishPose", (int)Get(player, "Slot"));
+            Call(mover, "SetStartPose", finish.position, finish.rotation, true);
+            Assert.IsTrue((bool)Call(bridge, "TryFinishAtDestination"));
+            Assert.IsTrue((bool)Get(Get(bridge, "Result"), "Succeeded"));
+        }
+
+        [UnityTest]
+        public IEnumerator CompletionAudience_DodgeAndSwingOnceRescueEverySuccess()
+        {
+            yield return BeginPerformance();
+            var audience = Object.FindAnyObjectByType(GameType("CurtainCall.Reward.PerformanceAudience"));
+            Assert.IsNotNull(audience);
+            var settings = Static("CurtainCall.Settings.AudienceReactionSettings", "Current");
+            int tier = (int)Get(rewards, "Difficulty");
+            int dodge = (int)Call(settings, "ScaleReaction", Get(settings, "obstacleDodge"), tier);
+            int swing = (int)Call(settings, "ScaleReaction", Get(settings, "swingLanding"), tier);
+            int cooperation = (int)Call(settings, "ScaleReaction", Get(settings, "cooperation"), tier);
+            Call(audience, "Bind");
+            long before = LocalAudienceAmount();
+            Call(audience, "Sample", player, "wide-dodge-test", -3f, false, false, false, false, false);
+            Call(audience, "Sample", player, "wide-dodge-test", 3f, false, false, false, true, false);
+            Assert.AreEqual(before + dodge, LocalAudienceAmount());
+            long afterDodge = LocalAudienceAmount();
+            Call(audience, "Sample", player, "wide-dodge-test", -3f, false, true, false, false, false);
+            Call(audience, "Sample", player, "wide-dodge-test", 3f, false, false, false, false, false);
+            Assert.AreEqual(afterDodge, LocalAudienceAmount());
+            ulong client = (ulong)Get(player, "OwnerClientId");
+            Call(audience, "Crossed", client, course);
+            Call(audience, "Crossed", client, course);
+            Assert.AreEqual(afterDodge + swing, LocalAudienceAmount());
+            long afterSwing = LocalAudienceAmount();
+            Call(audience, "Cooperation", client, 777UL);
+            Call(audience, "Cooperation", client, 777UL);
+            Assert.AreEqual(afterSwing + 2 * cooperation, LocalAudienceAmount());
+        }
+
+        [UnityTest]
+        public IEnumerator CompletionAudience_TierBonusKeepsCapJeerCutAndCompletionRules()
+        {
+            yield return BeginPerformance();
+            Assert.AreEqual(1, (int)Get(rewards, "Difficulty"));
+            var segment = ((IEnumerable)Get(Get(rewards, "State"), "Segments")).Cast<object>()
+                .Single(p => (ulong)Get(p, "ClientId") == (ulong)Get(player, "OwnerClientId"));
+            string participant = (string)Get(segment, "ParticipantId");
+            long before = LocalAudienceAmount();
+            Assert.IsTrue((bool)Call(rewards, "AddAudienceReaction", participant, 5));
+            Assert.AreEqual(before + 10, LocalAudienceAmount(), "1단계 행동 환호 2배");
+            Assert.IsTrue((bool)Call(rewards, "AddAudienceReaction", participant, -5));
+            Assert.AreEqual(before + 5, LocalAudienceAmount(), "야유는 배율 없이 차감");
+            Assert.IsTrue((bool)Call(rewards, "AddCheer", participant, true));
+            Assert.AreEqual(before + 25, LocalAudienceAmount(), "기본 환호도 한 번만 2배 적용");
+            Call(player, "ServerCut", 1);
+            Call(rewards, "ObserveParticipant", participant, Convert.ToInt32(Get(player, "LostParts")), false, true);
+            Assert.AreEqual(before + 35, LocalAudienceAmount(), "절단은 고정 +10");
+            Call(rewards, "AddAudienceReaction", participant, 1000);
+            Assert.AreEqual(100, LocalAudienceAmount(), "1단계 상한 100 유지");
+            var judgements = new System.Collections.Generic.Dictionary<string, string> { [participant] = "Arrived" };
+            Assert.IsTrue((bool)Call(rewards, "FinishPerformance", true, "Completed", judgements));
+            var result = Get(rewards, "Latest");
+            var person = ((IEnumerable)Get(result, "Participants")).Cast<object>().Single();
+            Assert.AreEqual(100L, Get(person, "CompletionBonus"));
+            Assert.AreEqual(300L, Get(person, "Settlement"));
+        }
+
+        [UnityTest]
         public IEnumerator AllDeadRecordsDeathThenRevivesOneArmedWithoutRestart()
         {
             yield return BeginPerformance();
