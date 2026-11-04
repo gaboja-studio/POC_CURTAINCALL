@@ -54,10 +54,12 @@ namespace CurtainCall.HumanCannon.Tests
         public IEnumerator GroundSaw_FourSecondSweep_CanBeJumped_ButCutsStandingPlayer()
         {
             DisableEnhancementThreats();
-            var saw = Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonHazard"), FindObjectsSortMode.None)
-                .Cast<Behaviour>().Single(h => h.name == "GroundSaw1A");
-            Assert.AreEqual(4f, Get(saw, "PeriodSeconds"));
             var course = HazardCourse();
+            var saw = Enumerable.Range(0, (int)Get(course, "HazardCount"))
+                .Where(i => (bool)Call(course, "IsHazardEnabled", i))
+                .Select(i => (Behaviour)Call(course, "Hazard", i))
+                .First(h => Get(h, "Kind").ToString() == "GroundSaw" && !(bool)Get(h, "IsPoleSaw"));
+            Assert.AreEqual(4f, Get(saw, "PeriodSeconds"));
             Assert.AreEqual(1, Get(course, "Difficulty"));
             var feet = saw.transform.position; feet.y = 0.01f;
             Call(mover, "SetStartPose", feet, Quaternion.identity, true);

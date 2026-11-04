@@ -171,6 +171,7 @@ namespace CurtainCall.HumanCannon
                         SecondaryVerticalPosition(now), IsSawEnabled(horizontalOrigins.Length + 1) ? sample.Phase : FinalSawPhase.Dormant, spin, warning);
             }
             if (session != null && session.IsHost) HostContacts(now);
+            OwnerContacts(now);
             previousClock = now;
         }
 
@@ -198,6 +199,7 @@ namespace CurtainCall.HumanCannon
 
         void ResetSaws()
         {
+            ownerContacts?.Reset();
             timeline.Reset(); startedAt = -1; previousClock = -1;
             touching.Clear(); touchingNow.Clear(); previousFeet.Clear();
             restartEntranceBlocked.Clear();
@@ -205,6 +207,7 @@ namespace CurtainCall.HumanCannon
 
         void OnDisable()
         {
+            ownerContacts?.Dispose();
             NetworkPlayer.Restarted -= Restart;
             if (session != null) session.ConnectionStateChanged -= Connection;
             Unregister(); session = null;

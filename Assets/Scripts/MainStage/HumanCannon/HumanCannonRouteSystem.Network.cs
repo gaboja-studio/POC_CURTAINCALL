@@ -10,8 +10,8 @@ namespace CurtainCall.HumanCannon
     public sealed partial class HumanCannonRouteSystem
     {
         enum RouteAction : byte { Sync, ResetSync = 3 }
-        const string RequestName = "CurtainCall.HumanCannon.Route.Request";
-        const string StateName = "CurtainCall.HumanCannon.Route.State";
+        const string RequestName = "CurtainCall.HumanCannon.Route.Request.v2";
+        const string StateName = "CurtainCall.HumanCannon.Route.State.v2";
         const int RequestBytes = 9;
         CustomMessagingManager messaging;
 

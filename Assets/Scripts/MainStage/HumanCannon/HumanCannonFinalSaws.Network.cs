@@ -7,8 +7,8 @@ namespace CurtainCall.HumanCannon
 {
     public sealed partial class HumanCannonFinalSaws
     {
-        const string RequestName = "CurtainCall.HumanCannon.FinalSaws.Request";
-        const string StateName = "CurtainCall.HumanCannon.FinalSaws.State";
+        const string RequestName = "CurtainCall.HumanCannon.FinalSaws.Request.v2";
+        const string StateName = "CurtainCall.HumanCannon.FinalSaws.State.v2";
         const int StateBytes = 44;
         CustomMessagingManager messaging;
 

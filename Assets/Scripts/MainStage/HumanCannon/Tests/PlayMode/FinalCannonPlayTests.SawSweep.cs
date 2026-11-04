@@ -151,16 +151,23 @@ namespace CurtainCall.HumanCannon.Tests
         {
             DisableEnhancementThreats();
             var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
-            var pole = (Component)Call(poles, "Pole", 6); // AddedPole0, x=0인 일반 봉
-            anchor = Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonPoleSaw"), FindObjectsSortMode.None)
-                .Cast<Component>().Single(item => (Component)Get(item, "Pole") == pole);
-            var saw = (Behaviour)Get(anchor, "Hazard");
-            Assert.AreEqual("PoleSaw6", saw.name);
+            var pole = (Component)Call(poles, "Pole", 1);
+            // Authored pole saws were removed from the current course. Keep the sweep
+            // regression independent of that layout without restoring obsolete scene objects.
+            var fixture = new GameObject("SweepSawRegressionFixture");
+            var saw = (Behaviour)fixture.AddComponent(GameType("CurtainCall.HumanCannon.HumanCannonHazard"));
+            HazardSet(saw, "kind", System.Enum.Parse(GameType("CurtainCall.HumanCannon.CannonHazardKind"), "GroundSaw"));
+            anchor = fixture.AddComponent(GameType("CurtainCall.HumanCannon.HumanCannonPoleSaw"));
+            Call(anchor, "Configure", pole, saw, 0f);
             Assert.IsTrue((bool)Call(anchor, "AlignToPole"));
             HazardSet(saw, "phase", 0f);
             Call(saw, "ConfigureSweep", saw.transform.InverseTransformVector(Vector3.right * 24f), 4f);
             saw.enabled = true;
             course = (Component)StaticGet("CurtainCall.HumanCannon.HumanCannonHazardCourse", "Current");
+            var original = (System.Array)Get(course, "hazards");
+            var hazards = System.Array.CreateInstance(saw.GetType(), original.Length + 1);
+            System.Array.Copy(original, hazards, original.Length); hazards.SetValue(saw, original.Length);
+            HazardSet(course, "hazards", hazards);
             Call(course, "ClearContacts");
             return saw;
         }

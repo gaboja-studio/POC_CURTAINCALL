@@ -23,6 +23,10 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         const string PendingKey = "CurtainCall.PursuitProbe.Pending";
         const string SeenKey = "CurtainCall.PursuitProbe.SceneSeen";
         const string FirstKey = "CurtainCall.PursuitProbe.FirstLoad";
+        const string TargetKey = "CurtainCall.PursuitProbe.Target";
+        static string SelectedSceneName => GameSettings.Base.SpaceTransition.WaitingRoomScene;
+        static string MeasuredSceneName => SessionState.GetString(TargetKey, SelectedSceneName);
+        static string SceneSeenKey(string name) => SeenKey + "." + name;
         // 기준값: Relay는 메인 스레드 약 10초 정지 시 연결을 끊는다. 에디터 기준 절반 이하를 목표로 한다.
         public const float StallBudgetMs = 5000, SnapshotBudgetBytes = PursuitSnapshotCodec.UnreliableLimit;
         public const int BatchesBudget = 3000, ShadowCastersBudget = 2000;
@@ -45,7 +49,8 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
 
         static PursuitPerformanceProbe()
         {
-            if (SceneManager.GetSceneByName(WaitingRoomScenes.PursuitName).isLoaded) SessionState.SetBool(SeenKey, true);
+            foreach (string name in new[] {WaitingRoomScenes.BaseName, WaitingRoomScenes.PursuitName, WaitingRoomScenes.IntegratedName})
+                if (SceneManager.GetSceneByName(name).isLoaded) SessionState.SetBool(SceneSeenKey(name), true);
             EditorSceneManager.sceneOpened += (scene, mode) => MarkSeen(scene);
             SceneManager.sceneLoaded += (scene, mode) => MarkSeen(scene);
             EditorApplication.playModeStateChanged += state => {
@@ -54,22 +59,24 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
         }
 
         [MenuItem("Tools/Curtain Call/Performance/Measure Pursuit Waiting Room")]
+        [MenuItem("Tools/Curtain Call/Performance/Measure Selected Waiting Room")]
         public static void Run()
         {
             if (SessionState.GetBool(PendingKey, false) || measuring) return;
             if (!EditorApplication.isPlaying && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
-            SessionState.SetBool(FirstKey, !SessionState.GetBool(SeenKey, false));
+            SessionState.SetString(TargetKey, SelectedSceneName);
+            SessionState.SetBool(FirstKey, !SessionState.GetBool(SceneSeenKey(SelectedSceneName), false));
             SessionState.SetBool(PendingKey, true);
             if (EditorApplication.isPlaying) Begin(); else EditorApplication.isPlaying = true;
         }
         static void MarkSeen(Scene scene)
         {
-            if (scene.name == WaitingRoomScenes.PursuitName) SessionState.SetBool(SeenKey, true);
+            if (WaitingRoomScenes.IsWaitingRoom(scene)) SessionState.SetBool(SceneSeenKey(scene.name), true);
         }
         [MenuItem("Tools/Curtain Call/Performance/Measure Pursuit Waiting Room First Load")]
         public static void RunFirstLoad()
         {
-            if (SessionState.GetBool(SeenKey, false) || EditorApplication.isPlaying) {
+            if (SessionState.GetBool(SceneSeenKey(SelectedSceneName), false) || EditorApplication.isPlaying) {
                 Debug.LogWarning("[PerfProbe] 첫 로드는 추격 씬을 열지 않은 새 에디터 세션에서 측정하세요. Start 씬을 연 뒤 에디터를 재시작하면 됩니다. OS/GPU 캐시 초기화 측정은 아닙니다.");
                 return;
             }
@@ -95,7 +102,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 case Step.Settle:
                     ProfilerDriver.ClearAllFrames(); ProfilerDriver.profileEditor = false; ProfilerDriver.enabled = true;
                     loadStart = now;
-                    load = SceneManager.LoadSceneAsync(WaitingRoomScenes.PursuitName, LoadSceneMode.Single);
+                    load = SceneManager.LoadSceneAsync(MeasuredSceneName, LoadSceneMode.Single);
                     step = Step.Load; break;
                 case Step.Load:
                     if (load != null && !load.isDone) return;
@@ -194,7 +201,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             }
             var report = new {
                 measuredAt = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"), unity = Application.unityVersion, note = "에디터 플레이 측정. firstSceneLoadInEditorSession은 OS/GPU 캐시 초기화와 다름. binaryKBps는 상태4Hz+위치20Hz payload 추정(상태 변경 추가 전송/NGO·UTP 헤더 제외).",
-                firstSceneLoadInEditorSession = SessionState.GetBool(FirstKey, false),
+                sceneName = MeasuredSceneName, firstSceneLoadInEditorSession = SessionState.GetBool(FirstKey, false),
                 load = new { totalMs = (loadEnd - loadStart) * 1000, readyMs = (initializedAt - loadStart) * 1000, worstFrameMs = worstMs, framesOver1s = stalls.Count, stallsMs = stalls, topSelfInWorstFrame = top },
                 scene, snapshot, views = viewStats, budget = budget.Count == 0 ? new List<string> { "PASS" } : budget };
             var dir = Path.Combine(Directory.GetCurrentDirectory(), "Logs", "Performance");
@@ -208,7 +215,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
 
         static object SceneStats()
         {
-            var scene = SceneManager.GetSceneByName(WaitingRoomScenes.PursuitName);
+            var scene = SceneManager.GetSceneByName(MeasuredSceneName);
             var roots = scene.IsValid() ? scene.GetRootGameObjects() : Array.Empty<GameObject>();
             T[] All<T>() where T : Component => roots.SelectMany(r => r.GetComponentsInChildren<T>(true)).ToArray();
             var lights = All<Light>();

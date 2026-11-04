@@ -145,9 +145,10 @@ namespace CurtainCall.HumanCannon.Tests
         [UnityTest]
         public IEnumerator FourFinalFlights_RequireNewFAndPreserveHealthyLeglessAndOneArmBodies()
         {
+            DisableEnhancementThreats();
             // 이 검사는 대포별 탄도·부상 보존을 비교한다. 톱 피해는 별도 실제 접촉 검사에서 다룬다.
             var saws = Object.FindAnyObjectByType(GameType("CurtainCall.HumanCannon.HumanCannonFinalSaws"));
-            saws.GetType().GetField("warningSeconds", InstanceMembers).SetValue(saws, 120f);
+            if (saws != null) saws.GetType().GetField("warningSeconds", InstanceMembers).SetValue(saws, 120f);
             int[] expectedParts = { 0, 4, 12, 13 }; // 온전함 → 왼다리 없음 → 두 다리 없음 → 오른팔만 남음.
             for (int i = 0; i < 4; i++)
             {
@@ -164,8 +165,9 @@ namespace CurtainCall.HumanCannon.Tests
                 Input(tapped: true);
                 Assert.IsTrue(Flying, "놓은 뒤 새 F로 발사한다.");
                 Assert.AreEqual(ulong.MaxValue, Call(system, "Occupant", 6 + i));
-                Assert.That(Vector3.Distance((Vector3)Get(pilot, "velocity"), new Vector3(0, 12, 8)), Is.LessThan(0.001f));
-                Assert.AreEqual(4.5f, Get(pilot, "airControlSpeed"));
+                var station = Call(system, "Station", 6 + i);
+                Assert.That(Vector3.Distance((Vector3)Get(pilot, "velocity"), (Vector3)Get(station, "LaunchVelocity")), Is.LessThan(0.001f));
+                Assert.AreEqual(Get(station, "AirControlSpeed"), Get(pilot, "airControlSpeed"));
                 Vector3 start = player.transform.position;
                 float highest = start.y;
                 float deadline = Time.realtimeSinceStartup + 8;
@@ -179,8 +181,9 @@ namespace CurtainCall.HumanCannon.Tests
                 Assert.That(highest, Is.GreaterThan(start.y + 0.5f));
                 Assert.That(player.transform.position.z, Is.GreaterThan(start.z + 3f));
                 Assert.AreEqual(before + 1, SafeLandings);
-                var pad = GameObject.Find("FinalCannonCourse/FlightLandingPad").GetComponent(GameType("CurtainCall.HumanCannon.HumanCannonLandingZone"));
-                Assert.IsTrue((bool)Call(pad, "SupportsLanding", player.transform.position));
+                var pads = Object.FindObjectsByType(GameType("CurtainCall.HumanCannon.HumanCannonLandingZone"), FindObjectsSortMode.None);
+                Assert.IsTrue(pads.Cast<Component>().Any(pad => (bool)Call(pad, "SupportsLanding", player.transform.position)),
+                    "The configured flight must end on a real current-scene landing zone.");
                 AssertBody(expectedParts[i]);
                 AssertFiresIdle();
                 AssertNoRecoveryOrResult();

@@ -1,0 +1,41 @@
+{
+  "status": "completed",
+  "duration": 13.92,
+  "summary": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FastSaw_FixedLevelOneHidesUnusedSawDamage_AndKeepsVisibleSawDamage",
+      "Status": "Passed",
+      "Duration": 5.1839628,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FastSaw_HalfSecondGapStillCutsBetweenClearEndpoints_WithoutDuplicateCut",
+      "Status": "Passed",
+      "Duration": 3.0862206,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FastSaw_LongGapChecksRecentHalfSecond_AndCutsStationaryBody",
+      "Status": "Passed",
+      "Duration": 2.7685797,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.FastSaw_LongGapClipsBodyPathToSameTimeWindow_WithoutInventingLateCrossing",
+      "Status": "Passed",
+      "Duration": 2.7807012,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

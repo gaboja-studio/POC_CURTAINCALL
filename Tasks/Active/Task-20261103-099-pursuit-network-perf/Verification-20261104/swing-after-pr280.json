@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "duration": 13.88,
+  "summary": {
+    "total": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.SwingPoleRejectsAnotherOwnerAndRestartRestoresTheHeldPlayersControls",
+      "Status": "Passed",
+      "Duration": 6.5969404,
+      "Message": null,
+      "StackTrace": null
+    },
+    {
+      "FullName": "CurtainCall.Tightrope.SystemIntegration.Tests.TightropeCampaignPlayTests.SwingPoleUsesCannonMomentumAndAirControlThenTeammateCatchesTheLanding",
+      "Status": "Passed",
+      "Duration": 7.1749165,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

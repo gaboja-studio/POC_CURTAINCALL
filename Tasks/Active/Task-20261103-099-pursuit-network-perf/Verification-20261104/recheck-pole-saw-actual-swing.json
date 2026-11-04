@@ -1,0 +1,20 @@
+{
+  "status": "completed",
+  "duration": 6.69,
+  "summary": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inconclusive": 0
+  },
+  "results": [
+    {
+      "FullName": "CurtainCall.HumanCannon.Tests.FinalCannonPlayTests.PoleSaw_ActualSwingAvoidsContact_ThenCrossingCutsWithoutForcingRelease",
+      "Status": "Passed",
+      "Duration": 6.5971945,
+      "Message": null,
+      "StackTrace": null
+    }
+  ]
+}

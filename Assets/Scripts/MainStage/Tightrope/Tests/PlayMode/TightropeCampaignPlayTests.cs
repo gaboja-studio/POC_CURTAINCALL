@@ -79,10 +79,11 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             }
             if (network != null && (bool)Get(network, "IsListening")) Call(network, "Shutdown", Type.Missing);
             yield return null;
-            foreach (var go in new[] { rewards, campaign, session, network }.Where(c => c != null).Select(c => c.gameObject).Distinct())
+            foreach (var go in new[] { rewards, campaign, session, network, catchEquipmentFixture }.Where(c => c != null).Select(c => c.gameObject).Distinct())
                 Object.Destroy(go);
             yield return null;
             session = network = player = mover = bridge = run = course = campaign = rewards = null;
+            catchEquipmentFixture = null;
             devModeCache?.SetValue(null, previousDevMode);
             if (runSettings != null) Set(runSettings, "timeLimit", previousTimeLimit);
             if (legacyCourseSettings != null && previousCourseJson != null)

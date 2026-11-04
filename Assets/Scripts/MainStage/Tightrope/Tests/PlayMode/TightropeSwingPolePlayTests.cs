@@ -152,8 +152,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 yield return null;
                 var catches = (Component)Static("CurtainCall.Tightrope.TightropeCatchSystem", "Current");
                 var request = catches.GetType().GetNestedType("Request", BindingFlags.NonPublic);
-                Call(catches, "ServerHandle", (ulong)Get(helper, "OwnerClientId"), Enum.Parse(request, "Prepare"), 0UL);
-                Assert.IsTrue((bool)Call(catches, "IsReady", helper));
+                GiveCatchGloves(helper);
+                Assert.IsTrue((bool)Call(catches, "IsGloveCatcher", helper));
                 Call(scheme, "Tick", context, CatchFrame(tap: true));
                 yield return Until(() => (bool)Call(pole, "IsHeld", player) && !(bool)Get(mover, "Simulated"), 2f, "F로 실제 봉 탑승");
                 Assert.IsFalse(((CharacterController)Get(mover, "Body")).enabled);
@@ -197,7 +197,7 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
                 Assert.That((float)Call(catches, "SuccessRemaining", player), Is.GreaterThan(0f), "봉 도약도 실제 받기 성공으로 확정한다.");
                 var balance = player.GetComponent(GameType("CurtainCall.Player.PlayerBalance"));
                 float shock = (float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "RopeMovement"), "LandingShock");
-                Assert.That(Mathf.Abs((float)Get(balance, "LastShock")), Is.EqualTo(shock * .1f).Within(.01f));
+                Assert.That(Mathf.Abs((float)Get(balance, "LastShock")), Is.EqualTo(shock * (1f - (float)Get(catches, "CatchReduction"))).Within(.01f));
                 if (System.IO.File.Exists(".harness/local/tightrope-swing-capture"))
                 { ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/tightrope-swing-catch.png")); yield return null; }
             }

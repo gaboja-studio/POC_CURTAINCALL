@@ -14,8 +14,7 @@ namespace CurtainCall.HumanCannon.Tests
         public IEnumerator OriginalCourse_DifficultyChangesBeforeLaunch_ThenLocks()
         {
             var hazards = HazardCourse();
-            // Task-044의 저장 코스: 휴식 봉5 + 관문 연결 봉2. 난도 변경/잠금 검증은 그대로 유지한다.
-            Assert.AreEqual(7, Get(StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current"), "PoleCount"));
+            // Difficulty locking does not depend on the authored number of poles.
             Assert.IsFalse((bool)Call(hazards, "SetDifficulty", 0));
             Assert.IsFalse((bool)Call(hazards, "SetDifficulty", 4));
             foreach (int level in new[] { 2, 3, 1 })
@@ -34,7 +33,7 @@ namespace CurtainCall.HumanCannon.Tests
         }
 
         [UnityTest]
-        public IEnumerator OriginalCourse_FormalPerformanceUsesSelectedDifficulty_AndLocksBeforeLaunch()
+        public IEnumerator OriginalCourse_FormalPerformanceUsesScheduledDifficulty_AndLocksBeforeLaunch()
         {
             var hazards = HazardCourse();
             var destination = StaticGet("CurtainCall.HumanCannon.HumanCannonDestination", "Current");
@@ -50,19 +49,29 @@ namespace CurtainCall.HumanCannon.Tests
                 yield return WaitUntil(() => Get(Get(campaign, "State"), "Phase").ToString() == "Intro", 5, "공용 런 시작");
                 Assert.IsTrue((bool)Call(campaign, "EndIntro"));
                 yield return null;
+                if (Get(Get(campaign, "State"), "Phase").ToString() == "Rehearsal") {
+                    Assert.IsTrue((bool)Call(campaign, "EndRehearsal"));
+                    yield return null;
+                }
                 Assert.AreEqual("Tightrope", Get(Get(campaign, "State"), "TrickId"));
                 Assert.IsTrue((bool)Call(rewards, "BeginPerformance", 1, null));
                 Assert.IsTrue((bool)Call(rewards, "FinishPerformance", true, "TestPreparation", null));
+                // Ending hold duration has separate coverage; advance the existing result
+                // transition explicitly before exercising guide-rest scheduling.
+                Assert.IsTrue((bool)Call(rewards, "CompleteTransition"));
+                Call(campaign, "NotifyTutorialDone");
+                Call(campaign, "DiscoverTrick", "HumanCannon");
+                Assert.IsTrue((bool)Call(campaign, "SetFirstDaySecondTrick", "HumanCannon"));
                 Assert.IsTrue((bool)Call(campaign, "NotifyAllAtStageEntrance"));
                 yield return WaitUntil(() => (bool)Get(destination, "PerformanceOpen"), 5, "인간 대포 공용 명부 열림");
                 Assert.AreEqual("HumanCannon", Get(Get(Get(rewards, "State"), "Performance"), "TrickId"));
-                Assert.AreEqual(3, Get(rewards, "difficulty"), "목적지가 선택한 난도를 공용 정산 시작에 전달한다.");
+                Assert.AreEqual(1, Get(rewards, "difficulty"), "첫날 공용 일정의1단계를 수동 시험 난도보다 우선한다.");
                 Assert.IsFalse(Flying);
                 Assert.AreEqual(0d, Get(hazards, "RunSeconds"));
                 Assert.IsFalse((bool)Get(hazards, "CanChangeDifficulty"), "첫 발사 전이어도 명부가 열리면 난도 고정");
                 Assert.IsFalse((bool)Call(hazards, "SetDifficulty", 1));
-                Assert.AreEqual(3, Get(hazards, "Difficulty"));
-                Assert.AreEqual(3, Get(rewards, "difficulty"));
+                Assert.AreEqual(1, Get(hazards, "Difficulty"));
+                Assert.AreEqual(1, Get(rewards, "difficulty"));
             }
             finally { devCache.SetValue(null, previousDevMode); }
         }
@@ -102,13 +111,15 @@ namespace CurtainCall.HumanCannon.Tests
         {
             var hazards = HazardCourse();
             var all = ((IEnumerable)Get(hazards, "hazards")).Cast<Component>().ToArray();
-            var saw = all.First(item => Get(item, "Kind").ToString() == "GroundSaw");
+            var saw = all.First(item => Get(item, "Kind").ToString() == "GroundSaw"
+                && (bool)Call(hazards, "IsHazardEnabled", Array.IndexOf(all, item)));
             foreach (var other in all) ((Behaviour)other).enabled = other == saw;
             foreach (Behaviour zone in ((IEnumerable)Get(hazards, "windZones")).Cast<Behaviour>()) zone.enabled = false;
             HazardSet(saw, "travel", Vector3.zero);
             HazardSet(mover, "Simulated", false);
             Vector3 spawn = player.transform.position;
-            Vector3 contact = saw.transform.position - Vector3.up * 0.4f;
+            Vector3 contact = (Vector3)Call(saw, "Position", (double)Get(hazards, "Elapsed"), 1f)
+                - Vector3.up * ((float)Get(mover, "BodyHeight") * .5f);
             var pending = (IDictionary)Get(hazards, "restartPositions");
             pending[Actor] = spawn; // 원격 재시작의 옛 위치 대기 조건만 재현한다. 다중 클라이언트 검사는 아니다.
             Call(mover, "SetStartPose", contact, Quaternion.identity, true);

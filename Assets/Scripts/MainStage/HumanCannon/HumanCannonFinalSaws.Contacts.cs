@@ -2,6 +2,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Tightrope.Saws;
 using UnityEngine;
+using Unity.Netcode;
 
 namespace CurtainCall.HumanCannon
 {
@@ -13,6 +14,7 @@ namespace CurtainCall.HumanCannon
             touchingNow.Clear();
             foreach (var player in NetworkPlayer.All)
             {
+                if (player != null && player.OwnerClientId != NetworkManager.ServerClientId) continue;
                 if (player == null || !player.IsSpawned || player.State != PlayerState.Normal
                     || !player.TryGetComponent(out PlayerMover mover)) continue;
                 Vector3 feet = player.transform.position;
@@ -52,6 +54,34 @@ namespace CurtainCall.HumanCannon
                 if (!alive) stalePlayers.Add(pair.Key);
             }
             foreach (ulong actor in stalePlayers) previousFeet.Remove(actor);
+        }
+
+        OwnerContactChannel ownerContacts;
+        void OwnerContacts(double now)
+        {
+            ownerContacts ??= new OwnerContactChannel("CurtainCall.HumanCannon.FinalSaws.Contact.v2",
+                () => TotalSawCount, _ => startedAt, ContactAt, (player, _) => player.ServerCut());
+            ownerContacts.Tick(session, now, HasStarted
+                && (HumanCannonDestination.Current == null || !HumanCannonDestination.Current.IsResolved));
+        }
+
+        bool ContactAt(int index, double at, Vector3 feet, float height, float radius)
+        {
+            if (!HasStarted || !IsSawEnabled(index) || at < startedAt + warningSeconds) return false;
+            Vector3 center, normal;
+            float sawRadius;
+            if (index < horizontalOrigins.Length) {
+                if (horizontalOrigins[index] == null) return false;
+                center = HorizontalPosition(index, at); normal = transform.up; sawRadius = horizontalRadius;
+            } else {
+                if (verticalStart == null || verticalEnd == null || FinalSawTimeline.Sample(true, startedAt, at,
+                    warningSeconds, travelSeconds).Phase != FinalSawPhase.Active) return false;
+                if (index == horizontalOrigins.Length && verticalView != null) center = VerticalPosition(at);
+                else if (index == horizontalOrigins.Length + 1 && secondaryVerticalView != null) center = SecondaryVerticalPosition(at);
+                else return false;
+                normal = PassNormal; sawRadius = verticalRadius;
+            }
+            return SawMath.TryGetContact(new SawDisc(center, normal, sawRadius, halfThickness), new BodyCapsule(feet, height, radius), out _);
         }
 
         void ApplyContact(NetworkPlayer player, PlayerMover mover, int index, Vector3 before, Vector3 feet,
