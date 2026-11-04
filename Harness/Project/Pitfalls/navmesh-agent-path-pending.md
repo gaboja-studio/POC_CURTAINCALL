@@ -2,7 +2,7 @@
 summary: 다수 NavMeshAgent가 SetDestination을 짧은 주기로 반복하면 pathPending에 갇혀 제자리 걸음을 한다. 동기 CalculatePath+SetPath로 길찾기한다.
 status: active
 updated: 2026-11-04
-source: Task-20261104-101
+source: Task-20261104-102
 ---
 
 # NavMeshAgent pathPending 제자리 걸음
