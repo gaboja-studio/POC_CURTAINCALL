@@ -31,3 +31,7 @@
 - 사용자 조정값: 눈 Width .2/HDR 색/Glow .3, 추격 단계 0/30/60/90초 및 속도 6.5/7/7.5/8m/s, 화면 테두리, 조명 밝기/붉은색/방 깜빡임·포획 암전. 폰트/머티리얼 등 나머지 변경도 요청대로 함께 저장한다.
 - 외부 스파크 머티리얼: CURTAINCALL_PaidAssets의 최신 origin/main을 반영한 resource/pursuit-eye-settings 브랜치, commit 11a5483b1d91ee06822dda9f83bc37758e431b63 push 완료. 메인 저장소 gitlink에 같은 버전을 기록한다.
 - 작성자는 gh 로그인 계정 MoHoDu. dev 직접 push/병합은 하지 않고 PR로 제출한다.
+
+- 2026-11-04 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/284 (feat/pursuit-eye-art → dev)
+- 전체 변경 commit 4babbfc0, feat/pursuit-eye-art push 완료. 첫 push는 private main 포함 여부를 검사하는 저장소 훅에서 거절됨. private commit 11a5483b를 origin/main에 fast-forward push한 뒤 재시도 성공(훅 ThirdParty OK). 추가 컴파일/테스트/플레이 검사는 실행하지 않음.
+- dev PR #284 생성 완료: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/284 . 사용자 최종 설정·검증 완료와 추가 검증 생략을 PR 본문에 명시. PR 생성 기록도 후속 문서 커밋으로 push한다. 병합은 요청하지 않아 수행하지 않음.
