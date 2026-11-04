@@ -289,76 +289,40 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
-        public void SharedClockHidesOneRopeOnlyInsideHiddenWindowAndRestoresIt()
+        public void SharedClockFlashesThreeTimesBeforeAllFourDropAndReturn()
         {
-            foreach (double time in new[] { 0d, 3.999d, 7d, 10.999d, -1d, double.NaN })
-                Assert.That(Call(coop, "HiddenRopeAt", time), Is.EqualTo(-1));
-            int hidden = (int)Call(coop, "HiddenRopeAt", 4d);
-            Assert.That(hidden, Is.InRange(0, 3));
-            Assert.That(Call(coop, "HiddenRopeAt", 6.999d), Is.EqualTo(hidden));
-            Call(coop, "ApplyRopeVisibility", hidden, null);
-            Assert.That(supports.Count(s => !s.enabled), Is.EqualTo(1));
-            Call(coop, "ApplyRopeVisibility", -1, null);
-            Assert.That(supports.All(s => s.enabled), Is.True);
-        }
-
-        [Test]
-        public void DeterministicShuffleAvoidsAdjacentRepeatsAcrossBlocksAndLateJoin()
-        {
-            var selection = T(CoopType).GetMethod("SelectRope", BindingFlags.NonPublic | BindingFlags.Static);
-            var orders = new HashSet<string>();
-            int previous = -1;
-            for (int block = 0; block < 100; block++)
-            {
-                var order = new List<int>();
-                for (int step = 0; step < 4; step++)
+            var arcs = supports.Select(s => s.gameObject.AddComponent<LineRenderer>()).ToArray();
+            foreach (var arc in arcs) arc.enabled = false;
+            Set(coop, "warningArcs", arcs);
+            foreach (double offset in new[] { 0d, 70000d })
+                foreach (var sample in new[] { (1.99, false, true), (2.0, true, true), (2.5, false, true),
+                    (2.8, true, true), (3.1, false, true), (3.5, true, true), (3.99, false, true),
+                    (4.0, false, false), (6.999, false, false), (7.0, false, true) })
                 {
-                    long cycle = block * 4 + step;
-                    int value = (int)selection.Invoke(null, new object[] { cycle, 4 });
-                    Assert.That(value, Is.Not.EqualTo(previous)); previous = value; order.Add(value);
-                    Assert.That(Call(coop, "HiddenRopeAt", cycle * 7d + 4.5d), Is.EqualTo(value));
+                    Call(coop, "SetPhase", Call(coop, "PhaseAt", offset + sample.Item1));
+                    Assert.That(arcs.All(a => a.enabled == sample.Item2), Is.True);
+                    Assert.That(supports.All(c => c.enabled == sample.Item3), Is.True);
+                    Assert.That(visuals.All(r => r.enabled == sample.Item3), Is.True);
                 }
-                Assert.That(order.Distinct().Count(), Is.EqualTo(4)); orders.Add(string.Join(",", order));
-            }
-            Assert.That(orders.Count, Is.GreaterThan(2));
-            int late = (int)Call(coop, "HiddenRopeAt", 70004.5d);
-            Set(coop, "selectedCycle", -1L); Set(coop, "selectedRope", -1);
-            Assert.That(Call(coop, "HiddenRopeAt", 70004.5d), Is.EqualTo(late));
-            Assert.That(Call(coop, "HiddenRopeAt", 4.5d), Is.EqualTo(selection.Invoke(null, new object[] { 0L, 4 })));
         }
 
         [Test]
-        public void FlatSiblingSegmentsSocketsAndChildMeshesFollowTheirOwnSupport()
+        public void HiddenCyclePreservesAuthoredDisabledPieces()
         {
-            visuals[8].enabled = false;
-            Set(coop, "initialVisuals", visuals.Select(v => v.enabled).ToArray());
-            for (int hidden = 0; hidden < supports.Length; hidden++)
-            {
-                Call(coop, "ApplyRopeVisibility", hidden, null);
-                for (int i = 0; i < visuals.Length; i++)
-                    Assert.That(visuals[i].enabled, Is.EqualTo(i / 3 != hidden && i != 8), "visual " + i);
-            }
-            Call(coop, "ApplyRopeVisibility", -1, null);
+            supports[1].enabled = false; visuals[8].enabled = false;
+            Call(coop, "OnEnable");
+            Call(coop, "SetPhase", Call(coop, "PhaseAt", 5d));
+            Call(coop, "SetPhase", Call(coop, "PhaseAt", 7d));
+            Assert.That(supports[1].enabled, Is.False);
             Assert.That(visuals[8].enabled, Is.False);
         }
 
         [Test]
-        public void DisabledAuthoredSupportsStayDisabledAndAreNeverSelected()
-        {
-            Call(coop, "OnDisable"); supports[1].enabled = false; Call(coop, "OnEnable");
-            for (int cycle = 0; cycle < 30; cycle++)
-                Assert.That(Call(coop, "HiddenRopeAt", cycle * 7d + 4.5d), Is.Not.EqualTo(1));
-            Call(coop, "ApplyRopeVisibility", 2, null); Call(coop, "ApplyRopeVisibility", -1, null);
-            Assert.That(supports[1].enabled, Is.False);
-        }
-
-        [Test]
-        public void RemovingOtherRopeKeepsSupportButRemovingActualRopeReleasesIt()
+        public void RemovingAllTimedRopesReleasesTheSupportedMover()
         {
             var mover = SurfaceFixture();
-            Assert.That(Call(coop, "ApplyRopeVisibility", 1, mover), Is.False);
-            Assert.That(Call(coop, "ApplyRopeVisibility", 0, mover), Is.True);
-            Assert.That(supports[1].enabled, Is.True, "A skipped restore frame still restores the old hidden rope.");
+            Assert.That(Call(coop, "ApplyRopeVisibility", false, mover), Is.True);
+            Assert.That(supports.All(s => !s.enabled), Is.True);
         }
 
         [Test]
@@ -368,7 +332,7 @@ namespace CurtainCall.EscapeRoute.Tests
             var platform = Root("Supporting ordinary floor").AddComponent<BoxCollider>();
             platform.center = origin + new Vector3(0, -.1f, 6); platform.size = new Vector3(2, .2f, 4);
             Physics.SyncTransforms();
-            Assert.That(Call(coop, "ApplyRopeVisibility", 0, mover), Is.False);
+            Assert.That(Call(coop, "ApplyRopeVisibility", false, mover), Is.False);
         }
 
         [Test]
@@ -461,7 +425,7 @@ namespace CurtainCall.EscapeRoute.Tests
         [Test]
         public void DetachRestoresRopesAndClearsWorkerAndPendingReturn()
         {
-            Call(coop, "SetHiddenRope", 2); Call(coop, "SetWorker", 3UL);
+            Call(coop, "SetPhase", Call(coop, "PhaseAt", 5d)); Call(coop, "SetWorker", 3UL);
             Set(coop, "pendingOverflow", 12U); Set(coop, "firstOverflowRequest", 10U);
             Call(coop, "Detach");
             Assert.That(supports.All(s => s.enabled), Is.True); Assert.That(visuals.All(v => v.enabled), Is.True);

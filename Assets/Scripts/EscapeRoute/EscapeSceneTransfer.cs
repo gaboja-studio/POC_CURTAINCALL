@@ -40,6 +40,8 @@ namespace CurtainCall.EscapeRoute
         public bool HasDeparture => snapshot.phase > 0;
         public bool Ready => snapshot.phase == 2;
         public bool Pending => snapshot.phase == 1;
+        public bool Coordinating => Pending && channel.IsHost;
+        public static bool HoldingForDeparture => Current != null && Current.holding;
         public string Failure => snapshot.failure;
         public IReadOnlyList<ulong> Participants => snapshot.participants;
         public bool AllCaptured => AllConnectedAcknowledged(captured);
@@ -157,7 +159,9 @@ namespace CurtainCall.EscapeRoute
             MoveCamera(sourceDirector != null ? sourceDirector.transform : null, destination.gameObject.scene);
             if (sourceDirector == null || sourceCamera == null) return false;
             var anchor = destination.AssemblyAnchor;
-            heldMover.SetStartPose(anchor.TransformPoint(localPosition), anchor.rotation * localRotation);
+            var position = anchor.TransformPoint(localPosition);
+            if (!EscapeDevelopmentSession.HasArrivalFloor(destination.gameObject.scene, position)) return false;
+            heldMover.SetStartPose(position, anchor.rotation * localRotation);
             arrivalLook = anchor.rotation * localLook;
             sourceDirector.SetLookRotation(arrivalLook);
             localPlaced = true;

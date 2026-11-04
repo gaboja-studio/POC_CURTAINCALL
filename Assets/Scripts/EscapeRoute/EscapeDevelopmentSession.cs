@@ -14,7 +14,7 @@ namespace CurtainCall.EscapeRoute
 {
     /// <summary>A/B/C 공통 개발 실행. Play 즉시 원본 플레이어 생성, 실패 후 복구, 공연/로비 진행 없음.</summary>
     [DisallowMultipleComponent]
-    public sealed class EscapeDevelopmentSession : MonoBehaviour
+    public sealed partial class EscapeDevelopmentSession : MonoBehaviour
     {
         public const float RecoverySeconds = 1f;
         [Tooltip("이 개발 씬에서만 추락 부상·낙사·균형 붕괴를 임시 해제한다. 톱·화염 등 직접 피해는 유지한다.")]
@@ -63,7 +63,15 @@ namespace CurtainCall.EscapeRoute
             && (FallConsequencesSuppressed(source)
                 || EscapeCampaignContent.IsTraversalActive && EscapeCampaignContent.Current.IsCampaign);
 
-        void OnEnable() => activeSessions.Add(this);
+        void OnEnable()
+        {
+            activeSessions.Add(this);
+            if (gameObject.scene.name == CurtainCall.Settings.GameSettings.Base.SpaceTransition.EscapeRouteScene)
+            {
+                entranceSession = this;
+                InputGate.SetBlocking(this, true);
+            }
+        }
         NetworkSessionManager session;
         ISessionConnector connector;
         bool multiplayer;
@@ -81,6 +89,13 @@ namespace CurtainCall.EscapeRoute
             if (session == null) { Status = "플레이어 실행 설정을 찾지 못했습니다. Console을 확인해 주세요."; yield break; }
             if (session.ConnectionState != SessionConnectionState.Offline)
             {
+                if (entranceSession == this)
+                {
+                    yield return PrepareEntrance();
+                    devLaunch = Ready && CampaignRun.Instance != null;
+                    if (devLaunch) Status = "Dev 시작 · 탈출로 직접 진입";
+                    yield break;
+                }
                 // 나중에 다인 개발 연결에서 들어오면 기존 원본 세션을 그대로 사용한다.
                 Ready = session.ConnectionState == SessionConnectionState.Host || session.ConnectionState == SessionConnectionState.Client;
                 Status = Ready ? "개발 테스트" : "접속 준비 중";
@@ -118,7 +133,9 @@ namespace CurtainCall.EscapeRoute
                 { Status = $"개발 세션 {session.PlayerCount}/{expectedPlayers}명 · 참가자 대기"; yield return null; }
                 if (!client && !session.StartGame()) { Status = "개발 세션 시작 실패"; yield break; }
                 while (session.GameState != GameSessionState.Playing) yield return null;
-                Ready = true; Status = $"{session.PlayerCount}인 개발 플레이 · 원본 호스트 판정";
+                if (entranceSession == this) yield return PrepareEntrance();
+                else Ready = true;
+                Status = $"{session.PlayerCount}인 개발 플레이 · 원본 호스트 판정";
                 yield break;
             }
             minimumPlayers = session.RequestMinimumStartPlayers(1);
@@ -134,7 +151,8 @@ namespace CurtainCall.EscapeRoute
                 && Time.realtimeSinceStartupAsDouble < deadline) yield return null;
             if (NetworkPlayer.Local == null || !session.CanStartGame || !session.StartGame())
             { Status = "플레이어 준비가 완료되지 않았습니다. Play를 다시 실행해 주세요."; yield break; }
-            Ready = true;
+            if (entranceSession == this) yield return PrepareEntrance();
+            else Ready = true;
             Status = "혼자 테스트 · 시간제한/게임 오버 없음";
         }
 
@@ -196,6 +214,10 @@ namespace CurtainCall.EscapeRoute
 
         void OnDisable()
         {
+            if (entranceSession == this) entranceSession = null;
+            entranceChannel?.Dispose();
+            entranceChannel = null;
+            InputGate.SetBlocking(this, false);
             activeSessions.Remove(this);
             StopAllCoroutines();
             Ready = false;
