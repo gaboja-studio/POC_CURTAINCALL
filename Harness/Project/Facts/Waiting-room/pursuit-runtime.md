@@ -1,8 +1,8 @@
 ---
 summary: 추격 복제 씬·단계별 설정·마네킹 파생 리그·동적 NavMesh·현재 검증 범위
 status: active
-updated: 2026-11-03
-source: Task-20261102-094, Unity CLI 및 Blender MCP 제작/플레이 확인
+updated: 2026-11-05
+source: Task-20261102-094 제작/플레이 확인, Task-20261103-099 복귀 시야 수정 코드(Unity 재검증 대기)
 ---
 
 # 추격 구현 진입점
@@ -14,6 +14,7 @@ source: Task-20261102-094, Unity CLI 및 Blender MCP 제작/플레이 확인
 - `WaitingRoomSettings.asset`의 Pursuit/Stages: 단계 시작 초·시야·순찰 속도·추격 배율·벽 투시·최인접 상시 추격·문구. Pursuit 씬 선택과 Enabled가 런 생성 시 새 만료 흐름을 선택하며, 나머지 값은 실행 중 읽는다.
 - Hierarchy `PursuitSystem`: 26개 영역 중 탐색 영역 11곳 기본 1체. 현재 씬은 PursuitRoom.UsePlacements/Placements → PursuitPlacement의 타입/Transform/개별 PatrolPoints를 사용한다. 이전 Count/SpawnPoints/PatrolPoints는 이전 씬 호환용으로 보존한다.
 - 코드: `Assets/Scripts/WaitingRoom/Pursuit/`. Director는 호스트 AI/포획·NGO 주기 스냅샷, Actor는 내비게이션/모션/상체 방향, VictimPose는 피해자 연출/입력 잠금/가림.
+- 직접 시야를 순찰 복귀보다 먼저 검사한다. 제한 밖에서도 SightRadius/FOV/단계별 벽/방 조건에 맞는 시각 재발견은 복귀 취소, 접촉 중 준비 타이머 보존. 놓치면 기존 이탈 제한으로 복귀하며 비시각 원거리 AlwaysNearest는 복귀를 중단하지 못한다. CaptureRadius만 예외로 둔1차 수정은 통로 재현에 부족해 대체됨. 호스트·피해자 접촉 확정 경로 유지. 2026-11-05 독립 결정8조건 통과, 실제 Unity/NavMesh/포획 실기는 재검증 대기.
 - 정적 FBX 10종(원본은 뼈대 없음)을 Blender에서 15-bone 파생 리그로 만들었다. FBX10·모션70·프리팹10·NavMesh·제작 원본은 모두 `Assets/_ThirdParty/curtaincall/Pursuit/`.
 - NavMesh는 물리 충돌체 기반, 좁은 통로용 반경 .24m/높이1.7m. 문·셔터·슬라이드·파괴 가능한 벽을 정적 소스에서 제외하고 PursuitDoorObstacle이 실제 Collider 상태에 맞춰 carving한다. 닫힌 문을 정적 소스에 넣으면 열어도 길이 영구적으로 막힌다.
 - 단차 링크는 벽/머리 높이/바닥 지지를 검사해서 생성했다. 생성 링크는 재베이크 때 보존한다. 열린 상태 기준 초기 11개 스폰 모두 로비와 완전 경로를 확인했다.
