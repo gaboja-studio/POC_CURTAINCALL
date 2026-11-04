@@ -13,4 +13,3 @@
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-04 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/282 (fix/character/movements → dev)
-- 2026-11-04 PR #282 제출(dev): https://github.com/gaboja-studio/POC_CURTAINCALL/pull/282 — 반대 방향 키 복귀 수정.
