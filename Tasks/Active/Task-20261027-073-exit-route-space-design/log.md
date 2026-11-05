@@ -77,3 +77,7 @@
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/304 (feat/exit-route/design-map → dev)
+
+- 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(Unity 변경 없음); 테스트=SKIPPED(자동 테스트 선택 안 함)
