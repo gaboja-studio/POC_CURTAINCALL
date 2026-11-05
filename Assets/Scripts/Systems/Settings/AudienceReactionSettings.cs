@@ -42,9 +42,8 @@ namespace CurtainCall.Settings
         }
 
         [Header("완주·추가 환호")]
-        [InspectorName("완주 인정 진행률 (0~1)")]
-        [Tooltip("한 명이 실제 도착해 공연이 끝나는 순간, 이 비율 이상 진행한 생존자도 완주 보너스를 받습니다. 0.8은 80%입니다. 이 비율에 도달한 것만으로 공연이 끝나지는 않습니다.")]
-        [Range(0f, 1f)] public float completionProgress = .8f;
+        // 이전 에셋 호환용. 성공 시 모든 생존자를 완주 처리하므로 진행률 제한은 더 이상 사용하지 않는다.
+        [HideInInspector] public float completionProgress = .8f;
         [InspectorName("장애물 통과 환호량")]
         [Tooltip("피격 없이 장애물 지역을 통과한 사람에게 더할 호응도입니다. 아슬아슬하게 피할 필요는 없습니다. 같은 장애물을 다시 지나도 추가 지급하지 않으며, 근접 회피와 겹치면 두 환호량 중 큰 값만 적용합니다.")][Min(0)] public int obstacleDodge = 5;
         [InspectorName("대포 플랫폼 첫 도달 환호량")]
@@ -54,9 +53,8 @@ namespace CurtainCall.Settings
         public static bool HasCompletionProgress(float distance, float length)
         {
             if (!float.IsFinite(distance) || !float.IsFinite(length) || length <= 0f) return false;
-            float threshold = length * Mathf.Clamp01(Current != null ? Current.completionProgress : .8f);
-            // 80% 바로 위의 부동소수점 오차로 정확히 80%인 단원을 제외하지 않는다.
-            return distance >= threshold || Mathf.Approximately(distance, threshold);
+            // 실제 도착으로 성공이 확정된 뒤에만 호출한다. 출발점·후진한 생존자도 완주 대상이다.
+            return true;
         }
 
         [Header("기존 환호·야유")]

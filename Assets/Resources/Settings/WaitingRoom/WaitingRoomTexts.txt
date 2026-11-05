@@ -206,6 +206,7 @@ shop.offline-order | 접속 중이 아니라 주문할 수 없습니다.
 shop.offline-claim | 접속 중이 아니라 수령할 수 없습니다.
 # 구매 시간·공연 중 제한 (상점 화면의 구매 불가 이유에도 나옴)
 shop.purchase-night-only | 기물은 밤 정비에만 구매할 수 있습니다.
+shop.purchase-rest-night-only | 기물은 쉬는 시간과 밤 정비에만 구매할 수 있습니다.
 shop.in-performance | 공연 중에는 상점을 이용할 수 없습니다.
 # 주문·수령 성공. {item} = 품목 이름
 shop.ordered | {item} 주문 완료 — 배송구를 확인하세요.

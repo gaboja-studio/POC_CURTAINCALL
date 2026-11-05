@@ -24,6 +24,29 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             PlayerPrefs.Save();
         }
         const string SettingsContentPath = "00_Visuals/40_Content/30_Scroll/00_Viewport/00_Content";
+        [UnityTest]
+        public IEnumerator SettingsCacheReset_IsAvailableAtStartAndRequiresConfirmation()
+        {
+            yield return SceneManager.LoadSceneAsync("Start"); yield return MenuReady();
+            var start = Find("CurtainCall.StartLobby.StartMenu");
+            var settings = Get(Find("CurtainCall.UI.SceneIntegration.CommonMenuUI"), "Settings");
+            Call(start, "Show", Enum.Parse(T("CurtainCall.StartLobby.StartMenu+Page"), "Settings"));
+            yield return null;
+            var view = Get(settings, "Main");
+            Call(view, "ShowPage", 4); yield return null;
+            var button = SettingsRow(view, 4, "ClearLocalHistory").Find("10_Action").GetComponent<UnityEngine.UI.Button>();
+            Assert.IsTrue(button.interactable);
+            button.onClick.Invoke(); yield return null;
+            Assert.IsTrue((bool)Get(view, "IsConfirmationOpen"));
+            var body = ((Component)view).transform.Find("00_Visuals/90_ActionConfirmation/00_Dialog/40_Content/10_BodyTMP").GetComponent<TMP_Text>().text;
+            StringAssert.Contains("설문 열림 기록", body);
+            StringAssert.Contains("조작·음량 설정, 플레이 로그", body);
+            // 실제 사용자 캐시를 지우지 않고 취소 흐름을 검증한다. 파일 삭제는 임시 폴더 단위 테스트가 담당한다.
+            SettingsConfirmationButton(view, "20_Back").onClick.Invoke(); yield return null;
+            Assert.IsFalse((bool)Get(view, "IsConfirmationOpen"));
+            Assert.IsTrue((bool)Get(view, "IsVisible"));
+            Call(view, "Cancel");
+        }
         Transform SettingsContent(object view) => ((Component)view).transform.Find(SettingsContentPath);
         UnityEngine.UI.Toggle[] SettingsTabs(object view) => ((Component)view).transform.Find("00_Visuals/40_Content/10_Tabs")
             .GetComponentsInChildren<UnityEngine.UI.Toggle>(true).OrderBy(t => t.name).ToArray();

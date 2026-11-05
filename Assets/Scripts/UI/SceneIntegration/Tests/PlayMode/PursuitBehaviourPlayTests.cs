@@ -13,6 +13,40 @@ namespace CurtainCall.UI.SceneIntegration.Tests
     public sealed partial class DevStartLauncherPlayTests
     {
         static object PursuitPrivate(object obj, string name) => obj.GetType().GetField(name, BindingFlags.NonPublic | BindingFlags.Instance).GetValue(obj);
+        [UnityTest]
+        public IEnumerator PursuitNavigation_PatrolRestoresPathAfterListeningStop()
+        {
+            yield return PursuitHost();
+            var run = Static("CurtainCall.Campaign.CampaignRun", "Instance"); Call(run, "DebugSetRemaining", .01f);
+            var director = Find("CurtainCall.WaitingRoom.Pursuit.PursuitDirector");
+            float until = Time.time + 8;
+            while ((float)Get(director, "Elapsed") < 3 && Time.time < until) yield return null;
+            ((Behaviour)director).enabled = false;
+            var actor = ((IEnumerable)Get(director, "Actors")).Cast<Component>().First();
+            ((IList)PursuitPrivate(director, "candidates")).Clear();
+            Call(actor, "ResetActor"); yield return TickPursuit(actor, "Patrol");
+            var agent = actor.GetComponent<UnityEngine.AI.NavMeshAgent>();
+            var points = UnityEngine.AI.NavMesh.CalculateTriangulation().vertices;
+            var path = new UnityEngine.AI.NavMeshPath();
+            Vector3 goal = actor.transform.position;
+            foreach (var point in points.OrderBy(p => Vector3.Distance(p, actor.transform.position))) {
+                if (Vector3.Distance(point, actor.transform.position) < 3) continue;
+                if (UnityEngine.AI.NavMesh.CalculatePath(agent.nextPosition, point, agent.areaMask, path)
+                    && path.status == UnityEngine.AI.NavMeshPathStatus.PathComplete) { goal = point; break; }
+            }
+            Assert.Greater(Vector3.Distance(goal, actor.transform.position), 2);
+            var navigate = actor.GetType().GetMethod("Navigate", BindingFlags.NonPublic | BindingFlags.Instance);
+            var stop = actor.GetType().GetMethod("Stop", BindingFlags.NonPublic | BindingFlags.Instance);
+            yield return null; // Give this isolated actor a fresh frame path budget.
+            Assert.IsTrue((bool)navigate.Invoke(actor, new object[] { goal, false }));
+            Assert.IsTrue(agent.hasPath);
+            stop.Invoke(actor, null); Assert.IsFalse(agent.hasPath);
+            Assert.IsTrue((bool)navigate.Invoke(actor, new object[] { goal, false }));
+            Assert.IsTrue(agent.hasPath, "동일 목표가 캐시에 남아 있어도 실제 경로를 복구해야 한다");
+            var before = actor.transform.position;
+            yield return new WaitForSeconds(.6f);
+            Assert.Greater(Vector3.Distance(before, actor.transform.position), .05f);
+        }
         static void Set(object obj, string name, object value) => obj.GetType().GetField(name).SetValue(obj, value);
         IEnumerator PursuitHost()
         {

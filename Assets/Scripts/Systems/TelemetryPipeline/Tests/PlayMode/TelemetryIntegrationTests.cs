@@ -272,7 +272,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Call(shop, "RequestPurchase", "telemetry-unknown-item");
             var rejected = events.Where(e => e.Type == "PURCHASE_FAILED").ToArray();
             Assert.That(rejected.Length, Is.EqualTo(2), "Repeated rejected actions are distinct attempts.");
-            Assert.That(rejected.All(e => e.Authority == "HOST" && e.Slot == 0 && e.Payload["reason"].ToString() == "NOT_NIGHT"), Is.True, "기물 구매는 밤 정비에만 된다(2026-10-28).");
+            Assert.That(rejected.All(e => e.Authority == "HOST" && e.Slot == 0 && e.Payload["reason"].ToString() == "SHOP_UnknownItem"), Is.True, "쉬는 시간 구매는 허용하지만 존재하지 않는 기물은 거절한다.");
             Call(shop, "RequestClaim", 9999);
             Assert.That(events.Single(e => e.Type == "COLLECTION_FAILED").Payload["reason"].ToString(), Is.EqualTo("SHOP_NotFound"));
             Call(carry, "RequestShelf");

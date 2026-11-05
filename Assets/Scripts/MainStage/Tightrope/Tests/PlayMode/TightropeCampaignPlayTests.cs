@@ -574,14 +574,14 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator CompletionAudience_EightyPercentWaitsForActualArrival()
+        public IEnumerator CompletionAudience_AllSurvivorsWaitForActualArrival()
         {
             Set(sawSettingsSnapshotTarget, "finaleFourStackRequired", false);
             yield return BeginPerformance();
             float length = (float)Get(course, "FinishDistance");
             var rotation = Quaternion.LookRotation((Vector3)Get(course, "Forward"));
             Call(mover, "SetStartPose", (Vector3)Call(course, "GetLanePosition", 0, length * .799f), rotation, true);
-            Assert.IsFalse((bool)Call(run, "HasCompletionProgress", player));
+            Assert.IsTrue((bool)Call(run, "HasCompletionProgress", player));
             Call(mover, "SetStartPose", (Vector3)Call(course, "GetLanePosition", 0, length * .8f), rotation, true);
             Assert.IsTrue((bool)Call(run, "HasCompletionProgress", player));
             Assert.IsFalse((bool)Call(bridge, "TryFinishAtDestination"), "80%만으로 공연을 조기 종료하지 않는다.");

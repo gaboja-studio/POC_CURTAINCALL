@@ -47,6 +47,21 @@ namespace CurtainCall.Telemetry.Pipeline
         public const string LocalIdentity = "installation";
         readonly string root;
         public SurveyLaunchCache(string directory) => root = directory;
+        /// <summary>이 플레이어의 설문 열림 표시만 지운다. 로그·하위 폴더·링크는 건드리지 않는다.</summary>
+        public int ClearHistory()
+        {
+            if (!Directory.Exists(root) || (File.GetAttributes(root) & FileAttributes.ReparsePoint) != 0) return 0;
+            int count = 0;
+            foreach (string file in Directory.GetFiles(root, "*.opened", SearchOption.TopDirectoryOnly))
+            {
+                if (!System.Text.RegularExpressions.Regex.IsMatch(Path.GetFileName(file),
+                    "^(?:0\\.1\\.0-(NIGHT1|EXIT)|campaign)-[0-9a-f]{64}\\.opened$",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+                    || (File.GetAttributes(file) & FileAttributes.ReparsePoint) != 0) continue;
+                File.Delete(file); count++;
+            }
+            return count;
+        }
         string Marker(string identity, string kind)
         {
             if (kind != SurveyLaunchPolicy.Night && kind != SurveyLaunchPolicy.Exit || string.IsNullOrEmpty(identity))

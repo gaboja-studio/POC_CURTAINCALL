@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: WaitingRoomSettings
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.Settings.WaitingRoomSettings
   dummySpendAmount: 10
-  bodyRestoreBasePrice: 100
+  allowPurchasesDuringRest: 1
+  bodyRestoreBasePrice: 50
   bodyRestorePriceStep: 25
   bodyRestoreMaxParts: 3
   pursuit:

@@ -7,6 +7,36 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
 {
     public sealed class SurveyPolicyTests
     {
+        [Test] public void RuntimeHistoryResetClearsLegacyAndCampaignMarkersOnly()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "curtaincall-runtime-survey-reset-" + Guid.NewGuid().ToString("N"));
+            var cache = new SurveyLaunchCache(root);
+            try
+            {
+                Directory.CreateDirectory(root);
+                cache.TryOpen("old-account", SurveyLaunchPolicy.Night, SurveyLaunchPolicy.NightEntry, "old", _ => {});
+                string campaign = Path.Combine(root, "campaign-" + new string('a', 64) + ".opened");
+                File.WriteAllText(campaign, "new-campaign");
+                File.WriteAllText(Path.Combine(root, "keep.opened"), "unrelated");
+                File.WriteAllText(Path.Combine(root, "active.json"), "play-log");
+                Directory.CreateDirectory(Path.Combine(root, "nested"));
+                string nested = Path.Combine(root, "nested", "campaign-" + new string('b', 64) + ".opened");
+                File.WriteAllText(nested, "outside-scope");
+                Assert.AreEqual(2, cache.ClearHistory());
+                Assert.IsFalse(cache.WasOpened(SurveyLaunchCache.LocalIdentity, SurveyLaunchPolicy.Night));
+                Assert.IsFalse(File.Exists(campaign));
+                Assert.AreEqual("unrelated", File.ReadAllText(Path.Combine(root, "keep.opened")));
+                Assert.AreEqual("play-log", File.ReadAllText(Path.Combine(root, "active.json")));
+                Assert.AreEqual("outside-scope", File.ReadAllText(nested));
+                Assert.IsTrue(cache.TryOpen("old-account", SurveyLaunchPolicy.Night, SurveyLaunchPolicy.NightEntry, "again", _ => {}));
+            }
+            finally
+            {
+                Assert.AreEqual(Path.GetFullPath(Path.GetTempPath()).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar), Path.GetDirectoryName(root));
+                Assert.That(Path.GetFileName(root), Does.StartWith("curtaincall-runtime-survey-reset-"));
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+        }
         [TestCase(false, false)] [TestCase(false, true)] [TestCase(true, false)] [TestCase(true, true)]
         public void LogAndSurveyTagsAreIndependentAndSurveyRequiresExactVersion(bool logs, bool surveys)
         {

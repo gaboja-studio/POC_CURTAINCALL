@@ -12,11 +12,16 @@ namespace CurtainCall.Settings
         [Header("더미 검증 전용 — 정식 상품 가격 아님")]
         [SerializeField, Min(1)] int dummySpendAmount = 10;
 
-        [Header("신체 복구 (보상 확정 규칙 2026-10-27)")]
+        [Header("기물 구매 가능 시간")]
+        [Tooltip("켜면 아침·낮·첫날 가이드 쉬는 시간에도 기물을 구매할 수 있습니다. 밤 정비에는 항상 구매할 수 있습니다.")]
+        [SerializeField, InspectorName("쉬는 시간에도 기물 구매")] bool allowPurchasesDuringRest = true;
+        public bool AllowPurchasesDuringRest => allowPurchasesDuringRest;
+
+        [Header("신체 복구")]
         [Tooltip("팔다리 1개당 기본 가격(토큰). 런(세대)이 새로 시작되면 이 값으로 돌아간다.")]
-        [SerializeField, Min(1)] int bodyRestoreBasePrice = 100;
+        [SerializeField, Min(1), InspectorName("최초 부위당 가격")] int bodyRestoreBasePrice = 50;
         [Tooltip("팀 전체가 한 번 이용할 때마다 오르는 다음 1개당 가격(토큰). 여러 개를 고쳐도 한 번만 오른다.")]
-        [SerializeField, Min(0)] int bodyRestorePriceStep = 25;
+        [SerializeField, Min(0), InspectorName("이용 1회당 단가 상승")] int bodyRestorePriceStep = 25;
         [Tooltip("한 번에 복구할 수 있는 최대 팔다리 수.")]
         [SerializeField, Range(1, 4)] int bodyRestoreMaxParts = 3;
 
