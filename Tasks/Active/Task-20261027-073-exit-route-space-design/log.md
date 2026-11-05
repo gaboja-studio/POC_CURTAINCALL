@@ -112,3 +112,6 @@
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/295 (feat/exit-route/design-map → dev)
+- 2026-11-05 최신 dev 반영 후 안전성·문서·컴파일 통과, 탈출로 EditMode 223/223 및 카메라 회귀 PlayMode 1/1 통과. 4클라이언트 완주는 미실행.
