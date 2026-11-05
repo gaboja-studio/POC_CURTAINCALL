@@ -56,3 +56,5 @@
 - 보존: escape-labels.asset 사용자 변경, `_ThirdParty` 로컬 HEAD(6d3fd381, gitlink c1e64a6d 포함)는 커밋에서 제외한다.
 
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/302 (feat/waiting-room-object-layout → dev)
