@@ -207,6 +207,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             GUILayout.Space(12); GUILayout.Label("마네킹 설정", EditorStyles.boldLabel);
             var placementSO = new SerializedObject(selected);
             placementSO.Update();
+            DrawAppearance(placementSO);
             var activation = placementSO.FindProperty("ActivationStage");
             EditorGUI.BeginChangeCheck();
             int activationIndex = EditorGUILayout.Popup("활동 시작 단계", Mathf.Clamp(activation.intValue - 1, 0, 3), ActivationStageLabels);
