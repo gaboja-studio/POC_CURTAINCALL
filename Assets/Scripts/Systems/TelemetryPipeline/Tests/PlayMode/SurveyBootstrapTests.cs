@@ -15,9 +15,17 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         Type surveyType, logType;
 #if UNITY_EDITOR
         string previousVersion;
+        string collectionPath;
+        byte[] previousCollection;
         [UnitySetUp] public IEnumerator UseTheSurveyVersionForLegacyRegression()
         {
             previousVersion = UnityEditor.PlayerSettings.bundleVersion;
+            var collection = Game("PlaytestCollectionSettings");
+            collectionPath = (string)collection.GetProperty("SettingsPath").GetValue(null);
+            previousCollection = System.IO.File.ReadAllBytes(collectionPath);
+            // Production now supports configurable survey versions. Isolate the legacy fixture
+            // instead of depending on the team's currently selected M1/M2 collection settings.
+            System.IO.File.WriteAllText(collectionPath, JsonUtility.ToJson(Activator.CreateInstance(collection)));
             UnityEditor.PlayerSettings.bundleVersion = "0.1.0";
             yield return null;
         }
@@ -101,6 +109,33 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
             Assert.Ignore("Editor-only tag setup."); yield break;
 #endif
         }
+        [UnityTest] public IEnumerator HostExitQueuesParticipantSurveyEvenWhenDisconnectCallbackIsMissing()
+        {
+            yield return SurveyOnlyBuildBootstrapsAndBindsMenuWithoutCreatingLogCollector();
+            var survey = (MonoBehaviour)UnityEngine.Object.FindAnyObjectByType(surveyType);
+            survey.enabled = false;
+            var sessionType = Type.GetType("CurtainCall.Network.Session.NetworkSessionManager, Assembly-CSharp", true);
+            var session = sessionType.GetProperty("Instance").GetValue(null);
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var connectionType = sessionType.GetProperty("ConnectionState").PropertyType;
+            for (int slot = 1; slot <= 3; slot++)
+            {
+                sessionType.GetMethod("SetState", flags).Invoke(session, new[] { Enum.Parse(connectionType, "Client") });
+                surveyType.GetField("currentRun", flags).SetValue(survey, "7a9e2d31-8f5b-4cde-9201-1bfa8294a732");
+                surveyType.GetField("currentSlot", flags).SetValue(survey, slot);
+                surveyType.GetField("currentIdentity", flags).SetValue(survey, "installation");
+                surveyType.GetField("pendingCode", flags).SetValue(survey, null);
+                sessionType.GetMethod("SetState", flags).Invoke(session, new[] { Enum.Parse(connectionType, "Offline") });
+                // Observe Offline directly: no menu click or Disconnected callback is delivered.
+                surveyType.GetMethod("Update", flags).Invoke(survey, null);
+                string code = (string)surveyType.GetField("pendingCode", flags).GetValue(survey);
+                Assert.IsNotNull(code, "참가자 " + slot + "의 퇴장 전 식별자를 보존해야 한다");
+                Assert.That(code, Does.Contain("." + slot + "."));
+                Assert.IsNull(surveyType.GetField("currentRun", flags).GetValue(survey));
+            }
+            // The test inspects the queued launch and never opens the user's browser.
+            surveyType.GetField("pendingCode", flags).SetValue(survey, null);
+        }
         [UnityTest] public IEnumerator DisconnectWithoutPlayingNeverQueuesAnExitSurvey()
         {
             yield return SurveyOnlyBuildBootstrapsAndBindsMenuWithoutCreatingLogCollector();
@@ -119,6 +154,7 @@ namespace CurtainCall.Telemetry.Pipeline.PlayTests
         {
 #if UNITY_EDITOR
             if (previousVersion != null) UnityEditor.PlayerSettings.bundleVersion = previousVersion;
+            if (previousCollection != null) System.IO.File.WriteAllBytes(collectionPath, previousCollection);
             if (logsKey != null) UnityEditor.EditorPrefs.SetBool(logsKey, previousLogs);
             if (surveysKey != null) UnityEditor.EditorPrefs.SetBool(surveysKey, previousSurveys);
             if (surveyType != null) { var item = UnityEngine.Object.FindAnyObjectByType(surveyType); if (item != null) UnityEngine.Object.Destroy(item); }

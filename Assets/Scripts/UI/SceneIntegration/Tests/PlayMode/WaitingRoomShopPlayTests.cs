@@ -179,6 +179,53 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator W2_BodyRestore_QuantityRemainsUsableWhenFundsAreShort()
+        {
+            yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
+            Call(Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local"), "ServerSetOneArm");
+            var service = Find("CurtainCall.WaitingRoom.ExpertService");
+            long unit = (long)Get(service, "MedicalPrice");
+            SeedShopFunds(unit);
+            yield return OpenShop();
+            var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");
+            var view = Get(adapter, "View");
+            Call(view, "SelectTab", Enum.Parse(T("CurtainCall.UI.ShopV1.ShopTab"), "Services"));
+            Call(view, "SelectEntry", "medical");
+            var book = (UnityEngine.UI.Button)Private(view, "primaryButton");
+            var count = (UnityEngine.UI.Button)Private(view, "secondaryButton");
+            Assert.IsTrue(book.interactable);
+            for (int parts = 2; parts <= 3; parts++)
+            {
+                count.onClick.Invoke();
+                yield return null;
+                Assert.AreEqual((unit * parts).ToString(), Get(Entry(adapter, "medical"), "PriceText"));
+                Assert.IsFalse(book.interactable, "자금 초과 시 예약만 막는다");
+                Assert.IsTrue(count.interactable, "수량 변경은 계속 사용할 수 있다");
+                Call(view, "RequestAction", "medical");
+                Assert.IsNull(Get(view, "PendingRequest"));
+                Assert.AreEqual("Idle", Get(service, "Phase").ToString());
+                Assert.AreEqual(unit, Get(service, "Balance"));
+            }
+            count.onClick.Invoke();
+            yield return null;
+            Assert.AreEqual(unit.ToString(), Get(Entry(adapter, "medical"), "PriceText"));
+            Assert.IsTrue(book.interactable, "1개로 되돌리면 예약 가능");
+            SeedShopFunds(0);
+            yield return new WaitForSecondsRealtime(.3f);
+            Assert.IsFalse(book.interactable);
+            Assert.IsTrue(count.interactable, "1개 가격도 부족해도 수량 조절 가능");
+            SeedShopFunds(unit);
+            yield return new WaitForSecondsRealtime(.3f);
+            book.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(.3f);
+            Assert.AreEqual("Booked", Get(service, "Phase").ToString());
+            Assert.AreEqual(1, Get(service, "BookedLimbs"));
+            Assert.AreEqual(0L, Get(service, "Balance"));
+            Assert.IsFalse(book.interactable);
+            Assert.IsFalse(count.interactable, "예약 후에는 수량도 잠근다");
+        }
+
+        [UnityTest]
         public IEnumerator W2_BodyRestore_ChoosesPartsAndRaisesTeamPrice()
         {
             yield return Launch(1, "Night", 0, "", "WaitingRoomBase");
@@ -219,7 +266,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
             SeedShopFunds(1000);
             var local = Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
-            Call(local, "ServerCut", 1);
+            Call(local, "ServerCutPart", Enum.Parse(T("CurtainCall.Player.BodyPart"), "LeftLeg"));
             yield return OpenShop();
             var adapter = Find("CurtainCall.UI.SceneIntegration.WaitingRoomShopUI");
             var view = Get(adapter, "View");

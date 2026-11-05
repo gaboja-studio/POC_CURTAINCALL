@@ -240,7 +240,8 @@ namespace CurtainCall.Player
             Animator.applyRootMotion = false;
             Animator.speed = speed;
             int hash = UnityEngine.Animator.StringToHash(motion);
-            if (stateHash == hash) return;
+            if (stateHash == hash && (Animator.GetCurrentAnimatorStateInfo(0).shortNameHash == hash
+                || (Animator.IsInTransition(0) && Animator.GetNextAnimatorStateInfo(0).shortNameHash == hash))) return;
             if (!Animator.HasState(0, hash)) return;
             Motion = motion;
             stateHash = hash;

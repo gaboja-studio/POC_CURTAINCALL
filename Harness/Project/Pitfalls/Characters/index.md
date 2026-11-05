@@ -1,5 +1,7 @@
 # Character Pitfalls
 
+- [held-item-scene-lifetime.md](held-item-scene-lifetime.md) — 기물을 든 채 씬 이동 후 손 표시가 달라지거나 기물이 사라질 때
+
 - [capture-visibility-restores-old-limbs.md](capture-visibility-restores-old-limbs.md) — 포획 후 공연에서 외팔 판정인데 온전한 팔다리로 보일 때
 - [pole-floor-clearance.md](pole-floor-clearance.md) — 낮은 봉에서 논리 발 위치는 정상인데 실제 다리가 바닥을 뚫을 때
 

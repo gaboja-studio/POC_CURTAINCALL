@@ -6,6 +6,7 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using Object = UnityEngine.Object;
@@ -163,6 +164,79 @@ namespace CurtainCall.Tests.HumanoidPresentation
                 Assert.That(max - min, Is.GreaterThan(.2f));
             }
             finally { held.Clear(); selected.Clear(); }
+        }
+
+        [UnityTest]
+        public IEnumerator HeldKeySurvivesSceneUnloadWithoutRestartingHoldPose()
+        {
+            var carryType = TypeFor("CurtainCall.WaitingRoom.PropCarry");
+            var carry = carryType.GetProperty("Instance").GetValue(null) as Component;
+            if (carry == null) { var go = new GameObject("Carry"); objects.Add(go); carry = go.AddComponent(carryType); }
+            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var held = (IDictionary)carryType.GetField("receivedHeld", flags).GetValue(carry);
+            var selected = (IDictionary<ulong, int>)carryType.GetField("selected", flags).GetValue(carry);
+            var itemType = TypeFor("CurtainCall.WaitingRoom.PropItem");
+            var list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(itemType));
+            list.Add(Activator.CreateInstance(itemType, 778, "route-key", "열쇠 1", -1));
+            held[0UL] = list; selected[0UL] = 778;
+            var original = SceneManager.GetActiveScene();
+            var source = SceneManager.CreateScene("HeldKeyDeparture");
+            try
+            {
+                SceneManager.SetActiveScene(source);
+                var player = Player();
+                Object.DontDestroyOnLoad(player);
+                yield return new WaitForSeconds(1f);
+                var view = Part(player, "HumanoidPlayerPresentation");
+                var visual = (GameObject)Get(view, "HeldItemVisual");
+                Assert.IsNotNull(visual);
+                var animator = (Animator)Model(player).GetType().GetField("Animator").GetValue(Model(player));
+                animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                int arm = animator.GetLayerIndex("ItemRightArm");
+                SceneManager.SetActiveScene(original);
+                yield return SceneManager.UnloadSceneAsync(source);
+                yield return null;
+                Assert.IsTrue(visual != null, "플레이어와 함께 열쇠 표시도 씬 언로드를 견뎌야 한다");
+                Assert.AreSame(visual, Get(view, "HeldItemVisual"));
+                Assert.AreEqual(player.scene, visual.scene);
+                Assert.IsTrue(visual.transform.IsChildOf(player.transform));
+                float previousTime = animator.GetCurrentAnimatorStateInfo(arm).normalizedTime;
+                var hand = animator.GetBoneTransform(HumanBodyBones.RightHand);
+                Quaternion previous = hand.localRotation;
+                float largestStep = 0;
+                for (int i = 0; i < 45; i++)
+                {
+                    yield return null;
+                    var state = animator.GetCurrentAnimatorStateInfo(arm);
+                    Assert.IsTrue(state.IsName("ItemHold"));
+                    Assert.GreaterOrEqual(state.normalizedTime, previousTime, "쥠 동작을 매 프레임 다시 시작하지 않는다");
+                    Assert.AreEqual(1f, animator.GetLayerWeight(arm));
+                    largestStep = Mathf.Max(largestStep, Quaternion.Angle(previous, hand.localRotation));
+                    previous = hand.localRotation; previousTime = state.normalizedTime;
+                }
+                Assert.Less(largestStep, 5f, "정지한 쥠 자세의 손목이 급격히 튀지 않는다");
+                Object.Destroy(visual);
+                yield return null;
+                yield return null;
+                var recovered = (GameObject)Get(view, "HeldItemVisual");
+                Assert.IsTrue(recovered != null, "선택한 기물이 같아도 유실된 표시는 복구한다");
+                Assert.IsTrue(recovered.transform.IsChildOf(player.transform));
+                var recoveredState = animator.GetCurrentAnimatorStateInfo(arm);
+                Assert.IsTrue(recoveredState.IsName("ItemHold"));
+                Assert.GreaterOrEqual(recoveredState.normalizedTime, previousTime, "표시 복구는 꺼내기 동작을 재시작하지 않는다");
+                animator.Rebind();
+                animator.Update(0);
+                yield return null;
+                yield return null;
+                Assert.IsTrue(animator.GetCurrentAnimatorStateInfo(arm).IsName("ItemHold"),
+                    "Animator가 초기화되어도 캐시한 이름 대신 실제 쥠 상태를 복구해야 한다");
+            }
+            finally
+            {
+                SceneManager.SetActiveScene(original);
+                if (source.isLoaded) SceneManager.UnloadSceneAsync(source);
+                held.Clear(); selected.Clear();
+            }
         }
 
         [UnityTest]
