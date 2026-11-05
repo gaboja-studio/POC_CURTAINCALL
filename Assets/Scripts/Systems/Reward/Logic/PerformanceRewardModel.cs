@@ -288,10 +288,12 @@ namespace CurtainCall.Reward
 
         /// <summary>디버그 전용 입금. 참가자 화면의 장부 검사를 통과하도록 수입 줄 하나("디버그 지급")를 남긴다.</summary>
         public bool DebugGrant(long amount, int day)
+            => GrantIncome(amount, day, "디버그 지급");
+        public bool GrantIncome(long amount, int day, string description)
         {
-            if (amount <= 0 || day < 1 || Generation < 1 || amount > long.MaxValue - Balance) return false;
+            if (amount <= 0 || day < 1 || Generation < 1 || amount > long.MaxValue - Balance || string.IsNullOrWhiteSpace(description) || description.Length > 100) return false;
             long next = Balance + amount;
-            ledger.Add(new FundEntry(ledger.Count + 1, Generation, day, FundEntryKind.PerformanceIncome, amount, next, "디버그 지급"));
+            ledger.Add(new FundEntry(ledger.Count + 1, Generation, day, FundEntryKind.PerformanceIncome, amount, next, description));
             Balance = next;
             Revision++;
             return true;
