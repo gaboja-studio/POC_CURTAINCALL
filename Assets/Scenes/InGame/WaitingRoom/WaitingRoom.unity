@@ -832013,7 +832013,7 @@ Transform:
   m_GameObject: {fileID: 638761348}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.8049355, y: 0, z: 3.6559534}
+  m_LocalPosition: {x: -6.130544, y: 0, z: 10.328461}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -961725,8 +961725,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 738844482}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: -0.7071068}
-  m_LocalPosition: {x: 37.329, y: 0.015, z: 38.158}
+  m_LocalRotation: {x: -0, y: 0.92387956, z: -0, w: -0.38268328}
+  m_LocalPosition: {x: 36.64142, y: 0.015, z: 44.99134}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -961747,12 +961747,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.Pursuit.PursuitPlacement
   Appearance: 0
-  AppearancePattern: 0
-  CustomSurfaceLayers: 0
-  DirtAmount: 0
-  WearAmount: 0
-  BloodAmount: 0
-  WearPattern: 0
+  AppearancePattern: 7
+  CustomSurfaceLayers: 1
+  DirtAmount: 0.65
+  WearAmount: 0.91
+  BloodAmount: 0.61
+  WearPattern: 6
   Prefab: {fileID: 963270003243879643, guid: 71a10005b95060046ba44e8a8a3ab058, type: 3}
   Size: 0
   ActivationStage: 1
@@ -2709688,7 +2709688,7 @@ Transform:
   m_GameObject: {fileID: 2077433319}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.8649035, y: 0, z: 3.956512}
+  m_LocalPosition: {x: 1.6266966, y: 0, z: 2.996272}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

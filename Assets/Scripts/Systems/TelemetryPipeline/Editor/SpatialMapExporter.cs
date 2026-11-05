@@ -15,6 +15,32 @@ namespace CurtainCall.Telemetry.Pipeline.Editor
     /// <summary>Read-only scene capture using the pursuit designer's floor clipping and world projection.</summary>
     public static class SpatialMapExporter
     {
+        // The authored course builds its meshes in play mode. Read the same scene instance,
+        // layout and support spans as those meshes; an edit-mode camera would see an empty stage.
+        public static void ExportTightrope()
+        {
+            var scene = EditorSceneManager.OpenScene("Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity", OpenSceneMode.Additive);
+            try {
+                var course = scene.GetRootGameObjects().SelectMany(root => root.GetComponentsInChildren<CurtainCall.Tightrope.TightropeCourse>()).Single();
+                var layout = course.Layout;
+                var shape = course.Shape;
+                Vector3 At(float x,float z) => course.transform.position + course.Right*x + course.Forward*z;
+                object XZ(Vector3 p) => new { x=p.x,z=p.z };
+                float left=layout.GetLaneSide(0)-shape.SideMargin,right=layout.GetLaneSide(layout.LaneCount-1)+shape.SideMargin;
+                var finishing=Enumerable.Range(0,layout.LaneCount).Where(i=>layout.GetLaneEnd(i)>=layout.FinishDistance).Select(layout.GetLaneSide).ToArray();
+                Vector3[] Rect(float x0,float x1,float z0,float z1) => new[]{At(x0,z0),At(x1,z0),At(x1,z1),At(x0,z1)};
+                var bounds=Rect(left-3,right+3,-shape.StartPlatformLength-2,layout.FinishDistance+shape.FinishPlatformLength+2);
+                var platforms=new[]{Rect(left,right,-shape.StartPlatformLength,0),Rect(finishing.Min()-shape.SideMargin,finishing.Max()+shape.SideMargin,layout.FinishDistance,layout.FinishDistance+shape.FinishPlatformLength)};
+                var lanes=Enumerable.Range(0,layout.LaneCount).Select(lane=>new {lane,spans=course.GetUsableSpans(lane).Select(s=>new[]{XZ(course.GetLanePosition(lane,s.x)),XZ(course.GetLanePosition(lane,s.y))}).ToArray()}).ToArray();
+                var poles=course.HasRelayGap?Enumerable.Range(0,4).Select(i=>XZ(course.RelayPoleGround(i))).ToArray():Array.Empty<object>();
+                var trapeze=course.HasTrapezeGap?Enumerable.Range(0,3).Select(i=>XZ(course.TrapezeRestingFeet(i))).ToArray():Array.Empty<object>();
+                var sections=shape.Sections.Select((s,i)=>new {name=s.label,at=XZ(At(right,i==0?0:shape.Sections[i-1].endFraction*layout.FinishDistance))}).ToArray();
+                var result=new{id="Tightrope_base_021",scene="Tightrope",floorY=0,rooms=Array.Empty<object>(),minX=bounds.Min(p=>p.x),maxX=bounds.Max(p=>p.x),minZ=bounds.Min(p=>p.z),maxZ=bounds.Max(p=>p.z),
+                    platforms=platforms.Select(p=>p.Select(XZ).ToArray()),lanes,poles,trapeze,sections};
+                File.WriteAllText("Scripts/Telemetry/tightrope-map.json",JObject.FromObject(result).ToString(Newtonsoft.Json.Formatting.Indented));
+            } finally { EditorSceneManager.CloseScene(scene,true); }
+        }
+
         public static void ExportEscapeSections()
         {
             var scene=EditorSceneManager.OpenScene("Assets/Scenes/Levels/escape_route.unity",OpenSceneMode.Single);
@@ -133,6 +159,7 @@ namespace CurtainCall.Telemetry.Pipeline.Editor
                 File.WriteAllText("Assets/Resources/TelemetrySpatialMaps.json",json);
                 File.WriteAllText(output+"/manifest.json",json);
                 ExportEscapeSections();
+                ExportTightrope();
                 AssetDatabase.Refresh();
             } finally {
                 if (setup.Length > 0 && setup.All(s=>!string.IsNullOrEmpty(s.path))) EditorSceneManager.RestoreSceneManagerSetup(setup);

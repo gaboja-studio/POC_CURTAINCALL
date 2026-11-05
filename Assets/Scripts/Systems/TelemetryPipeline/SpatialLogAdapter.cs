@@ -43,6 +43,9 @@ namespace CurtainCall.Telemetry.Pipeline
         int bounceCount;
         HumanCannonPoleLoop[] conveyors = Array.Empty<HumanCannonPoleLoop>();
         EscapeCooperativeSpan[] bridges = Array.Empty<EscapeCooperativeSpan>();
+        TightropeCourse observedCourse;
+        readonly Dictionary<int,List<Vector2>> recordedSpans = new();
+        readonly Dictionary<int,bool> relayConnections = new();
         int geometryIndex;
         bool escapeStarted, escapeExpired;
         CampaignPerformanceEntry performanceEntry;
@@ -101,6 +104,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 var map = mapEntries.Where(m=>m.scene==log.CurrentSceneName && m.scene!="Tightrope" && m.sectionId==0).OrderBy(m=>Math.Abs(m.floorY-Convert.ToSingle(height))).FirstOrDefault();
                 if (map != null) { e.payload["mapId"] = map.id; e.payload["floorY"] = map.floorY; }
             }
+            if (log.CurrentSceneName == "Tightrope") e.payload["mapId"] = "Tightrope_base_021";
             e.payload["sceneName"] = log.CurrentSceneName;
         }
 
@@ -132,6 +136,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 if (scope != null) log.ReleaseSpatialBoundary();
                 scope = Scope; hasPosition = captured = dead = arrived = chased = escapeStarted = escapeExpired = false;
                 pursuitStates.Clear(); discoveries.Clear(); clueAvailability.Clear(); worldStates.Clear(); worldPositions.Clear(); geometry.Clear(); objects.Clear();
+                BindCourse(null);
                 geometryIndex = 0; nextCache = nextPlayer = nextWorld = 0; rehearsal = null; cannonRehearsal = null;
                 bodySeen = false; lastEscapeSection = -1; visitedSections.Clear(); ownerStates.Clear(); previousSizes.Clear(); bounceCount=0;
             }
@@ -238,7 +243,8 @@ namespace CurtainCall.Telemetry.Pipeline
             conveyors=UnityEngine.Object.FindObjectsByType<HumanCannonPoleLoop>(FindObjectsSortMode.None);
             bridges=UnityEngine.Object.FindObjectsByType<EscapeCooperativeSpan>(FindObjectsSortMode.None);
             rooms = UnityEngine.Object.FindObjectsByType<PursuitRoom>(FindObjectsSortMode.None).Where(r => r.gameObject.scene == scene).ToArray();
-            if (Host && Scene == "MAINSTAGE") CourseGeometry();
+            if (Host && scene.name=="Tightrope" && log.CurrentAttemptId != null && observedCourse == null)
+                BindCourse(TightropeCourse.Current);
             objects.Clear();
             foreach (var item in UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
             {
@@ -247,7 +253,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 if (item is IExplorationTarget || item is PerformancePropDiscovery || WorldKind(item) != null) objects.Add(item);
             }
             // Static stages already ship a measured map. Do not enumerate every collider or retransmit its outlines.
-            if (!Host || geometry.Count > 0 || mapEntries.Any(m=>m.scene==scene.name && m.scene!="Tightrope")) return;
+            if (!Host || geometry.Count > 0 || scene.name=="Tightrope" || mapEntries.Any(m=>m.scene==scene.name)) return;
             foreach (var room in rooms) if (room != null && room.Area != null) geometry.Add(room.Area);
             foreach (var collider in UnityEngine.Object.FindObjectsByType<Collider>(FindObjectsSortMode.None))
             {
@@ -258,18 +264,42 @@ namespace CurtainCall.Telemetry.Pipeline
             }
         }
 
+        void BindCourse(TightropeCourse next)
+        {
+            if (observedCourse != null) {
+                observedCourse.Rebuilt -= CourseGeometry;
+                observedCourse.SegmentsChanged -= CourseGeometry;
+                observedCourse.LaneBlockedChanged -= LaneChanged;
+            }
+            observedCourse = next;
+            recordedSpans.Clear();
+            relayConnections.Clear();
+            if (next == null) return;
+            next.Rebuilt += CourseGeometry;
+            next.SegmentsChanged += CourseGeometry;
+            next.LaneBlockedChanged += LaneChanged;
+            CourseGeometry();
+        }
+
+        void LaneChanged(int lane, bool blocked) => CourseGeometry();
+
         void CourseGeometry()
         {
-            var course = TightropeCourse.Current;
-            if (course == null || !course.IsGameplayActive) return;
-            string shape = course.ExportShape();
-            if (worldStates.TryGetValue("COURSE", out var previous) && previous == shape) return;
-            worldStates["COURSE"] = shape;
+            var course = observedCourse;
+            if (course == null || !Host || scope != Scope || log.CurrentAttemptId == null) return;
+            var relay=course.GetComponent<TightropeRelayGate>();
             for (int lane = 0; lane < course.LaneCount; lane++) {
+                var spans = course.GetUsableSpans(lane);
+                bool connected=relay!=null && relay.IsLaneConnected(lane);
+                bool known=recordedSpans.TryGetValue(lane,out var prior);
+                if (known && prior.SequenceEqual(spans) && relayConnections[lane]==connected) continue;
+                string state=!known?"INITIAL":relayConnections[lane]==connected?"SUPPORT_CHANGED":connected?"CONNECTED":"DISCONNECTED";
                 var a=course.GetLanePosition(lane,0); var b=course.GetLanePosition(lane,course.Layout.GetLaneEnd(lane));
-                log.Emit("SPATIAL_GEOMETRY", new() { ["entityId"]="ROPE_"+lane, ["entityKind"]="STRUCTURE", ["label"]="외줄 "+(lane+1),
+                if (log.Emit("SPATIAL_GEOMETRY", new() { ["entityId"]="ROPE_"+lane, ["entityKind"]="STRUCTURE", ["label"]="외줄 "+(lane+1),
                     ["position"]=DetailLogIds.Position((a+b)*.5f), ["size"]=DetailLogIds.Position(new Vector3(Mathf.Abs(a.x-b.x)+.2f,.2f,Mathf.Abs(a.z-b.z)+.2f)),
-                    ["polyline"]=new[]{DetailLogIds.Position(a),DetailLogIds.Position(b)}, ["floorY"]=0 }, "HOST");
+                    ["lane"]=lane, ["state"]=state, ["connected"]=connected, ["ropeSpans"]=spans.Select(s=>new[]{DetailLogIds.Position(course.GetLanePosition(lane,s.x)),DetailLogIds.Position(course.GetLanePosition(lane,s.y))}).ToArray(), ["floorY"]=0 }, "HOST")) {
+                    recordedSpans[lane] = spans; relayConnections[lane] = connected;
+                }
             }
         }
 
@@ -610,12 +640,14 @@ namespace CurtainCall.Telemetry.Pipeline
 
         public void Leaving(string reason)
         {
+            BindCourse(null);
             var player = NetworkPlayer.Local;
             if (scope != null && player != null && player.IsSpawned) Point("SPATIAL_BOUNDARY", player, reason);
             scope = null;
         }
         public void Dispose()
         {
+            BindCourse(null);
             ClueInspectable.InspectionObserved -= Inspected;
             ClueInspectable.AvailabilityObserved -= Availability;
             ShopReach.ClueFocused -= Focused;

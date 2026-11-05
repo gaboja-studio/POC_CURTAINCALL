@@ -237,11 +237,40 @@ function replayPose(track,time){
 const spatialMapAssets=/* SPATIAL_MAP_ASSETS */{};
 const requestedSpatialMaps=new Set();
 function replayFloorName(f){return (f===0?'지상':f<0?'지하':'상층')+' · '+n(f)+'m';}
-function renderSpatialReplay(host,replay){
+// Old 0.2.x logs identified the performance but did not carry the base map ID.
+function tightropeBase(version,trick){return /^0\.2\./.test(version)&&String(trick).toUpperCase()==='TIGHTROPE'?'Tightrope_base_021':null;}
+function ropeStateAt(base,updates,time){
+  const lanes=new Map(base.lanes.map(l=>[l.lane,l.spans]));
+  for(const row of updates){if(row.timeMs>time)break;const p=row.event.payload;lanes.set(p.lane,p.ropeSpans);}
+  return lanes;
+}
+function drawRopePlan(ctx,base,lanes,project,mini){
+  const path=points=>{ctx.beginPath();points.forEach((p,i)=>{const q=project(p);if(i)ctx.lineTo(q.x,q.y);else ctx.moveTo(q.x,q.y);});};
+  ctx.save();
+  for(const [i,platform] of base.platforms.entries()){
+    path(platform);ctx.closePath();ctx.fillStyle=i?'#517c68':'#4a647c';ctx.fill();ctx.strokeStyle='#d5e2df';ctx.lineWidth=1;ctx.stroke();
+    if(!mini){const q=project(platform[1]);ctx.fillStyle='#dce6ea';ctx.font='12px sans-serif';ctx.textAlign='left';ctx.fillText(i?'도착 발판':'출발 발판',q.x+5,q.y);}
+  }
+  for(const [lane,spans] of lanes){ctx.lineWidth=mini?1:2;
+    for(const span of spans){ctx.strokeStyle='#abb6c1';path(span);ctx.stroke();
+      // Only colour the observed support crossing a gap in the authored lane.
+      const fixed=base.lanes[lane]?.spans||[];
+      for(let i=1;i<fixed.length;i++){const a=fixed[i-1][1],b=fixed[i][0],covers=p=>
+        (p.x-span[0].x)*(p.x-span[1].x)+(p.z-span[0].z)*(p.z-span[1].z)<=.001;
+        if(covers(a)&&covers(b)){ctx.strokeStyle='#ffc65a';path([a,b]);ctx.stroke();}}
+    }}
+  for(const pin of base.poles){const q=project(pin);ctx.fillStyle='#69c2c5';ctx.fillRect(q.x-2,q.y-2,4,4);}
+  for(const pin of base.trapeze){const q=project(pin);ctx.strokeStyle='#dca8db';ctx.lineWidth=2;ctx.strokeRect(q.x-2,q.y-2,4,4);}
+  if(!mini){ctx.font='12px sans-serif';ctx.textAlign='left';ctx.fillStyle='#c5d4df';for(const [i,s] of base.sections.entries()){const q=project(s.at);ctx.fillText((i+1)+' · '+s.name,q.x+8,q.y-4);}}
+  ctx.restore();
+}
+function renderSpatialReplay(host,replay,baseId=null){
   const heading=node('h3','층별 동선 · 사건 재생'),tools=node('div',null,'route-tools');
   const scopeSelect=node('select'),floorSelect=node('select'),speed=node('select'),seek=node('input'),stamp=node('span');
   scopeSelect.setAttribute('aria-label','공간 기록 선택');floorSelect.setAttribute('aria-label','층 선택');speed.setAttribute('aria-label','재생 속도');
-  replay.scopes.forEach((s,i)=>scopeSelect.append(new Option('공간 기록 '+(i+1),s)));
+  const scopes=[...new Set([...replay.scopes,...replay.geometry.map(p=>p.scope)])];
+  scopes.forEach((s,i)=>scopeSelect.append(new Option('공간 기록 '+(i+1),s)));
+  if(!scopes.length)scopeSelect.append(new Option('고정 도면',''));
   replay.floors.forEach(f=>floorSelect.append(new Option('층 높이 '+n(f)+'m',String(f))));
   [0.5,1,2,4,8].forEach(v=>speed.append(new Option(v+'×',String(v))));speed.value='1';
   const first=node('button','⏮ 처음'),back=node('button','◀ 이전 사건'),play=node('button','▶ 재생'),forward=node('button','다음 사건 ▶'),last=node('button','마지막 ⏭');
@@ -271,15 +300,18 @@ function renderSpatialReplay(host,replay){
   host.append(heading,floorTabs,tools,seek,legend,sectionTools,mapTools,mapLayout,allLayers,note,feed);
   let rows=[],map=[],tracks=new Map(),times=[],start=0,end=0,time=0,playing=false,frame=0,lastFrame=0,targets=[],feedKey='',disposed=false;
   let sceneMaps=[],activeMap=null,mapImage=null,zoom=1,panX=0,panZ=0,lastScale=1,drag=null,dragged=false,miniRooms=[];
-  let sectionMode=false;
+  let sectionMode=false,ropeUpdates=[],feedRows=[];
   const images=new Map(),layerCanvases=new Map(),layerTargets=new WeakMap();
   const color=p=>p.kind==='PURSUER'?'#111111':p.kind==='OBSTACLE'?'#888888':p.kind==='OBJECT'?'#c8a77e':playerColors[p.event.playerNumber]||'#6e8195';
   function pause(){playing=false;play.textContent='▶ 재생';cancelAnimationFrame(frame);}
   function selectScope(){
     pause();rows=replay.points.filter(p=>p.scope===scopeSelect.value);map=replay.geometry.filter(p=>p.scope===scopeSelect.value);
     tracks=new Map();rows.forEach(p=>{if(p.anchor)return;if(!tracks.has(p.entityId))tracks.set(p.entityId,[]);tracks.get(p.entityId).push(p);});
-    times=[...new Set(rows.map(p=>p.timeMs))];start=times[0]||0;end=times.at(-1)||start;time=start;seek.max=String(Math.max(1,end-start));
+    ropeUpdates=map.filter(p=>Array.isArray(p.event.payload.ropeSpans)).sort((a,b)=>a.timeMs-b.timeMs||a.event.sequence-b.event.sequence);
+    feedRows=rows.concat(ropeUpdates.filter(p=>p.event.payload.state!=='INITIAL')).sort((a,b)=>a.timeMs-b.timeMs);
+    times=[...new Set(rows.concat(ropeUpdates).map(p=>p.timeMs))].sort((a,b)=>a-b);start=times[0]||0;end=times.at(-1)||start;time=start;seek.max=String(Math.max(1,end-start));
     const ids=new Set(rows.concat(map).map(p=>p.event.payload.mapId).filter(Boolean));
+    if(baseId&&!ids.size)ids.add(baseId);
     const mapped=Object.values(spatialMapAssets).filter(m=>ids.has(m.id));
     const scenes=new Set(mapped.map(m=>m.scene));sceneMaps=Object.values(spatialMapAssets).filter(m=>scenes.has(m.scene));
     const sections=sceneMaps.filter(m=>m.sectionId>0);sectionTools.hidden=!sections.length;sectionTools.style.display=sections.length?'flex':'none';sectionSelect.replaceChildren(...sections.map(m=>new Option(m.sectionId+'. '+m.sectionName,String(m.sectionId))));sectionMode=false;
@@ -296,9 +328,9 @@ function renderSpatialReplay(host,replay){
     zoom=1;panX=panZ=0;activeMap=sceneMaps.find(m=>Math.abs(m.floorY-Number(floorSelect.value))<.6&&(m.sectionId||0)===(sectionMode?Number(sectionSelect.value):0))||null;mapImage=null;
     for(const b of floorTabs.children){const selected=b.dataset.floor===floorSelect.value;b.setAttribute('aria-selected',String(selected));b.style.cssText=selected?'background:#263e4e;color:white;border-color:#263e4e':'';}
     roomSelect.replaceChildren(new Option('전체 방 보기',''));(activeMap?.rooms||[]).forEach((r,i)=>roomSelect.append(new Option(r.name,String(i))));roomSelect.disabled=!activeMap?.rooms.length;
-    sceneMaps.filter(m=>!(m.sectionId>0)||m===activeMap).forEach(m=>{if(!images.has(m.id)){const img=new Image();img.onload=()=>{if(!disposed)draw();};img.src=m.image;images.set(m.id,img);}});
+    sceneMaps.filter(m=>m.image&&(!(m.sectionId>0)||m===activeMap)).forEach(m=>{if(!images.has(m.id)){const img=new Image();img.onload=()=>{if(!disposed)draw();};img.src=m.image;images.set(m.id,img);}});
     if(all)mapStatus.textContent='모든 층 · 같은 시각으로 함께 재생';
-    else if(activeMap){mapStatus.textContent=(activeMap.sectionName||activeMap.scene)+' · 실제 씬 평면도';mapImage=images.get(activeMap.id);}
+    else if(activeMap){mapStatus.textContent=activeMap.lanes?'외줄타기 · 고정 코스'+(map.some(p=>Array.isArray(p.event.payload.ropeSpans))?' · 기록된 줄 상태 재생':' · 줄 연결 기록 없음'):(activeMap.sectionName||activeMap.scene)+' · 실제 씬 평면도';mapImage=images.get(activeMap.id);}
     else mapStatus.textContent='일치하는 원본 도면 미수집 · 기록된 구조만 표시';
     draw();
   }
@@ -331,6 +363,10 @@ function renderSpatialReplay(host,replay){
     });
     const mini=overview.getContext('2d');mini.clearRect(0,0,230,240);miniRooms=[];
     const ms=Math.min(210/Math.max(4,maxX-minX),220/Math.max(4,maxZ-minZ));
+    if(activeMap?.lanes){
+      const lanes=ropeStateAt(activeMap,ropeUpdates,time);drawRopePlan(ctx,activeMap,lanes,project,false);
+      drawRopePlan(mini,activeMap,lanes,p=>({x:115+(p.x-(minX+maxX)/2)*ms,y:120-(p.z-(minZ+maxZ)/2)*ms}),true);
+    }
     (activeMap?.rooms||[]).forEach((r,i)=>{const x=115+(r.x-(minX+maxX)/2)*ms-r.width*ms/2,y=120-(r.z-(minZ+maxZ)/2)*ms-r.depth*ms/2;
       mini.fillStyle=roomSelect.value===String(i)?'#795021':'#26343d';mini.strokeStyle=roomSelect.value===String(i)?'#efab40':'#657681';mini.fillRect(x,y,r.width*ms,r.depth*ms);mini.strokeRect(x,y,r.width*ms,r.depth*ms);miniRooms.push({x,y,w:r.width*ms,h:r.depth*ms,i});
       const p=project({x:r.x,z:r.z});ctx.font='11px sans-serif';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#101216';ctx.fillStyle='#c0cbd2';ctx.strokeText(r.name,p.x,p.y);ctx.fillText(r.name,p.x,p.y);
@@ -347,8 +383,8 @@ function renderSpatialReplay(host,replay){
     });
     tracks.forEach(track=>{const p=replayPose(track,time);if(!p||!onFloor(p))return;const q=project(p.position);ctx.fillStyle=color(p);ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(q.x,q.y,8,0,Math.PI*2);ctx.fill();ctx.stroke();const typeMark=mapType(p.event,p.kind);ctx.font='16px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(/DIED|CAPTURED/.test(p.event.eventType)?'💀':p.kind==='PLAYER'?'👤':typeMark?.[0]||'👁',q.x,q.y);ctx.font='11px sans-serif';ctx.textAlign='left';ctx.fillStyle='#ffffff';ctx.strokeStyle='#101216';ctx.lineWidth=3;const label=p.kind==='PLAYER'?player(p.event):typeMark?.[1]||'추격자';ctx.strokeText(label,q.x+11,q.y-11);ctx.fillText(label,q.x+11,q.y-11);targets.push({...q,p});
       mini.fillStyle=color(p);mini.strokeStyle='#e1e6e8';mini.lineWidth=1;mini.beginPath();mini.arc(115+(p.position.x-(minX+maxX)/2)*ms,120-(p.position.z-(minZ+maxZ)/2)*ms,3,0,Math.PI*2);mini.fill();mini.stroke();});
-    const recent=rows.filter(p=>!p.anchor&&p.timeMs<=time&&!/^(SPATIAL_SAMPLE|WORLD_SAMPLE|PURSUIT_SAMPLE)$/.test(p.event.eventType)).slice(-12).reverse(),key=recent.map(p=>p.event.eventId).join();
-    if(feedKey!==key){feedKey=key;feed.replaceChildren();recent.forEach(p=>{const button=node('button',spatialIcon(p.event)+' '+duration((p.timeMs-start)/1000)+' · '+(spatialNames[p.event.eventType]||eventName(p.event)));button.onclick=()=>{jump(p.timeMs);detail(p);};feed.append(button);});}
+    const recent=feedRows.filter(p=>!p.anchor&&p.timeMs<=time&&!/^(SPATIAL_SAMPLE|WORLD_SAMPLE|PURSUIT_SAMPLE)$/.test(p.event.eventType)).slice(-12).reverse(),key=recent.map(p=>p.event.eventId).join();
+    if(feedKey!==key){feedKey=key;feed.replaceChildren();recent.forEach(p=>{const button=node('button',spatialIcon(p.event)+' '+duration((p.timeMs-start)/1000)+' · '+(Array.isArray(p.event.payload.ropeSpans)?p.event.payload.label+' · '+({CONNECTED:'연결',DISCONNECTED:'해제',SUPPORT_CHANGED:'지지 구간 변경'}[p.event.payload.state]||'줄 상태'):spatialNames[p.event.eventType]||eventName(p.event)));button.onclick=()=>{jump(p.timeMs);detail(p);};feed.append(button);});}
   }
   function tick(at){if(!playing||disposed)return;time=Math.min(end,time+Math.max(0,at-lastFrame)*Number(speed.value));lastFrame=at;draw();if(time>=end)pause();else frame=requestAnimationFrame(tick);}
   function jump(value){pause();time=Math.max(start,Math.min(end,value));draw();}
@@ -376,9 +412,12 @@ function renderRoute(t,phase){
   const host=$('route');host.replaceChildren();$('route-detail').hidden=true;resetRouteSelection=()=>{$('route-detail').hidden=true;};
   if(t.players?.length){const present=new Set((t.replay?.points||[]).filter(p=>p.kind==='PLAYER').map(p=>p.entityId));const listed=t.players.filter(p=>!filters.replayPlayer||filters.replayPlayer===p.key);
  host.append(node('p',listed.map((p,i)=>(Number.isInteger(p.playerNumber)?player(p):'슬롯 미확인 '+(i+1))+': '+(present.has(p.key)?'위치 기록 있음':'이 구간 위치 기록 없음')).join(' · '),'reading-note'));}
-  const needed=[...new Set((t.replay?.points||[]).map(p=>p.event.payload.mapId).filter(id=>id&&!spatialMapAssets[id]&&!requestedSpatialMaps.has(id)))];
+  const explicit=(t.replay?.points||[]).concat(t.replay?.geometry||[]).map(p=>p.event.payload.mapId).filter(Boolean);
+  const baseId=tightropeBase(data.gameVersion,phase?.traceTrick||phase?.attempts?.find(a=>a.id===t.attemptId)?.trickType);
+  const needed=[...new Set((explicit.length?explicit:[baseId]).filter(id=>id&&!spatialMapAssets[id]&&!requestedSpatialMaps.has(id)))];
   if(needed.length){needed.forEach(id=>requestedSpatialMaps.add(id));host.append(readStatus('이 기록의 층별 도면을 불러오는 중…'));google.script.run.withSuccessHandler(maps=>{Object.assign(spatialMapAssets,maps);if(data?.view?.timeline===t)renderRoute(t,phase);}).withFailureHandler(()=>{if(data?.view?.timeline===t){renderRoute(t,phase);host.prepend(node('p','도면을 불러오지 못했습니다. 새로고침하면 다시 시도합니다.'));}}).getSpatialMaps(needed,auth);return;}
-  if(t.replay?.points?.length){renderSpatialReplay(host,t.replay);return;}
+  if(t.replay?.points?.length||t.replay?.geometry?.length){renderSpatialReplay(host,t.replay,baseId);return;}
+  if(baseId&&spatialMapAssets[baseId]){renderSpatialReplay(host,t.replay,baseId);if(!t.markers?.length)return;}
   if(phase?.kind!=='PERFORMANCE')return;
   const attempt=phase.attempts.find(a=>a.id===t.attemptId);if(routeAttempt!==t.attemptId){routeAttempt=t.attemptId;routeZoom=1;}const model=routeGeometry(t.markers,attempt?.trickType,routeZoom);
   (t.participants||[]).forEach(e=>{const k=routePlayerKey(e);if(!model.actors.some(a=>a.key===k))model.actors.push({key:k,event:e,color:playerColors[e.playerNumber],segments:[]});});
@@ -557,7 +596,7 @@ async function preloadRoom(id){
  try{const runs=new Map(),maps=new Map();
  for(const r of peers){const rf={...filters,timelineRunId:r.id,fundsRunId:r.id};
  const [result,report]=await Promise.all([r.surveyOnly?Promise.resolve({rows:[],archived:false}):readRoomRun(r.id,env,version,alive),r.id===id&&displayedFilters?.timelineRunId===id?Promise.resolve({...data,view:{...data.view}}):roomRpc('getDashboard',rf)]);if(!alive())return;result.report=report;runs.set(r.id,result);
- for(const e of result.rows){const p=e.payload||{};if(p.mapId&&!spatialMapAssets[p.mapId])maps.set(p.mapId,p.mapId);}}
+ for(const e of result.rows){const p=e.payload||{},id=p.mapId||(e.sceneType==='MAINSTAGE'&&tightropeBase(version,p.trickType||p.sceneName));if(id&&!spatialMapAssets[id])maps.set(id,id);}}
  if(maps.size){const assets=await roomRpc('getSpatialMaps',[...maps.values()]);if(!alive())return;Object.assign(spatialMapAssets,assets);}
  roomCache={key,runs};localRun(id);for(const p of panels){p.classList.remove('is-reading');p.setAttribute('aria-busy','false');p.querySelector(':scope > .reading-status')?.remove();}
  }catch(error){if(!alive())return;for(const p of panels){const box=p.querySelector(':scope > .reading-status');p.setAttribute('aria-busy','false');if(box){const retry=node('button','다시 불러오기');retry.onclick=()=>preloadRoom(id);box.replaceChildren(node('span','세션 상세를 불러오지 못했습니다. '+(error.message||'')),retry);}}}
