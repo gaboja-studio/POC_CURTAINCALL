@@ -124,7 +124,6 @@ namespace CurtainCall.HumanCannon
             Unregister();
             if (state == SessionConnectionState.Offline)
             {
-                carrierRecoveryPending = false;
                 ownership = new CannonSeatState();
                 groundHistory.Clear();
                 groundSequence = 0;

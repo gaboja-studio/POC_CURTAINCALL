@@ -32,3 +32,9 @@
 - 2026-11-05 PR: `fix/main-stages` → dev PR #297(https://github.com/gaboja-studio/POC_CURTAINCALL/pull/297) 생성, PM 팀 검토 요청. 인간 대포(Task-081)·외줄(Task-074) 수정 묶음. CI 1/1 통과, 검토 대기(BLOCKED). 최신 dev 미병합(충돌 없음, MERGEABLE).
 
 - 2026-11-05 최신 dev 병합: PR #297이 `70b0bb7b`에서 병합돼 외줄 커밋 `00a271c3`은 dev에 없음. `origin/dev`(#297·#298) 병합 `a12c383a` 충돌 없음, Unity 컴파일 PASS. `_ThirdParty`를 dev 포인터 `c1e64a6d`로 정방향 갱신(로컬 셰이더 수정 2개 보존, LFS 파일 정상). dev의 Verify Docs 실패(Task-081 log.md 144줄 > 130) 해결: 11-03~04 기록을 원문 그대로 `History/003-log-2026-11-03-04.md`로 옮김, `verify-fast` OK(경고만).
+
+## 2026-11-05 트램펄린 운반자 사망 → 그 자리에 둠
+- 사용자 요청: 멀티 플레이에서 트램펄린 운반자가 죽으면 생존자에게 강제 소환됨 → 낙사는 그대로(시작 위치 복귀), 그 밖의 사망은 사망 지점에 그대로 둠.
+- `HumanCannonTrampoline`: 무작위 생존자 옆 이동(`TryRecoverNearSurvivor`, `carrierRecoveryPending`, 미사용 `CarryHandlePoint`) 삭제. 운반자가 비정상 상태면 놓기만 하고, 낙사면 최초 위치로 돌린 뒤 소유 상태를 공유한다.
+- 컴파일 PASS, `check-work` 문서/규칙 PASS, 자동 테스트 SKIPPED. 실제 멀티 플레이 확인 필요. 공중(점프 중)에서 죽으면 트램펄린이 그 높이에 남을 수 있음.
+- 검사 중 Unity가 `ProjectSettings/Packages/com.unity.services.vivox/Settings.json`을 바꿈(이번 작업과 무관, 되돌리지 않음).

@@ -45,7 +45,6 @@ namespace CurtainCall.HumanCannon
         bool localGrabPending;
         uint localGrabRevision;
         double localGrabUntil;
-        bool carrierRecoveryPending;
         Renderer[] handleRenderers;
         MaterialPropertyBlock[] idleHandleProperties;
         MaterialPropertyBlock heldHandleTint;
@@ -98,57 +97,18 @@ namespace CurtainCall.HumanCannon
                 HandleConnection(session.ConnectionState);
             }
             if (session == null || !session.IsHost) return;
-            bool changed = false;
-            if (ownership.IsOccupied)
-            {
-                var carrier = FindPlayer(Carrier);
-                if (carrier != null && carrier.State == PlayerState.Normal) return;
-                // 들고 낙사하면 낭떠러지 아래에 남기지 않고 시작 지점 원래 위치로 돌린다(2026-11-05 사용자 요청).
-                bool fellOff = carrier != null && carrier.State != PlayerState.Normal
-                    && (HumanCannonRouteSystem.IsBelowCourse(carrier.transform.position) || HumanCannonRouteSystem.IsBelowCourse(transform.position));
-                carrierRecoveryPending = !fellOff && carrier != null
-                    && (carrier.State == PlayerState.Fallen || carrier.State == PlayerState.Retired);
-                ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
-                if (fellOff) transform.SetPositionAndRotation(initialPosition, initialRotation);
-                changed = true;
-            }
-            if (carrierRecoveryPending && TryRecoverNearSurvivor())
-            {
-                carrierRecoveryPending = false;
-                // 재등장 위치도 새 revision으로 확정해 오래된 잡기/놓기 요청을 무효화한다.
-                ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
-                changed = true;
-            }
-            if (!changed) return;
+            if (!ownership.IsOccupied) return;
+            var carrier = FindPlayer(Carrier);
+            if (carrier != null && carrier.State == PlayerState.Normal) return;
+            // 들고 낙사하면 낭떠러지 아래에 남기지 않고 시작 지점 원래 위치로 돌린다(2026-11-05 사용자 요청).
+            // 그 밖의 사망은 생존자에게 옮기지 않고 사망 지점에 그대로 둔다(2026-11-05 사용자 요청).
+            bool fellOff = carrier != null
+                && (HumanCannonRouteSystem.IsBelowCourse(carrier.transform.position) || HumanCannonRouteSystem.IsBelowCourse(transform.position));
+            ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
+            if (fellOff) transform.SetPositionAndRotation(initialPosition, initialRotation);
             // 순간이동 전후를 반동 sweep으로 연결하지 않고, 모든 화면에 같은 위치를 공유한다.
             ResetPreviousPose();
             PublishOwnership();
-        }
-
-        bool TryRecoverNearSurvivor()
-        {
-            NetworkPlayer survivor = null;
-            int count = 0;
-            foreach (var candidate in NetworkPlayer.All)
-            {
-                if (candidate == null || !candidate.IsSpawned || candidate.State != PlayerState.Normal
-                    || !Finite(candidate.transform.position)) continue;
-                if (Random.Range(0, ++count) == 0) survivor = candidate;
-            }
-            // 전멸 때는 부활시키지 않는다. 정상 참가자가 생기거나 회차가 초기화될 때까지 기다린다.
-            if (survivor == null) return false;
-            Vector3 forward = Vector3.ProjectOnPlane(survivor.transform.forward, Vector3.up).normalized;
-            if (forward.sqrMagnitude < .001f) forward = Vector3.forward;
-            // 자동 소유권 이전 없이 손잡이를 생존자 옆 1m에 둔다. 공중 생존자도 다시 F로 잡을 수 있다.
-            Vector3 handlePosition = CarryHandlePoint(survivor.transform.position) + Vector3.Cross(Vector3.up, forward);
-            Vector3 handleOffset = Vector3.Scale(transform.InverseTransformPoint(Handle.position), transform.lossyScale);
-            if (!TrampolineCarryPose.TryCalculate(handlePosition, forward, handleOffset, out var position, out var rotation))
-            {
-                rotation = Quaternion.LookRotation(forward);
-                position = handlePosition - rotation * handleOffset;
-            }
-            transform.SetPositionAndRotation(position, rotation);
-            return true;
         }
 
         void LateUpdate()
@@ -216,9 +176,6 @@ namespace CurtainCall.HumanCannon
                 carrier.transform.rotation = carrierRotation;
             }
         }
-
-        // 호스트 최초 잡기/원격 추종/로컬 추종/사망 후 복구에서 같은 손 높이를 사용한다.
-        Vector3 CarryHandlePoint(Vector3 feet) => feet + Vector3.up * Mathf.Max(0f, carryHandleHeight);
 
         void ResetPreviousPose()
         {
@@ -344,7 +301,6 @@ namespace CurtainCall.HumanCannon
                         && ownership.Revision == revision && CanGrab(player),
                     () => HandleRequest(actor, action, revision, station, launch, segment, position, rotation, true))) return;
                 if (!CanGrab(player) || !ownership.TryApply(CannonAction.Board, actor, revision)) return;
-                carrierRecoveryPending = false;
                 HumanCannonSystem.Current.StartCarrying(actor);
                 FollowCarrier(player, true);
             }
@@ -385,7 +341,6 @@ namespace CurtainCall.HumanCannon
             localGrabPending = false;
             if (player.IsLocal) LocalBounceCount = 0;
             if (session == null || !session.IsHost) return;
-            carrierRecoveryPending = false;
             // 아무도 잡지 않았어도 revision을 올려 초기화 이전의 잡기 요청을 무효화한다.
             ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
             if (resetPoseOnRestart) transform.SetPositionAndRotation(initialPosition, initialRotation);
@@ -397,7 +352,6 @@ namespace CurtainCall.HumanCannon
         public bool ResetPracticePose()
         {
             if (HumanCannonSystem.Current == null || !HumanCannonSystem.Current.PracticeMode || session == null || !session.IsHost) return false;
-            carrierRecoveryPending = false;
             ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
             transform.SetPositionAndRotation(initialPosition, initialRotation);
             ResetPreviousPose(); PublishOwnership();
