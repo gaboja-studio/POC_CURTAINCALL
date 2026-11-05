@@ -101,16 +101,19 @@ namespace CurtainCall.HumanCannon
             if (!ownership.IsOccupied) return;
             var carrier = FindPlayer(Carrier);
             if (carrier != null && carrier.State == PlayerState.Normal) return;
-            // 들고 낙사하면 낭떠러지 아래에 남기지 않고 시작 지점 원래 위치로 돌린다(2026-11-05 사용자 요청).
+            // 들고 낙사하면 시작 지점에 가장 가까운 생존자 발밑 지면으로 옮긴다(2026-11-05 사용자 요청).
             // 그 밖의 사망은 생존자에게 옮기지 않고 사망 지점 바로 아래 지면에 떨어뜨린다(2026-11-05 사용자 요청).
             bool fellOff = carrier != null
                 && (HumanCannonRouteSystem.IsBelowCourse(carrier.transform.position) || HumanCannonRouteSystem.IsBelowCourse(transform.position));
             ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
             // 아래에 지면이 없으면 낙사와 같이 처리한다.
-            if (fellOff || !TryFindGround(out var ground))
+            if (fellOff || !TryFindGround(transform.position, out var ground))
             {
                 StopDrop();
-                transform.SetPositionAndRotation(initialPosition, initialRotation);
+                // 지면에 선 생존자를 찾지 못하면(전멸 등) 시작 지점 원래 위치로 돌린다.
+                if (!TryFindSurvivorGround(out var survivorGround))
+                    transform.SetPositionAndRotation(initialPosition, initialRotation);
+                else transform.SetPositionAndRotation(survivorGround, initialRotation);
             }
             else StartDrop(ground);
             // 순간이동 전후를 반동 sweep으로 연결하지 않고, 모든 화면에 같은 위치를 공유한다.
