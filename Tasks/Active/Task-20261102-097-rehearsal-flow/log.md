@@ -76,3 +76,7 @@
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-05 사용자 저장·제출 요청. Unity 종료 후 origin/dev 4ac2e6b3와 HEAD 차이 0/0 확인. 종료 중 갱신된 escape-labels 캐시는 별도 stash에 보존. 같은 코드의 EditMode 88/88 결과를 제출 검사에 기록한다.
+
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/311 (fix/rehearsal-arrival → dev)
+
+- PR 등록 직전 새 dev 74a8eec9를 받아 충돌 없이 병합했다. 씬 및 설정 변경은 dev에서 받은 커밋이며 PR 자체 변경에 없다. Unity 초기 로딩 중 검사 연결 대기가 있었고 준비 완료 후 컴파일 PASS와 리허설 EditMode 31/31 PASS를 확인했다. 외줄 지지면·목마 57/57은 직전 dev 4ac2e6b3 기준이다.

@@ -8,7 +8,8 @@
 - [x] 작업 중 새 dev 4ac2e6b3 반영·WIP 보존/복원, private gitlink 불변
 - [x] 관련 단계 전체 흐름 검토·최신 dev 기준 EditMode88/88 PASS·필수 검사 PASS·기록 갱신
 - [x] 제출 직전 Unity 종료·origin/dev 재확인(4ac2e6b3, 0/0)·생성 캐시 분리
-- [ ] fix/rehearsal-arrival 저장·푸시·dev PR 제출 기록
+- [x] 새 dev 74a8eec9 반영·리허설 회귀 31/31과 컴파일 재확인
+- [x] fix/rehearsal-arrival 저장·푸시·dev PR #311 제출
 - 플레이 테스트는 기존 사용자 지시대로 사용자가 진행한다. 이번 원인 검증은 상태/순서/경계값 자동 검사로 구분한다.
 
 ## 기획서 재반영 (2026-11-05)

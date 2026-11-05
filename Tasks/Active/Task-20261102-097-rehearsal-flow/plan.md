@@ -14,7 +14,7 @@
 - **3단계는 현행 유지**라는 추가 답변을 우선한다. 기존 4줄·목마·높은 봉 2개 학습/완료 방식은 변경하지 않는다. 문서의 4줄 트리거 문장과 수정본 단일 공중 봉→낮은 봉 도면의 불일치를 사용자에게 확인한 결과다.
 - 목마는 유지한다. 마네킹 모델 문제는 사용자가 지금 건너뛰라고 했으므로 보류한다.
 - **작업 시작/재개 전과 제출 직전 origin/dev를 fetch하고 최신 내용을 작업 브랜치에 반영한다.** Unity 종료·기존 변경 보존 후 진행한다. 이번 시작 기준 e95b6d9b, 작업 중 새 dev **4ac2e6b3**도 반영했다. private c1e64a6d 불변, WIP stash fb1083bc 보존/복원.
-- 앞선 PR #294·#301은 dev에 병합됐다. 사용자 저장·제출 요청에 따라 진행 차단 수정은 fix/rehearsal-arrival에서 커밋·푸시하고 dev 대상 PR로 제출한다.
+- 앞선 PR #294·#301은 dev에 병합됐다. 진행 차단 수정은 제출 직전 dev 74a8eec9를 반영한 fix/rehearsal-arrival에서 [PR #311](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/311)로 제출했다.
 
 ## JIRA
 - [CC-239](https://hrjoo122770.atlassian.net/browse/CC-239)
