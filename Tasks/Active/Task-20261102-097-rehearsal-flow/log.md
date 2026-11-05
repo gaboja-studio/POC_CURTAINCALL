@@ -96,3 +96,5 @@
 
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 2026-11-05 저장·제출 요청. Unity 종료 후 최신 origin/dev 1038a2db와 HEAD 차이0/0 재확인, 자동 생성 캐시는 별도 stash 보존. 타이머/원위치 복귀/외곽 벽 묶음을 fix/rehearsal-exit-safety에서 제출한다.
+
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/312 (fix/rehearsal-exit-safety → dev)
