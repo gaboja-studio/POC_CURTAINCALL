@@ -289,6 +289,28 @@ namespace CurtainCall.EscapeRoute.Tests
         }
 
         [Test]
+        public void ReturningWireLetsBouncingPlayerRiseAndThenSupportsLanding()
+        {
+            var wire = supports[0];
+            var point = wire.bounds.center;
+            var actor = Root("Bouncing player");
+            actor.transform.position = point + Vector3.down * 1.2f;
+            var body = actor.AddComponent<CharacterController>();
+            body.height = 1.5f;
+            body.radius = .3f;
+            body.center = Vector3.up * .75f;
+            wire.enabled = false;
+            Physics.SyncTransforms();
+            body.Move(Vector3.up * .1f);
+            wire.enabled = true;
+            Physics.SyncTransforms();
+            Call(coop, "UpdatePassThrough", body);
+            Assert.That(body.Move(Vector3.up * 2f) & CollisionFlags.Above, Is.EqualTo(CollisionFlags.None));
+            Call(coop, "UpdatePassThrough", body);
+            Assert.That(body.Move(Vector3.down * 2f) & CollisionFlags.Below, Is.EqualTo(CollisionFlags.Below));
+        }
+
+        [Test]
         public void SharedClockFlashesThreeTimesBeforeAllFourDropAndReturn()
         {
             var arcs = supports.Select(s => s.gameObject.AddComponent<LineRenderer>()).ToArray();
