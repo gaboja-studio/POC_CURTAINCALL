@@ -141,7 +141,7 @@ namespace CurtainCall.WaitingRoom
         bool HasAuthority => run != null && run.HasAuthority;
         static bool PracticePhase(CampaignPhase phase) => phase == CampaignPhase.RestTime || phase == CampaignPhase.Night;
         /// <summary>호스트가 연습실 안에 있고 이수했으며 리허설·재연습 중이 아니면 재연습을 고를 수 있다.</summary>
-        bool CanOfferPractice => !active && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
+        bool CanOfferPractice => !active && !WaitingRoomCannonRehearsal.IsActive && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
             && !SceneCurtainTransition.IsActive && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
             && !SpaceLinkDirector.Instance.IsTransitioning && ringFound
             && local != null && local.IsSpawned && local.State == PlayerState.Normal && InPracticeRoom(local.transform.position);
@@ -197,13 +197,12 @@ namespace CurtainCall.WaitingRoom
                 return;
             }
             if (!active) Activate();
-            // 리허설에서는 목마를 쓰지 않는다(사용자 2026-11-04).
-            PiggybackSystem.Suppressed = true;
+            // 모든 외줄 소구간에서 실제 공연의 목마 연결 규칙을 보존한다.
+            PiggybackSystem.Suppressed = false;
             EnsureLockdownProps();
             if (HasAuthority) HostTick();
             else if (stage < 0 && Clock >= nextSync) { Send(Operation.Sync); nextSync = Clock + 2d; }
             EnsureCourse();
-            ApplyGaps();
             LocalTick();
             TickMonitors();
         }
@@ -319,14 +318,27 @@ namespace CurtainCall.WaitingRoom
             courseRun = courseRoot.GetComponent<TightropeRun>();
             courseRun.SetExternallyManaged(true);
             courseRun.SetPracticeMode(true);
+            course.CompactPracticeLayout = true;
+            if (s.Kind == RehearsalStageKind.Trapeze)
+            {
+                var trapeze = courseRoot.GetComponent<TightropeTrapeze>() ?? courseRoot.AddComponent<TightropeTrapeze>();
+                trapeze.ConfigurePracticeLesson();
+            }
             if (courseRoot.GetComponent<RopeLaneJumpRules>() == null) courseRoot.AddComponent<RopeLaneJumpRules>();
+            // 공연 씬에 별도로 붙은 공통 기능도 모든 소구간에 원본 그대로 연결한다.
+            // 목마도 공연처럼 모든 외줄 소구간에서 같은 연결 규칙을 쓴다.
+            if (PiggybackSystem.Current == null || !PiggybackSystem.Current.isActiveAndEnabled)
+            {
+                var stack = courseRoot.AddComponent<PiggybackSystem>();
+                stack.SuppressLegacyFeedback = true;
+                courseRoot.AddComponent<PiggybackFollow>();
+            }
+            if (TightropeCatchSystem.Current == null) courseRoot.AddComponent<TightropeCatchSystem>();
+            if (courseRoot.GetComponent<TightropeBalancePoseView>() == null) courseRoot.AddComponent<TightropeBalancePoseView>();
+            if (courseRoot.GetComponent<TightropeHandholdRangeView>() == null) courseRoot.AddComponent<TightropeHandholdRangeView>();
             BuildPerformanceUi();
             courseRoot.SetActive(true);
-            course.SetIntermediatePlatformLanes(s.IntermediatePlatformLanes);
-            // 코스 값의 끊김 대신 구조도 자리에 그네를 놓는다(줄 끊김은 ApplyGaps가 뺀다).
-            courseRoot.GetComponent<TightropeSwingPole>()?.UseSpots(s.Swings);
-            // 트리거 그네는 공연 해제봉을 구조도 자리에 놓는다(조작·매달리기는 공연 그대로).
-            courseRoot.GetComponent<TightropeRelayGate>()?.UseSpots(RelaySpots(s));
+            // 공연의 활성 모드를 그대로 쓴다. 휴면 일반 그네/지정 자리 해제봉을 켜지 않는다.
             courseStarted = false;
             Debug.Log($"[Rehearsal] 소구간 {s.Id} 코스 생성(회차 {round})");
         }
@@ -374,7 +386,12 @@ namespace CurtainCall.WaitingRoom
                 if (player == null || !player.IsSpawned || player.State == PlayerState.Retired) continue;
                 participants.Add(player.OwnerClientId);
                 // 소유자 배치와 호스트 위치 수신을 확인하기 전에는 이전 소구간 좌표를 판정하지 않는다.
-                if (placed.Contains(player.OwnerClientId) && IsFinished(player)) changed |= arrived.Add(player.OwnerClientId);
+                if (placed.Contains(player.OwnerClientId))
+                {
+                    changed |= ObserveLesson(player);
+                    if (LearnedSkill(player) && (s.Kind == RehearsalStageKind.Trapeze || IsFinished(player)))
+                        changed |= arrived.Add(player.OwnerClientId);
+                }
             }
             changed |= arrived.RemoveWhere(id => !participants.Contains(id)) > 0;
             changed |= placed.RemoveWhere(id => !participants.Contains(id)) > 0;
@@ -390,6 +407,7 @@ namespace CurtainCall.WaitingRoom
         void AdvanceStage()
         {
             arrived.Clear(); votes.Clear(); placed.Clear(); participantCount = 0;
+            lessonProgress.Clear(); lessonSamples.Clear(); lessonRound = -1;
             stage++;
             if (practice && stage >= RehearsalStage.All.Length)
             {
@@ -424,7 +442,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>도착대 위에 서 있는지(위치 기준, 모든 화면이 같은 코스를 가진다).</summary>
         bool IsFinished(NetworkPlayer player)
         {
-            if (course == null || player.State == PlayerState.Fallen) return false;
+            if (course == null || player.State != PlayerState.Normal || player.IsAirborne) return false;
             var p = player.transform.position;
             return course.HasReachedFinish(p) && Mathf.Abs(course.GetSide(p)) <= (course.LaneCount - 1) * course.Shape.LaneSpacing * .5f + course.Shape.SideMargin
                 && Mathf.Abs(p.y - course.transform.position.y) < .8f
@@ -458,7 +476,7 @@ namespace CurtainCall.WaitingRoom
         void Publish(ulong? only = null)
         {
             if (messaging == null || session == null || !session.IsHost) return;
-            using var writer = new FastBufferWriter(256, Allocator.Temp);
+            using var writer = new FastBufferWriter(1024, Allocator.Temp);
             writer.WriteValueSafe(version);
             writer.WriteValueSafe(stage);
             writer.WriteValueSafe(round);
@@ -473,6 +491,7 @@ namespace CurtainCall.WaitingRoom
             foreach (ulong id in arrived) writer.WriteValueSafe(id);
             writer.WriteValueSafe(votes.Count);
             foreach (ulong id in votes) writer.WriteValueSafe(id);
+            WriteLesson(writer);
             WriteVotes(writer);
             if (only.HasValue) messaging.SendNamedMessage(StateMessage, only.Value, writer, NetworkDelivery.ReliableSequenced);
             else messaging.SendNamedMessageToAll(StateMessage, writer, NetworkDelivery.ReliableSequenced);
@@ -528,6 +547,7 @@ namespace CurtainCall.WaitingRoom
             for (int i = 0; i < arrivals; i++) { reader.ReadValueSafe(out ulong id); arrived.Add(id); }
             reader.ReadValueSafe(out int count);
             for (int i = 0; i < count; i++) { reader.ReadValueSafe(out ulong id); votes.Add(id); }
+            ReadLesson(reader);
             ReadVotes(reader);
         }
     }

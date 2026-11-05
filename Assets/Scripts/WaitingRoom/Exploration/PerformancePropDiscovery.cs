@@ -23,6 +23,7 @@ namespace CurtainCall.WaitingRoom
 
         public string TrickId => trickId;
         public string TrickName => trickName;
+        public System.Collections.Generic.IReadOnlyList<GameObject> PracticeProps => practiceProps ?? System.Array.Empty<GameObject>();
         public bool Unlocked => CampaignRun.Instance != null && CampaignRun.Instance.IsTrickUnlocked(trickId);
         /// <summary>런 진행 중이고 아직 열리지 않아 획득할 수 있는지.</summary>
         public bool CanAcquire => !Unlocked && CampaignRun.Instance != null && CampaignRun.Instance.State.IsRunning;
@@ -51,6 +52,12 @@ namespace CurtainCall.WaitingRoom
             shownUnlocked = unlocked;
             SetActive(mapProps, !unlocked);
             SetActive(practiceProps, unlocked);
+            if (unlocked && trickId == CampaignSnapshot.HumanCannonId && practiceProps != null)
+                foreach (var prop in practiceProps)
+                    if (prop != null && (prop.GetComponentInChildren<CurtainCall.HumanCannon.HumanCannonStation>(true) != null
+                        || prop.name.IndexOf("cannon", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                        && prop.GetComponent<RehearsalCannonPracticeStation>() == null)
+                        prop.AddComponent<RehearsalCannonPracticeStation>();
         }
 
         static void SetActive(GameObject[] list, bool on)
@@ -61,6 +68,8 @@ namespace CurtainCall.WaitingRoom
 
         // 획득 안내(모든 화면). 기존 패널 이미지로 만든 안내 패널을 쓴다.
         void ShowGuide() => WaitingRoomGuidePanel.Show(WaitingRoomText.Format("narration.performance-unlocked-title", "{trick} 획득!", ("trick", trickName)),
-            WaitingRoomText.Format("narration.performance-unlocked-body", "'{trick}' 공연이 해금되었습니다. 이제 스케줄표에서 {trick} 공연을 편성할 수 있습니다.\n획득한 {trick}·트램펄린은 연습실로 옮겨졌습니다.", ("trick", trickName)), noticeSeconds);
+            WaitingRoomText.Format(trickId == CampaignSnapshot.HumanCannonId ? "narration.cannon-unlocked-body" : "narration.performance-unlocked-body",
+                trickId == CampaignSnapshot.HumanCannonId ? "'{trick}' 공연이 해금되었습니다. 스케줄표에서 처음 확정하기 전에 리허설을 이수해야 합니다.\n획득한 {trick}·트램펄린은 연습실로 옮겨졌습니다."
+                    : "'{trick}' 공연이 해금되었습니다. 이제 스케줄표에서 {trick} 공연을 편성할 수 있습니다.\n획득한 {trick}·트램펄린은 연습실로 옮겨졌습니다.", ("trick", trickName)), noticeSeconds);
     }
 }

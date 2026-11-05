@@ -50,7 +50,8 @@ namespace CurtainCall.UI.SceneIntegration
         {
             var space = CommonUiSceneLoader.CurrentWaitingRoom;
             var run = CampaignRun.Instance;
-            bool active = space != null && run != null && (run.State.Phase == CampaignPhase.RestTime || run.State.Phase == CampaignPhase.Night);
+            bool active = space != null && run != null && !WaitingRoomCannonRehearsal.IsActive
+                && (run.State.Phase == CampaignPhase.RestTime || run.State.Phase == CampaignPhase.Night);
             AttachAnnouncer(active ? space.Announcer : null);
             AttachCarry(active ? PropCarry.Instance : null);
             AttachOthers(active ? WaitingRoomShop.Instance : null, active ? ExplorationState.Instance : null);
