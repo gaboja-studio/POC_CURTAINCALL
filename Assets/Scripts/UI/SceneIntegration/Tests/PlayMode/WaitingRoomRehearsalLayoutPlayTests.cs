@@ -78,17 +78,16 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 
         static void AssertRehearsalRelay(Component course)
         {
-            Assert.IsTrue((bool)Get(course, "HasRelayGap"));
+            Assert.AreEqual(2, Get(course, "LaneCount"));
             Assert.IsFalse((bool)Get(course, "HasSwingGap"));
             Assert.IsFalse((bool)Get(course, "HasTrapezeGap"));
             Assert.IsTrue((bool)Get(RelayGate, "IsActive"));
-            Assert.IsFalse((bool)Priv(RelayGate, "UsesSpots"), "공연 네 봉/무작위 연결 규칙을 사용해야 한다");
-            Assert.AreEqual(4, Get(RelayGate, "PoleCount"));
-            for (int i = 0; i < 4; i++)
-            {
-                Assert.AreEqual(i >= 2, Call(RelayGate, "IsFarPole", i));
-                Assert.AreEqual(i % 2 == 0 ? 0 : 2, Call(RelayGate, "PoleLane", i), "네 줄에 맞춘 원본 해제봉 배치");
-            }
+            Assert.IsTrue((bool)Priv(RelayGate, "UsesSpots"));
+            Assert.AreEqual(1, Get(RelayGate, "PoleCount"));
+            Assert.AreEqual(0, Call(RelayGate, "PoleLane", 0));
+            Assert.IsFalse((bool)Call(RelayGate, "IsFarPole", 0));
+            Assert.AreEqual(12f, Call(Get(course, "Layout"), "GetLaneEnd", 0));
+
         }
 
         [UnityTest]
@@ -171,7 +170,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
                 yield return WaitStage(0, 10f);
                 var ids = new[] { "1", "2-1", "2-2", "2-3", "3" };
-                var kinds = new[] { "Balance", "LaneChange", "Relay", "Piggyback", "Trapeze" };
+                var kinds = new[] { "LaneChange", "SinglePole", "ConsecutivePoles", "Relay", "Trapeze" };
                 for (int stage = 0; stage < ids.Length; stage++)
                 {
                     if (stage > 0) yield return JumpStage(stage);
@@ -181,15 +180,21 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     Assert.AreEqual(stage == 3 ? "Anyone" : "EveryoneOrMajority", Priv(Priv(Rehearsal, "Stage"), "Rule").ToString());
                     Assert.IsFalse((bool)Static("CurtainCall.Tightrope.PiggybackSystem", "Suppressed"), "공연 목마 연결 규칙 유지");
                     Assert.IsFalse((bool)Priv(course.GetComponent(T("CurtainCall.Tightrope.TightropeSwingPole")), "HasGap"), "실제 공연의 휴면 일반 그네를 켜지 않는다");
-                    Assert.IsNull(course.transform.Find("Generated/IntermediatePlatform_Lane0"));
-                    if (stage == 2) AssertRehearsalRelay(course);
+                    Assert.AreEqual(stage == 0, course.transform.Find("Generated/IntermediatePlatform_Lane0") != null);
+                    if (stage == 3) AssertRehearsalRelay(course);
                     else if (stage == 4) AssertRehearsalTrapeze(course);
+                    else if (stage is 1 or 2)
+                    {
+                        Assert.AreEqual(1, Get(course, "LaneCount"));
+                        Assert.IsTrue((bool)Get(course, "HasTrapezeGap"));
+                        Assert.AreEqual(stage, Get(course.GetComponent(T("CurtainCall.Tightrope.TightropeTrapeze")), "PoleCount"));
+                    }
                     else
                     {
-                        Assert.IsFalse((bool)Get(course, "HasRelayGap"));
-                        Assert.IsFalse((bool)Get(course, "HasTrapezeGap"));
-                        for (int lane = 0; lane < (int)Get(course, "LaneCount"); lane++)
-                            Assert.IsTrue((bool)Call(course, "IsLaneUsable", lane, (float)Get(course, "FinishDistance") * .5f));
+                        Assert.AreEqual(2, Get(course, "LaneCount"));
+                        Assert.AreEqual(22f, Call(Get(course, "Layout"), "GetLaneEnd", 0));
+                        Assert.IsTrue((bool)Call(course, "IsLaneUsable", 1, 30f));
+                        Assert.IsFalse((bool)Call(course, "IsLaneUsable", 0, 30f));
                     }
                     yield return CaptureWholeCourse(course, stage);
                 }
@@ -211,13 +216,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             try
             {
                 yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
-                yield return JumpStage(2);
+                yield return JumpStage(3);
                 var course = (Component)Priv(Rehearsal, "course");
                 AssertRehearsalRelay(course);
-                yield return HoldRelayPole(course, 0, (int)Call(RelayGate, "PoleLane", 0), (float)Get(RelayGate, "EntryDistance"));
+                yield return HoldRelayPole(course, 0, (int)Call(RelayGate, "PoleLane", 0), 11f);
                 int opened = (int)Call(RelayGate, "OpenedLane", 0);
                 Assert.AreNotEqual(Call(RelayGate, "PoleLane", 0), opened);
-                Assert.AreNotEqual(Call(RelayGate, "PoleLane", 1), opened);
+                Assert.AreEqual(1, opened);
+                Assert.IsFalse(Blocked(course, 1, 16f), "점유 복제 상태로 실제 줄이 열림");
                 Assert.IsTrue((bool)Call(RelayGate, "IsLaneConnected", opened));
                 Assert.IsTrue((bool)Call(RelayGate, "IsUnlimitedHold", 0), "30초 제한만 제외한다");
                 var state = Priv(((Array)Priv(RelayGate, "stations")).GetValue(0), "State");
@@ -225,6 +231,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(LocalId, Call(RelayGate, "HolderAt", 0), "30초 뒤에도 점유 유지");
                 ReleaseRelayPole(0); yield return null; yield return null;
                 Assert.IsFalse((bool)Call(RelayGate, "IsLaneConnected", opened), "놓으면 공연처럼 즉시 연결이 끊긴다");
+                Assert.IsTrue(Blocked(course, 1, 16f));
                 yield return JumpStage(4);
                 AssertRehearsalTrapeze((Component)Priv(Rehearsal, "course"));
                 Assert.IsTrue((bool)Call(Rehearsal, "TryClearCurrentStage"));
@@ -240,14 +247,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         public IEnumerator W6_Rehearsal_ExitRouteSmoke()
         {
             FreshTutorial();
-            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
+            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Base"));
             T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
             System.IO.Directory.CreateDirectory(AuditDirectory);
             var gameView = UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView"));
             bool maximized = gameView.maximized; gameView.maximized = true; gameView.Focus();
             try
             {
-                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoom");
+                yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
                 yield return JumpStage(4);
                 // 출구 길안내 검사를 위한 완료 준비. 이후 이동은 실제 입력이다.
                 Assert.IsTrue((bool)Call(Rehearsal, "TryClearCurrentStage"));

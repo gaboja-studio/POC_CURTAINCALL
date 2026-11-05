@@ -225,7 +225,7 @@ MonoBehaviour:
     chaseEnabled: 1
     chaseDelay: 10
     chaseStart: -6
-    chaseSpeed: 1
+    chaseSpeed: 0.5
     safeDistance: 165
     warningSeconds: 2.5
     triggerMode: 1

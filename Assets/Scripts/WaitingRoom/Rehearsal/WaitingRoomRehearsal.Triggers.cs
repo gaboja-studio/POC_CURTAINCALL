@@ -27,6 +27,17 @@ namespace CurtainCall.WaitingRoom
         int lessonRound = -1;
         byte Progress(ulong id) => lessonProgress.TryGetValue(id, out byte value) ? value : (byte)0;
 
+        // 각 화면이 동일한 원본 봉의 복제 점유 상태를 읽어 메시와 지지면을 함께 바꾼다.
+        void UpdateTriggerGeometry()
+        {
+            if (course == null || Stage?.Kind != RehearsalStageKind.Relay) return;
+            var relay = course.GetComponent<TightropeRelayGate>();
+            bool connected = relay != null && relay.IsLaneConnected(1);
+            bool blocked = course.IsSegmentBlocked(1, 16f);
+            if (connected && blocked) course.ClearBlockedSegments();
+            else if (!connected && !blocked) course.BlockSegment(1, 12f, 20f, false);
+        }
+
         // 클라이언트의 성공 요청 대신 원본의 복제된 행동 상태를 호스트가 확인한다.
         bool ObserveLesson(NetworkPlayer player)
         {
@@ -58,8 +69,8 @@ namespace CurtainCall.WaitingRoom
             var relay = TightropeRelayGate.Current;
             if (Stage.Kind == RehearsalStageKind.Relay && relay != null && relay.IsActive)
             {
-                if (onRope && (relay.OutboundOpen || relay.ReturnOpen) && distance > relay.GapFrom && distance < relay.GapTo) sample.RelayEntered = true;
-                if (sample.RelayEntered && onRope && distance >= relay.GapTo) value |= RelayCrossed;
+                if (onRope && lane == 1 && relay.IsLaneConnected(1) && distance > 12f && distance < 20f) sample.RelayEntered = true;
+                if (sample.RelayEntered && onRope && lane == 1 && distance >= 20f) value |= RelayCrossed;
             }
             var stack = PiggybackSystem.Current;
             var below = stack != null ? stack.GetBelow(player) : null;
@@ -91,7 +102,7 @@ namespace CurtainCall.WaitingRoom
                 }
             }
             var trapeze = TightropeTrapeze.Current;
-            if (Stage.Kind == RehearsalStageKind.Trapeze && trapeze != null)
+            if (Stage.UsesPoles && trapeze != null)
             {
                 int pole = trapeze.HeldPole(player);
                 if (pole == 0) value |= HeldFirst;
@@ -110,6 +121,8 @@ namespace CurtainCall.WaitingRoom
             {
                 RehearsalStageKind.Balance => true, // 짧은 외줄의 실제 도착 자체가 이동/균형 과제다.
                 RehearsalStageKind.LaneChange => (value & ChangedLane) != 0,
+                RehearsalStageKind.SinglePole => (value & Flew) != 0,
+                RehearsalStageKind.ConsecutivePoles => (value & CaughtNext) != 0,
                 RehearsalStageKind.Relay => (value & RelayCrossed) != 0,
                 RehearsalStageKind.Piggyback => (value & (Carried | JumpedFromShoulders)) == (Carried | JumpedFromShoulders),
                 RehearsalStageKind.Trapeze => (value & CaughtNext) != 0,

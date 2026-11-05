@@ -9,9 +9,9 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 오른쪽 아래 투표 패널 두 가지(사용자 2026-11-04).
-    /// ① 리허설 넘기기: 리허설 중 전체 인원의 과반이 동의하면 "리허설이 종료됩니다." 안내 → 페이드 아웃·인 → 첫 외줄 공연.
-    ///   재연습 중이면 공연 대신 연습만 끝낸다.
+    /// 오른쪽 아래 투표 패널 두 가지(기획서 v19).
+    /// ① 구간 넘기기: 최소 한 명이 도착한 뒤 전체 인원의 과반이 동의하면 현재 소구간만 완료한다.
+    ///   마지막 구간 뒤에는 길안내·집결을 거쳐 첫 공연으로 이동한다.
     /// ② 리허설 다시 하기: 이수 뒤 연습실 외줄을 상호작용하면 열린다. 전원이 동의하면 외줄 리허설 재연습(1일차·공연으로 이어지지 않음),
     ///   한 명이라도 미동의하면 취소한다.
     /// 판정은 호스트가 하고 기존 상태 메시지로 모두에게 알린다.
@@ -104,16 +104,9 @@ namespace CurtainCall.WaitingRoom
 
         void HostSetSkipVote(ulong id, bool value)
         {
-            if (!active || completed || ending || !IsVoter(id)) return;
-            bool changed = value ? skipVotes.Add(id) : skipVotes.Remove(id);
-            voterCount = CountVoters();
-            if (skipVotes.Count > voterCount / 2)
-            {
-                ending = true; endingAt = Clock + EndingNoticeSeconds + EndingFadeSeconds;
-                Debug.Log($"[Rehearsal] 리허설 넘기기 통과 {skipVotes.Count}/{voterCount}");
-                changed = true;
-            }
-            if (changed) { version++; Publish(); }
+            // v19: 한 명이 도착한 현재 소구간만 넘긴다. 첫 공연은 완료 뒤 집결로 진입한다.
+            if (ending || !IsVoter(id)) return;
+            SetVote(id, value);
         }
 
         void HostFinishSkip()
@@ -231,13 +224,12 @@ namespace CurtainCall.WaitingRoom
                     new RehearsalVotePanel.Choice(WaitingRoomText.Get("rehearsal.practice-vote.disagree", "미동의"), true, () => AnswerPractice(false)));
                 return;
             }
-            bool offerSkip = active && !completed && !ending && local != null && local.IsSpawned && !SceneCurtainTransition.IsActive;
+            bool offerSkip = CanVote && !ending && !SceneCurtainTransition.IsActive;
             if (!offerSkip) { votePanel.Hide(); return; }
-            bool voted = skipVotes.Contains(me);
+            bool voted = votes.Contains(me);
             votePanel.Show(WaitingRoomText.Get("rehearsal.skip.title", "리허설 넘기기"),
-                WaitingRoomText.Format(practice ? "rehearsal.skip.body-practice" : "rehearsal.skip.body",
-                    practice ? "과반수가 동의하면 연습을 마칩니다. (동의 {votes}/{required})" : "과반수가 동의하면 리허설을 마치고 바로 공연을 시작합니다. (동의 {votes}/{required})",
-                    ("votes", skipVotes.Count), ("required", required)),
+                WaitingRoomText.Format("rehearsal.skip.body", "과반수가 동의하면 현재 구간을 마치고 다음 단계로 이동합니다. (동의 {votes}/{required})",
+                    ("votes", votes.Count), ("required", required)),
                 new RehearsalVotePanel.Choice(WaitingRoomText.Get(voted ? "rehearsal.skip.cancel" : "rehearsal.skip.agree", voted ? "동의 취소" : "리허설 넘기기"), true, () => RequestSkip(!voted)));
         }
 

@@ -1,8 +1,8 @@
 # Project Pitfalls
 
-- [escape-view-and-injured-steps.md](escape-view-and-injured-steps.md) — 외줄 자유 시선의 조작/게이지 방향과 절단 후 필수 단차를 확인할 때
+- [escape-view-and-injured-steps.md](escape-view-and-injured-steps.md) — 외줄 시선 조작·출발 정렬·매달림 카메라 압착·절단 후 단차를 확인할 때
 
-- [waiting-room-panel-font-owner.md](waiting-room-panel-font-owner.md) — 공연·밤 전환 뒤 퀘스트가 비거나 패널 폰트가 삭제될 때
+- [waiting-room-panel-font-owner.md](waiting-room-panel-font-owner.md) — 공연·밤 전환 뒤 패널이 비거나 새 방의 안내 잠금·재연습 설명 덮임이 발생할 때
 
 - [escape-inspection-state.md](escape-inspection-state.md) — 자유비행 중 리타이어되거나 메뉴에서 관전 대상이 바뀔 때
 
@@ -51,7 +51,7 @@
 - [third-party-first-import-rewrite.md](third-party-first-import-rewrite.md) — 새 worktree 첫 import 때 외부 에셋 씬이 빈 씬으로 덮이고 머티리얼 ~220개가 변환된다. 에디터를 닫고 서브모듈 복구. PR 스크립트가 "저장하지 않은 변경"으로 막힐 때
 - [ubuntu-git-executable-resolution.md](ubuntu-git-executable-resolution.md) — Ubuntu CI에서 Git 실행 경로가 여러 개로 반환되어 PowerShell 회귀가 실패할 때
 - [powershell-error-output-wrapping.md](powershell-error-output-wrapping.md) — PowerShell 오류 출력의 줄바꿈 때문에 예상 거부 정규식이 불일치할 때
-- [remote-player-judged-before-placement.md](remote-player-judged-before-placement.md) — 공연 씬 로드 직후 호스트가 원격의 옛 위치로 사망 판정한다. 연결 공연에서 참가자만 시작부터 죽어 있을 때
+- [remote-player-judged-before-placement.md](remote-player-judged-before-placement.md) — 공연/대포 리허설 배치 승인 전 옛 위치로 사망하거나 외줄 소구간이 잘못 완료될 때
 - [demo-ui-includes-hud.md](demo-ui-includes-hud.md) — Demo 이름의 줄타기 UI를 통째로 끄면 HUD·게이지도 사라진다. 연결 모드에서 시연 UI를 숨길 때
 - [changed-subscriber-advances-campaign.md](changed-subscriber-advances-campaign.md) — Changed 알림 안에서 구독자가 런을 진행시킬 수 있어 알림 뒤 공연 좌표를 재확인. 런·보상 이벤트를 보낸 뒤 이어서 종료·정산 처리할 때
 - [inactive-root-component-scan.md](inactive-root-component-scan.md) — 비활성 루트에서 GetComponentsInChildren()이 꺼진 원본까지 반환한다. 원본을 꺼서 보존하고 복제본을 찾는 코드를 쓸 때

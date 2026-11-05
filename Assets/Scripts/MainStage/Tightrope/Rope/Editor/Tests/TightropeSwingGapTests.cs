@@ -105,6 +105,53 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             Assert.IsFalse(SwingPoleMath.InCatchWindow(origin, origin, Vector3.right, 0f, 1.1f));
         }
 
+        [TestCase(true, -40f, 80f, false)]
+        [TestCase(true, 0f, 80f, false)]
+        [TestCase(true, 39.99f, 80f, false)]
+        [TestCase(true, 40f, 80f, true)]
+        [TestCase(true, 80f, 80f, true)]
+        [TestCase(true, 29.99f, 60f, false)]
+        [TestCase(true, 30f, 60f, true)]
+        [TestCase(false, 80f, 80f, false)]
+        public void RehearsalAssistStartsAtHalfTheForwardMaximumOnly(bool practice, float angle, float maximum, bool expected)
+        {
+            var momentum = new Vector3(0f, 6f, -1f);
+            bool assisted = SwingPoleMath.TryPracticeFlightVelocity(practice, angle, maximum,
+                Vector3.up, new Vector3(0f, 1f, 8f), momentum, Vector3.forward, 9.81f, 1.5f,
+                out var velocity, out var limit);
+            Assert.AreEqual(expected, assisted);
+            if (!assisted) { Assert.AreEqual(momentum, velocity); Assert.AreEqual(0f, limit); }
+        }
+
+        [TestCase(.6f, 0f, 10f, 0f)] // 낮은 봉 → 건너편 줄, 정점에서 속도가 없어도 건넌다.
+        [TestCase(.6f, .6f, 8f, -2f)] // 연속 낮은 봉, 앞쪽 반에서 돌아오는 중에도 건넌다.
+        [TestCase(2.5f, 3.1f, 8f, 1f)] // 높은 봉 → 다음 봉.
+        [TestCase(1.05f, 3.1f, 8f, -2f)] // 아래 매달린 동료 → 다음 봉.
+        [TestCase(2.5f, 1.65f, 8f, 2f)] // 다음 봉에 먼저 매달린 동료 잡기.
+        public void RehearsalAssistKeepsNativeGravityAndReachesTheTarget(float height, float targetHeight, float range, float momentum)
+        {
+            const float gravity = 9.81f, hangLength = 1.5f;
+            var origin = new Vector3(17f, height, -30f);
+            var target = origin + Vector3.right * range + Vector3.up * (targetHeight - height);
+            Assert.IsTrue(SwingPoleMath.TryPracticeFlightVelocity(true, 40f, 80f, origin, target,
+                new Vector3(momentum, 6f, 0f), Vector3.right, gravity, hangLength, out var launch, out var limit));
+            Assert.That(launch.sqrMagnitude, Is.LessThanOrEqualTo(400f), "기존 원격 비행 패킷의 속도 검증 범위");
+            float duration = range / limit;
+            foreach (int fps in new[] { 30, 120 })
+            {
+                var position = origin; var velocity = launch;
+                int steps = Mathf.CeilToInt(duration * fps);
+                for (int i = 0; i < steps; i++)
+                    position += BallisticMotion.Step(ref velocity, Vector3.zero, gravity, duration / steps);
+                Assert.That(Vector3.Distance(position, target), Is.LessThan(.002f));
+                Assert.Less(velocity.y, 0f, "하강하면서 줄/잡기 높이에 닿는다.");
+            }
+            Assert.That(origin.y + launch.y * launch.y / (2f * gravity),
+                Is.LessThanOrEqualTo(Mathf.Max(height, targetHeight) + hangLength + .001f));
+            Assert.That(SwingPoleMath.PoleFlightSpeedLimit(origin, target, Vector3.right, launch.y, gravity),
+                Is.EqualTo(limit).Within(.001f), "참가자도 공유된 탄도에서 같은 수평 상한을 복원한다.");
+        }
+
         [Test]
         public void ClearingFireDoesNotRestoreTheStructuralGapAndHostShapeKeepsIt()
         {

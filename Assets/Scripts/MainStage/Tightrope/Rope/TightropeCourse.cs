@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.Campaign;
+using CurtainCall.Damage;
 using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
@@ -62,7 +63,25 @@ namespace CurtainCall.Tightrope
         [SerializeField] TightropeSettings.CourseSettings sceneShape = new();
         [Tooltip("줄 번호 순서의 지지 충돌체. 각 줄은 연속된 충돌체 하나를 사용한다.")]
         [SerializeField] Collider[] sceneRopes = Array.Empty<Collider>();
+        [Tooltip("실제 착지 시 목마를 안전하게 해제할 발판. 지정하지 않으면 기존 목마 규칙을 사용한다.")]
+        [SerializeField] BoxCollider[] piggybackDismountPlatforms = Array.Empty<BoxCollider>();
         public bool UsesSceneGeometry => useSceneGeometry;
+
+        internal BoxCollider PiggybackDismountSupport(NetworkPlayer carrier)
+        {
+            if (piggybackDismountPlatforms.Length == 0 || carrier == null || carrier.State != PlayerState.Normal
+                || carrier.IsAirborne || !carrier.TryGetComponent(out PlayerMover mover)
+                || !mover.Body.enabled || (carrier.IsLocal && (!mover.Simulated || mover.IsAirborne))) return null;
+
+            // 허공이나 발판 옆면은 통과하지 않는다. 줄과 발판이 맞닿는 곳에서는 실제 지지줄을 우선한다.
+            var origin = carrier.transform.position + Vector3.up * .12f;
+            foreach (var platform in piggybackDismountPlatforms)
+                if (platform != null && platform.enabled && platform.gameObject.activeInHierarchy && !platform.isTrigger
+                    && platform.Raycast(new Ray(origin, Vector3.down), out var hit, .24f) && hit.normal.y > .9f
+                    && !TryGetSupportingRope(mover, out _))
+                    return platform;
+            return null;
+        }
 
         /// <summary>모든 맵에서 실제 외줄 조작 중인 사람에게만 균형·부상 규칙을 적용한다.</summary>
         public bool UsesRopeRules(NetworkPlayer player)
@@ -141,6 +160,11 @@ namespace CurtainCall.Tightrope
         /// <summary>코스 오른쪽(수평, 정규화).</summary>
         public Vector3 Right => Vector3.Cross(Vector3.up, Forward);
 
+        /// <summary>등록된 코스의 줄 지지면만 식별한다. 발판·벽은 제외하며 코스 없는 씬을 탐색하지 않는다.</summary>
+        public static bool IsRopeSurface(Collider surface) => surface != null && current != null &&
+            (current.ropeSurfaces.ContainsKey(surface)
+                || current.useSceneGeometry && Array.IndexOf(current.sceneRopes, surface) >= 0);
+
         /// <summary>사망한 몸이 줄의 보행용 지지면에 걸리지 않고 아래로 떨어지게 한다. 플랫폼 충돌은 유지한다.</summary>
         public void IgnoreRopeCollision(Collider body)
         {
@@ -216,6 +240,9 @@ namespace CurtainCall.Tightrope
                 var hit = hits[i];
                 if (hit.collider == null || hit.collider.transform.IsChildOf(mover.transform)
                     || hit.distance <= .0001f) continue;
+                // 톱에 잘려 날아간 팔다리 조각은 바닥이 아니다. 발밑에 걸려 줄 조작이 풀렸다 다시 잡히면
+                // 진행 방향을 카메라 방향으로 새로 정해 뒤집힐 수 있다(2026-11-05 버그).
+                if (DismemberedLimb.Contains(hit.collider)) continue;
                 // 검사는 발보다 0.1m 위에서 시작한다. 처음부터 겹친 몸/절단 조각은
                 // 발 아래 지지면이 아니므로 거리 0의 가짜 바닥으로 선택하지 않는다.
                 int candidate = ropeSurfaces.TryGetValue(hit.collider, out int ropeLane) ? ropeLane : NoLane;
@@ -340,7 +367,11 @@ namespace CurtainCall.Tightrope
         /// <summary>자리 번호의 도착(세리머니 공간) 위치·방향. 자기 줄 자리, 도착선 뒤 세리머니 공간 가운데(최대 2m).</summary>
         public Pose GetFinishPose(int slot)
         {
-            int lane = Mathf.Max(0, slot) % LaneCount;
+            int available = 0;
+            for (int i = 0; i < LaneCount; i++) if (Layout.GetLaneEnd(i) >= FinishDistance) available++;
+            int lane = 0, chosen = Mathf.Max(0, slot) % Mathf.Max(1, available);
+            for (int i = 0; i < LaneCount; i++)
+                if (Layout.GetLaneEnd(i) >= FinishDistance && chosen-- == 0) { lane = i; break; }
             float distance = FinishDistance + Mathf.Clamp(Shape.FinishPlatformLength * 0.5f, 0.5f, 2f);
             return new Pose(GetLanePosition(lane, distance), Quaternion.LookRotation(Forward, Vector3.up));
         }
@@ -377,6 +408,7 @@ namespace CurtainCall.Tightrope
         {
             if (current == this) current = null;
             GameSettings.Tightrope.Changed -= HandleSettingsChanged;
+            ReleaseModelGrounding();
         }
 
         /// <summary>세팅이 바뀌면 다음 프레임에 다시 읽는다. 잠겨 있으면 풀릴 때 읽는다.</summary>
@@ -402,6 +434,7 @@ namespace CurtainCall.Tightrope
             }
             ApplyLaneSpacing();
             CheckLocalFall();
+            GroundPlayerModels();
         }
 
         /// <summary>
@@ -425,16 +458,16 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return;
             var player = NetworkPlayer.Local;
-            // 연습 모드는 줄 아래 바닥에 닿으며 일반 이동으로 바뀌어도 추락을 놓치지 않는다.
-            // 그렇지 않으면 상태가 Normal인 채 바닥에 남아 리허설 재시작을 받을 수 없다.
-            var practice = GetComponent<TightropeRun>();
-            if (!UsesRopeRules(player) && !(practice != null && practice.PracticeMode
-                && practice.State == TightropeRunState.Running)) return;
+            // 묘기 진행 중이면 줄 조작이 아니어도(줄에 오르기 전 시작 플랫폼, 줄 아래 바닥에 닿아 일반 이동으로 바뀐 경우)
+            // 줄 위 낙사와 같이 사망시킨다. 연습 모드에서도 Normal인 채 바닥에 남지 않아 리허설 재시작을 받는다(2026-11-05 사용자 요청).
+            var run = GetComponent<TightropeRun>();
+            if (!UsesRopeRules(player) && !(run != null && run.State == TightropeRunState.Running)) return;
             if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return;
             if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)) return;
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return;
             if (TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(player)) return; // 줄 아래에 매달려 버티는 중
             if (player == null || player.State != PlayerState.Normal) return;
+            if (PiggybackSystem.Current != null && PiggybackSystem.Current.HasDismountSupport(player)) return;
             if (!player.TryGetComponent(out PlayerMover mover) || !IsBelowFallDepth(mover)) return;
 
             if (player.TryGetComponent(out PlayerBalance balance) && balance.enabled)

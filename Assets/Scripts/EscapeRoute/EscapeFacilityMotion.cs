@@ -7,6 +7,7 @@ namespace CurtainCall.EscapeRoute
     public sealed class EscapeFacilityMotion : MonoBehaviour
     {
         [SerializeField] AnimationClip motion;
+        [SerializeField, Min(.01f)] float playbackSpeed = 1f;
         [SerializeField] EscapeCooperativeSpan bridge;
         [SerializeField] HumanCannonHazardCue flame;
         [SerializeField] EscapeExitSaw exit;
@@ -54,6 +55,9 @@ namespace CurtainCall.EscapeRoute
 
         void PresentVisible(HumanCannonHazardCourse course, double clock, float deltaTime)
         {
+            // Scale the decorative timeline, never the gameplay clock or bridge deployment.
+            clock *= playbackSpeed;
+            deltaTime *= playbackSpeed;
             float phase;
             if (bridge)
             {

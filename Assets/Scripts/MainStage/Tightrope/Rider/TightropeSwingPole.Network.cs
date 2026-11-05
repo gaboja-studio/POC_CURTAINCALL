@@ -71,9 +71,13 @@ namespace CurtainCall.Tightrope
                 || !float.IsFinite(input) || Mathf.Abs(input) > 1f || !float.IsFinite(returning) || Mathf.Abs(returning) > 85f
                 || course == null || slot < -1 || slot >= course.LaneCount
                 || (state != (byte)PoleMode.Idle && (slot != assignedLane || owner == Nobody))) return;
+            float displayedAngle = OwnAngle;
+            bool continuous = round == generation && mode == PoleMode.Holding && state == (byte)PoleMode.Holding && holder == owner;
             if (round != generation) { ResetLocal(); ResetState(); round = generation; }
             version = sequence; mode = (PoleMode)state; holder = owner; lane = slot; startedAt = start; changedAt = changed;
             angle = value; angularSpeed = speed; drive = input; returnAngle = returning; released = launch; pendingUntil = 0d;
+            Sample(out float predictedAngle, out _);
+            presentation.Receive(displayedAngle, predictedAngle, Time.unscaledTimeAsDouble, continuous, .1f);
             if (mode == PoleMode.Idle || holder != NetworkPlayer.Local?.OwnerClientId) localAbort = false;
             if (binding != null && mode != PoleMode.Holding && !AirCatchPending) EndBinding(released && binding.Player.OwnerClientId == holder);
         }

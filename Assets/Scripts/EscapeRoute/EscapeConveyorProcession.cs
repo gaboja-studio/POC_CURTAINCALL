@@ -34,6 +34,7 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, Min(0.01f)] float trackLength = 36f;
         [SerializeField] float cutAt = 18f;
         [SerializeField, Min(0.01f)] float speed = 2.25f;
+        [SerializeField, Min(.01f)] float playbackSpeed = 1f;
         [SerializeField] Vector3 intake;
         const float FeedSeconds = 1.35f;
         const float PieceDelay = .085f;
@@ -142,6 +143,7 @@ namespace CurtainCall.EscapeRoute
 
         void Present(double time)
         {
+            time *= playbackSpeed;
             float travel = (float)((time * speed) % trackLength);
             saw.localRotation = Quaternion.AngleAxis((float)(time % 1d) * 360f, Vector3.forward);
             for (int i = 0; i < carriers.Length; i++)

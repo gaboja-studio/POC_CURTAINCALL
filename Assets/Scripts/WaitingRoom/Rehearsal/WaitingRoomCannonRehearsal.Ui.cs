@@ -86,21 +86,53 @@ namespace CurtainCall.WaitingRoom
             if (arrived && walls == null) walls = course.CreateFinishWalls();
             if (walls != null) walls.SetActive(arrived);
             if (arrived) { quest.Hide(); return; }
-            string text;
-            var tramp = course.Trampoline;
-            bool carrier = tramp.Carrier == id;
-            if (!shared.middle.Contains(id)) text = T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요.");
-            else if (carrier && course.Route.IsRiding(id)) text = T("ride", "운송 발판이 아래층에 도착할 때까지 기다리세요.");
-            else if (carrier && local.transform.position.y > course.LowerFloor.bounds.max.y + 1f)
-                text = T("carry", "한 명이 트램펄린 손잡이를 F로 잡고, 트램펄린을 든 채 혼자 운송 발판에 올라서세요. 조건이 맞으면 자동으로 아래층으로 이동합니다.");
-            else if (carrier && shared.arrived.Count >= shared.participants.Count - 1)
-                text = T("self", "동료가 모두 도착했습니다. 머리 위가 빈 곳에서 F를 길게 눌러 트램펄린을 놓고, 천 위로 점프해 반동을 받으세요. WASD로 최종 도착대에 착지하세요.");
-            else if (carrier) text = T("catch", "동료의 낙하 지점으로 트램펄린을 옮겨 받아 주세요. 필요하면 반복해서 튕겨 올려 최종 도착대까지 보내세요.");
-            else if (course.Cannon.IsFlying(id)) text = T("air", "WASD로 동료의 트램펄린 위에 내려오세요. 반동을 받은 뒤 WASD로 최종 도착대에 착지하세요.");
-            else if (RehearsalCannonCourse.Contains(course.MiddleFloor, local.transform.position))
-                text = T("second", "한 명은 트램펄린과 운송 발판을 담당하세요. 다른 사람은 중간 도착대의 대포에 F로 타고 다시 F로 발사해, 아래층 동료의 트램펄린으로 내려가세요.");
-            else text = T("bounce", "트램펄린의 반동을 받아 WASD로 최종 도착대에 착지하세요. 놓인 트램펄린에는 천 위로 점프해 스스로 반동을 받을 수 있습니다.");
-            quest.Show(T("quest-title", "[tutorial] 인간대포와 트램펄린"), text);
+            if (!shared.middle.Contains(id))
+                quest.Show("[tutorial] 공연 준비", T("first", "F를 눌러 인간대포에 탑승한 뒤 건너편으로 건너가세요."));
+            else if (ReachedLowerArea())
+                quest.Show("[tutorial] 안전 지역으로 이동하기", "도착 지점에서는 추락 패널티 없이 안전하게 착지할 수 있습니다. 트램펄린을 이용해 안전 지역으로 이동하세요.");
+            else
+                quest.Show(T("quest-title", "[tutorial] 인간대포와 트램펄린"),
+                    T("second", "인간대포로 발사하고, 트램펄린을 이용해 안전하게 착지합니다. 다음 지점까지 이동하세요.\n*1명의 공연 준비자가 트램펄린을 이용해야 합니다."));
+        }
+
+        readonly System.Collections.Generic.HashSet<string> actionGuides = new();
+        readonly System.Collections.Generic.Queue<(string title, string body)> pendingGuides = new();
+        int guideRound = -1;
+        bool ReachedLowerArea()
+        {
+            Vector3 feet = local.transform.position;
+            var bounds = course.LowerFloor.bounds;
+            return shared.middle.Contains(local.OwnerClientId) && feet.y <= bounds.max.y + 1f
+                && feet.x >= bounds.min.x && feet.x <= bounds.max.x && feet.z >= bounds.min.z && feet.z <= bounds.max.z;
+        }
+
+        void QueueGuide(string key, string title, string body)
+        {
+            if (actionGuides.Add(key)) pendingGuides.Enqueue((title, body));
+        }
+
+        void TickActionGuides()
+        {
+            if (guideRound != shared.round) { guideRound = shared.round; actionGuides.Clear(); pendingGuides.Clear(); }
+            ulong id = local.OwnerClientId;
+            bool carrier = course.Trampoline.Carrier == id;
+            if (course.Cannon.FindBoardableStation(local) >= 0 || course.Cannon.IsSeated(id))
+                QueueGuide("cannon", "인간대포 발사하기", "인간대포 앞에서 F를 눌러 탑승합니다. 다시 F를 누르면 대포가 발사됩니다. 발사 후에는 트램펄린에 착지해야 합니다.");
+            if (shared.middle.Contains(id) && Vector3.Distance(local.transform.position, course.Trampoline.transform.position) < 4f)
+                QueueGuide("trampoline", "트램펄린 이용하기", "트램펄린 앞에서 F를 눌러 트램펄린을 잡습니다. 트램펄린 이용자는 대포로 발사되는 다른 공연 준비자를 안전하게 받아줘야 합니다.");
+            if (carrier)
+                QueueGuide("carry", "트램펄린 이용하기", "트램펄린을 쥔 상태에서 자유롭게 이동이 가능하며, 다시 F를 길게 누르면 트램펄린을 놓습니다.");
+            if (course.Route.IsRiding(id))
+            {
+                if (carrier) QueueGuide("catch", "받아주기", "트램펄린을 이용해 다른 공연 준비자를 받아주며 다음 장소까지 안전하게 이동합니다.");
+                // 원문의 최신 dev 원본 우선 규칙: 현재 공연은 과승 낙하 대신 출발을 거부한다.
+                QueueGuide("transport", "트램 이용하기", "트램은 자동으로 이동합니다. 한 명만 이용할 수 있으며, 두 명 이상 탑승하면 출발하지 않습니다.");
+            }
+            if (shared.bounced.Contains(id)) QueueGuide("bounce", "안전한 착지", "트램펄린을 이용해 안전하게 착지할 수 있습니다. 지면에 착지하지 않게 주의하세요.");
+            if (ReachedLowerArea()) QueueGuide("safe", "안전지역", "모든 공연 준비자가 도착 지점에 도착해야 합니다.");
+            if (pendingGuides.Count == 0 || WaitingRoomTutorialPanel.IsVisible) return;
+            var next = pendingGuides.Peek();
+            if (WaitingRoomTutorialPanel.Show(next.title, next.body, 10f)) pendingGuides.Dequeue();
         }
 
         void BeginEnding(bool success, bool skipped = false)
@@ -148,7 +180,9 @@ namespace CurtainCall.WaitingRoom
                     ? T("skipped", "리허설을 넘겼습니다. 이수로 기록되어 스케줄표에서 인간대포를 확정할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
                     : shared.successful
                     ? T("complete", "인간대포 리허설을 이수했습니다. 이제 스케줄표에서 인간대포를 확정할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
-                    : T("abandoned", "리허설을 포기했습니다. 이번 시도는 이수로 기록되지 않고, 다시 시작하면 처음부터 진행합니다."), 7f);
+                    : T("abandoned", "리허설을 포기했습니다. 이번 시도는 이수로 기록되지 않고, 다시 시작하면 처음부터 진행합니다."), 10f);
+                if (shared.successful)
+                    quest.Show("[tutorial] 리허설 종료", T("complete", "인간대포 리허설을 완료했습니다. 이제 인간대포 공연을 진행할 수 있습니다."));
             }
         }
 
