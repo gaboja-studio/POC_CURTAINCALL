@@ -180,7 +180,9 @@ namespace CurtainCall.WaitingRoom
                             input.Posture = mover.FreeMovement ? Vector3.Dot(delta.normalized, Vector3.Cross(Vector3.up, forward)) : 0;
                         }
                     }
-                    if (active.action == "auto" && brain != null)
+                    if (active.action == "auto" && WaitingRoomRehearsal.CurrentStage is 1 or 2)
+                        input = LowPoleLessonInput(player);
+                    else if (active.action == "auto" && brain != null)
                     {
                         input = brain.BuildInput();
                         var rope = TightropeCourse.Current;
@@ -204,10 +206,47 @@ namespace CurtainCall.WaitingRoom
             }
             if (now >= nextState) { nextState = now + .4; WriteState(); }
         }
+        int lowPoleFrom = -1, lowPoleRound = -1;
+        PlayerInputFrame LowPoleLessonInput(NetworkPlayer player)
+        {
+            // Development-only driver: uses the normal input path, never injects ownership, progress or a flight.
+            var input = new PlayerInputFrame();
+            var course = TightropeCourse.Current; var poles = TightropeTrapeze.Current;
+            if (course == null || poles == null || player.State != PlayerState.Normal) return input;
+            int round = (int)Read(Rehearsal, "round");
+            if (lowPoleRound != round) { lowPoleRound = round; lowPoleFrom = -1; }
+            if (Read(Rehearsal, "arrived") is System.Collections.Generic.HashSet<ulong> arrivals && arrivals.Contains(player.OwnerClientId)) return input;
+            int held = poles.HeldPole(player);
+            if (held >= 0)
+            {
+                lowPoleFrom = held;
+                float angle = poles.SwingAngle(held), speed = poles.SwingSpeed(held);
+                input.Move = angle > 65f ? -1f : angle < -65f ? 1f : speed < -.2f ? -1f : 1f;
+                input.ActionPressed = poles.CanLaunchTowardNext(held, poles.IsLower(player))
+                    && (poles.IsLower(player) || poles.PassengerAt(held) == ulong.MaxValue);
+            }
+            else if (poles.IsInFlight(player))
+            {
+                int next = lowPoleFrom + 1;
+                Vector3 target = next < poles.PoleCount ? poles.PoleFeet(next, poles.HolderAt(next) != ulong.MaxValue)
+                    : course.GetLanePosition(0, course.TrapezeGapTo + 1.2f);
+                input.Move = Mathf.Clamp(course.GetDistance(target) - course.GetDistance(player.transform.position), -1f, 1f);
+                input.Posture = Mathf.Clamp((target.x - player.transform.position.x) * 3f, -1f, 1f);
+                input.InteractTapped = next < poles.PoleCount && (poles.CanGrabPole(next, player) || poles.CanAttachToPole(next, player));
+            }
+            else
+            {
+                input.Move = 1f;
+                input.Posture = -Mathf.Clamp(player.GetComponent<PlayerBalance>().Value / 15f, -1f, 1f);
+                if (poles.CanGrabPole(0, player) || poles.CanAttachToPole(0, player)) { input.Move = 0f; input.InteractTapped = true; }
+            }
+            return input;
+        }
+
         void AssistTutorialStart(NetworkPlayer player, TightropeCourse rope, ref PlayerInputFrame input)
         {
             int stage = WaitingRoomRehearsal.CurrentStage;
-            if (stage == 2)
+            if (stage == 3)
             {
                 var relay = TightropeRelayGate.Current;
                 float relayDistance = rope.GetDistance(player.transform.position);
@@ -216,7 +255,7 @@ namespace CurtainCall.WaitingRoom
                     && NetworkPlayer.All.Where(p => p != null && p.State == PlayerState.Normal).All(p => rope.GetDistance(p.transform.position) >= relay.GapTo + .6f)) input.Move = 1f;
                 return;
             }
-            if (stage is not (3 or 4)) return;
+            if (stage != 4) return;
             var partner = NetworkPlayer.All.FirstOrDefault(p => p != null && p.Slot == active.partnerSlot);
             if (partner == null || partner.State != PlayerState.Normal) return;
             var stack = PiggybackSystem.Current; var trap = TightropeTrapeze.Current;

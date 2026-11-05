@@ -34,6 +34,15 @@ namespace CurtainCall.Tightrope
             {
                 var local = NetworkPlayer.Local;
                 if (!Active || local == null) return null;
+                if (practiceLowPoles)
+                {
+                    int held = HeldPole(local);
+                    if (held >= 0) return held + 1 < PoleTotal
+                        ? "W/S로 반동 · Space로 도약 · 다음 봉 가까이에서 F 잡기"
+                        : "W/S로 반동 · Space로 건너편 줄에 착지";
+                    if (IsInFlight(local)) return "WASD로 공중 조절 · 다음 봉 가까이에서 F · 건너편 줄에 착지하세요";
+                    return "줄 끝에서 F로 인간 그네 잡기";
+                }
                 if (FindHeld(local, out int index, out bool lower))
                 {
                     if (PoleTotal == 2 && index == 1) return "다음 봉 잡기 성공 · 연습을 마치고 도착대로 이동합니다";

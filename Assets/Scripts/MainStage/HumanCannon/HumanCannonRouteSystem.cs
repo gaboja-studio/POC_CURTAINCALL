@@ -113,6 +113,7 @@ namespace CurtainCall.HumanCannon
         {
             var local = NetworkPlayer.Local;
             if (local == null || !local.IsSpawned || local.transform.position.y >= fallHeight
+                || (cannon != null && !cannon.IsPracticeReady(local.OwnerClientId))
                 || local.State != PlayerState.Normal || (cannon != null && cannon.IsFlying(local.OwnerClientId))
                 || !EscapeDevelopmentSession.FallConsequencesSuppressed(local)) return;
             if (!local.TryGetComponent(out PlayerMover mover)) return;
@@ -143,7 +144,7 @@ namespace CurtainCall.HumanCannon
             // 코스 밖 낭떠러지 추락은 외줄타기 낙사와 같이 공용 사망(2026-11-03). 같은 추락은 한 번만 처리한다.
             foreach (var player in NetworkPlayer.All)
             {
-                if (player == null || !player.IsSpawned) continue;
+                if (player == null || !player.IsSpawned || (cannon != null && !cannon.IsPracticeReady(player.OwnerClientId))) continue;
                 if (player.transform.position.y >= fallHeight) { fallen.Remove(player.OwnerClientId); continue; }
                 if (player.State == PlayerState.Normal && fallen.Add(player.OwnerClientId)) HumanCannonSystem.ServerFallDeath(player);
             }

@@ -7,23 +7,24 @@ using UnityEngine.AI;
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
-    /// 바닥 길안내(기획서 5장). 내 발밑에서 목적지까지 흰 눈금선을 그리고 끝에만 화살표를 둔다. 대기실 씬은 NavMesh를 굽지 않으므로
+    /// 바닥 길안내(기획서 5장). 내 발밑에서 목적지까지 노란 점선과 3m 간격 화살표를 둔다. 대기실 씬은 NavMesh를 굽지 않으므로
     /// 처음 목적지를 받을 때 씬 충돌체로 임시 NavMesh를 한 번 굽는다(비동기). 완전한 경로가 없으면 안내를 숨긴다.
     /// 경로는 자주 다시 계산하되 시작점은 매 프레임 내 위치를 따라가 끊기지 않게 보인다(사용자 2026-11-03).
     /// </summary>
     public sealed class RehearsalPathGuide : MonoBehaviour
     {
-        const float RefreshSeconds = .1f, LineHeight = .12f, TickSpacing = 1f, LineWidth = .22f;
+        const float RefreshSeconds = .4f, LineHeight = .12f, TickSpacing = 1f, LineWidth = .22f;
         /// <summary>선이 발밑에서 떨어져 시작하는 거리(m).</summary>
         const float StartGap = .7f;
         /// <summary>발밑 바로 앞의 모서리는 버린다. 지나치는 순간 선이 튀는 것을 막는다.</summary>
         const float NearCornerSkip = .9f;
         static readonly Bounds WaitingRoomBounds = new(new Vector3(-10f, 8f, 80f), new Vector3(160f, 60f, 160f));
-        static readonly Color LineColor = new(1f, 1f, 1f, .95f);
+        static readonly Color LineColor = new(1f, .85f, .05f, 1f);
 
         Vector3? target;
         LineRenderer line;
         GameObject arrow;
+        readonly List<GameObject> routeArrows = new();
         Mesh arrowMesh;
         Material arrowMaterial;
         NavMeshData navData;
@@ -124,7 +125,7 @@ namespace CurtainCall.WaitingRoom
             if (firstDraw) VisibilityChanged?.Invoke(true);
         }
 
-        /// <summary>목적지 끝에만 진행 방향 화살표 하나를 둔다. 충돌체는 만들지 않는다.</summary>
+        /// <summary>경로와 목적지 끝에 진행 방향 화살표를 둔다. 충돌체는 만들지 않는다.</summary>
         void DrawEndArrow()
         {
             if (arrow == null)
@@ -147,12 +148,37 @@ namespace CurtainCall.WaitingRoom
             if (flat.sqrMagnitude < .01f) { arrow.SetActive(false); return; }
             arrow.SetActive(true);
             arrow.transform.SetPositionAndRotation(b + Vector3.up * .02f, Quaternion.LookRotation(flat.normalized, Vector3.up));
+            int count = 0;
+            float next = 3f;
+            for (int i = 1; i < points.Count; i++)
+            {
+                var span = points[i] - points[i - 1];
+                float length = span.magnitude;
+                if (Vector3.ProjectOnPlane(span, Vector3.up).sqrMagnitude < .0001f) continue;
+                while (next < length)
+                {
+                    if (count == routeArrows.Count)
+                    {
+                        var copy = Instantiate(arrow, transform);
+                        copy.name = "RehearsalRouteArrow";
+                        routeArrows.Add(copy);
+                    }
+                    var marker = routeArrows[count++];
+                    marker.SetActive(true);
+                    marker.transform.SetPositionAndRotation(points[i - 1] + span.normalized * next + Vector3.up * .02f,
+                        Quaternion.LookRotation(Vector3.ProjectOnPlane(span, Vector3.up).normalized));
+                    next += 3f;
+                }
+                next -= length;
+            }
+            for (int i = count; i < routeArrows.Count; i++) routeArrows[i].SetActive(false);
         }
 
         void Hide()
         {
             if (line != null && line.enabled) { line.enabled = false; VisibilityChanged?.Invoke(false); }
             if (arrow != null) arrow.SetActive(false);
+            foreach (var marker in routeArrows) marker.SetActive(false);
         }
 
         static Material NewUnlit(Color color)
@@ -178,26 +204,26 @@ namespace CurtainCall.WaitingRoom
             line.numCapVertices = 0;
             line.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             line.receiveShadows = false;
-            // 흰 실선에 어두운 눈금을 새긴다. 투명 구간이 없어 멀리서도 점점이 깨지지 않는다.
-            var material = NewUnlit(Color.white);
+            // 1m 타일의 투명 구간으로 기획서의 노란 점선을 표시한다.
+            var material = NewUnlit(LineColor);
+            material.SetFloat("_AlphaClip", 1f);
+            material.SetFloat("_Cutoff", .5f);
+            material.EnableKeyword("_ALPHATEST_ON");
             material.mainTexture = RulerTexture();
             if (material.HasProperty("_BaseMap")) material.SetTexture("_BaseMap", material.mainTexture);
             line.material = material;
             line.sortingOrder = 10;
         }
 
-        /// <summary>자 모양: 흰 바탕에 1m마다 전체 높이 눈금, 0.5m에 절반 높이 눈금(어두운 색). 타일 1칸 = 1m.</summary>
+        /// <summary>타일 1칸 = 1m. 앞부분만 그려지는 점선 마스크다.</summary>
         static Texture2D RulerTexture()
         {
             const int w = 64, h = 8;
-            var ink = new Color(.18f, .18f, .2f, 1f);
             var texture = new Texture2D(w, h, TextureFormat.RGBA32, true) { wrapMode = TextureWrapMode.Repeat, filterMode = FilterMode.Bilinear };
             for (int x = 0; x < w; x++)
                 for (int y = 0; y < h; y++)
                 {
-                    bool longTick = x < 3;                                   // 1m 눈금: 전체 높이
-                    bool shortTick = x >= 32 && x < 35 && y >= 2 && y <= 5;  // 0.5m 눈금: 절반 높이
-                    texture.SetPixel(x, y, longTick || shortTick ? ink : Color.white);
+                    texture.SetPixel(x, y, x < 40 ? Color.white : Color.clear);
                 }
             texture.Apply(true);
             return texture;

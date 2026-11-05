@@ -51,6 +51,23 @@ namespace CurtainCall.Tightrope
             return LimitFlightVelocity(velocity, speedLimit);
         }
 
+        /// <summary>리허설은 앞쪽 최대 각도의 절반부터 다음 지점에 닿는 반동을 보장한다. 중력·높이 상한은 원본 계산을 쓴다.</summary>
+        public static bool TryPracticeFlightVelocity(bool practice, float angle, float maxAngle,
+            Vector3 origin, Vector3 target, Vector3 momentum, Vector3 forward, float gravity, float hangLength,
+            out Vector3 velocity, out float speedLimit)
+        {
+            velocity = momentum; speedLimit = 0f;
+            if (!practice || !float.IsFinite(angle) || !float.IsFinite(maxAngle) || maxAngle <= 0f
+                || angle < maxAngle * .5f) return false;
+            Vector3 direction = Vector3.ProjectOnPlane(forward, Vector3.up).normalized;
+            if (!float.IsFinite(direction.sqrMagnitude) || direction.sqrMagnitude < .5f) return false;
+            Vector3 planned = PoleFlightVelocity(origin, target, momentum, direction, gravity, hangLength, out float limit);
+            if (!float.IsFinite(limit) || limit <= 0f || !float.IsFinite(planned.y)) return false;
+            velocity = direction * limit + Vector3.up * planned.y;
+            speedLimit = limit;
+            return true;
+        }
+
         /// <summary>봉/동료 중심에서 모든 방향에 같은 반지름을 사용하는 구형 잡기 범위.</summary>
         public static bool InPoleReach(Vector3 position, Vector3 target, float reach)
         {

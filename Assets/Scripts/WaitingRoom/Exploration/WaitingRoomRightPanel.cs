@@ -42,6 +42,8 @@ namespace CurtainCall.WaitingRoom
         public bool Show(string title, string body)
         {
             Configure();
+            // Reusing a panel for a different quest is a new entry; progress-only updates retain its order.
+            bool newQuest = !Visible || title != Title;
             // 공용 UI 씬이 다시 올라오면 앞 폰트 보완본은 지워진다(공연 다녀옴). 새 보완본으로 다시 만든다.
             var current = FontOwner();
             // Unity의 파괴된 오브젝트 == null은 이전 소유자와 새 null을 같게 취급한다.
@@ -53,6 +55,7 @@ namespace CurtainCall.WaitingRoom
             float canvasWidth = root.transform is RectTransform rect && rect.rect.width > 0f ? rect.rect.width : 1920f;
             if (!view.ShowPanel(title, body, new Vector2(Mathf.Max(0f, canvasWidth - margin - width), Mathf.Max(Top, minimumTop)), width)) return false;
             Title = title; Body = body; Visible = true;
+            if (newQuest) shown.Remove(this);
             if (!shown.Contains(this)) shown.Add(this);
             Layout();
             return true;

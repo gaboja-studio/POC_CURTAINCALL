@@ -22,6 +22,7 @@ namespace CurtainCall.UI.SceneIntegration
         UnityEngine.UI.Button confirm;
         CampaignSnapshot previous;
         bool titlePending, titleRunning, confirmed;
+        public bool IsDayTitleVisible => titlePending || titleRunning;
         double began = -1, titleBegan;
         public const float DayFadeSeconds = 2f;
         public const float DayTitleSeconds = 3f;
