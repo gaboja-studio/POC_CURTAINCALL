@@ -21,6 +21,7 @@ namespace CurtainCall.EscapeRoute
         [SerializeField, Min(.01f)] float drumRadius = .51f;
         [SerializeField, Min(.01f)] float stroke = 1.15f;
         [SerializeField, Min(.1f)] float period = 8f;
+        [SerializeField, Min(.01f)] float playbackSpeed = 1f;
 
         const float Fire = .05f;
         const float Catch = .205f;
@@ -98,6 +99,7 @@ namespace CurtainCall.EscapeRoute
 
         void Sample(double seconds)
         {
+            seconds *= playbackSpeed;
             float phase = (float)((seconds % period) / period);
             if (phase == lastPhase) return;
             lastPhase = phase;

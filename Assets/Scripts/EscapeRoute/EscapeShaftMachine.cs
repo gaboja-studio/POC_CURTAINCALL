@@ -14,6 +14,7 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] Transform freightPlatform, freightLoad, freightLines;
         [SerializeField] Transform headSheave;
         [SerializeField, Min(.1f)] float freightRise = 6f;
+        [SerializeField, Min(.01f)] float playbackSpeed = 1f;
         Vector3 platformHome, loadHome, linesHome, linesScale;
         float previousPhase = -1f;
         Vector3 home, linkageHome, linkageScale;
@@ -60,6 +61,7 @@ namespace CurtainCall.EscapeRoute
 
         void Sample(double seconds)
         {
+            seconds *= playbackSpeed;
             if (disposal)
             {
                 float phase = (float)(seconds % 7.5) / 7.5f;

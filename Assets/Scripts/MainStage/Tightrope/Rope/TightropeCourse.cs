@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.Campaign;
+using CurtainCall.Damage;
 using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
@@ -159,6 +160,11 @@ namespace CurtainCall.Tightrope
         /// <summary>코스 오른쪽(수평, 정규화).</summary>
         public Vector3 Right => Vector3.Cross(Vector3.up, Forward);
 
+        /// <summary>등록된 코스의 줄 지지면만 식별한다. 발판·벽은 제외하며 코스 없는 씬을 탐색하지 않는다.</summary>
+        public static bool IsRopeSurface(Collider surface) => surface != null && current != null &&
+            (current.ropeSurfaces.ContainsKey(surface)
+                || current.useSceneGeometry && Array.IndexOf(current.sceneRopes, surface) >= 0);
+
         /// <summary>사망한 몸이 줄의 보행용 지지면에 걸리지 않고 아래로 떨어지게 한다. 플랫폼 충돌은 유지한다.</summary>
         public void IgnoreRopeCollision(Collider body)
         {
@@ -234,6 +240,9 @@ namespace CurtainCall.Tightrope
                 var hit = hits[i];
                 if (hit.collider == null || hit.collider.transform.IsChildOf(mover.transform)
                     || hit.distance <= .0001f) continue;
+                // 톱에 잘려 날아간 팔다리 조각은 바닥이 아니다. 발밑에 걸려 줄 조작이 풀렸다 다시 잡히면
+                // 진행 방향을 카메라 방향으로 새로 정해 뒤집힐 수 있다(2026-11-05 버그).
+                if (DismemberedLimb.Contains(hit.collider)) continue;
                 // 검사는 발보다 0.1m 위에서 시작한다. 처음부터 겹친 몸/절단 조각은
                 // 발 아래 지지면이 아니므로 거리 0의 가짜 바닥으로 선택하지 않는다.
                 int candidate = ropeSurfaces.TryGetValue(hit.collider, out int ropeLane) ? ropeLane : NoLane;
@@ -395,6 +404,7 @@ namespace CurtainCall.Tightrope
         {
             if (current == this) current = null;
             GameSettings.Tightrope.Changed -= HandleSettingsChanged;
+            ReleaseModelGrounding();
         }
 
         /// <summary>세팅이 바뀌면 다음 프레임에 다시 읽는다. 잠겨 있으면 풀릴 때 읽는다.</summary>
@@ -420,6 +430,7 @@ namespace CurtainCall.Tightrope
             }
             ApplyLaneSpacing();
             CheckLocalFall();
+            GroundPlayerModels();
         }
 
         /// <summary>

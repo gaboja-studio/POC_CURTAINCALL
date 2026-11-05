@@ -420,6 +420,7 @@ namespace CurtainCall.Damage
         /// <summary>조각을 래그돌로 켜고 몸 바깥쪽·위로 날린다. 자기 몸통과는 부딪히지 않는다.</summary>
         void Launch(GameObject piece, Collider[] colliders, Rigidbody[] bodies)
         {
+            if (!piece.TryGetComponent<DismemberedLimb>(out _)) piece.AddComponent<DismemberedLimb>();
             foreach (var c in colliders)
             {
                 c.enabled = true;

@@ -6,6 +6,7 @@ Shader "CurtainCall/Escape/TreatmentWater"
         _UVPan("Flow direction and rate", Vector) = (0, .145, 0, 0)
         [Toggle] _Pour("Aerated falling water", Float) = 0
         _Impact("Outfall centres and half widths along channel", Vector) = (0, 1, 0, 1)
+        _PlaybackSpeed("Playback speed", Float) = 1
     }
     SubShader
     {
@@ -27,7 +28,7 @@ Shader "CurtainCall/Escape/TreatmentWater"
             SAMPLER(sampler_FlowNoise);
             CBUFFER_START(UnityPerMaterial)
                 float4 _UVPan, _Impact;
-                float _Pour;
+                float _Pour, _PlaybackSpeed;
             CBUFFER_END
             struct Input
             {
@@ -74,7 +75,7 @@ Shader "CurtainCall/Escape/TreatmentWater"
 
             float FallPhase(float worldDrop)
             {
-                return (sqrt(9 + 19.62*max(0,worldDrop))-3)/9.81 - _Time.y;
+                return (sqrt(9 + 19.62*max(0,worldDrop))-3)/9.81 - _Time.y * _PlaybackSpeed;
             }
 
             Interpolator Vert(Input v)
@@ -105,7 +106,7 @@ Shader "CurtainCall/Escape/TreatmentWater"
             }
             half4 Frag(Interpolator i) : SV_Target
             {
-                float time = _Time.y;
+                float time = _Time.y * _PlaybackSpeed;
                 float phase = FallPhase(i.localXZ.y);
                 float2 uv = _Pour > .5 ? float2(i.localXZ.x*.48, phase*2.1) : i.localXZ*.48 + time*_UVPan.xy;
                 half rim = 1 - saturate(dot(normalize(i.normalWS), normalize(i.viewWS)));
