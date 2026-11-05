@@ -84,6 +84,14 @@ namespace CurtainCall.WaitingRoom.EditorTools.Tests
             Assert.IsFalse(copy.Transport.OverloadTrap, "Current normal performance rejects overload and does not open trap doors.");
             Assert.AreEqual(Number(route, "boardingSeconds"), Number(copy.Route, "boardingSeconds"));
             Assert.AreEqual(Number(route, "returnDelaySeconds"), Number(copy.Route, "returnDelaySeconds"));
+            var originalMarkers = Original<HumanCannonGroundMarkers>();
+            var markers = copy.GetComponent<HumanCannonGroundMarkers>();
+            Assert.IsNotNull(markers, "Start 공연의 착지 표시 컴포넌트도 복사한다");
+            Assert.AreSame(Reference(originalMarkers, "markerMaterial"), Reference(markers, "markerMaterial"));
+            Assert.AreEqual(Number(originalMarkers, "radius"), Number(markers, "radius"));
+            Assert.AreEqual(Number(originalMarkers, "maxDistance"), Number(markers, "maxDistance"));
+            var floors = new[] { copy.StartFloor, copy.MiddleFloor, copy.LowerFloor, copy.FinishFloor };
+            for (int i = 0; i < floors.Length; i++) Assert.AreSame(floors[i], Reference(markers, "courseFloors", i));
         }
 
         [Test]

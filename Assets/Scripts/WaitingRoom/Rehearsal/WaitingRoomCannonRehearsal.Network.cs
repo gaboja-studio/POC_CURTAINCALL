@@ -87,7 +87,7 @@ namespace CurtainCall.WaitingRoom
             else r.Send(Request.Vote, yes);
         }
 
-        /// <summary>Like tightrope rehearsal: a strict majority may skip at any time and retain mastery.</summary>
+        /// <summary>과반수 넘기기는 이수 처리한다(사용자 요청).</summary>
         public static void VoteToSkip(bool yes)
         {
             var r = instance;

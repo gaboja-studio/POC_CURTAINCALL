@@ -75,6 +75,16 @@ namespace CurtainCall.WaitingRoom.EditorTools
                 // A missed catch on the lower floor is a native bad landing: practice converts the injury to recovery.
                 course.LowerDeck = Floor("LowerDeck", out course.LowerFloor, false);
                 course.FinishDeck = Floor("FinishDeck", out course.FinishFloor);
+                var markers = root.AddComponent<HumanCannonGroundMarkers>();
+                EditorUtility.CopySerialized(Find<HumanCannonGroundMarkers>(opened), markers);
+                var markerSettings = new SerializedObject(markers);
+                var floors = markerSettings.FindProperty("courseFloors");
+                var practiceFloors = new[] { course.StartFloor, course.MiddleFloor, course.LowerFloor, course.FinishFloor };
+                floors.arraySize = practiceFloors.Length;
+                for (int i = 0; i < practiceFloors.Length; i++) floors.GetArrayElementAtIndex(i).objectReferenceValue = practiceFloors[i];
+                // There are no narrow landing ropes in this lesson; never retain performance-scene references.
+                markerSettings.FindProperty("feedbackRopes").arraySize = 0;
+                markerSettings.ApplyModifiedPropertiesWithoutUndo();
                 // Remove scene references from the copied systems before saving a self-contained prefab.
                 var cannon = new SerializedObject(course.Cannon);
                 var stations = cannon.FindProperty("stations"); stations.arraySize = 4;

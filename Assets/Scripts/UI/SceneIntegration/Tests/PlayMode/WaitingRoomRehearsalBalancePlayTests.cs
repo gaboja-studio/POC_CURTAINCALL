@@ -105,8 +105,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         static string CourseRulesSignature(object shape)
         {
             var copy = Call(shape, "Clone");
-            // 연습장의 줄 수/시작/종료와 켤 기물만 다르다. 나머지 설정은 공연과 같아야 한다.
-            JsonUtility.FromJsonOverwrite("{\"laneCount\":4,\"finishDistance\":0,\"laneChangeZones\":[],\"swingGapStart\":0,\"trapezeStart\":0,\"swingGapEnabled\":false,\"relayGapEnabled\":false,\"trapezeEnabled\":false}", copy);
+            // 문서가 지정한 배치/발판 크기/활성 기물만 제외한다. 물리·균형·나머지 설정은 공연과 같아야 한다.
+            JsonUtility.FromJsonOverwrite("{\"laneCount\":4,\"laneEndDistances\":[],\"startPlatformLength\":0,\"finishPlatformLength\":0,\"trapezeLane\":0,\"trapezeLength\":0,\"finishDistance\":0,\"laneChangeZones\":[],\"swingGapStart\":0,\"trapezeStart\":0,\"swingGapEnabled\":false,\"relayGapEnabled\":false,\"trapezeEnabled\":false}", copy);
             return JsonUtility.ToJson(copy);
         }
 
@@ -168,7 +168,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.IsFalse((bool)Priv(course.GetComponent(T("CurtainCall.Tightrope.TightropeRelayGate")), "UnlimitedHold"), "공연의 유지 제한은 보존한다");
                 Assert.IsTrue((bool)Priv(course.GetComponent(T("CurtainCall.Tightrope.TightropeTrapeze")), "HoldTimeLimited"));
                 string rules = CourseRulesSignature(Get(course, "Shape"));
-                string relayPresentation = NativeDeviceSignature(course, true), trapezePresentation = NativeDeviceSignature(course, false);
+                string relaySettings = JsonUtility.ToJson(course.GetComponent(T("CurtainCall.Tightrope.TightropeRelayGate"))), trapezePresentation = NativeDeviceSignature(course, false);
                 var originalTypes = OriginalCourseComponents(course);
                 System.IO.File.WriteAllLines(".harness/local/rehearsal/balance/performance-components.txt", originalTypes);
                 var originalArt = Get(course, "ArtProfile");
@@ -203,12 +203,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                     var ordinary = course.GetComponent(T("CurtainCall.Tightrope.TightropeSwingPole"));
                     Assert.IsFalse((bool)Priv(ordinary, "HasGap"));
                     Assert.IsNull(Get(ordinary, "PoleVisual"), "공연에서 휴면인 그네의 예측 착지/해제 표시를 만들지 않는다");
-                    Assert.IsFalse((bool)Priv(course.GetComponent(T("CurtainCall.Tightrope.TightropeRelayGate")), "UsesSpots"));
-                    Assert.AreEqual(stage == 2, Get(course, "HasRelayGap"));
-                    Assert.AreEqual(stage == 4, Get(course, "HasTrapezeGap"));
-                    if (stage == 2)
+                    Assert.AreEqual(stage == 3, Priv(course.GetComponent(T("CurtainCall.Tightrope.TightropeRelayGate")), "UsesSpots"));
+                    Assert.IsFalse((bool)Get(course, "HasRelayGap"), "2-3은 기획서의 단일 트리거 배치");
+                    Assert.AreEqual(stage == 1 || stage == 2 || stage == 4, Get(course, "HasTrapezeGap"));
+                    if (stage == 3)
                     {
-                        Assert.AreEqual(relayPresentation, NativeDeviceSignature(course, true), "실제 공연 네 봉의 배치/아트/표시 설정을 복사해야 한다");
+                        Assert.AreEqual(relaySettings, JsonUtility.ToJson(course.GetComponent(T("CurtainCall.Tightrope.TightropeRelayGate"))), "원본 봉 컴포넌트 설정 보존");
+                        AssertRehearsalRelay(course);
                         var views = (System.Collections.IList)Priv(course.GetComponent(T("CurtainCall.Tightrope.TightropeRelayGate")), "relayPoleViews");
                         foreach (var poleView in views) Assert.IsFalse(((Transform)Priv(Priv(poleView, "Clock"), "Root")).gameObject.activeSelf, "리허설의 유지 시간 LED는 숨긴다");
                     }
