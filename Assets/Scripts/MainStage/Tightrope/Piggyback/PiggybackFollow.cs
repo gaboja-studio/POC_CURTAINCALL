@@ -378,6 +378,20 @@ namespace CurtainCall.Tightrope
             return true;
         }
 
+        internal void DismountOnPlatform(NetworkPlayer player, Vector3 position)
+        {
+            if (player == null || !player.IsLocal || player.State != PlayerState.Normal
+                || !player.TryGetComponent(out PlayerMover mover)) return;
+            if (player.TryGetComponent(out PlayerBalance balance))
+            {
+                if (balance.HasFallen) return;
+                balance.SetBalanceActive(false);
+            }
+            // 기존 F 해제의 '맨 아래 사람 바로 앞' 위치는 쓰지 않는다.
+            Release();
+            mover.Relocate(position, player.transform.rotation);
+        }
+
         /// <summary>내 캐릭터의 이동 계산을 되돌린다(내려놓지 않음).</summary>
         void Release()
         {
