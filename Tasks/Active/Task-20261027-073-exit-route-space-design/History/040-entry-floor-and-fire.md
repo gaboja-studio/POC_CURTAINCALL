@@ -24,4 +24,3 @@
 - A 씬 단독 Play 1인 시작 슬롯 접지, 기존 Dev 시작·리타이어 복귀 PlayMode 1/1 및 실제 도착 씬 바닥 검사 포함 EditMode 13/13. 자료 .harness/local/escape-start-gate. 4인 플레이는 실행하지 않았다.
 
 - 2026-11-04 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
-
