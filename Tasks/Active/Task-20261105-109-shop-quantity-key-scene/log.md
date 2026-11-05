@@ -23,3 +23,6 @@
 - 2026-11-05 후속 최종 check-work 1회 종료 코드 0: 안전성·문서/규칙·Unity 컴파일 PASS, 별도 대상 회귀 검사 12/12 PASS. 기존 문서 길이 WARN 55/hard 0 및 private submodule 미저장 2건은 보존. 상점 기존 수정 포함 검토 가능한 상태이며 작업 커밋·push는 하지 않았다.
 
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/309 (fix/shop-quantity-key-scene → dev)
+- 2026-11-05 제출 완료: MoHoDu 계정으로 기능 수정 89f35592 커밋·push, PR #309 생성. 타이머는 기존 PR #307 병합본 사용, 자체 변경 없음. 검사 PASS 및 실제 지속 떨림/다인 플레이/브라우저 미검증을 PR 본문에 명시했다. 제출 기록만 추가 저장하며 병합은 하지 않는다.
