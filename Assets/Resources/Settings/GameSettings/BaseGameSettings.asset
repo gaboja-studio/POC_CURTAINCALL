@@ -29,16 +29,16 @@ MonoBehaviour:
     guideRestDuration: 300
     morningRest:
       unlimited: 0
-      seconds: 300
+      seconds: 120
     noonRest:
       unlimited: 0
-      seconds: 300
+      seconds: 120
     guideRest:
       unlimited: 0
-      seconds: 300
+      seconds: 120
     nightMaintenance:
       unlimited: 1
-      seconds: 300
+      seconds: 120
     timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2
