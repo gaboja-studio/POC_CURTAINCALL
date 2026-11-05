@@ -38,3 +38,15 @@
 - `HumanCannonTrampoline`: 무작위 생존자 옆 이동(`TryRecoverNearSurvivor`, `carrierRecoveryPending`, 미사용 `CarryHandlePoint`) 삭제. 운반자가 비정상 상태면 놓기만 하고, 낙사면 최초 위치로 돌린 뒤 소유 상태를 공유한다.
 - 컴파일 PASS, `check-work` 문서/규칙 PASS, 자동 테스트 SKIPPED. 실제 멀티 플레이 확인 필요. 공중(점프 중)에서 죽으면 트램펄린이 그 높이에 남을 수 있음.
 - 검사 중 Unity가 `ProjectSettings/Packages/com.unity.services.vivox/Settings.json`을 바꿈(이번 작업과 무관, 되돌리지 않음).
+
+## 2026-11-05 공중 사망 시 트램펄린 낙하
+- 사용자 요청: 운반자가 공중(점프 등)에서 죽으면 트램펄린이 그 위치에서 내려와 지면에 닿게.
+- `HumanCannonTrampoline.Drop.cs` 추가: 호스트가 낙사 아닌 사망이면 바로 아래로 레이캐스트(경사 법선 y≥0.7, 플레이어·자기 자신·트리거 제외, `HumanCannonRouteSystem.FallHeight`까지)해 지면을 찾고 중력 가속으로 떨어뜨림. 지면이 없으면 낙사처럼 시작 위치.
+- 상태 패킷은 도착 지면 위치를 보낸다. 원격 화면은 그 지점이 현재 위치 바로 아래(수평 2m 이내)면 순간이동 대신 같은 방식으로 떨어뜨린다. 잡기·재시작·연습 복구·오프라인은 낙하를 멈춘다.
+- 컴파일 PASS, `check-work` PASS, 자동 테스트 SKIPPED. 실제 멀티 플레이 확인 필요. 움직이는 발판(리프트) 위에 떨어지면 발판이 떠난 뒤 다시 공중에 남을 수 있음. 손으로 놓기(Drop)를 공중에서 하는 경우는 이번 범위 밖.
+- 검사 중 Unity가 Pretendard SDF 폰트 에셋 2개를 바꿈(작업과 무관, 되돌리지 않음).
+
+## 2026-11-05 잡고 있을 때만 반동
+- 사용자 요청: 아무도 잡지 않은 트램펄린에서도 점프하면 반동됨 → 손으로 들고 있을 때만 반동.
+- 코드에 이미 있던 옵션 사용: `HumanCannon.unity`의 `/Trampoline` `requireCarrierForBounce` 0 → 1, 씬 저장. 정상 상태 운반자가 있을 때만 대포 착지·땅 점프 반동 모두 허용, 운반자 자신은 반동 불가(기존).
+- 놓인 트램펄린은 충돌체가 없어 그 아래 바닥에 착지한다. 리허설 코스는 `RehearsalCannonSourceBuilder`를 다시 실행하면 같은 값이 복사된다(이번엔 미실행).

@@ -96,16 +96,23 @@ namespace CurtainCall.HumanCannon
                 session.ConnectionStateChanged += HandleConnection;
                 HandleConnection(session.ConnectionState);
             }
+            TickDrop();
             if (session == null || !session.IsHost) return;
             if (!ownership.IsOccupied) return;
             var carrier = FindPlayer(Carrier);
             if (carrier != null && carrier.State == PlayerState.Normal) return;
             // 들고 낙사하면 낭떠러지 아래에 남기지 않고 시작 지점 원래 위치로 돌린다(2026-11-05 사용자 요청).
-            // 그 밖의 사망은 생존자에게 옮기지 않고 사망 지점에 그대로 둔다(2026-11-05 사용자 요청).
+            // 그 밖의 사망은 생존자에게 옮기지 않고 사망 지점 바로 아래 지면에 떨어뜨린다(2026-11-05 사용자 요청).
             bool fellOff = carrier != null
                 && (HumanCannonRouteSystem.IsBelowCourse(carrier.transform.position) || HumanCannonRouteSystem.IsBelowCourse(transform.position));
             ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
-            if (fellOff) transform.SetPositionAndRotation(initialPosition, initialRotation);
+            // 아래에 지면이 없으면 낙사와 같이 처리한다.
+            if (fellOff || !TryFindGround(out var ground))
+            {
+                StopDrop();
+                transform.SetPositionAndRotation(initialPosition, initialRotation);
+            }
+            else StartDrop(ground);
             // 순간이동 전후를 반동 sweep으로 연결하지 않고, 모든 화면에 같은 위치를 공유한다.
             ResetPreviousPose();
             PublishOwnership();
@@ -301,6 +308,7 @@ namespace CurtainCall.HumanCannon
                         && ownership.Revision == revision && CanGrab(player),
                     () => HandleRequest(actor, action, revision, station, launch, segment, position, rotation, true))) return;
                 if (!CanGrab(player) || !ownership.TryApply(CannonAction.Board, actor, revision)) return;
+                StopDrop();
                 HumanCannonSystem.Current.StartCarrying(actor);
                 FollowCarrier(player, true);
             }
@@ -341,6 +349,7 @@ namespace CurtainCall.HumanCannon
             localGrabPending = false;
             if (player.IsLocal) LocalBounceCount = 0;
             if (session == null || !session.IsHost) return;
+            StopDrop();
             // 아무도 잡지 않았어도 revision을 올려 초기화 이전의 잡기 요청을 무효화한다.
             ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
             if (resetPoseOnRestart) transform.SetPositionAndRotation(initialPosition, initialRotation);
@@ -352,6 +361,7 @@ namespace CurtainCall.HumanCannon
         public bool ResetPracticePose()
         {
             if (HumanCannonSystem.Current == null || !HumanCannonSystem.Current.PracticeMode || session == null || !session.IsHost) return false;
+            StopDrop();
             ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
             transform.SetPositionAndRotation(initialPosition, initialRotation);
             ResetPreviousPose(); PublishOwnership();

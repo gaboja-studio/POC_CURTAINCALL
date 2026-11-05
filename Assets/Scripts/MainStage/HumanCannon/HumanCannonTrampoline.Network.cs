@@ -62,7 +62,7 @@ namespace CurtainCall.HumanCannon
             using var writer = new FastBufferWriter(StateSize, Allocator.Temp);
             writer.WriteValueSafe(ownership.Revision);
             writer.WriteValueSafe(Carrier);
-            writer.WriteValueSafe(transform.position);
+            writer.WriteValueSafe(SharedPosition);
             writer.WriteValueSafe(transform.rotation);
             messaging.SendNamedMessage(StateMessage, client, writer, NetworkDelivery.ReliableSequenced);
         }
@@ -75,7 +75,13 @@ namespace CurtainCall.HumanCannon
             reader.ReadValueSafe(out Vector3 position);
             reader.ReadValueSafe(out Quaternion rotation);
             if (!ownership.Receive(revision, carrier)) return;
-            transform.SetPositionAndRotation(position, rotation);
+            // 운반자가 공중에서 죽어 놓인 경우 순간이동 대신 바로 아래 지면까지 떨어뜨린다.
+            if (carrier == CannonSeatState.Nobody && TryStartRemoteDrop(position)) transform.rotation = rotation;
+            else
+            {
+                StopDrop();
+                transform.SetPositionAndRotation(position, rotation);
+            }
             if (carrier != CannonSeatState.Nobody)
             {
                 HumanCannonSystem.Current?.StartCarrying(carrier);
@@ -125,6 +131,7 @@ namespace CurtainCall.HumanCannon
             if (state == SessionConnectionState.Offline)
             {
                 ownership = new CannonSeatState();
+                StopDrop();
                 groundHistory.Clear();
                 groundSequence = 0;
                 transform.SetPositionAndRotation(initialPosition, initialRotation);

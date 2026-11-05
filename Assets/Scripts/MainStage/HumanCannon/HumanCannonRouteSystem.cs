@@ -59,6 +59,7 @@ namespace CurtainCall.HumanCannon
 
         /// <summary>코스 아래 낭떠러지(<c>fallHeight</c> 아래)인지. 경로 시스템이 없으면 false.</summary>
         public static bool IsBelowCourse(Vector3 position) => Current != null && position.y < Current.fallHeight;
+        public float FallHeight => fallHeight;
 
         // 호스트: 이번 추락을 이미 처리한 사람(다시 코스 위로 올라오면 지운다).
         readonly System.Collections.Generic.HashSet<ulong> fallen = new();
