@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.HumanCannon;
+using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -58,6 +59,62 @@ namespace CurtainCall.EscapeRoute
         public bool RopesPresent => phase != RopePhase.Hidden;
         public bool WarningLit => phase == RopePhase.Flash;
         public ulong WorkerOwner => workerOwner;
+        CharacterController passBody;
+        readonly HashSet<Collider> ignoredFromBelow = new();
+        CameraViewDirector sectionCamera;
+
+        public bool IsTimedSupport(Collider surface) => Array.IndexOf(ropeSupports, surface) >= 0;
+
+        void UpdateTraversal(NetworkPlayer player)
+        {
+            var body = player != null && player.State == PlayerState.Normal && player.TryGetComponent(out PlayerMover mover)
+                ? mover.Body : null;
+            UpdatePassThrough(body);
+            // Keep one orbit preset through the stairs, bounce and rope-control handoff.
+            var camera = body != null && lowerWorkerBounds != null && dropBounds != null ? CameraViewDirector.Current : null;
+            if (camera != null)
+            {
+                var zone = lowerWorkerBounds.bounds;
+                zone.Encapsulate(dropBounds.bounds);
+                zone.Expand(new Vector3(6, 14, 4));
+                if (!zone.Contains(body.transform.position) || camera.LocalPlayer != player) camera = null;
+            }
+            if (sectionCamera == camera) return;
+            if (sectionCamera != null) sectionCamera.ReleaseView(this);
+            sectionCamera = camera;
+            if (camera != null && camera.Settings != null)
+                camera.RequestView(this, camera.Settings.DefaultThirdPerson, 210);
+        }
+
+        void UpdatePassThrough(CharacterController body)
+        {
+            if (passBody != body)
+            {
+                if (passBody != null)
+                    foreach (var support in ignoredFromBelow)
+                        if (support != null) Physics.IgnoreCollision(passBody, support, false);
+                ignoredFromBelow.Clear();
+                passBody = body;
+            }
+            if (body == null || !body.enabled) return;
+            var capsule = body.bounds;
+            foreach (var support in ropeSupports)
+            {
+                if (support == null || !support.enabled || !support.gameObject.activeInHierarchy) continue;
+                var bounds = support.bounds;
+                float releaseHeight = body.velocity.y > 0f || ignoredFromBelow.Contains(support) ? bounds.max.y : bounds.min.y;
+                bool below = capsule.min.y < releaseHeight - .025f && capsule.max.y > bounds.min.y - 2f
+                    && capsule.min.x < bounds.max.x + .5f && capsule.max.x > bounds.min.x - .5f
+                    && capsule.min.z < bounds.max.z + .5f && capsule.max.z > bounds.min.z - .5f;
+                if (below && !Physics.GetIgnoreCollision(body, support))
+                {
+                    Physics.IgnoreCollision(body, support);
+                    ignoredFromBelow.Add(support);
+                }
+                else if (!below && ignoredFromBelow.Remove(support))
+                    Physics.IgnoreCollision(body, support, false);
+            }
+        }
 
         void OnEnable()
         {
@@ -81,6 +138,7 @@ namespace CurtainCall.EscapeRoute
             var hazards = HumanCannonHazardCourse.Current;
             bool timed = synchronized && !resetBarrier.Waiting && hazards != null && hazards.IsSynchronized;
             SetPhase(timed ? PhaseAt(hazards.Elapsed) : RopePhase.Visible);
+            UpdateTraversal(NetworkPlayer.Local);
             if (session != null && session.IsHost && synchronized && !resetBarrier.Waiting
                 && resetFrame != Time.frameCount) RefreshWorker();
             ReturnOverflow();
@@ -368,6 +426,7 @@ namespace CurtainCall.EscapeRoute
         void OnDisable()
         {
             if (Current != this) return;
+            UpdateTraversal(null);
             NetworkPlayer.Restarted -= Restart; Detach();
             if (returnGate != null) returnGate.SetActive(initialGate);
             if (lowerEntryGate != null) lowerEntryGate.SetActive(initialLowerGate);
