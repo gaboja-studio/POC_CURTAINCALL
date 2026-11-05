@@ -68,6 +68,7 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>상태가 바뀌었다(받은 상태 포함).</summary>
         public event Action Changed;
+        public static event Action<int, int, string, int> SelectionChanged;
 
         /// <summary>호스트가 이번 밤 작성을 확정했다(밤 일차).</summary>
         public event Action<int> Confirmed;
@@ -132,7 +133,7 @@ namespace CurtainCall.WaitingRoom
             if (!HasAuthority) return Answer(ScheduleRefusal.NotEditable);
             if (!IsUnlocked(trickId)) return Answer(ScheduleRefusal.Locked);
             var refusal = book.Set(day, slot, trickId, tier, MaxTier(trickId));
-            if (refusal == ScheduleRefusal.None) Publish();
+            if (refusal == ScheduleRefusal.None) { Publish(); SelectionChanged?.Invoke(day, slot, string.IsNullOrEmpty(trickId) ? "EMPTY" : trickId, tier); }
             return Answer(refusal);
         }
 
@@ -161,6 +162,7 @@ namespace CurtainCall.WaitingRoom
             {
                 Debug.Log($"[NightSchedule] {day}일차 공연 {slot + 1} 단계 조정: {tier}단계");
                 Publish();
+                SelectionChanged?.Invoke(day, slot, book.Get(day, slot), tier);
             }
             return Answer(refusal);
         }

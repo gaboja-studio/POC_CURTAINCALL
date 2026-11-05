@@ -23,7 +23,7 @@ namespace CurtainCall.Telemetry.Pipeline
         readonly TelemetryRuntime log;
         readonly Dictionary<NetworkPlayer, PlayerHooks> players = new();
         readonly HashSet<string> confirmed = new();
-        readonly Dictionary<ulong, string> launches = new();
+
         readonly Dictionary<int, ulong> poleOccupants = new();
         readonly Dictionary<int, uint> transportRevisions = new();
         readonly Dictionary<ulong, ParticipantObservation> participants = new();
@@ -43,7 +43,7 @@ namespace CurtainCall.Telemetry.Pipeline
         string sharedPerformance;
         float began, nextProgress;
         int maximumSection, difficulty = 1;
-        bool ended;
+        bool ended, teamArrived;
         readonly Dictionary<ulong, ulong> below = new();
         public PerformanceLogAdapter(TelemetryRuntime runtime)
         {
@@ -73,9 +73,9 @@ namespace CurtainCall.Telemetry.Pipeline
             if (next != null && nextTrick != null && next != attempt)
             {
                 if (attempt != null && !ended) Leave("ATTEMPT_REPLACED");
-                attempt = next; trick = nextTrick; ended = false; began = Time.unscaledTime;
+                attempt = next; trick = nextTrick; teamArrived = ended = false; began = Time.unscaledTime;
                 sharedPerformance = shared?.IsOpen == true ? shared.Performance?.Id : null;
-                maximumSection = 0; participants.Clear(); rosterSignature = null; launches.Clear(); below.Clear(); poleOccupants.Clear(); transportRevisions.Clear();
+                maximumSection = 0; participants.Clear(); rosterSignature = null; below.Clear(); poleOccupants.Clear(); transportRevisions.Clear();
                 difficulty = nextTrick == "CANNON" && HumanCannonHazardCourse.Current != null ? HumanCannonHazardCourse.Current.Difficulty : 1;
                 log.SetAttempt(attempt);
                 foreach (var hooks in players.Values) hooks.BeginAttempt();
@@ -85,8 +85,7 @@ namespace CurtainCall.Telemetry.Pipeline
             if (Host) { ObserveRoster(shared); ObservePlayers(); }
             if (Host && trick == "CANNON" && cannons != null)
             {
-                foreach (ulong actor in launches.Keys.ToArray())
-                    if (!cannons.IsFlying(actor)) EndFlight(actor, Find(actor)?.State == PlayerState.Fallen ? "FALL" : "FLIGHT_STOPPED");
+
                 CannonCooperation();
             }
             if (Time.unscaledTime >= nextProgress) { nextProgress = Time.unscaledTime + 5; Progress(); }
@@ -137,7 +136,7 @@ namespace CurtainCall.Telemetry.Pipeline
             log.EmitFor(player, "CANNON_HAZARD_CONTACT", new() { ["sectionId"] = at > 0 ? at : null,
                 ["position"] = DetailLogIds.Position(position), ["obstacleId"] = DetailLogIds.ObjectId(hazard, "OB_"),
                 ["hazardType"] = hazard.Kind.ToString(), ["cutApplied"] = cut != BodyPart.None, ["part"] = cut.ToString(),
-                ["lostCount"] = DetailLogIds.Lost(player.LostParts),
+                ["lostCount"] = DetailLogIds.Lost(player.LostParts), ["bodyResult"] = player.LostParts.ToString(),
                 ["reason"] = !evaluated ? "FRAME_LIMIT" : cut == BodyPart.None ? "NO_CUT" : "CUT" }, "HOST");
         }
         int Section(NetworkPlayer player)
@@ -254,12 +253,12 @@ namespace CurtainCall.Telemetry.Pipeline
         }
         void Arrived(NetworkPlayer player)
         {
-            if (!StartPlayer(player, true) || !participants.TryGetValue(player.OwnerClientId, out var person) || person.Arrived) return;
+            if (teamArrived || !StartPlayer(player, true) || !participants.TryGetValue(player.OwnerClientId, out var person) || person.Arrived) return;
             int at = Section(player);
-            person.Arrived = log.EmitFor(player, "PLAYER_ARRIVED", new() { ["sectionId"] = at > 0 ? at : null,
+            person.Arrived = log.EmitFor(player, "PLAYER_ARRIVED", new() { ["durationMs"] = (Time.unscaledTime - began) * 1000d, ["scope"] = "TEAM_FIRST_ARRIVAL", ["sectionId"] = at > 0 ? at : null,
                 ["position"] = DetailLogIds.Position(player.transform.position), ["lostCount"] = DetailLogIds.Lost(player.LostParts),
                 ["collectionSource"] = "HOST_PLAYER" }, "HOST");
-            if (person.Arrived) CloseSection(player, "ARRIVED");
+            if (person.Arrived) { teamArrived = true; CloseSection(player, "ARRIVED"); }
         }
         void Progress()
         {
@@ -275,6 +274,9 @@ namespace CurtainCall.Telemetry.Pipeline
         void RewardResult(PerformanceResult result)
         {
             if (result == null || sharedPerformance != result.Performance.Id) return;
+            if (Host && !ended && !confirmed.Contains(result.Performance.Id))
+                log.Emit("STAGE_SETTLED", new() { ["teamAudience"] = result.Participants.Sum(p => p.Segment), ["tokens"] = result.Income,
+                    ["people"] = result.Participants.Select(p => new { slot=p.Slot, audience=p.Segment, tokens=p.Settlement }).ToArray() }, "HOST");
             if (Host) foreach (var person in result.Participants)
             {
                 var player = Find(person.ClientId);
@@ -299,7 +301,6 @@ namespace CurtainCall.Telemetry.Pipeline
         {
             if (attempt == null || ended || !confirmed.Add(resultId)) return;
             foreach (var hooks in players.Values) hooks.Flush();
-            foreach (ulong actor in launches.Keys.ToArray()) EndFlight(actor, "PERFORMANCE_ENDED");
             Progress(); foreach (var person in participants.Values) CloseSection(Find(person.Client), "PERFORMANCE_ENDED");
             var payload = new Dictionary<string, object> { ["trickType"] = trick, ["difficulty"] = difficulty, ["durationMs"] = duration,
                 ["durationSource"] = source, ["maxSection"] = maximumSection };
@@ -320,12 +321,11 @@ namespace CurtainCall.Telemetry.Pipeline
                     ["sectionId"] = person.Section > 0 ? person.Section : null, ["reason"] = reason,
                     ["collectionSource"] = "HOST_PLAYER" }, "HOST");
             }
-            foreach (ulong actor in launches.Keys.ToArray()) EndFlight(actor, reason);
             foreach (var person in participants.Values) CloseSection(Find(person.Client), "PERFORMANCE_ENDED"); ended = true;
         }
         public void SceneLeaving() { Leave("SCENE_CHANGED"); attempt = null; log.SetAttempt(null); }
-        void Saw(SawHit hit) { if (hit.Player != null && players.TryGetValue(hit.Player, out var p)) p.Hit("SAW_" + hit.Kind.ToString().ToUpperInvariant(), "OB_" + DurableOutbox.Sha256("tightrope:saw:" + hit.Kind + ":" + hit.Index).Substring(0, 12)); }
-        void Fire(FireHit hit) { if (players.TryGetValue(hit.Player, out var p)) p.Hit("FIRE", "OB_" + DurableOutbox.Sha256("tightrope:fire:" + hit.Kind + ":" + hit.Segment).Substring(0, 12)); }
+        void Saw(SawHit hit) { if (hit.Player != null && players.TryGetValue(hit.Player, out var p)) p.Hit("SAW_" + hit.Kind.ToString().ToUpperInvariant(), "SAW_"+hit.Kind.ToString().ToUpperInvariant()+"_"+hit.Index, hit.Contact); }
+        void Fire(FireHit hit) { if (players.TryGetValue(hit.Player, out var p)) p.Hit("FIRE", "FIRE_"+hit.Kind+"_"+hit.Segment); }
         void Links()
         {
             if (!Host || attempt == null || ended || piggyback == null) return;
@@ -351,6 +351,8 @@ namespace CurtainCall.Telemetry.Pipeline
         }
         void Handhold(NetworkPlayer actor, NetworkPlayer target)
         {
+            if (Host && actor!=null && target!=null && TelemetryRuntime.SceneType(log.CurrentSceneName)=="EXITROUTE")
+                TelemetryRuntime.Mechanism(actor,piggyback,"HANDHOLD","LINKED:"+target.OwnerClientId,actor.transform.position,true);
             if (!Host || attempt == null || ended || trick != "TIGHTROPE" || actor == null || target == null) return;
             log.EmitFor(actor, "COOP_ACTIVATED", new() { ["trickType"] = trick, ["gimmickType"] = "HANDHOLD",
                 ["gimmickId"] = DetailLogIds.ObjectId(piggyback, "IN_"), ["participants"] = new[] { log.ParticipantCode(actor.OwnerClientId), log.ParticipantCode(target.OwnerClientId) },
@@ -390,37 +392,21 @@ namespace CurtainCall.Telemetry.Pipeline
         void Cannon(int index, CannonAction action, ulong actor)
         {
             if (attempt == null || ended || trick != "CANNON" || !Host) return;
-            if (action == CannonAction.Reset) { foreach (ulong id in launches.Keys.ToArray()) EndFlight(id, "RESET"); return; }
             if (action != CannonAction.Launch || index < 0 || index >= cannons.StationCount) return;
             var player = Find(actor); var station = cannons.Station(index);
             if (player == null || station == null) return;
             StartPlayer(player, true);
-            if (launches.ContainsKey(actor)) EndFlight(actor, "RELAUNCHED");
             string launch = Guid.NewGuid().ToString("D"); Vector3 velocity = station.LaunchVelocity;
             int firingSection = Section(player);
-            if (log.EmitFor(player, "CANNON_FIRED", new() { ["launchId"] = launch, ["sectionId"] = firingSection > 0 ? firingSection : null,
-                ["cannonId"] = DetailLogIds.ObjectId(station, "IN_"), ["direction"] = new { x = velocity.normalized.x, y = velocity.normalized.y, z = velocity.normalized.z },
-                ["power"] = velocity.magnitude, ["lostCount"] = DetailLogIds.Lost(player.LostParts), ["sectionSource"] = firingSection > 0 ? "COURSE_BOUNDARIES" : "UNAVAILABLE" }, "HOST")) launches[actor] = launch;
+            log.EmitFor(player, "CANNON_FIRED", new() { ["launchId"] = launch, ["sectionId"] = firingSection > 0 ? firingSection : null,
+                ["position"] = DetailLogIds.Position(station.Seat.position), ["cannonId"] = DetailLogIds.ObjectId(station, "IN_"), ["direction"] = new { x = velocity.normalized.x, y = velocity.normalized.y, z = velocity.normalized.z },
+                ["power"] = velocity.magnitude, ["lostCount"] = DetailLogIds.Lost(player.LostParts), ["sectionSource"] = firingSection > 0 ? "COURSE_BOUNDARIES" : "UNAVAILABLE" }, "HOST");
         }
         void Landed(ulong actor, int station, uint revision, uint segment, Vector3 position, bool safe)
         {
+            var player = Find(actor);
             if (!Host || trick != "CANNON") return;
-            var player = Find(actor);
             if (!safe && player != null && players.TryGetValue(player, out var hooks)) hooks.Hit("UNSAFE_LANDING", null);
-            EndFlight(actor, safe ? "SAFE_LANDING" : "UNSAFE_LANDING", safe, position, station, revision, segment);
-        }
-        void EndFlight(ulong actor, string reason, bool? safeLanding = null, Vector3? contact = null, int? station = null, uint? revision = null, uint? segment = null)
-        {
-            if (!launches.TryGetValue(actor, out string launch)) return;
-            var player = Find(actor);
-            var position = contact ?? (player != null ? player.transform.position : Vector3.zero);
-            int landingSection = cannonSections != null ? (int)cannonSections.SectionAt(position) + 1 : 0;
-            if (player != null) log.EmitFor(player, "CANNON_FLIGHT_ENDED", new() { ["launchId"] = launch, ["sectionId"] = landingSection > 0 ? landingSection : null,
-                ["position"] = DetailLogIds.Position(position), ["reachedTarget"] = safeLanding ?? (player.State == PlayerState.Arrived ? true : null),
-                ["reason"] = reason, ["terminationSource"] = safeLanding.HasValue ? "HOST_LANDING_JUDGEMENT" : "PUBLIC_FLIGHT_STATE",
-                ["stationIndex"] = station, ["launchRevision"] = revision, ["flightSegment"] = segment,
-                ["targetDefinition"] = "SAFE_LANDING_ZONE" }, "HOST");
-            launches.Remove(actor);
         }
         static NetworkPlayer Find(ulong actor) => NetworkPlayer.All.FirstOrDefault(p => p != null && p.OwnerClientId == actor);
         sealed class ParticipantObservation
@@ -478,7 +464,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 // PlayerBalance also mirrors a network death/ragdoll. That is not evidence
                 // of a balance failure in cannon, nor may it overwrite a confirmed obstacle.
                 if (owner.trick != "TIGHTROPE") return;
-                if (hitFrame != Time.frameCount || obstacle == null) Hit("OUT_OF_BALANCE", null);
+                if (player.State == PlayerState.Normal && (hitFrame != Time.frameCount || obstacle == null)) Hit("OUT_OF_BALANCE", null);
                 var course = TightropeCourse.Current;
                 if (!player.IsLocal || owner.attempt == null || owner.ended || course == null) return;
                 if (course.TryGetRopePoint(player.transform.position, out int rope, out float distance) && owner.Section(player) > 0)
@@ -507,7 +493,7 @@ namespace CurtainCall.Telemetry.Pipeline
             }
             DamageObservation Snapshot() => new() { Frame = Time.frameCount, Lost = DetailLogIds.Lost(player.LostParts),
                 Position = Time.frameCount == hitFrame && contactPosition.HasValue ? contactPosition.Value : player.transform.position,
-                Section = owner.Section(player), Cause = Time.frameCount == hitFrame ? cause : "UNKNOWN", Obstacle = Time.frameCount == hitFrame ? obstacle : null };
+                Section = owner.Section(player), Cause = Time.frameCount == hitFrame ? cause : player.LastDeathOrigin.ToString(), Obstacle = Time.frameCount == hitFrame ? obstacle : null };
             void State(PlayerState before, PlayerState after)
             {
                 if (owner.attempt == null || owner.ended) return;
@@ -520,7 +506,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 if (player.IsLocal) owner.log.Emit("INJURY_CHANGED", new() { ["beforeLostCount"] = DetailLogIds.Lost(before), ["afterLostCount"] = DetailLogIds.Lost(after) });
                 if (owner.attempt == null || owner.ended) return;
                 foreach (BodyPart part in PlayerCondition.CutOrder)
-                    if (((after & ~before) & part) != 0) { var observation = Snapshot(); observation.Part = part; observation.Lost = DetailLogIds.Lost(after); cuts.Add(observation); }
+                    if (((after & ~before) & part) != 0) { var observation = Snapshot(); observation.Part = part; observation.BodyResult = after.ToString(); observation.Lost = DetailLogIds.Lost(after); cuts.Add(observation); }
             }
             public void Flush()
             {
@@ -532,15 +518,15 @@ namespace CurtainCall.Telemetry.Pipeline
                 {
                     if (death != null || cuts.Count > 0) owner.StartPlayer(player, true);
                     foreach (var cut in cuts) owner.log.EmitFor(player, "LIMB_SEVERED", new() { ["sectionId"] = cut.Section > 0 ? cut.Section : null, ["position"] = DetailLogIds.Position(cut.Position),
-                        ["part"] = cut.Part.ToString(), ["afterLostCount"] = cut.Lost, ["obstacleId"] = cut.Obstacle, ["cause"] = cut.Cause }, "HOST");
+                        ["part"] = cut.Part.ToString(), ["bodyResult"] = cut.BodyResult, ["afterLostCount"] = cut.Lost, ["obstacleId"] = cut.Obstacle, ["cause"] = cut.Cause }, "HOST");
                     if (death != null) deathEmitted = owner.log.EmitFor(player, "PLAYER_DIED", new() { ["sectionId"] = death.Section > 0 ? death.Section : null, ["position"] = DetailLogIds.Position(death.Position),
-                        ["cause"] = death.Cause, ["lostCount"] = death.Lost, ["obstacleId"] = death.Obstacle }, "HOST");
+                        ["cause"] = death.Cause, ["lostCount"] = death.Lost, ["obstacleId"] = player.LastDeathObstacle ?? death.Obstacle }, "HOST");
                 }
                 if (death != null) { if (player.IsLocal) FinishJump(false); if (owner.Host) owner.CloseSection(player, "DIED"); }
                 if (death != null && !owner.Host) deathEmitted = true;
                 cuts.Clear(); death = null;
             }
-            sealed class DamageObservation { public int Frame, Lost, Section; public BodyPart Part; public Vector3 Position; public string Cause, Obstacle; }
+            sealed class DamageObservation { public int Frame, Lost, Section; public BodyPart Part; public Vector3 Position; public string Cause, Obstacle, BodyResult; }
             public void Dispose() { if (player != null) player.StateChanged -= State; if (condition != null) condition.Changed -= Body; if (balance != null) balance.Fell -= Fell; if (mover != null) mover.AirborneChanged -= Airborne; }
         }
     }

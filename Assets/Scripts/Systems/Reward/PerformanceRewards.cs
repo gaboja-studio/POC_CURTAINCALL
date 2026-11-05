@@ -69,6 +69,7 @@ namespace CurtainCall.Reward
         public bool TransitionPending => pendingTransition;
         public IReadOnlyList<PerformanceResult> History => model != null ? model.History : receivedHistory.AsReadOnly();
         public event Action Changed;
+        public static event Action<string, int> AudienceReacted;
         public event Action SampleRecords;
         public bool RecordProgress(string identity, string participantId, double? elapsed, double length, double distance)
             => CanMutate() && model.Record(identity, participantId, elapsed, length, distance);
@@ -305,6 +306,7 @@ namespace CurtainCall.Reward
             if (audience != null) delta = audience.ScaleReaction(delta, difficulty);
             bool changed = model.React(participantId, delta, ReadRules(), resetInterest);
             if (model.Revision != previous) Publish();
+            if (changed) AudienceReacted?.Invoke(participantId, delta);
             return changed;
         }
 

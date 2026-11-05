@@ -267,7 +267,7 @@ namespace CurtainCall.Tightrope.Fire
 
         void Kill(NetworkPlayer player, FireKind kind, int segment, float distance)
         {
-            if (!player.ServerKill()) return;
+            if (!player.ServerKill(NetworkPlayer.DeathOrigin.FirePillar,"FIRE_"+kind+"_"+segment)) return;
             // 화염에 맞은 사람만 사망시키고 구조 상태는 같은 호스트 판정에서 즉시 정리한다.
             TightropeHangSystem.Current?.ServerReleaseForInspection(player.OwnerClientId);
             Hit?.Invoke(new FireHit(player, kind, segment, round, elapsed, distance));

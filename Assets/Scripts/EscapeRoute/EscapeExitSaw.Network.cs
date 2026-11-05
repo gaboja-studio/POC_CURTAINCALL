@@ -33,6 +33,7 @@ namespace CurtainCall.EscapeRoute
                     () => this != null && CanGrab(player) && ownership.Revision == expected,
                     () => HandleAction(actor, action, expected, true))) return;
                 if (!CanGrab(player) || !ownership.TryApply(CannonAction.Board, actor, expected)) return;
+                CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player,this,"CUTTER","ACQUIRED",CarryRoot.position,true);
                 CarrierChanged();
                 HumanCannonSystem.Current.StartCarrying(actor);
                 lastSafeFeet = player.transform.position;

@@ -23,6 +23,20 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
             if (Directory.Exists(directory)) Directory.Delete(directory, true);
         }
         DurableOutbox New() => new(directory, Guid.NewGuid().ToString("D"));
+        [Test] public void SceneCheckpointsStayOnDiskUntilBoundary_AndRecoveryCanRetry()
+        {
+            var queue = New(); queue.HoldNewBatches = true;
+            queue.Append(RelayEvent()); queue.Seal("CHECKPOINT");
+            Assert.That(queue.PendingBatchCount, Is.EqualTo(1));
+            Assert.That(queue.NextPath(), Is.Null); Assert.That(queue.NextRelayPath(), Is.Null);
+            queue.ReleaseScene("SCENE_CHANGED");
+            Assert.That(queue.NextPath(), Is.Not.Null);
+            queue.Append(RelayEvent()); queue.Seal("CHECKPOINT");
+            Assert.That(queue.PendingBatchCount, Is.EqualTo(2));
+            var recovered = New();
+            Assert.That(recovered.PendingBatchCount, Is.EqualTo(2));
+            Assert.That(recovered.NextPath(), Is.Not.Null);
+        }
         static LogEvent RelayEvent() => new() { sequence = 1, occurredAt = "2026-10-29T00:00:00Z", monotonicMs = 0,
             environment = "TEST", gameVersion = "0.1.0", playerId = "test-client", playerNumber = 1,
             networkClientId = "1", sceneType = "TITLE", eventType = "GAME_STARTED", authority = "LOCAL" };

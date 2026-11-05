@@ -21,6 +21,7 @@ namespace CurtainCall.WaitingRoom
         float requestedAt = -10f;
         bool? shownUnlocked;
 
+        public GameObject[] MapProps => mapProps ?? System.Array.Empty<GameObject>();
         public string TrickId => trickId;
         public string TrickName => trickName;
         public bool Unlocked => CampaignRun.Instance != null && CampaignRun.Instance.IsTrickUnlocked(trickId);

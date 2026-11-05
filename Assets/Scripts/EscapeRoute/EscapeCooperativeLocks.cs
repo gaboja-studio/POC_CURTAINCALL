@@ -218,6 +218,7 @@ namespace CurtainCall.EscapeRoute
                 if (player != null && player.OwnerClientId == actor && CanUseControl(player, index))
                 {
                     armed |= 1u << index;
+                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player, Control(index), checkpoints[index].sourceName, "ACTIVATED", ControlPoint(index), true);
                     latched |= 1u << index;
                     revision++; Publish(); break;
                 }

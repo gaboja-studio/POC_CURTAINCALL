@@ -98,7 +98,7 @@ test('same login separates slots, and relayed copies retain player identity',()=
 test('zoom changes spacing without changing source coordinates',()=>{const rows=[point(0),point(100)],a=routeCtx.routeGeometry(rows,'TIGHTROPE',1),b=routeCtx.routeGeometry(rows,'TIGHTROPE',3);assert.ok(b.points[1].x-b.points[0].x>a.points[1].x-a.points[0].x);assert.equal(a.points[1].u,b.points[1].u);});
 test('input noise and observed replicas stay out of analysis; raw totals preserved',()=>{const rows=[e('INPUT_KEY'),e('BUTTON_INPUT'),e('MICROPHONE_INPUT'),e('PLAYER_DIED',{cause:'FALL'},{attemptId:'a'}),e('PLAYER_DIED',{cause:'FALL'},{attemptId:'a',authority:'OBSERVED'})];assert.equal(view(rows).timeline.total,1);assert.equal(core.aggregate(rows,'TEST').eventCount,5);});
 test('shared login yields two observed waiting users',()=>{const a=e('ZONE_ENTERED',{zoneType:'BEDROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL'}),b={...a,eventId:'other',playerNumber:1};assert.equal(core.aggregate([a,b],'TEST').zones[0].distinctPlayers,2);});
-test('search and native selection are separate',()=>{const html=fs.readFileSync(__dirname+'/dashboard.html','utf8');assert.ok(html.includes('<select id="timeline-run"'));assert.ok(html.includes('<select id="fund-run"'));assert.ok(html.includes('id="timeline-search"'));assert.equal(html.includes('list="run-options"'),false);});
+test('search and native selection are separate',()=>{const html=fs.readFileSync(__dirname+'/dashboard.html','utf8');assert.ok(html.includes('<select id="timeline-run"'));assert.ok(!html.includes('<select id="fund-run"'));assert.ok(html.indexOf('<select id="timeline-run"')<html.indexOf('<h3>공동 자금 변동'));assert.ok(html.includes('id="timeline-search"'));assert.equal(html.includes('list="run-options"'),false);});
 
 test('break balances carry observed income, keep periods separate and match selected-run averages',()=>{
  const rows=[],rest=(run,day,part)=>rows.push(e('ZONE_ENTERED',{zoneType:'WAITINGROOM'},{runId:run,performanceId:'D'+day+'P1',breakId:'D'+day+'T'+part,sceneType:'WAITINGROOM'}));
@@ -138,4 +138,12 @@ test('opening, signing in and background status polling never start an import',(
  assert.equal(startup.includes('load(true)'),false);assert.ok(startup.includes('load(false)'));assert.equal(login.includes('load(true)'),false);
  assert.equal(refreshHtml.includes('setInterval(()=>{if(viewer&&!deletionPreview)load(true)'),false);assert.ok(refreshHtml.includes('setInterval(pollRefreshState,15000)'));
  const poll=refreshHtml.split('function pollRefreshState()')[1].split('function load(importFiles)')[0];assert.equal(poll.includes('refreshDashboard'),false);assert.ok(poll.includes('getDashboardRefreshState'));
+});
+
+test('cached overview binds balances to the displayed run, including an empty ledger',()=>{
+ const html=fs.readFileSync(__dirname+'/dashboard.html','utf8'),c=vm.createContext({});
+ vm.runInContext(html.split('// SESSION_MODEL_BEGIN')[1].split('// SESSION_MODEL_END')[0],c);
+ const v={timeline:{runId:'B'},funds:{runId:'',interval:'DAY',mode:'AVERAGE',series:[{balance:500}],runSeries:[{runId:'A',day:1,balance:900},{runId:'B',day:1,balance:100}],breakRunSeries:[]}};
+ c.alignRunViews(v,false);assert.equal(v.funds.runId,'B');assert.equal(v.funds.series[0].balance,100);
+ v.timeline.runId='C';c.alignRunViews(v,false);assert.equal(v.funds.runId,'C');assert.equal(v.funds.series.length,0);
 });

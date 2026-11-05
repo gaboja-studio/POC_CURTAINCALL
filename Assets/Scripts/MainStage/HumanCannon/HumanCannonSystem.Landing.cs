@@ -58,7 +58,7 @@ namespace CurtainCall.HumanCannon
                 foreach (Action<ulong> observer in ServerFell.GetInvocationList())
                     try { observer(player.OwnerClientId); }
                     catch (Exception error) { Debug.LogException(error); }
-            player.ServerCut(FallCuts);
+            player.ServerCut(FallCuts,null,NetworkPlayer.DeathOrigin.Fall);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace CurtainCall.HumanCannon
                 foreach (Action<ulong> observer in ServerFell.GetInvocationList())
                     try { observer(player.OwnerClientId); }
                     catch (Exception error) { Debug.LogException(error); }
-            player.ServerKill();
+            player.ServerKill(NetworkPlayer.DeathOrigin.MapExit);
         }
 
         /// <summary>호스트: 스프링 신발이 추락 부상 대신 반동시켰다(접속 번호). 관찰·테스트용.</summary>
@@ -207,6 +207,7 @@ namespace CurtainCall.HumanCannon
         {
             if (!flying.TryComplete(actor, index, revision, segment)) return;
             if (boundPlayer == null || actor != boundPlayer.OwnerClientId) return;
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(boundPlayer,this,"LANDING",safe?"SAFE":"UNSAFE",boundPlayer.transform.position);
             LocalLastStation = index;
             if (safe) LocalSafeLandingCount++;
             if (pilot != null) pilot.CompleteLanding(index, revision, segment);

@@ -182,6 +182,7 @@ namespace CurtainCall.Tightrope.Saws
             if (ServerApproveCooperativeStack()) BroadcastCooperativeGate();
             if ((CooperativeApproachSpeed <= 0f && CooperativeGateDistance > CooperativeGateStopDistance + .001f)
                 || !TryFindCooperativePlatePlayer(out var player, out int lane)) return;
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player,this,"COOP_SAW_PLATE","ACTIVATED",player.transform.position,true);
             OpenTeamPassageAt(lane, CooperativePlateDistance);
             ReleaseCooperativeGate();
             cooperativeGateOpenedAt = GameElapsed;

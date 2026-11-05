@@ -26,6 +26,8 @@ namespace CurtainCall.EscapeRoute
         sealed class Shot
         {
             public uint Id, Epoch;
+            public ulong Shooter;
+            public bool CutAny;
             public Vector3 Position, Direction;
             public float Age;
         }
@@ -36,6 +38,8 @@ namespace CurtainCall.EscapeRoute
         readonly Collider[] shotOverlaps = new Collider[64];
         uint cutMask, shotSerial, shootingEpoch, lastPresentedShot, courseEpoch;
         float shotWait, recoilTime;
+        public static event Action<EscapeExitSaw, ulong, string, string, Vector3, Vector3, string> ShotObserved;
+        string ShotKey(Shot shot) => courseEpoch + ":" + shot.Epoch + ":" + shot.Id;
         bool shotArmed;
         Vector3 recoilRest;
         public bool ProjectileMode => cables != null && cables.Length > 0;
@@ -133,7 +137,9 @@ namespace CurtainCall.EscapeRoute
             var origin = muzzle != null ? muzzle : blade != null ? blade : CarryRoot;
             Vector3 direction = Vector3.ProjectOnPlane(CarryRoot.forward, Vector3.up).normalized;
             if (!Finite(origin.position) || direction.sqrMagnitude < .99f) return;
-            shots.Add(new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Position = origin.position, Direction = direction });
+            var shot = new Shot { Id = ++shotSerial, Epoch = ownership.Revision, Shooter = Carrier, Position = origin.position, Direction = direction };
+            shots.Add(shot);
+            ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "FIRED", shot.Position, shot.Direction, "");
             lastPresentedShot = shotSerial;
             EmitLaunch();
         }
@@ -151,9 +157,13 @@ namespace CurtainCall.EscapeRoute
                 // 클라이언트도 자기 화면의 벽에서 즉시 숨긴다. 절단 확정은 호스트만 한다.
                 bool blocked = ObstructionDistance(from, shot.Direction, distance, out distance);
                 Vector3 to = from + shot.Direction * distance;
-                if (host && (!blocked || distance > .0001f)) CutAlong(from, to, Vector3.up);
+                if (host && (!blocked || distance > .0001f)) CutAlong(from, to, Vector3.up, shot);
                 shot.Position = to; shot.Age += step;
-                if (blocked || !UnlimitedProjectiles && shot.Age >= projectileLifetime) shots.RemoveAt(i);
+                if (blocked || !UnlimitedProjectiles && shot.Age >= projectileLifetime) {
+                    if (host) ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "ENDED", to, shot.Direction,
+                        (shot.CutAny ? "CABLE_HIT/" : "NO_CABLE_HIT/") + (blocked ? "OBSTRUCTION" : "LIFETIME"));
+                    shots.RemoveAt(i);
+                }
             }
         }
         bool ObstructionDistance(Vector3 from, Vector3 direction, float wanted, out float allowed)
@@ -175,7 +185,7 @@ namespace CurtainCall.EscapeRoute
         }
         bool ShotObstacle(Collider collider) => collider != null && !collider.transform.IsChildOf(CarryRoot)
             && collider.GetComponentInParent<NetworkPlayer>() == null && collider.GetComponentInParent<EscapeCuttableCable>() == null;
-        void CutAlong(Vector3 from, Vector3 to, Vector3 normal)
+        void CutAlong(Vector3 from, Vector3 to, Vector3 normal, Shot shot = null)
         {
             for (int i = 0; cables != null && i < cables.Length && i < 32; i++)
             {
@@ -184,6 +194,12 @@ namespace CurtainCall.EscapeRoute
                 if (cable == null || !cable.isActiveAndEnabled || (cutMask & bit) != 0) continue;
                 if (!cable.TryIntersectDisk(from, to, normal, projectileRadius, projectileHalfThickness, out _, out var hit)) continue;
                 cutMask |= bit; cutPoints[i] = hit; cable.SetCut(true, hit, true);
+                if (shot != null) {
+                    shot.CutAny = true;
+                    ShotObserved?.Invoke(this, shot.Shooter, ShotKey(shot), "CABLE_CUT", hit, shot.Direction,
+                        CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(cable, "IN_"));
+                }
+                if (DoorOpen) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,this,"EXIT_DOOR","OPEN",CableSocket!=null?CableSocket.position:hit,true);
                 ShareCut(cable, hit);
             }
         }

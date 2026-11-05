@@ -128,6 +128,7 @@ namespace CurtainCall.EscapeRoute
             if (phase == next) return;
             bool changeSupport = (phase == RopePhase.Hidden) != (next == RopePhase.Hidden);
             phase = next;
+            if (session != null && session.IsHost) foreach(var support in ropeSupports) if(support!=null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,support,"VANISHING_ROPE",next.ToString(),support.transform.position,true);
             SetWarning(next == RopePhase.Flash);
             if (!changeSupport) return;
             var local = NetworkPlayer.Local;
@@ -295,6 +296,7 @@ namespace CurtainCall.EscapeRoute
             NetworkPlayer player = null;
             foreach (var candidate in NetworkPlayer.All) if (candidate.OwnerClientId == actor) { player = candidate; break; }
             if (!CanUseButton(player)) return;
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player,button,"RETURN_LEVER","ACTIVATED",ButtonPoint,true);
             SetGate(true); revision++; Publish();
         }
 

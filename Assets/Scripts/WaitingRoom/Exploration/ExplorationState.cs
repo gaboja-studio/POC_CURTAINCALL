@@ -25,6 +25,7 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>진행이 바뀌었다(받은 상태 포함).</summary>
         public event Action Changed;
+        public static event Action<ulong, string, bool, bool, int> TelemetryAttempted;
 
         /// <summary>내 요청의 결과 문구.</summary>
         public event Action<string> RequestAnswered;
@@ -176,6 +177,13 @@ namespace CurtainCall.WaitingRoom
         // 판정 화면: 탐색 대상에 손에 든 도구를 한 번 쓴다(벽 내려치기·자물쇠 따기·판자 뜯기·UV 비추기 공통).
         (bool, string) Use(ulong player, string targetId, string password = null)
         {
+            var result = UseCore(player, targetId, password);
+            TelemetryAttempted?.Invoke(player, targetId, result.Item1, book.IsOpen(targetId), book.Hits(targetId));
+            return result;
+        }
+
+        (bool, string) UseCore(ulong player, string targetId, string password)
+        {
             // 첫 공연 전에는 클라이언트의 F 입력뿐 아니라 호스트의 탐색 판정도 잠근다.
             if (WaitingRoomRehearsal.IsPreTutorialRestricted)
                 return (false, WaitingRoomText.Get("explore.locked-before-tutorial", "첫 공연을 마친 뒤 대기실 안내에서 이용할 수 있습니다."));
@@ -231,7 +239,8 @@ namespace CurtainCall.WaitingRoom
                 // 대상이 열리거나 파괴되거나 새로 발견된 때에만 도구를 한 번 쓴다.
                 if (needsTool)
                 {
-                    carry.UseItem(player, tool.Uid, out var after, out bool gone);
+                    var consumed = carry.UseItem(player, tool.Uid, out var after, out bool gone);
+                    if (consumed == CarryRefusal.None) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(body.GetComponentInParent<CurtainCall.Network.PlayerSync.NetworkPlayer>(), "EXPLORATION_TOOL", new(){["itemType"]=tool.ItemId,["uid"]=tool.Uid,["targetId"]=targetId,["state"]="USED",["usesBefore"]=tool.Uses,["usesAfter"]=gone?0:after.Uses,["objectPosition"]=target is Component component ? CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(component.transform.position) : null}, "HOST");
                     string item = ItemCatalog.DisplayName(after);
                     text += " " + (gone ? WaitingRoomText.Format("explore.used-up", "{item:을} 다 썼습니다.", ("item", item))
                         : WaitingRoomText.Format("explore.uses-left", "{item} 남은 {n}회", ("item", item), ("n", after.Uses)));

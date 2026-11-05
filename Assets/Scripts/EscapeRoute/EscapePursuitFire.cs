@@ -180,7 +180,7 @@ namespace CurtainCall.EscapeRoute
                     }
                     if (!IsArmed && ignitionBridge == null && CanArm(player)) Arm(now);
                     if (IsArmed && DamageAllowed(player) && player.TryGetComponent(out PlayerMover mover)
-                        && Threatens(player.transform.position, mover.BodyRadius, mover.BodyHeight, now)) player.ServerKill();
+                        && Threatens(player.transform.position, mover.BodyRadius, mover.BodyHeight, now)) player.ServerKill(NetworkPlayer.DeathOrigin.FirePillar,CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(this,"OB_"));
                 }
                 if (Time.unscaledTimeAsDouble >= nextSnapshot) { nextSnapshot = Time.unscaledTimeAsDouble + .5; Publish(); }
             }

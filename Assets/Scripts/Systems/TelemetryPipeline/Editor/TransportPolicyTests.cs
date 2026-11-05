@@ -6,13 +6,16 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
 {
     public sealed class TransportPolicyTests
     {
-        [TestCase(false, false, false, false)]
-        [TestCase(true, false, false, true)]
-        [TestCase(false, true, false, false)]
-        [TestCase(false, true, true, false)]
-        [TestCase(false, false, true, true)]
-        public void OnlyHostOrFormerHostUploads(bool host, bool client, bool hosted, bool expected)
-            => Assert.That(TransportPolicy.CanUpload(host, client, hosted), Is.EqualTo(expected));
+        [TestCase("escape_route", "EXITROUTE")]
+        [TestCase("EscapeRoute", "EXITROUTE")]
+        [TestCase("WaitingRoom", "WAITINGROOM")]
+        public void AuthoredSpatialSceneNamesAreRecognized(string scene, string expected)
+            => Assert.That(TelemetryRuntime.SceneType(scene), Is.EqualTo(expected));
+
+        [TestCase(false, false)]
+        [TestCase(true, true)]
+        public void ConfiguredOwnersCanSubmitAfterLeavingHost(bool configured, bool expected)
+            => Assert.That(TransportPolicy.CanUpload(configured), Is.EqualTo(expected));
 
         [Test] public void HostPersistsOriginalClientBatchBeforeReceiptAndDuplicateIsIdempotent()
         {

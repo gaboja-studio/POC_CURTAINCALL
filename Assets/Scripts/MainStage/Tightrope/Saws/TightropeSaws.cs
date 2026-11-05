@@ -430,10 +430,11 @@ namespace CurtainCall.Tightrope.Saws
                 return;
             }
 
-            if (IsAnyoneOnPlate()) platePressedFor += Time.deltaTime;
+            if (IsAnyoneOnPlate(out var presser)) platePressedFor += Time.deltaTime;
             else platePressedFor = 0f;
             if (platePressedFor > 0f && platePressedFor >= settings.plateHoldTime)
             {
+                CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(presser,this,"VERTICAL_SAW_PLATE","ACTIVATED",presser.transform.position,true);
                 ServerOpenTeamPassage();
                 SetVertical(true, verticalLane, verticalSerial, sinceSpawn, 0f);
                 Broadcast();
@@ -533,6 +534,7 @@ namespace CurtainCall.Tightrope.Saws
 
         void ServerRemoveVertical()
         {
+            if(IsPlatePressed && TryGetPlatePosition(out var at)) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,this,"VERTICAL_SAW_PLATE","RELEASED",at,true);
             sequence.NotifyFinished(verticalStep, GameElapsed);
             verticalStep = -1;
             SetVertical(false, verticalLane, verticalSerial, 0f, -1f);
@@ -540,8 +542,9 @@ namespace CurtainCall.Tightrope.Saws
         }
 
         /// <summary>진행 중인 플레이어의 발이 발판 위에 있는지.</summary>
-        bool IsAnyoneOnPlate()
+        bool IsAnyoneOnPlate(out NetworkPlayer presser)
         {
+            presser=null;
             if (!TryGetPlatePosition(out Vector3 plate)) return false;
             foreach (var player in NetworkPlayer.All)
             {
@@ -552,7 +555,7 @@ namespace CurtainCall.Tightrope.Saws
                 if (Mathf.Abs(Vector3.Dot(offset, course.Forward)) > settings.plateLength * 0.5f) continue;
                 if (Mathf.Abs(Vector3.Dot(offset, course.Right)) > settings.plateWidth * 0.5f) continue;
                 if (offset.y < -settings.plateHeightTolerance || offset.y > settings.plateHeightTolerance) continue;
-                return true;
+                presser=player; return true;
             }
             return false;
         }
@@ -609,7 +612,7 @@ namespace CurtainCall.Tightrope.Saws
 
             // 기존 공용 순서로 한 부위만 자른다. 버튼을 일찍 누른 상층도 실제 톱의 접촉을 면제하지 않는다.
             var requested = SawMath.DecidePart(contact, body, course.Right, settings.waistHeight);
-            BodyPart cut = player.ServerCut();
+            BodyPart cut = player.ServerCut(1, "SAW_"+kind.ToString().ToUpperInvariant()+"_"+index,NetworkPlayer.DeathOrigin.Hazard);
             if (cut == BodyPart.None) return;
             lastPlayerCutAt[player.NetworkObjectId] = Time.time;
             var hit = new SawHit(player, cut, requested, kind, index, contact, contact.y - body.Feet.y);

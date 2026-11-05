@@ -60,6 +60,7 @@ namespace CurtainCall.Campaign
 
         /// <summary>상태가 바뀌었다(타이머 남은 시간 포함, 매 프레임 올 수 있다).</summary>
         public event Action Changed;
+        public static event Action<string, ulong> TrickDiscovered;
 
         /// <summary>시간대가 바뀌었다(세대·일차·시간대·쉬는 시간 종류·공연 순번). 시간대 시작 알림으로 쓴다.</summary>
         public event Action<CampaignSnapshot> StepChanged;
@@ -245,7 +246,11 @@ namespace CurtainCall.Campaign
         public bool DiscoverTrick(string trickId)
         {
             if (!state.IsRunning || state.IsTrickUnlocked(trickId)) return false;
-            if (host != null) return HostDo(r => r.UnlockTrick(trickId), nameof(DiscoverTrick));
+            if (host != null) {
+                bool opened = HostDo(r => r.UnlockTrick(trickId), nameof(DiscoverTrick));
+                if (opened) TrickDiscovered?.Invoke(trickId, NetworkManager.Singleton != null ? NetworkManager.Singleton.LocalClientId : 0);
+                return opened;
+            }
             if (messaging == null) return false;
             using var writer = new FastBufferWriter(64, Allocator.Temp);
             writer.WriteValueSafe(trickId ?? "");
@@ -512,7 +517,7 @@ namespace CurtainCall.Campaign
             reader.ReadValueSafe(out string trickId);
             reader.ReadValueSafe(out int generation);
             if (generation != state.Generation || !Players().Contains(sender)) return;
-            if (host.UnlockTrick(trickId)) Apply(host.Snapshot);
+            if (host.UnlockTrick(trickId)) { Apply(host.Snapshot); TrickDiscovered?.Invoke(trickId, sender); }
         }
 
         void HandleTutorialDone(ulong sender, FastBufferReader reader)

@@ -151,6 +151,12 @@ namespace CurtainCall.Network.PlayerSync
         public event Action<JumpKind> JumpChanged;
 
         /// <summary>호스트가 확정한 상태(모든 화면에서 같음).</summary>
+        public enum DeathOrigin : byte { Fall, MapExit, Pursuit, FirePillar, Hazard, LimbLoss, HangExpired, Timeout, Debug }
+        readonly NetworkVariable<Unity.Collections.FixedString64Bytes> deathObstacle = new();
+        public string LastDeathObstacle => deathObstacle.Value.IsEmpty ? null : deathObstacle.Value.ToString();
+        void SetDeathOrigin(DeathOrigin origin,string obstacle=null){deathObstacle.Value=new Unity.Collections.FixedString64Bytes(obstacle??"");deathOrigin.Value=origin;}
+        readonly NetworkVariable<DeathOrigin> deathOrigin = new(DeathOrigin.Fall);
+        public DeathOrigin LastDeathOrigin => deathOrigin.Value;
         public PlayerState State => state.Value;
 
         /// <summary>상태가 바뀌었을 때(모든 화면). 인자는 (이전, 새 상태).</summary>
@@ -164,9 +170,10 @@ namespace CurtainCall.Network.PlayerSync
         }
 
         /// <summary>호스트: 요청 없이 상태를 바로 정한다.</summary>
-        public void ServerSetState(PlayerState next)
+        public void ServerSetState(PlayerState next, DeathOrigin origin = DeathOrigin.Fall)
         {
             if (!IsServer) return;
+            if (next is PlayerState.Fallen or PlayerState.Retired) SetDeathOrigin(origin);
             state.Value = next;
         }
 
@@ -212,12 +219,12 @@ namespace CurtainCall.Network.PlayerSync
         /// 네 번째를 잃으면 그 자리에서 사망하고 나머지는 자르지 않는다. 실제로 잘린 부위를 돌려준다(거절·변화 없음은 None).
         /// 다칠 수 있는지는 <see cref="ServerCutPart"/>와 같다(보통 상태 + <see cref="ServerCanChangeState"/>).
         /// </summary>
-        public BodyPart ServerCut(int count = 1)
+        public BodyPart ServerCut(int count = 1, string obstacle = null, DeathOrigin origin = DeathOrigin.LimbLoss)
         {
             BodyPart cut = BodyPart.None;
             for (int i = 0; i < count; i++)
             {
-                var part = ServerApplyCut(PlayerCondition.NextFixedCut(lostParts.Value));
+                var part = ServerApplyCut(PlayerCondition.NextFixedCut(lostParts.Value),obstacle,origin);
                 if (part == BodyPart.None) break;
                 cut |= part;
             }
@@ -228,9 +235,10 @@ namespace CurtainCall.Network.PlayerSync
         /// 호스트: 남은 팔다리와 상관없이 죽인다(추락 등). 장소에 따라 추락(사망) 또는 리타이어(탈출로). 다칠 수 없는 때면 false.
         /// 공중 추락처럼 소유자가 먼저 아는 사망은 <see cref="RequestState"/>(<see cref="PlayerState.Fallen"/>)로 요청해도 같은 규칙을 따른다.
         /// </summary>
-        public bool ServerKill()
+        public bool ServerKill(DeathOrigin origin = DeathOrigin.Fall,string obstacle=null)
         {
             if (!IsServer || !ServerCanTakeDamage()) return false;
+            SetDeathOrigin(origin,obstacle);
             state.Value = SurvivalRules.DeathState(SurvivalRules.ServerPlace);
             return true;
         }
@@ -252,10 +260,12 @@ namespace CurtainCall.Network.PlayerSync
                     lostParts.Value = lost;
                     break;
                 case CatchOutcome.Died:
+                    SetDeathOrigin(DeathOrigin.Pursuit);
                     state.Value = PlayerState.Fallen;
                     // 다음 공연 시작 때 외팔로 부활해 출연한다(InjuryRevival). 보상 박탈은 2026-10-28 결정으로 없앴다.
                     break;
                 case CatchOutcome.Retired:
+                    SetDeathOrigin(DeathOrigin.Pursuit);
                     state.Value = PlayerState.Retired;
                     break;
             }
@@ -276,6 +286,7 @@ namespace CurtainCall.Network.PlayerSync
         {
             if (!IsServer) return;
             lostParts.Value = PlayerCondition.OneArmParts;
+            SetDeathOrigin(DeathOrigin.Pursuit);
             state.Value = PlayerState.Retired;
         }
 
@@ -342,7 +353,7 @@ namespace CurtainCall.Network.PlayerSync
         {
             if (!IsServer || !CurtainCall.Dev.DevMode.Enabled) return;
             lostParts.Value = parts;
-            if (parts == PlayerCondition.PartsForLostCount(4)) state.Value = PlayerState.Fallen;
+            if (parts == PlayerCondition.PartsForLostCount(4)) { SetDeathOrigin(DeathOrigin.Debug); state.Value = PlayerState.Fallen; }
             else if (state.Value != PlayerState.Normal) { state.Value = PlayerState.Normal; reviveCount.Value++; }
         }
 
@@ -352,10 +363,11 @@ namespace CurtainCall.Network.PlayerSync
             if (IsSpawned && IsOwner) RequestCutPartRpc(part);
         }
 
-        BodyPart ServerApplyCut(BodyPart part)
+        BodyPart ServerApplyCut(BodyPart part,string obstacle=null,DeathOrigin origin=DeathOrigin.LimbLoss)
         {
             if (!IsServer || part == BodyPart.None || !ServerCanTakeDamage()) return BodyPart.None;
             lostParts.Value |= part;
+            if (PlayerCondition.IsAllLimbsLost(lostParts.Value)) SetDeathOrigin(origin,obstacle);
             if (PlayerCondition.IsAllLimbsLost(lostParts.Value))
                 state.Value = SurvivalRules.DeathState(SurvivalRules.ServerPlace); // 네 팔다리 모두 잃으면 사망(탈출로는 리타이어)
             return part;
@@ -379,6 +391,7 @@ namespace CurtainCall.Network.PlayerSync
             if (state.Value == next) return;
             if (ServerCanChangeState != null && !ServerCanChangeState(this, next)) return;
             // 추락 요청은 장소의 사망 상태로 바꾼다(탈출로 = 리타이어)
+            if (next == PlayerState.Fallen) SetDeathOrigin(DeathOrigin.Fall);
             state.Value = next == PlayerState.Fallen ? SurvivalRules.DeathState(SurvivalRules.ServerPlace) : next;
         }
 

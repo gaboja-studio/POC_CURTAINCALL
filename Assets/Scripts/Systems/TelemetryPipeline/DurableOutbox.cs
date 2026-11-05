@@ -26,6 +26,14 @@ namespace CurtainCall.Telemetry.Pipeline
         readonly string appSessionId;
         LogBatch active;
         readonly ConcurrentDictionary<string, byte> currentBatches = new();
+        readonly ConcurrentDictionary<string, byte> heldBatches = new();
+        public bool HoldNewBatches { get; set; }
+        // Disk checkpoints are durable, but become eligible for network I/O only at a boundary.
+        public void ReleaseScene(string reason)
+        {
+            Seal(reason);
+            heldBatches.Clear();
+        }
         readonly ConcurrentDictionary<string, byte> fileMutations = new(StringComparer.OrdinalIgnoreCase);
         public string SenderId => senderId;
         public string AppSessionId => appSessionId;
@@ -95,6 +103,7 @@ namespace CurtainCall.Telemetry.Pipeline
             AtomicWrite(activePath, LogJson.Serialize(active));
             // Copy + delete is recoverable even if interrupted between the two operations.
             string final = Path.Combine(root, active.batchId + ".json");
+            if (HoldNewBatches) heldBatches.TryAdd(active.batchId, 0);
             string json = File.ReadAllText(activePath);
             if (!File.Exists(final)) AtomicWrite(final, json);
             else if (File.ReadAllText(final) != json)
@@ -106,12 +115,14 @@ namespace CurtainCall.Telemetry.Pipeline
 
         public string NextPath() => Directory.EnumerateFiles(root, "*.json")
             .Where(p => Guid.TryParseExact(Path.GetFileNameWithoutExtension(p), "D", out _))
+            .Where(p => !heldBatches.ContainsKey(Path.GetFileNameWithoutExtension(p)))
             .OrderBy(p => currentBatches.ContainsKey(Path.GetFileNameWithoutExtension(p)) ? 0 : 1)
             .ThenBy(File.GetLastWriteTimeUtc).FirstOrDefault();
 
         // ACK is sent only after the host has persisted this exact immutable client batch.
         public string NextRelayPath() => Directory.EnumerateFiles(root, "*.json")
             .Where(p => Guid.TryParseExact(Path.GetFileNameWithoutExtension(p), "D", out _))
+            .Where(p => !heldBatches.ContainsKey(Path.GetFileNameWithoutExtension(p)))
             .OrderBy(p => currentBatches.ContainsKey(Path.GetFileNameWithoutExtension(p)) ? 0 : 1)
             .ThenBy(File.GetLastWriteTimeUtc).FirstOrDefault(p =>
             { try { return TransportPolicy.RelayBatch(LogJson.Parse<LogBatch>(File.ReadAllText(p))); } catch { return false; } });
