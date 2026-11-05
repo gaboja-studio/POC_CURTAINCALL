@@ -88,6 +88,8 @@ namespace CurtainCall.Tightrope
         /// </summary>
         public bool PracticeMode => practiceMode;
         public void SetPracticeMode(bool value) => practiceMode = value;
+        /// <summary>공용 공연에 연결된 지금 공연 ID. 공연이 아니면 null.</summary>
+        public string CampaignPerformanceId => campaignPerformanceId;
 
         public void SetExternallyManaged(bool value)
         {

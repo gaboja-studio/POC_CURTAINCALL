@@ -142,3 +142,5 @@
 - 원인: `HumanCannonHazard.Present`가 톱날 면의 법선 축으로 돌리고 있었으나 `rotationSpeed`가 60°/s(0.5초에 30°)라 거의 멈춰 보임. 회전축은 톱날 모델 법선과 일치함을 에디터에서 확인.
 - 씬: 지상 톱(`GroundSaw`, 봉 톱 제외) 14개 전부(숨긴 것 포함) `rotationSpeed` 60 → 720(외줄타기 같은 톱 모델 `spinSpeed`와 같음), 저장. 난이도 속도 배율(1~1.5)이 그대로 곱해진다. 지상 톱 접촉 판정은 원판이라 회전 속도와 무관.
 - 테스트는 사용자가 직접 하기로 해 미실행. 실제 화면에서 회전이 거꾸로/느리게 보이는 착시가 있으면 값 조정 필요.
+
+- 2026-11-05 PR: `fix/main-stages` → dev PR #297(https://github.com/gaboja-studio/POC_CURTAINCALL/pull/297) 생성, PM 팀 검토 요청. 인간 대포(Task-081)·외줄(Task-074) 수정 묶음. CI 1/1 통과, 검토 대기(BLOCKED). 최신 dev 미병합(충돌 없음, MERGEABLE).
