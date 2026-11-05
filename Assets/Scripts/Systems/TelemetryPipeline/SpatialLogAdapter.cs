@@ -34,7 +34,9 @@ namespace CurtainCall.Telemetry.Pipeline
         float nextPlayer, nextWorld, nextCache;
         Vector3 lastPosition;
         bool hasPosition, captured, dead, arrived, chased;
-        string scope, rehearsal;
+        string scope;
+        (bool active, int stage, bool completed, bool practice)? rehearsal;
+        (bool active, bool ending, bool mastered, int checkpoint, bool arrived)? cannonRehearsal;
         readonly Dictionary<string, string> ownerStates = new();
         readonly Dictionary<string, int> previousSizes = new();
         int bounceCount;
@@ -120,7 +122,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 if (scope != null) log.ReleaseSpatialBoundary();
                 scope = Scope; hasPosition = captured = dead = arrived = chased = escapeStarted = escapeExpired = false;
                 pursuitStates.Clear(); discoveries.Clear(); worldStates.Clear(); worldPositions.Clear(); geometry.Clear(); objects.Clear();
-                geometryIndex = 0; nextCache = nextPlayer = nextWorld = 0; rehearsal = null;
+                geometryIndex = 0; nextCache = nextPlayer = nextWorld = 0; rehearsal = null; cannonRehearsal = null;
                 bodySeen = false; lastEscapeSection = -1; visitedSections.Clear(); ownerStates.Clear(); previousSizes.Clear(); bounceCount=0;
             }
             if (Time.unscaledTime >= nextCache) { nextCache = Time.unscaledTime + 5; Cache(); }
@@ -337,12 +339,22 @@ namespace CurtainCall.Telemetry.Pipeline
         void ObserveRehearsal()
         {
             if (Scene != "WAITINGROOM") return;
-            string value = WaitingRoomRehearsal.IsActive + "/" + WaitingRoomRehearsal.CurrentStage + "/" + WaitingRoomRehearsal.IsCompleted + "/" + WaitingRoomRehearsal.IsPracticing;
-            if (value == rehearsal) return;
-            if (WaitingRoomRehearsal.IsActive || rehearsal != null)
-                log.Emit("REHEARSAL_STATE", new() { ["state"] = value, ["stage"] = WaitingRoomRehearsal.CurrentStage,
-                    ["active"] = WaitingRoomRehearsal.IsActive, ["completed"] = WaitingRoomRehearsal.IsCompleted, ["practice"] = WaitingRoomRehearsal.IsPracticing });
+            var value = (active: WaitingRoomRehearsal.IsActive, stage: (int)WaitingRoomRehearsal.CurrentStage,
+                completed: WaitingRoomRehearsal.IsCompleted, practice: WaitingRoomRehearsal.IsPracticing);
+            if (value != rehearsal && (value.active || rehearsal != null))
+                log.Emit("REHEARSAL_STATE", new() { ["state"] = $"{value.active}/{value.stage}/{value.completed}/{value.practice}",
+                    ["stage"] = value.stage, ["active"] = value.active, ["completed"] = value.completed, ["practice"] = value.practice, ["trickId"] = "TIGHTROPE" });
             rehearsal = value;
+            var player = NetworkPlayer.Local;
+            if (player == null || !player.IsSpawned) return;
+            var cannon = (active: WaitingRoomCannonRehearsal.IsActive, ending: WaitingRoomCannonRehearsal.IsEnding,
+                mastered: WaitingRoomCannonRehearsal.HasMastered, checkpoint: WaitingRoomCannonRehearsal.Checkpoint(player.OwnerClientId),
+                arrived: WaitingRoomCannonRehearsal.HasArrived(player.OwnerClientId));
+            if (cannon != cannonRehearsal && (cannon.active || cannonRehearsal?.active == true))
+                log.EmitFor(player, "REHEARSAL_STATE", new() { ["trickId"] = "CANNON",
+                    ["state"] = !cannon.active ? "ENDED" : cannon.ending ? "ENDING" : cannon.arrived ? "ARRIVED" : cannon.checkpoint > 0 ? "CHECKPOINT" : "STARTED",
+                    ["stage"] = cannon.checkpoint, ["active"] = cannon.active, ["completed"] = cannon.mastered, ["practice"] = true, ["arrived"] = cannon.arrived });
+            cannonRehearsal = cannon;
         }
 
         void ObserveEscape()
