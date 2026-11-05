@@ -8,7 +8,25 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
     public sealed class RestTimeRulesTests
     {
         [Test]
-        public void FirstDayUnconfirmedScheduleCannotEnterByGatherOrTimeout()
+        public void FirstDayUnconfirmedScheduleDoesNotBlockPursuitCompletion()
+        {
+            var original = RunState.SecondPerformanceGate;
+            try
+            {
+                RunState.SecondPerformanceGate = () => false;
+                var run = new RunState(false, false, true);
+                run.StartSession(true); run.EndIntro(); run.EndRehearsal(); run.EndPerformance();
+                run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 });
+                Assert.IsTrue(run.Tick(10000f));
+                Assert.AreEqual(RestTimerState.Pursuit, run.Snapshot.Timer);
+                Assert.IsTrue(run.NotifyAllPursuitCaught());
+                Assert.AreEqual(CampaignPhase.Performance, run.Snapshot.Phase);
+            }
+            finally { RunState.SecondPerformanceGate = original; }
+        }
+
+        [Test]
+        public void FirstDayUnconfirmedScheduleWaitsForGatherButCountdownExpires()
         {
             var original = RunState.SecondPerformanceGate;
             try
@@ -19,18 +37,16 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                 run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 });
                 float remaining = run.Snapshot.TimeRemaining;
                 Assert.IsFalse(run.NotifyAllAtStageEntrance());
-                Assert.IsFalse(run.Tick(10000f));
-                Assert.AreEqual(CampaignPhase.RestTime, run.Snapshot.Phase);
-                Assert.AreEqual(remaining, run.Snapshot.TimeRemaining);
-                confirmed = true;
-                Assert.IsTrue(run.NotifyAllAtStageEntrance());
+                Assert.IsTrue(run.Tick(1f));
+                Assert.AreEqual(remaining - 1f, run.Snapshot.TimeRemaining, .001f);
+                Assert.IsTrue(run.Tick(10000f));
                 Assert.AreEqual(CampaignPhase.Performance, run.Snapshot.Phase);
             }
             finally { RunState.SecondPerformanceGate = original; }
         }
 
         [Test]
-        public void UnconfirmedScheduleSharesStoppedTimerUntilConfirmed()
+        public void UnconfirmedScheduleUsesZonePauseAndResume()
         {
             var original = RunState.SecondPerformanceGate;
             try
@@ -39,9 +55,8 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                 RunState.SecondPerformanceGate = () => confirmed;
                 var run = new RunState(); run.StartSession(); run.EndIntro(); run.EndPerformance();
                 run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 });
-                Assert.IsTrue(run.SetRestTimerPaused(false), "호스트가 멈춘 시간을 받는 쪽도 멈춤으로 받아야 한다");
+                Assert.IsTrue(run.SetRestTimerPaused(true));
                 Assert.AreEqual(RestTimerState.Stopped, run.Snapshot.Timer);
-                confirmed = true;
                 Assert.IsTrue(run.SetRestTimerPaused(false));
                 Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer);
             }

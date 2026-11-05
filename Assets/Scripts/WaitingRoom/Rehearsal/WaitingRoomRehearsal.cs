@@ -27,8 +27,9 @@ namespace CurtainCall.WaitingRoom
         /// <summary>추락 뒤 출발대로 되돌리기까지(초).</summary>
         const float RecoverSeconds = 1.5f;
         const string RingDeckPath = "LegacyRing/PracticeRing/DeckCollider";
+        const string RingBoundaryPath = "RoundArena/Frame8Boundary";
         /// <summary>연습실 링에 원래 있던 연습 소품(탑·사다리·트램펄린·대포·그물·옛 줄)과 사다리 뒤 막이. 리허설 동안 숨긴다(사용자 요청 2026-11-02·04).</summary>
-        static readonly string[] RingPropPaths = { "LegacyRing/PracticeLanes", "LegacyRing/CollisionRepairs", "RoundArena/Frame8Boundary" };
+        static readonly string[] RingPropPaths = { "LegacyRing/PracticeLanes", "LegacyRing/CollisionRepairs" };
         static readonly Vector3 FallbackRingCenter = new(-20f, .6f, 128.5f);
 
         enum Operation : byte { Sync, Vote, Placed, SkipVote, PracticePropose, PracticeAnswer }
@@ -97,6 +98,7 @@ namespace CurtainCall.WaitingRoom
         bool ringFound;
         Transform ringRoom;
         readonly List<GameObject> hiddenRingProps = new();
+        GameObject hiddenRingBoundary;
         GameObject courseRoot;
         TightropeCourse course;
         TightropeRun courseRun;
@@ -237,6 +239,7 @@ namespace CurtainCall.WaitingRoom
             PiggybackSystem.Suppressed = false;
             foreach (var monitor in monitors) if (monitor != null) monitor.TurnOff();
             DestroyCourse();
+            SetRingBoundaryHidden(false);
             HideRingProps(false);
             DeactivateLocal();
         }
@@ -291,13 +294,34 @@ namespace CurtainCall.WaitingRoom
 
         // ── 코스 만들기(모든 화면, 같은 값이라 같은 모양) ─────
 
+        void SetRingBoundaryHidden(bool hide)
+        {
+            if (!hide)
+            {
+                if (hiddenRingBoundary != null) hiddenRingBoundary.SetActive(true);
+                hiddenRingBoundary = null;
+                return;
+            }
+            if (hiddenRingBoundary != null || ringRoom == null) return;
+            var boundary = ringRoom.Find(RingBoundaryPath);
+            if (boundary == null || !boundary.gameObject.activeSelf) return;
+            hiddenRingBoundary = boundary.gameObject;
+            hiddenRingBoundary.SetActive(false);
+        }
+
         void EnsureCourse()
         {
             int wanted = active && !completed ? stage : -1;
+            // 코스 벽은 마지막 단계와 함께 사라진다. 집결 중에는 연습실 외곽 벽으로 보호한다.
+            if (wanted < 0) SetRingBoundaryHidden(false);
             if (builtStage == wanted && builtRound == round) return;
             DestroyCourse();
             builtStage = wanted; builtRound = round;
-            if (wanted >= 0) BuildCourse(RehearsalStage.All[wanted]);
+            if (wanted >= 0)
+            {
+                BuildCourse(RehearsalStage.All[wanted]);
+                SetRingBoundaryHidden(course != null);
+            }
             OnCourseChanged();
         }
 

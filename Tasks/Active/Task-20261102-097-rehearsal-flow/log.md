@@ -80,3 +80,21 @@
 - 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/311 (fix/rehearsal-arrival → dev)
 
 - PR 등록 직전 새 dev 74a8eec9를 받아 충돌 없이 병합했다. 씬 및 설정 변경은 dev에서 받은 커밋이며 PR 자체 변경에 없다. Unity 초기 로딩 중 검사 연결 대기가 있었고 준비 완료 후 컴파일 PASS와 리허설 EditMode 31/31 PASS를 확인했다. 외줄 지지면·목마 57/57은 직전 dev 4ac2e6b3 기준이다.
+
+## 리허설 완료 뒤 추락 방지 (2026-11-05)
+- PR #311 병합을 포함한 dev 1038a2db를 Unity 종료 후 fetch했다. 자동 생성 escape-labels는 stash에 보존하고 fix/rehearsal-exit-safety로 시작했다.
+- Editor.log에서 사용자 실행의 마지막 단계 완료/집결 진입을 확인했다. 해당 상태에서 코스와 도착대 벽을 제거하지만 연습실 Frame8Boundary 복원은 공연 전환 시 Deactivate까지 미뤄져 있었다. 외곽 벽의 숨김을 코스 수명에 맞추고 집결 시작에 기존 상태를 복원한다.
+- EditMode RehearsalArrivalTests 31/31 PASS. 집결 중 기존 활성/비활성 외곽 벽 보존과 옛 연습 기물의 비활성을 검증했다. WaitingRoomBase에서 복원 대상 고체 충돌벽 162개 확인. PlayMode는 사용자 직접 확인 범위다. 재시작 중 CLI 연결 오류는 에디터 준비 후 해소됐다.
+
+- 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 타이머·대포 원위치 복귀 (2026-11-05)
+- Unity 종료 후 origin/dev 1038a2db와 HEAD 차이0/0 확인. 자동 생성 캐시는 stash로 보존. 기존 외곽 벽 수정에 후속 결함을 추가했다.
+- 사용자 확정은 기존 탐색 구역 타이머 규칙과 대포 종료 후 본인 시작 전 위치 복귀다. 대포 시작/활성 상태의 타이머 강제 정지 및 1일차 편성 미확정 Tick/재생 차단을 제거했다. 전원 기본 안내 완료 후에는 구역 규칙대로 흐르며 만료 후 추격 종료도 미확정으로 막지 않는다. 기한까지 미확정이면 기존 캠페인 기본 편성으로 진행한다.
+- 대포는 각 소유자의 위치·방향을 회차별 최초 배치 전에 저장하고 부활 확인 후 복귀한다. 코스를 지우기 전에 움직임을 고정하고 복귀 완료 전까지 물리 잠금을 유지한다. 새 방에서는 저장 회차를 초기화한다. 기존 PlayMode 기대 위치도 갱신했으며 실제 PlayMode/멀티 검사는 사용자 범위다.
+- EditMode 45/45 PASS(리허설36, 쉬는 시간6, 구역 규칙3), 컴파일 오류0. 타이머 실제 구역 컴포넌트와 대포 활성/미확정 조합, 만료/추격 전환, 네 소유자별 원위치·방향/새 회차 저장, 외곽 벽 복원을 검증했다. 결과는 .harness/local/rehearsal/timer-return-*.json. 합친 필터는 0건으로 반환되어 각 fixture를 별도 실행했다.
+
+- 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- 2026-11-05 저장·제출 요청. Unity 종료 후 최신 origin/dev 1038a2db와 HEAD 차이0/0 재확인, 자동 생성 캐시는 별도 stash 보존. 타이머/원위치 복귀/외곽 벽 묶음을 fix/rehearsal-exit-safety에서 제출한다.
+
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/312 (fix/rehearsal-exit-safety → dev)

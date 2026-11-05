@@ -152,8 +152,6 @@ namespace CurtainCall.Campaign
         {
             if ((s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night)
                 || s.Timer != RestTimerState.Running || float.IsNaN(deltaTime) || float.IsInfinity(deltaTime) || deltaTime < 0f) return false;
-            // 확정 전 시간 만료로 기본 공연에 들어가는 우회도 막는다.
-            if (IsSecondPerformanceSelectionPending) return false;
             s.TimeRemaining -= deltaTime;
             if (s.TimeRemaining <= 0f)
             {
@@ -237,8 +235,6 @@ namespace CurtainCall.Campaign
         {
             if (s.Phase != CampaignPhase.RestTime || (s.Timer != RestTimerState.Running && s.Timer != RestTimerState.Stopped)) return false;
             if (s.IsFinalMorning) paused = false;
-            // 첫날 둘째 공연 확정 전에는 Tick이 흐르지 않는다. 받는 쪽 화면만 줄지 않게 멈춤으로 알린다.
-            paused |= IsSecondPerformanceSelectionPending;
             var wanted = paused ? RestTimerState.Stopped : RestTimerState.Running;
             if (s.Timer == wanted) return false;
             s.Timer = wanted;
@@ -552,7 +548,6 @@ namespace CurtainCall.Campaign
         public bool NotifyAllPursuitCaught()
         {
             if (s.Phase != CampaignPhase.RestTime || s.Timer != RestTimerState.Pursuit) return false;
-            if (IsSecondPerformanceSelectionPending) return false;
             EndRest();
             return true;
         }

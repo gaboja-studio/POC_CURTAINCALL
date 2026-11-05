@@ -3,10 +3,13 @@
 - **Title:** 리허설 구조·흐름·가이드 기획서 재반영
 - **Type:** feat
 - **Assignee:** @gyumin9048-ctrl (형락 임시 대리 작업)
-- **Branch:** fix/rehearsal-arrival
+- **Branch:** fix/rehearsal-exit-safety
 - **Base:** dev
 
 ## 현재 기준 (2026-11-05)
+- 추가 결함 수정은 리허설/편성에 따른 타이머 강제 정지 제거와 대포 종료 복귀다. 사용자 확정대로 기존 탐색 구역 시간 규칙을 따르고 대포는 플레이어별 시작 직전 위치·방향으로 복귀한다.
+- 타이머·원위치 복귀·외곽 벽 묶음은 최신 dev 1038a2db 확인 후 [PR #312](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/312)로 제출했다.
+- 집결 전환 후 외곽 벽이 사라져 추락하는 후속 결함을 수정한다. PR #311을 포함한 최신 dev 1038a2db에서 후속 브랜치를 시작했다.
 - 후속 결함: 공연 전 외줄1단계 전원 도착 후 정체와 외줄/대포의 유사 진행 차단을 수정한다. 외줄 도착 발판 가로·길이는 각각2배, 판정·벽도 실제 바닥과 일치시킨다. 단계 순서와 기물 학습은 유지한다.
 - Unity 저장 상태 확인·종료 후 dev e95b6d9b에서 수정 브랜치를 생성했다. 기존 제출 기록은 feat/rehearsal-flow-v19에 보존하고 자동 생성 캐시는 stash로 분리했다.
 - Confluence [M2 리허설 기획서](https://hrjoo122770.atlassian.net/wiki/spaces/bYmkRlnpusng/pages/33619991/M2+-) v19 본문 전체와 첨부 구조도 5개를 확인했다.
