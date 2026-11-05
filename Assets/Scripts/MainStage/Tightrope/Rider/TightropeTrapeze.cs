@@ -32,8 +32,9 @@ namespace CurtainCall.Tightrope
             public uint Revision;
             public float Angle, Speed, Drive;
             public double Until, LastInput, SampledAt;
+            public PoleAnglePresentation Presentation;
         }
-        sealed class FlightState
+        struct FlightState
         {
             public uint Token;
             public int From;
@@ -41,7 +42,7 @@ namespace CurtainCall.Tightrope
             public double Started, Until;
         }
         readonly PoleState[] poles = new PoleState[MaxPoleTotal];
-        readonly Dictionary<ulong, FlightState> flights = new();
+        readonly Dictionary<ulong, FlightState> flights = new(8);
         readonly List<ulong> staleFlights = new();
         TightropeCourse course;
         TightropeRun run;
@@ -68,7 +69,7 @@ namespace CurtainCall.Tightrope
         public ulong HolderAt(int index) => index >= 0 && index < PoleTotal ? poles[index].Upper : Nobody;
         public ulong PassengerAt(int index) => index >= 0 && index < PoleTotal ? poles[index].Lower : Nobody;
         public Vector3 PoleFeet(int index, bool lower = false) => Feet(Mathf.Clamp(index, 0, PoleTotal - 1), lower);
-        public float SwingAngle(int index) { Sample(Mathf.Clamp(index, 0, PoleTotal - 1), out float angle, out _); return angle; }
+        public float SwingAngle(int index) => DisplayAngle(Mathf.Clamp(index, 0, PoleTotal - 1));
         public float SwingSpeed(int index) { Sample(Mathf.Clamp(index, 0, PoleTotal - 1), out _, out float speed); return speed; }
         public bool CanGrabPole(int index, NetworkPlayer player) => CanGrab(player, index);
         public bool CanAttachToPole(int index, NetworkPlayer player) => index >= 0 && index < PoleTotal && CanAttach(player, index);
@@ -268,16 +269,28 @@ namespace CurtainCall.Tightrope
                 state.Physics.Step(ref angle, ref speed, state.Drive, Mathf.Clamp((float)(Clock - state.SampledAt), 0f, .2f), GameSettings.Base.Character.Gravity);
         }
         Vector3 Feet(int index, bool lower)
-        { Sample(index, out float angle, out _); return poles[index].Physics.HangingPosition(angle) - (lower ? Vector3.up * BodySeparation : Vector3.zero); }
+        { return poles[index].Physics.HangingPosition(DisplayAngle(index)) - (lower ? Vector3.up * BodySeparation : Vector3.zero); }
+        float DisplayAngle(int index)
+        {
+            Sample(index, out float angle, out _);
+            float limit = poles[index].Physics.MaxSwingAngle;
+            return Mathf.Clamp(poles[index].Presentation.Sample(angle, Time.unscaledTimeAsDouble), -limit, limit);
+        }
         static NetworkPlayer Find(ulong actor)
-        { foreach (var player in NetworkPlayer.All) if (player != null && player.OwnerClientId == actor) return player; return null; }
+        {
+            if (actor == Nobody) return null;
+            var players = NetworkPlayer.All;
+            for (int i = 0; i < players.Count; i++)
+                if (players[i] != null && players[i].OwnerClientId == actor) return players[i];
+            return null;
+        }
         static bool Alive(ulong actor) { var player = Find(actor); return player != null && player.IsSpawned && player.State == PlayerState.Normal; }
         void Tell(string message) { feedback = message; feedbackUntil = Clock + 3d; }
         void ClearState()
         {
             ClearPendingRequests();
             foreach (var state in poles)
-            { if (state == null) continue; state.Upper = state.Lower = Nobody; state.Revision = 0; state.Angle = state.Speed = state.Drive = 0f; state.Until = state.LastInput = state.SampledAt = 0d; }
+            { if (state == null) continue; state.Presentation = default; state.Upper = state.Lower = Nobody; state.Revision = 0; state.Angle = state.Speed = state.Drive = 0f; state.Until = state.LastInput = state.SampledAt = 0d; }
             flights.Clear(); version = nextFlightToken = 0; nextSnapshot = 0d;
             stickyGloves.Clear();
         }
@@ -308,8 +321,9 @@ namespace CurtainCall.Tightrope
             StepFlight(); UpdateViews();
             if (!Active) return;
             for (int i = 0; i < PoleTotal; i++)
-                foreach (bool lower in new[] { false, true })
+                for (int seat = 0; seat < 2; seat++)
                 {
+                    bool lower = seat == 1;
                     var player = Find(lower ? poles[i].Lower : poles[i].Upper);
                     if (player != null && !player.IsLocal && player.State == PlayerState.Normal)
                         player.transform.SetPositionAndRotation(Feet(i, lower), Quaternion.LookRotation(course.Forward));

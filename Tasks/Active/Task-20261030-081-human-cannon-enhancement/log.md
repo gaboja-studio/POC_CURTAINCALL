@@ -117,3 +117,28 @@
   - 테스트 갱신: 장애물 12→14, 켜진 톱 9→11, 작성 경로 9→11, 2구간 톱 6→8, 간격 검사는 같은 중심 묶음(X자 2 + 수평 1) 단위로. EditMode `CurtainCall.HumanCannon` 589/589 PASS. 실제 플레이·멀티 확인은 사람 몫.
 - X자 가로 톱 2개 왕복 4→3초(사용자 요청): `GroundSaw2XCenter1`·`2XCenter2` `periodSeconds` 3. 주기가 X자 톱(4초)과 달라 12초마다 가까워지는 순간이 생기므로 phase를 0~360° 탐색해 최소 간격이 가장 큰 값으로 설정(1: 4.014rad, 최소 2.40m / 2: 1.571rad, 최소 1.88m; 톱날 반지름 0.65라 겹치지 않음, 난이도 속도 무관). `HumanCannonWideCourseTests`: 이 두 톱만 3초 허용, 한 주기 뒤 같은 위치 검사를 각 톱 주기로, 주기가 다른 묶음은 12초 동안 반지름 합+0.3m 초과로 검사. 전체 EditMode 588/589(주기 검사 1개) → 수정 후 `HumanCannonWideCourseTests` 6/6 PASS.
 - 톱 경로 파란 선 전부 숨김(사용자 요청): 플레이 중 `HumanCannonHazard.SetVisible`이 레일을 다시 켜므로 `showRail` 직렬화 옵션(기본 true)을 추가하고 `rail.enabled = visible && showRail`. 씬의 지상 톱 14개 모두 `showRail=false`, LineRenderer 비활성. 레일 컴포넌트·경로 값은 남아 있어 다시 켜면 그대로 보인다. `HumanCannonWideCourseTests` 6/6, `HumanCannonPoleSawTests` 10/10 PASS. 전체 EditMode는 미실행.
+
+## 2026-11-05 1구간 추격 불: 나타날 때 점점 커짐
+- 사용자 요청: 후방 추격 불이 툭 나타나지 않고 나오는 시점부터 점점 커져서 오도록.
+- `HumanCannonFireWall`: `appearSeconds`(기본 6초)·`appearStartScale`(0.1) 추가. 켜진 시각(`ArmedAt`, 서버 시각)부터 SmoothStep으로 0→1 등장 비율 `Appear(now)`. 파티클 시작 크기(3D 크기면 축별)·상승 속도는 0.1→1배, 방출량은 기존 예고/전진 비율 × 등장 비율(최소 0.1), 자식 불빛 세기는 0→원래 값. 원래 값은 첫 표시 때 캐시. 판정·위치·예고 시간은 그대로이며 추가 동기화 값 없음.
+- 씬·프리팹 미수정(기본값 6초 적용). 시간 조정은 `FirstSectionFire`의 `appearSeconds`.
+- 테스트: `RouteGeometryTests.FireEffect_GrowsFromSmallWhenItAppears` 추가, 기존 `FireEffect_*`는 등장 1초로 지정. EditMode `RouteGeometryTests` 55/55 PASS, PlayMode `FireWalls_*` 1/1 PASS. 실제 플레이 체감 미확인.
+- 후속(사용자: 시작 때 확 한 번 나온 뒤 서서히 커짐 → 확 나오는 부분 제거). 원인: 프리팹 Flames·Core·Embers 모두 `prewarm`이 켜져 있어 켜지는 순간 2초 분량의 원래 크기 불꽃이 한꺼번에 생겼고, 크기를 줄이기 전에 켰다. 수정: 등장 시 크기·방출·속도를 먼저 줄인 뒤 켬, 다 자라기 전에는 `prewarm`을 끔(다 자란 뒤 다시 보일 때만 원래 값), 처음 보일 때 씬 시작부터 켜져 있던 파티클은 한 번 꺼서 처음부터 다시 시작. 프리팹은 미수정. EditMode `FireEffect_*` 2/2 PASS, PlayMode `FireWalls_*` 1/1 PASS. 실제 플레이 체감 미확인.
+
+## 2026-11-05 시작 지면 전체 안전 착지
+- 사용자 요청: 시작 대포가 놓인 지면 전체를 부상 없는 안전구역으로.
+- 원인: 시작 지면(x-22~22, z-11~7) 타일 7개 중 `Ground` `HumanCannonLandingZone.additionalSurfaces`에 5개만 등록. 2026-11-02 구멍을 메운 `ElevatorFill_Back`·`ElevatorFill_Right`가 빠져 있어 그 위 착지가 추락 부상.
+- 씬: 두 메움 바닥과 `DepartureTransport/Platform` 좌우 `FloorPanel`(출발 위치에서 지면과 같은 높이)을 추가해 9개, 저장. 발판은 이동 중에도 안전 착지면이다(기울어진 패널은 기존 규칙대로 제외).
+- 확인: 에디터에서 `SupportsLanding`으로 메움 바닥·발판·모서리 안전, 지면 밖(z7.5) 비안전. 자동 테스트는 사용자가 직접 하기로 해 미실행.
+
+## 2026-11-05 트램펄린 들고 낙사 → 시작 위치 복귀
+- 사용자 요청: 트램펄린을 든 채 낙사하면 사망 지점에 남지 않고 시작 지점 원래 위치로.
+- 기존: 운반자가 `Fallen`/`Retired`가 되면 무작위 생존자 옆으로 옮김, 생존자가 없으면 그 자리(낭떠러지 아래)에 남음.
+- `HumanCannonTrampoline.Update`(호스트): 운반자가 비정상 상태이고 운반자 또는 트램펄린이 코스 아래(`HumanCannonRouteSystem.IsBelowCourse`, y<-10)면 놓기와 함께 최초 위치·회전(`initialPosition`)으로 돌림. 생존자 옆 복구는 하지 않음. 위치는 기존 소유 상태 패킷으로 모든 화면에 공유. 톱·불 등 다른 사망은 기존대로 생존자 옆 복구.
+- 컴파일 확인. 테스트는 사용자가 직접 하기로 해 미실행.
+
+## 2026-11-05 지상 톱날 외형 회전
+- 사용자 요청: 지상 톱날 이미지가 회전하지 않음 → 전 구간 지상 톱 전부 회전.
+- 원인: `HumanCannonHazard.Present`가 톱날 면의 법선 축으로 돌리고 있었으나 `rotationSpeed`가 60°/s(0.5초에 30°)라 거의 멈춰 보임. 회전축은 톱날 모델 법선과 일치함을 에디터에서 확인.
+- 씬: 지상 톱(`GroundSaw`, 봉 톱 제외) 14개 전부(숨긴 것 포함) `rotationSpeed` 60 → 720(외줄타기 같은 톱 모델 `spinSpeed`와 같음), 저장. 난이도 속도 배율(1~1.5)이 그대로 곱해진다. 지상 톱 접촉 판정은 원판이라 회전 속도와 무관.
+- 테스트는 사용자가 직접 하기로 해 미실행. 실제 화면에서 회전이 거꾸로/느리게 보이는 착시가 있으면 값 조정 필요.

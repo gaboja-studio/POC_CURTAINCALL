@@ -62,3 +62,6 @@
 
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 2026-10-29 커밋: 사용자 요청으로 이번 작업분(옆줄 점프 위험 정지·줄 소각 불꽃·해제봉 점유 연결·표시 숨김 토글·톱 위치·불 속도)만 커밋, push 안 함. `TightropeCourse.prefab`은 `showSectionSigns` 줄만 넣었다. 시작 자리 Slot0~3 +3m 이동은 사용자가 옮긴 것이 아니라고 확인해 커밋에서 제외하고 작업 폴더에 남겨 두었다(되돌리지 않음). 폰트 SDF 자동 변경·Vivox 줄바꿈 변경도 제외.
+
+- 2026-11-05 시작 플랫폼 낙사: 사용자 요청으로 줄에 오르기 전 시작 플랫폼에서 떨어져도 줄 위 낙사와 같이 사망 처리. 원인: `TightropeCourse.CheckLocalFall`이 외줄 조작(`UsesRopeRules`) 중인 사람만 검사하고, 예외는 연습 모드 진행 중뿐이었다. 수정: 묘기(`TightropeRun.State`)가 Running이면 연습 여부와 무관하게 줄 조작이 아니어도 같은 바닥선(줄 높이 − `FallDepth`) 검사·`ForceFall`/`RequestState(Fallen)`. 그네·해제봉·공중그네·매달림 예외와 호스트 사망 규칙(`CanChangeState`)은 그대로. Waiting 중 낙하는 기존대로 미처리. 컴파일 확인, 테스트는 사용자가 직접 하기로 해 미실행. 작업 위치: 새 브랜치 전환이 `escape-labels.asset` 자동 변경과 dev 변경 충돌로 막혀 `fix/main-stages` 작업 폴더에서 수정(미커밋).
+- 2026-11-05 목마 표시 지면 제외: 사용자 보고 — 시작 플랫폼(지면)에서도 동료 근처에 '목마 타기' 상호작용 UI가 뜨지만 실제로는 탈 수 없음. 원인: UI(`CommonInteractionUI.AddPiggyback`)와 호스트 승인이 같이 쓰는 `PiggybackSystem.FindMountTarget`이 내 캐릭터는 조작 방식(`UsesRopeRules`의 로컬 분기)만, 원격 캐릭터는 균형 켜짐+줄 위치를 보아 로컬 표시와 호스트 결과가 갈렸다. 수정: `OnRope`(외줄 규칙 + `PlayerBalance.IsActive` + `TryGetRopePoint`)를 올라가는 사람·대상 모두에 적용해 실제 줄 위에서만 표시·연결. 옆줄 착지 목마(`CanLaneLink`) 규칙은 변경 없음. 컴파일 확인, 테스트는 사용자가 직접 하기로 해 미실행. 실제 플레이에서 지면 미표시·줄 위 표시 확인 필요.

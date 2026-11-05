@@ -16,6 +16,11 @@ namespace CurtainCall.Tightrope
         const int RequestBytes = 21, PoleBytes = 48, FlightBytes = 68;
         NetworkSessionManager session;
         CustomMessagingManager messaging;
+        // Stage and validate the complete packet before changing live state. Reuse storage
+        // so occupied swings do not allocate arrays, sets and flight objects every 100 ms.
+        readonly PoleState[] incoming = { new(), new(), new() };
+        readonly System.Collections.Generic.HashSet<ulong> incomingOwners = new(14);
+        readonly System.Collections.Generic.Dictionary<ulong, FlightState> incomingFlights = new(8);
 
         void Connect()
         {
@@ -143,11 +148,11 @@ namespace CurtainCall.Tightrope
                 || reader.Length - reader.Position < 17 + PoleTotal * PoleBytes) return;
             reader.ReadValueSafe(out int generation); reader.ReadValueSafe(out uint sequence); reader.ReadValueSafe(out double timestamp);
             if (generation != run.Round || generation != round || sequence <= version || !double.IsFinite(timestamp) || timestamp > Clock + 5d) return;
-            var incoming = new PoleState[PoleTotal];
-            var owners = new System.Collections.Generic.HashSet<ulong>();
+            incomingOwners.Clear();
+            incomingFlights.Clear();
             for (int i = 0; i < PoleTotal; i++)
             {
-                var state = incoming[i] = new PoleState();
+                var state = incoming[i];
                 reader.ReadValueSafe(out state.Revision); reader.ReadValueSafe(out state.Upper); reader.ReadValueSafe(out state.Lower);
                 reader.ReadValueSafe(out state.Angle); reader.ReadValueSafe(out state.Speed); reader.ReadValueSafe(out state.Drive);
                 reader.ReadValueSafe(out state.Until); reader.ReadValueSafe(out state.SampledAt);
@@ -155,12 +160,11 @@ namespace CurtainCall.Tightrope
                     || !float.IsFinite(state.Drive) || Mathf.Abs(state.Drive) > 1f || !double.IsFinite(state.Until) || !double.IsFinite(state.SampledAt)
                     || state.Until < 0d || state.Until > timestamp + MaxHoldSeconds + 1d || state.SampledAt > timestamp + 1d
                     || (state.Upper == Nobody && state.Lower != Nobody)) return;
-                if (state.Upper != Nobody && !owners.Add(state.Upper)) return;
-                if (state.Lower != Nobody && !owners.Add(state.Lower)) return;
+                if (state.Upper != Nobody && !incomingOwners.Add(state.Upper)) return;
+                if (state.Lower != Nobody && !incomingOwners.Add(state.Lower)) return;
             }
             reader.ReadValueSafe(out byte count);
             if (count > 8 || reader.Length - reader.Position != count * FlightBytes) return;
-            var incomingFlights = new System.Collections.Generic.Dictionary<ulong, FlightState>();
             for (int i = 0; i < count; i++)
             {
                 reader.ReadValueSafe(out ulong actor);
@@ -168,7 +172,7 @@ namespace CurtainCall.Tightrope
                 reader.ReadValueSafe(out flight.Position); reader.ReadValueSafe(out flight.Velocity);
                 reader.ReadValueSafe(out flight.Target);
                 reader.ReadValueSafe(out flight.Started); reader.ReadValueSafe(out flight.Until);
-                if (actor == Nobody || !owners.Add(actor) || flight.Token == 0 || flight.From < 0 || flight.From >= PoleTotal
+                if (actor == Nobody || !incomingOwners.Add(actor) || flight.Token == 0 || flight.From < 0 || flight.From >= PoleTotal
                     || !Finite(flight.Position) || !Finite(flight.Velocity) || !Finite(flight.Target) || flight.Velocity.sqrMagnitude > 400f
                     || !double.IsFinite(flight.Started) || !double.IsFinite(flight.Until) || flight.Started > timestamp + 1d
                     || flight.Until <= flight.Started || flight.Until > flight.Started + 9d) return;
@@ -177,8 +181,12 @@ namespace CurtainCall.Tightrope
             for (int i = 0; i < PoleTotal; i++)
             {
                 var state = poles[i]; var next = incoming[i];
+                float displayedAngle = DisplayAngle(i);
+                bool continuous = state.Upper != Nobody && state.Upper == next.Upper && state.Lower == next.Lower;
                 state.Revision = next.Revision; state.Upper = next.Upper; state.Lower = next.Lower;
                 state.Angle = next.Angle; state.Speed = next.Speed; state.Drive = next.Drive; state.Until = next.Until; state.SampledAt = next.SampledAt;
+                Sample(i, out float predictedAngle, out _);
+                state.Presentation.Receive(displayedAngle, predictedAngle, Time.unscaledTimeAsDouble, continuous, .1f);
             }
             flights.Clear(); foreach (var pair in incomingFlights) flights.Add(pair.Key, pair.Value);
             var local = NetworkPlayer.Local;
