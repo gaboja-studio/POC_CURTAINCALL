@@ -46,6 +46,8 @@ namespace CurtainCall.WaitingRoom
         public static int CurrentStage => instance != null && instance.active ? instance.stage : -1;
         /// <summary>이수 후 선택 재연습 중(CC-219). 최초 리허설과 달리 캠페인 단계·이수 기록을 바꾸지 않는다.</summary>
         public static bool IsPracticing => instance != null && instance.active && instance.practice;
+        /// <summary>재연습 투표 또는 다음 프레임의 코스 생성을 기다리는 시작 요청.</summary>
+        public static bool IsPracticePending => instance != null && (instance.practiceVote || instance.practice);
         /// <summary>최초 리허설을 이수했다(앱을 켜 둔 동안 기억).</summary>
         public static bool HasMastered => savedStage >= RehearsalStage.All.Length;
 
@@ -147,7 +149,7 @@ namespace CurtainCall.WaitingRoom
         bool HasAuthority => run != null && run.HasAuthority;
         static bool PracticePhase(CampaignPhase phase) => phase == CampaignPhase.RestTime || phase == CampaignPhase.Night;
         /// <summary>호스트가 연습실 안에 있고 이수했으며 리허설·재연습 중이 아니면 재연습을 고를 수 있다.</summary>
-        bool CanOfferPractice => !active && !WaitingRoomCannonRehearsal.IsActive && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
+        bool CanOfferPractice => !active && !practice && !practiceVote && !WaitingRoomCannonRehearsal.IsActive && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
             && !SceneCurtainTransition.IsActive && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
             && !SpaceLinkDirector.Instance.IsTransitioning && ringFound
             && local != null && local.IsSpawned && local.State == PlayerState.Normal && InPracticeRoom(local.transform.position);
