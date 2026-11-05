@@ -12,7 +12,7 @@ namespace CurtainCall.Settings
     {
         public const string ResourcePath = "Settings/GameSettings/Tricks/Rewards/temporary-audience";
         static AudienceReactionSettings cached;
-        // 매 프레임 동기 Resources.Load 금지: 공연 배경 비동기 로드 중이면 그 로드가 끝날 때까지 메인 스레드가 멈춰 Relay가 끊긴다(Task-20261105-107).
+        // 매 프레임 동기 Resources.Load 금지: 공연 배경 비동기 로드 중이면 그 로드가 끝날 때까지 메인 스레드가 멈춰 Relay가 끊긴다(Task-20261105-108).
         public static AudienceReactionSettings Current => cached != null ? cached : cached = Resources.Load<AudienceReactionSettings>(ResourcePath);
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] static void Preload() => _ = Current;
         [Header("단계별 행동 환호 배율")]

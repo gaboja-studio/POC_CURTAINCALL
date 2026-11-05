@@ -7,7 +7,7 @@ namespace CurtainCall.Settings
     {
         public const string ResourcePath = "Settings/GameSettings/Tricks/Rewards/performance-ending";
         static PerformanceEndingSettings cached;
-        // 동기 로드는 시작 때 한 번만 한다. 공연 배경 비동기 로드 중 첫 호출이면 메인 스레드가 수 초 멈춘다(Task-20261105-107).
+        // 동기 로드는 시작 때 한 번만 한다. 공연 배경 비동기 로드 중 첫 호출이면 메인 스레드가 수 초 멈춘다(Task-20261105-108).
         public static PerformanceEndingSettings Current => cached != null ? cached : cached = Resources.Load<PerformanceEndingSettings>(ResourcePath);
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] static void Preload() => _ = Current;
         [Min(.1f)] public float deathNoticeSeconds = 2;

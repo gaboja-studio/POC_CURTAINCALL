@@ -416,6 +416,11 @@ namespace CurtainCall.Reward
             Publish();
             return true;
         }
+        public bool TryGrantDiscoveryFunds(long amount)
+        {
+            if (!HasAuthority || model == null || campaign == null || ending || pendingTransition || !model.GrantIncome(amount, campaign.State.Day, "낡은 상자 발견 자금")) return false;
+            Publish(); return true;
+        }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         /// <summary>디버그 전용 공동 자금 입금(판정 화면만). 참가자는 대기실 상점 요청으로 판정 화면에 맡긴다.</summary>

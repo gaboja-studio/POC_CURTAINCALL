@@ -2,7 +2,7 @@
 summary: 씬 전환 중 "[TransportShutdown] NetworkConnectionManager was shutdown"으로 튕기면 메인 스레드 10초 정지로 인한 Relay 할당 만료를 의심한다.
 status: active
 updated: 2026-11-05
-source: human, Task-20261102-093, Task-20261105-107
+source: human, Task-20261102-093, Task-20261105-108
 ---
 
 # 씬 전환 중 Relay 할당 만료로 튕김
@@ -37,7 +37,7 @@ source: human, Task-20261102-093, Task-20261105-107
 
 - `StartConnectionTests.TransportFailureReportsStallReasonInsteadOfTransportShutdown`
 
-## 2026-11-05 원인 측정 (Task-20261105-107)
+## 2026-11-05 원인 측정 (Task-20261105-108)
 
 - 측정 도구: `Tools/Curtain Call/Performance/Record Long Frames In Play`를 켜고 플레이하면, 2초 이상 멈춘 프레임의 작업 경로를 `Logs/Performance/long-frame-*.json`에 남긴다. 에디터 쪽 원인까지 보려면 플레이 중 `ProfilerDriver.profileEditor = true`로 켠다.
 - **비동기 로드 중 동기 로드 = 그 로드가 끝날 때까지 정지.** `LoadSceneAsync`가 진행 중일 때 `Resources.Load` 같은 동기 로드가 처음 일어나면 `Loading.LockPersistentManager`에서 비동기 로드가 끝날 때까지 기다린다.

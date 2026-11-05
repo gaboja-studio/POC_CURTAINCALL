@@ -12,7 +12,7 @@ namespace CurtainCall.WaitingRoom
     /// <summary>
     /// 진단 전용(동작 변경 없음). 대기실에서 내 캐릭터의 게임 입력이 <see cref="StuckSeconds"/>초 넘게 막혀 있으면
     /// 누가 막는지·안내 진행·캠페인 상태를 한 번 경고로 남기고, 풀리면 걸린 시간을 남긴다.
-    /// 제보: 대기실 진입 직후 특정 플레이어만 첫 안내(G01·G11)가 안 뜨고 조작·상호작용 표시가 안 됨(Task-20261105-107).
+    /// 제보: 대기실 진입 직후 특정 플레이어만 첫 안내(G01·G11)가 안 뜨고 조작·상호작용 표시가 안 됨(Task-20261105-108).
     /// G01·G11은 입력이 막힌 동안 시작하지 않으므로, 남은 입력 막기가 공통 원인인지 확인한다. 빌드에서는 Player.log에 남는다.
     /// </summary>
     public sealed class WaitingRoomInputDiagnostics : MonoBehaviour

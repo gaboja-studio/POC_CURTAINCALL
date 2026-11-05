@@ -311,8 +311,15 @@ namespace CurtainCall.WaitingRoom
                         if (warnedDrops.Add(target.TargetId)) Debug.LogWarning("[Exploration] " + target.TargetId + ": " + error);
                         continue;
                     }
+                    int chosen = -2;
+                    if (drops.exclusiveWeighted) {
+                        string prefix = "loot-choice:" + target.TargetId + ":";
+                        for (int n = -1; n < drops.entries.Length; n++) if (book.IsOpen(prefix + n)) { chosen = n; break; }
+                        if (chosen == -2) { chosen = drops.Choose(rng.Next(100)); book.Attempt(prefix + chosen, true, out _, out _); changed = true; }
+                    }
                     if (drops.entries != null) for (int i = 0; i < drops.entries.Length; i++)
                     {
+                        if (drops.exclusiveWeighted && i != chosen) continue;
                         var entry = drops.entries[i];
                         if (entry != null) Deliver(target, i, entry.itemId, entry.uidOffset,
                             entry.point != null ? entry.point.position : target.RewardPoint);
@@ -333,7 +340,7 @@ namespace CurtainCall.WaitingRoom
                     return;
                 }
                 var item = new PropItem(ItemUses.FoundUidBase + seenGeneration * 100 + offset, itemId,
-                    ItemCatalog.Get(itemId)?.displayName ?? itemId, ItemCatalog.FoundUses(itemId));
+                    itemId == ExplorationDrops.PerformanceTokenId ? "공연 토큰 (자금 10원)" : ItemCatalog.Get(itemId)?.displayName ?? itemId, ItemCatalog.FoundUses(itemId));
                 bool newlyPlaced = !carry.Exists(item.Uid);
                 if (newlyPlaced && carry.PlaceFound(item, at) != CarryRefusal.None) return;
                 book.Attempt(receipt, true, out _, out _);
