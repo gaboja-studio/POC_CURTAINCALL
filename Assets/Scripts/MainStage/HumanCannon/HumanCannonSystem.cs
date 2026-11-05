@@ -57,6 +57,10 @@ namespace CurtainCall.HumanCannon
         public HumanCannonStation Station(int index) => stations[index];
         /// <summary>Only the rehearsal owner enables this before activating its original performance devices.</summary>
         public bool PracticeMode { get; private set; }
+        Func<ulong, bool> practicePlacement;
+        public bool IsPracticeReady(ulong actor) => !PracticeMode || practicePlacement == null || practicePlacement(actor);
+        /// <summary>Wait for each owner's validated spawn before applying rehearsal fall consequences.</summary>
+        public void SetPracticePlacementGate(Func<ulong, bool> ready) => practicePlacement = ready;
         public void ConfigurePractice(HumanCannonStation[] courseStations, float floorHeight)
         {
             if (isActiveAndEnabled) throw new InvalidOperationException("Configure an inactive course before enabling it.");
