@@ -107,6 +107,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (shared.ending) return;
             shared.ending = true; shared.successful = success; shared.skipped = skipped; shared.mastered |= success; shared.endAt = Clock + 3d;
+            RecordAction("ENDING", reason: skipped ? "MAJORITY_SKIP" : success ? "ALL_ARRIVED" : "MAJORITY_ABANDON");
             foreach (var player in NetworkPlayer.All)
                 if (player != null && player.IsSpawned && player.State == PlayerState.Fallen && conditions.TryGetValue(player.OwnerClientId, out var condition))
                     player.ServerRestoreCondition(condition);

@@ -33,6 +33,7 @@ namespace CurtainCall.WaitingRoom
         NavMeshPath path; // Unity: 필드 초기화에서 만들 수 없다(Awake에서).
         readonly List<Vector3> corners = new();
         readonly List<Vector3> points = new();
+        internal event System.Action<bool> VisibilityChanged;
         bool routeValid;
         /// <summary>경로 계산이 잠깐 실패해도(벽 옆·점프·소품 위) 마지막 경로를 유지하는 시간(초). 4인 깜빡임 대응(2026-11-04).</summary>
         const float FailureGraceSeconds = 1f;
@@ -111,6 +112,7 @@ namespace CurtainCall.WaitingRoom
             if (firstLength <= StartGap + .2f) points.RemoveAt(0);
             else points[0] += first / firstLength * StartGap;
             if (points.Count < 2) { Hide(); return; }
+            bool firstDraw = !line.enabled;
             line.enabled = true;
             line.positionCount = points.Count;
             line.SetPositions(points.ToArray());
@@ -119,6 +121,7 @@ namespace CurtainCall.WaitingRoom
             // 눈금 간격을 월드 길이에 맞춘다(타일 1칸 = TickSpacing).
             line.material.mainTextureScale = new Vector2(Mathf.Max(1f, length / TickSpacing), 1f);
             DrawEndArrow();
+            if (firstDraw) VisibilityChanged?.Invoke(true);
         }
 
         /// <summary>목적지 끝에만 진행 방향 화살표 하나를 둔다. 충돌체는 만들지 않는다.</summary>
@@ -148,7 +151,7 @@ namespace CurtainCall.WaitingRoom
 
         void Hide()
         {
-            if (line != null) line.enabled = false;
+            if (line != null && line.enabled) { line.enabled = false; VisibilityChanged?.Invoke(false); }
             if (arrow != null) arrow.SetActive(false);
         }
 
@@ -165,6 +168,7 @@ namespace CurtainCall.WaitingRoom
             var go = new GameObject("RehearsalPathLine");
             go.transform.SetParent(transform, false);
             line = go.AddComponent<LineRenderer>();
+            line.enabled = false;
             line.useWorldSpace = true;
             line.widthMultiplier = LineWidth;
             line.textureMode = LineTextureMode.Tile;

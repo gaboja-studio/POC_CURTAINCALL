@@ -114,6 +114,10 @@ namespace CurtainCall.WaitingRoom
         bool CanVote => active && !completed && arrived.Count > 0 && local != null
             && local.IsSpawned && local.State != PlayerState.Retired;
 
+        void RecordAction(string state, ulong? actor = null, string reason = null, bool? vote = null) =>
+            CurtainCall.Telemetry.Pipeline.SpatialLogAdapter.RehearsalAction("TIGHTROPE", state, round,
+                active ? stage : -1, active, IsCompleted, IsPracticing, actor, true, reason, vote);
+
         void SetVote(ulong id, bool value)
         {
             if (!active || completed || arrived.Count == 0) return;
@@ -123,7 +127,7 @@ namespace CurtainCall.WaitingRoom
                     participant = true;
             if (!participant) return;
             bool changed = value ? votes.Add(id) : votes.Remove(id);
-            if (changed) { version++; Publish(); }
+            if (changed) { RecordAction("VOTE_CHANGED", id, "NEXT_STAGE", value); version++; Publish(); }
         }
 
         void RequestVote(bool value)
@@ -368,7 +372,7 @@ namespace CurtainCall.WaitingRoom
                 if (player == null || !player.IsSpawned) continue;
                 ulong id = player.OwnerClientId;
                 if (player.State != PlayerState.Fallen) { fallenAt.Remove(id); continue; }
-                if (!fallenAt.TryGetValue(id, out double at)) { fallenAt[id] = Clock; continue; }
+                if (!fallenAt.TryGetValue(id, out double at)) { fallenAt[id] = Clock; RecordAction("FALLEN", id); continue; }
                 if (Clock - at < RecoverSeconds) continue;
                 fallenAt.Remove(id);
                 player.ServerRestoreAll();
@@ -389,8 +393,12 @@ namespace CurtainCall.WaitingRoom
                 if (placed.Contains(player.OwnerClientId))
                 {
                     changed |= ObserveLesson(player);
-                    if (LearnedSkill(player) && (s.Kind == RehearsalStageKind.Trapeze || IsFinished(player)))
-                        changed |= arrived.Add(player.OwnerClientId);
+                    if (LearnedSkill(player) && (s.Kind == RehearsalStageKind.Trapeze || IsFinished(player))
+                        && arrived.Add(player.OwnerClientId))
+                    {
+                        changed = true;
+                        RecordAction("ARRIVED", player.OwnerClientId, s.Kind == RehearsalStageKind.Trapeze ? "LESSON_CRITERION" : "FINISH_PLATFORM");
+                    }
                 }
             }
             changed |= arrived.RemoveWhere(id => !participants.Contains(id)) > 0;
@@ -401,6 +409,7 @@ namespace CurtainCall.WaitingRoom
             if (changed) { version++; Publish(); }
             if (participantCount == 0 || arrived.Count == 0) return;
             if (s.Rule != RehearsalClearRule.Anyone && arrived.Count < participantCount && votes.Count <= participantCount / 2) return;
+            RecordAction("STAGE_CLEARED", reason: arrived.Count == participantCount ? "ALL_ARRIVED" : s.Rule == RehearsalClearRule.Anyone ? "ANY_ARRIVED" : "MAJORITY_NEXT");
             AdvanceStage();
         }
 
@@ -435,6 +444,7 @@ namespace CurtainCall.WaitingRoom
             if (!CanClearCurrentStage) return false;
             foreach (var player in NetworkPlayer.All)
                 if (player != null && player.IsSpawned && player.State == PlayerState.Fallen) player.ServerRestoreAll();
+            RecordAction("STAGE_CLEARED", reason: "DEV_CLEAR");
             AdvanceStage();
             return true;
         }

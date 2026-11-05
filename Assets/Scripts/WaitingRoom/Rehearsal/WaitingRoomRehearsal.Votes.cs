@@ -106,9 +106,11 @@ namespace CurtainCall.WaitingRoom
         {
             if (!active || completed || ending || !IsVoter(id)) return;
             bool changed = value ? skipVotes.Add(id) : skipVotes.Remove(id);
+            if (changed) RecordAction("VOTE_CHANGED", id, "SKIP", value);
             voterCount = CountVoters();
             if (skipVotes.Count > voterCount / 2)
             {
+                RecordAction("SKIP_APPROVED", reason: "MAJORITY_SKIP");
                 ending = true; endingAt = Clock + EndingNoticeSeconds + EndingFadeSeconds;
                 Debug.Log($"[Rehearsal] 리허설 넘기기 통과 {skipVotes.Count}/{voterCount}");
                 changed = true;
@@ -130,6 +132,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (!CanProposePractice || !IsVoter(proposer)) return;
             practiceVote = true; practiceYes.Clear(); practiceYes.Add(proposer);
+            RecordAction("VOTE_CHANGED", proposer, "REPLAY_PROPOSE", true);
             voterCount = CountVoters();
             version++; Publish();
         }
@@ -143,6 +146,7 @@ namespace CurtainCall.WaitingRoom
                 Debug.Log("[Rehearsal] 리허설 다시 하기 미동의 → 취소");
             }
             else if (!practiceYes.Add(id)) return;
+            RecordAction("VOTE_CHANGED", id, "REPLAY", agree);
             version++; Publish();
         }
 

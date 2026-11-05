@@ -25,6 +25,7 @@ namespace CurtainCall.Telemetry.Pipeline
         [Serializable] sealed class MapEntry { public string id, scene, sectionName; public int sectionId; public float floorY,minX,maxX,minZ,maxZ,minY,maxY; }
         readonly MapEntry[] mapEntries;
         readonly Dictionary<PursuitActor, string> pursuitStates = new();
+        readonly Dictionary<(int, string), bool> clueAvailability = new();
         readonly Dictionary<string, bool> discoveries = new();
         readonly Dictionary<string, string> worldStates = new();
         readonly Dictionary<string, Vector3> worldPositions = new();
@@ -61,7 +62,9 @@ namespace CurtainCall.Telemetry.Pipeline
             log = runtime;
             var manifest = Resources.Load<TextAsset>("TelemetrySpatialMaps");
             mapEntries = manifest != null ? JsonUtility.FromJson<MapIndex>(manifest.text).maps : Array.Empty<MapEntry>();
-            ClueInspectable.Inspected += Inspected;
+            ClueInspectable.InspectionObserved += Inspected;
+            ClueInspectable.AvailabilityObserved += Availability;
+            ShopReach.ClueFocused += Focused;
             ExplorationState.TelemetryAttempted += Explored;
             PerformanceRewards.AudienceReacted += Audience;
             ScheduleBoard.SelectionChanged += Schedule;
@@ -83,6 +86,12 @@ namespace CurtainCall.Telemetry.Pipeline
             e.payload["clockSource"] = manager != null && manager.IsListening ? "SERVER" : "LOCAL";
             e.payload["timelineMs"] = manager != null && manager.IsListening ? manager.ServerTime.Time * 1000d : Time.realtimeSinceStartupAsDouble * 1000d;
             e.payload["clockId"] = manager != null && manager.IsListening ? log.CurrentRoomId ?? "unresolved" : log.FallbackPlayerId;
+            if (e.eventType == "SPATIAL_SAMPLE" && e.sceneType == "WAITINGROOM" && player != null)
+            {
+                var room = ContainingRoom(player.transform.position);
+                e.payload["roomName"] = room != null ? room.name : null;
+                e.payload["headingDeg"] = player.transform.eulerAngles.y;
+            }
             if (Ready(player) && !e.payload.ContainsKey("position")
                 && e.eventType is not ("SCENE_ENTERED" or "SCENE_EXITED" or "SPATIAL_GEOMETRY"))
                 e.payload["position"] = DetailLogIds.Position(player.transform.position);
@@ -96,11 +105,13 @@ namespace CurtainCall.Telemetry.Pipeline
             e.payload["sceneName"] = log.CurrentSceneName;
         }
 
+        PursuitRoom ContainingRoom(Vector3 position) => rooms.Where(r => r != null && r.Area != null && r.Contains(position))
+            .OrderBy(r => r.Area.bounds.size.sqrMagnitude).FirstOrDefault();
+
         float Floor(Vector3 position)
         {
             if (Scene != "WAITINGROOM" || rooms.Length == 0) return 0;
-            var room = rooms.Where(r => r != null && r.Area != null && r.Contains(position))
-                .OrderBy(r => r.Area.bounds.size.sqrMagnitude).FirstOrDefault();
+            var room = ContainingRoom(position);
             if (room == null) room = rooms.Where(r => r != null && r.Area != null)
                 .OrderBy(r => Mathf.Abs(FloorOf(r) - position.y)).FirstOrDefault();
             return room != null ? FloorOf(room) : 0;
@@ -121,11 +132,20 @@ namespace CurtainCall.Telemetry.Pipeline
             {
                 if (scope != null) log.ReleaseSpatialBoundary();
                 scope = Scope; hasPosition = captured = dead = arrived = chased = escapeStarted = escapeExpired = false;
-                pursuitStates.Clear(); discoveries.Clear(); worldStates.Clear(); worldPositions.Clear(); geometry.Clear(); objects.Clear();
+                pursuitStates.Clear(); discoveries.Clear(); clueAvailability.Clear(); worldStates.Clear(); worldPositions.Clear(); geometry.Clear(); objects.Clear();
                 geometryIndex = 0; nextCache = nextPlayer = nextWorld = 0; rehearsal = null; cannonRehearsal = null;
                 bodySeen = false; lastEscapeSection = -1; visitedSections.Clear(); ownerStates.Clear(); previousSizes.Clear(); bounceCount=0;
             }
-            if (Time.unscaledTime >= nextCache) { nextCache = Time.unscaledTime + 5; Cache(); }
+            if (Time.unscaledTime >= nextCache)
+            {
+                bool initial = nextCache == 0;
+                nextCache = Time.unscaledTime + 5;
+                Cache();
+                // Disabled UV clues are absent from the normal active-object cache.
+                if (initial && Scene == "WAITINGROOM")
+                    foreach (var clue in UnityEngine.Object.FindObjectsByType<ClueInspectable>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                        Availability(clue, clue.isActiveAndEnabled && clue.Revealed, "CACHE_OBSERVATION");
+            }
             var player = NetworkPlayer.Local;
             if (Ready(player))
             {
@@ -224,6 +244,7 @@ namespace CurtainCall.Telemetry.Pipeline
             foreach (var item in UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None))
             {
                 if (item.gameObject.scene != scene) continue;
+                if (item is ClueInspectable clue) Availability(clue, clue.isActiveAndEnabled && clue.Revealed, "CACHE_OBSERVATION");
                 if (item is IExplorationTarget || item is PerformancePropDiscovery || WorldKind(item) != null) objects.Add(item);
             }
             if (!Host || geometry.Count > 0) return;
@@ -342,7 +363,7 @@ namespace CurtainCall.Telemetry.Pipeline
             var value = (active: WaitingRoomRehearsal.IsActive, stage: (int)WaitingRoomRehearsal.CurrentStage,
                 completed: WaitingRoomRehearsal.IsCompleted, practice: WaitingRoomRehearsal.IsPracticing);
             if (value != rehearsal && (value.active || rehearsal != null))
-                log.Emit("REHEARSAL_STATE", new() { ["state"] = $"{value.active}/{value.stage}/{value.completed}/{value.practice}",
+                log.Emit("REHEARSAL_STATE", new() { ["recordKind"] = "SNAPSHOT", ["state"] = $"{value.active}/{value.stage}/{value.completed}/{value.practice}",
                     ["stage"] = value.stage, ["active"] = value.active, ["completed"] = value.completed, ["practice"] = value.practice, ["trickId"] = "TIGHTROPE" });
             rehearsal = value;
             var player = NetworkPlayer.Local;
@@ -351,7 +372,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 mastered: WaitingRoomCannonRehearsal.HasMastered, checkpoint: WaitingRoomCannonRehearsal.Checkpoint(player.OwnerClientId),
                 arrived: WaitingRoomCannonRehearsal.HasArrived(player.OwnerClientId));
             if (cannon != cannonRehearsal && (cannon.active || cannonRehearsal?.active == true))
-                log.EmitFor(player, "REHEARSAL_STATE", new() { ["trickId"] = "CANNON",
+                log.EmitFor(player, "REHEARSAL_STATE", new() { ["recordKind"] = "SNAPSHOT", ["trickId"] = "CANNON",
                     ["state"] = !cannon.active ? "ENDED" : cannon.ending ? "ENDING" : cannon.arrived ? "ARRIVED" : cannon.checkpoint > 0 ? "CHECKPOINT" : "STARTED",
                     ["stage"] = cannon.checkpoint, ["active"] = cannon.active, ["completed"] = cannon.mastered, ["practice"] = true, ["arrived"] = cannon.arrived });
             cannonRehearsal = cannon;
@@ -379,18 +400,71 @@ namespace CurtainCall.Telemetry.Pipeline
             var p=NetworkPlayer.All.FirstOrDefault(x=>x!=null&&x.OwnerClientId==actor);
             if(Host&&p!=null)TelemetryRuntime.Mechanism(p,p,kind,"SUCCEEDED:"+target,p.transform.position,true);
         }
-        void Inspected(ClueInspectable item)
+        bool CollectingWaitingRoom => log.CurrentRunId != null && Scene == "WAITINGROOM";
+
+        static string TargetCode(IExplorationTarget target, Component item) =>
+            target == null ? "UNKNOWN_TARGET" : target.TargetId is { Length: > 0 and <= 128 } id ? id : DetailLogIds.ObjectId(item, "IN_");
+
+        void Focused(ClueInspectable clue) => Inspected(clue, "FOCUSED", "SHOP_REACH", null);
+
+        void Inspected(ClueInspectable item, string state, string reason, double? durationMs) =>
+            EmitClue(item, state, reason, durationMs);
+
+        bool EmitClue(ClueInspectable item, string state, string reason, double? durationMs)
         {
-            if (item != null) log.Emit("CLUE_INSPECTED", new() { ["entityId"] = DetailLogIds.ObjectId(item, "IN_"), ["targetId"] = item.TargetId,
-                ["objectFloorY"] = Floor(item.transform.position), ["objectPosition"] = DetailLogIds.Position(item.transform.position) });
+            if (!CollectingWaitingRoom || item == null || item.gameObject.scene.name != log.CurrentSceneName) return false;
+            var at = item.transform.position;
+            var payload = new Dictionary<string, object> {
+                ["entityId"] = DetailLogIds.ObjectId(item, "IN_"), ["targetId"] = TargetCode(item, item),
+                ["state"] = state, ["reason"] = reason, ["hasSecret"] = item.HasSecret, ["secretSeen"] = item.SecretSeen,
+                ["objectFloorY"] = Floor(at), ["objectPosition"] = DetailLogIds.Position(at)
+            };
+            if (durationMs.HasValue) payload["durationMs"] = durationMs.Value;
+            return log.Emit("CLUE_INSPECTED", payload, "LOCAL");
         }
-        void Explored(ulong client, string target, bool accepted, bool opened, int hits)
+
+        // Availability is local: UV content can be active on one screen only.
+        void Availability(ClueInspectable item, bool available, string reason)
+        {
+            if (!CollectingWaitingRoom || item == null || item.gameObject.scene.name != log.CurrentSceneName || scope != Scope) return;
+            var key = (item.GetInstanceID(), item.TargetId);
+            if (clueAvailability.TryGetValue(key, out bool previous) && available == previous) return;
+            if (EmitClue(item, available ? "AVAILABLE" : "UNAVAILABLE", reason, null))
+                clueAvailability[key] = available;
+        }
+
+        void Explored(ulong client, IExplorationTarget target, bool accepted, bool opened, int hits, string reason)
         {
             var player = NetworkPlayer.All.FirstOrDefault(p => p != null && p.OwnerClientId == client);
-            if (player == null) return;
-            var item=ExplorationTargets.Find(target) as Component;
-            log.EmitFor(player, "EXPLORATION_INTERACTION", new() { ["objectPosition"]=item!=null?DetailLogIds.Position(item.transform.position):null, ["objectFloorY"]=item!=null?Floor(item.transform.position):null, ["targetId"] = target, ["accepted"] = accepted, ["opened"] = opened, ["hits"] = hits }, "HOST");
+            if (player == null || !CollectingWaitingRoom) return;
+            var item = target as Component;
+            log.EmitFor(player, "EXPLORATION_INTERACTION", new() {
+                ["objectPosition"] = item != null ? DetailLogIds.Position(item.transform.position) : null,
+                ["objectFloorY"] = item != null ? Floor(item.transform.position) : null, ["targetId"] = TargetCode(target, item),
+                ["accepted"] = accepted, ["opened"] = opened, ["hits"] = hits, ["reason"] = reason
+            }, "HOST");
         }
+
+        internal static void RehearsalAction(string trick, string state, int round, int stage, bool active,
+            bool completed, bool practice, ulong? actor, bool host, string reason = null, bool? vote = null, string guideId = null)
+        {
+            var runtime = TelemetryRuntime.Instance;
+            if (runtime == null || runtime.CurrentRunId == null || TelemetryRuntime.SceneType(runtime.CurrentSceneName) != "WAITINGROOM") return;
+            var player = actor.HasValue ? NetworkPlayer.All.FirstOrDefault(p => p != null && p.IsSpawned && p.OwnerClientId == actor.Value) : null;
+            if (actor.HasValue && player == null || !host && (player == null || !player.IsLocal)) return;
+            var data = new Dictionary<string, object> {
+                ["recordKind"] = "ACTION", ["subjectKind"] = actor.HasValue ? "PLAYER" : "TEAM",
+                ["trickId"] = trick, ["state"] = state, ["round"] = round, ["stage"] = stage,
+                ["active"] = active, ["completed"] = completed, ["practice"] = practice
+            };
+            if (player == null) data["position"] = null;
+            else data["position"] = DetailLogIds.Position(player.transform.position);
+            if (reason != null) data["reason"] = reason;
+            if (vote.HasValue) data["vote"] = vote.Value;
+            if (guideId != null) data["guideId"] = guideId;
+            runtime.EmitFor(player, "REHEARSAL_STATE", data, host ? "HOST" : "LOCAL");
+        }
+
         void Audience(string participant, int delta)
         {
             var shared = PerformanceRewards.Instance?.State;
@@ -534,7 +608,9 @@ namespace CurtainCall.Telemetry.Pipeline
         }
         public void Dispose()
         {
-            ClueInspectable.Inspected -= Inspected;
+            ClueInspectable.InspectionObserved -= Inspected;
+            ClueInspectable.AvailabilityObserved -= Availability;
+            ShopReach.ClueFocused -= Focused;
             ExplorationState.TelemetryAttempted -= Explored;
             PerformanceRewards.AudienceReacted -= Audience;
             ScheduleBoard.SelectionChanged -= Schedule;

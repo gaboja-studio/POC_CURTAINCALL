@@ -26,6 +26,10 @@ module.exports=()=>{
   if(scene==='MAINSTAGE')add('STAGE_SETTLED',offset+60000,0,{teamAudience:10,tokens:25,people:[{slot:0,audience:4,tokens:13},{slot:1,audience:6,tokens:12}]},scene);
   add(scene==='MAINSTAGE'?'AUDIENCE_REACTION':'TRICK_UNLOCKED',offset+25000,0,{position:{x:0,y:0,z:4},reaction:'JEER',entityId:'IN_prop',trickId:'HumanCannon'},scene);
  }
+ for(const [state,ms] of [['FOCUSED',8000],['SECRET_FOUND',11500],['CLOSED',12000]])add('CLUE_INSPECTED',ms,1,{targetId:'clue',state,...(state==='CLOSED'?{durationMs:2000}:{})});
+ add('CLUE_INSPECTED',100,1,{entityId:'preview-clue',targetId:'clue',state:'AVAILABLE'});
+ add('EXPLORATION_INTERACTION',9000,0,{targetId:'clue',accepted:false,opened:false,reason:'REQUIRED_TOOL_MISSING'});
+ add('REHEARSAL_STATE',23000,0,{state:'GUIDE_SHOWN',recordKind:'ACTION',trickId:'CANNON',round:1,stage:1,guideId:'preview-guide'});
  const maps=require('../../Assets/Resources/TelemetrySpatialMaps.json').maps;
  const names={WAITINGROOM:'WaitingRoom',MAINSTAGE:'HumanCannon',EXITROUTE:'escape_route'};
  // Actual exported scene coordinates; movement remains clearly labelled synthetic preview data.
@@ -35,7 +39,7 @@ module.exports=()=>{
    const m=available.find(m=>m.floorY===desired)||available[0];if(!m)continue;
    e.payload.mapId=m.id;e.payload.sceneName=m.scene;e.payload.floorY=m.floorY;
    const room=m.rooms[(e.payload.entityKind==='PURSUER'?0:e.playerNumber)%Math.max(1,m.rooms.length)];
-   if(room){const route=room.route.length>1?room.route:[{x:room.x-room.width*.2,y:m.floorY,z:room.z},{x:room.x+room.width*.2,y:m.floorY,z:room.z}];
+   if(room){if(e.sceneType==='WAITINGROOM'&&e.eventType==='SPATIAL_SAMPLE')e.payload.roomName=room.name;const route=room.route.length>1?room.route:[{x:room.x-room.width*.2,y:m.floorY,z:room.z},{x:room.x+room.width*.2,y:m.floorY,z:room.z}];
      const index=(e.payload.timelineMs%60000)/60000*(route.length-1),a=route[Math.floor(index)],b=route[Math.min(route.length-1,Math.floor(index)+1)],u=index%1;
      e.payload.position={x:a.x+(b.x-a.x)*u,y:m.floorY,z:a.z+(b.z-a.z)*u};
    }else if(e.payload.position){e.payload.position={x:(m.minX+m.maxX)/2+e.playerNumber*.5,y:0,z:m.minZ+(e.payload.timelineMs%60000)/60000*(m.maxZ-m.minZ)};}

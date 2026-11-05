@@ -19,3 +19,5 @@
 기존 본체 Unity는 D:/github/POC_CURTAINCALL에 열려 있다. 이 worktree를 대상으로 검증하고 본체 씬은 변경하지 않는다. CampaignRun/PerformanceRewards/ExplorationState/ScheduleBoard/EscapeExitSaw에 확정 사건 연결이 추가되므로 해당 기능 후속 변경과 겹침 주의. commit/push는 요청하지 않았으므로 하지 않는다.
 
 후속: 사용자 피드백에 따라 방별 런·호응/토큰·기믹·탈출 결과 관측을 수정하고 실제 운영 TEST 집계에서 확인한다.
+
+추가 범위: dev PR #295를 반영하고, 대기실·리허설 수집 제안을 실제 게임 판정과 대조하여 런별 관찰 표와 섹션별 로딩 상태를 제공한다.

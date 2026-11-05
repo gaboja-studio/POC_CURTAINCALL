@@ -4,6 +4,20 @@ let seq=0;function e(type,payload={},extra={}){return {eventId:'e'+(++seq),occur
 function fund(run,day,before,after,num){return e('FUNDS_CHANGED',{transactionId:'ledger:'+num,gameDay:day,balanceBefore:before,balanceAfter:after,category:after>=before?'REWARD':'EXPENSE'},{runId:run,performanceId:'D'+day+'P1'});}
 const view=(rows,f={})=>core.dashboardView(rows,{environment:'TEST',...f});
 
+test('waiting observations separate availability, another player reading, and actual discoveries',()=>{
+ const source=fs.readFileSync(__dirname+'/dashboard.html','utf8').split('// WAITING_OBSERVATIONS_BEGIN')[1].split('// WAITING_OBSERVATIONS_END')[0];
+ const model=vm.runInNewContext(source+';waitingObservations');
+ const rows=require('./spatial.fixture.cjs')(),points=core.spatialReplay(rows).points;
+ const a=model(points,'0'),b=model(points,'1'),target=b.targets.find(x=>x.id==='clue');
+ assert.equal(target.opened,1);assert.equal(target.hidden,1);assert.equal(target.available,true);
+ assert.equal(target.focusDelay,2000);assert.deepEqual([...target.closed],[2000]);
+ assert.equal(a.targets.find(x=>x.id==='clue').opened,0);assert.equal(a.teamRead.has('clue'),true);
+ assert.equal(a.targets.find(x=>x.id==='clue').failed.get('REQUIRED_TOOL_MISSING'),1);
+ assert.ok(b.rooms.length);assert.equal(model(points,'9').targets.length,0);
+ const reset=points.map(p=>p.event.payload.state==='FOCUSED'?{...p,event:{...p.event,appSessionId:'another-app'}}:p);
+ assert.equal(model(reset,'1').targets.find(x=>x.id==='clue').focusDelay,null);
+});
+
 test('official four-player roster keeps silent participants and later starts separate across days',()=>{
  const people=Array.from({length:4},(_,i)=>({playerId:'p'+i,playerNumber:i,networkClientId:String(10+i)}));
  const roster=e('PERFORMANCE_ROSTER',{trickType:'CANNON',difficulty:1,playerCount:4,participants:people},{attemptId:'a'});
