@@ -78,10 +78,11 @@ namespace CurtainCall.WaitingRoom
         void LateUpdate()
         {
             var run = CampaignRun.Instance;
-            // 새 방의 CampaignRun은 세대 번호를 다시 쓴다. 이전 방의 완료 전송 기록을 이어받지 않는다.
-            if (tutorialRun != run) { tutorialRun = run; tutorialDoneKey = ""; }
             var player = NetworkPlayer.Local;
             bool waiting = run != null && GuideWaiting(run);
+            // CampaignRun survives leaving/rehosting a room and the new run reuses generation/day 1.
+            // End the acknowledgement period even when the component instance stays the same.
+            if (tutorialRun != run || !waiting) { tutorialRun = run; tutorialDoneKey = ""; }
             bool ready = waiting && GuideDone();
             if (ready)
             {
@@ -89,7 +90,9 @@ namespace CurtainCall.WaitingRoom
                 if (tutorialDoneKey != key && run.NotifyTutorialDone()) tutorialDoneKey = key;
                 waiting = GuideWaiting(run);
             }
-            bool teamLocked = waiting && ready && player != null && player.State == PlayerState.Normal
+            // Rehearsal suspends teammates' ordinary guide; waiting for that guide here would deadlock it.
+            bool rehearsing = WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive;
+            bool teamLocked = !rehearsing && waiting && ready && player != null && player.State == PlayerState.Normal
                 && !SceneCurtainTransition.IsActive;
             InputGate.SetBlocking(teamLock, teamLocked);
             if (teamLocked)
@@ -100,7 +103,7 @@ namespace CurtainCall.WaitingRoom
 
             if (run == null || player == null || player.State != PlayerState.Normal
                 || SceneCurtainTransition.IsActive || teamLocked
-                || WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive)
+                || rehearsing)
             { firstDayQuest.Hide(); return; }
             // 스케줄표를 가까이서 편집할 때는 같은 목적의 화면 퀘스트가 판을 가리지 않는다.
             if (board == null) board = FindFirstObjectByType<ScheduleBoardView>();

@@ -46,7 +46,7 @@ namespace CurtainCall.WaitingRoom
         bool Host => CampaignRun.Instance != null && CampaignRun.Instance.HasAuthority;
         double Clock => NetworkSessionManager.Instance?.NetworkManager is { IsListening: true } net ? net.ServerTime.Time : Time.timeAsDouble;
         static bool PracticePhase => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase is CampaignPhase.RestTime or CampaignPhase.Night;
-        bool CanStart => !shared.active && !WaitingRoomRehearsal.IsActive && PracticePhase
+        bool CanStart => !shared.active && !WaitingRoomRehearsal.IsActive && !WaitingRoomRehearsal.IsPracticePending && PracticePhase
             && CampaignRun.Instance.State.CannonUnlocked && !SceneCurtainTransition.IsActive
             && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom && !SpaceLinkDirector.Instance.IsTransitioning;
 
@@ -69,10 +69,7 @@ namespace CurtainCall.WaitingRoom
         void Update()
         {
             TickNetwork();
-            if (!shared.active && (!PracticePhase || WaitingRoomRehearsal.IsActive
-                || SpaceLinkDirector.Instance == null || SpaceLinkDirector.Instance.Current != SpaceId.WaitingRoom
-                || SpaceLinkDirector.Instance.IsTransitioning)) quest.Hide();
-            if (Host && shared.active && !PracticePhase) { shared.active = shared.ending = false; Publish(); }
+            if (!UpdatePracticeContext()) return;
             if (shared.active && !shared.ending)
             {
                 if (FindRoom()) EnsureCourse();
@@ -82,6 +79,29 @@ namespace CurtainCall.WaitingRoom
             else if (!shared.ending && course != null) Cleanup();
             TickUi();
             TickEnding();
+        }
+
+        bool UpdatePracticeContext()
+        {
+            bool available = PracticePhase && !WaitingRoomRehearsal.IsActive && !SceneCurtainTransition.IsActive
+                && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
+                && !SpaceLinkDirector.Instance.IsTransitioning;
+            if (available) return true;
+            // A completed round can still be waiting for a remote owner's revival/return.
+            // Scene and campaign transitions must cancel that work as well as active practice.
+            if (Host && (shared.active || shared.ending))
+            {
+                shared.active = shared.ending = false;
+                Publish();
+            }
+            prompt = false;
+            promptBlock?.SetOpen(false);
+            placementBlock?.SetOpen(false);
+            Cleanup();
+            ReleaseEndingLock();
+            votePanel?.Hide();
+            fader?.Cancel();
+            return false;
         }
 
         /// <summary>Host entry from schedule confirmation; campaign phase and schedule remain unchanged.</summary>

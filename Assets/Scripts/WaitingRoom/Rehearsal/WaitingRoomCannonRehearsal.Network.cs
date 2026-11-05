@@ -27,6 +27,8 @@ namespace CurtainCall.WaitingRoom
             // The next room starts at round 1 again. Old local acknowledgements must not skip its return.
             endingRound = returnedRound = notifiedRound = -1;
             returnPoseRound = -1;
+            guideRound = -1;
+            actionGuides.Clear(); pendingGuides.Clear();
             returnAt = 0d;
             prompt = false;
             promptBlock?.SetOpen(false);

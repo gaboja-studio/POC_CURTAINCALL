@@ -67,6 +67,8 @@ namespace CurtainCall.WaitingRoom
 
         void TickUi()
         {
+            // Another owner's station request can start practice while the host's prompt is open.
+            if (shared.active) prompt = false;
             promptBlock.SetOpen(prompt && !shared.active);
             if (prompt && !shared.active)
             {
@@ -202,6 +204,9 @@ namespace CurtainCall.WaitingRoom
             var player = NetworkPlayer.Local;
             if (endingMover != null || player == null || !player.TryGetComponent(out PlayerMover mover)) return;
             CaptureReturnPose(player);
+            // Seating/flight/transport temporarily own Simulated. Return their saved value
+            // before taking the ending lock, otherwise Detach unlocks early and we restore false.
+            if (player.TryGetComponent(out HumanCannonPilot pilot)) pilot.ReleaseMovement();
             endingMover = mover;
             // The reliable ending message may precede the revival NetworkVariable on a remote owner.
             restoreControl = player.State == PlayerState.Fallen || mover.ControlEnabled;
