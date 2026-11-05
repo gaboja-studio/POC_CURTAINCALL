@@ -237,6 +237,8 @@ namespace CurtainCall.Campaign
         {
             if (s.Phase != CampaignPhase.RestTime || (s.Timer != RestTimerState.Running && s.Timer != RestTimerState.Stopped)) return false;
             if (s.IsFinalMorning) paused = false;
+            // 첫날 둘째 공연 확정 전에는 Tick이 흐르지 않는다. 받는 쪽 화면만 줄지 않게 멈춤으로 알린다.
+            paused |= IsSecondPerformanceSelectionPending;
             var wanted = paused ? RestTimerState.Stopped : RestTimerState.Running;
             if (s.Timer == wanted) return false;
             s.Timer = wanted;

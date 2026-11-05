@@ -30,6 +30,25 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         }
 
         [Test]
+        public void UnconfirmedScheduleSharesStoppedTimerUntilConfirmed()
+        {
+            var original = RunState.SecondPerformanceGate;
+            try
+            {
+                bool confirmed = false;
+                RunState.SecondPerformanceGate = () => confirmed;
+                var run = new RunState(); run.StartSession(); run.EndIntro(); run.EndPerformance();
+                run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 });
+                Assert.IsTrue(run.SetRestTimerPaused(false), "호스트가 멈춘 시간을 받는 쪽도 멈춤으로 받아야 한다");
+                Assert.AreEqual(RestTimerState.Stopped, run.Snapshot.Timer);
+                confirmed = true;
+                Assert.IsTrue(run.SetRestTimerPaused(false));
+                Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer);
+            }
+            finally { RunState.SecondPerformanceGate = original; }
+        }
+
+        [Test]
         public void EveryRestStartsRunningWithoutLeavingWaitingRoom()
         {
             var run = new RunState();

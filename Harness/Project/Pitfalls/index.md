@@ -61,3 +61,4 @@
 - [textmesh-default-shader-through-walls.md](textmesh-default-shader-through-walls.md) — 생성한 TextMesh 기본 재질은 깊이를 무시해 벽 너머로 보인다. 에디터 코드로 표지·번호 글자를 만들 때
 - [exploration-route-validation.md](exploration-route-validation.md) — 탐색 경로의 낮/밤 철창·트리거와 층/벽 너머 F·바닥 기물 표시/호스트 검사를 확인할 때
 - [factory-art-urp.md](factory-art-urp.md) — 공장 에셋 선별 재사용·URP17 조명·정적 장식 정리 기준
+- [arrived-state-after-performance.md](arrived-state-after-performance.md) — 외줄 완주자가 Arrived로 남아 대기실 안내·상호작용·첫날 진행이 멈춘다
