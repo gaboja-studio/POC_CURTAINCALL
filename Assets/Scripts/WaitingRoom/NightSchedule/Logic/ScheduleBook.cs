@@ -18,6 +18,8 @@ namespace CurtainCall.WaitingRoom
         NotNextPerformance,
         /// <summary>아직 발견하지 않은 공연(배치 기물 발견 전).</summary>
         Locked,
+        /// <summary>The human cannon lesson must be mastered before its first schedule confirmation.</summary>
+        RehearsalRequired,
     }
 
     /// <summary>

@@ -12,7 +12,14 @@ namespace CurtainCall.Tightrope
     public sealed partial class TightropeTrapeze : MonoBehaviour
     {
         const ulong Nobody = ulong.MaxValue;
-        const int PoleTotal = 3;
+        const int MaxPoleTotal = 3;
+        int practicePoleCount = MaxPoleTotal;
+        int PoleTotal => practicePoleCount;
+        /// <summary>비활성 연습 코스 구성 시에만 호출한다. 첫 두 원본 봉으로 잡기/비행을 학습한다.</summary>
+        public void ConfigurePracticeLesson()
+        {
+            if (!gameObject.activeInHierarchy && GetComponent<TightropeRun>() is { PracticeMode: true }) practicePoleCount = 2;
+        }
         const float HoldSeconds = 30f, BodySeparation = 1.45f;
         /// <summary>끈끈이 장갑으로 늘어날 수 있는 최대 유지 시간(참가자 화면 검증용 여유, Task-092).</summary>
         const float MaxHoldSeconds = HoldSeconds * 2f;
@@ -33,7 +40,7 @@ namespace CurtainCall.Tightrope
             public Vector3 Position, Velocity, Target;
             public double Started, Until;
         }
-        readonly PoleState[] poles = new PoleState[PoleTotal];
+        readonly PoleState[] poles = new PoleState[MaxPoleTotal];
         readonly Dictionary<ulong, FlightState> flights = new();
         readonly List<ulong> staleFlights = new();
         TightropeCourse course;
@@ -51,6 +58,8 @@ namespace CurtainCall.Tightrope
         bool Active => isActiveAndEnabled && course != null && course.HasTrapezeGap && course.IsGameplayActive
             && run != null && round == run.Round && run.State == TightropeRunState.Running;
         public bool IsActive => Active;
+        // 공연의 잡기·동료 매달림·비행 규칙은 유지하고, 리허설에서는 30초 강제 해제만 제외한다.
+        bool HoldTimeLimited => run == null || !run.PracticeMode;
         public int LaneIndex => Lane;
         public float EntryDistance => course.TrapezeGapFrom - 1f;
         public int PoleCount => PoleTotal;
@@ -120,7 +129,7 @@ namespace CurtainCall.Tightrope
                 if (state.Upper == Nobody) continue;
                 if (!Alive(state.Upper)) { RemovePole(i, false); continue; }
                 if (state.Lower != Nobody && !Alive(state.Lower)) { state.Lower = Nobody; state.Revision++; Publish(); }
-                if (Clock >= state.Until) { RemovePole(i, true); continue; }
+                if (HoldTimeLimited && Clock >= state.Until) { RemovePole(i, true); continue; }
                 if (Clock - state.LastInput > .3d) state.Drive = 0f;
                 state.Physics.Step(ref state.Angle, ref state.Speed, state.Drive, Time.deltaTime, GameSettings.Base.Character.Gravity);
                 state.SampledAt = Clock;
@@ -211,7 +220,7 @@ namespace CurtainCall.Tightrope
         {
             if (!Active || index < 0 || index >= PoleTotal || !Eligible(player)
                 || poles[index].Upper == Nobody || poles[index].Lower != Nobody
-                || !Alive(poles[index].Upper) || Clock >= poles[index].Until) return false;
+                || !Alive(poles[index].Upper) || (HoldTimeLimited && Clock >= poles[index].Until)) return false;
             bool flying = flights.TryGetValue(player.OwnerClientId, out var flight) && Clock <= flight.Until;
             if (flying && index != flight.From + 1) return false;
             return InCatchRange(player, index, true);

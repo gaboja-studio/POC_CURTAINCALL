@@ -35,7 +35,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var shape = Get(course, "Shape");
                 Assert.AreEqual(6f, (float)Get(shape, "StartPlatformLength"), .01f, "출발대 길이");
                 Assert.AreEqual(6f, (float)Get(shape, "FinishPlatformLength"), .01f, "도착대 길이");
-                Assert.AreEqual(4.5f, (float)Get(shape, "SideMargin"), .01f, "발판 폭 3배(옆 여백 4.5)");
+                Assert.AreEqual(Get(Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Course"), "SideMargin"), Get(shape, "SideMargin"), "실제 공연 발판 폭을 복사한다");
                 var room = GameObject.Find("S09_PracticeRoom").transform;
                 Assert.IsFalse(room.Find("LegacyRing/PracticeLanes").gameObject.activeSelf, "리허설 중 링의 옛 연습 소품을 숨긴다");
                 Assert.IsFalse(room.Find("LegacyRing/CollisionRepairs").gameObject.activeSelf, "사다리 뒤 막이도 숨긴다");

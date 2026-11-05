@@ -35,6 +35,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         IEnumerator FlowWalk(Component player, Component mover, Vector3 destination)
         {
             float end = Time.realtimeSinceStartup + 60, lastProgress = Time.realtimeSinceStartup, best = float.MaxValue;
+            Vector3 legStart = player.transform.position;
+            Vector3 leg = Vector3.ProjectOnPlane(destination - legStart, Vector3.up);
             while (Time.realtimeSinceStartup < end)
             {
                 var delta = destination - player.transform.position; delta.y = 0;
@@ -45,6 +47,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var basis = director != null && (bool)Get(director, "UsesMouseLook") ? (Vector3)Get(director, "ViewForward") : (Vector3)Get(mover, "CourseForward");
                 basis.y = 0; basis.Normalize(); var right = Vector3.Cross(Vector3.up, basis); delta.Normalize();
                 float forward = Vector3.Dot(delta, basis), side = Vector3.Dot(delta, right);
+                // Follow the segment with a short lookahead. Steering at a distant goal quantizes a
+                // shallow diagonal to only W/S, leaving the NavMesh route and hitting the adjacent wall.
+                if (leg.sqrMagnitude > .01f)
+                {
+                    float along = Mathf.Clamp01(Vector3.Dot(Vector3.ProjectOnPlane(player.transform.position - legStart, Vector3.up), leg) / leg.sqrMagnitude);
+                    Vector3 aim = legStart + leg * Mathf.Min(1f, along + 1f / leg.magnitude);
+                    delta = Vector3.ProjectOnPlane(aim - player.transform.position, Vector3.up).normalized;
+                    forward = Vector3.Dot(delta, basis); side = Vector3.Dot(delta, right);
+                }
                 var keys = new System.Collections.Generic.List<string>();
                 if (forward > .3f) keys.Add("W"); else if (forward < -.3f) keys.Add("S");
                 if (side > .3f) keys.Add("D"); else if (side < -.3f) keys.Add("A");

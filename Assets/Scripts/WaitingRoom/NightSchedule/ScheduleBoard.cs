@@ -106,6 +106,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>오늘 밤 고칠 일차가 있으면 호스트가 확정해야 밤이 끝난다(전원 침대와 함께).</summary>
         public bool NightCanEnd()
         {
+            if (WaitingRoomCannonRehearsal.IsActive) return false;
             var run = CampaignRun.Instance;
             int day = run != null ? run.State.Day : 0;
             return ScheduleBook.EditableDays(day).Length == 0 || book.IsConfirmedTonight;
@@ -179,6 +180,7 @@ namespace CurtainCall.WaitingRoom
         public ScheduleRefusal Confirm()
         {
             if (!HasAuthority) return Answer(ScheduleRefusal.NotEditable);
+            if (WaitingRoomCannonRehearsal.RequireBeforeConfirm(book)) return Answer(ScheduleRefusal.RehearsalRequired);
             if (book.Night == 0 && book.IsFirstDaySecondEditable) return ConfirmFirstDay();
             int night = book.Night;
             var refusal = book.Confirm();
@@ -227,6 +229,7 @@ namespace CurtainCall.WaitingRoom
             ScheduleRefusal.BadTier => WaitingRoomText.Get("schedule.refuse-bad-tier", "깬 단계의 다음 단계까지만 고를 수 있습니다."),
             ScheduleRefusal.NotNextPerformance => WaitingRoomText.Get("schedule.refuse-not-next", "쉬는 시간에는 바로 다음 공연의 단계만 바꿀 수 있습니다."),
             ScheduleRefusal.Locked => WaitingRoomText.Get("schedule.refuse-locked", "아직 발견하지 않은 공연입니다. 대기실에서 공연 기물을 찾아야 열립니다."),
+            ScheduleRefusal.RehearsalRequired => WaitingRoomText.Get("cannon-rehearsal.required", "인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?"),
             _ => WaitingRoomText.Get("schedule.refuse-other", "할 수 없습니다."),
         };
 

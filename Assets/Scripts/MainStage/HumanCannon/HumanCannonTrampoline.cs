@@ -389,6 +389,17 @@ namespace CurtainCall.HumanCannon
             PublishOwnership();
         }
 
+        /// <summary>The rehearsal can recover its only shared prop when its carrier falls.</summary>
+        public bool ResetPracticePose()
+        {
+            if (HumanCannonSystem.Current == null || !HumanCannonSystem.Current.PracticeMode || session == null || !session.IsHost) return false;
+            carrierRecoveryPending = false;
+            ownership.Receive(ownership.Revision + 1, CannonSeatState.Nobody);
+            transform.SetPositionAndRotation(initialPosition, initialRotation);
+            ResetPreviousPose(); PublishOwnership();
+            return true;
+        }
+
         static bool Finite(Vector3 value) => float.IsFinite(value.x) && float.IsFinite(value.y) && float.IsFinite(value.z);
         static bool Finite(Quaternion value) => float.IsFinite(value.x) && float.IsFinite(value.y)
             && float.IsFinite(value.z) && float.IsFinite(value.w) && Quaternion.Dot(value, value) > 0.0001f;

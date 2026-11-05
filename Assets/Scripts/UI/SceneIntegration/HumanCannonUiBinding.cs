@@ -21,12 +21,22 @@ namespace CurtainCall.UI.SceneIntegration
         PerformanceSceneBinding space;
         CommonPerformanceUI owned;
         CommonInteractionUI interaction;
+        GuideView practiceGuide;
+        TooltipView practiceTooltip;
+        public RectTransform PracticeTooltipExclusion { get; set; }
+        readonly Vector3[] exclusionCorners = new Vector3[4];
+        GuideView Guide => practiceGuide != null ? practiceGuide : owned != null ? owned.Guide : null;
+        TooltipView Tooltip => practiceTooltip != null ? practiceTooltip : owned != null ? owned.Tooltip : null;
         bool legacyEnabled;
         string shownGuide, shownTarget;
         static readonly string[] Sections = { "현재 구간 · 출발", "현재 구간 · 1구간", "현재 구간 · 쉼터", "현재 구간 · 2구간", "현재 구간 · 최종구간" };
 
         public void Configure(HumanCannonCourseSections previous, HumanCannonCourseSections.Boundaries values, TMP_Text section)
         { legacy = previous; boundaries = values; sectionLabel = section; }
+
+        /// <summary>Reuse the original contextual views in an unscored practice course, without changing the waiting-room UI owner.</summary>
+        public void ConfigurePractice(GuideView guide, TooltipView tooltip)
+        { practiceGuide = guide; practiceTooltip = tooltip; }
 
         void OnEnable()
         {
@@ -43,15 +53,25 @@ namespace CurtainCall.UI.SceneIntegration
         void Clear()
         {
             if (owned != null) owned.ReleaseHints(this);
+            if (practiceGuide != null) practiceGuide.HideImmediate();
+            if (practiceTooltip != null) practiceTooltip.HideImmediate();
             owned = null; shownGuide = shownTarget = null;
             if (sectionLabel != null) sectionLabel.gameObject.SetActive(false);
         }
 
         void LateUpdate()
         {
-            if (CommonUiSceneLoader.CurrentSpace != space || CommonPerformanceUI.Current == null) { Clear(); return; }
-            if (owned != CommonPerformanceUI.Current) { Clear(); owned = CommonPerformanceUI.Current; }
-            owned.ClaimHints(this);
+            bool practice = practiceGuide != null && practiceTooltip != null;
+            if (practice)
+            {
+                if (HumanCannonSystem.Current == null || !HumanCannonSystem.Current.PracticeMode) { Clear(); return; }
+            }
+            else
+            {
+                if (CommonUiSceneLoader.CurrentSpace != space || CommonPerformanceUI.Current == null) { Clear(); return; }
+                if (owned != CommonPerformanceUI.Current) { Clear(); owned = CommonPerformanceUI.Current; }
+                owned.ClaimHints(this);
+            }
             var player = NetworkPlayer.Local;
             var cannon = HumanCannonSystem.Current;
             bool available = player != null && player.IsSpawned && player.State == PlayerState.Normal
@@ -61,7 +81,12 @@ namespace CurtainCall.UI.SceneIntegration
                 sectionLabel.gameObject.SetActive(available);
                 if (available) sectionLabel.text = Sections[(int)HumanCannonCourseSections.SectionAt(player.transform.position, boundaries)];
             }
-            if (!available) { owned.HideHints(); shownGuide = shownTarget = null; return; }
+            if (!available)
+            {
+                if (practice) { HideGuide(); HideTooltip(); }
+                else { owned.HideHints(); shownGuide = shownTarget = null; }
+                return;
+            }
             var pilot = player.GetComponent<HumanCannonPilot>();
             var trampoline = HumanCannonTrampoline.Current;
             var carried = HumanCannonCarry.Held(player.OwnerClientId);
@@ -149,13 +174,13 @@ namespace CurtainCall.UI.SceneIntegration
 
         void ShowGuide(string key, string action, GuideKeyWidth width)
         {
-            if (owned.Guide == null) return;
+            if (Guide == null) return;
             string id = key + action;
-            if (shownGuide != id || !owned.Guide.HasRuntimePresentation)
-                if (owned.Guide.ShowKey(key, action, width)) shownGuide = id;
+            if (shownGuide != id || !Guide.HasRuntimePresentation)
+                if (Guide.ShowKey(key, action, width)) shownGuide = id;
         }
-        void HideGuide() { if (owned.Guide != null) owned.Guide.HideImmediate(); shownGuide = null; }
-        void HideTooltip() { if (owned.Tooltip != null) owned.Tooltip.HideImmediate(); shownTarget = null; }
+        void HideGuide() { if (Guide != null) Guide.HideImmediate(); shownGuide = null; }
+        void HideTooltip() { if (Tooltip != null) Tooltip.HideImmediate(); shownTarget = null; }
 
         public static Vector2 ClampTooltip(Vector2 target, Vector2 size, Vector2 viewport)
         {
@@ -170,7 +195,7 @@ namespace CurtainCall.UI.SceneIntegration
             description = CommonInteractionUI.FormatControlLabels(description,
                 reader != null ? reader.BindingLabel("Interact", "F") : "F", reader != null ? reader.BindingLabel("Action", "Space") : "Space");
             id += "|" + description;
-            var view = owned.Tooltip;
+            var view = Tooltip;
             var camera = Camera.main;
             if (view == null || camera == null) { HideTooltip(); return; }
             Vector3 screen = camera.WorldToScreenPoint(position);
@@ -187,6 +212,21 @@ namespace CurtainCall.UI.SceneIntegration
                 shownTarget = id;
             }
             var topLeft = ClampTooltip(target, view.PresentationSizeUi + new Vector2(0, 4), parent.rect.size);
+            if (practiceTooltip != null && PracticeTooltipExclusion != null)
+            {
+                PracticeTooltipExclusion.GetWorldCorners(exclusionCorners);
+                Vector2 min = new(float.PositiveInfinity, float.PositiveInfinity), max = new(float.NegativeInfinity, float.NegativeInfinity);
+                foreach (var corner in exclusionCorners)
+                    if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parent,
+                        RectTransformUtility.WorldToScreenPoint(null, corner), null, out var localCorner))
+                    {
+                        var point = new Vector2(localCorner.x - parent.rect.xMin, parent.rect.yMax - localCorner.y);
+                        min = Vector2.Min(min, point); max = Vector2.Max(max, point);
+                    }
+                var occupied = new Rect(min, max - min);
+                if (new Rect(topLeft, view.PresentationSizeUi).Overlaps(occupied))
+                    topLeft.y = Mathf.Max(24f, occupied.yMin - view.PresentationSizeUi.y - 8f);
+            }
             view.SetPosition(topLeft);
             view.SetTailCenter(target.x - topLeft.x);
         }

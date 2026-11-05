@@ -58,7 +58,17 @@ namespace CurtainCall.HumanCannon
                 _ => active
             };
             if (animationRoot != null && clip != null)
+            {
+                // The editor accepts a non-legacy clip without an Animator; a player build rejects it.
+                // Sample the original rigid clip on the same art root in both environments.
+                if (!clip.legacy && animationRoot.GetComponent<Animator>() == null)
+                {
+                    var animator = animationRoot.AddComponent<Animator>();
+                    animator.applyRootMotion = false;
+                    animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+                }
                 clip.SampleAnimation(animationRoot, Mathf.Clamp01(progress) * clip.length);
+            }
         }
     }
 }
