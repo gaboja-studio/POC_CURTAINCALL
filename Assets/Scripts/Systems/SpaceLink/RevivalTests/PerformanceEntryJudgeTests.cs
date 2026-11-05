@@ -83,6 +83,21 @@ namespace CurtainCall.SpaceLink.Tests
             Assert.AreEqual("Normal", State);
         }
 
+        [UnityTest]
+        public IEnumerator RestStartReturnsPerformanceFinisherToNormal()
+        {
+            var setState = player.GetType().GetMethod("ServerSetState");
+            object arrived = EnumValue("CurtainCall.Network.PlayerSync.PlayerState", "Arrived");
+            setState.Invoke(player, setState.GetParameters().Select(p => p.Position == 0 ? arrived : p.DefaultValue).ToArray());
+            yield return Frames(2);
+            Assert.AreEqual("Arrived", State);
+            object step = Activator.CreateInstance(GameType("CurtainCall.Campaign.CampaignSnapshot"));
+            Set(step, "Phase", EnumValue("CurtainCall.Campaign.CampaignPhase", "RestTime"));
+            StaticCall("CurtainCall.Survival.InjuryRevival", "ServerApplyStep", step);
+            yield return Frames(2);
+            Assert.AreEqual("Normal", State, "완주자가 도착 상태로 남으면 대기실 안내·상호작용이 전부 막힌다");
+        }
+
         [UnityTearDown]
         public IEnumerator TearDown()
         {
@@ -181,7 +196,7 @@ namespace CurtainCall.SpaceLink.Tests
             yield return null;
             // 최소 인원을 우회하는 테스트 전용 RunState. 접속 명부는 LAN 호스트 1명 그대로다.
             object host = Activator.CreateInstance(GameType("CurtainCall.Campaign.RunState"));
-            Call(host, "StartSession");
+            Call(host, "StartSession", false);
             Set(campaign, "host", host);
             Set(campaign, "offlineRun", false);
             Call(campaign, "Apply", Get(host, "Snapshot"));

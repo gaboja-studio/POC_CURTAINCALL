@@ -49,3 +49,15 @@
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+## 2026-11-05 첫 공연 뒤 완주자 정지·타이머 불일치
+- 보고: 외줄 공연을 클리어한 사람만 대기실 튜토리얼·F 패널·외곽선이 없고 진행이 멈춤. 타이머도 화면별로 맞지 않음.
+- 원인1: 공용 외줄은 ExternallyManaged라 ServerMarkArrivals로 완주자가 Arrived가 되고, 쉬는 시간 시작 부활은 Fallen만 되돌렸다. 대기실 표시는 Normal만 받아 완주자만 막히고, 튜토리얼 완료 미전송으로 가이드 타이머도 시작되지 않는다. 수정: InjuryRevival이 쉬는 시간·밤 시작에 Arrived도 Normal로 복귀.
+- 원인2: 첫날 둘째 공연 미확정이면 호스트 Tick이 멈추지만 Timer는 Running으로 남아 받는 쪽만 계속 줄었다. 수정: SetRestTimerPaused가 미확정 동안 Stopped로 공유. 호스트 Tick 규칙은 유지.
+- 검증: RestTimeRulesTests 5/5 PASS(신규1), RestStartReturnsPerformanceFinisherToNormal 1/1 PASS(LAN 호스트 1명). 실제 다인 재현은 사람 확인 필요. 타이머 증상을 사용자 화면에서 직접 재현하지는 않았다.
+- 수정 파일은 origin/dev와 동일한 파일이다. Unity 에디터가 열려 있어 dev(62커밋 뒤) 동기화는 하지 않았고, 커밋·push 없음. 폰트 SDF 2개 변경은 에디터 동적 아틀라스 변경으로 이번 수정이 아니다.
+
+- 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+- PerformanceEntryJudgeTests 전체 실행에서 기존 3건이 StartSession 인자 변경으로 실패(이번 수정과 무관)해 테스트 호출을 고쳤다. 재실행 5/5 PASS. check-work: 컴파일 PASS, 문서 검사 WARN(기존 파일 크기), 전체 자동 테스트는 미실행.
+- Unity 종료 확인 후 origin/dev e95b6d9b까지 fast-forward. 변경은 stash로 보존/복원했고 log.md 충돌만 dev 내용+이번 기록으로 해결. `_ThirdParty`는 c1e64a6d로 갱신, verify-third-party OK. 커밋·push 없음.
+- dev e95b6d9b 기준: 컴파일 up_to_date, RestTimeRulesTests 5/5 PASS. PerformanceEntryJudgeTests PlayMode 재실행은 에디터 종료로 결과를 받지 못했다(동기화 전 5/5 PASS). 실제 다인 플레이는 사람 확인 대기.
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/307 (feat/rehearsal-flow → dev). new-pr.ps1는 이번 작업과 무관한 미커밋 변경(escape-labels.asset, _ThirdParty 셰이더 2개)으로 중단되어 같은 템플릿으로 gh에서 직접 등록했다.
