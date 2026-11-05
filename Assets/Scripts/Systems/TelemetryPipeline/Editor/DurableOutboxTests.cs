@@ -42,6 +42,15 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
             networkClientId = "1", sceneType = "TITLE", eventType = "GAME_STARTED", authority = "LOCAL" };
         static LogEvent Event() => new() { sequence = 1, eventType = "GAME_STARTED", occurredAt = "2026-10-21T08:00:00.000Z" };
 
+        [Test] public void WorkerPreservesEventOrderAndHoldsBatchesUntilSceneBoundary()
+        {
+            var q=New(); q.QueueHold(true);
+            for(int i=1;i<=300;i++){var e=Event();e.sequence=i;Assert.IsTrue(q.QueueEvent(e));}
+            q.QueueBoundary("CHECKPOINT");Assert.IsTrue(q.PendingWrites.Wait(10000));Assert.IsNull(q.NextPath());
+            q.QueueBoundary("SCENE_CHANGED",true);q.StopWriter();
+            var actual=Directory.GetFiles(directory,"*.json").SelectMany(p=>LogJson.Parse<LogBatch>(File.ReadAllText(p)).events.Select(e=>e.sequence)).OrderBy(i=>i).ToArray();
+            CollectionAssert.AreEqual(Enumerable.Range(1,300).Select(i=>(long)i).ToArray(),actual);Assert.IsNotNull(q.NextPath());
+        }
         [UnityTest] public IEnumerator AsyncRelay_PreservesExactBytesPriorityAndActiveWhilePreparing()
         {
             var old = New(); old.Append(RelayEvent()); old.Seal("CHECKPOINT");

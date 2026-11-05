@@ -45,7 +45,6 @@ namespace CurtainCall.Telemetry.Pipeline
         EscapeCooperativeSpan[] bridges = Array.Empty<EscapeCooperativeSpan>();
         int geometryIndex;
         bool escapeStarted, escapeExpired;
-        int placedScene;
         CampaignPerformanceEntry performanceEntry;
         HumanCannonHazardCourse hazards;
         BodyPart lastLost;
@@ -66,10 +65,10 @@ namespace CurtainCall.Telemetry.Pipeline
             ClueInspectable.AvailabilityObserved += Availability;
             ShopReach.ClueFocused += Focused;
             ExplorationState.TelemetryAttempted += Explored;
+            ExplorationState.RewardDropped += RewardDrop;
             PerformanceRewards.AudienceReacted += Audience;
             ScheduleBoard.SelectionChanged += Schedule;
             CampaignRun.TrickDiscovered += Unlocked;
-            WaitingRoomSpawn.PlayerPlaced += Placed;
             EscapeExitSaw.ShotObserved += Shot;
             TightropeHangSystem.ServerRescueSucceeded += Rescue;
 
@@ -216,11 +215,11 @@ namespace CurtainCall.Telemetry.Pipeline
             ["entityKind"] = "PLAYER", ["obstacleId"]=type=="SPATIAL_DIED"?player.LastDeathObstacle:null, ["lostCount"]=DetailLogIds.Lost(player.LostParts), ["bodyResult"]=player.LostParts.ToString(), ["state"] = player.State.ToString(), ["collectionSource"] = "OWNER"
         });
 
-        void Placed(NetworkPlayer player) { if (player != null && player.IsLocal) placedScene = SceneManager.GetActiveScene().handle; }
         bool Ready(NetworkPlayer player)
         {
             if (player == null || !player.IsSpawned || player.IsApplyingInitialCondition) return false;
-            if (Scene == "WAITINGROOM") return placedScene == SceneManager.GetActiveScene().handle;
+            if (Scene == "WAITINGROOM") return WaitingRoomSpawn.LastPlacedPlayer == player &&
+                WaitingRoomSpawn.LastPlacedScene == SceneManager.GetActiveScene().handle;
             if (Scene == "MAINSTAGE") return log.CurrentAttemptId != null && (performanceEntry == null || performanceEntry.LocalPlaced);
             return Scene == "EXITROUTE" && EscapeCampaignContent.IsTraversalActive
                 && (EscapeSceneTransfer.Current == null || EscapeSceneTransfer.Current.Ready);
@@ -247,7 +246,8 @@ namespace CurtainCall.Telemetry.Pipeline
                 if (item is ClueInspectable clue) Availability(clue, clue.isActiveAndEnabled && clue.Revealed, "CACHE_OBSERVATION");
                 if (item is IExplorationTarget || item is PerformancePropDiscovery || WorldKind(item) != null) objects.Add(item);
             }
-            if (!Host || geometry.Count > 0) return;
+            // Static stages already ship a measured map. Do not enumerate every collider or retransmit its outlines.
+            if (!Host || geometry.Count > 0 || mapEntries.Any(m=>m.scene==scene.name && m.scene!="Tightrope")) return;
             foreach (var room in rooms) if (room != null && room.Area != null) geometry.Add(room.Area);
             foreach (var collider in UnityEngine.Object.FindObjectsByType<Collider>(FindObjectsSortMode.None))
             {
@@ -402,6 +402,14 @@ namespace CurtainCall.Telemetry.Pipeline
         }
         bool CollectingWaitingRoom => log.CurrentRunId != null && Scene == "WAITINGROOM";
 
+        void RewardDrop(string target, string item, int uid, Vector3 at)
+        {
+            if (!CollectingWaitingRoom) return;
+            log.Emit("WORLD_STATE_CHANGED", new() { ["entityId"] = "DROP_" + uid, ["entityKind"] = "OBJECT",
+                ["state"] = "REWARD_DROPPED", ["targetId"] = target, ["label"] = item,
+                ["position"] = DetailLogIds.Position(at), ["floorY"] = Floor(at) }, "HOST");
+        }
+
         static string TargetCode(IExplorationTarget target, Component item) =>
             target == null ? "UNKNOWN_TARGET" : target.TargetId is { Length: > 0 and <= 128 } id ? id : DetailLogIds.ObjectId(item, "IN_");
 
@@ -441,7 +449,7 @@ namespace CurtainCall.Telemetry.Pipeline
             log.EmitFor(player, "EXPLORATION_INTERACTION", new() {
                 ["objectPosition"] = item != null ? DetailLogIds.Position(item.transform.position) : null,
                 ["objectFloorY"] = item != null ? Floor(item.transform.position) : null, ["targetId"] = TargetCode(target, item),
-                ["accepted"] = accepted, ["opened"] = opened, ["hits"] = hits, ["reason"] = reason
+                ["label"] = item != null ? item.GetType().Name : null, ["accepted"] = accepted, ["opened"] = opened, ["hits"] = hits, ["reason"] = reason
             }, "HOST");
         }
 
@@ -612,10 +620,10 @@ namespace CurtainCall.Telemetry.Pipeline
             ClueInspectable.AvailabilityObserved -= Availability;
             ShopReach.ClueFocused -= Focused;
             ExplorationState.TelemetryAttempted -= Explored;
+            ExplorationState.RewardDropped -= RewardDrop;
             PerformanceRewards.AudienceReacted -= Audience;
             ScheduleBoard.SelectionChanged -= Schedule;
             CampaignRun.TrickDiscovered -= Unlocked;
-            WaitingRoomSpawn.PlayerPlaced -= Placed;
             EscapeExitSaw.ShotObserved -= Shot;
             TightropeHangSystem.ServerRescueSucceeded -= Rescue;
 

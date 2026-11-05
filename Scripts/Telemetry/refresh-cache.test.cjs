@@ -13,11 +13,11 @@ test('survey-only new versions survive snapshot reload and round filters do not 
  const d=f.context.getDashboard({environment:'TEST'});assert.equal(d.gameVersion,'0.2.3');assert.equal(d.eventCount,0);assert.equal(d.surveys.total,1);assert.equal(d.surveys.campaign,'M2_NIGHT:2');
  const older=f.context.getDashboard({environment:'TEST',gameVersion:'0.2.3',surveyCampaign:'M2_NIGHT:1'});assert.equal(older.surveys.campaign,'M2_NIGHT:1');assert.equal(older.surveys.total,1);
 });
-test('import failure cannot prevent survey sync or publishing already imported gameplay',()=>{
+test('manual refresh publishes imported gameplay independently of the survey worker',()=>{
  const f=setup();send(f);f.context.refreshDashboard(view);f.advance(301000);let synced=0;
  f.context.ccImport_=()=>{throw Error('CAPACITY_LIMIT_Events');};f.context.ccImportSurveys_=()=>{synced++;};
- const d=f.context.refreshDashboard(view);assert.equal(synced,1);assert.equal(d.eventCount,1);assert.equal(d.refresh.action,'UPDATED');
- assert.match(d.refresh.lastError,/설문과 적재 완료/);assert.equal(JSON.parse(f.properties.get('DASHBOARD_REFRESH_CONTROL')).code,'CAPACITY_LIMIT_Events');
+ const d=f.context.refreshDashboard(view);assert.equal(synced,0);assert.equal(d.eventCount,1);assert.equal(d.refresh.action,'UPDATED');
+ f.context.ccSurveyWorker_();assert.equal(synced,1);assert.match(d.refresh.lastError,/이미 적재된 기록/);assert.equal(JSON.parse(f.properties.get('DASHBOARD_REFRESH_CONTROL')).code,'CAPACITY_LIMIT_Events');
 });
 test('opening without a completed snapshot never imports or creates a cache',()=>{
  const f=setup();send(f);f.context.ccImport_=()=>{throw Error('must not import');};f.context.ccReadEvents_=()=>{throw Error('must not scan Sheets');};
@@ -62,8 +62,8 @@ test('failed refresh stores a safe diagnostic stage and code without private exc
 test('an interrupted worker lease expires so the next eligible request can recover',()=>{
  const f=setup();send(f);f.properties.set('DASHBOARD_REFRESH_CONTROL',JSON.stringify({id:'crashed',startedAt:Date.now()-600000,expiresAt:Date.now()-1}));assert.equal(f.context.refreshDashboard(view).refresh.action,'UPDATED');
 });
-test('script-lock contention serves a cache instead of throwing BUSY_RETRY',()=>{
- const f=setup();send(f);f.context.refreshDashboard(view);f.advance(301000);f.locks.script=true;const d=f.context.refreshDashboard(view);assert.equal(d.eventCount,1);assert.equal(d.refresh.action,'CACHED');assert.equal(f.locks.user,false);
+test('an occupied upload lock cannot starve maintenance admission or publication',()=>{
+ const f=setup();send(f);f.context.refreshDashboard(view);f.advance(301000);send(f);f.locks.script=true;const d=f.context.refreshDashboard(view);assert.equal(d.eventCount,2);assert.equal(d.refresh.action,'UPDATED');assert.equal(f.locks.script,true);assert.equal(f.locks.user,false);
 });
 test('partial snapshot creation never replaces the published pointer',()=>{
  const f=setup();send(f);f.context.refreshDashboard(view);const pointer=f.properties.get('DASHBOARD_SNAPSHOT');f.advance(301000);send(f);
@@ -85,4 +85,18 @@ test('overview snapshots omit the full raw timeline and normalized default selec
  const f=setup();send(f);const d=f.context.refreshDashboard(view);for(const file of f.cacheFiles.values())if(file.getName().includes('-overview.json'))assert.equal(JSON.parse(file.getBlob().getDataAsString()).timeline.length,0);
  f.cache.clear();const read=f.context.ccDriveJson_;f.context.ccDriveJson_=id=>{assert.equal(id.includes('-records.json'),false,'default screen must not load raw records');return read(id);};
  const result=f.context.getDashboard({...view,timelineRunId:d.view.timeline.runId,timelinePhase:d.view.timeline.phaseId,timelineAttemptId:d.view.timeline.attemptId,timelineOffset:0,surveyKind:'NIGHT1',fundsInterval:'DAY'});assert.equal(result.eventCount,1);
+});
+
+test('explicit scope imports only the requested version and environment; run, search, date and surveys keep that scope',()=>{
+ const f=setup(),ver='0.2.1',a=send(f,ver),b=send(f,ver),other=send(f,'0.2.0'),live=send(f,ver,'LIVE');
+ const v={environment:'TEST',gameVersion:ver,sharedScope:true};
+ const d=f.context.refreshDashboard(v);assert.equal(d.eventCount,2);assert.ok(d.versionOptions.includes(ver));assert.equal(f.tables.Batches.length,3);
+ const ra=a.events[0].runId,rb=b.events[0].runId;
+ const sel=f.context.getDashboard({...v,timelineRunId:ra,fundsRunId:ra});assert.equal(sel.eventCount,1);assert.ok(sel.view.runOptions.includes(rb));
+ assert.equal(f.context.getDashboard({...v,search:rb.slice(0,18)}).eventCount,1);assert.equal(f.context.getDashboard({...v,timelineDate:'2000-01-01'}).eventCount,0);
+ assert.equal(f.context.refreshDashboard({...v,gameVersion:'0.2.0'}).eventCount,1);
+ assert.equal(f.context.getDashboard(v).eventCount,2);assert.equal(f.context.getDashboard({...v,environment:'LIVE'}).eventCount,0);
+ const survey={status:[],error:'',rows:[{kind:'NIGHT1',runId:rb,environment:'TEST',gameVersion:ver,playerNumber:0,occurredAt:'2026-11-05T01:00:00Z',answers:[]}]};
+ const one=f.context.ccDashboard_(f.context.ccReadEvents_(f.book),{...v,timelineRunId:ra},survey);assert.equal(one.surveys.total,0);
+ assert.equal(f.context.ccDashboard_(f.context.ccReadEvents_(f.book),{...v,timelineRunId:rb},survey).surveys.total,1);
 });

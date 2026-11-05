@@ -27,7 +27,9 @@ var SessionCore=(function(){
       if('minSeconds' in row&&row.minSeconds!=null)r.minSeconds=r.minSeconds==null?row.minSeconds:Math.min(r.minSeconds,row.minSeconds);
       if('maxSeconds' in row&&row.maxSeconds!=null)r.maxSeconds=r.maxSeconds==null?row.maxSeconds:Math.max(r.maxSeconds,row.maxSeconds);
     }
-    summaries.forEach(function(s){var a=s.aggregate;out.eventCount+=a.eventCount;out.eligibleUsers+=a.eligibleUsers||0;out.runIds.push.apply(out.runIds,a.runIds);
+    summaries.forEach(function(s){var a=s.aggregate;if(!a.activities)out.activityMissing=(out.activityMissing||0)+1;
+      Object.entries(a.activities||{}).forEach(function(pair){var dest=out.activities[pair[0]]||(out.activities[pair[0]]={});Object.entries(pair[1]).forEach(function(k){dest[k[0]]=(dest[k[0]]||0)+k[1];});});
+      out.eventCount+=a.eventCount;out.eligibleUsers+=a.eligibleUsers||0;out.runIds.push.apply(out.runIds,a.runIds);
       a.tricks.forEach(function(r){add('tricks',r,r.trickType+':'+r.difficulty,['attempts','completed','wins','distanceSamples','deaths','interactions'],'avgMaxDistance','distanceSamples');});
       a.deaths.forEach(function(r){add('deaths',r,r.label,['deaths']);});
       a.zones.forEach(function(r){add('zones',r,r.zoneType,['visits','distinctPlayers','dwellSamples'],'avgDwellSeconds','dwellSamples');});
@@ -74,10 +76,11 @@ function ccSessionEnvelope_(s){return {eventId:s.key,environment:s.environment,g
 function ccSessionRows_(state,rules){return Object.values(state.sessions).filter(function(s){return !ccDeleted_(ccSessionEnvelope_(s),rules||[]);}).map(ccSessionEnvelope_);}
 function ccSessionRead_(book){var s=CC_SESSION_RUNTIME||ccSessionState_();if(s&&s.migration)throw Error('SESSION_MIGRATION_PENDING');return s?ccSessionRows_(s,ccRules_(book)):null;}
 function ccSessionDetail_(s){return s.detailFile?ccDriveJson_(s.detailFile).events:[];}
-function ccSessionUpdate_(book){
+function ccSessionUpdate_(book,foreground){
   var state=ccSessionState_()||{version:1,cursor:1,sessions:{},pendingLate:0},sheet=book.getSheetByName('Events'),last=sheet.getLastRow(),rules=ccRules_(book),groups=new Map(),now=Date.now(),changed=0,obsolete=[];
   // A prior cleanup may have stopped between physical row removal and checkpoint publication.
   if(state.compacting||state.cursor>last)state.cursor=1;
+  if(foreground&&!state.compacting&&!state.migration&&state.cursor===last){CC_SESSION_RUNTIME=state;return ccSessionRows_(state,rules);}
   for(var start=state.cursor+1;start<=last;start+=5000){
     sheet.getRange(start,1,Math.min(5000,last-start+1),TelemetryCore.headers.length).getValues().forEach(function(row){
       var e=TelemetryCore.decode(row),key=SessionCore.key(e);if(ccDeleted_(e,rules))return;
@@ -99,14 +102,25 @@ function ccSessionUpdate_(book){
     if(s&&file&&s.detailFile)obsolete.push(s.detailFile);
     s={key:key,environment:first.environment,gameVersion:TelemetryCore.versionOf(first),runId:first.runId,appSessionId:first.appSessionId,firstAt:s&&s.firstAt<times[0]?s.firstAt:times[0],lastAt:s&&s.lastAt>times[times.length-1]?s.lastAt:times[times.length-1],lastReceivedAt:s&&s.lastReceivedAt>received[received.length-1]?s.lastReceivedAt:received[received.length-1],detailFile:file?file.getId():s.detailFile,summary:summary,archivedAt:null};
     state.sessions[key]=s;if(meaningful.length)changed++;
-    state.migration.done.push(key);if(++completed%10===0)ccSessionSave_(state);
+    state.migration.done.push(key);if(!foreground&&++completed%10===0)ccSessionSave_(state);
   });
   // Remove explicitly deleted sessions; retention never deletes surveys or summary statistics.
   Object.keys(state.sessions).forEach(function(k){if(ccDeleted_(ccSessionEnvelope_(state.sessions[k]),rules)){obsolete.push(state.sessions[k].detailFile);delete state.sessions[k];}});
   state.cursor=last;state.migration=null;state.compacting=false;state.updatedAt=new Date().toISOString();state.changedSessions=changed;
+  if(foreground){
+    ccSessionSave_(state);ccSessionPublishIndex_(book,state);
+    // Replaced detail files are collected by the independent retention job after the lease.
+    return ccSessionRows_(state,rules);
+  }
+  // Upgrade retained pre-activity summaries in bounded maintenance batches, outside interactive reads.
+  var deadline=Date.now()+12000,upgraded=0;
+  Object.values(state.sessions).filter(function(s){return !s.archivedAt&&s.detailFile&&!s.summary.aggregate.activities;}).some(function(s){
+    if(upgraded>=8||Date.now()>deadline)return true;var detail=ccSessionDetail_(s);
+    s.summary.aggregate.activities=TelemetryCore.aggregate(detail,s.environment,s.runId,s.gameVersion).activities;upgraded++;return false;
+  });
   var expired=[],importStatus=ccPropertyJson_('IMPORT_STATUS')||{},caughtUp=!(importStatus.pendingBatches>0||importStatus.pendingExact===false);
   Object.values(state.sessions).forEach(function(s){var days=s.environment==='LIVE'?30:7;
-    if(caughtUp&&!s.archivedAt&&now-Date.parse(s.lastAt)>days*86400000&&now-Date.parse(s.lastReceivedAt)>2*86400000){expired.push(s.detailFile);s.detailFile=null;s.archivedAt=new Date().toISOString();}
+    if(caughtUp&&s.summary.aggregate.activities&&!s.archivedAt&&now-Date.parse(s.lastAt)>days*86400000&&now-Date.parse(s.lastReceivedAt)>2*86400000){expired.push(s.detailFile);s.detailFile=null;s.archivedAt=new Date().toISOString();}
   });
   ccSessionSave_(state);
   // Source detail is removed only after summaries and the checkpoint have been verified.
