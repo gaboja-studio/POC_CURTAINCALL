@@ -63,8 +63,8 @@ namespace CurtainCall.WaitingRoom
         {
             if (floor == null) return false;
             var b = floor.bounds;
-            return Mathf.Abs(feet.y - b.max.y) <= .35f && feet.x >= b.min.x + .15f && feet.x <= b.max.x - .15f
-                && feet.z >= b.min.z + .15f && feet.z <= b.max.z - .15f;
+            return Mathf.Abs(feet.y - b.max.y) <= .35f && feet.x >= b.min.x && feet.x <= b.max.x
+                && feet.z >= b.min.z && feet.z <= b.max.z;
         }
 
         public GameObject CreateFinishWalls()

@@ -17,6 +17,11 @@ namespace CurtainCall.WaitingRoom
         public RehearsalClearRule Rule;
         public float CheckpointDistance = 14f;
         public bool UsesPoles => Kind is RehearsalStageKind.SinglePole or RehearsalStageKind.ConsecutivePoles or RehearsalStageKind.Trapeze;
+        // 1단계의 기획상 완료 조건은 실제 도착이다. 순간 점프 복제 기록은 완료의 필수 조건이 아니다.
+        public bool RequiresSkillForArrival => Kind is not (RehearsalStageKind.Balance or RehearsalStageKind.LaneChange);
+        public bool CanAdvance(int participants, int arrivals, int votes) => participants > 0 && arrivals > 0
+            && (arrivals >= participants || Rule == RehearsalClearRule.Anyone
+                || Rule == RehearsalClearRule.EveryoneOrMajority && votes > participants / 2);
         public string DisplayTitle => WaitingRoomText.Get("rehearsal.stage." + Id + ".title", Title);
         public string DisplayGuideTitle => WaitingRoomText.Get("rehearsal.stage." + Id + ".guide-title", DisplayTitle);
         public string DisplayIntro => WaitingRoomText.Get("rehearsal.stage." + Id + ".intro", Intro);

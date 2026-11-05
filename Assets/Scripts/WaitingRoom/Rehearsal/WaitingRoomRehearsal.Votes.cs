@@ -185,8 +185,8 @@ namespace CurtainCall.WaitingRoom
 
         void RequestSkip(bool value)
         {
-            if (HasAuthority) HostSetSkipVote(LocalId, value);
-            else SendFlag(Operation.SkipVote, value);
+            // 구간 번호를 함께 보내 이전 구간에서 늦게 온 투표가 다음 구간에 적용되지 않게 한다.
+            if (!ending) RequestVote(value);
         }
 
         void AnswerPractice(bool agree)

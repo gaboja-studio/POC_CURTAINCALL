@@ -175,8 +175,12 @@ namespace CurtainCall.WaitingRoom
                 fallenAt.Remove(id);
                 if (!shared.placed.Contains(id) || p.State != PlayerState.Normal || p.IsAirborne || course.Cannon.IsFlying(id)) continue;
                 if (!shared.middle.Contains(id) && RehearsalCannonCourse.Contains(course.MiddleFloor, p.transform.position)) { shared.middle.Add(id); changed = true; RecordAction("CHECKPOINT", id, "MIDDLE_PLATFORM"); }
-                if (shared.middle.Contains(id) && shared.bounced.Contains(id) && !shared.arrived.Contains(id)
-                    && RehearsalCannonCourse.Contains(course.FinishFloor, p.transform.position)) { shared.arrived.Add(id); changed = true; RecordAction("ARRIVED", id, "FINISH_PLATFORM"); }
+                // 완료 조건은 최종 도착대다. 운반자나 복제 순서로 누락된 반동 기록 때문에 전원을 막지 않는다.
+                if (!shared.arrived.Contains(id) && RehearsalCannonCourse.Contains(course.FinishFloor, p.transform.position))
+                {
+                    if (!shared.middle.Contains(id)) shared.middle.Add(id);
+                    shared.arrived.Add(id); changed = true; RecordAction("ARRIVED", id, "FINISH_PLATFORM");
+                }
             }
             lastCarrier = course.Trampoline.Carrier;
             if (ids.Length > 0 && shared.arrived.Count == ids.Length) { BeginEnding(true); return; }
@@ -187,7 +191,7 @@ namespace CurtainCall.WaitingRoom
 
         void Bounced(ulong id)
         {
-            if (!Host || !shared.active || shared.ending || !shared.middle.Contains(id) || shared.bounced.Contains(id)) return;
+            if (!Host || !shared.active || shared.ending || !shared.placed.Contains(id) || shared.bounced.Contains(id)) return;
             shared.bounced.Add(id); RecordAction("BOUNCED", id); Publish();
         }
 
@@ -201,7 +205,19 @@ namespace CurtainCall.WaitingRoom
             local = p; previousState = p.State;
             if (p.State != PlayerState.Normal) { quest.Show("[tutorial]", "추락했습니다. 잠시 뒤 마지막 체크포인트에서 다시 시작합니다."); return; }
             if (!p.TryGetComponent(out PlayerMover mover)) return;
-            if (placedRound != shared.round || recovery)
+            PlaceLocalAtCheckpoint(p, mover, recovery);
+            if (!shared.placed.Contains(p.OwnerClientId) && Time.unscaledTime >= nextPlacement)
+            { SendPlacement(p.transform.position); nextPlacement = Time.unscaledTime + .2f; }
+            UpdateQuest();
+            TickActionGuides();
+        }
+
+        void PlaceLocalAtCheckpoint(NetworkPlayer p, PlayerMover mover, bool recovery)
+        {
+            var checkpointFloor = Checkpoint(p.OwnerClientId) > 0 ? course.MiddleFloor : course.StartFloor;
+            bool displacedBeforePlacement = !shared.placed.Contains(p.OwnerClientId)
+                && !RehearsalCannonCourse.Contains(checkpointFloor, p.transform.position);
+            if (placedRound != shared.round || recovery || displacedBeforePlacement)
             {
                 var pose = course.CheckpointPose(Checkpoint(p.OwnerClientId), Mathf.Max(0, p.Slot));
                 mover.SetStartPose(pose.position, pose.rotation, true);
@@ -214,10 +230,6 @@ namespace CurtainCall.WaitingRoom
                     ShowGuide("FALL_RECOVERY", T("fall-title", "추락"), T("fall", "부상과 비용 없이 마지막 구간의 출발대에서 다시 시작합니다."), 4f);
                 }
             }
-            if (!shared.placed.Contains(p.OwnerClientId) && Time.unscaledTime >= nextPlacement)
-            { SendPlacement(p.transform.position); nextPlacement = Time.unscaledTime + .2f; }
-            UpdateQuest();
-            TickActionGuides();
         }
 
         void Cleanup()

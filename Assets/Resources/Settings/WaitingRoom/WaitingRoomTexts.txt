@@ -466,6 +466,7 @@ rehearsal.quest.wait-team | 도착했습니다. 다른 공연 준비자가 모�
 rehearsal.quest.arrived | 도착했습니다. 곧 다음 단계로 넘어갑니다.
 rehearsal.quest.balance | W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.
 rehearsal.quest.lane-jump | Q, E + Space를 이용해 건너편 줄로 넘어가세요.
+rehearsal.quest.lane-platform | 발판에서는 W/S·A/D로 이동합니다. 옆줄을 향해 이동하며 Space로 점프하세요. 줄 위에서는 Q/E + Space로 옆줄에 건너갑니다.
 rehearsal.quest.finish | 줄을 따라 도착대까지 가세요.
 rehearsal.quest.gather | 바닥에 표시되는 길안내 선을 따라 무대 입구 통로로 이동하세요. 전원이 모이면 공연이 시작됩니다.[{inside}/{alive}]
 rehearsal.quest.gathered | 다른 공연 준비자를 기다리세요.[{inside}/{alive}]
@@ -480,6 +481,7 @@ rehearsal.quest.wait-team.title | [tutorial]
 rehearsal.quest.arrived.title | [tutorial]
 rehearsal.quest.balance.title | [tutorial] 균형잡기
 rehearsal.quest.lane-jump.title | [tutorial] 줄 건너기
+rehearsal.quest.lane-platform.title | [tutorial] 중간 발판에서 건너기
 rehearsal.quest.gather.title | [tutorial]
 rehearsal.quest.gathered.title | [tutorial]
 # ── 첫 쉬는 시간 전원 대기 (2026-11-02) ──

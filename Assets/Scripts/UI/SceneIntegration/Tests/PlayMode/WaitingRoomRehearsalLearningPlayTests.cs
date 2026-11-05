@@ -121,7 +121,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W6_Learning_WikiLessonsRejectArrivalWithoutSkill()
+        public IEnumerator W6_Learning_WikiDeviceLessonsRejectArrivalWithoutSkill()
         {
             yield return Launch(1, "Performance", 0, "Tightrope", "Tightrope");
             var original = Find("CurtainCall.Tightrope.TightropeTrapeze");
@@ -131,7 +131,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
             Assert.AreEqual(38f, Get(Priv(Rehearsal, "course"), "FinishDistance"));
             Assert.AreEqual(2, Get(Priv(Rehearsal, "course"), "LaneCount"));
-            for (int stage = 0; stage < 5; stage++)
+            // 1단계는 기획상 전원 도착으로 완료한다. 기물 학습을 요구하는 2-1 이후만 검사한다.
+            for (int stage = 1; stage < 5; stage++)
             {
                 yield return JumpStage(stage);
                 var course = (Component)Priv(Rehearsal, "course");
