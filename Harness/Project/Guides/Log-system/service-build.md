@@ -17,6 +17,8 @@
 반대로 Tools에서 켜져 있어도 완성된 게임을 일반적으로 실행하면 Dev Mode는 기본 꺼짐입니다.
 Unity에서 재생한 기록은 Development Build 체크와 관계없이 TEST입니다.
 
+Windows는 [빌드 도우미](build-helper.md)에서 **라이브**를 고르면 아래 설정이 한 번에 적용됩니다. **개발자**를 고르면 `-devmode` 없이도 Dev Mode가 켜진 TEST 빌드가 만들어집니다.
+
 ## 서비스용 빌드 만들기
 
 ### 최대 FPS 조절

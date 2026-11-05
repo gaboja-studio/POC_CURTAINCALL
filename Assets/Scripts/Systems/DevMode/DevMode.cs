@@ -5,7 +5,8 @@ namespace CurtainCall.Dev
 {
     /// <summary>
     /// 1인 테스트용 개발자 모드 스위치(run-rules.md #5). 시작 인원 규칙을 예외 처리하고, 판정은 호스트가 이 값을 읽어 한다.
-    /// 켜는 방법: 에디터는 메뉴 Tools/CurtainCall/Dev Mode(이 PC에만 저장), 빌드는 실행 인자 <c>-devmode</c>. 기본은 꺼짐.
+    /// 켜는 방법: 에디터는 메뉴 Tools/CurtainCall/Dev Mode(이 PC에만 저장), 빌드는 실행 인자 <c>-devmode</c>
+    /// 또는 빌드 도우미의 개발자 버전(CURTAINCALL_DEVMODE_BUILD, 항상 켜짐). 기본은 꺼짐.
     /// 게임 진행 중에는 바뀌지 않는다(에디터 메뉴는 Play 중 잠김, 빌드는 시작 때 한 번 읽음).
     /// </summary>
     public static class DevMode
@@ -50,6 +51,8 @@ namespace CurtainCall.Dev
         {
 #if UNITY_EDITOR
             return UnityEditor.EditorPrefs.GetBool(EditorPrefsKey, false);
+#elif CURTAINCALL_DEVMODE_BUILD
+            return true; // 빌드 도우미의 '개발자 버전'은 실행 인자 없이 항상 켜진다.
 #else
             return Array.IndexOf(Environment.GetCommandLineArgs(), CommandLineArg) >= 0;
 #endif

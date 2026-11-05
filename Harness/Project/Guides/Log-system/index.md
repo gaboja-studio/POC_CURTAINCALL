@@ -7,6 +7,7 @@
 |---|---|
 | M2 버전 올리기·이전 로그와 구분하기 | [게임 버전 올리기](versioning.md) |
 | 내 PC에서 기록이 쌓이는지 확인 | [내 PC에서 검증하기](local-test.md) |
+| 창 하나로 버전·로그·설문·개발자/라이브를 골라 Windows 빌드 | [빌드 도우미](build-helper.md) |
 | 로그·설문을 켜거나 끈 게임 파일 만들기 | [Windows·Mac 빌드 만들기](pc-build.md) |
 | 개발자 모드 구분·일반 플레이어용으로 배포 | [개발자 모드와 서비스용 빌드](service-build.md) |
 | 관리자 계정으로 접속·멤버·기록 관리 | [관리자 안내](dashboard-admin.md) |
