@@ -26,6 +26,7 @@ namespace CurtainCall.WaitingRoom
             Cleanup();
             // The next room starts at round 1 again. Old local acknowledgements must not skip its return.
             endingRound = returnedRound = notifiedRound = -1;
+            returnPoseRound = -1;
             returnAt = 0d;
             prompt = false;
             promptBlock?.SetOpen(false);

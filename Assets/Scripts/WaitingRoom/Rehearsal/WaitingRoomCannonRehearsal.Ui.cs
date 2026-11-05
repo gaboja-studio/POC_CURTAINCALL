@@ -19,6 +19,15 @@ namespace CurtainCall.WaitingRoom
         double returnAt;
         PlayerMover endingMover;
         bool restoreControl, restoreSimulation;
+        int returnPoseRound = -1;
+        Pose returnPose;
+
+        void CaptureReturnPose(NetworkPlayer player)
+        {
+            if (returnPoseRound == shared.round) return;
+            returnPose = new Pose(player.transform.position, player.transform.rotation);
+            returnPoseRound = shared.round;
+        }
 
         void AwakeUi()
         {
@@ -153,21 +162,22 @@ namespace CurtainCall.WaitingRoom
             {
                 // ESC releases the pointer through the common menu. This return keeps the scene, so close it explicitly.
                 CurtainCall.UI.SceneIntegration.CommonMenuUI.Current?.CloseAll();
+                CaptureEndingMover();
                 Cleanup(); placementBlock.SetOpen(false); quest.Hide(); votePanel.Hide();
                 endingRound = shared.round; returnAt = Clock + 1d;
-                CaptureEndingMover();
                 endingBlock.SetOpen(true);
                 fader.Play(() => returnedRound == shared.round && !shared.active);
             }
             if (returnedRound != shared.round && Clock >= returnAt && FindRoom())
             {
                 var p = NetworkPlayer.Local;
-                if (p != null && p.IsSpawned && p.TryGetComponent(out PlayerMover mover))
+                if (p != null && p.IsSpawned && p.State == PlayerState.Normal && p.TryGetComponent(out PlayerMover mover))
                 {
                     CaptureEndingMover();
-                    Vector3 point = entrance + Vector3.right * (Mathf.Max(0, p.Slot) - 1.5f) * .9f;
-                    var rotation = Quaternion.LookRotation(Vector3.ProjectOnPlane(origin - entrance, Vector3.up));
-                    mover.SetStartPose(point, rotation, true); mover.Simulated = restoreSimulation;
+                    mover.SetStartPose(returnPose.position, returnPose.rotation, true);
+                    CurtainCall.Cameras.CameraViewDirector.Current?.SetLookRotation(returnPose.rotation);
+                    // 종료 상태를 받을 때까지 복귀 위치에서 서로 밀리지 않게 고정한다.
+                    mover.Simulated = false;
                     returnedRound = shared.round;
                 }
             }
@@ -191,6 +201,7 @@ namespace CurtainCall.WaitingRoom
         {
             var player = NetworkPlayer.Local;
             if (endingMover != null || player == null || !player.TryGetComponent(out PlayerMover mover)) return;
+            CaptureReturnPose(player);
             endingMover = mover;
             // The reliable ending message may precede the revival NetworkVariable on a remote owner.
             restoreControl = player.State == PlayerState.Fallen || mover.ControlEnabled;

@@ -50,7 +50,6 @@ namespace CurtainCall.WaitingRoom
         {
             var run = CampaignRun.Instance;
             if (run == null || !run.HasAuthority || run.State.Phase != CampaignPhase.RestTime) { ExploringCount = 0; return; }
-            if (WaitingRoomCannonRehearsal.IsActive) { ExploringCount = 0; run.SetRestTimerPaused(true); return; }
             CollectAlive();
             states.Clear(); int exploring = 0;
             foreach (var player in alive)

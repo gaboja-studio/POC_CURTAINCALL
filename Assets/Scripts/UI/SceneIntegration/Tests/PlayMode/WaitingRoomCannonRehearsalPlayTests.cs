@@ -238,7 +238,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Skip returns control");
             Assert.IsTrue(CannonFlag("HasMastered"));
             Assert.IsFalse((bool)Get(Static("CurtainCall.UI.SceneIntegration.CommonMenuUI", "Current"), "IsOpen"));
-            Assert.Less(Vector3.Distance(LocalPlayer.transform.position, (Vector3)Priv(CannonLesson, "entrance")), 3f);
+            Assert.Less(Vector3.Distance(LocalPlayer.transform.position, ((Pose)Priv(CannonLesson, "returnPose")).position), 3f);
             Assert.IsTrue((bool)CannonStatic("StartPractice"));
             yield return CannonWait(() => Get(CannonLesson, "Course") != null, 6, "Practice remains available after skipping");
             Assert.AreEqual(0, CannonStatic("Checkpoint", LocalId));
@@ -316,8 +316,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsFalse((bool)Get(Get(board, "Book"), "IsConfirmedTonight"));
             Assert.IsTrue((bool)Get(mover, "Simulated"));
             Assert.IsTrue((bool)Get(mover, "ControlEnabled"));
-            Assert.Less(Vector3.Distance(LocalPlayer.transform.position, (Vector3)Priv(CannonLesson, "entrance")), 3f,
-                $"Returned feet={LocalPlayer.transform.position}, entrance={Priv(CannonLesson, "entrance")}, shared={JsonUtility.ToJson(Priv(CannonLesson, "shared"))}, ending={Priv(CannonLesson, "endingRound")}, returned={Priv(CannonLesson, "returnedRound")}");
+            Assert.Less(Vector3.Distance(LocalPlayer.transform.position, ((Pose)Priv(CannonLesson, "returnPose")).position), 3f,
+                $"Returned feet={LocalPlayer.transform.position}, returnPose={Priv(CannonLesson, "returnPose")}, shared={JsonUtility.ToJson(Priv(CannonLesson, "shared"))}, ending={Priv(CannonLesson, "endingRound")}, returned={Priv(CannonLesson, "returnedRound")}");
         }
 
         [UnityTest]
@@ -350,7 +350,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 CannonStatic("VoteToAbandon", true);
                 yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7,
                     "Abandon must return control in each room.");
-                Assert.Less(Vector3.Distance(LocalPlayer.transform.position, (Vector3)Priv(CannonLesson, "entrance")), 3f,
+                Assert.Less(Vector3.Distance(LocalPlayer.transform.position, ((Pose)Priv(CannonLesson, "returnPose")).position), 3f,
                     $"Room {room}: a previous room's return marker must not suppress this return. Feet={LocalPlayer.transform.position}, shared={JsonUtility.ToJson(Priv(CannonLesson, "shared"))}, ending={Priv(CannonLesson, "endingRound")}, returned={Priv(CannonLesson, "returnedRound")}");
                 if (room == 0)
                 {

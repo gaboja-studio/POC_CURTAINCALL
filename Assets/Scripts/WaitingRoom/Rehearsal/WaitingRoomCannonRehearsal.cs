@@ -92,7 +92,6 @@ namespace CurtainCall.WaitingRoom
                 || Resources.Load<GameObject>("Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RehearsalCourseFromPerformance") == null) return false;
             r.shared = new Shared { active = true, mastered = r.shared.mastered, round = r.shared.round + 1, version = r.shared.version + 1 };
             r.fallenAt.Clear(); r.conditions.Clear(); r.lastCarrier = CannonSeatState.Nobody;
-            if (CampaignRun.Instance.State.Phase == CampaignPhase.RestTime) CampaignRun.Instance.SetRestTimerPaused(true);
             r.Publish();
             return true;
         }
@@ -214,6 +213,7 @@ namespace CurtainCall.WaitingRoom
 
         void PlaceLocalAtCheckpoint(NetworkPlayer p, PlayerMover mover, bool recovery)
         {
+            CaptureReturnPose(p);
             var checkpointFloor = Checkpoint(p.OwnerClientId) > 0 ? course.MiddleFloor : course.StartFloor;
             bool displacedBeforePlacement = !shared.placed.Contains(p.OwnerClientId)
                 && !RehearsalCannonCourse.Contains(checkpointFloor, p.transform.position);

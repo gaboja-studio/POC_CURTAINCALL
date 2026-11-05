@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Reflection;
+using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.HumanCannon;
@@ -95,6 +96,89 @@ namespace CurtainCall.WaitingRoom.EditorTools
             Assert.That(Get(rehearsal, "stage"), Is.EqualTo(1), "전원 도착은 순간 점프 기록과 무관하게 다음 소구간으로 진행해야 한다.");
             Assert.That(Get(rehearsal, "round"), Is.EqualTo(6));
             Assert.That((HashSet<ulong>)Get(rehearsal, "placed"), Is.Empty, "다음 구간은 새 배치 승인을 기다린다.");
+        }
+
+        [Test]
+        public void CannonRehearsalDoesNotOverrideExplorationZoneTimer()
+        {
+            var previousRun = CampaignRun.Instance;
+            var cannonField = typeof(WaitingRoomCannonRehearsal).GetField("instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var previousCannon = cannonField.GetValue(null);
+            var gate = RunState.SecondPerformanceGate;
+            try
+            {
+                var run = Make("Timer run").AddComponent<CampaignRun>();
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, run);
+                var state = new RunState();
+                state.StartSession(true); state.EndIntro(); state.EndRehearsal(); state.EndPerformance();
+                state.SetTutorialDone(0); state.RefreshGuideRest(new ulong[] { 0 });
+                RunState.SecondPerformanceGate = () => false;
+                Set(run, "host", state); Set(run, "state", state.Snapshot); Set(run, "offlineRun", true);
+                var cannon = Make("Active cannon rehearsal").AddComponent<WaitingRoomCannonRehearsal>();
+                cannonField.SetValue(null, cannon);
+                var shared = Get(cannon, "shared");
+                shared.GetType().GetField("active").SetValue(shared, true);
+                var zones = Make("Timer zones").AddComponent<ExplorationTimerZones>();
+                var running = Make("Running floor").AddComponent<BoxCollider>();
+                running.transform.position = course.transform.position;
+                running.size = Vector3.one * 6f;
+                ((List<BoxCollider>)Get(zones, "running")).Add(running);
+                var mover = Make("Offline explorer").AddComponent<PlayerMover>();
+                mover.transform.position = course.transform.position;
+                ((List<PlayerMover>)Get(zones, "offlinePlayers")).Add(mover);
+                Physics.SyncTransforms();
+                state.SetRestTimerPaused(true);
+                Set(run, "state", state.Snapshot);
+                Call(zones, "Update");
+                Assert.That(zones.ExploringCount, Is.EqualTo(1));
+                Assert.That(run.State.Timer, Is.EqualTo(RestTimerState.Running));
+                Assert.That(state.Tick(1f), Is.True);
+                mover.transform.position += Vector3.right * 20f;
+                Call(zones, "Update");
+                Assert.That(run.State.Timer, Is.EqualTo(RestTimerState.Stopped));
+            }
+            finally
+            {
+                RunState.SecondPerformanceGate = gate;
+                cannonField.SetValue(null, previousCannon);
+                typeof(CampaignRun).GetProperty("Instance").SetValue(null, previousRun);
+            }
+        }
+
+        [TestCase(0)] [TestCase(1)] [TestCase(2)] [TestCase(3)]
+        public void CannonEndingRestoresEachOwnersOriginalPose(int slot)
+        {
+            var previousLocal = NetworkPlayer.Local;
+            try
+            {
+                var player = Participant((ulong)(701 + slot));
+                typeof(NetworkPlayer).GetProperty("Local").SetValue(null, player);
+                var mover = player.GetComponent<PlayerMover>();
+                mover.SetControlEnabled(true); mover.Simulated = true;
+                var original = new Pose(course.transform.position + Vector3.right * (10f + slot * 3f), Quaternion.Euler(0, 30f + slot * 45f, 0));
+                player.transform.SetPositionAndRotation(original.position, original.rotation);
+                var cannon = Make("Return fixture").AddComponent<WaitingRoomCannonRehearsal>();
+                var shared = Get(cannon, "shared");
+                shared.GetType().GetField("round").SetValue(shared, 5);
+                Call(cannon, "CaptureReturnPose", player);
+                player.transform.position = course.GetFinishPose(0).position;
+                Call(cannon, "CaptureReturnPose", player);
+                shared.GetType().GetField("active").SetValue(shared, true);
+                shared.GetType().GetField("ending").SetValue(shared, true);
+                Set(cannon, "endingRound", 5); Set(cannon, "returnAt", -1d);
+                Set(cannon, "room", Make("Return room").transform);
+                Call(cannon, "TickEnding");
+                Assert.That(Vector3.Distance(player.transform.position, original.position), Is.LessThan(.001f));
+                Assert.That(Quaternion.Angle(player.transform.rotation, original.rotation), Is.LessThan(.01f));
+                Assert.That(mover.Simulated, Is.False);
+                Call(cannon, "ReleaseEndingLock");
+                Assert.That(mover.Simulated && mover.ControlEnabled, Is.True);
+                shared.GetType().GetField("round").SetValue(shared, 6);
+                player.transform.position += Vector3.forward * 2f;
+                Call(cannon, "CaptureReturnPose", player);
+                Assert.That(((Pose)Get(cannon, "returnPose")).position, Is.EqualTo(player.transform.position));
+            }
+            finally { typeof(NetworkPlayer).GetProperty("Local").SetValue(null, previousLocal); }
         }
 
         [Test]
@@ -231,18 +315,28 @@ namespace CurtainCall.WaitingRoom.EditorTools
         }
 
         [TestCase(true)] [TestCase(false)]
-        public void OverlappingRingBoundaryIsHiddenAndItsOriginalVisibilityRestored(bool originallyActive)
+        public void RingBoundaryReturnsDuringGatheringBeforeLeavingRehearsal(bool originallyActive)
         {
             var room = Make("Fixture practice room");
             var arena = Make("RoundArena"); arena.transform.SetParent(room.transform);
             var boundary = Make("Frame8Boundary"); boundary.transform.SetParent(arena.transform);
+            var wall = boundary.AddComponent<BoxCollider>();
             boundary.SetActive(originallyActive);
+            var legacy = Make("LegacyRing"); legacy.transform.SetParent(room.transform);
+            var practiceLanes = Make("PracticeLanes"); practiceLanes.transform.SetParent(legacy.transform);
             Set(rehearsal, "ringRoom", room.transform);
             Call(rehearsal, "HideRingProps", true);
+            Call(rehearsal, "SetRingBoundaryHidden", true);
+            Call(rehearsal, "SetRingBoundaryHidden", true);
             Assert.That(boundary.activeSelf, Is.False);
-            Call(rehearsal, "HideRingProps", true); // Repeated entry must not change the restore set.
-            Call(rehearsal, "HideRingProps", false);
-            Assert.That(boundary.activeSelf, Is.EqualTo(originallyActive));
+
+            // 코스가 정리되고 참가자는 아직 리허설 집결 상태에 있다.
+            Set(rehearsal, "completed", true);
+            Set(rehearsal, "course", null);
+            Set(rehearsal, "courseRoot", null);
+            Call(rehearsal, "EnsureCourse");
+            Assert.That(wall.gameObject.activeInHierarchy, Is.EqualTo(originallyActive));
+            Assert.That(practiceLanes.activeSelf, Is.False, "집결 경로에 옛 연습 기물을 되돌리지 않는다.");
         }
 
         [TestCase(0)] [TestCase(1)] [TestCase(2)] [TestCase(3)] [TestCase(4)]
