@@ -22,6 +22,12 @@ namespace CurtainCall.Telemetry.Pipeline
         string currentRun, currentIdentity, pendingCode, pendingIdentity;
         int currentSlot = -1;
         float pendingUntil;
+        /// <summary>빌드에서도 현재 로컬 플레이어의 설문 이력을 초기화한다. 설문 기능이 꺼져 있어도 가능하다.</summary>
+        public static int ResetLocalHistory()
+        {
+            string root = TelemetryRuntime.StorageDirectory(Application.persistentDataPath, Application.dataPath);
+            return new SurveyLaunchCache(Path.Combine(root, "SurveyCache")).ClearHistory();
+        }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Reset() { instance = null; SceneManager.sceneLoaded -= SceneLoaded; }
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]

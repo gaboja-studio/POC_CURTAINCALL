@@ -45,6 +45,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             navDeferred = false;
             bool same = SameGoal(p);
             bool plan = !hasNavGoal || replanRequested || navVersion != PursuitNavigation.Version;
+            // 경계·청취 중 Stop()으로 지운 경로와 장애물 변경으로 낡은 경로는 같은 목표라도 다시 찾는다.
+            if (!plan && !navFailed && !Reached(p)) plan = !agent.hasPath || agent.isPathStale;
             if (!plan && !movingTarget) plan = !same;
             if (!plan && movingTarget && Time.time >= repathAt) {
                 // 가까울수록 작은 이동에도 다시 계산해 포획 거리 안에서 엉뚱한 곳을 향하지 않게 한다.
@@ -60,8 +62,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             requestedGoal = p; hasNavGoal = true; replanRequested = false; navVersion = PursuitNavigation.Version;
             navFailed = !PursuitNavigation.TryPlan(agent.nextPosition, p, agent.areaMask, navPath, out navGoal);
             if (navFailed) { if (agent.hasPath) agent.ResetPath(); return false; }
-            agent.SetPath(navPath);
-            return true;
+            navFailed = !agent.SetPath(navPath);
+            return !navFailed;
         }
 
         void ClearNavigation()

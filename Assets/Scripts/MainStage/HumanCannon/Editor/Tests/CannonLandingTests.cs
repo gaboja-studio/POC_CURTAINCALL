@@ -40,11 +40,13 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             finally { Object.DestroyImmediate(settings); }
         }
 
-        [TestCase(79.99f, false)]
+        [TestCase(-5f, true)]
+        [TestCase(0f, true)]
+        [TestCase(79.99f, true)]
         [TestCase(80f, true)]
         [TestCase(100f, true)]
         [TestCase(110f, true)]
-        public void CompletionThresholdIncludesExactlyEightyPercent(float distance, bool expected)
+        public void CompletionIncludesAllValidProgressAfterSuccess(float distance, bool expected)
         {
             var settings = CurtainCall.Settings.AudienceReactionSettings.Current;
             Assert.IsNotNull(settings);
@@ -56,7 +58,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
                 Assert.IsFalse(CurtainCall.Settings.AudienceReactionSettings.HasCompletionProgress(distance, 0f));
                 Assert.IsFalse(CurtainCall.Settings.AudienceReactionSettings.HasCompletionProgress(float.NaN, 100f));
                 settings.completionProgress = .9f;
-                Assert.IsFalse(CurtainCall.Settings.AudienceReactionSettings.HasCompletionProgress(80f, 100f));
+                Assert.IsTrue(CurtainCall.Settings.AudienceReactionSettings.HasCompletionProgress(0f, 100f), "이전 에셋의 진행률 제한은 적용하지 않는다");
             }
             finally { settings.completionProgress = previous; }
         }

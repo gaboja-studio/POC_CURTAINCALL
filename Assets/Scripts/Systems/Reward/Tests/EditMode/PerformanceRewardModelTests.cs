@@ -289,7 +289,7 @@ namespace CurtainCall.Reward.Tests
 
             var result = Settle(model, rules: rules);
             Assert.IsTrue(result.Succeeded, "연결된 생존자 두 명은 남아 있다");
-            Assert.AreEqual(40, result.Income, "이탈자는 0, 도착 판정이 없으면 완주 보너스도 없다");
+            Assert.AreEqual(80, result.Income, "이탈자는 0, 성공한 공연의 생존자 둘에게 완주 보너스 각 20");
             Assert.AreEqual(0, result.Deaths.Count);
             Assert.IsFalse(result.Participants[0].Eligible);
             Assert.AreEqual("Disconnected", result.Participants[0].Judgement);
@@ -297,7 +297,7 @@ namespace CurtainCall.Reward.Tests
         }
 
         [Test]
-        public void Confirm_CompletionBonus_OnlyForActualArrivals()
+        public void Confirm_SuccessCompletesAllSurvivorsAndPreservesActualDistances()
         {
             var rules = new RewardRules(10, 5, 100, 100, 0);
             var model = new PerformanceRewardModel(Session, 1);
@@ -310,6 +310,8 @@ namespace CurtainCall.Reward.Tests
             }, rules));
             foreach (string id in new[] { "p1", "p2", "p3", "p4" }) Assert.IsTrue(model.Cheer(id, true, rules));
             Assert.IsTrue(model.MarkArrived("p2"));
+            Assert.IsTrue(model.Record(model.Performance.Id, "p3", 10, 100, 40));
+            Assert.IsTrue(model.Record(model.Performance.Id, "p3", 11, 100, 7));
             Assert.IsTrue(model.Observe("p4", 0, true, true, rules));
             var judgements = new Dictionary<string, string> { { "p1", "Arrived" }, { "p4", "Arrived" } };
 
@@ -317,11 +319,14 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(120, result.Participants[0].Settlement, "도착 판정: 호응 10 × 2 + 완주 100");
             Assert.AreEqual(120, result.Participants[1].Settlement, "외팔로 잡혀 온 사람도 박탈 없이 지급");
             Assert.AreEqual("Arrived", result.Participants[1].Judgement);
-            Assert.AreEqual(20, result.Participants[2].Settlement, "도착하지 않은 생존자는 완주 보너스 없음");
+            Assert.AreEqual(120, result.Participants[2].Settlement, "초반에 남은 생존자도 완주 보너스 지급");
+            Assert.AreEqual("Arrived", result.Participants[2].Judgement);
+            Assert.AreEqual(40, result.Participants[2].MaximumDistance);
+            Assert.AreEqual(7, result.Participants[2].FinalDistance, "완주 판정이 거리를 종점으로 덮어쓰면 안 된다");
             Assert.AreEqual(10, result.Participants[3].Settlement, "사망자는 도착 판정이 있어도 완주 보너스 없음");
-            Assert.AreEqual(200, result.CompletionReward);
+            Assert.AreEqual(300, result.CompletionReward);
             Assert.AreEqual(70, result.CheerReward);
-            Assert.AreEqual(270, result.Income);
+            Assert.AreEqual(370, result.Income);
         }
 
         [Test]
@@ -340,7 +345,7 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(40, result.Participants[0].Settlement);
             Assert.AreEqual(20, result.Participants[1].Settlement);
             Assert.AreEqual("Arrived", result.Participants[0].Judgement);
-            Assert.AreEqual("Survived", result.Participants[1].Judgement);
+            Assert.AreEqual("Arrived", result.Participants[1].Judgement);
             Assert.AreEqual(60, result.Income);
             Assert.AreEqual(60, model.Balance);
             Assert.IsFalse(model.IsOpen);
@@ -355,6 +360,21 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(60, entry.Amount);
             Assert.AreEqual(60, entry.Balance);
             Assert.AreEqual(result.Performance.Id, entry.PerformanceId);
+        }
+
+        [TestCase(false, 1)]
+        [TestCase(true, 2)]
+        public void Confirm_FailedPerformanceDoesNotCompleteRemainingSurvivors(bool trickSucceeded, int minimumSurvivors)
+        {
+            var rules = new RewardRules(10, 5, 100, 100, 0);
+            var model = BeginPair(rules);
+            Assert.IsTrue(model.Cheer("p1", true, rules));
+            Assert.IsTrue(model.Observe("p2", 0, true, true, rules));
+            Assert.IsTrue(model.Confirm(trickSucceeded, "Failed", null, minimumSurvivors, rules, out var result));
+            Assert.IsFalse(result.Succeeded);
+            Assert.AreEqual(0, result.CompletionReward);
+            Assert.AreEqual("Survived", result.Participants[0].Judgement);
+            Assert.AreEqual(20, result.Participants[0].Settlement);
         }
 
         [Test]
@@ -395,8 +415,8 @@ namespace CurtainCall.Reward.Tests
             Assert.AreEqual(15, result.Participants[0].Segment);
             Assert.AreEqual(15, result.Participants[1].Segment);
             Assert.AreEqual(50, result.Participants[0].Settlement, "상한 15 × 2 + 완주 20");
-            Assert.AreEqual(30, result.Participants[1].Settlement);
-            Assert.AreEqual(80, result.Income);
+            Assert.AreEqual(50, result.Participants[1].Settlement, "성공한 공연의 다른 생존자도 상한 밖 완주 보너스 지급");
+            Assert.AreEqual(100, result.Income);
             Assert.AreEqual(settlementRules, model.Snapshot().Rules);
             Assert.AreEqual(15, model.Snapshot().Segments[1].Amount);
         }

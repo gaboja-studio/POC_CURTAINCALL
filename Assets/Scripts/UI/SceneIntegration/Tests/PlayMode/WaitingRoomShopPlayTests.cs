@@ -103,7 +103,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W2_MorningPurchase_RejectsUiAndDirectRequestWithoutSpending()
+        public IEnumerator W2_MorningPurchase_UsesConfiguredPermissionForUiAndDirectRequest()
         {
             yield return Launch(2, "Morning", 0, "Tightrope", "WaitingRoomBase");
             SeedShopFunds(100);
@@ -112,6 +112,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var shop = Find("CurtainCall.WaitingRoom.WaitingRoomShop");
             var item = ((IEnumerable)Get(shop, "Catalog")).Cast<object>().First();
             string id = (string)Member(item, "Id");
+            var settings = Static("CurtainCall.Settings.GameSettings", "WaitingRoom");
+            var permission = settings.GetType().GetField("allowPurchasesDuringRest", BindingFlags.Instance | BindingFlags.NonPublic);
+            bool original = (bool)permission.GetValue(settings);
+            try {
+            Assert.IsTrue(original, "출고 설정은 쉬는 시간 구매 허용");
+            Assert.AreEqual(true, Get(Entry(adapter, "item:" + id), "Available"));
+            permission.SetValue(settings, false);
             Assert.AreEqual(false, Get(Entry(adapter, "item:" + id), "Available"));
             Assert.AreEqual("기물은 밤 정비에만 구매할 수 있습니다.", Get(Entry(adapter, "item:" + id), "UnavailableReason"));
             int ledgerCount = ((IEnumerable)Get(Call(adapter, "Build"), "Entries")).Cast<object>()
@@ -124,6 +131,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.AreEqual(0, ((IEnumerable)Get(shop, "Receipts")).Cast<object>().Count());
             Assert.AreEqual("기물은 밤 정비에만 구매할 수 있습니다.", Get(shop, "LastMessage"));
             Assert.AreEqual(ledgerCount, Entries(adapter).Count(e => ((string)Get(e, "Id")).StartsWith("fund:")));
+            permission.SetValue(settings, true);
+            Assert.AreEqual(true, Get(Entry(adapter, "item:" + id), "Available"));
+            Call(shop, "RequestPurchase", id);
+            yield return new WaitForSecondsRealtime(.35f);
+            Assert.AreEqual(100L - Convert.ToInt64(Member(item, "Price")), Get(shop, "Balance"));
+            Assert.AreEqual(1, ((IEnumerable)Get(shop, "Waiting")).Cast<object>().Count());
+            } finally { permission.SetValue(settings, original); }
         }
 
         [UnityTest]
@@ -237,7 +251,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var service = Find("CurtainCall.WaitingRoom.ExpertService");
             // 외팔(잃은 팔다리 3)이면 한 항목에서 1~3개를 고르고, 처음 1개당 가격은 기본가다. 시설 서비스는 없다.
             long unit = (long)Get(service, "MedicalPrice");
-            Assert.AreEqual(100L, unit);
+            Assert.AreEqual(50L, unit);
             Assert.AreEqual(1, Entries(adapter).Count(e => ((string)Get(e, "Id")).StartsWith("medical")), "신체 복구는 한 항목");
             Assert.AreEqual(unit.ToString(), Get(Entry(adapter, "medical"), "PriceText"));
             Assert.IsFalse(Entries(adapter).Any(e => ((string)Get(e, "Id")) == "facility"));
@@ -276,10 +290,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(view, "SelectEntry", "medical");
             Call(Get(Private(view, "secondaryButton"), "onClick"), "Invoke");
             yield return null;
-            Assert.AreEqual("100", Get(Entry(adapter, "medical"), "PriceText"), "잃은 수(1)보다 많이 고를 수 없다");
+            Assert.AreEqual("50", Get(Entry(adapter, "medical"), "PriceText"), "잃은 수(1)보다 많이 고를 수 없다");
             Call(Get(Private(view, "primaryButton"), "onClick"), "Invoke");
             yield return new WaitForSecondsRealtime(.35f);
             Assert.AreEqual("Booked", Get(service, "Phase").ToString());
-            Assert.AreEqual(900L, Get(service, "Balance"));
+            Assert.AreEqual(950L, Get(service, "Balance"));
         }    }
 }

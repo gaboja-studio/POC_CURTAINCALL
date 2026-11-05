@@ -153,6 +153,9 @@ namespace CurtainCall.UI.SceneIntegration
                 sound.rows.Add(Toggle("peerMuted_" + id, name + " · 음소거", peers[id].muted));
             }
             var credits = catalog.pages[4];
+            var clearHistory = ActionRow("ClearLocalHistory", "설문·대기실 안내 이력 초기화", "캐시 초기화");
+            clearHistory.confirmationBody = "이 PC의 설문 열림 기록과 대기실 안내 이력을 초기화합니다.\n조작·음량 설정, 플레이 로그, 이미 제출한 설문 응답은 유지됩니다.\n설문 대상 시점이면 다시 열립니다.";
+            credits.rows.Add(clearHistory);
             credits.rows.Add(Paragraph("Developers", "개발자\nMoHoDu · 총괄 시스템 / 기획 조율\nmingyu (gyumin9048-ctrl) · 대기실 / 에셋 관리\nRagSpirin · 공연장 / 탈출로\nlakuase2 · 기존 공연장 개발 기여"));
             credits.rows.Add(Paragraph("AssetCredits", "에셋 및 소프트웨어\nPretendard — Kil Hyung-jin · SIL Open Font License 1.1 (아래 원문)\nQuaternius Standard — Quaternius · CC0 1.0\nhttps://creativecommons.org/publicdomain/zero/1.0/\nDOTween / DOTween Pro — Copyright (c) 2014-2026 Daniele Giardini - Demigiant\nhttps://dotween.demigiant.com/license.php"));
             credits.rows.Add(Paragraph("CreditsNotice", "추가 외부 에셋·BM 폰트 및 패키지의 개별 배포 조건은 확인 중입니다.\n현재 목록은 전체 라이선스 검토 완료나 모든 권리 확보를 뜻하지 않습니다."));
@@ -243,6 +246,19 @@ namespace CurtainCall.UI.SceneIntegration
         }
         async void HandleAction(SettingsActionRequest request)
         {
+            if (request.actionId == "ClearLocalHistory")
+            {
+                try
+                {
+                    CurtainCall.Telemetry.Pipeline.PlaytestSurveyRuntime.ResetLocalHistory();
+                    CurtainCall.WaitingRoom.WaitingRoomTutorial.ResetProgress();
+                    if (view.CompleteAction(request.token, true, null, false))
+                        view.ShowMessage("설문·안내 이력을 초기화했습니다. 조작·음량 설정과 플레이 로그는 유지했습니다.");
+                }
+                catch (Exception error) when (error is System.IO.IOException || error is UnauthorizedAccessException)
+                { view.CompleteAction(request.token, false, "일부 이력을 지우지 못했습니다. 파일 접근 권한을 확인하고 다시 시도하세요."); }
+                return;
+            }
             if (request.actionId == "RunAbandon")
             {
                 var run = CampaignRun.Instance;

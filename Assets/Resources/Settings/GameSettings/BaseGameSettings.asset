@@ -29,13 +29,13 @@ MonoBehaviour:
     guideRestDuration: 300
     morningRest:
       unlimited: 0
-      seconds: 120
+      seconds: 300
     noonRest:
       unlimited: 0
-      seconds: 120
+      seconds: 300
     guideRest:
       unlimited: 0
-      seconds: 120
+      seconds: 300
     nightMaintenance:
       unlimited: 1
       seconds: 120
