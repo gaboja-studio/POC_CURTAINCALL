@@ -260,6 +260,12 @@ namespace CurtainCall.Tightrope
         public bool IsInStack(NetworkPlayer player) =>
             player != null && IsInStack(player.OwnerClientId);
 
+        internal NetworkPlayer GetCarrier(NetworkPlayer player)
+        {
+            ulong bottom = BottomOf(player.OwnerClientId);
+            return bottom == player.OwnerClientId ? player : FindPlayer(bottom);
+        }
+
         /// <summary>내가 속한 목마의 전체 인원. 단독이면 1.</summary>
         public int GetStackSize(NetworkPlayer player)
         {
@@ -521,9 +527,12 @@ namespace CurtainCall.Tightrope
             if (transferred == null)
             {
                 var carrier = FindPlayer(BottomOf(riderId));
-                var platform = TightropeCourse.Current?.PiggybackDismountSupport(carrier);
+                var course = TightropeCourse.Current;
+                var platform = course?.ManualPiggybackDismountSupport(carrier);
                 if (platform != null)
                     return ServerDismountOnPlatform(carrier, platform) ? "해제: 발판에 내려옴" : "거부: 발판에 내려설 자리가 없음";
+                if (course != null && course.UsesPlatformPiggyback && !course.PiggybackUsesRopeBalance(carrier, true))
+                    return "거부: 안전한 발판에 착지한 뒤 내려올 수 있음";
             }
             RememberTrapezeEntry(FindPlayer(riderId));
             belowOf.Remove(riderId);
@@ -582,8 +591,9 @@ namespace CurtainCall.Tightrope
             float separation = radius * 2f + GameSettings.Base.Character.PlayerGap + .12f;
             float separationSquared = separation * separation;
             float nearest = float.PositiveInfinity;
-            for (float x = bounds.min.x + edgeMargin; x <= bounds.max.x - edgeMargin; x += separation)
-            for (float z = bounds.min.z + edgeMargin; z <= bounds.max.z - edgeMargin; z += separation)
+            const float maxSearchDistance = 5f;
+            for (float x = Mathf.Max(bounds.min.x + edgeMargin, carrierFeet.x - maxSearchDistance); x <= Mathf.Min(bounds.max.x - edgeMargin, carrierFeet.x + maxSearchDistance); x += separation)
+            for (float z = Mathf.Max(bounds.min.z + edgeMargin, carrierFeet.z - maxSearchDistance); z <= Mathf.Min(bounds.max.z - edgeMargin, carrierFeet.z + maxSearchDistance); z += separation)
             {
                 var candidate = new Vector3(x, bounds.max.y, z);
                 float distance = HorizontalDistanceSquared(candidate, preferred);

@@ -66,8 +66,24 @@ namespace CurtainCall.Tightrope
         [Tooltip("실제 착지 시 목마를 안전하게 해제할 발판. 지정하지 않으면 기존 목마 규칙을 사용한다.")]
         [SerializeField] BoxCollider[] piggybackDismountPlatforms = Array.Empty<BoxCollider>();
         public bool UsesSceneGeometry => useSceneGeometry;
+        internal bool UsesPlatformPiggyback => useSceneGeometry && piggybackDismountPlatforms.Length > 0;
+
+        internal bool PiggybackUsesRopeBalance(NetworkPlayer carrier, bool wasOnRope)
+        {
+            if (carrier == null || carrier.State != PlayerState.Normal || !carrier.TryGetComponent(out PlayerMover mover)) return false;
+            if (!carrier.IsAirborne) return TryGetSupportingRope(mover, out _);
+            // 의도한 외줄 점프는 유지하고, 지지가 끊긴 낙하나 줄 끝 이탈은 착지 전에 끈다.
+            return wasOnRope && carrier.CurrentJump != JumpKind.Fall
+                && !PastSceneRopeEnd(carrier.transform.position, mover.BodyRadius);
+        }
 
         internal BoxCollider PiggybackDismountSupport(NetworkPlayer carrier)
+            => FindPiggybackDismountSupport(carrier, false);
+
+        internal BoxCollider ManualPiggybackDismountSupport(NetworkPlayer carrier)
+            => FindPiggybackDismountSupport(carrier, UsesPlatformPiggyback);
+
+        BoxCollider FindPiggybackDismountSupport(NetworkPlayer carrier, bool allowOtherPlatform)
         {
             if (piggybackDismountPlatforms.Length == 0 || carrier == null || carrier.State != PlayerState.Normal
                 || carrier.IsAirborne || !carrier.TryGetComponent(out PlayerMover mover)
@@ -80,6 +96,9 @@ namespace CurtainCall.Tightrope
                     && platform.Raycast(new Ray(origin, Vector3.down), out var hit, .24f) && hit.normal.y > .9f
                     && !TryGetSupportingRope(mover, out _))
                     return platform;
+            if (allowOtherPlatform && Physics.Raycast(origin, Vector3.down, out var floor, .24f,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) && floor.normal.y > .99f
+                && floor.collider is BoxCollider box && !TryGetSupportingRope(mover, out _)) return box;
             return null;
         }
 

@@ -126,7 +126,10 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         public void PiggybackDismount_RequiresGroundContactOnAnAssignedPlatform()
         {
             var platform = AddBox("Dismount platform", new Vector3(0f, -.25f, -3f), new Vector3(4f, .5f, 4f));
-            AddBox("Unassigned platform", new Vector3(5f, -.25f, -3f), new Vector3(4f, .5f, 4f));
+            var ordinary = AddBox("Unassigned platform", new Vector3(5f, -.25f, -3f), new Vector3(4f, .5f, 4f));
+            var data = new UnityEditor.SerializedObject(course);
+            data.FindProperty("useSceneGeometry").boolValue = true;
+            data.ApplyModifiedPropertiesWithoutUndo();
             typeof(TightropeCourse).GetField("piggybackDismountPlatforms", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(course, new[] { platform });
 
@@ -138,8 +141,61 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             mover.ResetExternalMotion(false);
             MovePlayer(new Vector3(5f, 0f, -3f));
             Assert.That(Invoke(course, "PiggybackDismountSupport", player), Is.Null);
+            Assert.That(Invoke(course, "ManualPiggybackDismountSupport", player), Is.SameAs(ordinary));
             MovePlayer(new Vector3(2.5f, 0f, -3f));
             Assert.That(Invoke(course, "PiggybackDismountSupport", player), Is.Null);
+            Assert.That(Invoke(course, "ManualPiggybackDismountSupport", player), Is.Null);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void EscapePiggybackStopsBalanceAsSoonAsCarrierDropsOffRope(bool passenger)
+        {
+            AuthoredRopes();
+            var deck = AddBox("Lower deck", new Vector3(0, -2.25f, 4), new Vector3(6, .5f, 6));
+            const BindingFlags member = BindingFlags.Instance | BindingFlags.NonPublic;
+            typeof(TightropeCourse).GetField("piggybackDismountPlatforms", member).SetValue(course, new[] { deck });
+            var current = typeof(PiggybackSystem).GetProperty("Current");
+            var previous = current.GetValue(null);
+            var stack = MakeObject("Piggyback fixture").AddComponent<PiggybackSystem>();
+            var remoteObject = MakeObject("Second player");
+            var remoteMover = remoteObject.AddComponent<PlayerMover>();
+            var remote = remoteObject.AddComponent<NetworkPlayer>();
+            typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(remote, 1UL);
+            var all = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var carrier = passenger ? remote : player;
+            var carrierMover = passenger ? remoteMover : mover;
+            Invoke(remoteMover, "Awake");
+            Invoke(remote, "Awake");
+            ulong bottom = carrier.OwnerClientId, top = passenger ? player.OwnerClientId : remote.OwnerClientId;
+            ((Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", member).GetValue(stack)).Add(top, bottom);
+            ((Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("aboveOf", member).GetValue(stack)).Add(bottom, top);
+            all.Add(remote);
+            try
+            {
+                current.SetValue(null, stack);
+                Invoke(switcher, "Bind", player);
+                carrier.transform.position = origin + new Vector3(0, 0, 4);
+                Physics.SyncTransforms();
+                Invoke(switcher, "UpdateSurfaceMode");
+                Assert.That(balance.IsActive, Is.True);
+                typeof(PlayerMover).GetProperty("CurrentJump").SetValue(carrierMover, JumpKind.InPlace);
+                Invoke(switcher, "UpdateSurfaceMode");
+                Assert.That(balance.IsActive, Is.True, "A rope jump still uses rope balance.");
+                carrierMover.ResetExternalMotion(true);
+                Invoke(switcher, "UpdateSurfaceMode");
+                Assert.That(balance.IsActive, Is.False, "An actual drop disables balance before floor contact.");
+                Assert.That(switcher.IsLocalOnRope, Is.False);
+                Invoke(switcher, "UpdateSurfaceMode");
+                Assert.That(balance.IsActive, Is.False, "A pending piggyback link cannot re-enable balance.");
+                carrierMover.ResetExternalMotion(false);
+                carrier.transform.position = origin + new Vector3(0, -2, 4);
+                Physics.SyncTransforms();
+                Invoke(switcher, "UpdateSurfaceMode");
+                Assert.That(balance.IsActive, Is.False);
+                Assert.That(Invoke(course, "PiggybackDismountSupport", carrier), Is.SameAs(deck));
+            }
+            finally { all.Remove(remote); current.SetValue(null, previous); }
         }
 
         [Test]
