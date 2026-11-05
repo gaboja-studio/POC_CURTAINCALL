@@ -15,3 +15,5 @@
 # 캐릭터 렌더링
 
 - [mppm-pink-shader-memory.md](mppm-pink-shader-memory.md) — 실제 4인 MPPM에서 캐릭터가 분홍색으로 보이거나 셰이더 컴파일이 실패할 때
+- [fbx-reimport-skin-weights.md](fbx-reimport-skin-weights.md) — FBX 재수입 후 기존 애니메이션의 신체 변형이나 스킨 경계가 달라질 때
+- [mannequin-uv-material-bake.md](mannequin-uv-material-bake.md) — 원본 형상에 새 재질을 베이크하면서 UV·삼각형을 보존할 때

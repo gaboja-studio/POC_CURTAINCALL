@@ -52,6 +52,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             director = owner; Room = room; Placement = placement;
             appearance = GetComponent<PursuitAppearance>();
+            if (placement != null) placement.ApplyAppearance(appearance);
             initialPosition = transform.position; initialRotation = transform.rotation;
             agent = GetComponent<NavMeshAgent>();
             if (agent == null) agent = gameObject.AddComponent<NavMeshAgent>();

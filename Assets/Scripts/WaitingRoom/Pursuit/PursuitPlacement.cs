@@ -3,7 +3,7 @@ using UnityEngine;
 namespace CurtainCall.WaitingRoom.Pursuit
 {
     /// <summary>한 마네킹의 시작 위치·타입·독립 순찰 경로. 런타임에는 Director가 생성한다.</summary>
-    public sealed class PursuitPlacement : MonoBehaviour
+    public sealed partial class PursuitPlacement : MonoBehaviour
     {
         public GameObject Prefab;
         public enum BodySize { Small, Medium }
