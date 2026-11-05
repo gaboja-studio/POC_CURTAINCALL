@@ -13,7 +13,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
-    public sealed class TightropeSurfaceControlTests
+    public sealed partial class TightropeSurfaceControlTests
     {
         readonly List<Object> objects = new();
         readonly List<EscapeDevelopmentSession> suppressedDevelopmentSessions = new();
@@ -120,6 +120,48 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             balance.SetBalanceActive(true); // 외부 재초기화가 기본 활성값을 다시 넣어도 안전해야 한다.
             Invoke(switcher, "UpdateSurfaceMode");
             Assert.That(balance.IsActive, Is.False);
+        }
+
+        [Test]
+        public void PiggybackDismount_RequiresGroundContactOnAnAssignedPlatform()
+        {
+            var platform = AddBox("Dismount platform", new Vector3(0f, -.25f, -3f), new Vector3(4f, .5f, 4f));
+            AddBox("Unassigned platform", new Vector3(5f, -.25f, -3f), new Vector3(4f, .5f, 4f));
+            typeof(TightropeCourse).GetField("piggybackDismountPlatforms", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(course, new[] { platform });
+
+            MovePlayer(new Vector3(0f, 0f, -3f));
+            mover.Simulated = false; // 호스트가 보는 원격 플레이어는 소유자 이동을 실행하지 않는다.
+            Assert.That(Invoke(course, "PiggybackDismountSupport", player), Is.SameAs(platform));
+            mover.ResetExternalMotion(true);
+            Assert.That(Invoke(course, "PiggybackDismountSupport", player), Is.Null);
+            mover.ResetExternalMotion(false);
+            MovePlayer(new Vector3(5f, 0f, -3f));
+            Assert.That(Invoke(course, "PiggybackDismountSupport", player), Is.Null);
+            MovePlayer(new Vector3(2.5f, 0f, -3f));
+            Assert.That(Invoke(course, "PiggybackDismountSupport", player), Is.Null);
+        }
+
+        [Test]
+        public void PiggybackDismount_ReservesThreeClearPositionsAwayFromPlatformEdge()
+        {
+            var platform = AddBox("Dismount platform", new Vector3(0f, -.25f, -3f), new Vector3(6f, .5f, 4f));
+            AddBox("Obstruction on left", new Vector3(-1.75f, 1f, -3f), new Vector3(2.5f, 2f, 4f));
+            var carrierFeet = origin + new Vector3(2.9f, 0f, -4.9f);
+            var positions = new Dictionary<ulong, Vector3>();
+            var find = typeof(PiggybackSystem).GetMethod("TryFindPlatformSeat", BindingFlags.Static | BindingFlags.NonPublic);
+            for (ulong rider = 1; rider <= 3; rider++)
+            {
+                object[] args = { platform, carrierFeet, .3f, 1.5f, positions, Vector3.zero };
+                Assert.That(find.Invoke(null, args), Is.True);
+                var feet = (Vector3)args[5];
+                Assert.That(feet.x - origin.x, Is.InRange(-.19f, 2.49f));
+                Assert.That(feet.z - origin.z, Is.InRange(-4.49f, -1.51f));
+                foreach (var used in positions.Values) Assert.That(Vector3.Distance(feet, used), Is.GreaterThan(.7f));
+                positions.Add(rider, feet);
+            }
+            AddBox("Remaining deck blocked", new Vector3(1.5f, 1f, -3f), new Vector3(3f, 2f, 4f));
+            Assert.That(find.Invoke(null, new object[] { platform, carrierFeet, .3f, 1.5f, positions, Vector3.zero }), Is.False);
         }
 
         [Test]

@@ -178,10 +178,11 @@ namespace CurtainCall.HumanCannon
             }
             if ((PoleEvent)action != PoleEvent.Sync && revision <= runtime.State.Revision) return;
             bool continuousSwing = (PoleEvent)action == PoleEvent.Sync && runtime.State.Count > 0
-                && revision == runtime.State.Revision && poles[index].Loop != null;
+                && revision == runtime.State.Revision;
             if (!runtime.State.ReceiveCrew(revision, receivedActors, receivedDeadlines, (PoleSawPhase)phase, rearmAt)) return;
             runtime.ReceiveAngle(angle, Time.unscaledTimeAsDouble, continuousSwing);
             runtime.Speed = speed;
+            runtime.MaxDisplayAngle = poles[index].MaxSwingAngle;
             for (int slot = 0; slot < receivedFlights.Length; slot++)
             {
                 var rider = runtime.Riders[slot];
