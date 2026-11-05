@@ -99,24 +99,28 @@ namespace CurtainCall.Player
         }
         bool PresentItemMotion(bool moving, bool inAir)
         {
-            var a = model.Animator; int upper = a.GetLayerIndex(ItemUpperBodyLayer);
+            var a = model.Animator;
+            if (!a.isActiveAndEnabled) { itemLayerState = null; return false; }
+            int upper = a.GetLayerIndex(ItemUpperBodyLayer);
             if (upper < 0) return false;
             int arm = a.GetLayerIndex(ItemRightArmLayer);
             string item = SelectedHandItem();
             if (item != shownItem)
             {
                 string previous = shownItem; shownItem = item;
-                if (item != null)
-                {
-                    if (heldItemVisual != null) Destroy(heldItemVisual);
-                    heldItemVisual = ItemVisualAssets.Create(item); visualItem = item;
-                    if (heldItemVisual != null) heldItemVisual.name = "RightHand_" + item;
-                }
                 if (Time.time >= itemActionUntil && (item != null || previous != null))
                 {
                     itemAction = item != null ? "ItemEquip" : "ItemStow";
                     itemActionSince = Time.time; itemActionUntil = Time.time + .6f; itemLayerState = null;
                 }
+            }
+            if (item != null && (heldItemVisual == null || visualItem != item))
+            {
+                if (heldItemVisual != null) Destroy(heldItemVisual);
+                // The player survives scene travel. Its hand visual must share that lifetime,
+                // rather than being destroyed with the scene that was active when it was created.
+                heldItemVisual = ItemVisualAssets.Create(item, transform); visualItem = item;
+                if (heldItemVisual != null) heldItemVisual.name = "RightHand_" + item;
             }
             bool action = Time.time < itemActionUntil;
             if (!action && shownItem == null && heldItemVisual != null) { Destroy(heldItemVisual); heldItemVisual = null; visualItem = null; }
@@ -138,12 +142,16 @@ namespace CurtainCall.Player
             int layer = interaction || arm < 0 ? upper : arm;
             if (!fullBody) a.SetLayerWeight(layer, 1);
             string layerState=state+"/"+(fullBody?0:layer);
+            int targetLayer = fullBody ? 0 : layer;
+            bool playing = a.GetCurrentAnimatorStateInfo(targetLayer).IsName(state)
+                || (a.IsInTransition(targetLayer) && a.GetNextAnimatorStateInfo(targetLayer).IsName(state));
+            bool restoreState = itemLayerState != layerState || !playing;
             if (fullBody)
             {
                 model.Play(state);
-                if (itemLayerState != layerState) a.Play(state, 0, action ? Mathf.Clamp01((Time.time-itemActionSince)/(itemActionUntil-itemActionSince)) : 0);
+                if (restoreState) a.Play(state, 0, action ? Mathf.Clamp01((Time.time-itemActionSince)/(itemActionUntil-itemActionSince)) : 0);
             }
-            else if (itemLayerState != layerState) a.Play(state, layer, 0f);
+            else if (restoreState) a.Play(state, layer, action ? Mathf.Clamp01((Time.time-itemActionSince)/(itemActionUntil-itemActionSince)) : 0f);
             itemLayerState = layerState;
             return fullBody;
         }
@@ -155,7 +163,7 @@ namespace CurtainCall.Player
         }
         void ApplyItemAlignment()
         {
-            if (model == null || condition.AllLimbsLost || IsHanging || (network != null && network.IsSpawned && network.State != PlayerState.Normal))
+            if (model == null || !model.Animator.isActiveAndEnabled || condition.AllLimbsLost || IsHanging || (network != null && network.IsSpawned && network.State != PlayerState.Normal))
             { if (heldItemVisual != null) heldItemVisual.SetActive(false); return; }
             if (shownItem == ItemUses.UvLamp && !(itemAction != null && Time.time < itemActionUntil))
             {

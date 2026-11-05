@@ -67,7 +67,12 @@ namespace CurtainCall.Telemetry.Pipeline
                 // NGO may despawn the local player before it announces the host disconnect.
                 // Keep the last local run/slot until the room has actually closed.
                 if (session == null || session.ConnectionState == SessionConnectionState.Offline)
-                { currentRun = null; currentSlot = -1; }
+                {
+                    // A room can disappear before Disconnected reaches this subscriber.
+                    // Queue from the saved participant identity before clearing it.
+                    LeaveConfirmed();
+                    currentRun = null; currentSlot = -1;
+                }
                 return;
             }
             currentRun = TelemetryRuntime.SharedRunId(rewards.SessionId, campaign.State.Generation); currentSlot = player.Slot;
