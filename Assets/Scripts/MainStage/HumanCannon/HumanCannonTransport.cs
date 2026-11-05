@@ -47,6 +47,14 @@ namespace CurtainCall.HumanCannon
                 : Vector3.Lerp(via.position, destination.position, second > 0f ? (travelled - first) / second : 1f);
         }
         public bool IsConfigured => platform != null && start != null && destination != null && travelSeconds > 0;
+        /// <summary>Repositions the original device's anchors; its dimensions, timing and overload rule are preserved.</summary>
+        public void SetCourseRoute(Vector3 from, Vector3 to, Quaternion rotation)
+        {
+            start.SetPositionAndRotation(from, rotation);
+            destination.SetPositionAndRotation(to, rotation);
+            via = null;
+            Present(0f);
+        }
         public bool HasTrapDoors => leftHinge != null && rightHinge != null && trapColliders.Length == 2;
         public float EmptyResetSeconds => emptyResetSeconds;
         public bool OverloadTrap => overloadTrap;

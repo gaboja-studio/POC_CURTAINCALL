@@ -51,6 +51,7 @@ namespace CurtainCall.HumanCannon
         /// </summary>
         public static void ServerFallInjury(NetworkPlayer player)
         {
+            if (Current != null && Current.PracticeMode) { ServerFallDeath(player); return; }
             if (player == null || !player.IsServer || player.State != PlayerState.Normal
                 || EscapeDevelopmentSession.FallInjuriesSuppressed(player)) return;
             // 추락 야유를 먼저 알리고 절단한다. 절단으로 사망하면 그 뒤 호응도는 고정된다.
@@ -86,6 +87,7 @@ namespace CurtainCall.HumanCannon
         /// </summary>
         bool TrySpringRebound(NetworkPlayer player, int index, uint revision, uint segment, Vector3 contact)
         {
+            if (PracticeMode) return false;
             var carry = PropCarry.Instance;
             ulong actor = player.OwnerClientId;
             if (carry == null || player.State != PlayerState.Normal || !carry.EquipmentReady(actor, ItemUses.SpringShoes)) return false;

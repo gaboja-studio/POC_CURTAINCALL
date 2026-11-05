@@ -24,6 +24,8 @@ namespace CurtainCall.Tightrope
         List<RelaySpot> spotList;
 
         bool UsesSpots => spotList != null;
+        // 리허설도 공연의 네 봉·무작위 연결·교대 규칙을 쓴다. 연습 모드에서는 유지 시간만 제한하지 않는다.
+        bool UnlimitedHold => UsesSpots || (run != null && run.PracticeMode);
         bool HasGate => course != null && (course.HasRelayGap || UsesSpots);
 
         /// <summary>코스 값의 출발·교대 봉 4개 대신 이 자리들에 봉을 놓는다. 빈 목록이면 코스 값으로 돌아간다.</summary>

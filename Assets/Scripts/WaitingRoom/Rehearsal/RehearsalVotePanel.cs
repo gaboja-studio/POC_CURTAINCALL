@@ -34,6 +34,7 @@ namespace CurtainCall.WaitingRoom
         public bool IsVisible => canvasRoot != null && canvasRoot.activeSelf;
         public string Title => IsVisible ? title.text : "";
         public string Body => IsVisible ? body.text : "";
+        public RectTransform VisibleSurface => IsVisible ? surface : null;
 
         public void Show(string heading, string text, params Choice[] choices)
         {

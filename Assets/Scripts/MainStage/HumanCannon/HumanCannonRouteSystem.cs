@@ -48,6 +48,14 @@ namespace CurtainCall.HumanCannon
         readonly RouteResetBarrier resetBarrier = new();
         double nextSnapshot;
         public static HumanCannonRouteSystem Current { get; private set; }
+        /// <summary>The rehearsal uses the same single departure device, without the later performance hazards.</summary>
+        public void ConfigurePractice(HumanCannonTransport transport, float floorHeight)
+        {
+            if (isActiveAndEnabled) throw new InvalidOperationException("Configure an inactive course before enabling it.");
+            transports = new[] { transport };
+            shelter = null; fires = Array.Empty<HumanCannonFireWall>();
+            shelterStationIndex = shelterStationCount = 0; fallHeight = floorHeight;
+        }
 
         /// <summary>코스 아래 낭떠러지(<c>fallHeight</c> 아래)인지. 경로 시스템이 없으면 false.</summary>
         public static bool IsBelowCourse(Vector3 position) => Current != null && position.y < Current.fallHeight;
@@ -514,6 +522,15 @@ namespace CurtainCall.HumanCannon
             foreach (var transit in runtime) { transit.State.Reset(); transit.Trap.Reset(); transit.Boarding.Reset(); transit.Occupied = transit.Rejected = false; transit.EmptySince = -1; }
             foreach (var fire in fires) if (fire != null) fire.ResetWall();
             for (int i = 0; i < runtime.Length; i++) if (transports[i] != null) transports[i].Present(0);
+        }
+
+        public bool ResetPracticeTransport()
+        {
+            if (cannon == null || !cannon.PracticeMode || session == null || !session.IsHost) return false;
+            if (carriedPilot != null) { carriedPilot.EndTransport(); carriedPilot = null; }
+            carriedTransit = -1;
+            ResetRoute(); revision++; Publish();
+            return true;
         }
 
         static NetworkPlayer FindPlayer(ulong id)

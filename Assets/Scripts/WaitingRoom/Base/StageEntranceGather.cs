@@ -39,6 +39,9 @@ namespace CurtainCall.WaitingRoom
         /// <summary>살아 있는 전체 인원(사망·리타이어 제외).</summary>
         public int AliveCount { get; private set; }
 
+        /// <summary>Use the gathering volume, whose pivot can lie below the raised passage floor.</summary>
+        public Vector3 GuideDestination => area != null ? area.bounds.center : transform.position;
+
         /// <summary>판정 화면에서 전원 집결을 런 진행에 알렸다.</summary>
         public event Action Gathered;
 

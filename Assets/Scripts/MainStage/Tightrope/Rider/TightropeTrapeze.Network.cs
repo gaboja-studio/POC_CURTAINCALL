@@ -119,8 +119,9 @@ namespace CurtainCall.Tightrope
             version++;
             using var writer = new FastBufferWriter(17 + PoleTotal * PoleBytes + flights.Count * FlightBytes, Allocator.Temp);
             writer.WriteValueSafe(round); writer.WriteValueSafe(version); writer.WriteValueSafe(Clock);
-            foreach (var state in poles)
+            for (int i = 0; i < PoleTotal; i++)
             {
+                var state = poles[i];
                 writer.WriteValueSafe(state.Revision); writer.WriteValueSafe(state.Upper); writer.WriteValueSafe(state.Lower);
                 writer.WriteValueSafe(state.Angle); writer.WriteValueSafe(state.Speed); writer.WriteValueSafe(state.Drive);
                 writer.WriteValueSafe(state.Until); writer.WriteValueSafe(state.SampledAt);
