@@ -69,3 +69,4 @@
 - origin/dev(b2764c5b) 병합 충돌 1개 `ExplorationState.cs`: dev의 공연 토큰 표시명과 telemetry 브랜치의 `newlyPlaced`·`RewardDropped`를 함께 유지.
 - dev에 같은 번호 Task-20261105-107(waiting-room-object-layout)이 있어 이 Task를 108로 바꾸고 코드 주석·함정 문서 참조를 갱신.
 - 2026-11-05 dev 병합 후 check-work: 안전성·문서/규칙·컴파일 PASS, 테스트 SKIPPED(자동 테스트 선택 안 함).
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/305
