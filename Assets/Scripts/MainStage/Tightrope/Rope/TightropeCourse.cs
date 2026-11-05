@@ -160,6 +160,11 @@ namespace CurtainCall.Tightrope
         /// <summary>코스 오른쪽(수평, 정규화).</summary>
         public Vector3 Right => Vector3.Cross(Vector3.up, Forward);
 
+        /// <summary>등록된 코스의 줄 지지면만 식별한다. 발판·벽은 제외하며 코스 없는 씬을 탐색하지 않는다.</summary>
+        public static bool IsRopeSurface(Collider surface) => surface != null && current != null &&
+            (current.ropeSurfaces.ContainsKey(surface)
+                || current.useSceneGeometry && Array.IndexOf(current.sceneRopes, surface) >= 0);
+
         /// <summary>사망한 몸이 줄의 보행용 지지면에 걸리지 않고 아래로 떨어지게 한다. 플랫폼 충돌은 유지한다.</summary>
         public void IgnoreRopeCollision(Collider body)
         {

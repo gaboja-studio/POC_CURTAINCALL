@@ -1,6 +1,6 @@
 # Project Pitfalls
 
-- [escape-view-and-injured-steps.md](escape-view-and-injured-steps.md) — 외줄 자유 시선의 조작/게이지 방향과 절단 후 필수 단차를 확인할 때
+- [escape-view-and-injured-steps.md](escape-view-and-injured-steps.md) — 외줄 조작/게이지 방향·매달림 카메라 압착·절단 후 필수 단차를 확인할 때
 
 - [waiting-room-panel-font-owner.md](waiting-room-panel-font-owner.md) — 공연·밤 전환 뒤 퀘스트가 비거나 패널 폰트가 삭제될 때
 
