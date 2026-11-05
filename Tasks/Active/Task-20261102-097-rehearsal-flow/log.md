@@ -5,6 +5,9 @@
 ## 2026-11-05 후속 제출
 - 사용자 저장·제출 요청. Unity 종료 후 origin/dev 7bfa26c6 최신 확인, 자동 생성 escape-labels 캐시는 별도 stash로 보존·제출 제외했다. PR #294가 병합되어 후속 브랜치 feat/rehearsal-flow-v19를 만들었다.
 - 원본 WaitingRoom 씬·Base GUID·기본 공간 설정·마네킹·외부 에셋 gitlink 변경 없음. 변경/버그 수정/검사 범위는 [v19 감사](wiki-v19-audit.md)에 정리했다. 신규 플레이 검사는 사용자에게 맡기고 저장 전 필수 검사만 진행한다.
+- 제출 직전에도 Unity 종료/fetch로 최신 dev 7bfa26c6 포함을 확인했다. 필수 검사 PASS 후 9b65cb0b를 저장·push하고 [PR #301](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/301)을 dev 대상으로 제출했다. 변경/버그 목록과 실제 4인 검사 미실행 등 한계를 PR에 분리 기록했다.
+- @gyumin9048-ctrl 검토 요청 완료(PM 팀 검토 요청도 존재). GitHub 연결 도구의 PR 생성 권한403은 로그인된 gh로 처리했다. 이후 팀원 MoHoDu가 PR #301을 병합한 것을 확인했다(44f4a4af). 에이전트가 dev 병합을 실행하지는 않았다.
+- Unity 종료 상태에서 dev 44f4a4af와 제출 코드의 트리가 동일함을 확인하고 작업 브랜치도 fast-forward했다. 제출 뒤 링크/완료 기록은 작업 브랜치에 후속 저장하며, 실제 다인 플레이 확인과 원 담당자의 후속 작업이 남아 Task는 Active에 유지한다.
 
 ## 2026-11-05 기획서 재반영·양방향 진입
 - Unity 종료 후 origin/dev=f7cf9ef5 반영 확인(0/0), 기존 캐시 stash 보존. 기획서 v19 본문/첨부 5개 재확인. 사용자 답변으로 3단계 현행 유지·마네킹 보류. 이번 묶음 commit/push 요청 없음.
@@ -49,3 +52,5 @@
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/301 (feat/rehearsal-flow-v19 → dev)
