@@ -9,7 +9,7 @@ source: Task-20261102-097, 기획서 v19·2026-11-05 Base 작업 씬/3단계 유
 
 - 정상 Start/SpaceLink 경로의 실제 외줄 공연은 `Assets/Scenes/Tests/MainStage/Tightrope/Tightrope.unity`다. Tests 폴더 이름만으로 개발 전용이라고 판단하지 않는다.
 - 실제 공연은 일반 Swing=false, 네 봉 Relay=true, 세 봉 Trapeze=true다. 컴포넌트가 있다는 이유만으로 그 기물/표시가 실제 플레이에서 활성이라고 말하지 않는다. 일반 그네의 예측 착지·초록 해제 표시는 휴면 코드에 있지만 정상 공연에서는 생성되지 않는다.
-- 작업 씬은 `Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity`다. 사용자 지시로 WaitingRoom 내용을 먼저 복사했고 원본 WaitingRoom 파일과 Base GUID는 보존한다. Dev 시작 선택 Rehearsal 공개 경로를 사용한다.
+- 작업 씬은 `Assets/Scenes/Tests/WaitingRoom/Base/WaitingRoomBase.unity`다. 사용자 지시로 WaitingRoom 내용을 먼저 복사했고 원본 WaitingRoom 파일과 Base GUID는 보존한다. Dev 시작 선택 Rehearsal 공개 경로를 사용한다. 리허설 구현은 코드·준비 프리팹에 있어 기본 대기실 `WaitingRoom.unity`(Integrated)에서도 같은 리허설이 동작한다(2026-11-05 PlayMode 24건 통합 씬 포함 PASS).
 - 기획서 v19 재반영: **1→2-1→2-2→2-3→3** 순서 유지. 줄 전환, 낮은 봉1개, 낮은 봉2개, 단일 트리거 협동, 목마/공중 봉 학습이다. 3단계는 사용자 답변대로 현행 유지.
 - `TightropeCoursePrepared`·`GameSettings.Tightrope.Course.Clone()`과 원본 활성 봉 컴포넌트를 재사용한다. 줄 개수는2/1/1/2/4, 길이는38/32/38/32/34m이며 단계별 발판·배치는 기획서 구조도를 따른다. 전 구간4줄이라는 이전 지시는 대체됐다.
 - 2-3은 UseSpots로 원본 봉1개를 위쪽 끝에 두고 잡는 동안 아래쪽12~20m를 연결한다. 원본 복제 점유 상태로 모든 화면의 표시/지지면을 갱신하며 30초 만료는 제외한다.

@@ -215,6 +215,12 @@ namespace CurtainCall.WaitingRoom
             Revision++;
             return CarryRefusal.None;
         }
+        public bool ConsumeFloor(int uid)
+        {
+            int index = floor.FindIndex(f => f.Item.Uid == uid);
+            if (index < 0) return false;
+            floor.RemoveAt(index); Revision++; return true;
+        }
 
         /// <summary>
         /// 들고 있는 기물을 한 번 쓴다(효과가 실제로 났을 때만 부른다). 횟수를 세는 기물은 1 줄이고, 0이 되면 손에서 없앤다.

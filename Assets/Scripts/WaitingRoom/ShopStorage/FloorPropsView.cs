@@ -145,11 +145,12 @@ namespace CurtainCall.WaitingRoom
                 artwork.hideFlags = HideFlags.DontSave;
                 return artwork;
             }
-            var shape = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bool token = prop.Item.ItemId == ExplorationDrops.PerformanceTokenId;
+            var shape = GameObject.CreatePrimitive(token ? PrimitiveType.Cylinder : PrimitiveType.Cube);
             shape.name = $"FloorProp_{prop.Item.Uid}_{prop.Item.ItemId}";
             Destroy(shape.GetComponent<Collider>());
             shape.hideFlags = HideFlags.DontSave;
-            shape.transform.localScale = Vector3.one * itemSize;
+            shape.transform.localScale = token ? new Vector3(itemSize, .035f, itemSize) : Vector3.one * itemSize;
             var renderer = shape.GetComponent<Renderer>();
             if (material == null)
             {
@@ -157,6 +158,7 @@ namespace CurtainCall.WaitingRoom
                 if (material.HasProperty("_BaseColor")) material.SetColor("_BaseColor", color); // URP Lit
             }
             renderer.sharedMaterial = material;
+            if (token) { var tint = new MaterialPropertyBlock(); tint.SetColor("_BaseColor", new Color(1f, .72f, .12f)); tint.SetColor("_Color", new Color(1f, .72f, .12f)); renderer.SetPropertyBlock(tint); }
             return shape;
         }
 
