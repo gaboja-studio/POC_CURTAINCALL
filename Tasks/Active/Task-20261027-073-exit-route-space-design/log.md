@@ -32,3 +32,5 @@
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/298 (feat/exit-route/design-map → dev)
