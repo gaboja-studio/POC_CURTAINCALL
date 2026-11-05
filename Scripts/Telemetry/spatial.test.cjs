@@ -38,6 +38,18 @@ test('new payload contracts validate as a complete uploaded batch and reject mal
 });
 const html=fs.readFileSync(__dirname+'/dashboard.html','utf8'),poseSource=html.slice(html.indexOf('function replayPose('),html.indexOf('function renderSpatialReplay('));vm.runInContext(poseSource,ctx);
 function point(time,x,floor=0,type='SPATIAL_SAMPLE'){return {timeMs:time,floorY:floor,position:{x,y:floor,z:0},event:{eventType:type}};}
+test('tightrope base survives missing geometry; relay updates are lane-specific and reversible',()=>{
+ const base=require('./tightrope-map.json'),lane=2,initial=base.lanes[lane].spans;
+ assert.equal(ctx.tightropeBase('0.2.1','Tightrope'),base.id);
+ assert.equal(ctx.tightropeBase('0.2.1','CANNON'),null);
+ const connected=[[initial[0][0],initial[1][1]],...initial.slice(2)];
+ const update=(timeMs,ropeSpans)=>({timeMs,event:{payload:{lane,ropeSpans}}});
+ const changes=[update(100,connected),update(200,initial),update(300,[])];
+ const at=t=>ctx.ropeStateAt(base,changes,t);
+ assert.equal(at(0).get(lane),initial);assert.equal(at(200).get(lane),initial);
+ assert.deepEqual(at(300).get(lane),[]);assert.equal(at(150).get(lane),connected);
+ assert.equal(at(150).get(0),base.lanes[0].spans);
+});
 test('playback seeks backwards and interpolates only observed same-floor movement',()=>{
  const track=[point(0,0),point(5000,10)];assert.equal(ctx.replayPose(track,2500).position.x,5);assert.equal(ctx.replayPose(track,-1),null);assert.equal(ctx.replayPose(track,1000).position.x,2);
  assert.equal(ctx.replayPose([point(0,0),point(5000,10,4)],2500).position.x,0);
