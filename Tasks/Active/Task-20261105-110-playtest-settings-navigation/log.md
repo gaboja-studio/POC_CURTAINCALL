@@ -22,5 +22,7 @@
 - origin/dev fetch 및 작업 브랜치 반영 결과 eb086e19로 동일, 추가 변경·충돌 없음. 소스·설정은 직전 검사와 같아 컴파일·관련101건 결과 재사용.
 - 기존 escape-labels.asset SHA256 D47C06125FDC23D7978DA433677FCEB79BADE30CD972734F26929A1C4B1459DA와 ThirdParty Lit/LitTransparent shader 2건은 보존하며 PR에 포함하지 않는다. 관련 파일만 명시적으로 stage한다.
 - 제출 전 verify-scope 및 verify-fast PASS. 기존 문서 길이 WARN·ThirdParty 2건 보존 경고 외 실패 없음. 게임 코드·설정은 이전 check-work 및 관련101건 검사 시점과 동일하다.
+- 구현 commit 5807879c를 작업 브랜치에 push. new-pr DryRun은 보존 중인 기존 폰트의 미커밋 상태를 경고하므로 전체 저장을 하지 않고, 확인한 head/base와 준비한 본문 파일로 gh PR을 생성했다.
+- PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/313 (feat/playtest-settings-navigation → dev). 기존 폰트와 외부 에셋 변경은 PR diff에서 제외됨. dev 병합은 지정 팀원 검토 후 진행한다.
 
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

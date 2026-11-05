@@ -11,4 +11,4 @@
 - [x] 아주 쉬운 설정 변경 가이드 제공
 - [x] 관련 회귀 검사·check-work 및 지식/결과 기록
 - [x] 제출 전 Unity 종료·최신 origin/dev fetch 및 작업 브랜치 반영(eb086e19, 추가 변경·충돌 없음)
-- [ ] 관련 변경만 commit/push 및 dev PR 제출
+- [x] 관련 변경만 commit/push 및 dev PR 제출 (#313)
