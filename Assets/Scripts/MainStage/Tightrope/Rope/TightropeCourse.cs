@@ -391,8 +391,31 @@ namespace CurtainCall.Tightrope
             int lane = 0, chosen = Mathf.Max(0, slot) % Mathf.Max(1, available);
             for (int i = 0; i < LaneCount; i++)
                 if (Layout.GetLaneEnd(i) >= FinishDistance && chosen-- == 0) { lane = i; break; }
-            float distance = FinishDistance + Mathf.Clamp(Shape.FinishPlatformLength * 0.5f, 0.5f, 2f);
+            float length = TryGetFinishPlatformBounds(out var floor) ? floor.size.z : Shape.FinishPlatformLength;
+            float distance = FinishDistance + Mathf.Clamp(length * 0.5f, 0.5f, 2f);
             return new Pose(GetLanePosition(lane, distance), Quaternion.LookRotation(Forward, Vector3.up));
+        }
+
+        /// <summary>런타임 도착대 가로/길이 배율. 공연 기본값은 1이며 출발대·중간 발판은 바꾸지 않는다.</summary>
+        public float FinishPlatformScale { get; set; } = 1f;
+
+        /// <summary>도착대의 코스 좌표 경계. 메시·충돌체·리허설 도착/벽 판정이 같은 치수를 사용한다.</summary>
+        public bool TryGetFinishPlatformBounds(out Bounds floor)
+        {
+            var l = Layout;
+            float min = float.MaxValue, max = float.MinValue;
+            for (int lane = 0; lane < l.LaneCount; lane++)
+            {
+                if (l.GetLaneEnd(lane) < l.FinishDistance) continue;
+                min = Mathf.Min(min, l.GetLaneSide(lane)); max = Mathf.Max(max, l.GetLaneSide(lane));
+            }
+            floor = default;
+            if (min > max) return false;
+            float scale = float.IsFinite(FinishPlatformScale) ? Mathf.Max(.1f, FinishPlatformScale) : 1f;
+            float length = Shape.FinishPlatformLength * scale;
+            floor = new Bounds(new Vector3((min + max) * .5f, -Shape.PlatformThickness * .5f, l.FinishDistance + length * .5f),
+                new Vector3((max - min + Shape.SideMargin * 2f) * scale, Shape.PlatformThickness, length));
+            return true;
         }
 
         /// <summary>위치가 도착 거리에 닿았는지.</summary>
@@ -635,23 +658,13 @@ namespace CurtainCall.Tightrope
             BuildSectionSigns();
 
             // 도착 선과 도착 플랫폼: 도착까지 가는 줄들을 덮는다
-            float finishMin = float.MaxValue, finishMax = float.MinValue;
-            for (int lane = 0; lane < l.LaneCount; lane++)
+            if (TryGetFinishPlatformBounds(out var finishFloor))
             {
-                if (l.GetLaneEnd(lane) < l.FinishDistance) continue;
-                finishMin = Mathf.Min(finishMin, l.GetLaneSide(lane));
-                finishMax = Mathf.Max(finishMax, l.GetLaneSide(lane));
-            }
-            if (finishMin <= finishMax)
-            {
-                float finishWidth = finishMax - finishMin + c.SideMargin * 2f;
-                float center = (finishMin + finishMax) * 0.5f;
-                CreateBox("FinishLine", new Vector3(center, 0.01f, l.FinishDistance),
-                    new Vector3(finishWidth, 0.02f, 0.1f), finishColor, false);
+                CreateBox("FinishLine", new Vector3(finishFloor.center.x, 0.01f, l.FinishDistance),
+                    new Vector3(finishFloor.size.x, 0.02f, 0.1f), finishColor, false);
                 if (c.FinishPlatformLength > 0f)
                 {
-                    var finishPlatform = CreateBox("FinishPlatform", new Vector3(center, -c.PlatformThickness * 0.5f, l.FinishDistance + c.FinishPlatformLength * 0.5f),
-                        new Vector3(finishWidth, c.PlatformThickness, c.FinishPlatformLength), platformColor, true);
+                    var finishPlatform = CreateBox("FinishPlatform", finishFloor.center, finishFloor.size, platformColor, true);
                     TightropeOutline.AttachToHierarchy(finishPlatform);
                 }
             }

@@ -28,7 +28,7 @@ namespace CurtainCall.WaitingRoom
         const float RecoverSeconds = 1.5f;
         const string RingDeckPath = "LegacyRing/PracticeRing/DeckCollider";
         /// <summary>연습실 링에 원래 있던 연습 소품(탑·사다리·트램펄린·대포·그물·옛 줄)과 사다리 뒤 막이. 리허설 동안 숨긴다(사용자 요청 2026-11-02·04).</summary>
-        static readonly string[] RingPropPaths = { "LegacyRing/PracticeLanes", "LegacyRing/CollisionRepairs" };
+        static readonly string[] RingPropPaths = { "LegacyRing/PracticeLanes", "LegacyRing/CollisionRepairs", "RoundArena/Frame8Boundary" };
         static readonly Vector3 FallbackRingCenter = new(-20f, .6f, 128.5f);
 
         enum Operation : byte { Sync, Vote, Placed, SkipVote, PracticePropose, PracticeAnswer }
@@ -315,6 +315,7 @@ namespace CurtainCall.WaitingRoom
             courseRoot.name = $"RehearsalCourse_{s.Id}";
             courseRoot.transform.position = ringCenter + new Vector3(0f, CourseHeight, -(s.Finish - 1f) * .5f);
             course = courseRoot.GetComponent<TightropeCourse>();
+            course.FinishPlatformScale = 2f;
             course.ImportShape(s.CourseJson);
             course.SetLocked(true, "리허설 단계 배치");
             // 리허설 단계는 이미 호스트가 공유한다. 공연 대기실용 모양 동기화가 덮어쓰지 않게 한다.
@@ -400,7 +401,7 @@ namespace CurtainCall.WaitingRoom
                 if (placed.Contains(player.OwnerClientId))
                 {
                     changed |= ObserveLesson(player);
-                    if (LearnedSkill(player) && (s.Kind == RehearsalStageKind.Trapeze || IsFinished(player))
+                    if ((!s.RequiresSkillForArrival || LearnedSkill(player)) && (s.Kind == RehearsalStageKind.Trapeze || IsFinished(player))
                         && arrived.Add(player.OwnerClientId))
                     {
                         changed = true;
@@ -414,8 +415,7 @@ namespace CurtainCall.WaitingRoom
             if (arrived.Count == 0 && votes.Count > 0) { votes.Clear(); changed = true; }
             if (participantCount != participants.Count) { participantCount = participants.Count; changed = true; }
             if (changed) { version++; Publish(); }
-            if (participantCount == 0 || arrived.Count == 0) return;
-            if (s.Rule != RehearsalClearRule.Anyone && arrived.Count < participantCount && votes.Count <= participantCount / 2) return;
+            if (!s.CanAdvance(participantCount, arrived.Count, votes.Count)) return;
             RecordAction("STAGE_CLEARED", reason: arrived.Count == participantCount ? "ALL_ARRIVED" : s.Rule == RehearsalClearRule.Anyone ? "ANY_ARRIVED" : "MAJORITY_NEXT");
             AdvanceStage();
         }
@@ -459,11 +459,12 @@ namespace CurtainCall.WaitingRoom
         /// <summary>도착대 위에 서 있는지(위치 기준, 모든 화면이 같은 코스를 가진다).</summary>
         bool IsFinished(NetworkPlayer player)
         {
-            if (course == null || player.State != PlayerState.Normal || player.IsAirborne) return false;
+            if (course == null || player.State != PlayerState.Normal || player.IsAirborne
+                || !course.TryGetFinishPlatformBounds(out var floor)) return false;
             var p = player.transform.position;
-            return course.HasReachedFinish(p) && Mathf.Abs(course.GetSide(p)) <= (course.LaneCount - 1) * course.Shape.LaneSpacing * .5f + course.Shape.SideMargin
-                && Mathf.Abs(p.y - course.transform.position.y) < .8f
-                && course.GetDistance(p) <= course.FinishDistance + course.Shape.FinishPlatformLength + .5f;
+            float side = course.GetSide(p), distance = course.GetDistance(p);
+            return side >= floor.min.x && side <= floor.max.x && distance >= floor.min.z && distance <= floor.max.z
+                && Mathf.Abs(p.y - course.transform.position.y - floor.max.y) < .8f;
         }
 
         // ── 공유 ───────────────────────────────────────────
@@ -471,13 +472,32 @@ namespace CurtainCall.WaitingRoom
         void Connect()
         {
             var state = session != null ? session.ConnectionState : SessionConnectionState.Offline;
-            if (registered && registeredFor == state) return;
+            var next = state is SessionConnectionState.Host or SessionConnectionState.Client
+                ? session.NetworkManager?.CustomMessagingManager : null;
+            if (registered && registeredFor == state && messaging == next) return;
+            bool previousClient = registered && registeredFor == SessionConnectionState.Client;
             Unregister();
-            messaging = session != null && session.NetworkManager != null ? session.NetworkManager.CustomMessagingManager : null;
+            if (previousClient || state == SessionConnectionState.Client) ResetClientSession();
+            messaging = next;
+            registeredFor = state;
             if (messaging == null) return;
-            registeredFor = state; registered = true;
+            registered = true;
             if (state == SessionConnectionState.Host) messaging.RegisterNamedMessageHandler(RequestMessage, HandleRequest);
             else if (state == SessionConnectionState.Client) messaging.RegisterNamedMessageHandler(StateMessage, HandleState);
+        }
+
+        void ResetClientSession()
+        {
+            if (active) Deactivate();
+            version = round = 0; stage = builtStage = builtRound = -1;
+            completed = practice = ending = practiceVote = practiceSealed = false;
+            endingShown = practiceVoteShown = false;
+            participantCount = voterCount = 0;
+            monitorStarted = -1d; nextSync = 0d;
+            arrived.Clear(); votes.Clear(); placed.Clear(); fallenAt.Clear();
+            skipVotes.Clear(); practiceYes.Clear(); lessonProgress.Clear(); lessonSamples.Clear(); lessonRound = -1;
+            CancelInvoke(nameof(BeginEndingFade));
+            votePanel?.Hide(); fader?.Cancel();
         }
 
         void Unregister()
@@ -539,7 +559,7 @@ namespace CurtainCall.WaitingRoom
                 reader.ReadValueSafe(out Vector3 position);
                 AcceptPlacement(sender, placementRound, position);
             }
-            else if ((Operation)op is Operation.SkipVote or Operation.PracticePropose or Operation.PracticeAnswer)
+            else if ((Operation)op is Operation.PracticePropose or Operation.PracticeAnswer)
                 HandleVoteRequest(sender, (Operation)op, reader);
         }
 

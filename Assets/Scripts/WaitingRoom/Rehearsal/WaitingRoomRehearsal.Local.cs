@@ -343,16 +343,9 @@ namespace CurtainCall.WaitingRoom
         GameObject BuildFinishWalls()
         {
             const float Height = 4f, Thickness = .3f;
-            var layout = course.Layout;
-            float min = float.MaxValue, max = float.MinValue;
-            for (int lane = 0; lane < layout.LaneCount; lane++)
-            {
-                if (layout.GetLaneEnd(lane) < layout.FinishDistance) continue;
-                min = Mathf.Min(min, layout.GetLaneSide(lane)); max = Mathf.Max(max, layout.GetLaneSide(lane));
-            }
-            if (min > max) return null;
-            float side = (min + max) * .5f, half = (max - min) * .5f + course.Shape.SideMargin;
-            float near = course.FinishDistance - .4f - Thickness * .5f, far = course.FinishDistance + course.Shape.FinishPlatformLength + Thickness * .5f;
+            if (!course.TryGetFinishPlatformBounds(out var floor)) return null;
+            float side = floor.center.x, half = floor.extents.x;
+            float near = floor.min.z - .4f - Thickness * .5f, far = floor.max.z + Thickness * .5f;
             float mid = (near + far) * .5f, length = far - near + Thickness;
             var root = new GameObject("RehearsalFinishWalls");
             root.transform.SetParent(courseRoot.transform, true);
@@ -428,7 +421,13 @@ namespace CurtainCall.WaitingRoom
                 placementLock = mover; placementControl = mover.ControlEnabled;
                 mover.SetControlEnabled(false);
             }
-            if (!IsStartPosition(local.transform.position)) return;
+            if (!IsStartPosition(local.transform.position))
+            {
+                // 배치 승인 전에 몸 충돌로 출발대 밖에 밀려도 잠긴 채 영구 대기하지 않는다.
+                PlaceLocalAtStart();
+                mover.SetControlEnabled(false);
+                if (!IsStartPosition(local.transform.position)) return;
+            }
             if (HasAuthority)
             {
                 AcceptPlacement(local.OwnerClientId, round, local.transform.position);
@@ -557,6 +556,9 @@ namespace CurtainCall.WaitingRoom
                         ? Quest("mount-balance", "A/D로 균형을 잡으며 아래 동료와 2m 이동하세요.")
                         : Quest("mount-jump", "도착대 가까이에서 W + Space로 목마에서 앞으로 도약해 착지하세요.");
             }
+            if (s.Kind == RehearsalStageKind.LaneChange && !local.IsAirborne && mover.FreeMovement
+                && distance >= course.Layout.GetLaneEnd(0) && distance < course.FinishDistance)
+                return Quest("lane-platform", "발판에서는 W/S·A/D로 이동합니다. 옆줄을 향해 이동하며 Space로 점프하세요. 줄 위에서는 Q/E + Space로 옆줄에 건너갑니다.");
             if (s.Kind == RehearsalStageKind.LaneChange && myLane == 0 && distance >= s.CheckpointDistance)
                 return Quest("lane-jump", "Q, E + Space를 이용해 건너편 줄로 넘어가세요.");
             return Quest("balance", "W/S로 이동하고 A/D로 균형을 잡으며 외줄을 건너세요.");

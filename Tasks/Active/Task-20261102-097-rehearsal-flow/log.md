@@ -1,5 +1,16 @@
 # 작업 로그
 
+## 2026-11-05 전원 도착 진행 차단 조사
+- 사용자 재현: 공연 전 외줄1단계에서 본인과 팀원 전원 도착 후 진행 안 됨. 도착 발판2배 요청. 현재 Editor.log에는 해당 실제 세션의 Rehearsal 재현 로그가 없어 코드/상태 순서로 조사한다.
+- Unity stopped·Base 미저장0 확인 후 정상 종료. 생성 escape-labels 캐시는 stash로 보존하고 최신 dev e95b6d9b/private gitlink 불변 확인 후 fix/rehearsal-arrival 생성. PR301 이후 dev의 공연/로딩/입력/로그 수정도 포함한다.
+- 재현: 외줄1단계 옆줄 점프 비트가 없으면 실제4명 도착/첫 도착도 집계되지 않아 다음 단계·과반 투표가 모두 잠긴다(EditMode 최초2/2 FAIL). 중간 발판의 원본 입력은 Q/E 줄점프가 아닌 자유 이동/Space다. 기획상 완료는 실제 전원 도착이므로 기록 필수 조건을 제거하고 발판 안내도 바로잡았다.
+- 확대 검사에서 대포의 중간/반동 기록 필수 조건·바닥 가장자리15cm 제외, 외줄 새 방에서 이전 version900 유지, 배치 승인 전 출발대 밖으로 밀린 뒤 입력 잠금 영구 대기까지 재현했다(2 PASS/4 FAIL). 두 리허설의 실제 바닥 도착·배치 복구, 외줄 새 연결 초기화로 수정했다. 이전 회차의 넘기기 투표도 거절한다.
+- 외줄 전체5단계 도착대 가로·길이 각각2배, 메시/충돌/도착/벽 경계를 공통화했다. Base 공간 조회에서 1·3단계가 RoundArena/Frame8Boundary와 겹쳐 리허설 중 숨기고 종료 때 원래 상태로 복원한다. 최종 도착공간5곳/대포 발판4곳의 고정 장애물 없음. 씬 파일은 수정하지 않았다.
+- 수정 후 EditMode31/31 PASS(0.58초): 가상 참가자4명/호스트 판정·회차·재접속 상태·배치/도착 경계·필수 기물 조건·벽 복원. 실제 네트워크4인/PlayMode 검사는 사용자 지시대로 실행하지 않았다. 결과 arrival-final-result.json 및 arrival-floor-clearance-final.json은 .harness/local/rehearsal에 보존한다.
+- 최신 기획서 재조회는 Confluence 재인증 요구로 실패했다. 기존 저장 v19 전체를 재대조했으며 실시간 조회 성공으로 기록하지 않는다. doctor 기존 Task097 중복 실패는 이전 기록대로 유지, 같은 작업에서 반복하지 않았다.
+- 사용자 최신 dev 재확인 때 원격4ac2e6b3 발견. Unity clean/stopped 확인 후 종료, WIP fb1083bc stash 보존→fetch/fast-forward→복원(충돌 없음). 자동 생성 escape-labels는 별도 stash 보존. 트램펄린 낙사 복구·목마/줄 이탈·공연 복귀·상점 수정 포함, private gitlink c1e64a6d 불변.
+- dev4ac2e6b3 반영 후 진행 차단31/31(0.16초), 공용 지지면/목마57/57(10.22초) EditMode PASS, 컴파일 오류 없음. 결과 arrival-dev4ac2e6b3-result.json/surface-dev4ac2e6b3-result.json. Base/원본 WaitingRoom/기본 씬 설정·외부 에셋 미수정. 새 commit/push 없이 Base 편집 씬을 열어 둔다.
+
 - 이전 PR #294 제출·검증 기록: [History/007](History/007-before-bug-followup-log.md).
 
 ## 2026-11-05 후속 제출
@@ -61,3 +72,7 @@
 - Unity 종료 확인 후 origin/dev e95b6d9b까지 fast-forward. 변경은 stash로 보존/복원했고 log.md 충돌만 dev 내용+이번 기록으로 해결. `_ThirdParty`는 c1e64a6d로 갱신, verify-third-party OK. 커밋·push 없음.
 - dev e95b6d9b 기준: 컴파일 up_to_date, RestTimeRulesTests 5/5 PASS. PerformanceEntryJudgeTests PlayMode 재실행은 에디터 종료로 결과를 받지 못했다(동기화 전 5/5 PASS). 실제 다인 플레이는 사람 확인 대기.
 - 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/307 (feat/rehearsal-flow → dev). new-pr.ps1는 이번 작업과 무관한 미커밋 변경(escape-labels.asset, _ThirdParty 셰이더 2개)으로 중단되어 같은 템플릿으로 gh에서 직접 등록했다.
+
+- 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-05 사용자 저장·제출 요청. Unity 종료 후 origin/dev 4ac2e6b3와 HEAD 차이 0/0 확인. 종료 중 갱신된 escape-labels 캐시는 별도 stash에 보존. 같은 코드의 EditMode 88/88 결과를 제출 검사에 기록한다.

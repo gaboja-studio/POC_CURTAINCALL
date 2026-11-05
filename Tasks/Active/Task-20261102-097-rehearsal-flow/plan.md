@@ -3,16 +3,18 @@
 - **Title:** 리허설 구조·흐름·가이드 기획서 재반영
 - **Type:** feat
 - **Assignee:** @gyumin9048-ctrl (형락 임시 대리 작업)
-- **Branch:** feat/rehearsal-flow-v19
+- **Branch:** fix/rehearsal-arrival
 - **Base:** dev
 
 ## 현재 기준 (2026-11-05)
+- 후속 결함: 공연 전 외줄1단계 전원 도착 후 정체와 외줄/대포의 유사 진행 차단을 수정한다. 외줄 도착 발판 가로·길이는 각각2배, 판정·벽도 실제 바닥과 일치시킨다. 단계 순서와 기물 학습은 유지한다.
+- Unity 저장 상태 확인·종료 후 dev e95b6d9b에서 수정 브랜치를 생성했다. 기존 제출 기록은 feat/rehearsal-flow-v19에 보존하고 자동 생성 캐시는 stash로 분리했다.
 - Confluence [M2 리허설 기획서](https://hrjoo122770.atlassian.net/wiki/spaces/bYmkRlnpusng/pages/33619991/M2+-) v19 본문 전체와 첨부 구조도 5개를 확인했다.
 - 최신 사용자 요청: 줄 개수·단계 구성·흐름·가이드 패널을 기획서에 맞춘다. 인간 그네는 실제 Start 연결 공연의 봉이다. 휴면 Swing 구현으로 교체하지 않는다.
 - **3단계는 현행 유지**라는 추가 답변을 우선한다. 기존 4줄·목마·높은 봉 2개 학습/완료 방식은 변경하지 않는다. 문서의 4줄 트리거 문장과 수정본 단일 공중 봉→낮은 봉 도면의 불일치를 사용자에게 확인한 결과다.
 - 목마는 유지한다. 마네킹 모델 문제는 사용자가 지금 건너뛰라고 했으므로 보류한다.
-- **작업 시작/재개 전과 제출 직전 origin/dev를 fetch하고 최신 내용을 작업 브랜치에 반영한다.** Unity 종료·기존 변경 보존 후 진행한다. 그네 후속 최종 기준 dev 7bfa26c6/private c1e64a6d. 이전 변경과 각 동기화 전 stash를 보존 후 복원했다.
-- 앞선 PR #294는 dev에 병합됐다. 2026-11-05 사용자 저장·제출 요청으로 이번 변경은 후속 브랜치 feat/rehearsal-flow-v19에서 commit/push하고 dev 대상 PR을 만든다. dev 병합은 지정 팀원 검토 후 별도 요청한다.
+- **작업 시작/재개 전과 제출 직전 origin/dev를 fetch하고 최신 내용을 작업 브랜치에 반영한다.** Unity 종료·기존 변경 보존 후 진행한다. 이번 시작 기준 e95b6d9b, 작업 중 새 dev **4ac2e6b3**도 반영했다. private c1e64a6d 불변, WIP stash fb1083bc 보존/복원.
+- 앞선 PR #294·#301은 dev에 병합됐다. 사용자 저장·제출 요청에 따라 진행 차단 수정은 fix/rehearsal-arrival에서 커밋·푸시하고 dev 대상 PR로 제출한다.
 
 ## JIRA
 - [CC-239](https://hrjoo122770.atlassian.net/browse/CC-239)

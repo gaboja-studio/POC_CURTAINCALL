@@ -34,7 +34,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var course = (Component)Priv(rehearsal, "course");
                 var shape = Get(course, "Shape");
                 Assert.AreEqual(4f, (float)Get(shape, "StartPlatformLength"), .01f, "출발대 길이");
-                Assert.AreEqual(3f, (float)Get(shape, "FinishPlatformLength"), .01f, "도착대 길이");
+                Assert.AreEqual(3f, (float)Get(shape, "FinishPlatformLength"), .01f, "원본 도착대 설정 유지");
+                Assert.AreEqual(2f, Get(course, "FinishPlatformScale"), "리허설 도착대 가로/길이만 2배");
+                Physics.SyncTransforms();
+                Assert.AreEqual(6f, course.transform.Find("Generated/FinishPlatform").GetComponent<Collider>().bounds.size.z, .01f);
                 Assert.AreEqual(Get(Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Course"), "SideMargin"), Get(shape, "SideMargin"), "실제 공연 발판 폭을 복사한다");
                 var room = GameObject.Find("S09_PracticeRoom").transform;
                 Assert.IsFalse(room.Find("LegacyRing/PracticeLanes").gameObject.activeSelf, "리허설 중 링의 옛 연습 소품을 숨긴다");
