@@ -425,11 +425,10 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return;
             var player = NetworkPlayer.Local;
-            // 연습 모드는 줄 아래 바닥에 닿으며 일반 이동으로 바뀌어도 추락을 놓치지 않는다.
-            // 그렇지 않으면 상태가 Normal인 채 바닥에 남아 리허설 재시작을 받을 수 없다.
-            var practice = GetComponent<TightropeRun>();
-            if (!UsesRopeRules(player) && !(practice != null && practice.PracticeMode
-                && practice.State == TightropeRunState.Running)) return;
+            // 묘기 진행 중이면 줄 조작이 아니어도(줄에 오르기 전 시작 플랫폼, 줄 아래 바닥에 닿아 일반 이동으로 바뀐 경우)
+            // 줄 위 낙사와 같이 사망시킨다. 연습 모드에서도 Normal인 채 바닥에 남지 않아 리허설 재시작을 받는다(2026-11-05 사용자 요청).
+            var run = GetComponent<TightropeRun>();
+            if (!UsesRopeRules(player) && !(run != null && run.State == TightropeRunState.Running)) return;
             if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return;
             if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)) return;
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return;
