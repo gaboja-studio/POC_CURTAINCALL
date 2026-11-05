@@ -16,7 +16,9 @@ namespace CurtainCall.WaitingRoom
         bool suspendedTutorial;
         string tutorialDoneKey = "";
         CampaignRun tutorialRun;
-        readonly object teamLock = new();
+        // 진단 로그(InputGate.Describe)에서 이름으로 보이도록 전용 타입을 쓴다.
+        sealed class TeamWaitLock { }
+        readonly TeamWaitLock teamLock = new();
         StageEntranceGather gather;
         ScheduleBoardView board;
         DemoRunEnding dayTransition;

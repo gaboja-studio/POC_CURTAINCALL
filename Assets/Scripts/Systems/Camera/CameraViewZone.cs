@@ -28,8 +28,18 @@ namespace CurtainCall.Cameras
         }
 
         void FixedUpdate() => RefreshRequest();
-        void OnTriggerEnter(Collider other) => RefreshRequest();
-        void OnTriggerExit(Collider other) => RefreshRequest();
+        // 트리거 이벤트는 반응만 앞당긴다(FixedUpdate가 매 tick 다시 본다). 내 캐릭터가 아닌 물체의 이벤트는 무시한다.
+        // 대기실은 거의 모든 콜라이더가 Default 레이어라, 진입 프레임에 벽·소품 이벤트 2584회가 매번 OverlapBox를 돌려
+        // 약 2초를 썼다(Task-20261105-107). 판정 기준(내 NetworkPlayer 아래 콜라이더)은 ContainsLocal과 같다.
+        void OnTriggerEnter(Collider other) { if (IsLocalCollider(other)) RefreshRequest(); }
+        void OnTriggerExit(Collider other) { if (IsLocalCollider(other)) RefreshRequest(); }
+
+        static bool IsLocalCollider(Collider other)
+        {
+            var local = NetworkPlayer.Local;
+            // 내 캐릭터가 없으면 기존처럼 정리(Release)만 하도록 넘긴다.
+            return local == null || (other != null && other.transform.IsChildOf(local.transform));
+        }
         void OnDisable() => Release();
 
         void RefreshRequest()

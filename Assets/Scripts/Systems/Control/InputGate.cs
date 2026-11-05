@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -82,6 +83,33 @@ namespace CurtainCall.Player
         }
 
         public static void Unregister(PlayerInputReader reader) => readers.Remove(reader);
+
+        /// <summary>
+        /// 진단용: 지금 막고 있는 요청자와 "키를 놓을 때까지 대기" 상태를 한 줄로 적는다. 동작은 바꾸지 않는다.
+        /// 파괴됐는데 해제하지 않은 요청자는 "(파괴됨)"으로 표시한다(Task-20261105-107).
+        /// </summary>
+        public static string Describe()
+        {
+            var parts = new List<string>();
+            foreach (var requester in blockers)
+            {
+                if (requester is Type type) parts.Add(type.Name);
+                else if (requester is UnityEngine.Object unity)
+                    parts.Add(unity == null ? requester.GetType().Name + "(파괴됨)"
+                        : $"{requester.GetType().Name}({unity.name}{(unity is Component c ? "@" + c.gameObject.scene.name : "")})");
+                else parts.Add(requester.GetType().FullName);
+            }
+            var waiting = new List<string>();
+            if (rearming)
+            {
+                foreach (var reader in readers)
+                    if (reader != null && reader.isActiveAndEnabled && !reader.ControlsReleased) waiting.Add(reader.name);
+                var keyboard = Keyboard.current;
+                if (keyboard != null)
+                    foreach (var key in releaseKeys) if (keyboard[key].isPressed) waiting.Add(key.ToString());
+            }
+            return $"요청자[{string.Join(", ", parts)}] 키놓기대기={rearming}" + (waiting.Count > 0 ? $"[{string.Join(", ", waiting)}]" : "");
+        }
 
         /// <summary>남은 입력을 지우고, 모든 키를 놓을 때까지 입력을 막는다(장면 전환·재시작 직후 등).</summary>
         public static void RequireRelease()

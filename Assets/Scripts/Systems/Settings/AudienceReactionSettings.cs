@@ -11,7 +11,10 @@ namespace CurtainCall.Settings
     public sealed class AudienceReactionSettings : ScriptableObject
     {
         public const string ResourcePath = "Settings/GameSettings/Tricks/Rewards/temporary-audience";
-        public static AudienceReactionSettings Current => Resources.Load<AudienceReactionSettings>(ResourcePath);
+        static AudienceReactionSettings cached;
+        // 매 프레임 동기 Resources.Load 금지: 공연 배경 비동기 로드 중이면 그 로드가 끝날 때까지 메인 스레드가 멈춰 Relay가 끊긴다(Task-20261105-107).
+        public static AudienceReactionSettings Current => cached != null ? cached : cached = Resources.Load<AudienceReactionSettings>(ResourcePath);
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)] static void Preload() => _ = Current;
         [Header("단계별 행동 환호 배율")]
         [InspectorName("1단계 환호 배율")]
         [Tooltip("1단계의 장애물 회피·협동·기물·플랫폼·그네·환호 포인트 등 행동 환호에 곱할 값입니다. 2이면 기본 +5가 +10이 됩니다. 야유·관심 감소·절단 보너스·호응도 상한·완주 보너스에는 적용하지 않습니다.")]
