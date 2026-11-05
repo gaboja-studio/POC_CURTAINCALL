@@ -46,3 +46,13 @@
 - 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 - 최종 확인: 상자11/11의 두 항목·확률15/20 및 UID 설정 유효. 열쇠 표시/상호작용 지점 모두 (27.48,.04,43.26), reveal locked-box-1 유지. 씬 dirty0. check-work 안전성/문서/컴파일 PASS, 테스트 SKIPPED. 플레이 실행 없음.
 - 사용자 커밋 요청: 배치 에디터·보상/토큰·지면 판정·WaitingRoom 사용자 배치 및 열쇠/보상 설정·Task/지식 문서를 저장한다. 별도 폰트/사운드/ThirdParty 변경은 제외한다. push는 요청하지 않아 실행하지 않는다.
+
+## 2026-11-05 dev 동기화·리허설 통합 확인
+- fetch 결과 origin/dev(44f4a4af)는 이미 HEAD에 병합돼 있어 뒤처짐 0, 새 병합 없음. Unity는 열린 상태였으나 병합할 내용이 없어 종료하지 않았다.
+- 씬 3-way 비교(스크래치에 git show로 추출, 오브젝트 fileID 단위): dev의 `WaitingRoomBase.unity`는 이 브랜치 분기 시점의 `WaitingRoom.unity`와 SHA256 7344B9A1… 동일. 즉 Task-097이 WaitingRoom을 Base에 복사한 결과이며 Base에만 있는 씬 오브젝트는 0개다. 리허설 기획 반영(9b65cb0b)은 스크립트·`RehearsalCourseFromPerformance.prefab`·텍스트 변경이고 리허설은 런타임 생성이므로 통합 WaitingRoom에 이미 적용돼 있다. 따라서 씬 이식·충돌 처리는 필요 없었고 WaitingRoom 씬은 수정하지 않았다.
+- 이 브랜치의 WaitingRoom 변경은 분기 시점 대비 추가 309개(낡은 상자·도구 프리팹 자식)/수정 33개(상자 11개 보상·열쇠/상자 위치·이동 기물)뿐이며 Base·dev와 겹치는 수정 없음.
+- 검증: PlayMode `Rehearsal` 필터 24/24 PASS(523초, UnifiedWaitingRoom 통합 씬 2건 포함), EditMode WaitingRoomObjectWindowTests 9/9 PASS. 씬 참조 GUID 678개 중 누락은 내장 리소스 2개뿐.
+- 기존 실패: EditMode `UnifiedWaitingRoomSceneTests` 1건 FAIL — WaitingRoomPursuit과 WaitingRoom의 PursuitPlacement size가 index 6에서 0/1로 다름. dev의 861ea6f7(마네킹 외형)이 두 씬을 다르게 저장한 결과로 이 브랜치 변경과 무관하다. 담당 @MoHoDu 확인 필요, 여기서 수정하지 않았다.
+- 보존: escape-labels.asset 사용자 변경, `_ThirdParty` 로컬 HEAD(6d3fd381, gitlink c1e64a6d 포함)는 커밋에서 제외한다.
+
+- 2026-11-05 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)

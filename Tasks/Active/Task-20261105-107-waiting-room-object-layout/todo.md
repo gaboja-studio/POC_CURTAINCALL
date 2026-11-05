@@ -18,3 +18,9 @@
 - [x] 낡은 상자 배타적 확률 보상·토큰 F 획득/공동 자금 연결 코드
 - [x] 기존 상자11개 보상 설정·트렁크 앞 열쇠 수정 및 씬 저장 (최신 명시 요청으로 완료, Bed_B 충돌체 수정은 제외)
 - [x] 명시 재요청에 따라 기존 상자11개 확률표 적용·트렁크 열쇠 충돌 없는 앞쪽 위치 적용 및 저장
+
+- [x] origin/dev 동기화 확인(이미 반영) 및 Base↔WaitingRoom 씬 3-way 비교
+- [x] 리허설 기능이 통합 WaitingRoom에 적용됐는지 PlayMode 24건·EditMode 9건으로 확인
+- [x] 결과 기록·check-work·저장, dev PR 미리보기
+- [ ] dev PR 등록(사용자 제출 요청 시)·지정 팀원 검토
+- [ ] UnifiedWaitingRoomSceneTests PursuitPlacement size 불일치 — 담당 @MoHoDu 확인
