@@ -100,6 +100,7 @@ namespace CurtainCall.Network.Session
 
         /// <summary>내 접속이 끝났을 때(직접 나감·호스트 종료·연결 실패). 인자는 이유.</summary>
         public event Action<string> Disconnected;
+        public static event Action<ulong> PeerDeparted;
 
         NetworkManager _networkManager;
         ISessionConnector _connector;
@@ -547,6 +548,7 @@ namespace CurtainCall.Network.Session
                     break;
 
                 case ConnectionEvent.ClientDisconnected:
+                    if(networkManager.IsServer && !isLocal) PeerDeparted?.Invoke(data.ClientId);
                     if (networkManager.IsServer)
                         ServerRefresh();
                     else if (isLocal && !_transportFailed)

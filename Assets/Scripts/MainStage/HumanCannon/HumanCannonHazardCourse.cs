@@ -188,8 +188,9 @@ namespace CurtainCall.HumanCannon
                                 foreach (Action<NetworkPlayer, HumanCannonHazard, Vector3> observer in ContactDetected.GetInvocationList())
                                     try { observer(player, hazard, Vector3.Lerp(before, feet, t)); }
                                     catch (Exception error) { Debug.LogException(error, this); }
-                              if (hazard.KillsOnContact) player.ServerKill();
-                              else cut = player.ServerCut();
+                              string obstacle=CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(hazard,"OB_");
+                              if (hazard.KillsOnContact) player.ServerKill(NetworkPlayer.DeathOrigin.Hazard,obstacle);
+                              else cut = player.ServerCut(1,obstacle,NetworkPlayer.DeathOrigin.Hazard);
                               if (cut != BodyPart.None && HitConfirmed != null)
                                 foreach (Action<NetworkPlayer, HumanCannonHazard, BodyPart, Vector3> observer in HitConfirmed.GetInvocationList())
                                     try { observer(player, hazard, cut, Vector3.Lerp(before, feet, t)); }

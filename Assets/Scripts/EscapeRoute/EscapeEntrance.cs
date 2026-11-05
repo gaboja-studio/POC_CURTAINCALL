@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.Campaign;
+using CurtainCall.Telemetry.Pipeline;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.SpaceLink;
@@ -23,6 +24,7 @@ namespace CurtainCall.EscapeRoute
         public BoxCollider AssemblyArea => assemblyArea;
         // The destination owns this trigger after the loading transition.
         public BoxCollider FirstPersonArea => EscapeSceneArrival.Current != null ? EscapeSceneArrival.Current.FirstPersonArea : null;
+        readonly Dictionary<ulong, float> assemblyVisits = new();
         readonly List<ulong> candidates = new();
         readonly EscapeAssemblyState assembly = new();
         ShopChannel channel;
@@ -40,7 +42,7 @@ namespace CurtainCall.EscapeRoute
             Current = this;
             EscapeSceneTransfer.EnsureExists().SetSource(assemblyArea != null ? assemblyArea.transform : transform);
             channel = new ShopChannel("CurtainCall.Escape.Assembly", (_, _) => Publish(), Receive, _ => { },
-                () => { assembly.Reset(); snapshot = new(); }, () => channel.Request("sync"));
+                () => { assemblyVisits.Clear(); assembly.Reset(); snapshot = new(); }, () => channel.Request("sync"));
         }
         void Update()
         {
@@ -65,7 +67,21 @@ namespace CurtainCall.EscapeRoute
                     allParticipants.Add(player.OwnerClientId);
                     if (player.State != PlayerState.Normal || CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player)) continue;
                     living++;
-                    if (!Contains(assemblyArea, player.transform.position)) continue;
+                    bool inside = Contains(assemblyArea, player.transform.position);
+                    var runtime = TelemetryRuntime.Instance;
+                    if (runtime != null && runtime.CurrentRunId != null)
+                    {
+                        ulong id = player.OwnerClientId;
+                        if (inside && !assemblyVisits.ContainsKey(id))
+                        {
+                            assemblyVisits[id] = Time.unscaledTime;
+                            runtime.EmitFor(player, "ZONE_ENTERED", new() { ["zoneType"] = "ESCAPE_ASSEMBLY" }, "HOST");
+                        }
+                        else if (!inside && assemblyVisits.Remove(id, out var since))
+                            runtime.EmitFor(player, "ZONE_EXITED", new() { ["zoneType"] = "ESCAPE_ASSEMBLY",
+                                ["durationMs"] = (Time.unscaledTime - since) * 1000d, ["reason"] = "LEFT_AREA" }, "HOST");
+                    }
+                    if (!inside) continue;
                     occupants++;
                     if (player.State == PlayerState.Normal) candidates.Add(player.OwnerClientId);
                 }
@@ -93,7 +109,7 @@ namespace CurtainCall.EscapeRoute
             if (state.Phase != CampaignPhase.Escape && (state.Phase != CampaignPhase.RestTime
                 || state.Generation != generation || state.Day != day || state.PerformanceIndex != performance))
             {
-                assembly.Reset(); snapshot = new();
+                assemblyVisits.Clear(); assembly.Reset(); snapshot = new();
                 generation = state.Generation; day = state.Day; performance = state.PerformanceIndex;
             }
             RefreshPresentation();

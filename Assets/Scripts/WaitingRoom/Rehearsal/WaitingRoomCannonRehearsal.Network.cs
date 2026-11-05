@@ -102,10 +102,15 @@ namespace CurtainCall.WaitingRoom
             var votes = skip ? shared.skipVotes : shared.votes;
             var opposite = skip ? shared.votes : shared.skipVotes;
             bool changed = yes ? !votes.Contains(actor) : votes.Contains(actor);
-            if (yes) changed |= opposite.Remove(actor);
+            if (yes && opposite.Remove(actor))
+            {
+                RecordAction("VOTE_CHANGED", actor, skip ? "ABANDON" : "SKIP", false);
+                changed = true;
+            }
             if (!changed) return;
             if (yes) { if (!votes.Contains(actor)) votes.Add(actor); }
             else votes.Remove(actor);
+            RecordAction("VOTE_CHANGED", actor, skip ? "SKIP" : "ABANDON", yes);
             Publish();
         }
 
@@ -150,7 +155,7 @@ namespace CurtainCall.WaitingRoom
             var floor = Checkpoint(actor) > 0 ? course.MiddleFloor : course.StartFloor;
             if (player == null || !RehearsalCannonCourse.Contains(floor, position)
                 || !RehearsalCannonCourse.Contains(floor, player.transform.position) || Vector3.Distance(position, player.transform.position) > .75f) return;
-            shared.placed.Add(actor); Publish();
+            shared.placed.Add(actor); RecordAction("PLACED", actor, Checkpoint(actor) > 0 ? "MIDDLE_PLATFORM" : "START_PLATFORM"); Publish();
         }
     }
 }

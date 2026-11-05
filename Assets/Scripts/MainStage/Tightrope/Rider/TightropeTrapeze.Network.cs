@@ -40,6 +40,7 @@ namespace CurtainCall.Tightrope
         }
         void Send(Command command, int index = -1, float input = 0f)
         {
+            if(command is Command.Grab or Command.Attach && NetworkPlayer.Local!=null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(NetworkPlayer.Local,this,"TRAPEZE",command+"_ATTEMPT:"+index,NetworkPlayer.Local.transform.position);
             ObserveRequest(NetworkPlayer.Local != null ? NetworkPlayer.Local.OwnerClientId : Nobody, "send", command, index);
             if (session == null || messaging == null) return;
             var local = NetworkPlayer.Local;

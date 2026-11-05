@@ -23,11 +23,34 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
             if (Directory.Exists(directory)) Directory.Delete(directory, true);
         }
         DurableOutbox New() => new(directory, Guid.NewGuid().ToString("D"));
+        [Test] public void SceneCheckpointsStayOnDiskUntilBoundary_AndRecoveryCanRetry()
+        {
+            var queue = New(); queue.HoldNewBatches = true;
+            queue.Append(RelayEvent()); queue.Seal("CHECKPOINT");
+            Assert.That(queue.PendingBatchCount, Is.EqualTo(1));
+            Assert.That(queue.NextPath(), Is.Null); Assert.That(queue.NextRelayPath(), Is.Null);
+            queue.ReleaseScene("SCENE_CHANGED");
+            Assert.That(queue.NextPath(), Is.Not.Null);
+            queue.Append(RelayEvent()); queue.Seal("CHECKPOINT");
+            Assert.That(queue.PendingBatchCount, Is.EqualTo(2));
+            var recovered = New();
+            Assert.That(recovered.PendingBatchCount, Is.EqualTo(2));
+            Assert.That(recovered.NextPath(), Is.Not.Null);
+        }
         static LogEvent RelayEvent() => new() { sequence = 1, occurredAt = "2026-10-29T00:00:00Z", monotonicMs = 0,
             environment = "TEST", gameVersion = "0.1.0", playerId = "test-client", playerNumber = 1,
             networkClientId = "1", sceneType = "TITLE", eventType = "GAME_STARTED", authority = "LOCAL" };
         static LogEvent Event() => new() { sequence = 1, eventType = "GAME_STARTED", occurredAt = "2026-10-21T08:00:00.000Z" };
 
+        [Test] public void WorkerPreservesEventOrderAndHoldsBatchesUntilSceneBoundary()
+        {
+            var q=New(); q.QueueHold(true);
+            for(int i=1;i<=300;i++){var e=Event();e.sequence=i;Assert.IsTrue(q.QueueEvent(e));}
+            q.QueueBoundary("CHECKPOINT");Assert.IsTrue(q.PendingWrites.Wait(10000));Assert.IsNull(q.NextPath());
+            q.QueueBoundary("SCENE_CHANGED",true);q.StopWriter();
+            var actual=Directory.GetFiles(directory,"*.json").SelectMany(p=>LogJson.Parse<LogBatch>(File.ReadAllText(p)).events.Select(e=>e.sequence)).OrderBy(i=>i).ToArray();
+            CollectionAssert.AreEqual(Enumerable.Range(1,300).Select(i=>(long)i).ToArray(),actual);Assert.IsNotNull(q.NextPath());
+        }
         [UnityTest] public IEnumerator AsyncRelay_PreservesExactBytesPriorityAndActiveWhilePreparing()
         {
             var old = New(); old.Append(RelayEvent()); old.Seal("CHECKPOINT");

@@ -1,6 +1,8 @@
 /* Read response Sheets only. The owner edits/publishes both Google Forms. */
 var CC_SURVEYS=[{kind:'NIGHT1',id:'1mPuy_fgd1zIQJ-V5NWf5GmVbG7_N7cOLu9n8XR_5K60',sheet:'설문지 응답 시트1'},
-  {kind:'EXIT',id:'1m7ovUScxvyCJVJlWaAiRNtWlqEIK-zrgnAjOCpGpV7o',sheet:'설문지 응답 시트1'}];
+  {kind:'EXIT',id:'1m7ovUScxvyCJVJlWaAiRNtWlqEIK-zrgnAjOCpGpV7o',sheet:'설문지 응답 시트1'},
+  {kind:'NIGHT1',id:'1nTRh2olet3Sf2Vjq5FvxMSW4u1pNUIknV9uaEptj-tQ',sheet:'설문지 응답 시트1'},
+  {kind:'EXIT',id:'1nMePucdzwqEiP4EJ1nLeO8PGLffZeaJXmnLah51Eqas',sheet:'설문지 응답 시트1'}];
 function ccSurveySources_(){
   var raw=PropertiesService.getScriptProperties().getProperty('SURVEY_EXTRA_SOURCES'),extra=raw?JSON.parse(raw):[];
   if(!Array.isArray(extra)||extra.length>18||extra.some(function(s){return !s||!['NIGHT1','EXIT'].includes(s.kind)||!(/^[A-Za-z0-9_-]{10,100}$/.test(s.id))||typeof s.sheet!=='string'||!s.sheet.length||s.sheet.length>100;}))throw new Error('SURVEY_SOURCE_CONFIGURATION');

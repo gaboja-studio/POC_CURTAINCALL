@@ -148,6 +148,7 @@ namespace CurtainCall.Tightrope
             if (!input.InteractTapped || InputGate.IsBlocked || !CanGrab(local, out _)) return false;
             TightropeCatchSystem.Current?.CancelLocal(); context.Mover.ClearPendingInput();
             if (mode != PoleMode.Idle) { Tell("동료가 회전봉을 사용 중이에요"); return true; }
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(local,this,"SWING","ATTEMPT",local.transform.position);
             pendingUntil = Clock + .6d; Send(Operation.Grab); return true;
         }
 

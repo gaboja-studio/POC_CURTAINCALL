@@ -101,7 +101,7 @@ namespace CurtainCall.EscapeRoute
                         }
                         // EscapeCampaignContent runs first: exit arrivals win this frame, then only pending players retire.
                         // Its existing all-resolved / at-least-one-arrived result rule owns success and failure.
-                        if (HasExpired) player.ServerSetState(PlayerState.Retired);
+                        if (HasExpired) player.ServerSetState(PlayerState.Retired, NetworkPlayer.DeathOrigin.Timeout);
                     }
                 }
                 if (Time.unscaledTimeAsDouble >= nextSnapshot)

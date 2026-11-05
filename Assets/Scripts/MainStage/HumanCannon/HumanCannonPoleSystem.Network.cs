@@ -34,6 +34,7 @@ namespace CurtainCall.HumanCannon
         {
             var player = NetworkPlayer.Local;
             if (player == null || player.State != PlayerState.Normal || InputGate.IsBlocked || !Valid(index)) return;
+            if (action is PoleAction.Grab or PoleAction.PlatformGrab) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.PerformanceInteractionAttempt(player,poles[index],"POLE");
             uint revision = states[index].State.Revision;
             if (useGrabFacing && (action == PoleAction.Grab || action == PoleAction.PlatformGrab))
             {

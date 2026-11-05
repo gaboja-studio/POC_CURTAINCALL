@@ -126,6 +126,7 @@ namespace CurtainCall.Tightrope
             if (!InAirCatchRange) return false;
             var player = flightPlayer;
             ResetFlight();
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player,next,"SWING_CHAIN","AIR_GRAB_ATTEMPT",player.transform.position);
             next.BeginAirCatch(player);
             return true;
         }

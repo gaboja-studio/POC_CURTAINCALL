@@ -22,6 +22,7 @@ namespace CurtainCall.HumanCannon
             var player = NetworkPlayer.Local;
             if (player == null || player.State != PlayerState.Normal) return;
             if (action != TrampolineAction.Bounce && action != TrampolineAction.GroundBounce && InputGate.IsBlocked) return;
+            if (action == TrampolineAction.Grab) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.PerformanceInteractionAttempt(player,this,"TRAMPOLINE");
             if (session != null && session.IsHost)
                 HandleRequest(player.OwnerClientId, action, ownership.Revision, station, launch, segment, position, transform.rotation);
             else if (messaging != null)

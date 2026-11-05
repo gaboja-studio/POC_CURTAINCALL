@@ -269,6 +269,7 @@ namespace CurtainCall.Tightrope
             recentLaneJumps.Remove(sender);
             swingReleases.Remove(sender);
             // 구조 장갑이 실제로 완화한 착지: 착용자 장갑 1 소모·쿨타임·"잡았다!"(마지막 회차는 이 완화 뒤 파괴).
+            if(helper!=null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(helper,this,gloveCatch?"GLOVE_CATCH":"HANDHOLD","SUCCEEDED:"+sender,helper.transform.position,true);
             if (gloveCatch) PropCarry.Instance?.UseEquipment(target, ItemUses.RescueGloves);
             Publish();
             PublishSuccess(sender, target, relayLanding);

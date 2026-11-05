@@ -20,6 +20,13 @@ namespace CurtainCall.EscapeRoute
             ? NetworkSessionManager.Instance.NetworkManager.ServerTime.Time : Time.unscaledTimeAsDouble;
         public bool DeploymentRequested => deployed;
         public float DeploymentFraction => amount;
+        public bool SupportsFeet(Vector3 feet)
+        {
+            if(!Traversable)return false;
+            foreach(var deck in deckColliders) if(deck!=null && deck.enabled &&
+                deck.Raycast(new Ray(feet+Vector3.up*.2f,Vector3.down),out _, .45f))return true;
+            return false;
+        }
         public bool Traversable => deployed && amount >= 1;
         public float AmountAt(double now) => Mathf.MoveTowards(transitionAmount, deployed ? 1 : 0,
             (float)System.Math.Max(0, now - transitionAt) / Mathf.Max(.1f, deploySeconds));
@@ -29,6 +36,7 @@ namespace CurtainCall.EscapeRoute
             if (deployed != value)
             {
                 transitionAmount = AmountAt(Clock); transitionAt = Clock; deployed = value;
+                if(CurtainCall.Network.Session.NetworkSessionManager.Instance?.IsHost==true) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,this,"DRAWBRIDGE",value?"DEPLOYING":"RETRACTING",transform.position,true);
             }
             amount = AmountAt(Clock); Present();
         }

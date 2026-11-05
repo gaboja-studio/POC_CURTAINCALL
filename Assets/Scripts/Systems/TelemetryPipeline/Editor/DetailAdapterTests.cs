@@ -138,6 +138,9 @@ namespace CurtainCall.Telemetry.Pipeline.EditorTests
         [Test] public void RestExpiry_EarlyAssemblyNeverReportsTimeout()
         {
             var state = new RunState(); state.StartSession(); state.EndIntro(); state.EndPerformance();
+            // 0.2.0's first break cannot assemble until the tutorial is complete.
+            Assert.That(state.NotifyAllAtStageEntrance(), Is.False);
+            state.SetTutorialDone(1); state.RefreshGuideRest(new ulong[] { 1 });
             int expired = 0; Assert.That(state.NotifyAllAtStageEntrance(), Is.True);
             state.Tick(100000, _ => expired++); Assert.That(expired, Is.Zero);
         }

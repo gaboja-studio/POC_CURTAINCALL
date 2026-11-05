@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.Campaign;
+using CurtainCall.Telemetry.Pipeline;
 using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
@@ -85,6 +86,7 @@ namespace CurtainCall.EscapeRoute
                 next.rotations[i] = caught ? Quaternion.identity : Quaternion.Inverse(source.rotation) * member.transform.rotation;
             }
             snapshot = next;
+            RecordTransfer("TRANSFER_STARTED", source.position, true);
             retryAt = Time.unscaledTime + 10;
             CaptureLocal();
             Publish();
@@ -165,6 +167,7 @@ namespace CurtainCall.EscapeRoute
             arrivalLook = anchor.rotation * localLook;
             sourceDirector.SetLookRotation(arrivalLook);
             localPlaced = true;
+            RecordTransfer("TRANSFER_PLACED", position, false);
             Acknowledge("placed");
             return true;
         }
@@ -229,9 +232,18 @@ namespace CurtainCall.EscapeRoute
             if (HasDeparture && !localCaptured) CaptureLocal();
             return true;
         }
+        static void RecordTransfer(string state, Vector3 at, bool host)
+        {
+            var runtime = TelemetryRuntime.Instance;
+            if (runtime == null || runtime.CurrentRunId == null) return;
+            runtime.Emit("WORLD_STATE_CHANGED", new() { ["entityId"] = "ESCAPE_ENTRANCE", ["entityKind"] = "OBJECT",
+                ["state"] = state, ["observation"] = "ESCAPE_TRANSFER", ["position"] = DetailLogIds.Position(at),
+                ["subjectKind"] = host ? "TEAM" : "PLAYER" }, host ? "HOST" : "LOCAL");
+        }
         public void Complete()
         {
             if (!channel.IsHost || !AllPlaced) return;
+            if (snapshot.phase != 2 && EscapeSceneArrival.Current != null) RecordTransfer("TRANSFER_COMPLETE", EscapeSceneArrival.Current.AssemblyAnchor.position, true);
             snapshot.phase = 2; snapshot.failure = "";
             Publish();
             // The curtain still blocks input until its reveal animation completes.
@@ -240,6 +252,7 @@ namespace CurtainCall.EscapeRoute
         public void Failed(string reason)
         {
             if (!channel.IsHost) return;
+            if (snapshot.failure != reason && source != null) RecordTransfer("TRANSFER_FAILED", source.position, true);
             snapshot.failure = reason;
             retryAt = Time.unscaledTime + 5;
             Publish();

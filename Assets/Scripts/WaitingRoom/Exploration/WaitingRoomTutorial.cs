@@ -177,19 +177,21 @@ namespace CurtainCall.WaitingRoom
         }
 
         void OnDestroy() { if (instance == this) instance = null; }
+        float nextGatherLookup;
         void OnSceneChanged(Scene scene, LoadSceneMode mode) => sceneDirty = true;
         void OnSceneUnloaded(Scene scene) => sceneDirty = true;
 
         void Update()
         {
             var run = CampaignRun.Instance;
-            if (run == null) return;
+            if (run == null) { if (sequence) HidePanel(); return; }
             var s = run.State;
             if (s.Phase == CampaignPhase.Performance) WatchTeammates();
             if (!Enabled) { HidePanel(); return; }
-            if (sceneDirty)
+            if (sceneDirty || (gather == null && s.Phase is CampaignPhase.RestTime or CampaignPhase.Night && Time.unscaledTime >= nextGatherLookup))
             {
                 sceneDirty = false;
+                nextGatherLookup = Time.unscaledTime + 1f;
                 gather = FindFirstObjectByType<StageEntranceGather>();
                 zones = FindFirstObjectByType<ExplorationTimerZones>();
             }

@@ -376,6 +376,11 @@ namespace CurtainCall.HumanCannon
                 StateChanged?.Invoke(index, action, actor);
                 return;
             }
+            if(boundPlayer!=null && actor==boundPlayer.OwnerClientId && action is CannonAction.Board or CannonAction.Launch) {
+                var station=stations[index];
+                if(station!=null && (action!=CannonAction.Launch || CurtainCall.Telemetry.Pipeline.TelemetryRuntime.SceneType(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)=="EXITROUTE"))
+                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(boundPlayer,station,"CANNON",action==CannonAction.Board?"BOARDED":"FIRED",station.Seat.position);
+            }
             if (action == CannonAction.Launch) flying.Begin(actor, index, seats[index].State.Revision);
             if (action == CannonAction.Release) flying.Remove(actor);
             if (boundPlayer != null && pilot != null)

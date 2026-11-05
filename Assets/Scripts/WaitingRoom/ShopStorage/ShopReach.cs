@@ -57,6 +57,7 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>F를 길게 눌렀다(대상과 상관없이, 기물 내려놓기).</summary>
         public static event System.Action LongPressed;
+        internal static event System.Action<ClueInspectable> ClueFocused;
 
         public static void Add(IShopTarget target)
         {
@@ -74,6 +75,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (pumpedFrame == Time.frameCount) return;
             pumpedFrame = Time.frameCount;
+            var previous = Focused;
             Focused = null;
             if (Locked || WaitingRoomRehearsal.IsPreTutorialRestricted) return;
 
@@ -89,6 +91,7 @@ namespace CurtainCall.WaitingRoom
                 best = distance;
                 Focused = target;
             }
+            if (!ReferenceEquals(previous, Focused) && Focused is ClueInspectable clue) ClueFocused?.Invoke(clue);
             var actorForGate = reader.GetComponent<HumanoidPlayerPresentation>();
             // 벽 부수기는 연타로 진행한다(내려치는 중에도 다시 누르면 동작을 초기화해 친다).
             if (actorForGate != null && actorForGate.InteractionActionLocked && Focused is not BreakableWall) return;
@@ -150,7 +153,7 @@ namespace CurtainCall.WaitingRoom
             offlineReader = null;
             pumpedFrame = -1;
             Focused = null;
-            LongPressed = null;
+            LongPressed = null; ClueFocused = null;
         }
     }
 }

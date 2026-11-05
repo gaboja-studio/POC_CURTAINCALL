@@ -7,7 +7,7 @@ namespace CurtainCall.Telemetry.Pipeline
     /// <summary>Original client IDs and clocks survive a host relay; Google deduplicates original event IDs.</summary>
     public static class TransportPolicy
     {
-        public static bool CanUpload(bool host, bool client, bool hasHosted) => !client && (host || hasHosted);
+        public static bool CanUpload(bool configured) => configured;
 
         public static bool RelayBatch(LogBatch batch) => batch != null && batch.schemaVersion == 1
             && Guid.TryParseExact(batch.batchId, "D", out _) && Guid.TryParseExact(batch.senderId, "D", out _)

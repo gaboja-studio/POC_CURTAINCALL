@@ -221,7 +221,7 @@ namespace CurtainCall.HumanCannon
                         if (player != null && player.IsSpawned && player.State == PlayerState.Normal
                             && player.OwnerClientId == Unity.Netcode.NetworkManager.ServerClientId
                             && fire.Threatens(player.transform.position, 0.3f, Clock))
-                        { player.ServerKill(); Debug.Log($"[HumanCannonRoute] fire contact actor={player.OwnerClientId}"); }
+                        { player.ServerKill(NetworkPlayer.DeathOrigin.FirePillar,CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(fire,"OB_")); Debug.Log($"[HumanCannonRoute] fire contact actor={player.OwnerClientId}"); }
                 changed |= fire.Tick(Clock);
             }
             if (changed) { revision++; Publish(); }

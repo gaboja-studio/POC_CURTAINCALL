@@ -212,7 +212,7 @@ namespace CurtainCall.Tightrope
                 if (outcome == TightropeHangBook.Outcome.Dropped)
                 {
                     var dropped = Find(id);
-                    if (!EscapeDevelopmentSession.RopeBalanceFallsSuppressed(dropped)) dropped?.ServerKill();
+                    if (!EscapeDevelopmentSession.RopeBalanceFallsSuppressed(dropped)) dropped?.ServerKill(NetworkPlayer.DeathOrigin.HangExpired);
                 }
                 else
                 {

@@ -42,11 +42,11 @@ var SurveyCore=(function(){
     var selected=base.filter(function(r){return onDate(r.runId)&&(!run||r.runId===run)&&(slot===null||r.playerNumber===slot);}),questions=new Map();
     selected.forEach(function(r){r.answers.forEach(function(a){
       var m1=(r.surveyId||'M1_'+kind)==='M1_'+kind;
-      if(!questions.has(a.question))questions.set(a.question,{question:a.question,multiple:/복수 선택/.test(a.question),text:m1?kind==='EXIT'&&/^(10|11)\./.test(a.question):/서술|자유.?응답|자유.?의견/.test(a.question),samples:0,options:new Map()});
+      if(!questions.has(a.question))questions.set(a.question,{question:a.question,multiple:/복수 선택/.test(a.question),text:m1?kind==='EXIT'&&/^(10|11)\./.test(a.question):/서술|자유.?응답|자유.?의견/.test(a.question),samples:0,options:new Map(),runs:new Map()});
       var q=questions.get(a.question);q.samples++;
       if(q.text)return;
       var known=multiOptions[kind][parseInt(a.question,10)]||[],choices=q.multiple?a.answer.split(/,\s*/).map(function(choice){return !m1||known.includes(choice)?choice:'기타 응답';}):[a.answer];
-      Array.from(new Set(choices.filter(Boolean))).forEach(function(choice){q.options.set(choice,(q.options.get(choice)||0)+1);});
+      Array.from(new Set(choices.filter(Boolean))).forEach(function(choice){q.options.set(choice,(q.options.get(choice)||0)+1);if(!q.runs.has(choice))q.runs.set(choice,new Set());q.runs.get(choice).add(r.runId);});
     });});
     var eventIndex=new Map();events.forEach(function(e){
       if(e.environment!==(filters.environment||'LIVE')||TelemetryCore.versionOf(e)!==(filters.gameVersion||'0.1.0')||!Number.isInteger(e.playerNumber)||!TelemetryCore.analysisEvent(e))return;
@@ -57,7 +57,7 @@ var SurveyCore=(function(){
     var offset=Number.isSafeInteger(filters.surveyOffset)?Math.max(0,filters.surveyOffset):0;if(offset>=rows.length)offset=0;
     return {kind:kind,campaign:selectedCampaign,campaignOptions:campaigns,runId:run,playerNumber:slot,runOptions:runIds,runLabels:runLabels,total:selected.length,matched:rows.filter(function(r){return r.matched;}).length,rows:rows.slice(offset,offset+100),offset:offset,
       allRunOptions:Array.from(new Set(scoped.map(function(r){return r.runId;}))),counts:{NIGHT1:scoped.filter(function(r){return r.kind==='NIGHT1';}).length,EXIT:scoped.filter(function(r){return r.kind==='EXIT';}).length},
-      questions:Array.from(questions.values()).map(function(q){return {question:q.question,multiple:q.multiple,text:q.text,samples:q.samples,options:Array.from(q.options,function(pair){return {label:pair[0],count:pair[1],rate:pair[1]/q.samples};}).sort(function(a,b){return b.count-a.count||a.label.localeCompare(b.label);})};})};
+      questions:Array.from(questions.values()).map(function(q){return {question:q.question,multiple:q.multiple,text:q.text,samples:q.samples,options:Array.from(q.options,function(pair){return {label:pair[0],count:pair[1],rate:pair[1]/q.samples,runIds:Array.from(q.runs.get(pair[0]))};}).sort(function(a,b){return b.count-a.count||a.label.localeCompare(b.label);})};})};
   }
   var columns=['responseId','kind','gameVersion','environment','runId','playerNumber','invitationId','openedAt','submittedAt','answersJson','sourceSheet','sourceRow','surveyId','surveyRound'];
   function row(r){return [r.responseId,r.kind,r.gameVersion,r.environment,r.runId,r.playerNumber,r.invitationId,r.occurredAt,r.submittedAt,JSON.stringify(r.answers),r.source,r.sourceRow,r.surveyId||'M1_'+r.kind,r.surveyRound||1];}

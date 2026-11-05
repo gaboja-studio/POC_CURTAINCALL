@@ -123,6 +123,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (!CanProposePractice || !IsVoter(proposer)) return;
             practiceVote = true; practiceYes.Clear(); practiceYes.Add(proposer);
+            RecordAction("VOTE_CHANGED", proposer, "REPLAY_PROPOSE", true);
             voterCount = CountVoters();
             version++; Publish();
         }
@@ -136,6 +137,7 @@ namespace CurtainCall.WaitingRoom
                 Debug.Log("[Rehearsal] 리허설 다시 하기 미동의 → 취소");
             }
             else if (!practiceYes.Add(id)) return;
+            RecordAction("VOTE_CHANGED", id, "REPLAY", agree);
             version++; Publish();
         }
 

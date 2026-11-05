@@ -24,7 +24,7 @@ namespace CurtainCall.EscapeRoute
             if (session == null || !session.IsHost || session.GameState != GameSessionState.Playing) return;
             foreach (var player in NetworkPlayer.All)
                 if (player != null && player.IsSpawned && player.State == PlayerState.Normal && Contains(player.transform.position))
-                    player.ServerKill(); // 공용 사망/리타이어 및 검토 모드 보호 판정을 사용한다.
+                    player.ServerKill(NetworkPlayer.DeathOrigin.MapExit); // 공용 사망/리타이어 및 검토 모드 보호 판정을 사용한다.
         }
 
         void OnDrawGizmosSelected()

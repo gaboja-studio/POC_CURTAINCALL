@@ -7,6 +7,14 @@ function rows(f,days,environment='TEST',runId=randomUUID()){
 }
 const view={environment:'TEST',gameVersion:'0.1.0'};
 function plain(x){return JSON.parse(JSON.stringify(x));}
+test('room replay pages isolate environment, revision and viewer before returning detail',()=>{
+ const f=fixture();require('node:vm').runInContext(require('node:fs').readFileSync(__dirname+'/room-replay.gs','utf8'),f.context);
+ const a=rows(f,1),id=a[0].runId;f.context.ccSessionUpdate_(f.book);f.setEmail('ourhosu@gmail.com');
+ const read=(env='TEST',offset=0,stamp=null)=>f.context.getRoomReplayPage(env,'0.1.0',id,offset,stamp);
+ const first=read();assert.deepEqual(Array.from(first.events,e=>e.eventId),a.map(e=>e.eventId));assert.equal(first.next,null);
+ assert.throws(()=>read('LIVE'),/RUN_UNAVAILABLE/);assert.throws(()=>read('TEST',1,'obsolete'),/RUN_CHANGED/);
+ f.setEmail('');assert.throws(()=>read(),/ACCESS_DENIED/);
+});
 test('TEST 7d and LIVE 30d retain exact summaries, funds and survey evidence while deleting expired detail',()=>{
  const f=fixture();rows(f,8);rows(f,29,'LIVE');const expired=rows(f,31,'LIVE');
  const before=f.context.ccReadEvents_(f.book),old=f.context.ccAggregate_(before,'LIVE',null,'0.1.0');

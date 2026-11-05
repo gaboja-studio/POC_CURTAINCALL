@@ -140,18 +140,20 @@ namespace CurtainCall.UI.SceneIntegration
         {
             // sceneLoaded 다음 Update에서 시작하는 로컬 UI·배경 로드와 LateUpdate 배치를 기다린다.
             int settled = 0;
+            float revealStarted = Time.realtimeSinceStartup;
             while (requested && sequence == version && settled < 2)
             {
                 yield return null;
                 var background = Object.FindFirstObjectByType<CurtainCall.PerformanceBackground.PerformanceBackgroundLoader>();
                 var pursuit = CurtainCall.WaitingRoom.Pursuit.PursuitDirector.Current;
                 settled = loadingScenes.Count > 0 || CommonUiSceneLoader.IsLoading
-                    || (pursuit != null && pursuit.isActiveAndEnabled && !pursuit.IsInitialized)
-                    || (background != null && background.IsTransitioning) ? 0 : settled + 1;
+                    || (Time.realtimeSinceStartup - revealStarted < 8f && ((pursuit != null && pursuit.isActiveAndEnabled && !pursuit.IsInitialized)
+                    || (background != null && background.IsTransitioning))) ? 0 : settled + 1;
             }
             if (!requested || sequence != version) yield break;
             if (view != null) view.Open();
-            while (view != null && view.IsBusy) yield return null;
+            float animationDeadline = Time.realtimeSinceStartup + 5f;
+            while (view != null && view.IsBusy && Time.realtimeSinceStartup < animationDeadline) yield return null;
             Release();
             reveal = null;
         }
@@ -225,7 +227,8 @@ namespace CurtainCall.UI.SceneIntegration
             if (network == null || network.IsServer || sender != NetworkManager.ServerClientId) return;
             reader.ReadValueSafe(out uint version);
             reader.ReadValueSafe(out bool enteringEscape);
-            if (enteringEscape && version == sequence)
+            if (version < sequence) return;
+            if (version == sequence)
             {
                 if (requested && locallyCovered) Send(CoveredMessage, sender);
                 return;
@@ -275,6 +278,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (networkScenes != null) networkScenes.OnSceneEvent -= OnSceneEvent;
             networkScenes = null;
             loadingScenes.Clear();
+            sequence = 0;
             if (messaging != null)
             {
                 messaging.UnregisterNamedMessageHandler(CoverMessage);

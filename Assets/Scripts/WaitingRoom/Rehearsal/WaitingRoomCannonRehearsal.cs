@@ -133,8 +133,19 @@ namespace CurtainCall.WaitingRoom
             root.SetActive(true); Physics.SyncTransforms();
             builtRound = shared.round; placedRound = -1; nextPlacement = 0;
             quest.Show(T("title", "인간대포 · 트램펄린 리허설"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
-            WaitingRoomTutorialPanel.Show(T("title", "인간대포 · 트램펄린 리허설"), T("intro", "대포로 중간 도착대에 가세요. 한 명은 트램펄린을 운반하고, 나머지는 재발사 후 반동으로 최종 도착대에 갑니다. 전원 도착 시 이수합니다. 추락 부상·비용은 없습니다."), 10f);
+            ShowGuide("INTRO", T("title", "인간대포 · 트램펄린 리허설"), T("intro", "대포로 중간 도착대에 가세요. 한 명은 트램펄린을 운반하고, 나머지는 재발사 후 반동으로 최종 도착대에 갑니다. 전원 도착 시 이수합니다. 추락 부상·비용은 없습니다."), 10f);
             if (CampaignRun.Instance.State.Phase == CampaignPhase.Night) CampaignRun.Instance.SetReady(false);
+        }
+
+        void RecordAction(string state, ulong? actor = null, string reason = null, bool? vote = null, string guideId = null, bool host = true) =>
+            CurtainCall.Telemetry.Pipeline.SpatialLogAdapter.RehearsalAction("CANNON", state, shared.round,
+                actor.HasValue ? Checkpoint(actor.Value) : -1, shared.active, shared.mastered, true, actor,
+                host, reason, vote, guideId);
+
+        void ShowGuide(string id, string title, string body, float seconds)
+        {
+            if (WaitingRoomTutorialPanel.Show(title, body, seconds) && NetworkPlayer.Local != null)
+                RecordAction("GUIDE_SHOWN", NetworkPlayer.Local.OwnerClientId, guideId: id, host: false);
         }
 
         void HostTick()
@@ -155,6 +166,7 @@ namespace CurtainCall.WaitingRoom
                     if (!fallenAt.TryGetValue(id, out double at))
                     {
                         fallenAt[id] = Clock;
+                        RecordAction("FALLEN", id);
                         if (id == lastCarrier) { course.Trampoline.ResetPracticePose(); course.Route.ResetPracticeTransport(); }
                     }
                     else if (Clock - at >= 1.5d) { fallenAt.Remove(id); p.ServerRestoreCondition(conditions[id]); }
@@ -162,9 +174,9 @@ namespace CurtainCall.WaitingRoom
                 }
                 fallenAt.Remove(id);
                 if (!shared.placed.Contains(id) || p.State != PlayerState.Normal || p.IsAirborne || course.Cannon.IsFlying(id)) continue;
-                if (!shared.middle.Contains(id) && RehearsalCannonCourse.Contains(course.MiddleFloor, p.transform.position)) { shared.middle.Add(id); changed = true; }
+                if (!shared.middle.Contains(id) && RehearsalCannonCourse.Contains(course.MiddleFloor, p.transform.position)) { shared.middle.Add(id); changed = true; RecordAction("CHECKPOINT", id, "MIDDLE_PLATFORM"); }
                 if (shared.middle.Contains(id) && shared.bounced.Contains(id) && !shared.arrived.Contains(id)
-                    && RehearsalCannonCourse.Contains(course.FinishFloor, p.transform.position)) { shared.arrived.Add(id); changed = true; }
+                    && RehearsalCannonCourse.Contains(course.FinishFloor, p.transform.position)) { shared.arrived.Add(id); changed = true; RecordAction("ARRIVED", id, "FINISH_PLATFORM"); }
             }
             lastCarrier = course.Trampoline.Carrier;
             if (ids.Length > 0 && shared.arrived.Count == ids.Length) { BeginEnding(true); return; }
@@ -176,7 +188,7 @@ namespace CurtainCall.WaitingRoom
         void Bounced(ulong id)
         {
             if (!Host || !shared.active || shared.ending || !shared.middle.Contains(id) || shared.bounced.Contains(id)) return;
-            shared.bounced.Add(id); Publish();
+            shared.bounced.Add(id); RecordAction("BOUNCED", id); Publish();
         }
 
         void LocalTick()
@@ -196,7 +208,11 @@ namespace CurtainCall.WaitingRoom
                 if (p.TryGetComponent(out PlayerBalance balance)) balance.SetBalanceActive(false);
                 CurtainCall.Cameras.CameraViewDirector.Current?.SetLookRotation(pose.rotation);
                 placedRound = shared.round;
-                if (recovery) WaitingRoomTutorialPanel.Show(T("fall-title", "추락"), T("fall", "부상과 비용 없이 마지막 구간의 출발대에서 다시 시작합니다."), 4f);
+                if (recovery)
+                {
+                    RecordAction("RECOVERED", p.OwnerClientId, Checkpoint(p.OwnerClientId) > 0 ? "MIDDLE_PLATFORM" : "START_PLATFORM", host: false);
+                    ShowGuide("FALL_RECOVERY", T("fall-title", "추락"), T("fall", "부상과 비용 없이 마지막 구간의 출발대에서 다시 시작합니다."), 4f);
+                }
             }
             if (!shared.placed.Contains(p.OwnerClientId) && Time.unscaledTime >= nextPlacement)
             { SendPlacement(p.transform.position); nextPlacement = Time.unscaledTime + .2f; }

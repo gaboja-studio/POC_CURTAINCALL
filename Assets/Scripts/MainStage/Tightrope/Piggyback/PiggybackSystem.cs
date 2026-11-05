@@ -112,6 +112,7 @@ namespace CurtainCall.Tightrope
         {
             var local = NetworkPlayer.Local;
             if (session == null || !CanLaneLink(local, target)) return;
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(local,this,"HANDHOLD","ATTEMPT:"+target.OwnerClientId,local.transform.position);
             Vector3 landing = local.transform.position;
             if (session.IsHost)
             {
@@ -345,6 +346,7 @@ namespace CurtainCall.Tightrope
         {
             if (request != Request.Sync && !IsGameplayActive) return;
             if (session == null) return;
+            if (request == Request.Interact && NetworkPlayer.Local != null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(NetworkPlayer.Local,this,"PIGGYBACK","ATTEMPT",NetworkPlayer.Local.transform.position);
             if (request == Request.Release) RememberTrapezeEntry(NetworkPlayer.Local);
             if (session.IsHost)
             {

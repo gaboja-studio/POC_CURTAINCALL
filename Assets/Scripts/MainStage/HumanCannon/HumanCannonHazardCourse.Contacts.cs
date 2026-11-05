@@ -88,7 +88,8 @@ namespace CurtainCall.HumanCannon
             if (evaluated) {
                 remoteCutAt[sender] = Time.unscaledTime;
                 NotifyContact(player, hazard, feet);
-                if (hazard.KillsOnContact) player.ServerKill(); else cut = player.ServerCut();
+                string obstacle=CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(hazard,"OB_");
+                if (hazard.KillsOnContact) player.ServerKill(CurtainCall.Network.PlayerSync.NetworkPlayer.DeathOrigin.Hazard,obstacle); else cut = player.ServerCut(1,obstacle,CurtainCall.Network.PlayerSync.NetworkPlayer.DeathOrigin.Hazard);
                 if (cut != BodyPart.None) NotifyHit(player, hazard, cut, feet);
             }
             NotifyResolved(player, hazard, cut, feet, evaluated);
