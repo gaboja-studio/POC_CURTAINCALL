@@ -419,13 +419,13 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
                 || climber.IsAirborne || IsInStack(climber) || UsingDevice(climber)
-                || !TightropeCourse.Current.UsesRopeRules(climber)) return null;
+                || !OnRope(climber)) return null;
             float reach = LinkReach(climber), best = float.PositiveInfinity;
             NetworkPlayer target = null;
             foreach (var other in NetworkPlayer.All)
             {
                 if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)) continue;
-                if (!TightropeCourse.Current.UsesRopeRules(other)) continue;
+                if (!OnRope(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
                 Vector3 center = PlayerInteraction.Center(other);
@@ -437,6 +437,14 @@ namespace CurtainCall.Tightrope
             }
             return target;
         }
+
+        /// <summary>
+        /// 실제로 줄 위에 서 있는지. 내 캐릭터도 조작 방식만이 아니라 원격 판정과 같은 균형 켜짐·줄 위치를 요구해
+        /// 시작 플랫폼(지면)에서 목마 표시가 뜨거나 호스트와 결과가 갈리지 않게 한다(2026-11-05 사용자 요청).
+        /// </summary>
+        static bool OnRope(NetworkPlayer player) => TightropeCourse.Current.UsesRopeRules(player)
+            && player.TryGetComponent(out PlayerBalance balance) && balance.IsActive
+            && TightropeCourse.Current.TryGetRopePoint(player.transform.position, out _, out _);
 
         static bool UsingDevice(NetworkPlayer player) =>
             TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)

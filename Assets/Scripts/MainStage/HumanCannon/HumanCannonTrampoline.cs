@@ -103,9 +103,13 @@ namespace CurtainCall.HumanCannon
             {
                 var carrier = FindPlayer(Carrier);
                 if (carrier != null && carrier.State == PlayerState.Normal) return;
-                carrierRecoveryPending = carrier != null
+                // 들고 낙사하면 낭떠러지 아래에 남기지 않고 시작 지점 원래 위치로 돌린다(2026-11-05 사용자 요청).
+                bool fellOff = carrier != null && carrier.State != PlayerState.Normal
+                    && (HumanCannonRouteSystem.IsBelowCourse(carrier.transform.position) || HumanCannonRouteSystem.IsBelowCourse(transform.position));
+                carrierRecoveryPending = !fellOff && carrier != null
                     && (carrier.State == PlayerState.Fallen || carrier.State == PlayerState.Retired);
                 ownership.TryApply(CannonAction.Release, Carrier, ownership.Revision);
+                if (fellOff) transform.SetPositionAndRotation(initialPosition, initialRotation);
                 changed = true;
             }
             if (carrierRecoveryPending && TryRecoverNearSurvivor())

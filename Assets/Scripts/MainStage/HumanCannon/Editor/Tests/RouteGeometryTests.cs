@@ -488,6 +488,7 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             var emission = system.emission; emission.rateOverTimeMultiplier = 100;
             visual.gameObject.AddComponent<MeshRenderer>();
             Set(fire, "effect", effect);
+            Set(fire, "appearSeconds", 1f);
             fire.Arm(10);
             fire.Present(12);
             Assert.IsTrue(effect.gameObject.activeSelf);
@@ -500,6 +501,41 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
             Assert.That(system.emission.rateOverTimeMultiplier, Is.EqualTo(100).Within(0.01));
             fire.ResetWall();
             Assert.IsFalse(effect.gameObject.activeSelf);
+        }
+
+        [Test]
+        public void FireEffect_GrowsFromSmallWhenItAppears()
+        {
+            var effect = Child("Effect");
+            var flames = Child("Flames"); flames.SetParent(effect, false);
+            var system = flames.gameObject.AddComponent<ParticleSystem>();
+            var main = system.main; main.startSizeMultiplier = 4; main.startSpeedMultiplier = 10; main.prewarm = true;
+            var emission = system.emission; emission.rateOverTimeMultiplier = 100;
+            var light = Child("Glow").gameObject.AddComponent<Light>(); light.intensity = 30;
+            light.transform.SetParent(effect, false);
+            Set(fire, "effect", effect);
+            Set(fire, "appearSeconds", 4f);
+            Set(fire, "appearStartScale", 0.1f);
+            Assert.AreEqual(0f, fire.Appear(10), "켜지기 전");
+            fire.Arm(10);
+            fire.Present(10);
+            Assert.That(system.main.startSizeMultiplier, Is.EqualTo(0.4f).Within(1e-4), "나타나는 순간 작게");
+            Assert.That(system.main.startSpeedMultiplier, Is.EqualTo(1f).Within(1e-4));
+            Assert.That(light.intensity, Is.EqualTo(0).Within(1e-4));
+            Assert.IsTrue(effect.gameObject.activeSelf);
+            Assert.IsFalse(system.main.prewarm, "켜질 때 다 큰 불꽃을 미리 채우지 않는다");
+            fire.Present(12);
+            Assert.That(system.main.startSizeMultiplier, Is.InRange(0.41f, 3.99f), "점점 커진다");
+            Assert.That(fire.Appear(12), Is.EqualTo(0.5f).Within(1e-4));
+            fire.Present(14);
+            Assert.That(system.main.startSizeMultiplier, Is.EqualTo(4f).Within(1e-4));
+            Assert.That(system.main.startSpeedMultiplier, Is.EqualTo(10f).Within(1e-4));
+            Assert.That(light.intensity, Is.EqualTo(30).Within(1e-4));
+            Assert.That(system.emission.rateOverTimeMultiplier, Is.EqualTo(35).Within(0.01), "예고 중 방출은 그대로");
+            fire.ResetWall();
+            fire.Arm(10);
+            fire.Present(15);
+            Assert.IsTrue(system.main.prewarm, "다 자란 뒤 다시 보이면 원래 미리 채우기");
         }
 
         [Test]
