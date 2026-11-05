@@ -52,6 +52,7 @@ namespace CurtainCall.Tightrope
         // 위 사람 clientId → 바로 아래 사람 clientId
         readonly Dictionary<ulong, ulong> belowOf = new();
         readonly Dictionary<ulong, ulong> aboveOf = new();
+        readonly HashSet<ulong> carriersFromRope = new();
         readonly Dictionary<ulong, (ulong Helper, double Until)> trapezeEntries = new();
 
         NetworkSessionManager session;
@@ -550,16 +551,27 @@ namespace CurtainCall.Tightrope
 
         void ServerResolvePlatformDismounts()
         {
-            if (belowOf.Count == 0 || TightropeCourse.Current == null) return;
+            if (belowOf.Count == 0) return;
+            var course = TightropeCourse.Current;
+            if (course == null || !course.UsesPlatformPiggyback) return;
             foreach (var carrier in NetworkPlayer.All)
             {
-                if (carrier == null || GetBelow(carrier) != null || GetAbove(carrier) == null) continue;
-                var platform = TightropeCourse.Current.PiggybackDismountSupport(carrier);
+                if (carrier == null || carrier.State != PlayerState.Normal || carrier.IsAirborne
+                    || GetBelow(carrier) != null || GetAbove(carrier) == null
+                    || !carrier.TryGetComponent(out PlayerMover mover) || (carrier.IsLocal && mover.IsAirborne)) continue;
+                if (course.TryGetSupportingRope(mover, out _))
+                {
+                    carriersFromRope.Add(carrier.OwnerClientId);
+                    continue;
+                }
+                Collider platform = course.PiggybackDismountSupport(carrier);
+                if (platform == null && carriersFromRope.Contains(carrier.OwnerClientId))
+                    platform = course.PiggybackLandingGround(carrier);
                 if (platform != null) ServerDismountOnPlatform(carrier, platform);
             }
         }
 
-        bool ServerDismountOnPlatform(NetworkPlayer carrier, BoxCollider platform)
+        bool ServerDismountOnPlatform(NetworkPlayer carrier, Collider platform)
         {
             var placements = new Dictionary<ulong, Vector3>();
             for (var rider = GetAbove(carrier); rider != null; rider = GetAbove(rider))
@@ -581,7 +593,7 @@ namespace CurtainCall.Tightrope
             return true;
         }
 
-        static bool TryFindPlatformSeat(BoxCollider platform, Vector3 carrierFeet, float radius, float height,
+        static bool TryFindPlatformSeat(Collider platform, Vector3 carrierFeet, float radius, float height,
             Dictionary<ulong, Vector3> placements, out Vector3 feet)
         {
             feet = default;
@@ -595,22 +607,34 @@ namespace CurtainCall.Tightrope
             for (float x = Mathf.Max(bounds.min.x + edgeMargin, carrierFeet.x - maxSearchDistance); x <= Mathf.Min(bounds.max.x - edgeMargin, carrierFeet.x + maxSearchDistance); x += separation)
             for (float z = Mathf.Max(bounds.min.z + edgeMargin, carrierFeet.z - maxSearchDistance); z <= Mathf.Min(bounds.max.z - edgeMargin, carrierFeet.z + maxSearchDistance); z += separation)
             {
-                var candidate = new Vector3(x, bounds.max.y, z);
+                var candidate = new Vector3(x, carrierFeet.y, z);
                 float distance = HorizontalDistanceSquared(candidate, preferred);
                 if (distance >= nearest || HorizontalDistanceSquared(candidate, carrierFeet) < separationSquared
+                    || HorizontalDistanceSquared(candidate, carrierFeet) > maxSearchDistance * maxSearchDistance
                     || IsSeatReserved(candidate, separationSquared, placements)) continue;
                 // 실제 발판 위인지 확인하고 몸 전체가 벽·기둥·다른 플레이어와 겹치지 않는 자리를 쓴다.
-                if (!platform.Raycast(new Ray(candidate + Vector3.up * .1f, Vector3.down), out var hit, .2f)
-                    || hit.normal.y < .99f) continue;
+                if (!TrySeatFloor(platform, candidate, out var hit)
+                    || (platform is not BoxCollider && !HasSeatEdgeClearance(platform, candidate, edgeMargin))) continue;
                 candidate = hit.point + Vector3.up * .035f;
                 if (Physics.CheckCapsule(candidate + Vector3.up * radius,
                     candidate + Vector3.up * Mathf.Max(radius, height - radius), radius,
                     Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) continue;
+                if (Physics.Linecast(carrierFeet + Vector3.up * .6f, candidate + Vector3.up * .6f,
+                        Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) continue;
                 nearest = distance;
                 feet = candidate;
             }
             return float.IsFinite(nearest);
         }
+
+        static bool TrySeatFloor(Collider platform, Vector3 point, out RaycastHit hit)
+            => platform.Raycast(new Ray(point + Vector3.up * .35f, Vector3.down), out hit, .7f) && hit.normal.y > .9f;
+
+        static bool HasSeatEdgeClearance(Collider platform, Vector3 point, float margin)
+            => TrySeatFloor(platform, point + Vector3.right * margin, out _)
+                && TrySeatFloor(platform, point - Vector3.right * margin, out _)
+                && TrySeatFloor(platform, point + Vector3.forward * margin, out _)
+                && TrySeatFloor(platform, point - Vector3.forward * margin, out _);
 
         static bool IsSeatReserved(Vector3 candidate, float separationSquared, Dictionary<ulong, Vector3> placements)
         {
@@ -698,6 +722,7 @@ namespace CurtainCall.Tightrope
         {
             ClearHandhold();
             trapezeEntries.Clear();
+            carriersFromRope.Clear();
             belowOf.Clear();
             aboveOf.Clear();
             lastDropped.Clear();
@@ -733,6 +758,7 @@ namespace CurtainCall.Tightrope
         void ServerBroadcast(List<ulong> dropped = null, List<ulong> shocked = null,
             Dictionary<ulong, Vector3> placements = null)
         {
+            carriersFromRope.RemoveWhere(id => !aboveOf.ContainsKey(id) || belowOf.ContainsKey(id));
             float shock = GameSettings.Tightrope.Piggyback.FallShock;
             var manager = Messaging;
             if (manager != null)
