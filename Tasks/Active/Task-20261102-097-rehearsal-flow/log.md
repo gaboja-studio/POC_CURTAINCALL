@@ -60,3 +60,4 @@
 - PerformanceEntryJudgeTests 전체 실행에서 기존 3건이 StartSession 인자 변경으로 실패(이번 수정과 무관)해 테스트 호출을 고쳤다. 재실행 5/5 PASS. check-work: 컴파일 PASS, 문서 검사 WARN(기존 파일 크기), 전체 자동 테스트는 미실행.
 - Unity 종료 확인 후 origin/dev e95b6d9b까지 fast-forward. 변경은 stash로 보존/복원했고 log.md 충돌만 dev 내용+이번 기록으로 해결. `_ThirdParty`는 c1e64a6d로 갱신, verify-third-party OK. 커밋·push 없음.
 - dev e95b6d9b 기준: 컴파일 up_to_date, RestTimeRulesTests 5/5 PASS. PerformanceEntryJudgeTests PlayMode 재실행은 에디터 종료로 결과를 받지 못했다(동기화 전 5/5 PASS). 실제 다인 플레이는 사람 확인 대기.
+- 2026-11-05 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/307 (feat/rehearsal-flow → dev). new-pr.ps1는 이번 작업과 무관한 미커밋 변경(escape-labels.asset, _ThirdParty 셰이더 2개)으로 중단되어 같은 템플릿으로 gh에서 직접 등록했다.
