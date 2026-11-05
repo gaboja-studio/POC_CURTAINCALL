@@ -126,13 +126,16 @@ Shader "CurtainCall/Escape/TreatmentWater"
                     foam = saturate(foam + surge*surge*surge * smoothstep(.49,.78,sediment) * .62);
                     half grit = SuspendedFines(float2(crossFlow*8 + eddy*2,flow.y*4.8)) * sediment;
                     half directional = saturate(dot(normalize(i.normalWS),normalize(half3(-.60,.74,.31))));
-                    color = lerp(half3(.023,.019,.015), half3(.124,.104,.079), sediment) * (.66+.48*directional);
-                    color = lerp(color, half3(.37,.35,.30), foam*(.45+.48*eddy));
+                    // Long iron-brown streaks and suspended olive sludge travel with the water.
+                    half sludge = saturate(.64*sediment + .29*eddy + .16*ripple);
+                    color = lerp(half3(.042,.020,.011), half3(.134,.109,.044), sludge) * (.61+.41*directional+.17*ripple);
+                    color = lerp(color, half3(.32,.248,.133), foam*(.45+.48*eddy));
                     half glint = smoothstep(.64,.87,ripple) * smoothstep(.35,.78,eddy);
                     color += half3(.085,.089,.09) * (glint + rim*rim*.22) * (.4+.6*broad);
-                    color = lerp(color, half3(.031,.024,.021), grit*.83);
+                    color = lerp(color, half3(.021,.014,.008), saturate(grit*1.5));
                     color *= .78 + .22*smoothstep(0,.09,i.drop);
-                    opacity = .59 + .19*sediment + .14*foam + .045*directional;
+                    // Thin runs let silhouettes show through between the dense flocs.
+                    opacity = .36 + .34*sludge + .17*foam + .04*directional;
                 }
                 else
                 {
@@ -143,8 +146,9 @@ Shader "CurtainCall/Escape/TreatmentWater"
                     float rings = .5 + .5 * sin(reach*16 - time*3.8 + broad*1.5);
                     float wake = inlet*inlet*(.26 + .74*rings);
                     half sheen = saturate(.15 + .35*rim*rim + .24*broad + .12*detail);
-                    color = lerp(half3(.018,.015,.012), half3(.108,.091,.068), sheen);
-                    color = lerp(color, half3(.31,.284,.235), wake*(.36 + .64*detail));
+                    half scum = smoothstep(.45,.69,.65*broad+.35*detail);
+                    color = lerp(half3(.036,.022,.009), half3(.105,.102,.034), saturate(sheen + .40*scum));
+                    color = lerp(color, half3(.32,.249,.140), wake*(.36 + .64*detail));
                     opacity = .95;
                 }
                 return half4(MixFog(color, i.fog), opacity);
