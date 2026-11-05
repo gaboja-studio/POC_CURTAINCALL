@@ -14,11 +14,13 @@ namespace CurtainCall.Tightrope
         const ulong Nobody = ulong.MaxValue;
         const int MaxPoleTotal = 3;
         int practicePoleCount = MaxPoleTotal;
+        bool practiceLowPoles;
         int PoleTotal => practicePoleCount;
         /// <summary>비활성 연습 코스 구성 시에만 호출한다. 첫 두 원본 봉으로 잡기/비행을 학습한다.</summary>
-        public void ConfigurePracticeLesson()
+        public void ConfigurePracticeLesson(int count = 2, bool lowPoles = false)
         {
-            if (!gameObject.activeInHierarchy && GetComponent<TightropeRun>() is { PracticeMode: true }) practicePoleCount = 2;
+            if (!gameObject.activeInHierarchy && GetComponent<TightropeRun>() is { PracticeMode: true })
+            { practicePoleCount = Mathf.Clamp(count, 1, MaxPoleTotal); practiceLowPoles = lowPoles; }
         }
         const float HoldSeconds = 30f, BodySeparation = 1.45f;
         /// <summary>끈끈이 장갑으로 늘어날 수 있는 최대 유지 시간(참가자 화면 검증용 여유, Task-092).</summary>
@@ -98,7 +100,12 @@ namespace CurtainCall.Tightrope
             if (course == null) return;
             for (int i = 0; i < PoleTotal; i++)
             {
-                poles[i].Physics.transform.SetPositionAndRotation(course.TrapezeRestingFeet(i)
+                // 기본 인간 그네 수업은 공연 마지막 낮은 봉(.6m)을 같은 물리로 배치한다.
+                // 공연과 현행 3단계의 높은 봉 배치·목마 진입 조건은 바꾸지 않는다.
+                Vector3 feet = practiceLowPoles
+                    ? course.GetLanePosition(Lane, course.TrapezeGapFrom - 1f + i * 8f) + Vector3.up * .6f
+                    : course.TrapezeRestingFeet(i);
+                poles[i].Physics.transform.SetPositionAndRotation(feet
                     + Vector3.up * poles[i].Physics.HangLength, Quaternion.LookRotation(course.Forward));
             }
         }
@@ -214,7 +221,7 @@ namespace CurtainCall.Tightrope
             if (!Active || index < 0 || index >= PoleTotal || !Eligible(player) || poles[index].Upper != Nobody) return false;
             bool flying = flights.TryGetValue(player.OwnerClientId, out var flight) && Clock <= flight.Until;
             if (flying && index != flight.From + 1) return false;
-            if (!flying && index == 0 && (PiggybackSystem.Current == null || !PiggybackSystem.Current.CanEnterTrapeze(player))) return false;
+            if (!practiceLowPoles && !flying && index == 0 && (PiggybackSystem.Current == null || !PiggybackSystem.Current.CanEnterTrapeze(player))) return false;
             return InCatchRange(player, index, false);
         }
         bool CanAttach(NetworkPlayer player, int index)
@@ -254,6 +261,10 @@ namespace CurtainCall.Tightrope
         Vector3 PlanFlightVelocity(int from, Vector3 origin, Vector3 target, Vector3 velocity, out float speedLimit)
         {
             float gravity = GameSettings.Base.Character.Gravity;
+            Sample(from, out float angle, out _);
+            if (SwingPoleMath.TryPracticeFlightVelocity(run != null && run.PracticeMode, angle,
+                poles[from].Physics.MaxSwingAngle, origin, target, velocity, course.Forward, gravity,
+                poles[from].Physics.HangLength, out var assisted, out speedLimit)) return assisted;
             if (from + 1 < PoleTotal) return SwingPoleMath.PoleFlightVelocity(origin, target, velocity, course.Forward,
                 gravity, poles[from].Physics.HangLength, out speedLimit);
             speedLimit = SwingPoleMath.FlightSpeedLimit(origin.y - target.y, velocity.y, gravity,

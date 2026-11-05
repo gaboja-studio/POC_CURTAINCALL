@@ -204,6 +204,7 @@ namespace CurtainCall.WaitingRoom
             // 모든 외줄 소구간에서 실제 공연의 목마 연결 규칙을 보존한다.
             PiggybackSystem.Suppressed = false;
             EnsureLockdownProps();
+            UpdateTriggerGeometry();
             if (HasAuthority) HostTick();
             else if (stage < 0 && Clock >= nextSync) { Send(Operation.Sync); nextSync = Clock + 2d; }
             EnsureCourse();
@@ -323,10 +324,11 @@ namespace CurtainCall.WaitingRoom
             courseRun.SetExternallyManaged(true);
             courseRun.SetPracticeMode(true);
             course.CompactPracticeLayout = true;
-            if (s.Kind == RehearsalStageKind.Trapeze)
+            if (s.UsesPoles)
             {
                 var trapeze = courseRoot.GetComponent<TightropeTrapeze>() ?? courseRoot.AddComponent<TightropeTrapeze>();
-                trapeze.ConfigurePracticeLesson();
+                trapeze.ConfigurePracticeLesson(s.Kind == RehearsalStageKind.SinglePole ? 1 : 2,
+                    s.Kind != RehearsalStageKind.Trapeze);
             }
             if (courseRoot.GetComponent<RopeLaneJumpRules>() == null) courseRoot.AddComponent<RopeLaneJumpRules>();
             // 공연 씬에 별도로 붙은 공통 기능도 모든 소구간에 원본 그대로 연결한다.
@@ -342,7 +344,12 @@ namespace CurtainCall.WaitingRoom
             if (courseRoot.GetComponent<TightropeHandholdRangeView>() == null) courseRoot.AddComponent<TightropeHandholdRangeView>();
             BuildPerformanceUi();
             courseRoot.SetActive(true);
-            // 공연의 활성 모드를 그대로 쓴다. 휴면 일반 그네/지정 자리 해제봉을 켜지 않는다.
+            if (s.Kind == RehearsalStageKind.LaneChange) course.SetIntermediatePlatformLanes(new[] { 0 });
+            if (s.Kind == RehearsalStageKind.Relay)
+            {
+                var relay = courseRoot.GetComponent<TightropeRelayGate>();
+                relay.UseSpots(new[] { new RelaySpot(0, 11f, 1, 12f, 20f) });
+            }
             courseStarted = false;
             Debug.Log($"[Rehearsal] 소구간 {s.Id} 코스 생성(회차 {round})");
         }

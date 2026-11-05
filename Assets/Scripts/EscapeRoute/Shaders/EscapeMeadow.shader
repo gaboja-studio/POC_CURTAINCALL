@@ -1,6 +1,6 @@
 Shader "CurtainCall/Escape/Meadow"
 {
-    Properties { _BaseColor("Tint", Color)=(.68,.53,.28,1) _Wind("Wind", Range(0,1))=.22 _Ground("Ground", Range(0,1))=0 }
+    Properties { _BaseColor("Tint", Color)=(.68,.53,.28,1) _Wind("Wind", Range(0,1))=.22 _Ground("Ground", Range(0,1))=0 _PlaybackSpeed("Playback speed", Float)=1 }
     SubShader
     {
         Tags { "RenderPipeline"="UniversalPipeline" "RenderType"="Opaque" }
@@ -15,7 +15,7 @@ Shader "CurtainCall/Escape/Meadow"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
             CBUFFER_START(UnityPerMaterial)
-            half4 _BaseColor; float _Wind; float _Ground;
+            half4 _BaseColor; float _Wind; float _Ground; float _PlaybackSpeed;
             CBUFFER_END
             struct Attributes {float4 positionOS:POSITION; float3 normalOS:NORMAL; float2 uv:TEXCOORD0; half4 color:COLOR;};
             struct Varyings {float4 positionCS:SV_POSITION;float3 world:TEXCOORD0;half3 normal:TEXCOORD1;half4 color:COLOR;half fog:TEXCOORD2;};
@@ -28,8 +28,9 @@ Shader "CurtainCall/Escape/Meadow"
             Varyings Vert(Attributes v)
             {
                 Varyings o;float3 p=TransformObjectToWorld(v.positionOS.xyz);
-                float gust=sin(p.x*.085+p.z*.05-_Time.y*.67)*.5+.5;
-                float wave=sin(_Time.y*.85+p.x*.21+p.z*.17)*.55+sin(_Time.y*1.21+p.z*.4)*.2;
+                float time=_Time.y*_PlaybackSpeed;
+                float gust=sin(p.x*.085+p.z*.05-time*.67)*.5+.5;
+                float wave=sin(time*.85+p.x*.21+p.z*.17)*.55+sin(time*1.21+p.z*.4)*.2;
                 p.xz+=float2(1,.38)*(wave+gust*gust*1.2)*_Wind*v.uv.y*v.uv.y;
                 o.positionCS=TransformWorldToHClip(p);o.world=p;o.normal=TransformObjectToWorldNormal(v.normalOS);o.color=v.color;
                 o.fog=ComputeFogFactor(o.positionCS.z);return o;

@@ -16,6 +16,10 @@ namespace CurtainCall.WaitingRoom
         NetworkPlayer waitingSlot;
         /// <summary>이 화면에서 내 캐릭터의 대기실 출발 배치가 끝났다.</summary>
         public static event System.Action<NetworkPlayer> PlayerPlaced;
+        public static int LastPlacedScene { get; private set; } = -1;
+        public static NetworkPlayer LastPlacedPlayer { get; private set; }
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetPlacement() { LastPlacedScene = -1; LastPlacedPlayer = null; }
         void OnEnable() => NetworkPlayer.LocalSpawned += Spawned;
 
         void OnDisable() { NetworkPlayer.LocalSpawned -= Spawned; StopWaiting(); }
@@ -44,8 +48,9 @@ namespace CurtainCall.WaitingRoom
         }
         void SlotAssigned(int slot) { if (slot == NetworkPlayer.NoSlot) return; var player = waitingSlot; StopWaiting(); Placed(player); }
         void StopWaiting() { if (waitingSlot != null) waitingSlot.SlotChanged -= SlotAssigned; waitingSlot = null; }
-        static void Placed(NetworkPlayer player)
+        void Placed(NetworkPlayer player)
         {
+            LastPlacedScene = gameObject.scene.handle; LastPlacedPlayer = player;
             if (InInitialRehearsal()) PlaceOnPracticeFloor(player);
             if (PlayerPlaced != null)
                 foreach (System.Action<NetworkPlayer> observer in PlayerPlaced.GetInvocationList())

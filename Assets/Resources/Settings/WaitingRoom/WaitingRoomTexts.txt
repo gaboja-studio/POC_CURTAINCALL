@@ -461,15 +461,21 @@ rehearsal.practice-button | {stage} 재연습
 rehearsal.practice-hint | 호스트 전용 · 연습실에서 소구간을 골라 다시 연습
 rehearsal.practice-end | 연습 종료
 # 우측 퀘스트 패널 (기획서 4.4, 2026-11-04). 각 안내의 제목은 .title 키. 제목 줄이 없으면 "[tutorial]"만 표시
-rehearsal.quest.fallen | 추락했습니다. 잠시 뒤 소구간 출발대에서 다시 시작합니다.
+rehearsal.quest.fallen | 추락했습니다. 잠시 뒤 마지막 체크포인트에서 다시 시작합니다.
 rehearsal.quest.wait-team | 도착했습니다. 다른 공연 준비자가 모두 도착할 때까지 기다리세요.
 rehearsal.quest.arrived | 도착했습니다. 곧 다음 단계로 넘어갑니다.
-rehearsal.quest.balance | W/S로 이동하고 A/D로 균형을 잡으며 외줄을 건너세요.
-rehearsal.quest.lane-jump | Q/E를 누른 채 Space로 옆줄로 건너세요.
+rehearsal.quest.balance | W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.
+rehearsal.quest.lane-jump | Q, E + Space를 이용해 건너편 줄로 넘어가세요.
 rehearsal.quest.finish | 줄을 따라 도착대까지 가세요.
 rehearsal.quest.gather | 바닥에 표시되는 길안내 선을 따라 무대 입구 통로로 이동하세요. 전원이 모이면 공연이 시작됩니다.[{inside}/{alive}]
 rehearsal.quest.gathered | 다른 공연 준비자를 기다리세요.[{inside}/{alive}]
 rehearsal.quest.fallen.title | [tutorial]
+rehearsal.quest.hang-help.title | [tutorial] 동료에게 도움 요청하기
+rehearsal.quest.hang-help | 줄에 매달려 버티는 동안 동료에게 도움을 요청하세요. 가까운 동료가 F를 길게 눌러 끌어올릴 수 있습니다. 혼자 올라올 수는 없습니다.
+rehearsal.quest.rescue-team.title | [tutorial] 추락한 동료 구출하기
+rehearsal.quest.rescue-team | 줄에 매달린 동료 가까이로 이동해 F를 길게 눌러 끌어올리세요. 버티는 시간이 끝나기 전에 구조해야 합니다.
+rehearsal.quest.rescue-pull.title | [tutorial] 동료 끌어올리기
+rehearsal.quest.rescue-pull | 동료를 끌어올리는 중입니다. 구조가 끝날 때까지 가까이에서 F를 계속 누르세요.
 rehearsal.quest.wait-team.title | [tutorial]
 rehearsal.quest.arrived.title | [tutorial]
 rehearsal.quest.balance.title | [tutorial] 균형잡기
@@ -512,19 +518,19 @@ first-day.quest.night-wait.body | 모든 공연 대기자가 준비하면 다음
 # ── 리허설 단계별 제목·좌측 설명 ── .title은 재연습 버튼 이름, .guide-title은 좌측 설명 패널 제목(기획서 4.3)
 # 제목/설명만 편집합니다. 코스·완료 규칙은 바뀌지 않습니다. 플레이 재시작 시 반영됩니다.
 rehearsal.stage.1.title | 1단계 · 외줄타기
-rehearsal.stage.1.intro | W/S로 이동하고 A/D로 균형을 잡으며 도착대까지 외줄을 건너세요.
+rehearsal.stage.1.intro | 줄 위에서는 A/D로 균형을 잡고 W로 나아갑니다. S를 누르면 뒤로 이동합니다.
 rehearsal.stage.1.guide-title | 외줄타기
-rehearsal.stage.2-1.title | 2-1 · 줄 전환과 손잡기
-rehearsal.stage.2-1.intro | Q/E를 누른 채 Space로 옆줄로 건너세요. 동료가 서 있는 줄의 손잡기 범위에 착지하면 충격과 흔들림이 줄어듭니다.
-rehearsal.stage.2-1.guide-title | 줄 전환과 손잡기
-rehearsal.stage.2-2.title | 2-2 · 해제봉 교대
-rehearsal.stage.2-2.intro | 청록색 출발 봉을 F로 잡으면 줄 하나가 무작위로 이어집니다. 먼저 건넌 동료는 초록색 교대 봉을 잡아 남은 동료의 길을 열어 주세요. F나 Space로 놓습니다.
-rehearsal.stage.2-2.guide-title | 해제봉 교대
-rehearsal.stage.2-3.title | 2-3 · 목마 도약
-rehearsal.stage.2-3.intro | F로 목마를 연결하고 함께 2m 이동하세요. 위 사람은 W + Space로 목마에서 도약해 도착대에 착지하세요. 혼자 걸어가면 완료되지 않습니다.
-rehearsal.stage.2-3.guide-title | 목마로 함께 이동하고 도약하기
+rehearsal.stage.2-1.title | 2-1 · 인간 그네
+rehearsal.stage.2-1.intro | 줄 끝에서 F로 인간 그네를 잡습니다. W/S로 흔들어 앞쪽 최대 각도의 절반 이상 올라갔을 때 Space를 누르면 건너편 줄로 도약합니다.
+rehearsal.stage.2-1.guide-title | 인간 그네
+rehearsal.stage.2-2.title | 2-2 · 연속 인간 그네
+rehearsal.stage.2-2.intro | W/S로 그네를 흔들어 앞쪽 최대 각도의 절반 이상에서 Space로 도약하세요. 체공 중 다음 그네 가까이에서 F키를 눌러 잡습니다.
+rehearsal.stage.2-2.guide-title | 공중에서 다음 그네로 건너가기
+rehearsal.stage.2-3.title | 2-3 · 트리거 그네
+rehearsal.stage.2-3.intro | 아래쪽 줄이 끊어져 있습니다. 한 명이 트리거 그네를 잡고 있는 동안 끊어진 줄이 연결됩니다.
+rehearsal.stage.2-3.guide-title | 트리거 그네
 rehearsal.stage.3.title | 3단계 · 목마와 공중그네
-rehearsal.stage.3.intro | 목마 위 사람이 F로 첫 봉을 잡고, 아래 동료도 F로 매달리세요. W/S로 반동을 만들고 Space로 도약해 다음 봉을 F로 잡으면 학습 완료입니다.
+rehearsal.stage.3.intro | 목마 위 사람이 F로 첫 봉을 잡고, 아래 동료도 F로 매달리세요. W/S로 흔들어 앞쪽 최대 각도의 절반 이상에서 Space로 도약하고 다음 봉을 F로 잡으면 학습 완료입니다.
 rehearsal.stage.3.guide-title | 목마와 공중 인간 그네
 
 rehearsal.clear-button | 현재 구간 즉시 클리어 · 다음
@@ -532,8 +538,8 @@ rehearsal.clear-button-hint | 호스트 전용 · Esc로 커서 해제
 
 rehearsal.vote | 다음 구간으로 ({votes}/{required})
 rehearsal.quest.arrived-vote | 도착했습니다. 동료의 연습을 기다리거나 다음 구간 진행에 동의하세요. ({arrived}/{total}, 동의 {votes}/{required})
-rehearsal.lane-guide-title | 옆줄로 건너기
-rehearsal.lane-guide | Q/E를 누른 채 Space로 옆줄로 건너세요. 동료가 서 있는 줄의 손잡기 범위에 착지해 보세요.
+rehearsal.lane-guide-title | 끊어진 줄
+rehearsal.lane-guide | 줄이 끊긴 지점에서는 Q/E + Space키로 옆줄로 건너갈 수 있습니다.
 rehearsal.mount-title | 목마 상호작용
 rehearsal.mount | 동료 가까이에서 F키를 눌러 목마에 올라탈 수 있습니다.
 rehearsal.quest.trapeze-mount.title | [tutorial] 목마 연결하기
@@ -544,10 +550,10 @@ rehearsal.quest.trapeze-attach.title | [tutorial] 동료에게 매달리기
 rehearsal.quest.trapeze-attach | 봉을 잡은 동료 가까이에서 F로 매달리세요. 반동에 맞춰 Space로 다음 봉을 향해 날아갑니다.
 
 # 우측 하단 투표 패널 (2026-11-04). {votes} 동의 수, {required} 필요 수(전체 인원 과반), {total} 전체 인원
-rehearsal.skip.title | 리허설 넘기기
-rehearsal.skip.body | 과반수가 동의하면 리허설을 마치고 바로 공연을 시작합니다. (동의 {votes}/{required})
+rehearsal.skip.title | 현재 구간 넘기기
+rehearsal.skip.body | 과반수가 동의하면 현재 구간을 마치고 다음 단계로 이동합니다. (동의 {votes}/{required})
 rehearsal.skip.body-practice | 과반수가 동의하면 연습을 마칩니다. (동의 {votes}/{required})
-rehearsal.skip.agree | 리허설 넘기기
+rehearsal.skip.agree | 다음 단계로
 rehearsal.skip.cancel | 동의 취소
 rehearsal.skip-ending | 리허설이 종료됩니다.
 rehearsal.practice-station.action | 리허설 다시 하기
@@ -584,11 +590,11 @@ rehearsal.quest.lane-learned.title | [tutorial] 옆줄 착지 성공
 rehearsal.quest.lane-learned | 옆줄 착지 성공! 짧은 도착대까지 이동하세요. 동료 근처에 착지하면 충격이 줄어듭니다.
 
 # 인간대포·트램펄린 리허설 (Confluence 3.5, Start 연결 공연 원본 기물)
-cannon-rehearsal.title | 인간대포 · 트램펄린 리허설
+cannon-rehearsal.title | 인간대포/트램펄린
 cannon-rehearsal.quest-title | [tutorial] 인간대포와 트램펄린
-cannon-rehearsal.intro | 대포로 중간 도착대에 가세요. 한 명은 트램펄린을 운반하고, 나머지는 재발사 후 반동으로 최종 도착대에 갑니다. 전원 도착 시 이수합니다. 추락 부상·비용은 없습니다.
-cannon-rehearsal.first | 시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요.
-cannon-rehearsal.second | 한 명은 트램펄린과 운송 발판을 담당하세요. 다른 사람은 중간 도착대의 대포에 F로 타고 다시 F로 발사해, 아래층 동료의 트램펄린으로 내려가세요.
+cannon-rehearsal.intro | 신규 공연 리허설을 진행합니다. 인간대포 앞으로 이동하세요.
+cannon-rehearsal.first | F를 눌러 인간대포에 탑승한 뒤 건너편으로 건너가세요.
+cannon-rehearsal.second | 인간대포로 발사하고, 트램펄린을 이용해 안전하게 착지합니다. 다음 지점까지 이동하세요.\n*1명의 공연 준비자가 트램펄린을 이용해야 합니다.
 cannon-rehearsal.carry | 한 명이 트램펄린 손잡이를 F로 잡고, 트램펄린을 든 채 혼자 운송 발판에 올라서세요. 조건이 맞으면 자동으로 아래층으로 이동합니다.
 cannon-rehearsal.ride | 운송 발판이 아래층에 도착할 때까지 기다리세요.
 cannon-rehearsal.catch | 동료의 낙하 지점으로 트램펄린을 옮겨 받아 주세요. 필요하면 반복해서 튕겨 올려 최종 도착대까지 보내세요.
@@ -608,5 +614,12 @@ cannon-rehearsal.abandon | 리허설 포기
 cannon-rehearsal.abandon-body | 과반수가 동의하면 리허설을 포기합니다. 이번 시도는 이수로 기록되지 않고, 다시 시작하면 처음부터 진행합니다. (동의 {votes}/{required})
 cannon-rehearsal.cancel-vote | 동의 취소
 cannon-rehearsal.end-title | 리허설 종료
-cannon-rehearsal.complete | 인간대포 리허설을 이수했습니다. 이제 스케줄표에서 인간대포를 확정할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.
+cannon-rehearsal.complete | 인간대포 리허설을 완료했습니다. 이제 인간대포 공연을 진행할 수 있습니다.
 cannon-rehearsal.abandoned | 리허설을 포기했습니다. 이번 시도는 이수로 기록되지 않고, 다시 시작하면 처음부터 진행합니다.
+rehearsal.quest.pole-grab.title | [tutorial] 인간 그네
+rehearsal.quest.pole-single.title | [tutorial] 인간 그네
+rehearsal.quest.pole-next.title | [tutorial] 인간 그네
+rehearsal.quest.trigger-hold.title | [tutorial] 인간 그네
+rehearsal.quest.trigger-grab.title | [tutorial] 인간 그네
+rehearsal.quest.trigger-open.title | [tutorial] 인간 그네
+rehearsal.quest.trigger-closed.title | [tutorial] 인간 그네

@@ -25,6 +25,7 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>진행이 바뀌었다(받은 상태 포함).</summary>
         public event Action Changed;
+        public static event Action<string, string, int, Vector3> RewardDropped;
         public static event Action<ulong, IExplorationTarget, bool, bool, int, string> TelemetryAttempted;
 
         /// <summary>내 요청의 결과 문구.</summary>
@@ -333,8 +334,10 @@ namespace CurtainCall.WaitingRoom
                 }
                 var item = new PropItem(ItemUses.FoundUidBase + seenGeneration * 100 + offset, itemId,
                     ItemCatalog.Get(itemId)?.displayName ?? itemId, ItemCatalog.FoundUses(itemId));
-                if (!carry.Exists(item.Uid) && carry.PlaceFound(item, at) != CarryRefusal.None) return;
+                bool newlyPlaced = !carry.Exists(item.Uid);
+                if (newlyPlaced && carry.PlaceFound(item, at) != CarryRefusal.None) return;
                 book.Attempt(receipt, true, out _, out _);
+                if (newlyPlaced) RewardDropped?.Invoke(owner.TargetId, itemId, item.Uid, at);
                 changed = true;
             }
         }

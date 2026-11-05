@@ -170,6 +170,9 @@ namespace CurtainCall.Tightrope
             Vector3 target = index + 1 < PoleTotal ? Feet(index + 1, poles[index + 1].Upper != Nobody)
                 : course.GetLanePosition(Lane, course.TrapezeGapTo + 1f);
             float gravity = GameSettings.Base.Character.Gravity;
+            if (SwingPoleMath.TryPracticeFlightVelocity(run != null && run.PracticeMode, angle,
+                poles[index].Physics.MaxSwingAngle, position, target, velocity, course.Forward, gravity,
+                poles[index].Physics.HangLength, out _, out _)) return true;
             for (float time = .08f; time <= 3f; time += .04f)
             {
                 Vector3 predicted = position + (velocity + course.Forward * AirControlSpeed) * time + Vector3.down * (.5f * gravity * time * time);

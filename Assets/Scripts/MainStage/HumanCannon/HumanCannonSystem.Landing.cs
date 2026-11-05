@@ -69,6 +69,7 @@ namespace CurtainCall.HumanCannon
         public static void ServerFallDeath(NetworkPlayer player)
         {
             if (player == null || !player.IsServer || player.State != PlayerState.Normal
+                || (Current != null && !Current.IsPracticeReady(player.OwnerClientId))
                 || EscapeDevelopmentSession.FallConsequencesSuppressed(player)) return;
             if (ServerFell != null)
                 foreach (Action<ulong> observer in ServerFell.GetInvocationList())

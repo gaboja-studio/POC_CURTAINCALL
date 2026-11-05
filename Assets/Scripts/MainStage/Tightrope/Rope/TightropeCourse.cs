@@ -160,6 +160,11 @@ namespace CurtainCall.Tightrope
         /// <summary>코스 오른쪽(수평, 정규화).</summary>
         public Vector3 Right => Vector3.Cross(Vector3.up, Forward);
 
+        /// <summary>등록된 코스의 줄 지지면만 식별한다. 발판·벽은 제외하며 코스 없는 씬을 탐색하지 않는다.</summary>
+        public static bool IsRopeSurface(Collider surface) => surface != null && current != null &&
+            (current.ropeSurfaces.ContainsKey(surface)
+                || current.useSceneGeometry && Array.IndexOf(current.sceneRopes, surface) >= 0);
+
         /// <summary>사망한 몸이 줄의 보행용 지지면에 걸리지 않고 아래로 떨어지게 한다. 플랫폼 충돌은 유지한다.</summary>
         public void IgnoreRopeCollision(Collider body)
         {
@@ -362,7 +367,11 @@ namespace CurtainCall.Tightrope
         /// <summary>자리 번호의 도착(세리머니 공간) 위치·방향. 자기 줄 자리, 도착선 뒤 세리머니 공간 가운데(최대 2m).</summary>
         public Pose GetFinishPose(int slot)
         {
-            int lane = Mathf.Max(0, slot) % LaneCount;
+            int available = 0;
+            for (int i = 0; i < LaneCount; i++) if (Layout.GetLaneEnd(i) >= FinishDistance) available++;
+            int lane = 0, chosen = Mathf.Max(0, slot) % Mathf.Max(1, available);
+            for (int i = 0; i < LaneCount; i++)
+                if (Layout.GetLaneEnd(i) >= FinishDistance && chosen-- == 0) { lane = i; break; }
             float distance = FinishDistance + Mathf.Clamp(Shape.FinishPlatformLength * 0.5f, 0.5f, 2f);
             return new Pose(GetLanePosition(lane, distance), Quaternion.LookRotation(Forward, Vector3.up));
         }

@@ -71,7 +71,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             System.IO.Directory.CreateDirectory(".harness/local/rehearsal/quest-flow");
             yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
-            yield return WaitQuestReady("second-pick");
+            yield return WaitQuestReady("gather");
             var campaign = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             var gather = Find("CurtainCall.WaitingRoom.StageEntranceGather");
             var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
@@ -193,6 +193,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForEndOfFrame();
                 ScreenCapture.CaptureScreenshot(System.IO.Path.GetFullPath(".harness/local/rehearsal/followup/panels.png"));
                 yield return null; yield return null;
+                Assert.IsTrue((bool)Call(quest, "Show", "다음 구간 퀘스트", "기존 패널을 재사용하는 새 퀘스트입니다."));
+                Assert.IsTrue(title0.text.StartsWith("! "), "새 퀘스트를 재사용 패널에 표시해도 최신 순서로 이동");
+                Assert.IsFalse(title1.text.StartsWith("!"));
+                Call(panel, "Show", "추가 퀘스트", "진행 인원 1/4");
+                Assert.IsFalse(title1.text.StartsWith("!"), "기존 퀘스트의 인원 갱신은 최신 표시를 빼앗지 않음");
+                Call(panel, "Hide");
+                Call(panel, "Show", "추가 퀘스트", "다시 추가된 패널");
+                Assert.IsTrue(title1.text.StartsWith("! "));
+                Assert.IsFalse(title0.text.StartsWith("!"));
                 Call(quest, "Hide");
                 Assert.IsFalse(title1.text.StartsWith("!"), "한 개만 남으면 신규 표시를 제거한다");
                 Call(panel, "Hide");

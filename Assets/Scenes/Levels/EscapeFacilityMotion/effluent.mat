@@ -31,6 +31,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _PlaybackSpeed: 2
     - _Pour: 1
     m_Colors:
     - _Impact: {r: 3.0749967, g: 0.81500244, b: 0, a: 0}

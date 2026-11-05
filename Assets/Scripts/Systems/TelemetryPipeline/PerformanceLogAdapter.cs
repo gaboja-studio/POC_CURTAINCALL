@@ -62,8 +62,8 @@ namespace CurtainCall.Telemetry.Pipeline
             if (shared?.IsOpen == true && shared.Performance != null && log.CurrentRunId != null)
             {
                 nextTrick = shared.Performance.TrickId == "Tightrope" ? "TIGHTROPE" : shared.Performance.TrickId == "HumanCannon" ? "CANNON" : null;
-                if (nextTrick == "TIGHTROPE" && results?.IsAttemptOpen == true && Guid.TryParseExact(results.AttemptId, "N", out var id)) next = id.ToString("D");
-                if (nextTrick == "CANNON") next = DetailLogIds.Uuid("performance:" + shared.Performance.Id);
+                // Campaign attempts already have one host-synchronized identity. The standalone rope results channel may never open here.
+                if (nextTrick != null) next = DetailLogIds.Uuid("performance:" + shared.Performance.Id);
             }
             else if (run != null && !run.ExternallyManaged && run.State == TightropeRunState.Running && results?.IsAttemptOpen == true)
             {

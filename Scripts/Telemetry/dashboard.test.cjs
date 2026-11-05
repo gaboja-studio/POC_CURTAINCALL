@@ -149,7 +149,7 @@ test('refresh status distinguishes first refresh, running with cached results an
 });
 test('opening, signing in and background status polling never start an import',()=>{
  const startup=refreshHtml.split('function initializeAccess()')[1].split("$('login-send')")[0],login=refreshHtml.split("$('login-confirm').onclick=")[1].split("$('logout').onclick=")[0];
- assert.equal(startup.includes('load(true)'),false);assert.ok(startup.includes('load(false)'));assert.equal(login.includes('load(true)'),false);
+ assert.equal(startup.includes('load(true)'),false);assert.equal(startup.includes('load(false)'),false);assert.ok(startup.includes('clearSelection()'));assert.equal(login.includes('load(true)'),false);
  assert.equal(refreshHtml.includes('setInterval(()=>{if(viewer&&!deletionPreview)load(true)'),false);assert.ok(refreshHtml.includes('setInterval(pollRefreshState,15000)'));
  const poll=refreshHtml.split('function pollRefreshState()')[1].split('function load(importFiles)')[0];assert.equal(poll.includes('refreshDashboard'),false);assert.ok(poll.includes('getDashboardRefreshState'));
 });
@@ -160,4 +160,15 @@ test('cached overview binds balances to the displayed run, including an empty le
  const v={timeline:{runId:'B'},funds:{runId:'',interval:'DAY',mode:'AVERAGE',series:[{balance:500}],runSeries:[{runId:'A',day:1,balance:900},{runId:'B',day:1,balance:100}],breakRunSeries:[]}};
  c.alignRunViews(v,false);assert.equal(v.funds.runId,'B');assert.equal(v.funds.series[0].balance,100);
  v.timeline.runId='C';c.alignRunViews(v,false);assert.equal(v.funds.runId,'C');assert.equal(v.funds.series.length,0);
+});
+
+test('per-player replay keeps roster-only peers visible and isolates the selected player',()=>{
+ const ev=(slot)=>e('SPATIAL_SAMPLE',{spatialVersion:1,position:{x:slot,y:0,z:0},spatialScope:'waiting'},{playerNumber:slot,sceneType:'WAITINGROOM',breakId:'D1T2'});
+ const a=ev(0),b=ev(1),roster=e('PERFORMANCE_ROSTER',{participants:[{playerNumber:2}],playerCount:3},{attemptId:'act'});
+ const rows=[a,b,roster],t=view(rows).timeline,part=view(rows,{timelinePhase:t.phases.find(p=>p.kind==='BREAK').id,replayPlayer:core.playerKey(b)}).timeline;
+ assert.deepEqual(Array.from(part.players,p=>p.playerNumber).sort(),[0,1,2]);assert.deepEqual(Array.from(part.replay.points,p=>p.event.playerNumber),[1]);
+});
+test('result charts count decisions and arrivals without counting recurring snapshots',()=>{
+ const rows=[e('REHEARSAL_STATE',{recordKind:'ACTION',state:'ARRIVED'}),e('REHEARSAL_STATE',{recordKind:'SNAPSHOT',state:'ARRIVED'}),e('ESCAPE_TIMEOUT'),e('PURSUIT_CAPTURED')];
+ const g=core.aggregate(rows,'TEST').activities;assert.equal(g['리허설']['도착'],1);assert.equal(g['탈출로']['시간 만료'],1);assert.equal(g['추격']['잡힘'],1);
 });

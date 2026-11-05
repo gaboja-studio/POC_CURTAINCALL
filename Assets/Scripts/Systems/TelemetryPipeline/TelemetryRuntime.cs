@@ -27,6 +27,7 @@ namespace CurtainCall.Telemetry.Pipeline
         readonly CancellationTokenSource uploadLifetime = new();
         string playerId;
         long sequence;
+        int lostToBackpressure;
         float sceneEnteredAt;
         float nextSeal;
         string sceneName;
@@ -38,6 +39,7 @@ namespace CurtainCall.Telemetry.Pipeline
         bool wasRunning;
         string localRun;
         int generation;
+        string rewardRoom;
         string ledgerSession;
         int lastLedgerNumber;
         int? lastPlayerNumber;
@@ -163,13 +165,19 @@ namespace CurtainCall.Telemetry.Pipeline
                 };
                 if (entry.sceneType == "MAINSTAGE" && entry.attemptId != null && player != null)
                     entry.payload = DetailLogIds.RoutePayload(eventType, entry.payload, player.transform.position);
+                if (entry.runId != null && rewardRoom != null)
+                {
+                    entry.payload.TryAdd("roomSession", rewardRoom);
+                    entry.payload.TryAdd("runNumber", generation);
+                }
+                if (entry.sceneType == "WAITINGROOM" && state.Phase == CampaignPhase.Rehearsal) entry.payload["activity"] = "REHEARSAL";
                 entry.payload = flowTiming.Enrich(entry);
                 spatialLogs?.Enrich(entry, player);
                 if(eventType=="PARTICIPANT_LEFT" && subject==null && entry.payload.TryGetValue("subjectClientId",out var departedClient)){
                     entry.playerId=(string)entry.payload["subjectId"];entry.networkClientId=(string)departedClient;entry.playerNumber=null;
                 }
                 if (!EventContract.IsValid(entry)) { LastError = "Telemetry event rejected by v1 contract."; return false; }
-                outbox.Append(entry);
+                if (!outbox.QueueEvent(entry)) { LastError = "Telemetry writer backlog full."; lostToBackpressure++; return false; }
                 flowTiming.Observe(entry);
                 LastError = null;
                 if (Recorded != null)
@@ -208,8 +216,8 @@ namespace CurtainCall.Telemetry.Pipeline
         {
             spatialLogs?.Leaving("DISCONNECTED");
             performanceLogs?.Leave("DISCONNECTED"); inputLogs?.CloseMicrophone(); waitingLogs?.SceneLeaving();
-            outbox?.ReleaseScene("PLAYER_EXITED");
-            localRun = null; CurrentAttemptId = null; CurrentRoomId = null; CurrentBreakId = null; wasRunning = false;
+            outbox?.QueueBoundary("PLAYER_EXITED", true);
+            localRun = null; rewardRoom = null; CurrentAttemptId = null; CurrentRoomId = null; CurrentBreakId = null; wasRunning = false;
             lastPlayerNumber = null; lastNetworkClientId = null;
             flowTiming.Reset();
         }
@@ -236,6 +244,12 @@ namespace CurtainCall.Telemetry.Pipeline
             {
                 session = NetworkSessionManager.Instance;
             }
+            if (outbox.WriteFailed) LastError = "Telemetry disk writer retrying.";
+            if (lostToBackpressure > 0 && Time.unscaledTime >= nextSeal)
+            {
+                int missed = lostToBackpressure; lostToBackpressure = 0;
+                if (!Emit("TELEMETRY_GAP", new() { ["reason"]="WRITER_BACKLOG", ["droppedEvents"]=missed })) lostToBackpressure = missed;
+            }
             networkLogs.Tick(session);
             if (CampaignRun.Instance != campaign)
             {
@@ -250,7 +264,7 @@ namespace CurtainCall.Telemetry.Pipeline
             {
                 // Existing reward snapshots already carry a host-generated ID shared with every client.
                 localRun = SharedRunId(shared.SessionId, state.Generation);
-                generation = state.Generation;
+                generation = state.Generation; rewardRoom = shared.SessionId;
                 Emit("RUN_STARTED", new() { ["playerCount"] = Math.Max(1, session != null ? session.PlayerCount : 1), ["identityScope"] = "SHARED_REWARD_SESSION", ["roomSession"] = shared.SessionId, ["runNumber"] = state.Generation });
                 wasRunning = true;
             }
@@ -303,7 +317,7 @@ namespace CurtainCall.Telemetry.Pipeline
             spatialLogs?.Leaving(reason.ToString());
             performanceLogs?.Leave("RUN_ENDED"); waitingLogs?.SceneLeaving(); inputLogs?.CloseMicrophone();
             Emit("RUN_ENDED", new() { ["reason"] = reason.ToString(), ["identityScope"] = "SHARED_REWARD_SESSION" }); Seal("RUN_ENDED");
-            outbox?.ReleaseScene("RUN_ENDED");
+            outbox?.QueueBoundary("RUN_ENDED", true);
             CurrentAttemptId = null;
         }
         void SceneChanged(Scene previous, Scene next)
@@ -313,24 +327,24 @@ namespace CurtainCall.Telemetry.Pipeline
             waitingLogs?.SceneLeaving();
             inputLogs?.CloseMicrophone();
             Emit("SCENE_EXITED", new() { ["sceneName"] = sceneName ?? previous.name, ["durationMs"] = (Time.unscaledTime - sceneEnteredAt) * 1000d });
-            outbox?.ReleaseScene("SCENE_CHANGED");
+            outbox?.QueueBoundary("SCENE_CHANGED", true);
             EnterScene(next.name);
         }
         void EnterScene(string name)
         {
             sceneName = name; sceneEnteredAt = Time.unscaledTime;
-            outbox.HoldNewBatches = SceneType(name) is "WAITINGROOM" or "MAINSTAGE" or "EXITROUTE";
+            outbox.QueueHold(SceneType(name) is "WAITINGROOM" or "MAINSTAGE" or "EXITROUTE");
             Emit("SCENE_ENTERED", new() { ["sceneName"] = name });
             if (name == "Start") Emit("TITLE_ENTERED");
         }
         public void Flush() => Seal("CHECKPOINT");
-        internal void ReleaseSpatialBoundary() => outbox?.ReleaseScene("SCENE_CHANGED");
-        internal void SubmitEscapeArrival() => outbox?.ReleaseScene("CHECKPOINT");
+        internal void ReleaseSpatialBoundary() => outbox?.QueueBoundary("SCENE_CHANGED", true);
+        internal void SubmitEscapeArrival() => outbox?.QueueBoundary("CHECKPOINT", true);
         void Seal(string reason)
         {
             try
             {
-                outbox?.Seal(reason);
+                outbox?.QueueBoundary(reason);
                 if (PendingBatchCount > 0) ReportProgress($"로컬 저장 · 전송 대기 {PendingBatchCount}묶음 · {reason}");
             }
             catch (Exception error) { StorageFailure(error); }
@@ -410,7 +424,7 @@ namespace CurtainCall.Telemetry.Pipeline
             waitingLogs?.SceneLeaving();
             inputLogs?.CloseMicrophone();
             Emit("GAME_EXITED", new() { ["reason"] = "APPLICATION_QUIT" }); Seal("GAME_EXITED");
-            outbox?.ReleaseScene("GAME_EXITED");
+            outbox?.QueueBoundary("GAME_EXITED", true);
         }
         void OnDestroy()
         {
@@ -420,7 +434,9 @@ namespace CurtainCall.Telemetry.Pipeline
             SceneManager.activeSceneChanged -= SceneChanged;
             networkLogs?.Dispose(); performanceLogs?.Dispose(); waitingLogs?.Dispose(); inputLogs?.Dispose(); spatialLogs?.Dispose();
             if (campaign != null) campaign.RunEnded -= RunEnded;
-            Seal("CHECKPOINT"); Instance = null;
+            Seal("CHECKPOINT");
+            // Final process teardown only; never stall a scene or gameplay frame here.
+            outbox?.StopWriter(); Instance = null;
         }
         public static string SceneType(string name) => name switch
         {

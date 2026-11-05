@@ -1,6 +1,12 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),{randomUUID}=require('node:crypto');
 const ctx=vm.createContext({});vm.runInContext(fs.readFileSync(__dirname+'/core.gs','utf8'),ctx);const core=ctx.TelemetryCore;
 const run=randomUUID(),attempt=randomUUID();let sequence=0;
+test('a legacy stage trace without an attempt remains visible without inventing an outcome',()=>{
+ const e=event('GIMMICK_STATE',500,{sceneType:'MAINSTAGE',attemptId:null,breakId:null},{sceneName:'Tightrope'});
+ const t=core.dashboardView([e],{environment:'TEST'}).timeline;
+ assert.equal(t.phases[0].kind,'STAGE_TRACE');assert.equal(t.phases[0].traceTrick,'TIGHTROPE');assert.equal(t.phases[0].attempts.length,0);
+ assert.equal(t.replay.points[0].event.eventId,e.eventId);
+});
 function event(type,time,extra={},payload={}){return {eventId:randomUUID(),occurredAt:new Date(1793800000000+time).toISOString(),appSessionId:'host-app',sequence:++sequence,monotonicMs:time,environment:'TEST',gameVersion:'0.2.0',runId:run,attemptId:null,performanceId:'D1P1',breakId:'D1T2',roomId:'a'.repeat(32),sceneType:'WAITINGROOM',authority:'LOCAL',playerId:'owner',playerNumber:1,networkClientId:'1',eventType:type,payload:{spatialVersion:1,spatialScope:'room/D1T2',clockSource:'SERVER',clockId:'room',timelineMs:time,floorY:0,position:{x:time/1000,y:0,z:0},reason:'MOVE',...payload},...extra};}
 test('server time orders multiple owners despite UTC skew; world actors remain independent',()=>{
  const a=event('SPATIAL_SAMPLE',1000,{occurredAt:'2026-11-05T10:00:10Z'}),b=event('SPATIAL_SAMPLE',2000,{occurredAt:'2026-11-05T09:59:10Z'});
