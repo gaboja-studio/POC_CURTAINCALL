@@ -47,9 +47,17 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
         object Point(int day, string phase, int slot, string trick) => Activator.CreateInstance(T("CurtainCall.Campaign.RunStartPoint"), day, Enum.Parse(T("CurtainCall.Campaign.RunStartPhase"), phase), slot, trick);
         object State => Static("CurtainCall.Campaign.CampaignRun", "Instance").GetType().GetProperty("State").GetValue(Static("CurtainCall.Campaign.CampaignRun", "Instance"));
+        UnityEngine.InputSystem.InputSettings.BackgroundBehavior testBackground;
+        UnityEngine.InputSystem.InputSettings.EditorInputBehaviorInPlayMode testEditorInput;
         [UnitySetUp]
         public IEnumerator Open()
         {
+            var inputSettings = UnityEngine.InputSystem.InputSystem.settings;
+            testBackground = inputSettings.backgroundBehavior;
+            testEditorInput = inputSettings.editorInputBehaviorInPlayMode;
+            inputSettings.backgroundBehavior = UnityEngine.InputSystem.InputSettings.BackgroundBehavior.IgnoreFocus;
+            inputSettings.editorInputBehaviorInPlayMode = UnityEngine.InputSystem.InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+            flowHeld = null;
             previousDev = DevCache.GetValue(null);
             previousWaitingVariant = WaitingVariantField.GetValue(WaitingSpaces);
             WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, TestContext.CurrentContext.Test.Name.StartsWith("Pursuit", StringComparison.Ordinal) ? "Pursuit" : "Base"));
@@ -225,6 +233,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             WaitingVariantField.SetValue(WaitingSpaces, previousWaitingVariant);
             if (cursorTestKeyboard != null) T("UnityEngine.InputSystem.InputSystem").GetMethod("RemoveDevice").Invoke(null, new[] { cursorTestKeyboard });
             cursorTestKeyboard = null;
+            flowHeld = null;
+            UnityEngine.InputSystem.InputSystem.settings.backgroundBehavior = testBackground;
+            UnityEngine.InputSystem.InputSystem.settings.editorInputBehaviorInPlayMode = testEditorInput;
             if (cursorTestExtraPanel != null) Object.Destroy(cursorTestExtraPanel.gameObject);
             cursorTestExtraPanel = null;
             var flow = Find("CurtainCall.StartLobby.StartLobbyFlow");

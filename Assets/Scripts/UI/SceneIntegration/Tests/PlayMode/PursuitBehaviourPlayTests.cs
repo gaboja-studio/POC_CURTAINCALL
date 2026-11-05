@@ -77,7 +77,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             } finally { JsonUtility.FromJsonOverwrite(saved, stage); Object.Destroy(dummy); }
         }
         [UnityTest]
-        public IEnumerator PursuitBehaviour_PatrolLeashReturnsWithoutReacquiringAndZeroDisablesIt()
+        public IEnumerator PursuitBehaviour_PatrolLeashReturnReacquiresAndCapturesCloseTargets()
         {
             yield return PursuitHost();
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance"); Call(run, "DebugSetRemaining", .01f);
@@ -85,7 +85,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             float until = Time.time + 8;
             while ((float)Get(director, "Elapsed") < 3 && Time.time < until) yield return null;
             ((Behaviour)director).enabled = false;
-            var actor = ((IEnumerable)Get(director, "Actors")).Cast<Component>().First();
+            var actor = ((IEnumerable)Get(director, "Actors")).Cast<Component>()
+                .First(a => ((Component)Get(a, "Room")).name == "Lobby");
             var candidates = (IList)PursuitPrivate(director, "candidates"); candidates.Clear();
             var stage = Get(director, "CurrentStageRules"); string saved = JsonUtility.ToJson(stage);
             var placement = (Component)Get(actor, "Placement");
@@ -94,6 +95,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             try {
                 Set(placement, "UseRoomPatrol", false); Set(placement, "PatrolPoints", Array.Empty<Transform>());
                 Set(stage, "AlwaysNearest", true); Set(stage, "PatrolLeashDistance", 5f);
+                Set(stage, "SightRadius", 5f); Set(stage, "FieldOfView", 360f); Set(stage, "SeeThroughWalls", true);
                 Set(stage, "AlertSeconds", 0f); Set(stage, "ChaseSpeed", .1f); Set(stage, "PatrolSpeed", 3f);
                 Call(actor, "ResetActor"); yield return TickPursuit(actor, "Patrol");
                 var home = actor.transform.position;
@@ -120,20 +122,55 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 dummy.transform.position = home + Vector3.up * 4;
                 Call(actor, "Hear", away, 0f);
                 Call(actor, "ServerTick", 4f, false); yield return null;
-                Assert.IsNull(Get(actor, "ChasedPlayer"), "Do not ping-pong between chasing and returning.");
+                Assert.AreEqual(dummy, Get(actor, "ChasedPlayer"), "A visible target inside the leash interrupts return.");
+                Assert.IsFalse((bool)Get(actor, "ReturningToPatrol"));
+                yield return TickPursuit(actor, "Chase");
+                dummy.transform.position = home + Vector3.up * 10;
+                yield return TickPursuit(actor, "Return");
                 candidates.Clear();
                 yield return TickPursuit(actor, "Patrol", 10);
                 Assert.Less(Vector3.Distance(home, actor.transform.position), .9f);
                 Assert.IsFalse((bool)Get(actor, "ReturningToPatrol"));
+                dummy.transform.position = home + Vector3.up * 4;
                 candidates.Add(dummy); yield return TickPursuit(actor, "Chase");
                 Set(stage, "PatrolLeashDistance", 0f);
                 dummy.transform.position = home + Vector3.up * 100;
                 Call(actor, "ServerTick", 4f, false); yield return null;
                 Assert.AreEqual(dummy, Get(actor, "ChasedPlayer"), "Zero restores unrestricted final-stage pursuit.");
-                // The actor crossing the limit also cancels pursuit, even if the target stays inside.
+                // A nonvisual AlwaysNearest target cannot cancel an out-of-bounds return.
                 Set(stage, "PatrolLeashDistance", 1f); dummy.transform.position = home + Vector3.up * .5f;
-                Assert.IsTrue(agent.Warp(away)); yield return TickPursuit(actor, "Return");
+                Assert.IsTrue(agent.Warp(away));
+                actor.transform.rotation = Quaternion.LookRotation(away - home); Set(stage, "FieldOfView", 60f);
+                yield return TickPursuit(actor, "Return");
                 Assert.IsNull(Get(actor, "ChasedPlayer"));
+                Call(actor, "ServerTick", 4f, false); yield return null;
+                Assert.IsNull(Get(actor, "ChasedPlayer"), "An actor outside the leash keeps returning instead of repeatedly reacquiring a distant target.");
+                // Reproduce the corridor report: both actor and target outside the leash,
+                // target clearly in sight but several metres beyond the capture radius.
+                var rules = Get(Static("CurtainCall.Settings.GameSettings", "WaitingRoom"), "Pursuit");
+                float radius = (float)Field(rules, "CaptureRadius");
+                Set(stage, "AlwaysNearest", false); Set(stage, "AlertSeconds", .3f);
+                actor.transform.rotation = Quaternion.LookRotation(away - home);
+                dummy.transform.position = actor.transform.position + actor.transform.forward * 3;
+                Assert.Greater(Vector3.Distance(actor.transform.position, dummy.transform.position), radius);
+                Assert.IsFalse((bool)Call(actor, "WithinPatrolLeash", dummy.transform.position, stage));
+                yield return TickPursuit(actor, "Prepare");
+                float prepareDeadline = (float)PursuitPrivate(actor, "prepareUntil");
+                yield return TickPursuit(actor, "Chase");
+                Call(actor, "ServerTick", 4f, false); yield return null;
+                Assert.AreEqual(dummy, Get(actor, "ChasedPlayer"));
+                Assert.AreEqual(prepareDeadline, (float)PursuitPrivate(actor, "prepareUntil"), "The leash must not restart preparation every tick.");
+                Assert.IsFalse((bool)Get(actor, "ReturningToPatrol"));
+                // Losing visual contact resumes return; a nearby target behind the actor is not visible.
+                dummy.transform.position = actor.transform.position - actor.transform.forward * radius * .5f;
+                Call(actor, "ServerTick", 4f, false);
+                Assert.IsNull(Get(actor, "ChasedPlayer"), "Close targets behind the actor still need visual detection.");
+                dummy.transform.position = actor.transform.position + actor.transform.forward * radius * .5f;
+                Assert.IsFalse((bool)Call(actor, "WithinPatrolLeash", dummy.transform.position, stage));
+                until = Time.time + 2;
+                do { Call(actor, "ServerTick", 4f, false); yield return null; }
+                while (Get(actor, "Victim") == null && Time.time < until);
+                Assert.AreEqual(dummy, Get(actor, "Victim"), "Returning must not prevent close capture outside the leash.");
             } finally {
                 JsonUtility.FromJsonOverwrite(saved, stage); Set(placement, "PatrolPoints", route); Set(placement, "UseRoomPatrol", useRoom);
                 Object.Destroy(dummy);

@@ -33,6 +33,7 @@ namespace CurtainCall.UI.SceneIntegration
             }
             var local = NetworkPlayer.Local;
             bool dead = !CurtainCall.WaitingRoom.WaitingRoomRehearsal.IsActive
+                && !CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsActive
                 && local != null && (local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                 || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen));
             var ending = PerformanceEndingPresentation.Current;

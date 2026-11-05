@@ -45,10 +45,10 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                 StageField("InvestigateSeconds", "소리 조사 제한 (초)"); StageField("SearchSeconds", "놓친 위치 수색 (초)");
                 StageField("TrackingRadius", "추적 유지 거리 (m)");
                 StageField("PatrolLeashDistance", "순찰 경로 이탈 허용 (m)");
-                EditorGUILayout.HelpBox("이탈 거리 0 = 제한 없음. 순찰 경로(없으면 배치점)에서 추격자 또는 대상이 이 거리보다 멀어지면 추격을 끊고 복귀합니다. 복귀 중에는 시야·소리에 반응하지 않습니다. 거리에는 층 높이도 포함됩니다.", MessageType.None);
+                EditorGUILayout.HelpBox("이탈 거리 0 = 제한 없음. 직접 시야에서 놓친 상태로 추격자 또는 대상이 순찰 경로(없으면 배치점)에서 이 거리보다 멀어지면 복귀합니다. 복귀 중에도 정상 시야 안에서 발견하면 다시 추격하며, 소리만으로는 복귀를 취소하지 않습니다. 거리에는 층 높이도 포함됩니다.", MessageType.None);
                 if (!stage.FindPropertyRelative("AlwaysNearest").boolValue)
                     EditorGUILayout.HelpBox($"시야 상실 {root.FindPropertyRelative("LoseTargetSeconds").floatValue:0.##}초 또는 추격자↔대상 거리 {Mathf.Max(stage.FindPropertyRelative("SightRadius").floatValue, stage.FindPropertyRelative("TrackingRadius").floatValue):0.##}m 초과 시 마지막 위치를 수색합니다.", MessageType.None);
-                if (stage.FindPropertyRelative("AlwaysNearest").boolValue) EditorGUILayout.HelpBox("이 단계는 시야각·탐지/유지 거리·벽 조건을 무시합니다. 순찰 경로 이탈 제한은 적용합니다.", MessageType.Info);
+                if (stage.FindPropertyRelative("AlwaysNearest").boolValue) EditorGUILayout.HelpBox("이 단계는 시야각·탐지/유지 거리·벽 조건을 무시합니다. 원거리 추격에는 순찰 이탈 제한을 적용하되 정상 시야 안의 대상은 복귀 중에도 추격합니다.", MessageType.Info);
                 DrawStageAnnouncement(stage.FindPropertyRelative("Announcement"));
                 using (new EditorGUILayout.HorizontalScope()) {
                     if (GUILayout.Button("단계 복제")) {
@@ -78,8 +78,13 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
             Field("AdvancedAppearanceStage", "강화 외형 시작 단계"); Field("BloodPerCapture", "포획 1회당 혈흔 증가");
             EditorGUILayout.HelpBox("표시 각도는 현재 단계의 시야각을 자동으로 따릅니다. 길이는 탐지 거리와 별도로 설정합니다. 가장자리는 부드럽게 흐려지며 추격 시작 전에는 숨깁니다. '위치 무관 최인접 추격' 단계는 탐지 시 시야각을 무시하므로 빛 바깥에서도 추격합니다.", MessageType.None);
             EditorGUILayout.Space(10); GUILayout.Label("머리 위 인식 상태", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(root.FindPropertyRelative("Eyes"), new GUIContent("머리 위 눈 아이콘 (로컬 전용)"), true);
-            EditorGUILayout.HelpBox("눈은 내 조작 캐릭터의 인식 범위 안에서만 표시합니다(시야/걷기/달리기 청각 중 최대 거리). 흰색=일반, 노랑=경계, 빨강=나를 추격. 다른 단원을 추격할 때는 빨강으로 표시하지 않습니다. 원본은 순백색이며 색/HDR 발광을 여기서 조정합니다.", MessageType.None);
+            var eyes = root.FindPropertyRelative("Eyes");
+            EditorGUILayout.PropertyField(eyes, new GUIContent("머리 위 눈 아이콘 (로컬 전용)"), true);
+            EditorGUILayout.HelpBox("눈은 내 조작 캐릭터의 인식 범위 안에서만 표시합니다(시야/걷기/달리기 청각 중 최대 거리). 흰색=일반, 노랑=경계, 빨강=나를 공격 준비/추격/포획. 빨강은 바닥 표시와 같은 상태부터 즉시 적용합니다. 다른 단원을 추격할 때는 빨강으로 표시하지 않습니다.", MessageType.None);
+            if (eyes.isExpanded) {
+                EditorGUILayout.HelpBox("표시·숨김 시간 = 아이콘 전체가 나타나고 사라지는 시간입니다. 눈 열림·상태 전환 시간 = 눈을 뜨고 감거나 일반·경계 색으로 바뀌는 시간입니다. 두 값이 0.5라면 각각 0.5초에 걸쳐 변하며, 동시에 진행합니다. 빨간 공격 상태로 들어갈 때는 두 값과 관계없이 즉시 표시·변경합니다.", MessageType.None);
+                EditorGUILayout.HelpBox("추가 밝기 = 눈 아이콘 자체를 더 밝게 보이게 하는 값입니다. 일반/경계/공격 상태마다 따로 설정합니다. 0이어도 기본 색상으로 보이며 주변을 비추는 조명은 아닙니다. 눈 주변 번짐 강도는 추가 밝기가 있을 때 테두리 주변의 흐릿한 빛을 조절합니다.", MessageType.None);
+            }
             EditorGUILayout.Space(10); GUILayout.Label("추격 화면 테두리", EditorStyles.boldLabel);
             Field("ScreenEffect", "효과 사용"); Field("EdgeIntensity", "최대 강도"); Field("EdgeWidth", "테두리 폭"); Field("PulseAmount", "맥동 강도");
             EditorGUILayout.HelpBox("내 캐릭터가 실제 추격 대상일 때만 표시합니다. 맥동 강도를 0으로 두면 깜빡임 없이 부드러운 테두리만 표시합니다.", MessageType.None);

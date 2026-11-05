@@ -332,6 +332,16 @@ namespace CurtainCall.Network.PlayerSync
             reviveCount.Value++;
         }
 
+        /// <summary>Restore a saved body condition after a temporary training death, without adding or healing injuries.</summary>
+        public void ServerRestoreCondition(BodyPart parts)
+        {
+            if (!IsServer) return;
+            lostParts.Value = parts;
+            if (state.Value == PlayerState.Normal) return;
+            state.Value = PlayerState.Normal;
+            reviveCount.Value++;
+        }
+
         /// <summary>호스트: 모든 플레이어를 온전한 몸으로(세대 교체).</summary>
         public static void ServerRestoreEveryone()
         {

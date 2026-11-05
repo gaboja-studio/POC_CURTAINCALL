@@ -61,10 +61,10 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(1, Get(eye, "VisibleCount"));
                 Assert.AreEqual("Eye00", Sprite().sprite.name);
                 Sample("Prepare", "Awaken", player.gameObject, p);
-                yield return new WaitForSecondsRealtime(.65f);
+                yield return null; yield return new WaitForEndOfFrame();
                 Assert.AreEqual("Eye07", Sprite().sprite.name);
                 Sprite().GetPropertyBlock(props);
-                CheckColor("AlertColor");
+                CheckColor("ChaseColor");
                 Sample("Chase", "Run", player.gameObject, p);
                 yield return new WaitForSecondsRealtime(.65f);
                 Sprite().GetPropertyBlock(props);
@@ -74,6 +74,11 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return new WaitForSecondsRealtime(.65f);
                 Sprite().GetPropertyBlock(props);
                 CheckColor("AlertColor");
+                // Search (yellow) -> prepare (red) changes in one rendered frame, just like the floor cue.
+                Sample("Prepare", "Awaken", player.gameObject, p);
+                yield return null; yield return new WaitForEndOfFrame();
+                Sprite().GetPropertyBlock(props); CheckColor("ChaseColor");
+                Assert.AreEqual("Eye07", Sprite().sprite.name);
                 Sample("Chase", "Run", other, p);
                 yield return new WaitForSecondsRealtime(.65f);
                 Assert.AreEqual("Eye00", Sprite().sprite.name, "A teammate's chase is not our detection.");

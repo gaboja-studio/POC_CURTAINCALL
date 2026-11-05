@@ -4,6 +4,11 @@ namespace CurtainCall.Tightrope
 {
     public sealed partial class TightropeCourse
     {
+        /// <summary>연습실에서 공연의 긴 접근/퇴장 직선을 생략한다. 기물의 물리/간격은 그대로다.</summary>
+        public bool CompactPracticeLayout { get; set; }
+        bool CompactPractice => CompactPracticeLayout && GetComponent<TightropeRun>() is { PracticeMode: true };
+        bool HasCompactGap(float start, float length) => CompactPractice && float.IsFinite(start) && float.IsFinite(length)
+            && start >= 3f && length >= 4f && start + length + 3f < FinishDistance;
         public bool HasSwingGap
         {
             get
@@ -21,14 +26,15 @@ namespace CurtainCall.Tightrope
         public bool IsSwingGapOnLane(int lane, float distance) => HasSwingGapOnLane(lane) && IsSwingGap(distance);
 
         public bool HasRelayGap => Shape.SwingGapEnabled && Shape.RelayGapEnabled && LaneCount >= 3
-            && SwingPoleMath.HasGap(FinishDistance, Shape.SwingGapStart, Shape.SwingGapLength);
+            && (SwingPoleMath.HasGap(FinishDistance, Shape.SwingGapStart, Shape.SwingGapLength) || HasCompactGap(Shape.SwingGapStart, Shape.SwingGapLength));
         public bool IsRelayGapClosed(int lane) => HasRelayGap
             && (GetComponent<TightropeRelayGate>() is not { } gate || !gate.IsLaneConnected(lane));
         public bool IsRelayGapClosed(int lane, float distance) => IsRelayGapClosed(lane)
             && SwingPoleMath.Contains(distance, SwingGapFrom, Shape.SwingGapLength);
 
         public bool HasTrapezeGap => Shape.TrapezeEnabled && LaneCount >= 1 && float.IsFinite(Shape.TrapezeStart)
-            && Shape.TrapezeStart >= 10f && Shape.TrapezeStart + Shape.TrapezeLength + 10f < FinishDistance
+            && ((Shape.TrapezeStart >= 10f && Shape.TrapezeStart + Shape.TrapezeLength + 10f < FinishDistance)
+                || HasCompactGap(Shape.TrapezeStart, Shape.TrapezeLength))
             && (!Shape.SwingGapEnabled || Shape.TrapezeStart > SwingGapTo + 10f);
         public float TrapezeGapFrom => Shape.TrapezeStart;
         public float TrapezeGapTo => Shape.TrapezeStart + Shape.TrapezeLength;
