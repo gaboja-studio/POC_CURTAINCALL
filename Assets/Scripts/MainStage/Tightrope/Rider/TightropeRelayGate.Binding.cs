@@ -47,7 +47,11 @@ namespace CurtainCall.Tightrope
                 var player = Find(HolderAt(i));
                 if (player == null || !player.IsSpawned || player.State != PlayerState.Normal
                     || (player.IsLocal && (binding == null || localAborted))) continue;
-                player.transform.SetPositionAndRotation(PhysicalPole(i).HangingPosition(0f), Quaternion.LookRotation(course.Forward));
+                Vector3 position = PhysicalPole(i).HangingPosition(0f);
+                Quaternion rotation = Quaternion.LookRotation(course.Forward);
+                if ((player.transform.position - position).sqrMagnitude > .0000000001f
+                    || Quaternion.Angle(player.transform.rotation, rotation) > .00001f)
+                    player.transform.SetPositionAndRotation(position, rotation);
             }
             if (binding != null) { binding.Mover.ClearPendingInput(); binding.Balance?.SetAirborne(true); }
         }

@@ -62,7 +62,25 @@ namespace CurtainCall.Tightrope
         [SerializeField] TightropeSettings.CourseSettings sceneShape = new();
         [Tooltip("줄 번호 순서의 지지 충돌체. 각 줄은 연속된 충돌체 하나를 사용한다.")]
         [SerializeField] Collider[] sceneRopes = Array.Empty<Collider>();
+        [Tooltip("실제 착지 시 목마를 안전하게 해제할 발판. 지정하지 않으면 기존 목마 규칙을 사용한다.")]
+        [SerializeField] BoxCollider[] piggybackDismountPlatforms = Array.Empty<BoxCollider>();
         public bool UsesSceneGeometry => useSceneGeometry;
+
+        internal BoxCollider PiggybackDismountSupport(NetworkPlayer carrier)
+        {
+            if (piggybackDismountPlatforms.Length == 0 || carrier == null || carrier.State != PlayerState.Normal
+                || carrier.IsAirborne || !carrier.TryGetComponent(out PlayerMover mover)
+                || !mover.Body.enabled || (carrier.IsLocal && (!mover.Simulated || mover.IsAirborne))) return null;
+
+            // 허공이나 발판 옆면은 통과하지 않는다. 줄과 발판이 맞닿는 곳에서는 실제 지지줄을 우선한다.
+            var origin = carrier.transform.position + Vector3.up * .12f;
+            foreach (var platform in piggybackDismountPlatforms)
+                if (platform != null && platform.enabled && platform.gameObject.activeInHierarchy && !platform.isTrigger
+                    && platform.Raycast(new Ray(origin, Vector3.down), out var hit, .24f) && hit.normal.y > .9f
+                    && !TryGetSupportingRope(mover, out _))
+                    return platform;
+            return null;
+        }
 
         /// <summary>모든 맵에서 실제 외줄 조작 중인 사람에게만 균형·부상 규칙을 적용한다.</summary>
         public bool UsesRopeRules(NetworkPlayer player)
@@ -435,6 +453,7 @@ namespace CurtainCall.Tightrope
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return;
             if (TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(player)) return; // 줄 아래에 매달려 버티는 중
             if (player == null || player.State != PlayerState.Normal) return;
+            if (PiggybackSystem.Current != null && PiggybackSystem.Current.HasDismountSupport(player)) return;
             if (!player.TryGetComponent(out PlayerMover mover) || !IsBelowFallDepth(mover)) return;
 
             if (player.TryGetComponent(out PlayerBalance balance) && balance.enabled)
