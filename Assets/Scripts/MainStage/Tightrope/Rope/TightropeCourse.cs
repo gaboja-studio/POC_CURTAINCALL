@@ -458,10 +458,11 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return;
             var player = NetworkPlayer.Local;
-            // 묘기 진행 중이면 줄 조작이 아니어도(줄에 오르기 전 시작 플랫폼, 줄 아래 바닥에 닿아 일반 이동으로 바뀐 경우)
-            // 줄 위 낙사와 같이 사망시킨다. 연습 모드에서도 Normal인 채 바닥에 남지 않아 리허설 재시작을 받는다(2026-11-05 사용자 요청).
+            // 단일 높이의 공연/리허설은 줄 밖 바닥에서도 낙사를 검사한다.
+            // 복합 씬의 일반 이동은 낮은 대포대·정비대·그네 인계도 포함하므로
+            // 옆의 외줄 높이를 적용하지 않는다. 허공 낙사는 씬의 낙사 영역이 맡는다.
             var run = GetComponent<TightropeRun>();
-            if (!UsesRopeRules(player) && !(run != null && run.State == TightropeRunState.Running)) return;
+            if (!UsesRopeRules(player) && (useSceneGeometry || run == null || run.State != TightropeRunState.Running)) return;
             if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return;
             if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)) return;
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return;

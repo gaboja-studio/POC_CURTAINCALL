@@ -19,6 +19,7 @@
 - [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
 - [escape-flame-scaling.md](escape-flame-scaling.md) — 거대 화염의 실제 도달 방향/속도와 휴대 톱의 원본 운반 조작을 연결할 때
 
+- [escape-cannon-platform-lanes.md](escape-cannon-platform-lanes.md) — 낮은 대포대 낙사·옆줄 점프 간격/시작점·길이 정보를 고칠 때
 - [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지·시점 인계와 다리/장비 공유 시각·재수신을 고칠 때
 
 - [escape-depth-route.md](escape-depth-route.md) — 탈출로 묘기 도달·운반 트램폴린 묻힘·대포 목표 표식·교체 구조 잔여물 확인
