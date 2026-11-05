@@ -81,7 +81,7 @@ namespace CurtainCall.Cameras
             bool dead = local != null && (local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                                           || (local.TryGetComponent(out PlayerBalance balance) && balance.HasFallen));
             // 리허설은 추락해도 바로 출발대로 돌아오므로 관전하지 않는다(사용자 2026-11-04).
-            if (!dead || CurtainCall.WaitingRoom.WaitingRoomRehearsal.IsActive)
+            if (!dead || CurtainCall.WaitingRoom.WaitingRoomRehearsal.IsActive || CurtainCall.WaitingRoom.WaitingRoomCannonRehearsal.IsActive)
             {
                 Stop(local);
                 return;

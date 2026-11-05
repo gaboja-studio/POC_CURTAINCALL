@@ -42,8 +42,12 @@ namespace CurtainCall.WaitingRoom.Pursuit
         void TickBrain(PursuitStage stage)
         {
             rule = stage;
-            TickPatrolBoundary();
-            var next = returningToPatrol ? null : director.NearestVisible(this, rule);
+            var next = director.NearestVisible(this, rule);
+            bool hasVisualContact = next != null && (!rule.AlwaysNearest || director.HasVisualContact(this, next, rule));
+            TickPatrolBoundary(hasVisualContact);
+            // AlwaysNearest can supply a distant remembered target. It must not
+            // interrupt a return outside visual range just because a path exists.
+            if (returningToPatrol) next = null;
             visible = next != null;
             if (visible) {
                 if (target == null) prepareUntil = Time.time + Mathf.Max(0, rule.AlertSeconds);
@@ -101,7 +105,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (Navigate(lastSeen, true) && !AtPartialEnd && !(!visible && Reached(lastSeen))) SetMotion(PursuitMotion.Run);
             else { SetMotion(PursuitMotion.Awaken); Face(lastSeen); }
             if (director.RequiresOwnerContact(target.gameObject)) return true;
-            if (visible && Vector3.Distance(transform.position, target.position) <= GameSettings.WaitingRoom.Pursuit.CaptureRadius
+            if (visible && WithinCaptureReach(target.position)
                 && director.ClearLine(transform.position + Vector3.up, target.position + Vector3.up, target)) director.BeginCapture(this, target.gameObject);
             return true;
         }

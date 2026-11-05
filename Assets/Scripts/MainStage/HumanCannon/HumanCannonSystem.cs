@@ -55,6 +55,15 @@ namespace CurtainCall.HumanCannon
         public float FlightFloorHeight => flightCoordinateSpace != null
             ? flightCoordinateSpace.TransformPoint(Vector3.up * flightFloorHeight).y : flightFloorHeight;
         public HumanCannonStation Station(int index) => stations[index];
+        /// <summary>Only the rehearsal owner enables this before activating its original performance devices.</summary>
+        public bool PracticeMode { get; private set; }
+        public void ConfigurePractice(HumanCannonStation[] courseStations, float floorHeight)
+        {
+            if (isActiveAndEnabled) throw new InvalidOperationException("Configure an inactive course before enabling it.");
+            stations = courseStations ?? throw new ArgumentNullException(nameof(courseStations));
+            flightCoordinateSpace = null; flightFloorHeight = floorHeight;
+            PracticeMode = true;
+        }
         public ulong Occupant(int index) => seats[index].State.Occupant;
         public bool IsFlying(ulong playerId) => flying.Contains(playerId);
         public bool TryGetFlight(ulong playerId, out CannonFlightState.Flight flight) => flying.TryGet(playerId, out flight);

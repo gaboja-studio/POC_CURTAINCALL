@@ -90,7 +90,7 @@ namespace CurtainCall.Settings
         [Min(.1f)] public float InvestigateSeconds = 7;
         [Min(0)] public float SearchSeconds = 3;
         [Min(.1f)] public float TrackingRadius = 26;
-        [Tooltip("순찰 경로에서 허용하는 최대 이탈 거리(m). 0이면 제한 없음. 경로가 없으면 최초 배치점 기준. 최인접 추격 단계에도 적용합니다.")]
+        [Tooltip("대상을 놓쳤을 때 순찰로 복귀하는 이탈 거리(m). 0이면 제한 없음. 경로가 없으면 최초 배치점 기준. 직접 시야에 들어온 대상은 복귀 중에도 추격합니다. 최인접 원거리 추격에도 적용합니다.")]
         [Min(0)] public float PatrolLeashDistance;
         public string Announcement;
         public PursuitStage() { }

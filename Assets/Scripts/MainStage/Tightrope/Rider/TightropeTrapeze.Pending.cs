@@ -76,7 +76,7 @@ namespace CurtainCall.Tightrope
             var state = poles[request.Pole];
             if (state.Revision != request.Revision || state.Lower != Nobody) return false;
             return request.Action == Command.Grab ? state.Upper == Nobody
-                : request.Action == Command.Attach && state.Upper != Nobody && Alive(state.Upper) && Clock < state.Until;
+                : request.Action == Command.Attach && state.Upper != Nobody && Alive(state.Upper) && (!HoldTimeLimited || Clock < state.Until);
         }
 
         bool TryCompletePendingRequest(ulong actor, PendingRequest request)
@@ -113,7 +113,8 @@ namespace CurtainCall.Tightrope
                 {
                     state.Upper = actor; state.Angle = state.Speed = state.Drive = 0f;
                     // 끈끈이 장갑이면 유지 시간을 늘린다(Task-092). 기본 시간을 넘겨 매달린 때만 놓은 뒤 1 소모.
-                    state.Until = Clock + HoldSeconds + stickyGloves.Begin(actor, Clock, HoldSeconds); state.LastInput = state.SampledAt = Clock;
+                    state.Until = HoldTimeLimited ? Clock + HoldSeconds + stickyGloves.Begin(actor, Clock, HoldSeconds) : 0d;
+                    state.LastInput = state.SampledAt = Clock;
                 }
                 else state.Lower = actor;
                 stack?.ConsumeTrapezeEntry(player);

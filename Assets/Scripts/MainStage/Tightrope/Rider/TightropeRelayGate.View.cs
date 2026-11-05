@@ -60,7 +60,8 @@ namespace CurtainCall.Tightrope
                         : ReturnOpen ? "반대편 동료가 길을 잡았어요 · 놓고 내 줄로 건너세요"
                         : OutboundOpen ? $"{LaneName(OpenedLane(held))} 연결 중 · 건넌 동료가 반대편 봉을 잡을 때까지 버티세요"
                         : "출발 봉을 함께 잡을 동료를 기다리세요";
-                    return $"{task}\n봉 유지 {HoldRemaining(held):0.0}초 · {RelayHolderCount(far)}/{RequiredHolders}명 · F / Space 놓기" + warning;
+                    string time = UnlimitedHold ? "" : $"봉 유지 {HoldRemaining(held):0.0}초 · ";
+                    return $"{task}\n{time}{RelayHolderCount(far)}/{RequiredHolders}명 · F / Space 놓기" + warning;
                 }
                 float distance = course.GetDistance(local.transform.position);
                 if (distance < EntryDistance - 7f || distance > ExitDistance + 7f) return null;
@@ -123,7 +124,7 @@ namespace CurtainCall.Tightrope
                 TintRelay(view.Bar, poleColor); TintRelay(view.Pad, poleColor);
                 TintRelay(view.LeftCable, poleColor); TintRelay(view.RightCable, poleColor);
                 TintRelay(view.Link, occupied ? color : RelayIdle);
-                if (UsesSpots)
+                if (UnlimitedHold)
                 {
                     // 지정 자리 봉은 시간 제한이 없어 유지 시간 전광판을 띄우지 않는다.
                     view.Label.gameObject.SetActive(false); view.Clock.Root.gameObject.SetActive(false);

@@ -33,8 +33,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         readonly Vector3[] vertices = new Vector3[(Sectors + 1) * (Rings + 1)];
         readonly Color[] colors = new Color[(Sectors + 1) * (Rings + 1)];
         public void SetCaptureCount(int count) => CaptureCount = Mathf.Max(0, count);
-        public static int CueState(PursuitBehaviour behaviour) => behaviour == PursuitBehaviour.Prepare || behaviour == PursuitBehaviour.Chase || behaviour == PursuitBehaviour.Capture ? 2 :
-            behaviour == PursuitBehaviour.Patrol || behaviour == PursuitBehaviour.Return ? 0 : 1;
+        public static int CueState(PursuitBehaviour behaviour) => (int)PursuitEyeTransition.Resolve(behaviour, true, false);
         void Start()
         {
             actor = GetComponent<PursuitActor>(); RefreshSurface(InjuryBloodEffects.IsVisible);
@@ -72,10 +71,20 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     && Vector3.SqrMagnitude(camera.transform.position-transform.position) < 30*30;
             }
             groundRenderer.enabled = visible;
-            if (!visible || Time.unscaledTime < nextGroundUpdate) return;
-            nextGroundUpdate = Time.unscaledTime + .1f;
+            if (!visible) return;
             int state = CueState(actor.Behaviour);
-            CueColor = state == 2 ? rule.ChaseCueColor : state == 1 ? rule.AlertCueColor : rule.PatrolCueColor;
+            var color = state == 2 ? rule.ChaseCueColor : state == 1 ? rule.AlertCueColor : rule.PatrolCueColor;
+            bool colorChanged = CueColor != color;
+            CueColor = color;
+            if (Time.unscaledTime < nextGroundUpdate) {
+                // Tint changes are immediate; expensive ground/wall projection stays at 10 Hz.
+                if (colorChanged) {
+                    for (int i = 0; i < colors.Length; i++) colors[i] = new Color(color.r, color.g, color.b, colors[i].a);
+                    mesh.colors = colors;
+                }
+                return;
+            }
+            nextGroundUpdate = Time.unscaledTime + .1f;
             CueAngle = Mathf.Clamp(d.CurrentStageRules.FieldOfView, 1, 180);
             DrawGround(rule);
         }
