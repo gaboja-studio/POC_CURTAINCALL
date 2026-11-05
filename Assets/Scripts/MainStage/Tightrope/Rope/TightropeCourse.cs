@@ -83,11 +83,29 @@ namespace CurtainCall.Tightrope
         internal BoxCollider ManualPiggybackDismountSupport(NetworkPlayer carrier)
             => FindPiggybackDismountSupport(carrier, UsesPlatformPiggyback);
 
+        internal Collider PiggybackLandingGround(NetworkPlayer carrier)
+        {
+            if (!CanCheckPiggybackLanding(carrier, out var mover) || TryGetSupportingRope(mover, out _)) return null;
+            var origin = carrier.transform.position + Vector3.up * .12f;
+            if (!Physics.Raycast(origin, Vector3.down, out var hit, .24f, Physics.DefaultRaycastLayers,
+                    QueryTriggerInteraction.Ignore) || hit.normal.y < .9f) return null;
+            var ground = hit.collider;
+            return ground.gameObject.scene == gameObject.scene && ground.attachedRigidbody == null
+                && !ropeSurfaces.ContainsKey(ground) && ground.GetComponentInParent<NetworkPlayer>() == null
+                && !DismemberedLimb.Contains(ground) ? ground : null;
+        }
+
+        bool CanCheckPiggybackLanding(NetworkPlayer carrier, out PlayerMover mover)
+        {
+            mover = null;
+            return UsesPlatformPiggyback && carrier != null && carrier.State == PlayerState.Normal && !carrier.IsAirborne
+                && carrier.TryGetComponent(out mover) && mover.Body != null && mover.Body.enabled
+                && (!carrier.IsLocal || mover.Simulated && !mover.IsAirborne);
+        }
+
         BoxCollider FindPiggybackDismountSupport(NetworkPlayer carrier, bool allowOtherPlatform)
         {
-            if (piggybackDismountPlatforms.Length == 0 || carrier == null || carrier.State != PlayerState.Normal
-                || carrier.IsAirborne || !carrier.TryGetComponent(out PlayerMover mover)
-                || !mover.Body.enabled || (carrier.IsLocal && (!mover.Simulated || mover.IsAirborne))) return null;
+            if (!CanCheckPiggybackLanding(carrier, out var mover)) return null;
 
             // 허공이나 발판 옆면은 통과하지 않는다. 줄과 발판이 맞닿는 곳에서는 실제 지지줄을 우선한다.
             var origin = carrier.transform.position + Vector3.up * .12f;

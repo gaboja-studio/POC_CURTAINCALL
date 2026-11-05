@@ -153,6 +153,7 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
         {
             AuthoredRopes();
             var deck = AddBox("Lower deck", new Vector3(0, -2.25f, 4), new Vector3(6, .5f, 6));
+            var ordinary = AddBox("Unassigned landing", new Vector3(8, -2.25f, 4), new Vector3(6, .5f, 6));
             const BindingFlags member = BindingFlags.Instance | BindingFlags.NonPublic;
             typeof(TightropeCourse).GetField("piggybackDismountPlatforms", member).SetValue(course, new[] { deck });
             var current = typeof(PiggybackSystem).GetProperty("Current");
@@ -171,12 +172,19 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             ((Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", member).GetValue(stack)).Add(top, bottom);
             ((Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("aboveOf", member).GetValue(stack)).Add(bottom, top);
             all.Add(remote);
+            bool registeredPlayer = !all.Contains(player);
+            if (registeredPlayer) all.Add(player);
             try
             {
                 current.SetValue(null, stack);
                 Invoke(switcher, "Bind", player);
+                carrier.transform.position = origin + new Vector3(8, -2, 4);
+                Physics.SyncTransforms();
+                Invoke(stack, "ServerResolvePlatformDismounts");
+                Assert.That(stack.GetAbove(carrier), Is.Not.Null, "A stack formed on ordinary ground can keep moving.");
                 carrier.transform.position = origin + new Vector3(0, 0, 4);
                 Physics.SyncTransforms();
+                Invoke(stack, "ServerResolvePlatformDismounts");
                 Invoke(switcher, "UpdateSurfaceMode");
                 Assert.That(balance.IsActive, Is.True);
                 typeof(PlayerMover).GetProperty("CurrentJump").SetValue(carrierMover, JumpKind.InPlace);
@@ -188,14 +196,26 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 Assert.That(switcher.IsLocalOnRope, Is.False);
                 Invoke(switcher, "UpdateSurfaceMode");
                 Assert.That(balance.IsActive, Is.False, "A pending piggyback link cannot re-enable balance.");
+                Invoke(stack, "ServerResolvePlatformDismounts");
+                Assert.That(stack.GetAbove(carrier), Is.Not.Null, "Airborne stacks must stay linked.");
                 carrierMover.ResetExternalMotion(false);
                 carrier.transform.position = origin + new Vector3(0, -2, 4);
                 Physics.SyncTransforms();
                 Invoke(switcher, "UpdateSurfaceMode");
                 Assert.That(balance.IsActive, Is.False);
                 Assert.That(Invoke(course, "PiggybackDismountSupport", carrier), Is.SameAs(deck));
+                carrier.transform.position = origin + new Vector3(8, -2, 4);
+                Physics.SyncTransforms();
+                Assert.That(Invoke(course, "PiggybackLandingGround", carrier), Is.SameAs(ordinary));
+                Invoke(stack, "ServerResolvePlatformDismounts");
+                Assert.That(stack.GetAbove(carrier), Is.Null, "A rope stack dismounts onto nearby unassigned ground.");
             }
-            finally { all.Remove(remote); current.SetValue(null, previous); }
+            finally
+            {
+                all.Remove(remote);
+                if (registeredPlayer) all.Remove(player);
+                current.SetValue(null, previous);
+            }
         }
 
         [Test]
