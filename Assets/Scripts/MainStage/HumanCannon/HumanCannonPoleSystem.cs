@@ -43,7 +43,8 @@ namespace CurtainCall.HumanCannon
             public float Angle, Speed;
             double nextIdleSnapshot;
             double receivedAngleAt = double.NegativeInfinity;
-            float displayedFrom;
+            PoleAnglePresentation presentation;
+            public float MaxDisplayAngle = 85f;
             public Vector3 ReleasePosition, ReleaseVelocity;
             public Quaternion ReleaseRotation = Quaternion.identity;
             public Runtime(int capacity)
@@ -63,15 +64,17 @@ namespace CurtainCall.HumanCannon
 
             public float DisplayAngle(double now)
             {
-                if (now >= receivedAngleAt + SnapshotInterval) return Angle;
-                return Mathf.Lerp(displayedFrom, Angle, (float)((now - receivedAngleAt) / SnapshotInterval));
+                if (double.IsNegativeInfinity(receivedAngleAt)) return Angle; // Host simulation.
+                // Brief network jitter must not stop the rider at every packet boundary.
+                // Prediction is visual only and stops after 100 ms without a fresh snapshot.
+                float predicted = Angle + Speed * Mathf.Clamp((float)(now - receivedAngleAt), 0f, .1f);
+                return Mathf.Clamp(presentation.Sample(predicted, now), -MaxDisplayAngle, MaxDisplayAngle);
             }
 
             public void ReceiveAngle(float angle, double now, bool continuous)
             {
                 // Snap when ownership changes or a stalled connection catches up.
-                displayedFrom = continuous && now - receivedAngleAt <= SnapshotInterval * 5
-                    ? DisplayAngle(now) : angle;
+                presentation.Receive(DisplayAngle(now), angle, now, continuous, (float)SnapshotInterval);
                 Angle = angle;
                 receivedAngleAt = now;
             }
@@ -424,8 +427,13 @@ namespace CurtainCall.HumanCannon
         bool Valid(int index) => index >= 0 && states != null && index < states.Length && poles[index] != null && poles[index].isActiveAndEnabled;
         static NetworkPlayer FindPlayer(ulong id)
         {
-            if (id != CannonSeatState.Nobody) foreach (var player in NetworkPlayer.All)
+            if (id == CannonSeatState.Nobody) return null;
+            var players = NetworkPlayer.All;
+            for (int i = 0; i < players.Count; i++)
+            {
+                var player = players[i];
                 if (player != null && player.IsSpawned && player.OwnerClientId == id) return player;
+            }
             return null;
         }
         void OnDisable()

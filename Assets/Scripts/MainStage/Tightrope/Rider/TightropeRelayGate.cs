@@ -273,7 +273,10 @@ namespace CurtainCall.Tightrope
         }
         static NetworkPlayer Find(ulong owner)
         {
-            foreach (var player in NetworkPlayer.All) if (player != null && player.OwnerClientId == owner) return player;
+            if (owner == Nobody) return null;
+            var players = NetworkPlayer.All;
+            for (int i = 0; i < players.Count; i++)
+                if (players[i] != null && players[i].OwnerClientId == owner) return players[i];
             return null;
         }
         void ResetState()

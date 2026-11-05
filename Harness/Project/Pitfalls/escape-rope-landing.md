@@ -1,7 +1,7 @@
 ---
 summary: 탈출로 외줄 착지는 발 중심 박스 검사와 실제 몸통 지지면을 혼용하면 부상 오판이 난다
 status: active
-updated: 2026-11-02
+updated: 2026-11-05
 source: Task-20261027-073 사용자 피드백·외줄 착지/공유 시각/전환 회귀
 ---
 
@@ -34,7 +34,7 @@ source: Task-20261027-073 사용자 피드백·외줄 착지/공유 시각/전�
 - 2026-10-29 사용자 요청으로 A의 `EscapeDevelopmentSession.SuppressFallConsequences`를 켰다. 기본 false이며 지정 개발 씬의 추락 부상·균형 붕괴·낙사 경로만 차단한다. 직접 함정 피해는 유지한다. 원본 씬의 판정을 영구 제거한 것으로 오해하지 않는다.
 - `requireCarrierForBounce=true`는 탈출맵에서 추가한 협동 제한이었다. 원본 인간대포처럼 놓인 트램폴린도 반동하려면 false여야 한다. 이동·반동 코드를 복제할 필요는 없다.
 - 외줄별 소실은 support 하나와 대응 renderer만 꺼야 한다. `CompletionRope` 시각선/socket은 collider의 자식뿐 아니라 같은 부모의 형제이므로 이름·실제 local box 거리로 매핑한다. 한 줄 제거 전후 실제 지지 여부로 조작을 반환한다.
-- 하부 초과 입장자를 되돌릴 때 local pilot만 초기화하면 호스트 비행 상태가 남는다. 원본 `ServerReleaseForInspection` 승인 후 소유자 `PlayerMover.Relocate`로 반환한다. 협동 회귀11/11 PASS; 다인 실행은 별도 확인한다.
+- 하부 초과 입장자를 되돌릴 때 local pilot만 초기화하면 호스트 비행 상태가 남는다. 원본 `ServerReleaseForInspection` 승인 후 소유자 `PlayerMover.Relocate`로 반환한다. 협동 회귀11/11 PASS, 다인 실행은 별도다. 목마 하차에서도 호스트가 원격 운반자의 공유 공중 상태와 발판 접촉을 확인하고 소유자가 이동한다. `PlayerMover.Simulated`는 소유자에만 검사한다.
 
 ## 구조 변경 뒤 남는 메시·좌표 함정
 

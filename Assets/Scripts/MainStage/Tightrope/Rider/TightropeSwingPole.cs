@@ -21,6 +21,7 @@ namespace CurtainCall.Tightrope
         int lane = -1, round = -1, version;
         double startedAt, changedAt, pendingUntil, feedbackUntil, nextSnapshotAt, nextDriveAt, lastDriveAt;
         float angle, angularSpeed, drive, returnAngle, lastSentDrive;
+        PoleAnglePresentation presentation;
         bool released, localAbort;
         string feedback;
         readonly Dictionary<ulong, double> flights = new();
@@ -36,7 +37,14 @@ namespace CurtainCall.Tightrope
         public float AirControlSpeed => physicalPole != null ? physicalPole.AirControlSpeed : 0f;
         public float LandingDistance => next != null ? next.EntryDistance : GapTo + SwingPoleMath.ExitOffset;
         bool OwnOccupied => Active && mode == PoleMode.Holding;
-        float OwnAngle { get { Sample(out float value, out _); return value; } }
+        float OwnAngle
+        {
+            get
+            {
+                Sample(out float value, out _);
+                return Mathf.Clamp(presentation.Sample(value, Time.unscaledTimeAsDouble), -physicalPole.MaxSwingAngle, physicalPole.MaxSwingAngle);
+            }
+        }
         bool OwnCanLetGo => OwnOccupied && course.GetDistance(PredictLanding(true)) >= (next != null ? next.EntryDistance - .5f : GapTo + .35f);
         public bool IsOccupied => LocalPole.OwnOccupied;
         public float SwingAngle => LocalPole.OwnAngle;
@@ -240,12 +248,19 @@ namespace CurtainCall.Tightrope
         Vector3 WorldFeet(float value, int slot) => physicalPole.HangingPosition(value) + course.Right * course.Layout.GetLaneSide(slot);
         void ResetState()
         {
+            presentation = default;
             mode = PoleMode.Idle; holder = Nobody; lane = -1; version = 0;
             startedAt = changedAt = nextSnapshotAt = 0d; angle = angularSpeed = drive = returnAngle = 0f; released = false; flights.Clear();
             pendingLandings.Clear(); pendingLandingActors.Clear(); airCatchUntil = 0d;
         }
         static NetworkPlayer Find(ulong id)
-        { foreach (var player in NetworkPlayer.All) if (player != null && player.OwnerClientId == id) return player; return null; }
+        {
+            if (id == Nobody) return null;
+            var players = NetworkPlayer.All;
+            for (int i = 0; i < players.Count; i++)
+                if (players[i] != null && players[i].OwnerClientId == id) return players[i];
+            return null;
+        }
         void Tell(string message) { feedback = message; feedbackUntil = Clock + 2d; }
         void LateUpdate()
         {

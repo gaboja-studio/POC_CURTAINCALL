@@ -1,5 +1,7 @@
 # Project Facts
 
+- [Pursuit/](Pursuit/index.md) — 추격자 외형·봉제·혈흔·기존 FBX 비율을 다룰 때
+
 - [owner-hazard-contact.md](owner-hazard-contact.md) — 일반 대포 장애물의 피해자 접촉 보고·호스트 검증·적용 범위와 미검증 항목
 
 - [escape-route-timer.md](escape-route-timer.md) — 쇠창살 시작홀8분·기존 대기실 타이머 UI 재사용·만료/성공 집계를 확인할 때
