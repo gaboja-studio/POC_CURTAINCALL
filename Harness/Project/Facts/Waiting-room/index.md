@@ -1,6 +1,6 @@
 # 대기실 사실
 
-- [rehearsal-performance-reuse.md](rehearsal-performance-reuse.md) — Start 연결 공연의 실제 활성 기물·다섯 단계 리허설 재사용·유지 시간 예외를 확인할 때
+- [rehearsal-performance-reuse.md](rehearsal-performance-reuse.md) — Base 리허설의 원본 기물·v19 구성·유지 시간/앞쪽50% 도약 예외를 확인할 때
 
 - [pursuit-eyes.md](pursuit-eyes.md) — 추격자 머리 위 로컬 눈의 상태·범위·색/발광·리소스·검증 범위를 확인할 때
 

@@ -178,6 +178,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual("Normal", Get(localPlayer, "State").ToString());
                 // 사용자 2026-11-03: 복귀 지점은 줄 위가 아니라 소구간 출발대(출발대 위 = 코스 거리 0 이전).
                 Assert.Less((float)Call(course, "GetDistance", localPlayer.transform.position), 0f, "추락 뒤 소구간 출발대 복귀");
+                yield return LearnLaneForFixture(course);
                 var finish = (Pose)Call(course, "GetFinishPose", 0);
                 Call(mover, "Relocate", finish.position, finish.rotation);
                 yield return null; yield return null;
@@ -341,10 +342,17 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
                 Call(mover, "Relocate", new Vector3(ring.bounds.center.x, ring.bounds.max.y, ring.bounds.center.z), Quaternion.identity);
                 yield return null; yield return null;
+                FreshTutorial(); // 일반 안내가 켜져 있어도 리허설 설명이 우선해야 한다.
                 Assert.IsTrue((bool)T(RehearsalType).GetMethod("StartPractice").Invoke(null, new object[] { 3 }), "연습실 안에서 2-3 재연습 시작");
                 yield return WaitStage(3, 10f);
                 Assert.IsTrue((bool)Static(RehearsalType, "IsPracticing"));
                 Assert.IsNotNull(Priv(Rehearsal, "course"), "고른 소구간 코스 생성");
+                yield return null; yield return null;
+                Assert.AreEqual("자유 연습", Static(GuideType, "CurrentTitle"), "재연습 첫 설명을 일반 안내가 지우면 안 된다");
+                var selectedStage = ((System.Array)T("CurtainCall.WaitingRoom.RehearsalStage").GetField("All").GetValue(null)).GetValue(3);
+                yield return WaitGuide((string)Get(selectedStage, "DisplayGuideTitle"), 12f);
+                Assert.AreEqual(Get(selectedStage, "DisplayGuideTitle"), Static(GuideType, "CurrentTitle"), "재연습 설명을 일반 대기실 안내가 덮으면 안 된다");
+                Assert.IsFalse((bool)Static(FirstDayFlowType, "FirstDayQuestVisible"), "재연습 중에는 일반 집결 퀘스트를 숨긴다");
                 Assert.AreEqual("RestTime", Field(State, "Phase").ToString(), "재연습은 캠페인 단계를 바꾸지 않는다");
                 Assert.IsTrue((bool)T(RehearsalType).GetMethod("EndPractice").Invoke(null, null));
                 float until = Time.realtimeSinceStartup + 5f;
@@ -403,9 +411,9 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView")).Focus();
                 var course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
                 Assert.IsNotNull(Get(course, "ArtProfile"), "공연 준비 프리팹의 아트 연결");
-                Assert.AreEqual(4, Get(course, "LaneCount"), "리허설의 네 줄");
-                Assert.AreEqual(30f, Get(course, "FinishDistance"));
-                Assert.IsTrue((bool)Call(course, "IsLaneUsable", 0, (float)Get(course, "FinishDistance") - 2f));
+                Assert.AreEqual(2, Get(course, "LaneCount"), "기획서 1단계의 두 줄");
+                Assert.AreEqual(38f, Get(course, "FinishDistance"));
+                Assert.IsTrue((bool)Call(course, "IsLaneUsable", 1, (float)Get(course, "FinishDistance") - 2f));
                 Assert.IsFalse((bool)Get(course, "HasSwingGap"));
                 var player = LocalPlayer;
                 var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
@@ -467,12 +475,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return null; yield return null;
 
                 // 위치만 준비하고 원본 입력 경로에 F/Space를 보낸다. Grab/Release 상태를 직접 호출하지 않는다.
-                yield return JumpStage(2);
+                yield return JumpStage(3);
                 course = (Component)Priv(Rehearsal, "course");
                 AssertRehearsalRelay(course);
                 int index = 0;
                 int lane = (int)Call(RelayGate, "PoleLane", index);
-                PlaceOnRope(course, lane, (float)Get(RelayGate, "EntryDistance"));
+                PlaceOnRope(course, lane, 11f);
                 yield return new WaitForSecondsRealtime(.4f);
                 Assert.IsTrue((bool)Call(RelayGate, "CanUsePole", index, player));
                 FlowKeys("F"); yield return null; yield return null; yield return new WaitForSecondsRealtime(.2f); FlowKeys();
@@ -510,7 +518,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var course = Find("CurtainCall.Tightrope.TightropeCourse");
                 Assert.IsNotNull(course, "1단계 코스가 있어야 한다");
                 Assert.IsTrue(((Component)course).name.StartsWith("RehearsalCourse_"), ((Component)course).name);
-                Assert.AreEqual(4, Get(course, "LaneCount"));
+                Assert.AreEqual(2, Get(course, "LaneCount"));
                 var run = Find("CurtainCall.Tightrope.TightropeRun");
                 Assert.IsTrue((bool)Get(run, "PracticeMode"));
                 Assert.IsTrue((bool)Get(run, "ExternallyManaged"));
@@ -531,14 +539,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 // 도착대로 옮기면(전원 = 나 혼자) 호스트가 다음 소구간으로 넘긴다.
                 var mover = player.GetComponent(T("CurtainCall.Player.PlayerMover"));
                 float finish = (float)Get(course, "FinishDistance");
+                yield return LearnLaneForFixture((Component)course);
                 var finishPose = (Pose)Call(course, "GetFinishPose", 0);
                 Call(mover, "Relocate", finishPose.position, finishPose.rotation);
                 yield return WaitStage(1, 5f);
                 var next = Find("CurtainCall.Tightrope.TightropeCourse");
                 Assert.IsNotNull(next);
-                Assert.AreEqual(4, Get(next, "LaneCount"), "2-1도 네 줄");
+                Assert.AreEqual(1, Get(next, "LaneCount"), "2-1은 원본 낮은 봉을 배우는 한 줄");
                 yield return null;
-                Assert.IsFalse((bool)Call(next, "IsSegmentBlocked", 0, 4f), "2-1은 줄 전환과 손잡기 코스");
+                Assert.IsFalse((bool)Call(next, "IsSegmentBlocked", 0, 4f), "2-1의 첫 봉 앞 접근 줄은 이어져 있음");
                 Assert.IsFalse((bool)Priv(Find("CurtainCall.Tightrope.TightropeSwingPole"), "HasGap"), "휴면 일반 그네를 활성화하지 않는다");
                 yield return new WaitForSecondsRealtime(.5f);
                 Assert.Less((float)Call(next, "GetDistance", player.transform.position), 0f, "새 소구간 출발대로 옮겨진다");
@@ -616,7 +625,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return QuestFlowCapture("01-tutorial");
                 Assert.IsFalse((bool)Call(campaign, "NotifyAllAtStageEntrance"));
                 // 둘째 공연(CC-215): 안내 완료 뒤 호스트가 스케줄표에서 고르고 확정해야 집결로 시작한다.
-                yield return WaitQuestReady("second-pick");
+                yield return WaitQuestReady("gather");
                 Assert.IsFalse((bool)Call(campaign, "NotifyAllAtStageEntrance"), "둘째 공연 확정 전 집결 차단");
                 var board = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
                 Assert.AreEqual("None", Call(board, "Set", 1, 1, "Tightrope", 1).ToString());
@@ -660,7 +669,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 Assert.AreEqual(2, Field(State, "Day"));
                 Assert.AreEqual("RestTime", Field(State, "Phase").ToString());
                 Assert.IsNull(bed.transform.Find("BedRestCamera"));
+                yield return CannonWait(() => (bool)Static(FirstDayFlowType, "FirstDayQuestVisible")
+                    && (string)Static(FirstDayFlowType, "FirstDayQuestTitle") == "[tutorial] 다음 공연 준비하기", 15,
+                    "날짜 연출 종료/조작 해제 뒤 2일차 아침 퀘스트");
                 yield return QuestFlowCapture("07-next-morning");
+                Assert.IsTrue((bool)Call(campaign, "NotifyAllAtStageEntrance"));
+                yield return null; yield return null;
+                Assert.IsFalse((bool)Static(FirstDayFlowType, "FirstDayQuestVisible"), "2일차 첫 공연을 시작하면 아침 안내 제거");
             }
             finally { EndTutorial(); }
         }

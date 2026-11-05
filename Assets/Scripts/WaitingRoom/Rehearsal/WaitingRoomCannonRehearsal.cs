@@ -69,6 +69,9 @@ namespace CurtainCall.WaitingRoom
         void Update()
         {
             TickNetwork();
+            if (!shared.active && (!PracticePhase || WaitingRoomRehearsal.IsActive
+                || SpaceLinkDirector.Instance == null || SpaceLinkDirector.Instance.Current != SpaceId.WaitingRoom
+                || SpaceLinkDirector.Instance.IsTransitioning)) quest.Hide();
             if (Host && shared.active && !PracticePhase) { shared.active = shared.ending = false; Publish(); }
             if (shared.active && !shared.ending)
             {
@@ -125,10 +128,12 @@ namespace CurtainCall.WaitingRoom
             var prefab = Resources.Load<GameObject>("Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RehearsalCourseFromPerformance");
             if (prefab == null) { Debug.LogError("[CannonRehearsal] Native source copy is missing."); return; }
             var root = Instantiate(prefab); course = root.GetComponent<RehearsalCannonCourse>();
-            root.SetActive(false); course.Prepare(origin); root.SetActive(true); Physics.SyncTransforms();
+            root.SetActive(false); course.Prepare(origin);
+            course.Cannon.SetPracticePlacementGate(id => shared.active && !shared.ending && shared.placed.Contains(id));
+            root.SetActive(true); Physics.SyncTransforms();
             builtRound = shared.round; placedRound = -1; nextPlacement = 0;
             quest.Show(T("title", "인간대포 · 트램펄린 리허설"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
-            WaitingRoomTutorialPanel.Show(T("title", "인간대포 · 트램펄린 리허설"), T("intro", "대포로 중간 도착대에 가세요. 한 명은 트램펄린을 운반하고, 나머지는 재발사 후 반동으로 최종 도착대에 갑니다. 전원 도착 시 이수합니다. 추락 부상·비용은 없습니다."), 14f);
+            WaitingRoomTutorialPanel.Show(T("title", "인간대포 · 트램펄린 리허설"), T("intro", "대포로 중간 도착대에 가세요. 한 명은 트램펄린을 운반하고, 나머지는 재발사 후 반동으로 최종 도착대에 갑니다. 전원 도착 시 이수합니다. 추락 부상·비용은 없습니다."), 10f);
             if (CampaignRun.Instance.State.Phase == CampaignPhase.Night) CampaignRun.Instance.SetReady(false);
         }
 
@@ -179,8 +184,11 @@ namespace CurtainCall.WaitingRoom
             if (shared.ending || course == null || NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned) return;
             var p = NetworkPlayer.Local;
             bool recovery = local == p && previousState == PlayerState.Fallen && p.State == PlayerState.Normal;
+            if (local == p && previousState == PlayerState.Normal && p.State == PlayerState.Fallen)
+                WaitingRoomTutorialPanel.Show("트램펄린을 이용해 안전하게 착지", "대포 발사 후에는 트램펄린을 통해 안전하게 착지해야 합니다. 지면에 추락할시 사망합니다.", 10f);
             local = p; previousState = p.State;
-            if (p.State != PlayerState.Normal || !p.TryGetComponent(out PlayerMover mover)) return;
+            if (p.State != PlayerState.Normal) { quest.Show("[tutorial]", "추락했습니다. 잠시 뒤 마지막 체크포인트에서 다시 시작합니다."); return; }
+            if (!p.TryGetComponent(out PlayerMover mover)) return;
             if (placedRound != shared.round || recovery)
             {
                 var pose = course.CheckpointPose(Checkpoint(p.OwnerClientId), Mathf.Max(0, p.Slot));
@@ -193,6 +201,7 @@ namespace CurtainCall.WaitingRoom
             if (!shared.placed.Contains(p.OwnerClientId) && Time.unscaledTime >= nextPlacement)
             { SendPlacement(p.transform.position); nextPlacement = Time.unscaledTime + .2f; }
             UpdateQuest();
+            TickActionGuides();
         }
 
         void Cleanup()

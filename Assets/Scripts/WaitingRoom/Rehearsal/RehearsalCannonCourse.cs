@@ -16,11 +16,13 @@ namespace CurtainCall.WaitingRoom
         public CurtainCall.UI.GuidesV1.GuideView Guide;
         public CurtainCall.UI.TooltipsV1.TooltipView Tooltip;
         public CurtainCall.UI.SceneIntegration.HumanCannonUiBinding DeviceUi;
+        public const float Elevation = 2f;
 
         public void Prepare(Vector3 origin)
         {
+            origin += Vector3.up * Elevation;
             transform.position = origin;
-            // Fits the existing practice-room roof/trusses with the original 12m/s shot and full character height.
+            // Raise every deck/device together; native launch speed and relative layout stay intact.
             PlaceDeck(StartDeck, new Vector3(-5, 2, -16), new Vector2(12, 8));
             PlaceDeck(MiddleDeck, new Vector3(-4, 2, 6), new Vector2(16, 10));
             PlaceDeck(LowerDeck, new Vector3(7, .5f, -8), new Vector2(12, 14));

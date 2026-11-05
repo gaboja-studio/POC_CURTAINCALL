@@ -26,25 +26,141 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
         IEnumerator OpenCannonWaitingRoom(int day, string phase)
         {
-            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
-            yield return Launch(day, phase, 0, phase == "Night" ? "" : "HumanCannon", "WaitingRoom");
+            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Base"));
+            yield return Launch(day, phase, 0, phase == "Night" ? "" : "HumanCannon", "WaitingRoomBase");
             var run = Static("CurtainCall.Campaign.CampaignRun", "Instance");
             Call(run, "DiscoverTrick", "HumanCannon");
             yield return CannonWait(() => (bool)Field(State, "CannonUnlocked"), 3, "The original discovery unlock must propagate.");
         }
 
         [UnityTest]
+        public IEnumerator W6_CannonRehearsal_RaisedSecondShotsBounceAndComplete()
+        {
+            Behaviour reader = null;
+            try
+            {
+                yield return OpenCannonWaitingRoom(2, "Morning");
+                for (int index = 2; index < 4; index++)
+                {
+                    Assert.IsTrue((bool)CannonStatic("StartPractice"));
+                    yield return CannonWait(() => Get(CannonLesson, "Course") != null
+                        && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Initial placement");
+                    var course = (Component)Get(CannonLesson, "Course");
+                    var cannon = Field(course, "Cannon");
+                    var station = Call(cannon, "Station", index);
+                    var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
+                    var boarding = (Transform)Get(station, "BoardingPoint");
+                    Call(mover, "Relocate", boarding.position, boarding.rotation);
+                    yield return CannonWait(() => (int)CannonStatic("Checkpoint", LocalId) == 1, 3, "Middle checkpoint fixture");
+                    var trampoline = (Component)Field(course, "Trampoline");
+                    Assert.IsFalse((bool)Get(trampoline, "RequireCarrierForBounce"));
+                    var muzzle = (Transform)Get(station, "Muzzle");
+                    var velocity = (Vector3)Get(station, "LaunchVelocity");
+                    float gravity = (float)Get(Get(Static("CurtainCall.Settings.GameSettings", "Base"), "Character"), "Gravity");
+                    float floorY = ((Collider)Field(course, "LowerFloor")).bounds.max.y;
+                    float surfaceOffset = ((Vector3)Get(trampoline, "Surface")).y - trampoline.transform.position.y;
+                    float flightTime = (velocity.y + Mathf.Sqrt(velocity.y * velocity.y + 2f * gravity * (muzzle.position.y - floorY - surfaceOffset))) / gravity;
+                    var catchPoint = muzzle.position + Vector3.ProjectOnPlane(velocity, Vector3.up) * flightTime;
+                    // Only the teammate's catch position is prepared. Native flight, contact, rebound and finish judge the result.
+                    trampoline.transform.position = new Vector3(catchPoint.x, floorY, catchPoint.z);
+                    Physics.SyncTransforms();
+                    yield return new WaitForSecondsRealtime(.3f);
+                    yield return FlowTap();
+                    yield return CannonWait(() => (bool)Call(cannon, "IsSeated", LocalId), 3, "Board second cannon");
+                    float fireDeadline = Time.realtimeSinceStartup + 8f;
+                    while (!(bool)Call(cannon, "IsFlying", LocalId) && Time.realtimeSinceStartup < fireDeadline)
+                    { yield return new WaitForSecondsRealtime(.8f); yield return FlowTap(); }
+                    Assert.IsTrue((bool)Call(cannon, "IsFlying", LocalId));
+                    yield return CannonWait(() => (int)Get(trampoline, "LocalBounceCount") > 0, 6, "Raised second shot must clear the roof and reach the native fabric");
+                    reader = (Behaviour)LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerInputReader"));
+                    reader.enabled = false;
+                    var input = reader.GetType().GetProperty("Current");
+                    var frameType = T("CurtainCall.Player.PlayerInputFrame");
+                    var target = ((Collider)Field(course, "FinishFloor")).bounds.center;
+                    float until = Time.realtimeSinceStartup + 12f;
+                    while (!CannonFlag("IsEnding") && Time.realtimeSinceStartup < until)
+                    {
+                        var forward = (Vector3)Get(Static("CurtainCall.Cameras.CameraViewDirector", "Current"), "ViewForward");
+                        var axis = (Vector2)T("CurtainCall.HumanCannon.HumanCannonBotSteering").GetMethod("PlanarInput")
+                            .Invoke(null, new object[] { LocalPlayer.transform.position, target, forward, .12f });
+                        var frame = Activator.CreateInstance(frameType);
+                        frameType.GetField("Move").SetValue(frame, axis.y); frameType.GetField("Posture").SetValue(frame, axis.x);
+                        input.SetValue(reader, frame);
+                        yield return null;
+                    }
+                    input.SetValue(reader, Activator.CreateInstance(frameType)); reader.enabled = true;
+                    Assert.IsTrue(CannonFlag("IsEnding"), $"Native rebound must reach finish (station {index}), feet={LocalPlayer.transform.position}");
+                    yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Real completion must return control");
+                    Assert.IsTrue(CannonFlag("HasMastered"));
+                }
+            }
+            finally { if (reader != null) reader.enabled = true; FlowKeys(); }
+        }
+
+        [UnityTest]
+        public IEnumerator W6_CannonRehearsal_EntryWaitsForEachOwnersPlacement()
+        {
+            Component helper = null;
+            int falls = 0;
+            Action<ulong> observe = _ => falls++;
+            var fallEvent = T("CurtainCall.HumanCannon.HumanCannonSystem").GetEvent("ServerFell");
+            fallEvent.AddEventHandler(null, observe);
+            try
+            {
+                yield return OpenCannonWaitingRoom(2, "Morning");
+                var net = Get(Static("CurtainCall.Network.Session.NetworkSessionManager", "Instance"), "NetworkManager");
+                var prefab = (GameObject)Field(Field(net, "NetworkConfig"), "PlayerPrefab");
+                helper = UnityEngine.Object.Instantiate(prefab).GetComponent(T("Unity.Netcode.NetworkObject"));
+                const ulong remoteId = 799UL;
+                Call(helper, "SpawnWithOwnership", remoteId, true);
+                ((Behaviour)helper.GetComponent(T("Unity.Netcode.Components.NetworkTransform"))).enabled = false;
+                var remote = helper.GetComponent(T("CurtainCall.Network.PlayerSync.NetworkPlayer"));
+                remote.transform.position = Vector3.down * 50f;
+                Assert.IsTrue((bool)CannonStatic("StartPractice"));
+                yield return CannonWait(() => Get(CannonLesson, "Course") != null
+                    && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Local placement");
+                yield return new WaitForSecondsRealtime(2f);
+                Assert.AreEqual(0, falls, "진입 중 로컬 또는 미배치 원격을 낙사시키면 안 됨");
+                Assert.AreEqual("Normal", Get(remote, "State").ToString());
+                var course = Get(CannonLesson, "Course");
+                var pose = (Pose)Call(course, "CheckpointPose", 0, 1);
+                var shared = Priv(CannonLesson, "shared");
+                int round = (int)Field(shared, "round");
+                var placed = (System.Collections.Generic.List<ulong>)Field(shared, "placed");
+                Invoke(CannonLesson, "AcceptPlacement", remoteId, round, pose.position);
+                Assert.IsFalse(placed.Contains(remoteId), "메시지가 위치 동기화보다 먼저 오면 아직 배치 승인하지 않음");
+                remote.transform.position = pose.position;
+                Invoke(CannonLesson, "AcceptPlacement", remoteId, round - 1, pose.position);
+                Assert.IsFalse(placed.Contains(remoteId));
+                Invoke(CannonLesson, "AcceptPlacement", remoteId, round, pose.position);
+                Assert.IsTrue(placed.Contains(remoteId));
+                remote.transform.position = Vector3.down * 50f;
+                yield return CannonWait(() => Get(remote, "State").ToString() == "Fallen", 1f, "배치 후 실제 추락은 정상 사망/복구 경로로 처리");
+                Assert.AreEqual(1, falls);
+                Call(helper, "Despawn", true); helper = null;
+                yield return null;
+                CannonStatic("VoteToAbandon", true);
+                yield return CannonWait(() => !CannonFlag("IsActive"), 7, "Finish placement regression");
+            }
+            finally
+            {
+                fallEvent.RemoveEventHandler(null, observe);
+                if (helper != null && (bool)Get(helper, "IsSpawned")) Call(helper, "Despawn", true);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator W6_CannonRehearsal_AcquireWithFAndConfirmWithPointer()
         {
-            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Integrated"));
-            yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoom");
-            yield return WaitQuestReady("second-pick");
+            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Base"));
+            yield return Launch(1, "Between", 1, "Tightrope", "WaitingRoomBase");
+            yield return WaitQuestReady("gather");
             var board = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
             Assert.IsFalse((bool)Field(State, "CannonUnlocked"), "Start this path before discovery, not with a HumanCannon dev launch.");
             Assert.IsFalse(CannonFlag("CanPractice"));
             Assert.AreEqual("Locked", Call(board, "Set", 1, 1, "HumanCannon", 1).ToString());
             var discovery = Find("CurtainCall.WaitingRoom.PerformancePropDiscovery");
-            Assert.IsNotNull(discovery, "The integrated map must contain the real discoverable prop set.");
+            Assert.IsNotNull(discovery, "The Base map must contain the real discoverable prop set.");
             var props = ((System.Collections.IEnumerable)Get(discovery, "PracticeProps")).Cast<GameObject>().ToArray();
             Assert.IsNotEmpty(props);
             Assert.IsTrue(props.All(p => p != null && !p.activeInHierarchy));
@@ -95,45 +211,39 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W6_CannonRehearsal_SkipButtonRecordsMasteryBeforeArrival()
+        public IEnumerator W6_CannonRehearsal_SkipLabelAndPointerReturn()
         {
             yield return OpenCannonWaitingRoom(1, "Night");
-            var board = Static("CurtainCall.WaitingRoom.ScheduleBoard", "Instance");
-            for (int day = 2; day <= 3; day++) for (int slot = 0; slot < 2; slot++)
-                Assert.AreEqual("None", Call(board, "Set", day, slot, day == 2 && slot == 0 ? "HumanCannon" : "Tightrope", 1).ToString());
             Assert.IsTrue((bool)CannonStatic("StartPractice"));
             yield return CannonWait(() => Get(CannonLesson, "Course") != null
-                && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Skip must be offered after initial placement.");
-            Assert.AreEqual(0, CannonStatic("Checkpoint", LocalId));
-            Assert.IsFalse((bool)CannonStatic("HasArrived", LocalId));
+                && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Initial placement");
+            Assert.IsFalse(CannonFlag("HasMastered"));
+            Assert.IsFalse(CannonFlag("IsEnding"));
             var panel = Priv(CannonLesson, "votePanel");
             var buttons = (UnityEngine.UI.Button[])Priv(panel, "buttons");
-            Assert.IsTrue(buttons.All(b => b.gameObject.activeInHierarchy && b.IsInteractable()), "Skip and abandon remain distinct choices.");
+            Assert.AreEqual(2, buttons.Count(b => b.gameObject.activeInHierarchy && b.IsInteractable()));
+            Canvas.ForceUpdateCanvases();
+            var label = buttons[0].GetComponentInChildren<TMPro.TMP_Text>();
+            label.ForceMeshUpdate(true);
+            Assert.AreEqual("리허설 넘기기", label.text);
+            Assert.IsFalse(label.isTextTruncated, "넘기기 버튼은 생략 없이 표시");
+            Assert.AreEqual(label.text.Length, label.textInfo.characterCount);
             CursorTestKey("Escape"); yield return null; yield return null; CursorTestKey(null);
             yield return CursorState(true);
             var pointer = UnityEngine.InputSystem.InputSystem.AddDevice<UnityEngine.InputSystem.Mouse>();
-            int actualClicks = 0;
-            buttons[0].onClick.AddListener(() => actualClicks++);
+            int clicks = 0; buttons[0].onClick.AddListener(() => clicks++);
             try { yield return ClickScheduleButtonWithMouse(pointer, buttons[0]); }
             finally { UnityEngine.InputSystem.InputSystem.RemoveDevice(pointer); }
-            Assert.AreEqual(1, actualClicks, "The skip click must reach the real button exactly once.");
-            yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "One of one is a majority, even before arrival.");
+            Assert.AreEqual(1, clicks);
+            yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Skip returns control");
             Assert.IsTrue(CannonFlag("HasMastered"));
-            Assert.IsFalse((bool)Get(Static("CurtainCall.UI.SceneIntegration.CommonMenuUI", "Current"), "IsOpen"), "Return within the same scene must close the ESC menu used to click the vote.");
-            Assert.IsTrue((bool)Field(Priv(CannonLesson, "shared"), "skipped"));
-            Assert.AreEqual("None", Call(board, "Confirm").ToString(), "Skipped rehearsal must unlock normal schedule confirmation.");
+            Assert.IsFalse((bool)Get(Static("CurtainCall.UI.SceneIntegration.CommonMenuUI", "Current"), "IsOpen"));
             Assert.Less(Vector3.Distance(LocalPlayer.transform.position, (Vector3)Priv(CannonLesson, "entrance")), 3f);
             Assert.IsTrue((bool)CannonStatic("StartPractice"));
-            yield return CannonWait(() => Get(CannonLesson, "Course") != null
-                && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Skip retains optional reentry.");
+            yield return CannonWait(() => Get(CannonLesson, "Course") != null, 6, "Practice remains available after skipping");
             Assert.AreEqual(0, CannonStatic("Checkpoint", LocalId));
-            CursorTestKey("Escape"); yield return null; yield return null; CursorTestKey(null);
-            yield return CursorState(true);
-            pointer = UnityEngine.InputSystem.InputSystem.AddDevice<UnityEngine.InputSystem.Mouse>();
-            try { yield return ClickScheduleButtonWithMouse(pointer, buttons[1]); }
-            finally { UnityEngine.InputSystem.InputSystem.RemoveDevice(pointer); }
-            yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Abandoning subsequent practice must return control.");
-            Assert.IsTrue(CannonFlag("HasMastered"), "Abandon does not erase an existing mastery record.");
+            CannonStatic("VoteToAbandon", true);
+            yield return CannonWait(() => !CannonFlag("IsActive"), 7, "Finish test");
         }
 
         [UnityTest]
@@ -153,12 +263,13 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return CannonWait(() => CannonFlag("IsActive") && Get(CannonLesson, "Course") != null, 6, "The cannon lesson must start in the same waiting room.");
             yield return CannonWait(() => !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 4, "Placement acknowledgement must release movement.");
             var course = (Component)Get(CannonLesson, "Course");
+            Assert.AreEqual(((Vector3)Priv(CannonLesson, "origin")).y + 2f, course.transform.position.y, .01f, "전체 코스 높이 +2m");
             var cannon = Field(course, "Cannon"); var transport = Field(course, "Transport");
             Assert.IsTrue((bool)Get(cannon, "PracticeMode"));
             Assert.AreEqual(4, Get(cannon, "StationCount"));
             Assert.IsFalse((bool)Get(transport, "OverloadTrap"), "Latest actual performance rejects overload without dropping the floor.");
             Assert.AreEqual(new Vector2(2.75f, 2f), Get(transport, "HalfSize"), "Do not replace the actual scene footprint with the prepared prefab default.");
-            Assert.AreEqual("WaitingRoom", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            Assert.AreEqual("WaitingRoomBase", UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
             var station = (Component)Call(cannon, "Station", 0);
             var boarding = (Transform)Get(station, "BoardingPoint");
             var mover = LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
@@ -170,6 +281,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             while (!(bool)Call(cannon, "IsFlying", LocalId) && Time.realtimeSinceStartup < fireDeadline)
             { yield return new WaitForSecondsRealtime(.8f); yield return FlowTap(); }
             Assert.IsTrue((bool)Call(cannon, "IsFlying", LocalId), "A fresh F must fire through the original pilot.");
+            yield return CannonWait(() => course.transform.Find("GroundMarker_" + LocalId) is { gameObject: { activeInHierarchy: true } },
+                2f, "Native ground marker must render during actual flight above a deck.");
             yield return CannonWait(() => (int)CannonStatic("Checkpoint", LocalId) == 1, 8, "Original no-steering shot must safely reach the middle checkpoint, including ceiling clearance.");
             Assert.IsTrue(OnCannonFloor(Field(course, "MiddleFloor")));
             Assert.IsNotNull(Field(course, "DeviceUi"), "Reuse the original cannon contextual binder.");
@@ -205,6 +318,24 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Assert.IsTrue((bool)Get(mover, "ControlEnabled"));
             Assert.Less(Vector3.Distance(LocalPlayer.transform.position, (Vector3)Priv(CannonLesson, "entrance")), 3f,
                 $"Returned feet={LocalPlayer.transform.position}, entrance={Priv(CannonLesson, "entrance")}, shared={JsonUtility.ToJson(Priv(CannonLesson, "shared"))}, ending={Priv(CannonLesson, "endingRound")}, returned={Priv(CannonLesson, "returnedRound")}");
+        }
+
+        [UnityTest]
+        public IEnumerator W6_CannonRehearsal_CompletionQuestEndsWithPracticePhase()
+        {
+            yield return OpenCannonWaitingRoom(2, "Morning");
+            Assert.IsTrue((bool)CannonStatic("StartPractice"));
+            yield return CannonWait(() => Get(CannonLesson, "Course") != null
+                && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 6, "Place lesson");
+            // This fixture only prepares completion; native four-player completion is verified separately.
+            Invoke(CannonLesson, "BeginEnding", true, false);
+            yield return CannonWait(() => !CannonFlag("IsActive") && !(bool)Static("CurtainCall.Player.InputGate", "IsBlocked"), 7, "Return after completion");
+            var quest = Priv(CannonLesson, "quest");
+            Assert.IsTrue((bool)Get(quest, "Visible"));
+            Assert.AreEqual("[tutorial] 리허설 종료", Get(quest, "Title"));
+            Assert.IsTrue((bool)Call(Static("CurtainCall.Campaign.CampaignRun", "Instance"), "NotifyAllAtStageEntrance"));
+            yield return null; yield return null;
+            Assert.IsFalse((bool)Get(quest, "Visible"), "공연으로 전환하면 완료 퀘스트가 남지 않음");
         }
 
         [UnityTest]

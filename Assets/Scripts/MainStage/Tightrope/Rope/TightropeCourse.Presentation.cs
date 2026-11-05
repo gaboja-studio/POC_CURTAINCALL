@@ -90,20 +90,24 @@ namespace CurtainCall.Tightrope
         {
             if (to - from <= .001f) return;
             // Split only the visible mesh at the relay boundary; support stays continuous.
-            if (HasRelayGap && from < SwingGapFrom && to > SwingGapFrom)
+            float gapFrom = SwingGapFrom, gapTo = SwingGapTo;
+            bool hasRelay = HasRelayGap;
+            if (!hasRelay && TryGetComponent(out TightropeRelayGate gate))
+                hasRelay = gate.TryGetSpotLaneGap(lane, out gapFrom, out gapTo);
+            if (hasRelay && from < gapFrom && to > gapFrom)
             {
-                AddRopeSpan(parent, lane, from, SwingGapFrom, section);
-                AddRopeSpan(parent, lane, SwingGapFrom, to, section);
+                AddRopeSpan(parent, lane, from, gapFrom, section);
+                AddRopeSpan(parent, lane, gapFrom, to, section);
                 return;
             }
-            if (HasRelayGap && from < SwingGapTo && to > SwingGapTo)
+            if (hasRelay && from < gapTo && to > gapTo)
             {
-                AddRopeSpan(parent, lane, from, SwingGapTo, section);
-                AddRopeSpan(parent, lane, SwingGapTo, to, section);
+                AddRopeSpan(parent, lane, from, gapTo, section);
+                AddRopeSpan(parent, lane, gapTo, to, section);
                 return;
             }
             var shape = Shape;
-            bool relay = HasRelayGap && from >= SwingGapFrom && to <= SwingGapTo;
+            bool relay = hasRelay && from >= gapFrom && to <= gapTo;
             var piece = CreateBox(relay ? $"RelayRope{section + 1}" : $"Section{section + 1}",
                 new Vector3(Layout.GetLaneSide(lane), -shape.RopeThickness * .5f, (from + to) * .5f),
                 new Vector3(shape.RopeThickness, shape.RopeThickness, to - from), ropeColor, false);

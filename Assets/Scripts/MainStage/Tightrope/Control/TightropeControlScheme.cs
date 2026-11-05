@@ -9,7 +9,7 @@ using UnityEngine;
 namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Input/TightropeControlScheme.asset)
 {
     /// <summary>
-    /// 외줄타기 조작 규칙. 이동 → 코스 앞뒤, 자세 제어 → 균형 보정, 기본 액션 → 제자리 점프,
+    /// 외줄타기 조작 규칙. 이동 → 시선 기준 줄 앞뒤, 자세 제어 → 균형 보정, 기본 액션 → 제자리 점프,
     /// 좌우 보조 방향(Q/E) → 누르는 동안만 옆줄 이동 방향 지정(단독으로는 동작 없음),
     /// 방향을 누른 채 기본 액션 → 옆줄 점프(제자리 점프 대신). 방향은 뛴 순간 고정되고 착지까지 바뀌지 않는다.
     /// 상호작용 짧게 → 목마 연결 시도, 길게 → 목마 해제(실제 처리는 목마 기능). 달리기(LShift)·앉기(LCtrl) → 동작 미정, 누른 순간 로그만.
@@ -37,7 +37,7 @@ namespace CurtainCall.Player // 에셋 클래스 식별자 유지(Resources/Inpu
         {
             var view = CameraViewDirector.Current;
             var course = TightropeCourse.Current;
-            if (mover == null || course == null || !course.HasIndependentRopes || view == null
+            if (mover == null || course == null || view == null
                 || !view.UsesMouseLook || view.LocalPlayer == null || view.LocalPlayer.gameObject != mover.gameObject) return 1;
             var basis = viewBases.GetValue(mover, _ => new ViewBasis());
             return basis.Sign = ResolveViewSign(view.ViewForward, mover.CourseForward, basis.Sign);
