@@ -8,3 +8,6 @@
 - 미검증: 실제 Unity batchmode 빌드 실행(에디터 사용 중), Dev 빌드에서 Dev Mode 배지 표시, 로그 전송 설정이 있는 PC에서 LIVE 로그 도착.
 
 - 2026-11-06 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=SKIPPED(-SkipUnity); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+- 2026-11-06 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/316 (feat/build-launcher → dev)
+- PR #316 (feat/build-launcher → dev): https://github.com/gaboja-studio/POC_CURTAINCALL/pull/316
