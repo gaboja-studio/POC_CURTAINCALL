@@ -11,7 +11,7 @@ namespace CurtainCall.Reward
 {
     /// <summary>
     /// 공통 공연 관찰. 호스트만 보상 데이터를 갱신하며 UI 수명과 독립적이다.
-    /// 기준: 보상 확정 규칙 — 근접 회피 +5, 목마 협동 회피 각 +10, 오브제(트램펄린) 최초 성공 +5, 시간 끌기 15초마다 −10, 추락 −15(외줄은 매달림 시작).
+    /// 장애물 일반 회피 +5, 플랫폼·그네 착지 +10. 성공한 구조·기존 협동 환호와 야유는 유지한다.
     /// 도착 자체에는 환호를 주지 않고 호응도를 고정한다(완주 보너스는 정산이 지급).
     /// </summary>
     [DefaultExecutionOrder(150)]
@@ -22,6 +22,7 @@ namespace CurtainCall.Reward
         readonly Dictionary<(ulong, string), AudienceEncounter> encounters = new();
         readonly Dictionary<ulong, AudienceStall> stalls = new();
         readonly HashSet<ulong> bounced = new();
+        readonly HashSet<(ulong, int)> milestones = new();
         readonly Dictionary<int, int> gateLanes = new();
         readonly Dictionary<ulong, long> reactionsSeen = new();
         PiggybackSystem piggyback;
@@ -38,6 +39,8 @@ namespace CurtainCall.Reward
             TightropeHangSystem.ServerHangStarted += RopeFell;
             TightropeHangSystem.ServerRescueSucceeded += Cooperation;
             TightropeCatchSystem.ServerCatchSucceeded += Cooperation;
+            TightropeSwingPole.ServerCrossed += SwingCrossed;
+            TightropeTrapeze.ServerCrossed += TrapezeCrossed;
         }
         // 외줄 추락은 매달림 시작에 한 번 −15(뒤 낙사에 중복 차감 없음).
         void RopeFell(ulong client)
@@ -53,7 +56,14 @@ namespace CurtainCall.Reward
         }
         void Bind()
         {
-            rewards = PerformanceRewards.Instance;
+            var next = PerformanceRewards.Instance;
+            if (rewards != next)
+            {
+                if (rewards != null) rewards.BeforeSettlement -= BeforeSettlement;
+                rewards = next;
+                if (rewards != null) rewards.BeforeSettlement += BeforeSettlement;
+            }
+            EnsureAttempt();
             if (piggyback == PiggybackSystem.Current) return;
             if (piggyback != null) piggyback.HandholdConfirmed -= Handhold;
             piggyback = PiggybackSystem.Current;
@@ -61,13 +71,19 @@ namespace CurtainCall.Reward
         }
         void ResetAttempt()
         {
-            encounters.Clear(); stalls.Clear(); bounced.Clear(); gateLanes.Clear(); reactionsSeen.Clear();
+            encounters.Clear(); stalls.Clear(); bounced.Clear(); milestones.Clear(); gateLanes.Clear(); reactionsSeen.Clear();
+        }
+        void EnsureAttempt()
+        {
+            string next = Active ? rewards.State.Performance.Id : null;
+            if (identity == next) return;
+            identity = next; ResetAttempt();
         }
         void Update() => Bind();
         void LateUpdate()
         {
-            if (!Active || Settings == null) { identity = null; ResetAttempt(); return; }
-            if (identity != rewards.State.Performance.Id) { identity = rewards.State.Performance.Id; ResetAttempt(); }
+            EnsureAttempt();
+            if (!Active || Settings == null) return;
             foreach (var person in rewards.State.Segments)
             {
                 reactionsSeen.TryGetValue(person.ClientId, out long previous);
@@ -113,6 +129,26 @@ namespace CurtainCall.Reward
             if (humanCannon || !Active || Settings == null || first == second) return;
             React(first, Settings.cooperation); React(second, Settings.cooperation);
         }
+        void SwingCrossed(ulong client, TightropeSwingPole pole) => Crossed(client, pole);
+        void TrapezeCrossed(ulong client, TightropeTrapeze trapeze) => Crossed(client, trapeze);
+        void Crossed(ulong client, Object source)
+        {
+            Bind();
+            if (humanCannon || !Active || Settings == null || source == null || !milestones.Add((client, source.GetInstanceID()))) return;
+            React(client, Settings.swingLanding);
+        }
+        void BeforeSettlement(IReadOnlyDictionary<string, string> judgements)
+        {
+            // 종료 Update보다 관객 LateUpdate가 늦다. 마지막 통과/플랫폼 환호도 같은 정산에 포함한다.
+            Bind();
+            if (!Active || Settings == null) return;
+            foreach (var player in NetworkPlayer.All)
+                if (Eligible(player))
+                {
+                    if (humanCannon) ObserveCannon(player);
+                    else ObserveRope(player);
+                }
+        }
         void Bounce(ulong client)
         {
             Bind();
@@ -130,25 +166,17 @@ namespace CurtainCall.Reward
             if (stall.Sample(active, progress, Time.timeAsDouble, Settings.stallSeconds, Settings.stallProgress))
                 React(player.OwnerClientId, -Settings.stallJeer, true);
         }
-        void Sample(NetworkPlayer player, string key, float distance, bool touches, bool near, bool vertical = false, bool changedLane = false)
+        void Sample(NetworkPlayer player, string key, float distance, bool touches, bool near, bool vertical = false,
+            bool changedLane = false, bool allowNearClear = false)
         {
             var id = (player.OwnerClientId, key);
             if (!encounters.TryGetValue(id, out var encounter)) encounters[id] = encounter = new AudienceEncounter();
             bool stacked = vertical && PiggybackSystem.Current != null && PiggybackSystem.Current.IsInStack(player);
             if (!encounter.Sample(distance, Settings.approachDistance, Settings.clearanceDistance,
-                (int)player.LostParts, touches, near, stacked, changedLane)) return;
-            // 줄을 바꿔 피한 것은 환호도 야유도 없다. 다치지 않고 잘한 것 자체에 야유하지 않는다.
-            int delta = vertical && encounter.ChangedLane ? 0
-                : vertical && encounter.WasStacked ? Settings.cooperation
-                : encounter.WasClose ? Settings.closeDodge : 0;
+                (int)player.LostParts, touches, near, stacked, changedLane, allowNearClear)) return;
+            int delta = vertical && encounter.WasStacked && !encounter.ChangedLane ? Settings.cooperation
+                : encounter.WasClose ? Mathf.Max(Settings.obstacleDodge, Settings.closeDodge) : Settings.obstacleDodge;
             React(player.OwnerClientId, delta);
-        }
-        void SampleProximity(NetworkPlayer player, string key, float distance, bool touches, bool near)
-        {
-            var id = (player.OwnerClientId, key);
-            if (!encounters.TryGetValue(id, out var encounter)) encounters[id] = encounter = new AudienceEncounter();
-            if (encounter.SampleProximity(distance, Settings.approachDistance, (int)player.LostParts, touches, near))
-                React(player.OwnerClientId, Settings.closeDodge);
         }
         void ObserveRope(NetworkPlayer player)
         {
@@ -167,17 +195,16 @@ namespace CurtainCall.Reward
             {
                 if (!saws.TryGetHorizontalPosition(i, out var center)) continue;
                 var disc = new SawDisc(center, Vector3.up, s.horizontalColliderDiameter * .5f, s.horizontalThickness * .5f);
-                // 횡으로 지나가는 톱은 W/S 진행 거리와 무관하다. 점프 중에도 발밑 위험 영역의 통과를 추적한다.
-                SampleProximity(player, "horizontal:" + i, Vector3.ProjectOnPlane(player.transform.position - center, Vector3.up).magnitude,
+                // 톱의 순간 근접 여부와 무관하게 해당 장애물 지역을 앞으로 통과하면 한 번 지급한다.
+                Sample(player, "horizontal:" + i, distance - course.GetDistance(center),
                     SawMath.TryGetContact(disc, body, out _), SawMath.TryGetContact(disc, nearBody, out _)
-                        || player.IsAirborne && SawMath.TryGetContact(disc, projectedBody, out _));
+                        || player.IsAirborne && SawMath.TryGetContact(disc, projectedBody, out _), allowNearClear: true);
             }
             int lane = NearestLane(course, player.transform.position, distance);
             if (saws.IsCooperativeGateActive) gateLanes[saws.CooperativeGateIndex] = saws.CooperativeGateLane;
             foreach (var gate in gateLanes)
             {
                 string key = "gate:" + gate.Key;
-                if (lane != gate.Value && !encounters.ContainsKey((player.OwnerClientId, key))) continue;
                 bool active = saws.IsCooperativeGateActive && saws.CooperativeGateIndex == gate.Key && !saws.IsCooperativeGatePassable;
                 Vector3 bottom = active ? saws.CurrentCooperativeGateBase : course.GetLanePosition(gate.Value, s.cooperativeGateDistances[gate.Key]);
                 Sample(player, key, distance - s.cooperativeGateDistances[gate.Key],
@@ -189,8 +216,6 @@ namespace CurtainCall.Reward
             {
                 var disc = new SawDisc(vertical, course.Right, s.verticalColliderDiameter * .5f, s.verticalThickness * .5f);
                 string key = "vertical:" + saws.VerticalSerial;
-                // 처음부터 다른 줄에 있던 단원은 이 톱을 회피한 것으로 간주하지 않는다.
-                if (lane != saws.VerticalLane && !encounters.ContainsKey((player.OwnerClientId, key))) return;
                 Sample(player, key, distance - saws.VerticalDistance,
                     SawMath.TryGetContact(disc, body, out _), SawMath.TryGetContact(disc, nearBody, out _), true, lane != saws.VerticalLane);
             }
@@ -221,6 +246,7 @@ namespace CurtainCall.Reward
         }
         void ObserveCannon(NetworkPlayer player)
         {
+            ObserveCannonPlatforms(player);
             var destination = HumanCannonDestination.Current;
             if (destination != null && destination.HasArrived(player))
             {
@@ -243,12 +269,25 @@ namespace CurtainCall.Reward
                 if (hazard == null || !hazard.isActiveAndEnabled) continue;
                 string key = "cannon:" + i;
                 Vector3 relative = player.transform.position - hazard.transform.position;
-                if (Vector3.ProjectOnPlane(relative, axis).magnitude > Settings.approachDistance
-                    && !encounters.ContainsKey((player.OwnerClientId, key))) continue;
                 float speed = CannonDifficulty.HazardSpeed(hazards.Difficulty);
                 Sample(player, key, Vector3.Dot(relative, axis),
                     hazard.Touches(player.transform.position, mover.BodyHeight, mover.BodyRadius, hazards.Elapsed, speed),
                     hazard.Touches(player.transform.position, mover.BodyHeight, mover.BodyRadius + Settings.closeDodgeMargin, hazards.Elapsed, speed));
+            }
+        }
+        void ObserveCannonPlatforms(NetworkPlayer player)
+        {
+            var cannon = HumanCannonSystem.Current;
+            if (cannon == null || player.IsAirborne || cannon.IsFlying(player.OwnerClientId)) return;
+            var seated = cannon.SeatedStation(player.OwnerClientId);
+            for (int i = 0; i < cannon.StationCount; i++)
+            {
+                var station = cannon.Station(i);
+                if (station == null) continue;
+                var platform = HumanCannonLandingZone.PlatformBelow(station.BoardingPoint.position);
+                if (platform == null || (station != seated && !platform.SupportsLanding(player.transform.position))
+                    || !milestones.Add((player.OwnerClientId, platform.GetInstanceID()))) continue;
+                React(player.OwnerClientId, Settings.cannonPlatform);
             }
         }
         void OnDisable()
@@ -258,6 +297,9 @@ namespace CurtainCall.Reward
             TightropeHangSystem.ServerHangStarted -= RopeFell;
             TightropeHangSystem.ServerRescueSucceeded -= Cooperation;
             TightropeCatchSystem.ServerCatchSucceeded -= Cooperation;
+            TightropeSwingPole.ServerCrossed -= SwingCrossed;
+            TightropeTrapeze.ServerCrossed -= TrapezeCrossed;
+            if (rewards != null) rewards.BeforeSettlement -= BeforeSettlement;
             if (piggyback != null) piggyback.HandholdConfirmed -= Handhold;
             piggyback = null;
             rewards = null; identity = null; ResetAttempt();

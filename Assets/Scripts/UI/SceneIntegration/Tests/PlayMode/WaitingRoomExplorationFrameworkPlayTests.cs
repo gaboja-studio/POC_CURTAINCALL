@@ -240,6 +240,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             }
             IEnumerator PickTool(string item, int offset, int uses)
             {
+                // The two route keys can fill both real slots. Put the already-used key down before collecting a tool.
+                if (((IEnumerable)Call(carry, "Held", me)).Cast<object>().Count() >= (int)Call(carry, "Slots", me))
+                {
+                    if ((int)Get(Call(carry, "Selected", me), "Uid") == 0) Call(carry, "RequestSelectSlot", 0);
+                    Call(carry, "RequestDrop"); yield return null;
+                }
                 var value = Activator.CreateInstance(T("CurtainCall.WaitingRoom.PropItem"), basis + offset, item, item, uses);
                 Call(carry, "PlaceFound", value, player.transform.position); Call(carry, "RequestPickUp", basis + offset);
                 yield return null;

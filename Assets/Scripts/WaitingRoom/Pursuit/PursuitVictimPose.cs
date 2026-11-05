@@ -47,7 +47,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 image.transform.SetParent(overlay.transform, false);
                 var rect = image.GetComponent<RectTransform>(); rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one; rect.offsetMin = rect.offsetMax = Vector2.zero;
                 shade = image.GetComponent<UnityEngine.UI.Image>(); shade.raycastTarget = false;
-                WaitingRoomItemBrokenNotice.ShowMessage("포획", "마네킹에게 잡혔습니다. 다음 장소로 이동할 때까지 관전합니다.");
+                WaitingRoomItemBrokenNotice.ShowMessage(WaitingRoomText.Get("pursuit.captured-title", "포획"),
+                    WaitingRoomText.Get("pursuit.captured", "마네킹에게 잡혔습니다. 다음 장소로 이동할 때까지 관전합니다."));
             }
             if (mover != null) { priorControl = mover.ControlEnabled; mover.SetControlEnabled(false); }
             model = GetComponent<HumanoidPlayerPresentation>()?.Model;

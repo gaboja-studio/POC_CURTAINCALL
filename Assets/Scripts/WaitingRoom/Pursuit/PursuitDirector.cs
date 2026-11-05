@@ -107,6 +107,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             if (GetComponent<PursuitFeedback>() == null) gameObject.AddComponent<PursuitFeedback>();
             if (GetComponent<PursuitLighting>() == null) gameObject.AddComponent<PursuitLighting>();
+            if (Application.isPlaying && GetComponent<PursuitEyeFeedback>() == null) gameObject.AddComponent<PursuitEyeFeedback>();
             IsInitialized = pendingSpawns.Count == 0;
         }
         void InitializeNext()
@@ -245,15 +246,44 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public GameObject NearestVisible(PursuitActor actor, PursuitStage rule)
         {
             if (!PlayerRecognitionEnabled || actor == null || !actor.IsActivated) return null;
+            if (rule.AlwaysNearest) return NearestByPath(actor, rule);
             GameObject closest = null; float distance = float.PositiveInfinity;
             foreach (var player in candidates) {
-                if (!IsAvailable(player) || (!actor.Room.RoamAcrossRooms && !actor.Room.Contains(player.transform.position))) continue;
-                if (!actor.WithinPatrolLeash(player.transform.position, rule)) continue;
-                var delta = player.transform.position - actor.transform.position;
-                float d = delta.sqrMagnitude;
+                if (player == null) continue;
+                float d = (player.transform.position - actor.transform.position).sqrMagnitude;
                 if (d >= distance) continue;
-                if (!rule.AlwaysNearest && (d > rule.SightRadius * rule.SightRadius || Vector3.Angle(actor.transform.forward, delta) > rule.FieldOfView * .5f)) continue;
-                if (!rule.SeeThroughWalls && !rule.AlwaysNearest && !ClearLine(actor.transform.position + Vector3.up * 1.5f, player.transform.position + Vector3.up, player.transform)) continue;
+                if (!HasVisualContact(actor, player, rule)) continue;
+                distance = d; closest = player;
+            }
+            return closest;
+        }
+        public bool HasVisualContact(PursuitActor actor, GameObject player, PursuitStage rule)
+        {
+            if (!PlayerRecognitionEnabled || actor == null || !actor.IsActivated || !IsAvailable(player)
+                || (!actor.Room.RoamAcrossRooms && !actor.Room.Contains(player.transform.position))) return false;
+            var delta = player.transform.position - actor.transform.position;
+            if (delta.sqrMagnitude > rule.SightRadius * rule.SightRadius
+                || Vector3.Angle(actor.transform.forward, delta) > rule.FieldOfView * .5f) return false;
+            return rule.SeeThroughWalls || ClearLine(actor.transform.position + Vector3.up * 1.5f,
+                player.transform.position + Vector3.up, player.transform);
+        }
+        readonly List<(float straight, GameObject player)> nearestOrder = new();
+        // 최인접 추격은 벽 너머 직선 거리가 아니라 실제로 달려갈 NavMesh 경로 거리로 고른다.
+        // 직선 거리는 경로 길이의 하한이므로 가까운 순으로 보고, 이미 찾은 경로보다 직선이 먼 대상은 계산하지 않는다.
+        GameObject NearestByPath(PursuitActor actor, PursuitStage rule)
+        {
+            nearestOrder.Clear();
+            foreach (var player in candidates) {
+                if (!IsAvailable(player) || (!actor.Room.RoamAcrossRooms && !actor.Room.Contains(player.transform.position))) continue;
+                if (!actor.WithinPatrolLeash(player.transform.position, rule) && !HasVisualContact(actor, player, rule)) continue;
+                nearestOrder.Add((Vector3.Distance(player.transform.position, actor.transform.position), player));
+            }
+            nearestOrder.Sort((a, b) => a.straight.CompareTo(b.straight));
+            GameObject closest = null; float distance = float.PositiveInfinity;
+            foreach (var (straight, player) in nearestOrder) {
+                if (straight >= distance) break;
+                float d = actor.PathCost(player);
+                if (d >= distance) continue;
                 distance = d; closest = player;
             }
             return closest;
@@ -340,8 +370,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             int next = CurrentStageIndex;
             if (next == stage) return;
             stage = next;
-            var text = CurrentStageRules.Announcement;
-            if (!string.IsNullOrEmpty(text)) WaitingRoomItemBrokenNotice.ShowMessage("추격 경보", text);
+            var text = PursuitTexts.StageAnnouncement(next);
+            if (!string.IsNullOrEmpty(text)) WaitingRoomItemBrokenNotice.ShowMessage(PursuitTexts.AlertTitle, text);
         }
         void Bind()
         {
@@ -365,7 +395,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
         }
         Snapshot BuildSnapshot() => new Snapshot { generation = generation, day = day, performance = performance, elapsed = Elapsed, stage = stage,
             poseEpoch = poseEpoch, debugInvulnerable = debugInvulnerable, debugIgnorePlayers = debugIgnorePlayers,
-            stageForced = StageIsForced, lightRoom = RoomFlickerIndex, lightAt = RoomFlickerAt, announcement = active ? CurrentStageRules.Announcement : "",
+            stageForced = StageIsForced, lightRoom = RoomFlickerIndex, lightAt = RoomFlickerAt, announcement = active ? PursuitTexts.StageAnnouncement(CurrentStageIndex) : "",
             actors = actors.Select(a => new ActorState { position = a.transform.position, rotation = a.transform.rotation, look = a.LookPoint, hasLook = a.HasLook,
                 motion = (int)a.State, behaviour = (int)a.Behaviour, victim = a.Victim != null ? Id(a.Victim) : ulong.MaxValue, capture = a.CaptureElapsed,
                 captures = a.GetComponent<PursuitAppearance>() != null ? a.GetComponent<PursuitAppearance>().CaptureCount : 0,
@@ -392,9 +422,8 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var s = PursuitSnapshotCodec.Read(reader);
             if (s == null) return;
             receivedSnapshot = true;
-            // 알림 문구는 같은 설정 에셋에서 읽어 전송량을 줄인다.
-            var stages = GameSettings.WaitingRoom.Pursuit.Stages;
-            s.announcement = s.elapsed >= 0 && stages != null && s.stage >= 0 && s.stage < stages.Length && stages[s.stage] != null ? stages[s.stage].Announcement : "";
+            // 알림 문구는 같은 문구 표·설정 에셋에서 읽어 전송량을 줄인다.
+            s.announcement = s.elapsed >= 0 ? PursuitTexts.StageAnnouncement(s.stage) : "";
             ApplySnapshot(s);
         }
         void ApplySnapshot(Snapshot s)
@@ -430,7 +459,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             }
             if (active && stage != s.stage) {
                 stage = s.stage;
-                if (!string.IsNullOrEmpty(s.announcement)) WaitingRoomItemBrokenNotice.ShowMessage("추격 경보", s.announcement);
+                if (!string.IsNullOrEmpty(s.announcement)) WaitingRoomItemBrokenNotice.ShowMessage(PursuitTexts.AlertTitle, s.announcement);
             }
             if (!active) stage = -1;
         }

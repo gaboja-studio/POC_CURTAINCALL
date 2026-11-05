@@ -1,0 +1,135 @@
+{
+  "status": "awaiting_user_design_confirmation",
+  "atlas": "eye-white-atlas.png",
+  "size": [
+    1024,
+    512
+  ],
+  "grid": [
+    4,
+    2
+  ],
+  "cellSize": [
+    256,
+    256
+  ],
+  "frameCount": 8,
+  "frameOrder": "left to right, top to bottom",
+  "unityRectOrigin": "bottom left",
+  "frames": [
+    {
+      "name": "eye-00",
+      "x": 0,
+      "y": 256,
+      "width": 256,
+      "height": 256,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "name": "eye-01",
+      "x": 256,
+      "y": 256,
+      "width": 256,
+      "height": 256,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "name": "eye-02",
+      "x": 512,
+      "y": 256,
+      "width": 256,
+      "height": 256,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "name": "eye-03",
+      "x": 768,
+      "y": 256,
+      "width": 256,
+      "height": 256,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "name": "eye-04",
+      "x": 0,
+      "y": 0,
+      "width": 256,
+      "height": 256,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "name": "eye-05",
+      "x": 256,
+      "y": 0,
+      "width": 256,
+      "height": 256,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "name": "eye-06",
+      "x": 512,
+      "y": 0,
+      "width": 256,
+      "height": 256,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "name": "eye-07",
+      "x": 768,
+      "y": 0,
+      "width": 256,
+      "height": 256,
+      "pivot": [
+        0.5,
+        0.5
+      ]
+    }
+  ],
+  "clip": {
+    "fps": 16,
+    "durationSeconds": 0.5,
+    "open": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+    ],
+    "close": [
+      7,
+      6,
+      5,
+      4,
+      3,
+      2,
+      1,
+      0
+    ]
+  },
+  "color": "RGB always 255,255,255; coverage in alpha",
+  "integration": "Not imported into Unity. Color, emission and local-player state are deferred until confirmation."
+}

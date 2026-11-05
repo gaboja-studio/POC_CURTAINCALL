@@ -4,6 +4,7 @@ using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Results;
 using CurtainCall.Reward;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -87,7 +88,17 @@ namespace CurtainCall.HumanCannon
                         if (participant.ClientId == player.OwnerClientId && participant.Connected && !participant.Dead)
                             arrivals[participant.ParticipantId] = "Arrived";
                 }
-                if (arrivals.Count > 0) { rewards.FinishPerformance(true, "Completed", arrivals); return; }
+                if (arrivals.Count > 0)
+                {
+                    foreach (var player in NetworkPlayer.All)
+                    {
+                        if (!HasCompletionProgress(player)) continue;
+                        foreach (var participant in rewards.State.Segments)
+                            if (participant.ClientId == player.OwnerClientId && participant.Connected && !participant.Dead)
+                                arrivals[participant.ParticipantId] = "Arrived";
+                    }
+                    rewards.FinishPerformance(true, "Completed", arrivals); return;
+                }
                 // 전멸·이탈 실패는 공용 명부 관찰이 처리한다. 자체 정산/시간대 전환을 중복 호출하지 않는다.
             }
             else if (Application.isEditor && session.GameState == GameSessionState.Waiting
@@ -106,6 +117,18 @@ namespace CurtainCall.HumanCannon
             return player != null && player.IsSpawned && player.State == PlayerState.Normal && !player.IsAirborne
                 && destination != null && destination.SupportsLanding(player.transform.position)
                 && cannon != null && !cannon.IsFlying(player.OwnerClientId) && !cannon.IsSeated(player.OwnerClientId);
+        }
+
+        public bool HasCompletionProgress(NetworkPlayer player)
+        {
+            var cannon = HumanCannonSystem.Current;
+            if (player == null || !player.IsSpawned || player.State != PlayerState.Normal || destination == null
+                || cannon == null || cannon.StationCount == 0 || cannon.Station(0) == null) return false;
+            // HUD/공연 기록과 같은 첫 대포 총구→목적지의 수평 축을 사용한다.
+            Vector3 start = cannon.Station(0).Muzzle.position;
+            Vector3 axis = Vector3.ProjectOnPlane(destination.transform.position - start, Vector3.up);
+            return AudienceReactionSettings.HasCompletionProgress(
+                Vector3.Dot(player.transform.position - start, axis.normalized), axis.magnitude);
         }
 
         void Confirmed(PerformanceResult result)

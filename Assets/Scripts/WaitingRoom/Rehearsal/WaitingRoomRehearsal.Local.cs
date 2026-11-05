@@ -25,11 +25,14 @@ namespace CurtainCall.WaitingRoom
         float nextPlacementSend;
         float introductionUntil, actionGuideAfter;
         bool pendingStageIntro, laneHintShown;
+        float laneIntroAt;
         readonly System.Collections.Generic.HashSet<ulong> mountHints = new();
         // 추락 복귀는 늘 소구간 출발대다(사용자 2026-11-03: 줄 위 체크포인트는 외줄 UI가 다시 켜지지 않아 제거).
         // 도착대 투명 벽(이 화면 전용). 도착한 내 캐릭터만 도착대 밖으로 못 나가게 막는다(사용자 2026-11-04: 되돌리기 대신 벽).
         GameObject finishWalls;
+        int lessonReturnedRound = -1;
         string lastQuest = "";
+        string rescueGuide = "";
         StageEntranceGather gather;
         CameraCursorExclusion skipCursorRegion;
         // 오른쪽 아래는 투표 패널(1920×1080 기준 높이 230+여백 36) 자리다. IMGUI 버튼은 그 위에 둔다.
@@ -39,6 +42,7 @@ namespace CurtainCall.WaitingRoom
         {
             quest = new WaitingRoomRightPanel(transform, "RehearsalQuestCanvas", QuestTop, QuestWidth, "first-day.panel.") { GuideStyle = true };
             guide = gameObject.AddComponent<RehearsalPathGuide>();
+            guide.VisibilityChanged += PathVisibility;
             skipCursorRegion = gameObject.AddComponent<CameraCursorExclusion>();
             skipCursorRegion.enabled = false;
         }
@@ -59,6 +63,15 @@ namespace CurtainCall.WaitingRoom
             var stock = cheerRoot.GetComponent<CurtainCall.CheerGauge.C1CheerGaugeBinding>();
             if (stock != null) stock.enabled = false;
             var hudView = hudRoot.GetComponent<CurtainCall.UI.PerformanceHudV1.PerformanceHUDView>();
+            // Tightrope.unity의 TightropeBalanceCanvas에 저장된 override도 그대로 반영한다.
+            // 정본 프리팹의 12/4px 기본값은 실제 공연의 23/15px 위험 게이지와 다르다.
+            if (hudView != null && hudView.Balance != null)
+            {
+                var track = hudView.Balance.transform.Find("60_DwellTrack") as RectTransform;
+                var fill = hudView.Balance.transform.Find("61_DwellFill") as RectTransform;
+                if (track != null) track.sizeDelta = new Vector2(track.sizeDelta.x, 23f);
+                if (fill != null) fill.sizeDelta = new Vector2(fill.sizeDelta.x, 15f);
+            }
             var binding = hudRoot.AddComponent<CurtainCall.UI.SceneIntegration.PerformanceSceneBinding>();
             binding.Configure(hudView, cheerRoot.GetComponent<CurtainCall.CheerGauge.C1CheerGaugeView>(), null);
             // 공연 씬의 균형 UI(TightropeBalanceCanvas)는 같은 프리팹에서 균형바만 남긴 캔버스다(사용자 2026-11-04: 공연 균형 UI 그대로).
@@ -74,23 +87,41 @@ namespace CurtainCall.WaitingRoom
             group.alpha = 0f; group.interactable = false; group.blocksRaycasts = false; group.ignoreParentGroups = true;
         }
 
+        void PathVisibility(bool shown) => RecordLocal(shown ? "GUIDE_SHOWN" : "GUIDE_HIDDEN", guideId: "GATHER_PATH");
+
+        void RecordLocal(string state, string reason = null, string guideId = null)
+        {
+            var player = NetworkPlayer.Local;
+            if (player != null)
+                CurtainCall.Telemetry.Pipeline.SpatialLogAdapter.RehearsalAction("TIGHTROPE", state, round, stage,
+                    active, IsCompleted, IsPracticing, player.OwnerClientId, false, reason, guideId: guideId);
+        }
+
         void DestroyLocal()
         {
+            if (guide != null) guide.VisibilityChanged -= PathVisibility;
             ReleasePlacementLock();
+        }
+
+        void ShowGuide(string id, string title, string body, float seconds)
+        {
+            if (WaitingRoomTutorialPanel.Show(title, body, seconds)) RecordLocal("GUIDE_SHOWN", guideId: id);
         }
 
         void ActivateLocal()
         {
+            WaitingRoomFirstDayFlow.SuspendForRehearsal();
             placedRound = -1; lastQuest = "";
+            rescueGuide = "";
             introductionUntil = Time.unscaledTime + IntroSeconds;
             gather = null;
             if (practice)
-                WaitingRoomTutorialPanel.Show(
+                ShowGuide("PRACTICE_INTRO",
                     WaitingRoomText.Get("rehearsal.practice-title", "자유 연습"),
                     WaitingRoomText.Get("rehearsal.practice-intro", "고른 소구간부터 다시 연습합니다. 추락해도 대가가 없고, 호스트가 언제든 연습을 끝낼 수 있습니다."),
                     IntroSeconds);
             else
-                WaitingRoomTutorialPanel.Show(
+                ShowGuide("INTRO",
                     WaitingRoomText.Get("rehearsal.intro-title", "공연 전 리허설"),
                     WaitingRoomText.Get("rehearsal.intro", "공연 전 리허설이 시작됩니다. 안내에 따라 리허설을 진행하세요. 추락하면 마지막 체크포인트에서 재시작합니다."),
                     IntroSeconds);
@@ -152,9 +183,9 @@ namespace CurtainCall.WaitingRoom
             if (!active || previous != PlayerState.Fallen || next != PlayerState.Normal) return;
             if (completed) { placedRound = -1; return; }
             if (course == null) return;
-            PlaceLocalAtStart();
+            PlaceLocalAtStart(recovery: true);
             laneHintShown = false; mountHints.Clear(); actionGuideAfter = Time.unscaledTime + 4f;
-            WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.fall-title", "추락"),
+            ShowGuide("FALL_RECOVERY", WaitingRoomText.Get("rehearsal.fall-title", "추락"),
                 WaitingRoomText.Get("rehearsal.fall", "리허설 진행 중에는 패널티가 없습니다. 마지막 체크포인트에서 다시 시작합니다."), 4f);
         }
 
@@ -170,34 +201,28 @@ namespace CurtainCall.WaitingRoom
         /// <summary>소구간·회차가 바뀌었다(코스가 새로 만들어졌거나 사라짐).</summary>
         void OnCourseChanged()
         {
+            lessonReturnedRound = -1;
             ReleasePlacementLock();
             nextPlacementSend = 0f;
             placedRound = -1; lastQuest = "";
             finishWalls = null;
-            laneHintShown = false; mountHints.Clear(); pendingStageIntro = false; actionGuideAfter = 0f;
+            laneHintShown = false; mountHints.Clear(); pendingStageIntro = false; actionGuideAfter = 0f; laneIntroAt = 0f;
             var s = Stage;
             if (course != null && s != null)
             {
                 if (Time.unscaledTime < introductionUntil) pendingStageIntro = true;
-                else WaitingRoomTutorialPanel.Show(s.DisplayGuideTitle, s.DisplayIntro, IntroSeconds);
+                else ShowStageIntroduction();
             }
             else if (active && completed)
-                WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.complete-title", "리허설 완료"),
+                ShowGuide("COMPLETE", WaitingRoomText.Get("rehearsal.complete-title", "리허설 완료"),
                     WaitingRoomText.Get("rehearsal.complete", "바닥의 길안내를 따라 무대 입구 통로로 가세요. 모든 공연 준비자가 모이면 첫 공연이 시작됩니다."), IntroSeconds);
         }
 
         void OnGUI()
         {
             DrawPracticeButtons();
-            if (CanVote)
-            {
-                bool selected = votes.Contains(local.OwnerClientId);
-                var rect = new Rect(SkipButtonRect.x, SkipButtonRect.y - 70f, 280f, 34f);
-                bool value = GUI.Toggle(rect, selected, WaitingRoomText.Format("rehearsal.vote", "다음 구간으로 ({votes}/{required})", ("votes", votes.Count), ("required", participantCount / 2 + 1)));
-                if (value != selected) RequestVote(value);
-            }
-            // Dev 모드 호스트 전용 즉시 클리어. 화면 오른쪽 가운데(투표·연습 버튼과 겹치지 않게).
-            if (!CanClearCurrentStage || !CurtainCall.Dev.DevMode.Enabled) return;
+            // 기획서의 호스트 전용 즉시 클리어. 화면 오른쪽 가운데(투표·연습 버튼과 겹치지 않게).
+            if (!CanClearCurrentStage) return;
             if (GUI.Button(DevClearRect, WaitingRoomText.Get("rehearsal.clear-button", "현재 구간 즉시 클리어 · 다음")))
                 TryClearCurrentStage();
             GUI.Label(new Rect(DevClearRect.x, DevClearRect.y - 22f, 280f, 22f),
@@ -208,9 +233,9 @@ namespace CurtainCall.WaitingRoom
 
         void LocalTick()
         {
-            bool devClear = CanClearCurrentStage && CurtainCall.Dev.DevMode.Enabled;
+            bool devClear = CanClearCurrentStage;
             skipCursorRegion.enabled = devClear || CanVote || (practice && HasAuthority);
-            // 오른쪽 세로 띠: Dev 즉시 클리어(가운데)부터 투표·연습 종료(아래)까지.
+            // 오른쪽 세로 띠: 호스트 즉시 클리어(가운데)부터 투표·연습 종료(아래)까지.
             float top = devClear ? DevClearRect.y - 22f : SkipButtonRect.y - 114f;
             skipCursorRegion.SetScreenRect(new Rect(SkipButtonRect.x, top, SkipButtonRect.width, SkipButtonRect.yMax - top));
             Bind(NetworkPlayer.Local);
@@ -226,32 +251,90 @@ namespace CurtainCall.WaitingRoom
 
         void UpdateActionGuides()
         {
+            if (UpdateRescueGuide()) return;
             if (Stage == null || local.State != PlayerState.Normal || arrived.Contains(local.OwnerClientId)
                 || Time.unscaledTime < actionGuideAfter) return;
             if (pendingStageIntro)
             {
                 if (Time.unscaledTime < introductionUntil) return;
                 pendingStageIntro = false;
-                WaitingRoomTutorialPanel.Show(Stage.DisplayGuideTitle, Stage.DisplayIntro, IntroSeconds);
+                ShowStageIntroduction();
+                return;
+            }
+            if (laneIntroAt > 0f && Time.unscaledTime >= laneIntroAt)
+            {
+                laneIntroAt = 0f;
+                ShowGuide("LANE_INTRO", WaitingRoomText.Get("rehearsal.lane-guide-title", "끊어진 줄"),
+                    WaitingRoomText.Get("rehearsal.lane-guide", "줄이 끊긴 지점에서는 Q/E + Space키로 옆줄로 건너갈 수 있습니다."), IntroSeconds);
                 return;
             }
             if (!laneHintShown && Stage.Kind == RehearsalStageKind.LaneChange
-                && course.GetDistance(local.transform.position) >= Stage.CheckpointDistance
-                && course.Layout.GetLaneSlotAt(course.GetSide(local.transform.position)) == 0)
+                && course.GetDistance(local.transform.position) >= Stage.CheckpointDistance)
             {
                 laneHintShown = true;
-                WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.lane-guide-title", "1단계 · 외줄타기 체크포인트 도달"),
-                    WaitingRoomText.Get("rehearsal.lane-guide", "줄이 끊긴 지점에서는 Q/E + Space키로 옆줄로 건너갈 수 있습니다."), IntroSeconds);
+                ShowGuide("LANE_CHANGE", WaitingRoomText.Get("rehearsal.lane-guide-title", "옆줄로 건너기"),
+                    WaitingRoomText.Get("rehearsal.lane-guide", "Q/E를 누른 채 Space로 옆줄로 건너세요. 동료가 서 있는 줄의 손잡기 범위에 착지해 보세요."), IntroSeconds);
             }
-            var target = PiggybackSystem.Current != null ? PiggybackSystem.Current.FindMountTarget(local) : null;
+            var target = PiggybackSystem.Current != null
+                ? PiggybackSystem.Current.FindMountTarget(local) : null;
             if (target != null && mountHints.Add(target.OwnerClientId))
-                WaitingRoomTutorialPanel.Show(WaitingRoomText.Get("rehearsal.mount-title", "목마 상호작용"),
+                ShowGuide("MOUNT", WaitingRoomText.Get("rehearsal.mount-title", "목마 상호작용"),
                     WaitingRoomText.Get("rehearsal.mount", "동료 가까이에서 F키를 눌러 목마에 올라탈 수 있습니다."), IntroSeconds);
         }
+
+        void ShowStageIntroduction()
+        {
+            ShowGuide("STAGE_INTRO", Stage.DisplayGuideTitle, Stage.DisplayIntro, IntroSeconds);
+            if (Stage.Kind == RehearsalStageKind.LaneChange)
+                laneIntroAt = Time.unscaledTime + IntroSeconds;
+        }
+
+        string RescueQuestKey()
+        {
+            var hangs = TightropeHangSystem.Current;
+            if (hangs == null || local == null || local.State != PlayerState.Normal) return "";
+            if (hangs.IsHanging(local)) return "hang-help";
+            if (arrived.Contains(local.OwnerClientId)) return "";
+            if (hangs.IsRescuing(local)) return "rescue-pull";
+            foreach (var hang in hangs.Hangs)
+                if (hang.Id != local.OwnerClientId && !hang.IsPulling) return "rescue-team";
+            return "";
+        }
+
+        static string RescueText(string key) => WaitingRoomText.Get("rehearsal.quest." + key, key switch
+        {
+            "hang-help" => "줄에 매달려 버티는 동안 동료에게 도움을 요청하세요. 가까운 동료가 F를 길게 눌러 끌어올릴 수 있습니다. 혼자 올라올 수는 없습니다.",
+            "rescue-pull" => "동료를 끌어올리는 중입니다. 구조가 끝날 때까지 가까이에서 F를 계속 누르세요.",
+            _ => "줄에 매달린 동료 가까이로 이동해 F를 길게 눌러 끌어올리세요. 버티는 시간이 끝나기 전에 구조해야 합니다."
+        });
+
+        bool UpdateRescueGuide()
+        {
+            string key = RescueQuestKey();
+            if (key == rescueGuide) return key.Length > 0;
+            if (key.Length == 0)
+            {
+                if (WaitingRoomTutorialPanel.CurrentTitle == RescueTitle(rescueGuide)) WaitingRoomTutorialPanel.Hide();
+                rescueGuide = "";
+                return false;
+            }
+            // Native seven-second hangs must not wait behind the ten-second stage introduction.
+            if (WaitingRoomTutorialPanel.Show(RescueTitle(key), RescueText(key), IntroSeconds)) rescueGuide = key;
+            return true;
+        }
+
+        static string RescueTitle(string key) => QuestTitle(key).Replace("[tutorial] ", "");
 
         void TrackPersonalProgress(PlayerMover mover)
         {
             bool block = course != null && Stage != null && local.State == PlayerState.Normal && arrived.Contains(local.OwnerClientId);
+            if (block && Stage.Kind == RehearsalStageKind.Trapeze && lessonReturnedRound != round)
+            {
+                // 한 번의 도약/다음 봉 잡기가 끝나면 연습을 마친다. 공연의 연속 봉 코스를 재현하지 않는다.
+                Pose pose = course.GetFinishPose(Mathf.Max(0, local.Slot));
+                Relocate(mover, pose.position, pose.rotation);
+                lessonReturnedRound = round;
+            }
             if (block && finishWalls == null) finishWalls = BuildFinishWalls();
             if (finishWalls != null && finishWalls.activeSelf != block) finishWalls.SetActive(block);
         }
@@ -260,16 +343,9 @@ namespace CurtainCall.WaitingRoom
         GameObject BuildFinishWalls()
         {
             const float Height = 4f, Thickness = .3f;
-            var layout = course.Layout;
-            float min = float.MaxValue, max = float.MinValue;
-            for (int lane = 0; lane < layout.LaneCount; lane++)
-            {
-                if (layout.GetLaneEnd(lane) < layout.FinishDistance) continue;
-                min = Mathf.Min(min, layout.GetLaneSide(lane)); max = Mathf.Max(max, layout.GetLaneSide(lane));
-            }
-            if (min > max) return null;
-            float side = (min + max) * .5f, half = (max - min) * .5f + course.Shape.SideMargin;
-            float near = course.FinishDistance - .4f - Thickness * .5f, far = course.FinishDistance + course.Shape.FinishPlatformLength + Thickness * .5f;
+            if (!course.TryGetFinishPlatformBounds(out var floor)) return null;
+            float side = floor.center.x, half = floor.extents.x;
+            float near = floor.min.z - .4f - Thickness * .5f, far = floor.max.z + Thickness * .5f;
             float mid = (near + far) * .5f, length = far - near + Thickness;
             var root = new GameObject("RehearsalFinishWalls");
             root.transform.SetParent(courseRoot.transform, true);
@@ -313,17 +389,18 @@ namespace CurtainCall.WaitingRoom
             return true;
         }
 
-        void PlaceLocalAtStart()
+        void PlaceLocalAtStart(bool recovery = false)
         {
             if (course == null || local == null || !local.TryGetComponent(out PlayerMover mover)) return;
-            var s = Stage;
-            int slot = Mathf.Max(0, local.Slot);
-            Pose pose;
-            // 1단계는 모두 왼쪽 줄(중간에서 끝나는 줄)에서 출발해야 옆줄 건너가기를 배운다. 자리 순서대로 뒤로 줄 선다.
-            if (s != null && s.Kind == RehearsalStageKind.LaneChange)
-                pose = new Pose(course.GetLanePosition(0, course.Shape.SpawnDistance - slot * .9f), Quaternion.LookRotation(course.Forward, Vector3.up));
-            else pose = course.GetStartPose(slot);
+            Pose pose = course.GetStartPose(Mathf.Max(0, local.Slot));
+            if (Stage.Kind is RehearsalStageKind.LaneChange or RehearsalStageKind.SinglePole or RehearsalStageKind.ConsecutivePoles)
+            {
+                int slot = Mathf.Max(0, local.Slot);
+                // 좁은 줄 중심을 유지해야 W만으로 진입한다. 네 명 모두 4m 출발대 안에 세로로 선다.
+                pose.position = course.GetLanePosition(0, -.6f - slot * .85f);
+            }
             Relocate(mover, pose.position, pose.rotation);
+            if (recovery) RecordLocal("RECOVERED", "START_PLATFORM");
         }
 
         // 출발점 순간이동과 확인 메시지는 별도 경로다. 호스트에도 같은 위치가 도착할 때까지 기다린다.
@@ -344,7 +421,13 @@ namespace CurtainCall.WaitingRoom
                 placementLock = mover; placementControl = mover.ControlEnabled;
                 mover.SetControlEnabled(false);
             }
-            if (!IsStartPosition(local.transform.position)) return;
+            if (!IsStartPosition(local.transform.position))
+            {
+                // 배치 승인 전에 몸 충돌로 출발대 밖에 밀려도 잠긴 채 영구 대기하지 않는다.
+                PlaceLocalAtStart();
+                mover.SetControlEnabled(false);
+                if (!IsStartPosition(local.transform.position)) return;
+            }
             if (HasAuthority)
             {
                 AcceptPlacement(local.OwnerClientId, round, local.transform.position);
@@ -370,7 +453,7 @@ namespace CurtainCall.WaitingRoom
                 if (player == null || !player.IsSpawned || player.OwnerClientId != sender || player.State != PlayerState.Normal) continue;
                 if (!placed.Contains(sender) && (!IsStartPosition(player.transform.position)
                     || Vector3.Distance(player.transform.position, position) > .75f)) return;
-                if (placed.Add(sender)) { version++; Publish(); }
+                if (placed.Add(sender)) { RecordAction("PLACED", sender, "START_PLATFORM"); version++; Publish(); }
                 // 확인 요청 재전송에도 응답해 초기 상태 동기화와의 순서 차이를 흡수한다.
                 else Publish(sender);
                 return;
@@ -407,6 +490,8 @@ namespace CurtainCall.WaitingRoom
         string QuestFor(RehearsalStage s, PlayerMover mover)
         {
             if (local.State == PlayerState.Fallen) return Quest("fallen", "추락했습니다. 잠시 뒤 출발대에서 다시 시작합니다.");
+            string rescue = RescueQuestKey();
+            if (rescue.Length > 0) return Quest(rescue, RescueText(rescue));
             var p = local.transform.position;
             float distance = course.GetDistance(p);
             // 도착 뒤 문구는 기획서 4.4대로. 동의 현황은 투표 토글이 보여 준다.
@@ -414,79 +499,69 @@ namespace CurtainCall.WaitingRoom
                 return Quest("wait-team", "도착했습니다. 동료가 모두 도착할 때까지 기다리세요.");
             int myLane = course.Layout.GetLaneSlotAt(course.GetSide(p));
 
-            // 트리거 그네를 잡고 있다.
-            int held = HeldTriggerIndex(local);
-            if (held >= 0 && held < s.Triggers.Length)
+            if (s.Kind == RehearsalStageKind.Relay)
             {
-                if (OwnGapAhead(s, myLane, distance, out int ownGap) && IsGapConnected(ownGap))
-                    return Quest("trigger-release", "내 줄이 이어졌습니다. F나 Space로 트리거 그네를 놓고 건너세요.");
-                return QuestFormat("trigger-hold", "잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.", s.Gaps[s.Triggers[held].Gap].Lane + 1);
+                var relay = TightropeRelayGate.Current;
+                if (relay != null && relay.HeldPole(local) >= 0)
+                    return QuestFormat("trigger-hold", "잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.", 2);
+                if (myLane == 0 && distance >= 5f)
+                    return QuestFormat("trigger-grab", "트리거 그네를 F로 잡으면 {lane}번 줄이 이어집니다. 동료가 건널 때까지 그네를 잡고 있으세요.", 2);
+                if (myLane == 1 && distance >= 6f && distance < 20f)
+                    return relay != null && relay.IsLaneConnected(1)
+                        ? Quest("trigger-open", "연결된 줄을 따라 건너세요.")
+                        : Quest("trigger-closed", "앞의 줄이 끊겨 있습니다. 건너편 줄의 공연 대기자가 트리거 그네를 잡으면 이어집니다.");
             }
-
-            // 인간 그네를 잡고 있거나 날아가는 중.
-            var pole = TightropeSwingPole.Current;
-            if (pole != null && (pole.IsHeld(local) || pole.IsInFlight(local)))
-                return NextSwingChains(s, myLane, distance)
-                    ? Quest("swing-chain", "W, S로 반동을 키워 Space로 놓으세요. 날아가는 동안 다음 그네 가까이에서 F를 눌러 잡으세요.")
-                    : Quest("swing-release", "Space를 누르면 줄을 놓습니다. W, S로 그네를 조작해 건너편 줄로 넘어가세요.");
-
-            if (s.Kind == RehearsalStageKind.LaneChange)
+            if (s.Kind is RehearsalStageKind.SinglePole or RehearsalStageKind.ConsecutivePoles)
             {
-                if (myLane == 0 && distance >= s.CheckpointDistance)
-                    return Quest("lane-jump", "Q, E + Space를 이용해 건너편 줄로 넘어가세요.");
-                if (myLane >= 1) return "";
-                return Quest("balance", "W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.");
+                var poles = TightropeTrapeze.Current;
+                if (poles != null && (poles.IsHeld(local) || poles.IsInFlight(local)))
+                    return s.Kind == RehearsalStageKind.SinglePole
+                        ? Quest("pole-single", "Space를 누르면 그네를 놓습니다. W, S로 그네를 조작해 건너편 줄로 도착하세요.")
+                        : Quest("pole-next", "그네를 조작해 건너편 그네에 도착하세요. 체공 중 F를 눌러 그네를 잡을 수 있습니다.");
+                if (poles != null && distance >= poles.EntryDistance - 5f && distance < course.TrapezeGapTo)
+                    return Quest("pole-grab", "줄 끝에서 F를 눌러 인간 그네에 탑승하세요.");
             }
-
-            // 앞의 끊긴 구간이 이어졌으면 건너기, 트리거 그네 근처면 잡기, 끊겨 있으면 기다리기, 그네 앞이면 탑승.
-            bool gapAhead = OwnGapAhead(s, myLane, distance, out int gapIndex) && s.Gaps[gapIndex].From - distance <= 6f;
-            if (gapAhead && IsGapConnected(gapIndex))
-                return Quest("trigger-cross", "줄이 이어졌습니다. 끊긴 구간을 건너세요.");
-            for (int i = 0; i < s.Triggers.Length; i++)
+            if (s.Kind == RehearsalStageKind.Trapeze)
             {
-                var trigger = s.Triggers[i];
-                if (trigger.Lane != myLane || distance > trigger.Distance + 1.6f || trigger.Distance - distance > 6f) continue;
-                if (IsTriggerHeld(i)) break;
-                return QuestFormat("trigger-grab", "트리거 그네를 F로 잡으면 {lane}번 줄이 이어집니다. 동료가 건널 때까지 그네를 잡고 있으세요.", s.Gaps[trigger.Gap].Lane + 1);
+                var trapeze = TightropeTrapeze.Current;
+                if (trapeze != null)
+                {
+                    if (trapeze.IsHeld(local) || trapeze.IsInFlight(local))
+                        return NativeDeviceQuest(s.Kind);
+                    if (distance < course.TrapezeGapTo && trapeze.EntryDistance - distance <= 5f)
+                    {
+                        for (int i = 0; i < trapeze.PoleCount; i++)
+                            if (trapeze.CanAttachToPole(i, local))
+                                return Quest("trapeze-attach", "봉을 잡은 동료 가까이에서 F로 매달리세요. 반동에 맞춰 Space로 다음 봉을 향해 날아갑니다.");
+                        if (myLane != trapeze.LaneIndex && distance < course.TrapezeGapFrom)
+                            return QuestFormat("trapeze-lane", "Q/E + Space로 {lane}번 줄의 공중그네 진입 위치로 이동하세요.", trapeze.LaneIndex + 1);
+                        var stack = PiggybackSystem.Current;
+                        return stack != null && stack.CanEnterTrapeze(local)
+                            ? Quest("trapeze-grab", "목마 위쪽 사람이 F로 첫 봉을 잡으세요. 목마가 풀리면 아래 동료도 F로 매달리세요.")
+                            : Quest("trapeze-mount", "동료 가까이에서 F로 목마를 연결하세요. 첫 공중그네는 목마로 진입합니다.");
+                    }
+                }
             }
-            if (gapAhead)
-                return Quest("trigger-wait", "앞의 줄이 끊겨 있습니다. 짝 줄의 동료가 트리거 그네를 잡으면 이어집니다.");
-            foreach (var spot in s.Swings)
-                if (spot.Lane == myLane && distance < spot.From && spot.From - distance <= 5f)
-                    return Quest("swing-approach", "인간 그네에 탑승하세요. (줄 끝에서 F)");
-            if (!AnythingAhead(s, myLane, distance)) return "";
-            return Quest("balance", "W로 나아가고 A, D로 균형을 잡으며 외줄을 건너세요.");
-        }
-
-        /// <summary>내 줄에서 아직 지나지 않은 가장 가까운 끊긴 구간.</summary>
-        static bool OwnGapAhead(RehearsalStage s, int lane, float distance, out int index)
-        {
-            index = -1;
-            float best = float.MaxValue;
-            for (int i = 0; i < s.Gaps.Length; i++)
+            if (s.Kind == RehearsalStageKind.Piggyback)
             {
-                var gap = s.Gaps[i];
-                if (gap.Lane == lane && distance < gap.To && gap.From < best) { best = gap.From; index = i; }
+                var stack = PiggybackSystem.Current;
+                byte progress = Progress(local.OwnerClientId);
+                if ((progress & JumpedFromShoulders) != 0)
+                    return Quest("mount-land", "분리 점프했습니다. 도착대에 착지하세요.");
+                if (stack == null || !stack.IsInStack(local))
+                    return Quest("mount", "동료 가까이에서 F로 목마를 연결하세요. 혼자 걸어가면 완료되지 않습니다.");
+                return stack.GetFloor(local) == 1
+                    ? Quest("mount-move", "위 사람을 태우고 2m 이상 이동하세요. 도착대 가까이에서 위 사람의 도약을 도와주세요.")
+                    : (progress & Carried) == 0
+                        ? Quest("mount-balance", "A/D로 균형을 잡으며 아래 동료와 2m 이동하세요.")
+                        : Quest("mount-jump", "도착대 가까이에서 W + Space로 목마에서 앞으로 도약해 착지하세요.");
             }
-            return index >= 0;
-        }
-
-        static bool NextSwingChains(RehearsalStage s, int lane, float distance)
-        {
-            for (int i = 0; i < s.Swings.Length; i++)
-            {
-                var spot = s.Swings[i];
-                if (spot.Lane == lane && distance < spot.To) return spot.ChainNext;
-            }
-            return false;
-        }
-
-        static bool AnythingAhead(RehearsalStage s, int lane, float distance)
-        {
-            foreach (var spot in s.Swings) if (spot.Lane == lane && distance < spot.To) return true;
-            foreach (var gap in s.Gaps) if (gap.Lane == lane && distance < gap.To) return true;
-            foreach (var trigger in s.Triggers) if (trigger.Lane == lane && distance < trigger.Distance) return true;
-            return false;
+            if (s.Kind == RehearsalStageKind.LaneChange && !local.IsAirborne && mover.FreeMovement
+                && distance >= course.Layout.GetLaneEnd(0) && distance < course.FinishDistance)
+                return Quest("lane-platform", "발판에서는 W/S·A/D로 이동합니다. 옆줄을 향해 이동하며 Space로 점프하세요. 줄 위에서는 Q/E + Space로 옆줄에 건너갑니다.");
+            if (s.Kind == RehearsalStageKind.LaneChange && myLane == 0 && distance >= s.CheckpointDistance)
+                return Quest("lane-jump", "Q, E + Space를 이용해 건너편 줄로 넘어가세요.");
+            return Quest("balance", "W/S로 이동하고 A/D로 균형을 잡으며 외줄을 건너세요.");
         }
 
         // ── 완료 뒤 집결 길안내(기획서 15.3) ──
@@ -496,7 +571,7 @@ namespace CurtainCall.WaitingRoom
             if (gather == null) gather = FindFirstObjectByType<StageEntranceGather>();
             if (gather == null) { guide.SetTarget(null); quest.Hide(); return; }
             bool inside = gather.IsInside(local);
-            guide.SetTarget(inside ? null : gather.transform.position);
+            guide.SetTarget(inside ? null : gather.GuideDestination);
             string body = inside
                 ? WaitingRoomText.Format("rehearsal.quest.gathered", "무대 입구 통로에 모였습니다 {inside}/{alive}. 동료를 기다리세요.", ("inside", gather.InsideCount), ("alive", gather.AliveCount))
                 : WaitingRoomText.Format("rehearsal.quest.gather", "점선을 따라 무대 입구 통로로 가세요. 전원 {inside}/{alive}이 모이면 공연이 시작됩니다.", ("inside", gather.InsideCount), ("alive", gather.AliveCount));

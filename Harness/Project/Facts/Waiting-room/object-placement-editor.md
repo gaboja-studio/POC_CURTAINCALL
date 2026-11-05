@@ -1,0 +1,25 @@
+---
+summary: 대기실 상호작용 기물 배치·새 기물 생성·조건 및 드롭 위치 동반 이동
+status: active
+updated: 2026-11-05
+source: Task-20261105-107
+---
+
+# 오브젝트 배치 도구
+
+- 메뉴 `Tools/CurtainCall/대기실/오브젝트 배치`는 추격자 창과 독립적이다. 유일한 편집·저장 대상은 `Assets/Scenes/InGame/WaitingRoom/WaitingRoom.unity`다.
+- 창 내부 맵: 클릭 선택, 기본 드래그 화면 이동, Alt+드래그 기물 이동/배치, 더블클릭 위치 맞춤, 휠 확대, F 선택 맞춤. 플레이 중에는 편집하지 않는다.
+- 층 목록은 기존 PursuitRoom/FloorReference의 -10/-5/0m를 쓴다. 관리실은 B1_Office(-5m)이며 바로 보기 버튼이 있다. 천장 절단 기본값은 2.4m다.
+- 팔레트의 현재 층 카드는 기존 대상 재배치용이며 복제하지 않는다. 열쇠, 상자, 캐비넷/서랍, UV 및 숨겨진 단서, FoundItemSpot을 포함한다. 비활성 구버전 맵의 대상은 제외한다.
+- 문, 방, 실제 벽/바닥 등 구조물은 선택·이동·추가 불가. BreakableWall 중 기존 배관함만 예외적인 기물이며 실제 숨은 길 벽은 보호한다.
+- 새 기물은 ItemCatalog의 도구/장비 및 낡은 상자다. 도구는 기존 FoundItemSpot → ExplorationState → PropCarry/FloorPropsView 경로로 생성·F 획득한다. 상자는 기존 ExplorationGate(Breakable)/ExplorationDrops를 사용한다.
+- 새 발견품/드롭 번호는 기존 FoundItemSpot, 단일 보상, ExplorationDrops의 1~99 번호를 모두 확인해 배정한다. 공간이 없으면 추가하지 않는다. 기존 기물을 이동할 때 ID·조건·드롭 번호는 유지한다.
+- 스토리 열쇠는 기존 대상을 이동한다. 스토리 열쇠 프리팹 복제는 고정 진행 ID 충돌을 피하도록 추가 목록에서 제외한다. 일반 신규 프리팹은 내부 조건 ID를 함께 재매핑하고 발견품 번호를 새로 배정한다.
+- 표시/배치 기준은 IShopPresentation.VisualRoot다. 스케줄표 컨트롤러 원점은 실제 Board 위치와 달라 Board를 표시하고, 이동 시 ScheduleFrame/CloseUpPose도 동반한다.
+- 이동·회전은 연결된 개방 후 발견물, FoundItemSpot.availableAfter, showOnOpen, rewardPoint, ExplorationDrops.entries.point를 함께 반영한다. 외부 드롭 Transform은 같은 좌표의 소유 자식 앵커로 연결해 다른 맵 물체를 움직이지 않는다.
+- 조건부 발견물은 기본 맵에서 숨기고 팔레트/선택 화면에 개방·발견 후 위치로 구분한다. 표시 토글은 렌더에만 적용되며 해제 조건과 초기 드롭 좌표를 바꾸지 않는다.
+- 새 아이템의 생성 조건과 보상 대상의 드롭 기물/상대 위치를 편집할 수 있다. 기존 단일 보상에 목록 드롭을 추가할 때 원래 보상을 유지한다. 다른 컴포넌트 Inspector는 읽기 전용이다.
+- 썸네일/FoundItemSpot 맵 모델은 메시만 임시 렌더한다. 런타임 스크립트를 복제·실행하거나 에디터 전용 모델을 씬에 저장하지 않는다.
+- 사용자 지시(2026-11-05): 플레이/추가 테스트는 사용자가 진행한다. 에이전트는 컴파일과 기능 연결·설정 확인만 한다.
+- 낡은 상자(기존11개 포함)는 머리핀15%/10원 토큰20%/빈65% 중 호스트가 한 번만 추첨한다. 토큰은 기존 바닥 F 줍기로 획득해 공동 자금 장부에 입금한다.
+- 폐기물 트렁크의 계단 열쇠 기존 위치가 선반/벽 충돌 범위와 겹쳤다. 현재 트렁크 +forward 앞 바닥 (27.48,.04,43.26)에 표시/상호작용 지점을 일치시켰다. reveal 조건은 locked-box-1을 유지한다.

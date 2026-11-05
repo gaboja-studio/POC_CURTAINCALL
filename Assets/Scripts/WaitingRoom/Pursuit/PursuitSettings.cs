@@ -40,6 +40,8 @@ namespace CurtainCall.Settings
         [Range(0, 1)] public float PulseAmount = .35f;
         [Header("단계별 전등 연출")]
         public PursuitLightSettings Lighting = new();
+        [Header("로컬 플레이어 인식 상태 눈")]
+        public PursuitEyeSettings Eyes = new();
         [Tooltip("추격 시작부터의 누적 초. 단계별 탐지·순찰·추격 속도를 조절합니다.")]
         public PursuitStage[] Stages = {
             new(0, 10, false, false, "추격자가 움직이기 시작했습니다."),
@@ -88,7 +90,7 @@ namespace CurtainCall.Settings
         [Min(.1f)] public float InvestigateSeconds = 7;
         [Min(0)] public float SearchSeconds = 3;
         [Min(.1f)] public float TrackingRadius = 26;
-        [Tooltip("순찰 경로에서 허용하는 최대 이탈 거리(m). 0이면 제한 없음. 경로가 없으면 최초 배치점 기준. 최인접 추격 단계에도 적용합니다.")]
+        [Tooltip("대상을 놓쳤을 때 순찰로 복귀하는 이탈 거리(m). 0이면 제한 없음. 경로가 없으면 최초 배치점 기준. 직접 시야에 들어온 대상은 복귀 중에도 추격합니다. 최인접 원거리 추격에도 적용합니다.")]
         [Min(0)] public float PatrolLeashDistance;
         public string Announcement;
         public PursuitStage() { }

@@ -519,7 +519,9 @@ namespace CurtainCall.Player
             // 부상 높이·배율은 부상 기능이 따로 넣고(자세와 독립), 여기서 자세를 정한 뒤 둘을 합쳐 몸통 크기를 맞추고 이동한다.
             UpdatePosture();
             ApplyBodySize(!Simulated);
-            if (!Simulated)
+            if (!Simulated || CurtainCall.UI.SceneIntegration.SceneCurtainTransition.HoldingEscapeMovement
+                || CurtainCall.EscapeRoute.EscapeSceneTransfer.HoldingForDeparture
+                || CurtainCall.EscapeRoute.EscapeDevelopmentSession.AwaitingEntrance)
             {
                 ClearPendingInput();
                 return;
@@ -652,7 +654,8 @@ namespace CurtainCall.Player
         /// <summary>캡슐이 닿은 면이 걸을 수 있는 경사인지. 계단 모서리처럼 기울어진 접촉 법선이면 그 자리 면의 법선을 다시 확인한다.</summary>
         static bool IsWalkable(RaycastHit hit, float minNormalY)
         {
-            if (hit.normal.y >= minNormalY) return true;
+            // Rounded capsule edge normals can point upward against a vertical furniture side.
+            // Confirm the supporting surface itself before accepting a ground snap.
             return hit.collider.Raycast(new Ray(hit.point + Vector3.up * 0.05f, Vector3.down), out var face, 0.1f)
                 && face.normal.y >= minNormalY;
         }

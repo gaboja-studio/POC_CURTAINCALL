@@ -49,8 +49,11 @@ namespace CurtainCall.WaitingRoom
 
         public static event Action<ClueInspectable> Inspected;
 
+        internal static event Action<ClueInspectable, string, string, double?> InspectionObserved;
+        internal static event Action<ClueInspectable, bool, string> AvailabilityObserved;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() { Current = null; Inspected = null; SecretsSeen.Clear(); }
+        static void ResetStatics() { Current = null; Inspected = null; InspectionObserved = null; AvailabilityObserved = null; SecretsSeen.Clear(); }
 
         // 새김 글자는 찾은 플레이어 화면에만 남는다(2026-11-01 사용자: 공유하지 않음).
         static readonly System.Collections.Generic.HashSet<string> SecretsSeen = new();
@@ -105,6 +108,9 @@ namespace CurtainCall.WaitingRoom
         float distance;
         bool inReach;
         int openedFrame;
+        double openedAt;
+        bool lastRevealed;
+        double InspectionMs => (Time.realtimeSinceStartupAsDouble - openedAt) * 1000d;
         GUIStyle titleStyle, textStyle;
         Transform secretCopy;
         readonly System.Collections.Generic.List<Renderer> secretParts = new();
@@ -128,8 +134,15 @@ namespace CurtainCall.WaitingRoom
                 targetId = "clue:" + gameObject.scene.path + ":" + path;
             }
             ShopReach.Add(this); ExplorationTargets.Add(this);
+            lastRevealed = Revealed;
+            AvailabilityObserved?.Invoke(this, lastRevealed, "ENABLED");
         }
-        void OnDisable() { ShopReach.Remove(this); ExplorationTargets.Remove(this); SetOpen(false); }
+        void OnDisable()
+        {
+            ShopReach.Remove(this); ExplorationTargets.Remove(this);
+            SetOpen(false, "DISABLED");
+            AvailabilityObserved?.Invoke(this, false, "DISABLED");
+        }
 
         public float Reach(Vector3 feet)
         {
@@ -148,6 +161,12 @@ namespace CurtainCall.WaitingRoom
 
         void Update()
         {
+            bool revealed = Revealed;
+            if (revealed != lastRevealed)
+            {
+                lastRevealed = revealed;
+                AvailabilityObserved?.Invoke(this, revealed, "REVEAL_CONDITION");
+            }
             ShopReach.Pump();
             inReach = ShopReach.Focused == (IShopTarget)this;
             if (!IsOpen) return;
@@ -155,10 +174,11 @@ namespace CurtainCall.WaitingRoom
             var reader = LocalReader();
             bool pushedAway = reader == null || new Vector2(reader.transform.position.x - Body.position.x, reader.transform.position.z - Body.position.z).magnitude > reach + .6f;
             var keyboard = Keyboard.current; var mouse = Mouse.current;
-            bool close = !Revealed || pushedAway || (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
-                || (Time.frameCount > openedFrame + 1 && keyboard != null && keyboard.fKey.wasPressedThisFrame)
-                || (mouse != null && mouse.rightButton.wasPressedThisFrame);
-            if (close) { SetOpen(false); return; }
+            string close = !revealed ? "NO_LONGER_REVEALED" : reader == null ? "READER_UNAVAILABLE" :
+                pushedAway ? "OUT_OF_REACH" : keyboard != null && keyboard.escapeKey.wasPressedThisFrame ? "ESCAPE_KEY" :
+                Time.frameCount > openedFrame + 1 && keyboard != null && keyboard.fKey.wasPressedThisFrame ? "INTERACT_KEY" :
+                mouse != null && mouse.rightButton.wasPressedThisFrame ? "RIGHT_CLICK" : null;
+            if (close != null) { SetOpen(false, close); return; }
 
             if (mouse != null)
             {
@@ -189,7 +209,9 @@ namespace CurtainCall.WaitingRoom
                 secretHeld = facing && centered ? secretHeld + Time.unscaledDeltaTime : 0f;
                 if (secretHeld >= .4f)
                 {
-                    SecretsSeen.Add(targetId); secretFoundAt = Time.unscaledTime;
+                    SecretsSeen.Add(targetId);
+                    InspectionObserved?.Invoke(this, "SECRET_FOUND", "SECRET_FACE_HELD", InspectionMs);
+                    secretFoundAt = Time.unscaledTime;
                     if (panelView != null) panelView.SetMessage(Message());
                 }
             }
@@ -213,7 +235,9 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>내 화면에서만 오버뷰를 연다/닫는다.</summary>
-        public void SetOpen(bool value)
+        public void SetOpen(bool value) => SetOpen(value, "EXTERNAL");
+
+        void SetOpen(bool value, string reason)
         {
             if (value == IsOpen) return;
             if (value)
@@ -227,11 +251,14 @@ namespace CurtainCall.WaitingRoom
                 blocker.SetOpen(true);
                 Inspected?.Invoke(this);
                 if (panelView == null) panelView = gameObject.AddComponent<ExplorationPanel>();
-                panelView.Open(Title, Message(), false, null, () => SetOpen(false), true);
+                panelView.Open(Title, Message(), false, null, () => SetOpen(false, "PANEL_BUTTON"), true);
+                openedAt = Time.realtimeSinceStartupAsDouble;
+                InspectionObserved?.Invoke(this, "OPENED", "OVERVIEW", null);
             }
             else
             {
                 if (Current == this) Current = null;
+                InspectionObserved?.Invoke(this, "CLOSED", reason, InspectionMs);
                 if (panelView != null) panelView.Hide();
                 if (view != null) Destroy(view.gameObject);
                 view = pivot = secretCopy = null; secretParts.Clear(); secretHeld = 0f;

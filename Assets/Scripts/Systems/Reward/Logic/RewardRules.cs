@@ -4,14 +4,14 @@ namespace CurtainCall.Reward
 {
     /// <summary>
     /// 매 이벤트와 정산 때 현재 세팅을 읽는다. 정산 한 번에는 같은 값 묶음을 쓴다.
-    /// 기준: 보상 확정 규칙(reward-rules.md) — 단계별 1인 호응 상한과 실제 도착자 1명당 완주 보너스 100/150/200, 절단 1개당 +10.
+    /// 단계별 1인 호응 상한과 완주 보너스 100/150/200, 절단 1개당 +10. 공연 성공 시 연결된 모든 생존자가 완주한다.
     /// </summary>
     public readonly struct RewardRules : IEquatable<RewardRules>
     {
         public int Cheer { get; }
         public int Jeer { get; }
         public int Cap { get; }
-        /// <summary>실제 도착자 1명에게만 주는 완주 보너스(토큰). 호응도와 별개로 정산에 더한다.</summary>
+        /// <summary>완주자 1명당 보너스(토큰). 성공한 공연은 모든 생존자에게 호응도와 별개로 더한다.</summary>
         public int CompletionBonus { get; }
         public int CutBonus { get; }
 

@@ -104,6 +104,7 @@ namespace CurtainCall.Tightrope
                     catches?.TryGetSwingLandingHelper(flightPlayer, supported, distance, out helper, out reduction);
                     flightBalance?.SetLandingReduction(reduction);
                     flightBalance?.SetAirborne(false);
+                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(flightPlayer,this,"SWING_ROPE","LANDED:"+supported,flightMover.transform.position);
                     Send(Operation.Landed);
                     if (helper != null) catches.ReportLanding(helper);
                     Tell(distance >= GapTo ? "회전봉으로 건넜어요 · 이제 F로 동료 받기" : "반동을 더 키워 건너세요 · W/S 반동, 공중 W 전진");

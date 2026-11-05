@@ -158,15 +158,18 @@ namespace CurtainCall.UI.SceneIntegration
             var refusal = service != null ? service.LocalMedicalRefusal(parts) : ExpertRefusal.InPerformance;
             long cost = service?.MedicalCost(parts) ?? 0;
             string reason = service == null ? Fill(texts.serviceLoading) : refusal != ExpertRefusal.None ? ExpertServiceBook.Explain(refusal) : service.Balance < cost ? Fill(texts.reasonNoFunds) : "";
+            bool canBook = reason.Length == 0;
+            bool canChangeCount = service != null && refusal == ExpertRefusal.None && max > 1;
             entries.Add(new ShopEntryPresentation("medical", ShopTab.Services, texts.medicalIcon,
                 Fill(texts.medicalTitle, ("n", parts)),
                 Fill(texts.medicalSubtitle, ("lost", ExpertService.LocalLostLimbs), ("max", max)),
                 service == null ? "—" : cost.ToString(),
                 Fill(texts.medicalDescription),
                 service == null ? "" : Fill(texts.medicalPriceDetail, ("price", service.MedicalPrice)),
-                reason.Length == 0, reason, status, texts.medicalIcon,
-                new ShopActionPresentation("medical", Fill(texts.bookButton, ("n", parts))),
-                new ShopActionPresentation("count", Fill(texts.countButton, ("n", parts), ("max", max)), max > 1)));
+                // Entry availability gates both buttons. Keep quantity selection usable when only funds are short.
+                canBook || canChangeCount, reason, status, texts.medicalIcon,
+                new ShopActionPresentation("medical", Fill(texts.bookButton, ("n", parts)), canBook),
+                new ShopActionPresentation("count", Fill(texts.countButton, ("n", parts), ("max", max)), canChangeCount)));
         }
         void Request(ShopActionRequest request)
         {

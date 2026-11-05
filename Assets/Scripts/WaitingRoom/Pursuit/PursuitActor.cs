@@ -52,11 +52,14 @@ namespace CurtainCall.WaitingRoom.Pursuit
         {
             director = owner; Room = room; Placement = placement;
             appearance = GetComponent<PursuitAppearance>();
+            if (placement != null) placement.ApplyAppearance(appearance);
             initialPosition = transform.position; initialRotation = transform.rotation;
             agent = GetComponent<NavMeshAgent>();
             if (agent == null) agent = gameObject.AddComponent<NavMeshAgent>();
             agent.radius = .28f; agent.height = 1.8f; agent.acceleration = 28; agent.angularSpeed = 300;
             agent.stoppingDistance = .25f;
+            // 경로는 PursuitActor가 동기 계산으로 직접 갱신한다. 자동 재경로는 비동기 대기열에서 pathPending 정지를 만든다.
+            agent.autoRepath = false;
             agent.enabled = false;
             if (Motion == null) Motion = GetComponentInChildren<Animation>();
             if (Motion != null && Clips != null)
@@ -112,24 +115,15 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (activatedAt < 0) activatedAt = Time.time;
             if (IsAwakening) { SetMotion(PursuitMotion.Awaken); return; }
             if (agent == null) return;
-            if (!agent.enabled) {
-                if (!NavMesh.SamplePosition(transform.position, out var hit, 2f, NavMesh.AllAreas)) return;
-                transform.position = hit.position; agent.enabled = true;
-            }
-            if (!agent.isOnNavMesh) return;
+            if (!EnsureOnNavMesh()) { SetMotion(PursuitMotion.Awaken); return; }
             TickBrain(director.CurrentStageRules);
-        }
-        void Navigate(Vector3 p)
-        {
-            if (Time.time < repathAt) return;
-            repathAt = Time.time + .2f;
-            if (NavMesh.SamplePosition(p, out var hit, 2f, agent.areaMask)) agent.SetDestination(hit.position);
+            TickStuck();
         }
         public void Capture(GameObject victim, float elapsed)
         {
             Victim = victim; CaptureElapsed = elapsed;
             if (agent != null && agent.enabled && agent.isOnNavMesh) agent.ResetPath();
-            if (agent != null) agent.enabled = false;
+            if (agent != null) { agent.enabled = false; ClearNavigation(); }
             captureStart = transform.position;
             captureRotation = transform.rotation;
             Behaviour = PursuitBehaviour.Capture;

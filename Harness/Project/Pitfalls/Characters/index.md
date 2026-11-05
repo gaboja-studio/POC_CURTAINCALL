@@ -1,5 +1,7 @@
 # Character Pitfalls
 
+- [held-item-scene-lifetime.md](held-item-scene-lifetime.md) — 기물을 든 채 씬 이동 후 손 표시가 달라지거나 기물이 사라질 때
+
 - [capture-visibility-restores-old-limbs.md](capture-visibility-restores-old-limbs.md) — 포획 후 공연에서 외팔 판정인데 온전한 팔다리로 보일 때
 - [pole-floor-clearance.md](pole-floor-clearance.md) — 낮은 봉에서 논리 발 위치는 정상인데 실제 다리가 바닥을 뚫을 때
 
@@ -15,3 +17,5 @@
 # 캐릭터 렌더링
 
 - [mppm-pink-shader-memory.md](mppm-pink-shader-memory.md) — 실제 4인 MPPM에서 캐릭터가 분홍색으로 보이거나 셰이더 컴파일이 실패할 때
+- [fbx-reimport-skin-weights.md](fbx-reimport-skin-weights.md) — FBX 재수입 후 기존 애니메이션의 신체 변형이나 스킨 경계가 달라질 때
+- [mannequin-uv-material-bake.md](mannequin-uv-material-bake.md) — 원본 형상에 새 재질을 베이크하면서 UV·삼각형을 보존할 때

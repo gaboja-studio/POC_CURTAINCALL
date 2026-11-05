@@ -64,9 +64,12 @@ namespace CurtainCall.Reward
         public bool HasAuthority => campaign != null && campaign.HasAuthority && session != null
             && (session.IsHost || (campaign.IsOfflineRun && session.ConnectionState == SessionConnectionState.Offline));
         public bool HasRulesOverride => rulesOverride.HasValue;
+        /// <summary>공연 시작 시 호스트가 확정한 현재 공연 난이도.</summary>
+        public int Difficulty => difficulty;
         public bool TransitionPending => pendingTransition;
         public IReadOnlyList<PerformanceResult> History => model != null ? model.History : receivedHistory.AsReadOnly();
         public event Action Changed;
+        public static event Action<string, int> AudienceReacted;
         public event Action SampleRecords;
         public bool RecordProgress(string identity, string participantId, double? elapsed, double length, double distance)
             => CanMutate() && model.Record(identity, participantId, elapsed, length, distance);
@@ -287,11 +290,8 @@ namespace CurtainCall.Reward
         public bool AddCheer(string participantId, bool positive = true)
         {
             if (!CanMutate()) return false;
-            long previous = model.Revision;
-            ObserveNetwork();
-            bool changed = model.Cheer(participantId, positive, ReadRules());
-            if (model.Revision != previous) Publish();
-            return changed;
+            var rules = ReadRules();
+            return AddAudienceReaction(participantId, positive ? rules.Cheer : -rules.Jeer);
         }
 
         public bool AddAudienceReaction(string participantId, int delta) => AddAudienceReaction(participantId, delta, false);
@@ -302,8 +302,11 @@ namespace CurtainCall.Reward
             if (!CanMutate()) return false;
             long previous = model.Revision;
             ObserveNetwork();
+            var audience = AudienceReactionSettings.Current;
+            if (audience != null) delta = audience.ScaleReaction(delta, difficulty);
             bool changed = model.React(participantId, delta, ReadRules(), resetInterest);
             if (model.Revision != previous) Publish();
+            if (changed) AudienceReacted?.Invoke(participantId, delta);
             return changed;
         }
 
@@ -412,6 +415,11 @@ namespace CurtainCall.Reward
             if (!HasAuthority || model == null || ending || pendingTransition || !model.Spend(amount, description, campaign.State.Day)) return false;
             Publish();
             return true;
+        }
+        public bool TryGrantDiscoveryFunds(long amount)
+        {
+            if (!HasAuthority || model == null || campaign == null || ending || pendingTransition || !model.GrantIncome(amount, campaign.State.Day, "낡은 상자 발견 자금")) return false;
+            Publish(); return true;
         }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD

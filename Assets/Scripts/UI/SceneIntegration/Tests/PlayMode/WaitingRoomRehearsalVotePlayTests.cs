@@ -22,7 +22,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
-        public IEnumerator W6_Rehearsal_SkipVoteEndsAndPracticeVoteNeedsEveryone()
+        public IEnumerator W6_Rehearsal_SkipNeedsArrivalAndPracticeVoteNeedsEveryone()
         {
             Component helper = null;
             T(RehearsalType).GetField("savedStage", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).SetValue(null, 0);
@@ -33,9 +33,12 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 var rehearsal = Rehearsal;
                 var course = (Component)Priv(rehearsal, "course");
                 var shape = Get(course, "Shape");
-                Assert.AreEqual(6f, (float)Get(shape, "StartPlatformLength"), .01f, "출발대 길이");
-                Assert.AreEqual(6f, (float)Get(shape, "FinishPlatformLength"), .01f, "도착대 길이");
-                Assert.AreEqual(4.5f, (float)Get(shape, "SideMargin"), .01f, "발판 폭 3배(옆 여백 4.5)");
+                Assert.AreEqual(4f, (float)Get(shape, "StartPlatformLength"), .01f, "출발대 길이");
+                Assert.AreEqual(3f, (float)Get(shape, "FinishPlatformLength"), .01f, "원본 도착대 설정 유지");
+                Assert.AreEqual(2f, Get(course, "FinishPlatformScale"), "리허설 도착대 가로/길이만 2배");
+                Physics.SyncTransforms();
+                Assert.AreEqual(6f, course.transform.Find("Generated/FinishPlatform").GetComponent<Collider>().bounds.size.z, .01f);
+                Assert.AreEqual(Get(Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Course"), "SideMargin"), Get(shape, "SideMargin"), "실제 공연 발판 폭을 복사한다");
                 var room = GameObject.Find("S09_PracticeRoom").transform;
                 Assert.IsFalse(room.Find("LegacyRing/PracticeLanes").gameObject.activeSelf, "리허설 중 링의 옛 연습 소품을 숨긴다");
                 Assert.IsFalse(room.Find("LegacyRing/CollisionRepairs").gameObject.activeSelf, "사다리 뒤 막이도 숨긴다");
@@ -49,12 +52,14 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 ((Behaviour)helper.GetComponent(T("Unity.Netcode.Components.NetworkTransform"))).enabled = false;
                 helper.transform.position = (Vector3)Call(course, "GetLanePosition", 0, -2f);
                 yield return new WaitForSecondsRealtime(1.5f);
-                Assert.AreEqual("리허설 넘기기", Static(RehearsalType, "VotePanelTitle"), "오른쪽 아래 리허설 넘기기 패널");
+                Invoke(rehearsal, "RequestSkip", true);
+                Assert.AreEqual(0, Get(Priv(rehearsal, "votes"), "Count"), "도착 전 넘기기 거절");
                 yield return CaptureVote("1-start-skip-panel");
 
                 // 도착 → 투명 벽.
                 var localPlayer = (Component)Static("CurtainCall.Network.PlayerSync.NetworkPlayer", "Local");
                 var mover = localPlayer.GetComponent(T("CurtainCall.Player.PlayerMover"));
+                yield return LearnLaneForFixture(course);
                 var finish = (Pose)Call(course, "GetFinishPose", 1);
                 Call(mover, "Relocate", finish.position, finish.rotation);
                 yield return new WaitForSecondsRealtime(.6f);
@@ -69,26 +74,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 yield return CaptureVote("3-skip-one-vote");
                 Invoke(rehearsal, "HostSetSkipVote", remoteId, true);
                 yield return null;
-                Assert.IsTrue((bool)Static(RehearsalType, "IsEnding"), "과반이면 종료 연출");
-                yield return new WaitForSecondsRealtime(.6f);
-                StringAssert.Contains("리허설이 종료됩니다.", (string)Static("CurtainCall.WaitingRoom.WaitingRoomGuidePanel", "CurrentTitle"));
-                yield return CaptureVote("4-ending-notice");
-                yield return new WaitForSecondsRealtime(2f);
-                yield return CaptureVote("5-fade-out");
-                float until = Time.realtimeSinceStartup + 60f;
-                while (!(SceneManager.GetSceneByName("Tightrope").isLoaded && Field(State, "Phase").ToString() == "Performance") && Time.realtimeSinceStartup < until) yield return null;
-                Assert.AreEqual("Performance", Field(State, "Phase").ToString(), "넘기기 뒤 첫 외줄 공연");
-                Assert.IsTrue((bool)Static(RehearsalType, "HasMastered"), "넘긴 리허설도 이수로 기억");
-                var faderType = T("CurtainCall.WaitingRoom.RehearsalScreenFader");
-                until = Time.realtimeSinceStartup + 8f;
-                while (((Component)Object.FindFirstObjectByType(faderType)) != null && (bool)Get(Object.FindFirstObjectByType(faderType), "IsActive") && Time.realtimeSinceStartup < until) yield return null;
-                Assert.IsFalse((bool)Get(Object.FindFirstObjectByType(faderType), "IsActive"), "공연 화면이 준비되면 페이드 인으로 검은 화면을 걷는다");
+                yield return WaitStage(1, 5f);
+                Assert.IsFalse((bool)Static(RehearsalType, "IsEnding"), "현재 구간만 넘기며 공연으로 직행하지 않음");
+                yield return JumpStage(4);
+                Assert.IsTrue((bool)Call(rehearsal, "TryClearCurrentStage"));
                 yield return new WaitForSecondsRealtime(.5f);
-                yield return CaptureVote("6-after-fade-in-performance");
                 if (helper != null && (bool)Get(helper, "IsSpawned")) Call(helper, "Despawn", true);
                 helper = null;
                 // 공연 시작 연출(커튼)이 끝난 뒤 다음 시작 지점으로 옮긴다.
-                until = Time.realtimeSinceStartup + 30f;
+                float until = Time.realtimeSinceStartup + 30f;
                 while ((bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition", "IsActive") && Time.realtimeSinceStartup < until) yield return null;
                 yield return new WaitForSecondsRealtime(3f);
 

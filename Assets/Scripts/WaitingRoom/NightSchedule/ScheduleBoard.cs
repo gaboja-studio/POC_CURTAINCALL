@@ -40,11 +40,35 @@ namespace CurtainCall.WaitingRoom
         public static bool IsUnlocked(string trickId) =>
             string.IsNullOrEmpty(trickId) || CurtainCall.Campaign.CampaignRun.Instance == null || CurtainCall.Campaign.CampaignRun.Instance.IsTrickUnlocked(trickId);
 
+        /// <summary>
+        /// 이번 런에서 새로 열렸지만 아직 한 번도 편성하지 않은 공연(사용자 2026-11-04: 기물 해금 뒤 스케줄표에 새 공연 알림).
+        /// 기본 공연(외줄타기)은 처음부터 열려 있어 새 공연으로 치지 않는다.
+        /// </summary>
+        public bool TryGetNewTrick(out string trickId)
+        {
+            trickId = "";
+            var run = CampaignRun.Instance;
+            if (run == null || book == null) return false;
+            foreach (var trick in selectableTricks)
+            {
+                if (string.IsNullOrEmpty(trick) || trick == GameSettings.Base.Run.DefaultTrick || !run.IsTrickUnlocked(trick)) continue;
+                bool scheduled = false;
+                for (int day = 1; day <= ScheduleBook.PerformanceDays && !scheduled; day++)
+                    for (int slot = 0; slot < ScheduleBook.SlotsPerDay && !scheduled; slot++)
+                        scheduled = book.Get(day, slot) == trick;
+                if (scheduled) continue;
+                trickId = trick;
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>마지막 편집·확정 결과 문구(호스트 화면용).</summary>
         public string LastMessage { get; private set; } = "";
 
         /// <summary>상태가 바뀌었다(받은 상태 포함).</summary>
         public event Action Changed;
+        public static event Action<int, int, string, int> SelectionChanged;
 
         /// <summary>호스트가 이번 밤 작성을 확정했다(밤 일차).</summary>
         public event Action<int> Confirmed;
@@ -83,6 +107,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>오늘 밤 고칠 일차가 있으면 호스트가 확정해야 밤이 끝난다(전원 침대와 함께).</summary>
         public bool NightCanEnd()
         {
+            if (WaitingRoomCannonRehearsal.IsActive) return false;
             var run = CampaignRun.Instance;
             int day = run != null ? run.State.Day : 0;
             return ScheduleBook.EditableDays(day).Length == 0 || book.IsConfirmedTonight;
@@ -109,7 +134,7 @@ namespace CurtainCall.WaitingRoom
             if (!HasAuthority) return Answer(ScheduleRefusal.NotEditable);
             if (!IsUnlocked(trickId)) return Answer(ScheduleRefusal.Locked);
             var refusal = book.Set(day, slot, trickId, tier, MaxTier(trickId));
-            if (refusal == ScheduleRefusal.None) Publish();
+            if (refusal == ScheduleRefusal.None) { Publish(); SelectionChanged?.Invoke(day, slot, string.IsNullOrEmpty(trickId) ? "EMPTY" : trickId, tier); }
             return Answer(refusal);
         }
 
@@ -138,6 +163,7 @@ namespace CurtainCall.WaitingRoom
             {
                 Debug.Log($"[NightSchedule] {day}일차 공연 {slot + 1} 단계 조정: {tier}단계");
                 Publish();
+                SelectionChanged?.Invoke(day, slot, book.Get(day, slot), tier);
             }
             return Answer(refusal);
         }
@@ -156,6 +182,7 @@ namespace CurtainCall.WaitingRoom
         public ScheduleRefusal Confirm()
         {
             if (!HasAuthority) return Answer(ScheduleRefusal.NotEditable);
+            if (WaitingRoomCannonRehearsal.RequireBeforeConfirm(book)) return Answer(ScheduleRefusal.RehearsalRequired);
             if (book.Night == 0 && book.IsFirstDaySecondEditable) return ConfirmFirstDay();
             int night = book.Night;
             var refusal = book.Confirm();
@@ -204,6 +231,7 @@ namespace CurtainCall.WaitingRoom
             ScheduleRefusal.BadTier => WaitingRoomText.Get("schedule.refuse-bad-tier", "깬 단계의 다음 단계까지만 고를 수 있습니다."),
             ScheduleRefusal.NotNextPerformance => WaitingRoomText.Get("schedule.refuse-not-next", "쉬는 시간에는 바로 다음 공연의 단계만 바꿀 수 있습니다."),
             ScheduleRefusal.Locked => WaitingRoomText.Get("schedule.refuse-locked", "아직 발견하지 않은 공연입니다. 대기실에서 공연 기물을 찾아야 열립니다."),
+            ScheduleRefusal.RehearsalRequired => WaitingRoomText.Get("cannon-rehearsal.required", "인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?"),
             _ => WaitingRoomText.Get("schedule.refuse-other", "할 수 없습니다."),
         };
 

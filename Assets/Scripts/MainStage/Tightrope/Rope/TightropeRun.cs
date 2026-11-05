@@ -88,6 +88,8 @@ namespace CurtainCall.Tightrope
         /// </summary>
         public bool PracticeMode => practiceMode;
         public void SetPracticeMode(bool value) => practiceMode = value;
+        /// <summary>공용 공연에 연결된 지금 공연 ID. 공연이 아니면 null.</summary>
+        public string CampaignPerformanceId => campaignPerformanceId;
 
         public void SetExternallyManaged(bool value)
         {
@@ -416,8 +418,11 @@ namespace CurtainCall.Tightrope
 
         void ServerSucceed()
         {
-            Results.Confirm(true, TightropeEndReason.Completed, (float)(Clock - runStartedAt), TimeRemaining, PerformanceElapsed);
-            // 실제 도착자만 Arrived로 유지하고 다른 생존자는 마지막 위치·상태를 보존한다.
+            var finishers = new System.Collections.Generic.HashSet<ulong>();
+            foreach (var player in NetworkPlayer.All)
+                if (player.State == PlayerState.Arrived || HasCompletionProgress(player)) finishers.Add(player.OwnerClientId);
+            Results.ConfirmWithFinishers(true, TightropeEndReason.Completed, (float)(Clock - runStartedAt), TimeRemaining, PerformanceElapsed, finishers);
+            // 결과 판정만 확장한다. 생존자는 마지막 위치·상태를 보존한다.
             stoppedRemaining = TimeRemaining;
             ServerSetState(TightropeRunState.Succeeded);
             if (!externallyManaged) session.EndGame();
@@ -769,6 +774,10 @@ namespace CurtainCall.Tightrope
         internal bool HasCampaignArrival(NetworkPlayer player) => player != null && player.IsSpawned
             && player.State == PlayerState.Normal && IsParticipantReady(player) && seenAtStart.Contains(player)
             && course.HasReachedFinish(player.transform.position);
+
+        internal bool HasCompletionProgress(NetworkPlayer player) => player != null && player.IsSpawned
+            && player.State == PlayerState.Normal && IsParticipantReady(player) && seenAtStart.Contains(player)
+            && AudienceReactionSettings.HasCompletionProgress(course.GetDistance(player.transform.position), course.FinishDistance);
 
         /// <summary>공용 결과가 공개되면 고정한다. 시간대 변경·부활 전에 진단용 신체 상태도 저장한다.</summary>
         internal void AcceptCampaignResult(PerformanceResult result)

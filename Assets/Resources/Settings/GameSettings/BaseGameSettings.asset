@@ -38,7 +38,7 @@ MonoBehaviour:
       seconds: 300
     nightMaintenance:
       unlimited: 1
-      seconds: 300
+      seconds: 120
     timeLimitsMigrated: 1
     recallAlarmLeadTime: 60
     failedPerformanceHold: 2

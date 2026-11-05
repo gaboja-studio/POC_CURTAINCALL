@@ -226,8 +226,38 @@ namespace CurtainCall.Tightrope
                 return;
             }
             var stack = PiggybackSystem.Current;
+            if (course.UsesPlatformPiggyback && IsCourseActive() && stack != null && stack.isActiveAndEnabled
+                && stack.IsInStack(player))
+            {
+                var carrier = stack.GetCarrier(player);
+                if (course.PiggybackUsesRopeBalance(carrier, onRope == true))
+                {
+                    if (carrier != player)
+                    {
+                        if (onRope != true) Apply(true);
+                        return;
+                    }
+                    // 맨 아래 사람은 기존 줄 중앙 정렬·방향 갱신을 사용한다.
+                }
+                else
+                {
+                    ApplyPlatformMode();
+                    // 일반 이동 규칙은 F 홀드 하차를 보내지 않는다. 호스트가 착지와 내려설 자리를 검증한다.
+                    if (!InputGate.IsBlocked && carrier != null && !carrier.IsAirborne && carrier != player
+                        && player.TryGetComponent(out PlayerInputReader reader) && reader.enabled
+                        && reader.Current.InteractLongPressed)
+                        stack.RequestLocalRelease();
+                    return;
+                }
+            }
             if (IsCourseActive() && stack != null && stack.isActiveAndEnabled && stack.GetBelow(player) != null)
             {
+                // 발판 착지 후에는 호스트의 하차 위치를 기다리는 동안에도 균형으로 쓰러지지 않는다.
+                if (stack.HasDismountSupport(player))
+                {
+                    ApplyPlatformMode();
+                    return;
+                }
                 // 플랫폼에서 올라탄 위층도 균형을 써야 한다. 위치·공중 상태는 Follow가 맡는다.
                 if (onRope != true) Apply(true);
                 return;
@@ -240,16 +270,7 @@ namespace CurtainCall.Tightrope
             bool rope = course.TryGetSupportingRope(mover, out int lane);
             if (!rope)
             {
-                bool leaving = onRope == true;
-                if (platformScheme != null)
-                {
-                    if (onRope != false) { ReleaseControls(); Apply(false); }
-                    SuppressUnassignedBalance();
-                    return;
-                }
-                ReleaseControls();
-                SuppressUnassignedBalance();
-                if (leaving) LocalModeChanged?.Invoke(false);
+                ApplyPlatformMode();
                 return;
             }
             if (onRope == rope && StillOwnsControls)
@@ -262,6 +283,20 @@ namespace CurtainCall.Tightrope
             if (rope) SnapToLane(lane);
             Apply(rope);
             if (rope && course.HasIndependentRopes) AlignToSupportingLane(lane);
+        }
+
+        void ApplyPlatformMode()
+        {
+            bool leaving = onRope == true;
+            if (platformScheme != null)
+            {
+                if (onRope != false) { ReleaseControls(); Apply(false); }
+                SuppressUnassignedBalance();
+                return;
+            }
+            ReleaseControls();
+            SuppressUnassignedBalance();
+            if (leaving) LocalModeChanged?.Invoke(false);
         }
 
         void SuppressUnassignedBalance()

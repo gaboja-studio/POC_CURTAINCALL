@@ -248,11 +248,12 @@ namespace CurtainCall.Reward
                 string supplied = null;
                 bool hasJudgement = judgements != null && judgements.TryGetValue(person.Seed.Id, out supplied);
                 bool alive = !person.Dead && person.Connected;
-                bool arrived = alive && (person.Arrived || supplied == "Arrived");
+                // 성공한 공연의 생존자는 진행률과 무관하게 완주한다. 거리 기록은 그대로 정산에 전달한다.
+                bool arrived = alive && (failure == PerformanceFailure.None || person.Arrived || supplied == "Arrived");
                 long segment = person.Connected ? Math.Min(person.Amount, currentRules.Cap) : 0;
                 long bonus = arrived ? currentRules.CompletionBonus : 0;
                 long settlement = checked(PerformanceParticipantResult.CheerPayout(segment, person.Dead, person.Connected) + bonus);
-                string judgement = hasJudgement ? supplied
+                string judgement = arrived ? "Arrived" : hasJudgement ? supplied
                     : person.Dead ? "Dead" : !person.Connected ? "Disconnected" : arrived ? "Arrived" : "Survived";
                 people[i] = new PerformanceParticipantResult(person.Seed.Id, person.Seed.ClientId, person.Seed.Slot,
                     RewardParticipantSeed.CountLimbs(person.Seed.LostParts), RewardParticipantSeed.CountLimbs(person.Parts),
@@ -288,10 +289,12 @@ namespace CurtainCall.Reward
 
         /// <summary>디버그 전용 입금. 참가자 화면의 장부 검사를 통과하도록 수입 줄 하나("디버그 지급")를 남긴다.</summary>
         public bool DebugGrant(long amount, int day)
+            => GrantIncome(amount, day, "디버그 지급");
+        public bool GrantIncome(long amount, int day, string description)
         {
-            if (amount <= 0 || day < 1 || Generation < 1 || amount > long.MaxValue - Balance) return false;
+            if (amount <= 0 || day < 1 || Generation < 1 || amount > long.MaxValue - Balance || string.IsNullOrWhiteSpace(description) || description.Length > 100) return false;
             long next = Balance + amount;
-            ledger.Add(new FundEntry(ledger.Count + 1, Generation, day, FundEntryKind.PerformanceIncome, amount, next, "디버그 지급"));
+            ledger.Add(new FundEntry(ledger.Count + 1, Generation, day, FundEntryKind.PerformanceIncome, amount, next, description));
             Balance = next;
             Revision++;
             return true;

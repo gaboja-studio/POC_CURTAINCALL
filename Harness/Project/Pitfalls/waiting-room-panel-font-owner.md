@@ -1,7 +1,7 @@
 ---
 summary: 씬 소유 임시 폰트를 쓰는 영속 퀘스트 패널은 파괴된 Unity 소유자와 null을 구분해 다시 만들어야 한다
 status: active
-updated: 2026-11-03
+updated: 2026-11-05
 source: Task-20261102-097-rehearsal-flow
 ---
 
@@ -26,4 +26,15 @@ source: Task-20261102-097-rehearsal-flow
 - UI 원본을 씬 해제 중 다른 부모로 옮기면 Unity가 SetParent를 거절한다. 스케줄표는 구성된 뷰/버튼 사본만 판 아래에 만들고 원본 어댑터는 공용 UI 수명을 따른다.
 - 월드 판은 닫아도 보여야 하므로 View.IsVisible을 모달 열림 판정에 쓰면 다음 날/데모 전환을 영구 차단한다. 실제 ScheduleBoardView.IsOpen/IsEditing을 읽는다.
 - 퀘스트 패널은 실제 PresentationSizeUi와 8 UI 단위 간격으로 쌓는다. 항상 느낌표를 붙이지 않고 둘 이상일 때 마지막 추가 항목만 표시한다.
+- 같은 패널 객체를 다음 퀘스트에 재사용하면 객체 생성 순서만으로 최신 항목을 판단할 수 없다. 제목이 바뀐 새 퀘스트는 마지막으로 이동하고 인원/진행 본문 갱신은 순서를 유지한다. 숨김 후 다시 표시하는 경우도 구분해 검사한다.
 - `[tutorial]` 제목은 조건 달성 전까지 유지되는 퀘스트 패널의 식별자다. 지정 시간 후 사라지는 설명 패널에는 붙이지 않는다.
+
+## 새 방·재연습의 안내 소유권 (2026-11-05)
+- 영속 FirstDayFlow의 완료 전송 키를 세대/날짜로만 기억하면 새 CampaignRun이 같은 번호를 사용할 때 전송을 생략하고 동료 대기 잠금에 갇힌다. CampaignRun 소유자가 바뀌면 완료 전송 기록도 초기화한다.
+- 이수 후 재연습은 Rehearsal 캠페인 단계가 아니다. 재연습 상태도 일반 안내 중지/집결 퀘스트 숨김에 포함한다.
+- 시작 요청이 Update 중간에 들어올 수 있다. 최초 리허설 설명을 표시하기 전에 일반 튜토리얼 실행을 중지해야 같은 프레임의 HidePanel이 새 설명을 지우지 않는다. 첫 설명→10초 뒤 구간 설명→종료 복귀를 함께 확인한다.
+
+## 원본 캔버스 밖의 폰트 보완 (2026-11-05)
+- 공연 C7/C15 캔버스를 그대로 복사해도 CommonPerformanceUI 루트의 `UiRuntimeFontFallback`이 빠지면 한글 일부가 네모로 나온다. 뷰의 HasRuntimePresentation=true와 정적 폰트 참조 일치만으로 실제 글리프 표시를 보장하지 않는다.
+- 원본 폰트 보완 컴포넌트와 fallback/mediumSource/semiBoldSource 참조도 같은 연습 코스 수명 안에 복사한다. 새 정적 폰트 에셋을 만드는 방식으로 덮지 않는다.
+- 실제 문구의 Hangul HasCharacter(searchFallbacks/tryAddCharacter), TMP textElement의 원래 Unicode, UI 포함 플레이어 캡처로 확인한다. 이 폰트 소유자는 코스 종료와 함께 정리하고 영속 퀘스트는 기존 대기실 폰트 소유자를 계속 쓴다.

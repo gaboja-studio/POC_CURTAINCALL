@@ -175,6 +175,9 @@ namespace CurtainCall.UI.SceneIntegration
                 : run != null && run.State.Phase == CampaignPhase.DemoEnding ? WaitingRoomText.Get("schedule.context-demo-ending", "4일차 아침 · 스케줄표를 닫으면 데모 종료 연출이 시작됩니다")
                 : schedule.IsFirstDayChoiceOpen ? WaitingRoomText.Get("schedule.context-first-day", "1일차 · 두 번째 공연 선택")
                 : WaitingRoomText.Get("schedule.context-default", "공연 일정 1~3일 · 밤 정비 때 편집");
+            // 기물 해금으로 새로 열린 공연은 편성할 때까지 스케줄표 위에 알린다(사용자 2026-11-04).
+            if (schedule.TryGetNewTrick(out string newTrick))
+                context += " · " + WaitingRoomText.Format("schedule.context-new-trick", "새 공연 {trick} 편성 가능", ("trick", schedule.TrickName(newTrick)));
             string footer = !string.IsNullOrEmpty(message) ? message : run != null && (run.State.Phase == CampaignPhase.Dawn || run.State.Phase == CampaignPhase.DemoEnding)
                 ? WaitingRoomText.Get("schedule.footer-close-to-continue", "스케줄표를 닫아 연출을 진행하세요") : !night ? RestFooter(schedule, run) :
                 run.State.Day >= 3 ? WaitingRoomText.Get("schedule.footer-ready-at-bed", "준비 완료는 숙소 침대에서") :!schedule.HasAuthority ? WaitingRoomText.Get("schedule.footer-host-edits", "호스트가 일정 편집·확정") : book.IsConfirmedTonight ? WaitingRoomText.Get("schedule.footer-confirmed", "이번 밤 일정 확정 완료") : WaitingRoomText.Get("schedule.footer-edit-help", "카드를 클릭해 묘기 변경 · 단계 버튼으로 난이도 선택");

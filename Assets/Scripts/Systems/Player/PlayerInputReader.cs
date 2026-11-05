@@ -30,7 +30,7 @@ namespace CurtainCall.Player
         InputAction uvLight; // 옛 입력 에셋에는 없을 수 있다
         float interactPressedAt = -1f; // 누르고 있지 않으면 음수
         bool interactLongSent;
-        // 반대 키 동시 입력은 마지막에 누른 방향(이전 키는 뗀 것으로 취급).
+        // 반대 키 동시 입력은 마지막에 누른 방향. 그 키를 떼면 아직 누르고 있는 이전 키 방향으로 돌아간다.
         readonly OppositeKeyAxis moveKeys = new(), postureKeys = new(), auxKeys = new();
 
         /// <summary>이번 프레임의 입력(공통 역할 값).</summary>

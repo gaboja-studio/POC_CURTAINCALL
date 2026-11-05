@@ -26,6 +26,14 @@ namespace CurtainCall.Telemetry.Pipeline
         readonly string appSessionId;
         LogBatch active;
         readonly ConcurrentDictionary<string, byte> currentBatches = new();
+        readonly ConcurrentDictionary<string, byte> heldBatches = new();
+        public bool HoldNewBatches { get; set; }
+        // Disk checkpoints are durable, but become eligible for network I/O only at a boundary.
+        public void ReleaseScene(string reason)
+        {
+            Seal(reason);
+            heldBatches.Clear();
+        }
         readonly ConcurrentDictionary<string, byte> fileMutations = new(StringComparer.OrdinalIgnoreCase);
         public string SenderId => senderId;
         public string AppSessionId => appSessionId;
@@ -72,6 +80,78 @@ namespace CurtainCall.Telemetry.Pipeline
 
         LogBatch NewBatch() => new() { senderId = senderId, appSessionId = appSessionId };
 
+        // The runtime posts immutable event snapshots and scene barriers in one FIFO.
+        // Only this worker owns the active batch; a scene change never waits for the disk.
+        readonly object writerGate = new();
+        readonly Queue<(string json, string reason, bool? hold, bool release)> writes = new();
+        Task writer = Task.CompletedTask;
+        volatile bool writeFailed;
+        public bool WriteFailed => writeFailed;
+        public bool QueueEvent(LogEvent entry) => Post((LogJson.Serialize(entry), null, null, false));
+        public void QueueBoundary(string reason, bool release = false) => Post((null, reason, null, release));
+        public void QueueHold(bool hold) => Post((null, null, hold, false));
+        bool Post((string json, string reason, bool? hold, bool release) item)
+        {
+            lock (writerGate)
+            {
+                if (item.json != null && writes.Count >= 4096) return false;
+                writes.Enqueue(item);
+                if (!workerRunning) { workerRunning = true; writer = Task.Run(Drain); }
+                return true;
+            }
+        }
+        volatile bool stopping;
+        public void StopWriter() { stopping = true; PendingWrites.GetAwaiter().GetResult(); }
+        bool workerRunning;
+        public Task PendingWrites { get { lock (writerGate) return writer; } }
+        async Task Drain()
+        {
+            var group = new List<LogEvent>(64);
+            var snapshots = new List<string>(64);
+            while (true)
+            {
+                (string json, string reason, bool? hold, bool release) first;
+                lock (writerGate)
+                {
+                    if (writes.Count == 0) { workerRunning = false; return; }
+                    first = writes.Peek();
+                }
+                int count = 1;
+                try
+                {
+                    if (first.json != null)
+                    {
+                        if (PendingBytes() >= MaxPendingBytes) throw new IOException("Outbox full");
+                        if (active.events.Count >= 250) Seal("CHECKPOINT");
+                        group.Clear(); snapshots.Clear();
+                        int bytes = Encoding.UTF8.GetByteCount(LogJson.Serialize(active));
+                        lock (writerGate)
+                        {
+                            foreach (var w in writes)
+                            {
+                                if (w.json == null || snapshots.Count >= 64 || snapshots.Count + active.events.Count >= 250) break;
+                                int n = Encoding.UTF8.GetByteCount(w.json) + 1;
+                                if (bytes + n > MaxBatchBytes) break;
+                                snapshots.Add(w.json); bytes += n;
+                            }
+                        }
+                        foreach (string json in snapshots) group.Add(LogJson.Parse<LogEvent>(json));
+                        if (group.Count == 0) { Seal("CHECKPOINT"); continue; }
+                        active.events.AddRange(group);
+                        try { AtomicWrite(activePath, LogJson.Serialize(active)); }
+                        catch { active.events.RemoveRange(active.events.Count-group.Count,group.Count); throw; }
+                        count = group.Count;
+                    }
+                    else if (first.hold.HasValue) HoldNewBatches = first.hold.Value;
+                    else if (first.release) ReleaseScene(first.reason);
+                    else Seal(first.reason);
+                    lock (writerGate) while (count-- > 0) writes.Dequeue();
+                    writeFailed = false;
+                }
+                catch (Exception) { writeFailed = true; if (stopping) return; await Task.Delay(1000).ConfigureAwait(false); }
+            }
+        }
+
         public void Append(LogEvent entry)
         {
             using var sample = AppendMarker.Auto();
@@ -95,6 +175,7 @@ namespace CurtainCall.Telemetry.Pipeline
             AtomicWrite(activePath, LogJson.Serialize(active));
             // Copy + delete is recoverable even if interrupted between the two operations.
             string final = Path.Combine(root, active.batchId + ".json");
+            if (HoldNewBatches) heldBatches.TryAdd(active.batchId, 0);
             string json = File.ReadAllText(activePath);
             if (!File.Exists(final)) AtomicWrite(final, json);
             else if (File.ReadAllText(final) != json)
@@ -106,12 +187,14 @@ namespace CurtainCall.Telemetry.Pipeline
 
         public string NextPath() => Directory.EnumerateFiles(root, "*.json")
             .Where(p => Guid.TryParseExact(Path.GetFileNameWithoutExtension(p), "D", out _))
+            .Where(p => !heldBatches.ContainsKey(Path.GetFileNameWithoutExtension(p)))
             .OrderBy(p => currentBatches.ContainsKey(Path.GetFileNameWithoutExtension(p)) ? 0 : 1)
             .ThenBy(File.GetLastWriteTimeUtc).FirstOrDefault();
 
         // ACK is sent only after the host has persisted this exact immutable client batch.
         public string NextRelayPath() => Directory.EnumerateFiles(root, "*.json")
             .Where(p => Guid.TryParseExact(Path.GetFileNameWithoutExtension(p), "D", out _))
+            .Where(p => !heldBatches.ContainsKey(Path.GetFileNameWithoutExtension(p)))
             .OrderBy(p => currentBatches.ContainsKey(Path.GetFileNameWithoutExtension(p)) ? 0 : 1)
             .ThenBy(File.GetLastWriteTimeUtc).FirstOrDefault(p =>
             { try { return TransportPolicy.RelayBatch(LogJson.Parse<LogBatch>(File.ReadAllText(p))); } catch { return false; } });

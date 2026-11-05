@@ -25,6 +25,8 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>진행이 바뀌었다(받은 상태 포함).</summary>
         public event Action Changed;
+        public static event Action<string, string, int, Vector3> RewardDropped;
+        public static event Action<ulong, IExplorationTarget, bool, bool, int, string> TelemetryAttempted;
 
         /// <summary>내 요청의 결과 문구.</summary>
         public event Action<string> RequestAnswered;
@@ -53,6 +55,19 @@ namespace CurtainCall.WaitingRoom
 
         public int Hits(string target) => book.Hits(target);
         public bool IsOpen(string target) => book.IsOpen(target);
+
+        /// <summary>이번 런에서 누구든 탈출로 입구(B1_EscapeEntrance)에 들어갔다는 기록 키.</summary>
+        public const string EscapeEntranceVisit = "visit:B1_EscapeEntrance";
+        /// <summary>이번 런에서 누구든 그 장소에 들어갔는지(팀 공유, 세대 교체 때 비움).</summary>
+        public bool HasVisited(string place) => book.IsOpen(place);
+        /// <summary>판정 화면 전용: 장소 방문을 기록하고 모두에게 알린다. 이미 기록됐으면 아무것도 하지 않는다.</summary>
+        public void MarkVisited(string place)
+        {
+            if (!HasAuthority || string.IsNullOrEmpty(place) || book.IsOpen(place)) return;
+            book.Attempt(place, true, out _, out _);
+            Debug.Log($"[Exploration] 방문 기록: {place}");
+            Publish();
+        }
 
         readonly ExplorationBook book = new();
         readonly ExplorationCooperation cooperation = new();
@@ -125,10 +140,10 @@ namespace CurtainCall.WaitingRoom
 
         void DebugOpen(string target, ulong player)
         {
-            if (string.IsNullOrEmpty(target) || book.IsOpen(target)) return;
+            if (!CurtainCall.Dev.DevMode.Enabled || string.IsNullOrEmpty(target) || book.IsOpen(target)) return;
             if (ExplorationGate.IsKeyTarget(target))
             {
-                var result = ReceiveKey(player, target);
+                var result = ReceiveKey(player, target, out _);
                 if (!result.ok) { Answer(player, result); return; }
             }
             book.Attempt(target, true, out _, out _);
@@ -150,43 +165,51 @@ namespace CurtainCall.WaitingRoom
 
         // ---- 판정 ----
 
-        (bool ok, string text) ReceiveKey(ulong player, string target)
+        (bool ok, string text) ReceiveKey(ulong player, string target, out string reason)
         {
             var carry = PropCarry.Instance;
-            if (carry == null) return (false, "기물 소지를 준비 중입니다.");
+            if (carry == null) { reason = "CARRY_UNAVAILABLE"; return (false, "기물 소지를 준비 중입니다."); }
             var item = ItemCatalog.NewProduct(ExplorationKeys.Uid(target, seenGeneration), ExplorationKeys.ItemId(target), ExplorationKeys.Name(target));
-            if (carry.Exists(item.Uid)) return (false, "이미 획득한 열쇠입니다.");
+            if (carry.Exists(item.Uid)) { reason = "KEY_ALREADY_RECEIVED"; return (false, "이미 획득한 열쇠입니다."); }
             var refusal = carry.Receive(player, item);
+            reason = refusal == CarryRefusal.None ? null : refusal == CarryRefusal.HandsFull ? "HANDS_FULL" : "CARRY_REFUSED";
             return refusal == CarryRefusal.None ? (true, item.Name + " 획득") : (false, PropCarry.Explain(refusal));
         }
 
         // 판정 화면: 탐색 대상에 손에 든 도구를 한 번 쓴다(벽 내려치기·자물쇠 따기·판자 뜯기·UV 비추기 공통).
         (bool, string) Use(ulong player, string targetId, string password = null)
         {
+            var target = ExplorationTargets.Find(targetId);
+            var result = UseCore(player, targetId, password, target);
+            TelemetryAttempted?.Invoke(player, target, result.ok, book.IsOpen(targetId), book.Hits(targetId), result.reason);
+            return (result.ok, result.text);
+        }
+
+        (bool ok, string text, string reason) UseCore(ulong player, string targetId, string password, IExplorationTarget target)
+        {
             // 첫 공연 전에는 클라이언트의 F 입력뿐 아니라 호스트의 탐색 판정도 잠근다.
             if (WaitingRoomRehearsal.IsPreTutorialRestricted)
-                return (false, WaitingRoomText.Get("explore.locked-before-tutorial", "첫 공연을 마친 뒤 대기실 안내에서 이용할 수 있습니다."));
-            var target = ExplorationTargets.Find(targetId);
-            if (target == null) return (false, WaitingRoomText.Get("explore.no-target", "대상을 찾지 못했습니다."));
-            if (book.IsOpen(targetId)) return (false, WaitingRoomText.Get("explore.already-open", "이미 열렸습니다."));
+                return (false, WaitingRoomText.Get("explore.locked-before-tutorial", "첫 공연을 마친 뒤 대기실 안내에서 이용할 수 있습니다."), "PRE_TUTORIAL_LOCK");
+            if (target == null) return (false, WaitingRoomText.Get("explore.no-target", "대상을 찾지 못했습니다."), "UNKNOWN_TARGET");
+            if (book.IsOpen(targetId)) return (false, WaitingRoomText.Get("explore.already-open", "이미 열렸습니다."), "ALREADY_OPEN");
             var body = FindBody(player);
-            if (body == null || target.Reach(body.position) < 0f) return (false, WaitingRoomText.Get("explore.too-far", "너무 멉니다."));
+            if (body == null || target.Reach(body.position) < 0f) return (false, WaitingRoomText.Get("explore.too-far", "너무 멉니다."), body == null ? "ACTOR_UNAVAILABLE" : "OUT_OF_REACH");
             var carry = PropCarry.Instance;
             var tool = carry != null ? carry.InHand(player) : default;
             bool needsTool = !string.IsNullOrEmpty(target.ToolId);
             // 장비(UV 등)는 어느 슬롯에 있든 자동 적용된다. 도구는 손에 든(선택한) 것만.
             if (needsTool && ItemCatalog.Get(target.ToolId)?.kind == ItemKind.Equipment && carry != null)
                 foreach (var held in carry.Held(player)) if (held.ItemId == target.ToolId) { tool = held; break; }
-            if (needsTool && (tool.Uid == 0 || tool.ItemId != target.ToolId)) return (false, WaitingRoomText.Format("explore.need-tool", "{hint}", ("hint", ExplorationTargets.Hint(target))));
-            if (needsTool && tool.Uses == 0) return (false, PropCarry.Explain(CarryRefusal.UsedUp));
+            if (needsTool && (tool.Uid == 0 || tool.ItemId != target.ToolId)) return (false, WaitingRoomText.Format("explore.need-tool", "{hint}", ("hint", ExplorationTargets.Hint(target))), "REQUIRED_TOOL_MISSING");
+            if (needsTool && tool.Uses == 0) return (false, PropCarry.Explain(CarryRefusal.UsedUp), "TOOL_DEPLETED");
             float now = Time.unscaledTime;
-            if (lastHit.TryGetValue(player, out float last) && now - last < MinHitGap) return (false, "");
+            if (lastHit.TryGetValue(player, out float last) && now - last < MinHitGap) return (false, "", "RATE_LIMITED");
             lastHit[player] = now;
             if (target is ExplorationGate gate)
             {
-                if (!gate.ConditionsMet) return (false, WaitingRoomText.Get("explore.conditions", "선행 조건을 충족해야 합니다."));
-                if (gate.UsesKey && !gate.AcceptsKey(tool)) return (false, "맞는 열쇠를 슬롯에서 선택해야 합니다.");
-                if (gate.NeedsPassword && !gate.MatchesPassword(password)) return (false, WrongCode);
+                if (!gate.ConditionsMet) return (false, WaitingRoomText.Get("explore.conditions", "선행 조건을 충족해야 합니다."), "PREREQUISITE_UNMET");
+                if (gate.UsesKey && !gate.AcceptsKey(tool)) return (false, "맞는 열쇠를 슬롯에서 선택해야 합니다.", "WRONG_KEY");
+                if (gate.NeedsPassword && !gate.MatchesPassword(password)) return (false, WrongCode, "WRONG_CODE");
                 // 열쇠 구멍이 있는 문은 두 사람이 서로 다른 구멍에서 눌러야 한다.
                 int slot = gate.HasKeySlots ? gate.SlotAt(body.position) : -1;
                 if (gate.NeedsPartner && !cooperation.Press(targetId, player, Time.unscaledTimeAsDouble, gate.CooperationWindow,
@@ -199,7 +222,7 @@ namespace CurtainCall.WaitingRoom
                         return !needsTool || (held.Uid != 0 && held.ItemId == target.ToolId && held.Uses != 0);
                     }))
                     return (false, gate.HasKeySlots ? WaitingRoomText.Get("explore.partner-slot", "다른 한 명이 반대쪽 열쇠 구멍에서 함께 F를 눌러야 합니다.")
-                        : WaitingRoomText.Get("explore.partner", "다른 한 명도 가까이에서 F를 눌러야 합니다."));
+                        : WaitingRoomText.Get("explore.partner", "다른 한 명도 가까이에서 F를 눌러야 합니다."), "PARTNER_REQUIRED");
             }
 
 
@@ -207,18 +230,19 @@ namespace CurtainCall.WaitingRoom
             bool success = target.Resolve(attempt, rng);
             if (success && target is ExplorationGate pickup && pickup.IsKeyPickup)
             {
-                var result = ReceiveKey(player, targetId);
-                if (!result.ok) return result; // Full inventory must leave the key available in the world.
+                var result = ReceiveKey(player, targetId, out var keyReason);
+                if (!result.ok) return (false, result.text, keyReason); // Full inventory must leave the key available in the world.
             }
             var refusal = book.Attempt(targetId, success, out int count, out bool openedNow);
-            if (refusal != ExplorationRefusal.None) return (false, WaitingRoomText.Get("explore.no-more", "더 쓸 수 없습니다."));
+            if (refusal != ExplorationRefusal.None) return (false, WaitingRoomText.Get("explore.no-more", "더 쓸 수 없습니다."), "BOOK_REFUSED");
             string text = target.Describe(openedNow, count);
             if (openedNow)
             {
                 // 대상이 열리거나 파괴되거나 새로 발견된 때에만 도구를 한 번 쓴다.
                 if (needsTool)
                 {
-                    carry.UseItem(player, tool.Uid, out var after, out bool gone);
+                    var consumed = carry.UseItem(player, tool.Uid, out var after, out bool gone);
+                    if (consumed == CarryRefusal.None) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(body.GetComponentInParent<CurtainCall.Network.PlayerSync.NetworkPlayer>(), "EXPLORATION_TOOL", new(){["itemType"]=tool.ItemId,["uid"]=tool.Uid,["targetId"]=targetId,["state"]="USED",["usesBefore"]=tool.Uses,["usesAfter"]=gone?0:after.Uses,["objectPosition"]=target is Component component ? CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(component.transform.position) : null}, "HOST");
                     string item = ItemCatalog.DisplayName(after);
                     text += " " + (gone ? WaitingRoomText.Format("explore.used-up", "{item:을} 다 썼습니다.", ("item", item))
                         : WaitingRoomText.Format("explore.uses-left", "{item} 남은 {n}회", ("item", item), ("n", after.Uses)));
@@ -228,7 +252,7 @@ namespace CurtainCall.WaitingRoom
             }
             DeliverRewards();
             Publish();
-            return (true, text);
+            return (true, text, openedNow ? "OPENED" : "HIT_REGISTERED");
         }
 
         void WatchGeneration()
@@ -287,8 +311,15 @@ namespace CurtainCall.WaitingRoom
                         if (warnedDrops.Add(target.TargetId)) Debug.LogWarning("[Exploration] " + target.TargetId + ": " + error);
                         continue;
                     }
+                    int chosen = -2;
+                    if (drops.exclusiveWeighted) {
+                        string prefix = "loot-choice:" + target.TargetId + ":";
+                        for (int n = -1; n < drops.entries.Length; n++) if (book.IsOpen(prefix + n)) { chosen = n; break; }
+                        if (chosen == -2) { chosen = drops.Choose(rng.Next(100)); book.Attempt(prefix + chosen, true, out _, out _); changed = true; }
+                    }
                     if (drops.entries != null) for (int i = 0; i < drops.entries.Length; i++)
                     {
+                        if (drops.exclusiveWeighted && i != chosen) continue;
                         var entry = drops.entries[i];
                         if (entry != null) Deliver(target, i, entry.itemId, entry.uidOffset,
                             entry.point != null ? entry.point.position : target.RewardPoint);
@@ -309,9 +340,11 @@ namespace CurtainCall.WaitingRoom
                     return;
                 }
                 var item = new PropItem(ItemUses.FoundUidBase + seenGeneration * 100 + offset, itemId,
-                    ItemCatalog.Get(itemId)?.displayName ?? itemId, ItemCatalog.FoundUses(itemId));
-                if (!carry.Exists(item.Uid) && carry.PlaceFound(item, at) != CarryRefusal.None) return;
+                    itemId == ExplorationDrops.PerformanceTokenId ? "공연 토큰 (자금 10원)" : ItemCatalog.Get(itemId)?.displayName ?? itemId, ItemCatalog.FoundUses(itemId));
+                bool newlyPlaced = !carry.Exists(item.Uid);
+                if (newlyPlaced && carry.PlaceFound(item, at) != CarryRefusal.None) return;
                 book.Attempt(receipt, true, out _, out _);
+                if (newlyPlaced) RewardDropped?.Invoke(owner.TargetId, itemId, item.Uid, at);
                 changed = true;
             }
         }

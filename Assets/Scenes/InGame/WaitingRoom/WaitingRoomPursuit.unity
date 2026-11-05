@@ -35419,7 +35419,7 @@ GameObject:
   - component: {fileID: 28479363}
   - component: {fileID: 28479364}
   m_Layer: 0
-  m_Name: lobby-uv-lamp-2
+  m_Name: dormitory-uv-lamp-2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -35434,7 +35434,7 @@ Transform:
   m_GameObject: {fileID: 28479362}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -2.6, y: 0.02, z: 77.2}
+  m_LocalPosition: {x: 16.000004, y: 0.02, z: 82.00004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -35452,7 +35452,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da66ab21089b1fd43b9017b77649d68f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FoundItemSpot
-  spotId: lobby-uv-lamp-2
+  spotId: dormitory-uv-lamp-2
   uidOffset: 42
   itemId: uv-lamp
   itemName: "\uCC9C\uB9C9 \uB9D0\uB69D \uBF51\uAC1C"
@@ -415276,7 +415276,7 @@ GameObject:
   m_Component:
   - component: {fileID: 311666286}
   m_Layer: 0
-  m_Name: LobbyToolSpots
+  m_Name: DormitoryUvSpots
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -415290,16 +415290,16 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 311666285}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -70}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0.7071068, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: 69.65001, y: 0, z: -14.999992}
+  m_LocalScale: {x: 0.99999976, y: 1, z: 0.99999976}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 312898117}
   - {fileID: 28479363}
   - {fileID: 1542040958}
   - {fileID: 1918741953}
-  m_Father: {fileID: 1318016391}
+  m_Father: {fileID: 629493454}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &311678530
 GameObject:
@@ -416488,7 +416488,7 @@ GameObject:
   - component: {fileID: 312898117}
   - component: {fileID: 312898118}
   m_Layer: 0
-  m_Name: lobby-uv-lamp-1
+  m_Name: dormitory-uv-lamp-1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -416503,7 +416503,7 @@ Transform:
   m_GameObject: {fileID: 312898116}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.6, y: 0.02, z: 77.2}
+  m_LocalPosition: {x: 15.000004, y: 0.02, z: 82.00004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -416521,7 +416521,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da66ab21089b1fd43b9017b77649d68f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FoundItemSpot
-  spotId: lobby-uv-lamp-1
+  spotId: dormitory-uv-lamp-1
   uidOffset: 41
   itemId: uv-lamp
   itemName: "\uCC9C\uB9C9 \uB9D0\uB69D \uBF51\uAC1C"
@@ -816226,6 +816226,7 @@ Transform:
   - {fileID: 724315451}
   - {fileID: 454227741}
   - {fileID: 1862700365}
+  - {fileID: 311666286}
   m_Father: {fileID: 1947334013}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &629554399
@@ -1705981,7 +1705982,6 @@ Transform:
   - {fileID: 221114883}
   - {fileID: 1242402223}
   - {fileID: 1014065775}
-  - {fileID: 311666286}
   - {fileID: 1483269563}
   - {fileID: 1648495662}
   - {fileID: 799612700}
@@ -1993534,7 +1993534,7 @@ GameObject:
   - component: {fileID: 1542040958}
   - component: {fileID: 1542040959}
   m_Layer: 0
-  m_Name: lobby-uv-lamp-3
+  m_Name: dormitory-uv-lamp-3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1993549,7 +1993549,7 @@ Transform:
   m_GameObject: {fileID: 1542040957}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.5999999, y: 0.02, z: 77.2}
+  m_LocalPosition: {x: 17.000004, y: 0.02, z: 82.00004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1993567,7 +1993567,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da66ab21089b1fd43b9017b77649d68f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FoundItemSpot
-  spotId: lobby-uv-lamp-3
+  spotId: dormitory-uv-lamp-3
   uidOffset: 43
   itemId: uv-lamp
   itemName: "\uCC9C\uB9C9 \uB9D0\uB69D \uBF51\uAC1C"
@@ -2486012,7 +2486012,7 @@ GameObject:
   - component: {fileID: 1918741953}
   - component: {fileID: 1918741954}
   m_Layer: 0
-  m_Name: lobby-uv-lamp-4
+  m_Name: dormitory-uv-lamp-4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2486027,7 +2486027,7 @@ Transform:
   m_GameObject: {fileID: 1918741952}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.5999999, y: 0.02, z: 77.2}
+  m_LocalPosition: {x: 18.000004, y: 0.02, z: 82.00004}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2486045,7 +2486045,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da66ab21089b1fd43b9017b77649d68f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.FoundItemSpot
-  spotId: lobby-uv-lamp-4
+  spotId: dormitory-uv-lamp-4
   uidOffset: 44
   itemId: uv-lamp
   itemName: "\uCC9C\uB9C9 \uB9D0\uB69D \uBF51\uAC1C"

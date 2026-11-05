@@ -12,8 +12,18 @@ namespace CurtainCall.HumanCannon
         [SerializeField] Transform effect;
         [Tooltip("예고 중 파티클 방출 비율. 전진 중은 1.")]
         [Range(0f, 1f), SerializeField] float warningEmission = 0.35f;
+        [Tooltip("켜진 순간부터 불꽃이 작게 시작해 최대 크기까지 커지는 시간(초). 0이면 바로 최대 크기.")]
+        [Min(0f), SerializeField] float appearSeconds = 6f;
+        [Tooltip("나타나는 순간의 불꽃 크기·상승 속도 비율. 이후 1까지 커진다.")]
+        [Range(0f, 1f), SerializeField] float appearStartScale = 0.1f;
         ParticleSystem[] effectSystems;
         float[] effectRates;
+        Vector3[] effectSizes;
+        float[] effectSpeeds;
+        bool[] effectPrewarm;
+        bool effectShown;
+        Light[] effectLights;
+        float[] effectIntensities;
         [Tooltip("시험용 불꽃 예고 시간(초). 마지막 대포 출발 여부와 무관하다.")]
         [Min(0.1f), SerializeField] float warningSeconds = 30f;
         [Tooltip("시험용 전진 속도(m/s). 최종 밸런스가 아니다.")]
@@ -176,17 +186,48 @@ namespace CurtainCall.HumanCannon
             if (effect == null) return;
             // 파티클이 있으면 상자는 판정 크기 표시용으로만 남기고 그리지 않는다.
             foreach (var box in visual.GetComponents<Renderer>()) box.enabled = false;
-            if (effect.gameObject.activeSelf != shown) effect.gameObject.SetActive(shown);
-            if (!shown) return;
+            if (!shown)
+            {
+                if (effect.gameObject.activeSelf) effect.gameObject.SetActive(false);
+                effectShown = false;
+                return;
+            }
             effect.SetPositionAndRotation(Front(now), start.rotation);
             effect.localScale = new Vector3(halfWidth * 2f, 1f, 1f);
             CacheEffect();
-            float rate = Advancing(now) ? 1f : warningEmission;
+            float grow = Appear(now), size = Mathf.Lerp(appearStartScale, 1f, grow);
+            float rate = (Advancing(now) ? 1f : warningEmission) * Mathf.Max(grow, appearStartScale);
+            bool appearing = !effectShown;
+            // 씬 시작부터 켜져 있던 파티클은 이미 미리 채워져 있으므로 한 번 꺼서 처음부터 다시 시작한다.
+            if (appearing && effect.gameObject.activeSelf) effect.gameObject.SetActive(false);
             for (int i = 0; i < effectSystems.Length; i++)
             {
                 var emission = effectSystems[i].emission;
                 emission.rateOverTimeMultiplier = effectRates[i] * rate;
+                var main = effectSystems[i].main;
+                // 켜질 때 미리 채우기가 다 큰 불꽃을 한꺼번에 만들지 않게, 다 자란 뒤(늦게 들어온 경우)에만 쓴다.
+                if (appearing) main.prewarm = effectPrewarm[i] && grow >= 1f;
+                main.startSpeedMultiplier = effectSpeeds[i] * size;
+                if (main.startSize3D)
+                {
+                    main.startSizeXMultiplier = effectSizes[i].x * size;
+                    main.startSizeYMultiplier = effectSizes[i].y * size;
+                    main.startSizeZMultiplier = effectSizes[i].z * size;
+                }
+                else main.startSizeMultiplier = effectSizes[i].x * size;
             }
+            // 크기·방출을 먼저 줄인 뒤 켜야 첫 프레임에 원래 크기로 튀어나오지 않는다.
+            if (appearing) effect.gameObject.SetActive(true);
+            effectShown = true;
+            for (int i = 0; i < effectLights.Length; i++) effectLights[i].intensity = effectIntensities[i] * grow;
+        }
+
+        /// <summary>켜진 시각부터 0→1로 커지는 등장 비율. 서버 시각 기준이라 모든 클라이언트가 같다.</summary>
+        public float Appear(double now)
+        {
+            if (!Armed || !double.IsFinite(now)) return 0f;
+            if (appearSeconds <= 0f) return 1f;
+            return Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((float)((now - ArmedAt) / appearSeconds)));
         }
 
         void CacheEffect()
@@ -194,13 +235,29 @@ namespace CurtainCall.HumanCannon
             if (effectSystems != null) return;
             effectSystems = effect.GetComponentsInChildren<ParticleSystem>(true);
             effectRates = new float[effectSystems.Length];
-            for (int i = 0; i < effectSystems.Length; i++) effectRates[i] = effectSystems[i].emission.rateOverTimeMultiplier;
+            effectSizes = new Vector3[effectSystems.Length];
+            effectSpeeds = new float[effectSystems.Length];
+            effectPrewarm = new bool[effectSystems.Length];
+            for (int i = 0; i < effectSystems.Length; i++)
+            {
+                var main = effectSystems[i].main;
+                effectPrewarm[i] = main.prewarm;
+                effectRates[i] = effectSystems[i].emission.rateOverTimeMultiplier;
+                effectSpeeds[i] = main.startSpeedMultiplier;
+                effectSizes[i] = main.startSize3D
+                    ? new Vector3(main.startSizeXMultiplier, main.startSizeYMultiplier, main.startSizeZMultiplier)
+                    : Vector3.one * main.startSizeMultiplier;
+            }
+            effectLights = effect.GetComponentsInChildren<Light>(true);
+            effectIntensities = new float[effectLights.Length];
+            for (int i = 0; i < effectLights.Length; i++) effectIntensities[i] = effectLights[i].intensity;
         }
 
         void OnDisable()
         {
             if (visual != null) visual.gameObject.SetActive(false);
             if (effect != null) effect.gameObject.SetActive(false);
+            effectShown = false;
         }
     }
 }

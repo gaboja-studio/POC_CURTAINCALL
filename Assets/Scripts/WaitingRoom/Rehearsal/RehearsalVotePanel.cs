@@ -34,6 +34,7 @@ namespace CurtainCall.WaitingRoom
         public bool IsVisible => canvasRoot != null && canvasRoot.activeSelf;
         public string Title => IsVisible ? title.text : "";
         public string Body => IsVisible ? body.text : "";
+        public RectTransform VisibleSurface => IsVisible ? surface : null;
 
         public void Show(string heading, string text, params Choice[] choices)
         {
@@ -108,6 +109,11 @@ namespace CurtainCall.WaitingRoom
                 int index = i;
                 var go = Instantiate(buttonPrefab, content, false); go.name = "Choice" + i;
                 var label = go.GetComponentInChildren<TMP_Text>(true); label.font = font;
+                label.enableAutoSizing = true; label.fontSizeMin = 16f; label.fontSizeMax = 22f;
+                label.textWrappingMode = TextWrappingModes.NoWrap;
+                var labelRect = label.rectTransform;
+                labelRect.anchorMin = Vector2.zero; labelRect.anchorMax = Vector2.one;
+                labelRect.offsetMin = new Vector2(12f, 4f); labelRect.offsetMax = new Vector2(-12f, -4f);
                 buttons[i] = go.GetComponent<Button>();
                 buttons[i].onClick.RemoveAllListeners();
                 buttons[i].onClick.AddListener(() => actions[index]?.Invoke());

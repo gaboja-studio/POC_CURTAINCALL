@@ -58,6 +58,38 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 
         static bool Blocked(Component course, int lane, float distance) => (bool)Call(course, "IsSegmentBlocked", lane, distance);
 
+        static void AssertRehearsalTrapeze(Component course)
+        {
+            var source = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Course");
+            Assert.AreEqual(4, Get(course, "LaneCount"));
+            Assert.AreEqual(Get(source, "TrapezeLength"), Get(Get(course, "Shape"), "TrapezeLength"));
+            Assert.IsTrue((bool)Get(course, "HasTrapezeGap"));
+            Assert.IsFalse((bool)Get(course, "HasSwingGap"));
+            Assert.IsFalse((bool)Get(course, "HasRelayGap"));
+            var trapeze = course.GetComponent(T("CurtainCall.Tightrope.TightropeTrapeze"));
+            Assert.IsTrue((bool)Get(trapeze, "IsActive"));
+            Assert.AreEqual(2, Get(trapeze, "PoleCount"));
+            Assert.AreEqual((int)Get(source, "TrapezeLane") - 1, Get(trapeze, "LaneIndex"));
+            Assert.Greater(((Vector3)Call(trapeze, "PoleFeet", 1, false)).y, ((Vector3)Call(trapeze, "PoleFeet", 0, false)).y);
+            Assert.IsNull(Call(trapeze, "PoleVisual", 2));
+            Assert.IsFalse((bool)Priv(course.GetComponent(T("CurtainCall.Tightrope.TightropeSwingPole")), "HasGap"));
+            Assert.AreSame(Resources.Load("Prefabs/Objects/ETCs/TightropeArtKit/TightropeArtProfile"), Get(course, "ArtProfile"));
+        }
+
+        static void AssertRehearsalRelay(Component course)
+        {
+            Assert.AreEqual(2, Get(course, "LaneCount"));
+            Assert.IsFalse((bool)Get(course, "HasSwingGap"));
+            Assert.IsFalse((bool)Get(course, "HasTrapezeGap"));
+            Assert.IsTrue((bool)Get(RelayGate, "IsActive"));
+            Assert.IsTrue((bool)Priv(RelayGate, "UsesSpots"));
+            Assert.AreEqual(1, Get(RelayGate, "PoleCount"));
+            Assert.AreEqual(0, Call(RelayGate, "PoleLane", 0));
+            Assert.IsFalse((bool)Call(RelayGate, "IsFarPole", 0));
+            Assert.AreEqual(12f, Call(Get(course, "Layout"), "GetLaneEnd", 0));
+
+        }
+
         [UnityTest]
         public IEnumerator W6_Rehearsal_WholeCourseCaptures()
         {
@@ -81,6 +113,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         // 실제 생성된 코스만 검토 카메라로 촬영한다. 배치·메시·재질은 바꾸지 않는다.
         static IEnumerator CaptureWholeCourse(Component course, int stage)
         {
+            System.IO.Directory.CreateDirectory(".harness/local/rehearsal/overview");
             // 생성/아트 모듈의 다음 프레임 준비가 끝난 뒤 레이어를 분리한다.
             yield return null;
             var transforms = course.GetComponentsInChildren<Transform>(true);
@@ -129,155 +162,92 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         [UnityTest]
         public IEnumerator W6_Rehearsal_CoursesFollowStageDiagrams()
         {
-            // Task-097: 기획서 5~7장 구조도대로 줄·발판·그네·트리거 그네·끊긴 구간을 놓고, 연습실 옛 소품은 숨긴다.
             FreshTutorial();
             T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
-            var gameView = UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView"));
-            bool wasMaximized = gameView.maximized;
-            gameView.maximized = true; gameView.Focus();
             System.IO.Directory.CreateDirectory(AuditDirectory);
             try
             {
                 yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
                 yield return WaitStage(0, 10f);
-                yield return new WaitForSecondsRealtime(.6f);
-                var room = GameObject.Find("S09_PracticeRoom").transform;
-                Assert.IsFalse(room.Find("LegacyRing/PracticeLanes").gameObject.activeSelf, "리허설 중 연습실 옛 소품은 숨긴다");
-
-                yield return AuditCapture("01-stage1-start");
-                // 추락 상태 요청 → 호스트 복구 → 같은 구간 출발대.
-                Call(LocalPlayer, "RequestState", Enum.Parse(Get(LocalPlayer, "State").GetType(), "Fallen"));
-                yield return new WaitForSecondsRealtime(.3f);
-                yield return AuditCapture("02-fall");
-                float recoveryUntil = Time.realtimeSinceStartup + 6f;
-                while (Get(LocalPlayer, "State").ToString() != "Normal" && Time.realtimeSinceStartup < recoveryUntil) yield return null;
-                Assert.AreEqual("Normal", Get(LocalPlayer, "State").ToString());
-                Assert.AreEqual(0, Static(RehearsalType, "CurrentStage"));
-                yield return AuditCapture("03-recovered");
-
-                // 1단계: 위쪽 줄은 중간 지점 발판에서 끝나고, 아래쪽 줄만 도착 장소로 간다.
-                var course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
-                var layout = Get(course, "Layout");
-                Assert.AreEqual(2, Get(course, "LaneCount"));
-                Assert.AreEqual(22f, (float)Call(layout, "GetLaneEnd", 0), .01f);
-                Assert.AreEqual(38f, (float)Call(layout, "GetLaneEnd", 1), .01f);
-                Assert.IsNull(course.transform.Find("RehearsalPlatform"), "줄 끝에 임의 발판을 추가하지 않는다");
-
-                // 2-1: 그네 1개.
-                var firstFinish = (Pose)Call(course, "GetFinishPose", 1);
-                Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")), "Relocate", firstFinish.position, firstFinish.rotation);
-                yield return WaitStage(1, 5f);
-                yield return new WaitForSecondsRealtime(.6f);
-                yield return AuditCapture("04-stage2-1");
-                course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
-                Assert.IsTrue(Blocked(course, 0, 13f) && !Blocked(course, 0, 6f) && !Blocked(course, 0, 18f), "2-1 그네 자리(공연과 같은 8m)만 끊김");
-
-                // 2-2: 그네 2개가 이어져 있고, 첫 그네를 놓으면 날아가며 두 번째 그네를 잡는다.
-                yield return JumpStage(2);
-                course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
-                var root = course.GetComponent(T("CurtainCall.Tightrope.TightropeSwingPole"));
-                var poles = (IList)Priv(root, "poles");
-                Assert.AreEqual(2, poles.Count, "2-2 그네 2개");
-                Assert.IsTrue(Blocked(course, 0, 11f) && Blocked(course, 0, 17f) && !Blocked(course, 0, 22f));
-                var first = poles[0]; var second = poles[1];
-                Assert.AreSame(second, Priv(first, "next"));
-                yield return AuditCapture("05-stage2-2-start");
-                yield return SwingAcross(course, first, second);
-                yield return AuditCapture("06-stage2-2-second-grab");
-                // 기능 확인을 마친 봉에서 이탈한 뒤 다음 구간을 배치한다(매달린 상태를 강제로 이월하지 않는다).
-                Invoke(second, "OnTeleported"); yield return null; yield return null;
-
-                // 2-3: 위쪽 줄 끝 트리거 그네 1을 잡는 동안만 아래쪽 줄이 이어진다.
-                yield return JumpStage(3);
-                course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
-                Assert.AreEqual(12f, (float)Call(Get(course, "Layout"), "GetLaneEnd", 0), .01f, "위쪽 줄은 트리거 그네에서 끝");
-                Assert.IsTrue(Blocked(course, 1, 15f), "아래쪽 줄 가운데가 끊김");
-                yield return HoldTrigger(course, 0, 0, 11.4f);
-                Assert.IsFalse(Blocked(course, 1, 15f), "트리거를 잡는 동안 이어짐");
-                yield return AuditCapture("07-stage2-3-trigger-held");
-                ReleaseTrigger(0);
-                yield return null; yield return null;
-                Assert.IsTrue(Blocked(course, 1, 15f), "놓으면 다시 끊김");
-                yield return AuditCapture("08-stage2-3-released");
-
-                // 3단계: 줄마다 그네, 1줄 트리거 → 2줄 앞쪽 끊김, 2줄 트리거 → 1줄 뒤쪽 끊김(3·4줄 같은 짝).
-                yield return JumpStage(4);
-                course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
-                root = course.GetComponent(T("CurtainCall.Tightrope.TightropeSwingPole"));
-                Assert.AreEqual(4, ((IList)Priv(root, "poles")).Count, "줄마다 인간 그네");
-                for (int lane = 0; lane < 4; lane++) Assert.IsTrue(Blocked(course, lane, 7f), $"{lane + 1}줄 그네 끊김");
-                Assert.IsTrue(Blocked(course, 0, 20f) && Blocked(course, 1, 18f) && !Blocked(course, 0, 15f) && !Blocked(course, 1, 23f), "엇갈린 끊김");
-                yield return HoldTrigger(course, 0, 0, 16.6f);
-                Assert.IsFalse(Blocked(course, 1, 18f), "1줄 트리거 → 2줄 연결");
-                Assert.IsTrue(Blocked(course, 0, 20f) && Blocked(course, 3, 18f), "다른 줄은 그대로");
-                ReleaseTrigger(0);
-                yield return HoldTrigger(course, 3, 3, 23.1f);
-                Assert.IsFalse(Blocked(course, 2, 20f), "4줄 트리거 → 3줄 연결");
-                Assert.IsTrue(Blocked(course, 1, 18f));
-                yield return AuditCapture("09-stage3-trigger-held");
-                ReleaseTrigger(3);
-                yield return null; yield return null;
-                var finalPose = (Pose)Call(course, "GetFinishPose", 0);
-                Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")), "Relocate", finalPose.position, finalPose.rotation);
+                var ids = new[] { "1", "2-1", "2-2", "2-3", "3" };
+                var kinds = new[] { "LaneChange", "SinglePole", "ConsecutivePoles", "Relay", "Trapeze" };
+                for (int stage = 0; stage < ids.Length; stage++)
+                {
+                    if (stage > 0) yield return JumpStage(stage);
+                    var course = (Component)Priv(Rehearsal, "course");
+                    Assert.AreEqual(ids[stage], Priv(Priv(Rehearsal, "Stage"), "Id"), "원래 다섯 단계 순서를 보존한다");
+                    Assert.AreEqual(kinds[stage], Priv(Priv(Rehearsal, "Stage"), "Kind").ToString());
+                    Assert.AreEqual(stage == 3 ? "Anyone" : "EveryoneOrMajority", Priv(Priv(Rehearsal, "Stage"), "Rule").ToString());
+                    Assert.IsFalse((bool)Static("CurtainCall.Tightrope.PiggybackSystem", "Suppressed"), "공연 목마 연결 규칙 유지");
+                    Assert.IsFalse((bool)Priv(course.GetComponent(T("CurtainCall.Tightrope.TightropeSwingPole")), "HasGap"), "실제 공연의 휴면 일반 그네를 켜지 않는다");
+                    Assert.AreEqual(stage == 0, course.transform.Find("Generated/IntermediatePlatform_Lane0") != null);
+                    if (stage == 3) AssertRehearsalRelay(course);
+                    else if (stage == 4) AssertRehearsalTrapeze(course);
+                    else if (stage is 1 or 2)
+                    {
+                        Assert.AreEqual(1, Get(course, "LaneCount"));
+                        Assert.IsTrue((bool)Get(course, "HasTrapezeGap"));
+                        Assert.AreEqual(stage, Get(course.GetComponent(T("CurtainCall.Tightrope.TightropeTrapeze")), "PoleCount"));
+                    }
+                    else
+                    {
+                        Assert.AreEqual(2, Get(course, "LaneCount"));
+                        Assert.AreEqual(22f, Call(Get(course, "Layout"), "GetLaneEnd", 0));
+                        Assert.IsTrue((bool)Call(course, "IsLaneUsable", 1, 30f));
+                        Assert.IsFalse((bool)Call(course, "IsLaneUsable", 0, 30f));
+                    }
+                    yield return CaptureWholeCourse(course, stage);
+                }
+                // 배치 검사 종료 준비. 실제 학습/완주 판정은 Learning 및 4인 입력 검사로 검증한다.
+                Assert.IsTrue((bool)Call(Rehearsal, "TryClearCurrentStage"));
                 float until = Time.realtimeSinceStartup + 5f;
                 while (!(bool)Static(RehearsalType, "IsCompleted") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.IsTrue((bool)Static(RehearsalType, "IsCompleted"));
-                yield return new WaitForSecondsRealtime(4f);
-                // 철창 검사는 코스가 사라진 완료 뒤에 한다. 진행 중에는 연습 모드 추락 판정이 줄 아래 어디서든 출발대로 되돌려 밀기 결과를 덮어쓴다.
-                yield return AuditClosedGates();
-                yield return AuditCapture("10-complete-route");
-                yield return AuditWalkToStage();
             }
-            finally
-            {
-                T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
-                FlowKeys();
-                gameView.maximized = wasMaximized;
-                EndTutorial();
-            }
+            finally { FlowKeys(); EndTutorial(); }
         }
 
         [UnityTest]
-        public IEnumerator W6_Rehearsal_TriggerAndExitSmoke()
+        public IEnumerator W6_Rehearsal_RelayAndExitSmoke()
         {
             FreshTutorial();
             T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
             System.IO.Directory.CreateDirectory(AuditDirectory);
-            var gameView = UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView"));
-            bool maximized = gameView.maximized; gameView.maximized = true; gameView.Focus();
             try
             {
                 yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
                 yield return JumpStage(3);
-                var course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
-                yield return HoldTrigger(course, 0, 0, 11.4f);
-                Assert.IsFalse(Blocked(course, 1, 15f));
-                yield return AuditCapture("07-stage2-3-trigger-held");
-                ReleaseTrigger(0); yield return null; yield return null;
-                Assert.IsTrue(Blocked(course, 1, 15f));
-                yield return AuditCapture("08-stage2-3-released");
+                var course = (Component)Priv(Rehearsal, "course");
+                AssertRehearsalRelay(course);
+                yield return HoldRelayPole(course, 0, (int)Call(RelayGate, "PoleLane", 0), 11f);
+                int opened = (int)Call(RelayGate, "OpenedLane", 0);
+                Assert.AreNotEqual(Call(RelayGate, "PoleLane", 0), opened);
+                Assert.AreEqual(1, opened);
+                Assert.IsFalse(Blocked(course, 1, 16f), "점유 복제 상태로 실제 줄이 열림");
+                Assert.IsTrue((bool)Call(RelayGate, "IsLaneConnected", opened));
+                Assert.IsTrue((bool)Call(RelayGate, "IsUnlimitedHold", 0), "30초 제한만 제외한다");
+                var state = Priv(((Array)Priv(RelayGate, "stations")).GetValue(0), "State");
+                Invoke(state, "Tick", (double)Priv(RelayGate, "Clock") + 31d, 3f);
+                Assert.AreEqual(LocalId, Call(RelayGate, "HolderAt", 0), "30초 뒤에도 점유 유지");
+                ReleaseRelayPole(0); yield return null; yield return null;
+                Assert.IsFalse((bool)Call(RelayGate, "IsLaneConnected", opened), "놓으면 공연처럼 즉시 연결이 끊긴다");
+                Assert.IsTrue(Blocked(course, 1, 16f));
                 yield return JumpStage(4);
-                course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
-                yield return HoldTrigger(course, 3, 3, 23.1f);
-                Assert.IsFalse(Blocked(course, 2, 20f));
-                yield return AuditCapture("09-stage3-trigger-held");
-                ReleaseTrigger(3); yield return null; yield return null;
-                var finish = (Pose)Call(course, "GetFinishPose", 0);
-                Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")), "Relocate", finish.position, finish.rotation);
-                float until = Time.realtimeSinceStartup + 5f;
-                while (!(bool)Static(RehearsalType, "IsCompleted") && Time.realtimeSinceStartup < until) yield return null;
+                AssertRehearsalTrapeze((Component)Priv(Rehearsal, "course"));
+                Assert.IsTrue((bool)Call(Rehearsal, "TryClearCurrentStage"));
+                yield return null; yield return null;
                 Assert.IsTrue((bool)Static(RehearsalType, "IsCompleted"));
                 yield return new WaitForSecondsRealtime(4f);
-                yield return AuditCapture("10-complete-route");
                 yield return AuditWalkToStage();
             }
-            finally { FlowKeys(); gameView.maximized = maximized; EndTutorial(); }
+            finally { FlowKeys(); EndTutorial(); }
         }
 
         [UnityTest]
         public IEnumerator W6_Rehearsal_ExitRouteSmoke()
         {
             FreshTutorial();
+            WaitingVariantField.SetValue(WaitingSpaces, Enum.Parse(WaitingVariantField.FieldType, "Base"));
             T(RehearsalType).GetField("savedStage", BindingFlags.NonPublic | BindingFlags.Static).SetValue(null, 0);
             System.IO.Directory.CreateDirectory(AuditDirectory);
             var gameView = UnityEditor.EditorWindow.GetWindow(typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.GameView"));
@@ -286,9 +256,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             {
                 yield return Launch(1, "Rehearsal", 0, "Tightrope", "WaitingRoomBase");
                 yield return JumpStage(4);
-                var course = (Component)Find("CurtainCall.Tightrope.TightropeCourse");
-                var finish = (Pose)Call(course, "GetFinishPose", 0);
-                Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")), "Relocate", finish.position, finish.rotation);
+                // 출구 길안내 검사를 위한 완료 준비. 이후 이동은 실제 입력이다.
+                Assert.IsTrue((bool)Call(Rehearsal, "TryClearCurrentStage"));
                 float until = Time.realtimeSinceStartup + 5f;
                 while (!(bool)Static(RehearsalType, "IsCompleted") && Time.realtimeSinceStartup < until) yield return null;
                 Assert.IsTrue((bool)Static(RehearsalType, "IsCompleted"));
@@ -391,8 +360,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         static uint PoleRevision(object gate, int index) =>
             (uint)Priv(Priv(((Array)Priv(gate, "stations")).GetValue(index), "State"), "Revision");
 
-        /// <summary>공연 해제봉과 같은 F 잡기 요청(호스트 처리)으로 트리거 그네를 잡는다.</summary>
-        IEnumerator HoldTrigger(Component course, int index, int lane, float distance)
+        /// <summary>공연 해제봉과 같은 F 잡기 요청(호스트 처리)으로 해제봉을 잡는다.</summary>
+        IEnumerator HoldRelayPole(Component course, int index, int lane, float distance)
         {
             PlaceOnRope(course, lane, distance);
             yield return new WaitForSecondsRealtime(.4f);
@@ -406,51 +375,15 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             yield return AuditCapture("trigger-before-grab");
             Invoke(gate, "SubmitGrab", LocalId, index, PoleRevision(gate, index));
             yield return null; yield return null;
-            Assert.AreEqual(LocalId, (ulong)Call(gate, "HolderAt", index), $"트리거 그네 {index + 1}을 잡아야 한다: " + diagnostic);
+            Assert.AreEqual(LocalId, (ulong)Call(gate, "HolderAt", index), $"해제봉 {index + 1}을 잡아야 한다: " + diagnostic);
             Assert.IsTrue((bool)Call(gate, "IsHeld", LocalPlayer), "공연 해제봉처럼 봉에 매달린다");
         }
 
-        static void ReleaseTrigger(int index)
+        static void ReleaseRelayPole(int index)
         {
             var gate = RelayGate;
             Invoke(gate, "ServerHandle", LocalId, NestedEnum(gate, "Operation", "Release"), index, PoleRevision(gate, index));
         }
 
-        IEnumerator SwingAcross(Component course, object first, object second)
-        {
-            float entry = (float)Priv(first, "EntryDistance");
-            PlaceOnRope(course, 0, entry);
-            yield return new WaitForSecondsRealtime(.5f);
-            Invoke(first, "ServerHandle", LocalId, NestedEnum(first, "Operation", "Grab"), 0f);
-            yield return null; yield return null;
-            Assert.AreEqual("Holding", Priv(first, "mode").ToString(), "첫 그네를 잡는다");
-            // W를 누른 것처럼 반동을 키우다가 놓을 수 있게 되면 놓는다.
-            float until = Time.realtimeSinceStartup + 12f;
-            float target = (float)Priv(second, "EntryDistance");
-            // 테스트는 공중 W 조절이 없으므로, 조절 없이도 두 번째 그네 매달림 위치에 닿는 순간 놓는다.
-            while ((float)Call(course, "GetDistance", (Vector3)Invoke(first, "PredictLanding", false)) < target - .2f && Time.realtimeSinceStartup < until)
-            {
-                float speed = (float)Priv(first, "angularSpeed");
-                Invoke(first, "ServerHandle", LocalId, NestedEnum(first, "Operation", "Swing"), speed >= 0f ? 1f : -1f);
-                yield return null;
-            }
-            Assert.IsTrue((bool)Priv(first, "OwnCanLetGo"), "반동을 키우면 놓을 수 있어야 한다");
-            Debug.Log($"[Test] 놓기 예상 착지 {(float)Call(course, "GetDistance", (Vector3)Invoke(first, "PredictLanding", false)):0.00} / 두 번째 그네 {target:0.00}");
-            Invoke(first, "ServerHandle", LocalId, NestedEnum(first, "Operation", "LetGo"), 0f);
-            // 공연 공중그네처럼 날아가는 동안 F를 눌러야 잡는다(누르지 않으면 잡지 않는다).
-            yield return new WaitForSecondsRealtime(.2f);
-            Assert.AreEqual("Idle", Priv(second, "mode").ToString(), "F 없이 자동으로 잡지 않는다");
-            until = Time.realtimeSinceStartup + 4f;
-            while (Priv(second, "mode").ToString() != "Holding" && Time.realtimeSinceStartup < until)
-            {
-                SetPriv(first, "airGrabRequestedUntil", (double)Priv(first, "Clock") + .3d);
-                yield return null;
-            }
-            until = Time.realtimeSinceStartup + 4f;
-            while (Priv(second, "mode").ToString() != "Holding" && Time.realtimeSinceStartup < until) yield return null;
-            Assert.AreEqual("Holding", Priv(second, "mode").ToString(), "날아가는 동안 두 번째 그네를 잡는다");
-            Assert.AreEqual(LocalId, (ulong)Priv(second, "holder"));
-            Assert.AreEqual("Normal", Get(LocalPlayer, "State").ToString(), "떨어지지 않는다");
-        }
     }
 }

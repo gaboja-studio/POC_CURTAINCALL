@@ -53,28 +53,15 @@ namespace CurtainCall.Telemetry.Pipeline.Editor
         {
             string root = Path.GetFullPath(Path.Combine(persistentPath, "TelemetryPipeline"));
             if (!PlainDirectory(root)) return 0;
-            int count = ResetMarkers(Path.Combine(root, "SurveyCache"));
+            int count = new SurveyLaunchCache(Path.Combine(root, "SurveyCache")).ClearHistory();
             string clients = Path.Combine(root, "clients");
             if (!includeVirtualPlayers || !PlainDirectory(clients)) return count;
             foreach (string client in Directory.GetDirectories(clients))
-                if (PlainDirectory(client)) count += ResetMarkers(Path.Combine(client, "SurveyCache"));
+                if (PlainDirectory(client)) count += new SurveyLaunchCache(Path.Combine(client, "SurveyCache")).ClearHistory();
             return count;
         }
         static bool PlainDirectory(string path) => Directory.Exists(path)
             && (File.GetAttributes(path) & FileAttributes.ReparsePoint) == 0;
-        static int ResetMarkers(string directory)
-        {
-            if (!PlainDirectory(directory)) return 0;
-            int count = 0;
-            foreach (string file in Directory.GetFiles(directory, "*.opened", SearchOption.TopDirectoryOnly))
-            {
-                // Delete only our survey markers, never logs, nested folders or link targets.
-                if (!Regex.IsMatch(Path.GetFileName(file), "^(?:0\\.1\\.0-(NIGHT1|EXIT)|campaign)-[0-9a-f]{64}\\.opened$", RegexOptions.IgnoreCase)
-                    || (File.GetAttributes(file) & FileAttributes.ReparsePoint) != 0) continue;
-                File.Delete(file); count++;
-            }
-            return count;
-        }
     }
 
     public sealed class PlaytestCollectionWindow : EditorWindow

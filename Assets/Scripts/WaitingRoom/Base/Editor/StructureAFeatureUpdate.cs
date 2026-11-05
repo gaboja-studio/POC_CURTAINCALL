@@ -12,13 +12,13 @@ namespace CurtainCall.WaitingRoom.Editor
 {
     /// <summary>
     /// 2026-10-30 확정 기능 구현안을 씬·에셋에 적용한다. 다시 실행해도 같다.
-    /// 타이머 구역, UV 장비형 손전등(입력·기물 목록·로비 배치), 배관함 철창, 거울 3곳, 연습실 서커스 조명·벽면 모니터.
+    /// 타이머 구역, UV 장비형 손전등(입력·기물 목록·숙소 배치), 배관함 철창, 거울 3곳, 연습실 서커스 조명·벽면 모니터.
     /// </summary>
     public static class StructureAFeatureUpdate
     {
         const string InputAssetPath = "Assets/Resources/Input/PlayerControls.inputactions";
         const string MonitorMaterialPath = "Assets/Scenes/Tests/WaitingRoom/Base/LayoutA/LA_PracticeMonitor.mat";
-        static readonly int[] LobbyUvOffsets = { 41, 42, 43, 44 };
+        static readonly int[] DormitoryUvOffsets = { 41, 42, 43, 44 };
 
         [MenuItem("CurtainCall/Waiting Room/Install Confirmed Features (UV·Timer·Mirror·Practice)")]
         public static void Apply()
@@ -56,27 +56,28 @@ namespace CurtainCall.WaitingRoom.Editor
             foreach (var mark in layout.GetComponentsInChildren<UvMark>(true))
             { var so = new SerializedObject(mark); so.FindProperty("reach").floatValue = 10f; so.ApplyModifiedProperties(); }
 
-            // 로비: 더미 UV(디버그 4·시험 1) 제거, 새 장비형 UV 4개.
+            // 로비의 더미 UV(디버그 4·시험 1) 제거, 장비형 UV 4개는 숙소 침대 사이 통로(사용자 2026-11-04).
             var lobby = layout.Find("S01_Lobby"); int removed = 0;
             foreach (var spot in lobby.GetComponentsInChildren<FoundItemSpot>(true).Where(s => s.name == "Spot_uv-lamp" || s.name.StartsWith("debug-lobby-uv-lamp")).ToArray())
             { Undo.DestroyObjectImmediate(spot.gameObject); removed++; }
             var used = layout.GetComponentsInChildren<FoundItemSpot>(true).Select(s => new SerializedObject(s).FindProperty("uidOffset").intValue)
                 .Concat(layout.GetComponentsInChildren<ExplorationGate>(true).Select(g => g.RewardUidOffset))
                 .Concat(layout.GetComponentsInChildren<ToolTarget>(true).Select(t => t.RewardUidOffset)).ToHashSet();
-            var group = lobby.Find("LobbyToolSpots") ?? New(lobby, "LobbyToolSpots", lobby.position);
+            var dormitory = layout.Find("S02_Dormitory");
+            var group = dormitory.Find("DormitoryUvSpots") ?? New(dormitory, "DormitoryUvSpots", dormitory.position);
             for (int i = 0; i < 4; i++)
             {
-                string id = "lobby-uv-lamp-" + (i + 1);
+                string id = "dormitory-uv-lamp-" + (i + 1);
                 var child = group.Find(id);
                 if (child == null)
                 {
-                    if (used.Contains(LobbyUvOffsets[i])) throw new InvalidOperationException("UID offset in use: " + LobbyUvOffsets[i]);
+                    if (used.Contains(DormitoryUvOffsets[i])) throw new InvalidOperationException("UID offset in use: " + DormitoryUvOffsets[i]);
                     child = New(group, id, Vector3.zero);
                 }
-                Undo.RecordObject(child, "Place lobby UV"); child.position = new Vector3(-3.6f + i * 1f, .02f, 77.2f);
+                Undo.RecordObject(child, "Place dormitory UV"); child.position = new Vector3(15f + i * 1f, .02f, 82f);
                 var spot = child.GetComponent<FoundItemSpot>() ?? Undo.AddComponent<FoundItemSpot>(child.gameObject);
                 var so = new SerializedObject(spot);
-                so.FindProperty("spotId").stringValue = id; so.FindProperty("uidOffset").intValue = LobbyUvOffsets[i];
+                so.FindProperty("spotId").stringValue = id; so.FindProperty("uidOffset").intValue = DormitoryUvOffsets[i];
                 so.FindProperty("itemId").stringValue = ItemUses.UvLamp; so.FindProperty("debugOnly").boolValue = false;
                 so.ApplyModifiedProperties();
             }

@@ -24,6 +24,8 @@ namespace CurtainCall.UI.SceneIntegration
         CustomMessagingManager messaging;
         Coroutine reveal;
         bool requested, locallyCovered;
+        bool escapeCover;
+        public static bool HoldingEscapeMovement => IsActive && instance.escapeCover;
         uint sequence;
         public static bool IsActive => instance != null && instance.requested;
         public static bool CanTransition => instance != null && instance.locallyCovered
@@ -45,13 +47,14 @@ namespace CurtainCall.UI.SceneIntegration
 
         public static IEnumerator Cover() => CoverFor(null);
 
-        public static IEnumerator CoverFor(System.Action<uint> started)
+        public static IEnumerator CoverFor(System.Action<uint> started, bool enteringEscape = false)
         {
             Bootstrap();
             var owner = instance;
             owner.AttachNetwork();
             uint version = owner.sequence + 1;
             owner.Begin(version);
+            owner.escapeCover = enteringEscape;
             started?.Invoke(version);
             if (owner.network != null && owner.network.IsServer)
             {
@@ -60,11 +63,17 @@ namespace CurtainCall.UI.SceneIntegration
                 owner.Broadcast(CoverMessage);
             }
             yield return owner.CloseLocally(version);
-            float deadline = Time.unscaledTime + 15;
+            float deadline = Time.unscaledTime + (enteringEscape ? 60f : 15f);
+            float retry = Time.unscaledTime + 1f;
             while (owner.requested && owner.sequence == version && owner.waiting.Count > 0 && Time.unscaledTime < deadline)
             {
                 if (owner.network == null || !owner.network.IsListening) break;
                 owner.waiting.RemoveWhere(id => !owner.network.ConnectedClients.ContainsKey(id));
+                if (enteringEscape && Time.unscaledTime >= retry)
+                {
+                    foreach (ulong id in owner.waiting) owner.Send(CoverMessage, id);
+                    retry = Time.unscaledTime + 1f;
+                }
                 yield return null;
             }
             if (owner.requested && owner.sequence == version && !CanTransition)
@@ -131,18 +140,20 @@ namespace CurtainCall.UI.SceneIntegration
         {
             // sceneLoaded 다음 Update에서 시작하는 로컬 UI·배경 로드와 LateUpdate 배치를 기다린다.
             int settled = 0;
+            float revealStarted = Time.realtimeSinceStartup;
             while (requested && sequence == version && settled < 2)
             {
                 yield return null;
                 var background = Object.FindFirstObjectByType<CurtainCall.PerformanceBackground.PerformanceBackgroundLoader>();
                 var pursuit = CurtainCall.WaitingRoom.Pursuit.PursuitDirector.Current;
                 settled = loadingScenes.Count > 0 || CommonUiSceneLoader.IsLoading
-                    || (pursuit != null && pursuit.isActiveAndEnabled && !pursuit.IsInitialized)
-                    || (background != null && background.IsTransitioning) ? 0 : settled + 1;
+                    || (Time.realtimeSinceStartup - revealStarted < 8f && ((pursuit != null && pursuit.isActiveAndEnabled && !pursuit.IsInitialized)
+                    || (background != null && background.IsTransitioning))) ? 0 : settled + 1;
             }
             if (!requested || sequence != version) yield break;
             if (view != null) view.Open();
-            while (view != null && view.IsBusy) yield return null;
+            float animationDeadline = Time.realtimeSinceStartup + 5f;
+            while (view != null && view.IsBusy && Time.realtimeSinceStartup < animationDeadline) yield return null;
             Release();
             reveal = null;
         }
@@ -215,7 +226,15 @@ namespace CurtainCall.UI.SceneIntegration
         {
             if (network == null || network.IsServer || sender != NetworkManager.ServerClientId) return;
             reader.ReadValueSafe(out uint version);
+            reader.ReadValueSafe(out bool enteringEscape);
+            if (version < sequence) return;
+            if (version == sequence)
+            {
+                if (requested && locallyCovered) Send(CoveredMessage, sender);
+                return;
+            }
             Begin(version);
+            escapeCover = enteringEscape;
             StartCoroutine(CoverAndReply(version));
         }
 
@@ -248,8 +267,9 @@ namespace CurtainCall.UI.SceneIntegration
 
         void Send(string name, ulong id)
         {
-            using var writer = new FastBufferWriter(sizeof(uint), Allocator.Temp);
+            using var writer = new FastBufferWriter(sizeof(uint) + sizeof(bool), Allocator.Temp);
             writer.WriteValueSafe(sequence);
+            if (name == CoverMessage) writer.WriteValueSafe(escapeCover);
             messaging.SendNamedMessage(name, id, writer, NetworkDelivery.ReliableSequenced);
         }
 
@@ -258,6 +278,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (networkScenes != null) networkScenes.OnSceneEvent -= OnSceneEvent;
             networkScenes = null;
             loadingScenes.Clear();
+            sequence = 0;
             if (messaging != null)
             {
                 messaging.UnregisterNamedMessageHandler(CoverMessage);

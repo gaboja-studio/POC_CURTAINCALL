@@ -1,8 +1,8 @@
 # Project Pitfalls
 
-- [escape-view-and-injured-steps.md](escape-view-and-injured-steps.md) — 외줄 자유 시선의 조작/게이지 방향과 절단 후 필수 단차를 확인할 때
+- [escape-view-and-injured-steps.md](escape-view-and-injured-steps.md) — 외줄 시선 조작·출발 정렬·매달림 카메라 압착·절단 후 단차를 확인할 때
 
-- [waiting-room-panel-font-owner.md](waiting-room-panel-font-owner.md) — 공연·밤 전환 뒤 퀘스트가 비거나 패널 폰트가 삭제될 때
+- [waiting-room-panel-font-owner.md](waiting-room-panel-font-owner.md) — 공연·밤 전환 뒤 패널이 비거나 새 방의 안내 잠금·재연습 설명 덮임이 발생할 때
 
 - [escape-inspection-state.md](escape-inspection-state.md) — 자유비행 중 리타이어되거나 메뉴에서 관전 대상이 바뀔 때
 
@@ -19,6 +19,7 @@
 - [Characters/](Characters/index.md) — 새 캐릭터의 Avatar/애니메이션 검증 결과를 판단할 때
 - [escape-flame-scaling.md](escape-flame-scaling.md) — 거대 화염의 실제 도달 방향/속도와 휴대 톱의 원본 운반 조작을 연결할 때
 
+- [escape-cannon-platform-lanes.md](escape-cannon-platform-lanes.md) — 낮은 대포대 낙사·옆줄 점프 간격/시작점·길이 정보를 고칠 때
 - [escape-rope-landing.md](escape-rope-landing.md) — 탈출로 줄 착지·시점 인계와 다리/장비 공유 시각·재수신을 고칠 때
 
 - [escape-depth-route.md](escape-depth-route.md) — 탈출로 묘기 도달·운반 트램폴린 묻힘·대포 목표 표식·교체 구조 잔여물 확인
@@ -29,6 +30,7 @@
 
 - [session-join-cancelled.md](session-join-cancelled.md) — 방 코드·LAN 참가의 취소 예외와 제한시간·취소 원인 로그를 확인할 때
 - [relay-stall-disconnect.md](relay-stall-disconnect.md) — 씬 전환 중 "[TransportShutdown] NetworkConnectionManager was shutdown"으로 튕길 때(메인 스레드 10초 정지 → Relay 할당 만료)
+- [navmesh-agent-path-pending.md](navmesh-agent-path-pending.md) — 추격자 등 NavMeshAgent가 벽 앞·빈 곳에서 걷는 동작만 하며 멈춰 있을 때
 
 이 POC·이 개발 환경에서 겪은 함정. 상황에 맞는 파일 1개만 연다.
 
@@ -50,7 +52,8 @@
 - [third-party-first-import-rewrite.md](third-party-first-import-rewrite.md) — 새 worktree 첫 import 때 외부 에셋 씬이 빈 씬으로 덮이고 머티리얼 ~220개가 변환된다. 에디터를 닫고 서브모듈 복구. PR 스크립트가 "저장하지 않은 변경"으로 막힐 때
 - [ubuntu-git-executable-resolution.md](ubuntu-git-executable-resolution.md) — Ubuntu CI에서 Git 실행 경로가 여러 개로 반환되어 PowerShell 회귀가 실패할 때
 - [powershell-error-output-wrapping.md](powershell-error-output-wrapping.md) — PowerShell 오류 출력의 줄바꿈 때문에 예상 거부 정규식이 불일치할 때
-- [remote-player-judged-before-placement.md](remote-player-judged-before-placement.md) — 공연 씬 로드 직후 호스트가 원격의 옛 위치로 사망 판정한다. 연결 공연에서 참가자만 시작부터 죽어 있을 때
+- [remote-player-judged-before-placement.md](remote-player-judged-before-placement.md) — 공연/대포 리허설 배치 승인 전 옛 위치로 사망하거나 외줄 소구간이 잘못 완료될 때
+- [rehearsal-arrival-stall.md](rehearsal-arrival-stall.md) — 리허설 전원 도착 후 완료·넘기기 또는 배치/새 방 동기화가 멈출 때
 - [demo-ui-includes-hud.md](demo-ui-includes-hud.md) — Demo 이름의 줄타기 UI를 통째로 끄면 HUD·게이지도 사라진다. 연결 모드에서 시연 UI를 숨길 때
 - [changed-subscriber-advances-campaign.md](changed-subscriber-advances-campaign.md) — Changed 알림 안에서 구독자가 런을 진행시킬 수 있어 알림 뒤 공연 좌표를 재확인. 런·보상 이벤트를 보낸 뒤 이어서 종료·정산 처리할 때
 - [inactive-root-component-scan.md](inactive-root-component-scan.md) — 비활성 루트에서 GetComponentsInChildren()이 꺼진 원본까지 반환한다. 원본을 꺼서 보존하고 복제본을 찾는 코드를 쓸 때
@@ -59,3 +62,4 @@
 - [textmesh-default-shader-through-walls.md](textmesh-default-shader-through-walls.md) — 생성한 TextMesh 기본 재질은 깊이를 무시해 벽 너머로 보인다. 에디터 코드로 표지·번호 글자를 만들 때
 - [exploration-route-validation.md](exploration-route-validation.md) — 탐색 경로의 낮/밤 철창·트리거와 층/벽 너머 F·바닥 기물 표시/호스트 검사를 확인할 때
 - [factory-art-urp.md](factory-art-urp.md) — 공장 에셋 선별 재사용·URP17 조명·정적 장식 정리 기준
+- [arrived-state-after-performance.md](arrived-state-after-performance.md) — 외줄 완주자가 Arrived로 남아 대기실 안내·상호작용·첫날 진행이 멈춘다

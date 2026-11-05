@@ -260,6 +260,32 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
 
         [Test]
+        public void StationarySwingUsesTheSameContinuousPresentationAsMovingSwings()
+        {
+            Deliver(Two, 8, angle: 10, speed: 0);
+            Deliver(Two, 8, angle: 20, speed: 0);
+            var display = runtime.GetType().GetMethod("DisplayAngle");
+            double now = Time.unscaledTimeAsDouble;
+            Assert.That((float)display.Invoke(runtime, new object[] { now }), Is.EqualTo(10).Within(.001f), "A fixed pole must not snap on a regular Sync.");
+            Assert.That((float)display.Invoke(runtime, new object[] { now + .025 }), Is.EqualTo(15).Within(.001f));
+            Assert.That((float)runtime.GetType().GetField("Angle").GetValue(runtime), Is.EqualTo(20), "Release physics still use the server angle.");
+        }
+
+        [Test]
+        public void DelayedSwingSnapshotsKeepMovingBrieflyThenStopPredictionWithinAngleLimit()
+        {
+            var receive = runtime.GetType().GetMethod("ReceiveAngle");
+            var display = runtime.GetType().GetMethod("DisplayAngle");
+            receive.Invoke(runtime, new object[] { 10f, 1d, false });
+            runtime.GetType().GetField("Speed").SetValue(runtime, 40f);
+            float Sample(double now) => (float)display.Invoke(runtime, new object[] { now });
+            Assert.That(Sample(1.075), Is.EqualTo(13f).Within(.001f));
+            Assert.That(Sample(1.5), Is.EqualTo(14f).Within(.001f), "A lost connection must not predict indefinitely.");
+            runtime.GetType().GetField("MaxDisplayAngle").SetValue(runtime, 12f);
+            Assert.That(Sample(1.5), Is.EqualTo(12f));
+        }
+
+        [Test]
         public void OccupiedPoleSendsEveryTickWhileIdleRecoveryUsesItsOwnPhase()
         {
             var check = runtime.GetType().GetMethod("SnapshotDue");
@@ -311,11 +337,11 @@ namespace CurtainCall.HumanCannon.EditorTools.Tests
         }
         void Deliver(Row[] rows, uint revision, byte action = 0, ulong actor = Empty, byte seat = 255,
             int station = 0, uint launch = 0, uint segment = 0, ulong sender = NetworkManager.ServerClientId,
-            PoleSawPhase phase = PoleSawPhase.Retracted, byte reversedSeats = 0)
+            PoleSawPhase phase = PoleSawPhase.Retracted, byte reversedSeats = 0, float angle = 20f, float speed = 5f)
         {
             using var writer = new FastBufferWriter(action == 2 ? 200 : 160, Allocator.Temp);
             writer.WriteValueSafe(action); writer.WriteValueSafe(0); writer.WriteValueSafe(revision);
-            writer.WriteValueSafe((byte)phase); writer.WriteValueSafe(0d); writer.WriteValueSafe(20f); writer.WriteValueSafe(5f);
+            writer.WriteValueSafe((byte)phase); writer.WriteValueSafe(0d); writer.WriteValueSafe(angle); writer.WriteValueSafe(speed);
             writer.WriteValueSafe(actor); writer.WriteValueSafe(seat); writer.WriteValueSafe(station);
             writer.WriteValueSafe(launch); writer.WriteValueSafe(segment); writer.WriteValueSafe((byte)(reversedSeats << 1));
             foreach (Row row in rows)

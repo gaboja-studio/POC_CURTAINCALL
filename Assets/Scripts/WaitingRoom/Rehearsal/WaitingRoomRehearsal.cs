@@ -27,6 +27,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>추락 뒤 출발대로 되돌리기까지(초).</summary>
         const float RecoverSeconds = 1.5f;
         const string RingDeckPath = "LegacyRing/PracticeRing/DeckCollider";
+        const string RingBoundaryPath = "RoundArena/Frame8Boundary";
         /// <summary>연습실 링에 원래 있던 연습 소품(탑·사다리·트램펄린·대포·그물·옛 줄)과 사다리 뒤 막이. 리허설 동안 숨긴다(사용자 요청 2026-11-02·04).</summary>
         static readonly string[] RingPropPaths = { "LegacyRing/PracticeLanes", "LegacyRing/CollisionRepairs" };
         static readonly Vector3 FallbackRingCenter = new(-20f, .6f, 128.5f);
@@ -97,6 +98,7 @@ namespace CurtainCall.WaitingRoom
         bool ringFound;
         Transform ringRoom;
         readonly List<GameObject> hiddenRingProps = new();
+        GameObject hiddenRingBoundary;
         GameObject courseRoot;
         TightropeCourse course;
         TightropeRun courseRun;
@@ -114,6 +116,10 @@ namespace CurtainCall.WaitingRoom
         bool CanVote => active && !completed && arrived.Count > 0 && local != null
             && local.IsSpawned && local.State != PlayerState.Retired;
 
+        void RecordAction(string state, ulong? actor = null, string reason = null, bool? vote = null) =>
+            CurtainCall.Telemetry.Pipeline.SpatialLogAdapter.RehearsalAction("TIGHTROPE", state, round,
+                active ? stage : -1, active, IsCompleted, IsPracticing, actor, true, reason, vote);
+
         void SetVote(ulong id, bool value)
         {
             if (!active || completed || arrived.Count == 0) return;
@@ -123,7 +129,7 @@ namespace CurtainCall.WaitingRoom
                     participant = true;
             if (!participant) return;
             bool changed = value ? votes.Add(id) : votes.Remove(id);
-            if (changed) { version++; Publish(); }
+            if (changed) { RecordAction("VOTE_CHANGED", id, "NEXT_STAGE", value); version++; Publish(); }
         }
 
         void RequestVote(bool value)
@@ -141,7 +147,7 @@ namespace CurtainCall.WaitingRoom
         bool HasAuthority => run != null && run.HasAuthority;
         static bool PracticePhase(CampaignPhase phase) => phase == CampaignPhase.RestTime || phase == CampaignPhase.Night;
         /// <summary>호스트가 연습실 안에 있고 이수했으며 리허설·재연습 중이 아니면 재연습을 고를 수 있다.</summary>
-        bool CanOfferPractice => !active && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
+        bool CanOfferPractice => !active && !WaitingRoomCannonRehearsal.IsActive && HasAuthority && HasMastered && PracticePhase(run.State.Phase)
             && !SceneCurtainTransition.IsActive && SpaceLinkDirector.Instance != null && SpaceLinkDirector.Instance.Current == SpaceId.WaitingRoom
             && !SpaceLinkDirector.Instance.IsTransitioning && ringFound
             && local != null && local.IsSpawned && local.State == PlayerState.Normal && InPracticeRoom(local.transform.position);
@@ -197,13 +203,13 @@ namespace CurtainCall.WaitingRoom
                 return;
             }
             if (!active) Activate();
-            // 리허설에서는 목마를 쓰지 않는다(사용자 2026-11-04).
-            PiggybackSystem.Suppressed = true;
+            // 모든 외줄 소구간에서 실제 공연의 목마 연결 규칙을 보존한다.
+            PiggybackSystem.Suppressed = false;
             EnsureLockdownProps();
+            UpdateTriggerGeometry();
             if (HasAuthority) HostTick();
             else if (stage < 0 && Clock >= nextSync) { Send(Operation.Sync); nextSync = Clock + 2d; }
             EnsureCourse();
-            ApplyGaps();
             LocalTick();
             TickMonitors();
         }
@@ -233,6 +239,7 @@ namespace CurtainCall.WaitingRoom
             PiggybackSystem.Suppressed = false;
             foreach (var monitor in monitors) if (monitor != null) monitor.TurnOff();
             DestroyCourse();
+            SetRingBoundaryHidden(false);
             HideRingProps(false);
             DeactivateLocal();
         }
@@ -287,13 +294,34 @@ namespace CurtainCall.WaitingRoom
 
         // ── 코스 만들기(모든 화면, 같은 값이라 같은 모양) ─────
 
+        void SetRingBoundaryHidden(bool hide)
+        {
+            if (!hide)
+            {
+                if (hiddenRingBoundary != null) hiddenRingBoundary.SetActive(true);
+                hiddenRingBoundary = null;
+                return;
+            }
+            if (hiddenRingBoundary != null || ringRoom == null) return;
+            var boundary = ringRoom.Find(RingBoundaryPath);
+            if (boundary == null || !boundary.gameObject.activeSelf) return;
+            hiddenRingBoundary = boundary.gameObject;
+            hiddenRingBoundary.SetActive(false);
+        }
+
         void EnsureCourse()
         {
             int wanted = active && !completed ? stage : -1;
+            // 코스 벽은 마지막 단계와 함께 사라진다. 집결 중에는 연습실 외곽 벽으로 보호한다.
+            if (wanted < 0) SetRingBoundaryHidden(false);
             if (builtStage == wanted && builtRound == round) return;
             DestroyCourse();
             builtStage = wanted; builtRound = round;
-            if (wanted >= 0) BuildCourse(RehearsalStage.All[wanted]);
+            if (wanted >= 0)
+            {
+                BuildCourse(RehearsalStage.All[wanted]);
+                SetRingBoundaryHidden(course != null);
+            }
             OnCourseChanged();
         }
 
@@ -311,6 +339,7 @@ namespace CurtainCall.WaitingRoom
             courseRoot.name = $"RehearsalCourse_{s.Id}";
             courseRoot.transform.position = ringCenter + new Vector3(0f, CourseHeight, -(s.Finish - 1f) * .5f);
             course = courseRoot.GetComponent<TightropeCourse>();
+            course.FinishPlatformScale = 2f;
             course.ImportShape(s.CourseJson);
             course.SetLocked(true, "리허설 단계 배치");
             // 리허설 단계는 이미 호스트가 공유한다. 공연 대기실용 모양 동기화가 덮어쓰지 않게 한다.
@@ -319,14 +348,33 @@ namespace CurtainCall.WaitingRoom
             courseRun = courseRoot.GetComponent<TightropeRun>();
             courseRun.SetExternallyManaged(true);
             courseRun.SetPracticeMode(true);
+            course.CompactPracticeLayout = true;
+            if (s.UsesPoles)
+            {
+                var trapeze = courseRoot.GetComponent<TightropeTrapeze>() ?? courseRoot.AddComponent<TightropeTrapeze>();
+                trapeze.ConfigurePracticeLesson(s.Kind == RehearsalStageKind.SinglePole ? 1 : 2,
+                    s.Kind != RehearsalStageKind.Trapeze);
+            }
             if (courseRoot.GetComponent<RopeLaneJumpRules>() == null) courseRoot.AddComponent<RopeLaneJumpRules>();
+            // 공연 씬에 별도로 붙은 공통 기능도 모든 소구간에 원본 그대로 연결한다.
+            // 목마도 공연처럼 모든 외줄 소구간에서 같은 연결 규칙을 쓴다.
+            if (PiggybackSystem.Current == null || !PiggybackSystem.Current.isActiveAndEnabled)
+            {
+                var stack = courseRoot.AddComponent<PiggybackSystem>();
+                stack.SuppressLegacyFeedback = true;
+                courseRoot.AddComponent<PiggybackFollow>();
+            }
+            if (TightropeCatchSystem.Current == null) courseRoot.AddComponent<TightropeCatchSystem>();
+            if (courseRoot.GetComponent<TightropeBalancePoseView>() == null) courseRoot.AddComponent<TightropeBalancePoseView>();
+            if (courseRoot.GetComponent<TightropeHandholdRangeView>() == null) courseRoot.AddComponent<TightropeHandholdRangeView>();
             BuildPerformanceUi();
             courseRoot.SetActive(true);
-            course.SetIntermediatePlatformLanes(s.IntermediatePlatformLanes);
-            // 코스 값의 끊김 대신 구조도 자리에 그네를 놓는다(줄 끊김은 ApplyGaps가 뺀다).
-            courseRoot.GetComponent<TightropeSwingPole>()?.UseSpots(s.Swings);
-            // 트리거 그네는 공연 해제봉을 구조도 자리에 놓는다(조작·매달리기는 공연 그대로).
-            courseRoot.GetComponent<TightropeRelayGate>()?.UseSpots(RelaySpots(s));
+            if (s.Kind == RehearsalStageKind.LaneChange) course.SetIntermediatePlatformLanes(new[] { 0 });
+            if (s.Kind == RehearsalStageKind.Relay)
+            {
+                var relay = courseRoot.GetComponent<TightropeRelayGate>();
+                relay.UseSpots(new[] { new RelaySpot(0, 11f, 1, 12f, 20f) });
+            }
             courseStarted = false;
             Debug.Log($"[Rehearsal] 소구간 {s.Id} 코스 생성(회차 {round})");
         }
@@ -356,7 +404,7 @@ namespace CurtainCall.WaitingRoom
                 if (player == null || !player.IsSpawned) continue;
                 ulong id = player.OwnerClientId;
                 if (player.State != PlayerState.Fallen) { fallenAt.Remove(id); continue; }
-                if (!fallenAt.TryGetValue(id, out double at)) { fallenAt[id] = Clock; continue; }
+                if (!fallenAt.TryGetValue(id, out double at)) { fallenAt[id] = Clock; RecordAction("FALLEN", id); continue; }
                 if (Clock - at < RecoverSeconds) continue;
                 fallenAt.Remove(id);
                 player.ServerRestoreAll();
@@ -374,7 +422,16 @@ namespace CurtainCall.WaitingRoom
                 if (player == null || !player.IsSpawned || player.State == PlayerState.Retired) continue;
                 participants.Add(player.OwnerClientId);
                 // 소유자 배치와 호스트 위치 수신을 확인하기 전에는 이전 소구간 좌표를 판정하지 않는다.
-                if (placed.Contains(player.OwnerClientId) && IsFinished(player)) changed |= arrived.Add(player.OwnerClientId);
+                if (placed.Contains(player.OwnerClientId))
+                {
+                    changed |= ObserveLesson(player);
+                    if ((!s.RequiresSkillForArrival || LearnedSkill(player)) && (s.Kind == RehearsalStageKind.Trapeze || IsFinished(player))
+                        && arrived.Add(player.OwnerClientId))
+                    {
+                        changed = true;
+                        RecordAction("ARRIVED", player.OwnerClientId, s.Kind == RehearsalStageKind.Trapeze ? "LESSON_CRITERION" : "FINISH_PLATFORM");
+                    }
+                }
             }
             changed |= arrived.RemoveWhere(id => !participants.Contains(id)) > 0;
             changed |= placed.RemoveWhere(id => !participants.Contains(id)) > 0;
@@ -382,14 +439,15 @@ namespace CurtainCall.WaitingRoom
             if (arrived.Count == 0 && votes.Count > 0) { votes.Clear(); changed = true; }
             if (participantCount != participants.Count) { participantCount = participants.Count; changed = true; }
             if (changed) { version++; Publish(); }
-            if (participantCount == 0 || arrived.Count == 0) return;
-            if (arrived.Count < participantCount && votes.Count <= participantCount / 2) return;
+            if (!s.CanAdvance(participantCount, arrived.Count, votes.Count)) return;
+            RecordAction("STAGE_CLEARED", reason: arrived.Count == participantCount ? "ALL_ARRIVED" : s.Rule == RehearsalClearRule.Anyone ? "ANY_ARRIVED" : "MAJORITY_NEXT");
             AdvanceStage();
         }
 
         void AdvanceStage()
         {
             arrived.Clear(); votes.Clear(); placed.Clear(); participantCount = 0;
+            lessonProgress.Clear(); lessonSamples.Clear(); lessonRound = -1;
             stage++;
             if (practice && stage >= RehearsalStage.All.Length)
             {
@@ -417,6 +475,7 @@ namespace CurtainCall.WaitingRoom
             if (!CanClearCurrentStage) return false;
             foreach (var player in NetworkPlayer.All)
                 if (player != null && player.IsSpawned && player.State == PlayerState.Fallen) player.ServerRestoreAll();
+            RecordAction("STAGE_CLEARED", reason: "DEV_CLEAR");
             AdvanceStage();
             return true;
         }
@@ -424,11 +483,12 @@ namespace CurtainCall.WaitingRoom
         /// <summary>도착대 위에 서 있는지(위치 기준, 모든 화면이 같은 코스를 가진다).</summary>
         bool IsFinished(NetworkPlayer player)
         {
-            if (course == null || player.State == PlayerState.Fallen) return false;
+            if (course == null || player.State != PlayerState.Normal || player.IsAirborne
+                || !course.TryGetFinishPlatformBounds(out var floor)) return false;
             var p = player.transform.position;
-            return course.HasReachedFinish(p) && Mathf.Abs(course.GetSide(p)) <= (course.LaneCount - 1) * course.Shape.LaneSpacing * .5f + course.Shape.SideMargin
-                && Mathf.Abs(p.y - course.transform.position.y) < .8f
-                && course.GetDistance(p) <= course.FinishDistance + course.Shape.FinishPlatformLength + .5f;
+            float side = course.GetSide(p), distance = course.GetDistance(p);
+            return side >= floor.min.x && side <= floor.max.x && distance >= floor.min.z && distance <= floor.max.z
+                && Mathf.Abs(p.y - course.transform.position.y - floor.max.y) < .8f;
         }
 
         // ── 공유 ───────────────────────────────────────────
@@ -436,13 +496,32 @@ namespace CurtainCall.WaitingRoom
         void Connect()
         {
             var state = session != null ? session.ConnectionState : SessionConnectionState.Offline;
-            if (registered && registeredFor == state) return;
+            var next = state is SessionConnectionState.Host or SessionConnectionState.Client
+                ? session.NetworkManager?.CustomMessagingManager : null;
+            if (registered && registeredFor == state && messaging == next) return;
+            bool previousClient = registered && registeredFor == SessionConnectionState.Client;
             Unregister();
-            messaging = session != null && session.NetworkManager != null ? session.NetworkManager.CustomMessagingManager : null;
+            if (previousClient || state == SessionConnectionState.Client) ResetClientSession();
+            messaging = next;
+            registeredFor = state;
             if (messaging == null) return;
-            registeredFor = state; registered = true;
+            registered = true;
             if (state == SessionConnectionState.Host) messaging.RegisterNamedMessageHandler(RequestMessage, HandleRequest);
             else if (state == SessionConnectionState.Client) messaging.RegisterNamedMessageHandler(StateMessage, HandleState);
+        }
+
+        void ResetClientSession()
+        {
+            if (active) Deactivate();
+            version = round = 0; stage = builtStage = builtRound = -1;
+            completed = practice = ending = practiceVote = practiceSealed = false;
+            endingShown = practiceVoteShown = false;
+            participantCount = voterCount = 0;
+            monitorStarted = -1d; nextSync = 0d;
+            arrived.Clear(); votes.Clear(); placed.Clear(); fallenAt.Clear();
+            skipVotes.Clear(); practiceYes.Clear(); lessonProgress.Clear(); lessonSamples.Clear(); lessonRound = -1;
+            CancelInvoke(nameof(BeginEndingFade));
+            votePanel?.Hide(); fader?.Cancel();
         }
 
         void Unregister()
@@ -458,7 +537,7 @@ namespace CurtainCall.WaitingRoom
         void Publish(ulong? only = null)
         {
             if (messaging == null || session == null || !session.IsHost) return;
-            using var writer = new FastBufferWriter(256, Allocator.Temp);
+            using var writer = new FastBufferWriter(1024, Allocator.Temp);
             writer.WriteValueSafe(version);
             writer.WriteValueSafe(stage);
             writer.WriteValueSafe(round);
@@ -473,6 +552,7 @@ namespace CurtainCall.WaitingRoom
             foreach (ulong id in arrived) writer.WriteValueSafe(id);
             writer.WriteValueSafe(votes.Count);
             foreach (ulong id in votes) writer.WriteValueSafe(id);
+            WriteLesson(writer);
             WriteVotes(writer);
             if (only.HasValue) messaging.SendNamedMessage(StateMessage, only.Value, writer, NetworkDelivery.ReliableSequenced);
             else messaging.SendNamedMessageToAll(StateMessage, writer, NetworkDelivery.ReliableSequenced);
@@ -503,7 +583,7 @@ namespace CurtainCall.WaitingRoom
                 reader.ReadValueSafe(out Vector3 position);
                 AcceptPlacement(sender, placementRound, position);
             }
-            else if ((Operation)op is Operation.SkipVote or Operation.PracticePropose or Operation.PracticeAnswer)
+            else if ((Operation)op is Operation.PracticePropose or Operation.PracticeAnswer)
                 HandleVoteRequest(sender, (Operation)op, reader);
         }
 
@@ -528,6 +608,7 @@ namespace CurtainCall.WaitingRoom
             for (int i = 0; i < arrivals; i++) { reader.ReadValueSafe(out ulong id); arrived.Add(id); }
             reader.ReadValueSafe(out int count);
             for (int i = 0; i < count; i++) { reader.ReadValueSafe(out ulong id); votes.Add(id); }
+            ReadLesson(reader);
             ReadVotes(reader);
         }
     }

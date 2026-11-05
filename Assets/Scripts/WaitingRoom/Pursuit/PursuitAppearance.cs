@@ -5,10 +5,14 @@ using UnityEngine.Rendering;
 
 namespace CurtainCall.WaitingRoom.Pursuit
 {
-    /// <summary>Concepts/Reclaimed: repaired troupe shell, stage collar, capture stains and ground direction.</summary>
-    public sealed class PursuitAppearance : MonoBehaviour
+    public enum PursuitSurfaceState { Clean = 0, Worn = 1, Bloodied = 2, LightBlood = 3, HeavyBlood = 4 }
+
+    /// <summary>Shared rig, authored costume surfaces, capture stains and ground direction.</summary>
+    public sealed partial class PursuitAppearance : MonoBehaviour
     {
         public Material GroundMaterial;
+        public PursuitSurfaceState SurfaceState = PursuitSurfaceState.Bloodied;
+        public int SurfaceSeed;
         public GameObject[] AdvancedDetails;
         public AnimationClip AdvancedWalk, AdvancedRun;
         public int CaptureCount { get; private set; }
@@ -29,11 +33,10 @@ namespace CurtainCall.WaitingRoom.Pursuit
         readonly Vector3[] vertices = new Vector3[(Sectors + 1) * (Rings + 1)];
         readonly Color[] colors = new Color[(Sectors + 1) * (Rings + 1)];
         public void SetCaptureCount(int count) => CaptureCount = Mathf.Max(0, count);
-        public static int CueState(PursuitBehaviour behaviour) => behaviour == PursuitBehaviour.Prepare || behaviour == PursuitBehaviour.Chase || behaviour == PursuitBehaviour.Capture ? 2 :
-            behaviour == PursuitBehaviour.Patrol || behaviour == PursuitBehaviour.Return ? 0 : 1;
+        public static int CueState(PursuitBehaviour behaviour) => (int)PursuitEyeTransition.Resolve(behaviour, true, false);
         void Start()
         {
-            actor = GetComponent<PursuitActor>(); surfaces = GetComponentsInChildren<SkinnedMeshRenderer>(true); props = new MaterialPropertyBlock();
+            actor = GetComponent<PursuitActor>(); RefreshSurface(InjuryBloodEffects.IsVisible);
             if (GroundMaterial == null) return;
             ground = new GameObject("Pursuit facing light", typeof(MeshFilter), typeof(MeshRenderer));
             ground.transform.SetParent(transform, false);
@@ -58,11 +61,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             var d = PursuitDirector.Current; var rule = GameSettings.WaitingRoom.Pursuit;
             IsAdvanced = actor.IsActivated && d != null && d.CurrentStageIndex + 1 >= rule.AdvancedAppearanceStage;
             if (AdvancedDetails != null) foreach (var detail in AdvancedDetails) if (detail != null && detail.activeSelf != IsAdvanced) detail.SetActive(IsAdvanced);
-            foreach (var surface in surfaces) if (surface != null) {
-                surface.GetPropertyBlock(props);
-                props.SetFloat("_BloodAmount", InjuryBloodEffects.IsVisible ? Mathf.Clamp01(CaptureCount * rule.BloodPerCapture) : 0);
-                props.SetFloat("_Threat", IsAdvanced ? 1 : 0); surface.SetPropertyBlock(props);
-            }
+            RefreshSurface(InjuryBloodEffects.IsVisible);
             if (groundRenderer == null) return;
             bool visible = actor.IsActivated && rule.DirectionCue && actor.IsRendered;
             var camera = Camera.main;
@@ -72,10 +71,20 @@ namespace CurtainCall.WaitingRoom.Pursuit
                     && Vector3.SqrMagnitude(camera.transform.position-transform.position) < 30*30;
             }
             groundRenderer.enabled = visible;
-            if (!visible || Time.unscaledTime < nextGroundUpdate) return;
-            nextGroundUpdate = Time.unscaledTime + .1f;
+            if (!visible) return;
             int state = CueState(actor.Behaviour);
-            CueColor = state == 2 ? rule.ChaseCueColor : state == 1 ? rule.AlertCueColor : rule.PatrolCueColor;
+            var color = state == 2 ? rule.ChaseCueColor : state == 1 ? rule.AlertCueColor : rule.PatrolCueColor;
+            bool colorChanged = CueColor != color;
+            CueColor = color;
+            if (Time.unscaledTime < nextGroundUpdate) {
+                // Tint changes are immediate; expensive ground/wall projection stays at 10 Hz.
+                if (colorChanged) {
+                    for (int i = 0; i < colors.Length; i++) colors[i] = new Color(color.r, color.g, color.b, colors[i].a);
+                    mesh.colors = colors;
+                }
+                return;
+            }
+            nextGroundUpdate = Time.unscaledTime + .1f;
             CueAngle = Mathf.Clamp(d.CurrentStageRules.FieldOfView, 1, 180);
             DrawGround(rule);
         }

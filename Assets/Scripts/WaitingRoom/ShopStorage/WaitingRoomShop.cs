@@ -4,6 +4,7 @@ using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Reward;
 using UnityEngine;
+using CurtainCall.Settings;
 
 namespace CurtainCall.WaitingRoom
 {
@@ -188,12 +189,16 @@ namespace CurtainCall.WaitingRoom
             return NetworkPlayer.All.Count == 0 ? WaitingRoomText.Get("shop.player-me", "나") : WaitingRoomText.Format("shop.player-id", "플레이어 #{id}", ("id", clientId));
         }
 
-        /// <summary>공연 중에는 배송 수령·보관을 하지 않는다. 구매는 별도로 밤 정비에만 허용한다.</summary>
+        /// <summary>공연 중에는 배송 수령·보관을 하지 않는다.</summary>
         public static bool InPerformance => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Performance;
 
-        /// <summary>기물 주문은 밤 정비에만 가능하다. 배송 수령·보관의 공연 중 제한과는 별개다.</summary>
-        public static bool CanPurchase => CampaignRun.Instance != null && CampaignRun.Instance.State.Phase == CampaignPhase.Night;
-        public static string PurchaseTimeRefusal => WaitingRoomText.Get("shop.purchase-night-only", "기물은 밤 정비에만 구매할 수 있습니다.");
+        /// <summary>밤 정비 및 설정으로 허용한 쉬는 시간에 기물을 주문한다.</summary>
+        public static bool CanPurchase => CampaignRun.Instance != null &&
+            (CampaignRun.Instance.State.Phase == CampaignPhase.Night ||
+             GameSettings.WaitingRoom.AllowPurchasesDuringRest && CampaignRun.Instance.State.Phase == CampaignPhase.RestTime);
+        public static string PurchaseTimeRefusal => GameSettings.WaitingRoom.AllowPurchasesDuringRest
+            ? WaitingRoomText.Get("shop.purchase-rest-night-only", "기물은 쉬는 시간과 밤 정비에만 구매할 수 있습니다.")
+            : WaitingRoomText.Get("shop.purchase-night-only", "기물은 밤 정비에만 구매할 수 있습니다.");
 
         static string PerformanceRefusal => WaitingRoomText.Get("shop.in-performance", "공연 중에는 상점을 쓸 수 없습니다.");
 

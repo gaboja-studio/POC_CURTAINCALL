@@ -11,7 +11,7 @@ namespace CurtainCall.HumanCannon
                 () => fires.Length, index => fires[index] != null ? fires[index].ArmedAt : -1,
                 (index, at, feet, height, radius) => fires[index] != null && fires[index].KillOnContact
                     && fires[index].HistoricalThreatens(feet, radius, at),
-                (player, _) => player.ServerKill());
+                (player, index) => player.ServerKill(CurtainCall.Network.PlayerSync.NetworkPlayer.DeathOrigin.FirePillar,CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(fires[index],"OB_")));
             ownerFireContacts.Tick(session, Clock, !resetBarrier.Waiting
                 && (HumanCannonDestination.Current == null || !HumanCannonDestination.Current.IsResolved));
         }

@@ -1,7 +1,6 @@
 using CurtainCall.Settings;
 using Unity.Behavior;
 using UnityEngine;
-using UnityEngine.AI;
 
 namespace CurtainCall.WaitingRoom.Pursuit
 {
@@ -37,20 +36,27 @@ namespace CurtainCall.WaitingRoom.Pursuit
             sensingLook = investigating = searching = false;
             returningToPatrol = false;
             noiseUntil = searchUntil = prepareUntil = nextNoiseAt = repathAt = 0;
+            ClearNavigation();
             Behaviour = PursuitBehaviour.Patrol;
         }
         void TickBrain(PursuitStage stage)
         {
             rule = stage;
-            TickPatrolBoundary();
-            var next = returningToPatrol ? null : director.NearestVisible(this, rule);
+            var next = director.NearestVisible(this, rule);
+            bool hasVisualContact = next != null && (!rule.AlwaysNearest || director.HasVisualContact(this, next, rule));
+            TickPatrolBoundary(hasVisualContact);
+            // AlwaysNearest can supply a distant remembered target. It must not
+            // interrupt a return outside visual range just because a path exists.
+            if (returningToPatrol) next = null;
             visible = next != null;
             if (visible) {
                 if (target == null) prepareUntil = Time.time + Mathf.Max(0, rule.AlertSeconds);
                 target = next.transform; lastSeen = target.position; unseen = 0;
                 searching = investigating = false; noiseUntil = 0;
             } else unseen += Time.deltaTime;
-            if (target != null && (!director.IsAvailable(target.gameObject) || (!rule.AlwaysNearest &&
+            // 방 밖 추격이 꺼진 추격자는 대상이 방을 나가면 놓친다. 최인접 단계에서도 방 밖 마지막 지점에 서서 달리지 않는다.
+            if (target != null && (!director.IsAvailable(target.gameObject)
+                || (!Room.RoamAcrossRooms && !Room.Contains(target.position)) || (!rule.AlwaysNearest &&
                 (unseen > GameSettings.WaitingRoom.Pursuit.LoseTargetSeconds || Vector3.Distance(transform.position, target.position) > Mathf.Max(rule.SightRadius, rule.TrackingRadius))))) {
                 target = null; searching = true; sensingPoint = scanLook = lastSeen;
                 searchUntil = Time.time + Mathf.Max(0, rule.SearchSeconds) + Mathf.Max(.1f, rule.InvestigateSeconds);
@@ -82,7 +88,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             visible = sensingLook = investigating = searching = false;
             unseen = noiseUntil = searchUntil = prepareUntil = nextNoiseAt = repathAt = 0;
             brain?.End(); restartBrain = true;
-            Stop();
+            if (agent != null) { Stop(); ClearNavigation(); }
             EnterBehaviour(returningToPatrol ? PursuitBehaviour.Return : PursuitBehaviour.Patrol);
             SetMotion(IsActivated ? PursuitMotion.Awaken : PursuitMotion.Display);
         }
@@ -94,9 +100,12 @@ namespace CurtainCall.WaitingRoom.Pursuit
         public bool ActChase()
         {
             if (target == null) return false;
-            EnterBehaviour(PursuitBehaviour.Chase); agent.speed = rule.ResolvedChaseSpeed; SetMotion(PursuitMotion.Run); Navigate(lastSeen);
+            EnterBehaviour(PursuitBehaviour.Chase); agent.speed = rule.ResolvedChaseSpeed;
+            // 닿을 경로가 없거나 막힌 경로의 끝에 섰으면 제자리 달리기 대신 대상을 노려보며 대기하고 재계산을 기다린다.
+            if (Navigate(lastSeen, true) && !AtPartialEnd && !(!visible && Reached(lastSeen))) SetMotion(PursuitMotion.Run);
+            else { SetMotion(PursuitMotion.Awaken); Face(lastSeen); }
             if (director.RequiresOwnerContact(target.gameObject)) return true;
-            if (visible && Vector3.Distance(transform.position, target.position) <= GameSettings.WaitingRoom.Pursuit.CaptureRadius
+            if (visible && WithinCaptureReach(target.position)
                 && director.ClearLine(transform.position + Vector3.up, target.position + Vector3.up, target)) director.BeginCapture(this, target.gameObject);
             return true;
         }
@@ -105,7 +114,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (!investigating || Time.time >= noiseUntil) return false;
             EnterBehaviour(PursuitBehaviour.Investigate);
             agent.speed = rule.PatrolSpeed; SetMotion(PursuitMotion.Walk); Navigate(sensingPoint);
-            if (Reached(sensingPoint) || Unreachable()) { investigating = false; noiseUntil = Time.time + rule.ListenSeconds; scanStarted = Time.time; }
+            if (Reached(sensingPoint) || Unreachable(sensingPoint)) { investigating = false; noiseUntil = Time.time + rule.ListenSeconds; scanStarted = Time.time; }
             return true;
         }
         public bool ActListen()
@@ -118,7 +127,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             if (!searching) return false;
             if (Time.time >= searchUntil) { searching = sensingLook = false; return false; }
             EnterBehaviour(PursuitBehaviour.Search);
-            if (scanStarted < 0 && !Reached(sensingPoint) && !Unreachable()) {
+            if (scanStarted < 0 && !Reached(sensingPoint) && !Unreachable(sensingPoint)) {
                 agent.speed = rule.PatrolSpeed; SetMotion(PursuitMotion.Walk); Navigate(sensingPoint);
             } else {
                 if (scanStarted < 0) { scanStarted = Time.time; searchUntil = Time.time + rule.SearchSeconds; }
@@ -133,12 +142,23 @@ namespace CurtainCall.WaitingRoom.Pursuit
                 SetMotion(PursuitMotion.Walk); Navigate(patrolReturnPoint); return true;
             }
             EnterBehaviour(PursuitBehaviour.Patrol); sensingLook = false; agent.speed = Mathf.Max(0, rule.PatrolSpeed);
-            var points = Placement != null ? Placement.Route(Room) : Room.PatrolPoints;
+            var points = PatrolRoute;
             if (points == null || points.Length == 0) { Stop(); SetMotion(PursuitMotion.Awaken); return true; }
-            var point = points[waypoint % points.Length];
-            if (point == null) { waypoint = (waypoint + 1) % points.Length; return true; }
-            SetMotion(PursuitMotion.Walk); Navigate(point.position);
-            if (Reached(point.position) || Unreachable()) waypoint = (waypoint + 1) % points.Length;
+            // 모든 순회지가 막혀 있으면 한 바퀴 건너뛴 뒤 잠시 멈춰 대기하고 문 개폐 후 다시 찾는다.
+            if (patrolSkips >= points.Length) {
+                Stop(); SetMotion(PursuitMotion.Awaken);
+                if (Time.time >= patrolRetryAt) { patrolSkips = 0; hasNavGoal = false; }
+                return true;
+            }
+            waypoint %= points.Length;
+            var point = points[waypoint];
+            if (point == null) { SkipWaypoint(points.Length); return true; }
+            // 순회지가 소품·벽 안이면 근방 NavMesh로, 막힌 곳이면 가장 가까운 도달 지점으로 조정해 이동한다.
+            bool routed = Navigate(point.position);
+            if (navDeferred) return true;
+            if (!routed || (navGoal - point.position).sqrMagnitude > RouteAdjustRadius * RouteAdjustRadius) { SkipWaypoint(points.Length); return true; }
+            SetMotion(PursuitMotion.Walk);
+            if (Reached(point.position)) { waypoint = (waypoint + 1) % points.Length; patrolSkips = 0; }
             return true;
         }
         void EnterBehaviour(PursuitBehaviour next)
@@ -147,9 +167,12 @@ namespace CurtainCall.WaitingRoom.Pursuit
             Behaviour = next; repathAt = 0;
             director.ActorStateChanged();
         }
-        bool Reached(Vector3 p) => !agent.pathPending && Vector3.Distance(transform.position, p) < .7f;
-        bool Unreachable() => !agent.pathPending && agent.hasPath && agent.pathStatus != NavMeshPathStatus.PathComplete && agent.remainingDistance < .7f;
-        void Stop() { if (agent.enabled && agent.isOnNavMesh) agent.ResetPath(); }
+        void SkipWaypoint(int count)
+        {
+            waypoint = (waypoint + 1) % count; patrolSkips++;
+            hasNavGoal = false;
+            if (patrolSkips >= count) patrolRetryAt = Time.time + PatrolRetrySeconds;
+        }
         void Face(Vector3 p)
         {
             var direction = Vector3.ProjectOnPlane(p - transform.position, Vector3.up);

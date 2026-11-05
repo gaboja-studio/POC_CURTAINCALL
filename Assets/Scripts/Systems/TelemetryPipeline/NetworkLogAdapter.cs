@@ -76,7 +76,7 @@ namespace CurtainCall.Telemetry.Pipeline
                 var found = UnityEngine.Object.FindAnyObjectByType<LobbyReadyBoard>();
                 if (board != found) { if (board != null) board.Changed -= Signature; board = found; signed = board != null && board.LocalReady; if (board != null) board.Changed += Signature; }
             }
-            if (room != null && messages != null && session != null && !session.IsHost) TickRelay();
+            if (!log.RemoteConfigured && room != null && messages != null && session != null && !session.IsHost) TickRelay();
         }
 
         void TickRelay()

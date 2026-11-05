@@ -200,6 +200,7 @@ namespace CurtainCall.HumanCannon.Tests
             reader.enabled = true;
             yield return WaitUntil(() => !(bool)StaticGet("CurtainCall.Player.InputGate", "IsBlocked"), 3, "Reader neutral release");
             var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
+            ShowHiddenPole(poles, 1);
             var pole = (Component)Call(poles, "Pole", 1);
             var grip = (Transform)Get(pole, "Grip");
             yield return WaitUntil(() => Object.FindAnyObjectByType(GameType("CurtainCall.UI.SceneIntegration.CommonInteractionUI")) != null,
@@ -274,9 +275,19 @@ namespace CurtainCall.HumanCannon.Tests
         }
 
 
+        /// <summary>
+        /// 일반 그네는 2026-11-04 사용자 결정으로 씬에서 숨겼다. 그네 공통 동작 검사는 숨긴 그네를 이 검사 안에서만 다시 켠다.
+        /// </summary>
+        static void ShowHiddenPole(object poles, int index)
+        {
+            var pole = (Component)((Array)Get(poles, "poles")).GetValue(index);
+            if (pole != null && !pole.gameObject.activeSelf) pole.gameObject.SetActive(true);
+        }
+
         IEnumerator GrabEnhancementPole(int index, Action<double> onGrabRequest = null)
         {
             var poles = StaticGet("CurtainCall.HumanCannon.HumanCannonPoleSystem", "Current");
+            ShowHiddenPole(poles, index);
             var pole = (Component)Call(poles, "Pole", index);
             Assert.IsNotNull(pole);
             yield return Board(0);

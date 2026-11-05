@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.Campaign;
+using CurtainCall.Damage;
 using CurtainCall.EscapeRoute;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
@@ -62,7 +63,44 @@ namespace CurtainCall.Tightrope
         [SerializeField] TightropeSettings.CourseSettings sceneShape = new();
         [Tooltip("줄 번호 순서의 지지 충돌체. 각 줄은 연속된 충돌체 하나를 사용한다.")]
         [SerializeField] Collider[] sceneRopes = Array.Empty<Collider>();
+        [Tooltip("실제 착지 시 목마를 안전하게 해제할 발판. 지정하지 않으면 기존 목마 규칙을 사용한다.")]
+        [SerializeField] BoxCollider[] piggybackDismountPlatforms = Array.Empty<BoxCollider>();
         public bool UsesSceneGeometry => useSceneGeometry;
+        internal bool UsesPlatformPiggyback => useSceneGeometry && piggybackDismountPlatforms.Length > 0;
+
+        internal bool PiggybackUsesRopeBalance(NetworkPlayer carrier, bool wasOnRope)
+        {
+            if (carrier == null || carrier.State != PlayerState.Normal || !carrier.TryGetComponent(out PlayerMover mover)) return false;
+            if (!carrier.IsAirborne) return TryGetSupportingRope(mover, out _);
+            // 의도한 외줄 점프는 유지하고, 지지가 끊긴 낙하나 줄 끝 이탈은 착지 전에 끈다.
+            return wasOnRope && carrier.CurrentJump != JumpKind.Fall
+                && !PastSceneRopeEnd(carrier.transform.position, mover.BodyRadius);
+        }
+
+        internal BoxCollider PiggybackDismountSupport(NetworkPlayer carrier)
+            => FindPiggybackDismountSupport(carrier, false);
+
+        internal BoxCollider ManualPiggybackDismountSupport(NetworkPlayer carrier)
+            => FindPiggybackDismountSupport(carrier, UsesPlatformPiggyback);
+
+        BoxCollider FindPiggybackDismountSupport(NetworkPlayer carrier, bool allowOtherPlatform)
+        {
+            if (piggybackDismountPlatforms.Length == 0 || carrier == null || carrier.State != PlayerState.Normal
+                || carrier.IsAirborne || !carrier.TryGetComponent(out PlayerMover mover)
+                || !mover.Body.enabled || (carrier.IsLocal && (!mover.Simulated || mover.IsAirborne))) return null;
+
+            // 허공이나 발판 옆면은 통과하지 않는다. 줄과 발판이 맞닿는 곳에서는 실제 지지줄을 우선한다.
+            var origin = carrier.transform.position + Vector3.up * .12f;
+            foreach (var platform in piggybackDismountPlatforms)
+                if (platform != null && platform.enabled && platform.gameObject.activeInHierarchy && !platform.isTrigger
+                    && platform.Raycast(new Ray(origin, Vector3.down), out var hit, .24f) && hit.normal.y > .9f
+                    && !TryGetSupportingRope(mover, out _))
+                    return platform;
+            if (allowOtherPlatform && Physics.Raycast(origin, Vector3.down, out var floor, .24f,
+                Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore) && floor.normal.y > .99f
+                && floor.collider is BoxCollider box && !TryGetSupportingRope(mover, out _)) return box;
+            return null;
+        }
 
         /// <summary>모든 맵에서 실제 외줄 조작 중인 사람에게만 균형·부상 규칙을 적용한다.</summary>
         public bool UsesRopeRules(NetworkPlayer player)
@@ -141,6 +179,11 @@ namespace CurtainCall.Tightrope
         /// <summary>코스 오른쪽(수평, 정규화).</summary>
         public Vector3 Right => Vector3.Cross(Vector3.up, Forward);
 
+        /// <summary>등록된 코스의 줄 지지면만 식별한다. 발판·벽은 제외하며 코스 없는 씬을 탐색하지 않는다.</summary>
+        public static bool IsRopeSurface(Collider surface) => surface != null && current != null &&
+            (current.ropeSurfaces.ContainsKey(surface)
+                || current.useSceneGeometry && Array.IndexOf(current.sceneRopes, surface) >= 0);
+
         /// <summary>사망한 몸이 줄의 보행용 지지면에 걸리지 않고 아래로 떨어지게 한다. 플랫폼 충돌은 유지한다.</summary>
         public void IgnoreRopeCollision(Collider body)
         {
@@ -216,6 +259,9 @@ namespace CurtainCall.Tightrope
                 var hit = hits[i];
                 if (hit.collider == null || hit.collider.transform.IsChildOf(mover.transform)
                     || hit.distance <= .0001f) continue;
+                // 톱에 잘려 날아간 팔다리 조각은 바닥이 아니다. 발밑에 걸려 줄 조작이 풀렸다 다시 잡히면
+                // 진행 방향을 카메라 방향으로 새로 정해 뒤집힐 수 있다(2026-11-05 버그).
+                if (DismemberedLimb.Contains(hit.collider)) continue;
                 // 검사는 발보다 0.1m 위에서 시작한다. 처음부터 겹친 몸/절단 조각은
                 // 발 아래 지지면이 아니므로 거리 0의 가짜 바닥으로 선택하지 않는다.
                 int candidate = ropeSurfaces.TryGetValue(hit.collider, out int ropeLane) ? ropeLane : NoLane;
@@ -340,9 +386,36 @@ namespace CurtainCall.Tightrope
         /// <summary>자리 번호의 도착(세리머니 공간) 위치·방향. 자기 줄 자리, 도착선 뒤 세리머니 공간 가운데(최대 2m).</summary>
         public Pose GetFinishPose(int slot)
         {
-            int lane = Mathf.Max(0, slot) % LaneCount;
-            float distance = FinishDistance + Mathf.Clamp(Shape.FinishPlatformLength * 0.5f, 0.5f, 2f);
+            int available = 0;
+            for (int i = 0; i < LaneCount; i++) if (Layout.GetLaneEnd(i) >= FinishDistance) available++;
+            int lane = 0, chosen = Mathf.Max(0, slot) % Mathf.Max(1, available);
+            for (int i = 0; i < LaneCount; i++)
+                if (Layout.GetLaneEnd(i) >= FinishDistance && chosen-- == 0) { lane = i; break; }
+            float length = TryGetFinishPlatformBounds(out var floor) ? floor.size.z : Shape.FinishPlatformLength;
+            float distance = FinishDistance + Mathf.Clamp(length * 0.5f, 0.5f, 2f);
             return new Pose(GetLanePosition(lane, distance), Quaternion.LookRotation(Forward, Vector3.up));
+        }
+
+        /// <summary>런타임 도착대 가로/길이 배율. 공연 기본값은 1이며 출발대·중간 발판은 바꾸지 않는다.</summary>
+        public float FinishPlatformScale { get; set; } = 1f;
+
+        /// <summary>도착대의 코스 좌표 경계. 메시·충돌체·리허설 도착/벽 판정이 같은 치수를 사용한다.</summary>
+        public bool TryGetFinishPlatformBounds(out Bounds floor)
+        {
+            var l = Layout;
+            float min = float.MaxValue, max = float.MinValue;
+            for (int lane = 0; lane < l.LaneCount; lane++)
+            {
+                if (l.GetLaneEnd(lane) < l.FinishDistance) continue;
+                min = Mathf.Min(min, l.GetLaneSide(lane)); max = Mathf.Max(max, l.GetLaneSide(lane));
+            }
+            floor = default;
+            if (min > max) return false;
+            float scale = float.IsFinite(FinishPlatformScale) ? Mathf.Max(.1f, FinishPlatformScale) : 1f;
+            float length = Shape.FinishPlatformLength * scale;
+            floor = new Bounds(new Vector3((min + max) * .5f, -Shape.PlatformThickness * .5f, l.FinishDistance + length * .5f),
+                new Vector3((max - min + Shape.SideMargin * 2f) * scale, Shape.PlatformThickness, length));
+            return true;
         }
 
         /// <summary>위치가 도착 거리에 닿았는지.</summary>
@@ -377,6 +450,7 @@ namespace CurtainCall.Tightrope
         {
             if (current == this) current = null;
             GameSettings.Tightrope.Changed -= HandleSettingsChanged;
+            ReleaseModelGrounding();
         }
 
         /// <summary>세팅이 바뀌면 다음 프레임에 다시 읽는다. 잠겨 있으면 풀릴 때 읽는다.</summary>
@@ -402,6 +476,7 @@ namespace CurtainCall.Tightrope
             }
             ApplyLaneSpacing();
             CheckLocalFall();
+            GroundPlayerModels();
         }
 
         /// <summary>
@@ -425,16 +500,17 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive) return;
             var player = NetworkPlayer.Local;
-            // 연습 모드는 줄 아래 바닥에 닿으며 일반 이동으로 바뀌어도 추락을 놓치지 않는다.
-            // 그렇지 않으면 상태가 Normal인 채 바닥에 남아 리허설 재시작을 받을 수 없다.
-            var practice = GetComponent<TightropeRun>();
-            if (!UsesRopeRules(player) && !(practice != null && practice.PracticeMode
-                && practice.State == TightropeRunState.Running)) return;
+            // 단일 높이의 공연/리허설은 줄 밖 바닥에서도 낙사를 검사한다.
+            // 복합 씬의 일반 이동은 낮은 대포대·정비대·그네 인계도 포함하므로
+            // 옆의 외줄 높이를 적용하지 않는다. 허공 낙사는 씬의 낙사 영역이 맡는다.
+            var run = GetComponent<TightropeRun>();
+            if (!UsesRopeRules(player) && (useSceneGeometry || run == null || run.State != TightropeRunState.Running)) return;
             if (TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)) return;
             if (TightropeRelayGate.Current != null && TightropeRelayGate.Current.IsHeld(player)) return;
             if (TightropeTrapeze.Current != null && TightropeTrapeze.Current.IsCrossing(player)) return;
             if (TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(player)) return; // 줄 아래에 매달려 버티는 중
             if (player == null || player.State != PlayerState.Normal) return;
+            if (PiggybackSystem.Current != null && PiggybackSystem.Current.HasDismountSupport(player)) return;
             if (!player.TryGetComponent(out PlayerMover mover) || !IsBelowFallDepth(mover)) return;
 
             if (player.TryGetComponent(out PlayerBalance balance) && balance.enabled)
@@ -582,23 +658,13 @@ namespace CurtainCall.Tightrope
             BuildSectionSigns();
 
             // 도착 선과 도착 플랫폼: 도착까지 가는 줄들을 덮는다
-            float finishMin = float.MaxValue, finishMax = float.MinValue;
-            for (int lane = 0; lane < l.LaneCount; lane++)
+            if (TryGetFinishPlatformBounds(out var finishFloor))
             {
-                if (l.GetLaneEnd(lane) < l.FinishDistance) continue;
-                finishMin = Mathf.Min(finishMin, l.GetLaneSide(lane));
-                finishMax = Mathf.Max(finishMax, l.GetLaneSide(lane));
-            }
-            if (finishMin <= finishMax)
-            {
-                float finishWidth = finishMax - finishMin + c.SideMargin * 2f;
-                float center = (finishMin + finishMax) * 0.5f;
-                CreateBox("FinishLine", new Vector3(center, 0.01f, l.FinishDistance),
-                    new Vector3(finishWidth, 0.02f, 0.1f), finishColor, false);
+                CreateBox("FinishLine", new Vector3(finishFloor.center.x, 0.01f, l.FinishDistance),
+                    new Vector3(finishFloor.size.x, 0.02f, 0.1f), finishColor, false);
                 if (c.FinishPlatformLength > 0f)
                 {
-                    var finishPlatform = CreateBox("FinishPlatform", new Vector3(center, -c.PlatformThickness * 0.5f, l.FinishDistance + c.FinishPlatformLength * 0.5f),
-                        new Vector3(finishWidth, c.PlatformThickness, c.FinishPlatformLength), platformColor, true);
+                    var finishPlatform = CreateBox("FinishPlatform", finishFloor.center, finishFloor.size, platformColor, true);
                     TightropeOutline.AttachToHierarchy(finishPlatform);
                 }
             }

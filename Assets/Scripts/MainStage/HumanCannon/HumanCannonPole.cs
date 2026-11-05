@@ -55,6 +55,7 @@ namespace CurtainCall.HumanCannon
         public float FlightSpeedLimit(float sharedLimit) => releaseHorizontalSpeedLimit > 0f ? releaseHorizontalSpeedLimit : sharedLimit;
         public float MaxReleaseUpwardSpeed => maxReleaseUpwardSpeed;
         public float HangLength => hangLength;
+        internal float MaxSwingAngle => maxSwingAngle;
         public int RiderCapacity => linkedGate != null ? 1 : Mathf.Clamp(riderCapacity, 1, PoleGateState.MaxRiders);
         public float RiderSpacing => Mathf.Max(0.65f, riderSpacing);
         public Vector3 Forward => Vector3.ProjectOnPlane(Grip.forward, Vector3.up).normalized;

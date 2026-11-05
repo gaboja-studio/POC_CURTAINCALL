@@ -7,11 +7,14 @@ namespace CurtainCall.EscapeRoute
     public sealed class EscapeFacilityMotion : MonoBehaviour
     {
         [SerializeField] AnimationClip motion;
+        [SerializeField, Min(.01f)] float playbackSpeed = 1f;
         [SerializeField] EscapeCooperativeSpan bridge;
         [SerializeField] HumanCannonHazardCue flame;
         [SerializeField] EscapeExitSaw exit;
         [SerializeField] ParticleSystem brakeSparks;
         [SerializeField] ParticleSystem pressureRelease;
+        [SerializeField] Transform flywheel;
+        [SerializeField] Transform hoistCable, bridgeAnchor;
 
         Bounds installationBounds;
         float previous = -1f;
@@ -52,10 +55,20 @@ namespace CurtainCall.EscapeRoute
 
         void PresentVisible(HumanCannonHazardCourse course, double clock, float deltaTime)
         {
+            // Scale the decorative timeline, never the gameplay clock or bridge deployment.
+            clock *= playbackSpeed;
+            deltaTime *= playbackSpeed;
             float phase;
             if (bridge)
             {
                 phase = bridge.DeploymentFraction;
+                if (flywheel) flywheel.localRotation = Quaternion.AngleAxis((float)(clock % 18d) * 20f, Vector3.right);
+                if (hoistCable && bridgeAnchor && phase != previous)
+                {
+                    Vector3 span = hoistCable.parent.InverseTransformPoint(bridgeAnchor.position) - hoistCable.localPosition;
+                    hoistCable.localRotation = Quaternion.FromToRotation(Vector3.up, span);
+                    hoistCable.localScale = new Vector3(1f, span.magnitude, 1f);
+                }
                 if (phase > 0 && phase < 1) sawBridgeMoving = true;
                 if (phase >= 1 && sawBridgeMoving && brakeSparks) brakeSparks.Emit(12);
                 if (phase <= 0 || phase >= 1) sawBridgeMoving = false;

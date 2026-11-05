@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.HumanCannon;
+using CurtainCall.Cameras;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Network.Session;
 using CurtainCall.Player;
@@ -11,12 +12,14 @@ using UnityEngine;
 
 namespace CurtainCall.EscapeRoute
 {
-    /// <summary>외줄 한 줄씩의 공유 소실, 하부 작업자 한 명과 상부 복귀 버튼. 이동·반동은 원본 기물을 사용한다.</summary>
+    /// <summary>외줄 전체의 공유 전기 예고와 소실, 하부 작업자 한 명과 상부 복귀 버튼. 이동·반동은 원본 기물을 사용한다.</summary>
     [DefaultExecutionOrder(-70)] // 줄타기/균형 판정 전에 지지 소실과 조작 반환을 적용한다.
     public sealed class EscapeCooperativeRopes : MonoBehaviour
     {
         [SerializeField] Collider[] ropeSupports = Array.Empty<Collider>();
         [SerializeField] Renderer[] ropeVisuals = Array.Empty<Renderer>();
+        [SerializeField] LineRenderer[] warningArcs = Array.Empty<LineRenderer>();
+        [Min(.1f), SerializeField] float warningSeconds = 2f;
         [SerializeField] Transform button;
         [SerializeField] GameObject returnGate;
         [SerializeField] CourseControlSwitcher switcher;
@@ -39,9 +42,8 @@ namespace CurtainCall.EscapeRoute
         uint revision, sequence;
         bool synchronized;
         bool[] initialSupports, initialVisuals;
-        int[] visualSupports, timedSupports;
-        int hiddenRope = -1, selectedRope = -1;
-        long selectedCycle = -1;
+        enum RopePhase { Visible, Flash, Hidden }
+        RopePhase phase;
         ulong workerOwner = CannonSeatState.Nobody;
         uint pendingOverflow, firstOverflowRequest;
         bool initialGate, initialLowerGate;
@@ -54,9 +56,65 @@ namespace CurtainCall.EscapeRoute
         public bool ReturnOpen { get; private set; }
         public bool IsReady => isActiveAndEnabled && synchronized && !resetBarrier.Waiting
             && session != null && session.GameState == GameSessionState.Playing;
-        public bool RopesPresent => hiddenRope < 0;
-        public int HiddenRopeIndex => hiddenRope;
+        public bool RopesPresent => phase != RopePhase.Hidden;
+        public bool WarningLit => phase == RopePhase.Flash;
         public ulong WorkerOwner => workerOwner;
+        CharacterController passBody;
+        readonly HashSet<Collider> ignoredFromBelow = new();
+        CameraViewDirector sectionCamera;
+
+        public bool IsTimedSupport(Collider surface) => Array.IndexOf(ropeSupports, surface) >= 0;
+
+        void UpdateTraversal(NetworkPlayer player)
+        {
+            var body = player != null && player.State == PlayerState.Normal && player.TryGetComponent(out PlayerMover mover)
+                ? mover.Body : null;
+            UpdatePassThrough(body);
+            // Keep one orbit preset through the stairs, bounce and rope-control handoff.
+            var camera = body != null && lowerWorkerBounds != null && dropBounds != null ? CameraViewDirector.Current : null;
+            if (camera != null)
+            {
+                var zone = lowerWorkerBounds.bounds;
+                zone.Encapsulate(dropBounds.bounds);
+                zone.Expand(new Vector3(6, 14, 4));
+                if (!zone.Contains(body.transform.position) || camera.LocalPlayer != player) camera = null;
+            }
+            if (sectionCamera == camera) return;
+            if (sectionCamera != null) sectionCamera.ReleaseView(this);
+            sectionCamera = camera;
+            if (camera != null && camera.Settings != null)
+                camera.RequestView(this, camera.Settings.DefaultThirdPerson, 210);
+        }
+
+        void UpdatePassThrough(CharacterController body)
+        {
+            if (passBody != body)
+            {
+                if (passBody != null)
+                    foreach (var support in ignoredFromBelow)
+                        if (support != null) Physics.IgnoreCollision(passBody, support, false);
+                ignoredFromBelow.Clear();
+                passBody = body;
+            }
+            if (body == null || !body.enabled) return;
+            var capsule = body.bounds;
+            foreach (var support in ropeSupports)
+            {
+                if (support == null || !support.enabled || !support.gameObject.activeInHierarchy) continue;
+                var bounds = support.bounds;
+                float releaseHeight = body.velocity.y > 0f || ignoredFromBelow.Contains(support) ? bounds.max.y : bounds.min.y;
+                bool below = capsule.min.y < releaseHeight - .025f && capsule.max.y > bounds.min.y - 2f
+                    && capsule.min.x < bounds.max.x + .5f && capsule.max.x > bounds.min.x - .5f
+                    && capsule.min.z < bounds.max.z + .5f && capsule.max.z > bounds.min.z - .5f;
+                if (below && !Physics.GetIgnoreCollision(body, support))
+                {
+                    Physics.IgnoreCollision(body, support);
+                    ignoredFromBelow.Add(support);
+                }
+                else if (!below && ignoredFromBelow.Remove(support))
+                    Physics.IgnoreCollision(body, support, false);
+            }
+        }
 
         void OnEnable()
         {
@@ -66,11 +124,8 @@ namespace CurtainCall.EscapeRoute
             for (int i = 0; i < ropeSupports.Length; i++) initialSupports[i] = ropeSupports[i] != null && ropeSupports[i].enabled;
             initialVisuals = new bool[ropeVisuals.Length];
             for (int i = 0; i < ropeVisuals.Length; i++) initialVisuals[i] = ropeVisuals[i] != null && ropeVisuals[i].enabled;
-            var active = new List<int>();
-            for (int i = 0; i < initialSupports.Length; i++) if (initialSupports[i]) active.Add(i);
-            timedSupports = active.ToArray();
-            MapRopeVisuals();
-            hiddenRope = selectedRope = -1; selectedCycle = -1;
+            phase = RopePhase.Visible;
+            SetWarning(false);
             initialGate = returnGate != null && returnGate.activeSelf;
             initialLowerGate = lowerEntryGate != null && lowerEntryGate.activeSelf;
             NetworkPlayer.Restarted += Restart;
@@ -82,7 +137,8 @@ namespace CurtainCall.EscapeRoute
             Attach();
             var hazards = HumanCannonHazardCourse.Current;
             bool timed = synchronized && !resetBarrier.Waiting && hazards != null && hazards.IsSynchronized;
-            SetHiddenRope(timed ? HiddenRopeAt(hazards.Elapsed) : -1);
+            SetPhase(timed ? PhaseAt(hazards.Elapsed) : RopePhase.Visible);
+            UpdateTraversal(NetworkPlayer.Local);
             if (session != null && session.IsHost && synchronized && !resetBarrier.Waiting
                 && resetFrame != Time.frameCount) RefreshWorker();
             ReturnOverflow();
@@ -105,110 +161,47 @@ namespace CurtainCall.EscapeRoute
             return EscapeSwitchInteraction.InRange(player, button, buttonDistance);
         }
 
-        int HiddenRopeAt(double elapsed)
+        RopePhase PhaseAt(double elapsed)
         {
-            if (!double.IsFinite(elapsed) || elapsed < 0 || timedSupports == null || timedSupports.Length == 0) return -1;
-            double on = Math.Max(.1, visibleSeconds), period = on + Math.Max(.1, hiddenSeconds);
-            double cycle = Math.Floor(elapsed / period);
-            if (!double.IsFinite(cycle) || cycle >= long.MaxValue || elapsed % period < on) return -1;
-            if (selectedCycle != (long)cycle)
-            {
-                selectedCycle = (long)cycle;
-                selectedRope = timedSupports[SelectRope(selectedCycle, timedSupports.Length)];
-            }
-            return selectedRope;
+            if (!double.IsFinite(elapsed) || elapsed < 0d) return RopePhase.Visible;
+            double visible = Math.Max(.1d, visibleSeconds);
+            double t = elapsed % (visible + Math.Max(.1d, hiddenSeconds));
+            if (t >= visible) return RopePhase.Hidden;
+            double warning = Math.Clamp(warningSeconds, .1d, visible);
+            double progress = (t - (visible - warning)) / warning;
+            if (progress < 0d) return RopePhase.Visible;
+            // Three pulses in the last part of the visible window. Collision stays on throughout.
+            return (int)(progress * 6d) % 2 == 0 ? RopePhase.Flash : RopePhase.Visible;
         }
 
-        // Each block uses every rope once. Swapping only the first two entries preserves the
-        // previous block's last entry, so late joiners need no history to avoid boundary repeats.
-        static int SelectRope(long cycle, int count)
+        void SetWarning(bool lit)
         {
-            if (count <= 1) return 0;
-            if (count == 2) return (int)(cycle & 1L);
-            long block = cycle / count;
-            var order = RopeOrder(block, count);
-            if (block > 0 && order[0] == RopeOrder(block - 1, count)[count - 1])
-                (order[0], order[1]) = (order[1], order[0]);
-            return order[(int)(cycle % count)];
+            for (int i = 0; i < warningArcs.Length; i++)
+                if (warningArcs[i] != null)
+                    warningArcs[i].enabled = lit && i < initialSupports.Length && initialSupports[i];
         }
 
-        static int[] RopeOrder(long block, int count)
+        void SetPhase(RopePhase next)
         {
-            var order = new int[count];
-            for (int i = 0; i < count; i++) order[i] = i;
-            ulong state = unchecked((ulong)block + 0x9E3779B97F4A7C15UL);
-            for (int i = count - 1; i > 0; i--)
-            {
-                state = unchecked(state + 0x9E3779B97F4A7C15UL);
-                ulong value = state;
-                value = unchecked((value ^ (value >> 30)) * 0xBF58476D1CE4E5B9UL);
-                value = unchecked((value ^ (value >> 27)) * 0x94D049BB133111EBUL);
-                int other = (int)((value ^ (value >> 31)) % (ulong)(i + 1));
-                (order[i], order[other]) = (order[other], order[i]);
-            }
-            return order;
-        }
-
-        void MapRopeVisuals()
-        {
-            visualSupports = new int[ropeVisuals.Length];
-            for (int i = 0; i < ropeVisuals.Length; i++)
-            {
-                visualSupports[i] = -1;
-                var visual = ropeVisuals[i];
-                if (visual == null) continue;
-                float nearest = float.PositiveInfinity;
-                for (int rope = 0; rope < ropeSupports.Length; rope++)
-                {
-                    var support = ropeSupports[rope];
-                    if (support == null) continue;
-                    if (visual.transform.IsChildOf(support.transform)
-                        || visual.transform.parent == support.transform.parent
-                        && visual.name.StartsWith(support.name + " ", StringComparison.Ordinal))
-                    { visualSupports[i] = rope; break; }
-                    // CompletionRope's sockets are siblings with a common name, not children.
-                    float distance = VisualDistance(support, visual.bounds.center);
-                    if (distance >= nearest) continue;
-                    nearest = distance; visualSupports[i] = rope;
-                }
-            }
-        }
-
-        static float VisualDistance(Collider support, Vector3 point)
-        {
-            // Disabled BoxColliders still own their sockets; Collider.ClosestPoint cannot
-            // locate them after a support has been authored disabled.
-            if (support is BoxCollider box)
-            {
-                var local = box.transform.InverseTransformPoint(point) - box.center;
-                var half = box.size * .5f;
-                local = new Vector3(Mathf.Clamp(local.x, -half.x, half.x), Mathf.Clamp(local.y, -half.y, half.y),
-                    Mathf.Clamp(local.z, -half.z, half.z));
-                return (box.transform.TransformPoint(box.center + local) - point).sqrMagnitude;
-            }
-            return support.enabled && support.gameObject.activeInHierarchy
-                ? (support.ClosestPoint(point) - point).sqrMagnitude : float.PositiveInfinity;
-        }
-
-        void SetHiddenRope(int index)
-        {
-            if (hiddenRope == index) return;
+            if (phase == next) return;
+            bool changeSupport = (phase == RopePhase.Hidden) != (next == RopePhase.Hidden);
+            phase = next;
+            if (session != null && session.IsHost) foreach(var support in ropeSupports) if(support!=null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(null,support,"VANISHING_ROPE",next.ToString(),support.transform.position,true);
+            SetWarning(next == RopePhase.Flash);
+            if (!changeSupport) return;
             var local = NetworkPlayer.Local;
             var mover = local != null ? local.GetComponent<PlayerMover>() : null;
-            if (ApplyRopeVisibility(index, mover)) switcher?.ReleaseForAuthoredDrop();
+            if (ApplyRopeVisibility(next != RopePhase.Hidden, mover)) switcher?.ReleaseForAuthoredDrop();
         }
 
-        bool ApplyRopeVisibility(int index, PlayerMover mover)
+        bool ApplyRopeVisibility(bool present, PlayerMover mover)
         {
             var course = switcher != null ? switcher.GetComponent<TightropeCourse>() : null;
-            bool supported = index >= 0 && course != null && course.TryGetSupportingRope(mover, out _);
-            hiddenRope = index;
+            bool supported = !present && course != null && course.TryGetSupportingRope(mover, out _);
             for (int i = 0; i < ropeSupports.Length; i++)
-                if (ropeSupports[i] != null) ropeSupports[i].enabled = i != index && initialSupports[i];
+                if (ropeSupports[i] != null) ropeSupports[i].enabled = present && initialSupports[i];
             for (int i = 0; i < ropeVisuals.Length; i++)
-                if (ropeVisuals[i] != null) ropeVisuals[i].enabled = (index < 0 || visualSupports[i] != index) && initialVisuals[i];
-            // Query the actual support before and after removal. Someone on a different live
-            // rope (or an overlapping platform) keeps their controls, even inside dropBounds.
+                if (ropeVisuals[i] != null) ropeVisuals[i].enabled = present && initialVisuals[i];
             return supported && !course.TryGetSupportingRope(mover, out _);
         }
 
@@ -361,6 +354,7 @@ namespace CurtainCall.EscapeRoute
             NetworkPlayer player = null;
             foreach (var candidate in NetworkPlayer.All) if (candidate.OwnerClientId == actor) { player = candidate; break; }
             if (!CanUseButton(player)) return;
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(player,button,"RETURN_LEVER","ACTIVATED",ButtonPoint,true);
             SetGate(true); revision++; Publish();
         }
 
@@ -407,12 +401,12 @@ namespace CurtainCall.EscapeRoute
             {
                 if (resetFrame == Time.frameCount) return;
                 resetFrame = Time.frameCount;
-                SetGate(false); SetWorker(CannonSeatState.Nobody); SetHiddenRope(-1);
+                SetGate(false); SetWorker(CannonSeatState.Nobody); SetPhase(RopePhase.Visible);
                 pendingOverflow = firstOverflowRequest = 0; nextOverflowRequest = 0; revision++; Publish();
             }
             else if (player.IsLocal)
             {
-                synchronized = false; SetGate(false); SetWorker(CannonSeatState.Nobody); SetHiddenRope(-1);
+                synchronized = false; SetGate(false); SetWorker(CannonSeatState.Nobody); SetPhase(RopePhase.Visible);
                 pendingOverflow = firstOverflowRequest = 0; nextOverflowRequest = 0;
                 SendRequest(0, 0, resetBarrier.Begin());
             }
@@ -428,12 +422,13 @@ namespace CurtainCall.EscapeRoute
             messaging = null; session = null; synchronized = false;
             revision = sequence = 0; requests.Clear(); resetBarrier.Clear();
             pendingOverflow = firstOverflowRequest = 0; nextOverflowRequest = 0;
-            SetGate(false); SetWorker(CannonSeatState.Nobody); SetHiddenRope(-1);
+            SetGate(false); SetWorker(CannonSeatState.Nobody); SetPhase(RopePhase.Visible);
         }
 
         void OnDisable()
         {
             if (Current != this) return;
+            UpdateTraversal(null);
             NetworkPlayer.Restarted -= Restart; Detach();
             if (returnGate != null) returnGate.SetActive(initialGate);
             if (lowerEntryGate != null) lowerEntryGate.SetActive(initialLowerGate);

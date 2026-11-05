@@ -1,4 +1,5 @@
 using CurtainCall.Network.Session;
+using CurtainCall.Network.PlayerSync;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -52,6 +53,7 @@ namespace CurtainCall.Tightrope
             {
                 if (Now < nextRequestAt) return;
                 nextRequestAt = Now + .2;
+                if(NetworkPlayer.Local!=null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(NetworkPlayer.Local,this,"GLOVE_CATCH","ATTEMPT",NetworkPlayer.Local.transform.position);
             }
             if (session.IsHost) { ServerHandle(session.NetworkManager.LocalClientId, request, target); return; }
             using var writer = new FastBufferWriter(13, Allocator.Temp);

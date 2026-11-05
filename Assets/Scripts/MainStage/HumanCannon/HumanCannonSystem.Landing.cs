@@ -51,6 +51,7 @@ namespace CurtainCall.HumanCannon
         /// </summary>
         public static void ServerFallInjury(NetworkPlayer player)
         {
+            if (Current != null && Current.PracticeMode) { ServerFallDeath(player); return; }
             if (player == null || !player.IsServer || player.State != PlayerState.Normal
                 || EscapeDevelopmentSession.FallInjuriesSuppressed(player)) return;
             // 추락 야유를 먼저 알리고 절단한다. 절단으로 사망하면 그 뒤 호응도는 고정된다.
@@ -58,7 +59,7 @@ namespace CurtainCall.HumanCannon
                 foreach (Action<ulong> observer in ServerFell.GetInvocationList())
                     try { observer(player.OwnerClientId); }
                     catch (Exception error) { Debug.LogException(error); }
-            player.ServerCut(FallCuts);
+            player.ServerCut(FallCuts,null,NetworkPlayer.DeathOrigin.Fall);
         }
 
         /// <summary>
@@ -68,12 +69,13 @@ namespace CurtainCall.HumanCannon
         public static void ServerFallDeath(NetworkPlayer player)
         {
             if (player == null || !player.IsServer || player.State != PlayerState.Normal
+                || (Current != null && !Current.IsPracticeReady(player.OwnerClientId))
                 || EscapeDevelopmentSession.FallConsequencesSuppressed(player)) return;
             if (ServerFell != null)
                 foreach (Action<ulong> observer in ServerFell.GetInvocationList())
                     try { observer(player.OwnerClientId); }
                     catch (Exception error) { Debug.LogException(error); }
-            player.ServerKill();
+            player.ServerKill(NetworkPlayer.DeathOrigin.MapExit);
         }
 
         /// <summary>호스트: 스프링 신발이 추락 부상 대신 반동시켰다(접속 번호). 관찰·테스트용.</summary>
@@ -86,6 +88,7 @@ namespace CurtainCall.HumanCannon
         /// </summary>
         bool TrySpringRebound(NetworkPlayer player, int index, uint revision, uint segment, Vector3 contact)
         {
+            if (PracticeMode) return false;
             var carry = PropCarry.Instance;
             ulong actor = player.OwnerClientId;
             if (carry == null || player.State != PlayerState.Normal || !carry.EquipmentReady(actor, ItemUses.SpringShoes)) return false;
@@ -207,6 +210,7 @@ namespace CurtainCall.HumanCannon
         {
             if (!flying.TryComplete(actor, index, revision, segment)) return;
             if (boundPlayer == null || actor != boundPlayer.OwnerClientId) return;
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(boundPlayer,this,"LANDING",safe?"SAFE":"UNSAFE",boundPlayer.transform.position);
             LocalLastStation = index;
             if (safe) LocalSafeLandingCount++;
             if (pilot != null) pilot.CompleteLanding(index, revision, segment);

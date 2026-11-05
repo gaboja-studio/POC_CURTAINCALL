@@ -15,7 +15,7 @@ namespace CurtainCall.Tightrope
         [Tooltip("공중그네 봉 위에 봉 이름·잡기 안내·유지 시간 문구를 띄운다. 꺼도 봉 색과 HUD 안내는 유지한다.")]
         [SerializeField] bool showPoleLabels;
         Transform trapezeViewRoot;
-        readonly PoleView[] views = new PoleView[PoleTotal];
+        readonly PoleView[] views = new PoleView[MaxPoleTotal];
         Material trapezeMaterial;
         TMP_FontAsset trapezeRuntimeFont;
         MaterialPropertyBlock trapezeTint;
@@ -34,9 +34,19 @@ namespace CurtainCall.Tightrope
             {
                 var local = NetworkPlayer.Local;
                 if (!Active || local == null) return null;
+                if (practiceLowPoles)
+                {
+                    int held = HeldPole(local);
+                    if (held >= 0) return held + 1 < PoleTotal
+                        ? "W/S로 반동 · Space로 도약 · 다음 봉 가까이에서 F 잡기"
+                        : "W/S로 반동 · Space로 건너편 줄에 착지";
+                    if (IsInFlight(local)) return "WASD로 공중 조절 · 다음 봉 가까이에서 F · 건너편 줄에 착지하세요";
+                    return "줄 끝에서 F로 인간 그네 잡기";
+                }
                 if (FindHeld(local, out int index, out bool lower))
                 {
-                    string time = $" · 유지 {Mathf.Max(0f, (float)(poles[index].Until - Clock)):0.0}초";
+                    if (PoleTotal == 2 && index == 1) return "다음 봉 잡기 성공 · 연습을 마치고 도착대로 이동합니다";
+                    string time = HoldTimeLimited ? $" · 유지 {Mathf.Max(0f, (float)(poles[index].Until - Clock)):0.0}초" : "";
                     if (lower) return "동료 몸에 매달렸어요 · 반동에 맞춰 Space로 먼저 날아가기\n공중 WASD 조절 · 다음 봉에 가까워지면 F 잡기" + time;
                     if (poles[index].Lower != Nobody)
                         return "W/S로 두 사람 반동 키우기 · 아래 동료가 Space로 먼저 날아가요\n아래 동료가 놓은 뒤 Space로 따라가기 · 다음 봉의 동료 몸을 F로 잡기" + time;
@@ -50,7 +60,8 @@ namespace CurtainCall.Tightrope
                         if (CanGrab(local, i)) return $"지금 F! {i + 1}번째 봉을 잡을 수 있어요 · 공중 WASD 조절";
                         if (CanAttach(local, i)) return "지금 F! 먼저 간 동료의 몸에 매달릴 수 있어요 · 공중 WASD 조절";
                     }
-                    return "공중 WASD 조절 · 다음 봉 또는 먼저 간 동료 몸에 가까이 가서 F\n마지막 낮은 봉에서는 혼자 줄로 내려올 수 있어요";
+                    return PoleTotal == 2 ? "공중 WASD 조절 · 다음 봉에 가까이 가서 F로 잡으세요"
+                        : "공중 WASD 조절 · 다음 봉 또는 먼저 간 동료 몸에 가까이 가서 F\n마지막 낮은 봉에서는 혼자 줄로 내려올 수 있어요";
                 }
                 float distance = course.GetDistance(local.transform.position);
                 if (distance < course.TrapezeGapFrom - 7f || distance > course.TrapezeGapTo + 4f) return null;
@@ -61,6 +72,7 @@ namespace CurtainCall.Tightrope
                 }
                 return distance < course.TrapezeGapFrom
                     ? "공중그네 · 봉 가까이에서 F로 잡기 · 점프 중에도 F 잡기\n동료 몸에도 가까이에서 F로 매달릴 수 있어요"
+                    : PoleTotal == 2 ? "첫 봉에서 도약해 다음 봉을 F로 잡으면 학습 완료입니다"
                     : "먼저 착지했다면 F로 동료 받기 준비 · 남은 동료는 마지막 낮은 봉으로 이동";
             }
         }
@@ -82,7 +94,7 @@ namespace CurtainCall.Tightrope
                 Vector3 side = course.Right * .65f;
                 bool occupied = state.Upper != Nobody;
                 float left = Mathf.Max(0f, (float)(state.Until - Clock));
-                Color color = occupied && left < 5f ? new Color(1f, .5f, .1f)
+                Color color = occupied && HoldTimeLimited && left < 5f ? new Color(1f, .5f, .1f)
                     : CanGrab(local, i) || CanAttach(local, i) ? Color.green : i == 2 ? new Color(.3f, 1f, .5f) : Color.cyan;
                 DrawLine(view.Bar, grip - side, grip + side, color);
                 DrawLine(view.LeftCable, pivot - side, grip - side, color);
@@ -92,7 +104,7 @@ namespace CurtainCall.Tightrope
                 view.Label.gameObject.SetActive(showPoleLabels);
                 if (!showPoleLabels) continue;
                 view.Label.text = i == 0 ? "1 · 출발 봉" : i == 1 ? "2 · 동료와 교대하는 봉" : "3 · 혼자 내려오는 낮은 봉";
-                view.Label.text += occupied ? $"\n{(state.Lower == Nobody ? "1" : "2")}명 · {left:0.0}초"
+                view.Label.text += occupied ? $"\n{(state.Lower == Nobody ? "1" : "2")}명" + (HoldTimeLimited ? $" · {left:0.0}초" : "")
                     : "\n가까이에서 F 잡기 · 점프 중에도 가능";
                 view.Label.color = color; view.Label.transform.position = pivot + Vector3.up * .65f;
                 if (camera != null) view.Label.transform.rotation = camera.transform.rotation;

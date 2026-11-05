@@ -74,6 +74,7 @@ namespace CurtainCall.Tightrope
 
         void Send(Request request, ulong target = 0, int lane = -1, float distance = 0f)
         {
+            if(request==Request.Rescue && NetworkPlayer.Local!=null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(NetworkPlayer.Local,this,"RESCUE","ATTEMPT:"+target,NetworkPlayer.Local.transform.position);
             if (session == null || messaging == null) return;
             if (session.IsHost) { ServerHandle(session.NetworkManager.LocalClientId, request, target, lane, distance); return; }
             using var writer = new FastBufferWriter(RequestSize, Allocator.Temp);

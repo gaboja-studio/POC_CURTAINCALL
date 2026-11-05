@@ -18,32 +18,45 @@
 .calendar-grid button:disabled{opacity:.3;cursor:default}.calendar-grid .selected{background:#2f5367;color:white}
 #survey-status{margin-top:22px;clear:both}#survey-responses{margin-top:18px}
 #fund-interval-tabs{margin:12px 0 8px}.session-controls{row-gap:12px}
+
+/* Replace stale panel content while its request is outstanding; keep the run picker available. */
+.panel.is-reading:not([hidden]){min-height:170px;display:grid;place-items:center}
+.panel.is-reading > :not(.reading-status){display:none!important}
+.reading-status{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;color:#496471;min-height:128px;font-size:.86rem}
+.dot-wheel{position:relative;width:34px;height:34px;animation:read-spin 1s steps(8,end) infinite}
+.dot-wheel i{position:absolute;left:14px;top:14px;width:6px;height:6px;border-radius:50%;background:currentColor;transform:rotate(calc(var(--i)*45deg)) translateY(-13px);opacity:calc((var(--i) + 1)/8)}
+@keyframes read-spin{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.dot-wheel{animation:none}}
+#waiting-observations:not([hidden]){margin:20px 0}#waiting-observations .scroll{max-height:270px;overflow:auto}.attempt-card>small,.attempt-card>span{display:block}
+main.awaiting-scope > .group,main.awaiting-scope > .metrics,main.awaiting-scope .session-controls,main.awaiting-scope #room-run-tabs,main.awaiting-scope #management,main.awaiting-scope > .summary{display:none}
 </style></head><body><header><div class="brand">CURTAINCALL / PLAYTEST OBSERVATORY</div><h1>무대 뒤의 기록</h1><div class="account-area"><span id="greeting"></span><button id="logout" hidden>로그아웃</button></div></header>
-<section id="login-panel" class="login-panel" hidden><h2>대시보드 접속</h2><p class="reading-note">등록된 Google 계정 이메일로 인증번호를 받아 주세요.</p><label>이메일 <input id="login-email" type="email" autocomplete="email"></label><button id="login-send">인증 메일 받기</button><label>8자리 인증번호 <input id="login-code" inputmode="numeric" maxlength="8" autocomplete="one-time-code"></label><button id="login-confirm" class="primary">접속</button><p id="login-status" role="status"></p></section><main id="dashboard-main" hidden>
-<div class="toolbar"><label>환경 <select id="environment"><option value="LIVE">실제 플레이</option><option value="TEST">검증용 데이터</option></select></label><label>게임 버전 <select id="game-version"><option value="0.1.0">0.1.0</option></select></label><div class="toolbar-right"><span id="updated" class="stamp">최초 조회 대기</span><button id="refresh" class="primary">지금 갱신</button></div></div><div id="status" class="status" role="status" aria-live="polite">통계 불러오는 중…</div>
-<details id="management" class="panel management" hidden><summary>관리자 · 보관 / 멤버 / 기록 삭제</summary><div class="admin-grid">
+<section id="login-panel" class="login-panel" hidden><h2>대시보드 접속</h2><p class="reading-note">등록된 Google 계정 이메일로 인증번호를 받아 주세요.</p><label>이메일 <input id="login-email" type="email" autocomplete="email"></label><button id="login-send">인증 메일 받기</button><label>8자리 인증번호 <input id="login-code" inputmode="numeric" maxlength="8" autocomplete="one-time-code"></label><button id="login-confirm" class="primary">접속</button><p id="login-status" role="status"></p></section><main id="dashboard-main" class="awaiting-scope" hidden>
+<div class="toolbar"><label>환경 <select id="environment"><option value="">환경 선택</option><option value="LIVE">실제 플레이</option><option value="TEST">검증용 데이터</option></select></label><label>게임 버전 <select id="game-version"><option value="">환경을 먼저 선택하세요</option></select></label><div class="toolbar-right"><span id="updated" class="stamp">최초 조회 대기</span><button disabled id="refresh" class="primary">지금 갱신</button></div></div><div id="status" class="status" role="status" aria-live="polite">환경과 게임 버전을 선택한 뒤 갱신하세요.</div>
+<div class="controls session-controls scope-results"><details id="timeline-calendar" class="date-filter"><summary id="timeline-date-label">달력 · 모든 날짜</summary><div id="timeline-date-panel" class="calendar-panel"></div></details><input id="timeline-search" type="search" class="run-search" placeholder="방·런 번호·세션 ID 검색" aria-label="전체 통계 세션 검색"><label>세션 <select id="timeline-run" aria-label="전체 통계 세션 선택"></select></label><span id="timeline-session" class="quiet"></span></div><div id="room-run-tabs" class="tabs pill day-tabs" role="tablist" aria-label="세션 내 런 선택"></div><details id="management" class="panel management" hidden><summary>관리자 · 보관 / 멤버 / 기록 삭제</summary><div class="admin-grid">
 <section><h3>원본 보관</h3><p class="reading-note">시트 적재가 확인된 오래된 원본만 휴지통으로 보냅니다. 통계는 유지됩니다. 미적재 파일 보호로 한도를 넘을 수 있습니다. 휴지통도 30일간 용량에 포함됩니다.</p><label><input type="checkbox" id="retention-enabled"> 자동 정리</label><label>최대 원본 개수 <input id="retention-count" type="number" min="1" max="10000" value="1000"></label><button id="retention-save">보관 설정 저장</button></section>
 <section><h3>멤버 관리</h3><p class="reading-note">추가 멤버는 조회 전용입니다. 사용 중지하면 다음 조회부터 접근이 차단됩니다.</p><div id="member-list"></div><label>이메일 <input id="member-email" type="email"></label><label>표시 이름 <input id="member-name" maxlength="40"></label><label><input id="member-enabled" type="checkbox" checked> 사용 허용</label><button id="member-save">멤버 저장</button></section>
 <section class="admin-wide"><h3>기록 삭제</h3><p class="reading-note" id="delete-scope-label"></p><div class="controls"><button id="clear-version" class="danger">선택 버전 클리어</button><button id="select-all-sessions">현재 목록 전체 선택</button><button id="delete-sessions" class="danger">선택 세션 삭제</button></div><div id="delete-session-list" class="delete-session-list"></div><div id="delete-confirmation" hidden><p id="delete-preview" class="deletion-preview"></p><button id="delete-send">관리자 이메일로 인증번호 받기</button><label>8자리 인증번호 <input id="delete-code" inputmode="numeric" maxlength="8" autocomplete="one-time-code"></label><label>확인 문구 <input id="delete-phrase" placeholder="삭제" autocomplete="off"></label><button id="delete-execute" class="danger">확인한 기록 삭제 실행</button><button id="delete-cancel">취소</button></div></section>
 </div><p id="admin-status" role="status"></p></details><div class="metrics"><div class="metric">총 플레이<strong id="runs">—</strong></div><div class="metric">수집 이벤트<strong id="events">—</strong></div><div class="metric">공연 플레이<strong id="completed">—</strong></div><div class="metric accent">공연 평균 성공률<strong id="winRate">—</strong></div></div>
 <div class="group" aria-labelledby="performance-heading"><div class="section-head"><div class="heading"><span class="section-index">01</span><h2 id="performance-heading">묘기 통계</h2></div><div id="trick-tabs" class="tabs pill" role="tablist" aria-label="묘기 선택"></div></div><div class="grid"><section class="panel"><div class="chart-head"><h3>난이도 별 승률</h3><span id="trick-label" class="badge">외줄 타기</span></div><div id="performanceBars"></div></section><section class="panel"><div class="chart-head"><h3>사망 원인</h3><span id="death-total" class="badge">—</span></div><div id="deathChart"></div></section><section class="panel wide"><div class="chart-head"><h3>상세 데이터</h3></div><div id="tricks"></div></section></div></div>
 <div class="group" aria-labelledby="waiting-heading"><div class="section-head"><div class="heading"><span class="section-index">02</span><h2 id="waiting-heading">대기실 통계</h2></div></div><div class="grid"><section class="panel wide"><div class="chart-head"><h3>이용 현황</h3></div><p class="reading-note">진입은 재방문을 포함합니다. 평균 체류는 들어갔다 나온 기록만 셉니다. 오래 머무는 구역을 찾아 이동·이용의 불편이 있는지 확인하세요.</p><div id="zones" class="zone-cards"></div></section><section class="panel wide"><div class="chart-head"><h3>기물 · 서비스 이용</h3><div id="usage-tabs" class="tabs pill" role="tablist" aria-label="기물 서비스 보기 방식"></div></div><p class="reading-note">이용률 = 대기실에서 관측된 플레이어 중 한 번 이상 이용한 비율입니다(런별로 구분). 기물은 수령, 의료·시설은 예약을 셉니다. 원형 그래프는 이용 횟수의 구성비입니다.</p><div id="usage"></div></section><section class="panel wide"><div class="chart-head"><h3>평균 소요 시간</h3><div id="timing-tabs" class="tabs pill" role="tablist" aria-label="소요 시간 분류"></div></div><p class="reading-note">시작 → 완료 구간의 평균입니다. 표본은 두 시점이 모두 기록된 건만 셉니다. 큰 값은 재플레이로 확인할 후보입니다. 미수집은 0초가 아닙니다.</p><div id="stage-timings" class="stage-time-grid"></div></section><section class="panel wide"><div class="chart-head"><h3>실패 · 운반 기록</h3></div><p class="reading-note">실패 사유로 이용을 막는 조건을, 반복 내려놓기·줍기로 운반의 번거로움을 확인하세요. 횟수가 많다는 이유만으로 문제로 단정하지는 마세요.</p><div id="operations"></div></section><section class="panel wide"><div class="chart-head"><h3>미수령 · 의료 미이용</h3></div><p class="reading-note">쉬는 시간 종료까지 받지 않은 물건·쓰지 않은 의료 예약입니다. 중도 퇴장은 따로 구분합니다.</p><div id="outstanding"></div></section></div></div>
-<div class="group" aria-labelledby="run-heading"><div class="section-head"><div class="heading"><span class="section-index">03</span><h2 id="run-heading">런 통계</h2></div></div><section class="panel"><div class="chart-head"><h3>공동 자금 변동</h3><div class="controls"><details id="fund-calendar" class="date-filter"><summary id="fund-date-label">달력 · 모든 날짜</summary><div id="fund-date-panel" class="calendar-panel"></div></details><input id="fund-search" type="search" class="run-search" placeholder="세션 ID 검색" aria-label="공동 자금 세션 검색"><label>세션 <select id="fund-run" aria-label="공동 자금 세션 선택"></select></label><button id="fund-reset">평균</button></div></div><div class="toolbar"><div class="legend-line"><span class="line-key"></span><span id="fund-mode">평균 잔액</span></div><span id="fund-samples" class="badge">—</span></div><div id="fund-interval-tabs" class="tabs pill" role="tablist" aria-label="공동 자금 묶음"></div><div id="funds"></div></section>
-<section class="panel timeline-panel"><div class="chart-head"><h3>런 세션 타임라인</h3><span id="timeline-count" class="badge">—</span></div><div class="controls session-controls"><details id="timeline-calendar" class="date-filter"><summary id="timeline-date-label">달력 · 모든 날짜</summary><div id="timeline-date-panel" class="calendar-panel"></div></details><input id="timeline-search" type="search" class="run-search" placeholder="세션 ID 검색" aria-label="타임라인 세션 검색"><label>세션 <select id="timeline-run" aria-label="타임라인 세션 선택"></select></label><span id="timeline-session" class="quiet"></span></div><div id="day-tabs" class="tabs pill day-tabs" role="tablist" aria-label="타임라인 일차"></div><div id="phase-tabs" class="tabs line phase-tabs" role="tablist" aria-label="타임라인 활동"></div><div id="attempt-tabs" class="attempt-tabs" role="tablist" aria-label="공연 선택"></div><div id="route"></div><div id="route-detail" class="route-detail" hidden></div><div id="timeline" class="event-feed"></div><div class="pagination" id="timeline-pagination"><button id="previous">이전</button><span id="page"></span><button id="next">다음</button></div></section></div><div class="group" aria-labelledby="survey-heading"><div class="section-head"><div class="heading"><span class="section-index">04</span><h2 id="survey-heading">설문 통계</h2></div><div id="survey-tabs" class="tabs pill" role="tablist" aria-label="설문 선택"></div></div>
-<section class="panel"><div class="controls"><details id="survey-calendar" class="date-filter"><summary id="survey-date-label">달력 · 모든 날짜</summary><div id="survey-date-panel" class="calendar-panel"></div></details><input id="survey-search" type="search" placeholder="세션 ID 검색" aria-label="설문 세션 검색"><label>세션 <select id="survey-run" aria-label="설문 세션 선택"></select></label><label>설문 회차 <select id="survey-campaign" aria-label="설문 회차 선택"></select></label><label>플레이어 <select id="survey-player" aria-label="설문 플레이어 선택"><option value="">모든 플레이어</option><option value="0">플레이어 1</option><option value="1">플레이어 2</option><option value="2">플레이어 3</option><option value="3">플레이어 4</option></select></label></div><p id="survey-status" class="reading-note" role="status"></p><div id="survey-counts" class="metrics"></div><p class="reading-note">각 문항은 답한 사람 수를 기준으로 봅니다. 복수 선택의 합계는 100%를 넘을 수 있습니다. 자동 연결 코드는 세션·플레이어를 찾는 값이며, 수정된 답변의 본인 여부를 증명하지는 않습니다.</p><div id="survey-questions" class="grid"></div></section>
+<section class="group" aria-labelledby="activity-title"><h2 id="activity-title">공간별 활동 결과</h2><p class="reading-note">현재 조회 범위에서 수집된 사건 횟수입니다. 위치 표본은 횟수에 포함하지 않습니다.</p><div class="grid" id="activity-results"></div></section><div class="group" aria-labelledby="run-heading"><div class="section-head"><div class="heading"><span class="section-index">03</span><h2 id="run-heading">런 통계</h2></div></div><section class="panel"><div class="chart-head"><h3>공동 자금 변동</h3></div><div class="toolbar"><div class="legend-line"><span class="line-key"></span><span id="fund-mode">평균 잔액</span></div><span id="fund-samples" class="badge">—</span></div><div id="fund-interval-tabs" class="tabs pill" role="tablist" aria-label="공동 자금 묶음"></div><div id="funds"></div></section>
+<section id="run-timeline-panel" class="panel timeline-panel"><div class="chart-head"><h3>런 세션 타임라인</h3><span id="timeline-count" class="badge">—</span></div><div id="day-tabs" class="tabs pill day-tabs" role="tablist" aria-label="타임라인 일차"></div><label>재생 대상 <select id="replay-player" aria-label="재생할 플레이어"></select></label><div id="phase-tabs" class="tabs line phase-tabs" role="tablist" aria-label="타임라인 활동"></div><div id="attempt-tabs" class="attempt-tabs" role="tablist" aria-label="공연 선택"></div><section id="waiting-observations" hidden aria-label="대기실 관찰 기록"></section><div id="route"></div><div id="route-detail" class="route-detail" hidden></div><div id="timeline" class="event-feed"></div><div class="pagination" id="timeline-pagination"><button id="previous">이전</button><span id="page"></span><button id="next">다음</button></div></section></div><div class="group" aria-labelledby="survey-heading"><div class="section-head"><div class="heading"><span class="section-index">04</span><h2 id="survey-heading">설문 통계</h2></div><div id="survey-tabs" class="tabs pill" role="tablist" aria-label="설문 선택"></div></div>
+<section class="panel"><div class="controls"><label>설문 회차 <select id="survey-campaign" aria-label="설문 회차 선택"></select></label><label>플레이어 <select id="survey-player" aria-label="설문 플레이어 선택"><option value="">모든 플레이어</option><option value="0">플레이어 1</option><option value="1">플레이어 2</option><option value="2">플레이어 3</option><option value="3">플레이어 4</option></select></label></div><p id="survey-form-link"></p><p id="survey-status" class="reading-note" role="status"></p><div id="survey-counts" class="metrics"></div><p class="reading-note">각 문항은 답한 사람 수를 기준으로 봅니다. 복수 선택의 합계는 100%를 넘을 수 있습니다. 자동 연결 코드는 세션·플레이어를 찾는 값이며, 수정된 답변의 본인 여부를 증명하지는 않습니다.</p><div id="survey-questions" class="grid"></div></section>
 <section class="panel timeline-panel"><h3>응답과 플레이 기록 함께 보기</h3><p class="reading-note">응답을 누르면 자세히 볼 수 있습니다. 로그가 아직 없거나 설문만 켠 빌드는 ‘플레이 로그 없음’으로 표시합니다.</p><div id="survey-responses" class="scroll"></div><div class="pagination"><button id="survey-previous">이전</button><span id="survey-page"></span><button id="survey-next">다음</button></div><div id="survey-detail" class="route-detail" hidden></div></section></div></main><div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 <script>
 'use strict';
+/* ROOM_REPLAY_CORE */
 const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg',palette=['#b95640','#d8aa59','#4e7f8a','#6e8195','#8d7394','#7b9b85','#ba8773','#b3b7b8'];
 let auth=sessionStorage.getItem('curtaincall-dashboard-auth')||'',viewer=null,loginChallenge=null,deletionPreview=null,deletionChallenge=null,managementData=null;
 let refreshState=null,statePollInFlight=false;
-let data=null,trick='TIGHTROPE',usageView='TABLE',timingGroup='SHOP',busy=false,pendingRead=false,serial=0,filters={gameVersion:'',environment:'LIVE',fundsRunId:'',timelineRunId:'',timelinePhase:'',timelineAttemptId:'',timelineOffset:0};
+let averageRuns=true,scopeReady=false,scopeTicket=0,searchTimer;
+let data=null,trick='TIGHTROPE',usageView='TABLE',timingGroup='SHOP',busy=false,pendingRead=false,serial=0,filters={sharedScope:true,gameVersion:'',environment:'',fundsRunId:'',timelineRunId:'',timelinePhase:'',timelineAttemptId:'',timelineOffset:0};
 const n=v=>v==null?'—':Number(v).toLocaleString('ko-KR',{maximumFractionDigits:1}),pct=v=>v==null?'미수집':(v*100).toFixed(1)+'%',clock=v=>new Date(v).toLocaleTimeString('ko-KR',{timeZone:'Asia/Seoul',hour12:false}),fullTime=v=>new Date(v).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',hour12:false}),short=id=>id?String(id).slice(0,8)+'…':'알 수 없음',duration=v=>v==null?'—':v>=60?Math.floor(v/60)+'분 '+Math.round(v%60)+'초':n(v)+'초';
 function node(tag,text,cls){const e=document.createElement(tag);if(text!=null)e.textContent=text;if(cls)e.className=cls;return e;}
 function svg(tag,attrs,text){const e=document.createElementNS(NS,tag);Object.entries(attrs||{}).forEach(([k,v])=>e.setAttribute(k,String(v)));if(text!=null)e.textContent=text;return e;}
 function normTrick(v){return /^(CANNON|HUMANCANNON|HUMANCONNON|HUMMANCANNON)$/i.test(v||'')?'CANNON':/^TIGHTROPE$/i.test(v||'')?'TIGHTROPE':null;}
 const trickName=v=>normTrick(v)==='TIGHTROPE'?'외줄 타기':normTrick(v)==='CANNON'?'인간 대포':'공연';
 const words={NoSurvivors:'전원 사망',Timeout:'시간 초과',TimeLimit:'시간 초과',Completed:'공연 완료',APPLICATION_QUIT:'게임 종료',GROUND_HIT:'지면 충돌',PURCHASE:'구매',CLAIM:'수령',SHELF:'보관',DROP:'내려놓기',PICKUP:'줍기',MEDICAL_RESERVE:'의료 예약',MEDICAL_ENTER:'의료실 입장',FACILITY_RESERVE:'시설 예약',SERVICE_ABANDONED:'예약 취소·중도 이탈',CUT:'절단 발생',NO_CUT:'절단 없음',FRAME_LIMIT:'같은 순간의 중복 피해 제한',BREAK_ENDED:'쉬는 시간 종료',PLAYER_EXITED:'플레이어 중도 퇴장',GAME_EXITED:'게임 종료',RUN_ENDED:'런 종료',RETURN_NOT_OBSERVED:'복귀 미확인',RESERVATION_CLEARED:'예약 해제',SCENE_CHANGED:'공간 이동',FALL:'추락',HURTED:'부상',OUT_OF_BALANCE:'균형 붕괴','OUT-OF-BALLANCE':'균형 붕괴','TOUCHED-FIRE':'화염 접촉',FIRE:'화염',UNSAFE_LANDING:'착지 실패',UNKNOWN:'원인 미확인',TIMEOUT:'시간 초과',ALL_DEAD:'전원 사망',ALL_FALLEN:'전원 추락',INSUFFICIENT_SURVIVORS:'생존 인원 부족',TELEMETRY_TEST:'검증용 정산',SAFE_LANDING:'안전 착지',FLIGHT_STOPPED:'비행 종료',PIGGYBACK:'목마',HANDHOLD:'손잡기',TRAMPOLINE:'트램펄린',LIFT:'리프트',PLATFORM:'발판',POLE:'봉',RESTORE_BODY:'신체 복구',FACILITY:'시설 서비스',BEDROOM:'침실',HALLWAY:'복도',STAGE_ENTRANCE:'무대 입구',WAITINGROOM:'대기실',STORAGE:'소품실',RESTROOM:'화장실',JUNK_STORAGE:'잡동사니 보관소',EXPERT_ROOM:'전문가 대기 구역',MAINSTAGE:'공연장',TITLE:'시작 화면',LOBBY:'로비',ITEM:'기물',SERVICE:'서비스',LeftArm:'왼팔',RightArm:'오른팔',LeftLeg:'왼다리',RightLeg:'오른다리',PASSED:'통과',RETREATED:'후퇴',DIED:'사망',PERFORMANCE_ENDED:'공연 종료',VOLUNTARY:'자발적 퇴장',DISCONNECTED:'연결 끊김',HOST_CLOSED:'방 종료',SHOP_UnknownItem:'없는 품목',SHOP_NotFound:'물건 없음',SHOP_NotEnoughFunds:'공동 자금 부족',CARRY_ShelfEmpty:'선반 비어 있음',CARRY_HandsFull:'소지 한도 초과',CANNON_GROUNDSAW:'대포 바닥 톱',CANNON_SPIKEMACE:'대포 가시 철퇴',CANNON_ROTATINGBLADES:'대포 회전 칼날',EXPERT_NotNight:'운영 시간 아님',EXPERT_WrongPhase:'입장 단계 아님',IN_PERFORMANCE:'공연 중 이용 불가','tool-a':'공연 도구 A','tool-b':'공연 도구 B',backpack:'배낭',escape:'탈출 도구',REWARD:'리워드',EXPENSE:'지출',RESET:'초기화'};
+Object.assign(words,{FOCUSED:'안내 대상 선택',OPENED:'열람',CLOSED:'닫힘',SECRET_FOUND:'숨은 정보 발견',AVAILABLE:'공개',UNAVAILABLE:'비공개',VOTE_CHANGED:'투표 변경',GUIDE_SHOWN:'가이드 표시',GUIDE_HIDDEN:'가이드 숨김',FALLEN:'추락',RECOVERED:'복귀',RATE_LIMITED:'연속 시도 제한',PREREQUISITE_UNMET:'선행 조건 미충족',PARTNER_REQUIRED:'팀원 필요',ACTOR_UNAVAILABLE:'플레이어 확인 불가',CARRY_UNAVAILABLE:'소지 상태 확인 불가',BOOK_REFUSED:'탐색 판정 거절',STAGE_CLEARED:'단계 통과',SKIP_APPROVED:'건너뛰기 가결',ENDING:'종료 판정',ARRIVED:'도착',CHECKPOINT:'체크포인트 도달',PLACED:'배치 완료',BOUNCED:'반동 성공',ABANDON:'포기',SKIP:'건너뛰기',MAJORITY_SKIP:'과반 건너뛰기',MAJORITY_ABANDON:'과반 포기',ALL_ARRIVED:'전원 도착',ANY_ARRIVED:'한 명 이상 도착',MAJORITY_NEXT:'과반 다음 단계',NEXT_STAGE:'다음 단계',REPLAY:'다시 하기',REPLAY_PROPOSE:'다시 하기 제안',START_PLATFORM:'출발 발판',MIDDLE_PLATFORM:'중간 발판',FINISH_PLATFORM:'도착 발판',LESSON_CRITERION:'연습 조건 달성',REQUIRED_TOOL_MISSING:'필요 도구 없음',TOOL_DEPLETED:'내구도 소진',CARRY_REFUSED:'소지 거절',WRONG_CODE:'비밀번호 불일치',WRONG_KEY:'열쇠 불일치',HANDS_FULL:'소지 공간 부족',PRE_TUTORIAL_LOCK:'첫 공연 전 제한',UNKNOWN_TARGET:'대상 확인 불가',ALREADY_OPEN:'이미 개방',OUT_OF_REACH:'거리 초과',KEY_ALREADY_RECEIVED:'이미 획득한 열쇠',ZONE_ENTERED:'집결 구역 진입',ZONE_EXITED:'집결 구역 이탈',TRANSFER_STARTED:'전환 시작',TRANSFER_PLACED:'탈출로 배치',TRANSFER_FAILED:'전환 실패',TRANSFER_COMPLETE:'전환 완료'});
 const word=v=>v==null?'미수집':words[v]||(/SAW/.test(v)?'톱 접촉':String(v));
 const eventNames={PERFORMANCE_ROSTER:'공연 참가 명단',PLAYER_ARRIVED:'플레이어 도착',CANNON_HAZARD_CONTACT:'대포 장애물 접촉',BREAK_ENDED:'쉬는 시간 종료',GAME_STARTED:'게임 시작',GAME_EXITED:'게임 종료',PLAYER_EXITED:'플레이어 퇴장',SCENE_ENTERED:'공간 진입',SCENE_EXITED:'공간 이탈',TITLE_ENTERED:'타이틀 진입',ROOM_CREATED:'방 만들기',ROOM_ENTERED:'방 입장',SIGNATURE_CHANGED:'서명 변경',RUN_STARTED:'런 시작',RUN_ENDED:'런 종료',PERFORMANCE_STARTED:'공연 시작',PERFORMANCE_SUCCEEDED:'공연 성공',PERFORMANCE_FAILED:'공연 실패',PERFORMANCE_PROGRESS:'진행 거리',PERFORMANCE_LEFT:'공연 중 이탈',SECTION_ENTERED:'구간 진입',SECTION_EXITED:'구간 이탈',PLAYER_DIED:'플레이어 사망',LIMB_SEVERED:'사지 절단',INJURY_CHANGED:'부상 상태 변경',TIGHTROPE_FELL:'균형 붕괴로 추락',JUMP_RESULT:'점프 결과',COOP_ACTIVATED:'협동 기믹 작동',CANNON_FIRED:'대포 발사',CANNON_FLIGHT_ENDED:'대포 비행 결과',ZONE_ENTERED:'구역 진입',ZONE_EXITED:'구역 이탈',SCHEDULE_OPENED:'스케줄 열기',SCHEDULE_CONFIRMED:'편성 확정',READY_CHANGED:'준비 상태 변경',STAGE_ENTRANCE_REACHED:'무대 입구 도착',FIRST_PLAYER_LEFT:'첫 플레이어 퇴장',ALL_PLAYERS_ASSEMBLED:'전원 집결',RECALL_ALARM:'집결 경보',RECALL_EXPIRED:'집결 시간 만료',SHOP_OPENED:'상점 열기',PURCHASE_COMPLETED:'구매 완료',PURCHASE_FAILED:'구매 실패',DELIVERY_DISPATCHED:'배송 배출',DELIVERY_AVAILABLE:'수령 가능',ITEM_COLLECTED:'물건 수령',COLLECTION_FAILED:'수령 실패',ITEM_STORED:'보관 완료',STORAGE_FAILED:'보관 실패',STORAGE_REACHED:'소품실 도착',ITEM_DROPPED:'내려놓기',ITEM_PICKED_UP:'다시 줍기',ITEM_HANDED_OVER:'플레이어 인계',SERVICE_OPENED:'서비스 열기',SERVICE_RESERVED:'서비스 예약',SERVICE_FAILED:'서비스 이용 실패',SERVICE_ABANDONED:'서비스 중 이탈',MEDICAL_ROOM_REACHED:'의료실 도착',MEDICAL_ENTERED:'의료실 입장',RESTORATION_COMPLETED:'신체 복구 완료',MEDICAL_RETURNED:'대기실 복귀',RESTORATION_VERIFIED:'복구 상태 확인',FUNDS_CHANGED:'공동 자금 변경',INPUT_KEY:'키 입력',BUTTON_INPUT:'버튼 입력',MICROPHONE_INPUT:'마이크 입력',INTERACTION_FAILED:'상호작용 실패',TELEMETRY_GAP:'기록 누락',ROUTE_BLOCKED:'통로 막힘',ROUTE_DETOUR:'경로 우회'};
 const eventName=e=>eventNames[e.eventType]||e.eventType,player=e=>Number.isInteger(e.playerNumber)?'플레이어 '+(e.playerNumber+1):'플레이어 미확인';
@@ -94,7 +107,7 @@ function renderStageTimes(){
 function renderFunds(){
  const f=data.view.funds,byBreak=f.interval==='BREAK',index=p=>byBreak?p.order:p.day,label=p=>p.day+'일차'+(byBreak?' '+({1:'아침',2:'오후',3:'밤'}[p.rest]):'');
  $('fund-interval-tabs').replaceChildren();[['DAY','일차 별'],['BREAK','구간 별']].forEach(([id,name])=>tab($('fund-interval-tabs'),name,(f.interval||'DAY')===id,()=>{filters.fundsInterval=id;load(false);}));
- $('fund-mode').textContent=f.mode==='RUN'?'공동 자금 잔액':'평균 잔액';$('fund-samples').textContent=(f.mode==='RUN'?'선택한 런':'관측 '+n(f.runCount)+'런')+(filters.fundsDate?' · '+filters.fundsDate:'');
+ $('fund-mode').textContent=f.mode==='RUN'?'공동 자금 잔액':'평균 잔액';$('fund-samples').textContent=(f.mode==='RUN'?'세션 '+short(f.runId):'관측 '+n(f.runCount)+'런')+(filters.fundsDate?' · '+filters.fundsDate:'');
  const host=$('funds');host.replaceChildren();if(!f.series.length){empty(host,byBreak?'자금을 확인할 수 있는 쉬는 시간 기록이 없습니다.':'기록 없음');return;}
  const points=f.series,W=Math.max(1080,byBreak?points.length*95:1080),H=280,L=62,R=52,T=30,B=55,max=Math.max(...points.map(p=>p.balance),1),last=Math.max(...points.map(index)),first=Math.min(...points.map(index)),x=d=>last===first?W/2:L+(d-first)/(last-first)*(W-L-R),y=v=>H-B-v/max*(H-T-B),chart=svg('svg',{viewBox:`0 0 ${W} ${H}`,class:'fund-chart',role:'img','aria-label':(byBreak?'구간별':'일차별')+' 공동 자금'});
  [0,.25,.5,.75,1].forEach(r=>{const yy=y(max*r);chart.append(svg('line',{x1:L,y1:yy,x2:W-R,y2:yy,stroke:'#e8eeee','stroke-dasharray':'3 5'}),svg('text',{x:L-12,y:yy+4,'text-anchor':'end','font-size':10,fill:'#89969c'},n(max*r)));});
@@ -102,8 +115,8 @@ function renderFunds(){
  const step=byBreak?1:Math.max(1,Math.ceil(points.length/10));points.forEach((p,i)=>{if(i%step===0||i===points.length-1)chart.append(svg('text',{x:x(index(p)),y:H-17,'text-anchor':'middle','font-size':11,fill:'#82939b'},label(p)));const dot=svg('circle',{cx:x(index(p)),cy:y(p.balance),r:5,class:'plot-point'});hover(dot,label(p)+' · '+(f.mode==='RUN'?'잔액':'평균 잔액'),[n(p.balance),'리워드 '+n(p.rewards),'지출 '+n(p.spent),'표본 '+p.samples+'런',...(byBreak?['해당 쉬는 시간 마지막 관측값 · 진행 중이면 현재값']:[])]);chart.append(dot);});
  const box=node('div',null,'scroll');if(byBreak){chart.style.minWidth=W+'px';chart.style.width='100%';}box.append(chart);host.append(box);
 }
-function phaseName(p){return p.kind==='PERFORMANCE'?(p.day?p.day+'일차 ':'')+'공연':p.kind==='BREAK'?({1:'아침 쉬는 시간',2:'중간 쉬는 시간',3:'밤 정비'}[p.rest]||'쉬는 시간'):'기타 기록';}
-function eventLines(e){const p=e.payload||{},a=[clock(e.occurredAt)+' · '+player(e)];if(p.sectionId!=null)a.push('구간 '+p.sectionId);if(p.position&&['x','y','z'].every(k=>Number.isFinite(p.position[k])))a.push('위치 ('+['x','y','z'].map(k=>n(p.position[k])).join(', ')+')');if(p.distance!=null||p.maxDistance!=null)a.push('진행 거리 '+n(p.distance??p.maxDistance)+' m');if(p.gimmickType)a.push('상호작용 '+word(p.gimmickType));if(p.cause||p.reason)a.push('원인 '+word(p.cause||p.reason));if(e.eventType==='CANNON_HAZARD_CONTACT')a.push(p.cutApplied?'절단 발생':'부상 없는 접촉');if(p.part&&p.part!=='None')a.push('절단 '+word(p.part));if(p.afterLostCount!=null||p.lostCount!=null)a.push('결손 '+(p.afterLostCount??p.lostCount)+' / 4');if(p.beforeLostCount!=null)a.push('변경 전 결손 '+p.beforeLostCount+' / 4');if(p.ropeNumber!=null)a.push('줄 '+p.ropeNumber);if(p.originRope!=null)a.push('점프 '+p.originRope+'번 → '+p.targetRope+'번 · '+(p.landed?'착지':'추락'));if(p.reachedTarget!=null)a.push('안전 착지 '+(p.reachedTarget?'성공':'실패'));if(p.participants?.length)a.push('참여 '+p.participants.length+'명');if(p.itemType)a.push('품목 '+word(p.itemType));if(p.quantity!=null)a.push('수량 '+p.quantity);if(p.balanceAfter!=null)a.push('공동 자금 '+n(p.balanceBefore)+' → '+n(p.balanceAfter));if(p.zoneType)a.push(word(p.zoneType));if(p.signed!=null)a.push(p.signed?'서명':'지움');if(p.ready!=null)a.push(p.ready?'준비 완료':'준비 취소');if(p.durationMs!=null&&e.eventType!=='STORAGE_REACHED')a.push('소요 '+duration(p.durationMs/1000));if(p.serviceType)a.push(word(p.serviceType));[['spawnToZoneMs','스폰 후 첫 도착'],['readyToEntranceMs','준비 후 입구 도착'],['firstLeftToAssemblyMs','첫 퇴장 후 집결'],['alarmToAssemblyMs','경보 후 집결']].forEach(([k,label])=>{if(p[k]!=null)a.push(label+' '+duration(p[k]/1000));});a.push(...stageEventLines(e));if(p.verificationSource)a.push('복구 적용: 이동 '+(p.movementRestored?'정상':'미복원')+' · 점프 '+(p.jumpRestored?'정상':'미복원')+' · 소지 한도 '+p.itemCapacity);return a;}
+function phaseName(p){if(p.kind==='STAGE_TRACE')return '공연 '+(/P(\d+)$/.exec(p.performanceId||'')?.[1]||'')+' · '+trickName(p.traceTrick)+' (동선만 수집)';return p.kind==='PERFORMANCE'?(p.day?p.day+'일차 ':'')+'공연':p.kind==='BREAK'?({1:'아침 쉬는 시간',2:'중간 쉬는 시간',3:'밤 정비'}[p.rest]||'쉬는 시간'):p.kind==='ESCAPE'?'탈출로':p.kind==='REHEARSAL'?'대기실 · 리허설':'기타 기록';}
+function eventLines(e){const p=e.payload||{},a=[clock(e.occurredAt)+' · '+player(e)];if(p.sectionId!=null)a.push('구간 '+p.sectionId);if(p.position&&['x','y','z'].every(k=>Number.isFinite(p.position[k])))a.push('위치 ('+['x','y','z'].map(k=>n(p.position[k])).join(', ')+')');if(p.distance!=null||p.maxDistance!=null)a.push('진행 거리 '+n(p.distance??p.maxDistance)+' m');if(p.gimmickType)a.push('상호작용 '+word(p.gimmickType));if(p.cause||p.reason)a.push('원인 '+word(p.cause||p.reason));if(e.eventType==='CANNON_HAZARD_CONTACT')a.push(p.cutApplied?'절단 발생':'부상 없는 접촉');if(p.part&&p.part!=='None')a.push('절단 '+word(p.part));if(p.afterLostCount!=null||p.lostCount!=null)a.push('결손 '+(p.afterLostCount??p.lostCount)+' / 4');if(p.beforeLostCount!=null)a.push('변경 전 결손 '+p.beforeLostCount+' / 4');if(p.ropeNumber!=null)a.push('줄 '+p.ropeNumber);if(p.originRope!=null)a.push('점프 '+p.originRope+'번 → '+p.targetRope+'번 · '+(p.landed?'착지':'추락'));if(p.reachedTarget!=null)a.push('안전 착지 '+(p.reachedTarget?'성공':'실패'));if(p.participants?.length)a.push('참여 '+p.participants.length+'명');if(p.itemType)a.push('품목 '+word(p.itemType));if(p.quantity!=null)a.push('수량 '+p.quantity);if(p.balanceAfter!=null)a.push('공동 자금 '+n(p.balanceBefore)+' → '+n(p.balanceAfter));if(p.zoneType)a.push(word(p.zoneType));if(p.signed!=null)a.push(p.signed?'서명':'지움');if(p.ready!=null)a.push(p.ready?'준비 완료':'준비 취소');if(p.durationMs!=null&&e.eventType!=='STORAGE_REACHED')a.push('소요 '+duration(p.durationMs/1000));if(p.serviceType)a.push(word(p.serviceType));[['spawnToZoneMs','스폰 후 첫 도착'],['readyToEntranceMs','준비 후 입구 도착'],['firstLeftToAssemblyMs','첫 퇴장 후 집결'],['alarmToAssemblyMs','경보 후 집결']].forEach(([k,label])=>{if(p[k]!=null)a.push(label+' '+duration(p[k]/1000));});for(const [k,label] of Object.entries({teamAudience:'팀 호응',personalAudience:'개인 호응',tokens:'정산 토큰',state:'상태',bodyResult:'결손 부위',obstacleId:'장애물',stackSize:'목마 인원',usesBefore:'사용 전 내구도',usesAfter:'사용 후 내구도'}))if(p[k]!=null)a.push(label+' '+p[k]);a.push(...stageEventLines(e));if(p.verificationSource)a.push('복구 적용: 이동 '+(p.movementRestored?'정상':'미복원')+' · 점프 '+(p.jumpRestored?'정상':'미복원')+' · 소지 한도 '+p.itemCapacity);return a;}
 // ROUTE_MODEL_BEGIN
 function routePlayerKey(e){const scope=e.runId||e.roomId||e.appSessionId||'';return scope+':'+(Number.isInteger(e.playerNumber)?'slot:'+e.playerNumber:e.networkClientId!=null&&e.networkClientId!==''?'client:'+e.networkClientId:'id:'+e.playerId);}
 const playerColors=['#477abb','#c39226','#bf596b','#438b76'];
@@ -182,8 +195,229 @@ function pin(e){
 
   d.replaceChildren(head,fields);d.hidden=false;
 }
+let disposeSpatialReplay=()=>{};
+const spatialNames={GIMMICK_STATE:'기믹 상호작용',STAGE_SETTLED:'공연 정산',EXPLORATION_TOOL:'탐색 기물',ESCAPE_ENDED:'탈출 결과',PARTICIPANT_LEFT:'접속 이탈',SPATIAL_SAMPLE:'이동 발자국',SPATIAL_BOUNDARY:'공간 기록 종료',SPATIAL_DIED:'사망',PURSUIT_CAPTURED:'추격자에게 잡힘',PURSUIT_STATE:'추격자 상태 변경',PURSUIT_SAMPLE:'추격자 이동',WORLD_SAMPLE:'물체 위치',WORLD_STATE_CHANGED:'물체 상태 변경',EXPLORATION_INTERACTION:'탐색 상호작용',OBJECT_DISCOVERED:'오브제 발견',TRICK_UNLOCKED:'공연 해금',CLUE_INSPECTED:'단서 조사',REHEARSAL_STATE:'리허설 진행',AUDIENCE_REACTION:'관객 반응',ESCAPE_STARTED:'탈출 제한시간 시작',ESCAPE_TIMEOUT:'탈출 시간 만료',ESCAPE_ARRIVED:'탈출 도착',SCHEDULE_CHANGED:'스케줄 변경'};
+function mapType(e,kind){
+ const p=e.payload||{},t=e.eventType,raw=[p.label,p.gimmickType,p.hazardType,p.targetId,p.entityId,p.reason].join(' ');
+ if(t==='WORLD_STATE_CHANGED'&&p.state==='REWARD_DROPPED')return ['🎁','보상 드랍'];if(t==='ITEM_DROPPED')return ['📦','기물 드랍'];if(t==='ITEM_PICKED_UP')return ['🫴','드랍 기물 획득'];
+ if(t==='CLUE_INSPECTED')return ['🔎','단서 확인'];
+ if(t==='EXPLORATION_INTERACTION'){if(p.accepted===false)return ['🚫','상호작용 거절'];if(p.opened&&/wall|벽/i.test(raw))return ['🧱','벽 파괴'];if(p.opened&&/break|destruct|파괴/i.test(raw))return ['🔨','사물 파괴'];return p.opened?['🔓','대상 개방']:['✋','탐색 상호작용'];}
+ const types=[[/ExitSaw|Cutter|절단기/i,'✂️','절단기'],[/trampoline|트램펄린/i,'🟦','트램펄린'],[/pole|봉/i,'🚩','봉'],[/saw|blade|톱/i,'🪚','톱날'],[/fire|flame|불기둥/i,'🔥','화염'],[/mace/i,'🔨','철퇴'],[/trapeze|swing|그네/i,'🎪','그네'],[/cannon|대포/i,'💣','대포'],[/cable|배선/i,'🔌','배선'],[/rope|외줄/i,'🪢','외줄'],[/bridge|교량/i,'🌉','권상교'],[/conveyor/i,'⚙️','컨베이어'],[/lever/i,'🕹️','레버'],[/button|switch|plate/i,'🔘','발판·버튼'],[/clue|inspect/i,'🔎','단서'],[/breakable|wall/i,'🧱','파괴 가능 구조물'],[/lock|door/i,'🔒','잠금장치']];
+ if(kind==='OBJECT'||kind==='OBSTACLE'){const m=types.find(v=>v[0].test(raw));return m?m.slice(1):kind==='OBJECT'?['📦','오브제']:['⚠️','장애물'];}
+ return null;
+}
+function spatialIcon(e){
+  const type=e.eventType,p=e.payload||{};const mark=mapType(e,p.entityKind);if(mark)return mark[0];
+  if(/DIED|CAPTURED/.test(type))return '💀';
+  if(type==='AUDIENCE_REACTION')return p.reaction==='CHEER'?'👏':p.reaction==='JEER'?'👎':'👀';
+  if(/UNLOCKED/.test(type))return '🔓';if(/DISCOVERED|INSPECTED/.test(type))return '🔎';
+  if(/REHEARSAL/.test(type))return '🎪';if(/SCHEDULE/.test(type))return '📅';
+  if(/ARRIVED/.test(type))return '🏁';if(/TIMEOUT/.test(type))return '⌛';
+  if(/INJURY|SEVERED|HAZARD|FELL/.test(type))return '💥';
+  if(/INTERACTION|COOP|ITEM|CANNON|WORLD_STATE/.test(type))return '🤝';
+  if(type==='PURSUIT_STATE')return '👁';return '👣';
+}
+Object.assign(spatialNames,{PURSUIT_PLAYER_STATE:'추격 · 도망 상태',ESCAPE_CUTTER:'절단기 발사 · 결과',ESCAPE_INJURY:'탈출로 부상',ESCAPE_SECTION:'탈출로 구간 이동',ESCAPE_HAZARD_CONTACT:'탈출로 장애물 접촉'});
+Object.assign(eventNames,spatialNames);
+Object.assign(words,{Abandoned:'런 포기',Deadline:'기한 초과 패배',EscapeAllRetired:'탈출 실패 · 전원 리타이어',EscapeSucceeded:'탈출 성공',EXITROUTE:'탈출로',CHASE_STARTED:'추격 시작',TARGET_RELEASED:'추격 대상 해제 · 도망 관측',CAPTURED:'잡힘',CHEER:'환호',JEER:'야유',Patrol:'순찰',Chase:'추격',Search:'수색',Return:'복귀',Capture:'포획',FIRED:'발사',CABLE_CUT:'배선 절단',ENDED:'발사 종료',CUT:'절단',INTACT:'미절단'});
+function spatialLines(p){const e=p.event,v=e.payload,lines=[p.kind==='PLAYER'?player(e):v.label||p.entityId];
+  const labels={roomName:'관측한 방',headingDeg:'몸 방향(°)',durationMs:'지속 시간(ms)',obstacleId:'장애물',lostCount:'결손 개수',gimmickType:'기믹',personalAudience:'개인 호응',teamAudience:'팀 호응',tokens:'정산 토큰',cutCableCount:'절단한 배선',usesBefore:'사용 전 내구도',usesAfter:'사용 후 내구도',bodyResult:'결손 부위',stackSize:'목마 인원',subjectClientId:'이탈 클라이언트',state:'상태',behaviour:'행동',reason:'사유',reaction:'관객 반응',delta:'호응 변화',targetClientId:'추격 대상 클라이언트',targetId:'탐색 대상',accepted:'요청 수락',opened:'열림',hits:'누적 시도',trickId:'해금 공연',stage:'리허설 단계(0부터)',completed:'이수',practice:'재연습',day:'편성 일차',slot:'편성 칸(0부터)',tier:'난도',remainingCables:'남은 배선',result:'발사 결과',hazardType:'장애물 종류',part:'절단 부위'};
+  Object.entries(labels).forEach(([key,label])=>{if(v[key]!=null)lines.push(label+': '+(typeof v[key]==='boolean'?(v[key]?'예':'아니요'):word(v[key])));});
+  if(p.position)lines.push('위치 X '+n(p.position.x)+' / Y '+n(p.position.y)+' / Z '+n(p.position.z));return lines;}
+function replayPose(track,time){
+  let lo=0,hi=track.length;
+  while(lo<hi){const mid=(lo+hi)>>1;if(track[mid].timeMs<=time)lo=mid+1;else hi=mid;}
+  if(!lo)return null;const a=track[lo-1],b=track[lo];
+  if(!b||b.floorY!==a.floorY||b.timeMs-a.timeMs>6500||/DIED|CAPTURED|BOUNDARY|ARRIVED/.test(a.event.eventType))return a;
+  const dx=b.position.x-a.position.x,dz=b.position.z-a.position.z;
+  if(Math.hypot(dx,dz)>20)return a;
+  const u=Math.max(0,Math.min(1,(time-a.timeMs)/Math.max(1,b.timeMs-a.timeMs)));
+  return {...a,position:{x:a.position.x+dx*u,y:a.position.y+(b.position.y-a.position.y)*u,z:a.position.z+dz*u}};
+}
+const spatialMapAssets=/* SPATIAL_MAP_ASSETS */{};
+const requestedSpatialMaps=new Set();
+function replayFloorName(f){return (f===0?'지상':f<0?'지하':'상층')+' · '+n(f)+'m';}
+// Old 0.2.x logs identified the performance but did not carry the base map ID.
+function tightropeBase(version,trick){return /^0\.2\./.test(version)&&String(trick).toUpperCase()==='TIGHTROPE'?'Tightrope_base_021':null;}
+function ropeStateAt(base,updates,time){
+  const lanes=new Map(base.lanes.map(l=>[l.lane,l.spans]));
+  for(const row of updates){if(row.timeMs>time)break;const p=row.event.payload;lanes.set(p.lane,p.ropeSpans);}
+  return lanes;
+}
+function drawRopePlan(ctx,base,lanes,project,mini){
+  const path=points=>{ctx.beginPath();points.forEach((p,i)=>{const q=project(p);if(i)ctx.lineTo(q.x,q.y);else ctx.moveTo(q.x,q.y);});};
+  ctx.save();
+  for(const [i,platform] of base.platforms.entries()){
+    path(platform);ctx.closePath();ctx.fillStyle=i?'#517c68':'#4a647c';ctx.fill();ctx.strokeStyle='#d5e2df';ctx.lineWidth=1;ctx.stroke();
+    if(!mini){const q=project(platform[1]);ctx.fillStyle='#dce6ea';ctx.font='12px sans-serif';ctx.textAlign='left';ctx.fillText(i?'도착 발판':'출발 발판',q.x+5,q.y);}
+  }
+  for(const [lane,spans] of lanes){ctx.lineWidth=mini?1:2;
+    for(const span of spans){ctx.strokeStyle='#abb6c1';path(span);ctx.stroke();
+      // Only colour the observed support crossing a gap in the authored lane.
+      const fixed=base.lanes[lane]?.spans||[];
+      for(let i=1;i<fixed.length;i++){const a=fixed[i-1][1],b=fixed[i][0],covers=p=>
+        (p.x-span[0].x)*(p.x-span[1].x)+(p.z-span[0].z)*(p.z-span[1].z)<=.001;
+        if(covers(a)&&covers(b)){ctx.strokeStyle='#ffc65a';path([a,b]);ctx.stroke();}}
+    }}
+  for(const pin of base.poles){const q=project(pin);ctx.fillStyle='#69c2c5';ctx.fillRect(q.x-2,q.y-2,4,4);}
+  for(const pin of base.trapeze){const q=project(pin);ctx.strokeStyle='#dca8db';ctx.lineWidth=2;ctx.strokeRect(q.x-2,q.y-2,4,4);}
+  if(!mini){ctx.font='12px sans-serif';ctx.textAlign='left';ctx.fillStyle='#c5d4df';for(const [i,s] of base.sections.entries()){const q=project(s.at);ctx.fillText((i+1)+' · '+s.name,q.x+8,q.y-4);}}
+  ctx.restore();
+}
+function renderSpatialReplay(host,replay,baseId=null){
+  const heading=node('h3','층별 동선 · 사건 재생'),tools=node('div',null,'route-tools');
+  const scopeSelect=node('select'),floorSelect=node('select'),speed=node('select'),seek=node('input'),stamp=node('span');
+  scopeSelect.setAttribute('aria-label','공간 기록 선택');floorSelect.setAttribute('aria-label','층 선택');speed.setAttribute('aria-label','재생 속도');
+  const scopes=[...new Set([...replay.scopes,...replay.geometry.map(p=>p.scope)])];
+  scopes.forEach((s,i)=>scopeSelect.append(new Option('공간 기록 '+(i+1),s)));
+  if(!scopes.length)scopeSelect.append(new Option('고정 도면',''));
+  replay.floors.forEach(f=>floorSelect.append(new Option('층 높이 '+n(f)+'m',String(f))));
+  [0.5,1,2,4,8].forEach(v=>speed.append(new Option(v+'×',String(v))));speed.value='1';
+  const first=node('button','⏮ 처음'),back=node('button','◀ 이전 사건'),play=node('button','▶ 재생'),forward=node('button','다음 사건 ▶'),last=node('button','마지막 ⏭');
+  [first,back,play,forward,last].forEach(b=>b.type='button');
+  seek.type='range';seek.min='0';seek.step='1';seek.style.width='100%';seek.setAttribute('aria-label','타임라인 시간');
+  tools.append(scopeSelect,floorSelect,first,back,play,forward,last,speed,stamp);
+  const legend=node('div',null,'route-legend');
+  [...[...new Map(replay.points.filter(p=>p.kind==='PLAYER').map(p=>[p.entityId,[player(p.event),playerColors[p.event.playerNumber]||'#6e8195']])).values()],['추격자','#111111'],['장애물','#888888'],['오브제','#c8a77e']].forEach(([label,color])=>{const chip=node('span','● '+label);chip.style.color=color;legend.append(chip);});
+  const canvas=node('canvas');canvas.style.cssText='display:block;width:100%;height:560px;background:#f6f5ef;border:1px solid #d9ded9;border-radius:8px;touch-action:pan-y';canvas.setAttribute('aria-label','X/Z 탑뷰 평면도. 발자국을 가리키거나 아래 사건 목록에서 상세 확인');canvas.setAttribute('role','img');
+  const note=node('p','👣 이동 · 💀 사망/잡힘 · 👏 환호 · 👎 야유 · 🔎 발견 · 🔓 해금. 점 사이의 이동은 보간 표시이며 실제 물리 시뮬레이션을 재현하지 않습니다.','reading-note');
+  if(replay.clock!=='SERVER')note.append(node('strong',' 공통 서버 시각이 없는 기록: PC 시계 오차가 있을 수 있습니다.'));
+  const feed=node('div',null,'route-unknown');feed.setAttribute('aria-label','현재 시점의 최근 사건');
+  const floorTabs=node('div',null,'route-tools');floorTabs.setAttribute('role','tablist');floorTabs.setAttribute('aria-label','평면도 층');
+  const roomSelect=node('select');roomSelect.setAttribute('aria-label','방 선택');
+  const sectionSelect=node('select'),sectionTools=node('div',null,'route-tools'),wholeRoute=node('button','전체 보기'),partRoute=node('button','구간별 보기');
+  sectionSelect.setAttribute('aria-label','탈출로 구간');sectionTools.append(wholeRoute,partRoute,sectionSelect);sectionTools.hidden=true;
+  const zoomOut=node('button','− 축소'),zoomIn=node('button','＋ 확대'),fitMap=node('button','전체 층 맞춤');
+  const mapTools=node('div',null,'route-tools'),mapStatus=node('span'),overview=node('canvas'),saveMap=node('button','도면 이미지 저장');
+  saveMap.onclick=()=>{const a=document.createElement('a');a.download='curtaincall-floor-'+floorSelect.value+'m.png';a.href=canvas.toDataURL('image/png');a.click();};
+  mapTools.append(roomSelect,zoomOut,zoomIn,fitMap,saveMap,mapStatus);
+  overview.width=230;overview.height=240;overview.style.cssText='width:230px;height:240px;border-radius:8px;background:#101216;cursor:pointer';overview.setAttribute('aria-label','현재 층의 방 구조 미니맵');overview.setAttribute('role','img');
+  const mapLayout=node('div');mapLayout.style.cssText='display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap';
+  const mapSide=node('div');mapSide.append(overview,node('p','방 클릭: 확대 · 휠: 배율 · 드래그: 이동','quiet'));
+  const mapMain=node('div');mapMain.style.cssText='flex:1;min-width:300px';mapMain.append(canvas);mapLayout.append(mapSide,mapMain);
+  const allLayers=node('div');allLayers.style.cssText='display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px';allLayers.hidden=true;
+  canvas.style.height='680px';canvas.style.background='#101216';canvas.style.touchAction='none';
+  host.append(heading,floorTabs,tools,seek,legend,sectionTools,mapTools,mapLayout,allLayers,note,feed);
+  let rows=[],map=[],tracks=new Map(),times=[],start=0,end=0,time=0,playing=false,frame=0,lastFrame=0,targets=[],feedKey='',disposed=false;
+  let sceneMaps=[],activeMap=null,mapImage=null,zoom=1,panX=0,panZ=0,lastScale=1,drag=null,dragged=false,miniRooms=[];
+  let sectionMode=false,ropeUpdates=[],feedRows=[];
+  const images=new Map(),layerCanvases=new Map(),layerTargets=new WeakMap();
+  const color=p=>p.kind==='PURSUER'?'#111111':p.kind==='OBSTACLE'?'#888888':p.kind==='OBJECT'?'#c8a77e':playerColors[p.event.playerNumber]||'#6e8195';
+  function pause(){playing=false;play.textContent='▶ 재생';cancelAnimationFrame(frame);}
+  function selectScope(){
+    pause();rows=replay.points.filter(p=>p.scope===scopeSelect.value);map=replay.geometry.filter(p=>p.scope===scopeSelect.value);
+    tracks=new Map();rows.forEach(p=>{if(p.anchor)return;if(!tracks.has(p.entityId))tracks.set(p.entityId,[]);tracks.get(p.entityId).push(p);});
+    ropeUpdates=map.filter(p=>Array.isArray(p.event.payload.ropeSpans)).sort((a,b)=>a.timeMs-b.timeMs||a.event.sequence-b.event.sequence);
+    feedRows=rows.concat(ropeUpdates.filter(p=>p.event.payload.state!=='INITIAL')).sort((a,b)=>a.timeMs-b.timeMs);
+    times=[...new Set(rows.concat(ropeUpdates).map(p=>p.timeMs))].sort((a,b)=>a-b);start=times[0]||0;end=times.at(-1)||start;time=start;seek.max=String(Math.max(1,end-start));
+    const ids=new Set(rows.concat(map).map(p=>p.event.payload.mapId).filter(Boolean));
+    if(baseId&&!ids.size)ids.add(baseId);
+    const mapped=Object.values(spatialMapAssets).filter(m=>ids.has(m.id));
+    const scenes=new Set(mapped.map(m=>m.scene));sceneMaps=Object.values(spatialMapAssets).filter(m=>scenes.has(m.scene));
+    const sections=sceneMaps.filter(m=>m.sectionId>0);sectionTools.hidden=!sections.length;sectionTools.style.display=sections.length?'flex':'none';sectionSelect.replaceChildren(...sections.map(m=>new Option(m.sectionId+'. '+m.sectionName,String(m.sectionId))));sectionMode=false;
+    sectionSelect.disabled=true;wholeRoute.style.background='#dce6eb';partRoute.style.background='';floorTabs.style.display=sections.length?'none':'flex';floorSelect.hidden=!!sections.length;
+    const localFloors=[...new Set(rows.concat(map).map(p=>p.floorY).concat(sceneMaps.map(m=>m.floorY)))].sort((a,b)=>b-a);
+    floorSelect.replaceChildren(...localFloors.map(f=>new Option(replayFloorName(f),String(f))));
+    floorTabs.replaceChildren();localFloors.forEach(f=>{const count=sceneMaps.find(m=>m.floorY===f)?.rooms.length;const b=node('button',replayFloorName(f)+(count?' · '+count+'개 방':''));b.setAttribute('role','tab');b.dataset.floor=String(f);b.onclick=()=>{floorSelect.value=String(f);chooseFloor();};floorTabs.append(b);});
+    allLayers.replaceChildren();layerCanvases.clear();if(localFloors.length>1){floorSelect.append(new Option('모든 층','ALL'));const b=node('button','모든 층');b.setAttribute('role','tab');b.dataset.floor='ALL';b.onclick=()=>{floorSelect.value='ALL';chooseFloor();};floorTabs.prepend(b);
+      localFloors.forEach(f=>{const card=node('div'),title=node('button',replayFloorName(f)+' · 크게 보기'),layer=node('canvas');title.onclick=()=>{floorSelect.value=String(f);chooseFloor();};layer.style.cssText='display:block;width:100%;height:440px;background:#101216;border-radius:8px';layer.setAttribute('role','img');layer.setAttribute('aria-label',replayFloorName(f)+' 동시 재생 평면도');layer.onmousemove=ev=>{const r=layer.getBoundingClientRect(),q=[...(layerTargets.get(layer)||[])].reverse().find(q=>Math.hypot(q.x-ev.clientX+r.left,q.y-ev.clientY+r.top)<12);if(q)showTip(layer,eventName(q.p.event),spatialLines(q.p),ev);else hideTip();};layer.onmouseleave=hideTip;card.append(title,layer);allLayers.append(card);layerCanvases.set(f,layer);});}
+    chooseFloor();
+  }
+  function chooseFloor(){
+    const all=floorSelect.value==='ALL';allLayers.hidden=!all;allLayers.style.display=all?'grid':'none';mapLayout.hidden=all;mapLayout.style.display=all?'none':'flex';zoomIn.disabled=zoomOut.disabled=saveMap.disabled=all;
+    zoom=1;panX=panZ=0;activeMap=sceneMaps.find(m=>Math.abs(m.floorY-Number(floorSelect.value))<.6&&(m.sectionId||0)===(sectionMode?Number(sectionSelect.value):0))||null;mapImage=null;
+    for(const b of floorTabs.children){const selected=b.dataset.floor===floorSelect.value;b.setAttribute('aria-selected',String(selected));b.style.cssText=selected?'background:#263e4e;color:white;border-color:#263e4e':'';}
+    roomSelect.replaceChildren(new Option('전체 방 보기',''));(activeMap?.rooms||[]).forEach((r,i)=>roomSelect.append(new Option(r.name,String(i))));roomSelect.disabled=!activeMap?.rooms.length;
+    sceneMaps.filter(m=>m.image&&(!(m.sectionId>0)||m===activeMap)).forEach(m=>{if(!images.has(m.id)){const img=new Image();img.onload=()=>{if(!disposed)draw();};img.src=m.image;images.set(m.id,img);}});
+    if(all)mapStatus.textContent='모든 층 · 같은 시각으로 함께 재생';
+    else if(activeMap){mapStatus.textContent=activeMap.lanes?'외줄타기 · 고정 코스'+(map.some(p=>Array.isArray(p.event.payload.ropeSpans))?' · 기록된 줄 상태 재생':' · 줄 연결 기록 없음'):(activeMap.sectionName||activeMap.scene)+' · 실제 씬 평면도';mapImage=images.get(activeMap.id);}
+    else mapStatus.textContent='일치하는 원본 도면 미수집 · 기록된 구조만 표시';
+    draw();
+  }
+  function detail(p){pin(p.event);const extra=node('p',spatialLines(p).join('\n'));extra.style.cssText='white-space:pre-wrap;font-size:12px';$('route-detail').append(extra);}
+  function draw(){
+    if(floorSelect.value==='ALL'){layerCanvases.forEach((layer,floor)=>drawLayer(layer,floor,true));return;}drawLayer(canvas,Number(floorSelect.value),false);
+  }
+  function drawLayer(canvas,floor,all){
+    if(disposed)return;seek.value=String(time-start);stamp.textContent=duration((time-start)/1000)+' / '+duration((end-start)/1000);
+    const activeMap=sceneMaps.find(m=>Math.abs(m.floorY-floor)<.6&&(m.sectionId||0)===(sectionMode?Number(sectionSelect.value):0))||null,mapImage=activeMap?images.get(activeMap.id):null;
+    const layerZoom=all?1:zoom,layerPanX=all?0:panX,layerPanZ=all?0:panZ;
+    const w=Math.max(300,canvas.clientWidth),h=all?440:680,dpr=window.devicePixelRatio||1;
+    if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);}
+    const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);const targets=[];layerTargets.set(canvas,targets);
+    const onFloor=p=>Math.abs(p.floorY-floor)<.6&&(!sectionMode||!activeMap||(p.position.x>=activeMap.minX&&p.position.x<=activeMap.maxX&&p.position.z>=activeMap.minZ&&p.position.z<=activeMap.maxZ));
+    const structures=map.filter(p=>onFloor(p)||(p.kind!=='ROOM'&&p.event.payload.minY<=floor+1.2&&p.event.payload.maxY>=floor+.4)).sort((a,b)=>(a.kind==='ROOM'?-1:1)-(b.kind==='ROOM'?-1:1));
+    const floorPoints=rows.filter(onFloor).concat(structures);if(!floorPoints.length&&!activeMap){ctx.fillStyle='#c9d3d9';ctx.fillText('이 층의 위치 기록이 없습니다.',20,40);return;}
+    let minX=Infinity,maxX=-Infinity,minZ=Infinity,maxZ=-Infinity;
+    floorPoints.forEach(p=>{const s=p.event.payload.size||{x:0,z:0};minX=Math.min(minX,p.position.x-s.x/2);maxX=Math.max(maxX,p.position.x+s.x/2);minZ=Math.min(minZ,p.position.z-s.z/2);maxZ=Math.max(maxZ,p.position.z+s.z/2);});
+    if(activeMap)({minX,maxX,minZ,maxZ}=activeMap);
+    const scale=Math.min((w-32)/Math.max(4,maxX-minX),(h-32)/Math.max(4,maxZ-minZ))*layerZoom;if(!all)lastScale=scale;
+    const project=p=>({x:w/2+(p.x-(minX+maxX)/2-layerPanX)*scale,y:h/2-(p.z-(minZ+maxZ)/2-layerPanZ)*scale});
+    if(mapImage?.complete&&mapImage.naturalWidth){const q=project({x:minX,z:maxZ});ctx.drawImage(mapImage,q.x,q.y,(maxX-minX)*scale,(maxZ-minZ)*scale);}
+    ctx.fillStyle='#d2dbe0';ctx.font='12px sans-serif';ctx.textAlign='left';ctx.textBaseline='alphabetic';ctx.fillText('N ↑   '+replayFloorName(floor)+' · '+layerZoom.toFixed(1)+'×',16,20);
+    (activeMap?[]:structures).forEach(p=>{const data=p.event.payload,s=data.size;ctx.fillStyle=p.kind==='ROOM'?'#27333d':'#5c686d';ctx.strokeStyle='#91a0a9';
+      if(Array.isArray(data.polyline)){ctx.beginPath();ctx.strokeStyle='#c8a77e';ctx.lineWidth=3;data.polyline.forEach((c,i)=>{const q=project(c);if(i)ctx.lineTo(q.x,q.y);else ctx.moveTo(q.x,q.y);});ctx.stroke();ctx.lineWidth=1;}
+      else if(Array.isArray(data.corners)&&data.corners.length===4){ctx.beginPath();data.corners.forEach((c,i)=>{const q=project(c);if(i)ctx.lineTo(q.x,q.y);else ctx.moveTo(q.x,q.y);});ctx.closePath();ctx.fill();ctx.stroke();}
+      else if(s){const q=project(p.position);ctx.fillRect(q.x-s.x*scale/2,q.y-s.z*scale/2,s.x*scale,s.z*scale);ctx.strokeRect(q.x-s.x*scale/2,q.y-s.z*scale/2,s.x*scale,s.z*scale);}
+      if(p.kind==='ROOM'){const q=project(p.position);ctx.fillStyle='#68776c';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText(data.label||'',q.x,q.y);}
+    });
+    const mini=overview.getContext('2d');mini.clearRect(0,0,230,240);miniRooms=[];
+    const ms=Math.min(210/Math.max(4,maxX-minX),220/Math.max(4,maxZ-minZ));
+    if(activeMap?.lanes){
+      const lanes=ropeStateAt(activeMap,ropeUpdates,time);drawRopePlan(ctx,activeMap,lanes,project,false);
+      drawRopePlan(mini,activeMap,lanes,p=>({x:115+(p.x-(minX+maxX)/2)*ms,y:120-(p.z-(minZ+maxZ)/2)*ms}),true);
+    }
+    (activeMap?.rooms||[]).forEach((r,i)=>{const x=115+(r.x-(minX+maxX)/2)*ms-r.width*ms/2,y=120-(r.z-(minZ+maxZ)/2)*ms-r.depth*ms/2;
+      mini.fillStyle=roomSelect.value===String(i)?'#795021':'#26343d';mini.strokeStyle=roomSelect.value===String(i)?'#efab40':'#657681';mini.fillRect(x,y,r.width*ms,r.depth*ms);mini.strokeRect(x,y,r.width*ms,r.depth*ms);miniRooms.push({x,y,w:r.width*ms,h:r.depth*ms,i});
+      const p=project({x:r.x,z:r.z});ctx.font='11px sans-serif';ctx.textAlign='center';ctx.lineWidth=4;ctx.strokeStyle='#101216';ctx.fillStyle='#c0cbd2';ctx.strokeText(r.name,p.x,p.y);ctx.fillText(r.name,p.x,p.y);
+    });
+    tracks.forEach(track=>{
+      ctx.beginPath();ctx.strokeStyle=color(track[0]);ctx.lineWidth=1.5;ctx.globalAlpha=.45;let previous=null;
+      track.forEach(p=>{if(p.timeMs>time)return;if(!onFloor(p)){previous=null;return;}const q=project(p.position);
+        if(previous&&p.timeMs-previous.timeMs<=6500&&Math.hypot(p.position.x-previous.position.x,p.position.z-previous.position.z)<=20)ctx.lineTo(q.x,q.y);else ctx.moveTo(q.x,q.y);previous=p;});ctx.stroke();ctx.globalAlpha=1;
+    });
+    rows.forEach(p=>{
+      if(p.timeMs>time||!onFloor(p)||/^(WORLD_SAMPLE|PURSUIT_SAMPLE)$/.test(p.event.eventType))return;
+      const q=project(p.position),move=p.event.eventType==='SPATIAL_SAMPLE';ctx.fillStyle=color(p);ctx.globalAlpha=move ? .55 : 1;
+      ctx.beginPath();ctx.arc(q.x,q.y,move?5:9,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;ctx.font=(move?'10':'15')+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';const mark=mapType(p.event,p.kind);ctx.fillText(mark?mark[0]:spatialIcon(p.event),q.x,q.y);if(mark&&!move){ctx.font='11px sans-serif';ctx.strokeStyle='#101216';ctx.fillStyle='#fff';ctx.lineWidth=3;ctx.strokeText(mark[1],q.x,q.y+15);ctx.fillText(mark[1],q.x,q.y+15);}targets.push({...q,p});
+    });
+    tracks.forEach(track=>{const p=replayPose(track,time);if(!p||!onFloor(p))return;const q=project(p.position);ctx.fillStyle=color(p);ctx.strokeStyle='#ffffff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(q.x,q.y,8,0,Math.PI*2);ctx.fill();ctx.stroke();const typeMark=mapType(p.event,p.kind);ctx.font='16px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(/DIED|CAPTURED/.test(p.event.eventType)?'💀':p.kind==='PLAYER'?'👤':typeMark?.[0]||'👁',q.x,q.y);ctx.font='11px sans-serif';ctx.textAlign='left';ctx.fillStyle='#ffffff';ctx.strokeStyle='#101216';ctx.lineWidth=3;const label=p.kind==='PLAYER'?player(p.event):typeMark?.[1]||'추격자';ctx.strokeText(label,q.x+11,q.y-11);ctx.fillText(label,q.x+11,q.y-11);targets.push({...q,p});
+      mini.fillStyle=color(p);mini.strokeStyle='#e1e6e8';mini.lineWidth=1;mini.beginPath();mini.arc(115+(p.position.x-(minX+maxX)/2)*ms,120-(p.position.z-(minZ+maxZ)/2)*ms,3,0,Math.PI*2);mini.fill();mini.stroke();});
+    const recent=feedRows.filter(p=>!p.anchor&&p.timeMs<=time&&!/^(SPATIAL_SAMPLE|WORLD_SAMPLE|PURSUIT_SAMPLE)$/.test(p.event.eventType)).slice(-12).reverse(),key=recent.map(p=>p.event.eventId).join();
+    if(feedKey!==key){feedKey=key;feed.replaceChildren();recent.forEach(p=>{const button=node('button',spatialIcon(p.event)+' '+duration((p.timeMs-start)/1000)+' · '+(Array.isArray(p.event.payload.ropeSpans)?p.event.payload.label+' · '+({CONNECTED:'연결',DISCONNECTED:'해제',SUPPORT_CHANGED:'지지 구간 변경'}[p.event.payload.state]||'줄 상태'):spatialNames[p.event.eventType]||eventName(p.event)));button.onclick=()=>{jump(p.timeMs);detail(p);};feed.append(button);});}
+  }
+  function tick(at){if(!playing||disposed)return;time=Math.min(end,time+Math.max(0,at-lastFrame)*Number(speed.value));lastFrame=at;draw();if(time>=end)pause();else frame=requestAnimationFrame(tick);}
+  function jump(value){pause();time=Math.max(start,Math.min(end,value));draw();}
+  first.onclick=()=>jump(start);last.onclick=()=>jump(end);back.onclick=()=>jump([...times].reverse().find(t=>t<time-.5)??start);forward.onclick=()=>jump(times.find(t=>t>time+.5)??end);
+  play.onclick=()=>{if(playing){pause();return;}if(time>=end)time=start;playing=true;play.textContent='⏸ 일시정지';lastFrame=performance.now();frame=requestAnimationFrame(tick);};
+  seek.oninput=()=>jump(start+Number(seek.value));floorSelect.onchange=chooseFloor;scopeSelect.onchange=selectScope;
+  function selectSectionMode(value){sectionMode=value;wholeRoute.style.background=value?'':'#dce6eb';partRoute.style.background=value?'#dce6eb':'';sectionSelect.disabled=!value;chooseFloor();}
+  wholeRoute.onclick=()=>selectSectionMode(false);partRoute.onclick=()=>selectSectionMode(true);sectionSelect.onchange=()=>selectSectionMode(true);
+  function setZoom(v){zoom=Math.max(.5,Math.min(16,v));hideTip();draw();}
+  zoomOut.onclick=()=>setZoom(zoom/1.5);zoomIn.onclick=()=>setZoom(zoom*1.5);fitMap.onclick=()=>{zoom=1;panX=panZ=0;roomSelect.value='';draw();};
+  roomSelect.onchange=()=>{if(roomSelect.value===''||!activeMap){fitMap.click();return;}const r=activeMap.rooms[Number(roomSelect.value)];panX=r.x-(activeMap.minX+activeMap.maxX)/2;panZ=r.z-(activeMap.minZ+activeMap.maxZ)/2;zoom=Math.max(1,Math.min(12,Math.min((activeMap.maxX-activeMap.minX)/r.width,(activeMap.maxZ-activeMap.minZ)/r.depth)*.8));draw();};
+  overview.onclick=ev=>{const r=overview.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top;const hit=miniRooms.filter(b=>x>=b.x&&x<=b.x+b.w&&y>=b.y&&y<=b.y+b.h).sort((a,b)=>a.w*a.h-b.w*b.h)[0];if(hit){roomSelect.value=String(hit.i);roomSelect.onchange();}};
+  canvas.onwheel=ev=>{ev.preventDefault();setZoom(zoom*(ev.deltaY<0?1.2:1/1.2));};
+  canvas.onpointerdown=ev=>{if(ev.button!==0)return;drag={x:ev.clientX,y:ev.clientY,px:panX,pz:panZ};dragged=false;canvas.setPointerCapture(ev.pointerId);};
+  canvas.onpointermove=ev=>{if(!drag)return;const dx=ev.clientX-drag.x,dy=ev.clientY-drag.y;if(Math.hypot(dx,dy)>3)dragged=true;if(dragged){panX=drag.px-dx/lastScale;panZ=drag.pz+dy/lastScale;hideTip();draw();}};
+  canvas.onpointerup=ev=>{drag=null;if(canvas.hasPointerCapture(ev.pointerId))canvas.releasePointerCapture(ev.pointerId);};canvas.onpointercancel=()=>{drag=null;};
+  function hit(ev){const r=canvas.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top;return [...(layerTargets.get(canvas)||[])].reverse().find(q=>Math.hypot(q.x-x,q.y-y)<12);}
+  canvas.onmousemove=ev=>{if(drag)return;const q=hit(ev);canvas.style.cursor=q?'pointer':'grab';if(!q){hideTip();return;}const p=q.p;showTip(canvas,spatialIcon(p.event)+' '+(spatialNames[p.event.eventType]||eventName(p.event)),[duration((p.timeMs-start)/1000),...spatialLines(p)],ev);};
+  canvas.onmouseleave=hideTip;canvas.onclick=ev=>{if(dragged)return;const q=hit(ev);if(q)detail(q.p);};
+  const resize=new ResizeObserver(draw);resize.observe(canvas);selectScope();
+  disposeSpatialReplay=()=>{disposed=true;pause();resize.disconnect();hideTip();};
+}
 function renderRoute(t,phase){
+  disposeSpatialReplay();disposeSpatialReplay=()=>{};
   const host=$('route');host.replaceChildren();$('route-detail').hidden=true;resetRouteSelection=()=>{$('route-detail').hidden=true;};
+  if(t.players?.length){const present=new Set((t.replay?.points||[]).filter(p=>p.kind==='PLAYER').map(p=>p.entityId));const listed=t.players.filter(p=>!filters.replayPlayer||filters.replayPlayer===p.key);
+ host.append(node('p',listed.map((p,i)=>(Number.isInteger(p.playerNumber)?player(p):'슬롯 미확인 '+(i+1))+': '+(present.has(p.key)?'위치 기록 있음':'이 구간 위치 기록 없음')).join(' · '),'reading-note'));}
+  const explicit=(t.replay?.points||[]).concat(t.replay?.geometry||[]).map(p=>p.event.payload.mapId).filter(Boolean);
+  const baseId=tightropeBase(data.gameVersion,phase?.traceTrick||phase?.attempts?.find(a=>a.id===t.attemptId)?.trickType);
+  const needed=[...new Set((explicit.length?explicit:[baseId]).filter(id=>id&&!spatialMapAssets[id]&&!requestedSpatialMaps.has(id)))];
+  if(needed.length){needed.forEach(id=>requestedSpatialMaps.add(id));host.append(readStatus('이 기록의 층별 도면을 불러오는 중…'));google.script.run.withSuccessHandler(maps=>{Object.assign(spatialMapAssets,maps);if(data?.view?.timeline===t)renderRoute(t,phase);}).withFailureHandler(()=>{if(data?.view?.timeline===t){renderRoute(t,phase);host.prepend(node('p','도면을 불러오지 못했습니다. 새로고침하면 다시 시도합니다.'));}}).getSpatialMaps(needed,auth);return;}
+  if(t.replay?.points?.length||t.replay?.geometry?.length){renderSpatialReplay(host,t.replay,baseId);return;}
+  if(baseId&&spatialMapAssets[baseId]){renderSpatialReplay(host,t.replay,baseId);if(!t.markers?.length)return;}
   if(phase?.kind!=='PERFORMANCE')return;
   const attempt=phase.attempts.find(a=>a.id===t.attemptId);if(routeAttempt!==t.attemptId){routeAttempt=t.attemptId;routeZoom=1;}const model=routeGeometry(t.markers,attempt?.trickType,routeZoom);
   (t.participants||[]).forEach(e=>{const k=routePlayerKey(e);if(!model.actors.some(a=>a.key===k))model.actors.push({key:k,event:e,color:playerColors[e.playerNumber],segments:[]});});
@@ -252,9 +486,61 @@ function renderRoute(t,phase){
   if(t.markerTotal>t.markers.length)host.append(node('div','중요 사건 '+n(t.markers.length)+' / '+n(t.markerTotal)+'건 표시','badge'));
 }
 
-function renderTimeline(){const t=data.view.timeline,phase=t.phases.find(p=>p.id===t.phaseId);$('timeline-run').value=t.runId||'';$('timeline-session').textContent=t.runId?'세션 '+short(t.runId):'';$('timeline-session').title=t.runId||'';$('timeline-count').textContent=n(t.total)+'개 기록';$('day-tabs').replaceChildren();[...new Set(t.phases.map(p=>p.day))].forEach(day=>tab($('day-tabs'),day==null?'일차 미분류':day+'일차',day===phase?.day,()=>selectPhase(t.phases.find(p=>p.day===day).id)));$('phase-tabs').replaceChildren();t.phases.filter(p=>p.day===phase?.day).forEach(p=>tab($('phase-tabs'),phaseName(p),p.id===t.phaseId,()=>selectPhase(p.id)));$('attempt-tabs').replaceChildren();(phase?.attempts||[]).forEach((a,i)=>{const b=tab($('attempt-tabs'),null,a.id===t.attemptId,()=>{filters.timelineAttemptId=a.id;filters.timelineOffset=0;load(false);},'attempt-card');b.append(node('strong',trickName(a.trickType)+' · '+(i+1)+'번째 공연'));const meta=node('div',null,'attempt-meta');meta.append(node('span',a.outcome==='SUCCESS'?'성공':a.outcome==='FAILURE'?'실패':'진행 중','result '+(a.outcome==='SUCCESS'?'success':a.outcome==='FAILURE'?'failure':'')),node('span',a.reason?word(a.reason):'','quiet'));b.append(meta);if(a.deaths.length)b.append(node('span',a.deaths.map(d=>player(d)+' · '+word(d.cause)).join(' / '),'attempt-death'));});renderRoute(t,phase);const host=$('timeline');host.hidden=phase?.kind==='PERFORMANCE';$('timeline-pagination').hidden=host.hidden;host.replaceChildren();if(!t.events.length)empty(host,t.archived?'상세 보관 기간이 지나 세션 요약만 남아 있습니다. 전체 통계·자금·설문은 유지됩니다.':t.runId?'해당 활동 기록 없음':'세션 기록 없음');else t.events.forEach(e=>{const row=node('article',null,'event-row'),content=node('div');content.append(node('div',eventName(e),'event-title'),node('div',eventLines(e).slice(1).join(' · ')||word(e.sceneType),'event-summary'));row.append(node('time',clock(e.occurredAt),'event-time'),node('div',player(e),'event-player'),content);host.append(row);});$('page').textContent=t.total?(t.offset+1)+'–'+Math.min(t.offset+200,t.total)+' / '+n(t.total):'0 / 0';$('previous').disabled=busy||t.offset===0;$('next').disabled=busy||t.offset+200>=t.total;}
+// WAITING_OBSERVATIONS_BEGIN
+function waitingObservations(points,slot){
+ const seen=new Set(),targets=new Map(),rooms=new Map(),actions=[],clocks=new Map(),teamRead=new Set(),starts=new Map();
+ const actor=e=>e.playerNumber!=null?'플레이어 '+(Number(e.playerNumber)+1):'플레이어 미상';
+ for(const point of points){
+  const e=point.event,p=e.payload||{};if(e.sceneType!=='WAITINGROOM'||point.anchor||!e.eventId||seen.has(e.eventId))continue;
+  seen.add(e.eventId);if(e.eventType==='CLUE_INSPECTED'&&(!p.state||p.state==='OPENED'))teamRead.add(p.targetId);if(slot!==''&&(p.subjectKind==='TEAM'||String(e.playerNumber)!==slot))continue;
+  const availability=p.observation==='CLUE_AVAILABILITY',assembly=p.zoneType==='ESCAPE_ASSEMBLY'||p.observation==='ESCAPE_TRANSFER';
+  const who=actor(e),key=JSON.stringify([point.scope,who,p.targetId]),state=p.state||'',clockKey=JSON.stringify([point.scope,e.appSessionId,p.targetId,who]);
+  if(e.eventType==='SPATIAL_SAMPLE'&&p.roomName){
+   const k=JSON.stringify([point.scope,who]),old=clocks.get(k);let r=rooms.get(p.roomName)||{players:new Set(),observations:0,entries:0};
+   r.players.add(who);r.observations++;if(old!==p.roomName)r.entries++;clocks.set(k,p.roomName);rooms.set(p.roomName,r);
+  }else if(e.eventType==='SPATIAL_BOUNDARY'||(e.eventType==='SPATIAL_SAMPLE'&&!p.roomName))clocks.delete(JSON.stringify([point.scope,who]));
+  if(availability||assembly||['CLUE_INSPECTED','EXPLORATION_INTERACTION','EXPLORATION_TOOL','OBJECT_DISCOVERED','TRICK_UNLOCKED','REHEARSAL_STATE'].includes(e.eventType)){
+   actions.push(e);
+   if(!p.targetId||!availability&&!['CLUE_INSPECTED','EXPLORATION_INTERACTION'].includes(e.eventType))continue;
+   let t=targets.get(key);if(!t){t={who,id:p.targetId,opened:0,hidden:0,closed:[],failed:new Map(),focus:false,solved:false,focusDelay:null,firstRead:null,available:false};targets.set(key,t);}
+   if(availability){t.available=state==='AVAILABLE';t.availability=state;}else if(e.eventType==='CLUE_INSPECTED'){
+    if(!state||state==='OPENED'){
+     t.opened++;if(!t.firstRead)t.firstRead=e.occurredAt;
+     if(t.opened===1&&starts.has(clockKey)&&Number.isFinite(e.monotonicMs)&&e.monotonicMs>=starts.get(clockKey))t.focusDelay=e.monotonicMs-starts.get(clockKey);
+    }
+    if(state==='AVAILABLE'||state==='UNAVAILABLE'){t.available=state==='AVAILABLE';t.availability=state;}
+    if(state==='SECRET_FOUND')t.hidden++;
+    if(state==='CLOSED'&&Number.isFinite(p.durationMs))t.closed.push(p.durationMs);
+    if(state==='FOCUSED'){t.focus=true;if(!starts.has(clockKey)&&Number.isFinite(e.monotonicMs))starts.set(clockKey,e.monotonicMs);}
+   }else{if(p.accepted===false)t.failed.set(p.reason||'사유 미수집',(t.failed.get(p.reason||'사유 미수집')||0)+1);if(p.accepted&&(p.reason==='OPENED'||(!p.reason&&p.opened)))t.solved=true;}
+  }
+ }
+ return {targets:[...targets.values()],rooms:[...rooms],actions,teamRead};
+}
+// WAITING_OBSERVATIONS_END
+let observationSlot='',observationPhase='';
+function renderWaitingObservations(t,phase){
+ const host=$('waiting-observations');host.replaceChildren();host.hidden=!phase||!['BREAK','REHEARSAL'].includes(phase.kind);if(host.hidden)return;
+ const key=t.runId+'/'+t.phaseId;if(key!==observationPhase){observationSlot='';observationPhase=key;}
+ const points=t.replay?.points||[],slots=[...new Set(points.filter(p=>!p.anchor&&p.event.playerNumber!=null).map(p=>p.event.playerNumber))].sort((a,b)=>a-b);
+ host.append(node('h3','대기실 탐색 · 리허설 관찰'));const label=node('label','관찰 대상 '),select=node('select');select.setAttribute('aria-label','대기실 관찰 플레이어');select.append(new Option('모든 플레이어',''));slots.forEach(s=>select.append(new Option('플레이어 '+(s+1),s)));select.value=observationSlot;select.onchange=()=>{observationSlot=select.value;renderWaitingObservations(t,phase);};label.append(select);host.append(label);
+ const extra=(t.events||[]).filter(e=>e.eventType==='REHEARSAL_STATE'&&e.payload?.subjectKind==='TEAM'&&!e.payload.position).map(event=>({event,scope:event.payload.spatialScope}));
+ const o=waitingObservations(points.concat(extra),observationSlot);
+ host.append(node('p','선택한 런과 활동에서 관측한 기록입니다. 방 방문은 연속 위치 표본의 방이 바뀐 횟수이며, 안내 대상 선택은 단서 발견으로 세지 않습니다.','reading-note'));
+ if(!o.actions.length&&!o.rooms.length){host.append(node('p','이 활동에 관찰 기록이 없습니다. 미조사나 실패로 집계하지 않습니다.','quiet'));return;}
+ function list(title,headers,rows){if(!rows.length)return;const box=node('div');host.append(node('h4',title),box);table(box,headers,rows);}
+ list('탐색 대상별 관측',['참여자','대상','관측한 행동','최초 열람','안내 대상 선택 → 첫 열람','종료된 열람 시간','거절 사유 · 횟수'],o.targets.map(t=>[t.who,t.id,[t.available?'공개 확인':t.availability==='UNAVAILABLE'?'비공개 확인':'',t.focus?'안내 대상 선택':'',!t.opened&&o.teamRead.has(t.id)?'다른 참여자 열람 확인':'',t.opened?'열람 '+t.opened+'회':'',t.hidden?'숨은 정보 발견':'',t.solved?'개방 확인':''].filter(Boolean).join(' · ')||'상호작용 시도',t.firstRead?clock(t.firstRead):null,t.focusDelay!=null?(t.focusDelay/1000).toFixed(1)+'초':null,t.closed.length?t.closed.map(ms=>(ms/1000).toFixed(1)+'초').join(' · '):null,[...t.failed].map(([r,c])=>word(r)+' '+c+'회').join(' · ')||null]));
+ list('방별 이동 표본',['방','관측한 플레이어','방 방문 관측','위치 표본'],o.rooms.map(([r,v])=>[r,[...v.players].join(', '),v.entries+'회',v.observations+'개']));
+ const rh=o.actions.filter(e=>e.eventType==='REHEARSAL_STATE');
+ list('리허설 진행',['시각','참여자','묘기','회차 / 단계','구분','상태·행동','사유 · 투표 · 가이드'],rh.sort((a,b)=>a.occurredAt.localeCompare(b.occurredAt)).map(e=>{const p=e.payload;return [clock(e.occurredAt),p.subjectKind==='TEAM'?'팀 전체':player(e),word(p.trickId),[p.round??'–',p.stage??'–'].join(' / '),p.recordKind==='ACTION'?'판정·행동':'상태 관측',word(p.state),[p.reason&&word(p.reason),typeof p.vote==='boolean'?(p.vote?'찬성':'해제·반대'):null,p.guideId].filter(Boolean).join(' · ')||null];}));
+ if(extra.length&&t.total>200)host.append(node('p','좌표가 없는 팀 판정은 아래 사건 목록의 현재 페이지 기준입니다.','quiet'));
+ const assembly=o.actions.filter(e=>e.payload.zoneType==='ESCAPE_ASSEMBLY'||e.payload.observation==='ESCAPE_TRANSFER');
+ list('탈출 집결과 이동',['시각','참여자','판정'],assembly.map(e=>[clock(e.occurredAt),e.payload.subjectKind==='TEAM'?'팀 전체':player(e),word(e.payload.state||e.eventType)]));
+}
+function renderTimeline(){$('run-timeline-panel').hidden=averageRuns;if(averageRuns){disposeSpatialReplay();$('timeline-session').textContent='런을 선택하면 타임라인이 열립니다.';return;}const t=data.view.timeline,select=$('replay-player'),names=t.players||[];select.replaceChildren(new Option('모든 플레이어',''),...names.map((p,i)=>new Option((Number.isInteger(p.playerNumber)?player(p):'슬롯 미확인 '+(i+1)),p.key)));select.value=filters.replayPlayer||'';select.onchange=()=>{filters.replayPlayer=select.value;filters.timelineOffset=0;load(false);};const phase=t.phases.find(p=>p.id===t.phaseId);$('timeline-session').textContent=t.runId?'세션 '+short(t.runId):'';$('timeline-session').title=t.runId||'';$('timeline-count').textContent=n(t.total)+'개 기록';$('day-tabs').replaceChildren();[...new Set(t.phases.map(p=>p.day))].forEach(day=>tab($('day-tabs'),day==null?'일차 미분류':day+'일차',day===phase?.day,()=>selectPhase(t.phases.find(p=>p.day===day).id)));$('phase-tabs').replaceChildren();t.phases.filter(p=>p.day===phase?.day).forEach(p=>tab($('phase-tabs'),phaseName(p),p.id===t.phaseId,()=>selectPhase(p.id)));$('attempt-tabs').replaceChildren();(phase?.attempts||[]).forEach((a,i)=>{const b=tab($('attempt-tabs'),null,a.id===t.attemptId,()=>{filters.timelineAttemptId=a.id;filters.timelineOffset=0;load(false);},'attempt-card');b.append(node('strong',(phase.day?phase.day+'일차 ':'')+'공연 '+(/P(\d+)$/.exec(a.performanceId||'')?.[1]||i+1)+' · '+trickName(a.trickType)));const meta=node('div',null,'attempt-meta');meta.append(node('span',a.outcome==='SUCCESS'?'성공':a.outcome==='FAILURE'?'실패':'진행 중','result '+(a.outcome==='SUCCESS'?'success':a.outcome==='FAILURE'?'failure':'')),node('span',a.reason?word(a.reason):'','quiet'));b.append(meta);if(a.reactions)b.append(node('span','환호 '+n(a.reactions.CHEER)+'회 · 야유 '+n(a.reactions.JEER)+'회'));if(a.settlement){const s=a.settlement;b.append(node('span','팀 호응 '+n(s.teamAudience)+' · 정산 '+n(s.tokens)+' 토큰'));for(const p of s.people)b.append(node('small',(p.slot>=0?'플레이어 '+(p.slot+1):'참가자')+' · 호응 '+n(p.audience)+' · '+n(p.tokens)+' 토큰'));}if(a.deaths.length)b.append(node('span',a.deaths.map(d=>player(d)+' · '+word(d.cause)).join(' / '),'attempt-death'));});renderWaitingObservations(t,phase);renderRoute(t,phase);const host=$('timeline');host.hidden=phase?.kind==='PERFORMANCE';$('timeline-pagination').hidden=host.hidden;host.replaceChildren();if(!t.events.length)empty(host,t.archived?'상세 보관 기간이 지나 세션 요약만 남아 있습니다. 전체 통계·자금·설문은 유지됩니다.':t.runId?'해당 활동 기록 없음':'세션 기록 없음');else t.events.forEach(e=>{const row=node('article',null,'event-row'),content=node('div');content.append(node('div',eventName(e),'event-title'),node('div',eventLines(e).slice(1).join(' · ')||word(e.sceneType),'event-summary'));row.append(node('time',clock(e.occurredAt),'event-time'),node('div',player(e),'event-player'),content);host.append(row);});$('page').textContent=t.total?(t.offset+1)+'–'+Math.min(t.offset+200,t.total)+' / '+n(t.total):'0 / 0';$('previous').disabled=busy||t.offset===0;$('next').disabled=busy||t.offset+200>=t.total;}
 function selectPhase(id){filters.timelinePhase=id;filters.timelineAttemptId='';filters.timelineOffset=0;load(false);}
-function render(d){data=d;viewer=d.viewer||viewer;renderAccount();renderAdminSessions();filters.gameVersion=d.gameVersion;$('game-version').replaceChildren();d.versionOptions.forEach(v=>$('game-version').append(new Option(v==='UNVERSIONED'?'버전 미기록':v,v)));$('game-version').value=d.gameVersion;const completed=d.tricks.reduce((s,t)=>s+t.completed,0),wins=d.tricks.reduce((s,t)=>s+t.wins,0);$('events').textContent=n(d.eventCount);$('runs').textContent=n(d.runIds.length);$('completed').textContent=n(completed);$('winRate').textContent=completed?pct(wins/completed):'미수집';renderSessionOptions('fund');renderSessionOptions('timeline');filters.fundsRunId=d.view.funds.runId;filters.timelineRunId=d.view.timeline.runId||'';filters.timelinePhase=d.view.timeline.phaseId||'';filters.timelineAttemptId=d.view.timeline.attemptId||'';filters.timelineOffset=d.view.timeline.offset;renderPerformance();renderWaiting();renderFunds();renderTimeline();renderSurveys();applyRefreshState(d.refresh);if(d.preview)$('status').textContent='로컬 미리보기 · 예시 데이터';}
+function renderMetrics(d){const activity=$('activity-results');activity.replaceChildren();for(const name of ['대기실','탐색','추격','리허설','탈출로']){const card=node('article',null,'panel'),rows=Object.entries(d.activities?.[name]||{}).sort((a,b)=>b[1]-a[1]);card.append(node('h3',name));for(const [label,count] of rows){const bar=node('meter');bar.min=0;bar.max=Math.max(1,rows[0][1]);bar.value=count;bar.style.width='55%';card.append(node('p',label+' · '+n(count)+'회'),bar);}if(!rows.length)card.append(node('p','관측 기록 없음','quiet'));activity.append(card);}if(d.activityMissing)activity.append(node('p','이전 형식 요약 '+n(d.activityMissing)+'개는 제외했습니다. 상세가 보관된 런은 개별 선택해서 확인할 수 있습니다.','reading-note'));const completed=d.tricks.reduce((s,t)=>s+t.completed,0),wins=d.tricks.reduce((s,t)=>s+t.wins,0);$('events').textContent=n(d.eventCount);$('runs').textContent=n(d.runIds.length);$('completed').textContent=n(completed);$('winRate').textContent=completed?pct(wins/completed):'미수집';}
+function render(d){scopeReady=true;$('dashboard-main').classList.remove('awaiting-scope');data=d;viewer=d.viewer||viewer;renderAccount();renderAdminSessions();filters.gameVersion=d.gameVersion;$('game-version').replaceChildren();[...new Set(['0.2.1',...d.versionOptions])].forEach(v=>$('game-version').append(new Option(v==='UNVERSIONED'?'버전 미기록':v,v)));$('game-version').value=d.gameVersion;renderMetrics(d);alignRunViews(d.view,averageRuns);renderSessionOptions('timeline');filters.fundsRunId=filters.timelineRunId=averageRuns?'':filters.timelineRunId||d.view.timeline.runId||'';filters.timelinePhase=d.view.timeline.phaseId||'';filters.timelineAttemptId=d.view.timeline.attemptId||'';filters.timelineOffset=d.view.timeline.offset;renderPerformance();renderWaiting();renderFunds();renderTimeline();renderSurveys();applyRefreshState(d.refresh);displayedFilters={...filters};finishPanels();preloadRoom(averageRuns?'':filters.timelineRunId);if(d.preview)$('status').textContent='로컬 미리보기 · 예시 데이터';}
 // REFRESH_MODEL_BEGIN
 function refreshButtonDisabled(state,pending){return !!pending||!!state?.refreshing;}
 function refreshStatusText(state,count){
@@ -265,25 +551,101 @@ function refreshStatusText(state,count){
  return '저장된 완료 결과 · '+Number(count||0).toLocaleString('ko-KR')+'개 기록 · 지금 갱신할 수 있습니다.';
 }
 // REFRESH_MODEL_END
-function updateRefreshButton(){const button=$('refresh');button.disabled=refreshButtonDisabled(refreshState,busy);button.textContent=refreshState?.refreshing?'갱신 진행 중…':'지금 갱신';button.title=refreshState?.refreshing?'갱신이 끝나면 자동으로 완료 결과를 불러옵니다.':'최근 완료 후 5분이 지났을 때만 새로 집계합니다.';}
+function updateRefreshButton(){const button=$('refresh');button.disabled=!filters.environment||!filters.gameVersion||refreshButtonDisabled(refreshState,busy);button.textContent=refreshState?.refreshing?'갱신 진행 중…':'지금 갱신';button.title=refreshState?.refreshing?'갱신이 끝나면 자동으로 완료 결과를 불러옵니다.':'최근 완료 후 5분이 지났을 때만 새로 집계합니다.';}
 function applyRefreshState(state){if(state)refreshState=state;updateRefreshButton();$('updated').textContent=refreshState?.refreshedAt?'최근 완료 '+fullTime(refreshState.refreshedAt):'최근 완료 없음';$('status').className='status';$('status').textContent=refreshStatusText(refreshState,data?.eventCount);const p=refreshState?.processing||data?.processing;if(p){$('status').textContent+=' · '+(p.mode==='INCREMENTAL'?'새 기록 반영 '+n(p.changedSessions)+'세션 · 상세 '+n(p.detailSessions)+' / 요약 '+n(p.summarySessions)+'세션':'세션 요약 준비 중')+' · 전송 묶음 처리 대기 '+(p.pendingExact===false?'최소 ':'')+n(p.pendingBatches||0)+'개 · 상세 보관 LIVE 30일 / TEST 7일'+(p.pendingLate?' · 정리 후 늦게 도착한 '+n(p.pendingLate)+'건은 별도 확인 대기':'');}}
 function pollRefreshState(){
- if(!viewer||document.hidden||statePollInFlight||window.CC_LOCAL_PREVIEW)return;
- const runner=window.google?.script?.run;if(!runner)return;statePollInFlight=true;
- runner.withSuccessHandler(state=>{statePollInFlight=false;const changed=state.revision!==(data?.refresh?.revision||'');applyRefreshState(state);if(changed){if(busy)pendingRead=true;else load(false);}}).withFailureHandler(error=>{statePollInFlight=false;if(/DASHBOARD_ACCESS_DENIED/.test(error.message))showLogin('다시 인증해 주세요.');}).getDashboardRefreshState(auth);
+ if(!scopeReady||!viewer||document.hidden||statePollInFlight||window.CC_LOCAL_PREVIEW)return;
+ const ticket=scopeTicket,runner=window.google?.script?.run;if(!runner)return;statePollInFlight=true;
+ runner.withSuccessHandler(state=>{statePollInFlight=false;if(ticket!==scopeTicket||!scopeReady)return;const changed=state.revision!==(data?.refresh?.revision||'');applyRefreshState(state);if(changed){if(busy)pendingRead=true;else load(false);}}).withFailureHandler(error=>{statePollInFlight=false;if(/DASHBOARD_ACCESS_DENIED/.test(error.message))showLogin('다시 인증해 주세요.');}).getDashboardRefreshState(auth,filters.environment,filters.gameVersion);
+}
+let displayedFilters=null,roomTicket=0,roomCache=null;
+function roomPeers(id,labels){
+ const current=labels.find(r=>r.id===id);if(!current)return [];
+ const peers=labels.filter(r=>r.id===id||(current.physicalRoom&&r.physicalRoom===current.physicalRoom)||(current.roomSession&&current.roomSession===r.roomSession));
+ return peers.sort((a,b)=>(a.runNumber??Infinity)-(b.runNumber??Infinity)||a.startedAt.localeCompare(b.startedAt));
+}
+function roomOptions(labels,id){
+ const used=new Set(),view=[];for(const r of labels){if(used.has(r.id))continue;const peers=roomPeers(r.id,labels);peers.forEach(x=>used.add(x.id));
+ const selected=peers.find(x=>x.id===id)||peers[0];view.push({id:selected.id,label:(peers[0].startedAt?fullTime(peers[0].startedAt)+' · ':'')+'세션 '+short(r.physicalRoom||r.roomSession||r.id)+' · '+peers.length+'개 런'});}return view;
+}
+function roomRpc(method,...args){return new Promise((ok,fail)=>google.script.run.withSuccessHandler(ok).withFailureHandler(fail)[method](...args,auth));}
+async function readRoomRun(id,env,version,current){
+ const rows=[];let offset=0,stamp=null;do{if(!current())return null;const part=await roomRpc('getRoomReplayPage',env,version,id,offset,stamp);if(!current())return null;
+ rows.push(...part.events);if(part.archived)return {rows:[],archived:true};offset=part.next;stamp=part.stamp;}while(offset!=null);return {rows,archived:false};
+}
+function localRun(id){
+ const saved=roomCache?.runs.get(id);if(!saved)return false;
+ const f={...filters,timelineRunId:id,fundsRunId:id},view=TelemetryCore.dashboardView(saved.rows,f);
+ if(saved.report){for(const k of Object.keys(saved.report)){if(!['view','catalog','versionOptions','refresh','viewer'].includes(k))data[k]=saved.report[k];}renderMetrics(data);renderPerformance();renderWaiting();renderSurveys();}
+ if(saved.archived){view.timeline.archived=true;view.timeline.runId=id;const balances=saved.report?.view.funds||data.view.funds;
+ const src=f.fundsInterval==='BREAK'?balances.breakRunSeries:balances.runSeries;view.funds.series=(src||[]).filter(row=>row.runId===id);view.funds.runId=id;view.funds.mode='RUN';}
+ const base=saved.report?.view.funds||data.view.funds;data.view.funds={...view.funds,runSeries:base.runSeries,breakRunSeries:base.breakRunSeries};data.view.timeline=view.timeline;
+ filters.fundsRunId=filters.timelineRunId=id;filters.timelinePhase=view.timeline.phaseId||'';filters.timelineAttemptId=view.timeline.attemptId||'';filters.timelineOffset=view.timeline.offset;
+ averageRuns=false;renderSessionOptions('timeline');renderFunds();renderTimeline();drawRoomTabs(id);displayedFilters={...filters};return true;
+}
+function drawRoomTabs(id){const host=$('room-run-tabs');host.replaceChildren();if(averageRuns||!roomCache)return;
+ roomPeers(id,data.view.runLabels).filter(r=>roomCache.runs.has(r.id)).forEach((r,i)=>tab(host,'런 '+(r.runNumber??(i+1)),r.id===id,()=>{filters.timelinePhase='';filters.timelineAttemptId='';filters.timelineOffset=0;filters.replayPlayer='';localRun(r.id);}));}
+async function preloadRoom(id){
+ const ticket=++roomTicket,expected=data,alive=()=>ticket===roomTicket&&expected===data&&!averageRuns;
+ $('room-run-tabs').replaceChildren();if(!id||averageRuns||typeof TelemetryCore==='undefined')return;
+ const env=filters.environment,version=filters.gameVersion,rev=data.refresh?.revision||'',peers=roomPeers(id,matchingSessions(data.view.runLabels,filters.timelineDate,filters.search));
+ if(!peers.length)return;
+ const key=JSON.stringify([env,version,rev,filters.timelineDate,filters.search,filters.surveyKind,filters.surveyCampaign,filters.surveyPlayer,filters.surveyOffset,peers.map(r=>r.id)]);
+ if(roomCache?.key===key){localRun(id);return;}
+ roomCache=null;const panels=[...document.querySelectorAll('.group .panel')];for(const p of panels){p.querySelector(':scope > .reading-status')?.remove();p.classList.add('is-reading');p.setAttribute('aria-busy','true');p.append(readStatus('세션의 모든 런과 도면을 불러오는 중…'));}
+ try{const runs=new Map(),maps=new Map();
+ for(const r of peers){const rf={...filters,timelineRunId:r.id,fundsRunId:r.id};
+ const [result,report]=await Promise.all([r.surveyOnly?Promise.resolve({rows:[],archived:false}):readRoomRun(r.id,env,version,alive),r.id===id&&displayedFilters?.timelineRunId===id?Promise.resolve({...data,view:{...data.view}}):roomRpc('getDashboard',rf)]);if(!alive())return;result.report=report;runs.set(r.id,result);
+ for(const e of result.rows){const p=e.payload||{},id=p.mapId||(e.sceneType==='MAINSTAGE'&&tightropeBase(version,p.trickType||p.sceneName));if(id&&!spatialMapAssets[id])maps.set(id,id);}}
+ if(maps.size){const assets=await roomRpc('getSpatialMaps',[...maps.values()]);if(!alive())return;Object.assign(spatialMapAssets,assets);}
+ roomCache={key,runs};localRun(id);for(const p of panels){p.classList.remove('is-reading');p.setAttribute('aria-busy','false');p.querySelector(':scope > .reading-status')?.remove();}
+ }catch(error){if(!alive())return;for(const p of panels){const box=p.querySelector(':scope > .reading-status');p.setAttribute('aria-busy','false');if(box){const retry=node('button','다시 불러오기');retry.onclick=()=>preloadRoom(id);box.replaceChildren(node('span','세션 상세를 불러오지 못했습니다. '+(error.message||'')),retry);}}}
+}
+function readStatus(message){
+ const box=node('div',null,'reading-status'),wheel=node('span',null,'dot-wheel');wheel.setAttribute('aria-hidden','true');
+ for(let i=0;i<8;i++){const dot=node('i');dot.style.setProperty('--i',i);wheel.append(dot);}
+ box.setAttribute('role','status');box.append(wheel,node('span',message));return box;
+}
+function pendingPanels(){
+ const changed=displayedFilters?Object.keys({...displayedFilters,...filters}).filter(k=>filters[k]!==displayedFilters[k]):[];
+ const global=!changed.length||changed.some(k=>['environment','gameVersion','timelineDate','timelineRunId','search'].includes(k));
+ const sel=global?'.group .panel':[
+ changed.some(k=>k.startsWith('timeline')||k.startsWith('funds'))?'[aria-labelledby="run-heading"] .panel':null,
+ changed.some(k=>k.startsWith('survey'))?'[aria-labelledby="survey-heading"] .panel':null
+ ].filter(Boolean).join(',');
+ return sel?[...document.querySelectorAll(sel)]:[];
+}
+function showPendingPanels(){
+ for(const panel of pendingPanels()){panel.querySelector(':scope > .reading-status')?.remove();panel.classList.add('is-reading');panel.setAttribute('aria-busy','true');panel.append(readStatus('기록을 불러오는 중…'));}
+}
+function finishPanels(error=false){
+ for(const panel of document.querySelectorAll('.panel.is-reading')){panel.setAttribute('aria-busy','false');const box=panel.querySelector(':scope > .reading-status');
+ if(error){if(!box)continue;const retry=node('button','다시 불러오기');retry.onclick=()=>load(false);box.replaceChildren(node('span','기록을 불러오지 못했습니다.'),retry);}
+ else{box?.remove();panel.classList.remove('is-reading');}}
 }
 function load(importFiles){
+ const delta=displayedFilters&&Object.keys(filters).filter(k=>filters[k]!==displayedFilters[k]);
+ if(!importFiles&&!busy&&delta?.length&&delta.every(k=>['timelinePhase','timelineAttemptId','timelineOffset','fundsInterval','replayPlayer'].includes(k))&&localRun(filters.timelineRunId))return;
+ roomTicket++;showPendingPanels();
  if(busy){if(!importFiles)pendingRead=true;return;}if(importFiles&&refreshState?.refreshing){load(false);return;}
  busy=true;updateRefreshButton();hideTip();$('previous').disabled=true;$('next').disabled=true;const id=++serial,runner=window.google?.script?.run;
  if(!runner){fail(new Error('Google 대시보드로 열어 주세요.'));return;}
  $('status').textContent=importFiles?'갱신 가능 여부 확인 중…':'저장된 완료 결과를 불러오는 중…';
- const call=runner.withSuccessHandler(d=>{if(id!==serial)return;busy=false;if(pendingRead){pendingRead=false;if(d.refresh)refreshState=d.refresh;load(false);}else render(d);}).withFailureHandler(fail);
- if(importFiles)call.refreshDashboard({...filters},auth);else call.getDashboard({...filters},auth);
+ const call=runner.withSuccessHandler(d=>{if(id!==serial)return;busy=false;if(pendingRead){pendingRead=false;if(d.refresh)refreshState=d.refresh;load(false);}else render(d);}).withFailureHandler(error=>{if(id!==serial)return;if(pendingRead&&!/DASHBOARD_ACCESS_DENIED/.test(error.message)){busy=false;pendingRead=false;load(false);}else fail(error);});
+ if(importFiles)call.refreshDashboard({...filters,priorityRuns:!averageRuns&&data?.view?.runLabels?roomPeers(filters.timelineRunId,data.view.runLabels).map(r=>r.id):[]},auth);else call.getDashboard({...filters},auth);
 }
-function fail(error){if(/DASHBOARD_ACCESS_DENIED/.test(error.message)){showLogin('접속이 만료되었거나 사용 허용이 해제되었습니다.');return;}busy=false;pendingRead=false;updateRefreshButton();$('status').className='status error';$('status').textContent=/BUSY_RETRY/i.test(error.message)?'서버에서 다른 작업을 처리 중입니다. 기존 결과를 유지합니다. 잠시 후 다시 조회해 주세요.':'불러오기 실패 · '+error.message;if(data)renderTimeline();}
+function fail(error){finishPanels(true);if(/DASHBOARD_ACCESS_DENIED/.test(error.message)){showLogin('접속이 만료되었거나 사용 허용이 해제되었습니다.');return;}busy=false;pendingRead=false;updateRefreshButton();$('status').className='status error';$('status').textContent=/BUSY_RETRY/i.test(error.message)?'서버에서 다른 작업을 처리 중입니다. 기존 결과를 유지합니다. 잠시 후 다시 조회해 주세요.':'불러오기 실패 · '+error.message;if(data)renderTimeline();}
 // SESSION_MODEL_BEGIN
+// A cached overview contains average funds and the newest timeline. Select that same run from its real ledger rows.
+function alignRunViews(view,average){
+ const id=view.timeline.runId,f=view.funds;
+ if(average||!id||f.runId===id)return;
+ const rows=f.interval==='BREAK'?f.breakRunSeries:f.runSeries;
+ f.series=(rows||[]).filter(p=>p.runId===id).map(p=>({...p,samples:1})).sort((a,b)=>(a.order||a.day)-(b.order||b.day));
+ f.runId=id;f.mode='RUN';f.runCount=f.series.length?1:0;
+}
 function sessionDate(value){const t=Date.parse(value);return Number.isFinite(t)?new Date(t+9*3600000).toISOString().slice(0,10):'';}
-function matchingSessions(labels,date,query){query=String(query||'').trim().toLowerCase();return labels.filter(r=>(!date||sessionDate(r.startedAt)===date)&&(!query||r.id.toLowerCase().includes(query)));}
+function matchingSessions(labels,date,query){query=String(query||'').trim().toLowerCase();return labels.filter(r=>(!date||sessionDate(r.startedAt)===date)&&(!query||[r.id,r.roomSession,r.physicalRoom,r.runNumber?'런 '+r.runNumber:''].some(v=>String(v||'').toLowerCase().includes(query))));}
 // SESSION_MODEL_END
 const calendarMonths={};
 function sessionKey(kind){return kind==='fund'?'fundsDate':kind+'Date';}
@@ -292,7 +654,7 @@ function renderCalendar(kind){
  const date=filters[sessionKey(kind)]||'',labels=sessionLabels(kind),dates=[...new Set(labels.map(r=>sessionDate(r.startedAt)).filter(Boolean))].sort(),months=[...new Set(dates.map(d=>d.slice(0,7)))],panel=$(kind+'-date-panel');
  $(kind+'-date-label').textContent='달력 · '+(date||'모든 날짜');panel.replaceChildren();
  const clear=node('button','모든 날짜 보기');clear.type='button';
- function select(value){filters[sessionKey(kind)]=value;filters[kind==='fund'?'fundsRunId':kind+'RunId']='';if(kind==='timeline'){filters.timelinePhase='';filters.timelineAttemptId='';filters.timelineOffset=0;}if(kind==='survey')filters.surveyOffset=0;$(kind+'-search').value='';$(kind+'-calendar').open=false;load(false);}
+ function select(value){filters[sessionKey(kind)]=value;filters[kind==='fund'?'fundsRunId':kind+'RunId']='';if(kind==='timeline'){averageRuns=true;filters.search='';filters.fundsDate=value;filters.fundsRunId='';filters.timelinePhase='';filters.timelineAttemptId='';filters.timelineOffset=0;}if(kind==='survey')filters.surveyOffset=0;$(kind+'-search').value='';$(kind+'-calendar').open=false;load(false);}
  clear.onclick=()=>select('');panel.append(clear);if(!months.length){panel.append(node('p','선택할 날짜가 없습니다.','quiet'));return;}
  let month=calendarMonths[kind];if(!months.includes(month))month=date?date.slice(0,7):months.at(-1);if(!months.includes(month))month=months.at(-1);calendarMonths[kind]=month;
  const head=node('div',null,'calendar-head'),previous=node('button','‹'),next=node('button','›'),mi=months.indexOf(month);previous.type=next.type='button';previous.setAttribute('aria-label','기록이 있는 이전 달');next.setAttribute('aria-label','기록이 있는 다음 달');previous.disabled=mi<=0;next.disabled=mi>=months.length-1;previous.onclick=()=>{calendarMonths[kind]=months[mi-1];renderCalendar(kind);};next.onclick=()=>{calendarMonths[kind]=months[mi+1];renderCalendar(kind);};head.append(previous,node('strong',month.replace('-','년 ')+'월'),next);panel.append(head);
@@ -300,9 +662,9 @@ function renderCalendar(kind){
  for(let day=1;day<=count;day++){const value=month+'-'+String(day).padStart(2,'0'),button=node('button',String(day),date===value?'selected':'');button.type='button';button.disabled=!dates.includes(value);button.setAttribute('aria-label',value+(button.disabled?' · 세션 없음':''));button.setAttribute('aria-pressed',String(date===value));button.onclick=()=>select(value);grid.append(button);}panel.append(grid,node('p','한국 시간 기준 · 기록이 있는 날짜만 선택','quiet'));
 }
 function renderSessionOptions(kind){
- const select=$(kind+'-run'),query=$(kind+'-search').value,selected=kind==='fund'?data.view.funds.runId:kind==='survey'?data.surveys?.runId:data.view.timeline.runId||'',date=filters[sessionKey(kind)]||'',labels=matchingSessions(sessionLabels(kind),date,query);
- select.replaceChildren(new Option(kind==='fund'?'모든 세션 평균':kind==='survey'?'모든 세션':'세션 선택',''));
- labels.forEach(r=>select.append(new Option((r.startedAt?fullTime(r.startedAt)+(r.dateSource==='SURVEY'?' 설문 열림':'')+' · ':'')+(r.day?r.day+'일차 · ':'')+short(r.id),r.id)));
+ const select=$(kind+'-run'),query=$(kind+'-search').value,selected=kind==='survey'?data.surveys?.runId:averageRuns?'':filters.timelineRunId||data.view.timeline.runId||'',date=filters[sessionKey(kind)]||'',labels=matchingSessions(sessionLabels(kind),date,query);
+ select.replaceChildren(new Option(kind==='survey'?'모든 세션':'선택 범위 전체 · 평균',''));
+ if(kind==='timeline'){for(const r of roomOptions(labels,selected))select.append(new Option(r.label,r.id));}else labels.forEach(r=>select.append(new Option((r.startedAt?fullTime(r.startedAt)+(r.dateSource==='SURVEY'?' 설문 열림':'')+' · ':'')+(r.day?r.day+'일차 · ':'')+(r.roomSession?'방 '+short(r.roomSession)+' · 런 '+r.runNumber+' · ':'')+short(r.id),r.id)));
  if(!labels.length){const option=new Option('검색 결과 없음','__none');option.disabled=true;select.append(option);}select.value=labels.some(r=>r.id===selected)?selected:'';
  if(query&&selected&&!labels.some(r=>r.id===selected))select.options[0].textContent='검색 결과에서 세션 선택';renderCalendar(kind);
 }
@@ -311,10 +673,10 @@ function rpc(name,args,success,status='admin-status'){
   $(status).textContent='처리 중…';runner.withSuccessHandler(value=>{$(status).textContent='';success(value);}).withFailureHandler(error=>{$(status).textContent=error.message;if(/DASHBOARD_ACCESS_DENIED/.test(error.message))showLogin('다시 인증해 주세요.');})[name](...args);
 }
 function renderAccount(){const logged=!!viewer;$('dashboard-main').hidden=!logged;$('login-panel').hidden=logged;$('greeting').textContent=logged?viewer.name+'님 안녕하세요':'';$('logout').hidden=!logged||!auth;$('management').hidden=viewer?.role!=='ADMIN';}
-function showLogin(message=''){auth='';viewer=null;data=null;busy=false;refreshState=null;serial++;sessionStorage.removeItem('curtaincall-dashboard-auth');renderAccount();$('login-status').textContent=message;}
-function initializeAccess(){if(window.CC_LOCAL_PREVIEW){viewer={name:'미리보기',role:'ADMIN'};renderAccount();load(false);return;}rpc('getDashboardSession',[auth],result=>{viewer=result.viewer;if(!viewer){showLogin();return;}renderAccount();load(false);},'login-status');}
+function showLogin(message=''){roomTicket++;roomCache=null;auth='';viewer=null;data=null;busy=false;refreshState=null;serial++;sessionStorage.removeItem('curtaincall-dashboard-auth');renderAccount();$('login-status').textContent=message;}
+function initializeAccess(){if(window.CC_LOCAL_PREVIEW){viewer={name:'실제 도면 · 합성 동선 검증',role:'ADMIN'};renderAccount();clearSelection();return;}rpc('getDashboardSession',[auth],result=>{viewer=result.viewer;if(!viewer){showLogin();return;}renderAccount();clearSelection();},'login-status');}
 $('login-send').onclick=()=>{const button=$('login-send');button.disabled=true;rpc('requestDashboardLogin',[$('login-email').value],result=>{loginChallenge=result.challengeId;$('login-status').textContent=result.message;button.disabled=false;},'login-status');setTimeout(()=>{button.disabled=false;},60000);};
-$('login-confirm').onclick=()=>rpc('completeDashboardLogin',[loginChallenge,$('login-code').value.trim()],result=>{auth=result.auth;viewer=result.viewer;sessionStorage.setItem('curtaincall-dashboard-auth',auth);$('login-code').value='';renderAccount();load(false);},'login-status');
+$('login-confirm').onclick=()=>rpc('completeDashboardLogin',[loginChallenge,$('login-code').value.trim()],result=>{auth=result.auth;viewer=result.viewer;sessionStorage.setItem('curtaincall-dashboard-auth',auth);$('login-code').value='';renderAccount();clearSelection();},'login-status');
 $('logout').onclick=()=>{const old=auth;showLogin();rpc('logoutDashboard',[old],()=>{},'login-status');};
 function renderManagement(result){managementData=result;const list=$('member-list');list.replaceChildren();result.members.forEach(m=>{const row=node('div',null,'member-row'),edit=node('button','편집');row.append(node('span',m.name+' · '+m.email+' · '+(m.role==='ADMIN'?'관리자':m.enabled?'조회 허용':'사용 중지')));edit.onclick=()=>{$('member-email').value=m.email;$('member-name').value=m.name;$('member-enabled').checked=m.enabled;};row.append(edit);list.append(row);});$('retention-enabled').checked=result.retention.enabled;$('retention-count').value=result.retention.maxFiles;}
 $('management').ontoggle=()=>{if($('management').open&&viewer?.role==='ADMIN')rpc('getDashboardManagement',[auth],renderManagement);};
@@ -325,20 +687,29 @@ function renderAdminSessions(){if(!data||viewer?.role!=='ADMIN')return;cancelDel
 function prepareDeletion(kind){const runIds=[...$('delete-session-list').querySelectorAll('input:checked')].map(e=>e.value);if(kind==='SESSIONS'&&!runIds.length){$('admin-status').textContent='삭제할 세션을 체크해 주세요.';return;}const scope={kind,gameVersion:data.gameVersion,environment:filters.environment,runIds};rpc('previewDashboardDeletion',[scope,auth],result=>{deletionPreview=result;deletionChallenge=null;$('delete-confirmation').hidden=false;$('delete-code').value='';$('delete-phrase').value='';$('delete-preview').textContent='삭제 대상: 버전 '+result.scope.gameVersion+' / '+result.scope.environment+'\n사건 '+n(result.events)+'개 · 설문 '+n(result.surveys||0)+'개 · 세션 '+n(result.sessions)+'개\nTEST '+n(result.groups.TEST)+'개 / LIVE '+n(result.groups.LIVE)+'개\n게임 기록과 대시보드 설문 집계에서 제거합니다. Google Forms 원본 응답은 유지합니다. 적재 확인된 로그 원본은 휴지통으로 이동합니다. 되돌리려면 별도 복구가 필요합니다.';});}
 
 function renderSurveyOptions(){renderSessionOptions('survey');}
+function openAnswerRun(id){
+ clearTimeout(searchTimer);$('timeline-search').value='';Object.assign(filters,{timelineRunId:id,fundsRunId:id,timelineDate:'',fundsDate:'',search:'',replayPlayer:'',timelineOffset:0,timelinePhase:'',timelineAttemptId:'',surveyOffset:0});averageRuns=false;load(false);$('timeline-run').scrollIntoView({block:'center'});
+}
+function surveyFormFor(v,k){const forms={
+ '0.2':[['2일차 밤 정비','1FAIpQLSd-pPOUCbrI9e4rOoYlX56A3p-ogclM3qc-hgw3CGRvfQJ1ug'],['게임 종료','1FAIpQLSfItvwqrR385gcjQOioam8UXD6f1f2qiADCrgo3Fb7108GjEw']],
+ '0.1':[['밤 정비','1FAIpQLSf7S8t3P0098MWYzE-Xf6uaDuffXMAn_qErGyE8DnnTFiElIA'],['게임 종료','1FAIpQLSdK2_FooH6fIpRj_8etZ_8eMfZYTBLMqTJEL3gNs9L19rXMvA']]};
+ const x=forms[String(v).split('.').slice(0,2).join('.')]?.[k==='EXIT'?1:0];return x&&[x[0],'https://docs.google.com/forms/d/e/'+x[1]+'/viewform'];}
+function answerLink(id){const b=node('button','런 '+short(id)+' 보기');b.type='button';b.title=id;b.onclick=()=>openAnswerRun(id);return b;}
 function renderSurveys(){
- const s=data.surveys;$('survey-page').textContent=s?.total?((s.offset||0)+1)+'–'+Math.min((s.offset||0)+100,s.total)+' / '+n(s.total):'0 / 0';$('survey-previous').disabled=!s?.offset;$('survey-next').disabled=!s||s.offset+100>=s.total;$('survey-tabs').replaceChildren();[['NIGHT1','밤 정비'],['EXIT','게임 종료']].forEach(([id,label])=>tab($('survey-tabs'),label,(s?.kind||'NIGHT1')===id,()=>{filters.surveyKind=id;filters.surveyCampaign='';filters.surveyDate='';filters.surveyRunId='';filters.surveyPlayer='';filters.surveyOffset=0;$('survey-search').value='';load(false);}));
- const campaigns=$('survey-campaign');campaigns.replaceChildren();(s?.campaignOptions||[]).forEach(id=>campaigns.append(new Option(id.replace(/:([0-9]+)$/, ' · $1회차'),id)));campaigns.value=s?.campaign||'';filters.surveyCampaign=s?.campaign||'';renderSurveyOptions();$('survey-player').value=s?.playerNumber==null?'':String(s.playerNumber);$('survey-detail').hidden=true;
+ const s=data.surveys;$('survey-page').textContent=s?.total?((s.offset||0)+1)+'–'+Math.min((s.offset||0)+100,s.total)+' / '+n(s.total):'0 / 0';$('survey-previous').disabled=!s?.offset;$('survey-next').disabled=!s||s.offset+100>=s.total;$('survey-tabs').replaceChildren();[['NIGHT1',/^0\.2\./.test(data.gameVersion)?'2일차 밤 정비':'밤 정비'],['EXIT','게임 종료']].forEach(([id,label])=>tab($('survey-tabs'),label,(s?.kind||'NIGHT1')===id,()=>{filters.surveyKind=id;filters.surveyCampaign='';filters.surveyDate='';filters.surveyRunId='';filters.surveyPlayer='';filters.surveyOffset=0;load(false);}));
+ const def=surveyFormFor(data.gameVersion,s?.kind||'NIGHT1');const form=$('survey-form-link');form.replaceChildren();if(def){const a=node('a',def[0]+' · 설문지 보기');a.href=def[1];a.target='_blank';a.rel='noopener';form.append(a);}else form.textContent='이 버전에 등록된 설문지가 없습니다.';
+ const campaigns=$('survey-campaign');campaigns.replaceChildren();(s?.campaignOptions||[]).forEach(id=>campaigns.append(new Option(id.replace(/:([0-9]+)$/, ' · $1회차'),id)));campaigns.value=s?.campaign||'';filters.surveyCampaign=s?.campaign||'';$('survey-player').value=s?.playerNumber==null?'':String(s.playerNumber);$('survey-detail').hidden=true;
  const meta=(s?.status||[]).find(r=>r.kind===s?.kind);$('survey-status').textContent=s?.error?'설문 갱신 확인 필요 · '+s.error:meta?('설문 갱신 '+fullTime(meta.updatedAt)+(meta.unlinked?' · 연결 코드 없는 기존 응답 '+n(meta.unlinked)+'개 (버전·환경 통계 제외)':'')+(meta.duplicates?' · 같은 코드 중복 응답 '+n(meta.duplicates)+'개 제외':'')+(meta.message==='OK'?'':' · '+meta.message)):'설문 응답 시트의 첫 갱신을 기다립니다.';
  const metrics=$('survey-counts');metrics.replaceChildren();[['선택 조건 응답',s?.total||0],['플레이 기록 연결',s?.matched||0],['플레이 로그 없음',(s?.total||0)-(s?.matched||0)]].forEach(([label,value])=>{const card=node('div',label,'metric');card.append(node('strong',n(value)));metrics.append(card);});
- const questions=$('survey-questions');questions.replaceChildren();(s?.questions||[]).forEach(q=>{const panel=node('article',null,'panel');panel.append(node('h3',q.question),node('p','응답 '+n(q.samples)+'명'+(q.multiple?' · 복수 선택':''),'reading-note'));if(q.text)panel.append(node('p','아래 응답 목록을 눌러 내용을 확인하세요.','quiet'));else q.options.forEach(o=>{const row=node('div',null,'survey-answer'),caption=node('div');caption.append(node('span',o.label),node('strong',n(o.count)+'명 · '+pct(o.rate)));const track=node('div',null,'gauge-track'),fill=node('div',null,'gauge-fill');fill.style.width=(o.rate*100)+'%';track.append(fill);row.append(caption,track);panel.append(row);});questions.append(panel);});if(!s?.questions.length)empty(questions,'선택 조건의 설문 응답이 없습니다.');
+ const questions=$('survey-questions');questions.replaceChildren();(s?.questions||[]).forEach(q=>{const panel=node('article',null,'panel');panel.append(node('h3',q.question),node('p','응답 '+n(q.samples)+'명'+(q.multiple?' · 복수 선택':''),'reading-note'));if(q.text)panel.append(node('p','아래 응답 목록을 눌러 내용을 확인하세요.','quiet'));else q.options.forEach(o=>{const row=node('div',null,'survey-answer'),caption=node('div');caption.append(node('span',o.label),node('strong',n(o.count)+'명 · '+pct(o.rate)));const track=node('div',null,'gauge-track'),fill=node('div',null,'gauge-fill');fill.style.width=(o.rate*100)+'%';track.append(fill);row.append(caption,track);const ids=o.runIds||[];if(ids.length){const go=node('button',ids.length===1?'해당 런 보기':'응답한 런 '+ids.length+'개 보기'),choices=node('div');go.type='button';go.onclick=()=>{if(ids.length===1)openAnswerRun(ids[0]);else{choices.replaceChildren(...ids.map(answerLink));choices.hidden=!choices.hidden;}};choices.hidden=true;caption.firstChild.replaceWith(Object.assign(node('button',o.label),{type:'button',onclick:()=>go.click()}));row.append(go,choices);}panel.append(row);});questions.append(panel);});if(!s?.questions.length)empty(questions,'선택 조건의 설문 응답이 없습니다.');
  const host=$('survey-responses');host.replaceChildren();if(!s?.rows.length){empty(host,'선택 조건의 설문 응답이 없습니다.');return;}
  const tableEl=node('table'),head=node('tr');['응답 시각','플레이어','세션','기록 연결','호스트 확정 사망','응답'].forEach(label=>head.append(node('th',label)));tableEl.append(head);
- s.rows.forEach(r=>{const row=node('tr'),button=node('button','응답 보기');[fullTime(r.submittedAt),'플레이어 '+(r.playerNumber+1),short(r.runId),r.matched?'연결됨':'플레이 로그 없음',r.matched?r.deaths.length+'회':'—'].forEach(v=>row.append(node('td',v)));const action=node('td');action.append(button);row.append(action);tableEl.append(row);button.onclick=()=>{const detail=$('survey-detail');detail.replaceChildren(node('h3',(s.kind==='NIGHT1'?'밤 정비':'게임 종료')+' · 플레이어 '+(r.playerNumber+1)),node('p','세션 '+r.runId,'reading-note'));if(r.matched)detail.append(node('p','설문을 열 때까지 호스트가 확정한 기록 · 사망 '+r.deaths.length+'회'+(r.deaths.length?' ('+r.deaths.map(word).join(', ')+')':'')+' · 절단 '+r.injuries+'회 · 협동 '+r.interactions+'회','reading-note'));else detail.append(node('p','플레이 로그가 없어 행동 수치와 비교할 수 없습니다.','reading-note'));r.answers.forEach(a=>{detail.append(node('h4',a.question));const text=node('p',a.answer);if(a.truncated)text.append(node('small','\n긴 응답은 일부만 표시합니다. 전체 내용은 원본 응답 시트에서 확인해 주세요.','quiet'));text.style.whiteSpace='pre-wrap';text.style.overflowWrap='anywhere';detail.append(text);});const close=node('button','닫기');close.onclick=()=>{detail.hidden=true;};detail.append(close);detail.hidden=false;};});host.append(tableEl);
+ s.rows.forEach(r=>{const row=node('tr'),button=node('button','응답 보기');[fullTime(r.submittedAt),'플레이어 '+(r.playerNumber+1),short(r.runId),r.matched?'연결됨':'플레이 로그 없음',r.matched?r.deaths.length+'회':'—'].forEach(v=>row.append(node('td',v)));const action=node('td');action.append(button,answerLink(r.runId));row.append(action);tableEl.append(row);button.onclick=()=>{const detail=$('survey-detail');detail.replaceChildren(node('h3',(s.kind==='NIGHT1'?'밤 정비':'게임 종료')+' · 플레이어 '+(r.playerNumber+1)),node('p','세션 '+r.runId,'reading-note'));if(r.matched)detail.append(node('p','설문을 열 때까지 호스트가 확정한 기록 · 사망 '+r.deaths.length+'회'+(r.deaths.length?' ('+r.deaths.map(word).join(', ')+')':'')+' · 절단 '+r.injuries+'회 · 협동 '+r.interactions+'회','reading-note'));else detail.append(node('p','플레이 로그가 없어 행동 수치와 비교할 수 없습니다.','reading-note'));r.answers.forEach(a=>{detail.append(node('h4',a.question));const text=node('p',a.answer);if(a.truncated)text.append(node('small','\n긴 응답은 일부만 표시합니다. 전체 내용은 원본 응답 시트에서 확인해 주세요.','quiet'));text.style.whiteSpace='pre-wrap';text.style.overflowWrap='anywhere';detail.append(text,answerLink(r.runId));});const close=node('button','닫기');close.onclick=()=>{detail.hidden=true;};detail.append(close);detail.hidden=false;};});host.append(tableEl);
 }
 $('survey-previous').onclick=()=>{filters.surveyOffset=Math.max(0,(data.surveys?.offset||0)-100);load(false);};
 $('survey-next').onclick=()=>{filters.surveyOffset=(data.surveys?.offset||0)+100;load(false);};
-$('survey-search').oninput=renderSurveyOptions;
-$('survey-run').onchange=()=>{filters.surveyRunId=$('survey-run').value;filters.surveyOffset=0;load(false);};
+
+
 $('survey-campaign').onchange=()=>{filters.surveyCampaign=$('survey-campaign').value;filters.surveyRunId='';filters.surveyDate='';filters.surveyOffset=0;load(false);};
 $('survey-player').onchange=()=>{filters.surveyPlayer=$('survey-player').value;filters.surveyOffset=0;load(false);};
 
@@ -347,7 +718,16 @@ $('select-all-sessions').onclick=()=>{const checks=[...$('delete-session-list').
 $('delete-send').onclick=()=>{if(!deletionPreview)return;rpc('requestDashboardDeletionCode',[deletionPreview.previewId,auth],result=>{deletionChallenge=result.challengeId;$('admin-status').textContent='관리자 이메일로 보낸 8자리 번호를 입력하고, 확인 문구에 삭제를 적어 주세요. 10분 안에 완료해야 합니다.';});};
 $('delete-execute').onclick=()=>{if(!deletionChallenge){$('admin-status').textContent='관리자 이메일 인증번호를 먼저 받아 주세요.';return;}if($('delete-phrase').value!=='삭제'){$('admin-status').textContent='확인 문구에 삭제를 정확히 입력해 주세요.';return;}$('delete-execute').disabled=true;rpc('executeDashboardDeletion',[deletionChallenge,$('delete-code').value.trim(),$('delete-phrase').value,auth],result=>{cancelDeletion();$('delete-execute').disabled=false;$('admin-status').textContent=result.message;load(false);});setTimeout(()=>{$('delete-execute').disabled=false;},10000);};
 $('delete-cancel').onclick=cancelDeletion;
-function chooseRun(input,key){const id=input.value.trim();if(id&&!data?.view.runOptions.includes(id)){$('status').className='status error';$('status').textContent='목록의 런 ID를 선택해 주세요.';return;}filters[key]=id;if(key==='timelineRunId'){filters.timelinePhase='';filters.timelineAttemptId='';filters.timelineOffset=0;}load(false);}
-$('fund-search').oninput=()=>renderSessionOptions('fund');$('timeline-search').oninput=()=>renderSessionOptions('timeline');
-$('refresh').onclick=()=>load(true);$('environment').onchange=()=>{$('fund-search').value='';$('timeline-search').value='';$('survey-search').value='';filters={gameVersion:$('game-version').value,environment:$('environment').value,fundsRunId:'',timelineRunId:'',timelinePhase:'',timelineAttemptId:'',timelineOffset:0};load(false);};$('game-version').onchange=()=>{$('fund-search').value='';$('timeline-search').value='';$('survey-search').value='';filters={gameVersion:$('game-version').value,environment:$('environment').value,fundsRunId:'',timelineRunId:'',timelinePhase:'',timelineAttemptId:'',timelineOffset:0};resetRouteSelection();load(false);};$('fund-run').onchange=()=>chooseRun($('fund-run'),'fundsRunId');$('timeline-run').onchange=()=>chooseRun($('timeline-run'),'timelineRunId');$('fund-reset').onclick=()=>{filters.fundsRunId='';$('fund-search').value='';load(false);};$('previous').onclick=()=>{filters.timelineOffset=Math.max(0,filters.timelineOffset-200);load(false);};$('next').onclick=()=>{filters.timelineOffset+=200;load(false);};document.addEventListener('click',e=>{if(!e.target.closest('.route-marker,#route-detail,.route-unlocated,.route-tools')){resetRouteSelection();hideTip();}});document.addEventListener('keydown',e=>{if(e.key==='Escape'){hideTip();resetRouteSelection();}if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&e.target.getAttribute('role')==='tab'){const tabs=[...e.target.parentElement.querySelectorAll('[role=tab]')],i=tabs.indexOf(e.target),next=tabs[(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];if(next){e.preventDefault();next.focus();next.click();}}});window.addEventListener('scroll',hideTip,true);setInterval(pollRefreshState,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollRefreshState();});initializeAccess();
+function chooseRun(input,key){const id=input.value.trim();clearTimeout(searchTimer);filters.search=$('timeline-search').value.trim();if(id&&!data?.view.runOptions.includes(id)){$('status').className='status error';$('status').textContent='목록의 런 ID를 선택해 주세요.';return;}filters[key]=id;if(key==='timelineRunId'){averageRuns=!id;filters.replayPlayer='';filters.fundsRunId=id;resetRouteSelection();filters.timelinePhase='';filters.timelineAttemptId='';filters.timelineOffset=0;if(id&&roomCache&&displayedFilters?.search===filters.search&&localRun(id))return;}load(false);}
+function clearSelection(){
+ clearTimeout(searchTimer);scopeTicket++;roomTicket++;serial++;busy=pendingRead=scopeReady=false;roomCache=data=displayedFilters=refreshState=null;averageRuns=true;disposeSpatialReplay();
+ filters={sharedScope:true,environment:$('environment').value,gameVersion:$('game-version').value,timelineRunId:'',fundsRunId:''};$('timeline-search').value='';$('room-run-tabs').replaceChildren();
+ $('dashboard-main').classList.add('awaiting-scope');$('updated').textContent='조회 대기';$('status').textContent='환경과 게임 버전을 선택한 뒤 갱신하세요.';updateRefreshButton();
+}
+$('timeline-search').oninput=()=>{clearTimeout(searchTimer);renderSessionOptions('timeline');searchTimer=setTimeout(()=>{averageRuns=true;filters.search=$('timeline-search').value.trim();filters.timelineRunId=filters.fundsRunId=filters.timelinePhase=filters.timelineAttemptId='';filters.timelineOffset=filters.surveyOffset=0;load(false);},300);};
+$('refresh').onclick=()=>{if(filters.environment&&filters.gameVersion)load(true);};
+$('environment').onchange=async()=>{const select=$('game-version');select.replaceChildren(new Option('게임 버전 선택',''));clearSelection();const ticket=scopeTicket,env=filters.environment;if(!env)return;
+ try{const versions=await roomRpc('getDashboardVersions',env);if(ticket!==scopeTicket)return;versions.forEach(v=>select.append(new Option(v==='UNVERSIONED'?'버전 미기록':v,v)));}catch(e){if(ticket===scopeTicket)fail(e);}};
+$('game-version').onchange=clearSelection;
+$('timeline-run').onchange=()=>chooseRun($('timeline-run'),'timelineRunId');$('previous').onclick=()=>{filters.timelineOffset=Math.max(0,filters.timelineOffset-200);load(false);};$('next').onclick=()=>{filters.timelineOffset+=200;load(false);};document.addEventListener('click',e=>{if(!e.target.closest('.route-marker,#route-detail,.route-unlocated,.route-tools')){resetRouteSelection();hideTip();}});document.addEventListener('keydown',e=>{if(e.key==='Escape'){hideTip();resetRouteSelection();}if((e.key==='ArrowLeft'||e.key==='ArrowRight')&&e.target.getAttribute('role')==='tab'){const tabs=[...e.target.parentElement.querySelectorAll('[role=tab]')],i=tabs.indexOf(e.target),next=tabs[(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length];if(next){e.preventDefault();next.focus();next.click();}}});window.addEventListener('scroll',hideTip,true);setInterval(pollRefreshState,15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollRefreshState();});initializeAccess();
 </script></body></html>

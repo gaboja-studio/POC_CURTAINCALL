@@ -338,6 +338,7 @@ namespace CurtainCall.WaitingRoom
             if (uid == 0) return Reject(player, "DROP", 0, "CARRY_NothingHeld", Explain(CarryRefusal.NothingHeld));
             var refusal = book.Drop(player, point.x, point.y, point.z, out var dropped, uid);
             if (refusal != CarryRefusal.None) return Reject(player, "DROP", uid, "CARRY_" + refusal, Explain(refusal));
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(FindPlayer(player),"EXPLORATION_TOOL",new(){["itemType"]=dropped.Item.ItemId,["uid"]=uid,["usesAfter"]=dropped.Item.Uses,["state"]="DROPPED",["objectPosition"]=CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(point)},"HOST");
             Debug.Log($"[Carry] 내려놓음 #{dropped.Item.Uid} {dropped.Item.Name} ← {WaitingRoomShop.PlayerLabel(player)}");
             Publish();
             return (true, WaitingRoomText.Format("carry.dropped", "{item:을} 내려놓았습니다.", ("item", dropped.Item.Name)));
@@ -354,8 +355,14 @@ namespace CurtainCall.WaitingRoom
                         return Reject(player, "PICK_UP", uid, "TOO_FAR", WaitingRoomText.Get("carry.too-far", "기물에 가까이 다가가세요."));
                     break;
                 }
+            foreach (var currency in book.Floor)
+                if (currency.Item.Uid == uid && currency.Item.ItemId == ExplorationDrops.PerformanceTokenId) {
+                    if (CurtainCall.Reward.PerformanceRewards.Instance == null || !CurtainCall.Reward.PerformanceRewards.Instance.TryGrantDiscoveryFunds(10)) return (false, "자금 처리를 준비 중입니다.");
+                    book.ConsumeFloor(uid); Publish(); return (true, "공연 토큰 획득 · 공동 자금 +10원");
+                }
             var refusal = book.PickUp(uid, player, Slots(player), out var item);
             if (refusal != CarryRefusal.None) return Reject(player, "PICK_UP", uid, "CARRY_" + refusal, Explain(refusal));
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(FindPlayer(player),"EXPLORATION_TOOL",new(){["itemType"]=item.ItemId,["uid"]=uid,["usesAfter"]=item.Uses,["state"]="PICKED_UP"},"HOST");
             Debug.Log($"[Carry] 주움 #{item.Uid} {item.Name} → {WaitingRoomShop.PlayerLabel(player)}");
             AutoHold(player, item);
             Publish();

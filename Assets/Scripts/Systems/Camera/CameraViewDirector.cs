@@ -63,9 +63,9 @@ namespace CurtainCall.Cameras
         const float CollisionRadius = .25f;
         const float CollisionPadding = .05f;
         const float CollisionReturnSpeed = 5f;
+        const float MinimumHangCameraDistance = 1.65f;
         RaycastHit[] wallHits = new RaycastHit[32];
-        static readonly float[] ClearanceAngles = { 30f, -30f, 60f, -60f, 90f, -90f, 120f, -120f };
-        double nextClearanceSearch;
+        Collider[] pivotOverlaps = new Collider[8];
         const float DeathDropDuration = 0.6f;
         const float DeathDropDistance = 1.5f;
         const float DeathWatchDuration = 1.5f;
@@ -374,37 +374,115 @@ namespace CurtainCall.Cameras
             var anchor = spectatorOrbit ? SpectatorAnchor : local != null ? local.transform : null;
             if (anchor == null) return;
             Vector3 pivot = anchor.position + Vector3.up * Mathf.Max(.1f, selected.LookHeight);
+            Vector3 originalPivot = pivot;
+            var subject = anchor.GetComponent<NetworkPlayer>();
+            var hangs = CurtainCall.Tightrope.TightropeHangSystem.Current;
+            bool hanging = hangs != null && hangs.IsHanging(subject);
+            if (hanging) pivot = HangingCameraPivot(pivot);
             Vector3 offset = state.GetFinalPosition() - pivot;
             float desired = offset.magnitude;
             if (desired < .001f) { collisionDistance = -1f; return; }
             Vector3 direction = offset / desired;
             float safe = WallDistance(pivot, direction, desired);
-            // In escape corridors, try a clear shoulder before collapsing the third-person camera
-            // into the body. Every candidate is swept against the same solid geometry.
-            if (!spectatorOrbit && freeThirdPerson && safe < 1.6f
-                && Time.unscaledTimeAsDouble >= nextClearanceSearch
-                && SceneManager.GetActiveScene().name.StartsWith("escape_route", StringComparison.Ordinal))
-            {
-                nextClearanceSearch = Time.unscaledTimeAsDouble + .1;
-                foreach (float angle in ClearanceAngles)
-                {
-                    Vector3 alternative = Quaternion.AngleAxis(angle, Vector3.up) * direction;
-                    float clearance = WallDistance(pivot, alternative, desired);
-                    if (clearance < 1.6f) continue;
-                    direction = alternative; safe = clearance;
-                    yaw = Mathf.Repeat(yaw + angle, 360f);
-                    state.RawOrientation = Quaternion.LookRotation(-direction, Vector3.up);
-                    state.OrientationCorrection = Quaternion.identity;
-                    collisionDistance = -1f;
-                    break;
-                }
-            }
+            Vector3 originalDirection = direction;
+            if (hanging) direction = HangingCameraDirection(pivot, direction, desired, ref safe);
+            // Contract along the requested camera arm. Orbit angles also drive locomotion.
             if (collisionDistance < 0f) collisionDistance = safe;
             else if (collisionFrame != Time.frameCount)
                 collisionDistance = Mathf.MoveTowards(collisionDistance, safe, CollisionReturnSpeed * Time.deltaTime);
             collisionDistance = Mathf.Min(collisionDistance, safe);
+            if (hanging) collisionDistance = Mathf.Max(collisionDistance, Mathf.Min(safe, MinimumHangCameraDistance));
             collisionFrame = Time.frameCount;
             state.PositionCorrection += pivot + direction * collisionDistance - state.GetFinalPosition();
+            if ((direction - originalDirection).sqrMagnitude > .0001f || (pivot - originalPivot).sqrMagnitude > .0001f)
+            {
+                // Reframe around the hanging body beside an overhead landing. Preserve mouse yaw/pitch
+                // and the horizontal look direction used by movement; never cross a solid surface.
+                Vector3 look = pivot + Horizontal(state.GetFinalOrientation() * Vector3.forward) * selected.LookAhead;
+                state.RawOrientation = Quaternion.LookRotation(look - state.GetFinalPosition(), Vector3.up);
+                state.OrientationCorrection = Quaternion.identity;
+            }
+        }
+
+        Vector3 HangingCameraPivot(Vector3 pivot)
+        {
+            // At a rope end the chest anchor can sit inside the landing or within the cast radius
+            // of a support beam. A cast starting there reports zero in every direction.
+            // Move only the camera's query origin out of authored boxes, never the player.
+            float radius = CollisionRadius + CollisionPadding;
+            for (int pass = 0; pass < 4; pass++)
+            {
+                int count;
+                while ((count = Physics.OverlapSphereNonAlloc(pivot, radius, pivotOverlaps,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) == pivotOverlaps.Length)
+                    Array.Resize(ref pivotOverlaps, pivotOverlaps.Length * 2);
+                bool moved = false;
+                for (int i = 0; i < count; i++)
+                {
+                    if (pivotOverlaps[i] is not BoxCollider box || !BlocksCamera(box)) continue;
+                    Vector3 point = box.transform.InverseTransformPoint(pivot) - box.center;
+                    Vector3 half = box.size * .5f;
+                    Vector3 closest = Vector3.Min(half, Vector3.Max(-half, point));
+                    Vector3 surface = box.transform.TransformPoint(box.center + closest);
+                    Vector3 away = pivot - surface;
+                    float distance = away.magnitude;
+                    if (distance < .00001f)
+                    {
+                        var scale = box.transform.lossyScale;
+                        int axis = 0;
+                        for (int j = 1; j < 3; j++)
+                            if ((half[j] - Mathf.Abs(point[j])) * Mathf.Abs(scale[j])
+                                < (half[axis] - Mathf.Abs(point[axis])) * Mathf.Abs(scale[axis])) axis = j;
+                        closest[axis] = point[axis] < 0 ? -half[axis] : half[axis];
+                        surface = box.transform.TransformPoint(box.center + closest);
+                        away = (surface - pivot).normalized;
+                    }
+                    else away /= distance;
+                    if (distance >= radius) continue;
+                    pivot = surface + away * (radius + .001f);
+                    moved = true;
+                }
+                if (!moved) break;
+            }
+            return pivot;
+        }
+
+        Vector3 HangingCameraDirection(Vector3 pivot, Vector3 direction, float desired, ref float safe)
+        {
+            if (safe >= MinimumHangCameraDistance) return direction;
+            Vector3 horizontal = Horizontal(direction);
+            if (horizontal == Vector3.zero) return direction;
+            Vector3 best = direction;
+            float elevation = Mathf.Asin(Mathf.Clamp(direction.y, -1f, 1f)) * Mathf.Rad2Deg;
+            // Search the same vertical orbit: beneath a landing while hanging, or above it
+            // during the catch/pull transition. Wall collision still checks every candidate.
+            for (float delta = 15f; delta <= 180f; delta += 15f)
+            {
+                for (int sign = -1; sign <= 1; sign += 2)
+                {
+                    float angle = elevation + sign * delta;
+                    if (angle < -104f || angle > 104f) continue;
+                    angle = Mathf.Clamp(angle, -89f, 89f);
+                    float radians = angle * Mathf.Deg2Rad;
+                    Vector3 candidate = horizontal * Mathf.Cos(radians) + Vector3.up * Mathf.Sin(radians);
+                    float distance = WallDistance(pivot, candidate, desired);
+                    if (distance <= safe) continue;
+                    best = candidate;
+                    safe = distance;
+                    if (safe >= MinimumHangCameraDistance) return best;
+                }
+            }
+            return best;
+        }
+
+        static bool BlocksCamera(Collider obstacle)
+        {
+            if (obstacle == null || obstacle is CharacterController) return false;
+            if (CurtainCall.Tightrope.TightropeCourse.IsRopeSurface(obstacle)) return false;
+            var ropes = CurtainCall.EscapeRoute.EscapeCooperativeRopes.Current;
+            if (ropes != null && ropes.IsTimedSupport(obstacle)) return false;
+            return obstacle.GetComponentInParent<NetworkPlayer>() == null
+                && (obstacle.attachedRigidbody == null || obstacle.attachedRigidbody.isKinematic);
         }
 
         float WallDistance(Vector3 pivot, Vector3 direction, float desired)
@@ -422,9 +500,7 @@ namespace CurtainCall.Cameras
             for (int i = 0; i < count; i++)
             {
                 var hit = wallHits[i];
-                var obstacle = hit.collider;
-                if (obstacle == null || obstacle is CharacterController || obstacle.GetComponentInParent<NetworkPlayer>() != null ||
-                    (obstacle.attachedRigidbody != null && !obstacle.attachedRigidbody.isKinematic)) continue;
+                if (!BlocksCamera(hit.collider)) continue;
                 safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - CollisionPadding));
             }
             // 구가 벽에 이미 겹친 상태에서 시작하면 SphereCast가 놓칠 수 있다.
@@ -438,9 +514,7 @@ namespace CurtainCall.Cameras
             for (int i = 0; i < count; i++)
             {
                 var hit = wallHits[i];
-                var obstacle = hit.collider;
-                if (obstacle == null || obstacle is CharacterController || obstacle.GetComponentInParent<NetworkPlayer>() != null ||
-                    (obstacle.attachedRigidbody != null && !obstacle.attachedRigidbody.isKinematic)) continue;
+                if (!BlocksCamera(hit.collider)) continue;
                 safe = Mathf.Min(safe, Mathf.Max(0f, hit.distance - CollisionRadius - CollisionPadding));
             }
             return CameraCollisionSurface.LimitDistance(SceneManager.GetActiveScene(), pivot, direction,

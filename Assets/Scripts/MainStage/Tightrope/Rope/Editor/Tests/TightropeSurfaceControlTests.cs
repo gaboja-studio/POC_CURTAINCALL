@@ -13,7 +13,7 @@ using Object = UnityEngine.Object;
 
 namespace CurtainCall.Tightrope.EditorTools.Tests
 {
-    public sealed class TightropeSurfaceControlTests
+    public sealed partial class TightropeSurfaceControlTests
     {
         readonly List<Object> objects = new();
         readonly List<EscapeDevelopmentSession> suppressedDevelopmentSessions = new();
@@ -120,6 +120,104 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             balance.SetBalanceActive(true); // 외부 재초기화가 기본 활성값을 다시 넣어도 안전해야 한다.
             Invoke(switcher, "UpdateSurfaceMode");
             Assert.That(balance.IsActive, Is.False);
+        }
+
+        [Test]
+        public void PiggybackDismount_RequiresGroundContactOnAnAssignedPlatform()
+        {
+            var platform = AddBox("Dismount platform", new Vector3(0f, -.25f, -3f), new Vector3(4f, .5f, 4f));
+            var ordinary = AddBox("Unassigned platform", new Vector3(5f, -.25f, -3f), new Vector3(4f, .5f, 4f));
+            var data = new UnityEditor.SerializedObject(course);
+            data.FindProperty("useSceneGeometry").boolValue = true;
+            data.ApplyModifiedPropertiesWithoutUndo();
+            typeof(TightropeCourse).GetField("piggybackDismountPlatforms", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(course, new[] { platform });
+
+            MovePlayer(new Vector3(0f, 0f, -3f));
+            mover.Simulated = false; // 호스트가 보는 원격 플레이어는 소유자 이동을 실행하지 않는다.
+            Assert.That(Invoke(course, "PiggybackDismountSupport", player), Is.SameAs(platform));
+            mover.ResetExternalMotion(true);
+            Assert.That(Invoke(course, "PiggybackDismountSupport", player), Is.Null);
+            mover.ResetExternalMotion(false);
+            MovePlayer(new Vector3(5f, 0f, -3f));
+            Assert.That(Invoke(course, "PiggybackDismountSupport", player), Is.Null);
+            Assert.That(Invoke(course, "ManualPiggybackDismountSupport", player), Is.SameAs(ordinary));
+            MovePlayer(new Vector3(2.5f, 0f, -3f));
+            Assert.That(Invoke(course, "PiggybackDismountSupport", player), Is.Null);
+            Assert.That(Invoke(course, "ManualPiggybackDismountSupport", player), Is.Null);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void EscapePiggybackStopsBalanceAsSoonAsCarrierDropsOffRope(bool passenger)
+        {
+            AuthoredRopes();
+            var deck = AddBox("Lower deck", new Vector3(0, -2.25f, 4), new Vector3(6, .5f, 6));
+            const BindingFlags member = BindingFlags.Instance | BindingFlags.NonPublic;
+            typeof(TightropeCourse).GetField("piggybackDismountPlatforms", member).SetValue(course, new[] { deck });
+            var current = typeof(PiggybackSystem).GetProperty("Current");
+            var previous = current.GetValue(null);
+            var stack = MakeObject("Piggyback fixture").AddComponent<PiggybackSystem>();
+            var remoteObject = MakeObject("Second player");
+            var remoteMover = remoteObject.AddComponent<PlayerMover>();
+            var remote = remoteObject.AddComponent<NetworkPlayer>();
+            typeof(NetworkPlayer).GetProperty("OwnerClientId").SetValue(remote, 1UL);
+            var all = (List<NetworkPlayer>)typeof(NetworkPlayer).GetField("all", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            var carrier = passenger ? remote : player;
+            var carrierMover = passenger ? remoteMover : mover;
+            Invoke(remoteMover, "Awake");
+            Invoke(remote, "Awake");
+            ulong bottom = carrier.OwnerClientId, top = passenger ? player.OwnerClientId : remote.OwnerClientId;
+            ((Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("belowOf", member).GetValue(stack)).Add(top, bottom);
+            ((Dictionary<ulong, ulong>)typeof(PiggybackSystem).GetField("aboveOf", member).GetValue(stack)).Add(bottom, top);
+            all.Add(remote);
+            try
+            {
+                current.SetValue(null, stack);
+                Invoke(switcher, "Bind", player);
+                carrier.transform.position = origin + new Vector3(0, 0, 4);
+                Physics.SyncTransforms();
+                Invoke(switcher, "UpdateSurfaceMode");
+                Assert.That(balance.IsActive, Is.True);
+                typeof(PlayerMover).GetProperty("CurrentJump").SetValue(carrierMover, JumpKind.InPlace);
+                Invoke(switcher, "UpdateSurfaceMode");
+                Assert.That(balance.IsActive, Is.True, "A rope jump still uses rope balance.");
+                carrierMover.ResetExternalMotion(true);
+                Invoke(switcher, "UpdateSurfaceMode");
+                Assert.That(balance.IsActive, Is.False, "An actual drop disables balance before floor contact.");
+                Assert.That(switcher.IsLocalOnRope, Is.False);
+                Invoke(switcher, "UpdateSurfaceMode");
+                Assert.That(balance.IsActive, Is.False, "A pending piggyback link cannot re-enable balance.");
+                carrierMover.ResetExternalMotion(false);
+                carrier.transform.position = origin + new Vector3(0, -2, 4);
+                Physics.SyncTransforms();
+                Invoke(switcher, "UpdateSurfaceMode");
+                Assert.That(balance.IsActive, Is.False);
+                Assert.That(Invoke(course, "PiggybackDismountSupport", carrier), Is.SameAs(deck));
+            }
+            finally { all.Remove(remote); current.SetValue(null, previous); }
+        }
+
+        [Test]
+        public void PiggybackDismount_ReservesThreeClearPositionsAwayFromPlatformEdge()
+        {
+            var platform = AddBox("Dismount platform", new Vector3(0f, -.25f, -3f), new Vector3(6f, .5f, 4f));
+            AddBox("Obstruction on left", new Vector3(-1.75f, 1f, -3f), new Vector3(2.5f, 2f, 4f));
+            var carrierFeet = origin + new Vector3(2.9f, 0f, -4.9f);
+            var positions = new Dictionary<ulong, Vector3>();
+            var find = typeof(PiggybackSystem).GetMethod("TryFindPlatformSeat", BindingFlags.Static | BindingFlags.NonPublic);
+            for (ulong rider = 1; rider <= 3; rider++)
+            {
+                object[] args = { platform, carrierFeet, .3f, 1.5f, positions, Vector3.zero };
+                Assert.That(find.Invoke(null, args), Is.True);
+                var feet = (Vector3)args[5];
+                Assert.That(feet.x - origin.x, Is.InRange(-.19f, 2.49f));
+                Assert.That(feet.z - origin.z, Is.InRange(-4.49f, -1.51f));
+                foreach (var used in positions.Values) Assert.That(Vector3.Distance(feet, used), Is.GreaterThan(.7f));
+                positions.Add(rider, feet);
+            }
+            AddBox("Remaining deck blocked", new Vector3(1.5f, 1f, -3f), new Vector3(3f, 2f, 4f));
+            Assert.That(find.Invoke(null, new object[] { platform, carrierFeet, .3f, 1.5f, positions, Vector3.zero }), Is.False);
         }
 
         [Test]
@@ -283,6 +381,34 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
             mover.Simulated = false;
             Assert.That(Invoke(course, "IsBelowFallDepth", mover), Is.False,
                 "대포·그네가 이동을 맡는 프레임에는 외줄의 1m 바닥선을 적용하지 않는다.");
+        }
+
+        [TestCase(true, 0f, false)]
+        [TestCase(true, .5f, false)]
+        [TestCase(false, 0f, true)]
+        public void RunningCourseOnlyAppliesStuntFloorDeathToGeneratedStage(bool authored, float aboveFloor, bool falls)
+        {
+            AuthoredRopes();
+            var data = new UnityEditor.SerializedObject(course);
+            data.FindProperty("useSceneGeometry").boolValue = authored;
+            data.ApplyModifiedPropertiesWithoutUndo();
+            // A의 두 번째 대포대처럼 가까운 외줄보다 6m 낮은 정상 바닥과 짧은 낙하.
+            AddBox("Lower cannon preparation deck", new Vector3(0, -6.4f, 4), new Vector3(8, .8f, 9));
+            MovePlayer(new Vector3(0, -6 + aboveFloor, 4));
+            balance.SetBalanceActive(false);
+            var run = course.gameObject.AddComponent<TightropeRun>();
+            typeof(TightropeRun).GetProperty("State").SetValue(run, TightropeRunState.Running);
+            var local = typeof(NetworkPlayer).GetProperty("Local");
+            var previous = local.GetValue(null);
+            try
+            {
+                local.SetValue(null, player);
+                Assert.That(course.UsesRopeRules(player), Is.False);
+                Assert.That(Invoke(course, "IsBelowFallDepth", mover), Is.True, "높이만 비교하면 정상 발판도 추락으로 오인한다.");
+                Invoke(course, "CheckLocalFall");
+                Assert.That(balance.HasFallen, Is.EqualTo(falls), "탈출로의 낮은 발판은 살리고 공연장 바닥 실패는 유지한다.");
+            }
+            finally { local.SetValue(null, previous); }
         }
 
         [Test]
@@ -521,6 +647,55 @@ namespace CurtainCall.Tightrope.EditorTools.Tests
                 Assert.That(Invoke(rules, "GetLandingShift", 1), Is.EqualTo(original - behind).Within(.001));
             }
             finally { Invoke(other, "OnDisable"); }
+        }
+
+        [Test]
+        public void EscapeACannonLandingGroupsAllowSideJumpsAlongTheirFullLengthInBothDirections()
+        {
+            var scene = EditorSceneManager.OpenPreviewScene("Assets/Scenes/Levels/escape_route.unity");
+            try
+            {
+                var authored = scene.GetRootGameObjects()[0].GetComponentInChildren<TightropeCourse>(true);
+                if (authored == null)
+                    foreach (var root in scene.GetRootGameObjects())
+                        if ((authored = root.GetComponentInChildren<TightropeCourse>(true)) != null) break;
+                Assert.That(authored, Is.Not.Null);
+                typeof(TightropeCourse).GetField("current", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, authored);
+                var rules = player.gameObject.AddComponent<RopeLaneJumpRules>();
+                typeof(RopeLaneJumpRules).GetField("mover", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(rules, mover);
+                mover.LaneSpacing = authored.LaneSpacing;
+                foreach (var lanes in new[] { new[] { 11, 7, 13 }, new[] { 14, 8, 12 } })
+                for (int index = 0; index < lanes.Length; index++)
+                foreach (float fraction in new[] { .15f, .5f, .85f })
+                foreach (int facing in new[] { -1, 1 })
+                foreach (float speed in new[] { -.5f, 0f, .5f })
+                {
+                    int lane = lanes[index];
+                    Vector3 start = authored.GetLanePosition(lane, 0);
+                    Vector3 forward = (authored.GetLanePosition(lane, 1) - start).normalized;
+                    mover.transform.position = authored.GetLanePosition(lane, authored.Layout.GetLaneEnd(lane) * fraction);
+                    mover.CourseForwardOverride = forward * facing;
+                    typeof(PlayerMover).GetField("groundVelocity", BindingFlags.Instance | BindingFlags.NonPublic)
+                        .SetValue(mover, mover.CourseForward * speed);
+                    foreach (int direction in new[] { -1, 1 })
+                    {
+                        int neighbor = index + direction * facing;
+                        bool available = neighbor >= 0 && neighbor < lanes.Length;
+                        Assert.That(rules.CanLaneJump(direction), Is.EqualTo(available),
+                            $"lane={lane}, fraction={fraction}, facing={facing}, speed={speed}, side={direction}");
+                        if (!available) continue;
+                        Assert.That(rules.TryGetLandingDistance(direction, out float distance), Is.True);
+                        Vector3 landing = mover.GetLaneLandingPosition(direction);
+                        Assert.That(Vector3.Distance(landing, authored.GetLanePosition(lanes[neighbor], distance)), Is.LessThan(.02f),
+                            "허용된 점프의 실제 도착점도 옆줄 중앙에 있어야 한다.");
+                    }
+                }
+            }
+            finally
+            {
+                typeof(TightropeCourse).GetField("current", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, course);
+                EditorSceneManager.ClosePreviewScene(scene);
+            }
         }
 
         BoxCollider AddBox(string name, Vector3 center, Vector3 size)

@@ -112,6 +112,7 @@ namespace CurtainCall.Tightrope
         {
             var local = NetworkPlayer.Local;
             if (session == null || !CanLaneLink(local, target)) return;
+            CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(local,this,"HANDHOLD","ATTEMPT:"+target.OwnerClientId,local.transform.position);
             Vector3 landing = local.transform.position;
             if (session.IsHost)
             {
@@ -208,6 +209,7 @@ namespace CurtainCall.Tightrope
             {
                 ServerResolveFalls();
                 ServerPruneMissing();
+                ServerResolvePlatformDismounts();
             }
             UpdateStackBalance();
         }
@@ -257,6 +259,12 @@ namespace CurtainCall.Tightrope
         /// <summary>목마에 속해 있는지(위나 아래에 누가 있음).</summary>
         public bool IsInStack(NetworkPlayer player) =>
             player != null && IsInStack(player.OwnerClientId);
+
+        internal NetworkPlayer GetCarrier(NetworkPlayer player)
+        {
+            ulong bottom = BottomOf(player.OwnerClientId);
+            return bottom == player.OwnerClientId ? player : FindPlayer(bottom);
+        }
 
         /// <summary>내가 속한 목마의 전체 인원. 단독이면 1.</summary>
         public int GetStackSize(NetworkPlayer player)
@@ -344,6 +352,7 @@ namespace CurtainCall.Tightrope
         {
             if (request != Request.Sync && !IsGameplayActive) return;
             if (session == null) return;
+            if (request == Request.Interact && NetworkPlayer.Local != null) CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(NetworkPlayer.Local,this,"PIGGYBACK","ATTEMPT",NetworkPlayer.Local.transform.position);
             if (request == Request.Release) RememberTrapezeEntry(NetworkPlayer.Local);
             if (session.IsHost)
             {
@@ -419,13 +428,13 @@ namespace CurtainCall.Tightrope
         {
             if (!IsGameplayActive || climber == null || !climber.IsSpawned || climber.State != PlayerState.Normal
                 || climber.IsAirborne || IsInStack(climber) || UsingDevice(climber)
-                || !TightropeCourse.Current.UsesRopeRules(climber)) return null;
+                || !OnRope(climber)) return null;
             float reach = LinkReach(climber), best = float.PositiveInfinity;
             NetworkPlayer target = null;
             foreach (var other in NetworkPlayer.All)
             {
                 if (other == null || other == climber || !other.IsSpawned || other.State != PlayerState.Normal || UsingDevice(other)) continue;
-                if (!TightropeCourse.Current.UsesRopeRules(other)) continue;
+                if (!OnRope(other)) continue;
                 // 목마는 맨 아래 사람 기준 거리로만 본다(같은 목마를 한 번만)
                 if (belowOf.ContainsKey(other.OwnerClientId)) continue;
                 Vector3 center = PlayerInteraction.Center(other);
@@ -437,6 +446,14 @@ namespace CurtainCall.Tightrope
             }
             return target;
         }
+
+        /// <summary>
+        /// 실제로 줄 위에 서 있는지. 내 캐릭터도 조작 방식만이 아니라 원격 판정과 같은 균형 켜짐·줄 위치를 요구해
+        /// 시작 플랫폼(지면)에서 목마 표시가 뜨거나 호스트와 결과가 갈리지 않게 한다(2026-11-05 사용자 요청).
+        /// </summary>
+        static bool OnRope(NetworkPlayer player) => TightropeCourse.Current.UsesRopeRules(player)
+            && player.TryGetComponent(out PlayerBalance balance) && balance.IsActive
+            && TightropeCourse.Current.TryGetRopePoint(player.transform.position, out _, out _);
 
         static bool UsingDevice(NetworkPlayer player) =>
             TightropeSwingPole.Current != null && TightropeSwingPole.Current.IsCrossing(player)
@@ -507,12 +524,106 @@ namespace CurtainCall.Tightrope
         {
             if (!belowOf.TryGetValue(riderId, out ulong below)) return "거부: 내 아래에 아무도 없음";
             if (aboveOf.ContainsKey(riderId)) return "거부: 내 위에 사람이 있어 내려올 수 없음";
+            if (transferred == null)
+            {
+                var carrier = FindPlayer(BottomOf(riderId));
+                var course = TightropeCourse.Current;
+                var platform = course?.ManualPiggybackDismountSupport(carrier);
+                if (platform != null)
+                    return ServerDismountOnPlatform(carrier, platform) ? "해제: 발판에 내려옴" : "거부: 발판에 내려설 자리가 없음";
+                if (course != null && course.UsesPlatformPiggyback && !course.PiggybackUsesRopeBalance(carrier, true))
+                    return "거부: 안전한 발판에 착지한 뒤 내려올 수 있음";
+            }
             RememberTrapezeEntry(FindPlayer(riderId));
             belowOf.Remove(riderId);
             aboveOf.Remove(below);
             transferred?.Invoke();
             ServerBroadcast();
             return "해제: 내려옴";
+        }
+
+        internal bool HasDismountSupport(NetworkPlayer player)
+        {
+            return player != null && IsInStack(player)
+                && TightropeCourse.Current?.PiggybackDismountSupport(FindPlayer(BottomOf(player.OwnerClientId))) != null;
+        }
+
+        void ServerResolvePlatformDismounts()
+        {
+            if (belowOf.Count == 0 || TightropeCourse.Current == null) return;
+            foreach (var carrier in NetworkPlayer.All)
+            {
+                if (carrier == null || GetBelow(carrier) != null || GetAbove(carrier) == null) continue;
+                var platform = TightropeCourse.Current.PiggybackDismountSupport(carrier);
+                if (platform != null) ServerDismountOnPlatform(carrier, platform);
+            }
+        }
+
+        bool ServerDismountOnPlatform(NetworkPlayer carrier, BoxCollider platform)
+        {
+            var placements = new Dictionary<ulong, Vector3>();
+            for (var rider = GetAbove(carrier); rider != null; rider = GetAbove(rider))
+            {
+                if (rider.State != PlayerState.Normal || !rider.TryGetComponent(out PlayerMover mover)) return false;
+                float radius = Mathf.Max(mover.BodyRadius, GameSettings.Base.Character.CapsuleRadius);
+                float height = Mathf.Max(mover.BodyHeight, GameSettings.Base.Character.CapsuleHeight);
+                if (!TryFindPlatformSeat(platform, carrier.transform.position, radius, height, placements, out var feet))
+                    return false; // 전원이 설 수 있을 때만 연결을 바꾼다.
+                placements.Add(rider.OwnerClientId, feet);
+            }
+            if (placements.Count == 0) return false;
+            foreach (ulong riderId in placements.Keys)
+            {
+                belowOf.Remove(riderId, out ulong lower);
+                aboveOf.Remove(lower);
+            }
+            ServerBroadcast(placements: placements);
+            return true;
+        }
+
+        static bool TryFindPlatformSeat(BoxCollider platform, Vector3 carrierFeet, float radius, float height,
+            Dictionary<ulong, Vector3> placements, out Vector3 feet)
+        {
+            feet = default;
+            var bounds = platform.bounds;
+            var preferred = Vector3.Lerp(carrierFeet, bounds.center, .3f);
+            float edgeMargin = radius + .22f;
+            float separation = radius * 2f + GameSettings.Base.Character.PlayerGap + .12f;
+            float separationSquared = separation * separation;
+            float nearest = float.PositiveInfinity;
+            const float maxSearchDistance = 5f;
+            for (float x = Mathf.Max(bounds.min.x + edgeMargin, carrierFeet.x - maxSearchDistance); x <= Mathf.Min(bounds.max.x - edgeMargin, carrierFeet.x + maxSearchDistance); x += separation)
+            for (float z = Mathf.Max(bounds.min.z + edgeMargin, carrierFeet.z - maxSearchDistance); z <= Mathf.Min(bounds.max.z - edgeMargin, carrierFeet.z + maxSearchDistance); z += separation)
+            {
+                var candidate = new Vector3(x, bounds.max.y, z);
+                float distance = HorizontalDistanceSquared(candidate, preferred);
+                if (distance >= nearest || HorizontalDistanceSquared(candidate, carrierFeet) < separationSquared
+                    || IsSeatReserved(candidate, separationSquared, placements)) continue;
+                // 실제 발판 위인지 확인하고 몸 전체가 벽·기둥·다른 플레이어와 겹치지 않는 자리를 쓴다.
+                if (!platform.Raycast(new Ray(candidate + Vector3.up * .1f, Vector3.down), out var hit, .2f)
+                    || hit.normal.y < .99f) continue;
+                candidate = hit.point + Vector3.up * .035f;
+                if (Physics.CheckCapsule(candidate + Vector3.up * radius,
+                    candidate + Vector3.up * Mathf.Max(radius, height - radius), radius,
+                    Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore)) continue;
+                nearest = distance;
+                feet = candidate;
+            }
+            return float.IsFinite(nearest);
+        }
+
+        static bool IsSeatReserved(Vector3 candidate, float separationSquared, Dictionary<ulong, Vector3> placements)
+        {
+            foreach (var position in placements.Values)
+                if (HorizontalDistanceSquared(candidate, position) < separationSquared) return true;
+            return false;
+        }
+
+        static float HorizontalDistanceSquared(Vector3 a, Vector3 b)
+        {
+            float x = a.x - b.x;
+            float z = a.z - b.z;
+            return x * x + z * z;
         }
 
         /// <summary>호스트: 나간 사람이 낀 연결을 끊는다(위에 있던 사람들은 각각 아래와 떨어진다).</summary>
@@ -619,16 +730,17 @@ namespace CurtainCall.Tightrope
         }
 
         /// <summary>호스트: 연결 상태를 모두에게 보내고 이 화면에도 적용한다. 연쇄 추락·반동 대상이 있으면 함께 보낸다.</summary>
-        void ServerBroadcast(List<ulong> dropped = null, List<ulong> shocked = null)
+        void ServerBroadcast(List<ulong> dropped = null, List<ulong> shocked = null,
+            Dictionary<ulong, Vector3> placements = null)
         {
             float shock = GameSettings.Tightrope.Piggyback.FallShock;
             var manager = Messaging;
             if (manager != null)
             {
-                using var writer = WriteLinks(dropped, shocked, shock);
+                using var writer = WriteLinks(dropped, shocked, shock, placements);
                 manager.SendNamedMessageToAll(LinksMessage, writer, NetworkDelivery.ReliableSequenced);
             }
-            ApplyEvents(dropped, shocked, shock);
+            ApplyEvents(dropped, shocked, shock, placements);
         }
 
         void SendLinks(ulong clientId)
@@ -654,11 +766,13 @@ namespace CurtainCall.Tightrope
             ShowResult(result);
         }
 
-        FastBufferWriter WriteLinks(List<ulong> dropped = null, List<ulong> shocked = null, float shock = 0f)
+        FastBufferWriter WriteLinks(List<ulong> dropped = null, List<ulong> shocked = null, float shock = 0f,
+            Dictionary<ulong, Vector3> placements = null)
         {
             int dropCount = dropped?.Count ?? 0;
             int shockCount = shocked?.Count ?? 0;
-            var writer = new FastBufferWriter(16 + (belowOf.Count * 2 + dropCount + shockCount) * 8, Allocator.Temp);
+            int placementBytes = placements == null ? 0 : 4 + placements.Count * 20;
+            var writer = new FastBufferWriter(16 + (belowOf.Count * 2 + dropCount + shockCount) * 8 + placementBytes, Allocator.Temp);
             writer.WriteValueSafe(belowOf.Count);
             foreach (var pair in belowOf)
             {
@@ -670,6 +784,15 @@ namespace CurtainCall.Tightrope
             writer.WriteValueSafe(shockCount);
             for (int i = 0; i < shockCount; i++) writer.WriteValueSafe(shocked[i]);
             writer.WriteValueSafe(shock);
+            if (placements != null)
+            {
+                writer.WriteValueSafe(placements.Count);
+                foreach (var pair in placements)
+                {
+                    writer.WriteValueSafe(pair.Key);
+                    writer.WriteValueSafe(pair.Value);
+                }
+            }
             return writer;
         }
 
@@ -677,6 +800,7 @@ namespace CurtainCall.Tightrope
 
         void HandleLinksMessage(ulong senderId, FastBufferReader reader)
         {
+            if (senderId != NetworkManager.ServerClientId) return;
             // 이전 공연의 늦은 연결 패킷이 휴식·다른 묘기에 목마를 되살리지 않는다.
             if (!IsGameplayActive) { LeaveGameplay(); return; }
             belowOf.Clear();
@@ -692,7 +816,22 @@ namespace CurtainCall.Tightrope
             var dropped = ReadIds(reader);
             var shocked = ReadIds(reader);
             reader.ReadValueSafe(out float shock);
-            ApplyEvents(dropped, shocked, shock);
+            Dictionary<ulong, Vector3> placements = null;
+            if (reader.TryBeginRead(4))
+            {
+                reader.ReadValueSafe(out int placementCount);
+                if (placementCount > 0 && placementCount <= (reader.Length - reader.Position) / 20)
+                {
+                    placements = new Dictionary<ulong, Vector3>(placementCount);
+                    for (int i = 0; i < placementCount; i++)
+                    {
+                        reader.ReadValueSafe(out ulong id);
+                        reader.ReadValueSafe(out Vector3 position);
+                        placements[id] = position;
+                    }
+                }
+            }
+            ApplyEvents(dropped, shocked, shock, placements);
         }
 
         static List<ulong> ReadIds(FastBufferReader reader)
@@ -709,7 +848,7 @@ namespace CurtainCall.Tightrope
         }
 
         /// <summary>연쇄 추락·반동을 내 캐릭터에 적용하고 연결 변경을 알린다. 추락은 균형 추락으로 처리해 래그돌·조작 잠금이 평소처럼 따라온다.</summary>
-        void ApplyEvents(List<ulong> dropped, List<ulong> shocked, float shock)
+        void ApplyEvents(List<ulong> dropped, List<ulong> shocked, float shock, Dictionary<ulong, Vector3> placements)
         {
             lastDropped.Clear();
             if (dropped != null) lastDropped.UnionWith(dropped);
@@ -718,7 +857,11 @@ namespace CurtainCall.Tightrope
             if (local != null && local.TryGetComponent(out PlayerBalance balance))
             {
                 ulong id = local.OwnerClientId;
-                if (lastDropped.Contains(id))
+                if (placements != null && placements.TryGetValue(id, out var position))
+                {
+                    GetComponent<PiggybackFollow>()?.DismountOnPlatform(local, position);
+                }
+                else if (lastDropped.Contains(id))
                 {
                     // M2: 호스트가 줄을 잡게 했으면 매달림이 몸을 붙잡는다. 잡을 줄이 없었으면 호스트가 낙사로 바꾼다.
                     bool hanging = TightropeHangSystem.Current != null && TightropeHangSystem.Current.IsHanging(local);

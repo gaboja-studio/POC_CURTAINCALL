@@ -24,6 +24,16 @@ namespace CurtainCall.Tightrope
         List<RelaySpot> spotList;
 
         bool UsesSpots => spotList != null;
+        public bool TryGetSpotLaneGap(int lane, out float from, out float to)
+        {
+            from = to = 0f;
+            if (!UsesSpots) return false;
+            foreach (var spot in spotList)
+                if (spot.TargetLane == lane) { from = spot.GapFrom; to = spot.GapTo; return true; }
+            return false;
+        }
+        // 지정 연습 배치도 원본 봉의 점유·입력·복제 상태를 사용한다. 연습에서는 유지 시간을 제한하지 않는다.
+        bool UnlimitedHold => UsesSpots || (run != null && run.PracticeMode);
         bool HasGate => course != null && (course.HasRelayGap || UsesSpots);
 
         /// <summary>코스 값의 출발·교대 봉 4개 대신 이 자리들에 봉을 놓는다. 빈 목록이면 코스 값으로 돌아간다.</summary>

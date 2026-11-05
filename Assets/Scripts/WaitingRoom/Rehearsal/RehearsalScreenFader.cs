@@ -26,6 +26,14 @@ namespace CurtainCall.WaitingRoom
             canvasRoot.SetActive(true);
         }
 
+        /// <summary>A departed room cannot keep its fade or completion predicate over the next room.</summary>
+        public void Cancel()
+        {
+            ready = null; alpha = target = 0f; holdStarted = -1f;
+            if (cover != null) cover.color = Color.clear;
+            if (canvasRoot != null) canvasRoot.SetActive(false);
+        }
+
         void Build()
         {
             canvasRoot = new GameObject("RehearsalFadeCanvas", typeof(RectTransform), typeof(Canvas));

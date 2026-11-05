@@ -118,7 +118,7 @@ namespace CurtainCall.UI.SceneIntegration
             string message = string.Join(", ", deaths) + " 사망";
             // 본인 알림을 동료 알림으로 덮지 않는다.
             if (DeathVisible) notifications.Toast.Show(message, ToastState.Failure, 2, ToastIcon.Warning);
-            else notifications.Banner.Show(message, "해당 단원의 호응은 0으로 고정됩니다", BannerState.Danger, 2, BannerIcon.Skull);
+            else notifications.Banner.Show(message, "해당 단원의 호응도가 절반으로 줄어듭니다", BannerState.Danger, 2, BannerIcon.Skull);
         }
         public static string ResultTitle(bool succeeded, long amount, int participants, int cap) => !succeeded ? "공연 실패" :
             participants > 0 && cap > 0 && amount >= (double)participants * cap * .8 ? "공연 대성공" : "공연 성공";
@@ -132,7 +132,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (!dead || deathIdentity == state.Performance.Id) return;
             deathIdentity = state.Performance.Id;
             float duration = PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.deathNoticeSeconds : 2;
-            notifications.Banner.Show("사망했습니다", "이 공연의 개인 호응은 0으로 고정됩니다", BannerState.Danger,
+            notifications.Banner.Show("사망했습니다", "이 공연의 개인 호응도가 절반으로 줄어듭니다", BannerState.Danger,
                 Mathf.Max(.1f, duration), BannerIcon.Skull);
         }
         public void PresentResult(PerformanceResult result)

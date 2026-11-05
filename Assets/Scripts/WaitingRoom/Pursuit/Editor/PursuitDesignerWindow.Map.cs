@@ -65,6 +65,7 @@ namespace CurtainCall.WaitingRoom.Pursuit.Editor
                     }
                     visual.transform.SetPositionAndRotation(item.transform.position, item.transform.rotation);
                     visual.transform.localScale = item.Prefab.transform.localScale * item.SizeScale;
+                    item.ApplyAppearance(visual.GetComponent<PursuitAppearance>());
                 }
             }
             previewCamera.Render();

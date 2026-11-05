@@ -55,6 +55,19 @@ namespace CurtainCall.HumanCannon
         public float FlightFloorHeight => flightCoordinateSpace != null
             ? flightCoordinateSpace.TransformPoint(Vector3.up * flightFloorHeight).y : flightFloorHeight;
         public HumanCannonStation Station(int index) => stations[index];
+        /// <summary>Only the rehearsal owner enables this before activating its original performance devices.</summary>
+        public bool PracticeMode { get; private set; }
+        Func<ulong, bool> practicePlacement;
+        public bool IsPracticeReady(ulong actor) => !PracticeMode || practicePlacement == null || practicePlacement(actor);
+        /// <summary>Wait for each owner's validated spawn before applying rehearsal fall consequences.</summary>
+        public void SetPracticePlacementGate(Func<ulong, bool> ready) => practicePlacement = ready;
+        public void ConfigurePractice(HumanCannonStation[] courseStations, float floorHeight)
+        {
+            if (isActiveAndEnabled) throw new InvalidOperationException("Configure an inactive course before enabling it.");
+            stations = courseStations ?? throw new ArgumentNullException(nameof(courseStations));
+            flightCoordinateSpace = null; flightFloorHeight = floorHeight;
+            PracticeMode = true;
+        }
         public ulong Occupant(int index) => seats[index].State.Occupant;
         public bool IsFlying(ulong playerId) => flying.Contains(playerId);
         public bool TryGetFlight(ulong playerId, out CannonFlightState.Flight flight) => flying.TryGet(playerId, out flight);
@@ -362,6 +375,11 @@ namespace CurtainCall.HumanCannon
                 if (pilot != null) pilot.ResetAfterRestart();
                 StateChanged?.Invoke(index, action, actor);
                 return;
+            }
+            if(boundPlayer!=null && actor==boundPlayer.OwnerClientId && action is CannonAction.Board or CannonAction.Launch) {
+                var station=stations[index];
+                if(station!=null && (action!=CannonAction.Launch || CurtainCall.Telemetry.Pipeline.TelemetryRuntime.SceneType(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name)=="EXITROUTE"))
+                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Mechanism(boundPlayer,station,"CANNON",action==CannonAction.Board?"BOARDED":"FIRED",station.Seat.position);
             }
             if (action == CannonAction.Launch) flying.Begin(actor, index, seats[index].State.Revision);
             if (action == CannonAction.Release) flying.Remove(actor);

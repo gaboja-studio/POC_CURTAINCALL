@@ -4,6 +4,20 @@ let seq=0;function e(type,payload={},extra={}){return {eventId:'e'+(++seq),occur
 function fund(run,day,before,after,num){return e('FUNDS_CHANGED',{transactionId:'ledger:'+num,gameDay:day,balanceBefore:before,balanceAfter:after,category:after>=before?'REWARD':'EXPENSE'},{runId:run,performanceId:'D'+day+'P1'});}
 const view=(rows,f={})=>core.dashboardView(rows,{environment:'TEST',...f});
 
+test('waiting observations separate availability, another player reading, and actual discoveries',()=>{
+ const source=fs.readFileSync(__dirname+'/dashboard.html','utf8').split('// WAITING_OBSERVATIONS_BEGIN')[1].split('// WAITING_OBSERVATIONS_END')[0];
+ const model=vm.runInNewContext(source+';waitingObservations');
+ const rows=require('./spatial.fixture.cjs')(),points=core.spatialReplay(rows).points;
+ const a=model(points,'0'),b=model(points,'1'),target=b.targets.find(x=>x.id==='clue');
+ assert.equal(target.opened,1);assert.equal(target.hidden,1);assert.equal(target.available,true);
+ assert.equal(target.focusDelay,2000);assert.deepEqual([...target.closed],[2000]);
+ assert.equal(a.targets.find(x=>x.id==='clue').opened,0);assert.equal(a.teamRead.has('clue'),true);
+ assert.equal(a.targets.find(x=>x.id==='clue').failed.get('REQUIRED_TOOL_MISSING'),1);
+ assert.ok(b.rooms.length);assert.equal(model(points,'9').targets.length,0);
+ const reset=points.map(p=>p.event.payload.state==='FOCUSED'?{...p,event:{...p.event,appSessionId:'another-app'}}:p);
+ assert.equal(model(reset,'1').targets.find(x=>x.id==='clue').focusDelay,null);
+});
+
 test('official four-player roster keeps silent participants and later starts separate across days',()=>{
  const people=Array.from({length:4},(_,i)=>({playerId:'p'+i,playerNumber:i,networkClientId:String(10+i)}));
  const roster=e('PERFORMANCE_ROSTER',{trickType:'CANNON',difficulty:1,playerCount:4,participants:people},{attemptId:'a'});
@@ -98,7 +112,7 @@ test('same login separates slots, and relayed copies retain player identity',()=
 test('zoom changes spacing without changing source coordinates',()=>{const rows=[point(0),point(100)],a=routeCtx.routeGeometry(rows,'TIGHTROPE',1),b=routeCtx.routeGeometry(rows,'TIGHTROPE',3);assert.ok(b.points[1].x-b.points[0].x>a.points[1].x-a.points[0].x);assert.equal(a.points[1].u,b.points[1].u);});
 test('input noise and observed replicas stay out of analysis; raw totals preserved',()=>{const rows=[e('INPUT_KEY'),e('BUTTON_INPUT'),e('MICROPHONE_INPUT'),e('PLAYER_DIED',{cause:'FALL'},{attemptId:'a'}),e('PLAYER_DIED',{cause:'FALL'},{attemptId:'a',authority:'OBSERVED'})];assert.equal(view(rows).timeline.total,1);assert.equal(core.aggregate(rows,'TEST').eventCount,5);});
 test('shared login yields two observed waiting users',()=>{const a=e('ZONE_ENTERED',{zoneType:'BEDROOM'},{sceneType:'WAITINGROOM',authority:'LOCAL'}),b={...a,eventId:'other',playerNumber:1};assert.equal(core.aggregate([a,b],'TEST').zones[0].distinctPlayers,2);});
-test('search and native selection are separate',()=>{const html=fs.readFileSync(__dirname+'/dashboard.html','utf8');assert.ok(html.includes('<select id="timeline-run"'));assert.ok(html.includes('<select id="fund-run"'));assert.ok(html.includes('id="timeline-search"'));assert.equal(html.includes('list="run-options"'),false);});
+test('search and native selection are separate',()=>{const html=fs.readFileSync(__dirname+'/dashboard.html','utf8');assert.ok(html.includes('<select id="timeline-run"'));assert.ok(!html.includes('<select id="fund-run"'));assert.ok(html.indexOf('<select id="timeline-run"')<html.indexOf('<h3>공동 자금 변동'));assert.ok(html.includes('id="timeline-search"'));assert.equal(html.includes('list="run-options"'),false);});
 
 test('break balances carry observed income, keep periods separate and match selected-run averages',()=>{
  const rows=[],rest=(run,day,part)=>rows.push(e('ZONE_ENTERED',{zoneType:'WAITINGROOM'},{runId:run,performanceId:'D'+day+'P1',breakId:'D'+day+'T'+part,sceneType:'WAITINGROOM'}));
@@ -135,7 +149,26 @@ test('refresh status distinguishes first refresh, running with cached results an
 });
 test('opening, signing in and background status polling never start an import',()=>{
  const startup=refreshHtml.split('function initializeAccess()')[1].split("$('login-send')")[0],login=refreshHtml.split("$('login-confirm').onclick=")[1].split("$('logout').onclick=")[0];
- assert.equal(startup.includes('load(true)'),false);assert.ok(startup.includes('load(false)'));assert.equal(login.includes('load(true)'),false);
+ assert.equal(startup.includes('load(true)'),false);assert.equal(startup.includes('load(false)'),false);assert.ok(startup.includes('clearSelection()'));assert.equal(login.includes('load(true)'),false);
  assert.equal(refreshHtml.includes('setInterval(()=>{if(viewer&&!deletionPreview)load(true)'),false);assert.ok(refreshHtml.includes('setInterval(pollRefreshState,15000)'));
  const poll=refreshHtml.split('function pollRefreshState()')[1].split('function load(importFiles)')[0];assert.equal(poll.includes('refreshDashboard'),false);assert.ok(poll.includes('getDashboardRefreshState'));
+});
+
+test('cached overview binds balances to the displayed run, including an empty ledger',()=>{
+ const html=fs.readFileSync(__dirname+'/dashboard.html','utf8'),c=vm.createContext({});
+ vm.runInContext(html.split('// SESSION_MODEL_BEGIN')[1].split('// SESSION_MODEL_END')[0],c);
+ const v={timeline:{runId:'B'},funds:{runId:'',interval:'DAY',mode:'AVERAGE',series:[{balance:500}],runSeries:[{runId:'A',day:1,balance:900},{runId:'B',day:1,balance:100}],breakRunSeries:[]}};
+ c.alignRunViews(v,false);assert.equal(v.funds.runId,'B');assert.equal(v.funds.series[0].balance,100);
+ v.timeline.runId='C';c.alignRunViews(v,false);assert.equal(v.funds.runId,'C');assert.equal(v.funds.series.length,0);
+});
+
+test('per-player replay keeps roster-only peers visible and isolates the selected player',()=>{
+ const ev=(slot)=>e('SPATIAL_SAMPLE',{spatialVersion:1,position:{x:slot,y:0,z:0},spatialScope:'waiting'},{playerNumber:slot,sceneType:'WAITINGROOM',breakId:'D1T2'});
+ const a=ev(0),b=ev(1),roster=e('PERFORMANCE_ROSTER',{participants:[{playerNumber:2}],playerCount:3},{attemptId:'act'});
+ const rows=[a,b,roster],t=view(rows).timeline,part=view(rows,{timelinePhase:t.phases.find(p=>p.kind==='BREAK').id,replayPlayer:core.playerKey(b)}).timeline;
+ assert.deepEqual(Array.from(part.players,p=>p.playerNumber).sort(),[0,1,2]);assert.deepEqual(Array.from(part.replay.points,p=>p.event.playerNumber),[1]);
+});
+test('result charts count decisions and arrivals without counting recurring snapshots',()=>{
+ const rows=[e('REHEARSAL_STATE',{recordKind:'ACTION',state:'ARRIVED'}),e('REHEARSAL_STATE',{recordKind:'SNAPSHOT',state:'ARRIVED'}),e('ESCAPE_TIMEOUT'),e('PURSUIT_CAPTURED')];
+ const g=core.aggregate(rows,'TEST').activities;assert.equal(g['리허설']['도착'],1);assert.equal(g['탈출로']['시간 만료'],1);assert.equal(g['추격']['잡힘'],1);
 });

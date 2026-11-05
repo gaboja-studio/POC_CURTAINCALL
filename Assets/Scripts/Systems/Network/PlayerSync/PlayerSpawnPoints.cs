@@ -25,16 +25,18 @@ namespace CurtainCall.Network.PlayerSync
         {
             if (current == null) current = FindAnyObjectByType<PlayerSpawnPoints>();
 
-            if (current != null && current.points != null && slot >= 0 && slot < current.points.Length && current.points[slot] != null)
-            {
-                Transform point = current.points[slot];
-                position = point.position;
-                rotation = point.rotation;
-                return;
-            }
+            if (current != null && current.TryGetSlotPose(slot, out position, out rotation)) return;
 
             position = Vector3.right * ((slot - 1.5f) * fallbackSpacing);
             rotation = Quaternion.identity;
+        }
+
+        public bool TryGetSlotPose(int slot, out Vector3 position, out Quaternion rotation)
+        {
+            var point = points != null && slot >= 0 && slot < points.Length ? points[slot] : null;
+            position = point != null ? point.position : default;
+            rotation = point != null ? point.rotation : Quaternion.identity;
+            return point != null && point.gameObject.activeInHierarchy;
         }
     }
 }

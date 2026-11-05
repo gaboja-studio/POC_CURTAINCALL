@@ -177,19 +177,21 @@ namespace CurtainCall.WaitingRoom
         }
 
         void OnDestroy() { if (instance == this) instance = null; }
+        float nextGatherLookup;
         void OnSceneChanged(Scene scene, LoadSceneMode mode) => sceneDirty = true;
         void OnSceneUnloaded(Scene scene) => sceneDirty = true;
 
         void Update()
         {
             var run = CampaignRun.Instance;
-            if (run == null) return;
+            if (run == null) { if (sequence) HidePanel(); return; }
             var s = run.State;
             if (s.Phase == CampaignPhase.Performance) WatchTeammates();
             if (!Enabled) { HidePanel(); return; }
-            if (sceneDirty)
+            if (sceneDirty || (gather == null && s.Phase is CampaignPhase.RestTime or CampaignPhase.Night && Time.unscaledTime >= nextGatherLookup))
             {
                 sceneDirty = false;
+                nextGatherLookup = Time.unscaledTime + 1f;
                 gather = FindFirstObjectByType<StageEntranceGather>();
                 zones = FindFirstObjectByType<ExplorationTimerZones>();
             }
@@ -267,7 +269,9 @@ namespace CurtainCall.WaitingRoom
             if (sequence)
             {
                 if (closeUp.IsActive) WaitingRoomTutorialPanel.KeepVisible();
-                // 역방향 3배속 복귀와 원래 카메라 블렌드 복원까지 끝난 다음에만 다음 장소로 출발한다.
+                // 다음 안내도 클로즈업이면 플레이어에게 돌아가지 않고 지금 장소에서 바로 이어 간다(사용자 2026-11-04).
+                if (closeUp.HoldEnded && TryContinueCloseUp(b)) return;
+                // 복귀와 원래 카메라 블렌드 복원까지 끝난 다음에만 다음 안내로 넘어간다.
                 if (Time.unscaledTime < stepEndsAt || closeUp.IsBusy) return;
                 if (!b.TryNext(false, IsLocked, out _)) { EndSequence(); return; }
             }
@@ -297,6 +301,17 @@ namespace CurtainCall.WaitingRoom
             if (!sequence) { sequence = true; InputGate.SetBlocking(this, true); }
             stepEndsAt = Time.unscaledTime + seconds;
             b.MarkDone(entry.id);
+        }
+
+        bool TryContinueCloseUp(WaitingRoomTutorialBook b)
+        {
+            if (!b.TryNext(false, IsLocked, out var entry) || !CloseUpIds.Contains(entry.id)
+                || !TryFocus(entry.id, out var pos, out var rot, out var focus)) return false;
+            if (!WaitingRoomTutorialPanel.Show(entry.title, WaitingRoomTutorialBook.Format(entry.body, interactKey, uvKey), WaitingRoomTutorialCamera.Total)) return false;
+            if (!closeUp.Continue(pos, rot, focus)) return false;
+            stepEndsAt = Time.unscaledTime + WaitingRoomTutorialCamera.Total;
+            b.MarkDone(entry.id);
+            return true;
         }
 
         /// <summary>연계 튜토리얼을 끝낸다(다 봤거나 시간대 전환·대기실 이탈·끄기). 시점과 조작을 돌려준다.</summary>

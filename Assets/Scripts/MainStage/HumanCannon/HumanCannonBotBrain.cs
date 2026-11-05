@@ -44,7 +44,12 @@ namespace CurtainCall.HumanCannon
             sampledPartner = true;
             var trampoline = HumanCannonTrampoline.Current;
             if (trampoline == null || HumanCannonSystem.Current == null) return;
-            PlayerInputFrame input = role == CannonBotRole.Carrier ? Carry(other, trampoline) : Fly(other, trampoline);
+            PlayerInputFrame input = role switch
+            {
+                CannonBotRole.Carrier => Carry(other, trampoline),
+                CannonBotRole.LiftJumper or CannonBotRole.LiftBouncer => Stow(role == CannonBotRole.LiftJumper, trampoline),
+                _ => Fly(other, trampoline)
+            };
             if (!pilot.IsDriving)
             {
                 mover.FreeMovement = true;
@@ -179,6 +184,32 @@ namespace CurtainCall.HumanCannon
             var approach = Walk(targetStation.BoardingPoint.position);
             if (system.FindBoardableStation(player) >= 0) approach.InteractTapped = Tap();
             return approach;
+        }
+
+        /// <summary>
+        /// 검사 전용 동승 시도. late면 출발 승강기 뒤에서 기다렸다가 이동이 시작되면 트램폴린으로 뛰어들고,
+        /// 아니면 처음부터 트램폴린 위에서 계속 반동한다. 공중에서는 트램폴린 위로 다시 내려오도록 조종한다.
+        /// </summary>
+        PlayerInputFrame Stow(bool late, HumanCannonTrampoline trampoline)
+        {
+            var route = HumanCannonRouteSystem.Current;
+            if (route == null || route.Transport(0) == null) return default;
+            var lift = route.Transport(0);
+            if (late && route.TransportState(0).Phase == DeparturePhase.Waiting)
+            {
+                Status = "출발 승강기 뒤에서 대기";
+                Vector3 travel = Vector3.ProjectOnPlane(lift.Position(1) - lift.StartPosition, Vector3.up).normalized;
+                // 출발 즉시 뛰어들 수 있게 발판 뒤 가장자리 바로 바깥 갑판에서 기다린다.
+                Vector3 wait = lift.StartPosition - travel * (Mathf.Abs(Vector3.Dot(travel, lift.Rotation * Vector3.forward)) * lift.HalfSize.y
+                    + Mathf.Abs(Vector3.Dot(travel, lift.Rotation * Vector3.right)) * lift.HalfSize.x + 2.5f);
+                return pilot.IsFlying ? Air(wait) : Walk(wait);
+            }
+            if (pilot.IsFlying) { Status = "트램폴린 위로 다시 낙하"; return Air(trampoline.Surface); }
+            Status = "트램폴린으로 동승 시도";
+            var input = Walk(trampoline.Surface, .2f);
+            if (!mover.IsAirborne && Vector3.ProjectOnPlane(trampoline.Surface - player.transform.position, Vector3.up).magnitude < (late ? 4.5f : 2.5f))
+                input.ActionPressed = Tap();
+            return input;
         }
 
         PlayerInputFrame Walk(Vector3 target, float stop = .35f)

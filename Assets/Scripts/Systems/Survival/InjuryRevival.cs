@@ -6,7 +6,7 @@ namespace CurtainCall.Survival
 {
     /// <summary>
     /// 런 진행(<see cref="CampaignRun.StepChanged"/>)을 받아 호스트에서 부상·생존 규칙을 적용한다. 연결 약속: 통합 meta 2026-10-14 (2).
-    /// - 쉬는 시간·밤 정비 시작: 사망자를 외팔 상태로 부활(<see cref="NetworkPlayer.ServerReviveAllDead"/>). 생존자는 부상 그대로.
+    /// - 쉬는 시간·밤 정비 시작: 사망자를 외팔 상태로 부활(<see cref="NetworkPlayer.ServerReviveAllDead"/>). 생존자는 부상 그대로, 도착 완료자는 보통 상태로.
     /// - 쉬는 시간 만료: <see cref="RestTimeoutCatch"/>로 무대 입구 밖 인원을 잡힘 처리한다(추격자 구현 전 임시, 교체 가능).
     /// - 공연 시작: 쉬는 시간에 잡혀 사망한 사람을 외팔 상태로 부활해 출연시킨다(보상 박탈 없음, 2026-10-28).
     /// - 새 세대 도입(세대 2+): 모두 온전한 몸(<see cref="NetworkPlayer.ServerRestoreEveryone"/>).
@@ -46,6 +46,9 @@ namespace CurtainCall.Survival
                     SurvivalRules.ServerPlace = SurvivalPlace.Exploration;
                     int revived = NetworkPlayer.ServerReviveAllDead();
                     if (revived > 0) Debug.Log($"[Survival] {CampaignRun.Describe(step)} 시작: 사망자 {revived}명 외팔 상태로 부활");
+                    // 도착 완료는 공연 안의 상태다. 대기실 안내·상호작용은 보통 상태만 받으므로 완주자도 함께 되돌린다.
+                    foreach (var player in NetworkPlayer.All)
+                        if (player.State == PlayerState.Arrived) player.ServerSetState(PlayerState.Normal);
                     break;
                 case CampaignPhase.Escape:
                     SurvivalRules.ServerPlace = SurvivalPlace.EscapeRoute;

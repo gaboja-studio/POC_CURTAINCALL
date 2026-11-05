@@ -34,7 +34,7 @@
 | JUMP_RESULT | sectionId: positive, jumpType: text, originRope: positive, targetRope: positive, landed: bool | 공개 API 연결·범위/실행 검증은 coverage.md |
 | COOP_ACTIVATED | trickType: trick, gimmickType: text, gimmickId: text, participants: ids | 공개 API 연결·범위/실행 검증은 coverage.md |
 | CANNON_FIRED | launchId: uuid, sectionId: optionalPositive, cannonId: text, direction: position, power: duration, lostCount: limbs | 공개 API 연결·범위/실행 검증은 coverage.md |
-| CANNON_FLIGHT_ENDED | launchId: uuid, sectionId: optionalPositive, position: position, reachedTarget: optionalBool, reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| CANNON_FLIGHT_ENDED | launchId: uuid, sectionId: optionalPositive, position: position, reachedTarget: optionalBool, reason: text | 후속 원천 연결 필요 |
 | CANNON_HAZARD_CONTACT | sectionId: optionalPositive, position: position, obstacleId: text, hazardType: text, cutApplied: bool, part: text, lostCount: limbs, reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
 | ZONE_ENTERED | zoneType: text | 공개 API 연결·범위/실행 검증은 coverage.md |
 | ZONE_EXITED | zoneType: text, durationMs: duration, reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
@@ -74,6 +74,35 @@
 | RESTORATION_VERIFIED | flowId: uuid, lostCount: limbs, movementRestored: bool, jumpRestored: bool, capacityRestored: bool | 공개 API 연결·범위/실행 검증은 coverage.md |
 | FUNDS_CHANGED | transactionId: text, gameDay: positive, balanceBefore: count, balanceAfter: count, category: fundCategory | 기반 자동 수집 |
 | TELEMETRY_GAP | reason: text, droppedEvents: positive | 기반 자동 수집 |
+| SPATIAL_SAMPLE | position: position, reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| SPATIAL_BOUNDARY | position: position, reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| SPATIAL_DIED | position: position, reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| PURSUIT_CAPTURED | position: position, reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| PURSUIT_PLAYER_STATE | position: position, state: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| PURSUIT_SAMPLE | entityId: text, position: position, state: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| PURSUIT_STATE | entityId: text, position: position, state: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| SPATIAL_GEOMETRY | entityId: text, position: position, size: position | 공개 API 연결·범위/실행 검증은 coverage.md |
+| WORLD_SAMPLE | entityId: text, position: position, state: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| WORLD_STATE_CHANGED | entityId: text, position: position, state: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| EXPLORATION_INTERACTION | targetId: text, accepted: bool, opened: bool, hits: count | 공개 API 연결·범위/실행 검증은 coverage.md |
+| OBJECT_DISCOVERED | entityId: text, targetId: text, position: position | 공개 API 연결·범위/실행 검증은 coverage.md |
+| TRICK_UNLOCKED | entityId: text, trickId: text, position: position | 공개 API 연결·범위/실행 검증은 coverage.md |
+| CLUE_INSPECTED | entityId: text, targetId: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| REHEARSAL_STATE | state: text, active: bool, completed: bool, practice: bool | 공개 API 연결·범위/실행 검증은 coverage.md |
+| AUDIENCE_REACTION | reaction: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| ESCAPE_STARTED | durationMs: duration | 공개 API 연결·범위/실행 검증은 coverage.md |
+| ESCAPE_TIMEOUT | remainingMs: duration | 공개 API 연결·범위/실행 검증은 coverage.md |
+| ESCAPE_ARRIVED | position: position, reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| SCHEDULE_CHANGED | day: positive, slot: count, trickId: text, tier: positive | 공개 API 연결·범위/실행 검증은 coverage.md |
+| GIMMICK_STATE | gimmickType: text, state: text, position: position | 공개 API 연결·범위/실행 검증은 coverage.md |
+| STAGE_SETTLED | teamAudience: count, tokens: count | 공개 API 연결·범위/실행 검증은 coverage.md |
+| EXPLORATION_TOOL | itemType: text, state: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| ESCAPE_ENDED | reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| PARTICIPANT_LEFT | subjectClientId: text, reason: text | 공개 API 연결·범위/실행 검증은 coverage.md |
+| ESCAPE_CUTTER | deviceId: text, shotId: text, state: text, objectPosition: position, remainingCables: count | 공개 API 연결·범위/실행 검증은 coverage.md |
+| ESCAPE_INJURY | beforeLostCount: limbs, afterLostCount: limbs | 공개 API 연결·범위/실행 검증은 coverage.md |
+| ESCAPE_SECTION | sectionId: positive | 공개 API 연결·범위/실행 검증은 coverage.md |
+| ESCAPE_HAZARD_CONTACT | position: position, obstacleId: text, hazardType: text, cutApplied: bool | 공개 API 연결·범위/실행 검증은 coverage.md |
 
 연결은 전체 항목의 실플레이 검증 완료를 뜻하지 않는다. [실제 범위·미연결 항목](coverage.md) 참조. optionalPositive/optionalBool은 명시적 null 또는 해당 타입만 허용한다.
 

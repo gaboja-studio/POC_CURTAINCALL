@@ -1,8 +1,8 @@
 ---
 summary: 씬 전환 중 "[TransportShutdown] NetworkConnectionManager was shutdown"으로 튕기면 메인 스레드 10초 정지로 인한 Relay 할당 만료를 의심한다.
 status: active
-updated: 2026-11-02
-source: human, Task-20261102-093
+updated: 2026-11-05
+source: human, Task-20261102-093, Task-20261105-108
 ---
 
 # 씬 전환 중 Relay 할당 만료로 튕김
@@ -36,3 +36,12 @@ source: human, Task-20261102-093
 ## 검증
 
 - `StartConnectionTests.TransportFailureReportsStallReasonInsteadOfTransportShutdown`
+
+## 2026-11-05 원인 측정 (Task-20261105-108)
+
+- 측정 도구: `Tools/Curtain Call/Performance/Record Long Frames In Play`를 켜고 플레이하면, 2초 이상 멈춘 프레임의 작업 경로를 `Logs/Performance/long-frame-*.json`에 남긴다. 에디터 쪽 원인까지 보려면 플레이 중 `ProfilerDriver.profileEditor = true`로 켠다.
+- **비동기 로드 중 동기 로드 = 그 로드가 끝날 때까지 정지.** `LoadSceneAsync`가 진행 중일 때 `Resources.Load` 같은 동기 로드가 처음 일어나면 `Loading.LockPersistentManager`에서 비동기 로드가 끝날 때까지 기다린다.
+  - 줄타기 진입 13.3초 중 12.5초가 이 경우였다. 공연 배경 씬을 비동기 로드하는 동안 `PerformanceAudience.LateUpdate`가 `AudienceReactionSettings.Current`(매번 `Resources.Load`)를 처음 읽었다. 설정을 캐시하고 사전 로드한 뒤 3.2초가 됐다.
+  - 매 프레임·전환 직후에 읽는 설정은 시작할 때 한 번 로드해 캐시한다.
+- **에디터 전용:** 대기실→탈출로 7.9초 정지는 Hierarchy 창이 아이콘을 동기 로드하다(`SceneHierarchyWindow.Paint > EditorResources.Load`) 같은 잠금에 걸린 것이었다. 빌드에는 없다. 에디터로 다인 테스트할 때는 Hierarchy 창을 닫거나 다른 탭 뒤에 둔다.
+- 남은 전환 비용(에디터 기준): 대기실 진입 때 `CameraViewZone.OnTriggerEnter` 2584회 약 2초, Telemetry Outbox 원자 쓰기 0.3~0.8초.

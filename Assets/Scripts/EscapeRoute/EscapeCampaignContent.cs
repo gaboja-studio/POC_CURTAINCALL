@@ -200,7 +200,9 @@ namespace CurtainCall.EscapeRoute
                 if (player.State == PlayerState.Normal && exitSaw != null && exitSaw.DoorOpen && EscapeEntrance.Contains(arrivalArea, player.transform.position))
                 {
                     arrived.Add(id);
+                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.EmitFor(player,"ESCAPE_ARRIVED",new(){["position"]=CurtainCall.Telemetry.Pipeline.DetailLogIds.Position(player.transform.position),["reason"]="REED_FIELD_ENTRY"},"HOST");
                     player.ServerSetState(PlayerState.Arrived);
+                    CurtainCall.Telemetry.Pipeline.TelemetryRuntime.Instance?.SubmitEscapeArrival();
                 }
                 else pending++;
             }

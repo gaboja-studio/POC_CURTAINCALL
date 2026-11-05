@@ -48,9 +48,18 @@ namespace CurtainCall.HumanCannon
         readonly RouteResetBarrier resetBarrier = new();
         double nextSnapshot;
         public static HumanCannonRouteSystem Current { get; private set; }
+        /// <summary>The rehearsal uses the same single departure device, without the later performance hazards.</summary>
+        public void ConfigurePractice(HumanCannonTransport transport, float floorHeight)
+        {
+            if (isActiveAndEnabled) throw new InvalidOperationException("Configure an inactive course before enabling it.");
+            transports = new[] { transport };
+            shelter = null; fires = Array.Empty<HumanCannonFireWall>();
+            shelterStationIndex = shelterStationCount = 0; fallHeight = floorHeight;
+        }
 
         /// <summary>코스 아래 낭떠러지(<c>fallHeight</c> 아래)인지. 경로 시스템이 없으면 false.</summary>
         public static bool IsBelowCourse(Vector3 position) => Current != null && position.y < Current.fallHeight;
+        public float FallHeight => fallHeight;
 
         // 호스트: 이번 추락을 이미 처리한 사람(다시 코스 위로 올라오면 지운다).
         readonly System.Collections.Generic.HashSet<ulong> fallen = new();
@@ -67,8 +76,16 @@ namespace CurtainCall.HumanCannon
         public bool BlocksTrampolineBounce(Vector3 contact)
         {
             if (runtime == null) return false;
+            // 운반자가 실려 가는 동안 그 트램폴린은 반동하지 않는다. 발판 밖으로 튀어나온 부분도 같다.
+            var trampoline = HumanCannonTrampoline.Current;
+            if (trampoline != null && trampoline.Carrier != CannonSeatState.Nobody && IsRiding(trampoline.Carrier)) return true;
             for (int i = 0; i < runtime.Length; i++)
-                if (runtime[i].Trap.IsOpen && transports[i] != null && transports[i].ContainsFallColumn(contact)) return true;
+            {
+                if (transports[i] == null) continue;
+                if (runtime[i].Trap.IsOpen && transports[i].ContainsFallColumn(contact)) return true;
+                // 이동·복귀 중 발판 위 트램폴린에서 튀어 오르며 같이 올라가지 못하게 한다.
+                if (Sealed(runtime[i]) && transports[i].ContainsAirColumn(contact)) return true;
+            }
             return false;
         }
         public double Clock => session != null && session.NetworkManager != null && session.NetworkManager.IsListening
@@ -97,6 +114,7 @@ namespace CurtainCall.HumanCannon
         {
             var local = NetworkPlayer.Local;
             if (local == null || !local.IsSpawned || local.transform.position.y >= fallHeight
+                || (cannon != null && !cannon.IsPracticeReady(local.OwnerClientId))
                 || local.State != PlayerState.Normal || (cannon != null && cannon.IsFlying(local.OwnerClientId))
                 || !EscapeDevelopmentSession.FallConsequencesSuppressed(local)) return;
             if (!local.TryGetComponent(out PlayerMover mover)) return;
@@ -127,7 +145,7 @@ namespace CurtainCall.HumanCannon
             // 코스 밖 낭떠러지 추락은 외줄타기 낙사와 같이 공용 사망(2026-11-03). 같은 추락은 한 번만 처리한다.
             foreach (var player in NetworkPlayer.All)
             {
-                if (player == null || !player.IsSpawned) continue;
+                if (player == null || !player.IsSpawned || (cannon != null && !cannon.IsPracticeReady(player.OwnerClientId))) continue;
                 if (player.transform.position.y >= fallHeight) { fallen.Remove(player.OwnerClientId); continue; }
                 if (player.State == PlayerState.Normal && fallen.Add(player.OwnerClientId)) HumanCannonSystem.ServerFallDeath(player);
             }
@@ -203,7 +221,7 @@ namespace CurtainCall.HumanCannon
                         if (player != null && player.IsSpawned && player.State == PlayerState.Normal
                             && player.OwnerClientId == Unity.Netcode.NetworkManager.ServerClientId
                             && fire.Threatens(player.transform.position, 0.3f, Clock))
-                        { player.ServerKill(); Debug.Log($"[HumanCannonRoute] fire contact actor={player.OwnerClientId}"); }
+                        { player.ServerKill(NetworkPlayer.DeathOrigin.FirePillar,CurtainCall.Telemetry.Pipeline.DetailLogIds.ObjectId(fire,"OB_")); Debug.Log($"[HumanCannonRoute] fire contact actor={player.OwnerClientId}"); }
                 changed |= fire.Tick(Clock);
             }
             if (changed) { revision++; Publish(); }
@@ -316,10 +334,15 @@ namespace CurtainCall.HumanCannon
                         || transit.State.Phase == DeparturePhase.Moving && transit.State.Rider == player.OwnerClientId
                         || IsRiding(player.OwnerClientId)
                         || cannon != null && (cannon.IsFlying(player.OwnerClientId) || cannon.IsSeated(player.OwnerClientId))
-                        || !transports[i].ContainsPassenger(player.transform.position)
                         || !player.TryGetComponent(out PlayerMover mover) || !mover.Simulated) continue;
                     float radius = mover.Body != null ? mover.Body.radius : 0.5f;
-                    mover.Relocate(transports[i].OutsideBarrier(player.transform.position, radius), player.transform.rotation);
+                    Vector3 feet = player.transform.position;
+                    if (transports[i].ContainsPassenger(feet))
+                        mover.Relocate(transports[i].OutsideBarrier(feet, radius), player.transform.rotation);
+                    // 발판 밖으로 튀어나온 운반 트램폴린 위에 서서 버티면 타던 쪽 갑판으로 되돌린다.
+                    else if (transit.State.Phase == DeparturePhase.Moving && OnCarriedTrampoline(transit.State.Rider, feet, radius))
+                        mover.Relocate(transports[i].BoardingSide(radius), player.transform.rotation);
+                    else continue;
                     Debug.Log($"[HumanCannonRoute] transport {i} sealed; moved actor={player.OwnerClientId} off");
                 }
             }
@@ -341,10 +364,50 @@ namespace CurtainCall.HumanCannon
                 // 운송 중 소유자 위치 패킷이 한 프레임 늦어도 담당자를 누락하지 않는다.
                 bool carried = !transit.Trap.IsOpen && transit.State.Phase == DeparturePhase.Moving
                     && transit.State.Rider == player.OwnerClientId;
-                if (carried || !sealedOff && transports[index].ContainsPassenger(player.transform.position)) { count++; soleRider = player; }
+                if (carried || !sealedOff && (transports[index].ContainsPassenger(player.transform.position)
+                    || BouncingAbove(player, index))) { count++; soleRider = player; }
             }
             return count;
         }
+
+        /// <summary>
+        /// 발판 위나 운반 중인 트램폴린 위에서 반동(좌석 없는 비행) 중인 사람. 출발 시 함께 가지 못하게 탑승자로 센다.
+        /// 트램폴린이 발판 밖으로 튀어나와 있어도 그 위의 반동자를 놓치지 않는다.
+        /// </summary>
+        bool BouncingAbove(NetworkPlayer player, int index)
+        {
+            if (cannon == null || !cannon.TryGetFlight(player.OwnerClientId, out var flight) || flight.StationIndex >= 0) return false;
+            Vector3 position = player.transform.position;
+            if (transports[index].ContainsAirColumn(position)) return true;
+            var trampoline = HumanCannonTrampoline.Current;
+            if (trampoline == null || trampoline.Carrier == CannonSeatState.Nobody) return false;
+            var carrier = FindPlayer(trampoline.Carrier);
+            if (carrier == null || !transports[index].ContainsPassenger(carrier.transform.position)
+                || position.y < trampoline.Surface.y - .5f) return false;
+            float reach = TrampolineRadius(trampoline) + TrampolineAirReach;
+            return Vector3.ProjectOnPlane(position - trampoline.Surface, Vector3.up).sqrMagnitude <= reach * reach;
+        }
+
+        /// <summary>실려 가는 운반자가 든 트램폴린 위(면 아래 0.5m~위 2m)에 서 있는지.</summary>
+        static bool OnCarriedTrampoline(ulong rider, Vector3 feet, float radius)
+        {
+            var trampoline = HumanCannonTrampoline.Current;
+            if (trampoline == null || trampoline.Carrier == CannonSeatState.Nobody || trampoline.Carrier != rider) return false;
+            float height = feet.y - trampoline.Surface.y, reach = TrampolineRadius(trampoline) + radius;
+            return height >= -.5f && height <= 2f
+                && Vector3.ProjectOnPlane(feet - trampoline.Surface, Vector3.up).sqrMagnitude <= reach * reach;
+        }
+
+        static float TrampolineRadius(HumanCannonTrampoline trampoline)
+        {
+            Vector2 size = trampoline.LoadHalfSize;
+            if (!trampoline.CircularSurface) return trampoline.transform.TransformVector(size.x, 0, size.y).magnitude;
+            return Mathf.Max(trampoline.transform.TransformVector(size.x, 0, 0).magnitude,
+                trampoline.transform.TransformVector(0, 0, size.y).magnitude);
+        }
+
+        /// <summary>반동 중 공중 조종으로 트램폴린 가장자리 밖까지 흘러갈 수 있는 여유(m).</summary>
+        const float TrampolineAirReach = 2f;
 
         void CountShelterFlyers()
         {
@@ -461,6 +524,15 @@ namespace CurtainCall.HumanCannon
             foreach (var transit in runtime) { transit.State.Reset(); transit.Trap.Reset(); transit.Boarding.Reset(); transit.Occupied = transit.Rejected = false; transit.EmptySince = -1; }
             foreach (var fire in fires) if (fire != null) fire.ResetWall();
             for (int i = 0; i < runtime.Length; i++) if (transports[i] != null) transports[i].Present(0);
+        }
+
+        public bool ResetPracticeTransport()
+        {
+            if (cannon == null || !cannon.PracticeMode || session == null || !session.IsHost) return false;
+            if (carriedPilot != null) { carriedPilot.EndTransport(); carriedPilot = null; }
+            carriedTransit = -1;
+            ResetRoute(); revision++; Publish();
+            return true;
         }
 
         static NetworkPlayer FindPlayer(ulong id)
