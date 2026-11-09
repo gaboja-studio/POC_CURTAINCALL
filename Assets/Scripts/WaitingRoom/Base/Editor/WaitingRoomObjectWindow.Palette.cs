@@ -18,7 +18,7 @@ namespace CurtainCall.WaitingRoom.Editor
 
         ScrollView CreatePalette()
         {
-            var view = new ScrollView { style = { width = 230, flexShrink = 0 } };
+            var view = new ScrollView { style = { flexGrow = 1, minWidth = 120 } };
             view.schedule.Execute(UpdateThumbnail).Every(80);
             return view;
         }
