@@ -5081,8 +5081,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\uB7F0 \uD3EC\uAE30"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 56d49bf42fb3d8b449c31f705715b948, type: 2}
-  m_sharedMaterial: {fileID: -1460969181102258578, guid: 56d49bf42fb3d8b449c31f705715b948, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
+  m_sharedMaterial: {fileID: 8307190250711044379, guid: 327a4ae76a997924c88a87fd8d2aca94, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
