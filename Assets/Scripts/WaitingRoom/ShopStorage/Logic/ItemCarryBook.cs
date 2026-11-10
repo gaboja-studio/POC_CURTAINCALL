@@ -45,6 +45,8 @@ namespace CurtainCall.WaitingRoom
         /// <summary>천막 말뚝 뽑개. 판자·덮개·서랍 개방과 숨은 길 벽 파괴에 쓴다.</summary>
         public const string StakePuller = "stake-puller";
         public const string UvLamp = "uv-lamp";
+        /// <summary>배터리(통로 기믹 설비실 동력 소켓, 2026-11-11 사용자). 탐색에서만 얻고 상점에 없다. 소켓에 넣으면 사라진다.</summary>
+        public const string PowerBattery = "power-battery";
     }
 
     /// <summary>바닥에 놓인 기물과 위치(m).</summary>

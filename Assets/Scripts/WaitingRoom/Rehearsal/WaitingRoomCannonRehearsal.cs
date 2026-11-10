@@ -149,6 +149,7 @@ namespace CurtainCall.WaitingRoom
                         if (prop != null && prop.activeSelf) { prop.SetActive(false); hidden.Add(prop); }
             var prefab = Resources.Load<GameObject>("Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RehearsalCourseFromPerformance");
             if (prefab == null) { Debug.LogError("[CannonRehearsal] Native source copy is missing."); return; }
+            WaitingRoomStageDevices.ReleaseForRehearsal(); // 대기실 상시 대포 시스템·트램펄린을 먼저 비운다(씬당 1개, CC-252)
             var root = Instantiate(prefab); course = root.GetComponent<RehearsalCannonCourse>();
             root.SetActive(false); course.Prepare(origin);
             course.Cannon.SetPracticePlacementGate(id => shared.active && !shared.ending && shared.placed.Contains(id));

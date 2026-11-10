@@ -149,8 +149,18 @@ namespace CurtainCall.WaitingRoom
             EnsureExplorationKeys();
         }
 
+        // 배터리(통로 기믹 설비실 동력 소켓, 2026-11-11 사용자). 에셋에 없으면 실행 중 추가한다. 가격 0이라 상점에 나오지 않는다.
+        void EnsurePowerBattery()
+        {
+            if (items.Exists(e => e != null && e.id == ItemUses.PowerBattery)) return;
+            items.Add(new Entry { id = ItemUses.PowerBattery, displayName = "배터리", wornName = "", wornAtOrBelow = -1,
+                use = ItemUse.Exploration, kind = ItemKind.Tool, newUses = 1, foundUses = 1, price = 0, cooldown = 0f,
+                summary = "설비실 동력 소켓에 넣으면 기계실로 가는 셔터가 열린다. 넣으면 사라진다. 구매 불가." });
+        }
+
         public void EnsureExplorationKeys()
         {
+            EnsurePowerBattery();
             foreach (var target in ExplorationKeys.Targets)
             {
                 string id = ExplorationKeys.ItemId(target);

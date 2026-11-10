@@ -56,6 +56,23 @@ namespace CurtainCall.WaitingRoom
         }
 
         /// <summary>
+        /// 맨몸·도구 겸용 대상을 한 번 친다(<see cref="StrikeProgress"/> 단위). 진행이 <paramref name="total"/>에 닿으면 열린다.
+        /// 기록 값은 타격 수가 아니라 진행 단위다.
+        /// </summary>
+        public ExplorationRefusal Strike(string target, int add, int total, out int units, out bool openedNow)
+        {
+            units = Hits(target);
+            openedNow = false;
+            if (string.IsNullOrEmpty(target) || add < 1 || total < 1) return ExplorationRefusal.UnknownTarget;
+            if (opened.Contains(target)) return ExplorationRefusal.AlreadyOpen;
+            units = System.Math.Min(total, units + add);
+            hits[target] = units;
+            if (units >= total) { opened.Add(target); openedNow = true; }
+            Revision++;
+            return ExplorationRefusal.None;
+        }
+
+        /// <summary>
         /// 머리핀 규칙(초안): 보장 번째(<paramref name="guaranteeAt"/>) 시도는 반드시 열리고, 그 전에는 <paramref name="chance"/> 확률.
         /// <paramref name="roll"/>은 0~1 난수(판정 화면이 굴린다).
         /// </summary>
@@ -82,5 +99,31 @@ namespace CurtainCall.WaitingRoom
             opened.Clear();
             Revision++;
         }
+    }
+
+    /// <summary>
+    /// 맨몸·도구 겸용 타격 진행(통로 기믹 CC-255, 2026-11-10 사용자). 맨몸 <c>bare</c>대 또는 도구 <c>tool</c>대에 열리고,
+    /// 섞어 치면 비율로 합산한다(예: 벽 맨몸 15·도구 6 → 맨몸 1대 = 1/15, 도구 1대 = 1/6). 진행은 두 횟수의 최소공배수 단위로 센다.
+    /// </summary>
+    public static class StrikeProgress
+    {
+        public static int Total(int bare, int tool) => Lcm(System.Math.Max(1, bare), System.Math.Max(1, tool));
+
+        /// <summary>한 번 칠 때 오르는 진행 단위.</summary>
+        public static int Step(int bare, int tool, bool withTool) => Total(bare, tool) / System.Math.Max(1, withTool ? tool : bare);
+
+        /// <summary>지금 방식(맨몸/도구)으로 남은 타격 수.</summary>
+        public static int Remaining(int units, int bare, int tool, bool withTool)
+        {
+            int left = System.Math.Max(0, Total(bare, tool) - units), step = Step(bare, tool, withTool);
+            return (left + step - 1) / step;
+        }
+
+        /// <summary>지금 방식 기준으로 친 것으로 보이는 수(전체 - 남은 수).</summary>
+        public static int Done(int units, int bare, int tool, bool withTool) =>
+            System.Math.Max(1, withTool ? tool : bare) - Remaining(units, bare, tool, withTool);
+
+        static int Lcm(int a, int b) => a / Gcd(a, b) * b;
+        static int Gcd(int a, int b) { while (b != 0) { int t = a % b; a = b; b = t; } return a; }
     }
 }

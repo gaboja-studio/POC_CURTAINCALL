@@ -391,8 +391,10 @@ namespace CurtainCall.UI.SceneIntegration
             var player = NetworkPlayer.Local;
             var system = PiggybackSystem.Current;
             var course = TightropeCourse.Current;
+            // 대기실은 외줄 코스 없이 바닥에서 목마를 쓴다(통로 기믹 CC-251). 안내 패널도 같은 기존 목마 안내를 띄운다.
+            bool waitingRoom = CurtainCall.Settings.WaitingRoomScenes.IsWaitingRoom(SceneManager.GetActiveScene());
             if (player == null || player.State != PlayerState.Normal || system == null || !system.isActiveAndEnabled
-                || course == null || !course.IsGameplayActive || UsingTightropeDevice(player)) return;
+                || !waitingRoom && (course == null || !course.IsGameplayActive) || UsingTightropeDevice(player)) return;
             if (system.GetBelow(player) != null)
             {
                 bool canRelease = system.GetAbove(player) == null;

@@ -9,6 +9,8 @@ namespace CurtainCall.EscapeRoute
     public sealed partial class EscapeExitSaw
     {
         [SerializeField] EscapeCuttableCable[] cables = Array.Empty<EscapeCuttableCable>();
+        [Tooltip("배선 없이도 들고 있으면 톱날을 발사한다(대기실 휴대 절단기, 통로 기믹 CC-253). 끊을 배선은 CC-256에서 연결한다.")]
+        [SerializeField] bool fireWithoutCables;
         [SerializeField] Transform muzzle;
         [SerializeField] GameObject projectileVisual;
         [SerializeField, Min(.1f)] float shotInterval = 2f;
@@ -42,7 +44,7 @@ namespace CurtainCall.EscapeRoute
         string ShotKey(Shot shot) => courseEpoch + ":" + shot.Epoch + ":" + shot.Id;
         bool shotArmed;
         Vector3 recoilRest;
-        public bool ProjectileMode => cables != null && cables.Length > 0;
+        public bool ProjectileMode => fireWithoutCables || cables != null && cables.Length > 0;
         public int RequiredCableCount => BitCount(RequiredMask);
         public int CutCableCount => BitCount(cutMask & RequiredMask);
         public int ActiveProjectileCount => shots.Count;

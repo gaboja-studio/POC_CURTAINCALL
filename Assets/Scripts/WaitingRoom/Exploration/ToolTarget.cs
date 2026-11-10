@@ -12,11 +12,13 @@ namespace CurtainCall.WaitingRoom
     /// - 판자·덮개·걸린 서랍(천막 말뚝 뽑개): F 한 번에 뜯어 연다. 개방 때 1 소모.
     /// 열리면 막음 충돌이 풀리고(뚜껑·문이 돌아가거나 판자가 떨어짐) 보상 발견품이 있으면 그 자리에 나온다. 모든 화면이 같은 상태를 그린다.
     /// </summary>
-    public sealed class ToolTarget : MonoBehaviour, IShopTarget, IShopPresentation, IExplorationTarget
+    public sealed class ToolTarget : MonoBehaviour, IShopTarget, IShopPresentation, IBareHandTarget
     {
         [SerializeField] string targetId = "locked-box";
         [SerializeField] ToolTargetKind kind = ToolTargetKind.HairpinLock;
         [SerializeField] string label = "잠긴 상자";
+        [Tooltip("뜯기(Pry) 대상을 맨몸으로 열 때 필요한 수(통로 기믹 CC-255, 2026-11-10 사용자: 상자 맨몸 5·뽑개 1). 0이면 맨몸 불가. 자물쇠에는 쓰지 않는다.")]
+        [SerializeField, Min(0)] int bareHandHits = 5;
         float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
 
         [Tooltip("열리기 전 막는 충돌체(문·판자). 없으면 막지 않는다.")]
@@ -57,6 +59,9 @@ namespace CurtainCall.WaitingRoom
         public string ToolId => kind == ToolTargetKind.HairpinLock ? ItemUses.MagicianHairpin : ItemUses.StakePuller;
         public string ToolName => ItemCatalog.Get(ToolId)?.displayName ?? (kind == ToolTargetKind.HairpinLock ? WaitingRoomText.Get("tool.name-hairpin", "마술사의 머리핀") : WaitingRoomText.Get("tool.name-stake-puller", "천막 말뚝 뽑개"));
         public string Label => WaitingRoomText.Get("target." + targetId + ".name", label);
+        public bool AllowsBareHands => kind == ToolTargetKind.Pry && bareHandHits > 0;
+        public int BareHits => bareHandHits;
+        public int ToolHits => 1;
         public string RewardItemId => rewardItemId;
         public Vector3 RewardPoint => rewardPoint != null ? rewardPoint.position : transform.position;
         public int RewardUidOffset => rewardUidOffset;
@@ -65,6 +70,8 @@ namespace CurtainCall.WaitingRoom
         public Vector3 PresentationPoint => transform.position + Vector3.up * .6f;
         public bool IsAvailable => !Opened;
         public string ActionLabel => Opened ? Label
+            : AllowsBareHands && !ExplorationTargets.LocalHolds(ToolId)
+                ? WaitingRoomText.Format("tool.pry-bare", "맨몸으로 뜯기 ({n}/{total})", ("n", ExplorationTargets.StrikeCount(this, false).done), ("total", bareHandHits))
             : !ExplorationTargets.LocalHolds(ToolId) ? WaitingRoomText.Format("tool.needs-tool", "{label} — {hint}", ("label", Label), ("hint", ExplorationTargets.Hint(this)))
             : kind == ToolTargetKind.HairpinLock
                 ? (Attempts > 0 ? WaitingRoomText.Format("tool.pick-lock-attempt", "{tool:으로} 자물쇠 따기 (시도 {n})", ("tool", ToolName), ("n", Attempts))
@@ -113,6 +120,10 @@ namespace CurtainCall.WaitingRoom
             float chance = e != null && e.effect > 0 ? e.effect : .5f; int guarantee = e != null && e.effect2 > 0 ? Mathf.RoundToInt(e.effect2) : 3;
             return ExplorationBook.LockOpens(attemptNumber, chance, guarantee, rng.NextDouble());
         }
+
+        public string DescribeStrike(bool opened, int done, int total, bool withTool) => opened
+            ? WaitingRoomText.Format("tool.pried-open", "{label:을} 뜯어 열었습니다.", ("label", Label))
+            : WaitingRoomText.Format("tool.pry-progress", "{label} 뜯기 {n}/{total}", ("label", Label), ("n", done), ("total", total));
 
         public string Describe(bool success, int attemptNumber) => kind == ToolTargetKind.Pry
             ? WaitingRoomText.Format("tool.pried-open", "{label:을} 뜯어 열었습니다.", ("label", Label))
