@@ -13,3 +13,4 @@
 - 제출 직전 Unity 비재생·열린 씬 미저장0 확인 후 정상 종료. origin/dev fetch/merge:85b86ed7 동일, Already up to date. Unity 재실행. 기존 사용자/Task112/탈출로 캐시 변경은 보존·제출 제외.
 - Confluence39845898에 전후21행·발판5행·Inspector 경로·검사/미확정 기록 추가. 기존 사용자 체크박스·첨부·local ID 보존. 최종 저장/PR은 아래에 기록한다.
 - 최종 check-work: 안전성·문서/규칙·컴파일·공통 설정 연결 PASS, 전체 테스트 선택 안 함(집중75개 결과 재사용). 초기 문서66줄 hard 초과는38줄로 압축하고 계획/지난 로그는 History002/003에 원문 보관. 시작 doctor의 기존 Task ID중복9개는 이번 범위 밖으로 남음.
+- 저장·제출: 관련54파일 8a1861d2 commit/push, dev 대상 [PR #322](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/322) 생성. 병합하지 않음. 기존 사용자 변경 보존. Unity6000.3.25f1 Start 씬·비재생·미저장0 유지.
