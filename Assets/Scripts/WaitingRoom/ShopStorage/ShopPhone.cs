@@ -15,6 +15,7 @@ namespace CurtainCall.WaitingRoom
         [Tooltip("수화기에 닿는 수평 거리(m).")]
         float CommonReach => CurtainCall.Settings.GameSettings.Base.Interaction.Distance;
         [SerializeField] bool showLegacyUi = true;
+        [InspectorName("대상 안내 UI")] public RoomPromptAppearance hud=new();
         public bool IsOpen => open;
 
         UIInputBlocker blocker;

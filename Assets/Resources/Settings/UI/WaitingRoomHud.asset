@@ -1,0 +1,248 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d731a896f5ffd8a42a1922e6e575ae26, type: 3}
+  m_Name: WaitingRoomHud
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.WaitingRoom.WaitingRoomHudProfile
+  rest: 0000000001000000
+  night: 00000000010000000200000003000000
+  restExtra: []
+  nightExtra: []
+  tutorials:
+  - id: G01
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G02
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G03
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G04
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G05
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G06a
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G06b
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G06c
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G07
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G08
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G09
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G10
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G11
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: G11A
+    role: 3
+    title: 
+    body: 
+    seconds: 0
+  - id: G12
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: N01
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: N02
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: N03
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: N04
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: N05
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: S01
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: S02
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: S03
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  - id: S04
+    role: 0
+    title: 
+    body: 
+    seconds: 0
+  mission: 0
+  waitingForTeam: 1
+  recall: 3
+  broadcast: 2
+  nightBegins: 2
+  bedBlocked: 1
+  stageBlocked: 1
+  equipmentUnlocked: 4
+  medicalBooked: 1
+  carryResult: 1
+  copy:
+  - id: banner.broadcast-title
+    text: 
+  - id: banner.night-timed
+    text: 
+  - id: banner.night-title
+    text: 
+  - id: banner.night-unlimited
+    text: 
+  - id: banner.recall-body
+    text: 
+  - id: banner.recall-title
+    text: 
+  - id: first-day.quest.gather.body
+    text: 
+  - id: first-day.quest.gather.title
+    text: 
+  - id: first-day.quest.night-bed.body
+    text: 
+  - id: first-day.quest.night-bed.title
+    text: 
+  - id: first-day.quest.night-schedule.body
+    text: 
+  - id: first-day.quest.night-schedule.title
+    text: 
+  - id: first-day.quest.night-schedule-wait.body
+    text: 
+  - id: first-day.quest.night-schedule-wait.title
+    text: 
+  - id: first-day.quest.night-wait.body
+    text: 
+  - id: first-day.quest.night-wait.title
+    text: 
+  - id: first-day.quest.prepare.body
+    text: 
+  - id: first-day.quest.prepare.title
+    text: 
+  - id: first-day.quest.second-pick.body
+    text: 
+  - id: first-day.quest.second-pick.title
+    text: 
+  - id: first-day.quest.second-pick-wait.body
+    text: 
+  - id: first-day.quest.second-pick-wait.title
+    text: 
+  - id: first-day.quest.tutorial.body
+    text: 
+  - id: first-day.quest.tutorial.title
+    text: 
+  - id: narration.cannon-unlocked-body
+    text: 
+  - id: narration.expert-booked-body
+    text: 
+  - id: narration.expert-booked-title
+    text: 
+  - id: narration.performance-unlocked-body
+    text: 
+  - id: narration.performance-unlocked-title
+    text: 
+  - id: night.bed-get-up
+    text: 
+  - id: night.bed-lie-down
+    text: 
+  - id: night.bed-need-schedule
+    text: 
+  - id: night.bed-not-night
+    text: 
+  - id: night.bed-title
+    text: 
+  - id: night.bed-unscheduled-notice
+    text: 
+  - id: notice.item-broken
+    text: 
+  - id: notice.item-broken-title
+    text: 
+  - id: prompt.come-closer
+    text: 
+  - id: prompt.expert-room-not-bought
+    text: 
+  - id: prompt.inspect-clue
+    text: 
+  - id: prompt.performance-prop-pickup
+    text: 
+  - id: prompt.pick-up-floor-item
+    text: 
+  - id: prompt.receive-delivery
+    text: 
+  - id: prompt.receive-delivery-helper
+    text: 
+  - id: prompt.shop-phone
+    text: 
+  - id: schedule.entry-blocked.body
+    text: 
+  - id: schedule.entry-blocked.title
+    text: 
+  - id: tutorial.team-wait
+    text: 
+  - id: tutorial.team-wait-title
+    text: "\uB3D9\uB8CC \uAE30\uB2E4\uB9AC\uB294 \uC911"

@@ -8,7 +8,7 @@ source: Task-20261019-061, PM 공연 HUD 조립 계획 승인
 # 공연 HUD
 
 - 원본: `Assets/_ThirdParty/curtaincall_performance_hud_v1/`. 그림 신규20종은 제공 명세상 사람 피드백 대기이며 Unity 동작 검증과 구분한다.
-- 정본: `Assets/Resources/Prefabs/UIs/PerformanceHud/PerformanceHud.prefab`. C2 남은 시간·C3 진행도·P1 균형만 포함한다.
+- 정본: `Assets/Resources/Prefabs/UIs/Roles/Retained/PerformanceHud/PerformanceHud.prefab`. C2 남은 시간·C3 진행도·P1 균형만 포함한다.
 - 독립 씬: `Assets/Scenes/Tests/PerformanceHud/PerformanceHud.unity`. 기존 C1 정본의 별도 인스턴스를 함께 표시하며 실제 Reward binding은 이 인스턴스에서만 꺼 둔다.
 - Play 하단: 평소/경고·위험/4인 겹침/미수신/관전 전환/외줄 전환/공연 전환/초기화. 경고 버튼은 주황(0.4)→위험(0.8) 순환, 다른 샘플 진입·초기화로 순환 리셋. `ShowSample(1)`은 항상 주황부터다. 상태 설명의 P1 Safe/Warning/Danger로 구분하며 게임과 연결하지 않는다.
 - HUD에는 EventSystem·GraphicRaycaster가 없고 모든 Graphic은 raycastOff다. 입력 도구는 씬 전용 Controls에만 둔다.

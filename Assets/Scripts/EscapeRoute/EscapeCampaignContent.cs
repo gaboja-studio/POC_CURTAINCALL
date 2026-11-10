@@ -5,6 +5,7 @@ using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Settings;
 using CurtainCall.HumanCannon;
+using CurtainCall.UI.SceneIntegration;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.Profiling;
@@ -22,6 +23,14 @@ namespace CurtainCall.EscapeRoute
         [SerializeField] Behaviour[] campaignDisabledBehaviours = Array.Empty<Behaviour>();
         [SerializeField] BoxCollider arrivalArea;
         [SerializeField] EscapeExitSaw exitSaw;
+        [Header("팀 목표 · 탈출로 플레이 중")]
+        [SerializeField] string escapeTitle = "탈출구 열기", arrivalTitle = "갈대밭 도착";
+        [Tooltip("첫 단원이 출구 장치 구역에 들어온 뒤 문이 열릴 때까지 팀에 표시합니다."), SerializeField, TextArea]
+        string escapeBody = "장애물을 통과해 출구로 가세요. 절단기로 케이블을 끊으면 문이 열립니다.";
+        [Tooltip("출구가 열린 뒤, 내가 도착할 때까지 표시합니다."), SerializeField, TextArea]
+        string arrivalBody = "열린 출구를 지나 갈대밭에 도착하세요.";
+        HudRoleCard objective;
+        bool? lastDoorOpen;
         [SerializeField] Vector3 campaignPosition;
         [SerializeField] Vector3 campaignEuler;
         // Legacy A cues were authored in the original facility's world coordinates.
@@ -210,6 +219,33 @@ namespace CurtainCall.EscapeRoute
             reported = true;
             run.EndEscape(arrived.Count > 0);
         }
+
+        void LateUpdate()
+        {
+            var local = NetworkPlayer.Local;
+            if (!IsTraversalActive || SceneCurtainTransition.IsActive || local == null || local.State != PlayerState.Normal
+                || (IsCampaign && (run == null || run.State.Phase != CampaignPhase.Escape || EscapeSceneTransfer.Current?.Ready != true)))
+            {
+                ClearObjective();
+                return;
+            }
+            bool open = exitSaw != null && exitSaw.DoorOpen;
+            if (!open && (!exitSaw || !exitSaw.TeamReachedExitZone)) { ClearObjective(); return; }
+            if (lastDoorOpen == open) return;
+            lastDoorOpen = open;
+            string heading = open ? arrivalTitle : escapeTitle, body = open ? arrivalBody : escapeBody;
+            if (objective && !objective.Closing) objective.SetText(body, heading);
+            else objective = HudUIManager.Current.ShowObjective(body, transform, heading);
+        }
+
+        void ClearObjective()
+        {
+            if (objective) objective.Close(true);
+            objective = null;
+            lastDoorOpen = null;
+        }
+
+        void OnDisable() => ClearObjective();
 
         void OnDestroy()
         {

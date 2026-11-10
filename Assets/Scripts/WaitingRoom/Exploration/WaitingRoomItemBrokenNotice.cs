@@ -32,7 +32,7 @@ namespace CurtainCall.WaitingRoom
             instance = go.AddComponent<WaitingRoomItemBrokenNotice>();
         }
 
-        void Awake() => panel = new WaitingRoomRightPanel(transform, "ItemBrokenNoticeCanvas", Top, Width);
+        void Awake() => panel = new WaitingRoomRightPanel(transform, "ItemBrokenNoticeCanvas", CurtainCall.UI.SceneIntegration.HudRole.Feedback);
 
         /// <summary><paramref name="item"/>이 파괴되었다고 알린다.</summary>
         public static void Show(string item)

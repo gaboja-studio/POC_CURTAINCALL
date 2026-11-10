@@ -20,7 +20,7 @@ namespace CurtainCall.BackstageHud.Editor
     public static class BackstageHudProjectBuilder
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_backstage_hud_v1";
-        public const string PrefabRoot = "Assets/Resources/Prefabs/UIs/BackstageHud";
+        public const string PrefabRoot = "Assets/Resources/Prefabs/UIs/Roles/Retained/BackstageHud";
         public const string ScenePath = "Assets/Scenes/Tests/BackstageHud/BackstageHud.unity";
         const string FontRoot = "Assets/Resources/Fonts/BackstageHud";
         const string Characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,:—/•…().-+ " +
@@ -40,7 +40,7 @@ namespace CurtainCall.BackstageHud.Editor
             foreach (string path in names.Select(x => PrefabRoot + "/" + x + ".prefab").Concat(new[] { ScenePath }))
                 if (File.Exists(path) || File.Exists(path + ".meta") || AssetDatabase.LoadMainAssetAtPath(path) != null)
                     throw new InvalidOperationException("기존 출력은 덮어쓰지 않습니다: " + path);
-            var buttonAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/CommonButtons/Button_General.prefab");
+            var buttonAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_General.prefab");
             if (buttonAsset == null) throw new InvalidOperationException("공용 버튼 정본 누락");
             var plan = JsonUtility.FromJson<Plan>(File.ReadAllText(Kit + "/Docs/hud_asset_plan.json"));
             var sources = plan.assets.Concat(plan.reused).ToArray();

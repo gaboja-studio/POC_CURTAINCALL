@@ -238,7 +238,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             try
             {
                 Assert.AreSame(UnityEditor.AssetDatabase.LoadAssetAtPath<DayClockScheduleProfile>(
-                    "Assets/Resources/Prefabs/UIs/DayClock/W1_DayClock_v2_2_Schedule.asset"), instance.View.ScheduleProfile);
+                    "Assets/Resources/Prefabs/UIs/Roles/Retained/DayClock/W1_DayClock_v2_2_Schedule.asset"), instance.View.ScheduleProfile);
                 var rects = instance.GetComponentsInChildren<RectTransform>(true);
                 Assert.AreEqual(new Vector2(176, 176), rects.Single(x => x.name == "DialRoot").sizeDelta);
                 var images = instance.GetComponentsInChildren<UnityEngine.UI.Image>(true);

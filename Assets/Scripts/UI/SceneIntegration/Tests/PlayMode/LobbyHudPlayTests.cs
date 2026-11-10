@@ -8,7 +8,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
-        [UnityTest]
+        [UnityTest, Category("SpaceRoleHud")]
         public IEnumerator LobbyHud_RealSessionReadyAndStartPreservePosition()
         {
             yield return SceneManager.LoadSceneAsync("Start",LoadSceneMode.Single);
@@ -22,6 +22,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             while((!SceneManager.GetSceneByName("Lobby").isLoaded || (bool)Static("CurtainCall.UI.SceneIntegration.SceneCurtainTransition","IsActive")) && Time.realtimeSinceStartup<until)yield return null;
             yield return new WaitForSecondsRealtime(.5f);
             var binding=Find("CurtainCall.UI.SceneIntegration.LobbyHudBinding");Assert.IsNotNull(binding);
+            Assert.That(Get(VisibleRole("Objective"),"Title"),Is.EqualTo("출연 명단 서명"));
             var info=Field(binding,"info");
             Assert.AreEqual(false,Get(info,"IsCodeVisible"));
             Call(info,"ToggleCodeVisibility");Assert.AreEqual(true,Get(info,"IsCodeVisible"));
@@ -52,6 +53,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             Call(lever,"Use");
             yield return new WaitForSecondsRealtime(.5f);
             Assert.AreEqual("Playing",Get(session,"GameState").ToString());
+            Assert.That(Get(VisibleRole("SystemEvent"),"Title"),Is.EqualTo("막이 오릅니다"));
+            Assert.IsNull(VisibleRole("Objective"));
             var delta=player.transform.position-before;delta.y=0;
             Assert.Less(delta.magnitude,.25f,"Starting the intro must not send the host back to lobby spawn.");
             Assert.IsNull(GameObject.Find("Room Info"));

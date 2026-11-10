@@ -22,12 +22,12 @@ namespace CurtainCall.WorldLabels.Editor
     public static class WorldLabelProjectBuilder
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_worldlabels_v2";
-        public const string PrefabFolder = "Assets/Resources/Prefabs/UIs/WorldLabels";
+        public const string PrefabFolder = "Assets/Resources/Prefabs/UIs/Roles/Retained/WorldLabels";
         public const string ScenePath = "Assets/Scenes/Tests/WorldLabels/WorldLabels.unity";
         public const string FontFolder = "Assets/Resources/Fonts/WorldLabels";
         public const string MediumFontPath = FontFolder + "/Pretendard-Medium SDF.asset";
         public const string BoldFontPath = FontFolder + "/Pretendard-Bold SDF.asset";
-        const string ButtonPath = "Assets/Resources/Prefabs/UIs/CommonButtons/Button_General.prefab";
+        const string ButtonPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_General.prefab";
         static readonly string[] Platforms = { "Standalone", "Android", "iPhone", "WebGL", "Web", "Windows Store Apps", "tvOS" };
         public static readonly string[] Labels = { "내용 전환", "최소 크기", "기본 크기", "초과 거부", "무효 크기", "소품 표면 전환", "Observer 거리 순환", "Observer 해제", "Billboard 전환", "카메라 회전", "배경 전환", "초기화" };
         [Serializable] class Plan { public Source[] assets; }

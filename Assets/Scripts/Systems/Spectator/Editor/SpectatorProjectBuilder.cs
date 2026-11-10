@@ -24,13 +24,13 @@ namespace CurtainCall.Spectator.Editor
     public static class SpectatorProjectBuilder
     {
         public const string Kit="Assets/_ThirdParty/curtaincall_spectator_v1";
-        public const string PrefabFolder="Assets/Resources/Prefabs/UIs/Spectator";
+        public const string PrefabFolder="Assets/Resources/Prefabs/UIs/Roles/Retained/Spectator";
         public const string PrefabPath=PrefabFolder+"/Spectator.prefab";
         public const string FontFolder="Assets/Resources/Fonts/Spectator";
         public const string FontPath=FontFolder+"/Pretendard-Medium SDF.asset";
         public const string SceneFolder="Assets/Scenes/Tests/Spectator";
         public const string ScenePath=SceneFolder+"/Spectator.unity";
-        const string ButtonPath="Assets/Resources/Prefabs/UIs/CommonButtons/Button_General.prefab";
+        const string ButtonPath="Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_General.prefab";
         static readonly string[] Platforms={"Standalone","Android","iPhone","WebGL","Web","Windows Store Apps","tvOS"};
         public static readonly string[] Labels={"사망","관전","대상 없음","숨김","즉시 숨김","긴 대상 이름","긴 키","한쪽 빈 키","가장자리 끔","왼쪽만","오른쪽만","양쪽 복원","반복 호출","전환 반전","시간 정지","배경 전환","C7 슬롯 예시","초기화"};
         [Serializable] sealed class Plan { public Source[] assets; }
@@ -225,7 +225,7 @@ namespace CurtainCall.Spectator.Editor
             var status=Text("Status",controls.transform,font,new Vector2(32,-24),new Vector2(1856,90));
             status.text="C11 합성 표시 / 게임 연결 없음 · Play 버튼으로 확인 · Game View 1920×1080 / 1920×1200";
             var lower=Text("IndependentCaptionSlot",controls.transform,font,new Vector2(32,-1012),new Vector2(1856,40));lower.text="C9 독립 최하단 슬롯 위치 예시 · 실제 자막 시스템 연결 없음";
-            GuideView guide=null;var guideAsset=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Guides/Guides.prefab");
+            GuideView guide=null;var guideAsset=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Guides/Guides.prefab");
             if(guideAsset!=null)
             {
                 var guideCanvas=new GameObject("ExplicitC7PreviewCanvas",typeof(RectTransform),typeof(Canvas),typeof(CanvasScaler));

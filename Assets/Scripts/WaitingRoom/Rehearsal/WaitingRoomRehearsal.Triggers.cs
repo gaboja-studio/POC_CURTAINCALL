@@ -144,7 +144,8 @@ namespace CurtainCall.WaitingRoom
         string NativeDeviceQuest(RehearsalStageKind kind)
         {
             questKey = kind == RehearsalStageKind.Relay ? "relay" : "trapeze";
-            return kind == RehearsalStageKind.Relay ? TightropeRelayGate.Current?.LocalHint : TightropeTrapeze.Current?.LocalHint;
+            var hint=kind == RehearsalStageKind.Relay ? TightropeRelayGate.Current?.LocalHint : TightropeTrapeze.Current?.LocalHint;
+            return string.IsNullOrEmpty(hint)?hint:WaitingRoomText.Format("rehearsal.quest."+questKey,"{hint}",("hint",hint));
         }
     }
 }

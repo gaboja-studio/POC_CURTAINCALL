@@ -21,7 +21,7 @@ namespace CurtainCall.Interaction.Editor
     public static class InteractionProjectBuilder
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_interaction_v1";
-        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Interaction/InteractionPrompt.prefab";
+        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/Interaction/InteractionPrompt.prefab";
         public const string ScenePath = "Assets/Scenes/Tests/Interaction/Interaction.unity";
         const string FontPath = "Assets/Resources/Fonts/Interaction/Pretendard-Medium SDF.asset";
         static readonly string[] Platforms = { "Standalone", "Android", "iPhone", "WebGL", "Web", "Windows Store Apps", "tvOS" };
@@ -61,10 +61,10 @@ namespace CurtainCall.Interaction.Editor
                 }
             }
             string[] dependencies = {
-                "Assets/Resources/Prefabs/UIs/CommonButtons/Button_General.prefab",
-                "Assets/Resources/Prefabs/UIs/PerformanceHud/PerformanceHud.prefab",
-                "Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab",
-                "Assets/Resources/Prefabs/UIs/BackstageHud/BackstageHud.prefab" };
+                "Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_General.prefab",
+                "Assets/Resources/Prefabs/UIs/Roles/Retained/PerformanceHud/PerformanceHud.prefab",
+                "Assets/Resources/Prefabs/UIs/Roles/Retained/CheerGauge/C1CheerGauge.prefab",
+                "Assets/Resources/Prefabs/UIs/Roles/Retained/BackstageHud/BackstageHud.prefab" };
             foreach (string path in dependencies)
                 if (AssetDatabase.LoadAssetAtPath<GameObject>(path) == null) throw new InvalidOperationException("의존 프리팹 누락: " + path);
             string characters = Characters();
@@ -84,7 +84,7 @@ namespace CurtainCall.Interaction.Editor
             var medium = reuse ? shared : MakeFont(characters);
             var bold = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Resources/Fonts/Notifications/Pretendard-Bold SDF.asset");
             if (!SafeFont(bold, "호응0123456789")) bold = medium;
-            EnsureFolder("Assets/Resources/Prefabs/UIs/Interaction"); EnsureFolder("Assets/Scenes/Tests/Interaction");
+            EnsureFolder("Assets/Resources/Prefabs/UIs/Roles/Retained/Interaction"); EnsureFolder("Assets/Scenes/Tests/Interaction");
             var original = EditorSceneManager.GetSceneManagerSetup();
             bool completed = false;
             try

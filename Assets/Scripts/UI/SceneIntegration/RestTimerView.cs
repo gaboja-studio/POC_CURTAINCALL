@@ -8,7 +8,7 @@ namespace CurtainCall.UI.SceneIntegration
     [RequireComponent(typeof(PackageView))]
     public sealed class RestTimerView : MonoBehaviour
     {
-        public const string PrefabPath = "Prefabs/UIs/RestTimerV28/W1_RestTimer_v2_8";
+        public const string PrefabPath = "Prefabs/UIs/Roles/Retained/RestTimerV28/W1_RestTimer_v2_8";
         PackageView view;
         public PackageView View => view != null ? view : view = GetComponent<PackageView>();
         public bool IsShown => View.RequestedVisible;

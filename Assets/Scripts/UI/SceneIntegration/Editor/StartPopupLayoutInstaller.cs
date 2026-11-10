@@ -77,7 +77,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             var rect=(RectTransform)page.transform;
             rect.anchorMin=rect.anchorMax=rect.pivot=new Vector2(.5f,.5f);
             rect.anchoredPosition=new Vector2(0,-150);rect.sizeDelta=new Vector2(560,height);
-            var skin=(GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/BasicPanels/BasicPanels.prefab"),page.transform);
+            var skin=(GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/BasicPanels/BasicPanels.prefab"),page.transform);
             skin.name="PopupSkin";skin.transform.SetAsFirstSibling();
             foreach(var script in skin.GetComponentsInChildren<MonoBehaviour>(true))
                 if(!(script is UnityEngine.UI.Graphic) && !(script is UnityEngine.UI.LayoutGroup) && !(script is UnityEngine.UI.LayoutElement)) UnityEngine.Object.DestroyImmediate(script);
@@ -95,7 +95,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
         static UnityEngine.UI.Button Replace(UnityEngine.UI.Button old,string label,string kind,float x,float y,float width)
         {
             var parent=old.transform.parent;string name=old.name;
-            var go=(GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/CommonButtons/Button_"+kind+".prefab"),parent);
+            var go=(GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_"+kind+".prefab"),parent);
             go.name=name;Rect((RectTransform)go.transform,x,y,width,56);
             go.GetComponentInChildren<TMP_Text>(true).text=label;
             UnityEngine.Object.DestroyImmediate(old.gameObject);

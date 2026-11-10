@@ -11,7 +11,7 @@ source: Task-20261019-061, Task-20261027-076, Task-20261029-078
 - 설정 창/공용 컨트롤을 조립하거나 실제 옵션 서비스에 연결하기 전에.
 
 ## 소유·제작 상태
-- `Assets/Scripts/Systems/SettingsUi/` 전용 코드로 `Assets/Resources/Prefabs/UIs/SettingsUi/`에 SettingsPanel.prefab 및 공용 탭/슬라이더/토글 총4개, `Assets/Scenes/Tests/SettingsUi/SettingsUi.unity` 독립 씬 조립 완료. 독립 제작·자동/실행 캡처 검증 완료이며 상세는 [Task 검증 기록](../../../Tasks/Done/Task-20261019-061-cheer-gauge-ui/settings-ui-verification.md) 기준이다.
+- `Assets/Scripts/Systems/SettingsUi/` 전용 코드로 `Assets/Resources/Prefabs/UIs/Roles/Retained/SettingsUi/`에 SettingsPanel.prefab 및 공용 탭/슬라이더/토글 총4개, `Assets/Scenes/Tests/SettingsUi/SettingsUi.unity` 독립 씬 조립 완료. 독립 제작·자동/실행 캡처 검증 완료이며 상세는 [Task 검증 기록](../../../Tasks/Done/Task-20261019-061-cheer-gauge-ui/settings-ui-verification.md) 기준이다.
 - Spectator Medium/WorldLabels Bold는 읽기 전용 재사용, `Assets/Resources/Fonts/SettingsUi/`에 전용 SemiBold Static8192(전체 한글+ASCII11325문자) 생성.
 - 보정 전 Compile·C14 PlayMode23/23, 1920×1080/1920×1200 각 명암·세 탭·0/50/100%·disabled/focus 12장씩24 실행캡처 확인. 화면비별 합성 raycast15/클릭6/Move6·Preview 클릭17/비활성 콜백 차단1 통과(물리 Mouse/Keyboard·사람 승인 아님). 첫 입력 실패는 활성 직후 Graphic.depth=-1인 렌더 등록 전 검사 때문이며 QA220ms 대기로 통과, 제품 Runtime 불변.
 - 참조2484/missing0/MissingScript0·기존 출력 덮어쓰기 거절, baseline626 대비 승인 Builder1/신규 importer20 외 변경0·PNG변경0/누락0. 당시 audit 씬 clean/Play stopped/timeScale1/runInBackgroundfalse.
@@ -20,7 +20,7 @@ source: Task-20261019-061, Task-20261027-076, Task-20261029-078
 - private `curtaincall_settings_v1` 제공 Runtime 원위치 사용. 복제 버튼만 `CurtainCall.UI.SettingsV1.CommonButtons`, 나머지 설정/공용 컨트롤은 `CurtainCall.UI`이다. 전체 원본/PNG/GUID/자료 보존, 재사용16 Sprite·기존 폰트 읽기 전용/신규20 importer만 보정한다.
 
 ## 실제 게임 연결 (Task-076, 2026-10-28)
-- 아래 C14 v1 원본 계약은 보존한다. 실제 게임은 `CommonSettingsUI`가 `Prefabs/UIs/SettingsUiV2/C14_Settings_v2`를 Resources로 로드하며 기존3탭 인스턴스는 숨긴다. 이전 런타임 생성형 `SettingsTabsView`/`SettingsExtensionPanel`은 실행 경로에서 제외했다. 게임 탭은 런 진행 중만 활성, 기존 씬 참조/Configure 계약은 유지한다.
+- 아래 C14 v1 원본 계약은 보존한다. 실제 게임은 `CommonSettingsUI`가 `Prefabs/UIs/Roles/Retained/SettingsUiV2/C14_Settings_v2`를 Resources로 로드하며 기존3탭 인스턴스는 숨긴다. 이전 런타임 생성형 `SettingsTabsView`/`SettingsExtensionPanel`은 실행 경로에서 제외했다. 게임 탭은 런 진행 중만 활성, 기존 씬 참조/Configure 계약은 유지한다.
 - 그래픽은 화면3모드·지원 해상도·FPS30/60기본/90/120/144/165/240/무제한. `ClientSettings` PC별 저장/기존 bool 이관, VSync0·시작/변경 시 FPS 적용(공통 Base 매 프레임 강제 제거), 에디터 Screen 변경 없음. 모든 탭 draft는 적용 때 저장·취소 때 폐기.
 - 조작은 `InputBindingPreferences` Common 키10행·복합 축 part 재지정/기본값 복원/저장, 기존·새 Reader에 적용. 이동 표시만 전방→후방 순서다. 사용 중인 키는 조작 이름을 표시한 예/아니오 확인 후 기존 키를 비우고 옮긴다(아니오/ESC는 보존). 미할당 키가 하나라도 있으면 탭과 무관하게 적용 차단, 빈 행은 계속 재지정 가능하다. 입력 캡처는 View draft만 바꾸고 적용 시에만 검증·저장·Reader 반영한다. ESC·M·마우스 시점·게임패드는 고정.
 - 사운드는 전체/BGM/SFX·전체 음성/내 마이크/팀원별·마이크on/off·Vivox 입력/출력 목록/선택. `LocalAudioController.Register`로 BGM/SFX 분류, 현재 BGM 재생 코드 없음. 게임 출력 기기는 OS가 관리한다.
@@ -31,7 +31,7 @@ source: Task-20261019-061, Task-20261027-076, Task-20261029-078
 - 음성 시스템 기본 기기는 SDK 안정 ID `Default System Device`로 지정한다. Vivox 미준비 상태에서는 적용 시 저장된 기기 key만 삭제하고 로그인하지 않으며, 준비 상태에서는 기존 SDK 장치 전환 경로를 사용한다. 물리 기기 전환 실기는 미확인.
 
 ## v2 제품 조립·서비스 계약
-- 제품은 `Assets/Resources/Prefabs/UIs/SettingsUiV2/C14_Settings_v2.prefab`, 패키지는 private `curtaincall_settings_v2`. 공용5클래스를 `CurtainCall.UI.SettingsV2`로 격리해 v1과 공존한다. Editor의 `SettingsPanelBuilder.BuildProject`에 Medium/SemiBold/Bold 폰트와 출력 폴더를 공급한다.
+- 제품은 `Assets/Resources/Prefabs/UIs/Roles/Retained/SettingsUiV2/C14_Settings_v2.prefab`, 패키지는 private `curtaincall_settings_v2`. 공용5클래스를 `CurtainCall.UI.SettingsV2`로 격리해 v1과 공존한다. Editor의 `SettingsPanelBuilder.BuildProject`에 Medium/SemiBold/Bold 폰트와 출력 폴더를 공급한다.
 - 944×552·좌상단 기준(488,272), 5탭·840×240 본문 스크롤·고정 푸터, 전체 화면 딤 없음. 어댑터 Canvas는1920×1080/Match .5/PPU100/sorting315이며 게임 일시정지·별도 EventSystem은 만들지 않는다.
 - Sprite43개는 private 정본(기존36+신규7) 참조. Medium/SemiBold는 재사용, Bold는 `Fonts/SettingsUi/Pretendard-Bold SDF.asset` Static512·제목6문자(설정/런 포기). 기존 WorldLabels Bold에는 런·포가 없어 재사용하면 누락된다. 새 제목은 사용 전 glyph 검사가 필요하다.
 - `SettingsCatalog` 실제5페이지/안정된 choice ID/바인딩 GUID·경로를 제공한다. 탭별 draft는 유지하며 dirty일 때만 Apply, 성공 응답 때 닫힌다. Apply/Rebind/Action은 요청 토큰과 어댑터 세션으로 늦은 응답을 거절한다. 기본 키 복원·장치 조회는 확인창 없이 실행하되 복원값 저장은 Apply 때만 한다.

@@ -16,8 +16,8 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         GameObject space, service;
         Scene destination;
         static Type T(string name) => AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType(name)).First(t => t != null);
-        static object Get(object obj, string name) => obj.GetType().GetProperty(name, Fields)?.GetValue(obj)
-            ?? obj.GetType().GetField(name, Fields).GetValue(obj);
+        static object Get(object obj, string name) => obj.GetType().GetProperty(name, Fields) is PropertyInfo property
+            ? property.GetValue(obj) : obj.GetType().GetField(name, Fields).GetValue(obj);
         static void Set(object obj, string name, object value) => obj.GetType().GetField(name, Fields).SetValue(obj, value);
         static object Call(object obj, string name, params object[] args) => obj.GetType().GetMethod(name, Fields).Invoke(obj, args);
 
@@ -42,17 +42,18 @@ namespace CurtainCall.UI.SceneIntegration.Tests
             var rules = Activator.CreateInstance(T("CurtainCall.Reward.RewardRules"), 10, 5, 100, 0, 30);
             Call(model, "Begin", id, people, rules);
             Set(reward, "state", Call(model, "Snapshot", -1)); yield return null; yield return null;
-            Assert.AreEqual(false, Get(ending, "DeathVisible"));
+            Assert.AreEqual(false, (bool)(UnityEngine.Object)Get(ending,"TeamWarning"));
             Call(model, "Observe", "other", 0, true, true, rules, false);
             Set(reward, "state", Call(model, "Snapshot", -1)); yield return null;
             yield return new WaitForSecondsRealtime(.2f);
-            Assert.AreEqual(true, Get(ending, "DeathVisible"));
-            Call(Get(ending, "notifications"), "ResetForRuntime");
+            Assert.AreEqual(true, (bool)(UnityEngine.Object)Get(ending,"TeamWarning"));
+            Assert.AreEqual(false, Get(ending, "DeathVisible"), "동료 사망이 개인 사망 화면을 열면 안 됩니다");
+            Call(Get(ending,"TeamWarning"),"Close",true);
             yield return null; yield return null;
-            Assert.AreEqual(false, Get(ending, "DeathVisible"), "동일 사망 스냅샷은 다시 알리지 않는다");
+            Assert.AreEqual(false, (bool)(UnityEngine.Object)Get(ending,"TeamWarning"), "동일 사망 스냅샷은 다시 알리지 않는다");
             Set(ending, "observedPerformance", null); // 뒤늦게 구독한 클라이언트와 같은 초기 상태
             yield return null;
-            Assert.AreEqual(false, Get(ending, "DeathVisible"));
+            Assert.AreEqual(false, (bool)(UnityEngine.Object)Get(ending,"TeamWarning"));
         }
 
         [UnityTest]

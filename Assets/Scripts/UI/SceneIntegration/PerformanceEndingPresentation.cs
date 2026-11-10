@@ -41,7 +41,9 @@ namespace CurtainCall.UI.SceneIntegration
         public bool ResultVisible => (resultPanel != null && resultPanel.IsShown) || (resultsView != null && resultsView.IsVisible);
         bool UsesResults => resultsView != null && pending != null && pending.Participants.Count >= 1 && pending.Participants.Count <= 4;
         public bool BlackVisible => curtain != null ? curtain.IsBusy : black != null && black.alpha > .99f;
-        public bool DeathVisible => notifications != null && notifications.Banner.IsVisible;
+        HudRoleCard deathNotice;
+        public HudRoleCard TeamWarning {get;private set;}
+        public bool DeathVisible => deathNotice != null && !deathNotice.Closing;
         float ResultAt => PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.ResultAt : 1.5f;
         float BlackAt => PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.BlackAt : 5.5f;
 
@@ -76,7 +78,7 @@ namespace CurtainCall.UI.SceneIntegration
             double elapsed = Time.unscaledTimeAsDouble - started;
             if (elapsed >= ResultAt && !ResultVisible && !BlackVisible)
             {
-                if (UsesResults) resultsView.Open(BuildResults(pending), false);
+                if (UsesResults) HudUIManager.ShowOutcome(BuildResults(pending),resultsView,false);
 
             }
             int seconds = Mathf.CeilToInt(Mathf.Max(0, BlackAt - (float)elapsed));
@@ -94,7 +96,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (pending != null && elapsed > Mathf.Max(10, timeout))
             {
                 ResetPresentation();
-                notifications.Banner.Show("화면 전환을 완료하지 못했습니다", "연결 상태를 확인해 주세요", BannerState.Danger, 4);
+                HudUIManager.Current.ShowSystemEvent("연결 상태를 확인해 주세요",transform,"화면 전환을 완료하지 못했습니다",4,HudEventKind.Warning);
             }
         }
         void ObserveTeammates(RewardSnapshot snapshot)
@@ -117,8 +119,8 @@ namespace CurtainCall.UI.SceneIntegration
             if (deaths.Count == 0) return;
             string message = string.Join(", ", deaths) + " 사망";
             // 본인 알림을 동료 알림으로 덮지 않는다.
-            if (DeathVisible) notifications.Toast.Show(message, ToastState.Failure, 2, ToastIcon.Warning);
-            else notifications.Banner.Show(message, "해당 단원의 호응도가 절반으로 줄어듭니다", BannerState.Danger, 2, BannerIcon.Skull);
+            if (DeathVisible) HudUIManager.ShowFeedback(message,notifications.Toast, ToastState.Failure, 2, ToastIcon.Warning);
+            else TeamWarning=HudUIManager.Current.ShowSystemEvent("해당 단원의 호응도가 절반으로 줄어듭니다",transform,message,2,HudEventKind.Warning);
         }
         public static string ResultTitle(bool succeeded, long amount, int participants, int cap) => !succeeded ? "공연 실패" :
             participants > 0 && cap > 0 && amount >= (double)participants * cap * .8 ? "공연 대성공" : "공연 성공";
@@ -132,8 +134,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (!dead || deathIdentity == state.Performance.Id) return;
             deathIdentity = state.Performance.Id;
             float duration = PerformanceEndingSettings.Current != null ? PerformanceEndingSettings.Current.deathNoticeSeconds : 2;
-            notifications.Banner.Show("사망했습니다", "이 공연의 개인 호응도가 절반으로 줄어듭니다", BannerState.Danger,
-                Mathf.Max(.1f, duration), BannerIcon.Skull);
+            deathNotice = HudUIManager.Current.ShowOutcome("이 공연의 개인 호응도가 절반으로 줄어듭니다",transform,"사망했습니다",Mathf.Max(.1f,duration));
         }
         public void PresentResult(PerformanceResult result)
         {
@@ -209,6 +210,8 @@ namespace CurtainCall.UI.SceneIntegration
         }
         public void ResetPresentation()
         {
+            if (deathNotice != null) deathNotice.Close(true); deathNotice = null;
+            if(TeamWarning)TeamWarning.Close(true);TeamWarning=null;
             pending = null; loadedAt = -1;
             if (curtain != null && !SceneCurtainTransition.IsActive) curtain.Open();
             if (black != null) { black.alpha = 0; black.blocksRaycasts = false; }

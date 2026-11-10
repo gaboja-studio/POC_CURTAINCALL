@@ -36,7 +36,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
             message.font = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Resources/Fonts/Notifications/Pretendard-Medium SDF.asset");
             message.fontSharedMaterial = message.font.material;
             PrefabUtility.RecordPrefabInstancePropertyModifications(message);
-            Undo.RecordObject(guide, "Escape rope tutorial"); guide.ConfigureEscape(notifications.Banner);
+            Undo.RecordObject(guide, "Escape rope tutorial"); guide.ConfigureEscape();
             if (notifications.Banner.GetComponent<NotificationTextLayout>() == null)
                 Undo.AddComponent<NotificationTextLayout>(notifications.Banner.gameObject);
             var timer = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<CurtainCall.UI.SceneIntegration.RestTimerView>(true)).Single();

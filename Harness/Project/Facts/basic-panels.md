@@ -13,7 +13,7 @@ source: Task-20261019-061, PM 패널 동작 확인·저장·정리 승인(다른
 
 ## 사실
 
-- 정본 `Assets/Resources/Prefabs/UIs/BasicPanels/BasicPanels.prefab`은 Canvas·컨트롤러·메뉴·확인창을 함께 보존한다. 확인 씬 `Assets/Scenes/Tests/BasicPanels/BasicPanels.unity`은 연결 인스턴스1개·EventSystem1개를 사용한다.
+- 정본 `Assets/Resources/Prefabs/UIs/Roles/Retained/BasicPanels/BasicPanels.prefab`은 Canvas·컨트롤러·메뉴·확인창을 함께 보존한다. 확인 씬 `Assets/Scenes/Tests/BasicPanels/BasicPanels.unity`은 연결 인스턴스1개·EventSystem1개를 사용한다.
 - 메뉴384×400/버튼320×56, 확인창512×304/중앙Y=-64/버튼216×56. `60_Panels/Menu_C13`, `70_ConfirmDialogs/LeaveConfirmation` 레이어를 유지한다. 임의 너비 변경은 판의 9-slice만 늘리며 내부 콘텐츠 재배치는 별도다.
 - Canvas Overlay1920×1080/Match0.5/referencePPU100. 패널 PNG7장은 private `Assets/_ThirdParty/curtaincall_panels_v1/Assets/CurtainCallUI/BasicPanels/Sprites/`에 있다. PPU200, 판5종 border64, divider(16,12,16,12), icon0. Body alpha0.92.
 - 제공 Runtime은 `CurtainCall.UI.PanelsV1`, 동봉 버튼은 `CurtainCall.UI.PanelsV1.BundledButtons`로 격리했다. 실제 버튼5개는 기존 CommonButtons 정본의 중첩 인스턴스이며 기존 정본을 변경하지 않는다.

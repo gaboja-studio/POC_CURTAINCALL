@@ -20,10 +20,10 @@ namespace CurtainCall.Tooltips.Editor
     public static class TooltipProjectBuilder
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_tooltips_v1";
-        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Tooltips/Tooltips.prefab";
+        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/Tooltips/Tooltips.prefab";
         public const string ScenePath = "Assets/Scenes/Tests/Tooltips/Tooltips.unity";
         const string FontFolder = "Assets/Resources/Fonts/Tooltips";
-        const string ButtonPath = "Assets/Resources/Prefabs/UIs/CommonButtons/Button_General.prefab";
+        const string ButtonPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_General.prefab";
         static readonly string[] Platforms = { "Standalone", "Android", "iPhone", "WebGL", "Web", "Windows Store Apps", "tvOS" };
         public static readonly string[] Keys = { "plate_shadow", "plate_body", "plate_frame", "plate_corners", "bottom_edge", "tail_body", "tail_frame" };
         static readonly string[] Labels = { "근접", "패널 품목", "좁게·긴 글", "넓게·긴 글", "패널 긴 글", "최소 폭", "최대 폭", "꼬리 왼쪽", "꼬리 오른쪽", "꼬리 중앙", "위치 이동", "꼬리 이동", "반복 Show", "제어 문자", "문자 그대로", "퇴장", "즉시 숨김", "시간 정지", "배경", "초기화" };
@@ -73,7 +73,7 @@ namespace CurtainCall.Tooltips.Editor
                 sprites.Add(Keys[i], ValidateSprite(i));
             }
             EnsureFolder(FontFolder); var medium = FontAsset("Medium", characters); var semiBold = FontAsset("SemiBold", characters);
-            EnsureFolder("Assets/Resources/Prefabs/UIs/Tooltips"); EnsureFolder("Assets/Scenes/Tests/Tooltips");
+            EnsureFolder("Assets/Resources/Prefabs/UIs/Roles/Retained/Tooltips"); EnsureFolder("Assets/Scenes/Tests/Tooltips");
             var original = EditorSceneManager.GetSceneManagerSetup(); bool completed = false;
             try
             {

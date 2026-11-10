@@ -107,7 +107,7 @@ namespace CurtainCall.EscapeRoute.EditorTools
 
         public static void InstallOriginalBalanceDisplay(Transform parent)
         {
-            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/PerformanceHud/PerformanceHud.prefab");
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/PerformanceHud/PerformanceHud.prefab");
             if (asset == null) throw new InvalidOperationException("원본 묘기 균형 UI 프리팹이 없습니다.");
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(asset, parent);
             Undo.RegisterCreatedObjectUndo(instance, "Original tightrope balance display");

@@ -9,7 +9,7 @@ namespace CurtainCall.UI.SceneIntegration
     [RequireComponent(typeof(PackageView))]
     public sealed class DayClockView : MonoBehaviour
     {
-        public const string PrefabPath = "Prefabs/UIs/DayClock/W1_DayClock_v2_7";
+        public const string PrefabPath = "Prefabs/UIs/Roles/Retained/DayClock/W1_DayClock_v2_7";
         PackageView view;
         public PackageView View => view != null ? view : view = GetComponent<PackageView>();
         public bool IsShown => View.RequestedVisible;

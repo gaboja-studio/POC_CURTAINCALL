@@ -9,6 +9,52 @@ namespace CurtainCall.UI.SceneIntegration.Tests
 {
     public sealed partial class DevStartLauncherPlayTests
     {
+        sealed class LessonCopyScope:System.IDisposable
+        {
+            readonly string key,previous;
+            public LessonCopyScope(string key,string value)
+            {
+                this.key=key;var text=T("CurtainCall.WaitingRoom.WaitingRoomText");
+                previous=(string)text.GetMethod("Get").Invoke(null,new object[]{key,""});
+                var rowType=T("CurtainCall.WaitingRoom.RoomCopy");
+                var row=System.Activator.CreateInstance(rowType);
+                rowType.GetField("id").SetValue(row,key);rowType.GetField("text").SetValue(row,value);
+                var rows=System.Array.CreateInstance(rowType,1);rows.SetValue(row,0);
+                T("CurtainCall.WaitingRoom.WaitingRoomTextLoader").GetMethod("Apply",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)
+                    .Invoke(null,new object[]{rows});
+            }
+            public void Dispose()=>T("CurtainCall.WaitingRoom.WaitingRoomText").GetMethod("SetOverride").Invoke(null,new object[]{key,previous});
+        }
+        static bool VisibleLessonCard(string expectedRole,string text)
+        {
+            foreach(var component in UnityEngine.Object.FindObjectsByType(T("CurtainCall.UI.SceneIntegration.HudRoleCard"),FindObjectsSortMode.None))
+                if(!(bool)Get(component,"Closing") && (string)Get(component,"Content")==text && Field(component,"role").ToString()==expectedRole)return true;
+            return false;
+        }
+        [UnityTest] public IEnumerator RehearsalHud_TightropeApproachShowsEditedGuide()
+        {
+            yield return Launch(1,"Rehearsal",0,"Tightrope","WaitingRoomBase");
+            using var edits=new LessonCopyScope("rehearsal.quest.pole-grab","테스트 그네 안내");
+            yield return JumpStage(1);
+            PlaceOnRope((Component)Priv(Rehearsal,"course"),0,7f);
+            yield return CannonWait(()=>VisibleLessonCard("Guide","테스트 그네 안내"),5,"조준 구간에서 편집 문구를 가이드로 표시");
+            Assert.IsFalse(VisibleLessonCard("SystemEvent","테스트 그네 안내"));
+            Assert.IsTrue((bool)Get(Priv(Rehearsal,"quest"),"Visible"),"팀 임무도 유지");
+        }
+        [UnityTest] public IEnumerator RehearsalHud_CannonApproachShowsEditedGuide()
+        {
+            yield return OpenCannonWaitingRoom(1,"Night");
+            using var edits=new LessonCopyScope("cannon-rehearsal.guide.cannon.body","테스트 대포 안내");
+            Assert.IsTrue((bool)CannonStatic("StartPractice"));
+            yield return CannonWait(()=>Get(CannonLesson,"Course")!=null,6,"코스 생성");
+            var course=(Component)Get(CannonLesson,"Course");
+            var station=Call(Field(course,"Cannon"),"Station",0);
+            var boarding=(Transform)Get(station,"BoardingPoint");
+            Call(LocalPlayer.GetComponent(T("CurtainCall.Player.PlayerMover")),"Relocate",boarding.position,boarding.rotation);
+            yield return CannonWait(()=>VisibleLessonCard("Guide","테스트 대포 안내"),25,"탑승 거리에서 소개 뒤 대포 조작 안내");
+            Assert.IsFalse(VisibleLessonCard("SystemEvent","테스트 대포 안내"));
+        }
+
         [UnityTest]
         public IEnumerator W6_Learning_LowPoleLessonsReachTheirRealFinish()
         {

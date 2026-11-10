@@ -42,7 +42,7 @@ namespace CurtainCall.WaitingRoom.Pursuit
             instance = go.AddComponent<PursuitQuest>();
         }
 
-        void Awake() => panel = new WaitingRoomRightPanel(transform, "PursuitQuestCanvas", Top, Width, "first-day.panel.") { GuideStyle = true };
+        void Awake() => panel = new WaitingRoomRightPanel(transform, "PursuitQuestCanvas");
 
         void Update()
         {
