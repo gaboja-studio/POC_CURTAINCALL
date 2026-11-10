@@ -51,7 +51,7 @@ namespace CurtainCall.UI.SceneIntegration
             public Transform Root; public Vector3 Point; public string Action; public bool Available, Focused, WaitingRoom, Lobby, Pole;
             public float Distance; public float? Progress;
             public string Helper, Key = "F";
-            public bool Hold, ScreenGuide, NoOutline;
+            public bool Hold, ScreenGuide, NoOutline, Device;
         }
         public void Configure(InteractionPromptView view, RectTransform anchor) { prompt = view; promptAnchor = anchor; }
         void Awake()
@@ -171,7 +171,7 @@ namespace CurtainCall.UI.SceneIntegration
         }
         void ShowPrompt(PlayerInputReader reader, Candidate focused)
         {
-            bool cannonOrPole = focused.Root != null && (focused.Root.GetComponent<HumanCannonStation>() != null
+            bool cannonOrPole = focused.Device || focused.Root != null && (focused.Root.GetComponent<HumanCannonStation>() != null
                 || focused.Root.GetComponent<HumanCannonPole>() != null);
             string helper = focused.Focused ? focused.Helper ?? "" : WaitingRoomText.Get("prompt.come-closer", "가까이 다가가세요");
             var availability = focused.Available && focused.Focused ? InteractionAvailability.Available : InteractionAvailability.Unavailable;
@@ -432,8 +432,10 @@ namespace CurtainCall.UI.SceneIntegration
                     : course != null && course.TryGetComponent(out CourseControlSwitcher switcher) ? switcher.FindCannonPoleExit(player) : -1;
                 if (exitPole >= 0 && exitPoles != null && exitPoles.Pole(exitPole) is { } pole)
                 {
-                    Add(pole.transform, exitPoles.InteractionPoint(exitPole, player), "봉 잡기", true, true, feet);
+                    Add(pole.CommonVisual != null ? pole.CommonVisual : pole.transform,
+                        exitPoles.InteractionPoint(exitPole, player), "봉 잡기", true, true, feet);
                     candidates[candidates.Count - 1].Pole = true;
+                    candidates[candidates.Count - 1].Device = true;
                     var locks = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current;
                     if (locks != null && locks.IsHelperPole(pole))
                         candidates[candidates.Count - 1].Helper = locks.HelperInstruction(pole);
@@ -507,8 +509,10 @@ namespace CurtainCall.UI.SceneIntegration
                             Mathf.Max(1, NetworkSessionManager.Instance?.PlayerCount ?? 1));
                         string label = relay ? "연결 장치 봉 잡기" : pole.RiderCapacity > 1
                             ? $"함께 그네 잡기 ({poles.OccupantCount(i)}/{crewCapacity})" : "봉 잡기";
-                        Add(pole.transform, poles.InteractionPoint(i, player), label, true, i == focused, feet);
+                        Add(pole.CommonVisual != null ? pole.CommonVisual : pole.transform,
+                            poles.InteractionPoint(i, player), label, true, i == focused, feet);
                         candidates[candidates.Count - 1].Pole = true;
+                        candidates[candidates.Count - 1].Device = true;
                         if (relay) candidates[candidates.Count - 1].Helper = CurtainCall.EscapeRoute.EscapeCooperativeLocks.Current.HelperInstruction(pole);
                         else if (pole.RiderCapacity > 1) candidates[candidates.Count - 1].Helper = "W/S 박자를 맞춰 흔들고 Space로 각자 도약합니다";
                     }

@@ -55,7 +55,7 @@ namespace CurtainCall.EscapeRoute
                 if (run != null) { run.StepChanged += OnStep; OnStep(run.State); }
             }
             if (run == null) return;
-            if (run.HasAuthority && run.State.Phase == CampaignPhase.RestTime)
+            if (run.HasAuthority && CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsPursuitPhase(run.State.Phase))
             {
                 bool doorOpen = ExplorationState.Instance != null && ExplorationState.Instance.IsOpen(StructureAKeyRoute.EscapeDoor);
                 int occupants = 0, living = 0;
@@ -106,7 +106,7 @@ namespace CurtainCall.EscapeRoute
         }
         void OnStep(CampaignSnapshot state)
         {
-            if (state.Phase != CampaignPhase.Escape && (state.Phase != CampaignPhase.RestTime
+            if (state.Phase != CampaignPhase.Escape && (!CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsPursuitPhase(state.Phase)
                 || state.Generation != generation || state.Day != day || state.PerformanceIndex != performance))
             {
                 assemblyVisits.Clear(); assembly.Reset(); snapshot = new();
@@ -135,7 +135,7 @@ namespace CurtainCall.EscapeRoute
                 : $"탈출 준비 {snapshot.eligible}/{snapshot.required}\n플레이 중인 전원이 모이면 출발";
             if (worldLabel != null) worldLabel.text = message;
             if (hudLabel != null) hudLabel.text = message;
-            if (hudRoot != null) hudRoot.SetActive(run.State.Phase == CampaignPhase.RestTime && snapshot.occupants > 0);
+            if (hudRoot != null) hudRoot.SetActive(CurtainCall.WaitingRoom.Pursuit.PursuitDirector.IsPursuitPhase(run.State.Phase) && snapshot.occupants > 0);
         }
         public static bool Contains(BoxCollider area, Vector3 feet)
         {

@@ -1,5 +1,7 @@
 # 대기실 결정
 
+2026-11-10 사용자 변경은 [밤 정비](night-maintenance.md), [일정](schedule-board.md), [제한시간·안전지대 편집](exploration-time-limit.md)의 현재 우선 규칙을 따른다. 아래 소개의 이전 안전지대 없음·정비 무제한·상시 잠금·일정 확정은 대체되었다.
+
 - [pursuit-system.md](pursuit-system.md) — 시간 만료 후 추격·포획·집결/관전 복귀·4일차 전원 포획 실패를 구현할 때
 
 - [key-inventory.md](key-inventory.md) — 구매 불가 탐색 도구인 열쇠의 슬롯 획득·소지·선택·사용. 열쇠/인벤토리/상점 연결을 수정할 때

@@ -22,7 +22,7 @@ namespace CurtainCall.Network.PlayerSync
             }
             double now = Time.unscaledTimeAsDouble;
             if (!CommonDamageRules.CanHit(now, lastHazardHit, GameSettings.Base.BodyDamage.HazardHitCooldown)) return BodyPart.None;
-            var cut = ServerCut(1, obstacle, origin);
+            var cut = ServerCut(GameSettings.Base.BodyDamage.HazardCutCount, obstacle, origin);
             if (cut != BodyPart.None) lastHazardHit = now;
             return cut;
         }

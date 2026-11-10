@@ -64,15 +64,12 @@ namespace CurtainCall.WaitingRoom
         }
         bool GuideDone()
         {
-            if (!WaitingRoomTutorial.Enabled) return true;
-            if (WaitingRoomTutorial.IsSequenceActive) return false;
-            var seen = WaitingRoomTutorial.SeenIds.Split(',');
-            return System.Array.IndexOf(seen, "G01") >= 0 && System.Array.IndexOf(seen, "G11") >= 0;
+            return CampaignRun.Instance != null && WaitingRoomTutorial.TimeGuideFinished(CampaignRun.Instance.State);
         }
         bool GuideWaiting(CampaignRun run)
         {
             var s = run.State;
-            return s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide
+            return (s.Phase == CampaignPhase.RestTime || s.Phase == CampaignPhase.Night)
                 && s.Timer == RestTimerState.WaitingForExit;
         }
         void LateUpdate()
@@ -83,15 +80,16 @@ namespace CurtainCall.WaitingRoom
             // CampaignRun survives leaving/rehosting a room and the new run reuses generation/day 1.
             // End the acknowledgement period even when the component instance stays the same.
             if (tutorialRun != run || !waiting) { tutorialRun = run; tutorialDoneKey = ""; }
-            bool ready = waiting && GuideDone();
+            // Rehearsal suspends the ordinary guide, including its completion acknowledgement.
+            bool rehearsing = WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive;
+            bool ready = !rehearsing && waiting && GuideDone();
             if (ready)
             {
-                string key = run.State.Generation + "/" + run.State.Day;
+                string key = run.State.Generation + "/" + run.State.Day + "/" + run.State.Phase + "/" + run.State.Rest + "/" + run.State.PerformanceIndex;
                 if (tutorialDoneKey != key && run.NotifyTutorialDone()) tutorialDoneKey = key;
                 waiting = GuideWaiting(run);
             }
             // Rehearsal suspends teammates' ordinary guide; waiting for that guide here would deadlock it.
-            bool rehearsing = WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive;
             bool teamLocked = !rehearsing && waiting && ready && player != null && player.State == PlayerState.Normal
                 && !SceneCurtainTransition.IsActive;
             InputGate.SetBlocking(teamLock, teamLocked);
@@ -120,13 +118,12 @@ namespace CurtainCall.WaitingRoom
             if (s.Day != 1) { firstDayQuest.Hide(); return; }
             string quest;
             // 추격 시간에는 추격 퀘스트(PursuitQuest)가 같은 자리를 쓴다.
-            if (s.Phase == CampaignPhase.RestTime && s.Timer == RestTimerState.Pursuit) { firstDayQuest.Hide(); return; }
+            if ((s.Phase == CampaignPhase.RestTime || s.Phase == CampaignPhase.Night) && s.Timer == RestTimerState.Pursuit) { firstDayQuest.Hide(); return; }
             if (s.Phase == CampaignPhase.RestTime && s.Rest == RestKind.Guide)
                 quest = s.Timer == RestTimerState.WaitingForExit ? "tutorial" : "gather";
             else if (s.Phase == CampaignPhase.Night)
             {
-                quest = run.IsLocalReady ? "night-wait" : NightBed.ScheduleReady ? "night-bed"
-                    : run.HasAuthority ? "night-schedule" : "night-schedule-wait";
+                quest = run.IsLocalReady ? "night-wait" : "night-bed";
             }
             else { firstDayQuest.Hide(); return; }
             if (gather == null) gather = FindFirstObjectByType<StageEntranceGather>();

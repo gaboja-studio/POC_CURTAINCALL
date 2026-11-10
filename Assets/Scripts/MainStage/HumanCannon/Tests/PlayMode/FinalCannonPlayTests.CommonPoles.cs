@@ -10,7 +10,7 @@ namespace CurtainCall.HumanCannon.Tests
 {
     public sealed partial class FinalCannonPlayTests
     {
-        [UnityTest, Category("CommonRulesFollowup")]
+        [UnityTest, Category("CommonRulesFollowup"), Category("CommonInspectorSettings")]
         public IEnumerator CommonPoles_TwoVerticalRidersUpperDriveSharedDeadlineAndSwitchRelease()
         {
             DisableEnhancementThreats();
@@ -76,7 +76,7 @@ namespace CurtainCall.HumanCannon.Tests
                 AssertBody(12); // 약 4m 내려온 실제 착지이므로 공통 낙하 규칙으로 두 다리를 잃는다.
                 Assert.IsTrue((bool)Get(mover, "Simulated"));
                 Assert.IsNotNull(Get(pole, "VisualBar"));
-                Assert.That(pole.transform.Find("Common pole visual"), Is.Not.Null);
+                Assert.That(Get(pole, "CommonVisual"), Is.Not.Null);
                 // 다시 잡은 2인도 상단의 30초 창 하나를 공유하고 동시에 만료한다.
                 Call(mover, "SetStartPose", basePoint + Vector3.up * 3f, Quaternion.identity, true);
                 Physics.SyncTransforms(); yield return null;

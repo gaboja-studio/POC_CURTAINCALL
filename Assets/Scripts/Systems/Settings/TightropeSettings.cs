@@ -239,6 +239,9 @@ namespace CurtainCall.Settings
             [Tooltip("모든 외줄의 제자리 점프 높이(m). 탈출로 기준 1.5m.")]
             [SerializeField, Min(0f)] float jumpHeight = 1.5f;
 
+            [InspectorName("외줄 점프 중력 배율"), Tooltip("외줄 점프 중 적용할 기본 중력의 배율(배). 점프 높이를 유지하며 값이 커질수록 빠르게 뛰고 내려온다. 일반 바닥 점프에는 적용하지 않는다. 기본 1배.")]
+            [SerializeField, Min(.1f)] float jumpGravityMultiplier = 1f;
+
             [Tooltip("같은 높이의 옆줄 이동 최대 수평 거리(m). 높이가 다른 줄은 대상에서 제외한다.")]
             [SerializeField, Min(0f)] float laneJumpReach = 3f;
 
@@ -284,9 +287,13 @@ namespace CurtainCall.Settings
 
 
             [Header("동료 착지 파동 (초기 테스트값)")]
+            [Tooltip("동료가 줄에 착지했을 때 흔들림이 전달되는 최대 거리(m). 0이면 전달하지 않는다. 기본 6m.")]
             [SerializeField, Min(0f)] float landingWaveRange = 6f;
+            [Tooltip("동료 착지 흔들림이 줄을 따라 전달되는 속도(m/s). 클수록 먼 동료에게 빨리 도착한다. 기본 10m/s.")]
             [SerializeField, Min(0.1f)] float landingWaveSpeed = 10f;
+            [Tooltip("동료 착지 파동이 균형에 더하는 충격량. 클수록 중심을 크게 흔든다. 0~15, 기본 6.")]
             [SerializeField, Range(0f, 15f)] float landingWaveShock = 6f;
+            [Tooltip("동료 착지 후 흔들림 전달을 시작하기까지 기다리는 시간(초). 기본 0.2초. 실제 적용 범위 0~2초.")]
             [SerializeField, Min(0f)] float landingWaveDelay = .2f;
 
             public float LandingWaveRange => Mathf.Clamp(landingWaveRange, 0f, 100f);
@@ -298,7 +305,7 @@ namespace CurtainCall.Settings
             public float MoveSpeed => GameSettings.Base.Character.FreeMoveSpeed;
             public float JumpHeight => Mathf.Max(0f, jumpHeight);
             public float LaneJumpReach => Mathf.Max(0f, laneJumpReach);
-            public float JumpGravityMultiplier => 1f;
+            public float JumpGravityMultiplier => Mathf.Max(.1f, jumpGravityMultiplier);
             public float JumpInputBuffer => GameSettings.Base.Input.JumpInputBuffer;
             public float NaturalSwayMultiplier => Mathf.Max(0f, naturalSwayMultiplier);
             public float MinAirTimeForShock => minAirTimeForShock;

@@ -61,6 +61,7 @@ MonoBehaviour:
     supportHeightTolerance: 0.3
     fallReleaseDepth: 1
     jumpHeight: 1.5
+    jumpGravityMultiplier: 1
     laneJumpReach: 3
     naturalSwayMultiplier: 1.5
     dynamicIdleSway: 6

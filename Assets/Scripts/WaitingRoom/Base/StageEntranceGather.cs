@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using CurtainCall.Survival;
 using UnityEngine;
 
@@ -31,7 +32,6 @@ namespace CurtainCall.WaitingRoom
         readonly List<PlayerMover> offlinePlayers = new();
         BoxCollider area;
         bool notified;
-        bool scheduleNoticeShown;
 
         /// <summary>영역 안에 있는 살아 있는 인원.</summary>
         public int InsideCount { get; private set; }
@@ -112,37 +112,31 @@ namespace CurtainCall.WaitingRoom
             Count();
 
             var run = CampaignRun.Instance;
-            bool blockedHere = run != null && run.State.Day == 1 && run.State.Phase == CampaignPhase.RestTime
-                && run.State.Rest == RestKind.Guide && ScheduleBoard.Instance != null
-                && !ScheduleBoard.Instance.Book.FirstDayConfirmed && IsInside(NetworkPlayer.Local);
-            string noticeTitle = WaitingRoomText.Get("schedule.entry-blocked.title", "공연 일정 미확정");
-            if (blockedHere && !scheduleNoticeShown && !WaitingRoomTutorial.IsSequenceActive)
-            {
-                // 필수 진행 알림은 안내 끄기 설정으로 사라지는 튜토리얼 패널과 분리한다.
-                WaitingRoomGuidePanel.Show(noticeTitle,
-                    WaitingRoomText.Get("schedule.entry-blocked.body", "스케줄표에서 공연을 먼저 확정해야 무대에 입장할 수 있습니다. 호스트가 로비 스케줄표에서 공연을 선택하고 확정하세요."), 5f);
-                scheduleNoticeShown = true;
-            }
-            if (!blockedHere)
-            {
-                if (scheduleNoticeShown && WaitingRoomGuidePanel.CurrentTitle == noticeTitle) WaitingRoomGuidePanel.Hide();
-                scheduleNoticeShown = false;
-            }
+
             // 최초 리허설(Task-097): 리허설을 다 마친 뒤 전원이 모이면 첫 공연으로 간다.
             bool rehearsal = run != null && run.State.Phase == CampaignPhase.Rehearsal;
-            if (run == null || !run.HasAuthority || (run.State.Phase != CampaignPhase.RestTime && !rehearsal)
+            if (run == null || !run.HasAuthority || (run.State.Phase != CampaignPhase.RestTime && run.State.Phase != CampaignPhase.Night && !rehearsal)
                 || (rehearsal && !WaitingRoomRehearsal.IsCompleted))
             {
                 notified = false;
                 return;
             }
             // 성공적으로 전환했을 때만 알림을 확정한다. 튜토리얼 대기 중 거절됐다면 완료 뒤 다시 시도한다.
-            if (notified || AliveCount == 0 || InsideCount < AliveCount) return;
+            if (notified || AliveCount == 0 || InsideCount < AliveCount || MustWaitForTutorialRecovery()) return;
 
             if (!run.NotifyAllAtStageEntrance()) return;
             notified = true;
             Debug.Log($"[WaitingRoom] ⑥ 전원 집결 {InsideCount}/{AliveCount} → 공연 전환");
             Gathered?.Invoke();
+        }
+
+        bool MustWaitForTutorialRecovery()
+        {
+            if (!WaitingRoomRehearsal.UsesInitialTutorialRules || !GameSettings.WaitingRoom.Tutorial.WaitForRecoveryBeforePerformance)
+                return false;
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && player.State == PlayerState.Fallen) return true;
+            return false;
         }
 
         void Count()

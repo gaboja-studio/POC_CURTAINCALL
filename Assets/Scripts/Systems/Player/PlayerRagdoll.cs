@@ -27,6 +27,33 @@ namespace CurtainCall.Player
         /// <summary>지금 래그돌 상태인지.</summary>
         public bool IsLimp => limpModel != null;
 
+        /// <summary>분리된 시체를 발 위치로 옮긴다. 자세·사지·사망 상태는 바꾸지 않는다.</summary>
+        public void Relocate(Vector3 feet)
+        {
+            if (!IsLimp) return;
+            Bounds bounds = default;
+            bool measured = false;
+            foreach (var collider in limpModel.GetComponentsInChildren<Collider>())
+            {
+                if (!collider.enabled || !collider.gameObject.activeInHierarchy) continue;
+                if (!measured) { bounds = collider.bounds; measured = true; }
+                else bounds.Encapsulate(collider.bounds);
+            }
+            Vector3 anchor = measured ? new Vector3(bounds.center.x, bounds.min.y, bounds.center.z) : limpModel.transform.position;
+            Vector3 offset = feet - anchor;
+            var bodies = limpModel.GetComponentsInChildren<Rigidbody>();
+            var positions = new Vector3[bodies.Length];
+            for (int i = 0; i < bodies.Length; i++) positions[i] = bodies[i].position + offset;
+            limpModel.transform.position += offset;
+            for (int i = 0; i < bodies.Length; i++)
+            {
+                bodies[i].position = positions[i];
+                if (bodies[i].isKinematic) continue;
+                bodies[i].linearVelocity = Vector3.zero;
+                bodies[i].angularVelocity = Vector3.zero;
+            }
+        }
+
         /// <summary>모델을 래그돌로 무너뜨린다. 추락 신호에 자동으로 불린다.</summary>
         public void GoLimp()
         {

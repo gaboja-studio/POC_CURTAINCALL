@@ -2,14 +2,15 @@ using System.Collections.Generic;
 using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.WaitingRoom
 {
     /// <summary>
     /// 첫 공연 전 대기실 동선 제한(Task-097, 사용자 순서 2026-11-02).
-    /// 연습실에서 시작 → 리허설 동안 연습실 입구 철창 닫힘 → 리허설 성공 시 연습실·무대 통로 철창 열림 →
-    /// 모두 연습실을 나오면 연습실 다시 잠김 → 무대 입구 통로·로비·공연 스테이지 입구 외에는 모두 철창, 상호작용(상점·소품실·숙소 등)도 잠김 →
+    /// 연습실 입구는 공통 튜토리얼 설정에 따라 실내 사람이 있으면 열리고, 모두 나가면 닫힌다. 복귀자가 들어오면 다시 열린다.
+    /// 리허설 성공 시 무대 통로 철창 열림 → 무대 입구 통로·로비·공연 스테이지 입구 외에는 모두 철창, 상호작용(상점·소품실·숙소 등)도 잠김 →
     /// 무대 입구 통로에 가까이 가면 로비·통로 위 모니터에 단장 얼굴 → 외줄 공연 뒤 대기실 튜토리얼 때(리허설 단계가 끝나면) 모두 해제.
     /// </summary>
     public sealed partial class WaitingRoomRehearsal
@@ -34,7 +35,7 @@ namespace CurtainCall.WaitingRoom
             ("LockdownGate_Dormitory", new(8.3f, 0f, 75.2f), new(8.3f, 0f, 70.4f)),
         };
 
-        // 공유: 리허설을 마친 뒤 모두 연습실을 나와 연습실을 다시 잠갔다.
+        // 호스트가 공유하는 연습실 봉쇄 상태. 공통 점유 정책이 켜져 있으면 다시 열릴 수 있다.
         bool practiceSealed;
         readonly List<RehearsalLockdownGate> lockdownGates = new();
         readonly List<RingmasterMonitor> monitors = new();
@@ -50,8 +51,8 @@ namespace CurtainCall.WaitingRoom
                 var run = CampaignRun.Instance;
                 if (run == null) return false;
                 var state = run.State;
-                return state.Phase == CampaignPhase.Rehearsal
-                    || (state.Phase == CampaignPhase.Performance && state.Day == 1 && state.PerformanceIndex == 0);
+                return state.Generation == 1 && (state.Phase == CampaignPhase.Rehearsal
+                    || (state.Phase == CampaignPhase.Performance && state.Day == 1 && state.PerformanceIndex == 0));
             }
         }
 
@@ -60,8 +61,12 @@ namespace CurtainCall.WaitingRoom
         {
             var r = instance;
             bool completed = r != null && r.completed;
-            // 연습실: 리허설 중 닫힘. 성공하면 열었다가 모두 나오면 다시 잠근다.
-            if (gate == NightDoorLock.RehearsalPassageName) return !(completed && !r.practiceSealed);
+            if (gate == NightDoorLock.RehearsalPassageName)
+            {
+                if (UsesInitialTutorialRules && GameSettings.WaitingRoom.Tutorial.OpenPracticeDoorWhileOccupied)
+                    return r.practiceSealed;
+                return !(completed && !r.practiceSealed);
+            }
             // 무대 입구 통로: 리허설을 마치면 연다.
             if (gate == StageShutterName) return !completed;
             return true;
@@ -139,9 +144,24 @@ namespace CurtainCall.WaitingRoom
             ? practiceArea.Contains(position)
             : new Vector2(position.x - ringCenter.x, position.z - ringCenter.z).sqrMagnitude < 30f * 30f;
 
-        /// <summary>호스트: 리허설을 마친 뒤 살아 있는 모두가 연습실 밖으로 나오면 연습실을 다시 잠근다.</summary>
+        /// <summary>호스트: 공통 튜토리얼 정책은 실내 점유를 계속 반영한다. 정책이 꺼지면 기존 완료 후 봉쇄를 유지한다.</summary>
         void HostTickPracticeSeal()
         {
+            if (UsesInitialTutorialRules && GameSettings.WaitingRoom.Tutorial.OpenPracticeDoorWhileOccupied)
+            {
+                bool occupied = false;
+                foreach (var player in NetworkPlayer.All)
+                {
+                    if (player == null || !player.IsSpawned || player.State == PlayerState.Retired) continue;
+                    if (InPracticeRoom(player.transform.position)) { occupied = true; break; }
+                }
+                bool shouldSeal = !occupied;
+                if (practiceSealed == shouldSeal) return;
+                practiceSealed = shouldSeal; version++;
+                Debug.Log(occupied ? "[Rehearsal] 연습실 안에 단원 있음 → 연습실 철창 열림" : "[Rehearsal] 연습실 안에 단원 없음 → 연습실 철창 닫힘");
+                Publish();
+                return;
+            }
             if (!completed || practiceSealed) return;
             int alive = 0;
             foreach (var player in NetworkPlayer.All)

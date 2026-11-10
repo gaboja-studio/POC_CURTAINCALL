@@ -40,7 +40,7 @@ namespace CurtainCall.Player
 
         public static object Selected(Component actor)
         {
-            if (actor == null) return null;
+            if (!PlayerInteraction.CanInteract(actor)) return null;
             if (!actor.TryGetComponent<PlayerInputReader>(out var reader) || !reader.isActiveAndEnabled)
                 return Choose(actor).Target;
             int id = reader.GetInstanceID();
@@ -72,7 +72,7 @@ namespace CurtainCall.Player
 
         static Candidate Choose(Component actor)
         {
-            if (InputGate.IsBlocked) return default;
+            if (InputGate.IsBlocked || !PlayerInteraction.CanInteract(actor)) return default;
             Candidate best = default;
             Vector3 center = PlayerInteraction.Center(actor);
             void Add(object target, Vector3 point, int priority, string key)
@@ -97,12 +97,12 @@ namespace CurtainCall.Player
                 {
                     if (hang.IsHanging(player) || hang.IsRescuing(player)) Add(hang, center, 0, "rescue-active");
                     else if (hang.NearestRescueTarget(player) is { } rescue)
-                        Add(hang, hang.GripPoint(rescue), 1, "rescue");
+                        Add(hang, hang.GripPoint(rescue), Settings.GameSettings.Base.Interaction.PrioritizeRescue ? 1 : 2, "rescue");
                 }
                 if (poles != null)
                 {
                     int index = poles.FindGrabbable(player);
-                    if (index >= 0) Add(poles.Pole(index), poles.Pole(index).BarPosition(poles.AngleAt(index)), 2, "pole:" + index);
+                    if (index >= 0) Add(poles.Pole(index), poles.InteractionPoint(index, player), 2, "pole:" + index);
                 }
                 var carry = HumanCannonCarry.FindGrabbable(player);
                 if (carry != null) Add(carry, carry.GrabPoint, 2, "carry:" + Path(carry.CarryRoot));
