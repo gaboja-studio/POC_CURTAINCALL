@@ -41,3 +41,5 @@
 - 증거: `.harness/local/break-submit-editmode-{flow,text,lifecycle-retry}.json`, `break-submit-playmode-{flow,followup}.json`. 최종 EditMode 고유 72건, PlayMode 고유 10건 모두 통과했다.
 - submit-work new-pr DryRun으로 dev 방향·Squash·본문을 확인했다. 무관한 머티리얼 변경을 보존해야 하므로 전체 dirty 차단 도구 대신 명시 경로 commit/push와 gh --body-file로 PR을 등록한다.
 - 마지막 ACK 수정 뒤 check-work 재검사: 안전성·문서/규칙·컴파일·Common settings PASS. Unity 정상 종료 후 제출 직전 origin/dev 재fetch/통합 결과 64ccd465, Already up to date. 종료 CLI의 잘못된 옵션 호출 1회는 파일 변경 없이 실패했으며 올바른 위치 인자로 정상 종료 후 동기화했다.
+- 제출 완료: [PR #320](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/320), `fix/waiting-room/break-time` → `dev`. 기능 저장 6f0c7ea6, dev 통합 906fd5ac, ACK 후속 저장 d5eec5d1을 push했다. dev 병합·리뷰어 추측 배정은 하지 않았다.
+- push 성공. GitHub의 기존 WaitingRoom.unity 75.48MB 권장 크기 경고만 발생했다. 별도 escape-labels.asset 변경은 로컬에 남기고 PR 파일에서 제외했다.
