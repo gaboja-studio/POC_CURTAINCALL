@@ -214,7 +214,7 @@ namespace CurtainCall.Campaign
             s.RequiredCount = required.Count;
 
             bool nobodyCanPrepare = s.Phase == CampaignPhase.Night && normalPlayers != null && required.Count == 0;
-            // An all-dead party uses the existing timeout completion; living players still need the schedule gate.
+            // An all-dead party completes the night; living players wait for rehearsal to end.
             bool gateOpen = nobodyCanPrepare || s.Phase != CampaignPhase.Night || NightEndGate == null || NightEndGate();
             if (players.Count > 0 && s.ReadyCount >= s.RequiredCount && gateOpen)
             {

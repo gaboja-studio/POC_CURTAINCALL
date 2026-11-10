@@ -80,7 +80,9 @@ namespace CurtainCall.WaitingRoom
             // CampaignRun survives leaving/rehosting a room and the new run reuses generation/day 1.
             // End the acknowledgement period even when the component instance stays the same.
             if (tutorialRun != run || !waiting) { tutorialRun = run; tutorialDoneKey = ""; }
-            bool ready = waiting && GuideDone();
+            // Rehearsal suspends the ordinary guide, including its completion acknowledgement.
+            bool rehearsing = WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive;
+            bool ready = !rehearsing && waiting && GuideDone();
             if (ready)
             {
                 string key = run.State.Generation + "/" + run.State.Day + "/" + run.State.Phase + "/" + run.State.Rest + "/" + run.State.PerformanceIndex;
@@ -88,7 +90,6 @@ namespace CurtainCall.WaitingRoom
                 waiting = GuideWaiting(run);
             }
             // Rehearsal suspends teammates' ordinary guide; waiting for that guide here would deadlock it.
-            bool rehearsing = WaitingRoomRehearsal.IsPracticing || WaitingRoomCannonRehearsal.IsActive;
             bool teamLocked = !rehearsing && waiting && ready && player != null && player.State == PlayerState.Normal
                 && !SceneCurtainTransition.IsActive;
             InputGate.SetBlocking(teamLock, teamLocked);

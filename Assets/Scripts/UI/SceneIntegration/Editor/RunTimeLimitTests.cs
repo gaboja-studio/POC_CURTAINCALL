@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
 {
-    /// <summary>실제 제한시간은 일정 표시와 독립이며, 밤 정비 만료는 잡힘 없이 수면으로 넘어간다.</summary>
+    /// <summary>일정과 독립인 제한시간, 정비 추격과 수면·부활 전환을 검증한다.</summary>
     [Category("BreakFlow")]
     [Category("BreakFollowup")]
     public sealed class RunTimeLimitTests
@@ -37,7 +37,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         }
 
         [Test, Category("WaitingRoomCommonRecovery")]
-        public void AllDeadNightUsesTimeoutCompletionButLivingPartyStillNeedsSchedule()
+        public void AllDeadNightCompletesButLivingPartyWaitsForRehearsalGate()
         {
             var oldGate = RunState.NightEndGate;
             try
@@ -46,7 +46,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
                 var run = Start(1, RunStartPhase.Night, true);
                 run.SetReady(1, true);
                 run.RefreshNight(new ulong[] { 1, 2 }, new ulong[] { 1 });
-                Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase, "생존자가 있으면 스케줄 확정 조건 유지");
+                Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase, "생존자가 있으면 리허설 종료를 기다린다.");
                 run.RefreshNight(System.Array.Empty<ulong>(), System.Array.Empty<ulong>());
                 Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase, "빈 세션은 자동 진행하지 않는다.");
                 run.RefreshNight(new ulong[] { 1, 2 }, System.Array.Empty<ulong>());

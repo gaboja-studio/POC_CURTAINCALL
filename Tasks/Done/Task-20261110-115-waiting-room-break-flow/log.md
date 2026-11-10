@@ -30,3 +30,14 @@
 - 최종 화면에서 단계 버튼의 rich-text 태그 노출/생략을 숫자 표시로 정리하고 카드 보상 줄 자동 크기를 적용했다. 해당 실제 공연표 테스트 1건 재검사 PASS, 스크린샷 `.harness/local/break-followup-schedule.png` 확인. 최종 컴파일 PASS. WaitingRoomSettings를 Inspector에 선택하고 두 문구 설정 그룹을 펼쳐 두었다. commit/push 없음.
 
 - 2026-11-10 검사: 안전성=PASS; 문서/규칙=FAIL; 컴파일=SKIPPED(선행 실패); 테스트=SKIPPED(자동 테스트 선택 안 함)
+
+## 2026-11-10 사용자 저장·dev PR 요청
+- 관련 변경을 MoHoDu 계정으로 `6f0c7ea6`에 저장했다. 별도 escape-labels 머티리얼 변경은 미포함·보존했다. Unity 종료 뒤 origin/dev PR #319(64ccd465)를 `906fd5ac`에 통합했다.
+- CampaignRun·NightBed·인간대포 PlayMode 테스트의 충돌 3곳을 해결했다. dev의 공통 상호작용 제한과 수면 인원 집계를 유지하며 수면 보호·포획 제외·가이드 장벽을 결합했다. 씬/프리팹 충돌은 없었다.
+- 통합 check-work: 안전성 PASS, 문서/규칙 PASS(기존 Task097 길이 문제는 최신 dev에서 해소), Unity 컴파일 PASS, Common settings PASS. 자동 테스트는 아래 집중 결과를 사용한다.
+- 통합 집중 EditMode: BreakFlow 41/41, PursuitQuestText 2/2 PASS. RehearsalLifecycle 최초 27/29에서 ACK 식별 키 변경과 리허설 중 완료 보고 문제를 확인했다. 현행 시간대 키로 테스트를 갱신하고 일반 안내 ACK를 리허설 동안 보류한 뒤 29/29 PASS. 재컴파일 PASS.
+- 통합 PlayMode BreakFlow 7/7 PASS. 후속 가이드·알림·편집 PlayMode 5/5 PASS(전체 고유 10건). 실제 두 PC 동시 플레이는 미검증이다.
+
+- 증거: `.harness/local/break-submit-editmode-{flow,text,lifecycle-retry}.json`, `break-submit-playmode-{flow,followup}.json`. 최종 EditMode 고유 72건, PlayMode 고유 10건 모두 통과했다.
+- submit-work new-pr DryRun으로 dev 방향·Squash·본문을 확인했다. 무관한 머티리얼 변경을 보존해야 하므로 전체 dirty 차단 도구 대신 명시 경로 commit/push와 gh --body-file로 PR을 등록한다.
+- 마지막 ACK 수정 뒤 check-work 재검사: 안전성·문서/규칙·컴파일·Common settings PASS. Unity 정상 종료 후 제출 직전 origin/dev 재fetch/통합 결과 64ccd465, Already up to date. 종료 CLI의 잘못된 옵션 호출 1회는 파일 변경 없이 실패했으며 올바른 위치 인자로 정상 종료 후 동기화했다.
