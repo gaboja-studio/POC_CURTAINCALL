@@ -107,3 +107,4 @@
 - 제출 직전 Unity 정상 종료 후 origin/dev fetch/merge:806c8dab 동일, Already up to date. Unity 재실행. 기존 동적 폰트 사본은 .harness/local/tutorial-common-audit/fonts-before-submit에 보존, 관련 없는 기존 파일은 제출 제외.
 - 최초 check-work: DEV에 기존 포함된 Task-097 todo102줄 hard 초과로 문서 검사 FAIL·통합 컴파일 생략. 완료 체크 섹션5개를 History/009에 원문 그대로 보존해 todo76줄로 줄임. 미완료 항목·현재 결정은 유지.
 - 최종 check-work 재검사: 안전성/문서·규칙/컴파일/공통 설정 연결 PASS, 전체 테스트 선택 안 함. 문서 길이 hard0. 기존 사용자·Task-112·동적 폰트32개는 제출 제외하고 이번 관련82개만 저장한다.
+- 저장·제출 완료: d34b5043, refactor/common-game-settings push, dev 대상 [PR #319](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/319) 생성. 병합하지 않음. Unity는 Start 씬·비재생·PoleSettings 선택 상태. 플레이 검증은 사용자 담당.
