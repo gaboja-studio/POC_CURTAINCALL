@@ -8,3 +8,4 @@
 - 2026-11-10 저장 전 검사: 안전성=PASS; 문서/규칙=FAIL(기존 Task-097 todo.md 102줄 HARD, 이 변경과 무관); 컴파일=SKIPPED(문서만 변경); 테스트=SKIPPED(요청 없음). Task-115 문서만 명시 경로로 저장.
 - 2026-11-10 대상 씬 정정: 설정 waitingRoomVariant=2(Integrated) → `WaitingRoom.unity`(Pursuit 아님). 에디터에서 1층·B1 탑다운을 오브젝트 배치 창과 같은 방식(Preview 카메라, 바닥+2.4m 절단)으로 캡처해 아이디어 전체를 표시한 `gimmick-map.png` 작성. 씬 수정 없음.
 - 2026-11-10 제출 전 검사: 안전성=PASS; 문서/규칙=FAIL(기존 Task-097 todo.md 102줄 HARD, 이 변경과 무관); 컴파일=SKIPPED(문서·이미지만); 테스트=SKIPPED(요청 없음). origin/dev 새 커밋 3개는 Unity 에디터가 열려 있어 미반영(이 Task 파일과 겹침 없음).
+- 2026-11-10 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/321 (feat/waiting-room-passage-gimmicks → dev). new-pr.ps1은 관련 없는 로컬 변경(Task-104 이동·escape-labels·ThirdParty) 때문에 막혀 같은 본문으로 gh 직접 등록.
