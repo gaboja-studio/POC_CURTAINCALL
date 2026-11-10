@@ -44,6 +44,11 @@ namespace CurtainCall.Survival
                 case CampaignPhase.RestTime:
                 case CampaignPhase.Night:
                     SurvivalRules.ServerPlace = SurvivalPlace.Exploration;
+                    // 밤 추격으로 리타이어한 사람은 수면 연출이 끝난 다음 날 아침 대기실에서 복귀한다.
+                    if (step.Phase == CampaignPhase.RestTime && step.Rest == RestKind.Morning)
+                        foreach (var player in NetworkPlayer.All)
+                            if (player != null && player.IsSpawned && player.State == PlayerState.Retired
+                                && player.LastDeathOrigin == NetworkPlayer.DeathOrigin.Pursuit) player.ServerReleaseFromPursuit(true);
                     int revived = NetworkPlayer.ServerReviveAllDead();
                     if (revived > 0) Debug.Log($"[Survival] {CampaignRun.Describe(step)} 시작: 사망자 {revived}명 외팔 상태로 부활");
                     // 도착 완료는 공연 안의 상태다. 대기실 안내·상호작용은 보통 상태만 받으므로 완주자도 함께 되돌린다.

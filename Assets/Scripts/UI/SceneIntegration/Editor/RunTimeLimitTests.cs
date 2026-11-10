@@ -8,9 +8,53 @@ using UnityEngine;
 
 namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
 {
-    /// <summary>실제 제한시간은 일정 표시와 독립이며, 밤 정비 만료는 잡힘 없이 수면으로 넘어간다.</summary>
+    /// <summary>일정과 독립인 제한시간, 정비 추격과 수면·부활 전환을 검증한다.</summary>
+    [Category("BreakFlow")]
+    [Category("BreakFollowup")]
     public sealed class RunTimeLimitTests
     {
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void NightPreparationExcludesDeadButDawnStillWaitsForEveryConnectedScreen()
+        {
+            var oldGate = RunState.NightEndGate;
+            try
+            {
+                RunState.NightEndGate = () => true;
+                var run = Start(1, RunStartPhase.Night, true);
+                var connected = new ulong[] { 1, 2 };
+                run.SetReady(1, true);
+                Assert.IsTrue(run.RefreshNight(connected, new ulong[] { 1 }));
+                Assert.AreEqual(CampaignPhase.Dawn, run.Snapshot.Phase);
+                run.SetReady(1, true);
+                run.RefreshNight(connected, new ulong[] { 1 });
+                Assert.AreEqual(CampaignPhase.Dawn, run.Snapshot.Phase);
+                Assert.AreEqual(2, run.Snapshot.RequiredCount);
+                run.SetReady(2, true);
+                run.RefreshNight(connected, new ulong[] { 1 });
+                Assert.AreEqual(CampaignPhase.RestTime, run.Snapshot.Phase);
+            }
+            finally { RunState.NightEndGate = oldGate; }
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void AllDeadNightCompletesButLivingPartyWaitsForRehearsalGate()
+        {
+            var oldGate = RunState.NightEndGate;
+            try
+            {
+                RunState.NightEndGate = () => false;
+                var run = Start(1, RunStartPhase.Night, true);
+                run.SetReady(1, true);
+                run.RefreshNight(new ulong[] { 1, 2 }, new ulong[] { 1 });
+                Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase, "생존자가 있으면 리허설 종료를 기다린다.");
+                run.RefreshNight(System.Array.Empty<ulong>(), System.Array.Empty<ulong>());
+                Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase, "빈 세션은 자동 진행하지 않는다.");
+                run.RefreshNight(new ulong[] { 1, 2 }, System.Array.Empty<ulong>());
+                Assert.AreEqual(CampaignPhase.Dawn, run.Snapshot.Phase, "전원 사망은 기존 시간 만료와 같은 밤 종료");
+                Assert.AreEqual(1, run.Snapshot.Generation);
+            }
+            finally { RunState.NightEndGate = oldGate; }
+        }
         BaseGameSettings.RunSettings rules;
         string original;
 
@@ -38,6 +82,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         {
             var run = new RunState(false, presentation);
             Assert.IsTrue(run.DebugStartAt(new RunStartPoint(day, phase, phase == RunStartPhase.Between ? 1 : 0, "Tightrope")));
+            if (run.IsGuideRestWaiting) { run.SetTutorialDone(0); run.RefreshGuideRest(new ulong[] { 0 }); }
             return run;
         }
 
@@ -48,13 +93,14 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.AreEqual(123f, migrated.MorningRest.Seconds);
             Assert.AreEqual(123f, migrated.NoonRest.Seconds);
             Assert.AreEqual(456f, migrated.GuideRest.Seconds);
-            Assert.IsTrue(migrated.NightMaintenance.Unlimited);
+            Assert.IsFalse(migrated.NightMaintenance.Unlimited);
+            Assert.AreEqual(300, migrated.NightMaintenance.Seconds);
             Assert.IsFalse(migrated.MorningRest.Unlimited);
             Assert.AreEqual(123f, migrated.RestDuration);
             Assert.AreEqual(456f, migrated.GuideRestDuration);
             var restored = JsonUtility.FromJson<BaseGameSettings.RunSettings>(JsonUtility.ToJson(migrated));
             Assert.AreEqual(456f, restored.GuideRest.Seconds);
-            Assert.IsTrue(restored.NightMaintenance.Unlimited);
+            Assert.IsFalse(restored.NightMaintenance.Unlimited);
         }
 
         [TestCase(2, RunStartPhase.Morning, RestKind.Morning, 111f)]
@@ -105,7 +151,7 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         }
 
         [Test]
-        public void FinalMorningDeadlineIgnoresZonePauseAndEndsRun()
+        public void FinalMorningSupportsConfiguredSafetyAndResumesItsDeadline()
         {
             // 2026-10-31 버그: 생활 구역에 머물면 마지막 아침 타이머가 멈춰 4일차 아침에서 런이 끝나지 않았다.
             Configure(rules.MorningRest, false, 300f);
@@ -113,7 +159,9 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.IsTrue(run.Snapshot.IsFinalMorning);
             int generation = run.Snapshot.Generation;
             run.SetRestTimerPaused(true);
-            Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer, "마지막 아침은 구역과 상관없이 흐른다");
+            Assert.AreEqual(RestTimerState.Stopped, run.Snapshot.Timer);
+            Assert.IsFalse(run.Tick(301f));
+            Assert.IsTrue(run.SetRestTimerPaused(false));
             Assert.IsTrue(run.Tick(301f));
             Assert.AreEqual(generation + 1, run.Snapshot.Generation, "기한이 끝나면 런 실패 → 세대 교체");
             Assert.AreEqual(RunEndReason.Deadline, run.Snapshot.LastEnd);
@@ -156,18 +204,28 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
 
         [TestCase(false)]
         [TestCase(true)]
-        public void NightTimeoutUsesReadyCompletionWithoutRestExpired(bool presentation)
+        public void NightTimeoutStartsPursuitAndPartialSleepWaitsForEveryone(bool presentation)
         {
             Configure(rules.NightMaintenance, false, 25f);
-            var run = Start(1, RunStartPhase.Night, presentation);
+            var run = new RunState(false, presentation, true);
+            run.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
             Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer);
             Assert.AreEqual(25f, run.Snapshot.TimeRemaining);
-            Assert.IsFalse(run.Snapshot.AlarmRaised, "밤에는 소집 경보가 없다");
+            Assert.IsTrue(run.Snapshot.AlarmRaised, "정비도 1분 이하 유한 타이머에서 경보를 표시한다");
             run.RefreshNight(new ulong[] { 1, 2 });
             run.SetReady(1, true);
             int expired = 0;
             Assert.IsTrue(run.Tick(25f, _ => expired++));
-            Assert.AreEqual(0, expired, "밤에는 RestExpired/잡힘 콜백을 부르지 않는다");
+            Assert.AreEqual(1, expired);
+            Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase);
+            Assert.AreEqual(RestTimerState.Pursuit, run.Snapshot.Timer);
+            Assert.IsFalse(run.Tick(10, _ => expired++), "Expiry is emitted only once");
+            Assert.IsTrue(run.IsReady(1));
+            run.RefreshNight(new ulong[] { 1, 2 });
+            Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase, "Partial sleep only updates the ready count");
+            Assert.IsFalse(run.RefreshNight(new ulong[] { 1, 2 }));
+            run.SetReady(2, true);
+            Assert.IsTrue(run.RefreshNight(new ulong[] { 1, 2 }));
             if (presentation)
             {
                 Assert.AreEqual(CampaignPhase.Dawn, run.Snapshot.Phase);
@@ -228,6 +286,92 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
             Assert.IsTrue(snapshot.SameStep(restored));
             Assert.AreEqual(0f, restored.TimeRemaining);
             Assert.AreEqual(writer.Length, reader.Position, "새 필드를 추가하지 않고 기존 포맷 전체를 읽는다");
+        }
+
+        [Test]
+        public void MaintenanceSupportsSafetyPauseEscapeAndNextScheduledPerformance()
+        {
+            var run = new RunState(false, false, true);
+            run.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+            run.SetSetlist(2, new[] { "Tightrope", "Tightrope" });
+            Assert.IsTrue(run.SetRestTimerPaused(true));
+            Assert.IsFalse(run.Tick(500));
+            Assert.IsTrue(run.SetRestTimerPaused(false));
+            run.DebugSetRemaining(.1f); run.Tick(1);
+            Assert.AreEqual(RestTimerState.Pursuit, run.Snapshot.Timer);
+            Assert.IsFalse(run.SetRestTimerPaused(true), "Safety cannot cancel an active pursuit");
+            Assert.IsTrue(run.NotifyAllAtStageEntrance());
+            Assert.AreEqual(CampaignPhase.Performance, run.Snapshot.Phase);
+            Assert.AreEqual(2, run.Snapshot.Day);
+            Assert.AreEqual(0, run.Snapshot.PerformanceIndex);
+            run = new RunState(false, false, true);
+            run.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+            Assert.IsTrue(run.StartEscape());
+            Assert.AreEqual(CampaignPhase.Escape, run.Snapshot.Phase);
+        }
+
+        [Test]
+        public void MaintenanceAllCaughtAdvancesAndLivingSleepersCanFinishWithoutDeadPlayers()
+        {
+            var run = new RunState(false, false, true);
+            run.DebugStartAt(new RunStartPoint(1, RunStartPhase.Night, 0, "Tightrope"));
+            run.DebugBeginPursuit();
+            run.SetReady(1, true);
+            run.RefreshNight(new ulong[] { 1, 2 });
+            Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase);
+            Assert.IsTrue(run.RefreshNight(new ulong[] { 1 })); // Dead/disconnected participant removed by CampaignRun.
+            Assert.AreEqual(2, run.Snapshot.Day);
+            run.DebugStartAt(new RunStartPoint(2, RunStartPhase.Night, 0, "Tightrope"));
+            run.DebugBeginPursuit();
+            Assert.IsTrue(run.NotifyAllPursuitCaught());
+            Assert.AreEqual(3, run.Snapshot.Day);
+            Assert.AreEqual(RestKind.Morning, run.Snapshot.Rest);
+        }
+
+        [Test]
+        public void ExplorationLockCanBeChangedIndependentlyForEachRestKind()
+        {
+            var s = new CampaignSnapshot { Phase = CampaignPhase.Night };
+            Assert.IsFalse(rules.IsExplorationLocked(s));
+            Set(rules.NightMaintenance, "explorationLocked", true);
+            Assert.IsTrue(rules.IsExplorationLocked(s));
+            s.Phase = CampaignPhase.RestTime; s.Rest = RestKind.Morning;
+            Assert.IsFalse(rules.IsExplorationLocked(s));
+            Set(rules.MorningRest, "explorationLocked", true);
+            Assert.IsTrue(rules.IsExplorationLocked(s));
+            s.Rest = RestKind.Between;
+            Assert.IsFalse(rules.IsExplorationLocked(s));
+        }
+
+        [TestCase(RunStartPhase.Morning)]
+        [TestCase(RunStartPhase.Between)]
+        [TestCase(RunStartPhase.Night)]
+        public void RuntimeCountdownWaitsForEveryPlayersGuideIncludingNight(RunStartPhase phase)
+        {
+            var run = new RunState(false, true, true, true);
+            run.DebugStartAt(new RunStartPoint(2, phase, phase == RunStartPhase.Between ? 1 : 0, "Tightrope"));
+            float seconds = run.Snapshot.TimeRemaining;
+            Assert.AreEqual(RestTimerState.WaitingForExit, run.Snapshot.Timer);
+            Assert.IsFalse(run.Tick(200));
+            Assert.IsTrue(run.SetTutorialDone(1));
+            run.RefreshGuideRest(new ulong[] { 1, 2 });
+            Assert.AreEqual(RestTimerState.WaitingForExit, run.Snapshot.Timer);
+            Assert.AreEqual(seconds, run.Snapshot.TimeRemaining);
+            Assert.IsFalse(run.SetRestTimerPaused(false), "Zone updates cannot bypass the guide barrier");
+            run.SetTutorialDone(2); run.RefreshGuideRest(new ulong[] { 1, 2 });
+            Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer);
+            Assert.IsTrue(run.Tick(1));
+            Assert.AreEqual(seconds - 1, run.Snapshot.TimeRemaining);
+        }
+
+        [Test]
+        public void LeavingPlayerCannotKeepTheGuideBarrierClosed()
+        {
+            var run = new RunState(false, true, true, true);
+            run.DebugStartAt(new RunStartPoint(2, RunStartPhase.Night, 0, "Tightrope"));
+            run.SetTutorialDone(1); run.RefreshGuideRest(new ulong[] { 1, 2 });
+            Assert.IsTrue(run.RefreshGuideRest(new ulong[] { 1 }));
+            Assert.AreEqual(RestTimerState.Running, run.Snapshot.Timer);
         }
     }
 }

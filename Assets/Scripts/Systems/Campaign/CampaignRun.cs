@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using CurtainCall.Network.Session;
@@ -113,7 +113,7 @@ namespace CurtainCall.Campaign
             {
                 if (!state.IsRunning) return;
                 bool changed = (state.Phase == CampaignPhase.Night || state.Phase == CampaignPhase.Dawn
-                    || state.Phase == CampaignPhase.DemoEnding) && host.RefreshNight(Players());
+                    || state.Phase == CampaignPhase.DemoEnding) && RefreshNight(host);
                 if (host.IsGuideRestWaiting) changed |= host.RefreshGuideRest(Players());
                 changed |= host.Tick(Time.deltaTime, Expired);
                 if (changed) Apply(host.Snapshot);
@@ -145,7 +145,7 @@ namespace CurtainCall.Campaign
                 return false;
             }
             offlineRun = true;
-            host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled);
+            host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled, true);
             host.StartSession(true);
             Apply(host.Snapshot);
             return true;
@@ -175,7 +175,7 @@ namespace CurtainCall.Campaign
         /// </summary>
         public bool NotifyTutorialDone()
         {
-            if (!state.IsRunning || state.Phase != CampaignPhase.RestTime || state.Rest != RestKind.Guide
+            if (!state.IsRunning || (state.Phase != CampaignPhase.RestTime && state.Phase != CampaignPhase.Night)
                 || state.Timer != RestTimerState.WaitingForExit) return false;
             if (host != null)
             {
@@ -183,9 +183,12 @@ namespace CurtainCall.Campaign
                 return HostDo(r => r.SetTutorialDone(me) | r.RefreshGuideRest(Players()), nameof(NotifyTutorialDone));
             }
             if (messaging == null) return false;
-            using var writer = new FastBufferWriter(8, Allocator.Temp);
+            using var writer = new FastBufferWriter(16, Allocator.Temp);
             writer.WriteValueSafe(state.Generation);
             writer.WriteValueSafe(state.Day);
+            writer.WriteValueSafe((byte)state.Phase);
+            writer.WriteValueSafe((byte)state.Rest);
+            writer.WriteValueSafe(state.PerformanceIndex);
             messaging.SendNamedMessage(TutorialDoneMessage, NetworkManager.ServerClientId, writer, NetworkDelivery.ReliableSequenced);
             return true;
         }
@@ -289,8 +292,17 @@ namespace CurtainCall.Campaign
         /// <summary>밤 준비 / 전환 가림 완료 / 데모 확인을 보낸다. 현재 세대·일차·시간대에만 적용한다.</summary>
         public bool SetReady(bool value)
         {
+            if (state.Phase == CampaignPhase.Night && state.Timer == RestTimerState.WaitingForExit) return false;
             if (state.Phase != CampaignPhase.Night && state.Phase != CampaignPhase.Dawn && state.Phase != CampaignPhase.DemoEnding) return false;
+            if (state.Phase == CampaignPhase.Night && value && Network.PlayerSync.NetworkPlayer.Local is { } local
+                && !CanSleep(local.OwnerClientId)) return false;
             if (state.Phase != CampaignPhase.Night && !value) return false;
+            if (state.Phase == CampaignPhase.Night && value)
+            {
+                var localPlayer = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
+                if (localPlayer != null ? !CurtainCall.Player.PlayerInteraction.CanInteract(localPlayer)
+                    : session != null && session.ConnectionState != SessionConnectionState.Offline) return false;
+            }
             bool changedReady = localReady != value;
             localReady = value;
             if (changedReady && state.Phase == CampaignPhase.Night && LocalReadyChanged != null)
@@ -303,7 +315,7 @@ namespace CurtainCall.Campaign
                 return HostDo(r =>
                 {
                     bool changed = r.SetReady(me, value);
-                    r.RefreshNight(Players());
+                    RefreshNight(r);
                     return changed;
                 }, nameof(SetReady));
             }
@@ -322,6 +334,15 @@ namespace CurtainCall.Campaign
         // ── 판정·적용 ────────────────────────────────────────
 
         public bool NotifyAllPursuitCaught() => HostDo(r => r.NotifyAllPursuitCaught(), nameof(NotifyAllPursuitCaught));
+
+        /// <summary>수면 보호는 침대 외형 대신 호스트가 받은 준비 상태로 판정한다.</summary>
+        public bool IsPlayerSleeping(ulong clientId) => state.Phase == CampaignPhase.Night
+            && (host != null ? host.IsReady(clientId) : session?.NetworkManager != null
+                && session.NetworkManager.LocalClientId == clientId && localReady);
+
+        static bool CanSleep(ulong id) => !Network.PlayerSync.NetworkPlayer.All.Any(p => p != null && p.IsSpawned
+            && p.OwnerClientId == id && (p.State != Network.PlayerSync.PlayerState.Normal
+                || WaitingRoom.Pursuit.PursuitDirector.IsCaptured(p)));
 
         void Expired(CampaignSnapshot snapshot)
         {
@@ -380,7 +401,7 @@ namespace CurtainCall.Campaign
                 Debug.Log($"[Campaign] 세대 {next.Generation} · {next.Day}일차 · {Describe(next)}");
                 StepChanged?.Invoke(next);
             }
-            if (next.AlarmRaised && !previous.AlarmRaised && next.Phase == CampaignPhase.RestTime)
+            if (next.AlarmRaised && !previous.AlarmRaised && (next.Phase == CampaignPhase.RestTime || next.Phase == CampaignPhase.Night))
             {
                 Debug.Log($"[Campaign] 소집 경보: 쉬는 시간 {next.TimeRemaining:0}초 남음");
                 RecallAlarm?.Invoke();
@@ -400,6 +421,19 @@ namespace CurtainCall.Campaign
         {
             if (offlineRun || session == null || session.NetworkManager == null) return OfflinePlayers;
             return session.NetworkManager.ConnectedClientsIds;
+        }
+
+        bool RefreshNight(RunState current)
+        {
+            var connected = Players();
+            var normal = connected.Where(id =>
+            {
+                var player = CurtainCall.Network.PlayerSync.NetworkPlayer.All.FirstOrDefault(p => p != null && p.IsSpawned && p.OwnerClientId == id);
+                // A connected avatar which has not spawned yet is pending, not a confirmed death.
+                return player == null || (CurtainCall.Player.PlayerInteraction.CanInteract(player)
+                    && !WaitingRoom.Pursuit.PursuitDirector.IsCaptured(player));
+            }).ToArray();
+            return current.RefreshNight(connected, normal);
         }
 
         /// <summary>로그·디버그 화면용 시간대 이름.</summary>
@@ -465,7 +499,7 @@ namespace CurtainCall.Campaign
 
             if (gameState == GameSessionState.Playing && host == null)
             {
-                host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled);
+                host = new RunState(Application.version == "0.1.0", true, CurtainCall.Settings.WaitingRoomScenes.PursuitEnabled, true);
                 host.StartSession(true);
                 Apply(host.Snapshot);
             }
@@ -506,8 +540,10 @@ namespace CurtainCall.Campaign
             reader.ReadValueSafe(out int day);
             reader.ReadValueSafe(out byte phase);
             if (generation != state.Generation || day != state.Day || phase != (byte)state.Phase || !Players().Contains(sender)) return;
+            if (state.Phase == CampaignPhase.Night && value
+                && (!CurtainCall.Player.PlayerInteraction.CanInteract(sender) || !CanSleep(sender))) return;
             if (!host.SetReady(sender, value)) return;
-            host.RefreshNight(Players());
+            RefreshNight(host);
             Apply(host.Snapshot);
         }
 
@@ -525,7 +561,11 @@ namespace CurtainCall.Campaign
             if (host == null) return;
             reader.ReadValueSafe(out int generation);
             reader.ReadValueSafe(out int day);
-            if (generation != state.Generation || day != state.Day || !Players().Contains(sender)) return;
+            reader.ReadValueSafe(out byte phase);
+            reader.ReadValueSafe(out byte rest);
+            reader.ReadValueSafe(out int performance);
+            if (generation != state.Generation || day != state.Day || phase != (byte)state.Phase
+                || rest != (byte)state.Rest || performance != state.PerformanceIndex || !Players().Contains(sender)) return;
             bool changed = host.SetTutorialDone(sender);
             changed |= host.RefreshGuideRest(Players());
             if (changed) Apply(host.Snapshot);

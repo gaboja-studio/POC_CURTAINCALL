@@ -12,12 +12,15 @@ namespace CurtainCall.WaitingRoom
         /// <summary>소집 경보(종소리 + 방송)인지. 아니면 방송만.</summary>
         public readonly bool IsRecallAlarm;
         public readonly string Message;
+        public readonly string Title;
 
-        public ExplorationAnnouncement(int secondsLeft, bool isRecallAlarm, string message)
+        public ExplorationAnnouncement(int secondsLeft, bool isRecallAlarm, string message) : this(secondsLeft, isRecallAlarm, message, null) { }
+        public ExplorationAnnouncement(int secondsLeft, bool isRecallAlarm, string message, string title)
         {
             SecondsLeft = secondsLeft;
             IsRecallAlarm = isRecallAlarm;
             Message = message;
+            Title = title;
         }
     }
 
@@ -60,7 +63,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (run == null) return;
             var s = run.State;
-            float hit = cues.Step(s.Phase == CampaignPhase.RestTime && s.Timer == RestTimerState.Running, s.TimeRemaining);
+            float hit = cues.Step((s.Phase == CampaignPhase.RestTime || s.Phase == CampaignPhase.Night) && s.Timer == RestTimerState.Running, s.TimeRemaining);
             if (hit != ExplorationTimerCues.None) Raise(Mathf.RoundToInt(hit), false);
         }
 
@@ -70,11 +73,11 @@ namespace CurtainCall.WaitingRoom
 
         void Raise(int seconds, bool recall)
         {
-            var text = recall
-                ? WaitingRoomText.Format("broadcast.recall", "소집 경보! 무대 입구로 모이세요 — {seconds}초", ("seconds", seconds))
-                : WaitingRoomText.Format("broadcast.notice", "공연 {seconds}초 전입니다", ("seconds", seconds));
+            var phase = run != null ? run.State.Phase : CampaignPhase.RestTime;
+            var notice = Settings.GameSettings.WaitingRoom.Presentation(phase).Notice(recall ? 60 : seconds);
+            var text = notice.Body.Replace("{seconds}", seconds.ToString());
             Debug.Log($"[WaitingRoom] {(recall ? "소집 경보" : "방송")}: {text}");
-            Announced?.Invoke(new ExplorationAnnouncement(seconds, recall, text));
+            Announced?.Invoke(new ExplorationAnnouncement(seconds, recall, text, notice.Title.Replace("{seconds}", seconds.ToString())));
         }
     }
 }

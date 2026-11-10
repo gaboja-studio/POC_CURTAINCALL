@@ -8,10 +8,12 @@ namespace CurtainCall.Dev
 {
     public sealed partial class DevCheatPanel
     {
+        public bool ShowsPursuitControls => CampaignRun.Instance != null
+            && PursuitDirector.IsPursuitPhase(CampaignRun.Instance.State.Phase) && CommonUiSceneLoader.CurrentWaitingRoom != null;
         void DrawPursuitCheats()
         {
             var run = CampaignRun.Instance;
-            if (run == null || run.State.Phase != CampaignPhase.RestTime || CommonUiSceneLoader.CurrentWaitingRoom == null) return;
+            if (!ShowsPursuitControls) return;
             var director = PursuitDirector.Current;
             GUILayout.Space(6);
             GUILayout.Label("대기실 · 타이머 / 추격", heading);

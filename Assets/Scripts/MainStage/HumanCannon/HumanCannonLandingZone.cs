@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace CurtainCall.HumanCannon
 {
-    /// <summary>대포 발판/쉼터/쿠션 등 정상 착지를 허용할 수평 BoxCollider에 붙인다.</summary>
+    /// <summary>공통 안전 착지대. 실제 수평 윗면의 낙하 피해 면제는 BaseGameSettings에서 조정한다.</summary>
     [DisallowMultipleComponent, RequireComponent(typeof(BoxCollider))]
     public sealed class HumanCannonLandingZone : MonoBehaviour
     {

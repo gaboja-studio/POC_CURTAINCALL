@@ -173,7 +173,8 @@ namespace CurtainCall.HumanCannon
             if (player.CompleteFall(height, position,
                 () => safe && TrySpringRebound(player, index, revision, segment, position),
                 () => ApplyLanding(player.OwnerClientId, index, revision, segment, safe))) return;
-            NotifyLanding(player.OwnerClientId, index, revision, segment, position, safe);
+            // 지지면에 닿아 비행이 끝났어도 사망한 착지를 교육 성공/통과로 알리지 않는다.
+            NotifyLanding(player.OwnerClientId, index, revision, segment, position, safe && player.State == PlayerState.Normal);
             foreach (ulong client in session.NetworkManager.ConnectedClientsIds)
             {
                 if (client == NetworkManager.ServerClientId) continue;
@@ -217,6 +218,9 @@ namespace CurtainCall.HumanCannon
             LocalLastStation = index;
             if (safe) LocalSafeLandingCount++;
             if (pilot != null) pilot.CompleteLanding(index, revision, segment);
+            // 원격 소유자도 확정 착지에서 낙하를 끝낸다. 다음 바닥 프레임에
+            // 같은 비행의 최고점을 일반 낙하로 다시 보고하지 않는다.
+            boundPlayer.ResetFallTracking();
         }
     }
 }

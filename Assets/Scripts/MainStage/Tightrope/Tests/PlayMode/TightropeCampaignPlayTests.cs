@@ -27,6 +27,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
         string previousCourseJson;
         object sawSettingsSnapshotTarget;
         string previousSawsJson;
+        object poleSettings;
+        string previousPoleJson;
 
         [UnitySetUp]
         public IEnumerator SetUp()
@@ -35,6 +37,10 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             devModeCache = GameType("CurtainCall.Dev.DevMode").GetField("_enabled", BindingFlags.Static | BindingFlags.NonPublic);
             previousDevMode = devModeCache.GetValue(null);
             devModeCache.SetValue(null, false); // 실제 외줄 씬의 1인 시작 지원을 검증한다.
+            poleSettings = Static("CurtainCall.Settings.GameSettings", "Poles");
+            previousPoleJson = JsonUtility.ToJson(poleSettings);
+            if (TestContext.CurrentContext.Test.Properties.Get("PoleCapacity") is int poleCapacity)
+                JsonUtility.FromJsonOverwrite("{\"capacity\":" + poleCapacity + "}", poleSettings);
             runSettings = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Run");
             previousTimeLimit = (float)Get(runSettings, "TimeLimit");
             sawSettingsSnapshotTarget = Get(Static("CurtainCall.Settings.GameSettings", "Tightrope"), "Saws");
@@ -92,6 +98,8 @@ namespace CurtainCall.Tightrope.SystemIntegration.Tests
             if (sawSettingsSnapshotTarget != null && previousSawsJson != null)
                 JsonUtility.FromJsonOverwrite(previousSawsJson, sawSettingsSnapshotTarget);
             sawSettingsSnapshotTarget = null; previousSawsJson = null;
+            if (poleSettings != null && previousPoleJson != null) JsonUtility.FromJsonOverwrite(previousPoleJson, poleSettings);
+            poleSettings = null; previousPoleJson = null;
         }
 
         [UnityTest]

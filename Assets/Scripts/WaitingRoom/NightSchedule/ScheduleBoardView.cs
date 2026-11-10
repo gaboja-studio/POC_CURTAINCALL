@@ -175,13 +175,7 @@ namespace CurtainCall.WaitingRoom
             GUILayout.Space(6);
             if (night > 0 && run != null && run.State.Phase == CampaignPhase.Night)
             {
-                if (book.IsConfirmedTonight) GUILayout.Label("이번 밤 스케줄을 확정했습니다.");
-                else if (host)
-                {
-                    if (GUILayout.Button("확정(저장 — 확정한 일차는 다시 고칠 수 없음)", GUILayout.Height(30))) schedule.Confirm();
-                }
-                else GUILayout.Label("호스트가 스케줄을 작성하고 확정합니다.");
-
+                GUILayout.Label("고른 일정은 즉시 적용되며 공연 입장 전까지 바꿀 수 있습니다.");
                 GUILayout.Label($"준비 완료 {run.State.ReadyCount}/{run.State.RequiredCount} — 숙소 침대에 누워 준비합니다.");
             }
             if (host && !string.IsNullOrEmpty(schedule.LastMessage)) GUILayout.Label(schedule.LastMessage);
@@ -191,10 +185,7 @@ namespace CurtainCall.WaitingRoom
 
         void DrawDay(ScheduleBoard schedule, ScheduleBook book, int day, bool host)
         {
-            string state = day == 1 ? "고정"
-                : book.IsLocked(day) ? "확정"
-                : book.IsEditable(day) ? "작성 중"
-                : "";
+            string state = "";
             if (day == ScheduleBook.UnplayedDay) state = string.IsNullOrEmpty(state) ? "실행 안 함" : state + " · 실행 안 함";
 
             GUILayout.BeginVertical(GUI.skin.box);
@@ -206,14 +197,14 @@ namespace CurtainCall.WaitingRoom
                 string trick = book.Get(day, slot);
                 int level = book.Difficulty(day, slot);
                 GUILayout.Label($"공연 {slot + 1}: {(string.IsNullOrEmpty(trick) ? "—" : schedule.TrickName(trick))}{(level > 0 ? $"  ({level}단계 · {ScheduleBoard.TierRewardText(level)})" : "")}");
-                if (host && book.IsEditable(day))
+                if (host && schedule.CanEdit(day, slot))
                 {
                     GUILayout.BeginHorizontal();
                     foreach (var choice in schedule.SelectableTricks)
                     {
                         bool chosen = choice == trick;
-                        if (GUILayout.Toggle(chosen, schedule.TrickName(choice), GUI.skin.button) != chosen)
-                            schedule.Set(day, slot, chosen ? "" : choice);
+                        if (GUILayout.Toggle(chosen, schedule.TrickName(choice), GUI.skin.button) && !chosen)
+                            schedule.Set(day, slot, choice);
                     }
                     GUILayout.EndHorizontal();
                     // 깬 단계의 다음 단계까지만 고를 수 있다(M2).

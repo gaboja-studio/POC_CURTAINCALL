@@ -15,6 +15,26 @@ namespace CurtainCall.WaitingRoom
         UIInputBlocker promptBlock, placementBlock, endingBlock;
         GameObject walls;
         bool prompt;
+        bool pendingUnlockPrompt, returnToSchedule, discoveryPrompt;
+        int unlockPromptGeneration;
+        public static bool IsUnlockPromptVisible => instance != null && instance.prompt && instance.discoveryPrompt;
+
+        void OnTrickDiscovered(string trickId, ulong actor)
+        {
+            if (!Host || trickId != CampaignSnapshot.HumanCannonId || HasMastered) return;
+            pendingUnlockPrompt = true;
+            unlockPromptGeneration = CampaignRun.Instance.State.Generation;
+        }
+
+        void OfferUnlockedRehearsal()
+        {
+            if (!pendingUnlockPrompt || !Host) return;
+            if (CampaignRun.Instance.State.Generation != unlockPromptGeneration || !CampaignRun.Instance.State.CannonUnlocked || HasMastered) { pendingUnlockPrompt = false; return; }
+            if (!CanStart) return;
+            pendingUnlockPrompt = false;
+            returnToSchedule = false; discoveryPrompt = true; prompt = true;
+            FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(false);
+        }
         int endingRound = -1, returnedRound = -1, notifiedRound = -1;
         double returnAt;
         PlayerMover endingMover;
@@ -53,6 +73,17 @@ namespace CurtainCall.WaitingRoom
             return true;
         }
 
+        /// <summary>확정 단계 없이 인간대포를 처음 선택하면 기존 리허설 안내를 연다.</summary>
+        public static bool RequireBeforeSelection(string trickId)
+        {
+            var r = instance;
+            if (trickId != CampaignSnapshot.HumanCannonId || r == null || HasMastered) return false;
+            r.returnToSchedule = true; r.discoveryPrompt = false; r.pendingUnlockPrompt = false;
+            FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(false);
+            r.prompt = true;
+            return true;
+        }
+
         public static void AnswerSchedulePrompt(bool yes)
         {
             var r = instance;
@@ -62,7 +93,7 @@ namespace CurtainCall.WaitingRoom
             {
                 if (!StartPractice()) WaitingRoomGuidePanel.Show(T("title", "인간대포 리허설"), T("unavailable", "연습실을 준비하지 못했습니다. 잠시 뒤 스케줄표에서 다시 시도하세요."), 5f);
             }
-            else FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(true);
+            else if (r.returnToSchedule) FindFirstObjectByType<ScheduleBoardView>()?.SetOpen(true);
         }
 
         void TickUi()
@@ -72,8 +103,8 @@ namespace CurtainCall.WaitingRoom
             promptBlock.SetOpen(prompt && !shared.active);
             if (prompt && !shared.active)
             {
-                votePanel.Show(T("required-title", "인간대포 리허설"),
-                    T("required", "인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?"),
+                votePanel.Show(discoveryPrompt ? T("unlocked-title", "새 공연 해금 · 인간대포 리허설") : T("required-title", "인간대포 리허설"),
+                    discoveryPrompt ? T("unlocked-body", "인간대포 공연이 해금되었습니다. 지금 리허설로 이동할까요?") : T("required", "인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?"),
                     new RehearsalVotePanel.Choice(T("yes", "예"), true, () => AnswerSchedulePrompt(true)),
                     new RehearsalVotePanel.Choice(T("no", "아니오"), true, () => AnswerSchedulePrompt(false)));
                 return;
@@ -151,9 +182,6 @@ namespace CurtainCall.WaitingRoom
             if (shared.ending) return;
             shared.ending = true; shared.successful = success; shared.skipped = skipped; shared.mastered |= success; shared.endAt = Clock + 3d;
             RecordAction("ENDING", reason: skipped ? "MAJORITY_SKIP" : success ? "ALL_ARRIVED" : "MAJORITY_ABANDON");
-            foreach (var player in NetworkPlayer.All)
-                if (player != null && player.IsSpawned && player.State == PlayerState.Fallen && conditions.TryGetValue(player.OwnerClientId, out var condition))
-                    player.ServerRestoreCondition(condition);
             Publish();
         }
 
@@ -173,11 +201,15 @@ namespace CurtainCall.WaitingRoom
             if (returnedRound != shared.round && Clock >= returnAt && FindRoom())
             {
                 var p = NetworkPlayer.Local;
-                if (p != null && p.IsSpawned && p.State == PlayerState.Normal && p.TryGetComponent(out PlayerMover mover))
+                if (p != null && p.IsSpawned && p.TryGetComponent(out PlayerMover mover))
                 {
                     CaptureEndingMover();
+                    bool normal = p.State == PlayerState.Normal;
+                    bool bodyEnabled = mover.Body != null && mover.Body.enabled;
                     mover.SetStartPose(returnPose.position, returnPose.rotation, true);
-                    CurtainCall.Cameras.CameraViewDirector.Current?.SetLookRotation(returnPose.rotation);
+                    if (!normal && mover.Body != null) mover.Body.enabled = bodyEnabled;
+                    if (!normal) mover.SetControlEnabled(false);
+                    if (normal) CurtainCall.Cameras.CameraViewDirector.Current?.SetLookRotation(returnPose.rotation);
                     // 종료 상태를 받을 때까지 복귀 위치에서 서로 밀리지 않게 고정한다.
                     mover.Simulated = false;
                     returnedRound = shared.round;
@@ -190,9 +222,9 @@ namespace CurtainCall.WaitingRoom
                 if (notifiedRound == shared.round) return;
                 notifiedRound = shared.round;
                 WaitingRoomGuidePanel.Show(T("end-title", "리허설 종료"), shared.skipped
-                    ? T("skipped", "리허설을 넘겼습니다. 이수로 기록되어 스케줄표에서 인간대포를 확정할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
+                    ? T("skipped", "리허설을 넘겼습니다. 이수로 기록되어 인간대포 공연을 선택할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
                     : shared.successful
-                    ? T("complete", "인간대포 리허설을 이수했습니다. 이제 스케줄표에서 인간대포를 확정할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
+                    ? T("complete", "인간대포 리허설을 이수했습니다. 이제 인간대포 공연을 선택할 수 있습니다. 연습실 기물의 F로 다시 연습할 수 있습니다.")
                     : T("abandoned", "리허설을 포기했습니다. 이번 시도는 이수로 기록되지 않고, 다시 시작하면 처음부터 진행합니다."), 10f);
                 if (shared.successful)
                     quest.Show("[tutorial] 리허설 종료", T("complete", "인간대포 리허설을 완료했습니다. 이제 인간대포 공연을 진행할 수 있습니다."));
@@ -208,9 +240,8 @@ namespace CurtainCall.WaitingRoom
             // before taking the ending lock, otherwise Detach unlocks early and we restore false.
             if (player.TryGetComponent(out HumanCannonPilot pilot)) pilot.ReleaseMovement();
             endingMover = mover;
-            // The reliable ending message may precede the revival NetworkVariable on a remote owner.
-            restoreControl = player.State == PlayerState.Fallen || mover.ControlEnabled;
-            restoreSimulation = player.State == PlayerState.Fallen || mover.Simulated;
+            restoreControl = player.State == PlayerState.Normal && mover.ControlEnabled;
+            restoreSimulation = mover.Simulated;
             mover.SetControlEnabled(false); mover.Simulated = false;
         }
 
@@ -219,7 +250,8 @@ namespace CurtainCall.WaitingRoom
             if (endingBlock != null) endingBlock.SetOpen(false);
             if (placementBlock != null && !shared.active) placementBlock.SetOpen(false);
             if (endingMover == null) return;
-            endingMover.SetControlEnabled(restoreControl); endingMover.Simulated = restoreSimulation; endingMover = null;
+            bool normal = endingMover.TryGetComponent(out NetworkPlayer player) && player.State == PlayerState.Normal;
+            endingMover.SetControlEnabled(normal && restoreControl); endingMover.Simulated = restoreSimulation; endingMover = null;
         }
     }
 }

@@ -156,11 +156,15 @@ namespace CurtainCall.Settings
                 [Tooltip("제한 없음이 꺼져 있을 때 사용하는 실제 초. 하루 시계의 시작·끝 시각과 별개입니다.")]
                 [SerializeField, Min(1f), InspectorName("제한시간(초)")] float seconds = 300f;
 
+                [Tooltip("이 시간대에 탐색 통로의 문을 잠그고 탐색 구역 전원을 차단합니다. 플레이 중 변경도 즉시 반영됩니다.")]
+                [SerializeField, InspectorName("탐색 잠금")] bool explorationLocked;
+
                 public RestTimeLimitSettings() { }
                 public RestTimeLimitSettings(bool unlimited, float seconds = 300f)
                 { this.unlimited = unlimited; this.seconds = seconds; }
 
                 public bool Unlimited => unlimited;
+                public bool ExplorationLocked => explorationLocked;
                 public float Seconds => float.IsNaN(seconds) || float.IsInfinity(seconds) ? 300f : Mathf.Max(1f, seconds);
             }
 
@@ -172,13 +176,13 @@ namespace CurtainCall.Settings
                     morningRest = new RestTimeLimitSettings(false, restDuration);
                     noonRest = new RestTimeLimitSettings(false, restDuration);
                     guideRest = new RestTimeLimitSettings(false, guideRestDuration);
-                    nightMaintenance = new RestTimeLimitSettings(true);
+                    nightMaintenance = new RestTimeLimitSettings(false);
                     timeLimitsMigrated = true;
                 }
                 morningRest ??= new RestTimeLimitSettings(false, restDuration);
                 noonRest ??= new RestTimeLimitSettings(false, restDuration);
                 guideRest ??= new RestTimeLimitSettings(false, guideRestDuration);
-                nightMaintenance ??= new RestTimeLimitSettings(true);
+                nightMaintenance ??= new RestTimeLimitSettings(false);
             }
 
             public void OnBeforeSerialize() => EnsureTimeLimits();
@@ -198,6 +202,13 @@ namespace CurtainCall.Settings
             public RestTimeLimitSettings NightMaintenance { get { EnsureTimeLimits(); return nightMaintenance; } }
             public float RestDuration => NoonRest.Seconds;
             public float GuideRestDuration => GuideRest.Seconds;
+
+            public bool IsExplorationLocked(CurtainCall.Campaign.CampaignSnapshot state) => state.Phase switch
+            {
+                CurtainCall.Campaign.CampaignPhase.Night => NightMaintenance.ExplorationLocked,
+                CurtainCall.Campaign.CampaignPhase.RestTime => TimeLimit(state.Rest).ExplorationLocked,
+                _ => false,
+            };
 
             public RestTimeLimitSettings TimeLimit(CurtainCall.Campaign.RestKind rest) => rest switch
             {
@@ -314,9 +325,12 @@ namespace CurtainCall.Settings
         [Serializable]
         public sealed class InteractionSettings
         {
-            [SerializeField, Min(.1f), Tooltip("일반 물체 잡기·탑승·버튼·도구 접촉의 공통 거리(m). 대상의 기준점/외곽에서 측정한다.")]
+            [SerializeField, Min(.1f), Tooltip("일반 물체 잡기·탑승·버튼·도구 접촉의 공통 거리(m). 플레이어 몸 중심과 대상의 실제 상호작용 지점 사이 3차원 거리이며 벽/층으로 가려지면 닿지 않는다. 팔 부상 배율은 별도 적용. 기본 2.5m.")]
             float distance = 2.5f;
+            [InspectorName("구조 대상 먼저 선택"), Tooltip("F를 처음 누를 때 구조할 동료를 일반 물건보다 먼저 선택한다. 끄면 구조 대상도 일반 물건과 함께 가까운 순서로 선택한다. 이미 잡거나 사용 중인 대상은 항상 우선하며 F 한 번에는 하나만 반응한다. 기본 켬.")]
+            [SerializeField] bool prioritizeRescue = true;
             public float Distance => Mathf.Max(.1f, distance);
+            public bool PrioritizeRescue => prioritizeRescue;
         }
 
         [Serializable]
@@ -324,6 +338,7 @@ namespace CurtainCall.Settings
         {
             [SerializeField, Min(0f), Tooltip("봉·대포·트램펄린 비행 중 입력으로 더하는 수평 조절 속도(m/s). 발사 속도와 별개다.")]
             float speed = 3f;
+            [Tooltip("봉·대포·트램펄린 비행의 수평 조절이 입력 방향을 따라가는 반응 시간(초). 작을수록 빠르게 방향을 바꾼다. 기본 0.1초.")]
             [SerializeField, Min(.001f)] float responseSeconds = .1f;
             [SerializeField, Min(0f), Tooltip("봉 도약 직후 반동을 주던 W/S가 공중 조절로 겹치지 않는 유예.")]
             float pumpReleaseGrace = .15f;
@@ -472,12 +487,29 @@ namespace CurtainCall.Settings
         public sealed class BodyDamageSettings
         {
             [Header("공통 위험물·낙하")]
+            [InspectorName("위험물 피해 간격"), Tooltip("한 플레이어가 일반 위험물로 다시 다칠 수 있는 최소 간격(초). 서로 다른 톱·일반 화염도 이 간격을 공유한다. 즉사형 위험물에는 적용하지 않는다. 기본 1초.")]
             [SerializeField, Min(0f)] float hazardHitCooldown = 1f;
-            [SerializeField, Min(0f)] float fallInjuryHeight = 3f;
-            [SerializeField, Min(0f)] float fallDeathHeight = 5f;
+            [InspectorName("일반 위험물 절단 개수"), Tooltip("톱·일반 화염 등에 한 번 다칠 때 잃는 사지 수(개, 1~4). 정해진 절단 순서대로 적용하며 남은 사지를 모두 잃으면 사망한다. 즉사형 화염은 별도다. 기본 1개.")]
+            [SerializeField, Range(1, 4)] int hazardCutCount = 1;
+            [InspectorName("부상 낙하 높이"), Tooltip("낙하 최고점에서 착지한 발 위치까지의 높이 차이가 이 값 이상이면 낙하 부상(m). 일반 바닥·외줄에서 바닥으로 추락·대포 착지에 공통 적용. 신발 반동이 먼저 성공하면 피해를 막는다. 기본 4m.")]
+            [SerializeField, Min(0f)] float fallInjuryHeight = 4f;
+            [InspectorName("낙하 부상 절단 개수"), Tooltip("부상 높이 이상·사망 높이 미만으로 착지할 때 잃는 사지 수(개, 1~4). 이미 다친 상태에서는 남은 사지를 모두 잃어 사망할 수 있다. 기본 2개.")]
+            [SerializeField, Range(1, 4)] int fallInjuryCutCount = 2;
+            [InspectorName("사망 낙하 높이"), Tooltip("이 높이 이상 떨어져 착지하면 사망(m). 실제 적용값은 부상 낙하 높이보다 낮아지지 않는다. 신발 반동이 먼저 성공하면 피해를 막는다. 기본 6m.")]
+            [SerializeField, Min(0f)] float fallDeathHeight = 6f;
+            [SerializeField, InspectorName("외줄 착지 낙하 피해 면제")]
+            [Tooltip("실제로 외줄 위에 정상 착지하면 높이에 관계없이 낙하 부상·사망 없이 줄을 탄다. 모든 씬 공통. 줄에서 떨어져 아래 바닥에 착지한 경우에는 일반 낙하 높이 기준을 적용한다. 기본 켬.")]
+            bool safeRopeLanding = true;
+            [SerializeField, InspectorName("안전 착지대 낙하 피해 면제")]
+            [Tooltip("안전 착지대(HumanCannonLandingZone)의 실제 윗면에 착지하면 높이와 관계없이 낙하 피해를 받지 않는다. 대포·봉·일반 낙하 모두 공통이며 기존 부상을 회복하지 않는다. 일반 바닥·착지대 밖·비활성 착지대와 직접 위험물은 보호하지 않는다. 기본 켬.")]
+            bool safeLandingZones = true;
             public float HazardHitCooldown => Mathf.Max(0f, hazardHitCooldown);
+            public int HazardCutCount => Mathf.Clamp(hazardCutCount, 1, 4);
+            public int FallInjuryCutCount => Mathf.Clamp(fallInjuryCutCount, 1, 4);
             public float FallInjuryHeight => Mathf.Max(0f, fallInjuryHeight);
             public float FallDeathHeight => Mathf.Max(FallInjuryHeight, fallDeathHeight);
+            public bool SafeRopeLanding => safeRopeLanding;
+            public bool SafeLandingZones => safeLandingZones;
 
             [Tooltip("[폐기 예정] 외줄 묘기 재시작 때 잃은 부위 처리(프로토타입 시험용). 기획상 재시작이 없어 외줄 재시작이 사라지면 지운다. 생존자 유지 = 살아 있던 사람은 그대로·사망자만 복구, 모두 복구 = 전원 온전한 몸.")]
             [SerializeField] BodyRestartRecovery restartRecovery = BodyRestartRecovery.KeepSurvivors;

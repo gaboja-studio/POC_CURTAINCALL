@@ -48,6 +48,7 @@ namespace CurtainCall.WaitingRoom
         readonly string[,] slots = new string[Days, SlotsPerDay];
         readonly int[,] tiers = new int[Days, SlotsPerDay];
         readonly bool[] locked = new bool[Days];
+        readonly bool[,] chosen = new bool[Days, SlotsPerDay];
         // 첫날 둘째 공연(CC-215): 첫 공연 뒤 대기실 안내가 끝나면 호스트가 고르고 확정한다. 첫 공연 칸은 늘 고정.
         bool firstDayChoiceOpen, firstDayConfirmed;
 
@@ -88,7 +89,7 @@ namespace CurtainCall.WaitingRoom
         public bool FirstDayChoiceOpen => firstDayChoiceOpen;
         /// <summary>첫날 둘째 공연을 확정했다.</summary>
         public bool FirstDayConfirmed => firstDayConfirmed;
-        public bool IsFirstDaySecondEditable => firstDayChoiceOpen && !firstDayConfirmed;
+        public bool IsFirstDaySecondEditable => firstDayChoiceOpen;
 
         public void SetFirstDayChoiceOpen(bool open)
         {
@@ -101,10 +102,7 @@ namespace CurtainCall.WaitingRoom
         public bool IsEditable(int day)
         {
             if (day == 1) return IsFirstDaySecondEditable;
-            if (Night == 0 || IsConfirmedTonight || IsLocked(day)) return false;
-            foreach (int d in EditableDays(Night))
-                if (d == day) return true;
-            return false;
+            return day > 1 && day <= PerformanceDays;
         }
 
         /// <summary>1일차 밤 2·3, 2일차 밤 3. 이후는 편성 없음.</summary>
@@ -139,7 +137,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (Night == day) return;
             Night = day;
-            IsConfirmedTonight = EditableDays(day).Length == 0; // 쓸 일차가 없는 밤은 확정할 것도 없다.
+            IsConfirmedTonight = false;
             Revision++;
         }
 
@@ -161,15 +159,14 @@ namespace CurtainCall.WaitingRoom
         public ScheduleRefusal Set(int day, int slot, string trickId, int tier, int maxTier)
         {
             if (day == 1) return SetFirstDaySecond(slot, trickId);
-            if (Night == 0) return ScheduleRefusal.NotNight;
             if (!InRange(day, slot)) return ScheduleRefusal.BadSlot;
-            if (IsConfirmedTonight) return ScheduleRefusal.AlreadyConfirmed;
             if (!IsEditable(day)) return ScheduleRefusal.NotEditable;
-            if (!string.IsNullOrEmpty(trickId) && !IsChoice(trickId)) return ScheduleRefusal.UnknownTrick;
+            if (string.IsNullOrEmpty(trickId) || !IsChoice(trickId)) return ScheduleRefusal.UnknownTrick;
             string value = trickId ?? "";
             if (value != "" && (tier < 1 || tier > Math.Min(MaxDifficulty, Math.Max(1, maxTier)))) return ScheduleRefusal.BadTier;
 
             int level = value == "" ? 1 : tier;
+            chosen[day - 1, slot] = true;
             if (slots[day - 1, slot] == value && tiers[day - 1, slot] == level) return ScheduleRefusal.None;
             slots[day - 1, slot] = value;
             tiers[day - 1, slot] = level;
@@ -181,9 +178,9 @@ namespace CurtainCall.WaitingRoom
         ScheduleRefusal SetFirstDaySecond(int slot, string trickId)
         {
             if (slot != 1) return ScheduleRefusal.BadSlot;
-            if (firstDayConfirmed) return ScheduleRefusal.AlreadyConfirmed;
             if (!firstDayChoiceOpen) return ScheduleRefusal.NotEditable;
             if (string.IsNullOrEmpty(trickId) || !IsChoice(trickId)) return ScheduleRefusal.UnknownTrick;
+            chosen[0, 1] = true;
             if (slots[0, 1] == trickId) return ScheduleRefusal.None;
             slots[0, 1] = trickId;
             tiers[0, 1] = 1;
@@ -194,10 +191,7 @@ namespace CurtainCall.WaitingRoom
         /// <summary>첫날 둘째 공연을 확정한다. 그 뒤에는 바꿀 수 없다.</summary>
         public ScheduleRefusal ConfirmFirstDay()
         {
-            if (firstDayConfirmed) return ScheduleRefusal.AlreadyConfirmed;
             if (!firstDayChoiceOpen) return ScheduleRefusal.NotEditable;
-            firstDayConfirmed = true;
-            Revision++;
             return ScheduleRefusal.None;
         }
 
@@ -218,17 +212,24 @@ namespace CurtainCall.WaitingRoom
         /// <summary>이번 밤 작성을 확정한다. 쓸 칸이 모두 차 있어야 하고, 확정하면 <see cref="LockedOnConfirm"/> 일차가 잠긴다.</summary>
         public ScheduleRefusal Confirm()
         {
-            if (Night == 0) return ScheduleRefusal.NotNight;
-            if (IsConfirmedTonight) return ScheduleRefusal.AlreadyConfirmed;
-            foreach (int d in EditableDays(Night))
-                for (int i = 0; i < SlotsPerDay; i++)
-                    if (string.IsNullOrEmpty(slots[d - 1, i])) return ScheduleRefusal.Incomplete;
-
-            int lockDay = LockedOnConfirm(Night);
-            if (lockDay > 0) locked[lockDay - 1] = true;
-            IsConfirmedTonight = true;
-            Revision++;
+            // 구 도구의 호출 호환성만 유지한다. 선택은 즉시 적용되며 확정·잠금 상태를 만들지 않는다.
             return ScheduleRefusal.None;
+        }
+
+        /// <summary>아직 직접 고르지 않은 미래 칸은 최근 해금·리허설을 마친 공연을 기본으로 쓴다.</summary>
+        public bool FillUpcomingDefaults(string trickId, int day, int slot)
+        {
+            if (!IsChoice(trickId)) return false;
+            bool changed = false;
+            for (int d = Math.Max(1, day); d <= PerformanceDays; d++)
+                for (int i = 0; i < SlotsPerDay; i++)
+                {
+                    if (d == 1 && i == 0 || d == day && i < slot || chosen[d - 1, i]) continue;
+                    if (slots[d - 1, i] == trickId) continue;
+                    slots[d - 1, i] = trickId; tiers[d - 1, i] = 1; changed = true;
+                }
+            if (changed) Revision++;
+            return changed;
         }
 
         /// <summary>그 칸 공연의 고른 난이도 단계(1~3). 1일차는 1, 빈 칸은 0.</summary>
@@ -284,15 +285,15 @@ namespace CurtainCall.WaitingRoom
                 for (int i = 0; i < SlotsPerDay; i++)
                 {
                     string value = flatSlots[d * SlotsPerDay + i] ?? "";
-                    slots[d, i] = d == 0 ? (i == 1 && IsChoice(value) ? value : firstDay[i]) : d >= PerformanceDays ? "" : (value == "" || IsChoice(value) ? value : "");
+                    slots[d, i] = d == 0 ? (i == 1 && IsChoice(value) ? value : firstDay[i]) : d >= PerformanceDays ? "" : (IsChoice(value) ? value : firstDay[0]);
                     tiers[d, i] = d == 0 || flatTiers == null ? 1 : Math.Clamp(flatTiers[d * SlotsPerDay + i], 1, MaxDifficulty);
                 }
-                locked[d] = d == 0 || (d < PerformanceDays && lockedDays[d]);
+                locked[d] = false;
             }
             Night = night >= 0 && night <= Days ? night : 0;
-            IsConfirmedTonight = confirmedTonight || (Night > 0 && EditableDays(Night).Length == 0);
+            IsConfirmedTonight = false;
             firstDayChoiceOpen = firstDayOpen;
-            firstDayConfirmed = firstDayDone;
+            firstDayConfirmed = false;
             Revision++;
             return true;
         }
@@ -304,10 +305,11 @@ namespace CurtainCall.WaitingRoom
             {
                 for (int i = 0; i < SlotsPerDay; i++)
                 {
-                    slots[d, i] = d == 0 ? firstDay[i] : "";
+                    slots[d, i] = d == 0 ? firstDay[i] : d < PerformanceDays ? firstDay[0] : "";
                     tiers[d, i] = 1;
+                    chosen[d, i] = false;
                 }
-                locked[d] = d == 0;
+                locked[d] = false;
             }
             Night = 0;
             IsConfirmedTonight = false;
