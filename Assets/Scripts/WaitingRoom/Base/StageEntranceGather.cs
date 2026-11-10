@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using CurtainCall.Campaign;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using CurtainCall.Survival;
 using UnityEngine;
 
@@ -137,12 +138,21 @@ namespace CurtainCall.WaitingRoom
                 return;
             }
             // 성공적으로 전환했을 때만 알림을 확정한다. 튜토리얼 대기 중 거절됐다면 완료 뒤 다시 시도한다.
-            if (notified || AliveCount == 0 || InsideCount < AliveCount) return;
+            if (notified || AliveCount == 0 || InsideCount < AliveCount || MustWaitForTutorialRecovery()) return;
 
             if (!run.NotifyAllAtStageEntrance()) return;
             notified = true;
             Debug.Log($"[WaitingRoom] ⑥ 전원 집결 {InsideCount}/{AliveCount} → 공연 전환");
             Gathered?.Invoke();
+        }
+
+        bool MustWaitForTutorialRecovery()
+        {
+            if (!WaitingRoomRehearsal.UsesInitialTutorialRules || !GameSettings.WaitingRoom.Tutorial.WaitForRecoveryBeforePerformance)
+                return false;
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && player.State == PlayerState.Fallen) return true;
+            return false;
         }
 
         void Count()

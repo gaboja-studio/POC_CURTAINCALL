@@ -27,7 +27,9 @@ namespace CurtainCall.WaitingRoom
         public static string UnscheduledTitle => WaitingRoomText.Get("night.bed-title", "잠자기");
         public static string UnscheduledNotice => WaitingRoomText.Get("night.bed-unscheduled-notice", "하루 일정이 마무리되지 않았습니다. 스케줄표에서 다음날 일정을 정리해주세요.");
 
-        public bool IsAvailable => IsNight(out var run) && (run.IsLocalReady || ScheduleReady);
+        public bool IsAvailable => LocalCanInteract && IsNight(out var run) && (run.IsLocalReady || ScheduleReady);
+        static bool LocalCanInteract => CurtainCall.Network.PlayerSync.NetworkPlayer.Local == null
+            || PlayerInteraction.CanInteract(CurtainCall.Network.PlayerSync.NetworkPlayer.Local);
         public string ActionLabel => !IsNight(out var run) ? WaitingRoomText.Get("night.bed-not-night", "밤 정비 때 쓸 수 있습니다")
             : run.IsLocalReady ? WaitingRoomText.Format("night.bed-get-up", "일어나기 (준비 취소 · {ready}/{total})", ("ready", run.State.ReadyCount), ("total", run.State.RequiredCount))
             : !ScheduleReady ? WaitingRoomText.Get("night.bed-need-schedule", "스케줄표 일정 확정 전에는 잘 수 없습니다")
@@ -65,7 +67,7 @@ namespace CurtainCall.WaitingRoom
 
         public void Interact()
         {
-            if (!IsNight(out var run)) return;
+            if (!LocalCanInteract || !IsNight(out var run)) return;
             if (!IsAvailable) { WaitingRoomTutorial.ShowNotice(UnscheduledTitle, UnscheduledNotice); return; }
             if (!run.IsLocalReady)
             {

@@ -573,6 +573,7 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>모두 재시작: 내 캐릭터는 균형 초기화·출발점 순간이동·조작 해제, 남의 캐릭터는 래그돌만 되돌린다(위치는 소유자가 보냄).</summary>
         void HandleRestart(int previous, int current)
         {
+            ResetFallTracking();
             if (IsOwner)
             {
                 if (balance != null) balance.ResetBalance(); // 래그돌 복구도 함께(BalanceReset)
@@ -589,6 +590,7 @@ namespace CurtainCall.Network.PlayerSync
         /// <summary>되살아남(외팔 부활·세대 교체): 래그돌·균형을 되돌리고 조작을 푼다. 재시작과 달리 출발점으로 옮기지 않는다.</summary>
         void HandleRevive(int previous, int current)
         {
+            ResetFallTracking();
             if (IsOwner)
             {
                 if (balance != null) balance.ResetBalance(); // 래그돌 복구도 함께(BalanceReset)
@@ -600,14 +602,28 @@ namespace CurtainCall.Network.PlayerSync
                 ragdoll.Restore();
             }
             Revived?.Invoke(this);
+            // Normal 상태가 부활 번호보다 먼저 수신되면 복귀 콜백은 이전 번호로
+            // 위치를 보냈을 수 있다. 새 번호를 받은 뒤 최종 위치를 다시 공유한다.
+            if (IsOwner && State == PlayerState.Normal) SendTeleport();
         }
 
         /// <summary>내 캐릭터가 순간이동하면 다른 화면에서도 보간 없이 옮긴다.</summary>
         void SendTeleport()
         {
-            if (IsOwner && IsSpawned) ResetFallTeleportRpc(transform.position, RestartVersion);
+            if (IsOwner && IsSpawned) ResetFallTeleportRpc(transform.position, RestartVersion, reviveCount.Value);
+            if (IsOwner && IsSpawned && State == PlayerState.Fallen)
+                RelocateRagdollRpc(transform.position, RestartVersion, reviveCount.Value);
             if (networkTransform != null && networkTransform.IsSpawned && networkTransform.CanCommitToTransform)
                 networkTransform.Teleport(transform.position, transform.rotation, transform.localScale);
+        }
+
+        [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Owner)]
+        void RelocateRagdollRpc(Vector3 feet, int restart, int revive, RpcParams rpcParams = default)
+        {
+            if (rpcParams.Receive.SenderClientId != OwnerClientId || State != PlayerState.Fallen
+                || restart != RestartVersion || revive != reviveCount.Value
+                || !float.IsFinite(feet.x) || !float.IsFinite(feet.y) || !float.IsFinite(feet.z)) return;
+            ragdoll?.Relocate(feet);
         }
 
         /// <summary>내 캐릭터만 키 입력을 받고 이동·균형을 계산한다.</summary>

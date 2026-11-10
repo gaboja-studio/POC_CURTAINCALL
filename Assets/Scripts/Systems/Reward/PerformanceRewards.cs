@@ -422,6 +422,14 @@ namespace CurtainCall.Reward
             Publish(); return true;
         }
 
+        /// <summary>호스트가 이미 결제한 미수행 구매분만 같은 세대의 공동 자금에 반환한다.</summary>
+        public bool TryRefundPurchase(long amount, int generation, string description)
+        {
+            if (!HasAuthority || model == null || campaign == null || generation != campaign.State.Generation
+                || model.Generation != generation || !model.GrantIncome(amount, campaign.State.Day, description)) return false;
+            Publish(); return true;
+        }
+
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         /// <summary>디버그 전용 공동 자금 입금(판정 화면만). 참가자는 대기실 상점 요청으로 판정 화면에 맡긴다.</summary>
         public bool TryDebugGrant(long amount)

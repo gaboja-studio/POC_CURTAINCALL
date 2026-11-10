@@ -11,6 +11,48 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
     /// <summary>실제 제한시간은 일정 표시와 독립이며, 밤 정비 만료는 잡힘 없이 수면으로 넘어간다.</summary>
     public sealed class RunTimeLimitTests
     {
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void NightPreparationExcludesDeadButDawnStillWaitsForEveryConnectedScreen()
+        {
+            var oldGate = RunState.NightEndGate;
+            try
+            {
+                RunState.NightEndGate = () => true;
+                var run = Start(1, RunStartPhase.Night, true);
+                var connected = new ulong[] { 1, 2 };
+                run.SetReady(1, true);
+                Assert.IsTrue(run.RefreshNight(connected, new ulong[] { 1 }));
+                Assert.AreEqual(CampaignPhase.Dawn, run.Snapshot.Phase);
+                run.SetReady(1, true);
+                run.RefreshNight(connected, new ulong[] { 1 });
+                Assert.AreEqual(CampaignPhase.Dawn, run.Snapshot.Phase);
+                Assert.AreEqual(2, run.Snapshot.RequiredCount);
+                run.SetReady(2, true);
+                run.RefreshNight(connected, new ulong[] { 1 });
+                Assert.AreEqual(CampaignPhase.RestTime, run.Snapshot.Phase);
+            }
+            finally { RunState.NightEndGate = oldGate; }
+        }
+
+        [Test, Category("WaitingRoomCommonRecovery")]
+        public void AllDeadNightUsesTimeoutCompletionButLivingPartyStillNeedsSchedule()
+        {
+            var oldGate = RunState.NightEndGate;
+            try
+            {
+                RunState.NightEndGate = () => false;
+                var run = Start(1, RunStartPhase.Night, true);
+                run.SetReady(1, true);
+                run.RefreshNight(new ulong[] { 1, 2 }, new ulong[] { 1 });
+                Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase, "생존자가 있으면 스케줄 확정 조건 유지");
+                run.RefreshNight(System.Array.Empty<ulong>(), System.Array.Empty<ulong>());
+                Assert.AreEqual(CampaignPhase.Night, run.Snapshot.Phase, "빈 세션은 자동 진행하지 않는다.");
+                run.RefreshNight(new ulong[] { 1, 2 }, System.Array.Empty<ulong>());
+                Assert.AreEqual(CampaignPhase.Dawn, run.Snapshot.Phase, "전원 사망은 기존 시간 만료와 같은 밤 종료");
+                Assert.AreEqual(1, run.Snapshot.Generation);
+            }
+            finally { RunState.NightEndGate = oldGate; }
+        }
         BaseGameSettings.RunSettings rules;
         string original;
 

@@ -51,11 +51,12 @@ namespace CurtainCall.Settings.EditorTools.Tests
                 typeof(InputGate).GetMethod("Reset", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Invoke(null, null);
             }
         }
-        [TestCase(2.999f, FallOutcome.Safe)]
-        [TestCase(3f, FallOutcome.Injured)]
-        [TestCase(4.999f, FallOutcome.Injured)]
-        [TestCase(5f, FallOutcome.Dead)]
+        [TestCase(3.999f, FallOutcome.Safe)]
+        [TestCase(4f, FallOutcome.Injured)]
+        [TestCase(5.999f, FallOutcome.Injured)]
+        [TestCase(6f, FallOutcome.Dead)]
         [TestCase(50f, FallOutcome.Dead)]
+        [Category("TutorialCommonRules")]
         public void FallThresholdsIncludeTheirLowerBoundary(float height, FallOutcome expected)
             => Assert.That(CommonDamageRules.Fall(height), Is.EqualTo(expected));
 

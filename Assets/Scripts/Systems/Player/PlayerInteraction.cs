@@ -1,5 +1,6 @@
 using System;
 using CurtainCall.Settings;
+using CurtainCall.Network.PlayerSync;
 using UnityEngine;
 
 namespace CurtainCall.Player
@@ -10,6 +11,18 @@ namespace CurtainCall.Player
     /// </summary>
     public class PlayerInteraction : MonoBehaviour
     {
+        /// <summary>공통 행동 자격. 네트워크 단원은 보통 상태일 때만 상호작용한다.</summary>
+        public static bool CanInteract(Component actor) => actor != null
+            && (!actor.TryGetComponent<NetworkPlayer>(out var player) || player.IsSpawned && player.State == PlayerState.Normal);
+
+        /// <summary>호스트가 클라이언트 요청을 검사한다. 단원이 없는 단독 제작 씬은 기존 오프라인 동작을 유지한다.</summary>
+        public static bool CanInteract(ulong actor)
+        {
+            foreach (var player in NetworkPlayer.All)
+                if (player != null && player.IsSpawned && player.OwnerClientId == actor) return player.State == PlayerState.Normal;
+            return NetworkPlayer.All.Count == 0 && (CurtainCall.Network.Session.NetworkSessionManager.Instance == null
+                || CurtainCall.Network.Session.NetworkSessionManager.Instance.ConnectionState == CurtainCall.Network.Session.SessionConnectionState.Offline);
+        }
         /// <summary>몸 상태를 읽어 호스트·클라이언트가 같은 근접 상호작용 거리를 사용한다.</summary>
         public static float RestrictReach(float distance, Component actor)
         {

@@ -113,7 +113,7 @@ namespace CurtainCall.Campaign
             {
                 if (!state.IsRunning) return;
                 bool changed = (state.Phase == CampaignPhase.Night || state.Phase == CampaignPhase.Dawn
-                    || state.Phase == CampaignPhase.DemoEnding) && host.RefreshNight(Players());
+                    || state.Phase == CampaignPhase.DemoEnding) && RefreshNight(host);
                 if (host.IsGuideRestWaiting) changed |= host.RefreshGuideRest(Players());
                 changed |= host.Tick(Time.deltaTime, Expired);
                 if (changed) Apply(host.Snapshot);
@@ -291,6 +291,12 @@ namespace CurtainCall.Campaign
         {
             if (state.Phase != CampaignPhase.Night && state.Phase != CampaignPhase.Dawn && state.Phase != CampaignPhase.DemoEnding) return false;
             if (state.Phase != CampaignPhase.Night && !value) return false;
+            if (state.Phase == CampaignPhase.Night && value)
+            {
+                var local = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
+                if (local != null ? !CurtainCall.Player.PlayerInteraction.CanInteract(local)
+                    : session != null && session.ConnectionState != SessionConnectionState.Offline) return false;
+            }
             bool changedReady = localReady != value;
             localReady = value;
             if (changedReady && state.Phase == CampaignPhase.Night && LocalReadyChanged != null)
@@ -303,7 +309,7 @@ namespace CurtainCall.Campaign
                 return HostDo(r =>
                 {
                     bool changed = r.SetReady(me, value);
-                    r.RefreshNight(Players());
+                    RefreshNight(r);
                     return changed;
                 }, nameof(SetReady));
             }
@@ -400,6 +406,18 @@ namespace CurtainCall.Campaign
         {
             if (offlineRun || session == null || session.NetworkManager == null) return OfflinePlayers;
             return session.NetworkManager.ConnectedClientsIds;
+        }
+
+        bool RefreshNight(RunState current)
+        {
+            var connected = Players();
+            var normal = connected.Where(id =>
+            {
+                var player = CurtainCall.Network.PlayerSync.NetworkPlayer.All.FirstOrDefault(p => p != null && p.IsSpawned && p.OwnerClientId == id);
+                // A connected avatar which has not spawned yet is pending, not a confirmed death.
+                return player == null || CurtainCall.Player.PlayerInteraction.CanInteract(player);
+            }).ToArray();
+            return current.RefreshNight(connected, normal);
         }
 
         /// <summary>로그·디버그 화면용 시간대 이름.</summary>
@@ -506,8 +524,9 @@ namespace CurtainCall.Campaign
             reader.ReadValueSafe(out int day);
             reader.ReadValueSafe(out byte phase);
             if (generation != state.Generation || day != state.Day || phase != (byte)state.Phase || !Players().Contains(sender)) return;
+            if (state.Phase == CampaignPhase.Night && value && !CurtainCall.Player.PlayerInteraction.CanInteract(sender)) return;
             if (!host.SetReady(sender, value)) return;
-            host.RefreshNight(Players());
+            RefreshNight(host);
             Apply(host.Snapshot);
         }
 

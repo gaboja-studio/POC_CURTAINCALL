@@ -80,7 +80,7 @@ namespace CurtainCall.WaitingRoom
             if (Locked || WaitingRoomRehearsal.IsPreTutorialRestricted) return;
 
             var reader = LocalReader();
-            if (reader == null || !reader.isActiveAndEnabled || InputGate.IsBlocked) return;
+            if (reader == null || !reader.isActiveAndEnabled || InputGate.IsBlocked || !PlayerInteraction.CanInteract(reader)) return;
 
             Vector3 feet = reader.transform.position;
             float best = float.MaxValue;

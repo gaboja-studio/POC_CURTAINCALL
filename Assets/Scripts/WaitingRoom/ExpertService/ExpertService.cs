@@ -88,7 +88,7 @@ namespace CurtainCall.WaitingRoom
         public ExpertRefusal LocalMedicalRefusal(int parts)
         {
             var me = NetworkPlayer.Local;
-            bool alive = me != null && me.State == PlayerState.Normal;
+            bool alive = PlayerInteraction.CanInteract(me);
             return book.CanBuyMedical(channel.LocalClientId, IsServiceTime, alive, LocalLostLimbs, parts, MaxPartsPerUse);
         }
 
@@ -133,9 +133,11 @@ namespace CurtainCall.WaitingRoom
             var before = book.Phase;
             long revision = book.Revision;
             WatchRun();
+            CancelUnavailableBuyer();
             // 공연이 시작됐거나 구매자가 나가면 방을 비운다(이미 낸 비용은 돌려주지 않는다 — 임시 규칙).
             if (book.HasBuyer && (!IsServiceTime || !channel.IsConnected(book.Buyer))) book.Clear();
             if (book.Tick(Time.deltaTime)) Restore(book.Buyer);
+            book.TryRefund(amount => rewards.TryRefundPurchase(amount, seenGeneration, "미수행 신체 복구 환급"));
             if (book.Revision != revision) Publish(before);
         }
 
@@ -147,6 +149,13 @@ namespace CurtainCall.WaitingRoom
             int generation = run.State.Generation;
             if ((seenGeneration > 0 && generation > seenGeneration) || !run.State.IsRunning) book.Reset();
             if (generation > 0) seenGeneration = generation;
+        }
+
+        bool CancelUnavailableBuyer()
+        {
+            if (!book.HasBuyer) return false;
+            var player = Find(book.Buyer);
+            return player != null && !PlayerInteraction.CanInteract(player) && book.CancelUnfulfilled();
         }
 
         /// <summary>③ 수화기 창: 고를 수 있는 최대 개수로 신체 복구를 산다. 결과는 <see cref="LastMessage"/>로 온다.</summary>
@@ -187,12 +196,12 @@ namespace CurtainCall.WaitingRoom
         (bool, string) BuyMedical(ulong buyer, int parts)
         {
             var player = Find(buyer);
-            bool alive = player != null && player.State == PlayerState.Normal;
+            bool alive = PlayerInteraction.CanInteract(player);
             int lost = player != null ? PlayerCondition.CountLimbs(player.LostParts) : 0;
             long cost = MedicalCost(parts);
             var before = book.Phase;
             var refusal = book.BookMedical(buyer, IsServiceTime, alive, lost, parts, MaxPartsPerUse,
-                () => rewards.TrySpend(cost, WaitingRoomText.Format("ledger.medical", "신체 복구 {n}개 — {player}", ("n", parts), ("player", WaitingRoomShop.PlayerLabel(buyer)))));
+                () => rewards.TrySpend(cost, WaitingRoomText.Format("ledger.medical", "신체 복구 {n}개 — {player}", ("n", parts), ("player", WaitingRoomShop.PlayerLabel(buyer)))), cost);
             if (refusal != ExpertRefusal.None) return Reject(buyer, "MEDICAL_RESERVE", refusal);
             Debug.Log($"[Expert] 신체 복구 {parts}개 구매({cost}) ← {WaitingRoomShop.PlayerLabel(buyer)} / 잔액 {rewards.Balance} / 다음 단가 {MedicalPrice}");
             Publish(before);
@@ -202,6 +211,12 @@ namespace CurtainCall.WaitingRoom
         (bool, string) Enter(ulong who)
         {
             var player = Find(who);
+            if (player == null || !PlayerInteraction.CanInteract(player))
+            {
+                var oldPhase = book.Phase;
+                if (CancelUnavailableBuyer()) Publish(oldPhase);
+                return Reject(who, "MEDICAL_ENTER", ExpertRefusal.NotAlive);
+            }
             var entrance = FindFirstObjectByType<ExpertRoomView>();
             if (player == null || entrance == null || CurtainCall.Player.PlayerInteraction.RestrictReach(entrance.Reach(player.transform.position, player), player) < 0f)
                 return (false, WaitingRoomText.Get("expert.go-to-lift", "신체 복구 승강기 앞에서 이용하세요."));
@@ -220,6 +235,7 @@ namespace CurtainCall.WaitingRoom
             int restored = 0;
             for (int i = 0; player != null && i < book.BookedLimbs; i++)
                 if (player.ServerRestorePart() != BodyPart.None) restored++;
+            book.RecordRestoration(restored);
             Debug.Log(restored > 0
                 ? $"[Expert] 신체 복구 {restored}개 → {WaitingRoomShop.PlayerLabel(buyer)} (남은 결손 {player.LostParts})"
                 : $"[Expert] 복구할 수 없었습니다({WaitingRoomShop.PlayerLabel(buyer)}).");

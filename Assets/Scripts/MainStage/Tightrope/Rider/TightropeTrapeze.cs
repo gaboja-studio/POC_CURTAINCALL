@@ -127,7 +127,7 @@ namespace CurtainCall.Tightrope
         public bool CanGrabPole(int index, NetworkPlayer player) => CanGrab(player, index);
         public bool CanAttachToPole(int index, NetworkPlayer player) => CanAttach(player, index);
         bool CanGrab(NetworkPlayer player, int index) => Active && Valid(index) && HolderAt(index) == Nobody && common.CanApproachPole(poles[index].Index, player);
-        bool CanAttach(NetworkPlayer player, int index) => Active && Valid(index) && HolderAt(index) != Nobody && PassengerAt(index) == Nobody && common.CanApproachPole(poles[index].Index, player);
+        bool CanAttach(NetworkPlayer player, int index) => Active && Valid(index) && HolderAt(index) != Nobody && common.CanApproachPole(poles[index].Index, player);
         public bool IsHeld(NetworkPlayer player) => HeldPole(player) >= 0;
         public bool IsInFlight(NetworkPlayer player)
         {

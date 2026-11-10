@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
+using CurtainCall.Settings;
 using UnityEngine;
 
 namespace CurtainCall.HumanCannon
@@ -83,7 +84,14 @@ namespace CurtainCall.HumanCannon
         public float AngleAt(int index) => Valid(index) ? states[index].DisplayAngle(Time.unscaledTimeAsDouble) : 0f;
         public float SpeedAt(int index) => Valid(index) ? states[index].Speed : 0f;
         public double HoldUntil(int index) => Valid(index) ? states[index].State.DeadlineAt(0) : 0d;
-        public bool IsLower(ulong actor) { int index = HeldBy(actor); return index >= 0 && states[index].State.SeatOf(actor) == 1; }
+        public bool IsLower(ulong actor) { int index = HeldBy(actor); return index >= 0 && states[index].State.SeatOf(actor) > 0; }
+        public bool IsReleaseBlockedByPassenger(ulong actor)
+        {
+            int index = HeldBy(actor);
+            if (index < 0 || !GameSettings.Poles.PreventReleaseWithPassengers) return false;
+            var state = states[index].State;
+            return state.OccupantAt(state.SeatOf(actor) + 1) != CannonSeatState.Nobody;
+        }
         public bool IsFlyingFrom(int index, ulong actor) => index >= 0 && flightOrigins.TryGetValue(actor, out int origin)
             && origin == index && HumanCannonSystem.Current != null && HumanCannonSystem.Current.IsFlying(actor) && HeldBy(actor) < 0;
         public bool CanApproachPole(int index, NetworkPlayer player) => Valid(index) && poles[index].InteractionAvailable
