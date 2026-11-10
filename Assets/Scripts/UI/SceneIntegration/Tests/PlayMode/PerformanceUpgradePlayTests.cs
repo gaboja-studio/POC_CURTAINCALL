@@ -30,7 +30,7 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         {
             source=new GameObject("Original",typeof(TextMeshPro));
             var text=source.GetComponent<TextMeshPro>(); text.text="FINISH";
-            label=Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/WorldLabels/WorldLabelCloth"));
+            label=Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/WorldLabels/WorldLabelCloth"));
             var view=label.GetComponent(T("CurtainCall.UI.WorldLabelsV2.WorldLabelView"));
             var binding=(Behaviour)label.AddComponent(T("CurtainCall.UI.SceneIntegration.PerformanceWorldLabelBinding"));
             binding.GetType().GetMethod("Configure").Invoke(binding,new object[]{text,view});

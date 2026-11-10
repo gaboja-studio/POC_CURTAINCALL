@@ -19,7 +19,7 @@ namespace CurtainCall.UI.ShopV1.Editor
     public static class ShopUiProjectBuilder
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_shop_v1";
-        public const string PrefabFolder = "Assets/Resources/Prefabs/UIs/ShopUi";
+        public const string PrefabFolder = "Assets/Resources/Prefabs/UIs/Roles/Retained/ShopUi";
         public const string PrefabPath = PrefabFolder + "/ShopPanel.prefab";
         public const string SceneFolder = "Assets/Scenes/Tests/ShopUi";
         public const string ScenePath = SceneFolder + "/ShopUi.unity";

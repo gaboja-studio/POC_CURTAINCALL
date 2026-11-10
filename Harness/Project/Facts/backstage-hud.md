@@ -8,7 +8,7 @@ source: Task-20261019-061, PM 백스테이지·로비 HUD 계획 승인
 # 백스테이지·로비 HUD
 
 - 원본: `Assets/_ThirdParty/curtaincall_backstage_hud_v1/`. 제공 Runtime/조립기는 private 원위치 유지, namespace `CurtainCall.UI.BackstageHudV1`/`.Editor`.
-- 정본 폴더: `Assets/Resources/Prefabs/UIs/BackstageHud/`. `BackstageHud.prefab`은 W1 시계/C4 공동 자금/C5 소지 슬롯/W6 집결, `LobbyHud.prefab`은 L1 방 정보, `InventorySlotTemplate.prefab`은 가변 슬롯 컨테이너다.
+- 정본 폴더: `Assets/Resources/Prefabs/UIs/Roles/Retained/BackstageHud/`. `BackstageHud.prefab`은 W1 시계/C4 공동 자금/C5 소지 슬롯/W6 집결, `LobbyHud.prefab`은 L1 방 정보, `InventorySlotTemplate.prefab`은 가변 슬롯 컨테이너다.
 - 독립 확인 씬: `Assets/Scenes/Tests/BackstageHud/BackstageHud.unity`. 실제 대기실/로비 씬과 연결하지 않는다.
 - 공개 코드: `Assets/Scripts/Systems/BackstageHud/`의 안전 조립 wrapper·합성 확인 제어·PlayMode 테스트. 제공 코드를 공개 복제하지 않는다.
 - TMP 금액·집결·수량은 원래 영역 높이보다 폰트 줄 높이가 커 Ellipsis가 문장 전체를 숨길 수 있다. Rect 크기/위치는 유지하고 부족한 세로 줄 높이만 음수 bottom margin으로 보정했다. 전용 Medium에는 확인 버튼의 ‘템플릿’ 글리프도 포함한다.

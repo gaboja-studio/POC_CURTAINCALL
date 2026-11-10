@@ -219,8 +219,8 @@ namespace CurtainCall.WaitingRoom
             if (guidedBooking || CurtainCall.Player.InputGate.IsBlocked) return;
             guidedBooking = true;
             TurnLocalToward(PresentationPoint);
-            WaitingRoomGuidePanel.Show(WaitingRoomText.Get("narration.expert-booked-title", "신체 복구 예약 완료"),
-                WaitingRoomText.Format("narration.expert-booked-body", "신체 복구 {n}개를 예약했습니다.\n의료 서비스를 이용하려면 로비의 ⑧ 신체 복구 승강기로 이동해 F를 누르세요.", ("n", service.BookedLimbs)), 8f);
+            WaitingRoomGuidePanel.ShowAs(WaitingRoomText.Get("narration.expert-booked-title", "신체 복구 예약 완료"),
+                WaitingRoomText.Format("narration.expert-booked-body", "신체 복구 {n}개를 예약했습니다.\n의료 서비스를 이용하려면 로비의 ⑧ 신체 복구 승강기로 이동해 F를 누르세요.", ("n", service.BookedLimbs)), 8f,WaitingRoomHudProfile.Current.medicalBooked);
         }
 
         static void TurnLocalToward(Vector3 point)

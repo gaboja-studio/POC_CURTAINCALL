@@ -21,10 +21,10 @@ namespace CurtainCall.Captions.Editor
     public static class CaptionProjectBuilder
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_captions_v1";
-        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Captions/Captions.prefab";
+        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/Captions/Captions.prefab";
         public const string ScenePath = "Assets/Scenes/Tests/Captions/Captions.unity";
         public const string FontPath = "Assets/Resources/Fonts/Captions/Pretendard-Medium SDF.asset";
-        const string ButtonPath = "Assets/Resources/Prefabs/UIs/CommonButtons/Button_General.prefab";
+        const string ButtonPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_General.prefab";
         const string SourceFontPath = Kit + "/Source/Fonts/Pretendard-Medium.ttf";
         static readonly string[] Platforms = { "Standalone", "Android", "iPhone", "WebGL", "Web", "Windows Store Apps", "tvOS" };
         public static readonly string[] Labels = { "대사", "화자 없음", "방송", "기본 방송 화자", "긴 화자명", "명시적 두 줄", "본문 초과 거부", "빈 본문 거부", "수용 검사", "폭 범위", "무효 폭", "퇴장", "즉시 숨김", "역전", "반복", "문자 그대로", "시간 정지·복구", "배경 전환", "초기화" };
@@ -67,7 +67,7 @@ namespace CurtainCall.Captions.Editor
             try
             {
                 var medium = MakeFont(sourceFont, characters);
-                EnsureFolder("Assets/Resources/Prefabs/UIs/Captions"); EnsureFolder("Assets/Scenes/Tests/Captions");
+                EnsureFolder("Assets/Resources/Prefabs/UIs/Roles/Retained/Captions"); EnsureFolder("Assets/Scenes/Tests/Captions");
                 created = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive); SceneManager.SetActiveScene(created);
                 var go = Builder.BuildProject(medium, sprites);
                 if (PrefabUtility.SaveAsPrefabAssetAndConnect(go, PrefabPath, InteractionMode.AutomatedAction) == null) throw new IOException("자막 프리팹 저장 실패");

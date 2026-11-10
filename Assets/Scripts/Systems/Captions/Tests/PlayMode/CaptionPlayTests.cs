@@ -12,7 +12,7 @@ namespace CurtainCall.Captions.Tests
 {
     public sealed class CaptionPlayTests
     {
-        const string Prefab = "Prefabs/UIs/Captions/Captions";
+        const string Prefab = "Prefabs/UIs/Roles/Retained/Captions/Captions";
         const string DialogueBody = "잠깐, 저쪽 문 뒤에서 무슨 소리가 났어.";
         const string BroadcastBody = "공연 준비가 끝났습니다.\n단원들은 무대로 모여 주십시오.";
         GameObject instance;

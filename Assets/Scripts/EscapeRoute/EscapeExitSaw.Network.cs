@@ -89,7 +89,8 @@ namespace CurtainCall.EscapeRoute
             using var writer = new FastBufferWriter(StateSize + BitCount(cutMask) * 12 + shots.Count * ShotSize, Allocator.Temp);
             writer.WriteValueSafe(stateRevision); writer.WriteValueSafe(ownership.Revision); writer.WriteValueSafe(Carrier);
             writer.WriteValueSafe(CarryRoot.position); writer.WriteValueSafe(CarryRoot.rotation); writer.WriteValueSafe(cutProgress);
-            writer.WriteValueSafe((byte)(cutting ? 1 : 0)); writer.WriteValueSafe(token);
+            // Two independent flags in the existing state byte. Join/resync receives the same latch as a live update.
+            writer.WriteValueSafe((byte)((cutting ? 1 : 0) | (TeamReachedExitZone ? 0x80 : 0))); writer.WriteValueSafe(token);
             writer.WriteValueSafe(cutMask); writer.WriteValueSafe(shotWait); writer.WriteValueSafe((byte)shots.Count);
             writer.WriteValueSafe(courseEpoch);
             for (int i = 0; i < 32; i++) if ((cutMask & (1u << i)) != 0) writer.WriteValueSafe(cutPoints[i]);
@@ -128,7 +129,11 @@ namespace CurtainCall.EscapeRoute
             byte active, int token, uint mask, Vector3[] points, Shot[] incomingShots, float wait, uint epoch)
         {
             bool wasWaiting = resetBarrier.Waiting;
+            bool visited = (active & 0x80) != 0;
+            active &= 0x7f;
             if (incoming < stateRevision || ownedRevision < ownership.Revision || epoch < courseEpoch || !Finite(position) || !Finite(rotation)
+                || synchronized && epoch == courseEpoch && TeamReachedExitZone && !visited
+                || synchronized && incoming == stateRevision && TeamReachedExitZone != visited
                 || !float.IsFinite(progress) || progress < 0 || progress > cutSeconds || active > 1
                 || active == 1 && (carrier == CannonSeatState.Nobody || progress >= cutSeconds)
                 || synchronized && ownedRevision == ownership.Revision && carrier != Carrier
@@ -143,6 +148,7 @@ namespace CurtainCall.EscapeRoute
             uint previousOwnership = ownership.Revision;
             if (ownedRevision != previousOwnership || carrier != before || wasWaiting || epoch != courseEpoch) ClearShots();
             ownership.Receive(ownedRevision, carrier); stateRevision = incoming; cutProgress = progress; cutting = active == 1; synchronized = true;
+            TeamReachedExitZone = visited;
             bool sameCourse = epoch == courseEpoch;
             courseEpoch = epoch; cutMask = mask; System.Array.Copy(points, cutPoints, 32); shotWait = wait;
             if (!sameCourse) lastPresentedShot = 0;
@@ -173,11 +179,13 @@ namespace CurtainCall.EscapeRoute
             if (session.IsHost)
             {
                 if (resetFrame == Time.frameCount) return;
+                TeamReachedExitZone = false;
                 resetFrame = Time.frameCount; ownership.Reset(); courseEpoch++; cutProgress = 0; cutting = false; ResetProjectileCourse(); Recover(); Present(0, true); Changed();
             }
             else if (player.IsLocal)
             {
                 synchronized = false; ownership.Receive(ownership.Revision, CannonSeatState.Nobody); cutProgress = 0; cutting = false;
+                TeamReachedExitZone = false;
                 ResetProjectileCourse(); Recover(); Present(0, true); SendRequest(0, resetBarrier.Begin());
             }
         }
@@ -186,6 +194,7 @@ namespace CurtainCall.EscapeRoute
             if (messaging != null)
             { messaging.UnregisterNamedMessageHandler(RequestName); messaging.UnregisterNamedMessageHandler(StateName); }
             messaging = null; session = null; synchronized = false;
+            TeamReachedExitZone = false;
             ownership = new CannonSeatState(); stateRevision = courseEpoch = 0; cutProgress = 0; cutting = false;
             resetBarrier.Clear(); ResetProjectileCourse(); Recover(); Present(0, true);
         }

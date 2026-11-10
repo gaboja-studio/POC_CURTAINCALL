@@ -13,7 +13,7 @@ source: Task-20261019-061
 ## 제작 범위
 - private 키트 `Assets/_ThirdParty/curtaincall_worldlabels_v2/`의 제공 Runtime/Builder를 원위치 재사용한다. PNG·제공 코드의 공개 복사 금지.
 - Wood/Cloth/Paper는 소품 표면, Item/Shelf는 근접 정보 UI다. L2/L3/H1/W4/W5를 개별 소재와 임의 대응하지 않는다.
-- 출력 전용 폴더는 `Assets/Resources/Prefabs/UIs/WorldLabels/`, `Assets/Resources/Fonts/WorldLabels/`, `Assets/Scenes/Tests/WorldLabels/`이며 5프리팹·전용 Medium/Bold·독립 확인 씬을 제작했다.
+- 출력 전용 폴더는 `Assets/Resources/Prefabs/UIs/Roles/Retained/WorldLabels/`, `Assets/Resources/Fonts/WorldLabels/`, `Assets/Scenes/Tests/WorldLabels/`이며 5프리팹·전용 Medium/Bold·독립 확인 씬을 제작했다.
 - 신규 물리 소재12개만 importer 보정, smallplate4·flag/person/tools3은 기존 performance_hud/icons 정본 읽기 전용 참조. 최초 바이트 대조7/7 일치.
 - 종류별 루트+직접 자식7, Image5/TMP2. World Space Canvas, 입력 비차단, 소유 전용 Static Medium/Bold를 사용한다.
 - 제안 기본 크기 Wood/Cloth320×96·Paper240×200·Item224×64·Shelf96×64 UI. scale0.0025·거리2.0/2.4는 게임 확정값이 아니다.

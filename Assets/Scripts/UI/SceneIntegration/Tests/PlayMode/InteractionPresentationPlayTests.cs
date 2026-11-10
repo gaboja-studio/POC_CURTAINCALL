@@ -110,7 +110,19 @@ namespace CurtainCall.UI.SceneIntegration.Tests
                 $"blocked={T("CurtainCall.Player.InputGate").GetProperty("IsBlocked").GetValue(null)}, " +
                 $"occluders={string.Join(",", Physics.RaycastAll(camera.transform.position, (phone.transform.position - camera.transform.position).normalized, Vector3.Distance(camera.transform.position, phone.transform.position) - .08f, ~0, QueryTriggerInteraction.Ignore).Select(h => h.transform.name))}");
             var prompt = (Component)Get(ui, "Prompt");
-            StringAssert.Contains("수화기 들기", string.Join(" ", prompt.GetComponentsInChildren<TMP_Text>(true).Select(t => t.text)));
+            Assert.AreEqual(Get(phone,"ActionLabel"),prompt.transform.Find("Motion/70_ActionTMP").GetComponent<TMP_Text>().text);
+            Assert.AreEqual("F",prompt.transform.Find("Motion/60_KeyTMP").GetComponent<TMP_Text>().text);
+            var original=Resources.Load<GameObject>("Prefabs/UIs/Roles/Guide");
+            Assert.AreSame(original.transform.Find("Surface/Artwork/41_KeyFrame").GetComponent<UnityEngine.UI.Image>().sprite,
+                prompt.transform.Find("Motion/41_KeyFrame").GetComponent<UnityEngine.UI.Image>().sprite);
+            var appearance=phone.GetType().GetField("hud").GetValue(phone);
+            var anchor=(RectTransform)ui.GetType().GetField("promptAnchor",BindingFlags.Instance|BindingFlags.NonPublic).GetValue(ui);
+            var before=anchor.anchoredPosition;
+            appearance.GetType().GetField("availableAction").SetValue(appearance,"전화 걸기");
+            appearance.GetType().GetField("localOffset").SetValue(appearance,Vector3.up*.5f);
+            yield return Settle();
+            Assert.AreEqual("전화 걸기",prompt.transform.Find("Motion/70_ActionTMP").GetComponent<TMP_Text>().text);
+            Assert.Greater((anchor.anchoredPosition-before).magnitude,1f);
             Assert.AreSame(phone, T("CurtainCall.WaitingRoom.ShopReach").GetProperty("Focused").GetValue(null));
             Key("F"); yield return new WaitForSecondsRealtime(.05f);
             Key(null); yield return Settle();

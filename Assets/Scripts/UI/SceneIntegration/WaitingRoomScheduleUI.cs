@@ -89,7 +89,7 @@ namespace CurtainCall.UI.SceneIntegration
         void EnsureTierButtons()
         {
             if (tierButtons != null || editButtons == null) return;
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/CommonButtons/Button_General");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/CommonButtons/Button_General");
             if (prefab == null) { Debug.LogWarning("[Schedule] 단계 버튼 프리팹이 없어 단계 선택을 표시하지 않습니다.", this); return; }
             var buttons = new UnityEngine.UI.Button[editButtons.Length, ScheduleBook.MaxDifficulty];
             for (int i = 0; i < editButtons.Length; i++)

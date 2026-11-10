@@ -11,7 +11,7 @@ source: Task-20261019-061
 타이틀 로고를 Canvas에 배치하거나 원본/그림자·크기를 바꾸기 전에 읽는다.
 
 ## 정본과 의존성
-- 프리팹: `Assets/Resources/Prefabs/UIs/TitleLogo/TitleLogo.prefab`.
+- 프리팹: `Assets/Resources/Prefabs/UIs/Roles/Retained/TitleLogo/TitleLogo.prefab`.
 - 제공 자료는 `Assets/_ThirdParty/curtaincall_title_logo_replacement_v2/`의 **PNG2개 교체 패치**다. 전체 타이틀 메뉴/TitleMenuView/Builder는 동봉되지 않았다.
 - Sprite는 위 키트 `Assets/CurtainCallUI/TitleMenu/Sprites/`의 normal/shadow @2x 두 PNG를 직접 참조한다. private submodule 필요, PNG/GUID/Source/Tools/Docs/Previews는 보존한다.
 - 두 PNG1536×768 RGBA. Sprite Single/FullRect/PPU200/pivot중앙/border0, alpha입력/투명처리/sRGB On, Bilinear/Clamp, mipmap Off/NPOT None/Uncompressed/Crunch Off/Max2048. 플랫폼 override 없음.

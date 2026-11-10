@@ -5,22 +5,24 @@ using CurtainCall.Player;
 using CurtainCall.Tightrope;
 using CurtainCall.Tightrope.Saws;
 using CurtainCall.Tightrope.UI;
-using CurtainCall.UI.NotificationsV1;
 using UnityEngine;
 namespace CurtainCall.UI.SceneIntegration
 {
     public sealed class TightropeControlsPanel : MonoBehaviour
     {
-        public SystemBannerView banner;
-        [SerializeField] float holdSeconds = 4f;
+        readonly List<HudRoleCard> guides = new();
+        float nextGuide;
+        [SerializeField, Min(.1f)] float guideInterval = 1.5f;
         [SerializeField] float sawDistance = 8f;
         [SerializeField] bool escapeTraversal;
-        public void ConfigureEscape(SystemBannerView view) { banner = view; escapeTraversal = true; }
+        [Header("탈출로 · 외줄에 올라섰을 때 차례로 표시")]
+        [SerializeField] PerformanceHudProfile.Cue escapeBalance = new("외줄에서 균형 잡기", "{forward}로 이동하고 {balance}로 기울어지는 반대 방향을 누르세요.", "{balance}");
+        [SerializeField] PerformanceHudProfile.Cue escapeJump = new("외줄에서 점프하기", "{jump}로 점프하세요. 동료 가까이에서 {interact}로 목마를 타거나, 길게 눌러 매달린 동료를 구조하세요.", "{jump}");
+        public void ConfigureEscape() { escapeTraversal = true; }
         readonly TightropeGuideProgress progress = new();
         void OnEnable() => TightropeControlHints.ExternalPresentation = true;
         void LateUpdate()
         {
-            if (banner == null) return;
             var local = NetworkPlayer.Local;
             var course = TightropeCourse.Current;
             var campaign = CampaignRun.Instance;
@@ -30,16 +32,15 @@ namespace CurtainCall.UI.SceneIntegration
             if (local == null || course == null || !context
                 || !course.IsGameplayActive || run == null || run.State != TightropeRunState.Running
                 || local.State != PlayerState.Normal || InputGate.IsBlocked || SceneCurtainTransition.IsActive)
-            { if (banner.IsVisible) banner.HideImmediate(); return; }
+            { ClearGuides(); return; }
             var state = campaign != null ? campaign.State : default;
-            if (progress.Begin(state.Generation, state.PerformanceIndex, run.Round, local.GetInstanceID())) banner.HideImmediate();
-            // View에 큐가 없으므로 현재 알림이 끝난 뒤 다음 상황을 평가한다.
-            if (banner.IsVisible) return;
+            if (progress.Begin(state.Generation, state.PerformanceIndex, run.Round, local.GetInstanceID())) ClearGuides();
+            if (Time.unscaledTime < nextGuide) return;
             if (escapeTraversal)
             {
                 if (!course.UsesRopeRules(local)) return;
-                if (ShowOnce("escape-balance", "W/S로 이동하고 A/D로 중심을 잡아요", "기울어지는 반대 방향으로 균형을 잡으세요")) return;
-                ShowOnce("escape-jump", "SPACE로 점프할 수 있어요", "동료 가까이에서 F로 목마 · 매달린 동료는 F를 누른 채로 구조");
+                if (Lesson("escape-balance", escapeBalance)) return;
+                Lesson("escape-jump", escapeJump);
                 return;
             }
             if (DeviceGuide(local, course)) return;
@@ -47,25 +48,34 @@ namespace CurtainCall.UI.SceneIntegration
             if (mover == null || !mover.ControlEnabled) return;
             if (mover.FreeMovement)
             {
-                ShowOnce("approach", "WASD로 줄에 올라가세요", "줄 위로 걸어가면 자동으로 올라탑니다");
+                Lesson("approach", Profile.approach);
                 return;
             }
-            if (ShowOnce("balance", "W/S로 이동하고 A/D로 중심을 잡아요", "기울어지는 반대 방향으로 균형을 잡으세요")) return;
-            if (progress.LaneChangePending && ShowOnce("lane-change", "Q/E를 누른 채로 방향을 정하고 SPACE로 줄을 변경할 수 있습니다.")) return;
+            if (Lesson("balance", Profile.balance)) return;
+            if (progress.LaneChangePending && Lesson("lane-change", Profile.lane)) return;
             var saws = TightropeSaws.Current;
             if (saws == null) return;
             float distance = course.GetDistance(local.transform.position);
             if (saws.IsVerticalActive && !saws.IsPlatePressed && Mathf.Abs(distance - saws.VerticalDistance) <= sawDistance
-                && Obstacle("vertical:" + saws.VerticalSerial, "목마 혹은 옆으로 줄을 이동하여 톱날 뒤의 버튼을 누르세요")) return;
+                && Lesson("vertical:" + saws.VerticalSerial, Profile.sawGate, true)) return;
             if (saws.IsCooperativeGateActive && !saws.IsCooperativeGatePassable
                 && Mathf.Abs(distance - saws.CooperativeGateDistance) <= sawDistance
-                && Obstacle("gate:" + saws.CooperativeGateIndex, "목마 혹은 옆으로 줄을 이동하여 톱날 뒤의 버튼을 누르세요")) return;
+                && Lesson("gate:" + saws.CooperativeGateIndex, Profile.sawGate, true)) return;
             for (int i = 0; i < saws.HorizontalCount; i++)
             {
                 if (!saws.IsHorizontalMoving(i) || !saws.TryGetHorizontalPosition(i, out var position)) continue;
                 if (Vector3.Distance(local.transform.position, position) > sawDistance) continue;
-                if (Obstacle("horizontal:" + i, "SPACE로 점프해서 톱날을 피해요", "다가오는 톱날에 닿지 않도록 주의하세요")) return;
+                if (Lesson("horizontal:" + i, Profile.sawJump, true)) return;
             }
+        }
+        PerformanceHudProfile Profile => PerformanceHudProfile.Current;
+        bool Lesson(string key, PerformanceHudProfile.Cue cue, bool obstacle = false)
+        {
+            if (progress.HasShown(key)) return false;
+            var reader=NetworkPlayer.Local ? NetworkPlayer.Local.GetComponent<PlayerInputReader>() : null;
+            bool shown=Display(key, PerformanceHudProfile.Format(cue.title,reader), PerformanceHudProfile.Format(cue.body,reader), PerformanceHudProfile.Format(cue.badge,reader));
+            if (shown && obstacle) progress.MarkShown("obstacle");
+            return shown;
         }
         bool DeviceGuide(NetworkPlayer local, TightropeCourse course)
         {
@@ -73,54 +83,43 @@ namespace CurtainCall.UI.SceneIntegration
             if (relay != null && relay.IsActive)
             {
                 if (relay.IsHeld(local))
-                    return ShowOnce("relay-held", TightropeGuideProgress.HoldText(CurtainCall.Settings.GameSettings.Poles.HoldSeconds));
+                    return Lesson("relay-held", Profile.relayHeld);
                 float distance = course.GetDistance(local.transform.position);
                 if (Mathf.Abs(distance - relay.EntryDistance) <= sawDistance || Mathf.Abs(distance - relay.ExitDistance) <= sawDistance)
-                    if (ShowOnce("relay-approach", "F를 눌러 매달리고 길을 만드세요")) return true;
+                    if (Lesson("relay-approach", Profile.relayNear)) return true;
             }
             var trapeze = TightropeTrapeze.Current;
             if (trapeze == null || !trapeze.IsActive) return false;
             if (trapeze.IsHeld(local))
                 return trapeze.IsLower(local)
-                    ? ShowOnce("trapeze-lower", "타이밍에 맞춰 점프하여 다음 봉을 잡으세요")
-                    : ShowOnce("trapeze-upper", "W/S로 반동을 줍니다");
+                    ? Lesson("trapeze-lower", Profile.lower)
+                    : Lesson("trapeze-upper", Profile.upper);
             if (trapeze.IsInFlight(local)) return false;
             if (Mathf.Abs(course.GetDistance(local.transform.position) - trapeze.EntryDistance) > sawDistance) return false;
             var stack = PiggybackSystem.Current;
             bool top = stack != null && stack.GetBelow(local) != null && stack.GetAbove(local) == null;
             if (!top && trapeze.HolderAt(0) != ulong.MaxValue && trapeze.PassengerAt(0) == ulong.MaxValue)
-                return ShowOnce("trapeze-attach", "매달린 동료 가까이에서 F를 누르세요");
-            return ShowOnce("trapeze-approach", "봉 가까이에서 F로 잡으세요 · 점프 중에도 가능합니다");
+                return Lesson("trapeze-attach", Profile.attach);
+            return Lesson("trapeze-approach", Profile.pole);
         }
-        bool Obstacle(string key, string title, string subtitle = "")
+        bool Display(string key,string title,string subtitle,string badge)
         {
-            if (!ShowOnce(key, title, subtitle, BannerState.Danger)) return false;
-            progress.MarkShown("obstacle");
-            return true;
-        }
-        bool ShowOnce(string key, string title, string subtitle = "", BannerState state = BannerState.Normal)
-        {
-            if (banner.IsVisible || progress.HasShown(key)) return false;
-            title = BoundText(title); subtitle = BoundText(subtitle);
-            if (escapeTraversal)
-                FindFirstObjectByType<CommonInteractionUI>()?.GetComponent<UiRuntimeFontFallback>()?.WarmUpLocalText(banner.transform, title + subtitle);
-            if (!banner.Show(title, subtitle, state, holdSeconds)) return false;
+            guides.RemoveAll(c => c == null || c.Closing);
+            guides.Add(string.IsNullOrEmpty(subtitle) ? HudUIManager.Current.ShowGuide(title,transform,key:badge)
+                : HudUIManager.Current.ShowGuide(subtitle,transform,title,key:badge));
+            nextGuide = Time.unscaledTime + guideInterval;
             progress.MarkShown(key);
             return true;
         }
-        static string BoundText(string text)
+        void ClearGuides()
         {
-            var reader = NetworkPlayer.Local != null ? NetworkPlayer.Local.GetComponent<PlayerInputReader>() : null;
-            if (reader == null) return text;
-            return CommonInteractionUI.FormatControlLabels(text, reader.BindingLabel("Interact", "F"), reader.BindingLabel("Action", "Space"),
-                reader.BindingPartLabel("Move", "positive", "W") + "/" + reader.BindingPartLabel("Move", "negative", "S"),
-                reader.BindingPartLabel("Posture", "negative", "A") + "/" + reader.BindingPartLabel("Posture", "positive", "D"))
-                .Replace("Q/E", reader.BindingLabel("DirectionLeft", "Q") + "/" + reader.BindingLabel("DirectionRight", "E"));
+            foreach (var c in guides) if (c != null && !c.Closing) c.Close(true);
+            guides.Clear(); nextGuide = 0;
         }
         void OnDisable()
         {
             TightropeControlHints.ExternalPresentation = false;
-            if (banner != null) banner.HideImmediate();
+            ClearGuides();
         }
     }
 

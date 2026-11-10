@@ -17,7 +17,7 @@ namespace CurtainCall.TransitionCurtain.Editor
 {
     public static class TransitionCurtainProjectBuilder
     {
-        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/TransitionCurtain/TransitionCurtain.prefab";
+        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/TransitionCurtain/TransitionCurtain.prefab";
         public const string ScenePath = "Assets/Scenes/Tests/TransitionCurtain/TransitionCurtain.unity";
         private const string Kit = "Assets/_ThirdParty/curtaincall_curtain_v1/Assets/CurtainCallUI/";
         private const string StarPath = "Assets/_ThirdParty/curtaincall_icons_v1/Assets/CurtainCallUI/CommonIcons/Sprites/ui_icon_star_normal@2x.png";

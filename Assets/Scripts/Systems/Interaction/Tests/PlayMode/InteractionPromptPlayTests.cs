@@ -15,7 +15,7 @@ namespace CurtainCall.Interaction.Tests
     // Assembly-CSharp를 직접 참조하지 않고 실제 Resources 프리팹의 공개 계약을 호출합니다.
     public sealed class InteractionPromptPlayTests
     {
-        const string ResourcePath = "Prefabs/UIs/Interaction/InteractionPrompt";
+        const string ResourcePath = "Prefabs/UIs/Roles/Retained/Interaction/InteractionPrompt";
         internal const string ViewNamespace = "CurtainCall.UI.InteractionV1.";
         readonly List<GameObject> instances = new List<GameObject>();
         GameObject instance;

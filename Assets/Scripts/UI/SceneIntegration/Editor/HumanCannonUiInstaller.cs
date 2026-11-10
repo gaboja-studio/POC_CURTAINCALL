@@ -22,8 +22,8 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 throw new InvalidOperationException("Editor must be idle.");
             for (int i = 0; i < SceneManager.sceneCount; i++)
                 if (SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("Save scene changes first.");
-            var guideAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Guides/Guides.prefab");
-            var tooltipAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Tooltips/Tooltips.prefab");
+            var guideAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Guides/Guides.prefab");
+            var tooltipAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Tooltips/Tooltips.prefab");
             var fallback = Resources.Load<TMP_FontAsset>("Fonts/Pretendard-Medium/Pretendard-Medium SDF");
             if (guideAsset == null || tooltipAsset == null || fallback == null) throw new InvalidOperationException("Tested prefabs and existing game font required.");
             var scene = EditorSceneManager.OpenScene(PerformanceSceneInstaller.CannonScenePath, OpenSceneMode.Single);

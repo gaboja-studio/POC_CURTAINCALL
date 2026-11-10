@@ -22,7 +22,7 @@ namespace CurtainCall.WaitingRoom
         {
             if (canvasRoot != null) Destroy(canvasRoot);
             submit = onSubmit; close = onClose; entered = "";
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/BasicPanels/BasicPanels");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/BasicPanels/BasicPanels");
             if (prefab == null) throw new InvalidOperationException("BasicPanels prefab missing");
             canvasRoot = new GameObject("ExplorationPanelCanvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasRoot.transform.SetParent(transform, false);
@@ -86,7 +86,7 @@ namespace CurtainCall.WaitingRoom
         }
         static void Button(Transform parent, string name, string value, TMP_FontAsset font, float x, float y, float w, float h, Action callback)
         {
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/CommonButtons/Button_General");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/CommonButtons/Button_General");
             var go = Instantiate(prefab, parent, false); go.name = name; Place((RectTransform)go.transform, x, y, w, h);
             var label = go.GetComponentInChildren<TMP_Text>(true); label.text = value; label.font = font;
             var button = go.GetComponent<UnityEngine.UI.Button>(); button.onClick.RemoveAllListeners(); button.onClick.AddListener(() => callback());

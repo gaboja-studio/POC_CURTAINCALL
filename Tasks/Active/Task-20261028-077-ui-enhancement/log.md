@@ -2,56 +2,7 @@
 
 - 환경 준비·초기 HUD 배치와 추락 게이지 변경 원문: [History/001-setup-hud-log.md](History/001-setup-hud-log.md)
 
-## 2026-10-28 하루 시계 v2.2 연결
-- 지정 private 패키지의 Runtime/Editor를 원위치에서 사용했다. importer는 새 마스크 11개만 관리하고, 조립기는 기존 정본 공유 Sprite 6개를 참조하도록 경로·프로젝트 진입점만 보완했다. 원본 그림/폰트/문서/GUID는 보존했다.
-- 공개 `DayClockProjectBuilder`로 `Resources/Prefabs/UIs/DayClock/W1_DayClock_v2_2.prefab`, `_Schedule.asset`, 전용 `_HourOutline.mat` 및 `Resources/Fonts/DayClock` Static TMP 3종을 생성했다. 공용 폰트 머티리얼 수정 없음. 같은 이름의 기존 출력은 덮어쓰지 않는다.
-- `CommonWaitingRoomUI`에 새 프리팹을 직렬화 연결했다. 좌상단 (48,-24), 패키지 크기 192×208. 기존 W1/코드 생성 원·링은 사용하지 않고 자금/집결/알림/인벤토리는 유지한다. Start 씬 미저장 변경 없이 편집 API로 해당 씬만 저장했다.
-- 일정 프로필 Start/End가 링·활성 구간·경계·바늘에 함께 반영된다. 오전/오후 반일 분리, 자정 경유, 수면 여집합 지원. 겹침/무효 시각은 마지막 유효본을 유지한다. 실제 남은 초는 호스트 런 상태를 쓰며 무제한과 미수신을 구분한다.
-- BaseGameSettings Run에 아침/낮/첫날 가이드/밤 정비의 제한 없음·초 설정을 추가하고 기존 튜닝을 이관했다. 기본 300/300/300초·밤 무제한. 단계 진입 때 적용하며 집결/탈출/침대 종료를 유지한다. 유한 밤 만료는 잡힘 없이 기존 Dawn→전원 ACK→다음날 경로를 쓴다. enum Unlimited=4 추가, wire 필드 순서·개수 보존.
-- 새 테스트의 Unity NUnit 미지원 NonParallelizable로 첫 컴파일 실패 후 해당 속성을 제거했다. 최종 컴파일 PASS. 대상 EditMode DayClock 7/7·RunTimeLimit 15/15·기존 RestTimeRules 2/2·DemoRunEnding 7/7 PASS. 대기실 PlayMode는 외부 잘못된 `editor status` 로그로 첫 1/2 실패 후 재실행 2/2 PASS(실제 프리팹·밤 무제한·재등록 포함).
-- 확대 EditorTools 일괄 실행은 두 차례 61개 중 59 통과·2 실패로 집계됐으나 도메인 전환 뒤 상세 응답은 마지막 4개뿐이었다. 최초 socket 종료 뒤 재요청에서는 TestRunner PlayMode 정리 예외도 발생했다. 일괄 실행은 PASS로 기록하지 않으며 2개 실패의 상세 원인은 미확정이다. 클래스를 분리한 검사는 같은 61개 모두 PASS(DayClock 7, DemoRunEnding 7, DevStartPoint 14, DifficultySelection 2, HudLayout 2, NotificationTextLayout 3, PerformanceFeedback 1, RestTimeRules 2, RunTimeLimit 15, StartConnection 5, TightropeGuide 3). PlayMode 2개를 합쳐 개별 대상 63/63 PASS다. 검사 후 Start 씬 clean·EditMode·컴파일 오류 없음·300/300/300초·밤 무제한 복원 확인.
-- check-work: 안전성/문서·규칙/컴파일 PASS, 기존 길이 경고 14건. 자동 테스트는 MCP로 별도 실행했다. doctor는 private 미추적으로 FAIL; private 새 패키지 2개 미추적은 유지하며 commit/push는 하지 않았다.
-- 설정·계약·주의는 `Harness/Project/Facts/day-clock.md`에 기록했다. 최종 외형·2인 네트워크 플레이는 미검증이다.
-
-## 2026-10-28 하루 시계 시간대 색상 구분
-- 사용자 요청에 따라 실게임 `_Schedule.asset`의 아침/낮 휴식은 청록 #00A1BC, 오전/오후 공연은 주황·금 #C97E25, 밤 정비는 보라 #8846BB로 변경했다. 프리팹의 저장된 링 미리보기도 갱신했다. 수면·활성 단계 표시·시간 판정·실제 초 설정은 유지한다.
-- 팔레트 검증은 어두운 표면 #111B20, 전체 쌍 기준으로 대비·정상 시각·색각 시뮬레이션 모두 PASS. 5개 시간대의 실제 Segment Image 색상이 프로필과 일치함을 임시 PreviewScene에서 검사했다. 3개 단계 렌더 이미지에서 색 구분·텍스트·배치 확인 후 PreviewScene을 닫았다. 실제 플레이 사람 확인과는 구분한다.
-- 변경 후 DayClockTests EditMode 7/7 PASS. 색상/Start/End는 일정 프로필 Entries, 실제 초/제한 없음은 BaseGameSettings Run에서 설정하며 `day-clock.md`에 기록했다. 새 doctor 실패는 기존 private 미추적 변경 보존에 따른 것이며 commit/push는 하지 않았다.
-
-## 2026-10-28 하루 전체 시간표 표시 수정
-- 사용자 이미지 지적을 확인했다. 실제 일정은 08–10/10–12/12–14/14–16/16–20시로 맞지만, 기존 View가 오전/오후 720분 창으로 잘라 오후에 낮 휴식·오후 공연·정비·수면만 보였다. 이전 색상 검사는 이 누락을 놓쳤다.
-- private View는 전체 compiled.intervals/actualBoundaries를 사용하도록 수정했다. 링 비율=지속분/1440, 경계·시침=분×0.25도. 조립기·공개 프리팹의 숫자는 위/오른쪽/아래/왼쪽 0/6/12/18시로 일치시켰다. 기존 색·일정·분침·실제 초/무제한 판정과 참조·GUID를 유지했다.
-- DayClockTests EditMode 8/8 PASS. 추가 검사는 자정·오전·정오 직전/직후·오후·밤에도 명시 일정 5개+수면 2조각을 유지하고 실제 각도·비율·색·경계 6개·시침·숫자를 확인한다. 대기실 PlayMode 2/2 PASS(비동기 HTTP400 이후 test_status 최종 결과 확인). PreviewScene 오전/오후 렌더에서 동일한 하루 전체 링·다른 현재 위치를 확인했다. 사람 최종 플레이·2인 실플레이는 여전히 미검증이다.
-- doctor는 기존 private 변경 보존으로 FAIL. private 코드 3개와 공개 시계 프리팹·테스트·문서만 이 요청에서 수정했으며 commit/push는 하지 않았다.
-
-## 2026-10-28 최종 지시: 일반 12시간 시계 복원
-- 사용자가 24시간 게이지를 거절했다. 직전 24시간 변경을 대체하여 숫자 12/3/6/9와 시침·경계 분×0.5도, 게이지 지속분/720, 현재 오전/오후 표시를 복원했다. 일정 시각·범주 색상·실제 초/무제한 판정은 유지한다. 조립기의 눈금도 복원하고 공개 프리팹은 에디터 API로 저장해 이후 생성도 일치시켰다.
-- DayClockTests EditMode 8/8 PASS: 현재 반일의 구간·각도·색·경계, 정오 전환과 일반 눈금·시침 확인. 컴파일 PASS. 네트워크 포트 충돌 문의가 있어 상대 세션에 현재 EditMode·네트워크 테스트 미실행을 알렸다. PlayMode는 이번 묶음에서 생략했다. doctor는 기존 private 변경 보존으로 FAIL. commit/push는 하지 않았다.
-
-## 2026-10-28 버벅임·낮 시계 회색 구간 조사
-- 최초 EditMode·Start clean·Profiler 미수집 상태. 시계 Show 1만 회의 단독 CPU 경로는 약 46.8ms였으나 렌더 비용이 빠져 있어 전체 성능 판정에는 쓰지 않았다. 기존 Dev 모드의 실제 DevStartLauncher로 2일차 Between/외줄을 실행하고 대기실 진입·화면을 확인했다. 최초 실행 eval timeout 뒤 동일 요청을 중복 실행하지 않고 정상 진입 완료를 확인했다.
-- CPU Profiler 180프레임: 중앙값 16.68ms, p95 20.63ms, 최대 118.88ms. 같은 큰 프레임의 TelemetryRuntime.UploadLoop 코루틴 109.45ms. 추가 300프레임에서 최대 132.85ms와 해당 UploadLoop 118.64ms를 재현했다. CommonWaitingRoomUI.LateUpdate는 첫 표본 평균 0.054ms/최대 0.084ms, Canvas.BuildBatch 평균 0.010ms/최대 0.117ms다. 에디터·Profiler 부하 포함 수치이며 사용자의 모든 끊김 원인 확정으로 확대하지 않는다.
-- 읽기 전용 보조 조사에서 UploadLoop의 yield 전 파일 탐색·읽기·요청 JSON/UTF-8 생성, 응답 후 ACK의 파일 재독출·역직렬화·해시·삭제가 메인스레드 동기 경로임을 확인했다(TelemetryRuntime.cs 307–344, DurableOutbox.cs 88–128). SendWebRequest의 네트워크 대기는 yield하므로 동기 네트워크 대기로 오해하지 않는다. 하위 개별 연산 중 어느 것이 지배적인지는 미확정이며 업로드 비활성화·동시성 수정은 하지 않았다.
-- 실제 NoonBreak 스냅샷에서 오후 창은 12–14 청록, 14–16 금색, 16–20 보라, 20–24 수면 회색 #405158였다. 지난 일정 회색 처리는 없으며 오전 일정은 오후 창에 포함되지 않는다. 시계 형식·색상 규칙·기능 코드는 변경하지 않았다.
-- 조사 종료 후 ProfilerDriver/Profiler 기록을 원래 꺼짐으로 복원하고 직접 시작한 Play를 종료했다. doctor는 기존 private 미추적으로 FAIL. 자동 회귀 테스트는 코드 변경이 없어 실행하지 않았다. 다음 수정 범위는 텔레메트리 준비/ACK의 작업 스레드 분리와 공유 Outbox 상태 보존 검증이며, 이번 응답은 원인 조사 결과다. commit/push 없음.
-
-## 2026-10-28 순간 끊김 수정
-- 사용자 요청에 따라 측정된 UploadLoop 경로만 수정했다. 시계·HUD·게임 규칙·네트워크 전송 스키마는 변경하지 않았다. doctor는 기존 private 변경 보존으로 FAIL 1건이며 이번 수정의 컴파일·실행을 막지 않았다.
-- DurableOutbox의 봉인 파일 탐색·읽기·요청 JSON/UTF-8 준비와 ACK JSON/ID/개수/해시 재검증·삭제를 Task.Run으로 이동했다. Runtime은 프레임을 양보해 완료를 기다리고 UnityWebRequest·상태/오류 표시는 메인스레드에서 처리한다. 전송 권한은 준비 완료 후 다시 확인한다.
-- active Append/Seal의 반환 전 영속화·복구 계약은 유지했다. worker가 쓰는 현재 실행 우선순위 집합은 동시성 컬렉션으로 교체하고, 준비 읽기·ACK 삭제·relay 재수신은 동일 봉인 파일의 비차단 게이트를 공유한다. 삭제와 겹친 용량 집계는 사라진 파일만 제외한다. 중단/종료 취소, 잘못된 ACK/실패 시 원본 보존·재시도를 유지한다.
-- 읽기 전용 보조 검토에서 준비 읽기와 relay 삭제의 Windows 파일 공유 충돌 가능성을 찾아 준비 읽기도 같은 게이트로 보호했다. 새 테스트 최초 17개 중 16 통과·1 실패는 relay fixture의 이벤트 필수 필드 누락이었다. 유효 이벤트로 수정 후 DurableOutboxTests 17/17·TransportPolicyTests 7/7, 최종 24/24 PASS. 기존 복구·우선순위·ACK 테스트와 비동기 준비/동시 Append·Seal/변경된 내용/취소/경합 재시도/저장소 오류 7개를 포함한다.
-- 실제 DevStartLauncher로 같은 2일차 Between/외줄 대기실에 진입해 플레이어·시계·HUD 화면을 확인했다. 600프레임: 중앙값 16.64ms, p95 20.45ms, 전체 최대 32.18ms, UploadLoop 최대 0.328ms(샘플 있는 32프레임). 별도 900프레임: 중앙값 16.60ms, p95 20.17ms, 전체 최대 31.62ms, UploadLoop 최대 0.910ms(36프레임). 표본 모두 40ms 초과 프레임 없음. 수정 전 109.45/118.64ms UploadLoop 정지는 이 표본에서 재현되지 않았다.
-- 실제 업로드 ACK 시각이 두 확인 사이 전진했고 LastError 없음 확인. endpoint/token/실제 payload는 출력·기록하지 않았다. 에디터·Profiler 포함 제한된 표본이며 모든 렉·빌드 성능 해결로 확대하지 않는다. Append/Seal 동기 저장과 다른 씬·2인 장시간 플레이는 별도 잔여 확인이다. PlayMode 자동 네트워크 회귀는 이번 묶음에서 생략했다.
-- 검증 종료 후 직접 시작한 Play를 종료하고 ProfilerDriver/Profiler를 꺼짐으로 복원했다. Start 씬 1개·dirty false·EditMode 확인. git diff --check PASS(기존 UI 파일 EOL 경고만). 지식은 Telemetry/upload-coroutine-stutter.md에 기록했다. commit/push 없음.
-
-## 2026-10-28 v2.4 디자인 교체
-- 사용자 확인: 입력 버벅임은 많이 개선되었다. 이후 요청은 디자인만 교체이므로 성능·게임 판정은 추가 변경하지 않았다. doctor FAIL 1건은 기존 private Dirty 보존이며 작업 진행을 막지 않았다.
-- 새 `curtaincall_dayclock_v2.4`는 동일 namespace/type을 포함하고 프로젝트 확장 무제한/API는 없었다. 원본 C#·문서·PNG를 보존하고 비활성 define constraint assembly로 중복 컴파일을 제외했다. 기존 v2 런타임/직렬화 GUID와 일정 계산을 유지하며 optional HalfDayTMP·아이콘 색만 보완했다.
-- 기존 조립기에 v2.4 레이아웃/새 그림/명판 9-slice를 적용했다. 새 공개 `W1_DayClock_v2_4.prefab`·눈금 머티리얼과 `Fonts/DayClock/V24` Static TMP 3종(오전/오후 포함)을 생성했다. 기존 `_v2_2_Schedule.asset`을 그대로 참조하며 이전 프리팹·폰트·공유 그림을 삭제/덮어쓰지 않았다.
-- 대기실 씬은 PrefabUtility.ReplacePrefabAssetOfPrefabInstance의 ByName 매칭으로 교체했다. 기존 루트/DayClockView 컴포넌트 참조·부모·형제 순서 보존을 확인하고 크기 224×248·좌상단 (48,-24)로 저장했다. Resources 경로도 새 프리팹으로 변경했다.
-- 최종 EditMode DayClockTests 17/17(기존 8+반일 경계/미수신 7+디자인/실제 씬 참조 2), RunTimeLimitTests 15/15, PlayMode WaitingRoomHudPlayTests 2/2 PASS. 초기 시계 실행은 컴파일 전의 옛 192×208 기대값으로 7/8이었고 AssetDatabase.Refresh 후 최신 17개 전체 통과했다. PlayMode 호출 HTTP400에도 test_status에서 2개 최종 성공을 확인했다. recompile/초기 eval의 일시적 HTTP400/timeout 후 상태를 확인하고 진행했다.
-- 실제 WaitingRoomBase를 Play하고 StartOfflineRun→EndIntro→EndPerformance로 낮 휴식에 진입했다. Game View 1920×1080에서 외부 일차/오후 명판·큰 실제 카운트다운·새 바늘/낮 아이콘·기존 범주 색상·좌상단 배치 렌더를 확인했다. 집결→공연 종료로 밤 정비에 진입하여 제한 없음·달 아이콘·16시 바늘·오후·시계 1개를 확인했다. 실행만을 위한 게임 상태는 Play 종료로 폐기하고 Start 씬 clean으로 복원했다. 2인 실플레이·최종 사람 외형 확인은 별도다.
-- 설정 위치·중복 코드 제외·기존 프로필 보존은 Facts/day-clock.md에 갱신했다. check-work 안전성/문서·규칙/컴파일 PASS. 문서 길이 경고 15건(Task077 log 경고 추가), hard 0. 스크립트 테스트 SKIPPED와 별도 MCP 34/34 통과를 구분한다. private 미저장 4건은 보존했다. commit/push 없음.
+이전 시계·HUD 작업: [기록 원문](History/003-hud-log.md).
 
 ## 2026-10-28 사용자 재현: 방 입장·입력 끊김 추가 수정
 - 사용자: 첫 수정 후에도 방 입장 직후부터 버벅임이 심하다. 정지 대기실에서 업로드만 측정한 검증의 한계를 확인했다. doctor는 기존 private 변경으로 FAIL 1건. 실제 LAN 호스트/네트워크 Lobby 로드 후 키 입력에서 193.80ms 프레임, Append 114.78ms/PendingBytes 112.46ms를 재현했다. 키 입력마다 누적 JSON 파일 전체의 FileInfo.Length를 메인스레드에서 조회하던 추가 원인이다.
@@ -124,3 +75,33 @@
 - 2026-10-29 검사: 안전성=PASS; 문서/규칙=PASS; 컴파일=PASS; 테스트=SKIPPED(자동 테스트 선택 안 함)
 
 - 2026-10-29 PR: https://github.com/gaboja-studio/POC_CURTAINCALL/pull/232 (feat/ui-enhancement → dev)
+
+### 2026-11-10 · 역할별 HUD 출력
+- 작업 브랜치 fix/ui/layout-and-position를 origin/dev로 fast-forward. Unity 6000.3.25f1 배치 에디터에서 역할 프리팹 8종·매니저를 생성/재로드 검증하고 줄타기 씬의 조작 전용 배너를 제거했다. 열린 에디터(Pipeline/CLI)에서도 생성 메뉴와 컴파일을 검증했다.
+- 공연/탈출 외줄 조작·장애물 회피는 학습 카드, 기물 내려놓기는 대상 옆 프롬프트, 개인 사망은 중앙 결과, 동료 사망은 경보. 목표·투표·가이드 및 기존 전용 연출의 API와 인스펙터 설정은 role-hud.md 참조.
+- 실에디터 신규 PlayMode 4개 통과: 경보/가이드 독립 만료·소유자 정리, 목표 높이와 투표 콜백, 장애물 안내 재생/종료, 리허설 입장 시 목표·가이드 표시 및 도착 전 투표 비표시. 소집 경보와 동료 사망 회귀 통과. 실화면: .harness/local/rehearsal/vote/role-hud-live.png.
+- 별도 장면 회귀: 그래픽 없는 배치에서는 커튼 전환이 막혀 열린 에디터로 재검사. 대기실 튜토리얼 연계는 G11 완료 후 상점 접근 G03이 뜨지 않았고, 리허설 전체 시나리오는 투표 뒤 연습실 외줄 Reach가 음수여서 중단. 실제 두 클라이언트 완주 검증은 하지 않았다. 이 둘은 PASS로 집계하지 않는다.
+- doctor: 기존 중복 Task ID/서브모듈 환경 진단 경고. 실제 에셋과 에디터 연결을 별도 확인했다. 테스트 중 생성된 기존 TMP 글리프 아틀라스 변경은 작업 결과에서 제외했다.
+- 후속 프리팹 편집: 루트 RectTransform, 행 레이아웃, TMP 템플릿·고정 텍스트, 노출 시간 우선권을 프리팹으로 이전. 실제 역할 카드가 임의 피벗·위치·수동 크기·자식 좌표·고정 제목·색상·본문 치환을 유지하는 회귀 통과. 8역할 + 현재 구간 변형 CourseStatus. 사용법은 role-hud.md.
+- 최종 열린 에디터: 컴파일 오류/경고 0, 프리팹 설정/연출 시간 우선권 포함 역할 테스트 4/4, 실제 리허설 입장 배치 1/1. 안전성 및 변경 공백 검사 통과. 전체 문서 검사는 현재 작업 외 Task-097 todo.md 기존 102줄(상한 80)로 차단.
+- 역할 테스트 씬 HudRolePlayground 생성·에디터 열기. CLI 컴파일 오류 0, 실제 씬 PlayMode 2/2 통과: 8역할 출력·폼, 2대상 월드 투영·이동, 거리·폐색 시 비표시/입력 차단·재진입. 캡처 Logs/HudPlayground/interaction.png. doctor의 기존 Task ID/에디터 설치 탐지 실패와 별개로 실행 중인 Unity에 연결하여 검증.
+- 9개 역할에 기존 원본 프리팹의 스프라이트·장식을 적용. 목표 말풍선 하단·가이드 TIP 키캡·상호작용 가로 키캡·정산 리본·구역 나무 표지 포함. 역할 비교는 role-catalog.png, 시스템 사건은 event-styles.png 참조.
+- 열린 Unity 컴파일 오류/경고 0. 역할 폼·실제 원화·범위/가림·사건 1~2줄 및 색상 4/4, 역할 수명·배치·프리팹 편집 4/4, 대기실 실제 연습실→상점 표지 1/1, 탐색 방송 레이어 1/1, 동료 사망 단일 경보 1/1. 로컬 PlayMode 검증이며 다중 클라이언트 실플레이는 미검증.
+- 기존 원본 38개를 Unity AssetDatabase로 Roles/Retained에 이동, 이동 전후 GUID 38/38 일치. 로드·테스트·조립기·현행 에셋 지도 경로 갱신. 외부 패널 조립기가 고정 경로를 요구하는 버튼 4개만 옛 위치에 호환 Variant를 둔다.
+- 가이드 선택 키(기본 TIP), 동일한 상호작용 키캡, 대기실 바인딩과 외줄 조작 키 연결. SystemEvent의 Message와 런타임 본문 템플릿에 한글이 베이크된 Pretendard Medium 연결. EditMode 한글 실출력 1/1 + 기존 특수 UI 레이아웃 8/8, PlayMode 폼·배지·상호작용 범위 등 5/5 및 실제 전화기 1/1. 전화기 검사는 현재 데이터의 행동명·F·배지 스프라이트·재진입을 확인한다.
+- doctor의 중복 ID·서브모듈·설치 탐지 실패와 별개로 열린 에디터 컴파일 오류/경고 0. origin/dev fetch 완료(3커밋 앞섬). 열린 에디터에서 변경 표시된 에셋이 확인되어 종료·브랜치 동기화는 보류했다.
+- 공통 HudPresentationSettings: 타입별 교체/아래로 쌓기/위로 쌓기 및 상한. 가이드만 최신순 3개, 나머지는 기본 교체. 퇴장 중인 이전 카드도 즉시 닫고 새 카드의 등장 연출을 재생. 같은 임무를 매 프레임 다시 띄워 교체가 풀리지 않도록 대기실 표시 요청을 정리.
+- 구역 표지는 짙은 HUD 프레임·황동 핀·최소 높이 48, 역할 상호작용은 최소 66. 실제 변경 전후 hud-plate-comparison.png. 열린 Unity 컴파일 오류/경고 0, PlayMode 11/11(플레이그라운드 5, 역할/중복 정책 5, 실제 대기실 구역 교체 1). doctor 기존 환경 진단 실패. origin/dev fetch, 열린 에디터 및 미저장 변경 보존으로 동기화 보류.
+- 대기실 HUD 프로필과 편집 메뉴로 튜토리얼 24개 단계/사건별 역할/문구, 대상별 앵커를 분리. 보류된 스케줄 안내 순서와 캠페인 판정 보존. 설정 EditMode 2/2, 실제 대기실 PlayMode 5/5(전화기 조준·F, 방송, 침대, 스케줄표, 둘째 공연~다음 날 임무). 최종 Unity 컴파일 오류·경고 0. origin/dev fetch, 8커밋 차이; 열린 에디터와 미저장 에셋 보존으로 반영 보류.
+- 이 묶음의 git diff --check 통과. check-work는 안전성/서브모듈 통과, 기존 Task-097 todo.md 문서 길이 상한으로 중단. 해당 검사 내 컴파일은 생략됐고 위 컴파일·테스트는 열린 에디터에서 별도로 실행.
+- 대기실 HUD Inspector: 5개 한국어 섹션과 조건·사용법, 제목 기반 단계 선택, 기본 순서 이동, 새 안내·직접 구도 저장 지원. 기존 ID·필수 단계 유지. EditMode 3/3, PlayMode 1/1(임시 프로필의 G01 → 새 스케줄표 카메라 → G11), 최종 Editor 컴파일 오류/경고 0. origin/dev fetch 후 열린 에디터·기존 변경 보존으로 동기화 보류.
+- 검사: git diff --check 통과. check-work는 기존 Task-097 todo.md 102줄(상한 80)로 중단. 위 Editor 컴파일·테스트는 별도 실행.
+- 대기실 HUD Inspector에서 직렬화된 입력값을 바로 읽어 표시 예시를 그린다. 두 필드가 짝인 문구는 상대 필드의 덮어쓰기도 반영한다. 실행 시 전달되는 인자만 치환, 일반 방송 본문은 예시 표시. Unity recompile_status 완료, 관련 EditMode 4/4. origin/dev fetch, 열린 Editor 변경 보존으로 동기화 보류.
+- 11/11 가이드 상단 Y -260 → -304. Unity에서 Guide 단일 프리팹 저장·재조회: 대기실 v2.8 날짜 표지 하단 -284, 간격 20 캔버스 단위. 생성 기본값도 일치시켰다. origin/dev fetch, 열린 에디터 변경 보존으로 동기화 보류.
+- 리허설 HUD: 실제 그네 접근·대포 탑승 가능 조건에서 수정한 문구가 Guide이고 SystemEvent가 아님을 확인. 대포 이수 후 임무 제거까지 PlayMode 3/3, 조건 목록/기본 문구/변수 EditMode 1/1, 컴파일 오류·경고 0. git diff --check 통과. check-work는 기존 Task-097 todo.md 102줄 제한으로 중단. origin/dev fetch, 열린 Editor·기존 변경 보존으로 동기화 보류.
+- 11/11 Confluence UI 시스템 고도화(38764627): ⑨ 공간 명판 역할·문구·배치 추가. 원본 영상과 분리해 Unity PlayMode 재현 화면 34개(리허설 10 / 카메라 4 / 대기실 20)와 설명을 오른쪽 열에 반영. 보관·줍기·내려놓기 성공, 침대 근접 및 2인 중 1인 준비 상태를 따로 재현. 촬영용 테스트 삭제. 페이지 재조회로 매체 수와 원본 보존 확인.
+- 11/11 투표 Z/X 기본키·인게임 재지정·즉시 키 표시, 외줄/인간대포 공연 목표와 Guide 및 편집 프로필 적용. Unity 최종 컴파일 오류 0, InputBindingPreferences EditMode 21/21, 실제 두 공연과 투표 흐름 PlayMode 2/2, 역할 HUD PlayMode 5/5. check-work는 기존 Task-097 todo.md 102줄 제한으로 중단. doctor의 서브모듈·Task ID·에디터 탐지 경고와 별개로 실제 프로젝트 에디터 연결 확인. origin/dev fetch 완료, 열린 에디터와 진행 중 변경을 보존하여 브랜치 동기화 보류.
+- 11/11 공연 HUD가 Settings/UI로 이동한 뒤 누락되던 런타임·편집 메뉴 공용 경로 수정. 기존 에셋 유지. 열린 Editor에서 실제 로드 경로 확인, 컴파일 및 StageHud_LiveRopeAndCannon PlayMode 1/1 통과. check-work는 기존 Task-097 todo 문서 길이로 중단. origin/dev fetch, 열린 Editor와 변경 보존으로 병합 보류.
+- 11/11 공연 해금 제목·아이콘은 첫 줄, 본문은 실제 줄 수로 측정(말줄임 제거). 인간대포 안내를 짧게 편집하고 HUD 프로필 편집 목록에 등록. 로비 서명·시작, 추격 경보(호스트/복제)·포획, 탈출로 목표·가이드·장치와 귀환 버튼이 있는 결과 카드 적용. Unity 컴파일 오류 0, SpaceRoleHud PlayMode 4/4. 테스트 씬 캡처 Logs/HudPlayground/cannon-unlock-reward.png. check-work: 기존 Task-097-rehearsal-flow/todo.md 102줄로 중단. doctor 환경 탐지 실패와 별개로 열린 에디터에서 검증. origin/dev fetch 완료, 에디터와 미커밋 변경 보존으로 병합 보류.
+- 11/11 출구층(절단기부터 문까지) 첫 진입을 호스트가 기록하고 기존 장치 스냅샷으로 공유. 출발 시 팀 임무 없음 → 첫 진입 후 탈출구 열기 → 개문 시 갈대밭 도착. 중간 참가 검증 통과. dev 85b86ed7로 fast-forward, 기존 미커밋 작업 재적용 및 충돌 10개 해결. 확정 없는 일정·수면, 시간대 방송과 대포 획득 투표·사망 규칙을 역할 HUD에 연결. 병합 후 실제 씬 회귀에서 발견한 개발용 직접 탈출과 대기 잠금 충돌도 수정. PlayMode 9개 개별 통과(실패 항목 수정 후 재실행 포함), 탈출 시작 날짜 EditMode 3/3. 원래 작업 사본은 autostash ead52883에 보존.
+- check-work: 안전성·문서/규칙·Unity 컴파일 PASS(별도 실행한 PlayMode/EditMode 결과는 위 기록). 실행 중 채워진 두 TMP 글리프 캐시만 병합 직전 작업 사본과 동일하게 복구.

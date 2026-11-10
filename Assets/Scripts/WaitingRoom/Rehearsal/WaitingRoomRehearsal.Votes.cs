@@ -223,8 +223,8 @@ namespace CurtainCall.WaitingRoom
                 votePanel.Show(WaitingRoomText.Get("rehearsal.practice-vote.title", "리허설 다시 하기"),
                     WaitingRoomText.Format("rehearsal.practice-vote.body", "모든 공연 준비자가 동의하면 외줄타기 리허설을 다시 연습합니다. (동의 {votes}/{total})",
                         ("votes", practiceYes.Count), ("total", Mathf.Max(voterCount, practiceYes.Count))),
-                    new RehearsalVotePanel.Choice(WaitingRoomText.Get(agreed ? "rehearsal.practice-vote.agreed" : "rehearsal.practice-vote.agree", agreed ? "동의함" : "동의"), !agreed, () => AnswerPractice(true)),
-                    new RehearsalVotePanel.Choice(WaitingRoomText.Get("rehearsal.practice-vote.disagree", "미동의"), true, () => AnswerPractice(false)));
+                    new HudVoteChoice(WaitingRoomText.Get(agreed ? "rehearsal.practice-vote.agreed" : "rehearsal.practice-vote.agree", agreed ? "동의함" : "동의"), !agreed, () => AnswerPractice(true)),
+                    new HudVoteChoice(WaitingRoomText.Get("rehearsal.practice-vote.disagree", "미동의"), true, () => AnswerPractice(false)));
                 return;
             }
             bool offerSkip = CanVote && !ending && !SceneCurtainTransition.IsActive;
@@ -233,7 +233,7 @@ namespace CurtainCall.WaitingRoom
             votePanel.Show(WaitingRoomText.Get("rehearsal.skip.title", "리허설 넘기기"),
                 WaitingRoomText.Format("rehearsal.skip.body", "과반수가 동의하면 현재 구간을 마치고 다음 단계로 이동합니다. (동의 {votes}/{required})",
                     ("votes", votes.Count), ("required", required)),
-                new RehearsalVotePanel.Choice(WaitingRoomText.Get(voted ? "rehearsal.skip.cancel" : "rehearsal.skip.agree", voted ? "동의 취소" : "리허설 넘기기"), true, () => RequestSkip(!voted)));
+                new HudVoteChoice(WaitingRoomText.Get(voted ? "rehearsal.skip.cancel" : "rehearsal.skip.agree", voted ? "동의 취소" : "리허설 넘기기"), true, () => RequestSkip(!voted)));
         }
 
         bool endingPractice;

@@ -154,7 +154,7 @@ namespace CurtainCall.WaitingRoom
             course.Cannon.SetPracticePlacementGate(id => shared.active && !shared.ending && shared.placed.Contains(id));
             root.SetActive(true); Physics.SyncTransforms();
             builtRound = shared.round; placedRound = -1; nextPlacement = 0;
-            quest.Show(T("title", "인간대포 · 트램펄린 리허설"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
+            quest.Show(T("first-title", "[tutorial] 공연 준비"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
             ShowGuide("INTRO", T("title", "인간대포 · 트램펄린 리허설"), T("intro", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 공통 부상·사망 규칙이 적용되며, 사망한 사람도 넘기기·포기에 투표할 수 있습니다."), 10f);
             if (CampaignRun.Instance.State.Phase == CampaignPhase.Night) CampaignRun.Instance.SetReady(false);
         }
@@ -166,7 +166,7 @@ namespace CurtainCall.WaitingRoom
 
         void ShowGuide(string id, string title, string body, float seconds)
         {
-            if (WaitingRoomTutorialPanel.Show(title, body, seconds) && NetworkPlayer.Local != null)
+            if (RehearsalGuide.Show(title, body, seconds) && NetworkPlayer.Local != null)
                 RecordAction("GUIDE_SHOWN", NetworkPlayer.Local.OwnerClientId, guideId: id, host: false);
         }
 
@@ -220,7 +220,7 @@ namespace CurtainCall.WaitingRoom
             if (shared.ending || course == null || NetworkPlayer.Local == null || !NetworkPlayer.Local.IsSpawned) return;
             var p = NetworkPlayer.Local;
             if (local == p && previousState == PlayerState.Normal && p.State == PlayerState.Fallen)
-                WaitingRoomTutorialPanel.Show(T("fall-title", "사망"), T("fall", "사망했습니다. 자동으로 부활하지 않습니다. 넘기기·포기에 투표할 수 있으며, 종료 후에도 현재 부상과 사망 상태가 유지됩니다."), 10f);
+                WaitingRoomGuidePanel.ShowAs(T("fall-title", "사망"), T("fall", "사망했습니다. 자동으로 부활하지 않습니다. 넘기기·포기에 투표할 수 있으며, 종료 후에도 현재 부상과 사망 상태가 유지됩니다."), 10f, RoomNotice.Warning);
             local = p; previousState = p.State;
             if (p.State != PlayerState.Normal) { quest.Show(T("fall-title", "사망"), T("fall", "사망했습니다. 자동으로 부활하지 않습니다. 넘기기·포기에 투표할 수 있으며, 종료 후에도 현재 부상과 사망 상태가 유지됩니다.")); return; }
             if (!p.TryGetComponent(out PlayerMover mover)) return;

@@ -122,7 +122,7 @@ namespace CurtainCall.EscapeRoute.Tests
             var preview=EditorSceneManager.NewPreviewScene();
             try
             {
-                var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/RestTimerV28/W1_RestTimer_v2_8.prefab");
+                var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/RestTimerV28/W1_RestTimer_v2_8.prefab");
                 var root=(GameObject)PrefabUtility.InstantiatePrefab(prefab,preview);
                 var view=root.GetComponent(T("CurtainCall.UI.RestTimerV28.RestTimerView"));
                 var snapshotType=T("CurtainCall.UI.RestTimerV28.RestTimerSnapshot");

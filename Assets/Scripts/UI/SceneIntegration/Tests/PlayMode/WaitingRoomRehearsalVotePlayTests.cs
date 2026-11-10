@@ -22,6 +22,29 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator RoleHudInRehearsalShowsGuideAndObjectiveBeforeVote()
+        {
+            yield return Launch(1,"Rehearsal",0,"Tightrope","WaitingRoomBase");
+            yield return WaitStage(0,10f);
+            RectTransform FindRole(string role)
+            {
+                var type=T("CurtainCall.UI.SceneIntegration.HudRoleCard");
+                foreach(Component c in Object.FindObjectsByType(type,FindObjectsSortMode.None))
+                    if(type.GetField("role").GetValue(c).ToString()==role) return (RectTransform)c.transform;
+                return null;
+            }
+            float until=Time.realtimeSinceStartup+6f;
+            while((!FindRole("Guide") || !FindRole("Objective")) && Time.realtimeSinceStartup<until) yield return null;
+            var guide=FindRole("Guide"); var quest=FindRole("Objective"); var vote=FindRole("Vote");
+            Assert.IsTrue(guide && quest,"rehearsal starts with a lesson and a team objective");
+            Assert.IsFalse(vote,"before arrival no vote should be offered");
+            Assert.Less(guide.anchorMin.x,quest.anchorMin.x);
+            Assert.AreEqual(1f,quest.anchorMin.x);
+            yield return new WaitForSecondsRealtime(.3f);
+            yield return CaptureVote("role-hud-live");
+        }
+
+        [UnityTest]
         public IEnumerator W6_Rehearsal_SkipNeedsArrivalAndPracticeVoteNeedsEveryone()
         {
             Component helper = null;

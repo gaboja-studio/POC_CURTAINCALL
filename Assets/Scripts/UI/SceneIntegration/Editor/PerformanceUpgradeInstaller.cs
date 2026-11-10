@@ -30,7 +30,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 var ui=Find<CommonPerformanceUI>(common).gameObject;
                 if (ui.GetComponent<PerformanceSpectatorBinding>() == null)
                 {
-                    var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Spectator/Spectator.prefab");
+                    var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Spectator/Spectator.prefab");
                     if (prefab == null) throw new InvalidOperationException("Tested Spectator prefab required.");
                     var instance=(GameObject)PrefabUtility.InstantiatePrefab(prefab,ui.transform);
                     instance.name="CommonSpectatorCanvas"; instance.GetComponent<Canvas>().sortingOrder=90;
@@ -112,7 +112,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 bool section=source.name=="Label" && source.text.Contains("·");
                 if(!distance && !finish && !section) continue;
                 string kind=finish?"Cloth":"Wood";
-                var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/WorldLabels/WorldLabel"+kind+".prefab");
+                var prefab=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/WorldLabels/WorldLabel"+kind+".prefab");
                 if(prefab==null) throw new InvalidOperationException("Tested world label required.");
                 var instance=(GameObject)PrefabUtility.InstantiatePrefab(prefab,parent);
                 instance.name=source.name+"_UI";

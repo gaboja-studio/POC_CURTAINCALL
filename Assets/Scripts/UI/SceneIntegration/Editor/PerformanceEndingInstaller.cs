@@ -24,8 +24,8 @@ namespace CurtainCall.UI.SceneIntegration.Editor
                 if (SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("Save scenes first.");
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(PerformanceEndingPresentation.ScenePath) != null)
                 throw new InvalidOperationException("Ending scene exists; edit its instances.");
-            var bannerAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Notifications/SystemNotifications.prefab");
-            var panelAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/BasicPanels/BasicPanels.prefab");
+            var bannerAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Notifications/SystemNotifications.prefab");
+            var panelAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/BasicPanels/BasicPanels.prefab");
             if (bannerAsset == null || panelAsset == null) throw new InvalidOperationException("Tested Assets prefabs required.");
             var setup = EditorSceneManager.GetSceneManagerSetup();
             try

@@ -30,7 +30,7 @@ namespace CurtainCall.BasicPanels.Tests
             events.GetComponent<InputSystemUIInputModule>().AssignDefaultActions();
             mouse = InputSystem.AddDevice<Mouse>();
             keyboard = InputSystem.AddDevice<Keyboard>();
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/BasicPanels/BasicPanels");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/BasicPanels/BasicPanels");
             Assert.NotNull(prefab, "패널 조립 프리팹");
             root = Object.Instantiate(prefab);
             controller = root.GetComponents<MonoBehaviour>().Single(x => x.GetType().Name == "CurtainCallMenuPanels");
