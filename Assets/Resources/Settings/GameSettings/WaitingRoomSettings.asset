@@ -222,3 +222,9 @@ MonoBehaviour:
       PatrolLeashDistance: 0
       Announcement: "\uCD94\uACA9\uC790\uAC00 \uBAA8\uB4E0 \uC704\uCE58\uB97C \uC54C\uACE0
         \uAC00\uC7A5 \uAC00\uAE4C\uC6B4 \uB2E8\uC6D0\uC744 \uCD94\uACA9\uD569\uB2C8\uB2E4."
+  tutorial:
+    resetOnFloorFall: 1
+    recoverSeconds: 1.5
+    openPracticeDoorWhileOccupied: 1
+    waitForRecoveryBeforePerformance: 1
+    keepFinishBarrier: 1

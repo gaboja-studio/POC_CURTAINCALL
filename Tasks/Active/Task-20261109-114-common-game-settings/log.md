@@ -76,3 +76,35 @@
 - 명시 경로309개 stage 확인. 최초 staged whitespace 검사가 신규 기록/테스트의 공백을 발견해 정리했다. 씬 조사 CSV는 빈 마지막 칸을 인용하며 파싱 결과 동일 확인, 테스트는 빈 줄 공백만 제거. 최종 git diff --cached --check PASS. 관련 없는 기존 파일29개와 공용 색인의 다른 작업 항목은 작업 트리에 보존한다.
 - 저장: fe3b7bda, refactor/common-game-settings 원격 push 완료. 작성자 @RagSpirin. GitHub가 기존 대기실 씬3개의 75MB 크기를 경고했으나 push 성공. 에셋 저장 방식 변경은 별도 범위로 유지한다.
 - 제출: [PR #317](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/317), refactor/common-game-settings → dev. 미해결14개·검사 결과·두 PC/전 코스 미확인과 Confluence 링크 포함. 병합하지 않았으며 지정 팀원 검토 대기.
+
+## 2026-11-10 문서 대상 축소·검사 수정 중단
+- 재개 준비 중 Unity 저장 상태 확인·정상 종료 후 origin/dev fetch/반영: Already up to date. 기존 폰트 사본 보존 후 Unity 재실행. 실패14개 관련 코드는 읽기만 했으며 변경·테스트 재실행 없음.
+- 최종 사용자 지시: 실패14개 수정 중단. 현재 보고 대상에서 탈출로 B/C 내용 제외, 표 전체 너비 확대만 진행한다. Confluence 기존 변경 전후109개 항목·실패14개는 유지하고 B/C 비교 설명·씬 경로만 제거한다.
+- Confluence 현재 제목 05. 공통 규칙 통일 — 변경 전·후, snapshot d1:923 읽기 검증: B/C 참조0, 변경 전후 표13개 너비1138px, 실패 표1150px 유지, 총14개 표/내용123행·글머리기호 보존. 문서 검사 안전성/문서·규칙 PASS, Unity·테스트 생략(종료코드2). Assets/Scripts 변경0. 추가 commit/push 없음.
+
+## 2026-11-10 공통 규칙 Inspector 조정
+- 사용자 요청으로 기존 설정에 고정 규칙7개 추가. 봉 인원1~4(기본2), 상단 단독 반동/탑승자 평균, 아래 사람을 둔 놓기 제한, 외줄 점프 중력, 일반 위험물/낙하 절단 개수, F 구조 우선 선택. 기존 기본값 유지. UI 외형·보류14개·탈출로 B/C 씬 수정 없음.
+- 3~4인도 바로 위 사람을 잡고 수직으로 연결. 중간 이탈·만료는 아래부터 개별 revision으로 놓아 클라이언트가 비행 승인을 놓치지 않게 처리. 봉 정원은 생성 시 적용하며 재시작 안내를 Tooltip에 명시.
+- 봉/트램펄린 전 항목과 신규 항목에 한글 이름·효과·단위·기본값·적용 시점 설명. 기존 피해/공중 조절/착지 파동 설명 누락 보완. 한글 이름은 기존 설정 Editor와 새 중첩 Drawer로 표시.
+- Unity API로 Pole/Base/Tightrope 에셋 새 값 저장. Base의 기존1초/3m/5m 기본값도 명시 저장. EditMode7/7 통과. PlayMode 최초4개 중3개 통과, 새 피해 검사 타입 이름 오기1개 수정 후 해당1/1 통과(실행 코드 변경 없음). 기존2인 동작·4인 반동/중간 이탈/만료·설정 피해 개수 확인.
+- 증거: .harness/local/inspector-edit-tests.json, inspector-play-tests.json, inspector-damage-final.json, inspector-settings-saved.json. 상세 사용법 inspector-controls.md, Confluence 변경 전후에 조정 표8행 추가. 전체 자동 검사와 실제 두 PC 플레이는 재실행하지 않았다.
+- 외줄 공중그네 접근 어댑터에 남은 2인 점유 제한도 제거. 외줄4인 검사에서 생성 후 설정 변경과 낮은 봉 아래 바닥 차단을 분리했고, 씬 생성 전 정원 설정·틈 위 봉에서 1/1 PASS(inspector-trapeze-final.json). 최초2회 실패와 테스트 Attribute 이름 충돌은 검사 준비를 수정해 해결. 층·가림 규칙은 그대로 유지한다.
+- 최대 인원은 플레이 중지 후 변경·재실행, 낮은 봉은 아래 공간 필요: Tooltip/사용법/Confluence 적용 시점 명시. Confluence d1:932 읽기 재확인: 표15개와 기존 local ID 보존. 이번 관련 검증은 EditMode7개·PlayMode5개 시나리오 최종 통과, 기존 실패14개 보류 유지.
+- 최종 check-work -NoRecord: 안전성/문서·규칙/컴파일/공통 설정 연결 PASS, 전체 테스트 선택 안 함. 문서 길이 경고63개·hard0. Unity는 Start 씬·비재생·미저장 씬0, PoleSettings 선택·기본 정원2. 마지막 테스트가 만든 동적 폰트 캐시는 사본 보존 후 Unity API로 제거. 추가 commit/push 없음.
+
+## 2026-11-10 Confluence Inspector 조정 방법
+- 사용자 요청으로 페이지39124994에 Project 폴더→설정 에셋→Inspector 펼칠 메뉴/항목→기본값 표7행 추가. 봉 기존 시간/각도/속도·트램펄린 위치, 호버 설명·플레이 중지 후 재실행 안내 포함. local inspector-controls.md 동기화.
+- d1:935 읽기 검증: 새 표1138px·셀28개 글머리 기호, 기존 local ID 전부 보존, 총16개 표. 실패14개/기존 전후 표 변경 없음. check-work -SkipUnity -NoRecord: 안전성/문서·규칙 PASS, 문서 작업으로 컴파일/테스트 생략(종료코드2). 코드·에셋 수정 및 추가 commit/push 없음.
+
+## 2026-11-10 튜토리얼·대기실 후속 수정
+- 시작 dev 동기화: Unity 종료 후806c8dab 반영. 기존 Inspector 확장·Task-112 변경 보존. 사용자 승인4m/6m, 봉 일반/스위치 각1.8m, 최초 교육 바닥 복귀·문·집결·도착 벽을 기존 GameSettings에 연결.
+- 공통 외형 케이블·손 위치·부모 크기 분리·종료 수명, 낙하 순간이동/부활 번호/중복 보고, 외줄 재연습 사망 조작 복귀를 수정. 상세는 tutorial-regression-audit.md.
+- 추가 발견 중 탈출로 전체는 사용자 지시로 제외. 나머지8개 수정·저장·제출 승인. 안전 착지대 무피해는 사용자 선택에 따라 BaseGameSettings에 추가하고 에디터 API로 저장. 일반 바닥4m/6m 유지.
+- 대기실 생존자 밤 준비·의료 예약 해제/미수행분 환급·사망자 행동 차단·침대 F 참조·1세대 교육 제한 수정. 인간대포 재연습 무료 복구 제거, 사망 상태/사지 유지 귀환과 분리된 시체 순간이동 연결. 상세는 cross-scene-regression-audit.md.
+- 이전 재현/검증: 문·경계 Edit10/10, 봉 외형 Edit15/15, 낙하 Play3/3, 봉 Play2/2. 마지막 추적 재검사5/6은 봉 외형 언로드 setup 오류1개를 발견해 수정. 대포 정상 착지 사망 진단1개 실패 후 안전착지대 정책 수정. 이 두 실패를 재실행 PASS로 바꾸지 않음.
+- 최신 사용자 요청으로 추가 PlayMode/두 PC/전 코스 플레이는 실행하지 않음. 최종 코드 컴파일 PASS, 대기실 단위14/14·Inspector7/7 PASS. 기존 보류 실패14개 전체 수정은 재개하지 않음.
+- Confluence39124994 d1:950 읽기 검증: 표19개, 기존 local ID 전부 유지, 너비1138/1150 유지. 튜토리얼·봉 전후19행·추가8개 전후·설정 위치 갱신, 탈출로는 현재범위 제외. 기존 보류14개 유지.
+- 제출 직전 Unity 정상 종료 후 origin/dev fetch/merge:806c8dab 동일, Already up to date. Unity 재실행. 기존 동적 폰트 사본은 .harness/local/tutorial-common-audit/fonts-before-submit에 보존, 관련 없는 기존 파일은 제출 제외.
+- 최초 check-work: DEV에 기존 포함된 Task-097 todo102줄 hard 초과로 문서 검사 FAIL·통합 컴파일 생략. 완료 체크 섹션5개를 History/009에 원문 그대로 보존해 todo76줄로 줄임. 미완료 항목·현재 결정은 유지.
+- 최종 check-work 재검사: 안전성/문서·규칙/컴파일/공통 설정 연결 PASS, 전체 테스트 선택 안 함. 문서 길이 hard0. 기존 사용자·Task-112·동적 폰트32개는 제출 제외하고 이번 관련82개만 저장한다.
+- 저장·제출 완료: d34b5043, refactor/common-game-settings push, dev 대상 [PR #319](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/319) 생성. 병합하지 않음. Unity는 Start 씬·비재생·PoleSettings 선택 상태. 플레이 검증은 사용자 담당.

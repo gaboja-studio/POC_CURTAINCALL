@@ -151,9 +151,6 @@ namespace CurtainCall.WaitingRoom
             if (shared.ending) return;
             shared.ending = true; shared.successful = success; shared.skipped = skipped; shared.mastered |= success; shared.endAt = Clock + 3d;
             RecordAction("ENDING", reason: skipped ? "MAJORITY_SKIP" : success ? "ALL_ARRIVED" : "MAJORITY_ABANDON");
-            foreach (var player in NetworkPlayer.All)
-                if (player != null && player.IsSpawned && player.State == PlayerState.Fallen && conditions.TryGetValue(player.OwnerClientId, out var condition))
-                    player.ServerRestoreCondition(condition);
             Publish();
         }
 
@@ -173,11 +170,15 @@ namespace CurtainCall.WaitingRoom
             if (returnedRound != shared.round && Clock >= returnAt && FindRoom())
             {
                 var p = NetworkPlayer.Local;
-                if (p != null && p.IsSpawned && p.State == PlayerState.Normal && p.TryGetComponent(out PlayerMover mover))
+                if (p != null && p.IsSpawned && p.TryGetComponent(out PlayerMover mover))
                 {
                     CaptureEndingMover();
+                    bool normal = p.State == PlayerState.Normal;
+                    bool bodyEnabled = mover.Body != null && mover.Body.enabled;
                     mover.SetStartPose(returnPose.position, returnPose.rotation, true);
-                    CurtainCall.Cameras.CameraViewDirector.Current?.SetLookRotation(returnPose.rotation);
+                    if (!normal && mover.Body != null) mover.Body.enabled = bodyEnabled;
+                    if (!normal) mover.SetControlEnabled(false);
+                    if (normal) CurtainCall.Cameras.CameraViewDirector.Current?.SetLookRotation(returnPose.rotation);
                     // 종료 상태를 받을 때까지 복귀 위치에서 서로 밀리지 않게 고정한다.
                     mover.Simulated = false;
                     returnedRound = shared.round;
@@ -208,9 +209,8 @@ namespace CurtainCall.WaitingRoom
             // before taking the ending lock, otherwise Detach unlocks early and we restore false.
             if (player.TryGetComponent(out HumanCannonPilot pilot)) pilot.ReleaseMovement();
             endingMover = mover;
-            // The reliable ending message may precede the revival NetworkVariable on a remote owner.
-            restoreControl = player.State == PlayerState.Fallen || mover.ControlEnabled;
-            restoreSimulation = player.State == PlayerState.Fallen || mover.Simulated;
+            restoreControl = player.State == PlayerState.Normal && mover.ControlEnabled;
+            restoreSimulation = mover.Simulated;
             mover.SetControlEnabled(false); mover.Simulated = false;
         }
 
@@ -219,7 +219,8 @@ namespace CurtainCall.WaitingRoom
             if (endingBlock != null) endingBlock.SetOpen(false);
             if (placementBlock != null && !shared.active) placementBlock.SetOpen(false);
             if (endingMover == null) return;
-            endingMover.SetControlEnabled(restoreControl); endingMover.Simulated = restoreSimulation; endingMover = null;
+            bool normal = endingMover.TryGetComponent(out NetworkPlayer player) && player.State == PlayerState.Normal;
+            endingMover.SetControlEnabled(normal && restoreControl); endingMover.Simulated = restoreSimulation; endingMover = null;
         }
     }
 }

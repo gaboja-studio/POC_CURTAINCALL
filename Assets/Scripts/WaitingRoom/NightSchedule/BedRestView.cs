@@ -39,11 +39,18 @@ namespace CurtainCall.WaitingRoom
             if (view == null) return;
             var run = CampaignRun.Instance;
             if (run == null) { End(); return; }
+            var player = CurtainCall.Network.PlayerSync.NetworkPlayer.Local;
+            if (player != null && !PlayerInteraction.CanInteract(player))
+            {
+                if (run.State.Phase == CampaignPhase.Night && run.IsLocalReady) run.SetReady(false);
+                End(); return;
+            }
             var s = run.State;
             if (s.Phase == CampaignPhase.Night && run.IsLocalReady)
             {
                 var k = Keyboard.current;
-                if (blend > .2f && (GetComponent<PlayerInputReader>()?.WasPressedThisFrame("Interact") == true || k != null && k.escapeKey.wasPressedThisFrame)) run.SetReady(false);
+                var input = player != null ? player.GetComponent<PlayerInputReader>() : null;
+                if (blend > .2f && (input?.WasPressedThisFrame("Interact") == true || k != null && k.escapeKey.wasPressedThisFrame)) run.SetReady(false);
             }
             bool asleep = s.Phase == CampaignPhase.Dawn || (s.Phase == CampaignPhase.Night && run.IsLocalReady);
             if (s.Day > day && s.Phase == CampaignPhase.RestTime) morning = true;

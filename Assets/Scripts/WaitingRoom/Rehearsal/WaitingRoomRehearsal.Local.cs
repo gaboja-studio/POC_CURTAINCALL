@@ -327,7 +327,7 @@ namespace CurtainCall.WaitingRoom
 
         void TrackPersonalProgress(PlayerMover mover)
         {
-            bool block = !practice && course != null && Stage != null
+            bool block = UsesInitialTutorialRules && CurtainCall.Settings.GameSettings.WaitingRoom.Tutorial.KeepFinishBarrier && course != null && Stage != null
                 && local.State == PlayerState.Normal && arrived.Contains(local.OwnerClientId);
             if (block && Stage.Kind == RehearsalStageKind.Trapeze && lessonReturnedRound != round)
             {
@@ -469,11 +469,15 @@ namespace CurtainCall.WaitingRoom
 
         void Relocate(PlayerMover mover, Vector3 position, Quaternion rotation)
         {
-            if (local.TryGetComponent(out PlayerBalance balance)) { balance.ResetBalance(); balance.SetBalanceActive(false); }
+            bool normal = local.State == PlayerState.Normal;
+            bool bodyEnabled = mover.Body != null && mover.Body.enabled;
+            if (normal && local.TryGetComponent(out PlayerBalance balance)) { balance.ResetBalance(); balance.SetBalanceActive(false); }
             mover.SetStartPose(position, rotation, true);
-            mover.SetControlEnabled(true);
+            // Ending practice can move a corpse off the removed course, but cannot revive its movement.
+            if (!normal && mover.Body != null) mover.Body.enabled = bodyEnabled;
+            mover.SetControlEnabled(normal);
             var view = CameraViewDirector.Current;
-            if (view != null && view.LocalPlayer == local) view.SetLookRotation(rotation);
+            if (normal && view != null && view.LocalPlayer == local) view.SetLookRotation(rotation);
         }
 
         // ── 퀘스트(개인별, 기획서 4장) ──
@@ -490,7 +494,10 @@ namespace CurtainCall.WaitingRoom
 
         string QuestFor(RehearsalStage s, PlayerMover mover)
         {
-            if (local.State == PlayerState.Fallen) return Quest("fallen", "추락했습니다. 잠시 뒤 출발대에서 다시 시작합니다.");
+            if (local.State == PlayerState.Fallen)
+                return UsesInitialTutorialRules
+                    ? Quest("fallen", "추락했습니다. 잠시 뒤 출발대에서 다시 시작합니다.")
+                    : Quest("practice-fallen", "사망했습니다. 호스트가 연습을 종료할 수 있습니다.");
             string rescue = RescueQuestKey();
             if (rescue.Length > 0) return Quest(rescue, RescueText(rescue));
             var p = local.transform.position;
@@ -504,7 +511,11 @@ namespace CurtainCall.WaitingRoom
             {
                 var relay = TightropeRelayGate.Current;
                 if (relay != null && relay.HeldPole(local) >= 0)
-                    return QuestFormat("trigger-hold", "잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.", 2);
+                {
+                    if (CurtainCall.HumanCannon.HumanCannonPoleSystem.Current?.IsReleaseBlockedByPassenger(local.OwnerClientId) == true)
+                        return Quest("trigger-wait-passenger", "아래 동료가 먼저 손을 놓아야 합니다. 동료가 놓으면 F 길게 또는 Space로 놓을 수 있습니다.");
+                    return QuestFormat("trigger-hold", "잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F 길게 또는 Space로 놓으세요.", 2);
+                }
                 if (myLane == 0 && distance >= 5f)
                     return QuestFormat("trigger-grab", "트리거 그네를 F로 잡으면 {lane}번 줄이 이어집니다. 동료가 건널 때까지 그네를 잡고 있으세요.", 2);
                 if (myLane == 1 && distance >= 6f && distance < 20f)

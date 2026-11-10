@@ -204,6 +204,8 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) Buy(string itemId, ulong buyer)
         {
+            if (!CurtainCall.Player.PlayerInteraction.CanInteract(buyer))
+                return Reject(buyer, "PURCHASE", itemId, 0, "NOT_ALIVE", "살아 있는 사람만 주문할 수 있습니다.");
             if (!CanPurchase) return Reject(buyer, "PURCHASE", itemId, 0, "NOT_NIGHT", PurchaseTimeRefusal);
             var refusal = book.Order(catalog, itemId, buyer, rewards.TrySpend, out var delivery);
             if (refusal != ShopRefusal.None) return Reject(buyer, "PURCHASE", itemId, 0, "SHOP_" + refusal, Explain(refusal));
@@ -214,6 +216,8 @@ namespace CurtainCall.WaitingRoom
 
         (bool, string) Claim(int order, ulong claimer)
         {
+            if (!CurtainCall.Player.PlayerInteraction.CanInteract(claimer))
+                return Reject(claimer, "COLLECT", null, order, "NOT_ALIVE", "살아 있는 사람만 물건을 받을 수 있습니다.");
             if (InPerformance) return Reject(claimer, "COLLECT", null, order, "IN_PERFORMANCE", PerformanceRefusal);
             // 손에 들 수 있는지 먼저 본다. 못 들면 배송구에 그대로 남는다.
             int index = -1;

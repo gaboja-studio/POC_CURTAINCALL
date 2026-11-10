@@ -2,9 +2,10 @@
 
 2026-11-10 · Task-114 · `refactor/common-game-settings` · 담당 @RagSpirin
 
-대상: 대기실/연습실, 외줄 공연, 인간대포 공연, 탈출로 A/B/C. UI 제외.
+이 문서의 이전 통일 묶음: 대기실/연습실, 외줄 공연, 인간대포 공연, 탈출로 A. 최신 후속에서는 탈출로 전체 제외. UI 외형 제외.
 이번 요청과 앞서 같은 브랜치에서 적용한 바닥·외줄·목마 변경을 함께 기록한다.
 수치가 지정되지 않은 항목은 기존 Base 설정과 인간대포 본편 값을 기준으로 선택했다.
+최신 후속: [튜토리얼·봉 수정 전후](tutorial-regression-audit.md), [대기실·묘기 추가 발견8개](cross-scene-regression-audit.md), [Inspector 조정 위치](inspector-controls.md). 최신 작업에서는 탈출로 전체 제외. 아래 이전 묶음 수치 중 낙하3m/5m는 이후4m/6m로 변경했다.
 
 ## 공통 설정 위치
 
