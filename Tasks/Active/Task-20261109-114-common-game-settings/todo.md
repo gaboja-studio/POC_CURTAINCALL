@@ -48,4 +48,4 @@
 - [x] 폐기 설정 필드·에디터 제작 도구·중복 규칙 제거
 - [x] 설정 누락/재생성/씬 전환/피해·입력 경계 검사와 기록
 - [x] Confluence 변경 전후 문서에 실패14개·관련 씬·기대값·실제 결과 표와 글머리 기호 추가
-- [ ] 사용자 요청에 따라 Task-114 관련 변경 저장·push 및 dev PR 제출
+- [x] 사용자 요청에 따라 Task-114 관련 변경 저장·push 및 dev PR 제출: [PR #317](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/317)

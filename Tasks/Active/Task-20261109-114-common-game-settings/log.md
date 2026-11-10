@@ -74,3 +74,5 @@
 - Unity 종료 후 origin/dev fetch·현재 브랜치 반영: 2d591802 동일, Already up to date. 기존 사용자 폰트 사본 보존, Unity 재실행. 실패14개는 추가 수정하지 않고 최종 코드 검증 결과를 재사용한다.
 - 제출 문서 검사: check-work -SkipUnity -NoRecord, 안전성/문서·규칙 PASS, 컴파일/테스트 생략(종료코드2). 게임 코드·설정은 마지막 PASS 검사 이후 동일. new-pr -DryRun으로 제목/방향/템플릿 확인; 별도 작업 변경을 남겨야 하므로 명시 경로 stage와 gh --body-file로 저장·등록한다.
 - 명시 경로309개 stage 확인. 최초 staged whitespace 검사가 신규 기록/테스트의 공백을 발견해 정리했다. 씬 조사 CSV는 빈 마지막 칸을 인용하며 파싱 결과 동일 확인, 테스트는 빈 줄 공백만 제거. 최종 git diff --cached --check PASS. 관련 없는 기존 파일29개와 공용 색인의 다른 작업 항목은 작업 트리에 보존한다.
+- 저장: fe3b7bda, refactor/common-game-settings 원격 push 완료. 작성자 @RagSpirin. GitHub가 기존 대기실 씬3개의 75MB 크기를 경고했으나 push 성공. 에셋 저장 방식 변경은 별도 범위로 유지한다.
+- 제출: [PR #317](https://github.com/gaboja-studio/POC_CURTAINCALL/pull/317), refactor/common-game-settings → dev. 미해결14개·검사 결과·두 PC/전 코스 미확인과 Confluence 링크 포함. 병합하지 않았으며 지정 팀원 검토 대기.
