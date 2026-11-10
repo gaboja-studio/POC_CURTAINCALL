@@ -37,7 +37,7 @@ namespace CurtainCall.WaitingRoom
         /// 2026-10-31 사용자: G03 상호작용은 연계에서 빼고 상호작용 가능한 대상을 처음 발견할 때 띄운다.
         /// 2026-11-04 사용자: N01(오늘 밤 할 일)은 [tutorial] 없이 왼쪽 설명 패널로, 밤 연계의 첫 안내(G01과 같은 텍스트 잠금)로 띄운다.
         /// 오른쪽 [tutorial] 퀘스트는 첫날 진행 퀘스트(<see cref="WaitingRoomFirstDayFlow"/>) 하나만 쓴다.
-        static readonly string[] RestChain = { "G01", "G11" }, NightChain = { "N01", "N02", "N04", "N03" };
+        string[] RestChain,NightChain;
         static readonly HashSet<string> CloseUpIds = new() { "G11", "N02", "N04", "N03", "N05", "G10" };
         static readonly HashSet<string> LockedIds = new(CloseUpIds) { "G01", "N01" };
 
@@ -73,11 +73,11 @@ namespace CurtainCall.WaitingRoom
             foreach (string id in LockedIds) if (Book.IsQueued(id)) return false;
             if (state.Phase == CampaignPhase.Night)
             {
-                foreach (string id in NightChain) if (!Book.IsDone(id)) return false;
+                foreach (string id in instance.NightChain) if (!Book.IsDone(id)) return false;
                 return Book.IsDone("N05");
             }
             if (state.Rest == RestKind.Guide)
-                foreach (string id in RestChain) if (!Book.IsDone(id)) return false;
+                foreach (string id in instance.RestChain) if (!Book.IsDone(id)) return false;
             return true;
         }
 
@@ -111,7 +111,7 @@ namespace CurtainCall.WaitingRoom
                 if (book != null) return book;
                 // 사람이 고치는 문구 파일. 없거나 빠진 줄은 코드 기본 문구.
                 var texts = Resources.Load<TextAsset>(TextsPath);
-                book = new WaitingRoomTutorialBook(texts != null ? WaitingRoomTutorialBook.ParseTexts(texts.text) : null);
+                book = WaitingRoomHudProfile.Current.BuildBook(texts ? texts.text : "");
                 return book;
             }
         }
@@ -126,20 +126,14 @@ namespace CurtainCall.WaitingRoom
         static void HidePanel()
         {
             if (instance != null) instance.EndSequence();
-            // 상황 알림(침대 등)은 안내 끄기와 상관없이 정해진 시간 동안 둔다.
-            if (WaitingRoomTutorialPanel.IsVisible && Time.unscaledTime >= noticeUntil) WaitingRoomTutorialPanel.Hide();
+            WaitingRoomTutorialPanel.Hide();
         }
 
-        static float noticeUntil;
-
-        /// <summary>
-        /// 튜토리얼과 별개인 상황 알림(침대 등)을 가이드 패널에 띄운다. 안내 끄기와 상관없이 뜨고, 기록하지 않는다.
-        /// 연계 튜토리얼 중이면 띄우지 않는다.
-        /// </summary>
-        public static void ShowNotice(string title, string body)
+        public static void ShowNotice(string title,string body,Transform source=null)
         {
-            if (IsSequenceActive) return;
-            if (WaitingRoomTutorialPanel.Show(title, body, NoticeSeconds)) noticeUntil = Time.unscaledTime + NoticeSeconds;
+            if(IsSequenceActive || ScheduleScreenHold.IsHeld)return;
+            var owner=source ? source : instance ? instance.transform : null;
+            if(owner)WaitingRoomHudProfile.Emit(WaitingRoomHudProfile.Current.bedBlocked,owner,title,body,NoticeSeconds);
         }
 
         /// <summary>설정의 다시 보기 목록(본 순서가 아니라 안내 순서).</summary>
@@ -156,7 +150,7 @@ namespace CurtainCall.WaitingRoom
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void ResetStatics() { instance = null; book = null; memoryOnly = false; memoryEnabled = true; noticeUntil = 0f; }
+        static void ResetStatics() { instance = null; book = null; memoryOnly = false; memoryEnabled = true; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         static void Boot()
@@ -170,6 +164,8 @@ namespace CurtainCall.WaitingRoom
 
         void Awake()
         {
+            var profile=WaitingRoomHudProfile.Current;
+            RestChain=profile.Sequence(false);NightChain=profile.Sequence(true);
             closeUp = gameObject.AddComponent<WaitingRoomTutorialCamera>();
         }
 
@@ -280,7 +276,9 @@ namespace CurtainCall.WaitingRoom
             }
         }
 
-        static bool IsLocked(string id) => LockedIds.Contains(id);
+        static bool IsExtra(string id)=>id.StartsWith("extra:",System.StringComparison.Ordinal);
+        static bool IsLocked(string id) => LockedIds.Contains(id) || IsExtra(id);
+        static bool HasShot(string id) => CloseUpIds.Contains(id) || IsExtra(id) && WaitingRoomHudProfile.Current.Extra(id)?.shot is RoomShot shot && shot!=RoomShot.Text;
 
         void Pump()
         {
@@ -310,23 +308,30 @@ namespace CurtainCall.WaitingRoom
             if (!IsLocked(entry.id))
             {
                 // 패널이 아직 사라지는 중이면 다음 프레임에 다시 시도한다.
-                if (!WaitingRoomTutorialPanel.Show(entry.title, body, entry.seconds)) return;
+                if (!ShowEntry(entry, body, entry.seconds)) return;
                 b.MarkDone(entry.id);
                 return;
             }
-            bool framed = CloseUpIds.Contains(entry.id) && TryFocus(entry.id, out var pos, out var rot, out var focus) && closeUp.Begin(pos, rot, focus);
-            float seconds = framed ? WaitingRoomTutorialCamera.Total : TextLockSeconds;
-            if (!WaitingRoomTutorialPanel.Show(entry.title, body, seconds)) { closeUp.Stop(); return; }
+            bool framed = HasShot(entry.id) && TryFocus(entry.id, out var pos, out var rot, out var focus) && closeUp.Begin(pos, rot, focus);
+            float seconds = framed ? WaitingRoomTutorialCamera.Total : IsExtra(entry.id) ? entry.seconds : TextLockSeconds;
+            if (!ShowEntry(entry, body, seconds)) { closeUp.Stop(); return; }
             if (!sequence) { sequence = true; InputGate.SetBlocking(this, true); }
             stepEndsAt = Time.unscaledTime + seconds;
             b.MarkDone(entry.id);
         }
 
+        string BadgeFor(string template) => template.Contains("{interact}") ? interactKey : template.Contains("{uv}") ? uvKey : null;
+        bool ShowEntry(TutorialEntry entry,string body,float seconds)
+        {
+            var cue=WaitingRoomHudProfile.Current.Cue(entry.id);
+            return WaitingRoomTutorialPanel.ShowAs(cue?.role ?? RoomNotice.Guide,entry.title,body,seconds,BadgeFor(entry.body));
+        }
+        public static void RecallPresented(){if(Enabled && instance && instance.isActiveAndEnabled)Book.MarkDone("G11A");}
         bool TryContinueCloseUp(WaitingRoomTutorialBook b)
         {
-            if (!b.TryNext(false, IsLocked, out var entry) || !CloseUpIds.Contains(entry.id)
+            if (!b.TryNext(false, IsLocked, out var entry) || !HasShot(entry.id)
                 || !TryFocus(entry.id, out var pos, out var rot, out var focus)) return false;
-            if (!WaitingRoomTutorialPanel.Show(entry.title, WaitingRoomTutorialBook.Format(entry.body, interactKey, uvKey), WaitingRoomTutorialCamera.Total)) return false;
+            if (!ShowEntry(entry, WaitingRoomTutorialBook.Format(entry.body, interactKey, uvKey), WaitingRoomTutorialCamera.Total)) return false;
             if (!closeUp.Continue(pos, rot, focus)) return false;
             stepEndsAt = Time.unscaledTime + WaitingRoomTutorialCamera.Total;
             b.MarkDone(entry.id);
@@ -349,6 +354,18 @@ namespace CurtainCall.WaitingRoom
             pos = default; rot = Quaternion.identity; point = default;
             var main = Camera.main;
             if (main == null) return false;
+            if(IsExtra(id))
+            {
+                var step=WaitingRoomHudProfile.Current.Extra(id);
+                if(step==null)return false;
+                if(step.shot==RoomShot.SceneView)
+                {
+                    if(!step.hasPose)return false;
+                    pos=step.position;rot=Quaternion.Euler(step.angles);point=step.focus;return true;
+                }
+                id=step.shot switch { RoomShot.Entrance=>"G11",RoomShot.Shop=>"N02",RoomShot.Board=>"N03",
+                    RoomShot.Shelf=>"N04",RoomShot.Bed=>"N05",_=>null };
+            }
             Bounds? focus = null;
             switch (id)
             {

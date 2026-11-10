@@ -23,7 +23,7 @@ namespace CurtainCall.CommonButtons.Tests
             {
                 foreach (string role in new[] { "Confirm", "Cancel", "Settings", "General" })
                 {
-                    var root = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/CommonButtons/Button_" + role), canvasRoot.transform);
+                    var root = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/CommonButtons/Button_" + role), canvasRoot.transform);
                     var button = root.GetComponent<UnityEngine.UI.Button>();
                     var rect = (RectTransform)root.transform;
                     rect.anchoredPosition = Vector2.zero;
@@ -78,7 +78,7 @@ namespace CurtainCall.CommonButtons.Tests
             var system = systemObject.GetComponent<EventSystem>();
             foreach (string role in new[] { "Confirm", "Cancel", "Settings", "General" })
             {
-                var prefab = Resources.Load<GameObject>("Prefabs/UIs/CommonButtons/Button_" + role);
+                var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/CommonButtons/Button_" + role);
                 Assert.NotNull(prefab, role);
                 var root = Object.Instantiate(prefab, host.transform);
                 var button = root.GetComponent<UnityEngine.UI.Button>();

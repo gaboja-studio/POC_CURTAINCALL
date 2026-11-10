@@ -153,12 +153,13 @@ namespace CurtainCall.WaitingRoom
                         if (prop != null && prop.activeSelf) { prop.SetActive(false); hidden.Add(prop); }
             var prefab = Resources.Load<GameObject>("Prefabs/Objects/ETCs/HumanCannonArtKit/Prepared/RehearsalCourseFromPerformance");
             if (prefab == null) { Debug.LogError("[CannonRehearsal] Native source copy is missing."); return; }
+            WaitingRoomStageDevices.ReleaseForRehearsal(); // 대기실 상시 대포 시스템·트램펄린을 먼저 비운다(씬당 1개, CC-252)
             var root = Instantiate(prefab); course = root.GetComponent<RehearsalCannonCourse>();
             root.SetActive(false); course.Prepare(origin);
             course.Cannon.SetPracticePlacementGate(id => shared.active && !shared.ending && shared.placed.Contains(id));
             root.SetActive(true); Physics.SyncTransforms();
             builtRound = shared.round; placedRound = -1; nextPlacement = 0;
-            quest.Show(T("title", "인간대포 · 트램펄린 리허설"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
+            quest.Show(T("first-title", "[tutorial] 공연 준비"), T("first", "시작대의 대포에 F로 탑승하고, 준비가 끝나면 다시 F로 발사하세요. WASD로 중간 도착대에 착지하세요."));
             ShowGuide("INTRO", T("title", "인간대포 · 트램펄린 리허설"),
                 GameSettings.WaitingRoom.Rehearsal.RecoverAfterDeath
                     ? T("intro", "대포와 트램펄린으로 최종 도착대에 가세요. 전원 도착 시 이수합니다. 사망하면 마지막 체크포인트에서 다시 시작합니다.")
@@ -173,7 +174,7 @@ namespace CurtainCall.WaitingRoom
 
         void ShowGuide(string id, string title, string body, float seconds)
         {
-            if (WaitingRoomTutorialPanel.Show(title, body, seconds) && NetworkPlayer.Local != null)
+            if (RehearsalGuide.Show(title, body, seconds) && NetworkPlayer.Local != null)
                 RecordAction("GUIDE_SHOWN", NetworkPlayer.Local.OwnerClientId, guideId: id, host: false);
         }
 
@@ -246,7 +247,7 @@ namespace CurtainCall.WaitingRoom
             if (p.State == PlayerState.Normal && (localRecoveryPending || local == p && previousState == PlayerState.Fallen))
                 ResetLocalRecovery(p);
             if (local == p && previousState == PlayerState.Normal && p.State == PlayerState.Fallen)
-                WaitingRoomTutorialPanel.Show(T("fall-title", "사망"), DeathGuide, 10f);
+                WaitingRoomGuidePanel.ShowAs(T("fall-title", "사망"), DeathGuide, 10f, RoomNotice.Warning);
             local = p; previousState = p.State;
             if (p.State != PlayerState.Normal) { quest.Show(T("fall-title", "사망"), DeathGuide); return; }
             if (!p.TryGetComponent(out PlayerMover mover)) return;

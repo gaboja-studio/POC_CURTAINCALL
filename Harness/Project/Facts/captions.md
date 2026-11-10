@@ -8,7 +8,7 @@ source: Task-20261019-061
 ## 언제 읽나
 자막 표시·폭 조절·긴 발화 처리·확인 씬 실행 전에 읽는다. 오디오/게임 발화 정책이 아니다.
 ## 정본·구현
-- 프리팹 `Assets/Resources/Prefabs/UIs/Captions/Captions.prefab`, 씬 `Assets/Scenes/Tests/Captions/Captions.unity`, StaticMedium `Assets/Resources/Fonts/Captions/`.
+- 프리팹 `Assets/Resources/Prefabs/UIs/Roles/Retained/Captions/Captions.prefab`, 씬 `Assets/Scenes/Tests/Captions/Captions.unity`, StaticMedium `Assets/Resources/Fonts/Captions/`.
 - 공개 `Assets/Scripts/Systems/Captions/CaptionPreview.cs`의19버튼은 수동 합성 예시. 배경·시간 정지/복구 포함, 게임 입력/오디오 연결 없음.
 - 안전 어댑터 `Assets/Scripts/Systems/Captions/Editor/CaptionProjectBuilder.cs`는 기존 출력·dirty 씬·Play·PrefabStage·컴파일/import 충돌을 거부한다. 기존 정본 재생성/삭제 없음.
 - private 제공 `Assets/_ThirdParty/curtaincall_captions_v1/`의 Runtime/Builder를 원위치 `CurtainCall.UI.CaptionsV1`로 격리. 공개 복제 금지.

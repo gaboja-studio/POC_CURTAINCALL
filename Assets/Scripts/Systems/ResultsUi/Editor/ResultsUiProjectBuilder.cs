@@ -19,7 +19,7 @@ namespace CurtainCall.UI.ResultsV1.Editor
     public static class ResultsUiProjectBuilder
     {
         public const string Kit = "Assets/_ThirdParty/curtaincall_results_v1";
-        public const string PrefabFolder = "Assets/Resources/Prefabs/UIs/ResultsUi";
+        public const string PrefabFolder = "Assets/Resources/Prefabs/UIs/Roles/Retained/ResultsUi";
         public const string PrefabPath = PrefabFolder + "/ResultsPanel.prefab";
         public const string SceneFolder = "Assets/Scenes/Tests/ResultsUi";
         public const string ScenePath = SceneFolder + "/ResultsUi.unity";

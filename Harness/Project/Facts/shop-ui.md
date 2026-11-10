@@ -33,7 +33,7 @@ source: Task-20261019-061, Task-20261101-092
 - 키트 테스트 `InitialHiddenCanvasAndTypography`는 스크롤 내용 TMP만 Overflow를 허용한다.
 
 ## 확인 방법
-- 산출물: `Assets/Resources/Prefabs/UIs/ShopUi/ShopPanel.prefab`, `Assets/Scenes/Tests/ShopUi/ShopUi.unity`. 씬 Play 후 `데모 열기`로 확인한다. 검증 정본은 Task의 `shop-ui-verification.md`다.
+- 산출물: `Assets/Resources/Prefabs/UIs/Roles/Retained/ShopUi/ShopPanel.prefab`, `Assets/Scenes/Tests/ShopUi/ShopUi.unity`. 씬 Play 후 `데모 열기`로 확인한다. 검증 정본은 Task의 `shop-ui-verification.md`다.
 - ShopUi Medium은 기존 atlas/material을 공유하는 Static 변형이며 전용 Static512 보조 폰트로 U+2212를 보완한다. Bold는 고정 제목/ASCII/기호110글자의 전용 Static2048, SemiBold는 기존 정본이다. 기존 폰트는 수정하지 않는다.
 - Pretendard 행 제목24pt/부제18pt는 각각 높이32/24를 확보한다. 높이28/20에서는 Ellipsis가 세로 초과로 글자를 전부 숨길 수 있다. 후속 사용자 요청으로 행 높이80·상하 여백12/글자 크기 유지로 변경했다. 배치/스크롤 보폭은84다.
 - `Scripts/check-work.ps1` 및 W2 선택 PlayMode 검사를 사용한다. 실행 캡처/합성 입력·물리 입력·사람 외형 승인을 구분하고 실패/생략/환경 제약을 그대로 기록한다.

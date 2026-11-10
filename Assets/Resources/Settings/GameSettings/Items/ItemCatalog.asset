@@ -301,3 +301,21 @@ MonoBehaviour:
     shopDescription: 
     shopTooltip: 
     useCue: 
+  - id: power-battery
+    displayName: "\uBC30\uD130\uB9AC"
+    wornName: 
+    wornAtOrBelow: -1
+    use: 1
+    kind: 1
+    newUses: 1
+    foundUses: 1
+    price: 0
+    cooldown: 0
+    effect: 0
+    effect2: 0
+    summary: "\uC124\uBE44\uC2E4 \uB3D9\uB825 \uC18C\uCF13\uC5D0 \uB123\uC73C\uBA74
+      \uAE30\uACC4\uC2E4\uB85C \uAC00\uB294 \uC154\uD130\uAC00 \uC5F4\uB9B0\uB2E4.
+      \uB123\uC73C\uBA74 \uC0AC\uB77C\uC9C4\uB2E4. \uAD6C\uB9E4 \uBD88\uAC00."
+    shopDescription: 
+    shopTooltip: 
+    useCue: 

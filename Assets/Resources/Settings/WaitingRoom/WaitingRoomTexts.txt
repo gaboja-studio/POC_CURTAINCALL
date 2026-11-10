@@ -50,6 +50,7 @@ narration.expert-booked-title | 의료용 서비스 예약 완료
 narration.expert-booked-body | 의료 서비스 {n}개를 예약했습니다.\n의료 서비스를 이용하려면 로비의 의료용 승강기로 이동해 F를 누르세요.
 # 공연 기물 획득 패널 ({trick} = 공연 이름)
 narration.performance-unlocked-title | {trick} 획득!
+narration.cannon-unlocked-body | 리허설을 마치면 스케줄표에서 이 공연을 선택할 수 있습니다.\n{trick}·트램펄린은 연습실로 옮겨졌습니다.
 narration.performance-unlocked-body | '{trick}' 공연이 해금되었습니다. 이제 스케줄표에서 {trick} 공연을 편성할 수 있습니다.\n획득한 {trick}·트램펄린은 연습실로 옮겨졌습니다.
 
 # ── 단서 ──
@@ -474,20 +475,20 @@ rehearsal.quest.lane-platform | 발판에서는 W/S·A/D로 이동합니다. 옆
 rehearsal.quest.finish | 줄을 따라 도착대까지 가세요.
 rehearsal.quest.gather | 바닥에 표시되는 길안내 선을 따라 무대 입구 통로로 이동하세요. 전원이 모이면 공연이 시작됩니다.[{inside}/{alive}]
 rehearsal.quest.gathered | 다른 공연 준비자를 기다리세요.[{inside}/{alive}]
-rehearsal.quest.fallen.title | [tutorial]
+rehearsal.quest.fallen.title | 체크포인트로 복귀하기
 rehearsal.quest.hang-help.title | [tutorial] 동료에게 도움 요청하기
 rehearsal.quest.hang-help | 줄에 매달려 버티는 동안 동료에게 도움을 요청하세요. 가까운 동료가 F를 길게 눌러 끌어올릴 수 있습니다. 혼자 올라올 수는 없습니다.
 rehearsal.quest.rescue-team.title | [tutorial] 추락한 동료 구출하기
 rehearsal.quest.rescue-team | 줄에 매달린 동료 가까이로 이동해 F를 길게 눌러 끌어올리세요. 버티는 시간이 끝나기 전에 구조해야 합니다.
 rehearsal.quest.rescue-pull.title | [tutorial] 동료 끌어올리기
 rehearsal.quest.rescue-pull | 동료를 끌어올리는 중입니다. 구조가 끝날 때까지 가까이에서 F를 계속 누르세요.
-rehearsal.quest.wait-team.title | [tutorial]
-rehearsal.quest.arrived.title | [tutorial]
+rehearsal.quest.wait-team.title | 동료 도착 기다리기
+rehearsal.quest.arrived.title | 다음 구간 준비하기
 rehearsal.quest.balance.title | [tutorial] 균형잡기
 rehearsal.quest.lane-jump.title | [tutorial] 줄 건너기
 rehearsal.quest.lane-platform.title | [tutorial] 중간 발판에서 건너기
-rehearsal.quest.gather.title | [tutorial]
-rehearsal.quest.gathered.title | [tutorial]
+rehearsal.quest.gather.title | 무대 입구로 집결하기
+rehearsal.quest.gathered.title | 집결 인원 기다리기
 # ── 첫 쉬는 시간 전원 대기 (2026-11-02) ──
 tutorial.team-wait-title | [tutorial]
 tutorial.team-wait | 모든 공연 준비자가 안내를 확인하면 움직일 수 있습니다.[{ready}/{total}]
@@ -543,6 +544,7 @@ rehearsal.clear-button | 현재 구간 즉시 클리어 · 다음
 rehearsal.clear-button-hint | 호스트 전용 · Esc로 커서 해제
 
 rehearsal.vote | 다음 구간으로 ({votes}/{required})
+rehearsal.quest.arrived-vote.title | 다음 구간 준비하기
 rehearsal.quest.arrived-vote | 도착했습니다. 동료의 연습을 기다리거나 다음 구간 진행에 동의하세요. ({arrived}/{total}, 동의 {votes}/{required})
 rehearsal.lane-guide-title | 끊어진 줄
 rehearsal.lane-guide | 줄이 끊긴 지점에서는 Q/E + Space키로 옆줄로 건너갈 수 있습니다.
@@ -570,7 +572,7 @@ rehearsal.practice-vote.agreed | 동의함
 rehearsal.practice-vote.disagree | 미동의
 rehearsal.practice-vote.cancel-title | 리허설 다시 하기 취소
 rehearsal.practice-vote.cancel | 동의하지 않은 공연 준비자가 있어 리허설 다시 하기를 취소했습니다.
-rehearsal.vote-panel.hint | Esc로 커서 해제 후 클릭
+rehearsal.vote-panel.hint | 버튼에 표시된 키로 선택
 guide.title-color | #FFD5A0
 
 # 공연 확정 전 무대 입구 안내
@@ -612,6 +614,8 @@ cannon-rehearsal.fall-title | 사망
 cannon-rehearsal.fall-recover | 잠시 뒤 마지막 체크포인트에서 다시 시작합니다.
 cannon-rehearsal.fall | 사망했습니다. 자동으로 부활하지 않습니다. 넘기기·포기에 투표할 수 있으며, 종료 후에도 현재 부상과 사망 상태가 유지됩니다.
 cannon-rehearsal.required-title | 인간대포 리허설
+cannon-rehearsal.unlocked-title | 새 공연 해금 · 인간대포 리허설
+cannon-rehearsal.unlocked-body | 인간대포 공연이 해금되었습니다. 지금 리허설로 이동할까요?
 cannon-rehearsal.required | 인간대포를 처음 편성하기 전에 리허설을 이수해야 합니다. 지금 리허설을 진행할까요?
 cannon-rehearsal.yes | 예
 cannon-rehearsal.no | 아니오
@@ -636,3 +640,43 @@ rehearsal.quest.trigger-closed.title | [tutorial] 인간 그네
 
 pursuit.quest.sleep | - 살아 있는 모든 플레이어가 숙소 침대에서 수면
 night.bed-unavailable | 리허설이나 포획 중에는 잠들 수 없습니다.
+# 리허설 HUD · 코드에만 있던 표시 문구
+cannon-rehearsal.guide.cannon.title | 인간대포 발사하기
+cannon-rehearsal.guide.cannon.body | 인간대포 앞에서 {interact}를 눌러 탑승합니다. 다시 {interact}를 누르면 대포가 발사됩니다. 발사 후에는 트램펄린에 착지해야 합니다.
+cannon-rehearsal.guide.trampoline.title | 트램펄린 이용하기
+cannon-rehearsal.guide.trampoline.body | 트램펄린 앞에서 {interact}를 눌러 트램펄린을 잡습니다. 트램펄린 이용자는 대포로 발사되는 다른 공연 준비자를 안전하게 받아줘야 합니다.
+cannon-rehearsal.guide.carry.title | 트램펄린 이용하기
+cannon-rehearsal.guide.carry.body | 트램펄린을 쥔 상태에서 자유롭게 이동이 가능하며, 다시 {interact}를 길게 누르면 트램펄린을 놓습니다.
+cannon-rehearsal.guide.catch.title | 받아주기
+cannon-rehearsal.guide.catch.body | 트램펄린을 이용해 다른 공연 준비자를 받아주며 다음 장소까지 안전하게 이동합니다.
+cannon-rehearsal.guide.transport.title | 트램 이용하기
+cannon-rehearsal.guide.transport.body | 트램은 자동으로 이동합니다. 한 명만 이용할 수 있으며, 두 명 이상 탑승하면 출발하지 않습니다.
+cannon-rehearsal.guide.bounce.title | 안전한 착지
+cannon-rehearsal.guide.bounce.body | 트램펄린을 이용해 안전하게 착지할 수 있습니다. 지면에 착지하지 않게 주의하세요.
+cannon-rehearsal.guide.safe.title | 안전지역
+cannon-rehearsal.guide.safe.body | 모든 공연 준비자가 도착 지점에 도착해야 합니다.
+cannon-rehearsal.first-title | [tutorial] 공연 준비
+cannon-rehearsal.safe-title | [tutorial] 안전 지역으로 이동하기
+cannon-rehearsal.safe-body | 도착 지점에서는 추락 패널티 없이 안전하게 착지할 수 있습니다. 트램펄린을 이용해 안전 지역으로 이동하세요.
+cannon-rehearsal.completed-title | [tutorial] 리허설 종료
+cannon-rehearsal.skipped | 리허설을 넘겼습니다. 이수로 기록되어 스케줄표에서 인간대포를 선택할 수 있습니다.
+cannon-rehearsal.retry-title | 다시 연습하기
+cannon-rehearsal.retry-body | 연습실 기물 앞에서 {interact}로 다시 연습할 수 있습니다.
+rehearsal.quest.trigger-hold | 잡고 있는 동안 {lane}번 줄이 이어집니다. 동료가 건너갈 때까지 잡고 있다가 F나 Space로 놓으세요.
+rehearsal.quest.trigger-grab | 트리거 그네를 F로 잡으면 {lane}번 줄이 이어집니다. 동료가 건널 때까지 그네를 잡고 있으세요.
+rehearsal.quest.trigger-open | 연결된 줄을 따라 건너세요.
+rehearsal.quest.trigger-closed | 앞의 줄이 끊겨 있습니다. 건너편 줄의 공연 대기자가 트리거 그네를 잡으면 이어집니다.
+rehearsal.quest.pole-single | Space를 누르면 그네를 놓습니다. W, S로 그네를 조작해 건너편 줄로 도착하세요.
+rehearsal.quest.pole-next | 그네를 조작해 건너편 그네에 도착하세요. 체공 중 F를 눌러 그네를 잡을 수 있습니다.
+rehearsal.quest.pole-grab | 줄 끝에서 F를 눌러 인간 그네에 탑승하세요.
+cannon-rehearsal.vote-title | 리허설 넘기기 / 포기
+cannon-rehearsal.cancel-skip | 넘기기 취소
+cannon-rehearsal.skip | 리허설 넘기기
+cannon-rehearsal.cancel-abandon | 포기 취소
+rehearsal.quest.trapeze | {hint}
+cannon-rehearsal.vote-body | 과반수 동의 시 넘기기는 이수 처리, 포기는 미이수로 종료합니다.\n넘기기 {skip}/{required} · 포기 {abandon}/{required}
+rehearsal.stage.2-1.goal | 그네를 타고 건너편 줄에 착지한 뒤 도착대까지 이동하세요.
+rehearsal.stage.2-2.goal | 연속 그네를 건너 마지막 줄의 도착대까지 이동하세요.
+rehearsal.stage.2-3.goal | 동료와 트리거 그네를 이용해 끊긴 구간을 건너세요.
+rehearsal.stage.1.goal | 끊긴 줄을 건너 도착대까지 이동하세요. 함께 건너온 동료를 기다리면 다음 구간을 준비할 수 있습니다.
+rehearsal.stage.3.goal | 동료와 첫 봉에 매달린 뒤 다음 봉까지 도약하세요. 다음 봉을 잡으면 이 구간을 이수합니다.

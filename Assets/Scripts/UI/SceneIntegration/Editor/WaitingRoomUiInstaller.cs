@@ -75,7 +75,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             EditorBuildSettings.scenes = scenes.ToArray();
             SceneManager.SetActiveScene(room);
         }
-        static GameObject Require(string name) => AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/" + name + ".prefab")
+        static GameObject Require(string name) => AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/" + name + ".prefab")
             ?? throw new InvalidOperationException("Missing tested Assets prefab: " + name);
         static GameObject Instantiate(GameObject prefab, GameObject parent, string name)
         {

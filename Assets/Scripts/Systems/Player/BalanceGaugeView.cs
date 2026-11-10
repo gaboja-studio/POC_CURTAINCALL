@@ -7,7 +7,7 @@ namespace CurtainCall.Player
     /// <summary>
     /// 균형 게이지 UI(빨강 | 노랑 | 초록 | 노랑 | 빨강 + 바늘)에 균형 값을 반영한다.
     /// 모양(스프라이트·색·크기·위치)은 프리팹에서 정하고, 이 스크립트는 바늘 위치·초록 폭·빨강 체류 막대만 움직인다.
-    /// 프리팹: Assets/Resources/Prefabs/UIs/Player/BalanceGauge.prefab · 규칙: Harness/Project/Decisions/tightrope-balance.md
+    /// 프리팹: Assets/Resources/Prefabs/UIs/Roles/Retained/Player/BalanceGauge.prefab · 규칙: Harness/Project/Decisions/tightrope-balance.md
     /// </summary>
     public class BalanceGaugeView : MonoBehaviour
     {

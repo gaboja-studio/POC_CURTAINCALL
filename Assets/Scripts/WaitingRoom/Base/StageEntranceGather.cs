@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CurtainCall.Campaign;
+using CurtainCall.UI.SceneIntegration;
 using CurtainCall.Network.PlayerSync;
 using CurtainCall.Player;
 using CurtainCall.Settings;
@@ -169,7 +170,7 @@ namespace CurtainCall.WaitingRoom
 
         void OnGUI()
         {
-            if (!showStatus) return;
+            if (!showStatus || CommonUiSceneLoader.CurrentWaitingRoom) return;
             GUI.Label(new Rect(10, 10, 320, 24), $"⑥ 무대 입구 집결 {InsideCount}/{AliveCount}");
         }
     }

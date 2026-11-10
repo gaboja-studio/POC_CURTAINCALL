@@ -370,7 +370,10 @@ namespace CurtainCall.Cameras
         {
             var anchor = spectatorOrbit ? SpectatorAnchor : local != null ? local.transform : null;
             if (anchor == null) return;
-            Vector3 pivot = anchor.position + Vector3.up * Mathf.Max(.1f, selected.LookHeight);
+            // 앉으면 기준점도 몸 높이만큼 낮춘다. 낮은 통로(환풍구 등)에서 기준점이 천장 밖으로 나가 카메라가 벽 밖을 비추지 않게 한다.
+            var anchorMover = spectatorOrbit ? null : anchor.GetComponent<PlayerMover>();
+            float lookHeight = Mathf.Max(.1f, selected.LookHeight) * (anchorMover != null ? anchorMover.PostureHeightScale : 1f);
+            Vector3 pivot = KeepPivotUnderCeiling(anchor.position, anchor.position + Vector3.up * lookHeight);
             Vector3 originalPivot = pivot;
             var subject = anchor.GetComponent<NetworkPlayer>();
             var hangs = CurtainCall.Tightrope.TightropeHangSystem.Current;
@@ -399,6 +402,20 @@ namespace CurtainCall.Cameras
                 state.RawOrientation = Quaternion.LookRotation(look - state.GetFinalPosition(), Vector3.up);
                 state.OrientationCorrection = Quaternion.identity;
             }
+        }
+
+        // 발에서 기준점까지 위쪽이 막혀 있으면 기준점을 천장 아래(카메라 구 반지름만큼)로 내린다.
+        Vector3 KeepPivotUnderCeiling(Vector3 feet, Vector3 pivot)
+        {
+            Vector3 from = feet + Vector3.up * .1f;
+            float reach = pivot.y - from.y + CollisionRadius + CollisionPadding;
+            if (reach <= 0f) return pivot;
+            int count = Physics.RaycastNonAlloc(from, Vector3.up, wallHits, reach, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            float top = pivot.y;
+            for (int i = 0; i < count; i++)
+                if (BlocksCamera(wallHits[i].collider)) top = Mathf.Min(top, wallHits[i].point.y - CollisionRadius - CollisionPadding);
+            pivot.y = Mathf.Max(from.y, top);
+            return pivot;
         }
 
         Vector3 HangingCameraPivot(Vector3 pivot)

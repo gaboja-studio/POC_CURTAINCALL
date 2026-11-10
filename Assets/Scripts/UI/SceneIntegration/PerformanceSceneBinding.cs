@@ -98,9 +98,22 @@ namespace CurtainCall.UI.SceneIntegration
             BindRewards();
         }
 
+        HudRoleCard goal;
+        void HideGoal() { if(goal && !goal.Closing)goal.Close(true);goal=null; }
+        void UpdateGoal(bool visible)
+        {
+            if (!visible) { HideGoal(); return; }
+            if (goal && !goal.Closing) return;
+            var profile=PerformanceHudProfile.Current;
+            var cue=humanCannon ? profile.cannonGoal : profile.ropeGoal;
+            var input=NetworkPlayer.Local.GetComponent<PlayerInputReader>();
+            goal=HudUIManager.Current.ShowObjective(PerformanceHudProfile.Format(cue.body,input),transform,PerformanceHudProfile.Format(cue.title,input));
+        }
+
         void OnDisable()
         {
             if (!Application.isPlaying) return;
+            HideGoal();
             bool owned = !sharedScene || CommonUiSceneLoader.CurrentSpace == this;
             if (sharedScene) CommonUiSceneLoader.Unregister(this);
             if (!ReferenceEquals(rewards, null)) { rewards.Changed -= RefreshRewards; rewards.SampleRecords -= SampleRecords; }
@@ -209,7 +222,7 @@ namespace CurtainCall.UI.SceneIntegration
             {
                 if (CommonUiSceneLoader.CurrentSpace != this)
                 {
-                    ownsCommon = false;
+                    HideGoal(); ownsCommon = false;
                     if (localBalance != null) localBalance.SetContext(false, false);
                     return;
                 }
@@ -225,6 +238,7 @@ namespace CurtainCall.UI.SceneIntegration
             if (hud == null || cheer == null) return;
             if (presentationOnly)
             {
+                HideGoal();
                 hud.SetContext(false, false, false);
                 cheer.gameObject.SetActive(false);
                 CommonPerformanceUI.Current?.Feedback?.SetContext(false);
@@ -245,6 +259,7 @@ namespace CurtainCall.UI.SceneIntegration
             var balance = local != null ? local.GetComponent<PlayerBalance>() : null;
             bool observing = local != null && (local.State == PlayerState.Fallen || local.State == PlayerState.Retired
                 || (balance != null && balance.HasFallen));
+            UpdateGoal(sharedScene && active && !observing && local && local.State==PlayerState.Normal && rewards?.State?.IsOpen==true);
             hud.SetContext(active, false, observing);
             // C2는 표시만 제거한다. 불 추격과 공연 종료 판정은 기존 시스템이 계속 담당한다.
             if (hud.Timer != null) hud.Timer.gameObject.SetActive(false);

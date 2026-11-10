@@ -145,7 +145,7 @@ namespace CurtainCall.ItemArt.EditorTools
         }
         static void InstallShopIcons()
         {
-            string path="Assets/Resources/Prefabs/UIs/ShopUi/ShopPanel.prefab";
+            string path="Assets/Resources/Prefabs/UIs/Roles/Retained/ShopUi/ShopPanel.prefab";
             var root=PrefabUtility.LoadPrefabContents(path);
             try
             {

@@ -149,7 +149,7 @@ namespace CurtainCall.Tightrope.UI
             CloseResult = Button("닫기", resultPanel);
             result.SetActive(false);
 
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Player/BalanceGauge");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/Player/BalanceGauge");
             if (prefab != null)
             {
                 var gauge = Instantiate(prefab, transform, false);

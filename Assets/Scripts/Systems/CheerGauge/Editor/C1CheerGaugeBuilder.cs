@@ -14,7 +14,7 @@ namespace CurtainCall.CheerGauge.Editor
     {
         const string Kit = "Assets/_ThirdParty/curtaincall_c1_v1";
         const string Sprites = Kit + "/Assets/CurtainCallUI/C1/Sprites/";
-        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/CheerGauge/C1CheerGauge.prefab";
+        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/CheerGauge/C1CheerGauge.prefab";
         public const string ScenePath = "Assets/Scenes/Tests/CheerGauge/C1CheerGauge.unity";
         const string FontRoot = "Assets/Resources/Fonts/CheerGauge";
         static readonly string[] Layers = { "shadow", "center", "track", "fill", "highlight", "bezel", "roof", "flag" };

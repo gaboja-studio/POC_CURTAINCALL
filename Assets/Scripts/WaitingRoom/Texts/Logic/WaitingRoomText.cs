@@ -20,6 +20,7 @@ namespace CurtainCall.WaitingRoom
 
         /// <summary>문구 파일 내용을 표로 설치한다(이전 표는 버린다).</summary>
         public static void Install(string fileText) => table = Parse(fileText);
+        public static void SetOverride(string key,string value){if(!string.IsNullOrWhiteSpace(key) && !string.IsNullOrWhiteSpace(value))table[key]=value;}
         public static void Clear() => table = new();
 
         /// <summary>`키 | 문구` 줄을 읽는다. #으로 시작하면 설명, 문구 안의 \n은 줄바꿈. 빈 문구·형식이 틀린 줄은 건너뛴다.</summary>

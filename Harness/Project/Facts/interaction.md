@@ -8,7 +8,7 @@ source: Task-20261019-061-cheer-gauge-ui
 ## 언제 읽나
 - C6 프리팹을 배치하거나 진행 링·표시 API·제작 원본·검증 제약을 확인할 때.
 ## 사실
-- 정본: `Assets/Resources/Prefabs/UIs/Interaction/InteractionPrompt.prefab`. 독립 씬: `Assets/Scenes/Tests/Interaction/Interaction.unity`. 공개 Preview/안전 Builder/PlayMode 테스트: `Assets/Scripts/Systems/Interaction/`.
+- 정본: `Assets/Resources/Prefabs/UIs/Roles/Retained/Interaction/InteractionPrompt.prefab`. 독립 씬: `Assets/Scenes/Tests/Interaction/Interaction.unity`. 공개 Preview/안전 Builder/PlayMode 테스트: `Assets/Scripts/Systems/Interaction/`.
 - 제공 Runtime/Builder는 private `Assets/_ThirdParty/curtaincall_interaction_v1/Assets/CurtainCallUI/Interaction/` 원위치 재사용. namespace는 `CurtainCall.UI.InteractionV1`/`.Editor`. 공개 복제하지 않는다.
 - `InteractionPromptView.Show(key, action, availability, holdRequired, progress01, helperText)` / `SetProgress01` / `Hide` / `HideImmediate` / `ResetForRuntime`. Available/Unavailable × 일반/길게 네 조합. 대상·입력·누르기 시간·완료 판정은 호출자가 소유한다.
 - 일반·불가는 fill0, 불가+길게는 빈 Track 유지. 100%에서도 자동 행동·숨김 없음. 새 대상은 Show에 명시적 진행률을 전달한다. 거부된 SetProgress는 캐시하지 않는다.

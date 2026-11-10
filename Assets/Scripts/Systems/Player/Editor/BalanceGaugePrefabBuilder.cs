@@ -11,7 +11,7 @@ namespace CurtainCall.Player.EditorTools
     /// </summary>
     static class BalanceGaugePrefabBuilder
     {
-        const string Folder = "Assets/Resources/Prefabs/UIs/Player";
+        const string Folder = "Assets/Resources/Prefabs/UIs/Roles/Retained/Player";
         const string PrefabPath = Folder + "/BalanceGauge.prefab";
         const string FontPath = "Assets/Resources/Fonts/Pretendard-Medium/Pretendard-Medium SDF.asset"; // 임시 폰트
 
@@ -26,7 +26,7 @@ namespace CurtainCall.Player.EditorTools
                 return;
 
             if (!AssetDatabase.IsValidFolder(Folder))
-                AssetDatabase.CreateFolder("Assets/Resources/Prefabs/UIs", "Player");
+                AssetDatabase.CreateFolder("Assets/Resources/Prefabs/UIs/Roles/Retained", "Player");
 
             var root = new GameObject("BalanceGauge", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
             root.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;

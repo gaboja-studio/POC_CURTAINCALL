@@ -20,7 +20,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             SceneUiLayoutPreview.Stop();
             for (int i = 0; i < SceneManager.sceneCount; i++)
                 if (SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("Save scene changes first.");
-            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/ShopUi/ShopPanel.prefab");
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/ShopUi/ShopPanel.prefab");
             if (asset == null) throw new InvalidOperationException("Missing tested ShopPanel prefab.");
             var room = EditorSceneManager.OpenScene(WaitingRoomUiInstaller.RoomPath, OpenSceneMode.Single);
             var common = EditorSceneManager.OpenScene(CommonWaitingRoomUI.ScenePath, OpenSceneMode.Additive);

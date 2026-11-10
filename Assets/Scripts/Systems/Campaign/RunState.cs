@@ -237,9 +237,14 @@ namespace CurtainCall.Campaign
         {
             if (IsGuideRestWaiting) return false;
             if (s.Phase != CampaignPhase.RestTime && s.Phase != CampaignPhase.Night) return false;
+            EnterEscape();
+            return true;
+        }
+
+        void EnterEscape()
+        {
             s.Phase = CampaignPhase.Escape;
             s.Timer = RestTimerState.Stopped;
-            return true;
         }
 
         /// <summary>
@@ -417,7 +422,8 @@ namespace CurtainCall.Campaign
                     // 데모 4일차 아침은 데모 종료로 바뀌므로 공연 사이 쉬는 시간을 거친다.
                     var rest = point.Day == 1 ? RestKind.Guide : demoVersion && point.Day == 4 ? RestKind.Between : RestKind.Morning;
                     EnterRest(rest, rest == RestKind.Morning ? 0 : 1);
-                    StartEscape();
+                    // A direct development start has no waiting-room guide to complete.
+                    EnterEscape();
                     break;
             }
             return true;

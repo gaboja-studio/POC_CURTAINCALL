@@ -8,7 +8,7 @@ source: Task-20261019-061
 ## 언제 읽나
 가이드 표시/숨김·상위 HUD 차단·샘플 확인·재제작 전에 읽는다. 게임 입력 바인딩 규격은 아니다.
 ## 정본
-- 프리팹: `Assets/Resources/Prefabs/UIs/Guides/Guides.prefab`.
+- 프리팹: `Assets/Resources/Prefabs/UIs/Roles/Retained/Guides/Guides.prefab`.
 - 씬: `Assets/Scenes/Tests/Guides/Guides.unity`; 공개 `GuidePreview`의17버튼으로 수동 합성 표시. 상태 문구는 top-left 고정·배경별 대비색이며 게임 HUD가 아니다.
 - 공개 어댑터: `Assets/Scripts/Systems/Guides/Editor/GuideProjectBuilder.cs`; 기존 출력/dirty 씬/Play/PrefabStage/컴파일·임포트 충돌을 거부한다. 기존 정본 재생성·삭제 없음.
 - private 키트: `Assets/_ThirdParty/curtaincall_guides_v1/`; Runtime/Builder 원위치 `CurtainCall.UI.GuidesV1` 격리, 공개 복제 금지.

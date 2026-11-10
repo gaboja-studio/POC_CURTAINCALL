@@ -21,7 +21,7 @@ namespace CurtainCall.WorldLabels.Tests
         GameObject Own(GameObject value) { owned.Add(value); return value; }
         GameObject Spawn(int kind)
         {
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/WorldLabels/WorldLabel" + kinds[kind]);
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/WorldLabels/WorldLabel" + kinds[kind]);
             Assert.NotNull(prefab, kinds[kind]);
             return Own(Object.Instantiate(prefab));
         }

@@ -15,7 +15,7 @@ namespace CurtainCall.Tooltips.Tests
     // Assembly-CSharp 직접 참조 없이 실제 Resources 프리팹의 계약을 검사합니다.
     public sealed class TooltipPlayTests
     {
-        internal const string ResourcePath = "Prefabs/UIs/Tooltips/Tooltips";
+        internal const string ResourcePath = "Prefabs/UIs/Roles/Retained/Tooltips/Tooltips";
         const string RuntimeNamespace = "CurtainCall.UI.TooltipsV1.";
         internal const string Title = "낡은 수화기";
         internal const string Description = "필요한 물품을 주문합니다.\n배달은 잠시 뒤 도착합니다.";

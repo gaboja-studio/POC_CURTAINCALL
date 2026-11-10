@@ -14,9 +14,9 @@ namespace CurtainCall.UI.SceneIntegration.Editor
 {
     public static class CommonMenuInstaller
     {
-        const string Panels = "Assets/Resources/Prefabs/UIs/BasicPanels/BasicPanels.prefab";
-        const string Settings = "Assets/Resources/Prefabs/UIs/SettingsUi/SettingsPanel.prefab";
-        const string Button = "Assets/Resources/Prefabs/UIs/CommonButtons/Button_General.prefab";
+        const string Panels = "Assets/Resources/Prefabs/UIs/Roles/Retained/BasicPanels/BasicPanels.prefab";
+        const string Settings = "Assets/Resources/Prefabs/UIs/Roles/Retained/SettingsUi/SettingsPanel.prefab";
+        const string Button = "Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_General.prefab";
         const string Content = "60_Panels/C14_Settings/00_Visuals/10_LayoutStage/00_SettingsPanel/40_Content";
         [MenuItem("Tools/Curtain Call UI/Install common menu and settings")]
         public static void Apply()

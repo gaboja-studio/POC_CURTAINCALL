@@ -80,7 +80,7 @@ namespace CurtainCall.ResultsUi.Tests
         [UnitySetUp] public IEnumerator SetUp()
         {
             originalScale = Time.timeScale; originalBackground = Application.runInBackground; Time.timeScale = 1; extra.Clear(); fontSnapshots.Clear();
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/ResultsUi/ResultsPanel"); Assert.NotNull(prefab, "C12 소유 프리팹을 먼저 조립해야 합니다.");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/ResultsUi/ResultsPanel"); Assert.NotNull(prefab, "C12 소유 프리팹을 먼저 조립해야 합니다.");
             instance = Object.Instantiate(prefab);
             view = instance.GetComponentsInChildren<MonoBehaviour>(true).Single(b => b != null && b.GetType().FullName == "CurtainCall.UI.ResultsPanelView");
             events = EventSystem.current;

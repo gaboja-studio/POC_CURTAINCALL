@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60ff4c45432e96b458c48b894a987021, type: 3}
+  m_Name: HudPresentationSettings
+  m_EditorClassIdentifier: Assembly-CSharp::CurtainCall.UI.SceneIntegration.HudPresentationSettings
+  objective:
+    mode: 0
+    limit: 3
+  systemEvent:
+    mode: 0
+    limit: 3
+  guide:
+    mode: 1
+    limit: 3
+  interaction:
+    mode: 0
+    limit: 3
+  feedback:
+    mode: 0
+    limit: 3
+  status:
+    mode: 0
+    limit: 3
+  vote:
+    mode: 0
+    limit: 3
+  outcome:
+    mode: 0
+    limit: 3
+  zoneName:
+    mode: 0
+    limit: 3

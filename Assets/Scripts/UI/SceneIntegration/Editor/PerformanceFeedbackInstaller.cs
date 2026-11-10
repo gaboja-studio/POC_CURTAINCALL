@@ -14,9 +14,9 @@ namespace CurtainCall.UI.SceneIntegration.Editor
     /// <summary>미조립 C10 키트만 신규 Assets 프리팹으로 조립. 제공 원본/importer/기존 프리팹은 보존한다.</summary>
     public static class PerformanceFeedbackInstaller
     {
-        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Feedback/Feedback.prefab";
+        public const string PrefabPath = "Assets/Resources/Prefabs/UIs/Roles/Retained/Feedback/Feedback.prefab";
         const string ImageFolder = "Assets/Resources/Images/UIs/Feedback";
-        const string AssetFolder = "Assets/Resources/Prefabs/UIs/Feedback";
+        const string AssetFolder = "Assets/Resources/Prefabs/UIs/Roles/Retained/Feedback";
         const string Source = "Assets/_ThirdParty/curtaincall_feedback_v1/Assets/CurtainCallUI/Feedback/Sprites/";
 
         [MenuItem("Tools/Curtain Call UI/Install C10 feedback")]

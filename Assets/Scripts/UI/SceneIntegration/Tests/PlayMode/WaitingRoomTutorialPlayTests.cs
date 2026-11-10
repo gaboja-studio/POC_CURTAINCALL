@@ -52,6 +52,50 @@ namespace CurtainCall.UI.SceneIntegration.Tests
         }
 
         [UnityTest]
+        public IEnumerator DesignerCameraStep_PlaysBetweenBuiltinSteps()
+        {
+            // Change a temporary clone; never write a tester's HUD asset or tutorial preferences.
+            var profileType=T("CurtainCall.WaitingRoom.WaitingRoomHudProfile");
+            var flags=BindingFlags.Static|BindingFlags.NonPublic;
+            var current=profileType.GetField("current",flags);
+            var original=(UnityEngine.Object)profileType.GetProperty("Current").GetValue(null);
+            var profile=UnityEngine.Object.Instantiate(original);
+            var book=T(TutorialType).GetField("book",flags);var previousBook=book.GetValue(null);
+            var originalRunner=Find(TutorialType);
+            var chain=T(TutorialType).GetField("RestChain",BindingFlags.Instance|BindingFlags.NonPublic);
+            object previousChain=originalRunner?chain.GetValue(originalRunner):null;
+            try
+            {
+                var field=profileType.GetField("restExtra");var type=field.FieldType.GetElementType();
+                var steps=System.Array.CreateInstance(type,1);var step=System.Activator.CreateInstance(type);
+                type.GetField("id").SetValue(step,"extra:play-test");
+                type.GetField("title").SetValue(step,"공연표 안내");type.GetField("body").SetValue(step,"[{interact}] 확인");
+                type.GetField("after").SetValue(step,"G01");
+                var shot=type.GetField("shot");shot.SetValue(step,System.Enum.Parse(shot.FieldType,"Board"));
+                steps.SetValue(step,0);field.SetValue(profile,steps);
+                current.SetValue(null,profile);book.SetValue(null,null);
+                if(originalRunner)chain.SetValue(originalRunner,Call(profile,"Sequence",false));
+                FreshTutorial();
+                yield return Launch(1,"Between",1,"Tightrope","WaitingRoomBase");
+                yield return WaitGuide(TutorialTitle("G01"),12);
+                yield return WaitGuide("공연표 안내",15);
+                Assert.IsTrue((bool)Static(TutorialType,"IsSequenceActive"));
+                var runner=Find(TutorialType);
+                var camera=(Component)Priv(runner,"closeUp");
+                Assert.IsTrue((bool)Get(camera,"IsBusy"),"새 단계가 실제 클로즈업 카메라를 요청해야 한다");
+                StringAssert.DoesNotContain("{interact}",(string)Static(GuideType,"CurrentBody"));
+                yield return WaitGuide(TutorialTitle("G11"),35);
+                StringAssert.Contains("extra:play-test",(string)Static(TutorialType,"SeenIds"));
+            }
+            finally
+            {
+                if(originalRunner)chain.SetValue(originalRunner,previousChain);
+                current.SetValue(null,original);book.SetValue(null,previousBook);EndTutorial();
+                UnityEngine.Object.Destroy(profile);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator W5_Tutorial_GuideRestShowsInOrderAndRemembers()
         {
             // Task-086: 1일차 가이드 쉬는 시간 연계 G01 → G11, 본 안내로 기록되고 새 런에서도 다시 뜨지 않는다.

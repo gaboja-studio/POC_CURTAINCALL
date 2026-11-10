@@ -72,8 +72,26 @@ namespace CurtainCall.EscapeRoute
             }
         }
         public bool IsCutting => cutting && !DoorOpen;
+        [Tooltip("배선 안내 위치 기준 팀 임무 구역. 마지막 통로의 절단기부터 출구까지 포함합니다.")]
+        [SerializeField] Bounds objectiveZone = new(new Vector3(-3,2,0), new Vector3(34,10,14));
+        public bool TeamReachedExitZone { get; private set; }
+        void WatchObjectiveZone()
+        {
+            if (deviceId != 0 || TeamReachedExitZone || !Ready || !session.IsHost || !cableSocket
+                || !EscapeCampaignContent.IsTraversalActive) return;
+            foreach (var member in NetworkPlayer.All)
+            {
+                if (!Alive(member) || member.Slot == NetworkPlayer.NoSlot || member.IsApplyingInitialCondition
+                    || (inspection && inspection.IsInspecting(member.OwnerClientId))
+                    || !objectiveZone.Contains(cableSocket.InverseTransformPoint(member.transform.position))) continue;
+                TeamReachedExitZone = true;
+                Changed();
+                break;
+            }
+        }
         public string Guidance => DoorOpen ? "배선 절단 완료 · 열린 출구로 이동하세요"
             : carryBlocked ? "장치가 설비에 걸렸습니다 · 한 걸음 물러나 방향을 바꾸세요"
+            : ProjectileMode && RequiredCableCount == 0 ? $"들고 서 있으면 {shotInterval:0.#}초마다 톱날 발사 · F를 길게 눌러 내려놓기"
             : ProjectileMode ? $"배선 {CutCableCount}/{RequiredCableCount} 절단 · 색 전선을 조준하면 {shotInterval:0.#}초마다 톱날 발사"
             : IsCutting ? $"배선 절단 중 {Mathf.CeilToInt(CutProgress01 * 100)}% · 날을 계속 맞대세요"
             : $"출구 옆 노란 배선에 회전 날을 {cutSeconds:0.#}초 동안 맞대세요";
@@ -108,6 +126,7 @@ namespace CurtainCall.EscapeRoute
         void Update()
         {
             Attach();
+            WatchObjectiveZone();
             if (scaleWithCrew && session != null) RefreshCrewAvailability(session.PlayerCount);
             RefreshCarrierCollision(Ready ? FindPlayer(Carrier) : null);
             if (!Ready && CrewAvailable && messaging != null && session != null && !session.IsHost && Time.unscaledTimeAsDouble >= nextSync)

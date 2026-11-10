@@ -74,7 +74,7 @@ namespace CurtainCall.CommonIcons.Editor
             MakeButton("NextTint", "다음 색", controls.transform, font, 80, preview.NextTint);
             MakeButton("NextSize", "다음 크기", controls.transform, font, 300, preview.NextSize);
             MakeButton("ResetPreview", "초기화", controls.transform, font, 520, preview.ResetPreview);
-            var sampleAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/CommonButtons/Button_Settings.prefab");
+            var sampleAsset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/CommonButtons/Button_Settings.prefab");
             if (sampleAsset == null) throw new InvalidOperationException("설정 버튼 정본 누락");
             var sample = (GameObject)PrefabUtility.InstantiatePrefab(sampleAsset, controls.transform);
             sample.name = "SampleButton";

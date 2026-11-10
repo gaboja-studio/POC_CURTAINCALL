@@ -79,7 +79,7 @@ namespace CurtainCall.ShopUi.Tests
         {
             previousScale = Time.timeScale; previousBackground = Application.runInBackground;
             Time.timeScale = 1; requests = 0; request = null; extra.Clear();
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/ShopUi/ShopPanel"); Assert.NotNull(prefab, "W2 소유 프리팹을 먼저 조립해야 합니다.");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/ShopUi/ShopPanel"); Assert.NotNull(prefab, "W2 소유 프리팹을 먼저 조립해야 합니다.");
             instance = Object.Instantiate(prefab); view = Find(instance);
             events = EventSystem.current;
             if (events == null) { ownedEvents = new GameObject("ShopTestEventSystem", typeof(EventSystem)); events = ownedEvents.GetComponent<EventSystem>(); }
@@ -261,7 +261,7 @@ namespace CurtainCall.ShopUi.Tests
         }
         [UnityTest] public IEnumerator OtherViewsTokenCannotConsumeThisViewsPending()
         {
-            Request(); var clone = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/ShopUi/ShopPanel")); extra.Add(clone);
+            Request(); var clone = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/ShopUi/ShopPanel")); extra.Add(clone);
             var other = Find(clone); object otherRequest = null; Subscribe(other, value => otherRequest = value);
             Invoke(other, "Open", Demo(), false); Invoke(other, "RequestAction", "buy"); Assert.NotNull(otherRequest);
             Assert.AreNotEqual(Read(request, "ViewId"), Read(otherRequest, "ViewId"));

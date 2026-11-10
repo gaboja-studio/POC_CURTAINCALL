@@ -44,7 +44,7 @@ namespace CurtainCall.TransitionCurtain.Tests
         {
             previousScale = Time.timeScale;
             Time.timeScale = 1;
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/TransitionCurtain/TransitionCurtain");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/TransitionCurtain/TransitionCurtain");
             Assert.NotNull(prefab);
             instance = Object.Instantiate(prefab);
             view = instance.GetComponentsInChildren<MonoBehaviour>(true).Single(x => x != null && x.GetType().FullName == "CurtainCall.UI.TransitionCurtainView");

@@ -103,6 +103,16 @@ namespace CurtainCall.EscapeRoute.Tests
 
         bool Snapshot(uint version, uint own, ulong actor, float progress, byte active = 0, int token = 0)
             => (bool)Call(saw, "ApplyState", version, own, actor, Origin + Vector3.forward * 1.1f, Quaternion.identity, progress, active, token);
+        [Test]
+        public void ExitObjectiveVisitSurvivesJoinAndLaterSnapshots()
+        {
+            Fixture();
+            Assert.IsTrue(Snapshot(4,0,ulong.MaxValue,0,0x80));
+            Assert.AreEqual(true,Get(saw,"TeamReachedExitZone"));
+            Assert.IsFalse(Snapshot(5,0,ulong.MaxValue,0));
+            Assert.IsTrue(Snapshot(5,0,ulong.MaxValue,3,0x80));
+            Assert.AreEqual(true,Get(saw,"DoorOpen"));
+        }
         void CutFor(float seconds) { for (int i = 0; i < Mathf.CeilToInt(seconds / .05f); i++) Call(saw, "TickCut", .05f, true); }
 
         [SetUp]

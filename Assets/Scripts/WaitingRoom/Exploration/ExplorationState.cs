@@ -201,6 +201,10 @@ namespace CurtainCall.WaitingRoom
             // 장비(UV 등)는 어느 슬롯에 있든 자동 적용된다. 도구는 손에 든(선택한) 것만.
             if (needsTool && ItemCatalog.Get(target.ToolId)?.kind == ItemKind.Equipment && carry != null)
                 foreach (var held in carry.Held(player)) if (held.ItemId == target.ToolId) { tool = held; break; }
+            // 맨몸 겸용 대상(벽·상자·판자 등)은 도구가 없거나 다 쓴 도구를 들고 있으면 맨몸으로 친다.
+            var bare = target as IBareHandTarget;
+            bool strike = bare != null && bare.AllowsBareHands;
+            if (strike && needsTool && (tool.Uid == 0 || tool.ItemId != target.ToolId || tool.Uses == 0)) needsTool = false;
             if (needsTool && (tool.Uid == 0 || tool.ItemId != target.ToolId)) return (false, WaitingRoomText.Format("explore.need-tool", "{hint}", ("hint", ExplorationTargets.Hint(target))), "REQUIRED_TOOL_MISSING");
             if (needsTool && tool.Uses == 0) return (false, PropCarry.Explain(CarryRefusal.UsedUp), "TOOL_DEPLETED");
             float now = Time.unscaledTime;
@@ -227,16 +231,29 @@ namespace CurtainCall.WaitingRoom
             }
 
 
-            int attempt = book.Hits(targetId) + 1;
-            bool success = target.Resolve(attempt, rng);
-            if (success && target is ExplorationGate pickup && pickup.IsKeyPickup)
+            ExplorationRefusal refusal; int count; bool openedNow; string text;
+            if (strike)
             {
-                var result = ReceiveKey(player, targetId, out var keyReason);
-                if (!result.ok) return (false, result.text, keyReason); // Full inventory must leave the key available in the world.
+                // 맨몸·도구 비율 합산(CC-255). 진행은 단위로 기록하고, 문구는 친 방식 기준 타격 수로 보여 준다.
+                int total = StrikeProgress.Total(bare.BareHits, bare.ToolHits);
+                refusal = book.Strike(targetId, StrikeProgress.Step(bare.BareHits, bare.ToolHits, needsTool), total, out count, out openedNow);
+                if (refusal != ExplorationRefusal.None) return (false, WaitingRoomText.Get("explore.no-more", "더 쓸 수 없습니다."), "BOOK_REFUSED");
+                text = bare.DescribeStrike(openedNow, StrikeProgress.Done(count, bare.BareHits, bare.ToolHits, needsTool),
+                    needsTool ? bare.ToolHits : bare.BareHits, needsTool);
             }
-            var refusal = book.Attempt(targetId, success, out int count, out bool openedNow);
-            if (refusal != ExplorationRefusal.None) return (false, WaitingRoomText.Get("explore.no-more", "더 쓸 수 없습니다."), "BOOK_REFUSED");
-            string text = target.Describe(openedNow, count);
+            else
+            {
+                int attempt = book.Hits(targetId) + 1;
+                bool success = target.Resolve(attempt, rng);
+                if (success && target is ExplorationGate pickup && pickup.IsKeyPickup)
+                {
+                    var result = ReceiveKey(player, targetId, out var keyReason);
+                    if (!result.ok) return (false, result.text, keyReason); // Full inventory must leave the key available in the world.
+                }
+                refusal = book.Attempt(targetId, success, out count, out openedNow);
+                if (refusal != ExplorationRefusal.None) return (false, WaitingRoomText.Get("explore.no-more", "더 쓸 수 없습니다."), "BOOK_REFUSED");
+                text = target.Describe(openedNow, count);
+            }
             if (openedNow)
             {
                 // 대상이 열리거나 파괴되거나 새로 발견된 때에만 도구를 한 번 쓴다.

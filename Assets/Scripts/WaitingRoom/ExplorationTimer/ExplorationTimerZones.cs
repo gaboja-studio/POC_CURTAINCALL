@@ -12,7 +12,7 @@ namespace CurtainCall.WaitingRoom
     /// 그 밖의 구역(로비·숙소/화장실·연습실·휴게·상점·전문가·작업실·무대 입구 통로·소품실·승강기 홀·서쪽 복도)과 어느 구역도 아닌 곳은 멈춤.
     /// 구역은 이 오브젝트 아래 활성 BoxCollider(Frame8Areas)를 이름으로 나눈다. 0이 되면 기존 규칙대로 공연으로 넘어간다.
     /// </summary>
-    public sealed class ExplorationTimerZones : MonoBehaviour
+    public sealed partial class ExplorationTimerZones : MonoBehaviour
     {
         [Tooltip("타이머가 흐르는 구역 콜라이더 이름. 나머지는 멈춤 구역.")]
         [SerializeField] string[] runningZones =
@@ -44,6 +44,7 @@ namespace CurtainCall.WaitingRoom
         public void RebuildZones()
         {
             running.Clear(); stopping.Clear();
+            CollectHudZones();
             var root = areas != null ? areas : transform;
             foreach (var box in root.GetComponentsInChildren<BoxCollider>(true))
                 (System.Array.IndexOf(runningZones, box.name) >= 0 ? running : stopping).Add(box);
@@ -70,6 +71,7 @@ namespace CurtainCall.WaitingRoom
 
         void Update()
         {
+            UpdateZoneHud();
             var run = CampaignRun.Instance;
             if (run == null || !run.HasAuthority || (run.State.Phase != CampaignPhase.RestTime && run.State.Phase != CampaignPhase.Night)) { ExploringCount = 0; return; }
             CollectAlive();

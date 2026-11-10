@@ -8,7 +8,7 @@ source: Task-20261028-077, Task-20261029-079, 사용자 타이머 v2.8 교체·D
 # 하루 시계와 실제 제한시간
 
 ## 현행 W1 v2.8 (Task-079)
-- 실게임은 `Resources/Prefabs/UIs/RestTimerV28/W1_RestTimer_v2_8.prefab`과 `CommonWaitingRoomUI.RestTimerDisplay`를 사용한다. private `curtaincall_resttimer_v2_8` 제공 Runtime·PNG 11개·조립기를 그대로 활용하며 공개 어댑터는 `RestTimer`/`RestTimerView`, 제작은 `RestTimerProjectBuilder`다.
+- 실게임은 `Resources/Prefabs/UIs/Roles/Retained/RestTimerV28/W1_RestTimer_v2_8.prefab`과 `CommonWaitingRoomUI.RestTimerDisplay`를 사용한다. private `curtaincall_resttimer_v2_8` 제공 Runtime·PNG 11개·조립기를 그대로 활용하며 공개 어댑터는 `RestTimer`/`RestTimerView`, 제작은 `RestTimerProjectBuilder`다.
 - 좌상단 (48,-64), 192×220. 가운데 남은 `m:ss` 또는 명시적 무제한 PNG만, 아래 D-3→D-0와 해돋이/해/달 하나. 실제 일차1~4를 전달하며 미수신 일차는 D-?다. 사용자 확인으로 N일차 대신 D-N을 유지했다.
 - `CampaignSnapshot`의 Running/Stopped/Unlimited/그 외를 Limited(정지 포함)/Unlimited/Unavailable로 구분한다. 0초는 0:00, 미수신은 --:--. 시간 비율은 실제 남은 초/현재 구간 제한 초, UI 자체 차감 없음. 쉬는 시간·밤 정비에서만 보인다.
 - 총 제한 초는 기존 Run.TimeLimit(Rest)/NightMaintenance를 구간 진입 때 보관한다. Morning은 해돋이, Guide/Between은 해, Night는 달이다. v2.7 ScheduleProfile의 시각·색·활동은 새 W1을 제어하지 않는다. 실제 제한 초 설정은 아래 절을 계속 사용한다.
@@ -20,7 +20,7 @@ source: Task-20261028-077, Task-20261029-079, 사용자 타이머 v2.8 교체·D
 ## 정본과 연결
 - 디자인 원본: `Assets/_ThirdParty/curtaincall_dayclock_v2.7/`. 새 그림·224×248 레이아웃·활동 기호와 현재 구간 강조를 적용했다. 전용 Sprite 16개와 기존 정본 shadow/center/bezel/tools를 사용한다. 채움은 새 schedulefill이다.
 - 기존 `curtaincall_dayclock_v2` Runtime/Editor의 GUID·무제한·마지막 유효 일정 API를 유지하며 v2.7 디자인을 병합했다. v2.4/v2.7 원본 중복 C#은 각각 Reference.asmdef의 비활성 define constraint로 제외한다. `CURTAINCALL_DAYCLOCK_V24_REFERENCE_ONLY`/`CURTAINCALL_DAYCLOCK_V27_REFERENCE_ONLY`를 켜지 않는다.
-- 실게임 프리팹: `Assets/Resources/Prefabs/UIs/DayClock/W1_DayClock_v2_7.prefab`. 224×248, 좌상단 (32,-48). 다이얼 로컬 중심 (112,-108)을 보정하여 176×176 원 중심은 공연 C1과 같은 (144,-156)이다. 명판은 6시 눈금 아래, N일차 22pt SemiBold/크림·오전후 18pt Medium/회색이다. fallback도 프리팹 배치를 유지한다. `CommonWaitingRoomUI.unity`의 기존 루트/컴포넌트 참조를 보존해 교체했다. 이전 프리팹·일정은 삭제하지 않았고 구 W1은 숨긴다.
+- 실게임 프리팹: `Assets/Resources/Prefabs/UIs/Roles/Retained/DayClock/W1_DayClock_v2_7.prefab`. 224×248, 좌상단 (32,-48). 다이얼 로컬 중심 (112,-108)을 보정하여 176×176 원 중심은 공연 C1과 같은 (144,-156)이다. 명판은 6시 눈금 아래, N일차 22pt SemiBold/크림·오전후 18pt Medium/회색이다. fallback도 프리팹 배치를 유지한다. `CommonWaitingRoomUI.unity`의 기존 루트/컴포넌트 참조를 보존해 교체했다. 이전 프리팹·일정은 삭제하지 않았고 구 W1은 숨긴다.
 - `DayClockProjectBuilder`는 private 조립기와 기존 v2.2 일정 프로필을 재사용하며 기존 출력을 덮어쓰지 않는다. `Resources/Fonts/DayClock/V24`의 전용 Static TMP 3종은 AM/PM 글리프를 포함한다. 기존 폰트에 글리프를 추가할 때는 GUID를 유지하며 원본 Font를 임시 연결하고 저장 전 Static으로 복원한다. 새 눈금 외곽선 머티리얼만 생성하며 이전/공용 폰트는 수정하지 않는다.
 - 하단 명판은 일차와 오전/오후를 따로 표시한다(후속 지시로 AM/PM에서 한글 복원). 두 글자 영역만 불투명도 85%이며 배경·구분선·타이머는 유지한다. 반일은 phase가 아니라 링과 같은 유효 시각 기준이며 12:00=오후, 00:00=오전, 시각 미수신=—다. 경고는 명판 색을 바꾸지 않는다.
 - 대기실에서 쉬는 시간·밤 정비 동안 표시한다. 공연 중에는 기존 요청대로 시계/제한시간을 표시하지 않는다. 공연 시간대도 일정 링에는 포함된다.
@@ -31,7 +31,7 @@ source: Task-20261028-077, Task-20261029-079, 사용자 타이머 v2.8 교체·D
 - 같은 반일의 시간/phase 변경은 풀을 재생성하지 않고 강조만 갱신한다. 명시적 animate=true일 때만 180ms 보간하며 기호 잉크 RGB는 두 끝점 대비로 고정한다. 게임 어댑터 기본은 즉시 갱신이다.
 
 ## 하루 시각 설정
-- `Assets/Resources/Prefabs/UIs/DayClock/W1_DayClock_v2_2_Schedule.asset`의 `Entries`에서 각 단계 `Start/End`(HH:MM)를 수정한다. 아침 휴식·오전 공연·낮 휴식·오후 공연·밤 정비를 지원하며 빈 시간은 수면이다. 기본은 08–10 / 10–12 / 12–14 / 14–16 / 16–20시다.
+- `Assets/Resources/Prefabs/UIs/Roles/Retained/DayClock/W1_DayClock_v2_2_Schedule.asset`의 `Entries`에서 각 단계 `Start/End`(HH:MM)를 수정한다. 아침 휴식·오전 공연·낮 휴식·오후 공연·밤 정비를 지원하며 빈 시간은 수면이다. 기본은 08–10 / 10–12 / 12–14 / 14–16 / 16–20시다.
 - 같은 `Entries`의 `Color`에서 게이지 색을 설정한다. 실게임 프로필은 `MorningBreak/NoonBreak` 청록 `#00A1BC`, `MorningShow/AfternoonShow` 주황·금 `#C97E25`, `Maintenance` 보라 `#8846BB`다. private 코드의 새 프로필 생성 기본색과는 구분한다. 수면 색·활성 표시·아이콘은 유지한다.
 - 사용자 최종 지시로 **일반 12시간 시계**를 사용한다. 위/오른쪽/아래/왼쪽은 12/3/6/9시, 시침·구간·경계는 반일 기준 분×0.5도, 구간 비율은 지속분/720이다. 현재 오전/오후에 따라 `ClipToWindow`로 표시 구간을 바꾼다. 기본 오전은 수면·아침 휴식·오전 공연, 오후는 낮 휴식·오후 공연·정비·수면이다. 하루 전체를 한 링에 겹쳐 표시하지 않는다. 24시간 한 바퀴 결정은 폐기했다. 지난 일정을 회색으로 바꾸는 규칙은 없다. 낮에 8–12 눈금이 회색인 것은 오후 20–24시 수면 구간을 표시하기 때문이다.
 - 링·경계·활성 영역·시침은 같은 마지막 유효 일정을 사용한다. 분침은 사용자 요청으로 비활성화했다. 오브젝트·참조·분 단위 계산은 보존하며 프리팹의 패키지 DayClockView → Show Minute Hand를 켜면 다시 표시한다. 시간 갱신만으로 비활성 분침이 켜지지 않는다. 자정 경유 가능, 겹침/시작=끝/중복 단계/무효 시각은 거절하고 마지막 유효본을 유지한다. 실행 중 변경도 반영한다.

@@ -72,7 +72,7 @@ namespace CurtainCall.ScheduleUi.Tests
         [UnitySetUp] public IEnumerator SetUp()
         {
             originalScale = Time.timeScale; originalBackground = Application.runInBackground; Time.timeScale = 1; extra.Clear(); fontSnapshots.Clear();
-            var prefab = Resources.Load<GameObject>("Prefabs/UIs/ScheduleUi/SchedulePanel"); Assert.NotNull(prefab, "W3 소유 프리팹을 먼저 조립해야 합니다.");
+            var prefab = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/ScheduleUi/SchedulePanel"); Assert.NotNull(prefab, "W3 소유 프리팹을 먼저 조립해야 합니다.");
             instance = Object.Instantiate(prefab); view = Find(instance);
             events = EventSystem.current;
             if (events == null) { ownedEvents = new GameObject("ScheduleTestEventSystem", typeof(EventSystem)); events = ownedEvents.GetComponent<EventSystem>(); }

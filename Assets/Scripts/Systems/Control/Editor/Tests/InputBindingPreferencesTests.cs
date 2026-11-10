@@ -53,7 +53,7 @@ namespace CurtainCall.Control.Editor.Tests
             var draft = Draft();
             Assert.IsFalse(draft.enabled);
             var entries = InputBindingPreferences.GetBindings(draft);
-            Assert.AreEqual(12, entries.Count); // T 방향 전환 포함
+            Assert.AreEqual(14, entries.Count); // 방향 전환과 투표 선택 2개 포함
             int parts = 0;
             foreach (var entry in entries) if (entry.IsPartOfComposite) parts++;
             Assert.AreEqual(4, parts);
@@ -64,6 +64,19 @@ namespace CurtainCall.Control.Editor.Tests
                 .FindAction("Common/Move").bindings[1].effectivePath);
             Assert.AreEqual("<Keyboard>/s", Draft().FindAction("Common/Move").bindings[1].effectivePath);
             Assert.IsFalse(PlayerPrefs.HasKey(InputBindingPreferences.PlayerPrefsKey));
+        }
+
+        [Test]
+        public void LegacyZAssignmentSurvivesAdditionOfVoteActions()
+        {
+            var jump=Draft().FindAction("Common/Action");
+            string json="{\"version\":1,\"bindings\":[{\"actionId\":\""+jump.id+"\",\"bindingId\":\""+jump.bindings[0].id+"\",\"path\":\"<Keyboard>/z\"}]}";
+            PlayerPrefs.SetString(InputBindingPreferences.PlayerPrefsKey,json);
+            var migrated=Draft();
+            Assert.AreEqual("<Keyboard>/z",migrated.FindAction("Common/Action").bindings[0].effectivePath);
+            Assert.AreEqual("<Keyboard>/x",migrated.FindAction("Common/VoteSecondary").bindings[0].effectivePath);
+            Assert.IsTrue(InputBindingPreferences.TryValidateDraft(migrated,out var error),error);
+            Assert.AreEqual(json,PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey),"미리보기는 저장값을 덮지 않는다");
         }
 
         [TestCase("<Keyboard>/escape")]
@@ -129,7 +142,7 @@ namespace CurtainCall.Control.Editor.Tests
             string saved = PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey);
             draft.FindAction("Common/Move").ApplyBindingOverride(1, "");
             draft.FindAction("Common/Action").ApplyBindingOverride(0, "<Keyboard>/s");
-            Assert.AreEqual(12, InputBindingPreferences.GetBindings(draft).Count, "빈 키도 편집 목록에서 유지합니다.");
+            Assert.AreEqual(14, InputBindingPreferences.GetBindings(draft).Count, "빈 키도 편집 목록에서 유지합니다.");
             Assert.IsFalse(InputBindingPreferences.TryApply(draft, out var error));
             StringAssert.Contains("할당되지 않은", error);
             Assert.AreEqual(saved, PlayerPrefs.GetString(InputBindingPreferences.PlayerPrefsKey));

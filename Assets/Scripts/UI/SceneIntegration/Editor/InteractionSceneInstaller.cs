@@ -16,7 +16,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
         [MenuItem("Tools/Curtain Call UI/Create rescue progress prefab")]
         public static void CreateRescueProgressPrefab()
         {
-            const string path = "Assets/Resources/Prefabs/UIs/Interaction/RescueProgress.prefab";
+            const string path = "Assets/Resources/Prefabs/UIs/Roles/Retained/Interaction/RescueProgress.prefab";
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling) throw new InvalidOperationException("Editor must be idle.");
             if (AssetDatabase.LoadAssetAtPath<GameObject>(path) != null) throw new InvalidOperationException("Rescue progress prefab already exists; edit it directly.");
             var sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_ThirdParty/curtaincall_dayclock_v2.7/Assets/CurtainCallUI/DayClock/Sprites/ui_hud_dayclock_schedulefill_normal@2x.png");
@@ -44,7 +44,7 @@ namespace CurtainCall.UI.SceneIntegration.Editor
             SceneUiLayoutPreview.Stop();
             for (int i = 0; i < SceneManager.sceneCount; i++) if (SceneManager.GetSceneAt(i).isDirty) throw new InvalidOperationException("Save scene changes first.");
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(CommonInteractionUI.ScenePath) != null) throw new InvalidOperationException("Already installed; edit the scene instance.");
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Interaction/InteractionPrompt.prefab");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UIs/Roles/Retained/Interaction/InteractionPrompt.prefab");
             if (prefab == null) throw new InvalidOperationException("Tested C6 prefab is required.");
             var common = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Additive);
             SceneManager.SetActiveScene(common);

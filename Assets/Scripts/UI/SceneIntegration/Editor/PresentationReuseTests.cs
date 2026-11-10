@@ -53,10 +53,10 @@ namespace CurtainCall.UI.SceneIntegration.EditorTools.Tests
         [Test]
         public void PresentationHidesScoresWithoutOverwritingLocalBalanceOrSubscribingToRewards()
         {
-            var asset = Resources.Load<GameObject>("Prefabs/UIs/PerformanceHud/PerformanceHud");
+            var asset = Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/PerformanceHud/PerformanceHud");
             var hud = Object.Instantiate(asset, root.transform).GetComponent<PerformanceHUDView>();
             var local = Object.Instantiate(asset, root.transform).GetComponent<PerformanceHUDView>().Balance;
-            var cheer = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/CheerGauge/C1CheerGauge"), root.transform).GetComponent<C1CheerGaugeView>();
+            var cheer = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UIs/Roles/Retained/CheerGauge/C1CheerGauge"), root.transform).GetComponent<C1CheerGaugeView>();
             var common = root.AddComponent<CommonPerformanceUI>(); common.Configure(hud, cheer);
             binding.ConfigurePresentation(local);
             root.SetActive(true);
